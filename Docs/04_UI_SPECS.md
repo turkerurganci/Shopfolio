@@ -1,4 +1,4 @@
-# <PROJE> — UI Specifications
+# Shopfolio — UI Specifications
 
 **Versiyon: v0.1** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** YYYY-AA-GG
 
@@ -81,4 +81,4 @@
 
 ---
 
-*<PROJE> — UI Specifications v0.1*
+*Shopfolio — UI Specifications v0.1*

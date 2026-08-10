@@ -1,81 +1,46 @@
-# Project Playbook
+# Shopfolio
 
-**Fikirden çalışan MVP'ye, bir AI ajanıyla.** Uygulama- ve teknoloji-bağımsız bir GitHub template.
+Herhangi bir firmanın kendi ürünlerini sergileyip çevrimiçi satabileceği ve kurumsal tanıtımını yapabileceği; üyelik, Google/Facebook ile giriş, sipariş, ödeme ve sipariş takibi içeren web uygulaması.
 
-**Sürüm:** v1.1.0 · **Doküman dili:** Türkçe · **Kod dili:** İngilizce
-
----
-
-## Bu nedir
-
-Bir yazılım projesini fikir aşamasından çalışan bir MVP'ye taşıyan **tam bir çalışma sistemi**: 10 doküman üretim aşaması (13 doküman), faz bazlı implementasyon döngüsü, bağımsız doğrulama protokolü, MVP borç kapatma aşaması ve kapanış ritüeli — hepsi kapılarla, kayıtlarla ve `exit 1` veren mekanik katmanlarla birlikte.
-
-Bu bir "best practices" listesi değildir. Gerçek bir projede fikirden MVP'ye kadar **fiilen uygulanmış** bir yöntemin son hâlidir; buradaki her savunma katmanı, o projede gerçekleşmiş somut bir başarısızlığın karşılığıdır.
+**Doküman dili:** Türkçe · **Kod dili:** İngilizce
 
 ---
 
-## Neyi çözer
+## Durum
 
-Bir AI ajanıyla yazılım üretmenin iki büyük başarısızlık modu:
+> **Dönem: Doküman üretimi · Aşama 1 (Product Discovery)**
+>
+> Henüz uygulama kodu yok. Teknoloji yığını **bilinçli olarak seçilmedi** — o karar Aşama 4'e (`Docs/05_TECHNICAL_ARCHITECTURE.md`) aittir.
 
-1. **Belirsizlik** — ajan dokümanda olmayan bir kuralı uydurur, sessizce kapsam genişletir, "muhtemelen böyledir" diye ilerler.
-2. **Görünmez borç** — her adım tek başına yeşil görünürken bütün çürür: kırık CI'nin üstüne merge yapılır, bir task'ın kodu başkasının PR'ına gömülür, "sonra hallederiz" denen iş kaybolur.
-
-Playbook'un tamamı bu iki moda karşı kurulmuş kapılar ve kayıtlardan ibarettir.
-
----
-
-## Değişmez ilke
-
-> **Kapsam esner, kapı esnemez.**
-
-Küçük bir projede bir doküman bir sayfa olabilir — ama yazılır, izlenebilirlik matrisi kurulur, audit'i yapılır, gate'inden geçer. S/M/L "hafif mod" yoktur; ölçek bağımsızlığı adım atlayarak değil, adımları teknoloji ve domain'den arındırarak sağlanır.
+| | |
+|---|---|
+| Playbook sürümü | [project-playbook](https://github.com/turkerurganci/project-playbook) **v1.1.0** |
+| Kurulum | SETUP §1, §3, §5, §6, §7 tamam · §2, §4 Aşama 4'e ertelendi ([`DEFERRED_BACKLOG.md`](Docs/DEFERRED_BACKLOG.md) D-01) |
+| Dal koruma rejimi | **B — sistem-enforced** (ruleset aktif, `CI Gate` required) |
+| CI | İskelet yeşil, `SETUP_COMPLETE=false` — adımlar henüz komut çalıştırmıyor |
 
 ---
 
-## Hızlı başlangıç
+## Kapsam (fikir düzeyi)
 
-1. **Use this template** → yeni repo (temiz geçmişle doğar)
-2. [`SETUP.md`](SETUP.md)'yi baştan sona işlet — proje adı, teknoloji parametreleri, dal koruma rejimi, CI komutları, git hook'ları
-3. İlk oturumu [`.claude/checklists/document-stage.md`](.claude/checklists/document-stage.md) ile başlat (Aşama 1 — Product Discovery)
+Bu bir **jenerik / white-label** uygulamadır: belirli bir firmaya bağlı değildir, kurulan her örnek kendi ürün kataloğunu ve kurumsal içeriğini taşır.
 
----
+- Ürün listeleme ve ürün detayı
+- Firma tanıtımı / kurumsal sayfalar
+- Üyelik; Google veya Facebook hesabıyla giriş
+- Sipariş oluşturma
+- Ödeme
+- Sipariş takibi
 
-## Yapı
-
-```
-CLAUDE.md                    AI giriş noktası
-SETUP.md                     0. gün kurulum checklist'i
-
-Docs/
-  00_PROJECT_METHODOLOGY.md  ★ Sürecin kendisi — aşamalar, kapılar, konvansiyonlar
-  01…12                      Ürün/tasarım/teknik/plan doküman iskeletleri
-  IMPLEMENTATION_STATUS.md   Task durumu için tek otoriter kaynak
-  DEFERRED_BACKLOG.md        Ertelenen her işin tek listesi
-  DEBT_CLOSURE_PLAN.md       MVP borç kapatma iş paketleri
-  DEPLOY_RUNBOOK.md          Prod ayar/secret listesi
-  BYPASS_LOG.md              Disiplin bypass kayıtları (otomatik)
-  …_REPORTS/                 Kanıt arşivi + şablonlar
-
-.claude/
-  INSTRUCTIONS.md            Oturum davranışı
-  GUARDRAILS.md              Sınırlar ve yasaklar
-  CONTEXT.md                 Klasör haritası (dosya listesi değil)
-  skills/<ad>/SKILL.md       task · validate · gate-check · audit · deep-review
-                             cross-review · checkpoint · handoff  (slash command)
-  checklists/                Doküman üretim aşaması işletim checklist'i
-  memory/                    Proje hafızası + terfi kuralı
-  settings.json              Paylaşılan ajan ayarları (izlenir)
-  hooks/                     Opsiyonel oturum hook'ları (hatırlatıcı, L5 değil)
-
-scripts/git-hooks/           pre-commit (sır guard'ı) + commit-msg
-                             + pre-push (3 katman) + kurulum
-.github/                     CI iskeleti + PR şablonu
-```
+> Bunlar fikrin ham hâlidir, gereksinim değildir. Problem tanımı, hedef kullanıcı, kabul kriterleri ve MVP sınırı Aşama 1–10'da üretilir; **otoriter kaynak dokümanlardır**, bu liste değil.
 
 ---
 
-## Çekirdek döngü
+## Nasıl çalışılıyor
+
+Bu proje [Project Playbook](https://github.com/turkerurganci/project-playbook) v1.1.0 üzerine kuruludur: fikirden MVP'ye 10 doküman üretim aşaması, faz bazlı implementasyon döngüsü, bağımsız doğrulama protokolü ve `exit 1` veren mekanik kapılar.
+
+**Çekirdek döngü** — *yapan ≠ denetleyen*, her zaman:
 
 ```
 /task TXX      →  yapım chat'i (8 maddelik bitiş kapısı)
@@ -83,30 +48,28 @@ scripts/git-hooks/           pre-commit (sır guard'ı) + commit-msg
 /gate-check FX →  AYRI chat, faz kapanışı + öğrenim terfisi + backlog hijyeni
 ```
 
-**Yapan ≠ denetleyen.** Her zaman.
-
----
-
-## Öne çıkan mekanizmalar
-
-| Mekanizma | Ne yapar |
+| Nereye bakmalı | Ne için |
 |---|---|
-| **Başlangıç kapıları** | Kirli working tree, kurulmamış hook, kırık ana dal CI veya güncellenmemiş hafıza ile hiçbir oturum başlamaz |
-| **Dört katmanlı hook** | Sır sızıntısı · direct push · kırık CI üstüne push · bir task'ın kodunun başka bir PR'a gömülmesi — dördü de `exit 1` |
-| **Boot provası** | "Servisleri ayağa kaldır" test konfigürasyonuyla tatmin edilebilir; kapanışta **gerçek dağıtım konfigürasyonu** zorunludur |
-| **Dış varsayım ön-uçuş kontrolü** | Kod yazılmadan önce plan/sürüm/platform/sözleşme varsayımları **kanıtla** doğrulanır |
-| **Bitiş kapısı** | PR açılmadan, CI **sonuçlanmadan** ve hafıza güncellenmeden task "bitti" sayılmaz |
-| **Ertelenmiş işler backlog'u** | "Şimdi değil" kararı yazılmadan erteleme sayılmaz |
-| **MVP borç kapatma aşaması** | "Plandaki task'lar bitti" ≠ "MVP çalışıyor" — aradaki farkı kapatan isimlendirilmiş aşama |
-| **Öğrenim terfisi** | Bir faz, öğrenimi yazılmadan kapanmaz; tekrarlanacak dersler kurala dönüşür |
-| **Eksik komut kapısı** | Kurulum tamamlandı işaretlendikten sonra boş bırakılmış bir CI adımı sessizce geçemez |
+| [`CLAUDE.md`](CLAUDE.md) | AI giriş noktası — her oturumda okunacak dosyalar |
+| [`Docs/00_PROJECT_METHODOLOGY.md`](Docs/00_PROJECT_METHODOLOGY.md) | Sürecin kendisi: aşamalar, kapılar, konvansiyonlar |
+| [`Docs/PRODUCT_DISCOVERY_STATUS.md`](Docs/PRODUCT_DISCOVERY_STATUS.md) | Doküman üretim döneminin karar kaydı |
+| [`Docs/IMPLEMENTATION_STATUS.md`](Docs/IMPLEMENTATION_STATUS.md) | Task durumu için tek otoriter kaynak |
+| [`Docs/CI_CD_SETUP.md`](Docs/CI_CD_SETUP.md) | Pipeline, repo ayarları, dal koruma kanıtları |
+| [`SETUP.md`](SETUP.md) | 0. gün kurulum kaydı ve proje parametreleri |
 
 ---
 
-## Katkı ve sürümleme
+## Klonladıysanız: ilk iş
 
-Template kendi sürümünü taşır ([`CHANGELOG.md`](CHANGELOG.md)). Yeni projelerde ortaya çıkan öğrenimler buraya geri akar: bir projede kurala terfi eden bir ders, playbook'un bir sonraki sürümünde gün 0'da bulunur.
+```bash
+bash scripts/git-hooks/install.sh
+git config core.hooksPath          # beklenen: scripts/git-hooks
+```
+
+**Hook kurulmamış bir klonda sır guard'ı, bundled-PR kontrolü ve kırık-CI kontrolü yoktur.** Sunucu tarafındaki ruleset yalnız direct push'u ve force-push'u durdurur; diğer üç katman yalnız lokalde yaşar.
+
+---
 
 ## Lisans
 
-[MIT](LICENSE). "Use this template" ile doğan projeler serbestçe kullanır, değiştirir ve dağıtır.
+[MIT](LICENSE).

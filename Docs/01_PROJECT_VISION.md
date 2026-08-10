@@ -1,4 +1,4 @@
-# <PROJE> — Project Vision
+# Shopfolio — Project Vision
 
 **Versiyon: v0.1** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** YYYY-AA-GG
 
@@ -52,4 +52,4 @@
 
 ---
 
-*<PROJE> — Project Vision v0.1*
+*Shopfolio — Project Vision v0.1*

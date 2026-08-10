@@ -1,4 +1,4 @@
-# <PROJE> — Data Model
+# Shopfolio — Data Model
 
 **Versiyon: v0.1** | **Bağımlılıklar:** `02`, `03`, `05`, `09`, `10_MVP_SCOPE.md` | **Son güncelleme:** YYYY-AA-GG
 
@@ -88,4 +88,4 @@
 
 ---
 
-*<PROJE> — Data Model v0.1*
+*Shopfolio — Data Model v0.1*

@@ -1,4 +1,4 @@
-# <PROJE> — Validation Protocol
+# Shopfolio — Validation Protocol
 
 **Versiyon: v0.1** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** YYYY-AA-GG
 
@@ -268,4 +268,4 @@ Aynı ajan aynı task için iki rolü üstlenemez.
 
 ---
 
-*<PROJE> — Validation Protocol v0.1*
+*Shopfolio — Validation Protocol v0.1*

@@ -1,4 +1,4 @@
-# <PROJE> — User Flows
+# Shopfolio — User Flows
 
 **Versiyon: v0.1** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md` | **Son güncelleme:** YYYY-AA-GG
 
@@ -69,4 +69,4 @@
 
 ---
 
-*<PROJE> — User Flows v0.1*
+*Shopfolio — User Flows v0.1*

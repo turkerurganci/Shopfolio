@@ -18,11 +18,11 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 
 | Alan | Değer |
 |---|---|
-| Proje adı | `<SETUP'ta doldurulur>` |
-| Tek cümlelik tanım | `<SETUP'ta doldurulur>` |
-| Mevcut dönem | `<Doküman üretimi / Implementation / Borç kapatma / Kapanış>` |
-| Teknoloji yığını | `<SETUP'ta doldurulur>` |
-| Dal koruma rejimi | `<discipline-only / sistem-enforced — SETUP'ta belirlenir>` |
+| Proje adı | Shopfolio |
+| Tek cümlelik tanım | Herhangi bir firmanın kendi ürünlerini sergileyip çevrimiçi satabileceği ve kurumsal tanıtımını yapabileceği; üyelik, Google/Facebook ile giriş, sipariş, ödeme ve sipariş takibi içeren web uygulaması. |
+| Mevcut dönem | Doküman üretimi |
+| Teknoloji yığını | Aşama 4'te belirlenir → [`Docs/05_TECHNICAL_ARCHITECTURE.md`](../Docs/05_TECHNICAL_ARCHITECTURE.md) |
+| Dal koruma rejimi | **B — sistem-enforced** (ruleset aktif, `CI Gate` required; hook'lar da yerinde) |
 
 ---
 
@@ -92,7 +92,7 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 
 | Yol | Rol |
 |---|---|
-| `<SETUP'ta doldurulur>` | |
+| — | Kod klasörü henüz yok. Yığın Aşama 4'te seçilir; ilk klasörler Dönem 2'nin (implementation) ilk task'ında bu tabloya eklenir. |
 
 ---
 

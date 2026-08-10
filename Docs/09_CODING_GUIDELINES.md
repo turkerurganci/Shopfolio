@@ -1,4 +1,4 @@
-# <PROJE> — Coding Guidelines
+# Shopfolio — Coding Guidelines
 
 **Versiyon: v0.1** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** YYYY-AA-GG
 
@@ -137,4 +137,4 @@ Komutlar: `.github/ci-commands.env` · Kurulum: `Docs/CI_CD_SETUP.md`
 
 ---
 
-*<PROJE> — Coding Guidelines v0.1*
+*Shopfolio — Coding Guidelines v0.1*

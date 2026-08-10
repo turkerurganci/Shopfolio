@@ -1,4 +1,4 @@
-# <PROJE> — MVP Borç Kapatma Planı
+# Shopfolio — MVP Borç Kapatma Planı
 
 **Son güncelleme:** YYYY-AA-GG | **Durum:** ⬚ Henüz başlanmadı
 

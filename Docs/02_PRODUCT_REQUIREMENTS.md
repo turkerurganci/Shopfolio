@@ -1,4 +1,4 @@
-# <PROJE> — Product Requirements
+# Shopfolio — Product Requirements
 
 **Versiyon: v0.1** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** YYYY-AA-GG
 
@@ -82,4 +82,4 @@
 
 ---
 
-*<PROJE> — Product Requirements v0.1*
+*Shopfolio — Product Requirements v0.1*

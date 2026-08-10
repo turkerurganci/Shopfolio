@@ -1,6 +1,6 @@
-# <PROJE> — CI/CD Setup Kılavuzu
+# Shopfolio — CI/CD Setup Kılavuzu
 
-**Son güncelleme:** YYYY-AA-GG
+**Son güncelleme:** 2026-08-11
 
 > Workflow dosyaları sürüm kontrolündedir; **repo ayarları, secret'lar ve dal koruma kuralları platform arayüzünden/API'sinden manuel yapılır.** Bu doküman o manuel kısmın kaydıdır.
 
@@ -52,6 +52,24 @@ tüm zorunlu job'lar ─┘
 - PR başlığı/açıklaması varsayılan commit mesajı olarak kullanılır
 - Merge sonrası dal otomatik silinir
 
+**Uygulanan ayarlar (kurulum, 2026-08-11):**
+
+```
+$ gh repo edit turkerurganci/Shopfolio --enable-squash-merge \
+    --enable-merge-commit=false --enable-rebase-merge=false --delete-branch-on-merge
+$ gh repo view turkerurganci/Shopfolio --json squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed,deleteBranchOnMerge
+{"deleteBranchOnMerge":true,"mergeCommitAllowed":false,"rebaseMergeAllowed":false,"squashMergeAllowed":true}
+
+$ gh api -X PUT repos/turkerurganci/Shopfolio/actions/permissions/fork-pr-contributor-approval \
+    -f approval_policy=all_external_contributors
+$ gh api repos/turkerurganci/Shopfolio/actions/permissions/fork-pr-contributor-approval
+{"approval_policy":"all_external_contributors"}
+```
+
+> Fork PR onayı varsayılan olarak `first_time_contributors` geliyordu — repo public olduğu için bu, tanıdık olmayan her katkıcının workflow'u **otomatik** çalıştırabilmesi demekti. `all_external_contributors` ile dış katkıcıların tamamı manuel onaya bağlandı.
+>
+> Yayınlama yazma izni **açılmadı**: `publish.yml` henüz kullanılmıyor (`PUBLISH_CMD` boş). İzin, yayınlama gerçekten devreye alınırsa Aşama 4 sonrasında verilir.
+
 ### 3.2 Secret'lar
 
 | Secret | Ne için | Hangi task'ta gerekli olur |
@@ -81,6 +99,50 @@ tüm zorunlu job'lar ─┘
 > **Not:** Sistem-enforced rejimde bile hook'lar **kalır** — bundled-PR ve kırık-CI kontrolleri platform korumasında yoktur.
 
 > **Dış varsayım uyarısı:** Dal koruma özelliğinin mevcut plan/görünürlük kombinasyonunda kullanılabilir olduğu **kurulumda kanıtla doğrulanır** (00 §F.3). Bir referans projede bu varsayım implementasyon ortasında 403 ile çöktü ve rejim değişikliğine yol açtı.
+
+---
+
+#### Seçilen rejim: **B — Sistem-enforced** · karar 2026-08-11 (SETUP.md §3)
+
+**Ön-uçuş kanıtı** — plan/görünürlük kombinasyonu ruleset'i destekliyor mu:
+
+```
+$ gh repo view turkerurganci/Shopfolio --json visibility,isPrivate,defaultBranchRef
+{"defaultBranchRef":{"name":"main"},"isPrivate":false,"visibility":"PUBLIC"}
+
+$ gh api repos/turkerurganci/Shopfolio/rulesets
+[]                          <- HTTP 200. 403 YOK: endpoint bu repo icin erisilebilir.
+```
+
+**Uygulama kanıtı** — ruleset oluşturuldu ve geri okundu:
+
+```
+$ gh api -X POST repos/turkerurganci/Shopfolio/rulesets --input ruleset-main.json
+id: 20666567 | name: "main protection (Rejim B)" | target: branch | enforcement: active
+
+$ gh api repos/turkerurganci/Shopfolio/rulesets/20666567
+enforcement    : active
+bypass_actors  : 0 adet
+rules          : deletion, non_fast_forward, required_linear_history,
+                 pull_request, required_status_checks
+required check : CI Gate   (strict: true)
+onay sayisi    : 0
+```
+
+| Ayar | Beklenen (§3.3 tablosu) | Gerçekleşen |
+|---|---|---|
+| PR zorunlu | ✅ | `pull_request` kuralı aktif |
+| Gerekli onay sayısı | 0 | 0 |
+| Status check zorunlu | `CI Gate` | `CI Gate` |
+| Dal güncel olmalı (strict) | ✅ | `strict: true` |
+| Doğrusal geçmiş | ✅ | `required_linear_history` |
+| Force push / silme | ❌ | `non_fast_forward` + `deletion` |
+
+**Korunan dal:** `main` (`~DEFAULT_BRANCH` koşuluyla — dal yeniden adlandırılırsa koruma birlikte taşınır).
+
+**`bypass_actors` bilinçli olarak boş:** repo sahibi dâhil kimse muaf değil. Admin muafiyeti bırakmak, Rejim B'yi kâğıt üstünde bırakır — hook'u bypass edebilen kişi sunucu tarafını da bypass edebilirdi.
+
+**Hook'lar kaldırılmadı:** Layer 2 (kırık CI üstüne push) ve Layer 3 (bundled PR) kontrollerinin ruleset'te karşılığı yoktur; ikisi yalnız lokal hook'ta yaşar. Her yeni klonda `bash scripts/git-hooks/install.sh` çalıştırılmalıdır.
 
 ---
 

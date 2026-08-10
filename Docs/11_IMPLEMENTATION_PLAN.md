@@ -1,4 +1,4 @@
-# <PROJE> — Implementation Plan
+# Shopfolio — Implementation Plan
 
 **Versiyon: v0.1** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** YYYY-AA-GG
 
@@ -120,4 +120,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*<PROJE> — Implementation Plan v0.1*
+*Shopfolio — Implementation Plan v0.1*

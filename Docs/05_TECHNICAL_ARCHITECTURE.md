@@ -1,4 +1,4 @@
-# <PROJE> — Technical Architecture
+# Shopfolio — Technical Architecture
 
 **Versiyon: v0.1** | **Bağımlılıklar:** `01`, `02`, `03`, `04`, `10_MVP_SCOPE.md` | **Son güncelleme:** YYYY-AA-GG
 
@@ -84,4 +84,4 @@
 
 ---
 
-*<PROJE> — Technical Architecture v0.1*
+*Shopfolio — Technical Architecture v0.1*

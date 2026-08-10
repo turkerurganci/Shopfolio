@@ -1,6 +1,6 @@
-# <PROJE> — Product Discovery Status
+# Shopfolio — Product Discovery Status
 
-**Versiyon: v0.1** | **Son güncelleme:** YYYY-AA-GG
+**Versiyon: v0.1** | **Son güncelleme:** 2026-08-11
 
 > **Doküman üretim döneminin karar kaydıdır.** Her karar **alındığı anda** buraya yazılır — hiçbir karar kaybolmaz.
 > Bu dosya sürecin sonunda arşivlenir; alınan kararların nihai hâli `01`, `02` ve `10`'da yaşar.
@@ -64,4 +64,8 @@
 
 ## 6. Sonraki adımlar
 
-- [ ] …
+- [ ] **Aşama 1 — Product Discovery** oturumunu **ayrı bir chat'te** `.claude/checklists/document-stage.md` ile başlat → `01_PROJECT_VISION`, `02_PRODUCT_REQUIREMENTS`, `10_MVP_SCOPE`
+- [ ] `Docs/00_PROJECT_METHODOLOGY.md`'yi proje sahibiyle birlikte gözden geçir (SETUP §7'nin açık kalan maddesi — Aşama 1 oturumunun ilk işi)
+- [ ] Aşama 1'in cross-review turunu `cursor-agent` ile koş, çıktıyı `Docs/CROSS_REVIEW_REPORTS/` altına yaz
+
+> **Kurulum notu (2026-08-11).** Bu dosya kurulumda açıldı; §1 tablosu hazır, §2–§5 bilinçli olarak **boş**. Kurulum kararları (proje adı, dal koruma rejimi, ikinci AI, §2/§4 ertelemesi) buraya kopyalanmadı — evleri `SETUP.md` parametre tablosu, `CI_CD_SETUP.md §3.3` ve `DEFERRED_BACKLOG.md` D-01'dir. Bu dosyanın §2'si **ürün** kararlarının kaydıdır ve ilk satırını Aşama 1'de alır.

@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+# Project Playbook pre-commit hook — secret guard.
+#
+# The rule "secrets are never committed" is declared in several places
+# (GUARDRAILS, methodology mini security check, PR template). This hook is
+# its `exit 1` counterpart: it inspects what is ACTUALLY staged.
+#
+# Layer 1 (path)    — a staged path looks like a secret file
+# Layer 2 (content) — staged content contains a private key block, or assigns
+#                     a real-looking value to a known secret key name
+#
+# Deliberately generic: no domain- or vendor-specific patterns. Project
+# specifics go in scripts/git-hooks/hooks.config, not here.
+#
+# Bypass: PB_ALLOW_SECRET=1 PB_BYPASS_REASON="..." git commit -m "..."
+
+set -uo pipefail
+
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+[ -f "$HOOK_DIR/hooks.config" ] && . "$HOOK_DIR/hooks.config"
+
+# Paths that must never be committed. Extend via hooks.config.
+SECRET_PATHS="${PB_SECRET_PATHS:-}"
+DEFAULT_SECRET_PATHS='(^|/)\.env($|\.)|(^|/)secrets/|\.pem$|\.p12$|\.pfx$|\.keystore$|(^|/)id_rsa($|\.)|(^|/)id_ed25519($|\.)'
+
+# Key names whose assignment to a real value is blocked. Extend via hooks.config.
+SECRET_KEYS="${PB_SECRET_KEYS:-}"
+DEFAULT_SECRET_KEYS='(SECRET|PASSWORD|PASSWD|API_?KEY|ACCESS_?KEY|PRIVATE_?KEY|TOKEN|CLIENT_?SECRET|CONNECTION_?STRING)'
+
+# Values that are obviously not real secrets.
+PLACEHOLDER='^[[:space:]]*("|'"'"')?(<[^>]*>|\$\{[^}]*\}|changeme|change_me|xxx+|todo|placeholder|your[-_].*|example|dummy|\*+|)("|'"'"')?[[:space:]]*$'
+
+log_bypass() {
+  local repo_root log_file timestamp git_user reason note="$1"
+  repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || return 0
+  log_file="$repo_root/Docs/BYPASS_LOG.md"
+  [ -f "$log_file" ] || return 0
+  timestamp="$(date -u '+%Y-%m-%d %H:%M UTC')"
+  git_user="$(git config user.name || echo 'unknown')"
+  reason="${PB_BYPASS_REASON:-*(sebep belirtilmedi)*}"
+  echo "| $timestamp | $git_user | $(git symbolic-ref --short HEAD 2>/dev/null || echo '-') | (pre-commit) | **[secret]** $reason — $note |" >> "$log_file"
+  echo "BYPASS LOG: Docs/BYPASS_LOG.md'ye kayit eklendi (secret)." >&2
+}
+
+STAGED="$(git diff --cached --name-only --diff-filter=ACM || true)"
+[ -n "$STAGED" ] || exit 0
+
+FINDINGS=""
+# SAFE_SUMMARY never contains matched content — it is written to a tracked log
+# file. Echoing the secret into Docs/BYPASS_LOG.md would commit the very thing
+# this hook exists to stop.
+SAFE_SUMMARY=""
+add_finding() {
+  # $1 = detailed message (stderr only), $2 = redacted summary (log-safe)
+  FINDINGS="${FINDINGS}  - $1"$'\n'
+  SAFE_SUMMARY="${SAFE_SUMMARY:+$SAFE_SUMMARY; }$2"
+}
+
+# --- Layer 1: path check ----------------------------------------------------
+while IFS= read -r path; do
+  [ -n "$path" ] || continue
+  # The template file is the one thing we DO track.
+  case "$path" in
+    *.env.example|*.env.sample|*/secrets/README.md|secrets/README.md) continue ;;
+  esac
+  if echo "$path" | grep -qE "$DEFAULT_SECRET_PATHS"; then
+    add_finding "yol: $path (sir dosyasi deseni)" "yol:$path"
+  elif [ -n "$SECRET_PATHS" ] && echo "$path" | grep -qE "$SECRET_PATHS"; then
+    add_finding "yol: $path (PB_SECRET_PATHS deseni)" "yol:$path"
+  fi
+done <<< "$STAGED"
+
+# --- Layer 2: content check -------------------------------------------------
+KEY_RE="$DEFAULT_SECRET_KEYS"
+[ -n "$SECRET_KEYS" ] && KEY_RE="($DEFAULT_SECRET_KEYS|$SECRET_KEYS)"
+
+while IFS= read -r path; do
+  [ -n "$path" ] || continue
+  case "$path" in
+    *.env.example|*.env.sample) continue ;;
+    # This hook itself and its docs describe the patterns on purpose.
+    scripts/git-hooks/pre-commit|scripts/git-hooks/README.md) continue ;;
+  esac
+  # Only added lines, and skip binaries.
+  added="$(git diff --cached -U0 -- "$path" 2>/dev/null | grep -E '^\+[^+]' || true)"
+  [ -n "$added" ] || continue
+
+  if echo "$added" | grep -qE 'BEGIN ([A-Z ]+ )?PRIVATE KEY'; then
+    add_finding "icerik: $path — private key blogu" "private-key:$path"
+  fi
+
+  while IFS= read -r line; do
+    body="${line#+}"
+    echo "$body" | grep -qiE "$KEY_RE" || continue
+    # Grab whatever is on the right-hand side of = or :
+    value="$(echo "$body" | sed -E 's/^[^=:]*[=:][[:space:]]*//')"
+    echo "$value" | grep -qiE "$PLACEHOLDER" && continue
+    # Ignore prose/markdown and code that merely names the key.
+    echo "$body" | grep -qE '^[[:space:]]*(#|//|\*|>|\|)' && continue
+    [ "${#value}" -lt 8 ] && continue
+    add_finding "icerik: $path — sir anahtarina gercek deger atamasi: $(echo "$body" | cut -c1-60)" "anahtar-atamasi:$path"
+    break
+  done <<< "$added"
+done <<< "$STAGED"
+
+[ -n "$FINDINGS" ] || exit 0
+
+if [ "${PB_ALLOW_SECRET:-0}" = "1" ]; then
+  log_bypass "$SAFE_SUMMARY"
+  echo "WARN: PB_ALLOW_SECRET=1 — sir guard bulgulari yok sayildi." >&2
+  exit 0
+fi
+
+cat <<EOF >&2
+
+==============================================================================
+HATA: Sir guard staged degisiklikte sir tespit etti (pre-commit).
+==============================================================================
+
+$FINDINGS
+Sir degerleri repo'ya girmez. Repo yalniz SABLONU izler (.env.example).
+
+Cozumler:
+  1. Dosyayi staged'den cikar:      git restore --staged <dosya>
+  2. .gitignore'a ekle (SETUP §2):  .env / .env.* / !.env.example
+  3. Gercek degeri sablondan cikar, yerine <PLACEHOLDER> yaz
+  4. Deger zaten commit'lendiyse:   sirri DONDUR, gecmisi temizlemek yetmez
+
+Yanlis pozitif ise: anahtar adini veya yolu hooks.config'te daralt
+  (PB_SECRET_KEYS / PB_SECRET_PATHS), ya da placeholder bicimi kullan.
+
+Acil durum bypass (BYPASS_LOG'a kayit dusulur):
+  PB_ALLOW_SECRET=1 PB_BYPASS_REASON="aciklama" git commit -m "..."
+
+==============================================================================
+
+EOF
+exit 1

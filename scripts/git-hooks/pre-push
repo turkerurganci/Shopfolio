@@ -1,0 +1,202 @@
+#!/usr/bin/env bash
+# Project Playbook pre-push hook — three defence layers.
+#
+# Layer 1: direct push to a protected branch          -> BLOCK
+# Layer 2: pushed branch's last CI run failed         -> BLOCK
+# Layer 3: task/TXX-* branch carries a foreign TXX    -> BLOCK  (bundled-PR guard)
+#
+# Bypass (think twice; every bypass is logged automatically):
+#   PB_ALLOW_DIRECT_PUSH=1  -> Layer 1 + Layer 2
+#   PB_ALLOW_BUNDLED=1      -> Layer 3
+#   PB_BYPASS_REASON="..."  -> reason recorded in Docs/BYPASS_LOG.md
+#
+# Install: bash scripts/git-hooks/install.sh
+# Config:  scripts/git-hooks/hooks.config (optional overrides)
+
+set -e
+
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+[ -f "$HOOK_DIR/hooks.config" ] && . "$HOOK_DIR/hooks.config"
+
+PROTECTED_BRANCHES="${PB_PROTECTED_BRANCHES:-main}"
+TASK_PREFIX="${PB_TASK_BRANCH_PREFIX:-task/}"
+# Matches T1, T14, T11.2, T63a — keep in sync with commit-msg hook.
+TXX_PATTERN='^T[0-9]+(\.[0-9]+)?[a-z]?'
+
+log_bypass() {
+  # $1 = branch, $2 = kind (direct-push | ci-failure | bundled-pr), $3 = extra note
+  #
+  # The commit recorded is the tip of the ref BEING PUSHED ($pushing_oid, read
+  # from stdin by the loop below) — not HEAD. Pushing a branch you are not
+  # standing on is ordinary: `git push origin main` from a topic branch, or a
+  # bootstrap push to a brand-new remote. Recording HEAD there names a commit
+  # that never crossed the gate, and a bypass entry whose only job is to say
+  # WHICH commit skipped the gate is worthless if it names the wrong one.
+  local branch="$1" kind="$2" note="${3:-}"
+  local repo_root log_file timestamp git_user short_sha reason
+  repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || return 0
+  log_file="$repo_root/Docs/BYPASS_LOG.md"
+  [ -f "$log_file" ] || return 0
+  timestamp="$(date -u '+%Y-%m-%d %H:%M UTC')"
+  git_user="$(git config user.name || echo 'unknown')"
+  short_sha="$(git rev-parse --short "${pushing_oid:-HEAD}" 2>/dev/null || echo 'unknown')"
+  reason="${PB_BYPASS_REASON:-*(sebep belirtilmedi)*}"
+  echo "| $timestamp | $git_user | $branch | \`$short_sha\` | **[$kind]** $reason $note |" >> "$log_file"
+  echo "BYPASS LOG: Docs/BYPASS_LOG.md'ye kayit eklendi ($kind)." >&2
+  echo "  Bir sonraki normal commit'te bu dosyayi da commit'le." >&2
+}
+
+check_ci_status() {
+  # $1 = branch name. Echoes: success | failure | none | skip
+  local branch="$1" result conclusion status
+
+  command -v gh >/dev/null 2>&1 || { echo "skip"; return 0; }
+  gh auth status >/dev/null 2>&1 || { echo "skip"; return 0; }
+
+  result="$(gh run list --branch "$branch" --limit 1 --json conclusion,status 2>/dev/null || echo '[]')"
+  if [ "$result" = "[]" ] || [ -z "$result" ]; then echo "none"; return 0; fi
+
+  # Parse without a jq dependency.
+  conclusion="$(echo "$result" | grep -o '"conclusion":"[^"]*"' | head -1 | cut -d'"' -f4)"
+  status="$(echo "$result" | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)"
+
+  [ "$status" = "completed" ] || { echo "none"; return 0; }
+
+  case "$conclusion" in
+    success)                                                    echo "success" ;;
+    failure|cancelled|timed_out|action_required|startup_failure) echo "failure" ;;
+    *)                                                          echo "none" ;;
+  esac
+}
+
+while read -r _local_ref pushing_oid remote_ref _remote_oid; do
+  pushing_branch="${remote_ref#refs/heads/}"
+
+  # --- Layer 1: protected branch direct push -------------------------------
+  for branch in $PROTECTED_BRANCHES; do
+    [ "$remote_ref" = "refs/heads/$branch" ] || continue
+    if [ "${PB_ALLOW_DIRECT_PUSH:-0}" = "1" ]; then
+      log_bypass "$branch" "direct-push"
+      echo "WARN: PB_ALLOW_DIRECT_PUSH=1 — '$branch' direct push'una izin verildi." >&2
+      echo "      Bu commit CI'dan gecmedi." >&2
+    else
+      cat <<EOF >&2
+
+==============================================================================
+HATA: '$branch' dalina direct push engellendi (pre-push Layer 1).
+==============================================================================
+
+Korunan dallar: $PROTECTED_BRANCHES
+
+Tum '$branch' degisiklikleri PR + CI uzerinden gitmelidir:
+  1. Dal ac:          git checkout -b ${TASK_PREFIX}TXX-aciklama
+  2. Commit:          git commit -m "TXX: ..."
+  3. Push:            git push -u origin ${TASK_PREFIX}TXX-aciklama
+  4. PR ac:           gh pr create --base $branch
+  5. CI yesil + bagimsiz validator PASS
+  6. Squash merge:    gh pr merge <PR-no> --squash
+
+Acil durum bypass (kullanmadan iki kez dusun, BYPASS_LOG'a kayit dusulur):
+  PB_ALLOW_DIRECT_PUSH=1 PB_BYPASS_REASON="aciklama" git push origin $branch
+
+==============================================================================
+
+EOF
+      exit 1
+    fi
+  done
+
+  # --- Layer 2: CI guard ----------------------------------------------------
+  ci_result="$(check_ci_status "$pushing_branch")"
+  case "$ci_result" in
+    success|none) : ;;
+    skip)
+      echo "WARN: gh CLI yok veya auth yok — CI guard atlandi (dal: $pushing_branch)." >&2
+      ;;
+    failure)
+      if [ "${PB_ALLOW_DIRECT_PUSH:-0}" = "1" ]; then
+        log_bypass "$pushing_branch" "ci-failure"
+        echo "WARN: Son CI run failure — PB_ALLOW_DIRECT_PUSH=1 ile gecildi." >&2
+      else
+        cat <<EOF >&2
+
+==============================================================================
+HATA: CI guard '$pushing_branch' dalina push'u engelledi (pre-push Layer 2).
+==============================================================================
+
+Bu dalin son CI run'i failure/cancelled/timed_out.
+Kirik CI uzerine is yigmak, disiplinin sessizce dusmesinin en yaygin yoludur.
+
+Cozum:
+  1. gh run list --branch $pushing_branch --limit 5
+  2. Root cause'u coz, yeniden push et
+  3. Kirilma baska bir PR'dan geliyorsa once onu yesillendir
+
+Acil durum bypass (BYPASS_LOG'a kayit dusulur):
+  PB_ALLOW_DIRECT_PUSH=1 PB_BYPASS_REASON="aciklama" git push origin $pushing_branch
+
+==============================================================================
+
+EOF
+        exit 1
+      fi
+      ;;
+  esac
+
+  # --- Layer 3: task branch isolation --------------------------------------
+  case "$pushing_branch" in
+    "${TASK_PREFIX}"T*)
+      branch_txx="$(echo "${pushing_branch#$TASK_PREFIX}" | sed -nE 's|^(T[0-9]+(\.[0-9]+)?[a-z]?).*$|\1|p')"
+      [ -n "$branch_txx" ] || continue
+
+      base_branch="$(echo "$PROTECTED_BRANCHES" | awk '{print $1}')"
+      found_txx="$(git log "$base_branch..HEAD" --format='%s' 2>/dev/null | grep -oE "$TXX_PATTERN" | sort -u || true)"
+
+      invalid_txx=""
+      for txx in $found_txx; do
+        [ "$txx" = "$branch_txx" ] && continue
+        invalid_txx="${invalid_txx:+$invalid_txx }$txx"
+      done
+      [ -n "$invalid_txx" ] || continue
+
+      if [ "${PB_ALLOW_BUNDLED:-0}" = "1" ]; then
+        log_bypass "$pushing_branch" "bundled-pr" "— yabanci TXX: $invalid_txx"
+        echo "WARN: PB_ALLOW_BUNDLED=1 — yabanci TXX ($invalid_txx) izin verildi." >&2
+      else
+        cat <<EOF >&2
+
+==============================================================================
+HATA: Dal izolasyon kontrolu basarisiz (pre-push Layer 3).
+==============================================================================
+
+Dal:          $pushing_branch (task: $branch_txx)
+Yabanci TXX:  $invalid_txx
+
+Bu dal, kendi task'i disinda bir task'a ait commit(ler) iceriyor.
+Bir task'in kodunun baska bir task'in PR'ina gomulmesi, o task'in hic
+bagimsiz dogrulanmamasi demektir.
+
+Cozum:
+  git log $base_branch..HEAD --oneline     # yabanci commit'leri gor
+  git rebase -i $base_branch               # kaldir veya ayri dala tasi
+
+Veya yabanci commit'leri yeni bir dala tasi:
+  git checkout -b ${TASK_PREFIX}<yabanci-TXX>-aciklama $base_branch
+  git cherry-pick <sha>
+  git checkout $pushing_branch
+  git rebase -i $base_branch
+
+Acil durum bypass (BYPASS_LOG'a kayit dusulur):
+  PB_ALLOW_BUNDLED=1 PB_BYPASS_REASON="aciklama" git push origin $pushing_branch
+
+==============================================================================
+
+EOF
+        exit 1
+      fi
+      ;;
+  esac
+done
+
+exit 0

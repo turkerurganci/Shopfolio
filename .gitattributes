@@ -1,0 +1,24 @@
+# Line endings are normalised to LF everywhere.
+#
+# This is not cosmetic: the git hooks and .github/ci-run.sh are bash scripts.
+# A CRLF checkout makes the shebang line `#!/usr/bin/env bash\r`, which fails
+# on Linux CI runners and in git-bash with a confusing "bad interpreter" error.
+# Forcing LF in the working tree too keeps Windows clones runnable.
+
+* text=auto eol=lf
+
+# Explicit for the executable surface — never let a core.autocrlf setting win.
+*.sh                         text eol=lf
+scripts/git-hooks/pre-commit text eol=lf
+scripts/git-hooks/pre-push   text eol=lf
+scripts/git-hooks/commit-msg text eol=lf
+*.yml                       text eol=lf
+*.yaml                      text eol=lf
+*.env                       text eol=lf
+
+# Binaries — add project-specific types in SETUP §2.
+*.png  binary
+*.jpg  binary
+*.gif  binary
+*.pdf  binary
+*.ico  binary

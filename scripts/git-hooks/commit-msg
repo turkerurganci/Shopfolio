@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Project Playbook commit-msg hook — task branch isolation at commit time.
+#
+# On a task/TXX-* branch every commit subject must belong to that branch's TXX.
+# This is the primary defence; pre-push Layer 3 is the last check before push.
+#
+# Convention:
+#   - "TXX: ..." / "TXX.Y: ..." / "TXXa: ..."  -> claims a task
+#   - "chore:" / "docs:" / "fix:" / "infra:"    -> claims no task, not counted
+#   - "see also TXX" inside the body            -> not counted (anchored to ^)
+#
+# Bypass: PB_ALLOW_BUNDLED=1 PB_BYPASS_REASON="..." git commit -m "..."
+
+set -e
+
+COMMIT_MSG_FILE="$1"
+[ -n "$COMMIT_MSG_FILE" ] && [ -f "$COMMIT_MSG_FILE" ] || exit 0
+
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+[ -f "$HOOK_DIR/hooks.config" ] && . "$HOOK_DIR/hooks.config"
+
+PROTECTED_BRANCHES="${PB_PROTECTED_BRANCHES:-main}"
+TASK_PREFIX="${PB_TASK_BRANCH_PREFIX:-task/}"
+TXX_PATTERN='^T[0-9]+(\.[0-9]+)?[a-z]?'
+BASE_BRANCH="$(echo "$PROTECTED_BRANCHES" | awk '{print $1}')"
+
+CURRENT_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || echo '')"
+[ -n "$CURRENT_BRANCH" ] || exit 0
+
+case "$CURRENT_BRANCH" in
+  "${TASK_PREFIX}"T*) : ;;
+  *) exit 0 ;;
+esac
+
+BRANCH_TXX="$(echo "${CURRENT_BRANCH#$TASK_PREFIX}" | sed -nE 's|^(T[0-9]+(\.[0-9]+)?[a-z]?).*$|\1|p')"
+[ -n "$BRANCH_TXX" ] || exit 0
+
+# First meaningful line of the message (skip comments and blanks).
+NEW_SUBJECT="$(grep -v '^#' "$COMMIT_MSG_FILE" 2>/dev/null | sed '/^[[:space:]]*$/d' | head -n 1 || echo '')"
+
+case "$NEW_SUBJECT" in
+  Merge*) exit 0 ;;
+esac
+
+EXISTING_SUBJECTS="$(git log "$BASE_BRANCH..HEAD" --format='%s' 2>/dev/null || echo '')"
+ALL_SUBJECTS="$(printf '%s\n%s\n' "$NEW_SUBJECT" "$EXISTING_SUBJECTS")"
+FOUND_TXX="$(echo "$ALL_SUBJECTS" | grep -oE "$TXX_PATTERN" | sort -u || true)"
+
+INVALID_TXX=""
+for txx in $FOUND_TXX; do
+  [ "$txx" = "$BRANCH_TXX" ] && continue
+  INVALID_TXX="${INVALID_TXX:+$INVALID_TXX }$txx"
+done
+
+[ -n "$INVALID_TXX" ] || exit 0
+
+if [ "${PB_ALLOW_BUNDLED:-0}" = "1" ]; then
+  REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+  LOG_FILE="$REPO_ROOT/Docs/BYPASS_LOG.md"
+  if [ -f "$LOG_FILE" ]; then
+    TIMESTAMP="$(date -u '+%Y-%m-%d %H:%M UTC')"
+    GIT_USER="$(git config user.name || echo 'unknown')"
+    REASON="${PB_BYPASS_REASON:-*(sebep belirtilmedi)*}"
+    echo "| $TIMESTAMP | $GIT_USER | $CURRENT_BRANCH | (commit-msg) | **[bundled-pr]** $REASON — yabanci TXX: $INVALID_TXX |" >> "$LOG_FILE"
+    echo "BYPASS LOG: Docs/BYPASS_LOG.md'ye kayit eklendi (bundled-pr)." >&2
+  fi
+  echo "WARN: PB_ALLOW_BUNDLED=1 — yabanci TXX ($INVALID_TXX) izin verildi." >&2
+  exit 0
+fi
+
+cat <<EOF >&2
+
+==============================================================================
+HATA: Dal izolasyon kontrolu basarisiz (commit-msg hook).
+==============================================================================
+
+Dal:           $CURRENT_BRANCH (task: $BRANCH_TXX)
+Yabanci TXX:   $INVALID_TXX
+Yeni subject:  $NEW_SUBJECT
+
+Bu dalda, kendi task'i ($BRANCH_TXX) disinda bir task'a ait commit
+yapilmaya calisiliyor. Bundled commit, o task'in hic bagimsiz
+dogrulanmamasi demektir.
+
+Cozumler:
+
+  1. Yanlis daldasin — dogru task dalina gec:
+       git stash
+       git checkout -b ${TASK_PREFIX}$INVALID_TXX-aciklama $BASE_BRANCH
+       git stash pop
+       git commit -m "..."
+
+  2. Bu commit aslinda $BRANCH_TXX'e ait — subject'i duzelt:
+       git commit -m "$BRANCH_TXX: ..."
+
+  3. Dalda zaten yabanci TXX commit'i var — temizle:
+       git log $BASE_BRANCH..HEAD --oneline
+       git rebase -i $BASE_BRANCH
+
+Acil durum bypass (BYPASS_LOG'a kayit dusulur):
+  PB_ALLOW_BUNDLED=1 PB_BYPASS_REASON="aciklama" git commit -m "..."
+
+==============================================================================
+
+EOF
+exit 1

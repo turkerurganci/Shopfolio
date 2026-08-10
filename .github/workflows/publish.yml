@@ -1,0 +1,33 @@
+name: Publish
+
+# Ana dala merge sonrasi artifact yayinlama (image, paket, vb.).
+# PR'larda calismaz — ci.yml "7. Paketleme dogrulamasi" zaten build'i dogrular.
+#
+# Bu workflow'un varligi bilinclidir: ayni ref'e bagli IKINCI bir workflow,
+# "post-merge CI watch" disiplininin (00 §F.4) gercek testidir — bir merge'de
+# tum workflow'larin conclusion'i beklenir, biri success digeri devam ederken
+# "bitti" denmez.
+#
+# Projede yayinlanacak artifact yoksa bu dosya SILINIR (SETUP.md §4).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # SETUP.md §4: registry login / auth adimlarini buraya ekleyin.
+      - run: bash .github/ci-run.sh PUBLISH_CMD "Publish"

@@ -1,0 +1,154 @@
+name: CI
+
+# Playbook CI iskeleti.
+#   - Adim ISIMLERI, SIRASI ve KAPILAR sabittir.
+#   - KOMUTLAR .github/ci-commands.env'de (SETUP.md §4).
+#   - Bos komut: SETUP_COMPLETE=false iken uyari, true iken FAIL (ci-run.sh).
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # --------------------------------------------------------------------------
+  # 0. Guard — direct push detection (server-side defence-in-depth)
+  #
+  # Yalniz push event'lerinde calisir. Squash merge commit mesajlari "(#NN)"
+  # icerdiginden otomatik gecer. Direct push'lar (hook yoksa veya bypass
+  # edildiyse) burada kirmizi yanar. Push zaten gerceklesmistir — amaci
+  # ENGELLEMEK degil, GORUNUR IZ birakmaktir.
+  # Acil bypass: commit mesajina [skip-guard].
+  # --------------------------------------------------------------------------
+  guard-direct-push:
+    name: 0. Guard (direct push)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+      - name: Check for PR merge reference
+        run: |
+          MSG=$(git log -1 --format=%B HEAD)
+          echo "Commit message: $MSG"
+          if echo "$MSG" | grep -qE '\(#[0-9]+\)'; then
+            echo "OK: commit mesajinda PR referansi var — squash merge."
+          elif echo "$MSG" | grep -q '\[skip-guard\]'; then
+            echo "::warning title=Guard Bypass::[skip-guard] override tespit edildi."
+          else
+            echo "::error title=Direct Push::Bu commit PR olmadan dogrudan push edildi."
+            echo "Tum degisiklikler PR + CI uzerinden gitmelidir."
+            echo "Bypass: commit mesajina [skip-guard] ekleyin (acil durum)."
+            exit 1
+          fi
+
+  lint:
+    name: 1. Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # SETUP.md §4: dil/runtime kurulum adimlarini buraya ekleyin.
+      - run: bash .github/ci-run.sh LINT_CMD "1. Lint"
+
+  build:
+    name: 2. Build
+    needs: [lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash .github/ci-run.sh BUILD_CMD "2. Build"
+
+  unit-test:
+    name: 3. Unit test
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash .github/ci-run.sh UNIT_TEST_CMD "3. Unit test"
+
+  integration-test:
+    name: 4. Integration test
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash .github/ci-run.sh INTEGRATION_TEST_CMD "4. Integration test"
+
+  contract-test:
+    name: 5. Contract test
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash .github/ci-run.sh CONTRACT_TEST_CMD "5. Contract test"
+
+  migration-dry-run:
+    name: 6. Migration dry-run
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash .github/ci-run.sh MIGRATION_DRYRUN_CMD "6. Migration dry-run"
+
+  package-build:
+    name: 7. Paketleme dogrulamasi
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash .github/ci-run.sh PACKAGE_BUILD_CMD "7. Paketleme"
+
+  # --------------------------------------------------------------------------
+  # 8. E2E — advisory.
+  #
+  # continue-on-error + ci-gate.needs DISINDA: flaky bir E2E run'i merge'u
+  # bloklamaz. Buna karsilik E2E harness KODU "1. Lint" ve "2. Build"
+  # adimlarinda bloke-edicidir — yani harness curuyemez, yalniz calistirma
+  # advisory'dir. Bu bilincli bir tercihtir; degistirilecekse gerekcesi
+  # gate raporuna yazilir.
+  # --------------------------------------------------------------------------
+  e2e:
+    name: 8. E2E (advisory)
+    needs: [build]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash .github/ci-run.sh E2E_CMD "8. E2E"
+
+  # --------------------------------------------------------------------------
+  # CI Gate — tek toplu kapi. Dal korumasi (varsa) bu job'u required isaretler.
+  # --------------------------------------------------------------------------
+  ci-gate:
+    name: CI Gate
+    if: always()
+    needs:
+      - guard-direct-push
+      - lint
+      - build
+      - unit-test
+      - integration-test
+      - contract-test
+      - migration-dry-run
+      - package-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate results
+        run: |
+          RESULTS='${{ toJSON(needs) }}'
+          echo "$RESULTS"
+          # 'skipped' kabul edilir (guard yalniz push'ta calisir).
+          if echo "$RESULTS" | grep -qE '"result": *"(failure|cancelled)"'; then
+            echo "::error title=CI Gate::En az bir job basarisiz."
+            exit 1
+          fi
+          echo "CI Gate: tum zorunlu job'lar gecti."

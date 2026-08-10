@@ -1,0 +1,30 @@
+# Arkeoloji çalışma dosyaları — kaynak projeye ait referanslar içerir,
+# public template'e ASLA girmez.
+_archaeology/
+
+# --- Sırlar ------------------------------------------------------------------
+# Repo yalnız ŞABLONU izler; değerler asla commit'lenmez.
+# İkinci savunma hattı: scripts/git-hooks/pre-commit (commit anında tarar).
+.env
+.env.*
+!.env.example
+
+# Projeye özgü sır dosyası desenleri SETUP §2'de buraya eklenir
+# (ör. sertifika/anahtar dosyaları, sağlayıcıya özgü kimlik dosyaları).
+
+# --- Editör / OS -------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# --- AI oturum artifact'ları -------------------------------------------------
+.claude/settings.local.json
+.claude/hooks/*.log
+.claude/scheduled_tasks.lock
+
+# --- Projeye özgü -----------------------------------------------------------
+# Bağımlılık klasörleri, derleme çıktısı, log/coverage/test sonucu ve IDE
+# artifact'ları SETUP §2'de buraya eklenir — yığına bağlıdır.

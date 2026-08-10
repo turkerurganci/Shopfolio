@@ -1,4 +1,4 @@
-# <PROJE> — Status Changelog
+# Shopfolio — Status Changelog
 
 > [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md)'nin **tarihsel arşivi**.
 >

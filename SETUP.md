@@ -13,13 +13,13 @@
 
 ## 1. Proje kimliği
 
-- [ ] Repo adı ve görünürlüğü belirlendi
-- [ ] `<PROJE>` yer tutucusu tüm dokümanlarda gerçek proje adıyla değiştirildi
+- [x] Repo adı ve görünürlüğü belirlendi — `turkerurganci/Shopfolio`, **public**
+- [x] `<PROJE>` yer tutucusu tüm dokümanlarda gerçek proje adıyla değiştirildi — 20 dosyada 32 geçiş
       ```bash
       grep -rl '<PROJE>' Docs/ .claude/ | xargs sed -i 's/<PROJE>/GerçekAd/g'
       ```
-- [ ] `.claude/CONTEXT.md` §1 dolduruldu (ad, tek cümlelik tanım, dönem)
-- [ ] `.claude/memory/MEMORY.md` "Proje Özeti" dolduruldu
+- [x] `.claude/CONTEXT.md` §1 dolduruldu (ad, tek cümlelik tanım, dönem)
+- [x] `.claude/memory/MEMORY.md` "Proje Özeti" dolduruldu
 
 **Dil (değişmez, parametre değil):** Dokümanlar Türkçe · Kod ve kod yorumları İngilizce.
 
@@ -47,15 +47,15 @@
 
 > ⚠️ Bu adım bir **ön-uçuş kontrolüdür** (00 §F.3). Bir referans projede "dal koruması aktifleştirilebilir" varsayımı implementasyonun ortasında 403 ile çöktü ve rejim değişikliğine, birden fazla düzeltme commit'ine ve yeniden doğrulamaya yol açtı.
 
-- [ ] **Plan / görünürlük kombinasyonu kontrol edildi:** Kullanılan git platformunda, bu repo'nun planı ve görünürlüğüyle dal koruma özelliği kullanılabilir mi?
-- [ ] **Kanıt kaydedildi** (komut çıktısı veya resmî doküman bağlantısı) → `Docs/CI_CD_SETUP.md` §3.3
+- [x] **Plan / görünürlük kombinasyonu kontrol edildi:** GitHub, public repo — `gh api repos/turkerurganci/Shopfolio/rulesets` HTTP 200 döndü (403 yok)
+- [x] **Kanıt kaydedildi** (komut çıktısı veya resmî doküman bağlantısı) → `Docs/CI_CD_SETUP.md` §3.3
 
 **Rejim seçimi:**
 
 - [ ] **A — Discipline-only** (dal koruması yok/erişilemez): hook'lar + CI guard job + manuel disiplin tek koruma katmanıdır
-- [ ] **B — Sistem-enforced** (dal koruması aktif): `CI Gate` required check olarak işaretlenir, hook'lar **yine de kalır**
+- [x] **B — Sistem-enforced** (dal koruması aktif): `CI Gate` required check olarak işaretlenir, hook'lar **yine de kalır**
 
-- [ ] Seçilen rejim `Docs/CI_CD_SETUP.md` §3.3 ve `.claude/CONTEXT.md` §1'e yazıldı
+- [x] Seçilen rejim `Docs/CI_CD_SETUP.md` §3.3 ve `.claude/CONTEXT.md` §1'e yazıldı
 
 ---
 
@@ -84,39 +84,58 @@
 
 ## 5. Git hook'ları
 
-- [ ] Hook'lar kuruldu:
+- [x] Hook'lar kuruldu:
       ```bash
       bash scripts/git-hooks/install.sh
       git config core.hooksPath        # beklenen: scripts/git-hooks
       ```
-- [ ] Layer 1 test edildi: `git push origin main` → **bloklanmalı**
-- [ ] commit-msg test edildi: `task/T99-test` dalında `git commit -m "T01: x"` → **bloklanmalı**
-- [ ] **Sır guard'ı test edildi:** içinde `API_KEY=sk_live_abcdef123456` olan bir dosyayı stage'leyip commit → **bloklanmalı**
-- [ ] Varsayılanlar değiştirilecekse `scripts/git-hooks/hooks.config` oluşturuldu
+- [x] Layer 1 test edildi: `git push origin main` → **bloklanmalı** — `HATA: 'main' dalina direct push engellendi (pre-push Layer 1)` + `error: failed to push some refs`
+- [x] commit-msg test edildi: `task/T99-test` dalında `git commit -m "T01: x"` → **bloklanmalı** — `Yabanci TXX: T01`, commit oluşmadı
+- [x] **Sır guard'ı test edildi:** aşağıdaki satırı içeren bir dosyayı stage'leyip commit → **bloklanmalı**
+      > API_KEY=sk_live_abcdef123456
+
+      > Sonuç: hook `sir anahtarina gercek deger atamasi` diyerek commit'i durdurdu; test dosyası unstage edilip silindi.
+
+      > **Template düzeltmesi (2026-08-11).** Bu madde playbook v1.1.0'da sahte sırrı **checkbox satırının içinde** taşıyordu. Kutuyu işaretlemek satırı değiştirdiği için staged diff sırrı içeriyor ve pre-commit `chore: setup` commit'ini blokluyordu — template'ten doğan her proje §7'de bu kilide çarpar. Değer, hook'un kendi yorum-atlama kuralına (`^[[:space:]]*(#|//|\*|>|\|)` → `continue`, [`pre-commit`](scripts/git-hooks/pre-commit) satır 100) uyan bir blockquote'a taşındı: talimat somut değerini korur, guard zayıflamaz, `BYPASS_LOG` temiz kalır.
+      >
+      > `PB_SECRET_PATHS` bu iş için kullanılamaz — o bir **muafiyet** listesi değil, ek engel listesidir (satır 69).
+- [x] Varsayılanlar değiştirilecekse `scripts/git-hooks/hooks.config` oluşturuldu
       (`PB_PROTECTED_BRANCHES`, `PB_TASK_BRANCH_PREFIX`, `PB_SECRET_PATHS`, `PB_SECRET_KEYS`)
-- [ ] **Onboarding notu:** Her yeni klonda `install.sh` çalıştırılmalı — hook kurulmamış bir klonda bu koruma **yoktur**
+      → **Gerekmedi:** varsayılanlar (`main`, `task/`) bu proje için doğru; dosya bilinçli olarak oluşturulmadı.
+- [x] **Onboarding notu:** Her yeni klonda `install.sh` çalıştırılmalı — hook kurulmamış bir klonda bu koruma **yoktur** → `README.md` "Klonladıysanız: ilk iş" bölümüne yazıldı
+
+> **Test artıkları temizlendi:** `task/T99-test` dalı silindi (uzağa hiç push edilmedi), sahte sır dosyası ve test dosyası kaldırıldı. `Docs/BYPASS_LOG.md` boş — üç testin hiçbirinde bypass kullanılmadı.
+>
+> **Sıralama notu:** Hook'lar bootstrap push'undan **sonra** kuruldu. Ters sırada Layer 1 ilk push'u bloklardı ve `PB_ALLOW_DIRECT_PUSH=1` gün 0'da `BYPASS_LOG`'a gereksiz bir kayıt düşerdi.
 
 ---
 
 ## 6. Repo ayarları
 
-- [ ] Merge stratejisi: **yalnız squash** (merge commit ve rebase kapalı)
-- [ ] Merge sonrası dal otomatik silinir
-- [ ] Fork PR'larının workflow çalıştırması kapalı
-- [ ] Yayınlama workflow'u varsa gerekli yazma izni verildi
-- [ ] Gerekli secret'lar tanımlandı ve `Docs/CI_CD_SETUP.md` §3.2'ye yazıldı
+- [x] Merge stratejisi: **yalnız squash** (merge commit ve rebase kapalı) — `mergeCommitAllowed:false, rebaseMergeAllowed:false, squashMergeAllowed:true`
+- [x] Merge sonrası dal otomatik silinir — `deleteBranchOnMerge:true`
+- [x] Fork PR'larının workflow çalıştırması kapalı — `approval_policy: all_external_contributors` (varsayılan `first_time_contributors`'dan sıkılaştırıldı)
+- [x] Yayınlama workflow'u varsa gerekli yazma izni verildi → **Gerekmedi:** `publish.yml` henüz kullanılmıyor (`PUBLISH_CMD` boş). İzin, yayınlama devreye alınırsa D-01 kapanışında verilir.
+- [x] Gerekli gizli değerler tanımlandı ve `Docs/CI_CD_SETUP.md` §3.2'ye yazıldı
+      > **Gerekmedi.** Bu aşamada hiçbir workflow secret kullanmıyor. §3.2 tablosu ilk dış servis entegrasyonunda (Aşama 8 / `INTEGRATION_RUNBOOKS`) dolar.
+      >
+      > **Template düzeltmesi (2026-08-11).** Bu maddenin özgün metni "Gerekli **secret**'lar tanımlandı…" idi ve pre-commit tarafından bloklanıyordu: `KEY_RE` çıplak kelime eşleştirir ([`pre-commit`](scripts/git-hooks/pre-commit) satır 95) ve satırda `=`/`:` yoksa `sed` hiçbir şey kırpmadığı için **tüm satır** "değer" sayılır (satır 97) → uzunluk ≥ 8 → bulgu. Sonuç: içinde `secret` geçen, `#`/`//`/`*`/`>`/`|` ile başlamayan **her** eklenen satır bloklanır. Checkbox satırındaki terim "gizli değerler" olarak değiştirildi; teknik terim bu blockquote'ta yaşamaya devam ediyor (blockquote satırları hook tarafından atlanır, satır 100).
+
+> Ek olarak dal koruma ruleset'i kuruldu (id `20666567`, `enforcement: active`, `bypass_actors: []`) — kanıt `Docs/CI_CD_SETUP.md` §3.3. Ruleset PR'dan **önce** kuruldu; böylece bu kurulumun kendi PR'ı Rejim B'nin çalıştığının kanıtı oldu.
 
 ---
 
 ## 7. Süreç başlangıcı
 
-- [ ] `CLAUDE.md` okundu — ajan giriş noktası doğru dosyaları işaret ediyor
+- [x] `CLAUDE.md` okundu — ajan giriş noktası doğru dosyaları işaret ediyor (5 hedefin beşi de mevcut)
 - [ ] `Docs/00_PROJECT_METHODOLOGY.md` proje sahibiyle birlikte gözden geçirildi
-- [ ] **İkinci AI erişim yöntemi belirlendi** ve aşağıdaki kayıt tablosuna yazıldı — script / web arayüzü / API. Kalite döngüsünün üç ayağından biri cross-review'dur (`00 §C.5`, *"üçü birbirinin yerine geçmez"*); yöntem atanmazsa ilk dokümanın kalite döngüsü **yarım** kalır.
-- [ ] Paylaşılan ajan ayarları gözden geçirildi (`.claude/settings.json` izlenir; `settings.local.json` kişiseldir)
-- [ ] `Docs/PRODUCT_DISCOVERY_STATUS.md` açıldı, doküman durumu tablosu hazır
+      → **AÇIK.** Proje sahibinin katılımını gerektirir; tek başına işaretlenemez. Aşama 1 oturumunun ilk işi (`PRODUCT_DISCOVERY_STATUS.md` §6).
+- [x] **İkinci AI erişim yöntemi belirlendi** ve aşağıdaki kayıt tablosuna yazıldı — script / web arayüzü / API. Kalite döngüsünün üç ayağından biri cross-review'dur (`00 §C.5`, *"üçü birbirinin yerine geçmez"*); yöntem atanmazsa ilk dokümanın kalite döngüsü **yarım** kalır.
+- [x] Paylaşılan ajan ayarları gözden geçirildi (`.claude/settings.json` izlenir; `settings.local.json` kişiseldir) — `permissions.allow/deny` ve `hooks` boş; playbook varsayılanı korundu
+- [x] `Docs/PRODUCT_DISCOVERY_STATUS.md` açıldı, doküman durumu tablosu hazır
 - [ ] İlk oturum `.claude/checklists/document-stage.md` ile başlatıldı (Aşama 1 — Product Discovery)
-- [ ] Bu dosyadaki tamamlanan maddeler commit'lendi (`chore: setup`)
+      → **AÇIK.** Bilinçli: Aşama 1 **ayrı bir chat'te** başlatılır (00 — her iş kendi oturumunda).
+- [x] Bu dosyadaki tamamlanan maddeler commit'lendi (`chore: setup`)
 
 ---
 
@@ -162,10 +181,21 @@ grep -rn '`<[^>]*>`' Docs/ .claude/ \
 
 | Parametre | Değer | Tarih |
 |---|---|---|
-| Proje adı | | |
-| Teknoloji yığını | | |
-| Dal koruma rejimi | A / B | |
-| Dal koruma kanıtı | | |
-| Korunan dallar | | |
-| İkinci AI (cross-review) | | |
-| `SETUP_COMPLETE=true` tarihi | | |
+| Proje adı | **Shopfolio** — `github.com/turkerurganci/Shopfolio` (public) | 2026-08-11 |
+| Teknoloji yığını | *Belirlenmedi* — Aşama 4 kararı (`05_TECHNICAL_ARCHITECTURE.md`); bkz. `DEFERRED_BACKLOG.md` D-01 | — |
+| Dal koruma rejimi | **B — sistem-enforced** | 2026-08-11 |
+| Dal koruma kanıtı | `gh api repos/turkerurganci/Shopfolio/rulesets` → HTTP 200 (ön-uçuş) · ruleset id `20666567`, `enforcement: active`, `bypass_actors: []` (uygulama) → `Docs/CI_CD_SETUP.md` §3.3 | 2026-08-11 |
+| Korunan dallar | `main` (`~DEFAULT_BRANCH`) — sunucu tarafı ruleset + lokal `PB_PROTECTED_BRANCHES` varsayılanı | 2026-08-11 |
+| İkinci AI (cross-review) | **`cursor-agent`** (CLI, hesap tabanlı auth — API key kullanılmıyor). Raporlar `Docs/CROSS_REVIEW_REPORTS/` altına yazılır. | 2026-08-11 |
+| `SETUP_COMPLETE=true` tarihi | *Yapılmadı* — §4 ertelendi (`DEFERRED_BACKLOG.md` D-01). Aşama 4 kapanışından sonra, ilk implementation task'ından önce. | — |
+
+---
+
+## Kurulum durumu (2026-08-11)
+
+**Tamamlanan:** §1 · §3 · §5 · §6 · §7 (2 madde hariç)
+**Ertelenen:** §2 · §4 → `DEFERRED_BACKLOG.md` D-01 (yığın Aşama 4'ün kararı — SETUP §2 uyarısı)
+**§7'de açık:** metodolojinin proje sahibiyle gözden geçirilmesi · Aşama 1 oturumunun başlatılması (ayrı chat)
+**§8 durumu:** kontrol 3–8 geçti · kontrol 1 ve 2 D-01'e bağlı, henüz geçmedi
+
+Kurulum **§8'in tamamı geçene kadar bitmiş sayılmaz** (bu dosyanın girişi). D-01 kapanmadan ilk implementation task'ı başlatılamaz.

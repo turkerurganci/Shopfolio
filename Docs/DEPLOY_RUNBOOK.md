@@ -1,4 +1,4 @@
-# <PROJE> — Deploy Runbook
+# Shopfolio — Deploy Runbook
 
 **Son güncelleme:** YYYY-AA-GG | **Durum:** ⬚ Doldurulmayı bekliyor
 

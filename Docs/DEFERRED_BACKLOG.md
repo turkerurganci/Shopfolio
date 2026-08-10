@@ -1,6 +1,6 @@
-# <PROJE> — Ertelenmiş İşler Backlog'u
+# Shopfolio — Ertelenmiş İşler Backlog'u
 
-**Son güncelleme:** YYYY-AA-GG | **Aktif kalem:** 0 | **Gate'i bloklayan:** 0
+**Son güncelleme:** 2026-08-11 | **Aktif kalem:** 1 | **Gate'i bloklayan:** 1
 
 > **Amaç:** Bilinçli olarak ertelenen **her** somut işin tek izlenebilir listesi.
 >
@@ -36,13 +36,15 @@
 
 | Önc. | ID | Özet | Bloklar mı |
 |---|---|---|---|
+| 🔴 | D-01 | SETUP §2 + §4 kurulumda tamamlanmadı — `SETUP_COMPLETE=false` | Dönem 2 girişi (ilk implementation task'ı) |
 
 ---
 
-## 1. <Grup adı — ör. faz, modül veya konu>
+## 1. Kurulum (SETUP.md)
 
 | Önc. | ID | Açıklama | Tip | Hedef | Kanıt / kaynak |
 |---|---|---|---|---|---|
+| 🔴 | D-01 | **SETUP §2 + §4 ertelendi.** Doldurulmayanlar: (a) §2 — teknoloji yığını, `.gitignore`/`.gitattributes` yığın uyarlaması, projeye özgü sır dosyası desenleri, `.env.example`; (b) §4 — `LINT_CMD`, `BUILD_CMD`, `UNIT_TEST_CMD`, `INTEGRATION_TEST_CMD`, `CONTRACT_TEST_CMD`, `MIGRATION_DRYRUN_CMD`, `PACKAGE_BUILD_CMD`, `E2E_CMD`, `ci.yml` runtime kurulum adımları, `publish.yml` silinsin mi kararı, ardından `SETUP_COMPLETE=true`. **Gerekçe:** yığın Aşama 4'ün kararıdır (SETUP §2 uyarısı) — kurulumda seçmek, teknik kararı doküman aşamasından kaçırmak olurdu. **Sonuç:** CI iskeleti şu an yeşil ama hiçbir şey çalıştırmıyor; §8 kontrol 1 ve 2 bu kalem kapanana kadar geçmez. | `task` | Aşama 4 kapanışından sonra, **ilk implementation task'ından önce** | [`.github/ci-commands.env:19`](../.github/ci-commands.env#L19) (`SETUP_COMPLETE=false`) · [`SETUP.md`](../SETUP.md) §2 uyarısı, §4, §8 |
 
 ---
 

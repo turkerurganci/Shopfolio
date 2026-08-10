@@ -1,4 +1,4 @@
-# <PROJE> — MVP Scope
+# Shopfolio — MVP Scope
 
 **Versiyon: v0.1** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md` | **Son güncelleme:** YYYY-AA-GG
 
@@ -37,4 +37,4 @@
 
 ---
 
-*<PROJE> — MVP Scope v0.1*
+*Shopfolio — MVP Scope v0.1*

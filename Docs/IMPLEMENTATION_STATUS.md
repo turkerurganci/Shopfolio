@@ -1,4 +1,4 @@
-# <PROJE> — Implementation Status
+# Shopfolio — Implementation Status
 
 **Son güncelleme:** YYYY-AA-GG — `<yalnızca EN SON güncellemenin özeti; birkaç cümle>`
 

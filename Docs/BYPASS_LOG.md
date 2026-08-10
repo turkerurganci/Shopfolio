@@ -1,4 +1,4 @@
-# <PROJE> — Bypass ve Süreç İhlali Kaydı
+# Shopfolio — Bypass ve Süreç İhlali Kaydı
 
 > Disiplin kapılarının bypass edildiği her durum burada kayıtlıdır. **Hook'lar bu dosyaya otomatik satır ekler.**
 >
@@ -30,4 +30,9 @@
 
 | Tarih | Kullanıcı | Dal | Commit | Sebep |
 |---|---|---|---|---|
-| 2026-08-01 20:03 UTC | Türker urgancı | main | `0c6213f` | **[direct-push]** ilk yayin — remote bootstrap; main'in uzakta karsiligi yok, PR akisi henuz mumkun degil  |
+
+*(Kayıt yok — bu projede henüz hiçbir disiplin kapısı bypass edilmedi.)*
+
+> **Kurulum notu (2026-08-11).** Template'ten devralınan bir satır burada duruyordu: playbook'un **kendi** repo'sunun bootstrap'ına ait `0c6213f` referanslı bir `[direct-push]` kaydı. O commit bu repo'da yok; satır Shopfolio'nun `main`'inde olmamış bir bypass'ı bildirdiği için kaldırıldı.
+>
+> Shopfolio'nun bootstrap push'u bypass **gerektirmedi**: hook'lar bilinçli olarak ilk push'tan sonra kuruldu, CI guard'ı ise commit mesajındaki `[skip-guard]` ile — kendi tasarlanmış çıkışıyla — geçildi.

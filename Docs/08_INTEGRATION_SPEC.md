@@ -1,4 +1,4 @@
-# <PROJE> — Integration Specifications
+# Shopfolio — Integration Specifications
 
 **Versiyon: v0.1** | **Bağımlılıklar:** `02`, `03`, `05`, `06`, `07` | **Son güncelleme:** YYYY-AA-GG
 
@@ -60,4 +60,4 @@
 
 ---
 
-*<PROJE> — Integration Specifications v0.1*
+*Shopfolio — Integration Specifications v0.1*

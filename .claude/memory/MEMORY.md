@@ -8,9 +8,9 @@
 
 ## Proje Özeti
 
-- **Ad:** `<SETUP'ta doldurulur>`
-- **Tanım:** `<tek cümle>`
-- **Dönem:** `<Doküman üretimi / Implementation / Borç kapatma / Kapanış>`
+- **Ad:** Shopfolio
+- **Tanım:** Herhangi bir firmanın kendi ürünlerini sergileyip çevrimiçi satabileceği ve kurumsal tanıtımını yapabileceği; üyelik, Google/Facebook ile giriş, sipariş, ödeme ve sipariş takibi içeren web uygulaması.
+- **Dönem:** Doküman üretimi
 - **Doküman dili:** Türkçe · **Kod dili:** İngilizce
 
 ---

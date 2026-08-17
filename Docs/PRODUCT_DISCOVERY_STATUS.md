@@ -82,7 +82,9 @@
 
 > **Kaynak:** 2026-08-17 hazırlık taraması. Yedi paralel ajan 137 ham konu üretti; sentez turu bunları bağımlılık sırasına dizdi; tamlık eleştirisi 01/02/10'un **26 şablon bölümünü** tek tek tarayıp **15 kapsama boşluğu** buldu. Boşluktan eklenen konular **★** ile işaretlidir.
 >
-> **Blok 7 neden ayrı:** Tamlık eleştirisi, K-04'ün "kurumsal tanıtım ile mağaza eşit ağırlıkta" kararıyla agendanın orantısız olduğunu tespit etti — folio tarafı 95 konunun yalnız 4'üne düşüyor ve yasal uyum bloğunun içinde eriyordu. Kurumsal içerik kendi bloğuna ayrıldı; yasal metinler Blok 8'de kaldı.
+> **Plan toplam 111 konu taşır** (15'i ★). Bu sayı §6.2 tablosunun toplamı ile §6.3 gövdesindeki konu kimliklerinin sayısına eşittir — ikisi ayrıldığında tablo değil gövde esastır.
+>
+> **Blok 7 neden ayrı:** Tamlık eleştirisi, K-04'ün "kurumsal tanıtım ile mağaza eşit ağırlıkta" kararıyla agendanın orantısız olduğunu tespit etti — folio tarafı agendanın yalnız 4 konusuna düşüyor ve yasal uyum bloğunun içinde eriyordu. Kurumsal içerik kendi bloğuna ayrıldı; yasal metinler Blok 8'de kaldı.
 >
 > **Bölünme kuralı:** 12'den fazla konu taşıyan blok iki oturuma bölünür.
 
@@ -105,7 +107,7 @@
 `B0-01` Metodolojinin proje sahibiyle gözden geçirilmesi (SETUP §7) · `B0-02` Doküman üretim sırası: katı 01→02→10 mı, çekirdek-önce döngü mü · `B0-03` Workshop ile doküman yazımının ayrılması · `B0-04` Oturum sayısı ve blok mimarisinin onayı · `B0-05` İnkremental karar kaydının işletimi ve blok sonu `docs:` PR'ı · `B0-06` Karar satırı biçimi ve hedef bölüm eşlemesi · `B0-07` Aşama dışı konular için park mekanizması · `B0-08` Varlık kararı / detay ayrımının işletilmesi · `B0-09` Oturum kapanış ve devir protokolü
 
 **Blok 1 — Ürün kimliği, ticari rol ve pazar çerçevesi**
-`B1-01` Firma kimlik kaydı, kurulum sınırı ve çok kiracılığın nereye yazılacağı · `B1-02` Satış modeli: doğrudan ödemeli satış mı, teklif/talep mi · `B1-03` Ticari rol ve para akışı: satıcı kim, tahsilat kimde, kart verisi ve 3D Secure ilkesi · `B1-04` ETBİS kaydı ve sitede sürekli gösterilecek firma kimlik bilgileri · `B1-05` Birincil problem ve bugün nasıl çözüldüğü (01 §1'in somut cümlesi) · `B1-06` Gelir modeli — **A-01 ile açık** · `B1-07` Pazar, coğrafya, dil ve para birimi sınırı · `B1-08` Terim sözlüğü kuralı ve adlandırma konvansiyonu · `B1-09` Aktör envanteri (**✓ K-06**; §3 tablosuna "geri dönme nedeni" sütunu eklenecek) · ★`B1-10` Alıcının hukuki sıfatı (**✓ K-07**)
+`B1-01` Firma kimlik kaydı, kurulum sınırı ve çok kiracılığın nereye yazılacağı · `B1-02` Satış modeli: doğrudan ödemeli satış mı, teklif/talep mi · `B1-03` Ticari rol ve para akışı: satıcı kim, tahsilat kimde, kart verisi ve 3D Secure ilkesi · `B1-04` ETBİS kaydı ve sitede sürekli gösterilecek firma kimlik bilgileri · `B1-05` Birincil problem ve bugün nasıl çözüldüğü (01 §1'in somut cümlesi) · `B1-06` Gelir modeli — **A-01 ile açık** · `B1-07` Pazar, coğrafya, dil ve para birimi sınırı · `B1-08` Terim sözlüğü kuralı ve adlandırma konvansiyonu · `B1-09` Aktör envanteri (**✓ K-06**; `01` §3 aktör tablosuna "geri dönme nedeni" sütunu eklenecek) · ★`B1-10` Alıcının hukuki sıfatı (**✓ K-07**)
 
 **Blok 2 — Değer önerisi, konumlandırma ve MVP çerçevesi**
 `B2-01` Her aktör için "bu ürün olmasaydı ne olurdu" · `B2-02` Marka görünürlüğü: alan adı ve platform imzası · `B2-03` Alternatif envanteri ve farklılaşma ekseni (**✓ K-04**; alternatif envanteri yazılacak) · `B2-04` MVP başarı tanımı: en dardan en genişe üç seçenek · `B2-05` MVP "bitti" kabul çizgisi: test ortamı mı, canlıda gerçek parayla gerçek sipariş mi · `B2-06` 10 §2/§3 satırlarının doğrulanabilir yazım biçimi · `B2-07` 10 §3 "post-MVP'de düşünülecek mi" sütununun sabit cevap sözlüğü · `B2-08` 10 §4 "ne zaman kalkar" sütununun ölçülebilir tetikleyicisi · ★`B2-09` Ana sayfa kompozisyonu: ziyaretçi hangi kapıdan girer, tanıtım ile vitrin nerede bağlanır

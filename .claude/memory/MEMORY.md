@@ -19,11 +19,11 @@
 
 > Kısa tut. Tarihsel detay `MEMORY_ARCHIVE.md`'ye taşınır (00 §G.2).
 
-- **Son tamamlanan:** `<TXX — tek cümle + commit + PR>`
-- **Sırada:** `<TXX veya aşama>`
-- **Açık PR / bekleyen CI:** `<yok / #NN>`
-- **Gate durumu:** `<F0 ⬚ · F1 ⬚ · …>`
-- **Son güncelleme:** `<YYYY-AA-GG>`
+- **Son tamamlanan:** Aşama 1 açılış oturumu — metodoloji gözden geçirmesi (**B0-01 ✓**, 12 madde onaylandı), 9 bloklu konu planı (95 konu) ve Blok 1'in ilk yedi ürün kararı (**K-01…K-07**) · `ae00b87` · PR #2
+- **Sırada:** Blok 1'in kalanı — `B1-02` satış modeli · `B1-03` ticari rol ve para akışı · `B1-04` ETBİS ve firma kimlik bilgileri · `B1-05` birincil problem cümlesi · `B1-07` pazar/dil/para birimi sınırı · `B1-08` terim sözlüğü. (`B1-06` gelir modeli **A-01** ile açık.)
+- **Açık PR / bekleyen CI:** #2 — `docs: Aşama 1 blok planı ve K-01..K-07 karar kaydı`
+- **Gate durumu:** Implementation başlamadı, faz yok. Doküman: 01 ⏳ · 02 ⏳ · 10 ⏳ · 03–09, 11–12 ⬚
+- **Son güncelleme:** 2026-08-17
 
 ---
 

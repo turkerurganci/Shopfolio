@@ -128,13 +128,13 @@
 ## 7. Süreç başlangıcı
 
 - [x] `CLAUDE.md` okundu — ajan giriş noktası doğru dosyaları işaret ediyor (5 hedefin beşi de mevcut)
-- [ ] `Docs/00_PROJECT_METHODOLOGY.md` proje sahibiyle birlikte gözden geçirildi
-      → **AÇIK.** Proje sahibinin katılımını gerektirir; tek başına işaretlenemez. Aşama 1 oturumunun ilk işi (`PRODUCT_DISCOVERY_STATUS.md` §6).
+- [x] `Docs/00_PROJECT_METHODOLOGY.md` proje sahibiyle birlikte gözden geçirildi — **2026-08-17**
+      → Aşama 1 açılış oturumunda 12 maddelik gözden geçirme yapıldı; maddeler "onayın bedeli nereye düşüyor" ekseninde gruplandı: proje sahibinin doğrudan zamanı (§C.2 workshop, §C.3 GAP turları, §C.5 cross-review, §F.3 dış varsayım), tempo (§A.2 tam zincir, §C.5 kalite döngüsü, §D.2 task-per-chat, §D.4/§D.9 merge disiplini), tek kişilik kurulumda anlamı değişen ilke (§O.4 "yapan ≠ denetleyen" — burada iki insan değil iki bağlam) ve takvimde baştan görünmeyen iki blok (§I borç kapatma, §L.1 gerçek konfigürasyonla boot provası). **Proje sahibi 12 maddenin tamamını onayladı.** §A.7 çerçevesi kabul edildi: ilk 3–5 task süreç yazıldığı gibi işletilir, kapı ilk sürtünmede kaldırılmaz; revizyon yalnız faz gate'inin öğrenim terfisi adımında ve gözlem kanıtıyla meşrudur. Kayıt: `Docs/PRODUCT_DISCOVERY_STATUS.md` §6.1 / B0-01.
 - [x] **İkinci AI erişim yöntemi belirlendi** ve aşağıdaki kayıt tablosuna yazıldı — script / web arayüzü / API. Kalite döngüsünün üç ayağından biri cross-review'dur (`00 §C.5`, *"üçü birbirinin yerine geçmez"*); yöntem atanmazsa ilk dokümanın kalite döngüsü **yarım** kalır.
 - [x] Paylaşılan ajan ayarları gözden geçirildi (`.claude/settings.json` izlenir; `settings.local.json` kişiseldir) — `permissions.allow/deny` ve `hooks` boş; playbook varsayılanı korundu
 - [x] `Docs/PRODUCT_DISCOVERY_STATUS.md` açıldı, doküman durumu tablosu hazır
-- [ ] İlk oturum `.claude/checklists/document-stage.md` ile başlatıldı (Aşama 1 — Product Discovery)
-      → **AÇIK.** Bilinçli: Aşama 1 **ayrı bir chat'te** başlatılır (00 — her iş kendi oturumunda).
+- [x] İlk oturum `.claude/checklists/document-stage.md` ile başlatıldı (Aşama 1 — Product Discovery) — **2026-08-17**
+      → Aşama 1 kendi oturumunda açıldı; checklist adım 1 (rol, girdi, çıktı, aşama dışı konular) işletildi ve blok planı `PRODUCT_DISCOVERY_STATUS.md` §6.2'ye yazıldı.
 - [x] Bu dosyadaki tamamlanan maddeler commit'lendi (`chore: setup`)
 
 ---

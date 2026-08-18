@@ -19,9 +19,9 @@
 
 > Kısa tut. Tarihsel detay `MEMORY_ARCHIVE.md`'ye taşınır (00 §G.2).
 
-- **Son tamamlanan:** **Blok 1 kapandı** — on konunun tamamı karara bağlandı. Bu oturumda **K-08…K-17** (10 karar): kimlik yönetim rejimi · tekil firma + satış kapısı · çok kiracılığın yeri · yalnız doğrudan satış · para akışı ve kart verisi · 3D Secure zorunlu · firma tipine göre zorunlu alan seti · birincil problem cümlesi · Türkiye/Türkçe/TRY sınırı · üç sütunlu terim sözlüğü. `B1-06` gelir modeli **A-01** ile açık.
-- **Sırada:** **Blok 2** — değer önerisi, konumlandırma ve MVP çerçevesi (9 konu, `B2-01`…`B2-09`). **A-01** (gelir modeli) 01 §4 yazılmadan önce kapanmalı.
-- **Açık PR / bekleyen CI:** yok — Blok 1 kararları working tree'de, `docs:` PR'ı açılmayı bekliyor (B0-05)
+- **Son tamamlanan:** **Blok 1 ve Blok 2 kapandı.** Blok 1 → **K-08…K-17** (`125cb46`, PR #4 merge edildi). Ardından **K-18…K-27**, henüz commit'lenmedi: gelir modeli (A-01 kapandı) · değer önerisi ağırlık merkezi · platform imzası · alternatif matrisi · MVP çıtası · "bitti" kabul çizgisi · 10 §2/§3 yazım biçimi · post-MVP cevap sözlüğü · "ne zaman kalkar" kuralı · ana sayfa kompozisyonu.
+- **Sırada:** **Blok 3** — katalog, stok ve fiyatlandırma (12 konu, `B3-01`…`B3-12`). Bölünme sınırında: 12 konu, kural "12'den fazla" dediği için tek oturum.
+- **Açık PR / bekleyen CI:** yok — #4 merge edildi, main CI + Publish yeşil. **K-18…K-27 working tree'de**, Blok 2 `docs:` PR'ı açılacak.
 - **Gate durumu:** Implementation başlamadı, faz yok. Doküman: 01 ⏳ · 02 ⏳ · 10 ⏳ · 03–09, 11–12 ⬚
 - **Son güncelleme:** 2026-08-18
 

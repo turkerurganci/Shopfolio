@@ -19,9 +19,9 @@
 
 > Kısa tut. Tarihsel detay `MEMORY_ARCHIVE.md`'ye taşınır (00 §G.2).
 
-- **Son tamamlanan:** **Blok 1 ve Blok 2 kapandı.** Blok 1 → **K-08…K-17** (`125cb46`, PR #4 merge edildi). Ardından **K-18…K-27**, henüz commit'lenmedi: gelir modeli (A-01 kapandı) · değer önerisi ağırlık merkezi · platform imzası · alternatif matrisi · MVP çıtası · "bitti" kabul çizgisi · 10 §2/§3 yazım biçimi · post-MVP cevap sözlüğü · "ne zaman kalkar" kuralı · ana sayfa kompozisyonu.
-- **Sırada:** **Blok 3** — katalog, stok ve fiyatlandırma (12 konu, `B3-01`…`B3-12`). Bölünme sınırında: 12 konu, kural "12'den fazla" dediği için tek oturum.
-- **Açık PR / bekleyen CI:** yok — #4 merge edildi, main CI + Publish yeşil. **K-18…K-27 working tree'de**, Blok 2 `docs:` PR'ı açılacak.
+- **Son tamamlanan:** **Aşama 1 · Blok 1 ve Blok 2 kapandı** — Blok 1 → **K-08…K-17** (`125cb46`, PR #4) · Blok 2 → **K-18…K-27** (`7fbe4b6`, PR #5). **A-01 kapandı (K-18)**; Aşama 1'de açık karar yok.
+- **Sırada:** **Blok 0'ı kapat** — `B0-02`…`B0-09` hiç işaretlenmemiş ama çoğu fiilen işletildi (B0-05 iki blokta uygulandı, B0-06 27 satırda, B0-07 üç parkta, B0-08 A-01'de, B0-09 handoff'ta). `B0-02` ve `B0-03` gerçekten konuşulmadı. Ardından **Blok 3** — katalog, stok ve fiyatlandırma (12 konu); `B3-06` KDV/yuvarlama ve `B3-09` fiyat dondurma sonradan düzeltilmesi pahalı kararlar.
+- **Açık PR / bekleyen CI:** yok — #4 ve #5 merge edildi, main CI + Publish yeşil.
 - **Gate durumu:** Implementation başlamadı, faz yok. Doküman: 01 ⏳ · 02 ⏳ · 10 ⏳ · 03–09, 11–12 ⬚
 - **Son güncelleme:** 2026-08-18
 
@@ -61,4 +61,5 @@
 
 | Kural | Terfi ettiği yer | Tarih |
 |---|---|---|
-| | | |
+| Bir konunun alt parçaları da tek tek sorulur | `INSTRUCTIONS.md` §2 | 2026-08-18 |
+| Seçenekler sade dille, somut sonuç üzerinden yazılır | `INSTRUCTIONS.md` §2 | 2026-08-18 |

@@ -1,6 +1,6 @@
 # AI Çalışma Talimatları
 
-**Katman:** L3 | **Son güncelleme:** 2026-07-27
+**Katman:** L3 | **Son güncelleme:** 2026-08-18
 
 > Bu dosya ajanın **oturum davranışını** tanımlar. Sürecin *neden*i [`Docs/00_PROJECT_METHODOLOGY.md`](../Docs/00_PROJECT_METHODOLOGY.md)'de, *sınırlar* [`GUARDRAILS.md`](GUARDRAILS.md)'de, *adım adım iş akışları* [`skills/`](skills/)'dedir.
 
@@ -32,8 +32,9 @@ Her oturumda ilgili işin doküman referanslarını oku. Tüm dokümanı değil,
 ## 2. Genel yaklaşım
 
 - Proje sahibiyle **tartışarak** ilerle. Varsayım yapma, sor.
-- Konuları tek tek, sırayla ele al. Tüm konuları aynı anda açma.
+- Konuları tek tek, sırayla ele al. Tüm konuları aynı anda açma. **Bir konunun alt parçaları da tek tek sorulur** — birbirine bağlı üç alt karar tek soruda paketlenmez.
 - Her konuda seçenekleri sun, artı-eksilerini açıkla, **kendi önerini belirt**.
+- **Seçenekleri sade dille yaz.** Proje sahibi metodoloji jargonu üzerinden değil, **somut sonuç** üzerinden seçer: etiket ne yapılacağını, açıklama neyin bedeli olduğunu söyler. Soyut kalıyorsa somut bir örnek göster.
 - "Sence?" sorusuna hazırlıklı ol — gerekçeli net bir önerin olsun.
 - Her karardan sonra *"burada ne ters gidebilir?"* sorusunu sor. Edge case'leri proje sahibinden önce düşün.
 - Kararları **anında** kayıt altına al. Hiçbir karar kaybolmamalı.

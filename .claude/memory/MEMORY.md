@@ -19,11 +19,11 @@
 
 > Kısa tut. Tarihsel detay `MEMORY_ARCHIVE.md`'ye taşınır (00 §G.2).
 
-- **Son tamamlanan:** Aşama 1 açılış oturumu — metodoloji gözden geçirmesi (**B0-01 ✓**, 12 madde onaylandı), 9 bloklu konu planı (**111 konu**, 15'i tamlık taramasından) ve Blok 1'in ilk yedi ürün kararı (**K-01…K-07**) · `df49ea0` · PR #2 merge edildi
-- **Sırada:** Blok 1'in kalanı — `B1-02` satış modeli · `B1-03` ticari rol ve para akışı · `B1-04` ETBİS ve firma kimlik bilgileri · `B1-05` birincil problem cümlesi · `B1-07` pazar/dil/para birimi sınırı · `B1-08` terim sözlüğü. (`B1-06` gelir modeli **A-01** ile açık.)
-- **Açık PR / bekleyen CI:** yok — #2 `df49ea0` olarak merge edildi, main CI + Publish yeşil
+- **Son tamamlanan:** **Blok 1 kapandı** — on konunun tamamı karara bağlandı. Bu oturumda **K-08…K-17** (10 karar): kimlik yönetim rejimi · tekil firma + satış kapısı · çok kiracılığın yeri · yalnız doğrudan satış · para akışı ve kart verisi · 3D Secure zorunlu · firma tipine göre zorunlu alan seti · birincil problem cümlesi · Türkiye/Türkçe/TRY sınırı · üç sütunlu terim sözlüğü. `B1-06` gelir modeli **A-01** ile açık.
+- **Sırada:** **Blok 2** — değer önerisi, konumlandırma ve MVP çerçevesi (9 konu, `B2-01`…`B2-09`). **A-01** (gelir modeli) 01 §4 yazılmadan önce kapanmalı.
+- **Açık PR / bekleyen CI:** yok — Blok 1 kararları working tree'de, `docs:` PR'ı açılmayı bekliyor (B0-05)
 - **Gate durumu:** Implementation başlamadı, faz yok. Doküman: 01 ⏳ · 02 ⏳ · 10 ⏳ · 03–09, 11–12 ⬚
-- **Son güncelleme:** 2026-08-17
+- **Son güncelleme:** 2026-08-18
 
 ---
 

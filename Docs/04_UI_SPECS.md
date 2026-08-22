@@ -6,6 +6,13 @@
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §3'e (ekran envanteri) geçilmez.
 > **Düzey:** Wireframe — bilgi mimarisi ve etkileşim odaklı, pixel-perfect değil.
 
+> **Aşama 1'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36.
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-06 · Aktör envanteri:** Ekran × rol matrisi üç aktör üzerinden kurulur — ziyaretçi · üye müşteri · firma yöneticisi. Yönetim tarafı **tek roldür** (çoklu kullanıcı, aynı yetki). Misafir alıcı henüz aktör değildir; `B4-01` üyeliksiz sipariş kararına bağlıdır.
+> - **K-14 · Firma kimlik bilgileri:** Firma tipine göre değişen zorunlu kimlik seti ve ETBİS doğrulama bandı sitede **sürekli erişilebilir** olur. **Tam yerleşim bu dokümanın kararıdır** — hangi bilgi hangi ekranda ve hangi alanda görünecek.
+> - **K-27 · Ana sayfa kompozisyonu:** İki hazır düzen tasarlanır — **tanıtım öncelikli** ve **mağaza öncelikli**. Taban kural: her iki düzende de kurumsal tanıtım ile ürün vitrini ana sayfada **birlikte** bulunur; değişen yalnız ağırlık ve sıradır. Serbest sayfa kurgusu (page builder) kapsam dışıdır.
+
 ---
 
 ## 1. Traceability Matrix (ÖNCE BU)

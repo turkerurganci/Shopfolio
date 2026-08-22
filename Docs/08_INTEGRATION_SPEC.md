@@ -6,6 +6,12 @@
 > **Traceability zorunlu:** Hayır
 > **Beklenti:** Bu doküman doğası gereği `07`'ye **geriye dönük endpoint** ekletir (geri çağrım/webhook uçları). Bu bir hata değil, beklenen sonuçtur.
 
+> **Aşama 1'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36.
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-12 · Para akışı ve kart verisi:** Tahsilat doğrudan **firmanın kendi sanal POS / ödeme sağlayıcı hesabına** geçer; platform ticari zincirde yer almaz. Kart bilgisi sağlayıcının barındırdığı sayfada veya çerçevede girilir — **ürün kart verisini görmez, saklamaz, loglamaz.** Entegrasyon bu sınırı bozacak biçimde tasarlanamaz. Firmanın ödeme sağlayıcı sözleşmesi canlıya çıkış öncesi **dış ön koşuldur**.
+> - **K-13 · 3D Secure:** **İstisnasız zorunludur.** Tutar eşiği veya sağlayıcı takdirine bırakma yoktur; doğrulama başarısızsa ödeme gerçekleşmez ve sipariş ödenmiş sayılmaz.
+
 ---
 
 ## 0. Yazım kuralları

@@ -1,6 +1,6 @@
 # Shopfolio — Product Discovery Status
 
-**Versiyon: v0.6** | **Son güncelleme:** 2026-08-22
+**Versiyon: v0.7** | **Son güncelleme:** 2026-08-23
 
 > **Doküman üretim döneminin karar kaydıdır.** Her karar **alındığı anda** buraya yazılır — hiçbir karar kaybolmaz.
 > Bu dosya sürecin sonunda arşivlenir; alınan kararların nihai hâli `01`, `02` ve `10`'da yaşar.
@@ -11,7 +11,7 @@
 
 | No | Doküman | Durum | Versiyon | Audit | Deep review | Cross-review | Checkpoint |
 |---|---|---|---|---|---|---|---|
-| 01 | Project Vision | ⏳ | — | ⬚ | ⬚ | ⬚ | ⬚ |
+| 01 | Project Vision | ⏳ | v0.2 | ⬚ | ⬚ | ⬚ | ⬚ |
 | 02 | Product Requirements | ⏳ | — | ⬚ | ⬚ | ⬚ | ⬚ |
 | 03 | User Flows | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
 | 04 | UI Specs | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
@@ -25,6 +25,8 @@
 | 12 | Validation Protocol | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
 
 **Lejant:** ⬚ Başlanmadı · ⏳ Devam ediyor · ✓ Tamamlandı
+
+> **`01` v0.2 kapsamı:** §1–§5 taslak yazıldı (2026-08-23, ayrı yazım oturumu — K-30). §6–§8 Blok 9 kapandığında yazılır (K-28). Kalite döngüsü sütunları tüm bloklar kapanmadan işaretlenmez.
 
 ---
 
@@ -92,6 +94,9 @@
 | # | Konu | Ne belirsiz | Ne zaman karara bağlanacak | Durum |
 |---|---|---|---|---|
 | A-01 | Ticari model | K-05 ile "ürün satılacak" **varlık kararı** alındı; ücretin **nasıl** alınacağı (tek seferlik kurulum bedeli / lisans / bakım aboneliği) açık. Yazılım kapsamını etkilemez — K-01 gereği üründe faturalandırma modülü yoktur. | 01 §4 (değer önerisi) ve §6 (başarı kriterleri) yazılmadan önce — Aşama 1 içinde | **✓ Kapandı — K-18** (2026-08-18) |
+| A-02 | `01 §5.2` alternatif matrisinin derece değerleri | K-21 ekseni (tanıtım gücü × satış gücü), beş grubu ve hücrenin üç alanını sabitledi; **derece sözlüğünü** (Yok / Düşük / Orta / Yüksek) ve her gruba verilen dereceyi sabitlemedi. Taslakta dereceler K-04 ve K-15'in dilinden türetildi — ör. hazır e-ticaret paketi, K-15 "sonradan eklenmiş ve zayıf" dediği için **Düşük** aldı. Varlık kararı açık değil: matris yazılacaktır. | `01 §6–§8` yazım oturumunda, Blok 9 kapandıktan sonra ve `01`'in kalite döngüsü başlamadan önce | ⬚ Açık |
+| A-03 | `01 §3.2` aktör tablosunun "neden geri döner" hücreleri | `B1-09` sütunun eklenmesine karar verdi; K-19 yalnız **üye müşteri** için içerik verdi ("hesap sürekliliği, tekrar satın almayı kolaylaştırır"). **Ziyaretçi** ve **firma yöneticisi** satırları taslakta K-15 ve K-19'un değer ifadelerinden türetildi; kayıt bu iki hücrenin metnini taşımıyor. Varlık kararı açık değil: sütun tabloda kalacaktır. | `01 §6–§8` yazım oturumunda, Blok 9 kapandıktan sonra ve `01`'in kalite döngüsü başlamadan önce | ⬚ Açık |
+| A-04 | `01 §1`'in sayısal somutluğu | `01` şablonu §1 için ölçülebilir somutluk istiyor ("X yapmak için Y adım gerekiyor"); karar kaydında ölçülmüş bir sayı yok ve K-05 gerçek kullanıcı geri bildirimi olmadan ilerlendiğini söylüyor. Taslak niteliksel somutlukla yazıldı (çift giriş, tutarsızlık, yükün sahibi). §1'in sayısal iddiası §6'nın hedef setine bağlanacaktır. | `B9-09` ve `B9-10` karara bağlandığında, `01 §6` yazılırken | ⬚ Açık |
 
 ---
 
@@ -109,6 +114,8 @@
 - [x] **Aşama 1 — Product Discovery** oturumu `.claude/checklists/document-stage.md` ile başlatıldı — 2026-08-17
 - [x] `Docs/00_PROJECT_METHODOLOGY.md` proje sahibiyle gözden geçirildi — **2026-08-17**, 12 madde, tamamı onaylandı → **B0-01 ✓** (kayıt: `SETUP.md` §7)
 - [x] Tracker referansı döneme göre düzeltildi — `00 §G.1`, `INSTRUCTIONS §3.0` ve `CLAUDE.md` yalnız `IMPLEMENTATION_STATUS.md`'yi işaret ediyordu; doküman döneminde tracker **bu dosyadır** (`handoff` skill'i adım 4'te bunu zaten doğru söylüyordu) — **2026-08-22**, K-38 oturumu
+- [x] **`01 §1–§5` taslağı yazıldı** — K-28'in ilk uygulaması, K-30 gereği workshop'tan ayrı bir oturumda; girdi karar kaydı §2/§4, `01` şablonu ve 00 §C.6 ürün bağlamı katmanıydı, workshop sohbet geçmişi kullanılmadı — **2026-08-23**, `01` v0.2
+- [ ] **Yazım oturumunun kayda düşürdüğü üç açık** aşağıda §4'te izleniyor (A-02, A-03, A-04) — K-30'un "yazım, kaydın yeterlilik testidir" sonucu
 - [ ] Aşama 1'in cross-review turu `cursor-agent` ile koşuldu, çıktı `Docs/CROSS_REVIEW_REPORTS/` altına yazıldı → **B9-16**
 
 ### 6.2 Blok planı

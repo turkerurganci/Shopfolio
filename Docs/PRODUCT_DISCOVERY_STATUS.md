@@ -1,6 +1,6 @@
 # Shopfolio — Product Discovery Status
 
-**Versiyon: v0.4** | **Son güncelleme:** 2026-08-18
+**Versiyon: v0.5** | **Son güncelleme:** 2026-08-19
 
 > **Doküman üretim döneminin karar kaydıdır.** Her karar **alındığı anda** buraya yazılır — hiçbir karar kaybolmaz.
 > Bu dosya sürecin sonunda arşivlenir; alınan kararların nihai hâli `01`, `02` ve `10`'da yaşar.

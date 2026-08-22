@@ -5,6 +5,12 @@
 > **Aşama:** 6 — API Tasarımı · **Rol:** API Designer
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §3'e (endpoint envanteri) geçilmez.
 
+> **Aşama 1'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36.
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-06 · Aktörler:** Üç aktör; yetkilendirme tasarımı **tek yönetici rolü** varsayar (çoklu kullanıcı, aynı yetki).
+> - **K-17 · Terim sözlüğü:** `02 §1` sözlüğü **birebir devralınır**; endpoint, alan ve enum adları sözlüğün İngilizce karşılıklarından türer, eş anlamlı ad kullanılmaz.
+
 ---
 
 ## 1. Traceability Matrix (ÖNCE BU)

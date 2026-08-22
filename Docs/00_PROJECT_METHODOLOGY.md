@@ -1,6 +1,6 @@
 # Project Playbook — Metodoloji
 
-**Versiyon: v1.0.1** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-07-30
+**Versiyon: v1.0.2** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-08-22
 
 > Bu doküman bir yazılım projesini **fikirden çalışan MVP'ye** taşıyan yöntemin tamamıdır:
 > doküman üretimi, implementasyon, doğrulama, borç kapatma ve kapanış.
@@ -510,7 +510,16 @@ Sekiz maddenin **hepsi ✓** olmadan task "yapım bitti" sayılmaz ve doğrulama
 
 ### G.1 Tek doğru kaynak
 
-`IMPLEMENTATION_STATUS.md` task durumu için **tek otoriter kaynaktır**. Git'te tutulduğu için her commit'te güncellenir.
+Durum için **tek otoriter kaynak tracker'dır**. Hangi dosya olduğu **döneme bağlıdır**:
+
+| Dönem | Tracker | Neyin durumunu tutar |
+|---|---|---|
+| Dönem 1 — Doküman üretimi | `PRODUCT_DISCOVERY_STATUS.md` | Blok ve konu durumu, karar kaydı, açık kararlar |
+| Dönem 2 — Implementation | `IMPLEMENTATION_STATUS.md` | Task ve faz durumu |
+
+Her ikisi de Git'te tutulur; her commit'te güncellenir.
+
+> **Vaka:** Kural uzun süre yalnız `IMPLEMENTATION_STATUS.md`'yi işaret etti. Doküman döneminde *"nerede kaldık"* sorulduğunda ajan boş şablona yönlendirildi; tracker'ın konu hakkında görüşü olmadığı için §G.3'ün *"çelişirse tracker kazanır"* kuralı işlemedi ve doğru cevap Git diff'inden çıkarılmak zorunda kaldı. **Ders:** Otoriter kaynağı adlandıran her kural dönemi de söyler.
 
 ### G.2 Snapshot ≠ arşiv
 

@@ -19,11 +19,12 @@
 
 > Kısa tut. Tarihsel detay `MEMORY_ARCHIVE.md`'ye taşınır (00 §G.2).
 
-- **Son tamamlanan:** **Aşama 1 · Blok 1 ve Blok 2 kapandı** — Blok 1 → **K-08…K-17** (`125cb46`, PR #4) · Blok 2 → **K-18…K-27** (`7fbe4b6`, PR #5). **A-01 kapandı (K-18)**; Aşama 1'de açık karar yok.
-- **Sırada:** **Blok 0'ı kapat** — `B0-02`…`B0-09` hiç işaretlenmemiş ama çoğu fiilen işletildi (B0-05 iki blokta uygulandı, B0-06 27 satırda, B0-07 üç parkta, B0-08 A-01'de, B0-09 handoff'ta). `B0-02` ve `B0-03` gerçekten konuşulmadı. Ardından **Blok 3** — katalog, stok ve fiyatlandırma (12 konu); `B3-06` KDV/yuvarlama ve `B3-09` fiyat dondurma sonradan düzeltilmesi pahalı kararlar.
-- **Açık PR / bekleyen CI:** yok — #4 ve #5 merge edildi, main CI + Publish yeşil.
+- **Son tamamlanan:** **Aşama 1 · Blok 0, 1 ve 2 kapandı** — Blok 1 → **K-08…K-17** (PR #4) · Blok 2 → **K-18…K-27** (PR #5) · Blok 0 → **K-28…K-38** (PR #7, #8). **Aşama 1'de açık karar yok** (A-01 → K-18). Kalan yedi blok (3–9) hiç açılmadı.
+- **Sırada:** **Blok 3 workshop'u DEĞİL** — K-30 gereği önce **`01 §1–§5` taslak yazımı**, ayrı chat'te. Girdisi: karar kaydı §2 ve §4, `01` şablonu, 00 §C.6 ürün bağlamı katmanı — **workshop sohbet geçmişi değil**. Ardından **Blok 3** (katalog, stok, fiyatlandırma — 12 konu); `B3-06` KDV/yuvarlama ve `B3-09` fiyat dondurma sonradan düzeltilmesi pahalı kararlar.
+- **Açık PR / bekleyen CI:** yok — #7 ve #8 merge edildi, main CI + Publish yeşil.
 - **Gate durumu:** Implementation başlamadı, faz yok. Doküman: 01 ⏳ · 02 ⏳ · 10 ⏳ · 03–09, 11–12 ⬚
-- **Son güncelleme:** 2026-08-18
+- **Oturum kapanışı (K-38):** Doküman döneminde bu blok, `/handoff` beklenmeden **oturum sonu `docs:` PR'ının içinde** güncellenir. Bayat kalırsa bunu yakalayacak başka kapı yok.
+- **Son güncelleme:** 2026-08-22
 
 ---
 

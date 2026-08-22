@@ -9,6 +9,10 @@ user-invocable: true
 > **Ne zaman:** Yeni bir chat'e geçilmeden önce; mevcut oturumun temiz kapanması ve sonrakinin sorunsuz başlaması için.
 > **Tetikleme:** "yeni chate geçiyorum", "oturumu kapat", "handoff" veya `/handoff`.
 
+> **Doküman döneminde kapanışın taşıyıcısı bu skill değil, PR'dır (K-38).** Workshop ve yazım oturumlarında adım 1, 3 ve 4 — working tree, repo hafızası, durum dosyası — oturum sonu `docs:` PR'ının **içeriğine** girer; PR açılmadan önce yapılır. Bu skill kaldırılmadı: oturum ayrıca kapatılıyorsa 8 adımın tamamı koşar. Gerekçe: bu skill `user-invocable`'dır, yani tetikleyicisi insan hafızasındadır ve Blok 0'da iki oturum üst üste kaçırdı; PR ise zaten açılacaktır.
+>
+> Implementation döneminde durum değişmez — orada kapanışın karşılığı yapım bitiş kapısı, validator Adım 0b ve gate check'tir (00 §G.4).
+
 ---
 
 ## Kontrol adımları

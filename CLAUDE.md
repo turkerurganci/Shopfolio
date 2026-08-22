@@ -12,7 +12,7 @@ Read and follow these files at the start of every session:
 
 1. `git status --short` — working tree dirty ise **dur**, karar al (INSTRUCTIONS §3.0)
 2. Bir task veya doğrulama başlatılacaksa ilgili skill'in başlangıç kapılarını işlet (`.claude/skills/`)
-3. Durum sorusu geldiyse `Docs/IMPLEMENTATION_STATUS.md`'yi oku — hafıza snapshot'ı otoriter değildir
+3. Durum sorusu geldiyse **dönemin tracker'ını** oku — doküman üretiminde `Docs/PRODUCT_DISCOVERY_STATUS.md`, implementation'da `Docs/IMPLEMENTATION_STATUS.md`; hafıza snapshot'ı otoriter değildir
 
 ## Kural katmanları
 

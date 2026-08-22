@@ -1,6 +1,6 @@
 # Hafıza Katmanı — Ne Buraya Girer, Ne Girmez
 
-**Katman:** L4 | **Son güncelleme:** 2026-07-27
+**Katman:** L4 | **Son güncelleme:** 2026-08-22
 
 ---
 
@@ -79,4 +79,4 @@ type: project | feedback | reference | user
 
 Hafıza **bilgilendiricidir, otoriter değildir**.
 
-"Sırada ne var / nerede kaldık" sorularında `Docs/IMPLEMENTATION_STATUS.md` okunur (ilgili satır `grep`'lenerek). İkisi çelişirse **tracker kazanır** ve hafıza düzeltilir.
+"Sırada ne var / nerede kaldık" sorularında **dönemin tracker'ı** okunur (ilgili satır `grep`'lenerek) — doküman üretiminde `Docs/PRODUCT_DISCOVERY_STATUS.md`, implementation'da `Docs/IMPLEMENTATION_STATUS.md` (00 §G.1). İkisi çelişirse **tracker kazanır** ve hafıza düzeltilir.

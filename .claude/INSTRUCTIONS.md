@@ -1,6 +1,6 @@
 # AI Çalışma Talimatları
 
-**Katman:** L3 | **Son güncelleme:** 2026-08-18
+**Katman:** L3 | **Son güncelleme:** 2026-08-22
 
 > Bu dosya ajanın **oturum davranışını** tanımlar. Sürecin *neden*i [`Docs/00_PROJECT_METHODOLOGY.md`](../Docs/00_PROJECT_METHODOLOGY.md)'de, *sınırlar* [`GUARDRAILS.md`](GUARDRAILS.md)'de, *adım adım iş akışları* [`skills/`](skills/)'dedir.
 
@@ -50,7 +50,7 @@ Her oturumda ilgili işin doküman referanslarını oku. Tüm dokümanı değil,
 
 1. **Working tree kontrolü:** İlk anlamlı işlemden önce `git status --short`. Dirty ise **dur** ve proje sahibinden karar al: **commit + PR** / **stash** / **discard** (discard için açık onay zorunlu). "Sonra hallederiz", "önemsiz", "benim değil", "task'la ilgisiz" **rasyonelizasyonları yasak**.
 2. **Infra/meta değişikliği varsa proaktif ol:** Hook, skill, INSTRUCTIONS, CLAUDE.md, config, scripts değişiklikleri working tree'de bırakılmaz. Kullanıcı sormadan commit+PR akışını **öner**: *"Bir sonraki task'ın temiz başlaması için bunu önce commit'leyelim; onay verirsen chore dalı açıp PR açıyorum."* Bunlar `chore:`/`docs:`/`infra:` prefix'i alır ve **task PR'ına giremez**.
-3. **Durum sorusu geldiyse tracker'ı oku:** "Sırada ne var / nerede kaldık" sorularında hafıza snapshot'ına güvenme. `IMPLEMENTATION_STATUS.md`'de ilgili satırı `grep`'le (tüm dosyayı okuma). Çelişki varsa tracker kazanır, hafızayı düzelt.
+3. **Durum sorusu geldiyse tracker'ı oku:** "Sırada ne var / nerede kaldık" sorularında hafıza snapshot'ına güvenme. **Dönemin tracker'ında** ilgili satırı `grep`'le (tüm dosyayı okuma) — doküman üretiminde `Docs/PRODUCT_DISCOVERY_STATUS.md`, implementation'da `Docs/IMPLEMENTATION_STATUS.md` (00 §G.1). Çelişki varsa tracker kazanır, hafızayı düzelt.
 
 ### 3.1 Task bazlı ilerleme
 
@@ -145,7 +145,7 @@ Her task bitişinde `.claude/memory/MEMORY.md` "Güncel Durum" bloğuna TXX içi
 
 ### 3.9 Durum sorularında kaynak
 
-`IMPLEMENTATION_STATUS.md` tek otoriter kaynaktır. Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
+**Dönemin tracker'ı** tek otoriter kaynaktır — doküman üretiminde `PRODUCT_DISCOVERY_STATUS.md`, implementation'da `IMPLEMENTATION_STATUS.md` (00 §G.1). Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 
 ---
 

@@ -1,6 +1,6 @@
 # AI Çalışma Talimatları
 
-**Katman:** L3 | **Son güncelleme:** 2026-08-30
+**Katman:** L3 | **Son güncelleme:** 2026-09-15
 
 > Bu dosya ajanın **oturum davranışını** tanımlar. Sürecin *neden*i [`Docs/00_PROJECT_METHODOLOGY.md`](../Docs/00_PROJECT_METHODOLOGY.md)'de, *sınırlar* [`GUARDRAILS.md`](GUARDRAILS.md)'de, *adım adım iş akışları* [`skills/`](skills/)'dedir.
 
@@ -39,6 +39,7 @@ Her oturumda ilgili işin doküman referanslarını oku. Tüm dokümanı değil,
 - "Sence?" sorusuna hazırlıklı ol — gerekçeli net bir önerin olsun.
 - Her karardan sonra *"burada ne ters gidebilir?"* sorusunu sor. Edge case'leri proje sahibinden önce düşün.
 - Kararları **anında** kayıt altına al. Hiçbir karar kaybolmamalı.
+- **Konu kapanışında tamlık taraması.** Bir konu (`BX-YY`) kapandığında, kapsadığı alanın plan tablosunda karşılığı olmayan bir parçası kalıp kalmadığı taranır. Bulunursa **yeni konu kimliği açılmaz** — karar, kapanan konunun içinde kayda geçer ve planın toplam konu sayısı bozulmaz. Bu tarama planın kendisini denetler; hazırlık taramasının kaçırdığını konu kapanışı yakalar.
 - Öneri sunarken "ben bunu uyguluyorum" deme — "bunu öneriyorum, onaylıyor musun?" de.
 - Sorduğun sorunun cevabını almadan başka konuya geçme.
 - Bir önerini savun. Kullanıcının her sorusuna "haklısın" deme; gerekçen varsa gerekçeni açıkla, gerçekten yanılıyorsan sade bir düzeltmeyle devam et.

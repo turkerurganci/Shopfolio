@@ -1,6 +1,6 @@
 # Shopfolio — Product Discovery Status
 
-**Versiyon: v0.13** | **Son güncelleme:** 2026-09-15
+**Versiyon: v0.14** | **Son güncelleme:** 2026-09-15
 
 > **Doküman üretim döneminin karar kaydıdır.** Her karar **alındığı anda** buraya yazılır — hiçbir karar kaybolmaz.
 > Bu dosya sürecin sonunda arşivlenir; alınan kararların nihai hâli `01`, `02` ve `10`'da yaşar.
@@ -12,7 +12,7 @@
 | No | Doküman | Durum | Versiyon | Audit | Deep review | Cross-review | Checkpoint |
 |---|---|---|---|---|---|---|---|
 | 01 | Project Vision | ⏳ | v0.2 | ⬚ | ⬚ | ⬚ | ⬚ |
-| 02 | Product Requirements | ⏳ | — | ⬚ | ⬚ | ⬚ | ⬚ |
+| 02 | Product Requirements | ⏳ | v0.2 | ⬚ | ⬚ | ⬚ | ⬚ |
 | 03 | User Flows | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
 | 04 | UI Specs | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
 | 05 | Technical Architecture | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
@@ -27,6 +27,9 @@
 **Lejant:** ⬚ Başlanmadı · ⏳ Devam ediyor · ✓ Tamamlandı
 
 > **`01` v0.2 kapsamı:** §1–§5 taslak yazıldı (2026-08-23, ayrı yazım oturumu — K-30). §6–§8 Blok 9 kapandığında yazılır (K-28). Kalite döngüsü sütunları tüm bloklar kapanmadan işaretlenmez.
+>
+> **`02` v0.2 kapsamı:** §1 (terimler ve aktörler) taslak yazıldı (2026-09-15, ayrı yazım oturumu — K-30). §2–§13 yazılmadı; her bölümün yazım kapısı `02`'nin kendi başlıkları altında **adıyla** durur (GUARDRAILS §5 — sahipsiz placeholder bırakılmaz). Kalite döngüsü sütunları tüm bloklar kapanmadan işaretlenmez.
+> **`02 §1` diğer bölümlerden farklıdır:** sözlük ve aktör envanteri tek blokta bitmez, sonraki bloklar satır ekler — ayrıntı §6.1'de.
 
 ---
 
@@ -155,6 +158,7 @@
 | A-02 | `01 §5.2` alternatif matrisinin derece değerleri | K-21 ekseni (tanıtım gücü × satış gücü), beş grubu ve hücrenin üç alanını sabitledi; **derece sözlüğünü** (Yok / Düşük / Orta / Yüksek) ve her gruba verilen dereceyi sabitlemedi. Taslakta dereceler K-04 ve K-15'in dilinden türetildi — ör. hazır e-ticaret paketi, K-15 "sonradan eklenmiş ve zayıf" dediği için **Düşük** aldı. Varlık kararı açık değil: matris yazılacaktır. | `01 §6–§8` yazım oturumunda, Blok 9 kapandıktan sonra ve `01`'in kalite döngüsü başlamadan önce | ⬚ Açık |
 | A-03 | `01 §3.2` aktör tablosunun "neden geri döner" hücreleri | `B1-09` sütunun eklenmesine karar verdi; K-19 yalnız **üye müşteri** için içerik verdi ("hesap sürekliliği, tekrar satın almayı kolaylaştırır"). **Ziyaretçi** ve **firma yöneticisi** satırları taslakta K-15 ve K-19'un değer ifadelerinden türetildi; kayıt bu iki hücrenin metnini taşımıyor. Varlık kararı açık değil: sütun tabloda kalacaktır. | `01 §6–§8` yazım oturumunda, Blok 9 kapandıktan sonra ve `01`'in kalite döngüsü başlamadan önce | ⬚ Açık |
 | A-04 | `01 §1`'in sayısal somutluğu | `01` şablonu §1 için ölçülebilir somutluk istiyor ("X yapmak için Y adım gerekiyor"); karar kaydında ölçülmüş bir sayı yok ve K-05 gerçek kullanıcı geri bildirimi olmadan ilerlendiğini söylüyor. Taslak niteliksel somutlukla yazıldı (çift giriş, tutarsızlık, yükün sahibi). §1'in sayısal iddiası §6'nın hedef setine bağlanacaktır. | `B9-09` ve `B9-10` karara bağlandığında, `01 §6` yazılırken | ⬚ Açık |
+| A-05 | `02 §1.2` sözlüğünde İngilizce kod karşılıkları | K-17 İngilizce karşılığın **Aşama 1'de, terim sözlüğe girdiği anda** yazılmasını zorunlu kıldı. `02 §1` taslağına giren 22 terimin **11'inin** karşılığı karar kaydında yazılıdır (K-41 · K-42 · K-45 · K-54 · K-82 · K-88). Kalan 11'i kayıt taşımıyor ve taslakta sözlüğün kendi konvansiyonundan türetildi — tipin üç değeri (`Physical` · `Digital` · `Service`, K-81/K-82 "kapalı set" dedi ama değerleri adlandırmadı), `PublishStatus` (K-55 düzlemi verdi, alan adını vermedi), `StockQuantity` (K-50), `VatRate` (K-58), `Company` (K-01), `Visitor` · `Customer` · `Admin` (K-06 — "admin" yalnız Türkçe metin içinde parantez olarak geçer), `Consumer` (K-07). Taslakta **† ile işaretlidirler**. Varlık kararı açık değil: sütun dolacaktır, açık olan yalnız dizelerin kendisi. | `02`'nin son yazım oturumunda — Blok 9 kapandıktan sonra, `02`'nin kalite döngüsü başlamadan önce. **Bu vade `03`/`04`'ten önce olmak zorundadır:** K-17 kuralı tam da "03 ve 04, 06'dan önce yazılır, o aralıkta adlar başıboş kalır" gerekçesiyle koydu. | ⬚ Açık |
 
 ---
 
@@ -173,8 +177,11 @@
 - [x] `Docs/00_PROJECT_METHODOLOGY.md` proje sahibiyle gözden geçirildi — **2026-08-17**, 12 madde, tamamı onaylandı → **B0-01 ✓** (kayıt: `SETUP.md` §7)
 - [x] Tracker referansı döneme göre düzeltildi — `00 §G.1`, `INSTRUCTIONS §3.0` ve `CLAUDE.md` yalnız `IMPLEMENTATION_STATUS.md`'yi işaret ediyordu; doküman döneminde tracker **bu dosyadır** (`handoff` skill'i adım 4'te bunu zaten doğru söylüyordu) — **2026-08-22**, K-38 oturumu
 - [x] **`01 §1–§5` taslağı yazıldı** — K-28'in ilk uygulaması, K-30 gereği workshop'tan ayrı bir oturumda; girdi karar kaydı §2/§4, `01` şablonu ve 00 §C.6 ürün bağlamı katmanıydı, workshop sohbet geçmişi kullanılmadı — **2026-08-23**, `01` v0.2
-- [ ] **Yazım oturumunun kayda düşürdüğü üç açık** aşağıda §4'te izleniyor (A-02, A-03, A-04) — K-30'un "yazım, kaydın yeterlilik testidir" sonucu
-- [ ] **`02 §1` taslağı yazılabilir hâle geldi** — Blok 3'ün kapanmasıyla `02 §1`'i besleyen iki blok (Blok 1 ve Blok 3) da kapandı; K-41 sözlük satırlarını, K-54 · K-82 · K-96 ise terim ve rejim satırlarını oraya yazıyor. K-30 gereği **ayrı bir yazım oturumu** ister; workshop oturumuyla birleştirilmez — 2026-09-14
+- [ ] **`01` yazım oturumunun kayda düşürdüğü üç açık** aşağıda §4'te izleniyor (A-02, A-03, A-04) — K-30'un "yazım, kaydın yeterlilik testidir" sonucu
+- [x] **`02 §1` taslağı yazıldı** — K-28'in ikinci uygulaması, K-30 gereği workshop'tan ayrı bir oturumda; girdi karar kaydı §2/§4, `02` şablonu, 00 §C.6 ürün bağlamı katmanı ve üst doküman `01`'di, workshop sohbet geçmişi kullanılmadı. Sözlüğe **22 terim**, aktör bölümüne üç aktör ve üç "aktör olmayan" girdi; §2–§13'e yazım kapısı notları eklendi — **2026-09-15**, `02` v0.2
+- [ ] **`02` yazım oturumunun kayda düşürdüğü bir açık** §4'te izleniyor (**A-05** — sözlükteki İngilizce kod karşılıklarının 11'i kayıtta yok, taslakta türetildi ve † ile işaretlendi)
+- [ ] **§6.2'nin "Hedef doküman" sütunu `02 §1`'i eksik besliyor — proje sahibinin kararı gerekiyor.** Sütun `02 §1`'i yalnız Blok 1 ve Blok 3'e bağlıyor ve K-28 besleyen blok kümesini **bu sütundan** okuduğu için taslak bugün yazıldı. Ancak iki **kapalı** karar §1'e sonraki bloklardan içerik ekleyeceğini kendi metninde söylüyor: **K-06** misafir alıcının aktör olup olmadığını `B4-01`'e, **K-17** sipariş durum adlarının sözlüğe ilk satırlarını `B6-03`'e bırakmıştır — Blok 4 ve Blok 6 satırları `02 §1` yazmıyor. **Kök sebep sütunun kendisidir:** blok başına hedef bölümler konu listesinden türetildi, sözlük ve aktör envanteri gibi **bloklar arasına yayılan** bölümler bu türetimde görünmüyor. Aynı düzeltme Blok 3'e bir kez uygulandı (§6.2 oturum 1 notu). **Karar seçenekleri:** (1) sütun şimdi düzeltilir — Blok 4 ve Blok 6 satırlarına `02 §1` eklenir; (2) düzeltme her bloğun kapanışına bırakılır ve K-29'un `(taslak güncellenecek)` işareti taşıyıcı mekanizma olur. Ajan sütunu **kendiliğinden değiştirmedi** (GUARDRAILS §3, §6) — 2026-09-15
+- [ ] **K-88'in etki sütunu `02 §1` taşımıyor** ama karar metni *"Sözlüğe (K-17) bir satır düşer: Stok kodu → `SKU`"* diyor. Taslak karar metnini esas aldı ve satırı yazdı; K-35'e göre sütun **zorunlu** alandır, dolayısıyla düzeltilecek olan sütundur. Yukarıdaki maddeyle aynı kök sebep, satır düzeyinde — 2026-09-15
 - [ ] Aşama 1'in cross-review turu `cursor-agent` ile koşuldu, çıktı `Docs/CROSS_REVIEW_REPORTS/` altına yazıldı → **B9-16**
 
 ### 6.2 Blok planı

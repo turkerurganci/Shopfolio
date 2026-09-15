@@ -6,10 +6,11 @@
 > **Traceability zorunlu:** Hayır (kaynak doküman — sonraki aşamalar buraya izlenir)
 > **Bu doküman tüm iş kurallarının tek kaynağıdır.** Kod bu dokümanla çelişemez.
 
-> **Taslak durumu (K-28):** §1 **taslak** olarak yazılmıştır; §6.2'nin "Hedef doküman" sütununa göre bu bölümü besleyen iki blok (Blok 1 ve Blok 3) kapalıdır. §2–§13 henüz yazılmamıştır — her bölümün yazım kapısı kendi başlığının altındadır. Kalite döngüsü (audit → deep review → cross-review → etki yansıtma → checkpoint) bu dokümanda **tüm bloklar kapandıktan sonra** ve **bir kez** koşar; sıra `01` → `02` → `10`'dur (00 §C.5).
+> **Taslak durumu (K-28):** §1 **taslak** olarak yazılmıştır; yazıldığı anda §6.2'nin "Hedef doküman" sütunu bu bölümü Blok 1 ve Blok 3'e bağlıyordu ve ikisi de kapalıydı. §2–§13 henüz yazılmamıştır — her bölümün yazım kapısı kendi başlığının altındadır. Kalite döngüsü (audit → deep review → cross-review → etki yansıtma → checkpoint) bu dokümanda **tüm bloklar kapandıktan sonra** ve **bir kez** koşar; sıra `01` → `02` → `10`'dur (00 §C.5).
 > Taslak yazıldıktan sonra alınan bir karar §1'e dokunursa, karar satırı `(taslak güncellenecek)` işaretini taşır ve güncelleme aynı bloğun `docs:` PR'ında yapılır (K-29).
 
-> **§1'in kapanmamış olması bilinen bir durumdur.** Sözlük ve aktör envanteri, diğer bölümlerin aksine **tek bir blokta bitmez** — sonraki bloklar terim ve aktör ekler. İki kapalı karar bunu kendi metninde söyler: K-06 misafir alıcının aktör olup olmadığını `B4-01`'e, K-17 sipariş durum adlarının sözlüğe ilk satırlarını `B6-03`'e bırakmıştır. Ayrıntı ve düzeltme kapısı: `PRODUCT_DISCOVERY_STATUS.md` §6.1.
+> **§1 kapanmamıştır ve Blok 8'den önce kapanmaz.** Sözlük ve aktör envanteri, diğer bölümlerin aksine **tek bir blokta bitmez** — terim üreten her blok ona satır ekler. §6.2'nin sütunu bunu görmüyordu; **2026-09-15'te düzeltildi** ve `02 §1` Blok 4–8'e de bağlandı (gerekçe: `PRODUCT_DISCOVERY_STATUS.md` §6.2, tablo altındaki not). Bugün bilinen eklemeler: K-06 misafir alıcının aktör olup olmadığını `B4-01`'e, K-17 sipariş durum adlarının sözlüğe ilk satırlarını `B6-03`'e bırakmıştır; **Sepet** ve **Sipariş kalemi** terimleri `B5-01`/`B5-03` ve `B6-04` ile tanımlanacaktır.
+> **Kapalı Blok 3'ten gelen bir eksik de vardır:** İndirim, Kupon ve Referans fiyat kavramları tam karara bağlı olduğu hâlde sözlükte satır taşımıyor — kararları `02 §3`/`§5`'e yönlendirilmişti. Karar bekliyor: `PRODUCT_DISCOVERY_STATUS.md` §6.1.
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider.
 

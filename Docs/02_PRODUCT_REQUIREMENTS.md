@@ -10,7 +10,7 @@
 > Taslak yazıldıktan sonra alınan bir karar §1'e dokunursa, karar satırı `(taslak güncellenecek)` işaretini taşır ve güncelleme aynı bloğun `docs:` PR'ında yapılır (K-29).
 
 > **§1 kapanmamıştır ve Blok 8'den önce kapanmaz.** Sözlük ve aktör envanteri, diğer bölümlerin aksine **tek bir blokta bitmez** — terim üreten her blok ona satır ekler. §6.2'nin sütunu bunu görmüyordu; **2026-09-15'te düzeltildi** ve `02 §1` Blok 4–8'e de bağlandı (gerekçe: `PRODUCT_DISCOVERY_STATUS.md` §6.2, tablo altındaki not). Bugün bilinen eklemeler: K-06 misafir alıcının aktör olup olmadığını `B4-01`'e, K-17 sipariş durum adlarının sözlüğe ilk satırlarını `B6-03`'e bırakmıştır; **Sepet** ve **Sipariş kalemi** terimleri `B5-01`/`B5-03` ve `B6-04` ile tanımlanacaktır.
-> **Kapalı Blok 3'ten gelen bir eksik de vardır:** İndirim, Kupon ve Referans fiyat kavramları tam karara bağlı olduğu hâlde sözlükte satır taşımıyor — kararları `02 §3`/`§5`'e yönlendirilmişti. Karar bekliyor: `PRODUCT_DISCOVERY_STATUS.md` §6.1.
+> **Kapalı Blok 3'ten gelen eksik kapatıldı (2026-09-15):** İndirim, Kupon ve Referans fiyat tam karara bağlı olduğu hâlde sözlükte satır taşımıyordu — kararları `02 §3`/`§5`'e yönlendirilmiş, `§1`'e yönlendirilmemişti. Üçü de eklendi; K-63 ve K-70'in etki sütunları düzeltildi. **Sepet** ve **Sipariş kalemi** hâlâ eksiktir ve bilinçli olarak bekletilmektedir — tanımları `B5-01`/`B5-03` ve `B6-04`'e bağlı, bugün yazılamaz.
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider.
 
@@ -87,6 +87,14 @@ Kuralın gerekçesi `03` ve `04`'ün `06`'dan **önce** yazılmasıdır: İngili
 | Stok | `StockQuantity` † | Varyantın sayısal adedi. Ürün düzleminde ayrı bir stok alanı **yoktur**; ürünün stok durumu varyantlarından türetilir (K-50). |
 | KDV oranı | `VatRate` † | Ürün düzleminde tutulan oran; varyantlar devralır. Varsayılanı ayardan gelir (K-58, K-59). |
 
+**İndirim ve kupon**
+
+| Türkçe terim | İngilizce kod karşılığı | Tanım |
+|---|---|---|
+| İndirim | `Discount` † | **Ürün düzleminde** tanımlanan ve tüm varyantlara inen **yüzdesel** indirim; her varyant kendi fiyatı üzerinden indirilir. **Tarihlidir** — başlangıç ve bitiş girilir, sistem indirimi kendisi başlatır ve bitirir (K-63, K-64, K-65, K-66). |
+| Referans fiyat | `ReferencePrice` † | İndirim beyanının dayandığı fiyat: indirimin başladığı ana kadarki **30 gün** içinde o varyanta uygulanmış **en düşük** fiyat. **Sistem hesaplar**, yönetici giremez. 30 günlük geçmişi olmayan üründe referans, ürünün yayına girdiğinden beri uygulanmış en düşük fiyattır (K-63, K-67). |
+| Kupon | `Coupon` † | Ödeme adımında girilen kod; **sepet toplamına** iner ve indirimli fiyatın üzerine uygulanır. Yüzde veya sabit tutar olabilir; sabit tutarlı kupon zorunlu bir asgari sepet tutarı taşır. Sınırı **tarih + toplam kullanım adedidir** (K-70, K-71, K-73, K-74, K-75). |
+
 **Aktörler ve taraflar**
 
 | Türkçe terim | İngilizce kod karşılığı | Tanım |
@@ -115,7 +123,7 @@ Bu dokümanın iş kurallarının dayandığı iki aktör kuralı:
 - **Platform operatörü uygulama içi aktör değildir.** Kurulum bir deploy işidir; uygulamaya operatör paneli koymak, K-01 ile elenen kiracılığı arka kapıdan geri getirirdi (K-06).
 - **Misafir alıcı henüz aktör değildir.** Üyeliksiz sipariş kararına bağlıdır; o karar `B4-01`'de alınır (K-06). Karar "misafir alışverişi vardır" yönünde çıkarsa §1.2 sözlüğüne ve bu listeye birer satır eklenir.
 
-*Kaynak: K-17 (sözlük kuralı ve adlandırma konvansiyonu) · K-06 (aktör envanteri) · K-07 (alıcının hukuki sıfatı) · K-01 · K-09 · K-12 · K-14 · K-39 · K-40 · K-41 · K-42 · K-43 · K-45 · K-50 · K-54 · K-55 · K-56 · K-57 · K-58 · K-59 · K-64 · K-81 · K-82 · K-83 · K-84 · K-85 · K-88 · K-89 · K-90 · K-96.*
+*Kaynak: K-17 (sözlük kuralı ve adlandırma konvansiyonu) · K-06 (aktör envanteri) · K-07 (alıcının hukuki sıfatı) · K-01 · K-09 · K-12 · K-14 · K-39 · K-40 · K-41 · K-42 · K-43 · K-45 · K-50 · K-54 · K-55 · K-56 · K-57 · K-58 · K-59 · K-63 · K-64 · K-65 · K-66 · K-67 · K-70 · K-71 · K-73 · K-74 · K-75 · K-81 · K-82 · K-83 · K-84 · K-85 · K-88 · K-89 · K-90 · K-96.*
 
 ---
 

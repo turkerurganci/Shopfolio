@@ -1,6 +1,6 @@
 # Proje Bağlamı ve Klasör Haritası
 
-**Katman:** L3 | **Son güncelleme:** 2026-08-01
+**Katman:** L3 | **Son güncelleme:** 2026-09-16
 
 ---
 
@@ -19,7 +19,7 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 | Alan | Değer |
 |---|---|
 | Proje adı | Shopfolio |
-| Tek cümlelik tanım | Herhangi bir firmanın kendi ürünlerini sergileyip çevrimiçi satabileceği ve kurumsal tanıtımını yapabileceği; üyelik, Google/Facebook ile giriş, sipariş, ödeme ve sipariş takibi içeren web uygulaması. |
+| Tek cümlelik tanım | Herhangi bir firmanın kendi ürünlerini sergileyip çevrimiçi satabileceği ve kurumsal tanıtımını yapabileceği; üyelik (sipariş vermek için zorunlu değil — K-97), Google ile giriş (K-103), sipariş, ödeme ve sipariş takibi içeren web uygulaması. |
 | Mevcut dönem | Doküman üretimi |
 | Teknoloji yığını | Aşama 4'te belirlenir → [`Docs/05_TECHNICAL_ARCHITECTURE.md`](../Docs/05_TECHNICAL_ARCHITECTURE.md) |
 | Dal koruma rejimi | **B — sistem-enforced** (ruleset aktif, `CI Gate` required; hook'lar da yerinde) |

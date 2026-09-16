@@ -1,6 +1,6 @@
 # Shopfolio — Project Vision
 
-**Versiyon: v0.2** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-08-23
+**Versiyon: v0.3** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-09-16
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager / Discovery Facilitator
 > **Traceability zorunlu:** Hayır (kök doküman)
@@ -8,6 +8,8 @@
 
 > **Taslak durumu (K-28):** §1–§5 **taslak** olarak yazılmıştır; besleyen bloklar (Blok 1 ve Blok 2) kapalıdır. §6–§8 **Blok 9 kapandığında** yazılır — o bölümlerin girdisi henüz alınmamıştır. Kalite döngüsü (audit → deep review → cross-review → etki yansıtma → checkpoint) bu dokümanda **tüm bloklar kapandıktan sonra** ve **bir kez** koşar (00 §C.5).
 > Taslak yazıldıktan sonra alınan bir karar bu bölümlere dokunursa, karar satırı `(taslak güncellenecek)` işaretini taşır ve güncelleme aynı bloğun `docs:` PR'ında yapılır (K-29).
+
+> **Blok 4 güncellemesi (2026-09-16, K-29):** Blok 4 taslağın iki bölümüne dokundu. **§2** — üyelik sipariş vermek için zorunlu olmaktan çıktı (K-97) ve sosyal giriş yalnız Google'a indi (K-103); cümle buna göre yeniden yazıldı. **§3.2** — aktör tablosu üçten **dörde** çıktı: **misafir alıcı** eklendi ve "aktör olmayanlar" listesindeki ilgili madde kalktı (K-97, K-100); yönetici hesaplarının müşteri tarafıyla aynı kimlik doğrulama rejimine tabi olduğu yazıldı (K-122). **§4 değişmedi** — misafir alıcıya ayrı bir değer bölümü açılmadı (K-100). Yeni satırın "neden geri döner" hücresi türetilmiştir; **A-03**'ün kapsamı üç satırdan dörde çıktı.
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider.
 
@@ -39,9 +41,9 @@ Alternatiflerin tam envanteri ve neden yetersiz kaldıkları §5'tedir.
 
 ## 2. Çözüm
 
-Shopfolio, bir firmanın **kurumsal tanıtım sitesi** ile **çevrimiçi mağazasını** tek bir üründe birleştiren web uygulamasıdır. Firma; ürün kataloğunu, kurumsal içeriğini ve kimlik bilgilerini **tek bir yönetim panelinden** yönetir — aynı bilgi ikinci bir yere girilmez. Ziyaretçi aynı site içinde firmayı tanır, ürüne bakar, üye olur veya Google/Facebook hesabıyla giriş yapar, sepetini oluşturur, kartla öder ve siparişini takip eder. Satış **doğrudandır**: yayındaki her ürünün fiyatı vardır ve satın alınabilir; "fiyat sorunuz" gibi bir ürün durumu, teklif veya talep hattı yoktur (K-11). Uygulama **kurulum başına tek firmaya** hizmet eder; ikinci müşteri ikinci kurulumdur (K-02, K-09).
+Shopfolio, bir firmanın **kurumsal tanıtım sitesi** ile **çevrimiçi mağazasını** tek bir üründe birleştiren web uygulamasıdır. Firma; ürün kataloğunu, kurumsal içeriğini ve kimlik bilgilerini **tek bir yönetim panelinden** yönetir — aynı bilgi ikinci bir yere girilmez. Ziyaretçi aynı site içinde firmayı tanır, ürüne bakar, sepetini oluşturur, kartla öder ve siparişini takip eder; **bunun için üye olması gerekmez** — misafir alıcı siparişini sipariş numarası ve e-postasıyla izler (K-97). İsteyen hesap açar veya **Google** hesabıyla giriş yapar; üyeliğin karşılığı sürekliliktir: adres defteri, sipariş geçmişi ve hatırlanan oturum (K-103, K-108, K-111). Satış **doğrudandır**: yayındaki her ürünün fiyatı vardır ve satın alınabilir; "fiyat sorunuz" gibi bir ürün durumu, teklif veya talep hattı yoktur (K-11). Uygulama **kurulum başına tek firmaya** hizmet eder; ikinci müşteri ikinci kurulumdur (K-02, K-09).
 
-*Kaynak: K-11 (satış modeli) · K-02 · K-09.*
+*Kaynak: K-11 (satış modeli) · K-97 (üyelik zorunlu değil) · K-103 (sosyal giriş kapsamı) · K-02 · K-09 · K-108 · K-111.*
 
 ---
 
@@ -66,11 +68,12 @@ Shopfolio **ticari bir üründür** — baştan itibaren birden çok KOBİ'ye ku
 
 ### 3.2 Ürünü kullanan: aktörler
 
-Uygulamada **üç aktör** vardır. Yönetim tarafı **tek roldür ve çoklu kullanıcıya** açıktır: firma birden fazla yönetici hesabı açabilir, hepsi aynı yetkiye sahiptir; ayrı hesaplar sayesinde "kim ne değiştirdi" izlenebilir kalır (K-06).
+Uygulamada **dört aktör** vardır. Yönetim tarafı **tek roldür ve çoklu kullanıcıya** açıktır: firma birden fazla yönetici hesabı açabilir, hepsi aynı yetkiye sahiptir; ayrı hesaplar sayesinde "kim ne değiştirdi" izlenebilir kalır (K-06). Yönetici hesapları kimlik doğrulama, oturum ve şifre kuralları bakımından müşteri tarafıyla **aynı rejime** tabidir (K-122).
 
 | Aktör | Kim | Neden kullanır | Neden geri döner |
 |---|---|---|---|
 | **Ziyaretçi** | Siteye üye olmadan gelen kişi | Firmayı tanımak, kurumsal içeriğe ve iletişim bilgisine ulaşmak, ürün kataloğuna bakmak | Firma bilgisi ve katalog aynı adreste ve güncel tutulduğu için; aradığını bulmak için ikinci bir kanala gitmesi gerekmez |
+| **Misafir alıcı** | Hesap açmadan sipariş veren tüketici (K-07, K-97) | Kayıt adımını hiç görmeden sipariş vermek; siparişini sipariş numarası ve e-postasıyla takip etmek | Kayıt duvarına takılmadığı için ikinci siparişini de aynı kolaylıkta verir; hesap açmaya karar verirse geçmiş siparişleri hesabına düşer ve üye müşterinin sürekliliğine geçer (K-98) |
 | **Üye müşteri** | Hesabı olan tüketici; kişisel ihtiyacı için satın alan gerçek kişi (K-07) | Sipariş vermek, ödemesini yapmak, siparişinin durumunu takip etmek | Hesap sürekliliği: tekrar satın alma ilk siparişten daha az adım gerektirir ve sipariş takibi tek yerden yapılır (K-19) |
 | **Firma yöneticisi (admin)** | Firmanın panel kullanıcısı; tek rol, çoklu kullanıcı (K-06) | Ürün kataloğunu, kurumsal içeriği, firma kimlik bilgilerini ve gelen siparişleri yönetmek | Günlük işini burada yapar — sipariş geldikçe ve katalog değiştikçe panele girer; panel tek doğruluk kaynağıdır (K-19) |
 
@@ -78,9 +81,8 @@ Uygulamada **üç aktör** vardır. Yönetim tarafı **tek roldür ve çoklu kul
 
 - **Platform operatörü uygulama içi aktör değildir.** Kurulum bir deploy işidir (Aşama 4 + `DEPLOY_RUNBOOK.md`); uygulamaya operatör paneli koymak, K-01 ile elenen kiracılığı arka kapıdan geri getirirdi (K-06).
 - **Ticari / kurumsal alıcıya özel bir aktör veya hukuki rejim yoktur.** MVP'de alıcı yalnız tüketicidir; 6502 sayılı Kanun'un tüketici korumaları istisnasız her siparişte uygulanır (K-07).
-- **Misafir alıcı henüz aktör değildir.** Üyeliksiz sipariş kararına bağlıdır; o karar `B4-01`'de alınır (K-06).
 
-*Kaynak: K-06 (aktör envanteri) · K-03 · K-05 · K-07 · K-08 · K-14 · K-16 · K-19 · B1-09 (aktör tablosuna "neden geri döner" sütunu).*
+*Kaynak: K-06 (aktör envanteri) · K-97 (misafir alıcı — dördüncü aktör) · K-122 (yönetici tarafının kimlik doğrulama tabanı) · K-03 · K-05 · K-07 · K-08 · K-14 · K-16 · K-19 · K-98 · K-111 · B1-09 (aktör tablosuna "neden geri döner" sütunu).*
 
 ---
 

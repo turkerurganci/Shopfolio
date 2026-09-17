@@ -1,6 +1,6 @@
 # Project Playbook — Metodoloji
 
-**Versiyon: v1.0.2** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-08-22
+**Versiyon: v1.0.3** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-09-17
 
 > Bu doküman bir yazılım projesini **fikirden çalışan MVP'ye** taşıyan yöntemin tamamıdır:
 > doküman üretimi, implementasyon, doğrulama, borç kapatma ve kapanış.
@@ -158,7 +158,7 @@ Her aşama bir öncekinin çıktısına dayanır. **Sırayı atlamak tutarsızl�
 - **Kararları zincirleme bağlama:** Her karar bir sonrakini şekillendirir. Bağımlılık zincirini takip et.
 - **Edge case'i anında ele al:** Her karardan sonra *"burada ne ters gidebilir?"* sorulur. Bu soruyu proje sahibinden **önce** ajan sorar.
 - **İnkremental kayıt:** Karar alındığı anda `PRODUCT_DISCOVERY_STATUS.md`'ye yazılır. Hiçbir karar kaybolmaz.
-- **Seçenek + öneri + onay:** Ajan seçenekleri artı-eksileriyle sunar, **kendi önerisini belirtir**, ama "ben bunu uyguluyorum" demez — onay ister.
+- **Seçenek + öneri + onay:** Ajan seçenekleri artı-eksileriyle sunar, **kendi önerisini belirtir**, ama "ben bunu uyguluyorum" demez — onay ister. **İstisna — öneriyle kayıt yetkisi:** proje sahibi, kritik olmayan soruların ajanın önerisiyle kaydedilmesine yetki verebilir. Hangi soruların yine de sorulduğu, kaydın nasıl işaretlendiği ve proje sahibine nasıl bildirildiği `.claude/INSTRUCTIONS.md` §2'de tanımlıdır.
 - **Cevapsız soru bırakma:** Proje sahibine sorulan soru cevaplanmadan başka konuya geçilmez.
 
 ### C.3 Traceability Matrix kuralı

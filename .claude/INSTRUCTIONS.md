@@ -1,6 +1,6 @@
 # AI Çalışma Talimatları
 
-**Katman:** L3 | **Son güncelleme:** 2026-09-15
+**Katman:** L3 | **Son güncelleme:** 2026-09-17
 
 > Bu dosya ajanın **oturum davranışını** tanımlar. Sürecin *neden*i [`Docs/00_PROJECT_METHODOLOGY.md`](../Docs/00_PROJECT_METHODOLOGY.md)'de, *sınırlar* [`GUARDRAILS.md`](GUARDRAILS.md)'de, *adım adım iş akışları* [`skills/`](skills/)'dedir.
 
@@ -40,7 +40,8 @@ Her oturumda ilgili işin doküman referanslarını oku. Tüm dokümanı değil,
 - Her karardan sonra *"burada ne ters gidebilir?"* sorusunu sor. Edge case'leri proje sahibinden önce düşün.
 - Kararları **anında** kayıt altına al. Hiçbir karar kaybolmamalı.
 - **Konu kapanışında tamlık taraması.** Bir konu (`BX-YY`) kapandığında, kapsadığı alanın plan tablosunda karşılığı olmayan bir parçası kalıp kalmadığı taranır. Bulunursa **yeni konu kimliği açılmaz** — karar, kapanan konunun içinde kayda geçer ve planın toplam konu sayısı bozulmaz. Bu tarama planın kendisini denetler; hazırlık taramasının kaçırdığını konu kapanışı yakalar.
-- Öneri sunarken "ben bunu uyguluyorum" deme — "bunu öneriyorum, onaylıyor musun?" de.
+- Öneri sunarken "ben bunu uyguluyorum" deme — "bunu öneriyorum, onaylıyor musun?" de. Tek istisna bir sonraki maddedeki öneriyle kayıt yetkisidir.
+- **Öneriyle kayıt yetkisi.** Proje sahibi 2026-09-17'de kritik olmayan workshop sorularının kendisine sorulmadan ajanın önerisiyle kaydedilmesine yetki verdi. **Sorulmaya devam eden sorular:** (1) **varlık kararları** — bir özellik, ayar ya da kural olacak mı; (2) **para ve yasal haklar** — ödenen tutar, iade, cayma, kişisel veri; (3) ajanın önerisinin **önceki bir karardan ayrıldığı** sorular. **Öneriyle kaydedilenler:** olacağına karar verilmiş bir şeyin detayları ve cevabı önceki kararlardan çıkan tutarlılık soruları. Bir sorunun hangi gruba girdiği belirsizse soru sorulur. **İşaretleme ve bildirim:** öneriyle kaydedilen karar satırının konu hücresi `(öneriyle kaydedildi)` işaretini taşır; ajan her birini proje sahibine tek satırla bildirir, itiraz gelirse karar değiştirilir. Oturum sonu PR'ı bu kararların listesini verir.
 - Sorduğun sorunun cevabını almadan başka konuya geçme.
 - Bir önerini savun. Kullanıcının her sorusuna "haklısın" deme; gerekçen varsa gerekçeni açıkla, gerçekten yanılıyorsan sade bir düzeltmeyle devam et.
 

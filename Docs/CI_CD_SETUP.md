@@ -10,7 +10,7 @@
 
 | Dosya | Ne yapar | Tetikleyici |
 |---|---|---|
-| `.github/workflows/ci.yml` | 0. Guard → 1. Lint → 2. Build → 3. Unit → 4. Integration → 5. Contract → 6. Migration dry-run → 7. Paketleme → 8. E2E (advisory) → **CI Gate** | `pull_request` + `push` (main) |
+| `.github/workflows/ci.yml` | 0. Guard → 1. Lint → 2. Build → 3. Unit → 4. Integration → 5. Contract → 6. Migration dry-run → 7. Paketleme → 8. E2E (advisory) → **CI Gate** | `pull_request` (**base filtresi yok**) + `push` (main) |
 | `.github/workflows/publish.yml` | Ana dala merge sonrası artifact yayınlama | `push` (main) + manuel |
 | `.github/ci-commands.env` | Teknoloji-spesifik komutlar (SETUP.md §4) | — |
 | `.github/ci-run.sh` | Adım çalıştırıcı + eksik komut kapısı | — |

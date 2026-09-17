@@ -28,6 +28,7 @@
 - **Açık kararlar:** **A-02, A-03, A-04** — `01` yazım oturumunun bulduğu boşluklar; **A-03'ün kapsamı dört satıra çıktı** (misafir alıcı hücresi, K-100). **A-05** — sözlükte **20 türetilmiş** İngilizce karşılık (31 terimin 11'i kayıtta); vadesi `02`'nin son yazım oturumu, `03`/`04`'ten önce. Dördü de **detay**. Ayrıntı: tracker §4.
 - **Gate durumu:** Implementation başlamadı, faz yok. Doküman: **01 ⏳ (v0.3)** · **02 ⏳ (v0.4)** · 10 ⏳ · 03–09, 11–12 ⬚. Blok planı: 0 ✓ · 1 ✓ · 2 ✓ · 3 ✓ · 4 ✓ · **5 ✓** · 6–9 ⬚. Plandaki 111 konunun **57'si** kapandı.
 - **Oturum kapanışı (K-38):** Doküman döneminde bu blok `/handoff` beklenmeden **oturum sonu `docs:` PR'ının içinde** güncellenir. **Üç kez kaçırıldı** (Blok 3 oturum 1 ve 4, Blok 5 oturum 1), üçünü de INSTRUCTIONS §3.0 yakaladı. Kararlar konu bittikçe kayda yazıldığı için Blok 5 oturum 1'de de kayıp olmadı. **Bu kez kesinti bir soru açıkken oldu:** proje sahibi cevabı yeni oturumun ilk mesajında verdi; açılış kapısı cevabın kaydından önce koştu, önceki oturumun son sorusu transcript'ten bulundu. **Oturum 2 kuralına uygun kapandı:** kararlar konu bittikçe yazıldı, kapanış adımları oturum sonu PR'ının içinde koştu.
+- **Blok 5'in PR'ları main'de (2026-09-17):** #22 (`2c7ef32`) · #21 (`2429460`) · #23 (`f585ad1`), üçünün de CI'sı yeşil. **#23'ün base'i `main` değil oturum 1'in dalıydı ve CI hiç koşmadı** — ruleset sadece `main`'i koruduğu için PR yanlış yere `CLEAN` göründü. Dal `rebase --onto origin/main` ile hizalandı, CI yeşilledi, merge edildi. **Terfi (00 §K):** *PR base'i her zaman `main`'dir* → `INSTRUCTIONS §3.2` + `ci.yml`'den base filtresinin kaldırılması. Kanıt tracker §6.1'de.
 - **Son güncelleme:** 2026-09-17
 
 ---
@@ -71,3 +72,4 @@
 | Sorular ve seçenekler numaralandırılır | `INSTRUCTIONS.md` §2 | 2026-08-30 |
 | Konu kapanışında tamlık taraması | `INSTRUCTIONS.md` §2 | 2026-09-15 |
 | Kritik olmayan workshop soruları öneriyle kaydedilir | `00` §C.2 · `INSTRUCTIONS.md` §2 · `GUARDRAILS.md` §6 · `checklists/document-stage.md` §3 | 2026-09-17 |
+| PR base'i her zaman `main`'dir | `INSTRUCTIONS.md` §3.2 · `.github/workflows/ci.yml` (base filtresi kaldırıldı) | 2026-09-17 |

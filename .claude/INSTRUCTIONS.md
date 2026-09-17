@@ -67,11 +67,14 @@ Her oturumda ilgili işin doküman referanslarını oku. Tüm dokümanı değil,
 | Kural | Değer |
 |---|---|
 | Branch | `task/TXX-kisa-aciklama` |
+| PR base'i | **Her zaman `main`** — başka bir dalın üstüne PR açılmaz |
 | Merge | Squash → `TXX: Task adı (#PR-no)` |
 | Faz tag'i | `phase/FX-pass` |
 | Direct push | Yasak — `scripts/git-hooks/pre-push` bloklar |
 | Merge ön koşulu | CI yeşil **ve** validator PASS |
 | Merge'ü kim yapar | **Validator chat** (yapım chat'i PR'ı açık bırakır) |
+
+**PR base'i her zaman `main`'dir.** Oturum sonu veya task PR'ı, bir önceki oturumun ya da başka bir task'ın dalını base almaz. Sebebi disiplin değil **mekanik**: `ci.yml` tetikleyicisi PR'ı base'ine göre değerlendirir ve dal koruma rejimi yalnız `main`'i korur — base `main` değilse CI koşmayabilir, koşsa bile zorunlu kontrol o PR'a uygulanmaz ve PR **yanlış yere `CLEAN`** görünür. Hata sessizdir: kimse base sütununa bakmadıkça ortaya çıkmaz. Bir oturum, önceki oturumun henüz merge edilmemiş kayıtlarının üstüne yazacaksa dal yine `main`'den açılır; önceki PR merge edildikten sonra `git rebase --onto origin/main <önceki-dalın-ucu>` ile hizalanır — squash merge yüzünden önceki commit `main`'de başka bir kimlikle yaşadığı için düz retarget çakışma üretir. **Mekanik ağ:** `ci.yml`'in `pull_request` tetikleyicisinde base filtresi **yoktur**, böylece yanlış base'li bir PR'da da CI koşar ve sessiz kalmaz.
 
 **Dal koruma rejimi** SETUP'ta belirlenir:
 - **Discipline-only:** Platform tarafında sistem-enforced koruma yok; `scripts/git-hooks/` + manuel disiplin + CI guard job.

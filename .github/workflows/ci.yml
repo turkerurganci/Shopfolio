@@ -6,8 +6,11 @@ name: CI
 #   - Bos komut: SETUP_COMPLETE=false iken uyari, true iken FAIL (ci-run.sh).
 
 on:
+  # pull_request'te base filtresi YOK -- bilerek. Filtre konursa base'i main
+  # olmayan bir PR'da CI hic kosmaz; dal koruma rejimi de yalniz main'i
+  # korudugu icin o PR yanlis yere CLEAN gorunur ve hata sessiz kalir.
+  # Kuralin kendisi: INSTRUCTIONS §3.2 -- PR base'i her zaman main'dir.
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 

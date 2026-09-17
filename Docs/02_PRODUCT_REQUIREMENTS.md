@@ -1,6 +1,6 @@
 # Shopfolio — Product Requirements
 
-**Versiyon: v0.3** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-09-16
+**Versiyon: v0.4** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-09-17
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager
 > **Traceability zorunlu:** Hayır (kaynak doküman — sonraki aşamalar buraya izlenir)
@@ -86,6 +86,7 @@ Kuralın gerekçesi `03` ve `04`'ün `06`'dan **önce** yazılmasıdır: İngili
 | Türkçe terim | İngilizce kod karşılığı | Tanım |
 |---|---|---|
 | Stok | `StockQuantity` † | Varyantın sayısal adedi. Ürün düzleminde ayrı bir stok alanı **yoktur**; ürünün stok durumu varyantlarından türetilir (K-50). |
+| Stok ayırma | `StockReservation` | Sipariş onaylandığı anda siparişe giren adetlerin stoktan ayrılması. Ödeme başarılı olursa adet **kesin düşer**; ödeme süresi dolar ya da ödeme başarısız olursa stoğa geri döner. Sepete eklemek stok ayırmaz. Aynı rejim hizmet kontenjanına ve kupon kullanım hakkına uygulanır. **"Rezervasyon" kelimesi bilerek kullanılmadı** — K-11 o kelimeyi randevu anlamında kapsam dışı bıraktı (K-11, K-128). |
 | KDV oranı | `VatRate` † | Ürün düzleminde tutulan oran; varyantlar devralır. Varsayılanı ayardan gelir (K-58, K-59). |
 
 **İndirim ve kupon**
@@ -116,6 +117,13 @@ Kuralın gerekçesi `03` ve `04`'ün `06`'dan **önce** yazılmasıdır: İngili
 | Adres defteri | `AddressBook` † | Üye müşterinin kaydettiği ve adlandırdığı adreslerin listesi (ör. Ev, İş). **Misafir alıcının adres defteri yoktur** — her siparişte adresini yazar (K-97, K-111). |
 | Teslimat adresi | `ShippingAddress` † | Siparişin gönderileceği adres. Sipariş anında **siparişin içine donar**; defterdeki sonraki değişiklik veya silme geçmiş siparişe dokunmaz (K-112, K-113). |
 | Fatura adresi | `BillingAddress` † | Faturanın kesileceği adres. Varsayılan olarak teslimat adresiyle aynıdır; kullanıcı farklı bir adres seçebilir ve o da sipariş anında donar (K-112, K-113). |
+
+**Sepet**
+
+| Türkçe terim | İngilizce kod karşılığı | Tanım |
+|---|---|---|
+| Sepet | `Cart` | Müşterinin satın almaya aday kalemlerini tuttuğu liste. **Üyenin sepeti hesabında yaşar** ve her cihazda aynıdır; misafirin sepeti bulunduğu tarayıcıya bağlıdır. Kendiliğinden boşalmaz — misafirinki tarayıcının verileri silinene, üyeninki hesap durdukça yaşar. Ödeme başarılı olduğunda siparişe giren kalemler sepetten çıkar (K-123, K-126, K-127). |
+| Sepet kalemi | `CartItem` | Sepetteki bir varyant ve adedi. **Canlıdır:** fiyatı ve satın alınabilirliği güncel üründen okunur — sipariş kalemi ise sipariş anında donar (K-80). Varyantın sepete **ilk eklendiği** andaki birim fiyatını referans olarak hatırlar; güncel fiyat bundan farklıysa satırda *"Sepete eklediğinden beri fiyatı değişti"* yazar, eski fiyat ve değişimin yönü gösterilmez (K-131). |
 
 > **Kapsam notu (K-84):** "Ürün" terimi, firmanın kataloğa koyduğu her şeyi kapsar; **sistem ne satıldığını denetlemez.** Ek akış gerektiren ürün türleri — alkol, tütün, ilaç ve reçeteli ürünler, silah — MVP kapsamı dışındadır (`10 §3`). Engelleme mekanizması, yasaklı kategori listesi ve ürün başına mevzuat belgesi alanı **yoktur**; mevzuata uygunluk firmanın yükümlülüğüdür (K-09, K-12, K-14).
 

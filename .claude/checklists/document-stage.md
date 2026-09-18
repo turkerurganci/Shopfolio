@@ -1,6 +1,6 @@
 # Doküman Üretim Aşaması — İşletim Checklist'i
 
-**Katman:** L4 (checklist) | **Son güncelleme:** 2026-09-17
+**Katman:** L4 (checklist) | **Son güncelleme:** 2026-09-18
 
 > **Bu neden skill değil?**
 > Doküman üretimi projeden projeye en çok değişen dönemdir ve bu adımlar bir referans projede
@@ -36,7 +36,7 @@
 - [ ] Konuyu tanıt: neden bu konuyu şimdi konuşuyoruz
 - [ ] Seçenekleri artı-eksileriyle sun
 - [ ] **Kendi önerini** gerekçesiyle belirt
-- [ ] Proje sahibinden karar al (onay veya farklı yön) — öneriyle kayıt yetkisi kapsamındaki soruda öneri kaydedilir, işaretlenir ve bildirilir (`INSTRUCTIONS.md` §2)
+- [ ] Proje sahibinden karar al (onay veya farklı yön) — öneriyle kayıt yetkisi kapsamındaki soruda öneri kaydedilir, işaretlenir ve bildirilir; sunum biçimi konu başına tek mesajdır: bütün kararlar numaralı öneri listesi olarak sunulur, sorulmaya devam eden üç grup ⚠ ile işaretlenir (`INSTRUCTIONS.md` §2)
 - [ ] **Edge case kontrolü:** *"bu kararın yaratacağı risk veya boşluk var mı?"*
 - [ ] Kararı **anında** `Docs/PRODUCT_DISCOVERY_STATUS.md`'ye yaz
 - [ ] Sonraki konuya geç (cevapsız soru bırakma)

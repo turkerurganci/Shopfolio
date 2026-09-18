@@ -1,6 +1,6 @@
 # Shopfolio — Project Vision
 
-**Versiyon: v0.3** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-09-16
+**Versiyon: v0.4** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-09-18
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager / Discovery Facilitator
 > **Traceability zorunlu:** Hayır (kök doküman)
@@ -10,6 +10,7 @@
 > Taslak yazıldıktan sonra alınan bir karar bu bölümlere dokunursa, karar satırı `(taslak güncellenecek)` işaretini taşır ve güncelleme aynı bloğun `docs:` PR'ında yapılır (K-29).
 
 > **Blok 4 güncellemesi (2026-09-16, K-29):** Blok 4 taslağın iki bölümüne dokundu. **§2** — üyelik sipariş vermek için zorunlu olmaktan çıktı (K-97) ve sosyal giriş yalnız Google'a indi (K-103); cümle buna göre yeniden yazıldı. **§3.2** — aktör tablosu üçten **dörde** çıktı: **misafir alıcı** eklendi ve "aktör olmayanlar" listesindeki ilgili madde kalktı (K-97, K-100); yönetici hesaplarının müşteri tarafıyla aynı kimlik doğrulama rejimine tabi olduğu yazıldı (K-122). **§4 değişmedi** — misafir alıcıya ayrı bir değer bölümü açılmadı (K-100). Yeni satırın "neden geri döner" hücresi türetilmiştir; **A-03**'ün kapsamı üç satırdan dörde çıktı.
+> **Blok 6 güncellemesi (2026-09-18, K-29):** Blok 6 taslağın bir cümlesine dokundu. **§2** — ödeme yolu *"kartla öder"* idi; MVP'ye havale/EFT girdiği için (K-159) cümle *"kartla ya da havale/EFT ile öder"* oldu. Kapıda ödeme (K-160) ve taksit gösterimi (K-164) kapsam dışıdır ve `10 §3`'e yazılır — taslağa girmez. **§3–§5 değişmedi.**
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider.
 
@@ -41,7 +42,7 @@ Alternatiflerin tam envanteri ve neden yetersiz kaldıkları §5'tedir.
 
 ## 2. Çözüm
 
-Shopfolio, bir firmanın **kurumsal tanıtım sitesi** ile **çevrimiçi mağazasını** tek bir üründe birleştiren web uygulamasıdır. Firma; ürün kataloğunu, kurumsal içeriğini ve kimlik bilgilerini **tek bir yönetim panelinden** yönetir — aynı bilgi ikinci bir yere girilmez. Ziyaretçi aynı site içinde firmayı tanır, ürüne bakar, sepetini oluşturur, kartla öder ve siparişini takip eder; **bunun için üye olması gerekmez** — misafir alıcı siparişini sipariş numarası ve e-postasıyla izler (K-97). İsteyen hesap açar veya **Google** hesabıyla giriş yapar; üyeliğin karşılığı sürekliliktir: adres defteri, sipariş geçmişi ve hatırlanan oturum (K-103, K-108, K-111). Satış **doğrudandır**: yayındaki her ürünün fiyatı vardır ve satın alınabilir; "fiyat sorunuz" gibi bir ürün durumu, teklif veya talep hattı yoktur (K-11). Uygulama **kurulum başına tek firmaya** hizmet eder; ikinci müşteri ikinci kurulumdur (K-02, K-09).
+Shopfolio, bir firmanın **kurumsal tanıtım sitesi** ile **çevrimiçi mağazasını** tek bir üründe birleştiren web uygulamasıdır. Firma; ürün kataloğunu, kurumsal içeriğini ve kimlik bilgilerini **tek bir yönetim panelinden** yönetir — aynı bilgi ikinci bir yere girilmez. Ziyaretçi aynı site içinde firmayı tanır, ürüne bakar, sepetini oluşturur, kartla ya da havale/EFT ile öder (K-159) ve siparişini takip eder; **bunun için üye olması gerekmez** — misafir alıcı siparişini sipariş numarası ve e-postasıyla izler (K-97). İsteyen hesap açar veya **Google** hesabıyla giriş yapar; üyeliğin karşılığı sürekliliktir: adres defteri, sipariş geçmişi ve hatırlanan oturum (K-103, K-108, K-111). Satış **doğrudandır**: yayındaki her ürünün fiyatı vardır ve satın alınabilir; "fiyat sorunuz" gibi bir ürün durumu, teklif veya talep hattı yoktur (K-11). Uygulama **kurulum başına tek firmaya** hizmet eder; ikinci müşteri ikinci kurulumdur (K-02, K-09).
 
 *Kaynak: K-11 (satış modeli) · K-97 (üyelik zorunlu değil) · K-103 (sosyal giriş kapsamı) · K-02 · K-09 · K-108 · K-111.*
 

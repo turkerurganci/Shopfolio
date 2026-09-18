@@ -1,6 +1,6 @@
 # AI Çalışma Talimatları
 
-**Katman:** L3 | **Son güncelleme:** 2026-09-17
+**Katman:** L3 | **Son güncelleme:** 2026-09-18
 
 > Bu dosya ajanın **oturum davranışını** tanımlar. Sürecin *neden*i [`Docs/00_PROJECT_METHODOLOGY.md`](../Docs/00_PROJECT_METHODOLOGY.md)'de, *sınırlar* [`GUARDRAILS.md`](GUARDRAILS.md)'de, *adım adım iş akışları* [`skills/`](skills/)'dedir.
 
@@ -32,7 +32,7 @@ Her oturumda ilgili işin doküman referanslarını oku. Tüm dokümanı değil,
 ## 2. Genel yaklaşım
 
 - Proje sahibiyle **tartışarak** ilerle. Varsayım yapma, sor.
-- Konuları tek tek, sırayla ele al. Tüm konuları aynı anda açma. **Bir konunun alt parçaları da tek tek sorulur** — birbirine bağlı üç alt karar tek soruda paketlenmez.
+- Konuları tek tek, sırayla ele al. Tüm konuları aynı anda açma. **Bir konunun alt kararları ayrı ayrı numaralanır** — birbirine bağlı üç alt karar tek maddede paketlenmez; sunum biçimi aşağıdaki "konu başına tek mesaj" kuralıdır.
 - Her konuda seçenekleri sun, artı-eksilerini açıkla, **kendi önerini belirt**.
 - **Seçenekleri sade dille yaz.** Proje sahibi metodoloji jargonu üzerinden değil, **somut sonuç** üzerinden seçer: etiket ne yapılacağını, açıklama neyin bedeli olduğunu söyler. Soyut kalıyorsa somut bir örnek göster.
 - **Soruları ve seçenekleri numaralandır.** Her soru oturum başından itibaren artan bir numara taşır (`Soru 14`), seçenekler kendi içinde `1 · 2 · 3` diye numaralanır. Proje sahibi yalnız rakamla cevap verebilir; başlıktaki soru numarası ile seçenek numarasını karıştırmayacak şekilde yaz.
@@ -42,6 +42,7 @@ Her oturumda ilgili işin doküman referanslarını oku. Tüm dokümanı değil,
 - **Konu kapanışında tamlık taraması.** Bir konu (`BX-YY`) kapandığında, kapsadığı alanın plan tablosunda karşılığı olmayan bir parçası kalıp kalmadığı taranır. Bulunursa **yeni konu kimliği açılmaz** — karar, kapanan konunun içinde kayda geçer ve planın toplam konu sayısı bozulmaz. Bu tarama planın kendisini denetler; hazırlık taramasının kaçırdığını konu kapanışı yakalar.
 - Öneri sunarken "ben bunu uyguluyorum" deme — "bunu öneriyorum, onaylıyor musun?" de. Tek istisna bir sonraki maddedeki öneriyle kayıt yetkisidir.
 - **Öneriyle kayıt yetkisi.** Proje sahibi 2026-09-17'de kritik olmayan workshop sorularının kendisine sorulmadan ajanın önerisiyle kaydedilmesine yetki verdi. **Sorulmaya devam eden sorular:** (1) **varlık kararları** — bir özellik, ayar ya da kural olacak mı; (2) **para ve yasal haklar** — ödenen tutar, iade, cayma, kişisel veri; (3) ajanın önerisinin **önceki bir karardan ayrıldığı** sorular. **Öneriyle kaydedilenler:** olacağına karar verilmiş bir şeyin detayları ve cevabı önceki kararlardan çıkan tutarlılık soruları. Bir sorunun hangi gruba girdiği belirsizse soru sorulur. **İşaretleme ve bildirim:** öneriyle kaydedilen karar satırının konu hücresi `(öneriyle kaydedildi)` işaretini taşır; ajan her birini proje sahibine tek satırla bildirir, itiraz gelirse karar değiştirilir. Oturum sonu PR'ı bu kararların listesini verir.
+- **Konu başına tek mesaj (2026-09-18).** Doküman döneminde bir workshop konusu açıldığında konunun **bütün kararları tek mesajda, numaralı bir öneri listesi olarak** sunulur; soru dizisi açılmaz. Her madde kalın bir başlık ve bir-iki cümle taşır — ne karar veriliyor, elenen seçenek neden elendi; uzun analiz karar satırının gerekçe hücresine gider. Öneriyle kayıt yetkisinin **sorulmaya devam eden üç grubuna** giren maddeler listeden çıkarılmaz, **⚠ ile işaretlenir** ki proje sahibinin gözü oraya gitsin. Proje sahibi yalnız itiraz ettiği maddeyi söyler; itiraz gelmeyen madde kaydedilir. **Kayıttaki işaret:** ⚠ ile gösterilmemiş madde `(öneriyle kaydedildi)` işaretini alır; ⚠ ile gösterilen ve itiraz almayan madde proje sahibinin kararıdır, işaretsiz yazılır. **İki istisna:** (1) konunun geri kalanı bir maddenin cevabına bağlıysa (ör. durum makinesinin eksen sayısı) o madde listeden **önce, tek başına** sorulur; (2) biri diğerinin sonucu olan iki konu tek mesajda birlikte sunulabilir. **Neden:** Blok 6'nın ilk dört konusu soru-cevapla on dört soru sürdü ve proje sahibi iki kez gereksiz soru sorulduğunu söyledi; kalan on bir konu bu biçimle dokuz mesajda kapandı, itiraz sıfırdı. Kanıt tracker §6.1 ve §6.2'nin Blok 6 notunda.
 - Sorduğun sorunun cevabını almadan başka konuya geçme.
 - Bir önerini savun. Kullanıcının her sorusuna "haklısın" deme; gerekçen varsa gerekçeni açıkla, gerçekten yanılıyorsan sade bir düzeltmeyle devam et.
 

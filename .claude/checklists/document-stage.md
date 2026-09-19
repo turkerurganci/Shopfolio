@@ -1,6 +1,6 @@
 # Doküman Üretim Aşaması — İşletim Checklist'i
 
-**Katman:** L4 (checklist) | **Son güncelleme:** 2026-09-18
+**Katman:** L4 (checklist) | **Son güncelleme:** 2026-09-19
 
 > **Bu neden skill değil?**
 > Doküman üretimi projeden projeye en çok değişen dönemdir ve bu adımlar bir referans projede
@@ -34,6 +34,7 @@
 ### 3. Workshop döngüsü (her konu için)
 
 - [ ] Konuyu tanıt: neden bu konuyu şimdi konuşuyoruz
+- [ ] **Tamlık taraması** liste hazırlanırken: konunun alanında plan tablosunda karşılığı olmayan parça var mı? Bulgular listeye girer; bloğun son konusunda tarama bloğun tamamına genişler (`INSTRUCTIONS.md` §2)
 - [ ] Seçenekleri artı-eksileriyle sun
 - [ ] **Kendi önerini** gerekçesiyle belirt
 - [ ] Proje sahibinden karar al (onay veya farklı yön) — öneriyle kayıt yetkisi kapsamındaki soruda öneri kaydedilir, işaretlenir ve bildirilir; sunum biçimi konu başına tek mesajdır: bütün kararlar numaralı öneri listesi olarak sunulur, sorulmaya devam eden üç grup ⚠ ile işaretlenir (`INSTRUCTIONS.md` §2)

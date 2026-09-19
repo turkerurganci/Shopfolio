@@ -1,6 +1,6 @@
 # Shopfolio — Product Requirements
 
-**Versiyon: v0.5** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-09-18
+**Versiyon: v0.6** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-09-19
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager
 > **Traceability zorunlu:** Hayır (kaynak doküman — sonraki aşamalar buraya izlenir)
@@ -14,6 +14,7 @@
 > **Blok 4 eklemeleri (2026-09-16):** K-06'nın `B4-01`'e bıraktığı soru kapandı — **misafir alıcı dördüncü aktördür** (K-97) ve §1.3 üçten dörde çıktı, listedeki "aktör değildir" maddesi kalktı. Sözlüğe altı satır girdi: **Misafir alıcı · Oturum · Sosyal giriş · Adres defteri · Teslimat adresi · Fatura adresi** (K-97, K-98, K-103, K-104, K-106, K-108, K-111, K-112, K-113). Altısı da türetilmiştir (**†**) ve **A-05**'e eklenmiştir; sözlük 25 → **31 terim**. §1.3'e ayrıca üçüncü bir aktör kuralı ve yönetici tarafının kimlik doğrulama tabanı yazıldı (K-122).
 > **Blok 5 eklemeleri (2026-09-17, v0.4):** sözlüğe üç satır girdi — **Sepet · Sepet kalemi · Stok ayırma** (K-123, K-128, K-131). Üçünün de İngilizce karşılığı karar kaydında yazılı olduğu için † almadılar; sözlük 31 → **34 terim**. Yukarıdaki iki notun beklettiği **Sepet** terimi böylece kapandı.
 > **Blok 6 eklemeleri (2026-09-18, v0.5):** sözlüğe beş grup altında **26 satır** girdi: **Sipariş** (Sipariş · Sipariş kalemi · Sipariş numarası), **sevkiyat ekseni** (Sipariş durumu ve altı durum), **Ödeme** (Ödeme yöntemi · Havale/EFT · Ödeme süresi · Ödeme durumu ve beş durum), **İptal, cayma ve iade** (İptal · Cayma · İade · Geri ödeme · Ayıp talebi), **Yasal metinler** (Ön Bilgilendirme Formu · Mesafeli Satış Sözleşmesi) — K-159…K-236. Sözlük 34 → **60 terim**. Durum adlarının on üçünün İngilizce karşılığı karar kaydında yazılıdır ve † almadı; diğer on üç satır türetilmiştir (**†**) ve **A-05**'e eklenmiştir (20 → **33**). K-17'nin sipariş durum adlarını `B6-03`'e bırakan devri ve **Sipariş kalemi**'nin `B6-04`'e bağlı beklemesi kapandı. **Kapanış taramasının iki bulgusu:** (1) en temel terim olan **Sipariş** sözlükte hiç yoktu — Blok 3'ten beri kayıtta kullanılıyordu ve hiçbir blok onu adıyla üstlenmemişti; (2) **"iade" iki kavramı taşıyordu** — malın firmaya dönmesi ve paranın müşteriye dönmesi. K-17'nin tek ad kuralı gereği ayrıldı: **İade** (`Return`) yalnız malın dönüşüdür, **Geri ödeme** (`Refund`) paranın dönüşüdür; ödeme eksenindeki iki durumun adı buna hizalandı (**Geri ödendi**, **Kısmen geri ödendi** — K-172, K-222).
+> **Blok 7 eklemeleri (2026-09-19, v0.6):** sözlüğe iki yeni grup altında **15 satır** girdi: **Kurumsal içerik** (Kurumsal içerik · Hakkımızda · Hizmet tanıtımı · Referans iş · Sık sorulan soru · Şube · Genel sayfa · Duyuru · Sosyal medya bağlantısı) ve **Marka kimliği** (Marka kimliği · Marka adı · Unvan · Logo · Site simgesi · Marka rengi) — K-237…K-286. On beşinin de İngilizce karşılığı karar kaydında yazılıdır ve † almadı; sözlük 60 → **75 terim**, A-05'in türetilmiş sayısı **33'te kaldı**. **Yedi tanım düzeltildi:** *Ana kategori* — ürünün adresi artık kategoriden bağımsızdır, ana kategori yalnız kırıntı yolunu üretir (K-279); *Yayın durumu*, *Taslak*, *Yayında*, *Arşiv* — kurumsal içerik yayın durumunun yalnız iki değerini kullanır, arşiv yoktur (K-273, K-274, K-275); *Hizmet* — fiyatsız **Hizmet tanıtımı**ndan ayrılır (K-240); *Firma* — yasal adı **unvan**, vitrinde görünen adı **marka adı**dır (K-260). **Ad çakışmaları kayda geçti:** "Referans" tek başına hem *Referans fiyat* ile hem dokümanların atıf anlamıyla çakıştığı için terim **Referans iş** oldu (K-241); "Kampanya" K-63'ün indirimini anlattığı için duyurunun adı **Duyuru** oldu (K-272).
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider.
 
@@ -65,23 +66,23 @@ Kuralın gerekçesi `03` ve `04`'ün `06`'dan **önce** yazılmasıdır: İngili
 | Tip | `ProductType` | Ürünün üç değerli **kapalı** alanı. Ürün düzleminde yaşar; ürünün tüm varyantları aynı tiptedir, varyant tipi devralır ve kendi tipini taşımaz (K-82). |
 | Fiziksel ürün | `Physical` † | Tip değeri. Kargoyla teslim edilen mal; sayısal stok takibi **zorunludur** (K-81, K-83). |
 | Dijital ürün | `Digital` † | Tip değeri. İndirilebilir dosya; stok alanı **yoktur**, sınırsız satılır (K-81, K-83). |
-| Hizmet | `Service` † | Tip değeri. Sabit fiyatlı, randevusuz hizmet. Firma isterse toplam adet **kontenjanı** girer; girmezse sınırsızdır (K-81, K-83). |
+| Hizmet | `Service` † | Tip değeri. Sabit fiyatlı, randevusuz hizmet. Firma isterse toplam adet **kontenjanı** girer; girmezse sınırsızdır (K-81, K-83). Satın alınmayan, fiyatsız **Hizmet tanıtımı**ndan ayrıdır (K-240). |
 
 **Sınıflandırma**
 
 | Türkçe terim | İngilizce kod karşılığı | Tanım |
 |---|---|---|
 | Kategori | `Category` | Ürünün kataloğdaki yeri. Ağaç **en fazla üç seviyedir**; ürün ağacın herhangi bir düğümüne asılabilir, yaprak zorunluluğu yoktur (K-42, K-43). |
-| Ana kategori | `PrimaryCategory` | Ürünün asıldığı kategorilerden biri. Kırıntı yolu ve ürünün adresi bundan üretilir; yayına çıkacak ürün için **zorunludur** (K-45). |
+| Ana kategori | `PrimaryCategory` | Ürünün asıldığı kategorilerden biri. Kırıntı yolu bundan üretilir; yayına çıkacak ürün için **zorunludur** (K-45). Ürünün **adresi kategoriden bağımsızdır** — ürünün adından üretilir (K-279). |
 
 **Yayın durumu**
 
 | Türkçe terim | İngilizce kod karşılığı | Tanım |
 |---|---|---|
-| Yayın durumu | `PublishStatus` † | Üç değerli alan. **Her iki düzlemde de yaşar:** ürünün kendi durumu, varyantın kendi durumu vardır (K-54, K-55). |
-| Taslak | `Draft` | Henüz yayınlanmamış kayıt. Adresi ziyaretçiye 404 döner; giriş yapmış firma yöneticisine ürün sayfasını "Taslak" bandıyla gösterir (K-54, K-57). |
-| Yayında | `Published` | Vitrinde görünen kayıt. Bir ürünün "Yayında" olabilmesi için **arşivlenmemiş en az bir varyantı** olmalıdır (K-54, K-55). |
-| Arşiv | `Archived` | Vitrinden çıkmış ama kaydı korunan ürün. **Silme değildir** — adresi çalışmaya devam eder ve "Bu ürün artık satılmıyor" sayfası döner (K-54, K-56). Kalıcı silme ayrı bir yoldur; silinen ürünün adresi 404 döner (K-85). |
+| Yayın durumu | `PublishStatus` † | Ürün ve varyantta üç değerli alan. **Her iki düzlemde de yaşar:** ürünün kendi durumu, varyantın kendi durumu vardır (K-54, K-55). **Kurumsal içerik yalnız iki değerini kullanır** — Taslak ve Yayında (K-273). |
+| Taslak | `Draft` | Henüz yayınlanmamış kayıt. Adresi ziyaretçiye 404 döner; giriş yapmış firma yöneticisine sayfayı "Taslak" bandıyla gösterir (K-54, K-57, K-274). |
+| Yayında | `Published` | Vitrinde görünen kayıt. Bir ürünün "Yayında" olabilmesi için **arşivlenmemiş en az bir varyantı** olmalıdır (K-54, K-55); bir kurumsal içerik kaydının zorunlu alanları dolu olmalıdır (K-275). |
+| Arşiv | `Archived` | Vitrinden çıkmış ama kaydı korunan ürün. **Silme değildir** — adresi çalışmaya devam eder ve "Bu ürün artık satılmıyor" sayfası döner (K-54, K-56). Kalıcı silme ayrı bir yoldur; silinen ürünün adresi 404 döner (K-85). **Kurumsal içerikte arşiv yoktur** (K-273). |
 
 **Stok ve fiyat**
 
@@ -103,7 +104,7 @@ Kuralın gerekçesi `03` ve `04`'ün `06`'dan **önce** yazılmasıdır: İngili
 
 | Türkçe terim | İngilizce kod karşılığı | Tanım |
 |---|---|---|
-| Firma | `Company` † | Kurulumun sahibi ve **satıcı**. Uygulamada tekildir: firma ekleme, firma seçme ve firmalar arası geçiş kavramı yoktur (K-01, K-09). Tahsilat firmanın kendi ödeme sağlayıcı hesabına geçer; platform ticari zincirde yer almaz (K-12). |
+| Firma | `Company` † | Kurulumun sahibi ve **satıcı**. Uygulamada tekildir: firma ekleme, firma seçme ve firmalar arası geçiş kavramı yoktur (K-01, K-09). Tahsilat firmanın kendi ödeme sağlayıcı hesabına geçer; platform ticari zincirde yer almaz (K-12). Yasal adı **unvan**, vitrinde görünen adı **marka adı**dır (K-260). |
 | Ziyaretçi | `Visitor` † | Siteye üye olmadan gelen kişi (K-06). |
 | Misafir alıcı | `GuestBuyer` † | Hesap açmadan sipariş veren alıcı. Siparişini **sipariş numarası + e-posta** ile takip eder; doğrulanmış e-postayla hesap açtığında o e-postaya ait geçmiş siparişleri hesabına düşer (K-97, K-98). |
 | Üye müşteri | `Customer` † | Hesabı olan alıcı (K-06). "Üye" ve "müşteri" **ayrı terimler olarak kullanılmaz** — tek terim budur (K-17). |
@@ -178,6 +179,31 @@ Kuralın gerekçesi `03` ve `04`'ün `06`'dan **önce** yazılmasıdır: İngili
 | Ön Bilgilendirme Formu | `PreInformationForm` † | Sipariş onayından önce gösterilen ve **ayrı bir kutuyla** teyit edilen yasal form; içeriği onay özetiyle birebir aynıdır (K-188, K-191). |
 | Mesafeli Satış Sözleşmesi | `DistanceSalesContract` † | Sipariş onayında ayrı bir kutuyla kabul edilen sözleşme. Onaylanan sürüm ve firmanın o günkü kimliği siparişe donar (K-188, K-189, K-190). |
 
+**Kurumsal içerik**
+
+| Türkçe terim | İngilizce kod karşılığı | Tanım |
+|---|---|---|
+| Kurumsal içerik | `Content` | Firmanın tanıtım tarafını oluşturan kayıtların ortak adı: Hakkımızda, hizmet tanıtımı, referans iş, sık sorulan soru, şube, genel sayfa ve duyuru. Her tipin düzeni sabittir — sayfa kurucu yoktur, firma yalnız içerik girer. Her kayıt kendi yayın durumunu taşır: **Taslak** ya da **Yayında**; içerikte arşiv ve sürüm geçmişi yoktur (K-237, K-238, K-251, K-273, K-276). |
+| Hakkımızda | `AboutPage` | **Tekil** kayıt: kısa tanıtım, uzun metin ve görseller. Ana sayfanın kurumsal bloğu kısa tanıtımı ve ana görseli gösterir; Hakkımızda boşken ya da yayında değilken blok marka adını ve logoyu gösterir. Silinmez, yalnız taslağa alınır (K-239, K-250, K-277). |
+| Hizmet tanıtımı | `Offering` | Firmanın yaptığı bir işin **fiyatsız** tanıtımı: ad, kısa açıklama, metin, görseller ve kendi sayfası. Satın alınmaz; sayfasındaki "Bize ulaşın" düğmesi iletişim formuna götürür. Satılan **Hizmet** ürün tipinden ayrıdır; ikisi içerik–ürün bağıyla birbirine bağlanabilir (K-240, K-245). |
+| Referans iş | `PortfolioItem` | Firmanın yaptığı bir işi anlatan kayıt: başlık, kısa açıklama, metin, görseller ve kendi sayfası. Katalogdan ürün bağlayabilir. **Referans fiyat** ile ilgisi yoktur (K-241, K-245). |
+| Sık sorulan soru | `FaqItem` | Soru + cevap. Tümü tek bir SSS sayfasında, firmanın verdiği sırayla listelenir; başlıklara bölünmez (K-242, K-247). |
+| Şube | `Branch` | Firmanın ziyaret edilebilir bir yeri: ad ve adres zorunlu (il kapalı listeden); telefon, çalışma saatleri, görsel ve harita bağlantısı isteğe bağlı. İletişim sayfasında listelenir. **Teslim noktası değildir** (K-134, K-243). |
+| Genel sayfa | `CustomPage` | Hiçbir hazır tipe uymayan içerik için başlık, metin ve görsellerden oluşan, düzeni sabit sayfa; altbilgide listelenir, istenirse menüde gösterilir. **Yasal metinler genel sayfa değildir** (K-237, K-244, K-248). |
+| Duyuru | `Announcement` | Sitenin her sayfasının en üstünde görünen tek satırlık metin ve isteğe bağlı bağlantı; aynı anda tek duyuru vardır. Başlangıç ve bitiş tarihi girilirse yalnız o aralıkta görünür (K-269). |
+| Sosyal medya bağlantısı | `SocialLink` | Firmanın kapalı bir platform listesindeki hesabına giden bağlantı; WhatsApp numarası da bu gruptadır. Firma kimliğinin parçası değildir: zorunlu değildir, siparişe donmaz. Sitede gömülü gönderi akışı yoktur (K-249). |
+
+**Marka kimliği**
+
+| Türkçe terim | İngilizce kod karşılığı | Tanım |
+|---|---|---|
+| Marka kimliği | `Branding` | Firmanın vitrinde ve e-postalarda görünen dört ayarı: marka adı, logo, site simgesi, marka rengi. Yazı tipi, düzen ve diğer renkler üründedir; firmanın siteye kod eklemesi yoktur. Değişiklikleri işlem izine yazılır ama siparişe donmaz (K-258, K-263, K-265). |
+| Marka adı | `BrandName` | Sitenin üstünde (logo yoksa), tarayıcı sekmesinde ve e-postalarda görünen ad — ör. "Yılmaz Mobilya". Zorunludur; girilene kadar site alan adını gösterir (K-260). |
+| Unvan | `LegalName` | Firmanın yasal adı — tüzel kişide ticaret unvanı (ör. "Yılmaz Mobilya San. ve Tic. Ltd. Şti."), şahıs işletmesinde işletme sahibinin adı-soyadı. Yasal bilgilerde ve sözleşmede görünür; sipariş anında siparişe donar (K-14, K-190, K-260). |
+| Logo | `Logo` | Firmanın tek logosu; sitenin her yerinde ve e-postalarda aynısı kullanılır. **Zorunlu değildir** — yoksa marka adı yazıyla gösterilir (K-259). |
+| Site simgesi | `Favicon` | Tarayıcı sekmesindeki ikon. İsteğe bağlıdır; yüklenmezse marka adının baş harfi marka rengi üzerinde gösterilir — firmanın sitesinde Shopfolio simgesi çıkmaz (K-261). |
+| Marka rengi | `BrandColor` | Firmanın seçtiği tek renk; düğme, bağlantı ve vurgulara uygulanır. Üstündeki yazının rengini sistem seçer; hata, uyarı, "Tükendi" ve indirim gibi anlam taşıyan renkler ondan bağımsızdır (K-258, K-262). |
+
 > **Kapsam notu (K-84):** "Ürün" terimi, firmanın kataloğa koyduğu her şeyi kapsar; **sistem ne satıldığını denetlemez.** Ek akış gerektiren ürün türleri — alkol, tütün, ilaç ve reçeteli ürünler, silah — MVP kapsamı dışındadır (`10 §3`). Engelleme mekanizması, yasaklı kategori listesi ve ürün başına mevzuat belgesi alanı **yoktur**; mevzuata uygunluk firmanın yükümlülüğüdür (K-09, K-12, K-14).
 
 > **Ölçek notu (K-89):** `01 §3.1`'deki "birkaç yüz ürüne kadar katalog, tek depo" ifadesi bir **kabuldür ve `10 §4`'te yaşar** — kural değildir. Sistem hiçbir yerde ölçek sınırı uygulamaz: ürün adedi, boyut başına seçenek değeri sayısı ve ürün başına varyant adedi tavansızdır. K-40'ın **iki seçenek boyutu** sınırı bundan ayrıdır ve geçerliliğini korur.
@@ -196,7 +222,7 @@ Bu dokümanın iş kurallarının dayandığı üç aktör kuralı:
 
 - **Platform operatörü uygulama içi aktör değildir.** Kurulum bir deploy işidir; uygulamaya operatör paneli koymak, K-01 ile elenen kiracılığı arka kapıdan geri getirirdi (K-06).
 
-*Kaynak: K-17 (sözlük kuralı ve adlandırma konvansiyonu) · K-06 (aktör envanteri) · K-07 (alıcının hukuki sıfatı) · K-01 · K-09 · K-12 · K-14 · K-39 · K-40 · K-41 · K-42 · K-43 · K-45 · K-50 · K-54 · K-55 · K-56 · K-57 · K-58 · K-59 · K-63 · K-64 · K-65 · K-66 · K-67 · K-70 · K-71 · K-73 · K-74 · K-75 · K-81 · K-82 · K-83 · K-84 · K-85 · K-88 · K-89 · K-90 · K-96 · K-97 · K-98 · K-100 · K-103 · K-104 · K-106 · K-108 · K-111 · K-112 · K-113 · K-122.*
+*Kaynak: K-17 (sözlük kuralı ve adlandırma konvansiyonu) · K-06 (aktör envanteri) · K-07 (alıcının hukuki sıfatı) · K-01 · K-09 · K-12 · K-14 · K-39 · K-40 · K-41 · K-42 · K-43 · K-45 · K-50 · K-54 · K-55 · K-56 · K-57 · K-58 · K-59 · K-63 · K-64 · K-65 · K-66 · K-67 · K-70 · K-71 · K-73 · K-74 · K-75 · K-81 · K-82 · K-83 · K-84 · K-85 · K-88 · K-89 · K-90 · K-96 · K-97 · K-98 · K-100 · K-103 · K-104 · K-106 · K-108 · K-111 · K-112 · K-113 · K-122 · K-237 · K-238 · K-239 · K-240 · K-241 · K-242 · K-243 · K-244 · K-245 · K-247 · K-248 · K-249 · K-250 · K-251 · K-253 · K-258 · K-259 · K-260 · K-261 · K-262 · K-263 · K-265 · K-266 · K-269 · K-272 · K-273 · K-274 · K-275 · K-276 · K-277 · K-279.*
 
 ---
 
@@ -285,4 +311,4 @@ Bu dokümanın iş kurallarının dayandığı üç aktör kuralı:
 
 ---
 
-*Shopfolio — Product Requirements v0.2 (§1 taslak; §2–§13 kendi yazım kapılarında yazılır)*
+*Shopfolio — Product Requirements v0.6 (§1 taslak; §2–§13 kendi yazım kapılarında yazılır)*

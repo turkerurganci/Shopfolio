@@ -40,6 +40,8 @@
 - [ ] Proje sahibinden karar al (onay veya farklı yön) — öneriyle kayıt yetkisi kapsamındaki soruda öneri kaydedilir, işaretlenir ve bildirilir; sunum biçimi konu başına tek mesajdır: bütün kararlar numaralı öneri listesi olarak sunulur, sorulmaya devam eden üç grup ⚠ ile işaretlenir (`INSTRUCTIONS.md` §2)
 - [ ] **Edge case kontrolü:** *"bu kararın yaratacağı risk veya boşluk var mı?"*
 - [ ] Kararı **anında** `Docs/PRODUCT_DISCOVERY_STATUS.md`'ye yaz
+- [ ] Kararın etki sütunu **taslağı yazılmış** bir doküman bölümünü taşıyorsa satıra `(taslak güncellenecek)` işaretini koy; taslak aynı bloğun `docs:` PR'ında güncellenir ve işaret `(taslak güncellendi — vX.Y)` olur (K-29)
+- [ ] **Bloğun son konusu kapanırken** bloğun bütün karar satırlarını taslağı yazılmış bölümlerle karşılaştır: etki sütunu böyle bir bölümü taşıyıp işaret taşımayan her satır bir **K-29 kaçağıdır** ve blok kaçak kapanmadan ✓ olmaz — işaretli satırı arayan kapanış, hiç işaretlenmemiş satırı görmez (kanıt: K-81, tracker §6.1)
 - [ ] Sonraki konuya geç (cevapsız soru bırakma)
 
 ### 4. Doküman yazımı

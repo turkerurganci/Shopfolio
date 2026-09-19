@@ -1,16 +1,17 @@
 # Shopfolio — Project Vision
 
-**Versiyon: v0.4** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-09-18
+**Versiyon: v0.5** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-09-19
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager / Discovery Facilitator
 > **Traceability zorunlu:** Hayır (kök doküman)
 > **Ne zaman `✓ Tamamlandı`:** Doküman Tamamlama Protokolü (00 §C.4) + kalite döngüsü (00 §C.5) geçildiğinde.
 
-> **Taslak durumu (K-28):** §1–§5 **taslak** olarak yazılmıştır; besleyen bloklar (Blok 1 ve Blok 2) kapalıdır. §6–§8 **Blok 9 kapandığında** yazılır — o bölümlerin girdisi henüz alınmamıştır. Kalite döngüsü (audit → deep review → cross-review → etki yansıtma → checkpoint) bu dokümanda **tüm bloklar kapandıktan sonra** ve **bir kez** koşar (00 §C.5).
+> **Taslak durumu (K-28):** §1–§5 **taslak** olarak yazılmıştır; besleyen blokların tamamı kapalıdır — yazıldıkları gün §6.2 sütunu yalnız Blok 1 ve Blok 2'yi gösteriyordu, 2026-09-19'da düzeltilen sütun Blok 3, 4 ve 6'yı da gösterir; üçünün bu bölümlere dokunan kararları K-29 ile işlendi. §6–§8 **Blok 9 kapandığında** yazılır — o bölümlerin girdisi henüz alınmamıştır. Kalite döngüsü (audit → deep review → cross-review → etki yansıtma → checkpoint) bu dokümanda **tüm bloklar kapandıktan sonra** ve **bir kez** koşar (00 §C.5).
 > Taslak yazıldıktan sonra alınan bir karar bu bölümlere dokunursa, karar satırı `(taslak güncellenecek)` işaretini taşır ve güncelleme aynı bloğun `docs:` PR'ında yapılır (K-29).
 
 > **Blok 4 güncellemesi (2026-09-16, K-29):** Blok 4 taslağın iki bölümüne dokundu. **§2** — üyelik sipariş vermek için zorunlu olmaktan çıktı (K-97) ve sosyal giriş yalnız Google'a indi (K-103); cümle buna göre yeniden yazıldı. **§3.2** — aktör tablosu üçten **dörde** çıktı: **misafir alıcı** eklendi ve "aktör olmayanlar" listesindeki ilgili madde kalktı (K-97, K-100); yönetici hesaplarının müşteri tarafıyla aynı kimlik doğrulama rejimine tabi olduğu yazıldı (K-122). **§4 değişmedi** — misafir alıcıya ayrı bir değer bölümü açılmadı (K-100). Yeni satırın "neden geri döner" hücresi türetilmiştir; **A-03**'ün kapsamı üç satırdan dörde çıktı.
 > **Blok 6 güncellemesi (2026-09-18, K-29):** Blok 6 taslağın bir cümlesine dokundu. **§2** — ödeme yolu *"kartla öder"* idi; MVP'ye havale/EFT girdiği için (K-159) cümle *"kartla ya da havale/EFT ile öder"* oldu. Kapıda ödeme (K-160) ve taksit gösterimi (K-164) kapsam dışıdır ve `10 §3`'e yazılır — taslağa girmez. **§3–§5 değişmedi.**
+> **K-29 kaçağının düzeltilmesi (2026-09-19, v0.5):** Blok 3'ün K-81'i — satılabilir şeyin üç türü — etki sütununda `§2` taşıyordu, ama satır `(taslak güncellenecek)` işaretini almadığı için Blok 3'ün kapanışında taslak güncellenmemişti; `02` yazım oturumunun K-29 denetimi buldu. **§2**'ye üç ürün türünü anlatan bir cümle girdi. **§3–§5 değişmedi.** Dipnottaki sürüm v0.2'de kalmıştı, v0.5'e getirildi.
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider.
 
@@ -42,9 +43,9 @@ Alternatiflerin tam envanteri ve neden yetersiz kaldıkları §5'tedir.
 
 ## 2. Çözüm
 
-Shopfolio, bir firmanın **kurumsal tanıtım sitesi** ile **çevrimiçi mağazasını** tek bir üründe birleştiren web uygulamasıdır. Firma; ürün kataloğunu, kurumsal içeriğini ve kimlik bilgilerini **tek bir yönetim panelinden** yönetir — aynı bilgi ikinci bir yere girilmez. Ziyaretçi aynı site içinde firmayı tanır, ürüne bakar, sepetini oluşturur, kartla ya da havale/EFT ile öder (K-159) ve siparişini takip eder; **bunun için üye olması gerekmez** — misafir alıcı siparişini sipariş numarası ve e-postasıyla izler (K-97). İsteyen hesap açar veya **Google** hesabıyla giriş yapar; üyeliğin karşılığı sürekliliktir: adres defteri, sipariş geçmişi ve hatırlanan oturum (K-103, K-108, K-111). Satış **doğrudandır**: yayındaki her ürünün fiyatı vardır ve satın alınabilir; "fiyat sorunuz" gibi bir ürün durumu, teklif veya talep hattı yoktur (K-11). Uygulama **kurulum başına tek firmaya** hizmet eder; ikinci müşteri ikinci kurulumdur (K-02, K-09).
+Shopfolio, bir firmanın **kurumsal tanıtım sitesi** ile **çevrimiçi mağazasını** tek bir üründe birleştiren web uygulamasıdır. Firma; ürün kataloğunu, kurumsal içeriğini ve kimlik bilgilerini **tek bir yönetim panelinden** yönetir — aynı bilgi ikinci bir yere girilmez. Ziyaretçi aynı site içinde firmayı tanır, ürüne bakar, sepetini oluşturur, kartla ya da havale/EFT ile öder (K-159) ve siparişini takip eder; **bunun için üye olması gerekmez** — misafir alıcı siparişini sipariş numarası ve e-postasıyla izler (K-97). İsteyen hesap açar veya **Google** hesabıyla giriş yapar; üyeliğin karşılığı sürekliliktir: adres defteri, sipariş geçmişi ve hatırlanan oturum (K-103, K-108, K-111). Satış **doğrudandır**: yayındaki her ürünün fiyatı vardır ve satın alınabilir; "fiyat sorunuz" gibi bir ürün durumu, teklif veya talep hattı yoktur (K-11). Katalog üç tür ürün taşır — kargoyla gönderilen **fiziksel ürün**, indirilebilir dosya olarak satılan **dijital ürün** ve sabit fiyatlı, randevusuz **hizmet**; üçü de aynı kataloğa girer, aynı sepetten geçer ve aynı şekilde satın alınır (K-81). Uygulama **kurulum başına tek firmaya** hizmet eder; ikinci müşteri ikinci kurulumdur (K-02, K-09).
 
-*Kaynak: K-11 (satış modeli) · K-97 (üyelik zorunlu değil) · K-103 (sosyal giriş kapsamı) · K-02 · K-09 · K-108 · K-111.*
+*Kaynak: K-11 (satış modeli) · K-81 (satılabilir şeyin üç türü) · K-97 (üyelik zorunlu değil) · K-103 (sosyal giriş kapsamı) · K-02 · K-09 · K-108 · K-111 · K-159.*
 
 ---
 
@@ -187,4 +188,4 @@ Bu konumlandırmanın somut karşılıkları:
 
 ---
 
-*Shopfolio — Project Vision v0.2 (§1–§5 taslak; §6–§8 Blok 9'da yazılır)*
+*Shopfolio — Project Vision v0.5 (§1–§5 taslak; §6–§8 Blok 9'da yazılır)*

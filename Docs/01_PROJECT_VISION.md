@@ -1,6 +1,6 @@
 # Shopfolio — Project Vision
 
-**Versiyon: v0.6** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-01
+**Versiyon: v0.7** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-02
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager / Discovery Facilitator
 > **Traceability zorunlu:** Hayır (kök doküman)
@@ -17,6 +17,7 @@
 > - **İşaretli dört kararın §1 güncellemesi:** K-417, K-419, K-421 ve K-433 — §1'in ölçülebilir karşılığı §6'nın ürün düzeyi eksenine bağlandı ve satış hacmi iddiası yapılmadığı yazıldı; ölçeğin ve problem tanımının varsayım olduğu §8'e, problemin sınırı §7'ye bağlandı. **A-04 kapandı.**
 > - **Açık kararlar:** A-02 (K-442 — matrisin derece sözlüğü) ve A-03 (K-443 — "neden geri döner" hücreleri) kapandı. Misafir alıcının hücresi, K-100'ün *"bir kez alır, gider"* cümlesiyle 2026-09-16'dan beri çelişiyordu; düzeltildi.
 > - **Anlamsal K-29 kaçakları:** etki sütunu `01`'i göstermediği için mekanik taramanın göremediği yirmi iki karar §1–§5'e işlendi ve satırlarına işaret kondu — §1: K-81, K-403 · §2: K-123, K-300 · §3: K-10, K-39, K-40, K-81, K-89, K-159, K-178, K-310 · §4: K-100, K-142, K-245, K-341, K-364, K-397, K-400, K-416 · §5: K-245, K-249, K-258, K-412. Blok 6 notundaki *"§3–§5 değişmedi"* cümlesi K-159'un §3.1'deki ikinci "kartla ödeme" ifadesini kaçırmıştı; bu turda düzeltildi.
+> **Yazım turunun `02` oturumu (2026-10-02, v0.7 — K-29):** `02`'nin yazımında alınan iki karar §6'ya dokundu. K-457 mağaza düzeyi ölçülerin ikisinin tanımını sabitledi — ödeme tamamlama oranının birimi sepettir ve aynı sepetten art arda verilen siparişler tek deneme sayılır; iletişim talebi sayısı KVKK ve sipariş başvurularını saymaz (A-12'nin kapanışı). K-454, Ü-3'ün manuel adım bütçesinin tek tipli siparişin hattına uygulandığını netleştirdi. §1–§5, §7 ve §8 değişmedi.
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider. `D-`, `Ü-`, `M-`, `S-` ve `V-` kimlikleri bu dokümanın kendi satır kimlikleridir (§4.1, §6, §7, §8).
 
@@ -196,11 +197,11 @@ Kriterler **tek bir tabloda, iki eksende** gruplanır (K-433):
 | | **Ürün düzeyi** | | | |
 | Ü-1 | **Kurulabilirlik.** `10 §4`'ün dış ön koşulları tamamlanır — firmanın ödeme sağlayıcı sözleşmesi (K-12), ETBİS kaydı (K-14), Google uygulaması (K-103), e-posta yapılandırması (K-378), barındırma konumu (K-358) ve dört yasal metin (K-365) — ve ilk sipariş **koda dokunulmadan** alınır (K-415, K-444) | `12`'de bir senaryo: ön koşullar tamamlandıktan sonra hiçbir kod değişikliği yapılmadan uçtan uca bir sipariş alınır | MVP kabulünde, referans kurulumda (K-23) | **Evet** |
 | Ü-2 | **Kendi kendine yetme.** Firma, geliştirici olmadan panelden şunları yapar: ürün ekleyip yayına alma · kurumsal içerik düzenleme · firma kimliğini güncelleme · marka ayarları · sipariş adımları (K-401) · iptal ve iade · yasal metin güncelleme · yönetici davet etme (K-415, K-444) | Her iş `12`'de ayrı bir senaryodur | MVP kabulünde, referans kurulumda | **Evet** |
-| Ü-3 | **Manuel adım bütçesi.** Sipariş başına sistem içi zorunlu elle adım **üçü geçmez** (K-404) | K-401'in envanteriyle sayılır: kart + fiziksel sipariş **2** · havale + fiziksel **3** · hizmet **1** · dijital **0**. Faturayı kesmek sipariş başına bir **sistem dışı** adımdır; bütçenin konusu değildir ama envanterde açıkça yazılıdır (K-402) | MVP kabulünde. Kural ileriye dönüktür: `03`–`12` yazılırken ve implementation'da doğan her yeni elle adım önerisi bu bütçeyle birlikte okunur (K-404) | **Evet** |
+| Ü-3 | **Manuel adım bütçesi.** Sipariş başına sistem içi zorunlu elle adım **üçü geçmez** (K-404). Bütçe tek tipli siparişin hattına uygulanır; karışık siparişte hatların adımları toplanır (K-454) | K-401'in envanteriyle sayılır: kart + fiziksel sipariş **2** · havale + fiziksel **3** · hizmet **1** · dijital **0**. Faturayı kesmek sipariş başına bir **sistem dışı** adımdır; bütçenin konusu değildir ama envanterde açıkça yazılıdır (K-402) | MVP kabulünde. Kural ileriye dönüktür: `03`–`12` yazılırken ve implementation'da doğan her yeni elle adım önerisi bu bütçeyle birlikte okunur (K-404) | **Evet** |
 | Ü-4 | **Bitti çizgisi.** Canlı ortamda, gerçek kartla küçük tutarlı gerçek bir sipariş verilir, 3D Secure geçilir, sipariş panelden uçtan uca işletilir ve iade edilir (K-23) | `12`'nin kabul kanıtı. Kanıt müşteriye değil geliştiriciye bağlıdır: referans kurulum geliştiricinin kendi tüzel kişiliği adına, kendi ETBİS kaydı ve ödeme sağlayıcı sözleşmesiyle yapılır ve aynı zamanda demo sitesidir (K-23) | MVP kabulünde, referans kurulumda | **Evet** |
 | | **Mağaza düzeyi** | | | |
-| M-1 | **Ödeme tamamlama oranı** — sipariş onayına gelen siparişlerden ödemesi tamamlananların oranı (K-416) | Ödeme ekseninden hesaplanır: ödemesi alınmamış sipariş Başarısız kaydı taşır (K-180, K-296); satış hunisinde görülebilen **tek** basamaktır (K-416) | İlk gerçek kurulumun ilk üç ayı (K-418) | Hayır |
-| M-2 | **İletişim talebi sayısı** — folio tarafının tek ölçülebilir çıktısı: kurumsal içeriği okuyup firmaya ulaşan kişinin bıraktığı iz; tanıtım mağazayla eşit ağırlıkta olduğu için ölçüsüz bırakılmaz (K-04, K-416) | İletişim taleplerinin kaydından sayılır (K-300, K-303) | İlk gerçek kurulumun ilk üç ayı | Hayır |
+| M-1 | **Ödeme tamamlama oranı** — sipariş onayına gelen sepetlerden ödemesi tamamlanmış bir siparişle sonuçlananların oranı; aynı sepetten art arda verilen siparişler tek deneme sayılır (K-416, K-457) | Ödeme ekseninden hesaplanır: ödemesi alınmamış sipariş Başarısız kaydı taşır (K-180, K-296); satış hunisinde görülebilen **tek** basamaktır (K-416) | İlk gerçek kurulumun ilk üç ayı (K-418) | Hayır |
+| M-2 | **İletişim talebi sayısı** — folio tarafının tek ölçülebilir çıktısı: kurumsal içeriği okuyup firmaya ulaşan kişinin bıraktığı iz; tanıtım mağazayla eşit ağırlıkta olduğu için ölçüsüz bırakılmaz (K-04, K-416) | İletişim taleplerinin kaydından sayılır; KVKK talebi ve sipariş hakkındaki başvurular sayılmaz (K-300, K-303, K-457) | İlk gerçek kurulumun ilk üç ayı | Hayır |
 | M-3 | **Sipariş işleme süresi** — ödemenin onaylandığı andan kargoya verilene geçen süre (K-168, K-416) | Vitrinde verilen kargoya verme sözüne uyum oranı olarak okunur (K-139); süre iş günüyle sayılır (K-337) | İlk gerçek kurulumun ilk üç ayı | Hayır |
 | M-4 | **İptal ve iade oranı** (K-416) | İptal ve iade kayıtlarından hesaplanır (K-195, K-209) | İlk gerçek kurulumun ilk üç ayı | Hayır |
 | | **Ölçülemeyenler — kriter değil, bilinçli boşluk** | | | |
@@ -209,7 +210,7 @@ Kriterler **tek bir tabloda, iki eksende** gruplanır (K-433):
 | — | Sepet terk oranı ve hunideki diğer üst basamaklar — ürün sayfasına bakan, sepete ekleyen, ödeme adımını terk eden | Ölçülmez (K-400) | — | Kriter değildir |
 | — | Sipariş hacmi | Sayılır ama kriter değildir: hacmi ürün belirlemez (K-417). "Günde ortalama 10, tepe 50" bir tasarım varsayımıdır, hedef değildir (K-403) — §8, V-2 | — | Kriter değildir |
 
-*Kaynak: K-433 (tablonun biçimi) · K-415 (ürün düzeyi) · K-416 (mağaza düzeyi) · K-418 (kabul kapısı ve ölçüm penceresi) · K-434 (`10 §1` ile sınır) · K-444 (ürün düzeyi listelerinin tamamlanması) · K-441 (satış özetinin içeriği) · K-400, K-417 (ölçülemeyenler ve hacim) · K-02 · K-03 · K-04 · K-05 · K-12 · K-14 · K-18 · K-19 · K-22 · K-23 · K-103 · K-139 · K-168 · K-180 · K-195 · K-203 · K-209 · K-296 · K-300 · K-303 · K-337 · K-358 · K-365 · K-378 · K-397 · K-398 · K-401 · K-402 · K-403 · K-404.*
+*Kaynak: K-433 (tablonun biçimi) · K-415 (ürün düzeyi) · K-416 (mağaza düzeyi) · K-418 (kabul kapısı ve ölçüm penceresi) · K-434 (`10 §1` ile sınır) · K-444 (ürün düzeyi listelerinin tamamlanması) · K-441 (satış özetinin içeriği) · K-457 (iki ölçünün tanımı) · K-454 (bütçenin okunuşu) · K-400, K-417 (ölçülemeyenler ve hacim) · K-02 · K-03 · K-04 · K-05 · K-12 · K-14 · K-18 · K-19 · K-22 · K-23 · K-103 · K-139 · K-168 · K-180 · K-195 · K-203 · K-209 · K-296 · K-300 · K-303 · K-337 · K-358 · K-365 · K-378 · K-397 · K-398 · K-401 · K-402 · K-403 · K-404.*
 
 ---
 
@@ -261,4 +262,4 @@ Shopfolio gerçek kullanıcı geri bildirimi olmadan geliştirilir ve ilk müşt
 
 ---
 
-*Shopfolio — Project Vision v0.6 (§1–§8 taslak; kalite döngüsü yazım turundan sonra — K-430, K-432)*
+*Shopfolio — Project Vision v0.7 (§1–§8 taslak; kalite döngüsü yazım turundan sonra — K-430, K-432)*

@@ -1,6 +1,6 @@
 # AI Çalışma Talimatları
 
-**Katman:** L3 | **Son güncelleme:** 2026-09-19
+**Katman:** L3 | **Son güncelleme:** 2026-10-02
 
 > Bu dosya ajanın **oturum davranışını** tanımlar. Sürecin *neden*i [`Docs/00_PROJECT_METHODOLOGY.md`](../Docs/00_PROJECT_METHODOLOGY.md)'de, *sınırlar* [`GUARDRAILS.md`](GUARDRAILS.md)'de, *adım adım iş akışları* [`skills/`](skills/)'dedir.
 
@@ -36,6 +36,7 @@ Her oturumda ilgili işin doküman referanslarını oku. Tüm dokümanı değil,
 - Her konuda seçenekleri sun, artı-eksilerini açıkla, **kendi önerini belirt**.
 - **Seçenekleri sade dille yaz.** Proje sahibi metodoloji jargonu üzerinden değil, **somut sonuç** üzerinden seçer: etiket ne yapılacağını, açıklama neyin bedeli olduğunu söyler. Soyut kalıyorsa somut bir örnek göster.
 - **Soruları ve seçenekleri numaralandır.** Her soru oturum başından itibaren artan bir numara taşır (`Soru 14`), seçenekler kendi içinde `1 · 2 · 3` diye numaralanır. Proje sahibi yalnız rakamla cevap verebilir; başlıktaki soru numarası ile seçenek numarasını karıştırmayacak şekilde yaz.
+- **Dokümanları adıyla an; özetleri kısa ve sade yaz (2026-10-02).** Proje sahibine yazılan her mesajda doküman numarası tek başına kullanılmaz: "Proje Vizyonu (`01`)", "Ürün Gereksinimleri (`02`)", "MVP Kapsamı (`10`)". K-numarası, sürüm, tur sayısı ve süreç terimi ("Faz 5", "etki yansıtma") cümleyi taşımaz — önce sade anlam yazılır, referans gerekiyorsa sona parantezle eklenir. Oturum sonu ve durum özetleri üç parçadır: **ne yapıldı · şu an durum ne · senin yapacağın ne**, her biri birkaç sade cümle. Ayrıntı karar kaydına ve PR açıklamasına gider. **Neden:** Proje Vizyonu'nun kalite döngüsü oturumunun kapanış mesajı numaralar ve süreç terimleriyle yazıldı; proje sahibi "anlamadım" ve "01 ne 02 ne?" diye sordu, ardından bu biçimin kural olmasını istedi.
 - "Sence?" sorusuna hazırlıklı ol — gerekçeli net bir önerin olsun.
 - Her karardan sonra *"burada ne ters gidebilir?"* sorusunu sor. Edge case'leri proje sahibinden önce düşün.
 - Kararları **anında** kayıt altına al. Hiçbir karar kaybolmamalı.

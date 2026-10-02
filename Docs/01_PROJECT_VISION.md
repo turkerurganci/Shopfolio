@@ -1,6 +1,6 @@
 # Shopfolio — Project Vision
 
-**Versiyon: v0.17** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-02
+**Versiyon: v0.18** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-02
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager / Discovery Facilitator
 > **Traceability zorunlu:** Hayır (kök doküman)
@@ -32,6 +32,7 @@
 > **Kalite döngüsü — cross-review 6. tur (2026-10-02, v0.15 — K-431):** dört bulgu; değerlendirme `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R6.md`'dedir. M-4'ün okunma anı sabit 28 günden olaya bağlandı — dönemin bütün siparişlerinde cayma penceresi ve geri ödeme çatısı kapandığında (K-488 aynı oturumda düzeltildi) · §2'de ödeme ve takip öznesi aktör tablosuyla hizalandı · §3.1'de cayma istisnalarının kendiliğinden doğmadığı ve her birinin koşulu yazıldı (K-204, K-205, K-206) · M-1'de "art arda" iki durumla tanımlandı (K-181, K-182).
 > **Kalite döngüsü — cross-review 7. tur (2026-10-02, v0.16 — K-431):** dört bulgu; değerlendirme `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R7.md`'dedir. Son turların bulgularının çoğu, `01`'e taşınan kural ayrıntısından doğuyordu; bu turda ayrıntı evine — `02`'ye — bırakıldı: §3.1 cayma sınırlarının koşullarını `02 §7.3`'e, M-4 okunma anının kuralını `02 §10.6.3`'e işaret eder (K-488 teslim edilmeyen siparişi de kapsayacak biçimde düzeltildi) · Ü-3'ün `12`'de hat başına senaryoyla sayıldığı yazıldı · iade adresinin yalnız fiziksel katalogda zorunlu olması önerisi reddedildi (K-465).
 > **Kalite döngüsü — cross-review 8. tur (2026-10-02, v0.17 — K-431):** `cursor-agent` Cursor kullanım limitine takıldığı için ikinci model proje sahibinin kararıyla değişti: ChatGPT hesabıyla Codex CLI (`gpt-5.6-terra`); girdi aynı — yalnız doküman ve şablon. Beş bulgu; değerlendirme `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R8.md`'dedir. §1'de "hiçbiri" KOBİ bütçesiyle sınırlandı (ısmarlama yazılım ikisini de karşılar ama bütçeye sığmaz) · §3.2'de tüketici korumalarını ürünün "tanıdığı" yazıldı · M-3'ün birimi sipariştir (K-140) · mağaza düzeyi ölçüler izleme ölçüsü diye adlandırıldı · misafir siparişlerinin e-postayla hesaba bağlanması kalır, adres devri riski `02`'ye bilinçle kabul edilmiş risk olarak yazıldı (K-489 — proje sahibinin kararı).
+> **Kalite döngüsü — cross-review 9. tur (2026-10-02, v0.18 — K-431):** tek bulgu (Codex/ChatGPT); değerlendirme `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R9.md`'dedir. §3.2'nin ticari alıcı cümlesi ayrıldı: ürün tek bir tüketici akışı sunar ve ticari alıcı bilgisi istemez; alıcının hukuken tüketici sayılıp sayılmadığını ise mevzuat belirler (K-07, K-112).
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider. `D-`, `Ü-`, `M-`, `S-` ve `V-` kimlikleri bu dokümanın kendi satır kimlikleridir (§4.1, §6, §7, §8).
 
@@ -108,7 +109,7 @@ Uygulamada **dört aktör** vardır. Yönetim tarafı **tek roldür ve çoklu ku
 **Aktör olmayanlar — bilinçli kararlar:**
 
 - **Platform operatörü uygulama içi aktör değildir.** Shopfolio tek bir firmanın kendi sitesidir (K-01); kurulum bir deploy işidir (Aşama 4 + `DEPLOY_RUNBOOK.md`) ve uygulamaya operatör paneli koymak çok kiracılığı arka kapıdan geri getirirdi (K-06). Çok kiracılı SaaS — tek kurulumda çok firma — mevcut ürün tanımında yoktur ve MVP'de onun için hazırlık yapılmaz; kalıcı bir sınır değil, yol haritası adayıdır (K-10, K-440).
-- **Ticari / kurumsal alıcıya özel bir aktör veya hukuki rejim yoktur.** Alıcı yalnız tüketicidir ve bu ürünün kalıcı sınırıdır (§7 S-6 — K-470); ürün, 6502 sayılı Kanun'un tüketiciye tanıdığı korumaları alıcının sıfatına bakmaksızın her siparişte tanır; Mesafeli Sözleşmeler Yönetmeliği'nin cayma istisnaları bu rejimin içindedir (§3.1 — K-07). Ürün alıcının sıfatını sorgulamaz ve kurumsal fatura alanı açmaz: ticari amaçla alan biri de olsa sipariş tüketici siparişi olarak işler. Bu bir ürün politikasıdır — kanunun kapsamını genişletmez, alıcıya ondan daha az koruma tanımaz (K-07, K-112).
+- **Ticari / kurumsal alıcıya özel bir aktör veya hukuki rejim yoktur.** Ürünün alıcısı tüketicidir ve bu ürünün kalıcı sınırıdır (§7 S-6 — K-470): ürün tek bir akış sunar ve bu akış 6502 sayılı Kanun'un tüketiciye tanıdığı korumaları — Mesafeli Sözleşmeler Yönetmeliği'nin cayma istisnalarıyla birlikte (§3.1) — her siparişte işletir (K-07). Ürün alıcıdan ticari ya da kurumsal alıcı bilgisi istemez ve kurumsal fatura alanı açmaz; ticari amaçla alan biri de aynı akıştan geçer. Alıcının hukuken tüketici sayılıp sayılmadığı ve kanuni korumaların ona uygulanıp uygulanmadığı ise ürünün değil, mevzuatın belirlediği bir şeydir (K-07, K-112).
 
 *Kaynak: K-06 (aktör envanteri) · K-97 (misafir alıcı — dördüncü aktör) · K-122 (yönetici tarafının kimlik doğrulama tabanı) · K-443 ("neden geri döner" hücreleri — A-03) · K-01 · K-02 · K-03 · K-05 · K-07 · K-08 · K-10 · K-14 · K-15 · K-16 · K-19 · K-39 · K-40 · K-81 · K-89 · K-98 · K-100 · K-112 · K-159 · K-178 · K-203 · K-204 · K-205 · K-206 · K-245 · K-310 · K-313 · K-392 · K-405 · K-439 · K-440 · K-470 · K-479 · K-480 · B1-09 (aktör tablosuna "neden geri döner" sütunu).*
 
@@ -281,4 +282,4 @@ Shopfolio gerçek kullanıcı geri bildirimi olmadan geliştirilir ve ilk müşt
 
 ---
 
-*Shopfolio — Project Vision v0.17 (§1–§8 taslak; kalite döngüsü: audit, deep review ve cross-review — K-430, K-431)*
+*Shopfolio — Project Vision v0.18 (§1–§8 taslak; kalite döngüsü: audit, deep review ve cross-review — K-430, K-431)*

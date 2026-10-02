@@ -1,6 +1,6 @@
 # Shopfolio — Project Vision
 
-**Versiyon: v0.7** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-02
+**Versiyon: v0.8** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-02
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager / Discovery Facilitator
 > **Traceability zorunlu:** Hayır (kök doküman)
@@ -18,6 +18,7 @@
 > - **Açık kararlar:** A-02 (K-442 — matrisin derece sözlüğü) ve A-03 (K-443 — "neden geri döner" hücreleri) kapandı. Misafir alıcının hücresi, K-100'ün *"bir kez alır, gider"* cümlesiyle 2026-09-16'dan beri çelişiyordu; düzeltildi.
 > - **Anlamsal K-29 kaçakları:** etki sütunu `01`'i göstermediği için mekanik taramanın göremediği yirmi iki karar §1–§5'e işlendi ve satırlarına işaret kondu — §1: K-81, K-403 · §2: K-123, K-300 · §3: K-10, K-39, K-40, K-81, K-89, K-159, K-178, K-310 · §4: K-100, K-142, K-245, K-341, K-364, K-397, K-400, K-416 · §5: K-245, K-249, K-258, K-412. Blok 6 notundaki *"§3–§5 değişmedi"* cümlesi K-159'un §3.1'deki ikinci "kartla ödeme" ifadesini kaçırmıştı; bu turda düzeltildi.
 > **Yazım turunun `02` oturumu (2026-10-02, v0.7 — K-29):** `02`'nin yazımında alınan iki karar §6'ya dokundu. K-457 mağaza düzeyi ölçülerin ikisinin tanımını sabitledi — ödeme tamamlama oranının birimi sepettir ve aynı sepetten art arda verilen siparişler tek deneme sayılır; iletişim talebi sayısı KVKK ve sipariş başvurularını saymaz (A-12'nin kapanışı). K-454, Ü-3'ün manuel adım bütçesinin tek tipli siparişin hattına uygulandığını netleştirdi. §1–§5, §7 ve §8 değişmedi.
+> **Yazım turunun `10` oturumu (2026-10-02, v0.8 — K-29):** `10`'un yazımında alınan üç karar bu dokümana dokundu ve aynı PR'da işlendi. K-470 (A-11'in kapanışı) §7'nin `10` ile bağını yazan cümleyi düzeltti: `10 §3` "Hayır" cevabını kullanmaz, kalıcı sınıra düşen kalem orada satır olarak değil bu bölüme işaretle anılır; `10 §4.2`'nin "Kalkmaz" satırları bu bölümdeki satırı gösterir (K-471). K-477 Ü-1'in dış ön koşullarına alan adını ekledi. K-478 Google uygulamasının kimlik bilgilerini kurulum ayarı saydı ve §5.3'ün kurulumdan gelenler listesi dörde çıktı. §1–§4 ve §8 değişmedi.
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider. `D-`, `Ü-`, `M-`, `S-` ve `V-` kimlikleri bu dokümanın kendi satır kimlikleridir (§4.1, §6, §7, §8).
 
@@ -171,13 +172,13 @@ Bu konumlandırmanın somut karşılıkları:
 | Konumlandırma iddiası | Üründeki somut karşılığı |
 |---|---|
 | Tanıtım ile mağaza eşit ağırlıkta | Ana sayfada ikisi **birlikte** bulunur; firma iki hazır düzenden birini seçer (tanıtım öncelikli / mağaza öncelikli) ve hiçbir düzen kurumsal tanıtımı ana sayfadan çıkaramaz (K-27). İçerik sayfaları katalogdan ürün bağlar ve yayındaki ürünleri "İlgili ürünler" bloğunda gösterir (K-245) |
-| Firma kendi kimliğinin sahibidir | Unvan, vergi/MERSİS, adres, iletişim, logo ve marka panelden yönetilir; kurulumdan yalnız sır ve altyapı gelir — alan adı, e-posta gönderim kimliği, ödeme sağlayıcı anahtarları (K-08) |
+| Firma kendi kimliğinin sahibidir | Unvan, vergi/MERSİS, adres, iletişim, logo ve marka panelden yönetilir; kurulumdan yalnız sır ve altyapı gelir — alan adı, e-posta gönderim kimliği, ödeme sağlayıcı anahtarları ve Google uygulamasının kimlik bilgileri (K-08, K-478) |
 | Kurumsal kimlik görünümde taşınır | Firma logo, marka adı, site simgesi ve tek bir marka rengini ayarlar; yazı tipi, düzen ve bileşenler üründür. Siteler bu yüzden yazı tipi ve düzen olarak birbirine benzer — ayrışma logo, renk, içerik ve fotoğrafla sağlanır (K-258) |
 | Sektör bağımsız KOBİ kapsanır | Firma tipi seçilir: şahıs işletmesi (ad-soyad + vergi kimlik no) veya tüzel kişi (ticaret unvanı + MERSİS no + ticaret sicil no); tek zorunlu alan seti şahıs işletmesini ürünün dışına atardı (K-03, K-14) |
 | Site firmanındır | Kendi alan adında yayınlanır, Shopfolio alt alan adı yoktur; platform imzası varsayılan açıktır ve panelden kapatılabilir (K-20) |
 | Sosyal medyanın yerini almaz, onu bağlar | Panelde sosyal medya hesap bağlantıları ve bir WhatsApp numarası girilir ve sitede gösterilir; sitede gömülü gönderi akışı yoktur (K-249) |
 
-*Kaynak: K-21 (alternatif envanteri ve biçimi) · K-04 (farklılaşma ekseni) · K-442 (derece sözlüğü — A-02) · K-02 · K-03 · K-05 · K-08 · K-09 · K-11 · K-14 · K-15 · K-20 · K-27 · K-245 · K-249 · K-258 · K-412 · K-417.*
+*Kaynak: K-21 (alternatif envanteri ve biçimi) · K-04 (farklılaşma ekseni) · K-442 (derece sözlüğü — A-02) · K-02 · K-03 · K-05 · K-08 · K-09 · K-11 · K-14 · K-15 · K-20 · K-27 · K-245 · K-249 · K-258 · K-412 · K-417 · K-478.*
 
 ---
 
@@ -195,7 +196,7 @@ Kriterler **tek bir tabloda, iki eksende** gruplanır (K-433):
 | # | Kriter | Nasıl ölçülür | Ne zaman ölçülür | Kabul kapısı mı |
 |---|---|---|---|---|
 | | **Ürün düzeyi** | | | |
-| Ü-1 | **Kurulabilirlik.** `10 §4`'ün dış ön koşulları tamamlanır — firmanın ödeme sağlayıcı sözleşmesi (K-12), ETBİS kaydı (K-14), Google uygulaması (K-103), e-posta yapılandırması (K-378), barındırma konumu (K-358) ve dört yasal metin (K-365) — ve ilk sipariş **koda dokunulmadan** alınır (K-415, K-444) | `12`'de bir senaryo: ön koşullar tamamlandıktan sonra hiçbir kod değişikliği yapılmadan uçtan uca bir sipariş alınır | MVP kabulünde, referans kurulumda (K-23) | **Evet** |
+| Ü-1 | **Kurulabilirlik.** `10 §4.1`'in ön koşulları tamamlanır — alan adı (K-20), firmanın ödeme sağlayıcı sözleşmesi (K-12), ETBİS kaydı (K-14), Google uygulaması (K-103), e-posta yapılandırması (K-378), barındırma konumu (K-358) ve dört yasal metin (K-365) — ve ilk sipariş **koda dokunulmadan** alınır (K-415, K-444, K-477) | `12`'de bir senaryo: ön koşullar tamamlandıktan sonra hiçbir kod değişikliği yapılmadan uçtan uca bir sipariş alınır | MVP kabulünde, referans kurulumda (K-23) | **Evet** |
 | Ü-2 | **Kendi kendine yetme.** Firma, geliştirici olmadan panelden şunları yapar: ürün ekleyip yayına alma · kurumsal içerik düzenleme · firma kimliğini güncelleme · marka ayarları · sipariş adımları (K-401) · iptal ve iade · yasal metin güncelleme · yönetici davet etme (K-415, K-444) | Her iş `12`'de ayrı bir senaryodur | MVP kabulünde, referans kurulumda | **Evet** |
 | Ü-3 | **Manuel adım bütçesi.** Sipariş başına sistem içi zorunlu elle adım **üçü geçmez** (K-404). Bütçe tek tipli siparişin hattına uygulanır; karışık siparişte hatların adımları toplanır (K-454) | K-401'in envanteriyle sayılır: kart + fiziksel sipariş **2** · havale + fiziksel **3** · hizmet **1** · dijital **0**. Faturayı kesmek sipariş başına bir **sistem dışı** adımdır; bütçenin konusu değildir ama envanterde açıkça yazılıdır (K-402) | MVP kabulünde. Kural ileriye dönüktür: `03`–`12` yazılırken ve implementation'da doğan her yeni elle adım önerisi bu bütçeyle birlikte okunur (K-404) | **Evet** |
 | Ü-4 | **Bitti çizgisi.** Canlı ortamda, gerçek kartla küçük tutarlı gerçek bir sipariş verilir, 3D Secure geçilir, sipariş panelden uçtan uca işletilir ve iade edilir (K-23) | `12`'nin kabul kanıtı. Kanıt müşteriye değil geliştiriciye bağlıdır: referans kurulum geliştiricinin kendi tüzel kişiliği adına, kendi ETBİS kaydı ve ödeme sağlayıcı sözleşmesiyle yapılır ve aynı zamanda demo sitesidir (K-23) | MVP kabulünde, referans kurulumda | **Evet** |
@@ -210,7 +211,7 @@ Kriterler **tek bir tabloda, iki eksende** gruplanır (K-433):
 | — | Sepet terk oranı ve hunideki diğer üst basamaklar — ürün sayfasına bakan, sepete ekleyen, ödeme adımını terk eden | Ölçülmez (K-400) | — | Kriter değildir |
 | — | Sipariş hacmi | Sayılır ama kriter değildir: hacmi ürün belirlemez (K-417). "Günde ortalama 10, tepe 50" bir tasarım varsayımıdır, hedef değildir (K-403) — §8, V-2 | — | Kriter değildir |
 
-*Kaynak: K-433 (tablonun biçimi) · K-415 (ürün düzeyi) · K-416 (mağaza düzeyi) · K-418 (kabul kapısı ve ölçüm penceresi) · K-434 (`10 §1` ile sınır) · K-444 (ürün düzeyi listelerinin tamamlanması) · K-441 (satış özetinin içeriği) · K-457 (iki ölçünün tanımı) · K-454 (bütçenin okunuşu) · K-400, K-417 (ölçülemeyenler ve hacim) · K-02 · K-03 · K-04 · K-05 · K-12 · K-14 · K-18 · K-19 · K-22 · K-23 · K-103 · K-139 · K-168 · K-180 · K-195 · K-203 · K-209 · K-296 · K-300 · K-303 · K-337 · K-358 · K-365 · K-378 · K-397 · K-398 · K-401 · K-402 · K-403 · K-404.*
+*Kaynak: K-433 (tablonun biçimi) · K-415 (ürün düzeyi) · K-416 (mağaza düzeyi) · K-418 (kabul kapısı ve ölçüm penceresi) · K-434 (`10 §1` ile sınır) · K-444, K-477 (ürün düzeyi listelerinin tamamlanması) · K-441 (satış özetinin içeriği) · K-457 (iki ölçünün tanımı) · K-454 (bütçenin okunuşu) · K-400, K-417 (ölçülemeyenler ve hacim) · K-02 · K-03 · K-04 · K-05 · K-12 · K-14 · K-18 · K-19 · K-22 · K-23 · K-103 · K-139 · K-168 · K-180 · K-195 · K-203 · K-209 · K-296 · K-300 · K-303 · K-337 · K-358 · K-365 · K-378 · K-397 · K-398 · K-401 · K-402 · K-403 · K-404.*
 
 ---
 
@@ -218,7 +219,7 @@ Kriterler **tek bir tabloda, iki eksende** gruplanır (K-433):
 
 Bu bölüm Shopfolio'nun **ne olmadığını** yazar. Buradaki her madde bir **kalıcı kimlik sınırıdır**: karşıtı seçilseydi başka bir ürün doğardı ve post-MVP'de de değişmez (K-420). Her eksik özellik bir sınır değildir — listeye yalnız ürünün kimliğini tanımlayanlar alındı (K-419).
 
-MVP kapsamı dışındaki kalemler `10 §3`'te yaşar; post-MVP yol haritası (`10 §5`) **yalnız onların arasından** beslenir, bu bölümden asla (K-420). Bir sınırla aynı alana düşen yol haritası adayı sınırı bozmaz: aday ürüne bir özellik ekler, ürünü sınırdaki sistemin yerine geçirmez (K-439). `10 §4`'te "Kalkmaz" diyen bir kısıt ve `10 §3`'te "Hayır" cevabı alan bir kalem bu listeye bağlanır (K-25, K-26).
+MVP kapsamı dışındaki kalemler `10 §3`'te yaşar; post-MVP yol haritası (`10 §5`) **yalnız onların arasından** beslenir, bu bölümden asla (K-420). Bir sınırla aynı alana düşen yol haritası adayı sınırı bozmaz: aday ürüne bir özellik ekler, ürünü sınırdaki sistemin yerine geçirmez (K-439). `10 §4.2`'de "Kalkmaz" diyen bir kısıt bu listeye bağlanır ve buradaki satırını gösterir (K-26, K-471); `10 §3` "Hayır" cevabını kullanmaz — kalıcı sınıra düşen kalem orada satır olarak değil, bu bölüme işaretle anılır (K-25, K-470).
 
 Önceki kararların bu bölüme yönelttiği üç madde kalıcı kimlik sınırı değildir ve `10`'da yaşar (K-440): panelde tek firma (K-09) bugünkü tanımın kabulüdür ve yol haritası adayı olan çok kiracılı SaaS (K-10) gelirse değişir; alkol, ilaç gibi ek akış isteyen ürünler (K-84) MVP kapsamı dışıdır. Platformun ticari zincirde yer almaması (K-12) ise S-1'in parçasıdır.
 
@@ -235,7 +236,7 @@ MVP kapsamı dışındaki kalemler `10 §3`'te yaşar; post-MVP yol haritası (`
 | S-9 | **Analitik aracı değildir.** Ziyaretçi davranışı ölçülmez; panelde yalnız sipariş verisinden türeyen satış özeti vardır. Ziyaretçi analitiği yol haritası adayıdır ve bu sınırı değiştirmez | Ürünün ölçümü sipariş verisiyle sınırlıdır (K-400); ziyaretçi ölçümü siteye üçüncü taraf kodu ya da ziyaretçiyi ayırt eden bir iz gerektirir ve çerez rejimini değiştirir (K-263, K-397) | K-263, K-397, K-398, K-400, K-439 |
 | S-10 | **Tek pazara ve tek para birimine bağlıdır.** Türkiye'ye satar ve TRY ile çalışır; yurt dışına satış ve çok para birimi yoktur. Çoklu dil bu sınırın parçası değildir: yol haritası adayıdır | Hukuki katman Türkiye'ye çivilidir — tüketici rejimi, ETBİS, yerli ödeme sağlayıcısı; çoklu pazar kur yönetimi, gümrük, yabancı tüketici hukuku ve kişisel verinin yurt dışına aktarımını getirir (K-16) | K-16, K-439 |
 
-*Kaynak: K-419 (sınır listesi) · K-420 (`01 §7` ile `10 §3` ayrımı) · K-439 (sınır ile yol haritası adayının ayrımı) · K-440 (eski yerleşimlerin yeni ölçütle okunması) · K-25, K-26 (`10` ile bağ) · K-01 · K-03 · K-07 · K-09 · K-10 · K-11 · K-12 · K-16 · K-50 · K-84 · K-175 · K-217 · K-237 · K-244 · K-263 · K-267 · K-323 · K-324 · K-397 · K-398 · K-400 · K-417 · K-426.*
+*Kaynak: K-419 (sınır listesi) · K-420 (`01 §7` ile `10 §3` ayrımı) · K-439 (sınır ile yol haritası adayının ayrımı) · K-440 (eski yerleşimlerin yeni ölçütle okunması) · K-25, K-26, K-470, K-471 (`10` ile bağ) · K-01 · K-03 · K-07 · K-09 · K-10 · K-11 · K-12 · K-16 · K-50 · K-84 · K-175 · K-217 · K-237 · K-244 · K-263 · K-267 · K-323 · K-324 · K-397 · K-398 · K-400 · K-417 · K-426.*
 
 ---
 
@@ -262,4 +263,4 @@ Shopfolio gerçek kullanıcı geri bildirimi olmadan geliştirilir ve ilk müşt
 
 ---
 
-*Shopfolio — Project Vision v0.7 (§1–§8 taslak; kalite döngüsü yazım turundan sonra — K-430, K-432)*
+*Shopfolio — Project Vision v0.8 (§1–§8 taslak; kalite döngüsü yazım turundan sonra — K-430, K-432)*

@@ -187,6 +187,7 @@ grep -rn '`<[^>]*>`' Docs/ .claude/ \
 | Dal koruma kanıtı | `gh api repos/turkerurganci/Shopfolio/rulesets` → HTTP 200 (ön-uçuş) · ruleset id `20666567`, `enforcement: active`, `bypass_actors: []` (uygulama) → `Docs/CI_CD_SETUP.md` §3.3 | 2026-08-11 |
 | Korunan dallar | `main` (`~DEFAULT_BRANCH`) — sunucu tarafı ruleset + lokal `PB_PROTECTED_BRANCHES` varsayılanı | 2026-08-11 |
 | İkinci AI (cross-review) | **`cursor-agent`** (CLI, hesap tabanlı auth — API key kullanılmıyor). Raporlar `Docs/CROSS_REVIEW_REPORTS/` altına yazılır. | 2026-08-11 |
+| İkinci AI — yedek yöntem | **Codex CLI, ChatGPT hesabıyla** (`codex exec`, model `gpt-5.6-terra`, düşünme düzeyi `high`). `cursor-agent`'ın Cursor kullanım limiti dolduğunda kullanılır. Koşum: boş bir klasörde, salt okunur (`-s read-only`), kişisel ayarlar yüklenmeden (`--ignore-user-config`). Talimat, doküman ve şablon stdin'den tek metin olarak verilir, karar kaydı verilmez (K-431). Talimatta şu cümle bulunur: *"dokümanda bilinçli karar olarak yazılmış seçime yalnız katılmadığın için bulgu yazma"*. Raporlar aynı dizine yazılır; raporun başlığı turun hangi modelle koştuğunu söyler. **Kaynak:** Proje Vizyonu'nun cross-review'ı, 8.–18. tur — proje sahibinin kararı. | 2026-10-03 |
 | `SETUP_COMPLETE=true` tarihi | *Yapılmadı* — §4 ertelendi (`DEFERRED_BACKLOG.md` D-01). Aşama 4 kapanışından sonra, ilk implementation task'ından önce. | — |
 
 ---

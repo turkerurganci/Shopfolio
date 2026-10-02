@@ -1,6 +1,6 @@
 # Shopfolio — Product Requirements
 
-**Versiyon: v0.9** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-02
+**Versiyon: v0.10** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-02
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager
 > **Traceability zorunlu:** Hayır (kaynak doküman — sonraki aşamalar buraya izlenir)
@@ -26,6 +26,7 @@
 > - **İşaret ve anlamsal K-29 kaçakları:** dokuz Blok 8–9 satırı taslağı yazılmış bir bölümü — §6 ya da §7 — işaretsiz taşıyordu (K-328, K-334, K-356, K-365…K-368, K-389, K-395); elli satır etki sütununda göstermediği taslak bölümlerine dokunuyordu. En ağırları: K-340 caymanın beyanını sipariş onayına açtı ve sözlükteki *"teslimattan sonra"* tanımını yanlışladı; K-347 siparişe üçüncü bir donan metin sürümü ekledi; K-296 Başarısız'ın tanımını genişletti; K-365 satış kapısına dördüncü bir koşul ekledi; K-310 içeriğin metin düzenlemelerini işlem izinin dışında bıraktı. Satırlar `02 §X (taslak güncellendi — v0.8)` işaretini taşır.
 > - **Yazımın bulduğu boşluklar:** yirmi üç madde karara bağlandı (K-447…K-469) — sekizi ⚠ ile proje sahibine gösterildi, on beşi öneriyle kaydedildi; ikisi `01 §6`'ya dokundu ve `01` v0.7 oldu (K-454, K-457). Ayrıntı: `PRODUCT_DISCOVERY_STATUS.md` §6.1.
 > **Yazım turunun `10` oturumu (2026-10-02, v0.9 — K-29):** `10`'un yazımında alınan iki karar bu dokümana dokundu ve aynı PR'da işlendi. K-478 Google uygulamasının kimlik bilgilerini kurulum ayarı saydı — kurulumdan gelenler listesi dörde çıktı (§3.1.2, §10.1.3, §11) ve uygulama tanımlı değilse "Google ile giriş" düğmesi görünmez (§3.13.6). K-477 alan adını kurulumun dış ön koşullarına ekledi (§10.8.2). `10 §4` iki parçaya ayrıldı (K-476); bu dokümandaki "`10 §4`" işaretleri bölümün tamamını, kurulum kontrol listesine yapılanlar `10 §4.1`'i gösterir. A-11'in kapanışıyla (K-470…K-472) §13.4'ün son cümlesi güncellendi: tracker §4'te açık satır kalmadı.
+> **`01`'in kalite döngüsünün etki yansıtması (2026-10-02, v0.10 — K-29):** `01`'in audit ve deep review turunda alınan kararlar bu dokümana dokundu ve aynı PR'da işlendi. Firma tipi üçe çıktı — esnaf, gerçek kişi tacir, tüzel kişi (K-480; §1.2 Unvan, §3.1.3) · tek depo kabul değil kalıcı sınırdır (K-479; §1 ölçek notu, §11.3 H-1) · satış özetinin ve mağaza ölçülerinin kaynağı "ürünün kendi kayıtları"dır (K-483; §3.34.6, §10.6.2) · kargoya verme sözüne uyum oranının paydası (K-484), iptal ve iade oranının payı ve paydası (K-485) ve ölçüm penceresinin başlangıcı ve iptal ve iade oranının okunma anı (K-486, K-488) §10.6.3'te · H-2 hacim tetikleyicisinin ölçülebilir hâlini ve öne çekilecek iki adayı adıyla taşır (K-473, K-474) · §10.5.4 bütçe hat başınadır (K-454) · §1.3 çok kiracılı SaaS'ı yol haritası adayı olarak anar (K-10) · §12.2.1 bakım ve destekte geliştirici veri işleyendir (K-482) · §12.3.1 aboneliği biten kurulumun uyumu firmadadır (K-481) · §3.13.2'ye misafir siparişlerinin e-postayla bağlanmasının kalan riski yazıldı (K-489) · §10.6.3'te iptal ve iade oranının okunma anı (K-488) ve sıfır payda kuralı (K-490) · §1.3, §7.1.2 ve §12.1.2 ürünü tüketiciye satış için kurulmuş tek akış olarak anlatır, alıcının hukuki sıfatını mevzuata bırakır (`01` cross-review'ının sonucu — K-07, K-112) · §3.25.1 ve §12.1.10 tüketici faturasıyla sınırlandı (K-112). Tracker §4'te bir açık satır doğdu — A-13, `10`'a aittir; §13.4'ün "açık satır kalmadı" cümlesi bu yüzden güncellendi. `02`'nin kendi kalite döngüsü bu düzeltmelerle başlar (K-430).
 
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider. Kayıt aşama kapanışında arşiv işareti alır ve yerinde kalır; K numaraları çözülmeye devam eder (K-436). `Z-`, `L-`, `B-`, `F-`, `P-`, `H-` ve sevkiyat ile ödeme geçişlerinin `S`/`P` kimlikleri bu dokümanın kendi satır kimlikleridir (§4, §8, §9, §11, §5).
@@ -121,7 +122,7 @@ Kuralın gerekçesi `03` ve `04`'ün `06`'dan **önce** yazılmasıdır: İngili
 | Misafir alıcı | `GuestBuyer` | Hesap açmadan sipariş veren alıcı. Siparişini **sipariş numarası + e-posta** ile takip eder; doğrulanmış e-postayla hesap açtığında o e-postaya ait geçmiş siparişleri hesabına düşer (K-97, K-98). |
 | Üye müşteri | `Customer` | Hesabı olan alıcı (K-06). "Üye" ve "müşteri" **ayrı terimler olarak kullanılmaz** — tek terim budur (K-17). |
 | Firma yöneticisi | `Admin` | Firmanın panel kullanıcısı. Yönetim tarafı **tek roldür ve çoklu kullanıcıya açıktır** (K-06). İlk hesap kurulumda doğar, sonrakiler davetle açılır (K-308). Yönetici hesabının sepeti ve siparişi olmaz (K-312). |
-| Tüketici | `Consumer` | Alıcının **hukuki sıfatı**: kişisel ihtiyacı için alan gerçek kişi. Ayrı bir aktör değildir — MVP'de alıcı istisnasız tüketicidir ve 6502 sayılı Kanun'un korumaları her siparişte uygulanır (K-07). |
+| Tüketici | `Consumer` | Alıcının **hukuki sıfatı**: kişisel ihtiyacı için alan gerçek kişi. Ayrı bir aktör değildir — ürün tüketiciye satış için kurulmuştur ve 6502 sayılı Kanun'un tüketici akışını her siparişte işletir; alıcının hukuken tüketici sayılıp sayılmadığını mevzuat belirler (K-07, K-112). |
 
 **Hesap ve oturum**
 
@@ -216,7 +217,7 @@ Kuralın gerekçesi `03` ve `04`'ün `06`'dan **önce** yazılmasıdır: İngili
 |---|---|---|
 | Marka kimliği | `Branding` | Firmanın vitrinde ve e-postalarda görünen dört ayarı: marka adı, logo, site simgesi, marka rengi. Yazı tipi, düzen ve diğer renkler üründedir; firmanın siteye kod eklemesi yoktur. Değişiklikleri işlem izine yazılır ama siparişe donmaz (K-258, K-263, K-265). |
 | Marka adı | `BrandName` | Sitenin üstünde (logo yoksa), tarayıcı sekmesinde ve e-postalarda görünen ad — ör. "Yılmaz Mobilya". Zorunludur; girilene kadar site alan adını gösterir (K-260). |
-| Unvan | `LegalName` | Firmanın yasal adı — tüzel kişide ticaret unvanı (ör. "Yılmaz Mobilya San. ve Tic. Ltd. Şti."), şahıs işletmesinde işletme sahibinin adı-soyadı. Yasal bilgilerde ve sözleşmede görünür; sipariş anında siparişe donar (K-14, K-190, K-260). |
+| Unvan | `LegalName` | Firmanın yasal adı — tüzel kişide ticaret unvanı (ör. "Yılmaz Mobilya San. ve Tic. Ltd. Şti."), gerçek kişi tacirde adını ve soyadını taşıyan ticaret unvanı, esnafta işletme sahibinin adı-soyadı. Yasal bilgilerde ve sözleşmede görünür; sipariş anında siparişe donar (K-14, K-190, K-260, K-480). |
 | Logo | `Logo` | Firmanın tek logosu; sitenin her yerinde ve e-postalarda aynısı kullanılır. **Zorunlu değildir** — yoksa marka adı yazıyla gösterilir (K-259). |
 | Site simgesi | `Favicon` | Tarayıcı sekmesindeki ikon. İsteğe bağlıdır; yüklenmezse marka adının baş harfi marka rengi üzerinde gösterilir — firmanın sitesinde Shopfolio simgesi çıkmaz (K-261). |
 | Marka rengi | `BrandColor` | Firmanın seçtiği tek renk; düğme, bağlantı ve vurgulara uygulanır. Üstündeki yazının rengini sistem seçer; hata, uyarı, "Tükendi" ve indirim gibi anlam taşıyan renkler ondan bağımsızdır (K-258, K-262). |
@@ -244,7 +245,7 @@ Kuralın gerekçesi `03` ve `04`'ün `06`'dan **önce** yazılmasıdır: İngili
 
 > **Kapsam notu (K-84):** "Ürün" terimi, firmanın kataloğa koyduğu her şeyi kapsar; **sistem ne satıldığını denetlemez.** Ek akış gerektiren ürün türleri — alkol, tütün, ilaç ve reçeteli ürünler, silah — MVP kapsamı dışındadır (`10 §3`). Engelleme mekanizması, yasaklı kategori listesi ve ürün başına mevzuat belgesi alanı **yoktur**; mevzuata uygunluk firmanın yükümlülüğüdür (K-09, K-12, K-14).
 
-> **Ölçek notu (K-89):** `01 §3.1`'deki "birkaç yüz ürüne kadar katalog, tek depo" ifadesi bir **kabuldür** — kural değildir; `01 §8`'de varsayım (V-1), `10 §4`'te kabul olarak yaşar ve hacim kabulleriyle birlikte §11.3'te toplanır (K-03, K-409). Sistem hiçbir yerde ölçek sınırı uygulamaz: ürün adedi, boyut başına seçenek değeri sayısı ve ürün başına varyant adedi tavansızdır. K-40'ın **iki seçenek boyutu** sınırı bundan ayrıdır ve geçerliliğini korur.
+> **Ölçek notu (K-89):** `01 §3.1`'deki "birkaç yüz ürüne kadar katalog" ifadesi bir **kabuldür** — kural değildir; `01 §8`'de varsayım (V-1), `10 §4`'te kabul olarak yaşar ve hacim kabulleriyle birlikte §11.3'te toplanır (K-03, K-409). **Tek depo** bu kabulün parçası değildir: ürünün kalıcı sınırıdır (`01 §7` S-5 — K-479). Sistem hiçbir yerde ölçek sınırı uygulamaz: ürün adedi, boyut başına seçenek değeri sayısı ve ürün başına varyant adedi tavansızdır. K-40'ın **iki seçenek boyutu** sınırı bundan ayrıdır ve geçerliliğini korur.
 
 ### 1.3 Aktörler
 
@@ -253,12 +254,12 @@ Uygulamada **dört aktör** vardır: ziyaretçi · misafir alıcı · üye müş
 Bu dokümanın iş kurallarının dayandığı üç aktör kuralı:
 
 1. **Yönetim tarafı tek roldür, çoklu kullanıcıya açıktır.** Firma birden fazla yönetici hesabı açabilir; hepsi aynı yetkiye sahiptir. Yetki matrisi MVP'de **yoktur**. Ayrı hesaplar korunduğu için "kim ne değiştirdi" izlenebilirliği kaybolmaz (K-06). **Kimlik doğrulama rejimi müşteri tarafıyla aynıdır:** yönetici hesapları da doğrulama kapısına, oturum kurallarına, hassas işlemde yeniden doğrulamaya, e-posta değiştirme kuralına ve şifre politikasına **aynı değerlerle** tabidir; K-122'nin tanıdığı sıkılaştırma yetkisi MVP'de kullanılmaz (K-122, K-313, K-384). Yönetici hesapları davetle açılır ve yönetici hesabıyla vitrinde alışveriş yapılmaz — kendi mağazasından alacak yönetici ayrı bir müşteri hesabı açar; iki hesap birbirine bağlanmaz (K-308, K-312). Tek rolün veri tarafındaki sonucu: her yönetici bütün müşteri verisini görür (K-383). Yönetim tarafının kuralları §10'dadır.
-2. **Alıcı istisnasız tüketicidir.** Ticari/kurumsal alıcıya özel hukuki rejim yoktur; cayma hakkı, ön bilgilendirme ve mesafeli satış sözleşmesi dallanmadan uygulanır (K-07).
+2. **Ürün tüketiciye satış için kurulmuştur.** Ticari/kurumsal alıcıya özel akış yoktur; cayma hakkı, ön bilgilendirme ve mesafeli satış sözleşmesi her siparişte dallanmadan işler (K-07). Alıcının hukuken tüketici sayılıp sayılmadığını mevzuat belirler; ürün alıcıdan ticari bilgi istemez ve ticari amaçla alan biri de aynı akıştan geçer (`01 §3.2` — K-07, K-112).
 3. **Sipariş vermek için üyelik zorunlu değildir.** Ziyaretçi hesap açmadan sipariş verebilir ve siparişini **sipariş numarası + e-posta** ile takip eder; üyelik kaldırılmamıştır, yalnız zorunluluğu kalkmıştır (K-97). Üyeliğin taşıdığı değer süreklilikte toplanır — adres defteri (K-111), sipariş geçmişi ve "beni hatırla" (K-108). Doğrulanmış e-postayla hesap açıldığında o e-postaya ait geçmiş misafir siparişleri hesaba düşer (K-98); silinmiş bir hesabın siparişleri **düşmez** (K-117).
 
 **Aktör olmayanlar — bilinçli kararlar:**
 
-- **Platform operatörü uygulama içi aktör değildir.** Kurulum bir deploy işidir; uygulamaya operatör paneli koymak, K-01 ile elenen kiracılığı arka kapıdan geri getirirdi (K-06). Ürünün sağlayıcısı veri sorumlusu da değildir; kurulum ve içindeki veri firmanındır (K-341, K-410).
+- **Platform operatörü uygulama içi aktör değildir.** Kurulum bir deploy işidir; uygulamaya operatör paneli koymak çok kiracılığı arka kapıdan geri getirirdi (K-06). Çok kiracılı SaaS mevcut ürün tanımında yoktur ve yol haritası adayıdır (K-10, K-440). Ürünün sağlayıcısı veri sorumlusu da değildir; kurulum ve içindeki veri firmanındır (K-341, K-410).
 
 *Kaynak: K-17 (sözlük kuralı ve adlandırma konvansiyonu) · K-06 (aktör envanteri) · K-07 (alıcının hukuki sıfatı) · K-455 (A-05 — türetilmiş karşılıkların onayı) · K-458 (iki yasal metin terimi) · K-01 · K-03 · K-09 · K-12 · K-14 · K-39 · K-40 · K-41 · K-42 · K-43 · K-45 · K-50 · K-54 · K-55 · K-56 · K-57 · K-58 · K-59 · K-63 · K-64 · K-65 · K-66 · K-67 · K-70 · K-71 · K-73 · K-74 · K-75 · K-81 · K-82 · K-83 · K-84 · K-85 · K-88 · K-89 · K-90 · K-96 · K-97 · K-98 · K-100 · K-103 · K-104 · K-106 · K-108 · K-111 · K-112 · K-113 · K-115 · K-118 · K-122 · K-182 · K-237 · K-238 · K-239 · K-240 · K-241 · K-242 · K-243 · K-244 · K-245 · K-247 · K-248 · K-249 · K-250 · K-251 · K-253 · K-258 · K-259 · K-260 · K-261 · K-262 · K-263 · K-265 · K-266 · K-269 · K-272 · K-273 · K-274 · K-275 · K-276 · K-277 · K-279 · K-288 · K-289 · K-290 · K-291 · K-293 · K-294 · K-296 · K-297 · K-300 · K-303 · K-305 · K-308 · K-310 · K-312 · K-313 · K-314 · K-315 · K-316 · K-317 · K-326 · K-337 · K-339 · K-340 · K-341 · K-342 · K-343 · K-346 · K-347 · K-350 · K-361 · K-373 · K-377 · K-383 · K-384 · K-410 · K-414 · K-08 · K-11 · K-13 · K-77 · K-78 · K-80 · K-117 · K-123 · K-126 · K-127 · K-128 · K-131 · K-134 · K-141 · K-159 · K-160 · K-161 · K-164 · K-165 · K-166 · K-168 · K-169 · K-170 · K-171 · K-172 · K-173 · K-174 · K-175 · K-176 · K-178 · K-179 · K-180 · K-183 · K-185 · K-186 · K-188 · K-189 · K-190 · K-191 · K-195 · K-196 · K-197 · K-199 · K-200 · K-203 · K-204 · K-205 · K-206 · K-209 · K-210 · K-211 · K-214 · K-215 · K-222 · K-223 · K-224 · K-226 · K-227 · K-228 · K-409 · K-443 · K-452.*
 
@@ -341,7 +342,7 @@ Akışın üç kolu vardır: **marka ayarları** (§3.29), **duyuru** (§3.27.21
 
 **3.1.2 Firmanın kimliği panelden yönetilir; altyapısı kurulumdan gelir.** Panelden: unvan, vergi kimlik ya da MERSİS numarası, adres, iletişim bilgileri, logo ve marka ayarları. Kurulumdan: alan adı, e-posta gönderim kimliği, ödeme sağlayıcı anahtarları ve Google uygulamasının kimlik bilgileri — yani sır ve altyapı (K-478). Kimlik alanları zorunludur ve boşaltılamaz; her değişiklik kimin ve ne zaman yaptığıyla işlem izine yazılır (K-08, K-310). **Kalan risk bilinçlidir:** zorunluluk alanın boş bırakılmasını engeller, yanlış yazılmasını engellemez; kimliğin doğruluğu firmanın sorumluluğudur (K-08, K-445). **İstisna:** logo zorunlu değildir (§3.29.2, K-259).
 
-**3.1.3 Firma tipi seçilir ve zorunlu kimlik alanları tipe göre değişir.** Şahıs işletmesi: ad-soyad ve vergi kimlik numarası. Tüzel kişi: ticaret unvanı, MERSİS numarası ve ticaret sicil numarası. İki tipte de adres, telefon ve e-posta zorunludur. Tip sonradan değiştirilebilir; değiştiğinde satış kapısı (§3.1.5) yeni tipin setini denetler — kapı yalnız kurulum anında değil **sürekli** işler (K-14).
+**3.1.3 Firma tipi seçilir ve zorunlu kimlik alanları tipe göre değişir.** Üç tip vardır. **Esnaf** (esnaf ve sanatkâr siciline kayıtlı gerçek kişi): ad-soyad ve vergi kimlik numarası. **Gerçek kişi tacir** (ticaret siciline kayıtlı gerçek kişi): adını ve soyadını taşıyan ticaret unvanı, MERSİS numarası ve ticaret sicil numarası. **Tüzel kişi:** ticaret unvanı, MERSİS numarası ve ticaret sicil numarası. Üç tipte de adres, telefon ve e-posta zorunludur. Tip sonradan değiştirilebilir; değiştiğinde satış kapısı (§3.1.5) yeni tipin setini denetler — kapı yalnız kurulum anında değil **sürekli** işler (K-14, K-480).
 
 **3.1.4 Yasal kimlik bilgileri sitede sürekli erişilebilir durur;** yerleşimi `04`'ün işidir. ETBİS kaydı firmanın yükümlülüğüdür: ürün kayıt yapmaz, kayıt bilgisini taşır ve doğrulama bandını gösterir (K-14).
 
@@ -513,7 +514,7 @@ Dijital kalemin teslim hattı §5.7'de, iptal edilemezliği ve cayma istisnası 
 
 **3.13.1 Sipariş vermek için üyelik zorunlu değildir.** Ziyaretçi hesap açmadan sipariş verebilir ve siparişini sipariş numarası + e-posta ile takip eder; üyelik kaldırılmamıştır, yalnız zorunluluğu kalkmıştır (K-97).
 
-**3.13.2 Hesap açıldığında, o e-postaya ait geçmiş misafir siparişleri hesaba düşer** ve "Siparişlerim"de görünür. Bağlanmanın tek dayanağı **doğrulanmış** e-postadır (K-98). **İstisna:** silinmiş bir hesabın siparişleri bağlanmaz (§3.15.3).
+**3.13.2 Hesap açıldığında, o e-postaya ait geçmiş misafir siparişleri hesaba düşer** ve "Siparişlerim"de görünür. Bağlanmanın tek dayanağı **doğrulanmış** e-postadır (K-98). **İstisna:** silinmiş bir hesabın siparişleri bağlanmaz (§3.15.3). **Kalan risk bilinçlidir:** e-posta adresi el değiştirirse — ör. bir şirket adresi başka bir çalışana verilirse — yeni sahip, o adresle verilmiş eski misafir siparişlerini ve teslimat adreslerini görür. Doğrulama adresin bugünkü sahibini kanıtlar, geçmiştekini değil; bağlamaya ek doğrulama konmaz (K-489).
 
 **3.13.3 Hesabı olan kişi giriş yapmadan misafir olarak sipariş verirse sipariş kabul edilir ve hesaba anında düşer;** giriş duvarı yoktur. Bağlanan sipariş tam bağlanır — yetki bakımından ikinci sınıf bir sipariş türü yoktur. Ödeme adımında "bu e-posta kayıtlı, giriş yaparsanız adresleriniz dolu gelir" hatırlatması gösterilir; biçimi `04`'ün işidir (K-99).
 
@@ -729,7 +730,7 @@ Dijital üründe adedin 1 olması ve daha önce alınmış dijital varyantın uy
 
 ### 3.25 Fatura
 
-**3.25.1 Ürün fatura kesmez; e-Arşiv ve e-Fatura entegrasyonu yoktur.** Sistem faturanın gerektirdiği veriyi tam taşır — kalem dökümü, KDV oranları ve tutarları, indirim ve kupon payı, kargo ücreti ve KDV'si, fatura adresi, firmanın donmuş kimliği — ve sipariş dışa aktarmasıyla (§10.7; K-426) dışarı verir. Firma faturayı kendi muhasebe programından ya da entegratöründen keser; bu, sipariş başına bir **sistem dışı** adımdır (K-217, K-402).
+**3.25.1 Ürün fatura kesmez; e-Arşiv ve e-Fatura entegrasyonu yoktur.** Sistem tüketiciye kesilecek faturanın gerektirdiği veriyi tam taşır — kalem dökümü, KDV oranları ve tutarları, indirim ve kupon payı, kargo ücreti ve KDV'si, fatura adresi, firmanın donmuş kimliği — ve sipariş dışa aktarmasıyla (§10.7; K-426) dışarı verir. Firma faturayı kendi muhasebe programından ya da entegratöründen keser; bu, sipariş başına bir **sistem dışı** adımdır (K-217, K-402). Kurumsal fatura alanı yoktur: ticari amaçla alan birinin vergi bilgisi ürünün dışında alınır (K-112).
 
 **3.25.2 Fatura sistemde saklanmaz ve gösterilmez.** Sipariş sayfasına fatura yükleme, faturayı sistem içinden iletme ve fatura arşivi yoktur; firma faturayı müşteriye kendi kanalından iletir (K-218).
 
@@ -901,7 +902,7 @@ Kapatılan talebin saklama süresi §4'tedir (K-353).
 
 **3.34.5 Erişilebilirlik hedefi WCAG 2.1 AA'dır; uyumluluk beyanı verilmez.** Yedi kural zorunlu ve test edilebilirdir: (1) metin ile arka plan arasında yeterli kontrast (§3.29.5) · (2) her görselin alternatif metni (§3.11.4) · (3) klavyeyle tam gezinme — ödeme akışı fare olmadan tamamlanabilir · (4) görünür odak göstergesi · (5) etiketli form alanları · (6) anlamın yalnız renkle taşınmaması — hata, "Tükendi" ve indirim işareti metin de taşır · (7) %200 yakınlaştırmada içerik kaybı ve yatay kaydırma olmaması (K-395, K-396).
 
-**3.34.6 Sitede ziyaretçi ölçümü yoktur.** Ne üçüncü taraf analitik aracı ne ürünün kendi sayacı vardır: ziyaretçi sayısı, sayfa görüntüleme, oturum takibi ve huni ölçümü tutulmaz. Firma panelden analitik kodu, reklam dönüşüm etiketi ya da sosyal medya pikseli ekleyemez. Panelde yalnız sipariş verisinden türeyen satış özeti vardır (§10.6) (K-397, K-399, K-263, K-398).
+**3.34.6 Sitede ziyaretçi ölçümü yoktur.** Ne üçüncü taraf analitik aracı ne ürünün kendi sayacı vardır: ziyaretçi sayısı, sayfa görüntüleme, oturum takibi ve huni ölçümü tutulmaz. Firma panelden analitik kodu, reklam dönüşüm etiketi ya da sosyal medya pikseli ekleyemez. Panelde yalnız ürünün kendi kayıtlarından — sipariş ve iletişim talebi — türeyen satış özeti vardır (§10.6) (K-397, K-399, K-263, K-398, K-483).
 
 **3.34.7 Ürün çalışma süresi taahhüdü vermez.** Kesinti olağan kabul edilir; erişilebilirlik barındırmaya bağlıdır ve barındırma kurulum tarafındadır. İlan edilen, sitenin kapatıldığı planlı bakım penceresi yoktur; güncelleme sırasındaki kısa kesinti bu kabulün içindedir (K-406, K-408, K-08).
 
@@ -1351,7 +1352,7 @@ Envanter §2.1'in sekiz akışına göre dizilir; önce bütün akışlara uygul
 
 **7.1.1 Müşterinin satın almadan sonra başvurabileceği üç ayrı yol vardır.** **İptal** teslimattan önce işler ve kalemin henüz teslim edilmemiş olmasına dayanır. **Cayma** sebepsizdir; yasal penceresi teslimden itibaren on dört gündür, tüketici malı teslim almadan da cayabilir ve tipe özel istisnaları vardır. **Ayıp talebi** sebeplidir ve teslimden itibaren yasal süre boyunca açıktır. Üçü arayüzde aynı düğme değildir ve kayıtta aynı sebep kodunu paylaşmaz; iptal ile caymanın sınırı §7.3.7'dedir (K-195, K-226, K-340, K-452).
 
-**7.1.2 Tek hukuki rejim tüketici rejimidir.** Alıcı istisnasız tüketicidir; 6502 sayılı Kanun'un korumaları her siparişte dallanmadan uygulanır (K-07).
+**7.1.2 Tek akış tüketici akışıdır.** Ürün 6502 sayılı Kanun'un tüketiciye tanıdığı korumaları her siparişte dallanmadan işletir (K-07). Alıcının hukuken tüketici sayılıp sayılmadığını mevzuat belirler; ürün alıcıdan ticari bilgi istemez ve ticari amaçla alan biri de aynı akıştan geçer (`01 §3.2` — K-07, K-112).
 
 **7.1.3 İptal ve iade kalem düzeyinde işler.** Sipariş kalemi tek tek iptal ve iade edilebilir; siparişin kalan kalemleri yoluna devam eder ve para kısmen döner. Gerekçe tercih değil **hak**tır: üç üründen birini beğenmeyen tüketici üçünü birden iade etmeye zorlanamaz (K-178).
 
@@ -1679,7 +1680,7 @@ Havale ile ödenen her siparişe "ödendi" işareti bir adım ekler (K-159). Kar
 
 **10.5.3 Fatura sipariş başına bir sistem dışı adımdır.** Firma faturayı kendi aracıyla keser; ürün bunu göremez, izleyemez ve hatırlatamaz. Adım bütçenin konusu değildir ama envanterde açıkça yazılıdır (K-402, K-217).
 
-**10.5.4 Sipariş başına sistem içi zorunlu elle adım üçü geçmez.** Bütçe bir ürün kuralıdır; süreç tarafındaki karşılığı aşama kapanışının terfi adayıdır (K-438). Bütçe tek tipli bir siparişin hattına uygulanır: en ağır hat — havale ile ödenen fiziksel sipariş — bugün üç adımdır. Kural ileriye dönüktür: `03`–`12` yazılırken ve implementation sırasında doğan her yeni elle adım önerisi bu bütçeyle birlikte okunur ve sayıyı geçirecek her öneri karar kaydına geri döner (K-404, K-454).
+**10.5.4 Bir siparişin hattında sistem içi zorunlu elle adım üçü geçmez.** Bütçe bir ürün kuralıdır; süreç tarafındaki karşılığı aşama kapanışının terfi adayıdır (K-438). Bütçe tek tipli bir siparişin hattına uygulanır: en ağır hat — havale ile ödenen fiziksel sipariş — bugün üç adımdır. Kural ileriye dönüktür: `03`–`12` yazılırken ve implementation sırasında doğan her yeni elle adım önerisi bu bütçeyle birlikte okunur ve sayıyı geçirecek her öneri karar kaydına geri döner (K-404, K-454).
 
 **10.5.5 Hacim varsayımı:** ortalama günde 10, tepe günde 50 sipariş; en ağır hatta tepe gün 150 panel işlemi eder, bu tek kişinin yaklaşık bir saatlik işidir. Sayı bir hedef değil, tasarım varsayımıdır (§11.3; K-403, K-417).
 
@@ -1687,14 +1688,16 @@ Havale ile ödenen her siparişe "ödendi" işareti bir adım ekler (K-159). Kar
 
 **10.6.1 Panel ana sayfası bekleyen işleri sayar.** Sayaçlı blok altı sayaç taşır: **ödeme onayı bekleyen** (havale) · **kargoya verilecek** · **teslim işareti bekleyen** · **tamamlanmayı bekleyen hizmet** · **açık talep** — iletişim ve ayıp talepleri · **iade ve geri ödeme bekleyen** — teslim alınacak iade malı ve havale hattında işlenecek geri ödeme. Her sayaç kendi süzülmüş listesine götürür. Yeni bir ekran ve yeni veri yoktur; sayaçlar mevcut durumlardan hesaplanır, saklanmaz (K-405, K-467). Bekleyen işler e-postayla hatırlatılmaz (K-405).
 
-**10.6.2 Panelde bir satış özeti vardır ve analitik değildir.** Ürünün kendi sipariş verisinden türeyen bir rapordur; seçilen dönem için şunları gösterir: sipariş sayısı ve cirosu · en çok satan ürünler · ödeme yöntemi dağılımı · iptal ve iade sayısı · ödeme tamamlama oranı · iletişim talebi sayısı · kargoya verme sözüne uyum oranı. İptal ve iade oranı, sipariş sayısı ile iptal ve iade sayısından okunur. Özet çerez kullanmaz, ziyaretçi izlemez ve yeni kişisel veri biriktirmez; tamamı mevcut kayıttan hesaplanır, saklanmaz ve dışa aktarılmaz. Dönem seçimi ve ekranın düzeni `04`'ün işidir (K-398, K-441, K-400). Özetin dört ölçüsü `01 §6`'nın mağaza düzeyi ölçüleridir (M-1…M-4; K-416).
+**10.6.2 Panelde bir satış özeti vardır ve analitik değildir.** Ürünün kendi kayıtlarından — sipariş, ödeme ve iletişim talebi kaydı — türeyen bir rapordur; ziyaretçi verisi kullanmaz (K-483); seçilen dönem için şunları gösterir: sipariş sayısı ve cirosu · en çok satan ürünler · ödeme yöntemi dağılımı · iptal ve iade sayısı · ödeme tamamlama oranı · iletişim talebi sayısı · kargoya verme sözüne uyum oranı. İptal ve iade oranı, sipariş sayısı ile iptal ve iade sayısından okunur. Özet çerez kullanmaz, ziyaretçi izlemez ve yeni kişisel veri biriktirmez; tamamı mevcut kayıttan hesaplanır, saklanmaz ve dışa aktarılmaz. Dönem seçimi ve ekranın düzeni `04`'ün işidir (K-398, K-441, K-400). Özetin dört ölçüsü `01 §6`'nın mağaza düzeyi ölçüleridir (M-1…M-4; K-416).
 
 **10.6.3 Ölçülerin tanımı:**
 
 - **Ödeme tamamlama oranı:** dönem içinde sipariş onayına gelen sepetlerden, ödemesi tamamlanmış bir siparişle sonuçlananların oranı. Aynı sepetten art arda verilen siparişler — başarısız ödemenin yeni siparişle tekrarı ve aynı sepetten verilen yeni siparişin iptal ettirdiği önceki sipariş — tek deneme sayılır; ödemesi alınmamış sipariş Başarısız kaydı taşır (K-181, K-182, K-296, K-416, K-457).
 - **İletişim talebi sayısı:** dönem içinde açılan iletişim taleplerinden "KVKK talebi" ve "Sipariş hakkında" tipi dışındakiler — Genel soru, Ürün hakkında ve Diğer. Ölçü folio tarafının çıktısını sayar; satın almadan sonraki başvurular ve kişisel veri başvuruları ona girmez (K-302, K-416, K-457).
-- **Kargoya verme sözüne uyum oranı:** dönem içinde kargoya verilen siparişlerden, ödemenin onaylandığı andan kargoya verilene geçen sürenin siparişin donmuş kargoya verme sözünü iş günüyle aşmadığı siparişlerin oranı (K-139, K-140, K-168, K-337, K-441).
-- **İptal ve iade oranı:** dönem içindeki siparişlerden iptal edilen ya da iade alan siparişlerin oranı; iptal ve iade kayıtlarından hesaplanır (K-195, K-209, K-416).
+- **Kargoya verme sözüne uyum oranı:** kargoya verme süresi dönem içinde dolan fiziksel siparişlerden, ödemenin onaylandığı andan kargoya verilene geçen sürenin siparişin donmuş kargoya verme sözünü iş günüyle aşmadığı siparişlerin oranı. Süre dolduğunda henüz kargoya verilmemiş sipariş — sonradan kargoya verilse de, gecikme yüzünden feshedilse de — "uyulmadı" sayılır; süre dolmadan iptal edilen sipariş paydaya girmez (K-139, K-140, K-168, K-337, K-441, K-484).
+- **İptal ve iade oranı:** dönem içinde ödemesi tamamlanmış siparişlerden en az bir kalemi iptal edilen ya da iade alanların oranı; iptal ve iade kayıtlarından hesaplanır. Ödemesi alınmadan kapanan (Başarısız) sipariş bu orana girmez — ödeme tamamlama oranının konusudur (K-195, K-209, K-296, K-416, K-485).
+- **Sıfır payda:** bir oranın paydası seçilen dönemde sıfırsa — ör. hiç sipariş yoksa — oran "değerlendirilemez" sayılır, sıfır yüzde gösterilmez; gösterimi `04`'ün işidir (K-490).
+- **Ölçüm penceresi:** `01 §6`'nın "ilk gerçek kurulumun ilk üç ayı", satışın o kurulumda ilk açıldığı gün başlar — §3.1.5'in dört koşulunun ilk kez birlikte sağlandığı gün (K-418, K-486). İptal ve iade oranı bu pencere için, pencerede ödemesi tamamlanıp teslim edilen ya da ifası tamamlanan siparişlerin hepsinde cayma penceresi — fiziksel üründe teslimden, hizmette sipariş tarihinden başlar — ve geri ödeme çatısı kapandığı gün okunur. O güne kadar teslim edilmemiş ya da ifası tamamlanmamış sipariş beklenmez; o ana kadarki iptal ve iadesiyle sayılır (K-203, K-209, K-488).
 
 ### 10.7 Toplu veri işlemleri
 
@@ -1784,8 +1787,8 @@ Aşağıdakiler parametre değildir ve sistem hiçbirini uygulamaz: tasarımın 
 
 | # | Kabul | Değer | Kaynak |
 |---|---|---|---|
-| H-1 | Katalog | Fiziksel üründe birkaç yüz ürüne kadar, tek depo; sistem ürün adedine tavan koymaz | K-03, K-89, K-409 |
-| H-2 | Sipariş hacmi | Ortalama günde 10, tepe günde 50 — tasarım varsayımıdır, hedef değildir; tepe hacim bunu sürekli aşarsa otomasyon post-MVP'den öne çekilir | K-403, K-417, K-409 |
+| H-1 | Katalog | Fiziksel üründe birkaç yüz ürüne kadar; sistem ürün adedine tavan koymaz. Tek depo bir kabul değil, kalıcı sınırdır (`01 §7` S-5) | K-03, K-89, K-409, K-479 |
+| H-2 | Sipariş hacmi | Ortalama günde 10, tepe günde 50 — tasarım varsayımıdır, hedef değildir; üç aylık bir dönemin en az iki ayında en yoğun gün 50 siparişi aşarsa kargo şirketi entegrasyonu ve havale eşleştirmesi post-MVP'den öne çekilir (`10 §4.2` SK-3) | K-473, K-474, K-403, K-417, K-409 |
 | H-3 | Sepet | Elli kaleme kadar sepette ödeme öncesi yeniden değerlendirme kabul edilebilir sürede yanıt verir; kalem sayısına tavan yoktur | K-409, K-154, K-129 |
 | H-4 | Eşzamanlı ziyaretçi | `05`'in tasarım girdisidir | K-409 |
 
@@ -1801,7 +1804,7 @@ Aşağıdakiler parametre değildir ve sistem hiçbirini uygulamaz: tasarımın 
 
 **12.1.1 Tek pazar Türkiye'dir;** tek dil Türkçe, tek para birimi TRY'dir (K-16).
 
-**12.1.2 Alıcı istisnasız tüketicidir.** 6502 sayılı Kanun'un korumaları her siparişte dallanmadan uygulanır; ticari alıcıya özel rejim yoktur (K-07).
+**12.1.2 Ürün tüketiciye satış için kurulmuştur.** 6502 sayılı Kanun'un korumaları her siparişte dallanmadan işler; ticari alıcıya özel akış yoktur (K-07). Alıcının hukuken tüketici sayılıp sayılmadığını mevzuat belirler; ürün alıcıdan ticari bilgi istemez ve ticari amaçla alan biri de aynı akıştan geçer (`01 §3.2` — K-07, K-112).
 
 **12.1.3 Satıcı firmadır.** Tahsilat firmanın kendi ödeme sağlayıcı hesabına geçer; platform ticari zincirde yer almaz. Ürün kart verisini görmez, saklamaz, loglamaz ve her kart ödemesi 3D Secure'dan geçer (§3.21; K-12, K-13).
 
@@ -1817,7 +1820,7 @@ Aşağıdakiler parametre değildir ve sistem hiçbirini uygulamaz: tasarımın 
 
 **12.1.9 Cayma, iade ve ayıp:** cayma penceresi teslimden itibaren on dört gündür ve tüketici malı teslim almadan da cayabilir; dijital üründe ön onayla, hizmette ifa tamamlanınca düşer, istisna işaretli üründe yoktur; beyan tarih damgasıyla kayda geçer; geri ödeme on dört gün içinde yapılır; iade kargo bedeli cayma ve ayıpta firmaya aittir; ayıp talebinin yasal süresi iki yıldır ve seçimlik haklar sistem dışında yürür. Yasal süreler takvim günüyle sayılır (§4.1.3). Kuralların tamamı §7'dedir (K-195, K-203…K-207, K-209…K-211, K-226, K-289, K-290, K-337, K-340).
 
-**12.1.10 Fatura ürünün dışındadır.** Ürün fatura kesmez ve e-Arşiv/e-Fatura entegrasyonu yoktur; faturanın gerektirdiği veriyi tam taşır ve dışa aktarır. Fatura sistemde saklanmaz ve faturanın mali sorumluluğu firmadadır (§3.25; K-217, K-218, K-220).
+**12.1.10 Fatura ürünün dışındadır.** Ürün fatura kesmez ve e-Arşiv/e-Fatura entegrasyonu yoktur; tüketiciye kesilecek faturanın gerektirdiği veriyi tam taşır ve dışa aktarır. Fatura sistemde saklanmaz ve faturanın mali sorumluluğu firmadadır (§3.25; K-217, K-218, K-220).
 
 **12.1.11 Ticari elektronik ileti gönderilmez.** Pazarlama iletisi yoktur, ürün İYS'ye bağlanmaz ve pazarlama onayı toplamaz. İşlem bildirimleri mevcut sözleşmenin yürütülmesine ilişkindir, ticari ileti değildir ve kapatılamaz (§9; K-323, K-324, K-326, K-377).
 
@@ -1825,7 +1828,7 @@ Aşağıdakiler parametre değildir ve sistem hiçbirini uygulamaz: tasarımın 
 
 ### 12.2 Kişisel verilerin korunması
 
-**12.2.1 Veri sorumlusu firmadır.** Ürünü kuran geliştirici ya da ürünün sağlayıcısı veri sorumlusu değildir. Aydınlatma metninde firmanın kimlik bilgileri görünür ve panelden gelir. VERBİS kaydı gerekiyorsa firmanın yükümlülüğüdür; ürün bunu üstlenmez ve denetlemez (K-341).
+**12.2.1 Veri sorumlusu firmadır.** Ürünü kuran geliştirici ya da ürünün sağlayıcısı veri sorumlusu değildir. Aydınlatma metninde firmanın kimlik bilgileri görünür ve panelden gelir. VERBİS kaydı gerekiyorsa firmanın yükümlülüğüdür; ürün bunu üstlenmez ve denetlemez (K-341). **Bakım ve destek sırasında geliştirici veri işleyendir:** kuruluma bakım ya da destek için eriştiğinde firma adına veri işler; firma ile geliştirici arasında veri işleme sözleşmesi yapılır ve erişim bakım ile destekle sınırlıdır. Güncellemenin kuruluma hangi yolla ve kimin yetkisiyle ulaştığı `05`'in ve `DEPLOY_RUNBOOK`'un işidir (K-482).
 
 **12.2.2 Aydınlatma yükümlülüğü.** Aydınlatma metni sürümlü ayrı bir kayıttır; ürün taslak metinle gelir, firma düzenler ve içeriğin sorumluluğunu üstlenir. Metin zorunludur ve boşaltılamaz; bağlantısı kişisel verinin toplandığı her yerde görünür. Aydınlatma bir onay değildir: onay kutusu ve kullanıcı bazında "gördü" kaydı yoktur, ispat metnin sürümüyle sağlanır ve sipariş o günkü sürümü dondurur (§3.33; K-342, K-343, K-346, K-347).
 
@@ -1851,7 +1854,7 @@ Aşağıdakiler parametre değildir ve sistem hiçbirini uygulamaz: tasarımın 
 
 ### 12.3 Veri sahipliği ve süreklilik
 
-**12.3.1 Veri firmanındır.** Kurulum ve içindeki bütün veri — katalog, içerik, siparişler, müşteri kayıtları, işlem izi — firmaya aittir; ürünün sağlayıcısı üzerinde hak iddia etmez, veriyi kilitlemez ve erişimi kesmez. Bakım aboneliği sona erse bile firma verisiyle ve çalışan kurulumuyla kalır: abonelik güncelleme ve desteği kapsar, çalışma hakkını değil (K-410).
+**12.3.1 Veri firmanındır.** Kurulum ve içindeki bütün veri — katalog, içerik, siparişler, müşteri kayıtları, işlem izi — firmaya aittir; ürünün sağlayıcısı üzerinde hak iddia etmez, veriyi kilitlemez ve erişimi kesmez. Bakım aboneliği sona erse bile firma verisiyle ve çalışan kurulumuyla kalır: abonelik güncelleme ve desteği kapsar, çalışma hakkını değil (K-410). **Çalışma hakkı korunur, uyum korunmaz:** güncelleme almayan kurulumun yasal uyumu ve dış servis değişikliklerinin sonucu — duran ödeme yöntemi ya da giriş dahil — firmadadır; abonelik sözleşmesi bunu yazar (K-481).
 
 **12.3.2 Çıkış hakkı barındırma düzleminde karşılanır.** Kurulum firmanın kendi barındırmasında çalışır ve veritabanı ile yedekler firmanın elindedir; katalog ve içerik için ürün içinde bir dışa aktarma yolu yoktur. Sipariş tarafı panelden dışa aktarılır (§10.7). Yedek erişiminin tarifi `DEPLOY_RUNBOOK`'tadır (K-427, K-426, K-08, K-358).
 
@@ -1892,7 +1895,7 @@ Aşağıdakiler parametre değildir ve sistem hiçbirini uygulamaz: tasarımın 
 
 **13.3 Kapanıştan önce bir çakışma taraması koşar.** Tracker §4 bu tabloyla ve `01` ile `10`'un açık kalem listeleriyle karşılaştırılır: aynı açık iki yerde durmaz; her satır gözlemlenebilir bir kapı taşır — taşımayan satır kapatılır ya da kapısı yazılır; vadesi geçmiş ve hâlâ açık satır kapanış raporunda adıyla listelenir (K-429, K-37).
 
-**13.4 Yazım turu sonunda `02`'ye ait açık karar yoktur.** A-05 — sözlükteki İngilizce karşılıklar — K-455 ile; A-12 — yazıma kalan üç parça — K-445, K-456 ve K-457 ile kapandı. Tracker §4'ün son açık satırı A-11 `10`'a aitti ve `10`'un yazımında kapandı (K-470, K-471, K-472); yazım turu sonunda tracker §4'te açık satır kalmadı. Bu yüzden tablo boştur; satırını implementation döneminde doğan bir açık açar.
+**13.4 Yazım turu sonunda `02`'ye ait açık karar yoktur.** A-05 — sözlükteki İngilizce karşılıklar — K-455 ile; A-12 — yazıma kalan üç parça — K-445, K-456 ve K-457 ile kapandı. Tracker §4'ün son açık satırı A-11 `10`'a aitti ve `10`'un yazımında kapandı (K-470, K-471, K-472); yazım turu sonunda tracker §4'te açık satır kalmadı. `01`'in kalite döngüsünde açılan A-13 `10 §5`'e aittir ve bu tabloya girmez (K-428). Bu yüzden tablo boştur; satırını implementation döneminde doğan bir açık açar.
 
 | # | Konu | Ne belirsiz | Ne zaman karara bağlanır |
 |---|---|---|---|
@@ -1901,4 +1904,4 @@ Aşağıdakiler parametre değildir ve sistem hiçbirini uygulamaz: tasarımın 
 
 ---
 
-*Shopfolio — Product Requirements v0.9 (§1–§13 taslak; kalite döngüsü yazım turundan sonra — K-430, K-432)*
+*Shopfolio — Product Requirements v0.10 (§1–§13 taslak; kalite döngüsü yazım turundan sonra — K-430, K-432)*

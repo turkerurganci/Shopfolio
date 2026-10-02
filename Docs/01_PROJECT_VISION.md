@@ -1,6 +1,6 @@
 # Shopfolio — Project Vision
 
-**Versiyon: v0.22** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-02
+**Versiyon: v0.23** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-02
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager / Discovery Facilitator
 > **Traceability zorunlu:** Hayır (kök doküman)
@@ -37,6 +37,7 @@
 > **Kalite döngüsü — cross-review 11. tur (2026-10-02, v0.20 — K-431):** iki bulgu (Codex/ChatGPT); değerlendirme `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R11.md`'dedir. M-4'ün okunma kuralı artık kısa hâliyle satırın kendisinde (K-488) · V-4'te düşük hacmin sebebinin ürün içinde ölçülemediği ve V-7'nin görüşmesinde sorulacağı yazıldı.
 > **Kalite döngüsü — cross-review 12. tur (2026-10-02, v0.21 — K-431):** dört bulgu (Codex/ChatGPT); değerlendirme `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R12.md`'dedir. §2'de stoğu biten ürünün davranışı yazıldı (K-51, K-52) · §3.2'de tek akışın verdiği hakların bir ürün ve sözleşme politikası olduğu, kanuni korumanın kime uygulandığını mevzuatın belirlediği yazıldı · iki bulgu proje sahibinin ve kayıtlı kararların tekrarı olduğu için reddedildi (K-489; K-418, K-433).
 > **Kalite döngüsü — cross-review 13. tur (2026-10-03, v0.22 — K-431):** beş bulgu (Codex/ChatGPT); değerlendirme `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R13.md`'dedir. S-4 tüketici faturasıyla sınırlandı, ticari alıcının vergi bilgisinin ürün dışında alındığı yazıldı (K-112) · §8'e sıfır payda kuralı (K-490, öneriyle) · V-2'nin 150 işlemi en ağır hattın örneği olarak yazıldı (K-454) · V-4'te düşük hacim yanlışlama değil tetikleyici oldu, yanlışlama görüşmeye bağlandı (K-487 aynı oturumda düzeltildi) · V-5'e aboneliği biten ilk kurulumda fiilî sınav eklendi.
+> **Kalite döngüsü — cross-review 14. tur (2026-10-03, v0.23 — K-431):** tek bulgu (Codex/ChatGPT); değerlendirme `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R14.md`'dedir. §3.2'nin ilk cümlesi S-6 ile aynı dile getirildi: ürün tüketiciye satış için kurulmuştur ve ticari alıcı için ayrı akış sunmaz.
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider. `D-`, `Ü-`, `M-`, `S-` ve `V-` kimlikleri bu dokümanın kendi satır kimlikleridir (§4.1, §6, §7, §8).
 
@@ -113,7 +114,7 @@ Uygulamada **dört aktör** vardır. Yönetim tarafı **tek roldür ve çoklu ku
 **Aktör olmayanlar — bilinçli kararlar:**
 
 - **Platform operatörü uygulama içi aktör değildir.** Shopfolio tek bir firmanın kendi sitesidir (K-01); kurulum bir deploy işidir (Aşama 4 + `DEPLOY_RUNBOOK.md`) ve uygulamaya operatör paneli koymak çok kiracılığı arka kapıdan geri getirirdi (K-06). Çok kiracılı SaaS — tek kurulumda çok firma — mevcut ürün tanımında yoktur ve MVP'de onun için hazırlık yapılmaz; kalıcı bir sınır değil, yol haritası adayıdır (K-10, K-440).
-- **Ticari / kurumsal alıcıya özel bir aktör veya hukuki rejim yoktur.** Ürünün alıcısı tüketicidir ve bu ürünün kalıcı sınırıdır (§7 S-6 — K-470): ürün tek bir akış sunar ve bu akış tüketici mevzuatına göre kurulmuştur: ön bilgilendirme, mesafeli satış sözleşmesi, cayma ve iade — Yönetmelik'in cayma istisnalarıyla birlikte (§3.1) — her siparişin parçasıdır (K-07). Ürün alıcıdan ticari ya da kurumsal alıcı bilgisi istemez ve kurumsal fatura alanı açmaz; ticari amaçla alan biri de aynı akıştan geçer ve aynı sözleşmeyi kurar. Bu bir ürün ve sözleşme politikasıdır: kanuni tüketici korumalarının kime uygulandığını ürün değil, mevzuat belirler (K-07, K-112).
+- **Ticari / kurumsal alıcıya özel bir aktör veya hukuki rejim yoktur.** Ürün tüketiciye satış için kurulmuştur ve ticari alıcı için ayrı bir akış sunmaz; bu ürünün kalıcı sınırıdır (§7 S-6 — K-470). Ürün tek bir akış sunar ve bu akış tüketici mevzuatına göre kurulmuştur: ön bilgilendirme, mesafeli satış sözleşmesi, cayma ve iade — Yönetmelik'in cayma istisnalarıyla birlikte (§3.1) — her siparişin parçasıdır (K-07). Ürün alıcıdan ticari ya da kurumsal alıcı bilgisi istemez ve kurumsal fatura alanı açmaz; ticari amaçla alan biri de aynı akıştan geçer ve aynı sözleşmeyi kurar. Bu bir ürün ve sözleşme politikasıdır: kanuni tüketici korumalarının kime uygulandığını ürün değil, mevzuat belirler (K-07, K-112).
 
 *Kaynak: K-06 (aktör envanteri) · K-97 (misafir alıcı — dördüncü aktör) · K-122 (yönetici tarafının kimlik doğrulama tabanı) · K-443 ("neden geri döner" hücreleri — A-03) · K-01 · K-02 · K-03 · K-05 · K-07 · K-08 · K-10 · K-14 · K-15 · K-16 · K-19 · K-39 · K-40 · K-81 · K-89 · K-98 · K-100 · K-112 · K-159 · K-178 · K-203 · K-204 · K-205 · K-206 · K-245 · K-310 · K-313 · K-392 · K-405 · K-439 · K-440 · K-470 · K-479 · K-480 · K-489 · B1-09 (aktör tablosuna "neden geri döner" sütunu).*
 
@@ -286,4 +287,4 @@ Shopfolio gerçek kullanıcı geri bildirimi olmadan geliştirilir ve ilk müşt
 
 ---
 
-*Shopfolio — Project Vision v0.22 (§1–§8 taslak; kalite döngüsü: audit, deep review ve cross-review — K-430, K-431)*
+*Shopfolio — Project Vision v0.23 (§1–§8 taslak; kalite döngüsü: audit, deep review ve cross-review — K-430, K-431)*

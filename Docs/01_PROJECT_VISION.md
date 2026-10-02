@@ -41,6 +41,7 @@
 > **Kalite döngüsü — cross-review 15. tur (2026-10-03, v0.24 — K-431):** iki bulgu (Codex/ChatGPT); değerlendirme `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R15.md`'dedir. Başlıktaki son güncelleme tarihi düzeltildi · §6'da geri ödeme çatısının cayma beyanından işlediği ve malın dönüşünü beklerken durmadığı yazıldı (K-209).
 > **Kalite döngüsü — cross-review 16. tur (2026-10-03, v0.25 — K-431):** iki bulgu (Codex/ChatGPT); değerlendirme `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R16.md`'dedir. 15. turda §6'ya yazılan geri ödeme cümlesi geri alındı: süreler `02 §7.3–§7.4`'e bırakıldı, çünkü Mesafeli Sözleşmeler Yönetmeliği'nin 13. maddesi son yıllarda değişti ve K-209'un geri ödeme kuralı güncel metne karşı doğrulanacak (tracker A-14) · §8'de verinin toplandığı pencere ile satırın okunduğu an ayrıldı.
 > **Kalite döngüsü — cross-review 17. tur (2026-10-03, v0.26 — K-431):** üç bulgu (Codex/ChatGPT); değerlendirme `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R17.md`'dedir. §2'nin tek giriş iddiası kayıtlı bilgiyle sınırlandı, serbest metindeki tekrarın eşitlenmediği yazıldı (D-1) · M-3 siparişe donan sözle ölçülür (K-140) · misafir siparişlerinin bağlanmasına yönelik bulgu proje sahibinin kararıyla reddedildi (K-489).
+> **Kalite döngüsü — cross-review 18. tur: TEMİZ (2026-10-03, v0.26 — K-431).** On sekiz turda 63 bulgu geldi; 58'i kabul ya da kısmi kabulle işlendi, 5'i reddedildi. Etki yansıtması Ürün Gereksinimleri (v0.10) ve MVP Kapsamı (v0.3) üzerinde tamamlandı; sonuç `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R18.md` §5'te. Kalite döngüsünde bu dokümanın sırası kapandı; aşama checkpoint'i üç dokümanın döngüsünden sonra koşar (K-437).
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider. `D-`, `Ü-`, `M-`, `S-` ve `V-` kimlikleri bu dokümanın kendi satır kimlikleridir (§4.1, §6, §7, §8).
 
@@ -290,4 +291,4 @@ Shopfolio gerçek kullanıcı geri bildirimi olmadan geliştirilir ve ilk müşt
 
 ---
 
-*Shopfolio — Project Vision v0.26 (§1–§8 taslak; kalite döngüsü: audit, deep review ve cross-review — K-430, K-431)*
+*Shopfolio — Project Vision v0.26 (§1–§8; kalite döngüsü: audit ✓, deep review ✓, cross-review TEMİZ ✓, etki yansıtma ✓ — K-430, K-431; checkpoint K-437'nin 4. adımında)*

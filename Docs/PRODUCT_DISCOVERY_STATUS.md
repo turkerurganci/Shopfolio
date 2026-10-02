@@ -1,6 +1,6 @@
 # Shopfolio — Product Discovery Status
 
-**Versiyon: v0.36** | **Son güncelleme:** 2026-10-02
+**Versiyon: v0.37** | **Son güncelleme:** 2026-10-03
 
 > **Doküman üretim döneminin karar kaydıdır.** Her karar **alındığı anda** buraya yazılır — hiçbir karar kaybolmaz.
 > Bu dosya sürecin sonunda arşivlenir; alınan kararların nihai hâli `01`, `02` ve `10`'da yaşar.
@@ -12,7 +12,7 @@
 | No | Doküman | Durum | Versiyon | Audit | Deep review | Cross-review | Checkpoint |
 |---|---|---|---|---|---|---|---|
 | 01 | Project Vision | ⏳ | v0.26 | ✓ | ✓ | ✓ (18 tur, TEMİZ) | ⬚ |
-| 02 | Product Requirements | ⏳ | v0.9 | ⬚ | ⬚ | ⬚ | ⬚ |
+| 02 | Product Requirements | ⏳ | v0.10 | ⬚ | ⬚ | ⬚ | ⬚ |
 | 03 | User Flows | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
 | 04 | UI Specs | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
 | 05 | Technical Architecture | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
@@ -20,7 +20,7 @@
 | 07 | API Design | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
 | 08 | Integration Spec | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
 | 09 | Coding Guidelines | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
-| 10 | MVP Scope | ⏳ | v0.2 | ⬚ | ⬚ | ⬚ | ⬚ |
+| 10 | MVP Scope | ⏳ | v0.3 | ⬚ | ⬚ | ⬚ | ⬚ |
 | 11 | Implementation Plan | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
 | 12 | Validation Protocol | ⬚ | — | ⬚ | ⬚ | ⬚ | ⬚ |
 

@@ -17,7 +17,7 @@
 | **Hafızadan terfi etti** (tamamı ya da süreç parçası) | 6 | H-1, H-2, H-3, H-6, H-8 ve proje hafızasının K-38 maddesi (P-1) — H-4 ve H-11 sırasıyla Ö-1 ve Ö-18 ile birlikte |
 | **Hafızada kalır** — kişisel tercih ya da süreli yetki | 3 | H-5, H-7, H-10 |
 | **Bekletildi** — kapısıyla | 1 | Ö-23 — kapı: Aşama 2'nin öğrenim terfisi |
-| **Proje sahibinin onayını bekliyor** (`00`) — onaylandı ve uygulandı (2026-10-03, PR #__PR__), bkz. §4 | 3 öneri | §4: `00 §N.1`'in dokuz deseni (Ö-10, Ö-11 ve aşamanın desenleri) · `00 §C.5`'e bir cümle (Ö-15) · `00`'ın sürüm satırları (Ö-24, checkpoint B-31) |
+| **Proje sahibinin onayını bekliyor** (`00`) — onaylandı ve uygulandı (2026-10-03, PR #54), bkz. §4 | 3 öneri | §4: `00 §N.1`'in dokuz deseni (Ö-10, Ö-11 ve aşamanın desenleri) · `00 §C.5`'e bir cümle (Ö-15) · `00`'ın sürüm satırları (Ö-24, checkpoint B-31) |
 
 `CLAUDE.md` ve `SETUP.md` için terfi önerisi yok: CLAUDE.md'nin oturum başlangıcı ve katman kuralı aşamanın hiçbir öğrenimiyle çelişmiyor; SETUP'ın ikinci AI yedek satırı (Ö-17) zaten yazılı.
 
@@ -106,7 +106,7 @@ Hook geçici bir depoda on beş senaryoyla koşuldu; hepsi beklenen sonucu verdi
 
 ## 4. Proje sahibinin onayını bekliyor — `00_PROJECT_METHODOLOGY.md`
 
-> **Onaylandı ve uygulandı (2026-10-03, PR #__PR__).** Proje sahibi üç öneriyi de onayladı (*"Dersleri yaz, İnceleme sınırını kurala yaz, Sürüm numarasını düzelt"*); üçü aşağıdaki metinleriyle birebir `00`'a girdi, `00` v1.0.4 oldu (son güncelleme 2026-10-03).
+> **Onaylandı ve uygulandı (2026-10-03, PR #54).** Proje sahibi üç öneriyi de onayladı (*"Dersleri yaz, İnceleme sınırını kurala yaz, Sürüm numarasını düzelt"*); üçü aşağıdaki metinleriyle birebir `00`'a girdi, `00` v1.0.4 oldu (son güncelleme 2026-10-03).
 
 GUARDRAILS §2: `00` proje sahibinin **açık onayı** olmadan değişmez. Aşağıdaki üç öneri bu PR'da **uygulanmadı**. Onay gelirse ayrı bir `docs:` PR'ında, birlikte uygulanır ve `00`'ın sürümü v1.0.4 olur. Hiçbiri aşamanın kapanışını engellemez: kurallar L3–L4'te yürürlükte; `00`'a girecek olan desenlerin kaydı ve iki sürüm satırının hizasıdır.
 

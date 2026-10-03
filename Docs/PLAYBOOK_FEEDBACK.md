@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-10-04 | **Satır:** 39 | **Gönderilen:** 0
+**Son güncelleme:** 2026-10-04 | **Satır:** 41 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -67,3 +67,5 @@
 | PF-37 | Devir notundaki soru şablona karşı taranmadan proje sahibine soruldu | K-647; tracker §8.1 (2) | — | `checklists/document-stage.md` §1 | Aday — kapı: Aşama 2'nin öğrenim terfisi |
 | PF-38 | Playbook'a geri akışın evi yok — `CHANGELOG.md` "öğrenimler buraya geri akar" diyor, adımı ve dosyası tanımlı değil | K-649 | Bu dosya · checklist §7 (5. adım) · `skills/gate-check` Adım 7 | `00 §K` ve §L · bu dosyanın şablonu | Uygulandı |
 | PF-39 | Proje sahibinin açtığı modlar ve yetkiler aşamayla sınırlı; yeni aşamada yeniden sorulur | Ö-1; H-10; K-648 | checklist §1 | `checklists/document-stage.md` §1 | Uygulandı |
+| PF-40 | Kullanıcı Akışları şablonu: §0 anlatılar için "ayrı bölüm" ister ama şablonda o bölüm yok; açık kararlar bölümü de yok (PF-22'nin bu şablondaki hâli) | Tracker §8.1 öğrenim adayı 3 (2026-10-04) | Tracker §8.2 plan önerisi 2 (AK0-02) · §8.3 AK0-04 | `Docs/03_USER_FLOWS.md` şablonu | Aday — kapı: Aşama 2'nin öğrenim terfisi |
+| PF-41 | Aşama planının konu kimliği aşamayı taşımıyor; karar kaydı dönem boyu tek dosya olunca sonraki aşamanın planı çakışır | Tracker §8.1 öğrenim adayı 4 (2026-10-04) | Tracker §8.2 (`AKn-mm`) | `checklists/document-stage.md` §1 | Aday — kapı: Aşama 2'nin öğrenim terfisi |

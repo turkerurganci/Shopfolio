@@ -1,10 +1,11 @@
 # Checkpoint ve Gate Raporları
 
-İki tür rapor burada yaşar:
+Üç tür rapor burada yaşar:
 
 | Tür | Dosya adı | Üreten |
 |---|---|---|
 | **Aşama checkpoint'i** (doküman dönemi) | `CP<NN>_<konu>.md` | `/checkpoint` |
+| **Aşama kapanışı çakışma taraması** (doküman dönemi; checkpoint'in girdisi) | `PHASE<N>_CONFLICT_SCAN.md` | Kapanış sırasının 3. adımı — K-429, K-437 |
 | **Faz gate check'i** (implementation dönemi) | `GATE_CHECK_FX.md` | `/gate-check FX` |
 
 ## Gate raporu neleri **mutlaka** içerir

@@ -97,6 +97,8 @@ Proje sahibinin 2026-10-03 talimatıyla (*"kolay soruları sorma, çok kritik ko
 
 **Yazılan kapı:** liste checkpoint raporunda (K-437'nin 4. adımı) adıyla yer alır ve **arşiv işaretinden (6. adım) önce** proje sahibine tek listede — karar başına bir cümle, 2026-10-01'deki biçimle — gösterilir. İtiraz gelen karar yeni bir karar satırıyla değişir (`02 §13.4`); itiraz gelmeyen satırın işareti `(öneriyle kaydedildi — ⚠ — gözden geçirildi YYYY-AA-GG, itiraz yok)` olur — 2026-10-01'deki dönüşümün kalıbı. Madde karar kaydının §6.1'ine işaretsiz madde olarak girdi.
 
+**Kapının sonucu — 2026-10-03 (K-437'nin 6. adımı):** kapı işledi. Liste arşiv işaretinden önce, checkpoint raporunun §5'indeki tabloyla proje sahibine gösterildi; proje sahibi *"İtiraz yok"* dedi. Seksen üç satırın işareti `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-03, itiraz yok)` oldu; sayım betikle doğrulandı (83 / 83). Madde karar kaydının §6.1'inde kapandı; arşiv işareti aynı PR'da düştü (v0.53).
+
 **Neden 6. adımdan önce:** arşiv işaretinden sonra karar kaydı salt okunur sayılır (K-436); itiraz gelen bir kararın yeni satırı o zaman yazılamaz. **Neden checkpoint'ten önce değil:** K-437 sırayı kilitledi ve checkpoint bu taramanın çıktısını bekliyor; gözden geçirme bir kararı değiştirirse değişiklik 6. adımdan önce yazılır ve checkpoint raporuna retro bölümüyle eklenir (`Docs/CHECKPOINT_REPORTS/README.md`).
 
 ---
@@ -116,6 +118,8 @@ Proje sahibinin 2026-10-03 talimatıyla (*"kolay soruları sorma, çok kritik ko
 ## 6. Devir girdisi — Aşama 2'ye devredilen işler
 
 Bu dokümanlar henüz yazılmadığı için devirler kararların etki sütunlarında yaşar (`02` R26 §5, `10` R16 §5). Aşama 2'nin her doküman oturumu kendi satırlarını buradan ve etki sütunlarından alır. **Tek ev:** devrin evi karar satırının etki sütunudur; bu liste bir dizindir, devri ikinci kez kaydetmez.
+
+**Toplandığı yer (6. adım, 2026-10-03):** Aşama 2'ye devrin bütün girdileri — bu dizin dahil — karar kaydının §7'sinde tek tabloda.
 
 - **`DEFERRED_BACKLOG.md`:** kalite döngüsünde bu dosyaya devredilen kalem **yok**. Tek aktif kalem D-01'dir (kurulum — SETUP §2 ve §4; hedefi Aşama 4 kapanışından sonra, ilk implementation task'ından önce).
 - **MVP Kapsamı §4.1 (ÖK-1…ÖK-12):** Aşama 2 ve sonrasına devredilen dış ön koşulların evi orasıdır (K-438); burada tekrarlanmaz.

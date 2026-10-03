@@ -1,6 +1,6 @@
 # Shopfolio — MVP Scope
 
-**Versiyon: v0.25** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
+**Versiyon: v0.26** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager
 > **Bu doküman doğrulama kapsamını da belirler:** `12_VALIDATION_PROTOCOL.md` buraya **birebir** hizalanır. MVP'de olmayan bir özellik doğrulama kriteri olamaz; MVP'de olan bir özellik doğrulama kapsamından çıkarılamaz.
@@ -59,6 +59,8 @@
 > **Kalite döngüsü — cross-review 13. tur (2026-10-03, v0.24 — K-431, K-644):** ikinci model üç bulgu döndürdü; üçü de kayıtlı bir kararı yeni bir resmî dayanak olmadan yeniden açıyordu ve reddedildi, değerlendirme `Docs/CROSS_REVIEW_REPORTS/10_CROSS_REVIEW_R13.md`'dedir. KP-22'nin geri ödeme başlangıcı (K-491) yedinci, KP-39'un ölçü birimi alanı (K-573) beşinci, KD-28'de satış engelinin olmaması (K-84, K-641) üçüncü kez geldi. Kural değişmedi; yeni karar yok.
 
 > **Kalite döngüsü — cross-review 14. tur (2026-10-03, v0.25 — K-431, K-644):** ikinci model iki bulgu döndürdü, değerlendirme `Docs/CROSS_REVIEW_REPORTS/10_CROSS_REVIEW_R14.md`'dedir. KP-22'nin geri ödeme başlangıcı (K-491) sekizinci kez geldi ve reddedildi. KP-63'teki IBAN müşterinin geri ödeme IBAN'ı sanıldığı için satır artık "havale IBAN'ı" der: işlem izine eski ve yeni değeriyle giren, firmanın panelden girdiği kendi IBAN'ıdır; müşterinin IBAN'ı panelden girilmez ve ize değer olarak yazılmaz (`02 §10.3.1`). Kural değişmedi; yeni karar yok.
+
+> **Kalite döngüsü — cross-review 15. tur (2026-10-03, v0.26 — K-431, K-644):** ikinci model tek bulgu döndürdü ve reddedildi, değerlendirme `Docs/CROSS_REVIEW_REPORTS/10_CROSS_REVIEW_R15.md`'dedir. KP-22'nin geri ödeme başlangıcı (K-491) dokuzuncu kez geldi; Yönetmelik m.12/1'in konsolide metni yeniden okundu ve taşıyıcı belirtilmeyen hâl için süre kuralı koymadığı görüldü. Kural değişmedi; yeni karar yok.
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider; kayıt aşama kapanışında arşiv işareti alır ve yerinde kalır, K numaraları çözülmeye devam eder (K-436). `KP-`, `KD-`, `ÖK-`, `SK-` ve `YH-` kimlikleri bu dokümanın kendi satır kimlikleridir (§2, §3, §4.1, §4.2, §5). Diğer dokümanların kimlikleri — `01`'in `Ü-`, `M-`, `S-`, `V-` satırları, `02`'nin `P-`, `H-` satırları — doküman adıyla anılır.
 
@@ -374,4 +376,4 @@ Eşikler **referans değerdir, hedef değildir** (K-418): ilk gerçek kurulumun 
 
 ---
 
-*Shopfolio — MVP Scope v0.25 (§1–§5 taslak; kalite döngüsü: audit ✓, deep review ✓, cross-review sürüyor — K-430, K-431, K-644)*
+*Shopfolio — MVP Scope v0.26 (§1–§5 taslak; kalite döngüsü: audit ✓, deep review ✓, cross-review sürüyor — K-430, K-431, K-644)*

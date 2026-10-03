@@ -22,7 +22,7 @@ HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Paths that must never be committed. Extend via hooks.config.
 SECRET_PATHS="${PB_SECRET_PATHS:-}"
-DEFAULT_SECRET_PATHS='(^|/)\.env($|\.)|(^|/)secrets/|\.pem$|\.p12$|\.pfx$|\.keystore$|(^|/)id_rsa($|\.)|(^|/)id_ed25519($|\.)'
+DEFAULT_SECRET_PATHS='(^|/)\.env($|\.)|(^|/)\.netrc$|(^|/)secrets/|\.pem$|\.p12$|\.pfx$|\.keystore$|(^|/)id_rsa($|\.)|(^|/)id_ed25519($|\.)'
 
 # Key names whose assignment to a real value is blocked. Extend via hooks.config.
 SECRET_KEYS="${PB_SECRET_KEYS:-}"
@@ -93,6 +93,14 @@ while IFS= read -r path; do
   while IFS= read -r line; do
     body="${line#+}"
     echo "$body" | grep -qiE "$KEY_RE" || continue
+    # The key name must sit on the LEFT of the first = or : — that is what an
+    # assignment looks like (API_KEY=..., "token": ..., password: ...). Prose
+    # that merely mentions the word after a label ("Sorun: ... token ...")
+    # is not an assignment; flagging it trained the workaround of hiding text
+    # in blockquotes (learning promotion, Phase 1, 2026-10-03).
+    lhs="${body%%[=:]*}"
+    [ "$lhs" != "$body" ] || continue
+    echo "$lhs" | grep -qiE "$KEY_RE" || continue
     # Grab whatever is on the right-hand side of = or :
     value="$(echo "$body" | sed -E 's/^[^=:]*[=:][[:space:]]*//')"
     echo "$value" | grep -qiE "$PLACEHOLDER" && continue

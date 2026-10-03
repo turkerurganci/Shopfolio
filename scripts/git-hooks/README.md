@@ -14,6 +14,8 @@ Bu hook'lar **iyi niyete bağlı olmayan** savunma katmanıdır. Disiplin kurall
 | `pre-push` | Üç katman: **(1)** korunan dallara direct push · **(2)** push edilen dalın son CI run'ı başarısızsa · **(3)** dalda yabancı TXX commit'i varsa — push'u bloklar |
 
 > **Sır guard'ı bilinçli olarak jeneriktir.** Domain'e veya sağlayıcıya özgü kalıp içermez — o kalıplar `hooks.config`'e yazılır, hook gövdesine değil. Aşırı hevesli bir tarayıcı yanlış pozitif üretir, yanlış pozitif bypass alışkanlığı doğurur ve guard fiilen ölür.
+>
+> **Atama biçimi (2026-10-03).** İçerik katmanı bir satırı ancak sır anahtarı ilk `=` ya da `:` işaretinin **solunda** duruyorsa atama sayar (`API_KEY=…`, `"apiKey": …`, `password: …`). Düz metinde bir etiketten sonra geçen sözcük (`Sorun: … token …`) atama değildir; ayırıcısı olmayan satır da atama değildir — `.netrc` gibi ayırıcısız biçimler yol katmanında yakalanır. **Neden:** Aşama 1'in cross-review raporlarında ikinci modelin ham çıktısındaki böyle bir cümle commit'i blokladı; geçici çözüm metni alıntı bloğuna saklamaktı ve guard'ın yorum-atlama kuralına yaslanıyordu — yukarıdaki uyarının tarif ettiği bypass alışkanlığı. Kaynak: `Docs/CHECKPOINT_REPORTS/PHASE1_LEARNING_PROMOTION.md`.
 
 ---
 
@@ -58,6 +60,9 @@ PB_SECRET_KEYS='(WEBHOOK_SECRET|DSN)'  # ek sır anahtar adları (regex)
 | İçinde `BEGIN RSA PRIVATE KEY` olan dosya | ✗ BLOCKED (pre-commit, içerik) |
 | `API_KEY=<YOUR_KEY_HERE>` satırı | ✓ PASS (placeholder) |
 | `API_KEY=sk_live_9f3a...` satırı | ✗ BLOCKED (pre-commit, içerik) |
+| `"apiKey": "abcd1234efgh5678"` ya da `password: hunter2hunter2` satırı | ✗ BLOCKED (pre-commit, içerik) |
+| `.netrc` dosyasını stage'leyip commit | ✗ BLOCKED (pre-commit, yol) |
+| Markdown'da `Sorun: … ek sır (token/link) gerektiği yazılmıyor.` satırı | ✓ PASS (anahtar ayırıcının solunda değil — düz metin) |
 | `PB_ALLOW_SECRET=1 git commit` | ⚠ WARN + PASS, BYPASS_LOG `[secret]` kaydı |
 | `git push origin main` | ✗ BLOCKED (Layer 1) |
 | `PB_ALLOW_DIRECT_PUSH=1 git push origin main` | ⚠ WARN + PASS, BYPASS_LOG kaydı |

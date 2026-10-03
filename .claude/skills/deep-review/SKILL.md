@@ -134,3 +134,4 @@ user-invocable: true
 4. **Pozitif bulguları da belirt** — özet tabloda güçlü yönleri not et.
 5. **Odak verilmişse** 8 katmanı yalnız o konuya odaklayarak çalıştır.
 6. **Çıktı uzunluğunu bulguya göre ayarla.** Gereksiz dolgu yazma.
+7. **Koşum biçimi audit'inkiyle aynıdır** — kalite döngüsünde katmanlar paralel mercekler olarak koşar, her bulgu karşı-doğrulanır ve yasal dayanak resmî metnin güncel hâline karşı doğrulanır (`audit` skill'i, "Koşum biçimi").

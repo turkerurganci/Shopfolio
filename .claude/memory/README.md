@@ -1,6 +1,6 @@
 # Hafıza Katmanı — Ne Buraya Girer, Ne Girmez
 
-**Katman:** L4 | **Son güncelleme:** 2026-08-22
+**Katman:** L4 | **Son güncelleme:** 2026-10-03
 
 ---
 
@@ -24,7 +24,7 @@ Bir hafıza notu **ikinci kez** bir süreç ihlalini önlemek için kullanılıy
 
 1. İlgili L1–L5 dosyasına **terfi eder** (metodoloji / INSTRUCTIONS / GUARDRAILS / skill / hook)
 2. Hafızada yalnız bir işaretçi kalır: *"→ terfi etti: `.claude/INSTRUCTIONS.md` §3.2"*
-3. Terfi, faz gate check'inin Adım 7'sinde (öğrenim terfisi) veya `/handoff` Adım 6'da tetiklenir
+3. Terfi, faz gate check'inin Adım 7'sinde (öğrenim terfisi), doküman aşamasının kapanış sırasının 5. adımında (`checklists/document-stage.md` §7) veya `/handoff` Adım 6'da tetiklenir
 
 **Neden:** Bir referans projede yürürlükteki kural katmanı beş yere dağılmıştı ve önemli bir kısmı yalnız hafızada yaşıyordu. Hafıza dosyaları oturuma her zaman yüklenmez, sürüm kontrolünde diff'lenmez ve yeni bir chat'te sessizce kaybolabilir. Kural, `exit 1` verebilen veya skill adımı olarak okunan bir yerde durmalıdır.
 

@@ -21,6 +21,19 @@ user-invocable: true
 
 ---
 
+## Koşum biçimi — çok mercekli, karşı-doğrulamalı
+
+Kalite döngüsünün audit'i ve deep review'ı **dokümanı yazan bağlamda koşmaz** ve tek bir okuyucuya bırakılmaz (Aşama 1, K-431):
+
+1. **Mercekler paralel koşar** — her biri ayrı bir boyutta: kapsama ve sayım (büyük dokümanda dilimlere bölünür) · atıflar · iç tutarlılık · çapraz referans (üst ve kardeş dokümanlar) · yasal uyum · terim ve enum tutarlılığı · ölçülebilirlik / doğrulanabilirlik. Deep review'ın katmanları aynı düzende ayrı mercek olarak koşabilir.
+2. **Her bulgu karşı-doğrulanır** — iki şüpheci bulguyu güncel metne karşı yeniden okur; ikisinin birlikte çürüttüğü bulgu rapora girmez, tartışmalı bulguyu yönetici karara bağlar. Doğrulanmamış bulgu dokümana uygulanmaz.
+3. **Yasal dayanağa yaslanan her kural resmî metnin güncel hâline karşı doğrulanır** — mevzuatın adı, maddesi ve okunduğu tarih rapora yazılır; doğrulanamayan dayanak "doğrulanamadı" diye raporlanır, varsayılmaz. **Neden:** Aşama 1'de bir geri ödeme kuralının (K-209) dayandığı yönetmelik maddesi değişmişti; bunu audit değil cross-review yakaladı ve kural yeniden kurulmak zorunda kaldı (A-14 → K-491).
+4. **Mekanik sayımlar betikle yapılır** — satır, kimlik ve atıf sayımları gözle değil.
+
+Bu düzen yazım oturumunda kullanılmaz: yazım tek bağlamda yapılır, çok mercekli denetim kalite döngüsünün işidir (`.claude/checklists/document-stage.md` §4).
+
+---
+
 ## Faz 0 — Ön hazırlık
 
 1. **Hedef dokümanı oku** — baştan sona, tam olarak.

@@ -1,6 +1,6 @@
 # Shopfolio — MVP Scope
 
-**Versiyon: v0.21** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
+**Versiyon: v0.22** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager
 > **Bu doküman doğrulama kapsamını da belirler:** `12_VALIDATION_PROTOCOL.md` buraya **birebir** hizalanır. MVP'de olmayan bir özellik doğrulama kriteri olamaz; MVP'de olan bir özellik doğrulama kapsamından çıkarılamaz.
@@ -51,6 +51,8 @@
 > **Kalite döngüsü — cross-review 9. tur (2026-10-03, v0.20 — K-431, K-644):** ikinci model üç bulgu döndürdü; üçü de kayıtlı bir kararı yeniden açıyordu ve reddedildi, değerlendirme `Docs/CROSS_REVIEW_REPORTS/10_CROSS_REVIEW_R9.md`'dedir. KP-22'nin geri ödeme başlangıcı (K-491), KP-39'un ölçü birimi alanı (K-573) ve KP-47'nin "stokta bulunamadı" sebebi (K-609) değişmedi. KP-47'nin gerekçesi firma iptalinin müşteriye bildirimi ve geri ödemeyi başlatan yol olduğunu yazar. Yeni karar yok.
 
 > **Kalite döngüsü — cross-review 10. tur (2026-10-03, v0.21 — K-431, K-644):** ikinci model bir bulgu döndürdü ve reddedildi, değerlendirme `Docs/CROSS_REVIEW_REPORTS/10_CROSS_REVIEW_R10.md`'dedir. KP-22'nin geri ödeme başlangıcı (K-491) beşinci kez geldi, bu kez iade taşıyıcısını ön bilgilendirmede belirtmenin zorunlu olduğu iddiasıyla. KP-22'nin gerekçesi taşıyıcı belirlemenin zorunlu olmadığını yazar: Mesafeli Sözleşmeler Yönetmeliği m.12/5 taşıyıcı belirtilmeyen hâli öngörür ve Ön Bilgilendirme Formu taşıyıcı belirlenmediğini yazar (m.5/1-g, K-493). Kural değişmedi; yeni karar yok.
+
+> **Kalite döngüsü — cross-review 11. tur (2026-10-03, v0.22 — K-431, K-644):** ikinci model bir bulgu döndürdü ve reddedildi, değerlendirme `Docs/CROSS_REVIEW_REPORTS/10_CROSS_REVIEW_R11.md`'dedir. KP-22'nin geri ödeme başlangıcı (K-491) altıncı kez geldi, bu kez yürürlükte taşıyıcı belirtilmeyen hâl için süreyi kargoya verilişten başlatan bir kural olduğu iddiasıyla. Yönetmelik'te böyle bir hüküm yoktur; KP-22 bu hâli kalan risk olarak zaten yazar. Kural değişmedi; yeni karar yok.
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider; kayıt aşama kapanışında arşiv işareti alır ve yerinde kalır, K numaraları çözülmeye devam eder (K-436). `KP-`, `KD-`, `ÖK-`, `SK-` ve `YH-` kimlikleri bu dokümanın kendi satır kimlikleridir (§2, §3, §4.1, §4.2, §5). Diğer dokümanların kimlikleri — `01`'in `Ü-`, `M-`, `S-`, `V-` satırları, `02`'nin `P-`, `H-` satırları — doküman adıyla anılır.
 
@@ -366,4 +368,4 @@ Eşikler **referans değerdir, hedef değildir** (K-418): ilk gerçek kurulumun 
 
 ---
 
-*Shopfolio — MVP Scope v0.21 (§1–§5 taslak; kalite döngüsü: audit ✓, deep review ✓, cross-review sürüyor — K-430, K-431, K-644)*
+*Shopfolio — MVP Scope v0.22 (§1–§5 taslak; kalite döngüsü: audit ✓, deep review ✓, cross-review sürüyor — K-430, K-431, K-644)*

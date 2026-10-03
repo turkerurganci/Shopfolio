@@ -1,6 +1,6 @@
 # Shopfolio — MVP Scope
 
-**Versiyon: v0.7** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
+**Versiyon: v0.8** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager
 > **Bu doküman doğrulama kapsamını da belirler:** `12_VALIDATION_PROTOCOL.md` buraya **birebir** hizalanır. MVP'de olmayan bir özellik doğrulama kriteri olamaz; MVP'de olan bir özellik doğrulama kapsamından çıkarılamaz.
@@ -23,6 +23,8 @@
 > **A-17'nin kapanışı (2026-10-03, v0.6 — K-29):** malı dönmeyen caymada havale hattı IBAN'ının saklanma süresi kapandı (K-497): IBAN geri ödeme tamamlanınca silinir; buna ek olarak firma kalemi "mal dönmedi" gerekçesiyle kapattığında ve firma kapatmazsa müşterinin gönderme süresinin bitiminden otuz gün sonra silinir. Otuz gün `02 §11`'e yeni bir ürün sabiti olarak girdi (P-43); KP-64'ün parametre sayısı kırk üç oldu. KP-74'ün kendiliğinden imhası bu silmeyi kapsar. Kapanışta açılan A-18 — IBAN'ın müşteriden yeniden isteniş biçimi — `02`'ye aittir.
 >
 > **A-18'in kapanışı (2026-10-03, v0.7 — K-29):** IBAN silindikten sonra mal firmaya ulaşırsa müşteri IBAN'ı sipariş sayfasından yeniden girer ve bunu isteyen bir e-posta alır; geri ödemenin on dört günü IBAN beklenirken durmaz (K-498). KP-22 müşterinin IBAN'ı yeniden girmesini yazar; KP-66'nın olay sayısı on dört oldu (`02 §9.2` B-14). Firma IBAN'ı panelden girmez ve yeni bir elle adım doğmaz; KP-47 değişmez.
+>
+> **`02`'nin kalite döngüsü — etki yansıtma (2026-10-03, v0.8 — K-29):** `02`'nin audit ve deep review turunda alınan kararlar (K-499…K-559) bu dokümana dokundu. §2'de otuz üç KP satırı güncellendi ve yeni bir satır girdi — firmanın panelde üye kaydını görmesi ve talep üzerine hesabı silmesi (KP-77, K-512); kapsam satırları yetmiş yedi oldu. §3'e garanti belgesinin yokluğu yeni satır olarak girdi (KD-61 — Açık, K-559): kapsam dışı satırları altmış bir, "Açık" olanlar otuz dokuz oldu; KD-53 ve KD-55 güncellendi. §4.1'de ÖK-4 ödeme sağlayıcısından sonuç sorgusunu ve kısmi iadeyi ister (K-556), ÖK-10 aydınlatma metninin tamamlanmasını tek koşulla tanımlar (K-517); §4.2'de SK-3 güncellendi. KP-64'ün parametre sayısı kırk dört oldu: on firma ayarı (`02 §11`; kargo KDV oranı ve duyuru metni ayar olmaktan çıktı — K-500, K-502). Değişen KP satırları: KP-5, KP-6, KP-14, KP-21…KP-26, KP-29, KP-30, KP-34, KP-39, KP-43, KP-45…KP-48, KP-50…KP-53, KP-57…KP-59, KP-63, KP-64, KP-67, KP-68, KP-72…KP-75. Bu bir etki yansıtmasıdır; `10`'un kalite döngüsü `02`'den sonra koşar.
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider; kayıt aşama kapanışında arşiv işareti alır ve yerinde kalır, K numaraları çözülmeye devam eder (K-436). `KP-`, `KD-`, `ÖK-`, `SK-` ve `YH-` kimlikleri bu dokümanın kendi satır kimlikleridir (§2, §3, §4.1, §4.2, §5). Diğer dokümanların kimlikleri — `01`'in `Ü-`, `M-`, `S-`, `V-` satırları, `02`'nin `P-`, `H-` satırları — doküman adıyla anılır.
 
@@ -328,4 +330,4 @@ Her satırın "ne zaman kalkar" hücresi ya gerçekleşip gerçekleşmediği anl
 
 ---
 
-*Shopfolio — MVP Scope v0.7 (§1–§5 taslak; kalite döngüsü yazım turundan sonra — K-430, K-432)*
+*Shopfolio — MVP Scope v0.8 (§1–§5 taslak; kalite döngüsü yazım turundan sonra — K-430, K-432)*

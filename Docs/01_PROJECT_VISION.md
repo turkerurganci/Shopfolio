@@ -1,6 +1,6 @@
 # Shopfolio — Project Vision
 
-**Versiyon: v0.27** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
+**Versiyon: v0.28** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager / Discovery Facilitator
 > **Traceability zorunlu:** Hayır (kök doküman)
@@ -43,6 +43,7 @@
 > **Kalite döngüsü — cross-review 17. tur (2026-10-03, v0.26 — K-431):** üç bulgu (Codex/ChatGPT); değerlendirme `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R17.md`'dedir. §2'nin tek giriş iddiası kayıtlı bilgiyle sınırlandı, serbest metindeki tekrarın eşitlenmediği yazıldı (D-1) · M-3 siparişe donan sözle ölçülür (K-140) · misafir siparişlerinin bağlanmasına yönelik bulgu proje sahibinin kararıyla reddedildi (K-489).
 > **Kalite döngüsü — cross-review 18. tur: TEMİZ (2026-10-03, v0.26 — K-431).** On sekiz turda 63 bulgu geldi; 58'i kabul ya da kısmi kabulle işlendi, 5'i reddedildi. Etki yansıtması Ürün Gereksinimleri (v0.10) ve MVP Kapsamı (v0.3) üzerinde tamamlandı; sonuç `Docs/CROSS_REVIEW_REPORTS/01_CROSS_REVIEW_R18.md` §5'te. Kalite döngüsünde bu dokümanın sırası kapandı; aşama checkpoint'i üç dokümanın döngüsünden sonra koşar (K-437).
 > **A-15'in kapanışı — etki yansıtma (2026-10-03, v0.27 — K-29):** kalite döngüsü kapandıktan sonra alınan bir karar bu dokümana dokundu. K-495 (K-488'in okunma anını değiştirir): cayma, beyan edildiği anda iade sayılır ve iptal ve iade oranı cayma pencereleri kapanınca okunur — geri ödeme süresinin kapanması beklenmez. M-4'ün iki hücresi, §6'daki üç ayın gerekçesi ve §8'in doğrulama anı buna göre düzeltildi. Aynı kapanışın ikinci kararı — malı dönmemiş cayma kaleminin kapatılması (K-496) — bu dokümana dokunmaz. Bu bir etki yansıtmasıdır; kalite döngüsü yeniden açılmadı.
+> **`02`'nin kalite döngüsü — etki yansıtma (2026-10-03, v0.28 — K-29):** `02`'nin audit ve deep review turunda alınan bir karar bu dokümana dokundu (K-534). §6'nın mağaza düzeyi maddesi dört ölçünün de satış özetinde ayrı kalem olarak göründüğünü yazar (`02 §10.6.2`); M-1'in ölçüm penceresi hücresi sepetin hangi döneme yazıldığını söyler — ilk siparişinin onaylandığı döneme; ödeme süresi dolmamış denemesi olan sepet süre dolunca paydaya girer. Bu bir etki yansıtmasıdır; kalite döngüsü yeniden açılmadı.
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider. `D-`, `Ü-`, `M-`, `S-` ve `V-` kimlikleri bu dokümanın kendi satır kimlikleridir (§4.1, §6, §7, §8).
 
@@ -292,4 +293,4 @@ Shopfolio gerçek kullanıcı geri bildirimi olmadan geliştirilir ve ilk müşt
 
 ---
 
-*Shopfolio — Project Vision v0.27 (§1–§8; kalite döngüsü: audit ✓, deep review ✓, cross-review TEMİZ ✓, etki yansıtma ✓ — K-430, K-431; checkpoint K-437'nin 4. adımında)*
+*Shopfolio — Project Vision v0.28 (§1–§8; kalite döngüsü: audit ✓, deep review ✓, cross-review TEMİZ ✓, etki yansıtma ✓ — K-430, K-431; checkpoint K-437'nin 4. adımında)*

@@ -1,6 +1,6 @@
 # Project Playbook — Metodoloji
 
-**Versiyon: v1.0.3** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-09-17
+**Versiyon: v1.0.4** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-10-03
 
 > Bu doküman bir yazılım projesini **fikirden çalışan MVP'ye** taşıyan yöntemin tamamıdır:
 > doküman üretimi, implementasyon, doğrulama, borç kapatma ve kapanış.
@@ -196,6 +196,7 @@ yazım → /audit (envanter bazlı sistematik denetim)
 
 - **Audit** ve **deep-review** aynı ajanın iç denetimidir; **cross-review** farklı bir modele okutmaktır. Üçü birbirinin yerine geçmez.
 - Cross-review'da **rubber stamp yasaktır**: %100 kabul şüphelidir. Her bulgu için KABUL / RET / KISMİ kararı ve RET için somut gerekçe zorunludur.
+- **Döngü yakınsamıyorsa talimat ciddiyet ölçüsüyle sınırlanır** — mevzuata aykırılık, para ya da hak kaybı, çıkışı olmayan akış ve iç çelişki; TEMİZ o zaman bu ölçüdedir. Ölçünün ne zaman ve hangi turdan uygulandığı karar kaydına yazılır (`cross-review` skill'i).
 - **Etki yansıtma atlanamaz:** İkinci AI her dokümanı izole okur, cross-document uyumsuzlukları yakalamaz. TEMİZ sonrası downstream/upstream tarama yapılır.
 
 > **Vaka:** Bir kodlama kılavuzu 7 tur cross-review sonunda 21 düzeltme aldı (3 kritik). Aynı süreçte eklenen 3 yeni alan, veri modeli dokümanında tanımlı değildi — bunu ne audit ne cross-review, **checkpoint** yakaladı. Kalite döngüsünün tamamı gerekli.
@@ -690,7 +691,17 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 
 ### N.1 Dönem 1 — Doküman üretimi
 
-*(Bu projede henüz aşama kapanmadı.)*
+**Aşama 1 — Product Discovery (2026-08-17 → 2026-10-03).** Kurallar `.claude/checklists/document-stage.md`, `.claude/INSTRUCTIONS.md` §2 ve `cross-review`, `audit` skill'lerine terfi etti; rapor `Docs/CHECKPOINT_REPORTS/PHASE1_LEARNING_PROMOTION.md`. Tekrarlanacak desenler:
+
+1. **Yazım kaydın yeterlilik testidir.** Workshop'tan ayrı bağlamda, girdisi yalnız karar kaydı olan yazım üç oturumda otuz yedi boşluk buldu; aynı bağlamda yazan ajan bunları kendi hafızasından tamamlardı.
+2. **Mekanik tarama yazılı olanı görür, yazılmamış dokunuşu görmez.** Etki sütununu okuyan tarama, sütuna yazılmamış seksen üç dokunuşu kaçırdı; taslağı kaydın tamamına karşı okuyan anlamsal tarama yakaladı. İkisi birlikte koşar.
+3. **Ölçüsüz denetim talimatı yakınsamaz.** İkinci modele ölçü verilmezse her turda yeni bir kenar durum bulur; bir doküman yirmi beş turda TEMİZ dönmedi ve 374 KB'tan 500 KB'a büyüdü, ciddiyet ölçüsüyle ilk turda döndü. Bilinçli kararları tekrar tekrar açmasını tek bir talimat cümlesi kesti.
+4. **Üst doküman kurala işaret eder, ayrıntıyı taşımaz.** Vizyon dokümanına yazılan kural ayrıntısı cross-review bulgularının çoğunu doğurdu; ayrıntı evine bırakılınca yüzey küçüldü.
+5. **Yasal dayanak çürür.** Bir geri ödeme kuralının dayandığı yönetmelik maddesi workshop'tan sonra değişmişti; yasal dayanaklı kural, resmî metnin güncel hâline karşı doğrulanmadan doküman kapanmaz.
+6. **Sorulmadan kaydedilen kararın listesi kapı ister.** Öneriyle kayıt, konu başına tek mesaj ve toplu onay workshop'u hızlandırdı (on bir konu dokuz mesajda, on altı konu tek oturumda); ama gösterilmeyen kararların listesi iki kez kapısız kaldı ve ancak sonraki bir adımda yakalandı.
+7. **Devrin adı yazılır, kapanışı aranır.** Bir karar işi türüyle devrettiğinde ("otomasyon") aday listesi onu görmedi; devralan konu yalnız biçimi kurup değeri yazmadığında devir açık kaldı. Blok kapanış taraması devrin varlığını değil kapanışını arar.
+8. **Süreç kararları karar kaydında doğar ama orada kalamaz.** Aşamanın on üç süreç kararı yalnız kayıtta yaşıyordu; kayıt arşivlenince otoriterliği biter. Aşama kapanışının öğrenim terfisi bu kararları da tarar.
+9. **Her doküman şablonu bir "Açık kararlar" bölümü taşımalıdır.** Bu projede yalnız ürün gereksinimleri şablonunda vardı; vizyon ve kapsam dokümanlarının açık kalemi için kural var olmayan bir bölüme işaret etti. Şablona bölüm eklenene kadar böyle bir dokümanın açık kalemi tracker'da kalır.
 
 ### N.2 Dönem 2 — Implementation
 
@@ -717,4 +728,4 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 
 ---
 
-*Project Playbook — Metodoloji v1.0.1*
+*Project Playbook — Metodoloji v1.0.4*

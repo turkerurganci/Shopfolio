@@ -62,6 +62,8 @@
 
 **Dağılım:** 2 KABUL · 2 KISMİ · 1 RET.
 
+> **Sonradan güncellendi (2026-10-03, K-628):** BULGU-2'nin kabulü esnafın kayıt yükümlülüğünü doğrulayamadan koşullu ifadeyi seçmişti. `10`'un deep review'ında ETBİS Tebliği m.5'in resmî metni okundu: kendine ait elektronik ticaret ortamında faaliyet gösteren hizmet sağlayıcı faaliyete başlamadan önce kaydolur ve metinde esnaf için muafiyet yoktur — m.5/2-a esnafın kaydolduğu bilgileri sayar. Bulgunun "esnaf istisna olabilir" dayanağı çürüdü. Ü-1'in niteleyicisi "kayıt yükümlülüğü olan firmada" yerine "satış yapacak firmada" oldu (`01` v0.31): satışı hiç açmayan kurulum elektronik ticaret yapan hizmet sağlayıcı değildir. Kabulün sonucu — ürün kaydı denetlemez ve satışı engellemez — değişmedi.
+
 ## 3. Ek bulgular
 
 Yok.

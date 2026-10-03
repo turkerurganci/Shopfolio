@@ -1,6 +1,6 @@
 # Shopfolio — Product Discovery Status
 
-**Versiyon: v0.54** | **Son güncelleme:** 2026-10-04
+**Versiyon: v0.55** | **Son güncelleme:** 2026-10-04
 
 > **Doküman üretim döneminin (Aşama 1–10) karar kaydıdır** (`00 §B`, §G.1). Her karar **alındığı anda** buraya yazılır — hiçbir karar kaybolmaz. Dosyanın tamamı dönemin son aşamasının kapanışında arşivlenir; alınan kararların nihai hâli dokümanlarda yaşar (K-647).
 >
@@ -940,6 +940,9 @@
 - [x] **Açılış — 2026-10-04.** Devir §7 okundu; iki sorusu karara bağlandı: kararların evi bu dosyadır (K-647), iki çalışma modu Aşama 2 boyunca açıktır (K-648).
 - [ ] **Girdilerin okunması ve konu planı** — `checklists/document-stage.md` §1: girdi dokümanları tam okunur, `03`'ün kapsamı ve konu planı proje sahibine sunulur. **Kapı:** ilk workshop konusu açılmadan önce.
 - [ ] **⚠ öneriyle kayıt listesi** (K-648) — sorulmadan kaydedilen ⚠ kararlar adımın ya da oturumun sonunda tek listede gösterilir. **Kapı:** en geç Aşama 2'nin arşiv işaretinden önce.
+- [ ] **Öğrenim terfisi adayları** (`00 §K`; `checklists/document-stage.md` §7'nin 5. adımı bunları tek dizinde toplar). **Kapı:** Aşama 2 kapanışının öğrenim terfisi adımı.
+  1. **Şablonun karar kaydı başlığı iki okumaya açık (2026-10-04, K-647).** Başlıktaki *"Bu dosya sürecin sonunda arşivlenir; alınan kararların nihai hâli `01`, `02` ve `10`'da yaşar"* cümlesi ve dosyanın Aşama 1'le aynı adı ("Product Discovery") "süreç"i Aşama 1 diye okutuyor; K-436 böyle okudu ve dosyanın tamamı Aşama 1'in sonunda kapatıldı. `00 §B`, §G.1, §C.2 ve dosyanın §3 ile §5'i dönem boyu tek dosya diyor. Bu repoda başlık düzeltildi (v0.54). **Hedef:** şablonun kaynağı (project-playbook) — başlık cümlesi "doküman döneminin sonunda" ve "nihai hâli dokümanlarda" olur.
+  2. **Devir notundaki soru şablona karşı taranmadan soruldu (2026-10-04, K-647).** Devir §7 kararların evini "seçilecek" bir soru olarak taşıdı; açılış oturumu `INSTRUCTIONS §2`'nin *"soru açmadan önce kural katmanlarını tara"* kuralını uygulamadan soruyu proje sahibine sundu ve proje sahibi *"proje template'te bu belli değil mi"* diye geri çevirdi. Kural vardı ama devir notu üst katmandan gelen bir talimat gibi okundu; aynı ihlal 2026-08-22'de de yaşanmıştı. **Aday hedef:** `checklists/document-stage.md` §1 — açılışta devir notunun her sorusu proje sahibine gitmeden önce L1–L5'e karşı taranır; devir notu bir aşama kaydıdır, şablonun üstünde değildir.
 
 ### 8.2 Konu planı
 

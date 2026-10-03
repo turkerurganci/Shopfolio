@@ -103,6 +103,8 @@ user-invocable: true
 
     **Terfi kaydı boşsa gerekçesi yazılır** ("bu fazda kurala dönüşecek öğrenim çıkmadı"). Boş bırakılmış bir terfi tablosu, kapanmamış bir gate demektir.
 
+    **Playbook'a geri akış (K-649):** sonucu playbook'tan gelen bir dosyaya dokunan — ya da dokunması gereken — her öğrenim `Docs/PLAYBOOK_FEEDBACK.md`'ye satır olarak da girer. Liste proje tamamlandıktan sonra proje sahibince gönderilir.
+
 ---
 
 ## Adım 8 — Backlog hijyeni

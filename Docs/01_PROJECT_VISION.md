@@ -1,6 +1,6 @@
 # Shopfolio — Project Vision
 
-**Versiyon: v0.30** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
+**Versiyon: v0.31** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager / Discovery Facilitator
 > **Traceability zorunlu:** Hayır (kök doküman)
@@ -46,6 +46,7 @@
 > **`02`'nin kalite döngüsü — etki yansıtma (2026-10-03, v0.28 — K-29):** `02`'nin audit ve deep review turunda alınan bir karar bu dokümana dokundu (K-534). §6'nın mağaza düzeyi maddesi dört ölçünün de satış özetinde ayrı kalem olarak göründüğünü yazar (`02 §10.6.2`); M-1'in ölçüm penceresi hücresi sepetin hangi döneme yazıldığını söyler — ilk siparişinin onaylandığı döneme; ödeme süresi dolmamış denemesi olan sepet süre dolunca paydaya girer. Bu bir etki yansıtmasıdır; kalite döngüsü yeniden açılmadı.
 > **A-13'ün kapanışı — etki yansıtma (2026-10-03, v0.29 — K-29):** K-423'ün üçüncü sıralama ölçütünün eşikleri `10 §5`'e yazıldı (K-560). §6'nın mağaza düzeyi maddesi eşiklerin orada yazılı olduğunu ve bir eşiğin ölçünün hedefi değil sıralamanın tetikleyicisi olduğunu söyler; ölçülerin tanımı ve penceresi değişmedi. Bu bir etki yansıtmasıdır; kalite döngüsü yeniden açılmadı.
 > **`02`'nin cross-review'ı — etki yansıtma (2026-10-03, v0.30 — K-29):** `02`'nin cross-review'ında alınan iki karar bu dokümana dokundu. M-4 gecikme feshini de sayar: ölçü iptal, gecikme feshi ve cayma kayıtlarından hesaplanır ve feshedilen kalem fesih bildiriminin tarih damgasında iptal edilmiş kalem gibi sayılır (K-580; `02 §10.6.3`). Ü-1'in satış kapısı koşullarında yasal metin koşulu `02 §3.1.5`'in tanımıyla yazılır — aydınlatma metni tamamlanıp yayına alınmış, çerez politikası yayında (K-576). K-561…K-615'in geri kalanı bu dokümanın cümlelerine dokunmaz; K-585'in yeni müdahalesi zorunlu elle adım olmadığı için Ü-3'ün bütçesini değiştirmez. Bu bir etki yansıtmasıdır; kalite döngüsü yeniden açılmadı.
+> **`10`'un kalite döngüsü — etki yansıtma (2026-10-03, v0.31 — K-29):** `10`'un audit ve deep review turunda alınan üç karar bu dokümana dokundu. §6'nın mağaza düzeyi maddesi yalnız M-1 ile M-2'nin sıralamaya girdiğini ve eşiklerinin `10 §5`'te yazılı olduğunu söyler; M-3 ve M-4 izleme ölçüsüdür (K-635). Ü-1'in ETBİS ön koşulu satış yapacak her firmaya uygulanır — ETBİS Tebliği m.5 kendi sitesinde satan her firmayı, esnafı da kayda bağlar (K-628; `01` cross-review R10 BULGU-2'nin kabulü bu kararla güncellendi, rapor tarihsel kayıt olarak yerinde kalır). §8'in V-2 karar kuralı yalnız ödemesi tamamlanmış siparişleri sayar; Başarısız ödemeli sipariş sayılmaz (K-534, K-633). Bu bir etki yansıtmasıdır; kalite döngüsü yeniden açılmadı.
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider. `D-`, `Ü-`, `M-`, `S-` ve `V-` kimlikleri bu dokümanın kendi satır kimlikleridir (§4.1, §6, §7, §8).
 
@@ -295,4 +296,4 @@ Shopfolio gerçek kullanıcı geri bildirimi olmadan geliştirilir ve ilk müşt
 
 ---
 
-*Shopfolio — Project Vision v0.30 (§1–§8; kalite döngüsü: audit ✓, deep review ✓, cross-review TEMİZ ✓, etki yansıtma ✓ — K-430, K-431; checkpoint K-437'nin 4. adımında)*
+*Shopfolio — Project Vision v0.31 (§1–§8; kalite döngüsü: audit ✓, deep review ✓, cross-review TEMİZ ✓, etki yansıtma ✓ — K-430, K-431; checkpoint K-437'nin 4. adımında)*

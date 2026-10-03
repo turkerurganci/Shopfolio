@@ -101,6 +101,7 @@ Kapanış altı adımla ve **bu sırayla** yürür; hiçbir adım atlanmaz, her 
       - Tekrarlanacak desen → `00_PROJECT_METHODOLOGY.md` §N
       - İhlali önleyen kural → **terfi et** (L1–L5, hedef dosya belirtilerek); L3–L5 hedefliler aynı PR'da uygulanır, `00`, `CLAUDE.md` ve `SETUP.md` hedefliler önerilen metinleriyle proje sahibinin onayına sunulur (GUARDRAILS §2)
       - **Karar kaydında yaşayan süreç kararları** da aday sayılır: aşamanın kayıtları kapanınca otoriterliği biter (K-436, K-647); kural L1–L5'te değilse sonraki aşama onu bilmez
+      **Playbook'a geri akış (K-649):** sonucu playbook'tan gelen bir dosyaya dokunan — ya da dokunması gereken — her öğrenim, uygulansın uygulanmasın, `Docs/PLAYBOOK_FEEDBACK.md`'ye satır olarak da girer. Liste proje tamamlandıktan sonra proje sahibince gönderilir.
       Rapor: `Docs/CHECKPOINT_REPORTS/PHASE<N>_LEARNING_PROMOTION.md`
 - [ ] **6. Arşiv işareti ve devir** — sorulmadan kaydedilmiş ⚠ kararların listesi proje sahibine bu adımdan **önce** tek listede gösterilir (`INSTRUCTIONS.md` §2); ardından doküman durumu tablosunda `✓ Tamamlandı`, versiyon ve "son güncelleme" alanları, karar kaydında **aşamanın kayıtlarının** salt okunur işareti (K-436, K-647) ve bir sonraki aşamanın girdi bağımlılıklarının kontrolü. Karar kaydı dosyası dönem boyu tektir (`00 §B`, §G.1): sonraki aşama aynı dosyada K numarasını sürdürür; dosyanın tamamı yalnız doküman döneminin son aşamasının kapanışında arşivlenir
 - [ ] `/handoff` ile oturumu kapat

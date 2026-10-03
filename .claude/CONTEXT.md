@@ -1,6 +1,6 @@
 # Proje Bağlamı ve Klasör Haritası
 
-**Katman:** L3 | **Son güncelleme:** 2026-09-16
+**Katman:** L3 | **Son güncelleme:** 2026-10-04
 
 ---
 
@@ -47,6 +47,7 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 | `Docs/IMPLEMENTATION_STATUS.md` | **Task durumu için tek otoriter kaynak** | Her task doğrulaması sonrası (validator) |
 | `Docs/STATUS_CHANGELOG.md` | Status dosyasının tarihsel arşivi | Status "son güncelleme" bloğu şiştiğinde |
 | `Docs/DEFERRED_BACKLOG.md` | Ertelenen her işin tek listesi | Validator ve gate bulguları geldikçe |
+| `Docs/PLAYBOOK_FEEDBACK.md` | project-playbook'a geri gidecek öğrenimlerin tek listesi — proje tamamlanınca proje sahibi gönderir (K-649) | Öğrenim doğduğunda; en geç aşama ve faz kapanışının öğrenim adımında |
 | `Docs/DEBT_CLOSURE_PLAN.md` | MVP borç kapatma iş paketleri | Borç kapatma döneminde |
 | `Docs/BYPASS_LOG.md` | Disiplin bypass kayıtları | **Otomatik** (git hook) |
 | `Docs/CI_CD_SETUP.md` | Pipeline ve repo ayarları kılavuzu | CI task'ında + değiştikçe |

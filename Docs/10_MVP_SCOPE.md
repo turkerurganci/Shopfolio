@@ -1,6 +1,6 @@
 # Shopfolio — MVP Scope
 
-**Versiyon: v0.27** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
+**Versiyon: v0.28** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager
 > **Bu doküman doğrulama kapsamını da belirler:** `12_VALIDATION_PROTOCOL.md` buraya **birebir** hizalanır. MVP'de olmayan bir özellik doğrulama kriteri olamaz; MVP'de olan bir özellik doğrulama kapsamından çıkarılamaz.
@@ -63,6 +63,7 @@
 > **Kalite döngüsü — cross-review 15. tur (2026-10-03, v0.26 — K-431, K-644):** ikinci model tek bulgu döndürdü ve reddedildi, değerlendirme `Docs/CROSS_REVIEW_REPORTS/10_CROSS_REVIEW_R15.md`'dedir. KP-22'nin geri ödeme başlangıcı (K-491) dokuzuncu kez geldi; Yönetmelik m.12/1'in konsolide metni yeniden okundu ve taşıyıcı belirtilmeyen hâl için süre kuralı koymadığı görüldü. Kural değişmedi; yeni karar yok.
 
 > **Kalite döngüsü — cross-review 16. tur (2026-10-03, v0.27 — K-431, K-644):** ikinci model `SONUÇ: TEMİZ` döndürdü, değerlendirme `Docs/CROSS_REVIEW_REPORTS/10_CROSS_REVIEW_R16.md`'dedir. Metinde değişiklik yapılmadı; cross-review K-644'ün ölçüsüyle tamamlandı, sırada etki yansıtma var.
+> **Kalite döngüsü — etki yansıtma (2026-10-03, v0.28 — K-29, K-431):** cross-review'ın on altı turunda yapılan değişiklikler ve `10`'un kalite döngüsünün kararları (K-618…K-644) `02`, `01` ve karar kaydına karşı tarandı; sonuç `Docs/CROSS_REVIEW_REPORTS/10_CROSS_REVIEW_R16.md` §5'tedir. Yeni karar yok. **Bu dokümanda:** §1'in veri kaybı maddesi KP-75'e hizalandı — liste saklama süreleri içindir, süre sonundaki imha KP-74'ündür (K-354); KP-75 2. turda düzeltilmişti, §1'deki özeti süresiz "kaybolmaz"da kalmıştı. **Upstream:** `02` v0.45 — işlem izinin sözlük satırı, §8.5.2 ve §10.3.2 on yıllık saklama süresini ve süre sonundaki imhayı yazar (K-355), §3.34.8 KP-75'in okumasını taşır, §3.1.4'ün ETBİS gerekçesi K-628'e hizalandı, §12.1.12 alkol ve tütün yasağının dayanağını yazar (4733 sayılı Kanun m.8/5-k). `01`'e dokunulmadı. Satır sayıları değişmedi. `10`'un kalite döngüsü tamamlandı; sırada çakışma taraması (K-429, K-437'nin 3. adımı).
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider; kayıt aşama kapanışında arşiv işareti alır ve yerinde kalır, K numaraları çözülmeye devam eder (K-436). `KP-`, `KD-`, `ÖK-`, `SK-` ve `YH-` kimlikleri bu dokümanın kendi satır kimlikleridir (§2, §3, §4.1, §4.2, §5). Diğer dokümanların kimlikleri — `01`'in `Ü-`, `M-`, `S-`, `V-` satırları, `02`'nin `P-`, `H-` satırları — doküman adıyla anılır.
 
@@ -78,7 +79,7 @@
 
 - **Hacim bir tasarım varsayımıdır, hedef değildir:** günde ortalama 10, tepe günde 50 sipariş. Sipariş hacmi bir başarı kriteri değildir; kaç sipariş geldiğini ürün değil firmanın pazarlaması, sektörü ve müşteri tabanı belirler (K-403, K-417). Varsayımın doğrulanması `01 §8` V-2'de, aşıldığında ne olacağı §4.2'dedir (SK-3, SK-5; K-409).
 - **Ürün çalışma süresi taahhüdü vermez:** kesinti olağan kabul edilir; erişilebilirlik barındırmaya bağlıdır ve barındırma kurulum tarafındadır (K-406, K-08). İlan edilen, sitenin kapatıldığı planlı bakım penceresi yoktur (K-408).
-- **Sipariş tarafında veri kaybına tolerans sıfırdır:** onaylanmış sipariş, ödemesi, durum geçişleri, kalem düzeyindeki kayıtlar, iletişim talepleri, donmuş yasal metin sürümleri ve işlem izi kaybolmaz — tam liste KP-75'tedir; sepet ve oturum kaybı kabul edilir (K-407, K-557). Yedeklemenin sıklığı, yöntemi ve kurtarma süresi `05`'in ve `DEPLOY_RUNBOOK`'un işidir.
+- **Sipariş tarafında veri kaybına tolerans sıfırdır:** onaylanmış sipariş, ödemesi, durum geçişleri, kalem düzeyindeki kayıtlar, iletişim talepleri, donmuş yasal metin sürümleri ve işlem izi saklama süreleri boyunca kaybolmaz — tam liste KP-75'tedir, süre sonundaki imha KP-74'ündür; sepet ve oturum kaybı kabul edilir (K-407, K-557, K-354). Yedeklemenin sıklığı, yöntemi ve kurtarma süresi `05`'in ve `DEPLOY_RUNBOOK`'un işidir.
 - **Veri firmanındır ve çıkış hakkı barındırma düzleminde karşılanır:** kurulum firmanın kendi barındırmasında çalışır, veritabanı ve yedekler firmanın elindedir; bakım aboneliği sona erse bile firma verisiyle ve çalışan kurulumuyla kalır; güncelleme almayan kurulumun uyumu ise firmadadır (K-481). Kurulum bedeli ve bakım aboneliği yazılımın dışındadır; üründe faturalandırma modülü yoktur (K-18, K-631). Katalog ve kurumsal içerik için ürün içinde dışa aktarma yolu yoktur; siparişler panelden dışa aktarılır (K-410, K-427, K-426; `01 §8` V-5). Yedek erişiminin tarifi `DEPLOY_RUNBOOK`'a yazılır.
 
 Ürünün çözdüğü problem ve alternatiflerin neden yetmediği `01 §1` ve `§5`'te, ürünün ne olmadığı `01 §7`'de, MVP'nin dayandığı ve yanlış çıkarsa ürünü yeniden tasarlatacak yedi ürün varsayımı `01 §8`'dedir (K-15, K-21, K-419, K-421).
@@ -378,4 +379,4 @@ Eşikler **referans değerdir, hedef değildir** (K-418): ilk gerçek kurulumun 
 
 ---
 
-*Shopfolio — MVP Scope v0.27 (§1–§5 taslak; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ — 16. turda TEMİZ, sırada etki yansıtma — K-430, K-431, K-644)*
+*Shopfolio — MVP Scope v0.28 (§1–§5 taslak; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ — 16. turda TEMİZ, etki yansıtma ✓ — K-430, K-431, K-644; checkpoint K-437'nin 4. adımında)*

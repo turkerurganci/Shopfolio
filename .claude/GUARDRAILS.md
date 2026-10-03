@@ -1,6 +1,6 @@
 # AI Sınırları ve Yasakları
 
-**Katman:** L3 | **Son güncelleme:** 2026-09-17
+**Katman:** L3 | **Son güncelleme:** 2026-10-03
 
 > Bu dosya "yapılmayacaklar"ı tanımlar. Yapılacaklar [`INSTRUCTIONS.md`](INSTRUCTIONS.md)'de.
 
@@ -54,7 +54,7 @@ Proje sahibinden **açık onay** almadan değiştirilemez:
 
 ## 6. Karar kuralları
 
-- AI kendi başına karar almaz, proje sahibinden onay ister. **Tek istisna**, proje sahibinin verdiği öneriyle kayıt yetkisidir — kapsamı ve işaretleme kuralı `INSTRUCTIONS.md` §2'de.
+- AI kendi başına karar almaz, proje sahibinden onay ister. **İstisnalar** proje sahibinin açıkça verdiği yetkilerdir — öneriyle kayıt yetkisi ve onun açabildiği iki mod (toplu onay, ⚠ öneriyle kayıt); kapsamları, işaretleri ve gösterilmeyen kararların listesinin ne zaman gösterileceği `INSTRUCTIONS.md` §2'de. Bir modu proje sahibinin sözü olmadan açmak ya da listeyi göstermeden aşamayı kapatmak yasaktır.
 - Birden fazla seçenek sunduğunda öneri belirtir ama "ben bunu uyguluyorum" demez.
 - Soru sorduğunda cevabını almadan başka konuya geçmez.
 - Bir öneriyi savunur; kullanıcının her itirazına refleks olarak "haklısın" demez.

@@ -32,7 +32,7 @@
 - [x] Yeni karar: K-645 — sözlüğe üç terim (öneriyle kaydedildi; ⚠ değildir)
 - [x] Checkpoint'in dokunduğu yirmi iki kararın etki sütununa `(taslak güncellendi — …; checkpoint)` işareti eklendi
 - [ ] **Seksen üç ⚠ kaydın proje sahibine gösterilmesi** — liste §5'te; kapı arşiv işaretinden (6. adım) önce, karar başına bir cümleyle (çakışma taraması §4.1). İtiraz gelen karar değişirse bu rapora `## Retro Güncelleme` bölümü eklenir.
-- [ ] **`00`'ın alt bilgisi** `*Project Playbook — Metodoloji v1.0.1*` → `v1.0.3` — proje sahibinin tek satırlık onayıyla ayrı bir `docs:` PR'ında; aşama kapanışını engellemez (B-31)
+- [x] **`00`'ın alt bilgisi** `*Project Playbook — Metodoloji v1.0.1*` → `v1.0.3` — proje sahibinin tek satırlık onayıyla ayrı bir `docs:` PR'ında; aşama kapanışını engellemez (B-31) — **kapandı (2026-10-03, PR #__PR__):** öğrenim terfisinin Öneri 3'üyle başlık ve alt bilgi birlikte v1.0.4 oldu
 - [ ] Sırada öğrenim terfisi (K-437'nin 5. adımı, K-438) — on altı bekleyen aday çakışma taramasının §7'sinde dizinli
 
 ### Notlar

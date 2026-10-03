@@ -31,9 +31,9 @@
 - [x] Otuz bulgu düzeltmeyle kapandı — `01` v0.32, `02` v0.47, `10` v0.29, karar kaydı v0.50 (aşağıdaki §3)
 - [x] Yeni karar: K-645 — sözlüğe üç terim (öneriyle kaydedildi; ⚠ değildir)
 - [x] Checkpoint'in dokunduğu yirmi iki kararın etki sütununa `(taslak güncellendi — …; checkpoint)` işareti eklendi
-- [ ] **Seksen üç ⚠ kaydın proje sahibine gösterilmesi** — liste §5'te; kapı arşiv işaretinden (6. adım) önce, karar başına bir cümleyle (çakışma taraması §4.1). İtiraz gelen karar değişirse bu rapora `## Retro Güncelleme` bölümü eklenir.
+- [x] **Seksen üç ⚠ kaydın proje sahibine gösterilmesi** — liste §5'te; kapı arşiv işaretinden (6. adım) önce, karar başına bir cümleyle (çakışma taraması §4.1). İtiraz gelen karar değişirse bu rapora `## Retro Güncelleme` bölümü eklenir. — **kapandı (2026-10-03, kapısında):** itiraz yok, retro bölümü gerekmedi; sonuç §5'in sonunda
 - [x] **`00`'ın alt bilgisi** `*Project Playbook — Metodoloji v1.0.1*` → `v1.0.3` — proje sahibinin tek satırlık onayıyla ayrı bir `docs:` PR'ında; aşama kapanışını engellemez (B-31) — **kapandı (2026-10-03, PR #54):** öğrenim terfisinin Öneri 3'üyle başlık ve alt bilgi birlikte v1.0.4 oldu
-- [ ] Sırada öğrenim terfisi (K-437'nin 5. adımı, K-438) — on altı bekleyen aday çakışma taramasının §7'sinde dizinli
+- [x] Sırada öğrenim terfisi (K-437'nin 5. adımı, K-438) — on altı bekleyen aday çakışma taramasının §7'sinde dizinli — **kapandı (2026-10-03, PR #53, K-646)**
 
 ### Notlar
 
@@ -209,6 +209,8 @@ Kaynak: [çakışma taraması §4.1](PHASE1_CONFLICT_SCAN.md). Bu kararlar proje
 | K-629 | `10` audit/deep review | Yedeğin kurulum ön koşulu olması — K-407'nin ve K-427'nin dayandığı ön koşulu yazar |
 
 **Sayım:** A-18 ve `02`'nin audit ve deep review'ı 28 · `02`'nin cross-review'ı 42 · `02`'nin etki yansıtması 1 · `10`'un audit ve deep review'ı 12 — **toplam 83**. Betikle sayıldı; seksen üçünün de konu hücresi ⚠ işaretini taşıyor.
+
+**Gözden geçirme sonucu — 2026-10-03 (K-437'nin 6. adımı, arşiv işaretinden önce).** Liste proje sahibine bu tabloyla, karar başına bir cümleyle gösterildi. Proje sahibi *"İtiraz yok"* dedi: **itiraz sıfır**, hiçbir karar değişmedi, yeni karar satırı açılmadı ve bu rapora retro bölümü gerekmedi. Karar kaydında seksen üç satırın konu hücresindeki işaret silinmedi, `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-03, itiraz yok)` biçimine dönüştürüldü (2026-10-01 toplu onay gözden geçirmesinin kalıbı). **Mekanik doğrulama:** bu tablonun 83 tekil K numarası ile dönüştürülen 83 satır birebir — eksik 0, fazla 0; kayıtta eski işareti konu hücresinde taşıyan karar satırı kalmadı. Kayıt: karar kaydı §6.1, 2026-10-03 maddesi (v0.53).
 
 ---
 

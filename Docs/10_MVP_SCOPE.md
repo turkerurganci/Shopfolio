@@ -1,6 +1,6 @@
 # Shopfolio — MVP Scope
 
-**Versiyon: v0.8** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
+**Versiyon: v0.9** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-03
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager
 > **Bu doküman doğrulama kapsamını da belirler:** `12_VALIDATION_PROTOCOL.md` buraya **birebir** hizalanır. MVP'de olmayan bir özellik doğrulama kriteri olamaz; MVP'de olan bir özellik doğrulama kapsamından çıkarılamaz.
@@ -25,6 +25,8 @@
 > **A-18'in kapanışı (2026-10-03, v0.7 — K-29):** IBAN silindikten sonra mal firmaya ulaşırsa müşteri IBAN'ı sipariş sayfasından yeniden girer ve bunu isteyen bir e-posta alır; geri ödemenin on dört günü IBAN beklenirken durmaz (K-498). KP-22 müşterinin IBAN'ı yeniden girmesini yazar; KP-66'nın olay sayısı on dört oldu (`02 §9.2` B-14). Firma IBAN'ı panelden girmez ve yeni bir elle adım doğmaz; KP-47 değişmez.
 >
 > **`02`'nin kalite döngüsü — etki yansıtma (2026-10-03, v0.8 — K-29):** `02`'nin audit ve deep review turunda alınan kararlar (K-499…K-559) bu dokümana dokundu. §2'de otuz üç KP satırı güncellendi ve yeni bir satır girdi — firmanın panelde üye kaydını görmesi ve talep üzerine hesabı silmesi (KP-77, K-512); kapsam satırları yetmiş yedi oldu. §3'e garanti belgesinin yokluğu yeni satır olarak girdi (KD-61 — Açık, K-559): kapsam dışı satırları altmış bir, "Açık" olanlar otuz dokuz oldu; KD-53 ve KD-55 güncellendi. §4.1'de ÖK-4 ödeme sağlayıcısından sonuç sorgusunu ve kısmi iadeyi ister (K-556), ÖK-10 aydınlatma metninin tamamlanmasını tek koşulla tanımlar (K-517); §4.2'de SK-3 güncellendi. KP-64'ün parametre sayısı kırk dört oldu: on firma ayarı (`02 §11`; kargo KDV oranı ve duyuru metni ayar olmaktan çıktı — K-500, K-502). Değişen KP satırları: KP-5, KP-6, KP-14, KP-21…KP-26, KP-29, KP-30, KP-34, KP-39, KP-43, KP-45…KP-48, KP-50…KP-53, KP-57…KP-59, KP-63, KP-64, KP-67, KP-68, KP-72…KP-75. Bu bir etki yansıtmasıdır; `10`'un kalite döngüsü `02`'den sonra koşar.
+>
+> **A-13'ün kapanışı (2026-10-03, v0.9 — K-29):** `10`'un kalite döngüsünün ilk işi olarak K-423'ün üçüncü sıralama ölçütünün eşikleri yazıldı (K-560). §5'te ödeme tamamlama oranı %80'in altındaysa "düşük", iletişim talebi sayısı aynı pencerede ödemesi tamamlanmış sipariş sayısına eşit ya da fazlaysa "yüksek" sayılır; ikisi birlikte tetiklenirse ödeme yolları önce gelir. Eşikler bu dokümanda sabittir, `02 §11`'in parametresi değildir. `01 §6` eşiğin bir hedef değil sıralama tetikleyicisi olduğunu yazar (`01` v0.29). Bu dokümana ait açık kalem kalmadı.
 
 > **Karar referansları:** Metindeki `K-xx` işaretleri `PRODUCT_DISCOVERY_STATUS.md` §2 karar kaydına, `Bx-yy` işaretleri aynı dosyanın §6.3 blok içeriklerine gider; kayıt aşama kapanışında arşiv işareti alır ve yerinde kalır, K numaraları çözülmeye devam eder (K-436). `KP-`, `KD-`, `ÖK-`, `SK-` ve `YH-` kimlikleri bu dokümanın kendi satır kimlikleridir (§2, §3, §4.1, §4.2, §5). Diğer dokümanların kimlikleri — `01`'in `Ü-`, `M-`, `S-`, `V-` satırları, `02`'nin `P-`, `H-` satırları — doküman adıyla anılır.
 
@@ -297,6 +299,14 @@ Her satırın "ne zaman kalkar" hücresi ya gerçekleşip gerçekleşmediği anl
 
 **Sıralama ölçütü — üç ölçüt, bu sırayla** (K-423): (1) **manuel adım bütçesini düşürenler önce** (K-404, K-402); (2) **`01 §8`'in yanlışlanan varsayımı** — havale kullanılmıyorsa kapıda ödeme, hacim aşılıyorsa kargo ve havale otomasyonu öne çıkar (K-421, K-474); (3) **mağaza düzeyi ölçüler** — ödeme tamamlama oranı düşükse ödeme yolları, iletişim talebi yüksekse folio tarafı önceliklenir (K-416). İkinci ve üçüncü ölçüt ilk gerçek kurulumun ilk üç ayındaki ölçümle uygulanır (K-418). Üçü de eşitse sıra §3'ün yazım sırasıdır.
 
+**Üçüncü ölçütün eşikleri** (K-560) — ölçüler ve pencere `01 §6`'daki gibidir, tanımları `02 §10.6.3`'tedir:
+
+- **Ödeme tamamlama oranı düşüktür:** pencerede ödeme tamamlama oranı (`01 §6` M-1) **%80'in altındaysa** — sipariş onayına gelen her beş sepetten birinden fazlası ödemesiz kapanıyorsa. Oran, pencerenin son sepetlerinin ödeme süresi dolduğunda okunur (K-534). Kart hattında her ödeme 3D Secure'dan geçer (K-13) ve oran aynı sepetin tekrar denemelerini tek sayar (K-457); bu yüzden sağlıklı bir mağazada oran 3D Secure doğrulamasının tek denemedeki başarı oranının altına inmez — sektörde bu oran Avrupa'nın önde gelen pazarlarında %91–95'tir (Ravelin, *Global Payments Report 2026*). %80 bu bandın on puan altıdır ve havale hattının ödenmeyen siparişlerine ve küçük örneğe pay bırakır.
+- **İletişim talebi yüksektir:** pencerede iletişim talebi sayısı (M-2) aynı pencerede **ödemesi tamamlanmış sipariş sayısına eşit ya da fazlaysa**. Folio tarafı mağazayla eşit ağırlıktadır (K-04); kurumsal içeriğin getirdiği talep mağazanın getirdiği siparişe ulaşmışsa sitenin işi o taraftan da gelir. Sipariş sayısı M-4'ün paydasıyla aynı birimdedir (K-485); pencerede ödemesi tamamlanmış sipariş yoksa bu ölçüt değerlendirilemez ve uygulanmaz (K-490) — böyle bir pencere `01 §8` V-4'ü zaten tetikler.
+- **İkisi birlikte tetiklenirse ödeme yolları önce gelir:** ürünün sorumlu olduğu şey satışı kaybetmemektir (K-417); düşük ödeme tamamlama oranı kaybedilen satıştır, yüksek iletişim talebi ise karşılanması gereken bir taleptir.
+
+Eşikler **referans değerdir, hedef değildir** (K-418): ilk gerçek kurulumun ölçümüyle gözden geçirilir ve yalnız yeni bir kararla değişir. Bu dokümanda sabittir; `02 §11`'in parametresi değildir, çünkü sistem okumaz — yol haritasını sıralayan okur (`01 §8` V-3'ün %5'iyle aynı kalıp — K-487).
+
 **Bağımlılık zincirleri** (K-424): zincirin ucundaki aday kökündeki iş yapılmadan sıralamaya giremez ve ölçütler köke uygulanır. (1) **Ölçüm:** ürün önerisi → ziyaretçi analitiği → çerez onay bandı (K-352). (2) **Onay:** "stokta haber ver" ve terk edilmiş sepet → pazarlama onayı ve İYS. (3) **Dış ön koşul:** SMS yeni bir dış sağlayıcı ve §4.1'e yeni bir ön koşul getirir (K-424); kargo şirketi entegrasyonu ve havale eşleştirmesi aynı kalıptadır (K-473).
 
 **Bugünkü kaba sıra.** Birinci ölçüt bugün uygulanabilir — hangi adayın elle adımı düşürdüğü bellidir; ikinci ve üçüncü ölçüt ölçüm ister. Bu yüzden ilk üç aday birinci ölçütten gelir, kalanlar ölçüm gelene kadar §3'ün sırasıyla durur.
@@ -326,8 +336,8 @@ Her satırın "ne zaman kalkar" hücresi ya gerçekleşip gerçekleşmediği anl
 | YH-21 | Çok kiracılı SaaS | KD-21 | |
 | YH-22 | Mobil uygulama ve PWA | KD-22 | |
 
-*Kaynak: K-422 (aday listesi) · K-446, K-473 (eklenen adaylar) · K-423 (sıralama ölçütü) · K-424 (bağımlılık zincirleri) · K-420, K-25 (listenin tek kaynağı §3) · K-418, K-421 (ölçüm penceresi ve varsayımlar) · K-402, K-404 (birinci ölçüt) · K-10, K-16, K-268, K-439, K-440 (adayların kendi kararları).*
+*Kaynak: K-422 (aday listesi) · K-446, K-473 (eklenen adaylar) · K-423 (sıralama ölçütü) · K-560 (üçüncü ölçütün eşikleri) · K-04, K-13, K-417, K-457, K-485, K-487, K-490, K-534 (eşiklerin dayanağı) · K-424 (bağımlılık zincirleri) · K-420, K-25 (listenin tek kaynağı §3) · K-418, K-421 (ölçüm penceresi ve varsayımlar) · K-402, K-404 (birinci ölçüt) · K-10, K-16, K-268, K-439, K-440 (adayların kendi kararları).*
 
 ---
 
-*Shopfolio — MVP Scope v0.8 (§1–§5 taslak; kalite döngüsü yazım turundan sonra — K-430, K-432)*
+*Shopfolio — MVP Scope v0.9 (§1–§5 taslak; kalite döngüsü yazım turundan sonra — K-430, K-432)*

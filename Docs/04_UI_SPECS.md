@@ -10,7 +10,7 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-06 · K-97 · Aktör envanteri:** Ekran × rol matrisi dört aktör üzerinden kurulur — ziyaretçi · misafir alıcı · üye müşteri · firma yöneticisi (`02 §1.3`). Yönetim tarafı **tek roldür** (çoklu kullanıcı, aynı yetki). Misafir alıcıyı K-97 ekledi ve K-06'nın *"üyeliksiz sipariş kararına bağlıdır"* diye açık bıraktığı envanteri kapattı; satır Aşama 2'nin çakışma taramasında hizalandı (2026-10-04).
-> - **K-14 · Firma kimlik bilgileri:** Firma tipine göre değişen zorunlu kimlik seti ve ETBİS doğrulama bandı sitede **sürekli erişilebilir** olur. **Tam yerleşim bu dokümanın kararıdır** — hangi bilgi hangi ekranda ve hangi alanda görünecek.
+> - **K-14 · K-574 · Firma kimlik bilgileri:** Firma tipine göre değişen zorunlu kimlik seti ve — firma ETBİS doğrulama bilgisini girdiyse — doğrulama bandı sitede **sürekli erişilebilir** olur; alan boşsa band görünmez (K-574). **Tam yerleşim bu dokümanın kararıdır** — hangi bilgi hangi ekranda ve hangi alanda görünecek.
 > - **K-27 · Ana sayfa kompozisyonu:** İki hazır düzen tasarlanır — **tanıtım öncelikli** ve **mağaza öncelikli**. Taban kural: her iki düzende de kurumsal tanıtım ile ürün vitrini ana sayfada **birlikte** bulunur; değişen yalnız ağırlık ve sıradır. Serbest sayfa kurgusu (page builder) kapsam dışıdır.
 
 > **Aşama 2'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §8.3 AK0-04).

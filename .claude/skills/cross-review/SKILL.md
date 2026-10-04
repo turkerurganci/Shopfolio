@@ -30,6 +30,7 @@ user-invocable: true
 6. Çıktı yapılandırılmış olmalı: `BULGU-N: …` veya `SONUÇ: TEMİZ`.
 7. Ham çıktı `Docs/CROSS_REVIEW_REPORTS/XX_CROSS_REVIEW[_RN].md` dosyasına yazılır.
 8. **Çıktıyı tam oku** — her bulguyu not al.
+9. **Büyük doküman — iki koşum.** Doküman (şablon hariç) **400 KB'ı** aşıyorsa her tur iki koşumla yürür ve turun sonucu ikisinin birleşimidir: **(a)** tek parça çağrı — doküman ve şablon tek metinde; parçalar arası çelişkiyi yalnız bu görür; **(b)** parçalı kontrol koşumu — aynı istem, bölüm sınırında parçalar, her parçada dokümanın başlık notu (sürüm notları, park blokları, yazım konvansiyonları) ve şablon; isteme tek bir parça notu eklenir: verilmeyen bölüme yapılan atıf ve orada yaşayan içeriğin görünmemesi bulgu değildir. Parça sınırları 1. turda kayda geçer ve sonraki turlarda değişmez; parçanın göremediği bölüme dayanan iddia Faz 2'de o bölüme karşı okunur. Ölçü, girdi kuralı (madde 2) ve bilinçli karar cümlesi (madde 4) iki koşumda aynıdır. Bağlam sınırı hatası alınmaması parçalamamak için gerekçe değildir — tek çağrı hata vermeden dikkat sınırına takılır. **Neden:** 844 KB'lık Arayüz Tanımları tek parça çağrıda 59 saniyede `SONUÇ: TEMİZ` döndü; aynı istemle dört parça dört bulgu getirdi, üçü dokümanın iki yerinin gerçek metin farkıydı (K-848). 365 KB'lık Kullanıcı Akışları tek parçada üç gerçek çelişki bulmuştu; eşik ikisinin arasında ihtiyatla seçildi ve sonraki büyük dokümanın 1. turunda yeniden okunur.
 
 ### Ciddiyet ölçüsü — döngü yakınsamadığında
 
@@ -37,7 +38,7 @@ user-invocable: true
 
 **Ne zaman uygulanır:**
 - **Döngü yakınsamıyorsa** — art arda iki turda kabul edilen bulgular dar kenar durumlara inmişse ve doküman kabul edilen bulgularla büyüyorsa, sonraki turdan itibaren. Kanıt: Ürün Gereksinimleri yirmi beş turda TEMİZ dönmedi ve 374 KB'tan 500 KB'a büyüdü; ölçüyle koşulan 26. tur TEMİZ döndü (K-615).
-- **Ayrıntısı başka bir dokümanda yaşayan bir kapsam, özet ya da akış dokümanında** — kuralı başka dokümana bırakan, "bu doküman kural koymaz" diyen doküman — ilk turdan itibaren; o dokümanda kenar durum açmak iki dokümanı birlikte büyütür (MVP Kapsamı, K-644; Kullanıcı Akışları, K-718 — 365 KB'lık doküman üç turda TEMİZ döndü, 3 → 1 → 0 bulgu).
+- **Ayrıntısı başka bir dokümanda yaşayan bir kapsam, özet, akış ya da arayüz dokümanında** — kuralı başka dokümana bırakan, "bu doküman kural koymaz" diyen türetim dokümanı — ilk turdan itibaren; o dokümanda kenar durum açmak iki dokümanı birlikte büyütür (MVP Kapsamı, K-644; Kullanıcı Akışları, K-718 — 365 KB'lık doküman üç turda TEMİZ döndü, 3 → 1 → 0 bulgu; Arayüz Tanımları, K-847 — 844 KB'lık doküman beş turda kapandı, kabul edilen on bulgunun hiçbiri ölçünün ağır sınıflarında değildi).
 
 Ölçünün hangi turdan itibaren uygulandığı **rapor başlığına** ve **karar kaydına** (gerekçesiyle) yazılır. Ölçü bir aşamanın içinde açılır ve o aşamanın dokümanlarıyla sınırlıdır; sonraki aşamada yeniden değerlendirilir.
 
@@ -79,6 +80,11 @@ Her bulgu için:
 2. `--round N+1` ile tekrar gönder.
 3. Faz 1'den itibaren tekrarla.
 4. **Çıkış koşulu:** İkinci model `SONUÇ: TEMİZ` döndüğünde döngü biter. Ciddiyet ölçüsü uygulanıyorsa TEMİZ o ölçüdedir ve rapor bunu yazar.
+5. **İki koşumda çıkış (Faz 1 madde 9).** Bütün çağrıların aynı anda TEMİZ dönmesi beklenir; büyük dokümanda bu her turda başka bir yerde bulunan düşük şiddetli bir metin farkıyla engellenebilir. İki kural:
+   - **Tekrar eden RET** — önceki turlarda en az iki kez gerekçeyle reddedilmiş bir bulgu aynı yer ve aynı iddiayla dönerse "tekrar eden RET" diye kaydedilir ve turun sonucunu belirlemez.
+   - **Beşinci turdan itibaren** kabul edilen bulguların (KABUL ya da KISMİ) hepsi düşük şiddette iki yerin metin farkıysa — mevzuata aykırılık, para ya da hak kaybı, çıkışsız akış değilse — bulgular uygulanır, aynı kalıp dokümanın tamamında taranır ve **döngü o turda kapanır**; sonuç "TEMİZ — çıkış kuralıyla, N tur" diye yazılır. Bu sınıfın kalan riski aşamanın checkpoint'ine devredilir: karar kaydının açık süreç maddesine sınıfın adı ve turların örnekleriyle yazılır, checkpoint'in iç tutarlılık merceği onu dokümanın tamamında arar (`checkpoint` skill'i). Kabul edilen bulgulardan biri orta ya da yüksek şiddetteyse döngü sürer.
+
+   **Neden:** Arayüz Tanımları'nda dört tur boyunca bulgu 4 → 4 → 2 → 5, kabul 3 → 4 → 0 → 3 gitti; kabullerin hepsi metin farkıydı ve aynı reddedilmiş iddia üç turda döndü. Çıkış kuralı 5. turda döngüyü kapattı (K-849); devredilen sınıf checkpoint'te kırk üç yerde bulundu ve kapandı (CP03 §3.1, §3.2) — risk gerçekti, devri zorunlu kılan budur.
 
 ---
 
@@ -91,7 +97,7 @@ TEMİZ sonrası:
 1. **Downstream tarama** — bu dokümanı bağımlılık olarak listeleyen dokümanlar: yapılan düzeltmeler oralarda karşılığını buldu mu?
 2. **Upstream tarama** — bu dokümanın bağımlılıkları: cross-review sırasında alınan yeni kararlar kaynak dokümanları etkiliyor mu?
 3. **Yeni alan/kural taraması** — cross-review sırasında eklenen her yeni alan, enum değeri, parametre, iş kuralı ilgili dokümanda tanımlı mı?
-4. **Kaynak satırları taraması (mekanik)** — doküman bölüm sonlarında Kaynak satırı taşıyorsa: gövdede anılan her karar numarası, bulunduğu bölümün Kaynak satırında da var mı? Betikle karşılaştırılır, gözle değil. **Neden:** etki yansıtma audit turunun içinde yapıldığında Ürün Gereksinimleri'nin üç bölümü (§3, §10, §12) gövdede andığı altı kararı Kaynak satırında taşımıyordu (Aşama 1).
+4. **Kaynak satırları taraması (mekanik)** — doküman bölüm sonlarında Kaynak satırı taşıyorsa: gövdede anılan her karar numarası, bulunduğu bölümün Kaynak satırında da var mı? Betikle karşılaştırılır, gözle değil. **Kapsam:** aşamanın kendi dokümanında **bütün** kararlar — önceki aşamaların kararları dahil; geri beslenen dokümanlarda bu aşamanın ve önceki aşamanın kararları; aralıklar (`K-a…K-b`) açılır. **Neden:** etki yansıtma audit turunun içinde yapıldığında Ürün Gereksinimleri'nin üç bölümü (§3, §10, §12) gövdede andığı altı kararı Kaynak satırında taşımıyordu (Aşama 1). Aşama 3'ün 5. turundaki betik yalnız Aşama 3 kararlarına baktı ve Arayüz Tanımları'nın Kaynak satırlarındaki Aşama 1–2 atıflarının on dokuzunu görmedi; Aşama 2'nin checkpoint betiği de iki satırı kaçırmıştı — ikisini de sonraki checkpoint buldu (CP03 §3.4, §6).
 5. **Raporlarda taşınan açık notlar** — turların "önceki turlardan açık kalanlar" listesindeki her not ya bir karar satırının etki sütununa bağlanır ya da kapanışıyla yazılır; raporda kalan not kaybolur. **Neden:** Ürün Gereksinimleri'nin bir notu altı tur raporda taşındı ve hiçbir etki sütununa geçmedi; ancak aşamanın çakışma taramasında kapandı.
 6. Uyumsuzlukları hedefli düzeltmelerle kapat; her düzeltme kaydedilir.
 

@@ -1,6 +1,6 @@
 # Shopfolio — UI Specifications
 
-**Versiyon: v0.17** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-05
+**Versiyon: v0.18** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-05
 
 > **Aşama:** 3 — UI/UX Tasarım · **Rol:** Senior Product Designer / UX Architect
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §4'e (ekran envanteri) geçilmez.
@@ -30,7 +30,9 @@
 >
 > **Kalite döngüsü — cross-review 3. ve 4. tur (2026-10-04, v0.16):** aynı istem ve iki koşum (K-847, K-848). 3. turun iki bulgusu reddedildi ve doküman değişmedi (`04_CROSS_REVIEW_R3.md`). 4. turda tek parça çağrı bir, parçalar 1 · 0 · 1 · 2 bulgu getirdi — ikisi KABUL, biri KISMİ ve uygulandı, ikisi RET. Düzeltmeler iki yerin metnini hizalar: 2.12.3.1 kart hattında IBAN alanının tek istisnasını — sağlayıcıda gerçekleşmeyen kart iadesinde firmanın açtığı havale yolunu — yazar (2.12.3.2, 5.16.12; K-569) · konvansiyon 4 birincil düğmenin ekran başına en çok bir olduğunu yazar (§2.1.3; birincil düğmesi olmayan ekranlar) · 9.19.3 aydınlatma taslağının alıcı gruplarını kategori olarak zaten andığını yazar (`02 §3.1.5`). Yeni ürün kuralı yok; üst dokümana dönen karar yok. Rapor `Docs/CROSS_REVIEW_REPORTS/04_CROSS_REVIEW_R4.md`. Sıradaki adım cross-review'ın 5. turudur.
 >
-> **Kalite döngüsü — cross-review 5. tur ve etki yansıtma (2026-10-05, v0.17; K-849):** aynı istem ve iki koşum (K-847, K-848). Dört parça `SONUÇ: TEMİZ` döndü; tek parça çağrı bir bulgu getirdi ve reddedildi — 5.18.6'nın geri ödeme süresinin başlangıcı, 3. turun reddedilen bulgusunun dönüşü (K-491, K-721). Kabul edilen bulgu olmadığı için döngü K-849'un çıkış kuralıyla bu turda kapandı: **cross-review TEMİZ — beş turda.** Doküman bu turda değişmedi; değişiklikler etki yansıtmanındır: 5.4.10, 6.2.4.6 ve §1.1'in `03 §3.2.1.9` satırı daha önce alınmış dijital varyantın uyarısını `02 §3.12.9`'un tam metniyle yazar (K-236; audit'in IC-14 ve EKRAN-M-2 izi — Ürün Gereksinimleri v0.64, Kullanıcı Akışları v0.20, MVP Kapsamı v0.42 de hizalandı; §1.3) · Kaynak satırları (K-652'nin ikinci betiği, §2–§9): on üç yerde gövdede anılan Aşama 3 kararı Kaynak'a eklendi — 2.6, 6.1, 6.3.1.2, 6.3.3.5, 6.3.9.1, 6.3.9.27, 6.3.16.5, §7.2, §7.3, 8.2.9, 8.2.10, §9.5, §9.9. Rapor `Docs/CROSS_REVIEW_REPORTS/04_CROSS_REVIEW_R5.md`. Sıradaki adım Aşama 3'ün çakışma taramasıdır.
+> **Kalite döngüsü — cross-review 5. tur ve etki yansıtma (2026-10-05, v0.17; K-849):** aynı istem ve iki koşum (K-847, K-848). Dört parça `SONUÇ: TEMİZ` döndü; tek parça çağrı bir bulgu getirdi ve reddedildi — 5.18.6'nın geri ödeme süresinin başlangıcı, 3. turun reddedilen bulgusunun dönüşü (K-491, K-721). Kabul edilen bulgu olmadığı için döngü K-849'un çıkış kuralıyla bu turda kapandı: **cross-review TEMİZ — beş turda.** Doküman bu turda değişmedi; değişiklikler etki yansıtmanındır: 5.4.10, 6.2.4.6 ve §1.1'in `03 §3.2.1.9` satırı daha önce alınmış dijital varyantın uyarısını `02 §3.12.9`'un tam metniyle yazar (K-236; audit'in IC-14 ve EKRAN-M-2 izi — Ürün Gereksinimleri v0.64, Kullanıcı Akışları v0.20, MVP Kapsamı v0.42 de hizalandı; §1.3) · Kaynak satırları (K-652'nin ikinci betiği, §2–§9): on üç yerde gövdede anılan Aşama 3 kararı Kaynak'a eklendi — 2.6, 6.1, 6.3.1.2, 6.3.3.5, 6.3.9.1, 6.3.9.27, 6.3.16.5, §7.2, §7.3, 8.2.9, 8.2.10, §9.5, §9.9. Rapor `Docs/CROSS_REVIEW_REPORTS/04_CROSS_REVIEW_R5.md`.
+>
+> **Aşama kapanışı — çakışma taraması (2026-10-05, v0.18; K-437'nin 3. adımı):** açık kalem yok; dokümanlar arası taramanın bulguları düzeltildi. Bir karar — **K-850:** veri toplayan girişlerin kapısına çerez politikasının yayını da girer (2.8.3, 5.10.12, 5.11.9, 5.20.10, 9.3.4, 9.10.11, 9.19.7, 9.19.10) — ve bu dokümanda şu hizalamalar: 5.28.3, 6.2.28.1, 9.25.2, §4.1 E-28 ve §4.2 E-54 (geri alma düğmesi — K-839) · 7.1.5.9 (K-833) · 3.1.19 (K-770) · 5.18.10, 5.19.6 (B-9'un kalemleri ve adetleri — K-790) · 6.2.16.24 (ayıp talebi — K-830) · §1.1'in sekiz F-1…F-4 satırı (K-760) ve altı özet hücresi — KP-14, `03 §8.1.1`, §8.8.2, §8.9.1, §9.3.6, §9.3.7 —, §1.2'nin E-31 sayısı (67 → 75). Geri besleme ve iç hizalamaların tablosu §1.3'tedir. Rapor `Docs/CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md`. Sıradaki adım Aşama 3'ün checkpoint'idir.
 
 **Yazım konvansiyonları (K-726, K-762).** Bu on beş madde §2–§9'un bütün yazım oturumlarını bağlar; "konvansiyon n" diye anılır.
 
@@ -279,7 +281,7 @@ Kapsam ağıdır: her satır en az bir ekrana ya da adıyla yazılmış bir ekra
 | KP-11 | Kupon kodu; sipariş tutarını sıfıra indiremez | E-13 | eşlendi |
 | KP-12 | Teslimat ve fatura adresi; adres defterinden seçim, deftere kaydetme | E-13 · E-26 · ortak bileşen: adres | eşlendi |
 | KP-13 | Kargo ücreti, ücretsiz kargoya kalan tutar, asgari tutar, teslimat illeri | E-12 · E-13 | eşlendi |
-| KP-14 | Onay özeti, Ön Bilgilendirme Formu, onay kutuları, ödeme yükümlülüğü düğmesi | E-13 | eşlendi |
+| KP-14 | Onay özeti, Ön Bilgilendirme Formu, cayma özeti (K-831), onay kutuları, ödeme yükümlülüğü düğmesi | E-13 | eşlendi |
 | KP-15 | Kart (sağlayıcının sayfasında, 3D Secure) ya da havale; ekranda sipariş numarası ve IBAN | E-14 · E-16 · ekran dışı — ürünün dışında | eşlendi |
 | KP-16 | Stok, kontenjan ve kupon hakkı ödeme süresince ayrılır | ekran dışı — arka plan | ekran dışı |
 | KP-17 | Tahmin edilemez sipariş numarası; sipariş anında donan değerler | E-14 · E-16 · ekran dışı — arka plan | eşlendi |
@@ -406,7 +408,7 @@ Kapsam ağıdır: her satır en az bir ekrana ya da adıyla yazılmış bir ekra
 | `03 §2.2.4` | "İlgili ürünler"den ürün sayfasına geçiş | E-08 · ortak bileşen: kart | eşlendi |
 | `03 §2.2.5` | İletişim sayfası: iletişim ve yasal kimlik bilgileri, şubeler, form | E-10 | eşlendi |
 | `03 §2.2.6` | Her sayfanın üst ve alt bölümü: sosyal bağlantılar, altbilgi bağlantıları, platform imzası, ETBİS bandı | ortak bileşen: çerçeve | eşlendi |
-| `03 §2.2.7` | İletişim formunu açma; aydınlatma kapısı; üyede ön dolu alanlar | E-10 | eşlendi |
+| `03 §2.2.7` | İletişim formunu açma; veri toplayan girişlerin kapısı (K-850); üyede ön dolu alanlar | E-10 | eşlendi |
 | `03 §2.2.8` | Formu doldurup gönderme; kapalı beş konu tipi | E-10 | eşlendi |
 | `03 §2.2.9` | Cevabı bekleme: gönderene numara ve takip sayfası verilmez | E-10 · E-39 | eşlendi |
 | `03 §2.2.10` | Taslak ya da silinmiş içeriğin adresi: "Sayfa bulunamadı" | E-06 | eşlendi |
@@ -815,7 +817,7 @@ Kapsam ağıdır: her satır en az bir ekrana ya da adıyla yazılmış bir ekra
 
 | Kaynak ID | Kaynak özeti | Ekran | Durum |
 |---|---|---|---|
-| `03 §9.1.1` | Kayıt ekranı; aydınlatma kapısı ve bağlantısı; "Google ile giriş" düğmesi | E-20 | eşlendi |
+| `03 §9.1.1` | Kayıt ekranı; veri toplayan girişlerin kapısı (K-850) ve aydınlatma bağlantısı; "Google ile giriş" düğmesi | E-20 | eşlendi |
 | `03 §9.1.2` | Ad, e-posta ve şifreyle kayıt; şifre politikası; "bu e-posta zaten kayıtlı" | E-20 | eşlendi |
 | `03 §9.1.3` | Doğrulama bağlantısını ekrandan yeniden isteme (L-9) | E-20 · E-22 | eşlendi |
 | `03 §9.1.4` | Doğrulama bağlantısı açılır: hesap doğrulanır, misafir siparişleri hesaba düşer | E-21 · E-27 | eşlendi |
@@ -845,8 +847,8 @@ Kapsam ağıdır: her satır en az bir ekrana ya da adıyla yazılmış bir ekra
 | `03 §9.3.3` | Şifre değiştirme | E-25 · E-24 | eşlendi |
 | `03 §9.3.4` | E-posta değiştirme isteği: yeni adres, doğrulanana kadar geçersiz | E-25 · E-24 (GAP-3) | eşlendi |
 | `03 §9.3.5` | Yeni adresteki bağlantı açılır: değişiklik geçerli olur | E-21 · E-25 · E-27 · ekran dışı — e-posta (`08`) | eşlendi |
-| `03 §9.3.6` | Eski adresteki geri alma bağlantısı açılır | E-28 · E-23 | eşlendi |
-| `03 §9.3.7` | Yönetici kendi e-posta adresini değiştirir | E-50 · E-54 | eşlendi |
+| `03 §9.3.6` | Eski adresteki geri alma bağlantısı açılır; geri alma ekrandaki tek düğmeyle yapılır (K-839) | E-28 · E-23 | eşlendi |
+| `03 §9.3.7` | Yönetici kendi e-posta adresini ve adını değiştirir — ad değişikliği yeniden doğrulama istemez (K-736) | E-50 · E-54 | eşlendi |
 
 **§9.4 Hesabın silinmesi ve kişisel veri başvurusu (7)**
 
@@ -1427,14 +1429,14 @@ Devrin evi karar satırıdır; dizin onu ikinci kez kaydetmez (`PHASE1_CONFLICT_
 | `03 §7.1.35` | B-15 E-posta adresi değiştirildi — eski adrese; yeni adresi ve bağlantıyı taşımaz | ekran dışı — e-posta (`08`) | ekran dışı |
 | `03 §7.1.36` | B-16 İade reddedildi — reddedilen kalem ve sebebi, geri ödeme yapılmayacağı, uyuşmazlık yolları | ekran dışı — e-posta (`08`) | ekran dışı |
 | `03 §7.1.37` | Yeniden gönderim — yönetici "e-posta ulaşmadı" işaretli sipariş satırından e-postayı yeniden gönderir; işareti düşüren on altı müşteri bildiriminin hepsi yeniden gönderilir (UI9-01; K-759) | ekran dışı — e-posta (`08`) · E-36 · E-37 | eşlendi |
-| `03 §7.1.38` | F-1 Yeni sipariş — firmaya; ulaşmazsa işaretin biçimi `04`'ün işidir (UI9-01) | ekran dışı — e-posta (`08`) · E-36 | eşlendi |
-| `03 §7.1.39` | F-2 Yeni iletişim talebi — KVKK talebi dahil; firmaya; işaretin biçimi UI9-01 | ekran dışı — e-posta (`08`) · E-38 · E-39 | eşlendi |
-| `03 §7.1.40` | F-3 Yeni cayma beyanı — müşterinin beyanında firmaya; işaretin biçimi UI9-01 | ekran dışı — e-posta (`08`) · E-36 | eşlendi |
-| `03 §7.1.41` | F-3 Yeni gecikme feshi — müşterinin feshinde firmaya; işaretin biçimi UI9-01 | ekran dışı — e-posta (`08`) · E-36 | eşlendi |
-| `03 §7.1.42` | F-3 Yeni ayıp talebi — firmaya; işaretin biçimi UI9-01 | ekran dışı — e-posta (`08`) · E-38 | eşlendi |
-| `03 §7.1.43` | F-3 — müşteri çözülmüş ayıp talebini yeniden açar; firma yeni talep gibi öğrenir; işaretin biçimi UI9-01 | ekran dışı — e-posta (`08`) · E-38 | eşlendi |
-| `03 §7.1.44` | F-4 Kendiliğinden kart iadesi — sistemin karta yaptığı geri ödeme firmaya bildirilir; işaretin biçimi UI9-01 | ekran dışı — e-posta (`08`) · E-36 | eşlendi |
-| `03 §7.1.45` | F-4 — sistem iptal edilmiş siparişe gelen kart ödemesini geri öder; işaretin biçimi UI9-01 | ekran dışı — e-posta (`08`) · E-36 | eşlendi |
+| `03 §7.1.38` | F-1 Yeni sipariş — firmaya; ulaşmazsa satıra işaret düşmez — panelin ana sayfasında "firma bildirimleri ulaşmıyor" uyarısı (UI9-01; K-760) | ekran dışı — e-posta (`08`) · E-36 · E-31 | eşlendi |
+| `03 §7.1.39` | F-2 Yeni iletişim talebi — KVKK talebi dahil; firmaya; ulaşmazsa satıra işaret düşmez — ana sayfanın uyarısı (UI9-01; K-760) | ekran dışı — e-posta (`08`) · E-38 · E-39 · E-31 | eşlendi |
+| `03 §7.1.40` | F-3 Yeni cayma beyanı — müşterinin beyanında firmaya; ulaşmazsa satıra işaret düşmez — ana sayfanın uyarısı (UI9-01; K-760) | ekran dışı — e-posta (`08`) · E-36 · E-31 | eşlendi |
+| `03 §7.1.41` | F-3 Yeni gecikme feshi — müşterinin feshinde firmaya; ulaşmazsa satıra işaret düşmez — ana sayfanın uyarısı (UI9-01; K-760) | ekran dışı — e-posta (`08`) · E-36 · E-31 | eşlendi |
+| `03 §7.1.42` | F-3 Yeni ayıp talebi — firmaya; ulaşmazsa satıra işaret düşmez — ana sayfanın uyarısı (UI9-01; K-760) | ekran dışı — e-posta (`08`) · E-38 · E-31 | eşlendi |
+| `03 §7.1.43` | F-3 — müşteri çözülmüş ayıp talebini yeniden açar; firma yeni talep gibi öğrenir; ulaşmazsa satıra işaret düşmez — ana sayfanın uyarısı (UI9-01; K-760) | ekran dışı — e-posta (`08`) · E-38 · E-31 | eşlendi |
+| `03 §7.1.44` | F-4 Kendiliğinden kart iadesi — sistemin karta yaptığı geri ödeme firmaya bildirilir; ulaşmazsa satıra işaret düşmez — ana sayfanın uyarısı (UI9-01; K-760) | ekran dışı — e-posta (`08`) · E-36 · E-31 | eşlendi |
+| `03 §7.1.45` | F-4 — sistem iptal edilmiş siparişe gelen kart ödemesini geri öder; ulaşmazsa satıra işaret düşmez — ana sayfanın uyarısı (UI9-01; K-760) | ekran dışı — e-posta (`08`) · E-36 · E-31 | eşlendi |
 | `03 §7.1.46` | F-5 Havale IBAN'ı değişti — bütün yöneticilerin kendi adreslerine; işaret düşmez | ekran dışı — e-posta (`08`) | ekran dışı |
 | `03 §7.1.47` | F-6 Yönetici hesapları değişti — davet gönderilir; bütün yöneticilere; işaret düşmez | ekran dışı — e-posta (`08`) | ekran dışı |
 | `03 §7.1.48` | F-6 — bir yönetici kaldırılır; bütün yöneticilere, kaldırılan dahil | ekran dışı — e-posta (`08`) | ekran dışı |
@@ -1536,7 +1538,7 @@ Devrin evi karar satırıdır; dizin onu ikinci kez kaydetmez (`PHASE1_CONFLICT_
 
 | Kaynak ID | Kaynak özeti | Ekran | Durum |
 |---|---|---|---|
-| `03 §8.1.1` | Yönetici ürün oluşturur ya da düzenler: tip, ad, kategoriler ve ana kategori; yeni ürün Taslak doğar; aynı anda düzenlemede ikinci kaydeden uyarılır | E-32 · E-33 · ortak bileşen: eşzamanlı (GAP-9) | eşlendi |
+| `03 §8.1.1` | Yönetici ürün oluşturur ya da düzenler: tip, ad, kategoriler ve ana kategori; yeni ürün Taslak doğar; aynı anda düzenlemede ikinci kaydeden uyarılır; var olan ürüne ürün listesinden, adıyla arayıp yayın durumuna göre süzerek varılır (K-737) | E-32 · E-33 · ortak bileşen: eşzamanlı (GAP-9) | eşlendi |
 | `03 §8.1.2` | Yönetici varyantları tanımlar: en fazla iki seçenek boyutu, tekil stok kodu, KDV dahil fiyat; varyant kendi yayın durumunu taşır | E-33 | eşlendi |
 | `03 §8.1.3` | Yönetici stoğu ya da kontenjanı girer; alanın yanında ayrılmış adet ve onu tutan siparişler görünür; ayrılmış adedin altına inen değer reddedilir | E-33 · E-37 · ortak bileşen: mesaj | eşlendi |
 | `03 §8.1.4` | Yönetici tipe özgü alanları girer: üretim yeri, ölçü birimi ve hatırlatması, kargoya verme süresi, cayma istisnası ve sebebi, ifa süresi, siparişte en fazla adet | E-33 | eşlendi |
@@ -1665,7 +1667,7 @@ Devrin evi karar satırıdır; dizin onu ikinci kez kaydetmez (`PHASE1_CONFLICT_
 | Kaynak ID | Kaynak özeti | Ekran | Durum |
 |---|---|---|---|
 | `03 §8.8.1` | Yönetici bir e-posta adresine davet gönderir; davet yönetici listesinde satır olarak görünür; e-posta ulaşmazsa satıra işaret düşer | E-49 · ortak bileşen: rozet | eşlendi |
-| `03 §8.8.2` | Davetli bağlantıdan girer ve şifresini kurar; geçersiz bağlantıda süresi dolmuş davetin mesajını görür | E-30 · ortak bileşen: mesaj (GAP-8) | eşlendi |
+| `03 §8.8.2` | Davetli bağlantıdan girer, adını yazar ve şifresini kurar — ad zorunludur (K-736); geçersiz bağlantıda süresi dolmuş davetin mesajını görür | E-30 · ortak bileşen: mesaj (GAP-8) | eşlendi |
 | `03 §8.8.3` | Yönetici kullanılmamış daveti yönetici listesindeki satırından geri çeker | E-49 | eşlendi |
 | `03 §8.8.4` | Sistem süresi dolan daveti geçersiz kılar; yönetici yeni davet gönderir | ekran dışı — arka plan · E-49 · E-30 | eşlendi |
 | `03 §8.8.5` | Yönetici başka bir yöneticiyi kaldırır; son yönetici ve kendi hesabı kaldırılamaz; onay kullanılmamış davetlerin sayısını söyler | E-49 · ortak bileşen: onay · ortak bileşen: mesaj | eşlendi |
@@ -1675,7 +1677,7 @@ Devrin evi karar satırıdır; dizin onu ikinci kez kaydetmez (`PHASE1_CONFLICT_
 
 | Kaynak ID | Kaynak özeti | Ekran | Durum |
 |---|---|---|---|
-| `03 §8.9.1` | Yönetici ana sayfada bekleyen işleri görür: altı sayaç kendi süzülmüş listesine götürür; "IBAN bekleniyor" listesi ayrıdır; kanal uyarısı | E-31 · E-36 · E-38 · E-39 · ortak bileşen: süre | eşlendi |
+| `03 §8.9.1` | Yönetici ana sayfada bekleyen işleri görür: altı sayaç kendi süzülmüş listesine götürür; "IBAN bekleniyor" listesi ayrıdır; kanal uyarısı, "firma bildirimleri ulaşmıyor" uyarısı ve "e-posta ulaşmadı" işaretli siparişlere götüren satır (K-760, K-761) | E-31 · E-36 · E-38 · E-39 · ortak bileşen: süre | eşlendi |
 | `03 §8.9.2` | Yönetici "e-posta ulaşmadı" işaretli sipariş satırından e-postayı yeniden gönderir; B-1…B-16'nın hepsi yeniden gönderilir, firma bildirimi satıra işaret düşürmez (UI9-01; K-759, K-760) | E-36 · E-37 · ortak bileşen: rozet | eşlendi |
 | `03 §8.9.3` | Yönetici satış özetini seçtiği dönem için okur: sayılar, dağılım ve dört ölçü; paydası sıfır olan oran "değerlendirilemez" | E-51 | eşlendi |
 | `03 §8.9.4` | Yönetici işlem izini tarih aralığı ve yönetici süzgeciyle okur; arama, gruplama ve dışa aktarma yoktur | E-52 | eşlendi |
@@ -1943,7 +1945,7 @@ Devrin evi karar satırıdır; dizin onu ikinci kez kaydetmez (`PHASE1_CONFLICT_
 | E-28 E-posta değişikliğini geri alma ekranı | **12** — `10 §2` 1 (KP-27) · `03` 9 (§1 1 · §3 1 · §4 1 · §6 2 · §7 3 · §9 1) · `02` 1 (§9.4) · devir 1 (K-599) | kaynaklı |
 | E-29 Panel girişi ve şifre sıfırlama | **16** — `03` 13 (§1 1 · §6 4 · §7 2 · §9 2 · §10 4) · `02` 2 (§8.1, §10.2) · devir 1 (K-588) | kaynaklı |
 | E-30 Yönetici daveti kabul ekranı | **12** — `10 §2` 1 (KP-62) · `03` 9 (§1 2 · §3 1 · §4 1 · §7 2 · §8 2 · §10 1) · `02` 2 (§6.9, §10.2) | kaynaklı |
-| E-31 Panel ana sayfası | **67** — `10 §2` 4 (KP-38, KP-50, KP-65, KP-68) · `03` 45 (§1 3 · §3 7 · §4 2 · §5 1 · §6 2 · §7 14 · §8 13 · §10 3) · `02` 7 (§3.33.9, §3.1, §10.6.1, §10.8.1, §10.8.2, …) · devir 11 (K-498, K-576, K-491, K-522, …) | kaynaklı |
+| E-31 Panel ana sayfası | **75** — `10 §2` 4 (KP-38, KP-50, KP-65, KP-68) · `03` 53 (§1 3 · §3 7 · §4 2 · §5 1 · §6 2 · §7 22 · §8 13 · §10 3) · `02` 7 (§3.33.9, §3.1, §10.6.1, §10.8.1, §10.8.2, …) · devir 11 (K-498, K-576, K-491, K-522, …) | kaynaklı |
 | E-32 Ürün listesi | **10** — `10 §2` 2 (KP-39, KP-40) · `03` 3 (§8 3) · `02` 5 (§3.7, §5.1, §10.1.2, §6.6, §10.7) | kaynaklı |
 | E-33 Ürün formu | **66** — `10 §2` 8 (KP-39, KP-40, KP-41, KP-42, KP-43, KP-44, KP-45, KP-76) · `03` 33 (§1 6 · §3 13 · §4 2 · §6 1 · §8 11) · `02` 16 (§3.2, §3.3, §3.6, §3.7, §3.8, …) · devir 9 (K-509, K-511, K-538, K-564, …) | kaynaklı |
 | E-34 Kategori ağacı | **8** — `10 §2` 1 (KP-41) · `03` 3 (§3 2 · §8 1) · `02` 4 (§3.28.6, §3.4, §10.1.2, §6.6) | kaynaklı |
@@ -2251,6 +2253,21 @@ Yazım konvansiyonları, alt bölüm haritası ve ekran envanteri de kayda geçt
 |---|---|---|
 | Daha önce alınmış dijital varyantı sepete ekleyen üye uyarıyı tam metniyle görür: "Bu ürünü daha önce aldınız — sipariş sayfanızdan indirebilirsiniz" (kural `02 §3.12.9`'daydı; §6.2.9, `03` ve `10` uyarıyı yalnız ilk cümlesiyle anıyordu) | — (hizalama; K-236 — audit IC-14, EKRAN-M-2) | `02 §6.2.9` · `03 §2.3.1`, §3.2.1.9 · `10 §2` KP-9 · bu doküman 5.4.10, 6.2.4.6, §1.1 |
 
+**Aşama 3'ün çakışma taraması (2026-10-05, v0.18; K-437'nin 3. adımı; K-652, K-726).** Ürün Gereksinimleri v0.65 · Kullanıcı Akışları v0.21 · MVP Kapsamı v0.43; üçünün de ✓ durumu korunur ve kalite döngüsü yeniden açılmaz. Bir karar (K-850 ⚠) ve yedi hizalama; hizalamalar var olan kararın kuralını öteki yüzlerine taşır, yeni kural değildir. Rapor `Docs/CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md`.
+
+| Üst dokümana dönen kural | Karar | Nereye yansıdı |
+|---|---|---|
+| Veri toplayan girişlerin kapısına çerez politikasının yayını da girer: iki metin de yayına alınana kadar iletişim formu, hesap kaydı ve Google ile ilk giriş kapalıdır — böylece ilk yayına kadar vitrin çerez yazmaz (K-834) | K-850 **(öneriyle kaydedildi — ⚠)** | `02 §3.1.5`, §3.13.7, §3.13.19, §3.32.8, §6.5.12, §6.5.16, §6.8.9, §6.9.10, §10.8.2, §12.2.2, §12.2.5 · `03` 2.2.7, 3.4.12, 3.4.16, 3.5.3.9, 3.5.4.10, 9.1.1, 9.1.6, 9.2.2 · `10 §2` KP-25, KP-26, KP-34, `10 §4.1` ÖK-10 · bu doküman 2.8.3, 5.10.12, 5.11.9, 5.20.10, 9.3.4, 9.10.11, 9.19.7, 9.19.10, §1.1 · `05`, `12` park satırları |
+| Başka kanaldan gelen gecikme feshinin kaydında kalem ve adet seçilmez | — (hizalama; K-796) | `02 §10.4.10` · `03` 8.4.8 |
+| Başka kanaldan gelen caymanın kaydında cayılan adet seçilir | — (hizalama; K-787) | `02 §6.4.25` · `03` 3.3.25 |
+| Ayıp talebinin kanalı fiziksel kalemde sipariş kargoya verildiği andan açıktır; iki yıl teslimden işler | — (hizalama; K-830, `02 §7.5.2`) | `02 §7.1.1`, §7.5.1 · bu doküman 6.2.16.24 |
+| B-9'un kayıt kopyası kalemleri ve adetleri taşır | — (hizalama; K-790, `02 §9.2`) | `03` 7.1.21–7.1.24 · bu doküman 5.18.10, 5.19.6 |
+| Onay bölümünde kutuların üstünde kısa cayma özeti durur | — (hizalama; K-831) | `03` 2.4.6 · `10 §2` KP-14 · bu doküman §1.1 (KP-14) |
+| Firma bildirimi ve davet yeniden gönderilmez; yeniden gönderim siparişin ayrıntısındadır | — (hizalama; K-759, K-760, K-761) | `03` §7 girişi, 3.1.1, 1.7.3.1, 1.11.36, 7.1.37, 8.9.2, 10.1.2.6 · bu doküman §1.1.10 (F-1…F-4 — E-31 eklendi), §1.1 (`03 §8.9.1`), §1.2 (E-31) |
+| İlk yöneticinin hesabı kurulumda adıyla açılır | — (hizalama; K-736) | `10 §4.1` ÖK-7 · `DEPLOY_RUNBOOK` park satırı · bu doküman §1.1 (`03 §8.8.2`, §9.3.7) |
+
+Bu dokümanın kendi içindeki hizalamaları — üst dokümana dönmez: geri alma ekranının hâli kaç kez açıldığına bakmaz ve E-54'ün ilk görüleni geri alma düğmesini sayar — 5.28.3, 6.2.28.1, 9.25.2, §4.1 (E-28), §4.2 (E-54), §1.1 (`03 §9.3.6`) (K-839) · onay kutusunun validasyonu özet farkını sayar — 7.1.5.9 (K-833) · altbilginin yasal bağlantısı ilk yayına kadar yoktur — 3.1.19 (K-770) · §1.1'in `03 §8.1.1` özeti ürün listesinin aramasını anar (K-737).
+
 > **Vaka:** Bu matris bir referans projede 7 boşluk yakaladı — hiçbiri o ana kadar hiçbir dokümanda adreslenmemiş ama arayüzde cevap gerektiren sorulardı.
 
 ---
@@ -2480,9 +2497,9 @@ Siparişin iki ekseni her yerde **iki ayrı rozetle**, yan yana gösterilir; tek
 
 **2.8.2 Panelde** hâl dört yerde görünür: panel çerçevesinin üst satırındaki satış durumu göstergesi (2.2.8) · ana sayfanın "Uyarılar" bölümünde satışın kapalı olduğu ve sebebi — geçici kapatma ya da karşılanmayan koşul, adıyla (K-750) · ana sayfanın kurulum kontrol listesi — eksik maddeler adıyla, her madde kendi ayar ekranına götürür ve hepsi tamamlanınca liste kaybolur (`02 §10.8.2`) · E-44'ün başındaki "Satış durumu" bölümü — kapının dört koşulu tek tek, karşılanmayanı düzeltileceği ekranın bağlantısıyla ve geçici kapatma anahtarı (K-752). Anahtar kimlik formunun kaydından bağımsızdır ve kendi onayıyla işler (2.4.2.3). Satış bir koşul eksik olduğu için kapalıyken anahtar görünür kalır ve tek başına satışı açmaz.
 
-**2.8.3 Veri toplayan girişlerin kapısı** ayrı bir hâldir (`02 §3.1.5`, §3.13.19, §3.32.8): aydınlatma metni tamamlanıp yayına alınmadıysa iletişim formu (E-10), kayıt ekranı (E-20) ve yeni hesap açacak Google ile giriş (E-22) kapalıdır; form yerinde kapalı olduğunu söyler, kurumsal sayfalar ve mevcut hesapların girişi etkilenmez. Panel karşılanmayan koşulu kurulum kontrol listesinde adıyla gösterir.
+**2.8.3 Veri toplayan girişlerin kapısı** ayrı bir hâldir (`02 §3.1.5`, §3.13.19, §3.32.8): aydınlatma metni tamamlanıp yayına alınmadıysa ya da çerez politikası yayına alınmadıysa (K-850) iletişim formu (E-10), kayıt ekranı (E-20) ve yeni hesap açacak Google ile giriş (E-22) kapalıdır; form yerinde kapalı olduğunu söyler, kurumsal sayfalar ve mevcut hesapların girişi etkilenmez. Panel karşılanmayan koşulu kurulum kontrol listesinde adıyla gösterir.
 
-*Kullanıldığı ekranlar:* E-04, E-10, E-12, E-13, E-20, E-22 · E-31, E-44, E-45, E-46, E-47. Matriste: E-04, E-12, E-31, E-44…E-47. *Kaynak: `02 §3.1.5`, §3.1.6, §3.13.19, §3.32.8, §6.1.4, §10.8.2 · `03 §1.10.8`, §2.1.9, §3.2.1.17, §3.5.4.1, §3.5.4.4, §3.5.4.10, §8.7.1.1, §8.7.1.2, §8.7.5.1 · `10 §2` KP-38 · K-750, K-752, K-754 · devir: K-576.*
+*Kullanıldığı ekranlar:* E-04, E-10, E-12, E-13, E-20, E-22 · E-31, E-44, E-45, E-46, E-47. Matriste: E-04, E-12, E-31, E-44…E-47. *Kaynak: `02 §3.1.5`, §3.1.6, §3.13.19, §3.32.8, §6.1.4, §10.8.2 · `03 §1.10.8`, §2.1.9, §3.2.1.17, §3.5.4.1, §3.5.4.4, §3.5.4.10, §8.7.1.1, §8.7.1.2, §8.7.5.1 · `10 §2` KP-38 · K-750, K-752, K-754, K-850 · devir: K-576.*
 
 ### 2.9 "Taslak" bandı ve yönetici şeridi (OB-09)
 
@@ -2652,7 +2669,7 @@ Vitrin çerçevesinin (§2.2) her bölgesinin götürdüğü yer. İskelet E-01�
 | 3.1.16 | Menü — İletişim | Dokunma | E-10 | Her zaman; menünün son öğesi | `02 §3.27.8` · K-746, K-747 |
 | 3.1.17 | Üst bölümün ince satırı ve altbilgi — sosyal medya ve WhatsApp | Dokunma | Platformun kendi sayfası (ürünün dışında) | Bağlantı girilmişse | `02 §3.27.12` · K-746 |
 | 3.1.18 | Altbilgi — genel sayfalar | Dokunma | E-08 | Sayfa Yayında | `02 §3.28.5` · K-747 |
-| 3.1.19 | Altbilgi — aydınlatma metni · çerez politikası · "İşlem rehberi" | Dokunma | E-11 | Her sayfada | `02 §3.24.8`, §3.33.5 · K-747 |
+| 3.1.19 | Altbilgi — aydınlatma metni · çerez politikası · "İşlem rehberi" | Dokunma | E-11 | Her sayfada — firmanın düzenlediği metin hiç yayına alınmamışsa o metnin bağlantısı yoktur (5.11.9); "İşlem rehberi" her zaman | `02 §3.24.8`, §3.33.5 · K-747, K-770 |
 | 3.1.20 | Altbilgi — ETBİS doğrulama bandı | Dokunma | ETBİS'in doğrulama sayfası (ürünün dışında) | ETBİS doğrulama bilgisi girilmişse | `02 §3.1.4` · K-747 |
 | 3.1.21 | Altbilgi — kimlik bloğu | "İletişim" başlığı | E-10 | Her sayfada, E-13 dahil; bloğun kendisi geçiş değildir, bilgi yerinde okunur | `02 §3.1.4`, §3.34.5 · K-747, K-842 |
 
@@ -2867,7 +2884,7 @@ Yönetici oturumu vitrinin hesap alanını ve sepetini değiştirmez (2.9.4): y�
 | E-25 | Hesap — profil ve güvenlik | Üye | Adı, e-postayı ve şifreyi değiştirtir; bekleyen e-posta değişikliğini gösterir; hesabı sildirir. | §5.25 |
 | E-26 | Adres defteri | Üye | Kayıtlı adresleri ekletir, düzenletir ve sildirir. | §5.26 |
 | E-27 | Sipariş geçmişi | Üye | Hesaba bağlı siparişleri listeler ve sipariş sayfasına götürür. | §5.27 |
-| E-28 | E-posta değişikliğini geri alma ekranı | Kullanıcı | "Bu değişikliği ben yapmadım" bağlantısının sonucunu söyler ve şifrenin yeniden belirlenmesine götürür. | §5.28 |
+| E-28 | E-posta değişikliğini geri alma ekranı | Kullanıcı | "Bu değişikliği ben yapmadım" bağlantısıyla açılır; değişikliği tek düğmeyle geri aldırır, sonucunu söyler ve şifrenin yeniden belirlenmesine götürür (K-839). | §5.28 |
 
 ### 4.2 Panelin ekranları
 
@@ -2899,7 +2916,7 @@ Panel ekranlarının aktörü Yönetici'dir; yönetim tarafı tek roldür (`02 �
 | E-51 | Satış özeti | Yönetici | Seçilen dönemin satış ölçülerini gösterir. | Raporlar › Satış özeti | §9.22 |
 | E-52 | İşlem izi | Yönetici | Yönetici işlemlerinin izini tarih ve yönetici süzgeciyle okutur. | Raporlar › İşlem izi | §9.23 |
 | E-53 | Dışa aktarma | Yönetici | Siparişleri, üye listesini ve iletişim taleplerini dosya olarak dışa aktartır. | Raporlar › Dışa aktarma | §9.24 |
-| E-54 | Yönetici hesabının doğrulama ekranları | Yönetici · Kullanıcı | Yöneticinin kimliğini şifre ve e-posta değişikliğinden önce yeniden doğrular; yeni adresin doğrulama bağlantısının ve "bu değişikliği ben yapmadım" bağlantısının sonucunu söyler. | — (E-50'den ve bağlantıdan) | §9.25 |
+| E-54 | Yönetici hesabının doğrulama ekranları | Yönetici · Kullanıcı | Yöneticinin kimliğini şifre ve e-posta değişikliğinden önce yeniden doğrular; yeni adresin doğrulama bağlantısının sonucunu söyler; "bu değişikliği ben yapmadım" bağlantısında değişikliği tek düğmeyle geri aldırır (K-839). | — (E-50'den ve bağlantıdan) | §9.25 |
 
 ### 4.3 Aday listeden envantere farklar ve düşen kimlik
 
@@ -2941,7 +2958,7 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
 | 4.4.11 | Bekleyen işler, toplu işlem ve kurulum sihirbazı ekranı | Yoktur: sayaçlar var olan listelerin süzülmüş hâline götürür (`02 §10.6.1`), toplu işlem yoktur (`02 §10.7.2`), sihirbaz yoktur (`02 §10.8.2`) | — |
 | 4.4.12 | Fatura, banka havalesi ve kargo teslimi | Sistem dışı adımlardır; ürün izlemez (`03 §8.5.8`) | Ürünün dışında |
 
-*Kaynak (§4.1–§4.4): `02 §1.3`, §3.1.6, §3.29.3, §3.29.4, §3.30.5, §3.30.7, §9, §10.1.2, §10.2.5, §10.6.1, §10.7, §10.8.2 · `03 §0.1.3`, §0.1.4, §2.5.1.1, §7, §8.4.10, §8.4.11, §8.5.8, §9.3.6, §10.3.1 · `10 §2` KP-15, KP-37 · K-724, K-725, K-729, K-732, K-734, K-736, K-737, K-738, K-749, K-750, K-751, K-752, K-756, K-763, K-764, K-787.*
+*Kaynak (§4.1–§4.4): `02 §1.3`, §3.1.6, §3.29.3, §3.29.4, §3.30.5, §3.30.7, §9, §10.1.2, §10.2.5, §10.6.1, §10.7, §10.8.2 · `03 §0.1.3`, §0.1.4, §2.5.1.1, §7, §8.4.10, §8.4.11, §8.5.8, §9.3.6, §10.3.1 · `10 §2` KP-15, KP-37 · K-724, K-725, K-729, K-732, K-734, K-736, K-737, K-738, K-749, K-750, K-751, K-752, K-756, K-763, K-764, K-787, K-839.*
 
 ## 5. Ekran tanımları
 
@@ -3126,13 +3143,13 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
   - **5.10.10** Zorunlu dört alan boşsa ve e-posta biçimi geçersizse alan mesajı; gönderimde hatalar birlikte işaretlenir, özet çıkar ve odak ilk hatalı alana gider (§2.3.2). Konu tipi serbest metin kabul etmez (§2.12.1.3). L-4 için 5.10.7.
 - **Durum × rol varyantları** (tam matris §6.2'de — 6.2.10)
   - **5.10.11 Üye girişliyken** ad ve e-posta ön dolu ve düzenlenebilir gelir (`02 §3.32.1`; §2.12.1.7); misafir alıcıda ve ziyaretçide boştur.
-  - **5.10.12 Veri toplayan girişlerin kapısı kapalıyken** — aydınlatma metni tamamlanıp yayına alınmamışsa — form yerinde kapalı olduğunu söyler ve çalışmaz; kimlik bloğu ve şubeler görünür kalır (`02 §3.32.8`; `03 §3.5.3.9`; OB-08, §2.8.3).
+  - **5.10.12 Veri toplayan girişlerin kapısı kapalıyken** — aydınlatma metni tamamlanıp yayına alınmamışsa ya da çerez politikası yayına alınmamışsa (K-850) — form yerinde kapalı olduğunu söyler ve çalışmaz; kimlik bloğu ve şubeler görünür kalır (`02 §3.32.8`; `03 §3.5.3.9`; OB-08, §2.8.3).
   - **5.10.13** Taslak şube ziyaretçiye görünmez; yöneticiye listede "Taslak" etiketiyle görünür (§2.9.3).
 - **Boş / yükleniyor / hata durumları** (OB-07)
   - **5.10.14** Şubesi olmayan firmada şubeler bölgesi görünmez (§2.7.1.1). Gönderim sürerken düğme ikinci kez basılamaz (§2.7.2); gönderim beklenmeyen bir sebeple tamamlanmazsa mesaj düğmenin yanında çıkar ve yazılanlar korunur (§2.7.3.1).
 - **5.10.15 Responsive notları.** Geniş sınıfta iki sütundur: solda kimlik bloğu ve şubeler, sağda form; dar sınıfta 5.10.3–5.10.4'ün sırasıyla tek sütundur. Kimlik bloğu hiçbir sınıfta katlanmaz ve bir bağlantının arkasına saklanmaz (K-747); uzun unvan ve adres satır kırar.
 
-*Kaynak: `02 §3.1.3`, §3.1.4, §3.2.1, §3.15.4, §3.27.7, §3.27.8, §3.27.11, §3.32.1–§3.32.3, §3.32.6–§3.32.10, §3.33.5, §8.3.1, §8.3.3, §6.8.7–§6.8.9, §12.2.6 · `03 §2.2.5`, §2.2.7–§2.2.9, §2.6.7, §3.2.1.13, §3.2.1.20, §3.5.2.7, §3.5.3.7–§3.5.3.9, §5.1.2, §5.1.4, §5.2.2.2, §5.2.3.1, §5.3.1.5, §6.1.1.4, §9.4.4 · `10 §2` KP-30, KP-33, KP-34, KP-35, KP-74 · park satırı K-14 · K-574 · K-747, K-772 · devir: K-547, K-553, K-627, K-678 (gönderim sonrası hâli).*
+*Kaynak: `02 §3.1.3`, §3.1.4, §3.2.1, §3.15.4, §3.27.7, §3.27.8, §3.27.11, §3.32.1–§3.32.3, §3.32.6–§3.32.10, §3.33.5, §8.3.1, §8.3.3, §6.8.7–§6.8.9, §12.2.6 · `03 §2.2.5`, §2.2.7–§2.2.9, §2.6.7, §3.2.1.13, §3.2.1.20, §3.5.2.7, §3.5.3.7–§3.5.3.9, §5.1.2, §5.1.4, §5.2.2.2, §5.2.3.1, §5.3.1.5, §6.1.1.4, §9.4.4 · `10 §2` KP-30, KP-33, KP-34, KP-35, KP-74 · park satırı K-14 · K-574 · K-747, K-772, K-850 · devir: K-547, K-553, K-627, K-678 (gönderim sonrası hâli).*
 
 ### 5.11 E-11 — Yasal metin sayfası
 
@@ -3145,11 +3162,11 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
   - **5.11.6 Yoktur:** Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi bu sayfada genel bir metin olarak durmaz — ikisi siparişe göre üretilir; ödeme adımında (E-13) ve siparişin sayfasında (E-16) okunur (`02 §3.33.1`). Ayrı üyelik sözleşmesi yoktur (`02 §3.24.4`). Çerez onay bandı yoktur; sitede yalnız zorunlu çerezler vardır (`02 §3.33.5`, §12.2.5; `10 §2` KP-73).
 - **5.11.7 Aksiyonlar:** metnin içindeki bağlantılar; onay ve mesaj yoktur.
 - **5.11.8 Validasyonlar:** form yoktur.
-- **5.11.9 Durum × rol varyantları.** Firmanın düzenlediği iki metin henüz hiç yayına alınmamışsa — ilk kurulumda — altbilgide o metnin bağlantısı görünmez ve adresi E-06 döner (K-770); bu sürede satış ve veri toplayan girişler kapalıdır (`02 §3.33.9`, §3.32.8) ve çerez politikası ilk kez yayına alınana kadar vitrin ziyaretçinin tarayıcısına çerez yazmaz (K-834). "İşlem rehberi" bu kapıya bağlı değildir. Tam matris §6.2'dedir — 6.2.11.
+- **5.11.9 Durum × rol varyantları.** Firmanın düzenlediği iki metin henüz hiç yayına alınmamışsa — ilk kurulumda — altbilgide o metnin bağlantısı görünmez ve adresi E-06 döner (K-770). İki metin de yayına alınana kadar satış ve veri toplayan girişler kapalıdır — kapının tanımı `02 §3.1.5`'tedir (K-850) — ve çerez politikası ilk kez yayına alınana kadar vitrin ziyaretçinin tarayıcısına çerez yazmaz (`02 §12.2.5`; K-834). "İşlem rehberi" bu kapıya bağlı değildir. Tam matris §6.2'dedir — 6.2.11.
 - **5.11.10 Boş / yükleniyor / hata durumları.** Ekrana özgü boş hâl yoktur — firmanın düzenlediği iki metin zorunludur ve boşaltılamaz (`02 §3.33.2`). Yükleniyor ve hata OB-07'nin kalıbıdır.
 - **5.11.11 Responsive notları.** Tek sütun; uzun metin sınıflar arasında yalnız satır uzunluğuyla değişir.
 
-*Kaynak: `02 §3.24.4`, §3.24.8, §3.32.8, §3.33.1–§3.33.3, §3.33.5, §3.33.9, §12.2 · `03 §7.2.22`, §7.3.42 · `10 §2` KP-30, KP-35, KP-73 · K-770, K-834 · devir: K-547, K-626 ("İşlem rehberi" sayfası).*
+*Kaynak: `02 §3.24.4`, §3.24.8, §3.32.8, §3.33.1–§3.33.3, §3.33.5, §3.33.9, §12.2 · `03 §7.2.22`, §7.3.42 · `10 §2` KP-30, KP-35, KP-73 · K-770, K-834, K-850 · devir: K-547, K-626 ("İşlem rehberi" sayfası).*
 
 ### 5.12 E-12 — Sepet
 
@@ -3327,7 +3344,7 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
   - **5.18.8 Yoktur:** cayma sebebi alanı — cayma sebepsizdir ve ayrı bir form doldurma zorunluluğu yoktur (`02 §7.3.5`, §7.1.1) · iade etiketi, taşıyıcı seçimi ve takip numarası alanı (`02 §7.4.4`) · fotoğraf ve dosya yükleme (`02 §8.4.1`).
 - **Aksiyonlar**
   - **5.18.9 Kalemleri ve adetlerini seçmek ve — havalede — IBAN'ı yazmak.** Seçim ya da adet değişince iade bilgisi bölümü, son adımın kalem listesi ve sonuç cümlesi yerinde güncellenir.
-  - **5.18.10 Onaylamak** (`03 §2.8.1.2`, §2.8.2.2; 3.3.25). Kalemler cayma beyanını tarih damgasıyla alır ve müşteri E-16'ya döner; sonuç kalemin satırında kalıcı durur — beyanın tarihi ve fiziksel kalemde beyana yazılan iade adresi (5.16.5). Teslim işaretsiz kalemi beyan kapatır ve kapanış kuralı işler (`03 §1.4.3`, §2.8.1.2; `02 §5.6.6`). Kayıt kopyası B-9'la gider — beyanın tarihi ve iade adresi (`02 §9.2`).
+  - **5.18.10 Onaylamak** (`03 §2.8.1.2`, §2.8.2.2; 3.3.25). Kalemler cayma beyanını tarih damgasıyla alır ve müşteri E-16'ya döner; sonuç kalemin satırında kalıcı durur — beyanın tarihi ve fiziksel kalemde beyana yazılan iade adresi (5.16.5). Teslim işaretsiz kalemi beyan kapatır ve kapanış kuralı işler (`03 §1.4.3`, §2.8.1.2; `02 §5.6.6`). Kayıt kopyası B-9'la gider — beyanın tarihi, kalemleri ve adetleri, iade adresi (`02 §9.2`; K-790).
   - **5.18.11 "Vazgeç"** → E-16; hiçbir kayıt doğmaz. **Pencere ya da hak o arada kapandıysa** — teslim tarihi geç girildi ve pencere dolmuş görünüyor, hizmet tamamlandı — onay uygulanmaz ve ekran sebebini söyler (5.17.11'in kalıbı; §2.10.2; `03 §3.3.12`).
 - **5.18.12 Validasyonlar.** En az bir kalem seçilmeden onaylanmaz; adet 2.12.1.8'in sınırlarındadır; havalede IBAN 5.17.12'nin kuralıyla. Alan envanteri §7.1'dedir — 7.1.9.
 - **5.18.13 Durum × rol varyantları.** Kalem tipine göre: fiziksel kalemde iade bilgisi, hizmette iade bilgisi yok; koşullu istisnada koşul satırı. Siparişin durumuna göre: Kargoya verildi, Teslim edilemedi ve Teslim edildi'de fiziksel kalem; ödeme onayından sonra hizmet kalemi (`03 §1.11.5`, §1.11.6). Üye ile misafir alıcı arasında fark yoktur. Tam matris §6.2'dedir — 6.2.18.
@@ -3345,7 +3362,7 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
   - **5.19.4 Yeniden açma:** (1) talebin kalemi ve ayıplı adedi, ilk açıklaması, açılış tarihi ve Çözüldü rozeti (§2.5.1.5) · (2) yeniden açmanın yeni bir talep açmadığı ve ayıbın geçmişinin tek kayıtta kaldığı (`02 §5.10`) · (3) ek bilginin firmanın e-postasına yazılacağı — firmanın iletişim e-postasıyla; açıklama alanı yoktur (K-783; `03 §2.9.3`'ün kalıbı) · (4) yeniden açma düğmesi.
   - **5.19.5 Yoktur:** fotoğraf ve dosya yükleme — firma kanıtı e-postayla ister (`02 §7.5.2`; §2.12.8.6) · seçimlik hakkın — onarım, değişim, bedel indirimi, sözleşmeden dönme — ekranda seçilmesi; çözüm firmanın müşteriyle sistemin dışında yürüttüğü süreçtir (`02 §7.5.3`; `03 §2.9.4`) · onay adımı — talep geri alınamaz dört işlemden biri değildir (§2.4.2.4).
 - **Aksiyonlar**
-  - **5.19.6 Talebi göndermek** (`03 §2.9.2`). Onay istemez. Talep Açık doğar ve kalem ve sipariş bağlamıyla panele düşer (`02 §7.5.2`); müşteri E-16'ya döner ve sonuç kalemin satırında kalıcı durur — talebin rozeti ve tarihi; "sorun bildir"in yerinde talebin durumu görünür (`03 §2.9.3`; 5.16.5). Kayıt kopyası B-9'la gider — talebin tarihi ve fiziksel kalemde iade adresi (`02 §9.2`).
+  - **5.19.6 Talebi göndermek** (`03 §2.9.2`). Onay istemez. Talep Açık doğar ve kalem ve sipariş bağlamıyla panele düşer (`02 §7.5.2`); müşteri E-16'ya döner ve sonuç kalemin satırında kalıcı durur — talebin rozeti ve tarihi; "sorun bildir"in yerinde talebin durumu görünür (`03 §2.9.3`; 5.16.5). Kayıt kopyası B-9'la gider — talebin tarihi, kalemi ve ayıplı adedi, fiziksel kalemde iade adresi (`02 §9.2`; K-790).
   - **5.19.7 Talebi yeniden açmak** (`03 §2.9.6`, §1.11.10). Onay istemez; talep Çözüldü → Açık olur, müşteri E-16'ya döner ve B-9 yeniden açmanın tarihini taşır (K-681).
   - **5.19.8 "Vazgeç"** → E-16; yazılan açıklama saklanmaz.
 - **5.19.9 Validasyonlar.** Kalem seçilmeli, adet 2.12.1.8'in sınırlarında olmalı ve açıklama boş olmamalıdır — alan mesajı (OB-12). Alan envanteri §7.1'dedir — 7.1.10.
@@ -3353,7 +3370,7 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
 - **5.19.11 Boş / yükleniyor / hata durumları.** Ekranın boş hâli yoktur. Gönderim sürerken düğme ikinci kez basılamaz (§2.7.2); gönderim beklenmeyen bir sebeple tamamlanmazsa mesaj düğmenin yanında çıkar ve yazılan açıklama korunur (§2.7.3.1).
 - **5.19.12 Responsive notları.** Tek sütundur; açıklama alanı her sınıfta formun tam genişliğindedir.
 
-*Kaynak: `02 §3.1.7`, §3.33.5, §5.10, §7.5.1–§7.5.3, §9.2 · `03 §1.7.1.10`, §1.11.9, §1.11.10, §2.9, §3.3.15, §4.1.21, §5.1.4 · `10 §2` KP-23, KP-74 · K-681, K-783, K-793, K-795, K-830 · devir: K-553, K-665, K-676.*
+*Kaynak: `02 §3.1.7`, §3.33.5, §5.10, §7.5.1–§7.5.3, §9.2 · `03 §1.7.1.10`, §1.11.9, §1.11.10, §2.9, §3.3.15, §4.1.21, §5.1.4 · `10 §2` KP-23, KP-74 · K-681, K-783, K-790, K-793, K-795, K-830 · devir: K-553, K-665, K-676.*
 
 ### 5.20 E-20 — Kayıt ekranı
 
@@ -3369,12 +3386,12 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
   - **5.20.8 "Google ile giriş"** — Google'ın sayfasına (3.3.27); dönüşte hesap doğrulanmış ve şifresiz doğar (`03 §9.1.6`) ya da Google e-postayı doğrulanmamış verdiyse kullanıcı bu ekrana, formun başındaki yönlendirme mesajıyla döner (`03 §9.1.7`; K-697; metni K-779).
 - **5.20.9 Validasyonlar** (OB-12; alan envanteri §7.1 — 7.1.11). Ad boş olamaz · e-posta biçimi geçerli olmalıdır · şifre asgari uzunluğu (P-17) karşılamalı ve çok yaygın şifreler listesinde olmamalıdır — ret alan mesajıdır (`03 §3.4.6`) · e-posta bir müşteri hesabına — doğrulanmamış bekleyen kayıt dahil — aitse alan mesajı kaynağın metnini söyler: *"bu e-posta zaten kayıtlı"* ve çerçevenin "Giriş yap"ına götüren bağlantıyı taşır (`02 §3.13.11`; `03 §3.4.3`). Ekran hesabın varlığını burada bilerek ele verir; L-3 sorgulamayı daraltır (`02 §8.1.4`). L-3 aşılınca nötr limit mesajı (`03 §3.4.11`; §2.3.5).
 - **Durum × rol varyantları** (tam matris §6.2'de — 6.2.20)
-  - **5.20.10 Veri toplayan girişlerin kapısı kapalıyken** — aydınlatma metni tamamlanıp yayına alınmamışsa — form yerinde kapalı olduğunu söyler ve çalışmaz; Google ile yeni hesap da açılmaz (OB-08, §2.8.3; `03 §3.4.12`). Mevcut hesapların girişi etkilenmez.
+  - **5.20.10 Veri toplayan girişlerin kapısı kapalıyken** — aydınlatma metni tamamlanıp yayına alınmamışsa ya da çerez politikası yayına alınmamışsa (K-850) — form yerinde kapalı olduğunu söyler ve çalışmaz; Google ile yeni hesap da açılmaz (OB-08, §2.8.3; `03 §3.4.12`). Mevcut hesapların girişi etkilenmez.
   - **5.20.11** Google uygulaması kurulumda tanımlı değilse "Google ile giriş" görünmez ve üyelik e-posta ve şifreyle yürür (`03 §10.1.3.3`). Kayıt yalnız müşteri hesabı açar; yönetici hesabı davetle doğar (`02 §10.2.5`; K-588).
 - **5.20.12 Boş / yükleniyor / hata durumları.** Ekranın boş hâli yoktur. Gönderim sürerken düğme ikinci kez basılamaz (§2.7.2); beklenmeyen hatada yazılanlar korunur (§2.7.3.1). E-posta altyapısının kesintisinde bağlantı ulaşmadan kayıt tamamlanmaz; kullanıcı altyapı dönünce bağlantıyı yeniden ister (`03 §10.1.2.5`).
 - **5.20.13 Responsive notları.** Tek sütundur; "Google ile giriş" her sınıfta formun üstündedir.
 
-*Kaynak: `02 §3.13.4`–§3.13.6, §3.13.11, §3.13.15, §3.13.18, §3.13.19, §3.13.21, §3.24.4, §3.33.5, §8.1.4, §9.4, §10.2.5 · `03 §1.10.5`, §3.1.1, §3.4.3, §3.4.6, §3.4.7, §3.4.11, §3.4.12, §3.4.14, §6.1.1.3, §6.1.1.9, §7.1.49, §9.1.1–§9.1.3, §9.1.6, §9.1.7, §9.4.7, §10.1.2.5, §10.1.3.3 · `10 §2` KP-25, KP-26, KP-74 · K-779 · devir: K-553, K-605 (ad alanı), K-659 (yeniden isteme mesajı), K-697 (yönlendirme mesajı).*
+*Kaynak: `02 §3.13.4`–§3.13.6, §3.13.11, §3.13.15, §3.13.18, §3.13.19, §3.13.21, §3.24.4, §3.33.5, §8.1.4, §9.4, §10.2.5 · `03 §1.10.5`, §3.1.1, §3.4.3, §3.4.6, §3.4.7, §3.4.11, §3.4.12, §3.4.14, §6.1.1.3, §6.1.1.9, §7.1.49, §9.1.1–§9.1.3, §9.1.6, §9.1.7, §9.4.7, §10.1.2.5, §10.1.3.3 · `10 §2` KP-25, KP-26, KP-74 · K-779, K-850 · devir: K-553, K-605 (ad alanı), K-659 (yeniden isteme mesajı), K-697 (yönlendirme mesajı).*
 
 ### 5.21 E-21 — Doğrulama bağlantısının iniş ekranı
 
@@ -3515,7 +3532,7 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
 - **5.28.1 Aktör · giriş · çıkış.** Kullanıcı — adresin önceki sahibi. Giriş: eski adrese giden bildirimdeki "bu değişikliği ben yapmadım" bağlantısı (3.5.7). Çıkış: yeni şifre e-postadaki sıfırlama bağlantısıyla E-23'te kurulur (3.3.33) · çerçeve.
 - **5.28.2 İlk görülen:** geçerli bağlantıda geri almanın sonucunu söyleyen tek cümle ve işlemin adını taşıyan tek birincil düğme — geri alma düğmeyle olur (K-839); geri almadan sonra ve geçersiz bağlantıda sonucu söyleyen tek cümle, birincil düğme yoktur — sonraki adım e-postadadır.
 - **Bilgi hiyerarşisi** — geri alma adımı ve iki hâl (K-782, K-839):
-  - **5.28.3 Geri alındı** — bağlantı Z-45 içinde ve ilk kez açıldıysa ekran önce geri alma adımını gösterir: değişikliğin geri alınacağını ve sonucunu söyleyen tek cümle ve işlemin adını taşıyan tek düğme; bağlantının açılması değişikliği geri almaz (K-839). Düğmeye basılınca: hesabın e-postasının önceki adrese döndüğü · hesabın bütün oturumlarının kapandığı · değişiklik süresince bağlanmış Google girişinin kaldırıldığı — varsa · şifrenin geçersizleştiği ve önceki adrese şifre sıfırlama bağlantısı gönderildiği — yeni şifre o bağlantıyla kurulur · değişiklik süresince hesaba bağlanmış siparişlerin hesapta kaldığı (`02 §3.13.14`; `03 §9.3.6`, §6.2.5.2; K-599).
+  - **5.28.3 Geri alındı** — bağlantı Z-45 içindeyse ve henüz kullanılmamışsa — kaç kez açıldığına bakılmaz; açılış geri almaz (K-839) — ekran önce geri alma adımını gösterir: değişikliğin geri alınacağını ve sonucunu söyleyen tek cümle ve işlemin adını taşıyan tek düğme; bağlantının açılması değişikliği geri almaz (K-839). Düğmeye basılınca: hesabın e-postasının önceki adrese döndüğü · hesabın bütün oturumlarının kapandığı · değişiklik süresince bağlanmış Google girişinin kaldırıldığı — varsa · şifrenin geçersizleştiği ve önceki adrese şifre sıfırlama bağlantısı gönderildiği — yeni şifre o bağlantıyla kurulur · değişiklik süresince hesaba bağlanmış siparişlerin hesapta kaldığı (`02 §3.13.14`; `03 §9.3.6`, §6.2.5.2; K-599).
   - **5.28.4 Bağlantı geçersiz** — süresi dolmuş ya da daha önce kullanılmış: bağlantının geçersiz olduğu ve ürünün içinden geri alma yolu kalmadığı; siparişlere sipariş e-postalarındaki bağlantıyla girilmeye devam edildiği; firmaya İletişim sayfasından ulaşılabileceği — İletişim'e çerçeveden gidilir (`03 §6.2.5.3`, §4.1.44; 3.1.16). Daha önce kullanılmış bağlantı geri almanın yapıldığını söyler.
   - **5.28.5 Yoktur:** ekranda şifre alanı — şifre e-postadaki bağlantıyla kurulur (`03 §9.3.6`; 3.3.33) · değişikliği yapanın kimliği ve yeni adres — bildirim yeni adresi taşımaz (`02 §3.13.14`) · geri alma adımında ek soru ve ayrı onay penceresi — tek düğme işlemin kendisidir (K-839).
 - **5.28.6 Aksiyonlar:** **değişikliği geri almak** — geri alma adımının tek düğmesi; onay penceresi açılmaz, düğme işlemin adını taşır (`03 §9.3.6`; K-839). Öteki hâllerde aksiyon yoktur; ekran sonucu söyler. Bildirimin metni Entegrasyon Spesifikasyonu'nun işidir (K-735; §4.4.1).
@@ -3739,7 +3756,7 @@ Matris ayrıca iki ekran tanımını kaynağa hizaladı — karar gerektirmeyen 
 | 6.2.16.21 | Müşteri | Ayıp talebi Açık | Talebin rozeti ve açılış tarihi; "sorun bildir"in yerinde talebin durumu (5.16.5) | Talepte işlem sunulmaz — ek bilgi firmanın e-postasına | `03 §2.9.3` · K-676 |
 | 6.2.16.22 | Müşteri | Ayıp talebi Çözüldü — Z-18 içinde | Rozet ve tarihler | Ayıp talebini yeniden açmak → E-19 | `03 §1.11.10` · K-681 |
 | 6.2.16.23 | Müşteri | Ayıp talebi Çözüldü ya da talep yok — Z-18 dolmuş | Rozet ve tarihler | Yeniden açma ve "sorun bildir" sunulmaz; yol iletişim formudur (5.19.10) | `03 §4.1.21`, §5.1.4 |
-| 6.2.16.24 | Müşteri | Fiziksel kalem — teslim tarihi girilmemiş | Teslim işareti yok | Caymak açık — mal yoldayken de; ayıp süresi işlemez (5.19.10) | `03 §1.11.5`, §1.11.9 |
+| 6.2.16.24 | Müşteri | Fiziksel kalem — teslim tarihi girilmemiş | Teslim işareti yok | Caymak açık — mal yoldayken de · Ayıp talebi açmak — sipariş Kargoya verildi'ye geçtiği andan açık, Z-18 işlemez (5.19.3, 5.19.10) | `03 §1.11.5`, §1.11.9 · K-830 |
 | 6.2.16.25 | Üye · Misafir alıcı | Her durum | Aynı sayfa; fark girişin yoludur (5.16.18) | Aynı | `02 §3.22.3` |
 | 6.2.16.26 | Müşteri — hesabı silinmiş ya da e-postası değişmiş | Her durum | Aynı sayfa, misafir yolundan ya da e-postadaki bağlantıyla (5.16.18) | Aynı | `03 §2.6.6`, §9.4.3 |
 | 6.2.16.27 | Ziyaretçi | Hâl: geçersiz erişim anahtarı · kişisel verileri imha edilmiş sipariş | E-06; siparişin varlığı açığa çıkmaz (5.16.20) | E-06'nın dönüşleri | `02 §3.22.5` · `03 §6.2.4.2` |
@@ -3868,7 +3885,7 @@ Matris ayrıca iki ekran tanımını kaynağa hizaladı — karar gerektirmeyen 
 
 | # | Rol | Durum | Ne gösterilir | Hangi aksiyonlar aktif | Kaynak |
 |---|---|---|---|---|---|
-| 6.2.28.1 | Kullanıcı | Hâl: bağlantı Z-45 içinde ve ilk kez açıldı | Geri alma adımı; düğmeden sonra geri alındı (5.28.3) | Değişikliği geri almak — tek düğme; sonra yeni şifre e-postadaki bağlantıyla → E-23 | `03 §9.3.6` · K-782, K-839 |
+| 6.2.28.1 | Kullanıcı | Hâl: bağlantı Z-45 içinde ve kullanılmamış — kaç kez açıldığına bakılmaz | Geri alma adımı; düğmeden sonra geri alındı (5.28.3) | Değişikliği geri almak — tek düğme; sonra yeni şifre e-postadaki bağlantıyla → E-23 | `03 §9.3.6` · K-782, K-839 |
 | 6.2.28.2 | Kullanıcı | Hâl: süresi dolmuş ya da kullanılmış | Bağlantı geçersiz; kullanılmışta geri almanın yapıldığı (5.28.4) | Çerçeve — İletişim | `03 §6.2.5.3` · K-782 |
 
 *Kaynak: `02 §3.1.6`, §3.7, §3.13, §3.16, §3.20.1, §3.22, §3.27.25, §3.32, §3.33, §5, §7 · `03 §1.4`, §1.7, §1.10.8, §1.11.1–§1.11.14, §2, §3.2–§3.4, §6.1, §9, §10.1 · `10 §2` KP-1…KP-38 · K-732, K-744, K-748, K-753…K-758, K-765, K-770…K-796 (müşteri ekranlarının kararları), K-826, K-828, K-829.*
@@ -4170,7 +4187,7 @@ Panel tek roldür; rol sütunu Yönetici'dir, oturumdan önce açılan adımlard
 | 7.1.5.6 | Fatura adresi — alıcının adı ve soyadı, il, ilçe, açık adres | Zorunlu — işaret kaldırıldıysa ya da fiziksel kalem yoksa | Adres (7.3.2.5); telefon, posta kodu, T.C. kimlik numarası yok (`02 §3.14.6`) | Alan mesajı | — |
 | 7.1.5.7 | Kupon kodu | İsteğe bağlı | Büyük-küçük harf ayrımsız; `02 §3.10`'un koşulları; en fazla bir kod (`02 §3.10.1`) | Alan mesajı — geçersiz kod (`03 §3.2.1.12`); asgari tutarın altındaki geçerli kodda ayrı mesaj (5.13.15; K-845) | L-6 |
 | 7.1.5.8 | Ödeme yöntemi | Zorunlu | Kullanılamayan yöntem seçilemez (5.13.8) | Alan mesajı | L-8 (havale) |
-| 7.1.5.9 | Onay kutuları — iki kutu; dijital ve hizmet kalemi kutusu | Zorunlu — sepete göre üçüncü ve dördüncü | İşaretli gelmez; metin sürümü değişirse işaret kalkar (`02 §3.24.1`, §3.24.2; K-756) | Alan mesajı — eksik kutu, ekran ilk eksiğe gider | — |
+| 7.1.5.9 | Onay kutuları — iki kutu; dijital ve hizmet kalemi kutusu | Zorunlu — sepete göre üçüncü ve dördüncü | İşaretli gelmez; metin sürümü değişirse ya da özet farkı Ön Bilgilendirme Formu'nun içeriğini değiştirirse iki yasal metnin kutularının işareti kalkar (§2.12.7.3; `02 §3.24.1`, §3.24.2; K-756, K-833) | Alan mesajı — eksik kutu, ekran ilk eksiğe gider | — |
 | 7.1.5.10 | Onay — siparişin kendisi | — | Sepet onay anında yeniden değerlendirilir (5.13.20) | Yerinde kalıcı — özet farkı, satış kapalı, L-7 (5.13.20, 5.13.21) | L-7 |
 
 **7.1.6 E-15 — sipariş takibi girişi** (5.15.5).
@@ -4258,7 +4275,7 @@ Panel tek roldür; rol sütunu Yönetici'dir, oturumdan önce açılan adımlard
 | 7.1.16.2 | Alıcının adı ve soyadı, il, ilçe, açık adres | Zorunlu | Adres (7.3.2.5) | Alan mesajı | — |
 | 7.1.16.3 | Telefon | İsteğe bağlı | Telefon (7.3.2.4) | Alan mesajı | — |
 
-*Kaynak: `02 §3.3.3`, §3.5, §3.10, §3.13, §3.14.6, §3.16.8, §3.16.9, §3.20.1, §3.22.3, §3.24, §3.32, §5.10, §7.4.5, §7.5.2, §8.1.4, §8.2, §10.2.5 · `03 §2.1.4`, §2.3.3, §2.4, §3.2.1, §3.2.2, §3.4, §6.1, §9.2, §9.3 · `10 §2` KP-72 · K-659, K-680, K-756, K-772, K-779, K-783, K-786, K-793, K-795, K-796, K-806, K-830, K-845 · devir: K-301 (form alanları), K-304 (formda görünmez alan).*
+*Kaynak: `02 §3.3.3`, §3.5, §3.10, §3.13, §3.14.6, §3.16.8, §3.16.9, §3.20.1, §3.22.3, §3.24, §3.32, §5.10, §7.4.5, §7.5.2, §8.1.4, §8.2, §10.2.5 · `03 §2.1.4`, §2.3.3, §2.4, §3.2.1, §3.2.2, §3.4, §6.1, §9.2, §9.3 · `10 §2` KP-72 · K-659, K-680, K-756, K-772, K-779, K-783, K-786, K-793, K-795, K-796, K-806, K-830, K-833, K-845 · devir: K-301 (form alanları), K-304 (formda görünmez alan).*
 
 ### 7.2 Panelin formları
 
@@ -4662,7 +4679,7 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
 - **9.3.2 İlk görülen:** varsa uyarılar, yoksa kurulum kontrol listesi, o da yoksa bekleyen işlerin sayaçları. Ekranın birincil düğmesi yoktur; her satır ve her sayaç kendi ekranına götürür (K-750).
 - **Bilgi hiyerarşisi** — panel çerçevesinin (OB-02) içinde yukarıdan aşağıya dört bölüm; boş bölüm görünmez (K-750; §2.7.1.1):
   - **9.3.3 (1) Uyarılar** — koşulu sürerken görünen, çözüleceği ekrana götüren satırlar, şu sırayla (2.5.5; K-799): satışın kapalı olduğu ve sebebi — geçici kapatma ya da karşılanmayan koşul, adıyla (§2.8.2) · kanal uyarısı — *"e-posta gönderilemiyor — kurulum ayarını kontrol edin"* (`03 §10.1.2.3`); geçiş taşımaz, çözümü kurulum ayarıdır (K-769) · "firma bildirimleri ulaşmıyor" uyarısı — bildirimlerin gittiği adresle (K-760) · "e-posta ulaşmadı" işaretli siparişlerin sayısını söyleyen satır — bekleyen iş sayacı değildir (K-761) · kart iadesinin gerçekleşmediği uyarısı — sayısıyla (`03 §8.3.3.4`). Satırların metni K-799'da, götürdükleri yer 3.4.3'tedir.
-  - **9.3.4 (2) Kurulum kontrol listesi** — satışın açılması için eksik maddeler adıyla (`02 §10.8.2`; `03 §8.7.1.1`; `10 §4.1` ÖK-8…ÖK-11): firma tipinin zorunlu kimlik alanları — KEP adresi dahil · en az bir açık ödeme yöntemi — havale açıksa IBAN · aydınlatma metni ve çerez politikası — ikisi de yayında; maddenin altında, aydınlatma tamamlanıp yayına alınana kadar iletişim formunun, hesap kaydının ve yeni hesap açan Google ile girişin de kapalı olduğu yazar (OB-08, §2.8.3) · iade adresi. Tamamlanan madde işaretli görünür; hepsi tamamlanınca bölüm kaybolur. Sihirbaz ve adım sırası yoktur; kurulumun dış ön koşulları (ÖK-1…ÖK-7) listede değildir.
+  - **9.3.4 (2) Kurulum kontrol listesi** — satışın açılması için eksik maddeler adıyla (`02 §10.8.2`; `03 §8.7.1.1`; `10 §4.1` ÖK-8…ÖK-11): firma tipinin zorunlu kimlik alanları — KEP adresi dahil · en az bir açık ödeme yöntemi — havale açıksa IBAN · aydınlatma metni ve çerez politikası — ikisi de yayında; maddenin altında, iki metin de yayına alınana — aydınlatma tamamlanıp — kadar iletişim formunun, hesap kaydının ve yeni hesap açan Google ile girişin de kapalı olduğu yazar (OB-08, §2.8.3; K-850) · iade adresi. Tamamlanan madde işaretli görünür; hepsi tamamlanınca bölüm kaybolur. Sihirbaz ve adım sırası yoktur; kurulumun dış ön koşulları (ÖK-1…ÖK-7) listede değildir.
   - **9.3.5 (3) Bekleyen işler** — altı sayaç, `02 §10.6.1`'in sırasıyla ve adlarıyla (OB-06, 2.6.1): ödeme onayı bekleyen · kargoya verilecek — geri dönen Teslim edilemedi siparişleri dahil · teslim işareti bekleyen · tamamlanmayı bekleyen hizmet · açık talep · iade ve geri ödeme bekleyen — sağlayıcıda gerçekleşmeyen kart iadesi dahil. Sıfır olan sayaç da görünür ve sıfır yazar. Sayaç kalan süre göstermez; süreler listede ve siparişte görünür (2.6.3).
   - **9.3.6 (4) Müşteriden beklenenler** — "IBAN bekleniyor" listesi (2.6.2; K-750): kalemler satır satır — sipariş numarası, kalemin adı, isteğin sebebi ve tarihi; süresi olan hatta geri ödemenin kalan süresi —; kalan süresi en az olan önce, süre sayacı olmayan satırlar — ayıp talebinin çözümü ve tutar bazlı geri ödeme — onların ardından isteğin tarihiyle (`02 §10.6.1`; K-716). İlk on satır gösterilir; tamamı sipariş listesinin "IBAN bekleniyor" süzgecindedir (9.8.4). Liste sayaç değildir ve bekleyen işlerde sayılmaz — iş müşteridedir (K-525).
   - **9.3.7 Yoktur:** satış özeti — Raporlar'dadır (K-750) · yedinci sayaç (`02 §10.6.1`) · bekleyen işlerin e-postayla hatırlatılması (`02 §10.6.1`) · ayrı bir "bekleyen işler" ekranı — sayaç var olan listenin süzülmüş hâline götürür (`02 §10.6.1`) · kurulum sihirbazı ve örnek içerik (`02 §10.8.1`, §10.8.2).
@@ -4676,7 +4693,7 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
 - **9.3.13 Boş / yükleniyor / hata durumları.** Boş bölüm görünmez (§2.7.1.1); bekleyen işler bölümü hiçbir zaman boş değildir — sayaçlar sıfır yazar (§2.7.1.3). Bölümler kendi yerlerinde yüklenir (§2.7.2); sayfa açılamazsa panel çerçevesinin içinde §2.7.3.2.
 - **9.3.14 Responsive notları.** Dar sınıfta dört bölüm aynı sırayla alt alta gelir ve sayaçlar ikişerli dizilir (K-750); orta sınıfta sayaçlar üçerli, geniş sınıfta tek sırada durur. Uyarı satırları satır kırar, kesilmez. Sayaçtan siparişe en çok üç adımdır (2.1.2; K-741).
 
-*Kaynak: `02 §3.1.5`, §3.1.6, §3.33.9, §6.1.1, §6.9, §9.1.6, §10.6.1, §10.8.1, §10.8.2 · `03 §1.7.3`, §3.3.24, §3.3.26, §3.5.2.3, §3.5.2.10, §3.5.4.1, §3.5.4.4, §3.5.4.10, §4.1.29, §4.2.10, §6.3.1.1, §7.1.29–§7.1.34, §7.2.15, §8.6.4.1, §8.7.1.1, §8.7.1.2, §8.9.1, §10.1.2.2, §10.1.2.3, §10.3.5 · `10 §2` KP-38, KP-50, KP-65, KP-68 · `10 §4.1` ÖK-8…ÖK-11 · K-741, K-750, K-760, K-761, K-769, K-799, K-802 · devir: K-491, K-498, K-522 (kanal uyarısının metni), K-525, K-535, K-540, K-576 (kapı uyarıları), K-581, K-613.*
+*Kaynak: `02 §3.1.5`, §3.1.6, §3.33.9, §6.1.1, §6.9, §9.1.6, §10.6.1, §10.8.1, §10.8.2 · `03 §1.7.3`, §3.3.24, §3.3.26, §3.5.2.3, §3.5.2.10, §3.5.4.1, §3.5.4.4, §3.5.4.10, §4.1.29, §4.2.10, §6.3.1.1, §7.1.29–§7.1.34, §7.2.15, §8.6.4.1, §8.7.1.1, §8.7.1.2, §8.9.1, §10.1.2.2, §10.1.2.3, §10.3.5 · `10 §2` KP-38, KP-50, KP-65, KP-68 · `10 §4.1` ÖK-8…ÖK-11 · K-741, K-750, K-760, K-761, K-769, K-799, K-802, K-850 · devir: K-491, K-498, K-522 (kanal uyarısının metni), K-525, K-535, K-540, K-576 (kapı uyarıları), K-581, K-613.*
 
 ### 9.4 E-32 — Ürün listesi
 
@@ -4848,11 +4865,11 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
   - **9.10.8 Süzmek** — liste ilk sayfasına döner; seçili süzgeçlerin adı listenin başında durur ve tek dokunuşla kaldırılır (§2.13.3). Onay ve mesaj yoktur.
   - **9.10.9 Talebi açmak** — iletişim talebi → E-39; ayıp talebi → E-37'nin ayıp talepleri bölümü, talebin satırına odaklanmış (3.4.8; 9.9.7). Kapatma, çözüldü işareti ve yeniden açma açılan ekrandadır (9.11.8, 9.9.30); bu ekranın kendi işlemi yoktur.
 - **9.10.10 Validasyonlar:** süzgeçler kapalı değerlerdir; serbest metin ve biçim denetimi yoktur. Alan envanteri §7.2'dedir — 7.2.3.
-- **9.10.11 Durum × rol varyantları.** "Açık" süzgeciyle liste ana sayfanın "açık talep" sayacının kapsamıdır ve satır sayısı sayaçtaki sayıya eşittir (`02 §10.6.1`; K-751). Talep saklama süresinin sonunda listeden düşer — kapatılmamış açık talep de (`03 §4.1.37`; Z-33). Satış kapısı listeyi etkilemez; aydınlatma metni tamamlanmamışken iletişim formu kapalı olduğu için yeni iletişim talebi gelmez (§2.8.3). Tam matris §6.3'tedir — 6.3.10.
+- **9.10.11 Durum × rol varyantları.** "Açık" süzgeciyle liste ana sayfanın "açık talep" sayacının kapsamıdır ve satır sayısı sayaçtaki sayıya eşittir (`02 §10.6.1`; K-751). Talep saklama süresinin sonunda listeden düşer — kapatılmamış açık talep de (`03 §4.1.37`; Z-33). Satış kapısı listeyi etkilemez; veri toplayan girişlerin kapısı kapalıyken — aydınlatma metni tamamlanmamışken ya da çerez politikası yayında değilken — iletişim formu kapalı olduğu için yeni iletişim talebi gelmez (§2.8.3; K-850). Tam matris §6.3'tedir — 6.3.10.
 - **9.10.12 Boş / yükleniyor / hata durumları.** Hiç talep yoksa boş hâl satırı neyin olmadığını söyler; ilk kaydı açan düğme yoktur — talepler vitrinden gelir (§2.7.1.2). Süzgecin sonucu boşsa satır süzgeci kaldırma yolunu taşır; sıfır sayaçtan gelinen liste boş hâl satırıyla açılır (3.4.2). Tablo kendi yerinde yüklenir (§2.7.2); sayfa açılamazsa §2.7.3.2.
 - **9.10.13 Responsive notları.** Orta sınıfta talebin özünün ikinci satırı — gönderenin e-postası ya da sipariş numarası — satırın altına iner. Dar sınıfta kart listesidir; kart türü, talebin özünü, durum rozetini ve işareti taşır, birincil işlemi talebi açmaktır (§2.13.4; K-741). Süzgeçler dar sınıfta listenin üstünde açılır bölümdedir.
 
-*Kaynak: `02 §3.32.3`–§3.32.6, §3.32.9, §5.10, §5.13, §9.1.6, §10.1.2, §10.6.1, §10.7.4 · `03 §1.7.1.10`, §1.7.3.1, §1.11.37, §2.9.2, §2.9.5, §3.3.15, §4.1.37, §7.1.39, §7.1.42, §7.1.43, §7.3.29, §7.3.37, §8.4.10, §8.4.11, §8.5.6, §8.6.4.1, §8.9.1, §8.9.6, §10.1.2.2 · `10 §2` KP-34, KP-49 · K-737, K-741, K-751, K-766, K-793, K-809, K-836 · devir: K-540 (ayıp talebinin yeniden açılması ve bildirimi).*
+*Kaynak: `02 §3.32.3`–§3.32.6, §3.32.9, §5.10, §5.13, §9.1.6, §10.1.2, §10.6.1, §10.7.4 · `03 §1.7.1.10`, §1.7.3.1, §1.11.37, §2.9.2, §2.9.5, §3.3.15, §4.1.37, §7.1.39, §7.1.42, §7.1.43, §7.3.29, §7.3.37, §8.4.10, §8.4.11, §8.5.6, §8.6.4.1, §8.9.1, §8.9.6, §10.1.2.2 · `10 §2` KP-34, KP-49 · K-737, K-741, K-751, K-766, K-793, K-809, K-836, K-850 · devir: K-540 (ayıp talebinin yeniden açılması ve bildirimi).*
 
 ### 9.11 E-39 — İletişim talebi ayrıntısı
 
@@ -5057,16 +5074,16 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
   - **9.19.5 Yoktur:** yayındaki metni yayından çekmek — iki metin zorunludur ve boşaltılamaz; değişiklik yeni sürümle yapılır (`02 §3.33.2`; K-818) · ileri tarihli yayın ve metin değiştiğinde yeniden onay ya da bildirim (`02 §3.33.4`) · Ön Bilgilendirme Formu'nun ve sözleşmenin elle düzenlenmesi (`02 §10.1.2`) · "İşlem rehberi"nin düzenlenmesi — ürünün sabit metnidir (`02 §3.24.8`) · ayrı üyelik sözleşmesi ve envanterin dışında yasal metin (`02 §3.33.1`) · eski sürümlerin bu ekrandaki listesi — siparişe donmuş sürüm siparişin belgelerinden okunur (9.9.13; K-818) · çerez onay bandı (`02 §3.33.5`).
 - **Aksiyonlar**
   - **9.19.6 Taslağı kaydetmek** — yayındaki sürümü değiştirmez; onay istemez, başarı kısa süreli bildirimle söylenir (2.3.1.4). Metin boşaltılamaz (`02 §3.33.2`).
-  - **9.19.7 Yayına almak** (`03 §8.7.2.2`): aydınlatma metni tamamlanmadan yayına alınmaz ve tamamlanma satırı eksik olanı söyler (`02 §3.33.2`). Yayına alınınca sürüm kendiliğinden artar ve vitrinde güncel sürüm görünür (E-11); yeniden onay alınmaz ve bildirim gitmez (`02 §3.33.3`, §3.33.4). Onay penceresi yoktur — kaynak yayına almayı onay isteyen işlemler arasında saymaz (2.4.2); bölüm yeni sürümün numarasını ve tarihini kalıcı olarak gösterir. Sürüm değişikliği işlem izine yazılır (`02 §10.3.1`). İki metnin ilk yayını satış kapısının koşuludur; aydınlatma metninin yayını ayrıca veri toplayan girişlerin kapısıdır (`02 §3.1.5`, §3.33.9).
+  - **9.19.7 Yayına almak** (`03 §8.7.2.2`): aydınlatma metni tamamlanmadan yayına alınmaz ve tamamlanma satırı eksik olanı söyler (`02 §3.33.2`). Yayına alınınca sürüm kendiliğinden artar ve vitrinde güncel sürüm görünür (E-11); yeniden onay alınmaz ve bildirim gitmez (`02 §3.33.3`, §3.33.4). Onay penceresi yoktur — kaynak yayına almayı onay isteyen işlemler arasında saymaz (2.4.2); bölüm yeni sürümün numarasını ve tarihini kalıcı olarak gösterir. Sürüm değişikliği işlem izine yazılır (`02 §10.3.1`). İki metnin ilk yayını satış kapısının ve veri toplayan girişlerin kapısının koşuludur (`02 §3.1.5`, §3.33.9; K-850).
   - **9.19.8 Eşzamanlı düzenleme** (OB-10, kayıt varyantı; `02 §3.31.1`; K-800): her metin kendi bölümünde.
 - **9.19.9 Validasyonlar.** Firmanın düzenlediği iki metin ve aydınlatmanın barındırma konumu bölümü boşaltılamaz; ret alan mesajıdır, tamamlanma eksiği yerinde kalıcıdır (OB-12; `02 §3.33.2`). Alan envanteri §7.2'dedir — 7.2.22.
 - **Durum × rol varyantları** (tam matris §6.3'te — 6.3.19)
-  - **9.19.10 İlk kurulumda** iki metin ürünün taslağıyla gelir ve hiç yayına alınmamıştır; vitrinde bağlantıları yoktur (K-770). Aydınlatma metni barındırma konumu bölümü ve firma kimliği dolana kadar tamamlanmamıştır; satış ve veri toplayan girişler kapalıdır ve kurulum kontrol listesinin maddesi buraya götürür (`02 §3.1.5`, §10.8.2; 9.3.4).
+  - **9.19.10 İlk kurulumda** iki metin ürünün taslağıyla gelir ve hiç yayına alınmamıştır; vitrinde bağlantıları yoktur (K-770). Aydınlatma metni barındırma konumu bölümü ve firma kimliği dolana kadar tamamlanmamıştır; iki metin de yayına alınana kadar satış ve veri toplayan girişler kapalıdır ve kurulum kontrol listesinin maddesi buraya götürür (`02 §3.1.5`, §10.8.2; 9.3.4; K-850).
   - **9.19.11** Firma kimliğinin bir alanı sonradan değişirse aydınlatmanın yer tutucusu yeni değeri gösterir; üretilen iki metnin sürümü kendiliğinden artar (`03 §8.7.2.1`, §8.7.2.3). Bir sürüm artışı onay adımı açık bir müşteride siparişin oluşmasını durdurur — ekranın değil sipariş onayının kuralıdır (`03 §2.4.8`).
 - **9.19.12 Boş / yükleniyor / hata durumları.** Ekranın boş hâli yoktur — iki metin taslakla gelir. Yayına alma sürerken düğme ikinci kez basılamaz (§2.7.2); beklenmeyen hatada düzenlenen metin korunur (§2.7.3.1); sayfa açılamazsa §2.7.3.2.
 - **9.19.13 Responsive notları.** Dört metnin satırları her sınıfta alt alta durur; düzenleme alanı dar sınıfta tam genişliktedir ve "Taslağı kaydet" ile "Yayına al" alanın altında kalır. Uzun metin satır kırar; yatay kaydırma yoktur.
 
-*Kaynak: `02 §3.1.5`, §3.11.6, §3.24.8, §3.31.1, §3.33.1–§3.33.5, §3.33.9, §10.1.2, §10.3.1, §12.2, §12.2.5, §12.5 · `03 §2.4.8`, §3.5.4.10, §8.7.2.2, §8.7.2.3 · `10 §2` KP-61 · `10 §4.1` ÖK-10 · K-770, K-800, K-818 · devir: K-603 (çerez politikası taslağının çerezleri — içerik `02 §12.2.5`).*
+*Kaynak: `02 §3.1.5`, §3.11.6, §3.24.8, §3.31.1, §3.33.1–§3.33.5, §3.33.9, §10.1.2, §10.3.1, §12.2, §12.2.5, §12.5 · `03 §2.4.8`, §3.5.4.10, §8.7.2.2, §8.7.2.3 · `10 §2` KP-61 · `10 §4.1` ÖK-10 · K-770, K-800, K-818, K-850 · devir: K-603 (çerez politikası taslağının çerezleri — içerik `02 §12.2.5`).*
 
 ### 9.20 E-49 — Yönetici hesapları
 
@@ -5173,7 +5190,7 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
 ### 9.25 E-54 — Yönetici hesabının doğrulama ekranları
 
 - **9.25.1 Aktör · giriş · çıkış.** Yönetici — yeniden doğrulamada · Kullanıcı — bağlantıyı açan, adresin sahibi. Kimlik üç adımı kapsar (konvansiyon 2; §4.3): yeniden doğrulama, yeni adresin doğrulama bağlantısının iniş ekranı, "bu değişikliği ben yapmadım" bağlantısının iniş ekranı. Giriş: E-50'nin şifre ve e-posta değiştirme işlemleri (3.4.16) · yeni adresin doğrulama bağlantısı (3.5.6) · geri alma bağlantısı (3.5.7). Çıkış: yeniden doğrulamadan sonra E-50, başlatılan işlemin formu (3.4.16) · iniş ekranlarından oturum açıksa E-50, değilse E-29 (§3.6.1) · geri almadan sonra şifre, eski adrese giden sıfırlama bağlantısıyla E-29'un yeni şifre adımında kurulur (3.5.5).
-- **9.25.2 İlk görülen:** yeniden doğrulamada hangi işlem için doğrulandığı ve şifre alanı — birincil düğme doğrulamadır; iniş ekranlarında sonucu söyleyen tek cümle ve sonraki adımın bağlantısı.
+- **9.25.2 İlk görülen:** yeniden doğrulamada hangi işlem için doğrulandığı ve şifre alanı — birincil düğme doğrulamadır; geri alma bağlantısının geçerli hâlinde geri almanın sonucunu söyleyen tek cümle ve işlemin adını taşıyan tek düğme (5.28.2; K-839); öteki iniş hâllerinde sonucu söyleyen tek cümle ve sonraki adımın bağlantısı.
 - **Bilgi hiyerarşisi** — üç adım; düzen müşteri tarafındaki E-24, E-21 ve E-28'in kalıbıdır (§4.3; K-764) ve burada yalnız farklar yazılır (K-819):
   - **9.25.3 Yeniden doğrulama** — panel çerçevesinin içindedir (§2.2.9). E-24'ün kalıbıyla iki farkı vardır: başlatılan işlem iki tanedir — şifre değiştirme · e-posta değiştirme; hesap silme yoktur (`02 §10.2.2`) — ve doğrulama yalnız şifreyledir — panelde Google ile yeniden doğrulama yoktur (`02 §10.2.5`).
   - **9.25.4 Yeni adresin doğrulama bağlantısının iniş ekranı** — çerçevesizdir ve ürünün panel görünümünde bir başlık taşır (§2.2.9). E-21'in altı hâlinden yalnız e-posta değişikliğinin iki hâli vardır — kayıt hâlleri yoktur, yönetici hesabı davetle doğar (`02 §10.2.1`): **yeni adres doğrulandı** — değişikliğin geçerli olduğu, hesabın bundan sonra yeni adresle çalıştığı ve önceki adrese bildirim gittiği; misafir siparişlerinin bağlanması yoktur (5.21.7'nin farkı) · **bağlantı geçersiz** — süresi dolmuş, yerine yeni bir istek geçmiş ya da kullanılmış; değişikliğin bu bağlantıyla geçerli olmadığı ve E-50'den yeniden başlatılacağı (5.21.8'in kalıbı; K-780). Sonraki adım: oturum açıksa "Hesabım" (E-50), değilse panel girişi (E-29).
@@ -5191,4 +5208,4 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
 
 ---
 
-*Shopfolio — UI Specifications v0.17*
+*Shopfolio — UI Specifications v0.18*

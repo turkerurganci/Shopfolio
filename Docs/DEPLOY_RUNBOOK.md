@@ -12,6 +12,12 @@
 > - **K-699 · Panele erişimin kaybında kurtarma:** hiçbir yönetici panele giremediğinde — tek yöneticinin şifresi ve e-posta kutusu kaybolmuşsa ya da ele geçirilmiş bir hesap tek yönetici kalmışsa — kurulumu yapan, ilk yöneticiyi açtığı yolla (§H; `10` ÖK-7) yeni bir yönetici hesabı açar; hesap ele geçirilmişse o hesabın oturumlarını sonlandırır ve şifresini geçersiz kılar. Ürün içinde kurtarma yolu yoktur (`02 §10.2.7`, `03 §10.4`). Adımların kendisi, kurtarmayı kimin isteyebileceği ve isteğin nasıl doğrulanacağı bu dokümanın kararıdır.
 > - **Dizin — Aşama 2 kararlarının bu dokümana devirleri:** karar kaydında K-647…K-718'in etki sütunlarında bu dokümanı gösteren bir atıf (bir karar) ve Kullanıcı Akışları'nın (`03`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md) §6'dadır. Bir iş yalnız `03`'ün gövdesinde yaşar, karar satırı yoktur: ödeme sağlayıcısının anahtarlarının ya da sağlayıcının değişmesinde geçişin yöntemi (`03 §10.1.1.7`). Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Aşama 1'in dizini: `PHASE1_CONFLICT_SCAN.md` §6.
 
+> **Aşama 3'ten park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §10.3 UI0-04).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; doldurulurken karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-736 · İlk yöneticinin adı:** yönetici hesabı zorunlu bir ad taşır ve ilk yöneticinin adı kurulumda verilir — ilk yöneticiyi açan yol (§H) e-posta ve şifrenin yanında adı da alır; kurtarmada (K-699) açılan yönetici hesabı için de aynısı geçerlidir (`02 §10.2.1`, §10.2.4, §10.2.7; `10 §4.1` ÖK-7). Ad yönetici listesinde, işlem izinde ve yöneticilere giden bildirimlerde okunur. Adın nasıl verildiği bu dokümanın kararıdır (satır Aşama 3'ün çakışma taramasında açıldı).
+> - **Dizin — Aşama 3 kararlarının bu dokümana devirleri:** karar kaydında K-723…K-850'nin etki sütunlarında bu dokümanı gösteren bir atıf (bir karar) [`CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md) §6'dadır; Arayüz Tanımları'nın (`04`) gövdesinde bu dokümana iş bırakan cümle yoktur. Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Önceki aşamaların dizinleri: `PHASE1_CONFLICT_SCAN.md` §6, `PHASE2_CONFLICT_SCAN.md` §6.
+
 ---
 
 ## 0. Hızlı özet

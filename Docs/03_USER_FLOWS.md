@@ -1,6 +1,6 @@
 # Shopfolio — User Flows
 
-**Versiyon: v0.11** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `10_MVP_SCOPE.md` (kapsam), `PRODUCT_DISCOVERY_STATUS.md` (Aşama 2 kararları) | **Son güncelleme:** 2026-10-04
+**Versiyon: v0.12** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `10_MVP_SCOPE.md` (kapsam), `PRODUCT_DISCOVERY_STATUS.md` (Aşama 2 kararları) | **Son güncelleme:** 2026-10-04
 
 > **Aşama:** 2 — Kullanıcı Akışları · **Rol:** Product Owner / Business Analyst
 > **Traceability zorunlu:** Hayır (doğrudan türetim) — ama akışlar yazıldıktan sonra `02`'ye **geri dönülür**, tutarsızlık varsa düzeltilir.
@@ -16,6 +16,7 @@
 > - **Kalite döngüsü — cross-review, 2. tur (2026-10-04, v0.9):** aynı model ve ölçü (K-718); girdi yalnız doküman ve şablon (K-431). Bir bulgu, iki yerin çelişmesi: gecikme feshinin geri ödemesinin on dört günü iki satırda yasal teslim sınırının kimliğiyle (Z-11) anılıyordu (2.7.8, 8.4.8); 2.7.8 sürenin `02 §7.2.3`'teki yerini yazar, 8.4.8 ona işaret eder, 4.1.11 feshin geri ödemesini 2.7.8'e bağlar. `02`'ye dönen karar yok; §11'e satır girmedi. Rapor `Docs/CROSS_REVIEW_REPORTS/03_CROSS_REVIEW_R2.md`.
 > - **Kalite döngüsü — cross-review, 3. tur ve etki yansıtma (2026-10-04, v0.10):** aynı model ve ölçü (K-718); girdi yalnız doküman ve şablon (K-431). **Model `SONUÇ: TEMİZ` döndürdü — TEMİZ ciddiyet ölçüsündedir;** döngü üç turda kapandı. Etki yansıtma üç turun düzeltmelerini Ürün Gereksinimleri'ne, MVP Kapsamı'na, Proje Vizyonu'na, sonraki dokümanların park bloklarına ve karar kaydına karşı taradı: `02`'ye ve `10`'a dönen değişiklik yok, §11'e satır girmedi. Kaynak sütunu betikle tarandı: gövdesinde Aşama 2 kararı anıp Kaynak hücresinde taşımayan otuz bir satır tamamlandı (§0.4.1, §0.5.2); 4.2.11 ve 10.3.3 K-667'yi ve `02 §3.21.8`'i, 8.3.1.2 `02 §5.4`'ü Kaynak'ta taşır. Rapor `Docs/CROSS_REVIEW_REPORTS/03_CROSS_REVIEW_R3.md`.
 > - **Aşama 2 checkpoint'i (2026-10-04, v0.11 — K-437'nin 4. adımı):** rapor `Docs/CHECKPOINT_REPORTS/CP02_PHASE2_CHECKPOINT.md`'dedir. Atıf dizisinde devralma kuralına (K-701) uymayan beş hücre düzeltildi — 7.2.15 ve §11'in 11.2, 11.23, 11.26, 11.36 satırları · 8.3.3.2 kalan süreyi yalnız süresi olan hatta gösterir (K-716) · 6.1.2.2'nin aktör hücresi olay cümlesidir (K-702) · 7.2.16 başka kanaldan gecikme feshi kaydını da sayar (K-706) · §0.3.2'nin "Kullanıcı" adı MVP Kapsamı'nın satırlarındaki ortak addan ayrıldı (K-638, K-700) · §11'e checkpoint notu. Yeni karar yok; doküman Ürün Gereksinimleri v0.55 ve MVP Kapsamı v0.37 ile tutarlıdır.
+> - **Cross-review, 4. tur — ölçüsüz yoklama (2026-10-04, v0.12 — K-720):** proje sahibinin sorusu üzerine aynı model ve girdiyle (K-431), ciddiyet ölçüsü olmadan tek tur; amaç ölçünün dışarıda bıraktığını görmekti, 5. tur koşulmaz. Üç bulgu geldi — misafir siparişinin e-postayla hesaba düşmesi, iade taşıyıcısının ön bilgilendirmesi, iade paketinin kalemle eşleştirilmesi —; ikisi reddedildi (bilinçli karar `02 §3.13.3`, K-99 · Yönetmelik m.12/5'in güncel metni taşıyıcı belirtilmemesini öngörür, `02 §7.4.2`, K-492, K-493), biri yoklama süzgecinde alınmadı (iyileştirme önerisi). Akış içeriği değişmedi; K-718'in TEMİZ'i (3. tur) çıkış koşulu olarak geçerlidir. Rapor `Docs/CROSS_REVIEW_REPORTS/03_CROSS_REVIEW_R4.md`.
 > - **Yazım turu bu oturumla tamamlandı:** `03`'ün bütün bölümleri yazıldı. Kalite döngüsü — audit, deep review, cross-review, etki yansıtma — v0.10'da tamamlandı. ✓ aşama kapanışının arşiv adımında konur (K-437, `checklists/document-stage.md` §7).
 
 ---
@@ -1795,4 +1796,4 @@ Her satır bir karar grubudur; karar kaydı satırı ayrıntıyı, sürüm notu 
 
 ---
 
-*Shopfolio — User Flows v0.11 (§0–§11 yazıldı; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ 3 turda TEMİZ, etki yansıtma ✓ — K-431, K-432, K-718; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP02_PHASE2_CHECKPOINT.md`)*
+*Shopfolio — User Flows v0.12 (§0–§11 yazıldı; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ 3 turda TEMİZ, etki yansıtma ✓ — K-431, K-432, K-718; ölçüsüz yoklama turu, bulgu uygulanmadı — K-720; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP02_PHASE2_CHECKPOINT.md`)*

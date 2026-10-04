@@ -35,6 +35,8 @@ user-invocable: true
 
 **Koşum:** mekanik kontroller betikle yapılır; anlamsal tarama alt ajan mercekleriyle koşuyorsa `audit` skill'inin "Koşum biçimi" 4. ve 5. maddeleri geçerlidir — betiğin örneklenerek doğrulanması; dalga büyüklüğü, bulgunun bulunduğu anda dosyaya yazılması ve merceklerin ön planda başlatılması.
 
+**Kalite döngüsünün devri:** cross-review çıkış kuralıyla kapandıysa (`cross-review` skill'i, Faz 4 madde 5) devredilen sınıf — karar kaydının açık süreç maddesinde adıyla ve örnekleriyle yazılıdır — bir iç tutarlılık merceğine verilir ve dokümanın tamamında aranır; sonuç checkpoint raporuna ve maddenin kapanışına yazılır. **Neden:** Arayüz Tanımları'nın devredilen "özet cümle ile ayrıntının ayrışması" sınıfı checkpoint'te kırk üç yerde bulundu (CP03 §3.1, §3.2; K-849).
+
 ---
 
 ## Çıktı formatı

@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-10-04 | **Satır:** 57 | **Gönderilen:** 0
+**Son güncelleme:** 2026-10-04 | **Satır:** 58 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -85,3 +85,4 @@
 | PF-55 | Arayüz Tanımları şablonunda açık kararlar bölümü yok (PF-22 ve PF-40'ın bu şablondaki hâli — dördüncü şablon) | Tracker §10.1 öğrenim adayı 2 (2026-10-04) | Tracker §10.3 UI0-04 (açık kalem tracker §4'te) · checklist §7 (3. adım) | `Docs/04_UI_SPECS.md` şablonu | Uygulandı (çevre kural; şablon değişmedi) |
 | PF-56 | Arayüz Tanımları şablonu §9 "Yönetim ekranları"nın §4–§6 ile ilişkisini yazmıyor — yönetim ekranları §5'te mi §9'da mı tanımlanır, §6 ve §7 hangi sırayla yazılır | Tracker §10.1 öğrenim adayı 2 (2026-10-04) | K-724 (müşteri tarafı §5, panel §9, aynı şablon; yazım sırası §5 → §9 → §6) | `Docs/04_UI_SPECS.md` şablonu §5, §9 | Uygulandı (çevre karar; şablon değişmedi) |
 | PF-57 | Arayüz Tanımları şablonunda yazım konvansiyonları ("nasıl yazılır"), tasarım tabanı (kırılma noktaları, renk kullanımı, erişilebilirlik tabanı) ve üst dokümanlara geri besleme tablosu için yer yok | Tracker §10.1 öğrenim adayı 2 (2026-10-04) | K-726 (başlık notu · §2'nin ilk alt bölümü · §1.3) | `Docs/04_UI_SPECS.md` şablonu başlık, §1.3, §2 | Uygulandı (çevre karar; şablon değişmedi) |
+| PF-58 | Arayüz Tanımları şablonunun iki metin hatası — başlık notu ekran envanterini §3 diye anar (§4'tür), §9'un notu belirsiz "olabilir" taşır; checklist'in UI/UX hatırlatma satırı aynı cümleyi taşır | Arayüz Tanımları'nın audit'i (ATIF-7, ATIF-9; 2026-10-04) · tracker §10.1 öğrenim adayı 5 | `04` v0.13'te iki yer düzeltildi; checklist satırı öğrenim terfisine kaldı | `Docs/04_UI_SPECS.md` şablonu (başlık notu, §9 notu) · `checklists/document-stage.md` aşama-spesifik hatırlatmalar (UI/UX) | Aday — kapı: Aşama 3'ün öğrenim terfisi |

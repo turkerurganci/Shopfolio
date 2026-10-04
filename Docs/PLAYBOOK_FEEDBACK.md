@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-10-04 | **Satır:** 53 | **Gönderilen:** 0
+**Son güncelleme:** 2026-10-04 | **Satır:** 57 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -81,3 +81,7 @@
 | PF-51 | Önceki aşamanın ✓ dokümanına geri beslemenin işletimi: karar aynı PR'da sürüm artışıyla, ✓ ve kalite döngüsü yeniden açılmaz, etki yansıtma yeniden tarar | K-652 | Checklist §3 (geri besleme maddesi) | `checklists/document-stage.md` §3 | Uygulandı |
 | PF-52 | Çok oturumlu yazımda alt bölüm haritası ilk oturumda sabitlenir; yazılmamış bölüme bağlanan hücre geçici olarak alt bölümü taşır; konvansiyon listesi atıf okunuşunu ve aktör listesini içerir | K-669, K-670, K-682, K-700, K-701, K-702 | Checklist §4 | `checklists/document-stage.md` §4 | Uygulandı |
 | PF-53 | Aşama 2 dersleri — `00 §N.1`'e altı desen | Aşama 2'nin öğrenim terfisi (K-719); ret K-722 | — (desenler `PHASE2_LEARNING_PROMOTION.md` §4'te kalır) | `00 §N.1` | Reddedildi (2026-10-04, K-722) |
+| PF-54 | Arayüz Tanımları şablonunun ekran kimliği `S<NN>` başka bir kimlik ailesiyle çakışabilir (bu projede sevkiyat geçişleri S1…S11) — şablon öneki sabitlemez, "aşamaya özgü, betikle taranmış ekran kimliği" der; açılışın önek taraması şablonla gelen kimlikleri de kapsar | Tracker §10.1 öğrenim adayı 1 (2026-10-04, Aşama 3 konu planı) | K-725 (`E-nn`) · tracker §10.2 (plan önerisi 2) | `Docs/04_UI_SPECS.md` şablonu §5 · `checklists/document-stage.md` §1 | Uygulandı (çevre karar; şablon değişmedi) — checklist §1'in genişletilmesi aday, kapı: Aşama 3'ün öğrenim terfisi |
+| PF-55 | Arayüz Tanımları şablonunda açık kararlar bölümü yok (PF-22 ve PF-40'ın bu şablondaki hâli — dördüncü şablon) | Tracker §10.1 öğrenim adayı 2 (2026-10-04) | Tracker §10.3 UI0-04 (açık kalem tracker §4'te) · checklist §7 (3. adım) | `Docs/04_UI_SPECS.md` şablonu | Uygulandı (çevre kural; şablon değişmedi) |
+| PF-56 | Arayüz Tanımları şablonu §9 "Yönetim ekranları"nın §4–§6 ile ilişkisini yazmıyor — yönetim ekranları §5'te mi §9'da mı tanımlanır, §6 ve §7 hangi sırayla yazılır | Tracker §10.1 öğrenim adayı 2 (2026-10-04) | K-724 (müşteri tarafı §5, panel §9, aynı şablon; yazım sırası §5 → §9 → §6) | `Docs/04_UI_SPECS.md` şablonu §5, §9 | Uygulandı (çevre karar; şablon değişmedi) |
+| PF-57 | Arayüz Tanımları şablonunda yazım konvansiyonları ("nasıl yazılır"), tasarım tabanı (kırılma noktaları, renk kullanımı, erişilebilirlik tabanı) ve üst dokümanlara geri besleme tablosu için yer yok | Tracker §10.1 öğrenim adayı 2 (2026-10-04) | K-726 (başlık notu · §2'nin ilk alt bölümü · §1.3) | `Docs/04_UI_SPECS.md` şablonu başlık, §1.3, §2 | Uygulandı (çevre karar; şablon değişmedi) |

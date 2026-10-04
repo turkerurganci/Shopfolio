@@ -12,6 +12,11 @@
 > - **K-12 · Para akışı ve kart verisi:** Tahsilat doğrudan **firmanın kendi sanal POS / ödeme sağlayıcı hesabına** geçer; platform ticari zincirde yer almaz. Kart bilgisi sağlayıcının barındırdığı sayfada veya çerçevede girilir — **ürün kart verisini görmez, saklamaz, loglamaz.** Entegrasyon bu sınırı bozacak biçimde tasarlanamaz. Firmanın ödeme sağlayıcı sözleşmesi canlıya çıkış öncesi **dış ön koşuldur**.
 > - **K-13 · 3D Secure:** **İstisnasız zorunludur.** Tutar eşiği veya sağlayıcı takdirine bırakma yoktur; doğrulama başarısızsa ödeme gerçekleşmez ve sipariş ödenmiş sayılmaz.
 
+> **Aşama 2'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §8.3 AK0-04).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-705 · Sağlayıcıyla sonucu belirsiz kalan kart işlemleri:** (1) Sağlayıcıya ulaşılamayan kart iadesi sonucu bilinmeyen bir istektir; firmanın yeniden denemesi ya da müşteriye havale yolu açması parayı iki kez gönderebilir (`02 §7.2.8`). İade isteğinin tek işlenmesi ve sonucun sağlayıcıdan sorulması — ödeme tarafındaki son sorgunun (`02 §6.1.2`) iade karşılığı — bu aşamanın kararıdır; tasarım ürüne bir "sonuç alınamadı" işareti gerektirirse karar kaydına döner. (2) Kart ödemesinin onayının tek dayanağı sağlayıcının başarı bildirimidir (`02 §5.5` Ö1): bildirimin doğrulanması ve tutarının siparişin tutarıyla eşleşmesi bu aşamada tasarlanır; `03 §2.5.1.2` müşterinin dönüş anında sonucun beklendiğini gördüğünü yazar (K-704).
+
 ---
 
 ## 0. Yazım kuralları

@@ -1,6 +1,6 @@
 # AI Sınırları ve Yasakları
 
-**Katman:** L3 | **Son güncelleme:** 2026-10-03
+**Katman:** L3 | **Son güncelleme:** 2026-10-04
 
 > Bu dosya "yapılmayacaklar"ı tanımlar. Yapılacaklar [`INSTRUCTIONS.md`](INSTRUCTIONS.md)'de.
 
@@ -31,7 +31,7 @@ Proje sahibinden **açık onay** almadan değiştirilemez:
 - Kapsam değişikliği (MVP'ye özellik ekleme/çıkarma)
 - Karar değiştirme (daha önce alınmış bir kararı revize etme)
 - Geri alınamaz git işlemleri (force-push, hard reset, dal silme)
-- Ana dala merge, deploy, dış sisteme mesaj
+- Ana dala merge, deploy, dış sisteme mesaj — merge'ün tek istisnası proje sahibinin açtığı, aşamayla sınırlı merge yetkisidir (`INSTRUCTIONS.md` §9)
 
 ---
 
@@ -54,7 +54,7 @@ Proje sahibinden **açık onay** almadan değiştirilemez:
 
 ## 6. Karar kuralları
 
-- AI kendi başına karar almaz, proje sahibinden onay ister. **İstisnalar** proje sahibinin açıkça verdiği yetkilerdir — öneriyle kayıt yetkisi ve onun açabildiği iki mod (toplu onay, ⚠ öneriyle kayıt); kapsamları, işaretleri ve gösterilmeyen kararların listesinin ne zaman gösterileceği `INSTRUCTIONS.md` §2'de. Bir modu proje sahibinin sözü olmadan açmak ya da listeyi göstermeden aşamayı kapatmak yasaktır.
+- AI kendi başına karar almaz, proje sahibinden onay ister. **İstisnalar** proje sahibinin açıkça verdiği yetkilerdir — öneriyle kayıt yetkisi ve onun açabildiği iki mod (toplu onay, ⚠ öneriyle kayıt); kapsamları, işaretleri ve gösterilmeyen kararların listesinin ne zaman gösterileceği `INSTRUCTIONS.md` §2'de; aşamayla sınırlı merge yetkisi ve yönetici düzeni §9'da. Bir modu ya da yetkiyi proje sahibinin sözü olmadan açmak ya da listeyi göstermeden aşamayı kapatmak yasaktır.
 - Birden fazla seçenek sunduğunda öneri belirtir ama "ben bunu uyguluyorum" demez.
 - Soru sorduğunda cevabını almadan başka konuya geçmez.
 - Bir öneriyi savunur; kullanıcının her itirazına refleks olarak "haklısın" demez.

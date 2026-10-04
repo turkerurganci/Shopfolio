@@ -87,6 +87,8 @@ Konu hücresi `(öneriyle kaydedildi — ⚠)` taşıyan Aşama 2 satırı **39*
 
 Oturum raporlarında listeler yöneticiye gösterildi; **proje sahibine gösterilmedi.** Kapı değişmedi: liste checkpoint raporunda adıyla yer alır ve arşiv işaretinden (6. adım) önce proje sahibine tek listede — karar başına bir sade cümle — gösterilir (`INSTRUCTIONS.md` §2). İtiraz gelmeyen satırın işareti `(öneriyle kaydedildi — ⚠ — gözden geçirildi YYYY-AA-GG, itiraz yok)` olur; itiraz gelen karar yeni bir satırla değişir.
 
+**Kapının sonucu — 2026-10-04 (K-437'nin 6. adımı):** kapı işledi. Liste arşiv işaretinden önce, checkpoint raporunun §5.1'indeki tabloyla proje sahibine gösterildi; itiraz yok. Otuz dokuz satırın işareti `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-04, itiraz yok)` oldu; sayım betikle doğrulandı (39 / 39). Madde karar kaydının §8.1'inde kapandı; arşiv işareti aynı PR'da düştü (v0.72).
+
 ### 4.2 Avukat teyidi önerisi — kapı yazıldı
 
 Aşama 1'in devir notu (tracker §7) iki kararın — K-491: teslimden sonraki caymada geri ödeme süresinin başlangıcı · K-627: KEP adresi üç firma tipinde zorunlu — bir avukata teyit ettirilmesini proje sahibine öneri olarak yazdı; önerilen kapı "ilk gerçek kurulumdan (MVP Kapsamı ÖK-12) önce". İki sorun vardı:
@@ -94,7 +96,7 @@ Aşama 1'in devir notu (tracker §7) iki kararın — K-491: teslimden sonraki c
 1. **Öneri karara bağlanmamıştı.** Proje sahibinin kabul ya da reddi kayıtta yok; öneri yalnız salt okunur devir notunda ve hafızanın Güncel Durum bloğunda duruyordu.
 2. **Kapı, kaydın ömrünün dışındaydı.** ÖK-12'nin referans kurulumu implementation döneminden sonradır; doküman döneminin karar kaydı o ana kadar arşivlenmiş olur (K-647) ve öneri hiçbir açık listede değildi.
 
-**Yazılan kapı (tracker §8.1, yeni madde):** (1) öneri ⚠ listesiyle aynı mesajda, Aşama 2'nin arşiv işaretinden önce proje sahibine tek cümleyle sunulur — kabul ya da ret; (2) kabul edilirse aynı PR'da `DEFERRED_BACKLOG.md`'ye kalem olarak girer — hedef ÖK-12'den önce, bloklar: MVP kabulü —, teyit itiraz getirirse karar yeni bir satırla değişir; ret gelirse madde gerekçesiyle kapanır. Aşama 2'nin kararlarında benzer bir kalan hukuki risk yazılmadı: audit'in yasal merceği Aşama 2'nin yasal dayanaklarını güncel resmî metne karşı okudu (K-704, K-706…K-709, K-716) ve cross-review'ın 3. turu K-491'in kuralını Yönetmelik m.12/1'in güncel metnine karşı yeniden okudu (`03_CROSS_REVIEW_R3.md`).
+**Yazılan kapı (tracker §8.1, yeni madde):** (1) öneri ⚠ listesiyle aynı mesajda, Aşama 2'nin arşiv işaretinden önce proje sahibine tek cümleyle sunulur — kabul ya da ret; (2) kabul edilirse aynı PR'da `DEFERRED_BACKLOG.md`'ye kalem olarak girer — hedef ÖK-12'den önce, bloklar: MVP kabulü —, teyit itiraz getirirse karar yeni bir satırla değişir; ret gelirse madde gerekçesiyle kapanır. **Kapının sonucu — 2026-10-04 (K-437'nin 6. adımı):** öneri ⚠ listesiyle aynı mesajda sunuldu ve proje sahibince reddedildi (K-721); `DEFERRED_BACKLOG.md`'ye kalem girmedi, madde §8.1'de kapandı. Aşama 2'nin kararlarında benzer bir kalan hukuki risk yazılmadı: audit'in yasal merceği Aşama 2'nin yasal dayanaklarını güncel resmî metne karşı okudu (K-704, K-706…K-709, K-716) ve cross-review'ın 3. turu K-491'in kuralını Yönetmelik m.12/1'in güncel metnine karşı yeniden okudu (`03_CROSS_REVIEW_R3.md`).
 
 ### 4.3 Bekletilen öğrenim Ö-23 — aday listesine girdi
 
@@ -136,7 +138,8 @@ Sonraki dokümanlar henüz yazılmadığı için devirler kararların etki sütu
 
 - **Aşama 1'in kararları:** dizini `PHASE1_CONFLICT_SCAN.md` §6'dadır; Aşama 1'in yalnız numaralı atıflarına ad verilmedi.
 - **`09` Kodlama Kılavuzu ve `11` Uygulama Planı:** Aşama 2'den devir yok.
-- **`DEFERRED_BACKLOG.md`:** Aşama 2'den kalem yok; avukat teyidi kabul edilirse girer (§4.2).
+- **`DEFERRED_BACKLOG.md`:** Aşama 2'den kalem yok; avukat teyidi kabul edilirse girer (§4.2) — öneri reddedildi (K-721), kalem girmedi.
+- **Toplandığı yer (6. adım, 2026-10-04):** Aşama 3'e devrin bütün girdileri — bu dizin dahil — karar kaydının §9'unda tek tabloda.
 - **Süreç kararları** (K-647, K-648, K-649, K-718) sonraki dokümana iş bırakmaz.
 - **K-701'in parantezi:** etki sütunu `04 · 05 · 06 · 07 · 08 (atıfların okunuşu)` diye yazılıdır; parantez beş atfın hepsine aittir — betik dördünü yalnız numara saydı, dizin onlara aynı adı verdi.
 

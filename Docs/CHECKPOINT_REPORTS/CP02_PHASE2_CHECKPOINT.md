@@ -31,8 +31,8 @@
 - [x] Otuz sekiz bulgu düzeltmeyle kapandı — `02` v0.55, `10` v0.37, `03` v0.11, `04`, `05`, `06`, `07`, `09` park satırları, karar kaydı v0.69 (aşağıdaki §3)
 - [x] Yeni karar yok — düzeltmelerin hepsi var olan kararların yansımasıdır; ⚠ listesi değişmedi (39)
 - [x] Checkpoint'in dokunduğu kırk dört Aşama 2 kararının etki sütununa `(… — checkpoint)` parçası eklendi (§4); K-17'ye K-531 geri işareti (Aşama 1 kaydının tek istisnası)
-- [ ] **Otuz dokuz ⚠ kararın ve avukat teyidi önerisinin proje sahibine gösterilmesi** — liste §5.1'de karar başına bir sade cümleyle, öneri §5.2'de; kapı arşiv işaretinden (6. adım) önce, tek mesajda (`INSTRUCTIONS.md` §2; tracker §8.1). İtiraz gelen karar yeni bir satırla değişir ve bu rapora `## Retro Güncelleme` bölümü eklenir
-- [ ] Sırada öğrenim terfisi (K-437'nin 5. adımı) — on iki aday tracker §8.1'de; 11 ve 12 bu checkpoint'te eklendi, 9'a kanıt (§6)
+- [x] **Otuz dokuz ⚠ kararın ve avukat teyidi önerisinin proje sahibine gösterilmesi** — liste §5.1'de karar başına bir sade cümleyle, öneri §5.2'de; kapı arşiv işaretinden (6. adım) önce, tek mesajda (`INSTRUCTIONS.md` §2; tracker §8.1). İtiraz gelen karar yeni bir satırla değişir ve bu rapora `## Retro Güncelleme` bölümü eklenir — **kapandı (2026-10-04, kapısında):** ⚠ listesine itiraz yok, retro bölümü gerekmedi; avukat teyidi önerisi reddedildi (K-721); sonuçlar §5.1 ve §5.2'nin sonunda
+- [x] Sırada öğrenim terfisi (K-437'nin 5. adımı) — on iki aday tracker §8.1'de; 11 ve 12 bu checkpoint'te eklendi, 9'a kanıt (§6) — **kapandı (2026-10-04, PR #72, K-719)**
 
 ### Notlar
 
@@ -180,6 +180,8 @@ Kaynak: [çakışma taraması §4.1](PHASE2_CONFLICT_SCAN.md) — kayıtla bire 
 
 **Sayım:** workshop 10 · yazım turu 16 · audit ve deep review 13 — **toplam 39**. Betikle sayıldı; otuz dokuzunun da konu hücresi ⚠ işaretini taşıyor ve çakışma taramasının §4.1 listesiyle birebir.
 
+**Gözden geçirme sonucu — 2026-10-04 (K-437'nin 6. adımı, arşiv işaretinden önce).** Liste proje sahibine yönetici aracılığıyla bu tabloyla, karar başına bir cümleyle ve §5.2'nin önerisiyle aynı mesajda gösterildi. **İtiraz yok** (proje sahibinin teyidi: *"evet"*): hiçbir karar değişmedi, yeni karar satırı açılmadı ve bu rapora retro bölümü gerekmedi. Karar kaydında otuz dokuz satırın konu hücresindeki işaret silinmedi, `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-04, itiraz yok)` biçimine dönüştürüldü (Aşama 1'in kalıbı, CP01 §5). **Mekanik doğrulama:** bu tablonun 39 tekil K numarası ile dönüştürülen 39 satır birebir — eksik 0, fazla 0; konu hücresinde eski işareti taşıyan karar satırı kalmadı. Kayıt: karar kaydı §8.1 (v0.72).
+
 ### 5.2 Avukat teyidi önerisi — aynı mesajda
 
 Kaynak: Aşama 1'in devir notu (tracker §7) ve çakışma taraması §4.2; kapı tracker §8.1. İki kararın dayandığı okuma resmî metnin açık hükmü değil, lafzından çıkan bir sonuçtur; **öneri:** ikisi bir avukata teyit ettirilir.
@@ -190,6 +192,8 @@ Kaynak: Aşama 1'in devir notu (tracker §7) ve çakışma taraması §4.2; kap�
 | K-627 | KEP adresinin üç firma tipinde zorunlu olması | Yükümlülük esnaf için dar okunursa ürün KEP'i olmayan esnafın satışını gereksiz yere tutar; geniş okunursa bugünkü kural doğrudur. |
 
 **Kapı:** öneri ⚠ listesiyle aynı mesajda proje sahibine sunulur — kabul ya da ret. Kabul edilirse aynı PR'da `Docs/DEFERRED_BACKLOG.md`'ye kalem olarak girer (hedef MVP Kapsamı ÖK-12'nin referans kurulumundan önce, bloklar: MVP kabulü); teyit itiraz getirirse karar yeni bir satırla değişir. Ret gelirse madde gerekçesiyle kapanır.
+
+**Sonuç — 2026-10-04:** öneri ⚠ listesiyle aynı mesajda sunuldu ve proje sahibince **reddedildi** — karar satırı K-721 (proje sahibinin kararı). `DEFERRED_BACKLOG.md`'ye kalem girmedi; K-491 ve K-627 kalan riskleriyle birlikte kayıtta yazıldığı gibi yürürlükte. Tracker §8.1'in maddesi bu kararla kapandı.
 
 ---
 

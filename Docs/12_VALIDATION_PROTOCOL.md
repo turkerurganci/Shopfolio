@@ -20,6 +20,13 @@
 >
 > - **Dizin — Aşama 2 kararlarının bu dokümana devirleri:** karar kaydında K-647…K-718'in etki sütunlarında bu dokümanı gösteren elli sekiz atıf (elli sekiz karar) ve Kullanıcı Akışları'nın (`03`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md) §6'dadır; etki sütununda yalnız doküman numarası taşıyan elli sekiz atfın işinin adını dizin verir. Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Aşama 1'in dizini: `PHASE1_CONFLICT_SCAN.md` §6.
 
+> **Aşama 3'ten park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2 ve §3, mekanizma: K-36 (yeri: §10.3 UI0-04).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-740 · K-741 · Genişlik sınıfları:** arayüz üç genişlik sınıfında doğrulanır — dar (P-42'den 767 CSS pikseline), orta (768–1023) ve geniş (1024 ve üstü); iki tarafta da hiçbir içerik ve işlev bir sınıfta gizlenmez (Arayüz Tanımları `04 §2`). Hangi ekranın hangi sınıfta doğrulanacağı bu aşamanın kararıdır.
+> - **K-747 · Yasal kimlik bloğu ve ETBİS bandı:** firmanın yasal kimlik setinin tamamı ve — alan doluysa — ETBİS doğrulama bandı vitrinin her sayfasının altbilgisinde ve İletişim sayfasında durur; sepet, ödeme adımı ve giriş ekranları dahildir (`02 §3.1.4`; `04 §2`, §3).
+> - **K-756 · Onay bölümü:** ödeme adımının onay bölümünde onay özeti, Ön Bilgilendirme Formu'nun ve Mesafeli Satış Sözleşmesi'nin tam metni, onay kutuları ve ödeme yükümlülüğünü yazan düğme aynı bölümde, bu sırayla ve bir bağlantının arkasına saklanmadan durur; kutular işaretsiz gelir (`02 §3.24`; `04 §5`).
+
 ---
 
 ## 1. Amaç ve kapsam

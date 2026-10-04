@@ -18,6 +18,13 @@
 > - **K-687 · Giriş kaydının okunduğu yer:** giriş kaydı (`02 §3.13.20`, Z-40) panelde görünmez; ihlal ya da hesap ele geçirme incelemesinde firma onu sistem kayıtlarıyla birlikte kurulumun barındırma tarafında okur (`02 §8.5.1`, §12.2.9). Kaydın ve sistem kayıtlarının nasıl ve kim tarafından okunacağı — erişim yolu, süzme, dışarı alma — bu aşamanın kararıdır.
 > - **Dizin — Aşama 2 kararlarının bu dokümana devirleri:** karar kaydında K-647…K-718'in etki sütunlarında bu dokümanı gösteren yedi atıf (yedi karar) ve Kullanıcı Akışları'nın (`03`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md) §6'dadır; etki sütununda yalnız doküman numarası taşıyan üç atfın işinin adını dizin verir. Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Aşama 1'in dizini: `PHASE1_CONFLICT_SCAN.md` §6.
 
+> **Aşama 3'ten park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2 ve §3, mekanizma: K-36 (yeri: §10.3 UI0-04).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-745 · Beklenmeyen hatanın üç hâli:** ekran beklenmeyen hatayı üç hâlde karşılar — işlem düzeyi (form korunur, kullanıcı yeniden dener), sayfa düzeyi (çerçevenin içinde hata sayfası) ve sonucu belirsiz işlem (kullanıcı sonucu görmeye götürülür: sipariş onayı, müşterinin geri alınamaz dört işlemi, yöneticinin onay isteyen işlemleri). Bir hatanın hangi hâle düştüğünün ayrımı ve hatanın kaydı bu aşamanın kararıdır; ekran teknik ayrıntı göstermez (Arayüz Tanımları `04 §2`).
+> - **K-758 · Ödeme adımında yazılanlar:** misafir alıcının ödeme adımında yazdığı e-posta, adres ve kupon, girişe gidip dönerken ve oturumu kapanan üye yeniden girerken korunur; yalnız o tarayıcıda ve o ziyaret boyunca yaşar ve sipariş onaylanmadan bir kayıt oluşturmaz (`04 §5`; veri asgariliği `02 §8.4`). Nerede ve nasıl tutulduğu bu aşamanın kararıdır.
+> - **K-760 · Firma bildirimlerinin ulaşmaması:** firmaya giden bildirim (F-1…F-4) üç denemeden sonra da ulaşmazsa panelin ana sayfasında "firma bildirimleri ulaşmıyor" uyarısı çıkar; uyarı firmaya giden bir sonraki bildirim ulaştığında ya da iletişim e-postası değiştiğinde kalkar (`02 §9.1.6`). Uyarının çıktığı ve kalktığı anın nasıl tespit edildiği bu aşamanın kararıdır ve kanal uyarısının eşiğiyle (`02 §6.1.1`; K-522) birlikte tasarlanır.
+
 ---
 
 ## 0. Karar prensipleri

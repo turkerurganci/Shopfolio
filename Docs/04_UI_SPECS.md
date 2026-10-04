@@ -98,7 +98,7 @@ Her satır dört sütun taşır: **Kaynak ID · Kaynak özeti · Ekran · Durum*
 
 #### 1.1.1 Kaynak envanteri ve sayım
 
-Birim K-727'dir; taraf ayrımı ve toplu satırlar K-730'dadır. Sayımlar `02` v0.55, `03` v0.13 ve `10` v0.37 üzerinde, 2026-10-04'te alındı; 2. oturumun geri beslemesinden sonra (`02` v0.56, `03` v0.14, `10` v0.38) betikler yeniden koşuldu ve aile sayıları değişmedi — geri besleme yeni satır ve yeni kural numarası eklemedi. Tek fark `02`'de `04`'ü anan satır sayısıdır: 21 iş bırakan satıra geri beslemenin sekiz atfı eklendi (altı Kaynak satırı, başlık notu, dipnot — hepsi `04 §1.3`'ü gösterir, iş bırakmaz) ve betik 29 döner.
+Birim K-727'dir; taraf ayrımı ve toplu satırlar K-730'dadır. Sayımlar `02` v0.55, `03` v0.13 ve `10` v0.37 üzerinde, 2026-10-04'te alındı; 2. oturumun geri beslemesinden sonra (`02` v0.56, `03` v0.14, `10` v0.38) betikler yeniden koşuldu ve aile sayıları değişmedi — geri besleme yeni satır ve yeni kural numarası eklemedi. Tek fark `02`'de `04`'ü anan satır sayısıdır: 21 iş bırakan satıra geri beslemenin sekiz atfı eklendi (altı Kaynak satırı, başlık notu, dipnot — hepsi `04 §1.3`'ü gösterir, iş bırakmaz) ve betik 29 döner; workshop'un (v0.57) ve yazım turunun 2a oturumunun (v0.58) geri beslemeleri sayıyı aynı türden atıflarla 33'e ve 34'e çıkardı.
 
 | Aile | Betiğin saydığı | 1a | 1b | Matrise girmeyen |
 |---|---|---|---|---|
@@ -132,7 +132,7 @@ grep -oE '^\*\*[0-9]+\.[0-9]+\.[0-9]+ ' Docs/02_PRODUCT_REQUIREMENTS.md | tr -d 
 # 02 — §6'nın numaralı tablo satırları (141) ve alt bölüm başlıkları (97)
 grep -cE '^\| [0-9]+\.[0-9]+\.[0-9]+ \|' Docs/02_PRODUCT_REQUIREMENTS.md
 grep -cE '^### [0-9]+\.[0-9]+ ' Docs/02_PRODUCT_REQUIREMENTS.md
-# 02 — `04`'ü anan satırlar (v0.55'te 21; v0.56'da 29 — sekizi `04 §1.3`'e geri besleme atfı)
+# 02 — `04`'ü anan satırlar (v0.55'te 21; v0.56'da 29, v0.57'de 33, v0.58'de 34 — artış `04 §1.3`'e geri besleme atfıdır, iş bırakmaz)
 grep -cE '`04[` ]|`04_' Docs/02_PRODUCT_REQUIREMENTS.md
 # bu dokümanın matris satırları — aile bazında sayım ve yinelenen kaynak kimliği (boş dönmeli)
 awk -F'|' '/^#### 1\.1\./{s=$0} /^\| (`0[23] §|KP-|K-[0-9]|Park )/{c[s]++} END{for(k in c) print c[k], k}' Docs/04_UI_SPECS.md | sort -k3 -V
@@ -2803,7 +2803,7 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
   - **5.2.10** Izgara kendi yerinde yüklenir (§2.7.2); sayfa açılamazsa §2.7.3.2.
 - **5.2.11 Responsive notları.** Izgara dar sınıfta iki, orta sınıfta üç, geniş sınıfta dört sütundur; süzgeçler dar ve orta sınıfta açılır bölümde, geniş sınıfta listenin yanındadır (§2.1.2, §2.13.5). Uzun kırıntı yolu dar sınıfta satır kırar.
 
-*Kaynak: `02 §3.4.3`, §3.4.4, §3.5.2, §3.5.3, §3.28.6 · `03 §2.1.2`, §2.1.4, §2.10.1.1 · `10 §2` KP-1, KP-3 · K-766, K-774 · devir: `03 §2.1.2`'nin "kartın düzeni" devri (§2.11).*
+*Kaynak: `02 §3.4.3`, §3.4.4, §3.5.2, §3.5.3, §3.28.6 · `03 §2.1.2`, §2.1.4, §2.10.1.1 · `10 §2` KP-1, KP-3 · K-766, K-774 · devir: `03 §2.1.2`'nin "kartın düzeni" devri — karşılığı OB-11.*
 
 ### 5.3 E-03 — Arama sonuçları
 

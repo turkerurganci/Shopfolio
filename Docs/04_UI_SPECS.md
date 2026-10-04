@@ -1,6 +1,6 @@
 # Shopfolio — UI Specifications
 
-**Versiyon: v0.12** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-04
+**Versiyon: v0.13** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-04
 
 > **Aşama:** 3 — UI/UX Tasarım · **Rol:** Senior Product Designer / UX Architect
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §4'e (ekran envanteri) geçilmez.
@@ -21,6 +21,8 @@
 > **Yazım durumu (K-28, K-30, K-432; karar kaydı §10.1):** doküman UI/UX tasarım aşamasının **tek yazım turunda**, beş oturumda yazıldı — **yazım turu tamamlandı.** Girdi karar kaydı, bu dokümanın şablonu ve üst dokümanlardır — workshop'un sohbet geçmişi değil.
 > - **1. oturum (2026-10-04, v0.6):** yazım konvansiyonları ve alt bölüm haritası (blok UI0; K-762, K-763) · §2 ortak bileşen kütüphanesi — tasarım tabanı ve yirmi bileşen (blok UI2) · §3 navigasyon haritası (blok UI3) · §4 ekran envanteri — 53 ekran, bir düşen kimlik (blok UI4; K-764). Yazımın bulduğu beş ekran kurgusu boşluğu karara bağlandı (K-765…K-769); üst dokümana dönen karar yoktur. §1 aynı PR'da envanterle hizalandı: E-48'in sekiz satırı E-44'e taşındı, altı satır E-38'i aldı (§1.1.2, §1.2).
 > - **2. oturum** — iki parçaya bölündü (K-778). **2a (2026-10-04, v0.7):** §5.1…§5.15 — müşteri tarafının ilk on beş ekranı (E-01…E-15: vitrin, içerik, sepet, ödeme adımı, sipariş teyit ekranı, sipariş takibi girişi; blok UI5); 1a'nın 119 matris satırı tam metinle okundu ve on üç satır düzeldi (§1.2); yazımın bulduğu dokuz boşluk karara bağlandı (K-770…K-778), biri Ürün Gereksinimleri'ne ve MVP Kapsamı'na geri beslendi (K-774; §1.3). **2b (2026-10-04, v0.8):** §5.16…§5.28 — müşteri tarafının kalan on üç ekranı (E-16…E-28: sipariş sayfası, iptal ve gecikme feshi, cayma beyanı, ayıp talebi, üyelik ve hesap ekranları); §5 tamamlandı. 1a'nın 378 matris satırının tamamı yazım turunda tam metinle okundu; bu oturumda yirmi beş satır düzeldi (§1.2). Yazımın bulduğu sekiz boşluk karara bağlandı (K-779…K-786), biri Ürün Gereksinimleri'ne geri beslendi (K-786; §1.3). **Kısmi adet kararı (2026-10-04, v0.9):** proje sahibinin kararıyla iptal, cayma ve iadede müşteri adedi birden büyük kalemin kaç adedini işleme sokacağını seçer (K-787); açtığı detaylar K-788…K-795'tir. Ürün Gereksinimleri v0.60'a, Kullanıcı Akışları v0.16'ya, MVP Kapsamı v0.41'e ve Proje Vizyonu v0.33'e geri beslendi (§1.3). Bu dokümanda: adet alanı OB-12'nin varyantıdır (2.12.1.8 — yeni bileşen açılmadı) · E-16, E-17, E-18 ve E-19'un tanımları (5.16.5, 5.17.4–5.17.6, 5.17.8, 5.17.12, 5.18.4, 5.18.6, 5.18.7, 5.18.9, 5.18.12, 5.19.3, 5.19.4, 5.19.9) · §4'ün E-17, E-18, E-19 satırları. §3'ün geçişleri değişmedi; panelin adet yüzü (E-37) 3. oturumundur. Matrisin satır sayısı değişmedi (1.193). **3. oturum (2026-10-04, v0.10):** §9.1…§9.9 — panelin ilk dokuz ekranı (E-29…E-37: panel girişi ve şifre sıfırlama, davet kabulü, panel ana sayfası, ürün listesi ve ürün formu, kategori ağacı, kuponlar, sipariş listesi ve sipariş ayrıntısı; blok UI9); dokuz ekranın Kullanıcı Akışları'ndaki 364 kaynak satırı tam metinle okundu ve on bir matris satırı düzeldi (§1.2); yazımın bulduğu on iki boşluk karara bağlandı (K-797…K-808), üçü Ürün Gereksinimleri'ne ve Kullanıcı Akışları'na geri beslendi (K-805, K-806, K-808; §1.3). §3.4'e üç geçiş girdi (3.4.18…3.4.20); §2'nin "Kullanıldığı ekranlar" listeleri ve iki geçici hedefi madde numarasına çevrildi. **4. oturum (2026-10-04, v0.11):** §9.10…§9.25 — panelin kalan on altı ekranı (E-38…E-47, E-49…E-54: talepler ve iletişim talebi ayrıntısı, üye kaydı görünümü, kurumsal içerik, ana sayfa ve menü, marka, dört ayar ekranı, yönetici hesapları ve yöneticinin kendi hesabı, satış özeti, işlem izi, dışa aktarma, yönetici hesabının doğrulama ekranları; blok UI9); **§9 tamamlandı.** On altı ekranın 225 kaynak satırı okundu — Kullanıcı Akışları'nın ve MVP Kapsamı'nın satırları tam metinle — ve on sekiz matris satırı düzeldi (§1.2). 3. oturumun bir değiştirme betiğinin bozduğu altı satır — §2'nin beşi, §5.1'in Kaynak satırı — önceki sürümden ve 3. oturumun kaydındaki niyetten onarıldı. Yazımın bulduğu on beş boşluk karara bağlandı (K-809…K-823), üçü Ürün Gereksinimleri'ne geri beslendi (K-813, K-818, K-821; §1.3). §3.4'e iki geçiş girdi (3.4.21, 3.4.22); §2'nin "Kullanıldığı ekranlar" listeleri ve 9.2.5'in geçici hedefi güncellendi. **5. oturum (2026-10-04, v0.12):** §6 durum × rol matrisi — 53 ekranın her biri bir blok, 282 satır; sipariş sayfası (6.2.16) ve sipariş ayrıntısı (6.3.9) iki ekseni, kalemin kaydını ve `03 §1.11`'in kırk bir işleminin aralığını taşır (blok UI6) · §7 form ve validasyon envanteri — 42 form, 164 alan satırı; alan türlerinin ortak kuralları ve dokuz deneme limitinin formlardaki karşılığı 7.3'te (blok UI7) · §8 lokalizasyon etkileri — tek dil, Türkçenin biçimleri, uzun metnin yerleşimi (blok UI8). Ekran tanımlarının, §2'nin ve §5 ile §9'un girişlerinin doksan üç geçici hedefi madde numarasına çevrildi; alt bölüm haritası değişmedi. Çapraz denetim betikle koştu: §2'nin "Kullanıldığı ekranlar" listeleri ekran tanımlarıyla iki yönlü karşılaştırıldı ve altı bileşenin listesi düzeldi; §3'ün geçişleri ekranların giriş ve çıkış maddeleriyle iki yönlü karşılaştırıldı ve on üç ekranın ilk maddesi tamamlandı; atıf taramasında yeni metinde çözülmeyen atıf kalmadı; §1.2'nin sayıları değişmedi. Matrisin bulduğu dört eksik varyant ve yazımın bulduğu iki biçim boşluğu karara bağlandı (K-824…K-829); biri Kullanıcı Akışları'na geri beslendi (K-826; §1.3). **Yazım turu tamamlandı;** sıradaki adım kalite döngüsüdür — audit, deep review, cross-review.
+>
+> **Kalite döngüsü — audit ve deep review (2026-10-04, v0.13; K-431):** dokuz mercek iki dalgada (beş + dört) ve iki şüpheci; 109 bulgu — 74'ü uygulandı, 27'si iki şüphecinin önerisinden küçük olanıyla kısmen uygulandı, 8'i uygulanmadı (`Docs/AUDIT_REPORTS/04_AUDIT.md`, `04_DEEP_REVIEW.md`). On yedi karar (K-830…K-846; §1.3), altısı Ürün Gereksinimleri v0.63'e, ikisi ayrıca Kullanıcı Akışları v0.19'a geri beslendi. Sayılar: §3 123 geçiş (3.3.38, 3.3.39 girdi) · §6 283 satır (6.2.14.5 girdi) · §7 165 alan satırı (7.1.12.4 girdi) · matris 1.193 satır — iki satırın ekran hücresinden E-16 çıktı (§1.2). Sıradaki adım cross-review'dır.
 
 **Yazım konvansiyonları (K-726, K-762).** Bu on beş madde §2–§9'un bütün yazım oturumlarını bağlar; "konvansiyon n" diye anılır.
 
@@ -2201,6 +2203,40 @@ Yazım konvansiyonları, alt bölüm haritası ve ekran envanteri de kayda geçt
 |---|---|---|
 | Sipariş sayfası gerçekleşmiş geri ödemeleri tarih, tutar ve yolla taşır (kural `02 §3.22.4`'te vardı; `03`'ün sayımı hizalandı) | K-826 **(öneriyle kaydedildi — ⚠)** | `03 §2.6.4` · bu doküman 5.16.7 |
 
+**Kalite döngüsü — audit ve deep review (2026-10-04, v0.13).** Dokuz mercek ve iki şüphecinin doğruladığı 109 bulgudan on yedisi bir karar istedi ve ⚠ öneriyle kayıt modunda (karar kaydı K-723) karara bağlandı; onu ⚠ grubundadır. Altısı bir ürün kuralının kaynakta yazılmamış ya da eksik yazılmış yüzüdür ve Ürün Gereksinimleri'ne, ikisi ayrıca Kullanıcı Akışları'na geri beslendi; ötekiler bu dokümanın kendi kurgusudur. Bulguların tamamı ve uygulanma biçimleri `Docs/AUDIT_REPORTS/04_AUDIT.md` ve `04_DEEP_REVIEW.md`'dedir. GAP numarası açılmadı — matrisin değil denetimin boşluklarıdır.
+
+| Denetimin bulduğu boşluk | Karar | Karar özeti | Bu dokümanda |
+|---|---|---|---|
+| Ayıp talebinin adet üst sınırı teslim işaretine bağlıydı; teslim tarihi girilmemiş kalemde talep açılamıyordu (DURUM-1, YASAL-3) | K-830 **(öneriyle kaydedildi — ⚠)** | Üst sınır kalemin talebe açık adedidir; teslim işaretine bağlı değildir | 5.19.3, 7.1.10.2 |
+| Cayma bilgisi ödeme yükümlülüğünden hemen önce ayrıca gösterilmiyordu (YASAL-1) | K-831 **(öneriyle kaydedildi — ⚠)** | Onay kutularının hemen üstünde formdan ayrı kısa bir cayma özeti | 5.13.9, 2.12.7.2 |
+| İki yasal metnin okunabilirlik alt sınırı yoktu (YASAL-2) | K-832 **(öneriyle kaydedildi — ⚠)** | Alt sınır Ürün Gereksinimleri'nde; kutudaki metin küçültülmez | 5.13.32 |
+| Özet farkında onay kutularının işareti yalnız sürüm değişiminde kalkıyordu (YASAL-10) | K-833 **(öneriyle kaydedildi — ⚠)** | Formun içeriğini değiştiren her farkta iki yasal metnin kutuları yeniden işaretlenir | 5.13.20, 2.12.7.3 |
+| İlk kurulumda çerez politikası yayında değilken çerez yazılıp yazılmadığı yazılı değildi (YASAL-7) | K-834 **(öneriyle kaydedildi — ⚠)** | İlk yayına kadar vitrin çerez yazmaz | 5.11.9 |
+| Ücretsiz kargo eşiği satırının koşullu satış reklamı hükmü karşısındaki durumu tartılmamıştı (YASAL-9) | K-835 **(öneriyle kaydedildi — ⚠)** | Satır sepetin kargo hesabıdır, süreli indirim duyurusu değildir; tarih alanı açılmaz | — (kural Ürün Gereksinimleri'nde) |
+| Ulaşma listesinin dışa aktarıldığı yer Ürün Gereksinimleri'yle çelişiyordu (IC-6) | K-836 **(öneriyle kaydedildi — ⚠)** | Liste yalnız dışa aktarma ekranından (E-53) iner | 9.10.7, 9.12.8 |
+| Aynı sepetin ödenmemiş önceki siparişinin iptali onaydan önce söylenmiyordu (EKRAN-M-1) | K-837 **(öneriyle kaydedildi — ⚠)** | Onay bölümünün başında önceki siparişin numarası ve iptal edileceği | 5.13.9, 5.13.18 |
+| Kargodaki kalemden caymada iade bölümü elde olmayan malın gönderme süresini söylüyordu (EKRAN-M-5) | K-838 **(öneriyle kaydedildi — ⚠)** | Önce kargonun teslim alınmayan malı döndürdüğü; süre mal teslim alınırsa | 5.18.5, 6.2.18.1 |
+| Geri alma bağlantısının açılması değişikliği geri alıyordu; e-posta güvenlik tarayıcısı bağlantıyı kullanıcıdan önce açabilir (DR-3) | K-839 **(öneriyle kaydedildi — ⚠)** | Geri alma ekrandaki tek düğmeyle olur | §5.28, §9.25, 6.2.28.1, 6.3.25.4 |
+| Teyit ekranının sipariş değiştikten sonra yeniden açılması tanımsızdı (DR-1) | K-840 **(öneriyle kaydedildi)** | Sağlayıcıya geçiş sunulmaz; sipariş sayfasına ya da takibe | 5.14.1, 5.14.10, 3.3.39, 6.2.14.5 |
+| Bir satırı dolduramayan vitrinde eksik satır kuralı bütün kartları gizliyordu (DR-5) | K-841 **(öneriyle kaydedildi)** | Kural en az bir tam satırda işler | 5.1.13 |
+| Ödeme adımında iletişim formuna bağlantı yoktu (DR-6) | K-842 **(öneriyle kaydedildi)** | Altbilginin "İletişim" başlığı E-10'a götürür | 2.1.4, 2.2.5, 3.1.21, 5.10.1 |
+| Kurumsal içerik listesinin sayfalanması tanımsızdı (DR-8) | K-843 **(öneriyle kaydedildi)** | Gruplar sayfalanmaz | 9.13.3 |
+| Kaydetme anında kapanmış oturumda yazılanların akıbeti yazılı değildi (DR-10) | K-844 **(öneriyle kaydedildi)** | Form gönderilmez; korunmayacağı girişten önce söylenir | 3.6.5 |
+| Kupon reddi tek mesajdı; asgari tutarın altındaki geçerli kod ayırt edilmiyordu (EKRAN-M-6) | K-845 **(öneriyle kaydedildi)** | Asgari tutar ayrı mesajla; öteki retler tek mesaj | 5.13.15, 2.12.6.3, 7.1.5.7 |
+| Panelin dokuz düğme adı kaynakta ve kayıtta tırnaklı karşılık taşımıyordu (KAPSAM-K-2, KAPSAM-K-6, ATIF-1, ATIF-2) | K-846 **(öneriyle kaydedildi)** | Dokuz ad sabitlendi | §9.12, §9.13, §9.16, §9.20, §9.21, §9.24 |
+
+**Kalite döngüsünün geri beslemesi (K-652, K-726).** Ürün Gereksinimleri v0.63 · Kullanıcı Akışları v0.19; ikisinin de ✓ durumu korunur ve kalite döngüsü yeniden açılmaz. MVP Kapsamı ve Proje Vizyonu değişmedi — `10 §2` KP-14 özet farkında kutuların yeniden işaretlendiğini zaten söyler (K-833 ona hizalar).
+
+| Üst dokümana dönen kural | Karar | Nereye yansıdı |
+|---|---|---|
+| Onay kutularının hemen üstünde formdan ayrı kısa bir cayma özeti durur; iki yasal metin ekranda ve e-postada okunabilirlik alt sınırıyla gösterilir | K-831, K-832 **(öneriyle kaydedildi — ⚠)** | `02 §3.24.3` · bu doküman 5.13.9, 5.13.32 · `08` park satırı |
+| Eşik satırı sepetin kargo hesabıdır, süreli indirim duyurusu değildir | K-835 **(öneriyle kaydedildi — ⚠)** | `02 §3.19.5` |
+| Ulaşma listesi panelin dışa aktarma ekranından iner | K-836 **(öneriyle kaydedildi — ⚠)** | `02 §10.7.4` · bu doküman 9.10.7, 9.12.8 |
+| Kargodaki kalemde beyan ekranı önce kargonun teslim alınmayan malı döndürdüğünü söyler | K-838 **(öneriyle kaydedildi — ⚠)** | `02 §7.3.5` · `03 §2.8.1.2` · bu doküman 5.18.5 |
+| Geri alma bağlantısının açılması değil ekrandaki tek düğme geri almadır | K-839 **(öneriyle kaydedildi — ⚠)** | `02 §3.13.14` · `03 §9.3.6` · bu doküman §5.28, §9.25 · `05` park satırı |
+| Ürün sayfası üretim yerini dijital üründe de — doluysa — gösterir (kural `02 §3.8.5`'teydi; `03`'ün satırı hizalandı) | — (hizalama; FORM-7, YASAL-5) | `03 §2.1.5` · bu doküman 5.4.4, 9.5.6, 9.5.22, 6.3.5.6, 7.2.4.12 |
+| Teslimat illeri üretilen metinleri besleyen ayarlar arasındadır (kural `02 §3.24.3` ve §3.33.3'teydi; `03`'ün sayımı hizalandı) | — (hizalama; YASAL-4) | `03 §8.7.2.3`, §8.7.4.2 · bu doküman 9.18.4, 9.18.9, 9.19.4 |
+
 > **Vaka:** Bu matris bir referans projede 7 boşluk yakaladı — hiçbiri o ana kadar hiçbir dokümanda adreslenmemiş ama arayüzde cevap gerektiren sorulardı.
 
 ---
@@ -2420,7 +2456,7 @@ Siparişin iki ekseni her yerde **iki ayrı rozetle**, yan yana gösterilir; tek
 
 **2.7.5 Kesinti ve bakım için ekran yoktur:** sitenin hiç çalışmadığı kesintide ürünün içinden bilgilendirme yoktur (`03 §10.3.1`) ve bakım modu yoktur (`02 §3.1.6`).
 
-*Kullanıldığı ekranlar:* bütün ekranlar; matriste E-31. Hata sayfası ayrı bir ekran kimliği almaz — her ekranın sayfa düzeyi hata hâlidir (§4.4). *Kaynak: `02 §3.1.6`, §3.27.14, §3.27.22, §3.28.1, §3.28.3, §3.28.4, §3.28.6, §6.1.4, §10.6.3, §10.8.1 · `03 §2.3.7`, §2.4.5, §2.5.1.2, §10.3.1 · K-744, K-745, K-750, K-757, K-765 · §1.3 GAP-10.*
+*Kullanıldığı ekranlar:* bütün ekranlar; matriste E-31. Hata sayfası ayrı bir ekran kimliği almaz — her ekranın sayfa düzeyi hata hâlidir (§4.4). *Kaynak: `02 §3.1.6`, §3.27.14, §3.27.22, §3.28.1, §3.28.3, §3.28.4, §3.28.6, §6.1.4, §10.6.3, §10.8.1 · `03 §2.3.7`, §2.4.5, §2.5.1.2, §10.3.1 · K-744, K-745, K-750, K-754, K-757, K-765 · §1.3 GAP-10.*
 
 ### 2.8 Satış kapalı hâli (OB-08)
 
@@ -2891,7 +2927,7 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
 | 4.4.11 | Bekleyen işler, toplu işlem ve kurulum sihirbazı ekranı | Yoktur: sayaçlar var olan listelerin süzülmüş hâline götürür (`02 §10.6.1`), toplu işlem yoktur (`02 §10.7.2`), sihirbaz yoktur (`02 §10.8.2`) | — |
 | 4.4.12 | Fatura, banka havalesi ve kargo teslimi | Sistem dışı adımlardır; ürün izlemez (`03 §8.5.8`) | Ürünün dışında |
 
-*Kaynak (§4.1–§4.4): `02 §1.3`, §3.1.6, §3.29.3, §3.29.4, §3.30.5, §3.30.7, §9, §10.1.2, §10.2.5, §10.6.1, §10.7, §10.8.2 · `03 §0.1.3`, §0.1.4, §2.5.1.1, §7, §8.4.10, §8.4.11, §8.5.8, §9.3.6, §10.3.1 · `10 §2` KP-15, KP-37 · K-724, K-725, K-729, K-732, K-734, K-736, K-737, K-738, K-749, K-750, K-751, K-752, K-756, K-763, K-764.*
+*Kaynak (§4.1–§4.4): `02 §1.3`, §3.1.6, §3.29.3, §3.29.4, §3.30.5, §3.30.7, §9, §10.1.2, §10.2.5, §10.6.1, §10.7, §10.8.2 · `03 §0.1.3`, §0.1.4, §2.5.1.1, §7, §8.4.10, §8.4.11, §8.5.8, §9.3.6, §10.3.1 · `10 §2` KP-15, KP-37 · K-724, K-725, K-729, K-732, K-734, K-736, K-737, K-738, K-749, K-750, K-751, K-752, K-756, K-763, K-764, K-787.*
 
 ## 5. Ekran tanımları
 
@@ -3713,7 +3749,7 @@ Matris ayrıca iki ekran tanımını kaynağa hizaladı — karar gerektirmeyen 
 
 | # | Rol | Durum | Ne gösterilir | Hangi aksiyonlar aktif | Kaynak |
 |---|---|---|---|---|---|
-| 6.2.18.1 | Müşteri | Kargoya verildi · Teslim edilemedi — fiziksel kalem teslim işaretsiz | Kalem seçimi ve adet; iade bilgisi — kargonun teslim alınmayan malı firmaya döndürdüğüyle (K-838); geri ödemenin süresi beyandan (5.18.4–5.18.6) | Kalem ve adet seçmek · "Cayma beyanını gönder" · "Vazgeç" | `03 §1.11.5`, §2.8.1.2 · `02 §7.4.1` |
+| 6.2.18.1 | Müşteri | Kargoya verildi · Teslim edilemedi — fiziksel kalem teslim işaretsiz | Kalem seçimi ve adet; iade bilgisi — kargonun teslim alınmayan malı firmaya döndürdüğüyle (K-838); geri ödemenin süresi beyandan (5.18.4–5.18.6) | Kalem ve adet seçmek · "Cayma beyanını gönder" · "Vazgeç" | `03 §1.11.5`, §2.8.1.2, §2.10.3 · `02 §7.4.1` · K-838 |
 | 6.2.18.2 | Müşteri | Teslim edildi — fiziksel kalem, teslim tarihinden Z-13 içinde | 6.2.18.1; geri ödemenin süresi malın firmaya ulaşmasından (5.18.6) | 6.2.18.1 | `03 §1.11.5` · `02 §7.4.1` |
 | 6.2.18.3 | Müşteri | Ödenmiş sipariş — hizmet kalemi, tamamlanmamış ve Z-14 içinde | İade bilgisi yok; kısmen ifa edilmişte cayılan adetlerin bedelinin tamamı (5.18.5, 5.18.6) | 6.2.18.1 | `03 §1.11.6`, §2.8.2.2 · K-792 |
 | 6.2.18.4 | Müşteri | Kalemin koşullu istisnası | Satırda kaynağın koşulu (5.18.4) | Seçmek açık | `02 §7.3.4` · K-509 |
@@ -4208,7 +4244,7 @@ Panel tek roldür; rol sütunu Yönetici'dir, oturumdan önce açılan adımlard
 | 7.1.16.2 | Alıcının adı ve soyadı, il, ilçe, açık adres | Zorunlu | Adres (7.3.2.5) | Alan mesajı | — |
 | 7.1.16.3 | Telefon | İsteğe bağlı | Telefon (7.3.2.4) | Alan mesajı | — |
 
-*Kaynak: `02 §3.3.3`, §3.5, §3.10, §3.13, §3.14.6, §3.16.8, §3.16.9, §3.20.1, §3.22.3, §3.24, §3.32, §5.10, §7.4.5, §7.5.2, §8.1.4, §8.2, §10.2.5 · `03 §2.1.4`, §2.3.3, §2.4, §3.2.1, §3.2.2, §3.4, §6.1, §9.2, §9.3 · `10 §2` KP-72 · K-659, K-680, K-756, K-772, K-779, K-783, K-786, K-793, K-795, K-796, K-806 · devir: K-301 (form alanları), K-304 (formda görünmez alan).*
+*Kaynak: `02 §3.3.3`, §3.5, §3.10, §3.13, §3.14.6, §3.16.8, §3.16.9, §3.20.1, §3.22.3, §3.24, §3.32, §5.10, §7.4.5, §7.5.2, §8.1.4, §8.2, §10.2.5 · `03 §2.1.4`, §2.3.3, §2.4, §3.2.1, §3.2.2, §3.4, §6.1, §9.2, §9.3 · `10 §2` KP-72 · K-659, K-680, K-756, K-772, K-779, K-783, K-786, K-793, K-795, K-796, K-806, K-830, K-845 · devir: K-301 (form alanları), K-304 (formda görünmez alan).*
 
 ### 7.2 Panelin formları
 
@@ -4519,7 +4555,7 @@ Panel tek roldür; rol sütunu Yönetici'dir, oturumdan önce açılan adımlard
 
 **8.1.3** Çoklu dil yol haritası adayıdır (`10 §3` KD-20; SK-2'nin kalkma koşulu); ekran tasarımı ona hazırlık yapmaz — dil seçici için yer ayrılmaz.
 
-*Kaynak: `02 §12.1.1` · `03 §9.5.3` · `10 §3` KD-20 · `10 §4.2` SK-2, SK-8 · K-825.*
+*Kaynak: `02 §12.1.1` · `03 §9.5.3` · `10 §3` KD-20 · `10 §4.2` SK-2, SK-8.*
 
 ### 8.2 Türkçenin biçimleri — tarih, sayı, para
 
@@ -5141,4 +5177,4 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
 
 ---
 
-*Shopfolio — UI Specifications v0.12*
+*Shopfolio — UI Specifications v0.13*

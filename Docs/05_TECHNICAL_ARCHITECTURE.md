@@ -15,6 +15,7 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-666 · K-667 · Sitenin kesintisinde süreler:** kesinti sırasında zamanı gelen kendiliğinden işler — kendiliğinden iptal, havale hatırlatması, IBAN'ın silinmesi, periyodik imha, e-postanın yeniden denenmesi — site döndüğünde **kaçırdıkları sırayla** çalışır. Havale ödeme süresi kesinti sırasında dolarsa kendiliğinden iptal, sitenin dönüşünden sonraki ilk iş gününün sonuna ertelenir; bu, kesintinin — panelin ve kendiliğinden işlerin çalışmadığı aralığın — tespit edilmesini gerektirir. Tespitin yöntemi bu aşamanın kararıdır (`02 §4.3`, Z-8).
+> - **K-687 · Giriş kaydının okunduğu yer:** giriş kaydı (`02 §3.13.20`, Z-40) panelde görünmez; ihlal ya da hesap ele geçirme incelemesinde firma onu sistem kayıtlarıyla birlikte kurulumun barındırma tarafında okur (`02 §8.5.1`, §12.2.9). Kaydın ve sistem kayıtlarının nasıl ve kim tarafından okunacağı — erişim yolu, süzme, dışarı alma — bu aşamanın kararıdır.
 
 ---
 

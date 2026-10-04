@@ -1,6 +1,6 @@
 # Shopfolio — User Flows
 
-**Versiyon: v0.3** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `10_MVP_SCOPE.md` (kapsam), `PRODUCT_DISCOVERY_STATUS.md` (Aşama 2 kararları) | **Son güncelleme:** 2026-10-04
+**Versiyon: v0.4** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `10_MVP_SCOPE.md` (kapsam), `PRODUCT_DISCOVERY_STATUS.md` (Aşama 2 kararları) | **Son güncelleme:** 2026-10-04
 
 > **Aşama:** 2 — Kullanıcı Akışları · **Rol:** Product Owner / Business Analyst
 > **Traceability zorunlu:** Hayır (doğrudan türetim) — ama akışlar yazıldıktan sonra `02`'ye **geri dönülür**, tutarsızlık varsa düzeltilir.
@@ -8,7 +8,8 @@
 > **Yazım durumu (K-28, K-30, K-432):** doküman Aşama 2'nin **tek yazım turunda**, beş oturumda yazılır; sıra ve konular `PRODUCT_DISCOVERY_STATUS.md` §8.2–§8.3'tedir. Girdi karar kaydı, bu dokümanın şablonu ve üst dokümanlardır — workshop'un sohbet geçmişi değil.
 > - **1. oturum (2026-10-04, v0.2):** §0 — yazım konvansiyonları ve bölüm haritası (blok AK0) · §1 — durum makinesi (blok AK1) · §11 — geri besleme tablosunun ilk satırları. Oturum dokuz karar aldı: ikisi yazım konvansiyonu (K-669, K-670), yedisi yazımın bulduğu boşluk (K-671…K-677); yedisi `02`'ye, biri `10`'a da döndü (§11).
 > - **2. oturum (2026-10-04, v0.3):** §2 — müşteri tarafının ana akışları ve uçtan uca anlatılar (blok AK2) · §11'e dört satır. Oturum yazımın bulduğu dört boşluğu karara bağladı (K-678…K-681); dördü `02`'ye, ikisi `10`'a da döndü (§11). Aynı PR'da §1 hizalandı: ayıp talebinin müşteri tarafından yeniden açılmasının bildirimi (§1.9.1, §1.11.10 — K-681) ve S9 ile S11'in "Akış" sütunu.
-> - **Sıradaki oturumlar:** §3–§6 (AK3–AK6) · §7 ve §8 (AK7, AK8) · §9–§11 (AK9–AK11). Kalite döngüsü tur bittikten sonra başlar (K-432).
+> - **3. oturum (2026-10-04, v0.4):** §3 — hata akışları; `02 §6`'nın altı ilkesi ve yüz otuz sekiz senaryosu birer satırla (blok AK3) · §4 — zaman aşımları; Z-1…Z-47 ve kendiliğinden işleyen anlar, kesinti dahil (AK4) · §5 — itiraz ve anlaşmazlık (AK5) · §6 — kötüye kullanım ve inceleme (AK6) · §11'e altı satır. Oturum yedi karar aldı: biri yazım konvansiyonu (K-682), altısı yazımın bulduğu boşluk (K-683…K-688); altısı `02`'ye, ikisi `10`'a da döndü (§11). Aynı PR'da §1 ve §2 hizalandı (§1.3, §1.6.2, §1.7.1.9, §1.11.31, §1.11.38, yeni §1.11.39; §2.5.2.3, §2.8.4.3, §2.9.4).
+> - **Sıradaki oturumlar:** §7 ve §8 (AK7, AK8) · §9–§11 (AK9–AK11). §8 ve §9'un adım tablolarını yazan oturum §3.4 ve §3.5'in "Akış adımı" hücrelerini satır numarasına çevirir (K-682). Kalite döngüsü tur bittikten sonra başlar (K-432).
 
 ---
 
@@ -36,10 +37,10 @@
 |---|---|---|---|
 | §1 Durum makinesi | 1.1 Envanter · 1.2 Sevkiyat ekseni · 1.3 Ödeme ekseni · 1.4 İki eksenin bağı · 1.5 Tipe göre hatlar · 1.6 Geri alınamaz geçişler ve düzeltme · 1.7 Kalem kayıtları ve panel işaretleri · 1.8 Yayın durumları · 1.9 Talep durumları · 1.10 Durum makinesi olmayan varlıklar · 1.11 Durum × rol × işlem | AK1-01…AK1-09 | 1 ✓ |
 | §2 Ana akışlar — müşteri tarafı | 2.1 Ziyaretçi: vitrinde gezinme ve ürünü bulma · 2.2 Ziyaretçi: kurumsal içerik ve iletişim formu · 2.3 Müşteri: sepet · 2.4 Müşteri: ödeme adımı ve sipariş onayı · 2.5 Müşteri: ödeme ve teslim · 2.6 Müşteri: sipariş takibi (akış 2) · 2.7 Müşteri: iptal ve gecikme feshi · 2.8 Müşteri: cayma ve iade · 2.9 Müşteri: ayıp talebi · 2.10 Uçtan uca anlatılar | AK2-01…AK2-10 | 2 ✓ |
-| §3 Hata akışları | 3.1 Bütün akışlara uygulanan ilkeler · 3.2 Satın alma ve sipariş takibi · 3.3 İptal, cayma ve iade · 3.4 Üyelik · 3.5 Firma tarafı | AK3-01…AK3-06 | 3 |
-| §4 Zaman aşımı yönetimi | 4.1 Süre envanterinden zaman aşımı akışları · 4.2 Kendiliğinden işleyen anlar | AK4-01, AK4-02 | 3 |
-| §5 İtiraz ve anlaşmazlık | 5.1 Üç yol ve itirazın yeri · 5.2 Ürünün dışında çözülen anlaşmazlıklar · 5.3 İade reddi ve değer kaybı | AK5-01…AK5-03 | 3 |
-| §6 Kötüye kullanım ve inceleme | 6.1 Deneme limitleri · 6.2 Teyit ve kandırılma akışları · 6.3 Firmanın inceleme akışları | AK6-01…AK6-04 | 3 |
+| §3 Hata akışları | 3.1 Bütün akışlara uygulanan ilkeler · 3.2 Satın alma ve sipariş takibi · 3.3 İptal, cayma ve iade · 3.4 Üyelik · 3.5 Firma tarafı | AK3-01…AK3-06 | 3 ✓ |
+| §4 Zaman aşımı yönetimi | 4.1 Süre envanterinden zaman aşımı akışları · 4.2 Kendiliğinden işleyen anlar | AK4-01, AK4-02 | 3 ✓ |
+| §5 İtiraz ve anlaşmazlık | 5.1 Üç yol ve itirazın yeri · 5.2 Ürünün dışında çözülen anlaşmazlıklar · 5.3 İade reddi ve değer kaybı | AK5-01…AK5-03 | 3 ✓ |
+| §6 Kötüye kullanım ve inceleme | 6.1 Deneme limitleri · 6.2 Teyit ve kandırılma akışları · 6.3 Firmanın inceleme akışları | AK6-01…AK6-04 | 3 ✓ |
 | §7 Bildirim haritası | 7.1 Müşteriye giden bildirimler · 7.2 Firmaya giden bildirimler ve hesap e-postaları · 7.3 Geçiş ve olay bazlı eşleme | AK7-01…AK7-03 | 4 |
 | §8 Yönetim akışları — firma tarafı | 8.1 Katalog yönetimi (akış 5) · 8.2 Sipariş yürütümü: olağan hat (akış 6) · 8.3 Firma iptali, iade teslim alma ve geri ödeme · 8.4 Sipariş müdahaleleri · 8.5 Manuel adım bütçesi · 8.6 Kurumsal içerik, marka, duyuru ve iletişim talepleri (akış 7'nin panel yüzü) · 8.7 Mağaza ayarları, satış kapısı ve kurulum kontrol listesi (akış 8) · 8.8 Yönetici hesapları ve davet · 8.9 Bekleyen işler, satış özeti, işlem izi ve dışa aktarma | AK8-01…AK8-11 | 4 |
 | §9 Destekleyici akışlar — üyelik (akış 4) | 9.1 Kayıt, e-posta doğrulama ve Google ile ilk giriş · 9.2 Giriş, oturum, şifre sıfırlama ve yeniden doğrulama · 9.3 Profil ve adres defteri · 9.4 Hesabın silinmesi ve kişisel veri başvurusu · 9.5 Tercih yönetimi | AK9-01…AK9-05 | 5 |
@@ -171,7 +172,7 @@ Durum adları, kodları ve geçişlerin koşulları `02 §5`'tedir ve burada tek
 | Ö4 | Ödendi → Geri ödendi | Ö3'ün tetikleyenleri; siparişin parasının tamamı geri ödenir | §2.7–§2.9, §8.3 | B-8 → müşteri; sistemin kart iadesinde F-4 → firma |
 | Ö5 | Kısmen geri ödendi → Geri ödendi | Ö3'ün tetikleyenleri; kalan paranın tamamı geri ödenir | §2.7–§2.9, §8.3 | B-8 → müşteri; sistemin kart iadesinde F-4 → firma |
 
-**Ekseni değiştirmeyen olaylar** (`02 §5.5`): kart iadesinin sağlayıcıda başarısız olması — panel işareti düşer (§1.7) · iptal edilmiş siparişe gelen kart ödemesi ve sistemin onu kendiliğinden geri ödemesi — ödeme kaydında durur, F-4 → firma (`02 §6.2.16`) · ters ibraz — ürünün dışındadır (`02 §3.21.11`) · cayma beyanı, gecikme feshi ve iade malının teslim alınması — para fiilen gönderilene kadar (`02 §5.6.6`). **Yasak geçiş:** Başarısız → Ödendi. Ödeme ekseninin tek düzeltmesi yanlış konmuş havale "ödendi" işaretidir (§1.6).
+**Ekseni değiştirmeyen olaylar** (`02 §5.5`): kart iadesinin sağlayıcıda başarısız olması — panel işareti düşer (§1.7); müşteriye ayrı bildirim gitmez (K-683) · iptal edilmiş siparişe gelen kart ödemesi ve sistemin onu kendiliğinden geri ödemesi — ödeme kaydında durur, B-8 → müşteri (K-684), F-4 → firma (`02 §6.2.16`) · ters ibraz — ürünün dışındadır (`02 §3.21.11`) · cayma beyanı, gecikme feshi ve iade malının teslim alınması — para fiilen gönderilene kadar (`02 §5.6.6`). **Yasak geçiş:** Başarısız → Ödendi. Ödeme ekseninin tek düzeltmesi yanlış konmuş havale "ödendi" işaretidir (§1.6).
 
 ### 1.4 İki eksenin bağı
 
@@ -254,9 +255,9 @@ Sistemin iptalde kendiliğinden başlattığı kart iadesi bir onay penceresi de
 | 1.6.2.1 | Erken ya da yanlış konmuş teslim işareti | Teslim edildi'den bir önceki duruma; teslim işareti kalkar, cayma penceresi ve ayıp süresi yeni tarihe kadar işlemez | `02 §10.4.6` |
 | 1.6.2.2 | Yanlış iptal | İptal edildi'den iptalden önceki duruma | Ödeme Ödendi'de kalmışsa; ayırmalar yeniden yapılır, yetmezse düzeltme yapılamaz — `02 §10.4.6` |
 | 1.6.2.3 | Yanlış konmuş Kargoya verildi ya da Teslim edilemedi işareti | Yanlış geçişten önceki duruma | Eksen bağını bozmaz — `02 §5.4`, §10.4.6 |
-| 1.6.2.4 | Para gelmeden konmuş havale "ödendi" işareti | Ödendi → Bekliyor ve Hazırlanıyor → Alındı, birlikte | Kargoya verilmemiş, geri ödeme yapılmamış, hiçbir kalem teslim işareti almamış; Z-8 düzeltme anından yeniden başlar — `02 §10.4.6` |
+| 1.6.2.4 | Para gelmeden konmuş havale "ödendi" işareti | Ödendi → Bekliyor ve Hazırlanıyor → Alındı, birlikte | Kargoya verilmemiş, geri ödeme yapılmamış, hiçbir kalem teslim işareti almamış; Z-8 düzeltme anından yeniden başlar ve hatırlatma (B-3) yeni sürenin son iş gününde bir kez daha gider — `02 §10.4.6` · K-685 |
 
-Kart hattında ödeme ekseninin düzeltmesi yoktur. Teslim tarihinin, adresin ve takip bilgisinin düzeltilmesi geçiş değil müdahaledir (§1.11, §8.4).
+Kart hattında ödeme ekseninin düzeltmesi yoktur. **Cayma beyanı düzeltilmez ve geri alınmaz** — müşterinin sipariş sayfasından yaptığı da, yöneticinin başka kanaldan kaydettiği de; kandırılmayla ya da yanlış kalemde yapılmış kaydın sonucu firmadadır (K-688; akış §6.2.3). Teslim tarihinin, adresin ve takip bilgisinin düzeltilmesi geçiş değil müdahaledir (§1.11, §8.4).
 
 ### 1.7 Kalem kayıtları ve panel işaretleri
 
@@ -272,7 +273,7 @@ Kart hattında ödeme ekseninin düzeltmesi yoktur. Teslim tarihinin, adresin ve
 | 1.7.1.6 | İade teslim alma | Yönetici — ulaşma tarihiyle; stoğa ekleme ayrı adımdır | — | — · IBAN silinmişse B-14 | `02 §7.4.7` |
 | 1.7.1.7 | İade reddi | Yönetici — koşullu istisna kaleminde, teslim alma adımında | — | B-16 | `02 §7.4.9` |
 | 1.7.1.8 | "Mal dönmedi" kapanışı | Yönetici — Z-42 geçtikten sonra | — | — (`02 §9.2`) | `02 §10.4.9` |
-| 1.7.1.9 | IBAN isteği | Sistem — yöneticinin teslim alma adımıyla (IBAN silinmişse), "havale gerçekleşmedi" bildirimiyle, IBAN'sız cayma kaydıyla ya da kart iadesinde havale yolunu açmasıyla | — | B-14 | `02 §5.8`, §7.4.5 |
+| 1.7.1.9 | IBAN isteği | Sistem — yöneticinin teslim alma adımıyla (IBAN silinmişse), "havale gerçekleşmedi" bildirimiyle, IBAN'sız cayma kaydıyla, kart iadesinde havale yolunu açmasıyla ya da havale hattında IBAN'ı olmayan bir geri ödeme için istek açmasıyla (1.11.39; K-686) | — | B-14 | `02 §5.8`, §7.4.5 · K-686 |
 | 1.7.1.10 | Ayıp talebi | Müşteri | Hattı etkilemez; durumu §1.9 | B-9 → müşteri · F-3 → firma | `02 §5.8`, §7.5 |
 | 1.7.1.11 | İndirme sayacı | Sistem her indirmede; yönetici yeniler | — | — | `02 §3.12.5`, §3.12.6 |
 
@@ -396,14 +397,15 @@ Her rolün hangi durumda hangi işlemi yapabildiği. Ekran varyantları bu tablo
 | 1.11.28 | İade malını teslim almak | Cayma beyanlı ya da feshedilmiş fiziksel kalemin malı ulaşınca — "mal dönmedi" ile kapatılmış kalemde de (kalemi yeniden açar) | İade teslim alma · IBAN silinmişse IBAN isteği ve B-14 | `02 §7.4.7`, §10.4.9 |
 | 1.11.29 | İade malını reddetmek | Koşullu istisna kaleminde, teslim alma adımında | İade reddi · geri alınamaz · B-16 | `02 §7.4.9` |
 | 1.11.30 | "Mal dönmedi" kapanışı | Teslimden sonraki caymada Z-42 geçmiş ve mal ulaşmamışken | Kapanış · — | `02 §10.4.9` |
-| 1.11.31 | Geri ödemeyi işlemek | Havale hattında IBAN varken; caymada iki hatta; ayıp talebinin para gerektiren çözümünde; tutar bazlı kısmi geri ödemede ödenmiş ve geri ödenmemiş tutar kaldıkça | Ö3–Ö5 · geri alınamaz · B-8 | `02 §5.5`, §7.4 |
+| 1.11.31 | Geri ödemeyi işlemek | Havale hattında IBAN varken — yoksa önce 1.11.39; caymada iki hatta; ayıp talebinin para gerektiren çözümünde; tutar bazlı kısmi geri ödemede ödenmiş ve geri ödenmemiş tutar kaldıkça | Ö3–Ö5 · geri alınamaz · B-8 | `02 §5.5`, §7.4 |
 | 1.11.32 | Kart iadesini yeniden denemek ya da havale yolunu açmak | "geri ödeme gerçekleşmedi" işaretliyken; müşteri IBAN girdikten sonra kart iadesi yeniden denenmez | İşaret kalkar ya da IBAN isteği · B-14 | `02 §7.2.8` |
 | 1.11.33 | "Havale gerçekleşmedi" bildirmek | Geri ödeme havalesi bankada gerçekleşmediğinde, geri ödeme işlenmeden önce | IBAN silinir, IBAN isteği · B-14 | `02 §7.4.5` |
 | 1.11.34 | Başka kanaldan gelen caymayı kaydetmek | Fiziksel kalemde sipariş Kargoya verildi'ye geçtikten sonra — önce "müşteriyle anlaşıldı" iptaliyle; hizmet kaleminde ödeme onaylandıktan sonra — önce siparişin bütünüyle iptaliyle (K-673). Pencere dışında ve mutlak istisnada ayrıca onayla; pencerenin bitiminden bir yıl sonrasına tarihli kayıt reddedilir | Cayma beyanı · B-9 · IBAN'sızsa B-14 | `02 §10.4.10` |
 | 1.11.35 | Misafir siparişinin e-postasını düzeltmek | Giriş yapılmadan verilmiş siparişte, kişisel veriler imha edilene kadar | B-1 → yeni adres · B-15 → eski adres | `02 §10.4.11` |
 | 1.11.36 | E-postayı yeniden göndermek | "e-posta ulaşmadı" işaretli satırda | İşaret kalkar (§1.7.3) | `02 §9.1.6` |
 | 1.11.37 | Ayıp talebini "çözüldü" işaretlemek ya da yeniden açmak | Açık ya da Çözüldü talepte | — | `02 §5.10` |
-| 1.11.38 | İndirme hakkını yenilemek | Dijital kalemde | Sayaç sıfırlanır | `02 §3.12.6` |
+| 1.11.38 | İndirme hakkını yenilemek | Dijital kalemde | Sayaç sıfırlanır · — (K-683) | `02 §3.12.6` · K-683 |
+| 1.11.39 | Geri ödeme için müşteriden IBAN istemek | Havale hattında IBAN'ı olmayan bir geri ödeme işlenecekken — ayıp talebinin para gerektiren çözümü, tutar bazlı kısmi geri ödeme, iade reddinden ya da "mal dönmedi" kapanışından sonra ödeme kararı | IBAN isteği · B-14 | `02 §7.4.5` · K-686 |
 
 ## 2. Ana akışlar (aktör bazlı)
 
@@ -500,7 +502,7 @@ Sepet kendiliğinden boşalmaz (Z-6); sepet hatırlatması ve istek listesi yokt
 |---|---|---|---|---|---|
 | 2.5.2.1 | Müşteri siparişi havaleyle onaylar | Ekranda firmanın siparişe donan IBAN'ı ve sipariş numarası görünür; aynı bilgi B-2'de ve sipariş sayfasındadır. Havale ödeme süresi (Z-8) sipariş onayından işler | Alındı + Bekliyor | B-2 → müşteri (2.4.9'da) | `02 §3.21.6`, §3.22.4 · K-663 |
 | 2.5.2.2 | Müşteri bankasından havale yapar | Sistem dışıdır: ürün gelen tutarı bilmez ve karşılaştırmaz; eksik ya da fazla gelen havalede kararı firma ürünün dışında verir | — | — | `02 §3.21.7` |
-| 2.5.2.3 | Sistem hatırlatma gönderir | Ödeme süresinin son iş gününün başında, bir kez (Z-9) | — | B-3 → müşteri | `02 §3.21.6` |
+| 2.5.2.3 | Sistem hatırlatma gönderir | Ödeme süresinin son iş gününün başında, bir kez (Z-9); havale işaretinin düzeltilmesiyle yeniden başlayan sürede bir kez daha (§4.1.9) | — | B-3 → müşteri | `02 §3.21.6` · K-685 |
 | 2.5.2.4 | Yönetici parayı hesabında görür ve "ödendi" işaretler — panel siparişin donmuş IBAN'ını gösterir, onay geri alınamaz (§8.2) | Ödeme onaylanır; sonuçları §2.5.3'tedir | → Ödendi (Ö1) | B-4 → müşteri | `02 §3.21.5`, §3.21.6, §5.9 · K-663 |
 | 2.5.2.5 | Sistem süre dolduğunda ödemeyi işaretlenmemiş bulur | Sipariş kendiliğinden iptal edilir ve ayrılanlar serbest kalır; iptal edilmiş sipariş sonradan "ödendi" yapılamaz — gelen parayı firma geri öder ya da müşteriden yeni sipariş ister. Süre sitenin kesintisinde dolduysa iptal ertelenir (§4; K-667) | → İptal edildi + Başarısız (S3, Ö2) | B-7 → müşteri | `02 §3.17.5`, §3.21.8, §4.2 Z-8 · K-667 |
 | 2.5.2.6 | Müşteri ödeme beklenirken vazgeçer ya da kartla ödemek ister | Siparişi bütünüyle iptal eder (2.7.1); kalem düzeyinde iptal yoktur. Kartla ödemek isteyen müşteri aynı sepetten yeni sipariş verir; önceki sipariş kendiliğinden iptal edilir (2.4.9) | — | — | `02 §3.17.7`, §7.2.2 |
@@ -582,7 +584,7 @@ Sebepsiz ikinci yoldur (`02 §7.3`, §7.4). Düğmelerin aralıkları §1.11.5�
 |---|---|---|---|---|---|
 | 2.8.4.1 | Yönetici caymanın geri ödemesini işler — kart ve havale hattında (§8.3) | Para ödemenin geldiği yoldan gider: karta sağlayıcı üzerinden, havalede müşterinin IBAN'ına; havaleyi yönetici bankada gerçekleştikten sonra işler ve onay geri alınamaz. Teslim alma işareti geri ödemeyi kendiliğinden başlatmaz. Kargoyla gönderilen fiziksel kalemlerin tamamından cayıldıysa — ardışık beyanlarla da — kargo ücreti son caymanın geri ödemesine eklenir; bir kalem müşteride kalıyorsa eklenmez. Kupon hakkı yalnız siparişin tamamı iade edilince döner | → Kısmen geri ödendi ya da Geri ödendi (Ö3, Ö4, Ö5) | B-8 → müşteri | `02 §5.5`, §7.4.5, §7.4.6, §7.4.8 |
 | 2.8.4.2 | Geri ödeme havalesi bankada gerçekleşmez | Yönetici geri ödemeyi işlemez, panelden "havale gerçekleşmedi" der: IBAN silinir ve sipariş sayfasında IBAN alanı yeniden açılır; müşteri yeni IBAN'ı girer. Geri ödemenin süresi durmaz | kalem: IBAN isteği | B-14 → müşteri | `02 §7.4.5` |
-| 2.8.4.3 | Kart iadesi sağlayıcıda gerçekleşmez — iptalde, fesihte ya da caymada | Ödeme ekseni değişmez; panelde "geri ödeme gerçekleşmedi" işareti düşer. Yönetici yeniden dener ya da müşteriye havale yolunu açar; açınca sipariş sayfası kart iadesinin gerçekleşmediğini söyler ve IBAN alanı açar — IBAN girmek müşterinin seçimidir. IBAN girildikten sonra kart iadesi yeniden denenmez; süre durmaz | havale yolu açılınca kalem: IBAN isteği | Havale yolu açılınca B-14 → müşteri | `02 §5.5`, §7.2.8 |
+| 2.8.4.3 | Kart iadesi sağlayıcıda gerçekleşmez — iptalde, fesihte ya da caymada | Ödeme ekseni değişmez; panelde "geri ödeme gerçekleşmedi" işareti düşer. Yönetici yeniden dener ya da müşteriye havale yolunu açar; açınca sipariş sayfası kart iadesinin gerçekleşmediğini söyler ve IBAN alanı açar — IBAN girmek müşterinin seçimidir. IBAN girildikten sonra kart iadesi yeniden denenmez; süre durmaz | havale yolu açılınca kalem: IBAN isteği | Başarısızlıkta müşteriye ayrı bildirim yok (K-683) · havale yolu açılınca B-14 → müşteri | `02 §5.5`, §7.2.8 · K-683 |
 | 2.8.4.4 | Müşteri caymayı sipariş sayfası yerine e-postayla, mektupla ya da örnek cayma formuyla bildirir | Yönetici bildirimin siparişin sahibinden geldiğini teyit eder ve panelden kaydeder (§8.4); beyanın tarihi bildirimin firmaya ulaştığı tarihtir. Havale hattında IBAN yalnız siparişin iletişim e-postasından gelen bildirimden aktarılır; öteki hâllerde kayıt IBAN'sız yapılır ve sipariş sayfasında IBAN alanı açılır. Kargoya verilmemiş fiziksel kalemde ve ödemesi beklenen siparişin hizmet kaleminde cayma kaydı açılmaz — yönetici "müşteriyle anlaşıldı" sebebiyle iptal eder (§2.7). Pencere kapandıktan sonra ya da mutlak istisna kaleminde eksik bilgilendirme gerekçesiyle gelen bildirim firmanın değerlendirmesidir | kalem: cayma beyanı | B-9 → müşteri · IBAN'sız kayıtta B-14 → müşteri; firmaya — (`02 §9.3.2`) | `02 §7.3.5`, §8.3.8, §9.3.2, §10.4.10 · K-673 |
 
 ### 2.9 Müşteri: ayıp talebi
@@ -594,7 +596,7 @@ Sebepli üçüncü yoldur (`02 §7.5`). Talebin durumları §1.9.1'de, firmanın
 | 2.9.1 | Müşteri sipariş sayfasında "sorun bildir"i görür | Fiziksel kalemde sipariş Kargoya verildi'ye geçtiği andan, dijital kalemde ödeme onayından, hizmet kaleminde "tamamlandı" işaretinden sonra ve kalemde talep yokken görünür. Süre kalemin teslim işaretinin tarihinden iki yıldır (Z-18); fiziksel kalemde teslim tarihi girilmemişse işlemez. Süre dolunca kanal kapanır; hak iletişim formundan sürer. Ayıp talebi iletişim formunun konu tiplerinde yoktur | — | — | `02 §7.5.1`, §7.5.2 · K-676 |
 | 2.9.2 | Müşteri kalemi seçer ve sorunu açıklar | Fotoğraf ve dosya yüklenmez — firma kanıtı e-postayla ister. Fiziksel kalemde ekran firmanın güncel iade adresini gösterir ve adres talebe yazılır. Ekran aydınlatma metninin bağlantısını gösterir. Talep kalem ve sipariş bağlamıyla panele düşer | kalem: ayıp talebi — Açık · sevkiyat hattı değişmez | B-9 → müşteri — talebin tarihi ve iade adresi · F-3 → firma | `02 §3.1.7`, §3.33.5, §5.8, §7.5.2 · K-665 |
 | 2.9.3 | Müşteri talep açıkken aynı kalemde yeni bir sorun bildirmek ister | Yeni talep açılmaz; sipariş sayfası "sorun bildir" yerine talebin durumunu gösterir. Ek bilgi firmanın e-postasına yazılır | — | — | `02 §5.10` · K-676 |
-| 2.9.4 | Firma çözümü müşteriyle sistemin dışında yürütür | Seçimlik haklar — onarım, değişim, bedel indirimi, sözleşmeden dönme — ürünün dışındadır. Geri gönderim gerekiyorsa müşteri malı iade adresine karşı ödemeli gönderir; masraf firmanındır. Para gerekiyorsa sözleşmeden dönmede kalemin iade hattı, bedel indiriminde tutar bazlı kısmi geri ödeme işler (§8.4). Ayıplı dijital üründe doğal çözüm dosya güncellemesidir | Para gönderilirse Ö3–Ö5 | Geri ödemede B-8 → müşteri | `02 §7.4.3`, §7.4.4, §7.5.3, §7.5.4 |
+| 2.9.4 | Firma çözümü müşteriyle sistemin dışında yürütür | Seçimlik haklar — onarım, değişim, bedel indirimi, sözleşmeden dönme — ürünün dışındadır. Geri gönderim gerekiyorsa müşteri malı iade adresine karşı ödemeli gönderir; masraf firmanındır. Para gerekiyorsa sözleşmeden dönmede kalemin iade hattı, bedel indiriminde tutar bazlı kısmi geri ödeme işler (§8.4); havale hattında IBAN müşteriden sipariş sayfasıyla istenir (§1.11.39). Ayıplı dijital üründe doğal çözüm dosya güncellemesidir | Para gönderilirse Ö3–Ö5 · havalede kalem: IBAN isteği | Geri ödemede B-8 → müşteri · IBAN isteğinde B-14 | `02 §7.4.3`, §7.4.4, §7.5.3, §7.5.4 · K-686 |
 | 2.9.5 | Yönetici talebi "çözüldü" işaretler | Çözümü firma müşteriye kendi cevabıyla yazmıştır | Ayıp talebi: Açık → Çözüldü | — (`02 §9.2`) | `02 §5.10` |
 | 2.9.6 | Müşteri çözüm tutmadığında talebi yeniden açar — Z-18 içinde | Yeni talep açılmaz; ayıbın geçmişi tek kayıtta kalır. Aynı kalemin yeni sorunu da bu yolla bildirilir | Ayıp talebi: Çözüldü → Açık | B-9 → müşteri — yeniden açmanın tarihi (K-681) · F-3 → firma | `02 §5.10`, §9.2, §9.3 · K-681 |
 
@@ -662,13 +664,498 @@ Misafir alıcı ödeme adımında e-postasını yanlış yazar ve havaleyle sipa
 
 > **Ne yazılır:** Timeout, iptal, doğrulama hatası, dış servis hatası senaryoları.
 
+Bu bölüm `02 §6`'nın hata ve istisna envanterini akışa bağlar: her satır bir ana akış adımından ayrılır ve sistemin cevabını, durumun ne olduğunu ve kime bildirim gittiğini yazar. `02 §6`'nın her satırı burada **tam bir kez** "Kaynak" olur — altı ilke (§3.1) ve yüz otuz sekiz senaryo (§3.2–§3.5); diziliş `02 §6`'nınkidir. Kuralın tam metni `02`'dedir (§0.5.1). Sürelerin kendisi §4'te, itiraz ve ürünün dışında çözülen anlaşmazlıklar §5'te, kötüye kullanım ve teyit §6'dadır; buradaki satır oraya işaret eder.
+
+- **Biçim:** §0.4.2. "Akış adımı" §2'nin satırıdır. Firma tarafının (§8) ve üyeliğin (§9) adım tabloları yazım turunun 4. ve 5. oturumunda yazılır; o güne kadar bu satırlar hedef alt bölümü ve — varsa — işlemi adlandıran §1 satırını taşır: *§8.3 (§1.11.21)*. Adım tablosunu yazan oturum hücreyi satır numarasına çevirir (K-682).
+- **Bildirim:** "—" ekranda reddedilen ve kayıt doğurmayan işlem içindir. Bir kaydı ya da durumu değiştiren olay bildirim kimliğini ya da yokluğunun kaynağını taşır; hata olayın bildirimini değiştirmiyorsa hücre "olağan" der ve ana akışın satırını gösterir (§0.4.1; K-682).
+- **Durum:** §1'e uyar (§0.4.4); "—" sevkiyat ekseninin, ödeme ekseninin ve kalem kaydının değişmediğini söyler.
+
+### 3.1 Bütün akışlara uygulanan ilkeler
+
+| # | İlke | Akışta nerede işler | Kaynak |
+|---|---|---|---|
+| 3.1.1 | Hiçbir sipariş ya da talep akışı bir e-postanın ulaşmasına bağlı değildir: sipariş sayfası her bilgiyi taşır; ulaşmayan e-posta Z-26'nın denemelerinden sonra panel satırına "e-posta ulaşmadı" işaretini düşürür ve yönetici e-postayı yeniden gönderir. Hesap ve yönetim bağlantıları adresin sahibini kanıtlamak için bilerek kuralın dışındadır — kullanıcı bağlantıyı ekrandan yeniden ister (L-9), davette yeni davet gönderilir | §2.6.3–§2.6.5, §2.10.5 · §1.7.3.1 · §3.5.2.13 · §9.1, §9.2 · §8.8 | `02 §6.1.1`, §9.1.6, §9.4 · K-675 |
+| 3.1.2 | Sistem müşterinin ödediği siparişi kendi bilgisizliği yüzünden iptal etmez: kart ödeme süresi dolunca iptalden önce son sorgu yapılır; sorgu yanıtsızsa sipariş Alındı + Bekliyor'da "ödeme sonucu alınamadı" işaretiyle bekler; sitenin kesintisinde dolan havale süresinde iptal ertelenir | §2.5.1.4, §2.5.2.5 · §1.4.3, §1.7.3.2 · §3.2.1.2, §3.5.2.17 · §4.2.11, §4.2.12 | `02 §6.1.2`, §4.3 · K-667 |
+| 3.1.3 | Onaylanan özet ile oluşan sipariş birebir aynıdır; özeti değiştiren her fark siparişin oluşmasını durdurur ve müşteriye neyin değiştiği söylenir | §2.4.8 · §3.2.1.3, §3.2.1.4 | `02 §6.1.3`, §3.17.2 |
+| 3.1.4 | Sepet hatalarda korunur — ödeme yarıda kaldığında, ödeme sağlayıcısına erişilemediğinde ve satış kapalıyken | §2.1.9, §2.5.1.3, §2.5.1.4 · §3.2.1.1, §3.2.1.2, §3.2.1.15, §3.2.1.17 | `02 §6.1.4` |
+| 3.1.5 | Limit aşımı nötr konuşur: mesaj kalan deneme sayısını, engelin süresini ve ekseni söylemez; hesap kilitlenmez | §6.1 · §3.2.1.18, §3.2.1.19, §3.2.1.21, §3.2.2.2, §3.4.11, §3.4.14, §3.5.3.8 | `02 §6.1.5`, §8.2.1 |
+| 3.1.6 | Hata ve uyarının anlamı yalnız renkle taşınmaz — "Tükendi" işareti dahil her hata ve uyarı metin taşır | Bütün akışlar; biçimi `04`'ün işidir | `02 §6.1.6`, §3.34.5 |
+
+### 3.2 Satın alma ve sipariş takibi
+
+#### 3.2.1 Satın alma (akış 1)
+
+| # | Akış adımı | Ne ters gider | Sistemin cevabı | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|---|
+| 3.2.1.1 | §2.5.1.3 | Kart ödemesinde 3D Secure doğrulaması başarısız olur ya da kart reddedilir | Ödeme gerçekleşmez; sipariş kendiliğinden iptal edilir ve ayrılanlar aynı anda serbest kalır. Sepet olduğu gibi durur; müşteri sepetten yeni bir siparişle yeniden dener (§2.4.8). İptal L-7'ye sayılır; sipariş müşterinin listesinde görünmez, panelde görünür | → İptal edildi + Başarısız (S3, Ö2) | B-7 → müşteri (§1.2 S3) | `02 §6.2.1`, §3.17.5, §3.17.8 |
+| 3.2.1.2 | §2.5.1.4 | Müşteri banka ekranını kapatır ya da ödeme yarıda kalır | Sepet olduğu gibi durur. Z-7 dolunca son sorgu yapılır: ödeme alınmışsa onaylanır, alınmamışsa sipariş kendiliğinden iptal edilir, sorgu yanıtsızsa sipariş bekler (3.1.2). Müşteri o arada aynı sepetten yeniden onaylarsa önceki sipariş hemen iptal edilir ve ayırması serbest kalır — müşteri kendi ayırdığı stoğa takılmaz | → Ödendi (Ö1) · → İptal edildi + Başarısız (S3, Ö2) · ya da Alındı + Bekliyor | Ö1'de B-4 · iptalde B-7 → müşteri · yanıtsız sorguda — (K-683) | `02 §6.2.2`, §6.1.2 · K-683 |
+| 3.2.1.3 | §2.4.8 | Onay anında fiyat, indirim, kupon, kargo ücreti, ücretsiz kargo eşiği ya da teslimat illeri değişmiştir, bir kalem ayrılamaz ya da Ön Bilgilendirme Formu'nun veya sözleşmenin sürümü artmıştır | Sipariş oluşmaz; müşteri neyin değiştiğini söyleyen güncel özeti ve metinleri görür ve yeniden onaylar — metin değiştiyse kutuları yeniden işaretler. Ayrılamayan kalemde sayı söylenmez | — · sipariş doğmaz | — | `02 §6.2.3`, §3.17.2 |
+| 3.2.1.4 | §2.3.4 · §2.4.8 | Sepetteki kalem tükenmiştir ya da hizmetin kontenjanı dolmuştur | Kalem "Tükendi" işaretiyle sepette kalır ve siparişe girmez; fark güncel özette söylenir, özet gösterildikten sonra oluşan fark siparişi durdurur. Siparişe girebilecek kalem kalmadıysa ödeme adımı açılmaz; onay anında oluştuysa sipariş oluşmaz ve müşteri sepete döner | — | — | `02 §6.2.4`, §3.16.6, §3.16.7 |
+| 3.2.1.5 | §2.3.5 | Sepetteki ürün ya da varyant arşive ya da taslağa alınmış veya kalıcı silinmiştir | Kalem sepetten çıkar ve müşteriye bir kez söylenir | — | — | `02 §6.2.5`, §3.16.7 |
+| 3.2.1.6 | §2.3.1 · §2.3.4 | Müşteri stoktan fazla adet seçer ya da stok sepetteki adedin altına düşer | "Bu adette stok yok" — adet söylenmez; kalem adet düşürülene kadar siparişe girmez | — | — | `02 §6.2.6`, §3.16.8 |
+| 3.2.1.7 | §2.3.1 · §2.3.4 | Müşteri bir siparişte alınabilecek adedi (P-9) aşar | Ürün sepete eklenmez ve sınır sayısıyla söylenir; sınır sonradan düşerse kalemler mesajla sepette kalır | — | — | `02 §6.2.7`, §3.16.9, §3.16.10 |
+| 3.2.1.8 | §2.3.1 | Aynı dijital varyant sepete ikinci kez eklenir | "Bu ürün zaten sepetinde" | — | — | `02 §6.2.8`, §3.12.4 |
+| 3.2.1.9 | §2.3.1 | Üye daha önce aldığı dijital varyantı yeniden sepete ekler | Engellenmez; "Bu ürünü daha önce aldınız" uyarısı gösterilir | — | — | `02 §6.2.9`, §3.12.9 |
+| 3.2.1.10 | §2.4.2 | Teslimat adresi firmanın teslimat yapmadığı bir ildedir | Adres kabul edilmez ve sebebi söylenir; defterdeki o adres seçilemez | — | — | `02 §6.2.10`, §3.20.1 |
+| 3.2.1.11 | §2.3.8 | Fiziksel kalemli sepetin tutarı asgari sipariş tutarının altındadır | Ödeme adımına geçilmez; eksik tutar gösterilir | — | — | `02 §6.2.11`, §3.18.1 |
+| 3.2.1.12 | §2.4.4 | Kupon toplamı sıfıra indirir, tarih aralığının dışındadır ya da kullanım hakkı dolmuştur | Kupon kabul edilmez | — | — | `02 §6.2.12`, §3.10.4, §3.10.5 |
+| 3.2.1.13 | §2.4.1 · §2.4.6 · §2.6.7 | Misafir alıcı e-posta adresini yanlış yazar | Özet adresi açıkça gösterir ve onaydan önce düzeltmeye açıktır; doğrulama kodu istenmez. Hata onaydan sonra fark edilirse müşteri sipariş sayfasına giremez; firmaya ulaşır, yönetici kimliği teyit edip siparişin e-postasını düzeltir (§2.10.5; teyit §6.2.1). Yanlış adres bir müşteri hesabınınsa sipariş o hesaba düşmüştür; düzeltmede bağ kesilir | Durumlar değişmez | Düzeltmede B-1 → yeni adres · B-15 → eski adres | `02 §6.2.13`, §10.4.11 |
+| 3.2.1.14 | §2.4.1 · §2.4.9 | Hesabı olan kişi giriş yapmadan misafir olarak sipariş verir | Sipariş kabul edilir ve hesaba anında düşer; ödeme adımında giriş hatırlatması gösterilir | Olağan (§2.4.9) | Olağan (§2.4.9) | `02 §6.2.14`, §3.13.3 |
+| 3.2.1.15 | §2.4.5 · §2.4.9 | Ödeme sağlayıcısına erişilemez | Onaydan önce: kart "şu an kullanılamıyor" görünür ve seçilemez; havale açıksa müşteri ona yönelir, değilse sipariş verilemez ve müşteri sepetine döner. Onaydan sonra sağlayıcıya bağlanılamaz ve ödeme sayfası hiç açılmazsa bu kart ödemesinin başarısızlığıdır: sipariş kendiliğinden iptal edilir, ayrılanlar serbest kalır ve sipariş müşterinin listesinde görünmez; iptal L-7'ye **sayılmaz**. Sonradan başarı bildirimi gelirse 3.2.1.16 işler. Erişilemezliğin tespiti `08`'in işidir; kesinti akışı §10.1 | Onaydan sonra → İptal edildi + Başarısız (S3, Ö2) | Onaydan sonra B-7 → müşteri (§1.2 S3) | `02 §6.2.15`, §8.2.3 |
+| 3.2.1.16 | §2.4.9 · §2.5.1.4 | İptal edilmiş bir siparişe sağlayıcıdan başarılı ödeme bildirimi gelir — iki sekmeden aynı sepetle ödeme, kendiliğinden iptalden sonra tamamlanan eski deneme | Sistem ödemeyi sağlayıcı üzerinden kendiliğinden geri öder. Sipariş İptal edildi + Başarısız kalır ve satış özetinde ödenmiş sayılmaz; ödeme ve geri ödemesi siparişin ödeme kaydında durur ve sipariş Z-28'i izler. Havale hattındaki karşılığı 3.5.2.2'dir | — (ekseni değiştirmez — §1.3) | B-8 → müşteri (K-684) · F-4 → firma | `02 §6.2.16`, §5.5 · K-684 |
+| 3.2.1.17 | §2.1.9 · §2.3.8 | Satış kapalıdır — kapının bir koşulu eksiktir ya da firma satışı geçici olarak kapatmıştır | Ürünler görünür; sepete ekleme ve ödeme kapalıdır ve ziyaretçi satışın kapalı olduğunu görür; sepet korunur. Açık siparişler etkilenmez (§1.10.8) | — | — | `02 §6.2.17`, §3.1.5 · K-664 |
+| 3.2.1.18 | §2.4.4 | Sepette art arda geçersiz kupon kodu denenir | L-6 aşılınca o sepetin kupon alanı geçici olarak kapanır; mesaj nötrdür (§6.1) | — | — | `02 §6.2.18`, §8.2 |
+| 3.2.1.19 | §2.4.8 | Aynı IP'den ya da — giriş yapmış üyede — aynı e-postadan kendiliğinden iptal edilen ödenmemiş siparişler L-7'nin eşiğini aşar | Kullanıcı bir süre yeni sipariş onaylayamaz; mesaj nötrdür; firma o siparişleri panelde görür. Misafir siparişi e-posta ekseninde, ödeme sayfası hiç açılmamış sipariş hiçbir eksende sayılmaz (§6.1.4) | — | — | `02 §6.2.19`, §8.2.2, §8.2.3 |
+| 3.2.1.20 | §2.4.7 | Müşteri siparişe not ya da teslimat talimatı eklemek ister | Ödeme adımında not alanı yoktur; müşteri iletişim formunun "Sipariş hakkında" tipiyle yazar (§2.2.8) | — | — | `02 §6.2.20`, §3.24.7 |
+| 3.2.1.21 | §2.4.5 | Açık ödenmemiş sipariş tavanı (L-8) doluyken havale seçilmek istenir | Havale seçilemez ve mesaj nötrdür; kart yolu açık kalır. Açık siparişlerden biri ödenince ya da iptal edilince tavan boşalır | — | — | `02 §6.2.21`, §8.2 |
+| 3.2.1.22 | §2.5.3.1 — ödenmiş kart siparişi | Müşteri bankası üzerinden harcama itirazı yapar ve sağlayıcı tutarı firmanın hesabından geri alır | Ürün bunu bilmez; ödeme ekseni ve satış özeti değişmez. Akış §5.2.1 | — | — (ürün olayı bilmez — `02 §3.21.11`) | `02 §6.2.22`, §3.21.11 |
+
+#### 3.2.2 Sipariş takibi (akış 2)
+
+| # | Akış adımı | Ne ters gider | Sistemin cevabı | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|---|
+| 3.2.2.1 | §2.6.5 | Sipariş e-postası müşteriye ulaşmaz | Müşteri her bilgiye sipariş sayfasından ulaşır — misafir alıcı numara ve e-postayla girer. E-posta yanlış yazıldığı için ulaşmıyorsa bu yol da kapalıdır ve 3.2.1.13 işler | — | — · panelde "e-posta ulaşmadı" işareti (`02 §9.1.6`) | `02 §6.3.1`, §6.1.1 |
+| 3.2.2.2 | §2.6.2 | Misafir alıcı sipariş numarasını ya da e-postayı yanlış girer | Sayfa açılmaz. Başarısız sorgular IP'den ve sorguya yazılan e-postaya yönelik olarak ayrı ayrı L-5 ile limitlidir; e-posta ekseninde engellenen gerçek sahip e-postadaki bağlantıdan ya da üyeyse hesabından girer | — | — | `02 §6.3.2`, §8.2.2 |
+| 3.2.2.3 | §2.6.6 | Hesap silinmiştir ama sipariş yürümektedir | Takip, cayma ve iade misafir yolundan — numara ve siparişe donmuş e-posta — ya da e-postadaki bağlantıyla sürer | — | — | `02 §6.3.3`, §3.15.2 |
+| 3.2.2.4 | §2.6.1 | Müşterinin ödemesi hiç alınmamış ve kendiliğinden iptal edilmiş siparişleri vardır | Müşterinin listesinde görünmezler, panelde görünürler; müşterinin ya da firmanın iptal ettiği ödenmemiş sipariş listede görünür | — | — | `02 §6.3.4`, §3.17.8 |
+| 3.2.2.5 | §2.6.7 · §2.10.5 | Misafir siparişinin e-postası gerçek sahibi istemeden düzeltilir | Eski adrese B-15 gider. Gerçek sahip firmaya ulaşır; yönetici e-postayı yeniden düzeltir ve yeni bir anahtar üretilir. Arada yapılan işlemler geri alınmaz, işlem izinden ve e-posta geçmişinden okunur. Akış §6.2.4 | Durumlar değişmez | B-15 → eski adres · yeniden düzeltmede B-1 → yeni adres, B-15 → eski adres | `02 §6.3.5`, §8.3.6 |
+| 3.2.2.6 | §2.6.4 · §8.4 (§1.11.23) | Siparişin teslimat adresi gerçek sahibi istemeden düzeltilir | Yönetici talebi siparişin kanalına dönerek teyit eder; düzeltme B-10'la siparişin e-postasına bildirilir. Sahibi Kargoya verildi'den önce ulaşırsa yönetici adresi geri düzeltir; paket yola çıktıysa düzeltilemez ve sonuç firmadadır. Akış §6.2.2 | — | B-10 → müşteri | `02 §6.3.6`, §10.4.2 |
+
+### 3.3 İptal, cayma ve iade (akış 3)
+
+| # | Akış adımı | Ne ters gider | Sistemin cevabı | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|---|
+| 3.3.1 | §2.7.2 · §2.8.1.1 | Müşteri, sipariş kargoya verildikten sonra fiziksel kalemi iptal etmek ister | İptal düğmesi sunulmaz; yol caymadır — cayma düğmesi Kargoya verildi'yle açılmıştır | — | — | `02 §6.4.1`, §7.3.7 |
+| 3.3.2 | §2.7.2 · §2.7.7 | Firma kargoya verme süresini (Z-10) ya da yasal teslim sınırını (Z-11) aşar | Z-10 aşıldığında sipariş kargoya verilmemiştir; müşterinin iptal düğmesi açıktır ve fesih onunla kullanılır — panel firmaya kanuni faiz uyarısını gösterir. Z-11 aşıldığında — sipariş kargodayken de — gecikme feshi düğmesi açılır; kişiye özel üretim işaretli üründe de sözleşmenin taahhüdü olarak açılır (§4.1.11) | İptalde kalem: iptal kaydı · fesihte kalem: gecikme feshi (§2.7.7) | İptalde B-7 → müşteri · fesihte B-9 → müşteri, F-3 → firma | `02 §6.4.2`, §7.2.3 |
+| 3.3.3 | §2.7.4 · §2.8.3.1 | Müşteri ödemesi onaylanmış dijital kalemi iptal etmek ya da ondan caymak ister | İki düğme de sunulmaz: kalem teslim edilmiş, hak ön onayla düşmüştür. Ayıplı dosyada yol ayıp talebidir | — | — | `02 §6.4.3`, §7.2.5, §7.3.2 |
+| 3.3.4 | §2.8.1.1 · §2.8.1.2 | Müşteri cayma istisnası işaretli bir kalemden cayar | Mutlak sebepte düğme yoktur. Koşullu sebepte düğme açıktır, beyan ekranı koruyucu ambalaj koşulunu yazar ve beyan kayda geçer; koruyucu ambalajı açılmış dönen malın reddi yöneticinin teslim alma adımındaki seçimidir (3.3.35, §5.3.1) | Koşullu sebepte kalem: cayma beyanı | Koşullu sebepte B-9 → müşteri, F-3 → firma | `02 §6.4.4`, §7.3.4 |
+| 3.3.5 | §2.8.2.1 | Müşteri tamamlanmış bir hizmetten caymak ister | Düğme sunulmaz; hak "tamamlandı" işaretiyle düşmüştür. Sebepli sorun ayıp talebinden yürür (§2.9) | — | — | `02 §6.4.5`, §7.3.3 |
+| 3.3.6 | §2.8.1.1 | Cayma penceresi (Z-13) geçmiştir | Düğme kapanır; önceki beyan geçerli kalır. Sebepli sorun ayıp talebinden yürür; eksik bilgilendirme iddiası §5.2.3'tedir | — | — | `02 §6.4.6`, §7.3.1 |
+| 3.3.7 | §2.7.5 · §2.8.1.2 | Havale ile ödenmiş siparişin parası geri ödenecektir | Müşteri IBAN'ını iptal, gecikme feshi ya da cayma beyanı sırasında girer; kart hattında IBAN istenmez. Bu üç olayın dışında doğan havale geri ödemesinde IBAN müşteriden istenir (K-686) | — | — | `02 §6.4.7`, §7.4.5 · K-686 |
+| 3.3.8 | §2.8.1.5 | Firma teslimden sonraki caymada geri ödemeyi iade malı ulaşana kadar yapmaz | Süre başlamamıştır: Z-16 ulaşma tarihinden işler. Teslimden önceki caymada ve hizmette süre beyandan işler ve mal beklenmez; panel kalan süreyi gösterir | — | — | `02 §6.4.8`, §7.4.1 |
+| 3.3.9 | §2.5.3.4 · §8.3 (§1.11.21) | Gönderi müşterinin adresi yanlış vermesi ya da teslimatta bulunmaması yüzünden geri döner ve sipariş iptal edilir | Yönetici "gönderi teslim edilemedi — müşteri kaynaklı" sebebini seçer: ürün bedeli geri ödenir, gidiş kargo bedeli ödenmez. Öteki sebeplerde gidiş kargosu da geri ödenir | → İptal edildi (S9) · geri ödemede Ö3–Ö5 | B-7 → müşteri · geri ödemede B-8; kartta sistemin iadesinde F-4 → firma | `02 §6.4.9`, §7.2.9 |
+| 3.3.10 | §2.7.2 · §2.8.4.1 | Kısmi iptal ya da iadeden sonra kalan tutar kuponun asgari tutarının ya da ücretsiz kargo eşiğinin altına düşer | Kupon ve kargo yeniden hesaplanmaz; müşteriden bir şey geri istenmez. Kargo ücreti yalnız iki tetikte geri ödenir — kargodan önce bütün fiziksel kalemlerin iptali, kargoyla gönderilenlerin tamamından cayma (§1.4.4) | — | — | `02 §6.4.10`, §7.2.9, §7.4.6 |
+| 3.3.11 | §2.8.1.2 · §2.10.3 | Müşteri, sipariş kargoya verildikten sonra ve mal eline ulaşmadan vazgeçer | İptal yolu kapalıdır, cayma beyanı açıktır; beyan teslim işaretsiz kalemi kapatır ve geri ödeme süresi beyandan işler | kalem: cayma beyanı · eksenler değişmez | B-9 → müşteri · F-3 → firma | `02 §6.4.11`, §7.3.1 |
+| 3.3.12 | §2.5.3.5 · §2.8.1.1 | Firma teslimi geç işaretler ve girdiği tarihe göre pencere işaret anında dolmuştur | Düğme kapalıdır; önceki beyan geçerlidir ve gecikmenin riski firmadadır. Pencere işaret anından yeniden başlamaz; tarihe itiraz §5.2.4'tedir | → Teslim edildi (S6) | — (`02 §9.2` — teslim işareti) | `02 §6.4.12`, §7.3.1 |
+| 3.3.13 | §2.8.4.1 | Müşteri siparişin bir kaleminden cayar | Gönderilen fiziksel kalemlerden biri müşteride kalıyorsa kargo ücreti geri ödemeye girmez; tamamından cayıldığında — ardışık beyanlarla da — son caymanın geri ödemesine girer | — | — | `02 §6.4.13`, §7.4.6 |
+| 3.3.14 | §2.8.1.4 | Müşteri iade kargo ücretini önden ödemek istemez | Malı iade adresine karşı ödemeli gönderir; bedeli teslim alırken firma öder | — | — | `02 §6.4.14`, §7.4.4 |
+| 3.3.15 | §2.9.6 · §8.4 (§1.11.37) | Çözülmüş ayıp tekrarlar — onarılan mal yine bozulur | Müşteri ya da yönetici talebi yeniden açar; yeni talep açılmaz | Ayıp talebi: Çözüldü → Açık | Müşterinin açmasında B-9 → müşteri, F-3 → firma · yöneticininkinde — (`02 §9.2`) | `02 §6.4.15`, §5.10 · K-681 |
+| 3.3.16 | §2.8.1.8 | Müşteri teslimden sonra cayar ama malı hiç göndermez | Geri ödeme süresi başlamaz; panel "iade malı bekleniyor"u beyandan geçen gün ve Z-42 ile gösterir; sistem kaleme dokunmaz. Z-42 geçince yönetici isteğe bağlı "mal dönmedi" kapanışını yapar: geri ödeme yapılmaz, havale hattında IBAN kapatmayla — kapatılmazsa Z-38 dolunca — silinir (§4.1.18, §4.1.47) | Yönetici kapatırsa kalem: "mal dönmedi" kapanışı | — (`02 §9.2`) | `02 §6.4.16`, §10.4.9 |
+| 3.3.17 | §2.8.1.5 · §8.3 (§1.11.28) | Firma iade malının teslim alma işaretini geciktirir | Süre girilen ulaşma tarihinden işler; tarih geçmişe dönük girilir. Geç ya da uydurulmuş tarihin riski ve ispatı firmadadır | kalem: iade teslim alma | — (`02 §9.2`) | `02 §6.4.17`, §7.4.1 |
+| 3.3.18 | §2.10.4 · §8.3 (§1.11.28) | Firma kalemi "mal dönmedi" diye kapattıktan sonra mal ulaşır | Teslim alma adımı kalemi yeniden açar; geri ödemenin on dört günü ulaşma tarihinden işler. Kapatma cayma beyanını geçersiz kılmamıştır | kalem: iade teslim alma | — (`02 §9.2`) · IBAN silinmişse 3.3.19 | `02 §6.4.18`, §10.4.9 |
+| 3.3.19 | §2.10.4 | Havale hattında IBAN silindikten sonra mal ulaşır | Teslim alma adımıyla IBAN isteği düşer: sipariş sayfasında o kalem için IBAN alanı açılır; yönetici IBAN'ı panelden girmez. Süre ulaşma tarihinden işler ve IBAN beklenirken durmaz; panel kalemi "IBAN bekleniyor" gösterir | kalem: iade teslim alma · IBAN isteği | B-14 → müşteri | `02 §6.4.19`, §7.4.5 |
+| 3.3.20 | §2.10.4 | Müşteri yeniden istenen IBAN'ı geç girer ya da e-posta ona ulaşmaz | Süre durmaz; sipariş sayfası alanı e-postadan bağımsız gösterir. IBAN isteğinin tarihi işlem izinde durur — gecikmenin müşteriden kaynaklandığının kanıtı | — | — | `02 §6.4.20`, §7.4.5 |
+| 3.3.21 | §2.8.2.2 | Müşteri tamamlanmamış bir hizmet kaleminden cayar ve hizmet hiç ifa edilmez | Beyan kalemi kapatır; geri ödemenin on dört günü beyandan işler; kalem siparişin son açık kalemiyse sipariş kapanış kuralıyla hattını bitirir (§1.4.3) | kalem: cayma beyanı · son açık kalemse → Teslim edildi (S2, S10, S11) ya da → İptal edildi (S3, S4) | B-9 → müşteri · F-3 → firma | `02 §6.4.21`, §5.6.6 · K-672 |
+| 3.3.22 | §2.10.3 | Kargodayken cayılan gönderi teslim edilemeyip firmaya döner | Yönetici cayma beyanlı kalemi iptal etmez; dönen malı teslim alma adımıyla işler. Geri ödeme tek hattan — caymanınkinden — yürür; kargoyla gönderilenlerin tamamından cayıldıysa kargo ücreti eklenir. Firma iptalinin ikinci bir geri ödemesi açılmaz | → Teslim edilemedi (S7) → İptal edildi (S9 kapanışı) ya da → Teslim edildi (S11) | S7'de B-6 → müşteri · kapanışta B-7 gitmez | `02 §6.4.22`, §5.4 |
+| 3.3.23 | §2.5.2.6 · §2.7.1 | Havale bekleyen müşteri siparişin yalnız bir kalemini iptal etmek ister | Ödeme onayından önce kalem iptali sunulmaz; müşteri siparişi bütünüyle iptal eder ve yeniden verir | İptal ederse → İptal edildi + Başarısız (S3, Ö2) | İptalde B-7 → müşteri | `02 §6.4.23`, §7.2.2 |
+| 3.3.24 | §2.8.4.3 · §8.3 (§1.11.32) | Kart hattındaki geri ödeme sağlayıcıda başarısız olur — sağlayıcı reddeder ya da ulaşılamaz | Ödeme ekseni değişmez; panelde "geri ödeme gerçekleşmedi" işareti düşer, kalem "iade ve geri ödeme bekleyen" sayacına girer ve firmaya panelde uyarı çıkar. Sistem kendiliğinden yeniden denemez. Yönetici yeniden dener ya da havale yolunu açar — havale müşterinin seçimidir; IBAN girildikten sonra kart iadesi yeniden denenmez. Z-16 ve Z-17 işlemeye devam eder | — · havale yolu açılınca kalem: IBAN isteği · iade gerçekleşince Ö3–Ö5 | Başarısızlıkta müşteriye ayrı bildirim yok, firmaya panel işareti ve sayaç (K-683) · havale yolu açılınca B-14 · iade gerçekleşince B-8 | `02 §6.4.24`, §7.2.8 · K-683 |
+| 3.3.25 | §2.8.4.4 · §8.4 (§1.11.34) | Müşteri caymayı sipariş sayfası yerine e-postayla, mektupla ya da örnek formla bildirir — düğmesi kapanmış olsa da süresi içinde | Yönetici bildirimin siparişin sahibinden geldiğini teyit eder (§6.2.1) ve panelden kaydeder: kalemi ve bildirimin firmaya ulaştığı tarihi girer — geçmişe dönük olabilir, ileri olamaz. Havale hattında IBAN yalnız siparişin iletişim e-postasından gelen bildirimden aktarılır; öteki hâllerde kayıt IBAN'sız yapılır. Kayıt bir cayma beyanıdır ve geri alınmaz (K-688) | kalem: cayma beyanı · IBAN'sızsa IBAN isteği | B-9 → müşteri · IBAN'sızsa B-14 → müşteri · firmaya — (`02 §9.3.2`) | `02 §6.4.25`, §10.4.10 · K-688 |
+| 3.3.26 | §2.10.4 | Havale hattında IBAN yeniden istenmiş ama müşteri hiç girmez | Kalem kapanmaz ve borç sürer; "IBAN bekleniyor" listesinde görünür ama bekleyen işler sayacında sayılmaz; yönetici siparişin iletişim bilgisini görür. Süre işler | — | — | `02 §6.4.26`, §7.4.5 |
+| 3.3.27 | §2.7.5 · §2.8.4.2 | Müşteri IBAN'ı yanlış girer ya da banka geri ödeme havalesini reddeder | Geri ödeme işlenmeden önce müşteri IBAN'ı sipariş sayfasından düzeltir. Havale bankada gerçekleşmezse yönetici geri ödemeyi işlemez, "havale gerçekleşmedi" der: IBAN silinir, alan yeniden açılır, süre durmaz. İşlenmiş geri ödemeden sonra dönen havalede ödeme ekseni düzeltilmez; yönetici müşteriye ulaşır ve parayı yeniden gönderir | Havale gerçekleşmezse kalem: IBAN isteği | B-14 → müşteri | `02 §6.4.27`, §7.4.5 |
+| 3.3.28 | §2.8.2.2 | Müşteri kısmen ifa edilmiş bir hizmet kaleminden cayar | Hak "tamamlandı" işaretine kadar sürer; beyan kalemi kapatır ve kalemin ödenmiş bedelinin tamamı geri ödenir — yapılmış kısım için kesinti yoktur | kalem: cayma beyanı | B-9 → müşteri · F-3 → firma | `02 §6.4.28`, §7.3.3 |
+| 3.3.29 | §2.8.2.1 · §2.10.2 | Fiziksel ve hizmet kalemli siparişte fiziksel kalemlerin tamamı teslimden önce iptal edilir, çıkarılır ya da feshedilir | Teslim tarihi oluşmaz; hizmetin penceresi başlamaz ve sipariş tarihine geri çekilmez — hak ve düğme "tamamlandı" işaretine kadar sürer (§4.1.15) | — | — | `02 §6.4.29`, §4.2 Z-14 |
+| 3.3.30 | §2.8.1.8 | Müşteri malı süresinde bir taşıyıcıya verdiğini ve gönderinin yolda kaybolduğunu bildirir | Ürün taşıyıcı belgesini almaz; uyuşmazlık ürünün dışında çözülür. Akış §5.2.2 | — | Firma ödemeye karar verirse B-8 | `02 §6.4.30`, §10.4.9 · K-686 |
+| 3.3.31 | §2.8.4.4 · §8.3 (§1.11.21) | Müşteri, sipariş kargoya verilmeden bir fiziksel kalemden caydığını başka kanaldan bildirir | Cayma kaydı açılmaz; yönetici bildirimi teyit eder (§6.2.1) ve kalemi "müşteriyle anlaşıldı (müşteri talebi)" sebebiyle iptal eder — ödeme onayından önce sipariş bütünüyle. Yasal on dört gün bildirimin ulaştığı tarihten işler; yönetici iptali o gün yapar | kalem: iptal kaydı · ödenmemişse → İptal edildi + Başarısız (S3, Ö2) | B-7 → müşteri | `02 §6.4.31`, §7.3.7 |
+| 3.3.32 | §2.8.1.1 · §8.4 (§1.11.34) | Müşteri pencere kapandıktan sonra ya da mutlak istisna kaleminden, bilgilendirilmediğini söyleyerek caymak ister | Düğme açılmaz; değerlendirme firmanındır. Akış §5.2.3 | Kayıtta kalem: cayma beyanı | Kayıtta B-9 → müşteri | `02 §6.4.32`, §7.3.1 |
+| 3.3.33 | §2.8.4.4 | Siparişin sahibi olmayan biri, siparişin bilgilerini bilerek başka kanaldan cayma bildirimi gönderir — havale hattında kendi IBAN'ıyla | Yönetici kaydetmeden önce siparişin kanalına dönerek teyit eder; sahibi bildirimi yapmadığını söylerse kayıt yapılmaz. Bildirimdeki IBAN aktarılmaz. Akış §6.2.3 | Teyitte — · teyit atlanırsa kalem: cayma beyanı | Teyit atlanırsa B-9 → siparişin iletişim e-postası | `02 §6.4.33`, §8.3.8 · K-688 |
+| 3.3.34 | §2.8.1.3 | Sipariş sabah kargodayken müşteri cayar; kargo malı aynı gün teslim eder ve teslim o tarihle işaretlenir | Panel işareti tamamlamadan önce teslimin beyandan önce mi sonra mı olduğunu sorar ve beyanın saatini gösterir; cevap geri ödeme süresinin başlangıcını belirler ve işlem izinde durur | → Teslim edildi (S6) | — (`02 §9.2`) | `02 §6.4.34`, §7.4.1 |
+| 3.3.35 | §2.8.1.6 | Koruyucu ambalaj koşuluyla cayılabilen kalemin malı ambalajı açılmış olarak döner | Yönetici teslim alma adımında iade reddini seçer; ret geri alınmaz. Akış §5.3.1 | kalem: iade reddi | B-16 → müşteri | `02 §6.4.35`, §7.4.9 · K-656, K-657 |
+| 3.3.36 | §2.8.1.7 | Cayılan mal kullanılmış, hasar görmüş ya da eksik döner ve kalem reddedilebilecek bir kalem değildir | Ret ve kesinti yoktur; kalemin ödenmiş bedeli tam geri ödenir. Akış §5.3.2 | kalem: iade teslim alma | — (`02 §9.2`) · geri ödemede B-8 | `02 §6.4.36`, §7.4.10 · K-668 |
+
+### 3.4 Üyelik (akış 4)
+
+| # | Akış adımı | Ne ters gider | Sistemin cevabı | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|---|
+| 3.4.1 | §9.1 (§1.10.5) | Doğrulama bağlantısının süresi (Z-1) dolmuştur | Doğrulanmamış kayıt silinir; bağlantıya tıklayan "bağlantı geçersiz, yeniden kayıt olun" mesajını görür; e-posta yeniden kayda açıktır | Hesap: doğrulanmamış kayıt silinir | — (K-683) | `02 §6.5.1`, §3.13.5 · K-683 |
+| 3.4.2 | §9.2 (§1.10.5) | Kullanıcı e-postasını doğrulamadan giriş yapmaya çalışır | Giriş yapılamaz | — | — | `02 §6.5.2`, §3.13.4 |
+| 3.4.3 | §9.1 | Kayıtta girilen e-posta zaten kayıtlıdır | "Bu e-posta zaten kayıtlı" — ekranın hesabın varlığını bilerek ele verdiği yerdir; L-3 sorgulamayı daraltır | — | — | `02 §6.5.3`, §8.1.4 |
+| 3.4.4 | §9.2 | Şifre sıfırlamada girilen e-posta kayıtlı değildir | Nötr mesaj: "bu adres kayıtlıysa sıfırlama bağlantısını gönderdik" | — | — | `02 §6.5.4`, §3.13.11 |
+| 3.4.5 | §9.2 | Şifre sıfırlama bağlantısı kullanılmış ya da süresi (Z-2) dolmuştur | Bağlantı geçersizdir; kullanıcı yeni talep açar — L-2 içinde | — | — | `02 §6.5.5`, §3.13.9 |
+| 3.4.6 | §9.1 · §9.3 | Kullanıcı asgari uzunluğun altında ya da çok yaygın bir şifre seçer | Şifre reddedilir | — | — | `02 §6.5.6`, §3.13.15 |
+| 3.4.7 | §9.1 | Kimlik sağlayıcısı e-postayı doğrulanmamış verir | Mevcut bir hesapla bağlama yapılmaz | — | — | `02 §6.5.7`, §3.13.7 |
+| 3.4.8 | §9.2 | Google ile açılmış, şifresi olmayan hesap "şifremi unuttum" der | Sıfırlama akışı "şifre belirle" işlevi görür | — | Şifre sıfırlama bağlantısı (`02 §9.4`) | `02 §6.5.8`, §3.13.8 |
+| 3.4.9 | §9.3 (§1.10.5) | Kullanıcı yeni e-posta adresini doğrulamaz | Değişiklik geçerli olmaz; hesap eski adresle çalışır; bekleyen değişiklik ilk bağlantının ömrüyle düşer | — | — | `02 §6.5.9`, §3.13.14 · K-659 |
+| 3.4.10 | §9.4 · §2.6.6 | Yürüyen siparişi olan kullanıcı hesabını siler | Engellenmez; sipariş kendi kaydıyla ve misafir yolundan sürer | Hesap silinir; siparişin durumları değişmez | Olağan (§9.4) | `02 §6.5.10`, §3.15.2 |
+| 3.4.11 | §9.1 · §9.2 | Giriş, şifre sıfırlama ya da hesap kaydı denemeleri eşiği aşar (L-1, L-2, L-3) | O işlem o eksende geçici olarak engellenir ve kendiliğinden açılır; mesaj nötrdür, hesap kilitlenmez. Girişin e-posta ekseni tanınan tarayıcıyı engellemez. Akış §6.1.3 | — | — | `02 §6.5.11`, §8.2.6 |
+| 3.4.12 | §9.1 | Aydınlatma metni tamamlanmamışken ziyaretçi hesap açmak ya da ilk kez Google ile girmek ister | Kayıt ekranı ve yeni hesap açacak Google ile giriş kapalıdır; mevcut hesapların girişi etkilenmez | — | — | `02 §6.5.12`, §3.13.19 |
+| 3.4.13 | §9.3 (§1.10.5) | Hesabın e-posta adresi sahibinin haberi olmadan değiştirilir — açık kalmış ya da ele geçirilmiş bir oturumdan, şifre bilinerek | Eski adrese giden bildirim değişikliği söyler; sahibi "bu değişikliği ben yapmadım" bağlantısıyla Z-45 içinde geri alır. Akış §6.2.5 | — | Eski adrese değişiklik bildirimi (`02 §9.4`) | `02 §6.5.13`, §3.13.14 |
+| 3.4.14 | §9.1 (§1.10.5) | Biri bir adrese art arda doğrulama bağlantısı göndertir ya da kullanıcı bağlantıyı defalarca ister | L-9 aşılınca istek geçici olarak engellenir; mesaj nötrdür. Her yeni bağlantı öncekileri geçersiz kılar ve kaydın ömrünü uzatmaz | — | — | `02 §6.5.14`, §3.13.5 · K-658, K-659 |
+
+### 3.5 Firma tarafı
+
+Firma tarafının hataları panelin kurallarıdır: çoğu, panelin değeri sebebiyle reddettiği ya da işlemi durdurduğu satırlardır. Siparişe dokunan hataların müşteri yüzü §2'nin satırıdır.
+
+#### 3.5.1 Katalog yönetimi (akış 5)
+
+| # | Akış adımı | Ne ters gider | Sistemin cevabı | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|---|
+| 3.5.1.1 | §8.1 (§1.10.1) | İndirimli fiyat referans fiyatın altına inmez | İndirim kaydedilmez; panel yöneticiyi sebebiyle uyarır | — | — | `02 §6.6.1`, §3.9.5 |
+| 3.5.1.2 | §8.1 | İçinde ürün ya da alt kategori bulunan kategori silinmek istenir | Silme engellenir; engelleyenler sayısıyla gösterilir | — | — | `02 §6.6.2`, §3.4.5 |
+| 3.5.1.3 | §8.1 | Taşıma üç seviyeyi aşan bir dal üretir ya da kategori kendi alt ağacına taşınır | Taşıma yapılmaz | — | — | `02 §6.6.3`, §3.4.6 |
+| 3.5.1.4 | §8.1 (§1.8.1) | Yayın kapısının bir koşulu eksiktir | Ürün yayına alınamaz; panel eksik koşulu gösterir | — | — | `02 §6.6.4`, §3.7.3 |
+| 3.5.1.5 | §8.1 (§1.8.2) | Dijital ürünün yayındaki bir varyantı dosyasızdır | Ürün yayına alınamaz; panel dosyası eksik varyantı gösterir | — | — | `02 §6.6.5`, §3.7.4 |
+| 3.5.1.6 | §8.1 (§1.8.2) | Yayındaki dijital ürünün dosyasını silmek bir varyantı dosyasız bırakır | Silme engellenir; yönetici önce yeni dosyayı yükler ya da varyantı yayından çeker | — | — | `02 §6.6.6`, §3.7.4 |
+| 3.5.1.7 | §8.1 | Fiyata ikiden fazla ondalık girilir | Panel kabul etmez | — | — | `02 §6.6.7`, §3.8.4 |
+| 3.5.1.8 | §8.1 (§1.10.2) | Sabit tutarlı kuponun asgari sepet tutarı kupon tutarına eşit ya da altındadır; yüzdesel kupon %100 girilir | Girilemez | — | — | `02 §6.6.8`, §3.10.4 |
+| 3.5.1.9 | §8.1 | Ürünün kargoya verme süresi üst çiti aşar | Panel çitin üstündeki değeri kabul etmez | — | — | `02 §6.6.9`, §3.20.5 |
+| 3.5.1.10 | §8.1 | İki yönetici aynı kaydı aynı anda düzenler | İkinci kaydeden kaydın değiştiğini görür ve üzerine yazmadan önce uyarılır | — | — | `02 §6.6.10`, §3.31.1 |
+| 3.5.1.11 | §8.1 (§1.8.2) | Yayındaki ürünün son Yayında varyantı arşivlenmek ya da taslağa çekilmek istenir | İşlem engellenir; panel yöneticiyi önce ürünü taslağa ya da arşive almaya yönlendirir | — | — | `02 §6.6.11`, §3.7.8 |
+| 3.5.1.12 | §8.1 | Varyanta 0,00 TL fiyat girilir | Panel kabul etmez | — | — | `02 §6.6.12`, §3.8.4 |
+| 3.5.1.13 | §8.1 (§1.10.1) | İndirim %100 girilir ya da yuvarlanmış indirimli fiyat bir varyantta 0,00 TL'ye iner | İndirim kaydedilmez; panel sebebini söyler. İndirim yürürken varyanta böyle bir fiyat da girilemez | — | — | `02 §6.6.13`, §3.9.1 |
+| 3.5.1.14 | §8.1 (§1.4.4) · §8.3 (§1.11.21) | Yönetici varyantın stoğunu ya da hizmetin kontenjanını ödemesi beklenen siparişlerin ayırdığı adedin altına indirmek ister — ör. mal hasar görmüştür | Panel değeri sebebiyle ve ayrılmış adetle reddeder, ayırmayı tutan siparişleri gösterir. Mal gerçekten yoksa yönetici o siparişi firma iptaliyle kapatır — ödeme onayından önce sipariş bütünüyle —; ayırma serbest kalır ve stok ardından düşürülür | İptalde → İptal edildi + Başarısız (S3, Ö2) | İptalde B-7 → müşteri | `02 §6.6.14`, §3.6.7 · K-653 |
+| 3.5.1.15 | §8.1 (§1.10.2) | Yönetici kuponun toplam kullanım adedini kullanılmış ve ayrılmış hakların altına çekmek ister | Panel değeri sebebiyle reddeder. Kampanyayı durdurmanın yolu bitiş tarihini öne çekmektir: yeni siparişte kupon kabul edilmez, ayrılmış haklar onaylanmış siparişlerde kalır | — | — | `02 §6.6.15`, §3.10.6 · K-654 |
+| 3.5.1.16 | §8.1 (§1.8.2) | Yönetici ödemesi beklenen ya da ödenip tamamlanmamış siparişi olan bir ürünü ya da varyantı siler | Silme engellenmez; panel onaydan önce açık sipariş sayısını söyler. Sipariş donmuş kalemiyle sürer; silinen varyantın ayırması varyantla düşer; sepetteki kalem çıkar (§2.3.5). Yayındaki ürünün son Yayında varyantı silinemez (3.5.1.11'in kalıbı) | Siparişin durumları değişmez | — (`02 §9.3.2`) | `02 §6.6.16`, §3.7.7 · K-655, K-674 |
+
+#### 3.5.2 Sipariş yürütümü (akış 6)
+
+| # | Akış adımı | Ne ters gider | Sistemin cevabı | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|---|
+| 3.5.2.1 | §2.5.2.4 · §8.2 (§1.11.15) | Havalede gelen tutar sipariş tutarından farklıdır | Sistem tutar sormaz; yönetici "ödendi" işaretler ya da farkı müşteriyle sistemin dışında çözer | İşaretlenirse → Ödendi (Ö1) | İşarette B-4 → müşteri | `02 §6.7.1`, §3.21.7 |
+| 3.5.2.2 | §2.5.2.5 | Havale, ödeme süresi dolup sipariş iptal edildikten sonra gelir | İptal edilmiş sipariş "ödendi" işaretlenemez; yönetici parayı sistemin dışında geri öder ya da müşteriden yeni sipariş ister. Paranın gelişi ve iadesi ürünün dışında yürür; sipariş Z-41'i izler | — (İptal edildi + Başarısız kalır) | — (ürün olayı bilmez — `02 §6.2.16`) | `02 §6.7.2`, §3.21.8 |
+| 3.5.2.3 | §2.5.3.4 · §8.2 (§1.11.18, §1.11.19) | Kargo gönderiyi ulaştıramayıp firmaya geri döndürür | Yönetici Teslim edilemedi işaretler; buradan yeniden gönderir ya da iptal eder. Cayma beyanlı ya da feshedilmiş kalem yeniden gönderilmez ve iptal edilmez, teslim alma adımıyla işlenir. Sipariş "kargoya verilecek" sayacında görünür | → Teslim edilemedi (S7) → Kargoya verildi (S8), İptal edildi (S9) ya da Teslim edildi (S11) | S7'de B-6 · S8'de B-5 · S9'da B-7, kapanışta gitmez | `02 §6.7.3`, §5.4 |
+| 3.5.2.4 | §2.5.3.3 · §8.2 (§1.11.16) | Yönetici kargoya verirken takip numarası girmez | Kargo şirketi ve takip numarası ya da "kendi aracımızla teslim" beyanı olmadan işaret konamaz | — | — | `02 §6.7.4`, §3.20.7 |
+| 3.5.2.5 | §8.4 (§1.11.26) | Yönetici bir geçişi yanlışlıkla yapar | Panel "geri al" sunmaz; düzeltme sebep seçerek yapılan yeni bir geçiştir ve sınırları §1.6.2'dedir; dış dünyaya çıkmış sonuç geri alınmaz. Havale "ödendi" işaretinin düzeltilmesinde Z-8 düzeltme anından yeniden işler ve havale hatırlatması yeni sürenin son iş gününde bir kez daha gider (K-685) | §1.6.2'nin satırları | B-13 → müşteri · havale işaretinin düzeltilmesinde ayrıca B-3 (K-685) | `02 §6.7.5`, §10.4.6 · K-685 |
+| 3.5.2.6 | §8.3 (§1.11.21) | Firma siparişi karşılayamaz — stok hatası, ürünün bulunamaması, teslimatın mümkün olmaması | Yönetici sebep seçerek firma iptali yapar; sebep iptal anında e-postayla bildirilir — kalem iptalinde de — ve geri ödemenin on dört günü iptalden işler. "Stokta bulunamadı" seçilirse panel onaydan önce yasal uyarıyı gösterir | → İptal edildi (S3, S4, S9) ya da kalem: iptal kaydı · ödenmişse Ö3–Ö5 | B-7 → müşteri · kart iadesinde F-4 → firma | `02 §6.7.6`, §7.2.4 |
+| 3.5.2.7 | §2.5.3.2 · §8.2 (§1.11.38) | Müşterinin dijital kalemdeki indirme hakkı dolar | Müşteri iletişim formundan başvurur; yönetici hakkı panelden yeniler; müşteri dosyayı yine sipariş sayfasından indirir | kalem: indirme sayacı sıfırlanır | Yenileme bildirim üretmez — cevap firmanın e-postasıdır (K-683) | `02 §6.7.7`, §3.12.6 · K-683 |
+| 3.5.2.8 | §2.9.4 · §8.1 | Satılan dijital dosya ayıplıdır | Yönetici dosyayı düzeltip yeniden yükler; yeni hâl eski alıcılara da sipariş sayfasından iner | — | Dosya güncellemesi bildirim üretmez (K-683) | `02 §6.7.8`, §7.5.4 · K-683 |
+| 3.5.2.9 | §2.4.9 · §2.5.1.4 | İptal edilmiş siparişe kart ödemesi gelir | Sistem ödemeyi kendiliğinden geri öder (3.2.1.16) | — | B-8 → müşteri (K-684) · F-4 → firma | `02 §6.7.9`, §6.2.16 · K-684 |
+| 3.5.2.10 | §2.5.3.5 · §8.2 (§1.11.17) | Yönetici kargoya verilmiş siparişin teslimini hiç işaretlemez | Kendiliğinden geçiş yoktur; sipariş Kargoya verildi'de kalır ve cayma penceresi başlamaz; cayma düğmesi ve "sorun bildir" açık kalır ama Z-18 işlemez — yükü firma taşır. Sipariş "teslim işareti bekleyen" sayacındadır | — | — | `02 §6.7.10`, §3.20.11 |
+| 3.5.2.11 | §8.4 (§1.11.24, §1.11.25) | Yönetici teslim tarihini ya da kargo şirketi ve takip numarasını yanlış girer | Yönetici panelden düzeltir; düzeltme işlem izine yazılır. Düzeltilmiş teslim tarihinden pencereler yeniden işler | — | Takip bilgisinde B-12 → müşteri · teslim tarihinde — (`02 §9.2`) | `02 §6.7.11`, §10.4.4, §10.4.5 |
+| 3.5.2.12 | §8.4 (§1.11.23) | Siparişin teslimat ya da fatura adresi yanlıştır | Yönetici müşterinin talebiyle Kargoya verildi'ye kadar düzeltir; talep siparişin e-postasından gelmediyse kanalına dönerek teyit eder (§6.2.1). Sonrasında düzeltme yapılmaz | — | B-10 → müşteri | `02 §6.7.12`, §10.4.2 |
+| 3.5.2.13 | §2.6.5 · §8.9 | Bir e-posta üç yeniden denemeden sonra da müşteriye ulaşmaz | Siparişin panel satırına "e-posta ulaşmadı" işareti düşer; akış etkilenmez. Yönetici e-postayı yeniden gönderir; başarılı gönderimle işaret kalkar | — | — · panel işareti (`02 §9.1.6`) | `02 §6.7.13`, §6.1.1 |
+| 3.5.2.14 | §2.5.3.6 · §8.2 (§1.11.20) | Yönetici ödenmemiş siparişte hizmet kalemini "tamamlandı" işaretlemek ister | Panel işareti sunmaz; işaret ödeme onaylandıktan sonra — ödeme Bekliyor ya da Başarısız değilken — konur | — | — | `02 §6.7.14`, §3.20.9 · K-671 |
+| 3.5.2.15 | §8.2–§8.4 | İki yönetici aynı siparişte aynı anda işlem yapar ya da yöneticinin işlemi müşterinin iptaliyle veya kendiliğinden bir geçişle çakışır | Önce tamamlanan işlem uygulanır; sonraki, sipariş arada değiştiyse uygulanmaz ve panel güncel hâli gösterir. Aynı geçiş ya da geri ödeme kaydı iki kez işlenmez | Önce tamamlanan işleminki | Önce tamamlanan işleminki | `02 §6.7.15`, §3.31.2 |
+| 3.5.2.16 | §2.7.7 · §2.7.8 · §8.3 | Müşteri gecikme feshi yapar; sipariş kargoya verilmemiştir ya da gönderi sonradan firmaya döner | Feshedilen kalem kargoya verilmez, yeniden gönderilmez, firma iptaline konu olmaz ve ikinci bir geri ödeme açılmaz. Kargoya verilmemiş kalemin stoğu kendiliğinden döner; dönen mal teslim alma adımıyla işlenir. Açık kalem kalmazsa sipariş Hazırlanıyor'da fesihle aynı anda kapanır; dönen gönderide yönetici S9'un kapanışını yapar | → İptal edildi (S4 kapanışı) · → Teslim edilemedi (S7) → İptal edildi (S9 kapanışı) · teslim edilmiş kalem varsa → Teslim edildi (S10, S11) | Fesihte B-9 → müşteri, F-3 → firma · S7'de B-6 · kapanışta B-7 gitmez | `02 §6.7.16`, §5.8 |
+| 3.5.2.17 | §2.5.2.5 | Site kesintideyken havale siparişinin ödeme süresi dolar; müşteri parayı göndermiştir ama yönetici "ödendi" işaretini koyamamıştır | Sipariş dönüşte hemen iptal edilmez: iptal sitenin dönüşünden sonraki ilk iş gününün sonuna ertelenir, ayrılanlar tutulur ve yönetici o ana kadar "ödendi" işaretler; sipariş sayfası yeni son günü gösterir (§4.2.12) | Alındı + Bekliyor · işaretlenirse → Ödendi (Ö1) · işaretlenmezse ertelenen anda → İptal edildi + Başarısız (S3, Ö2) | Ertelemede — (`02 §4.2` Z-8) · Ö1'de B-4 · iptalde B-7 | `02 §6.7.17`, §4.3 · K-666, K-667 |
+
+#### 3.5.3 Kurumsal içerik (akış 7)
+
+| # | Akış adımı | Ne ters gider | Sistemin cevabı | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|---|
+| 3.5.3.1 | §8.6 (§1.8.4) | Zorunlu alanı eksik kayıt yayına alınmak istenir | Yayına alınamaz; panel eksik alanı gösterir | — | — | `02 §6.8.1`, §3.27.24 |
+| 3.5.3.2 | §8.6 (§1.8.4) | Yönetici Hakkımızda'yı silmek ister | Hakkımızda silinmez, yalnız taslağa alınır | — | — | `02 §6.8.2`, §3.27.3 |
+| 3.5.3.3 | §2.2.1 | Hakkımızda boştur ya da yayında değildir | Ana sayfanın kurumsal bloğu marka adını ve logoyu gösterir; boş kutu görünmez | — | — | `02 §6.8.3`, §3.27.14 |
+| 3.5.3.4 | §2.2.4 · §8.1 | İçeriğe bağlı ürün taslağa ya da arşive alınır veya silinir | Taslakta ve arşivde ürün bağda kalır ama görünmez; silinen ürün bağdan kalkar | — | — | `02 §6.8.4`, §3.27.10 |
+| 3.5.3.5 | §2.2.10 | Ziyaretçi silinmiş ya da taslaktaki bir içeriğin adresine gelir | "Sayfa bulunamadı" | — | — | `02 §6.8.5`, §3.30.4 |
+| 3.5.3.6 | §8.6 | İki yönetici aynı kaydı aynı anda düzenler | İkinci kaydeden uyarılır | — | — | `02 §6.8.6`, §3.31.1 |
+| 3.5.3.7 | §2.2.8 | Bir bot iletişim formunu doldurur ve görünmez tuzak alanı da doldurur | Gönderim hata vermeden sessizce düşer; talep kaydı oluşmaz | — | — | `02 §6.8.7`, §3.32.7 |
+| 3.5.3.8 | §2.2.8 | Aynı IP'den çok sayıda form gönderilir (L-4) | Eşik aşılınca gönderim geçici olarak engellenir; mesaj nötrdür | — | — | `02 §6.8.8`, §8.2 |
+| 3.5.3.9 | §2.2.7 | Aydınlatma metni tamamlanmamışken ziyaretçi formu açar | Form çalışmaz; kurumsal sayfalar yayında kalır | — | — | `02 §6.8.9`, §3.32.8 |
+| 3.5.3.10 | §2.2.9 · §8.6 | Müşteri firmanın e-postayla verdiği cevabı yanıtlar | Yanıt firma kimliğindeki iletişim e-postasına düşer; sisteme girmez ve yeni talep açmaz | — | — | `02 §6.8.10`, §9.1.4 |
+| 3.5.3.11 | §8.6 (§1.8.4) | Yayındaki bir kaydın zorunlu alanı düzenlemede boşaltılır | Düzenleme kaydedilmez; panel eksik alanı gösterir ve yöneticiyi önce kaydı taslağa almaya yönlendirir | — | — | `02 §6.8.11`, §5.2 |
+
+#### 3.5.4 Mağaza ayarları (akış 8)
+
+| # | Akış adımı | Ne ters gider | Sistemin cevabı | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|---|
+| 3.5.4.1 | §8.7 (§1.10.8) | Firma tipinin zorunlu kimlik alanları eksiktir ya da firma tipi değişmiş ve yeni setin alanları boştur | Satış açılmaz; kurumsal taraf yayında kalır; açık siparişler etkilenmez | — | — | `02 §6.9.1`, §3.1.5 · K-664 |
+| 3.5.4.2 | §8.7 | Havale açılmak istenir ama IBAN boştur | Havale açılamaz | — | — | `02 §6.9.2`, §3.21.5 |
+| 3.5.4.3 | §8.7 · §2.4.5 | Ödeme sağlayıcı anahtarları kurulumda tanımlı değildir | Kart yöntemi görünmez; havale açıksa satış yalnız havaleyle açıktır | — | — | `02 §6.9.3`, §3.21.4 |
+| 3.5.4.4 | §8.7 (§1.10.8) | Hiçbir ödeme yöntemi açık değildir | Satış açılmaz | — | — | `02 §6.9.4`, §3.1.5 |
+| 3.5.4.5 | §8.7 | Havale ödeme süresi çitlerin dışındadır ya da varsayılan kargoya verme süresi üst çiti aşar | Panel değeri kabul etmez ve sebebini söyler | — | — | `02 §6.9.5`, §4.1.5 |
+| 3.5.4.6 | §2.1.1 · §8.7 | Marka adı girilmemiştir | Site alan adını gösterir | — | — | `02 §6.9.6`, §3.29.3 |
+| 3.5.4.7 | §8.7 | Logo yüklenmemiştir | Marka adı yazıyla gösterilir | — | — | `02 §6.9.7`, §3.29.2 |
+| 3.5.4.8 | §8.7 | Site simgesi yüklenmemiştir | Marka adının baş harfi marka rengi zemin üzerinde gösterilir | — | — | `02 §6.9.8`, §3.29.4 |
+| 3.5.4.9 | §8.7 | Marka rengi seçilmemiştir ya da üstündeki yazıyı okunmaz kılacak bir renk seçilmiştir | Ürünün varsayılan rengi kullanılır; üstündeki yazının rengini sistem kontrasta göre seçer | — | — | `02 §6.9.9`, §3.29.5 |
+| 3.5.4.10 | §8.7 (§1.10.8) · §2.2.7 · §9.1 | Aydınlatma metni tamamlanmamış ya da yayına alınmamıştır, çerez politikası yayına alınmamıştır ya da iade adresi girilmemiştir | Satış açılmaz ve panel eksik olanı adıyla gösterir; aydınlatma metni tamamlanmamışken iletişim formu, hesap kaydı ve Google ile ilk giriş de kapalıdır | — | — | `02 §6.9.10`, §3.1.5 |
+| 3.5.4.11 | §8.8 | Son yönetici kaldırılmak istenir ya da yönetici kendi hesabını kaldırmak ister | İşlem engellenir ve panel sebebini söyler | — | — | `02 §6.9.11`, §10.2.2 |
+| 3.5.4.12 | §8.8 (§1.10.7) | Yönetici davetinin bağlantısı kullanılmış, süresi (Z-3) dolmuş, geri çekilmiş, aynı adrese giden yeni bir davetle ya da daveti gönderenin kaldırılmasıyla geçersizleşmiştir | Bağlantı geçersizdir ve hesap açılmaz; tıklayan süresi dolmuş davetin mesajını görür. Mevcut bir yönetici yeni davet gönderir | — | — | `02 §6.9.12`, §10.2.6 · K-660, K-661, K-662 |
+| 3.5.4.13 | §8.7 | Firmanın SSS ya da sayfa metni sonradan değişen bir ayarla çelişir | Ürün çelişkiyi tespit etmez; bağlayıcı olan ayarlardan üretilen form ve sözleşmedir. Panelde ilgili ayarın yanında hatırlatma satırı durur | — | — | `02 §6.9.13`, §3.33.8 |
+| 3.5.4.14 | §8.7 · §2.5.2.1 | Ödemesi beklenen havale siparişleri varken havale IBAN'ı değişir — hesap kapanmıştır ya da değişikliği yetkisiz biri yapmıştır | Yeni IBAN yalnız yeni siparişlere işler; değişikliğin onayı bekleyen siparişlerin sayısını söyler ve onlar donmuş IBAN'ı göstermeye devam eder. Eski hesap kullanılamıyorsa ya da değişiklik yetkisizse yönetici bu siparişleri firma iptaliyle ("diğer", açıklamayla) kapatır. Yetkisiz değişiklik akışı §6.2.6 | İptalde → İptal edildi + Başarısız (S3, Ö2) | F-5 → bütün yöneticiler · iptalde B-7 → müşteri | `02 §6.9.14`, §3.21.5 · K-663 |
+| 3.5.4.15 | §8.7 (§1.10.8) | Ödemesi beklenen havale siparişleri varken havale kapatılır ya da satış kapısının başka bir koşulu düşer | Açık siparişler etkilenmez: bekleyen havale siparişi donmuş IBAN'ıyla sürer, hatırlatma gider, para gelirse yönetici "ödendi" işaretler, süre dolarsa sipariş kendiliğinden iptal olur. Panel kapatma anında sipariş sayısını söyler; o siparişleri kapatmak isteyen yönetici firma iptalini kullanır | — | — (`02 §9.3.2`) | `02 §6.9.15`, §3.1.6 · K-664 |
+| 3.5.4.16 | §8.7 · §2.8.1.2 · §2.9.2 | İade malı beklenen cayma ya da ayıp kalemleri varken iade adresi değişir | Yapılmış beyanın adresi değişmez — sipariş sayfası beyandaki adresi gösterir; yeni beyanlar güncel adresi alır. Eski adrese gönderilen malı teslim almak firmanın yükümlülüğüdür ve ulaşma tarihi malın o adrese ulaştığı tarihtir; panel değişiklik anında bekleyen kalem sayısını söyler | — | — (`02 §9.3.2`) | `02 §6.9.16`, §3.1.7 · K-665 |
+
 ## 4. Zaman aşımı yönetimi
 
 > **Ne yazılır:** Tüm timeout akışları **tek bölümde** — aktör akışlarına gömülmez. Uyarı, dondurma ve normale dönüş adımları dahil.
 
+Ürünün bütün süreleri (`02 §4.2`, Z-1…Z-47) ve kendiliğinden işleyen anları (`02 §4.3`) burada akışa bağlanır; §2, §3, §8 ve §9 süreye kimliğiyle işaret eder, sonucunu tekrarlamaz. Biçim §0.4.3'tür: değer yazılmaz, kimlik yazılır (§0.5.3). Sayım kuralları — tek saat dilimi, iş günü, başlangıç gününün ertesi günü başlayan sayım ve çitler — `02 §4.1`'dedir.
+
+- **Uyarı:** ürünün bir süre dolmadan önce gönderdiği tek uyarı havale hatırlatmasıdır (B-3, Z-9). "Uyarı" sütununda "yok" yazan süre dolarken kimseye önceden haber gitmez; panelin kalan süre göstergesi ve sipariş sayfasının son ödeme günü bir göstergedir, uyarı değildir.
+- **Dondurma yoktur:** süreler sitenin kesintisinde de işler; tek istisna havalenin kendiliğinden iptalidir (4.2.11, 4.2.12; K-666, K-667). **Yasal süreler hiçbir durumda dondurulmaz** ve firmanın ayarıyla uzayıp kısalmaz.
+- **Kendiliğinden işlem:** "Sona erişte" sütunu sistemin süre dolunca kendiliğinden ne yaptığını yazar. "Kendiliğinden işlem yok" yazan süre firmanın ya da müşterinin bir yükümlülüğüdür; sistem onu izler ve gösterir, yerine getirmez.
+
+### 4.1 Süre envanterinden zaman aşımı akışları
+
+| # | Süre | Başlangıç | Uyarı | Sona erişte | Normale dönüş | Akış |
+|---|---|---|---|---|---|---|
+| | **Hesap ve oturum** | | | | | |
+| 4.1.1 | Z-1 E-posta doğrulama bağlantısının ömrü | İlk bağlantının gönderimi — yeniden istenen bağlantı öncekileri geçersiz kılar ve ömrü uzatmaz | Yok | Bağlantı geçersizleşir; doğrulanmamış kayıt silinir; hesabın yeni e-posta adresinde bekleyen değişiklik düşer | E-posta yeniden kayda açılır — kullanıcı yeniden kayıt olur ya da değişikliği yeniden başlatır | §9.1, §9.3 · §3.4.1, §3.4.9 · K-659 |
+| 4.1.2 | Z-2 Şifre sıfırlama bağlantısının ömrü | Talep anı | Yok | Bağlantı geçersizleşir; bağlantı ayrıca tek kullanımlıktır | Kullanıcı yeni talep açar — L-2 içinde | §9.2 · §3.4.5 |
+| 4.1.3 | Z-3 Yönetici daveti bağlantısının ömrü | Davetin gönderimi | Yok | Bağlantı geçersizleşir ve hesap açılmaz. Süre dolmadan da geçersizleşir: geri çekilince, aynı adrese yeni davet gidince, gönderen yönetici kaldırılınca | Mevcut bir yönetici yeni davet gönderir | §8.8 · §1.10.7 · §3.5.4.12 · K-660, K-661, K-662 |
+| 4.1.4 | Z-4 Kısa oturum | Son işlem | Yok | Oturum kapanır | Kullanıcı yeniden giriş yapar; üyenin sepeti hesaptadır (Z-6) | §9.2 · §1.10.6 |
+| 4.1.5 | Z-5 Uzun oturum — "beni hatırla" | Son işlem | Yok | Oturum kapanır | Kullanıcı yeniden giriş yapar | §9.2 · §1.10.6 |
+| | **Sepet ve ödeme** | | | | | |
+| 4.1.6 | Z-6 Sepetin ömrü | — | — | Dolmaz: sepet kendiliğinden boşalmaz | — | §2.3 |
+| 4.1.7 | Z-7 Kart ödeme süresi — ayırma bu süre boyunca sürer | Sipariş onayı | Yok | İptalden önce sağlayıcıya son sorgu: ödeme alınmışsa Ö1 işler; alınmamışsa sipariş kendiliğinden iptal edilir ve ayrılanlar serbest kalır; sorgu yanıtsızsa sipariş iptal edilmez, "ödeme sonucu alınamadı" işaretiyle bekler ve sorgu yinelenir | Sepet korunmuştur; müşteri aynı sepetten yeni sipariş verir. Yanıt gelince olağan geçiş işler ve işaret kalkar | §2.5.1.4 · §3.2.1.2 · §1.7.3.2 |
+| 4.1.8 | Z-8 Havale ödeme süresi — ayırma bu süre boyunca sürer | Sipariş onayı; havale işaretinin düzeltilmesinde düzeltme anı | B-3 (4.1.9) | Sipariş kendiliğinden iptal edilir ve ayrılanlar serbest kalır; iptal edilmiş sipariş sonradan "ödendi" yapılamaz. Süre sitenin kesintisinde dolduysa iptal ertelenir (4.2.12) | Gelen parayı firma sistemin dışında geri öder ya da müşteriden yeni sipariş ister (§3.5.2.2) | §2.5.2.5 · §3.5.2.17 · §1.6.2.4 |
+| 4.1.9 | Z-9 Havale ödeme hatırlatması | Sipariş onayı; havale işaretinin düzeltilmesinde düzeltme anı (K-685) | — (kendisi uyarıdır) | Havale ödeme süresinin son iş gününün başında B-3 bir kez gider; düzeltmeyle yeniden başlayan sürede bir kez daha gider. Kesintide kaçırılırsa dönüşte, süre hâlâ işliyorsa gider, dolmuşsa gitmez | — | §2.5.2.3 · §3.5.2.5 · 4.2.11 · K-685 |
+| | **Teslim** | | | | | |
+| 4.1.10 | Z-10 Kargoya verme süresi — firmanın sözü | Ödeme onayı; havale işaretinin düzeltilmesinden sonra yeni ödeme onayı | Yok — sipariş panelde "kargoya verilecek" sayacındadır | Kendiliğinden işlem yok. Müşterinin iptal düğmesi açıktır ve gecikmede fesih bu düğmeyle kullanılır; süre aşıldıktan sonraki iptalde panel firmaya kanuni faiz uyarısını gösterir | Kargoya verilince süre biter; söze uyum satış özetinde ölçülür | §2.7.2 · §3.3.2 · §8.2 |
+| 4.1.11 | Z-11 Yasal teslim üst sınırı | Sipariş onayı | Yok | Teslim tarihi girilmemiş fiziksel kalem varken gecikme feshi düğmesi açılır — sipariş kargodayken de; kişiye özel üretim işaretli üründe sözleşmenin taahhüdü olarak | Fesih §2.7.7'nin akışıdır | §2.7.7 · §3.3.2 |
+| 4.1.12 | Z-12 Teslim tarihi | — (yöneticinin girdiği tarih) | — | Süre değildir; tarih girilmezse sipariş Kargoya verildi'de kalır, Z-13 ve Z-18 başlamaz | Yönetici teslimi işaretler | §2.5.3.5 · §3.5.2.10 |
+| 4.1.13 | Z-39 İfa süresi — hizmet kalemi | Ödeme onayı | Yok — kalem "tamamlanmayı bekleyen hizmet" sayacındadır | Kendiliğinden işlem yok; müşterinin iptal düğmesi açıktır ve süre aşıldıktan sonraki iptalde panel kanuni faiz uyarısını gösterir | "Tamamlandı" işaretiyle biter | §2.5.3.6 · §2.7.3 |
+| | **Cayma, geri ödeme ve ayıp talebi** | | | | | |
+| 4.1.14 | Z-13 Cayma penceresi — fiziksel kalem | Kalemin teslim tarihi; düzeltilirse düzeltilmiş tarih | Yok | Cayma düğmesi kapanır; önceki beyan geçerli kalır. Eksik bilgilendirmede yasal uzama §5.2.3'tedir | Yol ayıp talebidir (§2.9) | §2.8.1.1 · §3.3.6, §3.3.12 |
+| 4.1.15 | Z-14 Cayma penceresi — hizmet kalemi | Sipariş tarihi; onay anında fiziksel kalem taşıyan siparişte teslim tarihi — girilmemişse ya da fiziksel kalemler teslimden önce kapandıysa başlamaz | Yok | Hak düşer — ya da "tamamlandı" işaretiyle, hangisi önce gelirse | Yol ayıp talebidir | §2.8.2.1 · §3.3.29 |
+| 4.1.16 | Z-15 Cayma hakkı — dijital kalem | — | — | Ödeme onayında üçüncü onay kutusuyla düşer | — | §2.8.3.1 |
+| 4.1.17 | Z-16 Geri ödeme — cayma | Teslimden önceki caymada ve hizmette beyanın tarih damgası; teslimden sonraki caymada malın ulaşma tarihi — beyandan önce ulaştıysa beyan | Yok — panel kalan süreyi, mal ulaşana kadar "iade malı bekleniyor"u gösterir | Kendiliğinden işlem yok; yükümlülük firmanındır. Süre IBAN beklenirken de işler | — | §2.8.1.5, §2.8.2.2, §2.8.4.1 · §3.3.8 |
+| 4.1.18 | Z-42 Müşterinin iade malını gönderme süresi | Cayma beyanı | Yok | Kendiliğinden işlem yok: kalem "iade malı bekleniyor"da kalır; yöneticiye isteğe bağlı "mal dönmedi" kapanışı açılır; havale hattında Z-38 işlemeye başlar | Mal sonradan ulaşırsa teslim alma adımı kalemi işler ya da yeniden açar | §2.8.1.8 · §3.3.16, §3.3.18 |
+| 4.1.19 | Z-17 Geri ödeme — iptal edilen ödenmiş sipariş ya da kalem | İptal anı | Yok — havale hattında panel kalan süreyi gösterir | Kendiliğinden işlem yok: kart hattında sistem iadeyi iptal anında başlatmıştır; havale hattında yükümlülük firmanındır | — | §2.7.6 · §3.3.24 |
+| 4.1.20 | Z-47 İfanın imkânsızlaştığının bildirimi | Firmanın durumu öğrendiği an | — | Sayaç tutulmaz; firma iptali bildirimi iptal anında sebebiyle gönderir (B-7) | — | §8.3 · §3.5.2.6 |
+| 4.1.21 | Z-18 Ayıp talebinin iki yıllık süresi | Kalemin teslim işaretinin tarihi | Yok | Sipariş sayfasındaki kanal kapanır: yeni talep açılmaz, çözülmüş talep yeniden açılmaz | Hak iletişim formundan sürer (§5.1.2) | §2.9.1, §2.9.6 |
+| 4.1.22 | Z-19 İndirme hakkı | — | — | Süre yoktur; adet (P-8) dolunca indirme kapanır | Yönetici hakkı yeniler (§3.5.2.7) | §2.5.3.2 |
+| | **Katalog, kupon ve içerik** | | | | | |
+| 4.1.23 | Z-20 İndirimin tarih aralığı | Girilen başlangıç | Yok | Sistem indirimi kendisi bitirir; onay anında bitmesi özet farkıdır (§3.2.1.3) | — | §8.1 · §1.10.1 |
+| 4.1.24 | Z-21 Referans fiyatın geriye bakış penceresi | İndirimin başladığı an | — | Hesap penceresidir; dolması bir işlem başlatmaz | — | §8.1 |
+| 4.1.25 | Z-22 Kuponun tarih aralığı | Girilen başlangıç | Yok | Kupon yeni siparişte kabul edilmez; ayrılmış haklar onaylanmış siparişlerde kalır | — | §2.4.4 · §8.1 · §3.5.1.15 |
+| 4.1.26 | Z-23 Duyurunun tarih aralığı | İsteğe bağlı başlangıç | Yok | Duyuru görünmez; yöneticinin elle kaldırmasına gerek kalmaz | — | §2.1.1 · §8.6 |
+| 4.1.27 | Z-24 İleri tarihli yayın | Yoktur — yayın anındadır | — | — | — | §8.1, §8.6 |
+| | **İletişim, bildirim ve kötüye kullanım** | | | | | |
+| 4.1.28 | Z-25 KVKK başvurusuna cevap | Başvurunun firmaya ulaştığı an — talebin kaydında durur | Yok | Sayaç tutulmaz; yükümlülük firmanındır | — | §8.6 |
+| 4.1.29 | Z-26 Gönderilemeyen e-postanın yeniden denenmesi | İlk başarısız gönderim | — | Üç deneme de başarısızsa siparişin, talebin ya da davetin satırına "e-posta ulaşmadı" düşer; hesap ve yönetim e-postalarında işaret düşmez, kullanıcı bağlantıyı yeniden ister | Yönetici e-postayı panelden yeniden gönderir; başarılı gönderimle işaret kalkar | §2.6.5 · §3.1.1, §3.5.2.13 |
+| 4.1.30 | Z-27 Deneme limitlerinin penceresi | Kayan pencere | — | O işlemin geçici engeli; hesap kilitlenmez | Pencere içindeki deneme sayısı eşiğin altına inince engel kendiliğinden açılır | §6.1 |
+| | **Saklama ve imha** | | | | | |
+| 4.1.31 | Z-28 Sipariş, ödeme ve fatura verisi; sözleşme ve onay kayıtları | Siparişin oluştuğu takvim yılının sonu | — | Periyodik imha siparişin kişisel verilerini imha eder ve hesapla bağı keser; kalan alanlar ticari kayıttır | — | 4.2.9 · §3.2.1.16 |
+| 4.1.32 | Z-41 Ödemesi hiç alınmamış siparişin kişisel verisi | Siparişin Başarısız olduğu an | — | Kişisel veri imha edilir; kayıt ölçüler için kişisel verisiz kalır | — | 4.2.9 |
+| 4.1.33 | Z-29 Ayıp talebi kaydı | — | — | Bağlı olduğu siparişle birlikte imha edilir | — | 4.2.9 |
+| 4.1.34 | Z-30 İşlem izi | Satırın yazıldığı takvim yılının sonu | — | Satırlar imha edilir; süre boyunca değiştirilemez ve silinemez | — | §6.3.2 · §8.9 |
+| 4.1.35 | Z-31 Hesap verisi | — | — | Hesap silindiğinde hemen silinir | — | §9.4 |
+| 4.1.36 | Z-32 Sepet | — | — | Hesapla birlikte silinir | — | §9.4 |
+| 4.1.37 | Z-33 İletişim talebi | Son kapatılış; hiç kapatılmamış talepte açılış | — | Talep silinir — kapatılmamış açık talep de | — | §1.9.2 · §8.6 |
+| 4.1.38 | Z-34 Bildirim gönderim kaydı — hesap, yönetim ve firma bildirimleri | Gönderim anı | — | Kayıt silinir | — | 4.2.9 |
+| 4.1.39 | Z-43 Bildirim gönderim kaydı — B-1…B-16 | Gönderim anı | — | Kayıt silinir; o güne kadar bilgilendirmenin kanıtıdır (§5.1.7) | — | 4.2.9 |
+| 4.1.40 | Z-35 Havale hattında müşterinin geri ödeme IBAN'ı | Beyan ya da IBAN girişi | — | Geri ödeme tamamlanınca silinir; malı dönmeyen caymada kapatmayla ya da Z-38'le, iade reddinde retle daha erken | Mal silmeden sonra ulaşırsa IBAN sipariş sayfasından yeniden istenir (§3.3.19) | §2.7.5 · §2.10.4 · §5.3.1 |
+| 4.1.41 | Z-36 Periyodik imha | — | — | Süresi dolan veriyi kendiliğinden çalışan bir iş imha eder; panelde düğme yoktur | — | 4.2.9 |
+| 4.1.42 | Z-40 Giriş kaydı | Kaydın oluştuğu an | — | Periyodik imhayla silinir | — | §6.3.2 · K-687 |
+| 4.1.43 | Z-44 İmha kaydı | Kaydın yazıldığı an | — | Silinir; kişisel veri içermez | — | 4.2.9 |
+| 4.1.44 | Z-45 E-posta değişikliğini geri alma bağlantısının ömrü | Değişikliğin geçerli olduğu an | Yok | Bağlantı geçersizleşir; e-postanın yeniden değiştirilmesinin önündeki engel kalkar ve ürün içinde geri alma yolu kalmaz | — | §6.2.5 · §9.3 |
+| 4.1.45 | Z-46 Tanınan tarayıcı işareti | O tarayıcıdan o hesaba son başarılı giriş ya da şifrenin sıfırlama bağlantısıyla yenilenmesi | — | İşaret geçersizleşir; tarayıcının denemeleri yeniden e-posta ekseninde sayılır. Şifre sıfırlama, geri alma bağlantısı ve hesap silme işareti süre dolmadan düşürür | Kullanıcı başarıyla girince işaret yeniden doğar | §6.1.3 · §9.2 |
+| 4.1.46 | Z-37 Veri ihlalinde Kurul'a bildirim | İhlalin öğrenildiği an | — | Sayaç tutulmaz; yükümlülük firmanındır | — | §6.3.2 |
+| 4.1.47 | Z-38 Malı dönmeyen caymada havale IBAN'ının kendiliğinden silinmesi | Z-42'nin dolduğu gün | — | Mal hâlâ ulaşmamışsa IBAN silinir; kalem kapanmaz, cayma geçerli kalır; aynı IBAN'ı bekleyen başka bir geri ödeme varsa IBAN onun tamamlanmasına kadar kalır | Mal sonra ulaşırsa IBAN yeniden istenir (§3.3.19) | §2.10.4 · 4.2.8 |
+
+### 4.2 Kendiliğinden işleyen anlar
+
+Süresi olmayan ama zamanı kural olan anlar ve kesintideki davranış (`02 §4.3`). Kuralın tam metni gösterilen bölümlerdedir.
+
+| # | An | Sistem ne yapar | Bildirim | Akış | Kaynak |
+|---|---|---|---|---|---|
+| 4.2.1 | Sipariş onayı | Numara verir; kalemleri, adresleri, firma kimliğini, metin sürümlerini, havalede IBAN'ı ve kargoya verme sözünü dondurur; stok, kontenjan ve kupon hakkını ayırır; aynı sepete bağlı ödenmemiş önceki siparişi iptal eder | B-1, havalede B-2 → müşteri · F-1 → firma · önceki siparişte B-7 | §2.4.9 | `02 §4.3`, §3.17, §3.23 · K-663 |
+| 4.2.2 | Ödeme onayı | Ayrılanı kesin düşer, kupon hakkını kullanılmış sayar, siparişe giren kalemleri sepetten çıkarır, Z-10 ve Z-39'u başlatır, dijital kalemi teslim eder | B-4 → müşteri | §2.5.3.1 | `02 §4.3` |
+| 4.2.3 | Kendiliğinden iptal — Z-7 ya da Z-8 dolunca, kart ödemesi başarısız olunca, aynı sepetten yeni sipariş onaylanınca | Sipariş İptal edildi + Başarısız olur ve ayrılanlar aynı anda serbest kalır; kart ödeme süresinde iptalden önce son sorgu yapılır | B-7 → müşteri | §2.5.1.3, §2.5.1.4, §2.5.2.5, §2.4.9 | `02 §3.17.5`, §6.1.2 |
+| 4.2.4 | İptal, çıkarma ve gecikme feshi | Kalemin stoğu ve kontenjanı anında döner — feshte kargoya verilmemiş kalemde; kupon hakkı yalnız siparişin tamamı iptal edildiğinde döner; son açık kalemde kapanış kuralı işler (§1.4.3) | Olayın kendi bildirimi (B-7, B-9, B-11) | §2.7 · §1.4.4 | `02 §4.3`, §7.2.6 · K-672 |
+| 4.2.5 | İade | Fiziksel kalemin stoğu kendiliğinden dönmez — yönetici teslim alıp ekler; caymada hizmet kontenjanı döner; kupon hakkı yalnız siparişin tamamı iade edildiğinde döner | — | §2.8 · §1.4.4 | `02 §4.3`, §7.4.7, §7.4.8 |
+| 4.2.6 | Kısmi iptal ve iade | Kupon ve kargo ücreti yeniden hesaplanmaz; kargodan önce bütün fiziksel kalemler iptal edildiğinde ya da gönderilenlerin tamamından cayıldığında kargo ücreti son işlemin geri ödemesine eklenir | — | §2.7.6, §2.8.4.1 · §3.3.10 | `02 §4.3`, §7.2.9, §7.4.6 |
+| 4.2.7 | Kart hattında kendiliğinden geri ödeme — iptal edilen ödenmiş kart kalemi ya da iptal edilmiş siparişe gelen kart ödemesi | Sistem iadeyi sağlayıcı üzerinden başlatır; onay penceresi yoktur. Gerçekleşince Ö3–Ö5 işler — geç gelen ödemede eksen değişmez; başarısız olursa "geri ödeme gerçekleşmedi" işareti düşer ve sistem yeniden denemez | B-8 → müşteri · F-4 → firma · başarısızlıkta müşteriye ayrı bildirim yok (K-683) | §2.7.6 · §3.2.1.16, §3.3.24 | `02 §7.2.8`, §6.2.16 · K-683, K-684 |
+| 4.2.8 | Malı dönmeyen caymada IBAN'ın silinmesi | "Mal dönmedi" kapanışında kapatmayla, kapatılmamışsa Z-38 dolunca kendiliğinden; silme kalemi kapatmaz | — (`02 §9.2`) | §2.10.4 · 4.1.47 | `02 §4.3`, §7.4.5 |
+| 4.2.9 | Periyodik imha (Z-36) | Süresi dolan veriyi imha eder ve her çalışmanın imha kaydını yazar (Z-44) | — | 4.1.31–4.1.43 | `02 §4.2`, §12.2.7 |
+| 4.2.10 | E-postanın yeniden denenmesi (Z-26) | Başarısız gönderimi artan aralıkla üç kez yeniden dener; art arda başarısızlıkta panel ana sayfasında kanal uyarısı çıkar | — · panel işareti ve uyarısı (`02 §9.1.6`) | §3.1.1 · §10.1 | `02 §6.1.1`, §9.1.6 |
+| 4.2.11 | Sitenin kesintisi | Süreler kesintide de işler — bağlantı ömürleri, oturumlar, ödeme ve kargoya verme süreleri, saklama süreleri; ürün kesintiyi sürelere eklemez. Kesintide zamanı gelen kendiliğinden işler — 4.2.3, B-3 (4.1.9), 4.2.8, 4.2.9, 4.2.10 — site döndüğünde **kaçırdıkları sırayla** hemen çalışır; kart hattında iptal öncesi son sorgu kesintide gerçekleşmiş ödemeyi bulur. Yasal süreler dondurulmaz; müşterinin başka kanaldan bildirim yolu açıktır (§2.8.4.4) | Dönüşte çalışan işin kendi bildirimi | §10.3 | `02 §4.3`, §3.34.7 · K-666 |
+| 4.2.12 | Havale ödeme süresinin kesintide dolması | Kendiliğinden iptal, sitenin dönüşünden sonraki ilk iş gününün sonuna ertelenir: ayrılanlar tutulur, para gelmişse yönetici o ana kadar "ödendi" işaretler ve sipariş sayfası yeni son günü gösterir; ödeme işaretlenmezse iptal ertelenen anda işler. Kesintinin tespiti `05`'in işidir | Ertelemede — (`02 §4.2` Z-8) · iptalde B-7 | §2.5.2.5 · §3.5.2.17 | `02 §4.2` Z-8, §4.3 · K-667 |
+
 ## 5. İtiraz / anlaşmazlık akışları
 
+Ürünün ayrı bir şikâyet ya da itiraz kanalı yoktur (`02 §3.32.9`, §7.1.5). Bu bölüm müşterinin itirazının ürünün içinde nereye düştüğünü (§5.1), ürünün dışında çözülen anlaşmazlıklarda ürünün tuttuğu izi ve ürüne geri dönüş yolunu (§5.2) ve iade reddiyle değer kaybını (§5.3) yazar. **Ürün uyuşmazlığa karar vermez ve yasal sonuç uydurmaz** (GUARDRAILS §8): kararı firma ya da yetkili merci verir, ürün kararın sonucunu panelin var olan işlemleriyle uygular. Biçim §0.4.1'in adım tablosudur; yöneticinin adımları §8'de ayrıntılanır.
+
+### 5.1 Üç yol ve itirazın yeri
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 5.1.1 | Müşteri satın almadan sonra bir sorunu firmaya iletmek ister | Sipariş sayfası üç yolu sunar: iptal (§2.7), cayma (§2.8), ayıp talebi (§2.9). Üçü ayrı düğmedir ve ayrı kayıt taşır; her birinin açık olduğu aralık §1.11'dedir | Yolun kendi durumu | Yolun kendi bildirimi | `02 §7.1.1`, §7.1.4 |
+| 5.1.2 | Müşterinin konusu üç yola girmez — gecikmenin sebebi, kargo hasarı, fatura, düğmesi kapanmış bir hakkın tartışması — ya da ayıp talebi süresi dolmuştur | Müşteri iletişim formunu "Sipariş hakkında" tipiyle kullanır (§2.2.8); ayrı şikâyet listesi, canlı destek ve talep takibi yoktur | İletişim talebi: Açık | F-2 → firma · gönderene — (`02 §9.5`) | `02 §3.32.9`, §7.5.1 · K-678 |
+| 5.1.3 | Yönetici talebi okur ve müşteriye e-postayla cevap verir (§8.6) | Cevap sistemden yazılmaz. Sonuç bir sipariş işlemi gerektiriyorsa yönetici onu panelin var olan işlemiyle yapar — başka kanaldan cayma kaydı, firma iptali, tutar bazlı geri ödeme, teslim tarihinin düzeltilmesi (§1.11) — ve işlemin kendi bildirimi gider | İletişim talebi: → Kapatıldı | İşlemin bildirimi | `02 §3.32.5`, §10.4 |
+| 5.1.4 | Müşteri çözülmüş ayıbın tekrarladığını bildirir | Talep yeniden açılır — yeni talep açılmaz (§2.9.6); Z-18 dolduysa yol iletişim formudur | Ayıp talebi: Çözüldü → Açık | B-9 → müşteri · F-3 → firma | `02 §5.10`, §7.5.1 · K-681 |
+| 5.1.5 | Müşteri firmanın cevabını kabul etmez | Ürün uyuşmazlığa karar vermez. Tüketici hakem heyeti ve — dava açılmadan önce arabulucuya başvurma şartıyla — tüketici mahkemesi yolu siparişe donmuş Ön Bilgilendirme Formu'nda ve sözleşmede yazar; ikisi sipariş sayfasında ve B-1'in gövdesindedir. Parasal görev sınırı rakamla yazılmaz | — | — | `02 §3.33.7`, §7.1.5 |
+| 5.1.6 | Firma ya da merci müşteri lehine karar verir; yönetici sonucu uygular | Para gerekiyorsa tutar bazlı kısmi geri ödeme ya da kalemin iade hattı işler — havale hattında IBAN müşteriden sipariş sayfasıyla istenir (K-686); cayma gerekiyorsa başka kanaldan kayıt. Ürün kararı ayrıca kaydetmez; yönetici iç not yazar | Para gönderilirse Ö3–Ö5 · havalede kalem: IBAN isteği | B-8 → müşteri · IBAN isteğinde B-14 | `02 §5.5`, §10.4.7 · K-686 |
+| 5.1.7 | Yönetici itiraza karşı kanıt hazırlar | Dayanaklar ürünün kayıtlarıdır: siparişe donmuş metinler ve onay kutularının kaydı, B-1…B-16'nın gönderim kaydı (Z-43), işlem izi (Z-30), beyanların tarih damgası ve siparişin e-posta geçmişi. Ürün fotoğraf, belge ve kanıt dosyası almaz; ispat yükü firmadadır | — | — | `02 §3.23.3`, §10.3, §7.3.1 |
+
+### 5.2 Ürünün dışında çözülen anlaşmazlıklar
+
+#### 5.2.1 Ters ibraz (harcama itirazı)
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 5.2.1.1 | Müşteri kart harcamasına bankası üzerinden itiraz eder; sağlayıcı tutarı firmanın hesabından geri alır | Ürün bilmez: sağlayıcıdan ters ibraz bilgisi almaz; ödeme ekseni, satış özeti ve dışa aktarma değişmez | — | — (ürün olayı bilmez) | `02 §3.21.11`, §6.2.22 |
+| 5.2.1.2 | Yönetici itirazı sağlayıcının panelinde cevaplar | Ürünün geri ödeme kaydı ve işlem izi firmanın kanıtıdır; yönetici sonucu iç nota yazar (§1.11.27) | — | — | `02 §3.21.11`, §10.4.7 |
+| 5.2.1.3 | Yönetici aynı siparişte bir geri ödeme adımı işleyecektir — başarısız kart iadesini yeniden denemek, havale yolunu açmak, havale geri ödemesini işlemek | Önce sağlayıcının panelinde ters ibraza bakar: parası ters ibrazla dönmüş kalem için ikinci geri ödeme yapılmaz. "geri ödeme gerçekleşmedi" işaretindeki uyarı bunu hatırlatır | — | — | `02 §7.2.8`, §3.21.11 |
+| 5.2.1.4 | Müşteri kart hattında iptal eder ve sağlayıcı ters ibraz edilmiş işlemde kendiliğinden başlayan iadeyi reddetmez | Para ikinci kez gider — kendiliğinden iade ters ibrazı beklemez. Yönetici fazlayı ürünün dışında, sağlayıcının süreciyle ve müşteriyle çözer. Kalan risktir | Ö3–Ö5 | B-8 → müşteri · F-4 → firma | `02 §3.21.11` |
+
+#### 5.2.2 Yolda kaybolan iade gönderisi
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 5.2.2.1 | Müşteri teslimden sonra cayar ve malı süresinde bir taşıyıcıya verir; gönderi firmaya ulaşmaz | Kalem "iade malı bekleniyor"dadır; geri ödeme süresi mal ulaşmadan başlamaz (§2.8.1.8) | — | — | `02 §6.4.30`, §7.4.1 |
+| 5.2.2.2 | Müşteri gönderinin kaybolduğunu iletişim formundan bildirir | Ürün taşıyıcı belgesini almaz ve değerlendirmez — formda dosya eki yoktur; yazışma sistemin dışındadır | İletişim talebi: Açık | F-2 → firma | `02 §10.4.9` |
+| 5.2.2.3 | Yönetici Z-42'den sonra kalemi "mal dönmedi" gerekçesiyle kapatır — isteğe bağlıdır | Kapatma geri ödeme borcuna karar vermez; havale hattında IBAN silinir; kalem sayaçtan düşer | kalem: "mal dönmedi" kapanışı | — (`02 §9.2`) | `02 §10.4.9` |
+| 5.2.2.4 | Firma — kendi değerlendirmesiyle ya da bir hakem heyeti kararıyla — ödemeye karar verir | Kaleme bağlı tutar bazlı geri ödeme işlenir; kalem kapalı kalır. Havale hattında IBAN silinmişse yönetici IBAN isteği açar ve müşteri IBAN'ı sipariş sayfasından girer (K-686) | Ö3–Ö5 · havalede kalem: IBAN isteği | B-8 → müşteri · IBAN isteğinde B-14 | `02 §5.5`, §10.4.9 · K-686 |
+| 5.2.2.5 | Mal sonradan ulaşır | Teslim alma adımı kalemi yeniden açar; 5.2.2.4'te ödenmiş tutar kalemin geri ödenecek tutarından düşülür | kalem: iade teslim alma | — (`02 §9.2`) | `02 §10.4.9` |
+
+#### 5.2.3 Eksik bilgilendirmede cayma süresinin uzaması
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 5.2.3.1 | Müşteri pencere kapandıktan sonra ya da mutlak istisna kaleminden, cayma hakkı konusunda gerektiği gibi bilgilendirilmediğini söyleyerek caymak ister — formdan, e-postayla ya da mektupla | Sipariş sayfasındaki düğme açılmaz; ürün bilgilendirmenin eksik kalıp kalmadığına karar vermez | Formdan geldiyse İletişim talebi: Açık | Formdan geldiyse F-2 → firma | `02 §6.4.32`, §7.3.1 |
+| 5.2.3.2 | Yönetici değerlendirir ve bilgilendirmenin eksik kaldığına karar verir; bildirimi başka kanaldan cayma kaydıyla alır (§8.4) | Teyit §6.2.1. Panel tarihin pencerenin dışında olduğunu ya da kalemin istisna taşıdığını söyler ve kaydı ayrıca onaylatır; pencerenin bitiminden bir yıldan sonraya tarihli kaydı reddeder | kalem: cayma beyanı · IBAN'sızsa IBAN isteği | B-9 → müşteri · IBAN'sızsa B-14 | `02 §10.4.10` · K-688 |
+| 5.2.3.3 | Kayıttan sonra | Olağan cayma hattı işler (§2.8) | — | — | `02 §10.4.10` |
+| 5.2.3.4 | Yönetici bilgilendirmenin eksik olmadığına karar verir | Kayıt yapılmaz; cevap firmanın e-postasıdır ve uyuşmazlık 5.1.5'in yolundan yürür | — | — | `02 §7.3.1` |
+
+#### 5.2.4 Teslim tarihine itiraz
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 5.2.4.1 | Müşteri, girilen teslim tarihinin gerçek teslimden önce olduğunu ve cayma düğmesinin erken kapandığını söyler | Düğme açılmaz; pencere fiilî teslimden işler ve tarihin ispat yükü firmadadır | — | — | `02 §10.4.5`, §7.3.1 |
+| 5.2.4.2 | Müşteri caymayı başka kanaldan bildirir | Yönetici bildirimi teyit eder (§6.2.1) | — | Formdan geldiyse F-2 → firma | `02 §7.3.5` |
+| 5.2.4.3 | Yönetici teslim tarihini düzeltir ya da bildirimi kaydeder (§8.4) | Düzeltilmiş tarihten pencereler yeniden işler; tarih bir beyanın günüyle çakışırsa panel teslimin sırasını sorar. Kayıt bir cayma beyanıdır | Kayıtta kalem: cayma beyanı | Tarih düzeltmesinde — (`02 §9.2`) · kayıtta B-9 → müşteri | `02 §10.4.5`, §10.4.10 |
+| 5.2.4.4 | Yönetici tarihin doğru olduğunu söyler | Ürün karar vermez; uyuşmazlık 5.1.5'in yolundan yürür ve yanlış tarihin riski firmadadır | — | — | `02 §10.4.5` |
+
+### 5.3 İade reddi ve değer kaybı
+
+#### 5.3.1 İade reddi — koşullu istisna kalemi
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 5.3.1.1 | Müşteri koşullu istisna sebebi kaleme donmuş fiziksel kalemden cayar | Beyan ekranı "koruyucu ambalajı açılmamışsa cayabilirsiniz" koşulunu yazar (§2.8.1.1) | kalem: cayma beyanı | B-9 → müşteri · F-3 → firma | `02 §7.3.4` |
+| 5.3.1.2 | Mal koruyucu ambalajı açılmış döner; yönetici teslim alma adımında "iade reddedildi — koruyucu ambalaj açılmış" kaydını seçer (§8.3) | Ret yalnız bu kalemde sunulur. Onay sonucu tek cümleyle söyler ve geri alınmaz (§1.6.1.6); kayıt ulaşma tarihini taşır ve işlem izine yazılır | kalem: iade reddi | B-16 → müşteri — ret sebebi, geri ödeme yapılmayacağı, malın geri gönderileceği ve uyuşmazlık yolları | `02 §7.4.9` · K-656, K-657 |
+| 5.3.1.3 | Sistem reddin sonuçlarını işler | Geri ödeme yapılmaz ve süresi işlemez; kalem "iade ve geri ödeme bekleyen" sayacından düşer ve "iade malı bekleniyor" kalkar; havale hattında IBAN silinir; mal stoğa girmez; iptal ve iade oranı değişmez. Sevkiyat ve ödeme ekseni değişmez | — | — | `02 §7.4.9`, §10.6 |
+| 5.3.1.4 | Yönetici malı müşterinin teslimat adresine, kendi seçtiği taşıyıcıyla ve kendi bedeliyle geri gönderir | Sistemin dışındadır; ürün izlemez ve takip numarası istemez | — | — (B-16 gitmiştir) | `02 §7.4.9` · K-657 |
+| 5.3.1.5 | Müşteri reddi kabul etmez | Yol iletişim formu ve uyuşmazlık yoludur (5.1.2, 5.1.5); B-16 yolları adıyla söylemiştir. Ürün ret için kanıt almaz — ispat firmadadır | — | — | `02 §7.4.9` |
+| 5.3.1.6 | Firma kararından döner ya da hakem heyeti aksine karar verir | Kaleme bağlı tutar bazlı geri ödeme işlenir; ret kaydı izde kalır. Havale hattında IBAN retle silinmiştir: yönetici IBAN isteği açar, müşteri IBAN'ı sipariş sayfasından girer (K-686) | Ö3–Ö5 · havalede kalem: IBAN isteği | B-8 → müşteri · IBAN isteğinde B-14 | `02 §7.4.9`, §5.5 · K-686 |
+
+#### 5.3.2 Kullanılmış, hasarlı ya da eksik dönen mal
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 5.3.2.1 | Mal kullanılmış, hasar görmüş ya da eksik döner; kalem reddedilebilecek bir kalem değildir — istisnası yoktur ya da koruyucu ambalajı açılmamıştır | Yönetici teslim alma adımını olağan biçimde işler; ret seçeneği sunulmaz | kalem: iade teslim alma | — (`02 §9.2`) | `02 §7.4.10` · K-668 |
+| 5.3.2.2 | Yönetici geri ödemeyi işler (§8.3) | Kalemin ödenmiş bedeli tam ödenir; ürün kesinti alanı açmaz. Stoğa ekleme yöneticinin kontrolüne bağlıdır | Ö3–Ö5 | B-8 → müşteri | `02 §7.4.10`, §7.4.7 |
+| 5.3.2.3 | Firma aykırı kullanımdan doğan değer kaybını müşteriden ister | Ürünün dışında yürür — yazışmayla, gerekirse hakem heyeti ya da mahkeme yoluyla; ürün değer kaybını değerlendirmez ve kaydetmez, yönetici iç not yazar. Küçük tutarlı değer kaybı fiilen firmada kalır | — | — | `02 §7.4.10`, §10.4.7 · K-668 |
+
 ## 6. Kötüye kullanım ve inceleme akışları
+
+Ürün düzeyindeki önlemler `02 §8`'dedir; teknik güvenlik — genel istek hızı sınırı, dosya güvenliği, depolama — `05`'in işidir. Bu bölüm önlemleri akışa bağlar: limitin hangi adımda sayıldığını ve gerçek kullanıcının çıkışını (§6.1), firmanın kandırılmaya karşı teyidini ve kandırılmadan sonraki yolu (§6.2) ve firmanın inceleme yollarını (§6.3) yazar. **Ürün teyidi denetlemez; teyidin ispatı ve kandırılmanın sonucu firmadadır** (`02 §8.3.6`–§8.3.8). Biçim §0.4.1'in adım tablosudur; §6.1.1 limitlerin satır tablosudur.
+
+### 6.1 Deneme limitleri
+
+#### 6.1.1 Limitler
+
+Eşikler ve pencereler `02 §11.2`'dedir; pencere kayan penceredir (Z-27), L-8 ise aynı anda açık kayıt sayar.
+
+| # | Limit | Sayıldığı adım | Eksen | Aşılınca | Kaynak |
+|---|---|---|---|---|---|
+| 6.1.1.1 | L-1 Başarısız şifreli giriş — müşteri ve yönetici | §9.2 | IP · e-posta — yalnız o hesap için tanınmayan tarayıcılar · tanınan tarayıcı başına ayrı sayaç | Şifreyle giriş o eksende engellenir; Google ile giriş L-1'e girmez | `02 §8.2`, §8.2.6 |
+| 6.1.1.2 | L-2 Şifre sıfırlama talebi | §9.2 | IP · e-posta | Talep engellenir | `02 §8.2` |
+| 6.1.1.3 | L-3 Hesap kaydı | §9.1 | IP · e-posta | Kayıt engellenir | `02 §8.2`, §8.1.4 |
+| 6.1.1.4 | L-4 İletişim formu gönderimi | §2.2.8 | IP | Gönderim engellenir; tuzak alanı dolduran gönderim ayrıca sessizce düşer (§3.5.3.7) | `02 §8.2`, §8.3.1 |
+| 6.1.1.5 | L-5 Başarısız misafir sipariş takibi sorgusu | §2.6.2 | IP · sorguya yazılan e-posta | Sorgu o eksende engellenir; e-postadaki bağlantı ve üyenin hesabı açık kalır | `02 §8.2.2` |
+| 6.1.1.6 | L-6 Geçersiz kupon kodu | §2.4.4 | Sepet — girişte birleşen sepet iki sayacın büyüğünü taşır | O sepetin kupon alanı kapanır | `02 §8.2` |
+| 6.1.1.7 | L-7 Kendiliğinden iptal edilen ödenmemiş sipariş | §2.4.8 — sayılan iptaller §2.5.1.3, §2.5.1.4, §2.5.2.5 | IP · e-posta — yalnız giriş yapmış üyenin siparişleri | Yeni sipariş onaylanamaz; ödeme sayfası hiç açılmamış sipariş sayılmaz | `02 §8.2.2`, §8.2.3 |
+| 6.1.1.8 | L-8 Aynı anda açık ödenmemiş sipariş | §2.4.5 | IP · e-posta — yalnız giriş yapmış üyenin siparişleri | Havale seçilemez; kart yolu açık kalır | `02 §8.2.3` |
+| 6.1.1.9 | L-9 Doğrulama bağlantısının yeniden istenmesi — kayıt ve yeni e-posta adresi; müşteri ve yönetici | §9.1, §9.3 | IP · e-posta | İstek engellenir; kayıt silinmez, önceki bağlantı ömrü içinde geçerli kalır. Yönetici davetinin yeniden gönderilmesi limite girmez | `02 §8.2` · K-658 |
+
+#### 6.1.2 Engel ve normale dönüş
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 6.1.2.1 | Kullanıcı eşiği aşan denemeyi yapar | Yalnız o işlem, o eksende geçici olarak engellenir; mesaj nötrdür (§3.1.5). Hesap kilitlenmez ve panele iş düşmez | — | — | `02 §8.2.1`, §6.1.5 |
+| 6.1.2.2 | Kullanıcı bekler | Pencere içindeki deneme sayısı eşiğin altına inince engel kendiliğinden açılır (Z-27); L-8'de açık siparişlerden biri ödenince ya da iptal edilince tavan boşalır | — | — | `02 §8.2.1` |
+| 6.1.2.3 | Yönetici limite takılır | Panel girişine muafiyet yoktur; yönetici aynı değerlere tabidir | — | — | `02 §8.2.4` |
+| 6.1.2.4 | Kullanıcı ürün düzeyinde limiti olmayan bir işlemi tekrarlar — sepete kalem eklemek, stok yoklamak | Ürün düzeyinde limit yoktur; genel istek hızı sınırı `05`'in işidir | — | — | `02 §8.2.5` |
+
+#### 6.1.3 Girişe yönelik saldırıda gerçek kullanıcı
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 6.1.3.1 | Saldırgan hedefin e-postasıyla — tek IP'den ya da dağıtık — şifre dener | L-1'in e-posta ekseni o hesap için işaretsiz tarayıcılardan gelen denemeleri sayar ve onları engeller; IP ekseni ayrıca sayar | — | — | `02 §8.2.6` |
+| 6.1.3.2 | Gerçek kullanıcı daha önce başarıyla girdiği tarayıcıdan girer | Tanınan tarayıcı e-posta ekseninde engellenmez; denemeleri kendi sayacında sayılır ve IP ekseni ona da işler | Oturum açılır | Olağan (§9.2) | `02 §8.2.6` · Z-46 |
+| 6.1.3.3 | Gerçek kullanıcı yeni ya da çerezi silinmiş bir tarayıcıdan girmek ister | Tarayıcı e-posta ekseninde engellidir; kullanıcı şifre sıfırlama bağlantısını kullanır — bağlantı e-postanın sahibine gider. Şifre yenilenir, hesabın bütün oturumları kapanır, sıfırlayan tarayıcı tanınan tarayıcı olur ve öteki işaretler düşer | Şifre yenilenir | Şifre sıfırlama bağlantısı (`02 §9.4`) | `02 §8.2.6`, §3.13.10 |
+| 6.1.3.4 | Saldırgan şifre sıfırlama taleplerini de doldurur | L-2 o eksende talebi engeller; gönderilen bağlantılar hedefin posta kutusuna gitmiştir. Gerçek kullanıcı engel açılınca talep eder — kalan risktir | — | — | `02 §8.2.6` |
+| 6.1.3.5 | Kullanıcı Google ile girer | Tahmin edilen bir şifre yoktur; L-1'in engeli Google ile girişi kapatmaz | Oturum açılır | Olağan (§9.2) | `02 §8.2.6` |
+
+#### 6.1.4 Stok ve kupon kilitleme girişimi
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 6.1.4.1 | Biri ödemeden art arda sipariş açarak stoğu ve kupon haklarını ayırır | Her ödenmemiş sipariş süresi dolunca kendiliğinden iptal edilir ve ayırmasını bırakır; L-7 iptallerin tekrarını sayar ve yeni sipariş onayını engeller | İptallerde → İptal edildi + Başarısız (S3, Ö2) | İptallerde B-7 → siparişin e-postası | `02 §8.2.3` |
+| 6.1.4.2 | Biri havale siparişleriyle bir ürünün stoğunu iş günleri boyunca kilitler | L-8 aynı anda açık ödenmemiş siparişleri sayar ve tavan doluyken havaleyi kapatır; kart yolu açıktır | — | — | `02 §8.2.3` |
+| 6.1.4.3 | Saldırgan çok sayıda IP'den misafir havale siparişi açar | Ürün kendiliğinden durdurmaz; firmanın inceleme yolu §6.3.1'dedir | — | — | `02 §8.2.3` |
+| 6.1.4.4 | Paylaşılan bir IP'nin arkasındaki gerçek müşteri başkasının denemeleriyle IP ekseninde engellenir | Engel kendiliğinden açılır; L-8'de kart yolu açıktır; ayrı muafiyet ya da kurtarma yolu yoktur — kalan risktir | — | — | `02 §8.2.2` |
+
+### 6.2 Teyit ve kandırılma akışları
+
+#### 6.2.1 Siparişin kendi kanalına dönerek teyit — ortak kalıp
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 6.2.1.1 | Yönetici siparişe dokunan bir talep alır — adres düzeltmesi, başka kanaldan cayma bildirimi, "müşteriyle anlaşıldı (müşteri talebi)" iptali | Talep siparişin iletişim e-postasından geldiyse teyit budur | — | — | `02 §10.4.2`, §8.3.8 |
+| 6.2.1.2 | Talep telefonla, iletişim formuyla, başka bir adresten ya da mektupla gelir | Yönetici siparişin kendi kanallarından birine döner: siparişin iletişim e-postasına yazar ya da teslimat telefonunu arar. Talebin geldiği numara ya da adres ve sipariş numarası tek başına teyit değildir | — | — | `02 §10.4.2`, §10.4.10 |
+| 6.2.1.3 | Misafir siparişinin e-posta düzeltmesi istenir | Siparişin e-postası yanlış olduğu için kimlik siparişteki bilgilerle — ad, fiziksel kalemli siparişte teslimat telefonu, kalemler ve tutar — teyit edilir | — | — | `02 §8.3.6`, §10.4.11 |
+| 6.2.1.4 | Siparişin sahibine ulaşılamaz | Kaydın ya da düzeltmenin yapılıp yapılmayacağı firmanın değerlendirmesidir; kaydedilmeyen gerçek bir bildirimin sonucu da firmadadır. Teyit kaydın tarihini değiştirmez — tarih bildirimin firmaya ulaştığı tarihtir | — | — | `02 §10.4.10` |
+
+#### 6.2.2 Adres çevirtme girişimi
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 6.2.2.1 | Biri firmaya ulaşıp siparişin teslimat adresini kendi adresine çevirtmek ister | Yönetici 6.2.1'in kalıbıyla teyit eder | — | — | `02 §8.3.7` |
+| 6.2.2.2 | Teyit atlanır ya da kandırılır; yönetici adresi düzeltir (§1.11.23) | Düzeltme işlem izine alan ve işlem olarak yazılır — adres değeri ize girmez | — | B-10 → siparişin iletişim e-postası | `02 §10.4.2`, §10.3.1 |
+| 6.2.2.3 | Gerçek sahip B-10'u görür ve firmaya ulaşır | Sipariş Kargoya verildi'ye geçmediyse yönetici adresi geri düzeltir; paket yola çıktıysa adres düzeltilemez ve kandırılmanın sonucu firmadadır | — | Geri düzeltmede B-10 | `02 §6.3.6`, §8.3.7 |
+
+#### 6.2.3 Sahte cayma ya da iptal bildirimi
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 6.2.3.1 | Siparişin sahibi olmayan biri siparişin bilgilerini bilerek başka kanaldan cayma ya da iptal ister — havale hattında kendi IBAN'ıyla | Yönetici 6.2.1'in kalıbıyla teyit eder; sahibi bildirimi yapmadığını söylerse kayıt yapılmaz | — | — | `02 §6.4.33`, §8.3.8 |
+| 6.2.3.2 | Teyit atlanır; yönetici caymayı kaydeder ya da kalemi "müşteriyle anlaşıldı (müşteri talebi)" sebebiyle iptal eder | Bildirimdeki IBAN aktarılmaz — bildirim siparişin iletişim e-postasından gelmemiştir. Para siparişin kendi yoluna gider: kartta karta, havalede yalnız sipariş sayfasından girilen IBAN'a | kalem: cayma beyanı ya da iptal kaydı | B-9 ya da B-7 → siparişin iletişim e-postası · IBAN'sız kayıtta B-14 | `02 §8.3.8`, §10.4.10 |
+| 6.2.3.3 | Gerçek sahip bildirimi görür ve firmaya ulaşır | Yanlış iptal yalnız ödeme Ödendi'de kalmışken düzeltilir (§1.6.2.2). **Cayma beyanı geri alınmaz** — ürünün düzeltmeleri durum geçişleri içindir (§1.6.2): teslim edilmiş kalemde mal dönmez ve yönetici Z-42'den sonra "mal dönmedi" kapanışını yapar; teslim işaretsiz kalemde beyan kalemi kapatmıştır ve geri ödeme siparişin kendi yoluna gider. Kandırılmanın sonucu firmadadır (K-688) | Yanlış iptalin düzeltilmesinde §1.6.2.2 | Düzeltmede B-13 → müşteri | `02 §8.3.8`, §10.4.6 · K-688 |
+
+#### 6.2.4 Misafir siparişinin e-postasını çevirtme
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 6.2.4.1 | Biri firmaya ulaşıp misafir siparişinin e-postasını kendi adresine çevirtmek ister | Yönetici kimliği siparişteki bilgilerle teyit eder (6.2.1.3) | — | — | `02 §8.3.6` |
+| 6.2.4.2 | Teyit kandırılır; yönetici e-postayı düzeltir (§1.11.35) | Yeni erişim anahtarı üretilir, eski bağlantılar açılmaz; sipariş yanlış hesaptan kopar, yeni adres doğrulanmış bir hesabınsa o hesaba düşer. Panel "e-posta düzeltildi" işaretini gösterir; iki adres e-posta geçmişindedir | — · "e-posta düzeltildi" işareti | B-1 → yeni adres · B-15 → eski adres | `02 §10.4.11` |
+| 6.2.4.3 | Kandıran sipariş sayfasına girer — iptal eder, cayar, IBAN girer ya da düzeltir | Para siparişin yoluna gider: kartta karta; havalede sipariş sayfasından girilen IBAN'a — sayfaya kandıran girdiği için IBAN'ı da o girer | Yapılan işlemin durumu | İşlemin bildirimi — yeni adrese | `02 §8.3.6` |
+| 6.2.4.4 | Gerçek sahip B-15'i görür ve firmaya ulaşır | Yönetici e-postayı yeniden düzeltir; yeni bir anahtar üretilir. Arada yapılan işlemler geri alınmaz, işlem izinden ve e-posta geçmişinden okunur; geri ödeme işlenmeden önceyse gerçek sahip IBAN'ı sipariş sayfasından düzeltir (§1.11.12) | — | B-1 → gerçek sahibin adresi · B-15 → kandıranın adresi | `02 §6.3.5`, §7.4.5 |
+
+#### 6.2.5 Hesabın e-postasının ele geçirilmesi
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 6.2.5.1 | Biri açık kalmış ya da ele geçirilmiş bir oturumdan, şifreyi bilerek hesabın e-postasını değiştirir | İşlem yeniden doğrulama ister — şifre ya da Google; değişiklik yeni adres doğrulanınca geçerli olur (§9.3) | Hesabın e-postası değişir | Yeni adrese doğrulama bağlantısı · eski adrese değişiklik bildirimi ve geri alma bağlantısı (`02 §9.4`) | `02 §8.1.5`, §3.13.14 |
+| 6.2.5.2 | Gerçek sahip eski adresteki "bu değişikliği ben yapmadım" bağlantısını Z-45 içinde kullanır | E-posta geri alınır; hesabın bütün oturumları kapanır, tanınan tarayıcı işaretleri düşer ve şifre eski adrese giden bağlantıyla yeniden belirlenir. Bağlantı açıkken e-posta yeniden değiştirilemez | Hesabın e-postası geri döner | Şifre sıfırlama bağlantısı → eski adres (`02 §9.4`) | `02 §3.13.14`, §8.2.6 |
+| 6.2.5.3 | Z-45 dolmuştur ya da eski posta kutusu da ele geçirilmiştir | Ürün içinde geri alma yolu yoktur — kalan risktir. Siparişlerin erişim anahtarı hesabın e-posta değişikliğinden etkilenmez: gerçek sahip sipariş sayfalarına e-postalarındaki bağlantıyla girmeye devam eder (§2.6.3) | — | — | `02 §8.1.5`, §3.22.5 |
+
+#### 6.2.6 Havale IBAN'ının yetkisiz değişikliği
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 6.2.6.1 | Ele geçirilmiş bir yönetici hesabıyla havale IBAN'ı değiştirilir | Değişiklik işlem izine eski ve yeni değerle yazılır. Yeni IBAN yalnız yeni siparişlere işler; ödemesi beklenen siparişler donmuş IBAN'ı göstermeye devam eder | — | F-5 → bütün yöneticilerin kendi adresleri — değişikliği yapan, tarih, saat ve yeni IBAN'ın son dört hanesi | `02 §9.3.3`, §3.21.5 · K-663 |
+| 6.2.6.2 | Bir yönetici F-5'i görür ve değişikliği tanımaz | Panele girip IBAN'ı düzeltir ve şifresini değiştirir; ürün değişikliği kendiliğinden geri almaz ve havaleyi kapatmaz | — | Düzeltmede F-5 → bütün yöneticiler | `02 §9.3.3` |
+| 6.2.6.3 | Değişiklikle düzeltme arasında onaylanmış siparişler yanlış IBAN'ı taşır | Yönetici onları firma iptaliyle ("diğer", açıklamayla) kapatır; müşteri yeni sipariş verir | → İptal edildi + Başarısız (S3, Ö2) | B-7 → müşteri | `02 §6.9.14` · K-663 |
+
+### 6.3 Firmanın inceleme akışları
+
+#### 6.3.1 Şüpheli açık havale siparişleri
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 6.3.1.1 | Yönetici bir ürünün stoğunun, kontenjanının ya da kuponun son haklarının açık havale siparişlerince kilitlendiğini görür | "Ödeme onayı bekleyen" sayacı süzülmüş listeye götürür; stok alanının yanında ayrılmış adet ve onu tutan siparişler görünür (§3.5.1.14) | — | — | `02 §10.6.1`, §8.2.3 · K-653 |
+| 6.3.1.2 | Yönetici şüpheli siparişleri firma iptaliyle kapatır — "diğer", açıklamayla | Ayrılanlar aynı anda serbest kalır; ürün şüpheyi değerlendirmez | → İptal edildi + Başarısız (S3, Ö2) | B-7 → siparişin iletişim e-postası | `02 §8.2.3`, §7.2.4 |
+| 6.3.1.3 | Yönetici havaleyi geçici olarak kapatır | Yeni siparişte havale görünmez, kart açık kalır. Açık siparişler etkilenmez — kilidi çözen iptaldir, kapatma değil | — | — (`02 §9.3.2`) | `02 §3.21.5`, §8.2.3 · K-664 |
+
+#### 6.3.2 Veri ihlalinde kapsam
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 6.3.2.1 | Firma bir ihlalden şüphelenir ya da öğrenir | Ürün ihlali tespit etmez ve uyarı üretmez; panelde ihlal ekranı yoktur. Kurul'a bildirim (Z-37) ve ilgili kişilere bildirim firmanın yükümlülüğüdür | — | — (`02 §9.5`) | `02 §8.5.1`, §12.2.9 |
+| 6.3.2.2 | Yönetici işlem izini tarih ve yönetici süzgeciyle okur (§8.9) | İz hangi yöneticinin neye dokunduğunu söyler — dışa aktarmalar dahil; iz değiştirilemez ve silinemez | — | — | `02 §10.3` |
+| 6.3.2.3 | Firma giriş kaydına ve sistem kayıtlarına bakmak ister | Giriş kaydı panelde görünmez; sistem kayıtlarıyla birlikte kurulumun barındırma tarafında okunur — okuma yolu `05`'in işidir (K-687). Limit sayaçları kaynak değildir | — | — | `02 §8.5.1`, §3.13.20 · K-687 |
+| 6.3.2.4 | Firma ele geçirilmiş bir yönetici hesabını kapatır | Başka bir yönetici onu kaldırır (§8.8): oturumları anında sonlanır, gönderdiği kullanılmamış davetler düşer; son yönetici kaldırılamaz | — | — | `02 §10.2.2`, §8.1.7 · K-662 |
+
+#### 6.3.3 Etkilenen kişilere ulaşma
+
+| # | Aktör ne yapar | Sistem ne denetler, ne yapar | Durum | Bildirim | Kaynak |
+|---|---|---|---|---|---|
+| 6.3.3.1 | Yönetici etkilenen kişilerin listesini çıkarır | Sipariş dışa aktarması siparişin donmuş iletişim e-postasını ve alıcı adını taşır; üye listesi ve iletişim talepleri ayrıca dışa aktarılır. Her dışa aktarma işlem izine yazılır ve dosyanın sorumluluğu firmaya geçer | — | — | `02 §10.7.1`, §12.2.9 |
+| 6.3.3.2 | Firma kişilere yazar | Ürünün toplu e-posta hattı yoktur; firma kendi e-posta aracını kullanır | — | — (`02 §9.5`) | `02 §9.5`, §12.2.9 |
 
 ## 7. Bildirim haritası
 
@@ -714,7 +1201,13 @@ Her satır bir karar grubudur; karar kaydı satırı ayrıntıyı, sürüm notu 
 | 11.15 | Yazım, §2.4: bir siparişe birden çok kupon kodunun uygulanıp uygulanamayacağı yazılı değildi; sipariş düzleminde tek "kupon kodu" alanı vardı (K-679) | v0.50 — `02 §3.10.1` |
 | 11.16 | Yazım, §2.4: üyenin ödeme adımında yazdığı yeni adresin adres defterine girip girmediği yazılı değildi (K-680, ⚠) | v0.50 — `02 §3.14.1` · `10` v0.32 KP-12 |
 | 11.17 | Yazım, §2.9: müşterinin çözülmüş ayıp talebini yeniden açmasında kendisine kayıt kopyası gidip gitmediği yazılı değildi — firmaya F-3 gidiyordu (K-681, ⚠) | v0.50 — `02 §9.2` B-9 · `10` v0.32 KP-66 |
+| 11.18 | Yazım, §3: beş hata ve sistem olayı — kart iadesinin başarısız olması, son sorgunun yanıtsız kalması, indirme hakkının yenilenmesi, dosya güncellemesi, doğrulanmamış kaydın silinmesi — ne bildirim matrisinde ne "bildirim üretmeyen olaylar"daydı (K-683, ⚠) | v0.51 — `02 §9.2`, §9.4 |
+| 11.19 | Yazım, §3.2: sistemin iptal edilmiş siparişe gelen kart ödemesini geri ödemesi müşteriye bildirilmiyordu (K-684, ⚠) | v0.51 — `02 §6.2.16`, §9.2 B-8 · `10` v0.33 KP-15, KP-66 |
+| 11.20 | Yazım, §4: havale işaretinin düzeltilmesiyle yeniden başlayan ödeme süresinde hatırlatmanın gidip gitmediği yazılı değildi (K-685) | v0.51 — `02 §3.21.6`, Z-9, §9.2 B-3, §10.4.6 |
+| 11.21 | Yazım, §5: havale hattında IBAN'ı olmayan geri ödemelerde — ayıp talebinin çözümü, tutar bazlı kısmi geri ödeme, ret ya da "mal dönmedi" kapanışından sonraki ödeme — IBAN'ın nasıl alınacağı yazılı değildi (K-686, ⚠) | v0.51 — `02 §5.5`, §7.4.5, §7.4.9, §7.5.3, §8.4.2, §9.2 B-14, §10.1.2, §10.3.1, §10.4.9, §10.6.1 · `10` v0.33 KP-48, KP-66 |
+| 11.22 | Yazım, §6.3: giriş kaydının nerede okunduğu yazılı değildi (K-687, ⚠) | v0.51 — `02 §8.5.1`, §12.2.9 · `05` park satırı |
+| 11.23 | Yazım, §6.2: kandırılmayla ya da yanlışlıkla kaydedilmiş cayma beyanının geri alınıp alınamayacağı yazılı değildi (K-688, ⚠) · hizalama: `02 §6.7.14` hizmet tamamlamanın koşulunu K-671'den önceki diliyle yazıyordu (K-671) | v0.51 — yeni `02 §7.6.7`, §8.3.8, §10.4.10 · §6.7.14 |
 
 ---
 
-*Shopfolio — User Flows v0.3*
+*Shopfolio — User Flows v0.4*

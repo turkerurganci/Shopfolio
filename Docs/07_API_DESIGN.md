@@ -20,6 +20,8 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-787 · K-794 · K-795 · İşlemlerin adedi:** müşterinin iptal, cayma ve ayıp talebi işlemleri ile yöneticinin firma iptali, adet azaltması, iade teslim alması, iade reddi ve "mal dönmedi" kapanışı kalem başına bir adet taşır; adet o işleme açık adedi aşamaz ve gecikme feshinde seçim yoktur (K-796; `02 §7.1.6`; Arayüz Tanımları `04` 2.12.1.8, §5.17, §5.18, §5.19). Ekranın açık adedi ve varsayılanı göstermesi için gereken verinin nasıl sunulduğu ve aşan adedin sunucuda nasıl reddedildiği bu aşamanın kararıdır.
+> - **K-737 · Ürün listesinin araması:** panelin ürün listesi ürün adıyla aranır ve yayın durumuna göre süzülür (`02 §10.1.2`; `04 §9.4`). Arama ve süzme parametrelerinin biçimi bu aşamanın kararıdır.
+> - **K-802 · Sipariş listesinin araması ve süzgeçleri:** sipariş listesi sipariş numarası ya da iletişim e-postasıyla tam eşleşmeyle aranır; sipariş durumu, ödeme durumu ve bekleyen iş süzgeçleriyle süzülür; en yeni önce, süreli bekleyen işte kalan süresi en az olan önce sıralanır (`04 §9.8`). Parametrelerin biçimi bu aşamanın kararıdır.
 
 ---
 

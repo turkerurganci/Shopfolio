@@ -10,6 +10,7 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; doldurulurken karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-699 · Panele erişimin kaybında kurtarma:** hiçbir yönetici panele giremediğinde — tek yöneticinin şifresi ve e-posta kutusu kaybolmuşsa ya da ele geçirilmiş bir hesap tek yönetici kalmışsa — kurulumu yapan, ilk yöneticiyi açtığı yolla (§H; `10` ÖK-7) yeni bir yönetici hesabı açar; hesap ele geçirilmişse o hesabın oturumlarını sonlandırır ve şifresini geçersiz kılar. Ürün içinde kurtarma yolu yoktur (`02 §10.2.7`, `03 §10.4`). Adımların kendisi, kurtarmayı kimin isteyebileceği ve isteğin nasıl doğrulanacağı bu dokümanın kararıdır.
+> - **Dizin — Aşama 2 kararlarının bu dokümana devirleri:** karar kaydında K-647…K-718'in etki sütunlarında bu dokümanı gösteren bir atıf (bir karar) ve Kullanıcı Akışları'nın (`03`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md) §6'dadır. Bir iş yalnız `03`'ün gövdesinde yaşar, karar satırı yoktur: ödeme sağlayıcısının anahtarlarının ya da sağlayıcının değişmesinde geçişin yöntemi (`03 §10.1.1.7`). Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Aşama 1'in dizini: `PHASE1_CONFLICT_SCAN.md` §6.
 
 ---
 

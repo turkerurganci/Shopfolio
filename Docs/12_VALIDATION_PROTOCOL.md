@@ -9,11 +9,16 @@
 > **Aşama 1'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36.
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
-> - **K-06 · Aktörler:** Doğrulama senaryoları üç aktör üzerinden kurulur — ziyaretçi · üye müşteri · firma yöneticisi.
+> - **K-06 · K-97 · Aktörler:** Doğrulama senaryoları dört aktör üzerinden kurulur — ziyaretçi · misafir alıcı · üye müşteri · firma yöneticisi (`02 §1.3`; misafir alıcıyı K-97 ekledi, satır Aşama 2'nin çakışma taramasında hizalandı).
 > - **K-22 · MVP başarı çıtası:** Firma siteyi kendi kendine ayaklar, içeriğini ve kataloğunu yönetir, gelen siparişleri panelden uçtan uca işletir ve **düzenli sipariş alır**.
 > - **K-23 · Kabul kanıtı:** **Referans kurulum · canlı ortam · gerçek para.** Gerçek kartla küçük tutarlı sipariş, 3DS geçişi, siparişin panelden uçtan uca işletilmesi ve ardından iadesi — bu zincir bu dokümanın kabul kanıtıdır.
 > - **K-24 · Kapsam cümleleri:** `10 §2` ve `10 §3` satırları **çeviri yapılmadan, olduğu gibi** doğrulama senaryosuna devralınır.
 > - **K-27 · İki ana sayfa düzeni:** Tanıtım öncelikli ve mağaza öncelikli düzenler **ayrı ayrı** doğrulanır.
+
+> **Aşama 2'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §8.3 AK0-04).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **Dizin — Aşama 2 kararlarının bu dokümana devirleri:** karar kaydında K-647…K-718'in etki sütunlarında bu dokümanı gösteren elli sekiz atıf (elli sekiz karar) ve Kullanıcı Akışları'nın (`03`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md) §6'dadır; etki sütununda yalnız doküman numarası taşıyan elli sekiz atfın işinin adını dizin verir. Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Aşama 1'in dizini: `PHASE1_CONFLICT_SCAN.md` §6.
 
 ---
 

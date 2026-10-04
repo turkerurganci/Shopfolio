@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-10-04 | **Satır:** 41 | **Gönderilen:** 0
+**Son güncelleme:** 2026-10-04 | **Satır:** 44 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -69,3 +69,6 @@
 | PF-39 | Proje sahibinin açtığı modlar ve yetkiler aşamayla sınırlı; yeni aşamada yeniden sorulur | Ö-1; H-10; K-648 | checklist §1 | `checklists/document-stage.md` §1 | Uygulandı |
 | PF-40 | Kullanıcı Akışları şablonu: §0 anlatılar için "ayrı bölüm" ister ama şablonda o bölüm yok; açık kararlar bölümü de yok (PF-22'nin bu şablondaki hâli) | Tracker §8.1 öğrenim adayı 3 (2026-10-04) | Tracker §8.2 plan önerisi 2 (AK0-02) · §8.3 AK0-04 | `Docs/03_USER_FLOWS.md` şablonu | Aday — kapı: Aşama 2'nin öğrenim terfisi |
 | PF-41 | Aşama planının konu kimliği aşamayı taşımıyor; karar kaydı dönem boyu tek dosya olunca sonraki aşamanın planı çakışır | Tracker §8.1 öğrenim adayı 4 (2026-10-04) | Tracker §8.2 (`AKn-mm`) | `checklists/document-stage.md` §1 | Aday — kapı: Aşama 2'nin öğrenim terfisi |
+| PF-42 | Mekanik ön sayımın betiği mercekler başlamadan örneklenmedi; `\b03\b` kimliklere ve tarihlere takıldı ve envanter 57 yerine 131 satır oldu | Tracker §8.1 öğrenim adayı 5 (2026-10-04) | — | `skills/audit` "Koşum biçimi" 4. madde | Aday — kapı: Aşama 2'nin öğrenim terfisi |
+| PF-43 | Paralel mercek sayısı oturum limitine bağlı; on mercek aynı anda düştü, beşli dalga ve bulgu buldukça dosyaya yazma kesintisiz bitti | Tracker §8.1 öğrenim adayı 6 (2026-10-04) | — | `skills/audit` "Koşum biçimi" | Aday — kapı: Aşama 2'nin öğrenim terfisi |
+| PF-44 | Sonraki dokümana giden etki atıfları çıplak doküman numarası kalıyor ("06 · 12"); devir taraması neyin devredildiğini okuyamaz | Tracker §8.1 öğrenim adayı 7 (2026-10-04) | — | `checklists/document-stage.md` §3 | Aday — kapı: Aşama 2'nin öğrenim terfisi |

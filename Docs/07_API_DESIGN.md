@@ -16,6 +16,11 @@
 >
 > - **Dizin — Aşama 2 kararlarının bu dokümana devirleri:** karar kaydında K-647…K-718'in etki sütunlarında bu dokümanı gösteren bir atıf (bir karar) [`CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md) §6.1'dedir; etki sütununda yalnız doküman numarası taşıyan bir atfın işinin adını dizin verir. Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Aşama 1'in dizini: `PHASE1_CONFLICT_SCAN.md` §6.
 
+> **Aşama 3'ten park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2 ve §3, mekanizma: K-36 (yeri: §10.3 UI0-04).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-787 · K-794 · K-795 · İşlemlerin adedi:** müşterinin iptal, cayma ve ayıp talebi işlemleri ile yöneticinin firma iptali, adet azaltması, iade teslim alması, iade reddi ve "mal dönmedi" kapanışı kalem başına bir adet taşır; adet o işleme açık adedi aşamaz ve gecikme feshinde seçim yoktur (`02 §7.1.6`; Arayüz Tanımları `04` 2.12.1.8, §5.17, §5.18, §5.19). Ekranın açık adedi ve varsayılanı göstermesi için gereken verinin nasıl sunulduğu ve aşan adedin sunucuda nasıl reddedildiği bu aşamanın kararıdır.
+
 ---
 
 ## 1. Traceability Matrix (ÖNCE BU)

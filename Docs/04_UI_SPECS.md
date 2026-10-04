@@ -1,6 +1,6 @@
 # Shopfolio — UI Specifications
 
-**Versiyon: v0.18** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-05
+**Versiyon: v0.19** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-05
 
 > **Aşama:** 3 — UI/UX Tasarım · **Rol:** Senior Product Designer / UX Architect
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §4'e (ekran envanteri) geçilmez.
@@ -33,6 +33,8 @@
 > **Kalite döngüsü — cross-review 5. tur ve etki yansıtma (2026-10-05, v0.17; K-849):** aynı istem ve iki koşum (K-847, K-848). Dört parça `SONUÇ: TEMİZ` döndü; tek parça çağrı bir bulgu getirdi ve reddedildi — 5.18.6'nın geri ödeme süresinin başlangıcı, 3. turun reddedilen bulgusunun dönüşü (K-491, K-721). Kabul edilen bulgu olmadığı için döngü K-849'un çıkış kuralıyla bu turda kapandı: **cross-review TEMİZ — beş turda.** Doküman bu turda değişmedi; değişiklikler etki yansıtmanındır: 5.4.10, 6.2.4.6 ve §1.1'in `03 §3.2.1.9` satırı daha önce alınmış dijital varyantın uyarısını `02 §3.12.9`'un tam metniyle yazar (K-236; audit'in IC-14 ve EKRAN-M-2 izi — Ürün Gereksinimleri v0.64, Kullanıcı Akışları v0.20, MVP Kapsamı v0.42 de hizalandı; §1.3) · Kaynak satırları (K-652'nin ikinci betiği, §2–§9): on üç yerde gövdede anılan Aşama 3 kararı Kaynak'a eklendi — 2.6, 6.1, 6.3.1.2, 6.3.3.5, 6.3.9.1, 6.3.9.27, 6.3.16.5, §7.2, §7.3, 8.2.9, 8.2.10, §9.5, §9.9. Rapor `Docs/CROSS_REVIEW_REPORTS/04_CROSS_REVIEW_R5.md`.
 >
 > **Aşama kapanışı — çakışma taraması (2026-10-05, v0.18; K-437'nin 3. adımı):** açık kalem yok; dokümanlar arası taramanın bulguları düzeltildi. Bir karar — **K-850:** veri toplayan girişlerin kapısına çerez politikasının yayını da girer (2.8.3, 5.10.12, 5.11.9, 5.20.10, 9.3.4, 9.10.11, 9.19.7, 9.19.10) — ve bu dokümanda şu hizalamalar: 5.28.3, 6.2.28.1, 9.25.2, §4.1 E-28 ve §4.2 E-54 (geri alma düğmesi — K-839) · 7.1.5.9 (K-833) · 3.1.19 (K-770) · 5.18.10, 5.19.6 (B-9'un kalemleri ve adetleri — K-790) · 6.2.16.24 (ayıp talebi — K-830) · §1.1'in sekiz F-1…F-4 satırı (K-760) ve altı özet hücresi — KP-14, `03 §8.1.1`, §8.8.2, §8.9.1, §9.3.6, §9.3.7 —, §1.2'nin E-31 sayısı (67 → 75). Geri besleme ve iç hizalamaların tablosu §1.3'tedir. Rapor `Docs/CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md`. Sıradaki adım Aşama 3'ün checkpoint'idir.
+>
+> **Aşama kapanışı — checkpoint (2026-10-05, v0.19; K-437'nin 4. adımı; K-849'un devri):** iki salt okuma merceği özet cümle ile ekran tanımının ayrıştığı kalıbı dokümanın tamamında aradı — müşteri ve panel tarafı; kırk üç iç tutarlılık bulgusu düzeltildi: §2'nin bileşen kuralları ve kapalı listeleri (2.1.2, 2.1.4, 2.2.1, 2.2.2, 2.3.1.3, 2.4.2, 2.4.3, 2.5.1, 2.5.3.1, 2.5.6, 2.6.3, 2.6.4, 2.6.5, 2.7.1.2, 2.7.3.3, 2.8.3, 2.10.1, 2.12.2.2, 2.12.4, 2.12.7.5, 2.13.3, bileşen tablosu OB-06), ekranların giriş ve çıkışı ile §3 (3.3.12, 3.5.9, yeni 3.4.23; 5.1.1, 5.2.1, 5.15.1, 5.16.1, 5.19.1, 5.26.1, 5.27.1, 9.21.1, 9.25.1), §4'ün amaç cümleleri (E-28, E-36), §6 (yeni 6.2.13.14 ve 6.3.16.6; 6.1.3, 6.1.5.1, 6.2.16.9, 6.3.1.1–6.3.1.3, 6.3.16.1, 6.3.16.3, 6.3.19.1, 6.3.19.3) ve ekranların kendi maddeleri (5.4.16, 5.12.6, 5.14.9, 5.16.5, 5.16.12, 5.19.2, 7.1.7.1, 9.9.36, 9.22 ve §3.2'nin kapanış notu). Bir karar — **K-851:** içerik liste sayfası (E-07) sayfa başına 24 kayıt (2.13.3, 5.7.3). Matrisin `03 §3.2.1.8`–§3.2.1.9 satırlarından E-12 çıktı — iki uyarı ürün sayfasında sepete eklerken görünür, sepette görünmez (§1.2'de E-12 46 → 44). Yansıma kaçakları: §1.1'in otuz üç özeti (K-787, K-791, K-793, K-794, K-796, K-759…K-761, K-808, K-826, K-831, K-850), `02 §5.9` satırına müşterinin son adımı (K-732; §1.2'de E-17, E-18, E-25), 9.16.3 ve 9.19.3 (K-850). Kaynak satırları (betik 2): on iki yerde on dokuz atıf tamamlandı. Sayılar: §3 124 geçiş · §6 285 satır · §7 165 alan satırı. Geri besleme tablosu §1.3'te. Rapor `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`. Sıradaki adım Aşama 3'ün öğrenim terfisidir.
 
 **Yazım konvansiyonları (K-726, K-762).** Bu on beş madde §2–§9'un bütün yazım oturumlarını bağlar; "konvansiyon n" diye anılır.
 
@@ -2267,6 +2269,30 @@ Yazım konvansiyonları, alt bölüm haritası ve ekran envanteri de kayda geçt
 | İlk yöneticinin hesabı kurulumda adıyla açılır | — (hizalama; K-736) | `10 §4.1` ÖK-7 · `DEPLOY_RUNBOOK` park satırı · bu doküman §1.1 (`03 §8.8.2`, §9.3.7) |
 
 Bu dokümanın kendi içindeki hizalamaları — üst dokümana dönmez: geri alma ekranının hâli kaç kez açıldığına bakmaz ve E-54'ün ilk görüleni geri alma düğmesini sayar — 5.28.3, 6.2.28.1, 9.25.2, §4.1 (E-28), §4.2 (E-54), §1.1 (`03 §9.3.6`) (K-839) · onay kutusunun validasyonu özet farkını sayar — 7.1.5.9 (K-833) · altbilginin yasal bağlantısı ilk yayına kadar yoktur — 3.1.19 (K-770) · §1.1'in `03 §8.1.1` özeti ürün listesinin aramasını anar (K-737).
+
+**Aşama 3'ün checkpoint'i (2026-10-05, v0.19; K-437'nin 4. adımı; K-652, K-726).** Ürün Gereksinimleri v0.66 · Kullanıcı Akışları v0.22 · MVP Kapsamı v0.44; üçünün de ✓ durumu korunur ve kalite döngüsü yeniden açılmaz. Üst dokümanlara dönen satırların hepsi hizalamadır — var olan bir kararın kuralı eski kalan yüzüne taşındı, yeni kural yok. Rapor `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`.
+
+| Üst dokümana dönen kural | Karar | Nereye yansıdı |
+|---|---|---|
+| Ayıp talebi ayıplı adetle açılır; kanal fiziksel kalemde sipariş kargoya verildiği andan açıktır, iki yıl teslimden işler | — (hizalama; K-793, K-830) | `02 §1.2` (Ayıp talebi) |
+| Firmanın işlemleri adetledir: "mal dönmedi" kapanışı beyanın ulaşmamış adetlerine, teslim alma ulaşan adetle, ret teslim alınan adetle; B-16 reddedilen adedi taşır | — (hizalama; K-794) | `02 §1.2` ("Mal dönmedi" kapanışı, İade, İade reddi), §9.2 B-16 · `03` 7.1.36 · bu doküman §1.1 (on iki özet) |
+| Stok ve hizmet kontenjanı işleme giren adet kadar döner | — (hizalama; K-791) | `02 §4.3` · `03` 4.2.4, 4.2.5 · bu doküman §1.1 (`03 §8.3.2.2`) |
+| Onay adımında kutuların hemen üstünde kısa cayma özeti; iki yasal metin ekranda ve e-postada en az on iki punto karşılığı | — (hizalama; K-831, K-832) | `02 §2.2` adım 4, §12.1.7 · `03` 2.10.1.4 · bu doküman §1.1 (`03 §2.4.6`) |
+| Yeniden gönderim siparişin ayrıntısındadır; davet yeniden gönderilmez — yol yeni davettir ve yeni davet L-9'a girmez; ulaşmayan firma bildirimi ana sayfa uyarısıdır | — (hizalama; K-759, K-760, K-761) | `02 §6.1.1`, §8.2 L-9, §9.1.6 · `03` 4.1.29, 6.1.1.9, 7.2.29, 7.3.20 · bu doküman §1.1 (yedi özet) |
+| Yayındaki yasal metin yayından çekilmez — değişiklik yeni sürümle yapılır | — (hizalama; K-818) | `02 §3.1.6`, §10.1.2 |
+| Firma kategorileri elle sıralamaz — kategoriler alfabetik dizilir | — (hizalama; K-805) | `02 §10.1.2` |
+| Veri toplayan girişlerin kapısı iki metnin de yayınını bekler | — (hizalama; K-850) | `03` 8.7.1.2 · bu doküman 2.8.3, 3.5.9, 9.16.3, 9.19.3, §1.1 (üç özet) |
+| Kargo ücretinin değişikliği üretilen metinlerin sürümünü artırır | — (hizalama; `02 §3.33.3`, YASAL-4) | `03` 8.7.4.1 · bu doküman 6.3.19.3 |
+| Üretim yeri dijital üründe de — doluysa — ürün sayfasında görünür | — (hizalama; FORM-7, `02 §3.8.5`) | `10 §2` KP-5 |
+| Sipariş sayfası gerçekleşmiş geri ödemeleri tarih, tutar ve yolla taşır | — (hizalama; K-826) | `10 §2` KP-18 · bu doküman §1.1 (`03 §2.6.4`) |
+| Ayıp talebinde sözleşmeden dönmenin malı da iade teslim alma adımıyla alınır | — (hizalama; K-808) | `10 §2` KP-47 · bu doküman §1.1 (`03 §1.11.28`, §8.3.2.1) |
+| Satış özetinin cirosu onaylanan toplamdır; sonraki geri ödemeler düşülmez | — (hizalama; K-821) | `10 §2` KP-53 |
+
+| Checkpoint'in bulduğu boşluk | Karar | Bu dokümanda |
+|---|---|---|
+| İçerik liste sayfasının (E-07) sayfa boyu hiçbir kararda yazılı değildi — 5.7.3 sayfa boyu için §2.13.3'e işaret ediyordu, orada içerik listesi için sayı yoktu | K-851 **(öneriyle kaydedildi)** | 2.13.3, 5.7.3 |
+
+Bu dokümanın kendi içindeki hizalamaları — K-849'un devri; üst dokümana dönmez — CP03 raporunun §3.1 ve §3.2'sindedir: kırk üç yerde özet cümle (başlık notu, §2'nin bileşen kuralları ve "Kullanıldığı ekranlar", §3, §4, §6, §7) ekran tanımına hizalandı. Matrisin `03 §3.2.1.8`–§3.2.1.9 satırlarından E-12 çıktı (§1.2'de E-12 46 → 44); `02 §5.9` satırına E-17, E-18 ve E-25 girdi (K-732; §1.2'de üçünün `02` sayısı birer arttı).
 
 > **Vaka:** Bu matris bir referans projede 7 boşluk yakaladı — hiçbiri o ana kadar hiçbir dokümanda adreslenmemiş ama arayüzde cevap gerektiren sorulardı.
 
@@ -5211,4 +5237,4 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
 
 ---
 
-*Shopfolio — UI Specifications v0.18*
+*Shopfolio — UI Specifications v0.19*

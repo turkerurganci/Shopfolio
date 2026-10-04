@@ -1,6 +1,6 @@
 # Shopfolio — UI Specifications
 
-**Versiyon: v0.15** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-04
+**Versiyon: v0.16** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-04
 
 > **Aşama:** 3 — UI/UX Tasarım · **Rol:** Senior Product Designer / UX Architect
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §4'e (ekran envanteri) geçilmez.
@@ -27,6 +27,8 @@
 > **Kalite döngüsü — cross-review 1. tur (2026-10-04, v0.14; K-847, K-848):** Codex CLI (`gpt-5.6-terra`), ciddiyet ölçüsüyle 1. turdan (K-847); girdi yalnız doküman ve şablonu. Tek parça çağrı `SONUÇ: TEMİZ` döndü; aynı istemle dört parçalı kontrol koşumu (K-848) dört bulgu getirdi — üçü KISMİ ve uygulandı, biri RET. Düzeltmeler iki yerin metnini hizalar: §1.1'in "Ekran" sütunu tanımı `02`'nin toplu satırlarını anar (§1.1.6, §1.1.9) · 2.13.2 sipariş listesinin bekleyen iş ve işaret süzgecini sayar (9.8.4) · 2.5.4 yeniden gönderimi müşteri bildirimleriyle sınırlar ve davetin yolunu yeni davet diye yazar (9.20.9). Yeni ürün kuralı yok; üst dokümana dönen karar yok. Rapor `Docs/CROSS_REVIEW_REPORTS/04_CROSS_REVIEW.md`. Sıradaki adım cross-review'ın 2. turudur.
 >
 > **Kalite döngüsü — cross-review 2. tur (2026-10-04, v0.15):** aynı istem ve iki koşum (K-847, K-848). Tek parça çağrı iki bulgu, parçalar 1 · 0 · 0 · 1 bulgu getirdi — ikisi KABUL, ikisi KISMİ, dördü de uygulandı. Düzeltmeler iki yerin metnini hizalar: §1.1.10'un `03 §7.1.37` satırı yeniden gönderimin firma bildirimlerini kapsamadığını yazar (2.5.4) · 6.3.1.2 ve 6.3.1.4 limit aşılınca girişin ve sıfırlama isteğinin engel kalkınca açıldığını yazar (7.3.3) · 9.9.18 "teslim edilemedi" işaretinin S11'e hangi koşulda geçtiğini yazar (`03 §8.2.7`) · 6.2.16.9 ve 6.2.16.10 "İptal edildi + Kısmen geri ödendi"nin bekleyen ve kalıcı hâlini ayırır (`03 §1.4.1` h; `02 §7.2.9`). Yeni ürün kuralı yok; üst dokümana dönen karar yok. Rapor `Docs/CROSS_REVIEW_REPORTS/04_CROSS_REVIEW_R2.md`. Sıradaki adım cross-review'ın 3. turudur.
+>
+> **Kalite döngüsü — cross-review 3. ve 4. tur (2026-10-04, v0.16):** aynı istem ve iki koşum (K-847, K-848). 3. turun iki bulgusu reddedildi ve doküman değişmedi (`04_CROSS_REVIEW_R3.md`). 4. turda tek parça çağrı bir, parçalar 1 · 0 · 1 · 2 bulgu getirdi — ikisi KABUL, biri KISMİ ve uygulandı, ikisi RET. Düzeltmeler iki yerin metnini hizalar: 2.12.3.1 kart hattında IBAN alanının tek istisnasını — sağlayıcıda gerçekleşmeyen kart iadesinde firmanın açtığı havale yolunu — yazar (2.12.3.2, 5.16.12; K-569) · konvansiyon 4 birincil düğmenin ekran başına en çok bir olduğunu yazar (§2.1.3; birincil düğmesi olmayan ekranlar) · 9.19.3 aydınlatma taslağının alıcı gruplarını kategori olarak zaten andığını yazar (`02 §3.1.5`). Yeni ürün kuralı yok; üst dokümana dönen karar yok. Rapor `Docs/CROSS_REVIEW_REPORTS/04_CROSS_REVIEW_R4.md`. Sıradaki adım cross-review'ın 5. turudur.
 
 **Yazım konvansiyonları (K-726, K-762).** Bu on beş madde §2–§9'un bütün yazım oturumlarını bağlar; "konvansiyon n" diye anılır.
 
@@ -35,7 +37,7 @@
 3. **Ekran tanımının başlığı ve yeri.** Müşteri tarafının ekranları §5'te, panelin ekranları §9'da, aynı şablonla yazılır (K-724). Başlık `### 5.n E-nn — Ad` ya da `### 9.n E-nn — Ad` biçimindedir; `n` aşağıdaki alt bölüm haritasında sabittir. Şablonun `S<NN>` kimliği kullanılmaz.
 4. **Ekran tanımının sekiz alanı** şablonun sırasıyla ve şu biçimde doldurulur:
    - **Aktör · Giriş noktası · Çıkış noktaları** — aktör konvansiyon 7'nin adlarından; giriş ve çıkış §3'ün geçiş satırlarına atıfla yazılır (`§3.3.11`), geçiş yeniden anlatılmaz.
-   - **Kullanıcı buraya geldiğinde ilk ne görmeli** — tek cümle: ekranın birincil bilgisi ve birincil eylemi. Ekran başına tek birincil düğme vardır (§2.1.3).
+   - **Kullanıcı buraya geldiğinde ilk ne görmeli** — tek cümle: ekranın birincil bilgisi ve birincil eylemi. Ekran başına en çok bir birincil düğme vardır; olmayan ekran bunu yazar (§2.1.3).
    - **Bilgi hiyerarşisi** — yukarıdan aşağıya numaralı bölgeler; vitrinde dar sınıfın sırasıyla, panelde geniş sınıfın düzeniyle yazılır (§2.1.2). Çerçeve (§2.2) yeniden yazılmaz; yalnız ekrana özgü farkı yazılır.
    - **Aksiyonlar** — her aksiyon bir madde: ne yapılır · hangi akış adımı (`03 §n.m.k`) · açık olduğu koşul (`03 §1.11.k`) · onay isteyip istemediği (OB-04) · sonucun hangi mesaj yerinde söylendiği (OB-03).
    - **Validasyonlar** — alan · kuralın kimliği (`02 §…`, P-, L-) · mesajın yeri; alan envanterinin tamamı §7'dedir.
@@ -2539,7 +2541,7 @@ Siparişin iki ekseni her yerde **iki ayrı rozetle**, yan yana gösterilir; tek
 
 #### 2.12.3 IBAN alanı (OB-14)
 
-**2.12.3.1** Alan yalnız havale hattında görünür; kart hattında IBAN alanı yoktur ve istenmez. IBAN girişte biçim ve sağlama basamağıyla denetlenir; hata alan mesajıdır. Alanın yanında aydınlatma metninin bağlantısı durur (`02 §7.4.5`, §3.33.5).
+**2.12.3.1** Alan havale hattında görünür; kart hattında IBAN alanı yoktur ve istenmez — tek istisna kart iadesinin sağlayıcıda gerçekleşmeyip firmanın havale yolunu açtığı kalemdir: alan orada sipariş sayfasında açılır ve isteğe bağlıdır (2.12.3.2; K-569). IBAN girişte biçim ve sağlama basamağıyla denetlenir; hata alan mesajıdır. Alanın yanında aydınlatma metninin bağlantısı durur (`02 §7.4.5`, §3.33.5).
 **2.12.3.2 Varyantlar.** *Beyanla giriş:* iptal, gecikme feshi ve cayma beyanı ekranlarında formun alanıdır (E-17, E-18). *İstekle açılan alan:* IBAN isteği doğduğunda sipariş sayfasında (E-16) o kalem için açılır; kart iadesi gerçekleşmeyip havale yolu açıldığında sayfa önce kart iadesinin gerçekleşmediğini söyler ve IBAN girmek müşterinin seçimidir (`03 §2.8.4.3`). *Panelde salt okunur:* geri ödemeyi işleyen yönetici müşterinin IBAN'ını görür, giremez (`03 §8.3.3.2`); tek istisna `02 §10.1.2`'nin saydığı aktarmadır.
 **2.12.3.3** Girilen IBAN geri ödeme işlenene kadar sipariş sayfasından düzeltilir (`03 §1.11.12`). IBAN isteğinin ekrandaki öteki yüzü "IBAN bekleniyor" işareti ve listesidir (2.5.3.4, 2.6.2).
 **2.12.3.4** Havale siparişinde firmanın siparişe donmuş IBAN'ı bu bileşen değildir: teyit ekranında ve sipariş sayfasında salt okunur bir bilgidir (`03 §2.5.2.1`).
@@ -5041,7 +5043,7 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
 - **9.19.2 İlk görülen:** dört yasal metnin satırları — her birinin yayındaki sürümü ve tarihi ya da henüz yayına alınmadığı; birincil düğme düzenlenen metnin "Yayına al"ıdır (K-818).
 - **Bilgi hiyerarşisi** — dört metin, iki grup (`02 §3.33.1`; K-818):
   - **9.19.3 (1) Firmanın düzenlediği iki metin** — aydınlatma metni ve çerez politikası. Her biri bir bölümdür: yayındaki sürümün numarası ve yayın tarihi ya da metnin henüz yayına alınmadığı · tamamlanma satırı — eksik olan adıyla · düzenlenen metin · "Taslağı kaydet" ve "Yayına al". Düzenlenen metin yayındaki sürümden farklıysa bölüm bunu söyler (K-818). Düzenleme ürünün taslağıyla başlar ve kapalı metin biçimi setini kullanır (`02 §3.11.6`, §3.33.2; K-818).
-    - **Aydınlatma metni:** taslak firma kimliği alanlarından beslenen yer tutucuları kimlikteki değerlerle gösterir; kimliğin eksik alanı tamamlanma satırında adıyla ve E-44'e götüren bağlantıyla durur. **Barındırma ve e-posta altyapısının konumu** bölümü firmanın doldurduğu ayrı, zorunlu bir alandır; **alıcı grupları** bölümünü firma adıyla doldurur — kapıya girmez (`02 §3.1.5`, §3.33.2). Tamamlanma satırı metin tamamlanıp yayına alınana kadar iletişim formunun, hesap kaydının ve yeni hesap açacak Google ile girişin de kapalı olduğunu söyler (§2.8.3).
+    - **Aydınlatma metni:** taslak firma kimliği alanlarından beslenen yer tutucuları kimlikteki değerlerle gösterir; kimliğin eksik alanı tamamlanma satırında adıyla ve E-44'e götüren bağlantıyla durur. **Barındırma ve e-posta altyapısının konumu** bölümü firmanın doldurduğu ayrı, zorunlu bir alandır; **alıcı grupları** bölümü grupları taslakta kategori olarak zaten anar, firma onları adıyla doldurur — adlar kapıya girmez (`02 §3.1.5`, §3.33.2). Tamamlanma satırı metin tamamlanıp yayına alınana kadar iletişim formunun, hesap kaydının ve yeni hesap açacak Google ile girişin de kapalı olduğunu söyler (§2.8.3).
     - **Çerez politikası:** taslak sitenin zorunlu çerezlerini ve ödeme sağlayıcısının çerçevesi için firmanın dolduracağı yer tutucuyu taşır; içeriğin kuralı `02 §12.2.5`'tedir (K-518, K-603).
   - **9.19.4 (2) Ayarlardan üretilen iki metin** — Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi; salt okunur. Her biri güncel sürümün numarasını ve tarihini ve metnin güncel hâlini gösterir; siparişe göre değişen yerler — kalemler, tutar, alıcı — yer tutucu olarak görünür (`02 §3.33.1`, §3.33.3; `03 §8.7.2.3`; K-818). Bölüm metni hangi ayarların beslediğini sayar: firma kimliği, kargo ücreti, kargoya verme süresi, teslimat illeri, iade adresi (`02 §3.24.3`, §3.33.3).
   - **9.19.5 Yoktur:** yayındaki metni yayından çekmek — iki metin zorunludur ve boşaltılamaz; değişiklik yeni sürümle yapılır (`02 §3.33.2`; K-818) · ileri tarihli yayın ve metin değiştiğinde yeniden onay ya da bildirim (`02 §3.33.4`) · Ön Bilgilendirme Formu'nun ve sözleşmenin elle düzenlenmesi (`02 §10.1.2`) · "İşlem rehberi"nin düzenlenmesi — ürünün sabit metnidir (`02 §3.24.8`) · ayrı üyelik sözleşmesi ve envanterin dışında yasal metin (`02 §3.33.1`) · eski sürümlerin bu ekrandaki listesi — siparişe donmuş sürüm siparişin belgelerinden okunur (9.9.13; K-818) · çerez onay bandı (`02 §3.33.5`).
@@ -5181,4 +5183,4 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
 
 ---
 
-*Shopfolio — UI Specifications v0.15*
+*Shopfolio — UI Specifications v0.16*

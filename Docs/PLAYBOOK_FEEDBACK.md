@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-10-04 | **Satır:** 44 | **Gönderilen:** 0
+**Son güncelleme:** 2026-10-04 | **Satır:** 46 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -72,3 +72,5 @@
 | PF-42 | Mekanik ön sayımın betiği mercekler başlamadan örneklenmedi; `\b03\b` kimliklere ve tarihlere takıldı ve envanter 57 yerine 131 satır oldu | Tracker §8.1 öğrenim adayı 5 (2026-10-04) | — | `skills/audit` "Koşum biçimi" 4. madde | Aday — kapı: Aşama 2'nin öğrenim terfisi |
 | PF-43 | Paralel mercek sayısı oturum limitine bağlı; on mercek aynı anda düştü, beşli dalga ve bulgu buldukça dosyaya yazma kesintisiz bitti | Tracker §8.1 öğrenim adayı 6 (2026-10-04) | — | `skills/audit` "Koşum biçimi" | Aday — kapı: Aşama 2'nin öğrenim terfisi |
 | PF-44 | Sonraki dokümana giden etki atıfları çıplak doküman numarası kalıyor ("06 · 12"); devir taraması neyin devredildiğini okuyamaz | Tracker §8.1 öğrenim adayı 7 (2026-10-04) | — | `checklists/document-stage.md` §3 | Aday — kapı: Aşama 2'nin öğrenim terfisi |
+| PF-45 | Park satırı kaynak kararı değişince güncellenmiyor; geri işaret kuralı karar satırını kapsıyor, park satırını kapsamıyor (K-06 → K-97, dört doküman) | Tracker §8.1 öğrenim adayı 9 (2026-10-04, Aşama 2 çakışma taraması) | `04`, `06`, `07`, `12` park satırları hizalandı | `checklists/document-stage.md` §3 ve §7 (3. adım) | Aday — kapı: Aşama 2'nin öğrenim terfisi |
+| PF-46 | Salt okunur aşama kaydındaki açık süreç maddesi sonraki aşamanın açık listesine geçmiyor (avukat teyidi önerisi, Ö-23) | Tracker §8.1 öğrenim adayı 10 (2026-10-04, Aşama 2 çakışma taraması) | Tracker §8.1 (iki madde taşındı) | `checklists/document-stage.md` §1 | Aday — kapı: Aşama 2'nin öğrenim terfisi |

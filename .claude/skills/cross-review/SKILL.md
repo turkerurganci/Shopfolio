@@ -37,7 +37,7 @@ user-invocable: true
 
 **Ne zaman uygulanır:**
 - **Döngü yakınsamıyorsa** — art arda iki turda kabul edilen bulgular dar kenar durumlara inmişse ve doküman kabul edilen bulgularla büyüyorsa, sonraki turdan itibaren. Kanıt: Ürün Gereksinimleri yirmi beş turda TEMİZ dönmedi ve 374 KB'tan 500 KB'a büyüdü; ölçüyle koşulan 26. tur TEMİZ döndü (K-615).
-- **Ayrıntısı başka bir dokümanda yaşayan bir kapsam ya da özet dokümanında** — ilk turdan itibaren; o dokümanda kenar durum açmak iki dokümanı birlikte büyütür (MVP Kapsamı, K-644).
+- **Ayrıntısı başka bir dokümanda yaşayan bir kapsam, özet ya da akış dokümanında** — kuralı başka dokümana bırakan, "bu doküman kural koymaz" diyen doküman — ilk turdan itibaren; o dokümanda kenar durum açmak iki dokümanı birlikte büyütür (MVP Kapsamı, K-644; Kullanıcı Akışları, K-718 — 365 KB'lık doküman üç turda TEMİZ döndü, 3 → 1 → 0 bulgu).
 
 Ölçünün hangi turdan itibaren uygulandığı **rapor başlığına** ve **karar kaydına** (gerekçesiyle) yazılır. Ölçü bir aşamanın içinde açılır ve o aşamanın dokümanlarıyla sınırlıdır; sonraki aşamada yeniden değerlendirilir.
 

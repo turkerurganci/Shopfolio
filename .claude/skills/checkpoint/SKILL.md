@@ -33,6 +33,8 @@ user-invocable: true
 
 7. **Yeni alan/kural taraması** — bu aşamada eklenen her yeni alan, parametre, enum değeri veya iş kuralı **kendi source-of-truth dokümanında** tanımlı mı? (Cross-review sırasında eklenen öğeler en sık buradan kaçar.)
 
+**Koşum:** mekanik kontroller betikle yapılır; anlamsal tarama alt ajan mercekleriyle koşuyorsa `audit` skill'inin "Koşum biçimi" 4. ve 5. maddeleri geçerlidir — betiğin örneklenerek doğrulanması; dalga büyüklüğü, bulgunun bulunduğu anda dosyaya yazılması ve merceklerin ön planda başlatılması.
+
 ---
 
 ## Çıktı formatı

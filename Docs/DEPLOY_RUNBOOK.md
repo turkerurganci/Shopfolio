@@ -6,6 +6,11 @@
 >
 > **Bu dokümanın varlık sebebi:** Kod tamam olsa bile, prod'da bir ayar eksikse sistem ya **hiç açılmaz** ya da bir kural **sessizce devre dışı kalır**. İkinci durum tehlikelidir çünkü hiçbir test bunu yakalamaz — yalnız bu doküman yakalar.
 
+> **Aşama 2'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §8.3 AK0-04).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; doldurulurken karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-699 · Panele erişimin kaybında kurtarma:** hiçbir yönetici panele giremediğinde — tek yöneticinin şifresi ve e-posta kutusu kaybolmuşsa ya da ele geçirilmiş bir hesap tek yönetici kalmışsa — kurulumu yapan, ilk yöneticiyi açtığı yolla (§H; `10` ÖK-7) yeni bir yönetici hesabı açar; hesap ele geçirilmişse o hesabın oturumlarını sonlandırır ve şifresini geçersiz kılar. Ürün içinde kurtarma yolu yoktur (`02 §10.2.7`, `03 §10.4`). Adımların kendisi, kurtarmayı kimin isteyebileceği ve isteğin nasıl doğrulanacağı bu dokümanın kararıdır.
+
 ---
 
 ## 0. Hızlı özet

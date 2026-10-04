@@ -2257,7 +2257,7 @@ Yazım konvansiyonları, alt bölüm haritası ve ekran envanteri de kayda geçt
 
 | Üst dokümana dönen kural | Karar | Nereye yansıdı |
 |---|---|---|
-| Veri toplayan girişlerin kapısına çerez politikasının yayını da girer: iki metin de yayına alınana kadar iletişim formu, hesap kaydı ve Google ile ilk giriş kapalıdır — böylece ilk yayına kadar vitrin çerez yazmaz (K-834) | K-850 **(öneriyle kaydedildi — ⚠)** | `02 §3.1.5`, §3.13.7, §3.13.19, §3.32.8, §6.5.12, §6.5.16, §6.8.9, §6.9.10, §10.8.2, §12.2.2, §12.2.5 · `03` 2.2.7, 3.4.12, 3.5.3.9, 3.5.4.10, 9.1.1, 9.1.6, 9.2.2 · `10 §2` KP-25, KP-26, KP-34, `10 §4.1` ÖK-10 · bu doküman 2.8.3, 5.10.12, 5.11.9, 5.20.10, 9.3.4, 9.10.11, 9.19.7, 9.19.10, §1.1 · `05`, `12` park satırları |
+| Veri toplayan girişlerin kapısına çerez politikasının yayını da girer: iki metin de yayına alınana kadar iletişim formu, hesap kaydı ve Google ile ilk giriş kapalıdır — böylece ilk yayına kadar vitrin çerez yazmaz (K-834) | K-850 **(öneriyle kaydedildi — ⚠)** | `02 §3.1.5`, §3.13.7, §3.13.19, §3.32.8, §6.5.12, §6.5.16, §6.8.9, §6.9.10, §10.8.2, §12.2.2, §12.2.5 · `03` 2.2.7, 3.4.12, 3.4.16, 3.5.3.9, 3.5.4.10, 9.1.1, 9.1.6, 9.2.2 · `10 §2` KP-25, KP-26, KP-34, `10 §4.1` ÖK-10 · bu doküman 2.8.3, 5.10.12, 5.11.9, 5.20.10, 9.3.4, 9.10.11, 9.19.7, 9.19.10, §1.1 · `05`, `12` park satırları |
 | Başka kanaldan gelen gecikme feshinin kaydında kalem ve adet seçilmez | — (hizalama; K-796) | `02 §10.4.10` · `03` 8.4.8 |
 | Başka kanaldan gelen caymanın kaydında cayılan adet seçilir | — (hizalama; K-787) | `02 §6.4.25` · `03` 3.3.25 |
 | Ayıp talebinin kanalı fiziksel kalemde sipariş kargoya verildiği andan açıktır; iki yıl teslimden işler | — (hizalama; K-830, `02 §7.5.2`) | `02 §7.1.1`, §7.5.1 · bu doküman 6.2.16.24 |

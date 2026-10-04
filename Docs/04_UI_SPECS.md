@@ -2739,7 +2739,213 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
 
 ## 5. Ekran tanımları
 
-> **Kapı — yazım turunun 2. oturumu.** Müşteri tarafının 28 ekranı (E-01…E-28) burada, §5.1…§5.28 alt bölümlerinde yazılır; alt bölüm numaraları başlık notunun alt bölüm haritasında, ekran tanımının sekiz alanının doldurulma biçimi konvansiyon 4'tedir. Aşağıdaki şablon o oturuma kadar yerinde durur; başlığı `### 5.n E-nn — Ad` biçimini alır (konvansiyon 3).
+**Yazım turunun 2a oturumu (2026-10-04, v0.7).** Müşteri tarafının ilk on beş ekranı (E-01…E-15) — vitrin, kurumsal içerik, sepet, ödeme adımı, sipariş teyit ekranı ve sipariş takibi girişi — başlık notunun sekiz alanlı şablonuyla yazıldı (konvansiyon 4). Her ekranın maddeleri alanlardan bağımsız tek sırayla numaralanır (`04 §5.n.k`; konvansiyon 5): ilk madde aktörü ve §3'ün giriş-çıkış satırlarını, ikinci madde ilk görüleni taşır. "Durum × rol varyantları" alanı ekranın durumla ve aktörle değişen parçalarını yazar; tam matris §6.2'dedir ve 5. oturumda kurulur (konvansiyon 13). Ekranın kaynak satırları §1.2'nin ikinci betiğiyle listelendi ve Kullanıcı Akışları'nda, Ürün Gereksinimleri'nde ve MVP Kapsamı'nda tam metinle okundu; matrisin bu okumada düzelen satırları §1.2'nin notundadır. Yazımın bulduğu boşluklar §1.3'te ve karar kaydında K-770…K-778'dir. Kalan on üç ekran (E-16…E-28) 2b oturumunundur — bu bölümün sonundaki kapı satırı.
+
+### 5.1 E-01 — Ana sayfa
+
+- **5.1.1 Aktör · giriş · çıkış.** Ziyaretçi · Müşteri. Giriş: logo (3.1.2, 3.1.10), dönüş bağlantıları (3.3.12), "Siteyi görüntüle" (3.7.1), girişten ve çıkıştan dönüş (3.6.3, 3.6.4). Çıkış: blokların geçişleri 3.3.1–3.3.4 ve çerçevenin geçişleri (§3.1).
+- **5.1.2 İlk görülen:** firmanın seçtiği düzende ilk blok — tanıtım öncelikli düzende kurumsal blok, mağaza öncelikli düzende ürün vitrini. Ekranın birincil düğmesi yoktur; her blok kendi bağlantısını taşır.
+- **Bilgi hiyerarşisi** — çerçevenin (OB-02) içinde dört blok, sırası düzene göre (K-753):
+  - **5.1.3 Tanıtım öncelikli:** (1) kurumsal blok, geniş hâliyle — Hakkımızda'nın kısa tanıtımı, ana görseli ve Hakkımızda sayfasının bağlantısı · (2) Hizmetlerimiz · (3) Referanslarımız · (4) ürün vitrini, tek satır.
+  - **5.1.4 Mağaza öncelikli:** (1) ürün vitrini, iki satır · (2) kurumsal blok, dar hâliyle — kısa tanıtım ile ana görsel yan yana, tek bant · (3) Hizmetlerimiz · (4) Referanslarımız.
+  - **5.1.5 Blok başlığı** menüdeki addır — firmanın değiştirdiği ad dahil — ve kendi liste sayfasına götüren bağlantıyı taşır (K-753). Hizmetlerimiz ve Referanslarımız en çok üçer kayıt gösterir: "ana sayfada göster" işaretli kayıtların firmanın elle sırasındaki ilk üçü, içerik kartıyla (OB-11, §2.11.4); fazlası "Tümünü gör" ile liste sayfasındadır (K-755; `02 §3.28.3`).
+  - **5.1.6 Ürün vitrini** yayındaki en yeni ürünleri ürün kartıyla gösterir — mağaza öncelikli düzende en çok sekiz, tanıtım öncelikli düzende en çok dört; firma ürün seçmez (`02 §3.28.1`; K-754, K-755). Sırası gelen tükenmiş ürün "Tükendi" işaretiyle görünür (§2.11.3). Bloğun altında yayında ürünü olan birinci seviye kategorilerin bağlantıları durur; ayrı bir "tüm ürünler" sayfası yoktur (K-754).
+  - **5.1.7 Yoktur:** kayan afiş, kampanya görseli, alıntı bloğu ve kategori vitrini (`02 §3.27.19`, §3.27.21); SSS, şube ve genel sayfa ana sayfaya çıkmaz (`02 §3.28.3`). Duyuru şeridi ve altbilgi çerçevenindir, blok değildir.
+- **Aksiyonlar**
+  - **5.1.8** Ürün kartı → E-04 (3.3.1; `03 §2.1.5`) · kategori bağlantısı → E-02 (3.3.2) · Hakkımızda bağlantısı → E-08 (3.3.3) · içerik kartı → E-08, "Tümünü gör" → E-07 (3.3.4; `03 §2.2.1`). Hiçbiri onay istemez; ekranda mesaj yoktur.
+- **5.1.9 Validasyonlar:** form yoktur.
+- **5.1.10 Durum × rol varyantları.** Aktörle değişen parça yoktur; giriş yapmış yöneticiye sayfanın başında yönetici şeridi görünür (§2.9.1). Satış kapalıyken ürün vitrini görünür kalır (§2.8.1; K-754). Tam matris §6.2'dedir (5. oturum).
+- **Boş / yükleniyor / hata durumları** (OB-07)
+  - **5.1.11 Görünmez bloklar** (§2.7.1.1): işaretli kaydı olmayan Hizmetlerimiz ya da Referanslarımız bloğu ve yayında ürünü yokken ürün vitrini — bağlantılarıyla — hiç görünmez; tek kayıtlı blok tek kartla görünür, boşluk doldurulmaz (K-755). Hakkımızda boşken ya da yayında değilken kurumsal blok marka adını ve logoyu gösterir; boş kutu görünmez (`02 §3.27.14`; `03 §3.5.3.3`). Hiç içeriği ve ürünü olmayan yeni sitede ana sayfa yalnız bu geri düşüşten oluşur (`02 §3.27.22`; K-755).
+  - **5.1.12** Bloklar kendi yerlerinde yüklenir (§2.7.2); sayfa açılamazsa sayfa düzeyindeki hata hâli işler (§2.7.3.2).
+- **5.1.13 Responsive notları.** Dar sınıfta bloklar aynı sırayla alt alta gelir; kurumsal bloğun dar hâli de alt alta dizilir (K-753). Ürün vitrininin kart sayısı sınıfın sütun sayısıyla (§2.11.5) satır doldurur: orta sınıfta son satırı doldurmayan kartlar gösterilmez — vitrin eksik satır göstermez (K-755). Dar sınıfın iki sütununda dört ve sekiz kart tam satır kurar.
+
+*Kaynak: `02 §3.27.14`, §3.27.19, §3.27.21, §3.27.22, §3.28.1–§3.28.3, §3.29.2, §6.8.3 · `03 §2.1.1`, §2.2.1, §3.5.3.3 · `10 §2` KP-31 · park satırı K-27 · K-753, K-754, K-755 · devir: K-246.*
+
+### 5.2 E-02 — Kategori sayfası
+
+- **5.2.1 Aktör · giriş · çıkış.** Ziyaretçi · Müşteri. Giriş: menüdeki kategori (3.1.11), ana sayfanın kategori bağlantısı (3.3.2), kırıntı yolu (3.3.6). Çıkış: ürün kartı → E-04 (3.3.5), kırıntı yolu → üst kategori (3.3.6).
+- **5.2.2 İlk görülen:** kategorinin adı ve ürün ızgarası; ekranın birincil düğmesi yoktur.
+- **Bilgi hiyerarşisi**
+  - **5.2.3** (1) Kırıntı yolu — kategorinin ağaçtaki yolu · (2) kategorinin adı · (3) süzgeçler — fiyat aralığı ve stok durumu (`02 §3.5.2`) · (4) ürün ızgarası (OB-20, OB-11): kategoriye doğrudan asılı ürünler ve bütün alt dallarındakiler tek listede, en yeni önce (`02 §3.4.3`, §3.5.3) · (5) sayfa gezinmesi (§2.13.3).
+  - **5.2.4 Yoktur:** ziyaretçiye sıralama seçeneği, seçenek değerine göre süzgeç (`02 §3.5.2`, §3.5.3) ve ürün kartında sepete ekleme (§2.11.1; K-774).
+- **Aksiyonlar**
+  - **5.2.5** Süzgeci uygulamak ya da kaldırmak — liste ilk sayfasına döner (§2.13.3); stok süzgecinin varsayılanı tükenmiş ürünleri de gösterir (`03 §2.1.4`). Onay ve mesaj yoktur.
+  - **5.2.6** Ürün kartı → E-04 (3.3.5; `03 §2.1.5`); sayfa değiştirmek ekranın içinde kalır.
+- **5.2.7 Validasyonlar.** Fiyat aralığının alt ve üst değeri sayıdır; alt değer üst değerden büyükse alan mesajı çıkar ve süzgeç uygulanmaz (OB-12, §2.12.1.1). Alan envanteri §7.1'dedir (5. oturum).
+- **5.2.8 Durum × rol varyantları.** Aktörle değişen parça yoktur. Tükenmiş ürün kartta "Tükendi" işaretiyle kalır (§2.11.3), indirimli ürün indirimli kartla görünür (§2.11.2). Tam matris §6.2'dedir (5. oturum).
+- **Boş / yükleniyor / hata durumları** (OB-07)
+  - **5.2.9 Boş kategori:** yayında ürünü olmayan kategorinin adresi boş kategori sayfası döner — "sayfa bulunamadı" değil (`02 §3.28.6`); ekran boş hâl satırını ana sayfaya dönüş yoluyla gösterir (§2.7.1.2). Süzgecin sonucu boşsa aynı satır süzgeci kaldırma yolunu taşır.
+  - **5.2.10** Izgara kendi yerinde yüklenir (§2.7.2); sayfa açılamazsa §2.7.3.2.
+- **5.2.11 Responsive notları.** Izgara dar sınıfta iki, orta sınıfta üç, geniş sınıfta dört sütundur; süzgeçler dar ve orta sınıfta açılır bölümde, geniş sınıfta listenin yanındadır (§2.1.2, §2.13.5). Uzun kırıntı yolu dar sınıfta satır kırar.
+
+*Kaynak: `02 §3.4.3`, §3.4.4, §3.5.2, §3.5.3, §3.28.6 · `03 §2.1.2`, §2.1.4, §2.10.1.1 · `10 §2` KP-1, KP-3 · K-766, K-774 · devir: `03 §2.1.2`'nin "kartın düzeni" devri (§2.11).*
+
+### 5.3 E-03 — Arama sonuçları
+
+- **5.3.1 Aktör · giriş · çıkış.** Ziyaretçi · Müşteri. Giriş: üst bölümün araması (3.1.3). Çıkış: ürün kartı → E-04 (3.3.5).
+- **5.3.2 İlk görülen:** aranan sözcük ve sonuç ızgarası; ekranın birincil düğmesi yoktur.
+- **Bilgi hiyerarşisi**
+  - **5.3.3** (1) Aranan sözcük, arama alanında düzenlenebilir hâliyle · (2) süzgeçler — kategori sayfasıyla aynı iki eksen · (3) sonuç ızgarası, kategori sayfasının sabit düzeniyle, en yeni önce (`03 §2.1.3`; `02 §3.5.3`) · (4) sayfa gezinmesi (§2.13.3).
+  - **5.3.4** Arama yalnız ürün adında, büyük-küçük harfe ve Türkçe karaktere duyarsız çalışır; açıklama, kategori adı ve seçenek değerleri aranmaz (`02 §3.5.1`). Arşivlenmiş ürün sonuçlarda görünmez (`02 §3.7.6`).
+- **Aksiyonlar**
+  - **5.3.5** Aramayı yenilemek ve süzmek — liste ilk sayfasına döner (§2.13.3) · ürün kartı → E-04 (3.3.5).
+- **5.3.6 Validasyonlar.** Boş arama gönderilmez; fiyat aralığı 5.2.7 gibidir.
+- **5.3.7 Durum × rol varyantları.** Aktörle değişen parça yoktur; kart varyantları 5.2.8 gibidir. Tam matris §6.2'dedir (5. oturum).
+- **Boş / yükleniyor / hata durumları** (OB-07)
+  - **5.3.8** Sonucu olmayan arama boş hâl satırını gösterir: aranan sözcükle sonuç bulunmadığını söyler ve ürünlere — ana sayfanın kategori bağlantılarına — dönüş yolunu taşır (§2.7.1.2). Yükleniyor ve hata 5.2.10 gibidir.
+- **5.3.9 Responsive notları.** Izgara ve süzgeçler 5.2.11 gibidir; dar sınıfta arama alanı açılır menüdedir ve sonuç sayfasında aranan sözcük içerik alanının başında da yazar (§2.2.4).
+
+*Kaynak: `02 §3.5.1`–§3.5.3, §3.7.6 · `03 §2.1.3`, §2.1.4, §2.10.1.1 · `10 §2` KP-2, KP-3 · K-766.*
+
+### 5.4 E-04 — Ürün sayfası
+
+- **5.4.1 Aktör · giriş · çıkış.** Ziyaretçi · Müşteri. Giriş: ürün kartı (3.3.1, 3.3.5, 3.3.10), sepet kalemi (3.3.13), paylaşılmış ya da arama motorundan gelen adres (3.5.11), yöneticinin önizlemesi (3.7.2). Çıkış: kırıntı yolu (3.3.6), sepete ekleme — sayfada kalır (3.3.7), çerçevenin sepeti (3.1.9), taslak önizlemede "Düzenlemeye dön" (3.7.4).
+- **5.4.2 İlk görülen:** ürünün görseli, adı ve KDV dahil fiyatı ile varyant seçimi; birincil düğme sepete eklemedir.
+- **Bilgi hiyerarşisi** — dar sınıfın sırasıyla:
+  - **5.4.3** (1) Kırıntı yolu — ürünün ana kategorisinden (`02 §3.4.4`) · (2) görsel galerisi — firmanın galeri sırasıyla; seçilen varyantın kendi görseli varsa galeri onunla açılır, yoksa ürününki görünür (`02 §3.11.1`, §3.11.2) · (3) ürün adı · (4) fiyat bloğu (5.4.4) · (5) varyant seçimi (5.4.6) · (6) adet ve sepete ekleme (5.4.7) · (7) teslimat bilgisi (5.4.5) · (8) açıklama — kapalı metin biçimi setiyle (`02 §3.11.6`) · (9) "Paylaş" düğmesi (`02 §3.30.7`).
+  - **5.4.4 Fiyat bloğu** fiyat etiketinin zorunlu bilgilerini taşır (`02 §3.8.5`, §12.1.5): seçilen varyantın KDV dahil fiyatı · fiyatın uygulanmaya başlandığı tarih · ölçü birimi ve net miktar doluysa birim fiyat, satış fiyatının yanında — satış fiyatıyla aynıysa gösterilmez · fiziksel üründe üretim yeri ve üretim yeri Türkiye olan fiziksel üründe fiyatın yanında yerli üretim logosu; firma logoyu kapatamaz (K-610). **İndirimdeki üründe** indirimli fiyatın yanında referans fiyat ve — fiyat satırının hemen altında, tek satırda — indirimin başlangıç ve bitiş tarihi durur; düzen ürün kartıyla aynıdır (§2.11.2; `02 §3.9.2`), indirim işareti metinlidir (§2.5.6) ve tarihin yazım biçimi §8.2'dedir (5. oturum). Varyant seçilmeden önce fiyat, ürünün varsayılan varyantınınkidir; varyantların fiyatı farklıysa seçim fiyatı ve indirim satırını günceller. Taksit bilgisi yoktur (`02 §3.21.9`).
+  - **5.4.5 Teslimat bilgisi** ürün tipine göre: fiziksel üründe kargoya verme süresi — `02 §3.20.4`'ün biçimiyle, ör. "2 iş günü içinde kargoya verilir"; değer ayardandır (§2.6.4) — ve firmanın teslimat il kısıtı varsa kısıt satırı (K-773) · hizmette ifa süresi, ödeme onayından itibaren gün olarak (`02 §3.2.2`) · dijital üründe indirmenin ödeme onayında açıldığı. Stok adedi hiçbir biçimde gösterilmez; "son 2 adet" türünden eşik uyarısı yoktur (`02 §3.6.5`).
+  - **5.4.6 Varyant seçimi** en çok iki seçenek boyutudur (`02 §3.3.2`); seçeneği olmayan ürünün tek varyantı vardır ve seçim alanı görünmez (`02 §3.3.1`). Tükenmiş varyant seçenek listesinde "Tükendi" işaretiyle görünür ve seçilemez; firmanın açmadığı kombinasyon da görünür ve seçilemez; taslak varyant ziyaretçiye görünmez (`02 §3.3.3`, §3.6.3, §3.7.5; `03 §2.1.6`). Satın alınabilirlik ayrılmış adetler düşülerek okunur.
+  - **5.4.7 Adet ve sepete ekleme.** Adet alanı fiziksel ürün ve hizmette vardır; dijital üründe adet birdir ve alan görünmez (`02 §3.12.4`). Sepete ekleme düğmesi ekranın birincil düğmesidir; metnini kaynak vermez, işleviyle adlandırılır (konvansiyon 9).
+  - **5.4.8 Yoktur:** yorum, puan ve öneri bloğu (`02 §3.3.6`) · "bu ürünün geçtiği referanslar" (`02 §3.27.10`) · "Stokta haber ver" ve istek listesi (`02 §3.16.13`) · gömülü paylaşım kodları (`02 §3.30.7`) · ürün sayfasında cayma bilgisi ayrı bir blok değildir — istisna ve koşulu Ön Bilgilendirme Formu'ndadır (`02 §3.24.3`; E-13).
+- **Aksiyonlar**
+  - **5.4.9 Varyantı seçmek** — fiyat bloğu, görsel ve satın alınabilirlik seçilen varyanta göre güncellenir (`03 §2.1.6`).
+  - **5.4.10 Varyantı adediyle sepete eklemek** (`03 §2.1.8`, §2.3.1; 3.3.7): satış açık ve varyant satın alınabilirken. Onay istemez; başarı kısa süreli bildirimle söylenir ve çerçevenin sepet sayısı artar (§2.3.1.4). Eklenmeyen durumlar düğmenin yanında yerinde kalıcı mesajla söylenir (§2.3.1.2): adet stoğu aşarsa "Bu adette stok yok" — adet söylenmez (`03 §3.2.1.6`) · ürünün "bir siparişte en fazla" sınırı aşılırsa sınır sayısıyla, ör. "Bu üründen bir siparişte en fazla 2 adet alınabilir" — sınır ve stok birlikte aşılıyorsa sınır söylenir (`02 §3.16.9`; `03 §3.2.1.7`) · aynı dijital varyant ikinci kez eklenirse "Bu ürün zaten sepetinde" (`03 §3.2.1.8`). Üye daha önce aldığı dijital varyantı eklerse ekleme yapılır ve düğmenin yanında "Bu ürünü daha önce aldınız" uyarısı kalır; misafirde uyarı yoktur (`03 §2.3.1`, §3.2.1.9).
+  - **5.4.11 Paylaşmak** — cihazın paylaşım menüsü açılır, yoksa bağlantı kopyalanır ve kısa süreli bildirimle söylenir (`02 §3.30.7`; §4.4.7).
+- **5.4.12 Validasyonlar.** Varyant seçilmeden sepete ekleme yapılmaz; seçilmemiş boyut alan mesajıyla işaretlenir (OB-12). Adet birden küçük olamaz; üst sınırı stok ve P-9 sınırıdır ve aşımı 5.4.10'un mesajlarıyla söylenir (`02 §3.16.8`, §3.16.9). Alan envanteri §7.1'dedir (5. oturum).
+- **Durum × rol varyantları** (tam matris §6.2'de — 5. oturum)
+  - **5.4.13 Bütün varyantları tükenmiş ürün:** ürün sayfası açılır, sepete ekleme düğmesinin yerinde "Tükendi" durur (`02 §3.6.4`; `03 §2.1.7`).
+  - **5.4.14 Satış kapalı:** ürün görünür; sepete ekleme düğmesinin yerinde satışın kapalı olduğunu söyleyen yerinde kalıcı mesaj durur (OB-08, §2.8.1; `03 §2.1.9`, §3.2.1.17).
+  - **5.4.15 Taslak ürün:** ziyaretçiye "sayfa bulunamadı" (E-06) döner; giriş yapmış yöneticiye sayfa "Taslak" bandıyla, taslak varyantlar dahil açılır (§2.9.2; `02 §3.7.5`; `03 §2.1.11`, §8.1.7). Arşivlenmiş ürün E-05'tir.
+  - **5.4.16 Aktör farkı** yalnız 5.4.10'un dijital varyant uyarısıdır (üye). Kart ödemesinin, kuponun ve hesabın ürün sayfasında yüzü yoktur.
+- **Boş / yükleniyor / hata durumları** (OB-07)
+  - **5.4.17** Ekrana özgü boş hâl yoktur — görselsiz ürün, ürün adından üretilen alternatif metinle görselsiz görünür (`02 §3.11.4`); açıklama boşsa açıklama bölgesi görünmez. Sepete ekleme sürerken düğme ikinci kez basılamaz (§2.7.2); ekleme beklenmeyen bir sebeple tamamlanmazsa §2.7.3.1.
+- **5.4.18 Responsive notları.** Geniş sınıfta ekran iki sütundur: solda galeri ve açıklama, sağda ad, fiyat bloğu, varyant seçimi, adet, sepete ekleme ve teslimat bilgisi (§2.1.2). Dar sınıfta 5.4.3'ün sırasıyla tek sütundur; galeri kaydırılan tek görsel alanıdır. Fiyat bloğunun indirim tarihleri ve yerli üretim logosu hiçbir sınıfta gizlenmez.
+
+*Kaynak: `02 §3.2.2`, §3.3.1–§3.3.3, §3.3.6, §3.4.4, §3.6.3–§3.6.5, §3.7.5, §3.8.5, §3.9.2, §3.11.1, §3.11.2, §3.11.4, §3.11.6, §3.12.4, §3.16.8, §3.16.9, §3.16.13, §3.20.1, §3.20.4, §3.21.9, §3.24.3, §3.27.10, §3.30.7, §12.1.5 · `03 §1.10.1`, §2.1.5–§2.1.11, §2.3.1, §2.10.1.1, §2.10.1.2, §3.2.1.6–§3.2.1.9, §3.2.1.17, §4.1.10, §8.1.7 · `10 §2` KP-4, KP-5, KP-6, KP-9, KP-19, KP-36, KP-38 · K-773, K-774 · devir: K-545 (indirim tarihlerinin biçimi), K-610 (logonun yeri), `02 §3.20.1` (il kısıtının görünürlüğü).*
+
+### 5.5 E-05 — Arşivlenmiş ürün sayfası
+
+- **5.5.1 Aktör · giriş · çıkış.** Ziyaretçi · Müşteri. Giriş: arşivlenmiş ürünün paylaşılmış adresi (3.5.11). Çıkış: dönüş bağlantıları (3.3.12) ve çerçeve.
+- **5.5.2 İlk görülen:** ürünün adı ve "Bu ürün artık satılmıyor" bilgisi; birincil düğme yoktur.
+- **Bilgi hiyerarşisi**
+  - **5.5.3** (1) Ürün adı · (2) ana görsel · (3) "Bu ürün artık satılmıyor" — durum bilgisi, metinli (`02 §3.7.6`) · (4) ana sayfaya ve ürünlere dönüş bağlantıları (3.3.12).
+  - **5.5.4** Sayfa yalnız bu üç bilgiyi taşır; fiyat ve sepete ekleme yoktur (`02 §3.7.6`; `03 §2.1.10`). Sayfa listelerde, kategori sayfalarında, aramada ve site haritasında görünmez; yalnız doğrudan adresle açılır (`02 §3.7.6`, §3.30.6).
+- **5.5.5 Aksiyonlar:** yalnız dönüş bağlantıları; onay ve mesaj yoktur.
+- **5.5.6 Validasyonlar:** form yoktur.
+- **5.5.7 Durum × rol varyantları.** Ziyaretçiye ve yöneticiye aynı görünür — arşiv bir önizleme değildir; yönetici şeridi çerçevenin parçasıdır (§2.9.1). Ürün yeniden yayına alınırsa adres E-04'ü döner, kalıcı silinirse E-06'yı (`03 §8.1.8`; `02 §3.7.7`). Tam matris §6.2'dedir (5. oturum).
+- **5.5.8 Boş / yükleniyor / hata durumları.** Görseli olmayan arşiv ürünü görselsiz, yalnız adıyla görünür. Yükleniyor ve hata OB-07'nin kalıbıdır (§2.7.2, §2.7.3.2).
+- **5.5.9 Responsive notları.** Tek sütundur ve sınıflar arasında yalnız görselin genişliği değişir.
+
+*Kaynak: `02 §3.7.6`, §3.7.7, §3.30.6, §5.1 · `03 §2.1.10`, §8.1.8 · `10 §2` KP-7.*
+
+### 5.6 E-06 — "Sayfa bulunamadı" sayfası
+
+- **5.6.1 Aktör · giriş · çıkış.** Ziyaretçi · Müşteri. Giriş: taslak ya da silinmiş ürünün ve içeriğin adresi (3.5.11, 3.5.12), var olmayan adres (3.5.13), yönetici oturumu kapanmışken taslak adresi (3.7.5); boş kategori bu sayfaya düşmez (`02 §3.28.6`; 5.2.9). Çıkış: dönüş bağlantıları (3.3.12).
+- **5.6.2 İlk görülen:** sayfanın bulunamadığını söyleyen başlık ve iki dönüş yolu; birincil düğme yoktur.
+- **Bilgi hiyerarşisi**
+  - **5.6.3** Sayfa vitrinin tam çerçevesindedir — marka, menü, altbilgi (`02 §3.30.4`; §2.2.6) — ve içerik alanında: (1) sayfanın bulunamadığını söyleyen başlık · (2) ana sayfaya dönüş · (3) ürünlere dönüş — ana sayfanın kategori bağlantılarıyla aynı birinci seviye kategoriler; yayında ürün yoksa bu yol görünmez (§2.7.1.1). İçeriği firma düzenlemez (`02 §3.30.4`).
+  - **5.6.4** Sayfa adresin neden bulunamadığını — taslak, silinmiş ya da hiç olmamış — ayırt etmez; ziyaretçiye kapalı kaydın varlığı açığa çıkmaz (`02 §3.30.4`).
+- **5.6.5 Aksiyonlar:** yalnız dönüş bağlantıları.
+- **5.6.6 Validasyonlar:** form yoktur.
+- **5.6.7 Durum × rol varyantları.** Taslak adresi giriş yapmış yöneticiye bu sayfayı değil, kaydı "Taslak" bandıyla açar (§2.9.2; `02 §3.7.5`, §3.27.25); panel oturumu kapanınca adres yeniden bu sayfayı döner (3.7.5). Tam matris §6.2'dedir (5. oturum).
+- **5.6.8 Boş / yükleniyor / hata durumları.** Sayfa beklenmeyen hata sayfasından ayrıdır (§2.7.3.2); ekrana özgü boş hâl yoktur.
+- **5.6.9 Responsive notları.** Tek sütun; dönüş yolları dar sınıfta alt alta dizilir.
+
+*Kaynak: `02 §3.7`, §3.27.25, §3.28.6, §3.30.4, §6.8.5 · `03 §2.1.11`, §2.2.10, §3.5.3.5 · `10 §2` KP-7.*
+
+### 5.7 E-07 — İçerik liste sayfası
+
+- **5.7.1 Aktör · giriş · çıkış.** Ziyaretçi · Müşteri. Giriş: menüdeki Hizmetlerimiz ya da Referanslarımız (3.1.12), ana sayfa bloğunun "Tümünü gör"ü (3.3.4). Çıkış: içerik kartı → E-08 (3.3.8).
+- **5.7.2 İlk görülen:** içerik tipinin adı — menüdeki ad — ve kayıtların kartları; birincil düğme yoktur.
+- **Bilgi hiyerarşisi**
+  - **5.7.3** (1) Tipin adı, firmanın değiştirdiği ad dahil (§2.2.3) · (2) içerik kartları (OB-11, §2.11.4): ana görsel, ad ya da başlık ve kısa açıklama; firmanın panelde verdiği elle sırayla (`02 §3.27.11`) · (3) sayfa gezinmesi — liste sayfa boyunu aşarsa (§2.13.3).
+  - **5.7.4 Yoktur:** fiyat, sepete ekleme, süzgeç ve arama (`02 §3.27.4`; §2.13.2).
+- **5.7.5 Aksiyonlar:** içerik kartı → E-08 (3.3.8; `03 §2.2.2`).
+- **5.7.6 Validasyonlar:** form yoktur.
+- **5.7.7 Durum × rol varyantları.** Ekran iki tipte aynı düzendedir; taslak kayıt ziyaretçiye listede görünmez (`02 §3.27.25`). Tam matris §6.2'dedir (5. oturum).
+- **5.7.8 Boş / yükleniyor / hata durumları.** Yayında kaydı olmayan tipin menü öğesi görünmez (§2.7.1.1); adresi doğrudan açılırsa boş hâl satırı ana sayfaya dönüş yoluyla görünür (§2.7.1.2). Ana görseli olmayan kayıt kartta görselsiz, yalnız metinle görünür (K-755).
+- **5.7.9 Responsive notları.** Kart ızgarası ürün ızgarasının sütun düzenini izler (§2.11.5).
+
+*Kaynak: `02 §3.27.4`, §3.27.5, §3.27.11, §3.27.25, §3.28.4 · `03 §2.2.2`, §3.5.3.4 · `10 §2` KP-32 · K-755, K-766.*
+
+### 5.8 E-08 — İçerik sayfası
+
+- **5.8.1 Aktör · giriş · çıkış.** Ziyaretçi · Müşteri. Giriş: menü ve altbilgi (3.1.13, 3.1.15, 3.1.18), ana sayfa (3.3.3, 3.3.4), liste sayfası (3.3.8), paylaşılmış adres (3.5.12), yöneticinin önizlemesi (3.7.2). Çıkış: "Bize ulaşın" → E-10 (3.3.9), "İlgili ürünler" → E-04 (3.3.10), taslak önizlemede "Düzenlemeye dön" (3.7.4).
+- **5.8.2 İlk görülen:** kaydın adı ya da başlığı ve metni; hizmet tanıtımında birincil düğme "Bize ulaşın"dır, öteki türlerde birincil düğme yoktur.
+- **Bilgi hiyerarşisi** — dört tür aynı iskeletle (`03 §2.2.3`):
+  - **5.8.3** (1) Ad ya da başlık · (2) görseller — firmanın galeri sırasıyla (`02 §3.27.15`) · (3) metin — kapalı metin biçimi setiyle (`02 §3.27.16`) · (4) türe özgü bölge (5.8.4) · (5) "Paylaş" düğmesi (`02 §3.30.7`).
+  - **5.8.4 Türe özgü bölge:** **Hakkımızda** — uzun metin ve görseller; kısa tanıtım ana sayfanın bloğundadır (`02 §3.28.2`) · **hizmet tanıtımı** — fiyatsızdır ve satın alınmaz; "Bize ulaşın" düğmesi iletişim formuna götürür (`02 §3.27.4`); "İlgili ürünler" · **referans iş** — başlıkta müşteri adı; ayrı müşteri adı, yıl ve kategori alanı yoktur (`02 §3.27.5`); "İlgili ürünler" · **genel sayfa** — başlık, metin, görseller; düzeni sabittir (`02 §3.27.9`).
+  - **5.8.5 "İlgili ürünler"** hizmet tanıtımında ve referans işte, firmanın bağladığı ürünlerden yalnız yayındakileri ürün kartıyla gösterir; bağlı ürün yoksa ya da hiçbiri yayında değilse başlığıyla birlikte görünmez (`02 §3.27.10`; §2.7.1.1).
+  - **5.8.6 Video** firmanın verdiği bir bağlantıdır ve kendi platformunda açılır (`02 §3.27.17`; §4.4.4). **Yoktur:** gömülü video oynatıcı, dosya eki ve blog (`03 §2.2.3`).
+- **Aksiyonlar**
+  - **5.8.7** "Bize ulaşın" → E-10'un iletişim formu (3.3.9; `03 §2.2.7`) · "İlgili ürünler"de ürün kartı → E-04 (3.3.10; `03 §2.2.4`) · "Paylaş" (5.4.11 gibi) · video bağlantısı → dış sayfa. Onay ve mesaj yoktur.
+- **5.8.8 Validasyonlar:** form yoktur.
+- **5.8.9 Durum × rol varyantları.** Taslak kaydın sayfası ziyaretçiye E-06 döner, yöneticiye "Taslak" bandıyla açılır (§2.9.2; `02 §3.27.25`). Hakkımızda silinmez; taslaktaysa adres ziyaretçiye E-06 döner (`02 §3.27.3`). Bağlı ürün taslağa ya da arşive alınırsa kartı görünmez, yayına dönünce geri gelir (`03 §3.5.3.4`). Tam matris §6.2'dedir (5. oturum).
+- **5.8.10 Boş / yükleniyor / hata durumları.** Görselsiz kayıt yalnız metinle görünür. Yükleniyor ve hata OB-07'nin kalıbıdır.
+- **5.8.11 Responsive notları.** Tek sütundur; "İlgili ürünler" ürün ızgarasının sütun düzenini izler (§2.11.5). Görsel galerisi dar sınıfta kaydırılan tek görsel alanıdır.
+
+*Kaynak: `02 §3.27.1`, §3.27.3–§3.27.5, §3.27.9, §3.27.10, §3.27.15–§3.27.17, §3.27.25, §3.28.2, §3.30.7, §5.2 · `03 §2.2.3`, §2.2.4, §2.2.7, §3.5.3.4, §8.6.1.3 · `10 §2` KP-32, KP-36.*
+
+### 5.9 E-09 — Sık sorulan sorular sayfası
+
+- **5.9.1 Aktör · giriş · çıkış.** Ziyaretçi · Müşteri. Giriş: menüdeki SSS (3.1.14). Çıkış: çerçeve.
+- **5.9.2 İlk görülen:** soruların listesi; birincil düğme yoktur.
+- **Bilgi hiyerarşisi**
+  - **5.9.3** (1) Sayfanın adı — menüdeki ad · (2) bütün sorular ve cevapları tek listede, başlıklara bölünmeden, firmanın elle sırasıyla (`02 §3.27.6`, §3.27.11) · (3) "Paylaş" düğmesi (`02 §3.30.7`). Her soru açık hâlde, cevabıyla birlikte görünür; cevap kapalı metin biçimi setini kullanır (`02 §3.11.6`).
+  - **5.9.4 Yoktur:** soru kategorisi ve ara başlık (`02 §3.27.6`) ve sayfa içi arama — site içi arama yalnız ürün adındadır (`02 §3.5.1`).
+- **5.9.5 Aksiyonlar:** cevabın içindeki bağlantılar; onay ve mesaj yoktur.
+- **5.9.6 Validasyonlar:** form yoktur.
+- **5.9.7 Durum × rol varyantları.** Taslak soru ziyaretçiye görünmez; yöneticiye listede yerinde "Taslak" etiketiyle görünür (§2.9.3; `03 §8.6.1.3`). Tam matris §6.2'dedir (5. oturum).
+- **5.9.8 Boş / yükleniyor / hata durumları.** Yayında soru yoksa menü öğesi görünmez (§2.7.1.1; 3.1.14); adres doğrudan açılırsa boş hâl satırı ana sayfaya dönüş yoluyla görünür (§2.7.1.2).
+- **5.9.9 Responsive notları.** Tek sütundur; sınıflar arasında fark yoktur.
+
+*Kaynak: `02 §3.5.1`, §3.11.6, §3.27.6, §3.27.11, §3.30.7 · `03 §2.2.3`, §8.6.1.3 · `10 §2` KP-32.*
+
+### 5.10 E-10 — İletişim sayfası ve formu
+
+- **5.10.1 Aktör · giriş · çıkış.** Ziyaretçi · Müşteri. Giriş: menünün son öğesi İletişim (3.1.16), hizmet tanıtımının "Bize ulaşın"ı (3.3.9) — formun başına iner. Çıkış: formun gönderilmesi — ekranda kalır (3.3.11); şubenin "Haritada aç" bağlantısı (§4.4.4).
+- **5.10.2 İlk görülen:** "İletişim" başlığı altında firmanın iletişim ve yasal kimlik bilgileri ile iletişim formu; birincil düğme formun gönderme düğmesidir.
+- **Bilgi hiyerarşisi** — dar sınıfın sırasıyla:
+  - **5.10.3** (1) **"İletişim" başlığı altında kimlik bloğu** — altbilgideki blokla aynı tam set: firma tipinin zorunlu seti, iletişim bilgileri ve KEP adresi, doluysa işletme adı ya da tescilli marka, meslek odası ve meslekle ilgili davranış kuralları; setin içeriği `02 §3.1.3`'tedir ve burada kopyalanmaz. ETBİS doğrulama bilgisi girilmişse doğrulama bandı bloğun hemen yanında — dar sınıfta hemen altında — durur; alan boşsa band da yeri de yoktur (`02 §3.1.4`; K-747). Firma bu sayfaya ayrıca metin girmez (`02 §3.27.8`).
+  - **5.10.4** (2) **İletişim formu** (OB-12) · (3) **şubeler** — firmanın elle sırasıyla; her şubede ad, adres, doluysa telefon, çalışma saatleri, görsel ve "Haritada aç" bağlantısı (`02 §3.27.7`, §3.27.11). Gömülü harita yoktur (`02 §8.3.3`).
+  - **5.10.5 Formun alanları** (`02 §3.32.2`, §3.32.3): ad, e-posta, konu tipi ve mesaj zorunlu; telefon isteğe bağlı. Konu tipi kapalı beş değerden seçilir: Genel soru · Sipariş hakkında · Ürün hakkında · KVKK talebi · Diğer. Formun altında aydınlatma metninin bağlantısı durur; onay kutusu yoktur (`02 §3.33.5`; §2.12.1.6). Görünmez tuzak alan ziyaretçiye görünmez (`02 §3.32.7`).
+  - **5.10.6 Yoktur:** dosya eki, ayrı sipariş numarası alanı — numara mesaja yazılır (`02 §3.32.2`) · ayıp talebi konu tipi — ayıp talebi sipariş sayfasından gider (`02 §3.32.3`) · üçüncü taraf captcha (`02 §8.3.1`) · gönderene talep numarası, "taleplerim" sayfası ve durum sorgusu (`02 §3.32.6`) · canlı destek, sohbet penceresi ve ayrı şikâyet kanalı (`02 §3.32.9`).
+- **Aksiyonlar**
+  - **5.10.7 Formu göndermek** (`03 §2.2.8`; 3.3.11). Onay istemez. Geçen gönderim bir iletişim talebi kaydı açar (İletişim talebi: Açık) ve ekran gönderim sonrası hâline geçer (5.10.8); gönderene alındı e-postası gitmez (K-678). Tuzak alanı dolu gönderim hata vermeden sessizce düşer ve ekran aynı gönderim sonrası hâlini gösterir (`03 §3.5.3.7`). L-4 aşılınca gönderim engellenir ve gönderme düğmesinin yanında nötr limit mesajı çıkar (`03 §3.5.3.8`; §2.3.5); yazılanlar silinmez.
+  - **5.10.8 Gönderim sonrası hâli** formun yerinde, sayfa değişmeden görünür (K-678 devri; K-772): talebin firmaya iletildiğini ve cevabın yazılan e-posta adresine — sistemin dışında — geleceğini söyler; talep numarası ve takip yolu vermez (`02 §3.32.6`). Hâl yeni bir form açan bir bağlantı taşır; kimlik bloğu ve şubeler yerinde kalır.
+  - **5.10.9 Formun kullanıldığı başka yollar** — ürünün ayrıca ekran açmadığı konular bu formdan, uygun konu tipiyle gelir: fiyat sorusu (`02 §3.2.1`), siparişe dair özel istek (`03 §3.2.1.20`), indirme hakkının yenilenmesi (`02 §3.32.10`), e-postasını yanlış yazan misafir alıcının düzeltme talebi (`03 §2.6.7`, §3.2.1.13), sipariş sayfasının üç yoluna girmeyen konular ve süresi dolan ayıp talebi (`03 §5.1.2`, §5.1.4), kaybolan gönderi (`03 §5.2.2.2`), bilgilendirmenin eksik kaldığı iddiasıyla cayma (`03 §5.2.3.1`), iade reddine itiraz (`03 §5.3.1.5`) ve KVKK başvurusu — "KVKK talebi" tipi (`03 §9.4.4`; `02 §3.15.4`). Ekran bu konular için ayrı alan ya da yönlendirme metni taşımaz; konu tipi listesi yeterlidir.
+- **Validasyonlar** (alan envanteri §7.1'de — 5. oturum)
+  - **5.10.10** Zorunlu dört alan boşsa ve e-posta biçimi geçersizse alan mesajı; gönderimde hatalar birlikte işaretlenir, özet çıkar ve odak ilk hatalı alana gider (§2.3.2). Konu tipi serbest metin kabul etmez (§2.12.1.3). L-4 için 5.10.7.
+- **Durum × rol varyantları** (tam matris §6.2'de — 5. oturum)
+  - **5.10.11 Üye girişliyken** ad ve e-posta ön dolu ve düzenlenebilir gelir (`02 §3.32.1`; §2.12.1.7); misafir alıcıda ve ziyaretçide boştur.
+  - **5.10.12 Veri toplayan girişlerin kapısı kapalıyken** — aydınlatma metni tamamlanıp yayına alınmamışsa — form yerinde kapalı olduğunu söyler ve çalışmaz; kimlik bloğu ve şubeler görünür kalır (`02 §3.32.8`; `03 §3.5.3.9`; OB-08, §2.8.3).
+  - **5.10.13** Taslak şube ziyaretçiye görünmez; yöneticiye listede "Taslak" etiketiyle görünür (§2.9.3).
+- **Boş / yükleniyor / hata durumları** (OB-07)
+  - **5.10.14** Şubesi olmayan firmada şubeler bölgesi görünmez (§2.7.1.1). Gönderim sürerken düğme ikinci kez basılamaz (§2.7.2); gönderim beklenmeyen bir sebeple tamamlanmazsa mesaj düğmenin yanında çıkar ve yazılanlar korunur (§2.7.3.1).
+- **5.10.15 Responsive notları.** Geniş sınıfta iki sütundur: solda kimlik bloğu ve şubeler, sağda form; dar sınıfta 5.10.3–5.10.4'ün sırasıyla tek sütundur. Kimlik bloğu hiçbir sınıfta katlanmaz ve bir bağlantının arkasına saklanmaz (K-747); uzun unvan ve adres satır kırar.
+
+*Kaynak: `02 §3.1.3`, §3.1.4, §3.2.1, §3.15.4, §3.27.7, §3.27.8, §3.27.11, §3.32.1–§3.32.3, §3.32.6–§3.32.10, §3.33.5, §8.3.1, §8.3.3, §6.8.7–§6.8.9, §12.2.6 · `03 §2.2.5`, §2.2.7–§2.2.9, §2.6.7, §3.2.1.13, §3.2.1.20, §3.5.2.7, §3.5.3.7–§3.5.3.9, §5.1.2, §5.1.4, §5.2.2.2, §5.2.3.1, §5.3.1.5, §6.1.1.4, §9.4.4 · `10 §2` KP-30, KP-33, KP-34, KP-35, KP-74 · park satırı K-14 · K-574 · K-747, K-772 · devir: K-547, K-553, K-627, K-678 (gönderim sonrası hâli).*
+
+### 5.11 E-11 — Yasal metin sayfası
+
+- **5.11.1 Aktör · giriş · çıkış.** Ziyaretçi · Müşteri. Giriş: altbilginin yasal bağlantıları (3.1.19) ve kişisel veri alanı açan ekranlardaki aydınlatma bağlantısı (`02 §3.33.5`). Çıkış: çerçeve.
+- **5.11.2 İlk görülen:** metnin başlığı ve metnin kendisi; birincil düğme yoktur.
+- **Bilgi hiyerarşisi** — üç sayfa aynı iskeletle:
+  - **5.11.3** (1) Başlık: aydınlatma metni · çerez politikası · "İşlem rehberi" · (2) metnin tamamı, tek sayfada, bağlantının ya da pencerenin arkasında değil.
+  - **5.11.4 Aydınlatma metni ve çerez politikası** firmanın yayına aldığı **güncel sürümdür** (`02 §3.33.1`–§3.33.3; `03 §7.2.22`); içeriğin kuralı `02 §3.33.2` ve §12.2'dedir. Siparişe donmuş eski sürümler bu sayfada değil, siparişin sayfasında okunur (`02 §3.33.3`; E-16).
+  - **5.11.5 "İşlem rehberi"** onay adımındaki sabit "sipariş nasıl kurulur" metnini taşır — dört bilginin listesi `02 §3.24.8`'dedir; metin ürünün ürettiği sabit metindir ve satış kapalıyken de görünür (K-626).
+  - **5.11.6 Yoktur:** Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi bu sayfada genel bir metin olarak durmaz — ikisi siparişe göre üretilir; ödeme adımında (E-13) ve siparişin sayfasında (E-16) okunur (`02 §3.33.1`). Ayrı üyelik sözleşmesi yoktur (`02 §3.24.4`). Çerez onay bandı yoktur; sitede yalnız zorunlu çerezler vardır (`02 §3.33.5`, §12.2.5; `10 §2` KP-73).
+- **5.11.7 Aksiyonlar:** metnin içindeki bağlantılar; onay ve mesaj yoktur.
+- **5.11.8 Validasyonlar:** form yoktur.
+- **5.11.9 Durum × rol varyantları.** Firmanın düzenlediği iki metin henüz hiç yayına alınmamışsa — ilk kurulumda — altbilgide o metnin bağlantısı görünmez ve adresi E-06 döner (K-770); bu sürede satış ve veri toplayan girişler kapalıdır (`02 §3.33.9`, §3.32.8). "İşlem rehberi" bu kapıya bağlı değildir. Tam matris §6.2'dedir (5. oturum).
+- **5.11.10 Boş / yükleniyor / hata durumları.** Ekrana özgü boş hâl yoktur — firmanın düzenlediği iki metin zorunludur ve boşaltılamaz (`02 §3.33.2`). Yükleniyor ve hata OB-07'nin kalıbıdır.
+- **5.11.11 Responsive notları.** Tek sütun; uzun metin sınıflar arasında yalnız satır uzunluğuyla değişir.
+
+*Kaynak: `02 §3.24.4`, §3.24.8, §3.32.8, §3.33.1–§3.33.3, §3.33.5, §3.33.9, §12.2 · `03 §7.2.22`, §7.3.42 · `10 §2` KP-30, KP-35, KP-73 · K-770 · devir: K-547, K-626 ("İşlem rehberi" sayfası).*
+
+> **Kapı — yazım turunun 2b oturumu.** §5.16…§5.28 (E-16…E-28: sipariş sayfası, iptal ve gecikme feshi, cayma beyanı, ayıp talebi, üyelik ve hesap ekranları) 2b oturumunda, §5.1…§5.15'in biçimiyle yazılır (K-778). Aşağıdaki şablon o oturuma kadar yerinde durur; başlığı `### 5.n E-nn — Ad` biçimini alır (konvansiyon 3).
 
 ### S<NN> — <Ekran adı>
 

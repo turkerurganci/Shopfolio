@@ -20,7 +20,7 @@
    git log --oneline e74883f..HEAD -- Docs/00_PROJECT_METHODOLOGY.md CLAUDE.md SETUP.md .claude/INSTRUCTIONS.md .claude/GUARDRAILS.md .claude/CONTEXT.md .claude/checklists .claude/skills .claude/hooks scripts .github
    ```
 
-**Durum sözlüğü:** `Uygulandı` — bu repoda uygulandı, playbook'a gidecek · `Aday` — henüz karara bağlanmadı, kapısı satırda · `Onay bekliyor` — metodoloji değişikliği, proje sahibinin onayında · `Projeye özgü?` — gönderirken ayıklanacak · `Gönderildi`
+**Durum sözlüğü:** `Uygulandı` — bu repoda uygulandı, playbook'a gidecek · `Aday` — henüz karara bağlanmadı, kapısı satırda · `Onay bekliyor` — metodoloji değişikliği, proje sahibinin onayında · `Reddedildi` — proje sahibi bu repoda uygulanmamasına karar verdi; satır kalır ve gönderimde kararıyla birlikte gider (K-649) · `Projeye özgü?` — gönderirken ayıklanacak · `Gönderildi`
 
 ---
 
@@ -59,7 +59,7 @@
 | PF-29 | K numarası tekil; paralel dallarda aralık ayrılır, çift numara taranır | Ö-19 | `INSTRUCTIONS §7` · checklist §3 | Aynı dosyalar | Uygulandı |
 | PF-30 | Her oturum ve kapanış PR'ı Güncel Durum'u günceller, alt ajan dahil | Ö-20 | `INSTRUCTIONS §7` · checklist §3 | Aynı dosyalar | Uygulandı |
 | PF-31 | Cross-review Faz 3'ün proje sahibinin açtığı modlarla hizalanması | Ö-22 | `skills/cross-review` Faz 3 | `skills/cross-review/SKILL.md` | Uygulandı |
-| PF-32 | Checklist'in skill'e dönüştürülmesi — Aşama 2'de karar: şimdi değil; ölçüt: izlenebilirlik matrisi zorunlu bir aşamada da işletilmiş olmak ve bir aşama kapanışında yapısal değişiklik almamak; `00 §C.7`'nin "bir kez gerçek bir projede işletildikten sonra" cümlesi iki okumaya açık | Ö-23; Aşama 2'nin öğrenim terfisi (K-719) | Checklist başlık notu · §7 (5. adım) · `00 §C.7` önerisi (onay bekliyor) | `skills/` · `00 §C.7` · `checklists/document-stage.md` | Bekletildi — kapı: Aşama 3'ün öğrenim terfisi; `00 §C.7` ölçütü onay bekliyor |
+| PF-32 | Checklist'in skill'e dönüştürülmesi — Aşama 2'de karar: şimdi değil; ölçüt: izlenebilirlik matrisi zorunlu bir aşamada da işletilmiş olmak ve bir aşama kapanışında yapısal değişiklik almamak; `00 §C.7`'nin "bir kez gerçek bir projede işletildikten sonra" cümlesi iki okumaya açık | Ö-23; Aşama 2'nin öğrenim terfisi (K-719) | Checklist başlık notu · §7 (5. adım) — ölçüt L4'te; `00 §C.7` önerisi reddedildi (K-722) | `skills/` · `00 §C.7` · `checklists/document-stage.md` | Bekletildi — kapı: Aşama 3'ün öğrenim terfisi; `00 §C.7` ölçütü reddedildi (2026-10-04, K-722) — ölçüt checklist'te kalır |
 | PF-33 | Metodolojinin başlık ve alt bilgi sürümü ayrışmış | Ö-24; checkpoint B-31 | `00` başlık ve alt bilgi | `00` | Uygulandı (PR #54) |
 | PF-34 | Aşama 1 dersleri — `00 §N.1`'in dokuz deseni | PR #54 (2026-10-03) | `00 §N.1` | `00 §N.1` | Uygulandı |
 | PF-35 | Yazım oturumu tek bağlamda yürür | H-6 | checklist §4 | `checklists/document-stage.md` §4 | Uygulandı |
@@ -80,4 +80,4 @@
 | PF-50 | Her adım PR'ı Güncel Durum'u güncelleyince blok şişiyor (yirmi bir KB) — güncellemek değiştirmektir; önceki adımın paragrafı `MEMORY_ARCHIVE.md`'ye | Aşama 2'nin öğrenim terfisi (PF-30'un yan etkisi) | `INSTRUCTIONS §7` · `.claude/memory/MEMORY_ARCHIVE.md` (yeni) | `.claude/INSTRUCTIONS.md` §7 · `.claude/memory/` şablonu | Uygulandı |
 | PF-51 | Önceki aşamanın ✓ dokümanına geri beslemenin işletimi: karar aynı PR'da sürüm artışıyla, ✓ ve kalite döngüsü yeniden açılmaz, etki yansıtma yeniden tarar | K-652 | Checklist §3 (geri besleme maddesi) | `checklists/document-stage.md` §3 | Uygulandı |
 | PF-52 | Çok oturumlu yazımda alt bölüm haritası ilk oturumda sabitlenir; yazılmamış bölüme bağlanan hücre geçici olarak alt bölümü taşır; konvansiyon listesi atıf okunuşunu ve aktör listesini içerir | K-669, K-670, K-682, K-700, K-701, K-702 | Checklist §4 | `checklists/document-stage.md` §4 | Uygulandı |
-| PF-53 | Aşama 2 dersleri — `00 §N.1`'e altı desen | Aşama 2'nin öğrenim terfisi (K-719) | — | `00 §N.1` | Onay bekliyor |
+| PF-53 | Aşama 2 dersleri — `00 §N.1`'e altı desen | Aşama 2'nin öğrenim terfisi (K-719); ret K-722 | — (desenler `PHASE2_LEARNING_PROMOTION.md` §4'te kalır) | `00 §N.1` | Reddedildi (2026-10-04, K-722) |

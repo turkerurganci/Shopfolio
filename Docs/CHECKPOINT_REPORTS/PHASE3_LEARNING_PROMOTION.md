@@ -115,6 +115,8 @@ CLAUDE.md: *"Bir süreç kuralı yalnız hafızada yaşıyorsa kırılgandır �
 
 ## 4. Proje sahibinin onayını bekliyor — `00_PROJECT_METHODOLOGY.md`
 
+> **Sonuç — 2026-10-05 düzeltmesi — K-853:** öneri proje sahibine sunuldu; proje sahibi işaret satırı yerine iki aşamanın desenlerinin **tam metin** girmesini seçti. `00 §N.1`'e Aşama 2'nin altı deseni (`PHASE2_LEARNING_PROMOTION.md` §4, Öneri 1) ve bu raporun §5'indeki yedi desen, Aşama 1'in biçimiyle girdi — proje-özel adlar genel ifadeyle; önceki aşamanın dersini sürdüren üç desen (3, 4, 7) ona bağlandı. `00` **v1.0.5** (2026-10-05). Aşağıdaki işaret satırı uygulanmadı; metinler kayıt için olduğu gibi bırakıldı. Aynı kararla K-722'nin Aşama 2 desenlerine ilişkin ret kaydının yanlış olduğu yazıldı (*"Ben ayrı raporda kalsın demedim!"*); skill ölçütünün `00 §C.7`'ye girmesi için onay verilmedi — ölçüt checklist'in başlık notunda kalır. PF-69 bu sonucu taşır.
+
 GUARDRAILS §2: `00` proje sahibinin **açık onayı** olmadan değişmez. Aşağıdaki öneri bu PR'da **uygulanmadı**. Onay gelirse ayrı bir `docs:` PR'ında uygulanır ve `00`'ın sürümü **v1.0.5** olur. Öneri aşamanın kapanışını engellemez: L4 tarafı (checklist §7'nin desen satırı) bu PR'da hizalandı.
 
 ### Öneri 1 — `§N.1 Dönem 1 — Doküman üretimi`'ne aşama başına işaret satırı

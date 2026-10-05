@@ -1,6 +1,6 @@
 # Project Playbook — Metodoloji
 
-**Versiyon: v1.0.4** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-10-03
+**Versiyon: v1.0.5** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-10-05
 
 > Bu doküman bir yazılım projesini **fikirden çalışan MVP'ye** taşıyan yöntemin tamamıdır:
 > doküman üretimi, implementasyon, doğrulama, borç kapatma ve kapanış.
@@ -703,6 +703,25 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 8. **Süreç kararları karar kaydında doğar ama orada kalamaz.** Aşamanın on üç süreç kararı yalnız kayıtta yaşıyordu; kayıt arşivlenince otoriterliği biter. Aşama kapanışının öğrenim terfisi bu kararları da tarar.
 9. **Her doküman şablonu bir "Açık kararlar" bölümü taşımalıdır.** Bu projede yalnız ürün gereksinimleri şablonunda vardı; vizyon ve kapsam dokümanlarının açık kalemi için kural var olmayan bir bölüme işaret etti. Şablona bölüm eklenene kadar böyle bir dokümanın açık kalemi tracker'da kalır.
 
+**Aşama 2 — Kullanıcı akışları (2026-10-04).** Kurallar `.claude/checklists/document-stage.md` §1, §3, §4, §7, `.claude/INSTRUCTIONS.md` §2, §7, §9, `.claude/GUARDRAILS.md` §3, §6 ve `audit`, `checkpoint`, `cross-review` skill'lerine terfi etti; rapor `Docs/CHECKPOINT_REPORTS/PHASE2_LEARNING_PROMOTION.md`. Tekrarlanacak desenler:
+
+1. **Türetim aşamasında workshop küçülür, yazım büyür.** Altmış iki konunun altısı workshop konusuydu; yazım beş oturumda yirmi yedi boşluk buldu ve her biri üst dokümana aynı PR'da geri döndü — ürün gereksinimleri dokümanı aşama boyunca sekiz sürüm aldı. Türetilen dokümanın yazımı, kaynağının yeterlilik testidir. Aşama 1'in 1. deseninin üst dokümandaki ikinci kanıtıdır.
+2. **Kalite döngüsü dokümanı kendi içinde temizler, geri beslenen kuralın öteki yüzlerini görmez.** Cross-review TEMİZ döndükten sonra checkpoint üst dokümanda otuz sekiz yansıma kaçağı buldu; en genişi bir kuralın dokuz yerde eski hâlinde kalmasıydı. Kuralı değiştiren karar, kuralın adını üst dokümanda betikle arar.
+3. **Ölçü baştan verilince döngü kısa kalır.** Kural koymayan akış dokümanında ciddiyet ölçüsü ilk turdan uygulandı; 365 KB'lık doküman üç turda TEMİZ döndü (3 → 1 → 0 bulgu). Aşama 1'de ölçüsüz başlayan doküman yirmi beş turda dönmemişti — Aşama 1'in 3. deseninin ikinci kanıtıdır.
+4. **Paralel denetimin sınırı oturum limitidir.** On mercek aynı anda başlatılınca hiçbiri sonuç üretmedi; beşli dalgalar ve bulguyu bulduğu anda dosyaya yazan mercekler kesintisiz bitti. Arka plandaki alt ajanın bitiş bildirimi onu başlatana değil en üst bağlama gider; mercekleri yöneten alt ajan onları ön planda koşar.
+5. **Adsız devir sonraki aşamada okunamaz; kaynağı değişen park satırı eski kalır.** Sonraki dokümanlara giden yüz otuz yedi atfın seksen altısı yalnız doküman numarasıydı ve çakışma taraması her birine sonradan ad vermek zorunda kaldı; kaynak kararı değişen park satırları ilişki sözcüğüyle aranınca kaçtı, karar numarasıyla aranınca bulundu. Aşama 1'in 7. deseninin ikinci kanıtıdır.
+6. **Yönetici ve alt ajan düzeni bir aşamayı bir günde kapattı, bedelini tek kapıda topladı.** Açılıştan checkpoint'e on altı adım temiz bağlamlı alt ajanlarla ve CI yeşilse merge yetkisiyle yürüdü; proje sahibine yalnız konu planı, kritik sorular ve gösterilmemiş kararların listesi gitti. Sorulmadan kaydedilen otuz dokuz karar arşivden önce tek mesajda gösterilir; her adımın eklediği hafıza paragrafı ise durum snapshot'ını yirmi bir KB'a şişirdi — güncellemek değiştirmektir, eklemek değil.
+
+**Aşama 3 — UI/UX tasarım (2026-10-04 → 2026-10-05).** Kurallar `.claude/checklists/document-stage.md` §1, §2, §3, §4, §7, `.claude/INSTRUCTIONS.md` §7, §9 ve `audit`, `checkpoint`, `cross-review` skill'lerine terfi etti; rapor `Docs/CHECKPOINT_REPORTS/PHASE3_LEARNING_PROMOTION.md`. Tekrarlanacak desenler:
+
+1. **İzlenebilirlik matrisi bir kerelik tablo değil, yazım boyunca doğrulanan bir kayıttır.** Arayüz dokümanının matrisi 1.193 kaynak satırıyla üç oturumda kuruldu ve on bir boşluk buldu — altısı üst dokümanlara geri döndü; ama hücre başına kesilerek okunan 378 satırın elli dördünde eşleme ayrıştı — çoğunda ikinci ekran eksikti. Matris ancak yazım turu ekranları tek tek tam okuyunca tamamlandı.
+2. **Büyük dokümanda ikinci modelin dikkati tek çağrıya, döngünün çıkışı da "hepsi TEMİZ" kuralına sığmaz.** 844 KB'lık doküman tek çağrıda TEMİZ döndü, aynı istemle dört parça dört bulgu buldu; parçalı koşumla döngü her turda başka bir metin farkı buldu ve beşinci turda bir çıkış kuralıyla kapandı. Devredilen sınıf checkpoint'te kırk üç yerde çıktı: çıkış kuralı riski silmez, yerini değiştirir — devir zorunludur.
+3. **Kuralın adını arayan tarama kuralın yüzlerini bulmaz.** Her geri beslemede anahtar terim betiği koştu; yine de çakışma taraması yirmi üç, checkpoint yirmi dokuz yan yüz ve otuz üç matris özeti buldu. Terim kuralın nesnesini ve işlemini de taşır. Aşama 2'nin 2. deseninin devamıdır: kuralın adını aramak gerekir, yetmez.
+4. **Türetim yazımında en ağır soru yazımın ortasında doğar.** Müşteri ekranlarının yazımı, bir iptal kuralının kalemin yalnız bir kısmına uygulanıp uygulanamayacağının kaynakta yazılı olmadığını gösterdi; yazan oturum bugünkü kuralı yazdı, soruyu kapısıyla iletti ve adımı kapattı; proje sahibinin cevabı tek adımda dört dokümana geri beslendi. Aşama boyunca üç üst doküman yirmi yedi sürüm aldı. Aşama 2'nin 1. deseninin ikinci kanıtıdır; yeni olan, yazımı durdurmadan soruyu taşıyan yoldur.
+5. **Terfi ettirilen kural sonraki aşamada ölçülebilir iş yapar.** Aşama 2'nin kuralları bu aşamada ölçüldü: karar numarasıyla koşan park taraması önceki aşamaların üç hizasız satırını buldu; "devirde işin adı yazılır" kuralı yalnız numara taşıyan atfı seksen altıdan sıfıra indirdi; şablon taraması dört eksiği açılışta buldu; ilk turdan verilen ciddiyet ölçüsüyle kabul edilen on bulgunun hiçbiri ağır sınıfta değildi. §K'nın terfisi kâğıtta kalmadı.
+6. **Metni değiştiren araç sessizce bozar.** Bir düzenli ifade değiştirmesi geri başvuruyu metne yazılı bıraktı ve altı satırı bozdu; düzenleme aracı bir platformda satır sonlarını değiştirebiliyor ve satır sonunu sayan komut bile bir kez yanılttı. Her PR'dan önce iki mekanik tarama — satır sonu ve geri başvuru artığı — bunu yakalar.
+7. **Yönetici ve alt ajan düzeni ikinci aşamada da tuttu; işletim kuralları ancak yazıya geçince taşınır.** Açılıştan öğrenim terfisine iki günde yirmi bir adım temiz bağlamlı alt ajanlarla ve CI yeşilse merge yetkisiyle yürüdü; proje sahibine açılış sorusu, tek bir kritik soru ve sorulmadan kaydedilen kararların listesi gitti. Düzenin işletim kuralları — plan bilgidir, yazımın ortasındaki kritik soru adımı durdurmaz, kayıt sorunun kapsamını aşmaz, liste kapıdan önce gösterilebilir, limitte düşen görev bölünür — o güne kadar hafızada, görev metinlerinde ya da hiçbir yerde yaşıyordu. Aşama 2'nin 6. deseninin ikinci kanıtıdır.
+
 ### N.2 Dönem 2 — Implementation
 
 *(Bu projede henüz faz kapanmadı.)*
@@ -728,4 +747,4 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 
 ---
 
-*Project Playbook — Metodoloji v1.0.4*
+*Project Playbook — Metodoloji v1.0.5*

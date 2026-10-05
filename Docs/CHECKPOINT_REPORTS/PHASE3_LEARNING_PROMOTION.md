@@ -17,7 +17,7 @@
 | **Dokümanda yaşar** | 3 | S-2 (K-724…K-726) · S-4 (K-729, K-731) · S-6 (K-762) |
 | **Bekletildi** — kapısıyla | 1 | Ö-23 — kapı: Aşama 4'ün öğrenim terfisi (§3) |
 | **Hafızada kalır** — kişisel tercih ya da referans | 5 | H-2, H-5, H-6, H-7, H-8 |
-| **Proje sahibinin onayını bekliyor** (`00`) | 1 öneri | §4: `00 §N.1`'e Aşama 2 ve 3 için "desenler raporda" işaret satırı (Ö-59'un L1 yüzü) |
+| **Proje sahibinin onayını bekliyor** (`00`) | 1 öneri | §4: `00 §N.1`'e Aşama 2 ve 3 için "desenler raporda" işaret satırı (Ö-59'un L1 yüzü) — **2026-10-05: kapandı (K-853)** — işaret satırı yerine Aşama 2 ve 3'ün desenleri `00 §N.1`'e tam metin girdi, `00` v1.0.5 |
 
 Toplam kırk üç aday: karar kaydının §10.1'inden on iki ve Ö-23, süreç kararlarından on bir satır (on sekiz karar), bu adımda bulunan sekiz ders, kullanıcı hafızasından on bir not. `CLAUDE.md` ve `SETUP.md` için terfi önerisi yok: CLAUDE.md'nin oturum başlangıcı ve katman kuralı aşamanın hiçbir öğrenimiyle çelişmiyor; SETUP'ın ikinci AI satırları (birincil yöntem ve yedeği) aşamanın koşumuyla uyumlu — beş tur yedek yöntemle koştu ve skill'in Faz 1'i bunu karşılıyor. Aşama 3'ün öteki kararları (K-732…K-737, K-740…K-761, K-764…K-777, K-779…K-795, K-797…K-846, K-850, K-851) ürün ya da ekran kurgusu kararıdır, dokümanlarda yaşar ve aday değildir; K-834'ün öncülü ve K-850'nin bulunuşu Ö-49'un kanıtıdır.
 
@@ -145,7 +145,9 @@ Yönetici aşağıdaki iki maddeyi olduğu gibi iletebilir:
 
 ---
 
-## 5. Aşama 3'ün desenleri — raporda kalır
+## 5. Aşama 3'ün desenleri — `00 §N.1`'e girdi (K-853)
+
+> **2026-10-05 düzeltmesi — K-853:** başlık "raporda kalır" idi. Proje sahibi desenlerin yöntem dokümanına tam metin girmesini seçti; yedi desen `00 §N.1`'in "Aşama 3 — UI/UX tasarım" paragrafına girdi (`00` v1.0.5; proje-özel adlar genel ifadeyle, 3, 4 ve 7 Aşama 2'nin dersine bağlandı). Aşağıdaki giriş cümlesi ve metin 5. adımın hâlidir, olduğu gibi bırakıldı.
 
 `00 §K` tekrarlanacak deseni `00 §N`'e yazar; `00` proje sahibinin onayıyla değişir ve Aşama 2'nin desenleri reddedildi (K-722). Aşama 3'ün desenleri burada kalır; §4'ün önerisi onaylanırsa `00 §N.1` bu bölüme işaret eder. Kural yüzleri §2'de terfi etti.
 
@@ -192,6 +194,8 @@ Arayüz Tanımları şablonunun kendisi (PF-54…PF-58) değişmedi; satırlar �
 - **Repo hafızası:** `MEMORY.md` Güncel Durum bu adımın hâline getirildi — önceki adımın (checkpoint) paragrafı `MEMORY_ARCHIVE.md`'ye taşındı (`INSTRUCTIONS §7`); "Terfi Edenler" tablosuna iki satır girdi (H-11'in eki; Aşama 3'ün süreç kararları ve öğrenimleri).
 - **Kullanıcı hafızası:** bu adımda okundu, yazılmadı. H-11'in 2026-10-04 ekinin `INSTRUCTIONS §9` (işletim kuralı 1) ve checklist §7'ye terfi ettiğini söyleyen `Terfi` satırını yönetici ekleyebilir; süreli yetki notları (H-10'un yetkisi, H-11'in modu) Aşama 3'le sınırlıdır.
 - **Mekanik:** değişen dosyalarda CR 0 (`tr -cd '\r'`), eklenen satırlarda geri başvuru artığı yok — `\$[0-9]` eşleşmeleri yalnız kuralın ve bu raporun anlattığı örneklerdir; Python kullanılmadı.
+
+**Sonuç (6. adım, 2026-10-05):** `00` önerisi proje sahibinin kararıyla kapandı — iki aşamanın desenleri `00 §N.1`'e tam metin girdi (K-853, `00` v1.0.5); Ö-23'ün sonucu bilgi olarak gitti, kapısı Aşama 4'ün öğrenim terfisi. Kırk ⚠ karara itiraz yok (K-854). Arşiv işareti düştü (`04` ✓ v0.20), devir karar kaydının §11'inde; devir notu Ö-23'ü ve öğrenim adayı 13'ü (tek "evet" — K-853) Aşama 4'ün öğrenim terfisine taşır. Aşağıdaki satır 5. adımın hâlidir.
 
 **Sırada:** K-437'nin 6. adımı — proje sahibine tek mesaj (§4'ün sade metni: `00` önerisi ve Ö-23'ün sonucu); ⚠ listesinin sonucunun işaretlere işlenmesi; ardından arşiv işareti (`04` ✓, Aşama 3'ün kayıtları salt okunur) ve Aşama 4'e — Teknik Mimari — devir. Devir notu Ö-23'ün kapısını, `00` önerisinin sonucunu ve çalışma modlarının yeniden sorulacağını taşır.
 

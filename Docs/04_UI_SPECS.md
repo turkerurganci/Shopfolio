@@ -1,6 +1,6 @@
 # Shopfolio — UI Specifications
 
-**Versiyon: v0.19** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-05
+**Versiyon: v0.20** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-05
 
 > **Aşama:** 3 — UI/UX Tasarım · **Rol:** Senior Product Designer / UX Architect
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §4'e (ekran envanteri) geçilmez.
@@ -35,6 +35,8 @@
 > **Aşama kapanışı — çakışma taraması (2026-10-05, v0.18; K-437'nin 3. adımı):** açık kalem yok; dokümanlar arası taramanın bulguları düzeltildi. Bir karar — **K-850:** veri toplayan girişlerin kapısına çerez politikasının yayını da girer (2.8.3, 5.10.12, 5.11.9, 5.20.10, 9.3.4, 9.10.11, 9.19.7, 9.19.10) — ve bu dokümanda şu hizalamalar: 5.28.3, 6.2.28.1, 9.25.2, §4.1 E-28 ve §4.2 E-54 (geri alma düğmesi — K-839) · 7.1.5.9 (K-833) · 3.1.19 (K-770) · 5.18.10, 5.19.6 (B-9'un kalemleri ve adetleri — K-790) · 6.2.16.24 (ayıp talebi — K-830) · §1.1'in sekiz F-1…F-4 satırı (K-760) ve altı özet hücresi — KP-14, `03 §8.1.1`, §8.8.2, §8.9.1, §9.3.6, §9.3.7 —, §1.2'nin E-31 sayısı (67 → 75). Geri besleme ve iç hizalamaların tablosu §1.3'tedir. Rapor `Docs/CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md`. Sıradaki adım Aşama 3'ün checkpoint'idir.
 >
 > **Aşama kapanışı — checkpoint (2026-10-05, v0.19; K-437'nin 4. adımı; K-849'un devri):** iki salt okuma merceği özet cümle ile ekran tanımının ayrıştığı kalıbı dokümanın tamamında aradı — müşteri ve panel tarafı; kırk üç iç tutarlılık bulgusu düzeltildi: §2'nin bileşen kuralları ve kapalı listeleri (2.1.2, 2.1.4, 2.2.1, 2.2.2, 2.3.1.3, 2.4.2, 2.4.3, 2.5.1, 2.5.3.1, 2.5.6, 2.6.3, 2.6.4, 2.6.5, 2.7.1.2, 2.7.3.3, 2.8.3, 2.10.1, 2.12.2.2, 2.12.4, 2.12.7.5, 2.13.3, bileşen tablosu OB-06), ekranların giriş ve çıkışı ile §3 (3.3.12, 3.5.9, yeni 3.4.23; 5.1.1, 5.2.1, 5.15.1, 5.16.1, 5.19.1, 5.26.1, 5.27.1, 9.21.1, 9.25.1), §4'ün amaç cümleleri (E-28, E-36), §6 (yeni 6.2.13.14 ve 6.3.16.6; 6.1.3, 6.1.5.1, 6.2.16.9, 6.3.1.1–6.3.1.3, 6.3.16.1, 6.3.16.3, 6.3.19.1, 6.3.19.3) ve ekranların kendi maddeleri (5.4.16, 5.12.6, 5.14.9, 5.16.5, 5.16.12, 5.19.2, 7.1.7.1, 9.9.36, 9.22 ve §3.2'nin kapanış notu). Bir karar — **K-851:** içerik liste sayfası (E-07) sayfa başına 24 kayıt (2.13.3, 5.7.3). Matrisin `03 §3.2.1.8`–§3.2.1.9 satırlarından E-12 çıktı — iki uyarı ürün sayfasında sepete eklerken görünür, sepette görünmez (§1.2'de E-12 46 → 44). Yansıma kaçakları: §1.1'in otuz üç özeti (K-787, K-791, K-793, K-794, K-796, K-759…K-761, K-808, K-826, K-831, K-850), `02 §5.9` satırına müşterinin son adımı (K-732; §1.2'de E-17, E-18, E-25), 9.16.3 ve 9.19.3 (K-850). Kaynak satırları (betik 2): on iki yerde on dokuz atıf tamamlandı. Sayılar: §3 124 geçiş · §6 285 satır · §7 165 alan satırı. Geri besleme tablosu §1.3'te. Rapor `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`. Sıradaki adım Aşama 3'ün öğrenim terfisidir.
+>
+> **Aşama 3 kapanışı — arşiv işareti (2026-10-05, v0.20 — K-437'nin 6. adımı):** doküman **✓ Tamamlandı**; kapanış sürümü budur. Bu sürümde yalnız başlık notu ve dosya sonu dipnotu değişti — ekran tanımları ve tablolar v0.19 ile aynıdır. Öğrenim terfisi (K-852) ve `00` v1.0.5 (K-853) bu dokümana dokunmadı; sorulmadan kaydedilen kırk ⚠ karar proje sahibine gösterildi, itiraz yok (K-854). Karar kaydında Aşama 3'ün kayıtları salt okunurdur; bu dokümanın dayandığı Aşama 3 kararlarının otoriter kaynağı artık bu doküman ve geri beslendiği Ürün Gereksinimleri, Kullanıcı Akışları, MVP Kapsamı ve Proje Vizyonu'dur (`PRODUCT_DISCOVERY_STATUS.md` başlık notu; K-647, K-652). Sonraki aşamalara devir: `PRODUCT_DISCOVERY_STATUS.md` §11.
 
 **Yazım konvansiyonları (K-726, K-762).** Bu on beş madde §2–§9'un bütün yazım oturumlarını bağlar; "konvansiyon n" diye anılır.
 
@@ -5237,4 +5239,4 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
 
 ---
 
-*Shopfolio — UI Specifications v0.19*
+*Shopfolio — UI Specifications v0.20 — ✓ Tamamlandı (Aşama 3 kapanışı, K-437'nin 6. adımı; §1–§9 yazıldı; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ 5 turda — K-849'un çıkış kuralı, etki yansıtma ✓ — K-431, K-847, K-848; çakışma taraması ✓ — K-850; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`)*

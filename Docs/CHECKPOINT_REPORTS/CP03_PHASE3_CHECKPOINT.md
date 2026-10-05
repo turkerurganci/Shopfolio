@@ -32,8 +32,8 @@
 - [x] Bir karar — K-851 (öneriyle kaydedildi — ⚠ değil): içerik liste sayfası (E-07) sayfa başına 24 kayıt; ⚠ listesi değişmedi (40)
 - [x] K-849'un devri kapandı (karar kaydı §10.1); matrisin `03 §3.2.1.8`–§3.2.1.9 → E-12 eşlemesi karara bağlandı — çıktı (C-76)
 - [x] Checkpoint'in dokunduğu otuz sekiz Aşama 3 kararının etki sütununa `(taslak güncellendi — vX.Y; checkpoint)` parçası eklendi (§4); Aşama 1–2 kayıtlarına dokunulmadı
-- [ ] **Kırk ⚠ kararın proje sahibine gösterilmesi** — liste §5.1'de karar başına bir sade cümleyle; K-848 ve K-849 süreç kararı olarak aynı mesajın sonunda. Kapı: arşiv işaretinden (6. adım) önce, tek mesajda (`INSTRUCTIONS.md` §2, §9; tracker §10.1). İtiraz gelen karar yeni bir satırla değişir ve bu rapora `## Retro Güncelleme` bölümü eklenir
-- [ ] Sırada öğrenim terfisi (K-437'nin 5. adımı) — on iki aday tracker §10.1'de; 11 ve 12 bu checkpoint'te eklendi (§6); Ö-23'ün kapısı aynı adım
+- [x] **Kırk ⚠ kararın proje sahibine gösterilmesi** — liste §5.1'de karar başına bir sade cümleyle; K-848 ve K-849 süreç kararı olarak aynı mesajın sonunda. Kapı: arşiv işaretinden (6. adım) önce, tek mesajda (`INSTRUCTIONS.md` §2, §9; tracker §10.1). İtiraz gelen karar yeni bir satırla değişir ve bu rapora `## Retro Güncelleme` bölümü eklenir — **kapandı (2026-10-05, kapısında; K-854):** liste kapıdan önce gösterildi, itiraz yok, retro bölümü gerekmedi; sonuç §5.1'in sonunda
+- [x] Sırada öğrenim terfisi (K-437'nin 5. adımı) — on iki aday tracker §10.1'de; 11 ve 12 bu checkpoint'te eklendi (§6); Ö-23'ün kapısı aynı adım — **kapandı (2026-10-05, PR #95, K-852)**
 
 ### Notlar
 
@@ -240,6 +240,8 @@ Kaynak: [çakışma taraması §4.1](PHASE3_CONFLICT_SCAN.md) — kayıtla bire 
 - K-849 — İnceleme beşinci turda, kabul edilen bulgu kalmayınca kapatıldı; aynı yerde tekrar tekrar reddedilen bir itiraz sonucu belirlemedi, kalan küçük metin farklarına sıradaki genel kontrol (checkpoint) baktı — bu kontrol kırk üç küçük metin farkını düzeltti, hiçbiri bir ürün kuralını değiştirmedi.
 
 **Sayım:** matrisin 2. oturumu 4 · workshop 5 · yazım turu 2a ve 2b 5 · kısmi adet kararı 4 · yazım turu 3.–5. oturum 11 · audit ve deep review 10 · çakışma taraması 1 · checkpoint 0 — **toplam 40**. Betikle sayıldı; kırkının da konu hücresi ⚠ işaretini taşıyor ve çakışma taramasının §4.1 listesiyle birebir.
+
+**Gözden geçirme sonucu — 2026-10-05 (K-437'nin 6. adımı, arşiv işaretinden önce; K-854).** Liste proje sahibinin isteğiyle kapanıştan önce, yönetici aracılığıyla bu tabloyla, karar başına bir cümleyle gösterildi; K-848 ve K-849 aynı mesajın sonunda bilgi olarak. **İtiraz yok:** hiçbir karar değişmedi, yeni karar satırı açılmadı ve bu rapora retro bölümü gerekmedi. Karar kaydında kırk satırın konu hücresindeki işaret silinmedi, `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-05, itiraz yok)` biçimine dönüştürüldü (Aşama 2'nin kalıbı, CP02 §5.1). Öğrenim terfisi (K-852) ve `00` v1.0.5 (K-853) yeni ⚠ karar doğurmadı. **Mekanik doğrulama:** bu tablonun 40 tekil K numarası ile dönüştürülen 40 satır birebir — eksik 0, fazla 0; konu hücresinde eski işareti taşıyan Aşama 3 karar satırı kalmadı. Kayıt: karar kaydı §10.1 (v0.95).
 
 ---
 

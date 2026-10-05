@@ -90,6 +90,8 @@ Devir §9'un öteki girdileri kapandı: yeniden gönderilebilen e-postaların ka
 
 **Kapı.** Liste arşiv işaretinden (6. adım) önce proje sahibine **tek mesajda**, karar başına bir sade cümleyle ve gerekçesiz gösterilir (`INSTRUCTIONS.md` §2, "Ortak kural"); yöneticiden proje sahibine gider (§9). İtiraz gelmeyen satırın işareti `(öneriyle kaydedildi — ⚠ — gözden geçirildi YYYY-AA-GG, itiraz yok)` olur; itiraz gelen karar yeni bir satırla değişir.
 
+**Kapının sonucu — 2026-10-05 (K-437'nin 6. adımı; K-854):** kapı işledi. Liste proje sahibinin isteğiyle arşiv işaretinden önce, aşağıdaki hazır metinle tek mesajda gösterildi (`INSTRUCTIONS.md` §9, işletim kuralı 3); K-848 ve K-849 bilgi olarak aynı mesajda. İtiraz yok. Kırk satırın konu hücresindeki işaret `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-05, itiraz yok)` oldu; sayım betikle doğrulandı (40 / 40 — bu listenin, CP03 §5.1'in ve kaydın kümeleri birebir); karar kaydının §3'ündeki GAP-1, GAP-2, GAP-8 ve GAP-9 satırlarının işareti de dönüştü. Gösterimden sonra kaydedilen ⚠ karar yok. Madde karar kaydının §10.1'inde kapandı; arşiv işareti aynı PR'da düştü (v0.95).
+
 **Hazır metin — proje sahibine gösterilecek liste** (konulara göre; dokümanlar adıyla):
 
 *Ödeme adımı ve siparişin onayı*
@@ -233,6 +235,7 @@ Hepsi var olan bir kararın kuralının, değişmeden kaldığı yüzlere taşı
 - **Önceki aşamaların dizinleri:** `PHASE1_CONFLICT_SCAN.md` §6 ve `PHASE2_CONFLICT_SCAN.md` §6.
 - **`09` Kodlama Kılavuzu ve `11` Uygulama Planı:** Aşama 3'ten devir yok; `11` tüketicidir ve `04`'ü kendi matrisinde okur (`04` GA-7'nin notu).
 - **`DEFERRED_BACKLOG.md`:** Aşama 3'ten kalem yok.
+- **Toplandığı yer (6. adım, 2026-10-05):** Aşama 4'e devrin bütün girdileri — bu dizin dahil — karar kaydının §11'inde tek tabloda.
 - **Süreç kararları** (K-723…K-731, K-738, K-762, K-763, K-778, K-847…K-849) sonraki dokümana iş bırakmaz.
 
 ### 6.1 Etki sütunlarındaki devirler (K-723…K-850)

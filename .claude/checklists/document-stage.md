@@ -13,8 +13,8 @@
 > terfisi, K-719); Aşama 3'te birincisi karşılandı, ikincisi karşılanmadı — §2'nin ilk işletimi ona
 > yeni bir madde ekledi (okuma derinliği; Aşama 3'ün öğrenim terfisi, K-852). Sonraki değerlendirme
 > Aşama 4'ün öğrenim terfisindedir. Ölçüt bu notta (L4) yaşar ve `00 §C.7`'nin genel cümlesini
-> daraltır; `00 §C.7`'ye taşınması önerildi, proje sahibi reddetti (K-722). (Karar: yeni skill icat
-> edilmez.)
+> daraltır; `00 §C.7`'ye taşınması önerildi; proje sahibi onay vermedi, ölçüt bu notta kalır (K-722,
+> düzeltmesi K-853). (Karar: yeni skill icat edilmez.)
 
 ---
 

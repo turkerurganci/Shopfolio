@@ -19,7 +19,7 @@
 | **`00 §N` önerisi** — desen | 1 | Ö-38 (ve öteki adayların desen yüzleri — §4, Öneri 1) |
 | **Bekletildi** — kapısıyla | 1 | Ö-23 — kapı: Aşama 3'ün öğrenim terfisi (§3) |
 | **Hafızada kalır** — kişisel tercih, referans ya da süreli yetki | 8 | H-2, H-3, H-4, H-5, H-6, H-7, H-8, H-11 |
-| **Proje sahibinin onayını bekliyor** (`00`) | 2 öneri | §4: `00 §N.1`'e Aşama 2'nin altı deseni · `00 §C.7`'ye skill ölçütü (ve sürüm v1.0.5) — **2026-10-04: ikisi de reddedildi (K-722); `00` v1.0.4 kalır** |
+| **Proje sahibinin onayını bekliyor** (`00`) | 2 öneri | §4: `00 §N.1`'e Aşama 2'nin altı deseni · `00 §C.7`'ye skill ölçütü (ve sürüm v1.0.5) — **2026-10-04: ikisi de reddedildi (K-722); `00` v1.0.4 kalır** · **2026-10-05 düzeltmesi — K-853:** ret kaydı tek "evet"in yanlış okunuşuydu — altı desen `00 §N.1`'e girdi (`00` v1.0.5); skill ölçütü için onay verilmedi, ret de yok — ölçüt checklist'te kalır |
 
 Toplam otuz dört aday: karar kaydının §8.1'inden on iki, süreç kararlarından yedi satır, bu adımda bulunan dört, kullanıcı hafızasından on bir not. `CLAUDE.md` ve `SETUP.md` için terfi önerisi yok: CLAUDE.md'nin oturum başlangıcı ve katman kuralı aşamanın hiçbir öğrenimiyle çelişmiyor; SETUP'ın parametreleri değişmedi.
 
@@ -100,7 +100,7 @@ CLAUDE.md: *"Bir süreç kuralı yalnız hafızada yaşıyorsa kırılgandır �
 
 **Elenen — şimdi dönüştürmek:** değişmekte olan bir metni skill olarak dondurmak her kapanışta skill'i ve `00 §C.7`'yi birlikte değiştirmeyi gerektirir; dönüştürmenin kendisi `00 §C.7`'nin metnini değiştirir (GUARDRAILS §2). **Elenen — kararı proje sonuna, playbook'a bırakmak:** checklist izlenebilirlikli bir aşamadan sonra kararlı hâle gelirse sonraki aşamalar skill'in kapılarından yararlanır; kararı her kapanışta yeniden vermek ucuzdur.
 
-**Uygulanan (L4):** checklist'in başlık notu ölçütü ve bu kararı yazar; §7'nin 5. adımına "bu checklist'in skill'e dönüşmesi bu adımda yeniden değerlendirilir" maddesi girdi. **Önerilen (L1):** `00 §C.7`'nin *"bir kez gerçek bir projede işletildikten sonra"* cümlesi iki okumaya açık (bir aşama mı, bütün dönem mi) — Aşama 1 onu "bir aşama" diye okudu ve bekletti; ölçütün L1'deki hâli §4, Öneri 2'dedir. Öneri reddedilirse L4'teki ölçüt yürürlükte kalır; L1 ile çelişmez, onu daraltır. **Sonuç (2026-10-04, K-722):** öneri reddedildi — ölçüt L4'te, checklist'in başlık notunda yürürlükte; `00 §C.7`'ye girmedi.
+**Uygulanan (L4):** checklist'in başlık notu ölçütü ve bu kararı yazar; §7'nin 5. adımına "bu checklist'in skill'e dönüşmesi bu adımda yeniden değerlendirilir" maddesi girdi. **Önerilen (L1):** `00 §C.7`'nin *"bir kez gerçek bir projede işletildikten sonra"* cümlesi iki okumaya açık (bir aşama mı, bütün dönem mi) — Aşama 1 onu "bir aşama" diye okudu ve bekletti; ölçütün L1'deki hâli §4, Öneri 2'dedir. Öneri reddedilirse L4'teki ölçüt yürürlükte kalır; L1 ile çelişmez, onu daraltır. **Sonuç (2026-10-04, K-722):** öneri reddedildi — ölçüt L4'te, checklist'in başlık notunda yürürlükte; `00 §C.7`'ye girmedi. **2026-10-05 düzeltmesi — K-853:** "reddedildi" değil — proje sahibi bu öneriye onay vermedi; ret kaydı birden çok öneriyi taşıyan mesaja gelen tek "evet"in okunuşuydu. Sonuç aynıdır: ölçüt checklist'in başlık notunda kalır, `00 §C.7` değişmedi; istenirse sonra açılır.
 
 **Kapının taşınması:** karar kaydı dönem sonunda arşivlenir (K-647), Aşama 3'ün planı aynı dosyada sürer. Kapı checklist'in başlık notunda ve PF-32'de yazılı; 6. adımın devir notu onu Aşama 3'e taşır ve Aşama 3'ün açılışı onu açık süreç listesine geçirir (checklist §1, Ö-33'ün kuralı).
 
@@ -182,7 +182,7 @@ Playbook'tan gelen bir dosyaya dokunan ya da dokunması gereken her öğrenim `D
 - **Repo hafızası:** `MEMORY.md` Güncel Durum bu adımın hâline getirildi ve yeni kurala göre kısaltıldı — Aşama 2'nin önceki on dört adım paragrafı yeni `.claude/memory/MEMORY_ARCHIVE.md`'ye taşındı; "Terfi Edenler" tablosuna bu adımın beş satırı girdi.
 - **Kullanıcı hafızası:** terfi eden üç nota (H-1, H-9, H-10) kısa bir `Terfi` satırı eklendi; notlar silinmedi. Süreli yetki notları (H-10'un yetkisi, H-11) hafızada kalır.
 
-**Sonuç (6. adım, 2026-10-04):** tek mesaj gönderildi — ⚠ listesine itiraz yok, avukat teyidi önerisi reddedildi (K-721), `00` önerileri reddedildi (K-722); arşiv işareti düştü, devir karar kaydının §9'unda. Aşağıdaki satır 5. adımın hâlidir.
+**Sonuç (6. adım, 2026-10-04):** tek mesaj gönderildi — ⚠ listesine itiraz yok, avukat teyidi önerisi reddedildi (K-721), `00` önerileri reddedildi (K-722); arşiv işareti düştü, devir karar kaydının §9'unda. Aşağıdaki satır 5. adımın hâlidir. **2026-10-05 düzeltmesi — K-853:** `00` önerilerinin ret kaydı tek "evet"in yanlış okunuşuydu — Öneri 1'in altı deseni `00 §N.1`'e girdi (`00` v1.0.5), Öneri 2'ye onay verilmedi (§4'ün düzeltme notu).
 
 **Sırada:** K-437'nin 6. adımı — otuz dokuz ⚠ kararın (CP02 §5.1), avukat teyidi önerisinin (CP02 §5.2) ve §4'ün iki önerisinin proje sahibine **tek mesajda** gösterilmesi; ardından arşiv işareti (`03` ✓) ve Aşama 3'e devir — devir notu Ö-23'ün kapısını ve `00` önerilerinin sonucunu taşır.
 

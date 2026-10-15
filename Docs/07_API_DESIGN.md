@@ -24,6 +24,13 @@
 > - **K-802 · Sipariş listesinin araması ve süzgeçleri:** sipariş listesi sipariş numarası ya da iletişim e-postasıyla tam eşleşmeyle aranır; sipariş durumu, ödeme durumu ve bekleyen iş süzgeçleriyle süzülür; en yeni önce, süreli bekleyen işte kalan süresi en az olan önce sıralanır (`04 §9.8`). Parametrelerin biçimi bu aşamanın kararıdır.
 > - **Dizin — Aşama 3 kararlarının bu dokümana devirleri:** karar kaydında K-723…K-850'nin etki sütunlarında bu dokümanı gösteren altı atıf (altı karar) ve Arayüz Tanımları'nın (`04`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md) §6'dadır; Aşama 3'ün atıflarının hepsi işin adını taşır. Bir iş yalnız `04`'ün gövdesinde yaşar, karar satırı yoktur: sitenin dışından gelinen sayfa adreslerinin biçimi (`04 §3.5`; adresin kaydın adından üretilmesi `02 §3.30.2`'dedir). Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Önceki aşamaların dizinleri: `PHASE1_CONFLICT_SCAN.md` §6, `PHASE2_CONFLICT_SCAN.md` §6.
 
+> **Aşama 4'ten park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §12.3 TM0-04).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-868 · Sözleşmelerin biçimi:** sayfalar sunucuda Razor Pages ile üretilir; ayrı bir JSON API katmanı yoktur — bu dokümanın uç envanteri sayfa ve form uçlarını (gönder–yönlendir–göster) ve az sayıdaki makine ucunu — ödeme sağlayıcısının bildirimi, parçalı dosya yükleme, indirme, site haritası — taşır (Teknik Mimari `05 §2`, §3). Şablonun endpoint, DTO ve hata kodu bölümlerinin bu biçime nasıl uygulanacağı bu aşamanın kararıdır.
+> - **K-873 · K-874 · Sürümün taşınması:** düzenleme formları kaydın açıldığı andaki sürümü, yöneticinin sipariş işlemleri ekranda gördüğü sürümü taşır; sürüm değişmişse yanıt kaydın ya da siparişin değiştiğini söyler ve güncel hâli gösterir; "Yine de kaydet" formu güncel sürümle yeniden gönderir (`05 §7`; `04 §2.10`). Alanın adı ve yanıtların biçimi bu aşamanın kararıdır.
+> - **K-883 · K-884 · Dosya uçları:** dijital ürün dosyası parçalı ve kaldığı yerden sürdürülebilir biçimde yüklenir; indirme düğmesi kaleme bağlı, bir saat ömürlü bir bağlantı üretir ve bu bağlantıdaki devam istekleri (HTTP aralık istekleri) yeni hak düşürmez (`05 §7`; `02 §3.12.5`). Uçların tanımı bu aşamanın kararıdır.
+
 ---
 
 ## 1. Traceability Matrix (ÖNCE BU)

@@ -27,6 +27,11 @@
 > - **K-832 · Yasal metinlerin e-postadaki okunabilirliği:** Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi sipariş e-postasında da `02 §3.24.3`'ün metin boyutu alt sınırıyla, açık ve okunabilir biçimde gider (Mesafeli Sözleşmeler Yönetmeliği m.6/1). Şablonun bunu nasıl sağladığı bu aşamanın kararıdır.
 > - **Dizin — Aşama 3 kararlarının bu dokümana devirleri:** karar kaydında K-723…K-850'nin etki sütunlarında bu dokümanı gösteren beş atıf (beş karar) ve Arayüz Tanımları'nın (`04`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md) §6'dadır; Aşama 3'ün atıflarının hepsi işin adını taşır. İki iş yalnız `04`'ün gövdesinde yaşar, karar satırı yoktur: marka renginin e-postadaki yeri (`04 §2.1.3`) ve bildirimlerin taşıdığı bağlantının biçimi — panel ekranına inen firma bildirimleri dahil (`04 §3.5`). Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Önceki aşamaların dizinleri: `PHASE1_CONFLICT_SCAN.md` §6, `PHASE2_CONFLICT_SCAN.md` §6.
 
+> **Aşama 4'ten park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §12.3 TM0-04).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-862 · E-posta gönderim altyapısı ve gider tavanı:** firmanın aylık altyapı gideri yaklaşık 10–20 $'dır ve e-posta gönderimini kapsar (K-861); gönderim altyapısı kullanım kadar ödenen ya da ücretsiz katmanlı bir servistir (Teknik Mimari `05 §0`). Servisin seçimi ve konumu — yurt dışındaysa aktarımın şartları firmanın yükümlülüğüdür (`02 §12.2.8`; `10 §4.1` ÖK-2) — bu aşamanın kararıdır.
+
 ---
 
 ## 0. Yazım kuralları

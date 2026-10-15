@@ -33,6 +33,11 @@
 > - **K-834 · K-850 · İlk kurulumda çerez:** çerez politikası ilk kez yayına alınana kadar vitrinin ziyaretçinin tarayıcısına çerez yazmadığı ve iletişim formunun, hesap kaydının ve Google ile ilk girişin — aydınlatma metni önce yayına alınmış olsa da — kapalı kaldığı doğrulanır (`02 §3.1.5`, §12.2.5; `04 §5.11`; K-850 — satır Aşama 3'ün çakışma taramasında hizalandı).
 > - **Dizin — Aşama 3 kararlarının bu dokümana devirleri:** karar kaydında K-723…K-850'nin etki sütunlarında bu dokümanı gösteren on sekiz atıf (on sekiz karar) ve Arayüz Tanımları'nın (`04`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md) §6'dadır; Aşama 3'ün atıflarının hepsi işin adını taşır. Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Önceki aşamaların dizinleri: `PHASE1_CONFLICT_SCAN.md` §6, `PHASE2_CONFLICT_SCAN.md` §6.
 
+> **Aşama 4'ten park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §12.3 TM0-04).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-884 · İndirme hakkının düştüğü an:** hak, indirme düğmesine basılıp dosyanın gönderimi başladığında bir kez düşer; bir saat ömürlü bağlantıdaki devam istekleri hak düşürmez; ömür dolduktan sonraki indirme yeni bir haktır (Teknik Mimari `05 §7`; `02 §3.12.5`). Doğrulama senaryoları bu aşamanın kararıdır.
+
 ---
 
 ## 1. Amaç ve kapsam

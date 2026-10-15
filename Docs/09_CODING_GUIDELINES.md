@@ -11,6 +11,14 @@
 >
 > - **K-17 · Terim sözlüğü:** `02 §1` sözlüğü **birebir devralınır**; sembol, dosya ve tip adları sözlüğün İngilizce karşılıklarıyla — kapalı liste değerleri Veri Modeli'nin (`06`) verdiği adlarla (K-531) — üretilir. Eş anlamlı ad kullanımı yasaktır — bir kavramın tek adı vardır.
 
+> **Aşama 4'ten park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §12.3 TM0-04).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-866 · K-867 · Dil, çatı ve kütüphane ekleme:** kod C# ile, .NET 10 (LTS), ASP.NET Core ve Entity Framework Core üzerinde yazılır; ürün yalnız LTS sürümlerinde yürür; eklenen her kütüphanenin lisansı ücretsiz ve ticari kullanıma açıktır ve bakımı süren bir projedir (Teknik Mimari `05 §2`). C# kod standartları ve kütüphane eklemenin işletimi bu aşamanın kararıdır.
+> - **K-868 · K-869 · Sayfa ve ön yüz düzeni:** sayfalar Razor Pages ile sunucuda üretilir, form gönderimi gönder–yönlendir–göster düzenindedir; temel akışlar JavaScript kapalıyken de tamamlanır; ön yüz çatısı ve npm derleme hattı yoktur — düz JavaScript modülleri ve düz CSS; üçüncü taraf betik ve yazı tipi sunucusu kullanılmaz (`05 §2`). Dosya düzeni ve adlandırma bu aşamanın kararıdır.
+> - **K-871 · K-881 · K-887 · Modül sınırları, dosya deposu ve önbellek:** ürün tek dağıtılabilir modüler monolittir, modüller birbirinin tablosuna doğrudan yazmaz; dosyalara bir dosya deposu arayüzü üzerinden erişilir; önbellek uygulamanın belleğindedir ve ilgili kayıt kaydedildiğinde geçersiz kılınır (`05 §3`, §7). Sınırların kodda nasıl korunduğu, arayüzün kullanımı ve geçersiz kılmanın kalıbı bu aşamanın kararıdır.
+> - **K-882 · Görüntü işleme kütüphanesi:** yüklenen görsel sunucuda yeniden kodlanır, meta verisi atılır ve WebP türevleri üretilir (`05 §7`); kütüphanenin lisansı ücretsiz ve ticari kullanıma açıktır. Kütüphanenin seçimi bu aşamanın kararıdır.
+
 ---
 
 ## 1. Temel ilkeler

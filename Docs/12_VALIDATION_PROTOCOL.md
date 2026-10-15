@@ -37,6 +37,8 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-884 · İndirme hakkının düştüğü an:** hak, indirme düğmesine basılıp dosyanın gönderimi başladığında bir kez düşer; bir saat ömürlü bağlantıdaki devam istekleri hak düşürmez; ömür dolduktan sonraki indirme yeni bir haktır (Teknik Mimari `05 §7`; `02 §3.12.5`). Doğrulama senaryoları bu aşamanın kararıdır.
+> - **K-890 · K-893 · K-898 · Eşzamanlılık, tek işlenme ve kesinti:** (1) aynı son adedi aynı anda onaylayan iki müşteriden yalnız biri ayırır, öteki kalemin ayrılamadığını görür; (2) ödeme adımında iki kez gönderilen onay tek sipariş açar; (3) aynı sağlayıcı bildirimi iki kez gelir ve ödeme bir kez uygulanır — bildirim ile son sorgu yarışırsa da; (4) havale ödeme süresi kesintide dolar — iptal dönüşten sonraki ilk iş gününün sonuna ertelenir, sipariş sayfası yeni son günü gösterir, yeni hatırlatma gitmez; kaçan işler zamanlarına göre sırayla çalışır (Teknik Mimari `05 §4`, §5; `02 §4.3`). Senaryoların kurulumu bu aşamanın kararıdır.
+> - **K-904 · K-907 · K-908 · Bağlantılar ve çerezler:** (1) e-postadaki doğrulama ve geri alma bağlantısının açılması işlem yapmaz — doğrulama ve geri alma ekrandaki düğmeyle olur; (2) ödeme adımından girişe gidip dönen müşterinin yazdıkları durur ve sipariş onaylanınca o çerez silinir; (3) çerez politikası yayına alınana kadar vitrinin hiçbir yanıtı çerez yazmaz — ara katman yanıttan çerez başlıklarını çıkarır (`05 §6`; `02 §8.1.3`, §12.2.5). Senaryoların kurulumu bu aşamanın kararıdır.
 
 ---
 

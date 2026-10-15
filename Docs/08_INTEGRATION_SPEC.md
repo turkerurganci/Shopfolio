@@ -31,6 +31,8 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-862 · E-posta gönderim altyapısı ve gider tavanı:** firmanın aylık altyapı gideri yaklaşık 10–20 $'dır ve e-posta gönderimini kapsar (K-861); gönderim altyapısı kullanım kadar ödenen ya da ücretsiz katmanlı bir servistir (Teknik Mimari `05 §0`). Servisin seçimi ve konumu — yurt dışındaysa aktarımın şartları firmanın yükümlülüğüdür (`02 §12.2.8`; `10 §4.1` ÖK-2) — bu aşamanın kararıdır.
+> - **K-892 · K-893 · K-894 · K-897 · Bildirimler ve ödeme sağlayıcısı:** e-postanın gövdesi gönderim anında olayın değerlerinden ve siparişin donmuş verisinden üretilir ve saklanmaz — şablonun değerleri bu dokümanda tanımlanır; sağlayıcının bildirimi doğrulanır, gelen bildirim kaydına yazılır ve kuyruktan işlenir, işlem kimliği tekildir; karta para gönderen isteğin kimliği sağlayıcıya tekrar anahtarı ya da referans olarak gider, sonucu bilinmeyen istek yeniden gönderilmez ve sonucu sorulur; yanıtsız son sorgu beş dakikada bir yinelenir (Teknik Mimari `05 §4`, §5, §10). Sorgunun biçimi, sağlayıcının tekrar anahtarı ve kotası ve sonucu bilinmeyen iadenin bir işaret gerektirip gerektirmediği bu aşamanın kararıdır — işaret gerekirse karar kaydına döner (Aşama 2'nin K-705 satırı).
+> - **K-906 · Ödeme sağlayıcısından dönüş:** çerezler SameSite=Lax niteliğini taşır; sağlayıcıdan dönüş başka bir siteden gelen istektir ve sipariş sayfasına — misafir alıcı dahil — oturum çerezine dayanmadan inmelidir (`05 §6`; `02 §3.17.1`). Dönüşün yolu bu aşamanın ve API Tasarımı'nın (`07`) kararıdır.
 
 ---
 

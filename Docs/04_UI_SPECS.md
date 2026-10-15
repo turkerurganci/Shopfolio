@@ -1,6 +1,6 @@
 # Shopfolio — UI Specifications
 
-**Versiyon: v0.20** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-05
+**Versiyon: v0.21** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-16
 
 > **Aşama:** 3 — UI/UX Tasarım · **Rol:** Senior Product Designer / UX Architect
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §4'e (ekran envanteri) geçilmez.
@@ -37,6 +37,8 @@
 > **Aşama kapanışı — checkpoint (2026-10-05, v0.19; K-437'nin 4. adımı; K-849'un devri):** iki salt okuma merceği özet cümle ile ekran tanımının ayrıştığı kalıbı dokümanın tamamında aradı — müşteri ve panel tarafı; kırk üç iç tutarlılık bulgusu düzeltildi: §2'nin bileşen kuralları ve kapalı listeleri (2.1.2, 2.1.4, 2.2.1, 2.2.2, 2.3.1.3, 2.4.2, 2.4.3, 2.5.1, 2.5.3.1, 2.5.6, 2.6.3, 2.6.4, 2.6.5, 2.7.1.2, 2.7.3.3, 2.8.3, 2.10.1, 2.12.2.2, 2.12.4, 2.12.7.5, 2.13.3, bileşen tablosu OB-06), ekranların giriş ve çıkışı ile §3 (3.3.12, 3.5.9, yeni 3.4.23; 5.1.1, 5.2.1, 5.15.1, 5.16.1, 5.19.1, 5.26.1, 5.27.1, 9.21.1, 9.25.1), §4'ün amaç cümleleri (E-28, E-36), §6 (yeni 6.2.13.14 ve 6.3.16.6; 6.1.3, 6.1.5.1, 6.2.16.9, 6.3.1.1–6.3.1.3, 6.3.16.1, 6.3.16.3, 6.3.19.1, 6.3.19.3) ve ekranların kendi maddeleri (5.4.16, 5.12.6, 5.14.9, 5.16.5, 5.16.12, 5.19.2, 7.1.7.1, 9.9.36, 9.22 ve §3.2'nin kapanış notu). Bir karar — **K-851:** içerik liste sayfası (E-07) sayfa başına 24 kayıt (2.13.3, 5.7.3). Matrisin `03 §3.2.1.8`–§3.2.1.9 satırlarından E-12 çıktı — iki uyarı ürün sayfasında sepete eklerken görünür, sepette görünmez (§1.2'de E-12 46 → 44). Yansıma kaçakları: §1.1'in otuz üç özeti (K-787, K-791, K-793, K-794, K-796, K-759…K-761, K-808, K-826, K-831, K-850), `02 §5.9` satırına müşterinin son adımı (K-732; §1.2'de E-17, E-18, E-25), 9.16.3 ve 9.19.3 (K-850). Kaynak satırları (betik 2): on iki yerde on dokuz atıf tamamlandı. Sayılar: §3 124 geçiş · §6 285 satır · §7 165 alan satırı. Geri besleme tablosu §1.3'te. Rapor `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`. Sıradaki adım Aşama 3'ün öğrenim terfisidir.
 >
 > **Aşama 3 kapanışı — arşiv işareti (2026-10-05, v0.20 — K-437'nin 6. adımı):** doküman **✓ Tamamlandı**; kapanış sürümü budur. Bu sürümde yalnız başlık notu ve dosya sonu dipnotu değişti — ekran tanımları ve tablolar v0.19 ile aynıdır. Öğrenim terfisi (K-852) ve `00` v1.0.5 (K-853) bu dokümana dokunmadı; sorulmadan kaydedilen kırk ⚠ karar proje sahibine gösterildi, itiraz yok (K-854). Karar kaydında Aşama 3'ün kayıtları salt okunurdur; bu dokümanın dayandığı Aşama 3 kararlarının otoriter kaynağı artık bu doküman ve geri beslendiği Ürün Gereksinimleri, Kullanıcı Akışları, MVP Kapsamı ve Proje Vizyonu'dur (`PRODUCT_DISCOVERY_STATUS.md` başlık notu; K-647, K-652). Sonraki aşamalara devir: `PRODUCT_DISCOVERY_STATUS.md` §11.
+
+> **Aşama 4 — Teknik Mimari workshop'unun 2. oturumunun geri beslemesi (2026-10-16, v0.21 — K-652, K-857):** iki karar bu dokümana işlendi; ✓ durumu korunur, kalite döngüsü yeniden açılmaz. **K-904:** e-postayla gelen bağlantının açılması işlem yapmaz — E-21'in ve E-54'ün yeni adres iniş ekranının geçerli hâlinde önce doğrulama adımı ve işlemin adını taşıyan tek düğme gelir (E-28'in K-839 kalıbı): 5.21.2, 5.21.3, 5.21.7, 5.21.9, 9.25.2, 9.25.4, 9.25.8, matrisin 6.2.21.1, 6.2.21.5 ve 6.3.25.3 satırları ve 6.2.21'in giriş cümlesi, §3'ün 3.5.4 satırı, §1.1.2'nin ve §4.1–§4.2'nin E-21 ve E-54 satırları, §1.1'in `03 §9.1.4` ve §9.3.5 satırlarının özeti, 5.21 ve 9.25'in Kaynak satırları. **K-888 (proje sahibinin kararı):** §1.1'in KP-75 ve `02 §3.34.8` satırlarının özeti sıfır kayıp kuralının tek istisnasını anar. Matrisin satır sayısı ve dağılımı değişmedi (1.193). Geri besleme tablosu karar kaydının §12.4'ündedir.
 
 **Yazım konvansiyonları (K-726, K-762).** Bu on beş madde §2–§9'un bütün yazım oturumlarını bağlar; "konvansiyon n" diye anılır.
 
@@ -195,7 +197,7 @@ Bu liste matrisin "Ekran" sütununun değer kümesidir; **nihai ekran envanteri 
 | E-18 | Cayma beyanı ekranı | Müşteri | Müşteri | Kalemi seçtirir, iade adresini ve yükümlülüğü gösterir, beyanı ve havalede IBAN'ı alır. |
 | E-19 | Ayıp talebi ekranı | Müşteri | Müşteri | Kalemi seçtirir ve sorunun açıklamasını alır; talebi yeniden açtırır. |
 | E-20 | Kayıt ekranı | Müşteri | Ziyaretçi | Ad, e-posta ve şifreyle hesap açtırır; doğrulama bağlantısını yeniden istetir. |
-| E-21 | Doğrulama bağlantısının iniş ekranı | Müşteri | Kullanıcı | Kayıt ya da yeni e-posta doğrulamasının sonucunu — geçersiz bağlantı dahil — söyler. |
+| E-21 | Doğrulama bağlantısının iniş ekranı | Müşteri | Kullanıcı | Kayıt ya da yeni e-posta doğrulamasını tek düğmeyle tamamlatır ve sonucunu — geçersiz bağlantı dahil — söyler (K-904). |
 | E-22 | Müşteri girişi | Müşteri | Ziyaretçi · Üye | E-posta ve şifreyle ya da Google ile giriş yaptırır. |
 | E-23 | Şifre sıfırlama ekranları | Müşteri | Kullanıcı | Sıfırlama bağlantısını istetir ve yeni şifreyi kurdurur. |
 | E-24 | Yeniden doğrulama ekranı | Müşteri | Üye | Şifre, e-posta değişikliği ve hesap silmeden önce kimliği yeniden doğrular. |
@@ -228,7 +230,7 @@ Bu liste matrisin "Ekran" sütununun değer kümesidir; **nihai ekran envanteri 
 | E-51 | Satış özeti | Panel | Yönetici | Seçilen dönemin satış ölçülerini gösterir. |
 | E-52 | İşlem izi | Panel | Yönetici | Yönetici işlemlerinin izini tarih ve yönetici süzgeciyle okutur. |
 | E-53 | Dışa aktarma | Panel | Yönetici | Siparişleri, üye listesini ve iletişim taleplerini dosya olarak dışa aktartır. |
-| E-54 | Yönetici hesabının doğrulama ekranları | Panel | Yönetici · Kullanıcı | Yöneticinin kimliğini şifre ve e-posta değişikliğinden önce yeniden doğrular; yeni adresin doğrulama bağlantısının ve "bu değişikliği ben yapmadım" bağlantısının sonucunu söyler. |
+| E-54 | Yönetici hesabının doğrulama ekranları | Panel | Yönetici · Kullanıcı | Yöneticinin kimliğini şifre ve e-posta değişikliğinden önce yeniden doğrular; yeni adresin doğrulamasını ve "bu değişikliği ben yapmadım" bağlantısında geri almayı tek düğmeyle yaptırır ve sonucunu söyler (K-839, K-904). |
 
 Aday sayısı 54'tür: müşteri tarafı 28 (E-01…E-28), panel 26 (E-29…E-54). Aktör adları `03 §0.3.2`'nin adlarıdır (K-700).
 
@@ -347,7 +349,7 @@ Kapsam ağıdır: her satır en az bir ekrana ya da adıyla yazılmış bir ekra
 | KP-72 | Deneme limitleri — nötr mesaj | ortak bileşen: mesaj | eşlendi |
 | KP-73 | Çerez onayı yoktur; yalnız zorunlu çerezler | yoktur — kapsam dışı · E-11 | eşlendi |
 | KP-74 | Aydınlatma metni bağlantısı her kişisel veri ekranında; periyodik imha | E-20 · E-22 · E-13 · E-10 · E-16 · E-17 · E-18 · E-19 · ekran dışı — arka plan | eşlendi |
-| KP-75 | Sipariş tarafında veri kaybı toleransı sıfır | ekran dışı — mimari (`05`) | ekran dışı |
+| KP-75 | Sipariş tarafında veri kaybı toleransı sıfır — tek istisna: sunucunun diskinin kalıcı kaybında en çok son bir dakika (K-888) | ekran dışı — mimari (`05`) | ekran dışı |
 | KP-76 | Eşzamanlı düzenleme uyarısı; sipariş işlemleri güncel hâle karşı | E-33 · E-41 · E-37 · ortak bileşen: mesaj | eşlendi |
 
 #### 1.1.4 Kullanıcı Akışları — müşteri tarafı (378)
@@ -824,7 +826,7 @@ Kapsam ağıdır: her satır en az bir ekrana ya da adıyla yazılmış bir ekra
 | `03 §9.1.1` | Kayıt ekranı; veri toplayan girişlerin kapısı (K-850) ve aydınlatma bağlantısı; "Google ile giriş" düğmesi | E-20 | eşlendi |
 | `03 §9.1.2` | Ad, e-posta ve şifreyle kayıt; şifre politikası; "bu e-posta zaten kayıtlı" | E-20 | eşlendi |
 | `03 §9.1.3` | Doğrulama bağlantısını ekrandan yeniden isteme (L-9) | E-20 · E-22 | eşlendi |
-| `03 §9.1.4` | Doğrulama bağlantısı açılır: hesap doğrulanır, misafir siparişleri hesaba düşer | E-21 · E-27 | eşlendi |
+| `03 §9.1.4` | Doğrulama bağlantısı açılır; doğrulama ekrandaki tek düğmeyle yapılır (K-904): hesap doğrulanır, misafir siparişleri hesaba düşer | E-21 · E-27 | eşlendi |
 | `03 §9.1.5` | Bağlantı süresinde açılmaz: kayıt silinir, "bağlantı geçersiz" | E-21 | eşlendi |
 | `03 §9.1.6` | Google ile ilk giriş: hesap doğrulanmış ve şifresiz doğar | E-22 · ekran dışı — ürünün dışında | eşlendi |
 | `03 §9.1.7` | Google e-postayı doğrulanmamış verir: kayda yönlendirme | E-22 · E-20 | eşlendi |
@@ -850,7 +852,7 @@ Kapsam ağıdır: her satır en az bir ekrana ya da adıyla yazılmış bir ekra
 | `03 §9.3.2` | Adres defteri: ekleme, adlandırma, düzenleme, silme | E-26 · E-13 · ortak bileşen: adres | eşlendi |
 | `03 §9.3.3` | Şifre değiştirme | E-25 · E-24 | eşlendi |
 | `03 §9.3.4` | E-posta değiştirme isteği: yeni adres, doğrulanana kadar geçersiz | E-25 · E-24 (GAP-3) | eşlendi |
-| `03 §9.3.5` | Yeni adresteki bağlantı açılır: değişiklik geçerli olur | E-21 · E-25 · E-27 · ekran dışı — e-posta (`08`) | eşlendi |
+| `03 §9.3.5` | Yeni adresteki bağlantı açılır; doğrulama ekrandaki tek düğmeyle yapılır (K-904): değişiklik geçerli olur | E-21 · E-25 · E-27 · ekran dışı — e-posta (`08`) | eşlendi |
 | `03 §9.3.6` | Eski adresteki geri alma bağlantısı açılır; geri alma ekrandaki tek düğmeyle yapılır (K-839) | E-28 · E-23 | eşlendi |
 | `03 §9.3.7` | Yönetici kendi e-posta adresini ve adını değiştirir — ad değişikliği yeniden doğrulama istemez (K-736) | E-50 · E-54 | eşlendi |
 
@@ -1005,7 +1007,7 @@ Akışa girmeyen görünüm ve site kuralları ile `04`'e açıkça iş bırakan
 | `02 §3.34.5` | Erişilebilirlik tabanı: Kontrol Listesi A Seviyesi ve WCAG 2.2 | ortak bileşen: taban | eşlendi |
 | `02 §3.34.6` | Ziyaretçi ölçümü yoktur | yoktur — kapsam dışı | ekran dışı |
 | `02 §3.34.7` | Çalışma süresi taahhüdü ve planlı bakım penceresi yoktur | yoktur — kapsam dışı | ekran dışı |
-| `02 §3.34.8` | Sipariş tarafında veri kaybı toleransı sıfır | ekran dışı — mimari (`05`) | ekran dışı |
+| `02 §3.34.8` | Sipariş tarafında veri kaybı toleransı sıfır — tek istisna: sunucunun diskinin kalıcı kaybında en çok son bir dakika (K-888) | ekran dışı — mimari (`05`) | ekran dışı |
 
 **§12.4 Erişilebilirlik (1)**
 
@@ -2834,7 +2836,7 @@ Kullanıcının bir e-postadaki bağlantıyla, bir dış sayfadan dönerek ya da
 | 3.5.1 | Sipariş e-postası | Sipariş sayfasının bağlantısı (erişim anahtarı) | E-16, e-posta sormadan | Siparişin kişisel verileri imha edilmemiş | `02 §3.22.5` · `03 §2.6.3` |
 | 3.5.2 | Sipariş e-postası | Dijital ürünün indirme bağlantısı | E-16 — aynı kapı | 3.5.1 | `02 §3.22.3` · `03 §2.6.3` |
 | 3.5.3 | B-14 "IBAN gerekli" e-postası | Sipariş sayfasının bağlantısı | E-16; kalemin IBAN alanı açıktır (2.12.3.2) | IBAN isteği sürüyor | `03 §7.1.29`–§7.1.34 |
-| 3.5.4 | E-posta doğrulama bağlantısı (kayıt) | Bağlantı | E-21 | Geçerliyse hesap doğrulanır; süresi dolmuşsa ekran bunu söyler | `03 §9.1.4`, §9.1.5 |
+| 3.5.4 | E-posta doğrulama bağlantısı (kayıt) | Bağlantı | E-21 | Geçerliyse doğrulama adımı açılır ve hesap ekrandaki tek düğmeyle doğrulanır — açılış doğrulamaz (K-904); süresi dolmuşsa ekran bunu söyler | `03 §9.1.4`, §9.1.5 · K-904 |
 | 3.5.5 | Şifre sıfırlama bağlantısı | Bağlantı | Müşteri hesabında E-23 · yönetici hesabında E-29 | Bağlantı tek kullanımlık ve ömrü içinde | `03 §9.2.4`, §9.2.5, §9.2.8 |
 | 3.5.6 | Yeni e-posta adresinin doğrulama bağlantısı | Bağlantı | Müşteri hesabında E-21 · yönetici hesabında E-54 | Bağlantı ömrü içinde | `03 §9.3.5`, §9.3.7 |
 | 3.5.7 | "Bu değişikliği ben yapmadım" bağlantısı | Bağlantı | Müşteri hesabında E-28 · yönetici hesabında E-54 | Z-45 içinde | `03 §9.3.6`, §9.3.7 |
@@ -2906,7 +2908,7 @@ Yönetici oturumu vitrinin hesap alanını ve sepetini değiştirmez (2.9.4): y�
 | E-18 | Cayma beyanı ekranı | Müşteri | Kalemi ve adedini seçtirir, iade adresini ve yükümlülüğü gösterir, beyanı ve havalede IBAN'ı alır; son adımda onaylatır. | §5.18 |
 | E-19 | Ayıp talebi ekranı | Müşteri | Kalemi ve ayıplı adedi seçtirir ve sorunun açıklamasını alır; talebi yeniden açtırır. | §5.19 |
 | E-20 | Kayıt ekranı | Ziyaretçi | Ad, e-posta ve şifreyle hesap açtırır; doğrulama bağlantısını yeniden istetir. | §5.20 |
-| E-21 | Doğrulama bağlantısının iniş ekranı | Kullanıcı | Kayıt ya da yeni e-posta doğrulamasının sonucunu — geçersiz bağlantı dahil — söyler. | §5.21 |
+| E-21 | Doğrulama bağlantısının iniş ekranı | Kullanıcı | Kayıt ya da yeni e-posta doğrulamasını tek düğmeyle tamamlatır ve sonucunu — geçersiz bağlantı dahil — söyler (K-904). | §5.21 |
 | E-22 | Müşteri girişi | Ziyaretçi · Üye | E-posta ve şifreyle ya da Google ile giriş yaptırır. | §5.22 |
 | E-23 | Şifre sıfırlama ekranları | Kullanıcı | Sıfırlama bağlantısını istetir ve yeni şifreyi kurdurur. | §5.23 |
 | E-24 | Yeniden doğrulama ekranı | Üye | Şifre, e-posta değişikliği ve hesap silmeden önce kimliği yeniden doğrular. | §5.24 |
@@ -2945,7 +2947,7 @@ Panel ekranlarının aktörü Yönetici'dir; yönetim tarafı tek roldür (`02 �
 | E-51 | Satış özeti | Yönetici | Seçilen dönemin satış ölçülerini gösterir. | Raporlar › Satış özeti | §9.22 |
 | E-52 | İşlem izi | Yönetici | Yönetici işlemlerinin izini tarih ve yönetici süzgeciyle okutur. | Raporlar › İşlem izi | §9.23 |
 | E-53 | Dışa aktarma | Yönetici | Siparişleri, üye listesini ve iletişim taleplerini dosya olarak dışa aktartır. | Raporlar › Dışa aktarma | §9.24 |
-| E-54 | Yönetici hesabının doğrulama ekranları | Yönetici · Kullanıcı | Yöneticinin kimliğini şifre ve e-posta değişikliğinden önce yeniden doğrular; yeni adresin doğrulama bağlantısının sonucunu söyler; "bu değişikliği ben yapmadım" bağlantısında değişikliği tek düğmeyle geri aldırır (K-839). | — (E-50'den ve bağlantıdan) | §9.25 |
+| E-54 | Yönetici hesabının doğrulama ekranları | Yönetici · Kullanıcı | Yöneticinin kimliğini şifre ve e-posta değişikliğinden önce yeniden doğrular; yeni adresin doğrulamasını tek düğmeyle tamamlatır ve sonucunu söyler (K-904); "bu değişikliği ben yapmadım" bağlantısında değişikliği tek düğmeyle geri aldırır (K-839). | — (E-50'den ve bağlantıdan) | §9.25 |
 
 ### 4.3 Aday listeden envantere farklar ve düşen kimlik
 
@@ -3425,21 +3427,21 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
 ### 5.21 E-21 — Doğrulama bağlantısının iniş ekranı
 
 - **5.21.1 Aktör · giriş · çıkış.** Kullanıcı. Giriş: kaydın doğrulama bağlantısı (3.5.4) ve hesabın yeni e-posta adresinin doğrulama bağlantısı (3.5.6). Çıkış: giriş → E-22 (3.3.29) · yeniden kayıt → E-20 (3.3.34) · hesap → E-25 (3.3.35).
-- **5.21.2 İlk görülen:** bağlantının sonucunu söyleyen tek cümle ve sonraki adımın bağlantısı — ekranın birincil düğmesidir.
-- **Bilgi hiyerarşisi** — ekran bağlantının hâline göre altı hâlden birini gösterir (K-780); her hâl yerinde kalıcı mesajdır (§2.3.1.2) ve tek bir sonraki adım taşır:
-  - **5.21.3 Kayıt doğrulandı** — hesabın açıldığı; o e-postaya ait geçmiş misafir siparişleri varsa "Siparişlerim"e düştükleri (`03 §9.1.4`; `02 §3.13.2`). Sonraki adım: giriş (3.3.29) — doğrulama oturum açmaz.
+- **5.21.2 İlk görülen:** geçerli bağlantıda doğrulanacak işlemi söyleyen tek cümle ve işlemin adını taşıyan tek birincil düğme — doğrulama düğmeyle olur, bağlantının açılmasıyla olmaz (K-904); doğrulamadan sonra ve öteki hâllerde bağlantının sonucunu söyleyen tek cümle ve sonraki adımın bağlantısı — ekranın birincil düğmesidir.
+- **Bilgi hiyerarşisi** — ekran bağlantının hâline göre altı hâlden birini gösterir (K-780); her hâl yerinde kalıcı mesajdır (§2.3.1.2) ve tek bir sonraki adım taşır. Geçerli kayıt ya da yeni e-posta bağlantısında ekran önce **doğrulama adımını** gösterir — doğrulanacak işlemi söyleyen tek cümle ve işlemin adını taşıyan tek düğme; bağlantının kaç kez açıldığına bakılmaz, açılış doğrulamaz (K-904; 5.28.3'ün kalıbı) — ve 5.21.3 ile 5.21.7 düğmeden sonra görünür:
+  - **5.21.3 Kayıt doğrulandı** — doğrulama adımının düğmesinden sonra (K-904): hesabın açıldığı; o e-postaya ait geçmiş misafir siparişleri varsa "Siparişlerim"e düştükleri (`03 §9.1.4`; `02 §3.13.2`). Sonraki adım: giriş (3.3.29) — doğrulama oturum açmaz.
   - **5.21.4 Kayıt bağlantısının süresi dolmuş** — kaynağın metni: *"bağlantı geçersiz, yeniden kayıt olun"*; kayıt silinmiştir ve e-posta yeniden kayda açıktır (`02 §3.13.5`; `03 §3.4.1`, §9.1.5). Sonraki adım: kayıt (3.3.34).
   - **5.21.5 Kayıt bağlantısının yerine yenisi gönderilmiş** — kayıt hâlâ bekliyor: bu bağlantının geçerliliğini yitirdiği ve en son gönderilen bağlantının kullanılacağı (K-659; K-780). Sonraki adım: giriş — doğrulanmamış hesapla girişte bağlantı yeniden istenir (5.22.8).
   - **5.21.6 Kayıt bağlantısı daha önce kullanılmış** — hesabın zaten doğrulandığı. Sonraki adım: giriş.
-  - **5.21.7 Yeni e-posta adresi doğrulandı** — değişikliğin geçerli olduğu, hesabın bundan sonra yeni adresle çalıştığı ve önceki adrese bildirim gittiği; yeni adrese ait geçmiş misafir siparişleri varsa hesaba düştükleri (`03 §9.3.5`). Sonraki adım: oturum açıksa "Hesabım", değilse giriş (3.3.35).
+  - **5.21.7 Yeni e-posta adresi doğrulandı** — doğrulama adımının düğmesinden sonra (K-904): değişikliğin geçerli olduğu, hesabın bundan sonra yeni adresle çalıştığı ve önceki adrese bildirim gittiği; yeni adrese ait geçmiş misafir siparişleri varsa hesaba düştükleri (`03 §9.3.5`). Sonraki adım: oturum açıksa "Hesabım", değilse giriş (3.3.35).
   - **5.21.8 Yeni e-posta bağlantısı geçersiz** — süresi dolmuş, yerine yeni bir istek geçmiş ya da kullanılmış: değişikliğin bu bağlantıyla geçerli olmadığı; hesap önceki adresiyle çalışır ve değişiklik hesap ekranından yeniden başlatılır (`03 §3.4.9`, §4.1.1; K-734). Sonraki adım: 5.21.7'nin bağlantısı.
-- **5.21.9 Aksiyonlar:** yalnız sonraki adımın bağlantısı; ekranın formu ve onayı yoktur. Bağlantının hangi hâlde olduğunun tespiti Teknik Mimari'nin işidir (`05`).
+- **5.21.9 Aksiyonlar:** **doğrulamak** — geçerli bağlantıdaki doğrulama adımının tek düğmesi; onay penceresi açılmaz, düğme işlemin adını taşır (K-904; 5.28.6'nın kalıbı). Öteki hâllerde yalnız sonraki adımın bağlantısı vardır; ekranın formu ve onay penceresi yoktur. Bağlantının hangi hâlde olduğunun tespiti Teknik Mimari'nin işidir (`05`; K-903).
 - **5.21.10 Validasyonlar:** form yoktur.
 - **5.21.11 Durum × rol varyantları.** Ekran oturumdan bağımsızdır; yalnız 5.21.7 ve 5.21.8'in sonraki adımı oturuma göre değişir. Yönetici hesabının yeni adres doğrulaması bu ekrana değil E-54'e iner (3.5.6). Tam matris §6.2'dedir — 6.2.21.
 - **5.21.12 Boş / yükleniyor / hata durumları.** Ekranın boş hâli yoktur; tanınmayan bağlantı 5.21.4'ün hâlini gösterir. Sayfa açılamazsa §2.7.3.2.
 - **5.21.13 Responsive notları.** Tek sütundur; sınıflar arasında fark yoktur.
 
-*Kaynak: `02 §3.13.2`, §3.13.4, §3.13.5, §3.13.14 · `03 §1.10.5`, §3.4.1, §3.4.9, §4.1.1, §7.1.49, §7.1.51, §9.1.4, §9.1.5, §9.3.5 · `10 §2` KP-25 · K-734, K-780 · devir: K-659.*
+*Kaynak: `02 §3.13.2`, §3.13.4, §3.13.5, §3.13.14 · `03 §1.10.5`, §3.4.1, §3.4.9, §4.1.1, §7.1.49, §7.1.51, §9.1.4, §9.1.5, §9.3.5 · `10 §2` KP-25 · K-734, K-780, K-903, K-904 · devir: K-659.*
 
 ### 5.22 E-22 — Müşteri girişi
 
@@ -3840,15 +3842,15 @@ Matris ayrıca iki ekran tanımını kaynağa hizaladı — karar gerektirmeyen 
 | 6.2.20.6 | Ziyaretçi | Hâl: Google uygulaması tanımlı değil | "Google ile giriş" görünmez (5.20.11) | Kaydolmak | `03 §10.1.3.3` |
 | 6.2.20.7 | Ziyaretçi | Hâl: Google e-postayı doğrulanmamış verdi | Formun başında yönlendirme mesajı (5.20.8) | Kaydolmak | `03 §9.1.7` · K-779 |
 
-**6.2.21 E-21 — Doğrulama bağlantısının iniş ekranı.** Ekran oturumdan bağımsızdır; her hâlin tek sonraki adımı vardır (5.21.11).
+**6.2.21 E-21 — Doğrulama bağlantısının iniş ekranı.** Ekran oturumdan bağımsızdır; her hâlin tek sonraki adımı vardır (5.21.11). Geçerli bağlantıda doğrulama ekrandaki tek düğmeyle olur (K-904).
 
 | # | Rol | Durum | Ne gösterilir | Hangi aksiyonlar aktif | Kaynak |
 |---|---|---|---|---|---|
-| 6.2.21.1 | Kullanıcı | Hâl: kayıt doğrulandı | 5.21.3 | Giriş → E-22 | `03 §9.1.4` · K-780 |
+| 6.2.21.1 | Kullanıcı | Hâl: kayıt bağlantısı Z-1 içinde ve kullanılmamış — kaç kez açıldığına bakılmaz | Doğrulama adımı; düğmeden sonra kayıt doğrulandı (5.21.3) | Doğrulamak — tek düğme; sonra giriş → E-22 | `03 §9.1.4` · K-780, K-904 |
 | 6.2.21.2 | Kullanıcı | Hâl: kayıt bağlantısının süresi dolmuş · tanınmayan bağlantı | 5.21.4 | Kayıt → E-20 | `03 §9.1.5` |
 | 6.2.21.3 | Kullanıcı | Hâl: kayıt bağlantısının yerine yenisi gönderilmiş | 5.21.5 | Giriş → E-22 | K-659, K-780 |
 | 6.2.21.4 | Kullanıcı | Hâl: kayıt bağlantısı kullanılmış | 5.21.6 | Giriş → E-22 | K-780 |
-| 6.2.21.5 | Kullanıcı · Üye | Hâl: yeni e-posta adresi doğrulandı | 5.21.7 | Oturum açıksa E-25, değilse E-22 | `03 §9.3.5` |
+| 6.2.21.5 | Kullanıcı · Üye | Hâl: yeni e-posta bağlantısı geçerli ve kullanılmamış — kaç kez açıldığına bakılmaz | Doğrulama adımı; düğmeden sonra yeni e-posta adresi doğrulandı (5.21.7) | Doğrulamak — tek düğme; sonra oturum açıksa E-25, değilse E-22 | `03 §9.3.5` · K-904 |
 | 6.2.21.6 | Kullanıcı · Üye | Hâl: yeni e-posta bağlantısı geçersiz | 5.21.8 | 6.2.21.5'in bağlantısı | K-734, K-780 |
 
 **6.2.22 E-22 — Müşteri girişi.**
@@ -3918,7 +3920,7 @@ Matris ayrıca iki ekran tanımını kaynağa hizaladı — karar gerektirmeyen 
 | 6.2.28.1 | Kullanıcı | Hâl: bağlantı Z-45 içinde ve kullanılmamış — kaç kez açıldığına bakılmaz | Geri alma adımı; düğmeden sonra geri alındı (5.28.3) | Değişikliği geri almak — tek düğme; sonra yeni şifre e-postadaki bağlantıyla → E-23 | `03 §9.3.6` · K-782, K-839 |
 | 6.2.28.2 | Kullanıcı | Hâl: süresi dolmuş ya da kullanılmış | Bağlantı geçersiz; kullanılmışta geri almanın yapıldığı (5.28.4) | Çerçeve — İletişim | `03 §6.2.5.3` · K-782 |
 
-*Kaynak: `02 §3.1.6`, §3.7, §3.13, §3.16, §3.20.1, §3.22, §3.27.25, §3.32, §3.33, §5, §7 · `03 §1.4`, §1.7, §1.10.8, §1.11.1–§1.11.14, §2, §3.2–§3.4, §6.1, §9, §10.1 · `10 §2` KP-1…KP-38 · K-732, K-744, K-748, K-753…K-758, K-765, K-770…K-796 (müşteri ekranlarının kararları), K-826, K-828, K-829.*
+*Kaynak: `02 §3.1.6`, §3.7, §3.13, §3.16, §3.20.1, §3.22, §3.27.25, §3.32, §3.33, §5, §7 · `03 §1.4`, §1.7, §1.10.8, §1.11.1–§1.11.14, §2, §3.2–§3.4, §6.1, §9, §10.1 · `10 §2` KP-1…KP-38 · K-732, K-744, K-748, K-753…K-758, K-765, K-770…K-796 (müşteri ekranlarının kararları), K-826, K-828, K-829, K-904 (Aşama 4 — Teknik Mimari workshop'unun 2. oturumu).*
 
 ### 6.3 Panel
 
@@ -4163,7 +4165,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 |---|---|---|---|---|---|
 | 6.3.25.1 | Yönetici | Yeniden doğrulama — hâl: oturum açık | İşlemin adı ve şifre (9.25.3) | Doğrulamak → E-50 (9.25.7) | `03 §9.2.6` · K-819 |
 | 6.3.25.2 | Yönetici | Hâl: L-1 aşıldı · oturum kapandı | Nötr limit mesajı · girişe götürür (9.25.9, 9.25.11) | — | `03 §6.1.1.1` |
-| 6.3.25.3 | Kullanıcı | Hâl: yeni adres doğrulandı · bağlantı geçersiz | 9.25.4'ün iki hâli | Oturum açıksa E-50, değilse E-29 | K-780, K-819 |
+| 6.3.25.3 | Kullanıcı | Hâl: yeni adres doğrulandı · bağlantı geçersiz | Geçerli bağlantıda önce doğrulama adımı ve tek düğme; 9.25.4'ün iki hâli | Doğrulamak; sonra oturum açıksa E-50, değilse E-29 | K-780, K-819, K-904 |
 | 6.3.25.4 | Kullanıcı | Hâl: geri alındı · geri alma bağlantısı geçersiz | Geçerli bağlantıda önce geri alma adımı ve tek düğme; 9.25.5'in iki hâli | Değişikliği geri almak; sonra yeni şifre e-postadaki bağlantıyla E-29'da | K-782, K-819, K-839 |
 
 *Kaynak: `02 §3.1.5`, §3.1.6, §5.1, §5.2, §5.10, §5.13, §10 · `03 §1.4`–§1.11, §3.5, §8, §9.2, §9.3.7, §9.4.5, §9.4.6, §10.3.5 · `10 §2` KP-39…KP-65 · `10 §4.1` ÖK-8…ÖK-11 · K-750, K-752, K-797…K-823, K-827.*
@@ -5221,22 +5223,22 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
 ### 9.25 E-54 — Yönetici hesabının doğrulama ekranları
 
 - **9.25.1 Aktör · giriş · çıkış.** Yönetici — yeniden doğrulamada · Kullanıcı — bağlantıyı açan, adresin sahibi. Kimlik üç adımı kapsar (konvansiyon 2; §4.3): yeniden doğrulama, yeni adresin doğrulama bağlantısının iniş ekranı, "bu değişikliği ben yapmadım" bağlantısının iniş ekranı. Giriş: E-50'nin şifre ve e-posta değiştirme işlemleri (3.4.16) · yeni adresin doğrulama bağlantısı (3.5.6) · geri alma bağlantısı (3.5.7). Çıkış: yeniden doğrulamadan sonra E-50, başlatılan işlemin formu (3.4.16) · iniş ekranlarından oturum açıksa E-50, değilse E-29 (3.4.23; §3.6.1) · geri almadan sonra şifre, eski adrese giden sıfırlama bağlantısıyla E-29'un yeni şifre adımında kurulur (3.5.5).
-- **9.25.2 İlk görülen:** yeniden doğrulamada hangi işlem için doğrulandığı ve şifre alanı — birincil düğme doğrulamadır; geri alma bağlantısının geçerli hâlinde geri almanın sonucunu söyleyen tek cümle ve işlemin adını taşıyan tek düğme (5.28.2; K-839); öteki iniş hâllerinde sonucu söyleyen tek cümle ve sonraki adımın bağlantısı.
+- **9.25.2 İlk görülen:** yeniden doğrulamada hangi işlem için doğrulandığı ve şifre alanı — birincil düğme doğrulamadır; geri alma bağlantısının geçerli hâlinde geri almanın sonucunu söyleyen tek cümle ve işlemin adını taşıyan tek düğme (5.28.2; K-839); yeni adresin doğrulama bağlantısının geçerli hâlinde doğrulanacak işlemi söyleyen tek cümle ve işlemin adını taşıyan tek düğme (5.21.2; K-904); öteki iniş hâllerinde sonucu söyleyen tek cümle ve sonraki adımın bağlantısı.
 - **Bilgi hiyerarşisi** — üç adım; düzen müşteri tarafındaki E-24, E-21 ve E-28'in kalıbıdır (§4.3; K-764) ve burada yalnız farklar yazılır (K-819):
   - **9.25.3 Yeniden doğrulama** — panel çerçevesinin içindedir (§2.2.9). E-24'ün kalıbıyla iki farkı vardır: başlatılan işlem iki tanedir — şifre değiştirme · e-posta değiştirme; hesap silme yoktur (`02 §10.2.2`) — ve doğrulama yalnız şifreyledir — panelde Google ile yeniden doğrulama yoktur (`02 §10.2.5`).
-  - **9.25.4 Yeni adresin doğrulama bağlantısının iniş ekranı** — çerçevesizdir ve ürünün panel görünümünde bir başlık taşır (§2.2.9). E-21'in altı hâlinden yalnız e-posta değişikliğinin iki hâli vardır — kayıt hâlleri yoktur, yönetici hesabı davetle doğar (`02 §10.2.1`): **yeni adres doğrulandı** — değişikliğin geçerli olduğu, hesabın bundan sonra yeni adresle çalıştığı ve önceki adrese bildirim gittiği; misafir siparişlerinin bağlanması yoktur (5.21.7'nin farkı) · **bağlantı geçersiz** — süresi dolmuş, yerine yeni bir istek geçmiş ya da kullanılmış; değişikliğin bu bağlantıyla geçerli olmadığı ve E-50'den yeniden başlatılacağı (5.21.8'in kalıbı; K-780). Sonraki adım: oturum açıksa "Hesabım" (E-50), değilse panel girişi (E-29).
+  - **9.25.4 Yeni adresin doğrulama bağlantısının iniş ekranı** — çerçevesizdir ve ürünün panel görünümünde bir başlık taşır (§2.2.9). Geçerli bağlantıda önce E-21'in doğrulama adımı aynen işler — tek düğme, açılış doğrulamaz (5.21.2; K-904). E-21'in altı hâlinden yalnız e-posta değişikliğinin iki hâli vardır — kayıt hâlleri yoktur, yönetici hesabı davetle doğar (`02 §10.2.1`): **yeni adres doğrulandı** — değişikliğin geçerli olduğu, hesabın bundan sonra yeni adresle çalıştığı ve önceki adrese bildirim gittiği; misafir siparişlerinin bağlanması yoktur (5.21.7'nin farkı) · **bağlantı geçersiz** — süresi dolmuş, yerine yeni bir istek geçmiş ya da kullanılmış; değişikliğin bu bağlantıyla geçerli olmadığı ve E-50'den yeniden başlatılacağı (5.21.8'in kalıbı; K-780). Sonraki adım: oturum açıksa "Hesabım" (E-50), değilse panel girişi (E-29).
   - **9.25.5 Geri alma bağlantısının iniş ekranı** — çerçevesizdir. E-28'in geri alma adımı aynen (5.28.3; K-839), iki hâli (K-782) şu farklarla işler (K-819): **geri alındı** — hesabın e-postasının önceki adrese döndüğü, bütün oturumlarının kapandığı, tanınan tarayıcı işaretlerinin düştüğü, şifrenin geçersizleştiği ve önceki adrese şifre sıfırlama bağlantısı gönderildiği; Google girişinin kaldırılması ve siparişlerin hesapta kalması satırları yoktur — yönetici hesabında ikisi de bulunmaz (`02 §10.2.5`; `03 §9.3.6`, §9.3.7) · **bağlantı geçersiz** — süresi dolmuş ya da daha önce kullanılmış: ürünün içinden geri alma yolu kalmadığı; yolun panele erişimi olan başka bir yönetici, hiçbir yönetici giremiyorsa kurulumu yapan olduğu (`02 §10.2.7`; `03 §10.4.3`, §10.4.4) — müşterinin İletişim sayfası yönlendirmesi yoktur (5.28.4'ün farkı).
   - **9.25.6 Yoktur:** iki adımlı doğrulama (`02 §10.2.4`) · iniş ekranlarında şifre alanı — şifre e-postadaki sıfırlama bağlantısıyla E-29'da kurulur (5.28.5'in kalıbı) · geri alma adımında ek soru ve ayrı onay penceresi (5.28.5'in kalıbı; K-839).
 - **Aksiyonlar**
   - **9.25.7 Doğrulamak** (`03 §9.2.6`; `02 §10.2.4`): şifreyle; başarıda E-50'ye, başlatılan işlemin formuna döner. Onay istemez. Yeniden doğrulama yalnız başlatılan işlem içindir (5.24.4).
-  - **9.25.8 İniş ekranlarında** yalnız sonraki adımın bağlantısı vardır; formları ve onayları yoktur — geri alma bağlantısının geçerli hâlindeki tek düğme dışında (5.28.6; K-839). Bağlantının hâlinin tespiti Teknik Mimari'nin işidir (5.21.9).
+  - **9.25.8 İniş ekranlarında** yalnız sonraki adımın bağlantısı vardır; formları ve onayları yoktur — geri alma ve yeni adresin doğrulama bağlantısının geçerli hâlindeki tek düğmeler dışında (5.21.9, 5.28.6; K-839, K-904). Bağlantının hâlinin tespiti Teknik Mimari'nin işidir (5.21.9).
 - **9.25.9 Validasyonlar.** Şifre zorunludur. Yanlış şifre alan mesajıdır ve L-1'e sayılır; eşik aşılınca nötr limit mesajı çıkar ve işlem yapılmaz — panel girişine muafiyet yoktur (5.24.6'nın kalıbı; `03 §6.1.1.1`; §2.3.5).
 - **9.25.10 Durum × rol varyantları.** Yeniden doğrulama oturum ister; iniş ekranları oturumdan bağımsızdır ve yalnız sonraki adımları oturuma göre değişir. Geri alma, açık olan oturumu da kapatır. Satış kapısı ekranları etkilemez. Tam matris §6.3'tedir — 6.3.25.
 - **9.25.11 Boş / yükleniyor / hata durumları.** Ekranların boş hâli yoktur; tanınmayan bağlantı "bağlantı geçersiz" hâlini gösterir. Doğrulama sürerken düğme ikinci kez basılamaz (§2.7.2); oturum yeniden doğrulamada kapanırsa ekran bunu söyler ve panel girişine götürür (§3.6.5). Geri almanın sonucu belirsiz kalırsa ekran "işlem yapılmadı" demez — bağlantı yeniden açılınca sonucu söyler (§2.7.3.3). Sayfa açılamazsa §2.7.3.2.
 - **9.25.12 Responsive notları.** Üç adım da tek sütundur; sınıflar arasında fark yoktur.
 
-*Kaynak: `02 §3.13.13`, §3.13.14, §10.2.1, §10.2.2, §10.2.4, §10.2.5, §10.2.7 · `03 §1.10.5`, §6.1.1.1, §7.1.51, §7.1.52, §7.3.43, §9.2.6, §9.3.4–§9.3.7, §10.4.3, §10.4.4 · K-764, K-779, K-780, K-782, K-819, K-839.*
+*Kaynak: `02 §3.13.13`, §3.13.14, §10.2.1, §10.2.2, §10.2.4, §10.2.5, §10.2.7 · `03 §1.10.5`, §6.1.1.1, §7.1.51, §7.1.52, §7.3.43, §9.2.6, §9.3.4–§9.3.7, §10.4.3, §10.4.4 · K-764, K-779, K-780, K-782, K-819, K-839, K-904.*
 
 ---
 
-*Shopfolio — UI Specifications v0.20 — ✓ Tamamlandı (Aşama 3 kapanışı, K-437'nin 6. adımı; §1–§9 yazıldı; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ 5 turda — K-849'un çıkış kuralı, etki yansıtma ✓ — K-431, K-847, K-848; çakışma taraması ✓ — K-850; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`)*
+*Shopfolio — UI Specifications v0.21 — ✓ Tamamlandı (v0.21 Aşama 4 Teknik Mimari workshop'unun 2. oturumunun geri beslemesidir — karar kaydı §12.4, K-888, K-904 · v0.20 Aşama 3 kapanışı, K-437'nin 6. adımı; §1–§9 yazıldı; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ 5 turda — K-849'un çıkış kuralı, etki yansıtma ✓ — K-431, K-847, K-848; çakışma taraması ✓ — K-850; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`)*

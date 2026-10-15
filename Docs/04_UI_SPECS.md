@@ -1,6 +1,6 @@
 # Shopfolio — UI Specifications
 
-**Versiyon: v0.21** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-16
+**Versiyon: v0.22** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-16
 
 > **Aşama:** 3 — UI/UX Tasarım · **Rol:** Senior Product Designer / UX Architect
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §4'e (ekran envanteri) geçilmez.
@@ -39,6 +39,8 @@
 > **Aşama 3 kapanışı — arşiv işareti (2026-10-05, v0.20 — K-437'nin 6. adımı):** doküman **✓ Tamamlandı**; kapanış sürümü budur. Bu sürümde yalnız başlık notu ve dosya sonu dipnotu değişti — ekran tanımları ve tablolar v0.19 ile aynıdır. Öğrenim terfisi (K-852) ve `00` v1.0.5 (K-853) bu dokümana dokunmadı; sorulmadan kaydedilen kırk ⚠ karar proje sahibine gösterildi, itiraz yok (K-854). Karar kaydında Aşama 3'ün kayıtları salt okunurdur; bu dokümanın dayandığı Aşama 3 kararlarının otoriter kaynağı artık bu doküman ve geri beslendiği Ürün Gereksinimleri, Kullanıcı Akışları, MVP Kapsamı ve Proje Vizyonu'dur (`PRODUCT_DISCOVERY_STATUS.md` başlık notu; K-647, K-652). Sonraki aşamalara devir: `PRODUCT_DISCOVERY_STATUS.md` §11.
 
 > **Aşama 4 — Teknik Mimari workshop'unun 2. oturumunun geri beslemesi (2026-10-16, v0.21 — K-652, K-857):** iki karar bu dokümana işlendi; ✓ durumu korunur, kalite döngüsü yeniden açılmaz. **K-904:** e-postayla gelen bağlantının açılması işlem yapmaz — E-21'in ve E-54'ün yeni adres iniş ekranının geçerli hâlinde önce doğrulama adımı ve işlemin adını taşıyan tek düğme gelir (E-28'in K-839 kalıbı): 5.21.2, 5.21.3, 5.21.7, 5.21.9, 9.25.2, 9.25.4, 9.25.8, matrisin 6.2.21.1, 6.2.21.5 ve 6.3.25.3 satırları ve 6.2.21'in giriş cümlesi, §3'ün 3.5.4 satırı, §1.1.2'nin ve §4.1–§4.2'nin E-21 ve E-54 satırları, §1.1'in `03 §9.1.4` ve §9.3.5 satırlarının özeti, 5.21 ve 9.25'in Kaynak satırları. **K-888 (proje sahibinin kararı):** §1.1'in KP-75 ve `02 §3.34.8` satırlarının özeti sıfır kayıp kuralının tek istisnasını anar. Matrisin satır sayısı ve dağılımı değişmedi (1.193). Geri besleme tablosu karar kaydının §12.4'ündedir.
+
+> **Aşama 4 — Teknik Mimari workshop'unun 3. oturumunun geri beslemesi (2026-10-16, v0.22 — K-652, K-857):** bir karar bu dokümana işlendi; ✓ durumu korunur, kalite döngüsü yeniden açılmaz. **K-916:** §1.1'in `03 §4.1.42` satırının özeti sistem kayıtlarının imhasını da anar — Z-40 giriş kaydıyla birlikte sistem kayıtlarını kapsar (`02 §4.2`). Ekran değişmez: kayıtlar panelde görünmez (K-687). Matrisin satır sayısı ve dağılımı değişmedi (1.193). Geri besleme tablosu karar kaydının §12.4'ündedir.
 
 **Yazım konvansiyonları (K-726, K-762).** Bu on beş madde §2–§9'un bütün yazım oturumlarını bağlar; "konvansiyon n" diye anılır.
 
@@ -694,7 +696,7 @@ Kapsam ağıdır: her satır en az bir ekrana ya da adıyla yazılmış bir ekra
 | `03 §4.1.39` | Z-43 bildirim gönderim kaydı — B-1…B-16 | ekran dışı — arka plan | ekran dışı |
 | `03 §4.1.40` | Z-35 geri ödeme IBAN'ının silinmesi | E-16 · ekran dışı — arka plan | eşlendi |
 | `03 §4.1.41` | Z-36 periyodik imha: panelde düğme yoktur | ekran dışı — arka plan | ekran dışı |
-| `03 §4.1.42` | Z-40 giriş kaydının imhası | ekran dışı — arka plan | ekran dışı |
+| `03 §4.1.42` | Z-40 giriş kaydının ve sistem kayıtlarının imhası | ekran dışı — arka plan | ekran dışı |
 | `03 §4.1.43` | Z-44 imha kaydının silinmesi | ekran dışı — arka plan | ekran dışı |
 | `03 §4.1.44` | Z-45 geri alma bağlantısının ömrü | E-28 · E-25 | eşlendi |
 | `03 §4.1.45` | Z-46 tanınan tarayıcı işareti | ekran dışı — arka plan | ekran dışı |
@@ -5241,4 +5243,4 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
 
 ---
 
-*Shopfolio — UI Specifications v0.21 — ✓ Tamamlandı (v0.21 Aşama 4 Teknik Mimari workshop'unun 2. oturumunun geri beslemesidir — karar kaydı §12.4, K-888, K-904 · v0.20 Aşama 3 kapanışı, K-437'nin 6. adımı; §1–§9 yazıldı; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ 5 turda — K-849'un çıkış kuralı, etki yansıtma ✓ — K-431, K-847, K-848; çakışma taraması ✓ — K-850; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`)*
+*Shopfolio — UI Specifications v0.22 — ✓ Tamamlandı (v0.22 Aşama 4 Teknik Mimari workshop'unun 3. oturumunun geri beslemesidir — karar kaydı §12.4, K-916 · v0.21 Aşama 4 Teknik Mimari workshop'unun 2. oturumunun geri beslemesidir — karar kaydı §12.4, K-888, K-904 · v0.20 Aşama 3 kapanışı, K-437'nin 6. adımı; §1–§9 yazıldı; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ 5 turda — K-849'un çıkış kuralı, etki yansıtma ✓ — K-431, K-847, K-848; çakışma taraması ✓ — K-850; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`)*

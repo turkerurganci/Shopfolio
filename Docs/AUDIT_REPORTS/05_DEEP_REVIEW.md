@@ -34,7 +34,7 @@ Skor, v0.3'teki durumdur; "v0.4" sütunu bu adımın düzeltmesinden sonraki dur
 
 | Bulgu | Seviye (mercek → doğrulanmış) | Şüpheciler a / b | Bulgu (özet) | Sonuç | Karar · yer |
 |---|---|---|---|---|---|
-| A7-1 | High → High | doğrulandı / doğrulandı | `05`'in imha işi Z-41'i (ödemesi alınmamış siparişin kişisel verisi — ön bilgilendirme ve onay kayıtları dahil), Z-43'ü (siparişe bağlı bildirimlerin gönderim kaydı) ve "Sipariş hakkında" iletişim talebini üç yılda siler; | **uygulanmadı — çok kritik soru** (karar kaydı §12.1) | — |
+| A7-1 | High → High | doğrulandı / doğrulandı | `05`'in imha işi Z-41'i (ödemesi alınmamış siparişin kişisel verisi — ön bilgilendirme ve onay kayıtları dahil), Z-43'ü (siparişe bağlı bildirimlerin gönderim kaydı) ve "Sipariş hakkında" iletişim talebini üç yılda siler; | **uygulanmadı — çok kritik soru** (karar kaydı §12.1); sonrası: proje sahibinin kararı K-951 (2026-10-16) — Teknik Mimari v0.5 | — |
 | A7-2 | Medium → Low | tartışmalı → kısmen (yönetici) | Erişim kaydı her isteğin IP'sini, zamanını ve yolunu tutar (5651 m.2/1-j'nin "trafik bilgisi") ve altı ay saklanır. | kısmen uygulandı | 05 §9.2.5 ("Bir yıl" elemesi) |
 | A7-3 | Medium → Medium | doğrulandı / doğrulandı | `05` aktarımın doğup doğmadığını yalnız sunucunun ve yedek alanının **konumuna** bağlar ("Yurt dışında bir sunucu ya da yedek alanı seçilirse …"); | uygulandı | 05 §0.4 (Kısıt), §0.5 (seçim ölçütü) · park: DEPLOY_RUNBOOK "K-863 · K-864 · K-865 · K-938 · Sunucunun seçimi ve kurulumu" |
 | A7-4 | Medium → Medium | doğrulandı / doğrulandı | Yedekteki kişisel verinin imhası (K-876) tümüyle "otuz günde kendiliğinden düşer" öncülüne dayanır; | uygulandı | K-937 · 05 §7.6.6, §7.4.5, §7.6.8, §1.2.30 · park: DEPLOY_RUNBOOK K-937 yedek satırı |

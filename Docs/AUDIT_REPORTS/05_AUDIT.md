@@ -144,7 +144,7 @@ Kayıt modu K-855 (⚠ öneriyle kayıt). Tam metinleri ve elenen seçenekleri k
 | K-949 | ETBİS'teki bilginin değişikliği otuz gün içinde güncellenir (`02 §12.5`) | A7-6 | öneriyle |
 | K-950 | Misafir sepetinin kalıcı çerezinin dayanağı satış sözleşmesinin kurulmasıdır (`02 §12.2.5`) | A7-7 | ⚠ |
 
-**Güncel ⚠ toplamı: 29** (Aşama 4; karar kaydı §12.1). **Çok kritik soru — kaydedilmedi:** 6563 m.11/3'ün on yıllık saklama yükümlülüğü (A7-1) — karar kaydı §12.1'e açık süreç maddesi olarak girdi; kapı: Veri Modeli'nin şeması yazılmadan önce proje sahibine sorulur.
+**Güncel ⚠ toplamı: 29** (Aşama 4; karar kaydı §12.1). **Çok kritik soru — kaydedilmedi:** 6563 m.11/3'ün on yıllık saklama yükümlülüğü (A7-1) — karar kaydı §12.1'e açık süreç maddesi olarak girdi; kapı: Veri Modeli'nin şeması yazılmadan önce proje sahibine sorulur. **Sonrası (2026-10-16):** yönetici sordu (Soru 9), proje sahibi "1 · On yıl, karma"yı seçti — K-951; Teknik Mimari v0.5, Ürün Gereksinimleri v0.72, Kullanıcı Akışları v0.26, Arayüz Tanımları v0.24. Proje sahibinin kararıdır, ⚠ toplamı değişmez.
 
 Önceki kararlara geri işaret otuz sekiz satıra bırakıldı (K-872, K-878, K-879, K-876, K-910, K-920, K-918, K-924, K-925, K-865, K-888, K-894, K-705, K-683, K-893, K-902, K-935, K-900, K-916, K-915, K-896, K-903, K-875, K-891, K-936, K-897, K-881, K-883, K-628, K-351, K-885 ve yansıma notlarıyla K-864, K-870, K-929, K-892, K-890, K-898, K-914). Park satırlarının etiketi ile kararların etki sütunu iki yönde eşleşiyor (betik).
 

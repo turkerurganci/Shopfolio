@@ -1,6 +1,6 @@
 # Shopfolio — Technical Architecture
 
-**Versiyon: v0.2** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `04_UI_SPECS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-16
+**Versiyon: v0.3** | **Bağımlılıklar:** `01_PROJECT_VISION.md`, `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `04_UI_SPECS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-16
 
 > **Aşama:** 4 — Teknik Mimari · **Rol:** Senior Software Architect / System Designer
 > **Traceability zorunlu:** Hayır
@@ -9,30 +9,31 @@
 > **Aşama 1'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36.
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
-> - **K-10 · Çok kiracılık:** MVP'de çok kiracılık için **hazırlık yapılmaz** — kurulum başına tek firma. Pazaryeri / çok satıcı **kalıcı ürün sınırıdır**; çok kiracılı SaaS post-MVP yol haritası adayıdır ancak mimaride bugün karşılığı yoktur. *Workshop'ta karara bağlandı (2026-10-16): K-929 (büyüme yolu) ve plan konusu TM11-02; yazımı §0.6'da ve §11.3'tedir (2. oturum).*
+> - **K-10 · Çok kiracılık:** MVP'de çok kiracılık için **hazırlık yapılmaz** — kurulum başına tek firma. Pazaryeri / çok satıcı **kalıcı ürün sınırıdır**; çok kiracılı SaaS post-MVP yol haritası adayıdır ancak mimaride bugün karşılığı yoktur. *Workshop'ta karara bağlandı (2026-10-16): K-929 (büyüme yolu) ve plan konusu TM11-02; yazımı §0.6'da ve §11.3'tedir.*
 
 > **Aşama 2'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §8.3 AK0-04).
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-666 · K-667 · Sitenin kesintisinde süreler:** kesinti sırasında zamanı gelen kendiliğinden işler — kendiliğinden iptal (kart hattında iptal öncesi son sorguyla, `02 §6.1.2`), havale hatırlatması (yalnız havale süresi dönüşte hâlâ işliyorsa; ertelenen iptalde yeni hatırlatma gitmez — K-685), IBAN'ın silinmesi, periyodik imha, e-postanın yeniden denenmesi — site döndüğünde **kaçırdıkları sırayla** çalışır. Havale ödeme süresi kesinti sırasında dolarsa kendiliğinden iptal, sitenin dönüşünden sonraki ilk iş gününün sonuna ertelenir; bu, kesintinin — panelin ve kendiliğinden işlerin çalışmadığı aralığın — tespit edilmesini gerektirir. Tespitin yöntemi bu aşamanın kararıdır (`02 §4.3`, Z-8). *Workshop'ta karara bağlandı (2026-10-16): K-898; yazımı §5.4'tedir.*
-> - **K-687 · Giriş kaydının okunduğu yer:** giriş kaydı (`02 §3.13.20`, Z-40) panelde görünmez; ihlal ya da hesap ele geçirme incelemesinde firma onu sistem kayıtlarıyla birlikte kurulumun barındırma tarafında okur (`02 §8.5.1`, §12.2.9). Kaydın ve sistem kayıtlarının nasıl ve kim tarafından okunacağı — erişim yolu, süzme, dışarı alma — bu aşamanın kararıdır. *Workshop'ta karara bağlandı (2026-10-16): K-915, K-917; yazımı §9.1 ve §9.3'tedir (2. oturum).*
+> - **K-687 · Giriş kaydının okunduğu yer:** giriş kaydı (`02 §3.13.20`, Z-40) panelde görünmez; ihlal ya da hesap ele geçirme incelemesinde firma onu sistem kayıtlarıyla birlikte kurulumun barındırma tarafında okur (`02 §8.5.1`, §12.2.9). Kaydın ve sistem kayıtlarının nasıl ve kim tarafından okunacağı — erişim yolu, süzme, dışarı alma — bu aşamanın kararıdır. *Workshop'ta karara bağlandı (2026-10-16): K-915, K-917; yazımı §9.1 ve §9.3'tedir.*
 > - **Dizin — Aşama 2 kararlarının bu dokümana devirleri:** karar kaydında K-647…K-718'in etki sütunlarında bu dokümanı gösteren yedi atıf (yedi karar) ve Kullanıcı Akışları'nın (`03`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE2_CONFLICT_SCAN.md) §6'dadır; etki sütununda yalnız doküman numarası taşıyan üç atfın işinin adını dizin verir. Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Aşama 1'in dizini: `PHASE1_CONFLICT_SCAN.md` §6. *Yazım turunun devir taraması dizinin `05` satırlarını her oturumda okur; sonucu karar kaydının §12.2'sindedir.*
 
 > **Aşama 3'ten park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2 ve §3, mekanizma: K-36 (yeri: §10.3 UI0-04).
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
-> - **K-745 · Beklenmeyen hatanın üç hâli:** ekran beklenmeyen hatayı üç hâlde karşılar — işlem düzeyi (form korunur, kullanıcı yeniden dener), sayfa düzeyi (çerçevenin içinde hata sayfası) ve sonucu belirsiz işlem (kullanıcı sonucu görmeye götürülür: sipariş onayı, müşterinin geri alınamaz dört işlemi, yöneticinin onay isteyen işlemleri). Bir hatanın hangi hâle düştüğünün ayrımı ve hatanın kaydı bu aşamanın kararıdır; ekran teknik ayrıntı göstermez (Arayüz Tanımları `04 §2`). *Workshop'ta karara bağlandı (2026-10-16): K-914; yazımı §10.3'tedir (2. oturum).*
-> - **K-758 · Ödeme adımında yazılanlar:** misafir alıcının ödeme adımında yazdığı e-posta, adres ve kupon, girişe gidip dönerken ve oturumu kapanan üye yeniden girerken korunur; yalnız o tarayıcıda ve o ziyaret boyunca yaşar ve sipariş onaylanmadan bir kayıt oluşturmaz (`04 §5`; veri asgariliği `02 §8.4`). Nerede ve nasıl tutulduğu bu aşamanın kararıdır. *Workshop'ta karara bağlandı (2026-10-16): K-907; yazımı §6.7'dedir (2. oturum).*
-> - **K-760 · Firma bildirimlerinin ulaşmaması:** firmaya giden bildirim (F-1…F-4) üç denemeden sonra da ulaşmazsa panelin ana sayfasında "firma bildirimleri ulaşmıyor" uyarısı çıkar; uyarı firmaya giden bir sonraki bildirim ulaştığında ya da iletişim e-postası değiştiğinde kalkar (`02 §9.1.6`). Uyarının çıktığı ve kalktığı anın nasıl tespit edildiği bu aşamanın kararıdır ve kanal uyarısının eşiğiyle (`02 §6.1.1`; K-522) birlikte tasarlanır. *Workshop'ta karara bağlandı (2026-10-16): K-913; yazımı §10.2'dedir (2. oturum).*
+> - **K-745 · Beklenmeyen hatanın üç hâli:** ekran beklenmeyen hatayı üç hâlde karşılar — işlem düzeyi (form korunur, kullanıcı yeniden dener), sayfa düzeyi (çerçevenin içinde hata sayfası) ve sonucu belirsiz işlem (kullanıcı sonucu görmeye götürülür: sipariş onayı, müşterinin geri alınamaz dört işlemi, yöneticinin onay isteyen işlemleri). Bir hatanın hangi hâle düştüğünün ayrımı ve hatanın kaydı bu aşamanın kararıdır; ekran teknik ayrıntı göstermez (Arayüz Tanımları `04 §2`). *Workshop'ta karara bağlandı (2026-10-16): K-914; yazımı §10.3'tedir.*
+> - **K-758 · Ödeme adımında yazılanlar:** misafir alıcının ödeme adımında yazdığı e-posta, adres ve kupon, girişe gidip dönerken ve oturumu kapanan üye yeniden girerken korunur; yalnız o tarayıcıda ve o ziyaret boyunca yaşar ve sipariş onaylanmadan bir kayıt oluşturmaz (`04 §5`; veri asgariliği `02 §8.4`). Nerede ve nasıl tutulduğu bu aşamanın kararıdır. *Workshop'ta karara bağlandı (2026-10-16): K-907; yazımı §6.7'dedir.*
+> - **K-760 · Firma bildirimlerinin ulaşmaması:** firmaya giden bildirim (F-1…F-4) üç denemeden sonra da ulaşmazsa panelin ana sayfasında "firma bildirimleri ulaşmıyor" uyarısı çıkar; uyarı firmaya giden bir sonraki bildirim ulaştığında ya da iletişim e-postası değiştiğinde kalkar (`02 §9.1.6`). Uyarının çıktığı ve kalktığı anın nasıl tespit edildiği bu aşamanın kararıdır ve kanal uyarısının eşiğiyle (`02 §6.1.1`; K-522) birlikte tasarlanır. *Workshop'ta karara bağlandı (2026-10-16): K-913; yazımı §10.2'dedir.*
 > - **K-800 · Eşzamanlı düzenleme:** panelin düzenleme ekranlarında — ürün, kupon, kurumsal içerik, ayarlar — başka bir yöneticinin araya giren kaydı kaydetme anında yakalanır ve kullanıcıya iki yol sunulur: güncel hâli açmak ya da yine de kaydetmek; sipariş işlemlerinde üzerine yazma yoktur (`02 §3.31.1`, §3.31.2; Arayüz Tanımları `04 §2.10`). Araya giren kaydın nasıl tespit edildiği bu aşamanın kararıdır ve Veri Modeli'nin (`06`) kaydın karşılaştırılan hâliyle birlikte tasarlanır. *Workshop'ta karara bağlandı (2026-10-16): K-873; yazımı §7.3.1'dedir.*
 > - **K-801 · Önerilen stok kodu:** yeni varyantın stok kodu alanı sistemin önerdiği tekil bir kodla gelir; yönetici kodu değiştirebilir, kod zorunlu ve tekildir (`04 §9.5`). Önerilen kodun biçimi ve üretimi bu aşamanın kararıdır. *Workshop'ta karara bağlandı (2026-10-16): K-885; yazımı §7.8'dedir.*
-> - **K-834 · K-850 · İlk kurulumda çerez:** çerez politikası ilk kez yayına alınana kadar vitrin ziyaretçinin tarayıcısına çerez yazmaz — bu sürede satış da veri toplayan girişler de kapalıdır: iki kapı da çerez politikasının yayınını bekler, aydınlatma metni önce yayına alınsa bile (`02 §3.1.5`, §12.2.5; `04 §5.11`; K-850 — Aşama 3'ün çakışma taramasında hizalandı). Bu pencerede hiçbir çerezin doğmadığının nasıl güvenceye alındığı bu aşamanın kararıdır. *Workshop'ta karara bağlandı (2026-10-16): K-908; yazımı §6.7'dedir (2. oturum).*
-> - **K-839 · Geri alma bağlantısının açılması:** e-posta değişikliğinin geri alma bağlantısı açıldığında değişiklik geri alınmaz; geri alma açılan ekrandaki tek düğmeyle olur — e-posta güvenlik tarayıcıları ve bağlantı önizlemeleri bağlantıyı kullanıcıdan önce açabilir (`02 §3.13.14`; `04 §5.28`, §9.25). Bağlantının açılması (GET isteği) durum değiştirmez; aynı ilkenin öteki tek kullanımlık bağlantılara uygulanıp uygulanmadığı bu aşamanın kararıdır. *Workshop'ta karara bağlandı (2026-10-16): K-904; yazımı §6.4'tedir (2. oturum).*
+> - **K-834 · K-850 · İlk kurulumda çerez:** çerez politikası ilk kez yayına alınana kadar vitrin ziyaretçinin tarayıcısına çerez yazmaz — bu sürede satış da veri toplayan girişler de kapalıdır: iki kapı da çerez politikasının yayınını bekler, aydınlatma metni önce yayına alınsa bile (`02 §3.1.5`, §12.2.5; `04 §5.11`; K-850 — Aşama 3'ün çakışma taramasında hizalandı). Bu pencerede hiçbir çerezin doğmadığının nasıl güvenceye alındığı bu aşamanın kararıdır. *Workshop'ta karara bağlandı (2026-10-16): K-908; yazımı §6.7'dedir.*
+> - **K-839 · Geri alma bağlantısının açılması:** e-posta değişikliğinin geri alma bağlantısı açıldığında değişiklik geri alınmaz; geri alma açılan ekrandaki tek düğmeyle olur — e-posta güvenlik tarayıcıları ve bağlantı önizlemeleri bağlantıyı kullanıcıdan önce açabilir (`02 §3.13.14`; `04 §5.28`, §9.25). Bağlantının açılması (GET isteği) durum değiştirmez; aynı ilkenin öteki tek kullanımlık bağlantılara uygulanıp uygulanmadığı bu aşamanın kararıdır. *Workshop'ta karara bağlandı (2026-10-16): K-904; yazımı §6.4'tedir.*
 > - **Dizin — Aşama 3 kararlarının bu dokümana devirleri:** karar kaydında K-723…K-850'nin etki sütunlarında bu dokümanı gösteren dokuz atıf (dokuz karar) ve Arayüz Tanımları'nın (`04`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE3_CONFLICT_SCAN.md) §6'dadır; Aşama 3'ün atıflarının hepsi işin adını taşır. Bir iş yalnız `04`'ün gövdesinde yaşar, karar satırı yoktur: üç genişlik sınıfının sınırlarının nasıl uygulandığı (`04 §2.1.1`). Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Önceki aşamaların dizinleri: `PHASE1_CONFLICT_SCAN.md` §6, `PHASE2_CONFLICT_SCAN.md` §6. *Yazım turunun devir taraması dizinin `05` satırlarını her oturumda okur; sonucu karar kaydının §12.2'sindedir.*
 
 > **Yazım durumu (K-28, K-30, K-432; karar kaydı §12.2):** doküman Teknik mimari aşamasının **tek yazım turunda**, iki oturumda yazılır (K-856'nın sırası). Girdi karar kaydıdır — workshop'un sohbet geçmişi değil (K-30); yazım kaydın yeterlilik testidir ve kayıtta olmayan bir şey gerekiyorsa karara bağlanır.
 > - **1. oturum (2026-10-16, v0.2):** başlık notu — yazım konvansiyonları (K-930), alt bölüm haritası (K-931) ve üst dokümanlara geri besleme tablosu (K-857; karar kaydının §12.4'ünden taşındı) · §0 karar prensipleri ve kısıtlar · §2 teknoloji kararları (MK-01…MK-12) · §3 servis yapısı ve sınırlar (MK-13…MK-18) · §7 veri katmanı (MK-19…MK-34) · §4 durum yönetimi ve olaylar (MK-35…MK-40) · §5 arka plan işleri (MK-41…MK-44). Yazımın bulduğu üç boşluk karara bağlandı — modüller ve aralarındaki iletişim (K-932), arama motoru verilerinin ve dizine kapatmanın biçimi (K-933), kuruşa yuvarlamanın yönü (K-934); sonuncusu Ürün Gereksinimleri'ne geri beslendi (v0.69).
-> - **2. oturum:** §6 (§6.x dahil), §10, §9, §8, §11, §1, §12 — aşağıdaki haritanın alt bölümleriyle ve bu sırayla. Bu bölümler o oturuma kadar şablondaki hâlindedir; başka bölümden onlara giden atıflar "(2. oturum)" ekini taşır (konvansiyon 9).
+> - **2. oturum (2026-10-16, v0.3):** §6 güvenlik mimarisi, §6.x dahil (MK-45…MK-60) · §10 hata toleransı (MK-61…MK-63) · §9 gözlemlenebilirlik (MK-64…MK-67) · §8 ortamlar ve deployment (MK-68…MK-76) · §11 ölçeklenebilirlik notları (MK-77, MK-78) · §1 sistem genel görünümü · §12 kararların özeti (MK-01…MK-78) — haritanın alt bölümleriyle ve bu sırayla. Yazımın bulduğu iki boşluk karara bağlandı — form ve site güvenliği (K-935), dış çağrıların zaman aşımı ve yeniden denemenin yeri (K-936); bir yansıma kaçağı Ürün Gereksinimleri'ne geri beslendi — imha kaydı altı ay saklanan sistem kayıtlarından ayrıdır (v0.70; K-916, K-875). Önceki bölümlerin 2. oturuma bağlanan geçici atıfları çözüldü (konvansiyon 9).
+> - **Yazım turu tamamlandı (2026-10-16).** Kalite döngüsü — audit, deep review, cross-review ve etki yansıtma — bu turdan sonra başlar (K-432; `checklists/document-stage.md` §6).
 
 **Yazım konvansiyonları (K-857, K-930).** Bu on iki madde §0–§12'nin bütün yazım oturumlarını bağlar; "konvansiyon n" diye anılır.
 
@@ -44,7 +45,7 @@
 6. **Atıf.** Önsüz `§` bu dokümanı gösterir; başka dokümana atıf numarasıyla yazılır (`02 §3.31.2`, `04` 2.10.1, `10 §4.1` ÖK-2). Atıf dizisinde devralma Kullanıcı Akışları'nın kuralıdır (K-701; `03 §0.3.4`): `0X §` ile başlayan dizideki sonraki önsüz `§`'ler o dokümanı gösterir; dizi ` · `, `;`, parantezin kapanışı ya da cümle sonuyla biter. Kullanıcı Akışları'nın ve Arayüz Tanımları'nın madde numaraları `§`'siz de yazılır (`03` 10.2.4, `04` 2.10.1). Metodoloji, ajan katmanı ve işletim dosyaları adıyla anılır (`INSTRUCTIONS §3.2`, `DEPLOY_RUNBOOK §B`).
 7. **Kaynak satırı.** Her alt bölüm bir *Kaynak* satırıyla kapanır. Kaynak önce **Aşama 4'ün K numaralarıdır** — bu dokümanın kararlarının gerekçesi ve elenen seçenekleri karar kaydındadır; kayıt dönem sonunda arşivlenince gerekçenin evi §12'dir. Üst dokümanın kuralı `02 §…`, `03 …`, `04 …`, `10 …` diye gösterilir; Aşama 1–3'ün kararları kuralın evi doküman olduğu için önce doküman atfıyla, gerekiyorsa K numarasıyla birlikte yazılır. Park satırlarının ve devir dizinlerinin bu dokümana bıraktığı işi kapatan alt bölüm devreden kararı ya da cümleyi Kaynak satırında "devir:" önekiyle anar.
 8. **Kural ayrıntısı evinde kalır** (`checklists/document-stage.md` §4). Mimari bir ürün kuralına dayanıyorsa kuralın koşullarını kopyalamaz; mekanizmayı yazar ve kurala bölüm numarasıyla işaret eder. İki işaret sabittir: dal stratejisi `INSTRUCTIONS §3.2`'dedir ve §8 ona işaret eder (K-859); sır envanteri `DEPLOY_RUNBOOK §B`'dedir — §6.x stratejiyi, runbook envanteri taşır.
-9. **Geçici hedef.** Henüz yazılmamış bir alt bölüme bağlanan atıf hedef alt bölümü ve oturumunu taşır — "§9.4 (2. oturum)", parantez içinde "(§9.4 — 2. oturum)"; o bölümü yazan oturum eki aynı PR'da kaldırır (K-682'nin kalıbı). Alt bölüm haritasını değiştirmek zorunda kalan oturum tabloyu ve ona atıf yapan satırları aynı PR'da günceller (K-670'in kalıbı).
+9. **Geçici hedef.** Henüz yazılmamış bir alt bölüme bağlanan atıf hedef alt bölümü ve oturumunu taşır — "§9.4 (n. oturum)", parantez içinde "(§9.4 — n. oturum)"; o bölümü yazan oturum eki aynı PR'da kaldırır (K-682'nin kalıbı). Yazım turunun 2. oturumu son ekleri kaldırdı; dokümanda geçici hedef kalmadı. Alt bölüm haritasını değiştirmek zorunda kalan oturum tabloyu ve ona atıf yapan satırları aynı PR'da günceller (K-670'in kalıbı).
 10. **"Yoktur", belirsiz ifade ve tarihli bilgi.** Mimarinin bilinçli olarak taşımadığı bileşen ilgili alt bölümde tek cümleyle "yoktur" diye anılır (ayrı önbellek sunucusu yoktur) — boş bırakılmaz. "Muhtemelen", "belki", "gerekirse karar verilir" yazılmaz (`GUARDRAILS §5`). Dış dünyaya ait olgular — sürüm ve destek tarihleri, ücretsiz katmanın sınırları, bir aracın resmî imajının varlığı — karar kaydında "bilgim tarihli" notunu taşıyorsa burada da taşır ve kurulumda ya da implementation'da doğrulanır; bu doküman onlara yeni kesinlik eklemez.
 11. **Açık kalem ve devir** (TM0-04). Bu dokümanın şablonunda açık kararlar bölümü yoktur: karara bağlanmış bir varlığın yalnız **detayı** açık kalabilir ve karar kaydının §4'ünde A-19'dan, gözlemlenebilir bir kapıyla sürer (K-37; `00 §N.1`). Sonraki dokümana talimat bırakan karar o dokümanın başındaki **"Aşama 4'ten park edilen girdiler"** bloğuna satır olarak girer — blok yoksa bu dokümandaki park bloklarının biçimiyle açılır (`06`, `07`, `08`, `09`, `11`, `12`, `DEPLOY_RUNBOOK`; K-36). Park satırının etiketi ile kararın etki sütunu iki yönde eşleşir (`checklists/document-stage.md` §3). Aşama içi ileri referans etki sütununda `(downstream)` olarak kalır. Bu dokümanda "açık" işaretli madde bırakılmaz.
 12. **Bileşen diyagramının biçimi.** §1'in diyagramı metin tabanlıdır — Mermaid akış şeması: GitHub onu çizer ve repoda satır satır karşılaştırılır. Diyagramdaki her kutu §1.2'nin tablosunda tek cümlelik sorumluluğuyla bir satırdır; diyagram §3.2'nin bileşenlerini ve §3.3'ün modüllerini adlarıyla taşır, yeni ad icat etmez.
@@ -55,20 +56,20 @@
 |---|---|---|---|---|
 | Başlık notu | Park blokları (Aşama 1, 2, 3) · Yazım durumu · Yazım konvansiyonları (1–12) · Alt bölüm haritası · Üst dokümanlara geri besleme | TM0-01…TM0-05 | — | 1 ✓ |
 | §0 Karar prensipleri | Dört ilke (şablon) · Bu projenin kısıtları (0.1–0.13) | TM0-06…TM0-09 | — | 1 ✓ |
-| §1 Sistem genel görünümü | 1.1 Bileşen diyagramı · 1.2 Bileşenler ve sorumlulukları | TM1-01 | — | 2 |
+| §1 Sistem genel görünümü | 1.1 Bileşen diyagramı · 1.2 Bileşenler ve sorumlulukları | TM1-01 | — | 2 ✓ |
 | §2 Teknoloji kararları | 2.1 Teknoloji tablosu · 2.2 Seçimi başka dokümana ya da kuruluma bırakılanlar · 2.3 Yığının kuruluma yansıması (D-01) | TM2-01…TM2-04 | MK-01…MK-12 | 1 ✓ |
 | §3 Servis yapısı ve sınırlar | 3.1 Uygulamanın biçimi · 3.2 Sunucudaki bileşenler ve ağ · 3.3 Modüller · 3.4 Modüller arası iletişim kuralı · 3.5 Vitrin ve panel · 3.6 Dış servislerin sınırı — bağlantı katmanı · 3.7 Sayfa adresleri ve arama motoru verileri · 3.8 Ön yüz ve tasarım tabanının uygulanması | TM3-01…TM3-06 | MK-13…MK-18 | 1 ✓ |
 | §4 Durum yönetimi ve olaylar | 4.1 Durum makinesinin yeri — geçiş birimi · 4.2 Sipariş onayı · 4.3 Yan etkiler ve iş kuyruğu · 4.4 E-postanın gönderimi ve gönderim kaydı · 4.5 Tek işlenme — sipariş onayı, sağlayıcı bildirimi ve son sorgu · 4.6 Karta para gönderen isteğin tek işlenmesi · 4.7 İşlem izi | TM4-01…TM4-04 | MK-35…MK-40 | 1 ✓ |
 | §5 Arka plan işleri ve zamanlanmış görevler | 5.1 Çalıştırıcılar — zamanlayıcı ve iş kuyruğu · 5.2 İşlerin envanteri · 5.3 İşlerin saatleri ve gecenin sırası · 5.4 Kesintinin tespiti ve dönüşteki sıra | TM5-01, TM5-02 | MK-41…MK-44 | 1 ✓ |
-| §6 Güvenlik mimarisi | 6.1 Kimlik doğrulama ve oturum · 6.2 Yetkilendirme · 6.3 Deneme limitleri ve istek hızı · 6.4 Anahtarlar ve tek kullanımlık bağlantılar · 6.5 Form ve site güvenliği · 6.6 Yüklenen dosya · 6.7 Çerezler ve tarayıcıda tutulan veri · 6.8 Hassas verinin taşınması ve saklanması · 6.9 Kurulum tarafının işlemleri ve bakım erişimi — yönetim komutlarına §8.5, sunucuya erişime §8.9 işaret eder · 6.x Secret yönetimi (şablonun zorunlu alt bölümü; başlığı şablondaki gibi kalır) | TM6-01…TM6-10 | MK-45'ten, yazım sırasıyla | 2 |
+| §6 Güvenlik mimarisi | 6.1 Kimlik doğrulama ve oturum · 6.2 Yetkilendirme · 6.3 Deneme limitleri ve istek hızı · 6.4 Anahtarlar ve tek kullanımlık bağlantılar · 6.5 Form ve site güvenliği · 6.6 Yüklenen dosya · 6.7 Çerezler ve tarayıcıda tutulan veri · 6.8 Hassas verinin taşınması ve saklanması · 6.9 Kurulum tarafının işlemleri ve bakım erişimi — yönetim komutlarına §8.5, sunucuya erişime §8.9 işaret eder · 6.x Secret yönetimi (şablonun zorunlu alt bölümü; başlığı şablondaki gibi kalır) | TM6-01…TM6-10 | MK-45…MK-60 | 2 ✓ |
 | §7 Veri katmanı kararları | 7.1 Veritabanı ve işlem bütünlüğü · 7.2 Zamanın ve paranın temsili · 7.3 Eşzamanlılık kontrolü · 7.4 Saklama ve imha · 7.5 İşlem izinin korunması · 7.6 Yedekleme ve kurtarma · 7.7 Dosya depolama ve dijital teslim · 7.8 Önerilen stok kodu · 7.9 Site içi arama · 7.10 Önbellek | TM7-01…TM7-06 | MK-19…MK-34 | 1 ✓ |
-| §8 Ortamlar ve deployment | 8.1 Ortamlar · 8.2 Paketleme ve kayıt defteri · 8.3 Dal stratejisi ve CI/CD hattı — dal stratejisi `INSTRUCTIONS §3.2`'ye işaret eder · 8.4 Konfigürasyon yönetimi · 8.5 Yönetim komutları ve ilk kayıtlar · 8.6 Güncellemenin kurulumlara ulaşması · 8.7 Göçler ve geri alma · 8.8 Güvenlik güncellemeleri · 8.9 Sunucuya bakım erişimi | TM8-01…TM8-04 | yazım sırasıyla (§6, §10, §9'dan sonra) | 2 |
-| §9 Gözlemlenebilirlik | 9.1 Sistem kayıtları — kaynaklar, içerik ve maskeleme · 9.2 Kayıtların saklanması ve korunması · 9.3 Kayıtların okuma yolu · 9.4 İzleme ve uyarı | TM9-01, TM9-02 | yazım sırasıyla | 2 |
-| §10 Hata toleransı | 10.1 Dış bağımlılıklar — "çökerse ne olur" · 10.2 E-posta kanalının ve firma bildirimlerinin uyarısı · 10.3 Beklenmeyen hata | TM10-01…TM10-03 | yazım sırasıyla | 2 |
-| §11 Ölçeklenebilirlik notları | 11.1 Tasarım değerleri · 11.2 Bilinçli tekil bırakılanlar · 11.3 Büyüme yolu | TM11-01, TM11-02 | yazım sırasıyla | 2 |
-| §12 Kararların özeti | Tek tablo — MK-01'den numara sırasıyla | TM12-01 | — | 2 |
+| §8 Ortamlar ve deployment | 8.1 Ortamlar · 8.2 Paketleme ve kayıt defteri · 8.3 Dal stratejisi ve CI/CD hattı — dal stratejisi `INSTRUCTIONS §3.2`'ye işaret eder · 8.4 Konfigürasyon yönetimi · 8.5 Yönetim komutları ve ilk kayıtlar · 8.6 Güncellemenin kurulumlara ulaşması · 8.7 Göçler ve geri alma · 8.8 Güvenlik güncellemeleri · 8.9 Sunucuya bakım erişimi | TM8-01…TM8-04 | MK-68…MK-76 | 2 ✓ |
+| §9 Gözlemlenebilirlik | 9.1 Sistem kayıtları — kaynaklar, içerik ve maskeleme · 9.2 Kayıtların saklanması ve korunması · 9.3 Kayıtların okuma yolu · 9.4 İzleme ve uyarı | TM9-01, TM9-02 | MK-64…MK-67 | 2 ✓ |
+| §10 Hata toleransı | 10.1 Dış bağımlılıklar — "çökerse ne olur" · 10.2 E-posta kanalının ve firma bildirimlerinin uyarısı · 10.3 Beklenmeyen hata | TM10-01…TM10-03 | MK-61…MK-63 | 2 ✓ |
+| §11 Ölçeklenebilirlik notları | 11.1 Tasarım değerleri · 11.2 Bilinçli tekil bırakılanlar · 11.3 Büyüme yolu | TM11-01, TM11-02 | MK-77, MK-78 | 2 ✓ |
+| §12 Kararların özeti | Tek tablo — MK-01'den numara sırasıyla | TM12-01 | — | 2 ✓ |
 
-Yazım sırası K-856'dır: başlık notu ve §0 → §2 → §3 → §7 → §4 → §5 (1. oturum) → §6 → §10 → §9 → §8 → §11 → §1 → §12 (2. oturum).
+Yazım sırası K-856'dır: 1. oturumda başlık notu ve §0 → §2 → §3 → §7 → §4 → §5; 2. oturumda §6 → §10 → §9 → §8 → §11 → §1 → §12.
 
 **Üst dokümanlara geri besleme (K-652, K-857).** Teknik Mimari'nin workshop'unda ya da yazımında alınıp üst dokümana dönen her karar bu tabloda bir satırla durur. Tablo karar kaydının §12.4'ünden yazım turunun 1. oturumunda taşındı — satırlar değişmedi, yalnız karar kaydının bir bölümüne giden atıf "karar kaydı" önekini aldı (konvansiyon 6); geri beslemelerin betik kayıtları orada kalır. Üst dokümanın ✓ durumu korunur, kalite döngüsü yeniden açılmaz; bu dokümanın etki yansıtması (cross-review Faz 5) üst dokümanları yeniden tarar.
 
@@ -80,6 +81,7 @@ Yazım sırası K-856'dır: başlık notu ve §0 → §2 → §3 → §7 → §4
 | Ödeme adımında yazılanların korunması zorunlu çerezlerin listesinde değildi (workshop 2, TM6-07; K-758'in park satırı) | K-907 | Ürün Gereksinimleri `02 §12.2.5`, §12'nin Kaynak satırı | `02` v0.67 (aynı sürüm) |
 | Sistem kayıtları ihlal incelemesinin üç kaydından biriydi (`02 §8.5.1`), ama IP taşıyan bu kayıtların süresi süre envanterinde yoktu — K-515 süreyi ürün düzeyinde tanımsız bırakmıştı (workshop 3, TM9-01) | K-916 | Ürün Gereksinimleri `02 §4.2` Z-40, §11.2 P-45, §8.5.1, §12.2.3, §12.2.7, §4'ün, §8'in, §11'in ve §12'nin Kaynak satırları · Kullanıcı Akışları `03` 4.1.42 · Arayüz Tanımları `04 §1.1`'in `03 §4.1.42` satırının özeti · üçünün başlık notu, sürümü ve dipnotu | `02` v0.67 → v0.68 · `03` v0.23 → v0.24 · `04` v0.21 → v0.22 |
 | Ürün Gereksinimleri kuruşa yuvarlamanın yönünü yazmıyordu — .NET'in varsayılan yuvarlaması tam yarımı çift sayıya götürür; kargo ücretinin oranlara bölüşümünde bölünmeden kalan kuruşun yeri de yazılı değildi (yazım turu 1. oturum, TM7-02) | K-934 | Ürün Gereksinimleri `02 §3.8.3`, §3'ün Kaynak satırı · başlık notu, sürümü ve dipnotu | `02` v0.68 → v0.69 |
+| Ürün Gereksinimleri imha kaydı için "sistem kaydında durur" diyordu; K-916'dan sonra "sistem kayıtları" altı ay saklanan kayıt dosyalarıdır, imha kaydı ise veritabanında ayrı bir tablodadır ve en az üç yıl saklanır (§7.4.2) — K-916'nın geri beslemesinin kaçırdığı yan yüz (yazım turu 2. oturum, §9.2) | K-916, K-875 — yansıma; yeni karar yok | Ürün Gereksinimleri `02 §10.3.3`, §12.2.7, §10'un ve §12'nin Kaynak satırları · başlık notu, sürümü ve dipnotu | `02` v0.69 → v0.70 |
 
 ---
 
@@ -95,16 +97,16 @@ Yazım sırası K-856'dır: başlık notu ve §0 → §2 → §3 → §7 → §4
 | # | Kısıt | Mimariye düşen yüzü | Kaynak |
 |---|---|---|---|
 | 0.1 | **Ürünü firmaların sunucusuna proje sahibi kurar ve bir şey bozulduğunda o bakar; iş yerinde C# / .NET kullanır.** Her task'ın kodu ayrı bir doğrulama oturumunda kabul kriterlerine, dokümanlara, CI'a ve mini güvenlik kontrolüne karşı denetlenir; bir insanın her task'ta kodu okuması bir kural değildir (`00 §D.2`, §D.6; `INSTRUCTIONS §3.3`). | Yığın, kurulumu ve arızayı üstlenen kişinin en hızlı okuyacağı yığındır (MK-01); bileşen ve araç sayısı az tutulur — her kurulumu aynı kişi kurar ve bakar (§3.2). | K-860, K-866 |
-| 0.2 | **Aylık altyapı gideri tavanı yaklaşık 10–20 ABD dolarıdır — olabildiğince düşük.** Tavan ödeme sağlayıcısının komisyonunu ve alan adını kapsamaz; sunucuyu, sunucunun dışındaki yedek alanını, e-posta gönderimini ve izlemeyi kapsar. Referans kurulum dahil her kurulumda aynıdır; geliştirme ve CI giderleri firmanın gideri değildir ve tavana girmez. | Tavan dört kalem taşır: tek bir kiralık sanal sunucu · kullanım kadar ödenen nesne depolama (yedek — §7.6) · e-posta gönderimi (seçimi `08`'in) · ücretsiz katmanlı dış erişilebilirlik kontrolü (§9.4 — 2. oturum). Üç tür seçimi dışlar: ücretli lisanslı yazılım · ücretli yönetilen servis — ücretsiz katmanı yeten araç bu yasağa girmez · ikinci bir sürekli sunucu — gerekirse proje sahibine soru olarak döner. Kayıtlı ürün kararları — sıfır veri kaybı (0.13) ve yedeğin kurulum ön koşulu olması (ÖK-2) — geçerliliğini korur. | K-861 (proje sahibi), K-862 · K-407, K-629 |
-| 0.3 | **Kurulum firmanın adına kiralanan bir sanal sunucuda (VPS) çalışır; ürün orada konteyner olarak kurulur. Tek desteklenen hedef budur** — paylaşımlı hosting, yönetilen bulut platformu ve firmaya göre değişen hedefler desteklenmez. Sunucu ve yedek alanı firmanın hesabındadır; veritabanı ve yedekler firmanın elindedir. | MK-07; sunucudaki bileşenler §3.2; yedeğin yeri §7.6; ortamlar §8.1 (2. oturum). | K-863 (proje sahibi) · K-410, K-629 · `10 §4.1` ÖK-2 |
+| 0.2 | **Aylık altyapı gideri tavanı yaklaşık 10–20 ABD dolarıdır — olabildiğince düşük.** Tavan ödeme sağlayıcısının komisyonunu ve alan adını kapsamaz; sunucuyu, sunucunun dışındaki yedek alanını, e-posta gönderimini ve izlemeyi kapsar. Referans kurulum dahil her kurulumda aynıdır; geliştirme ve CI giderleri firmanın gideri değildir ve tavana girmez. | Tavan dört kalem taşır: tek bir kiralık sanal sunucu · kullanım kadar ödenen nesne depolama (yedek — §7.6) · e-posta gönderimi (seçimi `08`'in) · ücretsiz katmanlı dış erişilebilirlik kontrolü (§9.4). Üç tür seçimi dışlar: ücretli lisanslı yazılım · ücretli yönetilen servis — ücretsiz katmanı yeten araç bu yasağa girmez · ikinci bir sürekli sunucu — gerekirse proje sahibine soru olarak döner. Kayıtlı ürün kararları — sıfır veri kaybı (0.13) ve yedeğin kurulum ön koşulu olması (ÖK-2) — geçerliliğini korur. | K-861 (proje sahibi), K-862 · K-407, K-629 |
+| 0.3 | **Kurulum firmanın adına kiralanan bir sanal sunucuda (VPS) çalışır; ürün orada konteyner olarak kurulur. Tek desteklenen hedef budur** — paylaşımlı hosting, yönetilen bulut platformu ve firmaya göre değişen hedefler desteklenmez. Sunucu ve yedek alanı firmanın hesabındadır; veritabanı ve yedekler firmanın elindedir. | MK-07; sunucudaki bileşenler §3.2; yedeğin yeri §7.6; ortamlar §8.1. | K-863 (proje sahibi) · K-410, K-629 · `10 §4.1` ÖK-2 |
 | 0.4 | **Sunucunun ve yedek alanının konumu bir ürün kuralı değil, kurulum önerisidir:** kurulumu yapan Türkiye'yi önerir; referans kurulum (ÖK-12) Türkiye'dedir. Yurt dışında bir sunucu ya da yedek alanı seçilirse aktarımın şartları firmanın yükümlülüğüdür ve konum aydınlatma metnine yazılır (`02 §12.2.8`; ÖK-2, ÖK-10). | Ürün çalıştığı sunucunun konumunu denetlemez ve konuma göre davranış değiştirmez; öneri ve seçim ölçütleri `DEPLOY_RUNBOOK`'tadır. | K-864 |
-| 0.5 | **Bir kurulumun sunucusu:** Linux ve konteyner çalıştırıcısı kurulabilen bir sanal sunucu; en az 2 sanal işlemci, 4 GB bellek ve 60 GB SSD disk — dijital ürün satan firmada disk, dosyaların toplamı ve yedeğin yerel kopyası kadar büyür; sabit bir genel IP adresi. Seçim ölçütleri — sağlayıcı diski kendi tarafında yedekli tutar, Türkiye'de veri merkezi, aylık bedel tavanda yedek alanına ve e-posta gönderimine yer bırakır, sağlayıcı anlık görüntüye izin verir — `DEPLOY_RUNBOOK`'tadır. | Tasarım değerleri bu ölçüde geçerlidir (§11.1 — 2. oturum); sunucu bilinçli olarak tekildir (§11.2 — 2. oturum). Anlık görüntü güncelleme öncesi geri dönüş içindir, yedeğin yerine geçmez (§7.6). | K-865 |
-| 0.6 | **Kurulum başına tek firma; MVP'de çok kiracılık için hazırlık yapılmaz.** Pazaryeri kalıcı ürün sınırıdır; çok kiracılı SaaS yol haritası adayıdır ve bugünkü mimaride karşılığı yoktur. | Firma seçimi, firmalar arası ayırıcı ve kiracı yalıtımı yoktur; ikinci firma ikinci kurulumdur. SaaS'a geçiş büyüme yolunun bir adımı değil, yeni bir mimari karardır (§11.3 — 2. oturum). | devir: K-10 (park) · K-929 · `10 §4.2` SK-1 |
+| 0.5 | **Bir kurulumun sunucusu:** Linux ve konteyner çalıştırıcısı kurulabilen bir sanal sunucu; en az 2 sanal işlemci, 4 GB bellek ve 60 GB SSD disk — dijital ürün satan firmada disk, dosyaların toplamı ve yedeğin yerel kopyası kadar büyür; sabit bir genel IP adresi. Seçim ölçütleri — sağlayıcı diski kendi tarafında yedekli tutar, Türkiye'de veri merkezi, aylık bedel tavanda yedek alanına ve e-posta gönderimine yer bırakır, sağlayıcı anlık görüntüye izin verir — `DEPLOY_RUNBOOK`'tadır. | Tasarım değerleri bu ölçüde geçerlidir (§11.1); sunucu bilinçli olarak tekildir (§11.2). Anlık görüntü güncelleme öncesi geri dönüş içindir, yedeğin yerine geçmez (§7.6). | K-865 |
+| 0.6 | **Kurulum başına tek firma; MVP'de çok kiracılık için hazırlık yapılmaz.** Pazaryeri kalıcı ürün sınırıdır; çok kiracılı SaaS yol haritası adayıdır ve bugünkü mimaride karşılığı yoktur. | Firma seçimi, firmalar arası ayırıcı ve kiracı yalıtımı yoktur; ikinci firma ikinci kurulumdur. SaaS'a geçiş büyüme yolunun bir adımı değil, yeni bir mimari karardır (§11.3). | devir: K-10 (park) · K-929 · `10 §4.2` SK-1 |
 | 0.7 | **Tek dil Türkçe;** dil bir ayar değildir. | Arayüz, yasal metinler ve e-postalar tek dildedir; dil seçimi ve çeviri altyapısı yoktur, adreslerde dil öneki yoktur (`02 §3.30.2`). | `10 §4.2` SK-2 |
-| 0.8 | **Hacim kabulleri** H-1…H-4 (`02 §11.3`) — sipariş hacmi tabanı, katalog, elli kaleme kadar sepet ve eşzamanlı ziyaretçi. Bunlar taban, tavan değildir: sistem hiçbirini uygulamaz, aşıldığında çalışmayı sürdürür, performans garanti edilmez. | Tek uygulama örneği ve tek veritabanı bu hacmi taşır (MK-13, MK-06); H-3 ve H-4'ün değerleri ve okunuşları §11.1'dedir (2. oturum). Aşıldığında tetikleyici SK-5'tedir. | `10 §4.2` SK-5 · K-403, K-409, K-928 |
+| 0.8 | **Hacim kabulleri** H-1…H-4 (`02 §11.3`) — sipariş hacmi tabanı, katalog, elli kaleme kadar sepet ve eşzamanlı ziyaretçi. Bunlar taban, tavan değildir: sistem hiçbirini uygulamaz, aşıldığında çalışmayı sürdürür, performans garanti edilmez. | Tek uygulama örneği ve tek veritabanı bu hacmi taşır (MK-13, MK-06); H-3 ve H-4'ün değerleri ve okunuşları §11.1'dedir. Aşıldığında tetikleyici SK-5'tedir. | `10 §4.2` SK-5 · K-403, K-409, K-928 |
 | 0.9 | **Tek pazar Türkiye ve tek para birimi TRY** — kalıcı sınır. | Para tek birimde tutulur (§7.2). | `10 §4.2` SK-8 · `01 §7` S-10 |
 | 0.10 | **Tek depo** — kalıcı sınır. | Stok ve kontenjan varyant başına tek sayıdır; depo ayrımı yoktur. | `10 §4.2` SK-10 · `01 §7` S-5 |
-| 0.11 | **Ürün çalışma süresi taahhüdü vermez; ilan edilen planlı bakım penceresi yoktur.** Kesinti olağan kabul edilir; güncellemedeki kısa kesinti bu kabulün içindedir. | Tek örnek ve tek sunucu kabul edilir (MK-13); güncellemede eski örnek durur, yenisi başlar (§8.6 — 2. oturum). Süreler kesintide de işler ve kesinti ölçülür (§5.4); izleme kurulumu yapana gider (§9.4 — 2. oturum). | K-406, K-408 · `02 §3.34.7` |
+| 0.11 | **Ürün çalışma süresi taahhüdü vermez; ilan edilen planlı bakım penceresi yoktur.** Kesinti olağan kabul edilir; güncellemedeki kısa kesinti bu kabulün içindedir. | Tek örnek ve tek sunucu kabul edilir (MK-13); güncellemede eski örnek durur, yenisi başlar (§8.6). Süreler kesintide de işler ve kesinti ölçülür (§5.4); izleme kurulumu yapana gider (§9.4). | K-406, K-408 · `02 §3.34.7` |
 | 0.12 | **Tek saat dilimi Türkiye saatidir;** yaz saati geçişi yoktur. | Zamanın tutuluşu ve sayımı §7.2. | K-335 · `02 §4.1.1` |
 | 0.13 | **Sipariş tarafında veri kaybı toleransı sıfırdır; tek istisna sunucunun diskinin kalıcı kaybındaki en çok son bir dakikadır.** Sepet ve oturum kaybı kabul edilir. Neyin kaybolamayacağı `02 §3.34.8`'dedir. | Onaylanan işlem diske yazılmadan başarı dönmez (§7.1); sunucu dışı yedek işlem günlüğünü en geç bir dakikada bir taşır (§7.6). | K-407, K-557, K-888 (proje sahibi) · `02 §3.34.8` · `10 §1` |
 
@@ -116,6 +118,117 @@ Yazım sırası K-856'dır: başlık notu ve §0 → §2 → §3 → §7 → §4
 
 > **Ne yazılır:** Bileşen diyagramı ve her bileşenin tek cümlelik sorumluluğu.
 
+Bu bölüm yeni karar vermez ve kimlik açmaz; §3'ün bileşenlerinden ve modüllerinden, §5'in çalıştırıcılarından ve öteki bölümlerin dış bağlantılarından türer (konvansiyon 2, 12). Bir kutunun sorumluluğu değişirse önce kararın evi — "Evi" sütununun gösterdiği alt bölüm — değişir; bu bölüm aynı PR'da onu izler.
+
+### 1.1 Bileşen diyagramı
+
+```mermaid
+flowchart LR
+  TAR["Ziyaretçi, müşteri ve yönetici tarayıcısı"]
+  KY["Kurulumu yapan"]
+  subgraph SUN["Kurulumun sunucusu — tek Compose tanımı"]
+    TV["Ters vekil — Caddy 2"]
+    subgraph UYG["Uygulama — tek örnek"]
+      VIT["Vitrin"]
+      PAN["Panel"]
+      MAK["Makine uçları"]
+      YON["Yönetim komutları"]
+      subgraph MOD["Modüller"]
+        M1["Katalog"]
+        M2["Sepet ve sipariş"]
+        M3["Ödeme"]
+        M4["İptal, cayma ve iade"]
+        M5["Üyelik"]
+        M6["Kurumsal içerik"]
+        M7["Bildirim"]
+        M8["Yönetim ve işlem izi"]
+        M9["Ayarlar"]
+      end
+      ALT["Ortak altyapı"]
+      ZAM["Zamanlayıcı"]
+      KUY["İş kuyruğu"]
+      BAG["Bağlantı katmanı"]
+    end
+    VT[("Veritabanı — PostgreSQL 18")]
+    YED["Yedek aracı — pgBackRest"]
+    GOC["Göç hizmeti — tek seferlik"]
+    DOS[("Dosya alanı")]
+    KAY[("Kayıt dosyaları")]
+  end
+  ODE["Ödeme sağlayıcısı"]
+  EPO["E-posta gönderim altyapısı"]
+  GOO["Google"]
+  NES["Nesne depolama"]
+  DIS["Dış erişilebilirlik kontrolü"]
+  LET["Let's Encrypt"]
+  GHC["GitHub Container Registry"]
+
+  TAR -- "HTTPS" --> TV
+  ODE -- "ödeme bildirimi" --> TV
+  DIS -- "durum ucu" --> TV
+  DIS -- "uyarı e-postası" --> KY
+  TV -- "sertifika" --> LET
+  TV -- "iç ağ" --> VIT & PAN & MAK
+  TV -- "görseller" --> DOS
+  TV --> KAY
+  VIT & PAN & MAK & YON --> MOD
+  ZAM & KUY --> MOD
+  MOD --> ALT
+  MOD --> BAG
+  KUY --> BAG
+  BAG --> ODE & EPO & GOO
+  ALT -- "iç ağ" --> VT
+  ALT --> DOS & KAY
+  YED -- "iç ağ" --> VT
+  YED --> DOS & KAY
+  YED -- "işlem günlüğü, tam yedek, dosyalar, kayıtlar" --> NES
+  GOC -- "şema sahibi" --> VT
+  KY -- "SSH" --> YON & GOC
+  GHC -. "imajlar" .-> SUN
+```
+
+### 1.2 Bileşenler ve sorumlulukları
+
+| # | Kutu | Sorumluluğu | Evi |
+|---|---|---|---|
+| 1.2.1 | Ziyaretçi, müşteri ve yönetici tarayıcısı | Vitrini ve paneli HTTPS üzerinden, sunucuda üretilmiş sayfalar olarak açar; JavaScript yalnız iyileştirir. | MK-04, MK-05 |
+| 1.2.2 | Kurulumu yapan | Kurulumu kurar, günceller ve bakar; sunucuya SSH ile girer, yönetim komutlarını ve göçü çalıştırır, uyarıları alır. | §0.1, §8.6, §8.9 |
+| 1.2.3 | Ters vekil — Caddy 2 | Dışarıya açık tek bileşendir: HTTPS'i sonlandırır, sertifikayı alır, isteği uygulamaya geçirir, görselleri sunar ve erişim kaydını yazar. | MK-08, §3.2.3 |
+| 1.2.4 | Uygulama — tek örnek | Vitrinin, panelin, makine uçlarının, modüllerin ve arka plan işlerinin tek süreçte çalıştığı dağıtılabilir birimdir. | MK-13, §3.2.1 |
+| 1.2.5 | Vitrin | Ziyaretçinin ve müşterinin sayfa alanıdır; modüllerin arayüzünü çağırır, veriye doğrudan dokunmaz. | MK-16, §3.5 |
+| 1.2.6 | Panel | Yöneticinin, varsayılan olarak kapalı sayfa alanıdır; vitrinle aynı alan adında ayrı bir yol alanıdır. | MK-16, §6.2 |
+| 1.2.7 | Makine uçları | Ödeme sağlayıcısının bildirimini, parçalı dosya yüklemeyi ve indirmeyi, site haritasını ve canlılık ve durum uçlarını karşılar. | MK-04 |
+| 1.2.8 | Yönetim komutları | Kurulum tarafının işlemlerini — yönetici açma, oturumları sonlandırma, şifreyi geçersiz kılma, okuma, durum — yalnız sunucuda yapar. | MK-72, §8.5 |
+| 1.2.9 | Katalog | Ürün, varyant, kategori, stok, fiyat, indirim, kupon, görsel, dijital ürün dosyası ve site içi aramanın sahibidir. | §3.3.2 |
+| 1.2.10 | Sepet ve sipariş | Sepetin, sipariş onayının ve ayırmanın, siparişin ve durum makinesinin geçiş biriminin sahibidir. | §3.3.3, MK-35 |
+| 1.2.11 | Ödeme | Ödemenin başlatılmasının, sağlayıcı bildiriminin gelen kaydının, son sorgunun ve karta para gönderen isteğin sahibidir. | §3.3.4, MK-39, MK-40 |
+| 1.2.12 | İptal, cayma ve iade | İptalin, gecikme feshinin, caymanın, iadenin, iade reddinin, ayıp talebinin ve geri ödeme IBAN'ının sahibidir. | §3.3.5 |
+| 1.2.13 | Üyelik | Müşteri hesabının, e-posta doğrulamasının ve değişikliğinin, adres defterinin ve Google ile girişin sahibidir. | §3.3.6 |
+| 1.2.14 | Kurumsal içerik | İçerik kayıtlarının, ana sayfanın ve menünün, markanın, duyurunun ve iletişim talebinin sahibidir. | §3.3.7 |
+| 1.2.15 | Bildirim | Gönderim kaydının — e-postanın kuyruğunun —, gövdenin gönderim anında üretilmesinin ve kanal hâlinin sahibidir. | §3.3.8, MK-38 |
+| 1.2.16 | Yönetim ve işlem izi | Yönetici hesaplarının, işlem izinin, bekleyen işlerin, satış özetinin ve dışa aktarmanın sahibidir. | §3.3.9, §4.7 |
+| 1.2.17 | Ayarlar | Firma kimliğinin, satış kapısının, ödeme yöntemlerinin, kargo ve sürelerin ve yasal metinlerin sahibidir. | §3.3.10 |
+| 1.2.18 | Ortak altyapı | Oturum, bağlantı ve deneme kayıtlarını, zamanı, imha düzenleyicisini, dosya deposu arayüzünü, önbelleği, hata katmanını ve kaydı iş kuralı taşımadan sağlar. | §3.3.11 |
+| 1.2.19 | Zamanlayıcı | Dakikada bir uyanır, zamanı kendi kaydında duran işleri çalıştırır ve kesintiyi nabızla ölçer. | MK-41, MK-44 |
+| 1.2.20 | İş kuyruğu | Geçişlerin dış yan etkilerini — e-posta, kart iadesi, son sorgu, görsel türevleri — işlemden sonra en az bir kez işler. | MK-37 |
+| 1.2.21 | Bağlantı katmanı | Ödeme sağlayıcısının, e-posta altyapısının ve Google'ın biçimini çekirdekten ayırır; her dış çağrı sürelidir. | MK-17, MK-61 |
+| 1.2.22 | Veritabanı — PostgreSQL 18 | Ürünün bütün kalıcı durumunu, şifreleme anahtar halkası dahil, yalnız iç ağda tutar. | MK-06, §7.1 |
+| 1.2.23 | Yedek aracı — pgBackRest | İşlem günlüğünü en geç dakikada bir, tam yedeği, dosyaları ve kayıt dosyalarını her gece nesne depolamaya şifreli taşır. | MK-09, MK-25 |
+| 1.2.24 | Göç hizmeti — tek seferlik | Yalnız güncellemede, uygulama imajındaki göç demetini şema sahibi kullanıcısıyla uygular. | MK-69, MK-74 |
+| 1.2.25 | Dosya alanı | Görselleri ve dijital ürün dosyalarını sunucunun diskinde, tahmin edilemez adlarla tutar. | MK-28 |
+| 1.2.26 | Kayıt dosyaları | Erişim kaydını ve uygulama kaydını altı ay boyunca günlük dosyalarda tutar. | MK-64, MK-65 |
+| 1.2.27 | Ödeme sağlayıcısı | Firmanın sözleşmesidir; kart ödemesini 3D Secure ile alır, sonucu bildirir ve sorguya ve iadeye yanıt verir. | §3.6, §2.2.2 |
+| 1.2.28 | E-posta gönderim altyapısı | Ürünün e-postalarını gönderir; seçimi Entegrasyon Spesifikasyonu'nundur. | §3.6, §2.2.1 |
+| 1.2.29 | Google | Müşterinin Google ile girişinde kimliği doğrular ve yalnız adı ve e-postayı verir. | §3.6, §6.1.4 |
+| 1.2.30 | Nesne depolama | Yedeği sunucunun dışında, firmanın hesabında, silmeye karşı korumalı ve otuz gün tutar. | MK-26, §7.6.4 |
+| 1.2.31 | Dış erişilebilirlik kontrolü | Durum ucunu beş dakikada bir yoklar ve iki ardışık başarısızlıkta kurulumu yapana e-posta gönderir. | MK-67, §9.4.11 |
+| 1.2.32 | Let's Encrypt | Ters vekilin sertifikasını verir ve yeniler. | MK-08 |
+| 1.2.33 | GitHub Container Registry | Yayımlanan imajları tutar; kurulumlar güncellemede imajı buradan çeker. | MK-11, §8.2.5 |
+
+*Kaynak: plan konusu TM1-01 · K-930 (konvansiyon 12 — diyagramın biçimi) · §2–§11'in kararları; kimlikleri "Evi" sütunundadır · K-871, K-872, K-932 (bileşenler ve modüller).*
+
+---
+
 ## 2. Teknoloji kararları
 
 ### 2.1 Teknoloji tablosu
@@ -125,17 +238,17 @@ Tablo teknoloji seçimlerini taşır; her satırın ayrıntısı "Gerekçe"nin g
 | # | Alan | Seçim | Alternatifler | Gerekçe |
 |---|---|---|---|---|
 | MK-01 | Dil ve uygulamanın biçimi | **C# / .NET; tek uygulama, sayfalar sunucuda üretilir.** Vitrin ve panel aynı uygulamanın sayfalarıdır; ayrı bir JavaScript ön yüz uygulaması yoktur. | TypeScript (Node.js) · PHP · .NET arka uç ve ayrı JavaScript ön yüz | Arızada koda bakacak kişinin rahat okuduğu dil kararı belirler (§0.1); arama motorlarının istediği sunucuda üretilen sayfa (KP-37) tek pakette karşılanır. TypeScript ve PHP o kişinin dili değildir ve PHP'nin avantajı — paylaşımlı hostinge uygunluk — barındırma kararıyla düştü (§0.3); ayrı ön yüz iki dağıtım birimi ve iki dil demektir. Karar neredeyse geri alınamaz: dili değiştirmek ürünü yeniden yazmaktır. Proje sahibinin kararı (K-866). |
-| MK-02 | Uygulama çatısı ve sürüm politikası | **ASP.NET Core; .NET 10 (uzun süreli destekli — LTS).** Ürün yalnız LTS sürümlerinde yürür; bir sonraki LTS'e kullanılan sürümün desteği bitmeden geçilir — geçiş bir bakım güncellemesidir ve kurulumlara güncelleme yoluyla ulaşır (§8.6 — 2. oturum). | Kısa destekli (STS) sürümleri izlemek | .NET 10 Kasım 2025'te çıktı ve Kasım 2028'e kadar desteklenir; .NET 8'in desteği Kasım 2026'da biter — yeni ürün desteği bitmek üzere olan sürümle başlamaz. STS her ara sürümde bütün kurulumlara zorunlu bir geçiş doğurur ve bakım aboneliği sona eren kurulumu desteksiz sürümde daha erken bırakır (K-481). Kütüphane eklemenin ölçütü — lisansın ücretsiz ve ticari kullanıma açık olması (§0.2), bakımı süren bir proje olması — Kodlama Kılavuzu'ndadır (`09` park satırı) (K-867). |
-| MK-03 | Veri erişimi ve şema göçleri | **Entity Framework Core; şema değişiklikleri onun göçleriyle (migration) taşınır.** | Dapper ya da elle yazılmış SQL | Eşzamanlılık denetimi (§7.3) ve göçler EF Core'da hazırdır; elle SQL her sorguda iş ve hata yüzeyi açar — gereken özel sorgu EF Core'un içinden yazılır. Göçün kuruluma uygulanması ve geri alınması §8.7'dedir (2. oturum) (K-867). |
-| MK-04 | Sayfaların üretimi | **ASP.NET Core Razor Pages; vitrinin ve panelin bütün sayfaları sunucuda tam HTML olarak üretilir.** Form gönderimi gönder–yönlendir–göster (POST–redirect–GET) düzenindedir — yenilenen sayfa işlemi yinelemez; uyarılar ve alan mesajları sunucunun yanıtıdır, tarayıcıda tutulan uygulama durumu yoktur. **Ayrı bir JSON API katmanı yoktur;** makine uçları yalnız gerektiği yerde doğar — ödeme sağlayıcısının bildirimi (§4.5), parçalı dosya yükleme ve indirme (§7.7), site haritası (§3.7), canlılık ve durum uçları (§9.4 — 2. oturum). | Blazor (etkileşimli sunucu) · Blazor WebAssembly ya da tarayıcıda çalışan uygulama · MVC denetleyicileri | Arama motorlarının okuduğu veri ilk yanıtın içindedir (KP-37; `02 §3.30.5`) ve kapalı sayfalar (`02 §3.30.6`) ek bir ön yüz katmanı olmadan karşılanır. Etkileşimli sunucu her açık sekme için süren bir bağlantı ve bellek tutar — tek küçük sunucuda (§0.5) ziyaretçi sayısıyla büyür ve bağlantı koptuğunda sayfa çalışmaz; tarayıcıda çalışan uygulamanın ilk yanıtında içerik yoktur ve mobil öncelikli vitrinde (`02 §3.34.2`) sayfa ağırlaşır; MVC eşdeğer bir yoldur, ama Razor Pages sayfa başına bir dosyayla ekran envanterine (`04 §4`) bire bir oturur (K-868). |
+| MK-02 | Uygulama çatısı ve sürüm politikası | **ASP.NET Core; .NET 10 (uzun süreli destekli — LTS).** Ürün yalnız LTS sürümlerinde yürür; bir sonraki LTS'e kullanılan sürümün desteği bitmeden geçilir — geçiş bir bakım güncellemesidir ve kurulumlara güncelleme yoluyla ulaşır (§8.6). | Kısa destekli (STS) sürümleri izlemek | .NET 10 Kasım 2025'te çıktı ve Kasım 2028'e kadar desteklenir; .NET 8'in desteği Kasım 2026'da biter — yeni ürün desteği bitmek üzere olan sürümle başlamaz. STS her ara sürümde bütün kurulumlara zorunlu bir geçiş doğurur ve bakım aboneliği sona eren kurulumu desteksiz sürümde daha erken bırakır (K-481). Kütüphane eklemenin ölçütü — lisansın ücretsiz ve ticari kullanıma açık olması (§0.2), bakımı süren bir proje olması — Kodlama Kılavuzu'ndadır (`09` park satırı) (K-867). |
+| MK-03 | Veri erişimi ve şema göçleri | **Entity Framework Core; şema değişiklikleri onun göçleriyle (migration) taşınır.** | Dapper ya da elle yazılmış SQL | Eşzamanlılık denetimi (§7.3) ve göçler EF Core'da hazırdır; elle SQL her sorguda iş ve hata yüzeyi açar — gereken özel sorgu EF Core'un içinden yazılır. Göçün kuruluma uygulanması ve geri alınması §8.7'dedir (K-867). |
+| MK-04 | Sayfaların üretimi | **ASP.NET Core Razor Pages; vitrinin ve panelin bütün sayfaları sunucuda tam HTML olarak üretilir.** Form gönderimi gönder–yönlendir–göster (POST–redirect–GET) düzenindedir — yenilenen sayfa işlemi yinelemez; uyarılar ve alan mesajları sunucunun yanıtıdır, tarayıcıda tutulan uygulama durumu yoktur. **Ayrı bir JSON API katmanı yoktur;** makine uçları yalnız gerektiği yerde doğar — ödeme sağlayıcısının bildirimi (§4.5), parçalı dosya yükleme ve indirme (§7.7), site haritası (§3.7), canlılık ve durum uçları (§9.4). | Blazor (etkileşimli sunucu) · Blazor WebAssembly ya da tarayıcıda çalışan uygulama · MVC denetleyicileri | Arama motorlarının okuduğu veri ilk yanıtın içindedir (KP-37; `02 §3.30.5`) ve kapalı sayfalar (`02 §3.30.6`) ek bir ön yüz katmanı olmadan karşılanır. Etkileşimli sunucu her açık sekme için süren bir bağlantı ve bellek tutar — tek küçük sunucuda (§0.5) ziyaretçi sayısıyla büyür ve bağlantı koptuğunda sayfa çalışmaz; tarayıcıda çalışan uygulamanın ilk yanıtında içerik yoktur ve mobil öncelikli vitrinde (`02 §3.34.2`) sayfa ağırlaşır; MVC eşdeğer bir yoldur, ama Razor Pages sayfa başına bir dosyayla ekran envanterine (`04 §4`) bire bir oturur (K-868). |
 | MK-05 | Ön yüz araçları | **Düz JavaScript modülleri ve düz CSS; ön yüz çatısı ve npm tabanlı derleme hattı yoktur.** JavaScript yalnız iyileştirir: gezinme, sepet, ödeme adımı, hesap ekranları ve panelin formları JavaScript kapalıyken de tamamlanır; parçalı dosya yükleme panelde JavaScript ister. Üçüncü taraf betik ve yazı tipi sunucusu kullanılmaz. Uygulanışı §3.8. | React, Vue gibi bir çatı ve npm hattı · kısmi sayfa güncellemesi için bir kütüphane (htmx vb.) · CSS çatısı (Bootstrap, Tailwind) | Klavyeyle tam gezinme ve fare olmadan tamamlanan ödeme (`02 §3.34.5`) sunucuda üretilen standart formla en az kodla sağlanır. Çatı ve npm hattı ikinci bir dil ekosistemi ve derleme zinciri getirir (§0.1); bugünkü ekranların hiçbiri kısmi sayfa güncellemesi gerektirmez — ihtiyaç doğarsa kütüphane ekleme ölçütüyle (MK-02) karara bağlanır; Tailwind derleme hattı ister, Bootstrap'in hazır görünümü tasarım tabanının (`04 §2.1`) üstüne ikinci bir görsel dil koyar (K-869; `02 §8.3.3`). |
 | MK-06 | Veritabanı | **PostgreSQL 18** — ilişkisel, tek örnek; uygulamanın yanında aynı sunucuda kendi konteynerinde çalışır. Veri katmanının stratejisi §7'dedir. | SQL Server Express · MySQL / MariaDB · SQLite | Ücretsiz ve açık kaynaktır (§0.2), az bellekle çalışır, satır kilidini ve koşullu güncellemeyi (§7.3) ve sürekli günlük aktarımıyla noktasal geri dönüşü (§7.6) yerleşik taşır; EF Core sağlayıcısı (Npgsql) olgundur. SQL Server Express'in veritabanı başına 10 GB tavanı on yıllık saklama (Z-28, Z-30) boyunca dolma riski taşır, küçük sunucuda uygulamayla belleği paylaşır ve tavanı kaldıran sürümler ücretli lisanstır; MySQL ve MariaDB'nin EF Core sağlayıcısı üçüncü taraftır ve noktasal geri dönüşün araçları daha az yerleşiktir; SQLite'ın tek yazıcı kilidi arka plan işleri ve panel işlemleri biriktiğinde bekletir ve ayrı bir veritabanı sunucusuna büyümeyi kapatır (K-870). |
 | MK-07 | Barındırma ve paketleme biçimi | **Firmanın adına kiralanan sanal sunucu; ürün orada Linux konteynerleri olarak kurulur — tek desteklenen hedef.** Sunucunun asgari tanımı §0.5'tedir. | Paylaşımlı hosting · yönetilen bulut platformu · firmaya göre birkaç hedef | Kendiliğinden işler (`02 §4.3`), büyük dijital dosya (P-26) ve sunucu dışı sürekli yedek paylaşımlı hostingte güvenilir çalışmaz; yönetilen platformun gideri tavanı aşar (§0.2), çoğu yurt dışındadır — kişisel verinin yurt dışına aktarımı yükümlülüğü doğar (`02 §12.2.8`) — ve ürünü platforma bağlar; birden çok hedef kurulum, test ve destek yükünü hedef sayısıyla katlar (§0.1). Konteyner aynı paketi ileride başka bir ortama taşımayı kapatmaz. Proje sahibinin kararı (K-863; K-865). |
 | MK-08 | Ters vekil ve sertifika | **Caddy 2** — HTTPS'i sonlandırır, sertifikayı Let's Encrypt'ten kendiliğinden alır ve yeniler, HTTP'yi HTTPS'e yönlendirir, isteği uygulamaya geçirir ve görselleri sunar. Yeri §3.2'dedir. | Sertifikayı uygulamanın kendisinin alması · nginx ve ayrı sertifika aracı (certbot) | Sertifika yenilemesi ve yönlendirme uygulamanın sorumluluğuna girmez; uygulama yeniden başlarken sertifika işi durmaz. nginx ile certbot iki araç ve bir yenileme zamanlayıcısı ister; Caddy aynı işi tek yapılandırma dosyasıyla yapar (K-872). |
 | MK-09 | Yedek aracı ve yedeğin yeri | **pgBackRest; yedek S3 uyumlu bir nesne depolamada, sunucunun dışında ve firmanın hesabında.** Strateji §7.6'dadır. | Yalnız gecelik yedek · sağlayıcının anlık görüntüsünü yedek saymak · yedeğin kurulumu yapanın hesabında durması | Sürekli günlük aktarımı tavanın içinde kalan en dar penceredir. Yalnız gecelik yedekte sunucunun diski kaybolursa bir günün siparişleri gider (§0.13); anlık görüntü aynı sağlayıcıda durur, noktasal dönüş vermez ve firmanın elinde ayrı bir kopya değildir; kurulumu yapanın hesabındaki yedeğe abonelik bitince firma ulaşamaz (ÖK-2; K-410) (K-878, K-879). |
-| MK-10 | Konteyner tanımı | **Tek bir Compose tanımı; her imaj sürüm numarasıyla sabitlenir.** Tanım ürünün parçasıdır ve repoda sürümle gelir; kuruluma özgü ayar ve sır dosyaları tanımın dışında, sunucudadır. Ayrıntısı §8.2'dedir (2. oturum). | Ürünü konteynersiz, doğrudan sunucuya kurmak · imajları "latest" etiketiyle çekmek | Proje sahibinin kararı ürünü konteyner olarak kurmaktır (§0.3); veritabanının sürümü de paketle birlikte sabitlenir. Tek tanım her kurulumu aynı yapar ve kurulum ile kurtarma adımlarını kısaltır (§7.6); "latest" aynı sürümü iki kurulumda iki farklı imajla çalıştırır ve geri dönüşü belirsizleştirir (K-872, K-920). |
+| MK-10 | Konteyner tanımı | **Tek bir Compose tanımı; her imaj sürüm numarasıyla sabitlenir.** Tanım ürünün parçasıdır ve repoda sürümle gelir; kuruluma özgü ayar ve sır dosyaları tanımın dışında, sunucudadır. Ayrıntısı §8.2'dedir. | Ürünü konteynersiz, doğrudan sunucuya kurmak · imajları "latest" etiketiyle çekmek | Proje sahibinin kararı ürünü konteyner olarak kurmaktır (§0.3); veritabanının sürümü de paketle birlikte sabitlenir. Tek tanım her kurulumu aynı yapar ve kurulum ile kurtarma adımlarını kısaltır (§7.6); "latest" aynı sürümü iki kurulumda iki farklı imajla çalıştırır ve geri dönüşü belirsizleştirir (K-872, K-920). |
 | MK-11 | İmaj kayıt defteri | **GitHub Container Registry.** Repo herkese açık kaldıkça imajlar da açıktır ve sunucu kimlik bilgisi olmadan çeker; repo özel yapılırsa her sunucu salt okuma bir çekme belirteci alır. | Docker Hub | Repo GitHub'dadır ve yayın aynı kimlikle yapılır; Docker Hub'ın ücretsiz katmanında çekme sınırı vardır (bilgim tarihli — karar kaydının notu) (K-920). |
-| MK-12 | CI ve yayın | **GitHub Actions; iskeletin adımlarının adları, sırası ve kapıları değişmez, her adımın işi yığına bağlanır; `publish.yml` kalır.** Ana dala her merge'de imajlar commit kimliğiyle, sürüm etiketinde (`vANA.ARA.YAMA`) sürüm numarasıyla yayımlanır; **kurulumlara otomatik dağıtım yoktur** — yayımlanan sürüm kurulumlara güncelleme turuyla ulaşır (§8.6 — 2. oturum). Adımların işi §8.3'tedir (2. oturum); komutların kendisi D-01'in işidir (§2.3). | `publish.yml`'in silinmesi · contract adımında uç şeması testleri · ana daldan kurulumlara otomatik dağıtım | Kurulumlar imajı kayıt defterinden çeker; yayın olmadan her kurulumda kaynaktan derleme gerekirdi. Ayrı bir JSON API katmanı olmadığı için (MK-04) servisler arası sözleşme yoktur ve contract adımı NOT_APPLICABLE'dır. Otomatik dağıtım firmaların sitesine insan bakmadan değişiklik indirirdi (K-919, K-921). |
+| MK-12 | CI ve yayın | **GitHub Actions; iskeletin adımlarının adları, sırası ve kapıları değişmez, her adımın işi yığına bağlanır; `publish.yml` kalır.** Ana dala her merge'de imajlar commit kimliğiyle, sürüm etiketinde (`vANA.ARA.YAMA`) sürüm numarasıyla yayımlanır; **kurulumlara otomatik dağıtım yoktur** — yayımlanan sürüm kurulumlara güncelleme turuyla ulaşır (§8.6). Adımların işi §8.3'tedir; komutların kendisi D-01'in işidir (§2.3). | `publish.yml`'in silinmesi · contract adımında uç şeması testleri · ana daldan kurulumlara otomatik dağıtım | Kurulumlar imajı kayıt defterinden çeker; yayın olmadan her kurulumda kaynaktan derleme gerekirdi. Ayrı bir JSON API katmanı olmadığı için (MK-04) servisler arası sözleşme yoktur ve contract adımı NOT_APPLICABLE'dır. Otomatik dağıtım firmaların sitesine insan bakmadan değişiklik indirirdi (K-919, K-921). |
 
 *Kaynak: K-858 (MK kimliği) · K-863, K-866 (proje sahibinin kararları) · K-865, K-867, K-868, K-869, K-870, K-872, K-878, K-879, K-919, K-920, K-921 · K-263, K-410, K-481 · `02 §3.30`, §3.34, §4.3, §8.3.3, §12.2.8 · `10 §2` KP-37 · `04 §2.1`, §4.*
 
@@ -148,11 +261,11 @@ Aşağıdaki seçimler bu dokümanın değildir; burada yalnız ölçütü ve ev
 | 2.2.1 | E-posta gönderim altyapısı | Kullanım kadar ödenen ya da ücretsiz katmanlı; tavanın içinde (§0.2); yanıtları firmanın iletişim e-postasına düşecek biçimde kurulur (ÖK-3) | Entegrasyon Spesifikasyonu (`08` park satırı) |
 | 2.2.2 | Ödeme sağlayıcısı | Firmanın sözleşmesidir; 3D Secure'lu barındırılan ödeme sayfası, ödeme sonucunu sorgulama ve kısmi iade dahil iade (ÖK-4). Desteklenen sağlayıcı sayısı çok kritik soru adayıdır (§3.6.4) | Firma · biçimi `08` |
 | 2.2.3 | Görüntü işleme kütüphanesi | Lisansı ücretsiz ve ticari kullanıma açık (§0.2); görevleri §7.7.2'dedir | Kodlama Kılavuzu (`09` park satırı) |
-| 2.2.4 | Kayıt kütüphanesi | Yapılandırılmış satır yazar; maskeleme kodda uygulanır (§9.1 — 2. oturum) | Kodlama Kılavuzu (`09` park satırı) |
-| 2.2.5 | Dış erişilebilirlik kontrolü | Ücretsiz katmanında kurulum sayısı kadar kontrol taşır, HTTP yanıt koduna bakar ve kendi e-postasıyla uyarır; örnek UptimeRobot'un ücretsiz katmanı — bilgim tarihli, kurulumda doğrulanır (§9.4 — 2. oturum) | Kurulumu yapan · `DEPLOY_RUNBOOK` |
+| 2.2.4 | Kayıt kütüphanesi | Yapılandırılmış satır yazar; maskeleme kodda uygulanır (§9.1) | Kodlama Kılavuzu (`09` park satırı) |
+| 2.2.5 | Dış erişilebilirlik kontrolü | Ücretsiz katmanında kurulum sayısı kadar kontrol taşır, HTTP yanıt koduna bakar ve kendi e-postasıyla uyarır; örnek UptimeRobot'un ücretsiz katmanı — bilgim tarihli, kurulumda doğrulanır (§9.4) | Kurulumu yapan · `DEPLOY_RUNBOOK` |
 | 2.2.6 | Sanal sunucu ve nesne depolama sağlayıcısı | §0.5'in seçim ölçütleri; nesne depolama S3 uyumlu ve silmeye karşı korumayı (sürüm tutma ya da nesne kilidi) destekler (§7.6) | Firma seçer, kurulumu yapan kurar · `DEPLOY_RUNBOOK` |
-| 2.2.7 | Bağımlılık güncelleme önerileri | GitHub Dependabot — ücretsiz; CI'ın derleme adımı bilinen açıkları ayrıca tarar (§8.8 — 2. oturum) | `SETUP.md` §4 ve `CI_CD_SETUP.md` — D-01'in kapanışında |
-| 2.2.8 | Geliştirme ortamının yerel araçları | E-postaları yakalayan yerel bir araç — hiçbir e-posta dışarı çıkmaz; ödeme sağlayıcısının test ortamı (§8.1 — 2. oturum) | Kodlama Kılavuzu (`09` park satırı) |
+| 2.2.7 | Bağımlılık güncelleme önerileri | GitHub Dependabot — ücretsiz; CI'ın derleme adımı bilinen açıkları ayrıca tarar (§8.8) | `SETUP.md` §4 ve `CI_CD_SETUP.md` — D-01'in kapanışında |
+| 2.2.8 | Geliştirme ortamının yerel araçları | E-postaları yakalayan yerel bir araç — hiçbir e-posta dışarı çıkmaz; ödeme sağlayıcısının test ortamı (§8.1) | Kodlama Kılavuzu (`09` park satırı) |
 
 *Kaynak: K-862, K-882, K-915, K-918, K-919, K-926 · K-865, K-879 · `10 §4.1` ÖK-3, ÖK-4.*
 
@@ -164,9 +277,9 @@ Aşağıdaki seçimler bu dokümanın değildir; burada yalnız ölçütü ve ev
 |---|---|---|
 | 2.3.1 | `CONTEXT.md` §1 — teknoloji yığını | MK-01…MK-12: C# / .NET 10, ASP.NET Core Razor Pages, EF Core, PostgreSQL 18, düz JavaScript ve CSS; Linux konteynerleri, Compose, Caddy 2, pgBackRest; GitHub Actions ve GitHub Container Registry |
 | 2.3.2 | `CONTEXT.md` §3 — kod klasörleri | Modüller §3.3'tedir; klasör düzeni Kodlama Kılavuzu'nun (`09`) işidir ve ilk implementation task'ında `CONTEXT.md` §3'e klasör düzeyinde yazılır |
-| 2.3.3 | `.gitignore` ve `.gitattributes`'ın yığına uyarlanması | .NET derleme çıktısı, test sonuçları ve IDE dosyaları; kuruluma özgü ayar ve sır dosyaları repoya girmez — yerleri sunucudadır (§6.x — 2. oturum) |
-| 2.3.4 | `.env.example` | Kurulumun sır olmayan ayar dosyasının şablonudur; sır değerleri ne bu dosyada ne repoda durur (§6.x — 2. oturum) |
-| 2.3.5 | `ci-commands.env`'in komutları | Lint — .NET biçim ve çözümleyici denetimi · Build — yayın yapılandırmasıyla derleme, uyarılar hata sayılır, bilinen açık taraması · Unit — birim testleri ve modül sınırlarının mimari testleri (§3.4.5) · Integration — gerçek PostgreSQL 18'e karşı · Contract — `NOT_APPLICABLE` · Migration dry-run — göç demeti boş veritabanına ve son yayımlanan sürümün şemasına · Package build — uygulama ve yedek aracı imajları · E2E — uçtan uca doğrulama fazında bağlanır. Adımların ayrıntısı §8.3'tedir (2. oturum) |
+| 2.3.3 | `.gitignore` ve `.gitattributes`'ın yığına uyarlanması | .NET derleme çıktısı, test sonuçları ve IDE dosyaları; kuruluma özgü ayar ve sır dosyaları repoya girmez — yerleri sunucudadır (§6.x) |
+| 2.3.4 | `.env.example` | Kurulumun sır olmayan ayar dosyasının şablonudur; sır değerleri ne bu dosyada ne repoda durur (§6.x) |
+| 2.3.5 | `ci-commands.env`'in komutları | Lint — .NET biçim ve çözümleyici denetimi · Build — yayın yapılandırmasıyla derleme, uyarılar hata sayılır, bilinen açık taraması · Unit — birim testleri ve modül sınırlarının mimari testleri (§3.4.5) · Integration — gerçek PostgreSQL 18'e karşı · Contract — `NOT_APPLICABLE` · Migration dry-run — göç demeti boş veritabanına ve son yayımlanan sürümün şemasına · Package build — uygulama ve yedek aracı imajları · E2E — uçtan uca doğrulama fazında bağlanır. Adımların ayrıntısı §8.3'tedir |
 | 2.3.6 | `ci.yml`'in runtime adımları | .NET 10 SDK; entegrasyon adımı için PostgreSQL 18 hizmeti; paketleme adımı için konteyner derlemesi |
 | 2.3.7 | `publish.yml` kararı | Kalır (MK-12); imajlar GitHub Container Registry'ye yayımlanır ve yazma izni D-01'de açılır |
 
@@ -182,9 +295,9 @@ Aşağıdaki seçimler bu dokümanın değildir; burada yalnız ölçütü ve ev
 
 **3.1.1 Ürün tek dağıtılabilir uygulamadır — modüler monolit (MK-13).** Vitrin, panel ve arka plan işleri — zamanlanmış işler, iş kuyruğu, imha, görsel türevleri — aynı süreçte, aynı konteynerde çalışır ve tek bir veritabanını kullanır. Modüller kod içinde sınırlıdır (§3.3, §3.4). Arka plan işleri uygulamanın içinde barındırılan hizmetlerdir; kalıcı durumları veritabanındadır ve süreç yeniden başladığında kaldıkları yerden sürerler (§5.1).
 
-**3.1.2 Tek örnek çalışır.** Aynı anda iki uygulama örneği yoktur; güncellemede eski örnek durur, yeni örnek başlar — kısa kesinti §0.11'in kabulündedir (§8.6 — 2. oturum). Tek örnek bellek içi önbelleğin (§7.10) ve zamanlayıcının (§5.1) dayanağıdır; ikinci örneğin koşulları büyüme yolundadır (§11.3 — 2. oturum).
+**3.1.2 Tek örnek çalışır.** Aynı anda iki uygulama örneği yoktur; güncellemede eski örnek durur, yeni örnek başlar — kısa kesinti §0.11'in kabulündedir (§8.6). Tek örnek bellek içi önbelleğin (§7.10) ve zamanlayıcının (§5.1) dayanağıdır; ikinci örneğin koşulları büyüme yolundadır (§11.3).
 
-**3.1.3 Elenenler.** **Ayrık servisler** (vitrin, panel, ödeme, bildirim) her servis için ayrı dağıtım, ayrı sır ve servisler arası kimlik ister ve tek küçük sunucuda (§0.5) belleğe sığmaz; hacim tabanı (§0.8) ve kurulum başına tek firma (§0.6) bu ölçekte onlara iş bırakmaz. **Ayrı bir arka plan işçisi süreci** ikinci bir dağıtım birimi ve sır yüzeyi açar; kazancı — web isteklerinin işlerden etkilenmemesi — bu hacimde ölçülemez. Uzun işler sınırlı eşzamanlılıkla koşar (§5.1); modül sınırı korunduğu için işler ileride ayrı sürece alınabilir (§11.3 — 2. oturum).
+**3.1.3 Elenenler.** **Ayrık servisler** (vitrin, panel, ödeme, bildirim) her servis için ayrı dağıtım, ayrı sır ve servisler arası kimlik ister ve tek küçük sunucuda (§0.5) belleğe sığmaz; hacim tabanı (§0.8) ve kurulum başına tek firma (§0.6) bu ölçekte onlara iş bırakmaz. **Ayrı bir arka plan işçisi süreci** ikinci bir dağıtım birimi ve sır yüzeyi açar; kazancı — web isteklerinin işlerden etkilenmemesi — bu hacimde ölçülemez. Uzun işler sınırlı eşzamanlılıkla koşar (§5.1); modül sınırı korunduğu için işler ileride ayrı sürece alınabilir (§11.3).
 
 *Kaynak: K-871 · K-10, K-865 · `10 §4.2` SK-1, SK-5.*
 
@@ -196,16 +309,16 @@ Aşağıdaki seçimler bu dokümanın değildir; burada yalnız ölçütü ve ev
 |---|---|---|---|
 | 3.2.1 | **Uygulama** (MK-13) | Vitrinin ve panelin sayfaları, makine uçları, zamanlayıcı ve iş kuyruğu; kök olmayan bir kullanıcıyla çalışır | İsteği ters vekilden alır; veritabanına bağlanır; ödeme sağlayıcısına, e-posta altyapısına ve Google'a giden bağlantıları şifrelidir |
 | 3.2.2 | **Veritabanı** — PostgreSQL 18 (MK-06) | Ürünün bütün kalıcı durumu; çatının şifreleme anahtar halkası dahil (§7.6.3) | Yalnız sunucunun iç ağında; dışarıya kapalı |
-| 3.2.3 | **Ters vekil** — Caddy 2 (MK-08) | HTTPS'i sonlandırır, sertifikayı alır ve yeniler, HTTP'yi HTTPS'e yönlendirir, isteği uygulamaya geçirir, görselleri önbellek başlıklarıyla sunar (§7.7.1); erişim kaydını yazar (§9.1 — 2. oturum) | Dışarıya açık tek bileşen — 80 ve 443 |
+| 3.2.3 | **Ters vekil** — Caddy 2 (MK-08) | HTTPS'i sonlandırır, sertifikayı alır ve yeniler, HTTP'yi HTTPS'e yönlendirir, isteği uygulamaya geçirir, görselleri önbellek başlıklarıyla sunar (§7.7.1); erişim kaydını yazar (§9.1) | Dışarıya açık tek bileşen — 80 ve 443 |
 | 3.2.4 | **Yedek aracı** — pgBackRest (MK-09) | Veritabanının işlem günlüğünü ve tam yedeğini, dosyaları ve kayıt dosyalarını sunucunun dışındaki nesne depolamaya taşır (§7.6) | Veritabanına bağlanır; dışarıya yalnız nesne depolamaya giden şifreli bağlantı |
 
-**3.2.5 İç ağlar ayrıdır:** ters vekil uygulamaya, uygulama ve yedek aracı veritabanına ayrı iç ağlardan ulaşır; ters vekil veritabanına ulaşamaz. Her bileşen veritabanına kendi kullanıcısıyla bağlanır (§7.1.3); kullanıcıların sırları ve dağıtım yarıçapı §6.x'tedir (2. oturum).
+**3.2.5 İç ağlar ayrıdır:** ters vekil uygulamaya, uygulama ve yedek aracı veritabanına ayrı iç ağlardan ulaşır; ters vekil veritabanına ulaşamaz. Her bileşen veritabanına kendi kullanıcısıyla bağlanır (§7.1.3); kullanıcıların sırları ve dağıtım yarıçapı §6.x'tedir.
 
-**3.2.6 İki tek seferlik çalışma sürekli bir bileşen değildir:** **göç hizmeti** yalnız güncellemede, uygulama imajındaki göç demetini şema sahibi kullanıcısıyla uygular (§8.7 — 2. oturum); **yönetim komutları** kurulum tarafının işlemlerinde uygulama konteynerinde tek seferlik çalışır (§8.5 — 2. oturum). Sunucuya bakım erişiminin sınırı §8.9'dadır (2. oturum).
+**3.2.6 İki tek seferlik çalışma sürekli bir bileşen değildir:** **göç hizmeti** yalnız güncellemede, uygulama imajındaki göç demetini şema sahibi kullanıcısıyla uygular (§8.7); **yönetim komutları** kurulum tarafının işlemlerinde uygulama konteynerinde tek seferlik çalışır (§8.5). Sunucuya bakım erişiminin sınırı §8.9'dadır.
 
-**3.2.7 İkinci bileşen doğduğu için şablonun §6.x'indeki üç soru — sırrın nerede durduğu, dağıtım yarıçapı, döndürülmesi — gün 0'da cevaplanmıştır;** cevap bu bileşen listesine göre yazılır (§6.x — 2. oturum).
+**3.2.7 İkinci bileşen doğduğu için şablonun §6.x'indeki üç soru — sırrın nerede durduğu, dağıtım yarıçapı, döndürülmesi — gün 0'da cevaplanmıştır;** cevap bu bileşen listesine göre yazılır (§6.x).
 
-**3.2.8 Sunucuda başka sürekli bileşen yoktur:** ayrı bir kuyruk sunucusu (§4.3), önbellek sunucusu (§7.10), arama motoru (§7.9), izleme yığını (§9.4 — 2. oturum) ve işçi süreci (§3.1.3) yoktur — her biri tavanın dışladığı bellek, sır ve bakım yüzeyidir (§0.2).
+**3.2.8 Sunucuda başka sürekli bileşen yoktur:** ayrı bir kuyruk sunucusu (§4.3), önbellek sunucusu (§7.10), arama motoru (§7.9), izleme yığını (§9.4) ve işçi süreci (§3.1.3) yoktur — her biri tavanın dışladığı bellek, sır ve bakım yüzeyidir (§0.2).
 
 **3.2.9 Elenenler.** **Uygulamanın sertifikayı kendisinin alması:** sertifika yenilemesi ve yönlendirme uygulamanın sorumluluğuna girer, uygulama yeniden başlarken sertifika işi de durur (MK-08). **Veritabanının sunucuya doğrudan kurulması:** proje sahibinin kararı ürünü konteyner olarak kurmaktır (§0.3) ve veritabanının sürümü paketle birlikte sabitlenir.
 
@@ -227,9 +340,9 @@ Aşağıdaki seçimler bu dokümanın değildir; burada yalnız ölçütü ve ev
 | 3.3.9 | **Yönetim ve işlem izi** | Yönetici hesapları ve davet, işlem izi (§4.7), bekleyen işler, satış özeti, dışa aktarma, kurulum kontrol listesi | `02 §10`; akış 6, 8 |
 | 3.3.10 | **Ayarlar** | Firma kimliği ve satış kapısı, ödeme yöntemleri ve firmanın IBAN'ı, kargo ücreti ve süreler, iade adresi, teslimat illeri, yasal metinler ve sürümleri | `02 §3.1`, §3.33, §11.1; akış 8 |
 
-**3.3.11 Modüllerin altında ortak bir altyapı vardır; o bir modül değildir ve iş kuralı taşımaz:** oturum, bağlantı ve deneme kayıtları (§6.1, §6.3, §6.4 — 2. oturum) · zaman kaynağı, iş günü takvimi ve yuvarlama işlevi (§7.2) · zamanlayıcı ve iş kuyruğunun çalıştırıcısı (§5.1) · imha işinin düzenleyicisi — her modül kendi verisinin imhasını kendi arayüzünden yapar (§7.4) · adresin addan üretilmesi (§3.7.1) · dosya deposu arayüzü (§7.7.1) · bellek içi önbellek (§7.10) · hata yakalama katmanı ve kayıt (§10.3, §9.1 — 2. oturum) · dış servislerin bağlantı katmanı (§3.6).
+**3.3.11 Modüllerin altında ortak bir altyapı vardır; o bir modül değildir ve iş kuralı taşımaz:** oturum, bağlantı ve deneme kayıtları (§6.1, §6.3, §6.4) · zaman kaynağı, iş günü takvimi ve yuvarlama işlevi (§7.2) · zamanlayıcı ve iş kuyruğunun çalıştırıcısı (§5.1) · imha işinin düzenleyicisi — her modül kendi verisinin imhasını kendi arayüzünden yapar (§7.4) · adresin addan üretilmesi (§3.7.1) · dosya deposu arayüzü (§7.7.1) · bellek içi önbellek (§7.10) · hata yakalama katmanı ve kayıt (§10.3, §9.1) · dış servislerin bağlantı katmanı (§3.6).
 
-**3.3.12 Vitrin ve panel modül değildir;** aynı uygulamanın iki sayfa alanıdır (§3.5). Bir sayfa bir ya da birkaç modülün arayüzünü çağırır; veriye doğrudan dokunmaz. Yönetim komutları (§8.5 — 2. oturum) da modüllerin arayüzünü çağıran bir giriş noktasıdır.
+**3.3.12 Vitrin ve panel modül değildir;** aynı uygulamanın iki sayfa alanıdır (§3.5). Bir sayfa bir ya da birkaç modülün arayüzünü çağırır; veriye doğrudan dokunmaz. Yönetim komutları (§8.5) da modüllerin arayüzünü çağıran bir giriş noktasıdır.
 
 **3.3.13 Elenen — modülleri teknik katmanlara (sunum, iş, veri) göre ayırmak:** bir kuralın değişikliği her katmanı dolaşır, `02`'nin kural grupları kodda görünmez olur ve mimari testler (§3.4.5) korunacak bir sınır bulamaz. **Elenen — sipariş, ödeme ve iptalin tek modülde toplanması:** en büyük kural kümesi tek modülde birikir; geçiş biriminin tek yazıcı ilkesi (§3.4.4) zaten bu üç modülün geçişlerini tek yerde toplar.
 
@@ -245,23 +358,23 @@ Aşağıdaki seçimler bu dokümanın değildir; burada yalnız ölçütü ve ev
 
 **3.4.4 Tek yazıcılar.** Siparişin, kalemlerinin ve kalem kayıtlarının durum alanlarına yalnız sepet ve sipariş modülünün geçiş birimi yazar; öteki modüller, sayfalar ve arka plan işleri geçişi adıyla ister (§4.1). İşlem izine yalnız yönetim modülünün iz arayüzü (§4.7), gönderim kaydına yalnız bildirim modülü (§4.4) yazar.
 
-**3.4.5 Sınır kodda sınanır:** bir modül öteki modülün iç türlerine başvurmaz; CI'ın birim adımındaki mimari testler bunu denetler (§8.3 — 2. oturum). Sınırların kodda nasıl korunduğu Kodlama Kılavuzu'nun işidir (`09` park satırı).
+**3.4.5 Sınır kodda sınanır:** bir modül öteki modülün iç türlerine başvurmaz; CI'ın birim adımındaki mimari testler bunu denetler (§8.3). Sınırların kodda nasıl korunduğu Kodlama Kılavuzu'nun işidir (`09` park satırı).
 
-**3.4.6 Elenen — uygulama içi olay yayını:** iç yan etkinin geçişle aynı işlemde yazıldığını görünmez kılar ve bir işleyici başarısız olduğunda geçişin geri alınıp alınmadığı belirsizleşir; dış yan etkiler için kalıcı kuyruk zaten vardır (§4.3). **Elenen — modüllerin birbirinin tablosunu okumasının serbest olması:** sınır yalnız yazmada korunursa okuyan modül ötekinin iç yapısına bağlanır ve bir şema değişikliği (§8.7 — 2. oturum) iki modülü birden kırar.
+**3.4.6 Elenen — uygulama içi olay yayını:** iç yan etkinin geçişle aynı işlemde yazıldığını görünmez kılar ve bir işleyici başarısız olduğunda geçişin geri alınıp alınmadığı belirsizleşir; dış yan etkiler için kalıcı kuyruk zaten vardır (§4.3). **Elenen — modüllerin birbirinin tablosunu okumasının serbest olması:** sınır yalnız yazmada korunursa okuyan modül ötekinin iç yapısına bağlanır ve bir şema değişikliği (§8.7) iki modülü birden kırar.
 
 *Kaynak: K-932 · K-871, K-889, K-891, K-892, K-921.*
 
 ### 3.5 Vitrin ve panel
 
-**3.5.1 Vitrin ve panel aynı uygulamanın iki sayfa alanıdır ve aynı alan adındadır (MK-16; ÖK-1):** panel ayrı bir yol alanıdır, alt alan adı değildir; yolun adı API Tasarımı'nın (`07`) işidir. Tek sertifika, tek ters vekil yapılandırması ve kendi alan adına kilitli çerezler (§6.7 — 2. oturum) bu düzenle çalışır.
+**3.5.1 Vitrin ve panel aynı uygulamanın iki sayfa alanıdır ve aynı alan adındadır (MK-16; ÖK-1):** panel ayrı bir yol alanıdır, alt alan adı değildir; yolun adı API Tasarımı'nın (`07`) işidir. Tek sertifika, tek ters vekil yapılandırması ve kendi alan adına kilitli çerezler (§6.7) bu düzenle çalışır.
 
-**3.5.2 İki hesap türü iki kapıdan girer** (`02 §10.2.5`, §8.1.7): vitrinin girişi yalnız müşteri hesaplarını, panelin girişi yalnız yönetici hesaplarını arar. İki tür ayrı tablolarda, ayrı adlı çerezlerle ve iki ayrı kimlik şemasıyla tutulur; e-posta adresi kendi türü içinde tekildir. Panelde Google ile giriş yoktur. Oturumun ve şemaların ayrıntısı §6.1'dedir (2. oturum).
+**3.5.2 İki hesap türü iki kapıdan girer** (`02 §10.2.5`, §8.1.7): vitrinin girişi yalnız müşteri hesaplarını, panelin girişi yalnız yönetici hesaplarını arar. İki tür ayrı tablolarda, ayrı adlı çerezlerle ve iki ayrı kimlik şemasıyla tutulur; e-posta adresi kendi türü içinde tekildir. Panelde Google ile giriş yoktur. Oturumun ve şemaların ayrıntısı §6.1'dedir.
 
-**3.5.3 Panel varsayılan olarak kapalıdır:** panelin her sayfası yönetici oturumu ister; açık kalan sayfalar panel girişi, şifre sıfırlama, davet kabulü ve doğrulama ekranlarıdır (§6.2 — 2. oturum). Panelin bütün sayfaları arama motorlarına kapalıdır (§3.7.4).
+**3.5.3 Panel varsayılan olarak kapalıdır:** panelin her sayfası yönetici oturumu ister; açık kalan sayfalar panel girişi, şifre sıfırlama, davet kabulü ve doğrulama ekranlarıdır (§6.2). Panelin bütün sayfaları arama motorlarına kapalıdır (§3.7.4).
 
 **3.5.4 Vitrin panelin oturumunu yalnız iki iş için tanır:** yönetici şeridi (`04` 2.9, §3.7) ve taslak kaydın önizlemesi (`02 §3.27.25`; `04` 3.7.2). Yönetici oturumu vitrinde müşteri sayılmaz — hesap alanını, sepeti ve siparişi değiştirmez (`04` 2.9.4); vitrinin kimlik şeması yalnız müşteri hesabını tanır.
 
-**3.5.5 Çerez süzgeci yalnız vitrinin yanıtlarına uygulanır;** panel ziyaretçinin değil yöneticinin tarayıcısıdır (§6.7 — 2. oturum).
+**3.5.5 Çerez süzgeci yalnız vitrinin yanıtlarına uygulanır;** panel ziyaretçinin değil yöneticinin tarayıcısıdır (§6.7).
 
 **3.5.6 Elenen — panel için alt alan adı:** ikinci bir DNS kaydı ve sertifika ister ve kurulumun sırasına (ÖK-1) bir adım ekler; vitrindeki yönetici şeridi ve taslak önizlemesi oturumun iki alan adı arasında taşınmasını gerektirir.
 
@@ -271,15 +384,15 @@ Aşağıdaki seçimler bu dokümanın değildir; burada yalnız ölçütü ve ev
 
 **3.6.1 Üç dış servis vardır ve her biri bir bağlantı katmanının arkasındadır (MK-17):** ödeme sağlayıcısı (ÖK-4), e-posta gönderim altyapısı (ÖK-3) ve Google (ÖK-6). Modül servisin ürün düzeyindeki işini çağırır — ödemeyi başlat, sonucu sor, iade iste, gelen bildirimi doğrula · e-postayı gönder · kimliği doğrula —; sağlayıcıya özgü biçim — istek, imza, yanıt kodları ve onların sınıfları — bağlantı katmanındadır. Biçimin kendisi Entegrasyon Spesifikasyonu'nun (`08`) işidir.
 
-**3.6.2 Ürün kuralı çekirdekte kalır, bağlantı katmanına inmez:** son sorgu yanıtsız kalırsa sipariş iptal edilmez (`02 §6.1.2`; §4.5) · sağlayıcıya bağlanılamadığı için ödeme sayfası açılmamış siparişin iptali ödeme denemesi sayılmaz (L-7; `02 §8.2`) — bağlantı hatasının ayırt edilmesi `08`'dedir · karta para gönderen istek bir kez işlenir (§4.6) · e-posta denemesinin sonucu üç sınıftır — gönderildi, alıcı hatası, kanal hatası (§10.2 — 2. oturum) — ve yanıt kodlarının sınıflara eşlenmesi `08`'dedir.
+**3.6.2 Ürün kuralı çekirdekte kalır, bağlantı katmanına inmez:** son sorgu yanıtsız kalırsa sipariş iptal edilmez (`02 §6.1.2`; §4.5) · sağlayıcıya bağlanılamadığı için ödeme sayfası açılmamış siparişin iptali ödeme denemesi sayılmaz (L-7; `02 §8.2`) — bağlantı hatasının ayırt edilmesi `08`'dedir · karta para gönderen istek bir kez işlenir (§4.6) · e-posta denemesinin sonucu üç sınıftır — gönderildi, alıcı hatası, kanal hatası (§10.2) — ve yanıt kodlarının sınıflara eşlenmesi `08`'dedir.
 
 **3.6.3 Dış çağrı veritabanı kilidinin içinde beklenmez:** siparişin kilidini tutan işlem dış servisi çağırmaz; dış iş kuyruktan yürür ve sonucu kilit alınarak yazılır (§4.3, §7.3.2). Kart hattında sağlayıcıya yönlendirme sipariş onayının işleminden sonradır (§4.2). Sağlayıcının bildirimi önce kaydedilir, sonra işlenir (§4.5).
 
 **3.6.4 Desteklenen ödeme sağlayıcısının sayısı Entegrasyon Spesifikasyonu'nun (`08`) kararıdır** ve Entegrasyon spesifikasyonları aşamasının açılışında proje sahibine sorulacak çok kritik soru adayıdır; bağlantı katmanı ödeme işlerini sağlayıcıdan bağımsız adlarla taşır.
 
-**3.6.5 Altyapı da aynı kalıptadır:** dosyalara dosya deposu arayüzüyle erişilir — bugün sunucunun diski; nesne depolamaya geçiş kod değişikliği değil yapılandırmadır (§7.7.1; §11.3 — 2. oturum). Yol haritası adaylarının getirdiği dış servisler — kargo şirketi, banka bağlantısı, SMS (YH-2, YH-3, YH-16) — aynı kalıpla eklenir ve büyüme yolunu kapatmaz (§11.3 — 2. oturum).
+**3.6.5 Altyapı da aynı kalıptadır:** dosyalara dosya deposu arayüzüyle erişilir — bugün sunucunun diski; nesne depolamaya geçiş kod değişikliği değil yapılandırmadır (§7.7.1; §11.3). Yol haritası adaylarının getirdiği dış servisler — kargo şirketi, banka bağlantısı, SMS (YH-2, YH-3, YH-16) — aynı kalıpla eklenir ve büyüme yolunu kapatmaz (§11.3).
 
-**3.6.6 Bir dış servis çökerse** — yeniden deneme, geri düşme, kullanıcının gördüğü — §10.1'dedir (2. oturum); ürün davranışı `03 §10.1`'dedir.
+**3.6.6 Bir dış servis çökerse** — yeniden deneme, geri düşme, kullanıcının gördüğü — §10.1'dedir; ürün davranışı `03 §10.1`'dedir.
 
 *Kaynak: K-932 · K-556, K-614, K-881, K-890, K-893, K-894, K-913, K-929 · `10 §4.1` ÖK-3, ÖK-4, ÖK-6 · `02 §3.21`, §6.1.2, §8.2 · `03 §10.1` · plan konusu TM3-04 (sağlayıcı sayısının çok kritik soru adaylığı).*
 
@@ -337,7 +450,7 @@ Durumların adları, geçişler ve koşulları `02 §5`'te, akışa bağlanışl
 
 **4.2.1 Onay isteği müşterinin gördüğünü taşır (MK-36):** özetin parmak izi — kalemler, adetler, birim fiyatlar, indirim, kuponun payı, kargo ve toplam — ile Ön Bilgilendirme Formu'nun ve Mesafeli Satış Sözleşmesi'nin sürüm kimlikleri; ayrıca tek kullanımlık onay anahtarı (§4.5.1).
 
-**4.2.2 Sunucu onayı tek bir veritabanı işleminde, bu sırayla işler:** (1) satış kapısını ve limitleri (L-7, L-8) denetler → (2) sepeti yeniden değerlendirir, parmak izini ve sürümleri karşılaştırır — fark varsa sipariş oluşmaz ve güncel özet farkı söyler (`02 §3.17.2`, §3.24.3); girecek kalem yoksa ödeme adımı açılmaz (`02 §3.16.7`) → (3) **stoğu, hizmet kontenjanını ve kupon hakkını koşullu güncellemeyle ayırır:** ayırma yalnız kalan adet yetiyorsa yazılır; satırlar sabit bir sırayla — varyant kimliğine göre, kupon en sonda — kilitlenir → (4) sipariş numarasını ve erişim anahtarını üretir (§6.4 — 2. oturum), değerleri dondurur (`02 §3.23`), aynı sepete bağlı ödenmemiş önceki siparişi iptal eder (`02 §4.3`) ve bildirimleri kuyruğa yazar (§4.3).
+**4.2.2 Sunucu onayı tek bir veritabanı işleminde, bu sırayla işler:** (1) satış kapısını ve limitleri (L-7, L-8) denetler → (2) sepeti yeniden değerlendirir, parmak izini ve sürümleri karşılaştırır — fark varsa sipariş oluşmaz ve güncel özet farkı söyler (`02 §3.17.2`, §3.24.3); girecek kalem yoksa ödeme adımı açılmaz (`02 §3.16.7`) → (3) **stoğu, hizmet kontenjanını ve kupon hakkını koşullu güncellemeyle ayırır:** ayırma yalnız kalan adet yetiyorsa yazılır; satırlar sabit bir sırayla — varyant kimliğine göre, kupon en sonda — kilitlenir → (4) sipariş numarasını ve erişim anahtarını üretir (§6.4), değerleri dondurur (`02 §3.23`), aynı sepete bağlı ödenmemiş önceki siparişi iptal eder (`02 §4.3`) ve bildirimleri kuyruğa yazar (§4.3).
 
 **4.2.3 Ayırma tutmazsa işlem bütünüyle geri alınır** ve müşteri kalemin ayrılamadığını görür (`02 §6.2`). Aynı son adedi aynı anda onaylayan iki müşteriden birinin ayırması tutar, ötekininki koşullu güncellemede düşer; sabit kilit sırası iki onayın birbirini beklemede kilitlemesini önler.
 
@@ -367,7 +480,7 @@ Durumların adları, geçişler ve koşulları `02 §5`'te, akışa bağlanışl
 
 **4.4.3 Başarısız gönderim** P-38'in aralıklarıyla aynı satırda yeniden denenir (Z-26); üç yeniden deneme de başarısızsa satır "ulaşmadı" olur ve `02 §9.1.6`'nın işareti ya da uyarısı bu hâlden okunur. Panelden yeniden gönderim yeni bir satırdır; başarılı olursa işaret kalkar (`02 §6.1.1`).
 
-**4.4.4 Satır Z-34 ya da Z-43'ün süresi kadar saklanır** ve imha işinde silinir (§7.4); tür, alıcı, zaman, deneme sayısı ve sonuç sipariş ayrıntısının e-posta geçmişini besler (`04` E-37). Denemenin sonucunun sınıfları, kanal uyarısının eşiği ve firma bildirimleri uyarısının çıkış ve kalkış anı §10.2'dedir (2. oturum).
+**4.4.4 Satır Z-34 ya da Z-43'ün süresi kadar saklanır** ve imha işinde silinir (§7.4); tür, alıcı, zaman, deneme sayısı ve sonuç sipariş ayrıntısının e-posta geçmişini besler (`04` E-37). Denemenin sonucunun sınıfları, kanal uyarısının eşiği ve firma bildirimleri uyarısının çıkış ve kalkış anı §10.2'dedir.
 
 *Kaynak: K-892 · K-321, K-462 (P-38), K-522, K-759, K-761, K-804, K-913 · `02 §4.2` Z-26, Z-34, Z-43, §6.1.1, §9.1.6 · `03 §7`.*
 
@@ -375,13 +488,13 @@ Durumların adları, geçişler ve koşulları `02 §5`'te, akışa bağlanışl
 
 **4.5.1 Sipariş bir kez oluşur (MK-39):** ödeme adımı her gösterildiğinde forma tek kullanımlık bir onay anahtarı konur; anahtar sipariş kaydında tekildir. Aynı anahtarla ikinci gönderim — çift tıklama, geri tuşu, yeniden gönderilen form — yeni sipariş açmaz, var olan siparişin sayfasına götürür.
 
-**4.5.2 Sağlayıcının bildirimi önce kaydedilir, sonra işlenir:** bildirim doğrulanır (imza ve tutar — `08`), gerekli alanlarıyla gelen bildirim kaydına yazılır ve sağlayıcıya hemen "alındı" denir; işleme kuyruktan yapılır (§4.3). Sağlayıcının işlem kimliği tekildir — aynı bildirim ikinci kez gelirse işlenmez. Bildirim ucu imzayla korunur ve IP hız sınırına girmez (§6.3 — 2. oturum).
+**4.5.2 Sağlayıcının bildirimi önce kaydedilir, sonra işlenir:** bildirim doğrulanır (imza ve tutar — `08`), gerekli alanlarıyla gelen bildirim kaydına yazılır ve sağlayıcıya hemen "alındı" denir; işleme kuyruktan yapılır (§4.3). Sağlayıcının işlem kimliği tekildir — aynı bildirim ikinci kez gelirse işlenmez. Bildirim ucu imzayla korunur ve IP hız sınırına girmez (§6.3).
 
 **4.5.3 Ödeme sonucu tek bir yoldan uygulanır:** bildirim de son sorgu da aynı işleve gider; işlev siparişin kilidini alır (§7.3.2) ve sonucu o anki hâle göre uygular — Bekliyor'da Ö1 ya da başarısızlık; zaten Ödendi'yse hiçbir şey yapmaz; İptal edildi'yse kendiliğinden iadeyi kuyruğa yazar (`02 §6.2.16`; §4.6). Son sorgunun yinelenmesi §5'tedir.
 
 **4.5.4 Müşterinin ve yöneticinin tekrarlanan işlemi** güncel hâle göre ele alınır: yapılmış işlem ikinci kez işlenmez, kullanıcı güncel hâli görür (§7.3.2).
 
-**4.5.5 Tanınmayan bildirim** — siparişi kayıtta olmayan ya da doğrulanamayan — işlenmez; gelen bildirim kaydında ve sistem kaydında kalır ve diskin kalıcı kaybından sonraki kurtarmada firmanın karşılaştırmasında okunur (§7.6.2). Ekranın "sonucu belirsiz" hâline hangi hatanın düştüğü §10.3'tedir (2. oturum).
+**4.5.5 Tanınmayan bildirim** — siparişi kayıtta olmayan ya da doğrulanamayan — işlenmez; gelen bildirim kaydında ve sistem kaydında kalır ve diskin kalıcı kaybından sonraki kurtarmada firmanın karşılaştırmasında okunur (§7.6.2). Ekranın "sonucu belirsiz" hâline hangi hatanın düştüğü §10.3'tedir.
 
 *Kaynak: K-893 · devir: K-556, K-589 (son sorgu ve geç gelen ödeme — tek işlenme) · K-874, K-888, K-745 · `02 §3.31.2`, §6.1.2, §6.2.16 · `08` park satırı (bildirimin doğrulanması).*
 
@@ -403,9 +516,9 @@ Durumların adları, geçişler ve koşulları `02 §5`'te, akışa bağlanışl
 
 **4.7.3 Değiştirilemezlik veritabanında korunur:** iz tablosunda uygulamanın veritabanı kullanıcısı yalnız ekler ve okur; süresi dolan satırı (Z-30) yalnız veritabanındaki imha fonksiyonu siler (§7.5). Kod hatası da izi değiştiremez.
 
-**4.7.4 Kurulum tarafının işlemleri ize yazılmaz** ve bildirim üretmez (`02 §10.2.7`); kaydı uygulama kaydıdır — komutun adı ve hedef hesabın iç kimliği (§8.5, §9.1 — 2. oturum).
+**4.7.4 Kurulum tarafının işlemleri ize yazılmaz** ve bildirim üretmez (`02 §10.2.7`); kaydı uygulama kaydıdır — komutun adı ve hedef hesabın iç kimliği (§8.5, §9.1).
 
-**4.7.5 İz ihlal incelemesinin üç kaydından biridir** (`02 §8.5.1`) ve panelde okunur (`02 §10.3.4`); kayıtların okuma komutunun kapsamı değildir (§9.3 — 2. oturum). Geçiş kaydı (§4.1.2) izden ayrıdır: müşterinin, yöneticinin ve sistemin bütün geçişlerini taşır.
+**4.7.5 İz ihlal incelemesinin üç kaydından biridir** (`02 §8.5.1`) ve panelde okunur (`02 §10.3.4`); kayıtların okuma komutunun kapsamı değildir (§9.3). Geçiş kaydı (§4.1.2) izden ayrıdır: müşterinin, yöneticinin ve sistemin bütün geçişlerini taşır.
 
 *Kaynak: plan konusu TM4-04 · K-877, K-889, K-891, K-917, K-923, K-932 · devir: K-380 (ihlal incelemesinin üç kaydı) · K-310, K-702 · `02 §8.5`, §10.2.7, §10.3 · checklist'in Teknik mimari hatırlatması (denetim izi).*
 
@@ -442,7 +555,7 @@ Kendiliğinden işleyen anlar ve süreler `02 §4.2`, §4.3 ve `03 §4`'tedir; b
 | 5.2.6 | E-postanın yeniden denenmesi | Zamanlayıcı — gönderim kaydındaki sonraki deneme anı (§4.4.3) | Z-26 |
 | 5.2.7 | Doğrulanmamış kaydın ve bekleyen e-posta değişikliğinin ömrü dolunca silinmesi; kayıt sırasında süresi dolmuş bekleyen kayda rastlanırsa o da o anda silinir | Zamanlayıcı — kayıttaki an | Z-1 · `02 §3.13` |
 | 5.2.8 | Periyodik imha (§7.4) — sistem kayıt dosyaları, iz satırları, imha kaydının kendisi ve kalemlerin indiremeyeceği dosya kayıtları dahil | Gecelik iş — 03:00 (5.3.2) | Z-36 · `02 §12.2.7` |
-| 5.2.9 | Geçici kayıtların temizliği — tamamlanmayan parçalı yükleme (§7.7.3), süresi dolan oturum ve bağlantı kayıtları, penceresi geçen deneme kayıtları, tamamlanmış iş kuyruğu satırları, uzun süre açılmayan misafir sepeti (§6.7 — 2. oturum) | Gecelik iş — imhayla birlikte | `02 §4.2` Z-6 |
+| 5.2.9 | Geçici kayıtların temizliği — tamamlanmayan parçalı yükleme (§7.7.3), süresi dolan oturum ve bağlantı kayıtları, penceresi geçen deneme kayıtları, tamamlanmış iş kuyruğu satırları, uzun süre açılmayan misafir sepeti (§6.7) | Gecelik iş — imhayla birlikte | `02 §4.2` Z-6 |
 | 5.2.10 | Görsel türevlerinin üretilmesi (§7.7.2) | İş kuyruğu — yüklemeden sonra | `02 §3.11` |
 | 5.2.11 | İptal edilmiş siparişe geç gelen kart ödemesinin iadesi ve kart hattındaki kendiliğinden iadeler (§4.6) | İş kuyruğu — geçişten sonra | `02 §6.2.16`, §7.4 |
 | 5.2.12 | Bildirimlerin gönderimi (§4.4) | İş kuyruğu — gönderim kaydının satırı | `02 §9` |
@@ -461,7 +574,7 @@ Kendiliğinden işleyen anlar ve süreler `02 §4.2`, §4.3 ve `03 §4`'tedir; b
 
 **5.3.3 Son sorgu yanıtsız kalırsa beş dakikada bir yinelenir,** sağlayıcı yanıt verene kadar; her yineleme sistem kaydına yazılmaz, yalnız ilk yanıtsızlık ve sonuç yazılır. Aralığın sağlayıcının kotasıyla uyumu Entegrasyon Spesifikasyonu'nun (`08`) işidir.
 
-**5.3.4 Gecenin sırası:** gecelik tam yedek ve dosya eşitlemesi — yedek aracının kendi zamanlamasıyla (§7.6.1) → 03:00 imha ve geçici kayıtların temizliği → 04:30 işletim sisteminin yeniden başlatma gerektiren güvenlik güncellemesi — yalnız gerektiğinde (§8.8 — 2. oturum).
+**5.3.4 Gecenin sırası:** gecelik tam yedek ve dosya eşitlemesi — yedek aracının kendi zamanlamasıyla (§7.6.1) → 03:00 imha ve geçici kayıtların temizliği → 04:30 işletim sisteminin yeniden başlatma gerektiren güvenlik güncellemesi — yalnız gerektiğinde (§8.8).
 
 **5.3.5 Saatler ürün sabitidir ve panelden değişmez;** `02 §11`'e girmez — tasarım değeridir (konvansiyon 5).
 
@@ -469,15 +582,15 @@ Kendiliğinden işleyen anlar ve süreler `02 §4.2`, §4.3 ve `03 §4`'tedir; b
 
 ### 5.4 Kesintinin tespiti ve dönüşteki sıra
 
-**5.4.1 Kesinti nabızla ölçülür (MK-44).** Zamanlayıcı otuz saniyede bir, önce sitenin genel adresindeki sağlık ucuna kendi sunucusundan ters vekil üzerinden bir istek yapar; istek başarılıysa veritabanına bir **nabız** yazar. İki nabız arasındaki boşluk **iki dakikayı** aşarsa aralık — son nabızdan yeni nabza — bir **kesinti kaydı** olur. Böylece uygulamanın, veritabanının ya da ters vekilin durduğu ve sitenin dışarıdan açılmadığı aralık — panelin ve kendiliğinden işlerin çalışmadığı aralık — ölçülür. Sağlık ucunun ters vekilden açık olması kurulumun parçasıdır (`DEPLOY_RUNBOOK`).
+**5.4.1 Kesinti nabızla ölçülür (MK-44).** Zamanlayıcı otuz saniyede bir, önce sitenin genel adresindeki sağlık ucuna — canlılık ucu (§9.4.1) — kendi sunucusundan ters vekil üzerinden bir istek yapar; istek başarılıysa veritabanına bir **nabız** yazar. İki nabız arasındaki boşluk **iki dakikayı** aşarsa aralık — son nabızdan yeni nabza — bir **kesinti kaydı** olur. Böylece uygulamanın, veritabanının ya da ters vekilin durduğu ve sitenin dışarıdan açılmadığı aralık — panelin ve kendiliğinden işlerin çalışmadığı aralık — ölçülür. Sağlık ucunun ters vekilden açık olması kurulumun parçasıdır (`DEPLOY_RUNBOOK`).
 
 **5.4.2 Süreler kesintide dondurulmaz** (`02 §3.34.7`, §4.3): kesintide zamanı gelen işler site döndüğünde kaçırdıkları sırayla çalışır.
 
 **5.4.3 Dönüşte sıra:** önce kesinti kaydı yazılır; sonra ödeme süresi kesinti aralığında dolmuş her havale siparişinin son anı dönüşten sonraki ilk iş gününün 23:59'una taşınır — sipariş sayfası yeni son günü gösterir, yeni hatırlatma gitmez (`02 §3.21.6`); sonra zamanı geçmiş bütün işler **zamanlarına göre tek sırada** işlenir — kart hattında iptal önce son sorguyla. Nabız yazılamıyorken havale iptali işlenmez; başka işler sürer.
 
-**5.4.4 Öz denetimin uzun başarısızlığı** — son nabzın eskimesi — durum ucunun uyarı koşuludur ve kurulumu yapana gider (§9.4 — 2. oturum).
+**5.4.4 Öz denetimin uzun başarısızlığı** — son nabzın eskimesi — durum ucunun uyarı koşuludur ve kurulumu yapana gider (§9.4).
 
-**5.4.5 Sitenin kesintisinde ürünün içinden bilgilendirme yoktur** (`03 §10.3.1`); kesintinin ürün davranışı `03 §10.3`'tedir, dış bağımlılıkların tablosu §10.1'dedir (2. oturum).
+**5.4.5 Sitenin kesintisinde ürünün içinden bilgilendirme yoktur** (`03 §10.3.1`); kesintinin ürün davranışı `03 §10.3`'tedir, dış bağımlılıkların tablosu §10.1'dedir.
 
 *Kaynak: K-898 · devir: K-666, K-667 (park — kesintinin tespiti ve kaçan işlerin dönüşte sırayla çalışması), `02 §4.3`, `03` 4.2.12 ve §10 girişi · K-685, K-183, K-918 · `02 §3.34.7`, §4.2 Z-8 · `03` 4.2.11, §10.3.*
 
@@ -487,21 +600,203 @@ Kendiliğinden işleyen anlar ve süreler `02 §4.2`, §4.3 ve `03 §4`'tedir; b
 
 > **Ne yazılır:** Kimlik doğrulama, yetkilendirme, secret yönetimi, servisler arası kimlik, hız sınırlama, hassas veri saklama.
 
+Bu bölüm Ürün Gereksinimleri'nin ürün düzeyindeki güvenlik kurallarını (`02 §8`) ve kişisel veri kurallarını (`02 §12.2`) taşıyan mekanizmayı yazar; kuralların kendisi oradadır (konvansiyon 8). `GUARDRAILS §8`'in güvenlik yasakları burada mekanizmaya bağlanır: sır koda gömülmez (§6.x), hassas veri kayda yazılmaz (§6.8.3, §9.1.5), yetki yalnız istemcide denetlenmez (§6.2), ödeme sağlayıcısının bildiriminin imzası atlanmaz (§4.5.2). Servisler arası kimlik yoktur — ürün tek uygulamadır (MK-13); bileşenlerin veritabanına kendi kullanıcılarıyla bağlanması §6.x'tedir.
+
+### 6.1 Kimlik doğrulama ve oturum
+
+**6.1.1 Oturum sunucuda tutulur (MK-45).** Çerez yalnız rastgele bir oturum anahtarı taşır; oturum kaydı anahtarın özetini, hesabı, hesap türünü, oturumun kısa ya da uzun olduğunu ve son işlem anını tutar ve her istekte denetlenir. Kısa oturum (P-15) tarayıcı oturumluk çerezdir, "beni hatırla" işaretli uzun oturum (P-16) kalıcı çerezdir; ikisinde de süre son işlemden sunucuda sayılır ve son işlem anı en çok dakikada bir yazılır. Oturum kaydı kişisel veri değil, hesaba bağdır ve hesapla silinir (Z-31).
+
+**6.1.2 Oturumu kapatmak kaydı silmektir.** Şifre sıfırlama, e-posta değişikliğinin geri alınması, hesabın silinmesi ve yöneticinin kaldırılması hesabın bütün oturumlarını; şifrenin hesaptan değiştirilmesi değiştiren oturum dışındakileri siler (`02 §3.13.10`) — etki bir sonraki istekte, anındadır (`02 §10.2.2`). Kurulum tarafının oturumları sonlandırma komutu aynı silmedir (§6.9.2).
+
+**6.1.3 İki hesap türü iki ayrı kimlik şemasıdır:** müşteri ve yönetici ayrı tablolarda, ayrı adlı çerezlerle girer; vitrinin şeması yalnız müşteri, panelin şeması yalnız yönetici hesabını tanır (`02 §8.1.7`, §10.2.5; §3.5.2). Yönetici aynı doğrulama, oturum, yeniden doğrulama ve şifre rejimindedir (`02 §8.1.7`).
+
+**6.1.4 Şifre ve Google ile giriş (MK-46).** Şifre çatının şifre özetleyicisiyle — PBKDF2, tuzlu, yüksek yinelemeli — saklanır; parametreler yükseldiğinde eski özet girişte yeniden özetlenir. Varsayılan yineleme sayısı sürümden sürüme değişir (bilgim tarihli — karar kaydının notu; implementation'da doğrulanır). Çok yaygın şifreler listesi ürünle gelir (`02 §3.13.15`). Google ile giriş OpenID Connect'tir; yalnız Google'ın doğrulanmış verdiği e-posta kabul edilir ve ürün Google'dan yalnız adı ve e-postayı alıp saklar — Google hesabının kalıcı kimliği saklanmaz (`02 §8.1.2`, §12.2.8).
+
+**6.1.5 Yeniden doğrulama** (`02 §8.1.5`) şifreyle ya da Google'dan taze bir girişle yapılır; Google'da dönen doğrulanmış e-posta hesabın e-postasıyla karşılaştırılır. Başarılı yeniden doğrulama oturum kaydına **yalnız başlatılan işlem için** bir izin yazar; izin işlem tamamlanınca ya da oturum kapanınca düşer — ayrı bir süre yoktur. Yeniden doğrulamadaki başarısız şifre denemesi L-1'e sayılır (§6.3.2). Google hesabının e-postası değişirse Google ile yeniden doğrulama tutmaz; kullanıcı "şifremi unuttum" ile şifre koyar (`02 §3.13.8`).
+
+**6.1.6 Elenenler.** **İmzalı, sunucuda kaydı olmayan çerez kimliği:** kaldırılan yöneticinin oturumunun anında sonlanması ve "değiştiren dışındaki oturumlar" ayrımı her istekte veritabanı denetimi ister — bu zaten oturum kaydıdır. **Çatının hazır kimlik paketinin tamamı (ASP.NET Core Identity):** güvenlik damgası değiştiren oturum dahil bütün oturumları birlikte düşürür ve varsayılan olarak aralıklı denetlenir; hesap kilidi, bağlantı ömürleri ve iki hesap türü ürünün kurallarıyla çatışır (bilgim tarihli — karar kaydının notu). **Ayrı kimlik sunucusu (Keycloak gibi):** ayrı bileşen, bellek ve sır (§3.2.8). **Argon2id ya da bcrypt:** ek bağımlılıktır; çatının özetleyicisi bakımı süren, parametresi yükseltilebilen yerleşik yoldur (MK-02'nin kütüphane ölçütü). **Yeniden doğrulamaya ayrı bir süre:** `02 §4`'e yeni bir süre ekler; izin tek işleme bağlı olduğu için süreye gerek kalmaz.
+
+*Kaynak: K-899, K-900 · K-103, K-104, K-108, K-109, K-120, K-121, K-695 · devir: K-313 (yöneticinin kimlik doğrulama rejimi), K-459 (oturum sabitleri), K-588 (iki hesap türü) · `02 §3.13`, §8.1, §10.2, §12.2.8.*
+
+### 6.2 Yetkilendirme
+
+**6.2.1 Yetki sunucuda, sayfanın ve kaydın düzeyinde denetlenir (MK-47).** Sunucunun karar verdiği "yapılabilir işlemler" ekrana gelir ve her işlem sunucuda yeniden denetlenir; düğmenin gizlenmesi denetimin yerine geçmez (`GUARDRAILS §8`).
+
+**6.2.2 Panel varsayılan olarak kapalıdır:** panelin her sayfası, ayrı bir işaret gerekmeden yönetici oturumu ister; açık kalan tek sayfalar panel girişi, şifre sıfırlama, davet kabulü ve doğrulama ekranlarıdır (§3.5.3). Bütün yöneticiler aynı yetkidedir — rol ve izin modeli yoktur (`02 §10.2.3`).
+
+**6.2.3 Vitrinin hesap sayfaları müşteri oturumu ister;** yönetici oturumu vitrinde müşteri sayılmaz (§3.5.4).
+
+**6.2.4 Kayıt düzeyinde denetim:** müşteriye gösterilen her sipariş, adres ve talep sorgusu sahibine göre süzülür — üye için hesabı, misafir alıcı için sipariş numarası + e-posta ya da erişim anahtarı (`02 §3.22.3`); adreste duran kimliği değiştirmek başkasının kaydını açmaz.
+
+**6.2.5 Elenenler.** **Her sayfaya yetki işaretinin tek tek konması:** unutulan sayfa açık kalır; varsayılan kapalı olunca unutulan sayfa kapalı kalır. **Rol ve izin modelinin şimdiden kurulması:** MVP'de tek rol vardır; yönetici rolleri yol haritası adayıdır (YH-18) ve varsayılan politikaya rol eklemek sonradan mümkündür (§11.3.13).
+
+*Kaynak: K-912 · K-06, K-562 · `02 §3.22.3`, §10.2.3 · `GUARDRAILS §8` · `10 §5` YH-18.*
+
+### 6.3 Deneme limitleri ve istek hızı
+
+**6.3.1 Deneme limitleri (L-1…L-9) veritabanında, deneme kaydı olarak sayılır (MK-48).** Sayılan her deneme bir satırdır — limit, eksen, eksenin değeri (IP, e-posta, sepet, hesap ve tarayıcı), an; kayan pencere "son N dakikadaki satır sayısı"dır (Z-27). Pencere işlemden önce sayılır; satır limitin saydığı olayda yazılır — başarısız giriş, başarısız takip sorgusu ve geçersiz kupon denemesinde başarısızlıkta; şifre sıfırlama talebinde, hesap kaydında, iletişim formu gönderiminde ve doğrulama bağlantısının yeniden istenmesinde her istekte (`02 §8.2`). Eşikler ve pencereler `02 §11.2`'dedir; aşımda kullanıcı `02 §6.1.5`'in nötr mesajını görür ve hesap kilitlenmez (`02 §8.2.1`).
+
+**6.3.2 Eksenlere özgü mekanizmalar:** **L-7 ve L-8 ayrı sayaç tutmaz** — siparişlerin kendisinden (IP, hesap, ödeme durumu, iptal sebebi ve anı) sayılır; sağlayıcıya bağlanılamadığı için ödeme sayfası hiç açılmamış siparişin iptali sayılmaz (`02 §8.2.3`) ve e-posta ekseni yalnız giriş yapmış üyenin siparişlerini sayar (`02 §8.2.2`). **L-6'nın sepet ekseni** sepetin kimliğiyle sayılır; girişte birleşen sepet iki sayacın büyüğünü taşır. **Tanınan tarayıcının sayacı** hesap ve işaret çifti başınadır; işaretin kendisi bir çerezdir (§6.7.6) ve sunucuda hesap başına kaydı vardır (`02 §8.2.6`). **L-5'in e-posta ekseni** sorguya yazılan adresi sayar; siparişin var olup olmadığına bakmaz. **L-1** yeniden doğrulamadaki başarısız şifre denemesini de sayar (§6.1.5). **L-9** müşteri ve yönetici hesabının doğrulama bağlantısının yeniden istenmesini sayar.
+
+**6.3.3 IP yalnız ters vekilin ilettiği başlıktan okunur ve yalnız ters vekile güvenilir;** IPv6'da eksen adresin /64 önekidir — bir bağlantının elindeki öneki değiştirerek sayaçtan kaçmasını önler. Aynı /64'ü paylaşan kullanıcılar IP ekseninde birlikte sayılır; bu `02 §8.2.2`'nin paylaşılan IP riskinin IPv6'daki karşılığıdır. IP değiştiren saldırganın kalan riski ve firmanın yolu `02 §8.2.3`'tedir.
+
+**6.3.4 Deneme kaydı kısa yaşar:** penceresi geçen satır gecelik temizlikte silinir (§5.2.9); sayaçlar ihlal incelemesinin kaynağı değildir (`02 §8.5.1`). Aynı anda gelen birkaç deneme eşiği bir-iki deneme aşabilir — sayaç kaba bir frendir, kesin bir kota değildir.
+
+**6.3.5 Genel istek hızı sınırı uygulamanın içinde, çatının hız sınırlama ara katmanıyla uygulanır (MK-49);** eksen istemci IP'sidir (6.3.3). Değerler bu dokümanın tasarım değeridir: sayfa ve form istekleri IP başına dakikada **300**, form gönderimleri (POST) IP başına dakikada **30**; kurulum ayar dosyasında değiştirilebilir (§8.4.5). Statik dosyalar ve görseller sınırın dışındadır; ödeme sağlayıcısının bildirim ucu IP sınırına girmez — imzayla korunur (§4.5.2). Aşımda kullanıcı `02 §6.1.5`'in nötr mesajını görür. Sınırın sayaçları uygulamanın belleğindedir — tek örnek çalışır (MK-13); ikinci örnekte paylaşılmaları gerekir (§11.3.5). Büyük bir ofis ya da mobil operatörün ortak IP'si dakikada 300'ü ancak çok yoğun gezinmede aşar; değer kurulumdan sonra erişim kaydına bakılarak ayarlanır (§9.1.2).
+
+**6.3.6 İstek gövdesinin tavanı uç başınadır:** ucun taşıdığı en büyük meşru içerik kadardır — genel formlarda küçük, görsel yüklemede P-23'e göre, parçalı yüklemede bir parçanın boyu kadar (§7.7.3); ters vekil aynı tavanı uygular. Uç başına değerler API Tasarımı'nın (`07`) uç envanteriyle yazılır. Sepette ve stok tarafında ürün düzeyinde limit yoktur — sepetteki kalem sayısı ve stok yoklama serbesttir (`02 §8.2.5`).
+
+**6.3.7 Elenenler.** **Deneme sayaçlarının uygulamanın belleğinde tutulması:** her yeniden başlatma ve güncelleme pencereleri sıfırlar; ikinci bir örnekte paylaşılmaz. **L-7 ve L-8 için ayrı sayaç:** siparişte duran bilgiyi ikinci kez tutar ve iki kayıt ayrışabilir. **IPv6'da tam adres:** bir ev ya da sunucu /64 içinde sınırsız adres kullanabilir; eksen hiç dolmazdı. **Ters vekilde hız sınırı:** Caddy'nin standart sürümünde yoktur, eklentili derleme ister ve bakım yükü getirir (bilgim tarihli — karar kaydının notu). **Önde bir içerik dağıtım ağı ya da güvenlik duvarı (Cloudflare gibi):** ziyaretçinin bütün trafiği ve kişisel verisi yurt dışındaki bir aracıdan geçer (`02 §12.2.8`) ve sertifika ile alan adının yönetimi aracının eline geçer. **Hiç sınır olmaması:** tek küçük sunucuda (§0.5) tek bir istemci bütün siteyi yavaşlatabilir. **Kalan risk:** dağıtık bir saldırıya karşı koruma barındırma sağlayıcısının ağındadır; ürün onu karşılamaz (§0.11).
+
+*Kaynak: K-901, K-902 · K-406, K-515, K-893, K-896 · devir: K-328, K-329, K-330, K-333, K-334, K-460, K-524, K-555, K-579, K-602, K-603, K-613, K-614, K-658, K-711 (limitlerin mekanizması), K-154, K-331 (genel istek hızı sınırı) · `02 §6.1.5`, §8.2, §11.2 · `03` 6.1.2.4 · `04 §1.1` (matrisin "mimari" satırı — `03 §6.1.2.4`).*
+
+### 6.4 Anahtarlar ve tek kullanımlık bağlantılar
+
+**6.4.1 Bütün anahtarlar işletim sisteminin kriptografik rastgele üreteciyle üretilir (MK-50).**
+
+| # | Anahtar | Biçim | Saklanışı |
+|---|---|---|---|
+| 6.4.2 | Sipariş numarası (`02 §3.22.1`) | Yıl + P-19 kadar rastgele karakter; alfabe karışabilen karakterleri taşımaz — 2–9 ve I ile O dışındaki büyük harfler, 32 karakter: 32⁶, yılda yaklaşık bir milyar olasılık | Açık; tekilliği veritabanında korunur, çakışmada yeniden üretilir (`02 §3.22.2`) |
+| 6.4.3 | Sipariş erişim anahtarı (`02 §3.22.5`, §8.3.5) | En az 128 bitlik rastgele değer | Siparişte — yeniden gönderilen sipariş e-postası aynı bağlantıyı taşır (`02 §6.1.1`); firmanın siparişin e-postasını düzeltmesi yeni anahtar üretir ve eskisini geçersiz kılar (`02 §8.3.6`) |
+| 6.4.4 | Hesap bağlantılarının anahtarları — kayıt doğrulaması, yeni e-posta adresinin doğrulaması, şifre sıfırlama, yönetici daveti, e-posta değişikliğinin geri alınması | En az 128 bit | Veritabanında yalnız özetiyle, bir **bağlantı kaydında** — tür, hesap, oluşma anı, ömrün sonu, kullanıldığı an, yerine yenisi geçtiyse o an; kayıt hesabıyla yaşar ve hesapla silinir |
+| 6.4.5 | Oturum anahtarı (§6.1.1), tanınan tarayıcı işareti (§6.7.6), onay anahtarı (§4.5.1), indirme bağlantısı (§7.7.4) | Aynı üreteçle | Kendi alt bölümlerinde |
+
+**6.4.6 Bağlantının hâli bağlantı kaydından okunur:** kayıt yok · ömrü dolmuş · kullanılmış · yerine yenisi geçmiş · geçerli — `04` 5.21'in ve 9.25'in hâlleri bunlardır. Ömürler Z-1, Z-2, Z-3 ve Z-45'tir; yeniden istenen bağlantı öncekileri geçersiz kılar (`02 §3.13.5`). Hesap bağlantıları hiç yeniden gönderilmez — yeniden istek yeni anahtar üretir.
+
+**6.4.7 E-postayla gelen bağlantının açılması işlem yapmaz (MK-51).** Bağlantı (GET isteği) yalnız ekranı açar ve hiçbir durumu değiştirmez; işlem ekrandaki tek düğmeyle (POST) olur. Kapsam: kayıt doğrulaması ve yeni e-posta adresinin doğrulaması — müşteri ve yönetici —, e-posta değişikliğinin geri alınması, şifre sıfırlama ve yönetici daveti (son ikisinin ekranlarında zaten form vardır). Doğrulama ekranında ek soru, onay penceresi ve şifre alanı yoktur; bağlantının kaç kez açıldığına bakılmaz. Kuralın evi `02 §8.1.3`'tür; mimarinin payı bağlantının açılmasının hiçbir kaydı değiştirmemesidir. Sipariş e-postasındaki bağlantı yalnız sipariş sayfasını açar; indirme bağlantısı e-postayla gitmez, sipariş sayfasındaki düğmeyle üretilir (§7.7.4).
+
+**6.4.8 Anahtar hiçbir kayda yazılmaz:** ters vekilin ve uygulamanın kayıtları bağlantı anahtarı taşıyan adresi maskeleyerek yazar (§9.1.5); bağlantı sayfaları başka siteye giden istekte adresi taşımaz (§6.5.4).
+
+**6.4.9 Elenenler.** **Sipariş erişim anahtarının da yalnız özetiyle saklanması:** yeniden gönderimde aynı bağlantı gerekir; anahtarın koruduğu sipariş zaten aynı veritabanındadır — özet bir veritabanı sızıntısında ek koruma sağlamaz. Hesap bağlantıları ise yeniden gönderilmez ve özet bir sızıntıda geçerli bağlantı vermez. **Zamana ya da sıraya dayalı numara:** tahmin edilebilir (`02 §3.22.1`). **İmzalı, kaydı olmayan bağlantı:** "kullanılmış" ve "yerine yenisi geçmiş" hâlleri kayıt olmadan ayırt edilemez ve bağlantı tek kullanımlık olamaz. **Doğrulamanın bağlantının açılmasıyla olması:** e-posta güvenlik tarayıcıları ve bağlantı önizlemeleri bağlantıyı adresin sahibinden önce açabilir; başkasının adresiyle açılmış kayıt doğrulanır ve o adrese ait geçmiş misafir siparişleri o hesaba düşerdi (`02 §8.1.3`). **Sayfa açılınca JavaScript'in doğrulamayı kendiliğinden göndermesi:** betik çalıştıran tarayıcıları durdurmaz ve JavaScript'siz akışı kırar (MK-05).
+
+*Kaynak: K-903, K-904 · K-185, K-696, K-761, K-869, K-884 · devir: K-462 (P-19), K-562 (erişim anahtarının üretimi), K-780 (bağlantının hâlinin tespiti), K-839 (park — bağlantının açılmasının durum değiştirmemesi ve ilkenin öteki bağlantılara uygulanması), `04` 5.21.9, 9.25.8 · `02 §3.13.5`, §3.22, §8.1.3, §8.3.5, §8.3.6 · `04` 5.21, 9.25.*
+
+### 6.5 Form ve site güvenliği
+
+**6.5.1 Her form gönderimi çatının sahteciliğe karşı korumasından geçer (MK-52).** Sayfa formla birlikte bir doğrulama değeri üretir; değerin eşi form güvenliği çerezindedir (§6.7.4). Koruma vitrinin ve panelin bütün POST isteklerine — parçalı dosya yüklemesi dahil — varsayılan olarak uygulanır; tek istisna imzayla korunan makine ucudur, ödeme sağlayıcısının bildirimi (§4.5.2).
+
+**6.5.2 İletişim formunun görünmez tuzak alanı** sunucuda denetlenir: alan doluysa gönderim kaydedilmez ve kullanıcıya hata gösterilmez — gönderim sessizce düşer (`02 §8.3.1`). IP başına gönderim limiti L-4'tür (§6.3); üçüncü taraf captcha yoktur (`02 §8.3.3`).
+
+**6.5.3 Siteye kod girmez** (`02 §8.3.2`). Panelde betik, analitik kodu ya da piksel giren bir alan yoktur. Sayfadaki her değer sayfa üretilirken HTML'e kodlanarak yazılır (çatının kendiliğinden kodlaması). Firmanın düzenlediği uzun metinler `02 §3.11.6`'nın kapalı biçim setini kullanır — kalın, italik, madde listesi, bağlantı ve tek seviyeli ara başlık —; set sunucuda bir **izinli etiket listesiyle** uygulanır: setin dışındaki her etiket ve nitelik kayıtta ve gösterimde atılır, bağlantı yalnız `https`, `http` ve `mailto` şemasını taşır. Süzgecin kütüphanesi Kodlama Kılavuzu'nun (`09` park satırı) işidir.
+
+**6.5.4 Her yanıt tarayıcıya güvenlik başlıklarını verir (MK-53):**
+
+- **İçerik güvenlik politikası** — betik, stil, yazı tipi ve görsel yalnız sitenin kendisinden yüklenir (MK-05); sayfaya sunucunun yazdığı satır içi bloklar — marka renginin değişkeni (§3.8.3) ve yapılandırılmış veri (§3.7.2) — her yanıtta üretilen tek kullanımlık bir değerle (nonce) izinlidir; form gönderimi ve onu izleyen yönlendirme yalnız sitenin kendisine ve ödeme sağlayıcısının adresine gider; site başka bir sitenin çerçevesinde açılmaz. Ödeme sağlayıcısının çerçevesi kullanılıyorsa (`02 §8.3.4`) çerçeveye yalnız o sayfada ve yalnız sağlayıcının adresinden izin verilir; sağlayıcının istediği izinlerin biçimi Entegrasyon Spesifikasyonu'nun (`08` park satırı) işidir.
+- **HSTS** — bir yıl; alt alan adlarını kapsamaz, ön yükleme listesine girmez (§6.8.1).
+- **Türün tahmin edilmemesi** — tarayıcı yanıtın türünü içerikten tahmin etmez; dijital ürün dosyasının sunuluşu §6.6.3'tedir.
+- **Yönlendiren adresin sınırı** — başka siteye giden istekte yalnız sitenin kökü gider; bağlantı anahtarı taşıyan sayfalar hiçbir şey göndermez (§6.4.8).
+- **Tarayıcı izinleri** — kamera, mikrofon ve konum kapalıdır; site onları kullanmaz.
+
+**6.5.5 Elenenler.** **Korumanın uç uç eklenmesi:** unutulan uç sahteciliğe açık kalır; varsayılan korumada unutulan uç korunur (MK-47'nin kalıbı). **Firmanın metninde ham HTML'in olduğu gibi gösterilmesi:** `02 §3.11.6` serbest editörü ve ham HTML'i eler; yapıştırılan bir betik ödeme ve üyelik sayfalarında da çalışırdı (`02 §8.3.2`). **İçerik güvenlik politikasının yalnız raporlama kipinde açılması:** ihlali gösterir, durdurmaz. **Satır içi betiğe ve stile genel izin (`unsafe-inline`):** politikanın betik enjeksiyonuna karşı korumasını boşa çıkarır; sunucunun yazdığı iki blok tek kullanımlık değerle karşılanır.
+
+*Kaynak: K-935 · K-263, K-304, K-518, K-869, K-893, K-903, K-905, K-906, K-909, K-912 · devir: `02 §8.3` (form ve site güvenliği — matrisin "mimari" satırı, `PHASE3_CONFLICT_SCAN.md` §6.3) · `02 §3.11.6`, §8.3.*
+
+### 6.6 Yüklenen dosya
+
+**6.6.1 Görselin türü içeriğinden okunur (MK-54)** — uzantısından ve tarayıcının bildirdiğinden değil; yalnız P-22'nin biçimleri kabul edilir. Görüntü kütüphanesi dosyayı bütünüyle çözer ve yeniden kodlar (§7.7.2); çözülemeyen dosya reddedilir. Boyut tavanı P-23'tür.
+
+**6.6.2 Piksel tavanı:** çözülmeden önce boyutu okunan görsel en uzun kenarı 10.000 pikseli ya da toplam 40 megapikseli aşıyorsa reddedilir — küçük bir dosyanın bellekte devleşmesini önler. Tavan bu dokümanın tasarım değeridir.
+
+**6.6.3 Dijital ürün dosyasında tür sınırı yoktur** — firma e-kitap, yazılım, tasarım dosyası ya da arşiv satabilir; boyut tavanı P-26'dır. Dosya **her zaman indirilecek ek olarak**, genel ikili türle ve türün tahmin edilmesini yasaklayan başlıkla sunulur — tarayıcıda açılmaz, sitede çalışmaz; içeriği taranmaz. Dosyanın içeriği satıcı olan firmanındır (`02 §3.21.1`).
+
+**6.6.4 Her iki türde dosyanın diskteki adı rastgeledir;** yükleyenin verdiği ad yalnız görünen ad olarak saklanır ve yol olarak kullanılmaz (§7.7.1). **Kalan risk:** ele geçirilmiş bir yönetici hesabı zararlı dosya yükleyebilir — dosya yalnız satın alana gider; yükleme işlem izinin sekiz alanında yoktur (`02 §10.3.1`).
+
+**6.6.5 Elenenler.** **Dijital dosyada izinli türler listesi (PDF, ZIP, EPUB …):** satılabilecek dijital ürünün türünü sınırlar; zararlı içerik izinli bir arşivin içinde de gelir — liste güvenlik sağlamaz. **Virüs taraması (ClamAV):** imza veritabanı bir gigabayta yakın bellek ister — küçük sunucuyu zorlar (§0.5) — ve taramanın geçmesi içeriğin güvenli olduğunu kanıtlamaz. **Görselde yalnız uzantı denetimi:** görsel adlı bir betik ya da HTML dosyası sitenin adresinden sunulurdu.
+
+*Kaynak: K-905 · K-881, K-882 · devir: K-143 (kabul edilen dosya türleri ve yüklenen dosyanın güvenliği), K-461 (tavanlar) · `02 §3.11.3`, §3.12.3, §3.21.1, §8 girişi · `03 §6` girişi.*
+
+### 6.7 Çerezler ve tarayıcıda tutulan veri
+
+**6.7.1 Bütün çerezler birinci taraf ve zorunludur (MK-55):** yalnız HTTPS'te gönderilir (Secure), betiğe kapalıdır (HttpOnly), başka sitelerden gelen alt isteklere eklenmez (SameSite=Lax) ve kendi alan adına kilitlidir (`__Host-` öneki). Çerezler e-postayı, adı ya da şifreyi açık taşımaz. Envanterin ürün kuralı `02 §12.2.5`'tedir; tek istisna ödeme sağlayıcısının çerçevesinin kendi çerezleridir (`02 §8.3.3`). Ödeme sağlayıcısından dönüş başka bir siteden gelen istektir; dönüşün sipariş sayfasına — misafir alıcı dahil — oturum çerezine dayanmadan inmesi API Tasarımı ile Entegrasyon Spesifikasyonu'nun işidir (`08` park satırı).
+
+| # | Çerez | Taşıdığı | Ömrü |
+|---|---|---|---|
+| 6.7.2 | Vitrinin oturum çerezi | Rastgele oturum anahtarı (§6.1.1) | "Beni hatırla" işaretsizse tarayıcı oturumu, işaretliyse kalıcı; süre sunucuda sayılır (P-15, P-16) |
+| 6.7.3 | Panelin oturum çerezi | Ayrı adla, aynı biçim | Aynı |
+| 6.7.4 | Form güvenliği çerezi | Çatının sahteciliğe karşı korumasının değeri (§6.5.1) | Tarayıcı oturumu |
+| 6.7.5 | Misafir sepeti çerezi | Rastgele sepet kimliği | Tarayıcıların izin verdiği en uzun ömür — 400 gün — ve her ziyarette yenilenir |
+| 6.7.6 | Tanınan tarayıcı işareti | Rastgele değer; sunucuda hesap başına kaydıyla (§6.3.2) | P-48 |
+| 6.7.7 | Ödeme adımında yazılanlar | Şifreli ve imzalı form değerleri (6.7.9) | Tarayıcı oturumu; sipariş onaylanınca ya da sepet boşalınca silinir |
+
+**6.7.8 Misafir sepeti** çerezi 400 gün açılmazsa sunucudaki sepet gecelik temizlikte silinir (§5.2.9) — sepete artık hiçbir tarayıcı ulaşamaz; `02 §4.2` Z-6'nın "tarayıcının verileri silinene kadar" kuralı tarayıcının sınırıyla karşılanır.
+
+**6.7.9 Ödeme adımında yazılanlar — e-posta, adresler, kupon kodu — tarayıcıda, oturumluk ve şifreli bir çerezde durur (MK-56).** Müşteri girişe gitmek ya da oturumunu yenilemek için ödeme adımından ayrılırken form bu çereze yazılır; dönüşte ödeme adımı onu okuyup alanları doldurur. Çerez çatının veri koruma anahtarıyla şifrelenir ve imzalanır. **Sunucuda kayıt oluşmaz** — sipariş onaylanmadan veri sunucuya yazılmaz (`04 §5`; `02 §8.4`). Alanlar uzunsa çatının parçalı çerez yöneticisi çerezi böler; oturum geri yükleyen bir tarayıcı çerezi bir sonraki açılışa taşıyabilir — veri yine yalnız o tarayıcıdadır.
+
+**6.7.10 Çerez politikası ilk kez yayına alınana kadar vitrin çerez yazmaz; güvence tek bir yerdedir (MK-57).** Vitrinin bütün yanıtları, o ana kadar, yanıttan çerez yazan bütün başlıkları çıkaran bir ara katmandan geçer (§3.5.5). Kapalı kapılar — satış ve veri toplayan girişler (`02 §3.1.5`) — çerez gerektiren işlevleri zaten kapatır; ara katman bir işlevin unutulmasına karşı ikinci kattır. Panelin yanıtları kapsam dışıdır — panel ziyaretçinin değil yöneticinin tarayıcısıdır. Kapı yayın anından sonraki ilk istekte açılır ve geri kapanmaz — yayındaki metin yayından çekilmez, değişiklik yeni sürümdür (`02 §3.1.6`). Bu sürede ödeme sağlayıcısının çerçevesi açılmaz — satış kapalıdır.
+
+**6.7.11 Elenenler.** **SameSite=Strict:** e-postadaki bağlantıyla gelen üye oturumu kapalı görürdü — e-posta istemcisinden gelen gezinme başka bir sitedendir. **Misafir sepetinin çerezsiz, adreste kimlikle tutulması:** paylaşılan bağlantı sepeti de paylaşır. **Sunucudaki misafir sepetinin hiç silinmemesi:** çerezi düşen sepete ulaşan bir yol kalmaz. **Ödeme adımında yazılanlar için tarayıcının oturum deposu ve JavaScript:** ödeme adımı JavaScript kapalıyken de tamamlanır (MK-05). **Sunucuda geçici kayıt:** onaylanmamış kişisel veri sunucuya yazılır — `04 §5`'in "kayıt oluşturmaz"ı ve veri asgariliği (`02 §8.4`) ile çelişir; ziyaretin bittiğini sunucu bilemez. **Verinin adreste taşınması:** e-posta ve adres sunucunun ve tarayıcının kayıtlarına düşer. **Çerez yazılmamasının yalnız işlevlerin kapanmasına bırakılması ya da her işlevin kendi çerezinden önce politikayı sorması:** yeni bir işlev öncülü yeniden bozabilir ya da denetim bir yerde unutulur — kapıların bir sırada tutmadığı Aşama 3'te görüldü (`02 §12.2.5`).
+
+*Kaynak: K-906, K-907, K-908 · K-869, K-896, K-899 · devir: K-348, K-351 (çerez envanteri ve misafir sepetinin çerezi), K-603 (tanınan tarayıcı işareti), K-758 (park — ödeme adımında yazılanların yeri), K-834 · K-850 (park — ilk kurulumda çerez) · `02 §3.1.5`, §3.1.6, §4.2 Z-6, §8.3.3, §8.4, §12.2.5 · `04 §5`, 5.11.9.*
+
+### 6.8 Hassas verinin taşınması ve saklanması
+
+**6.8.1 Site yalnız HTTPS'tir (MK-58):** ters vekil HTTP'yi HTTPS'e yönlendirir ve sertifikayı kendiliğinden yeniler (MK-08); tarayıcıya bir yıllık HSTS verilir — alt alan adlarını kapsamaz ve ön yükleme listesine girmez. Uygulama ile veritabanı sunucunun iç ağında konuşur (§3.2.5); ödeme sağlayıcısına, e-posta altyapısına, Google'a ve nesne depolamaya giden bağlantılar şifrelidir. Alan adının sunucuya yönlendirilmesi kurulumun ön koşuludur (ÖK-1).
+
+**6.8.2 Saklama:** şifre özetle (§6.1.4), hesap bağlantılarının anahtarları özetle (§6.4.4) saklanır. **Kart verisi ürüne hiç gelmez** — sağlayıcının bildirimi ve sorgusu gelen kayda yalnız gerekli alanlarıyla yazılır (`02 §8.3.4`; §4.5.2). **IBAN ve öteki kişisel veriler alan düzeyinde ayrıca şifrelenmez:** korumaları ömürleri — IBAN geri ödemeyle silinir (`02 §8.4.2`) —, veritabanının dışarıya kapalı olması (§3.2.2) ve yedeğin şifrelenmesidir (§7.6.5).
+
+**6.8.3 Kayıtlar:** şifre, anahtar, sır, kart verisi, IBAN, e-posta, adres ve telefon hiçbir kayda yazılmaz; IP erişim kaydında durur. Maskelemenin tamamı §9.1.5'tedir.
+
+**6.8.4 Dışa aktarma dosyası sunucuda saklanmaz** — istek anında üretilip indirilir (`02 §10.7`); kayıtların dışarı alınmasında da sunucuda dosya bırakılmaz (§9.3.3).
+
+**6.8.5 Kalan risk:** sunucunun kendisi ele geçirilirse veri açıktır; bunu karşılayan, sunucuya erişimin sınırıdır (§6.9.4, §8.9).
+
+**6.8.6 Elenenler.** **IBAN ve kişisel alanlar için alan şifrelemesi:** anahtar aynı sunucuda durur — uygulamayı ele geçiren veriyi de anahtarı da okur; kazancı yalnız veritabanı dosyasının tek başına sızmasıdır ve onu yedeğin şifresi karşılar; bedeli arama ve sıralamanın bozulması ve anahtar kaybında verinin okunamamasıdır. **Disk şifrelemesi:** sunucu yeniden başlarken anahtar ister — kendiliğinden açılma kırılır (§8.8.1) ve anahtar yine sunucuda durur. **HSTS'nin alt alan adlarıyla ve ön yükleme listesiyle verilmesi:** firmanın alan adında HTTPS'siz başka bir hizmet varsa tarayıcı ona erişemez; ön yükleme listesinden çıkmak aylar süren bir karardır.
+
+*Kaynak: K-909 · K-12, K-872, K-879, K-893, K-900, K-903 · devir: K-515 (hassas verinin saklanması — giriş kaydı), `02 §8` girişi · `02 §8.3.4`, §8.4, §10.7, §12.2 · `03 §6` girişi · `10 §4.1` ÖK-1.*
+
+### 6.9 Kurulum tarafının işlemleri ve bakım erişimi
+
+Bu alt bölüm kurulum tarafının işlemlerinin güvenlik yüzüdür; komutların kendisi §8.5'te, sunucuya erişimin sınırı §8.9'dadır (K-931).
+
+**6.9.1 Kurulum tarafının işlemleri panelin dışındadır ve yalnız sunucudan yapılır** (`02 §10.2.7`): yönetici açma, oturumları sonlandırma, şifreyi geçersiz kılma, kayıtları okuma ve durum, uygulama imajındaki yönetim komutlarıdır (MK-72). Komutlar panelden ve web'den çağrılamaz; sunucuya girmeyen biri onları çalıştıramaz.
+
+**6.9.2 Kurtarma** (`02 §10.2.7`; `03 §10.4`): hiçbir yönetici panele giremediğinde kurulumu yapan yönetici açma komutuyla yeni bir yönetici hesabı açar; hesap ele geçirilmişse oturumları sonlandırma komutu hesabın bütün oturum kayıtlarını siler (§6.1.2) ve şifreyi geçersiz kılma komutu şifreyi kullanılamaz kılar — hesap yalnız şifre sıfırlamayla yeniden açılır. Yeni hesap ele geçirilmiş hesapla aynı e-postayı taşıyamaz — e-posta kendi türünde tekildir (`02 §10.2.5`); kurulumu yapan yeni yöneticiyi başka bir adresle açar ve ele geçirilmiş hesabı yeni yönetici panelden kaldırır. Kurtarmayı kimin isteyebileceği ve isteğin nasıl doğrulanacağı `DEPLOY_RUNBOOK`'tadır (park satırı).
+
+**6.9.3 İz ve kayıt:** komutlar işlem izine yazılmaz ve bildirim üretmez (`02 §10.2.7`; §4.7.4); her çalışma uygulama kaydına komutun adı ve hedef hesabın iç kimliğiyle yazılır — kurulum tarafının işleminin kaydı budur ve barındırma tarafındadır (§9.1.3). Şifre komut geçmişine düşmez; gizli girişle istenir (§8.5.2).
+
+**6.9.4 Bakım erişimi:** sunucuya yalnız SSH ile, kurulum başına ayrı ve parolayla korunan bir anahtarla girilir; açık kapılar 80, 443 ve SSH'tır (MK-76). Bakımda kurulumu yapan veriye salt okuma kullanıcısıyla bakar; veri yazan işler yalnız göç, yönetim komutları ve kurtarmadır (§8.9.5). Kurulumu yapan bakımda veri işleyendir (`02 §12.2.1`): erişimin bakım ve destekle sınırlı kalması veri işleme sözleşmesiyle güvencededir — sunucuda kök yetkisi olan biri her veriyi okuyabilir; sınır teknik değil, sözleşmeseldir.
+
+*Kaynak: plan konusu TM6-10 · K-923, K-927 · K-588, K-702, K-899, K-909, K-912 · devir: K-482 (bakım erişiminin sınırı), K-699 (kurulum tarafının kurtarmasının teknik yolu — yöntemi `DEPLOY_RUNBOOK` park satırında) · `02 §10.2.5`, §10.2.7, §12.2.1 · `03 §10.4` · `10 §4.1` ÖK-7.*
+
 ### 6.x Secret yönetimi (bu alt bölüm zorunludur)
 
-Üç soru **gün 0'da** cevaplanır — ikinci bileşen (servis, worker, yardımcı süreç) doğduğu anda karar verilmiş olur ve sonradan geri almak tüm dağıtım yüzeyini yeniden yazmak demektir:
+> **Şablonun kuralı:** üç soru gün 0'da cevaplanır — ikinci bileşen (servis, worker, yardımcı süreç) doğduğu anda karar verilmiş olur ve sonradan geri almak bütün dağıtım yüzeyini yeniden yazmak demektir. Nerede durur: değerler asla repoda; repo yalnız şablonu izler ve `.gitignore` bunu mekanik olarak zorlar. Dağıtım yarıçapı: her sır yalnız onu kullanan bileşene geçilir; paylaşılan sır bileşen başına varyant olur. Rotation: her sır için kim üretir, ne sıklıkla döner, dönerken sistem ayakta kalır mı, eski değer ne kadar geçerli kalır. Ek kurallar: sır ve belirteç değerleri kayda hiçbir seviyede yazılmaz; envanter `DEPLOY_RUNBOOK.md §B`'de tutulur — bu bölüm stratejiyi, runbook envanteri taşır. Sırrın nereye dağıtıldığı ayrı bir karardır ve yalnız burada sorulur.
 
-| Soru | Ne yazılır |
-|---|---|
-| **Nerede durur** | Ortam değişkeni / secret store / dosya. Değerler **asla** repo'da; repo yalnız **şablonu** izler (`.env.example`) ve `.gitignore` bunu mekanik olarak zorlar. |
-| **Dağıtım yarıçapı (blast radius)** | Her secret **yalnız onu kullanan bileşene** geçilir. İmza/anahtar materyali diğer bileşenlere hiç verilmez. Paylaşılan bir secret varsa **bileşen-başı varyantı** olur — böylece bir sızıntı ikinci yüzeyi açmaz. |
-| **Rotation** | Her secret için: kim üretir, ne sıklıkla döner, dönerken sistem ayakta kalır mı, eski değer ne kadar geçerli kalır. |
+Sunucuda dört bileşen ve tek seferlik göç hizmeti vardır (§3.2); üç sorunun cevabı bu listeye göredir (§3.2.7).
 
-**Ek kurallar:**
-- Loglarda maskeleme: secret ve token değerleri log çıktısına **hiçbir seviyede** yazılmaz.
-- Secret envanteri `DEPLOY_RUNBOOK.md §B`'de tutulur — bu bölüm **stratejiyi**, runbook **envanteri** taşır.
+**6.x.1 Nerede durur (MK-59).** Sırlar sunucuda, yalnız kök kullanıcının okuyabildiği, **bileşen başına ayrı dosyalarda** durur ve Compose'un sır tanımıyla yalnız o bileşenin konteynerine dosya olarak bağlanır; uygulama onları dosyadan okur — ortam değişkenine konmaz. Sır olmayan kurulum ayarları — alan adı, gönderen adresi, Google uygulamasının istemci kimliği — ayrı, düz bir ayar dosyasındadır (§8.4.3). Repo yalnız şablonu (`.env.example`) izler; değerler repoya girmez — `.gitignore` ve sır koruma kancası bunu mekanik olarak zorlar (§2.3.3, §2.3.4).
 
-> Template'in geri kalanı sırrı yalnız tek eksende yasaklar ("koda gömme"). Sırrın **nereye dağıtıldığı** ayrı bir karardır ve yalnız burada sorulur.
+**6.x.2 Dağıtım yarıçapı — her sır yalnız onu kullanan bileşene geçilir:**
+
+| # | Bileşen | Aldığı sırlar | Almadıkları |
+|---|---|---|---|
+| 6.x.3 | Uygulama | Veritabanındaki uygulama kullanıcısının parolası · ödeme sağlayıcısının anahtarları ve bildirim doğrulama anahtarı · e-posta gönderim kimliği · Google uygulamasının sırrı | Şema sahibinin parolası — çalışan uygulamada bulunmaz · yedek kullanıcısının parolası, nesne depolamanın erişim anahtarı ve yedeğin şifreleme anahtarı — uygulamayı ele geçiren yedekleri açamaz |
+| 6.x.4 | Göç hizmeti — yalnız güncellemede (§8.7) | Şema sahibi kullanıcısının parolası | Uygulamanın dış servis sırları ve yedek sırları |
+| 6.x.5 | Yedek aracı | Yedek kullanıcısının parolası · nesne depolamanın erişim anahtarı · yedeğin şifreleme anahtarı | Uygulamanın ve göçün sırları |
+| 6.x.6 | Veritabanı | Yönetici parolası — yalnız ilk kurulumda | Bütün dış servis sırları |
+| 6.x.7 | Ters vekil | Sır almaz — sertifikayı kendisi alır (MK-08) | Hepsi |
+
+**6.x.8 Paylaşılan sır yoktur.** Her bileşen veritabanına kendi kullanıcısıyla bağlanır (§7.1.3): uygulama kullanıcısı şema değiştiremez ve işlem izinde yalnız ekler ve okur (§7.5); bakımda ve kayıtların okunmasında kullanılan salt okuma kullanıcısı ayrıdır (§9.3.1). Ağ da aynı yarıçapı izler — ters vekil veritabanına ulaşamaz (§3.2.5). Repo özel yapılırsa her sunucunun konteyner çalıştırıcısı salt okuma bir imaj çekme belirteci alır — envantere bir satır (§8.2.5). Çatının veri koruma anahtar halkası bir kurulum ayarı değildir; veritabanında durur ve yedekle korunur (§7.6.3).
+
+**6.x.9 Döndürme (MK-60)** — kim üretir, ne sıklıkla döner, dönerken sistem ayakta kalır mı, eski değer ne kadar geçerli:
+
+| # | Sır | Kim üretir | Ne sıklıkla | Dönerken | Eski değer |
+|---|---|---|---|---|---|
+| 6.x.10 | Veritabanı parolaları ve nesne depolamanın erişim anahtarı | Kurulumu yapan | Yılda bir ve olay üzerine — sızıntı şüphesi, kurulumu yapanın değişmesi | Bileşen yeniden başlar — kısa kesinti (§0.11); yedek aracının anahtarı dönerken işlem günlüğü yerel diskte bekler (§7.6.9) | Anında geçersiz |
+| 6.x.11 | Ödeme sağlayıcısının anahtarları, e-posta gönderim kimliği, Google uygulamasının sırrı | Sağlayıcının panelinden firma ya da kurulumu yapan | Olay üzerine | Uygulama yeniden başlar; kuyruktaki e-postalar bekler, kaybolmaz (§4.3.1) | Açık siparişlere etkisi Entegrasyon Spesifikasyonu'nun ve `DEPLOY_RUNBOOK`'un işidir (`03` 10.1.1.7) |
+| 6.x.12 | Yedeğin şifreleme anahtarı | Kurulumu yapan, kurulumda | **Döndürülmez** — döndürmek eski yedekleri açılamaz kılar; sızıntıda yeni bir yedek deposu ve yeni anahtar kurulur | — | Eski yedekler otuz günde düşer (§7.6.6) |
+| 6.x.13 | Çatının veri koruma anahtarları | Çatı | Kendiliğinden — varsayılan doksan gün (bilgim tarihli — karar kaydının notu) | Kesinti yok | Çözmek için halkada kalır |
+| 6.x.14 | TLS sertifikası | Ters vekil — Let's Encrypt'ten | Kendiliğinden yenilenir | Kesinti yok | Süresi bitene kadar |
+
+**6.x.15 Kurtarmada sırlar:** sırların ayrı bir yedeği tutulmaz — her biri vereninden yeniden alınır ya da yeniden üretilir; yalnız yedeğin şifreleme anahtarı iki yerde durur — firmada ve kurulumu yapanda (§7.6.5). Sırlar yedeğe girmez (§7.6.3). Yedeğin şifreleme anahtarı iki yerde de kaybolursa yedek açılamaz — kalan risktir.
+
+**6.x.16 Ek kurallar:** sır ve anahtar hiçbir seviyede hiçbir kayda yazılmaz (§6.8.3, §9.1.5). Sır envanteri `DEPLOY_RUNBOOK §B`'dedir; envanterin "Hangi bileşen alır" ve "Hangisi ALMAMALI" sütunları 6.x.3–6.x.7'ye, döndürme sütunu 6.x.10–6.x.14'e göre doldurulur (park satırı).
+
+**6.x.17 Elenenler.** **Ortam değişkenleri:** konteynerin tanımında ve süreç ortamında görünür, alt süreçlere geçer ve hata dökümlerine karışabilir. **Sır kasası (Vault, bulut anahtar servisi):** ayrı bileşen ya da ücretli servis (§0.2) ve kasayı açan sır yine sunucuda durur. **Uygulamanın göçleri açılışta kendisinin uygulaması:** uygulama kullanıcısına şema yetkisi verir — işlem izinin korunması (§7.5) ve dağıtım yarıçapı bozulur. **Bütün sırların düzenli aralıkla, üç ayda bir döndürülmesi:** her döndürme kısa bir kesinti ve elle bir adımdır; tek kişinin kurduğu ve baktığı kurulumlarda (§0.1) düzenli döndürme ya ertelenir ya hata üretir — olay üzerine ve yılda bir dönüş riskle orantılıdır. **Sırların şifreli bir yedeği:** onu açan anahtar yine bir yerde durmak zorundadır; sırların hepsi vereninden yeniden alınabilir.
+
+*Kaynak: K-910, K-911 · K-408, K-412, K-478, K-860, K-870, K-872, K-877, K-878, K-879, K-880, K-891, K-909, K-920 · `03` 10.1.1.7 · `SETUP.md` §2 · `DEPLOY_RUNBOOK §B` · `05` şablonu §6.x.*
+
+---
 
 ## 7. Veri katmanı kararları
 
@@ -515,7 +810,7 @@ Bu bölüm verinin stratejisini yazar; tabloların, alanların ve türlerin kend
 
 **7.1.2 Siparişin bütün yazımları işlem (transaction) içindedir ve onaylanan işlem diske yazılmadan başarı dönmez.** Bu, sipariş tarafındaki sıfır kaybın (§0.13) sunucu içindeki yarısıdır: uygulama, veritabanı ya da sunucu çökerse onaylanmış işlem kaybolmaz. Sunucunun dışındaki yarısı yedeklemedir (§7.6).
 
-**7.1.3 Veritabanı kullanıcıları bileşen başınadır:** uygulama kullanıcısı şema değiştiremez ve işlem izinde yalnız ekler ve okur (§7.5); şema sahibi kullanıcısı yalnız göç hizmetinde (§8.7 — 2. oturum), yedek kullanıcısı yalnız yedek aracında çalışır; bakımda ve kayıtların okunmasında salt okuma kullanıcısı kullanılır (§9.3 — 2. oturum). Kullanıcıların sırları ve dağıtım yarıçapı §6.x'tedir (2. oturum).
+**7.1.3 Veritabanı kullanıcıları bileşen başınadır:** uygulama kullanıcısı şema değiştiremez ve işlem izinde yalnız ekler ve okur (§7.5); şema sahibi kullanıcısı yalnız göç hizmetinde (§8.7), yedek kullanıcısı yalnız yedek aracında çalışır; bakımda ve kayıtların okunmasında salt okuma kullanıcısı kullanılır (§9.3). Kullanıcıların sırları ve dağıtım yarıçapı §6.x'tedir.
 
 *Kaynak: K-870 · K-872, K-877, K-910, K-917, K-927 · `02 §3.34.8`.*
 
@@ -525,7 +820,7 @@ Bu bölüm verinin stratejisini yazar; tabloların, alanların ve türlerin kend
 
 **7.2.2 Süre sayımı `02 §4.1`'in kuralıdır:** gün olarak belirlenen süre başlangıç gününün ertesi günü başlar ve son günün 23:59'unda — Türkiye saatiyle — dolar; dakika ve saatle ölçülen süreler başladıkları andan işler. Bir sürenin bittiği an kaydına UTC damgası olarak yazılır ve zamanlayıcı oradan okur (§5.1.1).
 
-**7.2.3 İş günü takvimi ürünle gelen bir veri dosyasıdır:** resmî tatiller dosyadadır ve firma panelden düzenlemez; liste bakım sürümleriyle yenilenir (§8.8 — 2. oturum), kapsamadığı yılda iş günü hesabı yalnız hafta sonunu dışlar (`02 §4.1.2`). İş günüyle sayılan anlar Türkiye saatiyle hesaplanır ve UTC olarak saklanır.
+**7.2.3 İş günü takvimi ürünle gelen bir veri dosyasıdır:** resmî tatiller dosyadadır ve firma panelden düzenlemez; liste bakım sürümleriyle yenilenir (§8.8), kapsamadığı yılda iş günü hesabı yalnız hafta sonunu dışlar (`02 §4.1.2`). İş günüyle sayılan anlar Türkiye saatiyle hesaplanır ve UTC olarak saklanır.
 
 **7.2.4 Uygulama zamanı tek bir kaynaktan okur;** sunucunun saati ağ zaman servisiyle eşitlenir (§5.2.14). Tek kaynak sürelerin sınanabilmesinin de dayanağıdır (`09` park satırı).
 
@@ -554,11 +849,11 @@ Bu bölüm verinin stratejisini yazar; tabloların, alanların ve türlerin kend
 
 **7.4.1 Tek bir imha işi her gece Türkiye saatiyle 03:00'te çalışır (MK-22; §5.3.2)** ve süre envanterinin (Z-28…Z-44) bütün satırlarını sırayla işler. **Süre veriden hesaplanır:** iş "son çalışmadan beri" değil, her kaydın başlangıç değerinden — oluştuğu yılın sonu, kapatılış, gönderim anı (`02 §12.2.7`) — bugüne bakar; kaçırılan bir gece sonraki çalışmada kendiliğinden telafi edilir ve aynı gün iki kez çalışmak sonucu değiştirmez. Her kayıt türü küçük parçalar hâlinde, her parça kendi veritabanı işleminde imha edilir; yarıda kesilen çalışma sonrakinde kaldığı yerden sürer. İmha ile aynı siparişe dokunan bir yönetici işlemi çakışırsa sıra siparişin satır kilidiyle belirlenir (§7.3.2).
 
-**7.4.2 İmha kaydı veritabanında ayrı, yalnız eklenen bir tablodadır** — tarih, kayıt türü, sayı; kişisel veri yoktur (Z-44). Panelde görünmez, yedekle birlikte korunur ve üç yılı dolan satırını aynı iş siler; okunma yolu §9.3'tedir (2. oturum). Ürün Gereksinimleri'nin imha kaydı için "sistem kaydı" dediği yer (`02 §10.3.3`, §12.2.7) bu tablodur — panelde görünmeyen, sistemin tuttuğu kayıt; §9.1'in sistem kayıtları — kayıt dosyaları, Z-40 (2. oturum) — değildir. Kişisel veriyi hemen silen işlemler — hesabın silinmesi, bekleyen kaydın silinmesi, IBAN'ın silinmesi — imha kaydını silmeyle aynı veritabanı işleminde yazar.
+**7.4.2 İmha kaydı veritabanında ayrı, yalnız eklenen bir tablodadır** — tarih, kayıt türü, sayı; kişisel veri yoktur (Z-44). Panelde görünmez, yedekle birlikte korunur ve üç yılı dolan satırını aynı iş siler; okunma yolu §9.3'tedir. İmha kaydı §9.1'in sistem kayıtlarından — altı ay saklanan kayıt dosyalarından (Z-40) — ayrıdır; Ürün Gereksinimleri bu ayrımı `02 §10.3.3` ve §12.2.7'de yazar (§9.2.4). Kişisel veriyi hemen silen işlemler — hesabın silinmesi, bekleyen kaydın silinmesi, IBAN'ın silinmesi — imha kaydını silmeyle aynı veritabanı işleminde yazar.
 
 **7.4.3 İmhanın biçimi (MK-23):** (1) **Silme fiziksel silmedir:** hesap, iletişim talebi, giriş kaydı, bildirim kaydı ve IBAN veritabanından silinir; "silindi" işaretli satır bırakılmaz. (2) **Siparişte** kişisel alanlar — ad, adres, e-posta, telefon, IP — aynı satırda boşaltılır ve hesap bağı kaldırılır; kalan ticari kayıt `02 §12.2.7`'nin saydığı alanlardır. (3) **Siparişe ait üretilen belgeler** — Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi — kişisel veriyi siparişin alanlarından alır; belge siparişe ayrı bir kopya olarak saklanıyorsa imha o kopyadaki kişisel veriyi de kapsar. Belgenin kopya olarak mı saklandığı yoksa donmuş şablon sürümünden mi yeniden üretildiği Veri Modeli'nin (`06`) kararıdır ve bu kuralla birlikte verilir.
 
-**7.4.4 İmha işinin kapsamına ayrıca girenler:** süresi dolan sistem kayıt dosyaları — imha kaydına kayıt türü ve dosya sayısıyla yazılır (§9.2 — 2. oturum) · süresi dolan işlem izi satırları — veritabanındaki imha fonksiyonuyla (§7.5) · hiçbir kalemin indiremeyeceği dijital ürün dosyası kayıtları (§7.7.3). Aynı gece geçici kayıtlar da temizlenir (§5.2.9).
+**7.4.4 İmha işinin kapsamına ayrıca girenler:** süresi dolan sistem kayıt dosyaları — imha kaydına kayıt türü ve dosya sayısıyla yazılır (§9.2) · süresi dolan işlem izi satırları — veritabanındaki imha fonksiyonuyla (§7.5) · hiçbir kalemin indiremeyeceği dijital ürün dosyası kayıtları (§7.7.3). Aynı gece geçici kayıtlar da temizlenir (§5.2.9).
 
 **7.4.5 Yedeklerdeki kopyalar:** imha edilen veri yedeğin saklama süresi (§7.6.6) dolunca kendiliğinden kaybolur. Yedekten geri dönüş en son ana yapılır; o zaman imhalar işlem günlüğüyle birlikte yeniden uygulanmış olur. Daha eski bir ana dönüş — yalnız veri bozulmasından kurtarmak için — o andan sonraki anlık silmeleri geri getirir: dönüşten hemen sonra imha işi çalıştırılır ve kurulumu yapan firmayı bilgilendirir (`DEPLOY_RUNBOOK`).
 
@@ -570,7 +865,7 @@ Bu bölüm verinin stratejisini yazar; tabloların, alanların ve türlerin kend
 
 **7.5.1 İz tablosunda uygulamanın veritabanı kullanıcısı yalnız ekler ve okur; güncelleme ve silme yetkisi yoktur (MK-24).** Süresi dolan iz satırını (Z-30) yalnız veritabanında tanımlı bir imha fonksiyonu siler; fonksiyon süreyi kendisi hesaplar ve süresi dolmamış satıra dokunmaz — imha işi (§7.4) onu çağırır. Böylece iz `02 §8.5.2`'nin istediği gibi saklama süresi boyunca değiştirilemez ve silinemez — bir kod hatası da onu değiştiremez.
 
-**7.5.2 Kurulum tarafının veritabanına doğrudan erişimi bu korumanın dışındadır;** erişimin sınırı §8.9'dadır (2. oturum). İzin yazılışı §4.7'dedir.
+**7.5.2 Kurulum tarafının veritabanına doğrudan erişimi bu korumanın dışındadır;** erişimin sınırı §8.9'dadır. İzin yazılışı §4.7'dedir.
 
 *Kaynak: K-877 · K-310, K-482, K-927 · `02 §8.5.2`, §10.3.*
 
@@ -580,19 +875,19 @@ Bu bölüm verinin stratejisini yazar; tabloların, alanların ve türlerin kend
 
 **7.6.2 Sıfır kaybın karşılığı ve tek pencere.** Onaylanan her işlem diske yazılmadan başarı dönmez (§7.1.2) — uygulama, veritabanı ya da sunucu çökerse kayıp yoktur. **Sunucunun diski kalıcı olarak kaybolursa** kayıp penceresi en çok son bir dakikadır — yedeğe henüz ulaşmamış kayıtlar; bu pencere proje sahibinin kararıyla kabul edildi ve ikinci bir sunucuya eşzamanlı kopya eklenmez (§0.13). O pencerede verilmiş bir siparişte firmanın adımları kuralın evindedir (`02 §3.34.8`); kurtarmadan sonra kurtarılan son anın firmaya bildirilmesi `DEPLOY_RUNBOOK`'tadır. Kurtarmadan sonra eşleşmeyen sağlayıcı bildirimi gelen bildirim kaydında okunur (§4.5.5).
 
-**7.6.3 Kapsam (MK-26):** veritabanı, yüklenen dosyalar, sistem kayıt dosyaları ve çatının şifreleme anahtar halkası — oturum çerezleri ve form güvenliği bu anahtarlarla korunur; anahtar halkası veritabanında tutulur ve onunla birlikte yedeklenir. Sırlar — kurulum ayarları — yedeğe girmez; yerleri ve kurtarmada yeniden kurulmaları §6.x'tedir (2. oturum).
+**7.6.3 Kapsam (MK-26):** veritabanı, yüklenen dosyalar, sistem kayıt dosyaları ve çatının şifreleme anahtar halkası — oturum çerezleri ve form güvenliği bu anahtarlarla korunur; anahtar halkası veritabanında tutulur ve onunla birlikte yedeklenir. Sırlar — kurulum ayarları — yedeğe girmez; yerleri ve kurtarmada yeniden kurulmaları §6.x'tedir.
 
 **7.6.4 Yer:** S3 uyumlu bir nesne depolama, **sunucunun dışında ve firmanın hesabında** (ÖK-2); Türkiye'de olması önerilir (§0.4).
 
-**7.6.5 Şifreleme:** yedek sunucudan çıkmadan şifrelenir. Anahtar kurulumda firmaya teslim edilir ve kurulumu yapanda da durur — anahtarsız yedek açılamaz; anahtarın teslimi `DEPLOY_RUNBOOK`'tadır, döndürülmemesinin sebebi §6.x'tedir (2. oturum).
+**7.6.5 Şifreleme:** yedek sunucudan çıkmadan şifrelenir. Anahtar kurulumda firmaya teslim edilir ve kurulumu yapanda da durur — anahtarsız yedek açılamaz; anahtarın teslimi `DEPLOY_RUNBOOK`'tadır, döndürülmemesinin sebebi §6.x'tedir.
 
 **7.6.6 Saklama:** otuz gün; daha eski tam yedek ve günlükler kendiliğinden silinir. Nesne depolamada silmeye karşı koruma — sürüm tutma ya da nesne kilidi — açılır: sunucu ele geçirilse de yedek oradan silinemez.
 
 **7.6.7 Kurtarma süresi — tasarım hedefi (MK-27):** sunucu kaybolursa kurulum yeni bir sunucuda aynı gün, birkaç saat içinde çalışır — yeni sunucu kiralanır, Compose tanımı kurulur, veritabanı yedekten en son ana döndürülür, dosyalar indirilir ve alan adı yeni sunucuya yönlendirilir. Hedef bir taahhüt değildir; ürün çalışma süresi taahhüdü vermez (§0.11).
 
-**7.6.8 Kurtarma provası:** kurulumda bir kez — ÖK-2'nin "firmanın yedeğe erişimini doğrular" adımıyla birlikte — ve sonra her güncellemede (§8.6 — 2. oturum) yedek ayrı bir konteynerde geri döndürülür ve sonuç `DEPLOY_RUNBOOK`'a yazılır — denenmemiş yedek yedek sayılmaz (`00 §L.1`).
+**7.6.8 Kurtarma provası:** kurulumda bir kez — ÖK-2'nin "firmanın yedeğe erişimini doğrular" adımıyla birlikte — ve sonra her güncellemede (§8.6) yedek ayrı bir konteynerde geri döndürülür ve sonuç `DEPLOY_RUNBOOK`'a yazılır — denenmemiş yedek yedek sayılmaz (`00 §L.1`).
 
-**7.6.9 Aktarımın hatası uyarı olur:** işlem günlüğü nesne depolamaya ulaşamazsa günlükler yerel diskte birikir ve bağlantı dönünce aktarım sürer; süren aktarım hatası ve eskiyen gecelik yedek durum ucunun uyarı koşuludur (§9.4 — 2. oturum).
+**7.6.9 Aktarımın hatası uyarı olur:** işlem günlüğü nesne depolamaya ulaşamazsa günlükler yerel diskte birikir ve bağlantı dönünce aktarım sürer; süren aktarım hatası ve eskiyen gecelik yedek durum ucunun uyarı koşuludur (§9.4).
 
 **7.6.10 Elenenler.** **Yalnız gecelik yedek:** sunucunun diski kaybolursa bir günün siparişleri gider. **Sağlayıcının anlık görüntüsünü yedek saymak:** aynı sağlayıcıda, çoğu kez aynı hesapta durur, noktasal dönüş vermez ve firmanın elinde ayrı bir kopya değildir — güncelleme öncesi geri dönüş içindir (§0.5). **Yedeğin kurulumu yapanın hesabında durması:** abonelik bitince firma yedeğine ulaşamaz. **Şifresiz yedek:** nesne depolama hesabının ele geçirilmesi bütün kişisel veriyi açar. **Doksan gün ya da daha uzun saklama:** imha edilen verinin yedekte yaşadığı süreyi uzatır (§7.4.5); otuz gün fark edilmeyen bir veri bozulmasından dönmeye yeter.
 
@@ -600,13 +895,13 @@ Bu bölüm verinin stratejisini yazar; tabloların, alanların ve türlerin kend
 
 ### 7.7 Dosya depolama ve dijital teslim
 
-**7.7.1 Dosyalar sunucunun diskinde, uygulamanın dosya alanında durur (MK-28)** — görseller ve dijital ürün dosyaları; yedekleri nesne depolamadadır (§7.6.3). Uygulama dosyalara bir **dosya deposu arayüzü** üzerinden erişir: ileride nesne depolamaya taşımak kod değişikliği değil yapılandırmadır (§11.3 — 2. oturum). **Görseller** herkese açıktır ve ters vekilden önbellek başlıklarıyla sunulur; adresleri içerikten türeyen bir parmak izi taşır — değişen görsel yeni adres alır. **Dijital ürün dosyası hiçbir zaman genel bir adresle sunulmaz:** indirme yalnız sipariş sayfasının erişimi denetlenerek uygulamadan geçer (7.7.4); dosyanın diskteki adı tahmin edilemez ve dosya alanı dışarıdan listelenemez. Disk dolarsa yükleme reddedilir ve sebebi söylenir; disk doluluğu durum ucunun uyarı koşuludur (§9.4 — 2. oturum).
+**7.7.1 Dosyalar sunucunun diskinde, uygulamanın dosya alanında durur (MK-28)** — görseller ve dijital ürün dosyaları; yedekleri nesne depolamadadır (§7.6.3). Uygulama dosyalara bir **dosya deposu arayüzü** üzerinden erişir: ileride nesne depolamaya taşımak kod değişikliği değil yapılandırmadır (§11.3). **Görseller** herkese açıktır ve ters vekilden önbellek başlıklarıyla sunulur; adresleri içerikten türeyen bir parmak izi taşır — değişen görsel yeni adres alır. **Dijital ürün dosyası hiçbir zaman genel bir adresle sunulmaz:** indirme yalnız sipariş sayfasının erişimi denetlenerek uygulamadan geçer (7.7.4); dosyanın diskteki adı tahmin edilemez ve dosya alanı dışarıdan listelenemez. Disk dolarsa yükleme reddedilir ve sebebi söylenir; disk doluluğu durum ucunun uyarı koşuludur (§9.4).
 
-**7.7.2 Yüklenen her görsel sunucuda yeniden kodlanır (MK-29):** en uzun kenarı 2560 pikseli aşmayacak biçimde küçültülmüş bir kaynak kopya saklanır ve vitrinin kullandığı genişliklerde WebP türevleri üretilir; yüklenen özgün dosya saklanmaz. Yeniden kodlama dosyanın meta verisini — çekim yeri (GPS) ve cihaz bilgisi dahil — atar. Türevler yüklemeden sonra, isteği bekletmeden iş kuyruğunda üretilir (§5.2.10); türevi henüz olmayan görselin yerine kaynak kopya sunulur. Görüntü işleme kütüphanesinin seçimi Kodlama Kılavuzu'nun (`09`) işidir (§2.2.3); dosyanın içeriğinin doğrulanması §6.6'dadır (2. oturum).
+**7.7.2 Yüklenen her görsel sunucuda yeniden kodlanır (MK-29):** en uzun kenarı 2560 pikseli aşmayacak biçimde küçültülmüş bir kaynak kopya saklanır ve vitrinin kullandığı genişliklerde WebP türevleri üretilir; yüklenen özgün dosya saklanmaz. Yeniden kodlama dosyanın meta verisini — çekim yeri (GPS) ve cihaz bilgisi dahil — atar. Türevler yüklemeden sonra, isteği bekletmeden iş kuyruğunda üretilir (§5.2.10); türevi henüz olmayan görselin yerine kaynak kopya sunulur. Görüntü işleme kütüphanesinin seçimi Kodlama Kılavuzu'nun (`09`) işidir (§2.2.3); dosyanın içeriğinin doğrulanması §6.6'dadır.
 
 **7.7.3 Dijital ürün dosyası (MK-30):** **yükleme parçalıdır** — panel dosyayı küçük parçalar hâlinde gönderir, kesilen yükleme kaldığı yerden sürer; parçalar tamamlanmadan dosya varyanta bağlanmaz ve tamamlanmayan yükleme bir gün sonra gecelik temizlikte silinir (§5.2.9). **Her yükleme yeni bir dosya kaydıdır;** varyantın "o anki dosyası" ona en son bağlanan kayıttır ve kalem indirmede varyantın o anki dosyasını verir (`02 §3.12.7`). Ürün kalıcı silinirse ya da dosya kaldırılıp yerine yenisi konmazsa varyantın son dosya kaydı, ona bağlı bir kalem indirilebildiği sürece silinmez (`02 §3.12.8`). **Dosyanın silinmesi:** hiçbir varyanta bağlı olmayan ve sipariş sayfası açılabilen — kişisel verisi imha edilmemiş — hiçbir kalemin indiremeyeceği dosya kaydı imha işinde silinir (§7.4.4).
 
-**7.7.4 İndirmenin sayıldığı an (MK-31):** hak, müşteri sipariş sayfasındaki indirme düğmesine bastığında ve sunucu dosyayı göndermeye başladığında bir kez düşer (`02 §3.12.5`). Düğme o kaleme bağlı, kısa ömürlü — bir saat — bir indirme bağlantısı üretir; bu bağlantıyla yapılan devam istekleri — kesilen indirmenin kaldığı yerden sürdürülmesi (HTTP aralık istekleri) — yeni hak düşürmez. Bağlantının ömrü dolduktan sonra yeni bir indirme yeni bir haktır. Hakkı dolmuş kalemde düğme bağlantı üretmez. İndirme bağlantısı e-postayla gitmez (§6.4 — 2. oturum).
+**7.7.4 İndirmenin sayıldığı an (MK-31):** hak, müşteri sipariş sayfasındaki indirme düğmesine bastığında ve sunucu dosyayı göndermeye başladığında bir kez düşer (`02 §3.12.5`). Düğme o kaleme bağlı, kısa ömürlü — bir saat — bir indirme bağlantısı üretir; bu bağlantıyla yapılan devam istekleri — kesilen indirmenin kaldığı yerden sürdürülmesi (HTTP aralık istekleri) — yeni hak düşürmez. Bağlantının ömrü dolduktan sonra yeni bir indirme yeni bir haktır. Hakkı dolmuş kalemde düğme bağlantı üretmez. İndirme bağlantısı e-postayla gitmez (§6.4).
 
 **7.7.5 Elenenler.** **Dosyaların baştan nesne depolamada durması:** indirme başına çıkış trafiği ücreti tavanı zorlar (§0.2) ve her istek ikinci bir servise bağımlı olur; sanal sunucunun trafiği kiraya dahildir. **Dosyaların veritabanında durması:** veritabanını ve sürekli yedeğini yüzlerce MB'lık nesnelerle şişirir, geri dönüş süresi uzar. **Dijital dosyaya süreli imzalı genel adres:** adres paylaşılırsa süre içinde sayaçsız indirilir ve P-8'in adet sınırı delinir.
 
@@ -628,7 +923,7 @@ Bu bölüm verinin stratejisini yazar; tabloların, alanların ve türlerin kend
 
 ### 7.10 Önbellek
 
-**7.10.1 Ayrı bir önbellek sunucusu yoktur; önbellek uygulamanın belleğindedir (MK-34).** Vitrinin sık okunan parçaları — menü, kategori ağacı, ayarlar, ana sayfa blokları — ve site haritası (§3.7.3) bellekte tutulur ve ilgili kayıt panelden kaydedildiğinde hemen geçersiz kılınır; fiyat, stok, sepet ve satış kapısının hâli her istekte veritabanından okunur. Sayfanın tamamı önbelleğe alınmaz. Tek örnek çalıştığı için (§3.1.2) geçersiz kılma tek süreçtedir; ikinci örnekte paylaşılması gerekir (§11.3 — 2. oturum). Geçersiz kılmanın kodda kalıbı Kodlama Kılavuzu'nun işidir (`09` park satırı).
+**7.10.1 Ayrı bir önbellek sunucusu yoktur; önbellek uygulamanın belleğindedir (MK-34).** Vitrinin sık okunan parçaları — menü, kategori ağacı, ayarlar, ana sayfa blokları — ve site haritası (§3.7.3) bellekte tutulur ve ilgili kayıt panelden kaydedildiğinde hemen geçersiz kılınır; fiyat, stok, sepet ve satış kapısının hâli her istekte veritabanından okunur. Sayfanın tamamı önbelleğe alınmaz. Tek örnek çalıştığı için (§3.1.2) geçersiz kılma tek süreçtedir; ikinci örnekte paylaşılması gerekir (§11.3). Geçersiz kılmanın kodda kalıbı Kodlama Kılavuzu'nun işidir (`09` park satırı).
 
 **7.10.2 Elenenler.** **Ayrı önbellek sunucusu (Redis gibi):** ayrı bileşen, bellek ve sır yüzeyi; tek örnekte kazancı yoktur. **Sayfaların tamamının önbellekte tutulması:** fiyat, stok, "Tükendi" ve satışın kapalı hâli sayfada değişir; bayat sayfa ziyaretçiye yanlış bilgi gösterir. **Önbelleğin hiç olmaması:** menü ve ayarlar her sayfada okunur; küçük sunucuda (§0.5) gereksiz yük.
 
@@ -641,23 +936,509 @@ Bu bölüm verinin stratejisini yazar; tabloların, alanların ve türlerin kend
 > **Ne yazılır:** Ortam yapısı, konteynerleştirme, dal stratejisi, CI/CD hattı, konfigürasyon yönetimi.
 > **Not:** Dal stratejisi burada `.claude/INSTRUCTIONS.md §3.2` ile **birebir aynı** yazılmalıdır; iki farklı yerde iki farklı strateji en sık görülen çelişkidir.
 
+Şablon notunun amacı iki yerde iki strateji olmamasıdır; bu doküman dal stratejisini kopyalamaz, `INSTRUCTIONS §3.2`'ye işaret eder (§8.3.1; K-859, konvansiyon 8). Kurulumun adımları, sır envanteri ve ayarların listesi `DEPLOY_RUNBOOK`'un işidir; bu bölüm ortamları, paketlemeyi, hattı ve güncellemenin yolunu kararlaştırır.
+
+### 8.1 Ortamlar
+
+**8.1.1 Dört ortam vardır; ayrı bir hazırlık (staging) sunucusu yoktur (MK-68).**
+
+| # | Ortam | Nerede | Ne için |
+|---|---|---|---|
+| 8.1.2 | Geliştirme | Geliştiricinin makinesi | Kurulumun Compose tanımının geliştirme varyantı: aynı veritabanı sürümü, ödeme sağlayıcısının test ortamı ve e-postaları yakalayan yerel bir araç — hiçbir e-posta dışarı çıkmaz (§2.2.8) |
+| 8.1.3 | CI | GitHub Actions | Her PR'da derleme, testler, gerçek PostgreSQL 18'e karşı entegrasyon testleri ve göç provası (§8.3) |
+| 8.1.4 | Referans kurulum (ÖK-12) | Geliştiricinin kendi sanal sunucusu; gerçek yapılandırma ve gerçek para | Her sürüm **önce buraya iner** ve en az bir gün sorunsuz çalıştıktan sonra firmaların kurulumlarına geçer (§8.6.2); `00 §L.1`'in gerçek dağıtım yapılandırmasıyla ayağa kaldırma provası her sürümde burada yapılır; demo sitesi her zaman son sürümü gösterir |
+| 8.1.5 | Firmaların kurulumları | Her biri firmanın adına kiralanan kendi sanal sunucusunda (§0.3, §0.5) | Aynı Compose tanımı, kuruluma özgü ayar ve sır dosyalarıyla (§8.4, §6.x) |
+
+**8.1.6 Ortamlar arasında yalnız kurulum ayarları ve sırlar değişir; kod ve imaj aynıdır.** Geliştirme ve CI giderleri firmanın gideri değildir ve tavana girmez (§0.2); sunucunun ve yedek alanının Türkiye'de seçilmesi kurulum önerisidir (§0.4).
+
+**8.1.7 Elenenler.** **Ayrı, sürekli bir hazırlık sunucusu:** geliştiriciye ikinci bir aylık gider ve bakım yüzeyi; gerçek dağıtım yapılandırmasını referans kurulum kadar iyi sınamaz. **Sürümün doğrudan bütün kurulumlara gitmesi:** bir hata aynı anda bütün firmaların sitesini bozar. **Her kurulumun kendi hazırlık ortamı:** her kurulumda ikinci bir sunucu — tavanın dışladığı tür (§0.2). **Kalan risk:** yalnız bir firmanın verisinde ortaya çıkan göç hatası referans kurulumda görülmez — göç her kurulumda eski sürüm çalışırken ve kendi işleminde uygulanır, yarıda kalırsa geri alınır (§8.7.2); tur ilk başarısızlıkta durur (§8.6.2).
+
+*Kaynak: K-919 · K-23, K-861, K-862, K-863, K-864, K-865, K-910, K-922, K-924, K-925 · `10 §4.1` ÖK-12 · `00 §L.1`.*
+
+### 8.2 Paketleme ve kayıt defteri
+
+**8.2.1 Bir sürüm tek bir eserdir: uygulama imajı ve onun taşıdığı göç demeti (MK-69).** Uygulama imajı çok aşamalı derlenir — derleme .NET SDK imajında, çalıştırma ASP.NET Core çalışma zamanı imajında; uygulama kök olmayan bir kullanıcıyla çalışır (§3.2.1). Aynı imaj **göç demetini** taşır — EF Core göçlerinden üretilen tek çalıştırılabilir dosya (MK-03); göç ayrı bir komutla, göç hizmetinde çalışır (§8.7.2).
+
+**8.2.2 Yedek aracı imajı projede derlenir** — pgBackRest ve gecelik zamanlaması; aracın resmî bir konteyner imajı yoktur (bilgim tarihli — karar kaydının notu). **Veritabanı ve ters vekil** resmî PostgreSQL 18 ve Caddy 2 imajlarıdır.
+
+**8.2.3 Sürüm sabitlenir** (MK-10): her imaj sürüm numarasıyla çekilir, "latest" kullanılmaz; taban imajlar da sürümle sabitlenir ve aylık bakım sürümünde yenilenir (§8.8.2).
+
+**8.2.4 Compose tanımı ürünün parçasıdır** — repoda, sürümle gelir: dört hizmet (§3.2) ve yalnız güncellemede çalışan tek seferlik göç hizmeti. Kuruluma özgü değerler — ayar dosyası ve sır dosyaları — tanımın dışında, sunucudadır (§8.4.3, §6.x.1). Veritabanının, dosyaların, kayıtların ve sertifikaların verisi adlandırılmış bölümlerdedir (volume); konteyner değişince veri kalır.
+
+**8.2.5 Kayıt defteri GitHub Container Registry'dir** (MK-11); imajlar `publish.yml` ile yayımlanır (§8.3.12). Repo herkese açık kaldıkça imajlar da açıktır ve sunucu kimlik bilgisi olmadan çeker; repo özel yapılırsa her sunucu salt okuma bir çekme belirteci alır — sır envanterine bir satır (§6.x.8) — ve kayıt defterinin ücretsiz aktarım kotası güncelleme turunda izlenir.
+
+**8.2.6 Elenenler.** **Ayrı bir göç imajı:** iki imajın sürümünün her kurulumda eşleşmesi gerekir. **Uygulamanın göçleri açılışta kendisinin uygulaması:** uygulama kullanıcısına şema yetkisi verir (§6.x.17). **Docker Hub:** ücretsiz katmanda çekme sınırı vardır ve repo GitHub'dadır — yayın aynı kimlikle yapılır (bilgim tarihli — karar kaydının notu). **Taban imajların "latest" ile çekilmesi:** aynı sürüm iki kurulumda iki farklı imajla çalışır ve geri dönüş belirsizleşir.
+
+*Kaynak: K-920 · K-863, K-866, K-867, K-872, K-878, K-880, K-910, K-921, K-925, K-926 · `SETUP.md` §4.*
+
+### 8.3 Dal stratejisi ve CI/CD hattı
+
+**8.3.1 Dal stratejisi `INSTRUCTIONS §3.2`'dedir** — dal adı, PR base'i, merge biçimi, faz tag'i, doğrudan push yasağı ve merge ön koşulu orada, tek evinde durur; bu doküman onları kopyalamaz (K-859). Dal koruma rejimi ve kanıtı `CI_CD_SETUP.md` §3.3'tedir.
+
+**8.3.2 CI hattının iskeleti değişmez; her adımın işi yığına bağlanır (MK-70; MK-12).** Adımların adları, sırası ve kapıları playbook'undur (`CI_CD_SETUP.md` §1); aşağıdaki tablo her adımın neyi sınadığını yazar, komutların kendisi D-01'in işidir (§2.3.5).
+
+| # | Adım | İşi |
+|---|---|---|
+| 8.3.3 | 0. Guard | Değişmez |
+| 8.3.4 | 1. Lint | .NET biçim ve çözümleyici denetimi; düz JavaScript ve CSS için ayrı bir araç yoktur (MK-05) |
+| 8.3.5 | 2. Build | Yayın yapılandırmasıyla derleme, uyarılar hata sayılır; bağımlılıkların bilinen açık taraması bu adımdadır ve bulgu derlemeyi düşürür (§8.8.4) |
+| 8.3.6 | 3. Unit | Birim testleri ve modül sınırlarının mimari testleri (§3.4.5) |
+| 8.3.7 | 4. Integration | Gerçek PostgreSQL 18'e karşı: geçiş birimi, eşzamanlılık ve ayırma (§4.1, §4.2, §7.3), tek işlenme (§4.5), iş kuyruğu (§4.3), zamanlayıcı (§5.1); sağlayıcı bildiriminin biçimi de bu adımda sınanır |
+| 8.3.8 | 5. Contract | `NOT_APPLICABLE` — tek uygulamadır, servisler arası sözleşme yoktur (MK-12) |
+| 8.3.9 | 6. Migration dry-run | Göç demeti boş bir veritabanına ve son yayımlanan sürümün şemasına uygulanır; modelde göçe dönüşmemiş değişiklik kalmaz |
+| 8.3.10 | 7. Paketleme | Uygulama ve yedek aracı imajları derlenir, yayımlanmaz; uygulama konteyneri canlılık ucuna yanıt verene kadar ayağa kaldırılır (§9.4.1) |
+| 8.3.11 | 8. E2E (advisory) | Uçtan uca doğrulama fazında bağlanır |
+
+**8.3.12 Yayın:** `publish.yml` kalır — ana dala her merge'de imajlar commit kimliğiyle, sürüm etiketinde sürüm numarasıyla yayımlanır (§8.2.5); yazma izni D-01'de açılır. **Sürüm etiketi** `vANA.ARA.YAMA` biçimindedir; yama sürümü veritabanı göçü taşımaz (§8.7.3).
+
+**8.3.13 Kurulumlara otomatik dağıtım (CD) yoktur:** yayımlanan sürüm kurulumlara güncelleme turuyla ulaşır (§8.6).
+
+**8.3.14 Bağımlılık güncelleme önerileri** GitHub Dependabot ile açıktır (§2.2.7, §8.8.4).
+
+**8.3.15 Elenenler.** **Contract adımına uç şeması testleri:** ayrı bir JSON API katmanı yoktur (MK-04); sayfa uçlarının sınanması entegrasyon testidir. **`publish.yml`'in silinmesi:** kurulumlar imajı bir kayıt defterinden çeker; yayın olmadan her kurulumda kaynaktan derleme gerekirdi. **Ana daldan kurulumlara otomatik dağıtım:** firmaların sitesine insan bakmadan değişiklik iner (§8.6). **Dal stratejisinin §8'e birebir kopyalanması:** kural tek evinde değişince kopya sessizce ayrışır (K-859).
+
+*Kaynak: K-921 · K-859 (dal stratejisinin yazım biçimi) · K-867, K-868, K-869, K-871, K-874, K-889, K-890, K-891, K-893, K-895, K-918, K-920, K-924, K-925, K-926, K-932 · `DEFERRED_BACKLOG.md` D-01 · `INSTRUCTIONS §3.2` · `CI_CD_SETUP.md` §1, §2, §3.1, §3.3.*
+
+### 8.4 Konfigürasyon yönetimi
+
+**8.4.1 Her değerin tek evi vardır; ürün parametrelerinin üç katmanı değişmez (MK-71; `02 §11`).**
+
+| # | Katman | Nerede | Değişiklik |
+|---|---|---|---|
+| 8.4.2 | Firma ayarı | Panelden, veritabanında (`02 §11.1`) | Hemen geçerlidir |
+| 8.4.3 | Kurulum ayarı — alan adı, gönderen adresi ve e-posta gönderim kimliği, ödeme sağlayıcısının anahtarları, Google uygulamasının kimlik bilgileri | Sır olmayanlar sunucudaki düz ayar dosyasında, sırlar bileşen başına sır dosyalarında (§6.x.1) | Uygulamanın yeniden başlatılmasıyla geçerli olur |
+| 8.4.4 | Ürün sabiti — `02 §11.2`'nin P değerleri | Kodda, tek bir yerde; ayar dosyası onları değiştiremez | Yeni sürümle |
+| 8.4.5 | Bu dokümanın tasarım değerlerinden hız sınırı (§6.3.5), durum ucunun eşikleri (§9.4.2) ve kayıt düzeyi (§9.1.6) | Varsayılanları kodda; kurulum ayar dosyasında değiştirilebilir ve her biri `DEPLOY_RUNBOOK §C`'de varsayılanıyla yazılır | Uygulamanın yeniden başlatılmasıyla |
+
+**8.4.6 Açılış denetimi:** uygulama açılırken bütün ayarları doğrular. **Zorunlu ayar** — alan adı, gönderen adresi, e-posta gönderim kimliği, veritabanı bağlantısı — eksik ya da biçimsizse uygulama **açılmaz** ve eksik ayarı adıyla kaydeder (`DEPLOY_RUNBOOK §A`). **Koşullu ayar** — ödeme sağlayıcısının anahtarları, Google uygulaması — eksikse uygulama açılır, ilgili hat kapalıdır (`03` 10.1.3.3) ve bu hâl açılışta kayda ve durum komutuna yazılır — kural sessiz kalmaz (`DEPLOY_RUNBOOK §C`).
+
+**8.4.7 Elenenler.** **Bütün ayarların ortam değişkeninde olması:** sırlar için §6.x eledi; sır olmayanlar için tek dosya sunucuda okunur ve kurulumlar arasında karşılaştırılır. **Ürün sabitlerinin ayar dosyasından değiştirilebilmesi:** güvenlik ve yasal uyum değerleri kurulumdan kuruluma sessizce ayrışırdı. **Eksik zorunlu ayarda varsayılanla açılış:** yanlış alan adı ya da gönderen adresiyle çalışan site açılmamasından tehlikelidir (`DEPLOY_RUNBOOK §A`).
+
+*Kaynak: K-922 · K-162, K-902, K-910, K-918 · devir: K-412, K-478 (ayar katmanlarının yeri ve kurulum ayarları) · `02 §11` · `03` 10.1.3.3 · `DEPLOY_RUNBOOK` §A, §C–§E.*
+
+### 8.5 Yönetim komutları ve ilk kayıtlar
+
+**8.5.1 Kurulum tarafının işlemleri uygulama imajındaki yönetim komutlarıyla yapılır (MK-72);** komutlar sunucuda, uygulama konteynerinde tek seferlik çalışır (§3.2.6), modüllerin arayüzünü çağırır (§3.3.12) ve repoda izlenir.
+
+| # | Komut | İşi |
+|---|---|---|
+| 8.5.2 | Yönetici açma | Ad ve e-postayı parametre olarak alır, şifreyi gizli girişle ister — komut geçmişine düşmez — ve şifre politikasını uygular (`02 §3.13.15`); ilk yönetici (ÖK-7) ve kurtarmada açılan yönetici (§6.9.2) bu yoldandır |
+| 8.5.3 | Oturumları sonlandırma | E-postayla gösterilen yönetici hesabının bütün oturum kayıtlarını siler (§6.1.2) |
+| 8.5.4 | Şifreyi geçersiz kılma | Hesabın şifresini kullanılamaz kılar; hesap yalnız şifre sıfırlamayla yeniden açılır |
+| 8.5.5 | Okuma | Giriş kaydını, sistem kayıtlarını ve imha kaydını süzerek okur ve dışarı alır (§9.3) |
+| 8.5.6 | Durum | Durum ucunun koşullarını, çalışan sürümü, açık ve kapalı hatları ayrıntısıyla yazar (§9.4) |
+
+**8.5.7 Komutlar işlem izine yazılmaz ve bildirim üretmez** (`02 §10.2.7`); her çalışma uygulama kaydına komutun adı ve hedef hesabın iç kimliğiyle yazılır (§9.1.3). Komutlar panelden ve web'den çağrılamaz (§6.9.1). İlk yöneticinin ve kurtarmanın adımları, kurtarmayı kimin isteyebileceği ve isteğin nasıl doğrulanacağı `DEPLOY_RUNBOOK §H`'dedir.
+
+**8.5.8 Elenenler.** **İlk yönetici için web'de bir kurulum sihirbazı:** kurulum anında herkese açık bir sayfa, ilk gelen ziyaretçiye yönetici olma yolu verir. **Şifrenin parametre olarak verilmesi:** komut geçmişine ve süreç listesine düşer. **İlk yöneticinin davetle açılması:** ÖK-7'nin "adı, e-postası ve şifresiyle açılır" kuralından ayrılır ve e-posta yapılandırması bitmeden ilk girişi imkânsız kılar. **Elle veritabanı komutu:** izlenmez, tekrarlanamaz ve sır içeren bir komut geçmişi bırakır (`DEPLOY_RUNBOOK §H`).
+
+*Kaynak: K-923 · K-588, K-702, K-736, K-899, K-915, K-917, K-918 · devir: K-699 (kurulum tarafının yeni yönetici açmasının ve ele geçirilmiş hesabın oturumlarını sonlandırmasının teknik yolu) · `02 §3.13.15`, §10.2.7 · `10 §4.1` ÖK-7 · `DEPLOY_RUNBOOK §H`.*
+
+### 8.6 Güncellemenin kurulumlara ulaşması
+
+**8.6.1 Güncellemeyi kurulumu yapan, bakım aboneliği kapsamında, kendi makinesinden tek bir komutla başlatır; kurulumlar kendiliğinden güncellenmez (MK-73).** Bakım ve güncelleme kurulumu yapanın işidir; güncelleme panelin işi değildir (`03` 10.2.3).
+
+**8.6.2 Sıra:** sürüm önce referans kuruluma iner (§8.1.4); en az bir gün sorunsuz çalıştıktan sonra güncelleme turu firmaların kurulumlarını **teker teker** günceller; bir kurulumda başarısızlık turu durdurur, sonraki kurulumlara geçilmez. Acil güvenlik yaması referans kurulumda denetimlerden geçince beklemeden yayılır (§8.8.3).
+
+**8.6.3 Bir kurulumun adımları:** (1) durum ucu yeşil ve disk yeterli mi → (2) güncelleme öncesi artımlı yedek (§7.6) → (3) yeni imajları çek → (4) göçü uygula (§8.7) → (5) uygulamayı yeni imajla yeniden başlat — eski durur, yeni başlar; kesinti saniyelerdir (§0.11; MK-13) → (6) canlılık ve durum uçları iki dakika içinde yeşil mi → (7) **kurtarma provası:** son yedek geçici bir konteynerde geri döndürülür, denetlenir ve silinir (§7.6.8) → (8) sonuç ve çalışan sürüm kurulum listesine ve `DEPLOY_RUNBOOK`'un prova kaydına yazılır. Uçlar yeşile dönmezse kurulum önceki imaja geri alınır (§8.7.3).
+
+**8.6.4 Kurulum listesi** — her kurulumun adresi, bakım anahtarı (§8.9.2) ve çalışan sürümü — kurulumu yapanın makinesindedir, repoya girmez.
+
+**8.6.5 Zaman:** tur kurulumu yapanın başında olduğu, trafiğin düşük olduğu bir saatte yürür; gece kendiliğinden çalışan bir tur yoktur.
+
+**8.6.6 Bakım aboneliği biten kurulum** tura alınmaz; site çalışmayı sürdürür, uyumu firmadadır (`02 §12.3.1`).
+
+**8.6.7 Ana sürüm geçişleri** — .NET'in bir sonraki LTS'i (MK-02) ve veritabanının ana sürümü (§8.8.5) — aynı yoldan, ayrı bir sürüm olarak gider.
+
+**8.6.8 Elenenler.** **Kurulumların yeni sürümü gece kendiliğinden çekmesi:** göç insan bakmadan çalışır; başarısız bir göçü ya da bozulan bir sayfayı firma sabah müşteriden öğrenir; aboneliği biten kurulumun çekme yetkisinin ayrıca kesilmesi gerekir. **Her kurulumun elle, ayrı ayrı güncellenmesi:** aynı adımlar her kurulumda elle tekrarlanır ve biri atlanır — prova en kolay atlanan adımdır. **Firmanın panelden güncellemesi:** güncelleme panelin işi değildir ve firmanın teknik personeli yoktur. **Kalan risk:** kurulumu yapan turu ertelerse kurulumlar eski sürümde kalır — güvenlik güncellemesinin takvimi §8.8'dedir. Tur kurulum sayısıyla doğrusal uzar; yolun yeniden karara bağlanma eşiği §11.3.7'dedir.
+
+*Kaynak: K-924 · K-02, K-05, K-03, K-18, K-408, K-410, K-481, K-860 · K-867, K-871, K-878, K-880, K-919, K-925, K-926, K-927, K-929 · devir: K-482 (güncellemenin kuruluma hangi yolla ve kimin yetkisiyle ulaştığı), `02 §12.2.1`, `01 §3.2` (kurulum bir deploy işidir) · `03` 10.2.3 · `02 §3.34.7`, §12.3.1.*
+
+### 8.7 Göçler ve geri alma
+
+**8.7.1 Göçler genişlet–daralt kuralıyla yazılır (MK-74):** bir sürümün göçü önceki sürümün kodunun çalışmasını bozmaz — sütun ve tablo önce eklenir, eski yapı ancak bir sonraki sürümde kaldırılır; ad değiştirme iki sürüme bölünür. Kuralın kodda uygulanışı Kodlama Kılavuzu'ndadır (`09` park satırı).
+
+**8.7.2 Göç eski sürüm çalışırken uygulanır** — tek seferlik göç hizmetiyle ve şema sahibi kullanıcısıyla (§6.x.4); her göç kendi veritabanı işlemindedir — yarıda kalan göç geri alınır ve eski sürüm çalışmayı sürdürür.
+
+**8.7.3 Geri alma önceki imaja dönmektir; şema geri alınmaz** — 8.7.1 sayesinde önceki sürüm yeni şemayla çalışır. Yama sürümü göç taşımaz (§8.3.12): güvenlik yamasının geri alınması yalnız imajdır. Geri almanın adımları `DEPLOY_RUNBOOK §G`'dedir.
+
+**8.7.4 Yedekten dönüş** yalnız bir göç veriyi bozduğunda ve uygulama yeni sürümle trafiğe açılmadan önce yapılır; dönüş noktası güncelleme öncesi yedektir (§8.6.3). Trafiğe açıldıktan sonra fark edilen bozulma ileriye doğru yeni bir göçle düzeltilir — yedekten dönüş o arada alınan siparişleri kaybettirirdi (§0.13).
+
+**8.7.5 Büyük veri dönüşümleri** göçte değil, iş kuyruğundaki bir arka plan işiyle parça parça yapılır (§4.3) — veri dönüştüren uzun bir göç tabloyu kilitleyebilir.
+
+**8.7.6 Elenenler.** **Her göçün geri alma betiği, geri almada şemanın da dönmesi:** veri silen geri alma betiği o arada yazılan kaydı kaybettirir — sipariş tarafında sıfır kayıpla bağdaşmaz; sınanmamış geri alma betiği arızada ilk kez çalışır. **Uygulamayı durdurup göçü öyle uygulamak:** göç süresince site kapalı kalır. **Sorunlu sürümde yedekten dönmek:** dönüş noktasından sonraki siparişler kaybolur.
+
+*Kaynak: K-925 · K-407, K-867, K-871, K-888, K-891, K-910, K-921, K-924 · `DEPLOY_RUNBOOK §G`.*
+
+### 8.8 Güvenlik güncellemeleri
+
+**8.8.1 Sunucunun işletim sistemi güvenlik güncellemelerini kendiliğinden alır (MK-75);** yeniden başlatma gerektiren güncellemede sunucu gece **04:30**'da (Türkiye saati) kendiliğinden yeniden başlar — gecelik yedekten ve imhadan sonra (§5.3.4). Kısa kesinti §0.11'in kabulündedir; konteynerler kendiliğinden kalkar (§9.4.13) ve nabız kesintiyi ölçer (§5.4).
+
+**8.8.2 Her ay bir bakım sürümü yayımlanır** — .NET'in aylık yaması, taban imajlar (ASP.NET Core çalışma zamanı, PostgreSQL'in küçük sürümü, Caddy) ve güncellenen kütüphaneler; sürüm güncelleme turuyla (§8.6) kurulumlara ulaşır. İş günü takviminin resmî tatil listesi de bakım sürümleriyle yenilenir (§7.2.3).
+
+**8.8.3 Acil yama:** bağımlılıklardan birinde kurulumları etkileyen bilinen bir açık yayımlanırsa bakım sürümü beklenmez; yama sürümü — göç taşımaz (§8.7.3) — referans kurulumda denetimlerden geçince beklemeden yayılır.
+
+**8.8.4 Tarama:** repoda bağımlılık güncelleme önerileri (GitHub Dependabot — ücretsiz) açıktır; CI her derlemede bilinen açıkları tarar ve bulgu derlemeyi düşürür (§8.3.5).
+
+**8.8.5 Ana sürümler:** .NET'in bir sonraki LTS'ine geçiş (MK-02) ve PostgreSQL'in ana sürüm geçişi, kullanılan sürümün desteği bitmeden ayrı bir sürümle yapılır; veritabanının ana sürüm geçişinin adımları `DEPLOY_RUNBOOK`'tadır.
+
+**8.8.6 Elenenler.** **İmajların da gece kendiliğinden güncellenmesi:** §8.6.8'in gerekçesi. **Yalnız sürüm çıktıkça, takvimsiz güncelleme:** yeni özellik olmayan aylarda kurulumlar yamasız kalır. **İşletim sistemi yamalarının da elle alınması:** her ay her kurulumda ayrı bir oturum demektir; kurulum sayısıyla büyür ve en kolay atlanan iştir. **Kalan risk:** kendiliğinden yeniden başlatmadan sonra bir bileşen kalkmazsa site düşer — dış kontrol kurulumu yapanı uyarır (§9.4.11).
+
+*Kaynak: K-926 · K-18, K-408, K-481, K-867, K-878, K-897, K-898, K-918, K-921, K-924, K-925 · K-912'nin devri (kütüphanelerin güvenlik güncellemelerinin kuruluma ulaşması) · K-336, K-558 (resmî tatil listesi).*
+
+### 8.9 Sunucuya bakım erişimi
+
+**8.9.1 Sunucuya yalnız SSH ile, yalnız anahtarla girilir (MK-76);** parolayla giriş ve kök kullanıcıyla doğrudan giriş kapalıdır.
+
+**8.9.2 Anahtar kurulum başınadır:** kurulumu yapan her kurulum için ayrı, parolayla korunan bir anahtar kullanır — bir anahtarın sızması tek kurulumu açar.
+
+**8.9.3 Açık kapılar yalnız 80, 443 ve SSH'tır;** veritabanı ve uygulama dışarıya kapalıdır (§3.2).
+
+**8.9.4 Firmanın denetimi:** sunucu firmanın hesabındadır (§0.3); firma sağlayıcının panelinden konsola erişir ve kurulumu yapanın anahtarını kaldırabilir — bakım aboneliği bittiğinde ya da firma istediğinde.
+
+**8.9.5 Bakımda veriye erişim:** kurulumu yapan veritabanına salt okuma kullanıcısıyla bakar (§7.1.3); veri yazan işler yalnız göç (§8.7), yönetim komutları (§8.5) ve kurtarmadır (§7.6.7). Veritabanının arızada kullanılacak inceleme araçları `DEPLOY_RUNBOOK`'tadır.
+
+**8.9.6 Kayıt:** SSH oturumları sunucunun günlüğündedir ve sistem kayıtlarıyla aynı süre tutulur (§9.1.4, §9.2.2) — kurulum tarafının işleminin kaydı barındırma tarafındadır (`02 §10.2.7`). Erişimin bakım ve destekle sınırlı kalması teknik olarak değil, veri işleme sözleşmesiyle güvencededir (`02 §12.2.1`; ÖK-2); sunucuda kök yetkisi olan biri her veriyi okuyabilir — kalan risktir (§6.9.4).
+
+**8.9.7 Elenenler.** **Bütün kurulumlarda tek anahtar:** kurulumu yapanın makinesinden bir sızıntı bütün firmaların sunucusunu birlikte açar. **Ek saldırı engelleyici (fail2ban) ve standart dışı kapı:** anahtarla girişte parola deneme saldırısı sonuç vermez; ek araç bakım yüzeyidir. **SSH'ın yalnız kurulumu yapanın sabit IP'sinden açılması:** sabit IP her zaman yoktur ve arızada erişimi kilitler.
+
+*Kaynak: K-927 · K-702, K-863, K-870, K-910, K-915, K-916 · devir: K-482 (bakım erişiminin sınırı), K-909 ve K-912'nin devri (sunucuya erişimin sınırı) · `02 §10.2.7`, §12.2.1 · `10 §4.1` ÖK-2.*
+
+---
+
 ## 9. Gözlemlenebilirlik
 
 > **Ne yazılır:** Loglama, metrik, izleme, uyarı. Maliyet kısıtı varsa hangi araçların seçildiği ve neden.
+
+Maliyet kısıtı (§0.2) aracı belirler: kayıtlar sunucunun diskinde, uyarı ücretsiz katmanlı tek bir dış kontrolden gider; ayrı bir metrik toplama, gösterge panosu ve ücretli izleme servisi yoktur. Ürün çalışma süresi taahhüdü vermez (§0.11); izlemenin işi kesintiyi ve iç arızayı kurulumu yapana ulaştırmaktır.
+
+### 9.1 Sistem kayıtları — kaynaklar, içerik ve maskeleme
+
+**9.1.1 Sistem kayıtları üç kaynaktır ve sunucunun diskinde, günlük dosyalarda durur (MK-64).**
+
+| # | Kaynak | Yazan | İçerik |
+|---|---|---|---|
+| 9.1.2 | Erişim kaydı | Ters vekil (MK-08) | Her istek için bir satır: zaman, IP, yöntem, yol, yanıt kodu, boyut, süre, tarayıcı tanıtımı ve istek kimliği |
+| 9.1.3 | Uygulama kaydı | Uygulama | Yapılandırılmış satırlar — her satır bir JSON nesnesi; istek başına satır yazmaz, onu erişim kaydı taşır. Yazdıkları: beklenmeyen hatalar (§10.3.6), uyarılar, arka plan işlerinin başı, sonu ve sayıları, güvenlik olayları — yetkisiz erişim denemesi, hız sınırı aşımı, imzası tutmayan sağlayıcı bildirimi —, kurulum tarafının komutları (§8.5.7) ve açılıştaki ayar denetimi (§8.4.6). Satır istek kimliğini erişim kaydıyla aynı değerle taşır; hesap e-postayla değil iç kimlikle anılır |
+| 9.1.4 | Sunucunun kayıtları | İşletim sistemi, konteyner çalıştırıcısı, veritabanı, yedek aracı | İşletim sisteminin günlüğü — bakım erişiminin SSH oturumları dahil (§8.9.6) —, konteyner çalıştırıcısının kaydı, veritabanının hata kaydı ve yedek aracının kaydı |
+
+**9.1.5 Maskeleme:** şifre, anahtar, sır, kart verisi, IBAN, e-posta, adres, telefon, form gövdesi ve çerez değeri hiçbir kayda, hiçbir seviyede yazılmaz (§6.8.3); yolun bağlantı anahtarı taşıyan bölümü ve sorgu dizgesinin değerleri maskelenir (§6.4.8); veritabanının kaydı sorgu parametrelerini yazmaz. Maskeleme kodda uygulanır; kayıt kütüphanesinin seçimi Kodlama Kılavuzu'nundur (§2.2.4; `09` park satırı).
+
+**9.1.6 Kayıt düzeyi:** uygulama kaydının varsayılan düzeyi 9.1.3'ün listesini yazan düzeydir (bilgi); düzey bir tasarım değeridir ve kurulum ayar dosyasında değiştirilebilir (§8.4.5). Son sorgunun her yinelemesi yazılmaz, yalnız ilk yanıtsızlık ve sonuç yazılır (§5.3.3).
+
+**9.1.7 Ayrı bir metrik toplama ve gösterge panosu yoktur;** gereken bilgi durum ucundan ve durum komutundan (§9.4) ve okuma komutundan (§9.3) alınır.
+
+**9.1.8 Elenenler.** **Uygulamanın her isteği de yazması:** erişim kaydının ikinci kopyasıdır; diski ve kişisel veriyi ikiye katlar. **Ücretli bir kayıt servisine gönderim:** tavanın dışladığı türdür (§0.2) ve kişisel veriyi yurt dışındaki bir aracıya taşır (`02 §12.2.8`). **Sunucuda kayıt toplama ve pano yığını (Prometheus, Grafana, Loki):** üç ek bileşen, bellek ve bakım yüzeyi (§3.2.8). **Erişim kaydında IP'nin son kısmının silinmesi:** ihlal ve kötüye kullanım incelemesi tam adresi ister; giriş kaydı zaten tam IP tutar ve süresi aynıdır (Z-40).
+
+*Kaynak: K-915 · K-865, K-872, K-897, K-903, K-909, K-914, K-918, K-922, K-923, K-927 · devir: K-397 (sunucu erişim kayıtları — altyapı), K-380, K-515 (ihlal incelemesinin üç kaydı), `02 §8.5`, `03` 6.3.2.3 · `02 §8.5.1`, §12.2.8, §12.2.9 · `04 §1.1` (matrisin "mimari" satırı — `03 §6.3.2.3`).*
+
+### 9.2 Kayıtların saklanması ve korunması
+
+**9.2.1 Sistem kayıtları kaydın yazıldığı andan altı ay saklanır (MK-65)** — giriş kaydıyla aynı süre (`02 §4.2` Z-40, §11.2 P-45); ihlalin kapsamı üç kayıttan birlikte okunur (`02 §8.5.1`). Hukuki sebep giriş kaydınınkiyle aynıdır (`02 §12.2.3`).
+
+**9.2.2 İmha:** uygulamanın ve ters vekilin kayıt dosyalarını gecelik imha işi (§7.4.1) süresi dolunca siler ve imha kaydına kayıt türü ve silinen dosya sayısıyla yazar (§7.4.4). Sunucunun kendi günlüğü işletim sisteminin döngüsüyle aynı sürede tutulur; silinmesi imha kaydına girmez — içeriği bakım erişimi ve sistem iletileridir. Bu hacimde (H-2) altı aylık sıkıştırılmış kayıt birkaç yüz MB'tır (§0.5).
+
+**9.2.3 Korunma:** uygulama ve ters vekil kayıt dosyalarına yazar; konteynerin kendi çıktısı yalnız açılış ve çökme iletileri için küçük bir döngüyle tutulur. Kayıt dosyaları gecelik dosya eşitlemesiyle sunucunun dışındaki nesne depolamaya da gider (§7.6.1) — sunucu kaybolsa ya da ele geçirilse de son geceye kadarki kayıtlar silmeye karşı korunan yedekte durur (§7.6.6); yedekteki kopyalar otuz günde düşer. **Kalan risk:** sunucu ele geçirilirse son geceden sonraki yerel kayıtlar silinebilir.
+
+**9.2.4 İmha kaydı sistem kaydı değildir.** İmha kaydı (Z-44) veritabanında ayrı, yalnız eklenen bir tablodadır, en az üç yıl saklanır ve yedekle korunur (§7.4.2); altı ay saklanan kayıt dosyalarının parçası değildir. Ürün Gereksinimleri bu ayrımı `02 §10.3.3` ve §12.2.7'de yazar.
+
+**9.2.5 Elenenler.** **Otuz gün:** ihlaller çoğu zaman haftalar sonra fark edilir; giriş kaydıyla aynı pencere olmazsa inceleme eksik kalır. **Bir yıl:** altı ay, asgarilik ile inceleme ihtiyacı arasındaki dengedir — giriş kaydının süresiyle aynı gerekçe. **Ayrı bir Z satırı ve P parametresi:** iki kaydın amacı, hukuki sebebi, süresi ve imhası aynıdır.
+
+*Kaynak: K-916 · K-708, K-875, K-878, K-879, K-915 · devir: K-515 (sistem kayıtlarının süresi), K-552 (imha kaydının saklanması) · `02 §4.2` Z-40, Z-44, §8.5.1, §10.3.3, §11.2 P-45, §12.2.3, §12.2.7.*
+
+### 9.3 Kayıtların okuma yolu
+
+**9.3.1 Kayıtları kurulumu yapan, firmanın isteğiyle ya da bir arızanın incelemesinde, sunucuda okuma komutuyla okur; panelde görünmezler (MK-66).** Komut yönetim komutlarındandır (§8.5.5): kaynak — giriş kaydı, sistem kayıtları ya da imha kaydı —, tarih aralığı ve süzgeçler — IP, hesap, olay türü, istek kimliği — alır. Hesap e-postayla aranırsa komut onu hesabın iç kimliğine çevirir; sistem kayıtları e-posta taşımaz (§9.1.3). Veritabanındaki kayıtlar salt okuma kullanıcısıyla okunur (§7.1.3); dosyalar salt okuma bağlanır.
+
+**9.3.2 Kim ister:** veri sorumlusu firmadır (`02 §12.2.1`); istek firmadan yazılı gelir ve kurulumu yapan onu bakım ve destek kapsamında, veri işleyen olarak karşılar. Sunucu firmanın hesabındadır (§0.3) — firmanın seçtiği başka bir teknik kişi de aynı komutu çalıştırabilir; komutun kullanımı `DEPLOY_RUNBOOK`'tadır. İhlalde Kurul'a bildirim için yetmiş iki saat vardır (Z-37); hazır komut incelemeyi her kurulumda aynı biçimde ve hızla yapar.
+
+**9.3.3 Dışarı alma:** sonuç bir CSV dosyasıdır; sunucuda geçici bir yerde üretilir, firmaya şifreli iletilir ve iletimden sonra sunucudan silinir — sunucuda dışa aktarma dosyası saklanmaz (§6.8.4). İletimin biçimi `DEPLOY_RUNBOOK`'tadır.
+
+**9.3.4 Komutun her çalışması uygulama kaydına yazılır** — hangi kaynağın hangi süzgeçle okunduğu.
+
+**9.3.5 İşlem izi panelde okunur** (`02 §10.3.4`) ve bu komutun kapsamı değildir (§4.7.5).
+
+**9.3.6 Elenenler.** **Panelde salt okuma ekranı:** ele geçirilmiş bir yönetici hesabı izlerini okuyup saldırısını ayarlayabilirdi (`02 §8.5.1`). **Kurulumu yapanın her seferinde elle sorgu yazması:** inceleme her seferinde yeniden kurulur, hata yapar ve gereğinden fazla veri dışarı çıkabilir. **Kayıtların firmaya düzenli olarak gönderilmesi:** kişisel verinin gereksiz bir kopyası olur (`02 §8.4`).
+
+*Kaynak: K-917 · K-03, K-341, K-482, K-860, K-863, K-870, K-875 (imha kaydının okunma yolu), K-909, K-910, K-923 · devir: K-687 (park — giriş kaydının ve sistem kayıtlarının okuma yolu), K-380, K-552 · `02 §8.5.1`, §10.3.4, §12.2.1, §12.2.9 · `03` 6.3.2.3.*
+
+### 9.4 İzleme ve uyarı
+
+**9.4.1 Uyarı tek kanaldan — sunucunun dışındaki ücretsiz bir erişilebilirlik kontrolünden — kurulumu yapana gider; ücretli izleme servisi ve sunucuda izleme yığını yoktur (MK-67).** İki uç vardır: **canlılık ucu** uygulama ve veritabanı yanıt veriyorsa 200 döner — zamanlayıcının nabzı (§5.4.1) ve konteynerin sağlık denetimi bunu yoklar; **durum ucu** bir uyarı koşulu varsa 503, yoksa 200 döner. İkisi de gövdesinde ayrıntı taşımaz; ayrıntı sunucudaki durum komutundadır (§8.5.6).
+
+**9.4.2 Durum ucunun uyarı koşulları** — eşikler tasarım değeridir ve kurulum ayar dosyasında değiştirilebilir (§8.4.5):
+
+| # | Koşul | Eşik | Kaynağı |
+|---|---|---|---|
+| 9.4.3 | Disk doluluğu | %85 | §7.7.1 |
+| 9.4.4 | İşlem günlüğünün aktarımı | On dakikadır nesne depolamaya aktarılamıyor | §7.6.9 |
+| 9.4.5 | Gecelik tam yedek ya da dosya eşitlemesi | Son başarılısı yirmi altı saatten eski | §7.6.1 |
+| 9.4.6 | Nabız | Son nabız beş dakikadan eski — zamanlayıcı durmuş ya da öz denetim başarısız | §5.4.4 |
+| 9.4.7 | E-posta kanal uyarısı | Açık | §10.2.3 |
+| 9.4.8 | Beklenmeyen hata | Son on beş dakikada en az on | §10.3.6 |
+| 9.4.9 | Sitenin sertifikası | Bitişine on dört günden az kalmış — nabız isteğinde okunur | MK-08 |
+
+**9.4.10 Durumun okunduğu yer:** yedek aracı gecelik çalışmasının sonucunu veritabanındaki bir durum kaydına yazar; işlem günlüğünün aktarımının hâli veritabanının kendi arşivleme istatistiğinden okunur.
+
+**9.4.11 Dış kontrol:** kurulum başına bir kontrol, beş dakikada bir durum ucunu yoklar; iki ardışık başarısızlıkta kurulumu yapana e-posta gider — site hiç açılmıyorsa durum ucu da yanıt vermez. Araç ücretsiz katmanında kurulum sayısı kadar kontrol taşır, HTTP yanıt koduna bakar ve kendi e-postasıyla uyarır (§2.2.5; örnek UptimeRobot'un ücretsiz katmanı — bilgim tarihli, kurulumda doğrulanır); hesap kurulumu yapanındır ve kontrolün kurulumu `DEPLOY_RUNBOOK`'tadır.
+
+**9.4.12 Firma bu uyarıları almaz:** panelde kendi uyarıları vardır (§10.2; `02 §10.6.1`); sitenin kesintisini firmaya kurulumu yapan iletir. Ürünün içinden kesinti bilgilendirmesi yoktur (`03` 10.3.1).
+
+**9.4.13 Konteynerler** çöktüğünde ve sunucu açıldığında kendiliğinden yeniden başlar.
+
+**9.4.14 Kalan risk:** kurulumu yapan uyarıyı geç görürse kesinti sürer — ürün çalışma süresi taahhüdü vermez (§0.11); ücretsiz katmanın koşulları değişirse araç değiştirilir; bakım aboneliği biten kurulumun kontrolü kaldırılır ve uyarı kimseye gitmez.
+
+**9.4.15 Elenenler.** **Uygulamanın kurulumu yapana kendisinin e-posta göndermesi:** e-posta kanalı arızalandığında ve uygulama çöktüğünde susar — uyarının en çok gerektiği iki anda. **Uyarı koşullarının canlılık ucunda olması:** nabız canlılık ucunu yoklar; dolan disk yüzünden 503 dönen uç kesinti kaydı açar ve havale iptalini erteletirdi (§5.4). **Ücretli izleme ya da sunucuda Prometheus ve Grafana:** tavanın dışladığı tür ve ek bileşen (§0.2, §3.2.8). **Firmaya da uyarı gitmesi:** ikinci kontrol ücretsiz katmanın taşıdığı kurulum sayısını yarıya indirir; disk ya da yedek uyarısı teknik personeli olmayan firmaya bir iş vermez.
+
+*Kaynak: K-918 · K-03, K-406, K-481, K-861, K-862, K-872, K-878, K-879, K-881, K-898, K-913, K-914, K-922, K-923 · `03 §10.3` · `02 §10.6.1`.*
+
+---
 
 ## 10. Hata toleransı
 
 > **Ne yazılır:** Her dış bağımlılık için "çökerse ne olur", retry stratejisi, devre kesici, geri düşme davranışı.
 
+Ürün davranışı — kullanıcının gördüğü ve firmanın yolu — Kullanıcı Akışları'nda (`03 §10`) ve Ürün Gereksinimleri'nin bütün akışlara uygulanan ilkelerindedir (`02 §6.1`); bu bölüm onu taşıyan mekanizmayı yazar. Hiçbir sipariş ya da talep akışı bir e-postanın ulaşmasına bağlı değildir (`02 §6.1.1`) ve sistem müşterinin ödediği siparişi kendi bilgisizliği yüzünden iptal etmez (`02 §6.1.2`).
+
+### 10.1 Dış bağımlılıklar — "çökerse ne olur"
+
+**10.1.1 Dış çağrı sürelidir ve kendiliğinden yeniden denenmez (MK-61).** Bağlantı katmanının (§3.6) her dış çağrısı bir zaman aşımı taşır: kullanıcının beklediği çağrılarda — ödemenin başlatılması, Google ile girişin tamamlanması — **15 saniye**; iş kuyruğundan giden çağrılarda — e-posta, son sorgu, kart iadesi — **30 saniye**. Değerler kodda sabit tasarım değerleridir. Zaman aşımı **sonucu bilinmeyen** bir çağrıdır, başarısızlık değildir: para gönderen istekte ödeme ekseni değişmez ve sonuç sorulur (§4.6.2); e-postada kanal hatasıdır (§10.2.2). Bağlantı katmanı **kendiliğinden yeniden denemez;** yeniden deneme iş türünün kuralıdır ve iş kuyruğunun satırında yürür (§4.3.4) — e-posta P-38'in aralıklarıyla, son sorgu beş dakikada bir (§5.3.3), kart iadesi hiç. **Ayrı bir devre kesici yoktur:** yeniden deneme zaten kuyrukta ve aralıklıdır, kullanıcının beklediği çağrı süreyle sınırlıdır; ödeme sağlayıcısına erişilemezliğin tespiti — kartın ödeme adımında "şu an kullanılamıyor" görünmesi (`03` 10.1.1.1) — Entegrasyon Spesifikasyonu'nun (`08`) işidir.
+
+**10.1.2 Bağımlılıkların tablosu.** "Ürün davranışı" sütunu kuralın evini gösterir; bu tablo yalnız mekanizmayı yazar.
+
+| # | Bağımlılık | Çökerse ne olur | Yeniden deneme ve geri düşme | Uyarı | Ürün davranışı |
+|---|---|---|---|---|---|
+| 10.1.3 | Ödeme sağlayıcısı | Ödeme başlatılamaz; sipariş onaylandıktan sonra bağlanılamazsa bu kart ödemesinin başarısızlığıdır ve L-7'ye sayılmaz (§6.3.2). Son sorgu yanıtsız kalırsa sipariş iptal edilmez (§4.5.3). Kesintide başlatılan iadenin sonucu bilinmez kalır (§4.6.2) | Ödemenin başlatılması yeniden denenmez — müşteri sepetine döner, sepet korunur; son sorgu yanıt gelene kadar beş dakikada bir (§5.3.3); kart iadesi yeniden denenmez; kaydedilemeyen bildirim 500 alır ve sağlayıcı yeniden gönderir (§10.3.5) | Panelde "ödeme sonucu alınamadı" ve "geri ödeme gerçekleşmedi" işaretleri (`02 §6.1.2`, §7.2.8) | `03` 10.1.1 |
+| 10.1.4 | E-posta gönderim altyapısı | E-posta gönderim kaydında bekler; sipariş, ödeme ve durum geçişleri etkilenmez | P-38'in aralıklarıyla üç yeniden deneme; ardından "ulaşmadı" (§4.4.3); panelden yeniden gönderim yeni bir satırdır | Kanal uyarısı ve firma bildirimleri uyarısı (§10.2); kanal uyarısı durum ucunda da (§9.4.7) | `03` 10.1.2 |
+| 10.1.5 | Google | Google ile giriş ve Google ile yeniden doğrulama tamamlanmaz; şifreyle giriş ve panel etkilenmez | Yeniden deneme yoktur — kullanıcı yeniden dener ya da şifreyle girer | Yok | `03` 10.1.3 |
+| 10.1.6 | Veritabanı | Uygulama çalışmaz: sayfa istekleri sayfa düzeyi hataya düşer (§10.3.2); nabız yazılamaz ve kesinti ölçülür (§5.4.1); onaylanmış işlem kaybolmaz (§7.1.2) | Konteyner çökerse kendiliğinden yeniden başlar (§9.4.13) | Canlılık ve durum uçları yanıt vermez → dış kontrol (§9.4.11) | `03` 10.3 |
+| 10.1.7 | Uygulama ya da ters vekil | Site açılmaz; panel ve kendiliğinden işler durur, dönüşte kaçırdıkları sırayla çalışır (§5.4.3) | Konteyner kendiliğinden yeniden başlar (§9.4.13) | Dış kontrol (§9.4.11) | `03` 10.3 |
+| 10.1.8 | Sunucunun diskinin dolması | Yükleme reddedilir ve sebebi söylenir (§7.7.1); veritabanı yazamazsa 10.1.6 işler | — | Durum ucu — disk %85 (§9.4.3) | — |
+| 10.1.9 | Sunucunun diskinin kalıcı kaybı | Kurulum yeni bir sunucuda yedekten kurulur; kayıp penceresi en çok son bir dakikadır (§7.6.2, §7.6.7) | Yedekten en son ana dönüş | Dış kontrol (§9.4.11) | `02 §3.34.8` · `03` 10.2.4 |
+| 10.1.10 | Nesne depolama | Yedeğin aktarımı durur; işlem günlüğü yerel diskte birikir ve bağlantı dönünce aktarım sürer (§7.6.9); site etkilenmez | Aktarım bağlantı dönünce kaldığı yerden sürer | Durum ucu — aktarım on dakikadır duruyor, gecelik yedek yirmi altı saatten eski (§9.4.4, §9.4.5) | — |
+| 10.1.11 | Let's Encrypt | Sertifika yenilenemez; geçerli sertifikayla site çalışmayı sürdürür | Ters vekil yenilemeyi kendisi yeniden dener | Durum ucu — bitişe on dört günden az (§9.4.9) | — |
+| 10.1.12 | Dış erişilebilirlik kontrolü | Uyarı gitmez; site etkilenmez | — | Kalan risk: kesintiyi kurulumu yapan geç görür (§9.4.14) | — |
+| 10.1.13 | GitHub Container Registry | Güncelleme turu yeni imajı çekemez; çalışan kurulum etkilenmez — imajlar sunucudadır | Tur ilk başarısızlıkta durur (§8.6.2) | — | — |
+| 10.1.14 | Ağ zaman servisi (NTP) | Saat kayarsa bütün süreler kayar (§5.2.14) | İşletim sistemi yeniden eşitler | Saat farkının izlenmesi `DEPLOY_RUNBOOK`'tadır | — |
+
+**10.1.15 Elenenler.** **Bağlantı katmanında kendiliğinden yeniden deneme (hazır bir dayanıklılık katmanının yeniden deneme politikası):** yeniden deneme iki yerde olursa — HTTP katmanında ve kuyrukta — sayısı ve aralığı ayrışır; para gönderen istekte HTTP katmanının yeniden denemesi §4.6'nın önlediği çift gönderimi geri getirir. **Devre kesici kütüphanesi:** her çağrı zaten kuyrukta aralıklı ya da kullanıcının beklediği süreyle sınırlıdır; açık devrenin ürün davranışına çevrilmesi — kartın "kullanılamıyor" görünmesi — sağlayıcıya özgüdür ve `08`'in işidir. **Zaman aşımı olmayan çağrı:** yanıt vermeyen bir servis isteği ve onu bekleyen iş satırını süresiz tutar. **Kalan durum:** e-postada zaman aşımına uğrayan iletiyi servis kabul etmişse yeniden deneme onu ikinci kez gönderir; teslim zaten en az bir kezdir (§4.3.3).
+
+*Kaynak: K-936 · plan konusu TM10-01 · K-878, K-881, K-888, K-891, K-892, K-893, K-894, K-896, K-897, K-898, K-913, K-914, K-918, K-920, K-924 · devir: K-556, K-614 (sağlayıcının kesintisinde çekirdekte kalan kural), `02 §6.1` · `02 §3.34.8`, §6.1.1, §6.1.2, §7.2.8 · `03 §10.1`, §10.3, 10.2.4.*
+
+### 10.2 E-posta kanalının ve firma bildirimlerinin uyarısı
+
+**10.2.1 İki uyarı da saklanan bir işaret değil, gönderim kaydından okunan bir hâldir (MK-62).** Hâli gönderim kaydından okumak "bir sonraki bildirim ulaştığında ya da adres değiştiğinde kalkar" kuralını ek kod olmadan karşılar.
+
+**10.2.2 Denemenin sonucu üç sınıftır:** gönderim servisinin iletiyi kabul etmesi **gönderildi**dir; ret ya **alıcı hatasıdır** — adres geçersiz, posta kutusu yok ya da dolu; ileti yalnız o alıcıya ulaşmaz — ya **kanal hatasıdır** — servise bağlanılamaz, kimlik reddedilir, servis genel bir hata ya da kota aşımı döner; zaman aşımı da kanal hatasıdır (§10.1.1). "Gönderildi" iletinin servise teslimidir, posta kutusuna varışı değildir. Sağlayıcının yanıt kodlarının bu sınıflara eşlenmesi ve servisin sonradan bildirdiği geri dönmenin gönderim kaydına işlenmesi Entegrasyon Spesifikasyonu'nun (`08` park satırı) işidir.
+
+**10.2.3 Kanal uyarısı** (`02 §6.1.1`, §10.6.1; `03` 10.1.2.3): son başarılı gönderimden bu yana **art arda en az beş deneme kanal hatası** almışsa ve bu dizinin ilk hatasının üzerinden **en az on beş dakika** geçmişse açılır; ilk başarılı gönderimde kalkar. Gönderici bunun için tek satırlık bir **kanal hâli** kaydı tutar — son başarılı gönderimin anı, art arda kanal hatası sayısı ve dizinin ilk hatasının anı —; uygulama yeniden başlasa da hâl korunur. Alıcı hatası diziyi ne sayar ne bozar. Beş deneme ve on beş dakika, P-38'in ilk yeniden denemesinin üç katı bir pencere bırakır ve gönderimi az bir mağazada da dolar — dizi denemeleri sayar, iletileri değil.
+
+**10.2.4 Firma bildirimleri uyarısı** (`02 §9.1.6`; `04` E-31): firmaya giden bildirimlerin (F-1…F-4) sonucu kesinleşmiş en son satırı "ulaşmadı" ise ve o satırın alıcısı firmanın güncel iletişim e-postasıysa uyarı açıktır. Firmaya giden bir sonraki bildirim gönderildiğinde en son satır değişir, iletişim e-postası değiştirildiğinde alıcı tutmaz — iki durumda da uyarı kendiliğinden kalkar.
+
+**10.2.5 İki uyarı panelin ana sayfasında birlikte görünebilir** — kanal arızasında firma bildirimleri de ulaşmaz. Kanal uyarısı ayrıca durum ucunun uyarı koşuludur ve kurulumu yapana gider (§9.4.7).
+
+**10.2.6 Elenenler.** **Tek bir başarısızlıkta uyarı:** servisin kısa bir kesintisi panelde yanlış alarm üretir; firma uyarıya güvenmemeyi öğrenir. **Bir oranın üstü (son bir saatte %50):** düşük hacimde oran iki üç denemeyle sıçrar ve hesap gönderim geçmişini ister. **Uyarının kayıtta saklanan bir işaret olması:** işaretin açıldığı ve kapandığı her yolun ayrıca yazılması gerekir. **Alıcı hatasının da kanal dizisine sayılması:** bir müşterinin yanlış yazdığı adres "kurulum ayarını kontrol edin" uyarısı çıkarırdı.
+
+*Kaynak: K-913 · K-887, K-889, K-892, K-918, K-936 · devir: K-522 (kanal uyarısının eşiği), K-760 (park — firma bildirimleri uyarısının çıktığı ve kalktığı anın tespiti), `02 §6.1`, `03` 10.1.2.3 · `02 §6.1.1`, §9.1.6, §10.6.1 · `03` 10.1.2.2 · `04` E-31.*
+
+### 10.3 Beklenmeyen hata
+
+**10.3.1 Beklenmeyen hata uygulamanın tek bir hata yakalama katmanında üç hâle ayrılır (MK-63);** ayrım isteğin türüne ve işlemin listesine göredir. Ekranın söylediği Arayüz Tanımları'ndadır (`04` 2.7.3).
+
+**10.3.2 Sayfa düzeyi:** sayfa açan istekte (GET) beklenmeyen hata — vitrinde vitrinin, panelde panelin çerçevesi içinde hata sayfası; yanıt kodu 500 (`04` 2.7.3.2).
+
+**10.3.3 İşlem düzeyi:** form ya da düğme isteğinde (POST) beklenmeyen hata — veritabanı işlemi geri alınmıştır; sayfa formun gönderilen değerleriyle yeniden gösterilir ve kalıcı mesaj çıkar (`04` 2.7.3.1).
+
+**10.3.4 Sonucu belirsiz:** `04` 2.7.3.3'ün işlemleri — sipariş onayı, müşterinin geri alınamaz dört işlemi, e-posta değişikliğinin geri alınması ve yöneticinin onay isteyen işlemleri — kodda adıyla işaretlidir; bu işlemlerde **hata nerede olursa olsun** kullanıcı "işlem yapılmadı" görmez, sonucu gösteren ekrana yönlendirilir — hangi ekrana gidildiği `04` 2.7.3.3'tedir. Onay sırasında kopan bağlantıda işlemin yazılıp yazılmadığı bilinemez; sipariş onayının tek işlenmesi (§4.5.1) ikinci denemeyi var olan siparişe bağlar.
+
+**10.3.5 Kapsam dışı:** adı konmuş hatalar — `02 §6`'nın senaryoları, sürüm çakışması (§7.3), hız sınırı (§6.3.5), bulunamayan sayfa — istisna değil işlemin sonucudur ve kendi mesajını taşır (`04` 2.7.4). **Makine uçları** ekran göstermez: kaydedilemeyen sağlayıcı bildirimi 500 alır ve sağlayıcı yeniden gönderir (§4.5.2). **Arka plan işi** ekran hâli değildir: iş satırı hatayı ve deneme sayısını yazar, iş türünün kuralı işler (§4.3.4).
+
+**10.3.6 Kayıt:** her beklenmeyen hata uygulama kaydına hata düzeyinde bir satırdır — zaman, istek kimliği, istek yöntemi ve maskelenmiş yolu, hatanın türü ve yığın izi, düştüğü hâl, işaretli işlemin adı, hesap türü ve hesabın iç kimliği; formun değerleri, çerezler ve §9.1.5'in maskeledikleri yazılmaz. Kullanıcıya hata kodu, istek kimliği ve teknik ayrıntı gösterilmez (`04` 2.7.3); kurulumu yapan hatayı zamanla ve hesapla bulur (§9.3.1). Son on beş dakikadaki beklenmeyen hata sayısı durum ucunun uyarı koşuludur (§9.4.8). Hata sayfasının kendisi açılamazsa çatının en yalın hata yanıtı döner; ekran yine teknik ayrıntı taşımaz.
+
+**10.3.7 Elenenler.** **Her ekranın kendi hatasını yakalaması:** elli üç ekranda elli üç yakalayıcı; biri unutulursa çatının ham hata sayfası görünür. **Listedeki işlemlerde hatanın onaydan önce mi sonra mı olduğuna göre iki yol:** onay anındaki bağlantı kopmasında sonuç bilinemez ve kullanıcı aynı işlem için iki farklı ekran görürdü. **Kullanıcıya bir başvuru numarası gösterilmesi:** `04` 2.7.3 hata kodu göstermez. **Kalan durum:** listede olmayan bir formun işlemi onaydan sonra hata verirse kullanıcı "tamamlanamadı" görür ve yeniden dener; yeniden gönderim sürüm çakışmasına düşer ve güncel hâli gösterir (§7.3.1) — kayıp ya da çift kayıt doğmaz.
+
+*Kaynak: K-914 · K-873, K-874, K-891, K-893, K-902, K-909, K-915, K-917, K-918 · devir: K-745 (park — beklenmeyen hatanın üç hâle ayrılması ve kaydı), K-893'ün devri (sonucu belirsiz hâle düşen hata) · `04 §2.7.3`, §2.7.4 · `02 §6`.*
+
+---
+
 ## 11. Ölçeklenebilirlik notları
 
 > **Ne yazılır:** MVP'de bilinçli olarak tekil bırakılan bileşenler ve büyüme yolu. "Büyüdüğünde X'e geçilir" ifadeleri gerçekçi olmalı.
 
-## 12. Kararların özeti
+### 11.1 Tasarım değerleri
 
-| # | Karar | Tarih | Gerekçe | Geri alınabilir mi |
+**11.1.1 Tasarım değerleri referans sunucu ölçüsünde geçerlidir (MK-77)** — 2 sanal işlemci, 4 GB bellek (§0.5). Sistem hiçbirini uygulamaz (`02 §11.3`): aşıldığında çalışmayı sürdürür, performans garanti edilmez (§0.8).
+
+**11.1.2 H-3 — elli kalemli sepet:** ödeme öncesi yeniden değerlendirme ve sipariş onayı (§4.2) sunucuda **isteklerin %95'inde bir saniye** içinde tamamlanır.
+
+**11.1.3 H-4 — eşzamanlı ziyaretçi: 100** — bir dakika içinde sayfa isteği yapan farklı ziyaretçi sayısı (IP; IPv6'da /64 — §6.3.3); statik dosyalar, görseller, sağlık uçları ve sağlayıcı bildirimi sayılmaz. Bu yükte sayfa yanıtlarının **%95'i 500 milisaniye** içindedir.
+
+**11.1.4 Okuma:** değer erişim kaydından (§9.1.2) okunur — günün tepe dakikasındaki farklı ziyaretçi sayısı; kurulumu yapan güncelleme turunda (§8.6) her kurulumun son ayının tepe değerini okur ve okumanın komutu `DEPLOY_RUNBOOK`'tadır. Bir günün tepe dakikası 100'ü aşarsa `10 §4.2` SK-5'in eşzamanlı ziyaretçi tetikleyicisi gerçekleşmiştir. Okuma bir kapasite denetimidir, ziyaretçi ölçümü değildir: sonuç panele ve firmaya bir rapor olarak gitmez (`02 §8.4.1`). Arama motoru botları ziyaretçi gibi sayılabilir — tepe değer aşıldığında kurulumu yapan tarayıcı tanıtımına bakar; aşım bir ölçüm tetikleyicisidir, kendiliğinden bir işlem başlatmaz.
+
+**11.1.5 Sınanma:** iki değer Doğrulama Protokolü'nde (`12` park satırı) referans sunucu ölçüsünde bir yük senaryosuyla sınanır.
+
+**11.1.6 Değerlerin dayanağı:** tepe gün elli siparişte (H-2), %1–2 dönüşümle günde 2.500–5.000 ziyaret, tepe saatte bunun yedide biri kadarı ve birkaç dakikalık ziyaretler eşzamanlı otuz–altmış ziyaretçi eder; 100 bu kestirimin üst ucunun yaklaşık iki katıdır. Bir saniye, ödeme adımında beklemenin fark edilmeye başladığı süredir. Değerler kestirimdir: ilk gerçek kurulumun erişim kaydı onları doğrular ya da yanlışlar.
+
+**11.1.7 Bu dokümanın öteki tasarım değerleri** kendi alt bölümlerinde, değerleriyle durur (konvansiyon 5):
+
+| # | Tasarım değeri | Evi |
+|---|---|---|
+| 11.1.8 | Sunucunun asgari ölçüsü | §0.5 |
+| 11.1.9 | Zamanlayıcının uyanışı, nabzın aralığı ve kesinti eşiği | §5.1.1, §5.4.1 |
+| 11.1.10 | İşlerin saatleri — hatırlatma, imha, son sorgunun yinelenmesi — ve işletim sisteminin yeniden başlatma saati | §5.3, §8.8.1 |
+| 11.1.11 | Yedeğin aralıkları ve saklama süresi | §7.6.1, §7.6.6 |
+| 11.1.12 | Görselin kaynak kopyasının ölçüsü ve piksel tavanı | §7.7.2, §6.6.2 |
+| 11.1.13 | İndirme bağlantısının ömrü | §7.7.4 |
+| 11.1.14 | Genel istek hızı sınırı | §6.3.5 |
+| 11.1.15 | Dış çağrıların zaman aşımı | §10.1.1 |
+| 11.1.16 | E-posta kanal uyarısının eşiği | §10.2.3 |
+| 11.1.17 | Durum ucunun eşikleri ve dış kontrolün aralığı | §9.4.2, §9.4.11 |
+| 11.1.18 | Kurtarma süresinin hedefi | §7.6.7 |
+
+**11.1.19 Elenenler.** **Değerin yazılmaması:** `02 §11.3` ve SK-5 değeri bu dokümana bıraktı; değersiz tetikleyici okunamaz. **Eşzamanlı oturum sayısı:** misafir ziyaretçinin oturumu yoktur; erişim kaydı her ziyaretçiyi görür. **Değeri ürün içinde sayan bir sayaç:** ziyaretçi ölçümü yoktur (`02 §8.4.1`); erişim kaydı zaten vardır.
+
+*Kaynak: K-928 · K-397, K-865, K-890, K-901, K-915, K-924 · devir: K-154, K-403, K-409, K-533 (tasarım değerleri — yanıt süresi ve eşzamanlı ziyaretçi), `02 §3.16`, §11.3 · `02 §11.3` H-1…H-4 · `10 §4.2` SK-5 · `04 §1.1` (matrisin "mimari" satırı — `02 §11.3`).*
+
+### 11.2 Bilinçli tekil bırakılanlar
+
+Aşağıdakiler bugün tektir ve bu bilinçli bir karardır; her birinin gerekçesi kendi bölümünde, büyüme yolundaki adımı §11.3'tedir.
+
+| # | Tekil olan | Bugün neden tek | Tek kalmasının bedeli | Büyüme yolundaki adımı |
 |---|---|---|---|---|
+| 11.2.1 | Kurulum başına firma (§0.6) | Ürün tek bir firmanın kendi sitesidir; MVP'de çok kiracılık için hazırlık yapılmaz | İkinci firma ikinci kurulumdur — kurulum sayısı büyür | Büyüme yolunun adımı değildir (11.3.9); kurulum sayısının eşiği 11.3.7 |
+| 11.2.2 | Sunucu (§0.5) | Gider tavanı ikinci sürekli sunucuyu dışlar (§0.2) | Sunucu kaybında kurulum yedekten aynı gün kurulur; kayıp penceresi en çok son bir dakikadır (§7.6.2, §7.6.7) | Dikey büyütme (11.3.2); ikinci sunucu ancak veritabanı ayrılırken (11.3.4) |
+| 11.2.3 | Uygulama örneği (MK-13) | Hacim tabanı (§0.8) tek örneği aşmaz; bellek içi önbellek ve hız sınırının sayaçları ona dayanır | Güncellemede saniyelik kesinti (§8.6.3) | İkinci örnek (11.3.5) |
+| 11.2.4 | Veritabanı (MK-06) | Uygulamanın yanında, aynı sunucuda | Belleği uygulamayla paylaşır | Ayrı sunucuya alınması (11.3.4) |
+| 11.2.5 | Ters vekil (MK-08) | Dışarıya açık tek bileşendir | Durursa site açılmaz; konteyner kendiliğinden kalkar (§9.4.13) | Büyüme yolunda bir adımı yoktur |
+| 11.2.6 | Önbellek — uygulamanın belleğinde (MK-34) | Tek örnekte geçersiz kılma tek süreçtedir | Yeniden başlatmada boşalır ve ilk istekte dolar | İkinci örnekte paylaşılması (11.3.5) |
+| 11.2.7 | Zamanlayıcı ve iş kuyruğu — uygulamanın içinde (MK-41, MK-37) | Ayrı işçi süreci ikinci bir dağıtım birimi ve sır yüzeyidir (§3.1.3) | Uzun işler sınırlı eşzamanlılıkla koşar (§5.1.3) | Arka plan işlerinin ayrı sürece alınması (11.3.6) |
+| 11.2.8 | Dosya deposu — sunucunun diski (MK-28) | Nesne depolamanın çıkış trafiği ücreti tavanı zorlar (§7.7.5) | Disk dosyalarla büyür (§0.5) | Nesne depolamaya taşınma (11.3.3) |
+| 11.2.9 | Hız sınırının sayaçları — uygulamanın belleğinde (MK-49) | Tek örnek | Yeniden başlatmada sıfırlanır | İkinci örnekte paylaşılması (11.3.5) |
+
+*Kaynak: plan konusu TM11-02 · K-10, K-862, K-865, K-870, K-871, K-872, K-881, K-887, K-891, K-895, K-902, K-929.*
+
+### 11.3 Büyüme yolu
+
+**11.3.1 Büyüme yolu bu sırayla yürür; her adımın bir tetikleyicisi vardır ve bir adım ancak öncekiyle karşılanamayan ihtiyaçta açılır (MK-78).** Sıra en ucuz ve en az bakım yükü getiren adımdan başlar; her adım bugün alınmış bir kararın açtığı kapıya dayanır.
+
+| # | Adım | Bugünkü kapısı | Tetikleyici |
+|---|---|---|---|
+| 11.3.2 | **Dikey büyütme** — sunucunun ölçüsü artırılır (4 → 8 GB bellek, 2 → 4 sanal işlemci); kod ve yapı değişmez | Tek sunucu ve tek Compose tanımı (MK-10) | Bir tasarım değeri (§11.1) aşılır ya da güncelleme turunda bellek ve işlemci sürekli dolu görünür; gider tavanı aşarsa karar firmanındır (§0.2) |
+| 11.3.3 | **Dosyaların nesne depolamaya taşınması** — bir yapılandırmadır | Dosya deposu arayüzü (§7.7.1, §3.6.5) | Dijital ürün dosyaları diski dikey büyütmeyle karşılanamayacak kadar büyütür |
+| 11.3.4 | **Veritabanının ayrı sunucuya alınması** | Uygulama veritabanına ağ bağlantısıyla bağlanır (§3.2.5); tek yazıcılı gömülü veritabanı elendi (MK-06) | Veritabanı uygulamayla aynı sunucuda belleği paylaşamayacak kadar büyür. İkinci bir sürekli sunucudur — tavanın dışladığı türdür, proje sahibine soru olarak döner (§0.2) |
+| 11.3.5 | **İkinci uygulama örneği** | Oturumlar, deneme sayaçları, kuyruk, zamanlayıcı kilitleri ve şifreleme anahtar halkası zaten veritabanındadır (§6.1.1, §6.3.1, §4.3, §5.1.3, §7.6.3); açılması için yalnız bellek içi önbelleğin geçersiz kılınmasının (§7.10) ve hız sınırının sayaçlarının (§6.3.5) örnekler arasında paylaşılması gerekir | Dikey büyütmenin sınırına varılır |
+| 11.3.6 | **Arka plan işlerinin ayrı sürece alınması** | Modül sınırı korunur (§3.1.3, §3.4) | Uzun işler web isteklerini ölçülür biçimde yavaşlatır |
+| 11.3.7 | **Kurulum sayısının büyümesi** — güncellemenin dağıtım yolu yeniden karara bağlanır | Güncelleme turu kurulum sayısıyla doğrusal uzar (§8.6) | Bir tur kurulumu yapanın bir saatini aşar ya da kurulum sayısı yirmiyi geçer — yirmi, kurulum başına birkaç dakikayla bir turun bir saate yaklaştığı tahmindir |
+
+**11.3.8 Yol haritası adayları bugün mimaride yer tutmaz; büyüme yolu onları kapatmaz** (`10 §5`; konvansiyon 1). Bugünkü kararların her adaya dokunduğu yer:
+
+| # | Aday | Bugünkü kararın dokunduğu yer |
+|---|---|---|
+| 11.3.9 | Çok kiracılı SaaS (YH-21; SK-1) | Büyüme yolunun bir adımı değildir: bugünkü mimari onu hazırlamaz (§0.6) ve geçiş yeni bir mimari karardır — bir adım gibi yazmak bir hazırlık sözü olurdu |
+| 11.3.10 | Yeni dış servisler — e-Arşiv/e-Fatura, kargo şirketi entegrasyonu, havale eşleştirmesi, SMS, Facebook ile giriş (YH-1, YH-2, YH-3, YH-16, YH-11; SK-3, SK-4) | Bağlantı katmanının kalıbıyla eklenir (§3.6.5); her biri `10 §4.1`'e yeni bir dış ön koşul getirir (`10 §5`'in üçüncü bağımlılık zinciri) |
+| 11.3.11 | Ziyaretçi analitiği ve ona bağlı ürün önerisi (YH-19, YH-8); canlı destek (YH-15) | Analitik çerez onay bandını zorunlu kılar (`02 §8.4.4`); üçüncü taraf bir sohbet aracı `02 §8.3.3`'ün gömme içerik yasağına dokunur. İkisinde de çerez envanteri (§6.7) ve içerik güvenlik politikası (§6.5.4) o adayın kararıyla yeniden açılır |
+| 11.3.12 | Pazarlama iletisi ve ona bağlı "stokta haber ver" ve terk edilmiş sepet (YH-17, YH-9, YH-10) | Gönderim kaydı ve iş kuyruğu (§4.4, §4.3) yeni e-posta türlerini taşır; onay kaydı ve İYS yeni bir veri ve dış ön koşuldur (`10 §5`'in ikinci bağımlılık zinciri) |
+| 11.3.13 | Yönetici rolleri, rol bazlı veri erişimi ve iki adımlı doğrulama (YH-18) | Yetki varsayılan kapalı tek bir politikadır ve role göre politika eklemek bugünkü yapıyı bozmaz (§6.2.5); iki adımlı doğrulama MVP'de yoktur (`02 §8.1.7`) ve oturum sunucuda tutulduğu için (§6.1.1) girişe bir adım olarak eklenmesini bugünkü yapı kapatmaz |
+| 11.3.14 | Çoklu dil (YH-20; SK-2) | Adreslerde dil öneki yoktur, adres ilk yayında sabitlenir ve yönlendirme yoktur (§3.7.1; `02 §3.30.3`) — geçiş adreslerin kuralını yeniden açar |
+| 11.3.15 | Mobil uygulama ve PWA (YH-22) | Ayrı bir JSON API katmanı yoktur (MK-04); modüller açık arayüzle çağrıldığı için bir API yeni bir giriş noktasıdır (§3.3.12) — katmanın biçimi o adayın kararıdır |
+
+Öteki adaylar — kapıda ödeme, müşteri notu, ürün yorumu, istek listesi, içe aktarma, elle sipariş ve blog (YH-4…YH-7, YH-12…YH-14) — ürün özelliğidir; bugünkü modüllere kural ve ekran olarak girer ve mimariye ayrı bir yüzü yoktur.
+
+**11.3.16 Kısıtların "ne zaman kalkar" hücreleri** (`10 §4.2`): SK-1 → 11.3.9 · SK-2 → 11.3.14 · SK-3 ve SK-4 → 11.3.10 · SK-5 → 11.1.4 ve 11.3.2 · SK-6 ve SK-7 ürün kuralıdır, mimariye ayrı bir yüzü yoktur · SK-8, SK-9 ve SK-10 kalkmaz (§0.9, §0.10).
+
+**11.3.17 Elenenler.** **Büyüme yolunun yalnız adımları sayması:** "büyüdüğünde X'e geçilir" neyin ne zaman yapılacağını söylemezse gerçekçi değildir. **İkinci örnek için bugünden paylaşılan önbellek (Redis):** tek örnekte kazancı yoktur (§7.10.2). **Çok kiracılığın büyüme yolunun son adımı olması:** hazırlık yapılmaması karara bağlıdır (§0.6); adım gibi yazmak bir hazırlık sözü olurdu.
+
+*Kaynak: K-929 · plan konusu TM11-02 · K-861, K-862, K-870, K-871, K-879, K-881, K-887, K-891, K-895, K-899, K-901, K-902, K-912, K-924 · devir: K-10 (park — MVP'de çok kiracılık için hazırlık yapılmaz) · K-424, K-473, K-474 (yol haritasının bağımlılık zincirleri) · `10 §4.2`, §5 · `01 §7` · `02 §3.30.3`, §8.1.7, §8.3.3, §8.4.4.*
 
 ---
 
-*Shopfolio — Technical Architecture v0.2 (v0.2 yazım turunun 1. oturumudur — başlık notu, §0, §2, §3, §7, §4, §5; K-930…K-934 · v0.1 şablondur — açılış ve workshop karar kaydının §12'sindedir)*
+## 12. Kararların özeti
+
+Tablo bu dokümanın bütün mimari kararlarını kimlik sırasıyla özetler; yeni karar vermez (konvansiyon 2). "Karar" hücresi kararın evine işaret eder ve ayrıntı oradadır; gerekçe elenen seçeneklerin en belirleyicisini ve kararın kaynağı olan K numaralarını taşır — karar kaydı dönem sonunda arşivlenince gerekçenin evi bu tablodur (konvansiyon 7). Kararların hepsi Teknik mimari aşamasının workshop'unda ve yazım turunda, 2026-10-16'da alındı. "Geri alınabilir mi" kararın bugün değiştirilmesinin bedelini söyler.
+
+| # | Karar | Tarih | Gerekçe | Geri alınabilir mi |
+|---|---|---|---|---|
+| MK-01 | C# / .NET; tek uygulama, sayfalar sunucuda üretilir (§2.1) | 2026-10-16 | Arızada koda bakacak kişinin rahat okuduğu dil kararı belirler; arama motorlarının istediği sunucuda üretilen sayfa tek pakette karşılanır. TypeScript ve PHP o kişinin dili değildir; ayrı JavaScript ön yüz iki dağıtım birimi ve iki dil demektir. Proje sahibinin kararı (K-866) | Hayır — dili değiştirmek ürünü yeniden yazmaktır |
+| MK-02 | ASP.NET Core; .NET 10, yalnız uzun süreli destekli (LTS) sürümler (§2.1) | 2026-10-16 | Yeni ürün desteği bitmek üzere olan sürümle başlamaz; kısa destekli sürümler her ara sürümde bütün kurulumlara zorunlu bir geçiş doğurur (K-867, K-481) | Evet — sürüm geçişi bir bakım güncellemesidir (§8.6.7) |
+| MK-03 | Entity Framework Core; şema değişiklikleri onun göçleriyle (§2.1) | 2026-10-16 | Eşzamanlılık denetimi ve göçler hazırdır; elle yazılmış SQL her sorguda iş ve hata yüzeyi açar (K-867) | Kısmen — özel sorgu EF Core'un içinden yazılır; veri erişimini değiştirmek sorguların hepsini yeniden yazmaktır |
+| MK-04 | Razor Pages; bütün sayfalar sunucuda tam HTML, gönder–yönlendir–göster; ayrı JSON API katmanı yok (§2.1) | 2026-10-16 | Arama motoru verisi ilk yanıttadır; etkileşimli sunucu her sekme için bağlantı ve bellek tutar, tarayıcıda çalışan uygulamanın ilk yanıtında içerik yoktur (K-868) | Kısmen — makine uçları eklenebilir (§11.3.15); sayfaların üretim biçimini değiştirmek ekranların hepsini yeniden yazmaktır |
+| MK-05 | Düz JavaScript modülleri ve düz CSS; ön yüz çatısı ve npm hattı yok, JavaScript yalnız iyileştirir (§2.1, §3.8) | 2026-10-16 | Klavyeyle tam gezinme ve JavaScript'siz akış en az kodla sağlanır; çatı ve npm hattı ikinci bir dil ekosistemi getirir (K-869) | Evet — kütüphane, ekleme ölçütüyle girer (MK-02) |
+| MK-06 | PostgreSQL 18; tek örnek, aynı sunucuda kendi konteynerinde (§2.1, §7.1) | 2026-10-16 | Ücretsizdir, satır kilidini ve noktasal geri dönüşü yerleşik taşır; SQL Server Express'in 10 GB tavanı, MySQL'in üçüncü taraf sağlayıcısı ve SQLite'ın tek yazıcısı elendi (K-870) | Kısmen — motoru değiştirmek göçleri ve yedeği yeniden kurmaktır; ayrı sunucuya taşınması açıktır (§11.3.4) |
+| MK-07 | Firmanın adına kiralanan sanal sunucu; Linux konteynerleri — tek desteklenen hedef (§2.1) | 2026-10-16 | Kendiliğinden işler, büyük dijital dosya ve sunucu dışı sürekli yedek paylaşımlı hostingte güvenilir çalışmaz; yönetilen platform tavanı aşar ve yurt dışı aktarım doğurur. Proje sahibinin kararı (K-863, K-865) | Kısmen — konteyner başka ortama taşımayı kapatmaz; desteklenen hedefi değiştirmek proje sahibinin kararıdır |
+| MK-08 | Caddy 2 — ters vekil, HTTPS ve sertifika (§2.1, §3.2.3) | 2026-10-16 | Sertifika işi uygulamadan ayrılır; nginx ile certbot iki araç ve bir zamanlayıcı ister (K-872) | Evet |
+| MK-09 | pgBackRest; yedek sunucunun dışında, firmanın hesabındaki S3 uyumlu nesne depolamada (§2.1) | 2026-10-16 | Sürekli günlük aktarımı tavanın içindeki en dar penceredir; yalnız gecelik yedek, anlık görüntü ve kurulumu yapanın hesabı elendi (K-878, K-879) | Evet — araç değişebilir; yedeğin sunucu dışında ve firmanın hesabında olması kurulum ön koşuludur (ÖK-2) |
+| MK-10 | Tek Compose tanımı; her imaj sürüm numarasıyla sabit (§2.1, §8.2) | 2026-10-16 | Her kurulum aynıdır ve kurtarma kısalır; "latest" aynı sürümü iki kurulumda iki imajla çalıştırır (K-872, K-920) | Evet |
+| MK-11 | GitHub Container Registry (§2.1, §8.2.5) | 2026-10-16 | Repo ve yayın aynı kimlikle; Docker Hub'ın ücretsiz katmanında çekme sınırı vardır — bilgim tarihli (K-920) | Evet |
+| MK-12 | GitHub Actions; iskelet değişmez, `publish.yml` kalır, kurulumlara otomatik dağıtım yok (§2.1, §8.3) | 2026-10-16 | Kurulumlar imajı kayıt defterinden çeker; servisler arası sözleşme yoktur; otomatik dağıtım insan bakmadan değişiklik indirirdi (K-919, K-921) | Evet |
+| MK-13 | Tek dağıtılabilir uygulama — modüler monolit; tek örnek (§3.1) | 2026-10-16 | Hacim tabanı ve kurulum başına tek firma ayrık servislere iş bırakmaz; ayrık servis ve ayrı işçi süreci dağıtım ve sır yüzeyi açar (K-871) | Evet — modül sınırı işlerin ayrı sürece alınmasını ve ikinci örneği açık tutar (§11.3) |
+| MK-14 | Sunucuda dört konteyner — uygulama, veritabanı, ters vekil, yedek aracı — ve ayrı iç ağlar (§3.2) | 2026-10-16 | Başka sürekli bileşen tavanın dışladığı bellek, sır ve bakım yüzeyidir (K-872, K-910) | Evet |
+| MK-15 | Dokuz modül; modüller arası erişim yalnız açık arayüzden, eşzamanlı ve aynı işlemde; uygulama içi olay yayını yok (§3.3, §3.4) | 2026-10-16 | Kural grupları kodda görünür ve mimari testler sınırı korur; teknik katmanlara bölme ve olay yayını elendi (K-932, K-871) | Evet |
+| MK-16 | Vitrin ve panel aynı alan adında; panel ayrı bir yol alanı (§3.5) | 2026-10-16 | Tek sertifika ve kendi alan adına kilitli çerezler; alt alan adı ikinci DNS kaydı ve sertifika ister (K-932) | Evet |
+| MK-17 | Üç dış servis bir bağlantı katmanının arkasında; ürün kuralı çekirdekte (§3.6) | 2026-10-16 | Sağlayıcıya özgü biçim katmanda kalır, yol haritasının servisleri aynı kalıpla eklenir (K-932) | Evet |
+| MK-18 | Adres addan sunucuda üretilir; arama motoru verileri JSON-LD ve Open Graph ile ilk yanıtta; kapalı sayfalar `noindex` taşır (§3.7) | 2026-10-16 | robots.txt engeli `noindex`'i görünmez kılar; sayfa içi işaretleme şablonlara dağılır (K-933) | Kısmen — yayındaki adres sabittir (`02 §3.30.2`) |
+| MK-19 | Zaman UTC'de tutulur, Türkiye saatiyle sayılır; para ondalıklı sayıyla; yuvarlama tek işlevden (§7.2) | 2026-10-16 | Tek saat dilimi ve tek para birimi kalıcıdır; .NET'in varsayılan yuvarlaması kurala uymaz (K-870, K-934) | Hayır — depolama biçimini değiştirmek bütün veriyi dönüştürmektir |
+| MK-20 | Kayıt varyantı: iyimser eşzamanlılık, sürüm değeri, kilit yok (§7.3.1) | 2026-10-16 | İki yolu — güncel hâli açmak, yine de kaydetmek — tek koşulla karşılar; alan alan karşılaştırma ve zaman damgası elendi (K-873) | Evet |
+| MK-21 | Sipariş varyantı: sürüm ve kısa satır kilidi (§7.3.2) | 2026-10-16 | Yan etkilerini ayrı tablolara yazan işlemleri tek sıraya sokar; kilitsiz sürüm karşılaştırması elendi (K-874) | Evet |
+| MK-22 | Tek gecelik imha işi; süre veriden hesaplanır; imha kaydı ayrı tabloda (§7.4.1) | 2026-10-16 | Kaçırılan gece telafi edilir; kayıt dosyasındaki imha kaydı üç yıl dolmadan giderdi (K-875) | Evet |
+| MK-23 | İmha fiziksel silmedir; siparişte kişisel alanlar boşaltılır (§7.4.3) | 2026-10-16 | "Silindi" işaretli satır imhayı gerçekleştirmez (K-876) | Hayır — silinen veri geri gelmez |
+| MK-24 | İz tablosunda uygulama kullanıcısı yalnız ekler ve okur; süresi dolan satırı veritabanı fonksiyonu siler (§7.5) | 2026-10-16 | Kod hatası izi değiştiremez; özet zinciri değişikliği önlemez, sonradan gösterir (K-877) | Evet |
+| MK-25 | Sürekli günlük aktarımı — en geç bir dakika — ve gecelik tam yedek; dosyalar ve kayıt dosyaları gecelik (§7.6.1) | 2026-10-16 | Sıfır kaybın sunucu dışındaki yarısıdır; diskin kalıcı kaybındaki bir dakikalık pencereyi proje sahibi kabul etti (K-878, K-888) | Evet — pencereyi kapatmak ikinci bir sunucu ister ve proje sahibinin kararıdır |
+| MK-26 | Yedeğin kapsamı, yeri, şifrelenmesi ve otuz günlük saklaması (§7.6.3–§7.6.6) | 2026-10-16 | Yedek firmanın elinde, sunucunun dışında ve silmeye karşı korumalıdır; şifresiz yedek ve doksan gün elendi (K-879) | Evet |
+| MK-27 | Kurtarma hedefi aynı gün; prova kurulumda ve her güncellemede (§7.6.7, §7.6.8) | 2026-10-16 | Denenmemiş yedek yedek sayılmaz; bir saatlik hedef sürekli hazır ikinci sunucu ister (K-880) | Evet |
+| MK-28 | Dosyalar sunucunun diskinde, dosya deposu arayüzüyle; dijital dosya genel adresle sunulmaz (§7.7.1) | 2026-10-16 | Nesne depolamanın çıkış trafiği ücreti tavanı zorlar; veritabanında dosya yedeği şişirir (K-881) | Evet — taşıma bir yapılandırmadır (§11.3.3) |
+| MK-29 | Yüklenen görsel yeniden kodlanır, meta verisi atılır, WebP türevleri kuyrukta üretilir (§7.7.2) | 2026-10-16 | Sayfa ağırlığı ve fotoğrafın konum bilgisi (K-882) | Kısmen — özgün dosya saklanmadığı için geri getirilemez |
+| MK-30 | Dijital ürün dosyası parçalı yüklenir; her yükleme yeni bir dosya kaydıdır (§7.7.3) | 2026-10-16 | Kopan yükleme baştan başlamaz; geçmiş kalemler dosyanın son hâlini indirir (K-883) | Evet |
+| MK-31 | İndirme hakkı düğmeye basılıp gönderim başlayınca bir kez düşer; bir saatlik bağlantı (§7.7.4) | 2026-10-16 | Tamamlanınca saymak güvenilir değildir; her isteği saymak dürüst müşteriyi cezalandırır (K-884) | Evet |
+| MK-32 | Önerilen stok kodu ürünün adresinden ve varyantın sırasından (§7.8) | 2026-10-16 | Okunabilir ve tekildir; rastgele kod okunmaz (K-885) | Evet |
+| MK-33 | Site içi arama veritabanında, sadeleştirilmiş ad üzerinde içerir eşleşmesiyle (§7.9) | 2026-10-16 | Ayrı arama motoru bileşen ve bellek ister; Türkçe tam metin araması yarım sözcüğü bulmaz (K-886) | Evet |
+| MK-34 | Önbellek uygulamanın belleğinde; ayrı önbellek sunucusu yok (§7.10) | 2026-10-16 | Tek örnekte ayrı önbellek sunucusunun kazancı yoktur; sayfanın tamamını önbelleğe almak bayat fiyat gösterir (K-887) | Evet — ikinci örnekte paylaşılır (§11.3.5) |
+| MK-35 | Durum makinesi tek geçiş biriminde; beyaz liste ve yalnız eklenen geçiş kaydı (§4.1) | 2026-10-16 | Bir yolun atlanması beyaz listeyi delmez; durum makinesi kütüphanesi ve veritabanı tetikleyicileri elendi (K-889) | Evet |
+| MK-36 | Onay isteği müşterinin gördüğünü taşır; onay tek işlemde, koşullu ayırmayla (§4.2) | 2026-10-16 | Aynı son adedi aynı anda onaylayan iki müşteriden yalnız biri ayırır (K-890) | Evet |
+| MK-37 | İç yan etkiler geçişle aynı işlemde, dış yan etkiler veritabanındaki iş kuyruğunda (§4.3) | 2026-10-16 | Olay kaybı baştan doğru kurulur; ayrı kuyruk sunucusu geçişle aynı işleme giremez (K-891) | Evet |
+| MK-38 | Her e-posta gönderim kaydında bir satır olarak doğar; gövde gönderim anında üretilir (§4.4) | 2026-10-16 | Kayıt aynı zamanda kuyruktur; gövdeyi saklamak kişisel verinin ikinci kopyasıdır (K-892) | Evet |
+| MK-39 | Tek işlenme: onay anahtarı, önce kaydedilen sağlayıcı bildirimi, ödeme sonucunun tek yolu (§4.5) | 2026-10-16 | Çift tıklama ve iki kez gelen bildirim ikinci sipariş ya da ödeme açmaz (K-893) | Evet |
+| MK-40 | Karta para gönderen istekten önce geri ödeme kaydı; sonucu bilinmeyen istek yeniden gönderilmez (§4.6) | 2026-10-16 | Para iki kez gitmez (K-894, K-705) | Evet |
+| MK-41 | Uygulamanın içinde tek zamanlayıcı, dakikada bir; işin zamanı kendi kaydında (§5.1) | 2026-10-16 | Kaçırılan çalışma kendiliğinden yakalanır; işletim sisteminin zamanlayıcısı ve ayrı işçi elendi (K-895) | Evet |
+| MK-42 | İşlerin envanteri; iş gerektirmeyen süreler okuma anında denetlenir (§5.2) | 2026-10-16 | Okumada denetlenebilen süreye iş açmak sitenin yanlış konuştuğu bir aralık doğurur (K-896) | Evet |
+| MK-43 | Hatırlatma 08:00, imha 03:00, son sorgu beş dakikada bir (§5.3) | 2026-10-16 | İş gününün başı ve trafiğin düşük olduğu gece (K-897) | Evet — tasarım değeridir |
+| MK-44 | Kesinti nabızla ölçülür; dönüşte havale iptali ertelenir (§5.4) | 2026-10-16 | Uygulamanın kapanış anı ve dış izleme kesintiyi güvenilir ölçmez (K-898) | Evet |
+| MK-45 | Oturum sunucuda tutulur; iki hesap türü iki kimlik şeması (§6.1.1) | 2026-10-16 | Kaldırılan yöneticinin anında çıkması her istekte kayıt ister; hazır kimlik paketinin tamamı ve ayrı kimlik sunucusu elendi (K-899) | Evet |
+| MK-46 | Şifre çatının özetleyicisiyle; Google ile giriş OpenID Connect; yeniden doğrulama tek işleme izin (§6.1.4) | 2026-10-16 | Yerleşik ve yükseltilebilir yol; Google'ın kalıcı kimliği saklanmaz (K-900) | Evet — özet girişte yükseltilir |
+| MK-47 | Yetki sunucuda, varsayılan kapalı, kayıt düzeyinde süzülerek (§6.2) | 2026-10-16 | Unutulan sayfa kapalı kalır; rol modeli MVP'de yoktur (K-912) | Evet — rol eklenebilir (§11.3.13) |
+| MK-48 | Deneme limitleri veritabanında, deneme kaydıyla; IPv6'da /64 (§6.3.1) | 2026-10-16 | Yeniden başlatmada sıfırlanmaz; L-7 ve L-8 siparişten sayılır (K-901) | Evet |
+| MK-49 | Genel istek hızı sınırı uygulamada — IP başına dakikada 300 sayfa, 30 gönderim; uç başına gövde tavanı (§6.3.5) | 2026-10-16 | Ters vekilde hız sınırı eklenti ister; içerik dağıtım ağı yurt dışı aktarım doğurur (K-902) | Evet — tasarım değeridir |
+| MK-50 | Anahtarlar kriptografik üreteçle; hesap bağlantıları özetle, bağlantı kaydında (§6.4.1) | 2026-10-16 | Bağlantının hâli kayıttan okunur; özet bir sızıntıda geçerli bağlantı vermez (K-903) | Evet |
+| MK-51 | E-postayla gelen bağlantının açılması işlem yapmaz; işlem ekrandaki düğmeyle (§6.4.7) | 2026-10-16 | E-posta güvenlik tarayıcısı doğrulamayı adresin sahibinden önce yapmaz (K-904, K-839) | Kısmen — kural `02 §8.1.3`'tedir; değişmesi ürün kararıdır |
+| MK-52 | Her POST sahteciliğe karşı korumadan geçer; tuzak alan; kapalı biçim seti izinli etiket listesiyle (§6.5.1–§6.5.3) | 2026-10-16 | Varsayılan koruma unutulan ucu kapatır; ham HTML ödeme sayfalarında da çalışacak betik taşır (K-935) | Evet |
+| MK-53 | Güvenlik başlıkları: içerik güvenlik politikası, HSTS, türün tahmin edilmemesi, yönlendiren adresin sınırı, tarayıcı izinleri (§6.5.4) | 2026-10-16 | Enjekte edilen betik çalışmaz, site başka sitede çerçevelenmez; yalnız raporlama kipi ve genel satır içi izin elendi (K-935) | Evet |
+| MK-54 | Görselin türü içerikten; piksel tavanı; dijital dosyada tür sınırı yok, ek olarak sunulur (§6.6) | 2026-10-16 | İzinli tür listesi ve virüs taraması güvenlik sağlamaz (K-905) | Evet |
+| MK-55 | Bütün çerezler birinci taraf, zorunlu, Secure, HttpOnly, SameSite=Lax, `__Host-` önekli (§6.7.1) | 2026-10-16 | Strict, e-postadan gelen üyeyi oturumsuz gösterirdi (K-906) | Evet |
+| MK-56 | Ödeme adımında yazılanlar oturumluk, şifreli bir çerezde; sunucuda kayıt yok (§6.7.9) | 2026-10-16 | JavaScript'siz akış ve onaydan önce kayıt oluşturmama; sunucuda geçici kayıt elendi (K-907) | Evet |
+| MK-57 | Çerez politikası yayına alınana kadar vitrinin yanıtlarından çerez başlıklarını çıkaran ara katman (§6.7.10) | 2026-10-16 | Güvence tek yerdedir; yeni bir işlev öncülü bozamaz (K-908) | Evet |
+| MK-58 | Yalnız HTTPS ve bir yıllık HSTS; kart verisi ürüne gelmez; alan düzeyinde şifreleme yok (§6.8) | 2026-10-16 | Alan şifrelemesinin anahtarı aynı sunucuda dururdu; koruma ömür, kapalı ağ ve yedeğin şifresidir (K-909) | Evet |
+| MK-59 | Sırlar bileşen başına dosyalarda, yalnız kullanan konteynere; paylaşılan sır yok (§6.x.1) | 2026-10-16 | Ortam değişkeni görünür ve sızar; sır kasası ek bileşendir (K-910) | Kısmen — gün 0 kararıdır; geri almak bütün dağıtım yüzeyini yeniden yazmaktır |
+| MK-60 | Döndürme yılda bir ve olay üzerine; yedeğin anahtarı döndürülmez; sırların ayrı yedeği yok (§6.x.9) | 2026-10-16 | Düzenli döndürme tek kişinin kurulumlarında ertelenir ya da hata üretir (K-911) | Evet |
+| MK-61 | Dış çağrı süreli — 15 ve 30 saniye; bağlantı katmanında kendiliğinden yeniden deneme ve devre kesici yok (§10.1.1) | 2026-10-16 | Yeniden deneme tek yerde, kuyrukta kalır; para gönderen istek iki kez gitmez (K-936) | Evet |
+| MK-62 | Kanal uyarısı art arda beş kanal hatası ve on beş dakikada; iki uyarı gönderim kaydından okunur (§10.2) | 2026-10-16 | Tek başarısızlık yanlış alarm üretir; oran düşük hacimde sıçrar (K-913) | Evet — tasarım değeridir |
+| MK-63 | Beklenmeyen hata tek yakalama katmanında üç hâle ayrılır; sonucu belirsiz işlemler kodda adıyla işaretli (§10.3) | 2026-10-16 | Ekran başına yakalayıcı unutulur; onay anındaki kopmada sonuç bilinemez (K-914) | Evet |
+| MK-64 | Sistem kayıtları üç kaynak, sunucunun diskinde; maskeleme; ayrı metrik ve pano yok (§9.1) | 2026-10-16 | İstek kimliğiyle bağlanan kayıtlar ihlal incelemesinin kaynağıdır; ücretli kayıt servisi ve pano yığını elendi (K-915) | Evet |
+| MK-65 | Sistem kayıtları altı ay saklanır; dosyalarını imha işi siler; gecelik yedeğe girer (§9.2) | 2026-10-16 | Giriş kaydıyla aynı pencere; otuz gün inceleme için kısadır (K-916) | Kısmen — süre ürün kuralıdır (Z-40, P-45) |
+| MK-66 | Kayıtları kurulumu yapan okuma komutuyla okur; sonuç şifreli iletilir ve sunucudan silinir (§9.3) | 2026-10-16 | Panelde bir ekran, ele geçirilmiş hesaba izlerini gösterirdi (K-917) | Evet |
+| MK-67 | Canlılık ve durum uçları; ücretsiz dış kontrol kurulumu yapanı uyarır (§9.4) | 2026-10-16 | Uygulamanın kendi e-postası arızada susar; ücretli izleme tavanı aşar (K-918) | Evet |
+| MK-68 | Dört ortam; ayrı hazırlık sunucusu yok, referans kurulum öncüdür (§8.1) | 2026-10-16 | Hazırlık sunucusu gider ve bakım yüzeyidir ve gerçek yapılandırmayı referans kurulum kadar sınamaz (K-919) | Evet |
+| MK-69 | Bir sürüm tek eser — uygulama imajı ve göç demeti; yedek aracı imajı projede derlenir (§8.2) | 2026-10-16 | Ayrı göç imajı sürümlerin eşleşmesini ister (K-920) | Evet |
+| MK-70 | CI adımlarının işi; sürüm etiketi `vANA.ARA.YAMA`, yama sürümü göç taşımaz (§8.3) | 2026-10-16 | Adımın neyi sınadığı yazılmazsa kapsamı komut seçer; gerçek kilitler yalnız gerçek veritabanında sınanır (K-921) | Evet |
+| MK-71 | Üç ayar katmanı ve tasarım değerleri; açılışta ayar denetimi (§8.4) | 2026-10-16 | Eksik zorunlu ayarla açılmak açılmamaktan tehlikelidir (K-922, K-412) | Evet |
+| MK-72 | Kurulum tarafının işlemleri uygulama imajındaki yönetim komutlarıyla (§8.5) | 2026-10-16 | Web'de kurulum sihirbazı ilk gelene yönetici olma yolu verir; elle veritabanı komutu izlenmez (K-923) | Evet |
+| MK-73 | Güncellemeyi kurulumu yapan tek komutla, önce referans kurulumda, sonra teker teker başlatır; kurulumlar kendiliğinden güncellenmez (§8.6) | 2026-10-16 | Kendiliğinden çekme göçü insan bakmadan çalıştırır; elle güncellemede prova atlanır (K-924) | Evet |
+| MK-74 | Göçler genişlet–daralt; eski sürüm çalışırken uygulanır; geri alma önceki imajdır; yedekten dönüş yalnız trafiğe açılmadan (§8.7) | 2026-10-16 | Veri silen geri alma betiği o arada yazılan kaydı kaybettirir (K-925) | Evet |
+| MK-75 | İşletim sistemi yamaları kendiliğinden, gerekirse 04:30'da yeniden başlatma; aylık bakım sürümü ve acil yama (§8.8) | 2026-10-16 | Takvimsiz güncelleme kurulumları yamasız bırakır (K-926) | Evet |
+| MK-76 | Sunucuya yalnız SSH ve anahtarla, kurulum başına anahtar; açık kapılar 80, 443 ve SSH (§8.9) | 2026-10-16 | Tek anahtar bütün firmaların sunucusunu birlikte açardı (K-927) | Evet |
+| MK-77 | H-3: isteklerin %95'i bir saniyede; H-4: dakikada 100 farklı ziyaretçi (§11.1) | 2026-10-16 | `10 §4.2` SK-5'in tetikleyicisi bir değer ister; değerler kestirimdir (K-928) | Evet — ilk gerçek kurulumun erişim kaydı doğrular ya da yanlışlar |
+| MK-78 | Büyüme yolunun sırası ve tetikleyicileri; çok kiracılık yolun adımı değildir (§11.3) | 2026-10-16 | "Büyüdüğünde X'e geçilir" ancak tetikleyiciyle gerçekçidir (K-929, K-10) | Evet |
+
+*Kaynak: plan konusu TM12-01 · K-858 (kimlik ve tablonun biçimi) · K-930 (konvansiyon 2 ve 7) · tablonun her satırının K numaraları gerekçe hücresindedir.*
+
+---
+
+*Shopfolio — Technical Architecture v0.3 (v0.3 yazım turunun 2. oturumudur — §6, §10, §9, §8, §11, §1, §12; K-935, K-936; Ürün Gereksinimleri v0.70; yazım turu tamamlandı · v0.2 yazım turunun 1. oturumudur — başlık notu, §0, §2, §3, §7, §4, §5; K-930…K-934 · v0.1 şablondur — açılış ve workshop karar kaydının §12'sindedir)*

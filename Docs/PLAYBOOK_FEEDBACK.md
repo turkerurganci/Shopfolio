@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-10-16 | **Satır:** 73 | **Gönderilen:** 0
+**Son güncelleme:** 2026-10-17 | **Satır:** 74 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -101,3 +101,4 @@
 | PF-71 | Teknik Mimari şablonunda yazım konvansiyonları, üst dokümanlara geri besleme tablosu ve kısıtların yazılacağı yer yok — §0 "kısıtları erken söyle" der, kısıtların yerini göstermez (PF-57'nin bu şablondaki hâli) | Tracker §12.2 şablon taraması (2026-10-16, Aşama 4 açılışı) | K-857 (başlık notu · başlık notundaki geri besleme tablosu · §0'ın altında kısıtlar tablosu) | `Docs/05_TECHNICAL_ARCHITECTURE.md` şablonu başlık, §0 | Uygulandı (çevre karar; şablon değişmedi) |
 | PF-72 | Teknik Mimari şablonunun §8 notu dal stratejisinin `INSTRUCTIONS §3.2` ile "birebir aynı yazılmasını" ister; checklist §4 kural ayrıntısının kopyalanmamasını, işaret edilmesini ister — şablon notu işaret istemeli | Tracker §12.2 şablon taraması (2026-10-16, Aşama 4 açılışı) | K-859 (§8 `INSTRUCTIONS §3.2`'ye işaret eder) | `Docs/05_TECHNICAL_ARCHITECTURE.md` şablonu §8 | Uygulandı (çevre karar; şablon değişmedi) |
 | PF-73 | Teknik Mimari şablonunun §2 ve §12 tabloları "#" sütunu taşır; kimliğin biçimini ve iki tablonun aynı kararı aynı kimlikle taşıdığını yazmaz | Tracker §12.2 şablon taraması (2026-10-16, Aşama 4 açılışı) | K-858 (`MK-nn`; §2 ve §12 aynı kimlik) | `Docs/05_TECHNICAL_ARCHITECTURE.md` şablonu §2, §12 | Uygulandı (çevre karar; şablon değişmedi) |
+| PF-74 | Veri Modeli şablonunun başlığındaki "Bağımlılıklar" alanı Kodlama Kılavuzu'nu (`09`) sayar; `00 §C.1` Veri modeli aşamasının girdisini `02`, `03`, `05`, `10` diye yazar ve `09` bu aşamadan sonra yazılır — öteki şablonların (`07`, `08`, `09`) alanları `00 §C.1` ile tutar | Aşama 4'ün checkpoint'i, aşama geçişi doğrulaması (2026-10-17; `CHECKPOINT_REPORTS/CP04_PHASE4_CHECKPOINT.md` §3.5) | Bu repoda değişmedi — Veri modeli aşamasının açılışının şablon taramasına bırakıldı (`checklists/document-stage.md` §1) | `Docs/06_DATA_MODEL.md` şablonu başlık satırı | Bekliyor |

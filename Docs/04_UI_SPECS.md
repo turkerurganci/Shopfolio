@@ -1,6 +1,6 @@
 # Shopfolio — UI Specifications
 
-**Versiyon: v0.27** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-17
+**Versiyon: v0.28** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-17
 
 > **Aşama:** 3 — UI/UX Tasarım · **Rol:** Senior Product Designer / UX Architect
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §4'e (ekran envanteri) geçilmez.
@@ -51,6 +51,8 @@
 > **Aşama 4 — Teknik Mimari'nin etki yansıtması: Kaynak satırları (2026-10-17, v0.26 — `cross-review` skill'i Faz 5 madde 4):** Teknik Mimari'nin cross-review'ı kapanırken Kaynak satırı betiği bu dokümanda gövdede anılan ama bölümün Kaynak satırında olmayan üç Aşama 4 atfı buldu — §3.4 (K-940, 3.4'ün tablosundaki kart iadesi uyarıları), §3.5 (K-904, doğrulama bağlantısının açılması) ve §6.3 (K-904, matrisin doğrulama bağlantısı satırı); üç Kaynak satırı tamamlandı. Kural ve metin değişmedi; ✓ durumu korunur, kalite döngüsü yeniden açılmaz.
 >
 > **Aşama 4 — Teknik mimari aşamasının kapanışının çakışma taramasının geri beslemesi (2026-10-17, v0.27 — K-652, K-857):** karar yok; ✓ durumu korunur, kalite döngüsü yeniden açılmaz. **K-904'ün yansıması:** izlenebilirlik matrisinin `03 §9.1.5` satırının özeti — doğrulanmamış kaydın silinmesinin koşulu bağlantının açılmaması değil hesabın doğrulanmamasıdır (Kullanıcı Akışları v0.27). Rapor `CHECKPOINT_REPORTS/PHASE4_CONFLICT_SCAN.md`; geri besleme tablosu Teknik Mimari'nin başlık notundadır.
+>
+> **Aşama 4 — Teknik mimari aşamasının kapanışının checkpoint'i (2026-10-17, v0.28 — K-437'nin 4. adımı; K-652):** karar yok; var olan kararların eski kalan yüzleri hizalandı; ✓ durumu korunur, kalite döngüsü yeniden açılmaz. **K-904'ün yansıması:** doğrulama bağlantısının iniş ekranında (E-21) ve yöneticinin yeni adres doğrulamasında (E-54) düğme sürerken ikinci kez basılamaz ve sonucu belirsiz kalırsa ekran "işlem yapılmadı" demez — bağlantı yeniden açılınca sonucu söyler (5.21.12, 9.25.11; 2.7.3.3'ün sayımı ve istisnaları); §2.7'nin ve §4'ün Kaynak satırları K-904'ü alır. **K-839'un yansıması:** §1.1.2'nin E-28 satırı — değişiklik tek düğmeyle geri alınır, yeni şifre sıfırlama bağlantısıyla kurulur (§4.1'in satırıyla aynı). **K-940'ın yansıması:** matrisin `03 §2.8.4.3` ve §8.3.3.5 satırlarının özeti — sonucu bilinmeyen kart iadesinde yeniden deneme ve havale yolu sonuç gelene ya da yöneticinin "gerçekleşmedi" işaretine kadar kapalıdır. **K-968'in yansıması:** 5.24.7 — Google ile doğrulama, girişin anı eski olduğunda da hiç verilmediğinde de tutmaz. Matrisin satır sayısı ve dağılımı değişmedi. Rapor `CHECKPOINT_REPORTS/CP04_PHASE4_CHECKPOINT.md`; geri besleme tablosu Teknik Mimari'nin başlık notundadır.
 
 **Yazım konvansiyonları (K-726, K-762).** Bu on beş madde §2–§9'un bütün yazım oturumlarını bağlar; "konvansiyon n" diye anılır.
 
@@ -216,7 +218,7 @@ Bu liste matrisin "Ekran" sütununun değer kümesidir; **nihai ekran envanteri 
 | E-25 | Hesap — profil ve güvenlik | Müşteri | Üye | Adı, e-postayı ve şifreyi değiştirtir; hesabı sildirir. |
 | E-26 | Adres defteri | Müşteri | Üye | Kayıtlı adresleri ekletir, düzenletir ve sildirir. |
 | E-27 | Sipariş geçmişi | Müşteri | Üye | Hesaba bağlı siparişleri listeler ve sipariş sayfasına götürür. |
-| E-28 | E-posta değişikliğini geri alma ekranı | Müşteri | Kullanıcı | "Bu değişikliği ben yapmadım" bağlantısının sonucunu söyler ve şifreyi yeniden belirletir. |
+| E-28 | E-posta değişikliğini geri alma ekranı | Müşteri | Kullanıcı | "Bu değişikliği ben yapmadım" bağlantısıyla açılır; değişikliği tek düğmeyle geri aldırır ve sonucunu söyler; yeni şifre sıfırlama bağlantısıyla kurulur (K-839). |
 | E-29 | Panel girişi ve şifre sıfırlama | Panel | Yönetici | Yöneticiyi şifreyle panele alır; panel şifresini sıfırlatır. |
 | E-30 | Yönetici daveti kabul ekranı | Panel | Kullanıcı | Davet bağlantısından yönetici hesabını açtırır. |
 | E-31 | Panel ana sayfası | Panel | Yönetici | Bekleyen işleri sayaçlarla, kurulum kontrol listesini ve kanal uyarısını gösterir. |
@@ -522,7 +524,7 @@ Kapsam ağıdır: her satır en az bir ekrana ya da adıyla yazılmış bir ekra
 | `03 §2.8.3.1` | Dijital kalemden cayma yoktur | E-16 | eşlendi |
 | `03 §2.8.4.1` | Caymanın geri ödemesinin işlenmesi | E-37 · E-16 | eşlendi |
 | `03 §2.8.4.2` | Geri ödeme havalesi gerçekleşmez: IBAN alanı yeniden açılır | E-37 · E-16 | eşlendi |
-| `03 §2.8.4.3` | Kart iadesi gerçekleşmez: havale yolu açılır, sipariş sayfası söyler | E-37 · E-16 | eşlendi |
+| `03 §2.8.4.3` | Kart iadesi gerçekleşmez: yönetici yeniden dener ya da havale yolunu açar, sipariş sayfası söyler; sonucu bilinmeyen iadede yol sonuç gelene ya da yöneticinin "gerçekleşmedi" işaretine kadar kapalı (K-940) | E-37 · E-16 | eşlendi |
 | `03 §2.8.4.4` | Başka kanaldan cayma bildirimi: yönetici kaydeder; IBAN alanı | E-37 · E-16 | eşlendi |
 
 **§2.9 Müşteri: ayıp talebi (6)**
@@ -1604,7 +1606,7 @@ Devrin evi karar satırıdır; dizin onu ikinci kez kaydetmez (`PHASE1_CONFLICT_
 | `03 §8.3.3.2` | Yönetici havale hattındaki geri ödemeyi bankasından gönderir ve panelden işler; panel kalan süreyi ve müşterinin IBAN'ını gösterir; onay geri alınamaz | E-37 · ortak bileşen: onay · ortak bileşen: süre · ortak bileşen: IBAN | eşlendi |
 | `03 §8.3.3.3` | Yönetici caymanın geri ödemesini kart hattında işler; onay geri alınamaz | E-37 · ortak bileşen: onay | eşlendi |
 | `03 §8.3.3.4` | Kart iadesi sağlayıcıda gerçekleşmez: satıra "geri ödeme gerçekleşmedi" — sonucu bilinmezse "geri ödeme sonucu bekleniyor" — düşer, kalem sayaca girer ve panelde uyarı çıkar; yönetici sonucu beklenen iadeyi "gerçekleşmedi" diye işaretleyebilir (K-940) | E-36 · E-37 · E-31 · ortak bileşen: rozet | eşlendi |
-| `03 §8.3.3.5` | Yönetici kart iadesini yeniden dener ya da müşteriye havale yolunu açar; sipariş sayfasında IBAN alanı açılır | E-37 · E-16 | eşlendi |
+| `03 §8.3.3.5` | Yönetici kart iadesini yeniden dener ya da müşteriye havale yolunu açar; sipariş sayfasında IBAN alanı açılır — "geri ödeme gerçekleşmedi" işaretliyken; sonucu beklenirken sunulmaz (K-940) | E-37 · E-16 | eşlendi |
 | `03 §8.3.3.6` | Yönetici IBAN'ı olmayan bir geri ödeme için müşteriden IBAN ister; istek "IBAN bekleniyor" listesinde görünür ve sayaçta sayılmaz | E-37 · E-31 · E-16 | eşlendi |
 | `03 §8.3.3.7` | Yönetici tutar bazlı kısmi geri ödeme işler; tutar ödenmiş ve geri ödenmemiş tutarı aşamaz; onay geri alınamaz | E-37 · ortak bileşen: onay | eşlendi |
 | `03 §8.3.3.8` | Yönetici bankada gerçekleşmeyen geri ödeme havalesini "havale gerçekleşmedi" diye bildirir; IBAN alanı yeniden açılır | E-37 · E-31 · E-16 | eşlendi |
@@ -2525,14 +2527,14 @@ Siparişin iki ekseni her yerde **iki ayrı rozetle**, yan yana gösterilir; tek
 **2.7.3 Beklenmeyen hata** üç hâlde gösterilir (K-745); ekran işlemin tamamlanmadığını, kullanıcının yazdıklarının ve sepetinin durduğunu ve ne yapacağını söyler, hata kodu ve teknik ayrıntı göstermez:
 - **2.7.3.1 İşlem düzeyi.** Bir form ya da düğme işlemi tamamlanamazsa mesaj işlemin yerinde, yerinde kalıcı mesaj olarak çıkar (2.3.1.2); form içeriği korunur ve kullanıcı aynı düğmeyle yeniden dener.
 - **2.7.3.2 Sayfa düzeyi.** Sayfa açılamazsa vitrinde vitrinin, panelde panelin çerçevesi içinde bir hata sayfası çıkar: kısa açıklama, "Yeniden dene" ve ana sayfaya dönüş. "Sayfa bulunamadı" sayfasından (E-06) ayrıdır.
-- **2.7.3.3 Sonucu belirsiz işlem.** Sipariş onayı, müşterinin geri alınamaz dört işlemi, e-posta değişikliğinin geri alınması ve yöneticinin onay isteyen işlemleri hata verirse mesaj "işlem yapılmadı" demez; kullanıcıyı sonucu görmeye götürür — müşteriyi sipariş sayfasına ya da sipariş takibine, yöneticiyi işlemin dokunduğu kaydın güncel hâline: siparişte siparişin, öteki onaylarda listenin, ayarın ya da aramanın yenilenmiş hâline (9.9.41, 9.12.14, 9.13.16, 9.16.13, 9.17.14, 9.18.15, 9.20.16). Üç ekran istisnadır: geri alma ekranı sonucu bağlantı yeniden açılınca söyler (5.28.9); sipariş onayında numara henüz bilinmeyebileceği için üye sipariş geçmişine, misafir alıcı sipariş takibi girişine gider (5.13.31); hesap silmede ekran hesabı ya da — hesap silindiyse — girişi gösterir (5.25.17).
+- **2.7.3.3 Sonucu belirsiz işlem.** Sipariş onayı, müşterinin geri alınamaz dört işlemi, kayıt ve yeni e-posta adresinin doğrulaması (K-904), e-posta değişikliğinin geri alınması ve yöneticinin onay isteyen işlemleri hata verirse mesaj "işlem yapılmadı" demez; kullanıcıyı sonucu görmeye götürür — müşteriyi sipariş sayfasına ya da sipariş takibine, yöneticiyi işlemin dokunduğu kaydın güncel hâline: siparişte siparişin, öteki onaylarda listenin, ayarın ya da aramanın yenilenmiş hâline (9.9.41, 9.12.14, 9.13.16, 9.16.13, 9.17.14, 9.18.15, 9.20.16). Dört ekran istisnadır: geri alma ekranı ve doğrulama bağlantısının iniş ekranı sonucu bağlantı yeniden açılınca söyler (5.28.9, 5.21.12; yöneticide 9.25.11); sipariş onayında numara henüz bilinmeyebileceği için üye sipariş geçmişine, misafir alıcı sipariş takibi girişine gider (5.13.31); hesap silmede ekran hesabı ya da — hesap silindiyse — girişi gösterir (5.25.17).
 - **2.7.3.4** Mesaj müşteriye İletişim sayfasını, yöneticiye kurulumu yapanı işaret eder.
 
 **2.7.4 Adı konmuş hatalar bu kalıbın dışındadır:** `02 §6`'nın senaryoları ve `03 §3`'ün satırları kendi mesajlarıyla, OB-03'ün yerlerinde gösterilir. Ödeme yönteminin "şu an kullanılamıyor" hâli böyledir: yöntem listede kalır, seçilemez ve sebebini yanında yazar (`03 §2.4.5`; K-757).
 
 **2.7.5 Kesinti ve bakım için ekran yoktur:** sitenin hiç çalışmadığı kesintide ürünün içinden bilgilendirme yoktur (`03 §10.3.1`) ve bakım modu yoktur (`02 §3.1.6`).
 
-*Kullanıldığı ekranlar:* bütün ekranlar; matriste E-31. Hata sayfası ayrı bir ekran kimliği almaz — her ekranın sayfa düzeyi hata hâlidir (§4.4). *Kaynak: `02 §3.1.6`, §3.27.14, §3.27.22, §3.28.1, §3.28.3, §3.28.4, §3.28.6, §6.1.4, §10.6.3, §10.8.1 · `03 §2.3.7`, §2.4.5, §2.5.1.2, §10.3.1 · K-744, K-745, K-750, K-754, K-757, K-765 · §1.3 GAP-10.*
+*Kullanıldığı ekranlar:* bütün ekranlar; matriste E-31. Hata sayfası ayrı bir ekran kimliği almaz — her ekranın sayfa düzeyi hata hâlidir (§4.4). *Kaynak: `02 §3.1.6`, §3.27.14, §3.27.22, §3.28.1, §3.28.3, §3.28.4, §3.28.6, §6.1.4, §10.6.3, §10.8.1 · `03 §2.3.7`, §2.4.5, §2.5.1.2, §10.3.1 · K-744, K-745, K-750, K-754, K-757, K-765, K-904 · §1.3 GAP-10.*
 
 ### 2.8 Satış kapalı hâli (OB-08)
 
@@ -3004,7 +3006,7 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
 | 4.4.11 | Bekleyen işler, toplu işlem ve kurulum sihirbazı ekranı | Yoktur: sayaçlar var olan listelerin süzülmüş hâline götürür (`02 §10.6.1`), toplu işlem yoktur (`02 §10.7.2`), sihirbaz yoktur (`02 §10.8.2`) | — |
 | 4.4.12 | Fatura, banka havalesi ve kargo teslimi | Sistem dışı adımlardır; ürün izlemez (`03 §8.5.8`) | Ürünün dışında |
 
-*Kaynak (§4.1–§4.4): `02 §1.3`, §3.1.6, §3.29.3, §3.29.4, §3.30.5, §3.30.7, §9, §10.1.2, §10.2.5, §10.6.1, §10.7, §10.8.2 · `03 §0.1.3`, §0.1.4, §2.5.1.1, §7, §8.4.10, §8.4.11, §8.5.8, §9.3.6, §10.3.1 · `10 §2` KP-15, KP-37 · K-724, K-725, K-729, K-732, K-734, K-736, K-737, K-738, K-749, K-750, K-751, K-752, K-756, K-763, K-764, K-787, K-839.*
+*Kaynak (§4.1–§4.4): `02 §1.3`, §3.1.6, §3.29.3, §3.29.4, §3.30.5, §3.30.7, §9, §10.1.2, §10.2.5, §10.6.1, §10.7, §10.8.2 · `03 §0.1.3`, §0.1.4, §2.5.1.1, §7, §8.4.10, §8.4.11, §8.5.8, §9.3.6, §10.3.1 · `10 §2` KP-15, KP-37 · K-724, K-725, K-729, K-732, K-734, K-736, K-737, K-738, K-749, K-750, K-751, K-752, K-756, K-763, K-764, K-787, K-839, K-904.*
 
 ## 5. Ekran tanımları
 
@@ -3453,7 +3455,7 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
 - **5.21.9 Aksiyonlar:** **doğrulamak** — geçerli bağlantıdaki doğrulama adımının tek düğmesi; onay penceresi açılmaz, düğme işlemin adını taşır (K-904; 5.28.6'nın kalıbı). Öteki hâllerde yalnız sonraki adımın bağlantısı vardır; ekranın formu ve onay penceresi yoktur. Bağlantının hangi hâlde olduğunun tespiti Teknik Mimari'nin işidir (`05`; K-903).
 - **5.21.10 Validasyonlar:** form yoktur.
 - **5.21.11 Durum × rol varyantları.** Ekran oturumdan bağımsızdır; yalnız 5.21.7 ve 5.21.8'in sonraki adımı oturuma göre değişir. Yönetici hesabının yeni adres doğrulaması bu ekrana değil E-54'e iner (3.5.6). Tam matris §6.2'dedir — 6.2.21.
-- **5.21.12 Boş / yükleniyor / hata durumları.** Ekranın boş hâli yoktur; tanınmayan bağlantı 5.21.4'ün hâlini gösterir. Sayfa açılamazsa §2.7.3.2.
+- **5.21.12 Boş / yükleniyor / hata durumları.** Ekranın boş hâli yoktur; tanınmayan bağlantı 5.21.4'ün hâlini gösterir. Doğrulama sürerken düğme ikinci kez basılamaz (§2.7.2); doğrulamanın sonucu belirsiz kalırsa ekran "işlem yapılmadı" demez — bağlantı yeniden açılınca sonucu söyler (§2.7.3.3; 5.28.9'un kalıbı). Sayfa açılamazsa §2.7.3.2.
 - **5.21.13 Responsive notları.** Tek sütundur; sınıflar arasında fark yoktur.
 
 *Kaynak: `02 §3.13.2`, §3.13.4, §3.13.5, §3.13.14 · `03 §1.10.5`, §3.4.1, §3.4.9, §4.1.1, §7.1.49, §7.1.51, §9.1.4, §9.1.5, §9.3.5 · `10 §2` KP-25 · K-734, K-780, K-903, K-904 · devir: K-659.*
@@ -3507,7 +3509,7 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
 - **Aksiyonlar**
   - **5.24.5 Doğrulamak** (`03 §9.2.6`): şifreyle ya da Google ile; başarıda üye hesap ekranına, işlemin formuna döner (3.3.30). Onay istemez.
 - **5.24.6 Validasyonlar.** Şifre zorunludur. Yanlış şifre alan mesajıdır ve deneme L-1'e sayılır; eşik aşılınca o eksende şifreyle yeniden doğrulama ve giriş geçici olarak engellenir, nötr limit mesajı çıkar ve işlem yapılmaz (`03 §3.4.17`, §6.1.1.1; §2.3.5). Google ile doğrulama L-1'e girmez.
-- **5.24.7 Durum × rol varyantları.** Şifresi olmayan hesapta Google'a ulaşılamıyorsa üç işlem yapılamaz: ekran sebebini söyler ve şifre belirlemenin yolunu — hesap ekranındaki şifre belirleme bağlantısını — gösterir (`03 §10.1.3.2`; 3.3.36). **Google ile doğrulama tutmazsa** — Google açık oturumla şifre sormadan döndü ve girişin anı yeniden doğrulamanın başlatıldığı andan önce, ya da Google'ın verdiği e-posta hesabınkiyle eşleşmiyor — işlem yapılmaz: ekran sebebini söyler, Google'da yeniden giriş yapıp tekrar denemenin ve şifre belirlemenin yolunu gösterir (Teknik Mimari `05 §6.1.5`; K-968). Panelde Google ile yeniden doğrulama yoktur; yöneticinin karşılığı E-54'tür (`02 §10.2.5`). Tam matris §6.2'dedir — 6.2.24.
+- **5.24.7 Durum × rol varyantları.** Şifresi olmayan hesapta Google'a ulaşılamıyorsa üç işlem yapılamaz: ekran sebebini söyler ve şifre belirlemenin yolunu — hesap ekranındaki şifre belirleme bağlantısını — gösterir (`03 §10.1.3.2`; 3.3.36). **Google ile doğrulama tutmazsa** — Google'ın verdiği girişin anı yeniden doğrulamanın başlatıldığı andan önce ya da hiç verilmemiş (Google'daki açık oturumla şifre sormadan dönüş buna girer), ya da Google'ın verdiği e-posta hesabınkiyle eşleşmiyor — işlem yapılmaz: ekran sebebini söyler, Google'da yeniden giriş yapıp tekrar denemenin ve şifre belirlemenin yolunu gösterir (Teknik Mimari `05 §6.1.5`; K-968). Panelde Google ile yeniden doğrulama yoktur; yöneticinin karşılığı E-54'tür (`02 §10.2.5`). Tam matris §6.2'dedir — 6.2.24.
 - **5.24.8 Boş / yükleniyor / hata durumları.** Ekranın boş hâli yoktur. Doğrulama sürerken düğme ikinci kez basılamaz (§2.7.2). Oturum ekrandayken kapanırsa ekran bunu söyler ve girişe götürür; dönüş §3.6.5'tir.
 - **5.24.9 Responsive notları.** Tek sütundur; sınıflar arasında fark yoktur.
 
@@ -5250,11 +5252,11 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
   - **9.25.8 İniş ekranlarında** yalnız sonraki adımın bağlantısı vardır; formları ve onayları yoktur — geri alma ve yeni adresin doğrulama bağlantısının geçerli hâlindeki tek düğmeler dışında (5.21.9, 5.28.6; K-839, K-904). Bağlantının hâlinin tespiti Teknik Mimari'nin işidir (5.21.9).
 - **9.25.9 Validasyonlar.** Şifre zorunludur. Yanlış şifre alan mesajıdır ve L-1'e sayılır; eşik aşılınca nötr limit mesajı çıkar ve işlem yapılmaz — panel girişine muafiyet yoktur (5.24.6'nın kalıbı; `03 §6.1.1.1`; §2.3.5).
 - **9.25.10 Durum × rol varyantları.** Yeniden doğrulama oturum ister; iniş ekranları oturumdan bağımsızdır ve yalnız sonraki adımları oturuma göre değişir. Geri alma, açık olan oturumu da kapatır. Satış kapısı ekranları etkilemez. Tam matris §6.3'tedir — 6.3.25.
-- **9.25.11 Boş / yükleniyor / hata durumları.** Ekranların boş hâli yoktur; tanınmayan bağlantı "bağlantı geçersiz" hâlini gösterir. Doğrulama sürerken düğme ikinci kez basılamaz (§2.7.2); oturum yeniden doğrulamada kapanırsa ekran bunu söyler ve panel girişine götürür (§3.6.5). Geri almanın sonucu belirsiz kalırsa ekran "işlem yapılmadı" demez — bağlantı yeniden açılınca sonucu söyler (§2.7.3.3). Sayfa açılamazsa §2.7.3.2.
+- **9.25.11 Boş / yükleniyor / hata durumları.** Ekranların boş hâli yoktur; tanınmayan bağlantı "bağlantı geçersiz" hâlini gösterir. Doğrulama sürerken düğme ikinci kez basılamaz (§2.7.2); oturum yeniden doğrulamada kapanırsa ekran bunu söyler ve panel girişine götürür (§3.6.5). Geri almanın ya da yeni adresin doğrulamasının sonucu belirsiz kalırsa ekran "işlem yapılmadı" demez — bağlantı yeniden açılınca sonucu söyler (§2.7.3.3). Sayfa açılamazsa §2.7.3.2.
 - **9.25.12 Responsive notları.** Üç adım da tek sütundur; sınıflar arasında fark yoktur.
 
 *Kaynak: `02 §3.13.13`, §3.13.14, §10.2.1, §10.2.2, §10.2.4, §10.2.5, §10.2.7 · `03 §1.10.5`, §6.1.1.1, §7.1.51, §7.1.52, §7.3.43, §9.2.6, §9.3.4–§9.3.7, §10.4.3, §10.4.4 · K-764, K-779, K-780, K-782, K-819, K-839, K-904.*
 
 ---
 
-*Shopfolio — UI Specifications v0.27 — ✓ Tamamlandı (v0.27 Teknik mimari aşamasının kapanışının çakışma taramasının geri beslemesidir — matrisin `03 §9.1.5` satırının özeti, K-904'ün yansıması · v0.26 Aşama 4 Teknik Mimari'nin etki yansıtmasıdır — üç Kaynak satırına eksik Aşama 4 atfı (K-904, K-940) · v0.25 Aşama 4 Teknik Mimari'nin kalite döngüsünün geri beslemesidir — `05` başlık notu, K-968 · v0.24 Aşama 4 Teknik Mimari'nin kalite döngüsünün çok kritik sorusunun geri beslemesidir — `05` başlık notu, K-951 · v0.23 Aşama 4 Teknik Mimari'nin kalite döngüsünün geri beslemesidir — `05` başlık notu, K-939, K-940, K-885'in yansıması · v0.22 Aşama 4 Teknik Mimari workshop'unun 3. oturumunun geri beslemesidir — karar kaydı §12.4, K-916 · v0.21 Aşama 4 Teknik Mimari workshop'unun 2. oturumunun geri beslemesidir — karar kaydı §12.4, K-888, K-904 · v0.20 Aşama 3 kapanışı, K-437'nin 6. adımı; §1–§9 yazıldı; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ 5 turda — K-849'un çıkış kuralı, etki yansıtma ✓ — K-431, K-847, K-848; çakışma taraması ✓ — K-850; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`)*
+*Shopfolio — UI Specifications v0.28 — ✓ Tamamlandı (v0.28 Teknik mimari aşamasının kapanışının checkpoint'idir — K-904'ün (2.7.3.3, 5.21.12, 9.25.11; §2.7'nin ve §4'ün Kaynak satırları), K-839'un (§1.1.2 E-28), K-940'ın (matrisin `03 §2.8.4.3` ve §8.3.3.5 özeti) ve K-968'in (5.24.7) yansıması · v0.27 Teknik mimari aşamasının kapanışının çakışma taramasının geri beslemesidir — matrisin `03 §9.1.5` satırının özeti, K-904'ün yansıması · v0.26 Aşama 4 Teknik Mimari'nin etki yansıtmasıdır — üç Kaynak satırına eksik Aşama 4 atfı (K-904, K-940) · v0.25 Aşama 4 Teknik Mimari'nin kalite döngüsünün geri beslemesidir — `05` başlık notu, K-968 · v0.24 Aşama 4 Teknik Mimari'nin kalite döngüsünün çok kritik sorusunun geri beslemesidir — `05` başlık notu, K-951 · v0.23 Aşama 4 Teknik Mimari'nin kalite döngüsünün geri beslemesidir — `05` başlık notu, K-939, K-940, K-885'in yansıması · v0.22 Aşama 4 Teknik Mimari workshop'unun 3. oturumunun geri beslemesidir — karar kaydı §12.4, K-916 · v0.21 Aşama 4 Teknik Mimari workshop'unun 2. oturumunun geri beslemesidir — karar kaydı §12.4, K-888, K-904 · v0.20 Aşama 3 kapanışı, K-437'nin 6. adımı; §1–§9 yazıldı; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ 5 turda — K-849'un çıkış kuralı, etki yansıtma ✓ — K-431, K-847, K-848; çakışma taraması ✓ — K-850; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`)*

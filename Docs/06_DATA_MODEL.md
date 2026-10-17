@@ -1,6 +1,6 @@
 # Shopfolio — Data Model
 
-**Versiyon: v0.3** | **Bağımlılıklar:** `02`, `03`, `05`, `09`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-17
+**Versiyon: v0.4** | **Bağımlılıklar:** `02`, `03`, `05`, `09`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-17
 
 > **Aşama:** 5 — Veri Modeli · **Rol:** Data / Domain Modeler
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §3'e (entity envanteri) geçilmez.
@@ -54,11 +54,11 @@
 > **Ne yazılır:** `02` gereksinimleri + `03` akış adımları → entity/alan eşlemesi.
 > Gereksinimlerdeki her *"X bilgisi saklanır"* ifadesi bir alana dönüşmelidir. Eşlenmeyen gereksinim = **eksik entity veya alan**.
 
-**Alt bölüm haritası (K-998).** Matris beş oturumda kurulur (K-997): **1a** (2026-10-17) kaynak birimini, envanteri ve kapsama denetimini, aday entity listesini ve Ürün Gereksinimleri'nin `02 §0`–§5'i ile MVP Kapsamı'nın `10 §2`'sinin ileri izlenebilirliğini yazdı; **1b** (2026-10-17) `02 §6`–§13'ün ileri izlenebilirliğini yazdı (K-1001); **1c** Kullanıcı Akışları'nı (`03`), **1d** devirleri yazar; **2** geri izlenebilirliği, kesilmiş okumanın örneklemini, GAP ve gerekçesiz ekleme listesini ve GAP kararlarını yazar. Şablonun §1.1, §1.2 ve §1.3 numaraları değişmez; alt düzey aşağıdaki tabloyla sabittir. Bir oturum bir alt bölümü bölmek ya da birleştirmek zorunda kalırsa bu tabloyu ve ona atıf yapan satırları aynı PR'da günceller (K-670'in kalıbı; `checklists/document-stage.md` §4).
+**Alt bölüm haritası (K-998).** Matris beş oturumda kurulur (K-997): **1a** (2026-10-17) kaynak birimini, envanteri ve kapsama denetimini, aday entity listesini ve Ürün Gereksinimleri'nin `02 §0`–§5'i ile MVP Kapsamı'nın `10 §2`'sinin ileri izlenebilirliğini yazdı; **1b** (2026-10-17) `02 §6`–§13'ün ileri izlenebilirliğini yazdı (K-1001); **1c** (2026-10-17) Kullanıcı Akışları'nın (`03`) ileri izlenebilirliğini yazdı (K-1002); **1d** devirleri yazar; **2** geri izlenebilirliği, kesilmiş okumanın örneklemini, GAP ve gerekçesiz ekleme listesini ve GAP kararlarını yazar. Şablonun §1.1, §1.2 ve §1.3 numaraları değişmez; alt düzey aşağıdaki tabloyla sabittir. Bir oturum bir alt bölümü bölmek ya da birleştirmek zorunda kalırsa bu tabloyu ve ona atıf yapan satırları aynı PR'da günceller (K-670'in kalıbı; `checklists/document-stage.md` §4).
 
 | Alt bölüm | İçerik | Oturum | Durum |
 |---|---|---|---|
-| §1.1.1 | Kaynak envanteri ve sayım — aile × oturum, betik komutları, kapsama denetimi | 1a; her oturum kendi ailesinin sayımını ve denetimini ekler | ✓ (1a ve 1b'nin aileleri) |
+| §1.1.1 | Kaynak envanteri ve sayım — aile × oturum, betik komutları, kapsama denetimi | 1a; her oturum kendi ailesinin sayımını ve denetimini ekler | ✓ (1a, 1b ve 1c'nin aileleri) |
 | §1.1.2 | Aday entity listesi ve "veri doğurmaz" değer kümesi | 1a; 1b, 1c, 1d listenin sonuna aday ekleyebilir | ✓ (sonraki oturum ekleme yaparsa günceller) |
 | §1.1.3 | MVP Kapsamı — `10 §2` KP satırları (77) | 1a | ✓ |
 | §1.1.4 | Ürün Gereksinimleri — `02 §0`–§2: sözlük terimleri (105), kural numarası taşımayan madde ve metin (42) — 147 | 1a | ✓ |
@@ -66,10 +66,10 @@
 | §1.1.6 | Ürün Gereksinimleri — `02 §4` zaman kuralları (61) ve §5 durum tanımları (109) — 170 | 1a | ✓ |
 | §1.1.7 | Ürün Gereksinimleri — `02 §6` hata ve istisna senaryoları: 6 kalın kural ve bölüm metni (7); 141 hata satırı alt bölüm düzeyinde — hata tablosu taşıyan sekiz alt bölüm, §6.2–§6.9 (8) — ve kayıt, işaret, tarih, sayaç ya da bağ doğuran 66 satır kimliğiyle ayrıca (K-997, K-1001) — 81 | 1b | ✓ |
 | §1.1.8 | Ürün Gereksinimleri — `02 §7`–§13: 152 kalın kural ve `02 §13`'ün dört iki düzeyli maddesi (156); L-1…L-9, B-1…B-16, F-1…F-6, P-1…P-49, H-1…H-4 (84); kural numarası taşımayan madde (77) ve metin (13) (K-1000, K-1001) — 330 | 1b | ✓ |
-| §1.1.9 | Kullanıcı Akışları — `03 §1` (99) ve §4 (59) satır düzeyinde (158) | 1c | ⬚ |
-| §1.1.10 | Kullanıcı Akışları — `03 §2`, §3, §5, §6, §8, §9, §10: 39 alt bölüm düzeyinde, 505 satır tam okunur ve `02`'de karşılığı olmayan veri taşıyan satır kimliğiyle ayrıca girer; §7'nin 131 satırı `02 §9`'un B ve F satırlarıyla toplu (K-997) | 1c | ⬚ |
+| §1.1.9 | Kullanıcı Akışları — `03 §1` ve §4 satır düzeyinde: numaralı tablo satırı (158 — §1 99, §4 59), kalın numaralı paragraf (16), durum satırı (20), geçiş satırı (16), madde (20) ve metin (17) (K-997, K-1002) — 247 | 1c | ✓ |
+| §1.1.10 | Kullanıcı Akışları — `03 §2`, §3, §5, §6, §8, §9, §10: 39 alt bölüm düzeyinde ve bölüm metni (7); 505 satır tam okunur ve `02`'de karşılığı olmayan veri taşıyan satır kimliğiyle ayrıca girer — 1c'de çıkmadı; §7'nin 131 satırı `02 §9`'un B ve F satırlarıyla toplu — 3 alt bölüm satırı ve bölüm metni (K-997, K-1002) — 50 | 1c | ✓ |
 | §1.1.11 | Devirler — K-479…K-991'in etki sütununda `06` taşıyan 126 karar satırı; park bloklarının 23 talimat maddesi; dizinlerin gövde cümleleri — Aşama 1 on, Aşama 3 iki, Aşama 4 dokuz (21) | 1d | ⬚ |
-| §1.1.12 | GAP adayları (`VA-n`) — karara bağlanacak | 1a açtı; 1b, 1c, 1d ekler; 2 karara bağlar | 2 aday (VA-1, VA-2) |
+| §1.1.12 | GAP adayları (`VA-n`) — karara bağlanacak | 1a açtı; 1b, 1c, 1d ekler; 2 karara bağlar | 2 aday (VA-1, VA-2) — 1c yeni aday açmadı, ikisine dayanak ekledi |
 | §1.2 | Geri izlenebilirlik (`Entity.alan` → kaynak); gerekçesiz ekleme listesi | 2 | ⬚ |
 | §1.3 | Boşluklar (GAP) ve kararlar; üst dokümanlara geri besleme tablosu (K-994) | 2; workshop ve yazım geri besleme satırı ekler | ⬚ |
 
@@ -79,7 +79,7 @@ Her satır şablonun beş sütununu taşır: **Kaynak ID · Kaynak özeti · Ent
 
 #### 1.1.1 Kaynak envanteri ve sayım
 
-Birim K-997'dir; 1a'nın netleştirmesi K-1000'de, 1b'ninki K-1001'dedir. Sayımlar `02` v0.76, `03` v0.28, `10` v0.51 ve karar kaydı v0.117 üzerinde, 2026-10-17'de alındı; 1b'nin sayımları aynı `02` sürümünde, aynı gün.
+Birim K-997'dir; 1a'nın netleştirmesi K-1000'de, 1b'ninki K-1001'de, 1c'ninki K-1002'dedir. Sayımlar `02` v0.76, `03` v0.28, `10` v0.51 ve karar kaydı v0.117 üzerinde, 2026-10-17'de alındı; 1b'nin sayımları aynı `02` sürümünde, 1c'ninki aynı `03` sürümünde, aynı gün.
 
 | Aile | Betiğin saydığı | 1a | Sonraki oturum | Matrise girmeyen |
 |---|---|---|---|---|
@@ -91,18 +91,22 @@ Birim K-997'dir; 1a'nın netleştirmesi K-1000'de, 1b'ninki K-1001'dedir. Sayım
 | `02` kural numarası taşımayan madde | §0–§5: 101 · §6–§13: 77 | 101 | 1b ✓: 77 — §7 4 · §9 7 · §10 32 · §12 34 | — |
 | `02` alt bölümün kural ve madde dışındaki metni | §0–§5: 24 · §6–§13: 13 | 24 | 1b ✓: 13 — §6 1 · §7 3 · §8 3 · §9 2 · §10 2 · §11 2 · §12 1 | Kaynak satırları (`*Kaynak:`), şablonun "Ne yazılır" notları, sözlüğün grup başlıkları, dosya sonundaki sürüm dipnotu (`*Shopfolio — Product Requirements …*`) |
 | `02 §6` hata satırları | 141 (9 alt bölüm) | — | 1b ✓: hata tablosu taşıyan 8 alt bölüm satırı (§6.2–§6.9; §6.1 hata satırı taşımaz, altı kuralıyla girer) ve kimliğiyle 66 satır — §6.2 11 · §6.3 5 · §6.4 23 · §6.5 8 · §6.6 4 · §6.7 11 · §6.8 1 · §6.9 3 | — (kimliğiyle girmeyen 75 satır alt bölüm satırıyla karşılanır; hepsi tam okundu) |
-| `03` numaralı satırlar | 794 | — | 1c: §1 99 · §4 59 satır düzeyinde; §2 99 · §3 147 · §5 33 · §6 52 · §8 106 · §9 35 · §10 33 alt bölüm düzeyinde (39 alt bölüm); §7 131 toplu | `03 §0` (yazım konvansiyonu) ve `03 §11` (`02`'ye geri besleme tablosu; `n.m` biçimli) |
+| `03` numaralı satırlar | 794 | — | 1c ✓: §1 99 · §4 59 satır düzeyinde (158); §2 99 · §3 147 · §5 33 · §6 52 · §8 106 · §9 35 · §10 33 alt bölüm düzeyinde — 39 alt bölüm satırı; §7 131 toplu — 3 alt bölüm satırı (K-1002); kimliğiyle giren satır yok | `03 §0` (yazım konvansiyonu) ve `03 §11` (`02`'ye geri besleme tablosu; `n.m` biçimli) — kimliğiyle girmeyen 636 satır alt bölüm satırıyla karşılanır; hepsi tam okundu |
+| `03` numaralı tablo satırı dışındaki birimler (K-1002) | §1 ve §4: 89 · öteki bölümler: 8 | — | 1c ✓: §1 ve §4'te kalın numaralı paragraf 16, durum satırı 20, geçiş satırı 16, madde 20, metin 17 (89); §2, §3, §5–§10'un bölüm metni 8 | Alt bölüm düzeyindeki bölümlerde alt bölümün içindeki metin ve kalın paragraf — alt bölüm satırıyla karşılanır; `03 §0`'ın 21 kalın paragrafı |
 | Devir satırları — K-479…K-991, etki sütununda `06` | 126 | — | 1d | Aşama 5'in kendi kararları (K-992 ve sonrası) devir değildir |
 | Park maddeleri | 26 | — | 1d: 23 talimat maddesi | 3 dizin maddesi — dizinin kendisine işaret eder, devirleri karar satırlarıyla girer |
 | Gövde devirleri — dizinlerin §6.2'si | 21 | — | 1d | — |
 | **1a toplamı** | | **670** | | |
 | **1b toplamı** | | | **411** — beklenen küme 345 (§6 15, §7–§13 330) ve kimliğiyle giren 66 hata satırı | |
+| **1c toplamı** | | | **297** — beklenen küme 297 (§1 ve §4 247, öteki bölümler 50); kimliğiyle giren satır yok | |
 
 **1a — bölüm bazında** (670): `10 §2` 77 · `02 §0` 4 · §1 117 (sözlük 105, madde 9, metin 3) · §2 26 (madde 23, metin 3) · §3 276 (kural 257, madde 11, metin 8) · §4 61 (kural 5, Z 47, madde 7, metin 2) · §5 109 (kural 18, durum 20, S ve Ö 16, madde 47, metin 8). §1.1.3 77 · §1.1.4 147 · §1.1.5 276 · §1.1.6 170.
 
 **1b — bölüm bazında** (411): `02 §6` 81 (kural 6, metin 1, alt bölüm 8, kimliğiyle hata satırı 66) · §7 51 (kural 44, madde 4, metin 3) · §8 40 (kural 28, L 9, metin 3) · §9 41 (kural 10, B 16, F 6, madde 7, metin 2) · §10 76 (kural 42, madde 32, metin 2) · §11 55 (P 49, H 4, metin 2) · §12 63 (kural 28, madde 34, metin 1) · §13 4 (iki düzeyli kural 4). §1.1.7 81 · §1.1.8 330.
 
-**Betik komutları** (Git Bash; depo kökünden). Sayımlar yukarıdaki sayılarla aynı çıkmalı; kapsama denetimleri — 1a'nın üçü, 1b'nin üçü ve başlığa bağlılığın ikisi — ve değer kümesi denetimi boş dönmelidir:
+**1c — bölüm bazında** (297): `03 §1` 183 (numaralı satır 115 — tablo satırı 99, kalın numaralı paragraf 16 —, durum 20, geçiş S ve Ö 16, madde 17, metin 15) · §4 64 (numaralı satır 59, madde 3, metin 2) · §2 11 (alt bölüm 10, metin 1) · §3 6 (5, 1) · §5 4 (3, 1) · §6 4 (3, 1) · §7 4 (3, 1) · §8 10 (9, 1) · §9 6 (5, 1) · §10 5 (4, 1). §1.1.9 247 · §1.1.10 50.
+
+**Betik komutları** (Git Bash; depo kökünden). Sayımlar yukarıdaki sayılarla aynı çıkmalı; kapsama denetimleri — 1a'nın üçü, 1b'nin üçü, 1c'nin üçü ve başlığa bağlılığın dördü — ve değer kümesi denetimi boş dönmelidir:
 
 ```sh
 # 10 §2 — KP satırları (77)
@@ -159,10 +163,45 @@ e1a() { exp | grep -vE '^02 §(6|7|8|9|10|11|12|13)([. ]|$)'; }
 e1b() { exp | grep -E '^02 §(6|7|8|9|10|11|12|13)([. ]|$)'; }
 # 02 §6'nın kimliğiyle girebilen hata satırları (141) — 1b'nin isteğe bağlı kümesi (K-997)
 opt() { awk '/^## 6\. /{f=1} /^## 7\. /{f=0} f' Docs/02_PRODUCT_REQUIREMENTS.md | grep -oE '^\| 6\.[0-9]+\.[0-9]+ ' | sed 's/^| /02 §/; s/ $//'; }
-# bu dokümanın matris satırları — $1 alt bölüm süzgeci: 1a '[3-6]' · 1b '[78]' · tek alt bölüm '7'
+# beklenen küme — 1c (297): 03 §1 ve §4 satır düzeyinde, öteki bölümler alt bölüm düzeyinde — birim kuralı K-997, K-1002
+# §1 ve §4: numaralı tablo satırı ve kalın numaralı paragraf (03 §n.m.k); durum satırı (bağlam + kod — tablonun başlığı "Durum");
+# geçiş satırı (bağlam + S/Ö kimliği); kimliksiz tablo satırı ve liste maddesi (bağlam + mk); metin (bağlam başına bir) —
+# bağlam: alt bölümün içinde son kalın numaralı paragraf, yoksa alt bölüm. Öteki bölümler: ### alt bölüm (03 §n.m) ve bölüm metni (03 §n metin).
+# sınır "## 11." başlığıdır (03 §11 geri besleme tablosu); 03 §0 matrise girmez
+exp03() {
+  awk '
+    /^## 11\. /{exit}
+    /^## 1\. /{on=1}
+    !on{pt=0; next}
+    /^## [0-9]+\. /{s=$2; sub(/\.$/,"",s); x=s; pt=0; d=(s=="1"||s=="4"); next}
+    /^### [0-9]/{s=$2; x=s; pt=0; if (!d) print "03 §" s; next}
+    /^#### [0-9]/{if (d){s=$2; x=s}; pt=0; next}
+    !d && s ~ /\./{pt=0; next}
+    /^\|/{
+      if (!pt){pt=1; n=split($0,c,"|"); h=c[2]; gsub(/^[[:space:]]+|[[:space:]]+$/,"",h); next}
+      if ($0 ~ /^\|[-| ]+\|[[:space:]]*$/) next
+      if (!d){next}
+      n=split($0,c,"|"); for(i=1;i<=n;i++){gsub(/^[[:space:]]+|[[:space:]]+$/,"",c[i])}
+      if (c[2]=="") next
+      if (c[2] ~ /^[0-9]+(\.[0-9]+){2,}$/){print "03 §" c[2]; next}
+      if (c[2] ~ /^(S|Ö)[0-9]+$/){print "03 §" x " " c[2]; next}
+      if (h=="Durum" && match(c[2], /\(`[A-Za-z]+`\)$/)){k=substr(c[2],RSTART+2,RLENGTH-4); print "03 §" x " " k; next}
+      m[x]++; print "03 §" x " m" m[x]; next
+    }
+    {pt=0}
+    /^[[:space:]]*$/ || /^---/ || /^> \*\*Ne yazılır/{next}
+    !d{ if (!(s in t)){t[s]=1; print "03 §" s " metin"}; next }
+    /^\*\*[0-9]+\.[0-9]+\.[0-9]+ /{r=$1; gsub(/\*/,"",r); x=r; print "03 §" r; next}
+    /^[[:space:]]*(- |[0-9]+\. )/{m[x]++; print "03 §" x " m" m[x]; next}
+    !(x in t){t[x]=1; print "03 §" x " metin"}
+  ' Docs/03_USER_FLOWS.md
+}
+# 03'ün kimliğiyle girebilen satırları — §1 ve §4 dışındaki numaralı satırlar (636) — 1c'nin isteğe bağlı kümesi (K-997)
+opt03() { grep -oE '^\| [0-9]+(\.[0-9]+){2,} \|' Docs/03_USER_FLOWS.md | sed -E 's/^\| /03 §/; s/ \|$//' | grep -vE '^03 §(1|4|11)\.'; }
+# bu dokümanın matris satırları — $1 alt bölüm süzgeci: 1a '[3-6]' · 1b '[78]' · 1c '(9|10)' · tek alt bölüm '7'
 mat() {
   awk -v h="$1" '$0 ~ ("^#### 1\\.1\\." h " "){f=1; next} /^#### /{f=0}
-       f && /^\| (`02 §|KP-)/{split($0,c,"|"); x=c[2]; gsub(/`/,"",x); gsub(/^ +| +$/,"",x); gsub(/ +/," ",x); print x}' Docs/06_DATA_MODEL.md
+       f && /^\| (`0[23] §|KP-)/{split($0,c,"|"); x=c[2]; gsub(/`/,"",x); gsub(/^ +| +$/,"",x); gsub(/ +/," ",x); print x}' Docs/06_DATA_MODEL.md
 }
 # 1a — 670 · 670
 e1a | wc -l; mat '[3-6]' | wc -l
@@ -178,8 +217,18 @@ mat 7 | grep -vE '^02 §6([. ]|$)'                                   # §1.1.7 y
 mat 8 | grep -vE '^02 §(7|8|9|10|11|12|13)([. ]|$)'                 # §1.1.8 yalnız 02 §7–§13 — boş dönmeli
 exp | awk '{split($2,a,"."); sub(/§/,"",a[1]); t=($3 ~ /^m[0-9]+$/)?"madde":($3=="metin")?"metin":($3=="" && $2 ~ /^§6\.[0-9]+$/)?"alt bölüm":($3=="")?"kural":"kimlik"; if ($1 ~ /^KP-/) {a[1]="KP"; t="KP"} c[a[1]" "t]++} END{for(k in c) print k, c[k]}' | sort -V
 mat 7 | grep -cxF -f <(opt)                                         # kimliğiyle giren hata satırı — 66
+# 1c — 297 · 297 (kimliğiyle giren satır yok)
+exp03 | wc -l; mat '(9|10)' | wc -l
+comm -23 <(exp03 | sort) <(mat '(9|10)' | sort)                      # eksik — boş dönmeli
+comm -13 <(exp03 | sort) <(mat '(9|10)' | sort) | grep -vxF -f <(opt03)  # fazla — boş dönmeli
+mat '(9|10)' | sort | uniq -d                                       # yinelenen — boş dönmeli
+mat 9 | grep -vE '^03 §(1|4)([. ]|$)'                               # §1.1.9 yalnız 03 §1 ve §4 — boş dönmeli
+mat 10 | grep -vE '^03 §(2|3|5|6|7|8|9|10)([. ]|$)'                 # §1.1.10 yalnız öteki bölümler — boş dönmeli
+exp03 | awk '{split($2,a,"."); sub(/§/,"",a[1]); t=($3 ~ /^m[0-9]+$/)?"madde":($3=="metin")?"metin":($3 ~ /^(S|Ö)[0-9]+$/)?"geçiş":($3!="")?"durum":(a[1] ~ /^(1|4)$/)?"satır":"alt bölüm"; c[a[1]" "t]++} END{for(k in c) print k, c[k]}' | sort -V
+grep -oE '^\*\*[0-9]+\.[0-9]+\.[0-9]+ ' Docs/03_USER_FLOWS.md | grep -cE '^\*\*(1|4)\.'  # kalın numaralı paragraf — 16
+mat 10 | grep -cxF -f <(opt03)                                      # kimliğiyle giren satır — 0
 # "Entity" sütunu §1.1.2'nin değer kümesinin dışına çıkmıyor (boş dönmeli)
-awk '/^#### 1\.1\.[3-8] /{f=1; next} /^#### /{f=0} f && /^\| (`02 §|KP-)/{split($0,c,"|"); n=split(c[4],e," · "); for(i=1;i<=n;i++){x=e[i]; gsub(/^ +| +$/,"",x); print x}}' Docs/06_DATA_MODEL.md | sort -u \
+awk '/^#### 1\.1\.([3-9]|10) /{f=1; next} /^#### /{f=0} f && /^\| (`0[23] §|KP-)/{split($0,c,"|"); n=split(c[4],e," · "); for(i=1;i<=n;i++){x=e[i]; gsub(/^ +| +$/,"",x); print x}}' Docs/06_DATA_MODEL.md | sort -u \
   | grep -vxF -f <(awk '/^#### 1\.1\.2 /{f=1; next} /^#### /{f=0} f && /^\| [0-9]+ \|/{split($0,c,"|"); x=c[3]; gsub(/^ +| +$/,"",x); print x} f && /^\| (veri doğurmaz|yoktur)/{split($0,c,"|"); x=c[2]; gsub(/^ +| +$/,"",x); print x}' Docs/06_DATA_MODEL.md)
 ```
 
@@ -187,7 +236,9 @@ awk '/^#### 1\.1\.[3-8] /{f=1; next} /^#### /{f=0} f && /^\| (`02 §|KP-)/{split
 
 **Yanlış pozitif ve kapsam denetimi (1b).** `exp()`'in sınırı `## 6.` başlığından `## 14.` başlığına genişletildi — Ürün Gereksinimleri'nde `## 14.` yoktur, betik dosyanın sonuna kadar okur ve dosya sonundaki sürüm dipnotunu birim saymaz; 1a ile 1b aynı işlevden, bölüm süzgeciyle (`e1a`, `e1b`) okunur ve genişletilmiş işlevin 1a parçası eski işlevin çıktısıyla satır satır aynıdır (670; 2026-10-17). Üç ek kural: (1) `02 §6`'nın hata satırı (`| 6.n.k |`) alt bölüm satırını doğurur (`02 §6.n`) — kimliğiyle giren satır `opt()`'un kümesinden gelir ve fazla sayılmaz; (2) `02 §13`'ün kalın maddeleri iki düzeylidir (`**13.1 …**`) ve kural kimliğiyle girer; (3) `02 §10.1.2`, §10.5.1 ve §12.5'in tablo başlıkları ikinci hücreleriyle tanınır — ilk hücreleri ("Alan", "Sipariş", "Yükümlülük") sözlüğün "Sipariş" terimiyle çakışır; ilk denemede ilk hücreyle tanıyan kural sözlüğün `Order` satırını düşürdü ve 1a'nın kümesi 669'a indi — denetim farkı yakaladı. `02 §6`–§13'te dört düzeyli kalın kural yoktur; kimlikli satır kalıbı L, B, F, P, H ailesini yakalar, `02 §11.2`'nin grup başlığı satırları (`| | **…** |`) birim değildir; `02 §11.1`'in kaldırılmış P-2 ve P-11 satırları kimliğiyle girer. Matrisin 1b satırlarında yinelenen kaynak kimliği yoktur; beklenen kümeyle karşılaştırmada eksik ve fazla sıfırdır; §1.1.7 yalnız `02 §6`'yı, §1.1.8 yalnız `02 §7`–§13'ü taşır (2026-10-17). **Betik iki yönlü sınandı:** §1.1.8'den bir satır çıkarıldığında eksik, bir satır ikilendiğinde yinelenen, kaynakta olmayan bir hata satırı (`02 §6.2.99`) eklendiğinde fazla, §1.1.8'e bir `02 §6` satırı taşındığında başlığa bağlılık denetimi o satırı döndürdü.
 
-**Okuma derinliği (checklist §2).** 1a her birimin metnini betikle **satırın tamamı** olarak çıkardı ve tam okudu — sözlük satırları tanım hücresiyle, KP satırları "Neden MVP'de" ve "Kaynak" hücreleriyle, Z satırları altı hücresiyle; hücre başına kesilerek okunan satır yoktur; checklist §2'nin kesilmiş okuma örneklemi bu yüzden 1a'nın satırlarına uygulanmaz. `02 §3`'ün kural dışı gövdesi, §4.2'nin grup başlıkları ve bölüm girişleri de okundu. Tam okunan yalnız matrisin kaynağıdır: `02 §6`–§13, `03` ve devirler kendi oturumlarındadır. **1b** `02 §6`–§13'ü (satır 1339–2189; 288 KB) betikle on üç parçaya bölerek ve hiçbir satırı kesmeden tam okudu — en uzun satır 6.500 karakterdir; hata satırları üç hücresiyle, L satırları ölçüm ekseni ve aşıldığında hücreleriyle, B satırları "E-posta neyi taşır" hücresiyle, P satırları altı hücresiyle, `02 §12.5`'in satırları dört hücresiyle okundu; kimliğiyle girmeyen 75 hata satırı da okundu ve verisi alt bölüm satırında ya da kurala bağlandığı `02 §3` ve §7 satırındadır. GAP adayının dayandığı yerler (`02 §3.23.3`, §10.3.1, §10.4.2, §12.2.7) ve Kullanıcı Akışları ile Arayüz Tanımları'nda "eski adres" taraması ayrıca okundu (VA-2; K-739). Kesilmiş okuma yoktur.
+**Yanlış pozitif ve kapsam denetimi (1c).** `exp03()` `exp()`'in kalıbıyla yazılmış ayrı bir işlevdir; `exp()`'e dokunulmadı. `mat()`'in satır kalıbı `03 §` satırlarını da okuyacak biçimde genişletildi (`0[23] §`) ve değer kümesi denetimi §1.1.9 ile §1.1.10'u kapsar; **önceki oturumların kümeleri eski çıktıyla satır satır aynıdır** — `e1a` (670), `e1b` (345), `opt` (141), `mat '[3-6]'` (670) ve `mat '[78]'` (411) genişletmeden önce ve sonra dosyaya yazılıp `cmp` ile karşılaştırıldı; betik bloğunun 1a ve 1b parçasının çıktısı da aynıdır (2026-10-17). Birim kuralı K-1002'dedir: K-997'nin 99 ve 59'u yalnız `| n.m.k |` biçimli tablo satırlarının sayımıdır; `03 §1`'in on altı kalın numaralı paragrafı (1.4.1…1.9.2 — biri, 1.7.4, kuralın kendisidir), durum tabloları (20 durum — kodu `02 §1.2`'den birebir), S ve Ö geçiş tabloları (16), kimliksiz tablolar (§1.1'in envanteri, §1.4.1'in birleşim tablosu), liste maddeleri (§1.4.3, §1.7.2, §4'ün girişi) ve bağlamın metni bu kalıbın dışındadır ve birim olarak girer. Durum satırı tablonun başlığı "Durum" olan ve ilk hücresi kodla biten satırdır — §1.1'in envanteri de kodla biter ama başlığı "Varlık"tır ve madde olarak girer; aynı kod bir alt bölümde iki tabloda geçtiği için (`Draft` §1.8.1 ve §1.8.4'te, `Open` §1.9.1 ve §1.9.2'de) bağlam kalın paragrafın numarasıdır. Tablo başlığı tablonun ilk satırı olarak tanınır, hücre içeriğiyle değil — 1b'nin `Order` satırını düşüren kalıp hatası (K-1001) burada doğmaz. `03 §4.1`'in grup başlığı satırları (`| | **…** |`) birim değildir. Alt bölüm düzeyindeki bölümlerde `###` başlığı birimdir, `####` alt başlıkları ve satırları onun içindedir; bölümün ilk alt bölümden önceki metni ayrı birimdir. Matrisin 1c satırlarında yinelenen kaynak kimliği yoktur; beklenen kümeyle karşılaştırmada eksik ve fazla sıfırdır; §1.1.9 yalnız `03 §1` ve §4'ü, §1.1.10 yalnız öteki bölümleri taşır; kimliğiyle giren satır yoktur (2026-10-17). **Betik iki yönlü sınandı:** belgenin bir kopyasında §1.1.9'dan bir satır çıkarıldığında eksik, bir satır ikilendiğinde yinelenen, kaynakta olmayan bir kimlik (`03 §2.1.99`) eklendiğinde fazla, §1.1.10'a bir `03 §1` satırı taşındığında başlığa bağlılık denetimi, değer kümesinin dışında bir "Entity" yazıldığında değer kümesi denetimi o satırı döndürdü; isteğe bağlı kümeden bir satırın (`03 §2.1.1`) eklenmesi fazla sayılmadı.
+
+**Okuma derinliği (checklist §2).** 1a her birimin metnini betikle **satırın tamamı** olarak çıkardı ve tam okudu — sözlük satırları tanım hücresiyle, KP satırları "Neden MVP'de" ve "Kaynak" hücreleriyle, Z satırları altı hücresiyle; hücre başına kesilerek okunan satır yoktur; checklist §2'nin kesilmiş okuma örneklemi bu yüzden 1a'nın satırlarına uygulanmaz. `02 §3`'ün kural dışı gövdesi, §4.2'nin grup başlıkları ve bölüm girişleri de okundu. Tam okunan yalnız matrisin kaynağıdır: `02 §6`–§13, `03` ve devirler kendi oturumlarındadır. **1b** `02 §6`–§13'ü (satır 1339–2189; 288 KB) betikle on üç parçaya bölerek ve hiçbir satırı kesmeden tam okudu — en uzun satır 6.500 karakterdir; hata satırları üç hücresiyle, L satırları ölçüm ekseni ve aşıldığında hücreleriyle, B satırları "E-posta neyi taşır" hücresiyle, P satırları altı hücresiyle, `02 §12.5`'in satırları dört hücresiyle okundu; kimliğiyle girmeyen 75 hata satırı da okundu ve verisi alt bölüm satırında ya da kurala bağlandığı `02 §3` ve §7 satırındadır. GAP adayının dayandığı yerler (`02 §3.23.3`, §10.3.1, §10.4.2, §12.2.7) ve Kullanıcı Akışları ile Arayüz Tanımları'nda "eski adres" taraması ayrıca okundu (VA-2; K-739). Kesilmiş okuma yoktur. **1c** Kullanıcı Akışları'nın `03 §1`–§10'unu (satır 136–1753; 380 KB) bölüm bölüm, hiçbir satırı kesmeden tam okudu — bu aralıkta en uzun satır 1.911 karakterdir; `03 §0` yazım konvansiyonu olarak ayrıca okundu, `03 §11` matrise girmez ve okunmadı. §1 ve §4'ün her birimi; §2, §3, §5, §6, §8, §9, §10'un 505 ve §7'nin 131 satırı adım, sistem, durum, bildirim ve kaynak hücreleriyle okundu ve her birinin veriye dokunan ayrıntısı gösterdiği `02` kuralının satırında (§1.1.4–§1.1.8) arandı; aday satırlar `02`'nin tam metnine karşı ayrıca okundu (`02 §10.4.11`, §7.5.3, §3.22.4). `03 §1`–§10'da anılan K numaralarından `02`'de geçmeyenler betikle bulundu ve okundu: beşi Kullanıcı Akışları'nın yazım konvansiyonudur (K-650, K-651, K-682, K-689, K-702); K-808'in kuralı `02 §7.5.3`'te yazılıdır; K-826 sipariş sayfasının gösterdiğidir — geri ödemenin tarihi, tutarı ve yolu `02 §5.5`'in Refund satırındadır (betiğin `\bK-` kalıbı `10`'un ÖK- kimliklerinden üç parça da döndürür). Kesilmiş okuma yoktur.
 
 #### 1.1.2 Aday entity listesi ve "veri doğurmaz" değer kümesi
 
@@ -267,7 +318,7 @@ Bu liste matrisin "Entity" sütununun değer kümesidir; **nihai entity envanter
 | 70 | *yedeğin durum kaydı* | park (K-918) | Gecelik tam yedeğin sonucu — 1a satırlarında kullanılmadı, 1d eşler | VM4-14 |
 | 71 | *anahtar halkası* | `05 §7.6.3` | Çatının şifreleme anahtar halkası — 1a satırlarında kullanılmadı, 1d eşler | VM4-14 |
 
-Aday sayısı 71'dir: sözlükte kodu olan 46, italik 25. Sözlüğün `Notification` terimi ayrı aday değildir — kaydı gönderim kaydıdır (K-892); `Visitor`, `Buyer` ve `Consumer` aktör ya da sıfattır, kaydı yoktur. Kapalı listeler ve durum setleri aday değildir — §5'in enum'larıdır (VM5).
+Aday sayısı 71'dir: sözlükte kodu olan 46, italik 25; 1b ve 1c yeni aday eklemedi. Sözlüğün `Notification` terimi ayrı aday değildir — kaydı gönderim kaydıdır (K-892); `Visitor`, `Buyer` ve `Consumer` aktör ya da sıfattır, kaydı yoktur. Kapalı listeler ve durum setleri aday değildir — §5'in enum'larıdır (VM5).
 
 **"Veri doğurmaz" değer kümesi (K-999).** Veri doğurmayan bir kaynak satırı GAP değildir; "Entity" sütununa aşağıdaki sabit değerlerden biri adıyla yazılır. Bir satır hem bir adaya hem bir değere eşlenebilir (` · ` ile); en az bir aday taşıyan satırın durumu "eşlendi"dir.
 
@@ -1559,13 +1610,410 @@ Bildirim satırları (B, F) gönderim kaydına eşlenir — her e-postanın gön
 | `02 §13.3` | Kapanıştan önce çakışma taraması koşar | veri doğurmaz — yazım konvansiyonu | — | veri doğurmaz |
 | `02 §13.4` | Yazım turu sonunda `02`'ye ait açık karar yok; kapanan satırların listesi | veri doğurmaz — yazım konvansiyonu | — | veri doğurmaz |
 
-#### 1.1.9 Kullanıcı Akışları — `03 §1` ve §4, satır düzeyi
+#### 1.1.9 Kullanıcı Akışları — `03 §1` ve §4, satır düzeyi (247)
 
-**Kapı: matrisin 1c oturumu.** Kapsam: `03 §1`'in 99 ve §4'ün 59 satırı satır kimliğiyle (`03 §n.m.k`, K-669) tek tek (K-997).
+Kullanıcı Akışları kural koymaz, `02`'nin kurallarını adıma çevirir (`03 §0.1.1`); bu iki bölüm verinin biçimini doğrudan taşıdığı için satır düzeyindedir (K-997). Birim K-1002'dir: numaralı satır (`03 §n.m.k` — tablo satırı ya da kalın numaralı paragraf, K-669), durum satırı (`03 §1.2` `Placed` — durum kodu ve bağlamı; aynı kod bir alt bölümde iki tabloda geçiyorsa bağlam kalın paragrafın numarasıdır: `03 §1.8.1` `Draft`, `03 §1.8.4` `Draft`), geçiş satırı (`03 §1.2` S1, `03 §1.3` Ö1), kimliksiz tablo satırı ve liste maddesi (`03 §1.1` m1 — bağlamındaki sırası) ve bağlamın kural ve madde dışındaki metni (`03 §1.6.1` metin) — bağlam, alt bölümün içinde son kalın numaralı paragraf, yoksa alt bölümdür. Bir geçişin bıraktığı iz — kim, ne zaman, hangi geçiş, hangi sebeple — *geçiş kaydı*na eşlenir (park K-889); durum ve geçiş kodları `02 §1.2` ve §5'ten birebirdir. Satırın kuralı `02`'deyse "Alan" hücresi `02`'nin satırına (§1.1.4–§1.1.8) işaret eder; burada yalnız Kullanıcı Akışları'nın veriye kattığı ayrıntı yazılır.
 
-#### 1.1.10 Kullanıcı Akışları — öteki bölümler
+**`03 §1` — bölüm girişi ve §1.1 envanter (8)**
 
-**Kapı: matrisin 1c oturumu.** Kapsam: `03 §2` (10 alt bölüm), §3 (5), §5 (3), §6 (3), §8 (9), §9 (5), §10 (4) alt bölüm düzeyinde — 39 satır; bu bölümlerin 505 satırı tam okunur ve Ürün Gereksinimleri'nde karşılığı bulunmayan bir veri (kayıt, işaret, tarih, sayaç, bağ) taşıyan satır kimliğiyle ayrıca girer; `03 §7`'nin bildirim haritası (131 satır) `02 §9`'un B ve F satırlarıyla toplu eşlenir (K-997). `03 §0` ve §11 matrise girmez (§1.1.1).
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §1` metin | Durum adları, kodları ve koşulları `02 §5`'te; bölüm geçişi kimin tetiklediğini, hangi akışta olduğunu ve bildirimini yazar | veri doğurmaz — yazım konvansiyonu | — | veri doğurmaz |
+| `03 §1.1` m1 | Sipariş — sevkiyat ekseni: altı durum (`02 §5.4`) | Order | `OrderStatus` — `Placed`, `Preparing`, `Shipped`, `Delivered`, `DeliveryFailed`, `Cancelled` | eşlendi |
+| `03 §1.1` m2 | Sipariş — ödeme ekseni: beş durum (`02 §5.5`) | Order | `PaymentStatus` — `Pending`, `Paid`, `Failed`, `PartiallyRefunded`, `Refunded` | eşlendi |
+| `03 §1.1` m3 | Ürün ve varyant — üç yayın durumu (`02 §5.1`) | Product · Variant | `PublishStatus` — `Draft`, `Published`, `Archived` (iki düzlemde) | eşlendi |
+| `03 §1.1` m4 | Kurumsal içerik kaydı — iki yayın durumu (`02 §5.2`) | Content | `PublishStatus` — `Draft`, `Published` | eşlendi |
+| `03 §1.1` m5 | Ayıp talebi — iki durum (`02 §5.10`) | DefectClaim | `DefectClaimStatus` — `Open`, `Resolved` | eşlendi |
+| `03 §1.1` m6 | İletişim talebi — KVKK talebi dahil, iki durum (`02 §5.13`) | ContactRequest | `ContactRequestStatus` — `Open`, `Closed` | eşlendi |
+| `03 §1.1` metin | Durum makinesi taşımayanlar: kalem (kayıtlar), indirim, kupon, stok ayırma, hesap, oturum, davet (geçerlilik); duyurunun tarih aralığı; satış açıklığı bir kapı | OrderItem · Discount · Coupon · StockReservation · Customer · Admin · Session · AdminInvitation · Announcement · veri doğurmaz — türetilir | kalemde durum alanı yok; geçerlilik alanları (tarih aralığı, ömür, kullanım) satırlarında (§1.10); satış açıklığı ayarlardan türer (`02 §3.1.5`) | eşlendi |
+
+**§1.2 — sevkiyat ekseni: durumlar ve geçişler (18)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §1.2` `Placed` | Alındı — müşterinin onayıyla doğar; ödeme ya da fizikselsiz siparişte teslim işaretleri beklenir; S1, S2, S3 | Order | `OrderStatus` = `Placed` (başlangıç değeri) | eşlendi |
+| `03 §1.2` `Preparing` | Hazırlanıyor — ödenmiş fiziksel sipariş; Z-10 açık fiziksel kalem varken işler; S5, S4, S10 | Order | `OrderStatus` = `Preparing`; Z-10'un başladığı an ödeme onayının anı (`02 §4.2` Z-10) | eşlendi |
+| `03 §1.2` `Shipped` | Kargoya verildi — iptal yolu kapandı, cayma açıldı; S6, S7 | Order | `OrderStatus` = `Shipped` | eşlendi |
+| `03 §1.2` `DeliveryFailed` | Teslim edilemedi — gönderi döndü; S8, S9, S11 | Order | `OrderStatus` = `DeliveryFailed` | eşlendi |
+| `03 §1.2` `Delivered` | Teslim edildi — terminal; yalnız yöneticinin düzeltmesiyle değişir | Order · OrderItem | `OrderStatus` = `Delivered`; kalemlerin teslim işareti | eşlendi |
+| `03 §1.2` `Cancelled` | İptal edildi — terminal; teslimattan önce iptal ya da açık kalemsiz kapanış | Order | `OrderStatus` = `Cancelled`; kapanışın sebebi kalem kayıtlarından (K-592) | eşlendi |
+| `03 §1.2` metin | Geçiş tablosunun okunuşu; beyaz liste dışı geçiş yasak; geri yönlü geçiş müşteri akışında yok; düzeltme §1.6 | veri doğurmaz — kod | — (geçiş kuralı kodda; düzeltme *geçiş kaydı*nda — §1.6.2) | veri doğurmaz |
+| `03 §1.2` S1 | Alındı → Hazırlanıyor — sistem, Ö1 ile aynı anda; fiziksel kalem var; bildirim yalnız Ö1'in B-4'ü | *geçiş kaydı* · *gönderim kaydı* | S1; aktör sistem; an (Ö1'in anıyla aynı); B-4'ün gönderim satırı Ö1'e bağlı | eşlendi |
+| `03 §1.2` S2 | Alındı → Teslim edildi — kapanış kuralını tamamlayan son olay: dijitalde ödeme onayı, son "tamamlandı", son açık kalemin iptali, çıkarılması ya da cayma beyanı | *geçiş kaydı* · OrderItem · Cancellation · *çıkarma kaydı* · Withdrawal | S2; aktör sistem — tetikleyen olayla aynı an; tetikleyen kalem kaydı; kalemlerin teslim işaretleri | eşlendi |
+| `03 §1.2` S3 | Alındı → İptal edildi — müşteri (bütünüyle ya da son açık kalem), yönetici (sebepli), sistem (Z-7, Z-8, kart başarısız, aynı sepetten yeni sipariş) ya da kapanış (cayma, çıkarma; teslim yok — K-672); kapanışta B-7 yok | *geçiş kaydı* · Cancellation · *gönderim kaydı* | S3; aktör (müşteri · yönetici · sistem); an; firma iptalinde `CancellationReason`; kendiliğinden iptalin türü (`02 §5.3.4`); kapanışta iptal kaydı açılmaz — sebep kalem kayıtlarından | eşlendi |
+| `03 §1.2` S4 | Hazırlanıyor → İptal edildi — müşteri ya da yönetici son açık kalemi iptal eder; kapanış (fesih, cayma, çıkarma) sistemin, olayla aynı anda | *geçiş kaydı* · Cancellation · LateDeliveryTermination · Withdrawal · *çıkarma kaydı* | S4; aktör; an; firma iptalinde sebep; kapanışta tetikleyen kalem kaydı | eşlendi |
+| `03 §1.2` S5 | Hazırlanıyor → Kargoya verildi — yönetici, geri alınamaz onayla; yalnız açık fiziksel kalemler gider; B-5 | *geçiş kaydı* · Order · OrderItem | S5; aktör yönetici; an; kargo şirketi, takip numarası ya da kendi aracıyla teslim beyanı (`02 §5.4` S5); gönderiye giren kalemler | eşlendi |
+| `03 §1.2` S6 | Kargoya verildi → Teslim edildi — yönetici teslim işaretini ve tarihini girer; kendiliğinden geçiş yok; bildirim yok | *geçiş kaydı* · OrderItem | S6; aktör yönetici; `DeliveryDate` (fizikselde sipariş düzeyinde tek tarih — `02 §5.8` m1) | eşlendi |
+| `03 §1.2` S7 | Kargoya verildi → Teslim edilemedi — yönetici işaretler; B-6 | *geçiş kaydı* | S7; aktör yönetici; an | eşlendi |
+| `03 §1.2` S8 | Teslim edilemedi → Kargoya verildi — yönetici açık fiziksel kalemleri yeniden gönderir, geri alınamaz (K-677); B-5 yeniden | *geçiş kaydı* · Order | S8; aktör yönetici; an; yeniden gönderimin kargo bilgisi | eşlendi |
+| `03 §1.2` S9 | Teslim edilemedi → İptal edildi — yönetici sebepli iptal ya da açık kalemsiz, teslimsiz siparişin sebepsiz kapanışı (K-717) | *geçiş kaydı* · Cancellation | S9; aktör yönetici; firma iptalinde `CancellationReason`; kapanışta sebep yok — iptal kaydı açılmaz | eşlendi |
+| `03 §1.2` S10 | Hazırlanıyor → Teslim edildi — son açık fiziksel kalemin iptali, çıkarılması ya da feshi; son hizmet kaleminin iptali, çıkarılması, tamamlanması ya da caymayla kapanması | *geçiş kaydı* · OrderItem | S10; aktör sistem — tetikleyen olayla aynı an; tetikleyen kalem kaydı | eşlendi |
+| `03 §1.2` S11 | Teslim edilemedi → Teslim edildi — S7'nin kendisi dahil, geri dönen fiziksel kalemler kapanmışsa | *geçiş kaydı* | S11; aktör sistem ya da S7 ile aynı an | eşlendi |
+
+**§1.3 — ödeme ekseni: durumlar ve geçişler (11)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §1.3` `Pending` | Bekliyor — ödeme gelmedi; Ö1, Ö2 | Order | `PaymentStatus` = `Pending` (başlangıç değeri) | eşlendi |
+| `03 §1.3` `Paid` | Ödendi; Ö3, Ö4 | Order | `PaymentStatus` = `Paid` | eşlendi |
+| `03 §1.3` `Failed` | Başarısız — terminal; sebep iptal kaydında | Order · Cancellation | `PaymentStatus` = `Failed`; sebep iptal kaydından | eşlendi |
+| `03 §1.3` `PartiallyRefunded` | Kısmen geri ödendi; Ö5 | Order | `PaymentStatus` = `PartiallyRefunded` | eşlendi |
+| `03 §1.3` `Refunded` | Geri ödendi — terminal | Order | `PaymentStatus` = `Refunded` | eşlendi |
+| `03 §1.3` Ö1 | Bekliyor → Ödendi — sistem (sağlayıcı bildirimi ya da son sorgunun olumlu cevabı) ya da yönetici (havale işareti, geri alınamaz); B-4 | *geçiş kaydı* · *ödeme kaydı* · *gelen bildirim kaydı* | Ö1; aktör (sistem · yönetici); an; ödemenin kaynağı — sağlayıcının işlem kimliği ya da havale işareti | eşlendi |
+| `03 §1.3` Ö2 | Bekliyor → Başarısız — S3 ile aynı anda, ödenmemiş siparişin her iptalinde | *geçiş kaydı* | Ö2; S3 ile aynı an ve aktör | eşlendi |
+| `03 §1.3` Ö3 | Ödendi → Kısmen geri ödendi — sistem (kart iadesi gerçekleşince) ya da yönetici (havale, cayma, ayıp çözümü, tutar bazlı; geri alınamaz); B-8, sistemin iadesinde F-4 | *geçiş kaydı* · Refund · *geri ödeme kaydı* · *gönderim kaydı* | Ö3; aktör; geri ödemenin türü, tutarı, yolu, kalem bağı, işleyen; kendiliğinden olduğu (F-4) | eşlendi |
+| `03 §1.3` Ö4 | Ödendi → Geri ödendi — Ö3'ün tetikleyenleri, paranın tamamı | *geçiş kaydı* · Refund | Ö4; tutarların toplamı ödenmiş tutara eşit (türetilir) | eşlendi |
+| `03 §1.3` Ö5 | Kısmen geri ödendi → Geri ödendi — kalan paranın tamamı | *geçiş kaydı* · Refund | Ö5 | eşlendi |
+| `03 §1.3` metin | Ekseni değiştirmeyen olaylar: kart iadesinin başarısızlığı ya da bilinmeyen sonucu (işaret), iptal edilmiş siparişe gelen kart ödemesi ve kendiliğinden geri ödemesi, ters ibraz, cayma ve teslim alma; Başarısız → Ödendi yasak; tek düzeltme havale işareti | *geri ödeme kaydı* · Order · *ödeme kaydı* · Refund · yoktur — kapsam dışı | geri ödeme kaydının hâli; `RefundFailedMark`, `RefundOutcomePendingMark` (K-940); geç gelen ödeme ve kendiliğinden geri ödemesi (K-684); ters ibraz alanı yok (`02 §3.21.11`) | eşlendi |
+
+**§1.4 — iki eksenin bağı (27)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §1.4.1` | Birleşim tablosu — her siparişin her an iki durumu var | Order | `OrderStatus` × `PaymentStatus` birleşim kısıtı (uygulama düzeyi — `02 §5.6.1`) | eşlendi |
+| `03 §1.4.1` m1 | Alındı satırı: Bekliyor, Ödendi (fizikselsiz), Kısmen ve tamamen geri ödendi izinli; Başarısız yok | Order | birleşim kısıtı | eşlendi |
+| `03 §1.4.1` m2 | Hazırlanıyor satırı: Bekliyor ve Başarısız yok | Order | birleşim kısıtı | eşlendi |
+| `03 §1.4.1` m3 | Kargoya verildi satırı: Bekliyor ve Başarısız yok | Order | birleşim kısıtı | eşlendi |
+| `03 §1.4.1` m4 | Teslim edilemedi satırı: Bekliyor ve Başarısız yok | Order | birleşim kısıtı | eşlendi |
+| `03 §1.4.1` m5 | Teslim edildi satırı: Bekliyor ve Başarısız yasak | Order | birleşim kısıtı | eşlendi |
+| `03 §1.4.1` m6 | İptal edildi satırı: Bekliyor yok; Ödendi ve Kısmen geri ödendi geri ödeme beklenirken | Order | birleşim kısıtı | eşlendi |
+| `03 §1.4.1` metin | Harflerin okunuşu: fizikselsiz siparişte Alındı + Ödendi; havale düzeltmesinde birlikte dönüş; tutar bazlı tam geri ödeme; son sorgu yanıtsızken Alındı + Bekliyor; geri ödemesi beklenen iptal; kart iadesinin sonucu beklenirken düzeltme yok; müşteri kaynaklı dönen gönderinin kalıcı son hâli | Order · Refund · *geri ödeme kaydı* · *geçiş kaydı* | birleşim kısıtı; geri ödemenin tutarı (ödenmiş ve geri ödenmemiş tutarı aşmaz — `02 §5.5`); `RefundOutcomePendingMark` düzeltmeyi kapatır (K-940) | eşlendi |
+| `03 §1.4.2` | Eşzamanlı geçişler — iki ekseni ya da ekseni ve kalemi aynı anda değiştiren olaylar | *geçiş kaydı* | aynı anda yazılan geçişler — tek işlem (`05 §7.3`) | eşlendi |
+| `03 §1.4.2.1` | Ödeme onayı: S1 ya da S2; dijital kalemlerin teslim işareti; fizikselsizde kapanış kuralı | *geçiş kaydı* · OrderItem | Ö1 ile S1 ya da S2 aynı an; dijital kalemin teslim işareti | eşlendi |
+| `03 §1.4.2.2` | Ödenmemiş siparişin iptali: S3 + Ö2 | *geçiş kaydı* | iki geçiş aynı an | eşlendi |
+| `03 §1.4.2.3` | Son açık kalemin kapanması ya da teslim işareti: kapanış kuralı | *geçiş kaydı* · OrderItem | kapanış geçişi olayla aynı an | eşlendi |
+| `03 §1.4.2.4` | Havale işaretinin düzeltilmesi: Ödendi → Bekliyor ve Hazırlanıyor → Alındı birlikte | *geçiş kaydı* | iki düzeltme geçişi aynı an; `CorrectionReason` | eşlendi |
+| `03 §1.4.3` | Kapanış kuralı — açık kalem adetle okunur; fizikselsiz siparişte son açık kalemin kapanması ya da teslim işareti hattı bitirir | OrderItem · Cancellation · *çıkarma kaydı* · LateDeliveryTermination · Withdrawal · veri doğurmaz — türetilir | kalemin açık adedi kayıtlardan türetilir — saklanıp saklanmayacağı VM2-06 (K-787'nin park satırı); kalemin donmuş `ProductType`'ı | eşlendi |
+| `03 §1.4.3` m1 | En az bir kalem teslim edilmişse Teslim edildi (S2, S10, S11) | *geçiş kaydı* · OrderItem | teslim işaretleri | eşlendi |
+| `03 §1.4.3` m2 | Hiçbir kalem teslim edilmemişse İptal edildi: iptal ya da kapanış; kargodayken yöneticinin S7 + S9 kapanışı (1.11.40) | *geçiş kaydı* · Cancellation | geçişin kapanış mı iptal mi olduğu — iptal kaydının varlığından; kapanışta sebep yok (K-672, K-717) | eşlendi |
+| `03 §1.4.3` metin | Kart son sorgusu yanıtsızken ve kesintide dolan havale süresinde iptal ertelenir | Order | ödeme sonucu alınamadı işareti (`02 §6.1.2`); ertelenen son an (K-898; `02 §3.21.8`) | eşlendi |
+| `03 §1.4.4` | Geçişlerin sayaçlara etkisi — stok, kontenjan, kupon hakkı | StockReservation · Variant · Coupon | ayırmanın hâli; stok ve kontenjan sayacı; kupon hakkı sayacı | eşlendi |
+| `03 §1.4.4.1` | Sipariş oluşur: stok, kontenjan ve kupon hakkı ayrılır | StockReservation | ayrılan adet ve kupon hakkı; oluşma anı | eşlendi |
+| `03 §1.4.4.2` | Ödeme onayı: ayrılan kesin düşer, kupon kullanılmış | StockReservation · Variant · Coupon | ayırmanın hâli; `StockQuantity`; kupon kullanım sayacı | eşlendi |
+| `03 §1.4.4.3` | Ödenmeden iptal: serbest kalır, kupon geri döner | StockReservation | ayırmanın serbest kalması | eşlendi |
+| `03 §1.4.4.4` | Ödenmiş kalemin iptali ve çıkarma: adet stoğa ve havuza döner; kupon yalnız tamamı iptalde | Cancellation · *çıkarma kaydı* · Variant · Coupon | iptal edilen ve çıkarılan adet (dönüşün kaynağı — K-791) | eşlendi |
+| `03 §1.4.4.5` | Gecikme feshi: kargoya verilmemiş kalemde döner; kargodan dönen mal teslim almayla; kupon kapanışta | LateDeliveryTermination · Return · Variant · Coupon | feshedilen adet; teslim alınan adet | eşlendi |
+| `03 §1.4.4.6` | Cayma ve iade: teslim alınan adet kadar eklemeyle; reddedilen dönmez; hizmet kontenjanı cayılan adet kadar | Return · ReturnRejection · Withdrawal · Variant · Coupon | teslim alınan adet, stoğa ekleme (ayrı adım); cayılan adet | eşlendi |
+| `03 §1.4.4.7` | Yanlış iptalin düzeltilmesi: yeniden ayrılır, yetmezse düzeltme yok | StockReservation · *geçiş kaydı* | yeniden ayırma (K-566) | eşlendi |
+| `03 §1.4.4.8` | Havale işaretinin düzeltilmesi: tutulu kalır | StockReservation | ayırmanın hâli — tutulu | eşlendi |
+| `03 §1.4.4.9` | Varyantın kalıcı silinmesi: silinen varyantın ayırması düşer | StockReservation · Variant | varyant bağı — fiziksel silmeyle düşer (K-655) | eşlendi |
+
+**§1.5 — tipe göre hatlar (8)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §1.5` metin | Hatların tanımı `02 §5.7`'de; tiplere ayrı durum seti yok; zorunlu elle adım sayısı (`02 §10.5.1`) | veri doğurmaz — kod | — (hat kalemlerin donmuş `ProductType`'ından) | veri doğurmaz |
+| `03 §1.5.1` | Fiziksel — kart: Ö1 ve S1 sistemin; S5, S6 yöneticinin; iki elle adım | veri doğurmaz — kod | — | veri doğurmaz |
+| `03 §1.5.2` | Fiziksel — havale: Ö1'i yöneticinin işareti tetikler; üç elle adım | veri doğurmaz — kod | — | veri doğurmaz |
+| `03 §1.5.3` | Yalnız dijital: Ö1 ve S2 | veri doğurmaz — kod | — | veri doğurmaz |
+| `03 §1.5.4` | Yalnız hizmet: Ö1, son "tamamlandı" ile S2 | veri doğurmaz — kod | — | veri doğurmaz |
+| `03 §1.5.5` | Dijital + hizmet: dijital ödeme onayında teslim, son "tamamlandı" ile S2 | veri doğurmaz — kod | — | veri doğurmaz |
+| `03 §1.5.6` | Karışık, fiziksel kalemli: fiziksel hat; dijital ve hizmet kalem düzeyinde teslim | OrderItem | kalemin teslim işareti | eşlendi |
+| `03 §1.5.7` | Fiziksel kalemleri kapanmış karışık: bulunduğu durumda kapanış kuralıyla biter | veri doğurmaz — kod | — | veri doğurmaz |
+
+**§1.6 — geri alınamaz geçişler ve düzeltme (16)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §1.6.1` | Geri alınamaz onay isteyen işlemler — sonuç tek cümleyle; "geri al" düğmesi yok | veri doğurmaz — arayüz (`04`) | — (onayın kendisi saklanmaz; işlemin kaydı satırlarında) | veri doğurmaz |
+| `03 §1.6.1.1` | Havale "ödendi" işareti — Ö1 ve eşzamanlıları; dijital kalemde düzeltilemeyeceği önceden söylenir | *geçiş kaydı* · *ödeme kaydı* | Ö1; aktör yönetici | eşlendi |
+| `03 §1.6.1.2` | Kargoya verme ve yeniden gönderim — S5, S8 | *geçiş kaydı* | S5, S8; aktör yönetici | eşlendi |
+| `03 §1.6.1.3` | Firma iptali — S3, S4, S9 ya da kalemin iptal kaydı; "stokta bulunamadı"da yasal uyarı | Cancellation · *geçiş kaydı* | `CancellationReason`; kalem ve adet | eşlendi |
+| `03 §1.6.1.4` | Yöneticinin geri ödemeyi işlemesi — tutar bazlı dahil; Ö3–Ö5 | Refund · *geçiş kaydı* | geri ödemenin türü, tutarı, işleyen | eşlendi |
+| `03 §1.6.1.5` | Kart hattında karta para gönderen kalem çıkarma | *çıkarma kaydı* · *geri ödeme kaydı* | çıkarma kaydı; sistemin kart iadesi | eşlendi |
+| `03 §1.6.1.6` | İade reddi — kalemin iade reddi kaydı (K-656) | ReturnRejection | — | eşlendi |
+| `03 §1.6.1.7` | Başka kanaldan gelen cayma ya da fesih kaydı — geri alınmaz, düzeltilmez (K-688, K-715) | Withdrawal · LateDeliveryTermination | kaydeden (yönetici); kaydın düzeltme alanı yok | eşlendi |
+| `03 §1.6.1.8` | Üye hesabının talep üzerine silinmesi — geri alınmaz | Customer · *imha kaydı* | anında fiziksel silme; silme imha kaydına (K-708) | eşlendi |
+| `03 §1.6.1` metin | Sistemin kart iadesi onay penceresi değil, F-4 ile bildirilir; siparişe dokunmayan onaylar kendi akışlarında; müşterinin geri alınamaz dört işlemi son adımda onaylanır (K-732) | *geri ödeme kaydı* · *gönderim kaydı* · veri doğurmaz — arayüz (`04`) | kendiliğinden geri ödeme; F-4'ün gönderim satırı; müşteri onayının kaydı yok | eşlendi |
+| `03 §1.6.2` | Düzeltme — yanlış geçiş kapalı listeden sebep seçilerek yeni bir geçişle düzeltilir; ikisi de işlem izinde; dış sonuç geri alınmaz; B-13 | *geçiş kaydı* · AuditLog · *gönderim kaydı* | düzeltme geçişi — düzelttiği geçişe bağ, `CorrectionReason`, yapan, an; iz satırı; B-13 | eşlendi |
+| `03 §1.6.2.1` | Erken ya da yanlış teslim işareti: bir önceki duruma; işaret kalkar, pencereler yeni tarihe kadar işlemez | *geçiş kaydı* · OrderItem | teslim işareti ve `DeliveryDate` boşalır; düzeltme geçişi | eşlendi |
+| `03 §1.6.2.2` | Yanlış iptal: iptalden önceki duruma; yalnız ödeme Ödendi'de kalmışsa; kart iadesinin sonucu beklenirken yok (K-940); ayırma yeniden; kapanış konu değil (K-703) | *geçiş kaydı* · StockReservation · *geri ödeme kaydı* · Cancellation | düzeltme geçişi; iptalden önceki durum (geçiş kaydından okunur); geri ödeme kaydının hâli düzeltmeyi kapatır; yeniden ayırma | eşlendi |
+| `03 §1.6.2.3` | Yanlış Kargoya verildi ya da Teslim edilemedi işareti: yanlış geçişten önceki duruma; aradaki kayıtlar kalır (K-703) | *geçiş kaydı* | düzeltme geçişi | eşlendi |
+| `03 §1.6.2.4` | Para gelmeden konmuş havale işareti: iki eksen birlikte geri; kayıt varsa yok (K-703); Z-8 düzeltme anından, B-3 yeniden (K-685) | *geçiş kaydı* · Order · *gönderim kaydı* | düzeltme geçişleri; ödeme süresinin yeniden başladığı an ve yeni sonu; B-3'ün süre başına gönderimi | eşlendi |
+| `03 §1.6.2` metin | Kartta ödeme ekseninin düzeltmesi yok; cayma beyanı düzeltilmez ve geri alınmaz (K-688); teslim tarihi, ulaşma tarihi, adres ve takip bilgisi düzeltmesi geçiş değil müdahale | Withdrawal · AuditLog | caymada düzeltme alanı yok; müdahalelerin iz satırı (`02 §10.4`) | eşlendi |
+
+**§1.7 — kalem kayıtları ve panel işaretleri (26)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §1.7.1` | Kalemin kayıtları — kalem durum taşımaz; "Hatta sayılışı" kaydın kapanış kuralına etkisi | OrderItem | kalemde durum alanı yok (K-179) | eşlendi |
+| `03 §1.7.1.1` | Teslim işareti ve tarihi — fizikselde S6, sipariş düzeyinde tek tarih; dijitalde ödeme onayı; hizmette "tamamlandı" | OrderItem · *geçiş kaydı* | kalemin teslim işareti ve anı; `DeliveryDate` (fizikselde sipariş düzeyinde bir kez — `02 §5.8` m1); işareti koyan (sistem ya da yönetici) | eşlendi |
+| `03 §1.7.1.2` | İptal kaydı — müşteri ya da yönetici; yöneticide sebepli; iptal edilen adet (K-794); B-7 | Cancellation | kalem, adet, kaydeden, `CancellationReason` (firma iptalinde), an | eşlendi |
+| `03 §1.7.1.3` | Çıkarma kaydı — yönetici; iptal edilmiş gibi; B-11 | *çıkarma kaydı* | kalem, adet, yönetici, an — sözlükte terimi yok | GAP adayı (VA-1) |
+| `03 §1.7.1.4` | Gecikme feshi — müşteri ya da yöneticinin başka kanal kaydı (K-706); açık adetlerin tamamı; B-9, müşteride F-3 | LateDeliveryTermination | damga, kalemler ve adetler, kaydeden | eşlendi |
+| `03 §1.7.1.5` | Cayma beyanı — müşteri ya da yönetici; cayılan adet ve iade adresi; ardışık beyanlar ayrı (K-790); B-9, müşteride F-3 | Withdrawal | damga, adet, iade adresi, kaydeden | eşlendi |
+| `03 §1.7.1.6` | İade teslim alma — ulaşma tarihi ve adet; parça parça ayrı (K-794); tarih düzeltilir (K-712); stoğa ekleme ayrı adım; IBAN silinmişse B-14 | Return · AuditLog | ulaşma tarihi, ulaşan adet, beyan bağı; stoğa eklenen adet ve anı; tarih düzeltmesinin iz satırı | eşlendi |
+| `03 §1.7.1.7` | İade reddi — koşullu istisna kaleminde, teslim almada; B-16 | ReturnRejection | kalem, adet, an | eşlendi |
+| `03 §1.7.1.8` | "Mal dönmedi" kapanışı — Z-42 geçince, ulaşmamış adetlere (K-794) | NotReturnedClosure | adet, an, beyan bağı | eşlendi |
+| `03 §1.7.1.9` | IBAN isteği — sistemin beş tetiği (teslim alma, havale gerçekleşmedi, IBAN'sız kayıt, havale yolunu açma, havale hattında firma iptali ya da çıkarma) ve yöneticinin kendi isteği (K-686, K-690, K-706); B-14 | RefundIbanRequest | kalem, tetikleyen kayıt ya da yönetici, istek anı, karşılandığı an | eşlendi |
+| `03 §1.7.1.10` | Ayıp talebi — müşteri, ayıplı adetle (K-793); hattı etkilemez; B-9, F-3 | DefectClaim | kalem, ayıplı adet, `DefectClaimStatus` | eşlendi |
+| `03 §1.7.1.11` | İndirme sayacı — sistem her indirmede; yönetici yeniler | OrderItem | indirme sayacı; yenilenme | eşlendi |
+| `03 §1.7.2` | Kalemin yolu tipe göre | veri doğurmaz — kod | — (yol kalemin donmuş `ProductType`'ından ve kayıtlarından) | veri doğurmaz |
+| `03 §1.7.2` m1 | Fiziksel kalem: iptal ve çıkarma kargoya kadar; Z-11 feshi; kargodayken fesih ya da cayma; teslimden sonra cayma, teslim alma, ret, "mal dönmedi"; kapanıştan sonra ulaşan mal kalemi yeniden açar; ayıp talebi Kargoya verildi'den, iki yıl (Z-18) | OrderItem · Return · NotReturnedClosure · DefectClaim | teslim işaretinin tarihi (Z-18'in başlangıcı); "mal dönmedi"den sonra teslim alma kaydı | eşlendi |
+| `03 §1.7.2` m2 | Dijital kalem: ödeme onayında teslim ve indirme; iptal ve cayma yok; ayıp talebi açık | OrderItem | teslim işareti; indirme sayacı | eşlendi |
+| `03 §1.7.2` m3 | Hizmet kalemi: iptal, çıkarma, cayma "tamamlandı"ya ya da Z-14'e kadar; ayıp talebi tamamlamadan sonra | OrderItem | tamamlama işareti ve anı | eşlendi |
+| `03 §1.7.3` | Panel işaretleri — durum değil; koşul sürdükçe görünür (K-675) | veri doğurmaz — türetilir | — (işaretin saklanıp saklanmayacağı VM2-06; satırlarda koşulun kaydı) | veri doğurmaz |
+| `03 §1.7.3.1` | "e-posta ulaşmadı" — sipariş, ayıp talebi ya da davet satırında; Z-26'nın üç denemesi başarısız olunca; yeniden gönderim başarılı olunca ya da davet geçersizleşince kalkar | *gönderim kaydı* · AdminInvitation · Order · DefectClaim | gönderimin sonucu; işaret gönderim kaydından türer (K-913) — adı VA-1 | eşlendi |
+| `03 §1.7.3.2` | "ödeme sonucu alınamadı" — kart son sorgusu yanıtsız kalınca; sonuç gelince kalkar | Order · *ödeme kaydı* | ödeme sonucu alınamadı işareti (`02 §6.1.2`) — adı VA-1 | eşlendi |
+| `03 §1.7.3.3` | "geri ödeme gerçekleşmedi" — sağlayıcı reddi, sorgunun "gerçekleşmedi" cevabı ya da yöneticinin işareti; iade gerçekleşince, IBAN'a ödeme işlenince ya da yanlış iptal düzeltilince kalkar | *geri ödeme kaydı* · Order · Refund | `RefundFailedMark` — geri ödeme kaydının hâlinden (K-940) | eşlendi |
+| `03 §1.7.3.4` | "IBAN bekleniyor" — kalemde; IBAN isteğiyle düşer, IBAN girilince kalkar | RefundIbanRequest | isteğin karşılandığı an (işaret ondan türer) — adı VA-1 | eşlendi |
+| `03 §1.7.3.5` | "iade malı bekleniyor" — teslimden sonraki caymayla; teslim alma, ret ya da kapanışla — kalan adetler için sürer | Withdrawal · Return · ReturnRejection · NotReturnedClosure | beyanın adedi ile teslim alınan, reddedilen, kapatılan adetler (işaret türer) — adı VA-1 | eşlendi |
+| `03 §1.7.3.6` | "e-posta düzeltildi" — misafir e-postası düzeltilince; kalkmaz, e-posta geçmişiyle imha | OrderEmailHistory | e-posta geçmişinin varlığı (işaret türer) — adı VA-1 | eşlendi |
+| `03 §1.7.3.7` | "geri ödeme sonucu bekleniyor" — sağlayıcıya ulaşılamayınca ya da zaman aşımında; sorgunun sonucuyla ya da yöneticinin "gerçekleşmedi" işaretiyle kalkar | *geri ödeme kaydı* · AuditLog | `RefundOutcomePendingMark` — geri ödeme kaydının hâlinden; yöneticinin işaretinin iz satırı (K-940) | eşlendi |
+| `03 §1.7.3` metin | Bekleyen işler sayaçları `02 §10.6.1`'de | veri doğurmaz — türetilir | sayaçlar saklanmaz (K-675) | veri doğurmaz |
+| `03 §1.7.4` | Kalemin adedi — işlem birimi adet; kayıtlar adedi taşır, aynı tür birden çok kez doğar; açık adet düşülerek okunur; gecikme feshinde seçim yok; dijitalin adedi bir; hizmette tamamlandı açık adetlere | OrderItem · Cancellation · *çıkarma kaydı* · LateDeliveryTermination · Withdrawal · Return · ReturnRejection · NotReturnedClosure · DefectClaim | her kaydın adedi ve damgası; ardışık kayıtlar ayrı satır; açık adet türetilir — VM2-06 (K-787'nin park satırı) | eşlendi |
+
+**§1.8–§1.9 — yayın ve talep durumları (18)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §1.8.1` | Ürün ve varyant üç değeri ayrı taşır; geçişler yöneticinin, bildirimsiz, işlem izine | Product · Variant · AuditLog | `PublishStatus` (iki düzlemde); değişikliğin iz satırı — geçiş kaydı tutulmaz | eşlendi |
+| `03 §1.8.1` `Draft` | Taslak — vitrinde yok; Yayında'ya geçiş yayın kapısına bağlı | Product · Variant | `PublishStatus` = `Draft` | eşlendi |
+| `03 §1.8.1` `Published` | Yayında — tükenmişlik ayrı durum değil | Product · Variant | `PublishStatus` = `Published` | eşlendi |
+| `03 §1.8.1` `Archived` | Arşiv — kaydı korunan ürün; "Bu ürün artık satılmıyor" | Product · Variant | `PublishStatus` = `Archived` | eşlendi |
+| `03 §1.8.2` | Yayın kapısını bozan işlem engellenir — son Yayında varyantın arşivi ya da silinmesi, dosyasız bırakma (K-674); ürünün kalıcı silinmesi durum değil, açık siparişler donmuş kalemleriyle sürer | Product · Variant · *dosya kaydı* · OrderItem | kapı — kısıt; fiziksel silme; kalemin donmuş değerleri ürünün silinmesinden bağımsız | eşlendi |
+| `03 §1.8.3` | Vitrinden kalkan kalem sepetten çıkar ve bir kez söylenir; yayın durumu siparişi etkilemez | CartItem | kalemin silinmesi (`02 §3.16.7`'nin satırı); yayın durumu siparişin donmuş kalemine dokunmaz | eşlendi |
+| `03 §1.8.4` | Kurumsal içerik iki değer; arşiv, ileri tarihli yayın ve sürüm geçmişi yok | Content · yoktur — kapsam dışı | `PublishStatus` (iki değer); sürüm geçmişi alanı yok | eşlendi |
+| `03 §1.8.4` `Draft` | Taslak — sitede yok; zorunlu alanlar doluysa Yayında | Content | `PublishStatus` = `Draft` | eşlendi |
+| `03 §1.8.4` `Published` | Yayında — düzenleme kaydedildiği anda yayında | Content | `PublishStatus` = `Published` | eşlendi |
+| `03 §1.8.4` metin | Duyuru yalnız tarih aralığında (Z-23); Hakkımızda silinmez; ötekilerin silinmesi geri alınamaz | Announcement · AboutPage · Content | başlangıç ve bitiş (isteğe bağlı); Hakkımızda tekil, silinmez; fiziksel silme | eşlendi |
+| `03 §1.9.1` | Ayıp talebi — kalem başına tek kayıt (K-676); Çözüldü'yken müşteri ve yönetici yeniden açar | DefectClaim | kalem başına tekil — kısıt; yeniden açılma | eşlendi |
+| `03 §1.9.1` `Open` | Açık — doğuşta B-9 ve F-3 | DefectClaim | `DefectClaimStatus` = `Open` (başlangıç değeri) | eşlendi |
+| `03 §1.9.1` `Resolved` | Çözüldü — Z-18 içinde yeniden açılır; müşterinin açmasında B-9 ve F-3 (K-681) | DefectClaim · *gönderim kaydı* | `DefectClaimStatus` = `Resolved`; yeniden açanın türü (müşteri bildirim üretir, yönetici üretmez) | eşlendi |
+| `03 §1.9.1` metin | Seçimlik hakların yürütümü sistem dışı; para gerektiren çözüm geri ödeme geçişleriyle | veri doğurmaz — ürünün dışında · Refund | seçimlik hak alanı yok; geri ödemenin türü ayıp çözümü | eşlendi |
+| `03 §1.9.2` | İletişim talebi — ayrı durum makinesi ve süre sayacı yok | ContactRequest | `ContactRequestStatus` | eşlendi |
+| `03 §1.9.2` `Open` | Açık — doğuşta F-2 | ContactRequest | `ContactRequestStatus` = `Open` (başlangıç değeri) | eşlendi |
+| `03 §1.9.2` `Closed` | Kapatıldı — yönetici yeniden açar | ContactRequest | `ContactRequestStatus` = `Closed` | eşlendi |
+| `03 §1.9.2` metin | Saklama son kapatılıştan, hiç kapatılmamışta açılıştan (Z-33) | ContactRequest | son kapatıldığı an, oluşma anı | eşlendi |
+
+**§1.10 — durum makinesi olmayan varlıklar (9)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §1.10` metin | Durumu olmayan varlıkların geçerliliği zamana ya da kullanıma bağlı | veri doğurmaz — yazım konvansiyonu | — | veri doğurmaz |
+| `03 §1.10.1` | İndirim — tarih aralığında (Z-20); sistem başlatır ve bitirir | Discount | başlangıç ve bitiş anı | eşlendi |
+| `03 §1.10.2` | Kupon — tarih aralığı (Z-22) ve kullanım hakkı; kullanım adedi kullanılmış ve ayrılmış hakların altına inmez (K-654) | Coupon · StockReservation | başlangıç, bitiş, kullanım adedi; kullanılan ve ayrılan hak sayısı | eşlendi |
+| `03 §1.10.3` | Kupon hakkı ve stok ayırma — ayrılır, kesin düşer ya da serbest kalır (§1.4.4) | StockReservation | ayırmanın hâli | eşlendi |
+| `03 §1.10.4` | Duyurunun tarih aralığı — yayın durumuna ek koşul (Z-23) | Announcement | başlangıç ve bitiş (isteğe bağlı) | eşlendi |
+| `03 §1.10.5` | Hesap — doğrulanmamış kayıt bekleme aşaması; Z-1 dolunca silinir; e-posta değişikliği beklemesi ve Z-45 geri alma; Google ile ilk girişte bekleyen kayıt silinir (K-696); silme geri alma bağlantısı açıkken yok (K-698); yöneticinin kaldırılması; kurulum tarafının yeni yönetici açması (K-699); limit durum değiştirmez | Customer · Admin · *bekleyen e-posta değişikliği* · *bağlantı kaydı* · SocialLogin · veri doğurmaz — kurulum | doğrulanma işareti ve anı; bekleyen yeni adres; geri alma bağlantısı; hesabın Google bağı; hesapta kilit alanı yok | eşlendi |
+| `03 §1.10.6` | Oturum — Z-4 ya da Z-5; şifre sıfırlama, silme, geri alma ve kaldırma bütün oturumları, şifre değiştirme ötekileri kapatır (K-695) | Session | oturum türü (kısa, uzun); son işlem anı; hesap bağı (toplu silme) | eşlendi |
+| `03 §1.10.7` | Yönetici daveti — Z-3, tek kullanımlık; kullanılınca hesap doğar; geçersizleşme: süre, geri çekme, yeni davet, gönderenin kaldırılması; gönderim ve geri çekme işlem izine; F-6 (K-692) | AdminInvitation · AuditLog · *gönderim kaydı* | davetin hâli, adresi, gönderen yönetici, gönderim anı, kullanıldığı ya da geri çekildiği an; iz satırları | eşlendi |
+| `03 §1.10.8` | Mağazanın satış açıklığı — dört koşulun hepsi; geçici kapatma yeni siparişi durdurur (K-664) | *firma ayarları* · veri doğurmaz — türetilir | geçici kapatma ayarı; açıklık koşullardan türer (`02 §3.1.5`) | eşlendi |
+
+**§1.11 — durum × rol × işlem (42)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §1.11` metin | Ekran varyantları tablodan türer; işlem aralığının dışında sunulmaz; müşteride iptal, cayma ve fesih açık kalemde, adet seçimiyle; fizikselde cayma ve ayıp yalnız kargoya verilmiş kalemde | veri doğurmaz — arayüz (`04`) · veri doğurmaz — türetilir | — (aralıklar durumlardan ve kayıtlardan türer) | veri doğurmaz |
+| `03 §1.11.1` | Müşteri siparişi bütünüyle iptal eder — Alındı + Bekliyor | Cancellation · *geçiş kaydı* | S3 + Ö2; kaydeden müşteri | eşlendi |
+| `03 §1.11.2` | Fiziksel kalemi iptal — ödeme onayından Kargoya verildi'ye kadar; Z-17 | Cancellation · Refund | kalem, adet, an; geri ödeme | eşlendi |
+| `03 §1.11.3` | Hizmet kalemini iptal — tamamlanana kadar | Cancellation | kalem, adet | eşlendi |
+| `03 §1.11.4` | Dijital kalemi iptal — yok | veri doğurmaz — kod | — | veri doğurmaz |
+| `03 §1.11.5` | Fiziksel kalemden caymak — Kargoya verildi'den teslim tarihinden on dört güne (Z-13); mutlak istisnada yok, koşullu istisnada koşulla | Withdrawal · OrderItem · Product | beyan; `DeliveryDate`; kalemin donmuş cayma istisnası (`WithdrawalExemptionReason`) | eşlendi |
+| `03 §1.11.6` | Hizmet kaleminden caymak — ödemeden tamamlanana ya da Z-14'e kadar (K-673, K-792) | Withdrawal · OrderItem | beyan, cayılan adet; tamamlama işareti | eşlendi |
+| `03 §1.11.7` | Dijital kalemden caymak — yok; hak üçüncü kutuyla düşer | *onay kaydı* | dijital kutusunun kaydı | eşlendi |
+| `03 §1.11.8` | Gecikme nedeniyle fesih — Z-11 geçmiş, teslim tarihi girilmemiş açık fiziksel kalem varken (K-717) | LateDeliveryTermination · *geçiş kaydı* | fesih kaydı; kapanış geçişi | eşlendi |
+| `03 §1.11.9` | Ayıp talebi açmak — tipe göre başlangıç; talep yokken (K-676); Z-18 | DefectClaim · OrderItem | talep; teslim işaretinin tarihi | eşlendi |
+| `03 §1.11.10` | Ayıp talebini yeniden açmak — Çözüldü'yken, Z-18 içinde; B-9, F-3 (K-681) | DefectClaim | durum ve yeniden açan | eşlendi |
+| `03 §1.11.11` | Geri ödeme IBAN'ını girmek — havalede iptal, fesih, cayma sırasında; IBAN isteğinde; havale yolu açılınca | RefundIbanRequest · Withdrawal · LateDeliveryTermination · Cancellation | geri ödeme IBAN'ı (yeri VM4-08), girildiği an; isteğin karşılandığı an | eşlendi |
+| `03 §1.11.12` | Girilmiş IBAN'ı düzeltmek — geri ödeme işlenene kadar | RefundIbanRequest | geri ödeme IBAN'ı — düzeltilebilir (girişin zaman damgası yok — K-710) | eşlendi |
+| `03 §1.11.13` | Havale bilgisini görmek — Alındı + Bekliyor; donmuş IBAN (K-663) | Order | siparişe donan IBAN | eşlendi |
+| `03 §1.11.14` | Dijital dosyayı indirmek — ödemeden sonra, hak (P-8) kaldıkça | OrderItem · *dosya kaydı* | indirme hakkı ve sayacı; varyantın o anki dosyası | eşlendi |
+| `03 §1.11.15` | Havale "ödendi" işareti — Alındı + Bekliyor; geri alınamaz; B-4 | *geçiş kaydı* · *ödeme kaydı* | Ö1; aktör yönetici | eşlendi |
+| `03 §1.11.16` | Kargoya vermek — Hazırlanıyor, açık fiziksel kalem varken; B-5 | *geçiş kaydı* · Order | S5; kargo bilgisi | eşlendi |
+| `03 §1.11.17` | Teslim işareti ve tarihi — Kargoya verildi | *geçiş kaydı* · OrderItem | S6; `DeliveryDate` | eşlendi |
+| `03 §1.11.18` | "Teslim edilemedi" — Kargoya verildi; B-6 | *geçiş kaydı* | S7 | eşlendi |
+| `03 §1.11.19` | Yeniden göndermek — Teslim edilemedi; geri alınamaz (K-677); B-5 | *geçiş kaydı* · Order | S8; kargo bilgisi | eşlendi |
+| `03 §1.11.20` | Hizmet kalemini "tamamlandı" — ödeme onaylıyken (K-671), kalem açıkken | OrderItem | tamamlama işareti — teslim işareti, an | eşlendi |
+| `03 §1.11.21` | Firma iptali — ödeme beklenirken sipariş, sonra kalem ve adet (K-794); Teslim edilemedi'de geri dönen kalem; S9 ya da S11; havale hattında IBAN isteği ve B-14 (K-690) | Cancellation · *geçiş kaydı* · RefundIbanRequest | kalem, adet, `CancellationReason`; S9 ya da S11; IBAN isteği | eşlendi |
+| `03 §1.11.22` | Kalem çıkarmak ya da azaltmak — ödemeden sonra, tipine göre sınır; B-11; havalede IBAN isteği (K-690) | *çıkarma kaydı* · RefundIbanRequest | kalem, adet, yönetici, an — sözlükte terimi yok; IBAN isteği | GAP adayı (VA-1) |
+| `03 §1.11.23` | Adresi düzeltmek — Kargoya verildi'ye kadar; fizikselsizde fatura adresi Teslim edildi'ye kadar; B-10 | Order · AuditLog | `ShippingAddress`, `BillingAddress` yerinde düzeltilir; iz satırı adres değerini taşımaz — eski adresin yeri | GAP adayı (VA-2) |
+| `03 §1.11.24` | Kargo şirketi ve takip numarasını düzeltmek — kargoya verildikten sonra; B-12 | Order · AuditLog | kargo şirketi, takip numarası; iz satırı | eşlendi |
+| `03 §1.11.25` | Teslim tarihini ya da ulaşma tarihini düzeltmek (K-712); pencereler ve Z-16 yeni tarihten | OrderItem · Return · AuditLog | `DeliveryDate`; ulaşma tarihi; iz satırı | eşlendi |
+| `03 §1.11.26` | Durum geçişini düzeltmek — §1.6.2; B-13 | *geçiş kaydı* | düzeltme geçişi, `CorrectionReason` | eşlendi |
+| `03 §1.11.27` | İç not yazmak — her durumda | Order | siparişin iç notu — tek serbest metin; iz satırı metinsiz (`02 §10.4.7`) — adı VA-1 | eşlendi |
+| `03 §1.11.28` | İade malını teslim almak — ulaşan adetle; "mal dönmedi"den sonra da; ayıpta sözleşmeden dönmede (K-808); IBAN silinmişse B-14 | Return · RefundIbanRequest · DefectClaim | ulaşma tarihi, ulaşan adet, beyan ya da ayıp talebi bağı; IBAN isteği | eşlendi |
+| `03 §1.11.29` | İade malını reddetmek — koşullu istisnada; geri alınamaz; B-16 | ReturnRejection | kalem, adet | eşlendi |
+| `03 §1.11.30` | "Mal dönmedi" kapanışı — Z-42 geçmiş, ulaşmamış adetlere | NotReturnedClosure | adet, an | eşlendi |
+| `03 §1.11.31` | Geri ödemeyi işlemek — havalede IBAN varken; caymada iki hatta; ayıp çözümünde; tutar bazlı; geri alınamaz; B-8 | Refund · *geçiş kaydı* | tür, tutar, yol, kalem bağı, işleyen, an; Ö3–Ö5 | eşlendi |
+| `03 §1.11.32` | Kart iadesini yeniden denemek ya da havale yolunu açmak; sonucu beklenen iadeyi "gerçekleşmedi" işaretlemek (K-940) | *geri ödeme kaydı* · RefundIbanRequest · AuditLog | geri ödeme kaydının hâli ve yeni deneme; IBAN isteği; "gerçekleşmedi" işaretinin iz satırı | eşlendi |
+| `03 §1.11.33` | "Havale gerçekleşmedi" bildirmek — geri ödeme işlenmeden önce; IBAN silinir, B-14 | RefundIbanRequest · Refund | IBAN'ın silinmesi; yeni IBAN isteği | eşlendi |
+| `03 §1.11.34` | Başka kanaldan gelen caymayı kaydetmek — fizikselde önce "müşteriyle anlaşıldı" iptali, hizmette bütünüyle iptal (K-673); pencere dışında onayla (K-709); bitimden bir yıl sonrasına tarihli kayıt reddedilir; geri alınamaz (K-715); IBAN'sızsa B-14 | Withdrawal · Cancellation · RefundIbanRequest | damga (bildirimin ulaştığı tarih), adet, kaydeden yönetici; pencere dışı onayın kaydı (uzayan pencere — `02 §10.4.10`) | eşlendi |
+| `03 §1.11.35` | Misafir siparişinin e-postasını düzeltmek — kişisel veriler imha edilene kadar; B-1 yeni, B-15 eski adrese | OrderEmailHistory · Order · *gönderim kaydı* | eski ve yeni adres, yönetici, an; `OrderAccessKey` yenilenir | eşlendi |
+| `03 §1.11.36` | E-postayı yeniden göndermek — "e-posta ulaşmadı" işaretliyken müşteri bildirimi; davette yok (K-759) | *gönderim kaydı* | yeniden gönderim ayrı satır, ilk alıcıya (Z-43) | eşlendi |
+| `03 §1.11.37` | Ayıp talebini "çözüldü" ya da yeniden açmak | DefectClaim | `DefectClaimStatus` | eşlendi |
+| `03 §1.11.38` | İndirme hakkını yenilemek — sayaç sıfırlanır (K-683) | OrderItem · AuditLog | indirme sayacı | eşlendi |
+| `03 §1.11.39` | Geri ödeme için IBAN istemek — havalede IBAN'sız geri ödeme (K-686) | RefundIbanRequest | tetikleyen yönetici, istek anı | eşlendi |
+| `03 §1.11.40` | Siparişi kapatmak (S9 kapanışı) — açık kalem yok, teslim yok; sebep, iptal kaydı, geri ödeme ve B-7 yok (K-717) | *geçiş kaydı* | S9; aktör yönetici; kapanış — sebep yok | eşlendi |
+| `03 §1.11.41` | Başka kanaldan gelen gecikme feshini kaydetmek — 1.11.8'in aralığında; geri alınamaz; IBAN'sızsa B-14 (K-706, K-715) | LateDeliveryTermination · RefundIbanRequest | damga, kalemler ve adetler, kaydeden yönetici | eşlendi |
+
+**`03 §4` — bölüm girişi ve §4.1 süre envanterinden zaman aşımı akışları (51)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §4` metin | Süreler (Z-1…Z-47) ve kendiliğinden işleyen anlar burada akışa bağlanır; değer değil kimlik; sayım kuralları `02 §4.1`'de | veri doğurmaz — yazım konvansiyonu | — | veri doğurmaz |
+| `03 §4` m1 | Tek uyarı havale hatırlatmasıdır (B-3, Z-9); kalan süre göstergesi uyarı değil | *gönderim kaydı* · veri doğurmaz — türetilir | B-3'ün gönderim satırı; kalan süre türetilir | eşlendi |
+| `03 §4` m2 | Dondurma yok; tek istisna havalenin kendiliğinden iptali (K-666, K-667); yasal süreler dondurulmaz | Order · *nabız ve kesinti kaydı* | ertelenen son an (K-898); kesinti kaydı (K-895) | eşlendi |
+| `03 §4` m3 | "Sona erişte" sistemin kendiliğinden işlemi; "kendiliğinden işlem yok" firmanın ya da müşterinin yükümlülüğü | veri doğurmaz — yazım konvansiyonu | — | veri doğurmaz |
+| `03 §4.1.1` | Z-1 — ilk bağlantının gönderiminden; yeniden istenen ömrü uzatmaz; dolunca bekleyen kayıt silinir, bekleyen değişiklik düşer (K-659) | *bağlantı kaydı* · Customer · *bekleyen e-posta değişikliği* · *imha kaydı* | ilk bağlantının gönderildiği an, ömrün sonu; bekleyen kaydın silinmesi imha kaydına (K-708) | eşlendi |
+| `03 §4.1.2` | Z-2 — talep anından; tek kullanımlık; L-2 içinde yeni talep | *bağlantı kaydı* · *deneme kaydı* | talep anı, ömrün sonu, kullanıldığı an | eşlendi |
+| `03 §4.1.3` | Z-3 — davetin gönderiminden; geri çekme, yeni davet, gönderenin kaldırılmasıyla da geçersizleşir | AdminInvitation · *bağlantı kaydı* | gönderim anı, ömrün sonu, geri çekildiği an, gönderen yönetici | eşlendi |
+| `03 §4.1.4` | Z-4 kısa oturum — son işlemden; sepet hesapta | Session · Cart | son işlem anı; sepetin hesap bağı | eşlendi |
+| `03 §4.1.5` | Z-5 uzun oturum — "beni hatırla" | Session | oturum türü; son işlem anı | eşlendi |
+| `03 §4.1.6` | Z-6 sepet — dolmaz | Cart | — (süre alanı yok) | eşlendi |
+| `03 §4.1.7` | Z-7 kart ödeme süresi — onaydan; son sorgu; alınmamışsa iptal ve serbest; yanıtsızsa "ödeme sonucu alınamadı" ve yinelenen sorgu | Order · StockReservation · *ödeme kaydı* | ödeme süresinin bittiği an; ödeme sonucu alınamadı işareti; ayırmanın serbest kalması | eşlendi |
+| `03 §4.1.8` | Z-8 havale ödeme süresi — onaydan ya da düzeltme anından; dolunca iptal; kesintide ertelenir (4.2.12) | Order · StockReservation · *firma ayarları* | ödeme süresinin başlangıcı ve sonu (düzeltmede yeniden); ertelenen son an; havale ödeme süresi ayarı | eşlendi |
+| `03 §4.1.9` | Z-9 havale hatırlatması — son iş gününün başında bir kez; düzeltmeyle bir kez daha; kesintide kaçırılırsa süre işliyorsa dönüşte (K-685) | *gönderim kaydı* · Order | B-3'ün gönderim satırı — ödeme süresi başına bir kez (gönderim kaydından okunur) | eşlendi |
+| `03 §4.1.10` | Z-10 kargoya verme süresi — ödeme onayından; kendiliğinden işlem yok; iptalde kanuni faiz uyarısı; söze uyum satış özetinde | Order · *geçiş kaydı* · veri doğurmaz — türetilir | donmuş süre, ödeme onayı anı; S5'in anı; uyum ve sayaç türetilir | eşlendi |
+| `03 §4.1.11` | Z-11 yasal teslim üst sınırı — onaydan; teslim tarihi girilmemiş fiziksel kalem varken fesih düğmesi; geri ödeme on dört gün (2.7.8) | Order · OrderItem · LateDeliveryTermination | oluşma anı; `DeliveryDate`; fesih bildiriminin damgası | eşlendi |
+| `03 §4.1.12` | Z-12 teslim tarihi — yöneticinin girdiği; girilmezse Z-13 ve Z-18 başlamaz | OrderItem | `DeliveryDate` | eşlendi |
+| `03 §4.1.13` | Z-39 ifa süresi — ödeme onayından; "tamamlanmayı bekleyen hizmet" sayacı; iptalde kanuni faiz uyarısı | OrderItem · veri doğurmaz — türetilir | donmuş ifa süresi; tamamlama işareti; sayaç türetilir | eşlendi |
+| `03 §4.1.14` | Z-13 fiziksel cayma penceresi — teslim tarihinden, düzeltilmişse yeni tarihten; önceki beyan geçerli; uzama §5.2.3 | OrderItem · Withdrawal | `DeliveryDate`; beyanın damgası | eşlendi |
+| `03 §4.1.15` | Z-14 hizmet cayma penceresi — sipariş tarihinden ya da fizikselli siparişte teslim tarihinden; tamamlanınca düşer | Order · OrderItem | oluşma anı; `DeliveryDate`; tamamlama işareti; onay anındaki kalemlerin `ProductType`'ı | eşlendi |
+| `03 §4.1.16` | Z-15 dijital cayma hakkı — üçüncü kutuyla düşer | *onay kaydı* | dijital kutusunun kaydı | eşlendi |
+| `03 §4.1.17` | Z-16 cayma geri ödemesi — beyandan ya da ulaşma tarihinden; kendiliğinden işlem yok; IBAN beklenirken de işler | Withdrawal · Return · Refund | beyanın damgası; ulaşma tarihi; geri ödemenin anı | eşlendi |
+| `03 §4.1.18` | Z-42 iade malını gönderme — beyandan; kendiliğinden işlem yok; "mal dönmedi" açılır; havalede Z-38 başlar | Withdrawal | beyanın damgası (süre türetilir) | eşlendi |
+| `03 §4.1.19` | Z-17 iptalde geri ödeme — iptal anından; kartta sistem iadeyi başlatmış, havalede firma | Cancellation · Refund · *geri ödeme kaydı* | iptal anı; kart iadesinin isteği | eşlendi |
+| `03 §4.1.20` | Z-47 ifanın imkânsızlaşması — sayaç yok; B-7 iptal anında sebebiyle | Cancellation · *gönderim kaydı* | `CancellationReason`; B-7'nin gönderim satırı | eşlendi |
+| `03 §4.1.21` | Z-18 ayıp talebi — teslim işaretinin tarihinden; dolunca kanal kapanır; hak iletişim formundan | OrderItem · DefectClaim | teslim işaretinin tarihi (süre türetilir) | eşlendi |
+| `03 §4.1.22` | Z-19 indirme hakkı — süre yok, adet (P-8); yönetici yeniler | OrderItem | indirme hakkı ve sayacı | eşlendi |
+| `03 §4.1.23` | Z-20 indirim aralığı — sistem bitirir; onay anında bitmesi özet farkı | Discount | başlangıç ve bitiş anı | eşlendi |
+| `03 §4.1.24` | Z-21 referans fiyatın penceresi — indirimin başladığı andan; işlem başlatmaz | *fiyat geçmişi* · Discount | fiyat geçmişi; indirimin başlangıcı | eşlendi |
+| `03 §4.1.25` | Z-22 kupon aralığı — yeni siparişte kabul edilmez; ayrılmış haklar kalır | Coupon · StockReservation | başlangıç ve bitiş; ayrılan haklar | eşlendi |
+| `03 §4.1.26` | Z-23 duyuru aralığı — isteğe bağlı; dolunca görünmez | Announcement | başlangıç ve bitiş (isteğe bağlı) | eşlendi |
+| `03 §4.1.27` | Z-24 ileri tarihli yayın — yok | yoktur — kapsam dışı | — | veri doğurmaz |
+| `03 §4.1.28` | Z-25 KVKK cevabı — başvurunun ulaştığı an talebin kaydında; sayaç yok | ContactRequest · veri doğurmaz — ürünün dışında | oluşma anı; `ContactTopic` | eşlendi |
+| `03 §4.1.29` | Z-26 e-postanın yeniden denenmesi — üç deneme başarısızsa "e-posta ulaşmadı" ya da firma uyarısı; hesap e-postasında işaret yok; yeniden gönderimle kalkar | *gönderim kaydı* · *kanal hâli kaydı* | deneme sayısı, sonraki deneme anı, sonuç; firma bildirimlerinin ulaşma hâli; işaret türer (K-913) | eşlendi |
+| `03 §4.1.30` | Z-27 deneme limitlerinin penceresi — kayan; geçici engel; hesap kilitlenmez | *deneme kaydı* | an (pencere geçince silinir) | eşlendi |
+| `03 §4.1.31` | Z-28 sipariş, ödeme, fatura verisi, sözleşme ve onay kayıtları — yılın sonundan; kişisel veri imha, hesap bağı kesilir; kalan ticari kayıt | Order · OrderItem · *ödeme kaydı* · *onay kaydı* · *yasal metin sürümü* · *imha kaydı* | oluşma yılı (başlangıç); kişisel alanların boşaltılması; hesap bağının kesilmesi | eşlendi |
+| `03 §4.1.32` | Z-41 ödemesi hiç alınmamış sipariş — Başarısız olduğu andan; kişisel veri imha, kayıt on yıl (K-951) | Order · *imha kaydı* | Başarısız olduğu an (Ö2'nin anı); kişisel alanların boşaltılması | eşlendi |
+| `03 §4.1.33` | Z-29 ayıp talebi kaydı — siparişle imha | DefectClaim | siparişe bağ | eşlendi |
+| `03 §4.1.34` | Z-30 işlem izi — yılın sonundan; değiştirilemez, silinemez | AuditLog | yazıldığı an; yalnız eklenir (K-877) | eşlendi |
+| `03 §4.1.35` | Z-31 hesap verisi — silinince hemen | Customer · Session · AddressBook · *imha kaydı* | anında fiziksel silme; silme imha kaydına | eşlendi |
+| `03 §4.1.36` | Z-32 sepet — hesapla silinir | Cart | hesap bağı — hesapla silinir | eşlendi |
+| `03 §4.1.37` | Z-33 iletişim talebi — son kapatılıştan, açıkta açılıştan; "Sipariş hakkında" on yıl (P-40; K-707, K-951) | ContactRequest | son kapatıldığı an, oluşma anı, `ContactTopic` | eşlendi |
+| `03 §4.1.38` | Z-34 hesap, yönetim ve firma bildirimlerinin gönderim kaydı — gönderim anından | *gönderim kaydı* | gönderim anı; tür | eşlendi |
+| `03 §4.1.39` | Z-43 B-1…B-16'nın gönderim kaydı — on yıl; ödemesizde kişisel veri üç yılda (K-951); bilgilendirmenin kanıtı | *gönderim kaydı* · *ödeme kaydı* | sipariş bağı, gönderim anı, alıcı ve olayın değerleri (boşaltılabilir); kol ödeme kaydından | eşlendi |
+| `03 §4.1.40` | Z-35 havale geri ödeme IBAN'ı — tamamlanınca silinir, silme imha kaydına (K-708); erken silme hâlleri; mal sonra ulaşırsa yeniden istenir | RefundIbanRequest · Refund · *imha kaydı* | geri ödeme IBAN'ı, girildiği an, silinme anı; silmenin imha kaydı | eşlendi |
+| `03 §4.1.41` | Z-36 periyodik imha — kendiliğinden çalışan iş; panelde düğme yok | *imha kaydı* · *nabız ve kesinti kaydı* | çalışmanın imha kaydı; gecelik işin çalışma anları | eşlendi |
+| `03 §4.1.42` | Z-40 giriş kaydı ve sistem kayıtları — oluştuğu andan; periyodik imhayla, dosyaları da (K-687, K-916) | *giriş kaydı* · veri doğurmaz — mimari (`05`) | giriş kaydı: an, IP, hesap, sonuç; sistem kayıtları dosyada | eşlendi |
+| `03 §4.1.43` | Z-44 imha kaydı — kişisel veri içermez | *imha kaydı* | tarih, kayıt türü, sayı | eşlendi |
+| `03 §4.1.44` | Z-45 geri alma bağlantısı — değişikliğin geçerli olduğu andan; dolunca yeniden değiştirme engeli kalkar | *bağlantı kaydı* | değişikliğin geçerli olduğu an, ömrün sonu, kullanıldığı an | eşlendi |
+| `03 §4.1.45` | Z-46 tanınan tarayıcı işareti — son başarılı girişten ya da sıfırlamayla şifre yenilemeden; süre dolmadan düşme hâlleri (K-695) | RecognizedBrowserMark | hesap, tarayıcı, son başarılı giriş ya da sıfırlama anı; toplu geçersizleştirme | eşlendi |
+| `03 §4.1.46` | Z-37 veri ihlalinde Kurul'a bildirim — sayaç yok | veri doğurmaz — ürünün dışında | — | veri doğurmaz |
+| `03 §4.1.47` | Z-38 malı dönmeyen caymada IBAN'ın silinmesi — Z-42'nin dolduğu günden; kalem kapanmaz; aynı IBAN'ı bekleyen geri ödeme varsa kalır | RefundIbanRequest · Withdrawal · *imha kaydı* | IBAN'ın silineceği gün (K-895), silme anı; IBAN'ı kullanan geri ödemeler | eşlendi |
+
+**§4.2 — kendiliğinden işleyen anlar (13)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §4.2` metin | Süresi olmayan ama zamanı kural olan anlar ve kesintideki davranış (`02 §4.3`) | veri doğurmaz — yazım konvansiyonu | — | veri doğurmaz |
+| `03 §4.2.1` | Sipariş onayı — numara; kalemler, adresler, firma kimliği, metin sürümleri, havalede IBAN ve kargoya verme sözü donar; ayırma; aynı sepetin önceki siparişi iptal; B-1, B-2, F-1 (K-663) | Order · OrderItem · StockReservation · *yasal metin sürümü* · Cancellation · *gönderim kaydı* | `OrderNumber`; donan değerler (`02 §3.17.2`, §3.23); donan sürümler; donan IBAN; donan Z-10; sepet bağı; önceki siparişin iptal türü | eşlendi |
+| `03 §4.2.2` | Ödeme onayı — kesin düşer, kupon kullanılmış, kalemler sepetten çıkar, Z-10 ve Z-39 başlar, dijital teslim; B-4 | Order · StockReservation · Coupon · CartItem · OrderItem | ödeme onayı anı; ayırmanın hâli; teslim işareti | eşlendi |
+| `03 §4.2.3` | Kendiliğinden iptal — Z-7, Z-8, kart başarısız, aynı sepet; İptal edildi + Başarısız; son sorgu; B-7 | Cancellation · *geçiş kaydı* · StockReservation | iptalin türü (kendiliğinden); S3 + Ö2, aktör sistem; ayırmanın serbest kalması | eşlendi |
+| `03 §4.2.4` | İptal, çıkarma ve fesih — işleme giren adedin stoğu ve kontenjanı döner; kupon tamamında; kapanış kuralı (K-672, K-791) | Cancellation · *çıkarma kaydı* · LateDeliveryTermination · Variant · Coupon | işleme giren adet (dönüşün kaynağı) | eşlendi |
+| `03 §4.2.5` | İade — fiziksel stok yönetici ekleyince; hizmet kontenjanı cayılan adet kadar; kupon tamamında (K-791) | Return · Withdrawal · Variant · Coupon | teslim alınan ve eklenen adet; cayılan adet | eşlendi |
+| `03 §4.2.6` | Kısmi iptal ve iade — kupon ve kargo yeniden hesaplanmaz; iki hâlde kargo ücreti son geri ödemeye eklenir (K-789) | Refund · Order | geri ödemenin kargo ücreti parçası; donmuş kargo ücreti | eşlendi |
+| `03 §4.2.7` | Kart hattında kendiliğinden geri ödeme — onay penceresi yok; gerçekleşince Ö3–Ö5; başarısızsa işaret, yeniden deneme yok; sonuç bilinmezse sorgu (K-683, K-684, K-940); B-8, F-4 | *geri ödeme kaydı* · Refund · *ödeme kaydı* · *geçiş kaydı* · *gönderim kaydı* | geri ödeme kaydının hâlleri; geç gelen ödemenin geri ödemesi; F-4 | eşlendi |
+| `03 §4.2.8` | Malı dönmeyen caymada IBAN'ın silinmesi — kapatmayla ya da Z-38'de; kalemi kapatmaz | RefundIbanRequest · NotReturnedClosure · *imha kaydı* | IBAN'ın silinme anı | eşlendi |
+| `03 §4.2.9` | Periyodik imha — her çalışmanın imha kaydı; hesap, bekleyen kayıt, IBAN ve bekleyen e-posta değişikliğinin silinmesi de kayda (K-708, K-984) | *imha kaydı* | tarih, kayıt türü, sayı — çalışma ve anında silmeler | eşlendi |
+| `03 §4.2.10` | E-postanın yeniden denenmesi — artan aralıkla üç kez; art arda başarısızlıkta kanal uyarısı | *gönderim kaydı* · *kanal hâli kaydı* | deneme sayısı, sonraki deneme anı; kanal hâli | eşlendi |
+| `03 §4.2.11` | Sitenin kesintisi — süreler işler; kaçırılanlar dönüşte sırayla; son sorgu ödemeyi bulur; yasal süreler dondurulmaz (K-666, K-667) | *iş kuyruğu* · *nabız ve kesinti kaydı* · Order | zamanlanmış işlerin alanları; kesinti kaydı (K-895); ertelenen son an | eşlendi |
+| `03 §4.2.12` | Havale süresinin kesintide dolması — iptal ilk iş gününün sonuna ertelenir; sipariş sayfası yeni son günü gösterir; tespit `05`'in (K-667) | Order · *nabız ve kesinti kaydı* | ertelenen son an (K-898); kesintinin kaydı | eşlendi |
+
+#### 1.1.10 Kullanıcı Akışları — öteki bölümler (50)
+
+Alt bölüm düzeyinde (`03 §n.m` — `###` başlığı; K-997): bir satır alt bölümün bütün satırlarını ve alt başlıklarını (`####`) kapsar; bölümün ilk alt bölümden önceki metni ayrı satırla girer (`03 §n` metin — K-1002). `03 §2`, §3, §5, §6, §8, §9 ve §10'un 505 satırı ve `03 §7`'nin 131 satırı tek tek, satırın tamamıyla okundu. Ürün Gereksinimleri'nde karşılığı bulunmayan bir veri (kayıt, işaret, tarih, sayaç, bağ) taşıyan satır kimliğiyle ayrıca girecekti; **böyle satır çıkmadı:** bu bölümlerin her satırı "Kaynak" hücresinde `02`'nin kuralını gösterir — `03 §7.1`'in ve §7.3'ün kaynak sütunu olmayan satırları `02 §9`'un B, F ve hesap e-postası satırlarını adıyla taşır — ve satırların veriye dokunan ayrıntısı `02`'nin gösterilen kuralında yazılıdır (§1.1.1, okuma derinliği; betik `opt03`). Satırın "Alan" hücresi alt bölümün veri doğurmayan satırlarını da özetler. **`03 §7` `02 §9`'un B ve F satırlarıyla toplu eşlenir** (K-997): §7.1'in B-1…B-16 ve F-1…F-6 satırları §1.1.8'in `02 §9.2` ve §9.3 satırlarına, hesap ve yönetim e-postaları `02 §9.4` metin satırına, §7.2'nin satırları `02 §9.2` metin ve §9.5'in maddelerine düşer; her e-posta *gönderim kaydı*nın bir satırıdır (K-892).
+
+**`03 §2` — müşteri tarafının ana akışları (11)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §2` metin | Müşteri tarafının akışları (akış 1, 2, 3, 7); biçim, aktör ve dalların yeri | veri doğurmaz — yazım konvansiyonu | — | veri doğurmaz |
+| `03 §2.1` | Vitrinde gezinme: ana sayfa düzeni ve en yeni ürünler, alfabetik kategori menüsü, ad araması, iki süzgeç, ürün sayfasının gösterdikleri, "Tükendi", ayrılmış adetle satın alınabilirlik, satış kapalıyken vitrin, arşiv ve taslak adresi (11 satır) | *firma ayarları* · Product · Variant · Category · *ürün–kategori bağı* · Discount · *fiyat geçmişi* · StockReservation · Announcement · veri doğurmaz — arayüz (`04`) · veri doğurmaz — türetilir | `HomepageLayout`; ürünün oluşma ya da ilk yayın anı (en yeni sıralaması); `PrimaryCategory`; fiyatın başlangıç tarihi; `ReferencePrice` ve indirimin tarihleri; ayrılan adet (satın alınabilirlik türetilir); `PublishStatus` — satırların kuralı `02 §3.2`–§3.9, §3.28 (§1.1.5) | eşlendi |
+| `03 §2.2` | Kurumsal içerik ve iletişim formu: Hakkımızda bloğu, menü ve liste sırası, içerik sayfaları, ilgili ürünler, İletişim sayfası, üst ve alt bölüm, formun kapısı, beş konu tipi, tuzak alan, L-4, F-2, talep yalnız panelde (10 satır) | Content · AboutPage · Offering · PortfolioItem · FaqItem · Branch · CustomPage · *içerik–ürün bağı* · Company · SocialLink · ContactRequest · *deneme kaydı* · *gönderim kaydı* | elle sıra, "ana sayfada göster" ve "menüde göster" işaretleri; firma kimliğinin iletişim alanları; talebin adı, e-postası, telefonu, `ContactTopic`, mesajı, oluşma anı; F-2 — `02 §3.27`, §3.32 (§1.1.5) | eşlendi |
+| `03 §2.3` | Sepet: ekleme denetimi (stok, P-9, dijitalde tek), üye ve misafir sepeti, "fiyatı değişti", eşikler, satın alınamayan kalem, vitrinden kalkan kalem, girişte birleşme ve L-6'nın taşınması, ödeme adımına geçiş (8 satır) | Cart · CartItem · *deneme kaydı* · *firma ayarları* · StockReservation · veri doğurmaz — türetilir | kalemin ilk eklendiği birim fiyat; üyenin hesap bağı, misafirin tarayıcı bağı; kupon deneme satırının sepet ekseni; ayrılan adet — `02 §3.16`, §3.18, §8.2 L-6 (§1.1.5, §1.1.8) | eşlendi |
+| `03 §2.4` | Ödeme adımı ve onay: iletişim e-postası, teslimat ve fatura adresi, deftere kaydetme (K-680), kupon (K-654, K-679, K-806), ödeme yöntemi ve L-8, özet ve cayma özeti, onay kutuları, onay anında yeniden değerlendirme, siparişin oluşması ve donan değerler (9 satır) | Order · OrderItem · AddressBook · Coupon · StockReservation · *onay kaydı* · *yasal metin sürümü* · *deneme kaydı* · Cancellation · *gönderim kaydı* | iletişim e-postası, `ShippingAddress` (telefon dahil), `BillingAddress`; kupon ve kalemlere dağılan payı; `PaymentMethod`; onay kutularının kaydı; `OrderNumber`; donan değerler ve sürümler; önceki siparişin iptali — `02 §3.10`, §3.14, §3.17, §3.21, §3.23, §3.24 (§1.1.5) | eşlendi |
+| `03 §2.5` | Ödeme ve teslim: kart (3D Secure, başarı bildirimi, ret, yarıda kalan ödeme ve son sorgu), havale (donan IBAN, B-3, "ödendi", süre dolunca iptal), ödeme onayının sonuçları, indirme, kargoya verme, teslim edilemedi, teslim tarihi, hizmetin tamamlanması (17 satır) | Order · OrderItem · *ödeme kaydı* · *gelen bildirim kaydı* · *geçiş kaydı* · StockReservation · Cancellation · *dosya kaydı* · *gönderim kaydı* | ödemenin kaynağı ve anı; ödeme sonucu alınamadı işareti; kargo şirketi, takip numarası ya da kendi aracıyla teslim; `DeliveryDate`; tamamlama işareti; indirme sayacı — `02 §3.20`, §3.21, §5.6 (§1.1.5, §1.1.6) | eşlendi |
+| `03 §2.6` | Sipariş takibi: sipariş geçmişi, numara ve e-postayla sorgu (L-5), erişim anahtarlı bağlantı, sipariş sayfasının taşıdıkları (geri ödemeler dahil — K-826), ulaşmayan e-posta, hesabı silinen üyenin siparişi, misafir e-postasının düzeltilmesi (7 satır) | Order · Refund · *deneme kaydı* · *gönderim kaydı* · OrderEmailHistory · Customer · veri doğurmaz — türetilir | hesap bağı; `OrderAccessKey` (ömrü siparişin kişisel verisine bağlı); gerçekleşmiş geri ödemelerin tarihi, tutarı, yolu; sorgu deneme satırları — `02 §3.22`, §10.4.11 (§1.1.5, §1.1.8) | eşlendi |
+| `03 §2.7` | İptal ve gecikme feshi: ödeme beklenirken bütünüyle iptal, fiziksel ve hizmet kaleminin adetle iptali (K-787, K-791, K-792), dijitalde yok, havale IBAN'ı, geri ödeme (K-788, K-789), gecikme feshi ve geri ödemesi (8 satır) | Cancellation · LateDeliveryTermination · Refund · RefundIbanRequest · StockReservation · *geri ödeme kaydı* · *geçiş kaydı* | iptal edilen adet ve anı; feshin damgası ve kapsadığı adetler; geri ödemenin tutarı ve kargo payı; geri ödeme IBAN'ı (girişin zaman damgası yok — K-710) — `02 §7.1`, §7.2 (§1.1.8) | eşlendi |
+| `03 §2.8` | Cayma ve iade: fiziksel kalemde düğme, beyan (cayılan adet, iade adresi, damga), teslim sırası sorusu, gönderim, teslim alma, ret, kullanılmış mal, mal dönmeyince; hizmet ve dijital kalem; geri ödeme, havalenin gerçekleşmemesi, kart iadesinin gerçekleşmemesi, başka kanaldan cayma (15 satır) | Withdrawal · Return · ReturnRejection · NotReturnedClosure · Refund · RefundIbanRequest · *geri ödeme kaydı* · OrderItem · AuditLog | beyanın damgası, adedi, iade adresi, kaydedeni; teslim sırası cevabı (iz satırı — `02 §7.4.1`); kalemin donmuş cayma istisnası; ulaşma tarihi ve adedi; `RefundFailedMark`, `RefundOutcomePendingMark` — `02 §7.3`, §7.4, §10.4.10 (§1.1.8) | eşlendi |
+| `03 §2.9` | Ayıp talebi: "sorun bildir"in aralığı (Z-18), ayıplı adet ve iade adresi (K-793), talep açıkken yeni talep yok, çözüm sistem dışında, "çözüldü", yeniden açma ve tarihi (K-681) (6 satır) | DefectClaim · Refund · RefundIbanRequest · Return · *gönderim kaydı* | kalem, ayıplı adet, açıklama, iade adresi, `DefectClaimStatus`, oluşma ve yeniden açılma anları; para gerektiren çözümün geri ödemesi — `02 §7.5`, §5.10 (§1.1.6, §1.1.8) | eşlendi |
+| `03 §2.10` | Uçtan uca anlatılar: fiziksel siparişin ana akışı (8 satır) ve dört anlatı — karışık sipariş, kargodayken cayılan gönderi, IBAN silindikten sonra ulaşan mal, misafir e-postasının düzeltilmesi | Order · OrderItem · Withdrawal · Return · NotReturnedClosure · RefundIbanRequest · Refund · OrderEmailHistory · *geçiş kaydı* | anlatılar §2.1–§2.9'un satırlarına işaret eder, yeni veri taşımaz; ulaşma tarihinin teslim tarihi yokken alt sınırsız olması (`02 §7.4.1`); "mal dönmedi"den sonra ödenen tutarın düşülmesi (`02 §10.4.9`) | eşlendi |
+
+**`03 §3` — hata akışları (6)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §3` metin | `02 §6`'nın her satırı burada tam bir kez kaynak olur; biçim, bildirim ve durum hücrelerinin okunuşu | veri doğurmaz — yazım konvansiyonu | — (satırlar `02 §6`'nın eşidir — §1.1.7) | veri doğurmaz |
+| `03 §3.1` | Altı ilke: e-postaya bağlı olmama, ödenmiş siparişi bilgisizlikle iptal etmeme, özet ile siparişin aynılığı, sepetin korunması, nötr limit mesajı, renkle taşınmayan anlam (6 satır) | *gönderim kaydı* · *kanal hâli kaydı* · Order · Cart · *deneme kaydı* · veri doğurmaz — arayüz (`04`) | `02 §6.1.1`–§6.1.6'nın satırları (§1.1.7) | eşlendi |
+| `03 §3.2` | Satın alma (22 satır) ve sipariş takibi (6 satır) hataları — `02 §6.2` ve §6.3'ün satırları birebir | Order · Cart · CartItem · Cancellation · StockReservation · *ödeme kaydı* · *geri ödeme kaydı* · *deneme kaydı* · OrderEmailHistory · AuditLog · yoktur — kapsam dışı | `02 §6.2` ve §6.3'ün alt bölüm ve kimlikli satırları (§1.1.7) — adres düzeltmesinde eski adresin yeri VA-2 (3.2.2.6) | eşlendi |
+| `03 §3.3` | İptal, cayma ve iade hataları (36 satır) — `02 §6.4`'ün satırları birebir | Cancellation · Withdrawal · Return · ReturnRejection · NotReturnedClosure · Refund · RefundIbanRequest · *geri ödeme kaydı* · DefectClaim · AuditLog | `02 §6.4`'ün satırları (§1.1.7) — IBAN isteğinin tarihi izde (3.3.20), teslim sırası cevabı izde (3.3.34) | eşlendi |
+| `03 §3.4` | Üyelik hataları (17 satır) — `02 §6.5`'in satırları birebir | Customer · *bağlantı kaydı* · *bekleyen e-posta değişikliği* · *deneme kaydı* · Session · SocialLogin · *imha kaydı* | `02 §6.5`'in satırları (§1.1.7) | eşlendi |
+| `03 §3.5` | Firma tarafı hataları: katalog (16), sipariş yürütümü (17), kurumsal içerik (11), mağaza ayarları (16) — `02 §6.6`–§6.9'un satırları birebir | Product · Variant · Category · Discount · Coupon · StockReservation · Order · Cancellation · *geçiş kaydı* · Content · ContactRequest · Company · Branding · *firma ayarları* · Admin · AdminInvitation · *yasal metin sürümü* | `02 §6.6`–§6.9'un satırları (§1.1.7) — eşzamanlı düzenleme ve işlemde sürüm değeri (3.5.1.10, 3.5.2.15 — `05 §7.3`) | eşlendi |
+
+**`03 §5` — itiraz ve anlaşmazlık akışları (4)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §5` metin | Ayrı şikâyet kanalı yok; ürün uyuşmazlığa karar vermez, kararın sonucunu panelin işlemleriyle uygular | yoktur — kapsam dışı | şikâyet ya da itiraz kaydı yok | veri doğurmaz |
+| `03 §5.1` | Üç yol ve itirazın yeri: iletişim formu ("Sipariş hakkında"), firmanın e-postayla cevabı ve var olan işlemler, yeniden açma, uyuşmazlık yolları, lehine kararın uygulanması (iç not), kanıtın dayanakları (7 satır) | ContactRequest · DefectClaim · Refund · RefundIbanRequest · Order · *yasal metin sürümü* · *onay kaydı* · *gönderim kaydı* · AuditLog · OrderEmailHistory | kanıt: donan metinler ve kutuların kaydı, B-1…B-16'nın gönderim kaydı (Z-43), işlem izi, beyanların damgası, e-posta geçmişi; kararın kendisi kaydedilmez — iç not (adı VA-1) | eşlendi |
+| `03 §5.2` | Ürünün dışında çözülen anlaşmazlıklar: ters ibraz (4 satır), yolda kaybolan iade (5), eksik bilgilendirmede uzayan cayma (4), teslim tarihine itiraz (4) | yoktur — kapsam dışı · *geri ödeme kaydı* · Order · NotReturnedClosure · Refund · Return · Withdrawal · OrderItem · ContactRequest | ters ibraz alanı yok (`02 §3.21.11`); iç not; "mal dönmedi"den sonra ödenen tutar ve sonra ulaşan malda düşülmesi (`02 §10.4.9`); pencere dışı kaydın onayı ve tarihi (`02 §10.4.10`); `DeliveryDate` düzeltmesi | eşlendi |
+| `03 §5.3` | İade reddi (6 satır) ve kullanılmış, hasarlı, eksik dönen mal (3 satır) | ReturnRejection · Return · Refund · RefundIbanRequest · AuditLog · yoktur — kapsam dışı | ret kaydı — ulaşma tarihi, adet, iz satırı; kesinti ve değer kaybı alanı yok (`02 §7.4.10`) | eşlendi |
+
+**`03 §6` — kötüye kullanım ve inceleme akışları (4)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §6` metin | Önlemler `02 §8`'de, teknik güvenlik `05`'te; teyidin ispatı ve kandırılmanın sonucu firmada | veri doğurmaz — yazım konvansiyonu | — | veri doğurmaz |
+| `03 §6.1` | Deneme limitleri: L-1…L-9'un adımı, ekseni ve sonucu (9 satır), engel ve normale dönüş (4), girişe saldırıda gerçek kullanıcı (5), stok ve kupon kilitleme (4) | *deneme kaydı* · RecognizedBrowserMark · Order · StockReservation | deneme satırının limiti, ekseni, değeri, anı (`02 §8.2`, §11.2); tanınan tarayıcının ayrı sayacı; L-8 açık sipariş sayısından türer | eşlendi |
+| `03 §6.2` | Teyit ve kandırılma: siparişin kanalına dönerek teyit (4 satır), adres çevirtme (3), sahte cayma ya da iptal (3), misafir e-postasını çevirtme (4), hesabın e-postasının ele geçirilmesi (3), havale IBAN'ının yetkisiz değişikliği (4) | Order · AuditLog · OrderEmailHistory · Withdrawal · Cancellation · RefundIbanRequest · *bağlantı kaydı* · Session · RecognizedBrowserMark · *firma ayarları* · *gönderim kaydı* · Admin | teyit kaydedilmez; iz satırı adres değerini taşımaz — geri düzeltmede eski adresin yeri VA-2 (6.2.2.3); IBAN değişikliğinin izi eski ve yeni değerle (`02 §9.3.3`); geri alma bağlantısı | eşlendi |
+| `03 §6.3` | Firmanın inceleme akışları: şüpheli açık havale siparişleri (3 satır), veri ihlalinde kapsam (4), etkilenen kişilere ulaşma (2) | StockReservation · Cancellation · AuditLog · *giriş kaydı* · Admin · Order · Customer · ContactRequest · veri doğurmaz — mimari (`05`) | ayrılan adedi tutan siparişler; iz satırının süzgeç alanları (tarih, yönetici); dışa aktarmanın iz satırı; giriş kaydı panelde yok — sistem kayıtlarıyla | eşlendi |
+
+**`03 §7` — bildirim haritası (4)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §7` metin | Tek kanal; alıcı adresleri; ulaşmayan e-postanın üç denemesi, işaret ve uyarı; içerik `08`'de; saklama Z-43 ve Z-34 | *gönderim kaydı* · *kanal hâli kaydı* · Company · Admin · veri doğurmaz — e-posta (`08`) | gönderimin alıcı adresi (siparişin iletişim e-postası, firmanın iletişim e-postası, yöneticinin kendi adresi); `02 §9.1`, §9.3.1 (§1.1.8) | eşlendi |
+| `03 §7.1` | Bildirimler ve tetikleyicileri — B-1…B-16 (37 satır), F-1…F-6 (11), hesap ve yönetim e-postaları (6); tetikleyici, akış, alıcı ve içerik özeti | *gönderim kaydı* · veri doğurmaz — e-posta (`08`) | `02 §9.2` B-1…B-16 ve §9.3 F-1…F-6 satırlarının alanları (§1.1.8) — her satır bir gönderim satırı; hesap e-postaları `02 §9.4` metin; yeniden gönderim ayrı satır, ilk alıcıya (7.1.37) | eşlendi |
+| `03 §7.2` | Bildirim üretmeyen olaylar ve olmayan bildirimler (30 satır) | veri doğurmaz — kod · yoktur — kapsam dışı | `02 §9.2` metin, §9.3.2, §9.4, §9.5'in maddeleri (§1.1.8) — gönderim satırı doğmaz | veri doğurmaz |
+| `03 §7.3` | Geçiş ve olay bazlı eşleme — durum geçişinden ve olaydan bildirime (47 satır) | *gönderim kaydı* · *geçiş kaydı* | gönderim satırının tetikleyen olaya ya da geçişe bağı — S1…S11, Ö1…Ö5 ve kalem kayıtları (§1.1.9) | eşlendi |
+
+**`03 §8` — yönetim akışları (10)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §8` metin | Firma tarafının akışları; tek rol; firmanın kendi işlemi kendine bildirilmez; iz işlem izinin sekiz alanından birine yazılan işlemdir — fiyat, stok girişi ve içerik metni yazılmaz | AuditLog · veri doğurmaz — yazım konvansiyonu | iz satırının alanları (`02 §10.3.1`) | eşlendi |
+| `03 §8.1` | Katalog yönetimi: ürün (tip, ad, kategoriler, ana kategori, liste araması — K-737), varyant (`SKU`, fiyat, KDV), stok ve ayrılan adet (K-653), tipe özgü alanlar, görseller, dijital dosya, yayın kapısı, arşiv, kalıcı silme, fiyat geçmişi, indirim, kupon, kategori ağacı (K-805), toplu işlem yok (15 satır) | Product · Variant · Option · OptionValue · Category · *ürün–kategori bağı* · *görsel* · *dosya kaydı* · *fiyat geçmişi* · Discount · Coupon · StockReservation · AuditLog · yoktur — kapsam dışı | `ProductType`, `PrimaryCategory`, `SKU`, `VatRate`, `StockQuantity`, `PublishStatus`; üretim yeri, ölçü birimi, cayma istisnası (`WithdrawalExemptionReason`), ifa süresi, P-9 sınırı; sayfa adresi ilk yayında; sürüm değeri (eşzamanlı düzenleme) — `02 §3.2`–§3.12 (§1.1.5) | eşlendi |
+| `03 §8.2` | Olağan hat: yeni sipariş, havale "ödendi", ödeme onayının sonuçları, hazırlık ve fatura, kargoya verme (listeden şirket ya da "Diğer" ve adı), teslim tarihi ve sırası sorusu, teslim edilemedi, yeniden gönderim, hizmetin tamamlanması, indirme hakkının yenilenmesi, sipariş arama (K-714) (11 satır) | Order · OrderItem · *geçiş kaydı* · *ödeme kaydı* · AuditLog · *gönderim kaydı* · veri doğurmaz — türetilir · veri doğurmaz — ürünün dışında | kargo şirketi (liste değeri ya da "Diğer" ve adı), takip numarası ya da kendi aracıyla teslim beyanı; `DeliveryDate` (sipariş düzeyi); tamamlama işareti; indirme sayacı; sayaçlar türetilir; fatura ürünün dışında — `02 §3.20`, §3.21, §10.6.1 | eşlendi |
+| `03 §8.3` | Firma iptali (2 satır — altı sebepli kapalı liste), iade teslim alma ve reddi (5), geri ödeme (9) — IBAN isteği, kart iadesinin gerçekleşmemesi ve sonucunun beklenmesi (K-940), tutar bazlı geri ödeme, "havale gerçekleşmedi" | Cancellation · Return · ReturnRejection · *geçiş kaydı* · Refund · *geri ödeme kaydı* · RefundIbanRequest · AuditLog · Variant | `CancellationReason` ve "diğer" açıklaması; ulaşma tarihi, ulaşan adet, stoğa eklenen adet; geri ödemenin türü, tutarı, yolu, kalem bağı (isteğe bağlı), işleyen; geri ödeme kaydının hâlleri; işaretten sonra gelen başarılı sonucun uyarısı (K-940) — `02 §7.2`, §7.4, §10.4.9 (§1.1.8) | eşlendi |
+| `03 §8.4` | Sipariş müdahaleleri: adres, çıkarma, takip bilgisi, teslim ve ulaşma tarihi, durum düzeltmesi (üç sebepli kapalı liste), iç not, "mal dönmedi", başka kanaldan cayma ve fesih kaydı, misafir e-postası; ayıp talebinin yönetimi (11 satır) | Order · *çıkarma kaydı* · OrderItem · Return · *geçiş kaydı* · NotReturnedClosure · Withdrawal · LateDeliveryTermination · OrderEmailHistory · DefectClaim · AuditLog | `ShippingAddress`, `BillingAddress` — eski adresin yeri VA-2; çıkarma kaydı — adı VA-1; iz eski ve yeni tarihi yazar (`02 §10.4.5`); `CorrectionReason`; iç not — adı VA-1; damga ve kaydeden; e-posta geçmişi — `02 §10.4` (§1.1.8) | eşlendi |
+| `03 §8.5` | Manuel adım bütçesi — hat başına zorunlu adımlar, koşullu adımlar, bütçeye girmeyenler, sistem dışı adımlar (8 satır) ve bütçe notu | veri doğurmaz — kod | — (`02 §10.5`; sayılar veri doğurmaz) | veri doğurmaz |
+| `03 §8.6` | Kurumsal içerik kaydı (7 satır), ana sayfa, menü ve marka (4), duyuru (2), iletişim talepleri (4) | Content · AboutPage · Offering · PortfolioItem · FaqItem · Branch · CustomPage · Announcement · *içerik–ürün bağı* · *görsel* · *firma ayarları* · Branding · SocialLink · ContactRequest · AuditLog | `PublishStatus`, elle sıra, ana sayfa ve menü işaretleri, sayfa adresi; `HomepageLayout`, menü adları; `BrandName`, `Logo`, `Favicon`, `BrandColor`, platform imzası; duyurunun metni ve tarihleri; `ContactRequestStatus`, son kapatıldığı an, `ContactTopic` — `02 §3.27`–§3.29, §3.32 (§1.1.5) | eşlendi |
+| `03 §8.7` | Mağaza ayarları: kurulum kontrol listesi ve satış kapısı (2 satır), firma kimliği ve yasal metinler (3), ödeme yöntemleri (3), kargo, teslimat, süreler, eşikler ve iade adresi (5), satışın geçici kapatılması (2) | Company · *firma ayarları* · PrivacyNotice · CookiePolicy · PreInformationForm · DistanceSalesContract · *yasal metin sürümü* · *il listesi* · AuditLog · *gönderim kaydı* · veri doğurmaz — türetilir | `CompanyType` ve tipe göre kimlik alanları, ETBİS bilgisi; havale IBAN'ı; kargo ücreti, eşikler, teslimat illeri, süreler, P-8, P-10, iade adresi, geçici kapatma; metinlerin sürümleri ve yayını; satış kapısı ve kontrol listesi türetilir; ayar değişikliğinin izi eski ve yeni değerle — `02 §3.1`, §3.18–§3.21, §3.33, §11 (§1.1.5, §1.1.8) | eşlendi |
+| `03 §8.8` | Yönetici hesapları ve davet: davet, hesabın açılması (ad — K-736), geri çekme, süre dolması, kaldırma, yanlış adrese giden davet (6 satır) | Admin · AdminInvitation · *bağlantı kaydı* · Session · AuditLog · *gönderim kaydı* | yöneticinin adı, e-postası, şifre özeti; davetin adresi, gönderen yönetici, hâli ve anları; iz satırları; F-6 — `02 §10.2` (§1.1.8) | eşlendi |
+| `03 §8.9` | Bekleyen işler (altı sayaç, IBAN listesi, kanal ve firma bildirimi uyarıları), yeniden gönderim (K-761), satış özeti, işlem izinin okunması, sipariş, üye ve talep dışa aktarması (7 satır) | veri doğurmaz — türetilir · *gönderim kaydı* · *kanal hâli kaydı* · AuditLog · Order · *ödeme kaydı* · Customer · ContactRequest | sayaçlar ve özet saklanmaz (`02 §10.6.1`); ulaşmayan her gönderim ayrı satır; iz satırı — kim, ne zaman, ne değişti; dışa aktarmanın alanları (`02 §10.7.1`) ve iz satırı | eşlendi |
+
+**`03 §9` — üyelik akışları (6)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §9` metin | Üyelik akışı; siparişin ön koşulu değil; kurallar yöneticiye de; hesap e-postaları matrisin dışında, işaret düşmez | veri doğurmaz — yazım konvansiyonu | — | veri doğurmaz |
+| `03 §9.1` | Kayıt, doğrulama ve Google ile ilk giriş: kapı (K-850), ad, şifre, L-3, doğrulanmamış kayıt, L-9, düğmeyle doğrulama (K-904), misafir siparişlerinin bağlanması, Google ile doğuş ve bekleyen kaydın silinmesi (K-696) (7 satır) | Customer · *bağlantı kaydı* · *deneme kaydı* · SocialLogin · Order · *imha kaydı* · *gönderim kaydı* | ad, e-posta, şifre özeti, doğrulanma işareti ve anı; bağlantının ömrü ve kullanılması; Google bağı; siparişin hesap bağı; bekleyen kaydın silinmesi imha kaydına (K-708) — `02 §3.13` (§1.1.5) | eşlendi |
+| `03 §9.2` | Giriş, oturum, sıfırlama, yeniden doğrulama: "beni hatırla", L-1, giriş kaydı, tanınan tarayıcı, Google girişi ve bağı (K-733), çıkış, sıfırlama bağlantısı, oturumların kapanması, yeniden doğrulama (K-711), panel girişi ve şifresi (8 satır) | Session · *giriş kaydı* · RecognizedBrowserMark · SocialLogin · *bağlantı kaydı* · *deneme kaydı* · Customer · Admin · Cart | oturum türü ve son işlem anı; giriş kaydı — an, IP, hesap, sonuç; tanınan tarayıcı işareti; yeniden doğrulamanın tek işlemlik izni (K-899); `AccountType` — `02 §3.13`, §8.2 (§1.1.5, §1.1.8) | eşlendi |
+| `03 §9.3` | Profil ve adres defteri: ad, adres defteri (K-680), şifre değiştirme (K-695), e-posta değişikliği ve bekleyen değişiklik (K-734), düğmeyle doğrulama, geri alma (K-839), yöneticinin e-postası ve adı (K-736) (7 satır) | Customer · Admin · AddressBook · *bekleyen e-posta değişikliği* · *bağlantı kaydı* · Session · RecognizedBrowserMark · SocialLogin · AuditLog · *il listesi* | defterin alanları ve adı; bekleyen yeni adres; geri alma bağlantısı; Google bağının kaldırılması; yönetici e-postası değişikliğinin izi — `02 §3.13.14`, §3.14, §10.2.4 (§1.1.5, §1.1.8) | eşlendi |
+| `03 §9.4` | Hesabın silinmesi ve kişisel veri başvurusu: silme (K-698), hemen silinenler ve imha kaydı (K-708), silinmiş hesabın siparişi, KVKK talebi, üye kaydı görünümü, talep üzerine silme ve izi (K-715), yeniden kayıt (7 satır) | Customer · Session · AddressBook · Cart · SocialLogin · RecognizedBrowserMark · *bekleyen e-posta değişikliği* · *imha kaydı* · Order · ContactRequest · AuditLog · *gönderim kaydı* | anında fiziksel silme; siparişin hesap bağı kalkar; silmenin imha kaydı ve iz satırı (işlem ve tarih); hesabın silindiği bildirimi — `02 §3.15`, §12.2.7 (§1.1.5, §1.1.8) | eşlendi |
+| `03 §9.5` | Tercih yönetimi — bildirim tercihi, pazarlama onayı, dil, çerez tercihi, veri indirme, firma bildirim adresi: hepsi yoktur (6 satır) | yoktur — kapsam dışı | tercih, pazarlama onayı, dil ve ayrı bildirim adresi alanı yok — `02 §9.1.3`, §9.5, §12.1.1 (§1.1.8) | veri doğurmaz |
+
+**`03 §10` — operasyonel akışlar (5)**
+
+| Kaynak ID | Kaynak özeti | Entity | Alan | Durum |
+|---|---|---|---|---|
+| `03 §10` metin | Dış servisler, satışın durdurulması, sitenin kesintisi, panele erişimin kaybı; bildirim yok; tespit `05` ve `08`'de | veri doğurmaz — yazım konvansiyonu | — | veri doğurmaz |
+| `03 §10.1` | Dış servis kesintileri: ödeme sağlayıcısı (7 satır — son sorgu, geç gelen ödeme, sonucu bilinmeyen iade — K-705, K-940), e-posta altyapısı (6 — denemeler, işaret, kanal uyarısı, yeniden gönderim), Google (4) | Order · *ödeme kaydı* · *gelen bildirim kaydı* · *geri ödeme kaydı* · Cancellation · *gönderim kaydı* · *kanal hâli kaydı* · AdminInvitation · SocialLogin · veri doğurmaz — kurulum | ödeme sonucu alınamadı işareti; geri ödeme kaydının hâlleri; gönderimin deneme sayısı ve sonucu; kanal hâli; sağlayıcı anahtarları kurulumda — `02 §6.1`, §6.2.15, §6.2.16, §9.1.6 (§1.1.7, §1.1.8) | eşlendi |
+| `03 §10.2` | Bakım ve güncelleme: geçici kapatma, duyuru, güncelleme, yedek ve sıfır kayıp — tek istisna bir dakikalık pencere (K-888, K-939, K-983) (4 satır) | *firma ayarları* · Announcement · veri doğurmaz — mimari (`05`) · yoktur — kapsam dışı | geçici kapatma ayarı; duyurunun tarihleri; kaybolmaz listesi `02 §3.34.8`'de, mekanizması `05 §7.5`; bakım modu yok | eşlendi |
+| `03 §10.3` | Sitenin kesintisi: ürün çalışmaz, süreler işler, dönüşte kaçırılan işler sırayla, havale iptalinin ertelenmesi, sayaçlar, duyuru (6 satır) | Order · *iş kuyruğu* · *nabız ve kesinti kaydı* · veri doğurmaz — türetilir | ertelenen son an (K-898); zamanlanmış işler; kesinti kaydı (K-895) — `02 §3.34.7`, §4.3 (§1.1.5, §1.1.6) | eşlendi |
+| `03 §10.4` | Panele erişimin kaybı: şifre sıfırlama, L-1 engeli, davet ve kaldırma, kurulum tarafının yeni yönetici açması ve ele geçirilmiş hesabın oturumlarını sonlandırması (K-699, K-702), paneli geri alma (6 satır) | Admin · AdminInvitation · Session · *firma ayarları* · AuditLog · veri doğurmaz — kurulum | kurtarma kodu alanı yok; kurulum işlemi işlem izine yazılmaz; IBAN düzeltmesi ve kaldırmanın izi — `02 §10.2.7` (§1.1.8) | eşlendi |
 
 #### 1.1.11 Devirler — karar satırları, park maddeleri ve gövde cümleleri
 
@@ -1577,12 +2025,12 @@ Bildirim satırları (B, F) gönderim kaydına eşlenir — her e-postanın gön
 
 | # | Aday | Dayandığı satırlar | Not |
 |---|---|---|---|
-| VA-1 | Ürüne görünen ama sözlükte terimi ve kod karşılığı olmayan kayıtların adı | `02 §1.1` m4, `02 §5.8` m3, `02 §10.4.3` · §1.1.2'nin italik adayları | `02 §1.1` m4 ürüne görünen kavramın — panelde ya da müşteriye görünen kayıt, işaret, sayaç — sözlüğe girdiğini, `06`'nın kod adını yalnız teknik kavramlara ve kapalı liste değerlerine verdiğini söyler (K-17, K-531, K-977, K-988). Sözlüğün 105 terimi tam okundu: **ürüne görünen ve terimi olmayanlar** — çıkarma kaydı (`02 §5.8`; panelde kalemin satırı), bekleyen e-posta değişikliği (`02 §3.13.14`; hesap ekranında görünür), onay kutularının kaydı (`02 §3.24.6`; sipariş sayfasında görünür), siparişe donan yasal metin sürümü (`02 §3.23.3`; sipariş sayfası gösterir), fiyat geçmişi (`02 §3.8.5`; fiyatın başlangıç tarihi ürün sayfasında), görsel (`02 §3.11`); **`05`'te kurulan ama K-977'nin teknik kavram listesinde olmayanlar** — siparişin ödeme kaydı (`05 §4.5.3`), dosya kaydı (`05 §7.7`), giriş kaydı (`02 §3.13.20`), yedeğin durum kaydı, anahtar halkası. 2. oturum ayrımı doğrular: teknik olan VM3-03'e, ürüne görünen `02 §1.2`'ye geri beslenecek bir terime (K-652) gider. Bağ ve ayar kayıtları (ürün–kategori bağı, içerik–ürün bağı, firma ayarları, il listesi) adayın dışındadır — adları VM2-03'ün adlandırma kuralıyla türer **1b (2026-10-17):** çıkarma kaydının tanımı `02 §10.4.3`'tedir — kalemin çıkarılması ya da adedinin azaltılması; adet, an ve yönetici; sebep listesi istemez, işlem izine yazılır ve B-11 üretir; sözlükte terimi yoktur. `02 §6`–§13'te ürüne görünen ama sözlükte terimi olmayan **işaret ve alanlar** da vardır — panelde: "e-posta ulaşmadı" işareti (`02 §6.1.1`, §9.1.6), "ödeme sonucu alınamadı" işareti (`02 §6.1.2`), "e-posta düzeltildi" işareti (`02 §10.4.11`), "iade malı bekleniyor" ve "IBAN bekleniyor" işaretleri (`02 §7.4.1`, §7.4.5) ve siparişin iç notu (`02 §10.4.7`); sözlük aynı sınıftan iki işareti taşır (`RefundFailedMark`, `RefundOutcomePendingMark`). Bu satırlar eşlendi — alanın yeri bellidir, adı açıktır; 2. oturum ayrımı bunlara da uygular; saklanmayan, türetilen işaretin adı VM2-06'nın kararına bağlıdır |
-| VA-2 | Siparişin adres düzeltmesinde eski adresin yeri ve donma kuralının istisnası | `02 §10.4.2` · `02 §3.23.3`, §10.3.1 · `02 §6.3.6`, §6.7.12, §8.3.7, §12.5 m33 | `02 §10.4.2` teslimat ve fatura adresini — teslimat telefonu dahil — "Kargoya verildi"ye kadar (fiziksel kalemsiz siparişte Teslim edildi'ye kadar) düzelttirir ve düzeltme B-10 ile bildirilir. `02 §10.3.1` iz satırının adres düzeltmesinde eski ve yeni adresi değil siparişi, alanı ve işlemi taşıdığını söyler; misafir e-postasının düzeltmesindeki "e-posta geçmişi"nin (`02 §10.4.11`) adres için bir eşi yazılı değildir; `02 §3.23.3` siparişe donan değerlerin "tek istisna"sını yalnız misafir siparişinin e-postası diye sayar, adres düzeltmesini saymaz; `02 §12.2.7`'nin imha listesi adres geçmişi anmaz. Sonuç: düzeltmeden sonra eski adres hiçbir kayıtta durmaz — kandırılmış düzeltmede (`02 §6.3.6`, §8.3.7) firmanın adresi "geri düzeltmesi" ve teyidin ispatı (§12.5) ürünün içinde dayanaksızdır. Kaynakların tam metni okundu; Kullanıcı Akışları, Arayüz Tanımları ve Teknik Mimari'de "eski adres", "önceki adres" ve "eski ve yeni adres" betikle tarandı — adres düzeltmesine ait karşılık yok (K-739). 2. oturum iki parçayı ayırır: (1) `02 §3.23.3`'ün "tek istisna" cümlesinin adres düzeltmesini de sayması — hizalama, K-652'nin geri beslemesi; (2) eski adresin tutulup tutulmayacağı ve nerede — kişisel veri saklama sorusudur, bir W konusuna bağlanır (VM4-06, VM9) |
+| VA-1 | Ürüne görünen ama sözlükte terimi ve kod karşılığı olmayan kayıtların adı | `02 §1.1` m4, `02 §5.8` m3, `02 §10.4.3` · §1.1.2'nin italik adayları · `03 §1.7.1.3`, §1.7.3, §1.11.22, §1.11.27 | `02 §1.1` m4 ürüne görünen kavramın — panelde ya da müşteriye görünen kayıt, işaret, sayaç — sözlüğe girdiğini, `06`'nın kod adını yalnız teknik kavramlara ve kapalı liste değerlerine verdiğini söyler (K-17, K-531, K-977, K-988). Sözlüğün 105 terimi tam okundu: **ürüne görünen ve terimi olmayanlar** — çıkarma kaydı (`02 §5.8`; panelde kalemin satırı), bekleyen e-posta değişikliği (`02 §3.13.14`; hesap ekranında görünür), onay kutularının kaydı (`02 §3.24.6`; sipariş sayfasında görünür), siparişe donan yasal metin sürümü (`02 §3.23.3`; sipariş sayfası gösterir), fiyat geçmişi (`02 §3.8.5`; fiyatın başlangıç tarihi ürün sayfasında), görsel (`02 §3.11`); **`05`'te kurulan ama K-977'nin teknik kavram listesinde olmayanlar** — siparişin ödeme kaydı (`05 §4.5.3`), dosya kaydı (`05 §7.7`), giriş kaydı (`02 §3.13.20`), yedeğin durum kaydı, anahtar halkası. 2. oturum ayrımı doğrular: teknik olan VM3-03'e, ürüne görünen `02 §1.2`'ye geri beslenecek bir terime (K-652) gider. Bağ ve ayar kayıtları (ürün–kategori bağı, içerik–ürün bağı, firma ayarları, il listesi) adayın dışındadır — adları VM2-03'ün adlandırma kuralıyla türer **1b (2026-10-17):** çıkarma kaydının tanımı `02 §10.4.3`'tedir — kalemin çıkarılması ya da adedinin azaltılması; adet, an ve yönetici; sebep listesi istemez, işlem izine yazılır ve B-11 üretir; sözlükte terimi yoktur. `02 §6`–§13'te ürüne görünen ama sözlükte terimi olmayan **işaret ve alanlar** da vardır — panelde: "e-posta ulaşmadı" işareti (`02 §6.1.1`, §9.1.6), "ödeme sonucu alınamadı" işareti (`02 §6.1.2`), "e-posta düzeltildi" işareti (`02 §10.4.11`), "iade malı bekleniyor" ve "IBAN bekleniyor" işaretleri (`02 §7.4.1`, §7.4.5) ve siparişin iç notu (`02 §10.4.7`); sözlük aynı sınıftan iki işareti taşır (`RefundFailedMark`, `RefundOutcomePendingMark`). Bu satırlar eşlendi — alanın yeri bellidir, adı açıktır; 2. oturum ayrımı bunlara da uygular; saklanmayan, türetilen işaretin adı VM2-06'nın kararına bağlıdır. **1c (2026-10-17):** Kullanıcı Akışları'nın panel işaretleri tablosu (`03 §1.7.3`) yedi işaret sayar — ikisi sözlükte (`RefundFailedMark`, `RefundOutcomePendingMark`), beşi yukarıdaki listededir; Kullanıcı Akışları'nda yeni bir işaret ya da terimsiz kayıt çıkmadı. Çıkarma kaydının satırları (`03 §1.7.1.3`, §1.11.22) bu adayın durumunu taşır; iç not `03 §1.11.27`, §5.1.6 ve §8.4.6'da anılır |
+| VA-2 | Siparişin adres düzeltmesinde eski adresin yeri ve donma kuralının istisnası | `02 §10.4.2` · `02 §3.23.3`, §10.3.1 · `02 §6.3.6`, §6.7.12, §8.3.7, §12.5 m33 · `03 §1.11.23`, §3.2.2.6, §6.2.2.3, §8.4.1 | `02 §10.4.2` teslimat ve fatura adresini — teslimat telefonu dahil — "Kargoya verildi"ye kadar (fiziksel kalemsiz siparişte Teslim edildi'ye kadar) düzelttirir ve düzeltme B-10 ile bildirilir. `02 §10.3.1` iz satırının adres düzeltmesinde eski ve yeni adresi değil siparişi, alanı ve işlemi taşıdığını söyler; misafir e-postasının düzeltmesindeki "e-posta geçmişi"nin (`02 §10.4.11`) adres için bir eşi yazılı değildir; `02 §3.23.3` siparişe donan değerlerin "tek istisna"sını yalnız misafir siparişinin e-postası diye sayar, adres düzeltmesini saymaz; `02 §12.2.7`'nin imha listesi adres geçmişi anmaz. Sonuç: düzeltmeden sonra eski adres hiçbir kayıtta durmaz — kandırılmış düzeltmede (`02 §6.3.6`, §8.3.7) firmanın adresi "geri düzeltmesi" ve teyidin ispatı (§12.5) ürünün içinde dayanaksızdır. Kaynakların tam metni okundu; Kullanıcı Akışları, Arayüz Tanımları ve Teknik Mimari'de "eski adres", "önceki adres" ve "eski ve yeni adres" betikle tarandı — adres düzeltmesine ait karşılık yok (K-739). 2. oturum iki parçayı ayırır: (1) `02 §3.23.3`'ün "tek istisna" cümlesinin adres düzeltmesini de sayması — hizalama, K-652'nin geri beslemesi; (2) eski adresin tutulup tutulmayacağı ve nerede — kişisel veri saklama sorusudur, bir W konusuna bağlanır (VM4-06, VM9). **1c (2026-10-17):** Kullanıcı Akışları adres düzeltmesini dört satırda yürütür — aralık (`03 §1.11.23`), kandırılmış düzeltme (§3.2.2.6), geri düzeltme (§6.2.2.3: sahibi ulaşırsa "yönetici adresi geri düzeltir") ve müdahale (§8.4.1: "iz alanı ve işlemi yazar, adres değerini yazmaz"); geri düzeltme eski adresin bilinmesini gerektirir, dört satırın hiçbiri onu bir kayda yazmaz. Aday güçlenir, kapsamı değişmez |
 
 ### 1.2 Geri izlenebilirlik (entity/alan → kaynak)
 
-**Kapı: matrisin 2. oturumu.** Tablo §1.1.2'nin adaylarından ve §1.1'in satırlarından betikle kurulur; kaynağı olmayan aday ya da alan gerekçesiz eklemedir ve listelenir; Teknik Mimari'nin doğurduğu teknik kayıtların kaynağı park satırıdır (VM1-04). 1a'nın ara denetimi: §1.1.2'nin 71 adayının 69'u §1.1.3–§1.1.6'nın en az bir satırında geçer; kalan ikisi (70, 71) devir adayıdır (§1.1.11). 1b'nin ara denetimi: §1.1.7–§1.1.8'in satırları 71 adayın 62'sini kullanır; kullanmadığı dokuzun yedisi (OptionValue, *ürün–kategori bağı*, Offering, PortfolioItem, FaqItem, Branch, *iş kuyruğu*) 1a'nın satırlarında eşlidir, ikisi (70, 71) devir adayı olarak kalır.
+**Kapı: matrisin 2. oturumu.** Tablo §1.1.2'nin adaylarından ve §1.1'in satırlarından betikle kurulur; kaynağı olmayan aday ya da alan gerekçesiz eklemedir ve listelenir; Teknik Mimari'nin doğurduğu teknik kayıtların kaynağı park satırıdır (VM1-04). 1a'nın ara denetimi: §1.1.2'nin 71 adayının 69'u §1.1.3–§1.1.6'nın en az bir satırında geçer; kalan ikisi (70, 71) devir adayıdır (§1.1.11). 1b'nin ara denetimi: §1.1.7–§1.1.8'in satırları 71 adayın 62'sini kullanır; kullanmadığı dokuzun yedisi (OptionValue, *ürün–kategori bağı*, Offering, PortfolioItem, FaqItem, Branch, *iş kuyruğu*) 1a'nın satırlarında eşlidir, ikisi (70, 71) devir adayı olarak kalır. 1c'nin ara denetimi: §1.1.9–§1.1.10'un satırları 71 adayın 69'unu kullanır; kalan ikisi (70, 71) devir adayıdır.
 
 | Entity.alan | Beslendiği kaynak | Durum |
 |---|---|---|
@@ -1660,4 +2108,4 @@ Bildirim satırları (B, F) gönderim kaydına eşlenir — her e-postanın gön
 
 ---
 
-*Shopfolio — Data Model v0.3*
+*Shopfolio — Data Model v0.4*

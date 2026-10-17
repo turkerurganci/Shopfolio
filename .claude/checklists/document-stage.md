@@ -13,8 +13,10 @@
 > terfisi, K-719); Aşama 3'te birincisi karşılandı, ikincisi karşılanmadı — §2'nin ilk işletimi ona
 > yeni bir madde ekledi (okuma derinliği; Aşama 3'ün öğrenim terfisi, K-852). Aşama 4'te ikisi de
 > karşılandı — kapanış checklist'e yeni adım ya da madde eklemedi, sekiz maddeyi genişletti (Aşama 4'ün
-> öğrenim terfisi, K-989); dönüşüm proje sahibine öneri olarak sunuldu ve kararına kadar checklist olarak
-> kalır (`Docs/CHECKPOINT_REPORTS/PHASE4_LEARNING_PROMOTION.md` §3). Ölçüt bu notta (L4) yaşar ve `00 §C.7`'nin genel cümlesini
+> öğrenim terfisi, K-989); dönüşüm proje sahibine öneri olarak sunuldu
+> (`Docs/CHECKPOINT_REPORTS/PHASE4_LEARNING_PROMOTION.md` §3) ve proje sahibi 2026-10-17'de dönüşmemesine
+> karar verdi — checklist olarak kalır (K-991). Sonraki değerlendirme Aşama 5'in (Veri modeli) öğrenim
+> terfisindedir. Ölçüt bu notta (L4) yaşar ve `00 §C.7`'nin genel cümlesini
 > daraltır; `00 §C.7`'ye taşınması önerildi; proje sahibi onay vermedi, ölçüt bu notta kalır (K-722,
 > düzeltmesi K-853). (Karar: yeni skill icat edilmez.)
 

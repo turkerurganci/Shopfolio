@@ -32,9 +32,9 @@
 - [x] Dokuz karar — K-980, K-981, K-985, K-986, K-987 (teknik mekanizma), K-988 (yerleşim), K-982 ⚠, K-983 ⚠, K-984 ⚠ (öneriyle kaydedildi); ⚠ listesi 41 → **44**
 - [x] K-976'nın devri kapandı (karar kaydı §12.1)
 - [x] Checkpoint'in dokunduğu Aşama 4 kararlarının etki sütununa `(taslak güncellendi — vX.Y; checkpoint)` parçası ya da yeni kararın geri işareti eklendi (§4); Aşama 1–3 kayıtlarında yalnız geri işaret (K-557, K-708, K-734)
-- [ ] **Kırk dört ⚠ kararın proje sahibine gösterilmesi** — kırk biri çakışma taramasının §4.1'inde hazır metniyle, üçü bu raporun §5'inde. Kapı: arşiv işaretinden (6. adım) önce, tek mesajda (`INSTRUCTIONS.md` §2, §9; tracker §12.1)
-- [ ] Sırada öğrenim terfisi (K-437'nin 5. adımı) — tracker §12.1'in on iki adayı (11 ve 12 bu checkpoint'te eklendi, §6), aday 13 ve Ö-23
-- [ ] Veri modeli aşamasının açılışı: `06` şablonunun bağımlılıklar alanı (C-82, PF-74)
+- [x] **Kırk dört ⚠ kararın proje sahibine gösterilmesi** — kırk biri çakışma taramasının §4.1'inde hazır metniyle, üçü bu raporun §5'inde. Kapı: arşiv işaretinden (6. adım) önce, tek mesajda (`INSTRUCTIONS.md` §2, §9; tracker §12.1) — **kapandı (2026-10-17, kapısında; K-990):** liste tek mesajda gösterildi, itiraz yok, retro bölümü gerekmedi; sonuç §5.1'in sonunda
+- [x] Sırada öğrenim terfisi (K-437'nin 5. adımı) — tracker §12.1'in on iki adayı (11 ve 12 bu checkpoint'te eklendi, §6), aday 13 ve Ö-23 — **kapandı (2026-10-17, PR #117, K-989)**
+- [ ] Veri modeli aşamasının açılışı: `06` şablonunun bağımlılıklar alanı (C-82, PF-74) — kapısı Veri modeli aşamasının açılışı; devir karar kaydının §13'ünde (2026-10-17)
 
 ### Notlar
 
@@ -202,6 +202,8 @@ Kaynak: [çakışma taraması §4.1](PHASE4_CONFLICT_SCAN.md) — kırk bir kara
 - K-984 — Doğrulanmadan süresi dolan yeni e-posta adresinin silinmesi ve sunucudaki misafir sepetinin silinmesi de imha kaydına yazılır; çıkışta ya da şifre değişikliğinde kapanan oturumların silinmesi yazılmaz.
 
 **Sayım:** çakışma taramasının listesi 41 · checkpoint 3 — **toplam 44**. Betikle sayıldı; kırk dördünün de konu hücresi ⚠ işaretini taşıyor.
+
+**Gözden geçirme sonucu — 2026-10-17 (K-437'nin 6. adımı, arşiv işaretinden önce; K-990).** Liste yönetici aracılığıyla tek mesajda, karar başına bir sade cümleyle gösterildi; öğrenim terfisinin üç önerisi aynı mesajda ayrı numaralı sorulardı (K-991). **İtiraz yok:** hiçbir karar değişmedi, yeni karar satırı açılmadı ve bu rapora retro bölümü gerekmedi. Karar kaydında kırk dört satırın konu hücresindeki işaret silinmedi, `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-17, itiraz yok)` biçimine dönüştürüldü (Aşama 3'ün kalıbı, CP03 §5.1). Öğrenim terfisi (K-989) yeni ⚠ karar doğurmadı. **Mekanik doğrulama:** bu listenin 44 tekil K numarası ile dönüştürülen 44 satır birebir — eksik 0, fazla 0; konu hücresinde eski işareti taşıyan Aşama 4 karar satırı kalmadı. Kayıt: karar kaydı §12.1 (v0.116).
 
 ---
 

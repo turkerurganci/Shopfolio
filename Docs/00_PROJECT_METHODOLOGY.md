@@ -1,6 +1,6 @@
 # Project Playbook — Metodoloji
 
-**Versiyon: v1.0.5** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-10-05
+**Versiyon: v1.0.6** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-10-17
 
 > Bu doküman bir yazılım projesini **fikirden çalışan MVP'ye** taşıyan yöntemin tamamıdır:
 > doküman üretimi, implementasyon, doğrulama, borç kapatma ve kapanış.
@@ -722,6 +722,16 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 6. **Metni değiştiren araç sessizce bozar.** Bir düzenli ifade değiştirmesi geri başvuruyu metne yazılı bıraktı ve altı satırı bozdu; düzenleme aracı bir platformda satır sonlarını değiştirebiliyor ve satır sonunu sayan komut bile bir kez yanılttı. Her PR'dan önce iki mekanik tarama — satır sonu ve geri başvuru artığı — bunu yakalar.
 7. **Yönetici ve alt ajan düzeni ikinci aşamada da tuttu; işletim kuralları ancak yazıya geçince taşınır.** Açılıştan öğrenim terfisine iki günde yirmi bir adım temiz bağlamlı alt ajanlarla ve CI yeşilse merge yetkisiyle yürüdü; proje sahibine açılış sorusu, tek bir kritik soru ve sorulmadan kaydedilen kararların listesi gitti. Düzenin işletim kuralları — plan bilgidir, yazımın ortasındaki kritik soru adımı durdurmaz, kayıt sorunun kapsamını aşmaz, liste kapıdan önce gösterilebilir, limitte düşen görev bölünür — o güne kadar hafızada, görev metinlerinde ya da hiçbir yerde yaşıyordu. Aşama 2'nin 6. deseninin ikinci kanıtıdır.
 
+**Aşama 4 — Teknik mimari (2026-10-16 → 2026-10-17).** Kurallar `.claude/checklists/document-stage.md` §1, §3, §4, §7 ve aşama hatırlatmaları, `.claude/INSTRUCTIONS.md` §2 ve `audit`, `cross-review` skill'lerine terfi etti; rapor `Docs/CHECKPOINT_REPORTS/PHASE4_LEARNING_PROMOTION.md`. Tekrarlanacak desenler:
+
+1. **Kesin güvence, onu sağlayan düzenekle birlikte yazılmazsa ikinci model onu tur tur bulur; hedefli bir mercek sınıfı bir kerede kapatır.** Mimari doküman "kaybolmaz", "tek işlenir", "silinemez" gibi güvenceler koydu; cross-review'ın 3.–8. turlarının orta bulgularının çoğu bir güvencenin mekanizmayla tutmamasıydı ve ikinci model her turda başka bir bölgede bir tanesini buldu. Güvence cümlelerini envantere çıkarıp mekanizmaya karşı okuyan mercek 614 cümlenin 55'inin tutmadığını, 126'sının kısmen tuttuğunu gösterdi; mercek dokümanın kalanında da koşunca ikinci model bu sınıftan bulgu getirmedi ve döngü kapandı. Mercek yalnız bulguların çıktığı bölgede koşarsa sınıf öteki bölgelerden çıkmaya devam eder — dokümanın tamamında, ilk turdan önce koşar.
+2. **İzlenebilirlik matrisi zorunlu olmayan aşamada da devir yükü matris kadar büyüktür.** Mimari dokümana yetmiş dokuz karar, on park maddesi, otuz beş gövde cümlesi ve matrisin on üç satırı devredilmişti; açılış bunları konu planına betikle eşleyince hiçbiri sahipsiz kalmadı, ama yalnız numara taşıyan bir atfın işi bir gerekçe hücresinde saklı kaldı ve ancak kaynak tam okunurken bulundu. Aşama 1'in 7. ve Aşama 2'nin 5. deseninin devamıdır: devrin adı yazılmadıkça eşleme de onu adıyla göremez.
+3. **Kısıt soruları açılışta ve öncülüyle sorulur.** Maliyet, barındırma ve yığın soruları workshop'tan önce soruldu ve mimarinin bütün kararlarını belirledi; proje sahibi maliyet tavanında önerinin tersini seçti. Bir soru ise kurallarda olmayan bir öncüle ("her işte bir insan kodu okur") dayandı ve geri döndü — soru taraması yalnız cevabı değil, sorunun öncülünü de kurallara karşı okur.
+4. **Kuralın yüzlerinin listesi kapalı değildir; her aşama terim taramasının kaçırdığı yeni bir yüz buldu.** Bu aşamada dört: ünsüz değişimine uğrayan terim, kuralın alt dokümanların kaynak hücresinden bulunan evi, kararın verdiği sınıfı (yasal kayıt) ölçüt alan liste ve kararların özet tablosundaki gerekçe hücresi. Aşama 2'nin 2. ve Aşama 3'ün 3. deseninin devamıdır.
+5. **Boyut eşiği ikinci modelin dikkatini tam ölçmez; ilk tur ölçer.** 300 KB'lık doküman parçalı koşumun eşiğinin altındaydı; ilk turda iki koşumla ölçüldü ve parçalar tek çağrının görmediği beş bulgu getirdi — beşi kabul edildi. Aşama 3'ün 2. deseninin devamıdır.
+6. **Kalite döngüsünün kendi düzeltmesi yeni yüzey açar.** Döngünün güncellediği park satırlarında kararların otuz iki kolu eksik kaldı; güvence merceğinin düzeltmesi iki yeni metin farkı doğurdu. Düzeltme de taranır: kararın her kolu ve düzeltmenin andığı her hedef.
+7. **Terfi edilen kural üçüncü aşamada da iş yaptı; yönetici düzeni üçüncü kez tuttu.** Önceki aşamanın kuralları — park satırının iki yönlü eşlenmesi, kararın öncülünün kuralın evinde okunması, şablon taraması, yazımın ortasında doğan kritik sorunun adımı durdurmaması — bu aşamada iki yeni öncül, açılışta dört şablon eksiği ve adımı durdurmayan iki çok kritik soru verdi. Açılıştan checkpoint'e on dokuz adım iki günde yürüdü; proje sahibine altı çok kritik soru ve sorulmadan kaydedilen kırk dört kararın listesi gitti. Aşama 2'nin 6. ve Aşama 3'ün 5. ve 7. desenlerinin devamıdır.
+
 ### N.2 Dönem 2 — Implementation
 
 *(Bu projede henüz faz kapanmadı.)*
@@ -747,4 +757,4 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 
 ---
 
-*Project Playbook — Metodoloji v1.0.5*
+*Project Playbook — Metodoloji v1.0.6*

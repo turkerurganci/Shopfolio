@@ -39,6 +39,7 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-1016 · Veritabanının kodlaması ve sıralaması:** veritabanı UTF-8 ve ICU'nun deterministik Türkçe sıralamasıyla (`tr-TR`) açılır — kategori adlarının alfabetik sırası (K-805) buna dayanır; kimlik karşılaştırması sıralamaya dayanmaz (Veri Modeli `06 §2`). İlk kurulumdaki adımı ve ayarı bu aşamanın kararıdır.
+> - **K-1031 · Başlangıç verisi, fail-fast ve ilk kayıtlar:** il ve ülke listesi ile tek satırlık kayıtlar — firma, firma ayarları, marka, kanal hâli, nabız ve yedeğin durum kaydı — ve iki firma metninin ürünle gelen taslağı göçün veri adımında doğar; uygulama açılırken listelerin dolu olduğunu ve tek satırlık kayıtların varlığını denetler, eksikse açılmaz ve eksik kaydı adıyla yazar; ilk yönetici yönetim komutuyla açılır (`05 §8.5.2`), rol ataması ve operatör ya da servis hesabı yoktur (Veri Modeli `06 §8`; `02 §10.2.7`). §A'nın veritabanı satırları ile §H'nin satırlarının — ikinci satırın "yoktur" diye — doldurulması bu aşamanın kararıdır.
 
 ---
 

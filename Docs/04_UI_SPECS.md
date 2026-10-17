@@ -1,6 +1,6 @@
 # Shopfolio — UI Specifications
 
-**Versiyon: v0.26** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-17
+**Versiyon: v0.27** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-17
 
 > **Aşama:** 3 — UI/UX Tasarım · **Rol:** Senior Product Designer / UX Architect
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §4'e (ekran envanteri) geçilmez.
@@ -49,6 +49,8 @@
 > **Aşama 4 — Teknik Mimari'nin kalite döngüsünün geri beslemesi: Google ile yeniden doğrulamanın tazeliği (2026-10-17, v0.25 — K-652, K-857):** bir karar bu dokümana işlendi; ✓ durumu korunur, kalite döngüsü yeniden açılmaz. **K-968:** Google ile yeniden doğrulama yalnız yeniden doğrulamanın başlatıldığı andan sonraki bir Google girişini kabul eder — Google'da açık oturum varsa akış şifre sormadan döner ve bu dönüş yeniden doğrulama sayılmaz. 5.24.7 Google ile doğrulamanın tutmadığı hâli yazar — giriş taze değil ya da Google'ın verdiği e-posta hesabınkiyle eşleşmiyor (Teknik Mimari `05 §6.1.5`'in var olan kuralı) —: ekran sebebini söyler, Google'da yeniden giriş yapıp tekrar denemenin ve şifre belirlemenin yolunu gösterir; matrisin 6.2.24.5 satırı bu hâli kapsar, §5.24'ün ve §6.2'nin Kaynak satırları K-968'i anar. Matrisin satır sayısı ve dağılımı değişmedi — `03 §9.2.6` ve §10.1.3.2'nin özetleri tazeliği taşımaz. Geri besleme tablosu Teknik Mimari'nin başlık notundadır (K-857).
 >
 > **Aşama 4 — Teknik Mimari'nin etki yansıtması: Kaynak satırları (2026-10-17, v0.26 — `cross-review` skill'i Faz 5 madde 4):** Teknik Mimari'nin cross-review'ı kapanırken Kaynak satırı betiği bu dokümanda gövdede anılan ama bölümün Kaynak satırında olmayan üç Aşama 4 atfı buldu — §3.4 (K-940, 3.4'ün tablosundaki kart iadesi uyarıları), §3.5 (K-904, doğrulama bağlantısının açılması) ve §6.3 (K-904, matrisin doğrulama bağlantısı satırı); üç Kaynak satırı tamamlandı. Kural ve metin değişmedi; ✓ durumu korunur, kalite döngüsü yeniden açılmaz.
+>
+> **Aşama 4 — Teknik mimari aşamasının kapanışının çakışma taramasının geri beslemesi (2026-10-17, v0.27 — K-652, K-857):** karar yok; ✓ durumu korunur, kalite döngüsü yeniden açılmaz. **K-904'ün yansıması:** izlenebilirlik matrisinin `03 §9.1.5` satırının özeti — doğrulanmamış kaydın silinmesinin koşulu bağlantının açılmaması değil hesabın doğrulanmamasıdır (Kullanıcı Akışları v0.27). Rapor `CHECKPOINT_REPORTS/PHASE4_CONFLICT_SCAN.md`; geri besleme tablosu Teknik Mimari'nin başlık notundadır.
 
 **Yazım konvansiyonları (K-726, K-762).** Bu on beş madde §2–§9'un bütün yazım oturumlarını bağlar; "konvansiyon n" diye anılır.
 
@@ -837,7 +839,7 @@ Kapsam ağıdır: her satır en az bir ekrana ya da adıyla yazılmış bir ekra
 | `03 §9.1.2` | Ad, e-posta ve şifreyle kayıt; şifre politikası; "bu e-posta zaten kayıtlı" | E-20 | eşlendi |
 | `03 §9.1.3` | Doğrulama bağlantısını ekrandan yeniden isteme (L-9) | E-20 · E-22 | eşlendi |
 | `03 §9.1.4` | Doğrulama bağlantısı açılır; doğrulama ekrandaki tek düğmeyle yapılır (K-904): hesap doğrulanır, misafir siparişleri hesaba düşer | E-21 · E-27 | eşlendi |
-| `03 §9.1.5` | Bağlantı süresinde açılmaz: kayıt silinir, "bağlantı geçersiz" | E-21 | eşlendi |
+| `03 §9.1.5` | Hesap süresinde doğrulanmaz — bağlantı açılmaz ya da açılan ekrandaki düğmeye basılmaz: kayıt silinir, "bağlantı geçersiz" | E-21 | eşlendi |
 | `03 §9.1.6` | Google ile ilk giriş: hesap doğrulanmış ve şifresiz doğar | E-22 · ekran dışı — ürünün dışında | eşlendi |
 | `03 §9.1.7` | Google e-postayı doğrulanmamış verir: kayda yönlendirme | E-22 · E-20 | eşlendi |
 
@@ -5255,4 +5257,4 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
 
 ---
 
-*Shopfolio — UI Specifications v0.26 — ✓ Tamamlandı (v0.26 Aşama 4 Teknik Mimari'nin etki yansıtmasıdır — üç Kaynak satırına eksik Aşama 4 atfı (K-904, K-940) · v0.25 Aşama 4 Teknik Mimari'nin kalite döngüsünün geri beslemesidir — `05` başlık notu, K-968 · v0.24 Aşama 4 Teknik Mimari'nin kalite döngüsünün çok kritik sorusunun geri beslemesidir — `05` başlık notu, K-951 · v0.23 Aşama 4 Teknik Mimari'nin kalite döngüsünün geri beslemesidir — `05` başlık notu, K-939, K-940, K-885'in yansıması · v0.22 Aşama 4 Teknik Mimari workshop'unun 3. oturumunun geri beslemesidir — karar kaydı §12.4, K-916 · v0.21 Aşama 4 Teknik Mimari workshop'unun 2. oturumunun geri beslemesidir — karar kaydı §12.4, K-888, K-904 · v0.20 Aşama 3 kapanışı, K-437'nin 6. adımı; §1–§9 yazıldı; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ 5 turda — K-849'un çıkış kuralı, etki yansıtma ✓ — K-431, K-847, K-848; çakışma taraması ✓ — K-850; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`)*
+*Shopfolio — UI Specifications v0.27 — ✓ Tamamlandı (v0.27 Teknik mimari aşamasının kapanışının çakışma taramasının geri beslemesidir — matrisin `03 §9.1.5` satırının özeti, K-904'ün yansıması · v0.26 Aşama 4 Teknik Mimari'nin etki yansıtmasıdır — üç Kaynak satırına eksik Aşama 4 atfı (K-904, K-940) · v0.25 Aşama 4 Teknik Mimari'nin kalite döngüsünün geri beslemesidir — `05` başlık notu, K-968 · v0.24 Aşama 4 Teknik Mimari'nin kalite döngüsünün çok kritik sorusunun geri beslemesidir — `05` başlık notu, K-951 · v0.23 Aşama 4 Teknik Mimari'nin kalite döngüsünün geri beslemesidir — `05` başlık notu, K-939, K-940, K-885'in yansıması · v0.22 Aşama 4 Teknik Mimari workshop'unun 3. oturumunun geri beslemesidir — karar kaydı §12.4, K-916 · v0.21 Aşama 4 Teknik Mimari workshop'unun 2. oturumunun geri beslemesidir — karar kaydı §12.4, K-888, K-904 · v0.20 Aşama 3 kapanışı, K-437'nin 6. adımı; §1–§9 yazıldı; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ 5 turda — K-849'un çıkış kuralı, etki yansıtma ✓ — K-431, K-847, K-848; çakışma taraması ✓ — K-850; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`)*

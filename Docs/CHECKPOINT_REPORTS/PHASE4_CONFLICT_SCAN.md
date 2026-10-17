@@ -95,6 +95,8 @@ Devir §11'in öteki girdileri kapandı: açılış sorusu K-855 ile cevaplandı
 
 **Kapı.** Liste arşiv işaretinden (6. adım) önce proje sahibine **tek mesajda**, karar başına bir sade cümleyle ve gerekçesiz gösterilir (`INSTRUCTIONS.md` §2, "Ortak kural"); yöneticiden proje sahibine gider (§9). İtiraz gelmeyen satırın işareti `(öneriyle kaydedildi — ⚠ — gözden geçirildi YYYY-AA-GG, itiraz yok)` olur; itiraz gelen karar yeni bir satırla değişir. Checkpoint ya da öğrenim terfisi yeni bir ⚠ karar kaydederse liste arşiv işaretinden önce onunla birlikte gösterilir.
 
+**Kapının sonucu — 2026-10-17 (K-437'nin 6. adımı; K-990):** kapı işledi. Liste arşiv işaretinden önce, aşağıdaki hazır metinle ve checkpoint'in üç kararının ekiyle (CP04 §5.1) tek mesajda gösterildi. İtiraz yok. Kırk dört satırın konu hücresindeki işaret `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-17, itiraz yok)` oldu; sayım betikle doğrulandı (44 / 44 — bu listenin, CP04 §5.1'in ve kaydın kümeleri birebir). Gösterimden sonra kaydedilen ⚠ karar yok. Madde karar kaydının §12.1'inde kapandı; arşiv işareti aynı PR'da düştü (v0.116).
+
 **Hazır metin — proje sahibine gösterilecek liste** (konulara göre; dokümanlar adıyla):
 
 *Sunucu, yedek ve veri kaybı*
@@ -269,6 +271,7 @@ Hepsi var olan bir kararın kuralının değişmeden kaldığı yüzlere taşın
 - **Önceki aşamaların dizinleri:** `PHASE1_CONFLICT_SCAN.md` §6, `PHASE2_CONFLICT_SCAN.md` §6, `PHASE3_CONFLICT_SCAN.md` §6.
 - **`11` Uygulama Planı:** Aşama 4'ten devir yok — `11` tüketicidir ve `05`'i kendi matrisinde okur; `05`'te `11`'e iş bırakan cümle yoktur.
 - **`DEFERRED_BACKLOG.md`:** Aşama 4'ten yeni kalem yok; D-01'in kanıtı tamamlandı (§6.4).
+- **Toplandığı yer (6. adım, 2026-10-17):** Aşama 5'e devrin bütün girdileri — bu dizin dahil — karar kaydının §13'ünde tek tabloda.
 - **Süreç kararları** (K-855…K-859, K-930, K-931, K-952, K-953, K-976) sonraki dokümana iş bırakmaz.
 
 ### 6.1 Etki sütunlarındaki devirler (K-855…K-979)

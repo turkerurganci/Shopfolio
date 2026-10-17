@@ -15,7 +15,7 @@
 | **Terfi etti — bu PR'da uygulandı** (L3, L4) | 19 | Ö-60…Ö-72 · S-6, S-8, S-9 (süreç kararları) · Ö-73, Ö-75 · H-12 |
 | **Önceden terfi etmişti ya da kuralı bu aşamada işledi** | 11 | S-1, S-10, S-12 · Ö-77, Ö-78 · H-1, H-3, H-4, H-9, H-10 (biçimi), H-11 (biçimi) |
 | **Dokümanda yaşar** | 6 | S-2, S-3, S-4, S-5, S-7, S-11 |
-| **Proje sahibinin onayını bekliyor** | 2 aday · 3 öneri | Ö-23 (checklist'in skill'e dönüşmesi — §3, §4 Öneri 3) · Ö-74 (`SETUP.md`'nin ikinci AI satırları; Ö-73'ün SETUP yüzü — §4 Öneri 2) · `00 §N.1`'e Aşama 4'ün yedi deseni (§4 Öneri 1) |
+| **Proje sahibinin onayını bekliyor** | 2 aday · 3 öneri | Ö-23 (checklist'in skill'e dönüşmesi — §3, §4 Öneri 3) · Ö-74 (`SETUP.md`'nin ikinci AI satırları; Ö-73'ün SETUP yüzü — §4 Öneri 2) · `00 §N.1`'e Aşama 4'ün yedi deseni (§4 Öneri 1) — **2026-10-17: kapandı (K-991)** — Öneri 1 uygulandı (`00` v1.0.6); Öneri 2 onaylanmadı — `SETUP.md` olduğu gibi kalır; Öneri 3 — checklist liste olarak kalır, bugünkü gibi devam eder (Ö-23'ün sonraki değerlendirmesi Veri modeli aşamasının öğrenim terfisinde) |
 | **Tek seferlik gözlem — raporda kalır** | 1 | Ö-76 (uzun adımda ara durum) — kullanıcı hafızasına not önerisi, ikinci vakada terfi |
 | **Kapısıyla bekliyor** | 1 | Ö-79 (Veri Modeli şablonunun bağımlılık alanı — PF-74; kapı Veri modeli aşamasının açılışı) |
 | **Hafızada kalır** — kişisel tercih ya da referans | 5 | H-2, H-5, H-6, H-7, H-8 |
@@ -105,6 +105,8 @@ CLAUDE.md: *"Bir süreç kuralı yalnız hafızada yaşıyorsa kırılgandır �
 
 ## 3. Ö-23 — checklist skill'e dönüşür mü
 
+> **Sonuç — 2026-10-17 (K-991):** proje sahibi dönüşmemesini seçti — *"Hayır, liste olarak kalsın — bugünkü gibi devam eder"*. Ölçüt ve yeniden değerlendirme checklist'in başlık notunda değişmeden kalır; nota yalnız bu kapanışın sonucu eklendi; sonraki değerlendirme Veri modeli aşamasının öğrenim terfisindedir. Aşağıdaki metin 5. adımın hâlidir, olduğu gibi bırakıldı.
+
 **Sonuç: iki koşul da karşılandı — dönüşüm proje sahibine öneri olarak sunulur (§4 Öneri 3); bu PR'da uygulanmadı.** Ölçüt iki koşuldur ve ikisi birlikte aranır (checklist başlık notu, L4; K-722, K-853). Değerlendirme betikle yapıldı:
 
 | Koşul | Sonuç | Kanıt |
@@ -121,6 +123,8 @@ CLAUDE.md: *"Bir süreç kuralı yalnız hafızada yaşıyorsa kırılgandır �
 ---
 
 ## 4. Proje sahibinin onayını bekliyor — `00`, `SETUP.md`, checklist'in skill'e dönüşmesi
+
+> **Sonuç — 2026-10-17 (K-991; ⚠ listesiyle aynı mesajda, ayrı numaralı sorular):** **Öneri 1 — uygulandı:** *"1 · Evet, eklensin"* — yedi desen `00 §N.1`'in "Aşama 4 — Teknik mimari" paragrafına aşağıdaki metinle girdi; `00` v1.0.6 (başlık ve alt bilgi; başka değişiklik yok). **Öneri 2 — uygulanmadı:** *"2 · Hayır, olduğu gibi kalsın"* — `SETUP.md`'nin iki satırı değişmedi; karar yalnız SETUP'ın metnine ilişkindir, çalışma biçimi aynıdır (cross-review Codex CLI ile koşar; hukuki kontrol `cross-review` Faz 2 madde 5'te). **Öneri 3 — uygulanmadı:** *"2 · Hayır, liste olarak kalsın"* — seçeneğin proje sahibine giden sözü *"bugünkü gibi devam eder"*di; bu yüzden aşağıdaki "Reddedilirse (seçenek 2)" paragrafının *"ölçüt … diye kapanır"* okuması uygulanmadı: ölçüt ve yeniden değerlendirme checklist'in başlık notunda yürürlükte kalır (§3'ün sonuç notu). Aşağıdaki metin 5. adımın hâlidir, olduğu gibi bırakıldı.
 
 GUARDRAILS §2: `00`, `CLAUDE.md` ve `SETUP.md` proje sahibinin **açık onayı** olmadan değişmez; GUARDRAILS §3: yeni skill yaratmak yapısal değişikliktir. Aşağıdaki üç öneri bu PR'da **uygulanmadı**. Her biri proje sahibine **ayrı numaralı soru** olarak gider (`INSTRUCTIONS §2`; Ö-72) ve onay gelirse ayrı bir `docs:` PR'ında uygulanır. Hiçbiri aşamanın kapanışını engellemez: kurallar L3–L4'te yürürlükte.
 
@@ -282,6 +286,8 @@ PF-74 (Veri Modeli şablonu) değişmedi; kapısı Veri modeli aşamasının aç
   - `workshop-sorusu-oncesi-template-taramasi.md` (H-1) — üçüncü vaka satırı: sorunun öncülü de taranır (K-860), kuralın evi `INSTRUCTIONS.md` §2 (K-989).
   - **Yeni not önerisi (Ö-76):** "Uzun adımda ara durum ver" — yönetici düzeninde yarım saati aşan bir adımda proje sahibine tek satırlık bilgi (hangi adım, ne bitti, sırada ne); soru değil. Kaynak: Teknik mimari aşaması, proje sahibinin "neredesin" sorusu. İkinci kez yaşanırsa `INSTRUCTIONS §9` işletim kuralı 1'e terfi eder.
 - **Mekanik:** değişen dosyalarda CR 0 (`tr -cd '\r'`); eklenen satırlarda geri başvuru artığı yok — `\$[0-9]` eşleşmeleri yalnız kuralın ve bu raporun anlattığı örneklerdir; düzenlemeler birebir değiştiren, her değiştirmede tam bir eşleşme isteyen node betiğiyle yapıldı; Python kullanılmadı.
+
+**Sonuç (6. adım, 2026-10-17):** proje sahibine tek mesaj gitti — kırk dört ⚠ karar ve üç öneri, her biri ayrı numaralı soru. ⚠ listesine itiraz yok (K-990). Öneri 1 uygulandı — `00` v1.0.6; Öneri 2 ve 3 uygulanmadı — `SETUP.md` değişmedi, checklist liste olarak kalır ve Ö-23 Veri modeli aşamasının öğrenim terfisinde yeniden değerlendirilir (K-991). Arşiv işareti düştü (`05` ✓ v0.17); devir karar kaydının §13'ünde — çalışma modlarının yeniden sorulacağını, PF-74'ün şablon taramasını ve Ö-23'ün kapısını taşır. Kullanıcı hafızasının §7'deki notları yöneticinindir; `cursor-agent-cross-review-kosumu.md`'nin SETUP sırası notu Öneri 2'nin sonucuyla — SETUP değişmedi, yol Codex — güncellenir. Aşağıdaki satır 5. adımın hâlidir.
 
 **Sırada:** K-437'nin 6. adımı — proje sahibine tek mesaj: kırk dört ⚠ kararın listesi (çakışma taramasının §4.1'i ve CP04 §5) ve bu raporun §4'ündeki üç öneri, **her biri ayrı numaralı soru**; cevapların kayda işlenmesi (onaylanan öneriler ayrı `docs:` PR'larında); ardından arşiv işareti (Aşama 4'ün kayıtları salt okunur) ve Aşama 5'e — Veri modeli — devir. Devir notu çalışma modlarının yeniden sorulacağını, PF-74'ün şablon taramasını ve onaylanmayan önerilerin sonucunu taşır.
 

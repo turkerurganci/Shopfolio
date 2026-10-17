@@ -11,7 +11,6 @@
 import crypto from 'node:crypto'
 import fs from 'node:fs'
 import http from 'node:http'
-import os from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
@@ -20,9 +19,9 @@ import {
   LEDGER, MEMORY_STAGING, WORK_DIR, MONITOR_PORT,
 } from './lib/config.mjs'
 import { RunStore, newStepEntry } from './lib/state.mjs'
-import { Stop, run, git, gitOut, readIf, writeFile, sleep, claudeProjectDir, showFile } from './lib/util.mjs'
+import { Stop, run, must, git, gitOut, readIf, writeFile, sleep, showFile } from './lib/util.mjs'
 import { sessionArgs, sessionEnv, runSession, readTranscripts } from './lib/session.mjs'
-import { rulesText, taskText, answerText } from './lib/prompts.mjs'
+import { rulesText, taskText, answerText, docNo } from './lib/prompts.mjs'
 import { GitHub } from './lib/github.mjs'
 import * as C from './lib/checks.mjs'
 
@@ -58,6 +57,7 @@ function loadPlan(file) {
     else if (!STEP_TYPES[s.type]) errs.push(`bilinmeyen adım türü: ${s.type}`)
     else if (STEP_TYPES[s.type].needsTask && !s.task) errs.push(`"${s.id}" adımının görev metni ("task") yok`)
     if (s.type === 'custom' && !s.label) errs.push(`"${s.id}" serbest adımının adı ("label") yok`)
+    if (s.model !== undefined || s.effort !== undefined) errs.push(`"${s.id}": model ve düşünme seviyesi plandan değiştirilmez (lib/config.mjs)`)
   }
   if (errs.length) throw new Stop('plan', 'Plan geçersiz', errs.join('\n'))
   return plan
@@ -79,15 +79,6 @@ function expandSteps(plan) {
 }
 
 // --- step context ------------------------------------------------------------------
-
-function ownerNotes() {
-  const dir = path.join(claudeProjectDir(os.homedir(), ROOT), 'memory')
-  let files = []
-  try { files = fs.readdirSync(dir).filter(f => f.endsWith('.md')).sort() } catch { return '' }
-  return files.map(f => `### ${f}\n\n${fs.readFileSync(path.join(dir, f), 'utf8').trim()}`).join('\n\n')
-}
-
-const docNo = (doc) => /Docs\/(\d\d)_/.exec(doc)?.[1] || '??'
 
 function expectedReports(step, plan) {
   if (step.type === 'custom') return step.reports || []
@@ -189,7 +180,7 @@ class Driver {
       throw new Stop('check', 'Kilit testi bu Claude sürümüyle geçmedi', `Kurulu: ${version}; son geçen test: ${lock.version || 'yok'}. Çalıştır: node scripts/autopilot/kilit-testi.mjs`)
     }
     must(git(ROOT, 'fetch', '-q', 'origin'), 'git fetch')
-    const broken = this.gh.mainProblems()
+    const broken = await this.gh.mainProblems((n) => this.check('preflight', 'run', `ana dalda ${n} koşu bitmeyi bekliyor`))
     if (broken.length) throw new Stop('ci', 'Ana dalın son CI koşularından biri kırmızı (GUARDRAILS §8)', broken.join(', '))
     const foreign = this.gh.openPRs().filter(p => p.headRefName.startsWith('docs/') && !this.st.prs.some(x => x.number === p.number))
     if (foreign.length) throw new Stop('check', 'Açık bir docs: PR var — K numarası çakışabilir (INSTRUCTIONS §7)', foreign.map(p => `#${p.number} ${p.title}`).join('\n'))
@@ -223,7 +214,7 @@ class Driver {
   async session(s) {
     const dir = this.store.stepDir(this.st.stepIndex)
     fs.mkdirSync(dir, { recursive: true })
-    const opts = { ...STEP_DEFAULTS, ...pick(this.plan.steps.find(p => p.id === s.id), ['model', 'effort', 'maxTurns', 'maxBudgetUsd', 'timeoutMin']) }
+    const opts = { ...STEP_DEFAULTS, ...pick(this.plan.steps.find(p => p.id === s.id), ['maxTurns', 'maxBudgetUsd', 'timeoutMin']) }
     const rulesFile = path.join(dir, 'rules.md')
     let prompt, resumeId = null
     if (this.st.question?.answer && this.st.question.step === this.st.stepIndex) {
@@ -234,7 +225,7 @@ class Driver {
     } else {
       writeFile(rulesFile, rulesText({
         mergeAuthority: this.plan.mergeAuthority, stage: this.plan.stage, stageName: this.plan.stageName,
-        label: s.type === 'cross-review' ? `${s.label}, ${s.round}. tur` : s.label, branch: s.branch, ownerNotes: ownerNotes(),
+        label: s.type === 'cross-review' ? `${s.label}, ${s.round}. tur` : s.label, branch: s.branch,
       }))
       prompt = taskText(s, this.plan)
       s.sessionId = crypto.randomUUID()
@@ -260,7 +251,8 @@ class Driver {
     if (!r) throw new Stop('check', 'Oturum sonuç vermeden kapandı', res.stderr)
     if (r.subtype === 'error_max_turns') throw new Stop('limit', `Oturum tur sınırına (${opts.maxTurns}) takıldı`)
     if (r.subtype === 'error_max_budget_usd') throw new Stop('limit', `Oturum harcama sınırına (${opts.maxBudgetUsd} $) takıldı`)
-    if (r.api_error_status === 429 || r.api_error_status === 529) throw new Stop('limit', 'Opus şu an kullanılamıyor (kullanım limiti ya da yoğunluk) — daha zayıf modele geçilmez')
+    const apiText = `${r.api_error_status || ''} ${r.subtype || ''} ${r.is_error ? r.result || '' : ''}`
+    if (/\b(429|529)\b|overloaded|rate.?limit|usage limit/i.test(apiText)) throw new Stop('limit', 'Opus şu an kullanılamıyor (kullanım limiti ya da yoğunluk) — daha zayıf modele geçilmez', apiText.trim().slice(0, 400))
     if (r.subtype !== 'success' || r.is_error || !r.structured_output) throw new Stop('check', `Oturum hatayla bitti (${r.subtype})`, r.result || res.stderr)
     this.check('session', 'ok', `${Math.round((r.duration_ms || 0) / 60000)} dk`)
     s.out = r.structured_output
@@ -439,12 +431,12 @@ class Driver {
     const pr = this.gh.pr(s.pr)
     if (pr.state === 'MERGED') { this.check('ci', 'ok', 'zaten merge edilmiş'); return }
     if (pr.state !== 'OPEN' || pr.baseRefName !== 'main') throw new Stop('check', `PR #${s.pr} açık değil ya da base main değil`, `${pr.state} · ${pr.baseRefName}`)
-    // Someone pushed a fix to the branch after a stop: re-check what is now in the PR.
-    const files = pr.files.map(f => ({ code: 'M ', path: f.path }))
-    const fence = C.fenceViolations(files, { allowDriverOwned: true })
-    if (fence.length) throw new Stop('check', 'PR izin verilmeyen bir dosyayı değiştiriyor', fence.join('\n'))
-    for (const c of pr.commits) { const h = C.attributionHit(`${c.messageHeadline}\n${c.messageBody}`); if (h) throw new Stop('check', 'PR commit\'inde AI atıf ifadesi var', h) }
-    if (pr.headRefOid !== s.headSha) { this.ev('betik', `PR'ın ucu değişmiş (${s.headSha.slice(0, 7)} → ${pr.headRefOid.slice(0, 7)}); yeni uç denetlendi`); s.headSha = pr.headRefOid }
+    // Only the commit the driver checked is ever merged by the driver. A fix pushed by hand after a
+    // stop is not re-checked here: the owner reviews and merges that PR, then `resume` continues.
+    if (pr.headRefOid !== s.headSha) {
+      this.check('ci', 'stop', 'uç elle değişti')
+      throw new Stop('owner-merge', `PR #${s.pr}'ın ucu betiğin denetlediği commit değil — betik bu PR'ı merge etmez`, `${s.headSha.slice(0, 7)} → ${pr.headRefOid.slice(0, 7)}\n${s.prUrl}\nProje sahibi bakıp merge ettikten sonra: node scripts/autopilot/run.mjs resume`)
+    }
     const r = await this.gh.waitChecks(s.headSha, (n, pending) => this.check('ci', 'run', `${n} check · ${pending} bekliyor`))
     if (!r.ok) { this.check('ci', 'stop', `CI Gate ${r.gate}`); throw new Stop('ci', `PR #${s.pr} testleri yeşil değil (CI Gate: ${r.gate})`, r.bad.join(', ') || `check sayısı ${r.count}`) }
     this.check('ci', 'ok', `${r.count} check · CI Gate ✓`)
@@ -479,7 +471,6 @@ class Driver {
   }
 }
 
-function must(r, what) { if (r.code !== 0) throw new Stop('check', `${what} başarısız oldu`, r.err || r.out); return r.out }
 function pick(o, keys) { const r = {}; for (const k of keys) if (o?.[k] !== undefined) r[k] = o[k]; return r }
 
 // --- summary ---------------------------------------------------------------------

@@ -17,6 +17,8 @@ Doküman döneminin adımlarını sırayla, her adımı ayrı ve kilitli bir Cla
 
 1. **Ön kontrol:** kilit testi bu Claude sürümüyle geçmiş mi, ana dalın son CI koşuları yeşil mi (GUARDRAILS §8), başka bir `docs:` PR'ı açık mı (K numarası çakışması), hook'lar kurulu mu. Sonra dal `origin/main`'den, ayrı bir çalışma klasöründe (`<repo>-otonom`) açılır. Senin çalışma klasörüne dokunulmaz.
 2. **Kilitli oturum:** yeni bir `claude -p` oturumu açılır. Önceki konuşmaları, senin otomatik hafızanı ve başka oturumları göremez. Elinde git ve GitHub anahtarı yoktur. İzin listesi `lib/perm.mjs`'de.
+   - Oturuma yalnız projenin kendi kuralları (CLAUDE.md, `.claude/`) ve senin kullanıcı düzeyindeki `~/.claude/CLAUDE.md` dosyan yüklenir. İkincisi Claude Code'un yükleme biçiminden gelir; AI atıf satırı yasağı da oradadır.
+   - Hafıza notların oturuma verilmez. Notların bir kısmı etkileşimli sohbete göredir (ör. "limit dolarsa kaldığın yerden devam"), ve hafıza kural kaynağı değildir (`00 §G.3`). Bir adım ancak hafızada yaşayan bir kurala ihtiyaç duyarsa bu bir terfi eksiğidir; kural kendi katmanına taşınır.
 3. **Kanıt:** izin redleri ve oturum kayıtları (alt ajanlarınki dahil) okunur. Yasak bir işlem denendiyse adım durur. Her alt ajanın hangi modelle çalıştığına bakılır.
 4. **Oturum DUR dediyse** soru proje sahibine gider ve betik bekler.
 5. **Denetim** (`lib/checks.mjs`):
@@ -31,7 +33,7 @@ Doküman döneminin adımlarını sırayla, her adımı ayrı ve kilitli bir Cla
    - **⚠ kararlar:** gösterilmeden kaydedilenler listeye alınır. Oturum birini listelemese bile karar kaydındaki işaretten bulunur.
 6. **Commit ve PR:** betik commit'ler, böylece hook'lar (sır taraması dahil) çalışır. Push eder ve PR açar.
 7. **CI:** check sayısı sıfırdan büyük olmalı, hepsi bitmeli ve `CI Gate` yeşil olmalı (`INSTRUCTIONS §3.2`, "Sessizlik yeşil değildir").
-8. **Merge:** yalnız denetlenen commit merge edilir (`--match-head-commit`). Merge yetkisi kapalıysa betik PR'ı açık bırakır ve durur. Dal silinmez; dal silme yetkinin dışındadır.
+8. **Merge:** yalnız denetlenen commit merge edilir (`--match-head-commit`). Merge yetkisi kapalıysa betik PR'ı açık bırakır ve durur. Bir durmadan sonra dala elle düzeltme push'lanmışsa betik o PR'ı merge etmez; proje sahibi bakıp kendisi merge eder, `resume` ondan sonra sürer. Dal silinmez; dal silme yetkinin dışındadır.
 9. **Merge sonrası:** ana daldaki CI ve Publish yeşil olmalı.
 
 ## Nerede durur
@@ -49,6 +51,8 @@ Betik aşağıdaki durumlarda durur, projeye bir şey eklemez ve durma nedenini 
 
 Betik şu adımları **hiç koşmaz**: aşama açılışı, workshop, öğrenim terfisi ve arşiv işareti. Bunlar ya proje sahibine soru sorar ya da `.claude/` dosyalarını değiştirir; yönetici chat'le, bugünkü gibi yürür. Arşiv işaretinden önce ⚠ listesinin gösterilmesi de bu yüzden elle kalır.
 
+Bu dört iş `custom` adımın görev metnine de yazılmaz. Yazılırsa betik sonucun bir kısmını mekanik olarak yakalar: arşiv işaretini ve yeni aşama açılışını metin denetimi, `.claude/` değişikliğini dosya çiti durdurur. Workshop'un kendisini ise ayırt edemez.
+
 ## Modeller ve ayarlar
 
 | İş | Model | Düşünme |
@@ -65,6 +69,12 @@ Betik, Opus dışında çalışan her alt ajanı oturum kayıtlarından bulur. B
 
 1. **Zararsız izin redleri adımı durdurmaz.** Oturum izin listesinde olmayan bir komut biçimi denerse (ör. `cd x && grep …`) reddedilir. Bu redler özete yazılır, adım sürer. Yasak bir işlem denemesi ise adımı durdurur: push, commit, `gh`, `--no-verify`, başka oturumların kayıtları, `codex`'i doğrudan çağırmak. **Neden:** ön denemede adım üç kez zararsız `cd` birleşimleri yüzünden durdu. Zararsız redler istenmeyen hiçbir şeyi geçirmiyor: izin listesi zaten reddediyor ve oturumun anahtarı yok.
 2. **Henüz yazılmamış dokümanda (v0.1) sürüm artışı aranmaz.** Yazılmamış dokümanlara park satırı sürüm artışı olmadan ekleniyor. Ana daldaki son 60 PR'ın 25'inde böyle oldu; yazılmış dokümanların sürümü ise her değişiklikte arttı. Sürümü artmadan değişen v0.1 doküman günlüğe yazılır.
+
+## Bilinen sınırlar
+
+- **İkinci model yalnız Codex.** SETUP'ta cross-review'ın birincil yöntemi `cursor-agent`, yedeği Codex. Betik yalnız yedek yöntemi (Codex) çalıştırır. Arayüz Tanımları'nın ve Teknik Mimari'nin cross-review turlarının hepsi de Codex'le koştu. `cursor-agent` gerekiyorsa o tur elle yürür.
+- **Metin denetimleri yanlış alarm verebilir.** Bir doküman `USERPROFILE` ya da `🤖` gibi bir ifade taşırsa adım durur. Son 60 PR'da bu olmadı. Bu bilinçli bir seçim: yanlış alarm adımı durdurur, hiçbir şeyi geçirmez.
+- **Komut kısıtı mutlak değil.** İzin listesi `node` komutuna açık, bu yüzden oturum ilkesel olarak komut biçimi kısıtını aşabilir. Asıl güvence izin listesi değil: oturumun anahtarı yoktur ve betik sonucu PR'dan önce denetler.
 
 ## Yönetici chat için komutlar
 
@@ -103,7 +113,7 @@ Günlük, durum ve her adımın oturum kaydı `.autopilot/runs/<koşu>/` altınd
 ```
 
 - **Adım türleri:** `writing`, `audit`, `deep-review`, `audit-deep-review`, `cross-review`, `conflict-scan`, `checkpoint` ve `custom`. `writing` ve `custom` bir `task` metni ister; `custom` ayrıca `label` ve isteğe bağlı `reports` alır.
-- **Ek alanlar:** her adım `note` (yöneticinin notu), `model`, `effort`, `maxTurns`, `maxBudgetUsd` ve `timeoutMin` alabilir.
+- **Ek alanlar:** her adım `note` (yöneticinin notu), `maxTurns`, `maxBudgetUsd` ve `timeoutMin` alabilir. Model ve düşünme seviyesi plandan değiştirilemez; `lib/config.mjs`'dedir.
 - **`mergeAuthority`:** karar kaydında o aşama için merge yetkisi veren K satırıdır; betik satırı ana dalda okuyup doğrular. Alan yoksa her PR proje sahibinin merge'ünü bekler.
 
 ## Dosyalar
@@ -118,5 +128,5 @@ Günlük, durum ve her adımın oturum kaydı `.autopilot/runs/<koşu>/` altınd
 | `lib/github.mjs` | PR, CI bekleme, merge, merge sonrası |
 | `lib/prompts.mjs` | Adım oturumuna verilen kurallar ve görev metinleri |
 | `codex.mjs` | İkinci modelin sabit bayraklı sarmalayıcısı; her çağrı SHA-256 ile kayda geçer |
-| `kilit-testi.mjs` | Yalıtım testi: altı kontrol (konuşma, hafıza yazma/okuma, eski kayıt, oturum ağı, alt ajan, GitHub anahtarı) |
+| `kilit-testi.mjs` | Yalıtım testi: yedi kontrol (konuşma, hafıza yazma/okuma, eski kayıt, oturum ağı, alt ajan, GitHub anahtarı, `mekanik` alt ajanı) |
 | `izle.html` | Canlı izleme ekranı |

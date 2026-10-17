@@ -32,10 +32,10 @@ ${TOOL_RULE}
 - Bir araç reddedilirse aynı işi başka bir komutla yapmaya çalışma; Read, Grep, Glob, Edit ve Write ile yap ya da outcome=STOP.
 - Alt ajanlar: mercekleri ve şüphecileri ön planda başlat (\`run_in_background: false\`). Bulgu bulan, doğrulayan ya da karar veren alt ajana model parametresi verme — Opus'ta kalır. Yalnız mekanik işler (dosya ya da satır sayma, listeleme, bir atfın var olup olmadığına bakma) için \`subagent_type: "mekanik"\` ve \`effort: "low"\`; yalnız metin taslağı (PR açıklaması, hafıza paragrafı) için \`subagent_type: "yazici"\` ve \`effort: "medium"\` kullan. Bu iki türün çıktısını sen kontrol edersin. Betik her alt ajanın modelini oturum kayıtlarından denetler; bulgu bulan bir iş Opus dışında koşmuşsa adım durur.
 - İkinci model (cross-review) yalnız \`node scripts/autopilot/codex.mjs\` ile çağrılır; bayraklar sabittir (SETUP'taki Codex koşum kalıbı). Kullanım: \`node scripts/autopilot/codex.mjs --help\`.
-${ctx.ownerNotes ? `\n## Proje sahibinin hafıza notları (salt okunur)\n\n${ctx.ownerNotes}\n` : ''}`
+`
 }
 
-const docNo = (doc) => /Docs\/(\d\d)_/.exec(doc)?.[1] || '??'
+export const docNo = (doc) => /Docs\/(\d\d)_/.exec(doc)?.[1] || '??'
 
 export function taskText(step, ctx) {
   const doc = step.document || ctx.document

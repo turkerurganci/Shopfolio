@@ -14,10 +14,17 @@ export class GitHub {
 
   openPRs() { return this.json(['pr', 'list', '--state', 'open', '--json', 'number,headRefName,title,url'], 'gh pr list') }
 
-  // GUARDRAILS §8: no work on top of a broken main.
-  mainProblems() {
-    const runs = this.json(['run', 'list', '--branch', 'main', '--limit', '3', '--json', 'workflowName,status,conclusion,headSha'], 'gh run list')
-    return runs.filter(r => r.status === 'completed' && !['success', 'skipped', 'neutral'].includes(r.conclusion)).map(r => `${r.workflowName}: ${r.conclusion} (${r.headSha.slice(0, 7)})`)
+  // GUARDRAILS §8: no work on top of a broken main. Runs still in progress are waited for, not skipped.
+  async mainProblems(onWait) {
+    const deadline = Date.now() + CI.timeoutMin * 60000
+    for (;;) {
+      const runs = this.json(['run', 'list', '--branch', 'main', '--limit', '3', '--json', 'workflowName,status,conclusion,headSha'], 'gh run list')
+      const pending = runs.filter(r => r.status !== 'completed')
+      if (!pending.length) return runs.filter(r => !['success', 'skipped', 'neutral'].includes(r.conclusion)).map(r => `${r.workflowName}: ${r.conclusion} (${r.headSha.slice(0, 7)})`)
+      if (Date.now() > deadline) return [`${pending.length} koşu ${CI.timeoutMin} dakikada bitmedi`]
+      onWait?.(pending.length)
+      await sleep(CI.pollSec * 1000)
+    }
   }
 
   remoteBranchExists(branch) {

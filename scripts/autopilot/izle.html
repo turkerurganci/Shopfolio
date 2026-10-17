@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Otonom Koşu İzleme</title>
+<style>
+  /* Layout: status bar on top; steps left, the driver's check ladder in the middle, live log right; stacked on narrow screens */
+  :root {
+    --bg: #f5f6f8; --fg: #1c2230; --muted: #5f6878; --line: #d3d8e1; --panel: #ffffff; --panel-2: #eef1f5;
+    --run: #1f6feb; --run-soft: #e2ecfd; --ok: #15803d; --ok-soft: #e3f4e8; --stop: #c2410c; --stop-soft: #fdebe1;
+    --sans: "Segoe UI", system-ui, sans-serif; --mono: ui-monospace, Consolas, "Cascadia Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #11151c; --fg: #e3e7ee; --muted: #98a1b0; --line: #343c4a; --panel: #191e27; --panel-2: #212836;
+    --run: #6ea8ff; --run-soft: #1b2942; --ok: #4ade80; --ok-soft: #16301f; --stop: #fb923c; --stop-soft: #3a2418; color-scheme: dark } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 var(--sans); padding: 20px 16px 40px; }
+  .wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 14px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .bar h1 { font-size: 1.05rem; margin: 0; font-weight: 600; flex: 1 1 260px; min-width: 0; }
+  .bar h1 small { display: block; font-weight: 400; color: var(--muted); font-size: .85rem; }
+  .stat { display: grid; min-width: 0; }
+  .stat b { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 10px; font-weight: 600; font-size: .85rem; }
+  .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .pill.run { color: var(--run); background: var(--run-soft); }
+  .pill.stop { color: var(--stop); background: var(--stop-soft); }
+  .pill.ok { color: var(--ok); background: var(--ok-soft); }
+  .grid { display: grid; grid-template-columns: 260px minmax(0, 1fr) minmax(0, 400px); gap: 14px; align-items: start; }
+  @media (max-width: 1020px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; min-width: 0; }
+  .card h2 { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  .steps li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; padding: 7px 8px; border-radius: 6px; }
+  .steps li .dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); margin-top: 1px; display: grid; place-items: center; font-size: 11px; font-weight: 700; }
+  .steps li .nm { font-weight: 500; }
+  .steps li .nt { color: var(--muted); font-size: .8rem; display: block; overflow-wrap: anywhere; }
+  .steps li.run { background: var(--run-soft); } .steps li.run .dot { border-color: var(--run); background: var(--run); }
+  .steps li.ok .dot { border-color: var(--ok); background: var(--ok); color: var(--panel); }
+  .steps li.stop { background: var(--stop-soft); } .steps li.stop .dot { border-color: var(--stop); background: var(--stop); color: var(--panel); }
+  .ladder { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .ladder li { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; align-items: center; border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; }
+  .ladder li .ic { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; border: 2px solid var(--line); color: var(--muted); }
+  .ladder li .t { font-weight: 500; min-width: 0; }
+  .ladder li .s { color: var(--muted); font-size: .78rem; display: block; }
+  .ladder li .r { font-family: var(--mono); font-size: .75rem; color: var(--muted); max-width: 220px; text-align: right; overflow-wrap: anywhere; }
+  .ladder li.run { background: var(--run-soft); border-color: var(--run); } .ladder li.run .ic { border-color: var(--run); color: var(--run); }
+  .ladder li.ok .ic { border-color: var(--ok); background: var(--ok); color: var(--panel); } .ladder li.ok .r { color: var(--ok); }
+  .ladder li.stop { background: var(--stop-soft); border-color: var(--stop); } .ladder li.stop .ic { border-color: var(--stop); background: var(--stop); color: var(--panel); } .ladder li.stop .r { color: var(--stop); }
+  .box { border-radius: 8px; padding: 14px; display: grid; gap: 8px; margin-top: 12px; }
+  .box h3 { margin: 0; font-size: 1rem; }
+  .box p, .box pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .box pre { font: 12px/1.5 var(--mono); max-height: 260px; overflow: auto; }
+  .box.stop { border: 2px solid var(--stop); background: var(--stop-soft); } .box.stop h3 { color: var(--stop); }
+  .box.ok { border: 2px solid var(--ok); background: var(--ok-soft); } .box.ok h3 { color: var(--ok); }
+  .box.info { border: 1px solid var(--line); background: var(--panel-2); }
+  .box ul { margin: 0; padding-left: 1.2em; }
+  .hint { color: var(--muted); font-size: .85rem; }
+  .log { font-family: var(--mono); font-size: 12px; line-height: 1.55; max-height: 620px; overflow: auto; display: grid; gap: 2px; align-content: start; }
+  .log div { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 8px; }
+  .log time { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .log .who { color: var(--run); }
+  .log .bad { color: var(--stop); font-weight: 500; }
+  .log .good { color: var(--ok); }
+  .log .sen, .log .yonetici { font-weight: 600; }
+  .log span { overflow-wrap: anywhere; }
+  @media (prefers-reduced-motion: no-preference) { .ladder li.run .ic { animation: p 1.2s ease-in-out infinite; } @keyframes p { 50% { opacity: .35; } } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="bar" aria-live="polite">
+    <h1 id="title">Otonom koşu<small id="sub">bağlanıyor…</small></h1>
+    <div class="stat"><span>Durum</span><div id="status" class="pill run">—</div></div>
+    <div class="stat"><span>Adım</span><b id="stepcount">—</b></div>
+    <div class="stat"><span>Projeye eklenen</span><b id="prs">—</b></div>
+    <div class="stat"><span>Son olay</span><b id="last">—</b></div>
+  </section>
+  <div class="grid">
+    <section class="card"><h2>Adımlar</h2><ol class="steps" id="steps"></ol></section>
+    <section class="card">
+      <h2 id="ladderTitle">Betik — bu adımın kontrolleri</h2>
+      <ol class="ladder" id="ladder"></ol>
+      <div id="panel"></div>
+    </section>
+    <section class="card"><h2>Canlı günlük</h2><div class="log" id="log" role="log" aria-live="polite"></div></section>
+  </div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id)
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+const STATUS = {
+  running: ['run', 'Çalışıyor'], question: ['stop', 'Durdu — karar bekliyor'], waiting: ['stop', 'Durdu — merge senin onayında'],
+  paused: ['stop', 'Durduruldu'], ci: ['stop', 'Durdu — testler yeşil değil'], limit: ['stop', 'Durdu — bir sınır doldu'], stopped: ['stop', 'Durdu — bir kontrol tutmadı'], done: ['ok', 'Bitti'],
+}
+const WHO = { betik: 'betik', claude: 'claude', 'alt ajan': 'alt ajan', yonetici: 'yönetici', sen: 'sen' }
+let next = 0, runId = null
+
+function hm(iso) { const d = new Date(iso); return d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) }
+function stepName(s) { return `${s.label}${s.type === 'cross-review' ? ` · ${s.round}. tur` : ''}` }
+
+function render(st) {
+  $('title').firstChild.textContent = st.title
+  $('sub').textContent = `${st.stageName} (Aşama ${st.stage}) · ${st.mergeAuthority ? `merge yetkisi ${st.mergeAuthority}` : 'merge senin onayında'} · başladı ${hm(st.startedAt)}`
+  let [kind, text] = STATUS[st.status] || ['stop', st.status]
+  if (st.status === 'running' && !st.alive) { kind = 'stop'; text = 'Betik çalışmıyor' }
+  $('status').className = 'pill ' + kind; $('status').textContent = text
+  const done = st.steps.filter(s => s.status === 'ok').length
+  $('stepcount').textContent = `${Math.min(st.stepIndex + 1, st.steps.length)} / ${st.steps.length} (${done} bitti)`
+  $('prs').textContent = `${st.prs.length} PR`
+  $('steps').innerHTML = st.steps.map(s => {
+    const mark = s.status === 'ok' ? '✓' : s.status === 'stop' ? '!' : ''
+    const note = s.pr ? `PR #${s.pr}${s.verdict ? ` · ${s.verdict === 'TEMIZ' ? 'TEMİZ' : 'bulgu var'}` : ''}${s.decisions?.length ? ` · ${s.decisions.length} karar` : ''}` : (s.status === 'run' ? s.phase : '')
+    return `<li class="${s.status}"><span class="dot">${mark}</span><span><span class="nm">${esc(stepName(s))}</span><span class="nt">${esc(note)}</span></span></li>`
+  }).join('')
+  const cur = st.steps[Math.min(st.stepIndex, st.steps.length - 1)]
+  $('ladderTitle').textContent = `Betik — ${cur ? stepName(cur) : ''}`
+  $('ladder').innerHTML = (cur?.checks || []).map(c => {
+    const ic = c.status === 'ok' ? '✓' : c.status === 'stop' ? '✕' : c.status === 'run' ? '•' : ''
+    return `<li class="${c.status}"><span class="ic">${ic}</span><span class="t">${esc(c.label)}<span class="s">${esc(c.hint)}</span></span><span class="r">${esc(c.note)}</span></li>`
+  }).join('')
+  let html = ''
+  if (st.status === 'question' && st.question) {
+    html += `<div class="box stop" role="alert"><h3>Karar gerekiyor</h3><p>${esc(st.question.text)}</p>
+      <p class="hint">Cevabını yönetici Claude'a yaz; o betiği aynı oturumla sürdürür.</p></div>`
+  } else if (st.stop && st.status !== 'done') {
+    html += `<div class="box stop" role="alert"><h3>${esc(st.stop.message)}</h3>${st.stop.detail ? `<pre>${esc(st.stop.detail)}</pre>` : ''}
+      <p class="hint">Projeye bir şey eklenmedi; yönetici Claude sana ne yapılacağını önerir.</p></div>`
+  }
+  if (st.status === 'done') html += `<div class="box ok"><h3>Koşu bitti</h3><p>${done} adım · ${st.prs.length} PR projeye eklendi.</p></div>`
+  if (st.warnings.length) html += `<div class="box info"><h3>Sana sormadan kaydedilen ⚠ kararlar (${st.warnings.length})</h3><ul>${st.warnings.map(w => `<li><b>${esc(w.k)}</b> — ${esc(w.sentence)}</li>`).join('')}</ul></div>`
+  if (st.criticalQuestions.length) html += `<div class="box info"><h3>Adımı durdurmadan kaydedilen çok kritik sorular</h3><ul>${st.criticalQuestions.map(q => `<li>${esc(q.text)}</li>`).join('')}</ul></div>`
+  $('panel').innerHTML = html
+}
+
+function addEvents(events) {
+  const box = $('log')
+  const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 40
+  for (const e of events) {
+    const d = document.createElement('div')
+    d.innerHTML = `<time>${hm(e.t)}</time><span><span class="who ${esc(e.who)}">[${esc(WHO[e.who] || e.who)}]</span> <span class="${esc(e.kind)}">${esc(e.text)}</span></span>`
+    box.append(d)
+    $('last').textContent = hm(e.t)
+  }
+  while (box.children.length > 1500) box.firstChild.remove()
+  if (atBottom) box.scrollTop = box.scrollHeight
+}
+
+async function poll() {
+  try {
+    const r = await fetch(`/api/state?from=${next}`, { cache: 'no-store' })
+    const j = await r.json()
+    if (!j.state) { $('sub').textContent = 'Henüz bir koşu yok'; return }
+    if (j.state.runId !== runId) { runId = j.state.runId; next = 0; $('log').innerHTML = ''; return poll() }
+    render(j.state)
+    addEvents(j.events)
+    next = j.next
+  } catch { $('sub').textContent = 'İzleme sunucusuna ulaşılamıyor (run.mjs monitor çalışıyor mu?)' }
+}
+poll()
+setInterval(poll, 2000)
+</script>
+</body>
+</html>

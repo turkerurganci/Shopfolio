@@ -1,6 +1,6 @@
 # Proje Bağlamı ve Klasör Haritası
 
-**Katman:** L3 | **Son güncelleme:** 2026-10-04
+**Katman:** L3 | **Son güncelleme:** 2026-10-17
 
 ---
 
@@ -72,6 +72,7 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 | `.claude/CONTEXT.md` | Bu dosya — klasör haritası | Yeni **klasör** açıldığında |
 | `.claude/skills/` | İş akışı skill'leri — her skill kendi klasöründe `<ad>/SKILL.md` (frontmatter'sız düz `.md` kayıt olmaz) | Öğrenim terfilerinde |
 | `.claude/checklists/` | Skill'e dönüşmemiş işletim checklist'leri | Aynı |
+| `.claude/agents/` | Alt ajan tanımları — otonom koşunun ucuz modelle çalışmasına izin verilen iki türü (`mekanik`, `yazici`); bulgu bulan iş bu türlere verilmez | Model dağılımı değiştiğinde |
 | `.claude/memory/` | Proje hafızası + kişisel çalışma tercihleri | Her task/faz kapanışında |
 | `.claude/hooks/` | **Opsiyonel** oturum hook'ları (hatırlatıcı, bloklamaz — L5 değil) | Nadiren |
 | `.claude/settings.json` | Paylaşılan ajan ayarları — **izlenir** (hook kayıtları + ekip izin listesi) | Hook eklendiğinde |
@@ -81,6 +82,7 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 | Yol | Rol | Kim günceller |
 |---|---|---|
 | `scripts/git-hooks/` | pre-commit (sır guard'ı) + commit-msg + pre-push (3 katman) + kurulum | Nadiren; değişimi ayrı `hooks:` PR'ı ister |
+| `scripts/autopilot/` | Otonom koşu betiği — yönetici düzeninin mekanik kısmı: adım başına kilitli oturum, denetim, PR, CI, merge (`README.md`) | Ayrı `chore:` PR'ıyla |
 | `.github/workflows/` | CI pipeline + (varsa) yayınlama workflow'u | CI task'ında + pipeline genişledikçe |
 | `.github/ci-commands.env` | Teknoloji-spesifik CI komutları (SETUP'ta doldurulur) | Kurulumda + yeni test katmanı eklendiğinde |
 | `.github/pull_request_template.md` | PR şablonu | Nadiren |

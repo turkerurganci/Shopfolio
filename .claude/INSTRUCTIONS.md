@@ -236,6 +236,8 @@ Düzenin dört işletim kuralı (UI/UX tasarım aşaması, K-852):
 3. **⚠ listesi kapıdan önce de gösterilebilir.** Kapı "en geç arşiv işaretinden önce"dir; proje sahibi isterse ya da yönetici uygun görürse liste o ana kadarki kararlarla erken gösterilir. İşaret dönüşümü gösterim tarihini taşır ve en geç arşiv işaretinin PR'ında kayda işlenir; gösterimden sonra kaydedilen ⚠ kararlar arşiv işaretinden önce ayrıca gösterilir. **Neden:** UI/UX tasarım aşamasında liste kırk karara çıktı ve proje sahibi kapanıştan önce görmek istedi (2026-10-05); erken gösterimden sonraki kararların kapısı yazılı değildi.
 4. **Limitte düşen alt ajanın görevi aynı kapsamla yeniden verilmez** — yönetici işi böler; kural ve kanıtı `checklists/document-stage.md` §4'ün çok oturumlu yazım maddesindedir (K-778).
 
+**Düzenin betikle işletimi — otonom koşu.** Yönetici adımları alt ajan yerine [`scripts/autopilot/`](../scripts/autopilot/README.md) betiğine de verebilir; kural değişmez. Betik her adımı temiz bağlamlı, kilitli bir oturuma verir. Oturum proje sahibine soramaz ve çok kritik konuda durur (işletim kuralı 2). Commit, PR, CI izleme, merge yetkisi açıksa merge ve repo hafızasını yerine koymak betiğin işidir. Merge'den önce şunlar mekanik olarak denetlenir: dosya çiti, rapor, karar kaydının sürümü ve K numaraları, CR ve `$1` taramaları (§7), AI atıf satırı ve CI kanıtı (§3.2). Betik aşama açılışını, workshop'u, öğrenim terfisini ve arşiv işaretini koşmaz. Gösterilmeden kaydedilen ⚠ kararların listesi koşunun özetinde toplanır; yönetici listeyi proje sahibine gösterir (§2, "Ortak kural"). Durma noktaları ve kullanım betiğin `README.md`'sindedir.
+
 ---
 
 ## 10. Skill'ler

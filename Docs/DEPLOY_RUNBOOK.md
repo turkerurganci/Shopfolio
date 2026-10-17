@@ -35,6 +35,11 @@
 > - **K-928 · K-929 · Tepe dakikanın okunması:** kurulumu yapan güncelleme turunda her kurulumun son ayındaki en yüksek dakikalık farklı ziyaretçi sayısını erişim kaydından okur; aynı turda sunucunun bellek ve işlemci kullanımını okur ve uzun işlerin saatlerindeki sayfa yanıt sürelerine bakar — büyüme yolunun tetikleyicileri (`05 §11.3.2`, §11.3.6); 100'ün aşılması `10 §4.2` SK-5'in eşzamanlı ziyaretçi tetikleyicisidir (`05 §11`). Okumaların komutu bu dokümanın kararıdır.
 > - **Dizin — Aşama 4 kararlarının bu dokümana devirleri:** karar kaydında K-855…K-979'un etki sütunlarında bu dokümanı gösteren elli sekiz atıf (elli dört karar) ve Teknik Mimari'nin (`05`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE4_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE4_CONFLICT_SCAN.md) §6'dadır; Aşama 4'ün atıflarının hepsi işin adını taşır. Aşama 4'ün checkpoint'inin kararları (K-980…K-988) tarama raporunda yoktur — bu dokümana bıraktıkları iş yukarıdaki satırlarda etiketiyle durur. Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Önceki aşamaların dizinleri: `PHASE1_CONFLICT_SCAN.md` §6, `PHASE2_CONFLICT_SCAN.md` §6, `PHASE3_CONFLICT_SCAN.md` §6.
 
+> **Aşama 5'ten park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §14.2, yazım turu ve kapanış sırasının 2. maddesi).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-1016 · Veritabanının kodlaması ve sıralaması:** veritabanı UTF-8 ve ICU'nun deterministik Türkçe sıralamasıyla (`tr-TR`) açılır — kategori adlarının alfabetik sırası (K-805) buna dayanır; kimlik karşılaştırması sıralamaya dayanmaz (Veri Modeli `06 §2`). İlk kurulumdaki adımı ve ayarı bu aşamanın kararıdır.
+
 ---
 
 ## 0. Hızlı özet

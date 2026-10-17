@@ -43,6 +43,7 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-1027 · B-1'in gövdesindeki iki metin:** sipariş onay e-postasının gövdesindeki Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi (`02 §3.33.6`) siparişin onay anında üretilen kişisel verisiz kopyasından ve siparişin onay anındaki adından, adreslerinden ve e-postasından doldurulur; panelden yeniden gönderim de aynı kopyayı ve aynı değerleri kullanır — adres ya da e-posta sonradan düzeltilmiş olsa da (Veri Modeli `06 §4`; `02 §3.23.3`). Gövdenin şablonunda iki metnin yerleşimi ve biçimi bu aşamanın kararıdır.
+> - **K-1059 · Gelen bildirimin ve kart iadesi isteğinin alan eşlemesi:** sağlayıcının imzası doğru bildirimi gelen bildirim kaydına bildirimin kimliği ya da işlem kimliği, olay türü, sonuç, siparişin referansı ve tutarla yazılır; olay türü ve sonuç sağlayıcının değerleridir ve Veri Modeli onlara kontrol kısıtı koymaz; tekillik bildirimin kimliğidir, yoksa işlem kimliği olay türü ve sonuçla birlikte; kart iadesinin sonucunu taşıyan bildirim, isteğin taşıdığı geri ödeme kaydının kimliğiyle o kayda bağlanır; siparişin ödeme kaydı ödemeyi sağlayıcının ödeme işlem kimliğiyle taşır (Veri Modeli `06 §4.32`, §4.34, §4.35; `05 §4.5.2`, §4.5.3, §4.6.1). Sağlayıcının alanlarının bu sütunlara eşlenmesi, olay türü ve sonuç değerlerinin listesi ve geri ödeme kaydının kimliğinin istekte taşındığı alan bu aşamanın kararıdır.
 
 ---
 

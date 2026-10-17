@@ -39,6 +39,7 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-1011 · İç anahtar ve dışa görünen kimlikler:** tabloların anahtarı uygulamanın ürettiği zamana göre sıralı UUID'dir; vitrinde ürün, kategori ve içerik sayfaları sayfa adresiyle, sipariş sayfası numara ve e-postayla ya da erişim anahtarıyla açılır — iç anahtar vitrinin adresinde kullanılmaz; müşterinin kendi kaydını gösteren istekte (adres defteri girdisi, sepet kalemi) iç anahtar taşınabilir ve kaydın o oturumun hesabına ya da sepetine ait olduğu sunucuda denetlenir (Veri Modeli `06 §2`). Adreslerin ve isteklerin biçimi bu aşamanın kararıdır.
+> - **K-1070 · Sayfa adreslerinin önekleri:** sayfa adresinin kayda ait parçası (`Slug`) kayıt türü içinde tekildir — ürün, kategori, hizmet tanıtımı, referans iş ve genel sayfa ayrı tablolarda kendi tekilliklerini taşır; iki türde aynı değer bulunabilir (Veri Modeli `06 §4.72`; `02 §3.30.1`, §3.30.2). Bu yüzden her türün öneki birbirinden ve sabit sayfaların adreslerinden — hizmetler, referanslar, SSS, Hakkımızda, İletişim, sepet, hesap sayfaları — ayrık olmalıdır; aksi hâlde iki kayıt aynı adresi gösterir. Öneklerin kendisi ve adresin istekteki biçimi bu aşamanın kararıdır.
 
 ---
 

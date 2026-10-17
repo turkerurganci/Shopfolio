@@ -1,6 +1,6 @@
 # Shopfolio — Data Model
 
-**Versiyon: v0.9** | **Bağımlılıklar:** `02`, `03`, `05`, `09`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-17
+**Versiyon: v0.10** | **Bağımlılıklar:** `02`, `03`, `05`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-17
 
 > **Aşama:** 5 — Veri Modeli · **Rol:** Data / Domain Modeler
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §3'e (entity envanteri) geçilmez.
@@ -9,7 +9,7 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-06 · K-97 · Aktörler ve yetki derinliği:** Dört aktör — ziyaretçi · misafir alıcı · üye müşteri · firma yöneticisi (`02 §1.3`; misafir alıcıyı K-97 ekledi, satır Aşama 2'nin çakışma taramasında hizalandı); yönetim tarafı **tek rol, çoklu kullanıcı** — yönetici hesapları arasında yetki farkı yoktur, rol/izin modeli buna göre kurulur.
-> - **K-17 · K-531 · K-977 · K-988 · Terim sözlüğü:** Sözlük `02 §1`'de yaşar (Türkçe terim · İngilizce kod karşılığı · tanım). Bu doküman sözlüğü **birebir devralır, isim icat etmez**; bir kavramın tek adı vardır. **Tek istisna:** kapalı listelerin — Firma tipi, Hesap türü, Konu tipi, İptal sebebi, Düzeltme sebebi, Cayma istisnası sebebi, Ana sayfa düzeni, Teslim tarihi — değerlerinin kod adlarını bu doküman verir; değerler `02` gövdesindeki kapalı listeden birebir adlandırılır (K-531, K-617, `02 §1.2`; Hesap türü'nü K-617 ekledi, satır Aşama 3'ün çakışma taramasında hizalandı). **Sözlük ürünün terimlerini taşır:** biçimini Teknik Mimari'nin kurduğu, sözlükte (`02 §1.2`) yer almayan teknik kavramların — adı ürün kuralında geçenler dahil: iş kuyruğu ve iş satırı, gönderim kaydı, gelen bildirim kaydı, geri ödeme kaydı, kanal hâli kaydı, nabız ve kesinti kaydı, deneme kaydı, bağlantı kaydı, onay anahtarı, imha kaydı, geçiş kaydı, sürüm değeri — ve onların kapalı listelerinin — geri ödeme kaydının, bağlantı kaydının ve iş satırının hâlleri, gönderim sonucunun sınıfı — kod adlarını bu doküman kavramın `05`'teki adından birebir verir; API Tasarımı ve Kodlama Kılavuzu onları buradan alır. Ürüne görünen kavram sözlüğe girer (`02 §1.1`; K-977 — Aşama 4'ün çakışma taraması; tanım K-988 ile Aşama 4'ün checkpoint'inde hizalandı).
+> - **K-17 · K-531 · K-977 · K-988 · Terim sözlüğü:** Sözlük `02 §1`'de yaşar (Türkçe terim · İngilizce kod karşılığı · tanım). Bu doküman sözlüğü **birebir devralır, isim icat etmez**; bir kavramın tek adı vardır. **Tek istisna:** kapalı listelerin — Firma tipi, Hesap türü, Konu tipi, İptal sebebi, Düzeltme sebebi, Cayma istisnası sebebi, Ana sayfa düzeni, Teslim tarihi — değerlerinin kod adlarını bu doküman verir; değerler `02` gövdesindeki kapalı listeden birebir adlandırılır (K-531, K-617, `02 §1.2`; Hesap türü'nü K-617 ekledi, satır Aşama 3'ün çakışma taramasında hizalandı). Teslim tarihi kapalı liste değil kalemin tarih alanıdır — K-531 onu sözlüğe "kapalı liste ve kayıt adı" ikilisiyle aldı; sözlüğün kapalı listeleri bugün on üçtür ve hangisinin enum, hangisinin tablo olduğu §5.3'tedir (satır Veri modeli aşamasının yazım turunda hizalandı — K-1036). **Sözlük ürünün terimlerini taşır:** biçimini Teknik Mimari'nin kurduğu, sözlükte (`02 §1.2`) yer almayan teknik kavramların — adı ürün kuralında geçenler dahil: iş kuyruğu ve iş satırı, gönderim kaydı, gelen bildirim kaydı, geri ödeme kaydı, kanal hâli kaydı, nabız ve kesinti kaydı, deneme kaydı, bağlantı kaydı, onay anahtarı, imha kaydı, geçiş kaydı, sürüm değeri — ve onların kapalı listelerinin — geri ödeme kaydının, bağlantı kaydının ve iş satırının hâlleri, gönderim sonucunun sınıfı — kod adlarını bu doküman kavramın `05`'teki adından birebir verir; API Tasarımı ve Kodlama Kılavuzu onları buradan alır. Ürüne görünen kavram sözlüğe girer (`02 §1.1`; K-977 — Aşama 4'ün çakışma taraması; tanım K-988 ile Aşama 4'ün checkpoint'inde hizalandı).
 
 > **Aşama 2'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §8.3 AK0-04).
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
@@ -46,6 +46,51 @@
 > - **K-913 · K-918 · K-937 · K-963 · Kanal hâli ve yedeğin durum kaydı:** e-posta göndericisi tek satırlık bir kanal hâli kaydı tutar — son başarılı gönderimin anı, art arda kanal hatası sayısı, dizinin ilk hatasının anı — ve her gönderim denemesinin sonucu üç sınıftan birini taşır: gönderildi, alıcı hatası, kanal hatası; firma bildirimleri uyarısı gönderim kaydından okunur, ayrı bir işaret saklanmaz. Sunucunun dışındaki depoya alınan gecelik tam yedeğin sonucunu — yerel kopyanınki sayılmaz — veritabanı konteynerindeki zamanlayıcı yerel soketle veritabanındaki bir durum kaydına yazar; dosya yedeğinin sonucu veritabanında değil, yedek aracının durum dosyasındadır — yedek aracı veritabanına bağlanmaz ve ağ üzerinden bağlanan bir yedek kullanıcısı yoktur (Teknik Mimari `05 §9.4.5`, §9.4.10, §10). Kayıtların tanımı bu aşamanın kararıdır.
 > - **K-951 · Elektronik ticaret kayıtlarının on yıllık saklaması (6563 sayılı Kanun m.11/3):** siparişe bağlı müşteri bildiriminin gönderim kaydı on yıl saklanır ve imha işi satırın siparişine bakar — ödemesi alınmış siparişin satırı on yıl alıcısıyla durur ve sonra silinir; ödemesi hiç alınmamış siparişin satırında üç yılda alıcı ve olayın değerleri boşaltılır, satır on yılda silinir. Ödemesi hiç alınmamış siparişin kişisel verisiz kaydı on yıl dolmadan silinmez. İletişim talebinin süresi konu tipinden okunur — "Sipariş hakkında" on yıl, öteki tipler iki yıl (`02 §4.2` Z-33, Z-41, Z-43, §11.2 P-40; Teknik Mimari `05 §4.4.4`, §7.4.3). Gönderim kaydının siparişe bağı, siparişin ödemesi alınmış sayıldığının (`02 §4.2` Z-28, §6.2.16) hangi alandan okunduğu ve boşaltılan alanların listesi bu aşamanın kararıdır.
 > - **Dizin — Aşama 4 kararlarının bu dokümana devirleri:** karar kaydında K-855…K-979'un etki sütunlarında bu dokümanı gösteren kırk bir atıf (otuz dokuz karar) ve Teknik Mimari'nin (`05`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE4_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE4_CONFLICT_SCAN.md) §6'dadır; Aşama 4'ün atıflarının hepsi işin adını taşır. Aşama 4'ün checkpoint'inin kararları (K-980…K-988) tarama raporunda yoktur — bu dokümana bıraktıkları iş yukarıdaki satırlarda etiketiyle durur. K-977'nin satırı Aşama 1 bloğunun K-17 satırıdır. Sayfa adresinin veride tutuluşu (`05 §3.7.1`) karar satırı olmadan devredilmiştir — tek yazılı yeri o cümledir. Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Önceki aşamaların dizinleri: `PHASE1_CONFLICT_SCAN.md` §6, `PHASE2_CONFLICT_SCAN.md` §6, `PHASE3_CONFLICT_SCAN.md` §6.
+
+> **Yazım durumu (K-28, K-30, K-432; karar kaydı §14.2):** izlenebilirlik matrisi (§1) altı oturumda, workshop iki oturumda tamamlandı; doküman Veri modeli aşamasının **tek yazım turunda**, üç oturumda yazılır. Girdi karar kaydı (K-992…K-1036 ve önceki aşamaların bu dokümana devirleri — §1.1.11), bu dokümanın şablonu ve park blokları, matris ve üst dokümanlardır — workshop'un sohbet geçmişi değil.
+>
+> **1. oturum (2026-10-17, v0.10):** yazım konvansiyonları ve alt bölüm haritası (blok VM0; K-1032, K-1033) · §2 modelleme kuralları (blok VM2 ve K-1017, K-1021 (3), K-1026 (4), K-1029 (4)) · §3 entity envanteri — 79 entity (blok VM3; K-1034, K-1035) · §5 enum tanımları (blok VM5'in T konuları; K-1036). Başlığın "Bağımlılıklar" alanı `00 §C.1`'in girdileriyle dolduruldu (K-996).
+>
+> **2. oturum** — §4'ün ilk yarısı: §4.1…§4.35 (firma ve ayarlar, başlangıç listeleri, katalog, fiyat, kupon ve ayırma, sepet, sipariş, kalem kayıtları, ödeme ve geri ödeme).
+>
+> **3. oturum** — §4'ün kalanı: §4.36…§4.72 (hesaplar, kurumsal içerik ve marka, yasal metinler, iletişim talebi, bildirim ve iş kuyruğu, iz ve sistem kayıtları, dosyalar, sayfa adresi) ve §9, §8, §7, §6 (K-993'ün sırası).
+
+**Yazım konvansiyonları (K-994, K-1032).** Bu on dört madde §2–§9'un bütün yazım oturumlarını bağlar; "konvansiyon n" diye anılır.
+
+1. **Bu doküman kural koymaz.** Ürün Gereksinimleri'nin (`02`) kurallarının ve Kullanıcı Akışları'nın (`03`) akışlarının sakladığı her bilgiyi entity'ye, alana, ilişkiye, enum'a ve kısıta çevirir; Teknik Mimari'nin veri katmanı kararlarının (`05 §7`) ve park satırlarının veriye düşen yüzünü kurar. Ürün davranışı `02`'de, mekanizma `05`'tedir. Alan yazılırken eksik çıkan kural bir **boşluktur:** uydurulmaz, karar kaydında bir K satırıyla karara bağlanır; üst dokümana dönüyorsa aynı PR'da yazılır ve §1.3'ün geri besleme tablosuna satır girer (K-652, K-994). Verinin biçimi — tablo, alan, tür, anahtar, kısıt, silme davranışı — bu dokümanın kararıdır ve üst dokümana dönmez.
+2. **Adlar sözlükten birebirdir** (`02 §1.1`, §1.2; K-17): entity ve ürüne görünen alan adları `02 §1.2`'nin İngilizce kod karşılığıdır; bu doküman ürün kavramına ad **icat etmez** — sözlükte terimi olmayan ürüne görünen bir kavram bir boşluktur (konvansiyon 1) ve sözlüğe girer (K-1006, K-1031'in kalıbı). Ad veren üç yer vardır: teknik kavramların kod adı kavramın `05`'teki adından birebir türer (§3.3; K-977, K-988); bağ tablosunun ve ayrı tabloya alınan alan grubunun adı K-1012 (2)'nin kuralıyla türer (§2.4); kapalı listelerin ve kayıt düzeyindeki kapalı değerlerin kod adlarını §5 verir (K-531). Ürünün **durumu** sözlüğün `…Status` adını taşır; teknik kaydın **hâli** `…State` diye adlandırılır — iki kavram karışmaz (§5.4). Tek başına "müşteri" `Buyer`'ı — misafir alıcı ya da üye —, tek başına "üye" üye müşteriyi (`Customer`) anlatır (`02 §1.2`; K-526).
+3. **Entity kod adıyla anılır, alan `Entity.Alan` biçimindedir** (K-995): `Order`, `OrderItem.VatRate`. Kod adı tekil ve Pascal yazımlıdır; veritabanındaki tablo ve sütun adı onun §2.4'teki dönüşümüdür (`orders`, `order_items.vat_rate`) ve metinde yalnız şema anlatılırken yazılır. §3'ün "#" sütunu sıra numarasıdır ve dışarıdan anılmaz; harf önekli bir entity kimliği açılmaz.
+4. **Satır ve alt madde kimliği bölüm numaralıdır** (Kullanıcı Akışları'nın kalıbı — K-669): bir alt bölümün kuralı `n.m.k` diye numaralanır ve dışarıdan `06 §n.m.k` diye anılır — §2.6'nın üçüncü kuralı `06 §2.6.3`. §3'ün envanter satırı entity adıyla, §5'in tablosu enum adıyla ve değerin kod adıyla (`OrderStatus.Shipped`), §4'ün alan tablosunun satırı `Entity.Alan` ile anılır; onlara ayrıca numara verilmez.
+5. **Atıf biçimi.** Önsüz `§` bu dokümanı gösterir; başka dokümana atıf numarasıyla yazılır (`02 §3.23.3`, `05 §7.4.3`, `10 §2` KP-17). Bir hücrede ya da cümlede `0X §` ile başlayan dizideki sonraki önsüz `§`'ler o dokümanı gösterir; dizi ` · `, `;`, parantezin kapanışı ya da cümle sonuyla biter (K-701). Karar kaydının bölümleri "karar kaydı §n" diye anılır. Matrisin (§1) hücrelerindeki konu kimlikleri (`VM4-06`) karar kaydının §14.3'üne işaret eder; konunun yazıldığı alt bölüm aşağıdaki haritanın "Plan konuları" sütunundadır — matrisin hücreleri bu yüzden değişmez.
+6. **`02`, `03` ve `10`'un kimlikleri olduğu gibi kullanılır** (K-532; `03 §0.3.3`): S1…S11, Ö1…Ö5, B-1…B-16, F-1…F-6, Z-, L-, P-, H-, KP-, KD-, ÖK-, SK-. **Değer yazılmaz, kimlik yazılır** (`03 §0.5.3`): süre, limit, tutar ve parametre değerleri `02 §4`, §8.2 ve §11'de yaşar. İstisna bu dokümanın kendi teknik değerleridir — türler, ölçek, hassasiyet, sütun uzunlukları —; evleri burasıdır ve değerleriyle yazılır (§2.5). Bir kimlik kod adına dönüşürken tanımlayıcı kuralına uyar: tire atılır, Türkçe harf ASCII karşılığına iner (`B-5` → `B5`, `Ö1` → `O1`; §5.1).
+7. **Aktörler ve yetki derinliği** (K-06, K-97; `02 §1.3`): dört aktör — ziyaretçi · misafir alıcı · üye müşteri · firma yöneticisi. Ziyaretçinin ve misafir alıcının hesap kaydı yoktur; misafir alıcının izi siparişin kendisidir. Yönetim tarafı **tek rol, çoklu kullanıcıdır** — rol, izin ya da yetki tablosu yoktur; bütün yöneticiler bütün kayıtları görür (`02 §10.2.3`). Kurulum başına tek firma vardır — **kiracı alanı yoktur** (`10 §4.2` SK-1; K-10). Kaydı yazanın türü — müşteri, yönetici, sistem — `ActorKind`'dır (§5.4).
+8. **Kaynak gösterme.** Her alt bölüm bir *Kaynak* satırıyla kapanır; tablonun satırı Kaynak sütunu taşır. Kaynak önce kuralın evidir (`02 §…`, `03 §…`, `10` KP-), mekanizma `05 §…` ile, kararın satırı K numarasıyla yazılır: Aşama 1–4'ün kararları dokümanların atfıyla gösterilir — kararın evi dokümandır (K-647) —, devir dizinlerinin ve park satırlarının bu dokümana bıraktığı işi kapatan yer devreden kararı "devir:" diye anar; **Aşama 5'in kararları** (K-992 ve sonrası) K numarasıyla, kolu varsa kol numarasıyla (`K-1010 (4)`) yazılır. §4'ün alan tablosunun Kaynak hücresi alanın en az bir kaynağını taşır — kaynağı olmayan alan gerekçesiz eklemedir (`00 §C.3`; §1.2).
+9. **Kural ayrıntısı evinde kalır.** Bir alan bir kurala dayanıyorsa kuralın koşullarını kopyalamaz; alanın neyi taşıdığını bir cümleyle yazar ve kurala bölüm numarasıyla işaret eder (`checklists/document-stage.md` §4). Modelleme kurallarının evi §2'dir: §4 onları yinelemez, uygulandığı yeri yazar.
+10. **Geçici hedef hücre.** Yazılmamış bir bölüme bağlanan atıf hedef alt bölümü ve oturumunu taşır — "§4.18 (2. oturum)" —; o bölümü yazan oturum hücreyi aynı PR'da madde numarasına çevirir (K-682). Alt bölüm haritasını değiştirmek zorunda kalan oturum tabloyu ve ona atıf yapan satırları aynı PR'da günceller (K-670).
+11. **Açık kalem ve devir.** Bu dokümanın şablonunda açık kararlar bölümü yoktur: karara bağlanmış bir varlığın yalnız **detayı** açık kalabilir ve karar kaydının §4'ünde **A-19**'dan sürer, gözlemlenebilir bir kapıyla (K-37; `00 §N.1`). Sonraki dokümana — API Tasarımı, Entegrasyon Spesifikasyonu, Kodlama Kılavuzu, Implementation Planı, Doğrulama Protokolü, `DEPLOY_RUNBOOK` — talimat bırakan karar o dokümanın başındaki **"Aşama 5'ten park edilen girdiler"** bloğuna satır olarak girer, blok yoksa açılır (K-36); aşama içi ileri referans karar satırının etki sütununda `(downstream)` olarak kalır.
+12. **"Yoktur" ve belirsiz ifade.** Ürünün bilinçli olarak sunmadığı bir yeteneğin verisi modelde yer tutmaz ve yer ayırma alanı açılmaz — kapsam dışı satırlar (`10 §3`) ve yol haritası adayları (`10 §5`) dahil; şablonun beklediği ama bu projede karşılığı olmayan yapı ilgili bölümde tek cümleyle ve kaynağıyla "yoktur" diye anılır. "Muhtemelen", "belki", "gereksinime göre" yazılmaz (`GUARDRAILS §5`); teknik bir değerin bugünkü sürümlere dayanan okuması "bilgim tarihli" diye işaretlenir ve doğrulanacağı yer yazılır.
+13. **Düzey ve dışarıda kalanlar** (`GUARDRAILS §1`): teknoloji seçilmiştir — PostgreSQL 18 ve EF Core (`05 §2.1` MK-03, MK-06). Endpoint ve istek biçimi API Tasarımı'nın (`07`), dış servislerin alan eşlemesi Entegrasyon Spesifikasyonu'nun (`08`), sorgu ve kod kalıpları — çatıda eşleme, adlandırma kuralının uygulanışı, normalleştirme ve temizleme işlevleri — Kodlama Kılavuzu'nun (`09`) işidir; bu doküman onlara park satırıyla işaret eder.
+14. **Özet ile ayrıntı birlikte değişir.** §3'ün envanteri, §5'in enum'ları ve §6–§7'nin özetleri §4'ün alanlarının özetidir; bir alanı, bir değeri ya da bir silme davranışını değiştiren her düzeltme onu anan özet yerleri betikle bulur ve aynı PR'da okur (`checklists/document-stage.md` §4).
+
+**Alt bölüm haritası (K-1033).** Şablonun §1…§9 numaraları değişmez; alt düzey aşağıdaki tabloyla sabittir. §1'in haritası §1'in başındadır (K-998). §4'te her entity kendi alt bölümünü alır ve §3'ün sırasını izler; kendi alanı olmayan bağ tablosu sahibinin alt bölümündedir, aynı biçimdeki bağ tabloları tek alt bölümü paylaşır (K-1033).
+
+| Bölüm | Alt bölümler | Plan konuları | Oturum |
+|---|---|---|---|
+| Başlık notu | Yazım durumu · yazım konvansiyonları (1–14) · alt bölüm haritası | VM0-01…VM0-07 | 1 ✓ |
+| §1 Traceability Matrix | Haritası §1'in başındadır (K-998, K-1004) | VM1-01…VM1-06 | matris ✓ |
+| §2 Modelleme kuralları | 2.1 Şablonun altı dersi ve bu projedeki yeri · 2.2 Silme kategorileri ve bağların silme davranışı · 2.3 Anahtarlar ve dışa görünen kimlikler · 2.4 Adlandırma ve şema · 2.5 Türler ve sayısal ölçek · 2.6 Eşzamanlılık — sürüm değeri ve koşullu güncelleme · 2.7 Denormalizasyon envanteri · 2.8 Metin karşılaştırma, sıralama, oluşturulma anı ve boş değer · 2.9 Enum'ların biçimi · 2.10 Uzun metnin saklanışı | VM2-01…VM2-07, VM5-01 | 1 ✓ |
+| §3 Entity envanteri | 3.1 Envanter · 3.2 Aday listeden envantere · 3.3 Teknik kavramların kod adları | VM3-01…VM3-03 | 1 ✓ |
+| §4 Entity tanımları — 1. yarı | 4.1 Company · 4.2 CompanySettings (CompanyDeliveryProvince dahil) · 4.3 Province · 4.4 Country · 4.5 Product · 4.6 Variant · 4.7 Option · 4.8 OptionValue · 4.9 Category · 4.10 ProductCategory · 4.11 PriceHistory · 4.12 Discount · 4.13 Coupon · 4.14 StockReservation · 4.15 Cart · 4.16 CartItem · 4.17 Order · 4.18 OrderItem · 4.19 TransitionRecord · 4.20 InternalNote · 4.21 CheckboxAcceptance (CheckboxAcceptanceOrderItem dahil) · 4.22 Cancellation · 4.23 ItemRemoval · 4.24 LateDeliveryTermination · 4.25 Withdrawal · 4.26 Return · 4.27 ReturnRejection · 4.28 NotReturnedClosure · 4.29 RefundIbanRequest · 4.30 DefectClaim · 4.31 RefundIban · 4.32 PaymentRecord · 4.33 Refund · 4.34 RefundRecord · 4.35 InboundNotificationRecord | VM4-01…VM4-08 | 2 |
+| §4 Entity tanımları — 2. yarı | 4.36 Customer · 4.37 Admin · 4.38 AdminInvitation · 4.39 Session · 4.40 PendingEmailChange · 4.41 RecognizedBrowserMark · 4.42 LinkRecord · 4.43 AttemptRecord · 4.44 LoginRecord · 4.45 AddressBook · 4.46 AboutPage · 4.47 Offering · 4.48 PortfolioItem · 4.49 FaqItem · 4.50 Branch · 4.51 CustomPage · 4.52 Announcement · 4.53 İçerik–ürün bağları (OfferingProduct, PortfolioItemProduct) · 4.54 Branding · 4.55 SocialLink · 4.56 LegalTextVersion · 4.57 ContactRequest · 4.58 DispatchRecord · 4.59 Job · 4.60 ChannelStateRecord · 4.61 OrderEmailHistory · 4.62 OrderAddressHistory · 4.63 AuditLog · 4.64 DisposalRecord · 4.65 HeartbeatRecord · 4.66 OutageRecord · 4.67 BackupStatusRecord · 4.68 DataProtectionKey · 4.69 Image · 4.70 DigitalFile · 4.71 Galeri bağları (ProductImage, AboutPageImage, OfferingImage, PortfolioItemImage, FaqItemImage, CustomPageImage) · 4.72 Sayfa adresi — ortak alan | VM4-09…VM4-16 | 3 |
+| §5 Enum tanımları | 5.1 Biçim, kaynak ve okunuş · 5.2 Durum setleri ve geçiş kimlikleri · 5.3 Sözlüğün listeleri · 5.4 Teknik kayıtların listeleri · 5.5 Kimlikli ürün listeleri · 5.6 Kayıt düzeyindeki kapalı değerler | VM5-01…VM5-05 | 1 ✓ — 5.6'ya 2. ve 3. oturum §4'ün yazımında doğan değeri ekler |
+| §6 İlişki diyagramı | 6.1 Okunuş · 6.2 Firma, ayarlar ve katalog · 6.3 Sipariş, kalem kayıtları ve ödeme · 6.4 Hesaplar ve oturum · 6.5 İçerik, yasal metinler ve dosyalar · 6.6 Bağsız sistem kayıtları | VM6-01 | 3 |
+| §7 İndeks ve kısıt özeti | 7.1 Tekillikler · 7.2 Yabancı anahtarlar ve silme davranışları · 7.3 Kontrol kısıtları · 7.4 Koşullu güncellemelerin dayandığı kısıtlar · 7.5 Sorgu dizinleri · 7.6 Hacim kabulleri | VM7-01 | 3 |
+| §8 Seed / başlangıç verisi | 8.1 Seed · 8.2 Fail-fast zorunlu · 8.3 Kuruluma özgü · 8.4 Veritabanında olmayanlar · 8.5 `DEPLOY_RUNBOOK`'a yansıma | VM8-01, VM8-02 | 3 |
+| §9 Saklama ve arşivleme | 9.1 Sürelerin başlangıç değerleri · 9.2 Siparişin imha parçası — alan listesi · 9.3 Öteki kayıtların süreyle imhası · 9.4 Anlık silmeler ve gecelik temizlik · 9.5 Arşiv tablosu yoktur; yedeklerdeki kopyalar | VM9-01…VM9-03 | 3 |
+
+Yazım sırası başlık notu → §2 → §3 → §5 → §4 → §9 → §8 → §7 → §6'dır (K-993). 2. oturum ağır çıkarsa yönetici onu bölebilir; bölünme bir karar satırıyla bu tabloya işlenir (`checklists/document-stage.md` §4; K-778).
+
+*Kaynak: K-992…K-997 · K-1032, K-1033 · K-17, K-526, K-532, K-669, K-670, K-682, K-701, K-977, K-988 · devir: K-06, K-97 (aktörler — Aşama 1 park satırı), K-10 · `02 §1.1`, §1.2, §1.3, §10.2 · `03 §0.3`–§0.6 · `04` başlık notu (konvansiyon kalıbı) · `05 §7` girişi · `10 §4.2` SK-1.*
 
 ---
 
@@ -2491,14 +2536,366 @@ Birim K-1003'tür (K-997'nin 1d netleşmesi). **Devir satırı** K numarasıyla 
 - **Yumuşak silme + bileşik birincil anahtar birlikte kullanılmaz.** Silinen kaydın aynı kombinasyonla yeniden oluşturulması anahtar ihlali verir. Çözüm: vekil anahtar + filtreli tekil indeks.
 - **Sayısal alanların ölçeği tek yerde tanımlanır** (oran mı yüzde mi, kaç ondalık). İki doküman iki farklı ölçek kullanırsa hata sessizdir.
 
----
+Bu bölümün kuralları §4'ün her alanını bağlar; §4 onları yinelemez, uygulandığı yeri yazar (konvansiyon 9).
+
+### 2.1 Şablonun altı dersi ve bu projedeki yeri
+
+Altı ders korunur; ikisinin şablondaki biçimi bu projeye uyarlandı — kaynağın genişliği ve silmenin kategorileri (karar kaydı §14.2, şablon taraması; `PLAYBOOK_FEEDBACK` PF-88, PF-89).
+
+| Ders | Bu projede | Yeri |
+|---|---|---|
+| Enum'lar kaynaktan birebir | Durum setleri `02 §5` ve `03 §1`'den; kapalı listelerin değerleri `02`'nin gövdesinden (K-531), teknik kayıtların listeleri Teknik Mimari'den (K-977, K-988) — şablonun notunun saymadığı iki kaynak | §5 |
+| Silme stratejisi erken | Üç kategori bu projede karşılıksızdır; beş kategori biçimi ve tetiği birlikte söyler; "yumuşak silinir" boştur (K-876, K-1010) | §2.2, §3 |
+| Eşzamanlılık baştan | Açık sürüm sütunu ve siparişin satır kilidi; sürüm taşımayan yazım koşullu güncellemedir (K-873, K-874, K-1014) | §2.6 |
+| Denormalizasyon bilinçli | Üç tür türetilmiş değer saklanır; panel işaretleri ve açık adet türetilir (K-1015) | §2.7 |
+| Yumuşak silme + bileşik anahtar | Yumuşak silme de bileşik birincil anahtar da yoktur; her tablo tek sütunlu vekil anahtar, doğal tekillik ayrı tekil dizin taşır (K-1011) | §2.3 |
+| Sayısal ölçek tek yerde | Oran ve yüzde tek ölçektir — yüzde, iki ondalık; ölçeğin evi §2.5'tir (K-1013) | §2.5 |
+
+*Kaynak: `06` şablonu §2 · K-531, K-876, K-977, K-988, K-1010, K-1011, K-1013, K-1014, K-1015 · karar kaydı §14.2 (şablon taraması).*
+
+### 2.2 Silme kategorileri ve bağların silme davranışı
+
+**2.2.1 Her kayıt türü baştan beş silme kategorisinden birini taşır** (K-1010 (1)). Kategori silmenin biçimini — silme ya da boşaltma — ve tetiğini — olay, süre, gecelik temizlik — birlikte söyler; süre `02 §4.2`'de yaşar, kategori ona işaret eder. §3'ün "Silme kategorisi" sütunu her entity için kategoriyi ve tetiğini yazar; sütunu boş kalan kayıt türü yoktur.
+
+| Kategori | Biçim ve tetik | Bu projedeki kayıtlar | İmha kaydı |
+|---|---|---|---|
+| **Kalıcı** | Silinmez; yaşamı durumla ya da kuralla biter | Firma, ayar kayıtları, marka kimliği, kupon (`02 §3.10.5`), yasal metin sürümü (`02 §3.33.3`), başlangıç verisi listeleri, tek satırlık sistem kayıtları (§3) | — |
+| **Olayla silinir** | Bir kullanıcı işlemiyle ya da kuralın olayıyla anında fiziksel silinir | Müşteri hesabı ve onunla silinenler (Z-31, Z-32), yönetici hesabı — kaldırma; pasifleştirme yoktur (`02 §10.2.2`) —, adres defteri girdisi, IBAN (Z-35, Z-38), doğrulanmamış bekleyen kayıt (Z-1), bekleyen e-posta değişikliği, ürün ve varyant (`02 §3.7.7`), kategori, kurumsal içerik kaydı, stok ayırma (K-1035) | Kişisel veri taşıyan silme imha kaydına (Z-44; K-708, K-984) ve uygulama kaydına (K-955) satır yazar; katalog ve içerik silmesi yazmaz |
+| **Süreyle silinir** | İmha işi süre dolunca fiziksel siler (`05 §7.4.1`) | İletişim talebi (Z-33), gönderim kaydı (Z-34; Z-43'ün ödemesi alınmış kolu), giriş kaydı (Z-40), işlem izi (Z-30), imha kaydı (Z-44), hiçbir siparişe bağlanmamış gelen bildirim (K-954), bağsız görsel ve dosya (`05 §7.7`) | İmha çalışmasının satırı (`05 §7.4.2`) |
+| **Süreyle boşaltılır** | Süre dolunca kişisel alanlar boşaltılır, hesap bağı kaldırılır, ticari kayıt kalır | Sipariş ve bağlı kayıtları (Z-28, Z-41; K-582, K-876 (2)) — iç not, e-posta geçmişi, adres geçmişi, ayıp talebi silinir; alan listesi §9.2 (3. oturum); Z-43'ün ödemesi alınmamış kolu üç yılda boşaltılır, on yılda silinir (K-951) | İmha çalışmasının satırı |
+| **Geçici** | Gecelik temizlikte silinir (`05 §5.2.9`) | Deneme, oturum ve tanınan tarayıcı kayıtları, misafir sepeti, tamamlanmamış yükleme, iş kuyruğunun tamamlanmış satırları, yönetici daveti (K-1030 (8)) | Kişisel veri taşıyanlar kayıt türü ve sayıyla (K-979, K-984) |
+
+**2.2.2 Yumuşak silme yoktur:** silme fiziksel silmedir ve "silindi" işaretli satır bırakılmaz (K-876 (1); `05 §7.4.3`). Ürünün "Arşiv"i, kuponun silinmemesi ve içerik kaydının taslağa alınması durum ya da kuraldır, silme kategorisi değildir (K-1010 (5)). Şablonun "yumuşak silinir" kategorisi bu projede boştur.
+
+**2.2.3 "Yalnız eklenen" bir kategori değil, bir koruma niteliğidir** (K-1010 (2)). İşlem izi veritabanı yetkisiyle korunur — uygulamanın kullanıcısı yalnız ekler ve okur, süresi dolan satırı veritabanındaki imha fonksiyonu siler (K-877, K-975; `05 §7.5.1`). İmha kaydı, geçiş kaydı, fiyat geçmişi (K-1023 (1)), yayımlanmış yasal metin sürümü (K-1027 (1)) ve siparişin iki geçmişi (K-1028 (4)) uygulama düzeyinde yalnız eklenir — satırları güncellenmez (`05 §7.4.2`). Kategori ömrü söyler: iz süreyle silinir, geçiş kaydı siparişin parçasıdır ve siparişi izler.
+
+**2.2.4 Bağlı kayıt sahibini izler** (K-1010 (3)). §3'ün sütunu bağlı kayıtta "sahibiyle" yazar ve sahibini anar; kendi tetiği de olan bağlı kayıt — oturum hem hesapla hem gecelik temizlikte silinir — ikisini birlikte yazar.
+
+**2.2.5 Bağların silme davranışı** (K-1010 (4)). Her ilişki §4'ün "Silme davranışı" alanında açıkça yazılır; çatının zorunlu ilişki varsayılanı — basamaklı silme — kullanılmaz.
+- **Basamaklı silme** yalnız sahibiyle silinen bağlı kayıttadır: hesap → oturum, adres defteri, bağlantı kaydı, bekleyen e-posta değişikliği, tanınan tarayıcı, üyenin sepeti; ürün → varyant, seçenek, seçenek değeri, fiyat geçmişi, indirim, ürün–kategori bağı, galeri bağları (K-1022 (6), K-1029 (2)).
+- **Geçmişi taşıyan kayda giden bağ basamaklanmaz, boşaltılır:** siparişin hesap bağı; kalemin ürün ve varyant bağı — kalem donmuş değeri taşır (`02 §3.7.7`, §3.23).
+- **Yönetici hesabına giden bağ boşaltılır** — iç not, adres ve e-posta geçmişi, kalem kayıtları, davetin göndereni — ve kaydın göstermesi gereken yöneticinin adı kaydın kendi alanında değer olarak durur (işlem izinin kalıbı — K-975); siparişe bağlı kayıtta o alan siparişin kişisel verisiyle boşaltılır (K-1030 (1)).
+- **İzden başka tabloya bağ yoktur:** iz satırı yöneticinin adını ve e-posta adresini ve kaydın kimliğini değer olarak taşır (K-975; `05 §7.5.1`).
+- **Başka her bağ kısıtlayıcıdır:** silme, ürün kuralının engeliyle durur — dolu kategori silinmez (`02 §3.4.5`), siparişe bağlı gönderim kaydı siparişi silinemez kılar (K-1028 (2)); görsele ve dosyaya giden bağ onları imhadan korur (K-1029). Sepet kaleminin varyant bağı §4.16'dadır (2. oturum).
+
+**2.2.6 Kendi süresiyle yaşayan kayıt, daha önce silinebilecek bir kayda bağ değil kimlik değeri taşır** (K-1028 (2)): gönderim kaydının iletişim talebi ve hesap kimliği; iş satırının ilgili kaydının kimliği (`05 §4.3.4`); işlem izinin ve uygulama kaydının kayıt kimliği (K-975, K-955); deneme kaydının ekseni — e-posta, IP, sepet — ve giriş kaydının girilen e-postası (K-1025 (7)). Değer silmeyle basamaklanmaz ve boşaltılmaz; kaydın kendi süresi işler.
+
+*Kaynak: K-1010, K-1030 (8), K-1035 · K-357, K-582, K-708, K-876, K-877, K-944, K-951, K-954, K-955, K-975, K-979, K-984, K-1022, K-1023, K-1025, K-1027, K-1028, K-1029 · `02 §3.4.5`, §3.7.7, §3.10.5, §3.23, §3.33.3, §4.2, §10.2.2, §12.2.7 · `05 §4.3.4`, §5.2.9, §7.4, §7.5, §7.7.*
+
+### 2.3 Anahtarlar ve dışa görünen kimlikler
+
+**2.3.1 Her tablonun birincil anahtarı tek sütunlu bir vekil anahtardır — `id`, zamana göre sıralı UUID (sürüm 7), uygulama üretir** (K-1011 (1)). Bileşik birincil anahtar yoktur; doğal tekillik — iki yabancı anahtarın çifti, kod, numara — ayrı bir tekil dizinle korunur, gerekiyorsa koşulla süzülmüş (filtreli) olarak (şablonun dersi; §7.1 (3. oturum)).
+
+**2.3.2 Tek satırlık kayıtlar da vekil anahtar taşır;** tek satır oluşları bir kısıtla korunur (K-1011 (1)). Bu projede tek satırlık kayıtlar: `Company`, `CompanySettings`, `Branding`, `AboutPage`, `Announcement` (kurulumda yoktur — en çok bir satır), `ChannelStateRecord`, `HeartbeatRecord`, `BackupStatusRecord` (K-1021, K-1026, K-1031; §3).
+
+**2.3.3 Dışa görünen kimlikler iç anahtardan ayrıdır ve her biri kendi tekil dizinini taşır** (K-1011 (2)): sipariş numarası (`02 §3.22.2`; K-567), sipariş erişim anahtarının özeti (K-562, K-903), sayfa adresi (`05 §3.7.1`; kapsamı §4.72 (3. oturum)), stok kodu ve kupon kodu — normalleştirilmiş sütunda (§2.8; K-806, K-1016), bağlantı anahtarlarının ve oturum anahtarının özeti (K-903; `05 §6.1.5`). Anahtar değeri veritabanında açık durmaz, özetiyle durur (`05 §6.4`).
+
+**2.3.4 İç anahtar vitrinin adresinde kullanılmaz:** ürün, kategori ve içerik sayfaları sayfa adresiyle, sipariş sayfası numara ve e-postayla ya da erişim anahtarıyla açılır (`02 §3.22.3`); müşterinin kendi kaydını gösteren istekte — adres defteri girdisi, sepet kalemi — iç anahtar taşınabilir ve kaydın o oturuma ait olduğu sunucuda denetlenir; panelde iç anahtar serbesttir (K-1011 (3); `02 §10.2.3`). İç anahtar yetkinin yerine geçmez (`GUARDRAILS §8`); adreste kullanımı API Tasarımı'nın işidir (park satırı).
+
+**2.3.5 Silinen kaydın iç anahtarı yeniden kullanılmaz;** işlem izi ve uygulama kaydı onu değer olarak taşır (K-955, K-975).
+
+*Kaynak: K-1011 · K-562, K-567, K-806, K-903, K-955, K-975, K-1016, K-1021, K-1026, K-1031 · `02 §3.22`, §10.2.3 · `05 §3.7.1`, §6.1.5, §6.4.*
+
+### 2.4 Adlandırma ve şema
+
+**2.4.1 Tablo ve sütun adları küçük harf ve alt çizgiyle yazılır; tablo adı kod adının çoğuludur** (K-1012 (1)): `Order` → `orders`, `OrderItem` → `order_items`, `OrderItem.VatRate` → `order_items.vat_rate`. Çoğul ad SQL'in ayrılmış sözcükleriyle (`order`, `user`) çakışmaz ve elle yazılan sorguda — imha fonksiyonu, göçün veri adımı, kurulumu yapanın inceleme araçları — tırnak istemez.
+
+**2.4.2 Adlar kod karşılığından birebir türer** (K-1012 (2); konvansiyon 2): ürün kavramı sözlükten (`02 §1.2`), teknik kavram `05`'teki adından (§3.3). **Bağ tablosu** iki ucun kod adının birleşimidir (`ProductCategory` → `product_categories`); **ayrı tabloya alınan alan grubu** sahibinin kod adı ve grubun İngilizce adıyla anılır (`CompanySettings`, `RefundIban`, `CompanyDeliveryProvince`) — grup ürüne görünen bir kavramsa adı sözlüğe girer (K-977).
+
+**2.4.3 Anahtar ve kısıt adları:** birincil anahtar `id`; yabancı anahtar `<ilişki adı>_id` (`order_id`, `customer_id`) — aynı tabloya iki bağ ilişkinin adını taşır (`first_option_value_id`); dizin ve kısıt adları çatının adlandırma kuralıyla türer (`pk_`, `fk_`, `ix_`), elle ad verilmez (K-1012 (3)). Kuralın çatıda uygulanışı Kodlama Kılavuzu'nun seçimidir (park satırı).
+
+**2.4.4 Tek şema** (`public`); tablo öneki yoktur; kiracı alanı yoktur (K-1012 (4); `10 §4.2` SK-1; K-10). Enum değerleri kod adıyla metin olarak durur (§2.9).
+
+*Kaynak: K-1012 · K-10, K-17, K-977 · `02 §1.2` · `05` MK-03, MK-06 · `10 §4.2` SK-1.*
+
+### 2.5 Türler ve sayısal ölçek
+
+**2.5.1 Türler ve ölçek tek tablodadır; ölçeğin evi burasıdır** (K-1013 (7); şablonun dersi). §4 bir alanın türünü bu tablonun satırıyla yazar.
+
+| Değer | Tür | Kural | Kaynak |
+|---|---|---|---|
+| An | `timestamptz` (UTC) | Türkiye saatiyle sayılır ve gösterilir; bir sürenin bittiği an kaydına UTC damgası olarak yazılır ve zamanlayıcı oradan okur | K-870; `05 §7.2.1`, §7.2.2 |
+| Tarih | `date` | Tarih olarak anlam taşıyan değer: bir sürenin son günü, iş günü, teslim tarihi, iade malının ulaşma tarihi, başka kanaldan gelen bildirimin firmaya ulaştığı tarih, indirimin, kuponun ve duyurunun başlangıç ve bitişi | K-870, K-1013 (1), K-1023 (4), K-1024 (4) |
+| Para | `numeric(12,2)` | Kuruş hassasiyeti, en çok 9.999.999.999,99 TL; bütün tutarlar — fiyat, indirimli fiyat, kupon payı, KDV, matrah, kargo, toplamlar, geri ödeme, işlem kaydının ayırdığı pay — aynı türdedir; kodda `decimal`; kuruşa yuvarlama tek işlevden (`05 §7.2.6`); tek para birimi TRY | K-1013 (2); `05 §7.2.5`; `10 §4.2` SK-8 |
+| Oran ve yüzde | `numeric(5,2)` — yüzde | "20" %20 demektir, 0,20 değil; KDV oranı, indirim oranı, yüzdesel kuponun değeri ve kaleme donan oranlar; girişte en çok iki ondalık; indirim ve yüzdesel kupon 0 < değer < 100 (`04` 7.3.2.9); KDV oranı 0 ≤ oran < 100 | K-1013 (3) |
+| Adet | `integer` | Stok, kontenjan, sepet ve kalem adedi, kalem kaydının adedi, sayaçlar | K-1013 (4) |
+| Net miktar | `numeric(12,3)` | Sıfırdan büyük; ürünün ölçü birimiyle (`04` 7.2.4.13; K-1018, K-1019) | K-1013 (4) |
+| Telefon | metin, on hane | Baştaki "0" ve "+90", boşluk, tire ve parantez atılarak saklanır ("5321234567"); gösterim biçimi `04 §8.2`'nindir | K-1013 (5); K-824 |
+| IBAN | metin | Boşluksuz ve büyük harfle ("TR…"); girişte biçim ve sağlama basamağıyla denetlenir (`02 §7.4.5`) | K-1013 (5) |
+| Metin | `varchar(n)` ya da `text` | Ürünün tavan koyduğu alan (P-27…P-30) tavanıyla `varchar(n)` — tavan değişirse göçle; tavanı olmayan metin `text`, kötüye kullanımın sınırı ucun gövde tavanıdır (`05 §6.3.5`); e-posta `text`; uzun biçimli metin §2.10 | K-1013 (6) |
+
+**2.5.2 Tarih aralığının sınırları:** indirimin, kuponun ve duyurunun aralığı başlangıç gününün 00.00'ında başlar ve bitiş gününün 23.59'unda biter — Türkiye saatiyle (`02 §4.1.4`); sistem indirimi bu anlarda başlatıp bitirir ve fiyat geçmişine o anla yazar (K-1023 (4)). Saat seçimi olmayan alana an atanmaz.
+
+**2.5.3 Süre veriden hesaplanır:** zamanlanmış bir işin zamanı kendi kaydında bir an alanıdır — ödeme süresinin bittiği an, hatırlatmanın anı, IBAN'ın silineceği gün, e-postanın sonraki denemesi — ve onayda ya da süre yeniden başladığında yazılır; ayrı bir iş takvimi tablosu yoktur (K-895; `05 §5.1.1`). İş günü takvimi veritabanında değildir — ürünle gelen veri dosyasıdır (`05 §7.2.3`).
+
+*Kaynak: K-1013 · devir: K-870 (zamanın, tarihin ve paranın türleri — Aşama 4 park satırı), K-825 (telefonun ve IBAN'ın saklanan biçimi) · K-824, K-895, K-1018, K-1019, K-1023, K-1024 · `02 §3.8`, §4.1, §7.4.5 · `04` 7.2.4.13, 7.3.2.9, §8.2 · `05 §5.1.1`, §6.3.5, §7.2 · `10 §4.2` SK-8.*
+
+### 2.6 Eşzamanlılık — sürüm değeri ve koşullu güncelleme
+
+**2.6.1 Sürüm değeri açık bir tamsayı sütunudur** (`version`, başlangıç 1): kaydı yazan her güncellemede uygulama onu bir artırır ve kaydetme eski değeri koşul olarak taşır — tek bir koşullu güncelleme (K-1014 (1); `05 §7.3.1`). Veritabanının satır sürümü (PostgreSQL'in `xmin`'i) kullanılmaz: satır başınadır, ürünün sürümü varyant tablosunu kapsamaz ve sistemin stok hareketi formu sahte çakışmaya düşürürdü.
+
+**2.6.2 Sürüm taşıyan kayıtlar `04`'ün OB-10 kayıt varyantının ekranlarıdır** (K-1014 (2); `04` 2.10.1): ürün — varyantları, seçenekleri, görsel bağları ve indirimi ürünün sürümündedir, stok ve kontenjan alanı dışında —, kupon, her kurumsal içerik kaydı, ana sayfa ve menü, marka, firma kimliği ve satış, ödeme yöntemleri, kargo-süreler-varsayılanlar ekranının her bölümü ve her yasal metin.
+
+**2.6.3 Bölüm sürümleri** (K-1021 (3)): `CompanySettings` tek satırdır ve her bağımsız kaydedilen bölüm kendi sürüm sütununu taşır — ödeme yöntemleri, kargo ücreti ve eşikler, teslimat illeri, süreler, ürün varsayılanları, iade adresi, ana sayfa ve menü (sosyal bağlantılar dahil — `04` E-42 tek formdur; K-1026 (6)); bölümün kaydı yalnız kendi sütunlarını ve sürümünü koşul olarak yazar. `Company` ve `Branding` tek sürüm taşır. **Geçici kapatma anahtarı sürüm taşımaz:** o anki değere karşı tek bir koşullu güncellemeyle yazılır (`04` 9.16.9). Bölüm başına sürüm sütununun çatıdaki eşlenişi Kodlama Kılavuzu'nun kalıbıdır (park satırı).
+
+**2.6.4 Siparişin sürümü** sipariş satırını, kalemlerini, kalem kayıtlarını — iptal, çıkarma, gecikme feshi, cayma beyanı, iade teslim alma, iade reddi, "mal dönmedi", ayıp talebi ve durumu, IBAN isteği —, ödeme kaydını, geri ödemeyi, geri ödeme kaydının hâlini ve siparişe bağlı müşteri girdisini (geri ödeme IBAN'ı) yazan her işlemde artar — adres ve e-posta düzeltmesi, havale işareti ve imhanın boşaltması dahil (K-1014 (3); K-1030 (1)). **Artırmayanlar:** iç not, gönderim kaydı ve sonucu, geçiş kaydı ve işlem izi — siparişin hâlini değiştirmezler ya da yazıldıkları işlem sürümü zaten artırır — ve **kalemin dosya bağının sistem yazımı**: ürün ya da varyant silinirken ve dosya yerine yenisi konmadan kaldırılırken kalemlere son dosyanın yazılması (K-1029 (4)). Her işlem siparişin satır kilidini alır; kilit sırası `05 §7.3.5`'tedir.
+
+**2.6.5 Sürüm taşımayan yazım koşullu güncellemedir** (K-1014 (4)): stok ve kontenjan alanı — yeni değer yalnız alanın değeri formun gösterdiği değerle hâlâ aynıysa ve ayrılmış adetten az değilse yazılır (K-980; `02 §3.6.7`) —, ayrılmış adet ve kupon hakları (K-890), indirme sayacı (K-980), bağlantı kaydının tüketilmesi (K-903) ve OB-10'u olmayan ekranların kayıtları — kategori, iletişim talebi, yönetici hesapları, üye kaydı: durum değiştiren işlem koşulunu o anki hâle karşı tek bir koşullu güncellemeyle denetler. Sistemin stok ve kontenjan hareketleri ürünün sürümünü artırmaz (K-980).
+
+*Kaynak: K-1014, K-1021 (3), K-1029 (4), K-1030 (1) · devir: K-873, K-874, K-980 (sürüm alanları — Aşama 4 park satırı), K-800 (eşzamanlı düzenleme — Aşama 3 park satırı), K-270, K-587 · K-890, K-903 · `02 §3.6.7`, §3.31 · `04` 2.10, 9.16.9 · `05 §7.3`.*
+
+### 2.7 Denormalizasyon envanteri
+
+**2.7.1 Saklanan türetilmiş değerler üç türdür; geri kalanı türetilir** (K-1015). Her saklanan değer için şablonun sorusu cevaplanır:
+
+| Saklanan değer | Nerede güncellenir | Değişmez ve tutarsızlık riski | Kaynak |
+|---|---|---|---|
+| Varyantın ayrılmış adedi; hizmet kontenjanının ayrılmış adedi; kuponun kullanılmış ve ayrılmış hakları — ayrıntısı stok ayırma kayıtlarındadır | Yalnız geçiş biriminde ve geçişin işleminde (`05 §4.1`): onay ayırır; ödeme kesin düşürür ve hakkı kullanılmış sayar; süre dolumu, başarısızlık ve iptal serbest bırakır; varyantın kalıcı silinmesiyle ayırma düşer | Ayrılmış adet o varyantın ödemesi beklenen siparişlerdeki ayırmalarının toplamıdır; kuponda kullanılmış ve ayrılmış haklar toplam kullanım adedini aşmaz (`02 §3.10.6`). Serbest bırakmayı unutan bir yol adedi kalıcı kilitler — tek yazım yolu ve Doğrulama Protokolü'nün değişmez senaryoları (park satırları) | K-1015 (1); K-653, K-654, K-890 |
+| Ürün adının arama biçimi | Adı yazan işlev aynı yazımda yeniler; ürün içe aktarma yoktur (`02 §10.7.2`) | Ad ile biçim ayrışırsa ürün aramada bulunmaz; tek yazım yolu | K-1015 (2); K-886 |
+| Kimlik karşılaştırma biçimi — e-posta, kupon kodu ve stok kodunun normalleştirilmiş sütunu | Değeri yazan tek işlevden (§2.8) | İşlev değişirse var olan sütun göçün veri adımında yeniden hesaplanır; tekillik çakışması orada görünür | K-1015 (3); K-1016 |
+
+**2.7.2 Türetilir, saklanmaz** (K-1015 (4)): kalemin açık adedi — kalem kayıtlarının adetlerinden; denetim siparişin satır kilidi altında güncel değere karşıdır (K-787, K-874) · bir işlemin kalemin son açık adetlerini kapatıp kapatmadığı ve kalan pay ile KDV (K-788) · sayaçların dönüşü — kaydı yazan geçişin işleminde kaydın adedinden yapılır, ayrı "döndü" alanı yoktur (K-791) · ürünün stok durumu ve "Tükendi" · referans fiyat — fiyat geçmişinden (K-1023 (2)) · varyantın birim fiyatı (K-1018, K-1019) · bekleyen işler sayaçları ve satış özeti (`02 §10.6`) · L-8'in açık sipariş sayısı · satış kapısı ve kurulum kontrol listesi (`02 §3.1.5`, §10.8.2; K-1021 (4)) · siparişin ödemesi alınmış sayılması — ödeme kaydından (K-1030 (3)) · beyanın "iade malı bekleniyor" adedi (K-1024 (6)).
+
+**2.7.3 Panel işaretleri ayrı alan olarak saklanmaz;** her biri saklanan kayıtların koşulundan okunur ve koşul kalkınca kendiliğinden kalkar (K-675; K-1015 (5)):
+
+| İşaret | Okunduğu koşul |
+|---|---|
+| `EmailUndeliveredMark` | Gönderim kaydının hâli ve sonucu (K-913'ün kalıbı) |
+| `PaymentOutcomeUnknownMark` | Ödeme Bekliyor ve ödeme süresinin bittiği an geçmiş — son sorgu sürüyor |
+| `RefundOutcomePendingMark`, `RefundFailedMark` | Geri ödeme kaydının hâli — "sonucu bekleniyor", "gerçekleşmedi" — ve onu kapatan sonraki geri ödeme |
+| `ReturnPendingMark` | Cayma beyanının adedi ile teslim alma, ret ve "mal dönmedi" kayıtlarının adetleri |
+| `IbanPendingMark` | Açık IBAN isteği |
+| `EmailCorrectedMark` | E-posta geçmişinin varlığı |
+
+`park A4-7`'nin "işaretler hâlle aynı işlemde yazılır" cümlesi işaretin kaynağı olan geri ödeme kaydının hâlinin geçişle aynı işlemde yazıldığını söyler; ayrı bir işaret alanı yazılmaz (K-1015 (5); K-940).
+
+**2.7.4 Denormalizasyon değildir** (K-1015 (6)): siparişe ve kaleme donan değerler (`02 §3.23`) — kargo ücretinin oranlara bölünmüş KDV'si dahil: onayda hesaplanıp donar, sonradan yeniden türetilmez — ürün kuralıdır ve kalemde düz yaşar · işlem kaydının ayırdığı kupon payı ve KDV (K-788) — geri ödenen tutarın dayanağıdır, birincil veridir · indirme sayacı (K-884) · kanal hâli kaydı (K-913) — tasarımı `05`'tedir.
+
+*Kaynak: K-1015 · devir: K-787, K-788, K-790, K-791 (açık adet, pay ve KDV, sayaçların dönüşü — Aşama 3 park satırları), K-886 (arama biçimi — Aşama 4 park satırı) · K-653, K-654, K-675, K-874, K-884, K-890, K-913, K-940, K-1016, K-1018, K-1019, K-1021, K-1023, K-1024, K-1030 · `02 §3.1.5`, §3.6, §3.10, §3.23, §5.8, §7.1.6, §10.6, §10.8 · `05 §4.1`.*
+
+### 2.8 Metin karşılaştırma, sıralama, oluşturulma anı ve boş değer
+
+**2.8.1 Kimlik karşılaştırması tek bir normalleştirme işleviyle yapılır** (K-1016 (1)): baştaki ve sondaki boşluk atılır, "I", "İ", "ı" ve "i" aynı harfe ("i") indirilir, kalan metin dilden bağımsız küçük harfe çevrilir. İşlev e-posta adresine — iki hesap türünde (K-982) —, kupon koduna (K-806) ve stok koduna (`02 §3.3.4`) uygulanır; işlevin kodda tek yeri Kodlama Kılavuzu'ndadır (park satırı).
+
+**2.8.2 Veride koruma normalleştirilmiş ayrı sütun ve onun tekil dizinidir** (K-1016 (3)): e-posta kendi hesap türünün tablosunda (`05 §3.5.2`), kupon kodu kuponlarda, stok kodu varyantlarda; görünen değer kendi sütununda girildiği gibi kalır ve gösterilir. Giriş, arama, misafir siparişlerinin hesaba bağlanması ve deneme kaydının e-posta ekseni normalleştirilmiş değerde eşitlikle çalışır (K-98, K-901, K-972, K-982). `citext` türü, harf duyarsız sıralama ve `lower()` ifade dizini kullanılmaz.
+
+**2.8.3 Veritabanının sıralaması Türkçedir:** veritabanı UTF-8 ve ICU'nun deterministik Türkçe sıralamasıyla (`tr-TR`) açılır — kategori adlarının alfabetik sırası (K-805) ve panelin ada göre sıraları Türkçe alfabeyi ek bildirim olmadan izler; kimlik karşılaştırması sıralamaya dayanmaz (K-1016 (5)). Veritabanının bu ayarla açılması `DEPLOY_RUNBOOK`'tadır (park satırı). Türkçenin büyük-küçük harf dönüşümü metnin gösterimine ve vitrinin aramasına aittir, kimlik karşılaştırmasına uygulanmaz (K-1016 (6); `04` 8.2.10).
+
+**2.8.4 Her tablo oluşturulma anını taşır** (`created_at`, UTC; K-1016 (7)): "en yeni önce" sıraları (`02 §3.5.3`; K-802) ve imhanın başlangıç değerlerinin çoğu (`02 §12.2.7`) ondan okunur. Son değişiklik anı yalnız bir ürün kuralı onu okuyorsa tutulur — kimin ne zaman değiştirdiği işlem izindedir (`02 §10.3`), sürüm eşzamanlılığın aracıdır (§2.6).
+
+**2.8.5 Boş değerin tek biçimi vardır** (K-1016 (8)): zorunlu alan boş olamaz (`NOT NULL`); isteğe bağlı alanın boşu boş değerdir (`NULL`), boş metin saklanmaz; imhanın boşalttığı kişisel alan da boş değer olur (K-876 (2)).
+
+*Kaynak: K-1016 · devir: K-982, K-806, K-899 (tekilliğin veride korunuşu — Aşama 3 ve 4 park satırları), K-588, K-805 · K-98, K-802, K-824, K-876, K-901, K-972 · `02 §3.3.4`, §3.5.3, §10.3, §12.2.7 · `04` 8.2.10 · `05 §3.5.2`.*
+
+### 2.9 Enum'ların biçimi
+
+**2.9.1 Enum veritabanında metin olarak, kod adıyla saklanır** — `Placed`, `Paid`, `Draft` (K-1017 (1)); kapalı listelerin değerleri, teknik kayıtların hâlleri ve kayıt düzeyindeki kapalı değerler de aynı kuralla. Kod adı sözlüğün İngilizce karşılığından birebir, Pascal yazımıyla; sözlükte değeri olmayan liste değerinin kod adını §5 verir (K-531).
+
+**2.9.2 Kapalı küme veritabanında da korunur:** sütun izinli değerlerin kontrol kısıtını taşır (K-1017 (2)). Bir enum'un yalnız bir alt kümesini kullanan alan kısıtında o alt kümeyi sayar — kurumsal içeriğin yayın durumu `Draft` ve `Published` (K-1026 (2)).
+
+**2.9.3 Yeni değer göçle gelir ve genişlet–daralt kuralını izler** (K-1017 (3); `05 §8.7.1`): kısıtı genişleten göç ve değeri okuyan kod önce, değeri yazan kod sonra; değer kaldırılmaz — önce veri dönüştürülür. Kod adı bir kez verildikten sonra değişmez.
+
+**2.9.4 Enum mu, başlangıç verisi tablosu mu** (K-1017 (4)): değer kodda davranış taşıyorsa ve listeyi firma düzenlemiyorsa enum'dur; yalnız veri olarak gösterilen ve sayısı büyük liste başlangıç verisi tablosudur — il ve ülke listesi tablodur (K-1031 (6)); kodda davranış taşıyan ama bakım sürümüyle değişen ürün varlığı — kargo şirketi listesi ve takip kalıpları — koddadır (`02 §3.20.8`). Hangi listenin hangi biçimde olduğu §5.3'ün "Biçim" sütunundadır.
+
+*Kaynak: K-1017 · devir: K-17, K-531 (kod adlarının biçimi — Aşama 1 park satırı) · K-1026, K-1031 · `02 §3.20.8` · `05 §8.7.1`.*
+
+### 2.10 Uzun metnin saklanışı
+
+**2.10.1 Kapalı metin biçimi setini taşıyan uzun metin izinli etiketlerle sınırlı, sunucuda yazımda temizlenmiş HTML olarak `text` sütunda saklanır** (K-1026 (4); `02 §3.11.6`): ürün açıklaması, Hakkımızda'nın uzun metni, hizmet tanıtımının ve referans işin metni, SSS cevabı, genel sayfanın metni, aydınlatma metni ve çerez politikası. İzinli biçim kalın, italik, madde listesi, bağlantı ve tek düzeyli ara başlıktır; setin dışındaki biçim yazımda düşer. Temizleme değeri yazan tek işlevdedir — temizleyicinin izin listesi ve bağlantı adreslerinin kuralı (`http`, `https`, `mailto`) Kodlama Kılavuzu'ndadır (park satırı).
+
+**2.10.2 Temizleyicinin izin listesi yalnız genişler;** var olan metin yeniden temizlenmez (K-1017 (3)'ün kalıbı). Markdown ve editörün kendi belge biçimi kullanılmaz; okumada temizleme yapılmaz — yazımda temizlenen değer güvenilir kaynaktır.
+
+*Kaynak: K-1026 (4) · K-1017 · `02 §3.11.6`.*
 
 ## 3. Entity envanteri
 
-| # | Entity | Sorumluluk | Silme kategorisi |
+Matris (§1) ve GAP kararları kapandı — §3'ün kapısı açıktır (§1.3; şablon başlık notu). Envanter matrisin 73 adayından türer (§1.1.2; VM1-04): aday bölünebilir, birleşebilir, bir kaydın alan grubuna ya da bir enum'un değerine dönüşebilir; farklar §3.2'dedir. Adlar sözlükten (`02 §1.2`), teknik kavramlarınki §3.3'ten, bağ ve alan grubu tablolarınınki §2.4.2'nin kuralından gelir (K-17, K-977, K-1012). **79 entity** vardır; sıra §4'ün alt bölüm sırasıdır (başlık notu, alt bölüm haritası).
+
+### 3.1 Envanter
+
+"Silme kategorisi" §2.2'nin beş kategorisinden biridir ve tetiğini taşır (K-1010 (3)); "sahibiyle" bağlı kaydın sahibini izlediğini söyler (§2.2.4). "Kaynak" adayın matristeki numarasını (§1.1.2) ve kaydı kuran kararı gösterir; "§4" entity'nin tanımının alt bölümüdür — 2. ve 3. oturumda yazılır (konvansiyon 10).
+
+**Firma, ayarlar ve başlangıç listeleri**
+
+| # | Entity | Sorumluluk | Silme kategorisi | Kaynak | §4 |
+|---|---|---|---|---|---|
+| 1 | Company | Kurulumun tekil firması: tip, tipe göre yasal kimlik alanları, adres, iletişim, KEP adresi, meslek odası, işletme adı ya da tescilli marka, davranış kuralları, ETBİS doğrulama bağlantısı — tek satır, kurulumda boş doğar | Kalıcı | aday 1 · K-1021 (1) · K-480, K-627 | §4.1 |
+| 2 | CompanySettings | Firmanın panelden değiştirdiği ayarlar, bölüm bölüm sütunlar ve bölüm sürümleri: ödeme yöntemleri ve havale IBAN'ı, kargo ücreti ve eşikler, süreler, ürün varsayılanları, iade adresi, ana sayfa düzeni, menü adları, WhatsApp numarası, geçici kapatma anahtarı — tek satır | Kalıcı | aday 2 · K-1021 (2), (3) · K-817, K-1026 (6) | §4.2 |
+| 3 | CompanyDeliveryProvince | Firmanın teslimat illeri — il listesinin alt kümesi; kurulumda 81 il (`02 §3.20.1`) | Olayla silinir — firma ilin seçimini kaldırınca; kişisel veri yok, imha kaydı yazılmaz | aday 2 · K-1021 (2) · K-1034 (ad) | §4.2 |
+| 4 | Province | 81 ilin kapalı listesi — plaka kodu ve adı; adreslerin, şubenin ve teslimat illerinin bağı | Kalıcı — başlangıç verisi; satır silinmez | aday 5 · K-1031 (1), (6) · K-133 | §4.3 |
+| 5 | Country | Üretim yerinin seçildiği ülke listesi — iki harfli uluslararası kod ve Türkçe adı | Kalıcı — başlangıç verisi; satır silinmez | aday 73 · K-1023 (5), K-1031 | §4.4 |
+
+**Katalog, fiyat ve kupon**
+
+| # | Entity | Sorumluluk | Silme kategorisi | Kaynak | §4 |
+|---|---|---|---|---|---|
+| 6 | Product | Vitrin ve katalog birimi: ad, açıklama, tip, yayın durumu, KDV oranı, üretim yeri, ölçü birimi, ürün düzeyindeki sınırlar ve süreler, cayma istisnası, arama biçimi, sayfa adresi, sürüm | Olayla silinir — kalıcı silme (`02 §3.7.7`); imha kaydı yazılmaz | aday 6 · K-1022 (2) · K-886 | §4.5 |
+| 7 | Variant | Satılan birim: stok kodu ve normalleştirilmiş sütunu, fiyat, net miktar, yayın durumu, stok ya da kontenjan, ayrılmış adet, ilk satışa sunulduğu an, görsel ve dosya bağları | Olayla silinir — kalıcı silme (`02 §3.7.7`); sahibiyle (Product) | aday 7 · K-1022 (3) · K-1019, K-1020, K-1023 (2) | §4.6 |
+| 8 | Option | Ürünün seçenek boyutu — ad ve sıra (en çok iki) | Sahibiyle (Product) | aday 8 · K-1022 (1) | §4.7 |
+| 9 | OptionValue | Seçeneğin değeri ve sırası; varyantın iki değer bağının ucu | Sahibiyle (Option) | aday 9 · K-1022 (1) | §4.8 |
+| 10 | Category | Üç seviyeli kategori ağacının düğümü: üst kategori bağı, ad, düzey, sayfa adresi | Olayla silinir — dolu kategori silinmez (`02 §3.4.5`); imha kaydı yazılmaz | aday 10 · K-1022 (4) | §4.9 |
+| 11 | ProductCategory | Ürünün asıldığı kategoriler ve ana kategori işareti | Sahibiyle (Product); olayla — ürün kategoriden çıkarılınca | aday 11 · K-1022 (5) | §4.10 |
+| 12 | PriceHistory | Varyanta uygulanmış her fiyatın — indirimli fiyat dahil — ve başlangıç anının yalnız eklenen listesi | Sahibiyle (Variant) | aday 15 · K-1023 (1) · K-508, K-563 | §4.11 |
+| 13 | Discount | Ürün başına tek tarihli yüzdesel indirim; yeni tanım kaydın yerine geçer | Sahibiyle (Product) | aday 14 · K-1023 (3) | §4.12 |
+| 14 | Coupon | Kupon: kod ve normalleştirilmiş sütunu, tür, değer, tarih aralığı, asgari sepet tutarı, toplam kullanım adedi, kullanılmış ve ayrılmış haklar, sürüm | Kalıcı — kupon silinmez (`02 §3.10.5`) | aday 16 · K-1015 (1), K-1016 · K-654, K-806 | §4.13 |
+| 15 | StockReservation | Siparişin onayda ayırdığı stok, hizmet kontenjanı ve kupon hakkı — ayrılmış sayaçların ayrıntısı | Olayla silinir — ayırma sona erince (kesin düşme, serbest bırakma) ve varyantın kalıcı silinmesiyle; kişisel veri yok, imha kaydı yazılmaz | aday 17 · K-1015 (1) · K-1035 · K-653, K-890 | §4.14 |
+
+**Sepet ve sipariş**
+
+| # | Entity | Sorumluluk | Silme kategorisi | Kaynak | §4 |
+|---|---|---|---|---|---|
+| 16 | Cart | Üyenin ya da misafir tarayıcısının sepeti; misafirde son erişim anı | Üyenin sepeti sahibiyle (Customer — Z-32); misafir sepeti geçici — 400 gün açılmazsa gecelik temizlikte (`05 §6`) | aday 18 · K-906, K-1010 (1) | §4.15 |
+| 17 | CartItem | Sepetteki varyant, adet ve ilk eklendiği fiyat | Sahibiyle (Cart); olayla — kaldırma ve ödeme başarısıyla siparişe giren kalemlerin çıkması | aday 19 · K-131 | §4.16 |
+| 18 | Order | Sipariş: numara, erişim anahtarının özeti, iki eksenin durumu, donan adresler ve kimlik, iletişim e-postası, IP, üç yasal metin sürümüne bağ ve iki belgenin kişisel verisiz kopyası, tutarlar, kargo ve KDV bölüşümü, ödeme yöntemi, zaman alanları, sürüm | Süreyle boşaltılır — Z-28 ya da Z-41; ticari kayıt kalır (`02 §12.2.7`) | aday 20 · K-1027 (3), (4) · K-562, K-567, K-874, K-893, K-903 | §4.17 |
+| 19 | OrderItem | Siparişin kalemi: varyant ve adet, donan değerler, teslim işareti ve tarihi, görsel bağı, son bilinen dosya bağı, indirme hakkı ve sayacı | Sahibiyle (Order) — ticari kayıt | aday 21 · K-1029 (4), (5) · K-598, K-713 | §4.18 |
+| 20 | TransitionRecord | Siparişin her durum geçişi — yapan, an, geçiş, sebep; yalnız eklenen | Sahibiyle (Order) — ticari kayıt; yöneticinin adı imhada boşaltılır | aday 66 · K-889 · K-1030 (1) | §4.19 |
+| 21 | InternalNote | Yöneticinin siparişe yazdığı tek serbest metin not — müşteriye görünmez; yazan yönetici | Sahibiyle (Order) — imha parçasında silinir | sözlük (`02 §1.2`; K-1006) · K-1010 (4), K-1014 (3), K-1030 (1) · K-1034 | §4.20 |
+| 22 | CheckboxAcceptance | Dijital ve hizmet kalemi için onay adımında işaretlenen kutunun kaydı: kutu türü, gösterilen metin | Sahibiyle (Order) — ticari kayıt | aday 23 · K-1027 (7) · K-595 | §4.21 |
+| 23 | CheckboxAcceptanceOrderItem | Onay kutusu kaydının kapsadığı kalemler | Sahibiyle (CheckboxAcceptance) | aday 23 · K-1027 (7) · K-1034 (ad) | §4.21 |
+
+**Kalem kayıtları**
+
+| # | Entity | Sorumluluk | Silme kategorisi | Kaynak | §4 |
+|---|---|---|---|---|---|
+| 24 | Cancellation | Kalem ya da adet iptali: adet, an, yapan, firma iptalinin sebebi ve açıklaması, ayrılan ürün bedeli, kupon payı ve KDV | Sahibiyle (OrderItem) — ticari kayıt; yöneticinin adı ve "diğer" açıklaması imhada boşaltılır | aday 25 · K-1024 (1), (3), (8) | §4.22 |
+| 25 | ItemRemoval | Yöneticinin kalemi çıkarması ya da adedini azaltması: adet, an, yönetici, ayrılan tutarlar | Sahibiyle (OrderItem) — ticari kayıt; yöneticinin adı imhada boşaltılır | aday 26 · K-1024 | §4.23 |
+| 26 | LateDeliveryTermination | Gecikme feshi: kalemin açık adetleri, damga ya da bildirimin ulaştığı tarih, ayrılan tutarlar | Sahibiyle (OrderItem) — ticari kayıt | aday 27 · K-1024 (4) | §4.24 |
+| 27 | Withdrawal | Cayma beyanı: adet, damga ya da bildirimin ulaştığı tarih, beyan anındaki iade adresi, teslim sırası cevabı, kanal, ayrılan tutarlar | Sahibiyle (OrderItem) — ticari kayıt | aday 28 · K-1024 (4), (5) · K-608, K-665 | §4.25 |
+| 28 | Return | İade teslim alma: ulaşma tarihi ve ulaşan adet; beyana ya da gecikme feshine bağlı | Sahibiyle (OrderItem) — ticari kayıt | aday 29 · K-1024 (6) · K-491 | §4.26 |
+| 29 | ReturnRejection | İade reddi — teslim alınan adetle | Sahibiyle (OrderItem) — ticari kayıt | aday 30 · K-1024 (6) · K-656 | §4.27 |
+| 30 | NotReturnedClosure | "Mal dönmedi" kapanışı; yeniden açıldığı an | Sahibiyle (OrderItem) — ticari kayıt | aday 31 · K-1024 (6) · K-496 | §4.28 |
+| 31 | RefundIbanRequest | Kaleme düşen IBAN isteği: istendiği an, sebep, karşılandığı an | Sahibiyle (OrderItem) — imha parçasında silinir | aday 32 · K-1024 (7) · K-498 | §4.29 |
+| 32 | DefectClaim | Ayıp talebi — kalem başına tek: ayıplı adet, açıklama, durum ve son değiştiği an, beyan anındaki iade adresi | Sahibiyle (OrderItem) — imha parçasında silinir (Z-29) | aday 33 · K-1024 (1), (5), (8) · K-676, K-793 | §4.30 |
+| 33 | RefundIban | Havale hattında müşterinin geri ödeme için girdiği IBAN: girildiği an ve girildiği kayıt; aynı beyanı paylaşan kalemler kullanır | Olayla silinir — Z-35, Z-38; imha kaydına yazılır (K-708); duran IBAN imha parçasında silinir | sipariş ve kalem kayıtlarının alan grubu · K-1024 (7) · K-497 | §4.31 |
+
+**Ödeme ve geri ödeme**
+
+| # | Entity | Sorumluluk | Silme kategorisi | Kaynak | §4 |
+|---|---|---|---|---|---|
+| 34 | PaymentRecord | Siparişin ödeme kaydı: sağlayıcının ödeme işlem kimliği — tekil —, havale "ödendi" işareti ve düzeltmesi, iptal edilmiş siparişe geç gelen ödeme; "ödemesi alınmış sayılma" buradan okunur | Sahibiyle (Order) — ticari kayıt, silinmez | aday 24 · K-1030 (3) · K-570, K-589, K-893 | §4.32 |
+| 35 | Refund | Paranın müşteriye dönüşü: tür, tutar, yol (karta ya da IBAN'a), kalem bağı | Sahibiyle (Order) — ticari kayıt | aday 34 · `02 §1.2`, §7.4 | §4.33 |
+| 36 | RefundRecord | Karta para gönderen her isteğin kaydı ve hâli — istek gönderiliyor, sonucu bekleniyor, başarılı, gerçekleşmedi; `Refund`'dan ayrıdır: geri ödemenin sağlayıcıya giden isteğidir | Sahibiyle (Order) — ticari kayıt | aday 65 · K-894, K-940 | §4.34 |
+| 37 | InboundNotificationRecord | Sağlayıcının imzası doğru bildirimi: sağlayıcının ve siparişin referansı, tutar, sonuç, anlar; kişisel alan taşımaz | Siparişe bağlanan satır sahibiyle (Order); bağlanmayan süreyle silinir — on yıl (K-954) | aday 64 · K-893, K-941, K-954, K-1030 (5) | §4.35 |
+
+**Hesaplar ve oturum**
+
+| # | Entity | Sorumluluk | Silme kategorisi | Kaynak | §4 |
+|---|---|---|---|---|---|
+| 38 | Customer | Müşteri hesabı: ad, e-posta ve normalleştirilmiş sütunu, şifrenin özeti, e-postanın doğrulandığı an — boşsa doğrulanmamış bekleyen kayıt —, Google bağı | Olayla silinir — hesabın silinmesi (Z-31) ya da bekleyen kaydın ömrü (Z-1); imha kaydına yazılır (K-708) | aday 35, 39 · K-1025 (1)–(3) · K-659, K-696, K-811 | §4.36 |
+| 39 | Admin | Yönetici hesabı: ad, e-posta ve normalleştirilmiş sütunu, şifrenin özeti | Olayla silinir — kaldırma (`02 §10.2.2`); pasifleştirme yoktur | aday 36 · K-1025 (1) · K-736 | §4.37 |
+| 40 | AdminInvitation | Yönetici daveti: davet edilen adres ve normalleştirilmiş sütunu, gönderen yönetici, gönderildiği, geri çekildiği, geçersizleştiği ve kabul edildiği an | Geçici — kabul edilen, geri çekilen, geçersizleşen ve ömrü dolan davet gecelik temizlikte; imha kaydına yazılır | aday 37 · K-1025 (6), K-1030 (8) · K-660, K-661, K-662 | §4.38 |
+| 41 | Session | Sunucudaki oturum: anahtarın özeti, hesap, kısa ya da uzun, son işlem anı, yeniden doğrulamanın tek işlemlik izni | Geçici — gecelik temizlikte; sahibiyle (hesap) | aday 38 · K-1025 (4) · K-899, K-945 | §4.39 |
+| 42 | PendingEmailChange | Doğrulanmayı bekleyen yeni e-posta adresi — hesap başına tek | Olayla silinir — ömrü dolunca zamanlayıcıyla (imha kaydına yazılır — K-984) ya da yenisi yerine geçince; sahibiyle (hesap) | aday 42 · K-1025 (4) · K-734 | §4.40 |
+| 43 | RecognizedBrowserMark | Hesap başına tanınan tarayıcı kaydı: işaretin özeti, son geçerlilik anı | Geçici — süresi dolan ya da geçersizleşen kayıt gecelik temizlikte; sahibiyle (hesap) | aday 40 · K-1025 (4) · K-906 | §4.41 |
+| 44 | LinkRecord | Hesap bağlantılarının kaydı: tür, anahtarın özeti, hesap bağı, oluşma, ömrün sonu, kullanıldığı ve yerine yenisi geçtiği an | Sahibiyle (hesap ya da davet); gecelik temizlik silmez (`05 §6.4.4`) | aday 45 · K-1025 (5) · K-903 | §4.42 |
+| 45 | AttemptRecord | Sayılan her deneme: limit, eksen, normalleştirilmiş değer, an | Geçici — pencere geçince (Z-27); imha kaydına yazılır (K-979) | aday 44 · K-1025 (7) · K-901, K-971, K-972 | §4.43 |
+| 46 | LoginRecord | Her giriş denemesi: an, IP, hesap türü, girilen e-posta, sonuç | Süreyle silinir — Z-40 | aday 43 · K-1025 (7) · K-515 | §4.44 |
+| 47 | AddressBook | Üyenin adlandırılmış adresleri — satır bir girdidir: ad, alıcının adı ve soyadı, il bağı, ilçe, açık adres, telefon | Olayla silinir; sahibiyle (Customer — Z-31) | aday 41 · K-1025 (8) · K-561 | §4.45 |
+
+**Kurumsal içerik, marka ve yasal metinler**
+
+| # | Entity | Sorumluluk | Silme kategorisi | Kaynak | §4 |
+|---|---|---|---|---|---|
+| 48 | AboutPage | Tekil Hakkımızda: kısa tanıtım, uzun metin, yayın durumu | Kalıcı — silinmez, yalnız taslağa alınır (`02 §3.27.27`) | aday 47 · K-1026 (1), (3) | §4.46 |
+| 49 | Offering | Hizmet tanıtımı: ad, kısa açıklama, metin, sıra, ana sayfa işareti, sayfa adresi | Olayla silinir | aday 48 · K-1026 | §4.47 |
+| 50 | PortfolioItem | Referans iş: başlık, kısa açıklama, metin, sıra, ana sayfa işareti, sayfa adresi | Olayla silinir | aday 49 · K-1026 | §4.48 |
+| 51 | FaqItem | Sık sorulan soru: soru, cevap, sıra | Olayla silinir | aday 50 · K-1026 | §4.49 |
+| 52 | Branch | Şube: ad, il bağı, ilçe, açık adres, telefon, çalışma saatleri, harita bağlantısı, tek görsel, sıra | Olayla silinir | aday 51 · K-1026 (3) · K-243 | §4.50 |
+| 53 | CustomPage | Genel sayfa: başlık, metin, sıra, menüde göster işareti, sayfa adresi | Olayla silinir | aday 52 · K-1026 | §4.51 |
+| 54 | Announcement | Tekil duyuru: metin, bağlantı, isteğe bağlı tarih aralığı — kurulumda yoktur | Olayla silinir | aday 53 · K-1026 (1), (3) | §4.52 |
+| 55 | OfferingProduct | Hizmet tanıtımının bağlı ürünleri ve sırası | Sahibiyle (Offering ve Product) | aday 54 · K-1026 (5) | §4.53 |
+| 56 | PortfolioItemProduct | Referans işin bağlı ürünleri ve sırası | Sahibiyle (PortfolioItem ve Product) | aday 54 · K-1026 (5) | §4.53 |
+| 57 | Branding | Marka kimliği: marka adı, logo ve site simgesi bağı, marka rengi, platform imzası anahtarı — tek satır | Kalıcı | aday 3 · K-1026 (6) | §4.54 |
+| 58 | SocialLink | Kapalı platform listesindeki hesap bağlantısı — platform başına en çok bir | Olayla silinir | aday 4 · K-1026 (1) · K-249 | §4.55 |
+| 59 | LegalTextVersion | Dört yasal metnin sürümleri: metin türü, tür içinde sürüm numarası, yayın anı, metin; firmanın düzenlediği iki metnin taslağı yayın anı boş satırdır | Kalıcı — yayımlanmış satır değişmez, silinmez (`02 §3.33.3`) | aday 59 (55–58 değerleri) · K-1027 (1), (2) · K-362, K-591 | §4.56 |
+
+**İletişim, bildirim ve sistem kayıtları**
+
+| # | Entity | Sorumluluk | Silme kategorisi | Kaynak | §4 |
+|---|---|---|---|---|---|
+| 60 | ContactRequest | İletişim talebi: konu tipi, durum, gönderenin bilgileri, son kapatıldığı an | Süreyle silinir — Z-33; süre konu tipinden (K-951) | aday 60 · K-707, K-1030 (6) | §4.57 |
+| 61 | DispatchRecord | Her e-postanın gönderim kaydı — `Notification` kavramının kaydı: tür, alıcı, olayın değerleri, hâl, sonuç sınıfı, deneme sayısı, sonraki deneme anı; e-postanın kuyruğu | Süreyle silinir — Z-34; siparişe bağlı satır Z-43'ün iki kolu (K-951) | aday 61 · K-1028 (1), (2) · K-892 | §4.58 |
+| 62 | Job | İş kuyruğunun satırı: tür, ilgili kaydın kimliği, hâl, deneme sayısı, sonraki deneme anı, son hatanın özeti | Geçici — tamamlanmış ve kapatılmış satır gecelik temizlikte; "başarısız" satır silinmez (K-985) | aday 62 · K-1028 (6) · K-891, K-946 | §4.59 |
+| 63 | ChannelStateRecord | E-posta göndericisinin kanal hâli — son başarılı gönderim, art arda kanal hatası, dizinin ilk hatası — tek satır | Kalıcı | aday 63 · K-1028 (7) · K-913 | §4.60 |
+| 64 | OrderEmailHistory | Misafir siparişinin e-posta düzeltmeleri: eski ve yeni adres, yönetici, an — yalnız eklenen | Sahibiyle (Order) — imha parçasında silinir | aday 22 · K-1028 (4) · K-586 | §4.61 |
+| 65 | OrderAddressHistory | Teslimat ve fatura adresi düzeltmeleri: eski ve yeni değer, yönetici, an — yalnız eklenen | Sahibiyle (Order) — imha parçasında silinir | aday 72 · K-1008, K-1028 (4) | §4.62 |
+| 66 | AuditLog | İşlem izi: kim, ne zaman, neyi değiştirdi — yöneticinin adı, e-postası ve kaydın kimliği değer olarak; yalnız eklenen, veritabanı yetkisiyle | Süreyle silinir — Z-30; imha fonksiyonuyla (K-877) | aday 67 · K-975 | §4.63 |
+| 67 | DisposalRecord | İmha kaydı: tarih, kayıt türü, sayı ya da tarih aralığı; kişisel veri yok; yalnız eklenen | Süreyle silinir — Z-44 | aday 68 · K-708, K-875 | §4.64 |
+| 68 | HeartbeatRecord | Zamanlayıcının son nabzı ve gecelik işlerin — imha, geçici kayıtların temizliği — son başarılı çalışma ve son deneme anları — tek satır | Kalıcı | aday 69 · K-895, K-898 · K-1034 | §4.65 |
+| 69 | OutageRecord | İki dakikayı aşan nabız boşluğunun kesinti kaydı: başlangıç ve bitiş anı | Kalıcı — kişisel veri yok (K-1035) | aday 69 · K-895 · K-1034, K-1035 | §4.66 |
+| 70 | BackupStatusRecord | Sunucu dışı depoya alınan gecelik tam yedeğin sonucu — tek satır | Kalıcı | aday 70 · K-918, K-937, K-963 | §4.67 |
+| 71 | DataProtectionKey | Çatının şifreleme anahtar halkasının veri koruma anahtarları — veritabanında ve onunla yedekte | Kalıcı — çatı anahtarları silmez (K-1035) | aday 71 · K-879, K-975 (4) | §4.68 |
+
+**Dosyalar ve görseller**
+
+| # | Entity | Sorumluluk | Silme kategorisi | Kaynak | §4 |
+|---|---|---|---|---|---|
+| 72 | Image | Yükleme başına görsel: depodaki anahtar, biçim, en ve boy, türevlerin hazır olduğu an | Süreyle silinir — hiçbir bağı kalmayınca ve bir günden eskiyse imhada (`05 §7.7.2`); kaydedilmeden bırakılan yükleme geçici | aday 12 · K-1029 (1), (2) · K-883 | §4.69 |
+| 73 | DigitalFile | Yükleme başına dijital ürün dosyası: depodaki anahtar, ad, boyut, yüklemenin tamamlandığı an, ürüne ya da varyanta bağ, bağlandığı ve kaldırıldığı an | Süreyle silinir — hiçbir ürüne ya da varyanta bağlı olmayan ve hiçbir kalemin indiremeyeceği dosya imhada (`05 §7.7.3`); tamamlanmamış yükleme geçici | aday 13 · K-1029 (3), (4) · K-883, K-948 | §4.70 |
+| 74 | ProductImage | Ürünün galeri bağı: sıra, ana görsel işareti, alternatif metin | Sahibiyle (Product); olayla — galeriden kaldırma | aday 12 · K-1029 (2) | §4.71 |
+| 75 | AboutPageImage | Hakkımızda'nın galeri bağı | Sahibiyle (AboutPage); olayla — galeriden kaldırma | aday 12 · K-1029 (2) | §4.71 |
+| 76 | OfferingImage | Hizmet tanıtımının galeri bağı | Sahibiyle (Offering); olayla — galeriden kaldırma | aday 12 · K-1029 (2) | §4.71 |
+| 77 | PortfolioItemImage | Referans işin galeri bağı | Sahibiyle (PortfolioItem); olayla — galeriden kaldırma | aday 12 · K-1029 (2) | §4.71 |
+| 78 | FaqItemImage | Sık sorulan sorunun galeri bağı | Sahibiyle (FaqItem); olayla — galeriden kaldırma | aday 12 · K-1029 (2) | §4.71 |
+| 79 | CustomPageImage | Genel sayfanın galeri bağı | Sahibiyle (CustomPage); olayla — galeriden kaldırma | aday 12 · K-1029 (2) | §4.71 |
+
+Tek satırlık kayıtlar (§2.3.2) başlangıç verisinden doğar (K-1031 (1); §8.1 (3. oturum)). Sayfa adresi bir entity değildir — Product, Category, Offering, PortfolioItem ve CustomPage'in ortak alanıdır (§4.72 (3. oturum); ★VM4-16).
+
+*Kaynak: §1.1.2 (aday entity listesi), §1.2 · K-1010, K-1030 (8), K-1034, K-1035 · K-1021…K-1029 · K-17, K-977, K-988, K-995, K-999, K-1012 · sözlüğün kayıt adları: K-617, K-645, K-1006, K-1008 · `02 §1.2`, §4.2, §12.2.7 · `05 §4`–§7, §9.*
+
+### 3.2 Aday listeden envantere
+
+Aday listenin (§1.1.2) entity'ye bire bir dönüşmeyen satırları ve aday listede olmayan entity'ler (K-1034). Bire bir dönüşen adaylar §3.1'in "Kaynak" sütunundadır.
+
+| Aday | Envanterde | Neden |
+|---|---|---|
+| 2 *firma ayarları* | CompanySettings · CompanyDeliveryProvince | Ayarlar tek satırdır; teslimat illeri il listesinin alt kümesi olarak ayrı bir bağ tablosudur (K-1021 (2)) |
+| 12 Image | Image · altı galeri bağı (ProductImage, AboutPageImage, OfferingImage, PortfolioItemImage, FaqItemImage, CustomPageImage) | Görsel yükleme başına bir satırdır; sıra, ana işaret ve alternatif metin kayda göre değişir ve bağdadır; tek görselli kayıtlarda bağ kaydın sütunudur (K-1029 (2)) |
+| 23 CheckboxAcceptance | CheckboxAcceptance · CheckboxAcceptanceOrderItem | Kutunun kapsadığı kalemler bağ tablosuyla (K-1027 (7)) |
+| 24 *ödeme kaydı* | PaymentRecord | Teknik kayıt — kod adı §3.3 (K-1006 (2), K-1009 (2)) |
+| 39 SocialLogin | Customer'ın alanı — sağlayıcının kullanıcı kimliği ve bağlandığı an | Tek sağlayıcı, hesap başına tek bağ; `SocialLogin` sözlükte bir işlemin adıdır, kayıt değildir (K-1025 (3)) |
+| 43, 44, 45, 61, 62, 63, 64, 65, 66, 68, 70 (italik teknik adaylar) | LoginRecord, AttemptRecord, LinkRecord, DispatchRecord, Job, ChannelStateRecord, InboundNotificationRecord, RefundRecord, TransitionRecord, DisposalRecord, BackupStatusRecord | Teknik kayıtlar — kod adları §3.3 (K-977, K-988; VM3-03) |
+| 46 Content | Tablosu yoktur | Sözlükte ortak addır; her tipin alanları ve kapıları ayrışır, tip başına tablo (K-1026 (1)) |
+| 54 *içerik–ürün bağı* | OfferingProduct · PortfolioItemProduct | İki bağ tablosu; adı K-1012 (2)'nin kuralıyla (K-1026 (5)) |
+| 55 PreInformationForm · 56 DistanceSalesContract · 57 PrivacyNotice · 58 CookiePolicy | `LegalTextType`'ın değerleri (§5.6); iki belgenin siparişe donan kişisel verisiz kopyası Order'ın alanıdır | Dört metnin sürümleri tek tablodadır; metin türü bir değerdir (K-1027 (1), (4)) |
+| 69 *nabız ve kesinti kaydı* | HeartbeatRecord · OutageRecord | Nabız tek satırdır ve her otuz saniyede güncellenir; kesinti her boşluk için bir satırdır (`05 §5.4.1`; K-1034) |
+| 71 *anahtar halkası* | DataProtectionKey | Halkanın satırı bir veri koruma anahtarıdır — `05 §7.6.3` ve K-975 (4)'ün adı (K-1034) |
+| — (Order'ın alan grubu) | InternalNote | Matris iç notu siparişin alanı olarak eşledi (§1.1.4, §1.1.9 `03 §1.11.27`); notun yöneticiye bağı ve imhada silinen bağlı kayıt oluşu ayrı tablo ister (K-1010 (4), K-1030 (1); K-1034) |
+| — (sipariş ve kalem kayıtlarının alan grubu) | RefundIban | Aynı IBAN'ı birden çok kalem kullanır ve silinmesi Z-35 ile Z-38'i izler (K-1024 (7)) |
+
+Sözlüğün `Notification` terimi ayrı entity değildir — kaydı DispatchRecord'dur (K-892); `Visitor`, `GuestBuyer`, `Buyer` ve `Consumer` aktör ya da sıfattır, kaydı yoktur — misafir alıcının izi siparişin kendisidir (konvansiyon 7). Ürünün sözlükteki işaretleri (`…Mark`) — `RecognizedBrowserMark` dışında — alan değildir, koşuldan okunur (§2.7.3); `RecognizedBrowserMark` bir çerezin sunucudaki kaydıdır (`02 §1.2`; K-1025 (4)). Kapalı listeler ve durum setleri entity değildir, §5'in enum'larıdır — il ve ülke listesi dışında: ikisi tablodur (§2.9.4).
+
+*Kaynak: §1.1.2 · K-1034 · K-892, K-1006, K-1009, K-1021, K-1024…K-1029 · `05 §5.4.1`, §7.6.3.*
+
+### 3.3 Teknik kavramların kod adları
+
+Sözlükte yer almayan, biçimini Teknik Mimari'nin kurduğu kayıtların kod adını bu doküman kavramın `05`'teki adından birebir verir (`02 §1.1` m4; K-977, K-988); API Tasarımı ve Kodlama Kılavuzu onları buradan alır. **Kural** (K-1034): `05`'teki ad "… kaydı" ise kod adı `…Record` sonekini taşır; adın öteki parçası birebir çevrilir; kaydın hâli `…State` diye adlandırılır (konvansiyon 2). Ürüne görünen bir kavram bu listeye girmez — sözlüğe girer (K-1006, K-1009 (2)).
+
+| `05`'teki ad | Kod adı | Tablo | `05`'teki yeri |
 |---|---|---|---|
+| Siparişin ödeme kaydı | `PaymentRecord` | `payment_records` | §4.5.3 |
+| Geri ödeme kaydı | `RefundRecord` | `refund_records` | §4.6 |
+| Gelen bildirim kaydı | `InboundNotificationRecord` | `inbound_notification_records` | §4.5.2 |
+| Geçiş kaydı | `TransitionRecord` | `transition_records` | §4.1 |
+| Gönderim kaydı | `DispatchRecord` | `dispatch_records` | §4.4 |
+| İş kuyruğu — iş satırı | `Job` | `jobs` | §4.3, §5.1 |
+| Kanal hâli kaydı | `ChannelStateRecord` | `channel_state_records` | §10.2 |
+| Bağlantı kaydı | `LinkRecord` | `link_records` | §6.4 |
+| Deneme kaydı | `AttemptRecord` | `attempt_records` | §6.3 |
+| Giriş kaydı | `LoginRecord` | `login_records` | §3.3.11, §9.3.1 (`02 §3.13.20`) |
+| İmha kaydı | `DisposalRecord` | `disposal_records` | §7.4.2 |
+| Nabız — nabız kaydı | `HeartbeatRecord` | `heartbeat_records` | §5.4.1 |
+| Kesinti kaydı | `OutageRecord` | `outage_records` | §5.4.1 |
+| Yedeğin durum kaydı | `BackupStatusRecord` | `backup_status_records` | §9.4.5 |
+| Anahtar halkası — veri koruma anahtarı | `DataProtectionKey` | `data_protection_keys` | §7.6.3 (K-975 (4)) |
+
+Onay anahtarı (`05 §4.5.1`) ve sürüm değeri (§2.6) teknik kavramdır ama kendi tablosu yoktur — sırasıyla Order'ın ve sürüm taşıyan kayıtların alanıdır. Teknik kayıtların kapalı listeleri §5.4'tedir.
+
+*Kaynak: K-1034 · K-977, K-988, K-1006, K-1009 · park satırı (Aşama 1, terim sözlüğü — K-17 · K-531 · K-977 · K-988) · `02 §1.1` · `05 §4`–§7, §9, §10.*
 
 ## 4. Entity tanımları
+
+> **Yazım:** §4.1…§4.35 yazım turunun 2. oturumunda, §4.36…§4.72 3. oturumunda yazılır (başlık notu, alt bölüm haritası; K-1033). Her alt bölüm aşağıdaki şablonu izler: "Tip" sütunu §2.5'in türünü ya da §5'in enum'unu, "Kaynak" sütunu konvansiyon 8'in biçimini taşır; "Silme davranışı" §2.2.5'in davranışını ve §3'ün kategorisini yazar.
 
 ### 4.x <EntityAdı>
 
@@ -2514,14 +2911,437 @@ Birim K-1003'tür (K-997'nin 1d netleşmesi). **Devir satırı** K numarasıyla 
 
 > **Kaynak:** `02 §5` ve `03 §1`. Değerler **birebir** aynı olmalıdır.
 
-| Enum | Değerler | Kaynak referansı |
+Bu projede kaynak şablonun saydığı ikisinden geniştir: durum setleri `02 §5` ve `03 §1`'den, kapalı listelerin değerleri `02`'nin gövdesindeki kapalı listeden (K-531; `02 §1.1` m5), teknik kayıtların listeleri Teknik Mimari'den (K-977, K-988) gelir — park satırı (Aşama 1, terim sözlüğü) bağlayıcıdır, şablonun notu genişler (PF-89).
+
+### 5.1 Biçim, kaynak ve okunuş
+
+**5.1.1 Biçim §2.9'dadır:** enum veritabanında metin olarak, kod adıyla durur ve sütun izinli değerlerin kontrol kısıtını taşır; yeni değer genişlet–daralt kuralıyla gelir (K-1017). İl ve ülke listesi enum değildir, başlangıç verisi tablosudur (§4.3, §4.4 (2. oturum); §8.1 (3. oturum)); kargo şirketi listesi koddadır (`02 §3.20.8`).
+
+**5.1.2 Kod adının kaynağı** (K-1036): değerin sözlükte terimi varsa sözlüğün İngilizce karşılığı birebir alınır (`Placed`, `Physical`); sözlükte terimi olmayan kapalı liste değerinin ve kayıt düzeyindeki kapalı değerin kod adını bu doküman verir — değerin Türkçe adının birebir çevirisi, Pascal yazımıyla (K-531); teknik kaydın hâlinin kod adı kavramın `05`'teki adından türer (K-977). Kimlikli ürün listelerinin değerleri kimliğin tanımlayıcı biçimidir — tire atılır, Türkçe harf ASCII karşılığına iner (`B-5` → `B5`, `Ö1` → `O1`; konvansiyon 6). Bir kod adı verildikten sonra değişmez (§2.9.3).
+
+**5.1.3 Okunuş.** Her enum bir tabloyla yazılır: **Değer** — kaynaktaki Türkçe ad, kaynağın yazımıyla · **Kod adı** · **Kaynak** — değerin yazılı olduğu bölüm. Enum'u taşıyan alan §4'ün tanımındadır. Bir değerin davranışı — hangi geçişin izinli olduğu, hangi sebebin mutlak olduğu — kuralın evindedir ve burada yinelenmez (konvansiyon 9).
+
+*Kaynak: K-1017, K-1036 · K-531, K-977, K-988 · park satırı (Aşama 1, terim sözlüğü) · `02 §1.1` · `06` şablonu §5.*
+
+### 5.2 Durum setleri ve geçiş kimlikleri
+
+**5.2.1 `OrderStatus` — Sipariş durumu (sevkiyat ekseni).** Geçişler beyaz listeyle tanımlıdır (`02 §5.4`; `03 §1.2`).
+
+| Değer | Kod adı | Kaynak |
 |---|---|---|
+| Alındı | `Placed` | `02 §1.2`, §5.4; `03 §1.2` |
+| Hazırlanıyor | `Preparing` | `02 §1.2`, §5.4; `03 §1.2` |
+| Kargoya verildi | `Shipped` | `02 §1.2`, §5.4; `03 §1.2` |
+| Teslim edildi | `Delivered` | `02 §1.2`, §5.4; `03 §1.2` |
+| Teslim edilemedi | `DeliveryFailed` | `02 §1.2`, §5.4; `03 §1.2` |
+| İptal edildi | `Cancelled` | `02 §1.2`, §5.4; `03 §1.2` |
+
+**5.2.2 `PaymentStatus` — Ödeme durumu (ödeme ekseni)** (`02 §5.5`; `03 §1.3`).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| Bekliyor | `Pending` | `02 §1.2`, §5.5; `03 §1.3` |
+| Ödendi | `Paid` | `02 §1.2`, §5.5; `03 §1.3` |
+| Başarısız | `Failed` | `02 §1.2`, §5.5; `03 §1.3` |
+| Kısmen geri ödendi | `PartiallyRefunded` | `02 §1.2`, §5.5; `03 §1.3` |
+| Geri ödendi | `Refunded` | `02 §1.2`, §5.5; `03 §1.3` |
+
+**5.2.3 `PublishStatus` — Yayın durumu.** Ürün ve varyant üç değeri ayrı ayrı taşır (`02 §5.1`); kurumsal içerik kaydı yalnız `Draft` ve `Published`'ı kullanır — sütunun kısıtı alt kümeyi sayar (`02 §5.2`; §2.9.2; K-1026 (2)).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| Taslak | `Draft` | `02 §1.2`, §5.1, §5.2; `03 §1.8` |
+| Yayında | `Published` | `02 §1.2`, §5.1, §5.2; `03 §1.8` |
+| Arşiv | `Archived` | `02 §1.2`, §5.1; `03 §1.8` — kurumsal içerikte yoktur |
+
+**5.2.4 `DefectClaimStatus` — Ayıp talebi durumu** (`02 §5.10`; `03 §1.9`).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| Açık | `Open` | `02 §1.2`, §5.10; `03 §1.9` |
+| Çözüldü | `Resolved` | `02 §1.2`, §5.10; `03 §1.9` |
+
+**5.2.5 `ContactRequestStatus` — İletişim talebi durumu;** KVKK talebi de aynı iki durumu kullanır (`02 §5.13`; `03 §1.9`). `Open` değeri iki durum alanında ortaktır (`02 §1.2`; K-303).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| Açık | `Open` | `02 §1.2`, §5.13; `03 §1.9` |
+| Kapatıldı | `Closed` | `02 §1.2`, §5.13; `03 §1.9` |
+
+**5.2.6 `TransitionCode` — geçiş kaydının "hangi geçiş" değeri** (K-889; K-1036). Sevkiyat ve ödeme geçişlerinin kimliği geçiş kaydının değeridir; beyaz listenin dışındaki düzeltme geçişi (`02 §10.4.6`) kendi değerini taşır — sebebi `CorrectionReason`'dır (§5.3.9) ve havale "ödendi" işaretinin düzeltmesi iki eksende birer satır yazar (`02 §10.4.6`). Açık kalemi kalmamış siparişin kapanışı ayrı bir değer değildir — S3, S4 ya da S9'dur (`02 §5.4`).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| S1 — Alındı → Hazırlanıyor | `S1` | `02 §5.4`; `03 §1.2` |
+| S2 — Alındı → Teslim edildi | `S2` | `02 §5.4`; `03 §1.2` |
+| S3 — Alındı → İptal edildi | `S3` | `02 §5.4`; `03 §1.2` |
+| S4 — Hazırlanıyor → İptal edildi | `S4` | `02 §5.4`; `03 §1.2` |
+| S5 — Hazırlanıyor → Kargoya verildi | `S5` | `02 §5.4`; `03 §1.2` |
+| S6 — Kargoya verildi → Teslim edildi | `S6` | `02 §5.4`; `03 §1.2` |
+| S7 — Kargoya verildi → Teslim edilemedi | `S7` | `02 §5.4`; `03 §1.2` |
+| S8 — Teslim edilemedi → Kargoya verildi | `S8` | `02 §5.4`; `03 §1.2` |
+| S9 — Teslim edilemedi → İptal edildi | `S9` | `02 §5.4`; `03 §1.2` |
+| S10 — Hazırlanıyor → Teslim edildi | `S10` | `02 §5.4`; `03 §1.2` |
+| S11 — Teslim edilemedi → Teslim edildi | `S11` | `02 §5.4`; `03 §1.2` |
+| Ö1 — Bekliyor → Ödendi | `O1` | `02 §5.5`; `03 §1.3` |
+| Ö2 — Bekliyor → Başarısız | `O2` | `02 §5.5`; `03 §1.3` |
+| Ö3 — Ödendi → Kısmen geri ödendi | `O3` | `02 §5.5`; `03 §1.3` |
+| Ö4 — Ödendi → Geri ödendi | `O4` | `02 §5.5`; `03 §1.3` |
+| Ö5 — Kısmen geri ödendi → Geri ödendi | `O5` | `02 §5.5`; `03 §1.3` |
+| Düzeltme — yanlış yapılmış geçişin yeni bir geçişle düzeltilmesi | `Correction` | `02 §10.4.6`; `03 §1.6` |
+
+*Kaynak: `02 §1.2`, §5.1, §5.2, §5.4, §5.5, §5.10, §5.13, §10.4.6 · `03 §1.1`–§1.3, §1.6, §1.8, §1.9 · K-17, K-889, K-1026 (2), K-1036 · checklist'in Veri modeli hatırlatması (enum'lar birebir).*
+
+### 5.3 Sözlüğün listeleri
+
+Sözlüğün on üç kapalı listesi (`02 §1.2`; K-531, K-1018, K-1031) ve değerlerinden biri sözlükte olan ödeme yöntemi. **Teslim tarihi bir kapalı liste değildir:** kalemin tarih alanıdır (`02 §1.2` `DeliveryDate`; §2.5) — K-531 onu sözlüğe "kapalı liste ve kayıt adı" ikilisiyle aldı ve Aşama 1'in park satırı onu kapalı listelerle birlikte sayıyordu (K-1036; park satırı hizalandı).
+
+| Liste | Biçim | Alt bölüm |
+|---|---|---|
+| Ürün tipi `ProductType` | enum | 5.3.1 |
+| Firma tipi `CompanyType` | enum | 5.3.2 |
+| Hesap türü `AccountType` | enum | 5.3.3 |
+| Ölçü birimi `MeasurementUnit` | enum | 5.3.4 |
+| Ödeme yöntemi `PaymentMethod` | enum | 5.3.5 |
+| İptal sebebi `CancellationReason` | enum | 5.3.6 |
+| Cayma istisnası sebebi `WithdrawalExemptionReason` | enum | 5.3.7 |
+| Ana sayfa düzeni `HomepageLayout` | enum | 5.3.8 |
+| Düzeltme sebebi `CorrectionReason` | enum | 5.3.9 |
+| Konu tipi `ContactTopic` | enum | 5.3.10 |
+| Sosyal medya platformu `SocialPlatform` | enum | 5.3.11 |
+| İl `Province` | başlangıç verisi tablosu — kod plaka kodudur ("06") | 5.3.12 |
+| Ülke `Country` | başlangıç verisi tablosu — kod iki harfli uluslararası koddur ("TR") | 5.3.12 |
+| Kargo şirketi `Carrier` | kodda — liste ve takip kalıpları ürünün varlığıdır; değerlerin kod adları Entegrasyon Spesifikasyonu'nundur (K-142) | 5.3.12 |
+
+**5.3.1 `ProductType` — Ürün tipi.** Ürün düzleminde; varyant devralır (`02 §1.2`; K-82).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| Fiziksel ürün | `Physical` | `02 §1.2`, §3.2 |
+| Dijital ürün | `Digital` | `02 §1.2`, §3.2 |
+| Hizmet | `Service` | `02 §1.2`, §3.2 |
+
+**5.3.2 `CompanyType` — Firma tipi.** Tipe göre zorunlu kimlik alanları `02 §3.1.3`'tedir.
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| Esnaf | `Tradesman` | `02 §3.1.3` |
+| Gerçek kişi tacir | `NaturalPersonMerchant` | `02 §3.1.3` |
+| Tüzel kişi | `LegalEntity` | `02 §3.1.3` |
+
+**5.3.3 `AccountType` — Hesap türü.** Değerler iki hesap tablosunun sözlükteki adlarıdır (`02 §1.2`; K-588, K-617).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| Yönetici | `Admin` | `02 §1.2`, §10.2.5 |
+| Müşteri | `Customer` | `02 §1.2`, §10.2.5 |
+
+**5.3.4 `MeasurementUnit` — Ölçü birimi.** Birim ürün düzleminde, net miktar varyant düzlemindedir (K-1019); birim fiyatın temel birimi `02 §3.8.5`'tedir (K-1018).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| Kilogram | `Kilogram` | `02 §3.8.5`; K-1018 (2) |
+| Gram | `Gram` | `02 §3.8.5`; K-1018 (2) |
+| Litre | `Litre` | `02 §3.8.5`; K-1018 (2) |
+| Mililitre | `Millilitre` | `02 §3.8.5`; K-1018 (2) |
+| Metre | `Metre` | `02 §3.8.5`; K-1018 (2) |
+| Santimetre | `Centimetre` | `02 §3.8.5`; K-1018 (2) |
+| Metrekare | `SquareMetre` | `02 §3.8.5`; K-1018 (2) |
+| Metreküp | `CubicMetre` | `02 §3.8.5`; K-1018 (2) |
+| Adet | `Piece` | `02 §3.8.5`; K-1018 (2) |
+
+**5.3.5 `PaymentMethod` — Ödeme yöntemi.** İki değerli alan; kapıda ödeme yoktur (`02 §1.2`; K-12, K-13). Havale/EFT'nin kod adı sözlüktedir, kartınki burada verilir (K-1036).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| Kart | `Card` | `02 §1.2` `PaymentMethod`, §3.21 |
+| Havale/EFT | `BankTransfer` | `02 §1.2`, §3.21 |
+
+**5.3.6 `CancellationReason` — İptal sebebi.** Firma iptalinde zorunlu; "diğer"de açıklama zorunludur (`02 §7.2.4`; K-199, K-373).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| stokta bulunamadı | `OutOfStock` | `02 §7.2.4` |
+| ürün hasarlı ya da satılamaz durumda | `DamagedOrUnsellable` | `02 §7.2.4` |
+| teslimat adresine gönderim yapılamıyor | `CannotShipToAddress` | `02 §7.2.4` |
+| gönderi teslim edilemedi — müşteri kaynaklı (adres hatalı ya da alıcı bulunamadı) | `UndeliveredCustomerCaused` | `02 §7.2.4` |
+| müşteriyle anlaşıldı (müşteri talebi) | `AgreedWithCustomer` | `02 §7.2.4` |
+| diğer | `Other` | `02 §7.2.4` |
+
+**5.3.7 `WithdrawalExemptionReason` — Cayma istisnası sebebi.** Değerler Mesafeli Sözleşmeler Yönetmeliği m.15/1 bentlerinin metnidir; mutlak ya da koşullu oluşu kodda davranıştır ve kuralı `02 §7.3.4`'tedir (K-206, K-509).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| (b) tüketicinin istekleri veya kişisel ihtiyaçları doğrultusunda hazırlanan mallar — mutlak | `MadeToOrder` | `02 §7.3.4` |
+| (c) çabuk bozulabilen veya son kullanma tarihi geçebilecek mallar — mutlak | `Perishable` | `02 §7.3.4` |
+| (ç) tesliminden sonra koruyucu unsurları açılmış olan mallardan iadesi sağlık ve hijyen açısından uygun olmayanlar — koşullu | `HygieneSensitive` | `02 §7.3.4` |
+| (e) malın tesliminden sonra koruyucu unsurları açılmış olması hâlinde maddi ortamda sunulan kitap, dijital içerik ve bilgisayar sarf malzemeleri — koşullu | `SealedMedia` | `02 §7.3.4` |
+
+**5.3.8 `HomepageLayout` — Ana sayfa düzeni.** Kurulumda tanıtım öncelikli gelir (`02 §3.28.1`; K-813).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| tanıtım öncelikli | `ContentFirst` | `02 §3.28.1` |
+| mağaza öncelikli | `StoreFirst` | `02 §3.28.1` |
+
+**5.3.9 `CorrectionReason` — Düzeltme sebebi.** Durum düzeltmesinde zorunlu; "diğer"de açıklama zorunludur (`02 §10.4.6`; K-373).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| yanlış siparişte işlem yapıldı | `WrongOrder` | `02 §10.4.6` |
+| işlem gerçekleşmeden işaretlendi | `MarkedBeforeOccurred` | `02 §10.4.6` |
+| diğer | `Other` | `02 §10.4.6` |
+
+**5.3.10 `ContactTopic` — Konu tipi.** Talebin saklama süresi tipten okunur (`02 §4.2` Z-33; K-707, K-951).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| Genel soru | `GeneralQuestion` | `02 §3.32.3` |
+| Sipariş hakkında | `AboutOrder` | `02 §3.32.3` |
+| Ürün hakkında | `AboutProduct` | `02 §3.32.3` |
+| KVKK talebi | `PersonalDataRequest` | `02 §3.32.3` |
+| Diğer | `Other` | `02 §3.32.3` |
+
+**5.3.11 `SocialPlatform` — Sosyal medya platformu** (`02 §3.27.12`; K-1031 (5)).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| Instagram | `Instagram` | `02 §3.27.12`; K-1031 (5) |
+| Facebook | `Facebook` | `02 §3.27.12`; K-1031 (5) |
+| X | `X` | `02 §3.27.12`; K-1031 (5) |
+| LinkedIn | `LinkedIn` | `02 §3.27.12`; K-1031 (5) |
+| YouTube | `YouTube` | `02 §3.27.12`; K-1031 (5) |
+| TikTok | `TikTok` | `02 §3.27.12`; K-1031 (5) |
+
+**5.3.12 Enum olmayan üç liste.** İl ve ülke listesi başlangıç verisi tablosudur — değerin kodu plaka kodu ve iki harfli uluslararası koddur, satırları §8.1'dedir (3. oturum); listenin değişikliği göçle gelir, satır silinmez ve kod yeniden kullanılmaz (K-1031 (5), (6); `02 §3.14.3`, §3.8.5). Kargo şirketi listesi ve takip bağlantısı kalıpları koddadır; "Diğer" seçildiğinde şirketin adı yazılır (`02 §3.20.7`, §3.20.8) — değerlerin kod adları Entegrasyon Spesifikasyonu'nundur (K-142, K-1031 (5)).
+
+*Kaynak: `02 §1.2` (on üç kapalı liste ve `PaymentMethod`), §3.1.3, §3.2, §3.8.5, §3.14.3, §3.20.7, §3.20.8, §3.21, §3.27.12, §3.28.1, §3.32.3, §7.2.4, §7.3.4, §10.2.5, §10.4.6 · K-531, K-617, K-1017, K-1018, K-1019, K-1031, K-1036 · devir: K-17 · K-531 · K-977 · K-988 (kapalı listelerin kod adları — Aşama 1 park satırı), `02 §3.8.5` (ölçü birimlerinin listesi — Aşama 3 park satırı).*
+
+### 5.4 Teknik kayıtların listeleri
+
+Teknik kayıtların (§3.3) kapalı listeleri sözlüğe girmez; kod adlarını bu doküman `05`'teki adlarından verir (`02 §1.1` m4; K-977, K-988). Hâl `…State` diye adlandırılır (konvansiyon 2).
+
+**5.4.1 `RefundRecordState` — geri ödeme kaydının hâli** (`05 §4.6.1`, §4.6.2; K-940).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| istek gönderiliyor | `Sending` | `05 §4.6.1`; K-940 |
+| sonucu bekleniyor | `OutcomePending` | `05 §4.6.2`; K-940 |
+| başarılı | `Succeeded` | `05 §4.6.2`; K-940 |
+| gerçekleşmedi | `Failed` | `05 §4.6.2`; K-940 |
+
+**5.4.2 `LinkType` — bağlantı kaydının türü** (`05 §6.4`; K-1025 (5)).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| e-posta doğrulama | `EmailVerification` | `02 §3.13.5`; `05 §6.4`; K-1025 (5) |
+| şifre sıfırlama | `PasswordReset` | `02 §3.13.9`; `05 §6.4`; K-1025 (5) |
+| yeni e-posta adresinin doğrulaması | `NewEmailVerification` | `02 §3.13.14`; `05 §6.4`; K-1025 (5) |
+| e-posta değişikliğini geri alma | `EmailChangeRevert` | `02 §3.13.14`; `05 §6.4`; K-1025 (5) |
+| yönetici daveti | `AdminInvitation` | `02 §10.2.6`; `05 §6.4.6`; K-1025 (5) |
+
+**5.4.3 `LinkState` — bağlantının hâli.** Sütun değildir: hâl kaydın anlarından okunur — kullanıldığı an, yerine yenisi geçtiği an, ömrün sonu (`05 §6.4.6`; K-1025 (5)). Kod adı API Tasarımı'nın ve Kodlama Kılavuzu'nun ortak adıdır. "Kayıt yok" bir hâl değildir — kaydın bulunmamasıdır.
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| geçerli | `Valid` | `05 §6.4.6` |
+| ömrü dolmuş | `Expired` | `05 §6.4.4`, §6.4.6 |
+| kullanılmış | `Used` | `05 §6.4.4`, §6.4.6 |
+| yerine yenisi geçmiş | `Superseded` | `05 §6.4.4`, §6.4.6 |
+
+**5.4.4 `JobType` — iş satırının türü** (`05 §4.3.4`; K-1028 (6)). E-posta iş kuyruğuna satır yazmaz — kuyruğu gönderim kaydıdır (`05 §4.3.1`).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| kart iadesi | `CardRefund` | `05 §4.3.4`, §4.6; K-1028 (6) |
+| son sorgu | `FinalPaymentQuery` | `05 §4.3.4`, §5.3.3; K-1028 (6) |
+| görsel türevi | `ImageDerivative` | `05 §4.3.4`, §7.7.2; K-1028 (6) |
+| gelen bildirimin işlenmesi | `InboundNotificationProcessing` | `05 §4.3.4`, §4.5.2; K-1028 (6) |
+| sonucu bilinmeyen iadenin sorgusu | `RefundOutcomeQuery` | `05 §4.3.4`, §4.6.2; K-1028 (6) |
+
+**5.4.5 `JobState` — iş satırının hâli** (`05 §4.3.4`; K-985, K-1028 (6)). Kurulumu yapanın kapattığı satır tamamlanmış sayılır.
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| bekliyor | `Pending` | `05 §4.3`; K-1028 (6) |
+| tamamlandı | `Completed` | `05 §4.3.4`; K-985 |
+| başarısız | `Failed` | `05 §4.3.4`; K-985 |
+
+**5.4.6 `DispatchState` — gönderim kaydının hâli** (`05 §4.4`; K-1028 (1)).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| gönderilecek | `Queued` | `05 §4.4`; K-1028 (1) |
+| gönderildi | `Sent` | `05 §4.4`; K-1028 (1) |
+| ulaşmadı | `Undelivered` | `02 §9.1.6`; `05 §4.4`; K-1028 (1) |
+
+**5.4.7 `DispatchOutcome` — gönderim denemesinin sonuç sınıfı** (`05 §10.2`; K-913).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| gönderildi | `Sent` | `05 §10.2`; K-913 |
+| alıcı hatası | `RecipientError` | `05 §10.2`; K-913 |
+| kanal hatası | `ChannelError` | `05 §10.2`; K-913 |
+
+**5.4.8 `AttemptAxis` — deneme kaydının ekseni** (`02 §8.2`; `05 §6.3`; K-1025 (7)).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| e-posta | `Email` | `02 §8.2`; K-1025 (7) |
+| IP | `Ip` | `02 §8.2`; K-1025 (7) |
+| sepet | `Cart` | `02 §8.2` L-6; K-1025 (7) |
+
+**5.4.9 `LoginOutcome` — giriş kaydının sonucu** (`02 §3.13.20`; K-515).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| başarılı | `Succeeded` | `02 §3.13.20` |
+| başarısız | `Failed` | `02 §3.13.20` |
+
+**5.4.10 `ActorKind` — kaydı yazanın türü** — geçiş kaydında ve kalem kayıtlarında (K-889, K-1024 (1)). Değerler aktörlerin sözlükteki adlarıdır; "Sistem" ürünün kendiliğinden yaptığı işlemdir (`03 §0.3.2`).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| müşteri | `Buyer` | `02 §1.2` `Buyer`; K-889 |
+| yönetici | `Admin` | `02 §1.2` `Admin`; K-889 |
+| sistem | `System` | `03 §0.3.2`; K-889 |
+
+*Kaynak: K-977, K-988, K-1036 · devir: K-17 · K-531 · K-977 · K-988 (teknik kavramların listeleri — Aşama 1 park satırı), K-894 · K-940 (geri ödeme kaydının hâlleri), K-891 · K-985 (iş satırı), K-913 (sonuç sınıfı — Aşama 4 park satırları) · K-515, K-889, K-1024, K-1025, K-1028 · `02 §3.13`, §8.2, §9.1.6 · `03 §0.3.2` · `05 §4.3`, §4.4, §4.6, §6.3, §6.4, §10.2.*
+
+### 5.5 Kimlikli ürün listeleri
+
+Ürün Gereksinimleri'nin kimlikli satırları bir kaydın değeri olduğunda enum'a dönüşür; değer kimliğin tanımlayıcı biçimidir (§5.1.2; K-532).
+
+**5.5.1 `DispatchType` — gönderim kaydının türü:** müşteri bildirimleri, firma bildirimleri ve hesap ve yönetim e-postaları (`02 §9.2`–§9.4; K-1028 (1)). Her e-posta gönderim kaydında bir satırdır (`05 §4.4.1`).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| B-1 Sipariş alındı | `B1` | `02 §9.2` |
+| B-2 Havale/EFT seçildi | `B2` | `02 §9.2` |
+| B-3 Havale ödeme hatırlatması | `B3` | `02 §9.2` |
+| B-4 Ödeme onaylandı | `B4` | `02 §9.2` |
+| B-5 Kargoya verildi | `B5` | `02 §9.2` |
+| B-6 Teslim edilemedi | `B6` | `02 §9.2` |
+| B-7 İptal edildi | `B7` | `02 §9.2` |
+| B-8 Geri ödeme işlendi | `B8` | `02 §9.2` |
+| B-9 Cayma beyanı, gecikme feshi ya da ayıp talebi alındı | `B9` | `02 §9.2` |
+| B-10 Teslimat ya da fatura adresi düzeltildi | `B10` | `02 §9.2` |
+| B-11 Kalem çıkarıldı ya da adedi azaltıldı | `B11` | `02 §9.2` |
+| B-12 Kargo şirketi ya da takip numarası düzeltildi | `B12` | `02 §9.2` |
+| B-13 Yanlış durum geçişi düzeltildi | `B13` | `02 §9.2` |
+| B-14 IBAN isteği | `B14` | `02 §9.2` |
+| B-15 Siparişin e-postası düzeltildi — eski adrese | `B15` | `02 §9.2` |
+| B-16 İade reddedildi | `B16` | `02 §9.2` |
+| F-1 Yeni sipariş | `F1` | `02 §9.3` |
+| F-2 Yeni iletişim talebi | `F2` | `02 §9.3` |
+| F-3 Yeni cayma beyanı, gecikme feshi ya da ayıp talebi | `F3` | `02 §9.3` |
+| F-4 Sistemin kendiliğinden yaptığı karta geri ödeme | `F4` | `02 §9.3` |
+| F-5 Havale/EFT'nin IBAN'ı girildi ya da değiştirildi | `F5` | `02 §9.3` |
+| F-6 Yönetici daveti gönderildi ya da yönetici kaldırıldı | `F6` | `02 §9.3` |
+| e-posta doğrulama bağlantısı | `EmailVerificationLink` | `02 §9.4` |
+| şifre sıfırlama bağlantısı | `PasswordResetLink` | `02 §9.4` |
+| yeni e-posta adresinin doğrulanması | `NewEmailVerificationLink` | `02 §9.4` |
+| e-posta değişikliğinin eski adrese bildirimi | `EmailChangeNotice` | `02 §9.4` |
+| yönetici daveti | `AdminInvitationLink` | `02 §9.4` |
+| hesabın silindiği bildirimi | `AccountDeletedNotice` | `02 §9.4` |
+
+**5.5.2 `AttemptLimit` — deneme kaydının limiti** (`02 §8.2`; K-1025 (7)).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| L-1 Başarısız giriş denemesi | `L1` | `02 §8.2` |
+| L-2 Şifre sıfırlama talebi | `L2` | `02 §8.2` |
+| L-3 Hesap kaydı | `L3` | `02 §8.2` |
+| L-4 İletişim formu gönderimi | `L4` | `02 §8.2` |
+| L-5 Başarısız misafir sipariş takibi sorgusu | `L5` | `02 §8.2` |
+| L-6 Geçersiz kupon kodu denemesi | `L6` | `02 §8.2` |
+| L-7 Kendiliğinden iptal edilen ödenmemiş sipariş | `L7` | `02 §8.2` |
+| L-8 Aynı anda açık ödenmemiş sipariş | `L8` | `02 §8.2` |
+| L-9 Doğrulama bağlantısının yeniden istenmesi | `L9` | `02 §8.2` |
+
+L-7 ve L-8 deneme kaydına yazılmaz, siparişlerden sayılır ve siparişte IP durur (`05 §6.3`; Aşama 4 park satırı — oturum, deneme, bağlantı ve tanınan tarayıcı kayıtları); değerleri listede yine durur — limitin kimliği tek kümedir.
+
+**5.5.3 `DisposalRecordType` — imha kaydının kayıt türü** (K-708 — "kayıt türleri" bu dokümana devredildi; K-1036). Değer silinen ya da boşaltılan kaydın kod adıdır (§3); tablosu olmayan üç değer dosya ve kayıt döngüleridir. Yeni bir imha parçası ya da anlık silme yeni bir değerle gelir (§2.9.3).
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| Siparişin imha parçası — kişisel alanların boşaltılması ve bağlı kayıtların silinmesi | `Order` | Z-28, Z-41; `05 §7.4.3` (2) |
+| Gönderim kaydı — silme ve ödemesi alınmamış kolun boşaltması | `DispatchRecord` | Z-34, Z-43; `05 §7.4.3` (4) |
+| İletişim talebi | `ContactRequest` | Z-33 |
+| Giriş kaydı | `LoginRecord` | Z-40 |
+| İşlem izi | `AuditLog` | Z-30; `05 §7.5` |
+| İmha kaydı | `DisposalRecord` | Z-44 |
+| Hiçbir siparişe bağlanmamış gelen bildirim | `InboundNotificationRecord` | K-954; `05 §7.4.4` |
+| Bağsız görsel | `Image` | `05 §7.4.4`, §7.7.2 |
+| Hiçbir kalemin indiremeyeceği dijital ürün dosyası | `DigitalFile` | `05 §7.4.4`, §7.7.3 |
+| Süresi dolan kayıt dosyaları | `LogFile` | `05 §7.4.4`, §9.2.2 |
+| Sunucunun kayıtlarının döngüyle silinen günü — sayı yerine tarih aralığı | `ServerLogRotation` | `05 §7.4.2`, §9.2.2 |
+| Kaydı silinmiş, diskte kalmış dosya | `OrphanFile` | `05 §7.4.4`, §7.7.1 |
+| Hesabın silinmesi | `Customer` | K-708; `02 §12.2.7` |
+| Doğrulanmamış bekleyen kaydın silinmesi | `PendingRegistration` | K-708; Z-1 |
+| Geri ödeme IBAN'ının silinmesi | `RefundIban` | K-708; Z-35, Z-38 |
+| Bekleyen e-posta değişikliğinin ömrü dolunca silinmesi | `PendingEmailChange` | K-984; `05 §5.2.7` |
+| Deneme kayıtları — gecelik temizlik | `AttemptRecord` | K-979; `05 §5.2.9` |
+| Oturum kayıtları — gecelik temizlik | `Session` | K-979, K-984; `05 §5.2.9` |
+| Tanınan tarayıcı kayıtları — gecelik temizlik | `RecognizedBrowserMark` | K-979, K-984; `05 §5.2.9` |
+| Misafir sepeti — gecelik temizlik | `Cart` | K-984; `05 §7.4.4` |
+| Yönetici daveti — gecelik temizlik | `AdminInvitation` | K-1030 (8) |
+
+Hesabın silinmesiyle basamaklanan kayıtlar (oturum, adres defteri, bağlantı kaydı, bekleyen e-posta değişikliği, tanınan tarayıcı, sepet) ayrı satır yazmaz — `Customer` satırının parçasıdır (Z-31, Z-32); istek içinde silinen oturum imha değildir (`05 §5.2.9`; K-984).
+
+*Kaynak: K-532, K-708, K-979, K-984, K-1025 (7), K-1028 (1), K-1030 (8), K-1036 · `02 §4.2` Z-1, Z-28…Z-44, §8.2, §9.2–§9.4, §12.2.7 · `05 §4.4.1`, §5.2.7, §5.2.9, §6.3, §7.4.2–§7.4.4, §7.5, §7.7, §9.2.2.*
+
+### 5.6 Kayıt düzeyindeki kapalı değerler
+
+Bir kaydın alanının aldığı, ürünün seçilecek bir liste olarak göstermediği kapalı değerler; kod adlarını bu doküman verir (§5.1.2; K-531'in kalıbı). Ürüne liste olarak görünen kapalı liste sözlüğe girer (`02 §1.1` m5) — §5.3. Bu alt bölüme 2. ve 3. oturum §4'ün yazımında doğan değeri ekler (alt bölüm haritası); iki değerli bir seçim enum değil mantıksal alandır (§4).
+
+**5.6.1 `LegalTextType` — yasal metin sürümünün metin türü** (K-1027 (1)). Değerler dört metnin sözlükteki adlarıdır.
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| Ön Bilgilendirme Formu | `PreInformationForm` | `02 §1.2`, §3.24.3 |
+| Mesafeli Satış Sözleşmesi | `DistanceSalesContract` | `02 §1.2`, §3.33.1 |
+| Aydınlatma metni | `PrivacyNotice` | `02 §1.2`, §3.33.2 |
+| Çerez politikası | `CookiePolicy` | `02 §1.2`, §3.33.2 |
+
+**5.6.2 `CheckboxType` — onay kutusu kaydının kutu türü** (K-1027 (7)). Değerler ürün tipinin iki değeridir.
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| dijital ürün kutusu | `Digital` | `02 §3.24.2` |
+| hizmet kutusu | `Service` | `02 §3.24.2` |
+
+**5.6.3 `AddressType` — adres geçmişinin adres türü** (K-1028 (4)). Değerler iki adresin sözlükteki adlarıdır.
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| teslimat adresi | `ShippingAddress` | `02 §1.2`, §10.4.2 |
+| fatura adresi | `BillingAddress` | `02 §1.2`, §10.4.2 |
+
+**5.6.4 `RefundIbanRequestReason` — IBAN isteğinin sebebi** (K-1024 (7); K-1036). Değerler IBAN isteğinin doğduğu altı olaydır — `02 §1.2`'nin tanımından birebir; K-1024 (7)'nin dört grubu bu altı olayı kapsar.
+
+| Değer | Kod adı | Kaynak |
+|---|---|---|
+| silinmiş IBAN'dan sonra iade malı ulaştı | `ReturnAfterIbanDeleted` | `02 §1.2` `RefundIbanRequest`, §7.4.5; K-497, K-498 |
+| firma "havale gerçekleşmedi" dedi | `TransferFailed` | `02 §1.2`, §7.4.5; K-575 |
+| başarısız kart iadesinde havale yolu açıldı | `CardRefundFailed` | `02 §1.2`, §7.2.8; K-569 |
+| başka kanaldan gelen cayma ya da gecikme feshi bildirimi IBAN'sız kaydedildi | `NoticeWithoutIban` | `02 §1.2`, §10.4.10; K-607, K-706 |
+| havale hattında ödenmiş kalem iptal edildi ya da çıkarıldı | `CancellationOrRemoval` | `02 §1.2`; K-581 |
+| IBAN'ı olmayan bir geri ödeme için firma IBAN istedi | `AdminRequest` | `02 §1.2`, §10.3.1; K-686, K-690 |
+
+*Kaynak: K-1024 (7), K-1027 (1), (7), K-1028 (4), K-1036 · K-531 · `02 §1.1`, §1.2, §3.24, §3.33, §7.2.8, §7.4.5, §10.4.*
 
 ## 6. İlişki diyagramı
 
+Bu bölüm yazım turunun 3. oturumunda yazılır; alt bölümleri başlık notunun alt bölüm haritasındadır (K-1033).
+
 ## 7. İndeks ve kısıt özeti
 
+Bu bölüm yazım turunun 3. oturumunda yazılır; alt bölümleri başlık notunun alt bölüm haritasındadır (K-1033).
+
 ## 8. Seed / başlangıç verisi
+
+Bu bölüm yazım turunun 3. oturumunda yazılır; alt bölümleri başlık notunun alt bölüm haritasındadır (K-1033).
 
 > **Ne yazılır:** Sistem açılışında gerekli kayıtlar. **Hangilerinin yokluğunda sistem açılmamalı** (fail-fast) açıkça belirtilir — bu liste `DEPLOY_RUNBOOK.md §A`'yı besler.
 
@@ -2537,6 +3357,8 @@ Birim K-1003'tür (K-997'nin 1d netleşmesi). **Devir satırı** K numarasıyla 
 
 ## 9. Saklama ve arşivleme
 
+Bu bölüm yazım turunun 3. oturumunda yazılır; alt bölümleri başlık notunun alt bölüm haritasındadır (K-1033).
+
 ---
 
-*Shopfolio — Data Model v0.9*
+*Shopfolio — Data Model v0.10*

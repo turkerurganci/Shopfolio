@@ -194,7 +194,12 @@ class Driver {
     const foreign = this.gh.openPRs().filter(p => p.headRefName.startsWith('docs/') && !this.st.prs.some(x => x.number === p.number))
     if (foreign.length) throw new Stop('check', 'Açık bir docs: PR var — K numarası çakışabilir (INSTRUCTIONS §7)', foreign.map(p => `#${p.number} ${p.title}`).join('\n'))
     this.ensureWorktree()
-    if (gitOut(this.wt, 'config', 'core.hooksPath') !== 'scripts/git-hooks') throw new Stop('check', 'Git hook’ları kurulu değil (core.hooksPath)')
+    // install.sh may write the path relative (scripts/git-hooks) or absolute (<main checkout>/scripts/git-hooks).
+    const hooks = git(this.wt, 'config', 'core.hooksPath').out
+    const same = (a, b) => process.platform === 'win32' ? path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase() : path.resolve(a) === path.resolve(b)
+    if (!hooks || ![this.wt, ROOT].some(r => same(path.resolve(this.wt, hooks), path.join(r, 'scripts', 'git-hooks')))) {
+      throw new Stop('check', 'Git hook’ları kurulu değil (core.hooksPath)', `değer: ${hooks || '(yok)'}`)
+    }
     s.branch = branchName(s, this.plan)
     if (this.gh.remoteBranchExists(s.branch)) throw new Stop('check', `GitHub'da ${s.branch} dalı zaten var`, 'Önceki bir denemeden kalmış olabilir; bakıp karar ver.')
     s.baseSha = gitOut(ROOT, 'rev-parse', 'origin/main')

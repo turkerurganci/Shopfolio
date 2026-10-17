@@ -44,6 +44,9 @@ Betik aşağıdaki durumlarda durur, projeye bir şey eklemez ve durma nedenini 
 2. **Bir kontrol tutmadı.** Yukarıdaki denetimlerden biri geçmedi.
 3. **CI yeşil değil** (adımın PR'ında ya da merge sonrasında). Betik kendi başına düzeltme denemez.
 4. **Cross-review yakınsamadı.** Döngü belirlenen tur sayısında (varsayılan 10) TEMİZ dönmedi. Ciddiyet ölçüsü ya da devam kararı proje sahibinindir.
+   - Proje sahibi devam derse koşu `resume --more-rounds <N> --note "<kararı>"` ile sürer. Not, sonraki turların görev metnine eklenir (ör. "ciddiyet ölçüsü bu turdan itibaren uygulanır").
+   - Düz bir `resume` sonraki adıma geçmez, aynı yerde yine durur.
+   - Döngüyü çıkış kuralıyla kapatma kararı elle yürür. Kalan adımlar için yeni bir plan başlatılır.
 5. **Bir sınır doldu.** Tur, süre ya da harcama sınırı doldu, ya da Opus kullanılamıyor. Daha zayıf bir modele geçilmez.
 6. **Merge yetkisi kapalı.** PR hazır, merge proje sahibinde.
 7. **Ön kontrol tutmadı.** Kilit testi bu sürümle geçmemiş, ana dal kırmızı ya da başka bir `docs:` PR'ı açık.
@@ -88,11 +91,14 @@ node scripts/autopilot/run.mjs wait --until step            # bir adım bitene y
 node scripts/autopilot/run.mjs status                       # özet
 node scripts/autopilot/run.mjs answer "1 · …" --detach      # proje sahibinin cevabı; aynı oturum sürer
 node scripts/autopilot/run.mjs resume --detach              # düzeltmeden ya da elle merge'den sonra
+node scripts/autopilot/run.mjs resume --more-rounds 3 --note "…" --detach   # cross-review tur sınırında, proje sahibinin kararıyla
 node scripts/autopilot/run.mjs stop                         # adım sınırında dur
 node scripts/autopilot/run.mjs reset-step                   # adımın commit'lenmemiş işini siler — yalnız proje sahibinin onayıyla
 ```
 
-Günlük, durum ve her adımın oturum kaydı `.autopilot/runs/<koşu>/` altındadır. Bu klasör Git'e girmez. `ozet.md` proje sahibine gösterilecek özettir: adımlar, PR'lar, ⚠ listesi, çok kritik sorular ve zararsız redler.
+Günlük, durum ve her adımın oturum kaydı `.autopilot/runs/<koşu>/` altındadır. Bu klasör Git'e girmez. `ozet.md` proje sahibine gösterilecek özettir. İçinde adımlar, PR'lar, ⚠ listesi, çok kritik sorular ve zararsız redler yer alır.
+
+Özetteki süre tablosu her adımın zamanını parçalarına ayırır: Claude'un çalıştığı süre, GitHub testleri, proje sahibinin cevabını ya da merge onayını bekleme, durma ve düzeltme, toplam ve merge saati. Tahminle gerçekleşeni karşılaştırmak için bu tablo kullanılır.
 
 ### Plan dosyası
 
@@ -114,6 +120,9 @@ Günlük, durum ve her adımın oturum kaydı `.autopilot/runs/<koşu>/` altınd
 
 - **Adım türleri:** `writing`, `audit`, `deep-review`, `audit-deep-review`, `cross-review`, `conflict-scan`, `checkpoint` ve `custom`. `writing` ve `custom` bir `task` metni ister; `custom` ayrıca `label` ve isteğe bağlı `reports` alır.
 - **Ek alanlar:** her adım `note` (yöneticinin notu), `maxTurns`, `maxBudgetUsd` ve `timeoutMin` alabilir. Model ve düşünme seviyesi plandan değiştirilemez; `lib/config.mjs`'dedir.
+- **Cross-review'a özel alanlar:**
+  - `maxRounds`: en çok kaçıncı tura kadar gidileceği (tur numarası, varsayılan 10).
+  - `startRound`: döngü daha önce başlamışsa sıradaki tur numarası. Bir turun raporu ana dalda zaten varsa betik o turu yeniden koşmaz ve durur.
 - **`mergeAuthority`:** karar kaydında o aşama için merge yetkisi veren K satırıdır; betik satırı ana dalda okuyup doğrular. Alan yoksa her PR proje sahibinin merge'ünü bekler.
 
 ## Dosyalar
@@ -127,6 +136,7 @@ Günlük, durum ve her adımın oturum kaydı `.autopilot/runs/<koşu>/` altınd
 | `lib/session.mjs` | Oturumu başlatma, anahtarsız ortam, oturum kayıtlarını okuma |
 | `lib/github.mjs` | PR, CI bekleme, merge, merge sonrası |
 | `lib/prompts.mjs` | Adım oturumuna verilen kurallar ve görev metinleri |
+| `lib/summary.mjs` | Proje sahibine giden özet ve süre tablosu |
 | `codex.mjs` | İkinci modelin sabit bayraklı sarmalayıcısı; her çağrı SHA-256 ile kayda geçer |
 | `kilit-testi.mjs` | Yalıtım testi: yedi kontrol (konuşma, hafıza yazma/okuma, eski kayıt, oturum ağı, alt ajan, GitHub anahtarı, `mekanik` alt ajanı) |
 | `izle.html` | Canlı izleme ekranı |

@@ -112,7 +112,8 @@ function render(st) {
   $('prs').textContent = `${st.prs.length} PR`
   $('steps').innerHTML = st.steps.map(s => {
     const mark = s.status === 'ok' ? '✓' : s.status === 'stop' ? '!' : ''
-    const note = s.pr ? `PR #${s.pr}${s.verdict ? ` · ${s.verdict === 'TEMIZ' ? 'TEMİZ' : 'bulgu var'}` : ''}${s.decisions?.length ? ` · ${s.decisions.length} karar` : ''}` : (s.status === 'run' ? s.phase : '')
+    const took = s.endedAt && s.startedAt ? ` · ${Math.max(1, Math.round((Date.parse(s.endedAt) - Date.parse(s.startedAt)) / 60000))} dk` : ''
+    const note = s.pr ? `PR #${s.pr}${s.verdict ? ` · ${s.verdict === 'TEMIZ' ? 'TEMİZ' : 'bulgu var'}` : ''}${s.decisions?.length ? ` · ${s.decisions.length} karar` : ''}${took}` : (s.status === 'run' ? s.phase : '')
     return `<li class="${s.status}"><span class="dot">${mark}</span><span><span class="nm">${esc(stepName(s))}</span><span class="nt">${esc(note)}</span></span></li>`
   }).join('')
   const cur = st.steps[Math.min(st.stepIndex, st.steps.length - 1)]

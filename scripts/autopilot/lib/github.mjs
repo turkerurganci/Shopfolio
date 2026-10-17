@@ -39,7 +39,7 @@ export class GitHub {
   }
 
   pr(n) {
-    return this.json(['pr', 'view', String(n), '--json', 'number,state,baseRefName,headRefName,headRefOid,files,body,title,commits,mergeCommit,url'], 'gh pr view')
+    return this.json(['pr', 'view', String(n), '--json', 'number,state,baseRefName,headRefName,headRefOid,files,body,title,commits,mergeCommit,mergedAt,url'], 'gh pr view')
   }
 
   // INSTRUCTIONS §3.2: silence is not green; zero checks is not green; wait for all of them.

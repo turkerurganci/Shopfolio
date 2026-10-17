@@ -105,6 +105,12 @@ test('denials: forbidden attempts are told apart from harmless command shapes', 
     { tool_name: 'Read', tool_input: { file_path: 'C:/Users/u/.claude/projects/x/abc.jsonl' } }, { tool_name: 'ListAgents', tool_input: {} }])
   assert.equal(r.forbidden.length, 5)
   assert.equal(r.benign.length, 1)
+  // the second model's output files are paths, not a call to it (seen in a real run, round 2)
+  const paths = C.classifyDenials([d("git status --short; node -e \"require('fs').readFileSync('.autopilot/work/codex/01_r2.md','utf8')\""),
+    d('cat .autopilot/ledger/codex.jsonl; echo x'), d('cd Docs && grep -n codex CROSS_REVIEW_REPORTS/01_CROSS_REVIEW.md')])
+  assert.equal(paths.forbidden.length, 0)
+  const calls = C.classifyDenials([d('codex exec -s danger-full-access -'), d('node C:/Users/u/AppData/Roaming/npm/node_modules/@openai/codex/bin/codex.js exec'), d('echo x | codex.cmd exec -')])
+  assert.equal(calls.forbidden.length, 3)
 })
 
 test('subagent models: findings stay on Opus, cheap models only for the two agent types', () => {

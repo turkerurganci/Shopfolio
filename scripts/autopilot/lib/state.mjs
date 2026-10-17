@@ -90,6 +90,7 @@ export function newStepEntry(planStep, round = 1) {
     task: planStep.task, note: planStep.note, reports: planStep.reports,
     status: '', phase: 'preflight', branch: null, baseSha: null, sessionId: null, pr: null, prUrl: null,
     headSha: null, mergeSha: null, summary: '', startedAt: null, endedAt: null, costUsd: 0,
+    sessionMs: 0, ciMs: 0, waitAnswerMs: 0, waitOtherMs: 0, pausedAt: null, pauseKind: null, mergedAt: null,
     checks: LADDER.map(([key, label, hint]) => ({ key, label, hint, status: '', note: '' })),
   }
 }

@@ -185,8 +185,9 @@ export function classifyDenials(denials) {
   for (const d of denials || []) {
     const input = d.tool_input || {}
     const text = [input.command, input.file_path, input.path, input.url, input.pattern].filter(Boolean).join(' ')
-    const item = `${d.tool_name}: ${text.slice(0, 200)}`
-    if (FORBIDDEN_TOOLS.includes(d.tool_name) || FORBIDDEN_ATTEMPT.test(text) || touchesHomeClaude(text)) forbidden.push(item)
+    const item = `${d.tool_name}: ${text.slice(0, 400)}`
+    const probe = text.replace(/\.autopilot[\\/]+ledger[\\/]+codex\.jsonl/g, '') // the run's own ledger
+    if (FORBIDDEN_TOOLS.includes(d.tool_name) || FORBIDDEN_ATTEMPT.test(probe) || touchesHomeClaude(probe)) forbidden.push(item)
     else benign.push(item)
   }
   return { forbidden, benign }

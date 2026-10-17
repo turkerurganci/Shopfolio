@@ -5,7 +5,7 @@
 //
 //   node scripts/autopilot/run.mjs start --plan <plan.json> [--detach]
 //   node scripts/autopilot/run.mjs answer "<owner's answer>" [--detach]
-//   node scripts/autopilot/run.mjs resume [--detach]
+//   node scripts/autopilot/run.mjs resume [--more-rounds N] [--note "<text>"] [--detach]
 //   node scripts/autopilot/run.mjs stop | status | wait [--until stop|step] | monitor [--port N]
 //   node scripts/autopilot/run.mjs reset-step   (discards the step's work — owner's approval only)
 import crypto from 'node:crypto'
@@ -23,6 +23,7 @@ import { Stop, run, must, git, gitOut, readIf, writeFile, sleep, showFile } from
 import { sessionArgs, sessionEnv, runSession, readTranscripts } from './lib/session.mjs'
 import { rulesText, taskText, answerText, docNo } from './lib/prompts.mjs'
 import { GitHub } from './lib/github.mjs'
+import { summaryText } from './lib/summary.mjs'
 import * as C from './lib/checks.mjs'
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url))
@@ -58,6 +59,7 @@ function loadPlan(file) {
     else if (STEP_TYPES[s.type].needsTask && !s.task) errs.push(`"${s.id}" adımının görev metni ("task") yok`)
     if (s.type === 'custom' && !s.label) errs.push(`"${s.id}" serbest adımının adı ("label") yok`)
     if (s.model !== undefined || s.effort !== undefined) errs.push(`"${s.id}": model ve düşünme seviyesi plandan değiştirilmez (lib/config.mjs)`)
+    if (s.startRound !== undefined && (s.type !== 'cross-review' || !Number.isInteger(s.startRound) || s.startRound < 1)) errs.push(`"${s.id}": startRound yalnız cross-review adımında ve 1 ya da büyük bir tam sayı olur`)
   }
   if (errs.length) throw new Stop('plan', 'Plan geçersiz', errs.join('\n'))
   return plan
@@ -75,7 +77,7 @@ function verifyMergeAuthority(plan) {
 }
 
 function expandSteps(plan) {
-  return plan.steps.map(s => newStepEntry({ ...s, label: s.label || STEP_TYPES[s.type].label, document: s.document || plan.document }))
+  return plan.steps.map(s => newStepEntry({ ...s, label: s.label || STEP_TYPES[s.type].label, document: s.document || plan.document }, s.startRound || 1))
 }
 
 // --- step context ------------------------------------------------------------------
@@ -116,6 +118,7 @@ class Driver {
       if (!(e instanceof Stop)) { e = new Stop('check', `Beklenmeyen hata: ${e.message}`, e.stack) }
       const s = this.store.step()
       if (s && s.status === 'run') s.status = 'stop'
+      if (s) { s.pausedAt = new Date().toISOString(); s.pauseKind = e.kind }
       this.st.status = { question: 'question', 'owner-merge': 'waiting', paused: 'paused', ci: 'ci', limit: 'limit' }[e.kind] || 'stopped'
       this.st.stop = { kind: e.kind, message: e.message, detail: e.detail || '', at: new Date().toISOString() }
       this.ev('betik', `DURDU — ${e.message}${e.detail ? `: ${String(e.detail).slice(0, 400)}` : ''}`, 'bad')
@@ -134,7 +137,23 @@ class Driver {
 
   async runStep() {
     const s = this.store.step()
-    if (s.phase === 'done') return
+    // Time spent stopped: waiting for the owner (an answer or a merge) is kept apart from other stops.
+    if (s.pausedAt) {
+      const ms = Date.now() - Date.parse(s.pausedAt)
+      // A stop after a step finished (e.g. the cross-review round limit) is a wait between steps.
+      if (s.phase === 'done') this.st.betweenStepsMs = (this.st.betweenStepsMs || 0) + ms
+      else if (['question', 'owner-merge'].includes(s.pauseKind)) s.waitAnswerMs = (s.waitAnswerMs || 0) + ms
+      else s.waitOtherMs = (s.waitOtherMs || 0) + ms
+      s.pausedAt = null
+      s.pauseKind = null
+    }
+    if (s.phase === 'done') {
+      // A cross-review round that ended with findings never lets the plan move on by itself:
+      // without a next round the step stops again (resume --more-rounds raises the limit).
+      const next = this.st.steps[this.st.stepIndex + 1]
+      if (s.type === 'cross-review' && s.verdict !== 'TEMIZ' && !(next?.id === s.id && next.round === s.round + 1)) this.nextRound(s)
+      return
+    }
     s.status = 'run'
     s.startedAt ||= new Date().toISOString()
     this.st.status = 'running'
@@ -162,9 +181,12 @@ class Driver {
   nextRound(s) {
     if (s.verdict === 'TEMIZ') { this.ev('betik', `Cross-review ${s.round}. turda TEMİZ döndü; etki yansıtma aynı adımda yapıldı`, 'good'); return }
     const planStep = this.plan.steps.find(p => p.id === s.id)
-    const max = planStep?.maxRounds || MAX_CROSS_REVIEW_ROUNDS
-    if (s.round >= max) throw new Stop('limit', `Cross-review ${max} turda TEMİZ dönmedi`, 'Döngü yakınsamıyor; ciddiyet ölçüsü ya da devam kararı proje sahibinin (cross-review skill\'i, "Ciddiyet ölçüsü").')
-    const next = newStepEntry({ ...planStep, label: s.label, document: s.document }, s.round + 1)
+    const max = this.st.roundLimits?.[s.id] || planStep?.maxRounds || MAX_CROSS_REVIEW_ROUNDS
+    if (s.round >= max) {
+      throw new Stop('limit', `Cross-review ${max} turda TEMİZ dönmedi`, 'Döngü yakınsamıyor; ciddiyet ölçüsü ya da devam kararı proje sahibinin (cross-review skill\'i, "Ciddiyet ölçüsü"). Devam: resume --more-rounds <N> [--note "<proje sahibinin kararı>"]')
+    }
+    const note = [planStep?.note, this.st.extraNotes?.[s.id]].filter(Boolean).join('\n')
+    const next = newStepEntry({ ...planStep, label: s.label, document: s.document, note }, s.round + 1)
     this.st.steps.splice(this.st.stepIndex + 1, 0, next)
     this.store.save()
   }
@@ -190,6 +212,11 @@ class Driver {
     const same = (a, b) => process.platform === 'win32' ? path.resolve(a).toLowerCase() === path.resolve(b).toLowerCase() : path.resolve(a) === path.resolve(b)
     if (!hooks || ![this.wt, ROOT].some(r => same(path.resolve(this.wt, hooks), path.join(r, 'scripts', 'git-hooks')))) {
       throw new Stop('check', 'Git hook’ları kurulu değil (core.hooksPath)', `değer: ${hooks || '(yok)'}`)
+    }
+    // A round's report already on main means the round ran before: numbering would overwrite it.
+    if (s.type === 'cross-review') {
+      const report = expectedReports(s, this.plan)[0]
+      if (showFile(ROOT, 'origin/main', report) !== null) throw new Stop('plan', `${report} ana dalda zaten var — bu tur daha önce koşmuş`, 'Planda bu adıma "startRound": <sıradaki tur> ver ve yeni bir koşu başlat.')
     }
     s.branch = branchName(s, this.plan)
     if (this.gh.remoteBranchExists(s.branch)) throw new Stop('check', `GitHub'da ${s.branch} dalı zaten var`, 'Önceki bir denemeden kalmış olabilir; bakıp karar ver.')
@@ -235,12 +262,14 @@ class Driver {
     this.store.save()
     this.check('session', 'run', `${opts.model.replace('claude-', '')} · ${opts.effort}`)
     this.ev('betik', `Kilitli Claude oturumu açıldı (${opts.model}, düşünme ${opts.effort})`)
+    const t0 = Date.now()
     const res = await runSession({
       cwd: this.wt, env: sessionEnv(CONTROL), prompt, streamFile: path.join(dir, 'stream.jsonl'),
       timeoutMs: opts.timeoutMin * 60000,
       args: sessionArgs({ ...opts, rulesFile, sessionId: s.sessionId, resumeId }),
       onActivity: (who, text, kind) => this.ev(who, text, kind),
     })
+    s.sessionMs = (s.sessionMs || 0) + (Date.now() - t0)
     const r = res.result
     writeFile(path.join(dir, `result-${Date.now()}.json`), JSON.stringify({ code: res.code, timedOut: res.timedOut, stderr: res.stderr, result: r }, null, 2))
     s.sessionIds ||= [s.sessionId]
@@ -437,7 +466,9 @@ class Driver {
       this.check('ci', 'stop', 'uç elle değişti')
       throw new Stop('owner-merge', `PR #${s.pr}'ın ucu betiğin denetlediği commit değil — betik bu PR'ı merge etmez`, `${s.headSha.slice(0, 7)} → ${pr.headRefOid.slice(0, 7)}\n${s.prUrl}\nProje sahibi bakıp merge ettikten sonra: node scripts/autopilot/run.mjs resume`)
     }
+    const t0 = Date.now()
     const r = await this.gh.waitChecks(s.headSha, (n, pending) => this.check('ci', 'run', `${n} check · ${pending} bekliyor`))
+    s.ciMs = (s.ciMs || 0) + (Date.now() - t0)
     if (!r.ok) { this.check('ci', 'stop', `CI Gate ${r.gate}`); throw new Stop('ci', `PR #${s.pr} testleri yeşil değil (CI Gate: ${r.gate})`, r.bad.join(', ') || `check sayısı ${r.count}`) }
     this.check('ci', 'ok', `${r.count} check · CI Gate ✓`)
     this.ev('betik', `PR #${s.pr}: ${r.count} check, CI Gate yeşil`, 'good')
@@ -446,13 +477,14 @@ class Driver {
   async merge(s) {
     this.check('merge', 'run')
     const pr = this.gh.pr(s.pr)
-    if (pr.state === 'MERGED') s.mergeSha = pr.mergeCommit.oid
+    if (pr.state === 'MERGED') { s.mergeSha = pr.mergeCommit.oid; s.mergedAt = pr.mergedAt }
     else if (!this.plan.mergeAuthority) {
       this.check('merge', 'stop', 'senin onayında')
       throw new Stop('owner-merge', `PR #${s.pr} hazır, testleri yeşil — merge proje sahibinde`, `${s.prUrl}\nMerge ettikten sonra: node scripts/autopilot/run.mjs resume`)
     } else {
       if (pr.headRefOid !== s.headSha) throw new Stop('check', 'PR denetlendikten sonra değişmiş', `${s.headSha.slice(0, 7)} → ${pr.headRefOid.slice(0, 7)}`)
       s.mergeSha = this.gh.merge(s.pr, s.headSha)
+      s.mergedAt = new Date().toISOString()
     }
     const subject = this.gh.commitSubject(s.mergeSha)
     if (!new RegExp(`\\(#${s.pr}\\)$`).test(subject)) throw new Stop('check', `Ana daldaki commit başlığında (#${s.pr}) yok — guard job kırmızı yanar`, subject)
@@ -463,7 +495,9 @@ class Driver {
 
   async postmerge(s) {
     this.check('postmerge', 'run')
+    const t0 = Date.now()
     const r = await this.gh.waitPostMerge(s.mergeSha, (n) => this.check('postmerge', 'run', `${n} iş akışı`))
+    s.ciMs = (s.ciMs || 0) + (Date.now() - t0)
     if (!r.ok) { this.check('postmerge', 'stop', r.bad[0]); throw new Stop('ci', 'Merge sonrası iş akışlarından biri yeşil değil', r.runs.join(', ')) }
     must(git(ROOT, 'fetch', '-q', 'origin'), 'git fetch')
     must(git(this.wt, 'checkout', '-q', '--detach', 'origin/main'), 'git checkout')
@@ -472,36 +506,6 @@ class Driver {
 }
 
 function pick(o, keys) { const r = {}; for (const k of keys) if (o?.[k] !== undefined) r[k] = o[k]; return r }
-
-// --- summary ---------------------------------------------------------------------
-
-const STATUS_TR = { running: 'Çalışıyor', question: 'Durdu — karar bekliyor', waiting: 'Durdu — merge senin onayında', paused: 'Durduruldu', ci: 'Durdu — testler yeşil değil', limit: 'Durdu — bir sınır doldu', stopped: 'Durdu — bir kontrol tutmadı', done: 'Bitti' }
-
-export function summaryText(st) {
-  const lines = [`# ${st.title}`, '', `**Durum:** ${STATUS_TR[st.status] || st.status} · başladı ${st.startedAt.slice(0, 16).replace('T', ' ')} · son ${st.updatedAt.slice(0, 16).replace('T', ' ')}`, '']
-  if (st.stop) lines.push(`**Neden durdu:** ${st.stop.message}`, '', st.stop.detail ? '```\n' + st.stop.detail.slice(0, 3000) + '\n```\n' : '')
-  if (st.status === 'question' && st.question) lines.push('**Proje sahibine soru:**', '', st.question.text, '')
-  lines.push('## Adımlar', '')
-  for (const s of st.steps) {
-    const mark = { ok: '✓', stop: '✕', run: '…' }[s.status] || '·'
-    lines.push(`- ${mark} ${s.label}${s.type === 'cross-review' ? ` · ${s.round}. tur${s.verdict ? ` (${s.verdict})` : ''}` : ''}${s.pr ? ` — PR #${s.pr}` : ''}${s.decisions?.length ? ` — ${s.decisions.length} karar` : ''}`)
-  }
-  if (st.warnings.length) {
-    lines.push('', '## Sorulmadan kaydedilen ⚠ kararlar (sana gösterilecek)', '')
-    for (const w of st.warnings) lines.push(`- ${w.k} — ${w.sentence} (${w.step})`)
-  }
-  if (st.criticalQuestions.length) {
-    lines.push('', '## Adımı durdurmadan kaydedilen çok kritik sorular', '')
-    for (const q of st.criticalQuestions) lines.push(`- ${q.text} (${q.step})`)
-  }
-  if (st.benignDenials.length) {
-    lines.push('', '## Zararsız izin redleri', '')
-    for (const d of st.benignDenials.slice(0, 30)) lines.push(`- ${d}`)
-  }
-  const cost = st.steps.reduce((a, s) => a + (s.costUsd || 0), 0)
-  lines.push('', `Tahmini maliyet (API eşdeğeri): ${cost.toFixed(0)} $`)
-  return lines.join('\n') + '\n'
-}
 
 // --- commands ---------------------------------------------------------------------
 
@@ -560,6 +564,15 @@ async function main() {
         store.step().phase = 'session'
       } else if (store.state.status === 'question') throw new Stop('plan', 'Koşu bir soruda bekliyor — "answer" ile cevap ver')
       else if (store.state.status === 'done') throw new Stop('plan', 'Koşu zaten bitti')
+      // After "Cross-review N turda TEMİZ dönmedi": the owner decides on more rounds and, if so, how
+      // (e.g. the severity scale from the next round) — that decision travels as the next rounds' note.
+      const more = Number(opt('--more-rounds') || 0), note = opt('--note')
+      if (more || note) {
+        const cur = store.step()
+        if (cmd !== 'resume' || cur?.type !== 'cross-review') throw new Stop('plan', '--more-rounds ve --note yalnız cross-review turunda durmuş koşu için "resume" ile kullanılır')
+        if (more) (store.state.roundLimits ||= {})[cur.id] = cur.round + more
+        if (note) (store.state.extraNotes ||= {})[cur.id] = note
+      }
       store.state.pid = process.pid
       store.save()
       store.event('yonetici', cmd === 'answer' ? 'Cevap verildi; aynı oturum sürdürülüyor' : 'Koşu kaldığı yerden sürüyor')

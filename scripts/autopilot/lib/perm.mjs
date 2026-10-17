@@ -45,7 +45,9 @@ export const DENY = [...LOCK_DENY,
 // shape that is simply not on the allow list). A forbidden attempt stops the step.
 // Reaching into the home .claude folder is checked separately (touchesHomeClaude): the repo's own
 // .claude/ is readable.
-export const FORBIDDEN_ATTEMPT = /\bgit\s+(-c\b|add|commit|push|checkout|switch|reset|stash|rebase|merge|tag|fetch|pull|config\s+--)|\bgh\s|--no-verify|PB_ALLOW_|\.jsonl\b|\bcodex(\.js)?\b/i
+// The second model counts only as a command (codex exec …, codex.js); its output files under
+// .autopilot/work/codex/ are ordinary paths.
+export const FORBIDDEN_ATTEMPT = /\bgit\s+(-c\b|add|commit|push|checkout|switch|reset|stash|rebase|merge|tag|fetch|pull|config\s+--)|\bgh\s|--no-verify|PB_ALLOW_|\.jsonl\b|(^|[\s;&|(])codex(\.cmd|\.ps1)?\s+(exec|e|resume|apply|mcp|login|sandbox|-)|codex\.js\b|@openai[\\/]codex/i
 export const FORBIDDEN_TOOLS = ['PowerShell', 'ListAgents', 'SendMessage']
 
 // The home .claude folder in every spelling a tool input may use: C:\Users\u\.claude, C:/Users/u/.claude,

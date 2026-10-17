@@ -1,6 +1,6 @@
 # Shopfolio — UI Specifications
 
-**Versiyon: v0.24** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-17
+**Versiyon: v0.25** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-17
 
 > **Aşama:** 3 — UI/UX Tasarım · **Rol:** Senior Product Designer / UX Architect
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §4'e (ekran envanteri) geçilmez.
@@ -45,6 +45,8 @@
 > **Aşama 4 — Teknik Mimari'nin kalite döngüsünün geri beslemesi (2026-10-16, v0.23 — K-652, K-857):** iki karar ve bir kararın yansıması bu dokümana işlendi; ✓ durumu korunur, kalite döngüsü yeniden açılmaz. **K-939:** §1.1'in KP-75 ve `02 §3.34.8` satırlarının özeti — bir dakika aktarım çalışırken geçerlidir; aktarım durmuşken pencere aktarımın durduğu ana kadar uzar (kalan risk). Ekran değişmez. **K-940:** yeni panel işareti "geri ödeme sonucu bekleniyor" — 2.5.3.7 (işaretler "yedi"), 9.8.5, 9.9.4 ("beş işaret"), 6.3.9.30; sipariş ayrıntısında işaretin uyarısının altında "Gerçekleşmedi olarak işaretle" — onay istemez (2.4.2), işlem izine yazılır, sorguyu durdurur (9.9.24; 6.3.9.19 ve 6.3.9.8, 6.3.9.10'un işlem listeleri); işaretten sonra gelen başarılı sonucun ödeme kaydındaki kalıcı uyarısı (9.9.8); ana sayfanın uyarısı ve sayacı (2.5.5, 9.3.3, 9.3.5, 3.4.3, 6.3.3.5); bütçe (9.9.35); sonuç beklenirken yanlış iptal düzeltilmez (9.9.31, 6.3.9.10 — `02 §10.4.6`). §1.1'e `03 §1.7.3.7` satırı girdi ve dokuz satırın özeti hizalandı; matris 1.194 satırdır — 1.031 eşlendi · 163 ekran dışı (§1.1.1, §1.2). **K-885'in yansıması:** 9.5.23, 6.3.5.1 ve 7.2.4.7 — yeni ürünün formunda stok kodu alanı boştur ve ad girilince sistemin önerisiyle dolar; ad boşken öneri gelmez. Geri besleme tablosu Teknik Mimari'nin başlık notundadır (K-857).
 >
 > **Aşama 4 — Teknik Mimari'nin kalite döngüsünün çok kritik sorusu: elektronik ticaret kayıtlarının on yıllık saklaması (2026-10-17, v0.24 — K-652, K-857):** proje sahibinin kararı bu dokümana yansıdı; ✓ durumu korunur, kalite döngüsü yeniden açılmaz. **K-951:** 9.9.12 — sipariş ayrıntısının e-posta geçmişi gönderim kaydının süresince (Z-43) durur; ödemesi hiç alınmamış siparişte üç yıldan sonra satırların adresi boştur. Ekranın düzeni ve matrisin satırları değişmez — `03` 4.1.32, 4.1.37 ve 4.1.39'un özetleri sürenin değerini taşımaz. Geri besleme tablosu Teknik Mimari'nin başlık notundadır (K-857).
+>
+> **Aşama 4 — Teknik Mimari'nin kalite döngüsünün geri beslemesi: Google ile yeniden doğrulamanın tazeliği (2026-10-17, v0.25 — K-652, K-857):** bir karar bu dokümana işlendi; ✓ durumu korunur, kalite döngüsü yeniden açılmaz. **K-968:** Google ile yeniden doğrulama yalnız yeniden doğrulamanın başlatıldığı andan sonraki bir Google girişini kabul eder — Google'da açık oturum varsa akış şifre sormadan döner ve bu dönüş yeniden doğrulama sayılmaz. 5.24.7 Google ile doğrulamanın tutmadığı hâli yazar — giriş taze değil ya da Google'ın verdiği e-posta hesabınkiyle eşleşmiyor (Teknik Mimari `05 §6.1.5`'in var olan kuralı) —: ekran sebebini söyler, Google'da yeniden giriş yapıp tekrar denemenin ve şifre belirlemenin yolunu gösterir; matrisin 6.2.24.5 satırı bu hâli kapsar, §5.24'ün ve §6.2'nin Kaynak satırları K-968'i anar. Matrisin satır sayısı ve dağılımı değişmedi — `03 §9.2.6` ve §10.1.3.2'nin özetleri tazeliği taşımaz. Geri besleme tablosu Teknik Mimari'nin başlık notundadır (K-857).
 
 **Yazım konvansiyonları (K-726, K-762).** Bu on beş madde §2–§9'un bütün yazım oturumlarını bağlar; "konvansiyon n" diye anılır.
 
@@ -3501,11 +3503,11 @@ Kullanıcının karşısına çıkan ama bu dokümanda ekran olarak tanımlanmay
 - **Aksiyonlar**
   - **5.24.5 Doğrulamak** (`03 §9.2.6`): şifreyle ya da Google ile; başarıda üye hesap ekranına, işlemin formuna döner (3.3.30). Onay istemez.
 - **5.24.6 Validasyonlar.** Şifre zorunludur. Yanlış şifre alan mesajıdır ve deneme L-1'e sayılır; eşik aşılınca o eksende şifreyle yeniden doğrulama ve giriş geçici olarak engellenir, nötr limit mesajı çıkar ve işlem yapılmaz (`03 §3.4.17`, §6.1.1.1; §2.3.5). Google ile doğrulama L-1'e girmez.
-- **5.24.7 Durum × rol varyantları.** Şifresi olmayan hesapta Google'a ulaşılamıyorsa üç işlem yapılamaz: ekran sebebini söyler ve şifre belirlemenin yolunu — hesap ekranındaki şifre belirleme bağlantısını — gösterir (`03 §10.1.3.2`; 3.3.36). Panelde Google ile yeniden doğrulama yoktur; yöneticinin karşılığı E-54'tür (`02 §10.2.5`). Tam matris §6.2'dedir — 6.2.24.
+- **5.24.7 Durum × rol varyantları.** Şifresi olmayan hesapta Google'a ulaşılamıyorsa üç işlem yapılamaz: ekran sebebini söyler ve şifre belirlemenin yolunu — hesap ekranındaki şifre belirleme bağlantısını — gösterir (`03 §10.1.3.2`; 3.3.36). **Google ile doğrulama tutmazsa** — Google açık oturumla şifre sormadan döndü ve girişin anı yeniden doğrulamanın başlatıldığı andan önce, ya da Google'ın verdiği e-posta hesabınkiyle eşleşmiyor — işlem yapılmaz: ekran sebebini söyler, Google'da yeniden giriş yapıp tekrar denemenin ve şifre belirlemenin yolunu gösterir (Teknik Mimari `05 §6.1.5`; K-968). Panelde Google ile yeniden doğrulama yoktur; yöneticinin karşılığı E-54'tür (`02 §10.2.5`). Tam matris §6.2'dedir — 6.2.24.
 - **5.24.8 Boş / yükleniyor / hata durumları.** Ekranın boş hâli yoktur. Doğrulama sürerken düğme ikinci kez basılamaz (§2.7.2). Oturum ekrandayken kapanırsa ekran bunu söyler ve girişe götürür; dönüş §3.6.5'tir.
 - **5.24.9 Responsive notları.** Tek sütundur; sınıflar arasında fark yoktur.
 
-*Kaynak: `02 §3.13.13`, §8.1.5, §10.2.5 · `03 §3.4.17`, §6.1.1.1, §6.2.5.1, §9.2.6, §9.3.3, §9.3.4, §9.4.1, §10.1.3.2.*
+*Kaynak: `02 §3.13.13`, §8.1.5, §10.2.5 · `03 §3.4.17`, §6.1.1.1, §6.2.5.1, §9.2.6, §9.3.3, §9.3.4, §9.4.1, §10.1.3.2 · K-968 (Aşama 4 — Teknik Mimari'nin kalite döngüsü, `05 §6.1.5`).*
 
 ### 5.25 E-25 — Hesap — profil ve güvenlik
 
@@ -3893,7 +3895,7 @@ Matris ayrıca iki ekran tanımını kaynağa hizaladı — karar gerektirmeyen 
 | 6.2.24.2 | Üye | Hâl: şifresiz, Google girişli hesap | Google ile doğrulama düğmesi (5.24.3) | Google ile doğrulamak (3.3.37) | `02 §3.13.13` |
 | 6.2.24.3 | Üye | Hâl: şifreli ve Google girişli hesap | İki yol (5.24.3) | İkisi | `02 §3.13.13` |
 | 6.2.24.4 | Üye | Hâl: L-1 aşıldı | Nötr limit mesajı; işlem yapılmaz (5.24.6) | Google ile doğrulamak — varsa | `03 §3.4.17` |
-| 6.2.24.5 | Üye | Hâl: şifresiz hesap, Google'a ulaşılamıyor | Sebep ve şifre belirlemenin yolu (5.24.7) | "Vazgeç" → E-25, oradan şifre belirleme → E-23 (3.3.36) | `03 §10.1.3.2` |
+| 6.2.24.5 | Üye | Hâl: şifresiz hesap, Google'a ulaşılamıyor ya da Google ile doğrulama tutmadı | Sebep ve şifre belirlemenin yolu; tutmayan doğrulamada Google'da yeniden giriş yapıp tekrar denemenin yolu (5.24.7) | Google ile doğrulamak — tutmayan doğrulamada · "Vazgeç" → E-25, oradan şifre belirleme → E-23 (3.3.36) | `03 §10.1.3.2` · `05 §6.1.5` · K-968 |
 
 **6.2.25 E-25 — Hesap — profil ve güvenlik.**
 
@@ -3929,7 +3931,7 @@ Matris ayrıca iki ekran tanımını kaynağa hizaladı — karar gerektirmeyen 
 | 6.2.28.1 | Kullanıcı | Hâl: bağlantı Z-45 içinde ve kullanılmamış — kaç kez açıldığına bakılmaz | Geri alma adımı; düğmeden sonra geri alındı (5.28.3) | Değişikliği geri almak — tek düğme; sonra yeni şifre e-postadaki bağlantıyla → E-23 | `03 §9.3.6` · K-782, K-839 |
 | 6.2.28.2 | Kullanıcı | Hâl: süresi dolmuş ya da kullanılmış | Bağlantı geçersiz; kullanılmışta geri almanın yapıldığı (5.28.4) | Çerçeve — İletişim | `03 §6.2.5.3` · K-782 |
 
-*Kaynak: `02 §3.1.6`, §3.7, §3.13, §3.16, §3.20.1, §3.22, §3.27.25, §3.32, §3.33, §5, §7 · `03 §1.4`, §1.7, §1.10.8, §1.11.1–§1.11.14, §2, §3.2–§3.4, §6.1, §9, §10.1 · `10 §2` KP-1…KP-38 · K-732, K-744, K-748, K-753…K-758, K-765, K-770…K-796 (müşteri ekranlarının kararları), K-826, K-828, K-829, K-904 (Aşama 4 — Teknik Mimari workshop'unun 2. oturumu).*
+*Kaynak: `02 §3.1.6`, §3.7, §3.13, §3.16, §3.20.1, §3.22, §3.27.25, §3.32, §3.33, §5, §7 · `03 §1.4`, §1.7, §1.10.8, §1.11.1–§1.11.14, §2, §3.2–§3.4, §6.1, §9, §10.1 · `10 §2` KP-1…KP-38 · K-732, K-744, K-748, K-753…K-758, K-765, K-770…K-796 (müşteri ekranlarının kararları), K-826, K-828, K-829, K-904 (Aşama 4 — Teknik Mimari workshop'unun 2. oturumu), K-968 (Aşama 4 — Teknik Mimari'nin kalite döngüsü, `05 §6.1.5`).*
 
 ### 6.3 Panel
 
@@ -5251,4 +5253,4 @@ Biçimler vitrinde, panelde ve ekranların gösterdiği her metinde aynıdır (K
 
 ---
 
-*Shopfolio — UI Specifications v0.24 — ✓ Tamamlandı (v0.24 Aşama 4 Teknik Mimari'nin kalite döngüsünün çok kritik sorusunun geri beslemesidir — `05` başlık notu, K-951 · v0.23 Aşama 4 Teknik Mimari'nin kalite döngüsünün geri beslemesidir — `05` başlık notu, K-939, K-940, K-885'in yansıması · v0.22 Aşama 4 Teknik Mimari workshop'unun 3. oturumunun geri beslemesidir — karar kaydı §12.4, K-916 · v0.21 Aşama 4 Teknik Mimari workshop'unun 2. oturumunun geri beslemesidir — karar kaydı §12.4, K-888, K-904 · v0.20 Aşama 3 kapanışı, K-437'nin 6. adımı; §1–§9 yazıldı; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ 5 turda — K-849'un çıkış kuralı, etki yansıtma ✓ — K-431, K-847, K-848; çakışma taraması ✓ — K-850; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`)*
+*Shopfolio — UI Specifications v0.25 — ✓ Tamamlandı (v0.25 Aşama 4 Teknik Mimari'nin kalite döngüsünün geri beslemesidir — `05` başlık notu, K-968 · v0.24 Aşama 4 Teknik Mimari'nin kalite döngüsünün çok kritik sorusunun geri beslemesidir — `05` başlık notu, K-951 · v0.23 Aşama 4 Teknik Mimari'nin kalite döngüsünün geri beslemesidir — `05` başlık notu, K-939, K-940, K-885'in yansıması · v0.22 Aşama 4 Teknik Mimari workshop'unun 3. oturumunun geri beslemesidir — karar kaydı §12.4, K-916 · v0.21 Aşama 4 Teknik Mimari workshop'unun 2. oturumunun geri beslemesidir — karar kaydı §12.4, K-888, K-904 · v0.20 Aşama 3 kapanışı, K-437'nin 6. adımı; §1–§9 yazıldı; kalite döngüsü: audit ✓, deep review ✓, cross-review ✓ 5 turda — K-849'un çıkış kuralı, etki yansıtma ✓ — K-431, K-847, K-848; çakışma taraması ✓ — K-850; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP03_PHASE3_CHECKPOINT.md`)*

@@ -92,6 +92,8 @@ Devir §13'ün öteki girdileri kapandı: açılış sorusu K-992 ile cevapland�
 
 **Kapı.** Liste arşiv işaretinden (6. adım) önce proje sahibine **tek mesajda**, karar başına bir sade cümleyle ve gerekçesiz gösterilir (`INSTRUCTIONS.md` §2, "Ortak kural"); yöneticiden proje sahibine gider (§9). İtiraz gelmeyen satırın işareti `(öneriyle kaydedildi — ⚠ — gözden geçirildi YYYY-AA-GG, itiraz yok)` olur; itiraz gelen karar yeni bir satırla değişir. Checkpoint ya da öğrenim terfisi yeni bir ⚠ karar kaydederse liste arşiv işaretinden önce onunla birlikte gösterilir. Deep review'ın bilgi notu (IBAN'ın girilmesinin ve düzeltilmesinin müşteriye bildirilmesi seçeneği — eski bir kararla elenmişti, çok kritik değildir) gösterimde anılır (§14.1).
 
+**Kapının sonucu — 2026-10-18 (K-437'nin 6. adımı; K-1142):** kapı işledi — liste arşiv işaretinden önce iki gösterimle verildi (`INSTRUCTIONS.md` §9 işletim kuralı 3): aşağıdaki hazır metnin otuz dört kararı yönetici aracılığıyla erken gösterildi (Soru 5) — *"itiraz yok"*; checkpoint'in üç kararı (K-1137, K-1138, K-1140) ve K-1092 ile K-1135'in düzeltilmiş cümleleri (aşağıdaki "Retro Güncelleme"; CP05 §5.2) ikinci kez gösterildi (Soru 6) — *"itiraz yok"*. Otuz yedi satırın konu hücresindeki işaret `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-18, itiraz yok)` oldu; sayım betikle doğrulandı (37 / 37 — bu listenin, CP05 §5.2'nin ve kaydın kümeleri birebir). Deep review'ın bilgi notu gösterimde anıldı; proje sahibi açmadı — K-710 değişmedi. Gösterimden sonra kaydedilen ⚠ karar yok. Madde karar kaydının §14.1'inde kapandı; arşiv işareti aynı PR'da düştü (v0.144).
+
 **Hazır metin — proje sahibine gösterilecek liste** (konulara göre; dokümanlar adıyla):
 
 *Silme ve saklama*
@@ -292,6 +294,7 @@ Uygulamadan sonra bir Opus doğrulayıcı diff'i güncel metne karşı okudu (do
 - **Önceki aşamaların dizinleri:** `PHASE1_CONFLICT_SCAN.md` §6, `PHASE2_CONFLICT_SCAN.md` §6, `PHASE3_CONFLICT_SCAN.md` §6, `PHASE4_CONFLICT_SCAN.md` §6.
 - **`11` Uygulama Planı:** Aşama 5'ten devir yok — `11` tüketicidir ve `06`'yı kendi matrisinde okur; `06`'da `11`'e iş bırakan cümle yoktur.
 - **`DEFERRED_BACKLOG.md`:** Aşama 5'ten yeni kalem yok.
+- **Toplandığı yer (6. adım, 2026-10-18):** Aşama 6'ya devrin bütün girdileri — bu dizin dahil — karar kaydının §15'inde tek tabloda.
 - **Süreç kararları** (K-992…K-1005, K-1009, K-1032, K-1033, K-1037, K-1045, K-1060, K-1125, K-1126, K-1129) sonraki dokümana iş bırakmaz.
 
 ### 6.1 Etki sütunlarındaki devirler (K-992…K-1136)
@@ -480,3 +483,5 @@ Aşama 5'in checkpoint'i (`CP05_PHASE5_CHECKPOINT.md` §5.1) §4.1'in hazır met
 - K-1135 *(bu taramada eklendi)* — Doğrulanmamış bir kaydın, yeni e-posta adresinin doğrulanması, "bu değişikliği ben yapmadım" bağlantısıyla e-posta değişikliğinin geri alınması ya da Google ile ilk giriş sırasında silinmesi, veritabanı yedekten eski bir ana dönerse o işlemle birlikte geri gelir ve ayrıca yeniden uygulanmaz.
 
 Gerekçe: K-1092 (1) ve (3) iki kaydı da siparişin imha parçasından önce sildirmez — saklama iki sürenin geç olanıdır; K-1135 silmenin üçüncü anını — e-posta değişikliğinin geri alınması (K-1080 (1)) — sayar. Sayım değişmez: 34 karar.
+
+**Sonuç (6. adım, 2026-10-18; K-1142):** iki düzeltilmiş cümle checkpoint'in üç kararıyla birlikte arşiv işaretinden önce gösterildi (Soru 6); itiraz yok.

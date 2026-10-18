@@ -32,8 +32,8 @@
 - [x] Dört karar — K-1139 (öneriyle kaydedildi), K-1137 ⚠, K-1138 ⚠, K-1140 ⚠ (öneriyle kaydedildi); ⚠ listesi 34 → **37**
 - [x] K-1129'un devri kapandı (karar kaydı §14.1)
 - [x] Checkpoint'in dokunduğu Aşama 5 kararlarının etki sütununa `(taslak güncellendi — …; checkpoint — CP05 …)` parçası ya da yeni kararın geri işareti eklendi (§4); Aşama 1–4 kayıtlarında yalnız geri işaret
-- [ ] **Üç ⚠ kararın proje sahibine gösterilmesi** — K-1137, K-1138, K-1140; hazır metin §5.2. Kapı: arşiv işaretinden (6. adım) önce, tek mesajda (`INSTRUCTIONS.md` §2, §9 işletim kuralı 3). Otuz dört kararlık liste 2026-10-18'de gösterildi, itiraz gelmedi; işaret dönüşümü arşiv adımında.
-- [ ] Sırada öğrenim terfisi (K-437'nin 5. adımı) — tracker §14.1'in yirmi altı adayı (24–26 bu checkpoint'te eklendi, §6) ve Ö-23
+- [x] **Üç ⚠ kararın proje sahibine gösterilmesi** — K-1137, K-1138, K-1140; hazır metin §5.2. Kapı: arşiv işaretinden (6. adım) önce, tek mesajda (`INSTRUCTIONS.md` §2, §9 işletim kuralı 3). Otuz dört kararlık liste 2026-10-18'de gösterildi, itiraz gelmedi; işaret dönüşümü arşiv adımında. — **kapandı (2026-10-18, kapısında; K-1142):** üç karar ve iki düzeltilmiş cümle tek mesajda gösterildi, itiraz yok; otuz yedi işaret dönüştü, retro bölümü gerekmedi; sonuç §5.2'nin sonunda
+- [x] Sırada öğrenim terfisi (K-437'nin 5. adımı) — tracker §14.1'in yirmi altı adayı (24–26 bu checkpoint'te eklendi, §6) ve Ö-23 — **kapandı (2026-10-18, PR #146, K-1141)**
 
 ### Notlar
 
@@ -288,6 +288,8 @@ Bu kararlar listenin gösteriminden sonra kaydedildi (`INSTRUCTIONS.md` §9 işl
 - K-1135 — Doğrulanmamış bir kaydın, yeni e-posta adresinin doğrulanması, "bu değişikliği ben yapmadım" bağlantısıyla e-posta değişikliğinin geri alınması ya da Google ile ilk giriş sırasında silinmesi, veritabanı yedekten eski bir ana dönerse o işlemle birlikte geri gelir ve ayrıca yeniden uygulanmaz.
 
 **Sayım:** gösterilen 34 · checkpoint 3 — **toplam 37**. Betikle sayıldı; otuz yedisinin konu hücresi ⚠ işaretini taşıyor. K-1139 ⚠ grubuna girmez. İki düzeltilmiş cümle (K-1092, K-1135) aynı mesajda yeniden gösterilir.
+
+**Gözden geçirme sonucu — 2026-10-18 (K-437'nin 6. adımı, arşiv işaretinden önce; K-1142).** Üç karar ve iki düzeltilmiş cümle yönetici aracılığıyla tek mesajda, karar başına bir sade cümleyle gösterildi (Soru 6); öğrenim terfisinin iki önerisi aynı turda ayrı numaralı sorulardı (Soru 7, Soru 8; K-1143). **İtiraz yok:** hiçbir karar değişmedi, yeni karar satırı açılmadı ve bu rapora retro bölümü gerekmedi. §5.1'in otuz dört kararı aynı gün daha önce gösterilmişti (Soru 5), itiraz yok. Karar kaydında otuz yedi satırın konu hücresindeki işaret silinmedi, `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-18, itiraz yok)` biçimine dönüştürüldü (Aşama 4'ün kalıbı, CP04 §5.1); §3'ün GAP-13 satırının karar hücresindeki K-1008 işareti de (Aşama 3'ün kalıbı). Öğrenim terfisi (K-1141) yeni ⚠ karar doğurmadı. **Mekanik doğrulama:** §5.1 ile bu listenin 37 tekil K numarası ile dönüştürülen 37 satır birebir — eksik 0, fazla 0; konu hücresinde eski işareti taşıyan Aşama 5 karar satırı kalmadı. Kayıt: karar kaydı §14.1 (v0.144).
 
 ---
 

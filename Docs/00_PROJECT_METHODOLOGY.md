@@ -1,6 +1,6 @@
 # Project Playbook — Metodoloji
 
-**Versiyon: v1.0.6** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-10-17
+**Versiyon: v1.0.7** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-10-18
 
 > Bu doküman bir yazılım projesini **fikirden çalışan MVP'ye** taşıyan yöntemin tamamıdır:
 > doküman üretimi, implementasyon, doğrulama, borç kapatma ve kapanış.
@@ -732,6 +732,16 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 6. **Kalite döngüsünün kendi düzeltmesi yeni yüzey açar.** Döngünün güncellediği park satırlarında kararların otuz iki kolu eksik kaldı; güvence merceğinin düzeltmesi iki yeni metin farkı doğurdu. Düzeltme de taranır: kararın her kolu ve düzeltmenin andığı her hedef.
 7. **Terfi edilen kural üçüncü aşamada da iş yaptı; yönetici düzeni üçüncü kez tuttu.** Önceki aşamanın kuralları — park satırının iki yönlü eşlenmesi, kararın öncülünün kuralın evinde okunması, şablon taraması, yazımın ortasında doğan kritik sorunun adımı durdurmaması — bu aşamada iki yeni öncül, açılışta dört şablon eksiği ve adımı durdurmayan iki çok kritik soru verdi. Açılıştan checkpoint'e on dokuz adım iki günde yürüdü; proje sahibine altı çok kritik soru ve sorulmadan kaydedilen kırk dört kararın listesi gitti. Aşama 2'nin 6. ve Aşama 3'ün 5. ve 7. desenlerinin devamıdır.
 
+**Aşama 5 — Veri modeli (2026-10-17 → 2026-10-18).** Kurallar `.claude/checklists/document-stage.md` §1–§4, `.claude/INSTRUCTIONS.md` §7, §9 ve `audit`, `deep-review`, `cross-review` skill'lerine terfi etti; rapor `Docs/CHECKPOINT_REPORTS/PHASE5_LEARNING_PROMOTION.md`. Tekrarlanacak desenler:
+
+1. **İzlenebilirlik matrisi çıktıdan önce kurulur; çıktı yazıldıktan sonra ona karşı okunmazsa en büyük metin farkı kaynağı olur.** Veri modelinin matrisi bin beş yüzü aşan kaynak birimini altı oturumda eşledi ve iki boşluk buldu; hücrelerin entity ve alan sütunları workshop planına göre yazıldı, ayrıntı sonra geldi. Cross-review'ın beş turunda kabul edilen on iki bulgunun yedisi ve checkpoint'in elli yedi bulgu satırı matris hücrelerindendi — 157 satır ayrıntıya hizalandı. Aşama 3'ün 1. deseninin devamıdır: matris yazım boyunca doğrulanan bir kayıttır, yazım bittikten sonra da.
+2. **Kararın özeti karar değildir.** Yazım on bir kez bir workshop kararının ya da bir özetin kaynaktan geniş ya da dar yazıldığını buldu — bir değişmez mutlak yazılmıştı, bir sebep listesi altı yerine dört değer sayıyordu, bir silme listesi kendi ölçütünü üç alanda uygulamamıştı; her biri alan yazılırken kaynağa karşı okunup hizalandı. Aşama 1'in 1. deseninin devamıdır: yazım kaydın yeterlilik testidir — kaydın özeti de sınanır.
+3. **Matrisin birimi tek kalıpla sayılmaz ve geri besleme kümesini değiştirir.** Açılışın birim sayımı kaynak ailelerini tek bir satır kalıbıyla saydı; üç oturum birimi genişletmek zorunda kaldı — en ağır içerik (durumlar ve geçişler) kalıbın dışındaydı. Boşluk kararları ürün sözlüğüne on dört terim yazınca matrisin beklenen kümesi değişti; kapsama betikleri her geri beslemeden sonra yeniden koştu ve farkın yalnız kararın birimleri olduğunu gösterdi.
+4. **Büyük dokümanda oturum tahmini bölüm gruplamasından değil gözlenen yükten kurulur; ağır oturum limitten önce bölünür.** Yazım üç oturum tahmin edildi, yedi oturum sürdü; dört bölünmenin hepsi önceden yapıldı ve limitte düşen oturum olmadı. Aşama 3'te ağır bir yazım oturumu limitte düştükten sonra bölünmüştü. Yük birimi doküman türüne bağlıdır: mimarinin düzyazısı oturum başına veri modelinin tablolarının yaklaşık iki katı kadar metin üretti.
+5. **İkinci modelin sınırı dikkatten önce araçta ve hesaptadır.** 1,16 MB'lık doküman aracın girdi sınırını aştı — tek parça çağrının yerini sınıra sığan en büyük iki birleşim aldı ve biri hiçbir parçanın görmediği bir bulgu getirdi; hesabın kullanım sınırı 4. turun ortasında doldu ve tur iki modele bölünmesin diye üç saat beklendi. Aşama 3'ün 2. ve Aşama 4'ün 5. deseninin devamıdır.
+6. **Kalite döngüsünün düzeltmesi önceki aşamaların izlerine de uzanır.** Kararlar önceki aşamaların park satırlarında yirmi beş hizasızlık bıraktı — betik yalnız aşamanın kendi bloklarına bakmıştı; "park gerekmez" ve "değişmedi" gibi kapanış sözleri öncülü sınanmadan kabul edildi. Aşama 4'ün 6. deseninin devamıdır: düzeltme de taranır — bütün aşamalarda ve kapanış sözünün öncülüyle.
+7. **Yönetici düzeni dördüncü kez tuttu; maliyeti ve görünürlüğü ilk kez kural istedi.** Açılıştan checkpoint'e yirmi yedi adım iki günde yürüdü; proje sahibine çalışma modu soruları, bir çok kritik soru ve sorulmadan kaydedilen otuz yedi kararın listesi gitti. Bütün alt ajanların en güçlü modelde koşması bir denetim adımını saatlere uzattı ve iş türüne göre modellere dağıtıldı; arka plana atılan iki ajanın işi sahipsiz kaldı; proje sahibi ilerlemeyi göremeyip birçok kez sordu. Aşama 2'nin 6. ve Aşama 3'ün 7. desenlerinin devamıdır.
+
 ### N.2 Dönem 2 — Implementation
 
 *(Bu projede henüz faz kapanmadı.)*
@@ -757,4 +767,4 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 
 ---
 
-*Project Playbook — Metodoloji v1.0.6*
+*Project Playbook — Metodoloji v1.0.7*

@@ -16,7 +16,7 @@
 | **Önceden terfi etmişti ya da kuralı bu aşamada işledi** | 14 | S-1, S-5, S-8, S-10, S-13 · Ö-110, Ö-111 · H-1, H-3, H-4, H-9, H-10 (biçimi), H-11 (biçimi), H-12 |
 | **Dokümanda yaşar** | 5 | S-2, S-3, S-6, S-9 · Ö-81 (şablon kusuru — playbook'ta, PF-88) |
 | **Hafızada kalır** — kişisel tercih, referans ya da proje kaydı | 6 | H-2, H-5, H-6, H-7, H-8, H-15 |
-| **Proje sahibinin onayını bekliyor** | 1 aday · 2 öneri | Ö-23 (checklist'in skill'e dönüşmesi — §3, §4 Öneri 2) · `00 §N.1`'e Aşama 5'in yedi deseni (§4 Öneri 1) |
+| **Proje sahibinin onayını bekliyor** | 1 aday · 2 öneri | Ö-23 (checklist'in skill'e dönüşmesi — §3, §4 Öneri 2) · `00 §N.1`'e Aşama 5'in yedi deseni (§4 Öneri 1) — **2026-10-18: kapandı (K-1143)** — Öneri 1 uygulandı (`00` v1.0.7); Öneri 2 — seçenek 2: checklist liste olarak kalır, soru her aşama sonunda yeniden sorulur (Ö-23'ün sonraki değerlendirmesi API tasarımı aşamasının öğrenim terfisinde) |
 
 Toplam altmış iki aday: karar kaydının §14.1'inden yirmi altı, Ö-23, süreç kararlarından on dört satır (yirmi altı karar), yöneticinin gözlemlerinden ve bu adımın okumasından altı ders ve kullanıcı hafızasından on beş not. Yöneticinin beş gözleminin biri (ikinci modelin kullanım sınırı) aday 17 ile birleşti, ikisi (model dağılımı, uzun adımda ara durum) kullanıcı hafızasının iki notuyla aynı terfidir (§2.3, §2.4). `CLAUDE.md` ve `SETUP.md` için ayrı öneri yok — oturum başlangıcı ve katman kuralı aşamanın hiçbir öğrenimiyle çelişmiyor; ikinci modelin kullanım sınırı SETUP'ın satırlarına değil skill'in koşum kuralına aittir (SETUP'ın ikinci AI satırları Aşama 4'te proje sahibinin kararıyla olduğu gibi kaldı — K-991). Checklist skill'e dönüşürse oturum başlangıcının 2. maddesine bir sözcük eklenmesi Öneri 2'nin parçasıdır. Aşama 5'in öteki kararları (K-1006…K-1031'in workshop ve GAP kararları, K-1034…K-1124 ve K-1127…K-1140'ın yazım, kalite döngüsü ve kapanış kararları) veri modelinin, ürün kuralının ya da kalan riskin kararıdır, dokümanlarda yaşar ve aday değildir.
 
@@ -120,6 +120,8 @@ CLAUDE.md: *"Bir süreç kuralı yalnız hafızada yaşıyorsa kırılgandır �
 
 ## 3. Ö-23 — checklist skill'e dönüşür mü
 
+> **Sonuç — 2026-10-18 (K-1143):** proje sahibi seçenek 2'yi seçti — *"2 · Liste kalsın, her aşama sonunda yine sorulsun"* (Soru 8). Dönüşüm uygulanmadı ve ölçüt kapanmadı: ölçüt ve yeniden değerlendirme checklist'in başlık notunda yürürlükte kalır; nota yalnız bu kapanışın sonucu eklendi; sonraki değerlendirme API tasarımı aşamasının öğrenim terfisindedir. Önerilen seçenek 3 — ölçütün bu proje için kapanması — seçilmedi. Aşağıdaki metin 5. adımın hâlidir, olduğu gibi bırakıldı.
+
 **Sonuç: iki koşul ikinci kez birlikte karşılandı — dönüşüm proje sahibine yeniden öneri olarak sunulur (§4 Öneri 2); bu PR'da uygulanmadı.** Ölçüt iki koşuldur ve ikisi birlikte aranır (checklist başlık notu, L4; K-722, K-853). Değerlendirme betikle yapıldı:
 
 | Koşul | Sonuç | Kanıt |
@@ -136,6 +138,8 @@ CLAUDE.md: *"Bir süreç kuralı yalnız hafızada yaşıyorsa kırılgandır �
 ---
 
 ## 4. Proje sahibinin onayını bekliyor — `00` ve checklist'in skill'e dönüşmesi
+
+> **Sonuç — 2026-10-18 (K-1143; checkpoint'in üç ⚠ kararının gösterimiyle aynı turda, ayrı numaralı sorular — Soru 7, Soru 8):** **Öneri 1 — uygulandı:** *"1 · Ekle"* — yedi desen `00 §N.1`'in "Aşama 5 — Veri modeli" paragrafına aşağıdaki metinle birebir girdi; `00` v1.0.7 (başlık ve alt bilgi; başka değişiklik yok). **Öneri 2 — seçenek 2:** *"2 · Liste kalsın, her aşama sonunda yine sorulsun"* — aşağıdaki "Seçenek 2" maddesi uygulandı: değişiklik yok, başlık notu yürürlükte kalır (nota bu kapanışın sonucu eklendi); sonraki değerlendirme API tasarımı aşamasının öğrenim terfisinde. `00 §C.7` ve `CLAUDE.md` değişmedi; yeni skill yaratılmadı. Aşağıdaki metin 5. adımın hâlidir, olduğu gibi bırakıldı.
 
 GUARDRAILS §2: `00`, `CLAUDE.md` ve `SETUP.md` proje sahibinin **açık onayı** olmadan değişmez; GUARDRAILS §3: yeni skill yaratmak yapısal değişikliktir. Aşağıdaki iki öneri bu PR'da **uygulanmadı**. Her biri proje sahibine **ayrı numaralı soru** olarak gider (`INSTRUCTIONS §2`) ve onay gelirse ayrı bir `docs:` PR'ında uygulanır. Hiçbiri aşamanın kapanışını engellemez: kurallar L3–L4'te yürürlükte.
 
@@ -288,6 +292,8 @@ PF-86, PF-87, PF-89 ve PF-90 değişmedi.
   - `asama1-kapanis-otomasyonu-yetkisi.md` (H-10) ve `yalniz-cok-kritik-konulari-sor.md` (H-11) — arşiv işaretinde "Aşama 5 kapandı — API tasarımı aşamasının açılışında yeniden sorulur" satırları (6. adımın işi).
 - **Mekanik:** değişen dosyalarda CR 0 (`tr -cd '\r'`), kontrol karakteri 0; eklenen satırlarda geri başvuru artığı yok — `\$[0-9]` eşleşmeleri yalnız kuralın ve bu raporun anlattığı örneklerdir; düzenlemeler birebir değiştiren, her değiştirmede tam bir eşleşme isteyen node betiğiyle yapıldı ve şartnamesi dosya yazma aracıyla yazıldı.
 - **Model dağılımı:** sınıflandırma, hüküm, rapor ve kural metinlerinin taslağı Opus (bu ajan); kural metinlerinin hedef dosyalara birebir uygulanması ve mekanik denetimleri Sonnet; karar kaydının taranması (sınıf cümlesi süzgeci, satır listeleri) betikle.
+
+**Sonuç (6. adım, 2026-10-18):** ⚠ listesi iki gösterimle verildi — otuz dört karar (Soru 5) ve checkpoint'in üç kararı ile K-1092, K-1135'in düzeltilmiş cümleleri (Soru 6); ikisine de itiraz yok (37 / 37; K-1142). Bu raporun iki önerisi ayrı numaralı sorulardı (Soru 7, Soru 8): Öneri 1 uygulandı — `00` v1.0.7; Öneri 2 — checklist liste olarak kalır, soru her aşama sonunda yeniden sorulur, Ö-23'ün sonraki değerlendirmesi API tasarımı aşamasının öğrenim terfisinde (K-1143). Arşiv işareti düştü (`06` ✓ v0.27); devir karar kaydının §15'inde — çalışma modlarının yeniden sorulacağını ve Ö-23'ün kapısını taşır. Yukarıdaki kullanıcı hafızası notları yöneticinindir. Aşağıdaki satır 5. adımın hâlidir.
 
 **Sırada:** K-437'nin 6. adımı — proje sahibine tek mesaj: checkpoint'in üç ⚠ kararı ve K-1092, K-1135'in düzeltilmiş iki cümlesi (hazır metin CP05 §5.2) ve bu raporun §4'ündeki iki öneri, **her biri ayrı numaralı soru**; cevapların kayda işlenmesi (onaylanan öneriler ayrı `docs:` PR'larında); ardından arşiv işareti (otuz yedi ⚠ işaretinin dönüşümü; Aşama 5'in kayıtları salt okunur; `06` ✓) ve Aşama 6'ya — API tasarımı — devir. Devir notu çalışma modlarının yeniden sorulacağını ve onaylanmayan önerilerin sonucunu taşır.
 

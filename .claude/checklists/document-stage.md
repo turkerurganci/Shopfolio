@@ -18,7 +18,7 @@
 > karar verdi — checklist olarak kalır (K-991). Aşama 5'te ikisi yeniden karşılandı — matris ikinci kez
 > işletildi; kapanış yeni adım ya da madde eklemedi, on beş maddeyi genişletti (Aşama 5'in öğrenim terfisi,
 > K-1141); dönüşüm ya da ölçütün bu proje için kapanması proje sahibine öneri olarak sunuldu
-> (`Docs/CHECKPOINT_REPORTS/PHASE5_LEARNING_PROMOTION.md` §3, §4) — karar arşiv adımındadır. Ölçüt bu notta (L4) yaşar ve `00 §C.7`'nin genel cümlesini
+> (`Docs/CHECKPOINT_REPORTS/PHASE5_LEARNING_PROMOTION.md` §3, §4) ve proje sahibi 2026-10-18'de yine dönüşmemesine karar verdi — checklist liste olarak kalır, soru her aşama sonunda yeniden sorulur (K-1143). Sonraki değerlendirme Aşama 6'nın (API tasarımı) öğrenim terfisindedir. Ölçüt bu notta (L4) yaşar ve `00 §C.7`'nin genel cümlesini
 > daraltır; `00 §C.7`'ye taşınması önerildi; proje sahibi onay vermedi, ölçüt bu notta kalır (K-722,
 > düzeltmesi K-853). (Karar: yeni skill icat edilmez.)
 

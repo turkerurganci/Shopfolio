@@ -49,6 +49,11 @@
 > - **K-913 · K-1120 · Sonradan bildirilen geri dönmenin veri yeri:** servisin iletiyi kabul ettikten sonra bildirdiği geri dönme (bounce) işlenirse gönderim kaydının hâli "ulaşmadı" olur — `SentAt` kalır, `LastOutcome` alıcı hatası olur; Veri Modeli'nin kısıtı bu hâli taşır (`06 §4.58`). Geri dönmenin işlenip işlenmeyeceği ve nasıl alınacağı (web kancası ya da sorgu) bu aşamanın kararıdır (K-913).
 > - **Dizin — Aşama 5 kararlarının bu dokümana devirleri:** karar kaydında K-992…K-1136'nın etki sütunlarında bu dokümanı gösteren on atıf (on karar) ve Veri Modeli'nin (`06`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE5_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE5_CONFLICT_SCAN.md) §6'dadır; Aşama 5'in atıflarının hepsi işin adını taşır. Bir karar etki sütununda "park gerekmez" der (K-1036); ikisi bu dokümanın Aşama 4 park satırlarını güncelledi (K-1081, K-1111) — iş o satırlarda etiketiyle durur. Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Önceki aşamaların dizinleri: `PHASE1_CONFLICT_SCAN.md` §6, `PHASE2_CONFLICT_SCAN.md` §6, `PHASE3_CONFLICT_SCAN.md` §6, `PHASE4_CONFLICT_SCAN.md` §6.
 
+> **Aşama 6'dan park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §16.2, yazım turu, kalite döngüsü ve kapanış sırasının 2. maddesi).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-1166 · K-1169 · Ödeme sağlayıcısının dönüşü ve bildiriminin gövdesi:** ödeme sağlayıcısından dönüş durum yazmaz, yalnız sipariş sayfasına yönlendirir ve — sağlayıcı dönüşü POST'la yapıyorsa — sahteciliğe karşı korumanın istisnasıdır; dönüşün yöntemi — GET ya da POST — seçilen sağlayıcının belgesinden bu aşamada belirlenir ve API Tasarımı'nın uç tanımına yazılır (API Tasarımı `07 §2`, §4; Teknik Mimari `05 §6.5.1`; K-973 (1)). Bildirim ucunun adresi `/sistem/odeme-bildirimi`, gövde tavanı 64 KB'tır; sağlayıcının bildirim gövdesinin bu tavanın altında kaldığı doğrulanır — kalmıyorsa tavan API Tasarımı'nda karar kaydıyla güncellenir. İmzası tutmayan isteğe 400, kaydedilemeyen bildirime 500 döner (API Tasarımı `07 §2`).
+
 ---
 
 ## 0. Yazım kuralları

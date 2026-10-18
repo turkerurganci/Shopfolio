@@ -53,6 +53,7 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-1166 · K-1169 · Ödeme sağlayıcısının dönüşü ve bildiriminin gövdesi:** ödeme sağlayıcısından dönüş durum yazmaz, yalnız sipariş sayfasına yönlendirir ve — sağlayıcı dönüşü POST'la yapıyorsa — sahteciliğe karşı korumanın istisnasıdır; dönüşün yöntemi — GET ya da POST — seçilen sağlayıcının belgesinden bu aşamada belirlenir ve API Tasarımı'nın uç tanımına yazılır (API Tasarımı `07 §2`, §4; Teknik Mimari `05 §6.5.1`; K-973 (1)). Bildirim ucunun adresi `/sistem/odeme-bildirimi`, gövde tavanı 64 KB'tır; sağlayıcının bildirim gövdesinin bu tavanın altında kaldığı doğrulanır — kalmıyorsa tavan API Tasarımı'nda karar kaydıyla güncellenir. İmzası tutmayan isteğe 400, kaydedilemeyen bildirime 500 döner (API Tasarımı `07 §2`).
+> - **K-1175 · Google ile girişin dönüş adresi:** Google ile giriş, kayıt ve yeniden doğrulama tek dönüş adresini kullanır — `/giris/google` (API Tasarımı `07 §3`, UC-51); Google'a kayıtlı tam adres bu yoldur ve akışları `__Host-external-login` çerezi ayırır (Teknik Mimari `05 §6.1.4`, §6.7). Akışın başlatılması bir POST'tur (UC-50, UC-62; `07 §2.2.5`). Akışın istek ve yanıt biçimi bu dokümanın işidir.
 
 ---
 

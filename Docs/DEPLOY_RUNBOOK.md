@@ -50,6 +50,7 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-1162 · K-1169 · Ters vekilin yolları:** (1) **kayıt maskesi** — anahtar ya da imzalı değer taşıyan yolların son bölümü ters vekilin erişim kaydında maskelenir: `/siparis/erisim/`, `/dogrulama/`, `/sifre-sifirlama/`, `/geri-al/`, `/panel/sifre-sifirlama/`, `/panel/davet/`, `/panel/dogrulama/`, `/panel/geri-al/`, `/indir/` (Teknik Mimari `05 §6.4.8`, §9.1.5; API Tasarımı `07 §2`); (2) **gövde tavanı** uygulamanınkiyle aynıdır ve uç başına — yol ve `handler` parametresiyle — eşlenir: genel form 64 KB, uzun metin taşıyan panel formları 1 MB, görsel yükleme işleyicisi P-23 + 1 MB, parçalı yüklemenin parçası 5 MB, bildirim ucu 64 KB (`05 §6.3.6`); (3) canlılık ve durum uçlarının adresi `/sistem/canlilik` ve `/sistem/durum`'dur — dış kontrol durum ucunu, konteynerin sağlık denetimi canlılık ucunu yoklar (`05 §9.4`). Yapılandırmanın biçimi bu dokümanın işidir.
+> - **K-1175 · Uç sınıfları ve Google'ın dönüş adresi:** ters vekilin uç başına gövde tavanı API Tasarımı'nın uç envanterindeki "Sınır" sütunundan — yol ve `handler` parametresiyle — eşlenir (`07 §3`, §2.8.1); Google'ın yetkilendirme kaydına girilen dönüş adresi sitenin alan adındaki `/giris/google` yoludur (UC-51; Teknik Mimari `05 §6.1.4`). Kurulum adımının biçimi bu dokümanın işidir.
 
 ---
 

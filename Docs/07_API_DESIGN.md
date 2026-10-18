@@ -1,6 +1,6 @@
 # Shopfolio — API Design
 
-**Versiyon: v0.6** | **Bağımlılıklar:** `02`, `03`, `04`, `05`, `06`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-18
+**Versiyon: v0.7** | **Bağımlılıklar:** `02`, `03`, `04`, `05`, `06`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-18
 
 > **Aşama:** 6 — API Tasarımı · **Rol:** API Designer
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §3'e (endpoint envanteri) geçilmez.
@@ -50,12 +50,12 @@
 > **Ne yazılır:** `04` ekran aksiyonları + `03` akış adımları → endpoint eşlemesi.
 > Ekrandaki her aksiyon ve her veri ihtiyacı bir endpoint'e eşlenmelidir. Eşlenmeyen aksiyon = **eksik endpoint**.
 
-**Alt bölüm haritası (K-1152).** Matris yedi oturumda kurulur (K-1150): **1a** (2026-10-18) kaynak birimini netleştirdi (K-1151), dört ailenin envanterini ve 1a'nın kapsama denetimini, aday uç listesini ve "Uç" sütununun değer kümesini (K-1153) ve Arayüz Tanımları'nın vitrin ekranlarının (`04 §5`), navigasyon haritasının (§3), ortak bileşenlerinin (§2) ve ekran olmayan yüzeylerinin (§4.4) ileri izlenebilirliğini yazdı; **1b** (2026-10-18) panel ekranlarının (`04 §9`) ve §4.2'nin metninin ileri izlenebilirliğini yazdı ve aday listesine panelin POST işlemlerini, görsel yüklemeyi ve dışa aktarmanın dosyalarını ekledi (UC-110…UC-187; K-1154, K-1155); **1c** (2026-10-18) durum × rol matrisinin (`04 §6`), formların ve ortak alan kurallarının (§7) ve lokalizasyonun (§8) ileri izlenebilirliğini yazdı — aday eklemedi, eşlemenin okunuşu K-1156'dadır; **1d** (2026-10-18) Kullanıcı Akışları'nın durum makinesinin (`03 §1`), ana akışlarının (§2), hata akışlarının (§3) ve zaman aşımı yönetiminin (§4) ileri izlenebilirliğini yazdı — aday eklemedi, eşlemenin okunuşu K-1157'dedir; **1e** (2026-10-18) Kullanıcı Akışları'nın itiraz (`03 §5`), kötüye kullanım (§6), bildirim haritası (§7 — toplu; bağlantı taşıyan 14 satır kimliğiyle), yönetim (§8), destekleyici (§9) ve operasyonel (§10) akışlarının ileri izlenebilirliğini yazdı — aday eklemedi, eşlemenin okunuşu K-1158'dedir; **1f** (2026-10-18) devirlerin — etki sütununda `07` taşıyan karar satırları, park maddeleri, dizin satırları, gövde cümleleri ve Entegrasyon Spesifikasyonu'nun park satırı — ve Teknik Mimari'nin MK-04'ünün ve uç düzeyindeki bölümlerinin ileri izlenebilirliğini yazdı — aday eklemedi, eşlemenin okunuşu K-1159'dadır; sonraki oturumun kapsamı tablonun satırlarıdır. Şablonun §1.1, §1.2 ve §1.3 numaraları değişmez; alt düzey aşağıdaki tabloyla sabittir. Bir oturum bir alt bölümü bölmek ya da birleştirmek zorunda kalırsa bu tabloyu ve ona atıf yapan satırları aynı PR'da günceller (K-670'in kalıbı; `checklists/document-stage.md` §4).
+**Alt bölüm haritası (K-1152).** Matris yedi oturumda kurulur (K-1150): **1a** (2026-10-18) kaynak birimini netleştirdi (K-1151), dört ailenin envanterini ve 1a'nın kapsama denetimini, aday uç listesini ve "Uç" sütununun değer kümesini (K-1153) ve Arayüz Tanımları'nın vitrin ekranlarının (`04 §5`), navigasyon haritasının (§3), ortak bileşenlerinin (§2) ve ekran olmayan yüzeylerinin (§4.4) ileri izlenebilirliğini yazdı; **1b** (2026-10-18) panel ekranlarının (`04 §9`) ve §4.2'nin metninin ileri izlenebilirliğini yazdı ve aday listesine panelin POST işlemlerini, görsel yüklemeyi ve dışa aktarmanın dosyalarını ekledi (UC-110…UC-187; K-1154, K-1155); **1c** (2026-10-18) durum × rol matrisinin (`04 §6`), formların ve ortak alan kurallarının (§7) ve lokalizasyonun (§8) ileri izlenebilirliğini yazdı — aday eklemedi, eşlemenin okunuşu K-1156'dadır; **1d** (2026-10-18) Kullanıcı Akışları'nın durum makinesinin (`03 §1`), ana akışlarının (§2), hata akışlarının (§3) ve zaman aşımı yönetiminin (§4) ileri izlenebilirliğini yazdı — aday eklemedi, eşlemenin okunuşu K-1157'dedir; **1e** (2026-10-18) Kullanıcı Akışları'nın itiraz (`03 §5`), kötüye kullanım (§6), bildirim haritası (§7 — toplu; bağlantı taşıyan 14 satır kimliğiyle), yönetim (§8), destekleyici (§9) ve operasyonel (§10) akışlarının ileri izlenebilirliğini yazdı — aday eklemedi, eşlemenin okunuşu K-1158'dedir; **1f** (2026-10-18) devirlerin — etki sütununda `07` taşıyan karar satırları, park maddeleri, dizin satırları, gövde cümleleri ve Entegrasyon Spesifikasyonu'nun park satırı — ve Teknik Mimari'nin MK-04'ünün ve uç düzeyindeki bölümlerinin ileri izlenebilirliğini yazdı — aday eklemedi, eşlemenin okunuşu K-1159'dadır; **2** (2026-10-18) geri izlenebilirliği (§1.2) betikle kurdu — 187 adayın hepsi beslenir, gerekçesiz ekleme yok —, aday uç listesini 187 adayla kapattı, kesilmiş okumanın kümesinin boş olduğunu kaydetti ve 42 satırlık örneklemi yeniden okuttu (ayrışma %2,4), tek GAP adayını karara bağladı — AA-1 → GAP-14 (§1.3) — ve geri beslemeyi Teknik Mimari'ye, Ürün Gereksinimleri'ne ve Doğrulama Protokolü'nün park satırına yazdı (K-1160, K-1161); oturum bölünmedi. Matris tamamlandı. Şablonun §1.1, §1.2 ve §1.3 numaraları değişmez; alt düzey aşağıdaki tabloyla sabittir. Bir oturum bir alt bölümü bölmek ya da birleştirmek zorunda kalırsa bu tabloyu ve ona atıf yapan satırları aynı PR'da günceller (K-670'in kalıbı; `checklists/document-stage.md` §4).
 
 | Alt bölüm | İçerik | Oturum | Durum |
 |---|---|---|---|
-| §1.1.1 | Kaynak envanteri ve sayım — dört aile, açılışın sayımıyla fark, betik komutları, kapsama denetimi | 1a; her oturum kendi ailesinin denetimini ve okuma derinliği kaydını ekler | ✓ (dört ailenin envanteri; 1a'nın, 1b'nin, 1c'nin, 1d'nin, 1e'nin ve 1f'nin denetimi) |
-| §1.1.2 | Aday uç listesi (`UC-nn`) ve "Uç" sütununun değer kümesi | 1a; 1b–1f listenin sonuna aday ekler; 2 geri yönde kapatır | ✓ — UC-01…UC-187: 1a UC-01…UC-109, 1b UC-110…UC-187; 1c, 1d, 1e ve 1f aday eklemedi (sonraki oturum ekleme yaparsa günceller) |
+| §1.1.1 | Kaynak envanteri ve sayım — dört aile, açılışın sayımıyla fark, betik komutları, kapsama denetimi | 1a; her oturum kendi ailesinin denetimini ve okuma derinliği kaydını ekler | ✓ (dört ailenin envanteri; 1a'nın, 1b'nin, 1c'nin, 1d'nin, 1e'nin ve 1f'nin denetimi; 2'nin geri izlenebilirlik, GAP ve örneklem denetimleri) |
+| §1.1.2 | Aday uç listesi (`UC-nn`) ve "Uç" sütununun değer kümesi | 1a; 1b–1f listenin sonuna aday ekler; 2 geri yönde kapatır | ✓ — UC-01…UC-187: 1a UC-01…UC-109, 1b UC-110…UC-187; 1c, 1d, 1e ve 1f aday eklemedi; 2 listeyi 187 adayla kapattı — UC-26'nın adı GAP-14 ile değişti (K-1160, K-1161) |
 | §1.1.3 | Arayüz Tanımları — `04 §5` vitrin ekranları: 28 ekran, 364 kalın numaralı madde, 23 kimliksiz madde — 415 | 1a | ✓ |
 | §1.1.4 | Arayüz Tanımları — `04 §3` navigasyon haritası: 124 geçiş satırı, 5 kalın numaralı paragraf, 6 metin — 135 | 1a | ✓ |
 | §1.1.5 | Arayüz Tanımları — `04 §2` ortak bileşenler bileşen kimliğiyle (20) ve §4.4 ekran olmayan yüzeyler (12 satır ve metin) — 33 | 1a | ✓ |
@@ -66,9 +66,9 @@
 | §1.1.10 | Kullanıcı Akışları — `03 §5`–§10 satır düzeyinde (§7 toplu: 3 alt bölüm satırı ve bölüm metni; bağlantı taşıyan bildirim satırı kimliğiyle ayrıca): numaralı satır 259, madde 10, metin 18, §7 4 — 291; kimliğiyle giren bağlantılı bildirim satırı 14 (K-1158) — matriste 305 | 1e | ✓ |
 | §1.1.11 | Devirler — 51 karar satırı, 14 park maddesi, 4 dizin satırı, 20 gövde cümlesi, başka dokümanın 1 park satırı — 90 | 1f | ✓ |
 | §1.1.12 | Teknik Mimari — MK-04, uç düzeyindeki 13 bölümün 96 numaralı maddesi ve 5 kimliksiz maddesi — 102 | 1f | ✓ |
-| §1.1.13 | GAP adayları (`AA-n`) | 1a açtı; 1b–1f ekler; 2 karara bağlar | ⬚ — 1 aday (AA-1); 1b, 1c, 1d, 1e ve 1f aday eklemedi |
-| §1.2 | Geri izlenebilirlik (uç → kaynak); gerekçesiz ekleme listesi; kesilmiş okumanın örneklemi; aday uç listesinin kapanışı | 2 | ⬚ |
-| §1.3 | Boşluklar (GAP) ve kararlar; üst dokümanlara geri besleme tablosu (K-1147) | 2; workshop ve yazım geri besleme satırı ekler | ⬚ |
+| §1.1.13 | GAP adayları (`AA-n`) — karara bağlandı (2) | 1a açtı; 1b–1f ekler; 2 karara bağlar | ✓ — 1 aday (AA-1) karara bağlandı: AA-1 → GAP-14 (K-1161); 1b, 1c, 1d, 1e ve 1f aday eklemedi |
+| §1.2 | Geri izlenebilirlik (uç → kaynak); gerekçesiz ekleme listesi; kesilmiş okumanın örneklemi; aday uç listesinin kapanışı | 2 | ✓ — 187 aday, 5.051 çift; gerekçesiz ekleme yok; kesilmiş okuma yok, örneklem 42 satır, ayrışma 1 (K-1160) |
+| §1.3 | Boşluklar (GAP) ve kararlar; üst dokümanlara geri besleme tablosu (K-1147) | 2; workshop ve yazım geri besleme satırı ekler | ✓ (2) — GAP-14; geri besleme satırı 1 — workshop ve yazım ekler |
 
 ### 1.1 İleri izlenebilirlik (ekran aksiyonu / akış adımı → endpoint)
 
@@ -253,10 +253,35 @@ durum07() {
          if (d ~ /^GAP adayı \(AA-[0-9]+\)$/) next
          if (d!=w) print $2 "\t" d " ≠ " w}' Docs/07_API_DESIGN.md
 }
-# GAP adayları: satırlardaki AA-n ile §1.1.13'ün listesi iki yönlü aynı olmalı
+# GAP adayları: satırlardaki AA-n ile §1.1.13'ün karara bağlanmamış adayları iki yönlü aynı olmalı (2. oturumdan beri karara
+# bağlanan adayın son hücresi "Karar: GAP-n" taşır ve satırları "GAP adayı" durumunu bırakır)
 gap07() {
   diff <(awk '/^#### 1\.1\.([3-9]|1[0-2]) /{f=1; next} /^#### /{f=0} f && /GAP adayı \(AA-/{match($0,/AA-[0-9]+/); print substr($0,RSTART,RLENGTH)}' Docs/07_API_DESIGN.md | sort -u) \
-       <(awk '/^#### 1\.1\.13 /{f=1; next} /^#{2,4} /{f=0} f && /^\| AA-[0-9]+ \|/{split($0,c,"|"); x=c[2]; gsub(/ /,"",x); print x}' Docs/07_API_DESIGN.md | sort -u)
+       <(awk '/^#### 1\.1\.13 /{f=1; next} /^#{2,4} /{f=0} f && /^\| AA-[0-9]+ \|/ && !/Karar: GAP-[0-9]+/{split($0,c,"|"); x=c[2]; gsub(/ /,"",x); print x}' Docs/07_API_DESIGN.md | sort -u)
+}
+# karara bağlanan aday §1.3'te "(aday AA-n)" ile durmalı — iki yönlü
+gapk07() {
+  diff <(awk '/^#### 1\.1\.13 /{f=1; next} /^#{2,4} /{f=0} f && /^\| AA-[0-9]+ \|/ && /Karar: GAP-[0-9]+/{split($0,c,"|"); x=c[2]; gsub(/ /,"",x); match($0,/Karar: GAP-[0-9]+/); print x " " substr($0,RSTART+7,RLENGTH-7)}' Docs/07_API_DESIGN.md | sort) \
+       <(awk '/^### 1\.3 /{f=1; next} /^#{2,3} /{f=0} f && /^\| GAP-[0-9]+ \|/{split($0,c,"|"); g=c[2]; gsub(/ /,"",g); if (match($0,/\(aday AA-[0-9]+\)/)) print substr($0,RSTART+6,RLENGTH-7) " " g}' Docs/07_API_DESIGN.md | sort)
+}
+# geri izlenebilirlik (2. oturum; K-1160): aday–satır çiftleri "UC-nn<TAB>Kaynak ID<TAB>aile" §1.1.3–§1.1.12'den
+geri07() {
+  awk -F'|' '/^#### 1\.1\.([3-9]|1[0-2]) /{f=1; next} /^#### /{f=0}
+       f && /^\| (`0[2-8]|K-[0-9]|park A|dizin A)/{x=$2; gsub(/`/,"",x); gsub(/^ +| +$/,"",x); gsub(/ +/," ",x)
+         fam=(x ~ /^04 /)?"04":(x ~ /^03 /)?"03":(x ~ /^05 §/ && x !~ / g[0-9]+$/)?"05":"devir"
+         n=split($4,e," · "); for(i=1;i<=n;i++){u=e[i]; gsub(/^ +| +$/,"",u); if (u ~ /^UC-[0-9]+$/) print u "\t" x "\t" fam}}' Docs/07_API_DESIGN.md
+}
+# aday başına satır sayısı ve aile dağılımı: UC · toplam · 04 · 03 · devir · 05
+geri07say() { geri07 | awk -F'\t' '{c[$1]++; d[$1 SUBSEP $3]++} END{for(u in c) printf "%s\t%d\t%d\t%d\t%d\t%d\n", u, c[u], d[u SUBSEP "04"], d[u SUBSEP "03"], d[u SUBSEP "devir"], d[u SUBSEP "05"]}' | sort -t- -k2,2n; }
+# makine ucu olmayıp ekran ya da akış satırı taşımayan aday (makine uçları K-868, MK-04: UC-37, UC-79…UC-83)
+geri07ek() { geri07say | awk -F'\t' '$3+$4==0 && $1 !~ /^UC-(37|79|8[0-3])$/'; }
+# §1.2'nin tablosu: aday, satır sayısı ve durum
+tab07() { awk -F'|' '/^### 1\.2 /{f=1; next} /^#{2,4} /{f=0} f && /^\| UC-[0-9]+ /{u=$2; sub(/^ +/,"",u); sub(/ .*/,"",u); n=$3; sub(/^ +/,"",n); sub(/ .*/,"",n); d=$4; gsub(/^ +| +$/,"",d); print u "\t" n "\t" d}' Docs/07_API_DESIGN.md; }
+# örneklem (2. oturum): her oturumdan yedi ileri satır, sabit tohum
+ornek07() {
+  awk '/^#### 1\.1\.([3-9]|1[0-2]) /{s=$2; f=1; next} /^#### /{f=0} f && /^\| (`0[2-8]|K-[0-9]|park A|dizin A)/{print s "\t" NR "\t" $0}' Docs/07_API_DESIGN.md \
+    | awk -F'\t' 'BEGIN{srand(20261018)} {o=($1~/^1\.1\.[345]$/)?"1a":($1=="1.1.6")?"1b":($1~/^1\.1\.[78]$/)?"1c":($1=="1.1.9")?"1d":($1=="1.1.10")?"1e":"1f"; print rand() "\t" o "\t" $0}' \
+    | sort -k2,2 -k1,1n | awk -F'\t' '{if (++n[$2]<=7) print $2 "\t" $5}' | cut -d'|' -f1-2
 }
 # sayımlar (2026-10-18)
 exp04 | wc -l; exp03 | wc -l; e1f_dev | wc -l; exp05 | wc -l             # 1615 · 827 · 90 · 102 — toplam 2634
@@ -312,8 +337,18 @@ deger07                                                                 # "Uç" 
 durum07                                                                 # "Durum" "Uç"tan türemiyor — boş dönmeli
 comm -23 <(uc07 | grep -E '^UC-' | sort -u) <(aday07 | sort -u)         # listede olmayan aday — boş dönmeli
 aday07 | sort | uniq -d                                                 # listede yinelenen kimlik — boş dönmeli
-gap07                                                                   # satırların GAP adayı ile §1.1.13'ün listesi — boş dönmeli
+gap07                                                                   # satırların GAP adayı ile §1.1.13'ün karara bağlanmamış adayları — boş dönmeli (2. oturumdan sonra iki taraf da boş)
+gapk07                                                                  # §1.1.13'ün karara bağlanan adayı ile §1.3'ün GAP satırı — boş dönmeli (AA-1 → GAP-14)
 aday07 | wc -l; uc07 | grep -E '^UC-' | sort -u | wc -l                 # 187 · 187 — 1a…1f'nin satırlarının andığı aday (1d bildirim ucunu — UC-80 —, 1f canlılık ve durum ucunu — UC-81, UC-82 — andı; her aday en az bir ileri satır taşır)
+# 2 — geri izlenebilirlik (§1.2; K-1160): 5.051 çift, 2.318 satır, 187 aday
+geri07 | wc -l; uc07 | grep -cE '^UC-[0-9]+$'                            # 5051 · 5051 — çiftler "Uç" hücrelerinin aday değerleriyle aynı sayıda
+geri07 | cut -f2 | sort -u | wc -l; geri07say | wc -l                    # 2318 · 187 — en az bir aday taşıyan satır; çifti olan aday
+comm -3 <(aday07 | sort -u) <(geri07 | cut -f1 | sort -u)                # listede olup çifti olmayan (gerekçesiz ekleme) ya da çifti olup listede olmayan — boş dönmeli
+geri07ek                                                                 # makine ucu olmayıp ekran ya da akış satırı taşımayan aday — boş dönmeli
+diff <(geri07say | cut -f1,2) <(tab07 | cut -f1,2)                       # §1.2'nin satır sayıları betikle aynı — boş dönmeli
+tab07 | cut -f3 | sort | uniq -c                                         # 181 beslenir · 6 beslenir — makine ucu
+geri07 | cut -f3 | sort | uniq -c                                        # 03 1575 · 04 2954 · 05 244 · devir 278
+ornek07 | wc -l                                                          # 42 — örneklemin satırları (oturum ve Kaynak ID)
 mat07 '[3-5]' | wc -l; awk -F'|' '/^#### 1\.1\.[3-5] /{f=1; next} /^#### /{f=0} f && /^\| `0/{d=$5; gsub(/^ +| +$/,"",d); sub(/ \(AA-[0-9]+\)/,"",d); c[d]++} END{for(k in c) print k, c[k]}' Docs/07_API_DESIGN.md | sort   # durum dağılımı
 mat07 6 | wc -l; awk -F'|' '/^#### 1\.1\.6 /{f=1; next} /^#### /{f=0} f && /^\| `0/{d=$5; gsub(/^ +| +$/,"",d); sub(/ \(AA-[0-9]+\)/,"",d); c[d]++} END{for(k in c) print k, c[k]}' Docs/07_API_DESIGN.md | sort   # durum dağılımı — 1b
 mat07 '[78]' | wc -l; awk -F'|' '/^#### 1\.1\.[78] /{f=1; next} /^#### /{f=0} f && /^\| `0/{d=$5; gsub(/^ +| +$/,"",d); sub(/ \(AA-[0-9]+\)/,"",d); c[d]++} END{for(k in c) print k, c[k]}' Docs/07_API_DESIGN.md | sort   # durum dağılımı — 1c
@@ -336,9 +371,11 @@ mat07 '1[12]' | wc -l; awk -F'|' '/^#### 1\.1\.1[12] /{f=1; next} /^#### /{f=0} 
 
 **Kapsam denetimi ve okuma derinliği (1f).** 1f `e1f()` ile `mat07 '1[12]'`'yi karşılaştırır; beklenen küme 192'dir — devirler (`e1f_dev()`, 90) ve Teknik Mimari (`exp05()`, 102). Karar satırları, park ve dizin satırları kimliklerini ters tırnaksız taşır (`K-947`, `park A4-5`, `dizin A4`), gövde cümleleri ve öteki dokümanların satırları önekleriyle (`` `05 §6.3.5` g1 ``, `` `08` park A4-3 ``); `mat07()`'nin süzgeci ikisini de okur. Betik ailesi değişmedi — `dev07()`, `park07()`, `gov07()`, `parkx07()`, `exp05()`, `e1a()`…`e1f()` ve öteki işlevler 1a'nın hâliyle koşar. Önceki oturumların kümeleri sessizce değişmedi: `e1a()`…`e1f()`, `mat07 '[3-5]'`, `mat07 6`, `mat07 '[78]'`, `mat07 9`, `mat07 10` ve `aday07()`'nin çıktısı 1f'den önce alındı ve 1f'den sonra `cmp` ile aynı çıktı; `uc07()`'nin ilk 6.035 değeri — 1a…1e'nin satırlarının "Uç" değerleri — de `cmp` ile aynıdır, 1f'nin 826 değeri listenin sonuna eklenir. Yeni olan yedi satırdır — 1f'nin satır sayımı, eksik, fazla, yinelenen denetiminin 1a…1f'yi birlikte okuması (`mat07 '([3-9]|1[0-2])'`), iki başlığa bağlılık denetimi ve durum dağılımı; aday sayımının yorumu güncellendi (187 · 187). **Betik iki yönlü sınandı** (2026-10-18): belgenin bir kopyasında §1.1.11'den bir satır (`K-947`) çıkarıldığında eksik, §1.1.12'nin bir satırı (`05 §9.4.13`) ikilendiğinde yinelenen, kaynakta olmayan bir kimlik (`K-9999`) yazıldığında fazla, §1.1.11'e bir `05` satırı (`05 §9.4.99`) eklendiğinde başlığa bağlılık ve fazla, bir satırın "Durum"u "Uç"una aykırı yazıldığında "Durum", "Uç" hücresine kümenin dışında bir değer yazıldığında değer kümesi, listede olmayan bir aday (`UC-999`) yazıldığında aday listesi ve §1.1.13'te olmayan bir GAP adayı (`AA-9`) yazıldığında GAP adayı denetimi o satırı döndürdü. **Okuma derinliği:** 1f devirlerin 51 karar satırını karar kaydından betikle çıkarıp satırın tamamıyla — konu, karar, gerekçe, etki — okudu (en uzun satır 6.768 karakter); `07`'nin beş park bloğunu, 20 gövde cümlesini (`gov07()`'nin bulduğu satırın tamamı) ve `08`'in park satırını, Teknik Mimari'nin on üç bölümünü (`exp05()`'in sınırları içinde, bölümlerin tablo başlıkları ve `*Kaynak:` satırları dahil) hiçbir satırı kesmeden okudu; hücre başına kesilerek okunan satır yoktur. Bir satırın uca dokunan ayrıntısı başka bir maddeye işaret ettiğinde madde kaynağında okundu: ödeme adımında yazılanların çerezi (`05 §6.7.9` — AA-1'in dayanağı; satır yeni bir aday doğurmaz, AA-1'in kararı 2. oturumdadır). 1f yeni GAP adayı bulmadı: devirlerin ve Teknik Mimari'nin andığı her uç §1.1.2'dedir — makine uçları (UC-37, UC-79, UC-80…UC-83) yeni kaynak satırlarını, canlılık ve durum ucu (UC-81, UC-82) ilk kaynak satırını burada alır —, işlerin her biri §16.3'ün bir konusuna düşer; aday eklenmedi — liste 187'de kalır, UC-188 açılmadı ve listenin her adayı en az bir ileri satır taşır.
 
+**Kapsam denetimi, geri izlenebilirlik ve okuma derinliği (2).** 2. oturum yeni küme açmadı; betik bloğuna altı işlev — `geri07()` (aday–satır çiftleri), `geri07say()` (aday başına sayı ve aile dağılımı), `geri07ek()` (makine ucu olmayıp ekran ya da akış satırı taşımayan aday), `tab07()` (§1.2'nin tablosu), `gapk07()` (karara bağlanan adayın §1.3'teki satırı), `ornek07()` (örneklemin seçimi) — ve on denetim ve sayım satırı ekledi; `gap07()` karara bağlanmamış adaylara daraldı (karara bağlanan adayın son hücresi "Karar: GAP-n" taşır). §1.2'nin tablosu `geri07()`'den üretildi; satır sayıları `tab07()` ile betiğe karşı denetlenir. **GAP kararının ve örneklemin düzeltmesinin etkisi:** beş ileri satırın "Uç" hücresi değişti — `04` 5.13.19 (GAP adayı → eşlendi; UC-26), 3.1.10, 3.3.15 ve 6.2.13.12 (UC-26), `05 §6.4.6` (UC-175, UC-176, UC-177; örneklem) — ve `05 §6.7.9`'un özeti; `uc07()` 6.861 → 6.868 değer, farkı yalnız bu yedi değerdir (`diff`); 1a'nın durum dağılımı eşlendi 502, konvansiyon 8, uç doğurmaz 73, GAP adayı yok. **Geri besleme kümeyi değiştirmedi** (checklist §2): `exp04()`, `exp03()`, `opt03()`, `e1f_dev()`, `gov07()`, `exp05()`, `e1a()`…`e1f()`, `mat07()`'nin altı süzgeci ve `aday07()` geri beslemeden önce ve sonra dosyaya yazılıp `cmp` ile karşılaştırıldı — satır satır aynıdır: Teknik Mimari'nin 6.7.9'u ve Ürün Gereksinimleri'nin §12.2.5'i var olan birimlerin metnidir, Doğrulama Protokolü'nün park satırı matrisin ailesi değildir ve geri beslenen metin hiçbir gövdede bu dokümanı anan yeni cümle açmadı (anma yalnız başlık notlarında ve dipnotlarda). Kapsama denetimlerinin hepsi boştur. **Betik iki yönlü sınandı** (2026-10-18): belgenin bir kopyasında listeye kaynak satırı olmayan bir aday (`UC-188`) eklendiğinde gerekçesiz ekleme denetimi, §1.2'de bir adayın satır sayısı bozulduğunda tablo denetimi, `04` 5.13.19'un durumu yeniden "GAP adayı (AA-1)" yazıldığında `gap07()`, §1.3'ün GAP-14 satırından "(aday AA-1)" silindiğinde `gapk07()` ve makine ucu olmayan bir adayın (UC-109) ekran satırları başka adaya yazıldığında `geri07ek()` o adayı döndürdü. **Okuma derinliği:** 2. oturum AA-1'in dayandığı yerleri tam okudu — `04` 5.13.19, 5.13.5, 3.1.10, 3.3.15, 2.2.7, §3.6.2; `05 §6.7.7`, §6.7.9, §6.7.11; `02 §12.2.5`, §3.34.5; K-757, K-758, K-907'nin satırları; `12`'nin park satırı (K-904 · K-907 · K-908 · K-971) — ve geri izlenebilirliği betikle kurdu; örneklemin 42 satırını ilk doğrulayıcı kaynağın tam metnine karşı okudu (§1.2).
+
 #### 1.1.2 Aday uç listesi ve "Uç" sütununun değer kümesi
 
-Liste nihai envanter değildir (K-1153): uç envanteri `07 §3`'te, GAP kararlarından sonra yazım turunda doğar (şablonun başlık notu; API3-01) ve bir adayı bölebilir, birleştirebilir ya da bir işleyiciye çevirebilir; kimlik envantere geçer ve adres değişse de kalır (K-1148). Birim adres + yöntem + (varsa) sayfa işleyicisidir (K-1149): ekranın GET'i bir aday, ekranın her POST işlemi ayrı bir aday, makine ucu kendi adayıdır. Adresin biçimi (API2-01), işlemlerin aynı sayfanın adlandırılmış işleyicileri mi ayrı adresler mi olduğu (API2-02) ve oturum ve erişim (API2-03) workshop'un kararıdır; listenin "Not" sütunu yalnız adayın dayandığı kaynağı gösterir. 1a vitrinin bütün adaylarını, bilinen makine uçlarını (K-868; kaynak satırları 1f'de) ve panel ekranlarının GET adaylarını (§3'ün geçişleri onları hedef aldığı için) açtı; 1b panelin POST işlemlerini, görsel yüklemeyi ve dışa aktarmanın dosyalarını listenin sonuna ekledi — UC-110…UC-187 (K-1154). 1c aday eklemedi: durum × rol satırlarının, formların ve ortak alan kurallarının andığı her işlem ve her sorgu listededir (K-1156). 1d de eklemedi: Kullanıcı Akışları'nın `03 §1`–§4'ünün andığı her müşteri ve yönetici işlemi, her sayfa ve ödeme sağlayıcısının bildirimi listededir; geçişlerin ve sürelerin geri kalanı sistemin kendi işidir (K-1157). 1e de eklemedi: `03 §5`–§10'un andığı her işlem ve sayfa ve `03 §7`'nin bağlantılı bildirimlerinin indiği her uç listededir; kurulum tarafının ve ürünün dışındaki adımlar uç doğurmaz (K-1158). 1f de eklemedi: devirlerin ve Teknik Mimari'nin andığı her uç — makine uçlarının hepsi dahil — listededir; devirlerin işi uca ve karara bağlanacağı konuya düşer (K-1159). Panelin GET adayları 1a'nın biriminde kalır: UC-84 E-29'un üç adımının, UC-108 E-54'ün üç adımının GET'idir — 1a'nın satırları sıfırlama, doğrulama ve geri alma bağlantılarını onlara eşledi (3.5.5–3.5.7); adımların ayrı işleyicilere bölünmesi API2-02'nin işidir. Numara iki basamakla başlar, 100'den sonra üç basamaklıdır.
+Liste nihai envanter değildir (K-1153): uç envanteri `07 §3`'te, GAP kararlarından sonra yazım turunda doğar (şablonun başlık notu; API3-01) ve bir adayı bölebilir, birleştirebilir ya da bir işleyiciye çevirebilir; kimlik envantere geçer ve adres değişse de kalır (K-1148). Birim adres + yöntem + (varsa) sayfa işleyicisidir (K-1149): ekranın GET'i bir aday, ekranın her POST işlemi ayrı bir aday, makine ucu kendi adayıdır. Adresin biçimi (API2-01), işlemlerin aynı sayfanın adlandırılmış işleyicileri mi ayrı adresler mi olduğu (API2-02) ve oturum ve erişim (API2-03) workshop'un kararıdır; listenin "Not" sütunu yalnız adayın dayandığı kaynağı gösterir. 1a vitrinin bütün adaylarını, bilinen makine uçlarını (K-868; kaynak satırları 1f'de) ve panel ekranlarının GET adaylarını (§3'ün geçişleri onları hedef aldığı için) açtı; 1b panelin POST işlemlerini, görsel yüklemeyi ve dışa aktarmanın dosyalarını listenin sonuna ekledi — UC-110…UC-187 (K-1154). 1c aday eklemedi: durum × rol satırlarının, formların ve ortak alan kurallarının andığı her işlem ve her sorgu listededir (K-1156). 1d de eklemedi: Kullanıcı Akışları'nın `03 §1`–§4'ünün andığı her müşteri ve yönetici işlemi, her sayfa ve ödeme sağlayıcısının bildirimi listededir; geçişlerin ve sürelerin geri kalanı sistemin kendi işidir (K-1157). 1e de eklemedi: `03 §5`–§10'un andığı her işlem ve sayfa ve `03 §7`'nin bağlantılı bildirimlerinin indiği her uç listededir; kurulum tarafının ve ürünün dışındaki adımlar uç doğurmaz (K-1158). 1f de eklemedi: devirlerin ve Teknik Mimari'nin andığı her uç — makine uçlarının hepsi dahil — listededir; devirlerin işi uca ve karara bağlanacağı konuya düşer (K-1159). **2. oturum listeyi geri yönde kapattı (K-1160):** 187 adayın hepsi ileri satırlardan beslenir, gerekçesiz ekleme yoktur ve liste uç envanterine (§3) 187 adayla devredilir; değişen tek aday UC-26'dır — GAP-14 "Sepete dön"ü onun ikinci hedefi yaptı (K-1161). Panelin GET adayları 1a'nın biriminde kalır: UC-84 E-29'un üç adımının, UC-108 E-54'ün üç adımının GET'idir — 1a'nın satırları sıfırlama, doğrulama ve geri alma bağlantılarını onlara eşledi (3.5.5–3.5.7); adımların ayrı işleyicilere bölünmesi API2-02'nin işidir. Numara iki basamakla başlar, 100'den sonra üç basamaklıdır.
 
 | # | Aday uç | Yöntem | Ekran / yüzey | Aktör | Not |
 |---|---|---|---|---|---|
@@ -367,7 +404,7 @@ Liste nihai envanter değildir (K-1153): uç envanteri `07 §3`'te, GAP kararlar
 | UC-23 | Kuponu uygulama ya da değiştirme | POST | E-13 | Müşteri | L-6 |
 | UC-24 | Kuponu kaldırma | POST | E-13 | Müşteri | — |
 | UC-25 | Ödeme adımının ara gönderimi — özetin yeniden hesabı, kayıtlı e-postanın hatırlatması | POST | E-13 | Müşteri | 5.13.5, 5.13.30; işleyici biçimi API2-02, betiksiz yolu API8-02 |
-| UC-26 | Ödeme adımından girişe — formu çereze yazıp yönlendirme | POST | E-13 | Müşteri | `05 §6.7.9`; alanlar doğrulanmaz |
+| UC-26 | Ödeme adımından girişe ya da sepete — formu çereze yazıp yönlendirme | POST | E-13 | Müşteri | `05 §6.7.9`; alanlar doğrulanmaz; "Sepete dön" de (GAP-14, K-1161); bir ya da iki işleyici API2-02 |
 | UC-27 | Siparişi onaylama | POST | E-13 | Müşteri | Tek kullanımlık onay anahtarı (K-893); L-7, L-8 |
 | UC-28 | Sipariş teyit ve bekleme ekranı | GET | E-14 | Müşteri | Yalnız onaydan sonra; yenileme sipariş doğurmaz |
 | UC-29 | Ödeme sağlayıcısına geçiş | POST | E-14 (kart) | Müşteri | Bağlanılamazsa sipariş iptal, sepete (3.3.38) |
@@ -726,7 +763,7 @@ Ekran ekran, §5'in sırasıyla: önce ekranın kendisi (`04` E-n — ekranın v
 | `04` 5.13.16 | Ödeme yöntemini seçmek — onay POST'unun alanı; seçim özeti değiştirirse yeniden hesap | UC-27 · UC-25 | eşlendi |
 | `04` 5.13.17 | Kutuları işaretlemek — onay POST'unun alanları | UC-27 | eşlendi |
 | `04` 5.13.18 | Siparişi onaylamak: pencere yok; eksik bölümde sipariş oluşmaz, eksikler işaretlenir; sepet onay anında yeniden değerlendirilir; fark yoksa sipariş doğar (Alındı + Bekliyor) → E-14; aynı sepetin ödenmemiş önceki siparişi iptal edilir | UC-27 · UC-28 · konvansiyon — API2-05 | eşlendi |
-| `04` 5.13.19 | "Sepete dön" → E-12; yazılanlar o tarayıcıda ve o ziyaret boyunca durur — `05 §6.7.9` çereze yazmayı yalnız girişe giden iki öğe için sayar | UC-19 · UC-22 | GAP adayı (AA-1) |
+| `04` 5.13.19 | "Sepete dön" → E-12; yazılanlar o tarayıcıda ve o ziyaret boyunca durur — "Sepete dön" formu çereze yazıp sepete yönlendiren düğmedir (`05 §6.7.9`; GAP-14) | UC-26 · UC-19 · UC-22 | eşlendi |
 | `04` 5.13.20 | Onay anında fark çıkarsa sipariş oluşmaz: onay bölümüne dönülür, neyin değiştiğini söyleyen mesaj, güncel özet ve metinler; sürüm ya da içerik değiştiyse kutuların işareti kalkar; kalem kalmadıysa E-12 | UC-27 · UC-22 · UC-19 | eşlendi |
 | `04` 5.13.21 | Onaylanamayan hâller düğmenin yanında: L-7 nötr mesaj, satışın kapanmış olması; hiçbir yöntem kullanılamıyorsa sepete dönüş | UC-27 · UC-19 · konvansiyon — API2-08 | eşlendi |
 | `04` 5.13.22 | İletişim: e-posta zorunlu ve biçimi geçerli (misafir) | UC-27 | eşlendi |
@@ -970,7 +1007,7 @@ Bir geçişin ucu hedef ekranın ucudur — tetikleyici bir işlemse işlemin uc
 | `04` 3.1.7 | Hesap alanı (üye) "Siparişlerim" → E-27 | UC-74 | eşlendi |
 | `04` 3.1.8 | Hesap alanı (üye) "Çıkış" → §3.6.4 | UC-77 | eşlendi |
 | `04` 3.1.9 | Sepet → E-12 | UC-19 | eşlendi |
-| `04` 3.1.10 | E-13'ün sadeleşmiş üst bölümü: logo → E-01, "Sepete dön" → E-12 | UC-01 · UC-19 | eşlendi |
+| `04` 3.1.10 | E-13'ün sadeleşmiş üst bölümü: logo → E-01, "Sepete dön" → E-12 (formu çereze yazarak — GAP-14) | UC-01 · UC-26 · UC-19 | eşlendi |
 | `04` 3.1.11 | Menü "Ürünler" → birinci, ikinci ya da üçüncü seviye kategori → E-02; yayında ürünü olan kategori | UC-02 · konvansiyon — API5-01 | eşlendi |
 | `04` 3.1.12 | Menü Hizmetlerimiz · Referanslarımız → E-07; tipin yayında kaydı varsa | UC-07 · UC-08 | eşlendi |
 | `04` 3.1.13 | Menü Hakkımızda → E-08; Yayında'ysa | UC-09 | eşlendi |
@@ -1020,7 +1057,7 @@ Bir geçişin ucu hedef ekranın ucudur — tetikleyici bir işlemse işlemin uc
 | `04` 3.3.12 | E-05, E-06 ve boş hâl satırlarının dönüş bağlantıları → E-01 · E-02 (birinci seviye kategoriler) | UC-01 · UC-02 | eşlendi |
 | `04` 3.3.13 | E-12 kalemin adı ya da görseli → E-04; ürün Yayında | UC-04 | eşlendi |
 | `04` 3.3.14 | E-12 ödeme adımına geçiş → E-13; satış açık, girebilecek kalem var, asgari tutar karşılanıyor | UC-22 · konvansiyon — API8-01 | eşlendi |
-| `04` 3.3.15 | E-13 "Sepete dön" · girebilecek kalem kalmaması · hiçbir yöntemin kullanılamaması → E-12 | UC-19 · UC-27 | eşlendi |
+| `04` 3.3.15 | E-13 "Sepete dön" · girebilecek kalem kalmaması · hiçbir yöntemin kullanılamaması → E-12 | UC-26 · UC-19 · UC-27 | eşlendi |
 | `04` 3.3.16 | E-13 İletişim bölümünün "Giriş yap"ı ya da hatırlatması → E-22 → E-13; dönüş §3.6.2 | UC-26 · UC-54 · UC-22 | eşlendi |
 | `04` 3.3.17 | E-13 "Siparişi onayla — ödeme yükümlülüğü doğar" → E-14; özet değişmemiş, kutular işaretli | UC-27 · UC-28 | eşlendi |
 | `04` 3.3.18 | E-14 (kart) numara gösterildikten sonra → ödeme sağlayıcısının sayfası | UC-29 · uç doğurmaz — dış sayfa | eşlendi |
@@ -1673,7 +1710,7 @@ Ortak bileşen bileşen kimliğiyle tek satırdır; bileşenin bütün maddeleri
 | `04` 6.2.13.9 | Kupon alanı — kapalı, açık, uygulanmış, L-6 aşıldı: OB-17'nin varyantı; uygulamak, değiştirmek, kaldırmak — L-6'da alan kapalı | UC-23 · UC-24 · konvansiyon — API2-08 | eşlendi |
 | `04` 6.2.13.10 | Onay anında özet farkı, metin sürümü değişti, siparişe girebilecek kalem kalmadı: farkı söyleyen mesaj, kutuların işareti kalkar; yeniden onaylamak ya da → E-12 | UC-27 · UC-22 · UC-19 · konvansiyon — API2-07 | eşlendi |
 | `04` 6.2.13.11 | L-7 eşiği aşıldı: nötr mesaj, sipariş oluşmaz; onay sunulmaz | UC-27 · konvansiyon — API2-08 | eşlendi |
-| `04` 6.2.13.12 | Müşteri ekrandayken satış kapandı: onayda satışın kapalı olduğu, sepet korunur; "Sepete dön" | UC-27 · UC-19 · konvansiyon — API8-01 | eşlendi |
+| `04` 6.2.13.12 | Müşteri ekrandayken satış kapandı: onayda satışın kapalı olduğu, sepet korunur; "Sepete dön" | UC-27 · UC-26 · UC-19 · konvansiyon — API8-01 | eşlendi |
 | `04` 6.2.13.13 | Üyenin oturumu ödeme adımında kapandı: girişe götürür, dönüşte yazılanlar durur | UC-26 · UC-54 · UC-55 · UC-22 · konvansiyon — API2-03 | eşlendi |
 | `04` 6.2.13.14 | Sepete bağlı ödenmemiş önceki sipariş var: önceki siparişin numarası ve bu onayla iptal edileceği; onaylamak | UC-22 · UC-27 | eşlendi |
 | `04` 6.2.14 | E-14 bloğu: sipariş Alındı + Bekliyor'da; ekran rozet göstermez | UC-28 | eşlendi |
@@ -3193,7 +3230,7 @@ Kaynağın sırasıyla: `05 §2.1`'in MK-04 satırı ve on üç bölümün — �
 | `05 §6.4.3` | Sipariş erişim anahtarı — en az 128 bit, siparişte açık; yeniden gönderilen e-posta aynı bağlantıyı taşır; e-postanın düzeltilmesi yeni anahtar üretir | UC-34 · UC-151 · konvansiyon — API2-01 | eşlendi |
 | `05 §6.4.4` | Hesap bağlantılarının anahtarları — kayıt ve yeni e-posta doğrulaması, şifre sıfırlama, davet, geri alma; HMAC ile türetilir, yalnız özeti bağlantı kaydında | UC-52 · UC-58 · UC-75 · UC-85 · UC-84 · UC-108 · konvansiyon — API2-01 | eşlendi |
 | `05 §6.4.5` | Oturum anahtarı, tanınan tarayıcı işareti ve onay anahtarı aynı üreteçle | UC-55 · UC-110 · UC-27 | eşlendi |
-| `05 §6.4.6` | Bağlantının hâli kayıttan okunur — kayıt yok, ömrü dolmuş, kullanılmış, yerine yenisi geçmiş, geçerli; tek koşullu güncellemeyle tüketilir, güncellenen satır yoksa ekran o anki hâli gösterir; davetin ömrünü çeken olaylar | UC-52 · UC-53 · UC-58 · UC-59 · UC-75 · UC-76 · UC-85 · UC-113 · UC-108 · UC-186 · UC-187 · konvansiyon — API2-05 | eşlendi |
+| `05 §6.4.6` | Bağlantının hâli kayıttan okunur — kayıt yok, ömrü dolmuş, kullanılmış, yerine yenisi geçmiş, geçerli; tek koşullu güncellemeyle tüketilir, güncellenen satır yoksa ekran o anki hâli gösterir; davetin ömrünü çeken olaylar — geri çekme, aynı adrese yeni davet, gönderenin kaldırılması | UC-52 · UC-53 · UC-58 · UC-59 · UC-75 · UC-76 · UC-85 · UC-113 · UC-108 · UC-186 · UC-187 · UC-175 · UC-176 · UC-177 · konvansiyon — API2-05 | eşlendi |
 | `05 §6.4.7` | E-postayla gelen bağlantının açılması işlem yapmaz — GET yalnız ekranı açar, hiçbir kaydı değiştirmez; işlem ekrandaki tek düğmenin POST'u; sipariş e-postasının bağlantıları yalnız sipariş sayfasını açar, indirme bağlantısı e-postayla gitmez | UC-52 · UC-53 · UC-58 · UC-59 · UC-75 · UC-76 · UC-85 · UC-113 · UC-108 · UC-186 · UC-187 · UC-34 · UC-36 · konvansiyon — API2-02 | eşlendi |
 | `05 §6.4.8` | Anahtar sistem kayıtlarına yazılmaz — anahtar taşıyan adres maskelenir; bağlantı sayfaları başka siteye giden istekte adresi taşımaz | konvansiyon — API2-01 | konvansiyon |
 | `05 §6.4.9` | Elenenler — erişim anahtarının yalnız özetiyle saklanması (kalan risk), ham anahtarın gönderim kaydında tutulması, sıralı numara, imzalı kayıtsız bağlantı, açılışla doğrulama, betikle kendiliğinden gönderim, ömrü dolan kaydın silinmesi | UC-34 · UC-52 · konvansiyon — API2-01 · konvansiyon — API2-02 | eşlendi |
@@ -3217,7 +3254,7 @@ Kaynağın sırasıyla: `05 §2.1`'in MK-04 satırı ve on üç bölümün — �
 | `05 §6.7.7` | Ödeme adımında yazılanlar — şifreli ve imzalı form değerleri; sipariş onaylanınca ya da sepet boşalınca silinir | UC-22 · UC-26 · UC-27 | eşlendi |
 | `05 §6.7.12` | Google ile girişin akış çerezi — `state`, `nonce`, PKCE; yolu kök; akış kadar ömür | UC-50 · UC-51 · UC-62 · konvansiyon — API2-03 | eşlendi |
 | `05 §6.7.8` | Misafir sepeti çerezi 400 gün açılmazsa sunucudaki sepet gecelik temizlikte silinir; kalıcılığın dayanağı satış sözleşmesi | UC-19 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
-| `05 §6.7.9` | Ödeme adımında yazılanlar tarayıcıda oturumluk şifreli çerezde; girişe giden iki öğe formu gönderen düğmelerdir — alanlar doğrulanmadan çereze yazılır, JavaScript kapalıyken de; sunucuda kayıt oluşmaz (AA-1'in dayanağı) | UC-22 · UC-26 · UC-25 · konvansiyon — API2-02 · konvansiyon — API8-02 | eşlendi |
+| `05 §6.7.9` | Ödeme adımında yazılanlar tarayıcıda oturumluk şifreli çerezde; girişe giden iki öğe ve "Sepete dön" formu gönderen düğmelerdir — alanlar doğrulanmadan çereze yazılır, JavaScript kapalıyken de; sunucuda kayıt oluşmaz (AA-1'in dayanağı; "Sepete dön" GAP-14 ile — K-1161) | UC-22 · UC-26 · UC-25 · konvansiyon — API2-02 · konvansiyon — API8-02 | eşlendi |
 | `05 §6.7.10` | Çerez politikası ilk kez yayına alınana kadar vitrin çerez yazmaz — çerez başlıklarını çıkaran ara katman; panel kapsam dışı | konvansiyon — API2-03 | konvansiyon |
 | `05 §6.7.11` | Elenenler — SameSite=Strict, adreste sepet kimliği, misafir sepetinin hiç silinmemesi, oturum deposu ve JavaScript, sunucuda geçici kayıt, verinin adreste taşınması | konvansiyon — API2-03 · konvansiyon — API2-01 · konvansiyon — API8-02 | konvansiyon |
 | `05 §7.7.1` | Dosyalar sunucunun diskinde, dosya deposu arayüzüyle; görseller herkese açık, parmak izli adresle ters vekilden; dijital dosya genel adresle sunulmaz — indirme sipariş sayfasının erişimi denetlenerek; disk eşiğini aşacak yükleme kabulde reddedilir | UC-37 · UC-117 · UC-83 · konvansiyon — API4-07 | eşlendi |
@@ -3250,23 +3287,233 @@ Kaynağın sırasıyla: `05 §2.1`'in MK-04 satırı ve on üç bölümün — �
 | `05 §10.3.6` | Kayıt — beklenmeyen hata uygulama kaydına bir satır; kullanıcıya hata kodu, istek kimliği ve teknik ayrıntı gösterilmez; son on beş dakikanın sayısı durum ucunun koşulu | UC-82 · konvansiyon — API2-07 | eşlendi |
 | `05 §10.3.7` | Elenenler ve kalan durum — ekran başına yakalayıcı, iki yol, başvuru numarası; listede olmayan formun yeniden gönderimi sürüm çakışmasına ya da ikinci kayda düşer | UC-15 · konvansiyon — API2-07 · konvansiyon — API2-04 | eşlendi |
 
-#### 1.1.13 GAP adayları (`AA-n`)
+#### 1.1.13 GAP adayları (`AA-n`) — karara bağlandı (2)
 
-Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarasıyla durur (K-1148); aday, dayandığı bölüm tam okunmadan GAP diye yazılmaz ve cevabı kaynakta yazılı çıkan aday boşluk değil hizalama hatasıdır (checklist §2; K-739). Adayın kararı matrisin 2. oturumunundur — karar kaydının §3'üne GAP-14'ten ve §1.3'e (K-1150); bir W konusuna bağlanan aday o konuda karara bağlanır. **Kapı:** matrisin 2. oturumu.
+**2 (2026-10-18; K-1161).** Tek aday karara bağlandı — AA-1 → **GAP-14** (K-1161, öneriyle kaydedildi — ⚠); düşen aday yok; karar §1.3'te ve karar kaydının §3'ündedir. Adayın satırı (`04` 5.13.19, §1.1.3) "eşlendi" durumunu aldı ve UC-26'yı taşır; "Sepete dön"ü anan üç satır (`04` 3.1.10, 3.3.15, 6.2.13.12) UC-26'yı, `05 §6.7.9`'un satırı kararın özetini aldı; UC-26'nın adı iki hedefi söyler (§1.1.2). 2. oturum yeni aday açmadı: geri izlenebilirlik (§1.2) bir boşluk bulmadı, örneklemin tek ayrışması bir satırın eksik adaylarıdır (§1.2). Aşağıdaki tablo kararın girdisi olarak kalır.
+
+Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarasıyla durur (K-1148); aday, dayandığı bölüm tam okunmadan GAP diye yazılmaz ve cevabı kaynakta yazılı çıkan aday boşluk değil hizalama hatasıdır (checklist §2; K-739). Adayın kararı matrisin 2. oturumunundur — karar kaydının §3'üne GAP-14'ten ve §1.3'e (K-1150); bir W konusuna bağlanan aday o konuda karara bağlanır. Karara bağlanan adayın son hücresi kararın GAP numarasını taşır ve satırları §1.1'in tablolarında artık "GAP adayı (AA-n)" durumunu taşımaz (`gap07()`, §1.1.1). **Kapı:** matrisin 2. oturumu — geçildi.
 
 | # | Kaynak satırı | Aday | Dayandığı yerler (tam okundu) | Karar yeri ve seçenekler |
 |---|---|---|---|---|
-| AA-1 | `04` 5.13.19 (§1.1.3) | Ödeme adımından "Sepete dön"le ayrılan müşterinin yazdıkları "o tarayıcıda ve o ziyaret boyunca durur"; Teknik Mimari'nin çerezi formu yalnız girişe giden iki öğenin — "Giriş yapın" ve hatırlatma — gönderimiyle çereze yazar, "Sepete dön" sadeleşmiş çerçevenin bağlantısıdır ve formu göndermez; betiksiz yolda yazılanların durması bir form gönderimi ister (MK-05) | `04` 5.13.19, 3.1.10, 2.2.7, §3.6.2 · `05 §6.7.7`, §6.7.9 (MK-56) · K-758, K-907 | Matrisin 2. oturumu; konu API2-02 ile bağlıdır (sayfa ve form ucunun biçimi). (a) "Sepete dön" de formu çereze yazıp yönlendiren düğmedir — `05 §6.7.9`'un listesi genişler, uç UC-26'nın ikinci hedefi ya da yeni aday · (b) 5.13.19'un cümlesi girişe ve oturumun yenilenmesine daralır — `04` geri beslenir · (c) yazılanlar yalnız betikle, tarayıcıda tutulur — `05 §6.7.9`'un "JavaScript kapalıyken de" ilkesine aykırıdır |
+| AA-1 | `04` 5.13.19 (§1.1.3) | Ödeme adımından "Sepete dön"le ayrılan müşterinin yazdıkları "o tarayıcıda ve o ziyaret boyunca durur"; Teknik Mimari'nin çerezi formu yalnız girişe giden iki öğenin — "Giriş yapın" ve hatırlatma — gönderimiyle çereze yazar, "Sepete dön" sadeleşmiş çerçevenin bağlantısıdır ve formu göndermez; betiksiz yolda yazılanların durması bir form gönderimi ister (MK-05) | `04` 5.13.19, 3.1.10, 2.2.7, §3.6.2 · `05 §6.7.7`, §6.7.9 (MK-56) · K-758, K-907 | Matrisin 2. oturumu; konu API2-02 ile bağlıdır (sayfa ve form ucunun biçimi). (a) "Sepete dön" de formu çereze yazıp yönlendiren düğmedir — `05 §6.7.9`'un listesi genişler, uç UC-26'nın ikinci hedefi ya da yeni aday · (b) 5.13.19'un cümlesi girişe ve oturumun yenilenmesine daralır — `04` geri beslenir · (c) yazılanlar yalnız betikle, tarayıcıda tutulur — `05 §6.7.9`'un "JavaScript kapalıyken de" ilkesine aykırıdır **Karar: GAP-14 (K-1161) — seçenek (a).** |
 
 ### 1.2 Geri izlenebilirlik (endpoint → kaynak)
 
-| Endpoint | Beslendiği kaynak | Durum |
+**2 (2026-10-18; K-1160).** **Birim ve biçim.** Satırın birimi §1.1.2'nin aday ucudur (`UC-nn`) — uç envanteri yazım turunda doğar (API3-01) ve geri yönün denetimi adayın denetimidir (Veri modeli aşamasının kalıbı, K-1005). **Uç** adayı, adını ve yöntemini taşır. **Beslendiği kaynak** adayın §1.1.3–§1.1.12'deki satır sayısını ve aile dağılımını (`04` · `03` · devir · `05`) ve her ailedeki ilk satırını (`←`; Arayüz Tanımları'nda önce ekran) gösterir; adayın kaynak satırlarının tam listesi tabloda tekrar edilmez, `geri07()` ile üretilir (§1.1.1) — tablo §1.1'in satırlarını ters yönde ikinci kez yazmaz. **Durum** üç değerden biridir: **beslenir** — en az bir Arayüz Tanımları ya da Kullanıcı Akışları satırı (şablonun "ekran aksiyonu / akış adımı") · **beslenir — makine ucu** — K-868'in ve MK-04'ün makine uçları (UC-37, UC-79…UC-83): kaynakları Teknik Mimari'nin MK-04 satırı ve devirlerdir, ekran satırı da taşıyabilirler (API1-04) · **gerekçesiz ekleme** — kaynak satırı olmayan aday. Makine ucu olmayıp yalnız devir ya da Teknik Mimari satırı taşıyan aday ayrıca aranır ve listelenir (`geri07ek()`).
+
+**Sonuç.** 187 adayın hepsi beslenir — 5.051 aday–satır çifti; matrisin 2.648 ileri satırının 2.318'i en az bir aday taşır (§1.1.10'un kimliğiyle giren 14 bildirim satırı dahil); 181 aday "beslenir", 6'sı "beslenir — makine ucu"; makine ucu olmayıp ekran ya da akış satırı taşımayan aday yoktur — canlılık ve durum ucu (UC-81, UC-82) yalnız devir ve Teknik Mimari satırı taşır, ikisi de makine ucudur; gerekçesiz ekleme yoktur. Aday başına satır sayısı 4 (UC-109, yönetici çıkışı) ile 163 (UC-92, sipariş ayrıntısı) arasındadır. Çiftlerin aileye dağılımı: `04` 2.954 · `03` 1.575 · devir 278 · `05` 244. Betik iki yönlü sınandı (§1.1.1).
+
+**Aday uç listesinin kapanışı (K-1160).** Liste 187 adayla kapanır ve uç envanterine (§3) böyle devredilir: 2. oturum aday eklemedi, çıkarmadı, bölmedi. Değişen tek aday UC-26'dır — GAP-14 "Sepete dön"ü onun ikinci hedefi yaptı (adı ve notu); bir ya da iki işleyici olduğu API2-02'nin işidir. Envanter bir adayı bölebilir, birleştirebilir ya da bir işleyiciye çevirebilir; kimlik envantere geçer ve adres değişse de kalır (K-1148, K-1153).
+
+**Gerekçesiz ekleme listesi (checklist §2) — boş.** Kaynak satırı olmayan aday yoktur (betik). 1a'nın kaynak satırını sonraki oturumlara bırakarak açtığı üç makine adayı satırlarını aldı — bildirim ucu (UC-80) 1d'de, canlılık ve durum ucu (UC-81, UC-82) 1f'de; listenin bütün adayları ileri satırlardan beslenir.
+
+**Kesilmiş okumanın örneklemi (checklist §2, okuma derinliği).** Örneklem hücre başına kesilerek okunan satırlar içindir: 1a…1f satırlarını tam okudu ve altısı da bunu kayda yazdı (§1.1.1'in okuma derinliği paragrafları; karar kaydı §16.1'in matris maddesi) — **kesilmiş okumanın kümesi boştur** (Veri modeli aşamasının 2a'sının kaydı, `06 §1.2`). 2. oturum buna ek olarak ileri satırlardan tabakalı bir örneklemi kaynağın tam metnine karşı yeniden okuttu: her oturumdan yedi satır, 42 satır (seçim komutu §1.1.1'de, `ornek07()`). İlk doğrulayıcı 41 satırı tutarlı buldu, biri ayrıştı: `05 §6.4.6`'nın satırı davetin ömrünü çeken üç olayı — geri çekme, aynı adrese yeni davet, gönderenin kaldırılması — anıyor, olayların uçlarını (UC-176, UC-175, UC-177) taşımıyordu; satır düzeltildi (düşük önem — üç aday aynı olayları `03 §1.10.7`'nin satırında zaten taşıyordu). Ayrışma oranı %2,4'tür (1/42) — checklist §2'nin %10 eşiğinin altında; doğrulama bütün kümeye genişlemez.
+
+| Uç | Beslendiği kaynak | Durum |
 |---|---|---|
+| UC-01 — Ana sayfa (GET) | 35 satır — `04` 29 · `03` 4 · devir 1 · `05` 1. ← `04` E-01, `03 §2.1.1`, K-933, `05 §3.7.2` | beslenir |
+| UC-02 — Kategori sayfası (GET) | 39 satır — `04` 28 · `03` 4 · devir 5 · `05` 2. ← `04` E-02, `03 §1.8.1` `Published`, K-1070, `05 §3.7.1` | beslenir |
+| UC-03 — Arama sonuçları (GET) | 24 satır — `04` 20 · `03` 4. ← `04` E-03, `03 §1.8.1` `Published` | beslenir |
+| UC-04 — Ürün adresi (GET) | 86 satır — `04` 62 · `03` 12 · devir 8 · `05` 4. ← `04` E-04, `03 §1.1` m3, K-568, `05 §3.5.4` | beslenir |
+| UC-05 — Sepete ekleme (POST) | 34 satır — `04` 20 · `03` 13 · `05` 1. ← `04` E-04, `03 §1.10.8`, `05 §6.7.5` | beslenir |
+| UC-06 — Bulunamayan adres — "Sayfa bulunamadı" yanıtı (her GET'in yanıtı) | 32 satır — `04` 25 · `03` 4 · devir 1 · `05` 2. ← `04` E-06, `03 §1.8.1` `Draft`, K-568, `05 §3.7.1` | beslenir |
+| UC-07 — Hizmetlerimiz listesi (GET) | 18 satır — `04` 15 · `03` 1 · devir 2. ← `04` E-07, `03 §2.2.2`, K-1070 | beslenir |
+| UC-08 — Referanslarımız listesi (GET) | 19 satır — `04` 15 · `03` 1 · devir 2 · `05` 1. ← `04` E-07, `03 §2.2.2`, K-1070, `05 §3.7.2` | beslenir |
+| UC-09 — Hakkımızda (GET) | 28 satır — `04` 22 · `03` 4 · devir 2. ← `04` E-08, `03 §1.8.4` `Draft`, K-1070 | beslenir |
+| UC-10 — Hizmet tanıtımı sayfası (GET) | 44 satır — `04` 30 · `03` 7 · devir 4 · `05` 3. ← `04` E-08, `03 §1.8.4` `Draft`, K-1070, `05 §3.5.4` | beslenir |
+| UC-11 — Referans iş sayfası (GET) | 44 satır — `04` 30 · `03` 7 · devir 4 · `05` 3. ← `04` E-08, `03 §1.8.4` `Draft`, K-1070, `05 §3.5.4` | beslenir |
+| UC-12 — Genel sayfa (GET) | 38 satır — `04` 25 · `03` 6 · devir 4 · `05` 3. ← `04` E-08, `03 §1.8.4` `Draft`, K-1070, `05 §3.5.4` | beslenir |
+| UC-13 — Sık sorulan sorular (GET) | 19 satır — `04` 14 · `03` 3 · devir 1 · `05` 1. ← `04` E-09, `03 §2.2.2`, park A5-2, `05 §3.7.2` | beslenir |
+| UC-14 — İletişim sayfası (GET) | 43 satır — `04` 34 · `03` 8 · devir 1. ← `04` E-10, `03 §2.2` metin, park A5-2 | beslenir |
+| UC-15 — İletişim formunun gönderimi (POST) | 53 satır — `04` 29 · `03` 21 · `05` 3. ← `04` E-10, `03 §1.9.2` `Open`, `05 §6.3.1` | beslenir |
+| UC-16 — Aydınlatma metni (GET) | 18 satır — `04` 15 · `03` 3. ← `04` E-11, `03 §2.2.6` | beslenir |
+| UC-17 — Çerez politikası (GET) | 15 satır — `04` 14 · `03` 1. ← `04` E-11, `03 §2.2.6` | beslenir |
+| UC-18 — İşlem rehberi (GET) | 11 satır — `04` 10 · `03` 1. ← `04` E-11, `03 §2.2.6` | beslenir |
+| UC-19 — Sepet (GET) | 62 satır — `04` 39 · `03` 20 · devir 1 · `05` 2. ← `04` E-12, `03 §1.8.3`, park A5-2, `05 §6.7.5` | beslenir |
+| UC-20 — Sepet kaleminin adedini değiştirme (POST) | 18 satır — `04` 11 · `03` 3 · devir 3 · `05` 1. ← `04` E-12, `03 §2.3.3`, K-1011, `05 §6.2.4` | beslenir |
+| UC-21 — Sepet kalemini çıkarma (POST) | 12 satır — `04` 7 · `03` 1 · devir 3 · `05` 1. ← `04` E-12, `03 §2.3.3`, K-1011, `05 §6.2.4` | beslenir |
+| UC-22 — Ödeme adımı (GET) | 89 satır — `04` 56 · `03` 28 · devir 1 · `05` 4. ← `04` E-13, `03 §1.8.3`, K-893, `05 §4.5.1` | beslenir |
+| UC-23 — Kuponu uygulama ya da değiştirme (POST) | 21 satır — `04` 12 · `03` 7 · `05` 2. ← `04` E-13, `03 §1.10.2`, `05 §6.3.1` | beslenir |
+| UC-24 — Kuponu kaldırma (POST) | 9 satır — `04` 8 · `03` 1. ← `04` E-13, `03 §2.4.4` | beslenir |
+| UC-25 — Ödeme adımının ara gönderimi — özetin yeniden hesabı, kayıtlı e-postanın hatırlatması (POST) | 21 satır — `04` 13 · `03` 7 · `05` 1. ← `04` E-13, `03 §2.4.1`, `05 §6.7.9` | beslenir |
+| UC-26 — Ödeme adımından girişe ya da sepete — formu çereze yazıp yönlendirme (POST) | 18 satır — `04` 15 · `03` 1 · `05` 2. ← `04` E-13, `03 §2.4.1`, `05 §6.7.7` | beslenir |
+| UC-27 — Siparişi onaylama (POST) | 103 satır — `04` 54 · `03` 38 · devir 4 · `05` 7. ← `04` E-13, `03 §1.2` `Placed`, K-579, `05 §3.6.3` | beslenir |
+| UC-28 — Sipariş teyit ve bekleme ekranı (GET) | 20 satır — `04` 17 · `03` 3. ← `04` E-14, `03 §2.4.9` | beslenir |
+| UC-29 — Ödeme sağlayıcısına geçiş (POST) | 20 satır — `04` 11 · `03` 5 · `05` 4. ← `04` E-14, `03 §2.4.9`, `05 §3.6.2` | beslenir |
+| UC-30 — Ödeme sağlayıcısından dönüş (yolu ve yöntemi `08`'in park satırı) | 17 satır — `04` 7 · `03` 4 · devir 3 · `05` 3. ← `04` 5.12.15, `03 §2.5.1.2`, `05 §6.5.1` g1, `05 §3.6.4` | beslenir |
+| UC-31 — Sipariş takibi girişi (GET) | 18 satır — `04` 15 · `03` 3. ← `04` E-15, `03 §2.6.2` | beslenir |
+| UC-32 — Sipariş takibi sorgusu (POST) | 33 satır — `04` 17 · `03` 11 · devir 1 · `05` 4. ← `04` E-15, `03 §2.6` metin, K-562, `05 §6.2.4` | beslenir |
+| UC-33 — Sipariş sayfası (GET) | 162 satır — `04` 90 · `03` 61 · devir 7 · `05` 4. ← `04` E-16, `03 §1.1` m1, K-562, `05 §4.5.1` | beslenir |
+| UC-34 — Erişim anahtarlı sipariş adresi (GET) | 51 satır — `04` 20 · `03` 23 · devir 3 · `05` 5. ← `04` E-16, `03 §2.6` metin, K-562, `05 §6.2.4` | beslenir |
+| UC-35 — Geri ödeme IBAN'ının girişi ve düzeltmesi (POST) | 55 satır — `04` 18 · `03` 36 · devir 1. ← `04` E-16, `03 §1.7.3.4`, K-874 | beslenir |
+| UC-36 — İndirme bağlantısının üretimi (POST) | 18 satır — `04` 8 · `03` 5 · devir 3 · `05` 2. ← `04` E-16, `03 §1.7.2` m2, K-884, `05 §6.4.7` | beslenir |
+| UC-37 — İndirme ucu (GET) | 21 satır — `04` 3 · `03` 8 · devir 5 · `05` 5. ← `04` 5.16.13, `03 §1.7.1.11`, K-884, `05 §2.1` MK-04 | beslenir — makine ucu |
+| UC-38 — İptal ve gecikme feshi ekranı (GET) | 35 satır — `04` 27 · `03` 5 · devir 3. ← `04` E-17, `03 §2.7.1`, K-795 | beslenir |
+| UC-39 — Siparişin iptali (POST) | 31 satır — `04` 15 · `03` 14 · devir 1 · `05` 1. ← `04` E-17, `03 §1.2` S3, K-874, `05 §10.3.4` | beslenir |
+| UC-40 — Kalem iptali (POST) | 53 satır — `04` 22 · `03` 27 · devir 3 · `05` 1. ← `04` E-17, `03 §1.2` S2, K-787, `05 §10.3.4` | beslenir |
+| UC-41 — Gecikme feshi (POST) | 39 satır — `04` 20 · `03` 17 · devir 1 · `05` 1. ← `04` E-17, `03 §1.2` S4, K-1077, `05 §10.3.4` | beslenir |
+| UC-42 — Cayma beyanı ekranı (GET) | 44 satır — `04` 30 · `03` 11 · devir 3. ← `04` E-18, `03 §2.8.1.1`, K-795 | beslenir |
+| UC-43 — Cayma beyanı (POST) | 58 satır — `04` 25 · `03` 29 · devir 3 · `05` 1. ← `04` E-18, `03 §1.2` S2, K-787, `05 §10.3.4` | beslenir |
+| UC-44 — Ayıp talebi ekranı (GET) | 33 satır — `04` 24 · `03` 6 · devir 3. ← `04` E-19, `03 §1.11.9`, K-795 | beslenir |
+| UC-45 — Ayıp talebinin gönderimi (POST) | 30 satır — `04` 14 · `03` 13 · devir 3. ← `04` E-19, `03 §1.7.1.10`, K-787 | beslenir |
+| UC-46 — Ayıp talebinin yeniden açılması (POST) | 16 satır — `04` 9 · `03` 7. ← `04` E-19, `03 §1.9.1` | beslenir |
+| UC-47 — Kayıt ekranı (GET) | 26 satır — `04` 21 · `03` 5. ← `04` E-20, `03 §3.4.7` | beslenir |
+| UC-48 — Kayıt (POST) | 33 satır — `04` 22 · `03` 8 · `05` 3. ← `04` E-20, `03 §3.4.3`, `05 §3.5.2` | beslenir |
+| UC-49 — Kayıt doğrulama bağlantısını yeniden isteme (POST) | 23 satır — `04` 11 · `03` 10 · `05` 2. ← `04` E-20, `03 §1.10.5`, `05 §6.3.1` | beslenir |
+| UC-50 — Google ile giriş — yönlendirme (GET ya da POST (API2-03)) | 26 satır — `04` 14 · `03` 6 · devir 1 · `05` 5. ← `04` E-22, `03 §6.1.3.5`, K-588, `05 §3.5.2` | beslenir |
+| UC-51 — Google dönüşü (GET) | 30 satır — `04` 17 · `03` 9 · devir 1 · `05` 3. ← `04` 5.20.1, `03 §1.10.5`, K-588, `05 §6.1.4` | beslenir |
+| UC-52 — Doğrulama bağlantısının inişi — kayıt ve yeni e-posta (GET) | 38 satır — `04` 21 · `03` 8 · devir 4 · `05` 5. ← `04` E-21, `03 §3.4.1`, K-904, `05 §6.4.4` | beslenir |
+| UC-53 — Doğrulama (POST) | 28 satır — `04` 14 · `03` 8 · devir 4 · `05` 2. ← `04` E-21, `03 §1.10.5`, K-904, `05 §6.4.6` | beslenir |
+| UC-54 — Müşteri girişi ekranı (GET) | 36 satır — `04` 33 · `03` 2 · `05` 1. ← `04` E-22, `03 §9.2.1`, `05 §6.5.6` | beslenir |
+| UC-55 — Müşteri girişi (POST) | 59 satır — `04` 29 · `03` 13 · devir 5 · `05` 12. ← `04` E-22, `03 §1.10.6`, K-588, `05 §3.5.2` | beslenir |
+| UC-56 — Şifre sıfırlama — isteme adımı (GET) | 19 satır — `04` 18 · `03` 1. ← `04` E-23, `03 §9.2.4` | beslenir |
+| UC-57 — Şifre sıfırlama isteği (POST) | 24 satır — `04` 11 · `03` 12 · `05` 1. ← `04` E-23, `03 §3.4.4`, `05 §6.3.1` | beslenir |
+| UC-58 — Sıfırlama bağlantısının inişi — kurma adımı (GET) | 26 satır — `04` 13 · `03` 7 · devir 2 · `05` 4. ← `04` E-23, `03 §3.4.5`, K-904, `05 §6.4.4` | beslenir |
+| UC-59 — Yeni şifrenin kurulması (POST) | 22 satır — `04` 8 · `03` 10 · devir 1 · `05` 3. ← `04` E-23, `03 §1.10.6`, K-904, `05 §6.1.2` | beslenir |
+| UC-60 — Yeniden doğrulama ekranı (GET) | 21 satır — `04` 16 · `03` 2 · devir 1 · `05` 2. ← `04` E-24, `03 §6.2.5.1`, K-1062, `05 §6.1.5` | beslenir |
+| UC-61 — Şifreyle yeniden doğrulama (POST) | 24 satır — `04` 12 · `03` 5 · devir 3 · `05` 4. ← `04` E-24, `03 §3.4.17`, K-971, `05 §6.1.1` | beslenir |
+| UC-62 — Google ile yeniden doğrulama — yönlendirme ve dönüş (GET) | 22 satır — `04` 14 · `03` 2 · devir 1 · `05` 5. ← `04` E-24, `03 §6.2.5.1`, K-971, `05 §6.1.5` | beslenir |
+| UC-63 — Hesap — profil ve güvenlik (GET) | 37 satır — `04` 31 · `03` 5 · `05` 1. ← `04` E-25, `03 §3.4.9`, `05 §6.2.3` | beslenir |
+| UC-64 — Adı değiştirme (POST) | 10 satır — `04` 9 · `03` 1. ← `04` E-25, `03 §9.3.1` | beslenir |
+| UC-65 — Şifreyi değiştirme (POST) | 16 satır — `04` 8 · `03` 5 · devir 1 · `05` 2. ← `04` E-25, `03 §1.10.6`, K-971, `05 §6.1.2` | beslenir |
+| UC-66 — E-postayı değiştirme (POST) | 17 satır — `04` 10 · `03` 5 · devir 1 · `05` 1. ← `04` E-25, `03 §1.10.5`, K-971, `05 §6.1.5` | beslenir |
+| UC-67 — Bekleyen e-posta değişikliğinin bağlantısını yeniden isteme (POST) | 15 satır — `04` 8 · `03` 6 · `05` 1. ← `04` E-25, `03 §3.1.1`, `05 §6.3.2` | beslenir |
+| UC-68 — Hesabı silme (POST) | 21 satır — `04` 7 · `03` 11 · devir 1 · `05` 2. ← `04` E-25, `03 §1.6.1` metin, K-971, `05 §6.1.2` | beslenir |
+| UC-69 — Hesap silmenin sonuç hâli (GET) | 6 satır — `04` 5 · `03` 1. ← `04` E-25, `03 §9.4.2` | beslenir |
+| UC-70 — Adres defteri (GET) | 16 satır — `04` 14 · `03` 1 · `05` 1. ← `04` E-26, `03 §9.3.2`, `05 §6.2.3` | beslenir |
+| UC-71 — Adres ekleme (POST) | 13 satır — `04` 12 · `03` 1. ← `04` E-26, `03 §9.3.2` | beslenir |
+| UC-72 — Adres düzenleme (POST) | 16 satır — `04` 11 · `03` 1 · devir 3 · `05` 1. ← `04` E-26, `03 §9.3.2`, K-1011, `05 §6.2.4` | beslenir |
+| UC-73 — Adres silme (POST) | 9 satır — `04` 4 · `03` 1 · devir 3 · `05` 1. ← `04` E-26, `03 §9.3.2`, K-1011, `05 §6.2.4` | beslenir |
+| UC-74 — Sipariş geçmişi (GET) | 31 satır — `04` 23 · `03` 7 · `05` 1. ← `04` E-27, `03 §2.6` metin, `05 §6.2.3` | beslenir |
+| UC-75 — Geri alma bağlantısının inişi (GET) | 25 satır — `04` 13 · `03` 5 · devir 3 · `05` 4. ← `04` E-28, `03 §3.4.13`, K-904, `05 §6.4.4` | beslenir |
+| UC-76 — E-posta değişikliğini geri alma (POST) | 24 satır — `04` 10 · `03` 8 · devir 2 · `05` 4. ← `04` E-28, `03 §1.10.5`, K-904, `05 §6.1.2` | beslenir |
+| UC-77 — Müşteri çıkışı (POST) | 6 satır — `04` 3 · `03` 2 · devir 1. ← `04` 3.1.8, `03 §2.3.7`, K-899 | beslenir |
+| UC-78 — Beklenmeyen hata sayfası (sayfa isteğinin yanıtı) | 37 satır — `04` 34 · devir 2 · `05` 1. ← `04` 5.1.12, K-914, `05 §10.3.2` | beslenir |
+| UC-79 — Site haritası ve robots.txt (GET) | 8 satır — `04` 2 · devir 3 · `05` 3. ← `04` 5.5.4, K-868, `05 §2.1` MK-04 | beslenir — makine ucu |
+| UC-80 — Ödeme sağlayıcısının bildirim ucu (POST) | 51 satır — `03` 27 · devir 14 · `05` 10. ← `03 §1.2` S1, K-868, `05 §2.1` MK-04 | beslenir — makine ucu |
+| UC-81 — Canlılık ucu (GET) | 7 satır — devir 3 · `05` 4. ← K-918, `05 §2.1` MK-04 | beslenir — makine ucu |
+| UC-82 — Durum ucu (GET) | 21 satır — devir 3 · `05` 18. ← K-918, `05 §2.1` MK-04 | beslenir — makine ucu |
+| UC-83 — Parçalı dosya yükleme ucu (POST) | 38 satır — `04` 11 · `03` 4 · devir 16 · `05` 7. ← `04` E-33, `03 §3.5.1.6`, K-868, `05 §2.1` MK-04 | beslenir — makine ucu |
+| UC-84 — Panel girişi ve şifre sıfırlama (GET) | 44 satır — `04` 35 · `03` 4 · devir 1 · `05` 4. ← `04` E-29, `03 §7.1.50`, K-912, `05 §3.5.3` | beslenir |
+| UC-85 — Yönetici daveti kabul ekranı (GET) | 29 satır — `04` 15 · `03` 6 · devir 2 · `05` 6. ← `04` E-30, `03 §1.10.7`, K-904, `05 §3.5.3` | beslenir |
+| UC-86 — Panel ana sayfası (GET) | 68 satır — `04` 39 · `03` 26 · devir 2 · `05` 1. ← `04` E-31, `03 §1.7.3` metin, K-932, `05 §3.5.1` | beslenir |
+| UC-87 — Ürün listesi (GET) | 22 satır — `04` 18 · `03` 2 · devir 2. ← `04` E-32, `03 §8.1` metin, K-737 | beslenir |
+| UC-88 — Ürün formu (GET) | 41 satır — `04` 36 · `03` 5. ← `04` E-33, `03 §1.1` m3 | beslenir |
+| UC-89 — Kategori ağacı (GET) | 13 satır — `04` 11 · `03` 2. ← `04` E-34, `03 §8.1` metin | beslenir |
+| UC-90 — Kuponlar (GET) | 16 satır — `04` 13 · `03` 3. ← `04` E-35, `03 §8.1` metin | beslenir |
+| UC-91 — Sipariş listesi (GET) | 64 satır — `04` 43 · `03` 19 · devir 2. ← `04` E-36, `03 §1.7.3`, K-802 | beslenir |
+| UC-92 — Sipariş ayrıntısı (GET) | 163 satır — `04` 83 · `03` 76 · devir 4. ← `04` E-37, `03 §1.1` m1, K-795 | beslenir |
+| UC-93 — Talepler (GET) | 34 satır — `04` 28 · `03` 6. ← `04` E-38, `03 §1.1` m5 | beslenir |
+| UC-94 — İletişim talebi ayrıntısı (GET) | 24 satır — `04` 18 · `03` 6. ← `04` E-39, `03 §1.1` m6 | beslenir |
+| UC-95 — Üye kaydı görünümü (GET) | 32 satır — `04` 29 · `03` 3. ← `04` E-40, `03 §3.4.15` | beslenir |
+| UC-96 — Kurumsal içerik (GET) | 33 satır — `04` 30 · `03` 3. ← `04` E-41, `03 §1.1` m4 | beslenir |
+| UC-97 — Ana sayfa ve menü (GET) | 14 satır — `04` 13 · `03` 1. ← `04` E-42, `03 §8.6.2.1` | beslenir |
+| UC-98 — Marka (GET) | 18 satır — `04` 16 · `03` 2. ← `04` E-43, `03 §8.6` metin | beslenir |
+| UC-99 — Firma kimliği ve satış (GET) | 40 satır — `04` 37 · `03` 3. ← `04` E-44, `03 §3.5.4.13` | beslenir |
+| UC-100 — Ödeme yöntemleri (GET) | 29 satır — `04` 26 · `03` 3. ← `04` E-45, `03 §3.5.4.3` | beslenir |
+| UC-101 — Kargo, süreler ve varsayılanlar (GET) | 32 satır — `04` 29 · `03` 3. ← `04` E-46, `03 §3.5.4.13` | beslenir |
+| UC-102 — Yasal metinler (GET) | 29 satır — `04` 27 · `03` 2. ← `04` E-47, `03 §8.7` metin | beslenir |
+| UC-103 — Yönetici hesapları (GET) | 22 satır — `04` 16 · `03` 6. ← `04` E-49, `03 §1.7.3.1` | beslenir |
+| UC-104 — Yöneticinin kendi hesabı (GET) | 24 satır — `04` 23 · `03` 1. ← `04` E-50, `03 §9.3.7` | beslenir |
+| UC-105 — Satış özeti (GET) | 23 satır — `04` 21 · `03` 2. ← `04` E-51, `03 §8.9` metin | beslenir |
+| UC-106 — İşlem izi (GET) | 32 satır — `04` 22 · `03` 10. ← `04` E-52, `03 §2.10.5` m5 | beslenir |
+| UC-107 — Dışa aktarma (GET) | 13 satır — `04` 11 · `03` 2. ← `04` E-53, `03 §8.9` metin | beslenir |
+| UC-108 — Yönetici hesabının doğrulama ekranları (GET) | 31 satır — `04` 20 · `03` 3 · devir 2 · `05` 6. ← `04` E-54, `03 §7.1.51`, K-904, `05 §3.5.3` | beslenir |
+| UC-109 — Yönetici çıkışı (POST) | 4 satır — `04` 3 · devir 1. ← `04` 3.2.22, K-899 | beslenir |
+| UC-110 — Panel girişi (POST) | 35 satır — `04` 13 · `03` 8 · devir 5 · `05` 9. ← `04` E-29, `03 §1.10.6`, K-588, `05 §3.5.2` | beslenir |
+| UC-111 — Panel şifre sıfırlama isteği (POST) | 14 satır — `04` 9 · `03` 3 · devir 1 · `05` 1. ← `04` E-29, `03 §6.1.1.2`, K-588, `05 §6.3.1` | beslenir |
+| UC-112 — Panelde yeni şifrenin kurulması (POST) | 14 satır — `04` 7 · `03` 6 · `05` 1. ← `04` E-29, `03 §1.10.6`, `05 §6.1.2` | beslenir |
+| UC-113 — Davetle yönetici hesabını açma (POST) | 21 satır — `04` 11 · `03` 6 · devir 2 · `05` 2. ← `04` E-30, `03 §1.10.7`, K-588, `05 §6.4.6` | beslenir |
+| UC-114 — Ürünü kaydetme (POST) | 76 satır — `04` 44 · `03` 22 · devir 8 · `05` 2. ← `04` E-33, `03 §1.8.2`, K-873, `05 §6.5.3` | beslenir |
+| UC-115 — Ürünün ya da varyantın yayın geçişi (POST) | 24 satır — `04` 13 · `03` 11. ← `04` E-33, `03 §1.8.1` | beslenir |
+| UC-116 — Ürünü ya da varyantı kalıcı silme (POST) | 16 satır — `04` 10 · `03` 6. ← `04` E-33, `03 §1.4.4.9` | beslenir |
+| UC-117 — Görsel yükleme (POST) | 29 satır — `04` 17 · `03` 3 · devir 5 · `05` 4. ← `04` E-33, `03 §8.1.5`, K-902, `05 §3.6.5` | beslenir |
+| UC-118 — Kategori ekleme (POST) | 11 satır — `04` 10 · `03` 1. ← `04` E-34, `03 §8.1.14` | beslenir |
+| UC-119 — Kategoriyi yeniden adlandırma (POST) | 8 satır — `04` 7 · `03` 1. ← `04` E-34, `03 §8.1.14` | beslenir |
+| UC-120 — Kategoriyi taşıma (POST) | 9 satır — `04` 7 · `03` 2. ← `04` E-34, `03 §3.5.1.3` | beslenir |
+| UC-121 — Kategoriyi silme (POST) | 7 satır — `04` 5 · `03` 2. ← `04` E-34, `03 §3.5.1.2` | beslenir |
+| UC-122 — Kuponu kaydetme (POST) | 26 satır — `04` 17 · `03` 6 · devir 3. ← `04` E-35, `03 §1.10.2`, K-873 | beslenir |
+| UC-123 — Havale siparişini "Ödendi" işaretleme (POST) | 34 satır — `04` 3 · `03` 29 · devir 2. ← `04` 9.9.5, `03 §1.2` S1, K-874 | beslenir |
+| UC-124 — Kargoya verme (POST) | 22 satır — `04` 8 · `03` 14. ← `04` 9.9.5, `03 §1.2` S5 | beslenir |
+| UC-125 — Kargoya yeniden verme (POST) | 16 satır — `04` 8 · `03` 8. ← `04` 9.9.5, `03 §1.2` S8 | beslenir |
+| UC-126 — Teslim işareti ve tarihi (POST) | 25 satır — `04` 7 · `03` 18. ← `04` 9.9.5, `03 §1.2` S6 | beslenir |
+| UC-127 — "Teslim edilemedi" işareti (POST) | 15 satır — `04` 3 · `03` 12. ← `04` 9.9.5, `03 §1.2` S7 | beslenir |
+| UC-128 — Teslim edilemedi siparişini kapatma (POST) | 11 satır — `04` 3 · `03` 8. ← `04` 9.9.5, `03 §1.2` S9 | beslenir |
+| UC-129 — Firma iptali (POST) | 65 satır — `04` 19 · `03` 44 · devir 2. ← `04` 9.9.5, `03 §1.2` S2, K-794 | beslenir |
+| UC-130 — Başka kanaldan gelen cayma ya da gecikme feshi bildiriminin kaydı (POST) | 46 satır — `04` 16 · `03` 30. ← `04` 9.9.5, `03 §1.2` S2 | beslenir |
+| UC-131 — Geri ödemeyi işleme (POST) | 45 satır — `04` 11 · `03` 34. ← `04` 9.9.21, `03 §1.3` Ö3 | beslenir |
+| UC-132 — "Havale gerçekleşmedi" (POST) | 11 satır — `04` 4 · `03` 7. ← `04` 9.9.21, `03 §1.7.1.9` | beslenir |
+| UC-133 — Tutar bazlı kısmi geri ödeme (POST) | 22 satır — `04` 8 · `03` 14. ← `04` 9.9.5, `03 §1.3` Ö3 | beslenir |
+| UC-134 — IBAN isteme (POST) | 25 satır — `04` 14 · `03` 11. ← `04` 9.9.5, `03 §1.7.1.9` | beslenir |
+| UC-135 — Kart iadesini yeniden deneme (POST) | 14 satır — `04` 6 · `03` 8. ← `04` 9.9.4, `03 §1.7.3.3` | beslenir |
+| UC-136 — Havale yolunu açma (POST) | 15 satır — `04` 6 · `03` 9. ← `04` 9.9.4, `03 §1.7.1.9` | beslenir |
+| UC-137 — Sonucu beklenen kart iadesini "gerçekleşmedi" işaretleme (POST) | 16 satır — `04` 6 · `03` 9 · devir 1. ← `04` 9.9.4, `03 §1.7.3.3`, K-978 | beslenir |
+| UC-138 — Kalem çıkarma ya da adet azaltma (POST) | 29 satır — `04` 11 · `03` 16 · devir 2. ← `04` 9.9.25, `03 §1.2` S2, K-794 | beslenir |
+| UC-139 — Hizmet kalemini tamamlama (POST) | 25 satır — `04` 8 · `03` 17. ← `04` 9.9.5, `03 §1.2` S2 | beslenir |
+| UC-140 — İade malını teslim alma ya da reddetme (POST) | 62 satır — `04` 17 · `03` 43 · devir 2. ← `04` 9.9.27, `03 §1.4.4.5`, K-794 | beslenir |
+| UC-141 — İade malını stoğa ekleme (POST) | 17 satır — `04` 6 · `03` 10 · devir 1. ← `04` 9.9.27, `03 §1.4.4.6`, K-794 | beslenir |
+| UC-142 — "Mal dönmedi" kapanışı (POST) | 23 satır — `04` 6 · `03` 15 · devir 2. ← `04` 9.9.28, `03 §1.7.1.8`, K-794 | beslenir |
+| UC-143 — İndirme hakkını yenileme (POST) | 11 satır — `04` 3 · `03` 8. ← `04` 9.9.29, `03 §1.7.1.11` | beslenir |
+| UC-144 — Ayıp talebini çözüldü işaretleme (POST) | 9 satır — `04` 4 · `03` 5. ← `04` 9.9.7, `03 §1.9.1` `Open` | beslenir |
+| UC-145 — Ayıp talebini yeniden açma — panel (POST) | 9 satır — `04` 4 · `03` 5. ← `04` 9.9.7, `03 §1.9.1` | beslenir |
+| UC-146 — Adres düzeltmesi (POST) | 19 satır — `04` 10 · `03` 9. ← `04` 9.9.5, `03 §1.6.2` metin | beslenir |
+| UC-147 — Kargo şirketi ve takip numarası düzeltmesi (POST) | 12 satır — `04` 7 · `03` 5. ← `04` 9.9.5, `03 §1.6.2` metin | beslenir |
+| UC-148 — Teslim tarihi düzeltmesi (POST) | 15 satır — `04` 7 · `03` 8. ← `04` 9.9.5, `03 §1.6.2` metin | beslenir |
+| UC-149 — Ulaşma tarihi düzeltmesi (POST) | 11 satır — `04` 5 · `03` 6. ← `04` 9.9.31, `03 §1.6.2` metin | beslenir |
+| UC-150 — Durum geçişi düzeltmesi (POST) | 31 satır — `04` 11 · `03` 20. ← `04` 9.9.5, `03 §1.2` `Delivered` | beslenir |
+| UC-151 — Misafir siparişinin e-postasını düzeltme (POST) | 21 satır — `04` 7 · `03` 13 · `05` 1. ← `04` 9.9.5, `03 §1.7.3.6`, `05 §6.4.3` | beslenir |
+| UC-152 — İç notu kaydetme (POST) | 15 satır — `04` 6 · `03` 7 · devir 2. ← `04` 9.9.11, `03 §1.11.27`, K-1051 | beslenir |
+| UC-153 — Ulaşmayan e-postayı yeniden gönderme (POST) | 17 satır — `04` 5 · `03` 11 · devir 1. ← `04` 9.9.4, `03 §1.7.3.1`, K-1066 | beslenir |
+| UC-154 — Ulaşmayan bütün e-postaları yeniden gönderme (POST) | 11 satır — `04` 4 · `03` 6 · devir 1. ← `04` 9.9.4, `03 §1.7.3.1`, K-1066 | beslenir |
+| UC-155 — İletişim talebini kapatma (POST) | 9 satır — `04` 5 · `03` 4. ← `04` E-39, `03 §1.9.2` `Open` | beslenir |
+| UC-156 — İletişim talebini yeniden açma (POST) | 7 satır — `04` 5 · `03` 2. ← `04` E-39, `03 §1.9.2` `Closed` | beslenir |
+| UC-157 — Üye hesabını silme — panel (POST) | 17 satır — `04` 8 · `03` 9. ← `04` E-40, `03 §1.6.1.8` | beslenir |
+| UC-158 — İçerik kaydını kaydetme (POST) | 50 satır — `04` 30 · `03` 12 · devir 7 · `05` 1. ← `04` E-41, `03 §1.8.4` `Published`, K-873, `05 §6.5.3` | beslenir |
+| UC-159 — İçerik kaydının yayın geçişi (POST) | 28 satır — `04` 11 · `03` 17. ← `04` E-41, `03 §1.8.4` | beslenir |
+| UC-160 — İçerik kaydını kalıcı silme (POST) | 8 satır — `04` 5 · `03` 3. ← `04` E-41, `03 §1.8.4` metin | beslenir |
+| UC-161 — İçerik kaydının elle sırası (POST) | 7 satır — `04` 4 · `03` 1 · devir 2. ← `04` E-41, `03 §8.6.1.5`, K-1063 | beslenir |
+| UC-162 — Ana sayfa ve menü ayarlarını kaydetme (POST) | 22 satır — `04` 16 · `03` 3 · devir 3. ← `04` E-42, `03 §8.6.2.1`, K-1014 | beslenir |
+| UC-163 — Marka ayarlarını kaydetme (POST) | 30 satır — `04` 19 · `03` 5 · devir 6. ← `04` E-43, `03 §3.5.4.6`, K-873 | beslenir |
+| UC-164 — Firma kimliğini kaydetme (POST) | 35 satır — `04` 28 · `03` 3 · devir 4. ← `04` E-44, `03 §3.5.4.1`, K-873 | beslenir |
+| UC-165 — Satışı geçici olarak kapatma (POST) | 16 satır — `04` 9 · `03` 5 · devir 2. ← `04` E-44, `03 §1.10.8`, K-1021 | beslenir |
+| UC-166 — Satışı yeniden açma (POST) | 9 satır — `04` 5 · `03` 2 · devir 2. ← `04` E-44, `03 §1.10.8`, K-1021 | beslenir |
+| UC-167 — Ödeme yöntemlerini kaydetme — havale anahtarı ve IBAN (POST) | 31 satır — `04` 17 · `03` 11 · devir 3. ← `04` E-45, `03 §3.5.4.2`, K-1014 | beslenir |
+| UC-168 — Kargo ücreti ve eşikleri kaydetme (POST) | 16 satır — `04` 11 · `03` 2 · devir 3. ← `04` E-46, `03 §8.7.2.3`, K-1014 | beslenir |
+| UC-169 — Teslimat illerini kaydetme (POST) | 14 satır — `04` 10 · `03` 2 · devir 2. ← `04` E-46, `03 §8.7.2.3`, K-1014 | beslenir |
+| UC-170 — Süreleri kaydetme (POST) | 15 satır — `04` 10 · `03` 3 · devir 2. ← `04` E-46, `03 §3.5.4.5`, K-1014 | beslenir |
+| UC-171 — Ürün varsayılanlarını kaydetme (POST) | 13 satır — `04` 9 · `03` 2 · devir 2. ← `04` E-46, `03 §3.5.4.5`, K-1014 | beslenir |
+| UC-172 — İade adresini kaydetme (POST) | 19 satır — `04` 13 · `03` 4 · devir 2. ← `04` E-46, `03 §3.5.4.10`, K-1014 | beslenir |
+| UC-173 — Yasal metnin taslağını kaydetme (POST) | 18 satır — `04` 12 · `03` 2 · devir 3 · `05` 1. ← `04` E-47, `03 §3.5.4.10`, K-873, `05 §6.5.3` | beslenir |
+| UC-174 — Yasal metni yayına alma (POST) | 13 satır — `04` 11 · `03` 2. ← `04` E-47, `03 §3.5.4.10` | beslenir |
+| UC-175 — Yönetici daveti gönderme (POST) | 24 satır — `04` 13 · `03` 10 · `05` 1. ← `04` E-49, `03 §1.10.7`, `05 §6.4.6` | beslenir |
+| UC-176 — Daveti geri çekme (POST) | 11 satır — `04` 5 · `03` 5 · `05` 1. ← `04` E-49, `03 §1.10.7`, `05 §6.4.6` | beslenir |
+| UC-177 — Yöneticiyi kaldırma (POST) | 22 satır — `04` 9 · `03` 10 · devir 1 · `05` 2. ← `04` E-49, `03 §1.10.5`, K-971, `05 §6.1.2` | beslenir |
+| UC-178 — Yöneticinin adını değiştirme (POST) | 9 satır — `04` 8 · `03` 1. ← `04` E-50, `03 §9.3.7` | beslenir |
+| UC-179 — Yöneticinin e-postasını değiştirme (POST) | 11 satır — `04` 8 · `03` 1 · devir 1 · `05` 1. ← `04` E-50, `03 §9.3.7`, K-971, `05 §6.1.5` | beslenir |
+| UC-180 — Yönetici e-posta değişikliğinin bağlantısını yeniden isteme (POST) | 11 satır — `04` 7 · `03` 3 · `05` 1. ← `04` E-50, `03 §3.1.1`, `05 §6.3.2` | beslenir |
+| UC-181 — Yöneticinin şifresini değiştirme (POST) | 13 satır — `04` 8 · `03` 2 · devir 1 · `05` 2. ← `04` E-50, `03 §1.10.6`, K-971, `05 §6.1.2` | beslenir |
+| UC-182 — Siparişlerin dışa aktarılması (GET ya da POST (API9-05)) | 15 satır — `04` 12 · `03` 3. ← `04` E-53, `03 §6.3.3.1` | beslenir |
+| UC-183 — Üye listesinin dışa aktarılması (GET ya da POST (API9-05)) | 10 satır — `04` 8 · `03` 2. ← `04` E-53, `03 §6.3.3.1` | beslenir |
+| UC-184 — İletişim taleplerinin dışa aktarılması (GET ya da POST (API9-05)) | 10 satır — `04` 8 · `03` 2. ← `04` E-53, `03 §6.3.3.1` | beslenir |
+| UC-185 — Yöneticinin şifreyle yeniden doğrulaması (POST) | 20 satır — `04` 12 · `03` 2 · devir 3 · `05` 3. ← `04` E-54, `03 §6.1.1.1`, K-971, `05 §6.1.5` | beslenir |
+| UC-186 — Yöneticinin yeni adresinin doğrulanması (POST) | 12 satır — `04` 5 · `03` 3 · devir 2 · `05` 2. ← `04` E-54, `03 §1.10.5`, K-904, `05 §6.4.6` | beslenir |
+| UC-187 — Yöneticinin e-posta değişikliğini geri alması (POST) | 15 satır — `04` 5 · `03` 5 · devir 2 · `05` 3. ← `04` E-54, `03 §1.10.5`, K-904, `05 §6.1.2` | beslenir |
 
 ### 1.3 Boşluklar (GAP) ve kararlar
 
+**Kapı: matrisin 2. oturumu — geçildi.** GAP kararları buraya ve karar kaydının §3'üne yazılır; "#" sütunu karar kaydının GAP ailesini GAP-14'ten sürdürür (K-1148). Adaylar §1.1.13'tedir.
+
+**2 (2026-10-18; K-1161).** Tek aday karara bağlandı, düşen aday yok. Karar bir W konusuna bağlanmadı: "Sepete dön"de yazılanların durması Arayüz Tanımları ile Teknik Mimari arasındaki bir ayrışmadır ve ürün davranışıdır — matrisin GAP satırında verildi; UC-26'nın bir ya da iki işleyici olduğu API2-02'nin işidir (karar kaydı §16.3). Matris tamamlandı: checklist §2'nin son iki maddesi — GAP'ler karara bağlandı, çıktı üretimine geçilir — karşılandı; §3'ün (uç envanteri) kapısı açıktır (şablonun başlık notu); sıradaki adım workshop'tur (K-1146).
+
 | # | Boşluk | Karar | Nereye yansıdı |
 |---|---|---|---|
+| GAP-14 | Ödeme adımından "Sepete dön"le ayrılan müşterinin yazdıkları Arayüz Tanımları'na göre "o tarayıcıda ve o ziyaret boyunca durur" (`04` 5.13.19); Teknik Mimari'nin çerezi formu yalnız girişe giden iki öğenin gönderimiyle yazıyordu ve "Sepete dön" formu göndermeyen bir bağlantıydı — betiksiz yolda yazılanlar kaybolurdu (aday AA-1) | **K-1161 (öneriyle kaydedildi — ⚠):** "Sepete dön" de ödeme adımının formunu gönderen ve bağlantı gibi görünen düğmedir — gönderim alanları doğrulamadan çereze yazar ve sepete yönlendirir, JavaScript kapalıyken de. Çerezin işlevi, ömrü ve dayanağı değişmez: sunucuda kayıt oluşmaz, sipariş onaylanınca ya da sepet boşalınca silinir, onay gerektirmez. Logo ve altbilgi bağlantıları formu göndermez. Uç: UC-26'nın ikinci hedefi | `05` 6.7.9 ve §6.7'nin Kaynak satırı (v0.26) · `02 §12.2.5` ve §12'nin Kaynak satırı (v0.90) · `12` park satırı (K-904 · K-907 · K-908 · K-971 · K-1161) · §1.1.2 (UC-26), §1.1.3, §1.1.4, §1.1.7, §1.1.12 (beş satır), §1.1.13, §1.2 · karar kaydı §3, K-907 (geri işaret) |
+
+**Üst dokümanlara geri besleme** (K-1147). Matrisin, workshop'un ve yazımın alıp Ürün Gereksinimleri'ne, Kullanıcı Akışları'na, Arayüz Tanımları'na, Teknik Mimari'ye, Veri Modeli'ne ya da MVP Kapsamı'na dönen her karar bu tabloya bir satırla girer (K-652; `checklists/document-stage.md` §3). Üst dokümanların ✓ durumu korunur, kalite döngüleri yeniden açılmaz; her birinin başlık notunda ve dipnotunda sürüm satırı vardır. Geri besleme matrisin kümesini değiştirirse kapsama betikleri yeniden koşar (checklist §2; §1.1.1'in 2. oturum paragrafı).
+
+| Bulgu | Karar | Değişen bölümler | Sürüm |
+|---|---|---|---|
+| GAP-14 — "Sepete dön"de ödeme adımında yazılanlar (matrisin 2. oturumu) | K-1161 (öneriyle kaydedildi — ⚠) | `05` 6.7.9; §6.7'nin Kaynak satırı · `02 §12.2.5`; §12'nin Kaynak satırı · `12` park satırı (2. kol ve etiket) | Teknik Mimari v0.26 · Ürün Gereksinimleri v0.90 · Doğrulama Protokolü şablonu — sürüm alanı değişmez |
 
 ---
 
@@ -3318,4 +3565,4 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 
 ---
 
-*Shopfolio — API Design v0.6*
+*Shopfolio — API Design v0.7*

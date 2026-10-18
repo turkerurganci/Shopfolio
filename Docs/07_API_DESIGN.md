@@ -1,6 +1,6 @@
 # Shopfolio — API Design
 
-**Versiyon: v0.9** | **Bağımlılıklar:** `02`, `03`, `04`, `05`, `06`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-18
+**Versiyon: v0.10** | **Bağımlılıklar:** `02`, `03`, `04`, `05`, `06`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-18
 
 > **Aşama:** 6 — API Tasarımı · **Rol:** API Designer
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §3'e (endpoint envanteri) geçilmez.
@@ -47,7 +47,9 @@
 >
 > **1. oturum (2026-10-18, v0.8):** yazım konvansiyonları ve alt bölüm haritası (blok API0; K-1173) · §2 konvansiyonlar — on konvansiyon (blok API2; K-1162…K-1169 ve API2-09, API2-10; K-1174) · §3 uç envanteri — 187 uç, ekran olmayan yüzeyler ve sitenin dışından girişler (blok API3; K-1175) · §8 istemci karmaşıklığını azaltan kalıplar (blok API8) · §7 gerçek zamanlı olaylar — yoktur (blok API7).
 >
-> **2a oturumu (2026-10-18, v0.9):** 2. oturum yazımdan önce ikiye bölündü — 2a §4.1…§4.19, 2b §4.20…§4.34 (K-1177) · §4'ün girişi — tanımın kalıbı ve ortak yanıtlar · §4.1…§4.19 — vitrinin okuma sayfaları, sepet, ödeme adımı, teyit ekranı, sipariş takibi, sipariş sayfası ve müşterinin üç işlem ekranı; 44 uç — UC-01…UC-46'nın, ekrana bağlı olmayan UC-30 ve UC-37 dışındakiler (bloklar API4-01…API4-04, API4-06; K-1170, K-1178…K-1182) · §2.2.3, §2.2.5 ve §2.5.1'e üç hizalama (K-1179, K-1180). **Sıradaki:** 2b oturumu — §4.20…§4.34 (hesap ekranları ve ekrana bağlı olmayan uçlar; ödeme sağlayıcısından dönüşün yolu, UC-69'un adresi ve bir kez gösterimi).
+> **2a oturumu (2026-10-18, v0.9):** 2. oturum yazımdan önce ikiye bölündü — 2a §4.1…§4.19, 2b §4.20…§4.34 (K-1177) · §4'ün girişi — tanımın kalıbı ve ortak yanıtlar · §4.1…§4.19 — vitrinin okuma sayfaları, sepet, ödeme adımı, teyit ekranı, sipariş takibi, sipariş sayfası ve müşterinin üç işlem ekranı; 44 uç — UC-01…UC-46'nın, ekrana bağlı olmayan UC-30 ve UC-37 dışındakiler (bloklar API4-01…API4-04, API4-06; K-1170, K-1178…K-1182) · §2.2.3, §2.2.5 ve §2.5.1'e üç hizalama (K-1179, K-1180).
+>
+> **2b oturumu (2026-10-18, v0.10):** §4.20…§4.34 — hesap ekranları (E-20…E-28), ödeme sağlayıcısından dönüş, bildirim ucu, dosya uçları, site haritası ve robots.txt, canlılık ve durum, çerçevenin uçları; 39 uç — UC-30, UC-37, UC-47…UC-83 (bloklar API4-02'nin dönüş kolu, API4-05, API4-07…API4-10; K-1183…K-1186) · ödeme sağlayıcısından dönüşün yolu `/odeme/donus/{erişim anahtarı}` (K-1185) · hesap silmenin sonuç hâli `/hesap/silindi` — UC-69 uç oldu (K-1184) · bir kez söylenen mesajın kaynağı kayıtta olmayan iki hâli — Veri Modeli'ne iki işaret (K-1183; `06` v0.28) · 2a'nın yirmi geçici hedef hücresi madde numarasına çevrildi (K-682) · §2.1.2, §2.2.3, §2.2.5, §2.3.1'e hizalama (K-1183, K-1184, K-1186). **Sıradaki:** yazım turunun 3. oturumu — §9 (panelin uçları).
 
 **Yazım konvansiyonları (K-1147, K-1173).** Bu on dört madde §2–§10'un bütün yazım oturumlarını bağlar; "yazım konvansiyonu n" diye anılır — §2'nin uçlara uygulanan "konvansiyon n"inden ayrıdır (K-1147 (1)).
 
@@ -74,7 +76,7 @@
 | §1 Traceability Matrix | Haritası §1'in başındadır (K-1152) | API1-01…API1-07 | matris ✓ — API1-07 özet ↔ ayrıntı taramasında |
 | §2 Konvansiyonlar | Konvansiyon tablosu (1–10) · 2.1 Adres yapısı ve önekler · 2.2 Sayfa ve form ucunun biçimi · 2.3 Kimlik doğrulama ve erişim reddi · 2.4 Sürümün ve gösterilen değerin formda taşınması · 2.5 Tek kullanımlık değerler, tekrar gönderim ve sahteciliğe karşı koruma · 2.6 Listeler · 2.7 Hata gösterimi ve HTTP durumları · 2.8 Hız sınırı ve gövde tavanı · 2.9 Tarih, sayı ve para biçimi · 2.10 Sürümleme | API2-01…API2-10 | 1 ✓ |
 | §3 Endpoint envanteri | 3.1 Okunuş · 3.2 Envanter (UC-01…UC-187) · 3.3 Ekran olmayan yüzeyler ve sitenin dışından girişler · 3.4 Aday listeden envantere | API3-01, API3-02 | 1 ✓ |
-| §4 Endpoint tanımları — vitrin ve makine uçları | Giriş — tanımın kalıbı (K-1149 (2)) · 4.1…4.28 E-01…E-28 (`04 §5.n` ile aynı numara) · 4.29 Ödeme sağlayıcısından dönüş · 4.30 Ödeme sağlayıcısının bildirim ucu · 4.31 Dosya uçları — indirme ve parçalı yükleme · 4.32 Site haritası ve robots.txt · 4.33 Canlılık ve durum uçları · 4.34 Çerçevenin uçları ve yanıtları — müşteri çıkışı, beklenmeyen hata | API4-01…API4-10 | 2a ✓ (giriş, 4.1…4.19) · 2b (4.20…4.34) — K-1177 |
+| §4 Endpoint tanımları — vitrin ve makine uçları | Giriş — tanımın kalıbı (K-1149 (2)) · 4.1…4.28 E-01…E-28 (`04 §5.n` ile aynı numara) · 4.29 Ödeme sağlayıcısından dönüş · 4.30 Ödeme sağlayıcısının bildirim ucu · 4.31 Dosya uçları — indirme ve parçalı yükleme · 4.32 Site haritası ve robots.txt · 4.33 Canlılık ve durum uçları · 4.34 Çerçevenin uçları ve yanıtları — müşteri çıkışı, beklenmeyen hata | API4-01…API4-10 | 2a ✓ (giriş, 4.1…4.19) · 2b ✓ (4.20…4.34) — K-1177 |
 | §5 DTO envanteri | 5.1 Okunuş ve bağlama · 5.2 Form girdi modelleri · 5.3 Sorgu modelleri · 5.4 Makine uçlarının gövdeleri · 5.5 Çerçevenin modeli | API5-01, API5-02 | 4 |
 | §6 Hata kodları | 6.1 Okunuş — kodun biçimi · 6.2 Hata kodları · 6.3 Kısa süreli bildirim kodları · 6.4 Özel hâller | API6-01, API6-02 | 4 |
 | §7 Gerçek zamanlı olaylar | Alt bölümsüz — yoktur | API7-01 | 1 ✓ |
@@ -3557,6 +3559,7 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 | Bulgu | Karar | Değişen bölümler | Sürüm |
 |---|---|---|---|
 | GAP-14 — "Sepete dön"de ödeme adımında yazılanlar (matrisin 2. oturumu) | K-1161 (öneriyle kaydedildi — ⚠) | `05` 6.7.9; §6.7'nin Kaynak satırı · `02 §12.2.5`; §12'nin Kaynak satırı · `12` park satırı (2. kol ve etiket) | Teknik Mimari v0.26 · Ürün Gereksinimleri v0.90 · Doğrulama Protokolü şablonu — sürüm alanı değişmez |
+| Bir kez söylenen mesajın kaynağı kayıtta olmayan iki hâl — girişteki sepet birleşmesi ve ödeme yöntemi kalmadığı için sepete dönüş; K-1163 (3) kaynağı kayıt sayar, Veri Modeli birleşmeyi "veri doğurmaz" diye eşliyordu (yazım turunun 2b oturumu) | K-1183 (öneriyle kaydedildi) | `06 §4.15` (`IsPaymentUnavailableNoticePending`), §4.16 (`IsMergeNoticePending`), §3'ün Cart ve CartItem satırları, §1.1'in `02 §3.16.4` ve `03 §10.1` satırları, §1.2'nin Cart ve CartItem satırları, başlık notu | Veri Modeli v0.28 |
 
 ---
 
@@ -3587,7 +3590,7 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 
 **2.1.1 Önekler** `02 §3.30.2`'nin boş ad kökleriyle aynıdır (K-1070 (5)): ürün `/urun/`, kategori `/kategori/`, hizmet tanıtımı `/hizmet/`, referans iş `/referans/`, genel sayfa `/sayfa/` — örnek `/urun/ahsap-masa`. Dil öneki yoktur (`02 §3.30.2`; `04 §8.1.2`).
 
-**2.1.2 İlk yol bölümü kapalı bir listedir:** beş önek · sabit sayfalar — ana sayfa `/`, `/arama`, `/hizmetler`, `/referanslar`, `/hakkimizda`, `/sss`, `/iletisim`, `/aydinlatma-metni`, `/cerez-politikasi`, `/islem-rehberi`, `/sepet`, `/odeme`, `/siparis-takibi` · hesap — `/kayit`, `/giris`, `/cikis`, `/sifre-sifirlama`, `/dogrulama`, `/geri-al`, `/hesap` (`/hesap/adresler`, `/hesap/siparisler`, `/hesap/yeniden-dogrulama`) · sipariş `/siparis` · `/panel` · makine ve dosya — `/sistem`, `/indir`, `/gorsel`, `/statik`, `/sitemap.xml`, `/robots.txt`. Kayıt adresi her zaman iki bölümlüdür ve `Slug` yalnız kendi önekinin altında ikinci bölümdür: hiçbir kayıt adresi bir sabit adresle ya da başka türün adresiyle çakışamaz — K-1070'in ayrıklık şartı yapıyla karşılanır. Listeye bölüm eklemek bu maddenin ve K-1162'nin güncellenmesidir. İlk bölümün altındaki yollar — sipariş kökünün ekranları (2.1.3), hesap bağlantıları (2.1.4), panelin ekranları (2.1.5), Google ile girişin dönüşü (`/giris/google`; §3) — kendi bölümünün altındadır ve listeyi değiştirmez.
+**2.1.2 İlk yol bölümü kapalı bir listedir:** beş önek · sabit sayfalar — ana sayfa `/`, `/arama`, `/hizmetler`, `/referanslar`, `/hakkimizda`, `/sss`, `/iletisim`, `/aydinlatma-metni`, `/cerez-politikasi`, `/islem-rehberi`, `/sepet`, `/odeme`, `/siparis-takibi` · hesap — `/kayit`, `/giris`, `/cikis`, `/sifre-sifirlama`, `/dogrulama`, `/geri-al`, `/hesap` (`/hesap/adresler`, `/hesap/siparisler`, `/hesap/yeniden-dogrulama`, `/hesap/silindi` — §4.25.7) · sipariş `/siparis` · `/panel` · makine ve dosya — `/sistem`, `/indir`, `/gorsel`, `/statik`, `/sitemap.xml`, `/robots.txt`. Kayıt adresi her zaman iki bölümlüdür ve `Slug` yalnız kendi önekinin altında ikinci bölümdür: hiçbir kayıt adresi bir sabit adresle ya da başka türün adresiyle çakışamaz — K-1070'in ayrıklık şartı yapıyla karşılanır. Listeye bölüm eklemek bu maddenin ve K-1162'nin güncellenmesidir. İlk bölümün altındaki yollar — sipariş kökünün ekranları (2.1.3), hesap bağlantıları (2.1.4), panelin ekranları (2.1.5), Google ile girişin dönüşü (`/giris/google`; §3), ödeme sağlayıcısından dönüş (`/odeme/donus/…`; §4.29) — kendi bölümünün altındadır ve listeyi değiştirmez.
 
 **2.1.3 Sipariş sayfası iki kökten açılır:** üyenin `/siparis/{sipariş numarası}` — hesabın sahipliğiyle — ve erişim anahtarlı `/siparis/erisim/{erişim anahtarı}` (`02 §3.22.5`; K-562). Siparişe bağlı ekranlar geldikleri kökün altındadır: `…/teyit` (E-14), `…/iptal` (E-17 — siparişin iptali ve kalem iptali; siparişin ödeme durumu ikisini ayırır), `…/gecikme-feshi` (E-17), `…/cayma` (E-18), `…/ayip-talebi` (E-19). Erişim anahtarı adreste dolgusuz base64url yazılır. §3 ve §4 iki kökü birlikte `{kök}` diye yazar.
 
@@ -3601,13 +3604,13 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 
 **2.1.8 Kalıcı silinen kaydın adresi** aynı adla açılan yeni kayda geçer, verilmemişse "sayfa bulunamadı" döner (`02 §3.30.2`, §3.30.4; K-568) — uç ayrı bir yanıt üretmez.
 
-**2.1.9 Makine uçları:** canlılık `/sistem/canlilik`, durum `/sistem/durum` (K-918), ödeme sağlayıcısının bildirimi `/sistem/odeme-bildirimi`, site haritası `/sitemap.xml` ve `/robots.txt` (protokolün sabit adları; `05 §3.7.4`), indirme `/indir/{imzalı değer}` (§4.31; K-1171), parçalı yükleme `/panel/yukleme` (§4.31; K-1171); ödeme sağlayıcısından dönüş `/odeme` bölümünün altındadır — yolu §4.29'da (yazım 2b; API4-02).
+**2.1.9 Makine uçları:** canlılık `/sistem/canlilik`, durum `/sistem/durum` (K-918), ödeme sağlayıcısının bildirimi `/sistem/odeme-bildirimi`, site haritası `/sitemap.xml` ve `/robots.txt` (protokolün sabit adları; `05 §3.7.4`), indirme `/indir/{imzalı değer}` (§4.31; K-1171), parçalı yükleme `/panel/yukleme` (§4.31; K-1171); ödeme sağlayıcısından dönüş `/odeme/donus/{erişim anahtarı}` (§4.29.1; K-1185).
 
 **2.1.10 Elenenler** (K-1162). **Öneksiz kayıt adresi (`/ahsap-masa`):** beş türün adresi ve sabit sayfalar tek isim alanına düşer; K-1070'in tür içi tekilliği türler arası çakışmayı serbest bırakır (`06 §4.72.1`). **İngilizce yol bölümleri (`/product/…`):** vitrinin dili Türkçedir (`04 §8.1.1`) ve `02 §3.30.1`'in örneğinden ayrılır. **Kategoriye bağlı ürün adresi:** `02 §3.30.1` ürünün adresini kategoriden bağımsız kurar. **Panel için `/admin` ya da `/yonetim`:** ürünün ve ekranların adı paneldir (`02 §10`, `04 §9`); ad gizlilik sağlamaz — panel varsayılan olarak kapalıdır (K-912). **Farklı yazımın kalıcı yönlendirmeyle düzeltilmesi:** `02 §3.30.3` yönlendirme sistemini eler. **Farklı yazıma "sayfa bulunamadı":** elle yazılan ya da başka sitede büyük harfle anılan bağlantı kırılırdı. **Erişim anahtarının sorgu parametresinde (`/siparis?anahtar=`):** siparişe bağlı ekranlar kökün altında duramazdı; yolun anahtar taşıyan bölümü zaten maskelenir (`05 §6.4.8`, §9.1.5).
 
 **2.1.11 Kenar durumlar.** Harf duyarsız eşleme aynı sayfayı iki yazımla açar — site haritası ve sayfanın kendi bağlantıları küçük harfli tek biçimi verir; başka sitenin büyük harfli bağlantısının ikinci yazımı kalan risktir, arama motoru verisine dokunmaz. `/siparis/erisim` bir sipariş numarasıyla çakışmaz — numara yılla başlar (`02 §3.22.1`). E-21 ve E-28 oturum istemez — `/hesap`'ın altında değildir (`04` 3.5.4, 3.5.7).
 
-*Kaynak: K-1162 · K-1070, K-1011 (3), K-932 (3), K-918, K-562, K-568 · K-1175 (panelin ekran adları) · `02 §3.22`, §3.30 · `04 §3.2`, §3.5, §8.1 · `05 §3.5.1`, §3.7.1, §3.7.4, §6.4 · `06 §2.3`, §4.72 · devir: `02 §3.30.1` (önekin kendisi — `PHASE1_CONFLICT_SCAN.md` §6.2), `04 §3.5` (sitenin dışından gelinen adreslerin biçimi — `PHASE3_CONFLICT_SCAN.md` §6.2), `05 §3.5.1`, §3.7.1 (panelin yolu ve önekler — `PHASE4_CONFLICT_SCAN.md` §6.2), park satırları (Aşama 5, iç anahtar ve dışa görünen kimlikler — K-1011 · K-1068; sayfa adreslerinin önekleri — K-1070).*
+*Kaynak: K-1162 · K-1070, K-1011 (3), K-932 (3), K-918, K-562, K-568 · K-1175 (panelin ekran adları) · K-1184 (`/hesap/silindi`), K-1185 (ödeme dönüşünün yolu) · `02 §3.22`, §3.30 · `04 §3.2`, §3.5, §8.1 · `05 §3.5.1`, §3.7.1, §3.7.4, §6.4 · `06 §2.3`, §4.72 · devir: `02 §3.30.1` (önekin kendisi — `PHASE1_CONFLICT_SCAN.md` §6.2), `04 §3.5` (sitenin dışından gelinen adreslerin biçimi — `PHASE3_CONFLICT_SCAN.md` §6.2), `05 §3.5.1`, §3.7.1 (panelin yolu ve önekler — `PHASE4_CONFLICT_SCAN.md` §6.2), park satırları (Aşama 5, iç anahtar ve dışa görünen kimlikler — K-1011 · K-1068; sayfa adreslerinin önekleri — K-1070).*
 
 ### 2.2 Sayfa ve form ucunun biçimi
 
@@ -3617,11 +3620,11 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 
 **2.2.2 Gönder–yönlendir–göster:** yazan ve başarılı her POST 303 ile bir GET'e yönlendirir — `04`'ün ekran tanımındaki çıkışa; yazmayan POST — doğrulama hatası, adı konmuş hata, sürüm çakışması, deneme limiti, onay hâli, ara gönderim — yönlendirmez, sayfayı gönderilen değerlerle yeniden gösterir (durum kodları §2.7.1).
 
-**2.2.3 Kısa süreli bildirim** (`04` 2.3.1.4 — "sepete eklendi", "kaydedildi") yönlendirme adresinin `notice` sorgu parametresinde kapalı listeden bir kodla taşınır — listenin evi §6.3'tür (yazım 4), serbest metin taşınmaz; yeni çerez ve sunucuda geçici kayıt açılmaz. Yazan bir POST'tan sonra ekranın formun yerinde gösterdiği sonuç hâli de aynı kodla taşınır — iletişim formunun gönderim sonrası hâli (§4.10; K-1180). **Bir kez söylenen mesaj** (`04` 2.3.1.3) adreste taşınmaz: kaynağı kayıttaki hâldir — sepet birleşmesinin sonucu, `RemovedProductName` (`06 §4.16`) — ve gösterildiği istekte tüketilir.
+**2.2.3 Kısa süreli bildirim** (`04` 2.3.1.4 — "sepete eklendi", "kaydedildi") yönlendirme adresinin `notice` sorgu parametresinde kapalı listeden bir kodla taşınır — listenin evi §6.3'tür (yazım 4), serbest metin taşınmaz; yeni çerez ve sunucuda geçici kayıt açılmaz. Yazan bir POST'tan sonra ekranın formun yerinde gösterdiği sonuç hâli de aynı kodla taşınır — iletişim formunun gönderim sonrası hâli (§4.10; K-1180). **Bir kez söylenen mesaj** (`04` 2.3.1.3) adreste taşınmaz: kaynağı kayıttaki hâldir — vitrinden kalkan kalemin `RemovedProductName`'i, girişteki birleşmenin eklediği kalemin işareti (`IsMergeNoticePending`; `06 §4.16`) ve ödeme yöntemi kalmadığı için sepete dönüşün işareti (`IsPaymentUnavailableNoticePending`; `06 §4.15`) (K-1183) — ve gösterildiği istekte tüketilir. Yeri: sepetten çıkan kalem ve ödeme yöntemi sepetin başında (§4.12.1), birleşme dönülen sayfanın başında (§4.34.3). Bağlantı ekranlarında ve isteme adımlarında yazan POST'un sonuç hâli kodla taşınır; bağlantının ekranında kod yalnız bağlantı kullanılmışsa okunur (§4.21, §4.23, §4.28; K-1186 (1)).
 
 **2.2.4 Onay adımı JavaScript kapalıyken aynı formun onay hâlidir:** OB-04'ün işlemlerinde formun ilk gönderimi alanları doğrular ve hiçbir şey yazmadan aynı sayfayı onay hâliyle yeniden gösterir — sonuç cümlesi ve sayıları sunucudan, girilen değerler gizli alanlarda —; işlemin adını taşıyan düğme formu onay işaretiyle (`Confirmed`) yeniden gönderir, "Vazgeç" bir GET'tir. JavaScript açıkken onay penceresi ya da sayfanın içindeki son adım aynı onay işaretli gönderimi yapar. **Sunucu OB-04'ün işlemini onay işareti olmadan uygulamaz.** Yöneticinin penceresinde ve müşterinin son adımında biçim aynıdır (`04 §2.4`; K-732).
 
-**2.2.5 GET hiçbir kaydı değiştirmez** — `05 §6.4.7`'nin saydığı oturumun son işlem anı, form güvenliği çerezi, hız sınırı sayacı ve erişim kaydı, misafir sepetinin son erişim anı ve çerezinin yenilenmesi (`06 §4.15`; `05 §6.7.8`) ve 2.2.3'ün bir kez söylenen mesajının tüketimi — gösterilen işaretli sepet kaleminin silinmesi (`06 §4.16`) — dışında (K-1179 (3)). E-postayla gelen bağlantının GET'i yalnız ekranı açar; işlem ekrandaki düğmenin aynı adrese yaptığı POST'tur, anahtar adresin yol bölümündedir (K-904). Çıkış (UC-77, UC-109), Google ile girişin başlatılması (UC-50; `05 §6.1.6`) ve indirme bağlantısının üretimi (UC-36) de POST'tur; aynı kuralla Google ile yeniden doğrulamanın başlatılması (UC-62) ve işlem izine yazan dışa aktarma (UC-182…UC-184) POST'tur (K-1175).
+**2.2.5 GET hiçbir kaydı değiştirmez** — `05 §6.4.7`'nin saydığı oturumun son işlem anı, form güvenliği çerezi, hız sınırı sayacı ve erişim kaydı, misafir sepetinin son erişim anı ve çerezinin yenilenmesi (`06 §4.15`; `05 §6.7.8`) 2.2.3'ün bir kez söylenen mesajlarının tüketimi — gösterilen işaretli sepet kaleminin silinmesi ve iki işaretin kaldırılması (`06 §4.15`, §4.16; K-1183) — ve yeniden doğrulama izninin formun gösterimi dışındaki ilk sayfa isteğinde düşmesi (`05 §6.1.5`) dışında (K-1179 (3), K-1186 (5)). **Google dönüşü (UC-51) GET olduğu hâlde yazar** — oturum, hesap, Google bağı, sepet birleşmesi, yeniden doğrulama izni: dönüş protokolün GET'idir (`05 §6.1.4`) ve isteği akış çerezinin tek kullanımlık değerleri bağlar (§4.22.3; K-1186 (5)). E-postayla gelen bağlantının GET'i yalnız ekranı açar; işlem ekrandaki düğmenin aynı adrese yaptığı POST'tur, anahtar adresin yol bölümündedir (K-904). Çıkış (UC-77, UC-109), Google ile girişin başlatılması (UC-50; `05 §6.1.6`) ve indirme bağlantısının üretimi (UC-36) de POST'tur; aynı kuralla Google ile yeniden doğrulamanın başlatılması (UC-62) ve işlem izine yazan dışa aktarma (UC-182…UC-184) POST'tur (K-1175).
 
 **2.2.6 Yönetici şeridi ve taslak önizlemesi ayrı uç değildir:** vitrinin GET'i panelin oturumunu yalnız iki iş için okur (`05 §3.5.4`) — şeridi çerçeveye koyar ve taslak kaydı kendi adresinde "Taslak" bandıyla döner; panel oturumu yoksa aynı adres "sayfa bulunamadı"dır (UC-04; `04` 2.9.2, 5.6.7); panelin önizlemesi kaydın vitrindeki adresine gider.
 
@@ -3631,13 +3634,13 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 
 **2.2.9 Kenar durumlar.** Onay hâlinde gösterilen cümle onay gelene kadar eskiyebilir — sipariş o arada değişti; uygulama anındaki denetim karar verir (§2.4; K-1170; `04` 5.17.11). `notice` kodu taşıyan adresi açan başkası kısa süreli bildirimi görür; kod kişisel veri taşımaz.
 
-*Kaynak: K-1163 · K-868, K-904, K-732, K-1161 (4) · K-1175 (UC-62 ve dışa aktarmanın yöntemi) · `05 §2.1` MK-04, §3.5.4, §6.4.7, §6.7.9 · `04 §2.4`, 2.3.1.3, 2.3.1.4, 2.9.2 · devir: park satırı (Aşama 4, sözleşmelerin biçimi — K-868 — form uçlarının biçimi).*
+*Kaynak: K-1163 · K-868, K-904, K-732, K-1161 (4) · K-1183 (bir kez söylenen mesajın işaretleri), K-1186 (1), (5) (bağlantı ekranlarının sonuç hâli; GET'in iki istisnası) · K-1175 (UC-62 ve dışa aktarmanın yöntemi) · `05 §2.1` MK-04, §3.5.4, §6.4.7, §6.7.9 · `04 §2.4`, 2.3.1.3, 2.3.1.4, 2.9.2 · devir: park satırı (Aşama 4, sözleşmelerin biçimi — K-868 — form uçlarının biçimi).*
 
 ### 2.3 Kimlik doğrulama ve erişim reddi
 
 **Kimlik şeması alana göre uygulanır; erişilemeyen kayıt yokmuş gibi yanıtlanır** (K-1164 **(öneriyle kaydedildi — ⚠)**).
 
-**2.3.1 Şemalar alana göre uygulanır:** `/panel` altındaki her sayfa varsayılan olarak panelin şemasını ister — açık sayfalar panel girişi, şifre sıfırlama, davet kabulü ve doğrulama ekranlarıdır (`05 §6.2.2`); vitrinde `/hesap` altı müşteri oturumu ister (`05 §6.2.3`), sipariş sayfası §2.1.3'ün iki kökünden biriyle açılır, öteki vitrin sayfaları oturumsuz açıktır; makine uçları şema taşımaz — imza ya da açıklık (K-868) —, parçalı yükleme panelin şemasıyladır (K-947). **Çerez adları** — hepsi `__Host-` önekli (`05 §6.7.1`): vitrinin oturumu `__Host-session`, panelin oturumu `__Host-admin-session`, form güvenliği `__Host-antiforgery`, misafir sepeti `__Host-cart`, tanınan tarayıcı `__Host-known-device`, ödeme adımında yazılanlar `__Host-checkout`, Google ile girişin akışı `__Host-external-login`; envanter `05 §6.7`'dedir, yeni çerez açılmaz.
+**2.3.1 Şemalar alana göre uygulanır:** `/panel` altındaki her sayfa varsayılan olarak panelin şemasını ister — açık sayfalar panel girişi, şifre sıfırlama, davet kabulü ve doğrulama ekranlarıdır (`05 §6.2.2`); vitrinde `/hesap` altı müşteri oturumu ister (`05 §6.2.3`) — tek istisna hesap silmenin sonuç hâlidir, `/hesap/silindi` (§4.25.7; K-1184) —, sipariş sayfası §2.1.3'ün iki kökünden biriyle açılır, öteki vitrin sayfaları oturumsuz açıktır; makine uçları şema taşımaz — imza ya da açıklık (K-868) —, parçalı yükleme panelin şemasıyladır (K-947). **Çerez adları** — hepsi `__Host-` önekli (`05 §6.7.1`): vitrinin oturumu `__Host-session`, panelin oturumu `__Host-admin-session`, form güvenliği `__Host-antiforgery`, misafir sepeti `__Host-cart`, tanınan tarayıcı `__Host-known-device`, ödeme adımında yazılanlar `__Host-checkout`, Google ile girişin akışı `__Host-external-login`; envanter `05 §6.7`'dedir, yeni çerez açılmaz.
 
 **2.3.2 Oturumsuz geliş:** oturum gerektiren GET kendi kapısının girişine yönlendirir — vitrinde `/giris`, panelde `/panel/giris` — ve dönüş yolunu `returnUrl` sorgu parametresinde taşır; değer `05 §6.5.6`'nın yerel yol denetiminden geçer (`04` 3.5.14, §3.6.1). Oturumu kapanmış POST yazmaz: girişe yönlendirir, dönüş yolu formun GET adresidir ve giriş ekranı oturumun kapandığını ve kaydedilmemiş değişikliklerin korunmadığını söyler (`04` 3.6.5; §2.2.3'ün kodu); ödeme adımında yazılanlar çerezdedir (`05 §6.7.9`).
 
@@ -3651,7 +3654,7 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 
 **2.3.7 ⚠ işareti ve kenar durumlar.** Konvansiyon kişisel veriye — siparişin adresleri, IBAN — erişimin yanıtını ve misafirin erişim yolunu kurar; seçenekler hukuken yakındır, öneri varlığı gizler ve yeni veri ya da süre eklemez — K-1144 modunda öneriyle kaydedildi. Erişim anahtarlı adres tarayıcının geçmişinde kalır — e-postadaki bağlantının aynı kalan riskidir (K-562, K-187). Üyenin numara kökünde başka bir üyenin ya da hesaba bağlanmamış misafir siparişinin numarası 404 döner — o siparişin yolu takip sorgusudur. Oturumu kapanmış POST'un yazmaması `05 §6.1.2`'nin "bir sonraki istekte" sınırıdır.
 
-*Kaynak: K-1164 · K-588, K-899, K-912, K-1011, K-562 · `05 §3.5`, §6.1, §6.2, §6.5.6, §6.7 · `04` 2.9.1, 3.5.13, 3.5.14, §3.6, 5.6.4 · `02 §3.22.3`, §3.22.5, §12.2.5 · devir: park satırı (Aşama 4, formlar, kimlik şemaları ve erişim — K-893 · K-899 · K-904 · K-912 · K-941 · K-970 · K-971 — şemaların uygulanışı ve erişim reddi).*
+*Kaynak: K-1164 · K-588, K-899, K-912, K-1011, K-562 · K-1184 (`/hesap/silindi`) · `05 §3.5`, §6.1, §6.2, §6.5.6, §6.7 · `04` 2.9.1, 3.5.13, 3.5.14, §3.6, 5.6.4 · `02 §3.22.3`, §3.22.5, §12.2.5 · devir: park satırı (Aşama 4, formlar, kimlik şemaları ve erişim — K-893 · K-899 · K-904 · K-912 · K-941 · K-970 · K-971 — şemaların uygulanışı ve erişim reddi).*
 
 ### 2.4 Sürümün ve gösterilen değerin formda taşınması
 
@@ -3687,7 +3690,7 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 
 **2.5.4 Sahteciliğe karşı koruma** bütün tarayıcı POST'larında çatının doğrulama değeridir: formda çatının varsayılan adlı gizli alanı; **parçalı yüklemede çatının varsayılan istek başlığı `RequestVerificationToken`** — değeri yükleme betiği sayfanın formundaki gizli alandan okur (`05 §6.5.1`). Doğrulama başarısızsa istek yazılmaz: sayfa 400 ile formun gönderilen değerleriyle, yeni bir doğrulama değeriyle ve işlem düzeyindeki mesajla yeniden gösterilir (`04` 2.7.3.1) — kullanıcı aynı düğmeyle yeniden dener; makine ucunda gövdesiz 400.
 
-**2.5.5 Korumanın dışındaki uçlar kapalı bir listedir:** ödeme sağlayıcısının imzalı bildirimi (UC-80) ve — sağlayıcı dönüşü POST'la yapıyorsa — ödeme sağlayıcısından dönüş (UC-30); dönüş durum yazmaz, yalnız yönlendirir (`05 §6.5.1`). Dönüşün yöntemi `08`'de belirlenir (K-973 (1)); yolu ve sipariş sayfasına oturum çerezine dayanmadan inişi §4.29'dadır (yazım 2b; API4-02). GET uçları koruma taşımaz — kayıt değiştirmezler (§2.2.5). Listeye uç eklemek karar kaydıyla olur (`05 §6.5.1`).
+**2.5.5 Korumanın dışındaki uçlar kapalı bir listedir:** ödeme sağlayıcısının imzalı bildirimi (UC-80) ve — sağlayıcı dönüşü POST'la yapıyorsa — ödeme sağlayıcısından dönüş (UC-30); dönüş durum yazmaz, yalnız yönlendirir (`05 §6.5.1`). Dönüşün yöntemi `08`'de belirlenir (K-973 (1)); yolu ve sipariş sayfasına oturum çerezine dayanmadan inişi §4.29.1'dedir — `/odeme/donus/{erişim anahtarı}`, erişim anahtarlı köke iner (K-1185). GET uçları koruma taşımaz — kayıt değiştirmezler (§2.2.5). Listeye uç eklemek karar kaydıyla olur (`05 §6.5.1`).
 
 **2.5.6 Güvenlik başlıkları** (`05 §6.5.4`) makine uçları dahil her yanıta uygulanır; kural evinde kalır.
 
@@ -3695,7 +3698,7 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 
 **2.5.8 Kenar durumlar.** Doğrulama hatasının yeniden gösterimi başka bir sitenin tetiklediği isteğe de bir sayfa döner — yanıt başka siteye okunmaz ve hiçbir şey yazılmamıştır. İki sekmede açılan ödeme adımı iki ayrı onay anahtarı taşır; sipariş onayı sepetin danışma kilidini alır ve ikinci onay aynı sepetin ödenmemiş önceki siparişiyle sıraya girer (`05 §7.3.5`, §4.2.2).
 
-*Kaynak: K-1166 · K-893, K-971, K-973 · `05 §4.5.1`, §4.5.4, §6.1.5, §6.4.6, §6.5.1, §6.5.4 · `06 §4.17` · devir: `05 §6.5.1` (parçalı yüklemede doğrulama değerinin istek başlığındaki biçimi — `PHASE4_CONFLICT_SCAN.md` §6.2), park satırı (Aşama 4, formlar, kimlik şemaları ve erişim — K-893, K-971 kolları), `08`'in park satırı (K-906 · K-973 — korumanın istisnası).*
+*Kaynak: K-1166 · K-893, K-971, K-973 · K-1185 (dönüşün yolu) · `05 §4.5.1`, §4.5.4, §6.1.5, §6.4.6, §6.5.1, §6.5.4 · `06 §4.17` · devir: `05 §6.5.1` (parçalı yüklemede doğrulama değerinin istek başlığındaki biçimi — `PHASE4_CONFLICT_SCAN.md` §6.2), park satırı (Aşama 4, formlar, kimlik şemaları ve erişim — K-893, K-971 kolları), `08`'in park satırı (K-906 · K-973 — korumanın istisnası).*
 
 ### 2.6 Listeler
 
@@ -3729,7 +3732,7 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 
 **2.7.1 Sayfa ve form uçlarının durum kodları:** GET başarı 200, dosya aralığı 206 (K-1171) · başarılı yazan POST 303 (§2.2.2); oturum gerektiren GET'in girişe yönlendirmesi 302 · **doğrulama hatası ve adı konmuş iş kuralı reddi** — `02 §6`'nın senaryoları, `03 §3`'ün satırları, gösterilen değerin ve ayrılmış adedin reddi, silinmiş yüklemeyle kayıt — **422**; sayfa formun değerleriyle yeniden gösterilir, mesaj OB-03'ün yerindedir (`04` 2.3.2, 2.7.4) · sürüm çakışması 409 (§2.4.5, §2.4.6) · deneme limiti ve genel hız sınırı 429 (§2.8.4, §2.8.5) · gövde tavanı aşımı 413 (§2.8.7) · sahteciliğe karşı doğrulama hatası 400 (§2.5.4) · bulunamayan, ziyaretçiye kapalı ve sahiplik denetiminden geçmeyen 404 — E-06 (§2.3.3) · yöntem uymuyor 405 — çatının yanıtı · sayfa düzeyinde beklenmeyen hata 500, çerçevenin hata sayfasıyla (`04` 2.7.3.2) · işlem düzeyinde beklenmeyen hata 500, formun değerleri ve kalıcı mesajla (`04` 2.7.3.1) · sonucu belirsiz işlemde hata nerede olursa olsun 303 ile sonucu gösteren ekrana (`04` 2.7.3.3; `05 §10.3.4`).
 
-**2.7.2 Makine uçları** ekran göstermez (`05 §10.3.5`): bildirim ucu kaydedilen ve tekrar eden bildirime 200 "alındı", imzası tutmayan isteğe 400, beklenmeyen hatada 500 (K-970, K-974); canlılık 200 ya da 503, durum 200 ya da 503 — gövde boştur ve `Cache-Control: no-store` taşır (K-918); site haritası ve robots.txt 200; parçalı yükleme K-1171'in kodlarıyla (§4.31, yazım 2b).
+**2.7.2 Makine uçları** ekran göstermez (`05 §10.3.5`): bildirim ucu kaydedilen ve tekrar eden bildirime 200 "alındı", imzası tutmayan isteğe 400, beklenmeyen hatada 500 (K-970, K-974); canlılık 200 ya da 503, durum 200 ya da 503 — gövde boştur ve `Cache-Control: no-store` taşır (K-918); site haritası ve robots.txt 200; parçalı yükleme K-1171'in kodlarıyla (§4.31.2).
 
 **2.7.3 Hata kodu** (§6'nın "Kod" sütunu) İngilizce PascalCase bir kod adıdır — `06 §5`'in kapalı değerlerinin biçimi —, uygulamada tekildir ve bir kez verilen kod değişmez; kaynak satırını — `02 §6`'nın satır kimliği, `04 §7`'nin satırı — "Anlamı" sütununda anar (K-1148 (5)). **Kod kullanıcıya gösterilmez** (`04` 2.7.3; K-745) ve yanıtın gövdesinde ya da başlığında taşınmaz; §6'nın ve Doğrulama Protokolü'nün senaryolarının birimidir. §2.2.3'ün kısa süreli bildirim kodları aynı biçimle §6'nın ayrı bir listesindedir (§6.3, yazım 4).
 
@@ -3779,7 +3782,7 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 
 **2.9.5 Telefon ve IBAN** girişte boşluklarıyla ya da boşluksuz gelebilir; boşluk yok sayılır (`04` 8.2.6, 7.3.2.4, 7.3.2.7). Büyük-küçük harf ve Türkçe karakter dönüşümünün kuralı `04` 8.2.10'dadır — e-posta, kupon kodu ve stok kodu karşılaştırması Türkçe dönüşüm kuralını kullanmaz (K-1016).
 
-**2.9.6 Makine uçlarının gövdeleri:** parçalı yüklemenin JSON'u bayt sayılarını JSON sayısı olarak taşır ve tarih taşımaz (§4.31, yazım 2b; K-1171 (1)); ödeme sağlayıcısının bildiriminin biçimi `08`'dedir.
+**2.9.6 Makine uçlarının gövdeleri:** parçalı yüklemenin JSON'u bayt sayılarını JSON sayısı olarak taşır ve tarih taşımaz (§4.31.2; K-1171 (1)); ödeme sağlayıcısının bildiriminin biçimi `08`'dedir.
 
 **2.9.7 Parametrelerin değerleri** — süreler, limitler, tavanlar (Z-, L-, P-) — `02 §11`'den okunur, uçta yeniden yazılmaz (yazım konvansiyonu 6); bu dokümanın tasarım değerleri §2.8'dedir.
 
@@ -3854,7 +3857,7 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 | UC-27 | POST `/odeme?handler=PlaceOrder` | Siparişi onaylama — onay anahtarı (§2.5.1) | Müşteri — açık; sepet | form · 64 KB | `04` E-13, `03 §1.2` `Placed`, K-579, `05 §3.6.3` |
 | UC-28 | GET `{kök}/teyit` | Sipariş teyit ve bekleme ekranı | Müşteri — kök | sayfa | `04` E-14, `03 §2.4.9` |
 | UC-29 | POST `{kök}/teyit?handler=StartPayment` | Ödeme sağlayıcısına geçiş | Müşteri — kök | form · 64 KB | `04` E-14, `03 §2.4.9`, `05 §3.6.2` |
-| UC-30 | `/odeme/…` — yolu §4.29 (yazım 2b); yöntemi `08` (§2.5.5) | Ödeme sağlayıcısından dönüş — durum yazmaz, sipariş sayfasına iner | Müşteri — oturum çerezine dayanmaz (§2.5.5) | §4.29 (yazım 2b) | `04` 5.12.15, `03 §2.5.1.2`, `05 §6.5.1` g1, `05 §3.6.4` |
+| UC-30 | GET `/odeme/donus/{erişim anahtarı}` — sağlayıcı POST'la dönüyorsa aynı adreste POST; yöntemi `08` (§2.5.5; §4.29.1) | Ödeme sağlayıcısından dönüş — durum yazmaz, erişim anahtarlı köke iner (K-1185) | Müşteri — erişim anahtarı; oturum çerezine dayanmaz (§2.5.5) | sayfa — POST'sa form · 64 KB | `04` 5.12.15, `03 §2.5.1.2`, `05 §6.5.1` g1, `05 §3.6.4` |
 | UC-31 | GET `/siparis-takibi` | Sipariş takibi girişi | Misafir alıcı — açık | sayfa | `04` E-15, `03 §2.6.2` |
 | UC-32 | POST `/siparis-takibi?handler=FindOrder` | Sipariş takibi sorgusu — eşleşince erişim anahtarlı köke 303 (§2.3.4) | Misafir alıcı — açık | form · 64 KB | `04` E-15, `03 §2.6` metin, K-562, `05 §6.2.4` |
 | UC-33 | GET `/siparis/{sipariş numarası}` | Sipariş sayfası | Üye — müşteri oturumu ve hesabın sahipliği (§2.3.4) | sayfa | `04` E-16, `03 §1.1` m1, K-562, `05 §4.5.1` |
@@ -3893,7 +3896,7 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 | UC-66 | POST `/hesap?handler=ChangeEmail` | E-postayı değiştirme | Üye — müşteri oturumu | form · 64 KB | `04` E-25, `03 §1.10.5`, K-971, `05 §6.1.5` |
 | UC-67 | POST `/hesap?handler=ResendEmailChangeLink` | Bekleyen e-posta değişikliğinin bağlantısını yeniden isteme | Üye — müşteri oturumu | form · 64 KB | `04` E-25, `03 §3.1.1`, `05 §6.3.2` |
 | UC-68 | POST `/hesap?handler=DeleteAccount` | Hesabı silme | Üye — müşteri oturumu | form · 64 KB | `04` E-25, `03 §1.6.1` metin, K-971, `05 §6.1.2` |
-| UC-69 | — UC-68'in sonuç hâli; adresi ve bir kez gösterimi §4.25 (yazım 2b) | Hesap silmenin sonuç hâli — uç değil, UC-68'in yanıtıdır (§3.4) | Kullanıcı — oturum kapanmıştır | sayfa | `04` E-25, `03 §9.4.2` |
+| UC-69 | GET `/hesap/silindi` | Hesap silmenin sonuç hâli — bir kez görünür; işareti silinmiş oturumun çerezidir (§4.25.7; K-1184) | Kullanıcı — açık; `/hesap` altında oturum istemeyen tek adres (§2.3.1) | sayfa | `04` E-25, `03 §9.4.2` |
 | UC-70 | GET `/hesap/adresler` | Adres defteri | Üye — müşteri oturumu | sayfa | `04` E-26, `03 §9.3.2`, `05 §6.2.3` |
 | UC-71 | POST `/hesap/adresler?handler=CreateAddressBook` | Adres ekleme | Üye — müşteri oturumu | form · 64 KB | `04` E-26, `03 §9.3.2` |
 | UC-72 | POST `/hesap/adresler?handler=UpdateAddressBook` | Adres düzenleme | Üye — müşteri oturumu; sahiplik | form · 64 KB | `04` E-26, `03 §9.3.2`, K-1011, `05 §6.2.4` |
@@ -4028,7 +4031,7 @@ Arayüz Tanımları'nın sitenin dışından girişleri (`04 §3.5`) ve ekran ol
 | `04` 3.5.5 | Şifre sıfırlama bağlantısı | Müşteri UC-58 → UC-59 · yönetici UC-84 → UC-112 | — |
 | `04` 3.5.6 | Yeni e-posta adresinin doğrulama bağlantısı | Müşteri UC-52 → UC-53 · yönetici UC-108 → UC-186 | — |
 | `04` 3.5.7 | "Bu değişikliği ben yapmadım" bağlantısı | Müşteri UC-75 → UC-76 · yönetici UC-108 → UC-187 | — |
-| `04` 3.5.8 | Ödeme sağlayıcısının sayfasından dönüş | UC-30 → UC-33 ya da UC-34 | Yolu §4.29 (yazım 2b) |
+| `04` 3.5.8 | Ödeme sağlayıcısının sayfasından dönüş | UC-30 → UC-34 | `/odeme/donus/{erişim anahtarı}` — üye de erişim anahtarlı köke iner (§4.29.1; K-1185) |
 | `04` 3.5.9 | Google'ın sayfasından dönüş | UC-51 | Giriş, kayıt ve yeniden doğrulama aynı dönüş adresini kullanır (K-1175) |
 | `04` 3.5.10 | Yönetici daveti e-postası | UC-85 → UC-113 | — |
 | `04` 3.5.11 | Paylaşılmış ya da arama motorundan gelen ürün adresi | UC-04 | Üç görünüm aynı adresten (§2.2.6) |
@@ -4040,7 +4043,7 @@ Arayüz Tanımları'nın sitenin dışından girişleri (`04 §3.5`) ve ekran ol
 | `04` 4.4.2 | Ödeme sağlayıcısının sayfası ve 3D Secure ekranı | *uç doğurmaz — dış sayfa* | Geçiş UC-29, dönüş UC-30 |
 | `04` 4.4.3 | Google'ın giriş sayfası | *uç doğurmaz — dış sayfa* | Başlatma UC-50, UC-62; dönüş UC-51 |
 | `04` 4.4.4 | ETBİS, sosyal medya, WhatsApp, kargo takibi, video platformu, şubenin haritası | *uç doğurmaz — dış sayfa* | — |
-| `04` 4.4.5 | Arama motorlarına verilen veriler, site haritası, paylaşım önizlemesi | UC-79 · sayfaların GET'i | Veri ilk yanıtta (`05 §3.7.2`); §4.32 (yazım 2b) |
+| `04` 4.4.5 | Arama motorlarına verilen veriler, site haritası, paylaşım önizlemesi | UC-79 · sayfaların GET'i | Veri ilk yanıtta (`05 §3.7.2`); §4.32 |
 | `04` 4.4.6 | Sekmenin başlığı ve site simgesi | *uç doğurmaz — görünüm* | Sayfanın yanıtının parçası; simge dosyası görsel sunumudur (§3.1.6) |
 | `04` 4.4.7 | Cihazın paylaşım menüsü | *uç doğurmaz — istemci* | §8.2 |
 | `04` 4.4.8 | Dışa aktarılan dosyalar | UC-182 · UC-183 · UC-184 | Yanıtın gövdesi dosyadır — §9.24 (yazım 3) |
@@ -4055,17 +4058,17 @@ Arayüz Tanımları'nın sitenin dışından girişleri (`04 §3.5`) ve ekran ol
 
 Aday uç listesi 187 adayla kapandı ve envantere bir bütün olarak geçti (K-1160 (3)): **aday eklenmedi, çıkarılmadı, birleştirilmedi** — her adayın kimliği bir satırdır. Envanterin adaya yaptığı üç iş (K-1175):
 
-**3.4.1 Yöntemi belirlenen adaylar.** Listede yöntemi açık bırakılan ya da GET yazılan beş aday §2.2.5'in kuralıyla POST'tur: Google ile girişin başlatılması (UC-50; K-1163 (5)), Google ile yeniden doğrulamanın başlatılması (UC-62 — dönüşü UC-51'in adresidir; akışın çerezi başlatmada yazılır) ve üç dışa aktarma (UC-182…UC-184 — işlem izine yazarlar). Ödeme sağlayıcısından dönüşün (UC-30) yolu §4.29'da (yazım 2b), yöntemi `08`'dedir (§2.5.5).
+**3.4.1 Yöntemi belirlenen adaylar.** Listede yöntemi açık bırakılan ya da GET yazılan beş aday §2.2.5'in kuralıyla POST'tur: Google ile girişin başlatılması (UC-50; K-1163 (5)), Google ile yeniden doğrulamanın başlatılması (UC-62 — dönüşü UC-51'in adresidir; akışın çerezi başlatmada yazılır) ve üç dışa aktarma (UC-182…UC-184 — işlem izine yazarlar). Ödeme sağlayıcısından dönüşün (UC-30) yolu GET `/odeme/donus/{erişim anahtarı}`'dır (§4.29.1; K-1185), yöntemi `08`'dedir — POST'sa aynı adres (§2.5.5).
 
 **3.4.2 Birden çok adres ya da işleyici taşıyan satırlar.** Bir ekranın adımları — UC-84 (E-29'un üç adımı), UC-108 (E-54'ün üç adımı), UC-38 (E-17'nin iki işlemi), UC-83 (yüklemenin üç isteği) —; yeni ve var olan kaydın formu — UC-88, UC-90, UC-96, UC-114, UC-122, UC-158 —; aynı işlemin iki sayfadaki düğmesi — UC-49, UC-50 —; ürün ve varyant üzerindeki aynı işlem — UC-115, UC-116 —; bir adayın iki kolu — UC-130 (cayma ya da gecikme feshi), UC-140 (teslim alma ya da ret) —; üç formun ortak işleyicisi — UC-117. Satır ucun birimidir; işleyicileri §4 ve §9'da aynı satırın altında tanımlanır.
 
-**3.4.3 Uç olmayan satırlar.** "Sayfa bulunamadı" (UC-06) ve beklenmeyen hata sayfası (UC-78) bir adresin değil her isteğin yanıtıdır — durum kodları §2.7.1; hesap silmenin sonuç hâli (UC-69) UC-68'in yanıtıdır, adresi ve bir kez gösterimi §4.25'te (yazım 2b). Üçü de matrisin kaynak satırlarını taşıdığı için envanterde kalır.
+**3.4.3 Uç olmayan satırlar.** "Sayfa bulunamadı" (UC-06) ve beklenmeyen hata sayfası (UC-78) bir adresin değil her isteğin yanıtıdır — durum kodları §2.7.1; ikisi de matrisin kaynak satırlarını taşıdığı için envanterde kalır. Hesap silmenin sonuç hâli (UC-69) 1. oturumda UC-68'in yanıtı sayılmıştı (K-1175 (7)); 2b oturumu ona adres verdi — GET `/hesap/silindi` — ve satır uç oldu (§4.25.7; K-1184).
 
-*Kaynak: K-1160 (3), K-1163 (5), K-1175 · §1.1.2, §1.2.*
+*Kaynak: K-1160 (3), K-1163 (5), K-1175 · K-1184 (UC-69), K-1185 (UC-30) · §1.1.2, §1.2.*
 
 ## 4. Endpoint tanımları
 
-**Yazım turunun 2a oturumu (2026-10-18, v0.9).** Bu bölüm vitrinin uçlarını (E-01…E-28) ve ekrana bağlı olmayan uçları — makine uçları, ödeme sağlayıcısından dönüş, çerçevenin uçları — tanımlar (K-1149 (3)); panelin uçları §9'dadır. Alt bölümün numarası ekranın Arayüz Tanımları'ndaki numarasıdır — §4.n = `04 §5.n` = E-n (yazım konvansiyonu 4); ekranın GET'i ve bütün işleyicileri o alt bölümdedir. Yazım iki oturumdur (K-1177): **2a** §4.1…§4.19'u — vitrinin okuma sayfaları, sepet, ödeme adımı, teyit, sipariş takibi, sipariş sayfası ve müşterinin üç işlem ekranı — yazdı; **2b** §4.20…§4.34'ü — hesap ekranları ve ekrana bağlı olmayan uçlar — yazar.
+**Yazım turunun 2a oturumu (2026-10-18, v0.9).** Bu bölüm vitrinin uçlarını (E-01…E-28) ve ekrana bağlı olmayan uçları — makine uçları, ödeme sağlayıcısından dönüş, çerçevenin uçları — tanımlar (K-1149 (3)); panelin uçları §9'dadır. Alt bölümün numarası ekranın Arayüz Tanımları'ndaki numarasıdır — §4.n = `04 §5.n` = E-n (yazım konvansiyonu 4); ekranın GET'i ve bütün işleyicileri o alt bölümdedir. Yazım iki oturumdur (K-1177): **2a** §4.1…§4.19'u — vitrinin okuma sayfaları, sepet, ödeme adımı, teyit, sipariş takibi, sipariş sayfası ve müşterinin üç işlem ekranı — yazdı; **2b** §4.20…§4.34'ü — hesap ekranları ve ekrana bağlı olmayan uçlar — yazdı (K-1183…K-1186).
 
 **Tanımın kalıbı** (K-1149 (2)). Her uç bir maddedir: başlığı §3'ün satırıdır — `UC-nn` · yöntem ve adres — ve adı; altında şablonun altı maddesi:
 
@@ -4078,7 +4081,7 @@ Aday uç listesi 187 adayla kapandı ve envantere bir bütün olarak geçti (K-1
 
 Okuma sayfasının iki son maddesi "Yan etkiler · Idempotency: yoktur — GET" diye tek satırdır (§2.2.5).
 
-**Tanımlarda yinelenmeyen ortak yanıtlar** (§2): genel hız sınırı 429 (§2.8.4) · gövde tavanı 413 (§2.8.7) · sahteciliğe karşı doğrulama 400 (§2.5.4) · yöntem uymuyor 405 · sayfa ve işlem düzeyinde beklenmeyen hata 500 (§2.7.1; UC-78 — §4.34, yazım 2b) · bilinmeyen adres 404 (UC-06; §4.6) · oturum gerektiren GET'in ve oturumu kapanmış POST'un girişe yönlendirmesi (§2.3.2) · bilinmeyen sorgu parametresi yok sayılır (§2.6.6) · ekranın o anda sunmadığı işlem uygulanmaz (§8.1.3). Vitrinin her sayfa yanıtı çerçevenin modelini — menü, duyuru şeridi, hesap alanı, sepetin kalem sayısı, yönetici şeridi — (§5.5, yazım 4; K-1172 (2)) ve güvenlik başlıklarını (§2.5.6) taşır. Arama motorlarına kapalı sayfa (`02 §3.30.6`; §2.6.7) tanımda **noindex** diye yazılır (`05 §3.7.4`). Satış kapısı ve veri toplayan girişlerin kapısı (`02 §3.1.5`; K-850) saklanmaz, her istekte hesaplanır (`05 §4.1.5`); çerez politikası ilk kez yayına alınana kadar vitrin çerez yazmaz (`05 §6.7.10`).
+**Tanımlarda yinelenmeyen ortak yanıtlar** (§2): genel hız sınırı 429 (§2.8.4) · gövde tavanı 413 (§2.8.7) · sahteciliğe karşı doğrulama 400 (§2.5.4) · yöntem uymuyor 405 · sayfa ve işlem düzeyinde beklenmeyen hata 500 (§2.7.1; UC-78 — §4.34.2) · bilinmeyen adres 404 (UC-06; §4.6) · oturum gerektiren GET'in ve oturumu kapanmış POST'un girişe yönlendirmesi (§2.3.2) · bilinmeyen sorgu parametresi yok sayılır (§2.6.6) · ekranın o anda sunmadığı işlem uygulanmaz (§8.1.3). Vitrinin her sayfa yanıtı çerçevenin modelini — menü, duyuru şeridi, hesap alanı, sepetin kalem sayısı, yönetici şeridi — (§5.5, yazım 4; K-1172 (2)) ve güvenlik başlıklarını (§2.5.6) taşır. Arama motorlarına kapalı sayfa (`02 §3.30.6`; §2.6.7) tanımda **noindex** diye yazılır (`05 §3.7.4`). Satış kapısı ve veri toplayan girişlerin kapısı (`02 §3.1.5`; K-850) saklanmaz, her istekte hesaplanır (`05 §4.1.5`); çerez politikası ilk kez yayına alınana kadar vitrin çerez yazmaz (`05 §6.7.10`).
 
 *Kaynak: K-1149 (2), (3), K-1172 (2), (5), K-1173, K-1177 · `04 §5`, §6.2, §7.1 · `02 §3.1.5`, §3.30.6, §10.3 · `05 §3.7.4`, §4.1.5, §4.7.1, §6.7.10 · devir: park satırları (Aşama 4, sözleşmelerin biçimi — K-868; formlar, kimlik şemaları ve erişim — K-893 · K-899 · K-904 · K-912 · K-941 · K-970 · K-971 — uçların tanımı).*
 
@@ -4154,7 +4157,7 @@ Ekran `04 §5.5` · durum × rol `04` 6.2.5 · form yok.
 
 Ekran `04 §5.6` · durum × rol `04` 6.2.6 · form yok.
 
-**4.6.1 `UC-06` — "sayfa bulunamadı" yanıtı; uç değildir** (§3.4.3). Her GET'in ve her POST'un yanıtı olabilir: durum 404'tür ve gövde vitrinin tam çerçevesinde E-06'dır — sayfanın bulunamadığını söyleyen başlık, ana sayfaya ve ürünlere dönüş (`04` 5.6.3). **Düştüğü hâller:** ilk yol bölümü §2.1.2'nin listesinde olmayan ya da `Slug`'ı bir kayda ait olmayan adres · taslak, silinmiş ve yeni bir kayda verilmemiş kaydın adresi — panel oturumu yoksa (§2.1.8, §2.2.6) · sahiplik denetiminden geçmeyen istek ve var olmayan kayıt (§2.3.3) · geçersiz ya da yenilenmiş erişim anahtarı ve kişisel verileri imha edilmiş siparişin bağlantısı (`04` 5.16.20) · ömrü dolmuş indirme değeri (§4.31, yazım 2b) · ilk kez yayına alınmamış aydınlatma metni ve çerez politikası (§4.11). Boş kategori bu yanıt değildir (§4.2). Yanıt sebebi ayırt etmez (`04` 5.6.4); yöneticinin tarayıcısında yönetici şeridiyle açılır (`04` 2.9.1). Sayfa noindex'tir; 404 beklenmeyen hata değildir ve durum ucunun sayacına girmez (§2.7.5). Yan etkisi yoktur.
+**4.6.1 `UC-06` — "sayfa bulunamadı" yanıtı; uç değildir** (§3.4.3). Her GET'in ve her POST'un yanıtı olabilir: durum 404'tür ve gövde vitrinin tam çerçevesinde E-06'dır — sayfanın bulunamadığını söyleyen başlık, ana sayfaya ve ürünlere dönüş (`04` 5.6.3). **Düştüğü hâller:** ilk yol bölümü §2.1.2'nin listesinde olmayan ya da `Slug`'ı bir kayda ait olmayan adres · taslak, silinmiş ve yeni bir kayda verilmemiş kaydın adresi — panel oturumu yoksa (§2.1.8, §2.2.6) · sahiplik denetiminden geçmeyen istek ve var olmayan kayıt (§2.3.3) · geçersiz ya da yenilenmiş erişim anahtarı ve kişisel verileri imha edilmiş siparişin bağlantısı (`04` 5.16.20) · ömrü dolmuş indirme değeri (§4.31.1) · ilk kez yayına alınmamış aydınlatma metni ve çerez politikası (§4.11). Boş kategori bu yanıt değildir (§4.2). Yanıt sebebi ayırt etmez (`04` 5.6.4); yöneticinin tarayıcısında yönetici şeridiyle açılır (`04` 2.9.1). Sayfa noindex'tir; 404 beklenmeyen hata değildir ve durum ucunun sayacına girmez (§2.7.5). Yan etkisi yoktur.
 
 *Kaynak: `04 §5.6`, 6.2.6, 2.9.1, 3.5.13 · `02 §3.30.4` · `03 §2.1.11`, §2.2.10 · K-568, K-1164 (3), K-1168 (1).*
 
@@ -4238,10 +4241,10 @@ Ekran `04 §5.12` · durum × rol `04` 6.2.12 · form `04` 7.1.4.
 **4.12.1 `UC-19` · GET `/sepet` — sepet**
 - **Amaç:** sepetteki kalemler ve ödenecek tutar (`04` 5.12.2) · **Yetki:** açık; sepet — misafirin sepet çerezi yoksa sepet boştur ve GET çerez açmaz · **Hız sınırı:** sayfa.
 - **İstek:** parametre yoktur.
-- **Yanıt (başarı):** 200 — görünüm `04` 5.12.3–5.12.7. Kalem fiyatını ve satın alınabilirliğini güncel üründen okur; kalemin satırındaki mesajlar koşul sürdükçe durur (`04` 5.12.5; `02 §3.16.5`). Tutarın dökümü, kargo ücreti, ücretsiz kargo mesajı ve asgari tutarın eksiği sunucunun hesabıdır (`04` 5.12.6; §8.1.4). Ödeme adımına geçişin hâli — açık ya da sebebiyle kapalı: siparişe girebilecek kalem yok, asgari tutar eksik, satış kapalı — sunucunun kararıdır (`04` 5.12.10, 5.12.14; §8.1). **Bir kez söylenen mesajlar** (`04` 2.3.1.3) içerik alanının başındadır: vitrinden kalkıp sepetten çıkan kalem — kaynağı kalemin `RemovedProductName` işaretidir ve kalem bu istekte silinir (`06 §4.16`; K-1179 (3)) —; girişteki birleşmenin sonucu ve ödeme yöntemi kalmadığı için sepete dönüş — ikisinin kaynağı kayıtta değildir ve 2b'nin açık işidir (§4.22, yazım 2b; karar kaydı §16.1). Boş sepet boş hâl satırıdır (`04` 5.12.16). Sayfa noindex'tir.
+- **Yanıt (başarı):** 200 — görünüm `04` 5.12.3–5.12.7. Kalem fiyatını ve satın alınabilirliğini güncel üründen okur; kalemin satırındaki mesajlar koşul sürdükçe durur (`04` 5.12.5; `02 §3.16.5`). Tutarın dökümü, kargo ücreti, ücretsiz kargo mesajı ve asgari tutarın eksiği sunucunun hesabıdır (`04` 5.12.6; §8.1.4). Ödeme adımına geçişin hâli — açık ya da sebebiyle kapalı: siparişe girebilecek kalem yok, asgari tutar eksik, satış kapalı — sunucunun kararıdır (`04` 5.12.10, 5.12.14; §8.1). **Bir kez söylenen mesajlar** (`04` 2.3.1.3) içerik alanının başındadır: vitrinden kalkıp sepetten çıkan kalem — kaynağı kalemin `RemovedProductName` işaretidir ve kalem bu istekte silinir (`06 §4.16`; K-1179 (3)) —; ödeme yöntemi kalmadığı için sepete dönüş — kaynağı sepetin `IsPaymentUnavailableNoticePending` işaretidir, ayrılışta yazılır (4.13.5) ve bu istekte kaldırılır (`06 §4.15`; K-1183) —; girişteki birleşmenin mesajı dönülen sayfanın başındadır — sepet de o sayfa olabilir (§4.34.3). Boş sepet boş hâl satırıdır (`04` 5.12.16). Sayfa noindex'tir.
 - **Yanıt (hata):** ortak yanıtların dışında yoktur.
-- **Yan etkiler:** misafir sepetinin son erişim anı yazılır ve çerezi yenilenir (`06 §4.15`; `05 §6.7.8`); gösterilen işaretli kalem silinir (`06 §4.16`) — ikisi §2.2.5'in istisnasıdır (K-1179 (3)).
-- **Idempotency:** yenileme işaretli kalemi ikinci kez göstermez — kalem ilk gösterimde silinmiştir.
+- **Yan etkiler:** misafir sepetinin son erişim anı yazılır ve çerezi yenilenir (`06 §4.15`; `05 §6.7.8`); gösterilen işaretli kalem silinir (`06 §4.16`) ve ödeme yöntemi işareti kaldırılır (`06 §4.15`) — üçü §2.2.5'in istisnasıdır (K-1179 (3), K-1183).
+- **Idempotency:** yenileme işaretli kalemi ve ödeme yöntemi mesajını ikinci kez göstermez — ilk gösterimde silinmiş ve kaldırılmışlardır.
 
 **4.12.2 `UC-20` · POST `/sepet?handler=UpdateCartItem` — kalemin adedini değiştirme**
 - **Amaç:** sepet kaleminin adedini değiştirmek (`03 §2.3.3`; `04` 5.12.8) · **Yetki:** açık; sepet; sahiplik — kalem bu sepetin kalemi olmalıdır (§2.1.6) · **Hız sınırı:** form · 64 KB.
@@ -4259,7 +4262,7 @@ Ekran `04 §5.12` · durum × rol `04` 6.2.12 · form `04` 7.1.4.
 - **Yan etkiler:** kalem silinir (`06 §4.16`).
 - **Idempotency:** tekrar gönderim kalemi bulamaz ve 404 alır; hiçbir şey yazılmaz. Çift tıklamayı betikli yolda satırın denetiminin kilidi önler (`04` 5.12.17); kalan risk K-1179 (2)'dedir.
 
-*Kaynak: `04 §5.12`, 6.2.12, 7.1.4 · `02 §3.16`, §3.18, §3.19 · `03 §2.3.2`–§2.3.5, §2.3.8 · `05 §6.7.5`, §6.7.8 · `06 §4.15`, §4.16 · K-772, K-1011 (3), K-1162 (6), K-1163 (3), K-1164 (3), K-1179.*
+*Kaynak: `04 §5.12`, 6.2.12, 7.1.4 · `02 §3.16`, §3.18, §3.19 · `03 §2.3.2`–§2.3.5, §2.3.8 · `05 §6.7.5`, §6.7.8 · `06 §4.15`, §4.16 · K-772, K-1011 (3), K-1162 (6), K-1163 (3), K-1164 (3), K-1179, K-1183.*
 
 ### 4.13 E-13 — Ödeme adımı
 
@@ -4268,7 +4271,7 @@ Ekran `04 §5.13` · durum × rol `04` 6.2.13 · form `04` 7.1.5. Ödeme adımı
 **4.13.1 `UC-22` · GET `/odeme` — ödeme adımı**
 - **Amaç:** iletişim, teslimat adresi, fatura adresi, ödeme yöntemi ve onay bölümü tek sayfada (`04` 5.13.2–5.13.11; K-756) · **Yetki:** Müşteri — açık; sepet · **Hız sınırı:** sayfa.
 - **İstek:** parametre yoktur. Ödeme adımının çerezi varsa alanlar ondan dolar — girişten, oturumun yenilenmesinden ya da sepetten dönüşte (`05 §6.7.9`; `04` 5.13.13).
-- **Yanıt (başarı):** 200 — görünüm `04` 5.13.2–5.13.11. Form her gösterimde yeni bir `ConfirmationKey` taşır (§2.5.1; `06 §4.17`) ve onay isteğinin karşılaştıracağı değerleri gizli alanlarda taşır — özetin parmak izi ve Ön Bilgilendirme Formu ile Mesafeli Satış Sözleşmesi'nin sürüm kimlikleri (`PreInformationFormVersionId`, `DistanceSalesContractVersionId`; `05 §4.2.1`). Üyede iletişim e-postası hesabın doğrulanmış e-postasıdır ve adres defteri seçenek olarak gelir; misafirde e-posta alanı ve giriş bağlantısı (`04` 5.13.5, 5.13.25). Ödeme yöntemlerinin hâli — kart şu an kullanılamıyor, havale L-8 nedeniyle seçilemez — sunucunun kararıdır (`04` 5.13.8). Onay bölümünün içeriği — özet farkı, aynı sepete bağlı ödenmemiş önceki siparişin iptal edileceği, onay özeti, iki yasal metnin tam metni, cayma özeti, onay kutuları — sunucuda üretilir (`04` 5.13.9; K-837). Hiçbir ödeme yöntemi kullanılamıyorsa onay düğmesinin yerinde sepete dönüş durur (`04` 5.13.21); sepetin başında bir kez söylenen mesajının kaynağı §4.22'dedir (yazım 2b; 4.12.1). Sayfa noindex'tir.
+- **Yanıt (başarı):** 200 — görünüm `04` 5.13.2–5.13.11. Form her gösterimde yeni bir `ConfirmationKey` taşır (§2.5.1; `06 §4.17`) ve onay isteğinin karşılaştıracağı değerleri gizli alanlarda taşır — özetin parmak izi ve Ön Bilgilendirme Formu ile Mesafeli Satış Sözleşmesi'nin sürüm kimlikleri (`PreInformationFormVersionId`, `DistanceSalesContractVersionId`; `05 §4.2.1`). Üyede iletişim e-postası hesabın doğrulanmış e-postasıdır ve adres defteri seçenek olarak gelir; misafirde e-posta alanı ve giriş bağlantısı (`04` 5.13.5, 5.13.25). Ödeme yöntemlerinin hâli — kart şu an kullanılamıyor, havale L-8 nedeniyle seçilemez — sunucunun kararıdır (`04` 5.13.8). Onay bölümünün içeriği — özet farkı, aynı sepete bağlı ödenmemiş önceki siparişin iptal edileceği, onay özeti, iki yasal metnin tam metni, cayma özeti, onay kutuları — sunucuda üretilir (`04` 5.13.9; K-837). Hiçbir ödeme yöntemi kullanılamıyorsa onay düğmesinin yerinde sepete dönüş durur (`04` 5.13.21); dönüş ayrılışın işleyicisidir ve sepetin başında bir kez söylenen mesajın işaretini yazar (4.13.5, 4.12.1; K-1183). Sayfa noindex'tir.
 - **Yanıt (hata):** **303 → `/sepet`** — ödeme adımı açılamazsa: satış kapalı, siparişe girebilecek kalem yok ya da fiziksel kalemli sepette asgari tutar eksik; sebep sepetin geçiş düğmesinin yerindedir (`03 §2.3.8`; `04` 5.13.29, 5.12.10; K-1181 (3)).
 - **Yan etkiler · Idempotency:** yoktur — GET; onay anahtarı formun değeridir, kayda yazılmaz.
 
@@ -4299,7 +4302,7 @@ Ekran `04 §5.13` · durum × rol `04` 6.2.13 · form `04` 7.1.5. Ödeme adımı
 - **İstek:** ödeme adımının bütün formu ve hedef — `login` ya da `cart`; alanın adı §5.2'de (yazım 4). Alanlar doğrulanmaz.
 - **Yanıt (başarı):** 303 → hedef: `login` girişe, dönüş yolu ödeme adımıdır — `/giris?returnUrl=/odeme` (§2.3.2; `04` 3.3.16) · `cart` → `/sepet` (`04` 5.13.19). Listenin dışındaki hedef değeri sepet sayılır — serbest adres kabul edilmez (K-1181 (2)).
 - **Yanıt (hata):** ortak yanıtların dışında yoktur.
-- **Yan etkiler:** formun değerleri ödeme adımının çerezine yazılır — oturumluk, şifreli ve imzalı; sunucuda kayıt oluşmaz (`05 §6.7.9`; `02 §12.2.5`; K-907).
+- **Yan etkiler:** formun değerleri ödeme adımının çerezine yazılır — oturumluk, şifreli ve imzalı; sunucuda kayıt oluşmaz (`05 §6.7.9`; `02 §12.2.5`; K-907). Hedef `cart` iken ödeme yöntemi bölümünde o anda kullanılabilir yöntem yoksa — sunucunun 4.13.1'deki kararı yeniden hesaplanır (§8.1.2) — sepetin ödeme yöntemi işareti yazılır (`IsPaymentUnavailableNoticePending`; `06 §4.15`; K-1183); işaret kişisel veri taşımaz ve sepette bir kez söylenir (4.12.1).
 - **Idempotency:** tekrar gönderim çerezi aynı değerlerle yeniden yazar.
 
 **4.13.6 `UC-27` · POST `/odeme?handler=PlaceOrder` — siparişi onaylama**
@@ -4310,7 +4313,7 @@ Ekran `04 §5.13` · durum × rol `04` 6.2.13 · form `04` 7.1.5. Ödeme adımı
 - **Yan etkiler:** `05 §4.2.2`'nin tek işlemi, sırasıyla — sepetin kilidi · onay anahtarı · satış kapısı ve L-7, L-8 · sepetin yeniden değerlendirilmesi ve sürümlerin karşılaştırılması · aynı sepete bağlı ödenmemiş önceki siparişin iptali ve ayırmasının serbest kalması (`02 §3.17.7`) · stok, kontenjan ve kupon hakkının ayrılması · sipariş numarası ve erişim anahtarı (`05 §6.4`) · değerlerin donması (`02 §3.23`) · bildirimlerin gönderim kaydına yazılması — B-1, havalede B-2 ve önceki siparişin iptal bildirimi (`03 §2.4.9`; `05 §4.4.1`). Sipariş Alındı + Bekliyor doğar ve ödeme süresi işler (Z-7, Z-8). Üye seçtiyse yeni adres deftere yazılır (K-680). Misafir siparişinin e-postası bir hesabınsa sipariş hesaba düşer (`02 §3.13.3`; `03 §3.2.1.14`).
 - **Idempotency:** onay anahtarı (§2.5.1; `05 §4.5.1`): aynı anahtarla ikinci gönderim yeni sipariş açmaz, var olan siparişin sayfasına gider. İki sekmenin iki anahtarı sepetin kilidiyle sıraya girer (§2.5.8).
 
-*Kaynak: `04 §5.13`, 6.2.13, 7.1.5, 3.3.15–3.3.17, §3.6 · `02 §3.10`, §3.13.3, §3.14, §3.17, §3.20.1, §3.21.4, §3.21.5, §3.23, §3.24, §12.2.5 · `03 §2.3.8`, §2.4.1–§2.4.9, §3.2.1.3, §3.2.1.4, §3.2.1.10, §3.2.1.12–§3.2.1.21 · `05 §4.2`, §4.5.1, §6.7.9 · `06 §4.17`, §4.21, §4.43, §4.45 · K-594, K-680, K-756, K-758, K-806, K-837, K-845, K-893, K-907, K-1161, K-1163 (7), K-1166 (1), K-1176 (2), K-1181 · devir: park satırı (Aşama 4, formlar, kimlik şemaları ve erişim — K-893: onay anahtarı).*
+*Kaynak: `04 §5.13`, 6.2.13, 7.1.5, 3.3.15–3.3.17, §3.6 · `02 §3.10`, §3.13.3, §3.14, §3.17, §3.20.1, §3.21.4, §3.21.5, §3.23, §3.24, §12.2.5 · `03 §2.3.8`, §2.4.1–§2.4.9, §3.2.1.3, §3.2.1.4, §3.2.1.10, §3.2.1.12–§3.2.1.21 · `05 §4.2`, §4.5.1, §6.7.9 · `06 §4.17`, §4.21, §4.43, §4.45 · K-594, K-680, K-756, K-758, K-806, K-837, K-845, K-893, K-907, K-1161, K-1163 (7), K-1166 (1), K-1176 (2), K-1181, K-1183 · devir: park satırı (Aşama 4, formlar, kimlik şemaları ve erişim — K-893: onay anahtarı).*
 
 ### 4.14 E-14 — Sipariş teyit ve bekleme ekranı
 
@@ -4326,12 +4329,12 @@ Ekran `04 §5.14` · durum × rol `04` 6.2.14 · form yok.
 **4.14.2 `UC-29` · POST `{kök}/teyit?handler=StartPayment` — ödeme sağlayıcısına geçiş**
 - **Amaç:** kart ödemesini sağlayıcının sayfasında başlatmak (`03 §2.5.1.1`; `04` 5.14.6) · **Yetki:** Müşteri — kök · **Hız sınırı:** form · 64 KB.
 - **İstek:** alan yoktur — sipariş kökten okunur.
-- **Yanıt (başarı):** 303 → ödeme sağlayıcısının sayfası — dış adres; isteğin ve yanıtın biçimi `08`'dedir. Sağlayıcıya verilen dönüş adresi UC-30'un yoludur (§4.29, yazım 2b).
+- **Yanıt (başarı):** 303 → ödeme sağlayıcısının sayfası — dış adres; isteğin ve yanıtın biçimi `08`'dedir. Sağlayıcıya verilen dönüş adresi UC-30'un yoludur — siparişin erişim anahtarını taşır (§4.29.1; K-1185).
 - **Yanıt (hata):** **303 → UC-28'in yönlendirmesi** — sipariş kart siparişi değilse ya da artık ödeme beklemiyorsa (4.14.1; §2.5.1). **303 → `/sepet`** — sağlayıcıya bağlanılamadı: ödeme sayfası açılmaz, sipariş kendiliğinden iptal edilir ve sepet korunur — adı konmuş hatadır (`03 §10.1.1.2`; `04` 5.14.10, 3.3.38; K-1182 (2)). **404** — kök tutmuyorsa.
 - **Yan etkiler:** ödemenin başlatılması bağlantı katmanının işidir ve siparişin kilidinin dışında yapılır (`05 §3.6.1`, §3.6.3, §4.2.4). Bağlanılamazsa siparişin iptali ve ayırmanın serbest kalması geçiş biriminden yürür (`05 §4.1`) ve L-7'ye ödeme denemesi olarak sayılmaz (`05 §3.6.2`); iptalin bildirimi `03 §10.1.1.2`'dedir.
 - **Idempotency:** sipariş ödeme beklerken her gönderim sağlayıcıda ödemeyi yeniden başlatmak ister; başlatmanın sağlayıcıdaki karşılığı `08`'in, ödemenin bir kez uygulanması `05 §4.5.3`'ün kuralıdır.
 
-*Kaynak: `04 §5.14`, 6.2.14, 3.3.17–3.3.19, 3.3.38, 3.3.39 · `02 §3.17.1`, §3.21.6, §5.3.2 · `03 §2.4.9`, §2.5.1.1, §2.5.1.2, §10.1.1.2 · `05 §3.6`, §4.2.4, §4.5.3 · `06 §4.17` · K-704, K-776, K-840, K-1162 (3), K-1182.*
+*Kaynak: `04 §5.14`, 6.2.14, 3.3.17–3.3.19, 3.3.38, 3.3.39 · `02 §3.17.1`, §3.21.6, §5.3.2 · `03 §2.4.9`, §2.5.1.1, §2.5.1.2, §10.1.1.2 · `05 §3.6`, §4.2.4, §4.5.3 · `06 §4.17` · K-704, K-776, K-840, K-1162 (3), K-1182, K-1185.*
 
 ### 4.15 E-15 — Sipariş takibi girişi
 
@@ -4356,7 +4359,7 @@ Ekran `04 §5.15` · durum × rol `04` 6.2.15 · form `04` 7.1.6.
 
 ### 4.16 E-16 — Sipariş sayfası
 
-Ekran `04 §5.16` · durum × rol `04` 6.2.16 · form `04` 7.1.7. Sipariş sayfası iki kökten açılır (§2.1.3); işleyicileri iki kökte de durur. İndirme ucu (UC-37) §4.31'dedir (yazım 2b).
+Ekran `04 §5.16` · durum × rol `04` 6.2.16 · form `04` 7.1.7. Sipariş sayfası iki kökten açılır (§2.1.3); işleyicileri iki kökte de durur. İndirme ucu (UC-37) §4.31.1'dedir.
 
 **4.16.1 `UC-33` · GET `/siparis/{sipariş numarası}` ve `UC-34` · GET `/siparis/erisim/{erişim anahtarı}` — sipariş sayfası.** İki uç aynı sayfayı verir; yalnız yetkileri ayrıdır.
 - **Amaç:** siparişin iki ekseni, müşteriden beklenen, kalemler ve kayıtları, işlemler, döküm ve geri ödemeler, teslimat, adresler, belgeler (`04` 5.16.3) · **Yetki:** UC-33 — Üye: müşteri oturumu ve hesabın sahipliği; UC-34 — Müşteri: erişim anahtarı, üyeye de açık (§2.3.4; `02 §3.22.3`); yönetici oturumu müşteri sayılmaz (§2.3.5) · **Hız sınırı:** sayfa.
@@ -4376,10 +4379,10 @@ Ekran `04 §5.16` · durum × rol `04` 6.2.16 · form `04` 7.1.7. Sipariş sayfa
 **4.16.3 `UC-36` · POST `{kök}?handler=DownloadDigitalFile` — indirme bağlantısının üretimi**
 - **Amaç:** dijital kalemin dosyası için bir saatlik imzalı indirme bağlantısı üretmek (`03 §1.11.14`, §2.5.3.2; `04` 5.16.13; K-1171 (6)) · **Yetki:** Müşteri — kök; kalem için sahiplik · **Hız sınırı:** form · 64 KB.
 - **İstek:** kalemin iç anahtarı.
-- **Yanıt (başarı):** 303 → `/indir/{imzalı değer}` (UC-37; §4.31, yazım 2b).
+- **Yanıt (başarı):** 303 → `/indir/{imzalı değer}` (UC-37; §4.31.1).
 - **Yanıt (hata):** **422** — indirme o anda açık değil: hak dolmuş, havalede ödeme işaretlenmemiş, kalemin dosyası yok — sayfa düğmenin yerindeki mesajla yeniden gösterilir (`04` 5.16.13; `02 §3.12.1`, §3.12.6; §8.1.3). **404** — kalem bu siparişin dijital kalemi değilse (§2.3.3).
 - **Yan etkiler:** indirme hakkı tek bir koşullu güncellemeyle düşer — `DownloadCount` (`06 §4.18`; `05 §7.7.4`; K-1171 (6)); bağlantı kayıtsızdır, kalemin kimliğini ve ömrünü taşıyan imzalı değerdir.
-- **Idempotency:** her gönderim yeni bir indirmedir ve bir hak düşürür — düğmeye her basış bir haktır (`05 §7.7.4`; K-1179 (1)); çift tıklamayı betikli yolda düğmenin kilidi önler. Aynı bağlantıyla aralık istekleri hak düşürmez (§4.31, yazım 2b).
+- **Idempotency:** her gönderim yeni bir indirmedir ve bir hak düşürür — düğmeye her basış bir haktır (`05 §7.7.4`; K-1179 (1)); çift tıklamayı betikli yolda düğmenin kilidi önler. Aynı bağlantıyla aralık istekleri hak düşürmez (§4.31.1).
 
 *Kaynak: `04 §5.16`, 6.2.16, 7.1.7 · `02 §3.12`, §3.22.3–§3.22.5, §3.23, §3.33.3, §7.2.8, §7.4.5 · `03 §1.4`, §1.11, §2.5.1.2, §2.6, §6.2.4.2 · `05 §7.7.4` · `06 §4.17`, §4.18, §4.29, §4.31 · K-562, K-569, K-710, K-1011 (3), K-1075, K-1164, K-1171 (6), K-1179 (1).*
 
@@ -4470,6 +4473,395 @@ Ekran `04 §5.19` · durum × rol `04` 6.2.19 · form `04` 7.1.10. Ekranın iki 
 
 *Kaynak: `04 §5.19`, 6.2.19, 7.1.10 · `02 §3.1.7`, §5.10, §7.5.1–§7.5.3, §9.2 · `03 §1.11.9`, §1.11.10, §2.9, §4.1.21, §5.1.4 · `06 §4.30` · K-665, K-676, K-681, K-783, K-790, K-793, K-795, K-830, K-1170, K-1182 (3).*
 
+### 4.20 E-20 — Kayıt ekranı
+
+Ekran `04 §5.20` · durum × rol `04` 6.2.20 · form `04` 7.1.11. Hesap ekranlarının hepsi noindex'tir (`02 §3.30.6`); tanımlar bunu yinelemez.
+
+**4.20.1 `UC-47` · GET `/kayit` — kayıt ekranı**
+- **Amaç:** ad, e-posta ve şifreyle kayıt formu ve "Google ile giriş" (`04` 5.20.2, 5.20.3) · **Yetki:** Ziyaretçi — açık · **Hız sınırı:** sayfa.
+- **İstek:** parametre yoktur. Gönderim sonrası hâli §2.2.3'ün koduyla ve bekleyen kaydın korumalı değeriyle (`pendingRegistration`) gelir — değer bekleyen kaydın iç anahtarını taşır, çatının veri koruma anahtarıyla şifreli ve imzalıdır, kayıtta tutulmaz ve tarayıcıda okunmaz (K-1186 (2)); adı §5.3'te (yazım 4). Google dönüşünün yönlendirme mesajı da kodla gelir (4.22.3; `04` 5.20.8).
+- **Yanıt (başarı):** 200 — görünüm `04` 5.20.2–5.20.5. Google uygulaması kurulumda tanımlı değilse "Google ile giriş" yoktur (`04` 5.20.11); veri toplayan girişlerin kapısı kapalıyken form yerinde kapalı olduğunu söyler ve gönderim düğmesi yoktur (`04` 5.20.10; K-850). **Gönderim sonrası hâli** (`04` 5.20.4): değer çözülüyor ve gösterdiği satır hâlâ doğrulanmamış bekleyen kayıtsa formun yerinde bağlantının gönderildiği, hesabın doğrulamayla açılacağı ve bağlantının geçerli olduğu son gün — kaydın doğrulama bağlantısının ömrünün sonundan (`LinkRecord.ExpiresAt`; `06 §4.42`) — durur ve altındaki yeniden isteme düğmesi değeri gizli alanda taşır; değer çözülmüyorsa ya da kayıt o arada doğrulanmış ya da silinmişse kod yok sayılır ve form boş hâliyle gelir.
+- **Yanıt (hata):** ortak yanıtların dışında yoktur.
+- **Yan etkiler · Idempotency:** yoktur — GET.
+
+**4.20.2 `UC-48` · POST `/kayit?handler=Register` — kayıt**
+- **Amaç:** doğrulanmamış bekleyen kayıt açmak (`03 §9.1.2`; `04` 5.20.6) · **Yetki:** Ziyaretçi — açık · **Hız sınırı:** form · 64 KB.
+- **İstek:** `Name`, `Email`, şifre (`06 §4.36`'nın alanlarına yazılır — şifre özetiyle). Doğrulama `04` 7.1.11.
+- **Yanıt (başarı):** 303 → `/kayit` — gönderim sonrası hâlinin koduyla ve bekleyen kaydın korumalı değeriyle (4.20.1; §2.2.3; K-1180 (3), K-1186 (2)).
+- **Yanıt (hata):** **422** — ad boş, e-posta biçimi geçersiz, şifre P-17'nin altında ya da çok yaygın şifreler listesinde — alan mesajı (`03 §3.4.6`); e-posta bir müşteri hesabına — bekleyen kayıt dahil — aitse kaynağın metni "bu e-posta zaten kayıtlı" ve giriş bağlantısı (`04` 5.20.9; `02 §3.13.11`) · veri toplayan girişlerin kapısı kapalı — form yeniden gösterilmez, sayfa kapalı hâliyle döner (`03 §3.4.12`). **429** — L-3: nötr mesaj kayıt düğmesinin yanında (`03 §3.4.11`; §2.8.5).
+- **Yan etkiler:** müşteri hesabı satırı, `EmailVerifiedAt` boş (`06 §4.36` — doğrulanmamış bekleyen kayıt); doğrulama bağlantısının kaydı, türü `EmailVerification`, ömrü Z-1 (`06 §4.42`; `05 §6.4.4`); doğrulama e-postası gönderim kaydına (`03 §7.1.49`; metni `08`); deneme kaydı (L-3; `05 §6.3.1`). Oturum açılmaz (`02 §3.13.4`).
+- **Idempotency:** tekrar gönderim adresi bekleyen kayıtta bulur ve 422 alır — "bu e-posta zaten kayıtlı"; ikinci kayıt ve ikinci bağlantı açılmaz (`06 §4.36` `NormalizedEmail`'in tekilliği).
+
+**4.20.3 `UC-49` · POST `/kayit?handler=ResendVerificationLink` · POST `/giris?handler=ResendVerificationLink` — kayıt doğrulama bağlantısını yeniden isteme**
+- **Amaç:** bekleyen kaydın doğrulama bağlantısını yeniden göndermek (`03 §9.1.3`; `04` 5.20.7, 5.22.8) · **Yetki:** Ziyaretçi · Üye — açık; bekleyen kaydın korumalı değeri · **Hız sınırı:** form · 64 KB.
+- **İstek:** bekleyen kaydın korumalı değeri (`pendingRegistration`) — kayıt ekranında gönderim sonrası hâlinin (4.20.1), giriş ekranında doğrulanmamış hesapla girişin (4.22.2) gizli alanı; e-posta ve şifre taşınmaz.
+- **Yanıt (başarı):** 303 → geldiği sayfa — `/kayit` ya da `/giris` — aynı değerle ve yeniden gönderimin koduyla: hâl aynı son günü yineler (`04` 5.20.7; K-779'un ikinci metni; K-659).
+- **Yanıt (hata):** **429** — L-9: nötr mesaj düğmenin yanında, hâl yerinde kalır (`03 §3.4.14`; §2.8.5). Değer çözülmüyorsa ya da kayıt artık bekleyen kayıt değilse bağlantı gönderilmez ve 303 geldiği sayfaya değersiz döner — form boş hâliyle (4.20.1).
+- **Yan etkiler:** yeni doğrulama bağlantısı; öncekiler aynı koşullu güncellemeyle geçersizleşir — `SupersededAt` (`05 §6.4.6`); kaydın ömrü uzamaz — yeni bağlantı ilk bağlantının ömrünü taşır (`06 §4.42`); e-posta (`03 §7.1.49`); deneme kaydı (L-9).
+- **Idempotency:** her gönderim yeni bir bağlantıdır ve L-9'a sayılır; çift tıklamayı betikli yolda düğmenin kilidi önler.
+
+**4.20.4 `UC-50` · POST `/kayit?handler=StartSocialLogin` · POST `/giris?handler=StartSocialLogin` — Google ile giriş — yönlendirme**
+- **Amaç:** Google ile giriş ya da kayıt akışını başlatmak (`03 §9.1.6`, §9.2.2; `04` 5.20.8, 5.22.6) · **Yetki:** Ziyaretçi · Üye — açık · **Hız sınırı:** form · 64 KB.
+- **İstek:** giriş ekranında dönüş yolu (`returnUrl`; §2.3.2); kayıt ekranında alan yoktur.
+- **Yanıt (başarı):** 303 → Google'ın yetkilendirme adresi — isteğin biçimi `08`'dedir. Başlatma POST'tur: başka bir site girişi başlatamaz (§2.2.5; `05 §6.1.6`).
+- **Yanıt (hata):** **422** — Google uygulaması kurulumda tanımlı değil — işlem sunulmaz ve uygulanmaz, sayfa düğmesiz yeniden gösterilir (`04` 5.20.11; §8.1.3).
+- **Yan etkiler:** Google ile girişin akış çerezi yazılır — `state`, `nonce` ve PKCE doğrulayıcısı (`__Host-external-login`; `05 §6.1.4`, §6.7.12); dönüş yolu çatının veri koruma anahtarıyla koruduğu `state` değerinin içinde taşınır — çatının dış giriş akışının biçimi (`05 §6.1.4`; bilgim tarihli — `09`'da doğrulanır). Sunucuda kayıt yazılmaz.
+- **Idempotency:** her gönderim yeni bir akıştır — akış çerezini yeniden yazar; önceki akışın dönüşü artık tutmaz (4.22.3).
+
+*Kaynak: `04 §5.20`, 6.2.20, 7.1.11 · `02 §3.13.4`–§3.13.6, §3.13.11, §3.13.15, §3.13.21, §3.30.6 · `03 §3.4.3`, §3.4.6, §3.4.11, §3.4.12, §3.4.14, §7.1.49, §9.1.1–§9.1.3, §9.1.6, §9.1.7 · `05 §6.1.4`, §6.1.6, §6.3.1, §6.4.4, §6.4.6, §6.7.12 · `06 §4.36`, §4.42 · K-588, K-659, K-779, K-850, K-1180 (3), K-1186 (2).*
+
+### 4.21 E-21 — Doğrulama bağlantısının iniş ekranı
+
+Ekran `04 §5.21` · durum × rol `04` 6.2.21 · form yok. Bağlantının hâli bağlantı kaydından okunur (`05 §6.4.6`); tür kaydın doğrulaması (`EmailVerification`) ya da yeni e-posta adresinin doğrulamasıdır (`NewEmailVerification`; `06 §5.4.2`).
+
+**4.21.1 `UC-52` · GET `/dogrulama/{anahtar}` — doğrulama bağlantısının inişi — kayıt ve yeni e-posta**
+- **Amaç:** bağlantının hâlini ve — geçerliyse — doğrulama adımını göstermek (`04` 5.21.2) · **Yetki:** Kullanıcı — anahtar; oturumdan bağımsız (`04` 5.21.11) · **Hız sınırı:** sayfa.
+- **İstek:** anahtar yol bölümündedir (§2.1.4); doğrulamadan sonra adres sonuç hâlinin kodunu taşır (4.21.2; K-1186 (1)).
+- **Yanıt (başarı):** 200 — bağlantının hâline göre altı hâlden biri (`04` 5.21.3–5.21.8; K-780): geçerli bağlantı **doğrulama adımıdır** — doğrulanacak işlemi söyleyen cümle ve işlemin adını taşıyan tek düğme; açılış doğrulamaz (K-904; §2.2.5) · ömrü dolmuş ya da tanınmayan kayıt bağlantısı 5.21.4 · yerine yenisi geçmiş kayıt bağlantısı 5.21.5 · kullanılmış kayıt bağlantısı 5.21.6 — sonuç hâlinin koduyla gelindiyse 5.21.3 · yeni adresin bağlantısı kullanılmışsa sonuç hâlinin koduyla 5.21.7, kodsuz ya da öteki hâllerde 5.21.8. **Kod yalnız kullanılmış bağlantıda okunur;** geçerli ya da başka hâldeki bağlantıda yok sayılır (K-1186 (1)). 5.21.7 ve 5.21.8'in sonraki adımı oturuma göre değişir — oturum açıksa "Hesabım", değilse giriş (`04` 5.21.7).
+- **Yanıt (hata):** ortak yanıtların dışında yoktur — tanınmayan anahtar 404 değil, 5.21.4'ün hâlidir (`04` 5.21.12; §2.3.3'ün hesap bağlantısı istisnası).
+- **Yan etkiler · Idempotency:** yoktur — GET; bağlantının kaç kez açıldığına bakılmaz (`05 §6.4.7`).
+
+**4.21.2 `UC-53` · POST `/dogrulama/{anahtar}?handler=VerifyEmail` — doğrulama**
+- **Amaç:** kaydı ya da yeni e-posta adresini doğrulamak (`03 §9.1.4`, §9.3.5; `04` 5.21.9) · **Yetki:** Kullanıcı — anahtar · **Hız sınırı:** form · 64 KB.
+- **İstek:** alan yoktur — anahtar adrestedir (K-904).
+- **Yanıt (başarı):** 303 → `/dogrulama/{anahtar}` — sonuç hâlinin koduyla (§2.2.3; K-1186 (1)); doğrulama oturum açmaz (`04` 5.21.3).
+- **Yanıt (hata):** **200** — bağlantı o arada geçersizleşti: tüketim tutmadı, hiçbir şey yazılmaz ve sayfa bağlantının o anki hâlini gösterir (§2.5.3; `05 §6.4.6`). **422** — yeni adres o arada doğrulanmış başka bir müşteri hesabının adresi oldu: değişiklik geçerli olmaz, tüketim geri döner ve sayfa 5.21.8'in hâlini bu sebeple gösterir (`02 §3.13.14`; K-1080; `05 §6.4.6`). Sonucu belirsiz doğrulama 303 ile aynı adrese — yeniden açılan bağlantı sonucu söyler (`04` 5.21.12; §2.7.1).
+- **Yan etkiler:** bağlantı tek koşullu güncellemeyle tüketilir (`UsedAt`). **Kayıt doğrulamasında** `EmailVerifiedAt` yazılır ve o e-postaya ait geçmiş misafir siparişleri hesaba bağlanır (`02 §3.13.2`; `03 §9.1.4`; `06 §4.36`). **Yeni adresin doğrulamasında** hesabın e-postası yeni adres olur, bekleyen değişiklik silinir, Google bağı kalkar (K-1117), adresi tutan doğrulanmamış bekleyen kayıt aynı işlemde silinip imha kaydına yazılır (K-1080), yeni adrese ait geçmiş misafir siparişleri hesaba bağlanır, eski adrese bildirim ve geri alma bağlantısı (Z-45) gider (`03 §7.1.52`, §9.3.5; `06 §4.40`, §4.42); öteki oturumlar kapanmaz (`02 §3.13.14`). İşlem hesabın satır kilidinin altındadır (`05 §6.1.2`).
+- **Idempotency:** tekrar gönderim bağlantıyı kullanılmış bulur — güncel hâl: 200, bağlantının o anki hâli (§2.5.3).
+
+*Kaynak: `04 §5.21`, 6.2.21, 3.5.4, 3.5.6 · `02 §3.13.2`, §3.13.4, §3.13.5, §3.13.14 · `03 §3.4.1`, §7.1.52, §9.1.4, §9.1.5, §9.3.5 · `05 §6.1.2`, §6.4.6, §6.4.7 · `06 §4.36`, §4.40, §4.42, §5.4.2 · K-659, K-780, K-904, K-1080, K-1117, K-1164 (3), K-1186 (1).*
+
+### 4.22 E-22 — Müşteri girişi
+
+Ekran `04 §5.22` · durum × rol `04` 6.2.22 · form `04` 7.1.12. Giriş ekranı yalnız müşteri hesaplarını arar (`04` 5.22.4; K-588); dönüş yerinin kuralı `04 §3.6`'dadır, değeri §2.3.2'nin `returnUrl`'idir.
+
+**4.22.1 `UC-54` · GET `/giris` — müşteri girişi ekranı**
+- **Amaç:** e-posta, şifre ve "beni hatırla" formu, "Google ile giriş", şifremi unuttum ve kayıt bağlantıları (`04` 5.22.2, 5.22.3) · **Yetki:** Ziyaretçi · Üye — açık · **Hız sınırı:** sayfa.
+- **İstek:** dönüş yolu `returnUrl` (§2.3.2) — çerçevenin "Giriş yap"ı bulunduğu sayfayı, ödeme adımının bağlantıları `/odeme`'yi, oturum gerektiren ekrana oturumsuz geliş o ekranı taşır (`04` 3.5.14, §3.6.1–§3.6.3). Oturumun kapandığı ve Google dönüşünün hâlleri kodla gelir (§2.3.2; 4.22.3); doğrulanmamış hesapla girişin yeniden gönderimden sonraki hâli kodla ve bekleyen kaydın korumalı değeriyle gelir (4.20.3).
+- **Yanıt (başarı):** 200 — görünüm `04` 5.22.2–5.22.3. Google uygulaması tanımlı değilse "Google ile giriş" yoktur (`04` 5.22.11). Veri toplayan girişlerin kapısı kapalıyken giriş çalışır (`04` 5.20.10).
+- **Yanıt (hata):** ortak yanıtların dışında yoktur.
+- **Yan etkiler · Idempotency:** yoktur — GET.
+
+**4.22.2 `UC-55` · POST `/giris?handler=SignIn` — müşteri girişi**
+- **Amaç:** e-posta ve şifreyle oturum açmak (`03 §9.2.1`; `04` 5.22.5) · **Yetki:** Ziyaretçi · Üye — açık; sepet · **Hız sınırı:** form · 64 KB.
+- **İstek:** e-posta, şifre, "beni hatırla" (`IsLongLived`'in seçimi — `06 §4.39`) ve `returnUrl`. Doğrulama `04` 7.1.12.
+- **Yanıt (başarı):** 303 → dönüş yeri: `returnUrl` yerel yol denetiminden geçmişse o yol — ödeme adımı, istenen ekran ya da gelinen vitrin sayfası; bir giriş, kayıt, sıfırlama ya da bağlantı iniş ekranıysa ya da değer yoksa ana sayfa (`04` §3.6.1–§3.6.3; `05 §6.5.6`). Birleşme bir şey eklediyse dönülen sayfa onu bir kez söyler (4.34.3; K-1183).
+- **Yanıt (hata):** **422** — alan boş ya da e-posta biçimi geçersiz — alan mesajı · e-posta ya da şifre yanlış — formun başında hangi alanın yanlış olduğunu ve hesabın var olup olmadığını söylemeyen tek mesaj (`04` 5.22.7; K-779) · **doğrulanmamış hesap**, e-posta ve şifre doğru — oturum açılmaz; formun yerinde doğrulamanın beklendiği ve yeniden isteme düğmesi; düğme bekleyen kaydın korumalı değerini gizli alanda taşır (`04` 5.22.8; 4.20.3; K-1186 (2)); ömrü dolmuş kayıt silinmiştir ve giriş yanlış bilginin mesajını verir (`03 §3.4.2`). **429** — L-1: nötr mesaj giriş düğmesinin yanında; hesap kilitlenmez; tanınan tarayıcı e-posta ekseninde engellenmez (`03 §6.1.1.1`, §6.1.3.2; §2.8.5).
+- **Yan etkiler:** oturum kaydı — her giriş yeni anahtar; giriş hesabın satırını paylaşımlı kilitle okur ve şifre özetini o kilidin altında yeniden denetler (`05 §6.1.1`, §6.1.2; `06 §4.39`); tanınan tarayıcı işareti — çerez ve hesap başına kaydı (`06 §4.41`; `05 §6.7.6`); **sepetlerin birleşmesi** — üyenin sepeti yoksa misafir sepeti hesaba geçer, varsa misafir sepetinin kalemleri üyenin sepetine taşınır ve misafir sepeti silinir; L-6'nın satırları büyük sayacın sepetine yazılır (`06 §4.15`, §4.16; `05 §6.3.2`); birleşme müşterinin o ziyarette görmediği bir kalemi ya da adedi eklediyse o kalemlerin birleşme işareti yazılır — `IsMergeNoticePending` (`06 §4.16`; K-1183); misafir sepeti çerezi silinir. Parola parametreleri yükseldiyse özet yeniden yazılır (`05 §6.1.4`). Başarısız giriş deneme kaydına — işlemden önce kendi işleminde, başarıda silinir (L-1; `05 §6.3.1`; K-972).
+- **Idempotency:** her başarılı gönderim yeni bir oturum açar; çift gönderimde tarayıcının çerezi sonuncusunu taşır, öteki kayıt süresi dolunca gecelik temizlikte silinir (`05 §6.1.1`). Birleşme ikinci gönderimde misafir sepetini bulmaz.
+
+**4.22.3 `UC-51` · GET `/giris/google` — Google dönüşü**
+- **Amaç:** Google'ın dönüşünü giriş, kayıt ya da yeniden doğrulama olarak sonuçlandırmak (`03 §9.1.6`, §9.1.7, §9.2.2, §9.2.6; `04` 5.22.6) · **Yetki:** Ziyaretçi · Üye — açık; akışın çerezi — akışı ve türünü o ayırır (§2.3.1; K-1175 (4)) · **Hız sınırı:** sayfa.
+- **İstek:** Google'ın sorgu dizgesi — yetki kodu ve `state` (`05 §6.1.4`; biçimi `08`).
+- **Yanıt (başarı) — giriş ve kayıt akışı:** Google'ın doğrulanmış verdiği e-posta bir müşteri hesabınınkiyle eşleşiyorsa o hesaba girilir ve Google bağı yazılır; eşleşen hesap yoksa ve veri toplayan girişlerin kapısı açıksa hesap doğrulanmış ve şifresiz doğar; e-posta doğrulanmamış bekleyen bir kayda eşleşiyorsa kayıt devralınmaz — silinir, imha kaydına yazılır ve hesap Google ile doğar (`03 §3.4.16`; K-696). Üçünde de 303 → akışın dönüş yolu, 4.22.2'nin kuralıyla; birleşme 4.22.2'ninkidir. **Yeniden doğrulama akışı:** Google girişinin anı (`auth_time`) yeniden doğrulamanın başlatıldığı andan sonraysa ve e-posta hesabınkiyle eşleşiyorsa izin yazılır ve 303 → işlemin formu (4.24.2'nin dönüşü; K-1186 (4)).
+- **Yanıt (hata):** **303 → `/kayit`, kodla** — Google e-postayı doğrulanmamış verdi: hesap açılmaz, bağlama yapılmaz (`03 §9.1.7`; `04` 5.20.8; K-697). **303 → `/giris`, kodla** — eşleşen hesap yok ve kapı kapalı (`04` 5.22.10); Google'a ulaşılamadı ya da kullanıcı vazgeçti (`04` 5.22.11; `03 §10.1.3.1`); akışın çerezi yok, `state` tutmuyor ya da değerler kullanılmış. **303 → `/hesap/yeniden-dogrulama`, işlem ve kodla** — yeniden doğrulama tutmadı: giriş anı eski ya da yok, e-posta eşleşmiyor (`04` 5.24.7; K-968). Hiçbirinde oturum açılmaz, izin yazılmaz.
+- **Yan etkiler:** **GET olduğu hâlde yazar** — oturum, hesap, Google bağı, sepet birleşmesi, yeniden doğrulama izni: Google'ın dönüşü protokolün GET'idir (`05 §6.1.4`; form gönderimiyle dönüş elendi — `05 §6.1.6`); isteği akış çerezinin tek kullanımlık değerleri bağlar ve başka bir sitenin tetiklediği dönüş tutmaz — §2.2.5'in istisnasıdır (K-1186 (5)). Akışın çerezi silinir. Google ile giriş L-1'e girmez (`03 §6.1.3.5`).
+- **Idempotency:** akışın değerleri bir kez kullanılır — yenilenen ya da geri tuşuyla gelen aynı dönüş tutmaz ve hiçbir şey yazmadan 303 `/giris` alır.
+
+*Kaynak: `04 §5.22`, 6.2.22, 7.1.12, 3.5.9, 3.5.14, §3.6 · `02 §3.13.6`, §3.13.7, §3.13.12, §3.16.3, §3.16.4, §8.1.4 · `03 §2.3.6`, §3.4.2, §3.4.16, §6.1.1.1, §6.1.3.2, §6.1.3.5, §9.1.6, §9.1.7, §9.2.1, §9.2.2, §10.1.3 · `05 §6.1.1`–§6.1.6, §6.3, §6.5.6, §6.7.6, §6.7.12 · `06 §4.15`, §4.16, §4.39, §4.41 · K-588, K-696, K-697, K-758, K-779, K-968, K-972, K-1164 (2), K-1175 (4), K-1183, K-1186.*
+
+### 4.23 E-23 — Şifre sıfırlama ekranları
+
+Ekran `04 §5.23` · durum × rol `04` 6.2.23 · form `04` 7.1.13. İki adım iki adrestir: isteme `/sifre-sifirlama`, kurma `/sifre-sifirlama/{anahtar}` (§2.1.4).
+
+**4.23.1 `UC-56` · GET `/sifre-sifirlama` — şifre sıfırlama — isteme adımı**
+- **Amaç:** e-posta alanı ve gönderme düğmesi (`04` 5.23.3) · **Yetki:** Kullanıcı — açık · **Hız sınırı:** sayfa.
+- **İstek:** parametre yoktur; gönderimden sonraki nötr hâl kodla gelir (4.23.2; §2.2.3).
+- **Yanıt (başarı):** 200 — görünüm `04` 5.23.3. Müşteri oturumu açıksa alan hesabın e-postasıyla ön dolu gelir — hesap ekranının şifre belirleme bağlantısı buraya iner; e-posta adreste taşınmaz (`04` 3.3.36, 5.25.5; K-1186 (6)). Kodla gelindiyse formun yerinde kaynağın nötr metni durur — "bu adres kayıtlıysa sıfırlama bağlantısını gönderdik" (`04` 5.23.3). Şifrenin kurulduğu hâl kurma adımının adresindedir (4.23.3).
+- **Yanıt (hata):** ortak yanıtların dışında yoktur.
+- **Yan etkiler · Idempotency:** yoktur — GET.
+
+**4.23.2 `UC-57` · POST `/sifre-sifirlama?handler=RequestPasswordReset` — şifre sıfırlama isteği**
+- **Amaç:** sıfırlama bağlantısı göndermek (`03 §9.2.4`; `04` 5.23.5) · **Yetki:** Kullanıcı — açık · **Hız sınırı:** form · 64 KB.
+- **İstek:** e-posta. Doğrulama `04` 7.1.13.
+- **Yanıt (başarı):** 303 → `/sifre-sifirlama` — nötr hâlin koduyla; yanıt adresin kayıtlı olup olmadığına göre değişmez (`02 §8.1.4`; §2.2.3).
+- **Yanıt (hata):** **422** — e-posta boş ya da biçimi geçersiz — alan mesajı. **429** — L-2: nötr mesaj düğmenin yanında (`03 §6.1.1.2`, §6.1.3.4; §2.8.5).
+- **Yan etkiler:** adres doğrulanmış bir müşteri hesabınınsa sıfırlama bağlantısı — türü `PasswordReset`, ömrü Z-2 — ve e-postası (`03 §7.1.50`; `06 §4.42`); hesabın şifresi yoksa bağlantı şifre belirlemedir (`02 §3.13.8`); deneme kaydı her istekte (L-2; `05 §6.3.1`). Adres kayıtlı değilse e-posta gitmez.
+- **Idempotency:** her gönderim yeni bir bağlantıdır ve L-2'ye sayılır; yanıt hep aynıdır.
+
+**4.23.3 `UC-58` · GET `/sifre-sifirlama/{anahtar}` — sıfırlama bağlantısının inişi — kurma adımı**
+- **Amaç:** yeni şifre alanı ve kurma düğmesi (`04` 5.23.4) · **Yetki:** Kullanıcı — anahtar · **Hız sınırı:** sayfa.
+- **İstek:** anahtar yol bölümündedir; kurulduktan sonra adres sonuç hâlinin kodunu taşır (4.23.4).
+- **Yanıt (başarı):** 200 — geçerli bağlantıda kurma adımı; hesabın şifresi yoksa adım şifre belirlemeyi adlandırır (`04` 5.23.4; `03 §3.4.8`). Bağlantı kullanılmışsa ve sonuç hâlinin koduyla gelindiyse şifrenin kurulduğu, bütün oturumların kapandığı hâl ve giriş bağlantısı (`04` 5.23.4; K-1186 (1)). **Geçersiz bağlantı** — kullanılmış, ömrü dolmuş, yerine yenisi geçmiş ya da tanınmayan — kurma adımını açmaz: sayfa bağlantının geçersiz olduğunu söyler ve isteme adımına götüren bağlantıyı taşır (`04` 5.23.8; `03 §3.4.5`).
+- **Yanıt (hata):** ortak yanıtların dışında yoktur — tanınmayan anahtar geçersiz bağlantının hâlidir (§2.3.3'ün hesap bağlantısı istisnası).
+- **Yan etkiler · Idempotency:** yoktur — GET (`05 §6.4.7`).
+
+**4.23.4 `UC-59` · POST `/sifre-sifirlama/{anahtar}?handler=ResetPassword` — yeni şifrenin kurulması**
+- **Amaç:** yeni şifreyi kurmak (`03 §9.2.5`; `04` 5.23.6) · **Yetki:** Kullanıcı — anahtar · **Hız sınırı:** form · 64 KB.
+- **İstek:** yeni şifre. Doğrulama `04` 7.1.13.
+- **Yanıt (başarı):** 303 → `/sifre-sifirlama/{anahtar}` — sonuç hâlinin koduyla (§2.2.3; K-1186 (1)); kurma oturum açmaz.
+- **Yanıt (hata):** **422** — şifre P-17'nin altında ya da çok yaygın şifreler listesinde — alan mesajı, bağlantı tüketilmez (`03 §3.4.6`). **200** — bağlantı o arada geçersizleşti: tüketim tutmadı, sayfa geçersiz bağlantının hâlini gösterir (§2.5.3).
+- **Yan etkiler:** bağlantı tek koşullu güncellemeyle tüketilir; şifre özeti yazılır; **hesabın bütün oturumları silinir** (`05 §6.1.2`); bu tarayıcı o hesap için tanınan tarayıcı olur, öteki işaretler düşer (`03 §6.1.3.3`; `06 §4.41`). Google ile açılmış hesap bundan sonra iki giriş yolunu taşır (`04` 5.23.6). Geri alma bağlantısından sonraki sıfırlamada şifre eski adrese giden bağlantıyla kurulur (`03 §9.3.6`).
+- **Idempotency:** tekrar gönderim bağlantıyı kullanılmış bulur — güncel hâl: 200, geçersiz bağlantının hâli.
+
+*Kaynak: `04 §5.23`, 6.2.23, 7.1.13, 3.3.36, 3.5.5 · `02 §3.13.8`–§3.13.11, §3.13.15, §8.1.4 · `03 §3.4.4`–§3.4.6, §3.4.8, §6.1.1.2, §6.1.3.3, §6.1.3.4, §7.1.50, §9.2.4, §9.2.5, §9.3.6 · `05 §6.1.2`, §6.3.1, §6.4.6, §6.4.7 · `06 §4.41`, §4.42 · K-904, K-972, K-1186 (1), (6).*
+
+### 4.24 E-24 — Yeniden doğrulama ekranı
+
+Ekran `04 §5.24` · durum × rol `04` 6.2.24 · form `04` 7.1.14. Yeniden doğrulama yalnız başlatılan işlem içindir — şifre değiştirme, e-posta değiştirme, hesap silme (`02 §3.13.13`); işlem `reauthenticatedOperation` sorgu parametresinde, `06 §5.6.8`'in kod adıyla taşınır — `PasswordChange`, `EmailChange`, `AccountDeletion` (K-1186 (4)); adı §5.3'te (yazım 4).
+
+**4.24.1 `UC-60` · GET `/hesap/yeniden-dogrulama` — yeniden doğrulama ekranı**
+- **Amaç:** başlatılan işlemin adı, şifre alanı ve — hesap Google girişi taşıyorsa — Google ile doğrulama düğmesi (`04` 5.24.2, 5.24.3) · **Yetki:** Üye — müşteri oturumu · **Hız sınırı:** sayfa.
+- **İstek:** `reauthenticatedOperation`; Google ile doğrulamanın tutmadığı hâl kodla gelir (4.22.3).
+- **Yanıt (başarı):** 200 — görünüm `04` 5.24.3. Şifre alanı hesabın şifresi varsa, Google düğmesi `GoogleLinkedAt` doluysa (`06 §4.36`). Şifresi olmayan hesapta Google'a ulaşılamıyorsa sayfa sebebini ve şifre belirlemenin yolunu gösterir (`04` 5.24.7). Kodla gelindiyse Google ile doğrulamanın tutmadığını, Google'da yeniden giriş yapıp tekrar denemenin ve şifre belirlemenin yolunu söyler (`04` 5.24.7; K-968).
+- **Yanıt (hata):** **303 → `/hesap`** — parametre yok ya da kapalı listenin dışında.
+- **Yan etkiler · Idempotency:** yoktur — GET; sayfanın açılması oturumun önceki iznini düşürür (`05 §6.1.5`; §2.2.5'in istisnası — K-1186 (5)).
+
+**4.24.2 `UC-61` · POST `/hesap/yeniden-dogrulama?handler=Reauthenticate` — şifreyle yeniden doğrulama**
+- **Amaç:** başlatılan işlem için şifreyle yeniden doğrulamak (`03 §9.2.6`; `04` 5.24.5) · **Yetki:** Üye — müşteri oturumu · **Hız sınırı:** form · 64 KB.
+- **İstek:** `reauthenticatedOperation` ve şifre. Doğrulama `04` 7.1.14.
+- **Yanıt (başarı):** 303 → `/hesap?reauthenticatedOperation={işlem}&reauthenticationToken={değer}` — işlemin bölümü açık gelir ve formu tek kullanımlık değeri gizli alanda taşır (4.25.1; K-971; K-1186 (4)). Değerin kendisi kayıtta durmaz, yalnız özeti oturum kaydındadır (`06 §4.39` `ReauthenticationTokenHash`); adres sistem kayıtlarında maskelenir (`05 §9.1.5`) ve başka siteye gitmez (`05 §6.5.4`).
+- **Yanıt (hata):** **422** — şifre boş ya da yanlış — alan mesajı; deneme L-1'e sayılır (`03 §3.4.17`). **429** — L-1: o eksende şifreyle yeniden doğrulama ve giriş geçici olarak engellenir, nötr mesaj (`04` 5.24.6; §2.8.5). **303 → `/hesap`** — işlem kapalı listenin dışında.
+- **Yan etkiler:** oturum kaydına yalnız başlatılan işlem için izin — `ReauthenticatedOperation` ve değerin özeti (`06 §4.39`; `05 §6.1.5`); anahtar değişmez (`05 §6.1.1`). Yanlış şifre deneme kaydına (L-1).
+- **Idempotency:** her başarılı gönderim yeni bir değer ve izin yazar; önceki değer geçersizleşir — oturumda tek izin vardır.
+
+**4.24.3 `UC-62` · POST `/hesap/yeniden-dogrulama?handler=StartSocialReauthentication` — Google ile yeniden doğrulama — yönlendirme ve dönüş**
+- **Amaç:** Google'dan taze bir girişle yeniden doğrulamayı başlatmak (`03 §9.2.6`; `04` 5.24.5; `05 §6.1.5`) · **Yetki:** Üye — müşteri oturumu · **Hız sınırı:** form · 64 KB.
+- **İstek:** `reauthenticatedOperation`.
+- **Yanıt (başarı):** 303 → Google'ın yetkilendirme adresi — istek girişin anını (`auth_time`) ister ve Google destekliyorsa yeniden girişi zorlar; biçimi `08`'dedir (`05 §6.1.5`). Dönüş UC-51'in adresine iner (4.22.3; K-1175 (4)).
+- **Yanıt (hata):** **422** — hesap Google girişi taşımıyor ya da Google uygulaması tanımlı değil — işlem sunulmaz (§8.1.3). **303 → `/hesap`** — işlem kapalı listenin dışında.
+- **Yan etkiler:** akışın çerezi (4.20.4); akışın türü — yeniden doğrulama —, başlatılan işlem ve başlatma anı korumalı `state` değerinin içindedir; dönüş giriş anını bu anla karşılaştırır (`05 §6.1.4`, §6.1.5, §6.7.12; bilgim tarihli — `09`). Sunucuda kayıt yazılmaz.
+- **Idempotency:** her gönderim yeni bir akıştır (4.20.4). Google ile doğrulama L-1'e girmez (`04` 5.24.6).
+
+*Kaynak: `04 §5.24`, 6.2.24, 7.1.14, 3.3.30, 3.3.37 · `02 §3.13.13`, §8.1.5 · `03 §3.4.17`, §6.1.1.1, §9.2.6, §10.1.3.2 · `05 §6.1.1`, §6.1.5, §6.5.4, §6.7.12, §9.1.5 · `06 §4.36`, §4.39, §5.6.8 · K-968, K-971, K-1062, K-1175 (4), K-1186 (4), (5).*
+
+### 4.25 E-25 — Hesap — profil ve güvenlik
+
+Ekran `04 §5.25` · durum × rol `04` 6.2.25 · form `04` 7.1.15. Beş bölüm aynı sayfadır ve her bölüm kendi işleyicisine gönderir (§2.2.1); yeniden doğrulama isteyen üç işlemin formu yalnız UC-61'in ya da UC-51'in dönüşünde açılır (4.24.2).
+
+**4.25.1 `UC-63` · GET `/hesap` — hesap — profil ve güvenlik**
+- **Amaç:** ad, e-posta, şifre, giriş yolları ve hesabı sil bölümleri; iç gezinme (`04` 5.25.2–5.25.8) · **Yetki:** Üye — müşteri oturumu · **Hız sınırı:** sayfa.
+- **İstek:** yeniden doğrulamanın dönüşünde `reauthenticatedOperation` ve `reauthenticationToken` (4.24.2); bölümlerin sonuç hâlleri ve kısa süreli bildirimler kodla (§2.2.3).
+- **Yanıt (başarı):** 200 — görünüm `04` 5.25.2–5.25.8. **İşlemin formu** yalnız oturumun izni o işlem içinse ve değerin özeti oturum kaydındakiyle aynıysa açık gelir — şifre değiştirmede yeni şifre alanı, e-posta değiştirmede yeni adres alanı, hesap silmede son adım — ve değeri gizli alanda taşır; tutmayan parametre yok sayılır, bölüm kapalı gelir (`05 §6.1.5`; K-971; K-1186 (4)). **Bekleyen değişiklik** yeni adresi ve bağlantının son günüyle görünür (`06 §4.40`, §4.42; `04` 5.25.4). **Geri alma bağlantısı açıkken** (Z-45) e-posta değiştirme ve hesap silme kapalıdır, yerinde sebebi ve bağlantının bitiş tarihi durur (`04` 5.25.4, 5.25.7; `02 §3.13.14`, §3.15.6). Şifresi olmayan hesapta şifre değiştirme yerine şifre belirlemenin bağlantısı — `/sifre-sifirlama` (4.23.1). Yapılabilir işlemler `04` 6.2.25'in satırlarıdır (§8.1).
+- **Yanıt (hata):** ortak yanıtların dışında yoktur — oturum yoksa 302 girişe (§2.3.2).
+- **Yan etkiler:** yoktur — GET; iznin bağlı olduğu formun gösterimi izni düşürmez, iznin işlemi dışındaki ilk sayfa isteği düşürür (`05 §6.1.5`; K-1186 (5)).
+- **Idempotency:** yoktur — GET; sayfanın değerli adresle yenilenmesi aynı formu gösterir — değer gönderimle tüketilene ya da izin düşene kadar (`05 §6.1.5`'in kalan riski).
+
+**4.25.2 `UC-64` · POST `/hesap?handler=ChangeName` — adı değiştirme**
+- **Amaç:** hesabın adını değiştirmek (`03 §9.3.1`; `04` 5.25.9) · **Yetki:** Üye — müşteri oturumu · **Hız sınırı:** form · 64 KB.
+- **İstek:** `Name` (`06 §4.36`). Doğrulama `04` 7.1.15.
+- **Yanıt (başarı):** 303 → `/hesap` — "kaydedildi" kısa süreli bildirimiyle (`04` 5.25.9, 2.3.1.4).
+- **Yanıt (hata):** **422** — ad boş — alan mesajı.
+- **Yan etkiler:** `Name` yazılır; geçmiş siparişin alıcı adına dokunmaz (`02 §3.13.21`). Yeniden doğrulama istemez.
+- **Idempotency:** aynı değer aynı sonucu yazar.
+
+**4.25.3 `UC-65` · POST `/hesap?handler=ChangePassword` — şifreyi değiştirme**
+- **Amaç:** yeniden doğrulamadan sonra şifreyi değiştirmek (`03 §9.3.3`; `04` 5.25.10) · **Yetki:** Üye — müşteri oturumu; yeniden doğrulamanın değeri (§2.5.2) · **Hız sınırı:** form · 64 KB.
+- **İstek:** yeni şifre ve `ReauthenticationToken` — değerin gizli alanı; adı §5.2'de (yazım 4). Doğrulama `04` 7.1.15.
+- **Yanıt (başarı):** 303 → `/hesap` — sonuç hâlinin koduyla: bölümde şifrenin değiştiği ve öteki oturumların kapandığı yerinde kalıcı mesajla (`04` 5.25.10; §2.2.3).
+- **Yanıt (hata):** **303 → `/hesap/yeniden-dogrulama?reauthenticatedOperation=PasswordChange`** — değer yok, tutmuyor ya da izin düşmüş: işlem yapılmaz (§2.5.2; `05 §6.1.5`). **422** — yeni şifre P-17'nin altında ya da çok yaygın şifreler listesinde — alan mesajı; değer tüketilmez, form aynı değerle yeniden gösterilir · hesabın şifresi yok — işlem sunulmaz (§8.1.3).
+- **Yan etkiler:** değer aynı veritabanı işleminde tek koşullu güncellemeyle tüketilir; şifre özeti yazılır; **değiştiren dışındaki oturumlar silinir** (`02 §3.13.10`; `05 §6.1.2`; K-695); öteki tarayıcıların tanınan tarayıcı işaretleri düşer (`03 §9.3.3`).
+- **Idempotency:** tekrar gönderim değeri tüketilmiş bulur ve yeniden doğrulamaya gider — şifre ikinci kez yazılmaz.
+
+**4.25.4 `UC-66` · POST `/hesap?handler=ChangeEmail` — e-postayı değiştirme**
+- **Amaç:** yeniden doğrulamadan sonra yeni e-posta adresini doğrulamaya göndermek (`03 §9.3.4`; `04` 5.25.11) · **Yetki:** Üye — müşteri oturumu; yeniden doğrulamanın değeri · **Hız sınırı:** form · 64 KB.
+- **İstek:** yeni adres (`NewEmail`; `06 §4.40`) ve `ReauthenticationToken`. Doğrulama `04` 7.1.15.
+- **Yanıt (başarı):** 303 → `/hesap`; değişiklik bekleyen değişiklik olarak görünür — kısa süreli bildirim yoktur (`04` 5.25.11, 5.25.4).
+- **Yanıt (hata):** **303 → yeniden doğrulama** — değer yok ya da tutmuyor (4.25.3'ün kuralı). **422** — biçim geçersiz ya da adres doğrulanmış başka bir müşteri hesabının — K-786'nın alan mesajı; adresi tutan doğrulanmamış bekleyen kayıt hesap sayılmaz ve isteği durdurmaz (`02 §3.13.11`; K-1134) · geri alma bağlantısı açık — işlem kapalıdır (§8.1.3; `02 §3.13.14`). Hatada değer tüketilmez. **429** — L-9 (`04` 7.1.15.2; §2.8.5).
+- **Yan etkiler:** değer tüketilir; bekleyen değişiklik yazılır — varsa öncekinin yerine geçer (`06 §4.40`; K-734); yeni adresin doğrulama bağlantısı, türü `NewEmailVerification`, önceki bekleyen bağlantı `SupersededAt` (`05 §6.4.6`); e-posta yeni adrese (`03 §7.1.51`). Hesap yeni adres doğrulanana kadar eski adresle çalışır; işlem hesabın satır kilidinin altındadır (`05 §6.1.2`).
+- **Idempotency:** tekrar gönderim değeri tüketilmiş bulur ve yeniden doğrulamaya gider.
+
+**4.25.5 `UC-67` · POST `/hesap?handler=ResendEmailChangeLink` — bekleyen e-posta değişikliğinin bağlantısını yeniden isteme**
+- **Amaç:** bekleyen değişikliğin bağlantısını yeniden göndermek (`04` 5.25.12; `03 §6.1.1.9`) · **Yetki:** Üye — müşteri oturumu · **Hız sınırı:** form · 64 KB.
+- **İstek:** alan yoktur — bekleyen değişiklik hesabındır.
+- **Yanıt (başarı):** 303 → `/hesap` — yeniden gönderimin koduyla: yerinde kalıcı mesaj, aynı son gün (`04` 7.1.15.4; K-779'un ikinci metni).
+- **Yanıt (hata):** **422** — bekleyen değişiklik yok (§8.1.3). **429** — L-9 (§2.8.5).
+- **Yan etkiler:** yeni bağlantı, öncekiler `SupersededAt`; ömür uzamaz (`06 §4.42`); e-posta yeni adrese (`03 §7.1.51`); deneme kaydı (L-9).
+- **Idempotency:** her gönderim yeni bir bağlantıdır ve L-9'a sayılır.
+
+**4.25.6 `UC-68` · POST `/hesap?handler=DeleteAccount` — hesabı silme**
+- **Amaç:** yeniden doğrulamadan ve son adımdan sonra hesabı silmek (`03 §9.4.1`, §9.4.2; `04` 5.25.13) · **Yetki:** Üye — müşteri oturumu; yeniden doğrulamanın değeri · **Hız sınırı:** form · 64 KB.
+- **İstek:** `ReauthenticationToken` ve onay işareti (`Confirmed`) — son adım OB-04'ün müşteri varyantıdır (§2.2.4; K-732, K-785).
+- **Yanıt (başarı):** onay işaretsiz ilk gönderim **200** — yazmaz, son adımı sonuç cümlesiyle gösterir ve değeri tüketmez (§2.2.4) · onay işaretli gönderim **303 → `/hesap/silindi`** (UC-69; 4.25.7; K-1184).
+- **Yanıt (hata):** **303 → yeniden doğrulama** — değer yok ya da tutmuyor (4.25.3'ün kuralı). **422** — geri alma bağlantısı açık — işlem kapalıdır, sebebi ve bitiş tarihi (`02 §3.15.6`; `03 §3.4.15`; K-698; §8.1.3). **303 → `/hesap`** — sonucu belirsiz silme: yeniden açılan ekran hesap duruyorsa hesabı, silindiyse girişi gösterir (`04` 5.25.17; §2.7.1).
+- **Yan etkiler:** `05 §6.1.2`'nin kilidiyle tek işlem: hesabın adı, giriş bilgileri — şifre ve Google bağı —, bütün oturumları, adres defteri, bekleyen değişikliği, bağlantı kayıtları, tanınan tarayıcı kayıtları ve sepeti silinir; siparişlere "hesabı silinmiş" işareti yazılır (`Order.IsAccountDeleted`); silme imha kaydına yazılır (`03 §9.4.2`; `06 §4.36`; Z-31, Z-32); hesabın adresine silindiğine dair e-posta (`03 §7.1.54`; K-693). Yürüyen sipariş silmeyi engellemez (`03 §3.4.10`). Bu yanıt oturum çerezini silmez — bir kez gösterimin işaretidir (4.25.7; K-1184).
+- **Idempotency:** tekrar gönderim oturumu bulamaz ve girişe yönlendirilir (§2.3.2); hesap ikinci kez silinmez.
+
+**4.25.7 `UC-69` · GET `/hesap/silindi` — hesap silmenin sonuç hâli**
+- **Amaç:** hesabın silindiğini, silinenleri, siparişlerin nasıl izleneceğini ve hesabın adresine e-posta gittiğini bir kez göstermek (`04` 5.25.13; K-781) · **Yetki:** Kullanıcı — açık; `/hesap`'ın altında oturum istemeyen tek adrestir (§2.3.1; K-1184) · **Hız sınırı:** sayfa.
+- **İstek:** parametre yoktur. **Bir kez gösterimin işareti silinmiş oturumun çerezidir:** istek vitrinin oturum çerezini (`__Host-session`) taşıyor ve çerezin gösterdiği oturum kaydı yoksa sonuç hâli gösterilir (K-1184).
+- **Yanıt (başarı):** 200 — görünüm `04` 5.25.13'ün sonuç hâli; çerçeve hesap alanında "Giriş yap"ı ve "Sipariş takibi"ni gösterir (`04` 3.1.5). Yanıt oturum çerezini siler. Hâl kısa süreli bildirim değildir (`04 §2.3.4`).
+- **Yanıt (hata):** **303 → `/`** — istek oturum çerezi taşımıyor ya da çerez geçerli bir oturumu gösteriyor: sayfa yenilenince, geçmişten ya da elle açılınca ana sayfaya iner (`04` 5.25.13, §3.6.4).
+- **Yan etkiler:** oturum çerezinin silinmesi — kayıt değildir (§2.2.5).
+- **Idempotency:** hâl bir kez görünür — ilk gösterim çerezi siler, ikinci istek ana sayfaya iner.
+
+*Kaynak: `04 §5.25`, 6.2.25, 7.1.15, 3.1.5, 3.3.30, 3.3.31, 3.3.36, §3.6.4 · `02 §3.13.10`, §3.13.11, §3.13.13, §3.13.14, §3.13.21, §3.15.1–§3.15.3, §3.15.6 · `03 §3.4.10`, §3.4.15, §6.1.1.9, §7.1.51, §7.1.54, §9.3.1, §9.3.3, §9.3.4, §9.4.1–§9.4.3 · `05 §6.1.2`, §6.1.5, §6.4.6 · `06 §4.36`, §4.39, §4.40, §4.42 · K-605, K-693, K-695, K-698, K-732, K-734, K-779, K-781, K-785, K-786, K-971, K-1134, K-1184, K-1186 (4), (5).*
+
+### 4.26 E-26 — Adres defteri
+
+Ekran `04 §5.26` · durum × rol `04` 6.2.26 · form `04` 7.1.16. Form ekranın içinde açılır (`04` 5.26.4): betiksiz yolda ekleme ve düzenleme düğmeleri sayfanın GET'ine parametreyle gider (K-1186 (3)).
+
+**4.26.1 `UC-70` · GET `/hesap/adresler` — adres defteri**
+- **Amaç:** kayıtlı adresler, ekleme düğmesi ve kayıt başına düzenle ve sil (`04` 5.26.2, 5.26.3) · **Yetki:** Üye — müşteri oturumu · **Hız sınırı:** sayfa.
+- **İstek:** düzenleme formunu açan `addressBookId` — girdinin iç anahtarı (`06 §4.45`; §2.1.6) — ya da ekleme formunu açan `create` (`true`); adları §5.3'te (yazım 4).
+- **Yanıt (başarı):** 200 — görünüm `04` 5.26.3–5.26.5; defter boşsa boş hâl satırı (`04` 5.26.9). Parametreyle gelindiyse form ekranın içinde açık gelir — düzenlemede girdinin değerleriyle; il kapalı listeden (`06 §4.3`).
+- **Yanıt (hata):** **404** — `addressBookId` bu hesabın girdisi değilse (§2.3.3).
+- **Yan etkiler · Idempotency:** yoktur — GET.
+
+**4.26.2 `UC-71` · POST `/hesap/adresler?handler=CreateAddressBook` — adres ekleme**
+- **Amaç:** deftere adres eklemek (`03 §9.3.2`; `04` 5.26.6) · **Yetki:** Üye — müşteri oturumu · **Hız sınırı:** form · 64 KB.
+- **İstek:** `Name`, `RecipientName`, `ProvinceId`, `District`, `AddressLine`, `Phone` (`06 §4.45`). Doğrulama `04` 7.1.16.
+- **Yanıt (başarı):** 303 → `/hesap/adresler` — "kaydedildi" kısa süreli bildirimiyle (`04` 5.26.6).
+- **Yanıt (hata):** **422** — zorunlu alan boş, il listenin dışında ya da telefon biçimi geçersiz — form açık ve değerleriyle yeniden gösterilir (`04` 5.26.7).
+- **Yan etkiler:** defter girdisi (`06 §4.45`). Teslimat yapılmayan ildeki girdi tutulur; kısıt ödeme adımında işler (`04` 5.26.5).
+- **Idempotency:** tekrar gönderim ikinci bir girdi açar — güncel hâlle karşılaştırılmayan işlemlerin sınıfındadır (K-1179 (1)); çift tıklamayı betikli yolda düğmenin kilidi, yenilemeyi gönder–yönlendir–göster önler.
+
+**4.26.3 `UC-72` · POST `/hesap/adresler?handler=UpdateAddressBook` — adres düzenleme**
+- **Amaç:** girdiyi düzenlemek (`03 §9.3.2`) · **Yetki:** Üye — müşteri oturumu; sahiplik · **Hız sınırı:** form · 64 KB.
+- **İstek:** girdinin iç anahtarı ve 4.26.2'nin alanları.
+- **Yanıt (başarı):** 303 → `/hesap/adresler` — "kaydedildi" kısa süreli bildirimiyle.
+- **Yanıt (hata):** **422** — 4.26.2'nin hâlleri. **404** — girdi bu hesabın değilse ya da yoksa (§2.3.3; K-1179 (2)).
+- **Yan etkiler:** girdinin alanları yazılır; geçmiş siparişe dokunmaz — sipariş adreslerini dondurmuştur (`02 §3.14.5`). Defter sürüm taşımaz (§2.4.4).
+- **Idempotency:** aynı değerler aynı sonucu yazar.
+
+**4.26.4 `UC-73` · POST `/hesap/adresler?handler=DeleteAddressBook` — adres silme**
+- **Amaç:** girdiyi silmek — onay istemez (`04` 5.26.6; §2.4.2) · **Yetki:** Üye — müşteri oturumu; sahiplik · **Hız sınırı:** form · 64 KB.
+- **İstek:** girdinin iç anahtarı.
+- **Yanıt (başarı):** 303 → `/hesap/adresler`; ayrı bildirim yoktur (`04` 5.26.6).
+- **Yanıt (hata):** **404** — girdi bu hesabın değilse ya da yoksa.
+- **Yan etkiler:** girdi silinir; geçmiş siparişe dokunmaz (`02 §3.14.5`).
+- **Idempotency:** tekrar gönderim girdiyi bulamaz ve 404 alır; hiçbir şey yazılmaz (K-1179 (2)).
+
+*Kaynak: `04 §5.26`, 6.2.26, 7.1.16 · `02 §3.14.1`, §3.14.5, §3.14.6, §3.20.1 · `03 §9.3.2` · `06 §4.45` · K-561, K-680, K-768, K-1011 (3), K-1162 (6), K-1164 (3), K-1179, K-1186 (3).*
+
+### 4.27 E-27 — Sipariş geçmişi
+
+Ekran `04 §5.27` · durum × rol `04` 6.2.27 · form yok.
+
+**4.27.1 `UC-74` · GET `/hesap/siparisler` — sipariş geçmişi**
+- **Amaç:** hesaba bağlı siparişlerin listesi, en yeni önce (`04` 5.27.2) · **Yetki:** Üye — müşteri oturumu · **Hız sınırı:** sayfa.
+- **İstek:** `page` (§2.6.2); sayfa boyu 25'tir (K-784; `04` 5.27.3); arama, süzgeç ve sıralama parametresi yoktur (`04` 5.27.6).
+- **Yanıt (başarı):** 200 — satır `04` 5.27.4'tür ve sipariş sayfasının üye köküne (UC-33) bağlanır; listede görünenler ve görünmeyenler `04` 5.27.5'tir — hesaba düşmüş misafir siparişleri dahil, ödemesi hiç alınmamış ve kendiliğinden iptal edilmiş sipariş hariç (`02 §3.17.8`). Siparişi olmayan üyede boş hâl satırı (`04` 5.27.10). Sonucu belirsiz onaydan ve hesap silmeden dönüşün ekranıdır (4.13.6; 4.25.6).
+- **Yanıt (hata):** ortak yanıtların dışında yoktur — geçersiz `page` §2.6.2'nin kuralıdır.
+- **Yan etkiler · Idempotency:** yoktur — GET.
+
+*Kaynak: `04 §5.27`, 6.2.27 · `02 §3.13.2`, §3.13.3, §3.13.14, §3.17.8 · `03 §2.6.1`, §3.2.2.4, §9.1.4, §9.3.5 · K-777, K-784, K-1167 (2).*
+
+### 4.28 E-28 — E-posta değişikliğini geri alma ekranı
+
+Ekran `04 §5.28` · durum × rol `04` 6.2.28 · form yok. Bağlantının türü `EmailChangeRevert`'tür (`06 §5.4.2`).
+
+**4.28.1 `UC-75` · GET `/geri-al/{anahtar}` — geri alma bağlantısının inişi**
+- **Amaç:** geri almanın sonucunu söyleyen cümle ve işlemin adını taşıyan tek düğme (`04` 5.28.2) · **Yetki:** Kullanıcı — anahtar; oturumdan bağımsız · **Hız sınırı:** sayfa.
+- **İstek:** anahtar yol bölümündedir; geri almadan sonra adres sonuç hâlinin kodunu taşır (4.28.2).
+- **Yanıt (başarı):** 200 — geçerli bağlantıda geri alma adımı (`04` 5.28.3; K-839); kullanılmış bağlantı sonuç hâlinin koduyla gelindiyse geri almanın sonuçları (`04` 5.28.3), kodsuz ise geri almanın yapıldığını söyleyen geçersiz hâl; ömrü dolmuş ya da tanınmayan bağlantı geçersiz hâldir (`04` 5.28.4; K-1186 (1)). Birincil düğme yalnız geri alma adımındadır.
+- **Yanıt (hata):** ortak yanıtların dışında yoktur — tanınmayan anahtar geçersiz hâldir (§2.3.3'ün hesap bağlantısı istisnası).
+- **Yan etkiler · Idempotency:** yoktur — GET (`05 §6.4.7`).
+
+**4.28.2 `UC-76` · POST `/geri-al/{anahtar}?handler=RevertPendingEmailChange` — e-posta değişikliğini geri alma**
+- **Amaç:** değişikliği geri almak (`03 §9.3.6`; `04` 5.28.6) · **Yetki:** Kullanıcı — anahtar · **Hız sınırı:** form · 64 KB.
+- **İstek:** alan yoktur — anahtar adrestedir; onay penceresi yoktur (K-839).
+- **Yanıt (başarı):** 303 → `/geri-al/{anahtar}` — sonuç hâlinin koduyla (§2.2.3; K-1186 (1)).
+- **Yanıt (hata):** **200** — bağlantı o arada geçersizleşti: tüketim tutmadı, sayfa o anki hâli gösterir (§2.5.3). Sonucu belirsiz geri alma 303 ile aynı adrese — yeniden açılan bağlantı sonucu söyler (`04` 5.28.9; §2.7.1).
+- **Yan etkiler:** bağlantı tüketilir; hesabın e-postası bağlantının eski adresine döner (`PreviousEmail`; `06 §4.42`); **hesabın bütün oturumları silinir** — açık olan dahil (`05 §6.1.2`); değişiklik süresince bağlanmış Google girişi kalkar (K-1117); şifre geçersizleşir ve önceki adrese sıfırlama bağlantısı gider (`03 §7.1.50`, §6.2.5.2; K-599); adresi tutan doğrulanmamış bekleyen kayıt silinip imha kaydına yazılır (K-1080); değişiklik süresince hesaba bağlanmış siparişler hesapta kalır (`04` 5.28.3).
+- **Idempotency:** tekrar gönderim bağlantıyı kullanılmış bulur — güncel hâl: 200, o anki hâl.
+
+*Kaynak: `04 §5.28`, 6.2.28, 3.5.7 · `02 §3.13.14`, §8.1.5 · `03 §3.4.13`, §6.2.5.2, §6.2.5.3, §7.1.50, §9.3.6 · `05 §6.1.2`, §6.4.6, §6.4.7 · `06 §4.42`, §5.4.2 · K-599, K-735, K-782, K-839, K-1080, K-1117, K-1186 (1).*
+
+### 4.29 Ödeme sağlayıcısından dönüş
+
+Ekrana bağlı değildir: müşterinin tarayıcısı ödeme sağlayıcısının sayfasından — 3D Secure dahil — siteye bu adresle döner ve sipariş sayfasına iner (`04` 3.5.8). Devir: `08`'in park satırı (K-906 · K-973 — dönüşün yolu ve sipariş sayfasına oturum çerezine dayanmadan iniş).
+
+**4.29.1 `UC-30` · GET `/odeme/donus/{erişim anahtarı}` — ödeme sağlayıcısından dönüş**
+- **Amaç:** sağlayıcıdan dönen müşteriyi siparişin sayfasına indirmek — durum yazmadan (`05 §6.5.1`; K-973 (1)) · **Yetki:** Müşteri — erişim anahtarı; **oturum çerezine dayanmaz** — dönüş başka bir siteden gelen istektir ve sağlayıcı POST'la dönerse SameSite=Lax çerezler gönderilmez (`05 §6.7.1`; K-906) · **Hız sınırı:** sayfa; POST'la dönüşte form · 64 KB.
+- **İstek:** yol siparişin erişim anahtarını taşır — dolgusuz base64url (§2.1.3); adresi sağlayıcıya ödemenin başlatılmasında UC-29 verir (4.14.2; K-1185). **Yöntem** GET'tir; seçilen sağlayıcı dönüşü POST'la yapıyorsa aynı adres POST'u da kabul eder ve sahteciliğe karşı korumanın dışındadır — yöntem `08`'de sağlayıcının belgesinden belirlenir (§2.5.5; K-973 (1), K-1166 (5)). Sağlayıcının eklediği sorgu parametreleri ve gövde alanları okunmaz.
+- **Yanıt (başarı):** 303 → `/siparis/erisim/{erişim anahtarı}` (UC-34) — üye de bu köke iner; erişim anahtarlı adres üyeye de açıktır (§2.3.4; `02 §3.22.3`). Ödemenin sonucu henüz gelmemişse sipariş sayfası ödemenin beklendiğini söyler ve kendiliğinden yenilenmez (`04` 3.5.8, 5.16.4; §7).
+- **Yanıt (hata):** **404** — yolun değeri erişim anahtarının biçiminde değil. Uç anahtarı kayıtta aramaz: geçersiz ya da yenilenmiş anahtarın 404'ünü sipariş sayfası verir (§2.3.3; 4.16.1).
+- **Yan etkiler:** yoktur — **durum yazmaz;** ödemenin sonucunu sağlayıcının bildirimi (UC-80; §4.30) ve son sorgu yazar (`05 §4.5.3`, §5). Adres anahtar taşıyan yollar gibi sistem kayıtlarında maskelenir (`05 §6.4.8`, §9.1.5; `DEPLOY_RUNBOOK` park satırı); sayfa başka siteye giden istekte adresi taşımaz (`05 §6.5.4`).
+- **Idempotency:** yazmaz — her istek aynı yönlendirmeyi verir.
+
+**4.29.2 Kenar durumlar** (K-1185). Erişim anahtarı sağlayıcının kayıtlarında ve tarayıcının geçmişinde kalır — sipariş e-postasındaki bağlantının aynı kalan riskidir (K-562, K-187); sağlayıcı siparişin tutarını ve alıcısını zaten taşır. Firma siparişin e-postasını ödeme sürerken düzeltirse anahtar yenilenir ve dönüş 404 alır; müşteri yeni e-postadaki bağlantıyla siparişe ulaşır (`02 §8.3.6`). Seçilen sağlayıcı dönüş adresini istek başına değil yalnız sabit olarak kabul ediyorsa yol `08`'de karar kaydıyla yeniden kurulur — bilgim tarihli; `08`'de doğrulanır (`08` park satırı).
+
+*Kaynak: K-1185 · K-906, K-973 (1), K-1166 (5), K-562 · `04` 3.5.8, 4.4.2, 5.16.4 · `02 §3.17.1`, §3.22.3, §3.22.5, §8.3.6 · `03 §2.5.1.2` · `05 §4.5.3`, §6.4.8, §6.5.1, §6.5.4, §6.7.1, §9.1.5 · devir: `08`'in park satırı (K-906 · K-973 — dönüşün yolu ve iniş), `PHASE4_CONFLICT_SCAN.md` §6.2 (`05 §6.7.1`).*
+
+### 4.30 Ödeme sağlayıcısının bildirim ucu
+
+Makine ucudur (K-868; MK-04): imzalı, ekran göstermez; isteğin, imzanın ve "alındı" yanıtının biçimi `08`'dedir.
+
+**4.30.1 `UC-80` · POST `/sistem/odeme-bildirimi` — ödeme sağlayıcısının bildirim ucu**
+- **Amaç:** ödemenin ve kart iadesinin sonucunu bildiren isteği kaydetmek (`05 §4.5.2`) · **Yetki:** Ödeme sağlayıcısı — imza; sahteciliğe karşı korumanın dışında (§2.5.5) · **Hız sınırı:** imzası doğruysa sınırın dışında, tutmuyorsa form gönderimi sınırına sayılır; gövde 64 KB (§2.8.1, §2.8.3; K-941).
+- **İstek:** gövde ve imza sağlayıcının biçimindedir (`08`; §5.4 ona işaret eder — K-1172 (1)); bağlantı katmanı imzayı ve tutarı doğrular (`05 §3.6.1`, §4.5.2).
+- **Yanıt (başarı):** **200 "alındı"** — imzası doğru bildirim gelen bildirim kaydına yazılıp diske kesinleştikten hemen sonra (`05 §4.5.2`, §7.1.2) · aynı bildirim ikinci kez gelirse kaydedilmez, işlenmez ve yine 200 (K-970) · imzası doğru ama tutarı ya da siparişi tutmayan bildirim işaretli kaydedilir ve 200 alır — işlenmez (`05 §4.5.5`).
+- **Yanıt (hata):** **400** — imza tutmuyor: kaydedilmez, işlenmez; uygulama kaydına güvenlik olayı olarak seyreltilerek yazılır (K-974; `05 §4.5.2`, §9.1.3) · **413** — gövde tavanı · **429** — imzasız istekte genel sınır, gövdesiz · **500** — bildirim kaydedilemedi; sağlayıcının yeniden gönderip göndermediği `08`'de doğrulanır, göndermezse Bekliyor siparişin sonucunu son sorgu bulur (`05 §10.3.5`; K-974, K-978). Hata yanıtlarının gövdesi boştur (§2.7.2).
+- **Yan etkiler:** gelen bildirim kaydı ve onu işleyecek iş satırı aynı veritabanı işleminde (`05 §4.3.1`, §4.5.2); işleme kuyruktandır — ödeme sonucu `05 §4.5.3`'ün tek yolundan, kart iadesinin sonucu §4.6.2'den. Uç siparişin durumunu kendisi yazmaz. Gelen bildirim kaydı kişisel alan taşımaz (`05 §4.5.2`).
+- **Idempotency:** tekil olan bildirimin kendisidir — sağlayıcının bildirim kimliği, yoksa işlem kimliği olay türü ve sonuçla (`05 §4.5.2`; K-970); ödemenin ikinci kez uygulanmaması ödeme kaydının işlem kimliğindedir (`05 §4.5.3`).
+
+*Kaynak: K-868, K-893, K-941, K-970, K-974, K-978 · `05 §2.1` MK-04, §3.6.1, §4.3.1, §4.5, §4.6.2, §6.3.5, §6.5.1, §9.1.3, §10.3.5 · `03 §1.2` S1 · devir: park satırları (Aşama 4, formlar, kimlik şemaları ve erişim — K-941 · K-970; hata yanıtları ve sağlık uçları — K-974 · K-978).*
+
+### 4.31 Dosya uçları — indirme ve parçalı yükleme
+
+Makine uçlarıdır (K-868): indirme dosyayı verir, parçalı yükleme panelin betiğine küçük JSON gövdeleri döner — istemciye giden tek JSON budur (K-1171 (1)). Görselin form içindeki yüklemesi parçalı yüklemeye katılmaz — formların işleyicisidir (UC-117; §9.26, yazım 3; K-1171 (5)).
+
+**4.31.1 `UC-37` · GET `/indir/{imzalı değer}` — indirme ucu**
+- **Amaç:** dijital kalemin dosyasını vermek (`02 §3.12.5`; `05 §7.7.4`) · **Yetki:** Müşteri — imzalı değer; oturum ve sipariş kökü aranmaz — değer kalemin kimliğini ve ömrünü taşır (K-1171 (6); K-1029 (5)) · **Hız sınırı:** sayfa.
+- **İstek:** imzalı değer yol bölümündedir — base64url, harf duyarlı (§2.1.7); aralık isteğinde `Range` başlığı.
+- **Yanıt (başarı):** **200** — kalemin o anki dosyası (`02 §3.12.7`), `Content-Disposition: attachment` ile görünen adla, genel ikili tür ve türün tahmin edilmemesi (`05 §6.6.3`), `Cache-Control: no-store`, `Accept-Ranges: bytes` · **206** — aralık isteği (K-884). Ömür yalnız isteğin kabulünde denetlenir; ömür dolarken süren aktarım kesilmez (`05 §7.7.4`).
+- **Yanıt (hata):** **404** — değerin ömrü dolmuş, imzası tutmuyor ya da kalemi indirilemez — E-06; müşteri sipariş sayfasından yeniden indirir (K-1171 (6)). Aralığın dışındaki istek çatının 416'sıdır.
+- **Yan etkiler:** yoktur — hak UC-36'nın düğmesinde düşmüştür (4.16.3; K-884). Adres sistem kayıtlarında maskelenir (`05 §9.1.5`).
+- **Idempotency:** aynı değerle aralık istekleri ve ömrü içindeki aralıksız istek yeni hak düşürmez (`05 §7.7.4`).
+
+**4.31.2 `UC-83` · POST `/panel/yukleme` (başlatma) · POST `/panel/yukleme/{kimlik}` (parça) · GET `/panel/yukleme/{kimlik}` (durum) — parçalı dosya yükleme ucu**
+- **Amaç:** dijital ürün dosyasını parçalı ve kaldığı yerden sürdürülebilir yüklemek (`05 §7.7.3`; K-883) · **Yetki:** Yönetici — panel oturumu; sahteciliğe karşı değer `RequestVerificationToken` başlığında (§2.5.4) · **Hız sınırı:** sayfa isteği sınırı — form gönderimi sınırına girmez (K-947); gövde başlatmada 64 KB, parçada 5 MB (§2.8.1).
+- **İstek:** **başlatma** — JSON gövde: dosyanın görünen adı ve bildirilen boyu (`FileName`, `SizeBytes`; `06 §4.70`) · **parça** — gövde ham baytlar, `Content-Range` başlığıyla; parça yalnız alınan baytın hemen ardından başlıyorsa kabul edilir · **durum** — gövdesiz. Kimlik dosya satırının iç anahtarıdır (§3.1.1); JSON alan adları camelCase'tir ve bayt sayıları JSON sayısıdır (§2.9.6; K-1172 (5)); gövdelerin modeli §5.4'te (yazım 4).
+- **Yanıt (başarı):** başlatma **201** — yüklemenin kimliği, alınan bayt (0) ve parçanın boyu · parça **200** — alınan bayt; son parça bildirilen boyu tamamlayınca yükleme aynı işlemde tamamlanır ve yanıt tamamlandığını söyler — ayrı tamamlama isteği yoktur · durum **200** — alınan bayt ve tamamlanıp tamamlanmadığı (K-1171 (1)).
+- **Yanıt (hata):** **409** — parça alınan bayta uymuyor; gövde alınan baytı söyler, betik oradan sürer · **400** — gövde bildirilen boyu aşıyor · **422** — bildirilen boy P-26'yı ya da disk eşiğini aşıyor; sebebin kodu (`04` 2.12.8.3; `05 §7.7.1`) · **404** — yükleme bilinmiyor ya da satırı gecelik temizlikte silinmiş: yükleme sürmez, betik aynı dosyayla yeniden başlatır ve alan bunu söyler (K-1100; `06 §4.70`; `04` 2.12.8.7) · **413** — parça 5 MB'ı aşıyor · oturumsuz istek yazmaz ve panelin girişine yönlendirilir (§2.3.2). Gövdeler küçük JSON'dur; hata kodu taşınmaz (§2.7.3).
+- **Yan etkiler:** başlatma `UploadCompletedAt`'i boş bir dosya satırı açar; parça baytları dosya deposuna ekler; son parça `UploadCompletedAt`'i yazar (`06 §4.70`; `05 §7.7.3`). Dosya ürüne ya da varyanta formun kaydında bağlanır (UC-114; §9.5, yazım 3; K-1171 (4)); tamamlanmayan yükleme bir gün sonra gecelik temizlikte silinir (`05 §5.2.9`). Yükleme işlem izine yazılmaz (`05 §6.6.4`).
+- **Idempotency:** aynı parçanın ikinci gönderimi alınan bayta uymaz ve 409 alır — bayt ikinci kez eklenmez; durum isteği yazmaz; her başlatma yeni bir dosya satırıdır (`05 §7.7.3`).
+
+*Kaynak: K-868, K-883, K-884, K-947, K-1100, K-1118, K-1171 · `02 §3.12.5`, §3.12.7, §11.2 P-26 · `04` 2.12.8, 5.16.13 · `05 §5.2.9`, §6.5.1, §6.6.3, §6.6.4, §7.7.1, §7.7.3, §7.7.4, §9.1.5 · `06 §4.68`, §4.70 · devir: park satırları (Aşama 4, dosya uçları — K-883 · K-884; Aşama 5, silinmiş yüklemeyle form kaydı — K-1100 · K-1118).*
+
+### 4.32 Site haritası ve robots.txt
+
+Makine ucudur (K-868): ikisi aynı yoldan, istek anında üretilir (K-933; `05 §3.7.3`, §3.7.4).
+
+**4.32.1 `UC-79` · GET `/sitemap.xml` · GET `/robots.txt` — site haritası ve robots.txt**
+- **Amaç:** arama motorlarına sitenin dizine açık adreslerini vermek (`02 §3.30.5`; `04` 4.4.5) · **Yetki:** Arama motorları — açık · **Hız sınırı:** sayfa.
+- **İstek:** parametre yoktur.
+- **Yanıt (başarı):** **200.** `/sitemap.xml` — XML site haritası: yayındaki ürünler, kategoriler, içerik sayfaları ve sabit liste sayfaları; arşivlenmiş ürün, taslak ve arama motorlarına kapalı sayfalar girmez; adresler küçük harfli tek biçimdedir (§2.1.7; `05 §3.7.3`). `/robots.txt` — yalnız site haritasının adresini, kurulumun alan adıyla gösterir; kapalı sayfaları engellemez — onları `noindex` kapatır (`05 §3.7.4`). İçerik bellek içi önbellekten gelir.
+- **Yanıt (hata):** ortak yanıtların dışında yoktur.
+- **Yan etkiler:** yoktur — önbellek bu kayıtlardan biri kaydedildiğinde geçersiz kılınır (`05 §3.7.3`, §7.10); önbelleğin dolması kayıt değildir.
+- **Idempotency:** yoktur — GET.
+
+**4.32.2 Arama motorlarına kapalı yanıtlar** (`02 §3.30.6`; `05 §3.7.4`): §4'ün tanımlarında "noindex" diye yazılan sayfalar ve panelin bütün sayfaları HTML'de robots meta etiketini taşır; HTML olmayan yanıt — indirme (UC-37), parçalı yüklemenin JSON'u (UC-83), panelin dışa aktarılan dosyaları (§9.24, yazım 3) — `X-Robots-Tag: noindex` başlığını taşır. Arşivlenmiş ürün sayfası doğrudan bağlantıyla açılır ve noindex'tir (§4.5).
+
+*Kaynak: K-868, K-933 · `02 §3.30.5`, §3.30.6 · `04` 4.4.5 · `05 §3.7.2`–§3.7.4, §7.10 · devir: park satırı (Aşama 4, sözleşmelerin biçimi — K-868).*
+
+### 4.33 Canlılık ve durum uçları
+
+Makine uçlarıdır (K-918; `05 §9.4.1`): imzasız açık GET; durum yazmaz, gövdesinde ayrıntı taşımaz — ayrıntı sunucudaki durum komutundadır (`05 §8.5.6`).
+
+**4.33.1 `UC-81` · GET `/sistem/canlilik` — canlılık ucu**
+- **Amaç:** uygulamanın ve veritabanının yanıt verdiğini söylemek — zamanlayıcının nabzı ve konteynerin sağlık denetimi yoklar (`05 §9.4.1`) · **Yetki:** İzleme — açık · **Hız sınırı:** sayfa.
+- **İstek:** parametre yoktur.
+- **Yanıt:** **200** — uygulama ve veritabanı yanıt veriyor · **503** — vermiyor; gövde boş, `Cache-Control: no-store` (§2.7.2; K-918).
+- **Yan etkiler · Idempotency:** yoktur — GET.
+
+**4.33.2 `UC-82` · GET `/sistem/durum` — durum ucu**
+- **Amaç:** bir uyarı koşulu olup olmadığını söylemek — sunucunun dışındaki ücretsiz erişilebilirlik kontrolü beş dakikada bir yoklar (`05 §9.4.1`, §9.4.11) · **Yetki:** İzleme — açık · **Hız sınırı:** sayfa.
+- **İstek:** parametre yoktur.
+- **Yanıt:** **200** — uyarı koşulu yok · **503** — `05 §9.4.2`'nin koşullarından biri var; gövde boş, `Cache-Control: no-store` (§2.7.2). Koşulun hangisi olduğu yanıtta yoktur.
+- **Yan etkiler · Idempotency:** yoktur — GET; 500 dönen hatalar uyarı koşulunun sayacına girer, 422, 409 ve 429 girmez (`05 §9.4.8`, §10.3.5).
+
+*Kaynak: K-918, K-1168 (2) · `05 §2.1` MK-04, §3.6.1, §8.5.6, §9.4 · devir: park satırı (Aşama 4, hata yanıtları ve sağlık uçları — K-914 · K-918 · K-974 · K-978 — sağlık uçlarının adresi ve yanıtı).*
+
+### 4.34 Çerçevenin uçları ve yanıtları
+
+Vitrinin çerçevesi her sayfa yanıtının parçasıdır — modeli §5.5'te (yazım 4; K-1172 (2)); bu alt bölüm çerçeveden gönderilen işlemi ve her isteğin olabilecek yanıtlarını tanımlar. Yönetici çıkışı panelin çerçevesindedir (UC-109; §9.26, yazım 3).
+
+**4.34.1 `UC-77` · POST `/cikis?handler=SignOut` — müşteri çıkışı**
+- **Amaç:** müşteri oturumunu kapatmak (`03 §2.3.7`, §9.2.3; `04` 3.1.8) · **Yetki:** Üye — müşteri oturumu · **Hız sınırı:** form · 64 KB.
+- **İstek:** bulunulan sayfanın yolu (`returnUrl`; §2.3.2) — çerçevenin formunun gizli alanı.
+- **Yanıt (başarı):** 303 → bulunulan sayfa oturum gerektirmiyorsa o sayfa, gerektiriyorsa — `/hesap` altı, sipariş sayfasının üye kökü — ya da değer yerel yol denetiminden geçmiyorsa ana sayfa (`04` 3.6.4; `05 §6.5.6`; K-1186 (6)).
+- **Yanıt (hata):** ortak yanıtların dışında yoktur.
+- **Yan etkiler:** oturum kaydı silinir ve oturum çerezi silinir (`05 §6.1.2`); sepet hesapta kalır ve o tarayıcıda sepet boş görünür (`03 §2.3.7`). Tanınan tarayıcı işareti kalır (`06 §4.41`).
+- **Idempotency:** tekrar gönderim oturumu bulamaz — aynı yönlendirmeyi alır, hiçbir şey yazılmaz.
+
+**4.34.2 `UC-78` — beklenmeyen hata sayfası; uç değildir** (§3.4.3). Her isteğin yanıtı olabilir (`05 §10.3.1`): **sayfa düzeyi** — GET'te beklenmeyen hata vitrinde vitrinin, panelde panelin çerçevesi içinde hata sayfasıdır, 500 (`04` 2.7.3.2; `05 §10.3.2`) · **işlem düzeyi** — POST'ta 500, form gönderilen değerleriyle ve işlem düzeyindeki kalıcı mesajla yeniden gösterilir (`04` 2.7.3.1) · **sonucu belirsiz işlem** — `05 §10.3.4`'ün listesindeki işlemde hata nerede olursa olsun 303 ile sonucu gösteren ekrana; tanımların "sonucu belirsiz" satırları hedefi yazar (`04` 2.7.3.3; §2.7.1) · makine ucunda gövdesiz 500 (§2.7.2). Yanıt hatanın ayrıntısını ve kodunu taşımaz (§2.7.3); hata uygulama kaydına yazılır ve durum ucunun sayacına girer (`05 §9.4.8`).
+
+**4.34.3 Girişte birleşmenin bir kez söylenen mesajı** (`02 §3.16.4`; `04` 2.3.1.3, 5.22.5; K-1183). Çerçeveli her vitrin sayfası yanıtı — müşteri oturumu açıksa — sepetin birleşme işaretli kalemlerini (`IsMergeNoticePending`; `06 §4.16`) okur; işaretli kalem varsa içerik alanının başında kapatılabilen kutuda eklenenleri ürünün adıyla söyler ve **aynı istekte işaretleri kaldırır** — mesaj dönülen sayfada bir kez görünür, yenilemede gelmez (§2.2.3, §2.2.5). Yönlendirme yanıtları, makine uçları ve hata sayfası işareti okumaz. Ödeme yöntemi kalmadığı için sepete dönüşün mesajı yalnız sepetindir (4.12.1).
+
+*Kaynak: `04` 2.3.1.3, 2.7.3, 3.1.5, 3.1.8, §3.6.4, 5.22.5 · `02 §3.16.4` · `03 §2.3.6`, §2.3.7, §9.2.3 · `05 §6.1.2`, §6.5.6, §9.4.8, §10.3 · `06 §4.16`, §4.41 · K-899, K-914, K-1168, K-1172 (2), K-1183, K-1186 (6).*
+
 ## 5. DTO envanteri
 
 > **Kural:** Alan adları ve enum değerleri `06_DATA_MODEL.md` ile **birebir** eşleşir.
@@ -4487,7 +4879,7 @@ Ekran `04 §5.19` · durum × rol `04` 6.2.19 · form `04` 7.1.10. Ekranın iki 
 2. **Sayfa sunucuda üretilir, tarayıcıda uygulama durumu tutulmaz** (`05 §2.1` MK-04, MK-05): her ekran bir isteğin yanıtıdır; JavaScript yalnız iyileştirir ve kısmi sayfa güncellemesi için kütüphane yoktur (§8.2).
 3. **Bekleyen sonucu sayfanın yeniden açılışı gösterir:** sipariş teyit ekranı kendiliğinden, süreli yönlendirme yapmaz (`04` 5.14.3; K-776); ödeme sonucu beklenen sipariş sayfası ödemenin beklendiğini kalıcı olarak söyler ve sonuç sayfa yeniden açılınca görünür (`04` 2.7.2; `03 §2.5.1.2`) — sonucu sunucuya ödeme sağlayıcısının bildirimi (UC-80) ya da son sorgu getirir (`05 §4.5`, §5). Süre göstergeleri gün ve son günün tarihiyle gösterilir — saat, dakika ve saniye sayan canlı bir geri sayım yoktur (`04` 2.6.6; K-767); panelin sayaçları ve listeleri de açıldıkları andaki hâli gösterir.
 
-Ödeme sağlayıcısının bildirim ucu (UC-80) bir olay alıcısıdır, olay yayıncısı değildir — tanımı §4.30'dadır (yazım 2b). Yol haritasının bir adayı gerçek zamanlı yüz isterse uç bu bölüme karar kaydıyla girer (yazım konvansiyonu 12).
+Ödeme sağlayıcısının bildirim ucu (UC-80) bir olay alıcısıdır, olay yayıncısı değildir — tanımı §4.30.1'dedir. Yol haritasının bir adayı gerçek zamanlı yüz isterse uç bu bölüme karar kaydıyla girer (yazım konvansiyonu 12).
 
 *Kaynak: K-1149 (6), K-776, K-767 · `05 §2.1` MK-04, MK-05, §4.5 · `03 §7`, §2.5.1.2 · `02 §9.1` · `04` 2.6.6, 2.7.2, 5.14.3.*
 
@@ -4542,4 +4934,4 @@ Ekran `04 §5.19` · durum × rol `04` 6.2.19 · form `04` 7.1.10. Ekranın iki 
 
 ---
 
-*Shopfolio — API Design v0.9*
+*Shopfolio — API Design v0.10*

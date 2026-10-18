@@ -134,4 +134,4 @@ user-invocable: true
 4. **Pozitif bulguları da belirt** — özet tabloda güçlü yönleri not et.
 5. **Odak verilmişse** 8 katmanı yalnız o konuya odaklayarak çalıştır.
 6. **Çıktı uzunluğunu bulguya göre ayarla.** Gereksiz dolgu yazma.
-7. **Koşum biçimi audit'inkiyle aynıdır** — kalite döngüsünde katmanlar paralel mercekler olarak koşar, her bulgu karşı-doğrulanır ve yasal dayanak resmî metnin güncel hâline karşı doğrulanır (`audit` skill'i, "Koşum biçimi").
+7. **Koşum biçimi audit'inkiyle aynıdır** — kalite döngüsünde katmanlar paralel mercekler olarak koşar, her bulgu karşı-doğrulanır ve yasal dayanak resmî metnin güncel hâline karşı doğrulanır (`audit` skill'i, "Koşum biçimi"). **Audit'ten sonra koşan deep review'da** kapsam ve tutarlılık katmanları — audit onları geniş koştuysa — yeniden tam koşmaz; bir mercekte audit'in kararlarının doğurduğu yeni tutarsızlıklara odaklanır. **Neden:** Veri Modeli'nin deep review'ında bu mercek beş bulgu getirdi ve üçü uygulandı — audit'in bir kararı başka bir kuralın ölçütünü erişilemez kılmıştı; teknik derinlik merceği aynı sorunu bağımsız buldu (K-1104, K-1108, K-1113).

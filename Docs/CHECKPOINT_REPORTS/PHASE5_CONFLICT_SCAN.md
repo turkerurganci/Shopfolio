@@ -99,10 +99,10 @@ Devir §13'ün öteki girdileri kapandı: açılış sorusu K-992 ile cevapland�
 - K-1052 — Siparişin kişisel bilgileri süresi dolunca silinirken siparişin sepetle ve yöneticiyle bağı ve düzeltmeye yazılan açıklama da silinir; bunun bedeli, eski dönemin ödeme tamamlama oranının biraz düşük okunmasıdır.
 - K-1064 — Bir yöneticinin panelden kaldırılması, hesap silmesi gibi silme kaydına yazılır ve veritabanı yedekten eski bir ana dönerse yeniden uygulanır; üyenin adres defterinden adres silmesi bu kayda girmez; süresi dolan yönetici davetleri her gece silinir.
 - K-1065 — E-posta adresi değişince eski adres, "bu değişikliği ben yapmadım" bağlantısının yedi günlük ömrü boyunca saklanır, sonra silinir.
-- K-1092 — Ayıp talebi siparişten bağımsız olarak son değiştiği andan on yıl saklanır; ödemesi alınmış siparişe gelen ödeme bildirimi de geldiği andan on yıl saklanır.
+- K-1092 — Ayıp talebi siparişten bağımsız olarak son değiştiği andan on yıl saklanır; ödemesi alınmış siparişe gelen ödeme bildirimi de geldiği andan on yıl saklanır. *(Cümle düzeltildi — aşağıda "Retro Güncelleme — 2026-10-18".)*
 - K-1093 — Silmeden sonra kalan ticari kayıt, kargo şirketinin ve ödeme kuruluşunun aynı siparişe ait kayıtları da silinmedikçe anonim sayılmaz; firmanın saklama politikası bu ikisini de anar.
 - K-1095 — Kişisel bilgileri silinmiş bir siparişe iç not yazılamaz.
-- K-1135 *(bu taramada eklendi)* — Doğrulanmamış bir kaydın, yeni e-posta adresinin doğrulanması ya da Google ile ilk giriş sırasında silinmesi, veritabanı yedekten eski bir ana dönerse o işlemle birlikte geri gelir ve ayrıca yeniden uygulanmaz.
+- K-1135 *(bu taramada eklendi)* — Doğrulanmamış bir kaydın, yeni e-posta adresinin doğrulanması ya da Google ile ilk giriş sırasında silinmesi, veritabanı yedekten eski bir ana dönerse o işlemle birlikte geri gelir ve ayrıca yeniden uygulanmaz. *(Cümle düzeltildi — aşağıda "Retro Güncelleme — 2026-10-18".)*
 
 *Sipariş belgeleri ve adres*
 - K-1008 — Firma siparişin adresini düzelttiğinde eski ve yeni adres siparişin kaydında tutulur; panelde yöneticiye görünür, müşteriye görünmez ve siparişin kişisel bilgileriyle birlikte silinir.
@@ -471,3 +471,12 @@ Metinler tracker §14.1'dedir; bu dizin onları tek yerde gösterir.
 - K-1132…K-1136 bu taramanın kararlarıdır; yüzleri §5.1'dedir. Checkpoint'in iç tutarlılık merceği K-1133'ün (`05 §6.x.20`, §6.x.15, `06 §4.42`, `DEPLOY_RUNBOOK`'un K-1081 satırı) ve K-1135'in (`05 §7.4.5`, §5.2.7, `06 §9.4.1`) yüzlerini bir kez daha okuyabilir.
 - Aşama 1–4'ün park satırları K-977…K-1131'e, Aşama 5'inkiler bütün kollarıyla bir kez tarandı (831 eşleşme; 30 madde). Checkpoint yeniden taramaz; yalnız bu PR'ın değiştirdiği satırları okur.
 - 6. adımda API tasarımı aşamasına devrin tablosu bu raporun §6'sını ve hedef dokümanların park bloklarındaki dizin satırını gösterir; öğrenim adayları dizini (§7) 5. adımın girdisidir.
+
+## Retro Güncelleme — 2026-10-18
+
+Aşama 5'in checkpoint'i (`CP05_PHASE5_CHECKPOINT.md` §5.1) §4.1'in hazır metninde iki cümlenin kararın kapsamından dar olduğunu buldu. §4.1'in metni değiştirilmedi; liste 2026-10-18'de §4.1'in cümleleriyle gösterildi — bu iki düzeltilmiş cümle arşiv işaretinden önce checkpoint'in üç ⚠ kararıyla birlikte yeniden gösterilir:
+
+- K-1092 — Ayıp talebi son değiştiği andan on yıl saklanır ve siparişin kişisel bilgilerinden önce silinmez; ödemesi alınmış siparişe gelen ödeme bildirimi de geldiği andan on yıl saklanır ve siparişin kişisel bilgilerinden önce silinmez.
+- K-1135 *(bu taramada eklendi)* — Doğrulanmamış bir kaydın, yeni e-posta adresinin doğrulanması, "bu değişikliği ben yapmadım" bağlantısıyla e-posta değişikliğinin geri alınması ya da Google ile ilk giriş sırasında silinmesi, veritabanı yedekten eski bir ana dönerse o işlemle birlikte geri gelir ve ayrıca yeniden uygulanmaz.
+
+Gerekçe: K-1092 (1) ve (3) iki kaydı da siparişin imha parçasından önce sildirmez — saklama iki sürenin geç olanıdır; K-1135 silmenin üçüncü anını — e-posta değişikliğinin geri alınması (K-1080 (1)) — sayar. Sayım değişmez: 34 karar.

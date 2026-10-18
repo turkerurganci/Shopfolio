@@ -1,6 +1,6 @@
 # Shopfolio — API Design
 
-**Versiyon: v0.3** | **Bağımlılıklar:** `02`, `03`, `04`, `05`, `06`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-18
+**Versiyon: v0.4** | **Bağımlılıklar:** `02`, `03`, `04`, `05`, `06`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-18
 
 > **Aşama:** 6 — API Tasarımı · **Rol:** API Designer
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §3'e (endpoint envanteri) geçilmez.
@@ -50,23 +50,23 @@
 > **Ne yazılır:** `04` ekran aksiyonları + `03` akış adımları → endpoint eşlemesi.
 > Ekrandaki her aksiyon ve her veri ihtiyacı bir endpoint'e eşlenmelidir. Eşlenmeyen aksiyon = **eksik endpoint**.
 
-**Alt bölüm haritası (K-1152).** Matris yedi oturumda kurulur (K-1150): **1a** (2026-10-18) kaynak birimini netleştirdi (K-1151), dört ailenin envanterini ve 1a'nın kapsama denetimini, aday uç listesini ve "Uç" sütununun değer kümesini (K-1153) ve Arayüz Tanımları'nın vitrin ekranlarının (`04 §5`), navigasyon haritasının (§3), ortak bileşenlerinin (§2) ve ekran olmayan yüzeylerinin (§4.4) ileri izlenebilirliğini yazdı; **1b** (2026-10-18) panel ekranlarının (`04 §9`) ve §4.2'nin metninin ileri izlenebilirliğini yazdı ve aday listesine panelin POST işlemlerini, görsel yüklemeyi ve dışa aktarmanın dosyalarını ekledi (UC-110…UC-187; K-1154, K-1155); **1c** (2026-10-18) durum × rol matrisinin (`04 §6`), formların ve ortak alan kurallarının (§7) ve lokalizasyonun (§8) ileri izlenebilirliğini yazdı — aday eklemedi, eşlemenin okunuşu K-1156'dadır; sonraki oturumların kapsamı tablonun satırlarıdır. Şablonun §1.1, §1.2 ve §1.3 numaraları değişmez; alt düzey aşağıdaki tabloyla sabittir. Bir oturum bir alt bölümü bölmek ya da birleştirmek zorunda kalırsa bu tabloyu ve ona atıf yapan satırları aynı PR'da günceller (K-670'in kalıbı; `checklists/document-stage.md` §4).
+**Alt bölüm haritası (K-1152).** Matris yedi oturumda kurulur (K-1150): **1a** (2026-10-18) kaynak birimini netleştirdi (K-1151), dört ailenin envanterini ve 1a'nın kapsama denetimini, aday uç listesini ve "Uç" sütununun değer kümesini (K-1153) ve Arayüz Tanımları'nın vitrin ekranlarının (`04 §5`), navigasyon haritasının (§3), ortak bileşenlerinin (§2) ve ekran olmayan yüzeylerinin (§4.4) ileri izlenebilirliğini yazdı; **1b** (2026-10-18) panel ekranlarının (`04 §9`) ve §4.2'nin metninin ileri izlenebilirliğini yazdı ve aday listesine panelin POST işlemlerini, görsel yüklemeyi ve dışa aktarmanın dosyalarını ekledi (UC-110…UC-187; K-1154, K-1155); **1c** (2026-10-18) durum × rol matrisinin (`04 §6`), formların ve ortak alan kurallarının (§7) ve lokalizasyonun (§8) ileri izlenebilirliğini yazdı — aday eklemedi, eşlemenin okunuşu K-1156'dadır; **1d** (2026-10-18) Kullanıcı Akışları'nın durum makinesinin (`03 §1`), ana akışlarının (§2), hata akışlarının (§3) ve zaman aşımı yönetiminin (§4) ileri izlenebilirliğini yazdı — aday eklemedi, eşlemenin okunuşu K-1157'dedir; sonraki oturumların kapsamı tablonun satırlarıdır. Şablonun §1.1, §1.2 ve §1.3 numaraları değişmez; alt düzey aşağıdaki tabloyla sabittir. Bir oturum bir alt bölümü bölmek ya da birleştirmek zorunda kalırsa bu tabloyu ve ona atıf yapan satırları aynı PR'da günceller (K-670'in kalıbı; `checklists/document-stage.md` §4).
 
 | Alt bölüm | İçerik | Oturum | Durum |
 |---|---|---|---|
-| §1.1.1 | Kaynak envanteri ve sayım — dört aile, açılışın sayımıyla fark, betik komutları, kapsama denetimi | 1a; her oturum kendi ailesinin denetimini ve okuma derinliği kaydını ekler | ✓ (dört ailenin envanteri; 1a'nın, 1b'nin ve 1c'nin denetimi) |
-| §1.1.2 | Aday uç listesi (`UC-nn`) ve "Uç" sütununun değer kümesi | 1a; 1b–1f listenin sonuna aday ekler; 2 geri yönde kapatır | ✓ — UC-01…UC-187: 1a UC-01…UC-109, 1b UC-110…UC-187; 1c aday eklemedi (sonraki oturum ekleme yaparsa günceller) |
+| §1.1.1 | Kaynak envanteri ve sayım — dört aile, açılışın sayımıyla fark, betik komutları, kapsama denetimi | 1a; her oturum kendi ailesinin denetimini ve okuma derinliği kaydını ekler | ✓ (dört ailenin envanteri; 1a'nın, 1b'nin, 1c'nin ve 1d'nin denetimi) |
+| §1.1.2 | Aday uç listesi (`UC-nn`) ve "Uç" sütununun değer kümesi | 1a; 1b–1f listenin sonuna aday ekler; 2 geri yönde kapatır | ✓ — UC-01…UC-187: 1a UC-01…UC-109, 1b UC-110…UC-187; 1c ve 1d aday eklemedi (sonraki oturum ekleme yaparsa günceller) |
 | §1.1.3 | Arayüz Tanımları — `04 §5` vitrin ekranları: 28 ekran, 364 kalın numaralı madde, 23 kimliksiz madde — 415 | 1a | ✓ |
 | §1.1.4 | Arayüz Tanımları — `04 §3` navigasyon haritası: 124 geçiş satırı, 5 kalın numaralı paragraf, 6 metin — 135 | 1a | ✓ |
 | §1.1.5 | Arayüz Tanımları — `04 §2` ortak bileşenler bileşen kimliğiyle (20) ve §4.4 ekran olmayan yüzeyler (12 satır ve metin) — 33 | 1a | ✓ |
 | §1.1.6 | Arayüz Tanımları — `04 §9` panel ekranları: 25 ekran, 371 kalın numaralı madde, 34 kimliksiz madde — ve §4.2'nin metni — 431 | 1b | ✓ |
 | §1.1.7 | Arayüz Tanımları — `04 §6` durum × rol: 286 satır, 53 ekran bloğu, §6.1'in 17 kalın numaralı paragrafı, 2 metin — 358 | 1c | ✓ |
 | §1.1.8 | Arayüz Tanımları — `04 §7` formlar: 42 form, 193 alan satırı, §7.3'ün 5 kuralı — ve §8 alt bölüm düzeyinde (3) — 243 | 1c | ✓ |
-| §1.1.9 | Kullanıcı Akışları — `03 §1`–§4 satır düzeyinde: numaralı satır ve kalın paragraf 420, durum 20, geçiş 16, madde 45, metin 35 — 536 | 1d | ⬚ |
+| §1.1.9 | Kullanıcı Akışları — `03 §1`–§4 satır düzeyinde: numaralı satır ve kalın paragraf 420, durum 20, geçiş 16, madde 45, metin 35 — 536 | 1d | ✓ |
 | §1.1.10 | Kullanıcı Akışları — `03 §5`–§10 satır düzeyinde (§7 toplu: 3 alt bölüm satırı ve bölüm metni; bağlantı taşıyan bildirim satırı kimliğiyle ayrıca): numaralı satır 259, madde 10, metin 18, §7 4 — 291 | 1e | ⬚ |
 | §1.1.11 | Devirler — 51 karar satırı, 14 park maddesi, 4 dizin satırı, 20 gövde cümlesi, başka dokümanın 1 park satırı — 90 | 1f | ⬚ |
 | §1.1.12 | Teknik Mimari — MK-04, uç düzeyindeki 13 bölümün 96 numaralı maddesi ve 5 kimliksiz maddesi — 102 | 1f | ⬚ |
-| §1.1.13 | GAP adayları (`AA-n`) | 1a açtı; 1b–1f ekler; 2 karara bağlar | ⬚ — 1 aday (AA-1); 1b ve 1c aday eklemedi |
+| §1.1.13 | GAP adayları (`AA-n`) | 1a açtı; 1b–1f ekler; 2 karara bağlar | ⬚ — 1 aday (AA-1); 1b, 1c ve 1d aday eklemedi |
 | §1.2 | Geri izlenebilirlik (uç → kaynak); gerekçesiz ekleme listesi; kesilmiş okumanın örneklemi; aday uç listesinin kapanışı | 2 | ⬚ |
 | §1.3 | Boşluklar (GAP) ve kararlar; üst dokümanlara geri besleme tablosu (K-1147) | 2; workshop ve yazım geri besleme satırı ekler | ⬚ |
 
@@ -108,7 +108,9 @@ Birim K-1150'dir; 1a'nın netleştirmesi K-1151'dedir. Sayımlar 2026-10-18'de, 
 
 **1c — bölüm bazında** (601): `04 §6` 358 (ekran bloğu 53 — 6.2.n 28, 6.3.n 25; satır 286; §6.1'in kalın numaralı paragrafı 17; metin 2 — §6.1 ve §6.3) · §7 240 (form 42; alan satırı 193 — formların alanları 165, §7.3.2'nin alan türleri 19, §7.3.3'ün limitleri 9; §7.3'ün kalın kuralı 5) · §8 3 (§8.1, §8.2, §8.3). §1.1.7 358 · §1.1.8 243.
 
-**Betik komutları** (Git Bash; depo kökünden). Sayımlar yukarıdaki sayılarla aynı çıkmalı; 1a'nın, 1b'nin ve 1c'nin kapsama denetimleri — eksik, fazla, yinelenen, başlığa bağlılığın dördü —, değer kümesi denetimi, "Durum" denetimi, aday listesi denetimi ve GAP adayı denetimi boş dönmelidir:
+**1d — bölüm bazında** (536): `03 §1` 183 (numaralı tablo satırı 99, kalın numaralı paragraf 16, durum 20, geçiş 16, madde 17, metin 15) · §2 137 (numaralı 99, madde 22, metin 16) · §3 152 (numaralı 147, madde 3, metin 2) · §4 64 (numaralı 59, madde 3, metin 2). §1.1.9 536.
+
+**Betik komutları** (Git Bash; depo kökünden). Sayımlar yukarıdaki sayılarla aynı çıkmalı; 1a'nın, 1b'nin, 1c'nin ve 1d'nin kapsama denetimleri — eksik, fazla, yinelenen, başlığa bağlılığın dördü —, değer kümesi denetimi, "Durum" denetimi, aday listesi denetimi ve GAP adayı denetimi boş dönmelidir:
 
 ```sh
 # API Tasarımı (07) — izlenebilirlik matrisinin kaynak envanteri (Git Bash; depo kökünden)
@@ -283,15 +285,22 @@ comm -13 <(e1c | sort) <(mat07 '[78]' | sort)                          # fazla �
 mat07 '[3-8]' | sort | uniq -d                                         # yinelenen — 1a, 1b ve 1c birlikte; boş dönmeli
 mat07 7 | grep -vE '^04 (6\.|§6\.)'                                    # §1.1.7 yalnız 04 §6 — boş dönmeli
 mat07 8 | grep -vE '^04 (7\.|§7\.|§8\.)'                              # §1.1.8 yalnız 04 §7 ve §8 — boş dönmeli
+# 1d — 536 · 536 (§1.1.9)
+mat07 9 | wc -l
+comm -23 <(e1d | sort) <(mat07 9 | sort)                               # eksik — boş dönmeli
+comm -13 <(e1d | sort) <(mat07 9 | sort)                               # fazla — boş dönmeli
+mat07 '[3-9]' | sort | uniq -d                                         # yinelenen — 1a, 1b, 1c ve 1d birlikte; boş dönmeli
+mat07 9 | grep -vE '^03 §[1-4]([. ]|$)'                                # §1.1.9 yalnız 03 §1–§4 — boş dönmeli
 deger07                                                                 # "Uç" değer kümesinin dışında — boş dönmeli
 durum07                                                                 # "Durum" "Uç"tan türemiyor — boş dönmeli
 comm -23 <(uc07 | grep -E '^UC-' | sort -u) <(aday07 | sort -u)         # listede olmayan aday — boş dönmeli
 aday07 | sort | uniq -d                                                 # listede yinelenen kimlik — boş dönmeli
 gap07                                                                   # satırların GAP adayı ile §1.1.13'ün listesi — boş dönmeli
-aday07 | wc -l; uc07 | grep -E '^UC-' | sort -u | wc -l                 # 187 · 184 — 1a, 1b ve 1c'nin satırlarının andığı aday (makine uçlarından bildirim, canlılık ve durum ucu 1f'yi bekler)
+aday07 | wc -l; uc07 | grep -E '^UC-' | sort -u | wc -l                 # 187 · 185 — 1a…1d'nin satırlarının andığı aday (1d bildirim ucunu — UC-80 — andı; canlılık ve durum ucu 1f'yi bekler)
 mat07 '[3-5]' | wc -l; awk -F'|' '/^#### 1\.1\.[3-5] /{f=1; next} /^#### /{f=0} f && /^\| `0/{d=$5; gsub(/^ +| +$/,"",d); sub(/ \(AA-[0-9]+\)/,"",d); c[d]++} END{for(k in c) print k, c[k]}' Docs/07_API_DESIGN.md | sort   # durum dağılımı
 mat07 6 | wc -l; awk -F'|' '/^#### 1\.1\.6 /{f=1; next} /^#### /{f=0} f && /^\| `0/{d=$5; gsub(/^ +| +$/,"",d); sub(/ \(AA-[0-9]+\)/,"",d); c[d]++} END{for(k in c) print k, c[k]}' Docs/07_API_DESIGN.md | sort   # durum dağılımı — 1b
 mat07 '[78]' | wc -l; awk -F'|' '/^#### 1\.1\.[78] /{f=1; next} /^#### /{f=0} f && /^\| `0/{d=$5; gsub(/^ +| +$/,"",d); sub(/ \(AA-[0-9]+\)/,"",d); c[d]++} END{for(k in c) print k, c[k]}' Docs/07_API_DESIGN.md | sort   # durum dağılımı — 1c
+mat07 9 | wc -l; awk -F'|' '/^#### 1\.1\.9 /{f=1; next} /^#### /{f=0} f && /^\| `0/{d=$5; gsub(/^ +| +$/,"",d); sub(/ \(AA-[0-9]+\)/,"",d); c[d]++} END{for(k in c) print k, c[k]}' Docs/07_API_DESIGN.md | sort   # durum dağılımı — 1d (eşlendi 477, konvansiyon 18, uç doğurmaz 41)
 ```
 
 **Yanlış pozitif ve kapsam denetimi (1a).** `exp04()` Arayüz Tanımları'nın §2–§9'unu satır satır sınıflar: `### 5.n E-n` ve `### 9.n E-n` başlığı ekran birimidir; satır başındaki ya da madde imli kalın `n.m.k` — dört düzeyli dahil — maddedir ve sonraki satırın bağlamını değiştirmez; ilk hücresi `n.m.k` olan tablo satırı birimdir, öteki tablo satırları (başlık, ayraç, §2'nin giriş tablosu, §4.1–§4.3'ün tabloları, §5–§9'un form ve kural tabloları) birim değildir — `04 §6` ve §7'nin tablo satırlarının hepsi `n.m.k.l` kimliği taşır (betikle sayıldı). §5 ve §9'un beş alan başlığı ("Bilgi hiyerarşisi", "Aksiyonlar", "Validasyonlar", "Durum × rol varyantları", "Boş / yükleniyor / hata durumları") başlıktan sonra içerik taşıyorsa kimliksiz maddedir, yalnız parantezli bir işaret taşıyorsa değildir; dört boşlukla girintili madde imli satır kimliksiz maddedir (5.13.9'un (a)–(h)'si, §9'un alt maddeleri), madde imsiz girintili satır önceki maddenin devamıdır. §2'nin birimi bileşendir — başlığındaki `(OB-n)`; `### 2.12 Form bileşenleri` başlığı OB taşımaz ve altındaki `####` başlıkları taşır. §8'in birimi `### 8.n` başlığıdır. §4'te yalnız §4.2'nin metni ve §4.4 birim üretir. Kimlik biçimi `mat07()`'nin okuduğu biçimdir: ters tırnaklar silinir, boşluklar teke iner — `` `04` 5.13.6 `` → `04 5.13.6`, `` `04 §5.13` m2 `` → `04 §5.13 m2`. `exp03()` 06'nın işlevinin (`06 §1.1.1`) bütün bölümlere uygulanmış hâlidir — `d` değişkeni §7 dışındaki her bölümde satır düzeyini açar; §7 `###` alt bölüm başına bir birim ve bölüm metniyle girer. `dev07()` açılışın sayım komutunun işlev biçimidir (karar kaydı §16.2, betik 1'in ilk kolu); üst sınır K-1143'tür — Aşama 6'nın kararları devir değildir. `park07()` `06`'nın `park()`'ının kalıbıdır ve dizin satırlarını `dizin An` kimliğiyle ayrıca yazar (K-1150 dizin satırlarını kaynak satırı sayar). `gov07()` `06`'nın `gov()`'unun kalıbıdır: arama "`` `07` ``" ya da "API Tasarım"dır; Arayüz Tanımları'nın sınırı `## 2.`'dir, Veri Modeli'ninki `## 2.`'dir — iki dokümanın §1'i kendi matrisidir ve satırları devir değildir. `exp05()` 13 bölümün `###` başlığıyla sınırlıdır; `05 §2.1`'in MK-04 satırı ilk eşleşmedir (§12'nin özet tablosundaki ikinci MK-04 satırı birim değildir). **Betik iki yönlü sınandı** (`audit` skill'i, "Koşum biçimi" 4. madde; 2026-10-18): belgenin bir kopyasında §1.1.3'ten bir satır çıkarıldığında eksik, bir satır ikilendiğinde yinelenen, kaynakta olmayan bir kimlik (`04 5.4.99`) eklendiğinde fazla, §1.1.4'e bir `04 §5` satırı taşındığında başlığa bağlılık denetimi, "Uç" hücresine kümenin dışında bir değer yazıldığında değer kümesi denetimi, bir satırın "Durum"u "Uç"una aykırı yazıldığında "Durum" denetimi, listede olmayan bir aday (`UC-999`) yazıldığında aday listesi denetimi ve bir satırın GAP adayı kimliği §1.1.13'ten silindiğinde GAP adayı denetimi o satırı döndürdü.
@@ -302,9 +311,11 @@ mat07 '[78]' | wc -l; awk -F'|' '/^#### 1\.1\.[78] /{f=1; next} /^#### /{f=0} f 
 
 **Kapsam denetimi ve okuma derinliği (1c).** 1c `e1c()` ile `mat07 '[78]'`'i karşılaştırır; betik ailesi değişmedi — `exp04()`, `e1a()`…`e1f()` ve öteki işlevler 1a'nın hâliyle koşar. Önceki oturumların kümeleri sessizce değişmedi: `e1a()`…`e1f()`, `mat07 '[3-5]'`, `mat07 6` ve `aday07()`'nin çıktısı 1c'den önce alındı ve 1c'den sonra `cmp` ile aynı çıktı; `uc07()`'nin ilk 2.286 değeri — 1a ve 1b'nin satırlarının "Uç" değerleri — de `cmp` ile aynıdır, 1c'nin değerleri listenin sonuna eklenir. Yeni olan altı satırdır — 1c'nin eksik, fazla ve iki başlığa bağlılık denetimi ve yinelenen denetiminin 1a, 1b ve 1c'yi birlikte okuması (`mat07 '[3-8]'`). **Betik iki yönlü sınandı** (2026-10-18): belgenin bir kopyasında §1.1.7'den bir satır çıkarıldığında eksik, bir satır ikilendiğinde yinelenen, kaynakta olmayan bir kimlik (`04 6.2.99.1`) eklendiğinde fazla, §1.1.7'ye bir `04 §7` satırı taşındığında başlığa bağlılık, §1.1.8'de "Uç" hücresine kümenin dışında bir değer yazıldığında değer kümesi, bir satırın "Durum"u "Uç"una aykırı yazıldığında "Durum" ve listede olmayan bir aday (`UC-999`) yazıldığında aday listesi denetimi o satırı döndürdü. **Okuma derinliği:** 1c Arayüz Tanımları'nın §6'sını (satır 3611–4207), §7'sini (4208–4642) ve §8'ini (4643–4697) hiçbir satırı kesmeden okudu — bu aralıkta en uzun satır 1.083 karakterdir; hücre başına kesilerek okunan satır yoktur. Bir satırın uca dokunan ayrıntısı başka bir dokümanın kuralına işaret ettiğinde kural kaynağında okundu: oturumu ödeme adımında kapanan üyenin yazdıklarının korunması (`05 §6.7.9` — 6.2.13.13: form oturumun yenilenmesi için ayrılışta da çereze yazılır, cevap kaynakta yazılıdır; AA-1 "Sepete dön"le ayrılışın adayıdır, bu satırı kapsamaz). 1c yeni GAP adayı bulmadı: durum × rol satırlarının işlemleri ve formların alanları 1a ve 1b'nin adaylarındadır, satırların kuralı kaynakta yazılıdır.
 
+**Kapsam denetimi ve okuma derinliği (1d).** 1d `e1d()` ile `mat07 9`'u karşılaştırır; betik ailesi değişmedi — `exp03()`, `e1a()`…`e1f()` ve öteki işlevler 1a'nın hâliyle koşar. Önceki oturumların kümeleri sessizce değişmedi: `e1a()`…`e1f()`, `mat07 '[3-5]'`, `mat07 6`, `mat07 '[78]'` ve `aday07()`'nin çıktısı 1d'den önce alındı ve 1d'den sonra `cmp` ile aynı çıktı; `uc07()`'nin ilk 3.785 değeri — 1a, 1b ve 1c'nin satırlarının "Uç" değerleri — de `cmp` ile aynıdır, 1d'nin 1.410 değeri listenin sonuna eklenir. Yeni olan beş satırdır — 1d'nin eksik, fazla ve başlığa bağlılık denetimi, yinelenen denetiminin 1a…1d'yi birlikte okuması (`mat07 '[3-9]'`) ve durum dağılımı. **Betik iki yönlü sınandı** (2026-10-18): belgenin bir kopyasında §1.1.9'dan bir satır (`03 §1.2` S5) çıkarıldığında eksik, satır ikilendiğinde yinelenen, kaynakta olmayan bir kimlik (`03 §1.2` S99) yazıldığında fazla, §1.1.9'a bir `04 §5` satırı taşındığında başlığa bağlılık, §1.1.9'da "Uç" hücresine kümenin dışında bir değer yazıldığında değer kümesi, bir satırın "Durum"u "Uç"una aykırı yazıldığında "Durum", listede olmayan bir aday (`UC-999`) yazıldığında aday listesi ve §1.1.13'te olmayan bir GAP adayı (`AA-9`) yazıldığında GAP adayı denetimi o satırı döndürdü. **Okuma derinliği:** 1d Kullanıcı Akışları'nın §1'ini (satır 146–453), §2'sini (454–706), §3'ünü (707–914) ve §4'ünü (915–1002) hiçbir satırı kesmeden okudu — bu aralıkta en uzun satır 1.835 karakterdir; hücre başına kesilerek okunan satır yoktur. 1d yeni GAP adayı bulmadı: akışların andığı işlemlerin hepsi §1.1.2'nin adaylarındadır — vitrinin işlemleri 1a'nın, panelin işlemleri 1b'nin listesinde —, satırların kuralı kaynakta ya da gösterdikleri `02` maddesinde yazılıdır; satırların andığı 146 aday arasında 1a'dan beri 1f'yi bekleyen bildirim ucu (UC-80) ilk kez kaynak satırı aldı.
+
 #### 1.1.2 Aday uç listesi ve "Uç" sütununun değer kümesi
 
-Liste nihai envanter değildir (K-1153): uç envanteri `07 §3`'te, GAP kararlarından sonra yazım turunda doğar (şablonun başlık notu; API3-01) ve bir adayı bölebilir, birleştirebilir ya da bir işleyiciye çevirebilir; kimlik envantere geçer ve adres değişse de kalır (K-1148). Birim adres + yöntem + (varsa) sayfa işleyicisidir (K-1149): ekranın GET'i bir aday, ekranın her POST işlemi ayrı bir aday, makine ucu kendi adayıdır. Adresin biçimi (API2-01), işlemlerin aynı sayfanın adlandırılmış işleyicileri mi ayrı adresler mi olduğu (API2-02) ve oturum ve erişim (API2-03) workshop'un kararıdır; listenin "Not" sütunu yalnız adayın dayandığı kaynağı gösterir. 1a vitrinin bütün adaylarını, bilinen makine uçlarını (K-868; kaynak satırları 1f'de) ve panel ekranlarının GET adaylarını (§3'ün geçişleri onları hedef aldığı için) açtı; 1b panelin POST işlemlerini, görsel yüklemeyi ve dışa aktarmanın dosyalarını listenin sonuna ekledi — UC-110…UC-187 (K-1154). 1c aday eklemedi: durum × rol satırlarının, formların ve ortak alan kurallarının andığı her işlem ve her sorgu listededir (K-1156). Panelin GET adayları 1a'nın biriminde kalır: UC-84 E-29'un üç adımının, UC-108 E-54'ün üç adımının GET'idir — 1a'nın satırları sıfırlama, doğrulama ve geri alma bağlantılarını onlara eşledi (3.5.5–3.5.7); adımların ayrı işleyicilere bölünmesi API2-02'nin işidir. Numara iki basamakla başlar, 100'den sonra üç basamaklıdır.
+Liste nihai envanter değildir (K-1153): uç envanteri `07 §3`'te, GAP kararlarından sonra yazım turunda doğar (şablonun başlık notu; API3-01) ve bir adayı bölebilir, birleştirebilir ya da bir işleyiciye çevirebilir; kimlik envantere geçer ve adres değişse de kalır (K-1148). Birim adres + yöntem + (varsa) sayfa işleyicisidir (K-1149): ekranın GET'i bir aday, ekranın her POST işlemi ayrı bir aday, makine ucu kendi adayıdır. Adresin biçimi (API2-01), işlemlerin aynı sayfanın adlandırılmış işleyicileri mi ayrı adresler mi olduğu (API2-02) ve oturum ve erişim (API2-03) workshop'un kararıdır; listenin "Not" sütunu yalnız adayın dayandığı kaynağı gösterir. 1a vitrinin bütün adaylarını, bilinen makine uçlarını (K-868; kaynak satırları 1f'de) ve panel ekranlarının GET adaylarını (§3'ün geçişleri onları hedef aldığı için) açtı; 1b panelin POST işlemlerini, görsel yüklemeyi ve dışa aktarmanın dosyalarını listenin sonuna ekledi — UC-110…UC-187 (K-1154). 1c aday eklemedi: durum × rol satırlarının, formların ve ortak alan kurallarının andığı her işlem ve her sorgu listededir (K-1156). 1d de eklemedi: Kullanıcı Akışları'nın `03 §1`–§4'ünün andığı her müşteri ve yönetici işlemi, her sayfa ve ödeme sağlayıcısının bildirimi listededir; geçişlerin ve sürelerin geri kalanı sistemin kendi işidir (K-1157). Panelin GET adayları 1a'nın biriminde kalır: UC-84 E-29'un üç adımının, UC-108 E-54'ün üç adımının GET'idir — 1a'nın satırları sıfırlama, doğrulama ve geri alma bağlantılarını onlara eşledi (3.5.5–3.5.7); adımların ayrı işleyicilere bölünmesi API2-02'nin işidir. Numara iki basamakla başlar, 100'den sonra üç basamaklıdır.
 
 | # | Aday uç | Yöntem | Ekran / yüzey | Aktör | Not |
 |---|---|---|---|---|---|
@@ -2155,6 +2166,549 @@ Ortak bileşen bileşen kimliğiyle tek satırdır; bileşenin bütün maddeleri
 | `04 §8.2` | Türkçenin biçimleri — tarih, saat, sayı ve yüzde, tutar, süre, telefon ve IBAN, ekler, çoğul, hitap, harf ve alfabetik sıra; alana giriş biçimleri; vitrinde, panelde ve ekranlarda aynı | konvansiyon — API2-09 · konvansiyon — API2-06 | konvansiyon |
 | `04 §8.3` | Metin uzunluğunun yerleşime etkisi — tavanlar yerleşimin dayanağı, metin kesilmez satır kırar (üç istisna), düğme metni kesilmez, kırılmayan bloklar | uç doğurmaz — görünüm | uç doğurmaz |
 
+#### 1.1.9 Kullanıcı Akışları — `03 §1`–§4 durum makinesi, ana akışlar, hata akışları ve zaman aşımı (536)
+
+Kaynağın sırasıyla: `03 §1` (durum makinesi — durumlar, geçişler, kalem kayıtları, panel işaretleri, durum × rol × işlem), §2 (müşteri tarafının ana akışları), §3 (hata akışları), §4 (zaman aşımı); kimlik biçimi K-1002'ninkidir (§1.1). Eşlemenin okunuşu (K-1157): akış adımı aktörün işleminin aday ucuna düşer — müşterinin ve yöneticinin işlemi ekranın POST adayına, sayfanın açılışı ve gösterdiği veri ekranın GET adayına; durum tablosunun satırı durumun görüldüğü ekranların GET adayına (sipariş sayfası UC-33, sipariş ayrıntısı UC-92 ve ötekiler) ve `konvansiyon — API5-02`'ye (durum adları `02 §5`'ten birebir); geçiş satırı tetikleyenin işlemine — müşterinin ya da yöneticinin adayına, ödeme sağlayıcısının bildirimine (UC-80) ya da *uç doğurmaz — sistem işi (`05 §5`)*'e. §1.11'in "açık olduğu aralık" satırı işlemin adayını ve `konvansiyon — API8-01`'i taşır; §3'ün hata satırı akış adımının adayını, gösterimi `konvansiyon — API2-07`'yi, deneme limiti `konvansiyon — API2-08`'i; §4'ün süre satırı süreyi gösteren ya da süre içinde açık kalan işlemin adayını, kendiliğinden işi *uç doğurmaz — sistem işi (`05 §5`)*'i. Satırın "Bildirim" hücresi ayrıca değer doğurmaz — e-posta uç değildir; *uç doğurmaz — e-posta (`08`)* yalnız bildirimin kendisini anlatan satırda yazılır. Ürünün dışında yürüyen adım (havalenin bankada yapılması, seçimlik hakların yürütümü, iade gönderisi) *uç doğurmaz — ürünün dışında*'dır.
+
+| Kaynak ID | Kaynak özeti | Uç | Durum |
+|---|---|---|---|
+| `03 §1` metin | Durum makinesinin okunuşu: adlar, kodlar ve koşullar `02 §5`'te; bölüm geçişi kimin tetiklediğini, hangi akışta olduğunu ve kime bildirim gittiğini yazar, her rolün durum başına işlemleri §1.11'de | konvansiyon — API5-02 · konvansiyon — API8-01 | konvansiyon |
+| `03 §1.1` m1 | Sipariş — sevkiyat ekseni (`OrderStatus`), altı durum (`02 §5.4`) | konvansiyon — API5-02 · UC-33 · UC-92 | eşlendi |
+| `03 §1.1` m2 | Sipariş — ödeme ekseni (`PaymentStatus`), beş durum (`02 §5.5`) | konvansiyon — API5-02 · UC-33 · UC-92 | eşlendi |
+| `03 §1.1` m3 | Ürün ve varyant (`PublishStatus`) — Taslak · Yayında · Arşiv (`02 §5.1`) | konvansiyon — API5-02 · UC-88 · UC-04 | eşlendi |
+| `03 §1.1` m4 | Kurumsal içerik kaydı (`PublishStatus`) — Taslak · Yayında (`02 §5.2`) | konvansiyon — API5-02 · UC-96 | eşlendi |
+| `03 §1.1` m5 | Ayıp talebi (`DefectClaimStatus`) — Açık · Çözüldü (`02 §5.10`) | konvansiyon — API5-02 · UC-33 · UC-92 · UC-93 | eşlendi |
+| `03 §1.1` m6 | İletişim talebi, KVKK talebi dahil (`ContactRequestStatus`) — Açık · Kapatıldı (`02 §5.13`) | konvansiyon — API5-02 · UC-93 · UC-94 | eşlendi |
+| `03 §1.1` metin | Durum makinesi taşımayanlar: kalem kayıtları (§1.7); indirim, kupon, stok ayırma, hesap, oturum ve davet zamana ya da kullanıma bağlı geçerlilik (§1.10); duyurunun tarih aralığı; satış açıklığı dört koşullu kapıdır | konvansiyon — API5-02 · konvansiyon — API8-01 | konvansiyon |
+| `03 §1.2` `Placed` | Alındı — müşterinin onayıyla doğar; ödeme ya da fiziksel kalemsiz siparişte teslim işaretleri beklenir; sonrakiler S1, S2, S3 | UC-27 · UC-33 · UC-92 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.2` `Preparing` | Hazırlanıyor — ödenmiş fiziksel siparişin hazırlığı; Z-10 açık fiziksel kalem varken işler; sonrakiler S5, S4, S10 | UC-33 · UC-92 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.2` `Shipped` | Kargoya verildi — fiziksel kalemin iptal yolu kapanır, cayma düğmesi açılır; sonrakiler S6, S7 | UC-33 · UC-92 · konvansiyon — API5-02 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.2` `DeliveryFailed` | Teslim edilemedi — gönderi firmaya döndü; sonrakiler S8, S9, S11 | UC-33 · UC-92 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.2` `Delivered` | Teslim edildi — terminal; yalnız yöneticinin düzeltmesi (§1.6) | UC-33 · UC-92 · UC-150 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.2` `Cancelled` | İptal edildi — terminal; yalnız yöneticinin düzeltmesi (§1.6) | UC-33 · UC-92 · UC-150 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.2` metin | Geçişlerin koşulları `02 §5.4`'ün beyaz listesinde, listede olmayan geçiş yasak; geri yönlü geçiş müşteri akışında yok, yöneticinin düzeltmesi §1.6'da | konvansiyon — API8-01 · UC-150 | eşlendi |
+| `03 §1.2` S1 | Alındı → Hazırlanıyor — sistem, ödeme onayıyla (Ö1): kartta sağlayıcının başarı bildirimi, havalede yöneticinin "ödendi" işareti; B-4 | UC-80 · UC-123 · uç doğurmaz — e-posta (`08`) | eşlendi |
+| `03 §1.2` S2 | Alındı → Teslim edildi — kapanış kuralını tamamlayan son olay: dijital siparişte ödeme onayı, son hizmet kaleminin "tamamlandı"sı, son açık kalemin iptali, çıkarılması ya da cayma beyanı | UC-80 · UC-123 · UC-139 · UC-40 · UC-43 · UC-129 · UC-138 · UC-130 | eşlendi |
+| `03 §1.2` S3 | Alındı → İptal edildi — müşteri iptali, yöneticinin sebepli iptali, sistem (ödeme süresi, başarısız kart, aynı sepetten yeni sipariş), kapanış (K-672); B-7 | UC-39 · UC-40 · UC-129 · UC-27 · UC-80 · uç doğurmaz — sistem işi (`05 §5`) · uç doğurmaz — e-posta (`08`) | eşlendi |
+| `03 §1.2` S4 | Hazırlanıyor → İptal edildi — müşteri ya da yönetici son açık kalemi iptal eder; kapanış — gecikme feshi, cayma ya da çıkarma (K-672) | UC-40 · UC-129 · UC-41 · UC-43 · UC-138 · UC-130 | eşlendi |
+| `03 §1.2` S5 | Hazırlanıyor → Kargoya verildi — yönetici, geri alınamaz onayla; yalnız açık fiziksel kalemler; B-5 | UC-124 · konvansiyon — API9-03 | eşlendi |
+| `03 §1.2` S6 | Kargoya verildi → Teslim edildi — yönetici teslim işaretini ve tarihini girer; kendiliğinden geçiş yok | UC-126 | eşlendi |
+| `03 §1.2` S7 | Kargoya verildi → Teslim edilemedi — yönetici geri dönen gönderiyi işaretler; B-6 | UC-127 | eşlendi |
+| `03 §1.2` S8 | Teslim edilemedi → Kargoya verildi — yönetici yeniden gönderir, geri alınamaz onayla (K-677); B-5 | UC-125 | eşlendi |
+| `03 §1.2` S9 | Teslim edilemedi → İptal edildi — yöneticinin sebepli iptali; açık kalem kalmamışsa sebepsiz kapanış (K-717) | UC-129 · UC-128 | eşlendi |
+| `03 §1.2` S10 | Hazırlanıyor → Teslim edildi — kapanış kuralının son olayı: son açık fiziksel kalemin iptali, çıkarılması, feshi; son hizmet kaleminin iptali, çıkarılması, "tamamlandı"sı ya da cayması | UC-40 · UC-129 · UC-138 · UC-41 · UC-139 · UC-43 · UC-130 | eşlendi |
+| `03 §1.2` S11 | Teslim edilemedi → Teslim edildi — kapanış kuralının son olayı, S7'nin kendisi dahil | UC-127 · UC-129 · UC-43 · UC-41 · UC-130 | eşlendi |
+| `03 §1.3` `Pending` | Bekliyor — ödeme gelmedi; sonrakiler Ö1, Ö2 | UC-33 · UC-92 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.3` `Paid` | Ödendi — ödeme onaylandı; sonrakiler Ö3, Ö4 | UC-33 · UC-92 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.3` `Failed` | Başarısız — terminal; sebep iptal kaydında | UC-33 · UC-92 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.3` `PartiallyRefunded` | Kısmen geri ödendi; sonraki Ö5 | UC-33 · UC-92 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.3` `Refunded` | Geri ödendi — terminal | UC-33 · UC-92 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.3` Ö1 | Bekliyor → Ödendi — sistem: sağlayıcının başarı bildirimi ya da süre dolduğunda son sorgunun olumlu cevabı; yönetici: havalede "ödendi", geri alınamaz onayla; B-4 | UC-80 · UC-123 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §1.3` Ö2 | Bekliyor → Başarısız — S3 ile aynı anda, ödenmemiş siparişin her iptali | UC-39 · UC-129 · UC-80 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §1.3` Ö3 | Ödendi → Kısmen geri ödendi — sistem: kart kaleminin iadesi sağlayıcıda gerçekleşir; yönetici: havale hattında, caymada, ayıpta ve tutar bazlı kısmi geri ödemede işler; B-8, F-4 | UC-131 · UC-133 · uç doğurmaz — sistem işi (`05 §5`) · uç doğurmaz — e-posta (`08`) | eşlendi |
+| `03 §1.3` Ö4 | Ödendi → Geri ödendi — Ö3'ün tetikleyenleri, paranın tamamı | UC-131 · UC-133 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §1.3` Ö5 | Kısmen geri ödendi → Geri ödendi — Ö3'ün tetikleyenleri, kalanın tamamı | UC-131 · UC-133 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §1.3` metin | Ekseni değiştirmeyen olaylar: başarısız ya da sonucu bilinmeyen kart iadesi panel işareti düşürür (K-940); iptal edilmiş siparişe gelen ödemenin kendiliğinden iadesi (K-684); ters ibraz ürünün dışında; yasak geçiş Başarısız → Ödendi; tek düzeltme havale işareti | UC-80 · UC-92 · UC-150 · uç doğurmaz — sistem işi (`05 §5`) · uç doğurmaz — ürünün dışında | eşlendi |
+| `03 §1.4.1` | Birleşim tablosu — her siparişin her an iki durumu var; ✓ izinli, ✗ ulaşılamaz ya da yasak | konvansiyon — API5-02 · konvansiyon — API8-01 | konvansiyon |
+| `03 §1.4.1` m1 | Alındı satırı — Bekliyor (yeni sipariş), Ödendi ve Kısmen geri ödendi yalnız fiziksel açık kalemsiz siparişte, Geri ödendi tutar bazlı geri ödemeyle | UC-33 · UC-92 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.4.1` m2 | Hazırlanıyor satırı — Bekliyor ulaşılamaz (kapı koşulu), Başarısız yasak | UC-33 · UC-92 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.4.1` m3 | Kargoya verildi satırı — Bekliyor ve Başarısız ulaşılamaz | UC-33 · UC-92 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.4.1` m4 | Teslim edilemedi satırı — Bekliyor ve Başarısız ulaşılamaz | UC-33 · UC-92 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.4.1` m5 | Teslim edildi satırı — Bekliyor ve Başarısız adıyla yasak (`02 §5.6.1`) | UC-33 · UC-92 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.4.1` m6 | İptal edildi satırı — Bekliyor ulaşılamaz; Ödendi ve Kısmen geri ödendi geri ödemesi beklenen iptal | UC-33 · UC-92 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.4.1` metin | Harflerin açıklaması (a)–(h): kapı koşulu, havale işaretinin düzeltilmesi, ödenmeden iptal, son sorgu yanıtsızken Alındı + Bekliyor, yanlış firma iptalinin düzeltilmesi yalnız geri ödeme gerçekleşmemişken ve sonuç beklenmiyorken (K-940) | UC-150 · UC-92 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.4.2` | Eşzamanlı geçişler — iki ekseni ya da ekseni ve kalemi aynı anda değiştiren olaylar (`02 §5.6`) | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §1.4.2.1` | Ödeme onayı — S1 ya da S2 ve dijital kalemlerin teslim işareti aynı anda | UC-80 · UC-123 | eşlendi |
+| `03 §1.4.2.2` | Ödenmemiş siparişin iptali — S3 + Ö2 | UC-39 · UC-129 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §1.4.2.3` | Son açık kalemin kapanması ya da teslim işareti — kapanış kuralı | UC-40 · UC-41 · UC-43 · UC-129 · UC-138 · UC-139 | eşlendi |
+| `03 §1.4.2.4` | Havale "ödendi" işaretinin düzeltilmesi — Ödendi → Bekliyor ve Hazırlanıyor → Alındı birlikte | UC-150 | eşlendi |
+| `03 §1.4.3` | Kapanış kuralı — açık kalem adetle okunur; fiziksel açık kalemi olmayan siparişte son açık kalemin kapanışı ya da teslim işareti siparişi bitirir | uç doğurmaz — sistem işi (`05 §5`) · konvansiyon — API9-03 | konvansiyon |
+| `03 §1.4.3` m1 | En az bir kalem teslim edilmişse Teslim edildi — S2, S10, S11 | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §1.4.3` m2 | Hiçbir kalem teslim edilmemişse İptal edildi — iptal S3 ya da S4 ve B-7; cayma, fesih ya da çıkarma kapanıştır; Kargoya verildi ve Teslim edilemedi'de yöneticinin S7'si ve S9'un sebepsiz kapanışı (1.11.40; K-717) | UC-40 · UC-129 · UC-127 · UC-128 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §1.4.3` metin | Kart son sorgusu yanıtsızken ve kesintide dolan havale süresinde iptal ertelenir — sipariş Alındı + Bekliyor'da kalır (K-667) | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §1.4.4` | Geçişlerin stok, hizmet kontenjanı ve kupon hakkına etkisi (`02 §4.3`) | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §1.4.4.1` | Sipariş oluşur — stok ve kupon hakkı ayrılır | UC-27 | eşlendi |
+| `03 §1.4.4.2` | Ödeme onayı — ayrılan kesin düşer, kupon kullanılmış sayılır | UC-80 · UC-123 | eşlendi |
+| `03 §1.4.4.3` | Ödenmeden iptal — serbest kalır, kupon geri döner | UC-39 · UC-129 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §1.4.4.4` | Ödenmiş kalemin iptali ve çıkarma — adet stoğa ve havuza kendiliğinden döner; kupon yalnız siparişin tamamında (K-791) | UC-40 · UC-129 · UC-138 | eşlendi |
+| `03 §1.4.4.5` | Gecikme feshi — kargoya verilmemiş kalemde kendiliğinden, kargodan dönen mal teslim almayla; kupon koşullu (K-1106) | UC-41 · UC-130 · UC-140 | eşlendi |
+| `03 §1.4.4.6` | Cayma ve iade — mal teslim alınan adet kadar eklemeyle döner, reddedilen dönmez; hizmet kontenjanı cayılan adet kadar | UC-43 · UC-130 · UC-140 · UC-141 | eşlendi |
+| `03 §1.4.4.7` | Yanlış iptalin düzeltilmesi — yeniden ayrılır, yetmezse düzeltme yapılamaz (K-1091) | UC-150 | eşlendi |
+| `03 §1.4.4.8` | Havale işaretinin düzeltilmesi — ayırma ve kupon tutulu kalır | UC-150 | eşlendi |
+| `03 §1.4.4.9` | Varyantın kalıcı silinmesi — ayırması düşer (K-655) | UC-116 | eşlendi |
+| `03 §1.5` metin | Tipe göre hatlar `02 §5.7`'de; tablo olağan diziyi, adımı kimin attığını ve zorunlu elle adım sayısını gösterir | uç doğurmaz — yazım konvansiyonu | uç doğurmaz |
+| `03 §1.5.1` | Fiziksel — kart: sistem Ö1 ve S1, yönetici S5 ve S6; iki elle adım | UC-80 · UC-124 · UC-126 | eşlendi |
+| `03 §1.5.2` | Fiziksel — havale: Ö1'i yöneticinin "ödendi" işareti tetikler; üç elle adım | UC-123 · UC-124 · UC-126 | eşlendi |
+| `03 §1.5.3` | Yalnız dijital — Ö1 ve S2; kartta sistem, havalede yönetici | UC-80 · UC-123 | eşlendi |
+| `03 §1.5.4` | Yalnız hizmet — Ö1, ardından yöneticinin son "tamamlandı"sı ile S2 | UC-80 · UC-123 · UC-139 | eşlendi |
+| `03 §1.5.5` | Dijital + hizmet — dijital kalemler ödemede teslim, son "tamamlandı" ile S2 | UC-80 · UC-123 · UC-139 | eşlendi |
+| `03 §1.5.6` | Karışık, fiziksel kalemli — fiziksel hat; dijital ödemede, hizmet "tamamlandı"da kalem düzeyinde teslim | UC-124 · UC-126 · UC-139 | eşlendi |
+| `03 §1.5.7` | Fiziksel kalemleri kapanmış karışık — bulunduğu durumda kapanış kuralıyla biter | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §1.6.1` | Geri alınamaz onay isteyen işlemler — yönetici sonucu tek cümleyle görür; "geri al" düğmesi yok | konvansiyon — API2-02 · konvansiyon — API9-03 | konvansiyon |
+| `03 §1.6.1.1` | Havale "ödendi" işareti — dijital kalemli siparişte düzeltilemeyeceği önceden söylenir | UC-123 | eşlendi |
+| `03 §1.6.1.2` | Kargoya verme ve yeniden gönderim (K-677) | UC-124 · UC-125 | eşlendi |
+| `03 §1.6.1.3` | Firma iptali — sipariş ya da kalem; "stokta bulunamadı"da yasal uyarı | UC-129 | eşlendi |
+| `03 §1.6.1.4` | Yöneticinin geri ödemeyi işlemesi — tutar bazlı kısmi dahil | UC-131 · UC-133 | eşlendi |
+| `03 §1.6.1.5` | Kart hattında karta para gönderen kalem çıkarma | UC-138 | eşlendi |
+| `03 §1.6.1.6` | İade reddi — onay sonucu tek cümleyle söyler (K-656) | UC-140 | eşlendi |
+| `03 §1.6.1.7` | Başka kanaldan gelen cayma ya da gecikme feshi bildiriminin kaydı — geri alınmaz, düzeltilmez (K-688, K-715) | UC-130 | eşlendi |
+| `03 §1.6.1.8` | Üye hesabının talep üzerine silinmesi — geri alınmaz | UC-157 | eşlendi |
+| `03 §1.6.1` metin | Sistemin kart iadesi onay penceresi değildir (F-4); siparişe dokunmayan onaylar kendi akışlarında; müşterinin geri alınamaz dört işlemi — iptal, gecikme feshi, cayma, hesap silme — son adımda onayla tamamlanır, onay ekranın son adımıdır (K-732) | UC-39 · UC-40 · UC-41 · UC-43 · UC-68 · konvansiyon — API2-02 | eşlendi |
+| `03 §1.6.2` | Düzeltme — kapalı listeden sebeple yeni bir geçiş; ikisi işlem izinde, dış dünyaya çıkan sonuç geri alınmaz, her düzeltme B-13 ile bildirilir | UC-150 · konvansiyon — API9-03 | eşlendi |
+| `03 §1.6.2.1` | Erken ya da yanlış teslim işareti — bir önceki duruma; cayma penceresi ve ayıp süresi işlemez | UC-150 | eşlendi |
+| `03 §1.6.2.2` | Yanlış iptal — iptalden önceki duruma; ödeme Ödendi'de kalmışsa, sonuç beklenirken yapılamaz (K-940); ayırmalar yeniden (K-1091); başlatılmış geri ödeme, IBAN isteği ve IBAN kapanır (K-1056, K-1131) | UC-150 | eşlendi |
+| `03 §1.6.2.3` | Yanlış Kargoya verildi ya da Teslim edilemedi işareti — önceki duruma; aralıkta doğan cayma ve ayıp kalır, gerekirse kapanış kuralı | UC-150 | eşlendi |
+| `03 §1.6.2.4` | Para gelmeden konmuş havale "ödendi" işareti — iki eksen birlikte geri; kayıt varsa yapılamaz (K-703); Z-8 yeniden başlar, B-3 yeniden gider | UC-150 | eşlendi |
+| `03 §1.6.2` metin | Kart hattında ödeme ekseninin düzeltmesi yok; cayma beyanı düzeltilmez ve geri alınmaz (K-688); teslim tarihi, ulaşma tarihi, adres ve takip bilgisinin düzeltilmesi müdahaledir | UC-148 · UC-149 · UC-146 · UC-147 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.7.1` | Kalemin kayıtları — kalem durum makinesi taşımaz; kayıtların kapanış kuralına etkisi | konvansiyon — API5-02 · UC-33 · UC-92 | eşlendi |
+| `03 §1.7.1.1` | Teslim işareti ve tarihi — fiziksel S6, dijital ödeme onayı, hizmet "tamamlandı" | UC-126 · UC-80 · UC-123 · UC-139 | eşlendi |
+| `03 §1.7.1.2` | İptal kaydı — müşteri ya da sebepli yönetici, iptal edilen adetle (K-794); B-7 | UC-40 · UC-129 · konvansiyon — API4-04 · konvansiyon — API9-03 | eşlendi |
+| `03 §1.7.1.3` | Çıkarma kaydı — yönetici; B-11 | UC-138 | eşlendi |
+| `03 §1.7.1.4` | Gecikme feshi — müşteri ya da başka kanaldan yönetici (K-706); teslim edilmemiş fiziksel kalemlerin açık adetlerinin tamamı; B-9, F-3 | UC-41 · UC-130 | eşlendi |
+| `03 §1.7.1.5` | Cayma beyanı — müşteri ya da yönetici; cayılan adetle ve iade adresiyle; ardışık beyanlar ayrı kayıt (K-790); B-9, F-3 | UC-43 · UC-130 · konvansiyon — API4-04 | eşlendi |
+| `03 §1.7.1.6` | İade teslim alma — ulaşma tarihi ve adetle, her teslim alma ayrı kayıt (K-794); tarih müdahaleyle düzeltilir (K-712); stoğa ekleme ayrı adım; IBAN silinmişse B-14 | UC-140 · UC-141 · UC-149 | eşlendi |
+| `03 §1.7.1.7` | İade reddi — koşullu istisna kaleminde, teslim alma adımında; B-16 | UC-140 | eşlendi |
+| `03 §1.7.1.8` | "Mal dönmedi" kapanışı — Z-42 geçtikten sonra, ulaşmamış adetlere | UC-142 | eşlendi |
+| `03 §1.7.1.9` | IBAN isteği — sistemin yöneticinin adımlarıyla açtığı ve yöneticinin kendisinin açtığı (K-686, K-690, K-706); B-14 | UC-134 · UC-140 · UC-132 · UC-130 · UC-136 · UC-129 · UC-138 | eşlendi |
+| `03 §1.7.1.10` | Ayıp talebi — müşteri, ayıplı adetle (K-793); B-9, F-3 | UC-45 · konvansiyon — API4-04 | eşlendi |
+| `03 §1.7.1.11` | İndirme sayacı — sistem her indirmede, yönetici yeniler | UC-37 · UC-143 | eşlendi |
+| `03 §1.7.2` | Kalemin yolu tipe göre | konvansiyon — API8-01 | konvansiyon |
+| `03 §1.7.2` m1 | Fiziksel kalem — iptal ve çıkarma kargoya kadar, Z-11 dolunca fesih, kargoda fesih ya da cayma, teslim, pencere içinde cayma, teslim alma · ret · "mal dönmedi"; ayıp Kargoya verildi'den, Z-18 | UC-40 · UC-129 · UC-138 · UC-41 · UC-43 · UC-140 · UC-142 · UC-45 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.7.2` m2 | Dijital kalem — ödemede teslim ve indirme; iptal ve cayma yok, ayıp açık | UC-36 · UC-37 · UC-45 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.7.2` m3 | Hizmet kalemi — iptal, çıkarma ya da cayma "tamamlandı"ya kadar, cayma ayrıca Z-14'e kadar; ayıp tamamlamadan sonra | UC-40 · UC-138 · UC-43 · UC-139 · UC-45 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.7.3` | Panel işaretleri — durum değildir; koşul sürdükçe görünür (K-675) | UC-91 · UC-92 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.7.3.1` | "e-posta ulaşmadı" — siparişin, talebin ya da davetin satırında; üç başarısız denemede düşer; siparişte yeniden gönderimin başarısıyla, davette davet geçersizleşince kalkar | UC-92 · UC-103 · UC-153 · UC-154 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §1.7.3.2` | "ödeme sonucu alınamadı" — kart son sorgusu yanıtsız kalınca; sonuç gelince olağan geçiş | UC-91 · UC-92 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §1.7.3.3` | "geri ödeme gerçekleşmedi" — kart iadesi başarısız olunca; gerçekleşince, IBAN'a işlenince ya da yanlış iptal düzeltilince kalkar | UC-92 · UC-135 · UC-136 · UC-137 · UC-131 · UC-150 | eşlendi |
+| `03 §1.7.3.4` | "IBAN bekleniyor" — kalemde ya da kalemsiz geri ödemede siparişte; müşteri IBAN'ı girince kalkar (K-1075, K-1108) | UC-92 · UC-134 · UC-35 | eşlendi |
+| `03 §1.7.3.5` | "iade malı bekleniyor" — teslimden sonraki caymayla; teslim alma, ret ya da "mal dönmedi" ile beyanın bütün adetleri için | UC-92 · UC-140 · UC-142 | eşlendi |
+| `03 §1.7.3.6` | "e-posta düzeltildi" — misafir siparişinin e-postası düzeltilince; kalkmaz | UC-92 · UC-151 | eşlendi |
+| `03 §1.7.3.7` | "geri ödeme sonucu bekleniyor" — sağlayıcıya ulaşılamayınca; istek yeniden gönderilmez, sonuç sorulur; yönetici "gerçekleşmedi" işaretleyince sorgu durur (K-940) | UC-92 · UC-137 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §1.7.3` metin | Bekleyen işler sayaçları `02 §10.6.1`'de, akışı §8.9 | UC-86 · UC-91 | eşlendi |
+| `03 §1.7.4` | Kalemin adedi — işlemin birimi adettir; seçilebilecek adet işleme açık adettir, aşan değer kabul edilmez; kayıtlar adedi taşır; gecikme feshinde seçim yok (K-796); dijital adedi bir, hizmette "tamamlandı" açık adetlerin tamamına | konvansiyon — API4-04 · konvansiyon — API9-03 · UC-40 · UC-43 · UC-45 · UC-129 · UC-138 · UC-140 · UC-142 | eşlendi |
+| `03 §1.8.1` | Ürün ve varyant üç değeri ayrı taşır; bütün geçişler yöneticinin panel işlemi, bildirim yok, işlem izine yazılır | UC-115 · konvansiyon — API9-04 | eşlendi |
+| `03 §1.8.1` `Draft` | Taslak — vitrinde yok; adresi ziyaretçiye "sayfa bulunamadı", yöneticiye "Taslak" bandıyla; Yayında'ya geçiş yayın kapısına bağlı | UC-04 · UC-06 · UC-115 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.8.1` `Published` | Yayında — vitrinde, listelerde ve aramada; tükenmişlik durum değil; kapıyı bozan geçiş engellenir | UC-04 · UC-02 · UC-03 · UC-115 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.8.1` `Archived` | Arşiv — vitrinden çıkmış, adresi "Bu ürün artık satılmıyor" sayfası; Yayında'ya geçiş kapıya bağlı | UC-04 · UC-115 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.8.2` | Yayın kapısını bozan işlem engellenir, sebebi söylenir: son Yayında varyantın arşive ya da taslağa alınması, varyantı dosyasız bırakan dosya silme, son Yayında varyantın kalıcı silinmesi (K-674); ürünün kalıcı silinmesinde açık siparişlerin sayısı onaydan önce | UC-115 · UC-116 · UC-114 · konvansiyon — API8-01 · konvansiyon — API2-07 | eşlendi |
+| `03 §1.8.3` | Vitrinden kalkan kalem sepetten çıkar ve müşteriye bir kez söylenir; yayın durumu siparişi etkilemez; geçici kapatma yayın durumunu değiştirmez | UC-19 · UC-22 | eşlendi |
+| `03 §1.8.4` | Kurumsal içerik kaydı iki değer taşır; arşiv, ileri tarihli yayın ve sürüm geçmişi yok | UC-159 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.8.4` `Draft` | Taslak — sitede yok, yönetici "Taslak" bandıyla önizler; zorunlu alanlar doluysa Yayında'ya | UC-10 · UC-11 · UC-12 · UC-09 · UC-159 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.8.4` `Published` | Yayında — düzenleme kaydedildiği anda yayında; kapıyı bozan düzenleme kaydedilmez | UC-158 · UC-159 · konvansiyon — API5-02 · konvansiyon — API2-07 | eşlendi |
+| `03 §1.8.4` metin | Duyuru tarihleri girilmişse yalnız aralığında görünür (Z-23); Hakkımızda silinmez, yalnız taslağa alınır; öteki kayıtların silinmesi geri alınamaz uyarısıyla | UC-160 · UC-159 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.9.1` | Ayıp talebi — kalem başına tek kayıt (K-676); talep yokken "sorun bildir", Açık'ken yeni talep yok, Çözüldü'yken müşteri ve yönetici yeniden açar | UC-45 · UC-46 · UC-145 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.9.1` `Open` | Açık — talep bu durumda doğar; yönetici "çözüldü" işaretler; B-9, F-3 | UC-45 · UC-144 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.9.1` `Resolved` | Çözüldü — müşteri ya da yönetici Z-18 içinde yeniden açar; müşterininkinde B-9 ve F-3 (K-681) | UC-46 · UC-145 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.9.1` metin | Seçimlik hakların yürütümü sistem dışı; para gerektiren çözüm §1.3'ün geri ödeme geçişleriyle | uç doğurmaz — ürünün dışında · UC-131 · UC-133 | eşlendi |
+| `03 §1.9.2` | İletişim talebi, KVKK dahil — ayrı durum makinesi ve süre sayacı yok | UC-93 · UC-94 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.9.2` `Open` | Açık — formdan gelen talep bu durumda doğar; yönetici kapatır; F-2 | UC-15 · UC-155 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.9.2` `Closed` | Kapatıldı — yönetici yeniden açar | UC-156 · konvansiyon — API5-02 | eşlendi |
+| `03 §1.9.2` metin | Saklama süresi son kapatılıştan, hiç kapatılmamışta açılıştan işler (Z-33) | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §1.10` metin | Durum makinesi olmayan varlıklar — geçerlilik zamana ya da kullanıma bağlı | uç doğurmaz — yazım konvansiyonu | uç doğurmaz |
+| `03 §1.10.1` | İndirim — tarih aralığında (Z-20); sistem başlatır ve bitirir; onay anında başlaması ya da bitmesi özet farkıdır | UC-114 · UC-27 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §1.10.2` | Kupon — tarih aralığında ve hak kaldıkça; kullanım adedi kullanılmış ve ayrılmış hakların altına indirilemez (K-654) | UC-122 · UC-23 | eşlendi |
+| `03 §1.10.3` | Kupon hakkı ve stok ayırma — §1.4.4'ün anları | UC-27 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §1.10.4` | Duyurunun tarih aralığı — Yayında'yken aralığında görünür (Z-23) | UC-159 · konvansiyon — API5-01 | eşlendi |
+| `03 §1.10.5` | Hesap — doğrulanmamış kayıt bekleme aşaması; Z-1 dolunca silinir, yeniden istenen bağlantı ömrü uzatmaz (K-659); e-posta değişikliği doğrulanana kadar bekler, Z-45 boyunca geri alınır; Google ile ilk girişte bekleyen kayıt silinir (K-696); K-1080; silme geri alma açıkken yok (K-698); kurulumun yeni yönetici açması (K-699) | UC-53 · UC-49 · UC-66 · UC-76 · UC-51 · UC-68 · UC-157 · UC-177 · UC-186 · UC-187 · uç doğurmaz — sistem işi (`05 §5`) · uç doğurmaz — kurulum | eşlendi |
+| `03 §1.10.6` | Oturum — "beni hatırla"ya göre Z-4 ya da Z-5; sıfırlama, silme, geri alma ve kaldırma bütün oturumları, şifre değiştirme ötekileri kapatır (K-695) | UC-55 · UC-110 · UC-59 · UC-112 · UC-68 · UC-76 · UC-187 · UC-177 · UC-65 · UC-181 | eşlendi |
+| `03 §1.10.7` | Yönetici daveti — Z-3 boyunca, tek kullanımlık; kullanılınca hesap doğar; geri çekme, yeni davet, gönderenin kaldırılması ve kabulde adres çakışmasıyla geçersizleşir (K-1085); F-6 (K-692) | UC-175 · UC-176 · UC-113 · UC-85 · UC-177 · uç doğurmaz — e-posta (`08`) | eşlendi |
+| `03 §1.10.8` | Satış açıklığı — dört koşul; düşmesi ya da geçici kapatma yeni siparişi durdurur, açık siparişi etkilemez | UC-165 · UC-166 · UC-05 · UC-27 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11` metin | Durum × rol × işlem — ekran varyantları bu tablodan türer; aralığın dışında sipariş sayfası ve panel işlemi sunmaz; müşteride iptal, cayma ve fesih yalnız açık kalemde, adet seçimi işleme açık adetle, fiziksel kalemde cayma ve ayıp yalnız kargoya verilmişte | konvansiyon — API8-01 · konvansiyon — API4-04 · UC-33 · UC-92 | eşlendi |
+| `03 §1.11.1` | Siparişi bütünüyle iptal — Alındı + Bekliyor; S3 + Ö2, B-7 | UC-39 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.2` | Fiziksel kalemi iptal — ödemeden sonra Kargoya verildi'ye kadar; geri ödeme Z-17 | UC-40 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.3` | Hizmet kalemini iptal — ödemeden sonra "tamamlandı"ya kadar, sevkiyattan bağımsız | UC-40 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.4` | Dijital kalemi iptal — yoktur; önce yalnız siparişin bütünüyle iptali | uç doğurmaz — yoktur · UC-39 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.5` | Fiziksel kalemden cayma — Kargoya verildi'den sonra, teslimden Z-13; tarih girilmemişse açık; mutlak istisnada yok, koşullu istisnada koşulla | UC-43 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.6` | Hizmet kaleminden cayma — ödemeden sonra (K-673), "tamamlandı"ya ya da Z-14'e kadar | UC-43 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.7` | Dijital kalemden cayma — yoktur; hak üçüncü onay kutusuyla düşer | uç doğurmaz — yoktur · konvansiyon — API8-01 | konvansiyon |
+| `03 §1.11.8` | Gecikme feshi — Z-11 geçmiş, teslim tarihi girilmemiş, açık adedi kalan fiziksel kalem varken; Hazırlanıyor'da S4, öteki iki durumda yöneticinin S7 ve S9'u (K-717) | UC-41 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.9` | Ayıp talebi açma — kalem tipine göre başlangıç, talep yokken (K-676), Z-18; tarih girilmemişse süre işlemez | UC-44 · UC-45 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.10` | Ayıp talebini yeniden açma — Çözüldü'yken, Z-18 içinde; B-9, F-3 | UC-46 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.11` | Geri ödeme IBAN'ını girme — havale hattında işlem sırasında, IBAN isteğinde, havale yolu açıldığında | UC-35 · UC-40 · UC-41 · UC-43 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.12` | Girilmiş IBAN'ı düzeltme — yönetici geri ödemeyi işleyene kadar | UC-35 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.13` | Havale bilgisini görme — Alındı + Bekliyor havale siparişinde, donmuş IBAN (K-663) | UC-33 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.14` | Dijital dosyayı indirme — ödemeden sonra, indirme hakkı (P-8) kaldıkça | UC-36 · UC-37 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.15` | Havale "ödendi" işareti — Alındı + Bekliyor, iptalden sonra yok; geri alınamaz | UC-123 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.16` | Kargoya verme — Hazırlanıyor, açık fiziksel kalem varken | UC-124 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.17` | Teslim işareti ve tarihi — Kargoya verildi | UC-126 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.18` | "Teslim edilemedi" — Kargoya verildi | UC-127 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.19` | Yeniden gönderme — Teslim edilemedi, açık fiziksel kalem varken (K-677) | UC-125 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.20` | Hizmet kalemini "tamamlandı" — ödeme onaylanmışken (K-671), kalem açıkken | UC-139 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.21` | Firma iptali — ödeme beklenirken yalnız sipariş, ödemeden sonra kalem ve adet düzeyinde (K-794); Teslim edilemedi'de geri dönen kalem; cayma beyanlı ve feshedilmiş kaleme uygulanmaz; havalede IBAN isteği (K-690) | UC-129 · konvansiyon — API8-01 · konvansiyon — API9-03 | eşlendi |
+| `03 §1.11.22` | Kalem çıkarma ya da adet azaltma — ödemeden sonra, tipe göre sınırla; kart hattında geri alınamaz; havalede IBAN isteği | UC-138 · konvansiyon — API8-01 · konvansiyon — API9-03 | eşlendi |
+| `03 §1.11.23` | Adres düzeltme — Kargoya verildi'ye kadar; fiziksel kalemsizde fatura adresi Teslim edildi'ye kadar; B-10 | UC-146 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.24` | Kargo şirketi ve takip numarası düzeltme — kargoya verildikten sonra; B-12 | UC-147 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.25` | Teslim tarihini ya da ulaşma tarihini düzeltme (K-712) — pencereler ve Z-16 yeni tarihten | UC-148 · UC-149 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.26` | Durum geçişini düzeltme — §1.6.2'nin satırları; B-13 | UC-150 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.27` | İç not — her durumda, kişisel veri imha edilene kadar (K-1095) | UC-152 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.28` | İade malını teslim alma — ulaşan adetle, kalanlar ulaşınca yeniden; "mal dönmedi" kalemini yeniden açar; ayıpta sözleşmeden dönmede de (K-808) | UC-140 · konvansiyon — API8-01 · konvansiyon — API9-03 | eşlendi |
+| `03 §1.11.29` | İade malını reddetme — koşullu istisna kaleminde, teslim alma adımında; geri alınamaz; B-16 | UC-140 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.30` | "Mal dönmedi" kapanışı — Z-42 geçmiş, ulaşmamış adet varken | UC-142 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.31` | Geri ödemeyi işleme — havalede IBAN varken, caymada iki hatta, ayıpta, tutar bazlıda kalan tutar kadar, geç gelen ödemenin havale yolunda (K-686, K-1075) | UC-131 · UC-133 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.32` | Kart iadesini yeniden deneme ya da havale yolunu açma; sonucu beklenen iadeyi "gerçekleşmedi" işaretleme (K-940) | UC-135 · UC-136 · UC-137 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.33` | "Havale gerçekleşmedi" — geri ödeme işlenmeden önce; IBAN silinir, IBAN isteği (K-1131) | UC-132 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.34` | Başka kanaldan gelen caymanın kaydı — tipe göre önkoşul (K-673); pencere dışında ve mutlak istisnada ayrıca onay (K-709); pencereden bir yıl sonrasına tarihli kayıt reddedilir | UC-130 · konvansiyon — API8-01 · konvansiyon — API2-07 | eşlendi |
+| `03 §1.11.35` | Misafir siparişinin e-postasını düzeltme — imhaya kadar; B-1 yeni, B-15 eski adrese | UC-151 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.36` | E-postayı yeniden gönderme — "e-posta ulaşmadı" işaretliyken, müşteri bildirimi için; davette yok (K-759) | UC-153 · UC-154 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.37` | Ayıp talebini "çözüldü" işaretleme ya da yeniden açma | UC-144 · UC-145 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.38` | İndirme hakkını yenileme — dijital kalemde; sayaç sıfırlanır (K-683) | UC-143 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.39` | Geri ödeme için IBAN isteme — havale hattında IBAN'sız geri ödeme işlenecekken (K-686) | UC-134 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.40` | Siparişi kapatma (S9 kapanışı) — Teslim edilemedi'de açık kalem kalmamış, teslim yokken; sebep, iptal kaydı ve geri ödeme yok (K-717) | UC-128 · konvansiyon — API8-01 | eşlendi |
+| `03 §1.11.41` | Başka kanaldan gelen gecikme feshinin kaydı — 1.11.8'in aralığında; geri alınamaz (K-715); IBAN'sızsa B-14 | UC-130 · konvansiyon — API8-01 | eşlendi |
+| `03 §2` metin | Müşteri tarafının akışları — satın alma, takip, iptal, cayma ve iade, kurumsal içeriğin vitrin yüzü (K-650); üyelik §9'da, firma tarafı §8'de, uçtan uca akış §2.10'da (K-651) | uç doğurmaz — yazım konvansiyonu | uç doğurmaz |
+| `03 §2` m1 | Biçim — adım tablosu §0.4.1; durum §1'e uyar, işlemin açık olduğu aralık §1.11'de | uç doğurmaz — yazım konvansiyonu | uç doğurmaz |
+| `03 §2` m2 | Aktör — §2.1 ve §2.2 girişsiz, Ziyaretçi; §2.3–§2.9 Müşteri, üyenin farkı satır içinde; yöneticinin adımları tek satırla | konvansiyon — API0-07 · konvansiyon — API2-03 | konvansiyon |
+| `03 §2` m3 | Dallar — olağan yol ve dallar; hatalar §3'te satır numarasına bağlı, zaman aşımları §4'te, bildirimler §7'de | uç doğurmaz — yazım konvansiyonu | uç doğurmaz |
+| `03 §2.1` metin | Akış 1'in başı; satış kapısı kapalıyken vitrin ve ürünler görünür, yalnız sepete ekleme ve ödeme kapanır | konvansiyon — API8-01 · UC-05 · UC-22 | eşlendi |
+| `03 §2.1.1` | Ana sayfa — firmanın düzeni, kurumsal tanıtım ve en yeni ürünler; duyuru şeridi her sayfanın üstünde, aralığında (Z-23) | UC-01 · konvansiyon — API5-01 | eşlendi |
+| `03 §2.1.2` | Kategori sayfası — menü sabit iskeletten, alfabetik (K-805); ürünü olmayan kategori menüde yok; alt dallarla tek liste, en yeni önce, sıralama seçeneği yok; kırıntı yolu; boş kategori sayfası; indirim kartı | UC-02 · konvansiyon — API5-01 · konvansiyon — API2-06 | eşlendi |
+| `03 §2.1.3` | Ürün adıyla arama — büyük-küçük harfe ve Türkçe karaktere duyarsız; açıklama, kategori ve seçenek aranmaz | UC-03 · konvansiyon — API2-06 | eşlendi |
+| `03 §2.1.4` | Listeyi süzme — fiyat aralığı ve stok durumu; varsayılan tükenmişleri de gösterir; seçenek değeriyle süzme yok | UC-02 · UC-03 · konvansiyon — API2-06 | eşlendi |
+| `03 §2.1.5` | Ürün sayfası — görseller, açıklama, fiyat ve tarihi, üretim yeri, birim fiyat, indirim, kargoya verme ve ifa süresi; stok adedi gösterilmez; "Paylaş" | UC-04 · uç doğurmaz — istemci | eşlendi |
+| `03 §2.1.6` | Varyant seçimi — en fazla iki boyut; tükenmiş ve açılmamış kombinasyon seçilemez, taslak görünmez; satın alınabilirlik ayrılmış adetler düşülerek | UC-04 · konvansiyon — API8-02 | eşlendi |
+| `03 §2.1.7` | Bütün varyantları tükenmiş ürün — "Tükendi", sepete eklenemez; "Stokta haber ver" ve istek listesi yok | UC-04 · uç doğurmaz — yoktur | eşlendi |
+| `03 §2.1.8` | Varyantı adediyle sepete ekleme — sepet akışına | UC-05 | eşlendi |
+| `03 §2.1.9` | Satış kapalıyken gezinme — ürünler ve içerik görünür; sepete ekleme ve ödeme kapalı, satışın kapalı olduğu görünür; sepet korunur; bakım modu yok | UC-05 · UC-19 · UC-22 · konvansiyon — API8-01 | eşlendi |
+| `03 §2.1.10` | Arşivlenmiş ürünün adresi — "Bu ürün artık satılmıyor": ad, görsel, durum; fiyat ve sepete ekleme yok; listelerde ve aramada görünmez | UC-04 | eşlendi |
+| `03 §2.1.11` | Taslak ya da kalıcı silinmiş ürünün adresi — "Sayfa bulunamadı"; yöneticiye taslak "Taslak" bandıyla | UC-04 · UC-06 · konvansiyon — API2-03 | eşlendi |
+| `03 §2.2` metin | Akış 7'nin vitrin yüzü ve iletişim talebi; kurumsal taraf satış kapısına bağlı değil | UC-14 · UC-15 | eşlendi |
+| `03 §2.2.1` | Ana sayfanın kurumsal blokları — Hakkımızda ya da boşken marka adı ve logo; "Ana sayfada göster" işaretli hizmet ve referanslar elle sırasıyla | UC-01 | eşlendi |
+| `03 §2.2.2` | Menüden içerik tipine giriş — yayında kaydı olmayan tip menüde yok; genel sayfalar altbilgide ve işaretliyse üst menüde; liste sayfaları elle sırayla | UC-07 · UC-08 · UC-09 · UC-13 · UC-14 · konvansiyon — API5-01 | eşlendi |
+| `03 §2.2.3` | İçerik sayfası — Hakkımızda, hizmet tanıtımı, referans iş, genel sayfa kendi sayfasında, SSS tek sayfada; hizmet fiyatsız, "Bize ulaşın"; video dış bağlantı | UC-09 · UC-10 · UC-11 · UC-12 · UC-13 · uç doğurmaz — dış sayfa | eşlendi |
+| `03 §2.2.4` | "İlgili ürünler"den ürüne geçiş — yalnız yayındakiler; ters yön yok | UC-10 · UC-11 · UC-04 | eşlendi |
+| `03 §2.2.5` | İletişim sayfası — firma kimliği, yasal kimlik ve KEP, şubeler ve form; "Haritada aç" bağlantısı | UC-14 · uç doğurmaz — dış sayfa | eşlendi |
+| `03 §2.2.6` | Her sayfanın üst ve alt bölümü — sosyal ve WhatsApp bağlantıları, yasal metinlerin ve "İşlem rehberi"nin bağlantıları, genel sayfalar, platform imzası, ETBİS bandı; çerez bandı yok | konvansiyon — API5-01 · UC-16 · UC-17 · UC-18 · UC-12 · uç doğurmaz — dış sayfa | eşlendi |
+| `03 §2.2.7` | İletişim formunun açılışı — girişsiz; aydınlatma bağlantısı; yasal metinler yayında değilse form kapalı (K-850); üyeye ad ve e-posta ön dolu | UC-14 · konvansiyon — API8-01 · konvansiyon — API5-01 | eşlendi |
+| `03 §2.2.8` | Formun gönderimi — konu tipi beş değerden; dosya eki yok; tuzak alan doluysa sessizce düşer; L-4; iletişim talebi Açık; F-2, alındı e-postası yok (K-678) | UC-15 · konvansiyon — API2-08 · uç doğurmaz — e-posta (`08`) | eşlendi |
+| `03 §2.2.9` | Cevabı bekleme — talep yalnız panelde; numara ya da durum sorgusu yok; cevap sistem dışında e-postayla, firma kapatır | uç doğurmaz — ürünün dışında · UC-155 | eşlendi |
+| `03 §2.2.10` | Taslak ya da silinmiş içeriğin adresi — "Sayfa bulunamadı"; taslak menüde ve listelerde yok | UC-06 · UC-10 · UC-11 · UC-12 | eşlendi |
+| `03 §2.3` metin | Sepet kendiliğinden boşalmaz (Z-6); sepet hatırlatması ve istek listesi yok | UC-19 · uç doğurmaz — yoktur | eşlendi |
+| `03 §2.3.1` | Sepete ekleme — satış kapalıysa eklenmez; stok ayrılmış adetler düşülerek, adet söylenmez; P-9 bütün varyantların toplamına, sınır stoktan önce söylenir; dijitalde adet 1, ikinci kez eklenmez; üyeye daha önce aldığı dijital uyarısı; stok ayırmaz, ilk fiyatı hatırlar | UC-05 · konvansiyon — API2-07 | eşlendi |
+| `03 §2.3.2` | Sepeti açma — üyenin sepeti hesapta, misafirinki tarayıcıda; güncel fiyat ve satın alınabilirlik, fiyat değişimi notu; kargo eşiği, asgari tutar, il kısıtı; taksit yok | UC-19 | eşlendi |
+| `03 §2.3.3` | Adedi değiştirme ya da kalemi çıkarma — artırma 2.3.1'in denetiminden | UC-20 · UC-21 | eşlendi |
+| `03 §2.3.4` | Satın alınamaz kalem — sepette kalır, siparişe girmez, mesajı yazar; adet kendiliğinden düşmez; tutara ve eşiklere girmez | UC-19 · UC-22 | eşlendi |
+| `03 §2.3.5` | Vitrinden kalkan kalem — sepetten çıkar, bir kez söylenir | UC-19 | eşlendi |
+| `03 §2.3.6` | Misafirin sepetle girişi — iki sepet birleşir, büyük adet kalır; görmediği ekleme bir kez söylenir; kurallardan geçer; L-6 sayacı büyüğü taşır | UC-55 · UC-51 · UC-19 | eşlendi |
+| `03 §2.3.7` | Üyenin çıkışı — sepet hesapla gider, tarayıcıda boş görünür | UC-77 · UC-19 | eşlendi |
+| `03 §2.3.8` | Ödeme adımına geçiş — siparişe girebilecek kalem şart, satış açık; fiziksel kalemde asgari sipariş tutarı | UC-22 · UC-19 · konvansiyon — API8-01 | eşlendi |
+| `03 §2.4` metin | Ödeme adımı misafire ve üyeye aynı; giriş duvarı yok; sipariş onay anında doğar | UC-22 · UC-27 · konvansiyon — API2-03 | eşlendi |
+| `03 §2.4.1` | Ödeme adımının açılışı — üyede hesabın e-postası; misafir e-postasını yazar, doğrulanmaz; kayıtlı e-postanın hatırlatması; giriş yaparsa sepetler birleşir | UC-22 · UC-25 · UC-26 · UC-55 | eşlendi |
+| `03 §2.4.2` | Teslimat adresi — üye defterden seçer ya da yazar, deftere kaydeder (K-680); alanlar; il kısıtı; fiziksel kalem yoksa alanlar yok; teslimat seçeneği yok | UC-22 · UC-25 · UC-27 · konvansiyon — API5-01 | eşlendi |
+| `03 §2.4.3` | Fatura adresi — varsayılan teslimatla aynı; fiziksel kalemsizde de istenir; telefon ve kurumsal alan yok | UC-22 · UC-27 · konvansiyon — API5-01 | eşlendi |
+| `03 §2.4.4` | Kupon kodu — tek kod, değiştirilir ya da kaldırılır (K-679); harf ayrımsız (K-806); tarih ve hak (K-654); pay kalemlere dağılır; L-6 | UC-23 · UC-24 · konvansiyon — API2-08 | eşlendi |
+| `03 §2.4.5` | Ödeme yöntemi — kart sağlayıcı tanımlıysa, erişilemiyorsa seçilemez; havale firma açtıysa, L-8 doluysa seçilemez, mesaj nötr; kapıda ödeme yok | UC-22 · UC-25 · konvansiyon — API8-01 · konvansiyon — API2-08 | eşlendi |
+| `03 §2.4.6` | Onay özeti — kalemler, döküm, toplam; misafirde gideceği e-posta yazar ve düzeltmeye açık; Ön Bilgilendirme Formu, cayma özeti, aydınlatma bağlantısı | UC-22 · UC-25 · UC-16 | eşlendi |
+| `03 §2.4.7` | Onay kutuları — iki kutu; dijitalde ve hizmette birer kutu daha; işaretlenmeden onay yok | UC-27 · konvansiyon — API5-01 | eşlendi |
+| `03 §2.4.8` | "Siparişi onayla" — L-7; sepet onay anında yeniden değerlendirilir; her fark ve metin sürümü artışı siparişi durdurur, güncel özet ve yeniden onay; kalem kalmadıysa sepete | UC-27 · UC-22 · UC-19 · konvansiyon — API2-05 · konvansiyon — API2-08 · konvansiyon — API2-07 | eşlendi |
+| `03 §2.4.9` | Siparişin oluşması — tahmin edilemez numara; kalemler, adresler, sürümler, IBAN donar; ayırmalar, Z-7 ve Z-8; aynı sepetin ödenmemiş siparişi iptal; doğrulanmış hesabın e-postasıysa hesaba düşer; ekran numarayı gösterir (K-704); B-1, B-2, F-1 | UC-27 · UC-28 · UC-29 · uç doğurmaz — e-posta (`08`) | eşlendi |
+| `03 §2.5` metin | Ödeme onayı iki ekseni ve kalemleri birlikte değiştirir; yöneticinin teslim adımları §8.2'de | UC-80 · UC-123 | eşlendi |
+| `03 §2.5.1.1` | Kart bilgisi sağlayıcıda girilir; ürün kart verisini görmez; her ödeme 3D Secure; taksit sağlayıcıda | UC-29 · uç doğurmaz — dış sayfa | eşlendi |
+| `03 §2.5.1.2` | 3D Secure ve siteye dönüş — sipariş sayfasına iner; ödeme sağlayıcının başarı bildirimiyle onaylanır; bildirim gelmemişse bekleme söylenir; doğrulama `08`'in (K-705) | UC-30 · UC-33 · UC-80 | eşlendi |
+| `03 §2.5.1.3` | Doğrulama başarısız ya da kart reddi — sipariş kendiliğinden iptal, ayırmalar serbest; müşterinin listesinde yok, panelde var, L-7'ye sayılır; sipariş sayfası söyler (K-704); sepet durur | UC-80 · UC-30 · UC-33 · UC-27 | eşlendi |
+| `03 §2.5.1.4` | Banka ekranı kapanır ya da yarıda kalır — Z-7 dolunca son sorgu; yanıtsızsa "ödeme sonucu alınamadı"; aynı sepetten yeni sipariş öncekini iptal eder | uç doğurmaz — sistem işi (`05 §5`) · UC-27 · UC-92 | eşlendi |
+| `03 §2.5.2.1` | Havaleyle onay — donmuş IBAN ve numara ekranda, B-2'de ve sipariş sayfasında; Z-8 onaydan | UC-28 · UC-33 | eşlendi |
+| `03 §2.5.2.2` | Bankadan havale — sistem dışı; tutar karşılaştırılmaz | uç doğurmaz — ürünün dışında | uç doğurmaz |
+| `03 §2.5.2.3` | Hatırlatma — son iş gününde bir kez (Z-9), düzeltmeyle yeniden başlayan sürede bir kez daha; B-3 | uç doğurmaz — sistem işi (`05 §5`) · uç doğurmaz — e-posta (`08`) | uç doğurmaz |
+| `03 §2.5.2.4` | Yöneticinin "ödendi" işareti — panel donmuş IBAN'ı gösterir, geri alınamaz | UC-123 · UC-92 | eşlendi |
+| `03 §2.5.2.5` | Süre dolduğunda işaretsiz ödeme — kendiliğinden iptal; sonradan "ödendi" yapılamaz; kesintide ertelenir (K-667) | uç doğurmaz — sistem işi (`05 §5`) · konvansiyon — API8-01 | konvansiyon |
+| `03 §2.5.2.6` | Ödeme beklenirken vazgeçme ya da kartla ödeme isteği — siparişi bütünüyle iptal; kart için aynı sepetten yeni sipariş | UC-39 · UC-27 | eşlendi |
+| `03 §2.5.3.1` | Ödeme onayının işlenmesi — stok kesin düşer, kupon kullanılmış; siparişe giren kalemler sepetten çıkar; Z-10 ve Z-39 başlar; dijital kalemler teslim; B-4 | UC-80 · UC-123 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §2.5.3.2` | Dijital dosyanın indirilmesi — hak kaldıkça (P-8; K-713), süre sınırı yok; güncellenen dosya iner; hak dolunca iletişim formu, yönetici yeniler; "hakkımı yenile" yok | UC-36 · UC-37 · UC-15 · UC-143 | eşlendi |
+| `03 §2.5.3.3` | Kargoya verme — şirket ve takip numarası ya da araç beyanı; sipariş sayfası "Takip et" bağlantısını gösterir; iptal yolu kapanır, cayma ve "sorun bildir" açılır | UC-124 · UC-33 · uç doğurmaz — dış sayfa | eşlendi |
+| `03 §2.5.3.4` | "Teslim edilemedi" — gönderi döner; yeniden gönderim ya da iptal | UC-127 · UC-125 · UC-129 | eşlendi |
+| `03 §2.5.3.5` | Teslim işareti ve tarihi — kargoya verilmeden önceki ve ileri tarih reddedilir; fiziksel kalemlerin tamamına; kendiliğinden geçiş yok; Z-13 ve Z-18 bu tarihten | UC-126 · konvansiyon — API2-07 | eşlendi |
+| `03 §2.5.3.6` | Hizmet kalemini "tamamlandı" — cayma düşer, "sorun bildir" açılır; randevu yok; son açık kalemse kapanış kuralı | UC-139 | eşlendi |
+| `03 §2.5.3.7` | Fiziksel kalemsiz siparişin izlenmesi — Alındı'da bekler, açık kalemlerin tamamı teslim işaretini alınca Teslim edildi | UC-33 | eşlendi |
+| `03 §2.6` metin | Sipariş sayfasına üç yoldan girilir ve sayfa her bilgiyi taşır; hiçbir akış bir e-postanın ulaşmasına bağlı değil (K-187) | UC-33 · UC-34 · UC-74 · UC-32 | eşlendi |
+| `03 §2.6.1` | Üyenin sipariş geçmişinden açması — hesaba düşmüş misafir siparişleri dahil; ödemesi alınmamış ve kendiliğinden iptal edilmiş sipariş listede yok | UC-74 · UC-33 · konvansiyon — API2-03 | eşlendi |
+| `03 §2.6.2` | Misafirin numara ve e-postayla sorgusu — ikisi eşleşirse açılır; L-5 IP ve e-posta ekseninde ayrı | UC-31 · UC-32 · konvansiyon — API2-08 | eşlendi |
+| `03 §2.6.3` | Sipariş e-postasındaki bağlantı — erişim anahtarı sayfayı e-posta sormadan açar; ömrü imhaya kadar; hesap silme ve e-posta değişikliğinden etkilenmez; indirme bağlantısı aynı kapı | UC-34 · UC-37 · konvansiyon — API2-03 | eşlendi |
+| `03 §2.6.4` | Sipariş sayfasının içeriği — iki eksen, donmuş kalemler, geri ödemeler, adresler, takip, indirme, havale IBAN'ı ve son gün, metin sürümleri, onay kaydı, o anda açık işlemler; fatura yok; arama motorlarına kapalı | UC-33 · konvansiyon — API8-01 · konvansiyon — API4-09 | eşlendi |
+| `03 §2.6.5` | Sipariş e-postası ulaşmaz — her bilgi sipariş sayfasında; Z-26'dan sonra "e-posta ulaşmadı", yönetici yeniden gönderir | UC-33 · UC-153 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §2.6.6` | Sipariş yürürken hesap silme ya da e-posta değişikliği — sipariş sürer; silinmişse misafir yolu ya da bağlantı; e-posta değiştiyse siparişler hesapta | UC-32 · UC-34 · UC-74 | eşlendi |
+| `03 §2.6.7` | Misafirin yanlış e-postası — iki yol da o adrese bağlı; firmaya ulaşır, yönetici teyit edip düzeltir; B-1 yeni, B-15 eski adrese | UC-151 · uç doğurmaz — ürünün dışında | eşlendi |
+| `03 §2.7` metin | İptal firma onayı beklemez; aralıklar §1.11'de; müşterinin iptali firmaya e-postayla bildirilmez, panelin sayaçlarında görünür | UC-39 · UC-40 · UC-86 · konvansiyon — API8-01 | eşlendi |
+| `03 §2.7.1` | Ödeme beklenirken iptal — yalnız sipariş bütünüyle; ayırmalar serbest; listede görünmeye devam eder; B-7 | UC-38 · UC-39 | eşlendi |
+| `03 §2.7.2` | Ödenmiş siparişte fiziksel kalemin ya da adedin iptali — Kargoya verildi'ye kadar; adet stoğa döner (K-787, K-791); kupon yalnız tamamında; havalede IBAN bu adımda; Z-10 aşıldıysa panelde kanuni faiz uyarısı | UC-38 · UC-40 · UC-35 · UC-92 · konvansiyon — API4-04 | eşlendi |
+| `03 §2.7.3` | Hizmet kaleminin ya da adedin iptali — "tamamlandı"ya kadar; kontenjan döner (K-792); Z-39 aşıldıysa kanuni faiz uyarısı | UC-38 · UC-40 · UC-92 · konvansiyon — API4-04 | eşlendi |
+| `03 §2.7.4` | Ödenmiş dijital kalemin iptali — yoktur; sebepli sorun ayıp talebi yolundan | uç doğurmaz — yoktur · UC-45 | eşlendi |
+| `03 §2.7.5` | Havale hattında IBAN girişi — iptal, fesih ya da caymada ya da IBAN isteğiyle; biçim ve sağlama basamağı denetimi, aydınlatma bağlantısı; işlenene kadar düzeltilebilir; kartta istenmez (K-710) | UC-35 · UC-40 · UC-41 · UC-43 · konvansiyon — API2-09 | eşlendi |
+| `03 §2.7.6` | İptalin geri ödemesi — Z-17; kartta sistem kendiliğinden, havalede yönetici işler; tutar `02 §7.1.7` ile (K-788); kargo ücreti koşulu (K-789); gerçekleşmezse 2.8.4.3 (K-940); B-8, F-4 | UC-131 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §2.7.7` | Gecikme feshi — Z-11 geçmiş, teslim tarihi girilmemiş fiziksel kalem varken; kalem ve adet seçilmez; havalede IBAN; feshedilen kalem kargoya verilmez; panelde kanuni faiz uyarısı; başka kanaldan bildirimi yönetici kaydeder (K-706) | UC-38 · UC-41 · UC-35 · UC-130 · UC-92 · konvansiyon — API4-04 | eşlendi |
+| `03 §2.7.8` | Feshin geri ödemesi ve kargodaki malın dönüşü — on dört gün, kartta sistem, havalede yönetici; dönen mal teslim alma ve stoğa ekleme; açık kalem kalmadıysa S7 ve S9 kapanışı | UC-131 · UC-140 · UC-141 · UC-127 · UC-128 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §2.8` metin | Sebepsiz ikinci yol; cayma beyanı ekseni değiştirmez, ödeme ekseni para gönderildiğinde değişir | UC-43 · konvansiyon — API8-01 | eşlendi |
+| `03 §2.8.1.1` | Fiziksel kalemin cayma düğmesi — Kargoya verildi'den Z-13'e, tarih girilmemişse açık; kargodan önce yol iptal; mutlak istisnada yok, koşullu istisnada koşul metniyle | UC-33 · UC-42 · konvansiyon — API8-01 | eşlendi |
+| `03 §2.8.1.2` | Cayma beyanı — kalem ve adet, ardışık beyan ayrı kayıt; ekran iade adresini ve Z-42 yükümlülüğünü gösterir (K-838); adres kayda yazılır; havalede IBAN; tarih damgası; "iade malı bekleniyor" ya da kargodaysa adetleri kapatır; B-9, F-3 | UC-42 · UC-43 · UC-35 · konvansiyon — API4-04 | eşlendi |
+| `03 §2.8.1.3` | Teslim beyanla aynı güne işaretlenir — panel teslimin beyandan önce mi sonra mı olduğunu sorar | UC-126 · UC-148 | eşlendi |
+| `03 §2.8.1.4` | Müşteri malı gönderir — Z-42 içinde, karşı ödemeli; ürün iade etiketi üretmez, takip istemez | uç doğurmaz — ürünün dışında | uç doğurmaz |
+| `03 §2.8.1.5` | İade malının teslim alınması — ulaşma tarihi ve adet; Z-16 ulaşma tarihinden; stok kontrolden sonra eklenir | UC-140 · UC-141 | eşlendi |
+| `03 §2.8.1.6` | Koşullu istisna kaleminin ambalajı açılmış dönmesi — iade reddi; geri ödeme yok, IBAN silinir, mal geri gönderilir; geri alınmaz; B-16 | UC-140 | eşlendi |
+| `03 §2.8.1.7` | Mal kullanılmış, hasarlı ya da eksik döner — ret ve kesinti yok; değer kaybı talebi ürünün dışında (K-668) | UC-140 · UC-131 · uç doğurmaz — ürünün dışında | eşlendi |
+| `03 §2.8.1.8` | Mal hiç gönderilmez — geri ödeme süresi başlamaz; Z-42'den sonra isteğe bağlı "mal dönmedi"; IBAN kapatmayla ya da Z-38 ile silinir; sonradan ulaşırsa kalem yeniden açılır | UC-92 · UC-142 · UC-140 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §2.8.2.1` | Hizmet kaleminin cayma düğmesi — ödemeden sonra, "tamamlandı"ya ya da Z-14'e kadar; pencerenin başlangıcı (K-673); ödeme beklenirken yol siparişin iptali | UC-33 · UC-42 · konvansiyon — API8-01 | eşlendi |
+| `03 §2.8.2.2` | Hizmet kaleminden cayma — iade adresi ve gönderme yükümlülüğü yok; havalede IBAN; kısmi ifa da tam cayma; kontenjan döner; Z-16 beyandan; kapanış kuralı (K-717) | UC-42 · UC-43 · UC-35 · konvansiyon — API4-04 | eşlendi |
+| `03 §2.8.3.1` | Dijital kalemden cayma — yoktur; ayıplı dosyada yol ayıp talebi | uç doğurmaz — yoktur · UC-45 | eşlendi |
+| `03 §2.8.4.1` | Caymanın geri ödemesi — yönetici işler; kart sağlayıcı üzerinden, havale gerçekleştikten sonra; teslim alma başlatmaz; tutar K-788; kargo ücreti kuralı (K-789, K-1076); kupon yalnız tamamında | UC-131 · konvansiyon — API9-03 | eşlendi |
+| `03 §2.8.4.2` | Geri ödeme havalesi gerçekleşmez — "havale gerçekleşmedi": IBAN silinir, sipariş sayfasında alan yeniden açılır; süre durmaz; B-14 | UC-132 · UC-35 | eşlendi |
+| `03 §2.8.4.3` | Kart iadesi gerçekleşmez — "geri ödeme gerçekleşmedi" ya da önce "sonuç bekleniyor" (K-940); yeniden deneme ya da havale yolu, sipariş sayfası IBAN alanı açar; geç gelen ödemede sipariş düzeyinde (K-1075); başarısızlıkta bildirim yok (K-683) | UC-135 · UC-136 · UC-137 · UC-35 · UC-33 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §2.8.4.4` | Caymanın e-posta, mektup ya da formla bildirimi — yönetici teyit edip kaydeder; tarih ulaşma tarihi; IBAN yalnız iletişim e-postasından aktarılır, yoksa alan açılır; kargodan önce ve ödeme beklenirken "müşteriyle anlaşıldı" iptali; pencere dışı ve mutlak istisnada ayrıca onay (K-709) | UC-130 · UC-129 · UC-35 · uç doğurmaz — ürünün dışında | eşlendi |
+| `03 §2.9` metin | Sebepli üçüncü yol — ayıp talebi; durumları §1.9.1'de, firmanın adımları §8.4'te | UC-45 | eşlendi |
+| `03 §2.9.1` | "Sorun bildir"in görünmesi — tipe göre başlangıç, talep yokken; Z-18, tarih girilmemişse işlemez; süre dolunca kanal kapanır, hak iletişim formundan sürer | UC-33 · UC-44 · UC-15 · konvansiyon — API8-01 | eşlendi |
+| `03 §2.9.2` | Ayıp talebinin gönderimi — kalem, ayıplı adet (K-793), açıklama; fotoğraf ve dosya yok; fiziksel kalemde iade adresi talebe yazılır; aydınlatma bağlantısı; B-9, F-3 | UC-44 · UC-45 · konvansiyon — API4-04 | eşlendi |
+| `03 §2.9.3` | Talep açıkken yeni sorun — yeni talep açılmaz, sipariş sayfası talebin durumunu gösterir | UC-33 · konvansiyon — API8-01 | eşlendi |
+| `03 §2.9.4` | Çözüm sistemin dışında — seçimlik haklar ürünün dışında; para gerekiyorsa iade hattı ya da tutar bazlı kısmi geri ödeme; havalede IBAN isteği | uç doğurmaz — ürünün dışında · UC-140 · UC-131 · UC-133 · UC-134 | eşlendi |
+| `03 §2.9.5` | Yöneticinin "çözüldü" işareti — Açık → Çözüldü | UC-144 | eşlendi |
+| `03 §2.9.6` | Müşterinin talebi yeniden açması — Z-18 içinde; geçmiş tek kayıtta; B-9, F-3 (K-681) | UC-44 · UC-46 | eşlendi |
+| `03 §2.10` metin | Uçtan uca anlatılar — if/then'e sığmayan senaryolar ve fiziksel siparişin ana akışı (K-651); kural ve süre tekrarlanmaz | uç doğurmaz — yazım konvansiyonu | uç doğurmaz |
+| `03 §2.10.1` metin | Fiziksel siparişin ana akışı — `02 §2.2`'nin sekiz adımı; kartta iki, havalede üç elle adım; müşteri her adımı sipariş sayfasından izler, sonra cayma ve ayıp | UC-33 · uç doğurmaz — yazım konvansiyonu | eşlendi |
+| `03 §2.10.1.1` | Ürünü bulma ve varyant seçimi — 2.1.2–2.1.6 | UC-02 · UC-03 · UC-04 | eşlendi |
+| `03 §2.10.1.2` | Sepete ekleme — stok ayrılmaz | UC-05 | eşlendi |
+| `03 §2.10.1.3` | Ödeme adımında adresler, kupon, ödeme yöntemi — 2.4.1–2.4.5 | UC-22 · UC-23 · UC-25 | eşlendi |
+| `03 §2.10.1.4` | Özet, Ön Bilgilendirme Formu, cayma özeti, iki kutu ve onay — yeniden değerlendirme (K-831) | UC-22 · UC-27 | eşlendi |
+| `03 §2.10.1.5` | Siparişin oluşması — numara, donma, ayırma; B-1, B-2, F-1 | UC-27 · UC-28 · uç doğurmaz — e-posta (`08`) | eşlendi |
+| `03 §2.10.1.6` | Ödeme — kartta 3D Secure, havalede yöneticinin işareti; Ö1, S1 | UC-29 · UC-30 · UC-80 · UC-123 | eşlendi |
+| `03 §2.10.1.7` | Hazırlama ve kargoya verme — S5, B-5 | UC-124 | eşlendi |
+| `03 §2.10.1.8` | Teslim işareti ve tarihi — S6; pencereler bu tarihten | UC-126 | eşlendi |
+| `03 §2.10.2` metin | Karışık sipariş — üye fiziksel, dijital ve hizmet kalemini kartla alır | uç doğurmaz — yazım konvansiyonu | uç doğurmaz |
+| `03 §2.10.2` m1 | Onay — dijital ve hizmet için iki kutu daha; Alındı + Bekliyor, B-1 | UC-27 | eşlendi |
+| `03 §2.10.2` m2 | Ödeme onayı — sağlayıcının bildirimiyle Ö1 ve S1; kılavuz teslim, B-4; süreler başlar | UC-80 · UC-36 | eşlendi |
+| `03 §2.10.2` m3 | Danışmanlığın cayma penceresi — siparişin teslim tarihinden; tarih girilene kadar açık | UC-42 · konvansiyon — API8-01 | eşlendi |
+| `03 §2.10.2` m4 | Olağan yol — S5, S6; danışmanlık hattı beklemez, "tamamlandı" ile cayma düşer | UC-124 · UC-126 · UC-139 | eşlendi |
+| `03 §2.10.2` m5 | Dal — lamba kargodan önce iptal: B-7, sistemin kart iadesi ve kargo ücreti, Ö3; kupon dönmez; fiziksel kalemsiz hat; danışmanlığın "tamamlandı"sı ile S10 (K-671) | UC-40 · UC-139 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §2.10.3` metin | Kargodayken cayılıp geri dönen gönderi — misafir, tek fiziksel kalem, havale; Kargoya verildi + Ödendi | uç doğurmaz — yazım konvansiyonu | uç doğurmaz |
+| `03 §2.10.3` m1 | Beyan — mal yoldayken cayma; IBAN ve iade adresi kayda; B-9, F-3; kalem kapanır, Z-16 beyandan; sipariş Kargoya verildi'de kalır | UC-43 · UC-35 | eşlendi |
+| `03 §2.10.3` m2 | Dönüş — S7, B-6; S9'un kapanışı, B-7 gitmez; teslim edilmiş kalem olsaydı S11 | UC-127 · UC-128 | eşlendi |
+| `03 §2.10.3` m3 | Teslim alma — ulaşma tarihinin alt sınırı uygulanmaz; stoğa ekleme; firma iptali uygulanmaz | UC-140 · UC-141 | eşlendi |
+| `03 §2.10.3` m4 | Geri ödeme — IBAN'a gönderim ve panelden işleme; kargo ücreti eklenir; Ö4, B-8 | UC-131 | eşlendi |
+| `03 §2.10.4` metin | IBAN silindikten sonra ulaşan iade malı — üye, havale, teslimden sonra cayma ve IBAN | uç doğurmaz — yazım konvansiyonu | uç doğurmaz |
+| `03 §2.10.4` m1 | Beyan — "iade malı bekleniyor"; süre mal ulaşmadan başlamaz | UC-43 · UC-92 | eşlendi |
+| `03 §2.10.4` m2 | Mal gelmez — "mal dönmedi" kapanışı IBAN'ı siler, bildirim yok; kapatılmazsa Z-38 ile silinir | UC-142 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §2.10.4` m3 | Mal ulaşır — teslim alma kalemi yeniden açar; IBAN isteği düşer, sipariş sayfasında alan, B-14; yönetici IBAN girmez | UC-140 · UC-35 | eşlendi |
+| `03 §2.10.4` m4 | Bekleme — Z-16 ulaşma tarihinden, durmaz; panel "IBAN bekleniyor" ve kalan süre | UC-92 · UC-91 | eşlendi |
+| `03 §2.10.4` m5 | Kapanış — IBAN girilir, geri ödeme işlenir (Ö3–Ö5, B-8), IBAN silinir; ödenmiş tutar düşülür; IBAN girilmezse borç sürer, sayaçta sayılmaz | UC-35 · UC-131 · UC-86 | eşlendi |
+| `03 §2.10.5` metin | Misafir siparişinin e-posta düzeltmesi — yanlış e-postayla havale siparişi | uç doğurmaz — yazım konvansiyonu | uç doğurmaz |
+| `03 §2.10.5` m1 | Yanlış adres — özet gösterir, görülmez; B-1 ve B-2 yanlış adrese; hesabınsa sipariş o hesaba düşer | UC-22 · UC-27 | eşlendi |
+| `03 §2.10.5` m2 | Ödeme — havale ve "ödendi" işareti, B-4 yanlış adrese; müşteri sayfayı açamaz | UC-123 · UC-32 · UC-34 | eşlendi |
+| `03 §2.10.5` m3 | Teyit — müşteri firmaya ulaşır, yönetici kimliği siparişin bilgileriyle teyit eder | uç doğurmaz — ürünün dışında · UC-92 | eşlendi |
+| `03 §2.10.5` m4 | Düzeltme — yeni erişim anahtarı, eski bağlantılar geçersiz; B-1 yeni, B-15 eski adrese; hesap bağı değişir; "e-posta düzeltildi" işareti ve e-posta geçmişi | UC-151 · UC-34 | eşlendi |
+| `03 §2.10.5` m5 | Devam — yeni bağlantıyla sipariş sayfası; yeniden düzeltmede aradaki işlemler geri alınmaz; işlem izi yalnız yönetici işlemlerini tutar (K-710) | UC-34 · UC-151 · UC-106 | eşlendi |
+| `03 §3` metin | Hata akışları — `02 §6`'nın envanterini akışa bağlar; her satır bir akış adımından ayrılır; `02 §6`'nın her satırı burada tam bir kez Kaynak; süreler §4'te, itiraz §5'te, kötüye kullanım §6'da | konvansiyon — API6-01 · konvansiyon — API2-07 | konvansiyon |
+| `03 §3` m1 | Biçim — §0.4.2; "Akış adımı" §2'nin, §8'in ya da §9'un satırı; hedef alt bölümden satır numarasına çevrilme (K-682) | uç doğurmaz — yazım konvansiyonu | uç doğurmaz |
+| `03 §3` m2 | Bildirim — "—" ekranda reddedilen ve kayıt doğurmayan işlem; kayıt ya da durum değiştiren olay bildirim kimliğini taşır; "olağan" ana akışın satırını gösterir | konvansiyon — API2-07 · uç doğurmaz — yazım konvansiyonu | konvansiyon |
+| `03 §3` m3 | Durum — §1'e uyar; "—" eksenlerin ve kalem kaydının değişmediğini söyler | uç doğurmaz — yazım konvansiyonu | uç doğurmaz |
+| `03 §3.1.1` | Hiçbir akış bir e-postanın ulaşmasına bağlı değil — sipariş sayfası her bilgiyi taşır; ulaşmayan bildirim "e-posta ulaşmadı" işareti ve yeniden gönderim; firma bildirimi panelin ana sayfasında uyarı; hesap ve yönetim bağlantıları kuralın dışında — ekrandan yeniden istenir (L-9), davette yeni davet | UC-33 · UC-153 · UC-86 · UC-49 · UC-67 · UC-180 · UC-175 | eşlendi |
+| `03 §3.1.2` | Sistem ödenmiş siparişi bilgisizliği yüzünden iptal etmez — son sorgu; yanıtsızsa "ödeme sonucu alınamadı"; kesintide havale iptali ertelenir (K-667) | uç doğurmaz — sistem işi (`05 §5`) · UC-92 | eşlendi |
+| `03 §3.1.3` | Onaylanan özet ile oluşan sipariş birebir aynı; her fark oluşmayı durdurur ve söylenir | UC-27 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.1.4` | Sepet hatalarda korunur — ödeme yarıda kaldığında, sağlayıcıya erişilemediğinde, satış kapalıyken | UC-19 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.1.5` | Limit aşımı nötr konuşur — kalan deneme, süre ve eksen söylenmez; hesap kilitlenmez | konvansiyon — API2-08 | konvansiyon |
+| `03 §3.1.6` | Hata ve uyarı yalnız renkle taşınmaz, metin taşır; biçimi `04`'ün işi | uç doğurmaz — görünüm | uç doğurmaz |
+| `03 §3.2.1.1` | 3D Secure başarısız ya da kart reddi — kendiliğinden iptal, ayırmalar serbest; sepet durur; L-7'ye sayılır; listede yok, panelde var; B-7 | UC-80 · UC-30 · UC-33 · konvansiyon — API2-08 | eşlendi |
+| `03 §3.2.1.2` | Banka ekranı kapanır ya da yarıda kalır — Z-7 sonunda son sorgu; aynı sepetten yeniden onay öncekini hemen iptal eder, ayırma serbest | uç doğurmaz — sistem işi (`05 §5`) · UC-27 | eşlendi |
+| `03 §3.2.1.3` | Onay anında fiyat, indirim, kupon, kargo, eşik, il değişmiş, kalem ayrılamaz ya da metin sürümü artmış — sipariş oluşmaz, güncel özet ve yeniden onay | UC-27 · UC-22 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.2.1.4` | Kalem tükenmiş ya da kontenjan dolmuş — "Tükendi", sepette kalır; kalem kalmadıysa ödeme adımı açılmaz ya da sepete dönülür | UC-19 · UC-22 · UC-27 | eşlendi |
+| `03 §3.2.1.5` | Ürün ya da varyant arşive, taslağa alınmış ya da silinmiş — kalem sepetten çıkar, bir kez söylenir | UC-19 | eşlendi |
+| `03 §3.2.1.6` | Stoktan fazla adet — "Bu adette stok yok", adet söylenmez | UC-05 · UC-20 · UC-19 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.2.1.7` | P-9 aşılır — eklenmez, sınır sayısıyla söylenir; sınır sonradan düşerse kalemler mesajla kalır | UC-05 · UC-20 · UC-19 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.2.1.8` | Aynı dijital varyant ikinci kez — "Bu ürün zaten sepetinde" | UC-05 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.2.1.9` | Üye daha önce aldığı dijital varyantı ekler — engellenmez, uyarı gösterilir | UC-05 | eşlendi |
+| `03 §3.2.1.10` | Teslimat adresi teslimat yapılmayan ilde — kabul edilmez, sebep söylenir; defterdeki adres seçilemez | UC-25 · UC-27 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.2.1.11` | Asgari sipariş tutarının altı — ödeme adımına geçilmez, eksik tutar gösterilir | UC-19 · UC-22 | eşlendi |
+| `03 §3.2.1.12` | Kupon toplamı sıfıra indirir, tarih dışı ya da hakkı dolmuş — kabul edilmez | UC-23 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.2.1.13` | Misafir e-postasını yanlış yazar — özet gösterir ve düzeltmeye açık; onaydan sonra yönetici teyit edip düzeltir; hesap bağı kesilir; B-1, B-15 | UC-22 · UC-151 | eşlendi |
+| `03 §3.2.1.14` | Hesabı olan kişi misafir olarak sipariş verir — kabul, hesaba düşer; giriş hatırlatması | UC-25 · UC-27 | eşlendi |
+| `03 §3.2.1.15` | Sağlayıcıya erişilemez — onaydan önce kart seçilemez; onaydan sonra ödeme sayfası açılmazsa kart başarısızlığı, iptal, L-7'ye sayılmaz; tespiti `08`'in | UC-22 · UC-29 · konvansiyon — API2-08 | eşlendi |
+| `03 §3.2.1.16` | İptal edilmiş siparişe başarılı ödeme bildirimi — sistem kendiliğinden geri öder; sipariş İptal edildi + Başarısız kalır, ödeme kaydında durur; B-8, F-4 (K-684) | UC-80 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §3.2.1.17` | Satış kapalı — ürünler görünür; sepete ekleme ve ödeme kapalı, satışın kapalı olduğu görünür; sepet korunur; açık siparişler etkilenmez | UC-05 · UC-22 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.2.1.18` | Art arda geçersiz kupon — L-6 aşılınca kupon alanı geçici kapanır, nötr | UC-23 · konvansiyon — API2-08 | eşlendi |
+| `03 §3.2.1.19` | L-7'nin eşiği — bir süre yeni sipariş onaylanamaz, nötr; misafir e-posta ekseninde, ödeme sayfası açılmamış sipariş sayılmaz | UC-27 · konvansiyon — API2-08 | eşlendi |
+| `03 §3.2.1.20` | Sipariş notu istenir — alan yok; iletişim formunun "Sipariş hakkında" tipi | uç doğurmaz — yoktur · UC-15 | eşlendi |
+| `03 §3.2.1.21` | L-8 doluyken havale — seçilemez, nötr; kart açık; tavan ödeme ya da iptalle boşalır | UC-22 · UC-27 · konvansiyon — API2-08 | eşlendi |
+| `03 §3.2.1.22` | Harcama itirazı ve ters ibraz — ürün bilmez; eksen ve satış özeti değişmez | uç doğurmaz — ürünün dışında | uç doğurmaz |
+| `03 §3.2.2.1` | Sipariş e-postası ulaşmaz — sipariş sayfası; yanlış yazıldıysa 3.2.1.13; panelde "e-posta ulaşmadı" | UC-33 · UC-32 · UC-92 | eşlendi |
+| `03 §3.2.2.2` | Misafir numara ya da e-postayı yanlış girer — sayfa açılmaz; L-5 iki eksende; engellenen sahip bağlantıdan ya da hesabından | UC-32 · UC-34 · UC-74 · konvansiyon — API2-08 | eşlendi |
+| `03 §3.2.2.3` | Hesap silinmiş, sipariş yürüyor — misafir yolu ya da bağlantı | UC-32 · UC-34 | eşlendi |
+| `03 §3.2.2.4` | Ödemesi alınmamış ve kendiliğinden iptal edilmiş siparişler — müşterinin listesinde yok, panelde var | UC-74 · UC-91 | eşlendi |
+| `03 §3.2.2.5` | E-posta sahibi istemeden düzeltilir — B-15; yönetici yeniden düzeltir, yeni anahtar; aradaki işlemler geri alınmaz (K-710) | UC-151 | eşlendi |
+| `03 §3.2.2.6` | Teslimat adresi sahibi istemeden düzeltilir — yönetici teyit eder; B-10; Kargoya verildi'den önce adres geçmişinden geri düzeltme | UC-146 · UC-92 | eşlendi |
+| `03 §3.3.1` | Kargoya verildikten sonra fiziksel kalemin iptali — düğme sunulmaz, yol cayma | UC-33 · UC-42 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.3.2` | Z-10 ya da Z-11 aşılır — iptal düğmesi açık ve kanuni faiz uyarısı; Z-11'de gecikme feshi düğmesi, kişiye özel üretimde de | UC-40 · UC-41 · UC-92 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.3.3` | Dijital kalemin iptali ya da ondan cayma — iki düğme de sunulmaz | uç doğurmaz — yoktur · konvansiyon — API8-01 | konvansiyon |
+| `03 §3.3.4` | Cayma istisnalı kalem — mutlakta düğme yok; koşulluda koşul yazılır, beyan kayda geçer; ret teslim almada | UC-42 · UC-43 · UC-140 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.3.5` | Tamamlanmış hizmetten cayma — düğme sunulmaz | uç doğurmaz — yoktur · konvansiyon — API8-01 | konvansiyon |
+| `03 §3.3.6` | Cayma penceresi geçmiş — düğme kapanır, önceki beyan geçerli | UC-33 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.3.7` | Havale ile ödenmiş siparişin geri ödemesi — IBAN üç olayda girilir; dışında istenir (K-686) | UC-35 · UC-134 | eşlendi |
+| `03 §3.3.8` | Teslimden sonraki caymada geri ödeme mal ulaşmadan yapılmaz — Z-16 ulaşma tarihinden; teslimden önce ve hizmette beyandan; panel kalan süreyi gösterir | UC-92 · UC-131 | eşlendi |
+| `03 §3.3.9` | Gönderi müşteri kaynaklı döner ve iptal — "müşteri kaynaklı" sebebi: ürün bedeli geri ödenir, gidiş kargosu ödenmez; havalede IBAN isteği (K-690) | UC-129 · konvansiyon — API9-03 | eşlendi |
+| `03 §3.3.10` | Kısmi iptal ya da iadeden sonra kupon ve kargo eşiği — yeniden hesaplanmaz; kargo ücreti yalnız iki tetikte (K-789) | uç doğurmaz — sistem işi (`05 §5`) · UC-131 | eşlendi |
+| `03 §3.3.11` | Kargoya verildikten sonra, mal ulaşmadan vazgeçme — iptal kapalı, cayma açık; beyan kalemi kapatır | UC-43 | eşlendi |
+| `03 §3.3.12` | Teslim geç işaretlenir, pencere işaret anında dolmuş — düğme kapalı; pencere yeniden başlamaz | UC-126 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.3.13` | Bir kalemden cayma — kalan fiziksel kalem varsa kargo ücreti girmez | UC-131 | eşlendi |
+| `03 §3.3.14` | İade kargo ücretini önden ödememe — karşı ödemeli gönderim | uç doğurmaz — ürünün dışında | uç doğurmaz |
+| `03 §3.3.15` | Çözülmüş ayıbın tekrarı — müşteri ya da yönetici yeniden açar | UC-46 · UC-145 | eşlendi |
+| `03 §3.3.16` | Teslimden sonra cayma, mal gönderilmez — süre başlamaz; panel beyandan geçen günü gösterir; Z-42'den sonra "mal dönmedi"; IBAN silinir | UC-92 · UC-142 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §3.3.17` | Teslim alma işareti gecikir — süre girilen tarihten, geçmişe dönük girilir | UC-140 · UC-149 | eşlendi |
+| `03 §3.3.18` | "Mal dönmedi"den sonra mal ulaşır — teslim alma kalemi yeniden açar | UC-140 | eşlendi |
+| `03 §3.3.19` | IBAN silindikten sonra mal ulaşır — teslim almayla IBAN isteği, sipariş sayfasında alan; yönetici IBAN girmez; B-14 | UC-140 · UC-35 · UC-92 | eşlendi |
+| `03 §3.3.20` | Yeniden istenen IBAN geç girilir — süre durmaz; alan e-postadan bağımsız; isteğin tarihi işlem izinde | UC-33 · UC-35 · UC-106 | eşlendi |
+| `03 §3.3.21` | Tamamlanmamış hizmetten cayma, hiç ifa yok — beyan kalemi kapatır; Z-16 beyandan; kapanış kuralı (K-717) | UC-43 | eşlendi |
+| `03 §3.3.22` | Kargodayken cayılan gönderi döner — yönetici iptal etmez, teslim alır; geri ödeme caymanın hattından; S7, S9 kapanışı | UC-140 · UC-127 · UC-128 · UC-131 | eşlendi |
+| `03 §3.3.23` | Havale bekleyen siparişte kalem ya da adet iptali — sunulmaz; sipariş bütünüyle iptal | UC-39 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.3.24` | Kart iadesi başarısız — reddedilirse "geri ödeme gerçekleşmedi", sayaç ve uyarı; yeniden deneme ya da havale yolu; ulaşılamazsa "sonuç bekleniyor", istek yeniden gönderilmez, sorgu; yol kapalı; "gerçekleşmedi" işareti (K-940) | UC-92 · UC-86 · UC-135 · UC-136 · UC-137 · uç doğurmaz — sistem işi (`05 §5`) · konvansiyon — API8-01 | eşlendi |
+| `03 §3.3.25` | Başka kanaldan cayma bildirimi — teyit ve kayıt; kalem, adet, ulaşma tarihi — geçmişe dönük olabilir, ileri olamaz; IBAN yalnız iletişim e-postasından; geri alınmaz (K-688); geç ulaşan bildirim onayla (K-709) | UC-130 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.3.26` | Yeniden istenen IBAN hiç girilmez — kalem kapanmaz, "IBAN bekleniyor" listesinde, sayaçta değil | UC-91 · UC-92 · UC-86 | eşlendi |
+| `03 §3.3.27` | IBAN yanlış ya da banka reddeder — işlenmeden önce düzeltilir; "havale gerçekleşmedi"; işlenmişten sonra dönen havalede eksen düzeltilmez | UC-35 · UC-132 | eşlendi |
+| `03 §3.3.28` | Kısmen ifa edilmiş hizmetten cayma — cayılan adetlerin bedelinin tamamı, kesinti yok | UC-43 | eşlendi |
+| `03 §3.3.29` | Fiziksel kalemler teslimden önce kapanır — hizmetin penceresi başlamaz, hak "tamamlandı"ya kadar | UC-33 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.3.30` | İade gönderisi yolda kaybolur — ürün taşıyıcı belgesini almaz; uyuşmazlık ürünün dışında; ödeme kararıyla B-8 | uç doğurmaz — ürünün dışında · UC-131 | eşlendi |
+| `03 §3.3.31` | Kargodan önce başka kanaldan cayma bildirimi — cayma kaydı açılmaz; "müşteriyle anlaşıldı" iptali; Z-16 bildirimin tarihinden (K-690) | UC-129 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.3.32` | Pencereden sonra ya da mutlak istisnada bilgilendirilmedim iddiası — düğme açılmaz; değerlendirme firmanın, kayıt bu yoldan (K-709) | UC-130 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.3.33` | Sahibi olmayanın başka kanaldan cayma bildirimi — kayıttan önce kanala dönerek teyit; IBAN aktarılmaz | UC-130 · uç doğurmaz — ürünün dışında | eşlendi |
+| `03 §3.3.34` | Aynı gün cayma ve teslim — panel teslimin beyandan önce mi sonra mı olduğunu sorar, beyanın saatini gösterir; işlem izinde | UC-126 · UC-92 | eşlendi |
+| `03 §3.3.35` | Koşullu kalemin ambalajı açılmış döner — teslim almada iade reddi; geri alınmaz; B-16 | UC-140 | eşlendi |
+| `03 §3.3.36` | Mal kullanılmış, hasarlı ya da eksik döner, ret edilemez kalem — ret ve kesinti yok; tam geri ödeme | UC-140 · UC-131 | eşlendi |
+| `03 §3.4.1` | Doğrulama bağlantısının Z-1'i dolmuş — kayıt silinir; "bağlantı geçersiz, yeniden kayıt olun"; e-posta yeniden kayda açık | UC-52 · UC-53 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §3.4.2` | Doğrulanmamış hesapla giriş — yapılamaz; doğrulamanın beklendiği ve yeniden istemenin yolu; varlığı ele vermeme `02 §8.1.4` | UC-55 · UC-49 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.4.3` | Kayıtta e-posta zaten kayıtlı — "Bu e-posta zaten kayıtlı"; L-3 daraltır | UC-48 · konvansiyon — API2-08 | eşlendi |
+| `03 §3.4.4` | Sıfırlamada kayıtlı olmayan e-posta — nötr mesaj | UC-57 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.4.5` | Sıfırlama bağlantısı kullanılmış ya da Z-2 dolmuş — geçersiz; yeni talep, L-2 içinde | UC-58 · UC-57 | eşlendi |
+| `03 §3.4.6` | Kısa ya da çok yaygın şifre — reddedilir | UC-48 · UC-59 · UC-65 · konvansiyon — API5-01 | eşlendi |
+| `03 §3.4.7` | Kimlik sağlayıcısı e-postayı doğrulanmamış verir — bağlama ve yeni hesap yok; kayda yönlendirme (K-697) | UC-51 · UC-47 | eşlendi |
+| `03 §3.4.8` | Google ile açılmış şifresiz hesabın "şifremi unuttum"u — sıfırlama "şifre belirle" işlevi görür | UC-57 · UC-59 | eşlendi |
+| `03 §3.4.9` | Yeni e-posta doğrulanmaz — değişiklik geçerli olmaz; bekleyen değişiklik ilk bağlantının ömrüyle düşer (K-659) | UC-63 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §3.4.10` | Yürüyen siparişi olan hesabın silinmesi — engellenmez; sipariş misafir yolundan sürer (K-693) | UC-68 · UC-32 · UC-34 | eşlendi |
+| `03 §3.4.11` | L-1, L-2, L-3 eşiği — o işlem o eksende geçici engellenir, nötr; tanınan tarayıcı engellenmez | UC-55 · UC-57 · UC-48 · konvansiyon — API2-08 | eşlendi |
+| `03 §3.4.12` | Yasal metinler hazır değilken kayıt ya da ilk Google girişi — kayıt ve yeni hesap açacak Google girişi kapalı; mevcut girişler etkilenmez (K-850) | UC-47 · UC-48 · UC-51 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.4.13` | E-posta sahibinin haberi olmadan değiştirilir — eski adrese bildirim; Z-45 içinde geri alma bağlantısı | UC-75 · UC-76 · uç doğurmaz — e-posta (`08`) | eşlendi |
+| `03 §3.4.14` | Art arda doğrulama bağlantısı — L-9 aşılınca geçici engel, nötr; yeni bağlantı öncekini geçersiz kılar, ömrü uzatmaz | UC-49 · UC-67 · konvansiyon — API2-08 | eşlendi |
+| `03 §3.4.15` | Geri alma bağlantısı açıkken hesap silme — yapılmaz; sebep ve bitiş tarihi gösterilir (K-698) | UC-63 · UC-68 · UC-95 · UC-157 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.4.16` | Google'ın e-postası doğrulanmamış bekleyen kayda eşleşir — kayıt silinir, hesap Google ile doğar; kapı kapalıysa giriş yok (K-694, K-696) | UC-51 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.4.17` | Yeniden doğrulamada art arda yanlış şifre — L-1'e sayılır; eşikte engel, işlem yapılmaz (K-711) | UC-61 · konvansiyon — API2-08 | eşlendi |
+| `03 §3.5` metin | Firma tarafının hataları panelin kurallarıdır — çoğu panelin değeri sebebiyle reddettiği ya da işlemi durdurduğu satırlar; müşteri yüzü §2'de | konvansiyon — API2-07 · konvansiyon — API8-01 | konvansiyon |
+| `03 §3.5.1.1` | İndirimli fiyat referans fiyatın altına inmez — indirim kaydedilmez, sebep söylenir | UC-114 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.5.1.2` | İçi dolu kategori silinmek istenir — engellenir, engelleyenler sayısıyla | UC-121 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.5.1.3` | Taşıma üç seviyeyi aşar ya da kendi alt ağacına — yapılmaz | UC-120 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.5.1.4` | Yayın kapısının koşulu eksik — yayına alınamaz, eksik koşul gösterilir | UC-115 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.5.1.5` | Dijital ürünün yayındaki varyantı dosyasız — yayına alınamaz, varyant gösterilir | UC-115 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.5.1.6` | Dosya silme yayındaki varyantı dosyasız bırakır — engellenir | UC-114 · UC-83 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.5.1.7` | Fiyata ikiden fazla ondalık — kabul edilmez | UC-114 · konvansiyon — API2-09 · konvansiyon — API5-01 | eşlendi |
+| `03 §3.5.1.8` | Sabit kuponun asgari tutarı kupon tutarına eşit ya da altında; yüzdesel kupon %100 — girilemez | UC-122 · konvansiyon — API5-01 | eşlendi |
+| `03 §3.5.1.9` | Kargoya verme süresi üst çiti aşar — kabul edilmez | UC-114 · konvansiyon — API5-01 | eşlendi |
+| `03 §3.5.1.10` | İki yönetici aynı kaydı aynı anda düzenler — ikinci kaydeden değişikliği görür, uyarılır | UC-114 · konvansiyon — API2-04 | eşlendi |
+| `03 §3.5.1.11` | Son Yayında varyantın arşivlenmesi ya da taslağa çekilmesi — engellenir, önce ürünü taşıma yönlendirmesi | UC-115 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.5.1.12` | Varyanta 0,00 TL fiyat — kabul edilmez | UC-114 · konvansiyon — API5-01 | eşlendi |
+| `03 §3.5.1.13` | İndirim %100 ya da yuvarlanmış fiyat 0,00 TL — kaydedilmez; yürürken böyle fiyat da girilemez | UC-114 · konvansiyon — API5-01 | eşlendi |
+| `03 §3.5.1.14` | Stok ya da kontenjan ayrılmış adedin altına — değer sebebiyle reddedilir, ayırmayı tutan siparişler gösterilir; mal yoksa firma iptali (K-653) | UC-114 · UC-129 · konvansiyon — API2-04 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.5.1.15` | Kupon kullanım adedi kullanılmış ve ayrılmışın altına — reddedilir; yol bitiş tarihini öne çekmek (K-654) | UC-122 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.5.1.16` | Açık siparişi olan ürünün ya da varyantın silinmesi — engellenmez, onaydan önce açık sipariş sayısı; sipariş donmuş kalemiyle sürer; son Yayında varyant silinemez (K-655, K-674) | UC-116 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.5.2.1` | Havalede farklı tutar — sistem tutar sormaz; yönetici işaretler ya da sistem dışında çözer | UC-123 · uç doğurmaz — ürünün dışında | eşlendi |
+| `03 §3.5.2.2` | Havale iptalden sonra gelir — iptal edilmiş sipariş "ödendi" yapılamaz; para sistem dışında; yeni sipariş varsa ona işaret | UC-123 · konvansiyon — API8-01 · uç doğurmaz — ürünün dışında | eşlendi |
+| `03 §3.5.2.3` | Gönderi geri döner — Teslim edilemedi, yeniden gönderim ya da iptal; cayma beyanlı ya da feshedilmiş kalem teslim almayla; "kargoya verilecek" sayacı | UC-127 · UC-125 · UC-129 · UC-140 · UC-91 | eşlendi |
+| `03 §3.5.2.4` | Kargoya verirken takip numarası girilmez — şirket ve numara ya da araç beyanı olmadan işaret konamaz | UC-124 · konvansiyon — API5-01 | eşlendi |
+| `03 §3.5.2.5` | Yanlış geçiş — "geri al" yok; düzeltme sebepli yeni geçiş; havale işaretinin düzeltilmesinde Z-8 yeniden, B-3 (K-685); B-13 | UC-150 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §3.5.2.6` | Firma karşılayamaz — sebepli firma iptali, sebep e-postayla; Z-17 iptalden; "stokta bulunamadı"da yasal uyarı; havalede IBAN isteği (K-690) | UC-129 · konvansiyon — API9-03 | eşlendi |
+| `03 §3.5.2.7` | İndirme hakkı dolar — iletişim formu, yönetici yeniler, sipariş sayfasından indirme (K-683) | UC-15 · UC-143 · UC-37 | eşlendi |
+| `03 §3.5.2.8` | Dijital dosya ayıplı — düzeltilip yeniden yüklenir, eski alıcılara da iner (K-683) | UC-83 · UC-114 · UC-37 | eşlendi |
+| `03 §3.5.2.9` | İptal edilmiş siparişe kart ödemesi — sistem kendiliğinden geri öder (K-684) | UC-80 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §3.5.2.10` | Teslim hiç işaretlenmez — kendiliğinden geçiş yok; pencere başlamaz, Z-18 işlemez; "teslim işareti bekleyen" sayacı | UC-126 · UC-86 · UC-91 | eşlendi |
+| `03 §3.5.2.11` | Teslim tarihi ya da takip bilgisi yanlış — panelden düzeltme, işlem izinde; pencereler yeniden; B-12 | UC-148 · UC-147 | eşlendi |
+| `03 §3.5.2.12` | Adres yanlış — müşterinin talebiyle Kargoya verildi'ye kadar; kanaldan teyit; B-10 | UC-146 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.5.2.13` | E-posta üç denemede ulaşmaz — "e-posta ulaşmadı"; yeniden gönderim, başarıyla kalkar | UC-92 · UC-153 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §3.5.2.14` | Ödenmemiş siparişte hizmet kalemini "tamamlandı" — sunulmaz (K-671) | UC-139 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.5.2.15` | Eşzamanlı işlem — önce tamamlanan uygulanır; sipariş arada değiştiyse sonraki uygulanmaz, güncel hâl; IBAN düzeltmesi de değişiklik; aynı kayıt iki kez işlenmez | konvansiyon — API9-03 · konvansiyon — API2-04 · UC-131 · UC-35 | eşlendi |
+| `03 §3.5.2.16` | Gecikme feshi ve kargodan dönen gönderi — feshedilen kalem gönderilmez, iptal edilmez, ikinci geri ödeme yok; S4 kapanışı ya da S7 ve S9 kapanışı | UC-41 · UC-130 · UC-140 · UC-127 · UC-128 | eşlendi |
+| `03 §3.5.2.17` | Kesintide dolan havale süresi — iptal ilk iş gününün sonuna ertelenir; yönetici o ana kadar işaretler; sipariş sayfası yeni son günü gösterir (K-666, K-667) | uç doğurmaz — sistem işi (`05 §5`) · UC-123 · UC-33 | eşlendi |
+| `03 §3.5.3.1` | Zorunlu alanı eksik kayıt yayına — alınamaz, eksik alan gösterilir | UC-159 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.5.3.2` | Hakkımızda'nın silinmesi — silinmez, yalnız taslağa alınır | UC-160 · UC-159 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.5.3.3` | Hakkımızda boş ya da yayında değil — ana sayfada marka adı ve logo | UC-01 | eşlendi |
+| `03 §3.5.3.4` | İçeriğe bağlı ürün taslak, arşiv ya da silinmiş — bağda kalır ama görünmez, silinen bağdan kalkar | UC-10 · UC-11 · UC-115 · UC-116 | eşlendi |
+| `03 §3.5.3.5` | Silinmiş ya da taslak içeriğin adresi — "Sayfa bulunamadı" | UC-06 · UC-10 · UC-11 · UC-12 | eşlendi |
+| `03 §3.5.3.6` | İki yönetici aynı içerik kaydını düzenler — ikinci kaydeden uyarılır | UC-158 · konvansiyon — API2-04 | eşlendi |
+| `03 §3.5.3.7` | Bot tuzak alanı doldurur — gönderim sessizce düşer, kayıt oluşmaz | UC-15 · konvansiyon — API2-05 | eşlendi |
+| `03 §3.5.3.8` | Aynı IP'den çok form (L-4) — geçici engel, nötr | UC-15 · konvansiyon — API2-08 | eşlendi |
+| `03 §3.5.3.9` | Yasal metinler hazır değilken form — çalışmaz; kurumsal sayfalar yayında (K-850) | UC-14 · UC-15 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.5.3.10` | Müşteri firmanın e-postasına yanıt verir — firma kimliğindeki adrese düşer, sisteme girmez | uç doğurmaz — ürünün dışında | uç doğurmaz |
+| `03 §3.5.3.11` | Yayındaki kaydın zorunlu alanı boşaltılır — kaydedilmez, önce taslağa alma yönlendirmesi | UC-158 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.5.4.1` | Firma tipinin zorunlu alanları eksik ya da tip değişmiş — satış açılmaz; kurumsal taraf ve açık siparişler etkilenmez (K-664) | UC-164 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.5.4.2` | IBAN boşken havale açılmak istenir — açılamaz | UC-167 · konvansiyon — API2-07 | eşlendi |
+| `03 §3.5.4.3` | Sağlayıcı anahtarları kurulumda tanımsız — kart görünmez; havale açıksa yalnız havale | UC-100 · UC-22 · uç doğurmaz — kurulum | eşlendi |
+| `03 §3.5.4.4` | Hiçbir ödeme yöntemi açık değil — satış açılmaz | UC-167 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.5.4.5` | Havale süresi çit dışında ya da varsayılan kargoya verme süresi çiti aşar — kabul edilmez, sebep söylenir | UC-170 · UC-171 · konvansiyon — API5-01 | eşlendi |
+| `03 §3.5.4.6` | Marka adı yok — site alan adını gösterir | UC-163 · konvansiyon — API5-01 | eşlendi |
+| `03 §3.5.4.7` | Logo yok — marka adı yazıyla | UC-163 · uç doğurmaz — görünüm | eşlendi |
+| `03 §3.5.4.8` | Site simgesi yok — baş harf marka rengi zeminde | UC-163 · uç doğurmaz — görünüm | eşlendi |
+| `03 §3.5.4.9` | Marka rengi yok ya da okunmaz — varsayılan renk; yazı rengi kontrasta göre | UC-163 · uç doğurmaz — görünüm | eşlendi |
+| `03 §3.5.4.10` | Aydınlatma metni, çerez politikası ya da iade adresi eksik — satış açılmaz, panel eksik olanı gösterir; form, kayıt ve ilk Google girişi kapalı (K-850) | UC-173 · UC-174 · UC-172 · UC-86 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.5.4.11` | Son yöneticinin ya da kendi hesabının kaldırılması — engellenir, sebep söylenir | UC-177 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.5.4.12` | Davet bağlantısı geçersizleşmiş — hesap açılmaz, süresi dolmuş davetin mesajı; yeni davet (K-1085) | UC-85 · UC-113 · UC-175 | eşlendi |
+| `03 §3.5.4.13` | SSS ya da sayfa metni ayarla çelişir — tespit edilmez; bağlayıcı olan üretilen form ve sözleşme; panelde hatırlatma satırı | uç doğurmaz — görünüm · UC-99 · UC-101 | eşlendi |
+| `03 §3.5.4.14` | Bekleyen havale siparişleri varken IBAN değişir — yeni siparişlere işler, onay bekleyen sayısını söyler; gerekirse firma iptali; F-5 | UC-167 · UC-129 · uç doğurmaz — e-posta (`08`) | eşlendi |
+| `03 §3.5.4.15` | Bekleyen havale siparişleri varken havale kapatılır ya da kapı düşer — açık siparişler etkilenmez; panel sayıyı söyler; isteyen firma iptali | UC-167 · UC-129 · konvansiyon — API8-01 | eşlendi |
+| `03 §3.5.4.16` | İade malı beklenirken iade adresi değişir — beyanın adresi değişmez, yeni beyanlar günceli alır; panel bekleyen sayıyı söyler (K-665) | UC-172 · UC-33 | eşlendi |
+| `03 §4` metin | Zaman aşımı yönetimi — bütün süreler (Z-1…Z-47) ve kendiliğinden işleyen anlar burada akışa bağlanır; değer değil kimlik yazılır; sayım kuralları `02 §4.1`'de | uç doğurmaz — sistem işi (`05 §5`) · konvansiyon — API2-09 | konvansiyon |
+| `03 §4` m1 | Uyarı — tek önceden uyarı havale hatırlatması (B-3, Z-9); panelin kalan süresi ve son ödeme günü göstergedir | uç doğurmaz — e-posta (`08`) · UC-33 · UC-92 | eşlendi |
+| `03 §4` m2 | Dondurma yok — süreler kesintide de işler; tek istisna havalenin kendiliğinden iptali (K-666, K-667); yasal süreler dondurulmaz | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §4` m3 | Kendiliğinden işlem — "Sona erişte" sistemin işini yazar; "kendiliğinden işlem yok" yükümlülüktür, sistem izler ve gösterir | uç doğurmaz — sistem işi (`05 §5`) · konvansiyon — API8-01 | konvansiyon |
+| `03 §4.1.1` | Z-1 doğrulama bağlantısının ömrü — yeniden istenen bağlantı ömrü uzatmaz; dolunca kayıt silinir, bekleyen değişiklik düşer (K-659) | UC-52 · UC-53 · UC-49 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §4.1.2` | Z-2 sıfırlama bağlantısının ömrü — tek kullanımlık; yeni talep L-2 içinde | UC-58 · UC-59 · UC-112 · UC-57 | eşlendi |
+| `03 §4.1.3` | Z-3 davet bağlantısının ömrü — dolunca ya da geri çekme, yeni davet, gönderenin kaldırılması, adres çakışmasıyla geçersiz (K-1085) | UC-85 · UC-113 · UC-175 · UC-176 | eşlendi |
+| `03 §4.1.4` | Z-4 kısa oturum — son işlemden; dolunca oturum kapanır | konvansiyon — API2-03 · UC-55 | eşlendi |
+| `03 §4.1.5` | Z-5 uzun oturum, "beni hatırla" — son işlemden | konvansiyon — API2-03 · UC-55 · UC-110 | eşlendi |
+| `03 §4.1.6` | Z-6 sepetin ömrü — dolmaz | UC-19 | eşlendi |
+| `03 §4.1.7` | Z-7 kart ödeme süresi — dolunca son sorgu; olumluysa Ö1, değilse iptal, yanıtsızsa "ödeme sonucu alınamadı" ve sorgu yinelenir | uç doğurmaz — sistem işi (`05 §5`) · UC-92 | eşlendi |
+| `03 §4.1.8` | Z-8 havale ödeme süresi — onaydan ya da düzeltmeden; dolunca iptal; kesintide ertelenir | uç doğurmaz — sistem işi (`05 §5`) · UC-33 | eşlendi |
+| `03 §4.1.9` | Z-9 havale hatırlatması — son iş gününde B-3 bir kez, düzeltmeyle bir kez daha; kesintide kaçırılırsa dönüşte (K-685) | uç doğurmaz — sistem işi (`05 §5`) · uç doğurmaz — e-posta (`08`) | uç doğurmaz |
+| `03 §4.1.10` | Z-10 kargoya verme süresi — kendiliğinden işlem yok; "kargoya verilecek" sayacı; iptal düğmesi ve kanuni faiz uyarısı | UC-91 · UC-86 · UC-40 · UC-92 | eşlendi |
+| `03 §4.1.11` | Z-11 yasal teslim sınırı — gecikme feshi düğmesi açılır, kargodayken de | UC-41 · konvansiyon — API8-01 | eşlendi |
+| `03 §4.1.12` | Z-12 teslim tarihi — süre değil; girilmezse Z-13 ve Z-18 başlamaz | UC-126 | eşlendi |
+| `03 §4.1.13` | Z-39 ifa süresi — kendiliğinden işlem yok; "tamamlanmayı bekleyen hizmet" sayacı; iptalde kanuni faiz uyarısı | UC-86 · UC-139 · UC-40 · UC-92 | eşlendi |
+| `03 §4.1.14` | Z-13 fiziksel kalemin cayma penceresi — teslim tarihinden; dolunca düğme kapanır | UC-42 · UC-43 · konvansiyon — API8-01 | eşlendi |
+| `03 §4.1.15` | Z-14 hizmet kaleminin cayma penceresi — sipariş ya da teslim tarihinden; hak düşer ya da "tamamlandı" ile | UC-42 · UC-43 · konvansiyon — API8-01 | eşlendi |
+| `03 §4.1.16` | Z-15 dijital kalemin cayma hakkı — üçüncü onay kutusuyla düşer | UC-27 | eşlendi |
+| `03 §4.1.17` | Z-16 caymanın geri ödemesi — beyandan ya da ulaşma tarihinden; panel kalan süreyi gösterir; IBAN beklenirken de işler | UC-92 · UC-131 | eşlendi |
+| `03 §4.1.18` | Z-42 iade malını gönderme süresi — dolunca "mal dönmedi" kapanışı açılır, Z-38 başlar | UC-142 · UC-140 · konvansiyon — API8-01 | eşlendi |
+| `03 §4.1.19` | Z-17 iptalin geri ödemesi — kartta iptal anında sistemin iadesi, havalede yükümlülük; panel kalan süreyi gösterir | UC-92 · UC-131 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §4.1.20` | Z-47 ifanın imkânsızlaştığının bildirimi — sayaç yok; firma iptali bildirimi sebebiyle (B-7) | UC-129 | eşlendi |
+| `03 §4.1.21` | Z-18 ayıp talebinin iki yılı — sipariş sayfasındaki kanal kapanır; hak iletişim formundan | UC-44 · UC-45 · UC-46 · UC-15 · konvansiyon — API8-01 | eşlendi |
+| `03 §4.1.22` | Z-19 indirme hakkı — süre yok; P-8 dolunca kapanır; yönetici yeniler | UC-37 · UC-143 | eşlendi |
+| `03 §4.1.23` | Z-20 indirimin tarih aralığı — sistem bitirir; onay anında bitmesi özet farkı | UC-114 · UC-27 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §4.1.24` | Z-21 referans fiyatın geriye bakış penceresi — hesap penceresi, işlem başlatmaz | UC-114 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §4.1.25` | Z-22 kuponun tarih aralığı — yeni siparişte kabul edilmez, ayrılmış haklar kalır | UC-23 · UC-122 | eşlendi |
+| `03 §4.1.26` | Z-23 duyurunun tarih aralığı — dışında görünmez | UC-159 · konvansiyon — API5-01 | eşlendi |
+| `03 §4.1.27` | Z-24 ileri tarihli yayın — yoktur | uç doğurmaz — yoktur | uç doğurmaz |
+| `03 §4.1.28` | Z-25 KVKK başvurusuna cevap — sayaç yok; yükümlülük firmanın | UC-94 · uç doğurmaz — ürünün dışında | eşlendi |
+| `03 §4.1.29` | Z-26 e-postanın yeniden denenmesi — üç başarısızlıkta siparişin ya da davetin satırına işaret, firma bildiriminde ana sayfa uyarısı; hesap e-postasında işaret yok, bağlantı yeniden istenir | uç doğurmaz — sistem işi (`05 §5`) · UC-92 · UC-103 · UC-86 · UC-153 | eşlendi |
+| `03 §4.1.30` | Z-27 deneme limitlerinin penceresi — kayan pencere; engel kendiliğinden açılır | konvansiyon — API2-08 | konvansiyon |
+| `03 §4.1.31` | Z-28 sipariş, ödeme ve fatura verisi — yıl sonundan; periyodik imha kişisel veriyi imha eder, hesap bağını keser | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §4.1.32` | Z-41 ödemesi alınmamış siparişin kişisel verisi — imha, kayıt kişisel verisiz kalır (K-951) | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §4.1.33` | Z-29 ayıp talebi kaydı — on yıl dolunca silinir | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §4.1.34` | Z-30 işlem izi — yıl sonundan; süre boyunca değiştirilemez ve silinemez | UC-106 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §4.1.35` | Z-31 hesap verisi — hesap silinince hemen silinir | UC-68 · UC-157 | eşlendi |
+| `03 §4.1.36` | Z-32 sepet — hesapla birlikte silinir | UC-68 · UC-157 | eşlendi |
+| `03 §4.1.37` | Z-33 iletişim talebi — son kapatılıştan; "Sipariş hakkında" tipinde on yıl (K-707, K-951) | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §4.1.38` | Z-34 hesap, yönetim ve firma bildirimlerinin gönderim kaydı — silinir | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §4.1.39` | Z-43 B-1…B-16'nın gönderim kaydı — ödenmiş siparişte on yıl; ödenmemişte kişisel veri üç yıl, kayıt on yıl (K-951) | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §4.1.40` | Z-35 müşterinin geri ödeme IBAN'ı — son geri ödemeyle, kapatmayla, Z-38'le, retle, düzeltmeyle ya da "havale gerçekleşmedi" ile silinir (K-708, K-1110, K-1127, K-1056, K-1131, K-1097); mal sonra ulaşırsa yeniden istenir | UC-131 · UC-142 · UC-140 · UC-150 · UC-132 · UC-35 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §4.1.41` | Z-36 periyodik imha — kendiliğinden çalışan iş; panelde düğme yok | uç doğurmaz — sistem işi (`05 §5`) · uç doğurmaz — yoktur | uç doğurmaz |
+| `03 §4.1.42` | Z-40 giriş kaydı ve sistem kayıtları — periyodik imhayla, dosyalar dahil (K-687, K-916) | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §4.1.43` | Z-44 imha kaydı — silinir; kişisel veri içermez | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §4.1.44` | Z-45 geri alma bağlantısının ömrü — dolunca yeniden değiştirme engeli kalkar, eski adres silinir (K-1065) | UC-75 · UC-76 · UC-187 · UC-66 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §4.1.45` | Z-46 tanınan tarayıcı işareti — son başarılı girişten; dolunca e-posta ekseninde sayılır; sıfırlama, şifre değiştirme, geri alma ve silme düşürür (K-695) | UC-55 · UC-110 · UC-59 · UC-65 · UC-76 · UC-68 · konvansiyon — API2-08 | eşlendi |
+| `03 §4.1.46` | Z-37 veri ihlalinde Kurul'a bildirim — sayaç yok; yükümlülük firmanın | uç doğurmaz — ürünün dışında | uç doğurmaz |
+| `03 §4.1.47` | Z-38 malı dönmeyen caymada IBAN'ın kendiliğinden silinmesi — Z-42'nin dolduğu gün; kalem kapanmaz; başka geri ödeme bekliyorsa kalır | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §4.2` metin | Kendiliğinden işleyen anlar — süresi olmayan ama zamanı kural olan anlar ve kesintideki davranış | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §4.2.1` | Sipariş onayı — numara, donma, ayırma, aynı sepetin önceki siparişinin iptali; B-1, B-2, F-1 | UC-27 | eşlendi |
+| `03 §4.2.2` | Ödeme onayı — kesin düşüm, kupon, sepetten çıkma, Z-10 ve Z-39, dijital teslim; B-4 | UC-80 · UC-123 | eşlendi |
+| `03 §4.2.3` | Kendiliğinden iptal — Z-7, Z-8, başarısız kart, aynı sepetten yeni sipariş; kartta son sorgu; B-7 | uç doğurmaz — sistem işi (`05 §5`) · UC-80 · UC-27 | eşlendi |
+| `03 §4.2.4` | İptal, çıkarma ve gecikme feshi — adet stoğa ve kontenjana anında döner; kupon yalnız tamamında; kapanış kuralı (K-672, K-791, K-1106) | UC-40 · UC-41 · UC-129 · UC-138 · UC-130 | eşlendi |
+| `03 §4.2.5` | İade — stok kendiliğinden dönmez, teslim alma ve ekleme; hizmet kontenjanı caymada döner (K-791) | UC-140 · UC-141 · UC-43 | eşlendi |
+| `03 §4.2.6` | Kısmi iptal ve iade — kupon ve kargo yeniden hesaplanmaz; kargo ücreti iki tetikte (K-789) | uç doğurmaz — sistem işi (`05 §5`) · UC-131 | eşlendi |
+| `03 §4.2.7` | Kart hattında kendiliğinden geri ödeme — onay penceresi yok; gerçekleşince Ö3–Ö5; başarısızlıkta işaret, yeniden denenmez; sonucu bilinmezse sorgu (K-940); B-8, F-4 | uç doğurmaz — sistem işi (`05 §5`) · UC-92 | eşlendi |
+| `03 §4.2.8` | Malı dönmeyen caymada IBAN'ın silinmesi — kapatmayla ya da Z-38 ile; silme kalemi kapatmaz (K-1110, K-1127) | UC-142 · uç doğurmaz — sistem işi (`05 §5`) | eşlendi |
+| `03 §4.2.9` | Periyodik imha (Z-36) — imha kaydı (Z-44); hesap silme, yönetici kaldırma, bekleyen kayıt, IBAN ve bekleyen e-posta değişikliğinin silinmesi de kayda (K-708, K-984, K-1064) | uç doğurmaz — sistem işi (`05 §5`) | uç doğurmaz |
+| `03 §4.2.10` | E-postanın yeniden denenmesi (Z-26) — artan aralıkla üç kez; art arda başarısızlıkta ana sayfada kanal uyarısı | uç doğurmaz — sistem işi (`05 §5`) · UC-86 | eşlendi |
+| `03 §4.2.11` | Sitenin kesintisi — süreler işler; kaçırılan işler dönüşte sırayla çalışır; son sorgu kesintideki ödemeyi bulur; yasal süreler dondurulmaz, başka kanal açık | uç doğurmaz — sistem işi (`05 §5`) · UC-130 | eşlendi |
+| `03 §4.2.12` | Havale süresinin kesintide dolması — iptal ilk iş gününün sonuna ertelenir; yönetici işaretler; sipariş sayfası yeni son günü gösterir; tespit `05`'in (K-667) | uç doğurmaz — sistem işi (`05 §5`) · UC-123 · UC-33 | eşlendi |
+
 #### 1.1.13 GAP adayları (`AA-n`)
 
 Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarasıyla durur (K-1148); aday, dayandığı bölüm tam okunmadan GAP diye yazılmaz ve cevabı kaynakta yazılı çıkan aday boşluk değil hizalama hatasıdır (checklist §2; K-739). Adayın kararı matrisin 2. oturumunundur — karar kaydının §3'üne GAP-14'ten ve §1.3'e (K-1150); bir W konusuna bağlanan aday o konuda karara bağlanır. **Kapı:** matrisin 2. oturumu.
@@ -2223,4 +2777,4 @@ Eşlenmeyen ya da cevabı kaynakta görünmeyen kaynak satırı burada numarası
 
 ---
 
-*Shopfolio — API Design v0.3*
+*Shopfolio — API Design v0.4*

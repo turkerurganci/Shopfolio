@@ -1,0 +1,296 @@
+# Aşama 5 — Öğrenim Terfisi
+
+**Tarih:** 2026-10-18 | **Aşama:** 5 — Veri modeli | **Kapanış adımı:** K-437'nin 5. adımı (`00 §K`; `checklists/document-stage.md` §7 madde 5)
+**Girdi:** karar kaydı v0.142 — §14.1'in yirmi altı öğrenim adayı ve bekletilen Ö-23; Aşama 5'in süreç kararları (K-992…K-1140 içinden); [çakışma taraması](PHASE5_CONFLICT_SCAN.md) §7, [checkpoint](CP05_PHASE5_CHECKPOINT.md) §6; kalite döngüsünün raporları (`AUDIT_REPORTS/06_AUDIT.md`, `06_GUARANTEE_LENS.md`, `06_DEEP_REVIEW.md`, `CROSS_REVIEW_REPORTS/06_CROSS_REVIEW.md`…`_R5.md`); `Docs/PLAYBOOK_FEEDBACK.md` (PF-86…PF-90); yöneticinin beş gözlemi; proje hafızası (`.claude/memory/`) ve kullanıcı hafızasının on beş notu — `origin/main` @ `fbc5ee2`
+**Çıktı:** karar kaydı v0.143 · `.claude/checklists/document-stage.md`, `.claude/INSTRUCTIONS.md`, `.claude/skills/audit/`, `deep-review/`, `cross-review/`, `.claude/memory/MEMORY.md`, `MEMORY_ARCHIVE.md` · `Docs/PLAYBOOK_FEEDBACK.md` 104 satır · karar K-1141 — Veri Modeli ve öteki dokümanlar, `GUARDRAILS.md`, `CONTEXT.md`, `checkpoint` ve `handoff` skill'leri değişmedi
+
+> **Ne işe yarar:** `00 §K` gereği aşama, öğrenimi yazılmadan kapanmaz. Bu rapor Aşama 5 boyunca kayda, raporlara ve hafızaya düşen her öğrenim adayının sonucunu yazar: terfi etti mi, hangi katmana ve dosyaya, metni ne. L3–L4 hedefli terfiler bu raporun PR'ında uygulandı. `00`'a ve checklist'in skill'e dönüşmesine dair iki öneri GUARDRAILS §2 ve §3 gereği uygulanmadı; tam metinleriyle ve sade diliyle §4'te proje sahibinin onayını bekliyor.
+
+---
+
+## 1. Sonuç
+
+| Sonuç | Sayı | Adaylar |
+|---|---|---|
+| **Terfi etti — bu PR'da uygulandı** (L3, L4) | 36 | Ö-80, Ö-82…Ö-105 (§14.1'in adayları) · S-4, S-7, S-11, S-12, S-14 (süreç kararları) · Ö-106…Ö-109 (yöneticinin gözlemleri) · H-13, H-14 |
+| **Önceden terfi etmişti ya da kuralı bu aşamada işledi** | 14 | S-1, S-5, S-8, S-10, S-13 · Ö-110, Ö-111 · H-1, H-3, H-4, H-9, H-10 (biçimi), H-11 (biçimi), H-12 |
+| **Dokümanda yaşar** | 5 | S-2, S-3, S-6, S-9 · Ö-81 (şablon kusuru — playbook'ta, PF-88) |
+| **Hafızada kalır** — kişisel tercih, referans ya da proje kaydı | 6 | H-2, H-5, H-6, H-7, H-8, H-15 |
+| **Proje sahibinin onayını bekliyor** | 1 aday · 2 öneri | Ö-23 (checklist'in skill'e dönüşmesi — §3, §4 Öneri 2) · `00 §N.1`'e Aşama 5'in yedi deseni (§4 Öneri 1) |
+
+Toplam altmış iki aday: karar kaydının §14.1'inden yirmi altı, Ö-23, süreç kararlarından on dört satır (yirmi altı karar), yöneticinin gözlemlerinden ve bu adımın okumasından altı ders ve kullanıcı hafızasından on beş not. Yöneticinin beş gözleminin biri (ikinci modelin kullanım sınırı) aday 17 ile birleşti, ikisi (model dağılımı, uzun adımda ara durum) kullanıcı hafızasının iki notuyla aynı terfidir (§2.3, §2.4). `CLAUDE.md` ve `SETUP.md` için ayrı öneri yok — oturum başlangıcı ve katman kuralı aşamanın hiçbir öğrenimiyle çelişmiyor; ikinci modelin kullanım sınırı SETUP'ın satırlarına değil skill'in koşum kuralına aittir (SETUP'ın ikinci AI satırları Aşama 4'te proje sahibinin kararıyla olduğu gibi kaldı — K-991). Checklist skill'e dönüşürse oturum başlangıcının 2. maddesine bir sözcük eklenmesi Öneri 2'nin parçasıdır. Aşama 5'in öteki kararları (K-1006…K-1031'in workshop ve GAP kararları, K-1034…K-1124 ve K-1127…K-1140'ın yazım, kalite döngüsü ve kapanış kararları) veri modelinin, ürün kuralının ya da kalan riskin kararıdır, dokümanlarda yaşar ve aday değildir.
+
+**Aşamanın asıl öğrenimi.** Veri Modeli, izlenebilirlik matrisi zorunlu ikinci aşamanın çıktısıydı ve matris bu kez kendi başına bir yarım doküman kadar büyüdü (527 KB, bin beş yüzü aşan kaynak birimi, altı oturum). Matris çıktıdan önce kuruldu — `00 §C.3`'ün istediği gibi —, ama çıktı yazıldıktan sonra ona karşı okunmadı: hücrelerin "Entity" ve "Alan" sütunları workshop planını taşıyordu, ayrıntı sonra geldi. Kalite döngüsü matrisi kapsama betikleriyle denetledi; cross-review'ın on iki kabulünün yedisi ve checkpoint'in elli yedi bulgu satırı matris hücrelerindendi (157 satır düzeltildi). Bu adımda matrisin çıktıya karşı okunması audit'in iç tutarlılık merceğine ve checklist §2'ye girdi. Aşamanın ikinci dersi yazımdandır: kararın ya da konu planının **özeti** on bir kez kaynaktan geniş ya da dar yazılmıştı ve yazım her birini alan yazılırken buldu — yazım kaydın yeterlilik testidir, özet de sınanır. Üçüncüsü yönetici düzeninin kendisidir: bütün alt ajanların en güçlü modelde koşması maliyeti, arka plana atılan iki ajan sahipsiz işi, proje sahibinin tekrarlanan "neredesin" soruları görünürlüğü kural yaptı (`INSTRUCTIONS §9`, "Alt ajanların koşumu"). Öteki dersler önceki aşamaların sürdürülmesidir: geri beslemenin terim taraması bu aşamada da yeni yüzlerden kaçtı, park satırı taraması aşamanın kendi blokları dışına uzanmadı, ikinci modelin sınırı bu kez aracın girdi uzunluğunda ve hesabın kullanımında çıktı. Aşama 4'ün terfi ettirdiği kurallar bu aşamada da iş yaptı (Ö-110). Checklist bu kapanışta yeni adım ya da madde almadı; skill'e dönüşmenin iki koşulu ikinci kez birlikte karşılandı (§3).
+
+---
+
+## 2. Adaylar ve sonuçları
+
+**Kimlikler:** Ö-80…Ö-105 karar kaydı §14.1'in yirmi altı adayıdır (sırasıyla aday 1…26; Ö numaralandırması Aşama 1–4'ten sürer, Ö-23 Aşama 1'den gelir). S-1…S-14 Aşama 5'in süreç kararlarının satırlarıdır (bu rapora özgü). Ö-106…Ö-111 bu adımda bulunan derslerdir — kaynakları yöneticinin gözlemleri ve raporlardır. H-1…H-15 kullanıcı hafızasının notlarıdır — Aşama 1–4 raporlarının numaralandırmasıyla aynı; H-13…H-15 Aşama 4'ten sonra açılan notlardır.
+
+### 2.1 Karar kaydındaki adaylar (§14.1)
+
+| # | §14.1 | Aday | Sınıf (`00 §K`) | Sonuç | Hedef katman ve dosya | Uygulanan metin (özet) | Playbook |
+|---|---|---|---|---|---|---|---|
+| Ö-80 | 1 | Matrisli aşamada etki sütunlarındaki devir yükü bir girdi dokümanı kadar (343 satır, 671 KB); kuralı üst dokümana yazılmış Aşama 1 workshop satırları ayrı satır olarak girmeyebilir — checklist bunu söylemiyordu (K-997) | İhlali önleyen kural | **Terfi etti** | L4 checklist §2 (envanter maddesi) | Kuralı üst dokümana yazılmış devir satırları dokümanın kural ailesiyle karşılanır; betik K numaralarının dokümanlarda geçtiğini doğrular, geçmeyen satır tek tek girer | PF-93 |
+| Ö-81 | 2 | Veri Modeli şablonunun silme kategorileri (kalıcı · yumuşak · asla) bu projeye uymuyor | Şablon kusuru | **Dokümanda yaşar** — workshop uyarladı (K-1010, `06 §2`); şablon playbook'ta | — | — | PF-88 (güncellendi — `Uygulandı`, çevre karar) |
+| Ö-82 | 3 | Açılışın betik sayımı komutsuz kaydedildi — sözlük 97 yazıldı, 1a'nın betiği 105 saydı (K-997 → K-1000) | İhlali önleyen kural | **Terfi etti** | L4 checklist §1 (girdi maddesi) | Açılışın konu planına ya da karara giren her sayımı onu üreten komutla birlikte planın girdiler notunda durur | PF-95 |
+| Ö-83 | 4 | Genişletilen kapsama betiği önceki oturumun kümesini sessizce değiştirdi — 1a 670 → 669 (K-1001) | İhlali önleyen kural | **Terfi etti** | L4 `skills/audit` "Koşum biçimi" 4. madde | Genişletilen betik önceki kapsamın kümesini eski çıktıyla `cmp` ile karşılaştırır — iki yönlü sınama yeni kapsamı sınar, eskinin değişmediğini sınamaz. **Elenen — checklist §2'ye yazmak:** betiğin sınanmasının evi audit'in 4. maddesidir; checklist §2 kapsamanın betikle denetlenmesini zaten ister | PF-84 (güncellendi) |
+| Ö-84 | 5 | Satır düzeyi birimin açılış sayımı tek kalıba dayandı; 1a, 1b, 1c birimi üç kez genişletti (K-1000…K-1002) | İhlali önleyen kural | **Terfi etti** | L4 checklist §2 (envanter maddesi) | Birim her kaynak ailesinin kalıp dışı içeriğini (kalın numaralı paragraf, kimliksiz tablo, liste maddesi, metin) de sayar | PF-93 |
+| Ö-85 | 6 | Devir dizini kapanışın anlık görüntüsüdür — Aşama 4'ün kapanışı iki gövde cümlesi ekledi, açılış dizinden saydığı için görmedi (K-1003) | İhlali önleyen kural | **Terfi etti** | L4 checklist §4 ("Devir taraması") | Gövde cümleleri bugünkü metinden betikle çıkarılır, dizin karşılaştırma için okunur. **Elenen — §7'nin 6. adımında dizini yeniden saymak:** kapanıştan sonraki karar arşiv işaretinden de sonra gelebilir; okuyan tarafta bugünkü metne bakmak her durumda tutar | PF-75 (güncellendi) |
+| Ö-86 | 7 | Önceki kararın öncül cümlesi sonraki kararlardan önce yazılmış olabilir — K-585'in öncülü K-601'den önceydi (GAP-13) | İhlali önleyen kural | **Terfi etti** | L4 checklist §3 (edge case maddesi) | Öneri ya da GAP adayı önceki bir kararın öncülüne dayanıyorsa aynı kurala sonradan dokunan kararlar okunur | PF-97 |
+| Ö-87 | 8 | Kararın özeti kararın sözünden geniş ya da dar yazılabilir — on bir vaka: konu planının ve değer kümesinin K-675 özeti; K-1024 (7), K-1015 (1), K-1035 (1), K-1015'in envanteri, `06 §2.3.3`, K-1030 (1), K-1024 (1) ve (6), K-710 (2), K-1010 (1), `06 §2.3.2`, K-1030 (1)'in dosya bağı | İhlali önleyen kural (tekrarlanan desen) | **Terfi etti** · desen **öneri** (§4 Öneri 1, desen 2) | L4 checklist §4 ("Ayrı oturum, kayıt girdisi") | Kararın özeti karar değildir: konu planının, değer kümesinin ya da bir kararın envanterinin özeti alan yazılırken kaynağın ve sonraki kararların istisnalarına karşı okunur, ayrışan yer karar satırıyla hizalanır. **Elenen — §1'de özet hücresine "öneri" işareti:** özet planın her yerinde doğar; sınamanın yeri alanın yazıldığı andır ve bu aşamada on bir vakanın hepsi orada bulundu | PF-96 |
+| Ö-88 | 9 | Geri besleme matrisin kümesini değiştirir — GAP kararları sözlüğe on dört terim ve bir devir ekledi (670 → 684, 172 → 173), iki workshop 690'a çıkardı | İhlali önleyen kural | **Terfi etti** | L4 checklist §2 (GAP kararı maddesi) | Geri besleme PR'ı kapsama betiklerini yeniden koşar, farkın yalnız kararın birimleri olduğunu `cmp` ile gösterir; workshop ve yazım geri beslemelerinde de | PF-93 |
+| Ö-89 | 10 | Kapalı liste değeri ya da ürün kuralı üreten W konusunun hedefi yalnız çıktı dokümanını sayıyordu — kural üst dokümanda yaşar | İhlali önleyen kural | **Terfi etti** | L4 checklist §3 ("Blok planının Hedef doküman sütunu") | Plan yazılırken değer ya da kural üreten konunun hedefi kuralın evini de sayar, geri besleme beklenen konu işaretlenir | PF-98 |
+| Ö-90 | 11 | Sözlüğün kapalı liste kuralı matrisin denetiminde değildi — üç liste VM8-01'in taramasında bulundu (K-1031) | İhlali önleyen kural | **Terfi etti** (Ö-84 ile aynı madde) | L4 checklist §2 (envanter maddesi) | Kaynağın kendi tamlık kuralı envantere girer (ör. sözlük gövdedeki kapalı listeleri saymalı — ifadeler betikle toplanıp karşılaştırılır) | PF-93 |
+| Ö-91 | 12 | Yazım bir üst doküman cümlesinin okunuşunu kaydedip geri beslemedi; okuma bir güvenceye dokunuyordu (K-1050 (5) → K-1053, K-1054) | İhlali önleyen kural | **Terfi etti** | L4 checklist §3 (K-652 geri besleme maddesi) | Üst dokümanın iki okumaya açık bir cümlesinin okunuşunu kaydeden karar da üst dokümana dokunur; cümle aynı PR'da netleştirilir | PF-78 (güncellendi) |
+| Ö-92 | 13 | Workshop kararı önceki aşamanın elediği seçeneği yeniden seçti (K-1025 (3) ↔ K-900; K-1061) | İhlali önleyen kural | **Terfi etti** | L4 checklist §3 (tamlık taraması maddesi) | Öneri listesi Kaynak satırındaki kararların "Elenen" seçeneklerine karşı betikle okunur; önceki aşamanın elediğini seçen madde önceki karardan ayrılan öneridir, ⚠ ile işaretlenir | PF-97 |
+| Ö-93 | 14 | Betiği heredoc'la yazmak ters bölüyü bozar — `\b` kontrol karakterine dönüştü (audit, iki betik); kural yalnız yöneticinin ortak talimatında | İhlali önleyen kural | **Terfi etti** | L3 `INSTRUCTIONS.md` §7 ("Metni değiştiren araç…" — üçüncü tarama) | Betik ve düzenleme metni dosya yazma aracıyla yazılır, heredoc'la değil; değişen dosyalarda ve betiğin kendisinde kontrol karakteri sıfır. **Elenen — `audit` skill'i:** tarama yalnız audit'in değil her PR'ın işidir; iki taramanın evi §7'dir | PF-92 |
+| Ö-94 | 15 | Audit'ten sonra koşan deep review'da audit'in düzeltmelerine odaklı mercek verimli — beş bulgu, üç uygulandı | Tekrarlanacak yöntem | **Terfi etti** | L4 `skills/deep-review` madde 7 (koşum biçimi) | Audit kapsam ve tutarlılık katmanlarını geniş koştuysa deep review onları bir mercekte audit'in kararlarının doğurduğu tutarsızlıklara odaklar | PF-101 |
+| Ö-95 | 16 | Tek parça çağrı aracın girdi sınırını aştı (1 048 576 karakter); (a)'nın yerine en büyük iki birleşim koştu (K-1126) | İhlali önleyen kural | **Terfi etti** | L4 `skills/cross-review` Faz 1 madde 9 | Tek parça girdi aracın sınırını aşarsa (a)'nın yerine sınıra sığan en büyük birleşimler — her parça çifti en az bir çağrıda —; seçim karar kaydına; kısaltma girdi kuralını bozar | PF-61 (güncellendi) |
+| Ö-96 | 17 | İkinci modelin kullanım sınırı turun ortasında doldu; tur aynı girdilerle yeniden koşuldu. **Yöneticinin 3. gözlemi bu adayla birleşti** — tur yaklaşık üç saat bekledi, iki modele bölünmesin diye yedeğe geçilmedi | İhlali önleyen kural | **Terfi etti** | L4 `skills/cross-review` Faz 1 madde 1 | Çıktısız dönen çağrılar sınır açılınca aynı girdi dosyalarıyla yeniden koşulur; bir turun bütün çağrıları aynı modelle — yedeğe geçiş tur sınırında; bekleme rapor başlığına; büyük dokümanda turun token yükü önceden hesaba katılır. **Elenen — sınır dolunca yedeğe geçip turu sürdürmek:** turun sonucu iki modelin birleşimi olur ve TEMİZ hükmü ikisine yayılır. **Elenen — SETUP'a not:** koşum kuralının evi skill'dir; SETUP'ın satırları proje sahibinin kararıyla değişmedi (K-991) | PF-102 |
+| Ö-97 | 18 | Matrisli dokümanın cross-review'ında kabullerin çoğu matrisin özet hücrelerinden geldi (on iki kabulün yedisi) | İhlali önleyen kural | **Terfi etti** (Ö-103 ile) | L4 `skills/audit` "Koşum biçimi" 1. madde (iç tutarlılık merceği) · checklist §2 (işaretçi) | Ö-103'te | PF-94 |
+| Ö-98 | 19 | Geri beslemenin taraması bir adımda kayda geçmedi; fiil biçimi kaçtı ("yetmeyen" → "yetmezse"); etki yansıtma dört kümede kırk yer buldu (K-1130, K-1131) | İhlali önleyen kural | **Terfi etti** | L4 checklist §3 (geri besleme maddesi, betik 1) · L4 `skills/cross-review` Faz 5 madde 2 | Terim listesi fiilin çekimli biçimlerini taşır; her geri besleme adımı tarama paragrafını geri besleme tablosunun yanına yazar; etki yansıtma kalite döngüsünün geri beslemelerini kümeler hâlinde yeniden tarar | PF-78 (güncellendi) |
+| Ö-99 | 20 | Kalite döngüsünün kararları önceki aşamaların park satırlarını güncellemedi — yirmi beş hizasızlık; betik yalnız Aşama 5 bloklarını taradı | İhlali önleyen kural | **Terfi etti** | L4 checklist §3 (geri işaret maddesi — "kaynak kararın park satırları") · `skills/cross-review` Faz 5 madde 2 | Park satırları kaynak K numarasıyla bütün aşamaların bloklarında aranır, kalite döngüsünün kararları dahil | PF-80 (güncellendi) |
+| Ö-100 | 21 | Kararın kolu başka dokümana işi karar hücresinde bırakıyor, etki sütununa yazmıyor (K-1124 (3), K-1031) | İhlali önleyen kural | **Terfi etti** | L4 checklist §3 (park maddesi) | Betik karar hücresinde sonraki dokümanı anan kolları da çıkarır ve etki sütunuyla karşılaştırır | PF-80 (güncellendi) |
+| Ö-101 | 22 | "Park gerekmez" gerekçesinin öncülü sınanmıyor (K-1036, K-1038, K-1041) | İhlali önleyen kural | **Terfi etti** | L4 checklist §3 (park maddesi) | "Park gerekmez" bir kurala ya da başka bir park satırına dayanıyorsa o kural ya da satır okunur — betik sözü görünce çifti kapatmaz | PF-80 (güncellendi) |
+| Ö-102 | 23 | Geri beslemenin taraması "değişmedi" diye yanlış kaydedebilir (2b1, kalan ticari kayıt listesi) | İhlali önleyen kural | **Terfi etti** | L4 checklist §3 (geri besleme maddesi, betik 1) | Kapalı liste "değişmedi" diye elenmeden önce kararın listesiyle öğe öğe karşılaştırılır | PF-78 (güncellendi) |
+| Ö-103 | 24 | Matris çıktıdan önce kurulur ama çıktı yazıldıktan sonra ona karşı okunmaz — checkpoint'te 57 bulgu satırı, 157 satır düzeltildi | İhlali önleyen kural (tekrarlanan desen) | **Terfi etti** · desen **öneri** (§4 Öneri 1, desen 1) | L4 `skills/audit` "Koşum biçimi" 1. madde · L4 checklist §2 ("Ancak bundan sonra çıktı üretimine başla" — işaretçi) | Matris zorunlu dokümanda iç tutarlılık merceğinin bir dilimi matrisin özet hücrelerini ("Entity", "Alan", "Durum") dokümanın ayrıntısına karşı okur. **Elenen — checklist §4'e yazım turunun son oturumunda hücre okuması:** yazım tek bağlamda yapılır, çok mercekli okuma kalite döngüsünün işidir (checklist §4); yazımın payı alanı yazarken özete bakmaktır (Ö-87). **Elenen — `00 §C.3`'e "çıktıdan sonra yeniden okunur":** L1 değişikliği gerektirmez; kural L4'te işler, desen §4 Öneri 1'de | PF-94 |
+| Ö-104 | 25 | Sürüm notunun bölüm listesi `git diff`'le karşılaştırılmıyor — üç sürüm notu ve son şüphecinin altı bulgusu | İhlali önleyen kural | **Terfi etti** | L4 checklist §4 ("Özet tabloları…" — düzeltmenin andığı hedefler) | Sürüm notunun ve dipnotun bölüm listesi değişen bölümlerden betikle üretilir ya da onunla karşılaştırılır | PF-100 |
+| Ö-105 | 26 | Şüphecilerin yan yüz listesi sahipsiz kaldı; iki doğrulayıcı yedi maddede ayrıştı. Kanıtı yöneticinin 2. gözlemiyle aynı olaydır (Ö-107) | İhlali önleyen kural | **Terfi etti** | L4 `skills/audit` "Koşum biçimi" 2. madde | Şüphecinin bıraktığı yan yüzler toplanır ve tek bir doğrulayıcıya verilir; aynı kapsam iki doğrulayıcıya verilmez; ayrışırsa yöneticinin seçimi ve gerekçesi kayda | PF-103 |
+| Ö-23 | — | Checklist'in skill'e dönüştürülmesi | Karar | **İki koşul ikinci kez karşılandı — dönüşüm proje sahibine öneri** | L4 checklist başlık notu · öneri §4 Öneri 2 | §3'te gerekçesiyle | PF-32 (güncellendi) |
+
+### 2.2 Karar kaydında yaşayan süreç kararları
+
+Checklist §7 madde 5: aşamanın kayıtları arşivlenince otoriterliği biter (K-436, K-647); kural L1–L5'te değilse sonraki aşama onu bilmez. Aşama 5'in yüz kırk dokuz kararı tarandı: gerekçe hücresinin sınıf cümlesiyle ("Süreç kararıdır", "Süreç ve yerleşim kararıdır", "Yerleşim kararıdır", "Yazım konvansiyonudur", "Yöntem kararıdır", "Hizalama ve yöntem kararıdır") betik yirmi iki karar süzdü — K-993…K-1005, K-1009, K-1032, K-1033, K-1037, K-1045, K-1060, K-1125, K-1126, K-1129 —; konu hücreleri okunarak dört karar eklendi — K-992 (çalışma modları), K-1019 ve K-1020 (workshop'un çok kritik sorusu ve kapsamı aşan ayrıntılar), K-1130 (etki yansıtmanın kümeleri). Kalan yüz yirmi üç karar veri modelinin, ürün kuralının ya da kalan riskin kararıdır (gerekçe hücresi "Teknik mekanizmadır", "Tutarlılık … kararıdır", "Adlandırma ve yerleşim kararıdır" ya da sınıf cümlesiz içerik kararı).
+
+| # | Karar | Konu | Sonuç | Hedef | Uygulanan metin (özet) |
+|---|---|---|---|---|---|
+| S-1 | K-992 | Çalışma modları — ⚠ öneriyle kayıt, merge yetkisi, yönetici + alt ajan düzeni Aşama 5 boyunca | **Önceden terfi etmişti** — aşama sonu notu | L3 `INSTRUCTIONS.md` §2, §9 · L4 checklist §1 | Üç düzen Aşama 5'le sınırlıdır, API tasarımı aşamasının açılışında yeniden sorulur; üç ayrı soruyla soruldu — Aşama 4'ün terfisinin (tek "evet" birden çok öneriye okunmaz) ikinci uygulaması |
+| S-2 | K-993 | Veri Modeli'nin iskeleti; blok numarası şablonun bölüm numarası; matris önce | **Dokümanda yaşar** (`06` başlık notu) | — | Blok = şablon bölümü kalıbının üçüncü uygulaması (K-724, K-856); kural gerektirmedi — ihlal önlemedi, geri alınabilir bir düzendir |
+| S-3 | K-994, K-995, K-996 | Şablonun taşımadığı iki yer; kimlikler (`VMn-mm`, `VA-n`, GAP-12'den); "Bağımlılıklar" alanı | **Dokümanda yaşar** (`06` başlık notu, §1.3) | — | Şablon taraması (checklist §1) altıncı şablonda beş eksik buldu (PF-86…PF-90) — kanıt §1'e eklendi; önek taraması işledi; PF-74 kapandı |
+| S-4 | K-997, K-1000…K-1003, K-1005 | Matrisin kaynak birimi ve dört netleşmesi; geri izlenebilirliğin birimi | **Terfi etti** (Ö-80, Ö-84, Ö-90 ile) | L4 checklist §2 (envanter maddesi) | Ö-80 ve Ö-84'te |
+| S-5 | K-998, K-1033 | Matrisin ve yazımın alt bölüm haritaları | **Kural işledi** (checklist §2, §4 — K-670, K-682) | — | Harita ilk oturumda sabitlendi; dört bölünme haritayı karar satırıyla değiştirdi |
+| S-6 | K-999 | Matrisin değer kümesi — aday entity listesi, "veri doğurmaz" değerleri | **Dokümanda yaşar** (`06 §1.1.2`) | — | Değer kümesindeki K-675 özeti Ö-87'nin ilk vakasıdır |
+| S-7 | K-1004, K-1037, K-1045, K-1060 | Matrisin 2. oturumunun ve yazımın üç oturumunun yöneticinin kararıyla, limitte düşmeden önce bölünmesi | **Terfi etti** (Ö-108 ile) | L4 checklist §4 (çok oturumlu yazım maddesi) | Ö-108'de |
+| S-8 | K-1009 | 2a'nın dört gözleminin kapanışı — `park A4-3`'e K-975'in (4). kolu | **Kural işledi** — kaçak önceki aşamadandı | — | Aşama 4'ün terfi ettirdiği "satırı güncelleyen karar bütün kollarını taşır" kuralından önce yazılmış bir kaçağı matris buldu (checklist §3) |
+| S-9 | K-1032 | Veri Modeli'nin yazım konvansiyonları | **Dokümanda yaşar** (`06` başlık notu) | — | Genel biçimi checklist §4'te (K-669, K-670) — kural işledi |
+| S-10 | K-1019, K-1020 | Workshop'un çok kritik sorusu (net miktarın düzlemi) — adımı durdurmadı; kapsamı aşan ayrıntılar ayrı satırla | **Kural işledi** (`INSTRUCTIONS.md` §9, işletim kuralı 2) | — | Bugünkü kural yazıldı, soru yöneticiye gitti, cevap ayrı adımda dört dokümana geri beslendi; kayıt sorunun kapsamını aşmadı |
+| S-11 | K-1125 | Ciddiyet ölçüsü Veri Modeli'ne 1. turdan; veri modeli için okuma paragrafı | **Hizalama terfisi** — skill'in ikinci koşulu "kapsam, özet, akış, arayüz ya da mimari dokümanı" diyordu | L4 `skills/cross-review` "Ciddiyet ölçüsü" | İkinci koşul veri modeli dokümanını da sayar; okuma paragrafı alanı, kısıtı, silme davranışını ve saklama kuralını mekanizma olarak anar; kanıt: beş tur, on iki kabulün on biri düşük şiddetli metin farkı |
+| S-12 | K-1126 | Yedi parçalı kontrol koşumu; tek parça çağrının girdi sınırı ve iki birleşim | **Terfi etti** (Ö-95 ile) | L4 `skills/cross-review` Faz 1 madde 9 | Ö-95'te |
+| S-13 | K-1129 | Cross-review çıkış kuralıyla kapanır (5 tur) | **Kural işledi** — üçüncü kanıt eklendi | L4 `skills/cross-review` Faz 4 madde 5 (Neden) | Devredilen sınıf checkpoint'te elli yedi matris ve on sekiz genel kural satırında bulundu ve kapandı (CP05 §3.1, §3.2) — devir üçüncü kez zorunluydu |
+| S-14 | K-1130 | Etki yansıtma — geri beslemelerin dört kümede yeniden taranması | **Terfi etti** (Ö-98, Ö-99 ile) | L4 `skills/cross-review` Faz 5 madde 2 | Ö-98'de |
+
+### 2.3 Bu adımda bulunan adaylar
+
+**Yöneticinin beş gözlemi:** (1) model dağılımı → Ö-106 (H-14 ile aynı terfi); (2) arka plana atılan alt ajan sahipsiz kalır → Ö-107; (3) ikinci modelin kullanım sınırı → Ö-96 ile birleşti; (4) büyük dokümanda tahmin ve bölünme → Ö-108; (5) uzun adımda ara durum → Ö-109 (H-13 ile aynı terfi).
+
+| # | Aday | Kaynak | Sınıf | Sonuç | Hedef | Uygulanan metin (özet) | Playbook |
+|---|---|---|---|---|---|---|---|
+| Ö-106 | **Model dağılımı** — proje sahibi 2026-10-18'de *"her işi opusla yapma, basit işleri daha ucuz modellere yaptır"* dedi; yönetici dağılımı alt ajanların ortak talimatına ekledi (mekanik → Haiku, taslak ve hükmü verilmiş uygulama → Sonnet, bulgu, doğrulama ve karar → Opus). Kural yalnız yöneticinin geçici talimatında ve kullanıcı hafızasında yaşıyordu | Yöneticinin 1. gözlemi; H-14 | İhlali önleyen kural (maliyet) | **Terfi etti** | L3 `INSTRUCTIONS.md` §9 — yeni paragraf "Alt ajanların koşumu", (1) | Model işe göre seçilir; Agent aracının `model` parametresi her çağrıda verilir ve adımın raporu dağılımı bir satırla yazar; kural alt ajanın açtığı ajanlara da uygulanır. **Elenen — hafızada kişisel tercih olarak bırakmak:** `00 §G.3` kişiye bağlı tercihleri hafızada tutar, ama bu kural yönetici düzeninin işleyişidir ve bir sonraki aşamanın alt ajanı onu yalnız yöneticinin talimatından öğrenebilir — talimat kaybolursa kural da kaybolur. **Elenen — `audit` skill'inin "Koşum biçimi"ne yazmak:** dağılım yalnız denetimin değil her adımın (yazım, uygulama, kapanış) kuralıdır; evi düzenin kendisidir | PF-91 |
+| Ö-107 | **Arka plana atılan alt ajan sahipsiz kalır** — kural `audit` skill'inin "Koşum biçimi" 5. maddesinde yazılıydı ve checkpoint skill'i ona işaret ediyordu; yine de CP05'te iki doğrulayıcı arka planda başlatıldı, bildirimleri yöneticiye gitti, aynı kapsam ön planda yeniden koşuldu ve iki koşum yedi maddede ayrıştı. İki sebep: kural yalnız **mercekleri** anıyordu, çiğneyen ajanlar doğrulayıcıydı; ve Agent aracı alt ajanları **varsayılan olarak arka planda** başlatıyor — kural parametreyi adıyla söylemiyordu | Yöneticinin 2. gözlemi; CP05 §3.6, §6 | İhlali önleyen kural (ikinci vaka — ilki Aşama 2'nin audit'i) | **Terfi etti** | L3 `INSTRUCTIONS.md` §9 "Alt ajanların koşumu", (2) · L4 `skills/audit` "Koşum biçimi" 5. madde | Alt ajan kendi alt ajanlarını — mercek, şüpheci, doğrulayıcı, uygulayıcı — ön planda başlatır (`run_in_background: false`); araç varsayılanı arka plandır. **Elenen — checkpoint skill'ine ayrı madde:** checkpoint "Koşum" paragrafı audit'in 5. maddesine işaret eder; kuralın tek evi kalır. **Elenen — L5 (hook):** Agent aracının parametresini denetleyen bir hook bu repoda yok ve doküman döneminin mekanik katmanı git ve CI üzerinedir | PF-91 |
+| Ö-108 | **Büyük dokümanda oturum tahmini ve önceden bölünme** — Veri Modeli (yazım turunun sonunda 1,10 MB; matris 527 KB, §2–§9 ve başlık notu 576 KB) için yazım bölüm gruplamasıyla üç oturum tahmin edildi (yetmiş dokuz entity'nin otuz beşi bir oturumda); yedi oturum sürdü — oturum başına en çok yirmi üç entity, ortalama yaklaşık 80 KB yoğun tablo metni. Dört bölünmenin (K-1004, K-1037, K-1045, K-1060) hepsini yönetici limitten önce yaptı; limitte düşen oturum olmadı. Teknik Mimari'nin düzyazısı iki oturumda yaklaşık 300 KB'tı — yük birimi doküman türüne bağlı. Checklist §4 bölünmeyi yalnız limitte düşen oturum için söylüyordu | Yöneticinin 4. gözlemi; S-7; §14.2'nin oturum tahmini | İhlali önleyen kural · tekrarlanan desen | **Terfi etti** · desen **öneri** (§4 Öneri 1, desen 4) | L4 checklist §4 (çok oturumlu yazım maddesi) | Oturum tahmini (K-32) dokümanın birim sayısına ve önceki oturumların gözlenen yüküne göre kurulur, bölüm gruplamasına göre değil; ilk oturumun haritası bir oturumu ağır gösteriyorsa yönetici onu limitte düşmeden önce böler, bölünme karar satırıyla haritaya işlenir. **Elenen — sabit bir bayt eşiği (ör. oturum başına 150 KB):** Teknik Mimari'de oturum başına yaklaşık 150 KB düzyazı, Veri Modeli'nde yaklaşık 80 KB tablo yazıldı — tek bir sayı ikisini birlikte ölçmez; gözlenen yük her aşamada kanıtı kendisi üretir (K-32'nin ilkesi). **Elenen — `INSTRUCTIONS §9` işletim kuralı 4'e yazmak:** o kural limitte düşeni anlatır ve kanıtı checklist §4'e işaret eder; önceden bölmenin evi aynı checklist maddesidir | PF-99 |
+| Ö-109 | **Uzun adımda ara durum** — kullanıcı hafızasının notu (Aşama 4'ün Ö-76'sı, tek vaka) ikinci vakada terfi önerilmesini söylüyordu; bu aşamada proje sahibi birçok kez *"nerdesin"*, *"ne kadar kaldı"* diye sordu | Yöneticinin 5. gözlemi; H-13 | İhlali önleyen kural (ikinci vaka — `00 §G.3`) | **Terfi etti** | L3 `INSTRUCTIONS.md` §9 "Alt ajanların koşumu", (3) | Yarım saati aşması beklenen adımın başında yönetici tek satırla adımı ve tahmini süresini, bitince ne bittiğini ve sırada ne olduğunu yazar; bilgidir, soru değildir (işletim kuralı 1). **Elenen — işletim kuralı 1'in içine yazmak:** o kural proje sahibinden cevap beklenen şeyleri sınırlar; ara durum cevap beklemez, ayrı yazılınca iki kural karışmaz — ve işletim kuralları listesine ekleme, kapatılmış PR #130'un paragrafının ekleneceği yerle çakışırdı | PF-91 |
+| Ö-110 | **Aşama 4'ün terfileri bu aşamada işledi** — park etiketi ↔ etki sütunu iki yönlü betiği kalite döngüsünde ve etki yansıtmada koştu, çakışma taramasında Aşama 5 bloklarında B yönünü boş buldu; işlem envanteri öncülü `06`'nın andığı yirmi dört işlemin hepsini ürün dokümanlarında buldu; şablon taraması açılışta beş eksik buldu (PF-86…PF-90); sorunun öncülünün taranması açılışın üç çok kritik soru adayını soru olmaktan çıkardı (§14.1, açılış maddesi); güvence merceği audit'te dokümanın tamamında koştu ve checkpoint'te merceğin koşmadığı 347 birimde 283 güvencenin yalnız birinin tutmadığı görüldü (CP05 §3.3); birden çok öneri birden çok soruyla soruldu (K-992) | `PHASE5_CONFLICT_SCAN.md` §7; CP05 §3.3; §14.1 | Kural işledi | **Önceden terfi etmişti** — kanıt | L4 checklist §1 ("Şablonu tara" — altıncı şablonun kanıtı eklendi) | Desen 7'nin kanıtı (§4 Öneri 1) | — |
+| Ö-111 | **Şartnameyle bölge bölge uygulama ikinci kez çakışmasız** — CP05'te şüpheciler hükümle birlikte birebir şartname yazdı, beş Sonnet ajanı dosya başına uyguladı; 161 + 66 parçanın hiçbiri çakışmadı | CP05 §6 (tek seferlik gözlem) | Kural işledi | **Önceden terfi etmişti** (`INSTRUCTIONS.md` §7 — toplu düzeltme tam eşleşme isteyen betikle; Aşama 3, Ö-53; Aşama 4, Ö-78) | — | — | — |
+
+### 2.4 Hafızadaki adaylar
+
+CLAUDE.md: *"Bir süreç kuralı yalnız hafızada yaşıyorsa kırılgandır — L1–L5'e terfi eder."* `00 §G.3`: bir hafıza notu ikinci kez bir süreç ihlalini önlemek için kullanılıyorsa kuraldır. Proje hafızasında (`.claude/memory/`) `MEMORY.md`, `MEMORY_ARCHIVE.md` ve `README.md` dışında not yok. Kullanıcı hafızası (`~/.claude/projects/c--projects-Shopfolio/memory/`) bu adımda okundu, **yazılmadı** — güncellenmesi gereken notlar §7'de.
+
+| # | Not | Aşama 5'teki değişiklik | Sonuç | Hedef | Hafızada kalan |
+|---|---|---|---|---|---|
+| H-1 | Workshop sorusu öncesi template taraması | Kural işledi — açılış devir §13'ün yedi maddesini sormadı, üç çok kritik soru adayını öncülüyle taradı ve sormadı (K-992, §14.1) | **Önceden terfi etmişti** (`INSTRUCTIONS §2`) | — | İşaretçi |
+| H-2 | Kısa diyalog tarzı workshop sorusu | — | **Hafızada kalır** — kişisel üslup | — | Soru biçimi ve uzunluğu |
+| H-3 | CI beklerken izleyiciye güvenme | — | **Önceden terfi etmişti** (`INSTRUCTIONS §3.2`) | — | Hatırlatıcı |
+| H-4 | Toplu onayda ⚠ maddeleri ayrı işaretle | — | **Önceden terfi etmişti** (`INSTRUCTIONS §2`) | — | Hatırlatıcı |
+| H-5 | Limit dolarsa kaldığın yerden devam | İkinci modelin kullanım sınırında tur aynı girdilerle sürdürüldü — cross-review yüzü skill'e terfi etti (Ö-96) | **Hafızada kalır** — kişisel tercih (oturum limiti) | — | Tamamı |
+| H-6 | Yazım oturumunda tek bağlam | Yedi yazım oturumu tek bağlamda koştu | **Hafızada kalır** (kuralı checklist §4'te) | — | Oturum ayarı |
+| H-7 | Sonraki chat mesajı | Yönetici düzeninde kullanılmadı | **Hafızada kalır** — kişisel tercih | — | Tamamı |
+| H-8 | Cross-review ikinci model koşumu | Beş tur Codex ile koştu; aracın girdi sınırı (1 048 576 karakter) ve hesabın kullanım sınırı (tur başına yaklaşık 1,2–1,3 milyon token, üç saatlik bekleme) ilk kez görüldü | **Hafızada kalır** — referans; koşumun kuralları skill'e terfi etti (Ö-95, Ö-96) | — | Çağrı kalıbı, model ve hesap bilgisi; iki sınırın eklenmesi önerilir (§7) |
+| H-9 | Dokümanları isimleriyle, kısa ve açık yaz | — | **Önceden terfi etmişti** (`INSTRUCTIONS §2`) | — | Hatırlatıcı |
+| H-10 | Kapanış otomasyonu yetkisi | Aşama 5 için yenilendi (K-992) | **Biçimi önceden terfi etmişti** (`INSTRUCTIONS §9`); **yetki süreli** — API tasarımı aşamasının açılışında yeniden sorulur | — | Yetkinin kendisi |
+| H-11 | Yalnız çok kritik konuları sor | Aşama 5 için yenilendi (K-992) | **Biçimi önceden terfi etmişti** (`INSTRUCTIONS §2`, §9); **mod süreli** | — | Modun kendisi |
+| H-12 | Toplu öneride "evet" ret sayılmaz | Açılışta üç ayrı soru (K-992) — kuralın ikinci uygulaması | **Önceden terfi etmişti** (`INSTRUCTIONS §2`, checklist §7 — K-989) | — | `00` önerisini sade anlatma ölçüsü |
+| H-13 | Uzun adımda ara durum ver | İkinci vaka (Ö-109) | **Terfi etti** (Ö-109 ile) | L3 `INSTRUCTIONS.md` §9 "Alt ajanların koşumu" (3) | `Terfi` satırı önerilir (§7) |
+| H-14 | Basit işleri ucuz modele ver | Not 2026-10-18'de açıldı; yönetici dağılımı ortak talimata yazdı (Ö-106) | **Terfi etti** (Ö-106 ile) | L3 `INSTRUCTIONS.md` §9 "Alt ajanların koşumu" (1) | Projeden bağımsız tercih olarak öteki projeler için; `Terfi` satırı önerilir (§7) |
+| H-15 | Aşama 5 süre ölçümü sözü | Proje sahibine verilmiş tek seferlik söz — tahmin ile gerçekleşenin tablosu aşamanın kapanış mesajında verilir | **Hafızada kalır** — proje kaydı; söz yerine getirilince silinir | — | Tamamı |
+
+---
+
+## 3. Ö-23 — checklist skill'e dönüşür mü
+
+**Sonuç: iki koşul ikinci kez birlikte karşılandı — dönüşüm proje sahibine yeniden öneri olarak sunulur (§4 Öneri 2); bu PR'da uygulanmadı.** Ölçüt iki koşuldur ve ikisi birlikte aranır (checklist başlık notu, L4; K-722, K-853). Değerlendirme betikle yapıldı:
+
+| Koşul | Sonuç | Kanıt |
+|---|---|---|
+| **1. Checklist izlenebilirlik matrisi zorunlu bir aşamada da işletilmiş olmalı** | ✓ **Karşılandı** — Aşama 3'te; Aşama 5'te ikinci kez | §2'nin sekiz maddesi Veri Modeli'nde işletildi (`06 §1`; altı oturum, K-997…K-1009): kaynak birimi envanterden önce kayda geçti, envanter betikle çıkarıldı, okuma derinliği her oturumda kayda yazıldı, iki GAP karara bağlandı |
+| **2. Bir aşama kapanışında yapısal değişiklik — yeni adım ya da yeni madde — almamış olmalı** | ✓ **Karşılandı** — ikinci kez | `grep -c '^- \[ \]'`: Aşama 4'ün kapanışından sonra **66** · Aşama 5 boyunca değişmedi — `git log b71c5cd..fbc5ee2 -- .claude/checklists/` boş · **bu kapanıştan sonra 66**. Bölüm bazında önce ve sonra aynı: §1 8 · §2 8 · §3 19 · §4 12 · §5 3 · §6 9 · §7 7. Adım sayısı (§7'nin altı adımı) aynı. Değişen: **on beş madde genişletmesi** — §1'de iki (girdi maddesi: açılışın sayımları komutlarıyla — Ö-82; şablon taraması: altıncı şablonun kanıtı — Ö-110), §2'de üç (envanter: kalıp dışı içerik, kaynağın tamlık kuralı, kuralı üst dokümanda yaşayan devirler — Ö-80, Ö-84, Ö-90; GAP kararı: geri besleme kümeyi değiştirir — Ö-88; "Ancak bundan sonra…": matris çıktıya karşı okunur, işaretçi — Ö-103), §3'te altı (tamlık: elenen seçenekler — Ö-92; edge case: öncülün tarihi — Ö-86; park: karar hücresi ve "park gerekmez" — Ö-100, Ö-101; geri işaret: bütün aşamaların blokları — Ö-99; geri besleme: okunuş, fiil biçimi, "değişmedi", tarama paragrafı — Ö-91, Ö-98, Ö-102; Hedef sütunu: kuralın evi — Ö-89), §4'te dört (kayıt girdisi: özet karar değildir — Ö-87; devir taraması: dizin anlık görüntüdür — Ö-85; çok oturumlu yazım: tahmin ve önceden bölünme — Ö-108; özet tabloları: sürüm notu ↔ diff — Ö-104) — ve başlık notu |
+
+**Dürüstlük notu — sınır vakaları.** Koşulun sözü "yeni adım ya da yeni madde"dir ve Aşama 3'ün kararı onu içerikle okudu: yeni bir yükümlülüğü var olan bir maddeye sıkıştırıp koşulu karşılanmış saymak "ölçütü biçimle atlatmak" olurdu (K-852). Her genişletme bu ölçüyle sınandı. En yakın sınır **Ö-103**'tür — matrisin çıktıya karşı okunması: matrisin yaşam döngüsüne yeni bir an ekler (çıktıdan sonra). Yükümlülüğün evi checklist değil `audit` skill'inin iç tutarlılık merceğidir; §2'nin son maddesi yalnız işaret eder ("kalite döngüsünün audit'i … bir mercek koşar"). Ayrı bir §2 maddesi açmak kuralı iki yerde yazmak olurdu. İkinci sınır **Ö-108**'dir — önceden bölünme: §4'ün çok oturumlu yazım maddesi bölünmenin kendisini zaten yazıyordu (limitte düşen oturum bölünür, bölünme karar satırıyla haritaya işlenir); yeni olan bölünmenin zamanıdır. Üçüncüsü **Ö-87**'dir — "kararın özeti karar değildir": §4'ün ilk maddesi "yazım kaydın yeterlilik testidir" der; özetin sınanması o testin konusudur. Öteki on iki genişletme var olan maddelerin kendi konusunu inceltir — Aşama 3'te on bir, Aşama 4'te sekiz genişletme yapısal sayılmamıştı. Okur bu üç sınır vakasından birini yeni madde sayarsa ikinci koşul karşılanmamış olur; öneri bunu proje sahibine söyler (§4 Öneri 2).
+
+**Bu kez neyin farklı olduğu.** Proje sahibi bir gün önce, aynı iki koşul karşılanmışken, dönüşmemesini seçti — *"bugünkü gibi devam eder"* (K-991). Bu aşamanın yeni bilgisi az: matris ikinci kez işletildi ve checklist ikinci kapanışta da yapı değiştirmedi. Buna karşı kapanışın genişletme sayısı arttı (sekizden on beşe) — içerik hâlâ oturuyor. `00 §C.7`'nin kendi cümlesi de dönüşümü *"checklist bir kez gerçek bir projede işletildikten sonra"*ya bağlar: bu proje doküman döneminin ortasındadır. Bu yüzden öneri üç seçenek taşır ve önerim, ölçütün bu proje için kapanmasıdır (§4 Öneri 2, seçenek 3) — her aşama sonunda aynı soru yeni bilgi taşımadan yeniden sorulmaz; dönüşüm kararı playbook'a gider (PF-32) ve sonraki projenin işidir.
+
+**Elenen — dönüşümü bu PR'da uygulamak:** yeni skill yaratmak yapısal değişikliktir ve onay ister (GUARDRAILS §3); `00 §C.7`'nin metni değişir (GUARDRAILS §2). **Elenen — koşullar karşılandığı hâlde soruyu sormadan kapatmak:** ölçüt proje sahibinin kabul ettiği iki koşuldur ve başlık notu kararın her kapanışta yeniden verileceğini söyler; kapatma kararı da onundur.
+
+---
+
+## 4. Proje sahibinin onayını bekliyor — `00` ve checklist'in skill'e dönüşmesi
+
+GUARDRAILS §2: `00`, `CLAUDE.md` ve `SETUP.md` proje sahibinin **açık onayı** olmadan değişmez; GUARDRAILS §3: yeni skill yaratmak yapısal değişikliktir. Aşağıdaki iki öneri bu PR'da **uygulanmadı**. Her biri proje sahibine **ayrı numaralı soru** olarak gider (`INSTRUCTIONS §2`) ve onay gelirse ayrı bir `docs:` PR'ında uygulanır. Hiçbiri aşamanın kapanışını engellemez: kurallar L3–L4'te yürürlükte.
+
+### Öneri 1 — `00 §N.1`'e Aşama 5'in desenleri
+
+**Sade dille.** *Sorun:* Yöntem dokümanının her aşamanın derslerini yazdığı bölümünde Veri Modeli aşamasının dersleri henüz yok. *Ne değişir:* Bu aşamanın yedi dersi — örneğin "kaynak eşleme tablosu dokümandan önce kurulur ama doküman yazıldıktan sonra ona karşı yeniden okunmazsa en çok hata oradan çıkar" — önceki dört aşamadaki gibi o bölüme eklenir; reddederseniz dersler yalnız bu raporda kalır.
+
+**Önerilen metin** — `§N.1`'in "Aşama 4 — Teknik mimari" paragrafının ve yedi maddesinin **ardına**:
+
+```markdown
+**Aşama 5 — Veri modeli (2026-10-17 → 2026-10-18).** Kurallar `.claude/checklists/document-stage.md` §1–§4, `.claude/INSTRUCTIONS.md` §7, §9 ve `audit`, `deep-review`, `cross-review` skill'lerine terfi etti; rapor `Docs/CHECKPOINT_REPORTS/PHASE5_LEARNING_PROMOTION.md`. Tekrarlanacak desenler:
+
+1. **İzlenebilirlik matrisi çıktıdan önce kurulur; çıktı yazıldıktan sonra ona karşı okunmazsa en büyük metin farkı kaynağı olur.** Veri modelinin matrisi bin beş yüzü aşan kaynak birimini altı oturumda eşledi ve iki boşluk buldu; hücrelerin entity ve alan sütunları workshop planına göre yazıldı, ayrıntı sonra geldi. Cross-review'ın beş turunda kabul edilen on iki bulgunun yedisi ve checkpoint'in elli yedi bulgu satırı matris hücrelerindendi — 157 satır ayrıntıya hizalandı. Aşama 3'ün 1. deseninin devamıdır: matris yazım boyunca doğrulanan bir kayıttır, yazım bittikten sonra da.
+2. **Kararın özeti karar değildir.** Yazım on bir kez bir workshop kararının ya da bir özetin kaynaktan geniş ya da dar yazıldığını buldu — bir değişmez mutlak yazılmıştı, bir sebep listesi altı yerine dört değer sayıyordu, bir silme listesi kendi ölçütünü üç alanda uygulamamıştı; her biri alan yazılırken kaynağa karşı okunup hizalandı. Aşama 1'in 1. deseninin devamıdır: yazım kaydın yeterlilik testidir — kaydın özeti de sınanır.
+3. **Matrisin birimi tek kalıpla sayılmaz ve geri besleme kümesini değiştirir.** Açılışın birim sayımı kaynak ailelerini tek bir satır kalıbıyla saydı; üç oturum birimi genişletmek zorunda kaldı — en ağır içerik (durumlar ve geçişler) kalıbın dışındaydı. Boşluk kararları ürün sözlüğüne on dört terim yazınca matrisin beklenen kümesi değişti; kapsama betikleri her geri beslemeden sonra yeniden koştu ve farkın yalnız kararın birimleri olduğunu gösterdi.
+4. **Büyük dokümanda oturum tahmini bölüm gruplamasından değil gözlenen yükten kurulur; ağır oturum limitten önce bölünür.** Yazım üç oturum tahmin edildi, yedi oturum sürdü; dört bölünmenin hepsi önceden yapıldı ve limitte düşen oturum olmadı. Aşama 3'te ağır bir yazım oturumu limitte düştükten sonra bölünmüştü. Yük birimi doküman türüne bağlıdır: mimarinin düzyazısı oturum başına veri modelinin tablolarının yaklaşık iki katı kadar metin üretti.
+5. **İkinci modelin sınırı dikkatten önce araçta ve hesaptadır.** 1,16 MB'lık doküman aracın girdi sınırını aştı — tek parça çağrının yerini sınıra sığan en büyük iki birleşim aldı ve biri hiçbir parçanın görmediği bir bulgu getirdi; hesabın kullanım sınırı 4. turun ortasında doldu ve tur iki modele bölünmesin diye üç saat beklendi. Aşama 3'ün 2. ve Aşama 4'ün 5. deseninin devamıdır.
+6. **Kalite döngüsünün düzeltmesi önceki aşamaların izlerine de uzanır.** Kararlar önceki aşamaların park satırlarında yirmi beş hizasızlık bıraktı — betik yalnız aşamanın kendi bloklarına bakmıştı; "park gerekmez" ve "değişmedi" gibi kapanış sözleri öncülü sınanmadan kabul edildi. Aşama 4'ün 6. deseninin devamıdır: düzeltme de taranır — bütün aşamalarda ve kapanış sözünün öncülüyle.
+7. **Yönetici düzeni dördüncü kez tuttu; maliyeti ve görünürlüğü ilk kez kural istedi.** Açılıştan checkpoint'e yirmi yedi adım iki günde yürüdü; proje sahibine çalışma modu soruları, bir çok kritik soru ve sorulmadan kaydedilen otuz yedi kararın listesi gitti. Bütün alt ajanların en güçlü modelde koşması bir denetim adımını saatlere uzattı ve iş türüne göre modellere dağıtıldı; arka plana atılan iki ajanın işi sahipsiz kaldı; proje sahibi ilerlemeyi göremeyip birçok kez sordu. Aşama 2'nin 6. ve Aşama 3'ün 7. desenlerinin devamıdır.
+```
+
+**Kaynak:** Ö-103, Ö-97 (desen 1) · Ö-87 (2) · Ö-80, Ö-84, Ö-88, Ö-90 (3) · Ö-108, S-7 (4) · Ö-95, Ö-96 (5) · Ö-99, Ö-100, Ö-101, Ö-102 (6) · Ö-106, Ö-107, Ö-109, Ö-110, S-10, K-992 (7).
+
+**Sürüm satırları:** başlık `**Versiyon: v1.0.6** | … | **Son güncelleme:** 2026-10-17` → `**Versiyon: v1.0.7** | … | **Son güncelleme:** <onay tarihi>`; alt bilgi `*Project Playbook — Metodoloji v1.0.6*` → `*Project Playbook — Metodoloji v1.0.7*`. Öneri 2'nin seçenek 1'i de onaylanırsa `§C.7`'nin değişikliği aynı sürüme girer.
+
+**Reddedilirse:** madde gerekçesiyle kapanır; desenler bu raporda kalır (checklist §7 madde 5; K-722).
+
+### Öneri 2 — Checklist'in skill'e dönüşmesi (Ö-23)
+
+**Sade dille.** *Sorun:* Doküman aşamalarının adım adım kontrol listesi ajanın her oturumda kendiliğinden tanıdığı bir beceriye çevrilmedi; koyduğumuz iki şart bir önceki aşamadaki gibi yine sağlandı, siz de bir gün önce "liste olarak kalsın" dediniz. *Ne değişir:* Ya liste beceriye dönüşür (içerik ve bölüm numaraları aynı kalır), ya liste olarak kalır ve soru her aşama sonunda yeniden gelir, ya da liste olarak kalır ve bu proje boyunca bir daha sorulmaz — dönüşüm kararı sonraki projeye bırakılır.
+
+**Seçenekler** (proje sahibine ayrı numaralı soru): **1 ·** dönüştür · **2 ·** liste olarak kalsın, her aşama sonunda yeniden sorulsun · **3 ·** liste olarak kalsın, bu proje boyunca bir daha sorulmasın (öneri). **Not:** bu kapanışın üç genişletmesi (§3'ün sınır vakaları) yeni madde sayılırsa ikinci koşul karşılanmamış olur — o okumada da doğru cevap 2 ya da 3'tür.
+
+**Önerinin gerekçesi (seçenek 3):** iki koşulun ikinci kez karşılanması bir önceki kararın girdisine yeni bilgi eklemiyor; genişletmeler sekizden on beşe çıktı — içerik hâlâ oturuyor; `00 §C.7` dönüşümü bir gerçek projenin sonrasına bağlar. **Elenen — seçenek 1:** kazanç (skill listesinde görünmek) yönetici düzeninde ortak talimat ve `INSTRUCTIONS §10`'un işaretiyle zaten karşılanıyor; bedel otuzu aşan dosyada iki yüzü aşan atfın hizasıdır. **Elenen — seçenek 2 (bugünkü durum):** her kapanışta aynı soruyu yeni bilgi taşımadan proje sahibine götürür.
+
+**Onay gelirse uygulanacak değişiklikler** (ayrı bir `docs:` PR'ı):
+
+- **Seçenek 1** — Aşama 4'ün öğrenim terfisinin Öneri 3'ündeki altı değişiklik aynen (`PHASE4_LEARNING_PROMOTION.md` §4): yeni `.claude/skills/document-stage/SKILL.md` (bölüm numaraları korunarak); `.claude/checklists/document-stage.md` işaretçiye döner; `00 §C.7` (GUARDRAILS §2) — bugünkü metin:
+
+  ```markdown
+  Doküman üretim aşamalarının adım adım işletimi: [`.claude/checklists/document-stage.md`](../.claude/checklists/document-stage.md).
+
+  > Bu bilinçli olarak bir skill değil, checklist'tir. Doküman üretimi projeden projeye en çok değişen dönemdir; skill'e dönüştürme, checklist bir kez gerçek bir projede işletildikten **sonra** yapılır.
+  ```
+
+  önerilen metin:
+
+  ```markdown
+  Doküman üretim aşamalarının adım adım işletimi: [`.claude/skills/document-stage/SKILL.md`](../.claude/skills/document-stage/SKILL.md).
+
+  > Doküman üretimi projeden projeye en çok değişen dönemdir; bu yüzden işletim önce checklist olarak yazılır ve skill'e, gerçek bir projede kararlı hâle geldikten sonra dönüştürülür. Ölçüt iki koşuldur: izlenebilirlik matrisi zorunlu bir aşamada da işletilmiş olmak (§C.1) ve bir aşama kapanışında yapısal değişiklik — yeni adım ya da yeni madde — almamak. Karar her doküman aşamasının öğrenim terfisinde yeniden verilir (§K). Bu projede iki koşul Teknik mimari ve Veri modeli aşamalarında karşılandı ve checklist skill'e dönüştü.
+  ```
+
+  `CLAUDE.md` (GUARDRAILS §2), oturum başlangıcının 2. maddesi: `Bir task veya doğrulama başlatılacaksa ilgili skill'in başlangıç kapılarını işlet` → `Bir task, doğrulama ya da doküman aşamasının bir adımı başlatılacaksa ilgili skill'in başlangıç kapılarını işlet`; L3–L4 hizası (`INSTRUCTIONS.md` §10 ve yol atıfları, `CONTEXT.md`, `audit` skill'inin atıfları, `memory/README.md`, `MEMORY.md`); PF-32 `Uygulandı`.
+- **Seçenek 2** — değişiklik yok; başlık notu yürürlükte kalır; sonraki değerlendirme API tasarımı aşamasının öğrenim terfisinde.
+- **Seçenek 3** — checklist'in başlık notunun son cümleleri (L4, bu dosyanın kendi kuralı — `00` ve `CLAUDE.md` değişmez): *"Sonraki değerlendirme …"* yerine *"Proje sahibi <onay tarihi>'nde ölçütün bu proje için kapanmasına karar verdi (K-…): checklist bu projede checklist olarak kalır, skill'e dönüşme kararı proje tamamlandıktan sonra playbook'a gider (`Docs/PLAYBOOK_FEEDBACK.md` PF-32; `00 §C.7`)."*; §7'nin 5. adımındaki *"Bu checklist'in skill'e dönüşmesi bu adımda yeniden değerlendirilir"* maddesine *"— ölçüt bu projede kapandıysa atlanır (başlık notu)"* eki; PF-32'nin durumu *"Dönüşmedi — bu projede ölçüt kapandı; dönüşüm sonraki projenin kararı"*.
+
+### Proje sahibine gidecek metin — sade dille
+
+Yönetici aşağıdaki iki maddeyi **iki ayrı numaralı soru** olarak, olduğu gibi iletebilir:
+
+> **Soru A — Yöntem dokümanına bu aşamanın dersleri.** *Sorun:* Yöntem dokümanının her aşamanın derslerini yazdığı bölümünde Veri Modeli aşamasının dersleri henüz yok. *Ne değişir:* Bu aşamanın yedi dersi — örneğin "kaynak eşleme tablosu dokümandan önce kurulur ama doküman yazıldıktan sonra ona karşı yeniden okunmazsa en çok hata oradan çıkar" — önceki aşamalardaki gibi o bölüme eklenir; reddederseniz dersler yalnız raporda kalır. **1 ·** ekle (uygula) · **2 ·** ekleme (uygulama)
+>
+> **Soru B — Aşama kontrol listesinin beceriye dönüşmesi.** *Sorun:* Dün "liste olarak kalsın" dediğiniz kontrol listesi için koyduğumuz iki şart bu aşamada da sağlandı; kural bu soruyu her aşama sonunda yeniden sormamızı istiyor. *Ne değişir:* Liste ya beceriye dönüşür, ya liste olarak kalır ve soru her aşama sonunda yine gelir, ya da liste olarak kalır ve bu proje boyunca bir daha sorulmaz — karar sonraki projeye bırakılır. **1 ·** dönüştür · **2 ·** liste kalsın, her aşama sonunda yine sorulsun · **3 ·** liste kalsın, bir daha sorulmasın (öneri)
+
+---
+
+## 5. Uygulanan terfiler — dosya ve bölüm
+
+| Dosya | Bölüm | Değişiklik | Aday |
+|---|---|---|---|
+| `.claude/INSTRUCTIONS.md` | Son güncelleme; §9 — yeni paragraf "Alt ajanların koşumu" (ana paragrafla işletim kuralları arasında) | (1) model işe göre seçilir · (2) alt ajan kendi alt ajanlarını ön planda başlatır — `run_in_background: false` · (3) uzun adımda ara durum | Ö-106, Ö-107, Ö-109, H-13, H-14 |
+| | §7 — "Metni değiştiren araç sessizce bozabilir" | Üçüncü tarama: kontrol karakteri; betik heredoc'la yazılmaz | Ö-93 |
+| `.claude/checklists/document-stage.md` | Başlık notu, son güncelleme | Ö-23'ün Aşama 5 sonucu | Ö-23 |
+| | §1 — girdi maddesi | Açılışın betik sayımları komutlarıyla | Ö-82 |
+| | §1 — "Şablonu tara" | Altıncı şablonun kanıtı (PF-86…PF-90) | Ö-110 |
+| | §2 — envanter maddesi | Kalıp dışı içerik; kaynağın tamlık kuralı; kuralı üst dokümanda yaşayan devirler | Ö-80, Ö-84, Ö-90, S-4 |
+| | §2 — GAP kararı maddesi | Geri besleme matrisin kümesini değiştirir — kapsama betikleri yeniden, `cmp` | Ö-88 |
+| | §2 — "Ancak bundan sonra çıktı üretimine başla" | Matris çıktıdan sonra ona karşı okunur (işaretçi — audit) | Ö-103, Ö-97 |
+| | §3 — tamlık taraması | Öneri listesi önceki kararların elediği seçeneklere karşı | Ö-92 |
+| | §3 — edge case | Öncülün tarihi | Ö-86 |
+| | §3 — park maddesi | Karar hücresindeki kol; "park gerekmez"in öncülü | Ö-100, Ö-101 |
+| | §3 — geri işaret maddesi | Park satırları bütün aşamaların bloklarında | Ö-99 |
+| | §3 — geri besleme maddesi (K-652) | Okunuşu kaydeden karar; fiil biçimleri; "değişmedi"nin sınanması; tarama paragrafı; Aşama 5'in kanıtı | Ö-91, Ö-98, Ö-102 |
+| | §3 — "Blok planının Hedef doküman sütunu" | Plan yazılırken kuralın evi de sayılır | Ö-89 |
+| | §4 — "Ayrı oturum, kayıt girdisi" | Kararın özeti karar değildir | Ö-87 |
+| | §4 — "Devir taraması" | Dizin kapanışın anlık görüntüsüdür | Ö-85 |
+| | §4 — çok oturumlu yazım | Tahmin gözlenen yükten; ağır oturum limitten önce bölünür | Ö-108, S-7 |
+| | §4 — "Özet tabloları…" | Sürüm notunun bölüm listesi ↔ değişen bölümler | Ö-104 |
+| `.claude/skills/audit/SKILL.md` | "Koşum biçimi" 1. madde | Matrisin özet hücreleri ↔ ayrıntı (iç tutarlılık merceğinin dilimi) | Ö-103, Ö-97 |
+| | "Koşum biçimi" 2. madde | Yan yüzler tek doğrulayıcıya; ayrışmada yöneticinin seçimi | Ö-105 |
+| | "Koşum biçimi" 4. madde | Genişletilen betik önceki kümeyi değiştirmemeli | Ö-83 |
+| | "Koşum biçimi" 5. madde | Ön planda başlatma bütün alt ajanlar için; `run_in_background: false`; araç varsayılanı | Ö-107 |
+| `.claude/skills/deep-review/SKILL.md` | Madde 7 (koşum biçimi) | Audit'ten sonra odaklı kapsam ve tutarlılık merceği | Ö-94 |
+| `.claude/skills/cross-review/SKILL.md` | Faz 1 madde 1 | Kullanım sınırı turun ortasında — aynı girdiyle yeniden; tur iki modele bölünmez | Ö-96 |
+| | Faz 1 madde 9 | Tek parça girdi aracın sınırını aşarsa en büyük birleşimler | Ö-95, S-12 |
+| | Ciddiyet ölçüsü — ikinci koşul | Veri modeli dokümanı; okuma paragrafında veri modelinin mekanizmaları | S-11 |
+| | Faz 4 madde 5 — Neden | Çıkış kuralının üçüncü kanıtı (K-1129, CP05) | S-13 |
+| | Faz 5 madde 2 | Geri beslemelerin kümeler hâlinde yeniden taranması; park satırları bütün bloklarda | Ö-98, Ö-99, S-14 |
+
+**L5 (hook, CI) elendi:** bu aşamanın derslerinin hiçbiri git ya da CI düzeyinde mekanik bir ihlal değildir — matrisin hücreleri, özetin sınanması ve geri beslemenin yüzleri anlamsal okumadır; kontrol karakteri taraması her PR'da elle koşan bir betiktir (`INSTRUCTIONS §7`) ve CI'ya alınması doküman döneminin sonunda yeniden düşünülebilir — bugün CR ve `$1` taramaları da elle koşuyor ve hiçbir PR'da kaçmadı.
+
+**PR #130 ile ilişki.** Brifin "açık" dediği proje sahibinin PR #130'u (`chore/otonom-kosu`) 2026-10-17'de **merge edilmeden kapatıldı** (`gh pr view 130`: `closedAt` 2026-10-17T18:07Z, `mergedAt` boş); dalı uzak depoda duruyor ve bu PR ona dokunmadı. #130'un `INSTRUCTIONS §9` değişikliği işletim kuralı 4'ün **ardına** bir paragraf ("Düzenin betikle işletimi") ekliyordu; bu PR'ın paragrafı ana paragrafla işletim kurallarının listesi **arasına** girdi ve işletim kurallarına dokunmadı — #130 yeniden açılırsa iki değişiklik metin olarak çakışmaz. #130'un `.claude/agents/mekanik.md` (Haiku) ve `yazici.md` (Sonnet) tanımları aynı dağılımı kullanıyor; bu PR'ın kuralı ajan tanımlarına değil Agent aracının `model` parametresine dayanır — tanımlar bir gün girerse kural onlara işaret edebilir.
+
+---
+
+## 6. Playbook'a geri akış (K-649)
+
+Playbook'tan gelen bir dosyaya dokunan ya da dokunması gereken her öğrenim `Docs/PLAYBOOK_FEEDBACK.md`'dedir; liste 90 satırdan **104**'e çıktı. Var olan satırlar tekrar açılmadı, güncellendi:
+
+| Satır | Değişiklik |
+|---|---|
+| PF-27 | İkinci koşul Aşama 5'ten beri veri modeli dokümanını da kapsar; okuma paragrafında veri modelinin mekanizmaları (K-1125, S-11) |
+| PF-32 | Ö-23'ün Aşama 5 sonucu: iki koşul ikinci kez karşılandı — `Onay bekliyor` (§4 Öneri 2; önerilen: bu projede ölçüt kapanır) |
+| PF-61 | Tek parça girdi aracın sınırını aşarsa en büyük birleşimler (Ö-95, K-1126) |
+| PF-62 | Çıkış kuralının üçüncü kanıtı — Veri Modeli, beş tur; devredilen sınıf checkpoint'te bulundu ve kapandı (S-13) |
+| PF-75 | Devir dizini kapanışın anlık görüntüsüdür — gövde cümleleri bugünkü metinden (Ö-85) |
+| PF-78 | Geri beslemenin üç yüzü daha — okunuşu kaydeden karar, fiil biçimleri, "değişmedi"nin sınanması; tarama paragrafı kayda; etki yansıtma kümeler hâlinde (Ö-91, Ö-98, Ö-102) |
+| PF-80 | Park satırları bütün aşamaların bloklarında; karar hücresindeki kol; "park gerekmez"in öncülü (Ö-99, Ö-100, Ö-101) |
+| PF-84 | Genişletilen betik önceki kümeyi değiştirmemeli — eski çıktıyla `cmp` (Ö-83) |
+| PF-88 | Silme kategorileri workshop'ta uyarlandı (K-1010) — `Uygulandı` (çevre karar; şablon değişmedi) |
+| **PF-91** (yeni) | Alt ajanların koşumu — model dağılımı, ön planda başlatma, uzun adımda ara durum (Ö-106, Ö-107, Ö-109) — `INSTRUCTIONS §9`, `audit` |
+| **PF-92** (yeni) | Kontrol karakteri taraması; betik heredoc'la yazılmaz (Ö-93) — `INSTRUCTIONS §7` |
+| **PF-93** (yeni) | Matrisin birimi kalıp dışı içeriği ve kaynağın tamlık kuralını sayar; kuralı üst dokümanda yaşayan devirler; geri besleme kümeyi değiştirir (Ö-80, Ö-84, Ö-88, Ö-90) — checklist §2 |
+| **PF-94** (yeni) | Matris çıktı yazıldıktan sonra ona karşı okunur (Ö-97, Ö-103) — `audit`, checklist §2; şablon hedefi `06` şablonu §1 |
+| **PF-95** (yeni) | Açılışın sayımları komutlarıyla (Ö-82) — checklist §1 |
+| **PF-96** (yeni) | Kararın özeti karar değildir (Ö-87) — checklist §4 |
+| **PF-97** (yeni) | Öncülün tarihi; öneri listesi önceki kararların elediği seçeneklere karşı (Ö-86, Ö-92) — checklist §3 |
+| **PF-98** (yeni) | Plan yazılırken değer ya da kural üreten konunun hedefi kuralın evini sayar (Ö-89) — checklist §3 |
+| **PF-99** (yeni) | Oturum tahmini gözlenen yükten; ağır oturum limitten önce bölünür (Ö-108) — checklist §4 |
+| **PF-100** (yeni) | Sürüm notunun bölüm listesi ↔ değişen bölümler (Ö-104) — checklist §4 |
+| **PF-101** (yeni) | Audit'ten sonra odaklı deep review (Ö-94) — `deep-review` |
+| **PF-102** (yeni) | İkinci modelin kullanım sınırı turun ortasında — aynı girdiyle yeniden, tur iki modele bölünmez (Ö-96) — `cross-review` Faz 1 |
+| **PF-103** (yeni) | Yan yüzler tek doğrulayıcıya (Ö-105) — `audit` |
+| **PF-104** (yeni) | Aşama 5'in desenleri — `00 §N.1` (§4 Öneri 1) — `Onay bekliyor` |
+
+PF-86, PF-87, PF-89 ve PF-90 değişmedi.
+
+---
+
+## 7. Kayda ve hafızaya yansıma
+
+- **Karar kaydı v0.143:** K-1141 (bu adımın kararları, öneriyle kaydedildi — ⚠ değildir: süreç kararıdır, ürün kuralına dokunmaz). K-992 (aşama sonu notu), K-997, K-1004, K-1033, K-1037, K-1045, K-1060, K-1125, K-1126, K-1129 ve K-1130'un etki sütununa K-1141'e geri işaret; Aşama 4'ün K-991 satırına da (Ö-23'ün kapısı — salt okunur kaydın tek istisnası, geri işaret). §14.1: öğrenim terfisinin adım maddesi [x]; Ö-23 maddesi değerlendirmesiyle [x]; öğrenim adayları maddesi [x]; **yeni açık madde** — proje sahibinin onayını bekleyen iki öneri (kapı: arşiv işaretinden önce, ⚠ listesiyle aynı mesajda, her biri ayrı numaralı soru); ⚠ listesi maddesine bu adımın boş listesi. §14.2: kapanış satırı ve toplam satırı; §1: Veri Modeli'nin satırı (doküman değişmedi — v0.26); başlık notunun Aşama 5 paragrafı. ⚠ listesi değişmedi (**37**). K tekilliği betiği boş.
+- **Repo hafızası:** `MEMORY.md` Güncel Durum bu adımın hâline getirildi — önceki adımın (checkpoint) paragrafı `MEMORY_ARCHIVE.md`'nin "Aşama 5" başlığına taşındı (`INSTRUCTIONS §7`); "Terfi Edenler" tablosuna üç satır girdi (model dağılımı; uzun adımda ara durum; Aşama 5'in süreç kararları ve öğrenimleri).
+- **Kullanıcı hafızası — bu adımda yazılmadı; yönetici günceller:**
+  - `basit-isleri-ucuz-modele-ver.md` (H-14) — `Terfi` satırı: kural `INSTRUCTIONS.md` §9'a ("Alt ajanların koşumu", 1) yazıldı (K-1141); notta projeden bağımsız tercih olarak öteki projeler için kalır. "Türker'in kendi otonom koşu betiği (PR #130…)" cümlesi: PR #130 merge edilmeden kapandı.
+  - `uzun-adimda-ara-durum-ver.md` (H-13) — `Terfi` satırı: ikinci vaka Veri modeli aşamasında yaşandı, kural `INSTRUCTIONS.md` §9'a ("Alt ajanların koşumu", 3) yazıldı (K-1141); not işaretçiye iner.
+  - `cursor-agent-cross-review-kosumu.md` (H-8) — Codex CLI'nin girdi sınırı 1 048 576 karakterdir (aşan tek parça çağrı iki saniyede `input_too_large` döner — en büyük birleşimler koşar, `cross-review` Faz 1 madde 9); hesabın kullanım sınırı büyük dokümanda aynı gün dört turdan sonra dolabilir (tur başına yaklaşık 1,2–1,3 milyon token; yaklaşık üç saatte açıldı) — tur aynı girdilerle yeniden koşulur, iki modele bölünmez (Faz 1 madde 1).
+  - `asama5-sure-olcumu-sozu.md` (H-15) — söz arşiv işaretinden sonraki kapanış mesajında yerine getirilir ve not silinir.
+  - `asama1-kapanis-otomasyonu-yetkisi.md` (H-10) ve `yalniz-cok-kritik-konulari-sor.md` (H-11) — arşiv işaretinde "Aşama 5 kapandı — API tasarımı aşamasının açılışında yeniden sorulur" satırları (6. adımın işi).
+- **Mekanik:** değişen dosyalarda CR 0 (`tr -cd '\r'`), kontrol karakteri 0; eklenen satırlarda geri başvuru artığı yok — `\$[0-9]` eşleşmeleri yalnız kuralın ve bu raporun anlattığı örneklerdir; düzenlemeler birebir değiştiren, her değiştirmede tam bir eşleşme isteyen node betiğiyle yapıldı ve şartnamesi dosya yazma aracıyla yazıldı.
+- **Model dağılımı:** sınıflandırma, hüküm, rapor ve kural metinlerinin taslağı Opus (bu ajan); kural metinlerinin hedef dosyalara birebir uygulanması ve mekanik denetimleri Sonnet; karar kaydının taranması (sınıf cümlesi süzgeci, satır listeleri) betikle.
+
+**Sırada:** K-437'nin 6. adımı — proje sahibine tek mesaj: checkpoint'in üç ⚠ kararı ve K-1092, K-1135'in düzeltilmiş iki cümlesi (hazır metin CP05 §5.2) ve bu raporun §4'ündeki iki öneri, **her biri ayrı numaralı soru**; cevapların kayda işlenmesi (onaylanan öneriler ayrı `docs:` PR'larında); ardından arşiv işareti (otuz yedi ⚠ işaretinin dönüşümü; Aşama 5'in kayıtları salt okunur; `06` ✓) ve Aşama 6'ya — API tasarımı — devir. Devir notu çalışma modlarının yeniden sorulacağını ve onaylanmayan önerilerin sonucunu taşır.
+
+---
+
+*Kaynak: K-437 (kapanış sırası, 5. adım) · `00 §K`, §G.3, §C.3, §C.7, §N · GUARDRAILS §2, §3 · karar kaydı §14.1 (aday listesi ve adım maddeleri), §14.2 (oturum tahmini) · çakışma taraması §5, §7 · CP05 §3, §6 · `CROSS_REVIEW_REPORTS/06_CROSS_REVIEW.md`…`_R5.md` · K-992…K-1130 (süreç kararları) · K-722, K-852, K-853, K-991 (Ö-23'ün ölçütü ve önceki kararları) · K-649 (playbook'a geri akış) · K-1141 (bu adımın kararları) · `Docs/CHECKPOINT_REPORTS/PHASE4_LEARNING_PROMOTION.md` (yapı örneği).*

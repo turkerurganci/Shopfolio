@@ -549,5 +549,155 @@ K-1144 kararıyla (⚠ öneriyle kayıt, `docs:` PR'ında CI yeşilse merge yetk
 - [x] F5 (kısmi — §1.1.6 giriş cümlesi ve UC-123 hücresine iç not istisnası)
 - [x] F6 (ret — istisnalar §2.4.3'te ve §6.2'de, §2.7.1 atıf yapar)
 - [x] F7 (ret — istisna ortak kuralın cümlesinde; ikinci ret)
-- [ ] 4. tur — 3. turda bir kısmi bulgu uygulandı (düşük şiddette metin farkı); TEMİZ aranır. Aynı istem, aynı betikler, aynı parça sınırları; Birleşim 1 ve 2 ile sekiz parça. Dönen bir ret üçüncü kez gelirse "tekrar eden RET" sayılır
+- [x] 4. tur — koştu (aşağıda, "Tur 4" bölümü)
+- [ ] Etki yansıtma (Faz 5) — döngü TEMİZ döndükten sonra, son turun raporunda
+
+---
+
+# Cross-Review — 07 API Design (Tur 4)
+
+**Tarih:** 2026-10-19 · **Hedef:** `Docs/07_API_DESIGN.md` v0.20 (girdi commit'i `9bc8b01`, 1 191 597 bayt, 6 403 satır) · **İkinci model:** Codex CLI — ChatGPT hesabı, `gpt-5.6-terra`, düşünme düzeyi yüksek (salt okuma) · **Ciddiyet ölçüsü:** 1. turdan itibaren uygulanır (K-1219); bu turda yöneticinin kararıyla "bu turdan itibaren uygulanır" diye yeniden teyit edildi ve istem **değiştirilmedi** — ölçü paragrafı 1.–3. turun isteminde zaten vardı (istem SHA-256 `76e57ac0e4326f90`, öncekilerle aynı); bilinçli karar cümlesi değişmeden kalır · **Koşum:** 1.–3. turla aynı iki biçim — **iki birleşim** ve **sekiz parçalı kontrol koşumu**, aynı istem, aynı parça notu, aynı şablon (SHA-256 ilk 16 hane: istem `76e57ac0e4326f90`, parça notu `2b150c8107b170bb`, şablon `dfc8aa759c1e01c5` — 3. turla aynı; doküman v0.20 `a1ed9bf02807c65b`), aynı betikler, parça sınırları başlıkla (K-1219) · **Tek parça çağrı:** yeniden denenmedi — girdi 1 096 093 karakter, sınır 1 048 576 (1.–3. turda aynı hatayla döndü; yönetici talimatı) · **Girdi:** yalnız doküman ve boş şablonu, her çağrıda boş ve izole çalışma klasöründe (K-431) · **Kullanım sınırı:** dolmadı — on çağrının hepsi çıktı verdi; yedeğe geçilmedi · **Sonuç:** TEMİZ değil — altı ham bulgu (altısı ayrı), 0 KABUL · 0 KISMİ · 6 RET; doküman içeriği değişmedi (`07` v0.21 yalnız sürüm ve başlık notu); bir ret, 3. kez dönen iddiadır ("tekrar eden RET" — turun sonucunu belirlemez) · **Değerlendirme modeli:** Claude alt ajanları yalnız Sonnet / low (K-1207); Codex dışarıdadır
+
+## 1. Koşum
+
+**Betikler** 1. turdakilerdir (`C:\Users\TEKNOD~1\AppData\Local\Temp\claude\c--projects-Shopfolio\422e2f0a-46a6-4ced-809c-e90f0f447f55\scratchpad\cr07\`: `build_inputs.py`, `run_codex.sh`, `prompt.txt`, `partnote.txt`, `template07.md`); girdi klasörü bu tur için `..\cr07r4\in`, çıktı `..\cr07r4\out`. Komutlar: `python -I build_inputs.py Docs/07_API_DESIGN.md template07.md prompt.txt partnote.txt <girdi>` — kapsanmayan satır `none`; `bash run_codex.sh <girdi> <çıktı> c1 c2 p1 p2 p3 p4 p5 p6 p7 p8`. İstem ve parça notu 1. turun §1'indeki alıntı bloklarıdır, değiştirilmedi. **Ölçü ile ilgili not:** yöneticinin talimatı istemi "önceki istem + ciddiyet ölçüsü" diye tarif ediyordu; ölçü 1. turdan beri istemdedir (K-1219 — rapor başlıkları da "1. turla aynı" der), bu yüzden ikinci kez eklenmedi.
+
+**Parçalar** (sınırlar 1. turdakiyle aynı başlıklar; satır numaraları v0.20'nindir ve kaymıştır):
+
+| Parça | Bölümler | Satırlar | Girdi | Token | Süre | Sonuç |
+|---|---|---|---|---|---|---|
+| 1 | §1'in girişi · §1.1.1–§1.1.2 | 113–640 | 136 834 bayt | 63 178 | 66 sn | `SONUÇ: TEMİZ` |
+| 2 | §1.1.3–§1.1.5 | 641–1244 | 153 253 bayt | 54 329 | 28 sn | `SONUÇ: TEMİZ` |
+| 3 | §1.1.6–§1.1.8 | 1245–2298 | 239 594 bayt | 91 664 | 166 sn | 1 bulgu |
+| 4 | §1.1.9–§1.3 | 2299–3614 | 327 822 bayt | 121 467 | 135 sn | 2 bulgu |
+| 5 | §2 · §3 | 3615–4121 | 159 901 bayt | 58 341 | 34 sn | `SONUÇ: TEMİZ` |
+| 6 | §4 | 4122–4917 | 189 287 bayt | 83 683 | 166 sn | 2 bulgu |
+| 7 | §5 · §6 · §7 · §8 | 4918–5413 | 131 411 bayt | 49 881 | 99 sn | `SONUÇ: TEMİZ` |
+| 8 | §9 · §10 | 5414–6403 | 232 262 bayt | 85 940 | 22 sn | `SONUÇ: TEMİZ` |
+
+| Çağrı | Parçalar | Girdi | Karakter | Token | Süre | Sonuç |
+|---|---|---|---|---|---|---|
+| Birleşim 1 | 2 · 3 · 4 · 5 · 6 · 7 · 8 | 1 115 799 bayt | 1 018 821 | 404 355 | 229 sn | 1 bulgu |
+| Birleşim 2 | 1 · 3 · 4 · 5 · 6 · 7 · 8 | 1 099 416 bayt | 1 005 351 | 396 854 | 110 sn | `SONUÇ: TEMİZ` |
+
+**Kapsam sınırı ve web.** Parça öteki bölümleri görmez; birleşimler parçalar arası okumayı yapar (yalnız matrisin parça 1'i ile parça 2'si buluşmaz — K-1219). Yönetici değerlendirmesi her iddiayı dokümanın tamamına ve ilgili yerde `02` v0.92, `03` v0.39, `04` v0.39, `05` v0.28, `06` v0.30'a karşı okudu. **Web araması:** on çağrının hiçbirinde `web search` satırı yok; hiçbir bulgu yasal dayanak anmadı — Faz 2 madde 5 (hukuki kontrol) konusuz. **Toplam:** on Codex çağrısı, 1 409 692 token (CLI'nin bildirdiği; bu turda Birleşim 1'in sayacı da eksiksiz bildirildi).
+
+## 2. Ham bulgular
+
+İkinci modelin çıktıları, satır sonu boşlukları dışında düzenlenmeden (alıntı blokları içinde).
+
+**Birleşim 1** (parça 2–8):
+> BULGU-1
+> Kriter: Tutarlılık
+> Seviye: Orta
+> Yer: §2.3.1; §4.22.2–§4.22.3
+> Alıntı: “Çerez politikası ilk kez yayına alınana kadar vitrinin hiçbir yanıtı çerez yazmaz” / “oturum kaydı — her giriş yeni anahtar”
+> Sorun: §2.3.1, çerez politikası yayımlanana dek tüm vitrin yanıtlarından çerez yazımını kaldırırken; müşteri girişi ve Google dönüşü başarılı olduğunda oturum ve tanınan tarayıcı çerezlerinin yazılmasını zorunlu tutuyor. Aynı koşulda başarılı giriş hem gerçekleşip hem kalıcı oturum kuramaz. Bu, dokümanın kendi içindeki çelişkidir (4).
+> Öneri: Çerez politikası yayımlanana kadar oturum, sahteciliğe karşı koruma ve dış giriş akışı için zorunlu çerezlere açık istisna tanımlayın; ya da bu dönemde müşteri girişini de sunucu tarafında kapatın ve ilgili uçları hizalayın.
+>
+> SONUÇ: 1 BULGU
+
+**Birleşim 2** (parça 1, 3–8):
+> SONUÇ: TEMİZ
+
+**Parça 1** (§1'in girişi, §1.1.1–§1.1.2):
+> SONUÇ: TEMİZ
+
+**Parça 2** (§1.1.3–§1.1.5):
+> SONUÇ: TEMİZ
+
+**Parça 3** (§1.1.6–§1.1.8):
+> BULGU-1
+> Kriter: güvenlik
+> Seviye: Yüksek
+> Yer: Kalite döngüsü — cross-review 1. tur; §1.1.6 `04` 9.25.5; §1.1.7 `04` 6.2.28.3
+> Alıntı: "yönetici e-posta değişikliğini geri almada eski adresin başka bir yönetici hesabına geçmiş olması UC-187'de ele alınmamıştı — UC-76'nın 422 yolu eklendi"
+> Sorun: Düzeltme yanlış uca uygulanmış görünüyor. UC-76 müşteri hesabının geri alma işlemidir; yönetici e-posta geri alma işlemi UC-187’dir. UC-187 için eski adresin bu arada başka yöneticiye atanması hâli ve güvenli ret davranışı tanımlı değildir. Bu durumda ele geçirilmiş yönetici hesabının e-postası geri alınamayabilir; yetkili yönetici erişimini kaybedip saldırgan panel ve kişisel verilere erişmeyi sürdürebilir.
+> Öneri: UC-187’ye, eski adres başka yönetici hesabında ise geri almayı uygulamayan bir 422 yolu ekleyin; bağlantının tüketimi ve kullanıcıya sunulacak güvenli kurtarma yolunu açıkça tanımlayın.
+>
+> SONUÇ: 1 BULGU
+
+**Parça 4** (§1.1.9–§1.3):
+> BULGU-1
+> Kriter: Tutarlılık
+> Seviye: Orta
+> Yer: §1.1.10 `03 §6.1.1.9`; §1.1.9 `03 §3.4.14`
+> Alıntı: “önceki bağlantı geçerli kalır” / “yeni bağlantı öncekini geçersiz kılar, ömrü uzatmaz”
+> Sorun: Doğrulama bağlantısının yeniden istenmesinde önceki bağlantının geçerliliği iki farklı biçimde tanımlanmış. Bu, aynı bağlantının sunucuda hem kabul hem reddedilmesine yol açabilecek doğrudan doküman içi çelişkidir (4).
+> Öneri: Tek kural seçin ve kayıt ile yeni e-posta doğrulaması dahil bütün ilgili satırları hizalayın. Yeni bağlantı öncekini geçersiz kılacaksa `03 §6.1.1.9` düzeltilmelidir.
+>
+> BULGU-2
+> Kriter: Tutarlılık
+> Seviye: Orta
+> Yer: §1.1.9 `03 §2.3`, `03 §4.1.6`; §1.1.12 `05 §6.7.8`
+> Alıntı: “Sepet kendiliğinden boşalmaz (Z-6)” / “Z-6 sepetin ömrü — dolmaz” / “Misafir sepeti çerezi 400 gün açılmazsa sunucudaki sepet gecelik temizlikte silinir”
+> Sorun: Sepetin süresiz olduğu belirtilirken, misafir sepetinin 400 günlük hareketsizlikten sonra silineceği yazılmıştır. Bu, sepetin yaşam döngüsünde doğrudan çelişkidir (4).
+> Öneri: 400 gün sonra silme bilinçli davranışsa Z-6 ve ilgili akış satırlarını “üye sepeti süresizdir; misafir sepeti 400 gün hareketsizlikten sonra silinir” şeklinde hizalayın; değilse temizleme kuralını kaldırın.
+>
+> SONUÇ: 2 BULGU
+
+**Parça 5** (§2 · §3):
+> SONUÇ: TEMİZ
+
+**Parça 6** (§4):
+> BULGU-1
+> Kriter: Tutarlılık
+> Seviye: Orta
+> Yer: §4.29.1 UC-30
+> Alıntı: "**Yöntem** GET'tir; seçilen sağlayıcı dönüşü POST'la yapıyorsa aynı adres POST'u da kabul eder"
+> Sorun: Aynı uç hem yalnız GET olarak tanımlanıyor hem de koşullu olarak POST kabul ediyor. Bu, uç envanteri, yöntem kısıtları ve POST için sahteciliğe karşı koruma istisnası bakımından çelişkidir (4).
+> Öneri: Sağlayıcının dönüş yöntemini kesinleştirip UC-30’u ve envanteri buna göre tek yöntemle tanımlayın; iki yöntem desteklenecekse ikisini de açıkça envantere ekleyin ve POST istisnasını kalıcı olarak belirtin.
+>
+> BULGU-2
+> Kriter: Tutarlılık
+> Seviye: Orta
+> Yer: §4 ortak yanıtlar / §4.34.1 UC-77
+> Alıntı: "oturum gerektiren GET'in ve oturumu kapanmış POST'un girişe yönlendirmesi (§2.3.2)" / "tekrar gönderim oturumu bulamaz — aynı yönlendirmeyi alır"
+> Sorun: Ortak kural, oturumu kapanmış POST’un girişe yönlenmesini zorunlu kılarken UC-77, silinmiş oturumla yeniden gönderilen çıkış isteğinin `returnUrl` hedefine yönleneceğini söylüyor. Aynı durum için iki farklı davranış tanımlanmıştır (4).
+> Öneri: Çıkış ucu için açık bir §2 istisnası tanımlayın veya UC-77’nin tekrar gönderim davranışını girişe yönlendirme kuralına uyarlayın.
+>
+> SONUÇ: 2 BULGU
+
+**Parça 7** (§5–§8):
+> SONUÇ: TEMİZ
+
+**Parça 8** (§9 · §10):
+> SONUÇ: TEMİZ
+
+## 3. Bağımsız değerlendirme
+
+Her bulgu dokümanın tamamına (v0.20) ve ilgili yerde `02` v0.92, `03` v0.39, `04` v0.39, `05` v0.28, `06` v0.30'a karşı okundu. **Koşum (K-1207):** her bulguyu önce bir Sonnet / low doğrulayıcı okudu; altısını da "çürütüldü" dedi (şiddet Düşük, sınıf yok) — kural gereği (çürütülen bulgular ikinci bakışa gider) altısı da ikinci, ayrı bir Sonnet / low doğrulayıcıdan geçti (temiz bağlam; birincinin kararı verilmedi). İki doğrulayıcı altı bulguda da ayrışmadı. Yönetici ajan, doğrulayıcıların dayandığı satırları bizzat okudu: `07` 3692, 3694, 4137, 6361, 3913, 2292; `05` 777, 781; `02` Z-6 (1121). **Önceki turlardan dönen iddia:** F3 (`03 §6.1.1.9`) — 2. turda F3 ve 3. turda F1 olarak reddedilmişti; bu tur yeni gerekçe ya da kanıt getirmedi → **tekrar eden RET** (üçüncü ret; skill Faz 4 madde 5: turun sonucunu belirlemez). Öteki beş iddia yenidir; hiçbiri önceki turlarda görülmemişti.
+
+| # | Çağrı · bulgu | Karar | Gerekçe | Uygulanan düzeltme |
+|---|---|---|---|---|
+| F1 | Birleşim 1 · BULGU-1 (§2.3.1; §4.22.2–§4.22.3) | ❌ RET | **Çelişen iki durum aynı anda var olmaz.** §2.3.1 (satır 3692) çerez yasağını *"çerez politikası ilk kez yayına alınana kadar"* koyar ve `05 §6.7.10` (satır 781) mekanizmayı açıklar: asıl güvence **kapalı kapılardır** — satış ve veri toplayan girişler (`02 §3.1.5`) çerez gerektiren işlevleri zaten kapatır, ara katman ikinci kattır; kapı yayın anından sonraki ilk istekte açılır, geri kapanmaz. Kayıt ve Google ile ilk giriş kapalıyken politika yayımlanmadan hiçbir müşteri hesabı doğamaz; §4.22.2 (şifreyle giriş, satır 4598) ve §4.22.3 (Google dönüşü, satır 4606) oturum çerezi yazması gereken koşulda — yasağın sürdüğü dönemde — çalışacak bir hesap yoktur. "Başarılı giriş hem gerçekleşip hem kalıcı oturum kuramaz" durumu oluşmaz; yasak kalktığında giriş çerez yazar. İki doğrulayıcı da çürüttü; ikisi de bunun en fazla "§4.22.2 bağımlılığı anmıyor" biçiminde bir ifade eksiği olduğunu yazdı — ölçünün sınıfı değil. | — |
+| F2 | Parça 3 · BULGU-1 (kalite döngüsü notu; §1.1.6 `04` 9.25.5; §1.1.7 `04` 6.2.28.3 — UC-187) | ❌ RET | **Eksik iddia yanlış; alıntı 1. turun değişiklik notundan.** Alıntı başlık notundaki 1. tur kaydıdır (*"UC-187'de ele alınmamıştı — UC-76'nın 422 yolu eklendi"*): **önceki** hâli ve yapılan eklemeyi anlatır. UC-187'nin 422 kolu v0.18'den beri yazılıdır: satır 6361 *"eski adres o arada doğrulanmış başka bir yönetici hesabının adresi oldu: geri alma uygulanmaz, bağlantının tüketimi geri döner ve sayfa 9.25.5'in hâlini gösterir (K-1210; K-1218; UC-76 ve UC-186'nın simetrisi)"*, satır 6362 *"422'de hiçbir şey yazılmaz"*, hata tablosu satır 5217 `EmailTakenByOtherAccount` için UC-76'yla birlikte UC-187'yi sayar. Saldırı senaryosu da tutmaz: tüketim geri döndüğü için bağlantı kullanılabilir kalır, hesabın e-postası değişmez, kurtarma yolu kapanmaz (9.25.5 başka yönetici ya da kurulum yolunu gösterir). 1. turun F1'inin (kabul) aynı yere işlenmiş hâlidir; model işlenmiş düzeltmeyi başlık notunun cümlesinden "eksik" diye okudu. İki doğrulayıcı da çürüttü. | — |
+| F3 | Parça 4 · BULGU-1 (§1.1.10 `03 §6.1.1.9`; §1.1.9 `03 §3.4.14`) | ❌ RET (**tekrar eden RET** — 2. tur F3, 3. tur F1) | **İki ayrı olay; çelişki yok.** `03 §6.1.1.9` (`03` satır 1100) limit (L-9) isteği **engellediğinde** konuşur: *"İstek engellenir; kayıt silinmez, önceki bağlantı ömrü içinde geçerli kalır"* — yeni bağlantı üretilmediği için eskisi kalır. `03 §3.4.14` (satır 827), `§7.1.49` (satır 1277), `§9.1.3` (satır 1631) ve `06` (satır 844) başarılı yeni isteği anlatır: öncekiler geçersizleşir, ömür uzamaz. `04` 7.3.3.9 (satır 4642) aynı bağlamda L-9'un engel davranışını söyler. Aynı bağlantının hem kabul hem reddedilmesi oluşmaz. Yeni gerekçe yok; iki doğrulayıcı da çürüttü ve ikisi de matris özet satırlarının (`07` 2292 ve 2892: *"önceki bağlantı geçerli kalır"*) "engellendiğinde" niteliğini taşımadığını — yüzeyde çelişki gibi göründüğünü — okunabilirlik meselesi diye not etti. Matris satırının kaynağa uygunluğu ölçünün dışındadır (istem: matris satırının özetini denetleme); gövde tek ve tutarlıdır. | — |
+| F4 | Parça 4 · BULGU-2 (§1.1.9 `03 §2.3`, `03 §4.1.6`; §1.1.12 `05 §6.7.8`) | ❌ RET | **Z-6 "boşalma" kuralıdır, ömür kuralı değil; çelişki dokümanın kendi gövdesinde çözülü.** `02` Z-6 (satır 1121): *"Kendiliğinden boşalmaz: misafirin sepeti tarayıcının verileri silinene, üyeninki hesap durdukça yaşar"*. `05 §6.7.8` (satır 777) çelişkiyi açıkça ele alır: misafir çerezi 400 gün açılmazsa sunucudaki sepet silinir — *"sepete artık hiçbir tarayıcı ulaşamaz"* — ve Z-6'nın "tarayıcının verileri silinene kadar" kuralı *"tarayıcının sınırıyla karşılanır"*; 400 gün çerez ömrünün teknik tavanıdır (`05 §6.7.5`), silme eşiği bu sınırın karşılığıdır. Kalıcılığın dayanağı bilinçli karardır (K-950; `05` satır 777), `06` (satır 5936, 2290) ve `05` 11.1.32 (satır 1376) aynı eşiği taşır; `07` bu üst dokümanları yalnız eşler (satır 2515, 2786, 3327). Üye sepeti hesapta durur, süresizlik korunur. Para ya da hak kaybı yok: silinen, 400 gündür hiçbir tarayıcının açamadığı misafir sepetidir. Ölçünün sınıfı yok. İki doğrulayıcı da çürüttü. | — |
+| F5 | Parça 6 · BULGU-1 (§4.29.1 UC-30) | ❌ RET | **Bilinçli ertelenmiş karar; iki yöntem de envanterde yazılı.** UC-30 envanter satırı (satır 3913) *"GET `/odeme/donus/{erişim anahtarı}` — sağlayıcı POST'la dönüyorsa aynı adreste POST; yöntemi `08`"* der ve POST için *"form · 64 KB"* sütununu taşır; §4.29.1 (satır 4820) aynı koşullu ifadeyi taşır ve POST'u sahteciliğe karşı korumanın dışında bırakır; hata tablosu (satır 5130) *"korumanın dışındaki uçlar (§2.5.5) hariç"* der. Sağlayıcının seçimi `05 §3.6.4` ile `08`'e bırakılmıştır; `05 §6.5.1` *"ödeme dönüşü POST'la geliyorsa ikinci istisna"* der; `08` park satırı A4-3 yolu ve yöntemi *"bu aşamanın ve `07`'nin kararı"* diye bırakır (satır 3249, 3239, 3307). Yöntemi şimdi tek yönteme kilitlemek verilmemiş bir sağlayıcı kararını önceden vermek olurdu; dönüşün gövde ve sorgu değerleri okunmadığı için (satır 5040) POST gelse de durum yazılmaz. Çelişen iki yer yok, ölçünün sınıfı yok. İki doğrulayıcı da çürüttü. | — |
+| F6 | Parça 6 · BULGU-2 (§4 ortak yanıtlar; §4.34.1 UC-77) | ❌ RET | **İstisna §2.3.2'nin son cümlesinde yazılı; alıntı onu atlamış.** §2.3.2 (satır 3694) oturumu kapanmış POST'u girişe yönlendirir ve **hemen ardından** der: *"Çıkış (UC-77, UC-109) bu kuralın dışındadır: oturumsuz çıkış isteği yazmaz ve çıkışın yönlendirmesini alır."* Ortak yanıtlar cümlesi (satır 4137) kuralı `(§2.3.2)` atfıyla verir; istisna aynı bölümdedir. UC-77 (satır 4904–4911): *"tekrar gönderim oturumu bulamaz — aynı yönlendirmeyi alır, hiçbir şey yazılmaz"* — "aynı yönlendirme" çıkışın kendi `returnUrl` yönlendirmesidir. Bulgunun önerdiği "çıkış için açık bir §2 istisnası" zaten vardır. Genel kural ile onun istisnasıdır, iki yer çelişmez; kullanıcı çıkışsız kalmaz. 3. turun F6'sıyla (§2.7.1) aynı kalıp — genel cümle istisnanın evine atıf yapar. İki doğrulayıcı da çürüttü. | — |
+
+**Dağılım:** altı ayrı bulgu (altı ham bulgu) — 0 KABUL · 0 KISMİ · 6 RET. **%100 ret şüphelidir:** bu yüzden her bulgu ikinci bir temiz bağlamlı doğrulayıcıdan geçti ve yönetici ajan doğrulayıcıların dayandığı satırları (§2.3.2, §4.22.2–3, UC-187, UC-30, `05 §6.7.8`, `05 §6.7.10`, `02` Z-6) bizzat okudu; retlerin hepsi dokümanın yazılı kararına, ilgili cümlenin atlanan devamına ya da üst dokümanın yazılı mekanizmasına dayanır. Önceki üç turun dökümü 1. tur 4 kabul · 1 kısmi · 2 ret, 2. tur 0 · 1 · 7, 3. tur 0 · 1 · 6; bu tur ilk kez kısmi de çıkmadı. **Örüntü:** altı bulgunun beşi bölümün atlanan cümlesine ya da tam metne bakmayan parçalı okumadan (F1: kapı yapısı, F2: değişiklik notunun cümlesi, F5: ertelenmiş karar, F6: §2.3.2'nin son cümlesi, F4: `05 §6.7.8`'in çözümü) doğan okuma farklarıdır; biri (F3) üçüncü kez dönen iddiadır. **Sınıf:** kabul edilen bulgu yok; yeni yüzey açılmadı. Faz 2 hukuki kontrolü: hiçbir bulgu yasal dayanak anmadı.
+
+## 4. Ek bulgular
+
+- **Aynı kalıbın taraması.** Kabul yok; taranacak kalıp yok. Doğrulayıcıların not ettiği iki okunabilirlik ayrıntısı (`07` 2292 ve 2892'deki matris özetlerinin "engellendiğinde" niteliğini taşımaması; §4'ün ortak yanıt cümlesinin çıkış istisnasını anmaması) ölçünün sınıfı değildir ve uygulanmadı.
+- **Mekanik tarama.** `07`'nin içeriği değişmedi: kümeler ve çiftler (5.073 · 2.319 · 187), hata kodu sayıları ve uç sayısı aynıdır; yalnız başlık sürümü, başlık notuna eklenen 4. tur kaydı ve dosya sonu dipnotu v0.21'e gitti.
+- **Devredilen not (F3 — checkpoint), 1. turdan açık.** `05 §7.7.4` ve K-884 hakkın "düğmeye basıldığında **ve** sunucu dosyayı göndermeye başladığında" düştüğünü söyler; `07` §4.16.3 ve §4.31.1 tek adımı — UC-36'nın düğmesini — anlatır. Düşük şiddetlidir, `07`'nin bulgusu değildir; `05` cümlesine "bağlantı üretildiği an" eklemek istenirse Aşama 6'nın checkpoint'inde yapılır. Bu turda da yeniden gelmedi; açık not olarak taşınır ve etki sütununa checkpoint'te bağlanır.
+- **Devredilen not — §2.7.1'in genel cümlesi (3. turun F6'sı), açık.** *"Sürüm çakışması ve gösterilen değerin tutmaması 409"* cümlesi tek başına okunduğunda kabadır (geçici kapatma anahtarı ve müşterinin kalem işlemleri 303 alır); ölçünün sınıfında değildir. Bu turun F6'sı aynı kalıptır (genel cümle istisnanın evine atıf yapar). Açık not olarak taşınır.
+- **Yeni devredilen not — matrisin L-9 özet satırları (F3).** `07` 2292 (§1.1.9 `04` 7.3.3.9) ve 2892 (§1.1.10 `03 §6.1.1.9`) *"önceki bağlantı geçerli kalır"* diye özetler; kaynak cümle limit **engelinde** konuşur. Üç turda dönen bu iddia hep matris özetidir ve istem matris özetlerinin kaynağa uygunluğunu denetletmez; gövde tektir. Düzeltmesi istenirse ("(engellenen istekte)") checkpoint'in iç tutarlılık merceği "özet cümlesi gövdenin niteliğini taşımıyor" sınıfını dokümanın tamamında arar; açık not olarak taşınır.
+- **Ciddi bir sorun daha görülmedi.** Değerlendirme sırasında ikinci modelin listesi dışında ölçünün dört sınıfından birine giren bir sorun saptanmadı.
+
+## 5. Kullanıcı onay checklist'i
+
+K-1144 kararıyla (⚠ öneriyle kayıt, `docs:` PR'ında CI yeşilse merge yetkisi, yönetici + alt ajan düzeni) alt ajan değerlendirdi (`07` v0.21 — içerik değişmedi); K-1207 gereği Claude alt ajanları yalnız Sonnet / low koştu. Bir karar öneriyle kaydedildi, ⚠ değildir: **K-1222** — 4. turun sonucu, ilk "tekrar eden RET" kaydı ve ciddiyet ölçüsünün uygulanış teyidi. ⚠ listesine ekleme yok.
+
+- [x] F1 (ret — kapalı kapılar; yasağın sürdüğü dönemde giriş yapacak hesap yoktur)
+- [x] F2 (ret — alıntı 1. turun değişiklik notu; UC-187'nin 422 kolu v0.18'den beri yazılı)
+- [x] F3 (ret — iki ayrı olay; **tekrar eden RET**, üçüncü ret)
+- [x] F4 (ret — Z-6 boşalma kuralı; 400 gün tarayıcı sınırının karşılığı, `05 §6.7.8`)
+- [x] F5 (ret — dönüş yöntemi `08`'e bilinçle bırakılmış; iki yöntem envanterde)
+- [x] F6 (ret — çıkış istisnası §2.3.2'nin son cümlesinde)
+- [x] 4. tur — koştu (yukarıda, "Tur 4" bölümü); TEMİZ değil
+- [ ] 5. tur — 4. turda hiçbir bulgu kabul edilmedi; TEMİZ aranır. Aynı istem, aynı betikler, aynı parça sınırları; Birleşim 1 ve 2 ile sekiz parça. **5. turdan itibaren çıkış kuralı işler** (skill Faz 4 madde 5): kabul edilen bulguların hepsi düşük şiddette metin farkıysa ya da hiç yoksa, bulgular uygulanır ve döngü o turda "TEMİZ — çıkış kuralıyla, 5 tur" diye kapanır; bir ret dördüncü kez gelirse yine "tekrar eden RET"tir
 - [ ] Etki yansıtma (Faz 5) — döngü TEMİZ döndükten sonra, son turun raporunda

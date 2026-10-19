@@ -391,5 +391,163 @@ K-1144 kararıyla (⚠ öneriyle kayıt, `docs:` PR'ında CI yeşilse merge yetk
 - [x] F6 (ret — istisna hücrede yazılı)
 - [x] F7 (ret — istisna ortak kuralın cümlesinde)
 - [x] F8 (ret — satır ile kayıt ayrı nesne)
-- [ ] 3. tur — 2. turda bir kısmi bulgu uygulandı (düşük şiddette sayı metni farkı); TEMİZ aranır. Aynı istem, aynı betikler, aynı parça sınırları; Birleşim 1 ve 2 ile sekiz parça
+- [x] 3. tur — koştu (aşağıda, "Tur 3" bölümü)
+- [ ] Etki yansıtma (Faz 5) — döngü TEMİZ döndükten sonra, son turun raporunda
+
+---
+
+# Cross-Review — 07 API Design (Tur 3)
+
+**Tarih:** 2026-10-19 · **Hedef:** `Docs/07_API_DESIGN.md` v0.19 (girdi commit'i `58c8e17`, 1 190 211 bayt, 6 401 satır) · **İkinci model:** Codex CLI — ChatGPT hesabı, `gpt-5.6-terra`, düşünme düzeyi yüksek (salt okuma) · **Ciddiyet ölçüsü:** 1. turla aynı (K-1219) · **Koşum:** 1. ve 2. turla aynı iki biçim — **iki birleşim** ve **sekiz parçalı kontrol koşumu**, aynı istem, aynı parça notu, aynı şablon (SHA-256 ilk 16 hane: istem `76e57ac0e4326f90`, parça notu `2b150c8107b170bb`, şablon `dfc8aa759c1e01c5` — 2. turla aynı; doküman v0.19 `44badc482724d803`), aynı betikler, parça sınırları başlıkla (K-1219) · **Tek parça çağrı:** yeniden denenmedi — girdi 1 094 838 karakter, sınır 1 048 576 (1. ve 2. turda aynı hatayla döndü; yönetici talimatı) · **Girdi:** yalnız doküman ve boş şablonu, her çağrıda boş ve izole çalışma klasöründe (K-431) · **Kullanım sınırı:** dolmadı — on çağrının hepsi çıktı verdi; yedeğe geçilmedi · **Sonuç:** TEMİZ değil — yedi ham bulgu (yedisi ayrı), 0 KABUL · 1 KISMİ · 6 RET; kısmi olan uygulandı (`07` v0.20); üç ret, 2. turda reddedilmiş iddianın dönüşüdür (yeni gerekçe yok; ikinci ret) · **Değerlendirme modeli:** Claude alt ajanları yalnız Sonnet / low (K-1207); Codex dışarıdadır
+
+## 1. Koşum
+
+**Betikler** 1. turdakilerdir (`C:\Users\TEKNOD~1\AppData\Local\Temp\claude\c--projects-Shopfolio\422e2f0a-46a6-4ced-809c-e90f0f447f55\scratchpad\cr07\`: `build_inputs.py`, `run_codex.sh`, `prompt.txt`, `partnote.txt`, `template07.md`); girdi klasörü bu tur için `..\cr07r3\in`, çıktı `..\cr07r3\out`. Komutlar: `python -I build_inputs.py Docs/07_API_DESIGN.md template07.md prompt.txt partnote.txt <girdi>` — kapsanmayan satır `none`; `bash run_codex.sh <girdi> <çıktı> c1 c2 p1 p2 p3 p4 p5 p6 p7 p8`. İstem ve parça notu 1. turun §1'indeki alıntı bloklarıdır, değiştirilmedi.
+
+**Parçalar** (sınırlar 1. turdakiyle aynı başlıklar; satır numaraları v0.19'undur ve kaymıştır):
+
+| Parça | Bölümler | Satırlar | Girdi | Token | Süre | Sonuç |
+|---|---|---|---|---|---|---|
+| 1 | §1'in girişi · §1.1.1–§1.1.2 | 111–638 | 135 518 bayt | 66 503 | 152 sn | 1 bulgu |
+| 2 | §1.1.3–§1.1.5 | 639–1242 | 152 003 bayt | 66 902 | 37 sn | `SONUÇ: TEMİZ` |
+| 3 | §1.1.6–§1.1.8 | 1243–2296 | 238 274 bayt | 100 179 | 110 sn | 1 bulgu |
+| 4 | §1.1.9–§1.3 | 2297–3612 | 326 572 bayt | 131 069 | 30 sn | `SONUÇ: TEMİZ` |
+| 5 | §2 · §3 | 3613–4119 | 158 651 bayt | 64 279 | 247 sn | 1 bulgu |
+| 6 | §4 | 4120–4915 | 188 037 bayt | 73 231 | 177 sn | `SONUÇ: TEMİZ` |
+| 7 | §5 · §6 · §7 · §8 | 4916–5411 | 130 161 bayt | 55 412 | 248 sn | `SONUÇ: TEMİZ` |
+| 8 | §9 · §10 | 5412–6401 | 231 012 bayt | 84 779 | 37 sn | 1 bulgu |
+
+| Çağrı | Parçalar | Girdi | Karakter | Token | Süre | Sonuç |
+|---|---|---|---|---|---|---|
+| Birleşim 1 | 2 · 3 · 4 · 5 · 6 · 7 · 8 | 1 114 479 bayt | 1 017 624 | 8 868 (CLI'nin bildirdiği; Birleşim 2'nin yarım milyonluk sayısına göre düşük — sayaç farkı, çıktı eksiksiz) | 293 sn | 3 bulgu |
+| Birleşim 2 | 1 · 3 · 4 · 5 · 6 · 7 · 8 | 1 098 030 bayt | 1 004 096 | 408 954 | 127 sn | `SONUÇ: TEMİZ` |
+
+**Kapsam sınırı ve web.** Parça öteki bölümleri görmez; birleşimler parçalar arası okumayı yapar (yalnız matrisin parça 1'i ile parça 2'si buluşmaz — K-1219). Yönetici değerlendirmesi her iddiayı dokümanın tamamına ve ilgili yerde `02` v0.92, `03` v0.39, `04` v0.39, `05` v0.28, `06` v0.30'a karşı okudu. **Web araması:** on çağrının hiçbirinde `web search` satırı yok; hiçbir bulgu yasal dayanak anmadı — Faz 2 madde 5 (hukuki kontrol) konusuz. **Toplam:** on Codex çağrısı, 1 060 176 token (CLI'nin bildirdiği; Birleşim 1'in sayısı düşük bildirilmiş olabilir — gerçek yük 1,4 milyon civarıdır).
+
+## 2. Ham bulgular
+
+İkinci modelin çıktıları, satır sonu boşlukları dışında düzenlenmeden (alıntı blokları içinde).
+
+**Birleşim 1** (parça 2–8):
+> BULGU-1
+> Kriter: Güvenlik
+> Seviye: Yüksek
+> Yer: §1.1.8 — `04` 7.3.3.9
+> Alıntı: "L-9 — doğrulama bağlantısının yeniden istenmesi ve bekleyenin yerine geçen yeni e-posta isteği; önceki bağlantı geçerli kalır"
+> Sorun: Bu, UC-49, UC-67 ve UC-180 tanımlarındaki “öncekiler … geçersizleşir — `SupersededAt`” kuralıyla çelişir. Önceki bağlantı geçerliyse, yerine geçen e-posta değişikliğinin eski bağlantısı daha sonra kullanılarak hesabın e-postası istenmeyen eski adrese değiştirilebilir. Bu, hesap erişimi açısından ciddi bir güvenlik çelişkisidir (4).
+> Öneri: `04` 7.3.3.9 matris özetini ve ilgili L-9 açıklamalarını, yeni bağlantının önceki bağlantıyı koşullu olarak geçersizleştirdiğini açıkça söyleyecek biçimde düzeltin.
+>
+> BULGU-2
+> Kriter: Tutarlılık
+> Seviye: Orta
+> Yer: §2.2.2 / §9.26.2 — UC-117
+> Alıntı: "**Yanıt (başarı):** 200 — kayıt yazılmadığı için yönlendirme yoktur"
+> Sorun: §2.2.2, başarılı yazan her POST’un 303 ile yönlendirilmesini zorunlu tutar. UC-117 ise 200 döndüğünü söyler; aynı tanımın yan etkisinde bağsız bir `Image` kaydının yazıldığı belirtilir. Bu doğrudan çelişkidir (4); 200 yanıtının yenilenmesi görüntü yüklemesini yeniden gönderebilir.
+> Öneri: UC-117’yi 303 ile GET’e yönlendirecek biçimde tasarlayın ve form değerlerini koruma mekanizmasını tanımlayın; bu tercih edilmiyorsa §2.2.2’ye UC-117 için açık istisna ile yeniden gönderim davranışını ekleyin.
+>
+> BULGU-3
+> Kriter: Tutarlılık
+> Seviye: Orta
+> Yer: §6.2.2 — `InvalidDateRange`
+> Alıntı: "| `InvalidDateRange` | 422 | Bitiş başlangıçtan önce (`04` 7.3.2.12); liste GET'inde aynı kural alan mesajıdır ve durum 200'dür"
+> Sorun: Kodun HTTP sütunu 422 iken aynı satır, UC-105 ve UC-106 liste GET’lerinde aynı kodun 200 döndüğünü söylüyor. `InvalidDate` satırında da aynı çelişki vardır. Bu, hata kodu ve HTTP davranışını uygulama/test için belirsiz bırakır (4).
+> Öneri: Her iki satırın HTTP sütununu açıkça “422 (POST) / 200 (GET)” yapın veya GET doğrulaması için ayrı kodlar tanımlayın.
+>
+> SONUÇ: 3 BULGU
+
+**Birleşim 2** (parça 1, 3–8):
+> SONUÇ: TEMİZ
+
+**Parça 1** (§1'in girişi, §1.1.1–§1.1.2):
+> BULGU-1
+> Kriter: Tutarlılık
+> Seviye: Orta
+> Yer: §1 alt bölüm haritası, §1.3 satırı
+> Alıntı: "geri besleme satırı 19 — GAP-14 (2), K-1183 (yazım 2b), K-1192 (yazım 3a), K-1199…K-1204 (audit), K-1208…K-1217 (deep review)"
+> Sorun: Listelenen satırlar 2 + 1 + 1 + 6 + 10 = 20 eder; belirtilen toplam 19’dur. Bu, geri besleme izlenebilirliğinde dokümanın kendi içinde çelişkidir (sınıf 4) ve hangi geri besleme kaydının kapsamda olduğunun belirsiz kalmasına yol açar.
+> Öneri: Toplamı 20 olarak düzeltin veya kapsam dışı tutulacak kaydı açıkça belirtip listedeki K aralığını ve §1.3 tablosunu buna göre hizalayın.
+>
+> SONUÇ: 1 BULGU
+
+**Parça 2** (§1.1.3–§1.1.5):
+> SONUÇ: TEMİZ
+
+**Parça 3** (§1.1.6–§1.1.8):
+> BULGU-1
+> Kriter: Tutarlılık
+> Seviye: Orta
+> Yer: §1.1.6 giriş / `04` 7.2.15.1
+> Alıntı: “E-37'nin bütün işlemleri siparişin sürümünü taşır ve sipariş değiştiyse uygulanmaz” / “İç not — tek serbest metin, müşteriye görünmez; ekranın gösterdiği değere karşı yazılır”
+> Sorun: İç not E-37 işlemi olmasına rağmen sipariş sürümü yerine alanın gösterilen değerine göre koşullu yazılır. Bu, E-37’deki tüm işlemlerin sipariş sürümü değişince uygulanmayacağı kuralıyla çelişir (sınıf 4).
+> Öneri: UC-152’yi açık istisna olarak belirtin: iç notun sipariş sürümü değil kendi gösterilen değeriyle denetlendiğini ve sipariş sürümü değişse de uygulanıp uygulanmayacağını kesinleştirin.
+>
+> SONUÇ: 1 BULGU
+
+**Parça 4** (§1.1.9–§1.3):
+> SONUÇ: TEMİZ
+
+**Parça 5** (§2 · §3):
+> BULGU-1
+> Kriter: Tutarlılık
+> Seviye: Orta
+> Yer: §2.4.3, §2.7.1
+> Alıntı: “Müşterinin işleminde gösterilen açık adet tutmazsa … istek bütünüyle uygulanmaz: 303 → kök” / “sürüm çakışması ve gösterilen değerin tutmaması 409”
+> Sorun: Aynı “gösterilen değer” uyuşmazlığı için iki farklı HTTP sonucu tanımlanmış. Bu, özellikle kalem iptali ve cayma uçlarında (UC-40, UC-43) istemcinin, testlerin ve hata akışının hangi davranışı uygulayacağını belirsizleştirir; dokümanın kendi iç çelişkisidir (4).
+> Öneri: §2.7.1’i açık istisnalarla düzeltin: müşteri işlemlerindeki `OriginalOpenQuantity` ve geçici kapatma anahtarı uyuşmazlıklarının 303 ile güncel hâle yönlendirilmesini yazın; yalnız 409 dönen gösterilen-değer uyuşmazlıklarını ayrı belirtin.
+>
+> SONUÇ: 1 BULGU
+
+**Parça 6** (§4):
+> SONUÇ: TEMİZ
+
+**Parça 7** (§5–§8):
+> SONUÇ: TEMİZ
+
+**Parça 8** (§9 · §10):
+> BULGU-1
+> Kriter: Tutarlılık
+> Seviye: Orta
+> Yer: §9.9 ortak kural / §9.9.31 UC-152
+> Alıntı: “her form siparişin `Version`'ını taşır” / “Sürüm taşımaz.”
+> Sorun: Sipariş ayrıntısının ortak kuralı UC-152 dâhil tüm formlarda sipariş sürümünü zorunlu kılarken, iç not formu bunu açıkça dışlar. Aynı uç için iki farklı eşzamanlılık sözleşmesi oluşuyor; bu, dokümanın kendi güvencesiyle çelişkidir (4).
+> Öneri: Ortak kurala UC-152’nin açık istisnasını ekleyin ve iç notun yalnız `Original…` değeriyle koşullu yazıldığını belirtin; ya da UC-152’ye `Version` alanını ekleyin.
+>
+> SONUÇ: 1 BULGU
+
+## 3. Bağımsız değerlendirme
+
+Her bulgu dokümanın tamamına (v0.19) ve ilgili yerde `02` v0.92, `03` v0.39, `04` v0.39, `05` v0.28, `06` v0.30'a karşı okundu. **Koşum (K-1207):** her bulguyu önce bir Sonnet / low doğrulayıcı okudu; yedi bulgunun altısını "çürütüldü" dedi, biri doğrulandı (düşük) — kural gereği (çürütülen ve orta ya da yüksek iddialı bulgular ikinci bakışa gider) yedisi de ikinci, ayrı bir Sonnet / low doğrulayıcıdan geçti (temiz bağlam; birincinin kararı verilmedi). F5 ve F7 tek ajanda ayrı hükümlerle okundu (aynı konu, iki ayrı yer). İki doğrulayıcı F2 ve F5'te ayrıştı; son hüküm yönetici ajandadır (satır 3668, 6380–6383; 571, 1245, 3712, 5632 okundu). **2. turdan tekrar eden iddialar:** F1 (2. tur F3), F3 (2. tur F6), F7 (2. tur F7) — bu tur yeni gerekçe ya da kanıt getirmedi; doğrulayıcılar yeni bir şey olup olmadığını ayrıca yazdı (hayır). Üçü bu raporda **ikinci ret** olarak kaydedilir; bir daha dönerse "tekrar eden RET" sayılır ve turun sonucunu belirlemez (skill Faz 4 madde 5).
+
+| # | Çağrı · bulgu | Karar | Gerekçe | Uygulanan düzeltme |
+|---|---|---|---|---|
+| F1 | Birleşim 1 · BULGU-1 (§1.1.8 — `04` 7.3.3.9, L-9) | ❌ RET (ikinci ret — 2. tur F3) | **İki ayrı olay; çelişki yok.** Matris satırı (satır 2290) `04` 7.3.3.9'un özetidir; `04` L-9'un *limit mesajını* tarif eder ve yer sütunu "önceki bağlantı ömrü içinde geçerli kalır" der. `03 §6.1.1.9` (satır 1100): *"İstek engellenir; kayıt silinmez, önceki bağlantı ömrü içinde geçerli kalır"* — limit aşılınca yeni bağlantı üretilmez, bu yüzden eskisi kalır. Başarılı yeniden istek ise `03 §7.1.49` (satır 1277), `§9.1.3` (satır 1631), `04` 5.20.7 ve `07`'nin UC-49, UC-67, UC-180 yan etkilerinde öncekileri `SupersededAt`'a düşürür. İddia edilen saldırı (yerine geçen e-posta değişikliğinin eski bağlantısıyla adres değiştirme) `SupersededAt` yüzünden oluşmaz; "Yüksek" güvenlik iddiası dayanaksızdır. İki doğrulayıcı da çürüttü, ikisi de yeni gerekçe bulmadı. | — |
+| F2 | Birleşim 1 · BULGU-2 (§2.2.2 / §9.26.2, UC-117) | ❌ RET (yönetici hükmü — doğrulayıcılar ayrıştı) | **Bilinçli karar; çelişki yok.** İlk doğrulayıcı Düşük / (4) ile doğruladı, ikinci doğrulayıcı çürüttü; hüküm yöneticide. §2.2.2 (satır 3668) yönlendirmeyi *yazan ve başarılı* POST'a koşar; yazmayan POST'u — *ara gönderim* dahil — sayfayı gönderilen değerlerle yeniden göstermeye bağlar. UC-117 (satır 6380) *formun kaydı* yazılmadığı için yönlendirmez ve aynı kalıpla formu bütün girdileriyle yeniden gösterir; görselin kayda bağlanması formun kaydındadır (UC-114, UC-158, UC-163). Yan etkideki bağsız `Image` satırı (satır 6382) formun kaydı sayılmaz: kaydın sürümü değişmez, işlem izine yazılmaz. Karar K-1171 (5)'tedir ve "yönlendirme yoktur" bilinçle yazılmıştır. Yenileme riski kapalıdır: *"her gönderim yeni bir bağsız görseldir"* (satır 6383), bağsız görsel bir gün sonra imhada silinir; para ya da hak kaybı yok, kullanıcı çıkışsız kalmaz (form girdileri korunur). Önerilen 303, yüklemenin sürerken form girdilerini korumasını bozar. Ölçünün sınıfı yok. | — |
+| F3 | Birleşim 1 · BULGU-3 (§6.2.2 — `InvalidDateRange`, `InvalidDate`) | ❌ RET (ikinci ret — 2. tur F6) | **İstisna aynı satırda iki yerde yazılı.** Satır 5154: HTTP sütunu `422`, açıklama hücresi *"liste GET'inde aynı kural alan mesajıdır ve durum 200'dür (§2.6.6)"*, kullanım sütunu *"UC-105, UC-106 — liste GET'inde, 200"*; satır 5153 (`InvalidDate`) aynı kalıpta; §2.6.6 (satır 3764) ve satır 3628 aynısını söyler. İddianın alıntısı kullanım sütununu atlamış. Tabloda bu kalıp tek tip değil (`SalesClosed` `422 · 303` biçimini HTTP sütununda, `DeliveryProvinceNotServed` ve `InvalidDate` açıklama / kullanım sütunlarında taşır) — bu yazım kalıbı farkıdır, çelişki değildir; 200 yanıtında hata kodu zaten yoktur (alan mesajı gövdede gider). İki doğrulayıcı da çürüttü, yeni gerekçe yok. | — |
+| F4 | Parça 1 · BULGU-1 (§1 alt bölüm haritası, §1.3 satırı) | ❌ RET | **Sayım yanlış okunmuş.** Başlık notunun §1.3 hücresi *"geri besleme satırı 19 — GAP-14 (2), K-1183 (yazım 2b), K-1192 (yazım 3a), K-1199…K-1204 (audit), K-1208…K-1217 (deep review)"* der; `GAP-14 (2)` parantezi satır sayısı değil **matrisin 2. oturumunun** numarasıdır (satır 3581 *"2 (2026-10-18; K-1161)"*, satır 3591 *"matrisin 2. oturumu"*; aynı hücrenin başındaki *"✓ (2) — GAP-14"* de aynı). §1.3'ün geri besleme tablosunun veri satırları 3591–3609 arasındadır ve 19 tanedir: GAP-14/K-1161 1 · K-1183 1 · K-1192 1 · K-1199…K-1204 6 · K-1208…K-1217 10 = 19. Başlık notunda "geri besleme satırı N" biçiminde ikinci bir sayı yok. İki doğrulayıcı bağımsız saydı, ikisi de 19 buldu. | — |
+| F5 | Parça 3 · BULGU-1 (§1.1.6 giriş / `04` 7.2.15.1) | ⚠️ KISMİ (Düşük — (4), yönetici hükmü — doğrulayıcılar ayrıştı) | **Gövde doğru, iki özet yeri "bütün" diyordu.** `04` 7.2.15.1 satırı doğru yazıyor (iç not *ekranın gösterdiği değere karşı yazılır*); sorun matris satırı değil, **§1.1.6'nın giriş cümlesi** (satır 1245: *"E-37'nin bütün işlemleri siparişin sürümünü taşır ve sipariş değiştiyse uygulanmaz"*) ve **UC-123'ün matris hücresi** (satır 571: *"E-37'nin bütün işlemlerinde"*): ikisinde de iç not istisnası yok. Gövde tek ve tutarlı: §2.4.2 (satır 3712) *"iç not hariç; o gösterilen metni taşır"*, §9.9 (satır 5632) aynı, UC-152 *"Sürüm taşımaz"* (K-1051; başlık notu satır 31'de de sayılı). İlk doğrulayıcı Düşük / (4) dedi, ikinci doğrulayıcı gövdenin güvenceyi bozmadığını (UC-152'nin iç not metnine karşı 409'u var) ve cümlenin "özet kabalığı" olduğunu söyledi. Hüküm: ölçünün (4) sınıfında düşük şiddette metin farkı — 1. turun F7'sinde (§8.1.4) aynı sınıf KISMİ ile istisna yazılarak kapandı; "bütün" nicelleyicisi tek başına okuyan uygulayıcıyı yanıltabilir. Önerilen çözüm (iç not istisnası) kabul, gerekçe (güvence bozuluyor / sürüm yerine değer) reddedildi: güvence bozulmuyor. | §1.1.6 giriş cümlesi: *"E-37'nin bütün işlemleri — iç not hariç; o gösterilen metni taşır (§2.4.3; K-1051) — siparişin sürümünü taşır…"*; UC-123 matris hücresi: *"E-37'nin bütün işlemlerinde (iç not hariç; o gösterilen metni taşır — §2.4.3; K-1051)"* |
+| F6 | Parça 5 · BULGU-1 (§2.4.3 / §2.7.1) | ❌ RET | **Aynı olay için iki sonuç yok.** §2.4.3 (satır 3714) gösterilen değerleri değer başına ayırır: iç not ve elle sıra tutmazsa 409; geçici kapatma anahtarı tutmazsa 303 ve güncel hâl (§9.16.3, §9.16.4; K-1194 (1)); müşterinin gösterilen açık adedi tutmazsa 303 → kök (UC-40, UC-43; K-1202). UC-40 (satır 4463) ve UC-43 (satır 4492) hata kollarında bu olay yalnız 303'tür; `QuantityExceedsOpen` §6.2 (satır 5249) ve §6.3.3 (satır 5335) ile tutarlı. §2.7.1 (satır 3780) genel bir cümledir ve **istisnaların yazılı olduğu yere atıf yapar** (*"gösterilen değerin tutmaması 409 (§2.4.3, §2.4.5, §2.4.6)"*); paragrafın sonu adı konmuş hâllerin durum kodunu §6.2'ye bırakır ve *sebebi yönlendirmeyle söyleyen ret 303 döner* der. F5'ten farkı: orada "bütün" nicelleyicisi atıfsız ve istisnayla çelişiyordu; burada cümle istisnanın evine bağlıdır. İki doğrulayıcı da çürüttü (ikincisi cümlenin kaba bir özet olduğunu, çelişki olmadığını yazdı). | — |
+| F7 | Parça 8 · BULGU-1 (§9.9 ortak kural / UC-152) | ❌ RET (ikinci ret — 2. tur F7) | **İstisna ortak kuralın cümlesinde.** Satır 5632: *"her form siparişin `Version`'ını taşır, **iç not gösterilen metni** (§2.4.2, §2.4.3)"* — alıntı cümleyi `iç not gösterilen metni` kısmında kesmiş. UC-152 *"Sürüm taşımaz"* ve *"siparişin sürümü artmaz"*; §2.4.2 (satır 3712) *"iç not hariç"*; K-1051 aynı. Tek sözleşme var. İki doğrulayıcı da çürüttü, yeni gerekçe yok. | — |
+
+**Dağılım:** yedi ayrı bulgu (yedi ham bulgu) — 0 KABUL · 1 KISMİ · 6 RET. **%100 ret şüphelidir:** bu yüzden her bulgu ikinci bir temiz bağlamlı doğrulayıcıdan geçti ve yönetici F2, F5, F6 ile F4'ün ilgili satırlarını bizzat okudu; retlerin altısında iki doğrulayıcı da çürüttü (F2'de ayrıştılar ve hüküm RET), F5'te ayrıştılar ve hüküm KISMİ çıktı. Retlerin hepsi dokümanın yazılı kararına ya da ilgili satırın tam metnine dayanır (K-1171 (5), `03 §6.1.1.9` / `§7.1.49`, §2.6.6, §2.4.3 / §6.2, §9.9 / K-1051); F4 modelin bir parantezi yanlış okumasıdır. Alıntıların atladığı cümle devamı ya da komşu sütun, ikinci modelin bölümleri parçalı görmesinin tipik kalıbıdır. **Sınıf:** KISMİ olan düşük şiddette bir metin farkıdır (özet cümlesinin gövdenin istisnasını taşımaması); yeni bir yüzey açmadı. Kabul edilen bulgu sayısı 1. turda 4, 2. turda 0 (KISMİ 1), bu turda 0 (KISMİ 1): kabul edilenlerin hepsi düşük şiddetli metin farkıdır, orta ya da yüksek yok. Faz 2 hukuki kontrolü: hiçbir bulgu yasal dayanak anmadı.
+
+## 4. Ek bulgular
+
+- **Aynı kalıbın taraması — F5.** `grep` "E-37'nin bütün" / "bütün işlemlerinde": başka yer yok (satır 571 ve 1245 düzeltildi); `04` 7.2.15.1 satırı iç notu zaten gösterilen değere bağlar. "Her form" ya da "bütün işlemleri" biçiminde sürümü genelleyen öteki yerler (§9.9 ortak kural, §2.4.2) istisnayı kendi cümlesinde taşıyor.
+- **Mekanik tarama.** Düzeltme yeni K numarasını yalnız başlık notuna ekledi (K-1221); matris satırı eklenmedi ya da çıkmadı (UC-123 hücresinin metni değişti, satırın eşlemesi değişmedi) — kümeler ve çiftler (5.073 · 2.319 · 187) değişmez; hata kodu sayıları ve uç sayısı değişmez. Başlık sürümü ve dosya sonu dipnotu v0.20'yi gösterir.
+- **Devredilen not (F3 — checkpoint), 1. turdan açık.** `05 §7.7.4` ve K-884 hakkın "düğmeye basıldığında **ve** sunucu dosyayı göndermeye başladığında" düştüğünü söyler; `07` §4.16.3 ve §4.31.1 tek adımı — UC-36'nın düğmesini — anlatır. Düşük şiddetlidir, `07`'nin bulgusu değildir; `05` cümlesine "bağlantı üretildiği an" eklemek istenirse Aşama 6'nın checkpoint'inde yapılır. Bu turda da yeniden gelmedi; açık not olarak taşınır ve etki sütununa checkpoint'te bağlanır.
+- **Yeni devredilen not — §2.7.1'in genel cümlesi (F6).** *"Sürüm çakışması ve gösterilen değerin tutmaması 409"* cümlesi atıfla (§2.4.3) ve §6.2'nin satır satır kodlarıyla desteklenir ve ölçünün (4) sınıfında değildir; ama tek başına okunduğunda kabadır (geçici kapatma anahtarı ve müşterinin kalem işlemleri 303 alır). Uygulanmadı — düzeltmesi istenirse checkpoint'in iç tutarlılık merceği "özet cümlesi gövdenin istisnasını taşımıyor" sınıfını dokümanın tamamında arar (skill Faz 4 madde 5'in devredilen sınıfı); açık not olarak taşınır.
+- **Ciddi bir sorun daha görülmedi.** Değerlendirme sırasında ikinci modelin listesi dışında ölçünün dört sınıfından birine giren bir sorun saptanmadı.
+
+## 5. Kullanıcı onay checklist'i
+
+K-1144 kararıyla (⚠ öneriyle kayıt, `docs:` PR'ında CI yeşilse merge yetkisi, yönetici + alt ajan düzeni) alt ajan değerlendirdi ve uyguladı (`07` v0.20); K-1207 gereği Claude alt ajanları yalnız Sonnet / low koştu. Bir karar öneriyle kaydedildi, ⚠ değildir: **K-1221** — 3. turun sonucu, 2. turdan dönen üç iddianın ikinci ret'i ve özet cümlelerinin gövdenin istisnasını taşıması ilkesi. ⚠ listesine ekleme yok.
+
+- [x] F1 (ret — iki ayrı olay; ikinci ret)
+- [x] F2 (ret — K-1171 (5); formun kaydı yazılmaz, ara gönderim kalıbı)
+- [x] F3 (ret — istisna satırda iki yerde yazılı; ikinci ret)
+- [x] F4 (ret — `GAP-14 (2)` oturum numarası; satır sayısı 19)
+- [x] F5 (kısmi — §1.1.6 giriş cümlesi ve UC-123 hücresine iç not istisnası)
+- [x] F6 (ret — istisnalar §2.4.3'te ve §6.2'de, §2.7.1 atıf yapar)
+- [x] F7 (ret — istisna ortak kuralın cümlesinde; ikinci ret)
+- [ ] 4. tur — 3. turda bir kısmi bulgu uygulandı (düşük şiddette metin farkı); TEMİZ aranır. Aynı istem, aynı betikler, aynı parça sınırları; Birleşim 1 ve 2 ile sekiz parça. Dönen bir ret üçüncü kez gelirse "tekrar eden RET" sayılır
 - [ ] Etki yansıtma (Faz 5) — döngü TEMİZ döndükten sonra, son turun raporunda

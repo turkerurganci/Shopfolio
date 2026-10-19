@@ -1,6 +1,6 @@
 # Shopfolio — API Design
 
-**Versiyon: v0.19** | **Bağımlılıklar:** `02`, `03`, `04`, `05`, `06`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-19
+**Versiyon: v0.20** | **Bağımlılıklar:** `02`, `03`, `04`, `05`, `06`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-19
 
 > **Aşama:** 6 — API Tasarımı · **Rol:** API Designer
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §3'e (endpoint envanteri) geçilmez.
@@ -68,6 +68,8 @@
 > **Kalite döngüsü — cross-review, 1. tur (2026-10-19, v0.18 — K-431, K-1145, K-1218, K-1219):** ikinci yapay zekâ (Codex CLI, `gpt-5.6-terra`) dokümanı yalnız kendisi ve boş şablonuyla okudu — tek parça çağrı girdi sınırını aştı; yerine en büyük iki birleşim ve sekiz parçalı kontrol koşumu koştu (K-1219); ciddiyet ölçüsü 1. turdan uygulandı. Yedi ayrı bulgu geldi (ham on): dördü kabul, biri kısmi, ikisi ret. Kabul: yönetici e-posta değişikliğini geri almada eski adresin başka bir yönetici hesabına geçmiş olması UC-187'de ele alınmamıştı — UC-76'nın 422 yolu eklendi (K-1218); alt bilgi sürümü v0.16'da kalmıştı; matrisin `04` toplamı 1.615 değil 1.616 (+148) ve betik yorumları bayattı; matrisin geri izlenebilirlik betik yorumları (5071) 5.073'e hizalandı. Kısmi: §8.1.4'ün türetilmiş değer cümlesine `Original` önekli gösterilen değer alanları için istisna yazıldı. Ret: hakkın UC-36'da düşmesi (K-884; bilinçli karar, kurtarma yolu yazılı) · /hesap/silindi sonuç ekranının bayat çerezle elle açılışı (K-1184; salt okunur, nadir kenar durum). Rapor: [`CROSS_REVIEW_REPORTS/07_CROSS_REVIEW.md`](CROSS_REVIEW_REPORTS/07_CROSS_REVIEW.md). Üst dokümanlarda değişiklik yok.
 
 > **Kalite döngüsü — cross-review, 2. tur (2026-10-19, v0.19 — K-431, K-1145, K-1220):** aynı istem, aynı betikler ve aynı parça sınırlarıyla (K-1219) iki birleşim ve sekiz parça yeniden koştu; tek parça çağrı girdi sınırını yine aşacağından yeniden denenmedi. Sekiz ham bulgu geldi, sekizi ayrı: yedisi ret, biri kısmi. Kısmi: §1.1.1'in devir ailesi paragrafındaki `e1f()` 212 → 192 cümlesi o günün sayımıdır (`exp05()` o gün 102'ydi, sonra 103 oldu); güncel beklenen küme 193 olduğundan paragrafa ve v0.13 oturum özetine tarih notu düşüldü (K-1220). Ret: onay anahtarı ile doğrulama sırası (K-1206 kalan risk), belirsiz sonuçta misafirin sipariş takibine gidişi (`04` 2.7.3.3, 5.13.31), doğrulama bağlantısının yeniden istenmesi (limit engeli ile başarılı istek ayrı olaydır), çerez politikası ile `__Host-cart` (satış kapısı kapalıyken sepete ekleme reddedilir), `InvalidDate` satırlarının 422 / 200 yazımı (hücrede açık), §9.9'un iç not istisnası (gövdede yazılı), UC-131'in geri ödeme satırı ile kaydı (iki ayrı nesne). Rapor: [`CROSS_REVIEW_REPORTS/07_CROSS_REVIEW.md`](CROSS_REVIEW_REPORTS/07_CROSS_REVIEW.md) (2. tur bölümü). Üst dokümanlarda değişiklik yok.
+
+> **Kalite döngüsü — cross-review, 3. tur (2026-10-19, v0.20 — K-431, K-1145, K-1221):** aynı istem, aynı betikler ve aynı parça sınırlarıyla (K-1219) iki birleşim ve sekiz parça yeniden koştu. Yedi ayrı bulgu geldi: biri kısmi, altısı ret. Kısmi: §1.1.6'nın giriş cümlesi ve UC-123'ün matris hücresi "E-37'nin bütün işlemleri siparişin sürümünü taşır" diyordu; iç not sürüm taşımaz, gösterilen metni taşır (§2.4.3, §9.9; K-1051) — iki özet yerine istisna yazıldı (K-1221). Ret: doğrulama bağlantısının yeniden istenmesi (2. turdan tekrar — limit engeli ile başarılı istek ayrı olaydır) · `InvalidDateRange` ve `InvalidDate` satırlarının 422 / 200 yazımı (2. turdan tekrar — hücrede açık) · §9.9'un iç not istisnası (2. turdan tekrar — ortak kuralın cümlesinde) · UC-117'nin 200 yanıtı (form kaydı yazılmaz, ara gönderim gibi yeniden gösterilir — K-1171 (5)) · geri besleme satırı sayısı 19 (`GAP-14 (2)` oturum numarasıdır; satır 19) · §2.7.1'in 409 cümlesi (istisnalar §2.4.3'te ve §6.2'de). Rapor: [`CROSS_REVIEW_REPORTS/07_CROSS_REVIEW.md`](CROSS_REVIEW_REPORTS/07_CROSS_REVIEW.md) (3. tur bölümü). Üst dokümanlarda değişiklik yok.
 
 **Yazım konvansiyonları (K-1147, K-1173).** Bu on dört madde §2–§10'un bütün yazım oturumlarını bağlar; "yazım konvansiyonu n" diye anılır — §2'nin uçlara uygulanan "konvansiyon n"inden ayrıdır (K-1147 (1)).
 
@@ -568,7 +570,7 @@ Liste nihai envanter değildir (K-1153): uç envanteri `07 §3`'te, GAP kararlar
 | UC-120 | Kategoriyi taşıma | POST | E-34 | Yönetici | Üç seviye ve kendi alt dalı sunucuda reddedilir |
 | UC-121 | Kategoriyi silme | POST | E-34 | Yönetici | İçi doluysa engel; onay yok |
 | UC-122 | Kuponu kaydetme | POST | E-35 | Yönetici | Yeni ve var olan kupon; sürüm (OB-10); kullanım adedinin alt sınırı (K-654) |
-| UC-123 | Havale siparişini "Ödendi" işaretleme | POST | E-37 | Yönetici | Onay; Ö1; siparişin sürümü (K-874) — E-37'nin bütün işlemlerinde |
+| UC-123 | Havale siparişini "Ödendi" işaretleme | POST | E-37 | Yönetici | Onay; Ö1; siparişin sürümü (K-874) — E-37'nin bütün işlemlerinde (iç not hariç; o gösterilen metni taşır — §2.4.3; K-1051) |
 | UC-124 | Kargoya verme | POST | E-37 | Yönetici | Kargo şirketi ve takip numarası ya da araç beyanı; onay; S5 |
 | UC-125 | Kargoya yeniden verme | POST | E-37 | Yönetici | Teslim edilemedi siparişi; onay; S8 |
 | UC-126 | Teslim işareti ve tarihi | POST | E-37 | Yönetici | Olay tarihi, sıra sorusu (K-608); S6 |
@@ -1242,7 +1244,7 @@ Ortak bileşen bileşen kimliğiyle tek satırdır; bileşenin bütün maddeleri
 
 #### 1.1.6 Arayüz Tanımları — `04 §9` panel ekranları ve §4.2'nin metni (431)
 
-Önce §4.2'nin metni, sonra ekran ekran §9'un sırasıyla: ekranın kendisi (`04` E-n — ekranın veri ihtiyacı onun GET ucudur; K-1150), maddeleri ve kimliksiz maddeleri. Panel ekranlarının GET adayları 1a'nındır (UC-84…UC-108), ekranların POST işlemleri ve dosya uçları 1b'nin adaylarıdır (UC-110…UC-187 — §1.1.2; K-1154). İşlemin onay penceresi ve sayfanın içinde açılan formu ayrı aday değildir — formun son adımıdır ve biçimi API2-02'nindir. E-37'nin bütün işlemleri siparişin sürümünü taşır ve sipariş değiştiyse uygulanmaz (OB-10'un sipariş varyantı — API9-03); kalıp satır başına yinelenmez, 9.9.34 ve §9.9'un aksiyon metni onu taşır. "Durum × rol varyantları" maddesinin düğmeleri sunucunun kararıdır (konvansiyon — API8-01); panelin tek rolü ve aktörleri API0-07'dir (K-1155). Matrisin işi eşlemedir: uçların istek ve yanıt ayrıntısı §9'un işidir (yazım turu).
+Önce §4.2'nin metni, sonra ekran ekran §9'un sırasıyla: ekranın kendisi (`04` E-n — ekranın veri ihtiyacı onun GET ucudur; K-1150), maddeleri ve kimliksiz maddeleri. Panel ekranlarının GET adayları 1a'nındır (UC-84…UC-108), ekranların POST işlemleri ve dosya uçları 1b'nin adaylarıdır (UC-110…UC-187 — §1.1.2; K-1154). İşlemin onay penceresi ve sayfanın içinde açılan formu ayrı aday değildir — formun son adımıdır ve biçimi API2-02'nindir. E-37'nin bütün işlemleri — iç not hariç; o gösterilen metni taşır (§2.4.3; K-1051) — siparişin sürümünü taşır ve sipariş değiştiyse uygulanmaz (OB-10'un sipariş varyantı — API9-03); kalıp satır başına yinelenmez, 9.9.34 ve §9.9'un aksiyon metni onu taşır. "Durum × rol varyantları" maddesinin düğmeleri sunucunun kararıdır (konvansiyon — API8-01); panelin tek rolü ve aktörleri API0-07'dir (K-1155). Matrisin işi eşlemedir: uçların istek ve yanıt ayrıntısı §9'un işidir (yazım turu).
 
 | Kaynak ID | Kaynak özeti | Uç | Durum |
 |---|---|---|---|
@@ -6397,4 +6399,4 @@ Panelin çerçevesi — menü, satış durumu göstergesi, yöneticinin adı, "H
 
 ---
 
-*Shopfolio — API Design v0.19*
+*Shopfolio — API Design v0.20*

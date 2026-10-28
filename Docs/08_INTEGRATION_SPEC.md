@@ -1,6 +1,6 @@
 # Shopfolio — Integration Specifications
 
-**Versiyon: v0.2** | **Bağımlılıklar:** `02`, `03`, `05`, `06`, `07` | **Son güncelleme:** 2026-10-29
+**Versiyon: v0.3** | **Bağımlılıklar:** `02`, `03`, `05`, `06`, `07` | **Son güncelleme:** 2026-10-29
 
 > **Aşama:** 7 — Entegrasyon Spesifikasyonları · **Rol:** Integration Engineer
 > **Traceability zorunlu:** Hayır
@@ -59,7 +59,9 @@
 
 > **Yazım durumu (K-28, K-30, K-432; karar kaydı §18.1): yazım turu sürüyor.** Doküman Entegrasyon spesifikasyonları aşamasının **tek yazım turunda**, beş oturumda yazılır (K-1234 (1)); sıra başlık notu → §1 → §2 (2.3 → 2.4 → 2.1 → 2.2) → §3 → §4 → §5. Workshop tamamlandı (K-1235…K-1243); ödeme sağlayıcısının adı proje sahibinin cevabını bekler (karar kaydı §18.1).
 >
-> **1. oturum (2026-10-29, v0.2):** başlık notu — yazım konvansiyonları ve alt bölüm haritası (blok ENT0; K-1244) · §1 entegrasyon envanteri ve envanterin sınırı (blok ENT1; K-1244) · §2.3 Google ile giriş (blok ENT2, `ENT2-24`, `ENT2-25`; K-1245) · §2.4 çağrısı olmayan dış bağlantılar — kargo şirketi listesi (`ENT2-26`; K-1246). **Kalan:** 2. oturum §2.1 (kapı: sağlayıcının adı) · 3. oturum §2.2'nin servis tanımı · 4. oturum §2.2'nin şablon metinleri · 5. oturum §3, §4, §5 ve `07`'nin hizalanması; ardından özet ↔ ayrıntı taraması.
+> **1. oturum (2026-10-29, v0.2):** başlık notu — yazım konvansiyonları ve alt bölüm haritası (blok ENT0; K-1244) · §1 entegrasyon envanteri ve envanterin sınırı (blok ENT1; K-1244) · §2.3 Google ile giriş (blok ENT2, `ENT2-24`, `ENT2-25`; K-1245) · §2.4 çağrısı olmayan dış bağlantılar — kargo şirketi listesi (`ENT2-26`; K-1246). 
+>
+> **3. oturum (2026-10-29, v0.3 — sırası değişti: 2. oturumdan önce yazıldı, çünkü §2.1'in kapısı sağlayıcının adıdır ve §2.2'nin kapısı yoktur; yöneticinin düzen kararı, geri alınabilir):** §2.2 e-posta altyapısının servis tanımı — servisin seçimi (Amazon SES), gönderim çağrısı ve sonuç sınıfları, geri dönen adreslerin sorguyla öğrenilmesi, alıcı başına gönderim sınırı ve kaçış, ortak kalıp, DNS kayıtları (`ENT2-15`…`ENT2-19`; K-1247, K-1248). **Kalan:** 2. oturum §2.1 (kapı: sağlayıcının adı) · 4. oturum §2.2'nin şablon metinleri (2.2.6 ve sonrası) · 5. oturum §3, §4, §5 ve `07`'nin hizalanması; ardından özet ↔ ayrıntı taraması.
 
 **Yazım konvansiyonları (K-1234 (2), K-1244).** Bu on iki madde §1–§5'in bütün yazım oturumlarını bağlar; "yazım konvansiyonu n" diye anılır.
 
@@ -83,7 +85,7 @@
 | Başlık notu | Park blokları · yazım durumu · yazım konvansiyonları (1–12) · alt bölüm haritası | ENT0-01…ENT0-07 | 1 ✓ |
 | §1 Entegrasyon envanteri | Envanter tablosu · envanterin sınırı | ENT1-01, ENT1-02 | 1 ✓ |
 | §2.1 Ödeme sağlayıcısı | Şablonun alanları · 2.1.x konu alt bölümleri: sağlayıcının belirlenmesi ve katmanın sözleşmesi · anahtarlar ve değişim · 3D Secure · ödemenin başlatılması, dönüş, çerçeve · bildirimin kabulü ve alan eşlemesi · son sorgu · tek tahsilat · bağlantı hatası · kart iadesi · test | ENT2-02…ENT2-14 | 2 (kapı: ENT2-02) |
-| §2.2 E-posta altyapısı | Şablonun alanları · 2.2.x: servisin seçimi · gönderim ve sonuç sınıfları · geri dönme · alıcı başına sayaç ve kaçış · ortak kalıp · B-1…B-16 · F-1…F-6 · hesap ve yönetim e-postaları | ENT2-15…ENT2-23 | 3 (servis tanımı) · 4 (şablon metinleri) |
+| §2.2 E-posta altyapısı | Şablonun alanları · 2.2.x: servisin seçimi · gönderim ve sonuç sınıfları · geri dönme · alıcı başına sayaç ve kaçış · ortak kalıp · B-1…B-16 · F-1…F-6 · hesap ve yönetim e-postaları | ENT2-15…ENT2-23 | 3 ✓ (servis tanımı: 2.2.1…2.2.5) · 4 (şablon metinleri: 2.2.6…2.2.8) |
 | §2.3 Google ile giriş | Şablonun alanları (alt bölümsüz) | ENT2-24, ENT2-25 | 1 ✓ |
 | §2.4 Çağrısı olmayan dış bağlantılar | Kargo şirketi listesi (alt bölümsüz) | ENT2-26 | 1 ✓ |
 | §3 Ortak hata yönetimi | 3.1 Bağlantı katmanının ortak yüzü · 3.2 İmzalı makine uçlarının ilkesi · 3.3 Bir dış servis çökerse | ENT3-01…ENT3-03 | 5 |
@@ -111,7 +113,7 @@
 | # | Servis | Ne için | Kritiklik | Ücretli mi | Kota / limit |
 |---|---|---|---|---|---|
 | 2.1 | **Ödeme sağlayıcısı** — adı: ENT2-02 — proje sahibinin cevabını bekliyor, karar kaydı §18.1. Ürün **tek** sağlayıcıyla çalışır (K-1235) | Kartla ödeme: 3D Secure'lu barındırılan ödeme sayfası, ödemenin ve kart iadesinin sonucunu sorgulama, bildirim, kısmi geri ödeme dahil karta geri ödeme (ÖK-4; K-959). Para doğrudan firmanın sağlayıcı hesabına geçer; ürün kart verisini görmez, saklamaz, loglamaz (K-12, K-13) | **Yalnız kart yöntemi için zorunlu; ürün için değil:** anahtarlar tanımlı değilse kart yöntemi görünmez ve satış — havale açık ve IBAN doluysa — yalnız havaleyle açılır (ÖK-4; K-163). Sağlayıcı çökerse ödeme başlatılamaz, sipariş ve havale yolu sürer (`05 §10.1.3`) | Evet — sağlayıcı sözleşmesi ve komisyon firmanındır; referans kurulumda geliştiricinin kendi maliyet kalemidir (ÖK-12) ve ürünün gider tavanının dışındadır (`05 §0.2`) | Sağlayıcının belgesinden okunur ve bilgim tarihli yazılır — kapı: ENT2-02, §2.1 (yazım 2) ve §4 (yazım 5) |
-| 2.2 | **E-posta gönderim altyapısı** — servisin adı §2.2'nin servis tanımını yazan oturumda K-1236'nın ölçütleriyle belirlenir (yazım 3) | Ürünün bütün e-postaları: müşteri bildirimleri B-1…B-16, firma bildirimleri F-1…F-6, hesap ve yönetim e-postaları (`02 §9`); B-1 sözleşme metninin taşıyıcısıdır (ÖK-3) | **Her kurulumda zorunlu, ikamesi yok:** kurulmadan ürün canlıya alınamaz (ÖK-3; K-378). Servis çökerse e-posta gönderim kaydında bekler; sipariş, ödeme ve durum geçişleri etkilenmez (`05 §10.1.4`) | Kullanım kadar ödenen ya da ücretsiz katmanlı; firmanın aylık altyapı gideri tavanının (yaklaşık 10–20 $) içinde (K-861, K-862, K-1236) | Ölçüt: günlük gönderim kapasitesi tepe günün **350** e-postasının üstünde; ay ≈ **2.000** e-posta (K-1236 (1), (3)). Seçilen servisin kendi sınırı okunur ve bilgim tarihli yazılır — kapı: §2.2 (yazım 3) ve §4 (yazım 5) |
+| 2.2 | **E-posta gönderim altyapısı** — **Amazon SES** (K-1247; seçimin ölçütleri §2.2.1) | Ürünün bütün e-postaları: müşteri bildirimleri B-1…B-16, firma bildirimleri F-1…F-6, hesap ve yönetim e-postaları (`02 §9`); B-1 sözleşme metninin taşıyıcısıdır (ÖK-3) | **Her kurulumda zorunlu, ikamesi yok:** kurulmadan ürün canlıya alınamaz (ÖK-3; K-378). Servis çökerse e-posta gönderim kaydında bekler; sipariş, ödeme ve durum geçişleri etkilenmez (`05 §10.1.4`) | Kullanım kadar ödenen ya da ücretsiz katmanlı; firmanın aylık altyapı gideri tavanının (yaklaşık 10–20 $) içinde (K-861, K-862, K-1236) | Ölçüt: günlük gönderim kapasitesi tepe günün **350** e-postasının üstünde; ay ≈ **2.000** e-posta (K-1236 (1), (3)). Seçilen servis: kullanım kadar ödenen, 1.000 e-posta başına 0,10 $ (ayda ≈ 0,20 $); yeni hesap sandbox'ta günde 200 e-postayla sınırlıdır, üretim erişiminde günlük kota istenir ve hesapta okunur (§2.2; bilgim tarihli, 2026-10-29) — kapı: §4 (yazım 5) |
 | 2.3 | **Google** (OpenID Connect) | Google ile giriş, kayıt ve yeniden doğrulama; ürün Google'dan yalnız adı ve doğrulanmış e-postayı alır (K-103, K-900; `02 §12.2.8`) | **İsteğe bağlı:** Google uygulaması kurulumda tanımlı değilse "Google ile giriş" düğmesi görünmez ve üyelik e-posta ve şifreyle yürür; Google çökerse şifreyle giriş ve panel etkilenmez (ÖK-6; `03` 10.1.3; `05 §10.1.5`) | Hayır — bilgim tarihli; Google uygulamasını firma açar, kurulumu yapan tanımlar (ÖK-6). Koşulların doğrulanması §4 (yazım 5) | Giriş başına bir kod değişimi çağrısı (§2.3); Google'ın uygulamaya koyduğu sınırlar Google'ın belgesinden okunur — kapı: §4 (yazım 5) |
 
 **Envanterin sınırı (`ENT1-02`).** Aşağıdakiler envantere girmez; her biri için ürünün dış servise çağrısı **yoktur**:
@@ -131,9 +133,130 @@ Her servis şablonun alanlarıyla tanımlanır (yazım konvansiyonu 6). Tanımı
 
 *Yazılmadı — 2. oturum (yazım 2). Kapı: ENT2-02 — sağlayıcının adı proje sahibinin cevabını bekliyor, karar kaydı §18.1. Bugün yazılabilen kural — seçim ölçütleri ve bağlantı katmanının sağlayıcıdan bağımsız beş işi — K-1237'dedir; sağlayıcıya bağlı satırlar (istek ve yanıt alanları, imza, dönüşün yöntemi, hız limiti) ad belli olunca yazılır.*
 
-### 2.2 E-posta gönderim altyapısı
+### 2.2 E-posta gönderim altyapısı — Amazon SES
 
-*Yazılmadı — 3. oturum (servis tanımı) ve 4. oturum (şablon metinleri). Kapı: yok — workshop kararları hazırdır (K-1236, K-1240…K-1242); servisin adı 3. oturumda K-1236'nın ölçütleriyle belirlenir.*
+Servis **Amazon SES**'tir (Amazon Simple Email Service; API v2) — seçimin ölçütleri ve karşılaştırması §2.2.1'dedir (K-1247). Alt bölümler: 2.2.1 servisin seçimi · 2.2.2 gönderim ve sonuç sınıfları · 2.2.3 geri dönen adreslerin öğrenilmesi · 2.2.4 alıcı başına gönderim sınırı ve kaçış · 2.2.5 ortak kalıp · 2.2.6 ve sonrası şablon metinleri (aşağıda).
+
+- **Amaç:** ürünün bütün e-postalarını — B-1…B-16, F-1…F-6, hesap ve yönetim e-postaları — alıcıya iletmek; servisin sonradan bildirdiği kalıcı geri dönmeyi gönderim kaydına işlemek (`02 §9`; `05 §4.4`, §10.2; K-913, K-1241). B-1 sözleşme metninin taşıyıcısıdır (ÖK-3).
+- **Çağrının koşulları:** (1) **E-posta gönderim kimliği ve gönderen adresi kurulumda tanımlıdır** — ikisi zorunlu ayardır, eksikse uygulama açılmaz (`05 §8.4.6`); kartın ya da Google'ın aksine kapatılabilir değildir (ÖK-3; K-378). (2) **Gönderim kaydında "gönderilecek" hâlindeki satır** kuyruktan alınır ve gövdesi o anda üretilir (`05 §4.4.1`, §4.4.2). (3) **Alıcı başına sınır:** son 24 saatte aynı adrese 20 müşteri bildirimi satırı oluşmuşsa yeni müşteri bildirimi için **servise çağrı yapılmaz** (§2.2.4; K-1242). (4) **Bağlantısı geçersizleşmiş hesap bağlantısı e-postası** gönderilmez — "gönderilmedi — bağlantı geçersiz" kapanır, çağrı yapılmaz (`05 §4.4.3`, §6.4.6). (5) **Gönderim anında üretilemeyen gövde** (donmuş veri ya da olayın değeri okunamıyor) çağrı doğurmaz; satır P-38'in aralıklarıyla yeniden denenir.
+- **Kimlik doğrulama:** AWS Signature Version 4 ile imzalı HTTPS isteği; imza **IAM kullanıcısının erişim anahtarı kimliği ve gizli anahtarıyla** atılır (bilgim tarihli — AWS SES belgesi, 2026-10-29). **E-posta gönderim kimliği** üç değerdir ve tek ayar sayılır: erişim anahtarı kimliği, gizli anahtar ve servisin bölgesi (`05 §8.4.3`, 6.x.3, 6.x.11); gizli anahtar sır dosyasındadır, kimlik veritabanında ve panelde değildir. IAM kullanıcısı **iki izinle** açılır — ileti gönderme (`ses:SendEmail`) ve kalıcı geri dönen adresleri listeleme (`ses:ListSuppressedDestinations`) —; başka izin verilmez (doğrulanacaklar, 1). **Döndürme:** olay üzerine; uygulama yeni değerle yeniden başlar, kuyruktaki e-postalar bekler ve kaybolmaz (`05` 6.x.11). **Bölge:** kurulum önerisi Frankfurt'tur (`eu-central-1`; AB bölgesi — K-1236 (6)); bölge hesapta da seçimdir: gönderim kotası, kimlikler ve geri dönen adres listesi bölge başınadır, uygulama ayarındaki bölge SES kimliğinin ve sandbox çıkışının alındığı bölgeyle aynı olmalıdır (doğrulanacaklar, 2).
+- **Kullanılan uçlar:**
+  - **Giden çağrılar:** (1) **ileti gönderme** — `POST https://email.{bölge}.amazonaws.com/v2/email/outbound-emails` (SendEmail; "Simple" içerik); her çağrı **bir alıcıya** gider (§2.2.2). (2) **Kalıcı geri dönen adreslerin listesi** — `GET https://email.{bölge}.amazonaws.com/v2/email/suppression/addresses` (ListSuppressedDestinations; §2.2.3). Başka çağrı yoktur: kimlik doğrulama (DKIM, MAIL FROM) kurulumda konsoldan ya da komut satırından yapılır, kod çağırmaz. İki çağrı da 30 saniyelik zaman aşımı taşır, bağlantı katmanı onları yeniden denemez (`05 §10.1.1`).
+  - **Gelen istekler:** **yoktur** — SES'ten ürüne bildirim, web kancası ya da SNS aboneliği kurulmaz; geri dönme sorguyla alınır (§2.2.3; K-1241 (6)). `07`'ye yeni uç, `05 §6.5.1`'in istisnasına, `§6.3.5`'in muafiyetine ve MK-04'ün listesine satır girmez.
+  - **Tarayıcı yönlendirmeleri:** **yoktur.**
+- **Alan eşlemesi:** §2.2.2 (gönderim çağrısı) ve §2.2.3 (geri dönen adresler) iki ayrı tablodur.
+- **Hız limitleri ve kota:** AWS tarafında üç sınır vardır — günlük gönderim kotası (24 saatlik kayan pencere, **alıcı başına** sayılır), saniyelik gönderim hızı ve ileti boyu (aşağıda). Yeni hesap **sandbox**'tadır: yalnız doğrulanmış alıcıya, 24 saatte en çok 200, saniyede 1 ileti (aws docs, 2026-10-29); bu sınır tepe günün 350'sinin altındadır, bu yüzden **canlıya alınan her kurulum üretim erişimi ister** (kurulum adımı — `DEPLOY_RUNBOOK`; §2.2.1). Üretim kotasının sayısı AWS belgesinde yazılı değildir (2026-10-29): talepte günlük kota **en az 1.000** istenir ve kotanın 350'nin üstünde olduğu hesapta okunur (SES hesap bilgisi, `GetAccount` → `SendQuota`) — okunan sayı kuruluma yazılır (doğrulanacaklar, 3). Askıdaki (suppression) adrese gönderilen ileti de kotadan sayılır. Ürünün hacmi — tepe günde 350, ayda ≈ 2.000 (K-1236) — AWS'nin hız sınırlarının çok altındadır. **Kota aşımı kanal hatasıdır** (`05 §10.2.2`).
+- **Hata senaryoları ve kodları:** §2.2.2'nin eşleme tablosu.
+- **Retry stratejisi:** bağlantı katmanı **yeniden denemez**; yeniden deneme gönderim kaydının sonraki deneme anıyla, aynı satırda, P-38'in aralıklarıyladır — ilk denemeden 5 dakika, 30 dakika ve 2 saat sonra (`05 §4.4.3`, §10.1.1; P-38). Geri dönen adreslerin sorgusu ayrı bir iş türüdür ve her on beş dakikada bir koşar (§2.2.3).
+- **Idempotency / tekilleştirme anahtarı:** SES'in SendEmail isteğinde tekrar anahtarı alanı **yoktur** (istek biçimi, 2026-10-29); tekilleştirici **gönderim kaydının satırıdır** — bir satır bir e-postadır ve yalnız sonucu "gönderildi" olmayan deneme yeniden denenir. **Kalan risk:** zaman aşımına uğrayan ya da hata dönen çağrıyı SES kabul etmiş olabilir — SES belgesi bunu nadir bir durum olarak yazar — ve yeniden deneme aynı alıcıya ikinci bir ileti gönderir; teslim en az bir kezdir (`05 §4.3.3`, §10.1.15). SES'in yanıttaki `MessageId` değeri saklanmaz: gönderim kaydında alanı yoktur ve geri dönme eşleştirmesi ona dayanmaz (`06 §4.58`; K-1241 (2)).
+- **Geri çağrım / webhook:** **yoktur** (yukarıda "gelen istekler"). SES'in olay yayını (yapılandırma kümesi, SNS, açılma ve tıklama olayları) kullanılmaz: istekte yapılandırma kümesi adı gönderilmez ve izleme yoktur (K-1236 (7); doğrulanacaklar, 4).
+- **Servis çökerse:** e-posta gönderim kaydında bekler; sipariş, ödeme ve durum geçişleri etkilenmez; satır P-38'in aralıklarıyla yeniden denenir, yeniden denemeler de başarısızsa "ulaşmadı" olur ve `02 §9.1.6`'nın işareti ya da uyarısı bu hâlden okunur; art arda en az beş kanal hatası ve ilk hatadan on beş dakika sonra panelin ana sayfasında **kanal uyarısı** açılır ve durum ucunun uyarı koşuludur (`05 §10.1.4`, §10.2.3, §9.4.7; `03` 10.1.2). Alıcı hatası kanal dizisini ne sayar ne bozar. Geri dönen adres sorgusu çökerse yeni "ulaşmadı" işareti düşmez; kaçan geri dönme bir sonraki başarılı sorguda 24 saatlik pencere içinde yakalanır; sorgu hiç başarılamıyorsa (ör. izin eksik) ürün bunu uyarıya çevirmez — **kalan risktir** ve gönderim sonucu "gönderildi" hâlinde kalır (§2.2.3).
+- **Test / sandbox imkânı:** AWS'nin ücretsiz ayrı bir deneme ortamı yoktur; yeni hesap sandbox'tadır. Sandbox'ta SES **posta kutusu simülatörü** (başarılı teslim, geri dönme, şikâyet ve askıdaki adres senaryoları için özel adresler) ve doğrulanmış alıcılar kullanılır (bilgim tarihli — AWS SES belgesi; simülatörün adresleri implementation'da belgeden okunur). **Sandbox'ta askıdaki adres listesi API'si kapalıdır** (aws docs, 2026-10-29): geri dönen adres sorgusu yalnız üretim erişimi alınmış hesapta denenir. Entegrasyon testi `12`'nin işidir.
+- **DNS kayıtları:** gönderen adresi **firmanın kendi alan adındadır** (K-1236 (4)(d); ÖK-3) ve alan adı SES'te **alan adı kimliği** olarak doğrulanır. Gereken kayıtlar (değerleri SES üretir; kuruluma yazılmaları `DEPLOY_RUNBOOK`'tadır):
+
+| Kayıt | Ne için | Bilgim tarihli not |
+|---|---|---|
+| DKIM — SES'in verdiği CNAME kayıtları (Easy DKIM) | İletiyi alan adı adına imzalar; DMARC hizalamasını sağlar | SES her iletiye 2048 bitlik DKIM anahtarı ekler (aws docs, 2026-10-29); kayıt sayısı (üç) belgeden implementation'da okunur |
+| Özel MAIL FROM alt alan adı — MX ve SPF (TXT) | SPF'nin gönderen adresinin alan adıyla hizalanması | Kurulum önerisidir; SES varsayılanda kendi alan adını kullanır (doğrulanacaklar, 5) |
+| `_dmarc` — DMARC (TXT) | Alıcı tarafın kimlik doğrulaması tutmayan ileti için ne yapacağını ve raporun adresini bildirir | Politikanın değeri kurulumun kararıdır — `DEPLOY_RUNBOOK` |
+
+- **Doğrulanacaklar (bilgim tarihli — 2026-10-29; §4'te DV satırı, yazım 5):** (1) IAM işlem adlarının (`ses:SendEmail`, `ses:ListSuppressedDestinations`) yazılışı ve iki izinle her iki çağrının çalıştığı. (2) Frankfurt bölgesinde SES'in sunulduğu ve ürünün çağrılarının o bölgenin uç adresine gittiği; Türkiye'de bölge yoktur (bilgim tarihli). (3) Üretim erişimi talebinin sonucu ve hesaptaki günlük kota — 350'nin üstü değilse servis ölçütü (a) sağlanmaz ve kurulum kota artışı ister (K-1236 (3)). (4) İzleme: yapılandırma kümesi kullanılmadığında iletilerde açılma ve tıklama izlemesinin olmadığı. (5) Özel MAIL FROM'un gerekli olup olmadığı ve DMARC hizalamasının DKIM'le tuttuğu. (6) Gönderen adı Türkçe karakter ya da ASCII dışı karakter taşıyorsa SES'in adı kabul ettiği biçim (RFC 2047 kodlaması). (7) **Askıdaki adrese yeniden gönderim:** SES'in geri dönmüş ve askıya alınmış adrese gönderileni kabul edip göndermediği belgede yazılıdır; o adres listede zaten durduğu için sonraki geri dönmenin listedeki zaman damgasını (`LastUpdateTime`) yenileyip yenilemediği belgeden okunamadı. Yenilemiyorsa o adrese giden sonraki iletinin "ulaşmadı" işareti sorguyla gelmez — implementation'da simülatörle denenir; sonuç tutmuyorsa yöntem karar kaydıyla yeniden kurulur. (8) Hata yanıtlarının §2.2.2'deki sınıflara eşlemesi: özellikle `MessageRejected` ve `BadRequestException`'ın hangi koşulda döndüğü. (9) Veri işleme ekinin kabulü: firmanın AWS hesabında hangi yolla kabul edildiği (ölçüt (f); §2.2.1).
+- **Runbook:** [`INTEGRATION_RUNBOOKS/AMAZON_SES.md`](INTEGRATION_RUNBOOKS/) — SES'e ilk bağlanan task'ta açılır (yazım konvansiyonu 11).
+
+#### 2.2.1 Servisin seçimi
+
+Seçim K-1236'nın altı ölçütüyle ve **sırayla** yapıldı (K-1247). Adayların sınırları ve fiyatları 2026-10-29'da kaynağından okundu:
+
+| Ölçüt (K-1236 (4)) | Resend | Brevo | **Amazon SES** |
+|---|---|---|---|
+| (a) Günlük kapasite 350'nin üstünde; aylık bedel gider tavanının içinde | Ücretsiz katman günde 100 / ayda 3.000 e-posta (resend.com/pricing, 2026-10-29) — **tepe gün sığmaz**; ücretli kademe bu oturumda okunmadı | Ücretsiz plan günde 300 e-posta (Brevo yardım merkezi, 2026-10-29) — **sığmaz**; ücretli kademe bu oturumda okunmadı | Kullanım kadar ödenir: à la carte **1.000 e-posta başına 0,10 $**, asgari ücret yok (aws.amazon.com/ses/pricing, 2026-10-29); ayda ≈ 2.000 e-posta için **≈ 0,20 $**, tavanın (10–20 $) yüzde ikisi; günlük kota üretim erişiminde istenir ve hesapta okunur (2.2'nin hız sınırları maddesi) |
+| (b) HTTPS arayüzüyle tek ileti gönderimi | — (ölçüt (a)'da elendi) | — | **Sağlar:** SendEmail (API v2), bir alıcı bir çağrı |
+| (c) Kalıcı geri dönen adresleri sorgulayabilme (zorunlu) | — | — | **Sağlar:** hesap düzeyi askıdaki adres listesi — yalnız kalıcı (hard) geri dönme eklenir; zaman ve neden süzgeçli liste çağrısı (ListSuppressedDestinations: `StartDate`, `Reason`) |
+| (d) Alan adı doğrulaması ve gönderen adresinin firmanın alan adında olması | — | — | **Sağlar:** alan adı kimliği, Easy DKIM, özel MAIL FROM |
+| (e) Yanıt kodlarının üç sonuç sınıfına eşlenebilmesi | — | — | **Sağlar:** SendEmail'in adlı hata türleri belgededir (§2.2.2) |
+| (f) Veri işleme sözleşmesi sunması | — | — | **Kısmen okundu:** AWS hizmet şartları AB standart sözleşme hükümlerini içerir ve AEA dışı aktarımlarda kendiliğinden geçerlidir; veri işleme ekinin kabul yolu okunan sayfada yazılı değil (aws.amazon.com/compliance/gdpr-center, 2026-10-29) — kurulumda firmanın hesabında doğrulanır (`DEPLOY_RUNBOOK`; doğrulanacaklar, 9) |
+
+**Sonuç:** (a)'da Resend ve Brevo'nun ücretsiz katmanları elendi (K-1236 (2)); ücretli kademelerinin fiyatı **okunmadı** — Amazon SES (a)–(e)'yi sağladığı ve (f) kurulumda doğrulanacağı için sıradaki ölçütlere geçilmedi ve diğer ücretli servislerin (Mailgun, Postmark vb.) fiyat sayfaları karşılaştırmaya alınmadı. **Konum:** AB bölgesi (Frankfurt) eşit koşulda öne alınır (K-1236 (6)); aktarım yine Türkiye dışına gider ve şartları firmanın yükümlülüğüdür (`02 §12.2.8`; `10 §4.1` ÖK-2). **Firmaya düşen iş:** AWS hesabı açmak (firmanın kendi hesabı, kredi kartıyla), alan adını doğrulamak ve üretim erişimini istemek — ilk yanıt AWS'nin belgesine göre 96 saat içindedir ve ek bilgi istenirse uzar (aws docs, 2026-10-29). **Kalan risk:** AWS üretim erişimini vermezse ya da geciktirirse kurulum canlıya alınamaz (ÖK-3); ürünün e-postasız çalışma hâli yoktur. Yeni AWS müşterisine verilen 200 $ kredi (aws.amazon.com/ses/pricing, 2026-10-29) ürünün hesabına bağlanmaz — ürün kredi varsayımıyla tasarlanmadı. **Bedeli bilinçli:** bütün e-posta tek servisin arayüzüne yazılır (K-1236 (5)); başka servise geçiş bağlantı katmanının sözleşmesine uyan yeni bir uygulamadır (`05 §3.6.1`).
+
+#### 2.2.2 Gönderim ve sonuç sınıfları
+
+**Gönderim çağrısı.** Bir gönderim kaydı satırı bir SendEmail çağrısıdır ve **tek alıcıya** gider (SES belgesinin önerisi: çok alıcılı çağrı hatada bütünüyle reddedilir). Gövde gönderim anında üretilir ve saklanmaz (`05 §4.4.2`).
+
+| Dış alan (SendEmail) | İç alan / kaynak | Dönüşüm | `06` doğrulandı |
+|---|---|---|---|
+| `FromEmailAddress` | `Branding.BrandName` ve gönderen adresi (kurulum ayarı) | `"{marka adı}" <{gönderen adresi}>` — marka adı boşsa alan adı yazılır; platform adı hiçbir yerde geçmez (`02 §9.1.4`); adres panelden değiştirilemez | Evet — `06 §4.54` `BrandName`; gönderen adresi veritabanında değildir (`06 §8.2.3`) |
+| `Destination.ToAddresses` | `DispatchRecord.RecipientEmail` | Tek eleman; adres girildiği gibi gönderilir. `CcAddresses` ve `BccAddresses` kullanılmaz | Evet — `06 §4.58` `RecipientEmail` |
+| `ReplyToAddresses` | `Company.Email` | Firmanın iletişim e-postası — müşterinin yanıtı oraya düşer; kayıt boşsa alan gönderilmez | Evet — `06 §4.1` `Email` |
+| `Content.Simple.Subject.Data` | konu satırı — ortak kalıp (§2.2.5) | Karakter kümesi UTF-8; müşteri metni taşımaz | — (saklanmaz) |
+| `Content.Simple.Body.Html.Data` ve `Body.Text.Data` | gövde — ortak kalıp ve şablon (§2.2.5, §2.2.6) | İkisi birlikte gider (HTML ve düz metin); karakter kümesi UTF-8; olayın değerlerinden üretilir | Evet — `06 §4.58` `DispatchType`, `EventValues`, `OrderId`, `RelatedRecordType`, `RelatedRecordId` |
+| `ConfigurationSetName`, `ConfigurationOverrides`, `EmailTags`, `ListManagementOptions`, `Attachments`, `Content.Simple.Headers` | — | **Gönderilmez** — izleme, olay yayını, abonelik listesi ve ek dosya yoktur (K-1236 (7); `02 §9.5`) | — |
+| *(yanıt)* `MessageId` | — | Saklanmaz | — |
+| *(sonuç)* | `DispatchRecord.DispatchState`, `LastOutcome`, `SentAt`, `AttemptCount`, `NextAttemptAt` | Başarıda `Sent`, `LastOutcome` `Sent`, `SentAt` şimdi; hatada aşağıdaki tablonun sınıfı `LastOutcome`'a yazılır, `AttemptCount` bir artar ve P-38'in sonraki aralığı `NextAttemptAt`'a yazılır; yeniden denemeler tükenince `Undelivered` (`05 §4.4.3`). Her denemenin sonucu kanal hâli kaydına aynı işlemde yazılır (`06 §4.58`, §4.60) | Evet — `06 §4.58`, §5.4.6, §5.4.7 |
+
+**Hata eşlemesi.** Yanıtın sınıfı `05 §10.2.2`'nin üç değerinden biridir; tabloda olmayan her yanıt **kanal hatasıdır** (kanal uyarısı kör kalmaz).
+
+| Yanıt | Sınıf (`DispatchOutcome`) | Gerekçe |
+|---|---|---|
+| 200 ve `MessageId` | gönderildi — `Sent` | SES iletiyi kabul etti; posta kutusuna varış değildir (`05 §10.2.2`) |
+| `MessageRejected` (400) — ileti geçersiz içerik nedeniyle gönderilemiyor | alıcı hatası — `RecipientError` | Tek iletiyi ve bu alıcıyı ilgilendirir; kanal dizisini bozmaz. Şablonun kendi hatası olarak her iletiyi reddedebilir — bu hâl kanal uyarısı doğurmaz, **kalan risktir** ve uygulama kaydında seyreltilerek yazılır (doğrulanacaklar, 8) |
+| `BadRequestException` (400) — girdi geçersiz | kanal hatası — `ChannelError` | Uygulamanın isteğinin ya da ayarının hatasıdır, alıcıya atfedilmez (doğrulanacaklar, 8) |
+| `AccountSuspendedException`, `SendingPausedException`, `MailFromDomainNotVerifiedException` (400) | kanal hatası — `ChannelError` | Hesap, durum ya da alan adı kimliği sorunu — her iletiyi etkiler |
+| `TooManyRequestsException` (429), `LimitExceededException` (400) ve günlük kota ya da hız aşımı | kanal hatası — `ChannelError` | Kota aşımı kanal hatasıdır (`05 §10.2.2`) |
+| `NotFoundException` (404) | kanal hatası — `ChannelError` | Kimlik, bölge ya da kaynak ayarının yanlışlığı |
+| Kimlik reddi — imza, anahtar ya da yetki hatası (AWS'nin ortak hata türleri) | kanal hatası — `ChannelError` | "Kimlik reddedilir" (`05 §10.2.2`) |
+| 5xx, bağlanılamama, 30 saniyelik zaman aşımı | kanal hatası — `ChannelError` | Zaman aşımı da kanal hatasıdır (`05 §10.1.1`) |
+| *(iletiyi SES kabul etti, alıcı sunucusu sonradan reddetti)* | — çağrıda görünmez | Geri dönmedir — §2.2.3 |
+
+Alıcı hatası da P-38'in aralıklarıyla aynı satırda yeniden denenir: `05 §4.4.3` yeniden denemeyi sınıfa göre ayırmaz ve `MessageRejected`'ın hangi koşulda geçici olduğu belgede yazılı değildir; yeniden denemeler de başarısızsa satır "ulaşmadı" olur.
+
+#### 2.2.3 Geri dönen adreslerin öğrenilmesi
+
+**Yöntem sorgudur** (K-1241): kuyrukta bir iş türü **her on beş dakikada bir** SES'in hesap düzeyindeki askıdaki adres listesinden son 24 saatte eklenen **kalıcı geri dönen** adresleri okur. SES yalnız **kalıcı (hard) geri dönmeyi** listeye ekler; geçici hatalar (dolu kutu, geçici ret) eklenmez ve SES onları kendisi uzun süre yeniden dener (aws docs, 2026-10-29). **Ayar:** hesap düzeyi liste yalnız `BOUNCE` nedeniyle açılır — varsayılan ikisini birden (geri dönme ve şikâyet) askıya alır; şikâyet eden alıcının sonraki bildirimi — B-1'in sözleşme metni dahil — sessizce gönderilmeden kalırdı ve ürün şikâyeti geri dönme saymaz (K-1241 (1); K-1248).
+
+| Dış alan (ListSuppressedDestinations) | İç alan | Dönüşüm | `06` doğrulandı |
+|---|---|---|---|
+| *(istek)* `StartDate` | — | Şimdiki andan 24 saat önceki an; `Reason` = `BOUNCE`; `PageSize` ve `NextToken` ile bütün sayfalar okunur | — |
+| `SuppressedDestinationSummaries[].EmailAddress` | `DispatchRecord.RecipientEmail` | Eşleştirme **harf ayrımsızdır** (`06 §2.8.1`; K-1016): SES listesi adresi büyük küçük harfiyle tutar, ürün iki tarafı normalleştirip karşılaştırır. Eşleşen, son 24 saatte `Sent` hâlinde ve `SentAt` o pencerede olan **bütün** satırlar işlenir (müşteri bildirimleri, firma bildirimleri ve hesap e-postaları) | Evet — `06 §4.58` `RecipientEmail`, `SentAt` |
+| `SuppressedDestinationSummaries[].Reason` | — | Yalnız `BOUNCE` okunur; `COMPLAINT` işlenmez | — |
+| `SuppressedDestinationSummaries[].LastUpdateTime` | — | Pencerenin ölçütüdür; satıra yazılmaz | — |
+| *(sonuç)* | `DispatchRecord.DispatchState`, `LastOutcome` | Eşleşen satır `Undelivered` olur, `SentAt` kalır, `LastOutcome` `RecipientError` olur (`06 §4.58`; K-1120). Kanal hâli kaydı etkilenmez — geri dönme bir deneme değildir. Zaten `Undelivered` olan satıra ikinci uygulama bir şey değiştirmez | Evet — `06 §5.4.6`, §5.4.7 |
+
+**Sorgu hatası.** Çağrı başarısızsa (429, kimlik ya da izin hatası, zaman aşımı) tur boş geçer ve **kanal hâli kaydına yazılmaz** — sorgu bir gönderim denemesi değildir; 24 saatlik pencere kaçan turu bir sonraki başarılı turda yakalar, imleç saklanmaz. Sorguyu süresiz engelleyen bir hata ürünün hiçbir uyarısını açmaz — **kalan risktir** (`ENT4-01`; §2.2 "servis çökerse"). **Yan etki:** SES, askıdaki adrese yeni gönderimi kabul eder ama göndermez; ürünün gördüğü "gönderildi" bu durumda yanlıştır — bu hâlin sorguyla yakalanması doğrulanacaklardadır (7). Yoklama günde 96 çağrıdır; gönderimin (günde ≤ 350) çok altındadır.
+
+#### 2.2.4 Alıcı başına gönderim sınırı ve kaçış
+
+**Sınır** (K-1242): müşteri bildirimlerinin gönderimi alıcı adresi başına sınırlanır; **sipariş engellenmez.**
+
+| Madde | Değer |
+|---|---|
+| Sayaç | Saklanan bir sayı değil, gönderim kaydından okunan bir hâl: alıcı adresine **son 24 saatte (kayan pencere)** oluşmuş müşteri bildirimi satırları (B-1…B-16) — `DispatchRecord.RecipientEmail` harf ayrımsız (`06 §2.8.1`), `OrderId` dolu satırlar (`06 §4.58`). Sayılan satırın hâli önemsizdir: aşım yüzünden gönderilmemiş (`Undelivered`) satır da oluşmuş satırdır ve sayılır; pencere kaydıkça düşer |
+| Sayılmayanlar | F-1…F-6 ve hesap ve yönetim e-postaları — alıcıları firma ya da yönetici adresidir ve hesap e-postalarının kendi yeniden isteme limitleri vardır (`02 §8.2`, L-9) |
+| Eşik | **24 saatte 20 e-posta** — tasarım değeridir, hedef değildir; ilk kurulumun ölçümüyle gözden geçirilir (K-1242 (2)) |
+| Aşım | Eşik dolduktan sonra aynı adrese oluşan müşteri bildirimi **gönderilmez:** satır ilk denemede `Undelivered` olur, `LastOutcome` `RecipientError` olur; **servise çağrı yapılmaz**, kanal hâli kaydı etkilenmez; siparişin satırına "e-posta ulaşmadı" işareti düşer; sipariş, ödeme ve durum geçişi etkilenmez (`02 §9.1.2`) |
+| Muafiyet | Firmanın panelden yeniden göndermesi sınırdan muaftır ama sayılır (K-759) |
+| Kayıt | İlk aşım ve sonraki aşım sayısı uygulama kaydına güvenlik olayı olarak seyreltilerek yazılır; **adres yazılmaz** (K-941 (1)'in kalıbı) |
+
+Sınır ilk denemede bir kez değerlendirilir; P-38'in yeniden denemeleri sınırı yeniden sormaz. **Kaçış** (K-1242 (6)): müşterinin girdiği her değer — alıcı adı, adres metni, ürün adı, iade sebebi, ayıp talebinin metni — **HTML gövdede HTML olarak kaçışlanır;** düz metin gövdede satır sonu karakterleri boşluğa çevrilir. Konu satırı müşteri metni taşımaz (§2.2.5); gönderen adı ve yanıt adresi firmanın kurulum ayarlarıdır.
+
+#### 2.2.5 Ortak kalıp
+
+Her e-posta aynı kalıpta üretilir (K-1240); her şablon kendi tetiğini, alıcısını, konusunu ve içeriğini §2.2.6'dan itibaren ayrıca yazar (yazım konvansiyonu 7).
+
+1. **Biçim:** çok parçalı — HTML ve düz metin; düz metin aynı içeriğin eşdeğeridir ve bağlantılar tam adresle yazılır. HTML **tek sütundur, en çok 600 piksel,** tablo yerleşimi ve satır içi biçim; betik, dış stil dosyası, gömülü form ve izleme pikseli yoktur; yazı tipi sistem yazı tipidir; koyu tema yönetilmez (istemciye bırakılır).
+2. **Başlık:** firmanın logosu — yoksa marka adı metin olarak; logo herkese açık görsel adresiyle bağlanır ve resim kapalıysa alt metin marka adıdır (`02 §9.1.4`; `06 §4.54` `LogoId`, `BrandName`). **Marka rengi** (`BrandColor`) ana düğmenin zemininde ve bağlantılarda kullanılır; üstündeki yazının siyah ya da beyaz olmasını sistem kontrasta göre seçer (`02 §3.29.5`); anlam taşıyan renkler sabittir.
+3. **Konu satırı:** *"{marka adı}: {olayın başlığı}"*; siparişe bağlı müşteri bildirimlerinde sonuna *" (Sipariş {numara})"* eklenir. Konuda müşteri metni yoktur (başlık enjeksiyonunu önler). Gönderen adı firmanın marka adı, yanıt adresi iletişim e-postasıdır (§2.2.2).
+4. **Bağlantı:** tam `https` adresi (alan adı kurulum ayarı); ana eylem düğmedir ve altında aynı adres düz metin olarak yazılır. Sipariş sayfasının bağlantısı misafirde erişim anahtarlıdır (`02 §3.22.5`; K-1162 (3)), üyede hesabın sipariş adresidir. B-15 ve hesabın silindiği bildirimi bağlantı taşımaz (`02 §9.2`, §9.4). Dış sitenin bağlantısı (kargo şirketinin "Takip et"i, §2.4) `noreferrer` taşır.
+5. **Biçimler:** tarih, saat, sayı ve tutar `04 §8.2`'nin biçimleridir, aynen (K-824): "4 Ekim 2026", "14:30", "1.250", "266,67 TL"; "₺" ve "TRY" kullanılmaz. Değerler olayın değerleridir ve gönderim anında olayın kaydından üretilir (`05 §4.4.2`).
+6. **Yeniden gönderim işareti:** panelden yeniden gönderilen e-postanın konusu aynıdır; gövdenin en üstünde tek cümle durur — *"Bu e-posta {olayın tarihi} tarihli bildirimin yeniden gönderilmesidir."* — ve değerler olayın değerleridir (B-1'de siparişe donmuş sürüm — K-759). Şablon bunu gruba bakarak bilir: aynı tür, sipariş ve ilgili kayıt için daha önce satır varsa yeniden gönderimdir; yeni alan gerekmez (`06 §4.58`).
+7. **Ulaşmayan e-posta:** müşteriye uyarı olarak gösterilmez (işaret panelde firmanın satırındadır — `02 §9.1.6`); müşterinin yolu sipariş sayfasıdır (`02 §9.1.2`) ve bunun için her müşteri bildirimi sipariş numarasını konuda ve gövdede taşır (`02 §8.3.5`).
+8. **Altbilgi:** firmanın unvanı ve iletişim e-postası ve *"Bu e-postayı yanıtlayarak firmaya ulaşabilirsiniz"* cümlesi; platform imzası, abonelikten çıkma bağlantısı ve pazarlama ifadesi yoktur (`02 §3.29.6`, §9.1.3, §9.5).
+9. **Dil:** Türkçe, hitap "siz" (`04 §8.2.9`); değişken metin kaçışı §2.2.4'tedir.
+
+#### 2.2.6 ve sonrası — şablon metinleri
+
+*Yazılmadı — 4. oturum (şablon metinleri). Kapı: yok — B-1…B-16 (2.2.6), F-1…F-6 (2.2.7) ve hesap ve yönetim e-postaları (2.2.8) ortak kalıbı (§2.2.5) kullanır; B-1'in iki yasal metni ve Aşama 3'ten park edilen üç bildirimin metni (K-735) bu oturumun işidir.*
+
+*Kaynak: `ENT2-15`, `ENT2-16`, `ENT2-17`, `ENT2-18`, `ENT2-19` · K-1236, K-1240, K-1241, K-1242, K-1247, K-1248 · K-861, K-862, K-913, K-941, K-1016, K-1081, K-1120, K-1217, K-759, K-824 · `05 §3.6.1`, §4.3.3, §4.4, §6.4.6, §8.4.3, §8.4.6, §9.4.7, §10.1.1, §10.1.4, §10.2, 6.x.3, 6.x.11 · `06 §2.8.1`, §4.1, §4.54, §4.58, §4.60, §5.4.6, §5.4.7, §8.2.3 · `02 §3.22.5`, §3.29.5, §8.2, §9.1, §9.2, §9.4, §12.2.8 · `04 §8.2` · `03` 10.1.2 · `10 §4.1` ÖK-2, ÖK-3 · P-38 (`02 §11.2`).*
 
 ### 2.3 Google ile giriş, kayıt ve yeniden doğrulama
 
@@ -239,4 +362,4 @@ Listeye giriş ölçütü K-1243 (3)'tür: adres şirketin **kendi** takip sayfa
 
 ---
 
-*Shopfolio — Integration Specifications v0.2*
+*Shopfolio — Integration Specifications v0.3*

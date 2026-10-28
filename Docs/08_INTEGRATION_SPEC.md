@@ -1,6 +1,6 @@
 # Shopfolio — Integration Specifications
 
-**Versiyon: v0.1** | **Bağımlılıklar:** `02`, `03`, `05`, `06`, `07` | **Son güncelleme:** YYYY-AA-GG
+**Versiyon: v0.2** | **Bağımlılıklar:** `02`, `03`, `05`, `06`, `07` | **Son güncelleme:** 2026-10-29
 
 > **Aşama:** 7 — Entegrasyon Spesifikasyonları · **Rol:** Integration Engineer
 > **Traceability zorunlu:** Hayır
@@ -57,6 +57,41 @@
 > - **K-1185 · Ödeme sağlayıcısından dönüşün adresi (yazım turunun 2b oturumu):** dönüş adresi siparişe özgüdür — `/odeme/donus/{erişim anahtarı}`; ödemenin başlatılmasında sağlayıcıya verilir ve dönen tarayıcı 303 ile siparişin erişim anahtarlı sayfasına iner, oturum çerezine dayanmaz; uç durum yazmaz, sağlayıcının eklediği parametreleri okumaz (API Tasarımı `07 §4.29`). Seçilen sağlayıcının dönüş adresini istek başına kabul ettiği ve dönüşün yöntemi — GET ya da POST — sağlayıcının belgesinden doğrulanır; adres yalnız sabit kabul ediliyorsa yol karar kaydıyla yeniden kurulur (K-973 (1); K-1166 (5)). İsteğin biçimi bu dokümanın işidir.
 > - **K-1211 · K-1216 · K-1217 · Derin gözden geçirmeden — K'sız bulgular L8-2, L8-4, `AUDIT_REPORTS/07_DEEP_REVIEW.md` (ödeme, e-posta, dış kayıtlı adresler):** (1) sağlayıcı aynı sipariş referansıyla ikinci bir ödeme oturumunu reddediyor mu, açık oturum varken aynı oturum yeniden verilebiliyor mu — doğrulanır (`05 §3.6.3`; Ödendi siparişe gelen ikinci başarılı ödeme iade edilir — `05 §4.5.3`) · (2) ödeme sağlayıcısının hata yanıtlarından hangisi "ödeme yöntemi kullanılamıyor" (bağlanılamama, `07` UC-29) sayılır — 15 saniyelik zaman aşımı ve yeniden denememe `05 §10.1.1`'dedir · (3) imzası doğru ama olay türü ya da gövdesi tanınmayan bildirim işaretli kaydedilir ve 200 alır (`05 §4.5.5`); sağlayıcının bildirim şemasının ya da sürümünün değişmesinin izlenmesi · (4) e-posta gövdesinde müşteri metninin (alıcı adı, adres metni) kaçışı ve misafir siparişinin doğrulanmamış adresine giden sipariş e-postaları için alıcı başına gönderim sayacı — sayılan bildirimler, pencere ve eşik bu dokümanın tasarımıdır (`02 §3.13.3`); sipariş engellenmez, yalnız e-posta düşer · (5) dış sistemde kayıtlı adresler (`/giris/google`, `/sistem/odeme-bildirimi`, `/odeme/donus/…`, `/sistem/durum`) değişirse dış kayıt aynı değişiklikte güncellenir; kurulumda girilmeleri `DEPLOY_RUNBOOK`'tadır.
 
+> **Yazım durumu (K-28, K-30, K-432; karar kaydı §18.1): yazım turu sürüyor.** Doküman Entegrasyon spesifikasyonları aşamasının **tek yazım turunda**, beş oturumda yazılır (K-1234 (1)); sıra başlık notu → §1 → §2 (2.3 → 2.4 → 2.1 → 2.2) → §3 → §4 → §5. Workshop tamamlandı (K-1235…K-1243); ödeme sağlayıcısının adı proje sahibinin cevabını bekler (karar kaydı §18.1).
+>
+> **1. oturum (2026-10-29, v0.2):** başlık notu — yazım konvansiyonları ve alt bölüm haritası (blok ENT0; K-1244) · §1 entegrasyon envanteri ve envanterin sınırı (blok ENT1; K-1244) · §2.3 Google ile giriş (blok ENT2, `ENT2-24`, `ENT2-25`; K-1245) · §2.4 çağrısı olmayan dış bağlantılar — kargo şirketi listesi (`ENT2-26`; K-1246). **Kalan:** 2. oturum §2.1 (kapı: sağlayıcının adı) · 3. oturum §2.2'nin servis tanımı · 4. oturum §2.2'nin şablon metinleri · 5. oturum §3, §4, §5 ve `07`'nin hizalanması; ardından özet ↔ ayrıntı taraması.
+
+**Yazım konvansiyonları (K-1234 (2), K-1244).** Bu on iki madde §1–§5'in bütün yazım oturumlarını bağlar; "yazım konvansiyonu n" diye anılır.
+
+1. **Bu doküman kural koymaz.** Dış servislerin ürünle konuşma biçimini — uç, kimlik doğrulama, alan eşlemesi, hata, yeniden deneme, tekilleştirme, imza, çökme davranışı — ve e-postaların metnini ve şablonunu yazar. Ürün davranışı `02`'de, ekranın davranışı `04`'te, mekanizma `05`'te, alan ve değer adları `06`'da, uçların adresi ve yöntemi `07`'dedir. Yazılırken eksik çıkan kural bir **boşluktur:** uydurulmaz, karar kaydında bir K satırıyla karara bağlanır; üst dokümana dönüyorsa aynı PR'da yazılır ve §5'in geri besleme tablosuna satır girer (K-652).
+2. **Adlar sözlükten ve Veri Modeli'nden birebirdir** (`02 §1.2`; `06 §3.3`, §4, §5; K-17): iç alan, tablo ve değer adları kod adlarıdır ve her biri `06`'da aranarak doğrulanır — alan eşlemesinin "`06` doğrulandı" sütunu bu denetimin izidir. İsim icat edilmez. **Dış servisin adları** (alan, parametre, uç adresi, değer) servisin yazılışıyla ve kod biçiminde yazılır; iç ada çevrilmez. Bu dokümanın kendi verdiği adlar yalnız dış servise ait olmayan sabitlerdir (kargo şirketlerinin kod adları — K-1243).
+3. **Dış olgu "bilgim tarihli" yazılır.** Bir servisin belgesinden, keşif belgesinden ya da fiyat sayfasından okunan her değer okunduğu tarih ve kaynağıyla yazılır ve §4'te bir dış varsayım satırına bağlanır; implementation'da yeniden doğrulanır (`05 §0` madde 10; `00 §F.3`). Okunamayan olgu tahmin edilmez: "doğrulanır" der ve doğrulanacağı yeri yazar.
+4. **Kimlikler** (K-1234 (3)): konu `ENTn-mm` (karar kaydı §18.3); servis §2.x'in **x**'idir ve §1'in "#" sütunu odur; dış varsayım `DV-n` — §4'ün "#" sütunu; geri yazılan uç `UC-nn` — `07`'nin kimliği, yeni uç UC-189'dan sürer; müşteri ve firma bildirimleri B-n ve F-n, hesap ve yönetim e-postaları `DispatchType` kod adıyla anılır (`06 §5.5.1`). Alan eşlemesinin satırı kimlik taşımaz.
+5. **Atıf biçimi** (K-701): önsüz `§` bu dokümanı gösterir; başka dokümana atıf numarasıyla yazılır (`02 §3.20.8`, `05 §6.1.4`); `0X §` ile başlayan dizideki sonraki önsüz `§`'ler o dokümanı gösterir — dizi ` · `, `;`, parantezin kapanışı ya da cümle sonuyla biter. Karar kaydının bölümleri "karar kaydı §n", bir kararın kolu "K-1245 (2)" diye anılır.
+6. **Servis tanımının alanları** (K-1234 (5)): §2.x'in şablon alanları korunur; üç servis üç biçimde konuştuğu için "Kullanılan uçlar" üç satıra bölünür — **giden çağrılar · gelen istekler · tarayıcı yönlendirmeleri** — ve olmayan kol gerekçesiyle "yoktur" der. Şablonun §0'ının son maddesi her servise **"Çağrının koşulları"** satırı ekler: dış çağrıyı yapıp yapmamayı belirleyen kural, kaynağı `02` olsa bile burada yinelenir. Alan eklenir, bölüm eklenmez.
+7. **E-posta şablonları §2.2'nin alt bölümleridir** (K-1234 (4)): ortak kalıp, B-1…B-16, F-1…F-6, hesap ve yönetim e-postaları; her şablon tetiğini (`02 §9`, `03 §7.1`), alıcısını, konu satırını, içeriğini (olayın değerleri — `06 §4.58`) ve taşıdığı bağlantıyı yazar.
+8. **Kural ayrıntısı evinde kalır** (`checklists/document-stage.md` §4): bir entegrasyon başka bir dokümanın kuralına dayandığında ayrıntıyı kopyalamaz, kurala bölüm numarasıyla işaret eder. Tek istisna şablonun §0'ının son maddesidir (konvansiyon 6): dış çağrıyı belirleyen kuralın **sonucu** burada yinelenir, ayrıntısı evinde kalır.
+9. **Ölü placeholder yoktur** (`GUARDRAILS §5`): henüz yazılamayan hücre bir kapıya bağlıdır ve kapıyı adıyla yazar — "ENT2-02 — proje sahibinin cevabını bekliyor, karar kaydı §18.1" —; kapısız "sonra doldurulacak" yazılmaz.
+10. **Açık kalem ve devir:** bu dokümanın şablonunda açık kararlar bölümü yoktur — açık kalem karar kaydının §4'ünde **A-19**'dan sürer; sonraki dokümana — Kodlama Kılavuzu, Implementation Planı, Doğrulama Protokolü, `DEPLOY_RUNBOOK` — talimat bırakan karar o dokümanın "Aşama 7'den park edilen girdiler" bloğuna girer, blok yoksa açılır (K-36). Yeni uç ihtiyacı `07 §10`'a ve §5'e, `07`'nin gövdesiyle birlikte aynı PR'da girer.
+11. **Runbook bu aşamanın çıktısı değildir** (K-1234 (6); `00 §M`): `INTEGRATION_RUNBOOKS/<SERVİS>.md`'yi bir dış servise ilk bağlanan task aynı PR'da yazar; §2.x'in "Runbook" satırı yolu verir ve "ilk bağlanan task'ta açılır" der.
+12. **Özet ile ayrıntı birlikte değişir; "yoktur" ve belirsiz ifade.** §1, §4 ve §5'in tabloları §2'nin özetidir; bir servisin ayrıntısını değiştiren her düzeltme onu anan özet yerlerini betikle bulur ve aynı PR'da okur (`checklists/document-stage.md` §4). Kapsam dışı satırlar (`10 §3`) ve yol haritası adayları (`10 §5`) entegrasyon almaz; bu projede karşılığı olmayan yapı ilgili yerde tek cümleyle ve kaynağıyla "yoktur" diye anılır. "Muhtemelen", "belki", "gereksinime göre" yazılmaz. **Düzey (`GUARDRAILS §1`):** kodun kalıpları Kodlama Kılavuzu'nun (`09`), doğrulanacak davranışın senaryoları Doğrulama Protokolü'nün (`12`), kurulumun adımları `DEPLOY_RUNBOOK`'un işidir.
+
+**Alt bölüm haritası (K-1234 (1), K-1244).** Şablonun §0…§5 numaraları değişmez; alt düzey aşağıdaki tabloyla sabittir. Bir oturum bir alt bölümü bölmek ya da birleştirmek zorunda kalırsa bu tabloyu ve ona atıf yapan satırları aynı PR'da günceller (K-670'in kalıbı; `checklists/document-stage.md` §4). Henüz yazılmamış bir bölüme bağlanan atıf hedef bölümü ve oturumunu taşır — "§2.1 (yazım 2)" —; o bölümü yazan oturum atfı aynı PR'da madde numarasına çevirir (K-682).
+
+| Bölüm | Alt bölümler | Plan konuları | Oturum |
+|---|---|---|---|
+| Başlık notu | Park blokları · yazım durumu · yazım konvansiyonları (1–12) · alt bölüm haritası | ENT0-01…ENT0-07 | 1 ✓ |
+| §1 Entegrasyon envanteri | Envanter tablosu · envanterin sınırı | ENT1-01, ENT1-02 | 1 ✓ |
+| §2.1 Ödeme sağlayıcısı | Şablonun alanları · 2.1.x konu alt bölümleri: sağlayıcının belirlenmesi ve katmanın sözleşmesi · anahtarlar ve değişim · 3D Secure · ödemenin başlatılması, dönüş, çerçeve · bildirimin kabulü ve alan eşlemesi · son sorgu · tek tahsilat · bağlantı hatası · kart iadesi · test | ENT2-02…ENT2-14 | 2 (kapı: ENT2-02) |
+| §2.2 E-posta altyapısı | Şablonun alanları · 2.2.x: servisin seçimi · gönderim ve sonuç sınıfları · geri dönme · alıcı başına sayaç ve kaçış · ortak kalıp · B-1…B-16 · F-1…F-6 · hesap ve yönetim e-postaları | ENT2-15…ENT2-23 | 3 (servis tanımı) · 4 (şablon metinleri) |
+| §2.3 Google ile giriş | Şablonun alanları (alt bölümsüz) | ENT2-24, ENT2-25 | 1 ✓ |
+| §2.4 Çağrısı olmayan dış bağlantılar | Kargo şirketi listesi (alt bölümsüz) | ENT2-26 | 1 ✓ |
+| §3 Ortak hata yönetimi | 3.1 Bağlantı katmanının ortak yüzü · 3.2 İmzalı makine uçlarının ilkesi · 3.3 Bir dış servis çökerse | ENT3-01…ENT3-03 | 5 |
+| §4 Dış varsayımlar | DV tablosu · dış sistemde kayıtlı adresler · ürünle gelen dış kaynaklı varlık | ENT4-01…ENT4-03 | 5 |
+| §5 `07`'ye geri yansıtılanlar | 5.1 `07`'ye geri yansıyan uçlar · 5.2 Üst dokümanlara geri besleme | ENT5-01, ENT5-02 | 5 |
+
+*Kaynak: K-1234, K-1244 · K-1146…K-1150 ve K-1173 (kalıp) · K-17, K-36, K-652, K-670, K-682, K-701 · `02 §1.2` · `05 §0` madde 10 · `06 §3.3`, §4, §5 · `00 §F.3`, §M · `checklists/document-stage.md` §4 · `07` başlık notu (kalıp).*
+
 ---
 
 ## 0. Yazım kuralları
@@ -71,29 +106,122 @@
 
 ## 1. Entegrasyon envanteri
 
+Ürünün çağırdığı dış servis **üçtür** ve her biri bir bağlantı katmanının arkasındadır — modül servisin ürün düzeyindeki işini çağırır, sağlayıcıya özgü biçim katmandadır (`05 §3.6.1`; K-932). "#" sütunu §2.x'in x'idir (yazım konvansiyonu 4); tabloyu düşen her servis ilgili alt bölümdeki "Servis çökerse" satırıyla ve §3.3 ile okunur.
+
 | # | Servis | Ne için | Kritiklik | Ücretli mi | Kota / limit |
 |---|---|---|---|---|---|
+| 2.1 | **Ödeme sağlayıcısı** — adı: ENT2-02 — proje sahibinin cevabını bekliyor, karar kaydı §18.1. Ürün **tek** sağlayıcıyla çalışır (K-1235) | Kartla ödeme: 3D Secure'lu barındırılan ödeme sayfası, ödemenin ve kart iadesinin sonucunu sorgulama, bildirim, kısmi geri ödeme dahil karta geri ödeme (ÖK-4; K-959). Para doğrudan firmanın sağlayıcı hesabına geçer; ürün kart verisini görmez, saklamaz, loglamaz (K-12, K-13) | **Yalnız kart yöntemi için zorunlu; ürün için değil:** anahtarlar tanımlı değilse kart yöntemi görünmez ve satış — havale açık ve IBAN doluysa — yalnız havaleyle açılır (ÖK-4; K-163). Sağlayıcı çökerse ödeme başlatılamaz, sipariş ve havale yolu sürer (`05 §10.1.3`) | Evet — sağlayıcı sözleşmesi ve komisyon firmanındır; referans kurulumda geliştiricinin kendi maliyet kalemidir (ÖK-12) ve ürünün gider tavanının dışındadır (`05 §0.2`) | Sağlayıcının belgesinden okunur ve bilgim tarihli yazılır — kapı: ENT2-02, §2.1 (yazım 2) ve §4 (yazım 5) |
+| 2.2 | **E-posta gönderim altyapısı** — servisin adı §2.2'nin servis tanımını yazan oturumda K-1236'nın ölçütleriyle belirlenir (yazım 3) | Ürünün bütün e-postaları: müşteri bildirimleri B-1…B-16, firma bildirimleri F-1…F-6, hesap ve yönetim e-postaları (`02 §9`); B-1 sözleşme metninin taşıyıcısıdır (ÖK-3) | **Her kurulumda zorunlu, ikamesi yok:** kurulmadan ürün canlıya alınamaz (ÖK-3; K-378). Servis çökerse e-posta gönderim kaydında bekler; sipariş, ödeme ve durum geçişleri etkilenmez (`05 §10.1.4`) | Kullanım kadar ödenen ya da ücretsiz katmanlı; firmanın aylık altyapı gideri tavanının (yaklaşık 10–20 $) içinde (K-861, K-862, K-1236) | Ölçüt: günlük gönderim kapasitesi tepe günün **350** e-postasının üstünde; ay ≈ **2.000** e-posta (K-1236 (1), (3)). Seçilen servisin kendi sınırı okunur ve bilgim tarihli yazılır — kapı: §2.2 (yazım 3) ve §4 (yazım 5) |
+| 2.3 | **Google** (OpenID Connect) | Google ile giriş, kayıt ve yeniden doğrulama; ürün Google'dan yalnız adı ve doğrulanmış e-postayı alır (K-103, K-900; `02 §12.2.8`) | **İsteğe bağlı:** Google uygulaması kurulumda tanımlı değilse "Google ile giriş" düğmesi görünmez ve üyelik e-posta ve şifreyle yürür; Google çökerse şifreyle giriş ve panel etkilenmez (ÖK-6; `03` 10.1.3; `05 §10.1.5`) | Hayır — bilgim tarihli; Google uygulamasını firma açar, kurulumu yapan tanımlar (ÖK-6). Koşulların doğrulanması §4 (yazım 5) | Giriş başına bir kod değişimi çağrısı (§2.3); Google'ın uygulamaya koyduğu sınırlar Google'ın belgesinden okunur — kapı: §4 (yazım 5) |
+
+**Envanterin sınırı (`ENT1-02`).** Aşağıdakiler envantere girmez; her biri için ürünün dış servise çağrısı **yoktur**:
+
+- **Kargo şirketleri.** Ürün kargo şirketine çağrı yapmaz: kargo ücreti sabittir (K-132), kargoya verme ve teslim işaretini firma elle koyar, müşteri takip bağlantısını sipariş sayfasından açar — bağlantı müşterinin tarayıcısındadır, sunucunun çağrısı değildir (§2.4; `02 §3.20.8`). "Kargo şirketi entegrasyonu" yol haritası adayıdır (YH-2; K-473) ve `10 §3`'te kapsam dışıdır.
+- **Banka, e-Arşiv/e-Fatura, SMS, Facebook ile giriş.** Havale ödemesinin banka hareketiyle eşleştirilmesi (YH-3), e-Arşiv/e-Fatura (YH-1), SMS ve bildirim merkezi (YH-16) ve Facebook ile giriş (YH-11) yol haritası adaylarıdır (`10 §5`; K-424, K-473); aynı bağlantı katmanı kalıbıyla sonradan eklenirler ve büyüme yolunu kapatmazlar (`05 §3.6.5`). Aday bir entegrasyon bu dokümana kapsam dışı kalemin kararıyla girer.
+- **Altyapının dış bağımlılıkları.** Nesne depolama, sertifika (Let's Encrypt), dış erişilebilirlik kontrolü, kayıt defteri (GitHub Container Registry), ağ zaman servisi ve alan adı ile ad çözümleme ürünün iş akışında çağırdığı servisler değildir; çökme davranışları `05 §10.1`'dedir, kurulumları `DEPLOY_RUNBOOK`'tadır (`05 §3.6.1`).
+- **Yerli üretim logosu.** Bakanlığın ilan ettiği logo ürünle gelen bir varlıktır, çağrısı yoktur (K-610); bakımı §4'tedir (`ENT4-03`, yazım 5).
+
+*Kaynak: `05 §3.6.1`, §3.6.5, §2.2, §10.1.3–§10.1.5 · `10 §4.1` ÖK-3, ÖK-4, ÖK-6, ÖK-12 · `10 §5` YH-1, YH-2, YH-3, YH-11, YH-16 · `02 §3.20.8`, §9, §12.2.8 · `03` 10.1.3 · K-12, K-13, K-103, K-132, K-163, K-378, K-424, K-473, K-610, K-861, K-862, K-900, K-932, K-959, K-1235, K-1236, K-1244.*
 
 ## 2. Entegrasyon tanımları
 
-### 2.x <Servis adı>
+Her servis şablonun alanlarıyla tanımlanır (yazım konvansiyonu 6). Tanımı yazılmamış servis bir kapıya bağlıdır ve kapısını adıyla taşır.
 
-- **Amaç:**
-- **Kimlik doğrulama:** (key türü, nerede saklanır, nasıl döndürülür)
+### 2.1 Ödeme sağlayıcısı
+
+*Yazılmadı — 2. oturum (yazım 2). Kapı: ENT2-02 — sağlayıcının adı proje sahibinin cevabını bekliyor, karar kaydı §18.1. Bugün yazılabilen kural — seçim ölçütleri ve bağlantı katmanının sağlayıcıdan bağımsız beş işi — K-1237'dedir; sağlayıcıya bağlı satırlar (istek ve yanıt alanları, imza, dönüşün yöntemi, hız limiti) ad belli olunca yazılır.*
+
+### 2.2 E-posta gönderim altyapısı
+
+*Yazılmadı — 3. oturum (servis tanımı) ve 4. oturum (şablon metinleri). Kapı: yok — workshop kararları hazırdır (K-1236, K-1240…K-1242); servisin adı 3. oturumda K-1236'nın ölçütleriyle belirlenir.*
+
+### 2.3 Google ile giriş, kayıt ve yeniden doğrulama
+
+- **Amaç:** Google ile **giriş**, **kayıt** ve **yeniden doğrulama** — OpenID Connect'in yetki kodu akışı (`05 §6.1.4`, §6.1.5; K-900, K-942, K-968). Ürün Google'dan yalnız adı ve doğrulanmış e-postayı alır; Google hesabının kalıcı kimliği (`sub`) saklanmaz (`02 §8.1.2`, §12.2.8; K-1061). Üç akış aynı dönüş adresini kullanır ve akışı çerez ayırır (K-1175 (4)).
+- **Çağrının koşulları:** (1) **Google uygulaması kurulumda tanımlıdır** — istemci kimliği ve sırrı dolu; değilse "Google ile giriş" düğmesi görünmez, başlatma uçları (UC-50, UC-62) işlemi sunmaz ve uygulamaz — 422 (ÖK-6; `03` 10.1.3.3; `07 §4.20.4`, §4.24.3). Panelde açık/kapalı anahtarı yoktur. (2) **Kayıt ve ilk giriş veri toplayan girişlerin kapısına bağlıdır:** kapı kapalıysa eşleşen hesap yokken hesap açılmaz (`SocialLoginDataCollectionClosed`); var olan hesabın Google girişi sürer (`02 §3.13.19`; `07 §4.22.3`). (3) **Yeniden doğrulama yalnız hesabın Google bağı doluysa sunulur** — `Customer.GoogleLinkedAt` (`06 §4.36`); değilse UC-62 422 verir. (4) **Panelde Google ile giriş yoktur** — yönetici Google kesintisinden etkilenmez (`03` 10.1.3.4).
+- **Kimlik doğrulama:** firmanın kendi Google uygulaması — **istemci kimliği** ve **istemci sırrı**; ikisi kurulum ayarıdır: veritabanında ve panelde değildir (`06` matrisinin `02 §3.1.2` ve `02 §3.13.6` satırları) ve değerleri Google'ın konsolundan firma ya da kurulumu yapan alır (`05 §6.x`, satır 6.x.11). **Döndürme:** olay üzerine; uygulama yeni değerle yeniden başlar (6.x.11). **Uygulamanın onayı** firmanındır (ÖK-6). İstek, kullanıcının tarayıcısından ve sunucunun Google'a yaptığı kod değişiminden oluşur; ikincisi istemci sırrını taşır, birincisi taşımaz.
 - **Kullanılan uçlar:**
-- **Alan eşlemesi:** (dış alan → iç entity.alan — `06` ile kontrol edilmiş)
+  - **Giden çağrılar:** (1) **kod değişimi** — `POST https://oauth2.googleapis.com/token` (Google'ın keşif belgesindeki `token_endpoint`); gövde `grant_type=authorization_code`, `code`, `client_id`, `client_secret`, `redirect_uri`, `code_verifier` — yanıt kimlik belirtecini taşır. (2) **Keşif belgesi** (`https://accounts.google.com/.well-known/openid-configuration`) ve **anahtar kümesi** (keşif belgesindeki `jwks_uri`) — kimlik belirtecinin imzasını doğrulamak için okunur; çatı onları önbelleğe alır, her girişte yeniden çekmez (bilgim tarihli — `09`'da doğrulanır). `userinfo` ucu çağrılmaz: ad ve e-posta kimlik belirtecinin içindedir (K-1245 (3)). Bütün çağrılar 15 saniyelik zaman aşımı taşır ve yeniden denenmez (`05 §10.1.1`; MK-61).
+  - **Gelen istekler:** **GET `/giris/google`** — Google'ın dönüşü (UC-51; `07 §4.22.3`); istek `code` ve `state` taşır (hata dönüşünde `error`). Başka gelen istek yoktur: Google'ın ürüne ayrıca bir bildirimi ya da web kancası yoktur.
+  - **Tarayıcı yönlendirmeleri:** başlatma **POST**'tur (UC-50 giriş ve kayıt, UC-62 yeniden doğrulama; `07 §2.2.5`) ve **303 → Google'ın yetkilendirme adresi** (`authorization_endpoint`: `https://accounts.google.com/o/oauth2/v2/auth`) verir. İstek parametreleri: `client_id`; `redirect_uri` = `https://{alan adı}/giris/google`; `response_type=code`; `scope=openid email profile`; `state`; `nonce`; `code_challenge` ve `code_challenge_method=S256`. **Yeniden doğrulamada ek olarak** kimlik belirtecinde `auth_time` istenir (OpenID Connect'in `claims` istek parametresi, `id_token` altında `auth_time`; aşağıdaki "Doğrulanacaklar"). **Taşınmayanlar:** `response_mode` (varsayılan sorgu dizgesidir — `form_post` kullanılmaz, K-942 (1)), `prompt` (`prompt=login` elendi — K-968), `max_age`, `hd`, `login_hint`. Dönüş GET'tir; Google dönüşte sitenin kendi adresine iner. **İçerik güvenlik politikası:** form gönderimi ve onu izleyen yönlendirme için kaynak ifadesi `https://accounts.google.com`'dur — başlatma bir form gönderimidir ve 303 yönlendirmesi de `form-action`'a tabidir (`05 §6.5.4`; K-935 (4), K-942 (2)).
+- **Akışın değerleri:** `state`, `nonce` ve PKCE doğrulayıcısı (`code_verifier`) **akışın geçici çerezinde** — `__Host-external-login` — durur: Secure, HttpOnly, SameSite=Lax, yolu kök, ömrü akış kadar (dakikalar); çatının dış giriş akışının varsayılanı (SameSite=None) kullanılmaz (`05 §6.7.1`, 6.7.12; K-942 (3), K-973 (4)). Akışın türü (giriş, kayıt, yeniden doğrulama), dönüş yolu ve — yeniden doğrulamada — başlatılan işlem ile başlatma anı çatının veri koruma anahtarıyla koruduğu `state` değerinin içinde taşınır (`07 §4.20.4`, §4.24.3). İkisi o tarayıcıya bağlıdır ve dönüşte **bir kez** kullanılır.
+- **Alan eşlemesi:** kimlik belirtecinin (`id_token`) alanları ürüne şöyle girer:
 
 | Dış alan | İç alan | Dönüşüm | `06` doğrulandı |
 |---|---|---|---|
+| `email` | `Customer.Email` ; `Customer.NormalizedEmail` | Yeni hesapta olduğu gibi saklanır, normalleştirilmiş biçim türetilir; var olan hesapta **yalnız karşılaştırılır** — `NormalizedEmail` eşitliğiyle hesap bulunur, yazılmaz (`06 §2.8.1`, §4.36; K-1016) | Evet — `06 §4.36` `Email`, `NormalizedEmail` |
+| `email_verified` | — (yazılmaz) | `false` ya da yoksa hesap açılmaz, bağ kurulmaz (`SocialLoginEmailUnverified`; yeniden doğrulamada `SocialReauthenticationFailed`); `true` ise yeni hesapta `Customer.EmailVerifiedAt` açılış anıyla yazılır | Evet — `06 §4.36` `EmailVerifiedAt` |
+| `name` | `Customer.Name` | **Yalnız yeni hesapta** yazılır; var olan hesabın adı Google'ın adıyla değişmez (`02 §3.13.21`) | Evet — `06 §4.36` `Name` |
+| *(bağın kurulması)* | `Customer.GoogleLinkedAt` | E-posta eşleşmesinde girişin işleminde şimdiki an yazılır; üye bağı kaldıramaz; e-posta değişikliğinin doğrulaması bağı boşaltır (`06 §4.36`; K-1117) | Evet — `06 §4.36` `GoogleLinkedAt` |
+| *(şifresiz hesap)* | `Customer.PasswordHash` | Google ile **doğan** hesapta boş kalır (`02 §3.13.8`) | Evet — `06 §4.36` `PasswordHash` |
+| `nonce` | — (saklanmaz) | Akış çerezindeki `nonce` ile eşit olmalıdır; eşit değilse akış tutmaz | — |
+| `auth_time` | `Session.ReauthenticatedOperation` ; `Session.ReauthenticationTokenHash` (**dolaylı**) | Yalnız yeniden doğrulamada okunur ve saklanmaz: değer yeniden doğrulamanın **başlatıldığı andan sonraysa** oturum kaydına yalnız başlatılan işlem için izin yazılır (`05 §6.1.5`; K-968, K-971) | Evet — `06 §4.39` |
+| `sub`, `iss`, `aud`, `exp`, `iat` | — (saklanmaz) | `sub` **saklanmaz** (K-1061); `iss` keşif belgesindeki `issuer`'a, `aud` istemci kimliğine eşit ve `exp` geçmemiş olmalıdır — kimlik belirteci doğrulamasının parçası | — |
+| `picture`, `given_name`, `family_name` | — | Okunmaz, saklanmaz (ürün yalnız ad ve e-posta alır — `02 §12.2.8`) | — |
 
-- **Hız limitleri ve kota:**
-- **Hata senaryoları ve kodları:**
-- **Retry stratejisi:** (kaç deneme, hangi gecikme, hangi hatalarda)
-- **Idempotency / tekilleştirme anahtarı:**
-- **Geri çağrım / webhook:** (imza doğrulama **zorunlu**, tekrar gönderim davranışı)
-- **Servis çökerse:** (geri düşme, kullanıcıya ne gösterilir, süreler donar mı)
-- **Test / sandbox imkânı:**
-- **Runbook:** [`INTEGRATION_RUNBOOKS/<SERVIS>.md`](INTEGRATION_RUNBOOKS/)
+- **Hız limitleri ve kota:** ürün tarafında UC-51 **sayfa** sınıfındadır; UC-50 ve UC-62 **form · 64 KB**'tır (`07 §4.22.3`, §4.20.4, §4.24.3). Google ile giriş ve yeniden doğrulama L-1'e girmez (`03 §6.1.3.5`; `04` 5.24.6). Google'ın uygulamaya uyguladığı istek kotaları Google'ın belgesinden okunur ve bilgim tarihli yazılır — kapı: §4 (yazım 5). Hacim küçüktür: bir giriş bir kod değişimi çağrısıdır.
+- **Hata senaryoları ve kodları:** bütün hatalarda oturum açılmaz, izin yazılmaz, akışın çerezi silinir; kullanıcı kodla ilgili ekrana döner (`07 §4.22.3`, §6.2).
+
+| Senaryo | Sonuç (giriş ve kayıt akışı) | Sonuç (yeniden doğrulama akışı) |
+|---|---|---|
+| Kullanıcı Google'da vazgeçti ya da izni reddetti (dönüşte `error` parametresi, ör. `access_denied`) | `SocialLoginFailed` → `/giris` | `SocialReauthenticationFailed` → `/hesap/yeniden-dogrulama` |
+| Google'a ulaşılamadı — kod değişimi bağlanamadı, 15 sn zaman aşımı ya da Google hata yanıtı verdi | `SocialLoginFailed` → `/giris` | `SocialReauthenticationUnavailable` → `/hesap/yeniden-dogrulama` |
+| Akışın çerezi yok, `state` tutmuyor ya da değerler kullanılmış (yenilenen, geri tuşuyla gelen dönüş) | `SocialLoginFailed` → `/giris`; hiçbir şey yazılmaz | aynı — akışın türü bilinemediği için `/giris` |
+| Kimlik belirtecinin doğrulaması tutmuyor — imza, `iss`, `aud`, `exp` ya da `nonce` | `SocialLoginFailed` → `/giris` | `SocialReauthenticationFailed` |
+| Google e-postayı doğrulanmamış verdi (`email_verified` `false` ya da yok) | `SocialLoginEmailUnverified` → `/kayit` | `SocialReauthenticationFailed` |
+| Eşleşen hesap yok ya da doğrulanmamış bekleyen bir kayda eşleşiyor ve veri toplayan girişlerin kapısı kapalı | `SocialLoginDataCollectionClosed` → `/giris` | — |
+| `auth_time` gelmedi ya da yeniden doğrulamanın başlatıldığı andan önce, ya da e-posta hesabınkiyle eşleşmiyor | — | `SocialReauthenticationFailed` |
+
+- **Retry stratejisi:** **yoktur.** Bağlantı katmanı kendiliğinden yeniden denemez; kod değişimi başarısızsa kullanıcı akışı yeniden başlatır ya da şifreyle girer (`05 §10.1.1`, §10.1.5; MK-61). Yetki kodu tek kullanımlıktır — başarısız bir değişimin kodu yeniden gönderilmez (bilgim tarihli — OAuth 2.0 yetki kodu akışı, RFC 6749 §4.1.2).
+- **Idempotency / tekilleştirme anahtarı:** tekilleştirici **akışın değerleridir** — her başlatma yeni bir `state`, `nonce` ve PKCE doğrulayıcısı üretir ve akış çerezini yeniden yazar; önceki akışın dönüşü artık tutmaz. Aynı dönüşün yeniden gelmesi (yenileme, geri tuşu) değerler kullanıldığı için hiçbir şey yazmadan `/giris`'e 303 alır (`07 §4.20.4`, §4.22.3). Hesap yazımı e-postanın tekilliğine dayanır (`06 §4.36` `NormalizedEmail`).
+- **Geri çağrım / webhook:** **webhook yoktur.** Dönüş GET'tir ve imzası yoktur; dönüşün doğruluğunu üç şey kurar: akış çerezinin tek kullanımlık değerleri (`state` bu tarayıcıya bağlıdır — başka sitenin tetiklediği dönüş tutmaz), PKCE doğrulayıcısı (kodu çalan, doğrulayıcı olmadan değiştiremez) ve **kimlik belirtecinin imzası** (RS256; Google'ın anahtar kümesine karşı) — imza doğrulaması zorunludur ve kimlik belirteci doğrulamasının ilk adımıdır. Dönüş durum yazan bir GET'tir ve sahteciliğe karşı korumanın istisnasıdır (`07 §2.2.5`; K-1186 (5)); bu istisna bu aşamada yeni değildir.
+- **Servis çökerse:** Google ile giriş ve yeniden doğrulama tamamlanmaz; **şifreyle giriş, sipariş (girişsiz de verilir) ve panel etkilenmez**; hiçbir süre donmaz — Google'a bağlı süre yoktur (`03` 10.1.3.1, 10.1.3.4; `05 §10.1.5`). **Şifresi olmayan Google hesabı** Google'a ulaşamadığında "şifremi unuttum"la şifre belirler ve iki giriş yolunu kullanır; şifre konana ya da Google dönene kadar yeniden doğrulama isteyen işlemler yapılamaz (`03` 10.1.3.2). Kullanıcıya gösterilen kod ve ekran §6'dadır (`SocialLoginFailed`, `SocialReauthenticationUnavailable`; `04` 5.22.11, 5.24.7). Uyarı yoktur (`05 §10.1.5`).
+- **Test / sandbox imkânı:** Google'ın ayrı bir deneme ortamı yoktur (bilgim tarihli — §4, yazım 5). Geliştirmede Google uygulamasının dönüş adresi yerel adrestir; uygulamanın yayın durumu "test" iken yalnız tanımlı test kullanıcıları girebilir (bilgim tarihli — Google Cloud OAuth onay ekranı belgesi, §4 ve `09`'da doğrulanır). Canlı kanıt: referans kurulum kendi Google uygulamasıyla çalışır (ÖK-12). Entegrasyon testi `12`'nin işidir.
+- **Doğrulanacaklar (bilgim tarihli — Google'ın belgesinden okundu, 2026-10-29; §4'te DV satırı, yazım 5):** (1) **`auth_time`:** Google'ın OpenID Connect belgesi kimlik belirtecinin `auth_time` alanını koşullu verir — *"auth_time claim'i kimlik doğrulama isteğine eklendiğinde ve ayarlarda etkinleştirildiğinde sağlanır"* (developers.google.com/identity/openid-connect/openid-connect) — ve `claims` isteğiyle istenir. Google'ın keşif belgesindeki `claims_supported` listesi `auth_time`'ı içermez (accounts.google.com/.well-known/openid-configuration, 2026-10-29). **Gerçek bir Google uygulamasıyla kimlik belirtecinde `auth_time`'ın geldiği implementation'da denenir.** Gelmezse `05 §6.1.5`'in "hiç gelmezse" hâli işler: Google ile yeniden doğrulama tutmaz ve Google girişli üye üç işlemi — şifre değiştirme, e-posta değiştirme, hesap silme — şifre belirleyerek yapar (K-968); ürün kuralı değişmez, kalan etki Google ile yeniden doğrulamanın fiilen kullanılamamasıdır. (2) **`max_age`:** Google'ın belgesi `max_age` parametresini anmaz (aynı sayfa, 2026-10-29); bu yüzden istek bugün onu taşımaz. Google'ın onu destekleyip desteklemediği gerçek uygulamayla denenir; destekliyorsa K-968'in hükmü gereği istek taşır. (3) **PKCE:** keşif belgesi `code_challenge_methods_supported` olarak `plain` ve `S256`'yı verir; ürün `S256` kullanır (2026-10-29). (4) **Dönüşün yönlendirme zinciri:** başlatmanın 303 yönlendirmesi Google'da başka bir alan adına düşerse `form-action` politikası kaynak ifadesini genişletmeyi gerektirir; gerçek akışta tarayıcıda denenir, genişleme karar kaydıyla girer.
+- **Runbook:** [`INTEGRATION_RUNBOOKS/GOOGLE.md`](INTEGRATION_RUNBOOKS/) — Google'a ilk bağlanan task'ta açılır (yazım konvansiyonu 11).
+
+*Kaynak: `ENT2-24`, `ENT2-25` · K-900, K-942, K-968, K-973, K-1175, K-1245 · K-103, K-359, K-1061, K-1117, K-1186 · `05 §6.1.4`, §6.1.5, §6.5.4, §6.7.1, 6.7.12, §10.1.1, §10.1.5, 6.x.11 · `07 §4.20.4`, §4.22.3, §4.24.3, §2.2.5, §6.2 · `06 §4.36`, §4.39 · `02 §3.13.6`–§3.13.8, §3.13.19, §3.13.21, §8.1.2, §12.2.8 · `03` 10.1.3 · `10 §4.1` ÖK-6, ÖK-12.*
+
+### 2.4 Çağrısı olmayan dış bağlantılar — kargo şirketi listesi
+
+Kargo şirketlerine **çağrı yoktur** (§1, envanterin sınırı); bu alt bölüm ürünün müşteriye gösterdiği takip bağlantısını tanımlar. Servis alanları aşağıdaki biçimde okunur; çağrıya özgü olanlar gerekçesiyle "yoktur" der (yazım konvansiyonu 6).
+
+- **Amaç:** kargoya verilen siparişin sayfasında müşteriye, takip numarasını kargo şirketinin kendi takip sayfasında açan tek tıklık bir **"Takip et"** bağlantısı göstermek (`02 §3.20.8`). Listede olmayan şirket "Diğer"dir ve yalnız şirketin adı ve takip numarası görünür. Liste ve bağlantı kalıpları ürünün kendi varlığıdır: firma panelden düzenlemez ve güncellenmesi ürünün bakımıdır (K-142, K-18).
+- **Çağrının koşulları:** bağlantı yalnız **listedeki** bir şirket seçilmiş ve takip numarası girilmişse gösterilir; "Diğer" seçilmişse, "kendi aracımızla teslim" beyanında (`Order.IsOwnVehicleDelivery`) ve **listeden çıkmış** şirkette gösterilmez (aşağıda).
+- **Kimlik doğrulama:** yoktur — takip sayfası herkese açıktır ve ürün şirketin sistemine girmez.
+- **Kullanılan uçlar:** **giden çağrılar: yoktur** — ürün kargo şirketine sunucudan istek göndermez; **gelen istekler: yoktur**; **tarayıcı yönlendirmeleri:** müşterinin tarayıcısı sipariş sayfasındaki bağlantıyla şirketin takip sayfasına gider; aynı bağlantı bildirimde (B-5) de aynı kalıptadır.
+- **Alan eşlemesi:** bağlantı iki iç alandan türetilir:
+
+| Dış alan | İç alan | Dönüşüm | `06` doğrulandı |
+|---|---|---|---|
+| *(şirketin takip adresi kalıbı)* | `Order.Carrier` | Alan listedeki şirketin **kod adını** taşır; kalıp koddaki listeden kod adıyla çözülür (`06 §5.3.12`) | Evet — `06 §4.17` `Carrier` |
+| `{takipNumarasi}` | `Order.TrackingNumber` | Serbest metin; kalıpta yerine konmadan önce **yüzde kodlaması** uygulanır; numaradan başka adres parçası türetilmez | Evet — `06 §4.17` `TrackingNumber` |
+| *(gösterilen şirket adı)* | `Order.Carrier` ya da `Order.OtherCarrierName` | Listedeki şirkette şirketin adı koddaki listeden, "Diğer"de `OtherCarrierName` | Evet — `06 §4.17` `OtherCarrierName` |
+
+- **Hız limitleri ve kota:** yoktur — çağrı yapılmaz.
+- **Hata senaryoları ve kodları:** şirketin takip sayfası açılmazsa ya da adres biçimini değiştirirse **bağlantı kırılır, takip numarası görünmeye devam eder;** güncelleme bakım sürümüyle gelir (`02 §3.20.8`). Ürün bağlantının çalışıp çalışmadığını denetlemez (çağrı yoktur). Hata kodu yoktur.
+- **Retry stratejisi:** yoktur — çağrı yapılmaz. **Idempotency / tekilleştirme anahtarı:** yoktur. **Geri çağrım / webhook:** yoktur — kargo şirketi ürüne veri getirmez; teslim işaretini firma koyar (K-141, K-288).
+- **Servis çökerse:** şirketin sitesi çökerse müşteri takip numarasını sipariş sayfasında yine görür; **süreler donmaz ve bu siteye bağlı süre yoktur** — kargoya verme ve teslim işaretini firma elle koyar.
+- **Test / sandbox imkânı:** yoktur — kalıp, gerçek bir takip numarasıyla şirketin kendi sayfasında tarayıcıda denenir (aşağıda).
+- **Runbook:** yoktur — çağrı olmadığı için bağlanılacak bir servis ve runbook yoktur (yazım konvansiyonu 11).
+
+**Liste ve kod adları (K-1243, K-1246).** Kod adı şirketin ticari adının ASCII, tek kelime, büyük harfle başlayan yazılışıdır ve **kalıcıdır**; başka şirkete verilmez (`06 §5.3.12`; K-1123). Kalıp `https` adresidir ve takip numarasının yerini tutan tek bir `{takipNumarasi}` yer tutucusu taşır.
+
+| Kod adı | Şirket | Takip bağlantısı kalıbı | Durum (2026-10-29, bilgim tarihli) |
+|---|---|---|---|
+| `YurticiKargo` | Yurtiçi Kargo | `https://www.yurticikargo.com/tr/online-servisler/gonderi-sorgula?code={takipNumarasi}` | Listede — adres yönlenmeden açıldı (HTTP 200) |
+| `ArasKargo` | Aras Kargo | `https://kargotakip.araskargo.com.tr/mainpage.aspx?code={takipNumarasi}` | Listede — adres yönlenmeden açıldı (HTTP 200) |
+| `SuratKargo` | Sürat Kargo | `https://www.suratkargo.com.tr/KargoTakip/?kargotakipno={takipNumarasi}` | Listede — adres yönlenmeden açıldı (HTTP 200) |
+| `Ups` | UPS | `https://www.ups.com/track?loc=tr_TR&tracknum={takipNumarasi}` | Listede — adres yönlenmeden açıldı (HTTP 200) |
+| — | MNG Kargo | — | **Listeye girmedi — "Diğer":** şirketin `www.mngkargo.com.tr/gonderi-takip/` adresi `www.dhlecommerce.com.tr/gonderi-takip/` adresine yönleniyor; şirketin güncel takip sayfası doğrulanamadı |
+| — | PTT Kargo | — | **Listeye girmedi — "Diğer":** `gonderitakip.ptt.gov.tr/Track/Verify?q=…` adresi ana sayfaya yönleniyor; takip sayfası doğrulanamadı |
+| — | HepsiJet | — | **Listeye girmedi — "Diğer":** `www.hepsijet.com/gonderi-takip/…` adresi okunamadı (HTTP 403); takip sayfası doğrulanamadı |
+
+Listeye giriş ölçütü K-1243 (3)'tür: adres şirketin **kendi** takip sayfasından okunur ve doğrulanamayan şirket listeye girmez. Bu oturumda doğrulama şirketin adresine bir istekle yapıldı (yönlenmeden açılması); **numaranın sayfada gerçekten bir gönderiyi açtığı** gerçek bir takip numarasıyla tarayıcıda implementation'da denenir (kapı: §4, yazım 5). Denemede kalıbı tutmayan şirket listeye girmez ve "Diğer" olur. Adı K-1243'te anılıp bu oturumda listeye girmeyen üç şirketin kod adı (`MngKargo`, `PttKargo`, `HepsiJet`) ilk bağlanan task'ın doğrulamasıyla — kalıbı okunabilirse — aynı bakım yoluyla listeye girer.
+
+**Bağlantının biçimi ve çıkan şirket.** (1) Sipariş sayfasındaki "Takip et" **yeni sekmede** açılır ve `noreferrer` taşır — sipariş sayfasının adresi erişim anahtarı taşır, Referer ile kargo şirketinin sitesine sızmamalıdır (`05 §6.5.4`; K-1240 (4)). (2) **Listeden çıkan ya da adı değişen şirket** işaretlenir: yeni kargo işaretinde seçilemez; eski siparişte adıyla çözülür, takip numarası görünür ve **"Takip et" bağlantısı gösterilmez** (şirket çıkmışsa adres de ölmüş olabilir); kod adı kodda kalır (K-1123, K-1243 (5)). Şirketin adı değişirse (devir, birleşme) eski ad eski siparişte görünür, yeni kayıt yeni kod adıyla girer. (3) Takip numarası serbest metindir (`06 §4.17`); kalıba konmadan yüzde kodlanır.
+
+*Kaynak: `ENT2-26` · K-142, K-1031, K-1123, K-1243, K-1246 · K-18, K-141, K-288, K-1240 · `02 §3.20.7`, §3.20.8 · `06 §4.17`, §5.3.12 · `05 §6.5.4`.*
 
 ## 3. Ortak hata yönetimi
 
@@ -111,4 +239,4 @@
 
 ---
 
-*Shopfolio — Integration Specifications v0.1*
+*Shopfolio — Integration Specifications v0.2*

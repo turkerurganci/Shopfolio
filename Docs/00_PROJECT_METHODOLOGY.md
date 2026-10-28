@@ -1,6 +1,6 @@
 # Project Playbook — Metodoloji
 
-**Versiyon: v1.0.7** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-10-18
+**Versiyon: v1.0.8** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-10-29
 
 > Bu doküman bir yazılım projesini **fikirden çalışan MVP'ye** taşıyan yöntemin tamamıdır:
 > doküman üretimi, implementasyon, doğrulama, borç kapatma ve kapanış.
@@ -742,6 +742,14 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 6. **Kalite döngüsünün düzeltmesi önceki aşamaların izlerine de uzanır.** Kararlar önceki aşamaların park satırlarında yirmi beş hizasızlık bıraktı — betik yalnız aşamanın kendi bloklarına bakmıştı; "park gerekmez" ve "değişmedi" gibi kapanış sözleri öncülü sınanmadan kabul edildi. Aşama 4'ün 6. deseninin devamıdır: düzeltme de taranır — bütün aşamalarda ve kapanış sözünün öncülüyle.
 7. **Yönetici düzeni dördüncü kez tuttu; maliyeti ve görünürlüğü ilk kez kural istedi.** Açılıştan checkpoint'e yirmi yedi adım iki günde yürüdü; proje sahibine çalışma modu soruları, bir çok kritik soru ve sorulmadan kaydedilen otuz yedi kararın listesi gitti. Bütün alt ajanların en güçlü modelde koşması bir denetim adımını saatlere uzattı ve iş türüne göre modellere dağıtıldı; arka plana atılan iki ajanın işi sahipsiz kaldı; proje sahibi ilerlemeyi göremeyip birçok kez sordu. Aşama 2'nin 6. ve Aşama 3'ün 7. desenlerinin devamıdır.
 
+**Aşama 6 — API tasarımı (2026-10-18 → 2026-10-28).** Kurallar `.claude/checklists/document-stage.md` §1, §3, §4, §6 ve `.claude/INSTRUCTIONS.md` §9'a terfi etti; rapor `Docs/CHECKPOINT_REPORTS/PHASE6_LEARNING_PROMOTION.md`. Tekrarlanacak desenler:
+
+1. **Bir dokümana bırakılan iş başka bir dokümanın kayıtlarında yaşayabilir; hedefin adı bütün dokümanların kayıtlarında aranır.** Entegrasyon Spesifikasyonu'nun park satırı ödeme sağlayıcısından dönüşün yolunu API Tasarımı'na bıraktı; API Tasarımı'nın kendi kayıtları ve dizinleri işi saymıyordu ve açılış onu hedefin adını bütün dokümanların park bloklarında tarayarak buldu. Aşama 4'ün 1. ve Aşama 5'in 6. deseninin devamıdır.
+2. **Özet, yazıldığı günün cümlesini kopyalar; istisna sonraki kararlarla gelir.** Konvansiyon tabloları ve kapalı listeler yazıldıkları oturumun karar cümlesini aldı; sonraki oturumların kararları listeye yer ekledi ya da istisna açtı ve listeyi güncelleyen mekanik bir adım yoktu. Yazım turundan sonraki özet ↔ ayrıntı taraması 56 fark buldu. Aşama 5'in 1. ve 2. desenlerinin devamıdır: kaydın özeti de sınanır.
+3. **Kalite döngüsünün düzeltmesi gövdeye karar satırı olmadan kural ve devir yazabilir.** İki cümle deep review'un düzeltmesiyle girdi, K numarası ve park satırı yoktu; K'ya dayanan etki yansıtma betikleri görmedi, çakışma taraması buldu. Aşama 5'in 6. deseninin devamıdır.
+4. **Proje kuralı genel kural ya da hook'la çatışırsa çatışma dolanılmaz, bildirilir.** Cross-review'ın bir turunda hook iki kontrolcüyü engelledi, adım ajanı açıklamadaki sözcüğü değiştirerek dolandı; proje sahibi sorulunca bulgu doğrulamasını Opus / `high` yaptı. Aşama 5'in 7. deseninin (yönetici düzeni) devamıdır.
+5. **Yardımcı ajanlar ölçülmezse maliyet karşılaştırılamaz.** Aşama 5'in tabanı yalnız yönetici seviyesindeki ajanı saydı; Aşama 6'da yardımcı ajanlar kayıtlı token'ın yaklaşık üçte ikisini taşıdı ve adım ajanının kendi token'ının 12 ila 19 katıydı. Süre ve adım ajanı token'ı düştü; toplam token karşılaştırılamadı. Aşama 5'in 7. deseninin (maliyet ve görünürlük) devamıdır.
+
 ### N.2 Dönem 2 — Implementation
 
 *(Bu projede henüz faz kapanmadı.)*
@@ -767,4 +775,4 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 
 ---
 
-*Project Playbook — Metodoloji v1.0.7*
+*Project Playbook — Metodoloji v1.0.8*

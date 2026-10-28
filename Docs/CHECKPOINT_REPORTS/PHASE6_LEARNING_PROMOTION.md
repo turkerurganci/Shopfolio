@@ -194,6 +194,8 @@ Kolon "Terfi önerisi": hedef dosya ve sorunun numarası (§5). "Düşer": gerek
 
 ## 5. Proje sahibinin cevabını bekleyen dokuz soru
 
+> **Sonuç (2026-10-29, K-1232):** dokuz sorunun hepsi cevaplandı — Soru 1 ekle · Soru 2 kalıcı · Soru 3 kalıcı · Soru 4 ekle · Soru 5 ekle · Soru 6 ekle · Soru 7 bırak · Soru 8 liste kalsın, her aşama sonunda yine sorulsun · Soru 9 ekle. "Uygulanacak metin" bölümleri olduğu gibi uygulandı (`INSTRUCTIONS §9`, `checklists/document-stage.md` §4 ve başlık notu, `audit` / `deep-review` / `cross-review` / `checkpoint` skill'leri, `00 §N.1`; `00` v1.0.8); Soru 7'nin metni uygulanmadı.
+
 > **Hepsi ayrı numaralı sorudur** (`INSTRUCTIONS §2`; K-722 → K-853: tek bir "evet" birden çok öneriye okunmaz). Uygulanan metinler cevaptan sonra ayrı bir `docs:` PR'ında yazılır; hiçbiri aşamanın kapanışını engellemez, kurallar L3–L4'te yürürlükte. **Kapı:** arşiv işaretinden önce (K-437'nin 6. adımı), ⚠ listesiyle aynı mesajda. Her sorunun altında "Uygulanacak metin" çıplak biçimdedir; yönetici sade metni iletir.
 
 ### Soru 1 — Yazım bittikten sonra "özet ↔ ayrıntı" taraması (maliyet düzeninin 1–3. maddeleri)

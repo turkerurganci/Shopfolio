@@ -1,6 +1,6 @@
 # Shopfolio — API Design
 
-**Versiyon: v0.25** | **Bağımlılıklar:** `02`, `03`, `04`, `05`, `06`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-28
+**Versiyon: v0.26** | **Bağımlılıklar:** `02`, `03`, `04`, `05`, `06`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
 
 > **Aşama:** 6 — API Tasarımı · **Rol:** API Designer
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §3'e (endpoint envanteri) geçilmez.
@@ -43,7 +43,7 @@
 > - **K-1100 · K-1118 · Silinmiş yüklemeyle form kaydı:** bir günden uzun açık tutulan formun yüklemesi — ve bir günü aşan parçalı dijital dosya yüklemesinin sürdürülmesi — silinir: görsel ve tamamlanmış dosya yüklemesi imhada, parçalı yükleme gecelik temizlikte; formun kaydı görselde kısıtlayıcı bağa takılır, dosyada bağlanacak satırı bulamaz (Veri Modeli `06 §4.69`, §4.70). Kaydın hata yanıtı bu aşamanın kararıdır: yanıt hangi yüklemenin artık olmadığını söyler ve yeniden yüklemeyi ister; ekrandaki hâl Arayüz Tanımları'ndadır (`04` 2.12.8.7 — Veri modeli aşamasının etki yansıtmasında yazıldı; K-1130). Parçalı yükleme ucunun, satırı gecelik temizlikte silinmiş yüklemeye gelen sürdürme isteğine yanıtı da bu aşamanın kararıdır — yükleme kaldığı yerden sürmez, baştan başlar (Veri Modeli `06 §4.70` `UploadCompletedAt`; `04` 2.12.8.7).
 > - **Dizin — Aşama 5 kararlarının bu dokümana devirleri:** karar kaydında K-992…K-1136'nın etki sütunlarında bu dokümanı gösteren on altı atıf (on altı karar) ve Veri Modeli'nin (`06`) gövdesinde bu dokümana iş bırakan cümleler [`CHECKPOINT_REPORTS/PHASE5_CONFLICT_SCAN.md`](CHECKPOINT_REPORTS/PHASE5_CONFLICT_SCAN.md) §6'dadır; Aşama 5'in atıflarının hepsi işin adını taşır. Üç karar etki sütununda "park gerekmez" der (K-1034, K-1062, K-1066); yedisi bu dokümanın Aşama 1, 3 ve 4 park satırlarını güncelledi — iş o satırlarda etiketiyle durur. Devir taraması (`checklists/document-stage.md` §4) buradan başlar; devrin evi karar satırıdır, dizin onu ikinci kez kaydetmez. Önceki aşamaların dizinleri: `PHASE1_CONFLICT_SCAN.md` §6, `PHASE2_CONFLICT_SCAN.md` §6, `PHASE3_CONFLICT_SCAN.md` §6, `PHASE4_CONFLICT_SCAN.md` §6.
 
-> **Yazım durumu (K-28, K-30, K-432; karar kaydı §16.2): yazım turu tamamlandı (2026-10-19).** İzlenebilirlik matrisi (§1) yedi oturumda (K-1150…K-1161), workshop bir oturumda (K-1162…K-1172) tamamlandı; doküman API tasarımı aşamasının **tek yazım turunda**, dört oturumda — 2. ve 3. oturum ikiye bölünerek altı adımda — yazıldı; sıra başlık notu → §2 → §3 → §8 → §7 → §4 → §9 → §5 → §6 → §10 (K-1146). **Özet ↔ ayrıntı taraması tamamlandı (2026-10-19, v0.14; K-1145, madde 1–2; API1-07)** — matrisin çıktıya karşı yeniden okunması dahil; yöneticiye kalan on iki maddenin hükmü v0.15'te. **Sıradaki:** audit — kalite döngüsünün açılışı.
+> **Yazım durumu (K-28, K-30, K-432; karar kaydı §16.2): yazım turu tamamlandı (2026-10-19).** İzlenebilirlik matrisi (§1) yedi oturumda (K-1150…K-1161), workshop bir oturumda (K-1162…K-1172) tamamlandı; doküman API tasarımı aşamasının **tek yazım turunda**, dört oturumda — 2. ve 3. oturum ikiye bölünerek altı adımda — yazıldı; sıra başlık notu → §2 → §3 → §8 → §7 → §4 → §9 → §5 → §6 → §10 (K-1146). **Özet ↔ ayrıntı taraması tamamlandı (2026-10-19, v0.14; K-1145, madde 1–2; API1-07)** — matrisin çıktıya karşı yeniden okunması dahil; yöneticiye kalan on iki maddenin hükmü v0.15'te. **Kalite döngüsü ve kapanış adımları tamamlandı** (audit, deep review, cross-review — 5 tur, TEMİZ —, etki yansıtma, çakışma taraması, checkpoint, öğrenim terfisi; ayrıntı karar kaydı §16.1 ve `CHECKPOINT_REPORTS/`). **Arşiv işareti (2026-10-29, v0.26):** doküman ✓ Tamamlandı; on ⚠ karar gözden geçirildi, itiraz yok (K-1231); K-437'nin altı adımı tamam. Sıradaki aşama Entegrasyon spesifikasyonlarıdır (karar kaydı §17).
 >
 > **1. oturum (2026-10-18, v0.8):** yazım konvansiyonları ve alt bölüm haritası (blok API0; K-1173) · §2 konvansiyonlar — on konvansiyon (blok API2; K-1162…K-1169 ve API2-09, API2-10; K-1174) · §3 uç envanteri — 187 uç, ekran olmayan yüzeyler ve sitenin dışından girişler (blok API3; K-1175) · §8 istemci karmaşıklığını azaltan kalıplar (blok API8) · §7 gerçek zamanlı olaylar — yoktur (blok API7).
 >
@@ -6417,4 +6417,4 @@ Panelin çerçevesi — menü, satış durumu göstergesi, yöneticinin adı, "H
 
 ---
 
-*Shopfolio — API Design v0.25*
+*Shopfolio — API Design v0.26 — ✓ Tamamlandı (v0.26 API tasarımı aşamasının kapanışının arşiv işaretidir — kapanış sürümü; yalnız başlık notunun yazım durumu paragrafı ve bu dipnot değişti; on ⚠ karar gözden geçirildi, itiraz yok — K-1231; K-437'nin altı adımı tamam)*

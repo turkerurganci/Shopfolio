@@ -33,7 +33,7 @@ user-invocable: true
 
 7. **Yeni alan/kural taraması** — bu aşamada eklenen her yeni alan, parametre, enum değeri veya iş kuralı **kendi source-of-truth dokümanında** tanımlı mı? (Cross-review sırasında eklenen öğeler en sık buradan kaçar.)
 
-**Koşum:** mekanik kontroller betikle yapılır; anlamsal tarama alt ajan mercekleriyle koşuyorsa `audit` skill'inin "Koşum biçimi" 4. ve 5. maddeleri geçerlidir — betiğin örneklenerek doğrulanması; dalga büyüklüğü, bulgunun bulunduğu anda dosyaya yazılması ve merceklerin ön planda başlatılması.
+**Koşum:** mekanik kontroller betikle yapılır; anlamsal tarama alt ajan mercekleriyle koşuyorsa `audit` skill'inin "Koşum biçimi" 4. ve 5. maddeleri geçerlidir — betiğin örneklenerek doğrulanması; dalga büyüklüğü, bulgunun bulunduğu anda dosyaya yazılması ve merceklerin ön planda başlatılması. Bulgu başına bir doğrulayıcı (Opus / `high`, `INSTRUCTIONS.md` §9, K-1224) koşar; mercek ve doğrulayıcı önce kendi dilim dosyasını okur, karar kaydı hiçbir ajana bütünüyle okutulmaz ve doğrulayıcının düzeltmesi birebir şartname olarak yazılıp betikle uygulanır (`audit` skill'i, "Koşum biçimi" 1. ve 2. madde).
 
 **Kalite döngüsünün devri:** cross-review çıkış kuralıyla kapandıysa (`cross-review` skill'i, Faz 4 madde 5) devredilen sınıf — karar kaydının açık süreç maddesinde adıyla ve örnekleriyle yazılıdır — bir iç tutarlılık merceğine verilir ve dokümanın tamamında aranır; sonuç checkpoint raporuna ve maddenin kapanışına yazılır. **Neden:** Arayüz Tanımları'nın devredilen "özet cümle ile ayrıntının ayrışması" sınıfı checkpoint'te kırk üç yerde bulundu (CP03 §3.1, §3.2; K-849).
 

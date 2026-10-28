@@ -136,6 +136,8 @@ Eksik girdi yok; `08` aşaması açılışta bu tabloyu ve çakışma taramasın
 
 ### 5.1 Çakışma taramasının dokuz kararı — gösterilecek
 
+> **Sonuç (2026-10-29, K-1231):** §5.1'in dokuz kararı ve §5.2'nin K-1229'u proje sahibine tek mesajda gösterildi; itiraz yok.
+
 Kaynak: [çakışma taraması §4.1](PHASE6_CONFLICT_SCAN.md) — karar başına bir sade cümle (K-1161, K-1164, K-1185, K-1192, K-1199, K-1202, K-1210, K-1211, K-1213). Bu checkpoint o metinleri değiştirmedi.
 
 ### 5.2 Checkpoint'in ⚠ kararı — aynı mesajda gösterilir

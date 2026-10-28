@@ -75,6 +75,8 @@ Tracker §16.1'in işaretsiz (`- [ ]`) maddeleri dörttür. Devir §15'in girdil
 
 ### 4.1 ⚠ öneriyle kayıt listesi — doğrulama ve proje sahibine gösterilecek metin
 
+> **Sonuç (2026-10-29, K-1231):** bu dokuz karar ve checkpoint'in K-1229'u proje sahibine tek mesajda gösterildi; itiraz yok. On işaret `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-29, itiraz yok)` oldu.
+
 **Betikle doğrulama.** Konu hücresi `(öneriyle kaydedildi — ⚠)` taşıyan Aşama 6 satırı (K-1144…K-1228) **9**; tracker §16.1'in listesindeki giriş **8** (K-1161, K-1164, K-1185, K-1199, K-1202, K-1210, K-1211, K-1213); **fark K-1192** — satırın konu hücresi ⚠ taşıyor, §16.1'in "yazım turunun 3a oturumunun listesi" ise "boş" yazıyordu (K-1192 K-1164 (3)'ün ⚠ kuralını uygular; kuralı sorulmadan kaydeden karar K-1164'tür ama satır işaretlidir). Kayıtla birebir olması için K-1192 listeye alındı ve §16.1'in 3a girişi düzeltildi: **9 / 9, eksik 0, fazla 0.** Aşama 6'nın 85 satırının işaret dağılımı: ⚠ 9 · `(öneriyle kaydedildi)` 72 · işaretsiz 4 (K-1144, K-1145, K-1207, K-1224 — proje sahibinin kararları). `(toplu onayla kaydedildi)` yok. Bu taramanın kararları K-1227 ve K-1228 `(öneriyle kaydedildi)` taşır, ⚠ değildir (yöntem ve ayrıntı kararları; seçenekler yakın, hukuki ya da ticari risk yok).
 
 | Adım | Kararlar | Sayı |

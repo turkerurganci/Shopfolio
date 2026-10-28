@@ -699,5 +699,120 @@ K-1144 kararıyla (⚠ öneriyle kayıt, `docs:` PR'ında CI yeşilse merge yetk
 - [x] F5 (ret — dönüş yöntemi `08`'e bilinçle bırakılmış; iki yöntem envanterde)
 - [x] F6 (ret — çıkış istisnası §2.3.2'nin son cümlesinde)
 - [x] 4. tur — koştu (yukarıda, "Tur 4" bölümü); TEMİZ değil
-- [ ] 5. tur — 4. turda hiçbir bulgu kabul edilmedi; TEMİZ aranır. Aynı istem, aynı betikler, aynı parça sınırları; Birleşim 1 ve 2 ile sekiz parça. **5. turdan itibaren çıkış kuralı işler** (skill Faz 4 madde 5): kabul edilen bulguların hepsi düşük şiddette metin farkıysa ya da hiç yoksa, bulgular uygulanır ve döngü o turda "TEMİZ — çıkış kuralıyla, 5 tur" diye kapanır; bir ret dördüncü kez gelirse yine "tekrar eden RET"tir
+- [x] 5. tur — koştu (aşağıda, "Tur 5" bölümü); 0 kabul, döngü çıkış kuralıyla kapandı. (Eski not: 4. turda hiçbir bulgu kabul edilmedi; TEMİZ aranır. Aynı istem, aynı betikler, aynı parça sınırları; Birleşim 1 ve 2 ile sekiz parça. **5. turdan itibaren çıkış kuralı işler** (skill Faz 4 madde 5): kabul edilen bulguların hepsi düşük şiddette metin farkıysa ya da hiç yoksa, bulgular uygulanır ve döngü o turda "TEMİZ — çıkış kuralıyla, 5 tur" diye kapanır; bir ret dördüncü kez gelirse yine "tekrar eden RET"tir)
 - [ ] Etki yansıtma (Faz 5) — döngü TEMİZ döndükten sonra, son turun raporunda
+
+---
+# Cross-Review — 07 API Design (Tur 5)
+**Tarih:** 2026-10-28 (tur 2026-10-19'da başladı; Codex kullanım sınırına takıldı ve 2026-10-28'de yeniden koştu) · **Hedef:** `Docs/07_API_DESIGN.md` v0.21 (girdi commit'i `966c497`, 1 192 666 bayt, 6 405 satır) · **İkinci model:** Codex CLI 0.153.0 — ChatGPT hesabı, `gpt-5.6-terra`, düşünme düzeyi yüksek (salt okuma) · **Ciddiyet ölçüsü:** 1. turdan beri istemde (K-1219) · **Koşum:** 1.–4. turla aynı iki biçim — **iki birleşim** ve **sekiz parçalı kontrol koşumu**, aynı istem, aynı parça notu, aynı şablon (SHA-256 ilk 16 hane: istem `76e57ac0e4326f90`, parça notu `2b150c8107b170bb`, şablon `dfc8aa759c1e01c5` — 4. turla aynı; doküman v0.21 `018a9cb78bae6f4d`), betikler yeniden kuruldu (aşağıda), parça sınırları başlıkla (K-1219) · **Tek parça çağrı:** yeniden denenmedi — girdi 1 097 066 karakter, sınır 1 048 576 (1.–4. turda aynı hatayla döndü; yönetici talimatı) · **Girdi:** yalnız doküman ve boş şablonu, her çağrıda boş ve izole çalışma klasöründe (K-431) · **Kullanım sınırı:** 2026-10-19 05:47'de bu turun on çağrısı reddedildi (Codex token 0; hiçbiri çıktı vermedi); 2026-10-28'de sınır açıktı ve on çağrının hepsi çıktı verdi; yedeğe geçilmedi, tur tek modelle koştu · **Sonuç:** TEMİZ değil ham olarak — iki ham bulgu (ikisi ayrı), 0 KABUL · 0 KISMİ · 2 RET; **çıkış kuralı işler: döngü "TEMİZ — çıkış kuralıyla, 5 tur" diye kapanır** (skill Faz 4 madde 5; K-1223); doküman içeriği değişmedi (`07` v0.22 yalnız sürüm ve başlık notu) · **Değerlendirme modeli:** Claude alt ajanları yalnız Sonnet / low (K-1207); Codex dışarıdadır
+
+## 1. Koşum
+
+**Betikler yeniden kuruldu.** 1. turun scratchpad klasörü (`cr07\`) ve 3. turunki (`cr07r3\`) silinmişti; 1. turun §1'indeki tarife göre aynıları yeniden yazıldı: `C:\Users\TEKNOD~1\AppData\Local\Temp\claude\c--projects-Shopfolio\422e2f0a-46a6-4ced-809c-e90f0f447f55\scratchpad\cr07r5\` — `build_inputs.py` (girdileri kurar: istemi ve parça notunu **bu raporun 1. tur bölümündeki alıntı bloklarından** `> ` önekini atarak okur; başlık notunu, sekiz parçayı ve iki birleşimi başlıkla kurar; kod çiti içi başlık sayılmaz; kapsanmayan satırları basar), `run_codex.sh` (çağrıları koşar; en çok altısı paralel; çıkış kodu, süre, token ve `web search` satırı `summary.tsv`'ye), `template07.md` (`git show e74883f:Docs/07_API_DESIGN.md`). **Yeniden kurulan girdilerin 4. turla aynılığı:** istem SHA-256 `76e57ac0e4326f90` (1.–4. turla aynı), parça notu `2b150c8107b170bb` (aynı), şablon `dfc8aa759c1e01c5` (aynı); parça başlıkları aynı sekiz başlık (`## 1. Traceability Matrix` · `#### 1.1.3 ` · `#### 1.1.6 ` · `#### 1.1.9 ` · `## 2. Konvansiyonlar` · `## 4. Endpoint tanımları` · `## 5. DTO envanteri` · `## 9. Yönetim (admin) endpoint`); Birleşim 1 = parça 2–8, Birleşim 2 = parça 1 ve 3–8; kapsanmayan satır yoktur (betiğin denetimi: `none`); başlık notu 41 602 karakter. Parça girdi boyutları 4. turdan başlık notunun v0.21'de ~1 000 bayt büyümesi kadar farklıdır (ör. parça 1: 136 834 → 137 834 bayt) ve satır numaraları iki satır kaymıştır (parça 1: 113 → 115).
+
+**Komut** (Git Bash; çalışma klasörü boş): `codex exec -s read-only -C <boş klasör> --skip-git-repo-check --ephemeral --ignore-user-config --color never -m gpt-5.6-terra -c 'model_reasoning_effort="high"' -o <çıktı> - < <girdi>`; çağrılar altı + dört biçiminde koştu (en çok altısı paralel).
+
+**Parçalar** (sınırlar 1. turdakiyle aynı başlıklar; satır numaraları v0.21'indir):
+
+| Parça | Bölümler | Satırlar | Girdi | Token | Süre | Sonuç |
+|---|---|---|---|---|---|---|
+| 1 | §1'in girişi · §1.1.1–§1.1.2 | 115–642 | 137 834 bayt | 63 587 | 76 sn | `SONUÇ: TEMİZ` |
+| 2 | §1.1.3–§1.1.5 | 643–1246 | 154 218 bayt | 64 055 | 47 sn | `SONUÇ: TEMİZ` |
+| 3 | §1.1.6–§1.1.8 | 1247–2300 | 240 563 bayt | 99 628 | 40 sn | 1 bulgu |
+| 4 | §1.1.9–§1.3 | 2301–3616 | 328 757 bayt | 129 989 | 55 sn | `SONUÇ: TEMİZ` |
+| 5 | §2 · §3 | 3617–4123 | 160 942 bayt | 71 047 | 101 sn | `SONUÇ: TEMİZ` |
+| 6 | §4 | 4124–4919 | 190 313 bayt | 82 298 | 98 sn | `SONUÇ: TEMİZ` |
+| 7 | §5 · §6 · §7 · §8 | 4920–5415 | 132 381 bayt | 51 568 | 43 sn | 1 bulgu |
+| 8 | §9 · §10 | 5416–6405 | 233 285 bayt | 97 729 | 105 sn | `SONUÇ: TEMİZ` |
+
+| Çağrı | Parçalar | Girdi | Karakter | Token | Süre | Sonuç |
+|---|---|---|---|---|---|---|
+| Birleşim 1 | 2 · 3 · 4 · 5 · 6 · 7 · 8 | 1 116 903 bayt | 1 019 823 | 413 908 | 151 sn | `SONUÇ: TEMİZ` |
+| Birleşim 2 | 1 · 3 · 4 · 5 · 6 · 7 · 8 | 1 100 519 bayt | 1 006 354 | 408 449 | 48 sn | `SONUÇ: TEMİZ` |
+
+**Kapsam sınırı ve web.** Parça öteki bölümleri görmez; birleşimler parçalar arası okumayı yapar (yalnız matrisin parça 1'i ile parça 2'si buluşmaz — K-1219). Yönetici değerlendirmesi her iddiayı dokümanın tamamına ve ilgili yerde `02` v0.92, `03` v0.39, `04` v0.39, `05` v0.28, `06` v0.30'a karşı okudu. **Web araması:** on çağrının hiçbirinde `web search` satırı yok; hiçbir bulgu yasal dayanak anmadı — Faz 2 madde 5 (hukuki kontrol) konusuz. **Toplam:** on Codex çağrısı, 1 482 258 token (CLI'nin bildirdiği).
+
+## 2. Ham bulgular
+
+İkinci modelin çıktıları, satır sonu boşlukları dışında düzenlenmeden (alıntı blokları içinde).
+
+**Birleşim 1** (parça 2–8):
+> SONUÇ: TEMİZ
+
+**Birleşim 2** (parça 1, 3–8):
+> SONUÇ: TEMİZ
+
+**Parça 1** (§1'in girişi, §1.1.1–§1.1.2):
+> SONUÇ: TEMİZ
+
+**Parça 2** (§1.1.3–§1.1.5):
+> SONUÇ: TEMİZ
+
+**Parça 3** (§1.1.6–§1.1.8):
+> BULGU-1
+> Kriter: Tutarlılık
+> Seviye: Orta
+> Yer: §1.1.7, `04` 6.3.9 ve 6.3.9.9
+> Alıntı: "her durumda açık üç işlem — iç not, e-postayı yeniden göndermek, misafir e-postasının düzeltmesi"
+> Sorun: Bu ortak kural, e-posta yeniden gönderimini ve misafir e-postası düzeltmesini tüm E-37 durumlarında ve sipariş türlerinde açık gösterir. Oysa aynı verilen metinde e-posta yeniden gönderimi yalnız `"e-posta ulaşmadı"` işaretindeki satırlardan yapılır (`04` 9.9.4, 9.9.33); e-posta düzeltmesi ise yalnız girişsiz/misafir siparişlerde mümkündür (`04` 9.9.3, 9.9.38). Bu, dokümanın kendi içinde çelişkidir (sınıf 4) ve yanlış yetki/aksiyon uygulanmasına yol açabilir.
+> Öneri: §1.1.7’deki ortak kuralı koşullu yazın: iç not her durumda; yeniden gönderim yalnız ulaşmayan e-posta kaydı varsa; e-posta düzeltmesi yalnız misafir siparişlerde açık olmalıdır. İlgili 6.3.9.9 satırını da bu koşullarla hizalayın.
+>
+> SONUÇ: 1 BULGU
+
+**Parça 4** (§1.1.9–§1.3):
+> SONUÇ: TEMİZ
+
+**Parça 5** (§2 · §3):
+> SONUÇ: TEMİZ
+
+**Parça 6** (§4):
+> SONUÇ: TEMİZ
+
+**Parça 7** (§5–§8):
+> BULGU-1
+> Kriter: Teknik doğruluk
+> Seviye: Yüksek
+> Yer: §8.2.2 — Çift gönderimin engellenmesi
+> Alıntı: "güncel hâlle karşılaştırılmayan işlemlerde (sepete ekleme, iletişim talebi, hesapta adres ekleme, indirme bağlantısı, panelin yeni kayıt formları, dışa aktarma — §2.5.1) tekrar gönderim ikinci kez işlenir, çifte karşı koruma gönder–yönlendir–göster'dir"
+> Sorun: Gönder–yönlendir–göster, ilk yanıt gelmeden gönderilen paralel/tekrarlı POST isteklerini engellemez. UC-36’da iki istek de işlenirse iki indirme bağlantısı üretilebilir ve indirme hakkı iki kez düşebilir. Bu, dijital ürün alıcısının ücretini ödediği indirme hakkını kaybetmesine yol açar (sınıf 2).
+> Öneri: UC-36 için form gösteriminde tekil bir istek anahtarı üretin; ilk POST bağlantıyı ve hak düşümünü atomik biçimde oluştursun, aynı anahtarla gelen tekrarlar aynı bağlantıyı döndürsün ve ek hak düşürmesin.
+>
+> SONUÇ: 1 BULGU
+
+**Parça 8** (§9 · §10):
+> SONUÇ: TEMİZ
+
+## 3. Bağımsız değerlendirme
+
+Her bulgu dokümanın tamamına (v0.21) ve ilgili yerde `02` v0.92, `03` v0.39, `04` v0.39, `05` v0.28, `06` v0.30'a karşı okundu. **Koşum (K-1207):** her bulguyu önce bir Sonnet / low okudu; ikisini de "çürütüldü" dedi (şiddet Düşük, sınıf yok) — kural gereği (çürütülen bulgular ikinci bakışa gider) ikisi de ikinci, ayrı, temiz bağlamlı bir Sonnet / low'dan geçti; ikisi iki bulguda da ayrışmadı. Yönetici (adım) ajan doğrulayıcıların dayandığı satırları da gördü: `07` 1950, 1959, 4440, 4855, 5407; `04` 6.3.9 (4045), 6.3.9.9 (4057), 9.9.38 (4920). **Önceki turlardan dönen iddia:** yok — F1 4. turun matris özeti notuyla (L-9 satırları) aynı kalıptan (özet hücresi niteleyiciyi taşımıyor) ama farklı yer ve farklı iddiadır; F2 1. turun UC-36 ret kaydına (F3) komşu konudur ama farklı iddiadır (paralel POST); ikisi de "tekrar eden RET" değildir.
+
+| # | Çağrı · bulgu | Karar | Gerekçe | Uygulanan düzeltme |
+|---|---|---|---|---|
+| F1 | Parça 3 · BULGU-1 (§1.1.7, `04` 6.3.9 ve 6.3.9.9 — E-37 "her durumda açık üç işlem") | ❌ RET | **Matris özeti; kaynak ve gövde koşulu taşır.** Alıntı `07` 1950'deki matris özet hücresidir (istem: matris satırının özetinin kaynağa uygunluğunu denetleme). Kaynak `04` 6.3.9 (4045) işlemleri koşullu yazar: iç not imhaya kadar, *"işaretli satırda"* e-postayı yeniden göndermek, *"girişsiz verilmiş siparişte"* misafir e-postasını düzeltmek; 6.3.9.9 (4057) *"ortak üç işlem (blok girişi)"* diyerek bu girişe atıf yapar; 9.9.38 (4920) koşulları açıkça yazar. `07` gövdesi de koşulludur: UC-153 ve UC-154 satır/işaret bazlı, UC-151 misafir siparişi için, `03 §1.11.36` *"'e-posta ulaşmadı' işaretliyken"* der; matrisin UC eşlemesindeki `konvansiyon — API8-01` koşullu işlem kuralını işaretler. Matris ile gövde çelişmez; "her durumda açık" `04`'te "durum satırlarında yinelenmez" demektir. Kusur en fazla ifadedir (özet niteleyiciyi atlar) ve bulgunun kendi önerisi "ortak kuralı koşullu yazın"dır — ifade tercihi, ölçünün sınıfı değil. İki doğrulayıcı da çürüttü (şiddet Düşük). | — (not olarak taşınır, §4) |
+| F2 | Parça 7 · BULGU-1 (§8.2.2 — gönder–yönlendir–göster paralel POST'u engellemez; UC-36 iki indirme bağlantısı üretir) | ❌ RET | **Bilinçli karar; kalan risk yazılı.** UC-36'nın gövdesi (4440) bunu açıkça söyler: *"her gönderim yeni bir indirmedir ve bir hak düşürür — düğmeye her basış bir haktır (`05 §7.7.4`; K-1179 (1)); çift tıklamayı betikli yolda düğmenin kilidi önler."* §8.2.2 (5407) UC-36'yı tekrar gönderimin ikinci kez işlendiği sınıfa açıkça koyar; ikisi aynı şeyi söyler, çelişki yok. Tek koşullu güncelleme (K-980) sayacın aşılmasını önler, iki isteği bire indirmek için konmamıştır; betiksiz yolda eşzamanlı ikinci gönderim §4.31.1'de *kalan risk* diye adlandırılmıştır (4855) ve hak firmanın yenilemesiyle geri verilir (`02 §3.12.6`). Kayıp en fazla bir indirme hakkıdır, geri alınabilir; mevzuata aykırılık ve çıkışsız akış yok. Önerilen tekil istek anahtarı `05 §7.7.4`'ün mekanizmasını değiştirir (savunmada derinlik). İki doğrulayıcı da çürüttü (şiddet Düşük). | — |
+
+**Dağılım:** iki ayrı bulgu (iki ham bulgu) — 0 KABUL · 0 KISMİ · 2 RET. **%100 ret şüphelidir:** bu yüzden iki bulgu da ikinci, temiz bağlamlı bir doğrulayıcıdan geçti ve yönetici ajan doğrulayıcıların dayandığı satırları okudu; iki ret de dokümanın yazılı kararına ya da üst dokümanın yazılı kuralına dayanır (F1: kaynak ve gövdenin koşulu; F2: UC-36'nın bilinçli kararı ve kalan riski). Önceki turların dökümü 1. tur 4 kabul · 1 kısmi · 2 ret, 2. tur 0 · 1 · 7, 3. tur 0 · 1 · 6, 4. tur 0 · 0 · 6; bu tur 0 · 0 · 2 — üst üste ikinci tur kabulsüz ve yeni bulgu sayısı 8 → 7 → 6 → 2. **Örüntü:** iki bulgunun biri matris özetinin niteleyiciyi taşımadığı (F1), biri bilinçli kararla yazılı kalan riskin yeniden yazımı (F2) — ikisi de ölçünün sınıfı dışındadır. **Sınıf:** kabul edilen bulgu yok; yeni yüzey açılmadı. Faz 2 hukuki kontrolü: hiçbir bulgu yasal dayanak anmadı.
+
+## 4. Ek bulgular
+
+- **Aynı kalıbın taraması.** Kabul yok; uygulanacak düzeltme yok. F1'in kalıbı (matris özet hücresi kaynağın niteleyicisini atlıyor) 4. turun L-9 notuyla aynı sınıftır; üç yer artık aynı açık nota bağlıdır (aşağıda).
+- **Mekanik tarama.** `07`'nin içeriği değişmedi: kümeler ve çiftler (5.073 · 2.319 · 187), hata kodu sayıları ve uç sayısı aynıdır; yalnız başlık sürümü, başlık notuna eklenen 5. tur kaydı ve dosya sonu dipnotu v0.22'ye gitti.
+- **Devredilen notlar — checkpoint'e (cross-review kapanışında üç açık not, karar kaydı §16.1'e taşındı).** (1) `05 §7.7.4` / K-884: hakkın düştüğü an — kaynak "düğmeye basıldığında **ve** sunucu dosyayı göndermeye başladığında" der, `07` §4.16.3 ve §4.31.1 tek adımı (UC-36'nın düğmesi) anlatır; 1. turdan, düşük. (2) §2.7.1'in genel *"Sürüm çakışması ve gösterilen değerin tutmaması 409"* cümlesi tek başına okunduğunda kabadır (geçici kapatma anahtarı ve müşterinin kalem işlemleri 303 alır); 3. turdan, düşük. (3) Matrisin özet satırları gövdenin niteleyicisini taşımıyor: `07` 2292 (§1.1.9 `04` 7.3.3.9) ve 2892 (§1.1.10 `03 §6.1.1.9`) *"önceki bağlantı geçerli kalır"* (kaynak limit **engelinde** konuşur — 4. turdan), **ve 5. turdan: `07` 1950 ve 1959 (E-37 / `04` 6.3.9 ve 6.3.9.9) *"her durumda açık üç işlem"* (kaynak e-posta yeniden gönderimini işarete, e-posta düzeltmesini girişsiz siparişe bağlar)**; üç tur ve dört yerde dönen sınıf; gövdeler tek ve tutarlıdır; düşük şiddetli. Checkpoint'in iç tutarlılık merceği "özet cümlesi gövdenin niteleyicisini taşımıyor" sınıfını dokümanın tamamında arar.
+- **Ciddi bir sorun daha görülmedi.** Değerlendirme sırasında ikinci modelin listesi dışında ölçünün dört sınıfından birine giren bir sorun saptanmadı.
+
+## 5. Kapanış özeti — döngü "TEMİZ — çıkış kuralıyla, 5 tur" (K-1223)
+
+- **Çıkış kuralı (skill Faz 4 madde 5):** 5. tur beşincidir; kabul edilen bulgu yoktur (0 KABUL · 0 KISMİ) — kuralın koşulu ("kabul edilenlerin hepsi düşük şiddette iki yerin metin farkı ya da kabul yok") sağlanır; orta ya da yüksek kabul yoktur; mevzuata aykırılık, para ya da hak kaybı, çıkışsız akış yoktur. İki ret bilinçli kararlara ve yazılı kuralara dayanır; üst üste iki tur kabulsüz.
+- **Sayılar (5 tur):** 30 ayrı bulgu — **4 KABUL · 3 KISMİ · 23 RET** (1. tur 7: 4·1·2 · 2. tur 8: 0·1·7 · 3. tur 7: 0·1·6 · 4. tur 6: 0·0·6 · 5. tur 2: 0·0·2). Kabul ve kısmi sürümler `07` v0.18 (1. tur) · v0.19 (2. tur) · v0.20 (3. tur) olarak işlendi; v0.21 ve v0.22 yalnız sürüm ve başlık notudur.
+- **Codex çağrıları:** 51 çağrı çıktı verdi (1. tur 11 — biri girdi sınırında hemen döndü — ve 2.–5. turlarda 10'ar çağrı: iki birleşim + sekiz parça) ve 2026-10-19'da reddedilen 10 çağrı (Codex token 0); toplam yaklaşık **7,2 milyon bildirilen Codex token** (1. tur 1 462 827 · 2. tur ~1,42 M · 3. tur ~1,4 M · 4. tur 1 409 692 · 5. tur 1 482 258). Tek parça çağrı hiçbir turda koşamadı (girdi sınırı, K-1219). Claude alt ajanları yalnız Sonnet / low (K-1207): 5. turda 4 (2 ilk, 2 ikinci doğrulayıcı).
+- **Kalite döngüsünün ardından:** etki yansıtma (Faz 5; `07` üzerinden upstream/downstream, yeni alan/kural, Kaynak satırları ve açık notlar taraması) ayrı adımda koşar; sonra checkpoint. Açık notlar yukarıda (§4) üç madde olarak checkpoint'e devredildi.
+
+## 6. Kullanıcı onay checklist'i
+
+K-1144 kararıyla (⚠ öneriyle kayıt, `docs:` PR'ında CI yeşilse merge yetkisi, yönetici + alt ajan düzeni) alt ajan değerlendirdi (`07` v0.22 — içerik değişmedi); K-1207 gereği Claude alt ajanları yalnız Sonnet / low koştu. Bir karar öneriyle kaydedildi, ⚠ değildir: **K-1223** — 5. turun sonucu ve cross-review'ın çıkış kuralıyla kapanışı. ⚠ listesine ekleme yok.
+
+- [x] F1 (ret — matris özeti; kaynak ve gövde koşulu taşır)
+- [x] F2 (ret — UC-36'nın her basış bir hak kararı ve yazılı kalan risk)
+- [x] 5. tur — koştu; TEMİZ değil ham olarak ama çıkış kuralı koşulları sağlandı
+- [x] Cross-review döngüsü kapandı — "TEMİZ — çıkış kuralıyla, 5 tur" (K-1223)
+- [ ] Etki yansıtma (Faz 5) — ayrı adımda; sıradaki adım

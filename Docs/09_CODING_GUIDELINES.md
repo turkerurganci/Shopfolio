@@ -1,6 +1,6 @@
 # Shopfolio — Coding Guidelines
 
-**Versiyon: v0.2** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
+**Versiyon: v0.3** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
 
 > **Aşama:** 8 — Kodlama Kılavuzu · **Rol:** Tech Lead
 > **Amaç:** Ajanın tutarlı kod üretmesi. Bu doküman **her kodlama görevinde** ajana verilir.
@@ -68,9 +68,9 @@
 > - **K-1245 · K-1272 · K-1281 · K-1292 · Google kimlik belirtecinin doğrulanması (Entegrasyon Spesifikasyonları `08 §2.3`):** kod değişiminin adresi sabittir, keşiften okunmaz; keşif belgesinden yalnız `issuer` ve `jwks_uri` alınır, çatı keşif belgesini ve anahtar kümesini önbelleğe alır ve her girişte yeniden çekmez — çatının işleyicisi keşif belgesini varsayılan olarak başlatmada çekiyorsa adresler sabit olarak yapılandırılır; önbelleğin tazeleme biçimi çatının davranışıdır ve ilk bağlanan task'ta doğrulanır (bilgim tarihli; `08` DV-31) · `exp` için saat sapması toleransı çatının ayarıdır ve değeri bu dokümanın işidir; `auth_time` toleranssız karşılaştırılır · `userinfo` çağrılmaz; kimlik belirtecinin alanlarından yalnız alan eşlemesinin saydıkları okunur (`hd` dahil — Google'ın adres için yetkili olup olmadığı buradan okunur) ve `sub` saklanmaz (K-1061).
 > - **K-1027 · K-1271 · Değişken metnin kaçışı (Entegrasyon Spesifikasyonları `08 §2.2.6` — B-1'in iki yasal metninin yerleşimi, madde 4; §2.2.4):** e-postaya ve belgeye giren her değer — firmanın ayarı, kalemin adı, yer tutucunun müşteri değeri — HTML'de kaçışlanır, düz metinde satır sonu karakterleri boşluğa çevrilir; metin ham HTML olarak basılmaz, biçim yalnız şablonun kendi yapısıdır ve bağlantı yalnız `https`, `http` ve `mailto` şemasını taşır (`05 §6.5.3`) · değerin donmuş kopyada kaçışlı mı saklandığı, gösterimde mi kaçışlandığı bu aşamanın kararıdır; sipariş sayfasındaki gösterim aynı kuralı izler (K-1027 (4), (5)).
 
-> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.2).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. oturum yöneticinin kararıyla baştan ikiye bölündü (`INSTRUCTIONS §9` (8)). **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330). **Sırada:** Y-1b — §4–§6; sonra 2. oturum §7–§9, 3. oturum §10, 4. oturum §11–§14, 5. oturum §15–§18, 6. oturum §19–§25 (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
+> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.3).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. oturum yöneticinin kararıyla baştan ikiye bölündü (`INSTRUCTIONS §9` (8)). **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330); Y-1b — §4, §5, §6 (K-1331, K-1332). **Sırada:** 2. oturum §7–§9, 3. oturum §10, 4. oturum §11–§14, 5. oturum §15–§18, 6. oturum §19–§25 (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
 >
-> **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu). **Kısmen kapandı:** P4.9 — ayarlar ve ürün sabitleri §3.5'te yazıldı, yönetim komutları §13'te; P6.2 — girdi doğrulama süzgeci §3.4'te yazıldı, model, işleyici ve hata kodu adları §5'te, hata kodlarının kaydı ve gösterilmemesi §8'de. **Açık:** öteki otuz sekiz madde ve P1.1 — yazılacakları bölümün oturumunda kapanır.
+> **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P1.1 (terim sözlüğünün devralınması — §5.1); P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu). **Kısmen kapandı:** P4.2 — sayfaların düzeni §4.1'de yazıldı, ön yüz dosya düzeni §16'da; P4.3 — modül sınırlarının korunması ve dosya deposu arayüzü §6'da yazıldı, önbellek ve kuşak sayacının kalıbı §10.4'te; P4.5 — mimari testle korunan kısım §6'da yazıldı, geçiş birimi ve iş kuyruğunun kalıbı §9 ve §13'te; P4.8 — dosya düzeni ve test projelerinin ayrımı §4.1 ve §4.3'te yazıldı, test araçları §19'da; P4.9 — ayarlar ve ürün sabitleri §3.5'te yazıldı, yönetim komutları §13'te; P4.13 — iki imajın derleme dosyalarının yeri §4.3'te yazıldı, içerikleri §17'de; P5.2 — adlandırma kuralının uygulanışı §5.2'de yazıldı, anahtar üretimi ve enum §10.1'de; P5.8 — veri koruma paketinin varlığına adlandırmanın uygulanışı §5.2'de yazıldı, kullanıcıların ve yetkisinin biçimi §10.8'de; P6.1 — işleyici adları ve sayfa düzeni §5.3 ve §4.1'de yazıldı, kimlik şemaları §15.1'de; P6.2 — girdi doğrulama süzgeci §3.4'te, model ve işleyici adları §5.3'te yazıldı, hata kodlarının kaydı ve gösterilmemesi §8'de; P6.6 — işleyici adları §5.3'te yazıldı, istekteki değerin biçimi §7.2'de; P6.10 — model ve hata kodu adları §5.3'te yazıldı, hata kodlarının kaydı §8.2'de. **Açık:** öteki yirmi altı madde — yazılacakları bölümün oturumunda kapanır.
 
 **Yazım konvansiyonları (K-1302, K-1329).** Bu on madde §1–§25'in bütün yazım oturumlarını bağlar; "yazım konvansiyonu n" diye anılır.
 
@@ -93,9 +93,9 @@
 | §1 Temel ilkeler | Beş ilke (alt bölümsüz) | Y-1a ✓ |
 | §2 Source of truth hiyerarşisi | Kaynak tablosu · çelişkide işleyiş · Üst dokümanlara geri besleme (numarasız) | Y-1a ✓ |
 | §3 Genel kod yazım kuralları | 3.1 C# standartları ve derleme ayarları · 3.2 Paket sürüm yönetimi · 3.3 Kütüphane eklemenin işletimi · 3.4 Girdi doğrulamanın kalıbı · 3.5 Ayarlar, ürün sabitleri ve süre ve tavan değerleri · Kütüphaneler (numarasız tablo) | Y-1a ✓ |
-| §4 Proje yapısı ve klasör organizasyonu | 4.1 Çözüm ve proje düzeni · 4.2 Klasör düzeninin `CONTEXT.md` §3'e yazılışı · 4.3 İmaj, Compose ve geliştirme ortamı dosyalarının yeri | Y-1b |
-| §5 Adlandırma konvansiyonları | 5.1 Sözlüğün devralınması ve kod adları · 5.2 Veritabanı adlandırma kuralının uygulanışı · 5.3 Sayfa, işleyici, model, hata kodu ve çerez adları | Y-1b |
-| §6 Mimari sınırlar | Modül sınırlarının kodda korunması ve dosya deposu arayüzü (alt bölümsüz) | Y-1b |
+| §4 Proje yapısı ve klasör organizasyonu | 4.1 Çözüm ve proje düzeni · 4.2 Klasör düzeninin `CONTEXT.md` §3'e yazılışı · 4.3 İmaj, Compose ve geliştirme ortamı dosyalarının yeri | Y-1b ✓ |
+| §5 Adlandırma konvansiyonları | 5.1 Sözlüğün devralınması ve kod adları · 5.2 Veritabanı adlandırma kuralının uygulanışı · 5.3 Sayfa, işleyici, model, hata kodu ve çerez adları | Y-1b ✓ |
+| §6 Mimari sınırlar | Modül sınırlarının kodda korunması ve dosya deposu arayüzü (alt bölümsüz) | Y-1b ✓ |
 | §7 Zaman ve biçim standartları | 7.1 Tek zaman kaynağı · 7.2 İstekteki tarih, tutar ve ondalık biçimi | 2 |
 | §8 Hata yönetimi | 8.1 Tek yakalama katmanı, üç hâl, sonucu belirsiz işlem · 8.2 Hata kodlarının kaydı ve gösterilmemesi | 2 |
 | §9 Domain kuralları | 9.1 Geçiş birimi, beyaz liste, yan etki · 9.2 İşlem izinin kod adları · 9.3 Belgenin kişisel verisiz kopyası · 9.4 Tek işlevler | 2 |
@@ -273,7 +273,7 @@ Araç çatının nitelik tabanlı doğrulamasıdır (DataAnnotations); ek kütü
 6. **İstemci tarafı.** HTML'in `required`, `maxlength` ve `type` nitelikleri aynı parametre sabitlerinden üretilir ve iyileştirmedir (`GUARDRAILS §8`: sunucu yetkilidir); çatının `data-val-*` üretimi kapatılır (düz JavaScript, MK-01; bilgim tarihli — çatı seçeneği ilk task'ta sınanır).
 7. **Test.** Nitelik başına birim testi (geçerli ve geçersiz değer, kod); süzgeç testi (422, `ModelState` mesajı, kayıt satırı, bütün hataların birlikte gelmesi); kırpma testi (boşluk, yalnız boşluk, şifre).
 
-Model adları ve işleyici adları §5'te (yazım Y-1b), hata kodlarının kaydı ve gösterilmemesi §8'de (yazım 2) yazılır; bu alt bölüm süzgecin kalıbının evidir.
+Model adları ve işleyici adları §5.3'te, hata kodlarının kaydı ve gösterilmemesi §8'de (yazım 2) yazılır; bu alt bölüm süzgecin kalıbının evidir.
 
 ### 3.5 Ayarlar, ürün sabitleri ve süre ve tavan değerleri
 
@@ -340,11 +340,196 @@ Kütüphane yalnız bu tabloda seçilir; kuralı kullanan bölüm tabloya atıf 
 
 ## 4. Proje yapısı ve klasör organizasyonu
 
+### 4.1 Çözüm ve proje düzeni
+
+Uygulama **tek projedir**; modüller o projenin klasörü ve ad alanıdır, derleme projesi değildir (K-1307). Modüller çevrimsel çağırır — sipariş onayı ödemenin başlatılmasını ister, ödeme bildirimi siparişin geçişini ister (`05 §3.3.3`–§3.3.5, §4.5) — ve derleyici çevrimsel proje başvurusunu reddeder; sınırı derleyici değil mimari test korur (§6).
+
+1. **Çözüm üç projedir.** Kökteki çözüm dosyası bunları toplar (`Shopfolio.slnx` — .NET 10 SDK'nın yeni çözüm biçimi, bilgim tarihli; SDK `.slnx`'i üretmiyorsa `Shopfolio.sln` yazılır ve bu satır aynı PR'da düzeltilir).
+
+   ```text
+   src/Shopfolio.Web/                 uygulamanın tamamı: modüller, altyapı, sayfalar, göçler, yönetim komutları
+   tests/Shopfolio.UnitTests/         birim testleri ve modül sınırlarının mimari testleri; veritabanı gerektirmez
+   tests/Shopfolio.IntegrationTests/  gerçek PostgreSQL 18'e karşı
+   ```
+
+   Ayrım CI'ın Unit ve Integration adımlarına birebir oturur (`05 §2.3.5`). Dördüncü bir proje (ortak kütüphane, "Core", "Domain") açılmaz — `05 §3.3.13` modülleri teknik katmanlara bölmeyi eledi.
+2. **Uygulama projesinin içi** üç klasördür:
+
+   ```text
+   src/Shopfolio.Web/
+     Modules/<Modül>/        her modül için bir klasör ve ad alanı: Shopfolio.Modules.<Modül>
+     Infrastructure/         ortak altyapı (05 §3.3.11): zaman kaynağı, dosya deposu, önbellek, hata yakalama,
+                             kayıt, bağlantı katmanı, veritabanı bağlamı ve göçler
+     Pages/                  Razor sayfaları
+   ```
+
+   Modül klasörünün adı §5.1'in modül kod adıdır. Modülün varlık yapılandırmaları kendi klasöründedir; **veritabanı bağlamı tektir ve `Infrastructure/` altındadır** — bir modül kendi bağlamını açmaz. Göçler `Infrastructure/` altındadır, bir modülün klasörüne girmez (göç tek şemanın sırasıdır — §10.6, yazım 3).
+3. **Sayfalar modül klasörüne girmez** (`05 §3.3.12`): sayfa modül değildir, modülün arayüzünü çağırır. `Pages/` altında üç grup vardır — `Storefront/` (vitrin), `Account/` (müşterinin hesabı), `Panel/` (yönetim paneli); ortak parçalar `Pages/Shared/`. Sayfa dosyası ve `PageModel` sınıfı §5.3'ün adıyla yazılır. **Adres klasörden türemez:** her sayfa adresini `@page` şablonuyla açıkça yazar ve adres `07 §2.1`'in Türkçe adresidir; dosya ve klasör adı İngilizce kod adıdır.
+
+   ```cshtml
+   @* src/Shopfolio.Web/Pages/Storefront/Cart.cshtml — dosya adı Cart, adres Türkçe *@
+   @page "/sepet"
+   @model Shopfolio.Pages.Storefront.CartModel
+   ```
+4. **Ön yüz dosyaları** `src/Shopfolio.Web/wwwroot/` altındadır; düzenleri §16'dadır (yazım 5).
+5. **Repo kökündeki öteki yerler** §4.3'tedir. `scripts/`, `.github/` ve `Docs/` süreç katmanıdır (L2, L5) ve uygulama kodu taşımaz; `src/`, `tests/` ve `deploy/` ürünün kodudur.
+
+**Yasak.** Modül başına derleme projesi, "Core/Domain/Application/Infrastructure" katmanlı projeler, sayfa klasörünü modül klasörünün altına koymak, ikinci veritabanı bağlamı. **Örnek:** sepete ürün ekleyen yeni bir iş kuralı `Modules/Ordering/` altına girer; ona bağlanan sayfa `Pages/Storefront/` altındadır ve `Modules/Ordering/Pages/` diye bir klasör açılmaz.
+
+*Kaynak: K-1307 · K-1331 (1) · `05 §2.3.5`, §3.3, §3.3.11–§3.3.13, §3.4.5 · `07 §2.1`.*
+
+### 4.2 Klasör düzeninin `CONTEXT.md` §3'e yazılışı
+
+Klasör düzeni bu dokümanın işidir ve D-01'in kapanışında, bu dokümanla birlikte `CONTEXT.md` §3'e **klasör düzeyinde** yazılır (`05 §2.3.2`; `DEFERRED_BACKLOG.md` D-01). Dosya listesi yazılmaz.
+
+1. **Yazılacak satırlar** §4.1 ve §4.3'ün klasörleridir: `src/Shopfolio.Web/Modules/<Modül>/` · `src/Shopfolio.Web/Infrastructure/` · `src/Shopfolio.Web/Pages/` (`Storefront`, `Account`, `Panel`) · `src/Shopfolio.Web/wwwroot/` · `tests/Shopfolio.UnitTests/` · `tests/Shopfolio.IntegrationTests/` · `deploy/`. `CONTEXT.md` §3'ün "kod klasörü henüz yok" satırı o PR'da kalkar.
+2. **Kim yazar.** D-01'i kapatan iş; klasörler henüz yoktur, satırlar bu dokümandan alınır ve ilk implementation task'ı klasörü açarken satırın doğruluğunu sınar. `SETUP.md`'nin değişikliği proje sahibinin onayıyla yapılır (GUARDRAILS §2).
+3. **Sonradan değişiklik.** Yeni bir klasör düzeyi bu dokümanın §4'ünü ve `CONTEXT.md` §3'ü aynı PR'da günceller (`CONTEXT.md` §4).
+
+*Kaynak: K-1307 (4) · K-1331 (2) · `05 §2.3.2` · `CONTEXT.md` §3, §4.*
+
+### 4.3 İmaj, Compose ve geliştirme ortamı dosyalarının yeri
+
+İmaj, Compose ve ters vekil dosyaları ürünün parçasıdır; repoda ve sürümle gelir (`05 §8.2.4`). Hepsi kökteki **`deploy/`** altındadır; uygulama kodunun klasörüne ve `scripts/`'e (playbook betikleri) karışmaz (K-1331 (3)).
+
+```text
+deploy/
+  compose.yaml                  kurulumun Compose tanımı: dört hizmet ve tek seferlik göç hizmeti (05 §8.2.4)
+  compose.dev.yaml              geliştirme varyantı: ödeme sağlayıcısının test ortamı ve e-posta yakalayıcı
+  .env.example                  kurulumun sır olmayan ayar dosyasının şablonu (05 §2.3.4)
+  caddy/Caddyfile               ters vekil yapılandırması
+  images/app/Dockerfile         uygulama imajı (çok aşamalı, kök olmayan kullanıcı, göç demeti)
+  images/database/              veritabanı imajının derleme dosyası ve zamanlayıcısı
+  images/backup/                yedek aracı imajının derleme dosyası ve zamanlayıcısı
+```
+
+1. **Derleme bağlamı repo köküdür.** Üç imajın derleme komutu `docker build -f deploy/images/<ad>/Dockerfile .` biçimindedir; böylece uygulama imajı `src/` ve `Directory.Packages.props`'u görür. Dockerfile `src/` altına konmaz.
+2. **Geliştirme ortamı kurulumun Compose tanımının bir varyantıdır** (`05 §8.1.2`): `compose.dev.yaml`, `compose.yaml`'ın üstüne bindirilir (`docker compose -f deploy/compose.yaml -f deploy/compose.dev.yaml up`) ve ayrı bir veritabanı sürümü ya da ayrı bir imaj tanımlamaz. Geliştirme varyantı e-posta yakalayıcısını ekler (Kütüphaneler tablosundaki Mailpit); hiçbir e-posta dışarı çıkmaz.
+3. **Sır ve kuruluma özgü değer repoya girmez.** `.env.example` yalnız sır olmayan ayarların şablonudur; ayar ve sır dosyaları sunucudadır (`05 §2.3.3`, §8.4.3). Tabloya bir ayar eklenirse `.env.example` aynı PR'da güncellenir.
+4. **Taban imajlar etiket ve özetle sabitlenir** (`05 §8.2.3`): derleme dosyasında `imaj:sürüm@sha256:…` yazılır, `latest` yazılmaz. Dockerfile'ın içeriği (adımlar, kullanıcı, göç demeti) `05 §8.2.1`'dedir; veritabanı ve yedek aracı imajlarının içeriği §17'dedir (yazım 5).
+5. **Değişen ya da eklenen dosya** bu bölümün ağacını ve `CONTEXT.md` §3'ü aynı PR'da günceller (§4.2).
+
+*Kaynak: K-919, K-920, K-937, K-1327 (2) · K-1331 (3) · `05 §2.3.3`, §2.3.4, §8.1.2, §8.2.1–§8.2.4, §8.4.3.*
+
 ## 5. Adlandırma konvansiyonları
+
+### 5.1 Sözlüğün devralınması ve kod adları
+
+Bu bölümün kuralı iki cümledir: **ad sözlükten ve Veri Modeli'nden birebir alınır** (`02 §1.2`; `06 §4`, §5) ve **bir kavramın tek adı vardır** (§1, "ad uydurulmaz"; yazım konvansiyonu 2). Altındaki kurallar bu ikisinin biçimi ve boşluklarıdır.
+
+1. **Ürün kavramı sözlüğün İngilizce karşılığıyla yazılır.** Sipariş `Order`, sipariş kalemi `OrderItem`, sepet `Cart`, kupon `Coupon`, geri ödeme `Refund`, ayıp talebi `DefectClaim`. Tür adı, dosya adı ve değişken adı aynı kökü kullanır; `Basket` ya da `Purchase` yazılmaz.
+2. **Kapalı listenin değeri ve kayıt düzeyindeki kapalı değer `06 §5`'in kod adıdır.** `OrderStatus.Placed`, `PaymentStatus.Paid`, `ProductType.Digital`. Terimi sözlükte olmayan değerin kod adını `06 §5` verir; bu dokümanda bulunmayan değer bir boşluktur (BLOCKED, `SPEC_GAP`).
+3. **Alan adı `06 §4`'ten alınır.** Kodun özellik adı alanın kod adıdır: `ShippingFee`, `VatRate`, `IsMergeNoticePending`. "Daha anlaşılır" diye değişmez.
+4. **Teknik kavramın kod adı `06`'nın verdiği addır.** Veri koruma paketinin varlığı `DataProtectionKey`, işlem izi `AuditLog`, yedeğin durum kaydı `BackupStatusRecord`, iş kuyruğunun satırı `Job` (`06 §4.68`, §4.63, §4.67, §4.59).
+5. **Modülün kod adı** sözlükte ve `06`'da yoktur (`05 §3.3` Türkçe adlarını verir) ve bu dokümanın kararıdır (K-1331 (4)):
+
+   | `05 §3.3` | Kod adı | `05 §3.3` | Kod adı |
+   |---|---|---|---|
+   | Katalog | `Catalog` | Üyelik | `Membership` |
+   | Sepet ve sipariş | `Ordering` | Kurumsal içerik | `CorporateContent` |
+   | Ödeme | `Payment` | Bildirim | `Notifications` |
+   | İptal, cayma ve iade | `AfterSales` | Yönetim ve işlem izi | `Administration` |
+   | Ayarlar | `Settings` | | |
+
+   **Modül adı hiçbir tür adıyla çakışmaz:** `Shopfolio.Modules.X` içindeki `X`, sözlüğün ya da `06`'nın bir tür adı olamaz — C# bir ad alanı bölümü ile aynı adlı tür arasında kararsız kalır. Bu yüzden iptal, cayma ve iade modülü `Cancellation` ya da `Return` değil `AfterSales`, kurumsal içerik modülü `Content` değil `CorporateContent`, bildirim modülü `Notification` değil `Notifications`'tır (`Cancellation`, `Return`, `Content` ve `Notification` sözlüğün terimleridir).
+6. **Yasak.** Eş anlamlı ad (`Order` varken `Purchase`), Türkçe sembol adı (`Siparis`), sözlükte olmayan kısaltma (`Ord`, `Qty`). **Örnek — doğru ve yanlış yan yana:**
+
+   ```csharp
+   // Yanlış: Basket sözlükte yok (Cart), ShippingCost 06'da yok (ShippingFee).
+   public decimal BasketShippingCost { get; init; }
+
+   // Doğru: sözlüğün Cart'ı ve 06 §4.2'nin alanı.
+   public decimal CartShippingFee { get; init; }
+   ```
+
+   Yeni ürün kavramı gerekirse önce `02 §1.2`'ye girer; kod onu sözlükten alır (K-17). Sözlükte olmayan bir yardımcı tür (örneğin bir yardımcı sınıf) ürün kavramını adlandırmıyorsa C# kuralıyla (madde 7) serbestçe adlanır.
+7. **C# adları** §3.1'in stilini izler (`_camelCase` özel alan, `Async` soneki, `record`) ve şunları ekler: tür, metot, özellik ve ad alanı PascalCase; parametre ve yerel değişken camelCase; arayüz `I` önekiyle (`IFileStore`); bir dosyada bir üst düzey tür ve dosya adı türün adıdır (`OrderItem.cs`); kapalı değer `enum`'u tekil ad alır ve değerler PascalCase'tir (`OrderStatus`, değeri `Placed`); mantıksal özellik `Is`, `Has` ya da `Can` ile başlar (`06 §2.5.1`: mantıksal alanın adı `Is…` ile başlar); ad alanı klasör yolunu izler (`Modules/Ordering/` → `Shopfolio.Modules.Ordering`).
+
+*Kaynak: K-17, K-977, K-988, K-1036, K-1038 (P1.1) · K-41, K-54, K-253, K-266, K-272, K-455, K-458, K-1034 · K-1307 (2) · K-1331 (4) · `02 §1.2` · `05 §3.3` · `06 §2.5.1`, §4, §5.1.*
+
+### 5.2 Veritabanı adlandırma kuralının uygulanışı
+
+Kural `06 §2.4`'tedir (küçük harf ve alt çizgi, çoğul tablo adı, `pk_`/`fk_`/`ix_`); bu alt bölüm **kodda nasıl uygulandığını** yazar (K-1309).
+
+1. **Dönüşümü bir kütüphane yapar.** Veritabanı bağlamının kurulumunda tek çağrı `UseSnakeCaseNamingConvention()` (EFCore.NamingConventions — Kütüphaneler tablosu): tablo, sütun, anahtar, dizin ve kısıt adları kod adından küçük harf ve alt çizgiye çevrilir. Tek çağrı noktası bağlamın kurulumudur; model kuralı başka yerde çağrılmaz.
+2. **Tablo adı çoğuldur ve `DbSet` özelliğinin adından gelir.** Her varlık türünün — bağ tabloları dahil — bağlamda bir `DbSet` özelliği vardır ve özelliğin adı varlık adının çoğuludur; çoğullaştırıcı kütüphane kullanılmaz.
+
+   ```csharp
+   // Veritabanı bağlamı (Infrastructure/): özellik adı çoğul, tablo adı ondan.
+   public DbSet<Order> Orders => Set<Order>();                  // orders
+   public DbSet<OrderItem> OrderItems => Set<OrderItem>();      // order_items
+   public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();  // product_categories (bağ tablosu)
+   ```
+3. **Elle ad verilmez.** `ToTable("…")` ve `HasColumnName("…")` yazılmaz; dizin ve kısıt adı verilmez (`06 §2.4.3`). Tek istisna aşağıdaki veri koruma paketinin varlığıdır ve o da elle ad gerektirmez.
+4. **Veri koruma paketinin varlığına kural istisnasız uygulanır** (`06 §4.68`): paketin bağlam arayüzü özelliğin adını `DataProtectionKeys` verir ve kütüphane `data_protection_keys`, `friendly_name`, `xml` üretir. Bu olgular paketin sürümüne bağlıdır ve bilgim tarihlidir; paketi bağlayan ilk task'ta sınanır (§1, ilke 5). Anahtar türü ve sütunlar ayrışırsa `06 §4.68` güncellenir.
+5. **Model testi (entegrasyon testi).** Bütün tablo, sütun, anahtar, dizin ve kısıt adları `^[a-z][a-z0-9_]*$` desenindedir ve 63 bayttan uzun değildir (PostgreSQL'in tanımlayıcı sınırı). İhlalde ad elle kısaltılmaz — task BLOCKED olur ve `06` ile hizalanır.
+
+   ```csharp
+   // IntegrationTests: model kurulumundan geçen her ad desene uyar. Model API'si bilgim tarihli — ilk task'ta doğrulanır.
+   foreach (var entity in context.Model.GetEntityTypes())
+       Assert.Matches("^[a-z][a-z0-9_]*$", entity.GetTableName()!);   // sütun, anahtar, dizin ve kısıt için aynı denetim
+   ```
+6. **Çıkış yolu.** Kütüphane bir EF ana sürümüne geç yetişirse çağrının yerine aynı çıktıyı üreten kendi model kuralı (`IModelFinalizingConvention`) konur; tek çağrı noktası olduğu için değişiklik tek yerdedir.
+
+*Kaynak: K-1309, K-1012 · K-1035 (veri koruma paketi) · `06 §2.4`, §4.68 · Kütüphaneler tablosu (EFCore.NamingConventions).*
+
+### 5.3 Sayfa, işleyici, model, hata kodu ve çerez adları
+
+Adların kaynağı `07`'dir; bu alt bölüm kodun onları nasıl taşıdığını yazar. Adı `07`'de olan bir ad kodda değişmez (§1, "kaynak doküman kazanır").
+
+1. **İşleyici.** Adı İngilizce bir fiil ve işlemin nesnesinin sözlükteki ya da Veri Modeli'ndeki adıdır, Pascal yazımıyla: `RemoveCartItem`, `SaveProduct`. Nesnesi ekranın kendisi olan işlemler yalnız fiildir (`Register`, `SignIn`, `SignOut`, `Reauthenticate`; ödeme adımının `Recalculate` ve `Leave`'i). Ayrı form ve ayrı adreslerse ekleme ve düzenleme `Create…`/`Update…`, aynı formun aynı adresi `Save…` alır. Kodda işleyici `On<Yöntem><Ad>Async` metodudur (`OnPostRemoveCartItemAsync`); `handler` sorgu parametresindeki ad `07 §3`'teki adla birebirdir. Adların listesi `07 §3`'ün uç envanterindedir; envanterde olmayan işleyici adı yazılmaz.
+2. **Girdi modeli.** Adı formun asıl işleyicisinin adı ve türüdür: `…Input`, `…Query`, `…Request`, `…Response` (`AddCartItemInput`, `SaveShippingFeeInput`). Aynı formu gönderen işleyiciler (ara gönderimler, içerik formunun `SearchProducts`'ı) aynı modeli bağlar. Aynı adlı işleyicinin vitrinde ve panelde ayrı alanları varsa panelin modeli `Admin` önekini alır. İç anahtarın alan adı varlığın adı ve `Id`'dir. Her işleyici yalnız kendi girdi modelini bağlar; veri modelinin varlığı doğrudan bağlanmaz (§3.4).
+3. **Sayfa dosyası ve `PageModel`.** Sayfa dosyasının adı ekranın nesnesinin sözlük adıdır; `PageModel` sınıfı çatının kuralıyla `<Sayfa>Model` olur (`Cart.cshtml` → `CartModel`, ad alanı klasör yolunu izler — `Shopfolio.Pages.Storefront`). Bir kayıt türünün liste sayfası çoğul klasörün `Index` sayfasıdır (`Pages/Panel/Orders/Index.cshtml`), kayıt formu `Edit` sayfasıdır (yeni ve var olan kayıt aynı sayfanın iki hâlidir — `07 §3.1.1`). Adres her zaman `@page` şablonundadır (§4.1).
+4. **Hata kodu.** İngilizce PascalCase'tir (`TextTooLong`, `FieldRequired`); bir kez verilen kod değişmez; yanıtın gövdesine ve başlığına yazılmaz ve kullanıcıya gösterilmez. Kayıtlar her reddin kodunu yazar (§8.2, yazım 2). Kod listesi `07 §6.2.2`'dedir; yeni kod bu dokümanda doğmaz.
+5. **Çerez adı** `07`'nin kapalı listesidir ve sabit olarak bir yerde tanımlanır (`Infrastructure/`): `__Host-session`, `__Host-admin-session`, `__Host-antiforgery`, `__Host-cart`, `__Host-known-device`, `__Host-checkout`, `__Host-external-login`. Çerez adı başka yerde dizgi olarak yazılmaz; listeye yeni ad eklemek `07 §2` ve `02 §12.2.5`'in kapalı envanterini değiştirir.
+6. **`notice` değeri** `07 §6.3`'ün kapalı listesidir; bilinmeyen değer yok sayılır, serbest metin gösterilmez.
+
+*Kaynak: K-1162, K-1163, K-1165, K-1166, K-1168, K-1172, K-1173, K-1174, K-1196, K-1198, K-1205, K-1226 · K-1331 (5) · `07 §2.1`, §2.2, §3, §3.1.1, §5, §6.*
 
 ## 6. Mimari sınırlar
 
-> **Ne yazılır:** Katman sınırları, modüller arası iletişim kuralı, iş kuralının hangi katmanda yaşayacağı.
+Sınır dokuz modül arasındadır (`05 §3.3`); derleyici korumaz (§4.1), mimari test korur. Bu bölüm sınırın kodda biçimini, kuralları ve testin aracını yazar (K-1308).
+
+1. **Açık yüzey bir `Contracts` ad alanıdır.** Her modülün başka modüle verdiği yüzey `Shopfolio.Modules.<Modül>.Contracts` ad alanındadır: genel arayüzler ve onların aldığı ve verdiği **değişmez `record`'lar**. Varlıklar `Contracts`'tan dışarı çıkmaz. Modülün geri kalanı — varlıklar, iş mantığı, yapılandırmalar, kuyruk işleyicileri — `internal` olur.
+2. **Başvuru kuralı.** Bir modül ötekine yalnız onun `Contracts` ad alanından başvurur — alan, parametre, dönüş türü ve metot gövdesindeki çağrı dahil. Başka modülün varlığına **veritabanı bağlamı üzerinden de dokunulmaz.** Sayfalar, yönetim komutları ve arka plan işleri de yalnız `Contracts`'a başvurur ve veritabanı bağlamına ya da varlığa dokunmaz (`05 §3.3.12`). Ortak altyapı modül türlerine başvurmaz.
+3. **Kayıt ve kullanım.** Her modül `Add<Modül>Module` uzantısıyla kendi hizmetlerini kaydeder (`AddOrderingModule`); `Program.cs` dokuzunu çağırır. Arayüz kurucudan enjekte edilir. **Arayüz metodu kendi veritabanı işlemini açmaz ve kesinleştirmez** — çağıranın işlemine katılır (`05 §3.4.2`); işlemin sahibi §9'dadır (yazım 2).
+
+   ```csharp
+   // Yanlış: sayfa, katalog modülünün varlığına bağlam üzerinden dokunuyor (kural 2'yi bozar).
+   var product = await _context.Products.FindAsync(id);
+
+   // Doğru: sayfa yalnız Catalog.Contracts arayüzünü çağırır. Arayüzün adı ve metodu ilgili task'ın tasarımında
+   // 07'nin ucuna göre yazılır; burada yalnız kalıp gösterilir.
+   var view = await _catalog.GetProductViewAsync(id, ct);
+   ```
+4. **Mimari testler.** Araç ArchUnitNET'tir (Kütüphaneler tablosu); birim testi projesinde `Architecture/` klasöründedir. Yukarıdaki üç kuralın — başvuru kuralı, sayfa ve komutların bağlama dokunmaması, altyapının modüle başvurmaması — her biri bir testtir. **Her kural kasıtlı ihlal eden bir örnek kodla kırmızıya döndüğü kanıtlanır** (test kendi kendini sınar): ihlal örneği test projesinde ayrı bir derlemededir ve test o derlemeye karşı da koşar, kuralın o derlemede kırıldığını doğrular.
+
+   ```csharp
+   // UnitTests/Architecture/ModuleBoundaryTests.cs — ArchUnitNET API'si bilgim tarihli, ilk task'ta doğrulanır.
+   // Kalıp: Modules.Ordering içindeki hiçbir tür Modules.Catalog'un Contracts dışındaki bir türüne bağımlı olamaz.
+   ```
+5. **Tek yazıcı kuralı** (`05 §3.4.4`) mimari testle sınanamaz; kalıbı ve sınaması §9.1'dedir (yazım 2).
+6. **Dosya deposu arayüzü ortak altyapıdadır** (`Infrastructure/`; `05 §7.7.1`, K-1332). Görseller ve dijital ürün dosyaları iki bölümdür; bölüm kapalı bir değerdir (`FileArea`: `Image`, `DigitalFile`). İmza:
+
+   ```csharp
+   public enum FileArea { Image, DigitalFile }
+
+   public interface IFileStore
+   {
+       Task WriteAsync(FileArea area, string key, Stream content, CancellationToken ct);       // önce geçici dosyaya, sonra adlandırma
+       Task AppendAsync(FileArea area, string key, Stream content, CancellationToken ct);      // parçalı yükleme (05 §7.7.3); yalnız DigitalFile
+       Task<Stream> OpenReadAsync(FileArea area, string key, CancellationToken ct);            // aralık okumaya uygun (aranabilir) akış
+       Task<bool> ExistsAsync(FileArea area, string key, CancellationToken ct);
+       Task<long> GetSizeAsync(FileArea area, string key, CancellationToken ct);
+       Task DeleteAsync(FileArea area, string key, CancellationToken ct);
+       IAsyncEnumerable<string> ListAsync(FileArea area, TimeSpan minAge, CancellationToken ct);  // imha süpürmesi için, yaşa göre
+   }
+   ```
+
+   **Anahtarı uygulama üretir:** `Guid.CreateVersion7().ToString("N")` (32 küçük harfli onaltılık hane); kullanıcı girdisi anahtar ya da yol olamaz ve bu biçime uymayan anahtar `ArgumentException` ile reddedilir (yol ayırıcı ve üst dizin dahil). **Yazım yarım dosya göstermez:** içerik önce aynı birimdeki geçici bir dosyaya yazılır, tamamlanınca adlandırılır. Tek gerçekleme diskteki dosya alanıdır (`DiskFileStore`); nesne depolamaya geçiş yalnız gerçeklemeyi değiştirir (`05 §11.3.3`).
+7. **Yasak.** Başka modülün `internal` türüne `InternalsVisibleTo` ile erişmek; `Contracts` içinde varlık döndürmek; arayüz metodunda `SaveChanges` çağırmak; modülün `Contracts`'ı dışında kalan bir türü bir sayfaya enjekte etmek.
+
+*Kaynak: K-1308, K-871, K-881, K-932 · K-1332 · K-889 (P4.5; tek yazıcı) · `05 §3.3.12`, §3.4.1–§3.4.5, §7.7.1, §7.7.3, §11.3.3.*
 
 ## 7. Zaman ve biçim standartları
 

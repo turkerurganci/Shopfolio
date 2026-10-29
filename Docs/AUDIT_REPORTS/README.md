@@ -5,3 +5,5 @@
 **Denetlenebilirlik kuralı:** Bir audit raporu, envanter toplamı ile eşleştirme sayısı **eşleşmiyorsa** geçersizdir — öğe atlanmış demektir. Rapor bu iki sayıyı açıkça gösterir.
 
 Prosedür: [`.claude/skills/audit/SKILL.md`](../../.claude/skills/audit/SKILL.md)
+
+- `09_AUDIT.md` — Kodlama Kılavuzu (`09` v0.16 → v0.17), 2026-10-30: 16 mercek, 16 doğrulayıcı, 48 bulgu uygulandı, 1 çürütüldü.

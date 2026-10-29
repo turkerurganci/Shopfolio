@@ -65,6 +65,7 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-1312 · Koşullu lisanslı kütüphanelerin kurulumda firmaya bildirimi:** ürün koşullu lisanslı (gelir eşikli, ticari ya da açık kaynak şartlı) .NET kütüphanesi içerebilir (K-1310: eşiği aşan firmada lisans bedelini kurulumu yapan öder ya da firmaya yansıtır). Bu belgede "koşullu lisanslı kütüphaneler" listesi bulunur — her satırda kütüphane, eşik (ölçü ve para birimiyle), bedelin türü ve tutarı, kim öder; liste `09`'un kütüphane tablosundaki "lisans koşulu" sütununun koşullu satırlarından türer ve her kütüphane değişikliğinde aynı PR'da güncellenir. Kurulumu yapan her kurulumda firmanın yıllık gelirini her eşikle karşılaştırır, eşiği aşıyorsa lisansı alır ya da bedeli firmaya yansıtır ve sonucu kurulum kaydına yazar; gelirin nasıl sorulacağı (belge, beyan) ve kurulum kaydının yeri bu aşamanın kararıdır (`09 (kütüphane ekleme işletimi)`).
+> - **K-1324 · Yönetim komutlarının çağrısı:** kurulumu yapan yönetim komutlarını uygulama imajından TTY'li tek seferlik konteynerle çalıştırır (`docker compose run`; `-T` ve `exec` değil) — kişisel veri alan komut girdi yönlendirilmişse çalışmaz ve çıkış kodu 2 döner (`05 §8.5.1`). Bu belge §H'de komutların adlarını `09`'un listesinden, çağrı biçimini bu kuraldan alır; komut kipi arka plan hizmetlerini başlatmaz ve göçü çalıştırmaz.
 
 ---
 

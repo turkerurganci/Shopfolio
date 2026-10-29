@@ -1,6 +1,6 @@
 # Shopfolio — Coding Guidelines
 
-**Versiyon: v0.13** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
+**Versiyon: v0.14** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
 
 > **Aşama:** 8 — Kodlama Kılavuzu · **Rol:** Tech Lead
 > **Amaç:** Ajanın tutarlı kod üretmesi. Bu doküman **her kodlama görevinde** ajana verilir.
@@ -68,9 +68,9 @@
 > - **K-1245 · K-1272 · K-1281 · K-1292 · Google kimlik belirtecinin doğrulanması (Entegrasyon Spesifikasyonları `08 §2.3`):** kod değişiminin adresi sabittir, keşiften okunmaz; keşif belgesinden yalnız `issuer` ve `jwks_uri` alınır, çatı keşif belgesini ve anahtar kümesini önbelleğe alır ve her girişte yeniden çekmez — çatının işleyicisi keşif belgesini varsayılan olarak başlatmada çekiyorsa adresler sabit olarak yapılandırılır; önbelleğin tazeleme biçimi çatının davranışıdır ve ilk bağlanan task'ta doğrulanır (bilgim tarihli; `08` DV-31) · `exp` için saat sapması toleransı çatının ayarıdır ve değeri bu dokümanın işidir; `auth_time` toleranssız karşılaştırılır · `userinfo` çağrılmaz; kimlik belirtecinin alanlarından yalnız alan eşlemesinin saydıkları okunur (`hd` dahil — Google'ın adres için yetkili olup olmadığı buradan okunur) ve `sub` saklanmaz (K-1061).
 > - **K-1027 · K-1271 · Değişken metnin kaçışı (Entegrasyon Spesifikasyonları `08 §2.2.6` — B-1'in iki yasal metninin yerleşimi, madde 4; §2.2.4):** e-postaya ve belgeye giren her değer — firmanın ayarı, kalemin adı, yer tutucunun müşteri değeri — HTML'de kaçışlanır, düz metinde satır sonu karakterleri boşluğa çevrilir; metin ham HTML olarak basılmaz, biçim yalnız şablonun kendi yapısıdır ve bağlantı yalnız `https`, `http` ve `mailto` şemasını taşır (`05 §6.5.3`) · değerin donmuş kopyada kaçışlı mı saklandığı, gösterimde mi kaçışlandığı bu aşamanın kararıdır; sipariş sayfasındaki gösterim aynı kuralı izler (K-1027 (4), (5)).
 
-> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.13).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. ve 2. oturum yöneticinin kararıyla baştan ikiye, 3. oturum üçe bölündü (`INSTRUCTIONS §9` (8)): Y-1a ve Y-1b, Y-2a (§7, §8) ve Y-2b (§9), Y-3a (§10.1–§10.3), Y-3b (§10.4–§10.6) ve Y-3c (§10.7–§10.10); 3. oturum tamamdır; 4. oturum da ikiye bölündü: Y-4a (§11) ve Y-4b (§12–§14); 4. oturum tamamdır; 5. oturum Y-5a (§15) ve Y-5b (§16–§18) diye, Y-5a da Y-5a1 (§15.1–§15.3) ve Y-5a2 (§15.4–§15.7) diye bölündü. **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330); Y-1b — §4, §5, §6 (K-1331, K-1332); Y-2a — §7, §8 (K-1333, K-1334); Y-2b — §9 (K-1335, K-1336); Y-3a — §10.1, §10.2, §10.3 (K-1337, K-1338); Y-3b — §10.4, §10.5, §10.6 (K-1339, K-1340, K-1341); Y-3c — §10.7, §10.8, §10.9, §10.10 (K-1342, K-1343, K-1344, K-1345); Y-4a — §11.1, §11.2, §11.3, §11.4 (K-1346, K-1347); Y-4b — §12, §13.1, §13.2, §13.3, §14.1, §14.2 (K-1348, K-1349, K-1350, K-1351); Y-5a1 — §15.1, §15.2, §15.3 (K-1352); Y-5a2 — §15.4, §15.5, §15.6, §15.7 (K-1353); Y-5b — §16.1, §16.2, §17, §18.1, §18.2 (K-1354); 5. oturum tamamdır. **Sırada:** Y-6a — §19–§22; sonra Y-6b — §23–§25 (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
+> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.14).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. ve 2. oturum yöneticinin kararıyla baştan ikiye, 3. oturum üçe bölündü (`INSTRUCTIONS §9` (8)): Y-1a ve Y-1b, Y-2a (§7, §8) ve Y-2b (§9), Y-3a (§10.1–§10.3), Y-3b (§10.4–§10.6) ve Y-3c (§10.7–§10.10); 3. oturum tamamdır; 4. oturum da ikiye bölündü: Y-4a (§11) ve Y-4b (§12–§14); 4. oturum tamamdır; 5. oturum Y-5a (§15) ve Y-5b (§16–§18) diye, Y-5a da Y-5a1 (§15.1–§15.3) ve Y-5a2 (§15.4–§15.7) diye bölündü; 6. oturum Y-6a (§19–§22) ve Y-6b (§23–§25) diye bölündü. **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330); Y-1b — §4, §5, §6 (K-1331, K-1332); Y-2a — §7, §8 (K-1333, K-1334); Y-2b — §9 (K-1335, K-1336); Y-3a — §10.1, §10.2, §10.3 (K-1337, K-1338); Y-3b — §10.4, §10.5, §10.6 (K-1339, K-1340, K-1341); Y-3c — §10.7, §10.8, §10.9, §10.10 (K-1342, K-1343, K-1344, K-1345); Y-4a — §11.1, §11.2, §11.3, §11.4 (K-1346, K-1347); Y-4b — §12, §13.1, §13.2, §13.3, §14.1, §14.2 (K-1348, K-1349, K-1350, K-1351); Y-5a1 — §15.1, §15.2, §15.3 (K-1352); Y-5a2 — §15.4, §15.5, §15.6, §15.7 (K-1353); Y-5b — §16.1, §16.2, §17, §18.1, §18.2 (K-1354); 5. oturum tamamdır; Y-6a — §19.1, §19.2, §20, §21, §22 (K-1355, K-1356). **Sırada:** Y-6b — §23–§25 ve yazım turunun kapanışı (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
 >
-> **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P1.1 (terim sözlüğünün devralınması — §5.1); P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu); P6.2 (girdi doğrulama süzgeci §3.4, model ve işleyici adları §5.3, hata kodlarının kaydı ve gösterilmemesi §8.2); P6.6 (işleyici adları §5.3, istekteki değerin biçimi ve bağlama kalıbı §7.2); P5.9 (kategori düzeyinin yazılışı — §9.4); P5.1 (silme davranışının kodda uygulanışı — §10.1); P5.2 (adlandırma §5.2, anahtar üretimi ve enum §10.1); P5.3 (normalleştirme ve kategori düzeyi §9.4, sürüm ve sayaç §10.2); P5.4 (bölüm başına sürüm — §10.3); P4.3 (önbellek ve kuşak sayacı — §10.4; modül sınırlarının korunması ve dosya deposu arayüzü §6); P5.11 (trigram eklentisi ve operatör sınıfı — §10.6); P5.12 (iç notun kilidi — §10.9); P5.6 (kopya ve doldurma §9.3, şablon sürüm kimliği ve üretilen yasal metin işlevi §11.4); P7.2 (Google kimlik belirtecinin doğrulanması — §11.3, saat sapması §3.5); P7.3 (değişken metnin kaçışı ve e-posta ve belge metninin üretimi — §11.4); P6.9 (dışa aktarmanın geçici dizini, çökme artığı, tavanlar ve CSV'nin biçimi — §10.10, süre ve tavan değerleri §3.5 ve §10.7); P4.5 (iş kuyruğu, yeniden deneme, nabız ve gecelik iş — §13.1); P4.9 (yönetim komutları — §13.2); P4.10 (değerlerin sürümlenmesi — §12; göçlerin yazılışı §10.6); P5.7 (kodun sürümlenmesi — §12; kod adları ve imha göçü §9.2); P5.10 (dönüşüm işinin ilerleme kaydı — §13.3; ön denetim §10.6); P4.11 (kuruşa yuvarlama — §14.1); P7.1 (sağlayıcı tutar dönüşümleri — §14.2; bağlantı katmanının kalıbı §11); P4.6 (oturum, şifre, anahtar, çerez, ters vekil — §15.1; sahtecilik koruması ve içerik güvenlik politikası — §15.2); P4.12 (bağlantı katmanının kalıbı §11.1, sahtecilik koruması §15.2, HTML temizleyici §15.3); P5.5 (HTML temizleyici — §15.3); P4.4 (görüntü işleme — §15.6); P6.4 (indirme ucunun aralık yanıtları — §15.7); P6.7 (oturum ve çerez kalıpları §15.1, kayıtsız korumalı değerler §15.5); P6.1 (işleyici adları ve sayfa düzeni §5.3 ve §4.1, kimlik şemaları §15.1); P4.2 (sayfaların düzeni §4.1, ön yüz dosya düzeni ve adlandırma §16.1); P4.7 (hatanın üç hâli ve sonucu belirsiz işlem §8.1, kayıt kütüphanesi §18.1, kayıt alanları ve maskeleme §18.2); P4.13 (iki imajın derleme dosyalarının yeri §4.3, içerikleri §17); P5.8 (veri koruma paketinin adlandırması §5.2, kullanıcılar §10.8, veri koruma amaçları §15.5, kurucu betiğin yeri ve yedek aracı imajı §17); P6.3 (hız sınırı §15.4, dosya uçlarının sunucu tarafı §15.7, yükleme betiği §16.2); P6.8 (kayıtsız korumalı değerlerin amaçları §15.5, betiksiz yolun form kalıpları §16.2); P6.10 (model ve hata kodu adları §5.3, hata kodlarının kaydı §8.2, kodun sürümlenmesi §12, kayıt alanlarının adları §18.2). **Kısmen kapandı:** P4.8 — dosya düzeni ve test projelerinin ayrımı §4.1 ve §4.3'te yazıldı, test araçları §19'da; P6.5 — listelerin kesin sırası ve arama sözcüğü §10.5'te yazıldı, sınama katmanları §19'da; P6.11 — arama sözcüğü §10.5'te yazıldı, canlılık ucunun süresi §10.7'de, veri koruma amaçları §15.5'te yazıldı, e-posta gövdesinin kaçışı §11.4'te, test planı §19'da. **Açık:** yok — kırk maddenin hepsi yazım turunda en az bir bölümde karşılandı; kısmen kapananların kalan bölümleri kendi oturumlarında kapanır.
+> **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P1.1 (terim sözlüğünün devralınması — §5.1); P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu); P6.2 (girdi doğrulama süzgeci §3.4, model ve işleyici adları §5.3, hata kodlarının kaydı ve gösterilmemesi §8.2); P6.6 (işleyici adları §5.3, istekteki değerin biçimi ve bağlama kalıbı §7.2); P5.9 (kategori düzeyinin yazılışı — §9.4); P5.1 (silme davranışının kodda uygulanışı — §10.1); P5.2 (adlandırma §5.2, anahtar üretimi ve enum §10.1); P5.3 (normalleştirme ve kategori düzeyi §9.4, sürüm ve sayaç §10.2); P5.4 (bölüm başına sürüm — §10.3); P4.3 (önbellek ve kuşak sayacı — §10.4; modül sınırlarının korunması ve dosya deposu arayüzü §6); P5.11 (trigram eklentisi ve operatör sınıfı — §10.6); P5.12 (iç notun kilidi — §10.9); P5.6 (kopya ve doldurma §9.3, şablon sürüm kimliği ve üretilen yasal metin işlevi §11.4); P7.2 (Google kimlik belirtecinin doğrulanması — §11.3, saat sapması §3.5); P7.3 (değişken metnin kaçışı ve e-posta ve belge metninin üretimi — §11.4); P6.9 (dışa aktarmanın geçici dizini, çökme artığı, tavanlar ve CSV'nin biçimi — §10.10, süre ve tavan değerleri §3.5 ve §10.7); P4.5 (iş kuyruğu, yeniden deneme, nabız ve gecelik iş — §13.1); P4.9 (yönetim komutları — §13.2); P4.10 (değerlerin sürümlenmesi — §12; göçlerin yazılışı §10.6); P5.7 (kodun sürümlenmesi — §12; kod adları ve imha göçü §9.2); P5.10 (dönüşüm işinin ilerleme kaydı — §13.3; ön denetim §10.6); P4.11 (kuruşa yuvarlama — §14.1); P7.1 (sağlayıcı tutar dönüşümleri — §14.2; bağlantı katmanının kalıbı §11); P4.6 (oturum, şifre, anahtar, çerez, ters vekil — §15.1; sahtecilik koruması ve içerik güvenlik politikası — §15.2); P4.12 (bağlantı katmanının kalıbı §11.1, sahtecilik koruması §15.2, HTML temizleyici §15.3); P5.5 (HTML temizleyici — §15.3); P4.4 (görüntü işleme — §15.6); P6.4 (indirme ucunun aralık yanıtları — §15.7); P6.7 (oturum ve çerez kalıpları §15.1, kayıtsız korumalı değerler §15.5); P6.1 (işleyici adları ve sayfa düzeni §5.3 ve §4.1, kimlik şemaları §15.1); P4.2 (sayfaların düzeni §4.1, ön yüz dosya düzeni ve adlandırma §16.1); P4.7 (hatanın üç hâli ve sonucu belirsiz işlem §8.1, kayıt kütüphanesi §18.1, kayıt alanları ve maskeleme §18.2); P4.13 (iki imajın derleme dosyalarının yeri §4.3, içerikleri §17); P5.8 (veri koruma paketinin adlandırması §5.2, kullanıcılar §10.8, veri koruma amaçları §15.5, kurucu betiğin yeri ve yedek aracı imajı §17); P6.3 (hız sınırı §15.4, dosya uçlarının sunucu tarafı §15.7, yükleme betiği §16.2); P6.8 (kayıtsız korumalı değerlerin amaçları §15.5, betiksiz yolun form kalıpları §16.2); P6.10 (model ve hata kodu adları §5.3, hata kodlarının kaydı §8.2, kodun sürümlenmesi §12, kayıt alanlarının adları §18.2); P4.8 (test araçları §19.1, test katmanları ve mimari testler §19.2; dosya düzeni ve test projelerinin ayrımı §4.1 ve §4.3); P6.5 (sayfalı liste testi ve katman §19.2; listelerin kesin sırası ve arama sözcüğü §10.5); P6.11 (park satırının test cümleleri §19.2; arama sözcüğü §10.5, canlılık ucunun süresi §10.7, veri koruma amaçları §15.5, e-posta gövdesinin kaçışı §11.4). **Kısmen kapandı:** yok. **Açık:** yok — kırk maddenin hepsi kapandı (K-1302 (6)).
 
 **Yazım konvansiyonları (K-1302, K-1329).** Bu on madde §1–§25'in bütün yazım oturumlarını bağlar; "yazım konvansiyonu n" diye anılır.
 
@@ -108,8 +108,11 @@
 | §16 İstemci tarafı kurallar | 16.1 Ön yüz dosya düzeni ve adlandırma · 16.2 Betiksiz yol, form kalıpları, yükleme betiği | Y-5b ✓ |
 | §17 Yardımcı servis / sidecar standartları | Veritabanı ve yedek aracı imajları (alt bölümsüz) | Y-5b ✓ |
 | §18 Loglama ve gözlemlenebilirlik | 18.1 Kayıt kütüphanesi ve yazıcılar · 18.2 Kayıt alanları, maskeleme, kategoriler | Y-5b ✓ |
-| §19 Test kuralları | 19.1 Test araçları · 19.2 Test katmanları, mimari testler | 6 |
-| §20–§25 | §20 Performans · §21 Git ve CI/CD (şablonun 21.1–21.5'i) · §22 Refactor · §23 Yasaklar · §24 AI çalışma kuralları · §25 Review checklist | 6 |
+| §19 Test kuralları | 19.1 Test araçları · 19.2 Test katmanları, mimari testler | Y-6a ✓ |
+| §20 Performans kuralları | Alt bölümsüz | Y-6a ✓ |
+| §21 Git ve CI/CD kuralları | 21.1 Dal stratejisi · 21.2 Commit mesaj formatı · 21.3 PR kuralları · 21.4 CI pipeline sıralaması · 21.5 Savunma katmanları | Y-6a ✓ |
+| §22 Refactor kuralları | Alt bölümsüz | Y-6a ✓ |
+| §23–§25 | §23 Yasaklar · §24 AI çalışma kuralları · §25 Review checklist | Y-6b |
 
 **Okuma tablosu (K-1302 (4)).** Bu doküman her kodlama görevinde ajana verilir (`00 §C.6`); 100 KB'ı aşan dosya bütün okunamaz (`INSTRUCTIONS §9` (7)) — dosyanın boyutu `wc -c` ile ölçülür ve **bölüm bölüm okunur** (`grep -n '^## '` ile başlıkların satırı, sonra `Read` ile satır aralığı). Her bölüm tek okumada okunabilir kalır. **Çekirdek bölümler** her görevde okunur ve toplamı 100 KB'ın altında tutulur: §1, §2, §5, §6, §23, §24, §25. Öteki bölümler görevin dokunduğu alana göre okunur; Implementation Planı her task satırında okunacak bölümleri yazar (`11` — "Aşama 8'den park edilen girdiler" bloğu yazım turunda açılır).
 
@@ -132,6 +135,8 @@
 | Kayıt (log) | §18 |
 | Test yazan görev | §19 |
 | Liste, sorgu sınırı, performans | §20 |
+| Dal, commit, PR, CI adımı | §21 |
+| Refactor | §22 |
 | Dal, commit, PR, CI | §21 |
 | Refactor | §22 |
 
@@ -242,7 +247,7 @@ Paket sürümü merkezîdir (K-1306 (6)): kökte `Directory.Packages.props` tek 
 </Project>
 ```
 
-Merkezî paket dosyasındaki her paket sürümünün Kütüphaneler tablosunda satırı vardır; eşitlik CI'ın Lint adımında denetlenir (betiğin yazımı §21'dedir, yazım 6 — iş adı: kütüphane tablosu eşitliği denetimi).
+Merkezî paket dosyasındaki her paket sürümünün Kütüphaneler tablosunda satırı vardır; eşitlik CI'ın Lint adımında denetlenir (denetimin yazımı §21.4 madde 1'dedir — kütüphane tablosu eşitliği denetimi).
 
 ### 3.3 Kütüphane eklemenin işletimi
 
@@ -300,7 +305,7 @@ Parametrenin üç katmanı (`02 §10.1.3`, `05 §8.4`; K-412) kodda üç ayrı e
        public const int ProductNameMaxLength = 150;
    }
    ```
-   Envanter tablosu ile sabitler eşit tutulur: her P satırı için aynı değerde bir sabit vardır ve tersi (eşitliğin denetim betiği §21'dedir, yazım 6 — iş adı: parametre envanteri eşitliği denetimi). Envantere girmeyen değerler (yasal süreler, kargo şirketi listesi — `02 §11` "Envantere girmeyenler") ürün sabiti sınıfına yazılmaz; kendi evlerindedir.
+   Envanter tablosu ile sabitler eşit tutulur: her P satırı için aynı değerde bir sabit vardır ve tersi (denetimin yazımı §21.4 madde 1'dedir — parametre envanteri eşitliği denetimi). Envantere girmeyen değerler (yasal süreler, kargo şirketi listesi — `02 §11` "Envantere girmeyenler") ürün sabiti sınıfına yazılmaz; kendi evlerindedir.
 2. **Kurulum ayarı** güçlü tipli seçenekler sınıfıdır; açılışta bütün ayarlar doğrulanır. **Zorunlu ayar** (alan adı, gönderen adresi, e-posta gönderim kimliği, veritabanı bağlantısı, hesap bağlantılarının türetme sırrı) eksik ya da biçimsizse uygulama açılmaz ve eksik ayarı adıyla kaydeder; **koşullu ayar** (ödeme sağlayıcısının anahtarları, Google uygulaması) eksikse uygulama açılır, ilgili hat kapalıdır ve bu hâl açılışta kayda yazılır (`05 §8.4.6`). Ayar dosyası ürün sabitini değiştiremez; dosyada ürün sabitinin adı bulunursa açılış reddedilir.
 3. **Teknik Mimari'nin tasarım değerleri kodda sabittir;** yalnız `05 §8.4.5`'in saydıkları (hız sınırı, durum ucunun eşikleri, kayıt düzeyi) varsayılanla kodda, değiştirilebilir olarak kurulum ayar dosyasındadır ve her biri `DEPLOY_RUNBOOK §C`'de varsayılanıyla yazılıdır.
 4. **Süre ve tavan değerlerinin tek yeri.** Kılavuzun koyduğu süre ve tavan değerleri aşağıdaki tablodadır (K-1328); ilgili bölüm değeri yinelemez, bu tabloya atıf yapar. Değerler bilgim tarihli tasarım değerleridir; ilk yük denemesinde ve D-01'de sınanır.
@@ -629,7 +634,7 @@ Beklenmeyen hatanın ekranı `04 §2.7.3`'te, mekanizması `05 §10.3`'te, HTTP 
    | Makine ucu | bildirim, durum, canlılık, parçalı yükleme | gövdesiz 500; ekran yok | `UnexpectedOperationError` | `05 §10.3.5`; `07 §2.7.2` |
 
    Makine ucu işleyicinin üzerindeki bir nitelikle işaretlidir; ayrım istek yolundan türetilmez. Katman yalnız bu dört satırı üretir; çatının kendi yanıtları (405, 416, işleyicisi bulunamayan POST) katmana düşmez ve davranışı Doğrulama Protokolü'nün senaryosuyla sabitlenir (`07 §2.7.1`).
-4. **Sonucu belirsiz işlem kodda adıyla işaretlidir:** işleyici metodunda bir nitelik (`[OutcomeUncertain]`) taşır; işaretli işlemlerin listesi `04` 2.7.3.3 ve `07 §6.4.2`'dir (sipariş onayı, müşterinin geri alınamaz dört işlemi, e-posta değişikliğinin geri alınması, yöneticinin onay isteyen işlemleri). İşaretli işlemde hata **nerede olursa olsun** — işlemin içinde, kesinleşmeden sonra, yanıt üretilirken — katman 303 ile sonucu gösteren ekrana yönlendirir; hedef ekran `07 §6.4.2`'nin satırıdır ve hesap türüne bağlı hedef (sipariş onayında üyede `/hesap/siparisler`, misafirde `/siparis-takibi`) hedefi seçen tek yöntemle sayfa modelinde yazılır. Listede olmayan formun işlemi işlem düzeyidir (`05 §10.3.7`, "kalan durum"). İşaretli işleyici kümesi `07 §6.4.2`'nin UC listesine eşit tutulur (eşitliğin denetim betiği §21'dedir, yazım 6 — iş adı: işaretli işlem listesi eşitliği denetimi).
+4. **Sonucu belirsiz işlem kodda adıyla işaretlidir:** işleyici metodunda bir nitelik (`[OutcomeUncertain]`) taşır; işaretli işlemlerin listesi `04` 2.7.3.3 ve `07 §6.4.2`'dir (sipariş onayı, müşterinin geri alınamaz dört işlemi, e-posta değişikliğinin geri alınması, yöneticinin onay isteyen işlemleri). İşaretli işlemde hata **nerede olursa olsun** — işlemin içinde, kesinleşmeden sonra, yanıt üretilirken — katman 303 ile sonucu gösteren ekrana yönlendirir; hedef ekran `07 §6.4.2`'nin satırıdır ve hesap türüne bağlı hedef (sipariş onayında üyede `/hesap/siparisler`, misafirde `/siparis-takibi`) hedefi seçen tek yöntemle sayfa modelinde yazılır. Listede olmayan formun işlemi işlem düzeyidir (`05 §10.3.7`, "kalan durum"). İşaretli işleyici kümesi `07 §6.4.2`'nin UC listesine eşit tutulur (denetimin yazımı §21.4 madde 1'dedir — işaretli işlem listesi eşitliği denetimi).
 5. **İşlemi geri almak kodun işi değildir, kesinleştirmemektir.** Veritabanı işleminin sahibi §9.1, madde 3'tedir; katman işlem kesinleştirmez, kesinleşmemiş işlem istisnayla elden çıkar ve geri alınır. `finally` içinde kesinleştirme çağrısı yazılmaz.
 6. **Geniş `catch` yalnız beş yerdedir:** yakalama katmanı; iş kuyruğunun satır döngüsü — bir satırın hatası satıra yazılır, döngü durmaz (`05 §4.3.2`; §13.1 madde 4); zamanlayıcının kayıt döngüsü — bir kaydın hatası kayda yazılır, döngü o kaydı atlar; gecelik işin başarısız bitişini yazan sarmalayıcı dahil (§13.1 madde 6, 9); yönetim komutlarının dağıtıcısı — beklenmeyen hata 1 koduyla biter (§13.2 madde 2); dış servis bağlantı katmanlarının sonuç eşlemesi — özel durum sonuç sınıfına çevrilir, hiçbiri dışarı sızmaz (`08 §2.1.8`; §11.1 madde 3, §11.2 madde 4). Başka yerde `catch (Exception)`, türsüz `catch` ve hatayı yutan `catch` yoktur; bilinen bir istisnayı bilinen bir reddin sonucuna çevirmek için belirli türü yakalamak serbesttir. Kural yerleşik çözümleyiciyle zorlanır: `.editorconfig`'te CA1031'in önem derecesi `error`'dır (bilgim tarihli; ilk task'ta doğrulanır) ve beş yerin bastırması gerekçesini taşır (§3.1, madde 3). Arka plan hizmetinin hatasını yok sayan ayar kullanılmaz (§13.1 madde 1).
 
@@ -654,7 +659,7 @@ Beklenmeyen hatanın ekranı `04 §2.7.3`'te, mekanizması `05 §10.3`'te, HTTP 
 2. **Red kodla taşınır.** İş kuralı reddi modül arayüzünden `ErrorCode` ile döner (§8.1, madde 1); alan doğrulamasında kodu üreten nitelik ve süzgeçtir (§3.4). Kod başka bir yerde üretilmez: hata iletisi, durum ya da yönlendirme kodun kendisinden çıkar.
 3. **Kayıt her reddin kodunu yazar** (`07 §6.1.3`; K-1198). Alan doğrulamasında satır her alanın adını ve kodunu taşır (§3.4, madde 3); öteki redlerde satır kodu, ucu ve istek kimliğini taşır. **Alanın değeri yazılmaz** (`05 §9.1.5`). Satır varsayılan kayıt düzeyinde yazılır ve düzey ayarı onu kapatabilir (`05 §9.1.6`). Satırı yazan iki yer vardır: sayfa süzgeci ve redleri sayfa sonucuna çeviren tek yardımcı; sonucu belirsiz hâlin `OutcomeUncertain` satırını §8.1'in katmanı yazar. Kayıt alanlarının adları §18.2'dedir.
 4. **Kod gösterilmez** (`04` 2.7.3; `07 §2.7.3`). Kod yanıtın gövdesine ve başlığına, sayfanın metnine ve niteliklerine (`data-*` dahil), çereze ve yönlendirme adresine yazılmaz; tek istisna `notice` parametresidir ve onun değeri `NoticeCode`'dur (hata kodu değil). Kullanıcının gördüğü mesaj koddan mesaj kataloğuyla üretilir (§3.4, madde 4); görünüm yalnız mesajı alır. Aynı kod gerektiren bir ayrım sayfada gerekirse (ör. hangi alanın işaretleneceği) alanın adı ya da durum taşınır, kod değil.
-5. **Test.** Enum üyeleri ile `07 §6.2` kod sütununun eşitliği (denetim betiği §21'dedir, yazım 6 — iş adı: hata kodu envanteri eşitliği denetimi); her üyenin bir HTTP durumu vardır ve eşleme `07 §6.2`'nin sütunuyla uyuşur; **her hâl için yanıtın gövdesi ve başlıkları kapalı listenin hiçbir üyesinin adını içermez** (entegrasyon testi: 422, 409, 404, 429, 500 ve 303 hâlleri; yanlış pozitif — gövdede doğal bir sözcüğün enum üyesiyle çakışması — testte listeden dışlanır ve gerekçesi yazılır); reddin kayıt satırı kodu taşır, değeri taşımaz; `OutcomeUncertain` satırı; mesaj kataloğu testi §3.4'tedir.
+5. **Test.** Enum üyeleri ile `07 §6.2` kod sütununun eşitliği (denetimin yazımı §21.4 madde 1'dedir — hata kodu envanteri eşitliği denetimi); her üyenin bir HTTP durumu vardır ve eşleme `07 §6.2`'nin sütunuyla uyuşur; **her hâl için yanıtın gövdesi ve başlıkları kapalı listenin hiçbir üyesinin adını içermez** (entegrasyon testi: 422, 409, 404, 429, 500 ve 303 hâlleri; yanlış pozitif — gövdede doğal bir sözcüğün enum üyesiyle çakışması — testte listeden dışlanır ve gerekçesi yazılır); reddin kayıt satırı kodu taşır, değeri taşımaz; `OutcomeUncertain` satırı; mesaj kataloğu testi §3.4'tedir.
 
 *Kaynak: K-1334 · K-1319 (1), (3), (4) · K-1196, K-1198, K-1168 · `07 §2.7.3`, §6.1, §6.2, §6.3, §6.4.2 · `05 §9.1.5`, §9.1.6 · `04` 2.7.3.*
 
@@ -697,7 +702,7 @@ Bu bölüm durum geçişinin, yan etkinin, işlem izinin, belge kopyasının ve 
 5. **Kilit tek yerdedir.** `Ordering/OrderLocks.LockAsync(IReadOnlyCollection<Guid> orderIds, ct)` (`internal`) `SELECT … FOR UPDATE` ham SQL'ini (`FromSql`; bilgim tarihli) çalıştırır; siparişleri kimliğe göre sıralı kilitler (`05 §7.3.5`). Yönetici işleminde ekrandaki sürüm kilit altında karşılaştırılır (`05 §7.3.2`); sürüm artışının kalıbı §10.2'dedir. Kaynak taraması: sipariş satırını kilitleyen `FOR UPDATE` ve `FOR SHARE` (iç not, §10.9) yalnız `OrderLocks`'tadır.
 6. **Yan etki iki türdür.** İç yan etki — stok, kontenjan ve kupon dönüşü (`Catalog` arayüzü), iz satırı (`Administration` arayüzü, §9.2), panel işaretleri — gövdede açık çağrıdır ve aynı işlemdedir. Dış yan etki `Job` satırıdır (`JobType`, `RelatedRecordId`, `JobState.Pending`; `06 §4.59`) ve aynı işlemde yazılır; kuyruğun arayüzü ve işleyicinin kalıbı §13.1'dedir. Geçiş birimi bir dış servisin arayüzüne ve `HttpClient`'a bağlı değildir; e-posta ayrı bir iş satırı yazmaz — gönderim kaydı onun kuyruğudur (`05 §4.4.1`; §11.4).
 7. **Uygulama içi olay yayını yoktur** (`05 §3.4.6`): olay veriyolu kütüphanesi (§3.3 tablosunda yoktur), kendi yayıncı/abone arayüzü (`IEventBus`, `IDomainEvent`, `INotification`, `INotificationHandler<>` ad kalıpları), varlıkta biriken alan olayı listesi ve `SaveChanges` kesicisiyle dağıtım yazılmaz. Gerekçe: iç yan etkinin geçişle aynı işlemde yazıldığı gövdeden okunamaz olur. Bir geçişe tepki, arayüz çağrısıdır.
-8. **Test.** Tablo on altı satırdır; her `TransitionCode` (`Correction` hariç) bir kez bulunur ve `02 §5.4`, `§5.5` ile eşittir (denetim betiği §21'dedir, yazım 6 — iş adı: geçiş listesi eşitliği denetimi). Birim: izinli geçiş tek geçiş kaydı yazar; tablo dışı kaynak durum reddedilir ve hiçbir şey yazmaz. Entegrasyon (gerçek PostgreSQL, §19.1): iç yan etki hatasında durum, kayıt, iz ve `Job` birlikte geri alınır; eşzamanlı iki geçiş sıraya girer; iki sipariş ters sırada kilitlenmez ve kilitlenme olmaz; sürüm uyuşmazlığı reddedilir. Mimari test (§6 madde 4; kasıtlı ihlalli örnekle kırmızı olduğu gösterilir): durum özelliklerinin ayarlayıcısı `private`; `ApplyTransition`'ı çağıran yalnız `OrderTransitions`; `ExecuteUpdate` ve ham SQL metninde `order_status` ve `payment_status` yoktur (göçler hariç); yasak ad listesi; `OrderTransitions` `HttpClient`'a bağlı değil. ArchUnitNET'in özellik ayarlayıcısı ve yöntem çağrısı denetimi bilgim tarihlidir; yoksa kaynak metin taraması (§7.1 madde 5 gibi).
+8. **Test.** Tablo on altı satırdır; her `TransitionCode` (`Correction` hariç) bir kez bulunur ve `02 §5.4`, `§5.5` ile eşittir (denetimin yazımı §21.4 madde 1'dedir — geçiş listesi eşitliği denetimi). Birim: izinli geçiş tek geçiş kaydı yazar; tablo dışı kaynak durum reddedilir ve hiçbir şey yazmaz. Entegrasyon (gerçek PostgreSQL, §19.1): iç yan etki hatasında durum, kayıt, iz ve `Job` birlikte geri alınır; eşzamanlı iki geçiş sıraya girer; iki sipariş ters sırada kilitlenmez ve kilitlenme olmaz; sürüm uyuşmazlığı reddedilir. Mimari test (§6 madde 4; kasıtlı ihlalli örnekle kırmızı olduğu gösterilir): durum özelliklerinin ayarlayıcısı `private`; `ApplyTransition`'ı çağıran yalnız `OrderTransitions`; `ExecuteUpdate` ve ham SQL metninde `order_status` ve `payment_status` yoktur (göçler hariç); yasak ad listesi; `OrderTransitions` `HttpClient`'a bağlı değil. ArchUnitNET'in özellik ayarlayıcısı ve yöntem çağrısı denetimi bilgim tarihlidir; yoksa kaynak metin taraması (§7.1 madde 5 gibi).
 
 ### 9.2 İşlem izinin kod adları ve imha fonksiyonunun göçteki kalıbı
 
@@ -1031,7 +1036,7 @@ Kural `05 §8.7`'dedir: göçler genişlet–daralt kuralıyla yazılır, her g�
    ```
    Koşul, dönüşüm işinin yazdığı işaret sütununa dayanır ve sayım göçün başladığı andaki durumu okur. İşin kendi ilerleme kaydı §13.3'tedir.
 6. **İz tablosunda göç yalnız ekler** (`05 §7.5.2`; K-965): `audit_logs` için sütun ve dizin eklenir; var olan satırın değeri değiştirilmez, sütun kaldırılmaz, ad değiştirilmez ve satır silinmez (imha yalnız fonksiyonla — §9.2). İz biçimi değişirse yeni alan yalnız yeni satırlarda dolar. Bir kez verilen işlem kodu değişmez (§9.2).
-7. **Yama sürümü göç taşımaz** (`05 §8.7.3`, §8.3.12). Tek istisna veri bozan bir göçün düzeltmesidir (`05 §8.7.4`); düzeltme yeni bir göçtür, bozan göçün dosyası değiştirilmez. Kuralın CI'daki denetimi §21.4'tedir (yazım 6).
+7. **Yama sürümü göç taşımaz** (`05 §8.7.3`, §8.3.12). Tek istisna veri bozan bir göçün düzeltmesidir (`05 §8.7.4`); düzeltme yeni bir göçtür, bozan göçün dosyası değiştirilmez. Kuralın CI'daki denetimi §21.4 madde 2'dedir.
 8. **Trigram dizini ve eklenti.** `pg_trgm` eklentisini ilk kurulumda veritabanının kurucu kullanıcısı kurar; şema sahibi kullanıcısı yeni yetki almaz (`05 §7.1.3`; K-1124). Bu yüzden **göç eklentiyi kurmaz, varlığını denetler:** dizini kuran göçün ilk deyimi eklentinin kurulu olduğunu sınar ve değilse açık iletiyle hata verir. Modelde `HasPostgresExtension` kullanılmaz — çağrı göçe `CREATE EXTENSION` yazar ve şema sahibi onu yapamaz (bilgim tarihli — ilk task'ta doğrulanır). Dizin `NameSearchForm` üzerindedir; yöntemi GIN, operatör sınıfı `gin_trgm_ops`'tur (`LIKE '%…%'` eşleşmesi için; bilgim tarihli). Adı adlandırma kuralından türer: `ix_products_name_search_form` (§5.2).
 
    ```sql
@@ -1049,7 +1054,7 @@ Kural `05 §8.7`'dedir: göçler genişlet–daralt kuralıyla yazılır, her g�
    ```
 9. **Uygulama kullanıcısının adı göç kullanıcısının rol ayarıdır** (§9.2 madde 7). Göç demeti bağlantı açıldıktan sonra deyim çalıştıramaz (yalnız bağlantı dizgisini alır; bilgim tarihli — ilk task'ta doğrulanır), bu yüzden ayarı göç kodu kurmaz: kurucu kullanıcı ilk kurulumda göç kullanıcısının rol ayarına yazar — `ALTER ROLE <göç kullanıcısı> IN DATABASE <veritabanı> SET shopfolio.application_user = '<uygulama kullanıcısı>'` — ve göç kullanıcısının her oturumu ayarı hazır bulur (adımı `DEPLOY_RUNBOOK`'tadır). İşlevin `GRANT`'ı `current_setting('shopfolio.application_user')`'ı okur; ayar yoksa `current_setting` hata verir ve göç geri alınır. Başka bir göç de uygulama kullanıcısına yetki verecekse aynı ayarı okur; kullanıcının adı göç dosyasına yazılmaz.
 10. **İnceleme listesi** (§25'e bu madde taşınır, yazım 6): göç dosyası taşıyan PR'da (a) her göç genişletme mi, daraltma mı — daraltmaysa önceki sürümün kodu o yapıyı kullanmıyor mu; (b) yeni değer okuyan ve yazan sürüm olarak iki sürüme bölünmüş mü; (c) `Down`, `suppressTransaction`, `CONCURRENTLY`, `now()` yok mu; (d) siparişle büyüyen tabloya `UPDATE` ya da `DELETE` yok mu; (e) kaldıran göç ön denetimle başlıyor mu ve denetimin koşulu dönüşümün dönüşmemiş koşuluyla eşit mi (§13.3 madde 6); (f) `audit_logs`'a yalnız ekleme var mı; (g) kullanıcı adı ve eklenti kurulumu göçe yazılmamış mı.
-11. **Test.** Kaynak taraması (birim, veritabanı gerektirmez): göç dosyalarında `Down`, `suppressTransaction`, `CONCURRENTLY`, `now()`, `CREATE EXTENSION` yoktur; `UPDATE` ve `DELETE FROM` yalnız izinli tablolardadır; `audit_logs` için `UPDATE`, `DELETE`, `DROP COLUMN`, `RENAME` yoktur. Entegrasyon (gerçek PostgreSQL, §19.1): bütün göçler boş veritabanına uygulanır ve model anlık görüntüsü modelle uyuşur (bekleyen model değişikliği yok); `pg_index` kataloğunda `ix_products_name_search_form` GIN yöntemli ve `gin_trgm_ops` operatör sınıflıdır, arama sorgusunun planı (tarama kapalı) dizini kullanır; eklentisiz veritabanında dizin göçü açık iletiyle düşer ve öncekiler kalır; göç kullanıcısının rol ayarı yokken `GRANT` göçü geri alınır, ayarlıyken yetki doğru kullanıcıdadır (`has_function_privilege`). **Geri alma sınaması CI'ın göç adımındadır** (`05 §8.3.9`, §8.7.3; §21.4, yazım 6): son yayımlanan sürümün imajı yeni göçlerin uygulandığı şemaya karşı açılır ve o sürümün entegrasyon testleri koşar — canlılık ucu yalnız açılışı sınar.
+11. **Test.** Kaynak taraması (birim, veritabanı gerektirmez): göç dosyalarında `Down`, `suppressTransaction`, `CONCURRENTLY`, `now()`, `CREATE EXTENSION` yoktur; `UPDATE` ve `DELETE FROM` yalnız izinli tablolardadır; `audit_logs` için `UPDATE`, `DELETE`, `DROP COLUMN`, `RENAME` yoktur. Entegrasyon (gerçek PostgreSQL, §19.1): bütün göçler boş veritabanına uygulanır ve model anlık görüntüsü modelle uyuşur (bekleyen model değişikliği yok); `pg_index` kataloğunda `ix_products_name_search_form` GIN yöntemli ve `gin_trgm_ops` operatör sınıflıdır, arama sorgusunun planı (tarama kapalı) dizini kullanır; eklentisiz veritabanında dizin göçü açık iletiyle düşer ve öncekiler kalır; göç kullanıcısının rol ayarı yokken `GRANT` göçü geri alınır, ayarlıyken yetki doğru kullanıcıdadır (`has_function_privilege`). **Geri alma sınaması CI'ın göç adımındadır** (`05 §8.3.9`, §8.7.3; §21.4 madde 3): son yayımlanan sürümün imajı yeni göçlerin uygulandığı şemaya karşı açılır ve o sürümün entegrasyon testleri koşar — canlılık ucu yalnız açılışı sınar.
 
 *Kaynak: K-1340 · K-925, K-965, K-981, K-1121, K-1124, K-1337 · `05 §8.7`, §8.2.1, §8.3.9, §7.5.2, §7.1.3 · `06 §4.5`, §4.63, §7.5.1, §8.5.2 · `DEPLOY_RUNBOOK` (K-1124 satırı) · §4.1, §5.2, §7.1, §9.2, §10.1, §13.3, §21.4.*
 
@@ -1322,7 +1327,7 @@ Bu bölüm üç dış servisin bağlantı katmanının **kodda nasıl yazıldı�
 2. **Kimlik açıktır.** Kurulum ayarındaki erişim anahtarı kimliği ve gizli anahtar istemciye doğrudan verilir (`08 §2.2.1`); SDK'nın ortam değişkeni, profil ve örnek rolü zinciri kullanılmaz — sunucuda başka bir kimlik varsa sessizce o kullanılırdı. Parçadaki `BasicAWSCredentials` zincirin dışındadır.
 3. **Öteki dış servisler `IHttpClientFactory` ile gider.** Servis başına bir adlandırılmış istemci (ödeme sağlayıcısı, Google); taban adres ve sabit başlıklar kurulumda verilir, sır istemciye kurulurken değil çağrıda verilir. `HttpClient.Timeout` sonsuzdur (`Timeout.InfiniteTimeSpan`); süre çağrı başına bağlantı katmanında kurulur (§11.1, madde 4). İşleyici: otomatik yönlendirme kapalı (`AllowAutoRedirect = false`), çerez kapsayıcısı kapalı (`UseCookies = false`). **Yeniden deneme ya da dayanıklılık işleyicisi eklenmez** (`Microsoft.Extensions.Http.Resilience`, `Polly`): yeniden deneme gönderim kaydının işidir (`05 §4.4.3`, §10.1.1).
 4. **SES özel durumları katmanda çevrilir.** SDK'nın özel durumları `08 §2.2.2`'nin hata eşlemesi tablosuna çevrilir ve hiçbiri dışarı sızmaz (P7.1): tabloda olmayan her özel durum, zaman aşımı ve bağlantı hatası kanal hatasıdır. Eşleme özel durum türünü ve hata kodunu alan saf bir işlevdir (§11.1, madde 3). Uygulama kaydına yalnız AWS hata kodu ve sınıf yazılır.
-5. **Yasak ve kayıt.** `new HttpClient()` yazılmaz (mimari test: `HttpClient` yalnız fabrikadan gelir; §19). `System.Net.Http.HttpClient` kayıt kategorileri uyarı düzeyinde kalır (§18.2) ve istek gövdesi ile başlıkları hiçbir kayıtta yazılmaz.
+5. **Yasak ve kayıt.** `new HttpClient()` yazılmaz (mimari test: `HttpClient` yalnız fabrikadan gelir; §19.2). `System.Net.Http.HttpClient` kayıt kategorileri uyarı düzeyinde kalır (§18.2) ve istek gövdesi ile başlıkları hiçbir kayıtta yazılmaz.
 6. **Test.** Özel durum → sınıf eşlemesi (tablonun her satırı); süre ve yeniden denemenin kapalı oluşu (sahte işleyiciyle çağrı sayısı bir); ortam değişkeni verilse de ayardaki kimliğin gidişi.
 
 ### 11.3 Google kimlik belirteci
@@ -1936,19 +1941,107 @@ Sistem kayıtları üç kaynaktır (`05 §9.1.1`): erişim kaydını ters vekil,
 > **Ne yazılır:** Test katmanları, hangi davranış hangi katmanda test edilir, test verisi stratejisi, izolasyon.
 > **Ek kural:** `skip` / `only` / boş assertion içeren test **yazılmaz**; geçen ama hiçbir şey doğrulamayan test, boşluğun gizlenmiş hâlidir (gate check bunu tarar).
 
+İki test projesi vardır (§4.1 madde 1): `tests/Shopfolio.UnitTests/` veritabanı gerektirmez; `tests/Shopfolio.IntegrationTests/` gerçek PostgreSQL 18'e karşı koşar. Bu bölüm araçları (19.1) ve hangi davranışın hangi katmanda sınandığını (19.2) yazar; her kuralın kendi testi o kuralın bölümündedir (yazım konvansiyonu 7) ve burada yinelenmez. Ön yüzün otomatik davranış testi (tarayıcı) Doğrulama Protokolü'nündür (`12`; §16.1).
+
+### 19.1 Test araçları
+
+(`05 §2.2.8`, §2.3.5, §2.3.6, §8.1.2; P4.8; K-1313, K-1307.)
+
+1. **Çatı xUnit v3'tür** (`xunit.v3`; Kütüphaneler tablosu). İki test projesi de onu kullanır, sürümler tam sabittir (§3.2). v3'te test projesi çalıştırılabilir bir projedir; çalıştırma biçimi ve .NET 10 SDK ile uyumu ilk task'ta doğrulanır (bilgim tarihli).
+2. **Onaylama yerleşik `Assert`'tür;** ek onaylama kütüphanesi eklenmez (Kütüphaneler tablosu, "Kütüphanesiz kararlar"). Her test en az bir onaylama taşır ve onaylama sonucu sınar: davranışın görünen sonucu (dönen değer, yazılan satır, durum kodu, kayıt satırı) onaylanır, çağrının yapıldığı değil.
+3. **Sahte nesne kütüphanesi yoktur;** sahteler elle yazılmış, durumlu sınıflardır ve `UnitTests` projesinin `Fakes/` klasöründedir. Adları: `ManualTimeProvider` (§7.1 madde 4: `GetUtcNow()`'u ezen, `SetUtcNow` ve `Advance` yöntemli sahte), `FakePaymentGateway` (`IPaymentGateway`), `FakeEmailGateway` (`IEmailGateway`), `FakeGoogleIdentityGateway` (`IGoogleIdentityGateway`), `InMemoryFileStore` (`IFileStore`; §6). Sahte, gerçek sözleşmenin sonuç sınıflarını döndürür (§11.1 madde 1) ve çağrıları sırayla tutar; sahtenin davranışını değiştiren her sözleşme değişikliği sahteyi aynı PR'da günceller. `IntegrationTests` aynı dosyaları bağlantılı dosya olarak derler (ikinci kopya yazılmaz; bilgim tarihli — çalışmazsa aynı PR'da karar kaydına yazılır). Bir sahte nesne kütüphanesi gerekirse §3.3'ün kanıtıyla tabloya girer.
+4. **Entegrasyon veritabanı** gerçek PostgreSQL 18'dir; hiçbir test onu taklit etmez (bellek içi sağlayıcı yok):
+   - **Bağlantı tek ayardan gelir:** yönetici bağlantı dizesi ortam değişkeni `SHOPFOLIO_TEST_DATABASE`'tir ya da kullanıcı sırrı anahtarı `Tests:Database`'tir (ortam değişkeni kazanır). CI'da değer `05 §2.3.6`'nın PostgreSQL 18 hizmetini, yerelde geliştirme Compose varyantının (§4.3) aynı sürümdeki veritabanını gösterir. Değer repoya girmez.
+   - **Şablon veritabanı:** testler başlamadan önce göç demeti (§10.6) bir kez `shopfolio_test_template` veritabanına uygulanır; ardından o veritabanının bağlantı havuzu boşaltılır (şablon kopyalanırken başka oturum bağlı olamaz — bilgim tarihli). Şablon her test çalıştırmasında yeniden kurulur; çalıştırmalar arasında veritabanı saklanmaz.
+   - **Koleksiyon başına veritabanı:** her xUnit test koleksiyonu kendi veritabanını `CREATE DATABASE … TEMPLATE shopfolio_test_template` ile alır (ad `shopfolio_test_` ve rastgele ek) ve koleksiyon bitince siler. Aynı koleksiyondaki testler sıralı koşar ve veriyi kendileri kurar; koleksiyonlar birbirinin verisini göremez, temizleme paketi yazılmaz. Şablondan kopyalama PostgreSQL'in özelliğidir; ilk task'ta sınanır (bilgim tarihli).
+   - **Kullanıcı ve yetki testleri** (§10.8 madde 7) göç kullanıcısı bağlantısıyla kurulan veritabanında koşar; kurucu betiğin rolleri kuran bölümünün test kurulumunda nasıl çalıştığı ilk task'ta doğrulanır.
+5. **Sayfa ve uç testleri** `Microsoft.AspNetCore.Mvc.Testing`'in `WebApplicationFactory`'siyle `IntegrationTests` projesindedir (`05 §8.3.15`: sayfa uçlarının sınanması entegrasyon testidir, ayrı bir sözleşme testi yoktur). Paketin lisansı ekleme task'ında okunur (Kütüphaneler tablosu).
+6. **Dış ağ yoktur.** Hiçbir test ödeme sağlayıcısına, e-posta altyapısına ya da Google'a gerçek çağrı yapmaz; üçünün arayüzü sahtedir (madde 3). Ödeme anahtarları geliştirme ortamına ve CI'a geçmez (`05 §8.1.2`). Test, bekleme için `Thread.Sleep`/`Task.Delay` kullanmaz: süre `ManualTimeProvider` ile ilerletilir (§7.1).
+7. **E-posta yakalayıcı Mailpit'tir** (`05 §2.2.8`; Kütüphaneler tablosu, "geliştirme aracı"). Compose geliştirme varyantında (`deploy/compose.dev.yaml`, §4.3) ayrı konteynerdir; uygulamanın geliştirme ayarı onun SMTP kapısını gösterir ve hiçbir e-posta dışarı çıkmaz. İmaj etiketi tam sürümdür, `latest` değildir. Ürünle dağıtılmaz, kurulumlara girmez; otomatik testler onu kullanmaz (e-posta davranışı `FakeEmailGateway`'le sınanır) — o, geliştiricinin elle denemesi içindir.
+
+### 19.2 Test katmanları, mimari testler
+
+(`05 §2.3.5`, §8.3.6, §8.3.7; P4.8, P6.5, P6.11; K-1308, K-1355.)
+
+1. **Katman, davranışın neye dayandığıyla seçilir.** Aynı davranış tek katmanda sınanır; üst katman altın tekrarı değildir.
+
+   | Davranış | Katman | Proje | CI adımı |
+   |---|---|---|---|
+   | Saf mantık: hesap, tablo, ayrıştırma, kalıp (zaman, tutar, kaçış, geçiş tablosu) | Birim | `UnitTests` | 3. Unit |
+   | Modül sınırı, yasak çağrı, kaynak metin kuralı | Mimari test ve kaynak taraması (madde 3) | `UnitTests` | 3. Unit |
+   | Kilit, sürüm, işlem, geri alma, tek işlenme, iş kuyruğu, zamanlayıcı, göç, yetki | Entegrasyon (gerçek PostgreSQL) | `IntegrationTests` | 4. Integration |
+   | Sayfa işleyicisi ve uç: durum kodu, yönlendirme, başlık, gövde | Sayfa ve uç testi (`WebApplicationFactory`) | `IntegrationTests` | 4. Integration |
+   | Sağlayıcı bildiriminin biçimi, imza ve tutar doğrulaması | Birim (bağlantı katmanı, sahte yanıtla) + uç testi | ikisi | 3. ve 4. |
+   | Tarayıcıda çalışan betik, uçtan uca akış | Bu kılavuzun dışında | `12` | 8. E2E (advisory) |
+
+2. **Test verisi ve izolasyon.** Her test verisini kendi kurar; ortak, paylaşılan tohum veri ya da testlerin birbirine bıraktığı satır yoktur. Veri küçüktür: testin sınadığı kuralın gerektirdiği en az satır kurulur ve kurucu yardımcılar (testin ortak yardımcıları) geçerli bir varsayılan üretir, test yalnız sınadığı alanı değiştirir. Birim testi veritabanına, dosya sistemine ve ağa dokunmaz (dosya deposu `InMemoryFileStore`'dur). Zamana bağlı her test sahte zamanla koşar (§7.1 madde 4); gerçek saate bağlı test yazılmaz.
+3. **Mimari testler** ArchUnitNET'le `UnitTests/Architecture/` klasöründedir (§6 madde 4). **Kaynak metin taramaları** (yasak çağrı, yasak sözcük) aynı klasörde sıradan birim testleridir. Her mimari test ve her tarama **kasıtlı ihlalli örnekle kırmızı olduğu gösterilir:** ihlal eden örnek kod ayrı bir derlemededir ve test o derlemede kırıldığını doğrular (§7.1 madde 5; §6 madde 4) — hiçbir şeyi yakalamayan tarama boşluğun gizlenmiş hâlidir. Bölümlerde dağılmış tarama ve mimari testlerin ev bölümleri (yeni bir tarama kendi bölümünde yazılır, burada listelenmez): §6, §7.1, §9, §10, §11, §14, §15, §16.2, §17, §18.
+4. **Park satırlarının test cümleleri** (K-1228, K-1217). Beş test cümlesi ilgili bölümde yazılıdır; bu madde onların katmanını ve evini sabitler, testi yinelemez:
+
+   | Cümle | Katman | Ev |
+   |---|---|---|
+   | Aynı `CreatedAt`'li iki ürün sayfa sınırında ne yinelenir ne kaybolur (her sayfalı liste için) | Entegrasyon | §10.5 madde 6 |
+   | `%` yazan arama sözcüğü bütün ürünleri getirmez; `%`, `_`, `\` kaçışlıdır | Birim + entegrasyon | §10.5 madde 6 |
+   | Bir veri koruma amacının değeri öteki amaçta çözülmez | Birim (çapraz tablo) + entegrasyon | §15.5 |
+   | E-posta gövdesinde müşteri metni kaçışlıdır | Birim | §11.4 |
+   | Canlılık ucunun veritabanı denetimi sabit sürede biter, dolarsa 503 | Entegrasyon (uç testi) | §10.7 |
+
+5. **Her yeni sayfalı liste için sınır testi zorunludur** (§10.5 madde 6): yeni liste, testi olmadan eklenmez. Aynı kural göç, kilit ve eşitlik denetimleri için de geçerlidir: ilgili bölümün "Test" maddesi o kuralı ekleyen PR'ın kabul kriteridir.
+6. **Yasak testler** (şablonun ek kuralı): `[Fact(Skip = …)]` ve `[Theory(Skip = …)]`, tek testi seçen çalıştırma bayrağı ve filtresinin depoya girmesi, onaylamasız test ve her zaman geçen onaylama (`Assert.True(true)`, `Assert.NotNull` ile sonucu sınamayan test) **yazılmaz.** Kırık test silinerek ya da atlanarak geçirilmez; düzeltilir ya da davranışı bilerek değiştiren PR'da testi güncellenir (§22). Bir kaynak taraması bu kalıpları test projelerinde arar.
+
+   ```csharp
+   // Yanlış: geçer ve hiçbir şeyi doğrulamaz; atlanan test kırık davranışı gizler.
+   [Fact(Skip = "sonra bakılacak")]
+   public void StartOf_AtMidnight_IsInside() { Assert.True(true); }
+
+   // Doğru: sınır anı sahte zamanla kurulur, sonuç onaylanır.
+   [Fact]
+   public void StartOf_OneTickBeforeNextDay_IsStillInsideRange()
+   {
+       var time = new ManualTimeProvider(TurkeyTime.StartOf(new DateOnly(2026, 3, 2)).AddTicks(-1));
+       Assert.True(time.GetUtcNow() < TurkeyTime.StartOf(new DateOnly(2026, 3, 2)));
+   }
+   ```
+7. **Adlandırma.** Test sınıfı `<Sınanan>Tests`, yöntem `Yöntem_Durum_Beklenen` biçimindedir (İngilizce); dosya sınıf adını taşır ve sınanan türün modül klasörünü yansıtan klasörde durur (`UnitTests/Modules/<Modül>/`). Entegrasyon testi sınıfı hangi koleksiyonda olduğunu nitelikle söyler.
+
+**Yasak.** Gerçek saate, gerçek ağa ya da başka testin bıraktığı veriye dayanan test; bellek içi veritabanı sağlayıcısıyla "entegrasyon" testi; testte sır ya da gerçek kişi verisi (sahte veri kullanılır); testi geçirmek için üretim kodunda test dalı (`if (test)`) ya da yalnız test için `public` yapılmış üye.
+
+*Kaynak: K-1313 · K-1355 · K-1307, K-1308, K-1228, K-1217 · `05 §2.2.8`, §2.3.5, §2.3.6, §8.1.2, §8.3.6, §8.3.7, §8.3.15 · `07 §6` · §3.2, §3.3, §4.1, §4.3, §6, §7.1, §10.5, §10.6, §10.7, §10.8, §11.1, §11.4, §15.5.*
+
 ## 20. Performans kuralları
+
+Bu bölüm performansın **kodda nasıl korunduğunu** yazar; hedefleri ve değerleri yazmaz. Tasarım değerleri (H-3'ün sepeti: ödeme öncesi yeniden değerlendirme ve sipariş onayı isteklerin %95'inde bir saniye içinde; H-4: yüz eşzamanlı ziyaretçide sayfa yanıtlarının %95'i 500 milisaniye içinde) `05 §11.1`'indir ve hacim kabulleri `02 §11.3`'tür; ikisi de **tabandır, tavan değildir** ve sistem hiçbirini uygulamaz (`05 §11.1.1`). Yük senaryosuyla sınanması Doğrulama Protokolü'nündür (`12`; `05 §11.1.5`).
+
+(`05 §11`; `02 §11.3`; K-1356.)
+
+1. **Kod hacim kabullerini uygulamaz.** Ürün adedine, sipariş hacmine, sepetteki kalem sayısına ve eşzamanlı ziyaretçi sayısına kodda tavan, kota ya da koşul yazılmaz (`02 §11.3` H-1…H-4; `05 §11.1.1`): aşıldığında ürün çalışmayı sürdürür, yalnız performans garanti edilmez. Bu sayılar kodda sabit olarak da bulunmaz. (Kılavuzun kendi koyduğu süre ve tavan değerleri başka şeydir; tek yerleri §3.5'in tablosudur.)
+2. **Büyüyen küme sayfasız okunmaz.** Katalog, sipariş, müşteri ve kayıt gibi büyüyen kümelerin her liste sorgusu `Paging.ToPageAsync`'ten geçer (§10.5 madde 2) ve sayfa boyu `PageSizes`'tan gelir; `ToList`/`ToArray` ile bütün kümeyi belleğe almak yasaktır. Dışa aktarma sayfasız okuyan tek yerdir ve anahtar sırasıyla parça parça okur (§10.10). Kapalı bir kümenin (şubeler gibi) sayfasız okunması PR'da kümenin neden kapalı olduğuyla yazılır.
+3. **Okuma sorgusu izlemez ve yalnız gerekeni getirir.** Gösterim ve önbellek için okunan sorgu `AsNoTracking` kullanır (§10.3, §10.4); listede yalnız ekranın gösterdiği sütunlar `Select` ile projeksiyonla alınır, varlığın tamamı alınmaz. Güncellenecek varlık izlenerek okunur.
+4. **Döngüde sorgu yoktur (N+1).** İlişkili veri tek sorguda (`Include` ya da projeksiyon) alınır; bir koleksiyon üzerinde dönüp her elemanda veritabanına gidilmez. Bir listenin sorgu sayısı sayfa boyuna bağlı olmamalıdır: entegrasyon testi, komut sayısını bir komut yakalayıcısıyla sayarak aynı listenin iki farklı sayfa boyunda aynı sayıda sorgu çalıştırdığını onaylar (yakalayıcının EF Core'daki biçimi bilgim tarihlidir, ilk task'ta doğrulanır). Zorunlu test her listeye değil, kalem ya da ilişki yükleyen liste ve ekranlara istenir.
+5. **Sorgu kalıbı dizinle birlikte gelir.** Yeni bir süzme ya da sıralama ekseni getiren sorgu, gerekli dizini aynı PR'ın göçünde ekler (§10.6); sıralama anahtarı `Id` ile biter (§10.5). Arama sözcüğü sorgusu trigram dizinini kullanır (§10.5, §10.6) ve başka bir `LIKE` kalıbı eklenmez. Dizinin gerekçesi göçün yorumunda bir cümledir; her sütuna önlem olarak dizin eklenmez (yazma maliyeti).
+6. **İşlemde ağ çağrısı yoktur.** Açık işlemin içinde dış servis çağrısı yapılmaz (§9.1 madde 6; §10.7) ve kilit tutulan süre kısa tutulur; uzun iş iş kuyruğuna gider (§13.1).
+7. **Dosya akışla işlenir.** Dijital ürün dosyası, görsel ve dışa aktarma dosyası belleğe bütünüyle okunmaz (`File.ReadAllBytes`, `ReadAllBytesAsync`, `MemoryStream`'e tüm içerik kopyası yazılmaz); akış `IFileStore` üzerinden geçer (§6, §10.10, §15.7). Görüntü işleme eşzamanlılığı ve belleği sınırlıdır (§15.6; §3.5).
+8. **Eşzamansız yol engellenmez.** Eşzamansız bir çağrının sonucu `.Result`, `.Wait()` ya da `GetAwaiter().GetResult()` ile beklenmez; istek iş parçacığı dışarıdaki işi beklerken tutulmaz. Kaynak taraması bunları `src/` altında arar (açılış kodu gibi gerekçeli tek istisna PR'da yazılır).
+9. **Önbellek yalnız §10.4'te kurulur.** Başka bir yerde bellek içi önbellek, statik sözlük ya da `Lazy` ile değer tutmak yoktur; geçersiz kılma kuralı olmayan önbellek eklenmez.
+10. **Ölçümsüz iyileştirme yapılmaz.** Bir performans PR'ı iddiasını ölçümle yazar (önce–sonra, sorgu sayısı ya da süre); ölçümsüz "hızlandırma" ve erken önbellek PR'ı reddedilir. Yük senaryosu `12`'nindir; bu kılavuz ek bir performans testi ya da süre hedefi koymaz.
+
+**Elenenler.** **Kılavuzun kendi performans hedefi koyması:** hedef `05 §11.1`'indir; ikinci bir sayı sapar (yazım konvansiyonu 1 ve 7). **Her sorguya dizin zorunluluğu:** dizin yazma maliyeti getirir ve H-1 hacminde (birkaç yüz ürün) çoğu sorgu dizin gerektirmez; dizin yeni eksenle birlikte gelir. **Sorgu süresi için ek sınır:** sorgu süreleri §10.7'de ve §3.5'in tablosundadır, burada yinelenmez. **Her listeye zorunlu sorgu sayısı testi:** ucuz test değildir; yük yalnız ilişki yükleyen listelerde doğar.
+
+*Kaynak: K-1356 · K-1328, K-1337 · `05 §11.1`, §11.2 · `02 §11.3` · `12` (yük senaryosu, park satırı) · §3.5, §6, §9.1, §10.2, §10.4, §10.5, §10.6, §10.7, §10.10, §13.1, §15.6, §15.7.*
 
 ## 21. Git ve CI/CD kuralları
 
-### 21.1 Dal stratejisi
+Bu bölümün 21.1–21.3'ü `.claude/INSTRUCTIONS.md §3.2` ile **birebir aynıdır;** kural orada, tek evinde değişir ve bu bölüm onu izler (`05 §8.3.1`; K-859). İki yerin ayrışması bu dokümanların en sık çelişkisidir: ayrışırsa `INSTRUCTIONS §3.2` kazanır ve bu bölüm aynı PR'da düzeltilir. 21.4 CI adımlarına kılavuzun eklediği denetimleri yazar; adımların adı, sırası ve kapıları playbook'undur (`CI_CD_SETUP.md` §1) ve neyi sınadıkları `05 §8.3`'tedir; komutların kendisi `.github/ci-commands.env`'dedir (ikinci kez yazılmaz; D-01).
 
-> **Kural:** Bu bölüm `.claude/INSTRUCTIONS.md §3.2` ile **birebir aynı** olmalıdır. İki farklı yerde iki farklı dal stratejisi, bu dokümanların en sık çelişkisidir.
+### 21.1 Dal stratejisi
 
 | Dal | Amaç |
 |---|---|
-| `main` | Çalışır durumda kod. Doğrudan push **yasak**. |
-| `task/TXX-*` | Tek bir task. `main`'den ayrılır, `main`'e squash merge olur. |
+| `main` | Çalışır durumda kod. Doğrudan push **yasak** (`scripts/git-hooks/pre-push` engeller). |
+| `task/TXX-kisa-aciklama` | Tek bir task. `main`'den ayrılır, `main`'e squash merge olur. |
 | `chore/*`, `docs/*`, `infra/*` | Task'a ait olmayan işler — ayrı PR. |
+
+PR'ın base'i her zaman `main`'dir; squash merge mesajı `TXX: Task adı (#PR-no)` olur; faz tag'i `phase/FX-pass`; merge ön koşulu CI'ın yeşili **ve** bağımsız doğrulayıcının PASS'idir; merge'ü doğrulayıcı chat yapar (yapım chat'i PR'ı açık bırakır). Dal koruma rejimi `CI_CD_SETUP.md` §3.3'tedir. Bypass değişkenleri ve nedenleri `INSTRUCTIONS §3.2`'dedir; kullanımı kayıt altındadır ve burada yinelenmez. Sürüm etiketi `vANA.ARA.YAMA` biçimindedir (`05 §8.3.12`; §21.4).
 
 ### 21.2 Commit mesaj formatı
 
@@ -1957,14 +2050,15 @@ Sistem kayıtları üç kaynaktır (`05 §9.1.1`): erişim kaydını ters vekil,
 TXX: {kısa açıklama}        # task commit'i
 ```
 
-Tipler: `feat` · `fix` · `refactor` · `test` · `docs` · `chore` · `migration`
+Tipler: `feat` · `fix` · `refactor` · `test` · `docs` · `chore` · `migration`. `migration` tipi göç dosyası ekleyen commit'tir (§10.6);
 
 ### 21.3 PR kuralları
 
 - PR tek bir amaca hizmet eder. Karışık değişiklik yasak.
 - **Bundled-PR yasağı** — başka bir task'ın PR'ına commit gömülmez.
-- CI geçmeden merge yasak. Bağımsız validator PASS olmadan merge yasak.
-- Merge'ü validator chat yapar.
+- CI geçmeden merge yasak. Bağımsız doğrulayıcı PASS olmadan merge yasak. Merge'ü doğrulayıcı chat yapar.
+- PR'ı açan, açtığı PR'ın CI'ını `success` olana kadar izler ve sessizliği yeşil saymaz (`INSTRUCTIONS §3.2`).
+- PR açıklaması kılavuzun istediği kanıtı taşır: kütüphane ekleyen PR'da §3.3 madde 2'nin kanıtı; göç ekleyen PR'da §10.6 madde 10'un; kod görevinde okunan `09` bölümleri (okuma tablosu).
 
 ### 21.4 CI pipeline sıralaması
 
@@ -1974,25 +2068,62 @@ Tipler: `feat` · `fix` · `refactor` · `test` · `docs` · `chore` · `migrati
 2. Build
 3. Unit test
 4. Integration test
-5. Contract test
+5. Contract test            # NOT_APPLICABLE (05 §8.3.8)
 6. Migration dry-run
 7. Paketleme doğrulaması
 8. E2E (advisory)
 → CI Gate (toplu kapı)
 ```
 
-Komutlar: `.github/ci-commands.env` · Kurulum: `Docs/CI_CD_SETUP.md`
+Komutlar: `.github/ci-commands.env` · Kurulum: `Docs/CI_CD_SETUP.md`. Aşağıdaki tablo kılavuzun kurallarının hangi adımda denetlendiğini yazar; adımın işi `05 §8.3.3`–§8.3.11'dedir.
+
+| Adım | Bu kılavuzun denetimi |
+|---|---|
+| 1. Lint | `dotnet format` değişiklik yok doğrulaması (§3.1) ve **eşitlik denetimleri** (madde 1) |
+| 2. Build | Uyarılar hata (§3.1); kilitli geri yükleme ve bilinen açık taraması (§3.2) |
+| 3. Unit | Birim testleri, mimari testler ve kaynak taramaları (§19.2) |
+| 4. Integration | Gerçek PostgreSQL 18, sayfa ve uç testleri (§19.1) |
+| 6. Migration dry-run | Boş veritabanı ve son yayımlanan sürümün şeması; geri alma sınaması (madde 3); modelde göçe dönüşmemiş değişiklik yok (§10.6) |
+| 7. Paketleme | Üç imajın derlenmesi (§4.3, §17); `latest` etiketi ve sır değeri taraması (§17) |
+
+1. **Eşitlik denetimleri birim testidir ve Lint adımında koşar.** Doküman tablosu ile kod envanterinin eşitliğini sınayan beş denetim `UnitTests/Consistency/` klasöründe, `Consistency` özelliğiyle işaretli sıradan birim testleridir; repo kökünü `Shopfolio.slnx`'ten bulur ve `Docs/` dosyalarındaki tabloyu okur. Lint adımı onları koşar, Unit adımı dışarıda bırakır (iki yerde iki kez koşmaz); özellik süzgecinin komutu D-01'in işidir (bilgim tarihli). Beşi:
+
+   | İş adı | Doküman tarafı | Kod tarafı | Ev |
+   |---|---|---|---|
+   | Kütüphane tablosu eşitliği denetimi | Kütüphaneler tablosu | `Directory.Packages.props` | §3.2 |
+   | Parametre envanteri eşitliği denetimi | `02 §11.2` P satırları | `ProductConstants` | §3.5 madde 1 |
+   | Hata kodu envanteri eşitliği denetimi | `07 §6.2` kod sütunu | hata kodu enum'u | §8.2 madde 5 |
+   | Geçiş listesi eşitliği denetimi | `02 §5.4`, `§5.5` | `TransitionCode` | §9.1 madde 8 |
+   | İşaretli işlem listesi eşitliği denetimi | `07 §6.4.2` UC listesi | `[OutcomeUncertain]` işleyicileri | §8.1 madde 4 |
+
+   Denetim doküman tablosunun satırını ayrıştırır; tablonun biçimi değişirse test ve tablo aynı PR'da güncellenir. Eşitlik bozulduğunda kural kaynak dokümandadır: doküman kazanır (`02`, `07`) ya da fark geri besleme tablosuna girer (§2).
+2. **Yama sürümü göç taşımaz** (§10.6 madde 7; `05 §8.3.12`, §8.7.3). Denetim yayın akışında, sürüm etiketi imajlara basılmadan önce koşar: etiketin yama bileşeni sıfırdan büyükse önceki sürüm etiketinden bu yana göç klasörüne dosya eklenmemiş olmalıdır; aksi hâlde yayın düşer. **İstisna** veri bozan bir göçün düzeltmesidir (`05 §8.7.4`): etiket mesajı `migration-fix: K-<numara>` satırı taşır ve denetim onu arar. İlk yayından önce önceki etiket yoktur; denetim ilk etikette koşmaz.
+3. **Geri alma sınaması 6. adımdadır** (`05 §8.3.9`): göç demeti önce boş bir veritabanına, sonra son yayımlanan sürümün şemasına uygulanır; ardından son yayımlanan sürümün imajı yeni şemaya karşı açılır ve o sürümün entegrasyon testleri aynı şemaya karşı koşar. Önceki sürümün imajı ve testleri kayıt defterinden alınır (paket görünürlüğü ilk yayından sonra açık yapılır, `05 §2.3.8`). **İlk yayından önce son yayımlanan sürüm yoktur;** adım yalnız ilk iki göç uygulamasını koşar ve geri alma bölümü atlanır, atlandığı CI çıktısında yazılır.
+4. **`publish.yml`** ana dala her merge'de imajları commit kimliğiyle, sürüm etiketinde sürüm numarasıyla yayımlar (`05 §8.3.12`); kurulumlara otomatik dağıtım yoktur (`05 §8.3.13`). Bağımlılık güncelleme önerileri Dependabot'la gelir ve sıradan PR kurallarından geçer (`05 §8.3.14`; §3.2).
+5. **Kapı kuralı.** Boş komut kapıyı sessizce geçmez (`SETUP_COMPLETE=true` iken eksik komut CI'ı düşürür; `CI_CD_SETUP.md` §2): yeni bir denetim ilgili adımın komutuna eklenmeden "CI'da denetlenir" denmez.
 
 ### 21.5 Savunma katmanları
 
 > Tek bir savunma katmanı yetmez. Katmanların tam listesi ve gerekçeleri: `00_PROJECT_METHODOLOGY.md` §F.
 > Bu bölüm o listeye referans verir; **kuralı burada tekrar tanımlama** — iki yerde iki farklı ifade çelişki üretir.
 
+Bu kılavuzun payı üç yerdedir: yerel hook'lar (`scripts/git-hooks/`), CI'ın Guard ve Lint adımları ve 21.4'ün eşitlik denetimleri. Bir kuralın yalnız dokümanda yazılı olması koruma sayılmaz; kod kuralı için ilgili testin ya da denetimin adı kuralın bölümünde yazılıdır (yazım konvansiyonu 10).
+
+*Kaynak: K-1356 · K-859 · K-1355 · `INSTRUCTIONS §3.2` · `05 §2.3.5`, §2.3.8, §8.3, §8.7 · `CI_CD_SETUP.md` §1, §2, §3.3 · `DEFERRED_BACKLOG.md` D-01 · §3.1, §3.2, §3.5, §4.3, §8.1, §8.2, §9.1, §10.6, §17, §19.*
+
 ## 22. Refactor kuralları
 
-- Refactor davranış değiştirmeden yapılır. Davranış değişecekse **ayrı commit/PR**.
-- Refactor PR'ı feature PR'ıyla karıştırılmaz.
-- Kritik akışa dokunan kod, test veya koruma olmadan taşınmaz.
+(`09 §22` şablonu; K-1356.)
+
+1. **Refactor davranış değiştirmez.** Davranış değişecekse **ayrı commit/PR** olur; bir refactor PR'ı feature PR'ıyla karıştırılmaz (§21.3). Davranışı değiştiren bir değişiklik "refactor" tipiyle yazılmaz (§21.2).
+2. **Kritik akışa dokunan kod test ya da koruma olmadan taşınmaz.** Kritik akışlar: sipariş durum geçişi ve işlem izi (§9), para hesabı ve sağlayıcı tutar dönüşümü (§14), ödeme bildirimi ve imza doğrulaması (§11.1), oturum, şifre ve çerez (§15.1), kilit, sürüm ve eşzamanlılık (§10.2), göç (§10.6), iş kuyruğu ve zamanlayıcı (§13). Bu akışa dokunan refactor'dan **önce** mevcut davranışı kilitleyen test vardır; yoksa testi önce ayrı bir commit'te eklenir ve refactor ondan sonra gelir. Test refactor'dan önce ve sonra aynı koşar.
+3. **Testler gevşetilmez.** Refactor'u geçirmek için test silinmez, atlanmaz ya da onaylaması zayıflatılmaz (§19.2 madde 6); mimari testler ve kaynak taramaları yeşil kalır. Test kırılıyorsa ya refactor davranışı değiştirmiştir (geri alınır) ya da test bir uygulama ayrıntısını sınıyordur (ayrı commit'te davranışı sınayacak biçimde yeniden yazılır).
+4. **Dışarıdan görünen sözleşme değişmez.** Adres, form alanı adı, sorgu parametresi, hata kodu, çerez adı, kayıt alanı adı, kapalı değer ve veritabanı şeması refactor'la değişmez (`07`, `06`); ad değişikliği sözleşme değişikliğidir ve kendi kararı ya da göçüyle yapılır. Yayımlanmış bir göç dosyası refactor için düzenlenmez (§10.6 madde 7).
+5. **Taşıma ve yeniden adlandırma** dosya geçmişini koruyacak şekilde yapılır (`git mv`) ve içeriğin değişmesinden ayrı commit'tir; ad alanı klasör yolunu izler (§3.1), bu yüzden taşıma ad alanını da aynı commit'te günceller. Modül sınırını delen ya da başka modülün iç türünü açan taşıma refactor değil mimari değişikliktir (§6).
+6. **Kütüphane değiştirmek refactor değildir;** §3.3'ün kanıtıyla ve tablo satırıyla gelir. **Biçim düzeltmeleri** (`dotnet format`) tek başına bir commit'tir ve davranış değişikliğiyle karıştırılmaz.
+7. **Ölü kod** kullanıldığı kanıtlanarak değil, hiçbir başvurusu olmadığı derleyici ve testlerle gösterilerek silinir; "belki lazım olur" diye yorumlanmış kod bırakılmaz (§23, yazım 6).
+
+*Kaynak: K-1356 · `00 §F` · `INSTRUCTIONS §3.2` · §3.1, §6, §9, §10.2, §10.6, §11.1, §13, §14, §15.1, §19.2, §21.2, §21.3.*
 
 ## 23. Yasaklar
 

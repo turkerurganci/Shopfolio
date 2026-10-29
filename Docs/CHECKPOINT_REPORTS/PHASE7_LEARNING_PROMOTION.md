@@ -90,6 +90,8 @@ Toplam otuz yedi kalem: tracker §18.1'in yedi adayı, bu adımda bulunan altı 
 
 ## 3. Aşama 7'nin maliyet ölçümü (K-1298)
 
+> **Düzeltme (2026-10-29, K-1301).** Bu bölümün belirteç sayıları ajanların bitiş bildirimlerinden toplanmıştır; o alan ajan bağlamının son büyüklüğüdür ve her adımda bağlamın yeniden okunmasını saymaz. Kayıt dosyalarından ölçülen gerçek tüketim (`scripts/metrics/token-usage.js`): **işlenen toplam 692,3 M** (yönetici 64,3 M, alt ajanlar 628,0 M; ~660 M önbellekten yeniden okuma, ~32,2 M yeni metin). Aşağıdaki "~33 M" yeni metne denk düşer, toplam tüketim değildir. Karşılaştırma tablosunun Aşama 6 sütunu da aynı yöntemle toplandığından aynı sınırı taşır.
+
 Kaynak: adım ajanlarının bitiş bildirimlerindeki yürütücü belirteç alanı (yürütücünün kendi belirteci) ve yürütücülerin raporlarında verdikleri alt ajan toplamları — **ölçüm değil, ajan çıktılarından toplanmış tahmin; değerler yaklaşıktır.** Yöneticinin (ana oturum, Opus) belirteci ölçülmedi. Hook günlüğü çağrıları ve modelleri sayar, belirteç saymaz.
 
 ### 3.1 Tablo

@@ -64,7 +64,7 @@ Her bulgu için:
 - **%100 RET de şüphelidir.** Savunmacılık, rubber stamp'in aynadaki hâlidir.
 - RET gerekçesi somut referans olmalıdır.
 
-**Alt ajanla koşarsa:** bulguyu güncel metne karşı kontrol eden doğrulayıcı bulgu başına bir tanedir ve Opus / `high` ile açılır (`INSTRUCTIONS.md` §9, K-1224; `audit` skill'i, "Koşum biçimi" 2. madde); doğrulayıcı önce kendi dilim dosyasını okur ve karar kaydı ona bütünüyle okutulmaz (`audit` skill'i, "Koşum biçimi" 1. madde).
+**Alt ajanla koşarsa:** bulguyu güncel metne karşı kontrol eden doğrulayıcı Opus / `high` ile açılır; yüksek bulgu başına bir, orta aynı bölümden 2–4'lü, düşük aynı bölümden 5–8'li bulgu tek doğrulayıcıya verilir (`INSTRUCTIONS.md` §9 (1), K-1224, K-1300; `audit` skill'i, "Koşum biçimi" 2. madde); doğrulayıcı önce kendi dilim dosyasını okur ve karar kaydı ona bütünüyle okutulmaz (`audit` skill'i, "Koşum biçimi" 1. madde).
 
 ---
 

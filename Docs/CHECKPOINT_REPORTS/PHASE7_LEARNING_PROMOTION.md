@@ -159,6 +159,8 @@ Aşama 6 sütunu `PHASE6_LEARNING_PROMOTION.md` §3.1'dendir (toplam, öğrenim 
 
 ## 5. Proje sahibinin cevabını bekleyen dört soru
 
+> **Sonuç (2026-10-29, K-1300):** dört sorunun hepsi cevaplandı — Soru 1 seçenek 2 (düşük ve orta bulgular toplu, yüksek tek tek) · Soru 2 seçenek 2 (liste kalsın, her aşama sonunda yine sorulsun) · Soru 3 seçenek 2 (yalnız betik çalıştıran heredoc engellensin; yönetici genel hook'ta uyguladı) · Soru 4 seçenek 1 (üç ders `00 §N.1`'e yazılsın; `00` v1.0.9). "Uygulanacak metin" bölümleri olduğu gibi uygulandı (`INSTRUCTIONS §9`, `skills/audit` / `deep-review` / `cross-review` / `checkpoint`, `checklists/document-stage.md` başlık notu, `00 §N.1`).
+
 > **Hepsi ayrı numaralı sorudur** (`INSTRUCTIONS §2`; K-722 → K-853: tek bir "evet" birden çok öneriye okunmaz). Uygulanacak metinler cevaptan sonra ayrı bir `docs:` PR'ında yazılır; hiçbiri aşamanın kapanışını engellemez, kurallar L3–L4'te yürürlükte. **Kapı:** arşiv işaretinden önce (K-437'nin 6. adımı), ⚠ listesiyle aynı mesajda. Her sorunun altında "Uygulanacak metin" çıplak biçimdedir; yönetici sade metni iletir.
 
 ### Soru 1 — Bulguların doğrulanması: küçük bulgular tek ajanda toplansın mı (Ö-129)

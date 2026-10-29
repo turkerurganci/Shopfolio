@@ -1,6 +1,6 @@
 # Project Playbook — Metodoloji
 
-**Versiyon: v1.0.8** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-10-29
+**Versiyon: v1.0.9** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-10-29
 
 > Bu doküman bir yazılım projesini **fikirden çalışan MVP'ye** taşıyan yöntemin tamamıdır:
 > doküman üretimi, implementasyon, doğrulama, borç kapatma ve kapanış.
@@ -750,6 +750,8 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 4. **Proje kuralı genel kural ya da hook'la çatışırsa çatışma dolanılmaz, bildirilir.** Cross-review'ın bir turunda hook iki kontrolcüyü engelledi, adım ajanı açıklamadaki sözcüğü değiştirerek dolandı; proje sahibi sorulunca bulgu doğrulamasını Opus / `high` yaptı. Aşama 5'in 7. deseninin (yönetici düzeni) devamıdır.
 5. **Yardımcı ajanlar ölçülmezse maliyet karşılaştırılamaz.** Aşama 5'in tabanı yalnız yönetici seviyesindeki ajanı saydı; Aşama 6'da yardımcı ajanlar kayıtlı token'ın yaklaşık üçte ikisini taşıdı ve adım ajanının kendi token'ının 12 ila 19 katıydı. Süre ve adım ajanı token'ı düştü; toplam token karşılaştırılamadı. Aşama 5'in 7. deseninin (maliyet ve görünürlük) devamıdır.
 
+**Aşama 7 — Entegrasyon spesifikasyonları (2026-10-29).** Kurallar `.claude/checklists/document-stage.md` §1, §4, §6, §7, `.claude/INSTRUCTIONS.md` §2, §3.2, §9 ve rapor `Docs/CHECKPOINT_REPORTS/PHASE7_LEARNING_PROMOTION.md`. Tekrarlanacak desenler: 1. **Kıyas ve ölçüt tablosunun sonuç cümlesi uygulama bölümüyle ayrışır.** Bir sağlayıcı kıyasının sonuç cümlesi aynı dokümanın uygulama bölümüyle çelişti; audit, deep review ve beş cross-review turu görmedi, çakışma taramasının geri işaret okuması buldu; checkpoint aynı sınıfı bir özet tablosunda yeniden buldu. 2. **Kurulum işi, kararın anıldığı yerde değil kurulum kaydının metninde aranır.** Dört kurulum işi (izin, yetki, ayar) kararda yazılıydı ve kurulum kılavuzunda yoktu; etiketi arayan betik görmedi, işin metnine bakan buldu. 3. **Devir dizini anlık görüntüdür.** Etki sütununda dokümanı taşıyan 82 kararın 14'ü dizinlerde yoktu; eşleme etki sütunundan çıkarıldığı için kayıp çıkmadı.
+
 ### N.2 Dönem 2 — Implementation
 
 *(Bu projede henüz faz kapanmadı.)*
@@ -775,4 +777,4 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 
 ---
 
-*Project Playbook — Metodoloji v1.0.8*
+*Project Playbook — Metodoloji v1.0.9*

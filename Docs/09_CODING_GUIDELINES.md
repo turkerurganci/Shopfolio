@@ -1262,7 +1262,7 @@ Veritabanının kendi kullanıcıları hesap kaydı değildir (`06 §8.3.2`); ha
    }
    ```
 4. **Akışla yazım.** Yazıcı bir `Stream`'e, `IAsyncEnumerable<TRow>` kaynağından satır satır yazar; bütün küme belleğe alınmaz (`ToList` yasaktır). Sipariş kümesi anahtar sırasıyla (`Id`) §3.5 tablosundaki sipariş sayfalarıyla okunur (`Id > son anahtar`, `OrderBy(Id)`, `Take`; `AsNoTracking`); sayfanın kalemleri tek ek sorguyla alınır ve her kalem bir satırdır, sipariş alanları kalemlerde yinelenir. Sayfa sorgusu §3.5'teki sorgu süresinin içindedir (§10.7); üretim süresi tavanı toplamı sınırlar. Üye listesi ve iletişim talepleri aynı sayfalama kalıbıyla (`Id` anahtarı) okunur. Dosya sırası listelerin kesin sırası kuralının (§10.5) dışındadır: dosya bir liste ekranı değil, anahtar sırasıyla bir dökümdür.
-5. **Sütunlar.** Başlıklar sözlüğün Türkçe terimleridir; alanların hepsi `06 §4`'ten alınır ve her tanım kaynak alanını yorumda taşır. Sipariş dosyasında satır bir sipariş kalemidir (`02 §10.7.1`):
+5. **Sütunlar.** Başlıklar sözlüğün Türkçe terimleridir; alanların hepsi `06 §4`'ten alınır — tek istisna kurulum ayarından gelen sitenin alan adıdır (§3.5 madde 2; `06` izlenebilirliğinde "alan adı kurulumdan") — ve her tanım kaynak alanını yorumda taşır. Sipariş dosyasında satır bir sipariş kalemidir (`02 §10.7.1`):
 
    | Grup | Sütun (başlık) | Kaynak |
    |---|---|---|
@@ -1272,6 +1272,7 @@ Veritabanının kendi kullanıcıları hesap kaydı değildir (`06 §8.3.2`); ha
    | Fatura adresi | Alıcı adı, İl, İlçe, Adres | `Order.BillingRecipientName`, `BillingProvinceId` (il adı), `BillingDistrict`, `BillingAddressLine` |
    | Firma kimliği | Ticaret unvanı, Vergi numarası, Mersis numarası, Ticaret sicil numarası, İl, İlçe, Adres | `Order.CompanyLegalName`, `CompanyTaxIdNumber`, `CompanyMersisNumber`, `CompanyTradeRegistryNumber`, `CompanyProvinceId` (il adı), `CompanyDistrict`, `CompanyAddressLine` |
    | Ulaşma | İletişim e-postası, Teslimat alıcı adı | `Order.ContactEmail`, `Order.ShippingRecipientName` |
+   | Site | Sitenin alan adı (`Text`) | Kurulum ayarındaki zorunlu alan adı (§3.5 madde 2); her satırda aynı (`02 §10.7.1`, §3.25.1; K-546) |
    | Kargo | Kargo şirketi, Kargoya verme tarihi (`Date`) | `Order.Carrier` ya da `OtherCarrierName`; fiziksel kalemde kargoya verildi geçişinin günü, dijital ve hizmet kaleminde `OrderItem.DeliveryMarkedAt`'in günü |
    | Ödeme | Ödeme onay tarihi (`Date`) | Son ödeme onayı geçiş kaydının günü (`06 §4.19`; `02 §3.20.6`'nın eşlemesi) |
    | Geç ödeme | Geç ödeme tarihi (`Date`), Geç ödeme tutarı, Geri ödeme tarihi (`Date`), Geri ödeme tutarı | `PaymentRecord.CreatedAt`, `Order.Total`, `Refund.SentAt`, `Refund.Amount` — yalnız iptal edilmiş siparişe geç gelip sistemce geri ödenen ödemede dolu, aksi hâlde boş |

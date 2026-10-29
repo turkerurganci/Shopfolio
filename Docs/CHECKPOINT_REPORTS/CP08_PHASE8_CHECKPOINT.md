@@ -31,7 +31,7 @@
 - [x] 49 doğrulanan bulgunun 48'i düzeltmeyle kapandı — `09` v0.24, `06` v0.43, tracker §1, karar kaydı v0.222 (§3)
 - [x] Yeni kararlar: K-1393 (düzeltmelerin kaydı), K-1394 (⚠), K-1395, K-1396 (⚠)
 - [x] Dokunulan Aşama 8 kararlarının etki sütununa `(checkpoint — CP08 …)` işareti eklendi (§3.3)
-- [ ] **S3-10 — dışa aktarmada sitenin alan adı sütunu:** proje sahibinin kararı (§5)
+- [x] **S3-10 — dışa aktarmada sitenin alan adı sütunu:** yönetici K-546'nın yansıması olarak uyguladı (§5)
 - [ ] **⚠ listesinin proje sahibine gösterilmesi** — 22 karar; kapı: arşiv işaretinden önce, tek mesajda (`INSTRUCTIONS.md` §2)
 - [ ] Sırada öğrenim terfisi (K-437'nin 5. adımı) — tracker §20.1'in adayları (5. aday bu checkpoint'te eklendi, §6), Ö-23 ve belirteç ölçümünün karşılaştırması
 
@@ -105,7 +105,7 @@ Seviye: **orta** — iki yer çelişiyor; kapalı liste, sayı ya da hedef yanl�
 
 | # | Bulgu | Durum |
 |---|---|---|
-| S3-10 | Dışa aktarmada sitenin alan adı sütunu eksik (`09` §10.10 madde 5); `Moment` türünün kullanılmaması kısmı çürütüldü | **Uygulanmadı — doğrulanamadı.** Doğrulayıcı gerekçeyi e-Arşiv faturanın internet satışı bilgisine bağladı. Resmî tebliğ (509 sıra no.lu VUK Genel Tebliği) iki kaynaktan (mevzuat.gov.tr ve ebelge.gib.gov.tr) indirildi, ancak PDF'in metni çıkarılamadı; bir arama özeti resmî metin sayılmadı. K-546 ve K-1342 (7) olduğu gibi kalır. Soru §5'te |
+| S3-10 | Dışa aktarmada sitenin alan adı sütunu eksik (`09` §10.10 madde 5); `Moment` türünün kullanılmaması kısmı çürütüldü | **Uygulanmadı — doğrulanamadı.** Doğrulayıcı gerekçeyi e-Arşiv faturanın internet satışı bilgisine bağladı. Resmî tebliğ (509 sıra no.lu VUK Genel Tebliği) iki kaynaktan (mevzuat.gov.tr ve ebelge.gib.gov.tr) indirildi, ancak PDF'in metni çıkarılamadı; bir arama özeti resmî metin sayılmadı. K-546 ve K-1342 (7) olduğu gibi kalır. **Sonradan uygulandı (yönetici):** K-546 sütuna zaten karar vermişti; uygulama kaynak kararın yansımasıdır, yasal dayanak yeniden açılmaz — `09 §10.10` madde 4 ve 5 |
 | K-1319 | `05`'in K-1319'a dayanan cümlesinin etki sütunu | Çürütüldü: iz K-1389'da zaten var; eski satırlar tarihçedir |
 | M3-1, M3-3 | `05 §8.4.3` / `02 §11` kurulum ayarı listelerinin farkı | Çürütüldü: liste kapalı bütün ayarlar listesi değil, ürün düzeyinin yansımasıdır; fark kararın kendisindedir |
 | M3-2, M3-4 | Tasarım değerlerinin `02 §11`'e girmemesi | Çürütüldü: kuralın evi `09 §3.5` madde 1 ve `05` konvansiyon 5'tir |
@@ -132,7 +132,7 @@ Aşama 9 — Uygulama planı (`11`) ve Doğrulama Protokolü (`12`) (`00 §C.1`)
 
 ## 5. Proje sahibinin gözden geçirme ve karar listesi
 
-**Soru (S3-10).** Müşterinin dışa aktardığı sipariş dosyasında sitenin alan adı yok; ürün kararlarından biri (K-546) dosyanın bunu taşıyacağını söylüyor. Doğrulayıcı, e-Arşiv faturanın internet satışlarında satışın yapıldığı internet adresini istediğini söyledi; bunu resmî metinden okuyamadığım için doğrulayamadım ve sütunu eklemedim. Seçenekler: (1) sütun eklenir — her satırda aynı alan adı, kurulum ayarından; (2) eklenmez, K-546'nın o kısmı kararla değiştirilir. Önerim: (1), ama önce yasal dayanak bir muhasebeciden ya da resmî metinden teyit edilsin. Kapı: arşiv işaretinden önce (tracker §20.1).
+**Soru (S3-10).** Müşterinin dışa aktardığı sipariş dosyasında sitenin alan adı yok; ürün kararlarından biri (K-546) dosyanın bunu taşıyacağını söylüyor. Doğrulayıcı, e-Arşiv faturanın internet satışlarında satışın yapıldığı internet adresini istediğini söyledi; bunu resmî metinden okuyamadığım için doğrulayamadım ve sütunu eklemedim. Seçenekler: (1) sütun eklenir — her satırda aynı alan adı, kurulum ayarından; (2) eklenmez, K-546'nın o kısmı kararla değiştirilir. Önerim: (1), ama önce yasal dayanak bir muhasebeciden ya da resmî metinden teyit edilsin. Kapı: arşiv işaretinden önce (tracker §20.1). **Sonuç:** soru proje sahibine gitmedi — yönetici K-546'nın zaten karar verdiğini gördü ve sütunu yansıma olarak uyguladı (tracker §20.1).
 
 **⚠ listesi.** Bu checkpoint iki ⚠ karar ekledi, liste **22 karar** oldu (çakışma taraması 20 demişti): K-1394 (yönetim komutunun süzgecinde IP ve e-posta argümanla verilmez) ve K-1396 (anahtar üretimi taramasına adı konmuş dört kapalı istisna). Öteki üç ⚠ adayı ⚠ sayılmadı: M4-1 ve M5-1 daha önce ⚠ kaydedilmiş kararların (K-1375, K-1374) metne yansımasıdır, kural değişmedi; S3-10 uygulanmadı. **Kapı:** arşiv işaretinden önce, tek mesajda, karar başına bir sade cümleyle (`INSTRUCTIONS.md` §2). Gösterim yöneticidedir.
 

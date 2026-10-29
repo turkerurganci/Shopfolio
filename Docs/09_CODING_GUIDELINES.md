@@ -1,6 +1,6 @@
 # Shopfolio — Coding Guidelines
 
-**Versiyon: v0.14** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
+**Versiyon: v0.15** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
 
 > **Aşama:** 8 — Kodlama Kılavuzu · **Rol:** Tech Lead
 > **Amaç:** Ajanın tutarlı kod üretmesi. Bu doküman **her kodlama görevinde** ajana verilir.
@@ -68,7 +68,7 @@
 > - **K-1245 · K-1272 · K-1281 · K-1292 · Google kimlik belirtecinin doğrulanması (Entegrasyon Spesifikasyonları `08 §2.3`):** kod değişiminin adresi sabittir, keşiften okunmaz; keşif belgesinden yalnız `issuer` ve `jwks_uri` alınır, çatı keşif belgesini ve anahtar kümesini önbelleğe alır ve her girişte yeniden çekmez — çatının işleyicisi keşif belgesini varsayılan olarak başlatmada çekiyorsa adresler sabit olarak yapılandırılır; önbelleğin tazeleme biçimi çatının davranışıdır ve ilk bağlanan task'ta doğrulanır (bilgim tarihli; `08` DV-31) · `exp` için saat sapması toleransı çatının ayarıdır ve değeri bu dokümanın işidir; `auth_time` toleranssız karşılaştırılır · `userinfo` çağrılmaz; kimlik belirtecinin alanlarından yalnız alan eşlemesinin saydıkları okunur (`hd` dahil — Google'ın adres için yetkili olup olmadığı buradan okunur) ve `sub` saklanmaz (K-1061).
 > - **K-1027 · K-1271 · Değişken metnin kaçışı (Entegrasyon Spesifikasyonları `08 §2.2.6` — B-1'in iki yasal metninin yerleşimi, madde 4; §2.2.4):** e-postaya ve belgeye giren her değer — firmanın ayarı, kalemin adı, yer tutucunun müşteri değeri — HTML'de kaçışlanır, düz metinde satır sonu karakterleri boşluğa çevrilir; metin ham HTML olarak basılmaz, biçim yalnız şablonun kendi yapısıdır ve bağlantı yalnız `https`, `http` ve `mailto` şemasını taşır (`05 §6.5.3`) · değerin donmuş kopyada kaçışlı mı saklandığı, gösterimde mi kaçışlandığı bu aşamanın kararıdır; sipariş sayfasındaki gösterim aynı kuralı izler (K-1027 (4), (5)).
 
-> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.14).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. ve 2. oturum yöneticinin kararıyla baştan ikiye, 3. oturum üçe bölündü (`INSTRUCTIONS §9` (8)): Y-1a ve Y-1b, Y-2a (§7, §8) ve Y-2b (§9), Y-3a (§10.1–§10.3), Y-3b (§10.4–§10.6) ve Y-3c (§10.7–§10.10); 3. oturum tamamdır; 4. oturum da ikiye bölündü: Y-4a (§11) ve Y-4b (§12–§14); 4. oturum tamamdır; 5. oturum Y-5a (§15) ve Y-5b (§16–§18) diye, Y-5a da Y-5a1 (§15.1–§15.3) ve Y-5a2 (§15.4–§15.7) diye bölündü; 6. oturum Y-6a (§19–§22) ve Y-6b (§23–§25) diye bölündü. **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330); Y-1b — §4, §5, §6 (K-1331, K-1332); Y-2a — §7, §8 (K-1333, K-1334); Y-2b — §9 (K-1335, K-1336); Y-3a — §10.1, §10.2, §10.3 (K-1337, K-1338); Y-3b — §10.4, §10.5, §10.6 (K-1339, K-1340, K-1341); Y-3c — §10.7, §10.8, §10.9, §10.10 (K-1342, K-1343, K-1344, K-1345); Y-4a — §11.1, §11.2, §11.3, §11.4 (K-1346, K-1347); Y-4b — §12, §13.1, §13.2, §13.3, §14.1, §14.2 (K-1348, K-1349, K-1350, K-1351); Y-5a1 — §15.1, §15.2, §15.3 (K-1352); Y-5a2 — §15.4, §15.5, §15.6, §15.7 (K-1353); Y-5b — §16.1, §16.2, §17, §18.1, §18.2 (K-1354); 5. oturum tamamdır; Y-6a — §19.1, §19.2, §20, §21, §22 (K-1355, K-1356). **Sırada:** Y-6b — §23–§25 ve yazım turunun kapanışı (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
+> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu tamamdır (v0.15).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. ve 2. oturum yöneticinin kararıyla baştan ikiye, 3. oturum üçe bölündü (`INSTRUCTIONS §9` (8)): Y-1a ve Y-1b, Y-2a (§7, §8) ve Y-2b (§9), Y-3a (§10.1–§10.3), Y-3b (§10.4–§10.6) ve Y-3c (§10.7–§10.10); 3. oturum tamamdır; 4. oturum da ikiye bölündü: Y-4a (§11) ve Y-4b (§12–§14); 4. oturum tamamdır; 5. oturum Y-5a (§15) ve Y-5b (§16–§18) diye, Y-5a da Y-5a1 (§15.1–§15.3) ve Y-5a2 (§15.4–§15.7) diye bölündü; 6. oturum Y-6a (§19–§22) ve Y-6b (§23–§25) diye bölündü. **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330); Y-1b — §4, §5, §6 (K-1331, K-1332); Y-2a — §7, §8 (K-1333, K-1334); Y-2b — §9 (K-1335, K-1336); Y-3a — §10.1, §10.2, §10.3 (K-1337, K-1338); Y-3b — §10.4, §10.5, §10.6 (K-1339, K-1340, K-1341); Y-3c — §10.7, §10.8, §10.9, §10.10 (K-1342, K-1343, K-1344, K-1345); Y-4a — §11.1, §11.2, §11.3, §11.4 (K-1346, K-1347); Y-4b — §12, §13.1, §13.2, §13.3, §14.1, §14.2 (K-1348, K-1349, K-1350, K-1351); Y-5a1 — §15.1, §15.2, §15.3 (K-1352); Y-5a2 — §15.4, §15.5, §15.6, §15.7 (K-1353); Y-5b — §16.1, §16.2, §17, §18.1, §18.2 (K-1354); 5. oturum tamamdır; Y-6a — §19.1, §19.2, §20, §21, §22 (K-1355, K-1356); Y-6b — §23, §24, §25 ve yazım turunun kapanışı (K-1357, K-1358); 6. oturum tamamdır. **Yazım turu tamamdır** (altı oturum, on bir parça). **Sırada:** özet ↔ ayrıntı taraması, sonra kalite döngüsü. Workshop tamamlandı (K-1305…K-1328).
 >
 > **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P1.1 (terim sözlüğünün devralınması — §5.1); P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu); P6.2 (girdi doğrulama süzgeci §3.4, model ve işleyici adları §5.3, hata kodlarının kaydı ve gösterilmemesi §8.2); P6.6 (işleyici adları §5.3, istekteki değerin biçimi ve bağlama kalıbı §7.2); P5.9 (kategori düzeyinin yazılışı — §9.4); P5.1 (silme davranışının kodda uygulanışı — §10.1); P5.2 (adlandırma §5.2, anahtar üretimi ve enum §10.1); P5.3 (normalleştirme ve kategori düzeyi §9.4, sürüm ve sayaç §10.2); P5.4 (bölüm başına sürüm — §10.3); P4.3 (önbellek ve kuşak sayacı — §10.4; modül sınırlarının korunması ve dosya deposu arayüzü §6); P5.11 (trigram eklentisi ve operatör sınıfı — §10.6); P5.12 (iç notun kilidi — §10.9); P5.6 (kopya ve doldurma §9.3, şablon sürüm kimliği ve üretilen yasal metin işlevi §11.4); P7.2 (Google kimlik belirtecinin doğrulanması — §11.3, saat sapması §3.5); P7.3 (değişken metnin kaçışı ve e-posta ve belge metninin üretimi — §11.4); P6.9 (dışa aktarmanın geçici dizini, çökme artığı, tavanlar ve CSV'nin biçimi — §10.10, süre ve tavan değerleri §3.5 ve §10.7); P4.5 (iş kuyruğu, yeniden deneme, nabız ve gecelik iş — §13.1); P4.9 (yönetim komutları — §13.2); P4.10 (değerlerin sürümlenmesi — §12; göçlerin yazılışı §10.6); P5.7 (kodun sürümlenmesi — §12; kod adları ve imha göçü §9.2); P5.10 (dönüşüm işinin ilerleme kaydı — §13.3; ön denetim §10.6); P4.11 (kuruşa yuvarlama — §14.1); P7.1 (sağlayıcı tutar dönüşümleri — §14.2; bağlantı katmanının kalıbı §11); P4.6 (oturum, şifre, anahtar, çerez, ters vekil — §15.1; sahtecilik koruması ve içerik güvenlik politikası — §15.2); P4.12 (bağlantı katmanının kalıbı §11.1, sahtecilik koruması §15.2, HTML temizleyici §15.3); P5.5 (HTML temizleyici — §15.3); P4.4 (görüntü işleme — §15.6); P6.4 (indirme ucunun aralık yanıtları — §15.7); P6.7 (oturum ve çerez kalıpları §15.1, kayıtsız korumalı değerler §15.5); P6.1 (işleyici adları ve sayfa düzeni §5.3 ve §4.1, kimlik şemaları §15.1); P4.2 (sayfaların düzeni §4.1, ön yüz dosya düzeni ve adlandırma §16.1); P4.7 (hatanın üç hâli ve sonucu belirsiz işlem §8.1, kayıt kütüphanesi §18.1, kayıt alanları ve maskeleme §18.2); P4.13 (iki imajın derleme dosyalarının yeri §4.3, içerikleri §17); P5.8 (veri koruma paketinin adlandırması §5.2, kullanıcılar §10.8, veri koruma amaçları §15.5, kurucu betiğin yeri ve yedek aracı imajı §17); P6.3 (hız sınırı §15.4, dosya uçlarının sunucu tarafı §15.7, yükleme betiği §16.2); P6.8 (kayıtsız korumalı değerlerin amaçları §15.5, betiksiz yolun form kalıpları §16.2); P6.10 (model ve hata kodu adları §5.3, hata kodlarının kaydı §8.2, kodun sürümlenmesi §12, kayıt alanlarının adları §18.2); P4.8 (test araçları §19.1, test katmanları ve mimari testler §19.2; dosya düzeni ve test projelerinin ayrımı §4.1 ve §4.3); P6.5 (sayfalı liste testi ve katman §19.2; listelerin kesin sırası ve arama sözcüğü §10.5); P6.11 (park satırının test cümleleri §19.2; arama sözcüğü §10.5, canlılık ucunun süresi §10.7, veri koruma amaçları §15.5, e-posta gövdesinin kaçışı §11.4). **Kısmen kapandı:** yok. **Açık:** yok — kırk maddenin hepsi kapandı (K-1302 (6)).
 
@@ -82,7 +82,7 @@
 6. **Kod örneklerinin biçimi** (K-1302 (5)): örnek kısa bir C# parçasıdır (gerektiğinde JavaScript, CSS ya da SQL); **adlarını sözlükten, `06`'dan ve `07`'den birebir alır — örnek için ad uydurulmaz;** kalıbı gösterir, sözleşmeyi göstermez; yasak kalıpta "yanlış" ve "doğru" biçim yan yana verilir. Çatı API'sinin adı bilgim tarihliyse yazım oturumu belgeye karşı doğrular; doğrulanamayan ad parçada `// bilgim tarihli — ilk task'ta doğrulanır` yorumuyla işaretlenir.
 7. **Kural ayrıntısı evinde kalır** (`checklists/document-stage.md` §4): bu doküman başka bir dokümanın kuralına dayandığında ayrıntıyı kopyalamaz, bölüm numarasıyla işaret eder. **Tek ev** (K-1302 (6)): her kuralın bu dokümanda tek yeri vardır — başka bölüm kuralı yinelemez, atıf yapar. **Kütüphane yalnız §3'ün Kütüphaneler tablosunda seçilir;** kuralı kullanan bölüm tabloya atıf yapar.
 8. **Üst dokümanlara geri besleme:** bu dokümandan `02`–`08` ve `10`'a dönen her fark §2'nin sonundaki numarasız tabloya bir satırla girer (K-652; konvansiyon 1). Kaynak doküman kazanır; fark kaynakta düzeltilir.
-9. **Açık kalem ve devir:** bu dokümanın şablonunda açık kararlar bölümü yoktur — açık kalem karar kaydının §4'ünde A-19'dan sürer; sonraki dokümana — Implementation Planı (`11`), Doğrulama Protokolü (`12`), `DEPLOY_RUNBOOK` — talimat bırakan karar o dokümanın "Aşama 8'den park edilen girdiler" bloğuna girer, blok yoksa açılır (K-36). Henüz yazılmamış bir bölüme bağlanan atıf hedef bölümü ve oturumunu taşır — "§10 (yazım 3)" —; o bölümü yazan oturum atfı aynı PR'da madde numarasına çevirir (K-682).
+9. **Açık kalem ve devir:** bu dokümanın şablonunda açık kararlar bölümü yoktur — açık kalem karar kaydının §4'ünde A-19'dan sürer; sonraki dokümana — Implementation Planı (`11`), Doğrulama Protokolü (`12`), `DEPLOY_RUNBOOK` — talimat bırakan karar o dokümanın "Aşama 8'den park edilen girdiler" bloğuna girer, blok yoksa açılır (K-36). Henüz yazılmamış bir bölüme bağlanan atıf hedef bölümü ve yazım oturumunu taşır (ör. "§10, 3. oturum"); o bölümü yazan oturum atfı aynı PR'da madde numarasına çevirir (K-682). Yazım turu bitince bu biçimde atıf kalmaz (K-1358).
 10. **Özet ile ayrıntı birlikte değişir; ölü placeholder ve belirsiz ifade yoktur.** Başlık notunun tabloları, §3'ün Kütüphaneler ve süre tabloları ile dokümanın kapalı listeleri ayrıntının özetidir; bir ayrıntıyı değiştiren her düzeltme onu anan özet yerlerini betikle bulur ve aynı PR'da okur. Yazılmamış bölüm bir kapıya bağlıdır ve kapısını adıyla taşır (alt bölüm haritasının "Oturum" sütunu). "Muhtemelen", "belki", "gereksinime göre" yazılmaz.
 
 **Alt bölüm haritası (K-1302, K-1329).** Şablonun §1…§25 numaraları değişmez; alt düzey aşağıdaki tabloyla sabittir. Bir oturum bir alt bölümü bölmek ya da birleştirmek zorunda kalırsa bu tabloyu ve ona atıf yapan satırları aynı PR'da günceller (K-670'in kalıbı; `checklists/document-stage.md` §4).
@@ -112,9 +112,9 @@
 | §20 Performans kuralları | Alt bölümsüz | Y-6a ✓ |
 | §21 Git ve CI/CD kuralları | 21.1 Dal stratejisi · 21.2 Commit mesaj formatı · 21.3 PR kuralları · 21.4 CI pipeline sıralaması · 21.5 Savunma katmanları | Y-6a ✓ |
 | §22 Refactor kuralları | Alt bölümsüz | Y-6a ✓ |
-| §23–§25 | §23 Yasaklar · §24 AI çalışma kuralları · §25 Review checklist | Y-6b |
+| §23–§25 | §23 Yasaklar · §24 AI çalışma kuralları · §25 Review checklist | Y-6b ✓ |
 
-**Okuma tablosu (K-1302 (4)).** Bu doküman her kodlama görevinde ajana verilir (`00 §C.6`); 100 KB'ı aşan dosya bütün okunamaz (`INSTRUCTIONS §9` (7)) — dosyanın boyutu `wc -c` ile ölçülür ve **bölüm bölüm okunur** (`grep -n '^## '` ile başlıkların satırı, sonra `Read` ile satır aralığı). Her bölüm tek okumada okunabilir kalır. **Çekirdek bölümler** her görevde okunur ve toplamı 100 KB'ın altında tutulur: §1, §2, §5, §6, §23, §24, §25. Öteki bölümler görevin dokunduğu alana göre okunur; Implementation Planı her task satırında okunacak bölümleri yazar (`11` — "Aşama 8'den park edilen girdiler" bloğu yazım turunda açılır).
+**Okuma tablosu (K-1302 (4)).** Bu doküman her kodlama görevinde ajana verilir (`00 §C.6`); 100 KB'ı aşan dosya bütün okunamaz (`INSTRUCTIONS §9` (7)) — dosyanın boyutu `wc -c` ile ölçülür ve **bölüm bölüm okunur** (`grep -n '^## '` ile başlıkların satırı, sonra `Read` ile satır aralığı). Her bölüm tek okumada okunabilir kalır. **Çekirdek bölümler** her görevde okunur ve toplamı 100 KB'ın altında tutulur: §1, §2, §5, §6, §23, §24, §25. Öteki bölümler görevin dokunduğu alana göre okunur; Implementation Planı her task satırında okunacak bölümleri yazar (`11` — "Aşama 8'den park edilen girdiler" bloğu; K-1358).
 
 | Görevin dokunduğu alan | Çekirdeğe ek olarak okunur |
 |---|---|
@@ -761,7 +761,7 @@ Bu bölüm durum geçişinin, yan etkinin, işlem izinin, belge kopyasının ve 
 ### 9.3 Belgenin kişisel verisiz kopyası ve yer tutucular
 
 1. **Kopya iki alandır:** `Order.PreInformationFormText` ve `Order.DistanceSalesContractText`. Ham düz metin saklanır; kaçış ve HTML saklanmaz (K-1323 (3)). Kopya onay işleminde bir kez yazılır, sonra yazılmaz (ayarlayıcı `private`; yazan tek yöntem `OrderDocuments`'ındır).
-2. **Belirteç `{{Ad}}`'dır;** ad `06 §4.17`'nin alan adıdır. Kişisel veri belirteçleri: `ShippingRecipientName`, `ShippingPhone`, `ShippingProvince`, `ShippingDistrict`, `ShippingAddressLine`, `BillingRecipientName`, `BillingProvince`, `BillingDistrict`, `BillingAddressLine`, `ContactEmail`. İl alanı kimlikle saklandığından belirteç `Id`'siz yazılır ve değeri `Province.Name`'dir; faturada telefon yoktur. Bunlar kopyada daima belirteç olarak kalır. Donan değerler (`Total`, `ShippingFee`, `CompanyLegalName`, `BankTransferIban` …) üretim anında ham yazılır; belirteç kümesi kapalıdır (`Order` ve `OrderItem` alan adları), küme dışı belirteç şablon testini kırar ve sabit metinde başka amaçla `{{` bulunmaz. Kalem satırlarının ve tutar tablosunun yazılışı şablonun işidir, §11.4'tedir (yazım 4).
+2. **Belirteç `{{Ad}}`'dır;** ad `06 §4.17`'nin alan adıdır. Kişisel veri belirteçleri: `ShippingRecipientName`, `ShippingPhone`, `ShippingProvince`, `ShippingDistrict`, `ShippingAddressLine`, `BillingRecipientName`, `BillingProvince`, `BillingDistrict`, `BillingAddressLine`, `ContactEmail`. İl alanı kimlikle saklandığından belirteç `Id`'siz yazılır ve değeri `Province.Name`'dir; faturada telefon yoktur. Bunlar kopyada daima belirteç olarak kalır. Donan değerler (`Total`, `ShippingFee`, `CompanyLegalName`, `BankTransferIban` …) üretim anında ham yazılır; belirteç kümesi kapalıdır (`Order` ve `OrderItem` alan adları), küme dışı belirteç şablon testini kırar ve sabit metinde başka amaçla `{{` bulunmaz. Kalem satırlarının ve tutar tablosunun yazılışı şablonun işidir, §11.4'tedir.
 3. **Doldurma tek işlevdir:** `Infrastructure/PlaceholderFiller.Fill(string template, IReadOnlyDictionary<string, string?> values, bool requireAll)`. `Regex.Replace` (`\{\{([A-Za-z]+)\}\}`, `MatchEvaluator`) kullanır; değer yeniden taranmaz (değerin içindeki `{{Total}}` genişlemez). Sözlükte olmayan belirteç olduğu gibi kalır (üretim aşaması); `null` değer boş metin olur (imha edilmiş alan); `requireAll` sözlükte olmayan her belirteçte hata verir — sonuç değil şablon taranır, çünkü değer `{{` içerebilir. Üretim ve gösterim aynı işlevi kullanır.
 4. **Tek yer `Ordering`'tir:** `internal OrderDocuments` (üretim: onay işleminde sürüm metni ve donan değerler; gösterim) ve açık yüzü `Contracts.IOrderDocuments.GetTextAsync(Guid orderId, LegalTextType type, ct)` (yalnız `PreInformationForm` ve `DistanceSalesContract`; öteki tür `ArgumentException`). Sipariş sayfası, panel, B-1 gövdesi (`Notifications`) ve panelden yeniden gönderim bunu çağırır; başka yerde doldurulmaz.
 5. **Onay anındaki değer** ilgili geçmişin ilk satırının eski değeridir. Adres: `OrderAddressHistory`'de (`AddressType` teslimat → `Shipping…`, fatura → `Billing…`) en eski `CreatedAt` satırının `OldRecipientName`, `OldPhone`, `OldProvinceId` (→ `Province.Name`), `OldDistrict`, `OldAddressLine` alanları. `ContactEmail`: `OrderEmailHistory`'nin ilk satırının `OldEmail` alanı. Geçmiş yoksa siparişin kendi alanı kullanılır; imhadan sonra alanlar `null` → boş olur.
@@ -1001,7 +1001,7 @@ Listenin düzeni sunucunun sabitidir ve sıralama parametresi yoktur (`07 §2.6.
                 && EF.Functions.Like(p.NameSearchForm, pattern, "\\"));
    ```
    Panelin ürün listesinin `search`'ü de aynı işlevi kullanır; ürün adında arama yapan başka yer yoktur. Üç karakterden kısa sözcükte trigram dizini kullanılmaz ve sorgu tabloyu tarar — sonuç doğrudur, hacim tabanında kabuldür. Dizinin kendisi §10.6 madde 8'dedir.
-6. **Test.** Birim: `PageNumber.Parse` tablosu (`null`, boş, `abc`, `0`, `-3`, `2`, `99999999999`); `SearchTerm`: `%`, `_` ve `\` desende kaçışlıdır, 150'den uzun sözcük 150'ye kesilir ve kesim kaçışı bölmez, yalnız boşluk `null` döner, `Isıtıcı` aranan biçime `isitici` olarak gelir. Entegrasyon (gerçek veritabanı, §19.1): aynı `CreatedAt`'li iki ürün sayfa sınırına düşürülür — ikisi de her sayfa boyu için ne yinelenir ne kaybolur (vitrin, panel, galeri ve elle sıralı liste için ayrı ayrı; azalan ve artan yön); son sayfayı ve `int` aralığını aşan `page` son sayfayı verir; `%` yazan sözcük bütün ürünleri getirmez, `_` bir harfle eşleşmez, `\` harfi harfine aranır; `AMPUL` ve `isıtıcı` ürününü bulur; tek sayfaya sığan listenin `PageCount`'u 1'dir. Her sayfalı liste için sınır testi zorunludur: yeni liste, testi olmadan eklenmez (§25, yazım 6).
+6. **Test.** Birim: `PageNumber.Parse` tablosu (`null`, boş, `abc`, `0`, `-3`, `2`, `99999999999`); `SearchTerm`: `%`, `_` ve `\` desende kaçışlıdır, 150'den uzun sözcük 150'ye kesilir ve kesim kaçışı bölmez, yalnız boşluk `null` döner, `Isıtıcı` aranan biçime `isitici` olarak gelir. Entegrasyon (gerçek veritabanı, §19.1): aynı `CreatedAt`'li iki ürün sayfa sınırına düşürülür — ikisi de her sayfa boyu için ne yinelenir ne kaybolur (vitrin, panel, galeri ve elle sıralı liste için ayrı ayrı; azalan ve artan yön); son sayfayı ve `int` aralığını aşan `page` son sayfayı verir; `%` yazan sözcük bütün ürünleri getirmez, `_` bir harfle eşleşmez, `\` harfi harfine aranır; `AMPUL` ve `isıtıcı` ürününü bulur; tek sayfaya sığan listenin `PageCount`'u 1'dir. Her sayfalı liste için sınır testi zorunludur: yeni liste, testi olmadan eklenmez (§25).
 
 *Kaynak: K-1339 · K-1228, K-1217, K-766, K-851, K-784 · `07 §2.6` · `06 §4.5`, §4.47, §7.5.1 · `04` 2.13.3, 9.8.7 · `02 §3.5`, §11.2 P-27 · §3.4, §3.5, §9.4, §10.1, §10.6.*
 
@@ -1053,7 +1053,7 @@ Kural `05 §8.7`'dedir: göçler genişlet–daralt kuralıyla yazılır, her g�
    builder.HasIndex(p => p.NameSearchForm).HasMethod("gin").HasOperators("gin_trgm_ops");
    ```
 9. **Uygulama kullanıcısının adı göç kullanıcısının rol ayarıdır** (§9.2 madde 7). Göç demeti bağlantı açıldıktan sonra deyim çalıştıramaz (yalnız bağlantı dizgisini alır; bilgim tarihli — ilk task'ta doğrulanır), bu yüzden ayarı göç kodu kurmaz: kurucu kullanıcı ilk kurulumda göç kullanıcısının rol ayarına yazar — `ALTER ROLE <göç kullanıcısı> IN DATABASE <veritabanı> SET shopfolio.application_user = '<uygulama kullanıcısı>'` — ve göç kullanıcısının her oturumu ayarı hazır bulur (adımı `DEPLOY_RUNBOOK`'tadır). İşlevin `GRANT`'ı `current_setting('shopfolio.application_user')`'ı okur; ayar yoksa `current_setting` hata verir ve göç geri alınır. Başka bir göç de uygulama kullanıcısına yetki verecekse aynı ayarı okur; kullanıcının adı göç dosyasına yazılmaz.
-10. **İnceleme listesi** (§25'e bu madde taşınır, yazım 6): göç dosyası taşıyan PR'da (a) her göç genişletme mi, daraltma mı — daraltmaysa önceki sürümün kodu o yapıyı kullanmıyor mu; (b) yeni değer okuyan ve yazan sürüm olarak iki sürüme bölünmüş mü; (c) `Down`, `suppressTransaction`, `CONCURRENTLY`, `now()` yok mu; (d) siparişle büyüyen tabloya `UPDATE` ya da `DELETE` yok mu; (e) kaldıran göç ön denetimle başlıyor mu ve denetimin koşulu dönüşümün dönüşmemiş koşuluyla eşit mi (§13.3 madde 6); (f) `audit_logs`'a yalnız ekleme var mı; (g) kullanıcı adı ve eklenti kurulumu göçe yazılmamış mı.
+10. **İnceleme listesi:** göç taşıyan PR'ın soruları §25'in "Veri ve göç" grubundadır (K-1357); PR açıklaması cevaplarını kanıt olarak taşır (§21.3).
 11. **Test.** Kaynak taraması (birim, veritabanı gerektirmez): göç dosyalarında `Down`, `suppressTransaction`, `CONCURRENTLY`, `now()`, `CREATE EXTENSION` yoktur; `UPDATE` ve `DELETE FROM` yalnız izinli tablolardadır; `audit_logs` için `UPDATE`, `DELETE`, `DROP COLUMN`, `RENAME` yoktur. Entegrasyon (gerçek PostgreSQL, §19.1): bütün göçler boş veritabanına uygulanır ve model anlık görüntüsü modelle uyuşur (bekleyen model değişikliği yok); `pg_index` kataloğunda `ix_products_name_search_form` GIN yöntemli ve `gin_trgm_ops` operatör sınıflıdır, arama sorgusunun planı (tarama kapalı) dizini kullanır; eklentisiz veritabanında dizin göçü açık iletiyle düşer ve öncekiler kalır; göç kullanıcısının rol ayarı yokken `GRANT` göçü geri alınır, ayarlıyken yetki doğru kullanıcıdadır (`has_function_privilege`). **Geri alma sınaması CI'ın göç adımındadır** (`05 §8.3.9`, §8.7.3; §21.4 madde 3): son yayımlanan sürümün imajı yeni göçlerin uygulandığı şemaya karşı açılır ve o sürümün entegrasyon testleri koşar — canlılık ucu yalnız açılışı sınar.
 
 *Kaynak: K-1340 · K-925, K-965, K-981, K-1121, K-1124, K-1337 · `05 §8.7`, §8.2.1, §8.3.9, §7.5.2, §7.1.3 · `06 §4.5`, §4.63, §7.5.1, §8.5.2 · `DEPLOY_RUNBOOK` (K-1124 satırı) · §4.1, §5.2, §7.1, §9.2, §10.1, §13.3, §21.4.*
@@ -1174,7 +1174,7 @@ Veritabanının kendi kullanıcıları hesap kaydı değildir (`06 §8.3.2`); ha
    - *Göç kullanıcısı:* süper kullanıcı değildir (`rolsuper` yanlıştır); rol ve veritabanı yaratamaz.
    - *Rol ayarları:* ayar yokken `audit_logs` göçü geri alınır; ayarlıyken yetki doğru kullanıcıdadır.
    - *Kaynak taraması* (birim): göç dosyalarında `shopfolio_` ile başlayan sabit kullanıcı adı yoktur; `GRANT`, `REVOKE` ve `ALTER DEFAULT PRIVILEGES` yalnız `current_setting` kalıbıyla ve kurucu betikte bulunur.
-8. **İnceleme listesi** (§25'e taşınır, yazım 6): kullanıcı ya da tablo ekleyen PR'da (a) yeni tablo varsayılan yetkiyle doğru mu, değilse istisna tablosu ve test güncel mi; (b) kullanıcı adı göçe yazılmamış, rol ayarıyla mı geliyor; (c) uygulama kullanıcısına şema, süper kullanıcı ya da izleme yetkisi eklenmemiş mi; (d) bir bileşen başka bileşenin sırrını alıyor mu (`05 §6.x.8`).
+8. **İnceleme listesi:** kullanıcı ya da tablo ekleyen PR'ın soruları §25'in "Veri ve göç" grubundadır (K-1357).
 
 *Kaynak: K-1343 · K-1098 (4), K-1082, K-1068 (5), K-975, K-986, K-987, K-1124, K-1340 · `05 §7.1.3`, §7.5.1, §7.5.2, §6.x.4, §6.x.6, §6.x.8, §6.x.16, §6.x.19, §3.2.5, §8.7.2, §9.4.10 · `06 §4.63`, §4.67, §4.68, §8.3.2 · `DEPLOY_RUNBOOK` (K-1340 ve K-1343 satırları) · §5.2, §9.2, §10.6, §17, §19, §25.*
 
@@ -1392,7 +1392,7 @@ Bu bölüm üç dış servisin bağlantı katmanının **kodda nasıl yazıldı�
    - **Eski biçimin okuma kodu satır ömrü kadar yaşar.** Bu satırlar yazıldıktan sonra yeniden yazılmaz (`DispatchRecord.EventValues` gönderimin yeniden denemesinde okunur); eski biçimi okuyan kodu kaldırmak, ancak §13.3'ün dönüşümü bittiğinde — dönüşmemiş satır sayısı veriden sıfırken — olur.
    - **Yükte sürüm alanı yoktur;** okuyucu eksik ve fazla alana dayanıklı olduğu için gerekmez. Yükün içindeki kapalı değer (ör. durum geçmişinin yapan türü) enum'dur ve madde 2'nin satırını izler: bilinmeyen değeri okumak istisna atar, bu yüzden okuyan sürüm önce gelir.
 6. **Dışarıda yaşayan değerler de değerdir:** e-postadaki bağlantının biçimi, çerezin adı ve içeriği, sağlayıcıya verilen sipariş numarasının biçimi. Güncellemeden önce verilmiş bir bağlantı ya da açık bir çerez güncellemeden sonra çalışmaya devam eder ya da zararsızca reddedilir (yeni giriş istenir); biçimin kodda tek yeri ve değişiklik kuralı §15.1'dedir (madde 9), sipariş numarasının sağlayıcıya biçimi §11.1'dedir.
-7. **İnceleme listesi** (§25'e taşınır, yazım 6): değer ekleyen PR'da (a) değer kalıcıysa PR okuyan sürüm mü yazan mı — ikisi aynı PR'da değil, ardışık iki sürümde; (b) kilit dosyasında satır eklenmiş ya da çıkarılmış mı; (c) `07 §6` ya da `06 §5`'te değer önce yazılmış mı (§5.3 madde 4); (d) yük biçimine alan eklenmişse boşalabilir mi ve eski satırın örneği (madde 8) eklenmiş mi; (e) kaldırma varsa daraltma göçü ön denetimli mi (§10.6).
+7. **İnceleme listesi:** değer ekleyen PR'ın soruları §25'in "Veri ve göç" grubundadır (K-1357).
 8. **Test.** Kilit dosyası testi (madde 3). Yük biçimi için **örnek dosya** testi: her yük tipinin her tarihsel biçimi `UnitTests/Payloads/<Tip>/<sıra>.json` olarak depodadır (ilk biçim `1.json`; alan eklenince `2.json` eklenir, eskiler silinmez); test bütün örnekleri okur — hiçbiri istisna atmaz, eksik alan varsayılanını alır — ve kodun bugün yazdığı biçimin en son örnekle alan kümesinin eşit olduğunu doğrular. Kalıcı enum'lar için entegrasyon (gerçek PostgreSQL, §19.1): modelin her enum üyesi veritabanındaki izinli değer kısıtının listesinde vardır ve tersi (kısıt listesinde olup üyesi olmayan değer yoktur).
 
 *Kaynak: K-1348 · K-965, K-1121, K-1319 (1), (3), (4) · K-1334 · `05 §8.7.1`, §2.1, §3.3.12, §10.3.5 · `06 §2.5.1`, §5, §4.17, §4.30, §4.58, §4.63 · `07 §2.7.3`, §6.2, §6.3 · §5.3, §6, §8.2, §9.1, §9.2, §10.1, §10.6, §13.3.*
@@ -1489,7 +1489,7 @@ Bu bölüm uygulamanın arka plan çalıştırıcılarının, yönetim komutlar�
 3. **Parça işlemi.** Parça satırlarını `FOR UPDATE SKIP LOCKED` ile alır — uygulamanın eşzamanlı yazımıyla çakışan satır atlanır ve sonraki parçada alınır. **Sürüm artışı:** dönüşümün yazdığı tablo sürüm taşıyorsa (`Order`) yazımın sürümü artırıp artırmadığı `06 §2.6.4`'ün listesine dönüşümün PR'ında girer; sistem dönüşümü müşteri ya da yönetici formunu sürüm uyuşmazlığına düşürmemelidir. İşlem izine ve bildirime yazılmaz; her parça uygulama kaydına bilgi düzeyinde "dönüştürülen / kalan" sayılarını yazar (kişisel veri yok).
 4. **İş türü ve kuyruğa bırakma.** Her dönüşümün kendi `JobType` değeri vardır ve `06 §5.4.4`'e dönüşümün PR'ında eklenir; `06 §4.59`'un "`RelatedRecordId` boş yalnız `BounceQuery`'dedir" kısıtı da aynı PR'da o iş türünü kapsayacak biçimde güncellenir (dönüşüm işinin ilgili kaydı yoktur) — kaynak doküman kazanır (yazım konvansiyonu 1, 8; §2'nin geri besleme tablosu). **Üç sürümdür** (`05 §8.7.1`, §12 madde 2): ilk sürüm yapıyı (işaret sütunu), iş türünü ve işleyiciyi getirir ama kuyruğa bırakmaz (okuyan); ikinci sürüm yeni değeri yazar ve işi `Enqueue` eder — kuyruğa bırakma açılışta, dönüşmemiş koşulunu tutan satır varsa ve bekleyen iş yoksa yapılır (tekil dizin ikinci satırı önler); üçüncü sürüm eski yapıyı kaldıran daraltma göçüdür ve §10.6 madde 5'in ön denetimiyle başlar. Güncelleme turu dönüşüm bitmeden sonraki adıma geçmez (`05 §8.7.1`).
 5. **Durum komutu** (`status`, §13.2) kayıtlı her dönüşüm için `CountRemainingAsync`'in sonucunu yazar — kurulumu yapan ilerlemeyi oradan görür.
-6. **Ön denetimin koşulu tek yerde yazılır.** Daraltma göçünün ön denetim SQL'i (§10.6 madde 5) `RemainingPredicateSql`'in o günkü kopyasıdır (göç uygulama kodunu çağırmaz — §9.4 madde 1); ikisi aynı PR'da yazılır ve inceleme listesine girer (§10.6 madde 10'a eklenecek: "daraltma göçünün koşulu dönüşümün koşuluyla eşit mi", yazım 6).
+6. **Ön denetimin koşulu tek yerde yazılır.** Daraltma göçünün ön denetim SQL'i (§10.6 madde 5) `RemainingPredicateSql`'in o günkü kopyasıdır (göç uygulama kodunu çağırmaz — §9.4 madde 1); ikisi aynı PR'da yazılır ve inceleme listesinin sorusudur (§25, "Göç taşıyan PR" satırı: denetimin koşulu dönüşümün dönüşmemiş koşuluyla eşit mi).
 7. **Test.** Birim: parça boyutu 500'ü aşmaz; kalan sıfırken `Completed`, değilken `RescheduleAfter(0)`; ilerlemeyen parça istisna atar. Entegrasyon (gerçek PostgreSQL, §19.1): bin satırlık tablo üç turda dönüşür ve sayaç 1000 → 500 → 0 iner; iş ortada durdurulup yeniden başlatılınca kalan satırlardan sürer ve dönüşmüş satır yeniden yazılmaz; eşzamanlı yazım parçanın satırını kilitlerse parça onu atlar ve sonraki parçada alır; sürüm taşıyan tabloda formun sürümü dönüşümden etkilenmez; koşul kopyasının eşitliği (göçün ön denetimi dönüşmemiş satır varken hata verir).
 
 *Kaynak: K-1349, K-1350 · K-889, K-895, K-946, K-1111, K-1132, K-1241 · K-922, K-923, K-971, K-986, K-1324 · K-925, K-1121 · `05 §4.3`, §5.1, §5.2.8–§5.2.9, §5.4, §8.5, §8.7.1, §8.7.5, §9.4.13, §9.4.16 · `06 §4.59`, §4.65, §5.4.4, §5.4.5, §2.6.4 · `07 §4.33.1` · `08 §2.2.3` · §3.5, §6, §7.1, §8.1, §9.1, §9.2, §10.2, §10.6, §10.7, §11.2, §14.2.*
@@ -1598,7 +1598,7 @@ Bu bölüm güvenlik mekanizmasının **kodda nasıl yazıldığını** söyler;
 2. **İzin listesi açıkça yazılır, kütüphanenin varsayılanından kurulmaz.** `new HtmlSanitizer(options)` yalnız bu kümeyle kurulur (`HtmlSanitizerOptions`; bilgim tarihli — ilk task'ta doğrulanır): **etiketler** `strong`, `em`, `ul`, `li`, `a`, tek düzeyli ara başlık, ve metnin taşıyıcıları `p` ve `br` (setin biçimi değil taşıyıcıdır — `02 §3.11.6`; K-1318; set beş biçimdir ve genişlemez); **nitelik** yalnız `a` üstünde `href`; **şema** `http`, `https`, `mailto`; sınıf, stil, olay niteliği, `target` ve CSS özelliği yoktur. Ara başlığın etiketi `h3`'tür (sayfa başlığı `h1`, bölüm başlıkları `h2` kabulüyle); `04`'ün başlık sırası ilk task'ta doğrulanır, farklıysa etiket ilk yayından önce değişir — ilk yayından sonra liste daralamaz (madde 5). Kütüphane güncellemesi listeyi değiştiremez, çünkü varsayılan küme kullanılmaz.
 3. **Bağlantı.** Yalnız mutlak `http`, `https` ve `mailto` adresleri kalır; göreli adres, şemasız adres ve ağ yolu (`//…`) atılır: kütüphane göreli adrese izin veriyorsa `FilterUrl` olayında adres mutlak olarak ayrıştırılamıyorsa ya da şeması kümede değilse `SanitizedUrl = null` yapılır (nitelik düşer; bilgim tarihli — testle sınanır). `a` etiketine `rel="noopener noreferrer"` zorla eklenir (`PostProcessNode` olayı; gelen `rel` zaten izinli değildir).
 4. **Kayıt ve gösterim aynı sınıftan geçer.** Yazımda `Sanitize` çıktısı saklanır; gösterimde saklanan değer aynı izin listesiyle yeniden süzülür ve saklanan değer yeniden yazılmaz — yayımlanmış yasal metin sürümü dahil (`06 §2.10.2`; K-1122). Boş ya da yalnız boşluk olan girdi boş metin olur.
-5. **İzin listesi yalnız genişler** (`06 §2.10.2`): gösterimde aynı liste süzdüğü için daraltma yayımlanmış metnin gösterimini değiştirirdi. Listenin bugünkü etiket, nitelik ve şema kümesi `tests/Shopfolio.UnitTests/Security/rich-text-allowlist.json` anlık görüntü dosyasındadır; test geçerli listenin anlık görüntünün **üst kümesi** olduğunu denetler. Anlık görüntüden satır silen ya da değiştiren PR inceleme listesinin maddesidir (§25, yazım 6).
+5. **İzin listesi yalnız genişler** (`06 §2.10.2`): gösterimde aynı liste süzdüğü için daraltma yayımlanmış metnin gösterimini değiştirirdi. Listenin bugünkü etiket, nitelik ve şema kümesi `tests/Shopfolio.UnitTests/Security/rich-text-allowlist.json` anlık görüntü dosyasındadır; test geçerli listenin anlık görüntünün **üst kümesi** olduğunu denetler. Anlık görüntüden satır silen ya da değiştiren PR inceleme listesinin maddesidir (§25).
 6. **Güncelleme.** Kütüphanenin güvenlik açığı bildirimleri ana sürümden bağımsız izlenir ve kapanan açık için sürüm §3.2'nin işleyişiyle güncellenir; gösterimde yeniden süzme sayesinde saklı metne dokunmak gerekmez. Kütüphanenin geçişli bağımlılığı (AngleSharp) güncellemede lisansı ve sürümüyle tabloda okunur (§3.3).
 7. **Test.** Birim: bilinen betik enjeksiyonu örneklerinden derlenmiş saldırı kümesi — `script`, `iframe`, `img onerror`, `svg onload`, `style`, olay niteliği, `javascript:`, `data:`, `vbscript:`, karışık harf büyüklüğü (`JaVaScRiPt:`), HTML varlığıyla kodlanmış şema (`&#106;avascript:`), şemanın arasına boşluk ya da satır sonu, iç içe ve kapanmamış etiket — temizleyiciden geçince etiket, nitelik ve tehlikeli şema kalmaz; izinli beş biçim, `p` ve `br` değişmeden geçer; göreli (`/x`), şemasız (`x.com`) ve `//evil.example` bağlantıları düşer ve `a` etiketi metniyle kalır; `mailto:` kalır; her bağlantı `rel="noopener noreferrer"` taşır; ikinci süzme birinciyle aynı çıktıyı verir (eşkuvvetlilik); anlık görüntü üst küme testi (madde 5). Mimari test: `HtmlSanitizer` türüne yalnız `RichTextSanitizer` başvurur; `@Html.Raw(` yalnız `RichText.Render`'ın görünümündedir.
 
@@ -2121,23 +2121,246 @@ Bu kılavuzun payı üç yerdedir: yerel hook'lar (`scripts/git-hooks/`), CI'ın
 4. **Dışarıdan görünen sözleşme değişmez.** Adres, form alanı adı, sorgu parametresi, hata kodu, çerez adı, kayıt alanı adı, kapalı değer ve veritabanı şeması refactor'la değişmez (`07`, `06`); ad değişikliği sözleşme değişikliğidir ve kendi kararı ya da göçüyle yapılır. Yayımlanmış bir göç dosyası refactor için düzenlenmez (§10.6 madde 7).
 5. **Taşıma ve yeniden adlandırma** dosya geçmişini koruyacak şekilde yapılır (`git mv`) ve içeriğin değişmesinden ayrı commit'tir; ad alanı klasör yolunu izler (§3.1), bu yüzden taşıma ad alanını da aynı commit'te günceller. Modül sınırını delen ya da başka modülün iç türünü açan taşıma refactor değil mimari değişikliktir (§6).
 6. **Kütüphane değiştirmek refactor değildir;** §3.3'ün kanıtıyla ve tablo satırıyla gelir. **Biçim düzeltmeleri** (`dotnet format`) tek başına bir commit'tir ve davranış değişikliğiyle karıştırılmaz.
-7. **Ölü kod** kullanıldığı kanıtlanarak değil, hiçbir başvurusu olmadığı derleyici ve testlerle gösterilerek silinir; "belki lazım olur" diye yorumlanmış kod bırakılmaz (§23, yazım 6).
+7. **Ölü kod** kullanıldığı kanıtlanarak değil, hiçbir başvurusu olmadığı derleyici ve testlerle gösterilerek silinir; "belki lazım olur" diye yorumlanmış kod bırakılmaz (§23).
 
 *Kaynak: K-1356 · `00 §F` · `INSTRUCTIONS §3.2` · §3.1, §6, §9, §10.2, §10.6, §11.1, §13, §14, §15.1, §19.2, §21.2, §21.3.*
 
 ## 23. Yasaklar
 
-> **Ne yazılır:** Koşulsuz yasaklar — iş kuralı uydurma, sessiz kapsam genişletme, katman ihlali, secret gömme, hassas veri loglama, exception yutma, sınırsız liste dönme, testsiz kritik davranış değişikliği, CI geçmeden merge.
-> Süreç yasakları için ayrıca: `.claude/GUARDRAILS.md` §8.
+(`09 §23` şablonu; K-1357.)
+
+Bu bölüm koşulsuz yasakları **tek listede** sayar. Her yasağın kuralı, istisnası ve testi kendi bölümündedir ve burada yinelenmez (yazım konvansiyonu 7); "Kuralın evi" sütunu yasağın tanımını gösterir, yasağın testi ya da denetimi varsa adı evinde yazılıdır (yazım konvansiyonu 10). Süreç yasakları — task akışı, kanıt, CI, merge, backlog — `.claude/GUARDRAILS.md` §8'dedir ve burada yinelenmez; ajan ikisini birlikte okur (§24 madde 1). Bir davranışın bu listede olmaması serbest olduğu anlamına gelmez: kuralı bulunmayan davranış için kural aranır (§24 madde 2), bulunmazsa task BLOCKED olur (`00 §D.8`).
+
+**Kapsam ve kaynak**
+
+| Yasak | Kuralın evi |
+|---|---|
+| Dokümanda olmayan iş kuralı, durum, enum değeri, hata kodu, alan ya da tablo adı uydurmak | §1; yazım konvansiyonu 1, 2 |
+| İki dokümanın çelişkisinde kazananı ajanın seçmesi; çelişkiyi sessizce kodla çözmek | §1; §2 |
+| Sessizce kapsam genişletmek; göreve girmeyen düzeltmeyi, taşımayı, yeniden adlandırmayı ya da biçim değişikliğini aynı PR'a katmak | §24 madde 3; §21.3; §22 madde 5 |
+| "Bilgim tarihli" bir olguyu (çatı API'si, ayar adı, sürüm davranışı) doğrulamadan koda sokmak | §1; yazım konvansiyonu 3; §3.3 madde 8 |
+| Kütüphaneyi kanıtsız, Kütüphaneler tablosuna satır eklemeden ya da lisans ölçütünü sağlamadan eklemek; üçüncü taraf çözümleyici paketi eklemek | §3.3 madde 2–4; §3.1 madde 1 |
+
+**Dil, yapı ve katman**
+
+| Yasak | Kuralın evi |
+|---|---|
+| Null-forgiving `!` (gerekçe yorumlu tek satır istisna dışında), `async void` (olay işleyici hariç), `dynamic`, gerekçesiz ya da geniş uyarı bastırma | §3.1 madde 5 |
+| Modül başına derleme projesi, katmanlı projeler ("Core/Domain/Application/Infrastructure"), sayfa klasörünü modül klasörünün altına koymak, ikinci veritabanı bağlamı | §4.1 |
+| Eş anlamlı ad, Türkçe sembol adı, sözlükte olmayan kısaltma | §5.1 madde 6 |
+| Başka modülün `internal` türüne `InternalsVisibleTo` ile erişmek; `Contracts` içinde varlık döndürmek; arayüz metodunda `SaveChanges` çağırmak; modülün `Contracts`'ı dışındaki bir türü sayfaya enjekte etmek | §6 madde 7 |
+| Sayfanın `DbContext`'e dokunması | §6 madde 2; §9.1 madde 3 |
+| Uygulama içi olay veriyolu, kendi yayıncı/abone arayüzü, varlıkta biriken alan olayı listesi | §9.1 madde 7 |
+| Geniş `catch` — `catch (Exception)`, türsüz `catch`, hatayı yutan `catch` — beş yer dışında | §8.1 madde 6 |
+| `new HttpClient()` | §11.2 madde 5 |
+
+**Veri, zaman ve para**
+
+| Yasak | Kuralın evi |
+|---|---|
+| `DateTime.Now`, `DateTime.UtcNow`, `DateTime.Today`, `DateTimeOffset.Now`, `DateTimeOffset.UtcNow`, `TimeZoneInfo.Local` ile zaman okumak | §7.1 madde 1 |
+| Kimlik alanını kültüre bağlı `ToLower` ile normalleştirmek | §9.4 madde 1 |
+| Durum alanını geçiş biriminin dışında yazmak (`ExecuteUpdate`, ham SQL dahil) | §9.1 madde 4, 8 |
+| `Guid.NewGuid()` ve `Guid.CreateVersion7()` çağrısı `EntityIds.cs` dışında; `Restrict` ve `Client…` silme davranışları | §10.1 madde 1, 2 |
+| Büyüyen kümeyi `ToList`/`ToArray` ile belleğe almak ya da sayfasız okumak (dışa aktarma sayfasız okur, ama akışla) | §20 madde 2; §10.5 madde 2; §10.10 madde 4 |
+| Göçte `Down`, `suppressTransaction`, `CONCURRENTLY`, `now()`; siparişle büyüyen tabloda `UPDATE` ya da `DELETE`; `audit_logs`'ta ekleme dışı yazım; yama sürümünde göç | §10.6 madde 2, 6, 7, 10 |
+| İşlemin içinde dış servis çağrısı | §10.7 madde 5; §20 madde 6 |
+| Bileşenin başka bileşenin veritabanı bağlantı ayarını okuması; uygulama kullanıcısıyla `Migrate` ya da `EnsureCreated` | §10.8 madde 6 |
+| Kuruş yuvarlamasını `Infrastructure/Money` dışında yapmak; ara adımda yuvarlamak | §14.1 madde 1, 4 |
+| Sağlayıcı tutarını `PaymentAmounts` dışında `decimal.Parse`, `Convert.ToDecimal`, `ToString("F2")` ya da `* 100` ile dönüştürmek | §14.2 madde 4 |
+| Refactor'la dış sözleşmeyi (adres, alan adı, sorgu parametresi, hata kodu, çerez adı, kayıt alanı adı, kapalı değer, şema) değiştirmek | §22 madde 4 |
+
+**Güvenlik ve gizlilik**
+
+| Yasak | Kuralın evi |
+|---|---|
+| Sır ya da kuruluma özgü değeri repoya, imaja ya da yapı bağlamına koymak | §4.3 madde 3; §17 madde 2 |
+| Şifre, anahtar, sır, kart verisi, IBAN, e-posta, adres, telefon, form gövdesi ve çerez değerini kayda yazmak; kayıt şablonuna kişisel veri alan adı vermek | §18.2 madde 2 |
+| Kişisel veriyi işlem izinin `Details` alanına yazmak | §9.2 madde 4 |
+| `Random`, `Guid`, zaman ya da sayaçtan anahtar ya da işaret üretmek | §15.1 madde 1 |
+| Sahtecilik korumasız POST; koruma dışı uçlar listesine gerekçesiz satır eklemek | §15.2 madde 1, 2 |
+| Ödeme bildiriminin imza ve tutar doğrulamasını işleyiciden sonraya bırakmak ya da atlamak | §11.1 madde 5 |
+| `MarkupString`, `Html.Raw` ve `HtmlString` kullanmak (e-posta ve belge ad alanlarında) | §11.4 madde 2 |
+| HTML temizleyicinin izin listesini daraltmak | §15.3 madde 5 |
+| Hata kodunu yanıtın gövdesine ya da başlığına yazmak | §8.2 madde 4 |
+
+**Ön yüz ve yardımcı servis**
+
+| Yasak | Kuralın evi |
+|---|---|
+| Sayfa başına stil dosyası; tek büyük stil dosyası; bir betik modülünün başka modülü içe aktarması | §16.1 madde 1, 3 |
+| `restic forget --prune` tek komutu | §17 |
+
+**Test ve süreç**
+
+| Yasak | Kuralın evi |
+|---|---|
+| Atlanmış (`Skip`) test; tek testi seçen bayrağın depoya girmesi; onaylamasız ve her zaman geçen onaylama | §19.2 madde 6 |
+| Gerçek saate, gerçek ağa ya da başka testin verisine dayanan test; bellek içi sağlayıcıyla "entegrasyon"; testte sır ya da gerçek kişi verisi; üretim kodunda test dalı | §19.2 (yasak paragrafı) |
+| Testsiz kritik davranış değişikliği; kritik akışa testsiz dokunmak; testi geçirmek için testi silmek, atlamak ya da zayıflatmak; sayfalı listeyi sınır testi olmadan eklemek | §19 giriş; §19.2 madde 5; §22 madde 2, 3 |
+| CI geçmeden merge; bağımsız doğrulayıcı PASS olmadan merge; karışık amaçlı PR; başka task'ın PR'ına commit gömmek | §21.3 |
+| Davranış değiştiren refactor; davranış değişikliğini "refactor" diye yazmak; kütüphane değişikliğini refactor diye sokmak | §22 madde 1, 6; §21.2 |
+| Yorumlanmış ("belki lazım olur") kod bırakmak | §22 madde 7 |
+
+**İstisna ve çatışma.** Yasağın istisnası yalnız evinde yazılıdır (ör. §3.1 madde 5'in gerekçe yorumlu tek satırı, §8.1 madde 6'nın beş yeri); başka istisna yoktur. Görev bir yasağı çiğnemeyi gerektiriyorsa ajan çiğnemez: task BLOCKED olur (`SPEC_GAP` ya da `PLAN_CORRECTION_REQUIRED`) ve çelişki bildirilir (`00 §D.8`). Tablo yasakların özetidir; bir yasak evinde değişirse bu satır aynı PR'da değişir (yazım konvansiyonu 10).
+
+*Kaynak: K-1357 · K-1302 (4) · `.claude/GUARDRAILS.md` §8 · `00 §D.8` · §1, §2, §3.1, §3.3, §4.1, §4.3, §5.1, §6, §7.1, §8.1, §8.2, §9.1, §9.2, §9.4, §10.1, §10.5…§10.8, §10.10, §11.1, §11.2, §11.4, §14, §15, §16.1, §17, §18.2, §19, §20, §21.3, §22.*
 
 ## 24. AI çalışma kuralları
 
-> **Ne yazılır:** Kod yazmadan önce hangi source-of-truth kontrol edilir · küçük diff · mevcut mimariyi bozmama · gereksiz bağımlılık eklememe · kritik akışlara özel kontroller (durum geçişi eklerken guard + yan etki + olay + denetim kaydının tamlığı gibi).
+(`09 §24` şablonu; K-1357.)
+
+Bu bölüm ajanın kodu **yazmadan önce ve yazarken** ne yaptığını söyler; kuralların kendisi §3–§22'dedir ve burada yinelenmez (yazım konvansiyonu 7). Kodu yazan her oturum — yapım, düzeltme, doğrulama — bu bölümü her görevde okur (çekirdek bölüm).
+
+1. **Okuma düzeni** (K-1302 (4)). Önce dosyanın boyutu `wc -c` ile ölçülür; 100 KB'ı aşan dosya bütün okunmaz (`INSTRUCTIONS §9` (7); hook engeller) — başlıkların satırı `grep -n '^## '` ve `grep -n '^### '` ile bulunur, bölüm `Read`'in satır aralığıyla okunur. Her görevde **çekirdek yedi bölüm** (§1, §2, §5, §6, §23, §24, §25) okunur; bunlara başlık notunun okuma tablosunda görevin dokunduğu alanın satırındaki bölümler ve Implementation Planı'nın task satırının yazdığı bölümler eklenir — ikisi ayrışırsa ikisinin birleşimi okunur. Okunan kural başka bölüme atıf yapıyorsa (tek ev — yazım konvansiyonu 7) atıf yapılan madde de okunur; bir alanın kuralı kendi bölümünde okunmadan o alanda kod yazılmaz. Okunan bölümler PR açıklamasına yazılır (§21.3).
+2. **Kaynak kontrolü — yazmadan önce.** Yazılacak şeyin kazanan dokümanı §2'nin tablosundan bulunur ve o doküman **okunur, hatırlanmaz:** görevin Kaynak sütunundaki doküman katman setinde olmasa da okunur (`00 §C.6`, kaynak-güdümlü ek). Yazılacak her ad — sembol, alan, tablo, kapalı değer, işlem, hata kodu, çerez, olay adı — sözlükte, `06 §4`, §5'te ve `07`'de aranır ve birebir alınır (§5.1; yazım konvansiyonu 2); **bulunmayan ad yazılmaz** (`SPEC_GAP`). İki dokümanın cümlesi çelişiyorsa ya da bir cümle iki okumaya açıksa ajan kazananı seçmez: kod yazılmaz, task BLOCKED olur (§2; `00 §D.8`). "Bilgim tarihli" bir çatı, paket ya da araç olgusu belgeye ya da SDK'ya karşı sınanır ve sonucu PR açıklamasına yazılır (§1; yazım konvansiyonu 3).
+3. **Küçük diff.** PR tek amaca hizmet eder (§21.3): görevin istediği değişiklik ve testleri vardır; göreve girmeyen düzeltme, yeniden adlandırma, taşıma ve biçim değişikliği aynı diff'e girmez (§22 madde 5, 6). Yazarken kapsam dışı bir sorun bulunursa düzeltilmez, kaydedilir: ertelenen iş backlog'a yazılır, bilinen riskli kod kayıtsız bırakılmaz (`.claude/GUARDRAILS.md` §8). Görevin istediğinden fazlasını — ek davranış, ek ayar, ek seçenek, "ileride lazım olur" diye yazılan kod — eklemek sessiz kapsam genişletmesidir (§23).
+4. **Mevcut mimariyi bozmama.** Yeni kalıp icat edilmez: aynı işi yapan kod varsa onun kalıbı izlenir. Aşağıdaki işlerin tek işlevi vardır; iş yazılıyorsa yeni işlev yazılmaz, o işlev çağrılır (tablo bölümlerin özetidir — yazım konvansiyonu 10):
+
+   | İş | Tek yer | Evi |
+   |---|---|---|
+   | Zamanı okumak | `TimeProvider` | §7.1 |
+   | Sipariş durumunu geçirmek | `Contracts.IOrderTransitions` | §9.1 |
+   | Veritabanı işlemini açmak | `Infrastructure/ITransactionRunner` | §9.1 madde 3 |
+   | Siparişi kilitlemek | `Ordering/OrderLocks` | §9.1 madde 5; §10.9 |
+   | İşlem izini yazmak | `Administration.Contracts.IAuditTrail` | §9.2 |
+   | Kimlik üretmek | `EntityIds.cs` | §10.1 madde 2 |
+   | Kimlik alanını normalleştirmek | `Infrastructure/TextNormalizer.NormalizeIdentity` | §9.4 |
+   | Sayfalamak | `Paging.ToPageAsync`, `PageSizes` | §10.5 |
+   | Önbelleğe almak | `Infrastructure/AppCache` | §10.4 |
+   | Veritabanı sürelerini vermek | `Infrastructure/DatabaseTimeouts` | §10.7 |
+   | Kuruşa yuvarlamak | `Infrastructure/Money` | §14.1 |
+   | Sağlayıcı tutarını dönüştürmek | `PaymentAmounts` | §14.2 |
+   | Anahtar üretmek ve özetlemek | `Infrastructure/Security/SecretKey` | §15.1 |
+
+   Tek işlevin yetmediği görülürse işlev sessizce çatallanmaz ya da kopyalanmaz; boşluk olarak bildirilir.
+5. **Gereksiz bağımlılık eklememe.** Çatının sağladığı araç varken paket eklenmez; kütüphane yalnız §3.3'ün kanıtı ve Kütüphaneler tablosundaki satırla gelir, tablonun kütüphanesiz kararlar listesi önce okunur. Lisansı, bakım kanıtını ya da koşullu lisans durumunu ajan tahminle yazmaz (§3.3 madde 8). Sürüm yalnız §3.2'nin yerinde değişir.
+6. **Kritik akış kontrolleri.** Aşağıdaki akışlara dokunan değişiklikte sağdaki bölümün **Test maddesi** de yazılır (§19). Tablo kuralı yinelemez; eksik bırakılan adımın bölümünü gösterir.
+
+   | Akış | Eklerken ya da değiştirirken tam olduğu kontrol edilir | Evi |
+   |---|---|---|
+   | Sipariş durum geçişi | `TransitionTable` satırı (`02 §5.4`, §5.5 ile eşit) · tek işlemde sabit sıra: kilit, beyaz liste, koşul, durum alanı, `TransitionRecord`, iç yan etkiler, dış yan etkiler · iç yan etki aynı işlemde, dış yan etki aynı işlemde yazılan `Job` satırı · işlem izi: `AuditOperation` kodu listede ve `AuditEntry` aynı işlemde · olay yayını değil arayüz çağrısı · durum alanını yalnız `ApplyTransition` yazar | §9.1, §9.2 |
+   | Para ve tutar | kuruşa yuvarlama yalnız `Infrastructure/Money`'de ve ara adımda yok · sağlayıcı tutarı yalnız `PaymentAmounts` işlevleriyle · karşılaştırma tek işlevde | §14.1, §14.2 |
+   | Ödeme bildirimi ve dış servis çağrısı | servis başına arayüz `Infrastructure/Integrations/` altında · sonuç sınıfı dönüş tipi, istisna sızmaz · imza ve tutar doğrulaması işleyiciden önce · süre çağrıda, katmanda yeniden deneme yok · istemci `IHttpClientFactory`'den ya da §11.2'nin e-posta istemcisi · istek gövdesi ve başlığı kayda girmez | §11.1, §11.2 |
+   | Kalıcı değer (enum, kapalı değer, işlem kodu, yük biçimi) | değer `06 §5` ya da `07 §6`'da önce yazılmış · kilit dosyası testi güncel · kod bir kez verilir · okuyan ve yazan sürüm ayrı · veritabanında kod adıyla metin ve kısıt | §12, §9.2, §10.1 |
+   | Göç ve şema | genişlet–daralt sınıfı · kendi işleminde · daraltma ön denetimli ve denetimin koşulu dönüşümle eşit · `Down` yok · tablo eklenirse kullanıcı yetkisi | §10.6, §10.8, §13.3 |
+   | Yeni liste | `ORDER BY` `Id` ile biter · `Paging.ToPageAsync` ve `PageSizes` · arama sözcüğü tek işlevden · sınır testi · yeni süzme ekseni dizinle aynı göçte | §10.5, §19.2, §20 |
+   | Yeni form, girdi ya da hata | işleyici ve model adı · doğrulama nitelikleri ve mesaj kataloğu · hata kodu `ErrorCode`'da ve gösterilmez · red uygulama kaydına kodla yazılır | §3.4, §5.3, §8.1, §8.2 |
+   | Oturum, POST ve yükleme | POST sahtecilik korumasından geçer · oturumu yazan ve silen yol tektir · deneme sınırı ve hız sınırı · görüntü ve dosya ucu kalıbı | §15 |
+   | Kişisel veri taşıyan kod | kayda iç kimlik yazılır, kişisel veri yazılmaz · işlem izinin `Details` alanı kişisel veri taşımaz · belge kopyası belirteçli · kayıtsız korumalı değerin amacı tek yerde | §18.2, §9.2, §9.3, §15.5 |
+   | Arka plan işi ve yönetim komutu | iş türü `06 §5.4.4`'te · yeniden deneme saf işlevde · tek çalışma kilidi · komut `05 §8.5`'in tablosuyla birebir | §13 |
+   | Ayar, süre, tavan | değer §3.5'in tablosunda ve tek yerde · kurulum ayarıysa `.env.example` aynı PR'da · eşitlik denetimi güncel | §3.5, §4.3, §21.4 |
+7. **Kendi çıktısını denetleme ve kanıt.** Teslimden önce ajan §25'in dokunduğu alanlara ait satırlarını kendi diff'ine uygular ve cevapları PR açıklamasındaki kanıta yazar (§21.3); "uygulanamaz" cevabı gerekçesiyle yazılır. Testlerin çalıştığının kanıtı CI'dır: CI sonucu beklenmeden "bitti" denmez, izleme kullanıcıya devredilmez, yerel sonuç CI'ın yerine konmaz (`INSTRUCTIONS §3.2`; `GUARDRAILS §8`).
+8. **Belirsizlikte durma.** Doküman cevap vermiyorsa ya da bir kural göreve uymuyorsa ajan doğaçlama yapmaz ve varsayımla ilerlemez: BLOCKED akışı işler — kayıt, etki analizi, proje sahibine sunum, karar (`00 §D.8`). En yakın "makul" çözümü yazıp geçmek yasaktır (§23).
+
+*Kaynak: K-1357 · K-1302 (4) · `00 §C.6`, §D.8 · `INSTRUCTIONS §3.2`, §9 · `GUARDRAILS §8` · §1, §2, §3.1…§3.5, §4.3, §5, §6, §7.1, §8, §9, §10, §11, §12, §13.3, §14, §15, §18.2, §19, §20, §21, §22, §23, §25.*
 
 ## 25. Review checklist
 
-> **Ne yazılır:** Her kod tesliminde sorulacak sorular — doküman uyumu, mimari, durum/olay, güvenlik, test, performans.
+(`09 §25` şablonu; K-1357.)
+
+Bu liste her kod tesliminde — yapım PR'ında ve bağımsız doğrulamada — sorulur. Sağ sütun kuralın bölümünü gösterir; kural burada yinelenmez, soru onu hatırlatır (yazım konvansiyonu 4, 7). Sorular "evet"in doğru cevap olduğu biçimde kurulmuştur: **evet** kural uygulandı, **hayır** düzeltilir ve düzeltilmeden kabul edilmez, **uygulanamaz** PR o alana dokunmuyor demektir (gerekçesiyle yazılır); boş cevap yoktur. Yapım PR'ı dokunduğu alanların cevabını açıklamasındaki kanıta yazar (§21.3; §24 madde 7), doğrulayıcı kanıtı kodda yeniden sınar. Bir bölümde kural değişirse sorusu aynı PR'da değişir; yeni bir kuralın sorusu o kuralı yazan PR'da eklenir (yazım konvansiyonu 10).
+
+**Doküman uyumu ve kapsam**
+
+| Soru | Bölüm |
+|---|---|
+| Görevin Kaynak sütunundaki dokümanlar ve okuma tablosunun bölümleri okunmuş, okunanlar açıklamada yazılı mı? | §24 madde 1 |
+| Koddaki her yeni ad sözlükten, `06 §4`, §5'ten ve `07`'den birebir mi; bulunmayan ad yok mu? | §1; §5.1; §24 madde 2 |
+| Kod hiçbir doküman cümlesiyle çelişmiyor mu; çelişki ya da boşluk varsa BLOCKED bildirilmiş mi? | §2; §24 madde 8 |
+| Diff yalnız görevin istediğini mi içeriyor (ek davranış, ek ayar, kapsam dışı düzeltme yok mu)? | §23; §24 madde 3 |
+| "Bilgim tarihli" her olgu belgeye karşı doğrulanmış ve sonucu açıklamada mı? | §1; yazım konvansiyonu 3 |
+| Yeni ayar, süre, tavan ya da ürün sabiti §3.5'in tablosunda mı; `.env.example` aynı PR'da güncel mi? | §3.5; §4.3 madde 3 |
+
+**Mimari ve kod**
+
+| Soru | Bölüm |
+|---|---|
+| Yeni dosya ve proje §4.1'in düzeninde mi; klasör düzeni değiştiyse `CONTEXT.md` §3 aynı PR'da güncel mi? | §4.1; §4.2 |
+| Modül sınırları korunuyor mu — yalnız `Contracts`'a başvuru, sayfada `DbContext` yok, arayüz metodunda `SaveChanges` yok; mimari testler yeşil mi? | §6 |
+| Aynı işi yapan tek işlev varsa yeni işlev yazılmadan o çağrılmış mı? | §24 madde 4 |
+| C# standartları ve derleme ayarları uygulanmış mı (`!`, `async void`, `dynamic`, uyarı bastırma kuralına uygun mu)? | §3.1 |
+| Zaman yalnız `TimeProvider`'dan okunuyor, tarih ve tutar biçimi kurala uygun mu? | §7 |
+| Yeni paket varsa tablo satırı, kanıt ve lisans ölçütü tamam, sürüm §3.2'nin yerinde mi? | §3.2; §3.3 |
+| Dış servis çağrısı `Infrastructure/Integrations/` arayüzünde, sonuç sınıfıyla mı; imza ve tutar doğrulaması işleyiciden önce mi? | §11 |
+| İstisna yalnız beklenmeyen hâlde mi; geniş `catch` beş yerin dışında yok mu; hata kodu kayıtlı, gösterilmiyor ve red uygulama kaydında mı? | §8 |
+| Ön yüz kodu dosya düzenine, adlandırmaya ve betiksiz yolun form kalıplarına uyuyor mu? | §16 |
+
+**Durum, olay ve işlem izi**
+
+| Soru | Bölüm |
+|---|---|
+| Durum değişikliği yalnız geçiş birimiyle mi; yeni geçiş `TransitionTable`'da ve `02 §5.4`, §5.5 ile eşit mi? | §9.1 |
+| Geçişte işlem sırası sabit mi; iç yan etki aynı işlemde, dış yan etki aynı işlemde yazılan `Job` satırı mı; olay yayını eklenmemiş mi? | §9.1 |
+| Yeni işlem `AuditOperation` kod listesinde ve işlem izi aynı işlemde mi; `Details` kişisel veri taşımıyor mu? | §9.2 |
+| Eşzamanlılık doğru mu — sürüm sütunu, koşullu güncelleme, danışma kilidi, bölüm sürümü ve iç notun kilidi yerinde mi? | §10.2; §10.3; §10.9 |
+| Arka plan işi ve yönetim komutu kalıba uyuyor mu (iş türü kayıtlı, yeniden deneme saf işlevde, komut tabloyla birebir)? | §13 |
+| Para hesabı yalnız `Infrastructure/Money` ve `PaymentAmounts` işlevlerinden mi? | §14 |
+
+**Veri ve göç**
+
+| Soru | Bölüm |
+|---|---|
+| Her yabancı anahtarın silme davranışı açık mı; anahtar `EntityIds.cs`'ten mi; enum kod adıyla metin olarak ve kısıtlı mı? | §10.1 |
+| Yeni sayfalı liste `ORDER BY`'ı `Id` ile bitiriyor, `Paging.ToPageAsync` ve `PageSizes` kullanıyor ve sınır testi var mı? | §10.5; §19.2 madde 5 |
+| Önbellek yalnız `AppCache`'te mi; geçersiz kılma işlem kesinleştikten sonra mı? | §10.4 |
+| Göç taşıyan PR — her göç genişletme mi, daraltma mı belli mi; daraltmaysa önceki sürümün kodu o yapıyı kullanmıyor mu? | §10.6 |
+| Göç taşıyan PR — yeni değer, okuyan sürüm ve yazan sürüm olarak ardışık iki sürüme bölünmüş mü? | §10.6; §12 |
+| Göç taşıyan PR — `Down`, `suppressTransaction`, `CONCURRENTLY` ve `now()` yok mu? | §10.6 |
+| Göç taşıyan PR — siparişle büyüyen tabloda `UPDATE` ya da `DELETE` yok mu; `audit_logs`'a yalnız ekleme mi? | §10.6 |
+| Göç taşıyan PR — kaldıran göç ön denetimle başlıyor mu ve denetimin koşulu dönüşümün dönüşmemiş koşuluyla eşit mi? | §10.6; §13.3 madde 6 |
+| Göç taşıyan PR — kullanıcı adı rol ayarıyla geliyor, eklenti kurulumu göçe yazılmamış mı? | §10.6; §10.8 |
+| Kullanıcı ya da tablo ekleyen PR — yeni tablo varsayılan yetkiyle doğru mu; değilse istisna tablosu ve test güncel mi? | §10.8 |
+| Kullanıcı ya da tablo ekleyen PR — uygulama kullanıcısına şema, süper kullanıcı ya da izleme yetkisi eklenmemiş mi; hiçbir bileşen başka bileşenin sırrını almıyor mu? | §10.8; `05 §6.x.8` |
+| Değer ekleyen PR — kilit dosyasındaki her ekleme ya da çıkarma değerdeki değişiklikle eşleşiyor mu? | §12 |
+| Değer ekleyen PR — değer `07 §6` ya da `06 §5`'te önce yazılmış mı? | §12; §5.3 madde 4 |
+| Değer ekleyen PR — yük biçimine alan eklenmişse alan boşalabilir mi ve eski satırın örneği eklenmiş mi? | §12 |
+| Değer ekleyen PR — değer kaldırılıyorsa daraltma göçü ön denetimli mi? | §12; §10.6 |
+
+**Güvenlik**
+
+| Soru | Bölüm |
+|---|---|
+| Repoda, imajda ve kayıtta sır ve kişisel veri yok mu (kayda iç kimlik yazılıyor, kayıt şablonunda kişisel veri alan adı yok mu)? | §4.3 madde 3; §18.2 madde 2 |
+| Yeni POST sahtecilik korumasından geçiyor mu; koruma dışı uçlar listesi gerekçesiz genişlememiş mi? | §15.2 |
+| Yetkilendirme sunucu tarafında mı denetleniyor? | `.claude/GUARDRAILS.md` §8 |
+| Yeni giriş ya da deneme yüzeyi hız sınırı ve deneme sınırı kapsamında mı? | §15.4 |
+| Anahtar ve işaret `SecretKey`'den mi üretiliyor (`Random`, `Guid` kullanılmıyor mu)? | §15.1 |
+| Kullanıcı HTML metni temizleyiciden geçiyor mu; `rich-text-allowlist.json` anlık görüntüsünden satır silinmemiş ya da değiştirilmemiş mi? | §15.3 |
+| Yükleme ve dosya ucu görüntü işleme sırasına ve dosya uçlarının kalıbına uyuyor mu? | §15.6; §15.7 |
+| E-posta ve belge metninde kaçış gösterim kanalında mı (`Html.Raw`, `MarkupString` ve `HtmlString` yok mu)? | §11.4 |
+| Kayıtsız korumalı değer kendi amaç dizgesiyle mi korunuyor? | §15.5 |
+
+**Test**
+
+| Soru | Bölüm |
+|---|---|
+| Yeni ya da değişen her kuralın bölümündeki Test maddesi karşılanmış mı? | §19 giriş |
+| Kritik akışa dokunan değişiklik davranışı kilitleyen testle mi başlıyor; testler silinmemiş, atlanmamış ve zayıflatılmamış mı? | §22 madde 2, 3; §19.2 madde 6 |
+| Test doğru katmanda mı (veritabanına dayanan davranış gerçek PostgreSQL'de), sahteler `UnitTests/Fakes/`'ten mi; gerçek saat, ağ ve sır yok mu? | §19.1; §19.2 |
+| Yeni yasak ya da mimari kural için mimari test ya da kaynak taraması var ve kasıtlı ihlalli örnekle kırmızı olduğu gösterilmiş mi? | §19.2 madde 3; §6 madde 4 |
+| Eşitlik denetimlerini etkileyen değişiklikte (kütüphane tablosu, parametre envanteri, hata kodu envanteri, geçiş listesi, işaretli işlem listesi) tablo ve denetim güncel mi? | §21.4 madde 1 |
+
+**Performans**
+
+| Soru | Bölüm |
+|---|---|
+| Büyüyen küme sayfalı mı; okuma sorgusu izlemesiz ve projeksiyonlu mu; döngüde sorgu yok mu? | §20 madde 2–4 |
+| Yeni süzme ekseni dizinle aynı göçte mi; işlemde ağ çağrısı yok mu; dosya akışla mı işleniyor? | §20 madde 5–7 |
+| Eşzamansız yol `.Result` ya da `.Wait()` ile engellenmiyor mu; önbellek yalnız §10.4'te mi? | §20 madde 8, 9 |
+| Performans iddiası ölçümle mi yazılmış? | §20 madde 10 |
+
+**Git ve süreç**
+
+| Soru | Bölüm |
+|---|---|
+| PR tek amaçlı mı; dal, commit mesajı ve PR açıklaması kurala uygun mu? | §21.1…§21.3 |
+| CI yeşil mi ve sonucu beklenmiş mi? | §21.3; §21.4 |
+| Yama sürümü göç taşımıyor mu (istisna: etiket mesajındaki `migration-fix: K-<numara>` satırı)? | §10.6 madde 7; §21.4 madde 2 |
+| Refactor davranış değiştirmiyor mu; taşıma, yeniden adlandırma ve biçim düzeltmesi ayrı commit mi; yorumlanmış kod yok mu? | §22 |
+
+*Kaynak: K-1357 · K-1302 (3) · `.claude/GUARDRAILS.md` §8 · §1…§22; göç, kullanıcı ve değer sorularının metni önceki bölümlerden taşındı (§10.6, §10.8, §12; K-1340, K-1343, K-1348).*
 
 ---
 
-*Shopfolio — Coding Guidelines v0.2*
+*Shopfolio — Coding Guidelines v0.15*

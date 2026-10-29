@@ -130,6 +130,8 @@ Eksik girdi yok; Aşama 8 açılışı bu tabloyu ve çakışma taramasının §
 
 ## 5. Proje sahibinin gözden geçirme listesi
 
+> **Sonuç (2026-10-29, K-1299):** otuz ⚠ karar proje sahibine tek mesajda gösterildi; itiraz yok. Otuz işaret `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-29, itiraz yok)` oldu.
+
 Bu checkpoint yeni ⚠ karar eklemedi (yeni karar yok). Liste çakışma taramasının sayımıyla aynıdır: **30 karar** (`PHASE7_CONFLICT_SCAN.md` §4.1 — hazır metin orada). **Kapı:** arşiv işaretinden önce, tek mesajda, karar başına bir sade cümleyle ve gerekçesiz (`INSTRUCTIONS.md` §2, §9 işletim kuralı 3). Gösterim yöneticidedir.
 
 ---

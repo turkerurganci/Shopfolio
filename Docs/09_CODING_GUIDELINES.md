@@ -1,6 +1,6 @@
 # Shopfolio — Coding Guidelines
 
-**Versiyon: v0.4** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
+**Versiyon: v0.5** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
 
 > **Aşama:** 8 — Kodlama Kılavuzu · **Rol:** Tech Lead
 > **Amaç:** Ajanın tutarlı kod üretmesi. Bu doküman **her kodlama görevinde** ajana verilir.
@@ -68,9 +68,9 @@
 > - **K-1245 · K-1272 · K-1281 · K-1292 · Google kimlik belirtecinin doğrulanması (Entegrasyon Spesifikasyonları `08 §2.3`):** kod değişiminin adresi sabittir, keşiften okunmaz; keşif belgesinden yalnız `issuer` ve `jwks_uri` alınır, çatı keşif belgesini ve anahtar kümesini önbelleğe alır ve her girişte yeniden çekmez — çatının işleyicisi keşif belgesini varsayılan olarak başlatmada çekiyorsa adresler sabit olarak yapılandırılır; önbelleğin tazeleme biçimi çatının davranışıdır ve ilk bağlanan task'ta doğrulanır (bilgim tarihli; `08` DV-31) · `exp` için saat sapması toleransı çatının ayarıdır ve değeri bu dokümanın işidir; `auth_time` toleranssız karşılaştırılır · `userinfo` çağrılmaz; kimlik belirtecinin alanlarından yalnız alan eşlemesinin saydıkları okunur (`hd` dahil — Google'ın adres için yetkili olup olmadığı buradan okunur) ve `sub` saklanmaz (K-1061).
 > - **K-1027 · K-1271 · Değişken metnin kaçışı (Entegrasyon Spesifikasyonları `08 §2.2.6` — B-1'in iki yasal metninin yerleşimi, madde 4; §2.2.4):** e-postaya ve belgeye giren her değer — firmanın ayarı, kalemin adı, yer tutucunun müşteri değeri — HTML'de kaçışlanır, düz metinde satır sonu karakterleri boşluğa çevrilir; metin ham HTML olarak basılmaz, biçim yalnız şablonun kendi yapısıdır ve bağlantı yalnız `https`, `http` ve `mailto` şemasını taşır (`05 §6.5.3`) · değerin donmuş kopyada kaçışlı mı saklandığı, gösterimde mi kaçışlandığı bu aşamanın kararıdır; sipariş sayfasındaki gösterim aynı kuralı izler (K-1027 (4), (5)).
 
-> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.4).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. ve 2. oturum yöneticinin kararıyla baştan ikiye bölündü (`INSTRUCTIONS §9` (8)): Y-1a ve Y-1b, Y-2a (§7, §8) ve Y-2b (§9). **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330); Y-1b — §4, §5, §6 (K-1331, K-1332); Y-2a — §7, §8 (K-1333, K-1334). **Sırada:** Y-2b — §9, 3. oturum §10, 4. oturum §11–§14, 5. oturum §15–§18, 6. oturum §19–§25 (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
+> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.5).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. ve 2. oturum yöneticinin kararıyla baştan ikiye bölündü (`INSTRUCTIONS §9` (8)): Y-1a ve Y-1b, Y-2a (§7, §8) ve Y-2b (§9). **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330); Y-1b — §4, §5, §6 (K-1331, K-1332); Y-2a — §7, §8 (K-1333, K-1334); Y-2b — §9 (K-1335, K-1336). **Sırada:** 3. oturum §10, 4. oturum §11–§14, 5. oturum §15–§18, 6. oturum §19–§25 (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
 >
-> **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P1.1 (terim sözlüğünün devralınması — §5.1); P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu); P6.2 (girdi doğrulama süzgeci §3.4, model ve işleyici adları §5.3, hata kodlarının kaydı ve gösterilmemesi §8.2); P6.6 (işleyici adları §5.3, istekteki değerin biçimi ve bağlama kalıbı §7.2). **Kısmen kapandı:** P4.2 — sayfaların düzeni §4.1'de yazıldı, ön yüz dosya düzeni §16'da; P4.3 — modül sınırlarının korunması ve dosya deposu arayüzü §6'da yazıldı, önbellek ve kuşak sayacının kalıbı §10.4'te; P4.5 — mimari testle korunan kısım §6'da, zamanın tek kaynağı ve sınanabilirliği §7.1'de yazıldı, geçiş birimi ve iş kuyruğunun kalıbı §9 ve §13'te; P4.7 — hatanın üç hâli ve sonucu belirsiz işlem §8.1'de yazıldı, kayıt kütüphanesi ve kayıt alanları §18'de; P4.8 — dosya düzeni ve test projelerinin ayrımı §4.1 ve §4.3'te yazıldı, test araçları §19'da; P4.9 — ayarlar ve ürün sabitleri §3.5'te yazıldı, yönetim komutları §13'te; P4.13 — iki imajın derleme dosyalarının yeri §4.3'te yazıldı, içerikleri §17'de; P5.2 — adlandırma kuralının uygulanışı §5.2'de yazıldı, anahtar üretimi ve enum §10.1'de; P5.8 — veri koruma paketinin varlığına adlandırmanın uygulanışı §5.2'de yazıldı, kullanıcıların ve yetkisinin biçimi §10.8'de; P6.1 — işleyici adları ve sayfa düzeni §5.3 ve §4.1'de yazıldı, kimlik şemaları §15.1'de; P6.10 — model ve hata kodu adları §5.3'te, hata kodlarının kaydı §8.2'de yazıldı; kayıt alanlarının adları §18.2'de, kodun sürümlenmesi §12'de. **Açık:** öteki yirmi beş madde — yazılacakları bölümün oturumunda kapanır.
+> **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P1.1 (terim sözlüğünün devralınması — §5.1); P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu); P6.2 (girdi doğrulama süzgeci §3.4, model ve işleyici adları §5.3, hata kodlarının kaydı ve gösterilmemesi §8.2); P6.6 (işleyici adları §5.3, istekteki değerin biçimi ve bağlama kalıbı §7.2); P5.9 (kategori düzeyinin yazılışı — §9.4). **Kısmen kapandı:** P4.2 — sayfaların düzeni §4.1'de yazıldı, ön yüz dosya düzeni §16'da; P4.3 — modül sınırlarının korunması ve dosya deposu arayüzü §6'da yazıldı, önbellek ve kuşak sayacının kalıbı §10.4'te; P4.5 — mimari testle korunan kısım §6'da, zamanın tek kaynağı ve sınanabilirliği §7.1'de yazıldı, geçiş biriminin ve yan etkinin yeri §9.1'de yazıldı, iş kuyruğunun kalıbı §13'te; P4.7 — hatanın üç hâli ve sonucu belirsiz işlem §8.1'de yazıldı, kayıt kütüphanesi ve kayıt alanları §18'de; P4.8 — dosya düzeni ve test projelerinin ayrımı §4.1 ve §4.3'te yazıldı, test araçları §19'da; P4.9 — ayarlar ve ürün sabitleri §3.5'te yazıldı, yönetim komutları §13'te; P4.13 — iki imajın derleme dosyalarının yeri §4.3'te yazıldı, içerikleri §17'de; P5.2 — adlandırma kuralının uygulanışı §5.2'de yazıldı, anahtar üretimi ve enum §10.1'de; P5.3 — normalleştirme ve kategori düzeyi §9.4'te yazıldı, sürüm ve sayaç §10.2'de; P5.6 — kopya ve doldurma §9.3'te yazıldı, şablon sürüm kimliği §11.4'te; P5.7 — kod adları ve imha göçü §9.2'de yazıldı, kodun sürümlenmesi §12'de; P5.8 — veri koruma paketinin varlığına adlandırmanın uygulanışı §5.2'de yazıldı, kullanıcıların ve yetkisinin biçimi §10.8'de; P6.1 — işleyici adları ve sayfa düzeni §5.3 ve §4.1'de yazıldı, kimlik şemaları §15.1'de; P6.10 — model ve hata kodu adları §5.3'te, hata kodlarının kaydı §8.2'de yazıldı; kayıt alanlarının adları §18.2'de, kodun sürümlenmesi §12'de. **Açık:** öteki yirmi bir madde — yazılacakları bölümün oturumunda kapanır.
 
 **Yazım konvansiyonları (K-1302, K-1329).** Bu on madde §1–§25'in bütün yazım oturumlarını bağlar; "yazım konvansiyonu n" diye anılır.
 
@@ -98,7 +98,7 @@
 | §6 Mimari sınırlar | Modül sınırlarının kodda korunması ve dosya deposu arayüzü (alt bölümsüz) | Y-1b ✓ |
 | §7 Zaman ve biçim standartları | 7.1 Tek zaman kaynağı · 7.2 İstekteki tarih, tutar ve ondalık biçimi | Y-2a ✓ |
 | §8 Hata yönetimi | 8.1 Tek yakalama katmanı, üç hâl, sonucu belirsiz işlem · 8.2 Hata kodlarının kaydı ve gösterilmemesi | Y-2a ✓ |
-| §9 Domain kuralları | 9.1 Geçiş birimi, beyaz liste, yan etki · 9.2 İşlem izinin kod adları · 9.3 Belgenin kişisel verisiz kopyası · 9.4 Tek işlevler | Y-2b |
+| §9 Domain kuralları | 9.1 Geçiş birimi, beyaz liste, yan etki · 9.2 İşlem izinin kod adları · 9.3 Belgenin kişisel verisiz kopyası · 9.4 Tek işlevler | Y-2b ✓ |
 | §10 Veri erişimi | 10.1 Silme davranışı, anahtar, enum · 10.2 Sürüm, eşzamanlılık, sayaç · 10.3 Bölüm sürümünün çatıda eşlenişi · 10.4 Önbellek ve kuşak sayacı · 10.5 Liste sırası, sayfalama, arama sözcüğü · 10.6 Göçlerin yazılışı · 10.7 Veritabanı oturumunun süreleri · 10.8 Veritabanı kullanıcıları · 10.9 İç notun kilidi · 10.10 Dışa aktarma dosyası | 3 |
 | §11 Entegrasyon kuralları | 11.1 Bağlantı katmanının kalıbı · 11.2 Dış servis istemcileri · 11.3 Google kimlik belirteci · 11.4 E-posta ve belge metninin üretimi | 4 |
 | §12 Sözleşme ve olay sürümleme | Değerlerin sürümlenmesi (alt bölümsüz) | 4 |
@@ -122,7 +122,7 @@
 | Çözüm, proje, klasör, imaj, Compose | §4 |
 | Zaman, tarih, tutar biçimi | §7 |
 | Hata yakalama, hata kodu | §8 |
-| Durum geçişi, yan etki, belge kopyası, tek işlev | §9 |
+| Durum geçişi, yan etki, işlem izi, belge kopyası, tek işlev | §9 |
 | Veritabanı, varlık, göç, sorgu, sürüm, önbellek, dışa aktarma | §10 (yeni değer eklenirse §12) |
 | Dış servis çağrısı, e-posta, belge metni, Google girişi | §11, §14 (tutar dönüşümü) |
 | İş kuyruğu, arka plan işi, yönetim komutu | §13 |
@@ -176,6 +176,9 @@ Bu dokümanın yazımında `02`–`08` ve `10`'a dönen her fark bir satırla iz
 | `05 §6.5.3` (taşıyıcı etiketler set dışı sayılmaz) | v0.37 | K-1318 |
 | `06 §2.10.2` (paragraf ve satır sonu yazımda düşmez) | v0.39 | K-1318 |
 | `05 §3.8.2` (genişlik sınıfı sınırlarının tek tanımı; kullanım başka dosyada olabilir) | v0.38 | K-1326 |
+| `06 §4.63` (imha fonksiyonunun imzası — ikinci parametre `as_of`) | v0.40 | K-1335 |
+
+**Anahtar terim taraması (K-1335).** İmza değişikliğinin terimleri bütün `Docs/`'ta arandı: `dispose_expired_audit_logs` ve `max_rows`. `06 §4.63` imzayı taşır ve güncellendi; `06 §7.3.3` ile imha fonksiyonunu adıyla anan `06` satırı imzayı yazmaz, değişmez; `05 §7.5.1` ve `§4.7.3` fonksiyonu adsız ve imzasız anar ("süreyi kendisi hesaplar" cümlesi `as_of` ile de doğrudur), değişmez; bu dokümanın park bloğundaki K-1067 satırı talimattır ve değişmez; karar kaydındaki eski K satırları tarihçedir ve değişmez. Kalan eşleşme yoktur.
 
 ## 3. Genel kod yazım kuralları
 
@@ -311,6 +314,7 @@ Parametrenin üç katmanı (`02 §10.1.3`, `05 §8.4`; K-412) kodda üç ayrı e
 | Ters vekilin dışa aktarma yollarında yanıt başlığı bekleme süresi 150 saniye | Ters vekil yapılandırması (ürünle gelir) | K-1321 (9) |
 | Geçici dışa aktarma dosyasının süpürme yaşı 1 saat | Kodda sabit | K-1321 (7) |
 | İş kuyruğu çalıştırıcısının kuyruğa bakma aralığı 5 saniye | Kodda sabit | K-889 |
+| Tekil dizin çakışmasında işlemin yeniden yürütülmesi: ilk deneme dahil en çok 3 deneme | Kodda sabit | K-1336 |
 
 Çelişki taraması (K-1328 (6)): 15 saniyelik kullanıcı çağrısı 20 saniyelik komut aşımından kısadır; 120 saniyelik üretim tavanı 15 saniyelik sayfa sorgularının toplamından uzundur; 150 saniyelik ters vekil süresi 120 saniyelik tavanı taşır.
 
@@ -492,7 +496,7 @@ Sınır dokuz modül arasındadır (`05 §3.3`); derleyici korumaz (§4.1), mima
 
 1. **Açık yüzey bir `Contracts` ad alanıdır.** Her modülün başka modüle verdiği yüzey `Shopfolio.Modules.<Modül>.Contracts` ad alanındadır: genel arayüzler ve onların aldığı ve verdiği **değişmez `record`'lar**. Varlıklar `Contracts`'tan dışarı çıkmaz. Modülün geri kalanı — varlıklar, iş mantığı, yapılandırmalar, kuyruk işleyicileri — `internal` olur.
 2. **Başvuru kuralı.** Bir modül ötekine yalnız onun `Contracts` ad alanından başvurur — alan, parametre, dönüş türü ve metot gövdesindeki çağrı dahil. Başka modülün varlığına **veritabanı bağlamı üzerinden de dokunulmaz.** Sayfalar, yönetim komutları ve arka plan işleri de yalnız `Contracts`'a başvurur ve veritabanı bağlamına ya da varlığa dokunmaz (`05 §3.3.12`). Ortak altyapı modül türlerine başvurmaz.
-3. **Kayıt ve kullanım.** Her modül `Add<Modül>Module` uzantısıyla kendi hizmetlerini kaydeder (`AddOrderingModule`); `Program.cs` dokuzunu çağırır. Arayüz kurucudan enjekte edilir. **Arayüz metodu kendi veritabanı işlemini açmaz ve kesinleştirmez** — çağıranın işlemine katılır (`05 §3.4.2`); işlemin sahibi §9'dadır (yazım 2).
+3. **Kayıt ve kullanım.** Her modül `Add<Modül>Module` uzantısıyla kendi hizmetlerini kaydeder (`AddOrderingModule`); `Program.cs` dokuzunu çağırır. Arayüz kurucudan enjekte edilir. **Arayüz metodu kendi veritabanı işlemini açmaz ve kesinleştirmez** — çağıranın işlemine katılır (`05 §3.4.2`); işlemin sahibi §9.1, madde 3'tedir.
 
    ```csharp
    // Yanlış: sayfa, katalog modülünün varlığına bağlam üzerinden dokunuyor (kural 2'yi bozar).
@@ -508,7 +512,7 @@ Sınır dokuz modül arasındadır (`05 §3.3`); derleyici korumaz (§4.1), mima
    // UnitTests/Architecture/ModuleBoundaryTests.cs — ArchUnitNET API'si bilgim tarihli, ilk task'ta doğrulanır.
    // Kalıp: Modules.Ordering içindeki hiçbir tür Modules.Catalog'un Contracts dışındaki bir türüne bağımlı olamaz.
    ```
-5. **Tek yazıcı kuralı** (`05 §3.4.4`) mimari testle sınanamaz; kalıbı ve sınaması §9.1'dedir (yazım 2).
+5. **Tek yazıcı kuralı** (`05 §3.4.4`) mimari testle sınanamaz; kalıbı ve sınaması §9.1, madde 8'dedir.
 6. **Dosya deposu arayüzü ortak altyapıdadır** (`Infrastructure/`; `05 §7.7.1`, K-1332). Görseller ve dijital ürün dosyaları iki bölümdür; bölüm kapalı bir değerdir (`FileArea`: `Image`, `DigitalFile`). İmza:
 
    ```csharp
@@ -537,7 +541,7 @@ Zamanın kaynağı ve temsili `05 §7.2`'dedir; istekteki tarih ve tutarın biç
 
 ### 7.1 Tek zaman kaynağı
 
-1. **Zaman tek kaynaktan okunur: `TimeProvider`** (`System` ad alanı, .NET 8'den; bilgim tarihli). Uygulama `TimeProvider.System`'i bir kez tekil olarak kaydeder (`Infrastructure/`; `05 §7.2.4`); zamana ihtiyaç duyan sınıf `TimeProvider`'ı kurucudan alır ve anı `GetUtcNow()` ile okur. Başka okuma yolu yoktur: `DateTime.Now`, `DateTime.UtcNow`, `DateTime.Today`, `DateTimeOffset.Now`, `DateTimeOffset.UtcNow` ve `TimeZoneInfo.Local` uygulama kodunda çağrılmaz. **Veritabanı da zaman kaynağı değildir:** SQL'de `now()`, `current_timestamp`, `clock_timestamp()` yazılmaz ve sütun varsayılanı olarak an atanmaz; uygulamanın okuduğu an sorguya parametre olarak verilir — "zamanı gelmiş kayıtlar" sorgusu dahil (`05 §5.1.1`) — ve oluşturulma anını (`created_at`, `06 §2.8.4`) uygulama yazar. İmha fonksiyonunun (`06 §2.2.3`) anı nasıl aldığı §10'da (yazım 3) yazılır; kural aynıdır: an uygulamadan gelir. Süre ölçümü (bir isteğin süresi gibi) iş zamanı değildir; `Stopwatch` kullanılabilir. Döngülerin bekleme aralığı (`PeriodicTimer`, `Task.Delay`) iş zamanını belirlemez — iş zamanı kaydın kendi anıdır (`05 §5.1.1`).
+1. **Zaman tek kaynaktan okunur: `TimeProvider`** (`System` ad alanı, .NET 8'den; bilgim tarihli). Uygulama `TimeProvider.System`'i bir kez tekil olarak kaydeder (`Infrastructure/`; `05 §7.2.4`); zamana ihtiyaç duyan sınıf `TimeProvider`'ı kurucudan alır ve anı `GetUtcNow()` ile okur. Başka okuma yolu yoktur: `DateTime.Now`, `DateTime.UtcNow`, `DateTime.Today`, `DateTimeOffset.Now`, `DateTimeOffset.UtcNow` ve `TimeZoneInfo.Local` uygulama kodunda çağrılmaz. **Veritabanı da zaman kaynağı değildir:** SQL'de `now()`, `current_timestamp`, `clock_timestamp()` yazılmaz ve sütun varsayılanı olarak an atanmaz; uygulamanın okuduğu an sorguya parametre olarak verilir — "zamanı gelmiş kayıtlar" sorgusu dahil (`05 §5.1.1`) — ve oluşturulma anını (`created_at`, `06 §2.8.4`) uygulama yazar. İmha fonksiyonunun (`06 §2.2.3`) anı nasıl aldığı §9.2, madde 6'da yazılır; kural aynıdır: an uygulamadan gelir. Süre ölçümü (bir isteğin süresi gibi) iş zamanı değildir; `Stopwatch` kullanılabilir. Döngülerin bekleme aralığı (`PeriodicTimer`, `Task.Delay`) iş zamanını belirlemez — iş zamanı kaydın kendi anıdır (`05 §5.1.1`).
 
    ```csharp
    // Yanlış: sunucunun saatine ve saat dilimine bağlı; sınanamaz.
@@ -609,7 +613,7 @@ Beklenmeyen hatanın ekranı `04 §2.7.3`'te, mekanizması `05 §10.3`'te, HTTP 
 
    Makine ucu işleyicinin üzerindeki bir nitelikle işaretlidir; ayrım istek yolundan türetilmez. Katman yalnız bu dört satırı üretir; çatının kendi yanıtları (405, 416, işleyicisi bulunamayan POST) katmana düşmez ve davranışı Doğrulama Protokolü'nün senaryosuyla sabitlenir (`07 §2.7.1`).
 4. **Sonucu belirsiz işlem kodda adıyla işaretlidir:** işleyici metodunda bir nitelik (`[OutcomeUncertain]`) taşır; işaretli işlemlerin listesi `04` 2.7.3.3 ve `07 §6.4.2`'dir (sipariş onayı, müşterinin geri alınamaz dört işlemi, e-posta değişikliğinin geri alınması, yöneticinin onay isteyen işlemleri). İşaretli işlemde hata **nerede olursa olsun** — işlemin içinde, kesinleşmeden sonra, yanıt üretilirken — katman 303 ile sonucu gösteren ekrana yönlendirir; hedef ekran `07 §6.4.2`'nin satırıdır ve hesap türüne bağlı hedef (sipariş onayında üyede `/hesap/siparisler`, misafirde `/siparis-takibi`) hedefi seçen tek yöntemle sayfa modelinde yazılır. Listede olmayan formun işlemi işlem düzeyidir (`05 §10.3.7`, "kalan durum"). İşaretli işleyici kümesi `07 §6.4.2`'nin UC listesine eşit tutulur (eşitliğin denetim betiği §21'dedir, yazım 6 — iş adı: işaretli işlem listesi eşitliği denetimi).
-5. **İşlemi geri almak kodun işi değildir, kesinleştirmemektir.** Veritabanı işleminin sahibi §9'dadır (yazım 2); katman işlem kesinleştirmez, kesinleşmemiş işlem istisnayla elden çıkar ve geri alınır. `finally` içinde kesinleştirme çağrısı yazılmaz.
+5. **İşlemi geri almak kodun işi değildir, kesinleştirmemektir.** Veritabanı işleminin sahibi §9.1, madde 3'tedir; katman işlem kesinleştirmez, kesinleşmemiş işlem istisnayla elden çıkar ve geri alınır. `finally` içinde kesinleştirme çağrısı yazılmaz.
 6. **Geniş `catch` yalnız üç yerdedir:** yakalama katmanı; iş kuyruğunun satır döngüsü — bir satırın hatası satıra yazılır, döngü durmaz (`05 §4.3.2`; §13, yazım 4); dış servis bağlantı katmanlarının sonuç eşlemesi — özel durum sonuç sınıfına çevrilir, hiçbiri dışarı sızmaz (`08 §2.1.8`; §11, yazım 4). Başka yerde `catch (Exception)`, türsüz `catch` ve hatayı yutan `catch` yoktur; bilinen bir istisnayı bilinen bir reddin sonucuna çevirmek için belirli türü yakalamak serbesttir. Kural yerleşik çözümleyiciyle zorlanır: `.editorconfig`'te CA1031'in önem derecesi `error`'dır (bilgim tarihli; ilk task'ta doğrulanır) ve üç yerin bastırması gerekçesini taşır (§3.1, madde 3). Arka plan hizmetinin hatasını yok sayan ayar kullanılmaz (§13).
 
    ```csharp
@@ -639,7 +643,118 @@ Beklenmeyen hatanın ekranı `04 §2.7.3`'te, mekanizması `05 §10.3`'te, HTTP 
 
 ## 9. Domain kuralları
 
-> **Ne yazılır:** Durum makinesi kullanımı, geçiş koruma, yan etki yerleşimi, olay yayını, denetim kaydı.
+Bu bölüm durum geçişinin, yan etkinin, işlem izinin, belge kopyasının ve tek işlevlerin **nasıl kodlandığını** yazar; kuralın kendisini yinelemez. Kural kaynaktadır: geçiş tabloları `05 §4.1`, `06 §5.2`; yan etki sırası `05 §4.3`, `05 §3.4`; işlem izi `05 §4.7`, `02 §10.3`; belge kopyası `06 §4.17`, `02 §3.23.3`. Burada olmayan bir ad uydurulmaz (§1); bu bölümün koyduğu adlar yazımın kararıdır ve ilk task'ta kodda doğrulanır.
+
+### 9.1 Geçiş birimi, beyaz liste, yan etki
+
+1. **Geçiş birimi tek sınıftır.** `Shopfolio.Modules.Ordering`'in açık yüzü `Contracts.IOrderTransitions`, uygulaması `internal OrderTransitions`'tır. Her geçiş bir metottur; metodun adı işlemin adıdır (§5.3: fiil ve sözlük nesnesi) ve geçişin `TransitionCode` sabiti metodun içinde tek yerde durur. Düzeltmeler (`Correction`) ayrı metotlardır ve yalnız yönetici çağırır (`ActorKind`). Metot listesi burada yazılmaz: ilgili task'ın tasarımı onu `02 §5.4`, `§5.5` ve `§10.4`'ten çıkarır. `IOrderTransitions`, `OrderTransitions` ve `TransitionTable` adları yazımın kararıdır (K-1335).
+2. **Beyaz liste `TransitionTable`'dır** (`internal static`, `Ordering/`): `ShipmentTransition(TransitionCode, OrderStatus From, OrderStatus To)` ve `PaymentTransition(TransitionCode, PaymentStatus From, PaymentStatus To)` kayıtlarının tek listesi. On altı satırdır (`06 §5.2.1`, `§5.2.2`, `§5.2.6` ile eşit):
+
+   | Kod | Geçiş | Kod | Geçiş |
+   |---|---|---|---|
+   | `S1` | `Placed` → `Preparing` | `S8` | `DeliveryFailed` → `Shipped` |
+   | `S2` | `Placed` → `Delivered` | `S9` | `DeliveryFailed` → `Cancelled` |
+   | `S3` | `Placed` → `Cancelled` | `S10` | `Preparing` → `Delivered` |
+   | `S4` | `Preparing` → `Cancelled` | `S11` | `DeliveryFailed` → `Delivered` |
+   | `S5` | `Preparing` → `Shipped` | `O1` | `Pending` → `Paid` |
+   | `S6` | `Shipped` → `Delivered` | `O2` | `Pending` → `Failed` |
+   | `S7` | `Shipped` → `DeliveryFailed` | `O3` | `Paid` → `PartiallyRefunded` |
+   | `O4` | `Paid` → `Refunded` | `O5` | `PartiallyRefunded` → `Refunded` |
+
+   `Correction` tabloda değildir: durumu değiştirmez. Koşul (gecikme feshi, açık kalem, hizmet penceresi) tabloda değil metodun gövdesindedir; sıra önce beyaz liste, sonra koşuldur.
+3. **İşlemin sahibi giriş noktasıdır.** Sayfalar ve işler `DbContext`'e dokunmaz (§6 madde 2); işlemi `Infrastructure/ITransactionRunner` açar: `RunAsync<T>(Func<CancellationToken, Task<T>> work, CancellationToken ct)`. İş dönerse `SaveChangesAsync` çağrılır ve işlem kesinleşir; istisnada geri alınır ve istisna yeniden fırlatılır. Modülün arayüz metodu `RunAsync` çağırmaz, çağıranın işlemine katılır; iç içe `RunAsync` programlama hatasıdır. `finally`'de kesinleştirme yoktur (§8.1 madde 5). Dış çağrı — ödeme yönlendirmesi, e-posta, bağlantı katmanı — `RunAsync`'in dışındadır (`05 §3.6.3`). `ITransactionRunner` adı ve kalıbı yazımın kararıdır (K-1335).
+4. **Sıra sabittir** (`05 §4.1.2`): kilit → beyaz liste → koşul → durum alanı → `TransitionRecord` → iç yan etkiler → dış yan etkiler. Durum alanını yalnız `Order.ApplyTransition` (`internal`) yazar ve onu yalnız `OrderTransitions` çağırır; `OrderStatus` ve `PaymentStatus` ayarlayıcısı `private`'tır. Geçiş kaydı (`TransitionRecord`) sipariş, `TransitionCode`, `ActorKind`, yönetici kimliği ve adı, gerekçe (`TransitionReason`, `CancellationReason` ya da `CorrectionReason`), serbest not ve düzeltilen kayıt (`CorrectedTransitionRecordId`, `06 §4.19`) alanlarını taşır. Kalem kaydı geçiş kaydına yazılmaz; kapanış geçişi (`S3`, `S4`, `S9`; `TransitionReason.Closure`) aynı işlemde ve aynı anda yazılır.
+
+   ```csharp
+   // Sıra yorumdadır; red dönüş değeridir, kod 07 §6.2'den okunur — burada ErrorCode üyesi uydurulmaz.
+   await OrderLocks.LockAsync(new[] { orderId }, ct);          // 1 kilit
+   var order = await _db.Orders.SingleAsync(o => o.Id == orderId, ct);
+   if (!TransitionTable.Allows(TransitionCode.S5, order))      // 2 beyaz liste
+       return Result.Rejected(/* 07 §6.2 kodu */);
+   // 3 koşul (bu geçişe özgü)
+   order.ApplyTransition(TransitionCode.S5);                   // 4 durum alanı
+   _db.TransitionRecords.Add(/* 5 geçiş kaydı */);
+   await _catalog.ReleaseAsync(/* 6 iç yan etki: Catalog arayüzü */);
+   _db.Jobs.Add(/* 7 dış yan etki: Job satırı */);
+   ```
+5. **Kilit tek yerdedir.** `Ordering/OrderLocks.LockAsync(IReadOnlyCollection<Guid> orderIds, ct)` (`internal`) `SELECT … FOR UPDATE` ham SQL'ini (`FromSql`; bilgim tarihli) çalıştırır; siparişleri kimliğe göre sıralı kilitler (`05 §7.3.5`). Yönetici işleminde ekrandaki sürüm kilit altında karşılaştırılır (`05 §7.3.2`); sürüm artışının kalıbı §10.2'dedir (yazım 3). Kaynak taraması: sipariş satırını kilitleyen `FOR UPDATE` yalnız `OrderLocks`'tadır.
+6. **Yan etki iki türdür.** İç yan etki — stok, kontenjan ve kupon dönüşü (`Catalog` arayüzü), iz satırı (`Administration` arayüzü, §9.2), panel işaretleri — gövdede açık çağrıdır ve aynı işlemdedir. Dış yan etki `Job` satırıdır (`JobType`, `RelatedRecordId`, `JobState.Pending`; `06 §4.59`) ve aynı işlemde yazılır; kuyruğun arayüzü ve işleyicinin kalıbı §13.1'dedir (yazım 4). Geçiş birimi bir dış servisin arayüzüne ve `HttpClient`'a bağlı değildir; e-posta ayrı bir iş satırı yazmaz — gönderim kaydı onun kuyruğudur (`05 §4.4.1`; §11.4).
+7. **Uygulama içi olay yayını yoktur** (`05 §3.4.6`): olay veriyolu kütüphanesi (§3.3 tablosunda yoktur), kendi yayıncı/abone arayüzü (`IEventBus`, `IDomainEvent`, `INotification`, `INotificationHandler<>` ad kalıpları), varlıkta biriken alan olayı listesi ve `SaveChanges` kesicisiyle dağıtım yazılmaz. Gerekçe: iç yan etkinin geçişle aynı işlemde yazıldığı gövdeden okunamaz olur. Bir geçişe tepki, arayüz çağrısıdır.
+8. **Test.** Tablo on altı satırdır; her `TransitionCode` (`Correction` hariç) bir kez bulunur ve `02 §5.4`, `§5.5` ile eşittir (denetim betiği §21'dedir, yazım 6 — iş adı: geçiş listesi eşitliği denetimi). Birim: izinli geçiş tek geçiş kaydı yazar; tablo dışı kaynak durum reddedilir ve hiçbir şey yazmaz. Entegrasyon (gerçek PostgreSQL, §19.1): iç yan etki hatasında durum, kayıt, iz ve `Job` birlikte geri alınır; eşzamanlı iki geçiş sıraya girer; iki sipariş ters sırada kilitlenmez ve kilitlenme olmaz; sürüm uyuşmazlığı reddedilir. Mimari test (§6 madde 4; kasıtlı ihlalli örnekle kırmızı olduğu gösterilir): durum özelliklerinin ayarlayıcısı `private`; `ApplyTransition`'ı çağıran yalnız `OrderTransitions`; `ExecuteUpdate` ve ham SQL metninde `order_status` ve `payment_status` yoktur (göçler hariç); yasak ad listesi; `OrderTransitions` `HttpClient`'a bağlı değil. ArchUnitNET'in özellik ayarlayıcısı ve yöntem çağrısı denetimi bilgim tarihlidir; yoksa kaynak metin taraması (§7.1 madde 5 gibi).
+
+### 9.2 İşlem izinin kod adları ve imha fonksiyonunun göçteki kalıbı
+
+1. **Yazan tek yol** `Administration.Contracts.IAuditTrail.WriteAsync(AuditEntry, ct)`'tir. `AuditEntry` değişmez bir `record`'dur: `Operation` (`AuditOperation`), `TargetRecordType` (`06 §3`'ün kod adı; boş olabilir), `TargetRecordId`, `Details` (`AuditDetails`). Alan (`AuditArea`) çağırandan alınmaz: `AuditOperation` → `AuditArea` tek eşlemede durur. Yönetici kimliği, adı ve e-postası oturumdaki yöneticiden alınır (istek bağlamı; kimlik şemasının kalıbı §15.1, yazım 5). Yönetici yoksa — kuyruk, yönetim komutu, müşteri isteği — istisna: kurulum ve sistem olayları ize yazılmaz (`02 §10.3.3`, `05 §4.7.4`). Metot çağıranın işlemine katılır (§9.1 madde 3). `DbSet<AuditLog>` yalnız `Administration`'ın `AuditTrail` sınıfındadır (mimari test).
+2. **`AuditOperation` bir C# `enum`'udur** (`Administration.Contracts`); veritabanına üye adıyla metin olarak yazılır (EF dizgi dönüşümü), sütunda `CHECK` yoktur. Tanınmayan kod panelde kodun kendisiyle gösterilir. Kod bir kez verilir; silinmez ve yeniden adlandırılmaz. Panelin Türkçe adı koddan mesaj kataloğuyla gelir (§3.4 madde 4). **Kilit dosyası (snapshot) testi:** üye adları kayıtlı listeyle karşılaştırılır; silme ve ad değişikliği testi kırar, ekleme dosyaya satır eklemekle olur. Her üyenin alanı ve etiketi vardır (test).
+3. **Kod listesi (43 kod).** Yeni kod bu listeye eklenmeden kullanılmaz (kaynak: `02 §10.3.1` (1)–(8), `§10.4.1`'in dokuz müdahalesi).
+
+   | Alan | Kodlar | Konu |
+   |---|---|---|
+   | `CompanyAndBranding` | `UpdateCompany` (konu `Company`), `UpdateBranding` (konu `Branding`) | Firma ve marka |
+   | `Publication` | `ChangePublishStatus` | Kaydın türü (`06 §5.2.3`) |
+   | `Order` — durum işlemleri (12) | `MarkBankTransferPaid`, `MarkShipped`, `MarkDelivered`, `SetDeliveryOrderAgainstWithdrawal`, `MarkDeliveryFailed`, `CompleteService`, `CancelByCompany`, `RefundManually`, `ReceiveReturn`, `ReceiveReturnWithIbanRequest`, `OpenRefundIbanRequest`, `RejectReturn` | Sipariş; kalem ve kayıt `Details`'ta |
+   | `Order` — düzeltme ve not (12) | `CorrectAddress`, `ReduceItemQuantity`, `RemoveItem`, `CorrectShippingInfo`, `CorrectDeliveryDate`, `CorrectReturnArrivalDate`, `CorrectTransition`, `SaveInternalNote`, `CloseNotReturned`, `RecordWithdrawalFromOtherChannel`, `RecordLateDeliveryTerminationFromOtherChannel`, `CorrectContactEmail` | Sipariş |
+   | `Order` — iade ve e-posta (5) | `RetryCardRefund`, `RefundByBankTransfer`, `MarkCardRefundNotCompleted`, `ReportRefundTransferNotCompleted`, `ResendEmail` | Sipariş |
+   | `AdminAccounts` | `SendAdminInvitation`, `WithdrawAdminInvitation` (konu `AdminInvitation`); `CreateAdminAccount`, `RemoveAdminAccount`, `ChangeAdminEmail` (konu `Admin`) | Yönetici hesapları |
+   | `LegalTextVersion` | `PublishLegalText` | `LegalTextVersion` |
+   | `Settings` | `UpdateSettings` | `CompanySettings`; teslimat illerinde `Province` |
+   | `Export` | `ExportOrders`, `ExportCustomers`, `ExportContactRequests` | Konu boştur |
+   | `CustomerDeletion` | `DeleteCustomerAccount` | `Customer` |
+
+   Toplam: 2 + 1 + 29 + 5 + 1 + 1 + 3 + 1 = 43; tabloyla `enum` eşitliği kilit dosyası testindedir.
+4. **`Details` kişisel veri taşımaz.** `AuditDetails` kurucusu ayarlarda alan adını ve eski/yeni değeri, görünen adı ve işlem değerlerini kabul eder. `CorrectAddress`, `CorrectContactEmail`, `SaveInternalNote` ve `DeleteCustomerAccount`'ta eski/yeni değer çifti ve kişisel değer yazılamaz; `WriteAsync` doğrular, ihlal programlama hatasıdır. Test: bilinen ad, adres, e-posta ve not metniyle yazılan satırın `Details`'i bu değeri içermez.
+5. **Satır işlemle aynı işlemde yazılır** (`05 §4.7.2`); işlem geri alınırsa satır da gider.
+6. **İmha fonksiyonu** `dispose_expired_audit_logs(max_rows integer, as_of timestamptz)`'tir. `as_of`, imha işinin `TimeProvider`'dan verdiği andır; fonksiyon `now()` okumaz (§7.1). İmza `06 §4.63`'te tek parametreliydi; ikinci parametre bu yazımın geri beslemesidir (K-1335). Süre, oluşturma anının Türkiye saatindeki takvim yılının sonundan on yıldır (Z-30); Türkiye sabit +03:00'dır (§7.1 madde 3), bu yüzden SQL'de saat dilimi adı yoktur. İmha işinin anı nasıl aldığı da burada kapanır: an uygulamadan parametre olarak gelir.
+7. **Göçteki kalıp** (`Infrastructure/Migrations`, `migrationBuilder.Sql`, `$$` gövde):
+
+   ```sql
+   CREATE FUNCTION public.dispose_expired_audit_logs(max_rows integer, as_of timestamptz)
+   RETURNS integer LANGUAGE plpgsql SECURITY DEFINER
+   SET search_path = pg_catalog, public
+   AS $$
+   DECLARE
+     cutoff timestamptz;
+     removed integer;
+   BEGIN
+     IF max_rows < 1 THEN RAISE EXCEPTION 'max_rows must be positive'; END IF;
+     cutoff := make_timestamp(
+         extract(year FROM ((as_of AT TIME ZONE 'UTC') + interval '3 hours'))::integer - 10,
+         1, 1, 0, 0, 0) AT TIME ZONE 'UTC' - interval '3 hours';
+     WITH expired AS (
+       SELECT id FROM public.audit_logs WHERE created_at < cutoff ORDER BY created_at LIMIT max_rows)
+     DELETE FROM public.audit_logs AS log USING expired WHERE log.id = expired.id;
+     GET DIAGNOSTICS removed = ROW_COUNT;
+     RETURN removed;
+   END $$;
+   REVOKE ALL ON FUNCTION public.dispose_expired_audit_logs(integer, timestamptz) FROM PUBLIC;
+   DO $$ BEGIN
+     EXECUTE format('GRANT EXECUTE ON FUNCTION public.dispose_expired_audit_logs(integer, timestamptz) TO %I',
+       current_setting('shopfolio.application_user'));
+   END $$;
+   ```
+
+   Kesim anı yerel yılın (Ly) on yıl öncesinin 1 Ocak 00:00'ıdır; `created_at < cutoff` ⇔ satırın yerel yılı ≤ Ly − 11. `GRANT` yalnız uygulama kullanıcısınadır: göç hizmeti bağlantıyı açınca `set_config('shopfolio.application_user', <kurulum ayarı>, false)` çalıştırır (parametreli); ayarın adı ve bağlantı başlatma kalıbı §10.6'dadır (yazım 3). Ayar kurulmamışsa `current_setting` hata verir ve göç geri alınır. Sahip göç kullanıcısıdır (`OWNER` yazılmaz). Değişiklik yeni bir göçte `CREATE OR REPLACE`'tir (sahip ve yetki korunur); imza değişirse eski işlev aynı göçte `DROP` edilir ve yetki yeniden verilir. Göçün `Down` yöntemi yok sayılır (şema geri alınmaz, `05 §8.7.3`); yazılmaz.
+8. **Test** (entegrasyon, gerçek PostgreSQL, §19.1): uygulama kullanıcısı `UPDATE`, `DELETE`, `TRUNCATE` ile reddedilir, `INSERT` ve `SELECT` çalışır; fonksiyon uygulama kullanıcısıyla çalışır, `PUBLIC` ve salt okuma kullanıcısı çağıramaz; katalogda `prosecdef` doğru, `proconfig` içinde `search_path` sabit, sahip göç kullanıcısıdır; sınır: `created_at` 2016-12-31T20:59:59Z (yerel 23:59:59) olan satır `as_of` 2026-12-31T20:59:59Z'de silinmez, 2026-12-31T21:00:00Z'de silinir; `max_rows` sınırı ve dönen sayı; `max_rows < 1` hata verir; yeni satıra dokunulmaz; göç dosyalarında `now()` yoktur (§7.1 madde 5 taraması).
+
+### 9.3 Belgenin kişisel verisiz kopyası ve yer tutucular
+
+1. **Kopya iki alandır:** `Order.PreInformationFormText` ve `Order.DistanceSalesContractText`. Ham düz metin saklanır; kaçış ve HTML saklanmaz (K-1323 (3)). Kopya onay işleminde bir kez yazılır, sonra yazılmaz (ayarlayıcı `private`; yazan tek yöntem `OrderDocuments`'ındır).
+2. **Belirteç `{{Ad}}`'dır;** ad `06 §4.17`'nin alan adıdır. Kişisel veri belirteçleri: `ShippingRecipientName`, `ShippingPhone`, `ShippingProvince`, `ShippingDistrict`, `ShippingAddressLine`, `BillingRecipientName`, `BillingProvince`, `BillingDistrict`, `BillingAddressLine`, `ContactEmail`. İl alanı kimlikle saklandığından belirteç `Id`'siz yazılır ve değeri `Province.Name`'dir; faturada telefon yoktur. Bunlar kopyada daima belirteç olarak kalır. Donan değerler (`Total`, `ShippingFee`, `CompanyLegalName`, `BankTransferIban` …) üretim anında ham yazılır; belirteç kümesi kapalıdır (`Order` ve `OrderItem` alan adları), küme dışı belirteç şablon testini kırar ve sabit metinde başka amaçla `{{` bulunmaz. Kalem satırlarının ve tutar tablosunun yazılışı şablonun işidir, §11.4'tedir (yazım 4).
+3. **Doldurma tek işlevdir:** `Infrastructure/PlaceholderFiller.Fill(string template, IReadOnlyDictionary<string, string?> values, bool requireAll)`. `Regex.Replace` (`\{\{([A-Za-z]+)\}\}`, `MatchEvaluator`) kullanır; değer yeniden taranmaz (değerin içindeki `{{Total}}` genişlemez). Sözlükte olmayan belirteç olduğu gibi kalır (üretim aşaması); `null` değer boş metin olur (imha edilmiş alan); `requireAll` sözlükte olmayan her belirteçte hata verir — sonuç değil şablon taranır, çünkü değer `{{` içerebilir. Üretim ve gösterim aynı işlevi kullanır.
+4. **Tek yer `Ordering`'tir:** `internal OrderDocuments` (üretim: onay işleminde sürüm metni ve donan değerler; gösterim) ve açık yüzü `Contracts.IOrderDocuments.GetTextAsync(Guid orderId, LegalTextType type, ct)` (yalnız `PreInformationForm` ve `DistanceSalesContract`; öteki tür `ArgumentException`). Sipariş sayfası, panel, B-1 gövdesi (`Notifications`) ve panelden yeniden gönderim bunu çağırır; başka yerde doldurulmaz.
+5. **Onay anındaki değer** ilgili geçmişin ilk satırının eski değeridir. Adres: `OrderAddressHistory`'de (`AddressType` teslimat → `Shipping…`, fatura → `Billing…`) en eski `CreatedAt` satırının `OldRecipientName`, `OldPhone`, `OldProvinceId` (→ `Province.Name`), `OldDistrict`, `OldAddressLine` alanları. `ContactEmail`: `OrderEmailHistory`'nin ilk satırının `OldEmail` alanı. Geçmiş yoksa siparişin kendi alanı kullanılır; imhadan sonra alanlar `null` → boş olur.
+6. **Kaçış gösterim kanalındadır** (K-1323): doldurma kaçış yapmaz. `Razor`/`MarkupString` yasağı ve kanalın işlenişi §11.4'tedir; şablon sürüm kimliği (`TemplateVersion`, SHA-256'nın ilk 12 hanesi) de orada yazılır.
+7. **Test.** Doldurma birimleri: genişlememe, kalan belirteç, `null`, `requireAll`. Üretilen kopyada bilinen ad, adres, e-posta ve telefon dizeleri yoktur, belirteçler durur, donan değerler ham yazılmıştır. Adres ve e-postası iki kez düzeltilmiş siparişte gösterim ilk eski değeri verir; düzeltmesiz siparişte alandan okunur; imhadan sonra hata vermez. Dört çağıran (sayfa, panel, B-1, yeniden gönderim) aynı metni üretir. Kopyayı yazan başka yer yoktur (mimari test).
+
+### 9.4 Tek işlevler
+
+1. **Kimlik alanı normalleştirmesi:** `Infrastructure/TextNormalizer.NormalizeIdentity(string)` = `value.Trim().Replace('I','i').Replace('İ','i').Replace('ı','i').ToLowerInvariant()`; kültüre bağlı `ToLower` yasaktır. Sütunlar: `NormalizedEmail` (müşteri, yönetici, davet), `NormalizedContactEmail`, `NormalizedNewEmail`, `NormalizedCode` (kupon), `NormalizedSKU`, `NormalizedValue` (deneme kaydının e-posta ekseni) ve giriş kaydının `NormalizedEmail`'i. Sütunu yazan tek yer, sahibi varlığın görünen değeri yazan yöntemdir (ayarlayıcı `private`); arama değeri aynı işlevden geçer. `citext`, `lower()` dizini, `ToLower`, `ToUpper`, `ILike` ve büyük/küçük harf duyarsız karşılaştırma kimlik alanlarında yoktur (`06 §2.8.2`). İşlev değişirse sütun, göçün veri adımında yeniden hesaplanır; göç işlevi çağırmaz, o günkü mantığın donmuş kopyasını taşır (§10.6).
+2. **Aranan ad biçimi:** `TextNormalizer.Simplify(string)` — `I`/`İ`/`ı` → `i`, `Ç` → `c`, `Ğ` → `g`, `Ö` → `o`, `Ş` → `s`, `Ü` → `u` (büyük ve küçük); kalan aksanlı Latin harfler `FormD` ile ayrıştırılıp birleşik işaret atılır; sonra `ToLowerInvariant`. Başka karaktere dokunulmaz. `Product.NameSearchForm = Simplify(Name)`; `SetName` ikisini birlikte yazar (`06 §2.7.1`). Arama ifadesi de `Simplify`'dan geçer (kaçış ve içerir eşleşmesi §10.5'tedir).
+3. **Sayfa adresi:** `Slug.From(name, rootName)` — `Simplify` → `[^a-z0-9]+` tek tire → baştaki ve sondaki tire atılır; sonuç boşsa `rootName` (ürün, kategori, hizmet, referans, sayfa; `06 §4.72`). Kırpma yoktur (ad tavanı P-27). **Çakışma:** aynı tabloda taban ya da `taban-<sayı>` olarak kullanılan sayılar okunur, 2'den başlayarak ilk boş sayı verilir (`çelik-kapı` → `celik-kapi`, `celik-kapi-2`); `LIKE` meta karakteri yoktur (adres yalnız `[a-z0-9-]`). **Eşzamanlı çakışma:** tekil dizin ihlali (SQLSTATE `23505`; dizin adı §5.2'nin kuralından) işlemin bütünüyle yeniden yürütülmesidir: `ITransactionRunner.RunAsync(work, retryOnUniqueIndexes, ct)` aşırı yüklemesi, ilk deneme dahil en çok 3 deneme (`ProductConstants`'ta değil, kodda sabit; §3.5 tablosunda satırı vardır). `SlugFixedAt` boşken adres adla birlikte yeniden üretilir, doluysa dokunulmaz (`06 §4.72.3`). Önerilen stok kodu (`05 §7.8.1`): adresten büyük harf, ilk 20 karakter, kırpmada sondaki tire atılır, sonra `-NN`.
+4. **Kategori düzeyi:** `Catalog/CategoryTree` (`internal`) `CreateAsync` ve `MoveAsync` ile `Category.Level`'ı yazan tek yerdir (ayarlayıcı `private`): (a) işlemin başında ağaç danışma kilidi alınır (`05 §7.3.5`; alınış kalıbı §10.2), (b) ağacın tamamı (`Id`, `ParentCategoryId`, `Level`) tek sorguyla okunur, (c) kök 1, değilse üst + 1 yazılır, (d) `ProductConstants.CategoryLevelMax` (P-20, 3) aşımı ve kendi alt ağacına taşıma dönüş değeriyle reddedilir (`07 §6.2` kodu), (e) taşımada alt ağacın her satırı aynı farkla aynı `SaveChanges`'te yazılır. Hesap saf `CategoryLevels` işlevindedir. Test: oluşturma, dördüncü düzey reddi, taşımada alt ağacın birlikte kayması, aşım reddinde hiçbir düzeyin değişmemesi, kendi alt ağacına taşıma, eşzamanlı iki karşıt taşıma (gerçek veritabanı), her yazımdan sonra `Level = üst + 1` değişmezi, ayarlayıcının çağıranları.
+5. **Mimari test:** Türkçe harf sabitleri (`'ı'`, `'İ'` …) ve `tr-TR` kültürü uygulama projesinde yalnız `TextNormalizer.cs`'te bulunur.
+
+*Kaynak: K-1335, K-1336 · K-1333, K-1334 (§7.1 zaman, §8.1 işlem) · K-1323 (3) · K-889 · `05 §4.1`, §4.3, §4.7, §3.4 · `06 §4.63`, §4.72, §2.7, §2.8, §4.9, §4.17, §4.19, §4.59, §4.62, §5.2.6, §5.6.10 · `02 §3.23.3`, §10.3.1, §10.4.1, §3.30.2.*
 
 ## 10. Veri erişimi
 

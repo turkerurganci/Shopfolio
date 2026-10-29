@@ -1,6 +1,6 @@
 # Shopfolio — Coding Guidelines
 
-**Versiyon: v0.5** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
+**Versiyon: v0.6** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
 
 > **Aşama:** 8 — Kodlama Kılavuzu · **Rol:** Tech Lead
 > **Amaç:** Ajanın tutarlı kod üretmesi. Bu doküman **her kodlama görevinde** ajana verilir.
@@ -68,9 +68,9 @@
 > - **K-1245 · K-1272 · K-1281 · K-1292 · Google kimlik belirtecinin doğrulanması (Entegrasyon Spesifikasyonları `08 §2.3`):** kod değişiminin adresi sabittir, keşiften okunmaz; keşif belgesinden yalnız `issuer` ve `jwks_uri` alınır, çatı keşif belgesini ve anahtar kümesini önbelleğe alır ve her girişte yeniden çekmez — çatının işleyicisi keşif belgesini varsayılan olarak başlatmada çekiyorsa adresler sabit olarak yapılandırılır; önbelleğin tazeleme biçimi çatının davranışıdır ve ilk bağlanan task'ta doğrulanır (bilgim tarihli; `08` DV-31) · `exp` için saat sapması toleransı çatının ayarıdır ve değeri bu dokümanın işidir; `auth_time` toleranssız karşılaştırılır · `userinfo` çağrılmaz; kimlik belirtecinin alanlarından yalnız alan eşlemesinin saydıkları okunur (`hd` dahil — Google'ın adres için yetkili olup olmadığı buradan okunur) ve `sub` saklanmaz (K-1061).
 > - **K-1027 · K-1271 · Değişken metnin kaçışı (Entegrasyon Spesifikasyonları `08 §2.2.6` — B-1'in iki yasal metninin yerleşimi, madde 4; §2.2.4):** e-postaya ve belgeye giren her değer — firmanın ayarı, kalemin adı, yer tutucunun müşteri değeri — HTML'de kaçışlanır, düz metinde satır sonu karakterleri boşluğa çevrilir; metin ham HTML olarak basılmaz, biçim yalnız şablonun kendi yapısıdır ve bağlantı yalnız `https`, `http` ve `mailto` şemasını taşır (`05 §6.5.3`) · değerin donmuş kopyada kaçışlı mı saklandığı, gösterimde mi kaçışlandığı bu aşamanın kararıdır; sipariş sayfasındaki gösterim aynı kuralı izler (K-1027 (4), (5)).
 
-> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.5).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. ve 2. oturum yöneticinin kararıyla baştan ikiye bölündü (`INSTRUCTIONS §9` (8)): Y-1a ve Y-1b, Y-2a (§7, §8) ve Y-2b (§9). **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330); Y-1b — §4, §5, §6 (K-1331, K-1332); Y-2a — §7, §8 (K-1333, K-1334); Y-2b — §9 (K-1335, K-1336). **Sırada:** 3. oturum §10, 4. oturum §11–§14, 5. oturum §15–§18, 6. oturum §19–§25 (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
+> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.6).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. ve 2. oturum yöneticinin kararıyla baştan ikiye, 3. oturum üçe bölündü (`INSTRUCTIONS §9` (8)): Y-1a ve Y-1b, Y-2a (§7, §8) ve Y-2b (§9), Y-3a (§10.1–§10.3), Y-3b (§10.4–§10.6) ve Y-3c (§10.7–§10.10). **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330); Y-1b — §4, §5, §6 (K-1331, K-1332); Y-2a — §7, §8 (K-1333, K-1334); Y-2b — §9 (K-1335, K-1336); Y-3a — §10.1, §10.2, §10.3 (K-1337, K-1338). **Sırada:** 3. oturumun kalanı (Y-3b: §10.4–§10.6; Y-3c: §10.7–§10.10), 4. oturum §11–§14, 5. oturum §15–§18, 6. oturum §19–§25 (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
 >
-> **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P1.1 (terim sözlüğünün devralınması — §5.1); P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu); P6.2 (girdi doğrulama süzgeci §3.4, model ve işleyici adları §5.3, hata kodlarının kaydı ve gösterilmemesi §8.2); P6.6 (işleyici adları §5.3, istekteki değerin biçimi ve bağlama kalıbı §7.2); P5.9 (kategori düzeyinin yazılışı — §9.4). **Kısmen kapandı:** P4.2 — sayfaların düzeni §4.1'de yazıldı, ön yüz dosya düzeni §16'da; P4.3 — modül sınırlarının korunması ve dosya deposu arayüzü §6'da yazıldı, önbellek ve kuşak sayacının kalıbı §10.4'te; P4.5 — mimari testle korunan kısım §6'da, zamanın tek kaynağı ve sınanabilirliği §7.1'de yazıldı, geçiş biriminin ve yan etkinin yeri §9.1'de yazıldı, iş kuyruğunun kalıbı §13'te; P4.7 — hatanın üç hâli ve sonucu belirsiz işlem §8.1'de yazıldı, kayıt kütüphanesi ve kayıt alanları §18'de; P4.8 — dosya düzeni ve test projelerinin ayrımı §4.1 ve §4.3'te yazıldı, test araçları §19'da; P4.9 — ayarlar ve ürün sabitleri §3.5'te yazıldı, yönetim komutları §13'te; P4.13 — iki imajın derleme dosyalarının yeri §4.3'te yazıldı, içerikleri §17'de; P5.2 — adlandırma kuralının uygulanışı §5.2'de yazıldı, anahtar üretimi ve enum §10.1'de; P5.3 — normalleştirme ve kategori düzeyi §9.4'te yazıldı, sürüm ve sayaç §10.2'de; P5.6 — kopya ve doldurma §9.3'te yazıldı, şablon sürüm kimliği §11.4'te; P5.7 — kod adları ve imha göçü §9.2'de yazıldı, kodun sürümlenmesi §12'de; P5.8 — veri koruma paketinin varlığına adlandırmanın uygulanışı §5.2'de yazıldı, kullanıcıların ve yetkisinin biçimi §10.8'de; P6.1 — işleyici adları ve sayfa düzeni §5.3 ve §4.1'de yazıldı, kimlik şemaları §15.1'de; P6.10 — model ve hata kodu adları §5.3'te, hata kodlarının kaydı §8.2'de yazıldı; kayıt alanlarının adları §18.2'de, kodun sürümlenmesi §12'de. **Açık:** öteki yirmi bir madde — yazılacakları bölümün oturumunda kapanır.
+> **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P1.1 (terim sözlüğünün devralınması — §5.1); P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu); P6.2 (girdi doğrulama süzgeci §3.4, model ve işleyici adları §5.3, hata kodlarının kaydı ve gösterilmemesi §8.2); P6.6 (işleyici adları §5.3, istekteki değerin biçimi ve bağlama kalıbı §7.2); P5.9 (kategori düzeyinin yazılışı — §9.4); P5.1 (silme davranışının kodda uygulanışı — §10.1); P5.2 (adlandırma §5.2, anahtar üretimi ve enum §10.1); P5.3 (normalleştirme ve kategori düzeyi §9.4, sürüm ve sayaç §10.2); P5.4 (bölüm başına sürüm — §10.3). **Kısmen kapandı:** P4.2 — sayfaların düzeni §4.1'de yazıldı, ön yüz dosya düzeni §16'da; P4.3 — modül sınırlarının korunması ve dosya deposu arayüzü §6'da yazıldı, önbellek ve kuşak sayacının kalıbı §10.4'te; P4.5 — mimari testle korunan kısım §6'da, zamanın tek kaynağı ve sınanabilirliği §7.1'de yazıldı, geçiş biriminin ve yan etkinin yeri §9.1'de yazıldı, iş kuyruğunun kalıbı §13'te; P4.7 — hatanın üç hâli ve sonucu belirsiz işlem §8.1'de yazıldı, kayıt kütüphanesi ve kayıt alanları §18'de; P4.8 — dosya düzeni ve test projelerinin ayrımı §4.1 ve §4.3'te yazıldı, test araçları §19'da; P4.9 — ayarlar ve ürün sabitleri §3.5'te yazıldı, yönetim komutları §13'te; P4.13 — iki imajın derleme dosyalarının yeri §4.3'te yazıldı, içerikleri §17'de; P5.6 — kopya ve doldurma §9.3'te yazıldı, şablon sürüm kimliği §11.4'te; P5.7 — kod adları ve imha göçü §9.2'de yazıldı, kodun sürümlenmesi §12'de; P5.8 — veri koruma paketinin varlığına adlandırmanın uygulanışı §5.2'de yazıldı, kullanıcıların ve yetkisinin biçimi §10.8'de; P6.1 — işleyici adları ve sayfa düzeni §5.3 ve §4.1'de yazıldı, kimlik şemaları §15.1'de; P6.10 — model ve hata kodu adları §5.3'te, hata kodlarının kaydı §8.2'de yazıldı; kayıt alanlarının adları §18.2'de, kodun sürümlenmesi §12'de. **Açık:** öteki on dokuz madde — yazılacakları bölümün oturumunda kapanır.
 
 **Yazım konvansiyonları (K-1302, K-1329).** Bu on madde §1–§25'in bütün yazım oturumlarını bağlar; "yazım konvansiyonu n" diye anılır.
 
@@ -99,7 +99,7 @@
 | §7 Zaman ve biçim standartları | 7.1 Tek zaman kaynağı · 7.2 İstekteki tarih, tutar ve ondalık biçimi | Y-2a ✓ |
 | §8 Hata yönetimi | 8.1 Tek yakalama katmanı, üç hâl, sonucu belirsiz işlem · 8.2 Hata kodlarının kaydı ve gösterilmemesi | Y-2a ✓ |
 | §9 Domain kuralları | 9.1 Geçiş birimi, beyaz liste, yan etki · 9.2 İşlem izinin kod adları · 9.3 Belgenin kişisel verisiz kopyası · 9.4 Tek işlevler | Y-2b ✓ |
-| §10 Veri erişimi | 10.1 Silme davranışı, anahtar, enum · 10.2 Sürüm, eşzamanlılık, sayaç · 10.3 Bölüm sürümünün çatıda eşlenişi · 10.4 Önbellek ve kuşak sayacı · 10.5 Liste sırası, sayfalama, arama sözcüğü · 10.6 Göçlerin yazılışı · 10.7 Veritabanı oturumunun süreleri · 10.8 Veritabanı kullanıcıları · 10.9 İç notun kilidi · 10.10 Dışa aktarma dosyası | 3 |
+| §10 Veri erişimi | 10.1 Silme davranışı, anahtar, enum · 10.2 Sürüm, eşzamanlılık, sayaç · 10.3 Bölüm sürümünün çatıda eşlenişi · 10.4 Önbellek ve kuşak sayacı · 10.5 Liste sırası, sayfalama, arama sözcüğü · 10.6 Göçlerin yazılışı · 10.7 Veritabanı oturumunun süreleri · 10.8 Veritabanı kullanıcıları · 10.9 İç notun kilidi · 10.10 Dışa aktarma dosyası | Y-3a (10.1–10.3) ✓ · Y-3b (10.4–10.6) · Y-3c (10.7–10.10) |
 | §11 Entegrasyon kuralları | 11.1 Bağlantı katmanının kalıbı · 11.2 Dış servis istemcileri · 11.3 Google kimlik belirteci · 11.4 E-posta ve belge metninin üretimi | 4 |
 | §12 Sözleşme ve olay sürümleme | Değerlerin sürümlenmesi (alt bölümsüz) | 4 |
 | §13 Arka plan iş kuralları | 13.1 İş kuyruğu, yeniden deneme, nabız · 13.2 Yönetim komutları · 13.3 Büyük veri dönüşümünün ilerleme kaydı | 4 |
@@ -284,7 +284,7 @@ Parametrenin üç katmanı (`02 §10.1.3`, `05 §8.4`; K-412) kodda üç ayrı e
 
 | Katman | Kodda evi | Değişiklik |
 |---|---|---|
-| Firma ayarı (`02 §11.1`) | Veritabanında firma ayarları satırı (`CompanySettings`, `06 §4.2`); okuma ve bölüm kaydı §10.3'ün kalıbıyla (yazım 3) | Panelden, hemen geçerli |
+| Firma ayarı (`02 §11.1`) | Veritabanında firma ayarları satırı (`CompanySettings`, `06 §4.2`); okuma ve bölüm kaydı §10.3'ün kalıbıyla | Panelden, hemen geçerli |
 | Kurulum ayarı | Ayar dosyası ve sırlar; seçenekler sınıfına bağlanır ve açılışta doğrulanır | Uygulamanın yeniden başlatılmasıyla |
 | Ürün sabiti (`02 §11.2`) | `Infrastructure/` altında tek statik sınıf: `ProductConstants` | Yeni sürümle; ayar dosyası değiştiremez |
 
@@ -464,7 +464,7 @@ Kural `06 §2.4`'tedir (küçük harf ve alt çizgi, çoğul tablo adı, `pk_`/`
    public DbSet<OrderItem> OrderItems => Set<OrderItem>();      // order_items
    public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();  // product_categories (bağ tablosu)
    ```
-3. **Elle ad verilmez.** `ToTable("…")` ve `HasColumnName("…")` yazılmaz; dizin ve kısıt adı verilmez (`06 §2.4.3`). Tek istisna aşağıdaki veri koruma paketinin varlığıdır ve o da elle ad gerektirmez.
+3. **Elle ad verilmez.** `ToTable("…")` ve `HasColumnName("…")` yazılmaz; dizin, anahtar ve yabancı anahtar adı verilmez (`06 §2.4.3`); kontrol kısıtının adı çatıda zorunludur ve §10.1 madde 4'ün kuralından türer (K-1337). Tek istisna aşağıdaki veri koruma paketinin varlığıdır ve o da elle ad gerektirmez.
 4. **Veri koruma paketinin varlığına kural istisnasız uygulanır** (`06 §4.68`): paketin bağlam arayüzü özelliğin adını `DataProtectionKeys` verir ve kütüphane `data_protection_keys`, `friendly_name`, `xml` üretir. Bu olgular paketin sürümüne bağlıdır ve bilgim tarihlidir; paketi bağlayan ilk task'ta sınanır (§1, ilke 5). Anahtar türü ve sütunlar ayrışırsa `06 §4.68` güncellenir.
 5. **Model testi (entegrasyon testi).** Bütün tablo, sütun, anahtar, dizin ve kısıt adları `^[a-z][a-z0-9_]*$` desenindedir ve 63 bayttan uzun değildir (PostgreSQL'in tanımlayıcı sınırı). İhlalde ad elle kısaltılmaz — task BLOCKED olur ve `06` ile hizalanır.
 
@@ -677,7 +677,7 @@ Bu bölüm durum geçişinin, yan etkinin, işlem izinin, belge kopyasının ve 
    await _catalog.ReleaseAsync(/* 6 iç yan etki: Catalog arayüzü */);
    _db.Jobs.Add(/* 7 dış yan etki: Job satırı */);
    ```
-5. **Kilit tek yerdedir.** `Ordering/OrderLocks.LockAsync(IReadOnlyCollection<Guid> orderIds, ct)` (`internal`) `SELECT … FOR UPDATE` ham SQL'ini (`FromSql`; bilgim tarihli) çalıştırır; siparişleri kimliğe göre sıralı kilitler (`05 §7.3.5`). Yönetici işleminde ekrandaki sürüm kilit altında karşılaştırılır (`05 §7.3.2`); sürüm artışının kalıbı §10.2'dedir (yazım 3). Kaynak taraması: sipariş satırını kilitleyen `FOR UPDATE` yalnız `OrderLocks`'tadır.
+5. **Kilit tek yerdedir.** `Ordering/OrderLocks.LockAsync(IReadOnlyCollection<Guid> orderIds, ct)` (`internal`) `SELECT … FOR UPDATE` ham SQL'ini (`FromSql`; bilgim tarihli) çalıştırır; siparişleri kimliğe göre sıralı kilitler (`05 §7.3.5`). Yönetici işleminde ekrandaki sürüm kilit altında karşılaştırılır (`05 §7.3.2`); sürüm artışının kalıbı §10.2'dedir. Kaynak taraması: sipariş satırını kilitleyen `FOR UPDATE` yalnız `OrderLocks`'tadır.
 6. **Yan etki iki türdür.** İç yan etki — stok, kontenjan ve kupon dönüşü (`Catalog` arayüzü), iz satırı (`Administration` arayüzü, §9.2), panel işaretleri — gövdede açık çağrıdır ve aynı işlemdedir. Dış yan etki `Job` satırıdır (`JobType`, `RelatedRecordId`, `JobState.Pending`; `06 §4.59`) ve aynı işlemde yazılır; kuyruğun arayüzü ve işleyicinin kalıbı §13.1'dedir (yazım 4). Geçiş birimi bir dış servisin arayüzüne ve `HttpClient`'a bağlı değildir; e-posta ayrı bir iş satırı yazmaz — gönderim kaydı onun kuyruğudur (`05 §4.4.1`; §11.4).
 7. **Uygulama içi olay yayını yoktur** (`05 §3.4.6`): olay veriyolu kütüphanesi (§3.3 tablosunda yoktur), kendi yayıncı/abone arayüzü (`IEventBus`, `IDomainEvent`, `INotification`, `INotificationHandler<>` ad kalıpları), varlıkta biriken alan olayı listesi ve `SaveChanges` kesicisiyle dağıtım yazılmaz. Gerekçe: iç yan etkinin geçişle aynı işlemde yazıldığı gövdeden okunamaz olur. Bir geçişe tepki, arayüz çağrısıdır.
 8. **Test.** Tablo on altı satırdır; her `TransitionCode` (`Correction` hariç) bir kez bulunur ve `02 §5.4`, `§5.5` ile eşittir (denetim betiği §21'dedir, yazım 6 — iş adı: geçiş listesi eşitliği denetimi). Birim: izinli geçiş tek geçiş kaydı yazar; tablo dışı kaynak durum reddedilir ve hiçbir şey yazmaz. Entegrasyon (gerçek PostgreSQL, §19.1): iç yan etki hatasında durum, kayıt, iz ve `Job` birlikte geri alınır; eşzamanlı iki geçiş sıraya girer; iki sipariş ters sırada kilitlenmez ve kilitlenme olmaz; sürüm uyuşmazlığı reddedilir. Mimari test (§6 madde 4; kasıtlı ihlalli örnekle kırmızı olduğu gösterilir): durum özelliklerinin ayarlayıcısı `private`; `ApplyTransition`'ı çağıran yalnız `OrderTransitions`; `ExecuteUpdate` ve ham SQL metninde `order_status` ve `payment_status` yoktur (göçler hariç); yasak ad listesi; `OrderTransitions` `HttpClient`'a bağlı değil. ArchUnitNET'in özellik ayarlayıcısı ve yöntem çağrısı denetimi bilgim tarihlidir; yoksa kaynak metin taraması (§7.1 madde 5 gibi).
@@ -758,7 +758,165 @@ Bu bölüm durum geçişinin, yan etkinin, işlem izinin, belge kopyasının ve 
 
 ## 10. Veri erişimi
 
-> **Ne yazılır:** Sorgu kuralları, sayfalama zorunluluğu, izleme kapalı sorgular, işlem sınırları.
+Bu bölüm veritabanına erişimin **kodda nasıl yazıldığını** söyler; kuralın kendisi Veri Modeli'nde (`06 §2`) ve Teknik Mimari'dedir (`05 §7`). Veritabanı bağlamı tektir ve `Infrastructure/` altındadır (§4.1); işlemi `ITransactionRunner` açar (§9.1, madde 3). Alt bölümler yazım turunun 3. oturumunda üç parçada yazılır: 10.1–10.3 Y-3a'da yazıldı, 10.4–10.6 Y-3b'nin, 10.7–10.10 Y-3c'nin işidir.
+
+### 10.1 Silme davranışı, anahtar, enum
+
+1. **Silme davranışı her ilişkide açık yazılır** (`06 §2.2.5`; K-1337). Üç davranışın kodda ve veritabanındaki karşılığı sabittir:
+
+   | `06 §2.2.5` | Kodda | Veritabanında |
+   |---|---|---|
+   | Basamaklı | `DeleteBehavior.Cascade` | `ON DELETE CASCADE` |
+   | Boşaltılır | `DeleteBehavior.SetNull` (yabancı anahtar sütunu boş olabilir) | `ON DELETE SET NULL` |
+   | Kısıtlayıcı | `DeleteBehavior.NoAction` | `NO ACTION` |
+
+   `Restrict`, `ClientCascade`, `ClientSetNull` ve `ClientNoAction` yazılmaz: `Restrict` veritabanında `RESTRICT` olur (`06` onu yasaklar), `Client…` değerleri silmeyi çatının izlediği kayda bırakır. Çatının zorunlu ilişki varsayılanı (basamaklı silme) hiçbir ilişkiye sessizce uygulanmaz: `Infrastructure/` altındaki bir model sonlandırma kuralı (`IModelFinalizingConvention`) silme davranışı yapılandırılmamış her ilişkiyi `NoAction` yapar; yapılandırılıp yapılandırılmadığının okunuşu (`GetDeleteBehaviorConfigurationSource`) bilgim tarihlidir — okunamazsa kural kalkar, aşağıdaki model testi aynı güvenceyi verir. Yapılandırma sahibi kaydın `IEntityTypeConfiguration` sınıfındadır.
+
+   ```csharp
+   // Catalog/VariantConfiguration.cs — OnDelete her ilişkide yazılır; 06 §4.6 ve §2.2.5.
+   builder.HasOne<Product>().WithMany().HasForeignKey(v => v.ProductId)
+          .OnDelete(DeleteBehavior.Cascade);        // basamaklı: ürünle silinir
+   builder.HasOne<OptionValue>().WithMany().HasForeignKey(v => v.FirstOptionValueId)
+          .OnDelete(DeleteBehavior.NoAction);       // kısıtlayıcı: NO ACTION, RESTRICT değil
+   ```
+   **Boşaltmayı veritabanı yapar:** siparişin hesap bağı (`Order.CustomerId`) gibi boşaltılan bağ `SetNull`'dır; hesap silinince veritabanı aynı deyimde bağı boşaltır ve kodda ayrı bir boşaltma yazımı yoktur. Veritabanının boşaltması kaydın sürümünü artırmaz; sürümü artırması gereken bir yazımı (`06 §2.6.4`) silen işlem ayrıca kendisi yapar. **Silme sahibe, tek deyimle yapılır:** sahibiyle silinen bağlı kayıt sahibinden önce ayrı silinmez — `NO ACTION` denetimi deyimin sonundadır ve ancak aynı deyimde basamaklanan bağlı kayıt kısıta takılmaz (`06 §4`'ün girişi; K-1038).
+2. **Birincil anahtarı uygulama üretir ve üretim tek yerdedir** (`06 §2.3.1`; K-1337). `Infrastructure/EntityIds.New()` sürüm 7 UUID'yi üretir; kimlik varlığın oluşturma yönteminde (fabrika ya da kurucu) atanır — alan başlatıcısında değil, çünkü EF okuduğu her satırda başlatıcıyı çalıştırır. Kimliğin zaman öneki sıralama yerelliği içindir, iş zamanı değildir (§7.1 kural 1'in yasağı onu kapsamaz) ve kimlikten zaman okunmaz.
+
+   ```csharp
+   // Infrastructure/EntityIds.cs — kimliğin tek üretim yeri.
+   internal static class EntityIds
+   {
+       public static Guid New() => Guid.CreateVersion7();   // .NET 9'dan; bilgim tarihli — ilk task'ta doğrulanır
+   }
+   ```
+   Model sonlandırma kuralı her `Guid` birincil anahtarını `ValueGeneratedNever` yapar; böylece kimliği atanmamış varlık sessizce `Guid.Empty` ile kaydedilmez, EF de kendi kimliğini üretmez. Tek istisna `DataProtectionKey`'in tamsayı anahtarıdır (`06 §4.68`; §5.2 madde 4) ve kuralın kapsamı dışındadır. **Yasak:** `Guid.NewGuid()` ve `Guid.CreateVersion7()` `EntityIds.cs`'in dışında çağrılmaz; veritabanında kimlik varsayılanı (`gen_random_uuid()`, `uuidv7()`, `uuid_generate_v4()`) yazılmaz (§7.1 kural 1'in SQL taramasına eklenir). Kriptografik anahtar kimlikle üretilmez (§15.1).
+3. **Enum veritabanında kod adıyla metin olarak durur ve sütun kapalı kümeyi kısıtlar** (`06 §2.9.1`, §2.9.2; K-1337). Dönüşümü ve kısıtı model kurulumu bütün enum'lara birden verir; enum özelliğinin yapılandırmasında ikisi de elle yazılmaz.
+
+   ```csharp
+   // Infrastructure/ — bağlamın kurulumu: uygulama derlemesindeki her enum özelliği kod adıyla metindir.
+   protected override void ConfigureConventions(ModelConfigurationBuilder configuration)
+   {
+       foreach (var enumType in typeof(EntityIds).Assembly.GetTypes().Where(t => t.IsEnum))
+           configuration.Properties(enumType)
+                        .HaveConversion(typeof(EnumToStringConverter<>).MakeGenericType(enumType));  // bilgim tarihli
+   }
+   ```
+   Bir model sonlandırma kuralı her enum sütununa izinli değerlerin kontrol kısıtını ekler (`"status" IN ('Placed', …)`); sütun adı kütüphanenin ad kuralından sonra, modelden okunur — kuralın sıralaması ilk task'ta sınanır. Enum'un yalnız bir alt kümesini kullanan alan alt kümesini bildirir (`HasAllowedValues(PublishStatus.Draft, PublishStatus.Published)` — `06 §2.9.2`); bildirimsiz alanda kümenin hepsi izinlidir. **İstisna:** işlem izinin `Operation` sütununda kısıt yoktur — iz göçle dönüştürülemez ve tanınmayan kod olduğu gibi gösterilir (§9.2 madde 2); istisna kuralın içindeki tek `Operation` satırıdır, başka istisna açılmaz. Sayısal dönüşüm (`HasConversion<int>`, `(int)` ile yazım) yoktur. Yeni değerin göçle gelişi §10.6'dadır (yazım 3).
+4. **Kontrol kısıtının adı türetilir** (K-1337). Çatı kontrol kısıtına ad ister; elle ad vermemenin (`06 §2.4.3`) karşılığı adın kuraldan çıkmasıdır: ad `ck_` + tablo adı + `_` + kural adıdır. Enum kısıtında kural adı sütun adıdır; elle yazılan kısıt (ör. havale açıksa IBAN dolu — `06 §4.2`) yapılandırmada yalnız kural adını verir: `HasRule("bank_transfer_iban_required", "…")`. Sonlandırma kuralı adı birleştirir ve kısıtı ekler; tam ad §5.2 madde 5'in desen ve 63 bayt testinden geçer.
+5. **Test.** Model testi (entegrasyon): her yabancı anahtarın silme davranışı `Cascade`, `SetNull` ya da `NoAction`'dır; `Cascade` ilişkilerin kümesi `06 §2.2.5`'in basamaklı satırıyla eşittir (kayıtlı liste testtedir, listeyi `06 §2.2.5` ile elle hizalamak ekleme task'ının işidir); `SetNull` ilişkinin sütunu boş olabilir. Gerçek veritabanında `pg_constraint` yabancı anahtarın silme eylemini `a` (no action), `c` ya da `n` gösterir, `r` (restrict) göstermez. Birincil anahtar testi: her `Guid` anahtarı `ValueGeneratedNever`'dır; `EntityIds.New()` sürüm 7 üretir (sürüm basamağı 7) ve ardışık iki çağrı farklıdır. Enum testi (gerçek veritabanı): her enum üyesi yazılır, geri okunur ve ham değer üye adıdır; kümede olmayan metin kısıta takılır (ham SQL ile eklenir); alt küme bildiren alan dışarıdaki üyeyi reddeder. Kaynak taraması: yasak listesi (madde 2) ve `HasConversion<int>` yoktur.
+
+*Kaynak: K-1337 · K-1010, K-1038 (silme davranışı) · K-1011, K-1012, K-1017 (anahtar, adlandırma, enum) · K-1309 · `06 §2.2.5`, §2.3.1, §2.4.3, §2.9, §4 (girişi), §4.2, §4.6, §4.68 · `05 §7.5.1`, §8.7.1 · §5.2, §7.1, §9.2.*
+
+### 10.2 Sürüm, eşzamanlılık, sayaç, danışma kilidi
+
+Kural `06 §2.6` ve `05 §7.3`'tedir: iyimser sürüm, siparişte kısa satır kilidi, sayaçta koşullu güncelleme. Bu alt bölüm üçünün kodunu ve dördüncüsünü, danışma kilidini yazar (K-1337).
+
+1. **Sürüm sütunu sıradan bir tamsayı özelliğidir** (`06 §2.6.1`): `public int Version { get; private set; } = 1;`. Ayarlayıcı `private`tır ve artışı varlığın `BumpVersion()` yöntemi yapar. `xmin` ve `IsRowVersion` kullanılmaz. **Tek sürüm sütunlu kayıtta** (ürün, kupon, kurumsal içerik, marka, firma kimliği, yasal metin — `06 §2.6.2`) özellik `IsConcurrencyToken()` ile işaretlenir: EF güncellemeye yükleme anındaki değeri koşul koyar. Birden çok sürüm sütunlu tablonun kalıbı farklıdır, §10.3'tedir.
+2. **Kayıt varyantının kaydı:** kayıt izlenerek yüklenir, formun sürümü yüklenen değerle karşılaştırılır, değerler uygulanır, `BumpVersion()` çağrılır ve `SaveChangesAsync` tek koşullu güncellemeyi yazar. Karşılaştırma erken ret, belirteç ise iki kaydın aynı anda gelmesine karşı güvencedir. Ürünün sürümü varyantlarını, seçeneklerini ve bağlarını kapsar (`06 §2.6.2`): ürün formunun kaydı yalnız alt satır değişse de `BumpVersion()`'ı koşulsuz çağırır ve alt satırlar aynı `SaveChanges`'tedir.
+
+   ```csharp
+   // Catalog içinde, ITransactionRunner.RunAsync'in gövdesinde. Red dönüş değeridir; kod 07 §6.2'nin RecordVersionConflict'idir.
+   var product = await _db.Products /* alt satırlarıyla yüklenir */ .SingleAsync(p => p.Id == input.Id, ct);   // izlenir
+   if (product.Version != input.Version)
+       return Result.Rejected(ErrorCode.RecordVersionConflict);
+   // … formun değerleri uygulanır …
+   product.BumpVersion();                                   // kaydı yazan her güncellemede, alt satır değişse de
+   try { await _db.SaveChangesAsync(ct); }
+   catch (DbUpdateConcurrencyException) { return Result.Rejected(ErrorCode.RecordVersionConflict); }   // eşzamanlı yazım
+   ```
+   `DbUpdateConcurrencyException` yalnız kayıt varyantının kaydında bu biçimde yakalanır ve ret olur; öteki her yerde beklenmeyen hatadır (§8.1). "Yine de kaydet" formu güncel sürümle yeniden gönderir (`05 §7.3.1`) ve aynı yoldan geçer; ayrı kod yoktur.
+3. **Sipariş varyantı kilit altında karşılaştırır** (`05 §7.3.2`; sıra §9.1 madde 4): önce `OrderLocks.LockAsync`, sonra sipariş yüklenir — kilitten önce yüklenen sipariş eskimiş olabilir —, sonra yöneticinin işleminde formun sürümü karşılaştırılır (tutmuyorsa `OrderVersionConflict`; müşterinin işlemi sürüm taşımaz ve o anki hâle karşı denetlenir — `07 §2.4.2`). Sürümü artıran her yazım `BumpVersion()` çağırır; artırmayan sistem yazımları `06 §2.6.4`'ün sayımıdır ve sürüme dokunmaz. `Order.Version` da `IsConcurrencyToken()` taşır, ama burada belirteç yalnız ikinci güvencedir: kilit altında `DbUpdateConcurrencyException` atılması kilidin atlandığını gösterir ve **beklenmeyen hatadır** — ret olarak yakalanıp sessizce geçilmez.
+4. **Sürüm taşımayan yazım koşullu güncellemedir** (`06 §2.6.5`): koşul `Where`'de, yazım `ExecuteUpdateAsync`'tedir ve etkilenen satır sayısı 0 ise yazım olmamıştır. **Sayaç hiçbir zaman okunup hesaplanıp yazılmaz;** artış veritabanında yapılır (`ReservedQuantity + adet`) ve koşul aynı deyimdedir. Sayaç özelliklerinin (`ReservedQuantity`, `UsedCount`, `ReservedCount`, indirme sayacı) ayarlayıcısı `private`tır; yazan yer yalnız `Catalog`'un geçiş biriminden çağrılan ayırma yöntemleridir (§9.1 madde 6; K-1013).
+
+   ```csharp
+   // Catalog içinde: ayırma yalnız kalan adet yetiyorsa yazılır (05 §7.3.3). Sürüm artmaz.
+   var written = await _db.Variants
+       .Where(v => v.Id == variantId
+                && (v.StockQuantity == null || v.StockQuantity - v.ReservedQuantity >= quantity))
+       .ExecuteUpdateAsync(s => s.SetProperty(v => v.ReservedQuantity, v => v.ReservedQuantity + quantity), ct);
+   if (written == 0) { /* yetmedi: dönüş değeriyle ret */ }
+
+   // Panelin stok alanı: gösterilen değere karşı (K-980). 0 satır ise neden aynı işlemde okunur —
+   // değer değişmişse DisplayedValueConflict, ayrılmış adedin altındaysa 02 §3.6.7'nin reddi.
+   var saved = await _db.Variants
+       .Where(v => v.Id == variantId && v.StockQuantity == originalStock
+                && (newStock == null || newStock >= v.ReservedQuantity))
+       .ExecuteUpdateAsync(s => s.SetProperty(v => v.StockQuantity, newStock), ct);
+   ```
+   Öteki sürüm taşımayan yazımlar (bağlantı kaydının tüketilmesi, yeniden doğrulama izni, kurumsal içeriğin elle sırası, durum değiştiren işlemler) aynı kalıptır: koşul o anki hâle ya da gösterilen değere, etkilenen satır 0 ise ret. İç notun yazımı §10.9'dadır (yazım 3).
+5. **Danışma kilidi tek yerdedir:** `Infrastructure/AdvisoryLocks.LockAsync(AdvisoryLockScope scope, Guid? key, ct)` (`internal`; bağlama `OrderLocks`'la aynı yoldan ulaşır). Kilit işlem kapsamlıdır (`pg_advisory_xact_lock`) — işlem bitince düşer, ayrıca açma yoktur — ve işlem açık değilse yöntem istisna atar. Anahtar kapsam adından ve varsa kimlikten kurulan metnin 64 bitlik özetidir (`hashtextextended`); iki ayrı anahtar çakışırsa yalnız fazladan sıralanır, yanlış sonuç doğmaz. Kapsamlar üçtür: `Cart` (sepet kimliğiyle; sipariş onayı — `05 §4.2.2`), `CategoryTree` (anahtarsız; oluşturma ve taşıma — §9.4 madde 4) ve `AdminSet` (anahtarsız; yöneticinin kaldırılması — yönetici kümesinin kilidi, `05 §6.1.2`). Kilit **işlemin ilk deyimidir** — kilitten önce okunan değer eskimiş olabilir — ve bekleme `lock_timeout` ile sınırlıdır (§3.5 tablosu; aşım `05 §10.3`'ün hâllerine düşer).
+
+   ```csharp
+   // Infrastructure/AdvisoryLocks.cs
+   public static async Task LockAsync(AdvisoryLockScope scope, Guid? key, CancellationToken ct)
+   {
+       // CurrentTransaction boşsa InvalidOperationException (kilit işlemin dışında anlamsızdır).
+       var name = key is null ? scope.ToString() : $"{scope}:{key}";
+       await _db.Database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock(hashtextextended({name}, 0))", ct);  // bilgim tarihli
+   }
+   ```
+   **Kilit sırası** `05 §7.3.5`'tedir ve bu sınıf onu zorlamaz, test sınar: sepet kilidi sipariş tarafının en başındadır; `CategoryTree` ve `AdminSet` sipariş, varyant ya da kupon kilidi alan işlemle birleşmez.
+6. **Test.** Birim: `BumpVersion` sürümü bir artırır. Entegrasyon (gerçek veritabanı, §19.1): aynı kaydı iki işlem aynı sürümle kaydeder — biri geçer, öteki `RecordVersionConflict` alır ve sürüm yalnız bir artmıştır; ürün formunun yalnız varyantı değişen kaydı ürünün sürümünü artırır; stok alanı gösterilen değerle ve ayrılmış adedin altı için iki ayrı ret verir; ayırma yetmezse 0 satır ve sayaç değişmez; eşzamanlı iki ayırma toplamı aşmaz; aynı sepetin iki onayı sıraya girer; `CategoryTree` kilidi iki karşıt taşımayı sıralar; işlem dışında `AdvisoryLocks` istisna atar. Model ve mimari testi: sürüm ve sayaç ayarlayıcıları `private`; tek sürüm sütunlu varlığın belirteci vardır, birden çok sürüm sütunlu `CompanySettings`'inkiler belirteç değildir (§10.3); `pg_advisory` ve `FOR UPDATE` metinleri yalnız `AdvisoryLocks.cs`, `OrderLocks.cs` ve §10.3'ün ayar kilidindedir (kaynak taraması).
+
+*Kaynak: K-1337 · K-1014, K-1013, K-1040 (4), K-1047, K-1089, K-980, K-967 · K-1119 · `06 §2.6`, §4.9, §4.17, §4.18 · `05 §4.2.2`, §6.1.2, §7.3, §10.3 · `07 §2.4`, §6.2 · `02 §3.6.7` · §3.5, §8.1, §9.1, §9.4.*
+
+### 10.3 Bölüm sürümünün çatıda eşlenişi
+
+`CompanySettings` tek satırdır ve yedi bağımsız kaydedilen bölümün her biri kendi sürüm sütununu taşır (`06 §2.6.3`, §4.2): `PaymentMethodsVersion`, `ShippingFeeVersion`, `DeliveryProvincesVersion`, `PeriodsVersion`, `ProductDefaultsVersion`, `ReturnAddressVersion`, `HomepageVersion`. Kalıp K-1320'nin kararıdır; bu alt bölüm onu kodlar (K-1338).
+
+1. **Varlık düz bir varlıktır:** yedi sürüm özelliği sıradan tamsayıdır ve `IsConcurrencyToken()` taşımaz — EF güncellemenin koşuluna işaretli her belirteci koyardı ve bir bölümün kaydı öteki altı bölümün sürümüne takılırdı (§10.2 madde 1'in tek sürümlü kalıbından farkı budur). Satır okunurken izlenmez (`AsNoTracking`) ve `SaveChanges` ile güncellenmez.
+2. **Tek sınıf yazar:** `Settings/CompanySettingsWriter` (`internal`) bütün bölüm kayıtlarını yazar; her bölüm bir yöntemdir, yeni bölüm `06`'da sütun, bu sınıfta bir yöntem ve testte bir satırdır. Bölüm kaydının sırası sabittir: (a) ayar satırının kilidi, (b) bölümün koşullu güncellemesi, (c) bölümün alt kayıtları. Kilit (a) `CompanySettingsWriter`'in kendi yöntemidir ve `OrderLocks`'un ham SQL kalıbıyla (`SELECT … FOR UPDATE`; §9.1 madde 5) tek satırı kilitler: üretilen yasal metni yazan işlemle aynı satırda sıralanır (`05 §7.3.5`; K-1088). Koşul yalnız o bölümün sürümüdür; güncelleme yalnız o bölümün sütunlarını ve sürümünü yazar. Alt kayıtlar — teslimat illerinin satırları (`CompanyDeliveryProvince`), sosyal bağlantılar (`SocialLink`) — güncellemeden sonra, aynı işlemde yazılır; güncelleme 0 satır etkilediyse ret dönüşüyle çıkılır ve yazılmış bir alt kayıt kalmaz.
+
+   ```csharp
+   // Settings/CompanySettingsWriter.cs — iade adresi bölümü örnektir. Red dönüş değeridir.
+   await LockAsync(ct);                                                      // (a) satır kilidi
+   var written = await _db.CompanySettings
+       .Where(s => s.ReturnAddressVersion == input.ReturnAddressVersion)     // (b) koşul: yalnız bu bölümün sürümü
+       .ExecuteUpdateAsync(s => s
+           .SetProperty(x => x.ReturnRecipientName, input.ReturnRecipientName)
+           .SetProperty(x => x.ReturnProvinceId, input.ReturnProvinceId)
+           .SetProperty(x => x.ReturnDistrict, input.ReturnDistrict)
+           .SetProperty(x => x.ReturnAddressLine, input.ReturnAddressLine)
+           .SetProperty(x => x.ReturnPhone, input.ReturnPhone)
+           .SetProperty(x => x.ReturnAddressVersion, x => x.ReturnAddressVersion + 1), ct);
+   if (written == 0)
+       return Result.Rejected(ErrorCode.RecordVersionConflict);              // alt kayıt yazılmadı
+   // (c) bölümün alt kayıtları bu noktadan sonra, aynı işlemde
+   ```
+   Girdi modelindeki sürüm alanı sütunun adını taşır (`07 §2.4.1`); formun sürümü satırdan `AsNoTracking` okumayla gelir.
+3. **Farklı bölümler çakışmaz, aynı bölümün eski sürümü reddedilir:** koşul kendi bölümünün sütunundadır; kilit yalnız yazımları sıralar. **Geçici kapatma anahtarı sürüm taşımaz** (`06 §2.6.3`): aynı sınıfta, o anki değere karşı koşullu güncellemedir (`Where(s => s.IsSalesTemporarilyClosed == original)`) ve satır kilidi almaz.
+4. **Tek yer ve koruma:** `CompanySettings` satırını yazan başka yer yoktur. Mimari test (kaynak taraması): hedefi bu varlık olan `ExecuteUpdate`/`ExecuteDelete` çağrısı yalnız `CompanySettingsWriter.cs`'tedir; ayar satırını `SaveChanges` ile yazan kod yoktur — model testi yedi sürüm özelliğinin belirteç olmadığını da sınar.
+5. **Test (entegrasyon, gerçek veritabanı):** B bölümünün eski sürümü varken A bölümü kaydedilir ve geçer; A'nın eski sürümü `RecordVersionConflict` alır; iki bölüm aynı anda kaydedilir ve ikisi de geçer; bölüm kaydı yalnız kendi sütunlarını değiştirir (öteki sütunlar ve sürümler aynı kalır); alt kaydı olan bölümde ret çıkınca alt kayıt değişmez.
+
+*Kaynak: K-1338 · K-1320 · K-1021, K-1088, K-1014 · `06 §2.6.3`, §4.2, §4.55, §4.56 · `05 §7.3.5` · `07 §2.4.1` · §3.5, §9.1, §10.2.*
+
+### 10.4 Önbellek ve kuşak sayacı
+
+> **Yazılacak:** Y-3b oturumu (`KK10-04`).
+
+### 10.5 Liste sırası, sayfalama, arama sözcüğü
+
+> **Yazılacak:** Y-3b oturumu (`KK10-05`).
+
+### 10.6 Göçlerin yazılışı
+
+> **Yazılacak:** Y-3b oturumu (`KK10-06`).
+
+### 10.7 Veritabanı oturumunun süreleri
+
+> **Yazılacak:** Y-3c oturumu (`KK10-07`; değerler §3.5'in tablosundadır).
+
+### 10.8 Veritabanı kullanıcıları
+
+> **Yazılacak:** Y-3c oturumu (`KK10-08`).
+
+### 10.9 İç notun kilidi
+
+> **Yazılacak:** Y-3c oturumu (`KK10-09`).
+
+### 10.10 Dışa aktarma dosyası
+
+> **Yazılacak:** Y-3c oturumu (`KK10-10`; değerler §3.5'in tablosundadır).
 
 ## 11. Entegrasyon kuralları
 

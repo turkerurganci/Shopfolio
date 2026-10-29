@@ -152,3 +152,23 @@ Doğrulayıcıların yan gözlemleri:
 ## Sonuç
 
 **SONUÇ: TEMİZ — ciddiyet ölçüsünde, 4. tur.** Altı ayrı bulgunun (dokuz ham) hepsi reddedildi: kabul ve kısmi yok. Skill'in çıkış kuralı: H1 ve H4 tekrar eden RET'tir ve turun sonucunu belirlemez; kalan dört bulgu ölçü dışı ya da izlenen parktır (mevzuata aykırılık, para ya da hak kaybı doğuran boşluk, çıkışsız akış ya da çelişki yoktur). İki düşük şiddetli metin farkı doğrulayıcıların yan gözleminden bulundu ve uygulandı (`08` v0.14, K-1289, K-1290). Kapanmayan not: yok — R3 EK-1 ve R4 EK-3…EK-6 ölçü dışıdır, etki yansıtmada gözden geçirilebilir. Sıradaki adım Faz 5 etki yansıtma (üst doküman yansımaları `08` §5.2 satır 14, 19 ve 20'de bekler); döngü bu turla kapandı.
+
+
+## Etki yansıtma sonucu (Faz 5)
+
+TEMİZ'den sonra (4. tur), kalite döngüsünün bütün geri beslemeleri — audit, deep review ve dört cross-review turu, K-1259…K-1290 — üst dokümanlara, park bloklarına ve Kaynak satırlarına karşı tarandı. Karar satırları K-1291 (⚠) ve K-1292'dir; `08` v0.15.
+
+| Adım | Komut | Bulgu | Sonuç |
+|---|---|---|---|
+| 1. Downstream | Karar kaydındaki K-1259…K-1290'ın 32 satırının etki sütunundaki dokümanlar ↔ dokümanın o kararı anması (betik); `08` gövdesinde `09`, `12`, `10`, `DEPLOY_RUNBOOK`'a iş bırakan cümleler (betik + okuma) | 9 satır eksik çıktı, 5'i gerçek; gövde cümlesi 1 bulgu (`09` park bloğunda Google kimlik belirteci maddesi yoktu) | K-1266, K-1270, K-1271, K-1272 `DEPLOY_RUNBOOK` başlıklarına, K-1272 `12`'ye, K-1274 `05 §6.5.4`'e işlendi; `09` park bloğuna yeni madde yazıldı. K-1261, K-1275, K-1288, K-1290 bulgu değil |
+| 2. Upstream | Aşama 1–7'nin 191 park satırında K-1234…K-1290 araması; Teknik Mimari kararlar özetinin 90 satırı için bölüm ↔ gerekçe hücresi betiği | 34 karar aday; 3 gerçek hizasızlık (ödeme dönüşünün POST olması koşullu üç park cümlesi); özette 9 satır | Üç park cümlesine K-1255 (1) geri işareti; MK-17, 37, 39, 40, 41, 42, 46, 53, 72'nin gerekçe hücrelerine kalite döngüsünün kararları eklendi. 31 aday ilgisiz |
+| 3. Yeni alan ve kural | `08`'in 169 kod biçimli kimliği ↔ `02`, `05`, `06`, `07`; P, Z, L, B, F, ÖK, MK, UC kodları ve 43 DV satırının atıfları | 0 (33 'eksik' dış servis adı) | K-1283'ün komutu için `05 §8.5.12` yazıldı |
+| 4. Kaynak satırları | Bölüm gövdesindeki kararlar ↔ Kaynak satırı; aralıklar açılır; `08`'de bütün kararlar, geri beslenen dokümanlarda K-1144…K-1291 | 245 eksik atıf, 57 bölüm (`08` 131, `02` 17, `04` 17, `05` 31, `06` 14, `07` 33, `10` 2, `03` 0) | Hepsi Kaynak satırlarına eklendi; ikinci koşum 0 |
+| 5. Taşınan notlar | Dört cross-review raporunun ek bulguları, audit ve deep review "Notlar" | 23 not | Hepsi bir karar satırına, bir DV satırına ya da kapanışa bağlandı (aşağıda); açık kalan yok |
+| 6. Düzeltmeler | — | Yedi bekleyen madde | K-1291 |
+
+**Notların bağlanması.** Audit: `failed_reason_code` `3` — `08 §2.1.3`'te zaten yazılı · `frame-src` `'self'` — K-1259 ve K-1274 (`05 §6.5.4`) · grup tanımı — K-1273 · `Amount` ↔ `Total` — §5.2 satır 9. Deep review: iş kuyruğu basamakları — `05`'in kararı, kapandı · Google üç çağrının süresi — `08 §2.3` kalan risk · gönderen adı kaçışı — DV-21 · DV-40 ve DV-5 · yasal atıf — K-1275. 1. tur: EK-1 K-1277, EK-2 uygulandı. 2. tur: EK-1 `12` park bloğu (K-1284), EK-2 K-1286, EK-3 DV-15. 3. tur: EK-1 DV-10, EK-2 kalan risk (K-1291), EK-3 6502 m.48/5 — `02` ve `08` fıkraya atıf yapmıyor, kapandı. 4. tur: EK-1 ve EK-2 K-1290; EK-3 ve EK-5 üslup, kapandı; EK-4 `010` kodu ölçü dışı, kapandı; EK-6 DV-10.
+
+**Yedi bekleyen madde.** (1) `08 §5.2` satır 14, 19, 20 hedef dokümanlarda işlendi; satır 16 ve 18 hedeflerde okundu (işlenmiş); satır 15 DV-10'un canlı ölçümünü bekler. (2) `04` v0.43 dipnotuna §5.25.7 eklendi. (3) `03 §2.6.3` üye koluyla hizalandı. (4) `07`'nin UC-51…UC-54 sayıları `04`'ün dört yeni maddesiyle (5.21.14, 5.21.15, 5.22.15, 3.5.15) denetlendi: maddeler matriste yoktu, girdi; çiftler 5.073 → 5.087. (5) Elle iade: kalan risk, komut açılmadı. (6) DV-10 canlı kanıtı taksitli. (7) DV-15 eski işlemin sorgu yanıtı.
+
+Sürümü artan dokümanlar: `08` v0.15 · `02` v0.100 · `03` v0.43 · `04` v0.46 · `05` v0.35 · `06` v0.37 · `07` v0.31 · `10` v0.56; park blokları (`09`, `12`) ve `DEPLOY_RUNBOOK` sürümsüz. **Kalite döngüsü tamam;** sıradaki adım çakışma taraması.

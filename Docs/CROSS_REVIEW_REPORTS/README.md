@@ -15,3 +15,4 @@ Her rapor şunları içerir:
 Prosedür: [`.claude/skills/cross-review/SKILL.md`](../../.claude/skills/cross-review/SKILL.md)
 
 - `09_CROSS_REVIEW.md` — Kodlama Kılavuzu (`09` v0.18 → v0.19), 1. tur, 2026-10-30: Codex iki koşum, 7 ayrı bulgu, 3 kabul, 4 ret; 6 doğrulayıcı; TEMİZ DEĞİL.
+- `09_CROSS_REVIEW_R2.md` — Kodlama Kılavuzu (`09` v0.19 → v0.20), 2. tur, 2026-10-30: Codex iki koşum, 8 ayrı bulgu, 1 kabul + 3 kısmi, 4 ret (2 tekrar eden RET); 6 doğrulayıcı; TEMİZ DEĞİL.

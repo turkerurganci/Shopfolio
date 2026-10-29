@@ -1,6 +1,6 @@
 # Shopfolio — Coding Guidelines
 
-**Versiyon: v0.7** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
+**Versiyon: v0.8** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
 
 > **Aşama:** 8 — Kodlama Kılavuzu · **Rol:** Tech Lead
 > **Amaç:** Ajanın tutarlı kod üretmesi. Bu doküman **her kodlama görevinde** ajana verilir.
@@ -68,9 +68,9 @@
 > - **K-1245 · K-1272 · K-1281 · K-1292 · Google kimlik belirtecinin doğrulanması (Entegrasyon Spesifikasyonları `08 §2.3`):** kod değişiminin adresi sabittir, keşiften okunmaz; keşif belgesinden yalnız `issuer` ve `jwks_uri` alınır, çatı keşif belgesini ve anahtar kümesini önbelleğe alır ve her girişte yeniden çekmez — çatının işleyicisi keşif belgesini varsayılan olarak başlatmada çekiyorsa adresler sabit olarak yapılandırılır; önbelleğin tazeleme biçimi çatının davranışıdır ve ilk bağlanan task'ta doğrulanır (bilgim tarihli; `08` DV-31) · `exp` için saat sapması toleransı çatının ayarıdır ve değeri bu dokümanın işidir; `auth_time` toleranssız karşılaştırılır · `userinfo` çağrılmaz; kimlik belirtecinin alanlarından yalnız alan eşlemesinin saydıkları okunur (`hd` dahil — Google'ın adres için yetkili olup olmadığı buradan okunur) ve `sub` saklanmaz (K-1061).
 > - **K-1027 · K-1271 · Değişken metnin kaçışı (Entegrasyon Spesifikasyonları `08 §2.2.6` — B-1'in iki yasal metninin yerleşimi, madde 4; §2.2.4):** e-postaya ve belgeye giren her değer — firmanın ayarı, kalemin adı, yer tutucunun müşteri değeri — HTML'de kaçışlanır, düz metinde satır sonu karakterleri boşluğa çevrilir; metin ham HTML olarak basılmaz, biçim yalnız şablonun kendi yapısıdır ve bağlantı yalnız `https`, `http` ve `mailto` şemasını taşır (`05 §6.5.3`) · değerin donmuş kopyada kaçışlı mı saklandığı, gösterimde mi kaçışlandığı bu aşamanın kararıdır; sipariş sayfasındaki gösterim aynı kuralı izler (K-1027 (4), (5)).
 
-> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.7).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. ve 2. oturum yöneticinin kararıyla baştan ikiye, 3. oturum üçe bölündü (`INSTRUCTIONS §9` (8)): Y-1a ve Y-1b, Y-2a (§7, §8) ve Y-2b (§9), Y-3a (§10.1–§10.3), Y-3b (§10.4–§10.6) ve Y-3c (§10.7–§10.10). **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330); Y-1b — §4, §5, §6 (K-1331, K-1332); Y-2a — §7, §8 (K-1333, K-1334); Y-2b — §9 (K-1335, K-1336); Y-3a — §10.1, §10.2, §10.3 (K-1337, K-1338); Y-3b — §10.4, §10.5, §10.6 (K-1339, K-1340, K-1341). **Sırada:** 3. oturumun kalanı (Y-3c: §10.7–§10.10), 4. oturum §11–§14, 5. oturum §15–§18, 6. oturum §19–§25 (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
+> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.8).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. ve 2. oturum yöneticinin kararıyla baştan ikiye, 3. oturum üçe bölündü (`INSTRUCTIONS §9` (8)): Y-1a ve Y-1b, Y-2a (§7, §8) ve Y-2b (§9), Y-3a (§10.1–§10.3), Y-3b (§10.4–§10.6) ve Y-3c (§10.7–§10.10); 3. oturum tamamdır. **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330); Y-1b — §4, §5, §6 (K-1331, K-1332); Y-2a — §7, §8 (K-1333, K-1334); Y-2b — §9 (K-1335, K-1336); Y-3a — §10.1, §10.2, §10.3 (K-1337, K-1338); Y-3b — §10.4, §10.5, §10.6 (K-1339, K-1340, K-1341); Y-3c — §10.7, §10.8, §10.9, §10.10 (K-1342, K-1343, K-1344, K-1345). **Sırada:** 4. oturum §11–§14, 5. oturum §15–§18, 6. oturum §19–§25 (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
 >
-> **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P1.1 (terim sözlüğünün devralınması — §5.1); P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu); P6.2 (girdi doğrulama süzgeci §3.4, model ve işleyici adları §5.3, hata kodlarının kaydı ve gösterilmemesi §8.2); P6.6 (işleyici adları §5.3, istekteki değerin biçimi ve bağlama kalıbı §7.2); P5.9 (kategori düzeyinin yazılışı — §9.4); P5.1 (silme davranışının kodda uygulanışı — §10.1); P5.2 (adlandırma §5.2, anahtar üretimi ve enum §10.1); P5.3 (normalleştirme ve kategori düzeyi §9.4, sürüm ve sayaç §10.2); P5.4 (bölüm başına sürüm — §10.3); P4.3 (önbellek ve kuşak sayacı — §10.4; modül sınırlarının korunması ve dosya deposu arayüzü §6); P5.11 (trigram eklentisi ve operatör sınıfı — §10.6). **Kısmen kapandı:** P4.2 — sayfaların düzeni §4.1'de yazıldı, ön yüz dosya düzeni §16'da; P4.5 — mimari testle korunan kısım §6'da, zamanın tek kaynağı ve sınanabilirliği §7.1'de yazıldı, geçiş biriminin ve yan etkinin yeri §9.1'de yazıldı, iş kuyruğunun kalıbı §13'te; P4.7 — hatanın üç hâli ve sonucu belirsiz işlem §8.1'de yazıldı, kayıt kütüphanesi ve kayıt alanları §18'de; P4.8 — dosya düzeni ve test projelerinin ayrımı §4.1 ve §4.3'te yazıldı, test araçları §19'da; P4.9 — ayarlar ve ürün sabitleri §3.5'te yazıldı, yönetim komutları §13'te; P4.13 — iki imajın derleme dosyalarının yeri §4.3'te yazıldı, içerikleri §17'de; P5.6 — kopya ve doldurma §9.3'te yazıldı, şablon sürüm kimliği §11.4'te; P5.7 — kod adları ve imha göçü §9.2'de yazıldı, kodun sürümlenmesi §12'de; P5.8 — veri koruma paketinin varlığına adlandırmanın uygulanışı §5.2'de yazıldı, kullanıcıların ve yetkisinin biçimi §10.8'de; P6.1 — işleyici adları ve sayfa düzeni §5.3 ve §4.1'de yazıldı, kimlik şemaları §15.1'de; P6.10 — model ve hata kodu adları §5.3'te, hata kodlarının kaydı §8.2'de yazıldı; kayıt alanlarının adları §18.2'de, kodun sürümlenmesi §12'de; P4.10 — göçlerin yazılışı §10.6'da yazıldı, değerlerin sürümlenmesi §12'de; P5.10 — daraltma göçünün ön denetimi §10.6'da yazıldı, dönüşüm işinin ilerleme kaydı §13.3'te; P6.5 — listelerin kesin sırası ve arama sözcüğü §10.5'te yazıldı, sınama katmanları §19'da; P6.11 — arama sözcüğü §10.5'te yazıldı, canlılık ucunun süresi §10.7'de, veri koruma amaçları §15.5'te, e-posta gövdesinin kaçışı §11.4'te, test planı §19'da. **Açık:** öteki on dört madde — yazılacakları bölümün oturumunda kapanır.
+> **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P1.1 (terim sözlüğünün devralınması — §5.1); P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu); P6.2 (girdi doğrulama süzgeci §3.4, model ve işleyici adları §5.3, hata kodlarının kaydı ve gösterilmemesi §8.2); P6.6 (işleyici adları §5.3, istekteki değerin biçimi ve bağlama kalıbı §7.2); P5.9 (kategori düzeyinin yazılışı — §9.4); P5.1 (silme davranışının kodda uygulanışı — §10.1); P5.2 (adlandırma §5.2, anahtar üretimi ve enum §10.1); P5.3 (normalleştirme ve kategori düzeyi §9.4, sürüm ve sayaç §10.2); P5.4 (bölüm başına sürüm — §10.3); P4.3 (önbellek ve kuşak sayacı — §10.4; modül sınırlarının korunması ve dosya deposu arayüzü §6); P5.11 (trigram eklentisi ve operatör sınıfı — §10.6); P5.12 (iç notun kilidi — §10.9); P6.9 (dışa aktarmanın geçici dizini, çökme artığı, tavanlar ve CSV'nin biçimi — §10.10, süre ve tavan değerleri §3.5 ve §10.7). **Kısmen kapandı:** P4.2 — sayfaların düzeni §4.1'de yazıldı, ön yüz dosya düzeni §16'da; P4.5 — veritabanı oturumunun süreleri §10.7'de, mimari testle korunan kısım §6'da, zamanın tek kaynağı ve sınanabilirliği §7.1'de yazıldı, geçiş biriminin ve yan etkinin yeri §9.1'de yazıldı, iş kuyruğunun kalıbı §13'te; P4.7 — hatanın üç hâli ve sonucu belirsiz işlem §8.1'de yazıldı, kayıt kütüphanesi ve kayıt alanları §18'de; P4.8 — dosya düzeni ve test projelerinin ayrımı §4.1 ve §4.3'te yazıldı, test araçları §19'da; P4.9 — ayarlar ve ürün sabitleri §3.5'te yazıldı, yönetim komutları §13'te; P4.13 — iki imajın derleme dosyalarının yeri §4.3'te yazıldı, içerikleri §17'de; P5.6 — kopya ve doldurma §9.3'te yazıldı, şablon sürüm kimliği §11.4'te; P5.7 — kod adları ve imha göçü §9.2'de yazıldı, kodun sürümlenmesi §12'de; P5.8 — veri koruma paketinin varlığına adlandırmanın uygulanışı §5.2'de yazıldı, kullanıcıların ve yetkisinin biçimi §10.8'de yazıldı, kalan kısmı §15.5 ve §17'de; P6.1 — işleyici adları ve sayfa düzeni §5.3 ve §4.1'de yazıldı, kimlik şemaları §15.1'de; P6.10 — model ve hata kodu adları §5.3'te, hata kodlarının kaydı §8.2'de yazıldı; kayıt alanlarının adları §18.2'de, kodun sürümlenmesi §12'de; P4.10 — göçlerin yazılışı §10.6'da yazıldı, değerlerin sürümlenmesi §12'de; P5.10 — daraltma göçünün ön denetimi §10.6'da yazıldı, dönüşüm işinin ilerleme kaydı §13.3'te; P6.5 — listelerin kesin sırası ve arama sözcüğü §10.5'te yazıldı, sınama katmanları §19'da; P6.11 — arama sözcüğü §10.5'te yazıldı, canlılık ucunun süresi §10.7'de, veri koruma amaçları §15.5'te, e-posta gövdesinin kaçışı §11.4'te, test planı §19'da. **Açık:** öteki on iki madde — yazılacakları bölümün oturumunda kapanır.
 
 **Yazım konvansiyonları (K-1302, K-1329).** Bu on madde §1–§25'in bütün yazım oturumlarını bağlar; "yazım konvansiyonu n" diye anılır.
 
@@ -99,7 +99,7 @@
 | §7 Zaman ve biçim standartları | 7.1 Tek zaman kaynağı · 7.2 İstekteki tarih, tutar ve ondalık biçimi | Y-2a ✓ |
 | §8 Hata yönetimi | 8.1 Tek yakalama katmanı, üç hâl, sonucu belirsiz işlem · 8.2 Hata kodlarının kaydı ve gösterilmemesi | Y-2a ✓ |
 | §9 Domain kuralları | 9.1 Geçiş birimi, beyaz liste, yan etki · 9.2 İşlem izinin kod adları · 9.3 Belgenin kişisel verisiz kopyası · 9.4 Tek işlevler | Y-2b ✓ |
-| §10 Veri erişimi | 10.1 Silme davranışı, anahtar, enum · 10.2 Sürüm, eşzamanlılık, sayaç · 10.3 Bölüm sürümünün çatıda eşlenişi · 10.4 Önbellek ve kuşak sayacı · 10.5 Liste sırası, sayfalama, arama sözcüğü · 10.6 Göçlerin yazılışı · 10.7 Veritabanı oturumunun süreleri · 10.8 Veritabanı kullanıcıları · 10.9 İç notun kilidi · 10.10 Dışa aktarma dosyası | Y-3a (10.1–10.3) ✓ · Y-3b (10.4–10.6) ✓ · Y-3c (10.7–10.10) |
+| §10 Veri erişimi | 10.1 Silme davranışı, anahtar, enum · 10.2 Sürüm, eşzamanlılık, sayaç · 10.3 Bölüm sürümünün çatıda eşlenişi · 10.4 Önbellek ve kuşak sayacı · 10.5 Liste sırası, sayfalama, arama sözcüğü · 10.6 Göçlerin yazılışı · 10.7 Veritabanı oturumunun süreleri · 10.8 Veritabanı kullanıcıları · 10.9 İç notun kilidi · 10.10 Dışa aktarma dosyası | Y-3a (10.1–10.3) ✓ · Y-3b (10.4–10.6) ✓ · Y-3c (10.7–10.10) ✓ |
 | §11 Entegrasyon kuralları | 11.1 Bağlantı katmanının kalıbı · 11.2 Dış servis istemcileri · 11.3 Google kimlik belirteci · 11.4 E-posta ve belge metninin üretimi | 4 |
 | §12 Sözleşme ve olay sürümleme | Değerlerin sürümlenmesi (alt bölümsüz) | 4 |
 | §13 Arka plan iş kuralları | 13.1 İş kuyruğu, yeniden deneme, nabız · 13.2 Yönetim komutları · 13.3 Büyük veri dönüşümünün ilerleme kaydı | 4 |
@@ -680,7 +680,7 @@ Bu bölüm durum geçişinin, yan etkinin, işlem izinin, belge kopyasının ve 
    await _catalog.ReleaseAsync(/* 6 iç yan etki: Catalog arayüzü */);
    _db.Jobs.Add(/* 7 dış yan etki: Job satırı */);
    ```
-5. **Kilit tek yerdedir.** `Ordering/OrderLocks.LockAsync(IReadOnlyCollection<Guid> orderIds, ct)` (`internal`) `SELECT … FOR UPDATE` ham SQL'ini (`FromSql`; bilgim tarihli) çalıştırır; siparişleri kimliğe göre sıralı kilitler (`05 §7.3.5`). Yönetici işleminde ekrandaki sürüm kilit altında karşılaştırılır (`05 §7.3.2`); sürüm artışının kalıbı §10.2'dedir. Kaynak taraması: sipariş satırını kilitleyen `FOR UPDATE` yalnız `OrderLocks`'tadır.
+5. **Kilit tek yerdedir.** `Ordering/OrderLocks.LockAsync(IReadOnlyCollection<Guid> orderIds, ct)` (`internal`) `SELECT … FOR UPDATE` ham SQL'ini (`FromSql`; bilgim tarihli) çalıştırır; siparişleri kimliğe göre sıralı kilitler (`05 §7.3.5`). Yönetici işleminde ekrandaki sürüm kilit altında karşılaştırılır (`05 §7.3.2`); sürüm artışının kalıbı §10.2'dedir. Kaynak taraması: sipariş satırını kilitleyen `FOR UPDATE` ve `FOR SHARE` (iç not, §10.9) yalnız `OrderLocks`'tadır.
 6. **Yan etki iki türdür.** İç yan etki — stok, kontenjan ve kupon dönüşü (`Catalog` arayüzü), iz satırı (`Administration` arayüzü, §9.2), panel işaretleri — gövdede açık çağrıdır ve aynı işlemdedir. Dış yan etki `Job` satırıdır (`JobType`, `RelatedRecordId`, `JobState.Pending`; `06 §4.59`) ve aynı işlemde yazılır; kuyruğun arayüzü ve işleyicinin kalıbı §13.1'dedir (yazım 4). Geçiş birimi bir dış servisin arayüzüne ve `HttpClient`'a bağlı değildir; e-posta ayrı bir iş satırı yazmaz — gönderim kaydı onun kuyruğudur (`05 §4.4.1`; §11.4).
 7. **Uygulama içi olay yayını yoktur** (`05 §3.4.6`): olay veriyolu kütüphanesi (§3.3 tablosunda yoktur), kendi yayıncı/abone arayüzü (`IEventBus`, `IDomainEvent`, `INotification`, `INotificationHandler<>` ad kalıpları), varlıkta biriken alan olayı listesi ve `SaveChanges` kesicisiyle dağıtım yazılmaz. Gerekçe: iç yan etkinin geçişle aynı işlemde yazıldığı gövdeden okunamaz olur. Bir geçişe tepki, arayüz çağrısıdır.
 8. **Test.** Tablo on altı satırdır; her `TransitionCode` (`Correction` hariç) bir kez bulunur ve `02 §5.4`, `§5.5` ile eşittir (denetim betiği §21'dedir, yazım 6 — iş adı: geçiş listesi eşitliği denetimi). Birim: izinli geçiş tek geçiş kaydı yazar; tablo dışı kaynak durum reddedilir ve hiçbir şey yazmaz. Entegrasyon (gerçek PostgreSQL, §19.1): iç yan etki hatasında durum, kayıt, iz ve `Job` birlikte geri alınır; eşzamanlı iki geçiş sıraya girer; iki sipariş ters sırada kilitlenmez ve kilitlenme olmaz; sürüm uyuşmazlığı reddedilir. Mimari test (§6 madde 4; kasıtlı ihlalli örnekle kırmızı olduğu gösterilir): durum özelliklerinin ayarlayıcısı `private`; `ApplyTransition`'ı çağıran yalnız `OrderTransitions`; `ExecuteUpdate` ve ham SQL metninde `order_status` ve `payment_status` yoktur (göçler hariç); yasak ad listesi; `OrderTransitions` `HttpClient`'a bağlı değil. ArchUnitNET'in özellik ayarlayıcısı ve yöntem çağrısı denetimi bilgim tarihlidir; yoksa kaynak metin taraması (§7.1 madde 5 gibi).
@@ -736,7 +736,7 @@ Bu bölüm durum geçişinin, yan etkinin, işlem izinin, belge kopyasının ve 
    END $$;
    ```
 
-   Kesim anı yerel yılın (Ly) on yıl öncesinin 1 Ocak 00:00'ıdır; `created_at < cutoff` ⇔ satırın yerel yılı ≤ Ly − 11. `GRANT` yalnız uygulama kullanıcısınadır: uygulama kullanıcısının adı `shopfolio.application_user` ayarında gelir; ayarı göç kodu kurmaz, kurucu kullanıcı ilk kurulumda göç kullanıcısının rol ayarına yazar (§10.6 madde 9; K-1340). Ayar kurulmamışsa `current_setting` hata verir ve göç geri alınır. Sahip göç kullanıcısıdır (`OWNER` yazılmaz). Değişiklik yeni bir göçte `CREATE OR REPLACE`'tir (sahip ve yetki korunur); imza değişirse eski işlev aynı göçte `DROP` edilir ve yetki yeniden verilir. Göçün `Down` yöntemi yok sayılır (şema geri alınmaz, `05 §8.7.3`); yazılmaz.
+   Kesim anı yerel yılın (Ly) on yıl öncesinin 1 Ocak 00:00'ıdır; `created_at < cutoff` ⇔ satırın yerel yılı ≤ Ly − 11. `GRANT` yalnız uygulama kullanıcısınadır: uygulama kullanıcısının adı `shopfolio.application_user` ayarında gelir; ayarı göç kodu kurmaz, kurucu kullanıcı ilk kurulumda göç kullanıcısının rol ayarına yazar (§10.6 madde 9; K-1340); aynı mekanizma §10.8'de salt okuma ve yedek durum kullanıcılarının adlarına genişler (K-1343). Ayar kurulmamışsa `current_setting` hata verir ve göç geri alınır. Sahip göç kullanıcısıdır (`OWNER` yazılmaz). Değişiklik yeni bir göçte `CREATE OR REPLACE`'tir (sahip ve yetki korunur); imza değişirse eski işlev aynı göçte `DROP` edilir ve yetki yeniden verilir. Göçün `Down` yöntemi yok sayılır (şema geri alınmaz, `05 §8.7.3`); yazılmaz.
 8. **Test** (entegrasyon, gerçek PostgreSQL, §19.1): uygulama kullanıcısı `UPDATE`, `DELETE`, `TRUNCATE` ile reddedilir, `INSERT` ve `SELECT` çalışır; fonksiyon uygulama kullanıcısıyla çalışır, `PUBLIC` ve salt okuma kullanıcısı çağıramaz; katalogda `prosecdef` doğru, `proconfig` içinde `search_path` sabit, sahip göç kullanıcısıdır; sınır: `created_at` 2016-12-31T20:59:59Z (yerel 23:59:59) olan satır `as_of` 2026-12-31T20:59:59Z'de silinmez, 2026-12-31T21:00:00Z'de silinir; `max_rows` sınırı ve dönen sayı; `max_rows < 1` hata verir; yeni satıra dokunulmaz; göç dosyalarında `now()` yoktur (§7.1 madde 5 taraması).
 
 ### 9.3 Belgenin kişisel verisiz kopyası ve yer tutucular
@@ -761,7 +761,7 @@ Bu bölüm durum geçişinin, yan etkinin, işlem izinin, belge kopyasının ve 
 
 ## 10. Veri erişimi
 
-Bu bölüm veritabanına erişimin **kodda nasıl yazıldığını** söyler; kuralın kendisi Veri Modeli'nde (`06 §2`) ve Teknik Mimari'dedir (`05 §7`). Veritabanı bağlamı tektir ve `Infrastructure/` altındadır (§4.1); işlemi `ITransactionRunner` açar (§9.1, madde 3). Alt bölümler yazım turunun 3. oturumunda üç parçada yazılır: 10.1–10.3 Y-3a'da, 10.4–10.6 Y-3b'de yazıldı; 10.7–10.10 Y-3c'nin işidir.
+Bu bölüm veritabanına erişimin **kodda nasıl yazıldığını** söyler; kuralın kendisi Veri Modeli'nde (`06 §2`) ve Teknik Mimari'dedir (`05 §7`). Veritabanı bağlamı tektir ve `Infrastructure/` altındadır (§4.1); işlemi `ITransactionRunner` açar (§9.1, madde 3). Alt bölümler yazım turunun 3. oturumunda üç parçada yazılır: 10.1–10.3 Y-3a'da, 10.4–10.6 Y-3b'de, 10.7–10.10 Y-3c'de yazıldı.
 
 ### 10.1 Silme davranışı, anahtar, enum
 
@@ -804,7 +804,7 @@ Bu bölüm veritabanına erişimin **kodda nasıl yazıldığını** söyler; ku
                         .HaveConversion(typeof(EnumToStringConverter<>).MakeGenericType(enumType));  // bilgim tarihli
    }
    ```
-   Bir model sonlandırma kuralı her enum sütununa izinli değerlerin kontrol kısıtını ekler (`"status" IN ('Placed', …)`); sütun adı kütüphanenin ad kuralından sonra, modelden okunur — kuralın sıralaması ilk task'ta sınanır. Enum'un yalnız bir alt kümesini kullanan alan alt kümesini bildirir (`HasAllowedValues(PublishStatus.Draft, PublishStatus.Published)` — `06 §2.9.2`); bildirimsiz alanda kümenin hepsi izinlidir. **İstisna:** işlem izinin `Operation` sütununda kısıt yoktur — iz göçle dönüştürülemez ve tanınmayan kod olduğu gibi gösterilir (§9.2 madde 2); istisna kuralın içindeki tek `Operation` satırıdır, başka istisna açılmaz. Sayısal dönüşüm (`HasConversion<int>`, `(int)` ile yazım) yoktur. Yeni değerin göçle gelişi §10.6'dadır (yazım 3).
+   Bir model sonlandırma kuralı her enum sütununa izinli değerlerin kontrol kısıtını ekler (`"status" IN ('Placed', …)`); sütun adı kütüphanenin ad kuralından sonra, modelden okunur — kuralın sıralaması ilk task'ta sınanır. Enum'un yalnız bir alt kümesini kullanan alan alt kümesini bildirir (`HasAllowedValues(PublishStatus.Draft, PublishStatus.Published)` — `06 §2.9.2`); bildirimsiz alanda kümenin hepsi izinlidir. **İstisna:** işlem izinin `Operation` sütununda kısıt yoktur — iz göçle dönüştürülemez ve tanınmayan kod olduğu gibi gösterilir (§9.2 madde 2); istisna kuralın içindeki tek `Operation` satırıdır, başka istisna açılmaz. Sayısal dönüşüm (`HasConversion<int>`, `(int)` ile yazım) yoktur. Yeni değerin göçle gelişi §10.6'dadır.
 4. **Kontrol kısıtının adı türetilir** (K-1337). Çatı kontrol kısıtına ad ister; elle ad vermemenin (`06 §2.4.3`) karşılığı adın kuraldan çıkmasıdır: ad `ck_` + tablo adı + `_` + kural adıdır. Enum kısıtında kural adı sütun adıdır; elle yazılan kısıt (ör. havale açıksa IBAN dolu — `06 §4.2`) yapılandırmada yalnız kural adını verir: `HasRule("bank_transfer_iban_required", "…")`. Sonlandırma kuralı adı birleştirir ve kısıtı ekler; tam ad §5.2 madde 5'in desen ve 63 bayt testinden geçer.
 5. **Test.** Model testi (entegrasyon): her yabancı anahtarın silme davranışı `Cascade`, `SetNull` ya da `NoAction`'dır; `Cascade` ilişkilerin kümesi `06 §2.2.5`'in basamaklı satırıyla eşittir (kayıtlı liste testtedir, listeyi `06 §2.2.5` ile elle hizalamak ekleme task'ının işidir); `SetNull` ilişkinin sütunu boş olabilir. Gerçek veritabanında `pg_constraint` yabancı anahtarın silme eylemini `a` (no action), `c` ya da `n` gösterir, `r` (restrict) göstermez. Birincil anahtar testi: her `Guid` anahtarı `ValueGeneratedNever`'dır; `EntityIds.New()` sürüm 7 üretir (sürüm basamağı 7) ve ardışık iki çağrı farklıdır. Enum testi (gerçek veritabanı): her enum üyesi yazılır, geri okunur ve ham değer üye adıdır; kümede olmayan metin kısıta takılır (ham SQL ile eklenir); alt küme bildiren alan dışarıdaki üyeyi reddeder. Kaynak taraması: yasak listesi (madde 2) ve `HasConversion<int>` yoktur.
 
@@ -846,7 +846,7 @@ Kural `06 §2.6` ve `05 §7.3`'tedir: iyimser sürüm, siparişte kısa satır k
                 && (newStock == null || newStock >= v.ReservedQuantity))
        .ExecuteUpdateAsync(s => s.SetProperty(v => v.StockQuantity, newStock), ct);
    ```
-   Öteki sürüm taşımayan yazımlar (bağlantı kaydının tüketilmesi, yeniden doğrulama izni, kurumsal içeriğin elle sırası, durum değiştiren işlemler) aynı kalıptır: koşul o anki hâle ya da gösterilen değere, etkilenen satır 0 ise ret. İç notun yazımı §10.9'dadır (yazım 3).
+   Öteki sürüm taşımayan yazımlar (bağlantı kaydının tüketilmesi, yeniden doğrulama izni, kurumsal içeriğin elle sırası, durum değiştiren işlemler) aynı kalıptır: koşul o anki hâle ya da gösterilen değere, etkilenen satır 0 ise ret. İç notun yazımı §10.9'dadır.
 5. **Danışma kilidi tek yerdedir:** `Infrastructure/AdvisoryLocks.LockAsync(AdvisoryLockScope scope, Guid? key, ct)` (`internal`; bağlama `OrderLocks`'la aynı yoldan ulaşır). Kilit işlem kapsamlıdır (`pg_advisory_xact_lock`) — işlem bitince düşer, ayrıca açma yoktur — ve işlem açık değilse yöntem istisna atar. Anahtar kapsam adından ve varsa kimlikten kurulan metnin 64 bitlik özetidir (`hashtextextended`); iki ayrı anahtar çakışırsa yalnız fazladan sıralanır, yanlış sonuç doğmaz. Kapsamlar üçtür: `Cart` (sepet kimliğiyle; sipariş onayı — `05 §4.2.2`), `CategoryTree` (anahtarsız; oluşturma ve taşıma — §9.4 madde 4) ve `AdminSet` (anahtarsız; yöneticinin kaldırılması — yönetici kümesinin kilidi, `05 §6.1.2`). Kilit **işlemin ilk deyimidir** — kilitten önce okunan değer eskimiş olabilir — ve bekleme `lock_timeout` ile sınırlıdır (§3.5 tablosu; aşım `05 §10.3`'ün hâllerine düşer).
 
    ```csharp
@@ -1041,19 +1041,213 @@ Kural `05 §8.7`'dedir: göçler genişlet–daralt kuralıyla yazılır, her g�
 
 ### 10.7 Veritabanı oturumunun süreleri
 
-> **Yazılacak:** Y-3c oturumu (`KK10-07`; değerler §3.5'in tablosundadır).
+Bu alt bölüm veritabanı oturumunun üç sunucu taraflı zaman aşımını ve istemci yedeğini bağlantıya **nasıl kurduğunu**, aşımın kodda nasıl karşılandığını ve canlılık ucunun veritabanı denetimini yazar. **Değerlerin tek yeri §3.5'in tablosudur;** burada yinelenmez (yazım konvansiyonu 7). Tablonun öteki satırlarının kod yerleri kendi bölümlerindedir: dış çağrı süresi §11, iş kuyruğu aralığı §13, Google belirtecinin `exp` toleransı §15 (yazım 5), dışa aktarmanın tavanları ve süpürme yaşı §10.10, ters vekil süresi `deploy/caddy/Caddyfile`'da (§4.3, §10.10 madde 7).
+
+1. **Değerler `Infrastructure/DatabaseTimeouts`'ta durur.** `internal static` sınıf; her değer §3.5 tablosunun bir satırına karşılık gelen adlı bir `TimeSpan` sabitidir: `LockTimeout`, `StatementTimeout`, `MaintenanceStatementTimeout`, `IdleInTransactionTimeout`, `CommandTimeout`. Süre ve tavan değerleri `02 §11.2`'nin envanterine girmez; bu yüzden `ProductConstants`'a yazılmaz (§3.5 madde 1), bu sınıfın kendi evidir. Sayı başka yerde yazılmaz: bağlantı dizisi, test ve canlılık denetimi bu sabitlere başvurur.
+2. **Bağlantıya kuruluş tek yerdedir:** `Infrastructure/DatabaseConnection.Configure(NpgsqlConnectionStringBuilder builder, DatabaseSessionProfile profile)` üç sunucu ayarını `Options` anahtarıyla, istemci süresini `CommandTimeout` ile kurar. Profil ikidir: `Web` (uygulama hizmeti ve içindeki iş kuyruğu çalıştırıcısı; canlılık ucu ve dışa aktarma dahil) ve `Maintenance` (göç hizmeti ve yönetim komutları; yalnız `statement_timeout` uzar, öteki iki değer aynıdır). Profili kayıt kökü giriş noktasına göre seçer; bir istek ya da komut profil seçmez.
+
+   ```csharp
+   // DatabaseTimeouts'ın değerleri §3.5 tablosundadır; bu örnek onları yinelemez.
+   // Options ve CommandTimeout adları Npgsql'in sürümüne bağlıdır — bilgim tarihli — ilk task'ta doğrulanır.
+   public enum DatabaseSessionProfile { Web, Maintenance }
+
+   internal static class DatabaseConnection
+   {
+       public static void Configure(NpgsqlConnectionStringBuilder builder, DatabaseSessionProfile profile)
+       {
+           var statement = profile == DatabaseSessionProfile.Maintenance
+               ? DatabaseTimeouts.MaintenanceStatementTimeout
+               : DatabaseTimeouts.StatementTimeout;
+           builder.Options =
+               $"-c lock_timeout={(int)DatabaseTimeouts.LockTimeout.TotalMilliseconds} " +
+               $"-c statement_timeout={(int)statement.TotalMilliseconds} " +
+               $"-c idle_in_transaction_session_timeout={(int)DatabaseTimeouts.IdleInTransactionTimeout.TotalMilliseconds}";
+           builder.CommandTimeout = (int)DatabaseTimeouts.CommandTimeout.TotalSeconds;
+       }
+   }
+   ```
+   Ayar bağlantı kurulurken sunucuya gider ve oturum boyunca geçerlidir; havuzdaki bağlantı ayarı korur. Bu yüzden iki profil **ayrı bağlantı dizisidir** (ayrı havuz); bir bağlantıda `SET` ile süre değiştirilmez. Kaynak taraması: `SET statement_timeout`, `SET lock_timeout`, `SET idle_in_transaction_session_timeout` ve `SET LOCAL` biçimleri yalnız `DatabaseConnection`'da ve testlerde geçer.
+3. **İstemci süresi yedektir.** `CommandTimeout` her sunucu süresinden uzundur (§3.5): sunucu iptali önce gelir, istemci yalnız sunucu yanıt vermezse keser. Komut başına `CommandTimeout` atanmaz; uzun süren iş yeni bir süre değil, sayfalamadır (§10.10 madde 4).
+4. **Aşım ayrı bir hâl değildir.** Kilit bekleme aşımı (`55P03`), sorgu iptali (`57014`) ve boşta işlem aşımının kestiği bağlantı beklenmeyen hatadır ve tek yakalama katmanında üç hâlden birine düşer (§8.1; `05 §10.3`). Kod bunları **yakalamaz, çevirmez, yeniden denemez:** `PostgresException`'ı `SqlState`'ine göre ayıran `catch` yalnız tekil dizin çakışmasında (`23505`, §10.2) vardır. Ayrı ekran ya da ileti yoktur. Kuyruk satırı bu hatalarda iş türünün kuralına göre denenir (`05 §4.3.4`; §13).
+5. **Öncül: işlemin içinde dış çağrı yoktur.** Boşta işlem süresi, açık işlemin bir dış servisi beklemediği varsayımına dayanır; dış yan etki iş kuyruğuna yazılır ve çağrı işlemin dışındadır (§9.1 madde 6). Kaynak taraması (birim, `Infrastructure/` dışında): `ITransactionRunner` gövdesinde `HttpClient` ya da dış servis arayüzü kullanımı yoktur.
+6. **Canlılık ucunun veritabanı denetimi.** `Infrastructure/LivenessProbe.CheckDatabaseAsync(ct)` bir bağlantı açar ve `SELECT 1` çalıştırır; süre **kurulum ayarıdır** (§3.5 tablosunun satırı; varsayılanı tabloda): ayar anahtarı `Database:LivenessTimeoutSeconds`, seçenekler sınıfı `DatabaseOptions`. Açılışta doğrulanır: sıfırdan büyük ve `CommandTimeout`'tan kısa olmalıdır; değilse uygulama açılmaz ve ayarı adıyla kaydeder (§3.5 madde 2). Denetim hem bağlantıyı açmayı hem komutu kapsar: istek iptali belirteciyle bağlı bir `CancellationTokenSource` `CancelAfter(ayar)` ile kurulur; süre dolarsa ya da komut hata verirse yöntem `false` döner ve uç gövdesiz 503 yazar (`07 §4.33.1`; makine ucu, §8.1). Süre dolması bir kayıt satırı yazar (§18, yazım 5); istek iptali yazmaz.
+
+   ```csharp
+   public static async Task<bool> CheckDatabaseAsync(NpgsqlDataSource dataSource, TimeSpan limit, CancellationToken ct)
+   {
+       using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+       timeout.CancelAfter(limit);
+       try
+       {
+           await using var connection = await dataSource.OpenConnectionAsync(timeout.Token);
+           await using var command = new NpgsqlCommand("SELECT 1", connection);
+           await command.ExecuteScalarAsync(timeout.Token);
+           return true;
+       }
+       catch (Exception) when (!ct.IsCancellationRequested) { return false; } // §8.1: makine ucunda geniş catch'in izinli yeri
+   }
+   ```
+   Compose sağlık denetiminin kendi zaman aşımı bu süreden uzun olmalıdır; değeri D-01'in işidir ve burada yazılmaz.
+7. **Test.** Birim: üç sunucu ayarı ve istemci süresi `Web` ve `Maintenance` profillerinde bağlantı dizisinde doğru yazılır; `DatabaseTimeouts` sabitleri §3.5'in çelişki taramasını sağlar (kilit < sorgu < istemci süresi; dışa aktarma sayfa sorgusu < üretim tavanı < ters vekil süresi); `DatabaseOptions` doğrulaması (sıfır, negatif ve istemci süresinden uzun değer açılışı reddeder); kaynak taramaları (madde 2 ve 5). Entegrasyon (gerçek PostgreSQL, §19.1): iki işlemle kilit bekleme — ikincisi `lock_timeout` içinde düşer ve beklenmeyen hâle gider; `pg_sleep` ile sorgu iptali; boşta kalan açık işlemin bağlantısı kesilir; `Maintenance` profilinde `SHOW statement_timeout` uzun değeri, `Web` profilinde kısa değeri gösterir. Canlılık denetimi: yavaş veritabanında `false` ve 503; erişilemeyen veritabanında `false`; istek iptalinde `false` döner ama kayıt yazılmaz.
+
+*Kaynak: K-1342 · K-1328 · K-1257, K-1258, K-1322 · K-889, K-1272 · `05 §10.3`, §10.1.14, §4.3.4 · `07 §4.33.1` · §3.5, §8.1, §9.1, §10.2, §10.10, §13, §15.*
 
 ### 10.8 Veritabanı kullanıcıları
 
-> **Yazılacak:** Y-3c oturumu (`KK10-08`).
+Veritabanının kendi kullanıcıları hesap kaydı değildir (`06 §8.3.2`); hangi bileşenin hangi kullanıcıyla bağlandığı `05 §7.1.3`'te, sırlarının dağılımı `05 §6.x`'te yazılıdır. Bu alt bölüm kullanıcıların **biçimini ve yetkisini**, yetkinin göçlerde nasıl korunduğunu ve nasıl sınandığını yazar. Kullanıcıları ve yetkileri ilk kurulumda veritabanının kurucu kullanıcısı kurar; betiğin dosyası ve imajdaki yeri §17'dedir (yazım 5), `DEPLOY_RUNBOOK`'ta adımı vardır.
+
+1. **Beş kullanıcı, beş iş.** Adlar sabittir; kodda ve göçte yazılmaz, bağlantı ayarından ve madde 5'in rol ayarlarından gelir.
+
+   | Kullanıcı | Ad | Kim bağlanır | Yetki |
+   |---|---|---|---|
+   | Kurucu | imajın kurucu kullanıcısı | Yalnız ilk kurulumda kurucu betik; hiçbir bileşen ağdan bağlanmaz (`05 §7.1.3`; K-987) | Süper kullanıcı; kullanıcıları, yetkileri ve `pg_trgm`'i kurar (§10.6 madde 8) |
+   | Şema sahibi (göç) | `shopfolio_migrator` | Yalnız göç hizmeti (`05 §8.7.2`) | Veritabanının ve `public` şemasının sahibi; nesneleri o oluşturur; süper kullanıcı değildir, rol ve veritabanı yaratamaz |
+   | Uygulama | `shopfolio_app` | Uygulama; veri yazan yönetim komutları ve durum komutu (`05 §6.x.19`) | `CONNECT`; `public` şemasında `USAGE`; her tabloda `SELECT`, `INSERT`, `UPDATE`, `DELETE`; `TRUNCATE`, `REFERENCES`, `TRIGGER` ve `CREATE` yok; istisnalar madde 3'te |
+   | Salt okuma | `shopfolio_reader` | Okuma komutu, bakım, dönüş denetimi (`05 §9.3.1`, §8.5.11) | `CONNECT`, `USAGE`; her tabloda yalnız `SELECT`; `data_protection_keys`'te yok; oturumu `default_transaction_read_only = on` |
+   | Yedeğin durum kaydı | `shopfolio_backup_status` | Veritabanı konteynerindeki zamanlayıcı, yerel soketle (`06 §4.67`) | `backup_status_records`'ta yalnız `last_succeeded_at` ve `last_failed_at` sütunlarının `UPDATE`'i |
+
+   Rollerin hiçbiri `SUPERUSER`, `CREATEDB`, `CREATEROLE`, `REPLICATION` ve `BYPASSRLS` taşımaz. `PUBLIC`'ten veritabanı ve şema yetkisi geri alınır; her kullanıcıya yetkisi ayrıca verilir. Yedeğin durum kullanıcısının parolası yoktur ve yalnız yerel soketten bağlanır; kimlik doğrulamasının biçimi (`peer` ya da `trust`) D-01'de doğrulanır (bilgim tarihli); ağdan bağlanan, parolalı bir yedek kullanıcısı yoktur (`05 §3.2.5`). Öteki üç kullanıcının parolası ayrı sırdır ve açık metinle bir deyime yazılmaz (`05 §6.x.16`).
+2. **Yetkinin verildiği yer.** Kurucu betik şunları yapar (örnek yer tutucularla; sıra: kullanıcılar, sahiplik, varsayılan yetkiler):
+
+   ```sql
+   CREATE ROLE shopfolio_migrator LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE;
+   CREATE ROLE shopfolio_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE;
+   CREATE ROLE shopfolio_reader LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE;
+   CREATE ROLE shopfolio_backup_status LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE;
+   ALTER ROLE shopfolio_reader SET default_transaction_read_only = on;
+   REVOKE ALL ON DATABASE <veritabanı> FROM PUBLIC;
+   GRANT CONNECT ON DATABASE <veritabanı> TO shopfolio_migrator, shopfolio_app, shopfolio_reader, shopfolio_backup_status;
+   ALTER DATABASE <veritabanı> OWNER TO shopfolio_migrator;
+   ALTER SCHEMA public OWNER TO shopfolio_migrator;
+   REVOKE ALL ON SCHEMA public FROM PUBLIC;
+   GRANT USAGE ON SCHEMA public TO shopfolio_app, shopfolio_reader, shopfolio_backup_status;
+   ALTER DEFAULT PRIVILEGES FOR ROLE shopfolio_migrator IN SCHEMA public
+     GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO shopfolio_app;
+   ALTER DEFAULT PRIVILEGES FOR ROLE shopfolio_migrator IN SCHEMA public
+     GRANT SELECT ON TABLES TO shopfolio_reader;
+   GRANT EXECUTE ON FUNCTION pg_catalog.pg_ls_archive_statusdir() TO shopfolio_app;
+   ```
+   Son satır durum komutunun bekleyen günlük dosyaları listesini okuyabilmesi içindir (`05 §9.4.10`); izleme rolünün (`pg_monitor`) tamamı verilmez. Varsayılan yetkiler göçle sonradan oluşan her tabloya uygulanır: yeni tablo için `GRANT` yazılmaz. Ad ve işlev imzası bilgim tarihlidir; ilk task'ta doğrulanır. `default_transaction_read_only` bir **güvenlik sınırı değildir** (okuyucu onu `SET` ile kapatabilir); sınır yalnız yetkidir, ayar kazaya karşıdır.
+3. **Üç tablo varsayılandan ayrılır; ayrım tabloyu kuran göçtedir.**
+
+   | Tablo | Uygulama kullanıcısı | Salt okuma | Yedek durum kullanıcısı | Sebep |
+   |---|---|---|---|---|
+   | `audit_logs` | `SELECT`, `INSERT` (`UPDATE`, `DELETE` geri alınır) | `SELECT` | — | İz saklama süresi boyunca değiştirilemez ve silinemez (`05 §7.5.1`; §9.2) |
+   | `data_protection_keys` | varsayılan | `SELECT` geri alınır | — | Anahtar halkasını yalnız uygulama okur (`05 §7.1.3`; K-1082) |
+   | `backup_status_records` | varsayılan | varsayılan | `last_succeeded_at`, `last_failed_at` sütunlarında `UPDATE` | Satırı zamanlayıcı yazar (`06 §4.67`) |
+
+   Göç, ayrımı varsayılanın üstüne `REVOKE` ve `GRANT` ile yazar; kullanıcı adını göç dosyasına yazmaz, madde 5'in rol ayarından okur. Kalıp (`audit_logs`'u kuran göçte):
+
+   ```sql
+   DO $$ BEGIN
+     EXECUTE format('REVOKE UPDATE, DELETE ON public.audit_logs FROM %I', current_setting('shopfolio.application_user'));
+   END $$;
+   ```
+   `data_protection_keys` için aynı kalıp `shopfolio.reader_user` ile `REVOKE SELECT`; `backup_status_records` için `shopfolio.backup_status_user` ile `GRANT UPDATE (last_succeeded_at, last_failed_at)`. Zamanlayıcının güncellemesi `WHERE`'siz tek deyimdir (tablo tek satırdır, `06 §4.67`); bu yüzden `SELECT` verilmez. Tabloya sütun eklenirse yetki sütun listesi kapsamaz: sonradan eklenen sütunu zamanlayıcı yazamaz — istenirse yeni göçte açıkça verilir.
+4. **Ayrım tabloyla yaşar.** Tablo yeniden adlandırılırsa yetkiler tabloyla gider; yeniden adlandırma iki sürüme bölündüğü için (§10.6) eski ve yeni ad birlikte var olduğu sürümde ayrım ikisinde de bulunur, yetki matrisi sınaması (madde 7) yeni adı istisna listesine alır. Üç tablodan birini silip yeniden kuran göç, ayrımı yeniden yazmak zorundadır.
+5. **Kullanıcı adları rol ayarıyla gelir.** §10.6 madde 9'un mekanizması üç ayara genişler: kurucu betik, göç kullanıcısının rol ayarına `shopfolio.application_user`, `shopfolio.reader_user` ve `shopfolio.backup_status_user` değerlerini yazar (`ALTER ROLE shopfolio_migrator IN DATABASE <veritabanı> SET … = '…'`); ayar yokken `current_setting` hata verir ve göç geri alınır. Üç ayar da kullanıcı yeniden adlandırılırsa güncellenir (`DEPLOY_RUNBOOK`).
+6. **Kodda tek kural: bileşen kendi kullanıcısıyla bağlanır.** Uygulama ve komutlar `shopfolio_app`, göç hizmeti `shopfolio_migrator`, okuma komutu `shopfolio_reader` bağlantı ayarını okur; bir bileşenin başka bileşenin bağlantı ayarını okuması yasaktır (`05 §6.x.8`). Uygulama açılışında yetki sınanmaz; yetkinin doğruluğu aşağıdaki testlerdedir. Uygulama kullanıcısı şema değiştiremediği için `EnsureCreated`, `Migrate` ve model değişikliği uygulayan her çağrı yalnız göç hizmetinde ve testlerin göç kullanıcısı bağlantısında bulunur (kaynak taraması).
+7. **Test** (entegrasyon, gerçek PostgreSQL, §19.1; testin göç kullanıcısı bağlantısıyla kurduğu veritabanında):
+   - *Yetki matrisi:* `information_schema` ve `has_table_privilege` ile `public` şemasındaki **her tablo** için beklenen yetki karşılaştırılır; beklenen, madde 2'nin varsayılanı ile madde 3'ün üç istisnasıdır. Yeni bir tablo istisna listesinde olmadan varsayılandan ayrışırsa test düşer.
+   - *Uygulama kullanıcısı:* `CREATE TABLE`, `DROP TABLE`, `ALTER TABLE` ve `audit_logs`'ta `UPDATE`, `DELETE`, `TRUNCATE` reddedilir; `INSERT` ve `SELECT` çalışır; `data_protection_keys`'e kimlik sütunlu `INSERT` ek bir dizi yetkisi olmadan çalışır (bilgim tarihli); `pg_ls_archive_statusdir()` çağrılabilir, `pg_stat_activity` başka oturumun sorgusunu göstermez.
+   - *Salt okuma kullanıcısı:* her tabloda `SELECT` (üç istisna dışında); herhangi bir `INSERT`, `UPDATE`, `DELETE` ve `data_protection_keys` okuması reddedilir.
+   - *Yedek durum kullanıcısı:* iki sütunun `UPDATE`'i çalışır; başka sütun, başka tablo, `SELECT`, `INSERT`, `DELETE` reddedilir. Yerel sokette bağlanıp ağdan bağlanamaması Compose entegrasyon denemesindedir (D-01).
+   - *Göç kullanıcısı:* süper kullanıcı değildir (`rolsuper` yanlıştır); rol ve veritabanı yaratamaz.
+   - *Rol ayarları:* ayar yokken `audit_logs` göçü geri alınır; ayarlıyken yetki doğru kullanıcıdadır.
+   - *Kaynak taraması* (birim): göç dosyalarında `shopfolio_` ile başlayan sabit kullanıcı adı yoktur; `GRANT`, `REVOKE` ve `ALTER DEFAULT PRIVILEGES` yalnız `current_setting` kalıbıyla ve kurucu betikte bulunur.
+8. **İnceleme listesi** (§25'e taşınır, yazım 6): kullanıcı ya da tablo ekleyen PR'da (a) yeni tablo varsayılan yetkiyle doğru mu, değilse istisna tablosu ve test güncel mi; (b) kullanıcı adı göçe yazılmamış, rol ayarıyla mı geliyor; (c) uygulama kullanıcısına şema, süper kullanıcı ya da izleme yetkisi eklenmemiş mi; (d) bir bileşen başka bileşenin sırrını alıyor mu (`05 §6.x.8`).
+
+*Kaynak: K-1343 · K-1098 (4), K-1082, K-1068 (5), K-975, K-986, K-987, K-1124, K-1340 · `05 §7.1.3`, §7.5.1, §7.5.2, §6.x.4, §6.x.6, §6.x.8, §6.x.16, §6.x.19, §3.2.5, §8.7.2, §9.4.10 · `06 §4.63`, §4.67, §4.68, §8.3.2 · `DEPLOY_RUNBOOK` (K-1340 ve K-1343 satırları) · §5.2, §9.2, §10.6, §17 (yazım 5), §19, §25.*
 
 ### 10.9 İç notun kilidi
 
-> **Yazılacak:** Y-3c oturumu (`KK10-09`).
+İç not siparişe bağlı serbest metindir ve kişisel veri taşıyabilir (`06 §4.20`); sipariş imha edilince notun satırı imha parçasında silinir (`05 §7.4.3` (2)). Yazım, imha edilmiş siparişe not bırakmamalıdır. Kuralın kendisi Veri Modeli'ndedir (`06 §4.20`, §9.2.1; `02 §10.4.7`); bu alt bölüm kilidin ve koşullu yazımın **kodda yazılışını** söyler.
+
+1. **Kilit paylaşımlı satır kilididir.** Yazım, siparişin satırını `FOR SHARE` ile okur. Bu kilit siparişin sürümünü artırmaz (sahte çakışma doğurmaz, `06 §2.6.4`) ve imha parçasının satır kilidiyle çakışır: imha önce kesinleşmemişse yazım bekler ve kesinleşince boşalmış siparişi görür; yazım önce kilitlemişse imha onun bitmesini bekler. İki not yazımı birbirini beklemez (paylaşımlı kilitler uyuşur); aralarındaki çakışma notun kendi koşuludur (madde 3). Bekleme `lock_timeout` ile sınırlıdır (§3.5 tablosu); aşım beklenmeyen hatadır ve form isteğinde işlem düzeyindedir (§10.7 madde 4).
+2. **Kilit `OrderLocks`'tadır.** Sipariş satırı kilidinin tek evi `Ordering/OrderLocks`'tır (§9.1 madde 5); paylaşımlı biçim aynı sınıfa eklenir: `OrderLocks.LockSharedAsync(Guid orderId, ct)`, `SELECT … FOR SHARE` ham SQL'ini çalıştırır (`FromSql`; bilgim tarihli) ve siparişin iletişim e-postasını döndürür; sipariş yoksa `null` döner. İletişim e-postası boş (`null` ya da boş metin) ise sipariş imha edilmiştir. Kaynak taraması §9.1 madde 5'in cümlesi genişler: sipariş satırını kilitleyen `FOR UPDATE` ve `FOR SHARE` yalnız `OrderLocks`'tadır. Kilit işlemin ilk deyimidir ve işlem açık değilse yöntem istisna atar (`AdvisoryLocks` ile aynı kural, §10.2 madde 5).
+3. **Yazım koşullu güncellemedir** (`06 §4.20`; K-1051; §10.2 madde 4'ün kalıbı). Geçiş birimi `Ordering/SaveInternalNote` (`SaveInternalNote`, §9.2 işlem adı) şu sırayla işler:
+   1. İşlem açılır; `LockSharedAsync` çağrılır. Sipariş yoksa ya da iletişim e-postası boşsa hiçbir şey yazılmaz ve sonuç `OperationNotAvailable`'dır (422; `07 §9.9.31`).
+   2. Gönderilen metin boş değilse: satır varken, satırın metni gösterilen metinle (`OriginalText`) aynıysa `ExecuteUpdateAsync` ile yazılır; satır yokken ve gösterilen metin boşken `INSERT` yapılır. Gösterilen metin boş değilken satır yoksa ya da farklıysa sonuç `DisplayedValueConflict`'tir (409) ve güncel not okunup döndürülür.
+   3. Gönderilen metin boşsa satır `ExecuteDeleteAsync` ile, `Text == OriginalText` koşuluyla silinir; 0 satır etkilendiyse `DisplayedValueConflict`'tir (satır yoksa ve gösterilen metin boşsa zaten bir şey yapılmaz ve başarıdır).
+   4. İz satırı aynı işlemde yazılır (`SaveInternalNote`; `Details` notun metnini taşımaz, §9.2 madde 4). Başarısız sonuçlarda iz yazılmaz.
+
+   Koşul aynı kayda iki yöneticinin eşzamanlı ilk yazımını da kapsar: ikisi de satır yokken `INSERT` ederse ikincisi `OrderId`'nin tekil dizinine takılır (`23505`) ve §10.2'nin kuralıyla işlem yeniden yürütülür; ikinci geçişte not artık var ve gösterilen metin boş kaldığı için `DisplayedValueConflict` döner.
+
+   ```csharp
+   // Ordering/SaveInternalNote — kilit işlemin ilk deyimi; ad ve sonuç türleri §9.1'in kalıbındandır.
+   var contactEmail = await _orderLocks.LockSharedAsync(orderId, ct);
+   if (string.IsNullOrEmpty(contactEmail)) return SaveInternalNoteResult.OperationNotAvailable;
+
+   var written = await _db.InternalNotes
+       .Where(n => n.OrderId == orderId && n.Text == originalText)
+       .ExecuteUpdateAsync(s => s.SetProperty(n => n.Text, text)
+                                 .SetProperty(n => n.AdminId, adminId)
+                                 .SetProperty(n => n.AdminName, adminName), ct);
+   if (written == 0 && originalText.Length == 0) { /* INSERT; 23505 → işlemin yeniden yürütülmesi (§10.2) */ }
+   else if (written == 0) return SaveInternalNoteResult.DisplayedValueConflict;
+   ```
+   Not siparişin sürümünü artırmaz: `Order` satırına `UPDATE` yazılmaz (kaynak taraması: `SaveInternalNote` içinde `Orders` üzerinde `ExecuteUpdate` ya da değişiklik izleme yoktur).
+4. **Öteki işlemlerle ilişkisi.** Siparişi `FOR UPDATE` ile kilitleyen yönetici işlemi (§9.1 madde 5) tutulurken not yazımı onu bekler; not yazımı `FOR SHARE` tuttuğu kısa süre içinde o işlemi bekletir, başka hiçbir işlemi bekletmez. Not yazımı tek sipariş kilitler ve çok siparişli kilit sırasının (§9.1 madde 5) konusu değildir.
+5. **Test** (entegrasyon, gerçek PostgreSQL, §19.1): iki gerçek işlemle — (a) imha parçası siparişi güncellerken (kilit tutulurken) not yazımı bekler, imha kesinleşince `OperationNotAvailable` döner ve hiçbir satır yazılmaz; (b) not yazımı kilitliyken imha onun bitmesini bekler; (c) iki not yazımı birbirini bloklamaz; (d) iki yöneticinin ilk yazımı: biri başarılı, öteki `DisplayedValueConflict`; (e) gösterilen metin eskiyken yazım `DisplayedValueConflict` verir ve güncel notu döndürür; (f) boş metin satırı siler; (g) sipariş sürümü hiçbir yazımda değişmez; (h) not metni iz satırına girmez. Kilit çakışmasının PostgreSQL'in bugünkü sürümünde gerçekten oluştuğu (a) ve (b) ile doğrulanır; çakışma yoksa Veri Modeli güncellenir (`06 §4.20`; K-1095).
+
+*Kaynak: K-1344 · K-1095, K-1051, K-1014 (3), K-1010 (4), K-1034 (4) · `05 §7.3.2`, §7.4.3 · `06 §2.6.4`, §4.20, §9.2.1 · `07 §9.9.31`, hata kodları (`OperationNotAvailable`, `DisplayedValueConflict`) · `02 §10.4.7` · §3.5, §9.1, §9.2, §10.2, §10.3, §10.7.*
 
 ### 10.10 Dışa aktarma dosyası
 
-> **Yazılacak:** Y-3c oturumu (`KK10-10`; değerler §3.5'in tablosundadır).
+Üç dışa aktarma — siparişler, üye listesi, iletişim talepleri (`07 §9.24.2`–§9.24.4) — aynı yazıcıyı ve aynı dosya yolunu kullanır. Dosyanın içeriği ve iz satırı `07`'de, yedeğe girmeyen dizinde üretilmesi `05 §6.8.4`'te yazılıdır; bu alt bölüm **CSV'nin iç biçimini, yazıcıyı, akışla üretimi, geçici dizini ve çökme artığını** yazar. Kütüphane yoktur (§3'ün "Kütüphanesiz kararlar" listesi).
+
+1. **Yazıcı tek sınıftır.** `Infrastructure/CsvExportWriter`, sütun tanımlarını tipli alır: `CsvColumn<TRow>(string Header, CsvColumnKind Kind, Func<TRow, object?> Value)`; `CsvColumnKind` altı değerlidir: `Text`, `Amount`, `Quantity`, `Rate`, `Date`, `Moment`. Her hücre kendi türünün yazıcısından geçer; tür kuralı hücreyi yazan kodun değil, tanımın işidir. Üç dışa aktarma kendi sütun listesini `OrderExportColumns`, `CustomerExportColumns`, `ContactRequestExportColumns` adlarıyla satırı sağlayan modülün klasöründe tanımlar (sipariş `Ordering`, üye listesi `Membership`, iletişim talebi `CorporateContent`; `05 §3.3.7`); yazıcı modülleri bilmez ve `Infrastructure/` içindedir.
+2. **Biçim** (`07 §9.24.2`'nin bıraktığı yerler; K-1321 (2)):
+   - Kodlama UTF-8, başında BOM (`new UTF8Encoding(encoderShouldEmitUTF8Identifier: true)`); satır sonu `\r\n`; hücre ayırıcı noktalı virgül.
+   - Hücre `;`, `"`, CR ya da LF içeriyorsa çift tırnağa alınır ve içindeki `"` ikilenir. Başlık satırı Türkçe sütun adlarıdır (madde 5).
+   - `Amount`: iki ondalık, virgül ayracı, binlik ayracı yok (`1250,00`; negatif `-12,50`); `Rate`: yüzde sayısı, sondaki sıfırlar yok (`20`, `7,5`); `Quantity`: tam sayı; `Date`: `yyyy-MM-dd`; `Moment`: `yyyy-MM-dd HH:mm`; ikisi de Türkiye saatiyledir (§7.1 madde 3: `TurkeyTime.DateOf`, anın sabit ofsetle yazımı); `null` boş hücredir. Sayı yazımı kültüre bağlı değildir (`CultureInfo.InvariantCulture` ve ayraç değişimi): konteynerde `tr-TR` kültür verisi bulunmayabilir (§7.2).
+   - Noktalı virgül ve virgül ayracı Excel'in Türkçe yerel ayarının liste ve ondalık ayracıdır (bilgim tarihli); ilk task'ta Excel'de açılış denenir (K-1321 (2)).
+3. **Formül etkisizleştirme yalnız `Text` hücrelerindedir.** Hücrenin ilk karakteri `=`, `+`, `-`, `@`, sekme (`\t`) ya da CR ise hücrenin başına tek tırnak (`'`) konur; **sonra** tırnaklama kuralı uygulanır. Sayısal türler (`Amount`, `Quantity`, `Rate`) ve tarih türleri metin yazıcısından geçmez: negatif tutarın (geç gelip iade edilen ödeme) başına ön ek konmaz, Excel onu sayı olarak toplar. Kural üç dışa aktarmanın bütün metin sütunlarında, ad, e-posta, adres ve mesaj dahil geçerlidir (K-1217 (3)).
+
+   ```csharp
+   // Yanlış: tırnaklayıp etkisizleştirmek ya da sayıya da uygulamak.
+   //   var cell = Quote(value); if (IsFormulaStart(cell)) cell = "'" + cell;       // tırnak ilk karakter olur, kural işlemez
+   //   decimal tutar → TextCell(tutar.ToString(...))                              // negatif tutar metne dönüşür
+   // Doğru:
+   private static string TextCell(string? value)
+   {
+       if (string.IsNullOrEmpty(value)) return string.Empty;
+       if (value[0] is '=' or '+' or '-' or '@' or '\t' or '\r') value = "'" + value;
+       return NeedsQuoting(value) ? "\"" + value.Replace("\"", "\"\"") + "\"" : value;
+   }
+   ```
+4. **Akışla yazım.** Yazıcı bir `Stream`'e, `IAsyncEnumerable<TRow>` kaynağından satır satır yazar; bütün küme belleğe alınmaz (`ToList` yasaktır). Sipariş kümesi anahtar sırasıyla (`Id`) 500 siparişlik sayfalarla okunur (`Id > son anahtar`, `OrderBy(Id)`, `Take`; `AsNoTracking`); sayfanın kalemleri tek ek sorguyla alınır ve her kalem bir satırdır, sipariş alanları kalemlerde yinelenir. Sayfa sorgusu §3.5'teki sorgu süresinin içindedir (§10.7); üretim süresi tavanı toplamı sınırlar. Üye listesi ve iletişim talepleri aynı sayfalama kalıbıyla (`Id` anahtarı) okunur. Dosya sırası listelerin kesin sırası kuralının (§10.5) dışındadır: dosya bir liste ekranı değil, anahtar sırasıyla bir dökümdür.
+5. **Sütunlar.** Başlıklar sözlüğün Türkçe terimleridir; alanların hepsi `06 §4`'ten alınır ve her tanım kaynak alanını yorumda taşır. Sipariş dosyasında satır bir sipariş kalemidir (`02 §10.7.1`):
+
+   | Grup | Sütun (başlık) | Kaynak |
+   |---|---|---|
+   | Sipariş | Sipariş numarası, Sipariş tarihi (`Date`), Ödeme yöntemi | `Order.OrderNumber`, `Order.CreatedAt`, `Order.PaymentMethod` |
+   | Kalem | Ürün adı, Birinci seçenek, İkinci seçenek, Adet, Birim fiyat, İndirim yüzdesi, İndirimli birim fiyat, Kupon payı, KDV oranı, KDV tutarı | `OrderItem.ProductName`, `FirstOptionValue`, `SecondOptionValue`, `Quantity`, `UnitPrice`, `DiscountPercentage`, `DiscountedUnitPrice`, `CouponShare`, `VatRate`, `VatAmount` |
+   | Sipariş toplamı | Sipariş toplamı, Kargo ücreti, Kargo ücretinin KDV dökümü (`Text`) | `Order.Total`, `Order.ShippingFee`, `Order.ShippingFeeVatBreakdown` |
+   | Fatura adresi | Alıcı adı, İl, İlçe, Adres | `Order.BillingRecipientName`, `BillingProvinceId` (il adı), `BillingDistrict`, `BillingAddressLine` |
+   | Firma kimliği | Ticaret unvanı, Vergi numarası, Mersis numarası, Ticaret sicil numarası, İl, İlçe, Adres | `Order.CompanyLegalName`, `CompanyTaxIdNumber`, `CompanyMersisNumber`, `CompanyTradeRegistryNumber`, `CompanyProvinceId` (il adı), `CompanyDistrict`, `CompanyAddressLine` |
+   | Ulaşma | İletişim e-postası, Teslimat alıcı adı | `Order.ContactEmail`, `Order.ShippingRecipientName` |
+   | Kargo | Kargo şirketi, Kargoya verme tarihi (`Date`) | `Order.Carrier` ya da `OtherCarrierName`; fiziksel kalemde kargoya verildi geçişinin günü, dijital ve hizmet kaleminde `OrderItem.DeliveryMarkedAt`'in günü |
+   | Ödeme | Ödeme onay tarihi (`Date`) | Son ödeme onayı geçiş kaydının günü (`06 §4.19`; `02 §3.20.6`'nın eşlemesi) |
+   | Geç ödeme | Geç ödeme tarihi (`Date`), Geç ödeme tutarı, Geri ödeme tarihi (`Date`), Geri ödeme tutarı | `PaymentRecord.CreatedAt`, `Order.Total`, `Refund.SentAt`, `Refund.Amount` — yalnız iptal edilmiş siparişe geç gelip sistemce geri ödenen ödemede dolu, aksi hâlde boş |
+
+   Enum değerli sütunlar (`Ödeme yöntemi`, `Kargo şirketi`) değerin kod adını değil, ekranlarda kullanılan Türkçe terimi yazar; eşleme `06 §5`'in değer listesinden tek bir `CsvEnumLabels` sözlüğündedir ve eksik değer açılışta testle yakalanır. Kargo KDV dökümü hücresi `oran=tutar` çiftlerinin `|` ile ayrılmış listesidir (`20=12,50|10=3,20`). **Kişisel verisi imha edilmiş siparişte** ad, e-posta ve adres sütunları boştur (`Fatura adresi` grubu, `İletişim e-postası`, `Teslimat alıcı adı`); firma kimliği ve tutarlar kalır (ticari kayıt; `06 §9.2.1`). **Üye listesi** iki sütundur: `Ad`, `E-posta` (`Customer.Name`, `Customer.Email`; doğrulanmamış bekleyen kayıt dahil). **İletişim talepleri** iki sütundur: `Ad`, `E-posta` (`ContactRequest.Name`, `ContactRequest.Email`).
+6. **Geçici dizin ve dosya.** Dizin kurulum ayarıdır: anahtar `Export:TempDirectory`; varsayılanı konteynerin geçici dizini altında `shopfolio-export`'tur ve Compose'ta bir birime bağlanmaz — yedeğe girmez (`05 §7.6.3`, §9.3.3). Uygulama açılışta dizini oluşturur ve yazma yetkisini sınar; yoksa ya da yazılamıyorsa açılış reddedilir (§3.5 madde 2). Dosya adı rastgele bir `Guid`'dir (`{guid:N}.csv`) ve firmanın ya da yöneticinin adını taşımaz; indirme adı `07 §9.24.2`'dedir ve diskteki adla ilgisizdir. Dosya yalnız uygulamanın kullanıcısının okuyabileceği kiple açılır; ikinci bir yedek kopya ya da günlük kaydı bu dizinden okunmaz.
+7. **Silme ve tavanlar.** Akış `FileOptions.DeleteOnClose` ile açılır: gönderim biter, hata olur ya da istek iptal edilirse akış kapanınca dosya silinir; yöntem `await using` ile kapsanır. Üretim süresi ve dosya boyutu tavanı §3.5 tablosundadır. Süre `CancelAfter` ile, boyut yazıcının yazdığı bayt sayısıyla sınanır (her sayfa sonunda); aşılırsa üretim durur, dosya silinir, iz yazılmaz ve yanıt `UnexpectedOperationError` ile 500'dür (`07 §9.24.2`; §8.1). Süre dolduğundaki iptal ile istemcinin bağlantıyı kesmesi karışmaz: `CancellationTokenSource` zaman aşımı kaynağı ayrıdır ve yalnız o tetiklenmişse dahili `ExportLimitExceededException` atılır. İz satırı dosya üretildikten sonra ve gönderimden önce yazılır (`07 §9.24.2`; `Export` işlemi, §9.2). Ters vekilin dışa aktarma yollarındaki yanıt başlığı bekleme süresi §3.5 tablosundadır ve `deploy/caddy/Caddyfile`'da yalnız dışa aktarma yolları için ayrı bir `reverse_proxy` bloğunda `transport http` altında kurulur (`response_header_timeout`; ad bilgim tarihlidir ve ilk task'ta belgeye karşı doğrulanır — doğrulanmazsa değer aynı kalır, ad düzelir).
+
+   ```csharp
+   // Dosya yalnız uygulamanın kullanıcısına açılır; kapanınca silinir. UnixCreateMode: .NET 7'den — bilgim tarihli.
+   await using var file = new FileStream(path, new FileStreamOptions
+   {
+       Mode = FileMode.CreateNew, Access = FileAccess.ReadWrite, Share = FileShare.None,
+       Options = FileOptions.DeleteOnClose | FileOptions.Asynchronous | FileOptions.SequentialScan,
+       UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite,
+   });
+   ```
+8. **Çökme artığı.** Süreç akış kapanmadan düşerse dosya kalır. Uygulama açılırken dizindeki her dosya silinir (tek örnek: yarıda iş yoktur) ve her dışa aktarma isteği başlarken §3.5'teki süpürme yaşından eski dosyalar silinir. Süpürme hatası isteği düşürmez, kayda yazılır (§18, yazım 5). Süpürmenin yeri `Infrastructure/ExportTempDirectory`'dir; üç dışa aktarma da dizini yalnız onun üzerinden açar. Süpürme gecelik temizliğin envanterine (`05 §5.2.9`) girmez: yeni iş yoktur.
+9. **Test.** Birim: formül örnekleri (`=1+1`, `+x`, `-x`, `@x`, sekme, CR başında tek tırnak, sonra tırnaklama); sayısal sütunda negatif tutar ön eksiz (`-12,50`); `;`, `"`, CR, LF içeren hücre; BOM ve `\r\n`; `Amount`, `Rate`, `Date`, `Moment` biçimleri ve Türkiye günü (21:00 UTC bir sonraki gün); `null` boş hücre; kargo KDV dökümü biçimi; `CsvEnumLabels`'ın her `PaymentMethod` ve `Carrier` değerini kapsaması; kaynak taraması (`ToList` ve `ToArray` dışa aktarma kodunda yok). Entegrasyon (§19.1): imha edilmiş siparişte boş sütunlar ve dolu tutarlar; gönderimden ve hatadan sonra dizinde dosya kalmaması; açılış süpürmesi (tüm dosyalar) ve istek süpürmesi (yalnız eski dosyalar); tavanın aşılması (kısa tavan ayarlanamadığından sahte saat ve sahte sayaçla: süre için `TimeProvider` benzeri bir zaman kaynağı, boyut için küçük bir sınır verilen yazıcı) — dosya silinir, iz yazılmaz, 500; Excel'de açılış elle denenir (madde 2).
+
+*Kaynak: K-1342 · K-1321 · K-1217 (3), K-1193, K-1195 · `07 §9.24.2`–§9.24.4 · `05 §6.8.4`, §7.6.3, §9.3.3, §5.2.9 · `02 §10.7.1`, §10.7.4, §3.20.6 · `06 §4.17`, §4.18, §4.19, §4.32, §4.33, §4.36, §4.57, §9.2.1 · §3.5, §4.1, §5.2, §7.1, §7.2, §8.1, §9.2, §10.5, §10.7, §18.*
 
 ## 11. Entegrasyon kuralları
 

@@ -86,3 +86,43 @@ Gösterilmeden kaydedilen ⚠ karar: yok. Çok kritik soru yok. `09` metni deği
 ## Sonuç
 
 **SONUÇ: TEMİZ — ciddiyet ölçüsüyle ve tekrar eden RET kuralıyla, 3 tur.** Altı çağrının dördü `SONUÇ: TEMİZ`; ikisi aynı yer ve aynı iddiayla geri gelen, önceki turlarda iki kez gerekçeyle reddedilmiş F5 ve F1'i getirdi (skill Faz 4 madde 5: tekrar eden RET turun sonucunu belirlemez). Kabul ya da kısmi bulgu yok. Skill'in çıkış koşulu (Faz 4 madde 4) sağlandı; döngü bu turda kapanır. Sonraki adım: etki yansıtma (Faz 5, ATLANAMAZ) — bu görevde yapılmadı; downstream/upstream tarama, yeni alan/kural taraması, Kaynak satırları taraması (betikle) ve raporlarda taşınan açık notların kapatılması, ardından checkpoint.
+
+
+## Etki yansıtma sonucu (cross-review Faz 5; 2026-10-30, `09` v0.22, K-1389, K-1390)
+
+Altı adım koştu; taramalar betikle (`ey/` altında: Kaynak satırı, park satırı, yeni ad, devir cümlesi) ve `[ozet]` Sonnet/low dört okuma paketiyle yapıldı (alt ajan sayısı 4; bulgu doğrulayıcı gerekmedi, bulguların ESKİ metinleri elle ve `count == 1` denetimiyle uygulandı).
+
+| Adım | Kapsam | Bulgu | Komut ya da yöntem |
+|---|---|---|---|
+| 1. Downstream | `10`, `11`, `12`, `DEPLOY_RUNBOOK`, `CI_CD_SETUP` | 4 düzeltme (`DEPLOY_RUNBOOK` 3: maske listesine `/odeme/donus/`, K-1312 atfı, prova kaydı ofseti; `DEFERRED_BACKLOG` D-01: 1); `10`, `11`, `12`, `CI_CD_SETUP` 0 | `park.py` (9 park satırı), okuma paketi `pk_deploy`, `pk_11` |
+| 2. Upstream | `05`, `06`, `07`, `08`, `02`, `GUARDRAILS` | `05` 7 (K-1389 altı, K-1390 bir), `06` sürüm notu 1, `09 §21` giriş cümlesi 1; `07`, `08`, `02`, `GUARDRAILS` uyumlu | okuma paketleri `pk_up05`, `pk_up_other`; park satırları 28 eski K numarasıyla bütün blokta arandı |
+| 3. Yeni alan ve kural | kalite döngüsünde `09`'a eklenen adlar | 525 ad, 98'i üst dokümanlarda yok; 97 kod adı ya da çatı simgesi (`09`'un evi), 1 gerçek (`05 §10.3.6`) | `newnames.py` (`git diff c2e44e6^ HEAD -- Docs/09_CODING_GUIDELINES.md`) |
+| 4. Kaynak satırları | `09` (bütün K'lar), `02`, `05`, `06` (K-1302…K-1388) | `09` 22 eksik atıf / 11 bölüm; `02`, `05`, `06` 8 atıf / 8 bölüm; 6 yanlış pozitif ("MK-n" kimlikleri) elendi | `kaynak.py`, `kaynak3.py` |
+| 5. Taşınan notlar | audit, deep review, cross-review 1–3 | 17 not: 7 uygulanmış ya da hizalanmış, 10 gerekçeyle kapatıldı (aşağıda) | elle, rapor bölümleri |
+| 6. Düzeltmeler | `02` v0.103, `05` v0.40, `06` v0.42, `09` v0.22 | K-1389, K-1390 | `apply1.py`, `apply2.py` (her ESKİ metin dosyada tam bir kez) |
+
+**Yedi bekleyen madde:** (1) `05 §9.1.3` reddin kodunu yazar — kapandı, K-1389 (a); (2) `DEPLOY_RUNBOOK` maske listesine `/odeme/donus/` — kapandı; (3) `05 §8.6.3` prova kaydı ofseti (`§8.7.4` ve `DEPLOY_RUNBOOK` dahil) — kapandı; (4) `06` v0.39 sürüm notu `§2.10.1` — kapandı (`09 §15.3` Kaynak satırındaki `06 §2.10.2` başka bir kural için doğru atıftır, değişmedi); (5) K-1312 maddesinin atfı — `09 §3.3` madde 6 ve §3'ün Kütüphaneler tablosu (liste kaynağı tablonun giriş cümlesi; "§3.5" değil, tablo §3'ün numarasız altbölümüdür); (6) `11`'in park bloğu ↔ `09` okuma tablosu ve `D-01`'e kalan iki iş — birebir uyumlu, `D-01` satırı iki işi de anar oldu; (7) `SmtpCaptureEmailGateway` ↔ `05 §8.1.2` — çelişki yoktu, K-1363'ün ikinci yarısı (gerçek sağlayıcı kimliği geliştirmeye geçmez) eksikti, eklendi.
+
+**Taşınan on yedi not ve kapanışı**
+
+| # | Kaynak | Not | Kapanış |
+|---|---|---|---|
+| 1 | audit Sınırlar | `TE` merceğinin ad listesinin kuyruğu okunmadı | deep review (8 katman) ve üç cross-review turu ad listelerini taradı, yeni bulgu çıkmadı; kapandı |
+| 2 | audit Sınırlar | `xunit.v3`, `Serilog.Sinks.File`, `AWSSDK.SimpleEmailV2` doğrulanamadı | tablo satırları "ekleme task'ında doğrulanır" notuyla yazılı (`09 §3.3`); bilinçli, kapandı |
+| 3 | audit Sınırlar | `AT` merceğinin 23 kaydı | elle çözüldü, hepsi yanlış pozitif; kapandı |
+| 4 | audit Sınırlar + deep review | etki maddeleri doğrulanamadı (`07 §4.31.2`, `§6.1.3`, `05 §8.1.2`, `§8.3.9`, `§6.7.10`) | bu adımda okundu: `07` ikisi, `05 §6.7.10` uyumlu; `05 §8.1.2` ve `§8.3.9` K-1389 ile hizalandı |
+| 5 | audit Sınırlar | Kütüphaneler tablosunun üç satırı "bilgim tarihli"; `dotnet-ef` ve `Microsoft.EntityFrameworkCore.Design` eşitlik denetimine girer mi | satırlar ekleme anında okunur (`09 §3.3`); iki ad `09`'da geçmiyor, eklenince tablo yolu işler; kapandı |
+| 6 | audit Sınırlar | B-K1359-3 satırının uyarlanması | uygulanmış; kapandı |
+| 7 | audit Notlar | test cümlelerindeki sınır örnekleri sayı taşır | yinelenen değer sayılmadı; kapandı |
+| 8 | audit Notlar | `DEPLOY_RUNBOOK` K-1312 atfı numarasız | K-1389, `DEPLOY_RUNBOOK` park satırı |
+| 9 | audit Notlar | `GUARDRAILS §8` ↔ `09 §21.3` aynı yasakları farklı sözle anlatıyor mu | çelişki yok; "birebir" cümlesi düzeltildi (karışık amaçlı PR yasağı kılavuza özgü), K-1389 |
+| 10 | audit Notlar | B-K9-4 (§21.2 noktalı virgül) için karşılık cümle yok | iki yerde de nokta oldu; kapandı |
+| 11 | cross-review 1 EK-1 | §13.1 madde 10 "beşinci yer" anlatımı | K-1384'te uygulanmış |
+| 12 | cross-review 1 EK-2 | §10.8 madde 7 "bilgim tarihli" notu kaldırılabilir | uygulanmadı: not testin gerekçesidir, test kalır; kapandı |
+| 13 | cross-review 1 EK-3 | başlık notuna "(işlem izi değil)" eklenebilir | uygulanmadı: park bloğu yazımda değişmez (K-1302 (6)); kapandı |
+| 14 | cross-review 2 EK-1 | §9.2 madde 1 `DbSet<AuditLog>` cümlesi | K-1386'da uygulanmış |
+| 15 | cross-review 2 EK-2 | §13.1 madde 4 `RescheduleAfter`'ın sonraki deneme anı yazılı değil | uygulanmadı: netleştirme, güvence `RetryAt(now + …)` kalıbında; kapandı |
+| 16 | cross-review 2 EK-3 | `reapply-deletions` komut kaydı `command-…` dosyasına düşer | kayıp doğmuyor, bulgu değil; kapandı |
+| 17 | deep review Sınırlar | üst doküman etki atıfları cross-review girdisi | bu bölümün 2. adımıdır; kapandı |
+
+Rapor ve karar kaydındaki eski satırlarda iki yazım notu: K-1367'nin etki sütunundaki `02 §3.8.5` KDV kuralının evi `02 §3.8.3`'tür; K-1373'ün `05 §15.3` atfı `09 §15.3`'tür. Eski satırlar tarihçedir, değişmedi. Açık kalan not yok.

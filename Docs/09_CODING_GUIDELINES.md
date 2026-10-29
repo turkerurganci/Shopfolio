@@ -1,6 +1,6 @@
 # Shopfolio — Coding Guidelines
 
-**Versiyon: v0.3** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
+**Versiyon: v0.4** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
 
 > **Aşama:** 8 — Kodlama Kılavuzu · **Rol:** Tech Lead
 > **Amaç:** Ajanın tutarlı kod üretmesi. Bu doküman **her kodlama görevinde** ajana verilir.
@@ -68,9 +68,9 @@
 > - **K-1245 · K-1272 · K-1281 · K-1292 · Google kimlik belirtecinin doğrulanması (Entegrasyon Spesifikasyonları `08 §2.3`):** kod değişiminin adresi sabittir, keşiften okunmaz; keşif belgesinden yalnız `issuer` ve `jwks_uri` alınır, çatı keşif belgesini ve anahtar kümesini önbelleğe alır ve her girişte yeniden çekmez — çatının işleyicisi keşif belgesini varsayılan olarak başlatmada çekiyorsa adresler sabit olarak yapılandırılır; önbelleğin tazeleme biçimi çatının davranışıdır ve ilk bağlanan task'ta doğrulanır (bilgim tarihli; `08` DV-31) · `exp` için saat sapması toleransı çatının ayarıdır ve değeri bu dokümanın işidir; `auth_time` toleranssız karşılaştırılır · `userinfo` çağrılmaz; kimlik belirtecinin alanlarından yalnız alan eşlemesinin saydıkları okunur (`hd` dahil — Google'ın adres için yetkili olup olmadığı buradan okunur) ve `sub` saklanmaz (K-1061).
 > - **K-1027 · K-1271 · Değişken metnin kaçışı (Entegrasyon Spesifikasyonları `08 §2.2.6` — B-1'in iki yasal metninin yerleşimi, madde 4; §2.2.4):** e-postaya ve belgeye giren her değer — firmanın ayarı, kalemin adı, yer tutucunun müşteri değeri — HTML'de kaçışlanır, düz metinde satır sonu karakterleri boşluğa çevrilir; metin ham HTML olarak basılmaz, biçim yalnız şablonun kendi yapısıdır ve bağlantı yalnız `https`, `http` ve `mailto` şemasını taşır (`05 §6.5.3`) · değerin donmuş kopyada kaçışlı mı saklandığı, gösterimde mi kaçışlandığı bu aşamanın kararıdır; sipariş sayfasındaki gösterim aynı kuralı izler (K-1027 (4), (5)).
 
-> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.3).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. oturum yöneticinin kararıyla baştan ikiye bölündü (`INSTRUCTIONS §9` (8)). **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330); Y-1b — §4, §5, §6 (K-1331, K-1332). **Sırada:** 2. oturum §7–§9, 3. oturum §10, 4. oturum §11–§14, 5. oturum §15–§18, 6. oturum §19–§25 (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
+> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.4).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. ve 2. oturum yöneticinin kararıyla baştan ikiye bölündü (`INSTRUCTIONS §9` (8)): Y-1a ve Y-1b, Y-2a (§7, §8) ve Y-2b (§9). **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330); Y-1b — §4, §5, §6 (K-1331, K-1332); Y-2a — §7, §8 (K-1333, K-1334). **Sırada:** Y-2b — §9, 3. oturum §10, 4. oturum §11–§14, 5. oturum §15–§18, 6. oturum §19–§25 (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
 >
-> **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P1.1 (terim sözlüğünün devralınması — §5.1); P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu). **Kısmen kapandı:** P4.2 — sayfaların düzeni §4.1'de yazıldı, ön yüz dosya düzeni §16'da; P4.3 — modül sınırlarının korunması ve dosya deposu arayüzü §6'da yazıldı, önbellek ve kuşak sayacının kalıbı §10.4'te; P4.5 — mimari testle korunan kısım §6'da yazıldı, geçiş birimi ve iş kuyruğunun kalıbı §9 ve §13'te; P4.8 — dosya düzeni ve test projelerinin ayrımı §4.1 ve §4.3'te yazıldı, test araçları §19'da; P4.9 — ayarlar ve ürün sabitleri §3.5'te yazıldı, yönetim komutları §13'te; P4.13 — iki imajın derleme dosyalarının yeri §4.3'te yazıldı, içerikleri §17'de; P5.2 — adlandırma kuralının uygulanışı §5.2'de yazıldı, anahtar üretimi ve enum §10.1'de; P5.8 — veri koruma paketinin varlığına adlandırmanın uygulanışı §5.2'de yazıldı, kullanıcıların ve yetkisinin biçimi §10.8'de; P6.1 — işleyici adları ve sayfa düzeni §5.3 ve §4.1'de yazıldı, kimlik şemaları §15.1'de; P6.2 — girdi doğrulama süzgeci §3.4'te, model ve işleyici adları §5.3'te yazıldı, hata kodlarının kaydı ve gösterilmemesi §8'de; P6.6 — işleyici adları §5.3'te yazıldı, istekteki değerin biçimi §7.2'de; P6.10 — model ve hata kodu adları §5.3'te yazıldı, hata kodlarının kaydı §8.2'de. **Açık:** öteki yirmi altı madde — yazılacakları bölümün oturumunda kapanır.
+> **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P1.1 (terim sözlüğünün devralınması — §5.1); P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu); P6.2 (girdi doğrulama süzgeci §3.4, model ve işleyici adları §5.3, hata kodlarının kaydı ve gösterilmemesi §8.2); P6.6 (işleyici adları §5.3, istekteki değerin biçimi ve bağlama kalıbı §7.2). **Kısmen kapandı:** P4.2 — sayfaların düzeni §4.1'de yazıldı, ön yüz dosya düzeni §16'da; P4.3 — modül sınırlarının korunması ve dosya deposu arayüzü §6'da yazıldı, önbellek ve kuşak sayacının kalıbı §10.4'te; P4.5 — mimari testle korunan kısım §6'da, zamanın tek kaynağı ve sınanabilirliği §7.1'de yazıldı, geçiş birimi ve iş kuyruğunun kalıbı §9 ve §13'te; P4.7 — hatanın üç hâli ve sonucu belirsiz işlem §8.1'de yazıldı, kayıt kütüphanesi ve kayıt alanları §18'de; P4.8 — dosya düzeni ve test projelerinin ayrımı §4.1 ve §4.3'te yazıldı, test araçları §19'da; P4.9 — ayarlar ve ürün sabitleri §3.5'te yazıldı, yönetim komutları §13'te; P4.13 — iki imajın derleme dosyalarının yeri §4.3'te yazıldı, içerikleri §17'de; P5.2 — adlandırma kuralının uygulanışı §5.2'de yazıldı, anahtar üretimi ve enum §10.1'de; P5.8 — veri koruma paketinin varlığına adlandırmanın uygulanışı §5.2'de yazıldı, kullanıcıların ve yetkisinin biçimi §10.8'de; P6.1 — işleyici adları ve sayfa düzeni §5.3 ve §4.1'de yazıldı, kimlik şemaları §15.1'de; P6.10 — model ve hata kodu adları §5.3'te, hata kodlarının kaydı §8.2'de yazıldı; kayıt alanlarının adları §18.2'de, kodun sürümlenmesi §12'de. **Açık:** öteki yirmi beş madde — yazılacakları bölümün oturumunda kapanır.
 
 **Yazım konvansiyonları (K-1302, K-1329).** Bu on madde §1–§25'in bütün yazım oturumlarını bağlar; "yazım konvansiyonu n" diye anılır.
 
@@ -96,9 +96,9 @@
 | §4 Proje yapısı ve klasör organizasyonu | 4.1 Çözüm ve proje düzeni · 4.2 Klasör düzeninin `CONTEXT.md` §3'e yazılışı · 4.3 İmaj, Compose ve geliştirme ortamı dosyalarının yeri | Y-1b ✓ |
 | §5 Adlandırma konvansiyonları | 5.1 Sözlüğün devralınması ve kod adları · 5.2 Veritabanı adlandırma kuralının uygulanışı · 5.3 Sayfa, işleyici, model, hata kodu ve çerez adları | Y-1b ✓ |
 | §6 Mimari sınırlar | Modül sınırlarının kodda korunması ve dosya deposu arayüzü (alt bölümsüz) | Y-1b ✓ |
-| §7 Zaman ve biçim standartları | 7.1 Tek zaman kaynağı · 7.2 İstekteki tarih, tutar ve ondalık biçimi | 2 |
-| §8 Hata yönetimi | 8.1 Tek yakalama katmanı, üç hâl, sonucu belirsiz işlem · 8.2 Hata kodlarının kaydı ve gösterilmemesi | 2 |
-| §9 Domain kuralları | 9.1 Geçiş birimi, beyaz liste, yan etki · 9.2 İşlem izinin kod adları · 9.3 Belgenin kişisel verisiz kopyası · 9.4 Tek işlevler | 2 |
+| §7 Zaman ve biçim standartları | 7.1 Tek zaman kaynağı · 7.2 İstekteki tarih, tutar ve ondalık biçimi | Y-2a ✓ |
+| §8 Hata yönetimi | 8.1 Tek yakalama katmanı, üç hâl, sonucu belirsiz işlem · 8.2 Hata kodlarının kaydı ve gösterilmemesi | Y-2a ✓ |
+| §9 Domain kuralları | 9.1 Geçiş birimi, beyaz liste, yan etki · 9.2 İşlem izinin kod adları · 9.3 Belgenin kişisel verisiz kopyası · 9.4 Tek işlevler | Y-2b |
 | §10 Veri erişimi | 10.1 Silme davranışı, anahtar, enum · 10.2 Sürüm, eşzamanlılık, sayaç · 10.3 Bölüm sürümünün çatıda eşlenişi · 10.4 Önbellek ve kuşak sayacı · 10.5 Liste sırası, sayfalama, arama sözcüğü · 10.6 Göçlerin yazılışı · 10.7 Veritabanı oturumunun süreleri · 10.8 Veritabanı kullanıcıları · 10.9 İç notun kilidi · 10.10 Dışa aktarma dosyası | 3 |
 | §11 Entegrasyon kuralları | 11.1 Bağlantı katmanının kalıbı · 11.2 Dış servis istemcileri · 11.3 Google kimlik belirteci · 11.4 E-posta ve belge metninin üretimi | 4 |
 | §12 Sözleşme ve olay sürümleme | Değerlerin sürümlenmesi (alt bölümsüz) | 4 |
@@ -273,7 +273,7 @@ Araç çatının nitelik tabanlı doğrulamasıdır (DataAnnotations); ek kütü
 6. **İstemci tarafı.** HTML'in `required`, `maxlength` ve `type` nitelikleri aynı parametre sabitlerinden üretilir ve iyileştirmedir (`GUARDRAILS §8`: sunucu yetkilidir); çatının `data-val-*` üretimi kapatılır (düz JavaScript, MK-01; bilgim tarihli — çatı seçeneği ilk task'ta sınanır).
 7. **Test.** Nitelik başına birim testi (geçerli ve geçersiz değer, kod); süzgeç testi (422, `ModelState` mesajı, kayıt satırı, bütün hataların birlikte gelmesi); kırpma testi (boşluk, yalnız boşluk, şifre).
 
-Model adları ve işleyici adları §5.3'te, hata kodlarının kaydı ve gösterilmemesi §8'de (yazım 2) yazılır; bu alt bölüm süzgecin kalıbının evidir.
+Model adları ve işleyici adları §5.3'te, hata kodlarının kaydı ve gösterilmemesi §8.2'de yazılır; bu alt bölüm süzgecin kalıbının evidir.
 
 ### 3.5 Ayarlar, ürün sabitleri ve süre ve tavan değerleri
 
@@ -316,7 +316,7 @@ Parametrenin üç katmanı (`02 §10.1.3`, `05 §8.4`; K-412) kodda üç ayrı e
 
 ### Kütüphaneler
 
-Kütüphane yalnız bu tabloda seçilir; kuralı kullanan bölüm tabloya atıf yapar (yazım konvansiyonu 7). Her satırın eklenmesi §3.3'ün kanıtıyla gelir. Erişim tarihi hepsinde 2026-10-29'dur; "ekleme task'ında doğrulanır" diye işaretli olgu o task'ın kabul kriteridir. Çatıyla gelen araçlar (DataAnnotations — §3.4; `HtmlRenderer` — §11.4, yazım 4) ek paket ve lisans satırı taşımaz.
+Kütüphane yalnız bu tabloda seçilir; kuralı kullanan bölüm tabloya atıf yapar (yazım konvansiyonu 7). Her satırın eklenmesi §3.3'ün kanıtıyla gelir. Erişim tarihi hepsinde 2026-10-29'dur; "ekleme task'ında doğrulanır" diye işaretli olgu o task'ın kabul kriteridir. Çatıyla gelen araçlar (DataAnnotations — §3.4; `TimeProvider` — §7.1; `HtmlRenderer` — §11.4, yazım 4) ek paket ve lisans satırı taşımaz.
 
 | Kütüphane | Görevi | Lisans | Lisans koşulu | Bakım kanıtı | Karar |
 |---|---|---|---|---|---|
@@ -480,7 +480,7 @@ Adların kaynağı `07`'dir; bu alt bölüm kodun onları nasıl taşıdığın�
 1. **İşleyici.** Adı İngilizce bir fiil ve işlemin nesnesinin sözlükteki ya da Veri Modeli'ndeki adıdır, Pascal yazımıyla: `RemoveCartItem`, `SaveProduct`. Nesnesi ekranın kendisi olan işlemler yalnız fiildir (`Register`, `SignIn`, `SignOut`, `Reauthenticate`; ödeme adımının `Recalculate` ve `Leave`'i). Ayrı form ve ayrı adreslerse ekleme ve düzenleme `Create…`/`Update…`, aynı formun aynı adresi `Save…` alır. Kodda işleyici `On<Yöntem><Ad>Async` metodudur (`OnPostRemoveCartItemAsync`); `handler` sorgu parametresindeki ad `07 §3`'teki adla birebirdir. Adların listesi `07 §3`'ün uç envanterindedir; envanterde olmayan işleyici adı yazılmaz.
 2. **Girdi modeli.** Adı formun asıl işleyicisinin adı ve türüdür: `…Input`, `…Query`, `…Request`, `…Response` (`AddCartItemInput`, `SaveShippingFeeInput`). Aynı formu gönderen işleyiciler (ara gönderimler, içerik formunun `SearchProducts`'ı) aynı modeli bağlar. Aynı adlı işleyicinin vitrinde ve panelde ayrı alanları varsa panelin modeli `Admin` önekini alır. İç anahtarın alan adı varlığın adı ve `Id`'dir. Her işleyici yalnız kendi girdi modelini bağlar; veri modelinin varlığı doğrudan bağlanmaz (§3.4).
 3. **Sayfa dosyası ve `PageModel`.** Sayfa dosyasının adı ekranın nesnesinin sözlük adıdır; `PageModel` sınıfı çatının kuralıyla `<Sayfa>Model` olur (`Cart.cshtml` → `CartModel`, ad alanı klasör yolunu izler — `Shopfolio.Pages.Storefront`). Bir kayıt türünün liste sayfası çoğul klasörün `Index` sayfasıdır (`Pages/Panel/Orders/Index.cshtml`), kayıt formu `Edit` sayfasıdır (yeni ve var olan kayıt aynı sayfanın iki hâlidir — `07 §3.1.1`). Adres her zaman `@page` şablonundadır (§4.1).
-4. **Hata kodu.** İngilizce PascalCase'tir (`TextTooLong`, `FieldRequired`); bir kez verilen kod değişmez; yanıtın gövdesine ve başlığına yazılmaz ve kullanıcıya gösterilmez. Kayıtlar her reddin kodunu yazar (§8.2, yazım 2). Kod listesi `07 §6.2.2`'dedir; yeni kod bu dokümanda doğmaz.
+4. **Hata kodu.** İngilizce PascalCase'tir (`TextTooLong`, `FieldRequired`); bir kez verilen kod değişmez; yanıtın gövdesine ve başlığına yazılmaz ve kullanıcıya gösterilmez. Kayıtlar her reddin kodunu yazar (§8.2). Kod listesi `07 §6.2.2`'dedir; yeni kod bu dokümanda doğmaz.
 5. **Çerez adı** `07`'nin kapalı listesidir ve sabit olarak bir yerde tanımlanır (`Infrastructure/`): `__Host-session`, `__Host-admin-session`, `__Host-antiforgery`, `__Host-cart`, `__Host-known-device`, `__Host-checkout`, `__Host-external-login`. Çerez adı başka yerde dizgi olarak yazılmaz; listeye yeni ad eklemek `07 §2` ve `02 §12.2.5`'in kapalı envanterini değiştirir.
 6. **`notice` değeri** `07 §6.3`'ün kapalı listesidir; bilinmeyen değer yok sayılır, serbest metin gösterilmez.
 
@@ -533,9 +533,109 @@ Sınır dokuz modül arasındadır (`05 §3.3`); derleyici korumaz (§4.1), mima
 
 ## 7. Zaman ve biçim standartları
 
-> **Ne yazılır:** Zaman damgası kaynağı (yerel saat kullanımı yasağı), tarih/sayı biçimleri, zaman dilimi politikası.
+Zamanın kaynağı ve temsili `05 §7.2`'dedir; istekteki tarih ve tutarın biçimi `07 §2.9`'dadır. Bu bölüm ikisinin kodda nasıl korunduğunu yazar (K-1333). Sayfanın gösterdiği tarih, saat, tutar ve sayı `04 §8.2`'nindir ve bu bölümün konusu değildir.
+
+### 7.1 Tek zaman kaynağı
+
+1. **Zaman tek kaynaktan okunur: `TimeProvider`** (`System` ad alanı, .NET 8'den; bilgim tarihli). Uygulama `TimeProvider.System`'i bir kez tekil olarak kaydeder (`Infrastructure/`; `05 §7.2.4`); zamana ihtiyaç duyan sınıf `TimeProvider`'ı kurucudan alır ve anı `GetUtcNow()` ile okur. Başka okuma yolu yoktur: `DateTime.Now`, `DateTime.UtcNow`, `DateTime.Today`, `DateTimeOffset.Now`, `DateTimeOffset.UtcNow` ve `TimeZoneInfo.Local` uygulama kodunda çağrılmaz. **Veritabanı da zaman kaynağı değildir:** SQL'de `now()`, `current_timestamp`, `clock_timestamp()` yazılmaz ve sütun varsayılanı olarak an atanmaz; uygulamanın okuduğu an sorguya parametre olarak verilir — "zamanı gelmiş kayıtlar" sorgusu dahil (`05 §5.1.1`) — ve oluşturulma anını (`created_at`, `06 §2.8.4`) uygulama yazar. İmha fonksiyonunun (`06 §2.2.3`) anı nasıl aldığı §10'da (yazım 3) yazılır; kural aynıdır: an uygulamadan gelir. Süre ölçümü (bir isteğin süresi gibi) iş zamanı değildir; `Stopwatch` kullanılabilir. Döngülerin bekleme aralığı (`PeriodicTimer`, `Task.Delay`) iş zamanını belirlemez — iş zamanı kaydın kendi anıdır (`05 §5.1.1`).
+
+   ```csharp
+   // Yanlış: sunucunun saatine ve saat dilimine bağlı; sınanamaz.
+   var isOpen = DateTime.Today >= discount.StartDate.ToDateTime(TimeOnly.MinValue);
+
+   // Doğru: an tek kaynaktan, gün sınırı Türkiye saatiyle (kural 3).
+   var now = _time.GetUtcNow();
+   var isOpen = now >= TurkeyTime.StartOf(discount.StartDate)
+             && now <  TurkeyTime.StartOf(discount.EndDate.AddDays(1));
+   ```
+2. **Türler** `06 §2.5.1`'in satırlarının kodudur. **An** `DateTimeOffset`'tir ve ofseti sıfırdır (UTC; `timestamptz`); **tarih** `DateOnly`'dir (`date`); **para** `decimal`'dir (`numeric(12,2)`). Varlıkta, modelde ve arayüzde `DateTime` bulunmaz: `Kind`'ı yanlış ya da belirsiz kalan değer saat dilimini sessizce kaydırır. Veri sağlayıcı `timestamptz` sütununa yalnız ofseti sıfır olan değeri yazar (bilgim tarihli, ilk task'ta doğrulanır); bu yüzden Türkiye ofsetli bir `DateTimeOffset` hiçbir zaman varlığa ya da sorguya girmez — Türkiye saati yalnız kural 3'ün yardımcısında, gün sınırı hesabında doğar.
+3. **Türkiye saati tek yardımcıdadır.** `Infrastructure/` altında statik `TurkeyTime`: sabit ofset (+03:00 — ürün tek saat dilimiyle çalışır ve yaz saati geçişi yoktur, `02 §4.1.1`), `DateOf(an)` (anın Türkiye saatiyle günü, `DateOnly`) ve `StartOf(gün)` (o günün 00:00'ının UTC anı). Sunucunun saat dilimi sonucu etkilemez ve saat dilimi veritabanına (`TimeZoneInfo.FindSystemTimeZoneById`) bağlı olunmaz. Gün ve süre sayımının hepsi bu iki işlevden geçer:
+   - **Gün olarak belirlenen süre** başlangıç gününün ertesi günü başlar ve son günün sonunda dolar (`05 §7.2.2`; `02 §4.1.4`): `StartOf(başlangıç.AddDays(1)) <= an < StartOf(başlangıç.AddDays(n + 1))`. Tarih aralığında bitiş günü dahildir: `an < StartOf(bitiş.AddDays(1))` (örnek yukarıda). Gün sınırını yazılı `23:59` gibi bir saatle karşılaştıran kod yazılmaz — saat bazlı sayım yoktur (`02 §4.1.4`) ve tarih alanı gündür.
+   - **Dakika ve saatle ölçülen süre** başladığı andan işler: `an + TimeSpan` (gün sayımına girmez, `02 §4.1.4`).
+   - **İş günü** hesabı ürünle gelen tatil dosyasından okunur (`05 §7.2.3`) ve gün cinsinden `DateOnly` üzerinde yürür; sonuç anı `StartOf` ile UTC'ye çevrilir.
+4. **Sınanabilirlik.** Birim testleri `TimeProvider.System` kullanmaz; `TimeProvider`'dan türeyen, `GetUtcNow()`'u ezen ve `SetUtcNow`, `Advance` yöntemleri olan **elle yazılmış durumlu bir sahte** kullanır (sahte nesne kütüphanesi yoktur — K-1306; çatının test paketi Kütüphaneler tablosunda olmadığından eklenmez, eklenirse §3.3'ün kanıtıyla tabloya girer). Sahte `UnitTests` projesinin ortak yardımcılarındadır. Zamana bağlı her karar — "zamanı gelmiş kayıtlar", sürenin dolması, gecelik işin başlama koşulu (`05 §5.1.1`) — anı parametre alan bir yöntemdir ve döngü yalnız onu çağırır: testler beklemez, anı sahteyle ilerletir. Sınır anları sınanır: gün sonundan bir tik önce içeride, ertesi günün 00:00'ında dışarıda; test sunucunun saat diliminden bağımsız geçmelidir (CI UTC'de, geliştirme makinesi +03:00'te koşar).
+5. **Mimari test.** Kural 1'in yasak listesi `Architecture/` klasöründe bir testtir (§6, madde 4) ve kendi kendini sınar: kasıtlı ihlal eden örnek kod ayrı derlemededir ve test o derlemede kırıldığını da doğrular. ArchUnitNET'in yöntem çağrısı bağımlılığını denetleyebildiği bilgim tarihlidir ve ilk task'ta doğrulanır; denetleyemiyorsa aynı kural kaynak metin taramasıyla sınanır. SQL metinlerindeki `now()` ve benzerleri için ayrı bir tarama testi vardır (göç dosyaları dahil; göçteki veri düzeltmesi anı sabit değer olarak yazar).
+
+*Kaynak: K-1333 · K-870, K-934, K-895, K-1306 · `05 §4`, §5.1.1, §5.2.14, §7.2 · `06 §2.2.3`, §2.5.1, §2.5.2, §2.8.4 · `02 §4.1`.*
+
+### 7.2 İstekteki tarih, tutar ve ondalık biçimi
+
+Biçimin kuralı `07 §2.9`'dadır ve burada yinelenmez; bu alt bölüm bağlama ve ayrıştırmanın kalıbını yazar (K-1333). Metin girdisinin kırpılması §3.4'tedir (madde 5): aşağıdaki ayrıştırıcılar kırpılmış değeri alır.
+
+1. **Kültür açıktır, tek yerdedir.** İstekteki tutar ve ondalık sayı her zaman Türkçe kültürle ayrıştırılır; kültür `Infrastructure/` altında statik `RequestFormat.Culture` (`tr-TR`) olarak bir kez tanımlanır. İş parçacığının kültürü ve tarayıcının `Accept-Language`'ı ayrıştırmayı etkilemez (`07 §2.9.9`). Uygulama değişmez küreselleşme kipinde (`InvariantGlobalization`) çalışmaz: Türkçe kültür ve Türkçe sıralama ICU ister (`06 §2.8.3`); uygulama imajında ICU'nun bulunması ilk task'ta doğrulanır ve `tr-TR` ondalık ayırıcısının virgül olduğunu sınayan bir birim testi vardır (bilgim tarihli).
+2. **Tarih** istekte `yyyy-AA-GG`'dir (`07 §2.9.3`) ve `DateOnly` olarak ayrıştırılır; biçim sabit olduğundan kültür değişmezdir. İstek saat taşımaz; `DateTime` ve `DateTimeOffset` bağlanmaz. Gün, Türkiye günü olarak okunur (§7.1, madde 3). Ayrıştırılamayan değerin kodu `InvalidDate`'tir (`07 §6.2.2`).
+3. **Tutar ve ondalıklı sayı** — yüzde ve net miktar dahil — `decimal`'dir ve **yalnız `AllowDecimalPoint` stiliyle** ayrıştırılır: binlik ayırıcı, işaret, boşluk, üstel gösterim ve para birimi stilde yoktur. `tr-TR`'de nokta binlik ayırıcıdır; stil onu kabul etmediğinden `12.50` ayrıştırılamaz ve sessizce 1250 olmaz (`07 §2.9.4`). Kabul edilen biçim rakamlar ve en çok bir virgüldür. Hassasiyet ve sınırlar ayrıştırmadan sonra, alanın doğrulama niteliğindedir (§3.4): ayrıştırılamayan değerin kodu alanın kural türünün kodudur (tutarda `InvalidAmount`, yüzdede `InvalidPercentage`); ikiden fazla ondalık, negatif değer ve `numeric(12,2)` sınırı da niteliğin işidir. **Adet** ve gün sayısı gibi tam sayı alanları tarayıcının sayı alanıdır ve `int` olarak, `NumberStyles.None` ile ve değişmez kültürle ayrıştırılır (adetin kodu `InvalidQuantity`).
+
+   ```csharp
+   public static class RequestFormat
+   {
+       public static readonly CultureInfo Culture = CultureInfo.GetCultureInfo("tr-TR");
+
+       public static bool TryParseDecimal(string value, out decimal result) =>
+           decimal.TryParse(value, NumberStyles.AllowDecimalPoint, Culture, out result);
+
+       public static bool TryParseDate(string value, out DateOnly result) =>
+           DateOnly.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
+   }
+
+   // Yanlış: iş parçacığının kültürü ve geniş varsayılan stil — tr-TR'de "12.50" 1250 olur.
+   var amount = decimal.Parse(input);
+
+   // Doğru: açık kültür, dar stil — "12.50" ayrıştırılamaz, "12,5" 12,5 olur.
+   if (!RequestFormat.TryParseDecimal(input, out var amount)) { /* InvalidAmount */ }
+   ```
+4. **Model bağlayıcı.** Ayrıştırma çatının varsayılan basit tür bağlamasına bırakılmaz (o, iş parçacığının kültürüyle ve geniş stille çalışır). `decimal`, `decimal?`, `DateOnly` ve `DateOnly?` için projenin iki model bağlayıcısı vardır ve bağlayıcı sağlayıcı listesinin başına eklenir (bilgim tarihli, ilk task'ta doğrulanır). Bağlayıcı ayrıştırma başarısızlığında `ModelState`'e kural türünün kodunu hata iletisi olarak ekler (§3.4, madde 1); gerisini sayfa süzgeci yapar (§3.4, madde 3). Boş değer `null`'dur (zorunluysa `FieldRequired`). Sorgu modelinde (GET) aynı bağlayıcılar çalışır; geçersiz sorgu parametresinin süzgeci uygulamaması ve sayfanın durumu `07 §2.6.6`'dadır, bu bölüm onu değiştirmez.
+5. **Dizinli liste.** Birden çok satırlı alan (`Options`, `Values`, `Variants`, `Images`, `Items`, `Categories` — `07 §5.2`) çatının dizinli bağlamasıyla `Ad[n].Alan` adıyla bağlanır; `n` satırın formdaki sırasıdır (görsel yüklemenin hedefi `Variants[n].ImageId` gibi bu sıraya başvurur — `07 §5.1`). **Yeni ve tamamen boş bırakılan satır okunmaz** (`07 §9`, ürün formu; K-1189 (2)): kimliği olmayan (`VariantId`, `OptionId` gibi) ve bütün alanları kırpıldıktan sonra boş olan satır, bağlamadan sonra ve doğrulamadan önce çalışan tek bir yardımcıyla listeden çıkarılır ve hata doğurmaz. Kimliği olan satır hiçbir zaman atlanmaz: alanı boşsa `FieldRequired` doğar. Atlama, formdaki `n` sırasına bağlı başvuruları (yüklemenin hedefi) bozmaz — bozmadığı testle sınanır.
+6. **Test.** Ayrıştırıcı tablosu: `12,5` ve `12` geçer; `12.50`, `1.250,50`, `12,5,1`, `-5`, `12 TL`, `1e3` ve boş değer ayrıştırılamaz (`12,` ve `,5` çatının ayrıştırıcısının sonucuna bağlıdır ve ilk task'ta tabloya yazılır — bilgim tarihli). Tarih tablosu: `2026-10-04` geçer; `04.10.2026`, `2026-4-1`, `2026-10-04T10:00` ve var olmayan gün (`2026-02-30`) `InvalidDate` doğurur. Bağlayıcı testi: form alanında 422 ve alan kodu; sorgu parametresinde süzgeç uygulanmaz. Dizinli liste testi: boş yeni satır atlanır, kimlikli boş satır `FieldRequired` doğurur, atlanan satır sonraki satırların hedef başvurusunu bozmaz.
+
+*Kaynak: K-1333 · K-1174, K-1214, K-1319 (5) · K-1189 (2) · `07 §2.6.6`, §2.9, §5.1, §5.2, §6.2.2, §9 · `06 §2.5.1`, §2.8.3 · `04 §8.2`.*
 
 ## 8. Hata yönetimi
+
+Beklenmeyen hatanın ekranı `04 §2.7.3`'te, mekanizması `05 §10.3`'te, HTTP durumları `07 §2.7`'de, kodları `07 §6`'dadır. Girdi doğrulama hatasının kalıbı §3.4'te yazılıdır ve burada yinelenmez; bu bölüm beklenmeyen hatanın yakalanışını (8.1) ve hata kodlarının kaydını (8.2) yazar (K-1334).
+
+### 8.1 Tek yakalama katmanı, üç hâl, sonucu belirsiz işlem
+
+1. **İstisna yalnız beklenmeyen hâl içindir.** Adı konmuş red — doğrulama, iş kuralı, sürüm çakışması, bulunamayan kayıt, hız sınırı — istisna değil işlemin sonucudur (`05 §10.3.5`): modül arayüzü reddi dönüş değeriyle bildirir (§8.2), sayfa onu `07 §6`'nın durumuna çevirir. Hata sınıfı atılan istisna türünden değil, kodundan okunur.
+2. **Yakalama katmanı tek sınıftır** (`Infrastructure/`, §4.1). Sınıf istisnayı hâle çevirir, kaydeder ve yanıtı üretir; çatının iki giriş noktası onu çağırır ve ikisi de karar vermez: (a) işleyiciyi saran genel bir istisna süzgeci — POST'ta formun bağlanmış modeline ve `ModelState`'e erişmenin tek yeri budur — ve (b) işleyiciye ulaşmadan düşen hatalar için çatının istisna işleme ara katmanı (yedek). Çatı sınıflarının adı ve kayıt biçimi bilgim tarihlidir ve ilk task'ta doğrulanır; iki giriş noktası tek sınıfa indirilemezse (a) korunur.
+3. **Üç hâl** isteğin türüne ve işlemin işaretine göre ayrılır (`05 §10.3.1`); ayrım saf bir işlevdir (istek yöntemi, makine ucu mu, işaretli işlem mi) ve tabloyu birebir uygular:
+
+   | Hâl | İstek | Yanıt | Kaydedilen kod | Kaynak |
+   |---|---|---|---|---|
+   | Sayfa düzeyi | GET | 500; vitrinin ya da panelin çerçevesi içinde hata sayfası | `UnexpectedPageError` | `05 §10.3.2`; `04` 2.7.3.2 |
+   | İşlem düzeyi | POST | 500; sayfa formun gönderilen değerleriyle yeniden gösterilir ve kalıcı mesaj çıkar; kesinleşmemiş işlem geri alınmıştır | `UnexpectedOperationError` | `05 §10.3.3`; `04` 2.7.3.1 |
+   | Sonucu belirsiz | işaretli işlemin POST'u | 303; sonucu gösteren ekran; "işlem yapılmadı" gösterilmez | `OutcomeUncertain` | `05 §10.3.4`; `04` 2.7.3.3; `07 §6.4.2` |
+   | Makine ucu | bildirim, durum, canlılık, parçalı yükleme | gövdesiz 500; ekran yok | `UnexpectedOperationError` | `05 §10.3.5`; `07 §2.7.2` |
+
+   Makine ucu işleyicinin üzerindeki bir nitelikle işaretlidir; ayrım istek yolundan türetilmez. Katman yalnız bu dört satırı üretir; çatının kendi yanıtları (405, 416, işleyicisi bulunamayan POST) katmana düşmez ve davranışı Doğrulama Protokolü'nün senaryosuyla sabitlenir (`07 §2.7.1`).
+4. **Sonucu belirsiz işlem kodda adıyla işaretlidir:** işleyici metodunda bir nitelik (`[OutcomeUncertain]`) taşır; işaretli işlemlerin listesi `04` 2.7.3.3 ve `07 §6.4.2`'dir (sipariş onayı, müşterinin geri alınamaz dört işlemi, e-posta değişikliğinin geri alınması, yöneticinin onay isteyen işlemleri). İşaretli işlemde hata **nerede olursa olsun** — işlemin içinde, kesinleşmeden sonra, yanıt üretilirken — katman 303 ile sonucu gösteren ekrana yönlendirir; hedef ekran `07 §6.4.2`'nin satırıdır ve hesap türüne bağlı hedef (sipariş onayında üyede `/hesap/siparisler`, misafirde `/siparis-takibi`) hedefi seçen tek yöntemle sayfa modelinde yazılır. Listede olmayan formun işlemi işlem düzeyidir (`05 §10.3.7`, "kalan durum"). İşaretli işleyici kümesi `07 §6.4.2`'nin UC listesine eşit tutulur (eşitliğin denetim betiği §21'dedir, yazım 6 — iş adı: işaretli işlem listesi eşitliği denetimi).
+5. **İşlemi geri almak kodun işi değildir, kesinleştirmemektir.** Veritabanı işleminin sahibi §9'dadır (yazım 2); katman işlem kesinleştirmez, kesinleşmemiş işlem istisnayla elden çıkar ve geri alınır. `finally` içinde kesinleştirme çağrısı yazılmaz.
+6. **Geniş `catch` yalnız üç yerdedir:** yakalama katmanı; iş kuyruğunun satır döngüsü — bir satırın hatası satıra yazılır, döngü durmaz (`05 §4.3.2`; §13, yazım 4); dış servis bağlantı katmanlarının sonuç eşlemesi — özel durum sonuç sınıfına çevrilir, hiçbiri dışarı sızmaz (`08 §2.1.8`; §11, yazım 4). Başka yerde `catch (Exception)`, türsüz `catch` ve hatayı yutan `catch` yoktur; bilinen bir istisnayı bilinen bir reddin sonucuna çevirmek için belirli türü yakalamak serbesttir. Kural yerleşik çözümleyiciyle zorlanır: `.editorconfig`'te CA1031'in önem derecesi `error`'dır (bilgim tarihli; ilk task'ta doğrulanır) ve üç yerin bastırması gerekçesini taşır (§3.1, madde 3). Arka plan hizmetinin hatasını yok sayan ayar kullanılmaz (§13).
+
+   ```csharp
+   // Yanlış: işleyici beklenmeyen hatayı yutuyor; yakalama katmanı onu hiç görmez, kayıt ve sayaç eksik kalır.
+   try { await _ordering.PlaceOrderAsync(command, ct); }
+   catch (Exception) { return Page(); }
+
+   // Doğru: işleyici yakalamaz; red dönüş değeridir, beklenmeyen hata katmana çıkar.
+   // Arayüzün adı ve metodu ilgili task'ın tasarımında 07'nin ucuna göre yazılır; burada yalnız kalıp gösterilir.
+   var result = await _ordering.PlaceOrderAsync(command, ct);
+   ```
+7. **Kayıt ve sayaç.** Her beklenmeyen hata uygulama kaydına hata düzeyinde bir satırdır; alanlar `05 §10.3.6`'nındır — zaman, istek kimliği, istek yöntemi ve maskelenmiş yol, hatanın türü ve yığın izi, düştüğü hâl, işaretli işlemin adı, hesap türü ve hesabın iç kimliği. Form değeri, çerez ve `05 §9.1.5`'in maskeledikleri yazılmaz; istisnanın iletisi ve veri sözlüğü de maskelemeden geçer. Alan adları ve maskelemenin uygulanışı §18.2'dedir (yazım 5). Katman durum ucunun son on beş dakikalık sayacını besler (`05 §9.4.8`): 500'ler sayılır; 422, 409 ve 429 beklenmeyen hata değildir ve girmez (`07 §2.7.5`). Kullanıcıya hata kodu, istek kimliği ve teknik ayrıntı gösterilmez. Hata sayfasının kendisi üretilemezse katman kendi hatasını yakalar ve çatının en yalın 500 yanıtını döner (`05 §10.3.6`).
+8. **İstemcinin vazgeçmesi beklenmeyen hata değildir.** İstemcinin bağlantıyı kesmesinden doğan iptal (`RequestAborted` ve onun `OperationCanceledException`'ı) hata satırı yazmaz ve sayaca girmez; erişim kaydı isteği zaten taşır. İptal edilen işlem kesinleşmemişse geri alınır.
+9. **Test.** Sınıflandırma tablosunun her satırı (birim); her hâlde yanıt (entegrasyon): GET'te çerçeveli hata sayfası, POST'ta formun değerleriyle yeniden gösterim ve geri alınmış işlem, işaretli işlemde 303 ve hedef, makine ucunda gövdesiz 500; işaretli işlemde **kesinleştikten sonra** düşen hatanın da 303 verdiği (kesinleşmeden sonra istisna atan sahteyle); kayıt satırı alanları ve satırda form değeri ile çerezin bulunmayışı; hata sayfası düşerse en yalın 500; istemci iptalinde satırın yazılmayışı; işaretli işleyici kümesinin `07 §6.4.2`'ye eşitliği; CA1031'in üç yerin dışında derlemeyi kırması.
+
+*Kaynak: K-1334 · K-914, K-975, K-873, K-874, K-891, K-893, K-902, K-909, K-915, K-917, K-918 · K-1111, K-1132 (arka plan döngüsü) · `05 §4.3.2`, §9.1.5, §9.4.8, §10.3 · `04` 2.7.3, 2.7.4 · `07 §2.7`, §6.1, §6.4 · `08 §2.1.8`.*
+
+### 8.2 Hata kodlarının kaydı ve gösterilmemesi
+
+1. **Kayıt tek enum'dur: `ErrorCode`** (`Infrastructure/`; ortak altyapı modül türlerine başvurmaz, §6 madde 2). Üyeler `07 §6.2`'nin (6.2.1…6.2.9) "Kod" sütunundaki adlardır ve aynı yazılışlıdır; bunlara `OutcomeUncertain` eklenir (`07 §6.4.2`; yalnız kayıtta). Kısa süreli bildirim kodları ayrı bir enum'dur: `NoticeCode`, `07 §6.3`'ün listesi (§5.3, madde 6). **Yeni kod bu dokümanda doğmaz** (§5.3, madde 4): bir ucun yeni hâli önce `07 §6`'ya yazılır, sonra enum'a girer. Bir kez verilen kod değişmez ve silinmez (`07 §2.7.3`); üyenin sayısal değeri anlam taşımaz — kodlar kayda ve karşılaştırmaya adıyla girer, yeniden numaralamak kaydı bozmaz. Kodun HTTP durumu `07 §6.2`'nin HTTP sütunudur ve kodda tek bir eşlemede durur (`ErrorCode` → durum); sayfa durumu o eşlemeden alır.
+2. **Red kodla taşınır.** İş kuralı reddi modül arayüzünden `ErrorCode` ile döner (§8.1, madde 1); alan doğrulamasında kodu üreten nitelik ve süzgeçtir (§3.4). Kod başka bir yerde üretilmez: hata iletisi, durum ya da yönlendirme kodun kendisinden çıkar.
+3. **Kayıt her reddin kodunu yazar** (`07 §6.1.3`; K-1198). Alan doğrulamasında satır her alanın adını ve kodunu taşır (§3.4, madde 3); öteki redlerde satır kodu, ucu ve istek kimliğini taşır. **Alanın değeri yazılmaz** (`05 §9.1.5`). Satır varsayılan kayıt düzeyinde yazılır ve düzey ayarı onu kapatabilir (`05 §9.1.6`). Satırı yazan iki yer vardır: sayfa süzgeci ve redleri sayfa sonucuna çeviren tek yardımcı; sonucu belirsiz hâlin `OutcomeUncertain` satırını §8.1'in katmanı yazar. Kayıt alanlarının adları §18.2'dedir (yazım 5).
+4. **Kod gösterilmez** (`04` 2.7.3; `07 §2.7.3`). Kod yanıtın gövdesine ve başlığına, sayfanın metnine ve niteliklerine (`data-*` dahil), çereze ve yönlendirme adresine yazılmaz; tek istisna `notice` parametresidir ve onun değeri `NoticeCode`'dur (hata kodu değil). Kullanıcının gördüğü mesaj koddan mesaj kataloğuyla üretilir (§3.4, madde 4); görünüm yalnız mesajı alır. Aynı kod gerektiren bir ayrım sayfada gerekirse (ör. hangi alanın işaretleneceği) alanın adı ya da durum taşınır, kod değil.
+5. **Test.** Enum üyeleri ile `07 §6.2` kod sütununun eşitliği (denetim betiği §21'dedir, yazım 6 — iş adı: hata kodu envanteri eşitliği denetimi); her üyenin bir HTTP durumu vardır ve eşleme `07 §6.2`'nin sütunuyla uyuşur; **her hâl için yanıtın gövdesi ve başlıkları kapalı listenin hiçbir üyesinin adını içermez** (entegrasyon testi: 422, 409, 404, 429, 500 ve 303 hâlleri; yanlış pozitif — gövdede doğal bir sözcüğün enum üyesiyle çakışması — testte listeden dışlanır ve gerekçesi yazılır); reddin kayıt satırı kodu taşır, değeri taşımaz; `OutcomeUncertain` satırı; mesaj kataloğu testi §3.4'tedir.
+
+*Kaynak: K-1334 · K-1319 (1), (3), (4) · K-1196, K-1198, K-1168 · `07 §2.7.3`, §6.1, §6.2, §6.3, §6.4.2 · `05 §9.1.5`, §9.1.6 · `04` 2.7.3.*
 
 ## 9. Domain kuralları
 

@@ -13,3 +13,5 @@ Her rapor şunları içerir:
 **Objektivite kuralı:** %100 KABUL de %100 RET de şüphelidir. RET gerekçesi somut referans olmalıdır ("ben böyle düşünüyorum" yetersiz).
 
 Prosedür: [`.claude/skills/cross-review/SKILL.md`](../../.claude/skills/cross-review/SKILL.md)
+
+- `09_CROSS_REVIEW.md` — Kodlama Kılavuzu (`09` v0.18 → v0.19), 1. tur, 2026-10-30: Codex iki koşum, 7 ayrı bulgu, 3 kabul, 4 ret; 6 doğrulayıcı; TEMİZ DEĞİL.

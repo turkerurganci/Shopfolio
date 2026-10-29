@@ -1,6 +1,6 @@
 # Shopfolio — Integration Specifications
 
-**Versiyon: v0.3** | **Bağımlılıklar:** `02`, `03`, `05`, `06`, `07` | **Son güncelleme:** 2026-10-29
+**Versiyon: v0.4** | **Bağımlılıklar:** `02`, `03`, `05`, `06`, `07` | **Son güncelleme:** 2026-10-29
 
 > **Aşama:** 7 — Entegrasyon Spesifikasyonları · **Rol:** Integration Engineer
 > **Traceability zorunlu:** Hayır
@@ -61,7 +61,9 @@
 >
 > **1. oturum (2026-10-29, v0.2):** başlık notu — yazım konvansiyonları ve alt bölüm haritası (blok ENT0; K-1244) · §1 entegrasyon envanteri ve envanterin sınırı (blok ENT1; K-1244) · §2.3 Google ile giriş (blok ENT2, `ENT2-24`, `ENT2-25`; K-1245) · §2.4 çağrısı olmayan dış bağlantılar — kargo şirketi listesi (`ENT2-26`; K-1246). 
 >
-> **3. oturum (2026-10-29, v0.3 — sırası değişti: 2. oturumdan önce yazıldı, çünkü §2.1'in kapısı sağlayıcının adıdır ve §2.2'nin kapısı yoktur; yöneticinin düzen kararı, geri alınabilir):** §2.2 e-posta altyapısının servis tanımı — servisin seçimi (Amazon SES), gönderim çağrısı ve sonuç sınıfları, geri dönen adreslerin sorguyla öğrenilmesi, alıcı başına gönderim sınırı ve kaçış, ortak kalıp, DNS kayıtları (`ENT2-15`…`ENT2-19`; K-1247, K-1248). **Kalan:** 2. oturum §2.1 (kapı: sağlayıcının adı) · 4. oturum §2.2'nin şablon metinleri (2.2.6 ve sonrası) · 5. oturum §3, §4, §5 ve `07`'nin hizalanması; ardından özet ↔ ayrıntı taraması.
+> **3. oturum (2026-10-29, v0.3 — sırası değişti: 2. oturumdan önce yazıldı, çünkü §2.1'in kapısı sağlayıcının adıdır ve §2.2'nin kapısı yoktur; yöneticinin düzen kararı, geri alınabilir):** §2.2 e-posta altyapısının servis tanımı — servisin seçimi (Amazon SES), gönderim çağrısı ve sonuç sınıfları, geri dönen adreslerin sorguyla öğrenilmesi, alıcı başına gönderim sınırı ve kaçış, ortak kalıp, DNS kayıtları (`ENT2-15`…`ENT2-19`; K-1247, K-1248).
+>
+> **4. oturum (2026-10-29, v0.4):** §2.2'nin şablon metinleri — müşteri bildirimleri B-1…B-16 ve B-1'in iki yasal metninin yerleşimi (2.2.6), firma bildirimleri F-1…F-6 (2.2.7), hesap ve yönetim e-postaları (2.2.8); yirmi sekiz e-posta (`ENT2-20`…`ENT2-23`; K-1249…K-1253). Yeni uç ihtiyacı çıkmadı, `07 §10`'a satır girmedi. **Kalan:** 2. oturum §2.1 (kapı: sağlayıcının adı) · 5. oturum §3, §4, §5 ve `07`'nin hizalanması; ardından özet ↔ ayrıntı taraması.
 
 **Yazım konvansiyonları (K-1234 (2), K-1244).** Bu on iki madde §1–§5'in bütün yazım oturumlarını bağlar; "yazım konvansiyonu n" diye anılır.
 
@@ -85,7 +87,7 @@
 | Başlık notu | Park blokları · yazım durumu · yazım konvansiyonları (1–12) · alt bölüm haritası | ENT0-01…ENT0-07 | 1 ✓ |
 | §1 Entegrasyon envanteri | Envanter tablosu · envanterin sınırı | ENT1-01, ENT1-02 | 1 ✓ |
 | §2.1 Ödeme sağlayıcısı | Şablonun alanları · 2.1.x konu alt bölümleri: sağlayıcının belirlenmesi ve katmanın sözleşmesi · anahtarlar ve değişim · 3D Secure · ödemenin başlatılması, dönüş, çerçeve · bildirimin kabulü ve alan eşlemesi · son sorgu · tek tahsilat · bağlantı hatası · kart iadesi · test | ENT2-02…ENT2-14 | 2 (kapı: ENT2-02) |
-| §2.2 E-posta altyapısı | Şablonun alanları · 2.2.x: servisin seçimi · gönderim ve sonuç sınıfları · geri dönme · alıcı başına sayaç ve kaçış · ortak kalıp · B-1…B-16 · F-1…F-6 · hesap ve yönetim e-postaları | ENT2-15…ENT2-23 | 3 ✓ (servis tanımı: 2.2.1…2.2.5) · 4 (şablon metinleri: 2.2.6…2.2.8) |
+| §2.2 E-posta altyapısı | Şablonun alanları · 2.2.x: servisin seçimi · gönderim ve sonuç sınıfları · geri dönme · alıcı başına sayaç ve kaçış · ortak kalıp · B-1…B-16 · F-1…F-6 · hesap ve yönetim e-postaları | ENT2-15…ENT2-23 | 3 ✓ (servis tanımı: 2.2.1…2.2.5) · 4 ✓ (şablon metinleri: 2.2.6…2.2.8) |
 | §2.3 Google ile giriş | Şablonun alanları (alt bölümsüz) | ENT2-24, ENT2-25 | 1 ✓ |
 | §2.4 Çağrısı olmayan dış bağlantılar | Kargo şirketi listesi (alt bölümsüz) | ENT2-26 | 1 ✓ |
 | §3 Ortak hata yönetimi | 3.1 Bağlantı katmanının ortak yüzü · 3.2 İmzalı makine uçlarının ilkesi · 3.3 Bir dış servis çökerse | ENT3-01…ENT3-03 | 5 |
@@ -135,7 +137,7 @@ Her servis şablonun alanlarıyla tanımlanır (yazım konvansiyonu 6). Tanımı
 
 ### 2.2 E-posta gönderim altyapısı — Amazon SES
 
-Servis **Amazon SES**'tir (Amazon Simple Email Service; API v2) — seçimin ölçütleri ve karşılaştırması §2.2.1'dedir (K-1247). Alt bölümler: 2.2.1 servisin seçimi · 2.2.2 gönderim ve sonuç sınıfları · 2.2.3 geri dönen adreslerin öğrenilmesi · 2.2.4 alıcı başına gönderim sınırı ve kaçış · 2.2.5 ortak kalıp · 2.2.6 ve sonrası şablon metinleri (aşağıda).
+Servis **Amazon SES**'tir (Amazon Simple Email Service; API v2) — seçimin ölçütleri ve karşılaştırması §2.2.1'dedir (K-1247). Alt bölümler: 2.2.1 servisin seçimi · 2.2.2 gönderim ve sonuç sınıfları · 2.2.3 geri dönen adreslerin öğrenilmesi · 2.2.4 alıcı başına gönderim sınırı ve kaçış · 2.2.5 ortak kalıp · 2.2.6 müşteri bildirimleri B-1…B-16 · 2.2.7 firma bildirimleri F-1…F-6 · 2.2.8 hesap ve yönetim e-postaları.
 
 - **Amaç:** ürünün bütün e-postalarını — B-1…B-16, F-1…F-6, hesap ve yönetim e-postaları — alıcıya iletmek; servisin sonradan bildirdiği kalıcı geri dönmeyi gönderim kaydına işlemek (`02 §9`; `05 §4.4`, §10.2; K-913, K-1241). B-1 sözleşme metninin taşıyıcısıdır (ÖK-3).
 - **Çağrının koşulları:** (1) **E-posta gönderim kimliği ve gönderen adresi kurulumda tanımlıdır** — ikisi zorunlu ayardır, eksikse uygulama açılmaz (`05 §8.4.6`); kartın ya da Google'ın aksine kapatılabilir değildir (ÖK-3; K-378). (2) **Gönderim kaydında "gönderilecek" hâlindeki satır** kuyruktan alınır ve gövdesi o anda üretilir (`05 §4.4.1`, §4.4.2). (3) **Alıcı başına sınır:** son 24 saatte aynı adrese 20 müşteri bildirimi satırı oluşmuşsa yeni müşteri bildirimi için **servise çağrı yapılmaz** (§2.2.4; K-1242). (4) **Bağlantısı geçersizleşmiş hesap bağlantısı e-postası** gönderilmez — "gönderilmedi — bağlantı geçersiz" kapanır, çağrı yapılmaz (`05 §4.4.3`, §6.4.6). (5) **Gönderim anında üretilemeyen gövde** (donmuş veri ya da olayın değeri okunamıyor) çağrı doğurmaz; satır P-38'in aralıklarıyla yeniden denenir.
@@ -252,9 +254,209 @@ Her e-posta aynı kalıpta üretilir (K-1240); her şablon kendi tetiğini, alı
 8. **Altbilgi:** firmanın unvanı ve iletişim e-postası ve *"Bu e-postayı yanıtlayarak firmaya ulaşabilirsiniz"* cümlesi; platform imzası, abonelikten çıkma bağlantısı ve pazarlama ifadesi yoktur (`02 §3.29.6`, §9.1.3, §9.5).
 9. **Dil:** Türkçe, hitap "siz" (`04 §8.2.9`); değişken metin kaçışı §2.2.4'tedir.
 
-#### 2.2.6 ve sonrası — şablon metinleri
+#### 2.2.6 Müşteri bildirimleri B-1…B-16
 
-*Yazılmadı — 4. oturum (şablon metinleri). Kapı: yok — B-1…B-16 (2.2.6), F-1…F-6 (2.2.7) ve hesap ve yönetim e-postaları (2.2.8) ortak kalıbı (§2.2.5) kullanır; B-1'in iki yasal metni ve Aşama 3'ten park edilen üç bildirimin metni (K-735) bu oturumun işidir.*
+On altı bildirimin ortak kuralları (K-1249; metinler Türkçedir ve hitap "siz"dir — `04 §8.2.9`). Her bildirim bir `DispatchType` değeridir (`B1`…`B16` — `06 §5.5.1`); tetikleyicinin bağı `03 §7.1`'in satırıdır. Kapalı liste: bildirim sayısı `06 §5.5.1`'in kod adlarından sayılır (komutu karar kaydı §18.2'de); on altısı `02 §9.2`'nin B-1…B-16 satırlarıdır.
+
+1. **İskelet.** Konu §2.2.5'tedir. Gövde sırayla: yeniden gönderim cümlesi (varsa — §2.2.5, madde 6) · *"Merhaba,"* · olayın cümlesi · bildirimin bölümleri · ana düğme ve altında aynı adres · altbilgi (§2.2.5, madde 8). **Hitapta ad yoktur:** teslimat alıcısı ile siparişi veren aynı kişi olmayabilir (hediye) ve misafir siparişinde hesap adı yoktur; adın geçtiği tek yer bildirimin içeriğidir (B-1'in iki metni, B-10'un adresi, B-9 ve B-14'ün iade adresi).
+2. **Sipariş numarası** her bildirimin konusunda (§2.2.5, madde 3) ve olayın cümlesinde yazılır (`Order.OrderNumber`); numara tek başına sayfayı açmaz (`02 §3.22.5`).
+3. **Sipariş sayfasının bağlantısı** ana düğmedir. Misafir siparişinde (`Order.IsGuestOrder`) ve hesabı silinmiş siparişte (`Order.IsAccountDeleted`) erişim anahtarlıdır — `https://{alan adı}/siparis/erisim/{erişim anahtarı}` (`Order.OrderAccessKey`; `07 §2.1.3`); üyenin siparişinde hesabın adresidir — `https://{alan adı}/siparis/{sipariş numarası}` ve açılışta giriş ister. Hesabı silinmiş siparişte hesap adresi çalışmaz; e-postadaki bağlantı hesabın silinmesinden etkilenmez (`02 §3.15.1`, §3.22.5; K-1249 (1)). Düğmenin etiketi *"Siparişi görüntüle"*dir; B-14'te *"IBAN'ı sipariş sayfasından gir"*.
+4. **Değerler olayın değerleridir** (`DispatchRecord.EventValues` — `06 §4.58`): gönderim anında olayın kaydından ve siparişin donmuş verisinden okunur (`05 §4.4.2`). **Kalem** *"{ürün adı}"* diye yazılır; varyantta seçenek değerleri parantezde eklenir — *"Ahşap Masa (Meşe, 120 cm)"* (`OrderItem.ProductName`, `FirstOptionValue`, `SecondOptionValue`), adet *"{n} adet"* (`04 §8.2.8`). Tutar, tarih ve saat §2.2.5'in biçimindedir. **Seçilmiş listelerin müşteriye yazılışı** altta ilgili bildirimdedir; `06`'nın kod adı e-postada görünmez.
+5. **Yeniden gönderim notu** (K-759, K-760, K-1240 (6)): panelden yeniden gönderilen bildirim ilk e-postanın **olay değerleriyle** gider — B-1'de siparişe donmuş sürümle (K-1027) — ve şablon gruba bakıp §2.2.5'in cümlesini üste koyar. Yeniden gönderim sonradan değişebilecek bir bilgi taşıyorsa — B-3 (son ödeme günü), B-5 ve B-12 (takip bilgisi), B-10 (adres), B-13 (durum) — cümlenin yanına ikinci bir cümle eklenir: *"Bu e-postadaki bilgi o tarihteki bilgidir; güncel bilgi sipariş sayfasındadır."* Böylece düzeltilmiş takip bilgisi ve yeniden başlamış ödeme süresi, kendi bildirimiyle (B-12, B-3) ve sipariş sayfasıyla taşınır; eski bir bildirimin yeniden gönderimi güncel gibi görünmez (K-1249 (2)).
+6. **Firma iletişimi.** Müşterinin firmaya ulaşması gereken bildirimlerde (B-7, B-10, B-15, B-16) firmanın iletişim e-postası ve telefonu metinde de yazılır (`Company.Email`, `Company.Phone`); e-postayı yanıtlamak da aynı adrese düşer (§2.2.2, `ReplyToAddresses`).
+
+**B-1 · Sipariş alındı** (`B1`; `03 §7.1.1`, §7.1.2).
+- **Tetik:** sipariş oluşur — Alındı + Bekliyor; ya da firma misafir siparişinin e-postasını düzeltir (`02 §10.4.11`).
+- **Alıcı:** siparişin iletişim e-postası; düzeltmede yeni adres (eski adrese B-15 gider).
+- **Konu:** *"{marka adı}: Siparişiniz alındı (Sipariş {numara})"*.
+- **Gövde:** olayın cümlesi *"Siparişiniz alındı. Sipariş numaranız: {numara}."* · ana düğme · **iki yasal metin** (aşağıdaki yerleşim; K-1250): Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi, siparişe donan sürümleriyle tam metin; dosya eki yoktur (`02 §3.33.6`).
+- **Değerler:** sipariş numarası ve bağlantı (`Order.OrderNumber`, `Order.OrderAccessKey`); iki metin `Order.PreInformationFormText` ve `Order.DistanceSalesContractText`'tir (`06 §4.17`).
+- **Düzeltme tetiği:** bağlantı yeni erişim anahtarını taşır, eski anahtar geçersizleşmiştir (`02 §10.4.11`); içerik aynıdır. Düzeltme yeni bir satır yazar ve grup kuralıyla yeniden gönderim cümlesini taşır (§2.2.5, madde 6).
+- **Yeniden gönderim:** siparişe donmuş sürümler ve onay anındaki adlar — düzeltme sonradan yapılmış olsa da değişmez (K-1027).
+
+**B-2 · Havale/EFT seçildi** (`B2`; `03 §7.1.3`).
+- **Tetik:** sipariş havaleyle oluşur. **Alıcı:** siparişin iletişim e-postası.
+- **Konu:** *"{marka adı}: Havale/EFT bilgileriniz (Sipariş {numara})"*.
+- **Gövde:** *"Siparişiniz alındı. Ödemeyi aşağıdaki hesaba havale/EFT ile yapabilirsiniz."* · IBAN bloğu: **IBAN** (dörderli gruplarla — `04 §8.2.6`) ve havale açıklamasına yazılacak **sipariş numarası** · son ödeme günü (*"Ödemenizi {tarih} tarihine kadar yapmanız gerekir; aksi hâlde sipariş iptal edilir."*) · düğme.
+- **Değerler:** `Order.BankTransferIban` — siparişe donan IBAN, ayardaki güncel IBAN değil (`02 §3.21.5`; K-663) —, `Order.OrderNumber`, `Order.PaymentWindowEndsAt`.
+**B-3 · Havale ödeme hatırlatması** (`B3`; `03 §7.1.4`…§7.1.6).
+- **Tetik:** havale ödeme süresinin son iş gününün başı — süre başına bir kez; "ödendi" işaretinin düzeltilmesiyle yeniden başlayan sürede bir kez daha; kesintide zamanı gelmiş hatırlatma site dönünce (`02 §3.21.6`, Z-9).
+- **Alıcı:** siparişin iletişim e-postası. **Konu:** *"{marka adı}: Havale ödemeniz bekleniyor (Sipariş {numara})"*.
+- **Gövde:** *"Havale ödemenizi henüz alamadık. Ödemeyi {son ödeme günü} tarihine kadar yapmazsanız siparişiniz iptal edilir."* · IBAN ve sipariş numarası (B-2'nin bloğu) · düğme · *"Ödemeyi yaptıysanız bu e-postayı dikkate almayın; havale firmaya ulaştığında siparişiniz güncellenir."*
+- **Değerler:** `Order.PaymentWindowEndsAt` olay anındaki değerdir — yeniden başlamış sürede yeni gün —, `Order.BankTransferIban`, `Order.OrderNumber`.
+
+**B-4 · Ödeme onaylandı** (`B4`; `03 §7.1.7`, §7.1.8).
+- **Tetik:** kart ödemesi onaylanır (sağlayıcının başarı bildirimi ya da son sorgunun olumlu cevabı); yönetici havale "ödendi" işaretini koyar. **Alıcı:** siparişin iletişim e-postası.
+- **Konu:** *"{marka adı}: Ödemeniz onaylandı (Sipariş {numara})"*.
+- **Gövde:** *"{numara} numaralı siparişinizin ödemesi onaylandı."* · **siparişte dijital kalem varsa** (`OrderItem.ProductType`): *"Dijital ürününüz indirmeye hazır. Dosyayı sipariş sayfanızdan indirebilirsiniz."* ve indirme bağlantısı yoktur — indirme sipariş sayfasındadır, düğme aynı sayfaya gider (`02 §3.12.1`) · düğme.
+- **Değerler:** `Order.OrderNumber`; dijital kalemin varlığı siparişin kalemlerinden okunur.
+
+**B-5 · Kargoya verildi** (`B5`; `03 §7.1.9`, §7.1.10).
+- **Tetik:** yönetici siparişi kargoya verir; açık fiziksel kalemleri yeniden gönderir (yeni takip bilgisiyle). **Alıcı:** siparişin iletişim e-postası.
+- **Konu:** *"{marka adı}: Siparişiniz kargoya verildi (Sipariş {numara})"*.
+- **Gövde:** *"Siparişiniz kargoya verildi."* · **kargo bloğu:** listedeki şirkette şirketin adı ve takip numarası ve *"Takip et"* bağlantısı (§2.4; bağlantı `noreferrer` taşır — §2.2.5, madde 4); "Diğer" şirkette yalnız ad ve takip numarası (`Order.OtherCarrierName`); *"kendi aracımızla teslim"*de (`Order.IsOwnVehicleDelivery`) *"Siparişiniz firmamızın kendi aracıyla teslim edilecektir."* ve şirket ile numara yazılmaz · düğme.
+- **Değerler:** `Order.Carrier`, `Order.OtherCarrierName`, `Order.TrackingNumber`, `Order.IsOwnVehicleDelivery` — olay anındaki değerler; sonradan düzeltme B-12'dir. Takip bağlantısı listeden çıkmış şirkette yazılmaz (§2.4).
+
+**B-6 · Teslim edilemedi** (`B6`; `03 §7.1.11`).
+- **Tetik:** yönetici geri dönen gönderiyi işaretler. **Alıcı:** siparişin iletişim e-postası.
+- **Konu:** *"{marka adı}: Siparişiniz teslim edilemedi (Sipariş {numara})"*.
+- **Gövde:** *"Siparişinizin gönderisi teslim edilemedi ve firmamıza geri döndü. Teslimat için firmayla iletişime geçebilirsiniz."* · firma iletişimi (madde 6) · düğme.
+
+**B-7 · İptal edildi** (`B7`; `03 §7.1.12`…§7.1.15).
+- **Tetik:** müşteri ödeme beklerken siparişi ya da ödenmiş siparişte bir kalemi iptal eder; yönetici siparişi ya da kalemi sebep seçerek iptal eder; sistem siparişi kendiliğinden iptal eder. **Alıcı:** siparişin iletişim e-postası.
+- **Konu:** *"{marka adı}: Siparişiniz iptal edildi (Sipariş {numara})"*; kalem iptalinde *"{marka adı}: Siparişinizdeki bir kalem iptal edildi (Sipariş {numara})"*.
+- **Gövde — üç söyleyiş** (`ActorKind` — `06 §5.4.10`): **müşteri:** *"Talebiniz üzerine {numara} numaralı siparişiniz iptal edildi."* (kalem iptalinde *"…siparişinizdeki {kalem}, {n} adet iptal edildi"*) — kayıt kopyasıdır · **yönetici:** *"{numara} numaralı siparişiniz firmamız tarafından iptal edildi."* + **sebep** (aşağıdaki liste) + iptal edilen kalem ve adet · **sistem:** *"{numara} numaralı siparişiniz kendiliğinden iptal edildi."* + sebep.
+- **Yönetici iptalinin sebepleri** (`CancellationReason` — `06 §5.3.6`; sebep aynen yazılır — `02 §7.2.4`): `OutOfStock` *"ürün stokta bulunamadı"* · `DamagedOrUnsellable` *"ürün hasarlı ya da satılamaz durumda"* · `CannotShipToAddress` *"teslimat adresine gönderim yapılamıyor"* · `UndeliveredBuyerCaused` *"gönderi teslim edilemedi — adres hatalı ya da alıcı bulunamadı"* · `AgreedWithBuyer` *"sizinle anlaşıldı (talebiniz üzerine)"* · `Other` *"{açıklama}"* (`ReasonNote`). **Sistem iptalinin sebepleri** (`TransitionReason` — `06 §5.6.5`): `PaymentWindowExpired` *"ödeme süresi dolduğu için"* · `CardPaymentFailed` *"kart ödemeniz tamamlanamadığı için"* · `PaymentPageNotOpened` *"ödeme sayfası açılamadığı için"* · `SameCartReorder` *"aynı sepetten yeni bir sipariş verdiğiniz için"*. `Closure` bildirim üretmez (`02 §9.2`).
+- **Yönetici iptalinde ek paragraf** (Mesafeli Sözleşmeler Yönetmeliği m.16/4'ün bildirimi — `02 §7.2.4`; K-1250): *"Ödediğiniz tutar, teslimat masrafları dahil, bu bildirimden itibaren en geç on dört gün içinde iade edilir."* Stok sebebinde de aynı metin gider; sebep müşteriye aynen yazılır.
+- **Firma iletişimi** (madde 6) — her üç söyleyişte.
+- **Değerler:** iptal edilen kalem ve adet (`Cancellation.OrderItemId`, `Quantity`), `Cancellation.CancellationReason`, `Cancellation.ReasonNote`, sistem iptalinde `TransitionRecord.TransitionReason`; `Order.OrderNumber`.
+
+**B-8 · Geri ödeme işlendi** (`B8`; `03 §7.1.16`…§7.1.19).
+- **Tetik:** sistemin başlattığı kart iadesi sağlayıcıda gerçekleşir; yönetici geri ödemeyi işler (havale hattında iptal, fesih, cayma; kart hattında cayma; tutar bazlı kısmi geri ödeme; ayıp talebinin para gerektiren çözümü); yönetici kart iadesini yeniden dener ve iade gerçekleşir; sistem iptal edilmiş siparişe gelen kart ödemesini geri öder. **Alıcı:** siparişin iletişim e-postası.
+- **Konu:** *"{marka adı}: Geri ödemeniz işlendi (Sipariş {numara})"*.
+- **Gövde:** *"{numara} numaralı siparişiniz için {neden} nedeniyle {tutar} geri ödeme işlendi."* — kart hattında *"Tutar, ödeme yaptığınız karta iade edildi."*, havale hattında *"Tutar, bildirdiğiniz IBAN'a havale edildi."* (IBAN yazılmaz) · **geç ödemede** *"İptal edilmiş siparişinize gelen ödeme, tutarın tamamı olarak iade edildi."* · düğme.
+- **Neden** (`Refund.RefundType` — `06 §5.6.7`): `Cancellation` *"iptal"* · `ItemRemoval` *"kalem çıkarma"* · `LateDeliveryTermination` *"gecikme nedeniyle fesih"* · `Withdrawal` *"cayma"* · `DefectClaimRescission` *"ayıp talebi"* · `AmountBased` *"kısmi geri ödeme"* · `LatePayment` — neden cümlesi yerine yukarıdaki geç ödeme cümlesi.
+- **Değerler:** `Refund.Amount`, `Refund.PaymentMethod`, `Refund.RefundType`; tutarın kuruşlu biçimi §2.2.5'tedir. **Alan kararı:** `02 §9.2` yalnız "geri ödemenin işlendiği"ni sayar; tutar ve yöntem şablonun eklediğidir (K-1249 (3)).
+
+**B-9 · Cayma beyanı, gecikme feshi ya da ayıp talebi alındı** (`B9`; `03 §7.1.20`…§7.1.24).
+- **Tetik:** müşteri sipariş sayfasından cayma beyanında bulunur, gecikme nedeniyle fesheder ya da ayıp talebi açar; müşteri çözülmüş ayıp talebini yeniden açar; yönetici başka kanaldan gelen cayma ya da fesih bildirimini kaydeder. **Alıcı:** siparişin iletişim e-postası.
+- **Konu — dört başlık** (`RelatedRecordType` — `06 §4.58`): `Withdrawal` *"Cayma beyanınız alındı"* · `LateDeliveryTermination` *"Gecikme nedeniyle fesih beyanınız alındı"* · `DefectClaim` *"Ayıp talebiniz alındı"* · yeniden açmada *"Ayıp talebiniz yeniden açıldı"*; hepsinde sonuna *" (Sipariş {numara})"*.
+- **Gövde:** *"{beyan} {tarih ve saat} tarihinde kaydedildi."* (başka kanaldan gelen bildirimde tarih bildirimin firmaya ulaştığı tarihtir — `02 §10.4.10`) · **kapsadığı kalemler ve adetler** (liste) · **fiziksel kalemde, caymada ve ayıp talebinde** malın gönderileceği iade adresi: alıcı adı, açık adres, ilçe, il ve telefon (`Withdrawal.ReturnRecipientName`, `ReturnAddressLine`, `ReturnDistrict`, `ReturnProvinceId`, `ReturnPhone`; ayıp talebinde `DefectClaim.Return…`) · düğme. Bu e-posta müşterinin kendi işleminin kayıt kopyasıdır (`02 §9.2`); yasal süreleri anlatan bir metin taşımaz — süreler sipariş sayfasındadır (K-1250).
+- **Değerler:** `Withdrawal.DeclarationDate` ve `LateDeliveryTermination.DeclarationDate` (tarih; saat yazılmaz), ayıp talebinde kaydın oluşma ya da yeniden açılma anı (`DefectClaim.StatusHistory`); `…Quantity` ve `OrderItem` alanları; iade adresi alanları. Tarih ile saat birlikte yalnız ayıp talebindedir.
+
+**B-10 · Teslimat ya da fatura adresi düzeltildi** (`B10`; `03 §7.1.25`).
+- **Tetik:** yönetici teslimat ya da fatura adresini düzeltir — geri düzeltme dahil (`02 §10.4.2`; K-601). **Alıcı:** siparişin iletişim e-postası.
+- **Konu:** *"{marka adı}: Siparişinizin adresi düzeltildi (Sipariş {numara})"*.
+- **Gövde:** *"{numara} numaralı siparişinizin {teslimat | fatura} adresi düzeltildi. Yeni adres:"* · adres bloğu: alıcı adı, açık adres, ilçe, il ve — teslimat adresinde — telefon · *"Bu değişikliği siz istemediyseniz lütfen firmayla iletişime geçin."* ve firma iletişimi (madde 6) · düğme.
+- **Değerler:** `OrderAddressHistory.AddressType` ve `NewRecipientName`, `NewPhone`, `NewProvinceId`, `NewDistrict`, `NewAddressLine` (`06 §4.62`); eski adres yazılmaz. Ekrandaki teyit hatırlatması `04`'tedir (K-735).
+
+**B-11 · Kalem çıkarıldı ya da adedi azaltıldı** (`B11`; `03 §7.1.26`).
+- **Tetik:** yönetici kalemi çıkarır ya da adedini azaltır (`02 §10.4.3`). **Alıcı:** siparişin iletişim e-postası.
+- **Konu:** *"{marka adı}: Siparişinizdeki bir kalem değişti (Sipariş {numara})"*.
+- **Gövde:** *"{numara} numaralı siparişinizden {kalem}, {n} adet çıkarıldı."* · ödenmiş kalemin geri ödemesi için ayrıca B-8 (kart) ya da B-14 (havale) gider; bu e-posta tutar yazmaz · düğme.
+- **Değerler:** `ItemRemoval.OrderItemId`, `ItemRemoval.Quantity`.
+
+**B-12 · Kargo şirketi ya da takip numarası düzeltildi** (`B12`; `03 §7.1.27`).
+- **Tetik:** yönetici kargo şirketini ya da takip numarasını düzeltir. **Alıcı:** siparişin iletişim e-postası.
+- **Konu:** *"{marka adı}: Kargo bilginiz düzeltildi (Sipariş {numara})"*.
+- **Gövde:** *"{numara} numaralı siparişinizin kargo bilgisi düzeltildi."* · B-5'in kargo bloğu, **düzeltilmiş** değerlerle (şirket, takip numarası, *"Takip et"*) · düğme.
+- **Değerler:** `Order.Carrier`, `Order.OtherCarrierName`, `Order.TrackingNumber`, `Order.IsOwnVehicleDelivery` — düzeltme anındaki değerler.
+
+**B-13 · Yanlış durum geçişi düzeltildi** (`B13`; `03 §7.1.28`).
+- **Tetik:** yönetici yanlış yapılmış durum geçişini düzeltir (`02 §10.4.6`). **Alıcı:** siparişin iletişim e-postası.
+- **Konu:** *"{marka adı}: Siparişinizin durumu düzeltildi (Sipariş {numara})"*.
+- **Gövde:** *"{numara} numaralı siparişinizin durumu yanlışlıkla güncellenmişti ve düzeltildi. Siparişinizin durumu: {durum}."* · **havale "ödendi" işaretinin düzeltilmesinde** ek bölüm: *"Ödemeniz alınmış görünmüyor. Ödemeyi {yeni son ödeme günü} tarihine kadar yapmanız gerekir."* ve IBAN bloğu (B-2'nin bloğu; siparişe donan IBAN) · düğme.
+- **Durum adı** (`OrderStatus` — `06 §5.2.1`): `Placed` *"Alındı"* · `Preparing` *"Hazırlanıyor"* · `Shipped` *"Kargoya verildi"* · `Delivered` *"Teslim edildi"* · `DeliveryFailed` *"Teslim edilemedi"* · `Cancelled` *"İptal edildi"*.
+- **Değerler:** `Order.OrderStatus`, `Order.PaymentWindowEndsAt` (yeni gün), `Order.BankTransferIban`. Düzeltmenin sebebi (`CorrectionReason`) müşteriye yazılmaz — `02 §9.2` sebebi saymaz.
+
+**B-14 · IBAN isteği** (`B14`; `03 §7.1.29`…§7.1.34; `02 §7.4.5`).
+- **Tetik:** altı olay (`RefundIbanRequestReason` — `06 §5.6.4`), hepsi aynı bildirimdir. **Alıcı:** siparişin iletişim e-postası.
+- **Konu:** *"{marka adı}: Geri ödemeniz için IBAN bilgisi gerekli (Sipariş {numara})"*.
+- **Gövde:** olayın cümlesi (aşağıda) · *"Geri ödemeyi yapabilmemiz için IBAN'ınızı sipariş sayfanızdan girmeniz gerekiyor."* · düğme *"IBAN'ı sipariş sayfasından gir"* · **güvenlik cümlesi:** *"IBAN'ınızı bu e-postayı yanıtlayarak göndermeyin; yalnız sipariş sayfasından girin."* — e-posta IBAN taşımaz ve e-postayla IBAN kabul edilmez (K-1251).
+- **Olayın cümlesi** (`RefundIbanRequestReason`): `ReturnAfterIbanDeleted` *"İade ettiğiniz ürün firmamıza ulaştı."* · `TransferFailed` *"Geri ödeme havalesi girdiğiniz IBAN'a gerçekleşmedi."* · `CardRefundFailed` *"Kartınıza yapılan iade gerçekleşmedi. Geri ödemeyi IBAN'ınıza havale yoluyla almayı seçebilirsiniz; IBAN girmek sizin seçiminizdir."* · `NoticeWithoutIban` *"Firmaya başka bir yoldan ilettiğiniz cayma ya da fesih bildirimi kaydedildi; bildirim IBAN içermiyordu."* · `CancellationOrRemoval` *"Ödenmiş bir kalem iptal edildi ya da siparişten çıkarıldı."* · `AdminRequest` *"Firma, bir geri ödeme için IBAN'ınızı istiyor."*
+- **Değerler:** `RefundIbanRequest.Reason`; kalem ve adet yazılmaz — istek kalem bazlı olsa da (`RefundIbanRequest.OrderItemId`) sipariş sayfası hangi bölgenin açık olduğunu gösterir (`04` 3.5.3).
+
+**B-15 · Siparişin e-postası düzeltildi — eski adrese** (`B15`; `03 §7.1.35`).
+- **Tetik:** yönetici misafir siparişinin e-postasını düzeltir (`02 §10.4.11`). **Alıcı:** **eski adres** (`OrderEmailHistory.OldEmail`) — yeni adrese giden B-1 ayrıdır.
+- **Konu:** *"{marka adı}: Siparişinizin e-posta adresi değiştirildi (Sipariş {numara})"*.
+- **Gövde:** *"{numara} numaralı siparişin e-posta adresi {tarih} tarihinde değiştirildi."* · *"Bu değişikliği siz istemediyseniz lütfen firmayla iletişime geçin."* ve firma iletişimi (madde 6). **Yeni adres, ad, adres bilgisi ve sipariş sayfasının bağlantısı yoktur** — e-posta yanlış kişiye gitmiş olabilir; düğme de yoktur (`02 §9.2`).
+- **Değerler:** `Order.OrderNumber`, değişikliğin tarihi (`OrderEmailHistory.CreatedAt`).
+
+**B-16 · İade reddedildi** (`B16`; `03 §7.1.36`).
+- **Tetik:** yönetici koşullu istisna kaleminde koruyucu ambalajı açılmış dönen malı reddeder (`02 §7.4.9`). **Alıcı:** siparişin iletişim e-postası.
+- **Konu:** *"{marka adı}: İade ettiğiniz ürün kabul edilmedi (Sipariş {numara})"*.
+- **Gövde:** *"{numara} numaralı siparişinizde iade ettiğiniz {kalem}, {n} adet kabul edilmedi."* · **sebep:** *"Ürünün koruyucu ambalajı açılmıştı; bu ürün için cayma hakkı ambalajın açılmasıyla sona erer."* (`OrderItem.WithdrawalExemptionReason` — `HygieneSensitive`, `SealedMedia`) · *"Bu nedenle geri ödeme yapılmayacaktır."* · *"Ürün, siparişteki teslimat adresinize firmamızın bedeliyle geri gönderilecektir."* · **uyuşmazlık yolları:** *"Bu karara itirazınız varsa tüketici hakem heyetine ya da — dava açmadan önce arabulucuya başvurmanız şartıyla — tüketici mahkemesine başvurabilirsiniz."* — parasal sınır rakamla yazılmaz (`02 §3.33.7`; K-1250) · firma iletişimi (madde 6) · düğme.
+- **Değerler:** `ReturnRejection.OrderItemId`, `ReturnRejection.Quantity`, kalemin `WithdrawalExemptionReason` değeri.
+
+**B-1'in iki yasal metninin yerleşimi** (K-1027, K-832; K-1250).
+1. **Yer.** İki metin B-1'in gövdesinde, ana düğmeden sonra, **ayrı iki bölümdür** ve bu sırada durur: önce *"Ön Bilgilendirme Formu"*, sonra *"Mesafeli Satış Sözleşmesi"*; her bölümün başlığı vardır. Düz metin gövdede aynı sıra ve başlıklarla, tam metin olarak yazılır.
+2. **Kaynak.** Metin, siparişe onay anında donan kişisel verisiz kopyadır (`Order.PreInformationFormText`, `Order.DistanceSalesContractText`); gönderim anında yer tutucular siparişin **onay anındaki** değerleriyle doldurulur: alıcının adı ve soyadı, teslimat ve fatura adresi, teslimat telefonu ve iletişim e-postası. Değer, düzeltme yapılmışsa ilgili geçmişin ilk satırının eski değeridir (`OrderAddressHistory`'nin adres türünün ilk satırındaki `Old…` alanları; `OrderEmailHistory`'nin ilk satırındaki `OldEmail`), yapılmamışsa siparişin alanıdır (`06 §4.17`, §4.61, §4.62). Panelden yeniden gönderim ve düzeltme sonrası B-1 aynı kuralı izler.
+3. **Okunabilirlik** (Mesafeli Sözleşmeler Yönetmeliği m.6/1; `02 §3.24.3`; K-832). İki metin **en az 12 punto** (`12pt`) ve gövde metninden küçük olmayan boyutla yazılır; e-posta istemcisinin yazıyı küçülten ayarı şablonda kapatılır. **Kaydırmalı kutu, daraltılmış ya da açılır bölüm, "devamını oku" bağlantısı, alt sınırın altında bir yazı ve metni sipariş sayfasına gönderen kısaltma yoktur** — metin e-postanın içinde, tam, açıktır. Satır uzunluğu 600 piksellik sütunla sınırlıdır; paragraf ve başlık yapısı sipariş sayfasındaki gösterimle aynı sıradadır.
+4. **Kaçış.** Yer tutucuların müşteri değerleri HTML'de kaçışlanır, düz metinde satır sonu karakterleri boşluğa çevrilir (§2.2.4). Metnin kendisi ürünle gelen şablondan ve firmanın ayarlarından üretilmiştir; kaçışlanmaz.
+5. **Ek yoktur** (`02 §3.33.6`): PDF ya da başka dosya üretilmez; sipariş sayfası aynı sürümleri göstermeye devam eder.
+
+#### 2.2.7 Firma bildirimleri F-1…F-6
+
+Altı bildirimin ortak kuralları (K-1252). Her biri bir `DispatchType` değeridir (`F1`…`F6`); alıcı F-1…F-4'te firma kimliğindeki iletişim e-postasıdır (`Company.Email`; `02 §9.3.1`), F-5 ve F-6'da her yönetici hesabının kendi adresidir (`Admin.Email`; `02 §9.3.3`, §9.3.4). **Konu:** *"{marka adı}: {olayın başlığı}"* — sipariş soneki yoktur (siparişe bağlı müşteri bildirimleri içindir — §2.2.5, madde 3). Gönderen adı ve altbilgi ortak kalıptadır; **yanıt adresi bu e-postalarda da firmanın iletişim e-postasıdır** (§2.2.2) — F-5 ve F-6'da yanıt göndermek yöneticileri değil firmanın iletişim kutusunu bulur; bu kabul edilmiştir, çünkü iki e-posta yanıt beklemez.
+- **Hitap ve kişisel veri.** *"Merhaba,"*; gövde **müşterinin kişisel verisini taşımaz** — ad, adres, telefon, e-posta, iletişim talebinin mesajı e-postaya yazılmaz; yönetici bu bilgiye panelde girişle ulaşır. Bildirim "bir şey oldu, panelde bak" bildirimidir (`02 §9.3.2`).
+- **Panel bağlantısı** ana düğmedir ve panel ekranına iner: `https://{alan adı}/panel/…`. Oturum yoksa giriş ekranı açılır ve giriş sonrası istenen ekrana yönlendirilir (`04 §3.5.14`). Kayıt adresi `/panel/{ekranın adı}/{iç anahtar}` biçimindedir (`07 §2.1.5`); iç anahtar olayın değerleri arasındadır.
+- **Yeniden gönderim yoktur** (`02 §9.1.6`; K-760): ulaşmayan F-1…F-4 satıra işaret düşürmez, panelin ana sayfasında *"firma bildirimleri ulaşmıyor"* uyarısı çıkar; F-5 ve F-6 yeniden denenir, işaret düşmez (`02 §9.3.3`, §9.3.4). Gövdede yeniden gönderim cümlesi hiç bulunmaz.
+- **Değerlerin saklanışı.** Gövde gönderim anında üretilir ve olay silinmiş olabilir: F-5 ve F-6'da yönetici adı ve davet edilen adres, F-1…F-4'te sipariş numarası ve iç anahtar **olayın değeri olarak** satıra yazılır (`DispatchRecord.EventValues` — `06 §4.58`; Z-34'ün süresi). **F-5'in satırında tam IBAN yoktur** — yalnız son dört hane yazılır.
+
+**F-1 · Yeni sipariş** (`F1`; `03 §7.1.38`).
+- **Tetik:** sipariş oluşur. **Konu:** *"{marka adı}: Yeni sipariş"*.
+- **Gövde:** *"{tarih ve saat} tarihinde {numara} numaralı yeni bir sipariş alındı."* · *"Ödeme yöntemi: {Kart | Havale/EFT}. Toplam: {tutar}."* · düğme *"Siparişi aç"* → `/panel/siparisler/{iç anahtar}`.
+- **Değerler:** `Order.OrderNumber`, `Order.PaymentMethod`, `Order.Total`, siparişin oluşma anı ve iç anahtarı. İlgili kayıt `Order`'dır (`06 §4.58` tablosu). **Alan kararı:** tutar ve yöntem şablonun eklediğidir (`02 §9.3` yalnız "yeni sipariş" der; K-1252).
+
+**F-2 · Yeni iletişim talebi** (`F2`; `03 §7.1.39`).
+- **Tetik:** iletişim formu gönderilir — KVKK talebi dahil. **Konu:** *"{marka adı}: Yeni iletişim talebi"*.
+- **Gövde:** *"{tarih ve saat} tarihinde yeni bir iletişim talebi alındı. Konu: {konu tipi}."* · düğme *"Talebi aç"* → `/panel/talepler/{iç anahtar}`. **Talebin metni, gönderenin adı ve e-postası e-postada yoktur** (başlık enjeksiyonu ve kişisel veri — yukarıdaki kural).
+- **Değerler:** `ContactRequest.ContactTopic` — *"Genel soru"*, *"Sipariş hakkında"*, *"Ürün hakkında"*, *"KVKK talebi"*, *"Diğer"* (`06 §5.3.10`) —, talebin oluşma anı ve iç anahtarı. İlgili kayıt `ContactRequest`'tir.
+
+**F-3 · Yeni cayma beyanı, gecikme feshi ya da ayıp talebi** (`F3`; `03 §7.1.40`…§7.1.43).
+- **Tetik:** müşteri cayma beyanında bulunur, gecikme nedeniyle fesheder, ayıp talebi açar; çözülmüş ayıp talebini yeniden açar (yeni talep açılmaz — firma onu yeni talep gibi öğrenir).
+- **Konu:** `Withdrawal` *"Yeni cayma beyanı"* · `LateDeliveryTermination` *"Yeni gecikme feshi"* · `DefectClaim` *"Yeni ayıp talebi"* ve yeniden açmada *"Ayıp talebi yeniden açıldı"* — hepsinde *"{marka adı}: …"* ön ekiyle, sipariş soneki yoktur.
+- **Gövde:** *"{numara} numaralı siparişte {tarih ve saat} tarihinde {beyan} kaydedildi."* · düğme *"Siparişi aç"* → `/panel/siparisler/{iç anahtar}` (kayıt siparişin sayfasında durur). Kalem, adet ve müşterinin metni e-postada yoktur.
+- **Değerler:** kaydın türü (`DispatchRecord.RelatedRecordType` — `06 §4.58`), `Order.OrderNumber` ve siparişin iç anahtarı, kaydın oluşma ya da yeniden açılma anı.
+
+**F-4 · Sistemin kendiliğinden yaptığı karta geri ödeme** (`F4`; `03 §7.1.44`, §7.1.45).
+- **Tetik:** sistem kart hattında geri ödemeyi kendiliğinden yapar — iptal edilen ödenmiş kalem (müşteri ya da firma iptali), gecikme feshi, kalem çıkarma; iptal edilmiş siparişe gelen kart ödemesi. **Konu:** *"{marka adı}: Karta geri ödeme yapıldı"*.
+- **Gövde:** *"{numara} numaralı siparişte sistem, {neden} nedeniyle {tutar} tutarını ödeme yapılan karta kendiliğinden iade etti."* · *"Sizin bir işlem yapmanız gerekmez."* · düğme *"Siparişi aç"*.- **Neden** (`RefundType`; B-8'in listesi): `Cancellation`, `ItemRemoval`, `LateDeliveryTermination`; `LatePayment` — *"iptal edilmiş siparişe gelen ödeme"*.
+- **Değerler:** `Refund.Amount`, `Refund.RefundType`, `Order.OrderNumber`, siparişin iç anahtarı. İlgili kayıt `Refund`'dır.
+
+**F-5 · Havale/EFT'nin IBAN'ı girildi ya da değiştirildi** (`F5`; `03 §7.1.46`; `02 §9.3.3`).
+- **Tetik:** havale IBAN'ı panelde girilir ya da değiştirilir — ilk giriş ve düzeltme dahil. **Alıcı:** **her yönetici hesabının kendi adresi** — değişikliği yapan yönetici dahil; her yöneticiye ayrı bir satır yazılır, firmanın iletişim e-postasına gitmez.
+- **Konu:** *"{marka adı}: Havale IBAN'ı değiştirildi"*.
+- **Gövde:** *"Havale/EFT IBAN'ı {tarih ve saat} tarihinde {yönetici adı} tarafından {girildi | değiştirildi}. Yeni IBAN'ın son dört hanesi: {dört hane}."* · *"Bu değişikliği siz ya da bir çalışma arkadaşınız yapmadıysanız panele girip IBAN'ı düzeltin ve şifrenizi değiştirin."* · düğme *"Ödeme yöntemlerini aç"* → `/panel/odeme-yontemleri`. **Tam IBAN yoktur ve değişikliği geri alan bağlantı yoktur** — ürün değişikliği kendiliğinden geri almaz ve havaleyi kapatmaz (`02 §9.3.3`).
+- **Değerler:** değişikliğin anı, `Admin.Name` (değer olarak — yönetici sonradan kaldırılmış olabilir), IBAN'ın son dört hanesi, girildi ya da değiştirildi ayrımı. **IBAN'ın son dört hanesi `Order.BankTransferIban`'ın ya da `CompanySettings`'in IBAN alanının yazılışından alınır; satıra tam IBAN yazılmaz** (K-1252). İlgili kayıt yoktur (`06 §4.58` tablosu).
+
+**F-6 · Yönetici hesapları değişti** (`F6`; `03 §7.1.47`, §7.1.48; `02 §9.3.4`).
+- **Tetik:** yönetici daveti gönderilir; bir yönetici kaldırılır. **Alıcı:** her yönetici hesabının kendi adresi — işlemi yapan ve kaldırmada kaldırılan yönetici dahil.
+- **Konu:** davette *"{marka adı}: Yönetici daveti gönderildi"*, kaldırmada *"{marka adı}: Bir yönetici kaldırıldı"*.
+- **Gövde — davet:** *"{tarih ve saat} tarihinde {yönetici adı}, {davet edilen adres} adresine yönetici daveti gönderdi."* · **gövde — kaldırma:** *"{tarih ve saat} tarihinde {kaldıran yönetici adı}, {kaldırılan yönetici adı} adlı yöneticiyi kaldırdı."* · her ikisinde *"Bu işlemi siz ya da bir çalışma arkadaşınız yapmadıysanız panele girip yönetici hesaplarını kontrol edin ve şifrenizi değiştirin."* · düğme *"Yönetici hesaplarını aç"* → `/panel/yonetici-hesaplari`. **Geri alma bağlantısı yoktur** (`02 §9.3.4`). Davetin geri çekilmesi ve süresinin dolması bildirim üretmez.
+- **Değerler:** işlemin anı, işlemi yapan yöneticinin adı, davette davet edilen adres, kaldırmada kaldırılan yöneticinin adı — hepsi değer olarak (yönetici ve davet kaydı sonradan silinir — `06 §4.37`, §4.38). İlgili kayıt `AdminInvitation` ya da `Admin`'dir.
+
+#### 2.2.8 Hesap ve yönetim e-postaları
+
+Altı e-posta (`DispatchType`'ın `EmailVerificationLink`, `PasswordResetLink`, `NewEmailVerificationLink`, `EmailChangeNotice`, `AdminInvitation`, `AccountDeletedNotice` değerleri — `06 §5.5.1`; K-1253). Ortak kurallar:
+- **Konu:** *"{marka adı}: {olayın başlığı}"* — sipariş soneki yoktur. Gönderen kimliği bunlara da uygulanır (`02 §9.4`). Hitap *"Merhaba,"*; ad yazılmaz.
+- **Bağlantı** anahtarı **gövde üretilirken bağlantı kaydının kimliğinden türetilir; ham anahtar satırda durmaz** (`05 §4.4.2`, §6.4.4; K-1081). Gönderim anında geçersizleşmiş bağlantının e-postası gönderilmez (§2.2 "çağrının koşulları", 4).
+- **Bağlantı işlem yapmaz:** açılan ekran işlemi bir düğmeyle tamamlatır — doğrulama, yeni adresin doğrulaması, geri alma (`02 §8.1.3`; K-904). E-postanın metni bunu söyler: *"Bağlantı sizi onay ekranına götürür; işlem ekrandaki düğmeyle tamamlanır."*
+- **Yeniden gönderim yoktur** (`02 §9.1.6`; K-760): kullanıcı bağlantıyı ekrandan yeniden ister — yeniden istenen bağlantı yeni bir satır ve öncekini geçersiz kılan yeni bağlantı kaydıdır; gövdede yeniden gönderim cümlesi bulunmaz. "E-posta ulaşmadı" işareti düşmez; yalnız yönetici davetinde davet satırına düşer (`02 §9.4`).
+- **Müşteri ve yönetici hesabı aynı metni kullanır** (K-694); fark yalnız bağlantının yoludur: müşteride `/…`, yönetici hesabında `/panel/…` (`07 §2.1.4`, §2.1.5; K-1162 (4)). Hesabın türü satırın `RelatedRecordType` değerinden okunur (`Customer` ya da `Admin`).
+- **Bağlantının ömrü** metinde sürenin değeriyle yazılır; değer `02 §11`'dedir.
+
+**EmailVerificationLink · E-posta doğrulama bağlantısı** (`03 §7.1.49`; `02 §3.13.5`, §9.4).
+- **Tetik:** hesap kaydı; kullanıcının bağlantıyı ekrandan yeniden istemesi (L-9). **Alıcı:** kayıt olanın adresi. **Konu:** *"{marka adı}: E-posta adresinizi doğrulayın"*.
+- **Gövde:** *"{marka adı} sitesine bu e-posta adresiyle kaydoldunuz. Hesabınızı etkinleştirmek için adresinizi doğrulayın."* · düğme *"Adresimi doğrula"* → `https://{alan adı}/dogrulama/{anahtar}` · *"Bağlantı {24 saat} geçerlidir. Süre dolarsa kayıt silinir ve yeniden kaydolmanız gerekir. Yeniden istediğiniz bağlantı öncekini geçersiz kılar ve süreyi uzatmaz."* · **uyarı (K-696):** *"Bu kaydı siz yapmadıysanız bağlantıya tıklamayın; doğrulanmayan kayıt süre dolunca silinir."*
+- **Değerler:** bağlantı kaydının kimliği; süre `P-12` (24 saat) ilk bağlantının gönderildiği andan işler.
+
+**PasswordResetLink · Şifre sıfırlama bağlantısı** (`03 §7.1.50`; `02 §3.13.9`).
+- **Tetik:** şifre sıfırlama talebi — Google ile açılmış hesapta şifre belirleme ve e-posta değişikliğinin geri alınması dahil. **Alıcı:** hesabın adresi; e-posta değişikliğinin geri alınmasında eski adres. **Konu:** *"{marka adı}: Şifre sıfırlama"*.
+- **Gövde:** *"Hesabınız için şifre sıfırlama istendi."* · düğme *"Şifremi sıfırla"* → müşteride `https://{alan adı}/sifre-sifirlama/{anahtar}`, yönetici hesabında `https://{alan adı}/panel/sifre-sifirlama/{anahtar}` · *"Bağlantı {60 dakika} geçerlidir ve bir kez kullanılır. Şifre sıfırlandığında hesabınızın bütün oturumları kapanır."* · *"Bunu siz istemediyseniz bu e-postayı dikkate almayın; şifreniz değişmez."* · **geri almadan sonra** ek cümle: *"Hesabınızın e-posta adresi eski hâline döndürüldü ve şifreniz geçersiz kılındı; yeni bir şifre belirlemek için bu bağlantıyı kullanın."*
+- **Değerler:** bağlantı kaydının kimliği; geri almadan mı doğduğu (ek cümlenin koşulu); süre P-13.
+
+**NewEmailVerificationLink · Yeni e-posta adresinin doğrulanması** (`03 §7.1.51`; `02 §3.13.14`).
+- **Tetik:** hesabın e-posta adresi değiştirilir. **Alıcı:** **yeni adres.** **Konu:** *"{marka adı}: Yeni e-posta adresinizi doğrulayın"*.
+- **Gövde:** *"Hesabınızın e-posta adresinin bu adresle değiştirilmesi istendi. Değişikliği tamamlamak için yeni adresinizi doğrulayın."* · düğme *"Yeni adresimi doğrula"* → müşteride `https://{alan adı}/dogrulama/{anahtar}`, yönetici hesabında `https://{alan adı}/panel/dogrulama/{anahtar}` · *"Bağlantı {24 saat} geçerlidir; süre dolarsa değişiklik düşer."* · *"Bunu siz istemediyseniz bu e-postayı dikkate almayın; adres doğrulanmadıkça hesabınızda hiçbir şey değişmez."*
+- **Değerler:** bağlantı kaydının kimliği (`PendingEmailChange` — `06 §4.40` — kaydına bağlıdır); eski adres yazılmaz.
+
+**EmailChangeNotice · E-posta değişikliğinin eski adrese bildirimi** (`03 §7.1.52`; `02 §3.13.14`; K-599, K-735).
+- **Tetik:** değişiklik yeni adres doğrulanınca geçerli olur. **Alıcı:** **eski adres.** **Konu:** *"{marka adı}: Hesabınızın e-posta adresi değiştirildi"*.
+- **Gövde:** *"Hesabınızın e-posta adresi {tarih ve saat} tarihinde değiştirildi."* · **yeni adres yazılmaz** · *"Bu değişikliği siz yapmadıysanız aşağıdaki bağlantıyla geri alın."* · düğme *"Bu değişikliği ben yapmadım"* → müşteride `https://{alan adı}/geri-al/{anahtar}`, yönetici hesabında `https://{alan adı}/panel/geri-al/{anahtar}` · *"Bağlantı {7 gün} geçerlidir ve bir kez kullanılır. Geri alırsanız hesabınızın e-postası bu adrese döner, bütün oturumlar kapanır, değişiklik süresince hesaba bağlanan Google girişi kaldırılır ve şifreniz geçersiz kılınır; bu adrese yeni bir şifre belirleme bağlantısı gelir."* (`02 §3.13.14`).
+- **Değerler:** değişikliğin anı; bağlantı kaydının kimliği — kayıt değişiklikten önceki adresi taşır (`06 §4.42`; `05 §6.4.4`; K-1065). Ekrandaki izi `04`'tedir.
+
+**AdminInvitation · Yönetici daveti** (`03 §7.1.53`; `02 §10.2.1`).
+- **Tetik:** yönetici bir adrese davet gönderir — yeniden göndermek yeni davettir. **Alıcı:** davetlinin adresi (firmanın iletişim e-postası değil). **Konu:** *"{marka adı}: Yönetici davetiniz"*.
+- **Gövde:** *"{davet eden yöneticinin adı}, sizi {marka adı} yönetim paneline yönetici olarak davet etti."* · düğme *"Daveti kabul et"* → `https://{alan adı}/panel/davet/{anahtar}` · *"Bağlantıyı açınca adınızı yazar ve şifrenizi belirlersiniz; hesabınız o anda açılır. Bağlantı {72 saat} geçerlidir ve bir kez kullanılır."* · *"Bu daveti beklemiyorsanız bu e-postayı dikkate almayın."*
+- **Değerler:** `AdminInvitation.SenderAdminName`, bağlantı kaydının kimliği. **Alan kararı:** davet eden yöneticinin adı şablonun eklediğidir (`02 §10.2.1` yalnız bağlantıyı sayar; K-1253). İlgili kayıt `AdminInvitation`'dır ve "e-posta ulaşmadı" işareti davet satırına düşer.
+
+**AccountDeletedNotice · Hesabın silindiği bildirimi** (`03 §7.1.54`; `02 §3.15.1`; K-693).
+- **Tetik:** müşteri hesabı silinir — üyenin kendi silmesi ya da yöneticinin talep üzerine silmesi; silme kimin yaptığına bakmaz. **Alıcı:** silinen hesabın adresi (satırda değer olarak durur; hesap silinse de satır adresi taşır — `06 §4.58`). **Konu:** *"{marka adı}: Hesabınız silindi"*.
+- **Gövde:** *"Hesabınız {tarih} tarihinde silindi."* · **silinenler:** *"Adınız, giriş bilgileriniz, şifreniz, açık oturumlarınız, adres defteriniz ve sepetiniz silindi."* · **saklanan:** *"Siparişleriniz yasal saklama süresince kayıtlı kalır; sipariş kayıtlarınızdaki kişisel veriler bu süre dolunca imha edilir."* · *"Açık siparişlerinize sipariş e-postanızdaki bağlantıyla ya da sipariş numaranız ve e-posta adresinizle girebilirsiniz."* **Bağlantı, düğme ve geri alma yolu yoktur.**
+- **Değerler:** silmenin tarihi. Gönderimden sonra adres hesapla birlikte silinir (`02 §3.15.1`).
+
+*Kaynak (2.2.6…2.2.8): `ENT2-20`, `ENT2-21`, `ENT2-22`, `ENT2-23` · K-1249…K-1253 · K-735, K-759, K-760, K-824, K-832, K-1027, K-1240, K-1242, K-599, K-601, K-616, K-691, K-692, K-693, K-696, K-1081 · `02 §3.12.1`, §3.13.9, §3.13.14, §3.15.1, §3.21.5, §3.21.6, §3.22.5, §3.24.3, §3.33.6, §3.33.7, §7.2.4, §9.1–§9.4, §10.2.1, §10.4 · `03 §7.1` · `04 §2.1.3`, §3.5, §8.2 · `05 §4.4`, §6.4.4 · `06 §4.17`, §4.58, §4.61, §4.62, §5.3.5, §5.3.6, §5.3.10, §5.5.1, §5.6.4, §5.6.5, §5.6.7 · `07 §2.1.3`, §2.1.5.*
 
 *Kaynak: `ENT2-15`, `ENT2-16`, `ENT2-17`, `ENT2-18`, `ENT2-19` · K-1236, K-1240, K-1241, K-1242, K-1247, K-1248 · K-861, K-862, K-913, K-941, K-1016, K-1081, K-1120, K-1217, K-759, K-824 · `05 §3.6.1`, §4.3.3, §4.4, §6.4.6, §8.4.3, §8.4.6, §9.4.7, §10.1.1, §10.1.4, §10.2, 6.x.3, 6.x.11 · `06 §2.8.1`, §4.1, §4.54, §4.58, §4.60, §5.4.6, §5.4.7, §8.2.3 · `02 §3.22.5`, §3.29.5, §8.2, §9.1, §9.2, §9.4, §12.2.8 · `04 §8.2` · `03` 10.1.2 · `10 §4.1` ÖK-2, ÖK-3 · P-38 (`02 §11.2`).*
 
@@ -362,4 +564,4 @@ Listeye giriş ölçütü K-1243 (3)'tür: adres şirketin **kendi** takip sayfa
 
 ---
 
-*Shopfolio — Integration Specifications v0.3*
+*Shopfolio — Integration Specifications v0.4*

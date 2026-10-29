@@ -1,6 +1,6 @@
 # Shopfolio — Coding Guidelines
 
-**Versiyon: v0.1** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** YYYY-AA-GG
+**Versiyon: v0.2** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
 
 > **Aşama:** 8 — Kodlama Kılavuzu · **Rol:** Tech Lead
 > **Amaç:** Ajanın tutarlı kod üretmesi. Bu doküman **her kodlama görevinde** ajana verilir.
@@ -68,18 +68,275 @@
 > - **K-1245 · K-1272 · K-1281 · K-1292 · Google kimlik belirtecinin doğrulanması (Entegrasyon Spesifikasyonları `08 §2.3`):** kod değişiminin adresi sabittir, keşiften okunmaz; keşif belgesinden yalnız `issuer` ve `jwks_uri` alınır, çatı keşif belgesini ve anahtar kümesini önbelleğe alır ve her girişte yeniden çekmez — çatının işleyicisi keşif belgesini varsayılan olarak başlatmada çekiyorsa adresler sabit olarak yapılandırılır; önbelleğin tazeleme biçimi çatının davranışıdır ve ilk bağlanan task'ta doğrulanır (bilgim tarihli; `08` DV-31) · `exp` için saat sapması toleransı çatının ayarıdır ve değeri bu dokümanın işidir; `auth_time` toleranssız karşılaştırılır · `userinfo` çağrılmaz; kimlik belirtecinin alanlarından yalnız alan eşlemesinin saydıkları okunur (`hd` dahil — Google'ın adres için yetkili olup olmadığı buradan okunur) ve `sub` saklanmaz (K-1061).
 > - **K-1027 · K-1271 · Değişken metnin kaçışı (Entegrasyon Spesifikasyonları `08 §2.2.6` — B-1'in iki yasal metninin yerleşimi, madde 4; §2.2.4):** e-postaya ve belgeye giren her değer — firmanın ayarı, kalemin adı, yer tutucunun müşteri değeri — HTML'de kaçışlanır, düz metinde satır sonu karakterleri boşluğa çevrilir; metin ham HTML olarak basılmaz, biçim yalnız şablonun kendi yapısıdır ve bağlantı yalnız `https`, `http` ve `mailto` şemasını taşır (`05 §6.5.3`) · değerin donmuş kopyada kaçışlı mı saklandığı, gösterimde mi kaçışlandığı bu aşamanın kararıdır; sipariş sayfasındaki gösterim aynı kuralı izler (K-1027 (4), (5)).
 
+> **Yazım durumu (K-28, K-30, K-432; karar kaydı §20.1): yazım turu sürüyor (v0.2).** Doküman Kodlama kılavuzu aşamasının **tek yazım turunda**, altı oturumda yazılır (K-1302 (1)); 1. oturum yöneticinin kararıyla baştan ikiye bölündü (`INSTRUCTIONS §9` (8)). **Yazıldı:** Y-1a — başlık notu, §1, §2, §3 (K-1329, K-1330). **Sırada:** Y-1b — §4–§6; sonra 2. oturum §7–§9, 3. oturum §10, 4. oturum §11–§14, 5. oturum §15–§18, 6. oturum §19–§25 (alt bölüm haritasının "Oturum" sütunu). Workshop tamamlandı (K-1305…K-1328). Özet ↔ ayrıntı taraması ve kalite döngüsü yazım turundan sonra gelir.
+>
+> **Park maddelerinin durumu (K-1302 (6)).** Park blokları talimattır ve yazımda değişmez; kapanışları burada izlenir. Bir park maddesi birden çok bölüme dokunuyorsa kural ilk konunun bölümünde yazılır, öteki bölümler ona atıf yapar. **Kapandı:** P4.1 (dil, çatı ve kütüphane ekleme — §3.1, §3.2, §3.3 ve Kütüphaneler tablosu). **Kısmen kapandı:** P4.9 — ayarlar ve ürün sabitleri §3.5'te yazıldı, yönetim komutları §13'te; P6.2 — girdi doğrulama süzgeci §3.4'te yazıldı, model, işleyici ve hata kodu adları §5'te, hata kodlarının kaydı ve gösterilmemesi §8'de. **Açık:** öteki otuz sekiz madde ve P1.1 — yazılacakları bölümün oturumunda kapanır.
+
+**Yazım konvansiyonları (K-1302, K-1329).** Bu on madde §1–§25'in bütün yazım oturumlarını bağlar; "yazım konvansiyonu n" diye anılır.
+
+1. **Bu doküman ürün kuralı koymaz.** Kodun **nasıl** yazıldığını söyler: dil ve çatı kalıpları, düzen, adlandırma, sınırların kodda korunması, hata, veri erişimi, güvenlik kalıplarının kullanımı, test, git ve CI, yasaklar; kütüphane seçimlerini ve kılavuzun koyduğu sayısal değerleri yazar. Davranış `02`'de, ekranın davranışı `04`'te, mekanizma `05`'te, alan ve değer adları `06`'da, uçlar `07`'de, dış servisin biçimi `08`'dedir. Yazılırken eksik çıkan kural bir **boşluktur:** uydurulmaz, karar kaydında bir K satırıyla karara bağlanır; kaynak dokümana dönüyorsa aynı PR'da yazılır ve §2'nin geri besleme tablosuna satır girer (K-652).
+2. **Adlar sözlükten ve Veri Modeli'nden birebirdir** (`02 §1`; `06 §4`, §5; K-17): sembol, dosya ve tip adları sözlüğün İngilizce karşılıklarıdır; alan, tablo, kapalı değer ve işlem adları `06`'dadır ve her biri yazılırken `06`'da aranır. Bulunmayan ad yazılmaz — konvansiyon 1'in boşluğudur. Dış servisin adları (alan, parametre, değer) servisin yazılışıyla ve kod biçiminde yazılır (`08`).
+3. **Dış olgu "bilgim tarihli" yazılır ve doğrulanır.** Bir çatının, paketin ya da aracın API'sinden, ayar adından, sürümünden okunan her değer bilgim tarihlidir (2026-10-29): işaretlenir ve yerine göre yazım oturumunda belgeye karşı doğrulanır ya da "ilk bağlanan task'ta doğrulanır" der (§1, ilke 5). Okunamayan olgu tahmin edilmez.
+4. **Kimlikler** (K-1302 (3)): bu doküman yeni bir kural kimliği ailesi açmaz — kural alt bölüm numarasıyla anılır ("`09 §3.3`"), inceleme listesi (§25), Implementation Planı ve Doğrulama Protokolü bölümü gösterir. Konu kimliği `KKn-mm` ve park maddesi kısaltması `Pa.n` yalnız karar kaydında kullanılır; bu dokümanın gövdesine girmez.
+5. **Atıf biçimi** (K-701): önsüz `§` bu dokümanı gösterir; başka dokümana atıf numarasıyla yazılır (`02 §3.20.8`, `05 §6.1.4`); `0X §` ile başlayan dizideki sonraki önsüz `§`'ler o dokümanı gösterir — dizi ` · `, `;`, parantezin kapanışı ya da cümle sonuyla biter. Karar kaydının bölümleri "karar kaydı §n", bir kararın kolu "K-1305 (2)" diye anılır.
+6. **Kod örneklerinin biçimi** (K-1302 (5)): örnek kısa bir C# parçasıdır (gerektiğinde JavaScript, CSS ya da SQL); **adlarını sözlükten, `06`'dan ve `07`'den birebir alır — örnek için ad uydurulmaz;** kalıbı gösterir, sözleşmeyi göstermez; yasak kalıpta "yanlış" ve "doğru" biçim yan yana verilir. Çatı API'sinin adı bilgim tarihliyse yazım oturumu belgeye karşı doğrular; doğrulanamayan ad parçada `// bilgim tarihli — ilk task'ta doğrulanır` yorumuyla işaretlenir.
+7. **Kural ayrıntısı evinde kalır** (`checklists/document-stage.md` §4): bu doküman başka bir dokümanın kuralına dayandığında ayrıntıyı kopyalamaz, bölüm numarasıyla işaret eder. **Tek ev** (K-1302 (6)): her kuralın bu dokümanda tek yeri vardır — başka bölüm kuralı yinelemez, atıf yapar. **Kütüphane yalnız §3'ün Kütüphaneler tablosunda seçilir;** kuralı kullanan bölüm tabloya atıf yapar.
+8. **Üst dokümanlara geri besleme:** bu dokümandan `02`–`08` ve `10`'a dönen her fark §2'nin sonundaki numarasız tabloya bir satırla girer (K-652; konvansiyon 1). Kaynak doküman kazanır; fark kaynakta düzeltilir.
+9. **Açık kalem ve devir:** bu dokümanın şablonunda açık kararlar bölümü yoktur — açık kalem karar kaydının §4'ünde A-19'dan sürer; sonraki dokümana — Implementation Planı (`11`), Doğrulama Protokolü (`12`), `DEPLOY_RUNBOOK` — talimat bırakan karar o dokümanın "Aşama 8'den park edilen girdiler" bloğuna girer, blok yoksa açılır (K-36). Henüz yazılmamış bir bölüme bağlanan atıf hedef bölümü ve oturumunu taşır — "§10 (yazım 3)" —; o bölümü yazan oturum atfı aynı PR'da madde numarasına çevirir (K-682).
+10. **Özet ile ayrıntı birlikte değişir; ölü placeholder ve belirsiz ifade yoktur.** Başlık notunun tabloları, §3'ün Kütüphaneler ve süre tabloları ile dokümanın kapalı listeleri ayrıntının özetidir; bir ayrıntıyı değiştiren her düzeltme onu anan özet yerlerini betikle bulur ve aynı PR'da okur. Yazılmamış bölüm bir kapıya bağlıdır ve kapısını adıyla taşır (alt bölüm haritasının "Oturum" sütunu). "Muhtemelen", "belki", "gereksinime göre" yazılmaz.
+
+**Alt bölüm haritası (K-1302, K-1329).** Şablonun §1…§25 numaraları değişmez; alt düzey aşağıdaki tabloyla sabittir. Bir oturum bir alt bölümü bölmek ya da birleştirmek zorunda kalırsa bu tabloyu ve ona atıf yapan satırları aynı PR'da günceller (K-670'in kalıbı; `checklists/document-stage.md` §4).
+
+| Bölüm | Alt bölümler | Oturum |
+|---|---|---|
+| Başlık notu | Yazım durumu · park maddelerinin durumu · yazım konvansiyonları (1–10) · alt bölüm haritası · okuma tablosu | Y-1a ✓ |
+| §1 Temel ilkeler | Beş ilke (alt bölümsüz) | Y-1a ✓ |
+| §2 Source of truth hiyerarşisi | Kaynak tablosu · çelişkide işleyiş · Üst dokümanlara geri besleme (numarasız) | Y-1a ✓ |
+| §3 Genel kod yazım kuralları | 3.1 C# standartları ve derleme ayarları · 3.2 Paket sürüm yönetimi · 3.3 Kütüphane eklemenin işletimi · 3.4 Girdi doğrulamanın kalıbı · 3.5 Ayarlar, ürün sabitleri ve süre ve tavan değerleri · Kütüphaneler (numarasız tablo) | Y-1a ✓ |
+| §4 Proje yapısı ve klasör organizasyonu | 4.1 Çözüm ve proje düzeni · 4.2 Klasör düzeninin `CONTEXT.md` §3'e yazılışı · 4.3 İmaj, Compose ve geliştirme ortamı dosyalarının yeri | Y-1b |
+| §5 Adlandırma konvansiyonları | 5.1 Sözlüğün devralınması ve kod adları · 5.2 Veritabanı adlandırma kuralının uygulanışı · 5.3 Sayfa, işleyici, model, hata kodu ve çerez adları | Y-1b |
+| §6 Mimari sınırlar | Modül sınırlarının kodda korunması ve dosya deposu arayüzü (alt bölümsüz) | Y-1b |
+| §7 Zaman ve biçim standartları | 7.1 Tek zaman kaynağı · 7.2 İstekteki tarih, tutar ve ondalık biçimi | 2 |
+| §8 Hata yönetimi | 8.1 Tek yakalama katmanı, üç hâl, sonucu belirsiz işlem · 8.2 Hata kodlarının kaydı ve gösterilmemesi | 2 |
+| §9 Domain kuralları | 9.1 Geçiş birimi, beyaz liste, yan etki · 9.2 İşlem izinin kod adları · 9.3 Belgenin kişisel verisiz kopyası · 9.4 Tek işlevler | 2 |
+| §10 Veri erişimi | 10.1 Silme davranışı, anahtar, enum · 10.2 Sürüm, eşzamanlılık, sayaç · 10.3 Bölüm sürümünün çatıda eşlenişi · 10.4 Önbellek ve kuşak sayacı · 10.5 Liste sırası, sayfalama, arama sözcüğü · 10.6 Göçlerin yazılışı · 10.7 Veritabanı oturumunun süreleri · 10.8 Veritabanı kullanıcıları · 10.9 İç notun kilidi · 10.10 Dışa aktarma dosyası | 3 |
+| §11 Entegrasyon kuralları | 11.1 Bağlantı katmanının kalıbı · 11.2 Dış servis istemcileri · 11.3 Google kimlik belirteci · 11.4 E-posta ve belge metninin üretimi | 4 |
+| §12 Sözleşme ve olay sürümleme | Değerlerin sürümlenmesi (alt bölümsüz) | 4 |
+| §13 Arka plan iş kuralları | 13.1 İş kuyruğu, yeniden deneme, nabız · 13.2 Yönetim komutları · 13.3 Büyük veri dönüşümünün ilerleme kaydı | 4 |
+| §14 Hassas hesaplama kuralları | 14.1 Kuruşa yuvarlama · 14.2 Sağlayıcı tutar dönüşümleri | 4 |
+| §15 Güvenlik kuralları | 15.1 Oturum, şifre, anahtar, çerez, ters vekil · 15.2 Sahtecilik koruması, içerik güvenlik politikası · 15.3 HTML temizleyici · 15.4 Hız sınırı · 15.5 Veri koruma amaçları · 15.6 Görüntü işleme · 15.7 Dosya uçları | 5 |
+| §16 İstemci tarafı kurallar | 16.1 Ön yüz dosya düzeni ve adlandırma · 16.2 Betiksiz yol, form kalıpları, yükleme betiği | 5 |
+| §17 Yardımcı servis / sidecar standartları | Veritabanı ve yedek aracı imajları (alt bölümsüz) | 5 |
+| §18 Loglama ve gözlemlenebilirlik | 18.1 Kayıt kütüphanesi ve yazıcılar · 18.2 Kayıt alanları, maskeleme, kategoriler | 5 |
+| §19 Test kuralları | 19.1 Test araçları · 19.2 Test katmanları, mimari testler | 6 |
+| §20–§25 | §20 Performans · §21 Git ve CI/CD (şablonun 21.1–21.5'i) · §22 Refactor · §23 Yasaklar · §24 AI çalışma kuralları · §25 Review checklist | 6 |
+
+**Okuma tablosu (K-1302 (4)).** Bu doküman her kodlama görevinde ajana verilir (`00 §C.6`); 100 KB'ı aşan dosya bütün okunamaz (`INSTRUCTIONS §9` (7)) — dosyanın boyutu `wc -c` ile ölçülür ve **bölüm bölüm okunur** (`grep -n '^## '` ile başlıkların satırı, sonra `Read` ile satır aralığı). Her bölüm tek okumada okunabilir kalır. **Çekirdek bölümler** her görevde okunur ve toplamı 100 KB'ın altında tutulur: §1, §2, §5, §6, §23, §24, §25. Öteki bölümler görevin dokunduğu alana göre okunur; Implementation Planı her task satırında okunacak bölümleri yazar (`11` — "Aşama 8'den park edilen girdiler" bloğu yazım turunda açılır).
+
+| Görevin dokunduğu alan | Çekirdeğe ek olarak okunur |
+|---|---|
+| C# kodu yazan her görev | §3.1, §3.2 |
+| Kütüphane ekleyen ya da güncelleyen görev | §3.3, Kütüphaneler tablosu |
+| Form, girdi modeli, doğrulama | §3.4, §8 |
+| Ayar, ürün sabiti, süre ve tavan değeri | §3.5 |
+| Çözüm, proje, klasör, imaj, Compose | §4 |
+| Zaman, tarih, tutar biçimi | §7 |
+| Hata yakalama, hata kodu | §8 |
+| Durum geçişi, yan etki, belge kopyası, tek işlev | §9 |
+| Veritabanı, varlık, göç, sorgu, sürüm, önbellek, dışa aktarma | §10 (yeni değer eklenirse §12) |
+| Dış servis çağrısı, e-posta, belge metni, Google girişi | §11, §14 (tutar dönüşümü) |
+| İş kuyruğu, arka plan işi, yönetim komutu | §13 |
+| Oturum, şifre, çerez, form güvenliği, yükleme, görsel, HTML metin | §15 |
+| Ön yüz (JavaScript, CSS) | §16 |
+| Veritabanı ve yedek imajı | §17 |
+| Kayıt (log) | §18 |
+| Test yazan görev | §19 |
+| Liste, sorgu sınırı, performans | §20 |
+| Dal, commit, PR, CI | §21 |
+| Refactor | §22 |
+
+*Kaynak: K-1302 · K-1305, K-1306, K-1310, K-1312, K-1319, K-1322…K-1328 (yazım konvansiyonları ve §3'ün içeriği) · K-17, K-36, K-652, K-670, K-682, K-701 · `00 §C.6` · `INSTRUCTIONS §9` (7) · `checklists/document-stage.md` §4 · `08` başlık notu (kalıp).*
+
 ---
 
 ## 1. Temel ilkeler
 
 - Somut örnekle tanımla. "Hata yönetimi yapılmalı" değil, "hata yönetimi şöyle yapılır: (somut örnek)".
 - Tek kaynak, tek doğru. Bir kural iki yerde farklı anlatılmaz.
+- **Kaynak doküman kazanır; kod dokümanla çelişmez.** Kod yazarken bir doküman cümlesi koda uymuyorsa kodu dokümana uydur; doküman yanlışsa sessizce kod yazma — task BLOCKED olur ve çelişki bildirilir (`00 §D.1`, §D.8; `INSTRUCTIONS §4`). Örnek: `07` bir alan hatası için `TextTooLong` kodunu veriyorsa kod `TextTooLong` olur — "daha anlaşılır" diye `TooLong` yazılmaz.
+- **Ad uydurulmaz.** Enum değeri, durum adı, hata kodu, alan ve tablo adı `06` ve `07`'den birebir alınır; bu dokümanda ya da kaynaklarda bulunmayan ad bir boşluktur, uydurulup geçilmez (BLOCKED, `SPEC_GAP`). Örnek: kargo ücretinin firma ayarı `ShippingFee` ise (`06 §4.2`) kodda `ShippingCost` ya da `DeliveryFee` yazılmaz; bir kavramın tek adı vardır.
+- **"Bilgim tarihli" olgu kullanılmadan doğrulanır.** Bir çatının, paketin ya da aracın API'sinin adı, ayarın adı, sürümün davranışı bilgiden geliyorsa belgeye ya da SDK'ya karşı sınanmadan koda girmez. Doğrulama sonucu PR açıklamasına yazılır; belgeden okunamıyorsa task BLOCKED olur. Örnek: bu dokümanda "bilgim tarihli" diye işaretli her ad (ör. §3.1'in `Directory.Build.props` ayar adları) ilk kullanan task'ta SDK'ya karşı derlenerek sınanır, sınanmadan kopyalanmaz.
 
 ## 2. Source of truth hiyerarşisi
 
-> **Ne yazılır:** Çelişki durumunda hangi doküman kazanır. Örn. iş kuralı → `02`; şema → `06`; sözleşme → `07`.
+Çelişki durumunda kazanan doküman konuya göre belirlenir; bu doküman kural koymaz, kalıp koyar (yazım konvansiyonu 1).
+
+| Konu | Kazanan doküman |
+|---|---|
+| Ürün davranışı, iş kuralı, sözlük terimleri, sayısal parametreler | Ürün Gereksinimleri (`02`; sözlük §1, parametre envanteri §11) |
+| Ekranın davranışı, form kuralları, doğrulama kuralları | Arayüz Tanımları (`04`) |
+| Mekanizma — katmanlar, durum geçişi, güvenlik, ortam, dağıtım | Teknik Mimari (`05`) |
+| Alan ve tablo adı, tip, kapalı değer, işlem adı | Veri Modeli (`06`) |
+| Uç, adres, yöntem, zarf, hata kodu | API Tasarımı (`07`) |
+| Dış servisin biçimi, e-posta şablonu | Entegrasyon Spesifikasyonları (`08`) |
+| MVP'nin kapsamı | MVP Kapsamı (`10`) |
+| Kodun kalıbı — kütüphane, düzen, adlandırma, test, git | Kodlama Kılavuzu (bu doküman) |
+| Süreç — task akışı, kapılar, yasaklar | `00`, `.claude/INSTRUCTIONS.md`, `.claude/GUARDRAILS.md` |
+
+**Çelişki nasıl işler.** (1) Bu dokümanın bir kuralı bir kaynak dokümanla çelişirse **kaynak kazanır:** kod kaynağa göre yazılır, fark kaynakta düzeltilir ya da bu dokümanın cümlesi düzeltilir, ve fark aşağıdaki tabloya satır olur. (2) İki kaynak doküman birbiriyle çelişirse kod yazılmaz — task BLOCKED olur (`00 §D.8`, `SPEC_GAP`); hangisinin kazandığına ajan karar vermez. (3) Doküman sessizse ve kod bir seçim gerektiriyorsa seçim uydurulmaz; boşluk olarak bildirilir (§1, "ad uydurulmaz").
+
+#### Üst dokümanlara geri besleme
+
+Bu dokümanın yazımında `02`–`08` ve `10`'a dönen her fark bir satırla izlenir (K-652). Satır, üst dokümanın bölümünü ve düzelen cümleyi, düzeltmenin sürümünü ve kararı taşır. Workshop'ta gelen satırlar karar kaydı §20.2'den taşındı (K-1302 (2c)); yazım turunda doğan satırlar buraya eklenir.
+
+| Üst doküman ve bölüm | Sürüm | Karar |
+|---|---|---|
+| `02 §3.11.6` (paragraf ve satır sonu setin biçimi değil taşıyıcısıdır) | v0.102 | K-1318 |
+| `05 §7.4.5`, §9.3.4 ("diske inmesi beklenir" — işletim sistemine teslim) | v0.37 | K-1317 |
+| `05 §6.5.3` (taşıyıcı etiketler set dışı sayılmaz) | v0.37 | K-1318 |
+| `06 §2.10.2` (paragraf ve satır sonu yazımda düşmez) | v0.39 | K-1318 |
+| `05 §3.8.2` (genişlik sınıfı sınırlarının tek tanımı; kullanım başka dosyada olabilir) | v0.38 | K-1326 |
 
 ## 3. Genel kod yazım kuralları
+
+### 3.1 C# standartları ve derleme ayarları
+
+Yerleşik .NET araçlarıyla, kökte tek ayar dosyası kümesiyle ve uyarıların hata sayılmasıyla (K-1306).
+
+1. **Üçüncü taraf çözümleyici paketi eklenmez** (StyleCop vb.); .NET SDK'nın kendi çözümleyicileri yeter — boş olabilir başvuru denetimini, kaynak kullanımı ve güvenlik kurallarını taşırlar.
+2. **Kökteki `Directory.Build.props` bütün projelere uygulanır:** boş olabilir başvuru denetimi açık, örtük `using`'ler açık, çözümleyici düzeyi "son sürüm, önerilen kural kümesi", kod stili derlemede uygulanır ve **uyarılar her yapılandırmada hata sayılır** — yerelde geçen derleme CI'da düşmez (`05 §2.3.5`).
+
+   ```xml
+   <Project>
+     <PropertyGroup>
+       <Nullable>enable</Nullable>
+       <ImplicitUsings>enable</ImplicitUsings>
+       <AnalysisLevel>latest-recommended</AnalysisLevel>
+       <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+       <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+     </PropertyGroup>
+   </Project>
+   ```
+   Ayar adları ve düzey değerleri bilgim tarihlidir — ilk task'ta SDK'ya karşı derlenerek doğrulanır.
+3. **Kökte tek `.editorconfig`;** biçim denetimi `dotnet format` ile "değişiklik yok" doğrulamasıdır (CI'ın Lint adımı).
+4. **Stil.** Dosya kapsamlı ad alanı · özel alanlar `_camelCase` · asenkron metot `Async` soneki alır ve `CancellationToken` son parametredir · değişmez veri taşıyıcısı `record` · `var` yalnız tür sağ tarafta açıksa · sınıflar varsayılan `sealed`.
+
+   ```csharp
+   namespace Shopfolio.Modules.<Modül>;                       // dosya kapsamlı ad alanı (K-1307)
+
+   private readonly ILogger<Product> _logger;                 // özel alan: _camelCase
+   public async Task<Product?> FindAsync(Guid id, CancellationToken ct)   // Async soneki; ct son parametre
+   ```
+   Değişmez veri taşıyıcısı `record`'dur; `var` yalnız sağ taraf türü açıkça söylüyorsa (`var product = new Product();`) kullanılır, `var x = Get();` yazılmaz.
+5. **Yasaklar.** Null-forgiving `!` (gerekçe yorumuyla tek satır istisna) · `async void` (olay işleyici hariç) · `dynamic` · uyarı bastırma yalnız gerekçe yorumuyla ve en dar kapsamda.
+
+   ```csharp
+   // Yanlış: derleyicinin uyarısı susturuldu, açıklama boşsa çalışma anında düşer.
+   var description = product.Description!;
+
+   // Doğru: boş durum açıkça ele alınır.
+   if (product.Description is not { } description)
+       return;
+   ```
+
+### 3.2 Paket sürüm yönetimi
+
+Paket sürümü merkezîdir (K-1306 (6)): kökte `Directory.Packages.props` tek sürüm kaynağıdır; **sürümler tam sabittir** (kayan aralık yok); `packages.lock.json` repoda durur ve CI'da kilitli geri yükleme koşar; paket kaynağı yalnız nuget.org'dur; .NET SDK sürümü `global.json` ile sabitlenir. Bu dosyalar `Directory.Build.props` ile aynı kökte ve aynı PR'dadır.
+
+```xml
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>   <!-- bilgim tarihli — ilk task'ta doğrulanır -->
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Sürüm yalnız burada, tam sabit. Proje dosyasında Version yazılmaz. -->
+    <PackageVersion Include="Serilog" Version="4.3.1" />
+  </ItemGroup>
+</Project>
+```
+
+Merkezî paket dosyasındaki her paket sürümünün Kütüphaneler tablosunda satırı vardır; eşitlik CI'ın Lint adımında denetlenir (betiğin yazımı §21'dedir, yazım 6 — iş adı: kütüphane tablosu eşitliği denetimi).
+
+### 3.3 Kütüphane eklemenin işletimi
+
+Kütüphaneyi bir implementation task'ının PR'ı ekler ve her ekleme kanıtla gelir (K-1305, K-1310, K-1312). Ölçüt `05 §2`'nin ölçütüdür (MK-02): lisans ücretsiz ve ticari kullanıma açıktır ve proje bakımı sürüyordur.
+
+1. **Kim ve nasıl.** Kütüphaneyi yalnız bir task'ın PR'ı ekler; ekleme task'ın kabul kriterlerinde yazılıdır ya da PR açıklamasında gerekçelendirilir. Bağımsız doğrulama kanıtı yeniden okur. Dependabot PR'ları ve ana sürüm güncellemeleri de aynı yoldan geçer. Gerekmedikçe yeni bağımlılık eklenmez (`INSTRUCTIONS §4`): yerleşik .NET ve tablodaki bir kütüphane yetmiyorsa eklenir.
+2. **Kanıt** (PR açıklamasına ve tablo satırına): paket adı ve tam sürüm · lisans — SPDX ifadesi, NuGet paket sayfasından ve deponun LICENSE dosyasından okunur, ikisi uyuşur · son yayın tarihi ve bakımcı (son on iki ayda yayın ya da bakımcının yanıtı) · geçişli bağımlılıkların lisansı (aynı ölçüt) · neden gerekli (tek cümle) · erişim tarihi.
+3. **Tablo ve aynı PR.** Kütüphane aşağıdaki Kütüphaneler tablosuna aynı PR'da satır olarak girer (§3.2'nin eşitlik denetimi).
+4. **Lisans ölçütü.** İzinli lisans (MIT, Apache-2.0, BSD-2/3, ISC, MS-PL gibi) kabul edilir. **Kopyaleft lisans (GPL, LGPL, AGPL) kabul edilmez** — repo MIT lisanslıdır ve her kurulum ayrı bir firmadır.
+5. **Koşullu lisanslı kütüphane alınabilir** (gelir eşikli, ticari ya da açık kaynak şartlı): eşiği aşan firmada lisans bedelini kurulumu yapan öder ya da firmaya yansıtır (K-1310). **Varsayılan açık lisanstır** — aynı işi gören koşulsuz bir aday görevin gereğini karşılıyorsa o seçilir; koşullu aday yalnız eşdeğer görevi karşılamıyorsa ya da gerekçeyle belirgin üstünse seçilir (K-1312). Koşullu adayın kanıtı (2)'ye şunları ekler: koşulun metni ve kaynağı · eşik (ölçü ve para birimiyle) · bedelin türü ve tutarı (yıllık, geliştirici başına, kurulum başına) ya da doğrulanamadığı · açık lisanslı eşdeğerin adı ve neden yetmediği · koşulun geçişli bağımlılığa uygulanıp uygulanmadığı. Tablodaki koşullu satırın eşiği ya da bedeli boş olamaz.
+6. **Firmaya bildirim.** `DEPLOY_RUNBOOK`'taki "koşullu lisanslı kütüphaneler" listesi tablonun koşullu satırlarından üretilir (kütüphane, eşik, bedel, kim öder); kurulumu yapan her kurulumda firmanın gelirini eşikle karşılaştırır, eşiği aşıyorsa lisansı alır ya da bedeli firmaya yansıtır ve sonucu kurulum kaydına yazar. Liste her kütüphane değişikliğinde aynı PR'da güncellenir.
+7. **Güncelleme.** Sürümler tam sabittir; her güncellemede lisans satırı, koşul, eşik ve bedel yeniden okunur ve tablo satırı aynı PR'da güncellenir. **Koşulsuzdan koşullu ya da ticari lisansa geçen sürüme geçilmez** — kütüphane son açık lisanslı sürümde kalır; geçiş koşullu aday sayılır ve (5)'ten yeniden geçer; bakımı bitiyorsa yerine açık lisanslı bir aday için task açılır (`05 §8.8.2`, §8.8.4).
+8. **Doğrulanamayan olgu.** Kanıt satırında okunamayan değer (lisans metni, sürüm tarihi, bedel) tahmin edilmez; "ekleme task'ında doğrulanır" yazılır ve o task'ın kabul kriteridir.
+
+### 3.4 Girdi doğrulamanın kalıbı
+
+Araç çatının nitelik tabanlı doğrulamasıdır (DataAnnotations); ek kütüphane yoktur. Her kural türü kendi kodunu taşıyan bir nitelik sınıfıdır; tek bir sayfa süzgeci hataları kaydeder ve mesajı koddan üretir (K-1319). Kuralların kendisi `04 §7`'de, hata kodlarının listesi `07 §6.2.2`'dedir.
+
+1. **Nitelikler.** Her alan kodu (`FieldRequired`, `InvalidEmail`, `TextTooLong`, …) bir nitelik sınıfıdır ve kodunu hata iletisi alanında taşır. Yerleşik `Required`, `StringLength`, `EmailAddress`, `Range` ve benzerleri girdi ve sorgu modellerinde kullanılmaz — kodları `04 §7`'nin kuralına bağlı değildir (mimari test: model özellikleri yalnız projenin niteliklerini taşır). **Sınır değeri nitelikte sayı olarak yazılmaz,** parametre sabitinden okunur (§3.5).
+
+   ```csharp
+   // Yanlış: kod yok, sınır nitelikte sayı.
+   [StringLength(150)] public string Name { get; set; } = "";
+
+   // Doğru: kural türünün kodu nitelikte, sınır ürün sabitinden (P-27).
+   [FieldRequired]
+   [TextTooLong(ProductConstants.ProductNameMaxLength)]
+   public string Name { get; set; } = "";
+   ```
+2. **Alana özgü kural** (iki alanın ilişkisi, tarih sırası) modelin `IValidatableObject` yöntemidir ve kendi kodunu üretir (`07 §6.1.3`). **Veritabanı gerektiren kural** (stok kodu tekilliği) model doğrulamasında değil işleyicidedir: aynı kodla `ModelState`'e eklenir ve süzgeç onu da aynı yoldan işler.
+3. **Süzgeç.** Model bağlama ve doğrulamadan sonra, işleyiciden önce tek bir sayfa süzgeci koşar; hata varsa (a) her hatanın alan adı ve kodunu uygulama kaydına yazar (`07 §6.1.3`), (b) mesajı koddan ve alanın etiketinden mesaj kataloğuyla üretip `ModelState`'e koyar, (c) 422 ve formun yeniden gösterimini işleyiciye bırakmadan sürdürür (`07 §2.7.1`). Bir istekteki bütün hatalar birlikte işaretlenir (`04 §7.3.5`). **Kod yanıta ve sayfaya yazılmaz** (`07 §2.7.3`).
+4. **Mesaj kataloğu.** Tek sınıf: kod → Türkçe mesaj kalıbı; kalıp `04 §7.3.1`'in biçimindedir (alanın adı ve neyin eksik ya da yanlış olduğu), sınırın değeri parametredir ve mesajda görünür. Test: her kodun bir kalıbı vardır ve her kalıbın kodu `07 §6.2.2`'nin listesindendir.
+5. **Boşluk kırpma** (`04 §7.3.1`). Metin girdileri bağlama aşamasında özel bir model bağlayıcıyla kırpılır; yalnız boşluktan oluşan değer boş dizgidir (`null` değil) ve zorunlu alanda `FieldRequired` doğurur. Şifre alanları ve kırpılmaz işaretli alanlar kırpılmaz.
+6. **İstemci tarafı.** HTML'in `required`, `maxlength` ve `type` nitelikleri aynı parametre sabitlerinden üretilir ve iyileştirmedir (`GUARDRAILS §8`: sunucu yetkilidir); çatının `data-val-*` üretimi kapatılır (düz JavaScript, MK-01; bilgim tarihli — çatı seçeneği ilk task'ta sınanır).
+7. **Test.** Nitelik başına birim testi (geçerli ve geçersiz değer, kod); süzgeç testi (422, `ModelState` mesajı, kayıt satırı, bütün hataların birlikte gelmesi); kırpma testi (boşluk, yalnız boşluk, şifre).
+
+Model adları ve işleyici adları §5'te (yazım Y-1b), hata kodlarının kaydı ve gösterilmemesi §8'de (yazım 2) yazılır; bu alt bölüm süzgecin kalıbının evidir.
+
+### 3.5 Ayarlar, ürün sabitleri ve süre ve tavan değerleri
+
+Parametrenin üç katmanı (`02 §10.1.3`, `05 §8.4`; K-412) kodda üç ayrı evdir; yeni bir parametrenin katmanı tartışılmaz, `02 §11`'in satırından okunur (K-1330).
+
+| Katman | Kodda evi | Değişiklik |
+|---|---|---|
+| Firma ayarı (`02 §11.1`) | Veritabanında firma ayarları satırı (`CompanySettings`, `06 §4.2`); okuma ve bölüm kaydı §10.3'ün kalıbıyla (yazım 3) | Panelden, hemen geçerli |
+| Kurulum ayarı | Ayar dosyası ve sırlar; seçenekler sınıfına bağlanır ve açılışta doğrulanır | Uygulamanın yeniden başlatılmasıyla |
+| Ürün sabiti (`02 §11.2`) | `Infrastructure/` altında tek statik sınıf: `ProductConstants` | Yeni sürümle; ayar dosyası değiştiremez |
+
+1. **Ürün sabitleri tek yerdedir.** `ProductConstants`'taki her sabit `02 §11.2`'nin bir P satırına karşılık gelir; sabitin adı varlığın ve alanın adından kurulur (`ProductNameMaxLength` — `Product.Name`, P-27), özet yorumu envanter kimliğini taşır (`/// P-27`) ve değeri `const`'tır. Aynı P satırı birden çok alanı kapsıyorsa tek sabit vardır. **Sayı başka yerde yazılmaz:** nitelik, HTML üretimi ve test aynı sabite başvurur.
+
+   ```csharp
+   public static class ProductConstants
+   {
+       /// P-27 — ürün adının ve kurumsal içerikte ad ya da başlığın karakter tavanı.
+       public const int ProductNameMaxLength = 150;
+   }
+   ```
+   Envanter tablosu ile sabitler eşit tutulur: her P satırı için aynı değerde bir sabit vardır ve tersi (eşitliğin denetim betiği §21'dedir, yazım 6 — iş adı: parametre envanteri eşitliği denetimi). Envantere girmeyen değerler (yasal süreler, kargo şirketi listesi — `02 §11` "Envantere girmeyenler") ürün sabiti sınıfına yazılmaz; kendi evlerindedir.
+2. **Kurulum ayarı** güçlü tipli seçenekler sınıfıdır; açılışta bütün ayarlar doğrulanır. **Zorunlu ayar** (alan adı, gönderen adresi, e-posta gönderim kimliği, veritabanı bağlantısı) eksik ya da biçimsizse uygulama açılmaz ve eksik ayarı adıyla kaydeder; **koşullu ayar** (ödeme sağlayıcısının anahtarları, Google uygulaması) eksikse uygulama açılır, ilgili hat kapalıdır ve bu hâl açılışta kayda yazılır (`05 §8.4.6`). Ayar dosyası ürün sabitini değiştiremez; dosyada ürün sabitinin adı bulunursa açılış reddedilir.
+3. **Teknik Mimari'nin tasarım değerleri kodda sabittir;** yalnız `05 §8.4.5`'in saydıkları (hız sınırı, durum ucunun eşikleri, kayıt düzeyi) varsayılanla kodda, değiştirilebilir olarak kurulum ayar dosyasındadır ve her biri `DEPLOY_RUNBOOK §C`'de varsayılanıyla yazılıdır.
+4. **Süre ve tavan değerlerinin tek yeri.** Kılavuzun koyduğu süre ve tavan değerleri aşağıdaki tablodadır (K-1328); ilgili bölüm değeri yinelemez, bu tabloya atıf yapar. Değerler bilgim tarihli tasarım değerleridir; ilk yük denemesinde ve D-01'de sınanır.
+
+| Değer | Katman | Kaynak |
+|---|---|---|
+| Dış çağrı süresi: kullanıcının beklediği çağrıda 15, iş kuyruğundan giden çağrıda 30 saniye; `HttpClient.Timeout` sonsuz, süre çağrı başına kurulur | Kodda sabit | K-1257, K-1258, K-1322 (3) |
+| Amazon SES istemcisi: süre 30 saniye, yeniden deneme 0 | Kodda sabit | K-1322 (1) |
+| Veritabanı oturumu (sunucu taraflı): `lock_timeout` 5, `statement_timeout` 15, `idle_in_transaction_session_timeout` 30 saniye; istemci `CommandTimeout` 20 saniye | Kodda sabit | K-1328 (2) |
+| Göç hizmeti ve yönetim komutları: `statement_timeout` 10 dakika (öteki iki değer aynı) | Kodda sabit | K-1328 (2) |
+| Google kimlik belirtecinin `exp` saat sapması toleransı 60 saniye; `auth_time` toleranssız | Kodda sabit | K-1328 (4), K-1272 |
+| Canlılık ucunun veritabanı denetim süresi 2 saniye (aşılırsa 503) | Kurulum ayarı | K-1328 (5), `07 §4.33.1` |
+| Dışa aktarma: üretim süresi en çok 120 saniye, dosya en çok 100 MB, sipariş okuma sayfası 500 sipariş | Kodda sabit | K-1321 (4), (8) |
+| Ters vekilin dışa aktarma yollarında yanıt başlığı bekleme süresi 150 saniye | Ters vekil yapılandırması (ürünle gelir) | K-1321 (9) |
+| Geçici dışa aktarma dosyasının süpürme yaşı 1 saat | Kodda sabit | K-1321 (7) |
+| İş kuyruğu çalıştırıcısının kuyruğa bakma aralığı 5 saniye | Kodda sabit | K-889 |
+
+Çelişki taraması (K-1328 (6)): 15 saniyelik kullanıcı çağrısı 20 saniyelik komut aşımından kısadır; 120 saniyelik üretim tavanı 15 saniyelik sayfa sorgularının toplamından uzundur; 150 saniyelik ters vekil süresi 120 saniyelik tavanı taşır.
+
+### Kütüphaneler
+
+Kütüphane yalnız bu tabloda seçilir; kuralı kullanan bölüm tabloya atıf yapar (yazım konvansiyonu 7). Her satırın eklenmesi §3.3'ün kanıtıyla gelir. Erişim tarihi hepsinde 2026-10-29'dur; "ekleme task'ında doğrulanır" diye işaretli olgu o task'ın kabul kriteridir. Çatıyla gelen araçlar (DataAnnotations — §3.4; `HtmlRenderer` — §11.4, yazım 4) ek paket ve lisans satırı taşımaz.
+
+| Kütüphane | Görevi | Lisans | Lisans koşulu | Bakım kanıtı | Karar |
+|---|---|---|---|---|---|
+| `xunit.v3` | Test çatısı (iki test projesi) | Apache-2.0 (proje README'si) | yok | Kararlı 3.2.x; .NET 10 için açık destek cümlesi bulunamadı, ilk task'ta doğrulanır | K-1313 |
+| `Microsoft.AspNetCore.Mvc.Testing` | Sayfa ve uç testleri (`WebApplicationFactory`) | Lisansı okunamadı; ekleme task'ında doğrulanır | doğrulanır | Microsoft paketi | K-1313 |
+| Mailpit | Geliştirme ortamının e-posta yakalayıcısı (geliştirme aracı; ürünle dağıtılmaz) | MIT | yok | 1.28.x ikincil kaynakta; imaj etiketi tam sürüm | K-1313 |
+| `Serilog` | Yapılandırılmış kayıt | Apache-2.0 | yok | 4.3.1 | K-1314 |
+| `Serilog.Sinks.File` | Dosya yazıcısı; kütüphanenin kendi silme sınırı kapatılır | Apache-2.0 | yok | 7.0.0 | K-1314 |
+| `Serilog.AspNetCore` | Serilog'u çatının kayıt arayüzüne bağlar | Apache-2.0 (ikincil kaynak) | doğrulanır | 10.0.0 ikincil kaynakta; ekleme task'ında doğrulanır | K-1314 |
+| `HtmlSanitizer` (Ganss.Xss) | Kapalı metin biçimi setinin temizlenmesi | MIT (deponun LICENSE dosyası ekleme task'ında okunur) | yok | Kararlı 9.0.892 (9.1.x yalnız beta); CVE-2026-25543 9.0.892'de kapalı; geçişli bağımlılığı AngleSharp ekleme anında okunur; .NET 10 hedefi ilk task'ta sınanır | K-1315 |
+| `Magick.NET-Q8-AnyCPU` | Görüntü işleme (başlık okuma, ilk kare, yön, meta veriyi atma, WebP türevi) | Apache-2.0 | yok | 14.14.0 ve üstü (DCM çözücüsündeki CVE-2026-49218 o sürümde kapalı); yerel kod taşır; belgeden doğrulanamayan ayrıntılar ilk task'ta sınanır | K-1316 |
+| `SixLabors.ImageSharp` 3.1.x | **Yedek aday** — Magick.NET'in beş doğrulama kapısından biri tutmazsa geçilir | Six Labors Split License | Gelir eşiği 1 milyon ABD doları: altındaki kâr amaçlı şirketler ve kâr amacı gütmeyenler için Apache-2.0, ötekiler için ticari lisans; geçişli bağımlılıkta uygulanışı belirsiz; bedel bulunamadı (kaynak: nuget.org/packages/SixLabors.ImageSharp/3.1.3/License); geçişte eşik ve bedel §3.3 (5)'in kanıtıyla yazılır | 3.1.x ile sabit kalınır (4 derleme için lisans dosyası ister — ikincil kaynak); yönetilen koddur | K-1316, K-1312 |
+| `EFCore.NamingConventions` | Veritabanı adlarının küçük harf ve alt çizgiye dönüşümü | Apache-2.0 (deponun LICENSE dosyası ekleme task'ında okunur) | yok | 10.0.1, Aralık 2025; EF Core 10 çizgisini destekler; çıkış yolu: kendi model kuralı | K-1309 |
+| `TngTech.ArchUnitNET` | Modül sınırlarının mimari testleri | Apache-2.0 | yok | 0.13.3; 0.13.0 ve 0.13.1 Aralık 2025'te yayımlandı; 0.13.3'ün tarihi ve son sürüm ekleme anında tabloya yazılır | K-1308 |
+| `AWSSDK.SimpleEmailV2` | Amazon SES istemcisi (yeniden deneme kapalı, kimlik açık) | Lisansı paket sayfasından okunamadı; ekleme task'ında NuGet sayfasından ve deponun LICENSE dosyasından okunur | doğrulanır | 4.0.102.1, 27 Temmuz 2026 (ikincil kaynak); SES v2 yapılandırma sınıfının adı ilk task'ta doğrulanır | K-1322 |
+| restic | Dosya yedeği aracı (yedek aracı imajında; kütüphane değil, ikili) | BSD-2-Clause (bilgim tarihli, ilk task'ta doğrulanır) | yok | Sürüm ve ikilinin SHA-256 özeti derleme dosyasında sabit; sürüm ekleme anında | K-1327 |
+
+**Kütüphanesiz kararlar** (aday ya da kütüphane elendi; K-1306, K-1313, K-1319, K-1321, K-1323, K-1324, K-1325): üçüncü taraf çözümleyici paketi (StyleCop) · onaylama kütüphanesi (yerleşik `Assert`) ve sahte nesne kütüphanesi (elle yazılmış durumlu sahteler) · doğrulama kütüphanesi (FluentValidation) · CSV kütüphanesi (kendi yazıcımız) · şablon motoru (Razor bileşenleri) · komut satırı ayrıştırıcısı (`System.CommandLine`; kendi küçük dağıtıcımız) · ön yüz çerçevesi, paketleyici ve CSS ön işlemcisi. Teknik Mimari'nin bu dokümana bıraktığı seçimlerin (`05 §2.2.3`, 2.2.4, 2.2.8, 2.2.9; MK-02) hepsi yukarıdaki satırlardadır; Teknik Mimari'nin kendi seçtiği altyapı bileşenleri (PostgreSQL, ters vekil, pgBackRest) kütüphane değildir ve `05 §2`'dedir.
+
+*Kaynak: K-1305, K-1306, K-1310, K-1312 · K-1313, K-1314, K-1315, K-1316, K-1308, K-1309, K-1319, K-1321, K-1322, K-1323, K-1324, K-1325, K-1327, K-1328 · K-411, K-412, K-922, K-889, K-1257, K-1258, K-1272 · `05 §2.3.5`, §8.4, §8.8.2, §8.8.4 · `02 §10.1.3`, §11 · `04 §7` · `07 §2.7`, §6 · `INSTRUCTIONS §4`.*
 
 ## 4. Proje yapısı ve klasör organizasyonu
 
@@ -199,4 +456,4 @@ Komutlar: `.github/ci-commands.env` · Kurulum: `Docs/CI_CD_SETUP.md`
 
 ---
 
-*Shopfolio — Coding Guidelines v0.1*
+*Shopfolio — Coding Guidelines v0.2*

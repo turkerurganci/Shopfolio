@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-10-29 | **Satır:** 131 | **Gönderilen:** 0
+**Son güncelleme:** 2026-10-29 | **Satır:** 132 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -159,3 +159,4 @@
 | PF-129 | Kodlama Kılavuzu şablonunda yazım konvansiyonlarının ve üst dokümanlara geri beslemenin yeri yok (PF-57, PF-71, PF-87, PF-106 ve PF-118'in bu şablondaki hâli) | Tracker §20.1 şablon taraması (2026-10-29, Aşama 8 açılışı) | K-1302 (2)(b), (c) (başlık notu · §2'nin sonunda "Üst dokümanlara geri besleme" tablosu) | `Docs/09_CODING_GUIDELINES.md` şablonu başlık, §2 | Uygulandı (çevre karar; şablon değişmedi) |
 | PF-130 | Kodlama Kılavuzu şablonunda kütüphane seçimlerinin tek yeri yok — Teknik Mimari şablonu seçimi başka dokümana bırakılanları yazar (`05 §2.2`), Kodlama Kılavuzu'nda karşılığı yok | Tracker §20.1 şablon taraması (2026-10-29, Aşama 8 açılışı) | K-1302 (2)(d) (§3'ün sonunda numarasız "Kütüphaneler" tablosu) | `Docs/09_CODING_GUIDELINES.md` şablonu §3 · `Docs/05_TECHNICAL_ARCHITECTURE.md` şablonu §2.2 (çapraz işaret) | Uygulandı (çevre karar; şablon değişmedi) |
 | PF-131 | Her kodlama görevinde verilen doküman (`00 §C.6`) büyüyünce bütün okunamaz — şablonda okuma düzeni ve boyut hedefi yok; büyük dosya kuralıyla (100 KB) çakışır | Tracker §20.1 şablon taraması ve öğrenim adayı 1 (2026-10-29, Aşama 8 açılışı) | K-1302 (4) (başlık notunda okuma tablosu — çekirdek ve konu bölümleri; `11`'in task satırında okunacak `09` bölümleri) | `Docs/09_CODING_GUIDELINES.md` şablonu başlık · `00 §C.6` · `Docs/11_IMPLEMENTATION_PLAN.md` şablonu (task satırı) | Aday (kapısı Aşama 8'in öğrenim terfisi) |
+| PF-132 | Cevap bekleyen soru soru penceresiyle ya da kapanış mesajında tam metniyle sorulur, ara metinde bırakılmaz; "cevaba kadar varsayılan geçerli" beklemeden devam izni değildir | Aşama 8 açılışı — çalışma modlarının soruları ara metinde kayboldu (K-1304) | `INSTRUCTIONS.md` §2 | `.claude/INSTRUCTIONS.md` §2 · `.claude/checklists/document-stage.md` §1 (modların sorulması) | Uygulandı (2026-10-29, K-1304) |

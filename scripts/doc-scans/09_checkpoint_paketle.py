@@ -1,7 +1,7 @@
 """Builds checkpoint packages and mechanical-check output for Stage 8 (Coding Guidelines) closing step 4.
 
 Usage:
-  python -I 08_checkpoint_paketle.py [output_dir]
+  python -I 09_checkpoint_paketle.py [output_dir]
 
 Output (output_dir): mek.txt (mechanical results), paket_M1..M5 (transition lenses), paket_S1..Sn (09 slices for the
 summary-vs-detail class). Every package is a single file (<= 90 KB). Reuses helpers of 09_audit_paketle.py.

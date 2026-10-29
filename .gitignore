@@ -28,3 +28,6 @@ Thumbs.db
 # --- Projeye özgü -----------------------------------------------------------
 # Bağımlılık klasörleri, derleme çıktısı, log/coverage/test sonucu ve IDE
 # artifact'ları SETUP §2'de buraya eklenir — yığına bağlıdır.
+
+# --- Python -----------------------------------------------------------------
+__pycache__/

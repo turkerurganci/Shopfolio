@@ -1,6 +1,6 @@
 """Compiles scratchpad cp8/sonuc.md from the verifier verdict files (hukum_<n>.md).
 
-Usage: python -I 08_checkpoint_sonuc_derle.py <cp8_dir>
+Usage: python -I 09_checkpoint_sonuc_derle.py <cp8_dir>
 
 Governing verdict per finding = the one from the highest-numbered verdict file that mentions it (re-verification files
 12, 13, 15 supersede the first-pass files). Also checks that each ESKİ text occurs exactly once in its target file.
@@ -112,7 +112,7 @@ def main():
     for lid, desc, n in LENSES:
         out.append(f"| {lid} | {desc} | {n} |\n")
         tot += n
-    out.append(f"| (betik) | sürüm kontrolü, K tekilliği, etki sütunu ↔ hedef, ad adayları (`scripts/doc-scans/08_checkpoint_paketle.py`) | — |\n")
+    out.append(f"| (betik) | sürüm kontrolü, K tekilliği, etki sütunu ↔ hedef, ad adayları (`scripts/doc-scans/09_checkpoint_paketle.py`) | — |\n")
     out.append(f"\nSonnet / low, ön planda, beşli dalga (5 + 5 + 1); ham bulgu toplamı {tot}; ayrıca bir doğrulayıcının gözlemi (V-1) → **{tot + 1} ayrı bulgu**.\n")
     out.append("\n## 2. Doğrulayıcı tablosu (Opus / high; hükümler `hukum_<n>.md`)\n")
     out.append("| # | Kademe | Bulgular |\n|---|---|---|\n")

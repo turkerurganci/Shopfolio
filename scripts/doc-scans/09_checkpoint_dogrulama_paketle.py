@@ -1,6 +1,6 @@
 """Groups checkpoint lens findings (mercek_*.md) into verifier packages (dogrulama_<n>.md) by tier.
 
-Usage: python -I 08_checkpoint_dogrulama_paketle.py <cp8_dir>
+Usage: python -I 09_checkpoint_dogrulama_paketle.py <cp8_dir>
 
 Tiers (INSTRUCTIONS section 9 (1)): high = one verifier each, medium = groups of 2-4, low = groups of 5-8.
 Findings are grouped within the same lens file first, remaining ones are merged across lenses.

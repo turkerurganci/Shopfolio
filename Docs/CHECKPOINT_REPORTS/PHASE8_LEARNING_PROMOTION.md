@@ -253,6 +253,8 @@ Ortak neden: kapanış adımlarının doğrulayıcıları ve okuyucuları, Aşam
 
 **Cevap (2026-10-30, proje sahibi; oturumda Soru 10):** seçenek 1, yazılsın. Paragraf `00 §N.1`'e, Aşama 7 paragrafının altına yazıldı; `00` v1.0.10 (iki değişiklik, tek sürüm artışı); PF-142 `Uygulandı` (K-1399).
 
+> **Sonuç (2026-10-30, K-1400):** Soru 1'in (c) kolu ilk kez işletildi — ⚠ listesi, konu hücresi ⚠ taşıyan 22 karar ve K-1386'nın G1 koluyla birlikte, 'süreç' başlığında K-1383, K-1385 ve K-1387'yi de taşıdı; proje sahibi tek listede gördü, itiraz yok. Konu hücreleri ⚠ taşımayan üç süreç kararına dokunulmadı.
+
 ---
 
 ## 6. Uygulanan terfiler — dosya ve bölüm

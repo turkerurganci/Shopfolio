@@ -75,6 +75,8 @@ Tracker'da yer alan, §20.1 dışı iki dış kapı (`PLAYBOOK_FEEDBACK.md` — 
 
 ### 4.1 ⚠ öneriyle kayıt listesi — doğrulama
 
+> **Sonuç (2026-10-30, K-1400):** bu taramadaki liste 20 karardı; checkpoint iki karar ekledi (K-1394, K-1396) ve liste 22 oldu. Yirmi iki karar, K-1386'nın G1 kolu ve 'süreç' başlığındaki üç karar (K-1383, K-1385, K-1387) proje sahibine tek listede gösterildi; itiraz yok. Yirmi iki işaret `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-30, itiraz yok)` oldu (betikle 22 / 22; K-1305'in işareti "işletim" ve "koşullu lisans sorusu AÇIK" değişkesiydi, aynı biçime getirildi; açıklama K-1310 ile eskimişti).
+
 **Betikle doğrulama.** Konu hücresi `(öneriyle kaydedildi — ⚠)` taşıyan Aşama 8 satırı **20** (K-1305, K-1312, K-1317, K-1318, K-1326, K-1343, K-1351, K-1361, K-1363, K-1364, K-1365, K-1367, K-1368, K-1370, K-1372, K-1373, K-1374, K-1375, K-1390, K-1392); tracker §20.1'in listesindeki giriş bu taramadan önce **9** idi (workshop, deep review ve yazım turunun girişleri). **Fark 11 karar** listeye alındı: **20 / 20, eksik 0, fazla 0.**
 
 **K-1386 notu.** K-1386 (cross-review 2. tur) konu hücresinde `⚠` taşımaz; yalnız karar hücresindeki kısmi kabul kolu (G1) ⚠ olarak işaretlidir. Betik konu hücresine baktığından listeye girmedi; kol, K-1374 ile aynı konuya (istisna iletisinin maskesi) dokunduğundan K-1374'ün ⚠ girişi altında gösterilir. Başka kol yok.

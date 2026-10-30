@@ -32,8 +32,8 @@
 - [x] Yeni kararlar: K-1393 (düzeltmelerin kaydı), K-1394 (⚠), K-1395, K-1396 (⚠)
 - [x] Dokunulan Aşama 8 kararlarının etki sütununa `(checkpoint — CP08 …)` işareti eklendi (§3.3)
 - [x] **S3-10 — dışa aktarmada sitenin alan adı sütunu:** yönetici K-546'nın yansıması olarak uyguladı (§5)
-- [ ] **⚠ listesinin proje sahibine gösterilmesi** — 22 karar; kapı: arşiv işaretinden önce, tek mesajda (`INSTRUCTIONS.md` §2)
-- [ ] Sırada öğrenim terfisi (K-437'nin 5. adımı) — tracker §20.1'in adayları (5. aday bu checkpoint'te eklendi, §6), Ö-23 ve belirteç ölçümünün karşılaştırması
+- [x] **⚠ listesinin proje sahibine gösterilmesi** — 22 karar; kapı: arşiv işaretinden önce, tek mesajda (`INSTRUCTIONS.md` §2) — **yapıldı (2026-10-30, K-1400): itiraz yok**
+- [x] Sırada öğrenim terfisi (K-437'nin 5. adımı) — tracker §20.1'in adayları (5. aday bu checkpoint'te eklendi, §6), Ö-23 ve belirteç ölçümünün karşılaştırması — **yapıldı (K-1397…K-1399)**
 
 ### Notlar
 
@@ -124,13 +124,15 @@ Aşama 9 — Uygulama planı (`11`) ve Doğrulama Protokolü (`12`) (`00 §C.1`)
 
 | Girdi | Durum |
 |---|---|
-| `09` v0.24 | ⏳ → ✓ arşiv adımında (K-437'nin 6. adımı); checkpoint ve öğrenim terfisi sonrası |
+| `09` v0.24 | ⏳ → ✓ arşiv adımında (K-437'nin 6. adımı); checkpoint ve öğrenim terfisi sonrası — **yapıldı (2026-10-30, `09` v0.25; K-1400)** |
 | `11` ve `12` park blokları | "Aşama 8'den park edilen girdiler" blokları var (çakışma taraması K-1391); checkpoint yeni iş bırakmadı |
 | `DEPLOY_RUNBOOK` | Değişmedi |
 
 ---
 
 ## 5. Proje sahibinin gözden geçirme ve karar listesi
+
+> **Sonuç (2026-10-30, K-1400):** yirmi iki ⚠ karar proje sahibine tek listede gösterildi; itiraz yok. Yirmi iki işaret `(öneriyle kaydedildi — ⚠ — gözden geçirildi 2026-10-30, itiraz yok)` oldu. S3-10 (sitenin alan adı sütunu) K-546'nın yansıması olarak uygulanmıştı; ek karar gerekmedi.
 
 **Soru (S3-10).** Müşterinin dışa aktardığı sipariş dosyasında sitenin alan adı yok; ürün kararlarından biri (K-546) dosyanın bunu taşıyacağını söylüyor. Doğrulayıcı, e-Arşiv faturanın internet satışlarında satışın yapıldığı internet adresini istediğini söyledi; bunu resmî metinden okuyamadığım için doğrulayamadım ve sütunu eklemedim. Seçenekler: (1) sütun eklenir — her satırda aynı alan adı, kurulum ayarından; (2) eklenmez, K-546'nın o kısmı kararla değiştirilir. Önerim: (1), ama önce yasal dayanak bir muhasebeciden ya da resmî metinden teyit edilsin. Kapı: arşiv işaretinden önce (tracker §20.1). **Sonuç:** soru proje sahibine gitmedi — yönetici K-546'nın zaten karar verdiğini gördü ve sütunu yansıma olarak uyguladı (tracker §20.1).
 

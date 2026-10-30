@@ -211,6 +211,8 @@ Ortak neden: kapanış adımlarının doğrulayıcıları ve okuyucuları, Aşam
 
 **Uygulanacak metin.** (1 ise) `cross-review` skill'i "Ne zaman uygulanır" ikinci maddenin parantez listesine: *"Kodlama Kılavuzu, K-1383 — 470 KB'lık doküman üç turda TEMİZ döndü, 7 → 6 → 0 bulgu; Implementation Planı ve Doğrulama Protokolü de aynı sınıftır (kuralı başka dokümanlardan devralıp kendi mekanizma kararlarını koyar)"*. (2 ise) aynı maddenin sonuna: *"Listede adı geçmeyen bir dokümanda ölçüyü yönetici kendisi açmaz; 1. turdan önce proje sahibine tek soruyla sorulur."* (3 ise) `INSTRUCTIONS §2` "Ortak kural"a: *"Ürün kuralı olmayan ama aşamanın sonucunu etkileyen süreç kararları (cross-review ölçüsü, tur sayısı, koşum biçimi) de konu hücresinde ⚠ taşır ve listede 'süreç' başlığıyla ayrı gösterilir."* (4 ise) metin yok; Kodlama Kılavuzu'na ölçüsüz bir cross-review turu ayrı adım olarak koşar.
 
+**Cevap (2026-10-30, proje sahibi; oturumda Soru 6):** seçenek 1, 2 ve 3; 4 değil. Proje sahibi ilk anlatımı anlamadı ("daha anlaşılır dilde yaz"); sade metinle yeniden soruldu. Uygulandı: `cross-review` skill'i, `INSTRUCTIONS §2`; K-1383, K-1385, K-1387 ⚠ listesine 'süreç' başlığıyla girdi (K-1399).
+
 ### Soru 2 — Komut koruyucusu heredoc'un yan kapılarını da kapatsın mı (Ö-155)
 
 > **Sorun:** Bir metni dosya yerine doğrudan kabuğa yazdırarak komut çalıştırmak (heredoc ve benzerleri) bu projede yasak; Türkçe harfler ve tırnaklar sessizce bozulabiliyor. Genel komut koruyucusu (projenin dışında, kullanıcı ayarlarınızda; bütün projelerinizi etkiler) şu an yalnız betik çalıştıran heredoc'u engelliyor; here-string'i önceki kararınızda serbest bırakmıştık. Bu aşamada alt ajanlar yasak biçimi en az on kez denedi ve koruyucu dört biçimi geçirdi: metni `<<<` ile vermek, tek satırlık betiği `python -c` ile çalıştırmak, `/dev/null`'a boş heredoc ve markdown dosyasına `cat >> dosya <<` ile satır eklemek. Yasak yazılıydı ama araç durdurmadı; kural yalnız ajanın hatırlamasına kaldı. **Ne değişir:** 1 derseniz koruyucu bu dört biçimi de engeller (commit ve PR metni serbest kalır); ajan betiği dosyaya yazıp dosyadan çalıştırmak zorunda olur. Değişiklik koruyucunun deneme klasöründe yapılır, testleri geçmeden yayına girmez. 2 derseniz koruyucu aynı kalır, yasak yalnız talimatta durur.
@@ -218,6 +220,8 @@ Ortak neden: kapanış adımlarının doğrulayıcıları ve okuyucuları, Aşam
 > Kaynak: Ö-155; K-1300 (Soru 3, seçenek 2) · `INSTRUCTIONS §9` (6) · PF-126
 
 **Uygulanacak metin (1 ise).** Proje tarafında `INSTRUCTIONS §9` (6)'daki *"commit ve PR metni ile here-string serbesttir"* cümlesi *"commit ve PR metni serbesttir; yorumlayıcıya giden here-string, `-c` ile satır içi betik, boş heredoc ve dosyaya `<<` ile ekleme engellenir"* olur. Hook değişikliği `~/.claude/hooks/staging/` içinde `command-guard.js`'e yapılır, `run-tests.js`'e her biçim için engelli ve serbest örnekler eklenir, `node ~/.claude/hooks/deploy.js` ile yayına alınır; proje dışıdır. PF-126'ya devam notu. **(2 ise):** metin yok; `INSTRUCTIONS §9` (6)'ya "Aşama 8'de dört yan biçim geçti, koruyucu genişletilmedi" notu.
+
+**Cevap (2026-10-30, proje sahibi; oturumda Soru 7):** seçenek 1, engellensin. Hook yönetici tarafından değiştirildi ve yayına alındı (`~/.claude/hooks/command-guard.js`, 173 test; proje dışı); `INSTRUCTIONS §9` (6) ve PF-126 güncellendi (K-1399).
 
 ### Soru 3 — Kontrol listesi beceriye dönüşsün mü (Ö-23)
 
@@ -227,6 +231,8 @@ Ortak neden: kapanış adımlarının doğrulayıcıları ve okuyucuları, Aşam
 
 **Uygulanacak metin.** (1 ise) ayrı `docs:` PR'ında yeni bir skill ve `00 §C.7`'nin cümlesi (GUARDRAILS §2, §3). (3 ise) checklist başlık notuna *"Aşama 8'in öğrenim terfisinde (K-1397) proje sahibi sorunun artık her aşama sonunda sorulmamasına karar verdi; ölçüt bu notta kalır, dönüşümü proje sahibi isterse açar"* cümlesi ve PF-32'nin durumu. (2 ise) başlık notuna yalnız Aşama 8'in sonucu eklenir (iki koşul karşılandı, 67 madde yerinde).
 
+**Cevap (2026-10-30, proje sahibi; oturumda Soru 8):** seçenek 3, liste kalsın, artık sorulmasın. Checklist başlık notuna cümle eklendi; PF-32 `Dönüşmedi`; tracker §20.1'in Ö-23 maddesi [x] (K-1399).
+
 ### Soru 4 — Yöntem dosyasına büyük standart dokümanın okunma biçimi yazılsın mı (Ö-139)
 
 > **Sorun:** Yöntem dosyası "Kodlama Kılavuzu her kodlama görevinde ajana verilir" diyor. Kılavuz yaklaşık 470 KB; ajanlar 100 KB'tan büyük dosyayı bütün okuyamıyor (maliyeti sınırlamak için konan kural). Yani yazılı kural ile uygulama ayrışıyor: bugün kılavuzun başlık notu ve Implementation Planı bölüm bölüm okumayı söylüyor, yöntem dosyası söylemiyor. **Ne değişir:** 1 derseniz yöntem dosyasının ilgili tablosunun altına bir paragraf girer (aşağıda); sonraki projeler aynı sorunu baştan yaşamaz. 2 derseniz yöntem dosyası aynı kalır, kural yalnız Kodlama Kılavuzu'nun başlık notunda ve Implementation Planı'nda yaşar.
@@ -235,6 +241,8 @@ Ortak neden: kapanış adımlarının doğrulayıcıları ve okuyucuları, Aşam
 
 **Uygulanacak metin (1 ise).** `00 §C.6`'nın katman tablosunun altına: *"**Büyük doküman:** katmandaki bir doküman 100 KB'ı aştığında (ör. Kodlama Kılavuzu) 'her görevde' dokümanın bütününün verilmesi anlamına gelmez; ajan dokümanın çekirdek bölümlerini ve görevin konu bölümlerini okur, hangi bölümlerin okunacağı Implementation Planı'nın task satırında yazılır (`INSTRUCTIONS.md` §9 (7))."* `00` sürümü +1 (v1.0.10). PF-131 `Uygulandı` olur.
 
+**Cevap (2026-10-30, proje sahibi; oturumda Soru 9):** seçenek 1, yazılsın. Paragraf `00 §C.6`'nın tablosunun altına yazıldı; `00` v1.0.10; PF-131 `Uygulandı` (K-1399).
+
 ### Soru 5 — Yöntem dosyasına Aşama 8'in dersleri (`00 §N.1`)
 
 > **Sorun:** Yöntem dosyası her aşamanın tekrarlanan derslerini kısa bir paragrafla tutuyor; Aşama 8 için henüz yok. **Ne değişir:** Evet derseniz aşağıdaki üç ders yöntem dosyasına yazılır (sonraki projelerin aynı hataya düşmemesi için); hayır derseniz dersler yalnız bu raporda ve kontrol listesinde kalır. Üç ders: (1) çok uzun bir dokümanı yazarken her parçaya önceden hazırlanmış tek dosyalık kaynak paketi verilince ajan sınıra yaklaşmadı, verilmeyince hemen hepsi sınıra dayandı; (2) yazılı bir kural ilk uygulamada tutmayabiliyor — "eski karara geri işaret bırak" ve "üst doküman cümlesini yorumladıysan geri besle" kurallarını yönetici elle düzeltti ve betik denetimi gerekti; (3) bir tarama "kalan eşleşme yok" derken yalnız aradığı terimler kadar doğrudur — terimler kararın cümlesinden türetilince bölümün öteki cümleleri kaçtı.
@@ -242,6 +250,8 @@ Ortak neden: kapanış adımlarının doğrulayıcıları ve okuyucuları, Aşam
 > Kaynak: Ö-143, Ö-144, Ö-147, Ö-148 · `00 §N.1` · PF-142
 
 **Uygulanacak metin (1 ise).** `00 §N.1`'e, Aşama 7 paragrafının altına: *"**Aşama 8 — Kodlama kılavuzu (2026-10-30).** Kurallar `.claude/INSTRUCTIONS.md` §3.2, §9, `.claude/checklists/document-stage.md` §3, §6 ve rapor `Docs/CHECKPOINT_REPORTS/PHASE8_LEARNING_PROMOTION.md`. Tekrarlanacak desenler: 1. **Uzun bir dokümanın yazımında her parçaya kaynak paketi verilir.** Paketsiz yazım parçaları adım başına 10–12 M belirteç ve 70–80 araç çağrısıyla bağlam sınırına ulaştı; betikle hazırlanmış tek dosyalık paket (plan satırları, park metinleri, ilgili kararlar, kaynak bölümler) verilen parça 41 çağrı ve 5,6 M ile bitti. 2. **Yalnız yazılı bir kural uygulanmıyorsa betik denetler.** Geri işaret (yönetici dört kez elle ekledi, çakışma taraması 16 satır daha buldu) ve üst doküman cümlesinin okunuşunun geri beslemesi (beş kez atlandı) checklist'te yazılıydı ve ilk uygulamada tutmadı. 3. **'Kalan eşleşme yoktur' tarama terimleri kadar doğrudur.** Etki yansıtmanın terimleri yalnız kararın cümlesinden türetildi, bölümün kapalı liste ve sayım cümleleri taranmadı; checkpoint dört yerde buldu."* `00` sürümü +1. Seçenek 2 de geçerlidir: üç dersin üçü kontrol listesinde ve `INSTRUCTIONS`'ta zaten uygulanır.
+
+**Cevap (2026-10-30, proje sahibi; oturumda Soru 10):** seçenek 1, yazılsın. Paragraf `00 §N.1`'e, Aşama 7 paragrafının altına yazıldı; `00` v1.0.10 (iki değişiklik, tek sürüm artışı); PF-142 `Uygulandı` (K-1399).
 
 ---
 

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.45** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.46** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -806,7 +806,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   8. Göç tek konudur; `Down` yoktur (`09 §10.6`).
 - **Test beklentisi:** Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: göç boş veritabanına uygulanır, altı tablo.
+  - KK1: göç boş veritabanına uygulanır, altı tablo; `data_protection_keys`'in anahtarı tamsayıdır, `created_at` sütunu yoktur (kriter 6).
   - KK2: aynı bekleyen iş ikinci kez reddedilir; ikinci bekleyen geri dönen adres sorgusu ve ilgili kaydı boş başka türden iş reddedilir.
   - KK3: tamamlanma anı dolu bekleyen iş ve eksi deneme sayılı iş reddedilir.
   - KK4: ikinci `HeartbeatRecord` ve ikinci `BackupStatusRecord` satırı reddedilir.
@@ -1445,7 +1445,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `09` §5, §15; `05 MK-55`, `MK-56`, `MK-57`, §6.7; `10 KP-73`, `KD-15`, `KD-19`, `KD-41`, `KD-55`
 - **Kabul kriterleri:**
   1. Bütün çerezler birinci taraf ve zorunludur: Secure, HttpOnly, SameSite=Lax (`05 §6.7.1`; MK-55).
-  2. Çerezler `__Host-` önekli ve kendi alan adına kilitlidir (`05 §6.7.1`).
+  2. Çerezler `__Host-` önekli ve kendi alan adına kilitlidir; önekin koşulları her çerezin tek yazım yerinde uygulanır (`05 §6.7.1`; `09 §15.1` madde 6).
   3. Çerez envanteri kapalıdır: iki oturum çerezi, form güvenliği, misafir sepeti, tanınan tarayıcı, ödeme adımı, Google akışı (`05 §6.7`; `02 §12.2.5`).
   4. Misafir sepeti çerezi 400 gün ömürlüdür ve her ziyarette yenilenir (`05 §6.7.5`).
   5. Ödeme adımında yazılanlar oturumluk, şifreli ve imzalı çerezde durur; sipariş onaylanınca ya da sepet boşalınca silinir — boşalmadaki silme T508'dedir (`05 §6.7.7`, §6.7.9; MK-56).
@@ -1456,7 +1456,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Test beklentisi:** Integration
 - **Doğrulama kontrol listesi:**
   - KK1: her çerezde üç nitelik var.
-  - KK2: çerez adları `__Host-` ile başlar.
+  - KK2: çerez adları `__Host-` ile başlar; envanterdeki her çerezin gerçek `Set-Cookie` başlığında `Path=/` var, `Domain` yok.
   - KK3: envanter dışı çerez adı testi kırar.
   - KK4: sepet çerezi ömrü ve yenilenmesi.
   - KK5: ödeme çerezi şifreli; onayda silinir.
@@ -3406,7 +3406,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   3. Süre iptalde iptalden, teslimden önceki caymada ve hizmette beyandan, teslimden sonraki caymada malın ulaştığı tarihle beyandan geç olanından başlar (`02 §7.4.1`).
   4. IBAN girişte biçim ve sağlamayla denetlenir, işlenene kadar müşterice düzeltilir; firma IBAN girmez (`02 §7.4.5`).
   5. IBAN geri ödeme tamamlanınca silinir; başka bekleyen geri ödeme kullanıyorsa ondan sonra silinir (`02 §7.4.5`).
-  6. Firma iptalinde IBAN isteği iptal kaydıyla düşer, B-14 gider ve süre IBAN beklenirken durmaz (`02 §7.2.8`).
+  6. Firma iptalinde IBAN isteği iptal kaydıyla düşer, B-14 gider, süre durmaz (`02 §7.2.8`).
   7. "Havale gerçekleşmedi" bildirimi IBAN'ı siler, alanı yeniden açar ve B-14 gönderir; kalem "IBAN bekleniyor"a döner, süre durmaz (`02 §7.4.5`).
   8. Kart iadesi reddedilirse ödeme ekseni değişmez, "geri ödeme gerçekleşmedi" işareti düşer ve kalem bekleyen işlere girer; firma yeniden dener ya da havale yolunu açar (B-14), IBAN girildikten sonra deneme kapalıdır (`02 §7.2.8`; §6.4.24).
   9. Sonuç bilinmezse "geri ödeme sonucu bekleniyor" işareti düşer; sonuç beklenirken yeniden deneme ve havale yolu kapalı (`02 §7.2.8`).
@@ -3417,8 +3417,8 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: süre başlangıcı üç durumda; mal beyandan önce ulaştıysa beyandan.
   - KK4: IBAN denetimi ve düzeltme.
   - KK5: silme zamanı, ortak kullanımda erteleme.
-  - KK6: firma iptalinde alan açılır, B-14.
-  - KK7: havale hatasında alan yeniden açılır.
+  - KK6: firma iptalinde alan açılır, B-14; süre durmaz.
+  - KK7: havale hatasında alan açılır, B-14; süre durmaz.
   - KK8: ret işareti, eksen sabit; havale yolunda B-14, IBAN'dan sonra deneme yok.
   - KK9: bekleme işaretinde deneme kapalı.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -3944,7 +3944,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   5. Kargoda cayma: beyan IBAN'ı ve iade adresini yazar, kalemi kapatır, B-9 ve F-3 gider; sipariş Kargoya verildi'de kalır ve süre beyandan işler (`03 §2.10.3`).
   6. Dönüşte "teslim edilemedi" B-6 gönderir; kapanışta iptal kaydı, ikinci geri ödeme ve B-7 yoktur; teslim alma alt sınırsızdır ve süreyi başlatmaz (`03 §2.10.3`).
   7. Geri ödeme IBAN'a kargo ücretiyle gider; ödeme Geri ödendi olur (Ö4, B-8) (`03 §2.10.3`).
-  8. IBAN'sız iade: sistem kalemi kapatmaz; IBAN'ı Z-42'den sonra "mal dönmedi" kapatması ya da Z-38 siler; ulaşan mal kalemi yeniden açar, B-14 gider, süre IBAN beklerken durmaz (`03 §2.10.4`).
+  8. IBAN'sız iade: sistem kalemi kapatmaz; IBAN'ı Z-42'den sonra "mal dönmedi" kapatması ya da Z-38 siler; ulaşan mal kalemi yeniden açar, B-14 gider, süre durmaz (`03 §2.10.4`).
   9. E-posta düzeltmesi: yeni anahtar üretilir, yeni adrese B-1 ve eski adrese B-15 gider; durumlar, süreler, kalemler ve IBAN değişmez (`03 §2.10.5`).
   10. Her adımda iki eksen beklenen durumdadır; ana akış T329'dadır (`03 §2.10.1`).
 - **Test beklentisi:** Integration
@@ -3956,7 +3956,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK5: kargoda cayma kalemi kapatır, durum sabit.
   - KK6: dönüşte ikinci iptal ve B-7 yok.
   - KK7: geri ödeme tutarı ve Ö4.
-  - KK8: IBAN silme ve yeniden açılış.
+  - KK8: IBAN silme, yeniden açılış; B-14, süre durmaz.
   - KK9: düzeltmede değişmeyenler sabit.
   - KK10: her adımda iki eksen doğru.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.45*
+*Shopfolio — Implementation Plan v0.46*

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.43** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.44** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -250,25 +250,25 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T03
 - **Dokümanlar:** çekirdek; `09` §3 (§3.2), §10 (§10.6), §19, §21; `05 §2.3`, §8.3, §8.7; `05 MK-12`, `MK-70`, `MK-74`
 - **Kabul kriterleri:**
-  1. `.github/ci-commands.env` sekiz adımın komutlarını taşır; Contract `NOT_APPLICABLE`'dır (`05 §2.3.5`, §8.3.8).
+  1. `.github/ci-commands.env` Paketleme dışı adımların komutlarını taşır; Contract `NOT_APPLICABLE`'dır (`05 §2.3.5`, §8.3.8).
   2. Lint komutu `dotnet format` doğrulamasını ve `Consistency` özellikli testleri koşar; Unit komutu o testleri dışarıda bırakır (`09 §21.4` madde 1; K-1356).
   3. Build komutu yayın yapılandırmasında uyarıları hata sayar, kilitli geri yükleme ve bilinen açık taraması koşar (`09 §3.2`, §21.4).
   4. Integration komutu gerçek PostgreSQL 18 hizmetine karşı koşar (`05 §2.3.6`).
   5. Migration dry-run komutu göç demetini boş veritabanına ve son yayımlanan sürümün şemasına uygular ve geri alma sınamasını koşar; sürüm yoksa yalnız ilki koşar, atlama CI çıktısında yazılır; göçsüz model değişikliği adımı düşürür (`09 §21.4` madde 3, §10.6; K-1356).
-  6. Package build komutu üç imajı derler, yayımlamaz (`05 §8.3.10`); komutun sınaması T06'dadır.
+  6. Paketleme ve yayın komutları imajlarla T06'da girer; o güne dek boş komut uyarıyla atlanır (`05 §8.3.10`).
   7. `publish.yml` yama etiketinde önceki etiketten bu yana göç eklenmişse imaja basılmadan düşer; `migration-fix: K-<numara>` mesajı istisnadır; ilk etikette denetim koşmaz (`09 §21.4` madde 2; `05 §8.3.12`, §8.7.4; K-1356).
-  8. `publish.yml` ana dala her merge'de imajı commit kimliğiyle, sürüm etiketinde sürüm numarasıyla yayımlar; kayıt defteri yazma izni açılır (`05 MK-12`, §8.3.12).
+  8. `publish.yml` ana dal merge'inde ve sürüm etiketinde koşar; kayıt defteri yazma izni açılır (`05 MK-12`, §8.3.12).
   9. Dependabot açıktır; boş komut kapıyı geçmez (`05 §8.3.14`; `09 §21.4` madde 5).
 - **Test beklentisi:** Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: sekiz komut dolu; Contract değeri `NOT_APPLICABLE`.
+  - KK1: Paketleme dışı komutlar dolu; Contract değeri `NOT_APPLICABLE`.
   - KK2: `Consistency` testi yalnız Lint'te koşar; bozulan eşitlik Lint'i kırmızı, düzeltme yeşil yapar.
   - KK3: uyarılı ya da bilinen açıklı paketli örnek derleme düşer.
   - KK4: PostgreSQL hizmetli koşu yeşil.
   - KK5: yayın yokken atlama satırı var; önceki sürüm bölümü komutta yazılı; göçsüz model değişikliği adımı düşürür.
-  - KK6: komut yazılıdır, sınama T06'ya bırakılmıştır.
+  - KK6: Paketleme ve yayın komutu boş; adım uyarıyla atlanır.
   - KK7: yama etiketli, göç eklenmiş dalda yayın düşer; istisna mesajında geçer.
-  - KK8: `publish.yml` imajı commit ve sürüm adıyla yayımlar; yazma izni var.
+  - KK8: `publish.yml` merge ve etikette tetiklenir; yazma izni var.
   - KK9: Dependabot ayarı var; boş komutla `SETUP_COMPLETE=true` CI'ı düşürür.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -309,7 +309,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   5. Derleme bağlamı repo köküdür; Dockerfile `src/` altında değildir (`09 §4.3` madde 1).
   6. Imajlara sır girmez; sırlar dosya olarak bağlanır (`09 §17` madde 2).
   7. Kayıt defteri GitHub Container Registry'dir; paket görünürlüğünün ilk yayından sonra açılışı adım olarak yazılıdır (`05 MK-11`, §8.2.5).
-  8. CI Paketleme adımı üç imajı derler; uygulama konteyneri CI'ın PostgreSQL hizmetine bağlanır ve canlılık ucu 200 verene kadar ayağa kalkar (`05 §8.3.10`, §9.4.1).
+  8. CI Paketleme adımı üç imajı derler; uygulama konteyneri CI'ın PostgreSQL hizmetine bağlanır ve canlılık ucu 200 verene kadar ayağa kalkar (`05 §8.3.10`, §9.4.1); Paketleme ve yayın komutları burada girer, `publish.yml` imajları commit kimliğiyle, sürüm etiketinde sürüm numarasıyla yayımlar (`05 §8.3.12`; T04 kriter 6).
 - **Test beklentisi:** Yok — imaj tanımıdır; sınama CI Paketleme adımının derlemesi ve canlılık denemesidir (`05 §8.3.10`)
 - **Doğrulama kontrol listesi:**
   - KK1: uygulama imajı kullanıcısı kök değildir; demet imajdadır.
@@ -319,7 +319,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK5: derleme komutu `-f deploy/images/<ad>/Dockerfile .` biçimindedir.
   - KK6: sır değeri taraması temiz.
   - KK7: paket görünürlüğü adımı kayıtlı.
-  - KK8: Paketleme adımı yeşil; konteynerin canlılık ucu 200 verir.
+  - KK8: Paketleme adımı yeşil; konteynerin canlılık ucu 200 verir; ana dal merge'inde üç imaj commit adıyla yayımlanır.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T07: Yedek düzeni
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.43*
+*Shopfolio — Implementation Plan v0.44*

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.38** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.39** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -9,7 +9,7 @@
 > **Aşama 8'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §20.1, yazım turu Y-6b).
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
-> - **K-1302 (4) · K-1357 · Okunacak `09` bölümleri:** Kodlama Kılavuzu (`09`) 100 KB'ı aştığı için her görevde bütün okunmaz (`INSTRUCTIONS §9` (7)); `00 §C.6` ("her kodlama görevinde") değişmedi, okunma biçimi bölüm bölümdür. Bu doküman her task satırında okunacak `09` bölümlerini yazar: **çekirdek yedi bölüm** (§1, §2, §5, §6, §23, §24, §25 — toplamı 100 KB'ın altındadır) her satırda "çekirdek" diye anılır ve ayrıca sayılmaz; çekirdeğe **ek** bölümler task'ın dokunduğu alana göre `09` başlık notunun **okuma tablosundan** alınır (ör. göç yazan task §10 ve §12; dış servis çağıran task §11 ve §15; C# yazan her task §3.1 ve §3.2). Task satırının kabul kriterleri ilgili bölümlerin Test maddelerine ve §25'in ilgili satırlarına dayanır; yapım PR'ı okunan bölümleri açıklamasında yazar (`09 §21.3`, `§24` madde 1).
+> - **K-1302 (4) · K-1357 · Okunacak `09` bölümleri:** Kodlama Kılavuzu (`09`) 100 KB'ı aştığı için her görevde bütün okunmaz (`INSTRUCTIONS §9` (7)); `00 §C.6` ("her kodlama görevinde") değişmedi, okunma biçimi bölüm bölümdür. Bu doküman her task satırında okunacak `09` bölümlerini yazar: **çekirdek yedi bölüm** (§1, §2, §5, §6, §23, §24, §25 — toplamı 100 KB'ın altındadır) her satırda "çekirdek" diye anılır ve ayrıca sayılmaz; çekirdeğe **ek** bölümler task'ın dokunduğu alana göre `09` başlık notunun **okuma tablosundan** alınır (ör. göç yazan task §10 ve §12; dış servis çağıran task §11 ve §15); tablonun her C# ve test görevine düşen satırları (§3.1, §3.2; §19) task satırında yazılmak zorunda değildir, yazılmasa da okunur — okunan küme okuma tablosu ile task satırının birleşimidir (`09 §24` madde 1; K-1357 (2)). Task satırının kabul kriterleri ilgili bölümlerin Test maddelerine ve §25'in ilgili satırlarına dayanır; yapım PR'ı okunan bölümleri açıklamasında yazar (`09 §21.3`, `§24` madde 1).
 > - **K-1356 · D-01 — eşitlik denetimlerinin Lint adımına girmesi:** `09 §21.4` madde 1'in beş eşitlik denetimi (kütüphane tablosu, parametre envanteri, hata kodu envanteri, geçiş listesi, işaretli işlem listesi) `UnitTests/Consistency/` klasöründe `Consistency` özelliğiyle işaretli birim testleridir; Lint adımı onları koşar, Unit adımı dışarıda bırakır. Özelliğe göre süzen komut D-01'in işidir ve `.github/ci-commands.env`'e yazılır (`05 §2.3.5`); komutların değerini `09` ikinci kez yazmaz.
 > - **K-1356 · D-01 — yama sürümü denetiminin `publish.yml`'e girmesi:** "Yama sürümü göç taşımaz" denetimi yayın akışında, etiket imaja basılmadan önce koşar (`09 §21.4` madde 2; `§10.6` madde 7); PR'da koşmaz, çünkü PR sürüm etiketini bilmez. İstisna — veri bozan bir göçün düzeltmesi — etiket mesajındaki `migration-fix: K-<numara>` satırıdır. İlk yayından önce son yayımlanan sürüm bulunmadığından geri alma sınaması atlanır ve atlandığı CI çıktısında yazılır (`09 §21.4` madde 3).
 > - **K-1355 · Test projeleri — sahtelerin paylaşımı:** `UnitTests/Fakes/` altındaki sahteleri `IntegrationTests` bağlantılı dosya olarak derler (ikinci kopya yok, iki projeyi bağlayan proje başvurusu yok); çalıştırılabilir bir test projesine başvuru xUnit v3'te sorun çıkarabilir (bilgim tarihli) — test altyapısını kuran ilk task'ta sınanır (`09 §19.1`).
@@ -38,7 +38,7 @@
 - **Faz ek kontrolü:** `grep -n '^| F3 |' <dosya>` — §3 faz satırı ve §6.2 satırı.
 - **Kaynak doküman aralığı:** `grep -n '<kimliğin başlığı>' Docs/0N_*.md`, sonra `sed -n 'a,bp'` — yalnız task'ın kaynak birimleri.
 
-Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 satırı, kaynak satırlarının kimlikleri, ilgili §6.2 satırı, kaynak dokümanın o birimleri ve `09` için çekirdek yedi bölüm artı `Dokümanlar` alanının saydığı ek bölümler (`09` başlık notunun okuma tablosu). **Boyut hedefi:** bütün dosya 1,5 MB'ın altında; task bloğu en çok 2,5 KB; matris satırı en çok 500 bayt. Sınır aşılırsa karar kaydında konu açılır; doküman bölünmez (dosya adı ve bölüm numaraları değişmez). Blok boyutu ve alan eksiksizliği `scripts/doc-scans/11_task_blok_denetle.py` ile, matris kapsamı `11_matris_kapsama.py` ile denetlenir.
+Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 satırı, kaynak satırlarının kimlikleri, ilgili §6.2 satırı, kaynak dokümanın o birimleri ve `09` için çekirdek yedi bölüm artı `Dokümanlar` alanının saydığı ek bölümler ve `09` başlık notunun okuma tablosunda task'ın dokunduğu alanların satırları — ikisinin birleşimi (`09 §24` madde 1). **Boyut hedefi:** bütün dosya 1,5 MB'ın altında; task bloğu en çok 2,5 KB; matris satırı en çok 500 bayt. Sınır aşılırsa karar kaydında konu açılır; doküman bölünmez (dosya adı ve bölüm numaraları değişmez). Blok boyutu ve alan eksiksizliği `scripts/doc-scans/11_task_blok_denetle.py` ile, matris kapsamı `11_matris_kapsama.py` ile denetlenir.
 
 **Yazım turunun haritası (K-1443).** Yazım oturumları on üç tanedir (Y1…Y8; F3 dörde, F5 üçe bölünür); harita burada sabittir, değişirse tablo ve ona atıf yapan satırlar aynı PR'da güncellenir. **Bölüm çizgisi kimlik sırasıyla çekilir:** F3 dört parçadır — `T301`–`T322`, `T323`–`T345`, `T346`–`T367`, `T368`–`T390` (22 + 23 + 22 + 23 task); `T345`/`T346` çizgisi modül sınırındadır (Üyelik modülünün son task'ı ile Sepet ve sipariş modülünün sıradaki bloğu arasında), öteki iki çizgi boyuta göredir: Y2 30, Y3 33 blokta 250k bağlam sınırına ulaştığı için 45'lik yarı bir oturuma sığmaz (K-1448); F5 üç parçadır — `T501`–`T516`, `T517`–`T532`, `T533`–`T549` (16 + 16 + 17 task); çizgiler boyuta göredir, çünkü F2, F3 ve F4 oturumları 20–33 blokta 250k bağlam sınırına ulaştığı için 24–25'lik yarı bir oturuma sığmaz; son parça ortak bileşenleri ve yükleme betiğini taşır ve F5 `Yürütme sırası`nı yazar (K-1451). Bloklar fazın içinde kimlik sırasıyla yazılır; yürütme sırasını bloğun `Bağımlılık` alanı ve fazın `Yürütme sırası` satırı verir (§5, "Task yapısı"). Task'ın kimliği yarısını belirler; ortak bileşen ya da sonraki yarıdaki task'a bağımlılık kimlikle yazılır, o blok henüz yazılmamış olsa da aday tabloda tanımlıdır.
 
@@ -162,7 +162,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 1. **Yerleşim.** Faz başlığı `### F0 — <faz adı>` (ad §3'tendir); bloklar fazın içinde kimlik sırasıyla yazılır; başlığın hemen altındaki `**Yürütme sırası:** T01 → T02 → …` satırı fazı tamamlayan oturumun işidir (§3.1).
 2. **Başlık.** Kimlik ve ad §7 aday tablosundandır (ad kısaltılabilir, kapsam değişmez). Kapsam yazımda değişirse §7 aynı PR'da hizalanır; yeni task gerekirse `TXXa`, aday tablo satırı ve matris satırı eklenir ve `11_matris_kapsama.py` koşar.
 3. **Bağımlılık.** Yalnız aynı fazdaki task'lar, kimlikle (§3.1); bağımlılığı olmayan task `—` yazar. Ortak dosyaya dokunan task'lar zincirlenir (§3.1).
-4. **Dokümanlar.** `09` için `çekirdek` (çekirdek yedi bölüm — `§1`, `§2`, `§5`, `§6`, `§23`, `§24`, `§25` — her satırda anılır, ayrıca sayılmaz) ve ek bölümler `09` başlık notunun okuma tablosundan alınır (`çekirdek; 09 §10, §12`); öteki girdiler kaynak kimliğiyle (`02 §3.8.3`, `07 UC-12`, `06` entity adı, `05 MK-12`) ve yalnız task'ın kaynak birimleri için yazılır; ek bölümler ile kaynak toplamı en çok 150 KB (K-1409). Task'ı yapan PR, okunan `09` bölümlerini açıklamasında yazar (`09 §21.3`, `§24` madde 1).
+4. **Dokümanlar.** `09` için `çekirdek` (çekirdek yedi bölüm — `§1`, `§2`, `§5`, `§6`, `§23`, `§24`, `§25` — her satırda anılır, ayrıca sayılmaz) ve ek bölümler `09` başlık notunun okuma tablosundan alınır (`çekirdek; 09 §10, §12`); tablonun her C# ve test görevine düşen satırları (§3.1, §3.2; §19) yazılmaz, birleşim kuralıyla okunur (`09 §24` madde 1); öteki girdiler kaynak kimliğiyle (`02 §3.8.3`, `07 UC-12`, `06` entity adı, `05 MK-12`) ve yalnız task'ın kaynak birimleri için yazılır; ek bölümler ile kaynak toplamı en çok 150 KB (K-1409). Task'ı yapan PR, okunan `09` bölümlerini açıklamasında yazar (`09 §21.3`, `§24` madde 1).
 5. **Kabul kriterleri.** En çok 10 numaralı madde (K-1409). Madde kaynak satırın cümlesinden türer; kural ayrıntısı **kopyalanmaz**, parantez içinde kimlikle işaret edilir (`(02 §3.8.3)`). Her madde tek bir gözlenebilir sonuçtur ve doğru ya da yanlış denebilir; böylece `12` çevirisi madde başına bir doğrulama maddesi çıkarır (`12`, değişmez giriş kuralı 3).
 6. **Test beklentisi.** Değer kümesi şablonun beşidir — Unit, Integration, Contract, E2E, Yok — ve birden çok değer yazılabilir (`Unit, Integration`). `Yok` yalnız kod üretmeyen task'ta, tek başına ve gerekçesiyle yazılır (`Yok — gerekçe`). `Contract` bu projede yoktur (sayfa ve uç testleri Integration'dır; `05 §8.3.8`, `09 §19.1`) ve `E2E` `12`'nin kapsamıdır, bu yüzden task'ta yalnız F6'da yazılır.
 7. **Doğrulama kontrol listesi.** Kabul kriteri başına bir madde (`KK1`, `KK2`, …), ardından `09 §25`'in task'a düşen satırları ve güvenlik taraması; madde sayısı kabul kriteri sayısından az olamaz.
@@ -178,7 +178,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T01: Canlılık ucu
 - **Bağımlılık:** T02, T03
-- **Dokümanlar:** çekirdek; `09` §8, §10 (§10.7), §19; `07 UC-81`; `05 MK-67`, §9.4.1
+- **Dokümanlar:** çekirdek; `09` §4 (§4.1), §8, §10 (§10.7), §19; `07 UC-81`; `05 MK-67`, §9.4.1
 - **Kabul kriterleri:**
   1. Uygulama ve veritabanı yanıt veriyorsa canlılık ucu 200 döner (`07 UC-81`; `05 §9.4.1`).
   2. Veritabanına ulaşılamıyorsa uç 503 döner.
@@ -274,7 +274,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T05: Compose geliştirme ortamı
 - **Bağımlılık:** T06, T01
-- **Dokümanlar:** çekirdek; `09` §4 (§4.3), §17; `05 §3.2`, §6.3, §6.8, §8.1, §8.2, §8.9; `05 MK-06`, `MK-07`, `MK-08`, `MK-10`, `MK-14`, `MK-28`, `MK-68`, `MK-76`
+- **Dokümanlar:** çekirdek; `09` §4 (§4.3), §15 (§15.2), §17; `05 §3.2`, §6.3, §6.8, §8.1, §8.2, §8.9; `05 MK-06`, `MK-07`, `MK-08`, `MK-10`, `MK-14`, `MK-28`, `MK-68`, `MK-76`
 - **Kabul kriterleri:**
   1. `deploy/compose.yaml` dört hizmeti ve tek seferlik göç hizmetini tanımlar (`05 §3.2`, §8.2.4; `MK-14`).
   2. Ters vekil ile uygulama, uygulama ile veritabanı ayrı iç ağlardadır; ters vekil ve yedek aracı veritabanına ulaşamaz (`05 §3.2.5`).
@@ -283,7 +283,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   5. Veri, dosya, kayıt, sertifika ve durum dosyası adlandırılmış bölümlerdedir; ters vekile yalnız görseller salt okuma bağlıdır (`05 §8.2.4`).
   6. `deploy/compose.dev.yaml` üstüne bindirilir; e-posta yakalayıcıyı ekler, gerçek e-posta sırrı taşımaz; ayrı imaj ya da veritabanı sürümü tanımlamaz (`09 §4.3` madde 2; `05 §8.1.2`).
   7. Her imaj etiket ve özetle sabittir; `latest` yoktur (`05 MK-10`; `09 §4.3` madde 4).
-  8. Ters vekil HTTP'yi HTTPS'e yönlendirir ve tarayıcıya bir yıllık HSTS verir; alt alan adlarını kapsamaz, ön yükleme listesine girmez; uygulama başlığı yazmaz (`05 §6.8.1`; `09 §15` madde 3).
+  8. Ters vekil HTTP'yi HTTPS'e yönlendirir ve tarayıcıya bir yıllık HSTS verir; alt alan adlarını kapsamaz, ön yükleme listesine girmez; uygulama başlığı yazmaz (`05 §6.8.1`; `09 §15.2` madde 3).
   9. Ters vekil istemcinin gerçek adresini görür: ağında IPv6 açıktır ya da kullanıcı alanı vekili kapalıdır; bir IPv4 ve bir IPv6 isteğinin istemci adresi erişim kaydında ve uygulamanın gördüğü adreste aynıdır (`05 §6.3.3`).
 - **Test beklentisi:** Yok — Compose ve ağ tanımıdır; sınama kurulumda çıkış, yönlendirme, HSTS ve istemci adresi denemesidir (`05 §3.2.5`)
 - **Doğrulama kontrol listesi:**
@@ -414,7 +414,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T101: Veri modeli temeli
 - **Bağımlılık:** —
-- **Dokümanlar:** çekirdek; `09` §5, §10 (§10.1, §10.6); `06 §2.1`–§2.6, §2.8, §2.10; `02 §4.1.1`; `05 MK-03`, `MK-06`, `MK-19`
+- **Dokümanlar:** çekirdek; `09` §4 (§4.1), §5, §10 (§10.1, §10.6); `06 §2.1`–§2.6, §2.8, §2.10; `02 §4.1.1`; `05 MK-03`, `MK-06`, `MK-19`
 - **Kabul kriterleri:**
   1. Veritabanı bağlamı tektir ve `Infrastructure/` altındadır; modül kendi bağlamını açmaz (`09 §4.1` madde 2).
   2. Birincil anahtar tek sütunlu `id`, sürüm 7 UUID'dir ve uygulama üretir; tek istisna `DataProtectionKey`'dir (T118) (`06 §2.3.1`).
@@ -438,7 +438,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T102: Enum tanımları ve değer dönüşümü
 - **Bağımlılık:** T101
-- **Dokümanlar:** çekirdek; `09` §10 (§10.1), §12; `06 §2.9`, §5.1–§5.6
+- **Dokümanlar:** çekirdek; `09` §9 (§9.2), §10 (§10.1), §12; `06 §2.9`, §5.1–§5.6
 - **Kabul kriterleri:**
   1. Her enum `06 §5.2`…`§5.6` tablosundaki kod adlarıyla, birebir tanımlıdır (`06 §5.1.2`).
   2. Enum değeri veritabanında metin olarak kod adıyla saklanır; sayısal değer anlam taşımaz (`06 §2.9.1`).
@@ -870,7 +870,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T201: İmha düzenleyicisi, süre ayarları ve gecelik temizlik
 - **Bağımlılık:** T221, T226
-- **Dokümanlar:** çekirdek; `09` §9; `06 §9.1`, §9.4, §9.5; `02 §4.2` Z-36, Z-44; `03 §4.1`; `05 MK-22`, `MK-23`, `MK-65`, §5.2, §7.4, §7.5, §9.2; `10` KP-74, KD-56
+- **Dokümanlar:** çekirdek; `09` §3 (§3.5), §9; `06 §9.1`, §9.4, §9.5; `02 §4.2` Z-36, Z-44; `03 §4.1`; `05 MK-22`, `MK-23`, `MK-65`, §5.2, §7.4, §7.5, §9.2; `10` KP-74, KD-56
 - **Kabul kriterleri:**
   1. İmha işi her gece Türkiye saatiyle 03:00'te çalışır ve süre envanterinin satırlarını sırayla işler (`05 §7.4.1`; MK-22).
   2. Süre kaydın başlangıç değerinden bugüne hesaplanır; kaçırılan gece sonraki çalışmada telafi edilir (`06 §9.1.1`).
@@ -972,7 +972,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T205: Açılışta veritabanı fail-fast denetimi
 - **Bağımlılık:** T233
-- **Dokümanlar:** çekirdek; `09` §8; `06 §8.2`
+- **Dokümanlar:** çekirdek; `09` §8, §18 (§18.1); `06 §8.2`
 - **Kabul kriterleri:**
   1. Açılışta il listesinin dolu olduğu denetlenir (`06 §8.2.1` madde 1).
   2. Açılışta ülke listesinin dolu olduğu denetlenir (`06 §8.2.1` madde 2).
@@ -1085,14 +1085,14 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   9. Site yalnız HTTPS'tir; HSTS'i ters vekil yazar: bir yıl, alt alan adları ve ön yükleme yok; uygulama `UseHsts` çağırmaz (`05 §6.8.1`; `09 §15` madde 3; MK-58).
 - **Test beklentisi:** Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: iki kez gönderilen aynı formun etkisi tektir; sepete eklemede ikinci gönderim ikinci eklemedir.
+  - KK1: iki kez gönderilen aynı formun etkisi tektir.
   - KK2: aynı onay anahtarı ikinci sipariş açmaz.
   - KK3: değer tüketilince ikinci gönderim yeniden doğrulama ister.
   - KK4: doğrulama değersiz POST reddedilir.
   - KK5: reddedilen formda yazılanlar korunur.
   - KK6: imzalı uç dışında korumasız POST ucu yok.
   - KK7: makine ucunda da başlıklar var; dış betik politikayla engellenir.
-  - KK8: oturumlu yanıtta `no-store` var.
+  - KK8: panel, hesap, misafir sepeti ve erişim anahtarlı sipariş sayfasında `no-store` var.
   - KK9: uygulamanın yanıtında HSTS yok; değeri T05'te sınanır.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -1154,7 +1154,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   2. GET başarı 200, başarılı yazan POST 303, oturum gerektiren GET'in girişe yönlendirmesi 302'dir (`07 §2.7.1`).
   3. Doğrulama hatası ve adı konmuş iş kuralı reddi 422'dir ve form değerleriyle yeniden gösterilir (`07 §2.7.1`).
   4. Sürüm çakışması ve gösterilen değerin tutmaması 409'dur; iki istisna 409 almaz, işlem uygulanmaz, 303 ve güncel hâl döner: müşteri kalem işleminde açık adedin tutmaması ve geçici kapatma anahtarının tutmaması (`07 §2.7.1`, §2.4.6, §2.4.3; T512, T513, T535).
-  5. Deneme limiti ve genel hız sınırı 429'dur; gövde tavanı 413 T215'te, sahteciliğe karşı doğrulama 400 T209'dadır (`07 §2.7.1`).
+  5. Deneme limiti ve genel hız sınırı 429'dur; 429'u üreten sınırlar T215'te (T215 madde 5, 6), gövde tavanı 413 T215'te, sahteciliğe karşı doğrulama 400 T209'dadır (`07 §2.7.1`).
   6. Makine ucu ekran göstermez: bildirim 200, 400, 500; canlılık ve durum 200 ya da 503, gövdesiz, `no-store`; ortak 429 ve 413 makine ucunda da gövdesizdir (T215, T203) (`07 §2.7.2`).
   7. Beklenmeyen hata tek yakalama katmanında üç hâlden birine düşer (`05 §10.3`; `09 §8`).
   8. Sonucu belirsiz işlemde yanıt 303 ve güncel hâli gösteren ekrandır; kod taşınmaz (`07 §6.4.2`).
@@ -1165,7 +1165,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: üç durum kodu yoklanır.
   - KK3: iş kuralı reddinde 422 ve değerler korunur.
   - KK4: çakışma 409; açık adet ve anahtar tutmamasının 303'ü T512, T513 ve T535'in KK'larında sınanır.
-  - KK5: limit aşımı 429.
+  - KK5: limit aşımının 429'u T215 KK5–KK6'da sınanır.
   - KK6: makine ucu yanıtları gövdesiz; canlılık ve durum `no-store` taşır.
   - KK7: kaçan istisna tek katmanda yakalanır.
   - KK8: belirsiz sonuç 303'tür.
@@ -1290,7 +1290,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T218: Dokuz modülün iskeleti ve Contracts
 - **Bağımlılık:** —
-- **Dokümanlar:** çekirdek; `09` §6, §9; `05 MK-13`, `MK-15`, §3.1, §3.3, §3.4; `10 KD-21`
+- **Dokümanlar:** çekirdek; `09` §4 (§4.1), §6, §9; `05 MK-13`, `MK-15`, §3.1, §3.3, §3.4; `10 KD-21`
 - **Kabul kriterleri:**
   1. Dokuz modül kendi klasöründe iskelet taşır: Katalog, Sepet ve sipariş, Ödeme, İptal–cayma–iade, Üyelik, Kurumsal içerik, Bildirim, Yönetim ve işlem izi, Ayarlar (`05 §3.3.1`; MK-15); kiracı kavramı ve operatör paneli yoktur, çok kiracılık için hazırlık yapılmaz (`10 KD-21`).
   2. Ortak altyapı modül değildir ve iş kuralı taşımaz (`05 §3.3.11`).
@@ -3695,7 +3695,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T381: Ayar katmanları ve parametre envanteri: firma ayarı, kurulum ayarı, ürün sabiti, varsayılan ve çit, değişikliğin ize yazılması
 - **Bağımlılık:** T330, T380
-- **Dokümanlar:** çekirdek; `09` §3; `02 §10.1.3`, §10.3.1, §11.1, §11.2, P-1…P-49; `10` KP-64, §4.2
+- **Dokümanlar:** çekirdek; `09` §3, §21 (§21.4); `02 §10.1.3`, §10.3.1, §11.1, §11.2, P-1…P-49; `10` KP-64, §4.2
 - **Kabul kriterleri:**
   1. Parametre üç katmandadır: firma ayarı panelden değişir, kurulum ayarı kurulumdan gelir ve panelden değişmez, ürün sabiti değişmez (`02 §10.1.3`).
   2. Atama ölçütü: zarar yalnız firmaya dokunuyorsa ve karar işletme kararıysa firma ayarı; güvenliğe, yasal uyuma ya da müşteriye dokunuyorsa ürün sabiti (`02 §10.1.3`).
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.38*
+*Shopfolio — Implementation Plan v0.39*

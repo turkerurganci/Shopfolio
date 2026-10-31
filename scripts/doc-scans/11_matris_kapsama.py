@@ -7,7 +7,7 @@ kumeyle karsilastirir; eksik, fazla ve yinelenen sayar. Envanter betigi
 o sayimi eksiksiz tasidigini denetler.
 
 Denetlenen aileler DOLU listesindedir; matris oturumu kendi ailesini listeye ekler:
-  O1: 06, 08 (7.1.1, 7.1.3) ... O2: 07 ... O3: 04, 03 (7.1.4) ... O4: 02 ... O5: 05, 09, 10, devir.
+  O1: 06, 08 (7.1.1, 7.1.3) ... O2: 07 ... O3: 04, 03 (7.1.4) ... O4a: 02 §1-§3 ... O4b: 02 §4-§13 ... O5: 05, 09, 10, devir.
 
 Ek denetimler:
   - her satirin Task hucresi aday kimlik listesi ("T107" ya da "T402, T311") ya da "-" olur;
@@ -29,7 +29,7 @@ root = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
 out_path = sys.argv[2] if len(sys.argv) > 2 else None
 
 # Matris oturumu kendi ailesini ekler (alt bolum haritasi: 11 7).
-DOLU = ["06", "07", "08", "04", "03"]
+DOLU = ["06", "07", "08", "04", "03", "02"]
 # Ailenin yerlestigi alt bolum (K-1404, K-1412).
 ALT_BOLUM = {"06": "7.1.1", "07": "7.1.2", "08": "7.1.3", "04": "7.1.4", "03": "7.1.4",
              "02": "7.1.5", "10": "7.1.5", "05": "7.1.5", "09": "7.1.5", "devir": "7.1.5"}
@@ -135,7 +135,27 @@ def beklenen_03():
     return sub, {"alt bolum": len(sub)}
 
 
-BEKLENEN = {"06": beklenen_06, "07": beklenen_07, "08": beklenen_08, "04": beklenen_04, "03": beklenen_03}
+# O4a: 02 yalniz §1-§3 (kural 257 + alt bolum 40). O4b §4-§13'u (kural, kimlikli satir, alt bolum)
+# ekler: KAPSAM_02'ye bolum numaralarini ve kimlikli satirlari katar.
+KAPSAM_02 = (1, 2, 3)
+
+
+def beklenen_02():
+    d = load("02")
+    kural = []
+    for n in KAPSAM_02:
+        if n < 3:
+            continue
+        for _, l in bolum(d, n):
+            m = re.match(r"\*\*(\d+\.\d+\.\d+)[\s .*]", l)
+            if m:
+                kural.append("02:§" + m.group(1))
+    sub = ["02:§" + x for x in alt_bolumler(d, KAPSAM_02)]
+    return kural + sub, {"kural": len(kural), "alt bolum": len(sub)}
+
+
+BEKLENEN = {"06": beklenen_06, "07": beklenen_07, "08": beklenen_08, "04": beklenen_04, "03": beklenen_03,
+            "02": beklenen_02}
 
 # ------------------------------------------------------------ matris satirlari
 plan_f = sorted((root / "Docs").glob("11_*.md"))[0]

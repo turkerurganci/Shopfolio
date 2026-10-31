@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.4** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.5** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -109,7 +109,7 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | 7.1.2 | API → task | `07` (208: uç 187 · alt bölüm 21) | O2 | ✓ |
 | 7.1.3 | Entegrasyon → task | `08` (30: entegrasyon 3 · çağrısı olmayan bağlantı 1 · alt bölüm 26) | O1 | ✓ |
 | 7.1.4 | Arayüz → task | `04` (102: ekran 53 · ortak bileşen 20 · alt bölüm 29) ve `03` (55 alt bölüm) | O3 | ✓ |
-| 7.1.5 | İş kuralı → task — kalın etiketli beş grup: **`02`** · **`05`** · **`09`** · **`10`** · **Devir satırları** | `02 §1`–§3 (297) O4a; `02 §4`–§13 (369) O4b; `05` (136) · `09` (25) · `10` (143) · devir (19) O5 | O4a, O4b, O5 | ⬚ |
+| 7.1.5 | İş kuralı → task — kalın etiketli beş grup: **`02`** · **`05`** · **`09`** · **`10`** · **Devir satırları** | `02 §1`–§3 (297) O4a; `02 §4`–§13 (369) O4b; `05` (136) · `09` (25) · `10` (143) · devir (19) O5 | O4a, O4b, O5 | ⬚ (`02 §1`–§3 ✓ O4a) |
 | 7.2, §8 | Geri izlenebilirlik, gerekçesiz eklemeler, GAP kararları | task → kaynak | O6 | ⬚ |
 
 **Kaynak kimliğinin biçimi (K-1412).** Satırın ilk hücresi kimlikle başlar; kimliğin ardından başlık ya da ad gelir (en çok 500 bayt/satır). Kapsama betiği yalnız kimliği okur.
@@ -119,13 +119,16 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | `06` entity | `06:§4.<n> <Entity>` — `n` §3.1 tablosunun "§4" sütunundan; aynı alt bölümü paylaşan entity'ler adla ayrılır | `06:§4.17 Order` |
 | `06` enum alt bölümü ve alt bölüm | `06:§<n.m> <başlık>` | `06:§5.2 Durum setleri ve geçiş kimlikleri` |
 | `08` entegrasyon, çağrısı olmayan bağlantı, alt bölüm | `08:§<n.m[.k]> <başlık>` | `08:§2.1.4 …`, `08:§3.1 …` |
-| Sonraki aileler | `07 UC-nn`, `04 E-nn`, `OB-nn`, `05 MK-nn`, `02 §n.m.k`, `10 KP-n`, `09 §n`, devir `K-n` (K-1406 (3)) — biçimi kendi oturumu betiğe ekler | |
+| `02` kural ve alt bölüm (O4a) | `02:§3.<n.m> <kural başlığı>` (kalın başlık cümlesi), `02:§<n.m> <başlık>` — `02 §1`–§3 | `02:§3.6.7 Stok ve hizmet kontenjanı…`, `02:§3.6 Stok ve tükenme` |
+| Sonraki aileler | `05 MK-nn`, `02 §4`–§13 kimlikli satırlar (Z, L, P, B, F, H), `10 KP-n`, `09 §n`, devir `K-n` (K-1406 (3)) — biçimi kendi oturumu betiğe ekler | |
 
 **Satır sütunları (K-1412).** **Kaynak öğe** (kimlik + ad) · **Task** (aday task kimliği; birden çok ise virgülle; task gerektirmeyen birim `—`) · **Implement edildi** (boş — gate'te dolar) · **Kanıt** (boş — gate'te dolar). Kapsama betiği son iki sütunun bu aşamada boş olduğunu da denetler.
 
 **Task gerektirmeyen birim.** `08:§5.1` — `07`'ye geri yansıyan uçların kaydı: yeni uç çıkmamıştır ve üç mevcut ucun (UC-29, UC-30, UC-80) işi `07` satırlarının task'larındadır (O2: UC-29 ve UC-30 T510'da, UC-80 T311'de; ikisi de `08:§2.1.4` ve `08:§2.1.5` satırlarına eklendi). GAP değildir.
 
 `03:§9.5` — Tercih yönetimi: bölüm tercih yönetiminin ürünün içinde karşılığı olmadığını yazar (işlem bildirimleri kapatılamaz, bildirim tercihi ekranı yoktur — `02 §9.1.3`); yapılacak iş çıkmaz, "Task" hücresi `—` (O3). GAP değildir.
+
+`02:§1.1` — Sözlük kuralı ve `02:§1.2` — Terim sözlüğü: doküman yazım konvansiyonudur ("tek ad, İngilizce karşılık Aşama 1'de, `06`/`07`/`09` isim icat etmez"); kod adları `06` ve `07` satırlarındaki task'larda (T101–T120, T206–T217, T502–T539) ve her task'ın kendi kavramının adında yaşar, yapılacak ayrı iş çıkmaz — "Task" hücresi `—` (O4a). GAP değildir. `02:§3.26` — İptal, cayma, iade ve ayıp talebi: bölüm kuralların `§7`'de olduğunu söyleyen bir işarettir, kendi kuralı yoktur; kuralları `02 §7` satırlarında eşlenir (O4b) — "Task" hücresi `—` (O4a). GAP değildir.
 
 **Aday task kimliği (K-1412).** "Task" sütunu aday kimliktir; adı ve gövdesi `§5`'te yazılır. Kurallar: (1) kimlik K-1407'nin faz aralığından gelir ve aşağıdaki aday tablosunda tanımlıdır (kapsama betiği denetler). (2) F1'in kimlikleri baştan ayrıldı; öteki fazlarda her matris oturumu kendi satırlarının gerek duyduğu kimliği sayaçtaki sonraki boş numaradan alır ve tabloya ekler. (3) Kimlikler faz içi sıra gözetmeden verilebilir; sıra `§5`'in işidir, araya `TXXa` girer (`00 §J`); gerekirse O6 betikli tek bir yeniden numaralama yapar ve kapsama betiği öncesini ve sonrasını koşar. (4) Var olan satıra aday kimlik eklenebilir (ör. UC-80'in F3 task'ı `08:§2.1.5` satırına girer); satır silinmez. (5) F1'in sırası modül akış sırasını (K-1410) bağların kurduğu sırayla daraltır: bir göç, bağlandığı tabloların göçünden sonra gelir (`06 §7.2`'nin 130 bağı betikle sınandı — sıra ihlali 0); Yönetim ve Üyelik ile iptal–cayma–iade ve Ödeme bu yüzden akış sırasından ayrılır.
 
@@ -134,12 +137,12 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | F0 | T01 | T02 |
 | F1 | T120 | T121 |
 | F2 | T217 | T218 |
-| F3 | T329 | T330 |
+| F3 | T366 | T367 |
 | F4 | T410 | T411 |
 | F5 | T547 | T548 |
 | F6 | T601 | T602 |
 
-**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125) — sonraki oturumlar ekler.
+**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125; O4a 37 aday ekledi: F3 `T330`–`T366`, `02 §3`'ün iş kuralı task'ları; toplam 162) — sonraki oturumlar ekler.
 
 | Aday | Faz | Kısa ad | Modül | Kaynak birimi |
 |---|---|---|---|---|
@@ -210,6 +213,43 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | T327 | F3 | Kendiliğinden işleyen anlar ve sitenin kesintisinde süreler | Sepet ve sipariş | `03 §4.2`, §10.3 (2) |
 | T328 | F3 | Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi | Bildirim | `03 §7.1`–§7.3 (3) |
 | T329 | F3 | İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi) | Sepet ve sipariş | `03 §2.10` (K-1410) |
+| T330 | F3 | Firma kimliği: tek firma, tip ve tipe göre zorunlu alanlar, yasal kimlik bilgilerinin erişilebilirliği, iade adresi | Ayarlar | `02 §3.1.1`–§3.1.4, §3.1.7 (5) |
+| T331 | F3 | Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması | Ayarlar | `02 §3.1.5`, §3.1.6 (2) |
+| T332 | F3 | Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu | Katalog | `02 §3.2.1`–§3.3.6 (9) |
+| T333 | F3 | Kategori ağacı, site içi arama ve liste süzgeçleri | Katalog | `02 §3.4.1`–§3.5.3 (9) |
+| T334 | F3 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | Katalog | `02 §3.6.1`–§3.6.7 (7) |
+| T335 | F3 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | Katalog | `02 §3.7.1`–§3.7.8 (8) |
+| T336 | F3 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | Katalog | `02 §3.8.1`–§3.8.5 (5) |
+| T337 | F3 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | Katalog | `02 §3.9.1`–§3.9.6 (6) |
+| T338 | F3 | Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması | Katalog | `02 §3.10.1`–§3.10.7 (7) |
+| T339 | F3 | Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti | Katalog | `02 §3.11.1`–§3.11.7 (7) |
+| T340 | F3 | Dijital ürün: dosya, indirme hakkı, hak yenileme, yeniden satın alma | Katalog | `02 §3.12.1`–§3.12.9 (9) |
+| T341 | F3 | Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı | Üyelik | `02 §3.13.1`–§3.13.5, §3.13.18–§3.13.21 (9) |
+| T342 | F3 | Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri | Üyelik | `02 §3.13.9`–§3.13.13, §3.13.15–§3.13.17 (8) |
+| T343 | F3 | Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma | Üyelik | `02 §3.13.6`–§3.13.8, §3.13.14 (4) |
+| T344 | F3 | Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma | Üyelik | `02 §3.14.1`–§3.14.6 (6) |
+| T345 | F3 | Hesabın silinmesi ve kişisel veri başvurusu | Üyelik | `02 §3.15.1`–§3.15.6 (6) |
+| T346 | F3 | Sepet: sahiplik, giriş anında birleşme, canlı kalem, siparişe girmeyen kalemler | Sepet ve sipariş | `02 §3.16.1`–§3.16.7 (7) |
+| T347 | F3 | Sepet adet kuralları: stok ve sipariş başına sınır, boşalma, istek listesi yokluğu | Sepet ve sipariş | `02 §3.16.8`–§3.16.13 (6) |
+| T348 | F3 | Sipariş onayı: oluşma anı, özet eşitliği, stok ayırma, ödeme süresi, kendiliğinden iptal | Sepet ve sipariş | `02 §3.17.1`–§3.17.8 (8) |
+| T349 | F3 | Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği | Sepet ve sipariş | `02 §3.18.1`–§3.19.6 (9) |
+| T350 | F3 | Teslim: il kısıtı, tek yol, kargoya verme süresi ve sözü, kargoya verildi işareti, kargo şirketi | Sepet ve sipariş | `02 §3.20.1`–§3.20.8 (8) |
+| T351 | F3 | Teslim işaretleri: kalem tipine göre teslim, karışık sipariş, fiziksel teslim tarihi | Sepet ve sipariş | `02 §3.20.9`–§3.20.12 (4) |
+| T352 | F3 | Ödeme: satıcı ve kart verisi, iki yöntem, 3D Secure, taksit, ters ibraz | Ödeme | `02 §3.21.1`–§3.21.4, §3.21.9–§3.21.11 (7) |
+| T353 | F3 | Havale/EFT: IBAN ve siparişe donması, ödendi işareti, hatırlatma, süresi dolmuş sipariş | Ödeme | `02 §3.21.5`–§3.21.8 (4) |
+| T354 | F3 | Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı | Sepet ve sipariş | `02 §3.22.1`–§3.22.5 (5) |
+| T355 | F3 | Sipariş anında donan değerler | Sepet ve sipariş | `02 §3.23.1`–§3.23.5 (5) |
+| T356 | F3 | Onay adımı: onay kutuları, Ön Bilgilendirme Formu içeriği, işlem rehberi | Sepet ve sipariş | `02 §3.24.1`–§3.24.8 (8) |
+| T357 | F3 | Fatura verisi ve dışa aktarmada donmuş kimlik | Yönetim ve işlem izi | `02 §3.25.1`–§3.25.3 (3) |
+| T358 | F3 | Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar | Kurumsal içerik | `02 §3.27.1`–§3.27.9, §3.27.12 (10) |
+| T359 | F3 | Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler | Kurumsal içerik | `02 §3.27.10`, §3.27.11, §3.27.13–§3.27.20 (10) |
+| T360 | F3 | Duyuru şeridi, boş kurulum, içerik yayın durumu, önizleme ve silme | Kurumsal içerik | `02 §3.27.21`–§3.27.28 (8) |
+| T361 | F3 | Ana sayfa düzeni ve üst menü | Kurumsal içerik | `02 §3.28.1`–§3.28.6 (6) |
+| T362 | F3 | Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası | Kurumsal içerik | `02 §3.29.1`–§3.29.6 (6) |
+| T363 | F3 | Sayfa adresleri, arama motoru bilgileri, kapalı sayfalar ve paylaşım | Kurumsal içerik | `02 §3.30.1`–§3.30.7 (7) |
+| T364 | F3 | Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler | Sepet ve sipariş | `02 §3.31.1`, §3.31.2 (2) |
+| T365 | F3 | İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması | Kurumsal içerik | `02 §3.32.1`–§3.32.10 (10) |
+| T366 | F3 | Yasal metinler: dört metin, sürüm artışı, aydınlatma bağlantıları, e-postada tam metin | Ayarlar | `02 §3.33.1`–§3.33.9 (9) |
 | T401 | F4 | PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve | Ödeme | `08 §2.1`, §2.1.1, §2.1.2, §2.1.4 |
 | T402 | F4 | PayTR: bildirim imzası ve alan eşlemesi | Ödeme | `08 §2.1.5` |
 | T403 | F4 | PayTR: son sorgu ve tek tahsilat | Ödeme | `08 §2.1.6`, §2.1.7 |
@@ -273,12 +313,14 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 
 ```sh
 python -I scripts/doc-scans/11_matris_envanter.py . /tmp/envanter.txt    # kaynak envanteri: 06 117, 07 208, 08 30 (ve öteki aileler)
-python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matris satırları ↔ beklenen küme (dolu aileler: 06, 07, 08, 04, 03)
+python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matris satırları ↔ beklenen küme (dolu aileler: 06, 07, 08, 04, 03, 02 §1–§3)
 ```
 
 **Okuma derinliği (O1).** `06`: §3.1 entity tablosu bütün, §2/§5–§9 alt bölüm başlıkları ve ilk paragrafları, §8 bütün, §7.2'nin 130 bağı betikle; §4 entity tanımları okunmadı — kaynak birim §3.1'in satırıdır. `08`: §1 bütün, §2–§5 başlıkları ve her başlığın ilk iki paragrafı (satır başına ilk 300–380 karakter; kesilerek okundu).
 
 **Okuma derinliği (O3).** `04`: §4 ekran envanteri (53 satır) ve §4.3, §4.4 bütün; §2'nin bileşen özet tablosu (20 satır, her hücre) ve alt bölüm başlıkları; §3, §6, §7, §8 alt bölüm başlıkları ve ilk paragrafları. Okunmadı: §5 ve §9 ekran tanımları, §2 bileşen tanımlarının gövdesi, §6.2–§6.3 matris satırları, §7.1–§7.3 alan tabloları. `03`: bütün `###` başlıkları (55); §2.10, §4, §5, §6, §7, §8.2, §8.5, §9.5, §10 bölümlerinin girişi ve ilk tablo satırları (satır başına ilk 250–420 karakter); §1, §2.1–§2.9, §3, §8.1, §8.3, §8.4, §8.6–§8.9, §9.1–§9.4 yalnız başlık ve ilk paragraf. Eşleme ekran adı ve `07`'nin F5 gruplarından türer; gövdesi okunmayan alt bölümlerde (özellikle `03 §3.5`, §6.2) task listesi sonraki oturumda örneklemle doğrulanır.
+
+**Okuma derinliği (O4a).** `02 §3`'ün 257 kuralı ve 34 alt bölümü bütün okundu — her kural satırı tamamıyla (§3.1–§3.34, satır 497–1090); §2 (§2.1 envanter tablosu, §2.2 ve §2.3 bütün) ve §1.1, §1.3 bütün okundu. **Okunmadı:** §1.2 terim sözlüğünün tablo satırları (birim değildir; alt bölüm satırı karşılar), her bölümün sonundaki `Kaynak:` satırları (karar atıfları; birim değildir). Okunan kuralların hiçbirinde kesme yapılmadı.
 
 #### 7.1.1 Veri modeli → task
 
@@ -820,10 +862,311 @@ Kaynak: `04` (102: ekran 53 `04:E-nn` · ortak bileşen 20 `04:OB-nn` · alt bö
 
 #### 7.1.5 İş kuralı → task
 
-> Doldurulacak: O4a, O4b, O5. Beş kalın etiketli grup, her birinin kendi tablosu: **`02`** (O4a: §1–§3; O4b: §4–§13) · **`05`** · **`09`** · **`10`** · **Devir satırları** (O5).
+> Doldurulacak: O4a (`02 §1`–§3; yazıldı), O4b, O5. Beş kalın etiketli grup, her birinin kendi tablosu: **`02`** (O4a: §1–§3; O4b: §4–§13) · **`05`** · **`09`** · **`10`** · **Devir satırları** (O5).
+
+Kaynak: `02 §1`–§3 (297: iş kuralı 257 `02:§3.n.m` · alt bölüm 40 `02:§n.m` — §1'in 3'ü, §2'nin 3'ü, §3'ün 34'ü). Kural satırı kuralın kalın başlık cümlesidir; kuralın iş mantığı F3'ün modül task'larındadır (T330–T366, K-1421), ekranda görünen yüzü F5'in ekran task'larındadır — bir kural birden çok task alabilir. `02 §3.26` ve `§1.1`–§1.2 task gerektirmez (gerekçesi yukarıda).
+
+**`02`** — `§1`–§3 (O4a)
 
 | Kaynak öğe | Task | Implement edildi | Kanıt |
 |---|---|---|---|
+| 02:§1.1 Sözlük kuralı | — | | |
+| 02:§1.2 Terim sözlüğü | — | | |
+| 02:§1.3 Aktörler | T106, T107, T207 | | |
+| 02:§2.1 Akış envanteri | T329, T511, T512, T513, T514, T525, T527, T534, T536 | | |
+| 02:§2.2 Uçtan uca ana akış | T329, T509, T510 | | |
+| 02:§2.3 Kurumsal içerik akışı | T358, T360, T361, T534 | | |
+| 02:§3.1 Firma, kurulum ve satış kapısı | T330, T331 | | |
+| 02:§3.1.1 Uygulama kurulum başına tek bir firmaya hizmet eder | T330, T103 | | |
+| 02:§3.1.2 Firmanın kimliği panelden yönetilir; altyapısı kurulumdan gelir | T330, T535 | | |
+| 02:§3.1.3 Firma tipi seçilir ve zorunlu kimlik alanları tipe göre değişir | T330, T535 | | |
+| 02:§3.1.4 Yasal kimlik bilgileri sitede sürekli erişilebilir durur | T330, T506, T537 | | |
+| 02:§3.1.5 Satış yalnız dört koşul birlikte sağlandığında açıktır | T331, T503, T509, T535 | | |
+| 02:§3.1.6 Firma satışı panelden geçici olarak kapatabilir | T331, T508, T535 | | |
+| 02:§3.1.7 Firmanın iade adresi zorunlu bir firma ayarıdır | T330, T513, T535 | | |
+| 02:§3.2 Satış modeli ve ürün tipleri | T332 | | |
+| 02:§3.2.1 Satış yalnız doğrudandır | T332, T503 | | |
+| 02:§3.2.2 Katalog üç tipte ürün taşır: fiziksel ürün, dijital ürün ve hizmet | T332, T525 | | |
+| 02:§3.2.3 Tip ürün düzleminde yaşar ve üç değerli kapalı bir alandır | T332 | | |
+| 02:§3.3 Ürün, varyant ve seçenek | T332 | | |
+| 02:§3.3.1 Satılan birim varyanttır; ürün vitrin ve katalog birimidir | T332, T503 | | |
+| 02:§3.3.2 Bir ürün en fazla iki seçenek boyutu taşır | T332, T525 | | |
+| 02:§3.3.3 İki boyutun birleşim matrisinin tam olması gerekmez | T332, T503 | | |
+| 02:§3.3.4 Her varyant zorunlu ve tekil bir stok kodu (`SKU`) taşır; | T332, T525 | | |
+| 02:§3.3.5 Ürün başına asgari adet yoktur | T332 | | |
+| 02:§3.3.6 Ürün sayfasında yorum, puan ve öneri bloğu yoktur | T332, T503 | | |
+| 02:§3.4 Kategori | T333 | | |
+| 02:§3.4.1 Kategori ağacı en fazla üç seviyedir | T333, T526 | | |
+| 02:§3.4.2 Ürün ağacın herhangi bir düğümüne asılabilir; | T333, T502 | | |
+| 02:§3.4.3 Kategori sayfası alt dallarındaki ürünleri de gösterir | T333, T502 | | |
+| 02:§3.4.4 Bir ürün birden fazla kategoriye asılabilir; asıldığı kategorilerden biri ana kategoridir | T333, T525 | | |
+| 02:§3.4.5 İçinde ürün ya da alt kategori bulunan kategori silinemez | T333, T526 | | |
+| 02:§3.4.6 Kategori taşımak serbesttir, iki sınırla | T333, T526 | | |
+| 02:§3.5 Arama, süzgeç ve liste düzeni | T333 | | |
+| 02:§3.5.1 Site içi arama yalnız ürün adında çalışır | T333, T503 | | |
+| 02:§3.5.2 Ürün listeleri iki sabit eksende süzülür: fiyat aralığı ve stok durumu | T333, T502, T503 | | |
+| 02:§3.5.3 Ziyaretçiye sıralama seçeneği sunulmaz | T333, T502, T503 | | |
+| 02:§3.6 Stok ve tükenme | T334 | | |
+| 02:§3.6.1 Stok, varyantın sayısal adedidir | T334, T525 | | |
+| 02:§3.6.2 Stok takibi tipe göre değişir | T334, T525 | | |
+| 02:§3.6.3 Tükenmiş varyant seçenek listesinde "Tükendi" işaretiyle görünür ve seçilemez; | T334, T503 | | |
+| 02:§3.6.4 Bütün varyantları tükenmiş ürün vitrinde kalır, | T334, T503 | | |
+| 02:§3.6.5 Stok adedi ziyaretçiye hiçbir yerde gösterilmez | T334, T503 | | |
+| 02:§3.6.6 İptal edilen adet stoğa kendiliğinden döner; iade edilen fiziksel adedi firma teslim alıp kontrol ettikten sonra panelden ekler | T334, T528 | | |
+| 02:§3.6.7 Stok ve hizmet kontenjanı, ödemesi beklenen siparişlerin ayırdığı adedin altına indirilemez | T334, T525 | | |
+| 02:§3.7 Ürünün yayın durumu, arşiv ve silme | T335 | | |
+| 02:§3.7.1 Ürün ve varyant yayın durumunu ayrı ayrı taşır: Taslak, Yayında, Arşiv | T335, T321, T525 | | |
+| 02:§3.7.2 Arşiv silme değildir | T335 | | |
+| 02:§3.7.3 Bir ürün yayına ancak adı, ana kategorisi ve tipi girilmişse ve en az bir Yayında varyantı varsa alınır | T335, T525 | | |
+| 02:§3.7.4 Dijital ürünün yayın kapısı bir koşul daha taşır | T335, T340, T525 | | |
+| 02:§3.7.5 Taslak ürünün adresi ziyaretçiye "sayfa bulunamadı" döner; giriş yapmış firma yöneticisine ürün sayfasını "Taslak" bandıyla gösterir | T335, T503 | | |
+| 02:§3.7.6 Arşivlenmiş ürünün adresi çalışmaya devam eder ve "Bu ürün artık satılmıyor" sayfası döner | T335, T503 | | |
+| 02:§3.7.7 Yönetici ürünü kalıcı olarak silebilir | T335, T525 | | |
+| 02:§3.7.8 Yayındaki bir ürünün son Yayında varyantı arşivlenemez, taslağa çekilemez ve kalıcı olarak silinemez | T335, T525 | | |
+| 02:§3.8 Fiyat ve KDV | T336 | | |
+| 02:§3.8.1 Fiyat varyantta yaşar ve KDV dahil girilir | T336, T525 | | |
+| 02:§3.8.2 KDV oranı ürün düzleminde tutulur ve varyantlar devralır; | T336, T525 | | |
+| 02:§3.8.3 KDV kalem bazında hesaplanır ve kuruşa orada yuvarlanır | T336, T355 | | |
+| 02:§3.8.4 Fiyatın hassasiyeti kuruştur — iki ondalık; | T336, T525 | | |
+| 02:§3.8.5 Ürün sayfası fiyat etiketinin zorunlu bilgilerini taşır | T336, T501, T503, T525 | | |
+| 02:§3.9 İndirim ve referans fiyat | T337 | | |
+| 02:§3.9.1 İndirim ürün düzleminde yüzde olarak tanımlanır ve bütün varyantlara iner; | T337, T525 | | |
+| 02:§3.9.2 İndirim tarihlidir | T337, T502, T503 | | |
+| 02:§3.9.3 İndirim beyanı referans fiyata dayanır ve referansı sistem hesaplar; | T337 | | |
+| 02:§3.9.4 10 günlük geçmişi olmayan malda referans, | T337 | | |
+| 02:§3.9.5 İndirimli fiyat referansın altına inmiyorsa sistem indirimi kaydetmez | T337, T525 | | |
+| 02:§3.9.6 Beyan edilen referans fiyat sipariş kalemine donar | T337, T355 | | |
+| 02:§3.10 Kupon | T338 | | |
+| 02:§3.10.1 Kupon, ödeme adımında girilen ve sepet toplamına inen bir koddur | T338, T509 | | |
+| 02:§3.10.2 Kupon yüzde ya da sabit tutar olarak tanımlanır | T338, T526 | | |
+| 02:§3.10.3 Kuponun payı kalem kalem belirlenir | T338 | | |
+| 02:§3.10.4 Kupon siparişi sıfır tutara indiremez: sepet toplamına eşit ya da onu aşan kupon reddedilir | T338, T526 | | |
+| 02:§3.10.5 Kuponun sınırı tarih aralığı ve toplam kullanım adedidir | T338, T526 | | |
+| 02:§3.10.6 Kuponun kullanım hakkı stok gibi ayrılır | T338, T348, T526 | | |
+| 02:§3.10.7 Kupon, ücretsiz kargo eşiğinin ve asgari sipariş tutarının tabanını düşürmez; | T338, T349 | | |
+| 02:§3.11 Ürün görseli ve metni | T339 | | |
+| 02:§3.11.1 Görsel ürün düzleminde yaşar; | T339, T525 | | |
+| 02:§3.11.2 Ayrı bir "ana görsel" işareti vardır ve galeri sırasından bağımsızdır; | T339, T525 | | |
+| 02:§3.11.3 Görsele üç kısıt uygulanır | T339, T525 | | |
+| 02:§3.11.4 Görselin alternatif metni isteğe bağlıdır ve geri düşüşlüdür | T339 | | |
+| 02:§3.11.5 Ürün adına karakter tavanı konur; açıklama serbesttir | T339, T525 | | |
+| 02:§3.11.6 Ürün açıklaması, kurumsal içeriğin uzun metinleri ve firmanın düzenlediği iki yasal metin tek bir kapalı metin biçimi setini kullanır | T339, T534 | | |
+| 02:§3.11.7 Garanti bilgisinin ayrı alanı yoktur | T339 | | |
+| 02:§3.12 Dijital ürün | T340 | | |
+| 02:§3.12.1 Dijital ürünü sistem teslim eder | T340, T312, T511 | | |
+| 02:§3.12.2 Dosya ürün düzleminde yaşar; varyant isterse kendi dosyasını taşır, taşımıyorsa ürününkini devralır | T340, T525 | | |
+| 02:§3.12.3 Tek dosyanın boyut tavanı vardır; | T340, T312 | | |
+| 02:§3.12.4 Dijital üründe adet her zaman 1'dir | T340, T508 | | |
+| 02:§3.12.5 İndirmenin adet sınırı vardır, süre sınırı yoktur | T340, T312, T511 | | |
+| 02:§3.12.6 Hakkı dolan müşteri firmaya başvurur; firma paneldeki sipariş sayfasından o kalemin indirme hakkını yeniler ve sayaç sıfırlanır | T340, T531 | | |
+| 02:§3.12.7 Sipariş sayfası, kalemin bağlı olduğu varyantın o anki dosyasını verir | T340, T312 | | |
+| 02:§3.12.8 Dosya güncellemesi indirme hakkını değiştirmez; | T340 | | |
+| 02:§3.12.9 Daha önce alınmış dijital varyant yeniden satın alınabilir | T340, T508 | | |
+| 02:§3.13 Üyelik, e-posta doğrulama ve oturum | T341, T342, T343 | | |
+| 02:§3.13.1 Sipariş vermek için üyelik zorunlu değildir | T341, T509 | | |
+| 02:§3.13.2 Hesap açıldığında, o e-postaya ait geçmiş misafir siparişleri hesaba düşer | T341 | | |
+| 02:§3.13.3 Hesabı olan kişi giriş yapmadan misafir olarak sipariş verirse sipariş kabul edilir ve hesaba anında düşer; | T341, T509 | | |
+| 02:§3.13.4 E-posta doğrulaması sert bir kapıdır | T341, T514 | | |
+| 02:§3.13.5 Doğrulanmamış hesap geçicidir | T341, T514 | | |
+| 02:§3.13.6 Sosyal giriş yalnız Google ile yapılır; | T343, T409, T515 | | |
+| 02:§3.13.7 Aynı e-posta iki giriş yolundan gelirse tek hesaba bağlanır | T343, T409 | | |
+| 02:§3.13.8 Google ile açılmış hesap şifresiz başlar ve sonradan şifre konabilir; | T343, T516 | | |
+| 02:§3.13.9 Şifre sıfırlama bağlantısının bir ömrü vardır ve bağlantı tek kullanımlıktır | T342, T516 | | |
+| 02:§3.13.10 Şifre sıfırlandığında hesabın bütün cihazlardaki oturumları kapanır; | T342, T516, T517 | | |
+| 02:§3.13.11 Ekranlar hesabın varlığını iki farklı biçimde ele verir | T342, T514, T516 | | |
+| 02:§3.13.12 Oturum ömrünü kullanıcı seçer | T342, T515 | | |
+| 02:§3.13.13 Üç işlem, oturum açık olsa bile yeniden doğrulama ister | T342, T517 | | |
+| 02:§3.13.14 Hesabın e-posta adresi, yeni adres doğrulanmadan değişmez | T343, T517, T519 | | |
+| 02:§3.13.15 Şifre politikası uzunluk tabanlıdır | T342, T517 | | |
+| 02:§3.13.16 Bu grubun kimlik doğrulama kuralları firma yöneticisi hesaplarına da aynen ve aynı değerlerle uygulanır | T342, T520, T523 | | |
+| 02:§3.13.17 Giriş, şifre sıfırlama, hesap kaydı ve doğrulama bağlantısının yeniden istenmesi limitlidir | T342, T215 | | |
+| 02:§3.13.18 Kayıtta ve hesapta pazarlama onayı yoktur | T341, T514 | | |
+| 02:§3.13.19 Hesap kaydı ve Google ile ilk giriş veri toplayan girişlerin kapısına bağlıdır | T341, T331 | | |
+| 02:§3.13.20 Her giriş denemesi giriş kaydına yazılır | T341, T108 | | |
+| 02:§3.13.21 Hesap bir ad taşır | T341, T517 | | |
+| 02:§3.14 Adres | T344 | | |
+| 02:§3.14.1 Üye müşterinin adres defteri vardır | T344, T509, T518 | | |
+| 02:§3.14.2 Fatura adresi teslimat adresinden ayrı seçilebilir | T344, T509 | | |
+| 02:§3.14.3 Adreste il serbest metin değildir; | T344, T103 | | |
+| 02:§3.14.4 Siparişin istediği adresler kalemlerin tipine bağlıdır | T344, T509 | | |
+| 02:§3.14.5 Sipariş, adreslerini kendi içine dondurur; | T344, T355 | | |
+| 02:§3.14.6 Adresin alanları | T344, T509, T518 | | |
+| 02:§3.15 Hesabın silinmesi ve kişisel veri başvurusu | T345 | | |
+| 02:§3.15.1 Hesap silindiğinde hesap kapanır, sipariş kaydı yasal saklama süresi boyunca durur | T345, T309, T517 | | |
+| 02:§3.15.2 Yürüyen sipariş hesap silmeyi engellemez | T345 | | |
+| 02:§3.15.3 Silinmiş bir hesabın siparişleri hiçbir hesaba bağlanmaz; | T345 | | |
+| 02:§3.15.4 Ürünün sunduğu başvuru kanalı iletişim formudur | T345, T365 | | |
+| 02:§3.15.5 Uygulama içi veri indirme yoktur | T345, T533 | | |
+| 02:§3.15.6 E-posta değişikliğini geri alma bağlantısı açıkken hesap silinmez | T345, T517, T533 | | |
+| 02:§3.16 Sepet | T346, T347 | | |
+| 02:§3.16.1 Üyenin sepeti hesabında durur ve her cihazda aynıdır; misafirin sepeti bulunduğu tarayıcıya bağlıdır | T346, T508 | | |
+| 02:§3.16.2 Sepet kendiliğinden boşalmaz | T346 | | |
+| 02:§3.16.3 Giriş anında iki sepet birleşir; aynı varyant toplanmaz | T346, T508 | | |
+| 02:§3.16.4 Birleştirme, müşterinin o ziyarette görmediği bir ürünü ya da adedi sepete eklediyse müşteriye bir kez söylenir | T346, T508 | | |
+| 02:§3.16.5 Sepet kalemi canlıdır | T346, T508 | | |
+| 02:§3.16.6 Vitrinde görünen ama satın alınamayan kalem sepette "Tükendi" işaretiyle kalır ve siparişe girmez | T346, T508 | | |
+| 02:§3.16.7 Vitrinden kalkan kalem sepetten çıkar ve müşteriye bir kez söylenir | T346, T508 | | |
+| 02:§3.16.8 Stoktan fazla adet sepete eklenmez ve stok adedi söylenmez | T347, T503, T508 | | |
+| 02:§3.16.9 Firma bir üründen bir siparişte alınabilecek adedi sınırlayabilir | T347, T503, T525 | | |
+| 02:§3.16.10 Sonradan aşılan sınırda kalemler sepette mesajıyla kalır | T347, T508 | | |
+| 02:§3.16.11 Sepetteki kalem sayısına tavan yoktur | T347 | | |
+| 02:§3.16.12 Sepet, ödeme başarılı olduğunda boşalır | T347, T348 | | |
+| 02:§3.16.13 İstek listesi ve sepet hatırlatması yoktur | T347 | | |
+| 02:§3.17 Sipariş onayı ve stok ayırma | T348 | | |
+| 02:§3.17.1 Sipariş, müşterinin ödeme adımında siparişi onayladığı anda oluşur | T348, T329, T509, T510 | | |
+| 02:§3.17.2 Onaylanan özet ile oluşan sipariş birebir aynıdır | T348, T509 | | |
+| 02:§3.17.3 Sipariş onaylandığında kalemlerin adedi stoktan ayrılır ve müşteriye bir ödeme süresi tanınır | T348 | | |
+| 02:§3.17.4 Ödeme süresi yönteme göre ayrıdır | T348, T324, T536 | | |
+| 02:§3.17.5 Ödeme süresi dolan ya da kart ödemesi başarısız olan sipariş kendiliğinden iptal olur | T348, T324 | | |
+| 02:§3.17.6 Başarısız ödemenin tekrarı yeni bir siparişle olur | T348, T510 | | |
+| 02:§3.17.7 Müşteri aynı sepetten yeni bir siparişi onayladığında, o sepete bağlı ödenmemiş önceki siparişi kendiliğinden iptal edilir | T348 | | |
+| 02:§3.17.8 Ödemesi hiç başarılı olmamış ve kendiliğinden iptal edilmiş sipariş — ödeme süresi dolmuş, kart ödemesi başarısız olmuş ya da aynı sepetten yeni… | T348, T215, T511 | | |
+| 02:§3.18 Asgari sipariş tutarı | T349 | | |
+| 02:§3.18.1 Firma isteğe bağlı tek bir asgari sipariş tutarı girebilir; | T349, T508, T509, T536 | | |
+| 02:§3.18.2 Karşılaştırma tabanı ücretsiz kargo eşiğininkiyle aynıdır | T349 | | |
+| 02:§3.18.3 Asgari tutar yalnız en az bir fiziksel kalem içeren siparişe uygulanır | T349 | | |
+| 02:§3.19 Kargo ücreti ve ücretsiz kargo eşiği | T349 | | |
+| 02:§3.19.1 Kargo ücreti sipariş başına sabittir | T349, T536 | | |
+| 02:§3.19.2 Kargo ücreti KDV dahil tek tutar olarak girilir; KDV'si siparişteki fiziksel kalemlerin oranını izler | T349, T536 | | |
+| 02:§3.19.3 Firma isteğe bağlı bir ücretsiz kargo eşiği girebilir | T349, T536 | | |
+| 02:§3.19.4 Eşiğin tabanı kupondan önceki tutardır | T349 | | |
+| 02:§3.19.5 Eşik tanımlıysa ve siparişte fiziksel kalem varsa, sepette ve ödeme özetinde eşiğe kalan tutar yazar | T349, T508, T509 | | |
+| 02:§3.19.6 Kargo ücreti ve ücretsiz kargo kararı sipariş düzleminde donar; | T349, T355 | | |
+| 02:§3.20 Teslim: bölge, yol, kargoya verme ve takip | T350, T351 | | |
+| 02:§3.20.1 Firma teslimat yaptığı illeri seçer; varsayılan seçim tüm Türkiye'dir | T350, T509, T536 | | |
+| 02:§3.20.2 Tek teslimat yolu kargodur | T350 | | |
+| 02:§3.20.3 Sipariş tek parça gider ve tek takip numarası taşır; | T350 | | |
+| 02:§3.20.4 Firmanın teslimat sözü kargoya verme süresidir | T350, T503, T536 | | |
+| 02:§3.20.5 Kargoya verme süresinin firma varsayılanı vardır; ürün kendi süresini taşıyabilir | T350, T525, T536 | | |
+| 02:§3.20.6 Kargoya verme süresi ödemenin onaylandığı anda başlar | T350, T325 | | |
+| 02:§3.20.7 Sipariş "kargoya verildi" olarak işaretlenirken ya kargo şirketi + takip numarası girilir ya da "kendi aracımızla teslim" seçeneği işaretlenir; | T350, T310, T527 | | |
+| 02:§3.20.8 Kargo şirketi ürünle gelen bir listeden seçilir; | T350, T310 | | |
+| 02:§3.20.9 Kalemin teslimi tipine göre işler | T351, T531 | | |
+| 02:§3.20.10 Karışık siparişte sevkiyat tek eksende kalır ve iptal edilmemiş fiziksel kalem kaldığı sürece fiziksel hattı izler; | T351, T316 | | |
+| 02:§3.20.11 Fiziksel teslimi firma işaretler ve teslim tarihini kendisi girer | T351, T527 | | |
+| 02:§3.20.12 Fiziksel kalemi olmayan sipariş kargo adımlarından geçmez | T351, T316 | | |
+| 02:§3.21 Ödeme | T352, T353 | | |
+| 02:§3.21.1 Satıcı firmadır; platform ticari zincirde yer almaz | T352, T401 | | |
+| 02:§3.21.2 İki ödeme yöntemi vardır: kart ve havale/EFT | T352, T536 | | |
+| 02:§3.21.3 Her kart ödemesi istisnasız 3D Secure doğrulamasından geçer; | T352, T406 | | |
+| 02:§3.21.4 Kart yönteminin panelde açık/kapalı anahtarı yoktur | T352, T401 | | |
+| 02:§3.21.5 Havale/EFT panelden açılıp kapatılır; açıkken IBAN zorunludur | T353, T536 | | |
+| 02:§3.21.6 Havale ile siparişi onaylayan müşteri ekranda firmanın siparişe donan IBAN'ını (§3.21.5) ve sipariş numarasını görür; | T353, T307 | | |
+| 02:§3.21.7 Firma havalede gelen tutarı sisteme girmez | T353 | | |
+| 02:§3.21.8 Süresi dolup iptal edilmiş bir sipariş sonradan "ödendi" işaretlenemez | T353, T317 | | |
+| 02:§3.21.9 Ürün taksiti bilmez | T352 | | |
+| 02:§3.21.10 Sipariş hazırlığa ancak ödeme onaylandığında geçer | T352, T316 | | |
+| 02:§3.21.11 Ters ibraz (harcama itirazı) ürünün dışındadır | T352, T529 | | |
+| 02:§3.22 Sipariş numarası ve takip erişimi | T354 | | |
+| 02:§3.22.1 Sipariş numarası tahmin edilemez bir koddur | T354 | | |
+| 02:§3.22.2 Numara sipariş oluştuğu anda verilir ve sipariş iptal edilse bile tekrar kullanılmaz | T354 | | |
+| 02:§3.22.3 Sipariş sayfasına üç yoldan girilir | T354, T511, T215 | | |
+| 02:§3.22.4 Sipariş sayfası her bilgiyi taşır | T354, T511 | | |
+| 02:§3.22.5 Sipariş e-postasındaki bağlantı, misafir alıcının ve hesabı silinmiş müşterinin siparişinde, sipariş numarasından ayrı, siparişe özgü ve tahmin… | T354, T511 | | |
+| 02:§3.23 Sipariş anında donan değerler | T355 | | |
+| 02:§3.23.1 Sipariş kalemi, ödenen tutarı üreten her değeri ve ürünün o anki tanımını dondurur | T355 | | |
+| 02:§3.23.2 Donan her değer sipariş kaleminde düz olarak yaşar | T355 | | |
+| 02:§3.23.3 Sipariş, teslimat ve fatura adreslerini, iletişim e-postasını, firmanın o günkü yasal kimliğini (§3.1.3'ün tipe göre kimlik alanları, adres,… | T355, T530 | | |
+| 02:§3.23.4 Donma anı siparişin oluştuğu andır | T355 | | |
+| 02:§3.23.5 Marka ayarları siparişe donmaz | T355 | | |
+| 02:§3.24 Onay adımı ve yasal metinler | T356 | | |
+| 02:§3.24.1 Sipariş iki ayrı onay kutusuyla onaylanır | T356, T509, T544 | | |
+| 02:§3.24.2 Sepette dijital kalem varsa üçüncü bir kutu çıkar | T356, T509, T544 | | |
+| 02:§3.24.3 Ön Bilgilendirme Formu onay özetiyle birebir aynıdır | T356, T366 | | |
+| 02:§3.24.4 Yaş için ayrı beyan istenmez | T356 | | |
+| 02:§3.24.5 Misafir alıcının e-postası doğrulama koduyla sınanmaz | T356, T509 | | |
+| 02:§3.24.6 Onaylanan metinlerin sürümü ve firmanın kimliği siparişe donar | T356, T355 | | |
+| 02:§3.24.7 Ödeme adımında müşteri notu alanı yoktur | T356 | | |
+| 02:§3.24.8 Sitede "İşlem rehberi" başlıklı sabit bir sayfa vardır | T356, T507 | | |
+| 02:§3.25 Fatura | T357 | | |
+| 02:§3.25.1 Ürün fatura kesmez; e-Arşiv ve e-Fatura entegrasyonu yoktur | T357, T524 | | |
+| 02:§3.25.2 Fatura sistemde saklanmaz ve gösterilmez | T357 | | |
+| 02:§3.25.3 Dışa aktarmada siparişin donmuş firma kimliği kullanılır, | T357, T524 | | |
+| 02:§3.26 İptal, cayma, iade ve ayıp talebi | — | | |
+| 02:§3.27 Kurumsal içerik | T358, T359, T360 | | |
+| 02:§3.27.1 Kurumsal içerik hazır tiplerle ve düzeni sabit bir genel sayfayla girilir; | T358 | | |
+| 02:§3.27.2 Beş hazır tip vardır: Hakkımızda, hizmet tanıtımı, referans iş, sık sorulan soru ve şube; | T358 | | |
+| 02:§3.27.3 Hakkımızda tek kayıttır | T358, T534 | | |
+| 02:§3.27.4 Hizmet tanıtımı fiyatsızdır ve satın alınmaz | T358, T505 | | |
+| 02:§3.27.5 Referans iş, firmanın yaptığı bir işi anlatır | T358, T505 | | |
+| 02:§3.27.6 Sık sorulan soru, soru ve cevaptan oluşur; | T358, T506 | | |
+| 02:§3.27.7 Şubeler İletişim sayfasında listelenir; | T358, T506 | | |
+| 02:§3.27.8 İletişim sayfası ayrı bir içerik tipi değildir | T358, T506 | | |
+| 02:§3.27.9 Genel sayfa başlık, metin ve görsellerden oluşur, düzeni sabittir ve adet sınırı yoktur | T358, T534 | | |
+| 02:§3.27.10 Hizmet tanıtımı ve referans iş katalogdan ürün bağlayabilir | T359, T505 | | |
+| 02:§3.27.11 Hizmet tanıtımı, referans iş, SSS, şube ve genel sayfa listelerini firma panelde elle sıralar; | T359, T534 | | |
+| 02:§3.27.12 Firma isteğe bağlı sosyal medya hesap bağlantıları ve bir WhatsApp numarası girer | T358, T534 | | |
+| 02:§3.27.13 Hiçbir kurumsal içerik tipi zorunlu değildir; | T359, T534 | | |
+| 02:§3.27.14 Hakkımızda boşken ya da yayında değilken ana sayfanın kurumsal bloğu marka adını ve logoyu gösterir; | T359, T502 | | |
+| 02:§3.27.15 Kurumsal içeriğin görselleri ve kısa alanları ürünün kurallarına tabidir | T359, T534 | | |
+| 02:§3.27.16 Uzun metinler §3.11.6'nın metin biçimi setini kullanır | T359, T339 | | |
+| 02:§3.27.17 Kurumsal içerikte gömülü video oynatıcı yoktur | T359 | | |
+| 02:§3.27.18 Kurumsal içeriğe dosya eki (PDF vb.) eklenmez | T359 | | |
+| 02:§3.27.19 Müşteri görüşleri ayrı bir içerik tipi değildir | T359 | | |
+| 02:§3.27.20 Blog yoktur | T359 | | |
+| 02:§3.27.21 Duyuru şeridi vardır: tek, kısa, tarihli | T360, T534 | | |
+| 02:§3.27.22 Site boş kurulur | T360 | | |
+| 02:§3.27.23 Her içerik kaydı kendi yayın durumunu taşır: Taslak ya da Yayında; | T360, T322 | | |
+| 02:§3.27.24 Taslak kayıt yalnız adla ya da başlıkla — SSS'de soruyla — kaydedilebilir; yayına almak §3.27.13'ün zorunlu alanlarını ister | T360, T534 | | |
+| 02:§3.27.25 Taslak içeriğin sayfası ziyaretçiye "sayfa bulunamadı" döner; giriş yapmış yöneticiye sayfayı "Taslak" bandıyla gösterir | T360, T505 | | |
+| 02:§3.27.26 İçerikte sürüm geçmişi yoktur | T360 | | |
+| 02:§3.27.27 Kurumsal içerik kalıcı olarak silinebilir; silme geri alınamaz işlem uyarısıyla yapılır | T360, T534 | | |
+| 02:§3.27.28 Kurumsal içerikte ileri tarihli yayın yoktur; | T360 | | |
+| 02:§3.28 Ana sayfa ve menü | T361 | | |
+| 02:§3.28.1 İki hazır ana sayfa düzeni vardır ve firma panelden birini seçer: tanıtım öncelikli ya da mağaza öncelikli | T361, T535, T502 | | |
+| 02:§3.28.2 Ana sayfanın kurumsal bloğu her zaman Hakkımızda'dır | T361, T502 | | |
+| 02:§3.28.3 Hizmet tanıtımı ve referans iş bir "ana sayfada göster" işareti taşır; | T361, T534, T502 | | |
+| 02:§3.28.4 Menü düzenleyici yoktur | T361, T535, T537 | | |
+| 02:§3.28.5 Genel sayfalar altbilgide listelenir; | T361, T537 | | |
+| 02:§3.28.6 Yayında ürünü olmayan kategori menüde görünmez | T361, T333 | | |
+| 02:§3.29 Marka kimliği | T362 | | |
+| 02:§3.29.1 Firma görünümde dört şeyi ayarlar: logo, marka adı, site simgesi ve tek bir marka rengi | T362, T534 | | |
+| 02:§3.29.2 Logo zorunlu değildir | T362, T537 | | |
+| 02:§3.29.3 Marka adı unvandan ayrı ve zorunlu bir alandır; | T362, T534 | | |
+| 02:§3.29.4 Site simgesi isteğe bağlıdır; | T362 | | |
+| 02:§3.29.5 Marka rengi okunurluğu bozamaz | T362 | | |
+| 02:§3.29.6 Sitenin altbilgisinde "Shopfolio ile kuruldu" platform imzası varsayılan olarak açıktır; firma panelden kapatabilir | T362, T534 | | |
+| 02:§3.30 Sayfa adresleri, arama motorları ve paylaşım | T363 | | |
+| 02:§3.30.1 Ürünün adresi kategoriye bağlı değildir; | T363 | | |
+| 02:§3.30.2 Her sayfanın adresi kaydın adından üretilir ve ilk yayında sabitlenir | T363 | | |
+| 02:§3.30.3 Yönlendirme sistemi yoktur | T363 | | |
+| 02:§3.30.4 Var olmayan, silinmiş ve yeni bir kayda verilmemiş ya da ziyaretçiye kapalı (taslak) her adres "sayfa bulunamadı" sayfasına düşer | T363, T504 | | |
+| 02:§3.30.5 Arama motoru bilgileri otomatik üretilir; | T363, T313 | | |
+| 02:§3.30.6 Arama motorlarına kapalı sayfalar | T363, T313 | | |
+| 02:§3.30.7 Ürün ve kurumsal içerik sayfalarında tek bir "Paylaş" düğmesi vardır | T363, T503, T505 | | |
+| 02:§3.31 Panelde eşzamanlı düzenleme | T364 | | |
+| 02:§3.31.1 Sessiz üzerine yazma yoktur | T364, T208 | | |
+| 02:§3.31.2 Siparişe yönelik her işlem siparişin güncel hâline karşı uygulanır | T364, T527 | | |
+| 02:§3.32 İletişim talebi | T365 | | |
+| 02:§3.32.1 İletişim formu girişsiz açıktır | T365, T506 | | |
+| 02:§3.32.2 Formun alanları | T365, T506 | | |
+| 02:§3.32.3 Konu tipi kapalı beş değerden seçilir | T365, T506 | | |
+| 02:§3.32.4 Talebin iki durumu vardır: Açık ve Kapatıldı | T365, T322, T532 | | |
+| 02:§3.32.5 Sistem talebi kaydeder ve iletir, yazışmayı yürütmez | T365, T308, T532 | | |
+| 02:§3.32.6 Müşteri talebini takip etmez | T365 | | |
+| 02:§3.32.7 Form spam'e karşı iki mekanizmayla korunur | T365, T215 | | |
+| 02:§3.32.8 Aydınlatma metni tamamlanmış ve yayına alınmış değilse ya da çerez politikası yayına alınmamışsa iletişim formu kapalıdır | T365, T331 | | |
+| 02:§3.32.9 Ayrı bir şikâyet kanalı ve canlı destek yoktur | T365 | | |
+| 02:§3.32.10 İndirme hakkını yenileme başvurusu da bu formdan, "Sipariş hakkında" tipiyle gelir | T365, T531 | | |
+| 02:§3.33 Yasal metinler | T366 | | |
+| 02:§3.33.1 Dört yasal metin vardır | T366, T507 | | |
+| 02:§3.33.2 Firmanın düzenlediği iki metin zorunludur ve boşaltılamaz | T366, T507 | | |
+| 02:§3.33.3 Sürüm kendiliğinden artar | T366 | | |
+| 02:§3.33.4 Metin değiştiğinde yeniden onay alınmaz | T366 | | |
+| 02:§3.33.5 Aydınlatma metninin bağlantısı yeni bir kişisel veri alanı açan her ekranda görünür | T366, T540 | | |
+| 02:§3.33.6 Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi müşteriye e-postayla da gönderilir | T366, T306 | | |
+| 02:§3.33.7 Uyuşmazlık bilgisi iki metnin zorunlu parçasıdır | T366 | | |
+| 02:§3.33.8 Ayarlarla çelişen serbest metin firmanın sorumluluğundadır | T366 | | |
+| 02:§3.33.9 Dört metin tamamlanmadan satış açılmaz; | T366, T331 | | |
+| 02:§3.34 Site geneli: cihaz, tarayıcı, erişilebilirlik ve süreklilik | T540, T327, T118 | | |
+| 02:§3.34.1 Tek site, duyarlı tasarım | T540 | | |
+| 02:§3.34.2 Vitrin mobil önceliklidir, panel masaüstü önceliklidir; panelde hiçbir işlev mobilde kapatılmaz | T540 | | |
+| 02:§3.34.3 Tarayıcı tabanı son iki büyük sürümdür | T540 | | |
+| 02:§3.34.4 En dar desteklenen ekran genişliği bir sayıdır; | T540 | | |
+| 02:§3.34.5 Erişilebilirliğin tabanı Aile ve Sosyal Hizmetler Bakanlığı'nın "Web Siteleri ve Mobil Uygulamaların Erişilebilirliği Kontrol Listesi — A Seviyesi"… | T540, T543 | | |
+| 02:§3.34.6 Sitede ziyaretçi ölçümü yoktur | T540 | | |
+| 02:§3.34.7 Ürün çalışma süresi taahhüdü vermez | T327 | | |
+| 02:§3.34.8 Sipariş tarafında veri kaybı toleransı sıfırdır | T118, T327 | | |
 
 ### 7.2 Geri izlenebilirlik (task → kaynak öğe)
 

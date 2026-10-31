@@ -457,17 +457,72 @@ Riskli T377 (#79 + birleşik KK9), hukum 8 bloğu (2.554), T548 (#173) ve hukum 
 
 **İlerleme:** KD-deep'in 143 doğrulanmamış bulgusunun **tamamı hükme bağlandı** (KD-deep-2: 2a 65 + 2b 78 = **143/143**). Toplam (KD-deep dahil): hükme bağlanan 48 + 143 = 191 ham bulgu; 2a+2b toplamı **19 doğru · 68 kısmen · 56 çürük**, uygulanan **85 bulgu / 161 şartname çifti** (2a 35/66, 2b 50/95). Yeniden doğrulamaya bekleyen: **#117, #167** (`KD-deep-2r`; ikisi de Düşük → Orta). Kapılar: `11_matris_kapsama.py` sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214 · `geri_isaret_tara.py 1475 1476` eksik 0.
 
+### Yeniden doğrulama — KD-deep-2r
+
+2a ve 2b'de Düşük → Orta'ya yükselen iki bulgu (#117 ve #167) yeni kademede yeniden doğrulandı (paket: `scripts/doc-scans/11_deep_yeniden_paketle.py`; Orta için 2–4'lü kural, iki bulgu farklı modülde olduğundan her biri tek). **2r'de 2 doğrulayıcı koştu**, ikisi de `[dogrulama]` Opus / high; bekçi olayı yok. Doğrulamasız uygulama, örnekleme ya da atlama yoktur.
+
+| Doğrulayıcı | Model | Kademe, modül | Bulgular | Hüküm |
+|---|---|---|---|---|
+| D1 | Opus / high | Orta 1'li, Bildirim | #117 | 1 doğru · 0 kısmen · 0 çürük |
+| D2 | Opus / high | Orta 1'li, Ortak altyapı | #167 | 1 doğru · 0 kısmen · 0 çürük |
+
+**Hükümler (2 bulgu):** 2 doğru · 0 kısmen · 0 çürük; ikisi de Orta kaldı, **Yüksek'e yükselen yok.** Uygulanan: **2 bulgu, 8 şartname çifti** `11_audit_uygula.py` ile tek seferde (sorun 0).
+
+| # | Task | Bulgu (özet) | Hüküm | Seviye | Uygulandı |
+|---|---|---|---|---|---|
+| 117 | T306 (+ T324) | B-3 kesinti kolu koşulsuz "site dönünce gönderilir" der; `03 §4.1.9` ve `§7.1.6` "süre hâlâ işliyorsa gider, dolmuşsa gitmez" der; KK2 silinmiş hesapta anahtarlı bağlantıyı sınamaz | doğru | Orta | evet (6 çift) |
+| 167 | T546 | k5 dört tetikleyici sayar, KK5 "üç vitrin geçişi aranır" der; `04 §3.7` beş satırdır (3.7.4 "Düzenlemeye dön", 3.7.5 oturumsuz taslak adresi → E-06) | doğru | Orta | evet (2 çift) |
+
+**#117 (6 çift):** T306 k5 kesinti kolunu T324'e işaret eder (Z-9 zamanlamasının sahibi T324 k7'dir); T324 k7 ve KK7 kesintide kaçan hatırlatmanın yalnız süre hâlâ işliyorsa gittiğini yazar; T306 KK2 silinmiş hesapta anahtarlı bağlantıyı da sınar. T306 k3 ("12 puntodan küçük olmayan" → "en az 12 punto") ve k7 (`08 §2.2.6` B-5; `08 §2.4` → `08 §2.2.6` B-5, §2.4) anlam korunarak kısaltıldı. **#167 (2 çift):** T546 k5 ve KK5 `04 §3.7`'nin beş satırına bağlandı (liste kopyalanmaz, K-1445). Yan yüzler: T327 k3 (genel "kaçırdıkları sırayla çalışır"; B-3 istisnası T324'te kalır), T317 k8 (kesintiyle ilgisiz), T540 k9 (T546 eşitlik denetimiyle kapsanır) ve izlenebilirlik satırı 04 §3.7 → T546 değişmedi.
+
+### KARAR satırları (KD-deep-2r)
+
+KARAR yok; iki bulgu da şartnamesiyle uygulandı. K-1477 tek satırdır.
+
+### Blok bayt sınırı (2.560) ve söz kayıpları — KD-deep-2r
+
+Uygulama sonrası ölçüm: **T306 2.559**, **T324 2.442**, **T546 1.942**; `11_task_blok_denetle.py --tam` sorun 0. Bölme yok. T306'da yer şartnameyle açıldı (kesinti koşulu T324'e taşındı); kural kaybı yok.
+
+| Blok | Kayıp | Kural kaybı |
+|---|---|---|
+| T306 kriter 3 | "12 puntodan küçük olmayan" → "en az 12 punto" | yok (aynı eşik) |
+| T306 kriter 7 | "`08 §2.2.6` B-5; `08 §2.4`" → "`08 §2.2.6` B-5, §2.4" | yok (atıf biçimi) |
+| T306 kriter 5 | kesinti kolunun koşulu T324'e işaret eder | yok (koşul T324 k7 ve KK7'de, daha tam) |
+
+### Üst dokümana geri besleme (K-652) — KD-deep-2r
+
+Doğrulayıcı notu üst dokümanda bir koşulun düşmüş olduğunu buldu; aynı PR'da işlendi, yeni kural numarası yoktur (✓ korunur). `04 §3.7` (#167) kaynak olduğundan değişmedi.
+
+| Not | Doküman | Düzeltme | Sürüm |
+|---|---|---|---|
+| hukum 1 (#117) | `08 §2.2.6` B-3 Tetik — "kesintide zamanı gelmiş hatırlatma site dönünce" koşulsuz; `03 §7.1.6` süre hâlâ işliyorsa der | "… site dönünce, havale süresi hâlâ işliyorsa; dolmuşsa gitmez (`02 §3.21.6`, Z-9; `03 §7.1.6`)" | `08` v0.20 |
+
+**Anahtar terim taraması (K-1471 biçimi).** `08 §2.2.6` B-3 için terimler: "kesintide zamanı gelmiş", "site dönünce", "havale süresi hâlâ işliyorsa", "dolmuşsa gitmez", "kaçırılırsa dönüşte". Eşleşmeler `02` §4.3 (Sitenin kesintisi: "Hatırlatma, havale süresi dönüşte hâlâ işliyorsa gönderilir, dolmuşsa gönderilmez") ve Z-9 satırı (kesintide ertelenen iptalde yeni hatırlatma gitmez), `03` 4.1.9, 7.1.6, 10.3.3 ("süre hâlâ işliyorsa"), `04` `03 §7.1.6` izlenebilirlik satırı, `05` başlık notu, §5.4.2–§5.4.3 ve MK-44 (hepsi koşulu zaten taşıyor; çelişmez). `07` izlenebilirlik tablosundaki `03 §4.1.9` satırı ("kesintide kaçırılırsa dönüşte") koşulu yazmaz ama `03 §4.1.9`'a atıf yapan özet satırıdır ve uç doğurmaz; elenir. Tek yer (`08` B-3 Tetik) bu PR'da işlendi.
+
+**İlerleme:** Deep review'un **tamamı kapandı**. 191 ham bulgunun tamamı hükme bağlandı; yeniden doğrulama (2r) iki bulguyu teyit etti (bu ikisi 2a ve 2b'nin sayılarında zaten vardır, çift sayılmaz).
+
+| Adım | Hükme bağlanan | Doğru · kısmen · çürük | Uygulanan bulgu / çift | `11` |
+|---|---|---|---|---|
+| KD-deep (ilk koşum) | 48 | 12 · 22 · 14 | 34 / 82 | v0.34 |
+| KD-deep-2a | 65 | 9 · 27 · 29 | 35 / 66 | v0.35 |
+| KD-deep-2b | 78 | 10 · 41 · 27 | 50 / 95 | v0.36 |
+| KD-deep-2r (yeniden) | 2 (aynı #117, #167) | 2 · 0 · 0 | 2 / 8 | v0.37 |
+| **Toplam** | **191** | **31 · 90 · 70** | **121 / 251** | |
+
+Kapılar: `11_matris_kapsama.py` sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214 · `geri_isaret_tara.py 1477 1477` eksik 0.
+
 ### Aksiyon Planı
 
 1. **Bu adım:** 34 bulgu / 82 şartname çifti `11` v0.34'e uygulandı; `02` v0.106, `09` v0.26 geri besleme.
 2. **KD-deep-2a (yapıldı):** 65 bulgu hükme bağlandı, 35 bulgu / 66 çift `11` v0.35'e uygulandı; `02` v0.107, `03` v0.45, `04` v0.48, `07` v0.36 geri besleme.
-3. **KD-deep-2b (yapıldı):** 78 bulgu hükme bağlandı (143/143), 50 bulgu / 95 çift `11` v0.36'ya uygulandı; `04` v0.49, `05` v0.42, `08` v0.19, `09` v0.27 geri besleme. **KD-deep-2r:** #117 ve #167 yeniden doğrulanır.
-4. **Sonra:** cross-review (Aşama 9 kalite döngüsünün son adımı) ve aşama kapanışı.
+3. **KD-deep-2b (yapıldı):** 78 bulgu hükme bağlandı (143/143), 50 bulgu / 95 çift `11` v0.36'ya uygulandı; `04` v0.49, `05` v0.42, `08` v0.19, `09` v0.27 geri besleme.
+4. **KD-deep-2r (yapıldı):** #117 ve #167 yeniden doğrulandı (2 doğru, Orta), 2 bulgu / 8 çift `11` v0.37'ye uygulandı; `08` v0.20 geri besleme. Deep review kapandı.
+5. **Sonra:** cross-review (Aşama 9 kalite döngüsünün son adımı) ve aşama kapanışı.
 
 ### Sınırlar
 
 - Mercekler Sonnet / low'dur ve bulgu kaçırabilir; altı mercek paketini kısmen okudu (kuyruk mercekleriyle kapsandı). Kapsam, mercek kapsamıyla sınırlıdır; plandaki 214 task'ın her cümlesi gözle okunmadı.
-- Doğrulama adım başına 20 Opus doğrulayıcıyla sınırlıydı; 143 bulgu (%75) doğrulanmadı. Bu bulguların sayısı yüksektir, hiçbiri güvenlik ya da veri kaybı Yüksek'i değildir (merceğin seviyesidir; doğrulayıcı onaylamadı).
+- Doğrulama adım başına 20 Opus doğrulayıcıyla sınırlıydı; ilk koşumda 143 bulgu (%75) doğrulanmadan kaldı, KD-deep-2a, 2b ve 2r'de (kademeli, Opus / high) hepsi hükme bağlandı; doğrulanmamış bulgu kalmadı. Hiçbiri güvenlik ya da veri kaybı Yüksek'i değildir.
 - Kapsam ve tutarlılık katmanı audit'te tam koştuğu için bu adımda dardır (Kurallar 7); audit'in kararlarının doğurduğu yan yüzleri AY merceği taradı.
 - Söz kayıpları yalnız hükme bağlanan bulgular için kesindir; yer kalmayan #12 ve mercekçe bulgu üretilmeyen kayıplar için "anlam kaybı yok" mercek yargısıdır.
 - Rapor biçimi `09_DEEP_REVIEW.md`'den uyarlandı; çürütülen bulguların tek tek gerekçesi hüküm dosyalarındadır (depoda değil).

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.21** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.22** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -23,7 +23,7 @@
 | P8.2 — eşitlik denetimlerinin Lint adımına girmesi (K-1356) | T04 (komutlar `.github/ci-commands.env`) | Y2 | Task yazıldı ✓ — Y8 doğrular |
 | P8.3 — yama sürümü denetiminin `publish.yml`'e girmesi (K-1356, K-1358) | T04, T09 | Y2 | Task yazıldı ✓ — Y8 doğrular |
 | P8.4 — sahtelerin paylaşımı, xUnit v3 sınaması (K-1355) | T03 | Y2 | Task yazıldı ✓ — Y8 doğrular |
-| P8.5 — yükleme betiği, kayıt biçimleyicisi, maskeleme testleri (K-1354, K-1391) | T230 (üç yazıcı ve biçimleyici), T231 (maskeleme testleri), T548 (yükleme betiği) | Y3 (T230, T231) · Y6c (T548) | T230, T231 yazıldı ✓ — T548 Y6c'de; Y8 doğrular |
+| P8.5 — yükleme betiği, kayıt biçimleyicisi, maskeleme testleri (K-1354, K-1391) | T230 (üç yazıcı ve biçimleyici), T231 (maskeleme testleri), T548 (yükleme betiği) | Y3 (T230, T231) · Y6c (T548) | T230, T231 yazıldı ✓ — T548 yazıldı ✓ (Y6c); Y8 doğrular |
 
 **Yazım konvansiyonları (K-1443).** (1) **Sıra:** W-1 ✓ → başlık notu ve §3, §3.1, §4, §5'in "Task yapısı"nı (Y1) → matris ✓ → §5 task blokları fazlar halinde (aşağıdaki harita) → §6, §8, §9 → §1, §2 son (sayımlar bloklar bitince kesinleşir) → özet ↔ ayrıntı taraması → kalite döngüsü. (2) **Dil:** bu doküman Türkçe; kod, sembol ve dosya adları İngilizce. (3) **Kimlikler (K-1406 (3)):** konu `IPn-mm`; task `TXX`, araya `TXXa`/`TXXb`, devam turu `TXX.1` (`00 §J`); matris kaynak kimliği ailesine göre (§7'nin "Kaynak kimliğinin biçimi" tablosu). (4) **Atıf biçimi:** `02 §3.8.3`, `07 UC-12`, `09 §10`, `05 MK-12` — önsüz `§` bu dokümanın bölümüdür; başka doküman her zaman numarasıyla anılır. (5) **Tüketici ilkesi:** kaynakla çelişki çıkarsa kaynak kazanır, fark bu dokümana hizalama olarak yazılır; kaynağın kendisi yanlışsa §8'e GAP olarak girer (K-1406 (2)(d)). (6) **Kural ayrıntısı evinde kalır:** task bloğu kaynağın kuralını kopyalamaz, kimlikle işaret eder. (7) **Açık kararlar bölümü yoktur:** açık kalem karar kaydının §4'ündedir; sonraki dokümana talimat o dokümanın park bloğundadır (PF-143).
 
@@ -54,7 +54,7 @@ Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 sat
 | Y5 | §5 F4 | `T401`–`T410` (10) | `IP5-10` | ✓ |
 | Y6a | §5 F5 başlığı ve birinci üçte bir | `T501`–`T516` (16) | `IP5-11` | ✓ |
 | Y6b | §5 F5 ikinci üçte bir | `T517`–`T532` (16) | `IP5-11` | ✓ |
-| Y6c | §5 F5 son üçte bir ve F5 `Yürütme sırası` | `T533`–`T549` (17) | `IP5-11`, `IP5-08` (T548) | ⏳ |
+| Y6c | §5 F5 son üçte bir ve F5 `Yürütme sırası` | `T533`–`T549` (17) | `IP5-11`, `IP5-08` (T548) | ✓ |
 | Y7 | §5 F6, §6.1, §6.2 | `T601`–`T602` (2) | `IP5-12`, `IP6-01`, `IP6-02` | ⏳ |
 | Y8 | §8 son hali, §9, §1, §2 (sayımlar kesin) | — | `IP8-01`, `IP9-01`, `IP1-01`, `IP2-01` | ⏳ |
 

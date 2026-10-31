@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.31** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.32** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -2715,48 +2715,48 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. Sipariş vermek için üyelik zorunlu değildir; misafir siparişi doğrulama kapısının dışındadır (`02 §3.13.1`, §3.13.4).
   2. Hesap açıldığında o e-postaya ait geçmiş misafir siparişleri hesaba düşer; tek dayanak doğrulanmış e-postadır ve silinmiş hesabın siparişleri bağlanmaz (`02 §3.13.2`).
-  3. Hesabı olan kişi giriş yapmadan sipariş verirse sipariş kabul edilir ve hesaba anında tam olarak bağlanır; giriş duvarı yoktur (`02 §3.13.3`).
+  3. Doğrulanmış hesabı olan kişi giriş yapmadan sipariş verirse sipariş kabul edilir ve hesaba anında tam bağlanır, bekleyen kayda bağlanmaz; giriş duvarı yoktur (`02 §3.13.3`).
   4. E-posta doğrulaması sert kapıdır: doğrulanmamış hesapla giriş yapılamaz ve sipariş verilemez; tek tip hesap vardır (`02 §3.13.4`).
   5. Doğrulanmamış hesap geçicidir; Z-1 dolunca kayıt silinir, e-posta yeniden kayda açılır ve süresi geçmiş bağlantı "bağlantı geçersiz, yeniden kayıt olun" mesajını verir (`02 §3.13.5`).
-  6. Doğrulama bağlantının açılmasıyla değil, açılan ekrandaki doğrulama düğmesiyle olur (`02 §3.13.5`).
+  6. Doğrulama bağlantıyla değil, açılan ekrandaki düğmeyle olur (`02 §3.13.5`).
   7. Kayıt formu ad, e-posta ve şifre ister; ad zorunludur ve kullanıcı adını yeniden doğrulamasız değiştirir (`02 §3.13.21`).
   8. Kayıtta ve hesapta pazarlama onayı alanı yoktur (`02 §3.13.18`).
-  9. Hesap kaydı veri toplayan girişlerin kapısına bağlıdır; her giriş denemesi zaman, IP, e-posta ve sonuçla giriş kaydına yazılır ve Z-40 ile imha edilir (`02 §3.13.19`, §3.13.20).
+  9. Veri toplayan girişlerin kapısı kapalıyken kayıt reddedilir (karar T331 k3); her giriş denemesi zaman, IP, e-posta ve sonuçla giriş kaydına yazılır, Z-40 imhası T302'dedir (`02 §3.13.19`, §3.13.20).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: misafir sipariş verir, doğrulama aranmaz.
   - KK2: geçmiş misafir siparişi doğrulanmış e-postayla hesaba düşer.
-  - KK3: hesaplı e-postayla misafir sipariş hesaba anında bağlanır.
+  - KK3: misafir sipariş doğrulanmış hesaba anında bağlanır, bekleyen kayda bağlanmaz.
   - KK4: doğrulanmamış hesap girişte ve siparişte reddedilir.
   - KK5: Z-1 sonrası kayıt silinir, bağlantı geçersiz mesajı çıkar.
   - KK6: bağlantıya tıklamak doğrulamaz, düğme doğrular.
-  - KK7: adsız kayıt reddedilir, ad değişimi yeniden doğrulama istemez.
+  - KK7: adsız kayıt reddedilir; ad değişimi doğrulama istemez.
   - KK8: formda ve kayıtta pazarlama alanı yok.
-  - KK9: başarılı ve başarısız giriş kaydı yazılır.
+  - KK9: kapı kapalıyken kayıt reddedilir; her giriş dört alanla yazılır.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T342: Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri
 - **Bağımlılık:** T341
 - **Dokümanlar:** çekirdek; `09` §8, §15; `02 §3.13.9`…§3.13.13, §3.13.15…§3.13.17, Z-2, Z-4, Z-5, §5.12.2, §6.5, §8.1, §8.2, L-1…L-3, L-9, §10.2.4, §10.2.5, §12.2.5, P-13, P-15, P-16, P-17, P-31…P-33, P-49; `05 MK-45`, MK-46, MK-51; `10` KP-27
 - **Kabul kriterleri:**
-  1. Şifre sıfırlama bağlantısının ömrü vardır ve tek kullanımlıktır; kullanılmış ya da süresi dolmuş bağlantı geçersizdir (`02 §3.13.9`).
+  1. Şifre sıfırlama bağlantısı Z-2 ömürlü ve tek kullanımlıktır; kullanılmış ya da dolmuş bağlantı geçersizdir (`02 §3.13.9`).
   2. Şifre sıfırlanınca bütün oturumlar kapanır; hesaptan değiştirilince öteki oturumlar kapanır, değiştiren oturum açık kalır; ikisinde öteki tarayıcıların işaretleri düşer (`02 §3.13.10`, §8.2.6).
   3. Şifre sıfırlama ekranı nötr, kayıt ekranı dürüst konuşur (`02 §3.13.11`).
-  4. Oturum ömrünü kullanıcı seçer: "beni hatırla" uzun, işaretsiz kısa oturum açar (`02 §3.13.12`).
+  4. Oturum ömrünü kullanıcı seçer: "beni hatırla" uzun (Z-5), işaretsiz kısa (Z-4) oturum açar (`02 §3.13.12`).
   5. Şifre değiştirme, e-posta değiştirme ve hesap silme açık oturumda da yeniden doğrulama ister; başka işlem istemez (`02 §3.13.13`).
   6. Google hesabında yeniden doğrulama Google ile yapılır; yeniden doğrulamadaki başarısız şifre L-1'e sayılır (`02 §3.13.13`).
-  7. Şifre politikası uzunluk tabanlıdır; asgari uzunluk aranır, karakter türü dayatılmaz, yaygın şifreler yerel listeyle reddedilir (`02 §3.13.15`).
+  7. Şifre politikası uzunluk tabanlıdır; asgari uzunluk P-17'dir, karakter türü dayatılmaz, yaygın şifreler yerel listeyle reddedilir (`02 §3.13.15`).
   8. Bu kurallar yönetici hesaplarına aynı değerlerle uygulanır; iki adımlı doğrulama yoktur (`02 §3.13.16`).
-  9. Giriş, şifre sıfırlama, kayıt ve doğrulama bağlantısı isteği limitlidir; eşikte işlem geçici engellenir, hesap kilitlenmez, mesaj nötrdür (`02 §3.13.17`; L-1…L-3, L-9).
+  9. Giriş, şifre sıfırlama, kayıt ve doğrulama bağlantısı isteği limitlidir; eşikte işlem geçici engellenir, hesap kilitlenmez, mesaj nötrdür (`02 §3.13.17`; L-1…L-3, L-9; T376 k5).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: sıfırlama bağlantısı ikinci kullanımda reddedilir.
   - KK2: sıfırlamada tüm, değiştirmede öteki oturumlar kapanır; öteki işaretler düşer.
-  - KK3: iki ekranın mesajları iki ayrı biçimde.
-  - KK4: "beni hatırla" iki ayrı süre açar.
+  - KK3: iki ekranın mesajı ayrı biçimde.
+  - KK4: "beni hatırla" Z-5, işaretsiz Z-4 oturum açar.
   - KK5: üç işlem yeniden doğrulama ister, öteki işlem istemez.
   - KK6: Google hesabı Google ile doğrulanır.
-  - KK7: kısa şifre ve yaygın şifre reddedilir, karakter dayatması yok.
+  - KK7: P-17 altı ve yaygın şifre reddedilir, karakter dayatması yok.
   - KK8: yönetici girişinde aynı süre ve politika işler.
   - KK9: eşikte engel açılır, hesap kilitlenmez, kalan sayı söylenmez.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -2771,7 +2771,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   4. Google adres için yetkili değilse ve hesap Google'a bağlı değilse bağ kurulmaz, oturum açılmaz; teyit bağlantısı gider, düğme bağı kurar; ömrü Z-2'dir, geçerli biri varken yenisi üretilmez, e-posta değişirse geçersizleşir (`02 §3.13.7`; P-13).
   5. Google hesabı şifresiz başlar, sonradan şifre konabilir; sıfırlama akışı "şifre belirle" işlevi görür (`02 §3.13.8`).
   6. Hesabın e-postası yeni adres doğrulanmadan değişmez; doğrulama yeni adrese giden bağlantının ekranındaki düğmeyle olur (`02 §3.13.14`).
-  7. Doğrulanınca bağlama kuralı yeni adres için yeniden işler; eski adrese bağlı siparişler hesapta kalır, bağlanmış sipariş çözülmez (`02 §3.13.14`).
+  7. Doğrulanınca bağlama kuralı yeni adres için işler ve Google bağı kalkar; eski adrese bağlı siparişler hesapta kalır (`02 §3.13.14`).
   8. Eski adrese Z-45 ömürlü geri alma bağlantısı gider; ömrü dolunca bağlantı ve eski adres silinir (`02 §3.13.14`).
   9. Yeni adresin bağlantısını yeniden isteme ve yerine geçen değişiklik L-9'a sayılır; Google ile giriş limite girmez (`02 §3.13.14`, §3.13.17; L-9).
 - **Test beklentisi:** Unit, Integration
@@ -2782,14 +2782,14 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK4: yetkisiz sağlayıcıda teyit, oturum yok; bağlantı tek kullanımlık, süre ya da e-posta değişince geçersiz.
   - KK5: şifresiz hesapta sıfırlama şifre belirler.
   - KK6: yeni adres doğrulanmadan e-posta değişmez.
-  - KK7: eski adrese bağlı sipariş hesapta kalır.
+  - KK7: eski adrese bağlı sipariş kalır; Google bağı kalkar.
   - KK8: geri alma bağlantısı Z-45'te geçersizleşir, eski adres silinir.
-  - KK9: yeniden istek L-9'da sayılır; sahte Google ile akış geçer.
+  - KK9: yeniden ve yerine geçen istek L-9'da; Google girişi sayılmaz.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T344: Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma
 - **Bağımlılık:** T341
-- **Dokümanlar:** çekirdek; `09` §3 (§3.4), §10; `02 §3.14.1`…§3.14.6, §3.20.1, §3.23.3; `10` KP-12, KP-13, KP-27, KD-27
+- **Dokümanlar:** çekirdek; `09` §3 (§3.4), §10; `02 §3.14.1`…§3.14.6; `10` KP-12, KP-13, KP-27, KD-27
 - **Kabul kriterleri:**
   1. Üye müşteri adres defterinde birden çok adres kaydeder ve adlandırır; misafirin adres defteri yoktur (`02 §3.14.1`).
   2. Üye ödeme adımında yeni adres yazabilir; yeni adres siparişe donar, deftere yalnız kaydetmeyi seçerse yazılır (`02 §3.14.1`).
@@ -2799,7 +2799,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   6. Yalnız dijital ve hizmet kalemli sipariş teslimat adresi alanlarını göstermez ve yalnız fatura adresi ister (`02 §3.14.4`).
   7. Sipariş adreslerini kendi içine dondurur; defterdeki sonraki değişiklik ya da silme geçmiş siparişe dokunmaz (`02 §3.14.5`).
   8. Adres alanları ad-soyad, il, ilçe ve açık adrestir ve dördü zorunludur; ilçe serbest metindir (`02 §3.14.6`).
-  9. Teslimat adresi ayrıca zorunlu telefon taşır (`02 §3.14.6`).
+  9. Teslimat adresi ayrıca zorunlu telefon taşır; fatura adresi telefon taşımaz; posta kodu ve T.C. kimlik numarası istenmez (`02 §3.14.6`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: üye ikinci adresi adlandırarak kaydeder, misafirde defter yok.
@@ -2810,7 +2810,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK6: dijital siparişte teslimat alanı yok, fatura adresi var.
   - KK7: deftere sonradan yapılan düzenleme eski siparişi değiştirmez.
   - KK8: dört alandan biri boşsa kayıt reddedilir.
-  - KK9: telefonsuz teslimat adresi reddedilir.
+  - KK9: telefonsuz teslimat adresi reddedilir; fatura adresinde telefon, iki adreste posta kodu ve T.C. kimlik numarası alanı yok.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T345: Hesabın silinmesi ve kişisel veri başvurusu
@@ -2824,7 +2824,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   5. Silinmiş hesabın siparişleri hiçbir hesaba bağlanmaz (`02 §3.15.3`).
   6. Başvuru kanalı iletişim formunun "KVKK talebi" konu tipidir; ayrı modül, durum makinesi ve süre sayacı yoktur (`02 §3.15.4`).
   7. Uygulama içi veri indirme yoktur; hesap verisi panelde düzenlemesiz üye kaydı görünümünden okunur (`02 §3.15.5`).
-  8. Firma, talep üzerine hesabı panelden silebilir; silme aynı kuralla işler ve işlem izine yazılır; iz satırı hesabı değil, işlemi ve tarihini adlandırır (`02 §3.15.5`; §10.3.1).
+  8. Firma, talep üzerine hesabı panelden silebilir; silme geri alınamaz onayı ister, aynı kuralla işler ve işlem izine yazılır; iz satırı hesabı değil, işlemi ve tarihini adlandırır (`02 §3.15.5`; §5.9; §10.3.1).
   9. E-posta değişikliğini geri alma bağlantısı açıkken hesap silinmez; ekran sebebi ve bitiş tarihini söyler (`02 §3.15.6`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
@@ -4173,20 +4173,20 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. `GoogleIdentityGateway` yetki kodu akışını uygular: kod değişimi `POST` ile gider, `userinfo` çağrılmaz (`08 §2.3`; `09 §11.3`).
   2. İstemci kimliği ve sırrı kurulum ayarıdır; biri eksikse çağrı yapılmaz (`08 §2.3`).
-  3. Yetkilendirme ve kod değişimi adresleri sabittir; istek `openid email profile`, `state`, `nonce`, S256 taşır, `prompt` ve `max_age` taşımaz (`08 §2.3`).
-  4. Belirteçte yalnız `RS256`, imza, `iss`, `aud`, `exp` doğrulanır; `email` yoksa tutmaz; `nonce` ve `auth_time` sonuca alan olarak girer (`08 §2.3`; `09 §11.3`).
+  3. Yetkilendirme ve kod değişimi adresleri sabittir; istek `openid email profile`, `state`, `nonce`, S256 taşır, yeniden doğrulamada `claims` ile `auth_time` ister; `prompt` taşımaz, `max_age`'i yalnız DV-26 doğru çıkarsa taşır (`08 §2.3`; K-968).
+  4. Belirteçte yalnız `RS256`, imza, `iss`, `aud`, `exp` doğrulanır; `email` yoksa tutmaz; `nonce` ve `auth_time` sonuca alan olarak girer; yeniden doğrulama isteği `auth_time`'ı `claims` parametresiyle `id_token` altında ister (`08 §2.3`; `09 §11.3`).
   5. Keşif belgesi ve anahtar kümesi önbelleğe alınır; bilinmeyen `kid` yenileme getirir, yine yoksa imza tutmaz (`08 §2.3`).
-  6. Sonuç yalnız e-posta, doğrulama bayrağı, ad, `hd` ve `auth_time` taşır; `sub` alınmaz, kayda yazılmaz (`08 §2.3`; K-1061).
+  6. Sonuç yalnız e-posta, doğrulama bayrağı, ad, `hd`, `auth_time` ve çekirdeğin karşılaştıracağı `nonce`'ı taşır; `sub` alınmaz, kayda yazılmaz (`08 §2.3`; `09 §11.3`; K-1061).
   7. Vazgeçme ve doğrulama hatası `Failed`'dır; bağlanamama, 15 sn aşımı ve Google hata yanıtı `Unavailable`'dır; yeniden deneme yoktur (`08 §2.3`).
   8. `GOOGLE.md` aynı PR'da açılır; DV-25, DV-26, DV-27, DV-28, DV-31, DV-37, DV-43 gerçek uygulamayla gözlenir (`08 §4.1`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: kod değişimi gövdesi, `userinfo` çağrısı yok.
   - KK2: ayarsız çağrı yok.
-  - KK3: adresler sabit, istekte yasak alan yok.
+  - KK3: adresler sabit, istekte yasak alan yok; yeniden doğrulama isteğinde `claims` `auth_time`'ı ister.
   - KK4: yedi belirteç durumu.
-  - KK5: bilinmeyen `kid` bir kez yenilenir.
-  - KK6: `sub` sonuçta ve kayıtta yok.
+  - KK5: önbellek; bilinmeyen `kid` çatının yenilemesiyle çekilir, elle yeniden deneme yok; yine yoksa imza tutmaz.
+  - KK6: `sub` sonuçta ve kayıtta yok; `nonce` sonuçta var.
   - KK7: iki sonuç sınıfı ve çağrı sayısı bir.
   - KK8: DV satırlarında tarih.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -4573,7 +4573,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. `GET /kayit` ad, e-posta ve şifre formunu verir; kapı kapalıyken form kapalı olduğunu söyler; Google düğmesi ve işleyicisi T515'tedir (`07 UC-47`; `04` 5.20.10; K-850).
   2. Gönderim sonrası hâli koda ve `pendingRegistration` değerine bağlıdır; değer çatının anahtarıyla şifreli ve imzalıdır, kayıtta tutulmaz (`07 UC-47`; K-1186 (2)).
-  3. `Register` doğrulanmamış bekleyen kaydı açar: `EmailVerifiedAt` boş, bağlantı Z-1 ömürlü, doğrulama e-postası; oturum açılmaz; 303 → `/kayit` (`07 UC-48`; `02 §3.13.4`).
+  3. `Register` doğrulanmamış bekleyen kaydı açar: `EmailVerifiedAt` boş, bağlantı Z-1 ömürlü, doğrulama e-postası; oturum açılmaz; 303 → `/kayit` (`07 UC-48`; `02 §3.13.4`, §3.13.5).
   4. UC-48 422: ad boş, e-posta geçersiz, şifre P-17 altı ya da yaygın, e-posta kayıtlı, kapı kapalı; 429 (L-3) (`07 UC-48`; `03 §3.4.6`).
   5. Tekrar gönderim 422 alır; ikinci kayıt ve bağlantı açılmaz (`07 UC-48`; `06 §4.36`).
   6. `ResendVerificationLink` yeni bağlantı gönderir; öncekiler `SupersededAt` alır, kaydın ömrü uzamaz; 429 (L-9) (`07 UC-49`; `05 §6.4.6`).
@@ -4605,7 +4605,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   4. UC-55 422: boş alan, biçim; yanlış e-posta ya da şifre hesabı ele vermeyen tek mesajdır, hesap yokken de sahte özete karşı doğrulanır; 429 (L-1) nötrdür; hesap kilitlenmez, tanınan tarayıcı engellenmez (`07 UC-55`).
   5. Doğrulanmamış hesapta oturum açılmaz; doğrulama beklenir, yeniden gönderim T514'ün servisini çağırır (`07 UC-55`, `UC-49`).
   6. `StartSocialLogin` (`/giris`, `/kayit`) 303 → Google adresi verir; akış çerezi `state`, `nonce` ve PKCE taşır; Google tanımsızsa 422 (`07 UC-50`; `05 §6.7.12`).
-  7. `GET /giris/google`: doğrulanmış e-posta eşleşen hesaba girer ve Google bağı yazılır (adres için yetkili ya da hesap bağlıysa); eşleşme yoksa ve kapı açıksa şifresiz hesap açılır; yetkisiz adreste bağ yerine `GoogleLinkConfirmation` teyit bağlantısı gider, oturum açılmaz (`07 UC-51`; `06 §4.36`).
+  7. `GET /giris/google`: doğrulanmış e-posta eşleşen hesaba girer, bağ yazılır (adres için yetkili ya da hesap bağlıysa); eşleşme yoksa kapı açıkken şifresiz hesap açılır, bekleyen kayıt devralınmaz, silinir; yetkisizde `GoogleLinkConfirmation` teyidi gider, oturum açılmaz (`07 UC-51`; `06 §4.36`).
   8. Doğrulanmamış Google e-postası 303 → `/kayit`, eşleşme yok ya da kapı kapalı 303 → `/giris` kodla döner (`07 UC-51`).
   9. Akış değerleri bir kez kullanılır; yenilenen dönüş yazmadan 303 → `/giris` alır (`07 UC-51`).
 - **Test beklentisi:** Unit, Integration
@@ -4616,7 +4616,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK4: tek mesaj; sahte özet; 429 nötr.
   - KK5: doğrulanmamış hesap hâli.
   - KK6: çerez alanları, 422.
-  - KK7: üç Google sonucu; yetkisizde teyit.
+  - KK7: üç Google sonucu; bekleyen kayıt silinir.
   - KK8: iki kodlu 303.
   - KK9: tekrar dönüş yazmaz.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -4651,26 +4651,26 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T517: Hesap — profil ve güvenlik (E-25)
 - **Bağımlılık:** T516, T537, T540, T541, T542, T543
-- **Dokümanlar:** çekirdek; `09` §3.4, §8, §15 (§15.1, §15.4), §16 (§16.2); `07 UC-63`…`UC-69`; `04` E-25; `03 §3.4`, §9.3, §9.4; `02 §3.13.10`, §3.13.14, §3.15.6; `10` KP-27, KP-29
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §15 (§15.1, §15.4), §16 (§16.2); `07 UC-63`…`UC-69`; `04` E-25; `03 §3.4`, §9.3, §9.4; `02 §3.13.10`, §3.13.14, §3.13.21, §3.15.6; `10` KP-27, KP-29
 - **Kabul kriterleri:**
   1. `GET /hesap` beş bölümü verir; oturum yoksa 302 girişe gider (`07 UC-63`).
-  2. İşlemin formu yalnız oturumun izni o işlem içinse ve değerin özeti oturum kaydındakiyle aynıysa açık gelir; tutmayan parametre yok sayılır (`07 UC-63`; `05 §6.1.5`; K-971).
-  3. Geri alma bağlantısı açıkken e-posta değiştirme ve hesap silme kapalıdır, sebep ve bitiş tarihi yerindedir; şifresiz hesapta şifre belirleme bağlantısı sunulur (`07 UC-63`; `02 §3.15.6`).
+  2. İşlemin formu yalnız oturumun izni o işlem içinse ve değerin özeti oturum kaydındakiyle aynıysa açık gelir; tutmayan parametre yok sayılır; değer yok ya da tutmuyorsa üç işlem 303 → yeniden doğrulama verir (`07 UC-63`; `05 §6.1.5`; K-971).
+  3. Geri alma bağlantısı açıkken e-posta değiştirme ve hesap silme sebep ve bitiş tarihiyle kapalıdır; şifresiz hesapta şifre belirleme bağlantısı sunulur (`07 UC-63`; `02 §3.15.6`).
   4. `ChangeName` adı yazar, 303 → `/hesap`; boş ad 422'dir; geçmiş siparişin alıcı adı değişmez (`07 UC-64`; `02 §3.13.21`).
-  5. `ChangePassword` değeri tek koşullu güncellemeyle tüketir ve değiştiren dışındaki oturumları siler (`07 UC-65`; K-695).
-  6. UC-65: değer yok ya da tutmuyorsa 303 → yeniden doğrulama; P-17 altı ya da yaygın şifre 422'dir ve değeri tüketmez; şifresiz hesapta işlem sunulmaz (`07 UC-65`).
+  5. `ChangePassword` değeri tek koşullu güncellemeyle tüketir, değiştiren dışındaki oturumları ve tarayıcı işaretlerini siler (`07 UC-65`; K-695).
+  6. UC-65: P-17 altı ya da yaygın şifre 422'dir ve değeri tüketmez; şifresiz hesapta işlem sunulmaz (`07 UC-65`).
   7. `ChangeEmail` bekleyen değişikliği yazar, öncekinin yerine geçer, yeni adrese bağlantı gönderir; hesap eski adresle çalışır (`07 UC-66`; K-734).
   8. UC-66 422: biçim, doğrulanmış başka hesabın adresi, açık geri alma bağlantısı; 429 (L-9) yalnız yerine geçen istekte; hatada değer tüketilmez (`07 UC-66`; K-1134).
   9. `ResendEmailChangeLink` yeni bağlantı verir, öncekiler `SupersededAt` alır, ömür uzamaz; bekleyen yoksa 422, 429 (L-9) (`07 UC-67`).
-  10. `DeleteAccount` onaysızda 200 verir ve yazmaz; onaylıda tek işlemde siler, siparişe işaret yazar, 303 → `/hesap/silindi`; sonuç hâli çerezle bir kez görünür (`07 UC-68`, `UC-69`; K-1184).
+  10. `DeleteAccount` onaysızda 200, yazmaz; onaylıda tek işlemde siler, siparişe işaret yazar, 303 → `/hesap/silindi`; sonuç hâli bir kez görünür (`07 UC-68`, `UC-69`; K-1184).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: oturumsuz 302.
-  - KK2: işlem izni ve özet eşleşmesi.
+  - KK2: izin, özet; üç işlemde 303.
   - KK3: açık geri alma bağlantısında kapalı işlemler.
   - KK4: ad değişir, sipariş adı sabit.
-  - KK5: tek tüketim; öteki oturumlar silinir.
-  - KK6: üç ret sebebi.
+  - KK5: tek tüketim; öteki oturum ve işaret silinir.
+  - KK6: iki ret sebebi.
   - KK7: bekleyen değişiklik ve yeni bağlantı.
   - KK8: üç 422 sebebi, L-9.
   - KK9: eski bağlantılar geçersiz.
@@ -4689,7 +4689,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   6. `DeleteAddressBook` onaysız siler; ikinci gönderim 404'tür, yazmaz; geçmiş siparişe dokunmaz (`07 UC-73`).
   7. Tekrar gönderim ikinci girdi açar; çift tıklamayı betikli yolda düğmenin kilidi önler (`07 UC-71`; K-1179 (1)).
   8. `GET /hesap/siparisler` hesaptaki siparişleri en yeni önce, sayfa başına 25 verir; arama ve süzgeç yoktur (`07 UC-74`; K-784).
-  9. Hesaba düşmüş misafir siparişi listededir; ödemesi hiç alınmamış kendiliğinden iptal edilen sipariş yoktur (`07 UC-74`; `02 §3.17.8`).
+  9. Hesaba düşmüş misafir siparişi, müşterinin ya da firmanın iptal ettiği ve ödemesi alınıp sonradan iptal edilen sipariş listededir; ödemesi hiç alınmamış kendiliğinden iptal edilen sipariş yoktur (`07 UC-74`; `02 §3.17.8`).
   10. Her satır siparişin üye köküne bağlanır; siparişsiz üyede boş hâl satırı çıkar (`07 UC-74`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
@@ -4701,7 +4701,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK6: silme ve ikinci 404.
   - KK7: ikinci gönderim ikinci girdi.
   - KK8: sıra, 25'lik sayfa.
-  - KK9: misafir siparişi var, iptal edilen yok.
+  - KK9: misafir siparişi ve müşteri ya da firma iptali var; kendiliğinden iptal yok.
   - KK10: üye kökü bağlantısı; boş hâl.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -4845,7 +4845,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T524: Satış özeti ve dışa aktarma (E-51, E-53)
 - **Bağımlılık:** T520, T540, T541, T543, T544
-- **Dokümanlar:** çekirdek; `09` §3.4, §8, §16 (§16.2); `07 UC-105`, `UC-107`, `UC-182`…`UC-184`; `04` E-51, E-53; `03 §6.3`, §8.9; `02 §3.25.1`, §10.6, §10.7; `10` KP-52, KP-53, KD-54
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §16 (§16.2); `07 UC-105`, `UC-107`, `UC-182`…`UC-184`; `04` E-51, E-53; `03 §6.3`, §8.9; `02 §3.25.1`, §3.25.3, §10.6, §10.7; `10` KP-52, KP-53, KD-54
 - **Kabul kriterleri:**
   1. `GET /panel/satis-ozeti` parametresizken "Son 30 gün"dür; hazır dönemler ve özel aralık çalışır, sınırlar Türkiye günüyledir (`07 UC-105`; K-1215).
   2. Değerler istek anında sunucunun hesabıdır, saklanmaz; sipariş sayısı ve ciro oluştuğu güne, iptal ve iade olay tarihine yazılır (`07 UC-105`; `02 §10.6.3`; K-580).
@@ -5177,13 +5177,13 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T536: Ödeme yöntemleri, kargo, süreler ve varsayılanlar (E-45, E-46)
 - **Bağımlılık:** T520, T540, T541, T542, T543
-- **Dokümanlar:** çekirdek; `09` §3.4, §8, §16 (§16.2); `07 UC-100`, `UC-101`, `UC-167`…`UC-172`; `04` E-45, E-46; `03 §6.2`, §8.7; `02 §3.19`, §3.21, §3.33.3; `10` KP-59, KP-64
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §16 (§16.2); `07 UC-100`, `UC-101`, `UC-167`…`UC-172`; `04` E-45, E-46; `03 §6.2`, §8.7; `02 §3.17.4`, §3.18…§3.21, §3.33.3; `10` KP-59, KP-64
 - **Kabul kriterleri:**
   1. `GET /panel/odeme-yontemleri` kart satırını kurulumdan, havale anahtarını ve IBAN'ı dörderli verir (`07 UC-100`).
   2. `SavePaymentMethods` havalenin açılmasını ve ilk IBAN'ı onaysız yazar; dolu IBAN değişimi ve havale kapatma onaysızda onay hâlini 200 verir (`07 UC-167`; K-1194).
   3. UC-167 422: IBAN boşken havale açma, açıkken IBAN boşaltma, bozuk IBAN; 409: sürüm; yeni IBAN yeni siparişe işler (`07 UC-167`; K-817).
   4. IBAN girilmesi ve değişmesi bütün yöneticilere bildirim gönderir; iz eski ve yeni değeri taşır (`07 UC-167`; K-616).
-  5. `GET /panel/kargo-sureler-ve-varsayilanlar` beş bölümü, her biri kendi sürümüyle verir; hiç il seçili değilse ve eşik boşsa bölüm söyler; her bölüm eski sürümle 409, iz yazar; ücret, il, kargoya verme süresi ya da iade adresi değişince iki metnin sürümü artar (`07 UC-101`, `UC-168`…`UC-172`).
+  5. `GET /panel/kargo-sureler-ve-varsayilanlar` beş bölümü ayrı sürümlerle verir; hiç il seçili değilse ve eşik boşsa bölüm söyler; her bölüm eski sürümle 409, iz yazar; ücret, il, kargoya verme süresi ya da iade adresi değişince iki metnin sürümü artar (`07 UC-101`, `UC-168`…`UC-172`).
   6. `SaveShippingFee` ücreti ve eşikleri yazar; negatif, fazla ondalıklı, üst sınırı aşan tutar ve boş ücret 422'dir (`07 UC-168`; K-1214).
   7. `SaveDeliveryProvinces` il satırlarını tek işlemde yazar; kapalı liste dışı il 422; hiç il seçmek engellenmez; betiksiz yolda "Tümünü seç" yoktur (`07 UC-169`).
   8. `SavePeriods` iki süreyi yazar; P-5'in üst, P-7'nin alt ya da üst çitini aşan süre 422'dir (`07 UC-170`).

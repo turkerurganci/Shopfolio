@@ -175,6 +175,22 @@ Plan (`scripts/doc-scans/11_audit_grupla2.py`): 435 bulgu → **95 doğrulayıc�
 
 **İlerleme:** 435 bulgudan **55'i hükme bağlandı**; **kalan 380** (2b…2f) + #336, #437, #350 (2r). Kapılar: `11_matris_kapsama.py` 1.501/1.501 sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214.
 
+### Doğrulanmamış bulgular — KD-audit-2b
+
+Plan 20 doğrulayıcı (97 bulgu) kurmuştu; **18'i koştu**, 19. ve 20. doğrulayıcılar eşzamanlı ajan sınırı hatasıyla açılamadı ve adım başına 20 sayacına yine de sayıldı. Koşmayan **10 bulgu (#391, #392, #396, #182, #197, #198, #206, #234, #235, #399; Bildirim)** 2e'ye taşındı; plan bir adım uzar. Doğrulamasız uygulama yoktur.
+
+| Doğrulayıcı | Model | Kademe | Modül | Sayı |
+|---|---|---|---|---|
+| 2–8, 14, 16, 17 | Opus / high | Orta 4'lü | Sepet ve sipariş (2–8), Bildirim (14, 16, 17) | 10 |
+| 9, 13, 18 | Opus / high | Orta 3'lü | Sepet ve sipariş (9, 13), Bildirim (18) | 3 |
+| 1, 11, 12 | Opus / high | Düşük 8'li | Sepet ve sipariş | 3 |
+| 10, 15 | Opus / high | Düşük 7'li | Sepet ve sipariş (10), Bildirim (15) | 2 |
+| **Toplam** | | | | **18** |
+
+**Hükümler (87 bulgu):** 33 doğru · 33 kısmen · 21 çürük. **Uygulanan:** 59 bulgu, **126 şartname çifti** (138 çiftten 12'si yükselen bulguların). Liste: `C:/Users/teknodeveloper/.claude/helper-state/shopfolio/kd-audit-2/2b/uygulanan.md` (yardımcı durum dizini). **Seviyesi düşen** 15 bulgu uygulandı. **Yükselen:** #210 (Düşük → Orta), #12, #134, #186, #467 (Orta → Yüksek) uygulanmadı; KD-audit-2r'de yeniden doğrulanır. **Blok bayt sınırı:** T305, T306, T307, T319, T350, T356, T366 kısaltıldı (bölme yok; K-1464 (3)'te kayıp listesi). KARAR ve ÜST DOKÜMAN satırı çıkmadı.
+
+**İlerleme:** 435 bulgudan **142'si hükme bağlandı** (2a 55 + 2b 87); **kalan 293** (2b'den 10, 2c…2f) + #336, #437, #350 (2r) ve 2b'nin beş yükselen bulgusu. Kapılar: `11_matris_kapsama.py` 1.501/1.501 sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214.
+
 ### Sınırlar
 
 - **Uygulanmayan 435 bulgu** gövdede hâlâ bulunabilir; bu raporun "temiz" okunmaması gerekir: audit yalnız 44 bulguyu hükme bağladı.

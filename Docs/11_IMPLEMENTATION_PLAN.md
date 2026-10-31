@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.44** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.45** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -827,7 +827,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   5. `CompanyDeliveryProvince` 81 il satırıyla, varsayılan tüm Türkiye olarak yazılır (`06 §8.1.1`).
   6. İki `LegalTextVersion` taslağı — `PrivacyNotice` ve `CookiePolicy` — yayın anı ve sürüm numarası boş yazılır (`06 §8.1.1`).
   7. Liste değişikliği yeni göçle gelir; satır silinmez, kod yeniden kullanılmaz; ayar varsayılanının değişmesi kurulmuş ayar satırını değiştirmez; `UPDATE` ve `DELETE` izinli tablolar dışında yazılmaz (`06 §8.1.2`; `09 §10.6` madde 4).
-  8. Seed olmayanlar koddadır ya da kuruluma özgüdür: enum'lar, iş günü takvimi, kargo şirketi listesi koda; ilk yönetici ve kurulum ayarları kuruluma aittir; üretilen iki yasal metnin (`PreInformationForm`, `DistanceSalesContract`) ilk sürümü uygulamanın açılışında yazılır, işlem izine girmez (yazımı T366) ve `DataProtectionKey` satırlarını çatı üretir — ikisi de göçte yazılmaz (`06 §8.3`, §8.4).
+  8. Seed olmayanlar koddadır ya da kuruluma özgüdür: enum'lar, iş günü takvimi, kargo şirketi listesi koda; ilk yönetici ve kurulum ayarları kuruluma aittir; üretilen iki yasal metnin (`PreInformationForm`, `DistanceSalesContract`) ilk sürümü uygulamanın açılışında yazılır, işlem izine girmez (yazımı ve sınaması T366 k3) ve `DataProtectionKey` satırlarını çatı üretir — ikisi de göçte yazılmaz (`06 §8.3`, §8.4).
 - **Test beklentisi:** Integration
 - **Doğrulama kontrol listesi:**
   - KK1: boş veritabanında 81 il ve 81 teslimat ili satırı var.
@@ -876,11 +876,11 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   2. Süre kaydın başlangıç değerinden bugüne hesaplanır; kaçırılan gece sonraki çalışmada telafi edilir (`06 §9.1.1`).
   3. Süre değerleri `02 §11.2`'nin P sabitiyse yalnız `ProductConstants`'ta, yasal süreyse kendi evinde tanımlıdır; imha işinde ve süre tablosunda yinelenmez, istisnalar `06 §9.1.2`'dedir (`09 §3.5` madde 1).
   4. Silme fiziksel silmedir; "silindi" işaretli satır ve arşiv tablosu yoktur (`05 §7.4.3`; `06 §9.5.1`).
-  5. İmha kaydı silmeyle aynı veritabanı işleminde yazılır (`06 §9.4.1`).
+  5. Tablodan silmede imha kaydı silmeyle aynı işlemde yazılır (`06 §9.4.1`).
   6. Gecelik temizlik aynı çalışmadadır; kişisel veri taşıyan satırın silinmesi ve kişisel alanlarının boşaltılması imha kaydına tür ve sayıyla yazılır (`06 §9.4.3`).
   7. Kalıcı kayıtlar ile sipariş tarafının ticari kayıtları süreyle silinmez; "başarısız" iş satırı temizlikte silinmez (`06 §9.1.4`, §9.4.4).
   8. İşlem izi satırını yalnız veritabanındaki imha fonksiyonu siler (`05 §7.5.1`).
-  9. Süresi dolan kayıt dosyaları aynı çalışmada silinir ve imha kaydına kayıt türü ve dosya sayısıyla yazılır; sunucunun kayıtlarının P-45'i dolan günü imha kaydına "döngüyle silindi" satırı olarak tarih aralığıyla yazılır (`05 §7.4.4`, §9.2.2; MK-65).
+  9. Süresi dolan kayıt dosyaları aynı çalışmada silinir; satır dosyadan önce, kayıt türü ve dosya sayısıyla yazılır; sunucunun kayıtlarının P-45'i dolan günü "döngüyle silindi" satırıdır, tarih aralığıyla (`05 §7.4.4`, §9.2.2; MK-65; `06 §9.3.4`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: zamanlayıcı 03:00 Türkiye anında işi tetikler.
@@ -1714,7 +1714,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   6. Ayıp talebi durumunun son değiştiği andan (Z-29), gelen bildirim oluşturulmasından on yıl sonra silinir, ikisi de siparişin imha parçasından önce değil; ödemesi hiç alınmamış siparişin bildirimi siparişin Başarısız olduğu andan on yılda silinir (Z-41); talep silinince teslim alma ve geri ödeme bağları boşalır (`06 §9.3.1`).
   7. Bağı kalmamış ve bir günden eski görsel ve dosya silinir; önce satır, sonra dosya (`06 §9.3.1`; `05 §7.7`).
   8. Bağlı görsel ve açılabilen kalemin dosyası silinmez (`06 §9.3.2`).
-  9. Dosya silen parça satırını dosyayı silmeden önce yazar (`06 §9.3.4`).
+  9. Dosya silen parça satırını dosyayı silmeden önce yazar; kaydı silinmiş, diskte kalmış dosya sonraki gece silinir (`06 §9.3.4`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: bir parçanın hatası ötekileri geri almaz; silecek kaydı olmayan parça imha kaydına satır yazmaz.
@@ -1725,7 +1725,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK6: sipariş imhadan önce talep ve bildirim kalır; talebin süresi son durum değişikliğinden, bildirimin oluşturulmasından, ödemesi hiç alınmamış siparişin bildiriminin Başarısız anından sayılır; talep silinince bağlar boşalır.
   - KK7: bağsız görsel ve dosya silinir.
   - KK8: bağlı görsel ve dosya yerinde.
-  - KK9: dosya silinmeden önce satır diskte.
+  - KK9: satır dosyadan önce diskte; kalan dosya sonraki gece silinir.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T303: İlk yönetici yönetim komutu ve komut çatısı
@@ -3295,7 +3295,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK10: şikâyet ve sohbet uçları yok.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
-#### T366: Yasal metinler: dört metin, sürüm artışı, aydınlatma bağlantıları, e-postada tam metin
+#### T366: Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin
 - **Bağımlılık:** T305, T330, T331
 - **Dokümanlar:** çekirdek; `09` §10–§12; `02 §3.24.3`, §3.33.1…§3.33.9, §6.5, §6.9, §7.1.5, §7.4.4, §10.8.2, §12.1.2, §12.1.7, §12.2.1…§12.2.5, §12.2.8, §12.5; `10` KP-14, KP-25, KP-35, KP-61, KP-73, KD-53, KD-55, KD-56; `devir` 04-1948
 - **Kabul kriterleri:**
@@ -3313,7 +3313,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Doğrulama kontrol listesi:**
   - KK1: dört metin ayrı kayıt.
   - KK2: boşaltma reddedilir; bölüm eksikse tamam değil.
-  - KK3: değişmeyen ayar sürüm yazmaz; şablonunki izde yok.
+  - KK3: değişmeyen ayar sürüm yazmaz; şablonunki, ilk sürüm dahil, izde yok.
   - KK4: sürüm artışı siparişi durdurur; yeniden onay ve bildirim yok.
   - KK5: bağlantı ekranlarda ve altbilgide; kutu ve gördü kaydı yok.
   - KK6: dosya ve PDF yok; gövde T306 KK3'te.
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.44*
+*Shopfolio — Implementation Plan v0.45*

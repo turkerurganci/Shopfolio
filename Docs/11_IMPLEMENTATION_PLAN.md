@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.18** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.19** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -51,7 +51,7 @@ Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 sat
 | Y4b | §5 F3 ikinci çeyrek | `T323`–`T345` (23) | `IP5-09`, `IP5-13` | ✓ |
 | Y4c | §5 F3 üçüncü çeyrek | `T346`–`T367` (22) | `IP5-09`, `IP5-13` | ✓ |
 | Y4d | §5 F3 son çeyrek ve F3 `Yürütme sırası` | `T368`–`T390` (23) | `IP5-09`, `IP5-13` | ✓ |
-| Y5 | §5 F4 | `T401`–`T410` (10) | `IP5-10` | ⏳ |
+| Y5 | §5 F4 | `T401`–`T410` (10) | `IP5-10` | ✓ |
 | Y6a | §5 F5 ilk yarı | `T501`–`T524` (24) | `IP5-11` | ⏳ |
 | Y6b | §5 F5 ikinci yarı ve F5 `Yürütme sırası` | `T525`–`T549` (25) | `IP5-11`, `IP5-08` (T548) | ⏳ |
 | Y7 | §5 F6, §6.1, §6.2 | `T601`–`T602` (2) | `IP5-12`, `IP6-01`, `IP6-02` | ⏳ |
@@ -3919,6 +3919,262 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK8: IBAN silme ve yeniden açılış.
   - KK9: düzeltmede değişmeyenler sabit.
   - KK10: her adımda iki eksen doğru.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+### F4 — Entegrasyonlar
+
+**Yürütme sırası:** T401 → T402 → T403 → T404 → T405 → T406 → T407 → T408 → T409 → T410
+
+#### T401: PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve
+- **Bağımlılık:** —
+- **Dokümanlar:** çekirdek; `09` §3 (§3.5), §11, §14 (§14.2), §19; `08 §2.1`, §2.1.1, §2.1.2, §2.1.4; `03 §2.5`; `02 §3.21.1`, §3.21.4, §12.2.8; `05` §3.6, §6.5; `10` KP-15, KD-64
+- **Kabul kriterleri:**
+  1. `PayTrPaymentGateway` başlatma işini `POST /odeme/api` altındaki başlatma ucuyla yapar: sunucudan sunucuya, form kodlu (`08 §2.1`; `09 §11.1`).
+  2. `merchant_id`, `merchant_key`, `merchant_salt` tek ayardır ve sır dosyasındadır; biri eksikse kart yöntemi görünmez ve çağrı yapılmaz (`08 §2.1.2`; `02 §3.21.4`).
+  3. `paytr_token` jeton isteğinin on bir girdisinden HMAC-SHA256 ve Base64'le üretilir; `merchant_key` ile `merchant_salt` istekle gitmez (`08 §2.1`).
+  4. Tutarlar `PaymentAmounts` işlevlerinden geçer: `payment_amount` kuruş tam sayısı, `user_basket` tek kalemin Base64'üdür (`08 §2.1.4`; `09 §14.2`).
+  5. `merchant_oid` sipariş numarasının tiresiz biçimidir; gelen değer aynı kuralla geri eşlenir (`08 §2.1.4`).
+  6. Sınıra uymayan e-posta, telefon ve fiziksel kalemsiz sipariş için firma değeri gider; ad 60, adres 400 karakterde kesilir (`08 §2.1.4`).
+  7. `user_ip` istek anındaki adrestir; `timeout_limit` ödeme süresinin bitişine kalan dakikadır, yukarı yuvarlanır, en az 1 (`08 §2.1.4`).
+  8. Başarılı yanıt çerçeve adresini döndürür, jeton saklanmaz; dönüş adresleri `/odeme/donus/{erişim anahtarı}`'dır; sayfa T510'dadır (`08 §2.1.4`).
+  9. `INTEGRATION_RUNBOOKS/PAYTR.md` aynı PR'da açılır; DV-11, DV-14, DV-38, DV-39, DV-41 test modunda gözlenip satıra yazılır (`08 §4.1`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: başlatma sahte işleyiciyle form kodlu gider.
+  - KK2: üç ayardan biri eksikse çağrı yok.
+  - KK3: özet bilinen örnekle eşleşir.
+  - KK4: 34,56 → 3456; kültür etkisiz.
+  - KK5: numara tiresiz, geri eşleme tam.
+  - KK6: yedek değer ve kesme sınırları.
+  - KK7: IP biçimi ve dakika yuvarlaması.
+  - KK8: jeton kayıtta ve veritabanında yok.
+  - KK9: DV satırlarında tarih ve kanıt yeri.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T402: PayTR: bildirim imzası ve alan eşlemesi
+- **Bağımlılık:** T401
+- **Dokümanlar:** çekirdek; `09` §11 (§11.1), §14 (§14.2); `08 §2.1.5`, §4.1; `06 §4.35`; `05` MK-39
+- **Kabul kriterleri:**
+  1. `merchant_oid` + `merchant_salt` + `status` + `total_amount`'ın HMAC-SHA256 Base64'ü `hash` ile sabit zamanlı karşılaştırılır (`08 §2.1.5`).
+  2. `hash` yok ya da tutmuyorsa sonuç `SignatureInvalid`'dir; `payment_amount`, `payment_type`, `currency`, `test_mode` imzasızdır, yalnız tutarlılık denetimidir (`08 §2.1.5`).
+  3. Bildirim yedi sırayla sınıflanır: imza, tekrar, eşlenmeyen sipariş, tanınmayan değer, `failed`, tutmayan `success`, tutan `success` (`08 §2.1.5`).
+  4. Tutar koşulu `payment_amount` = `Order.Total` × 100 ve `total_amount` ≥ aynı değerdir, kuruşta; `failed`'de tutar aranmaz (`08 §2.1.5`; `09 §14.2`).
+  5. `merchant_oid` iki alana tiresiz yazılır; `status` → `Outcome`, `total_amount` → `Amount`; olay türü `Sale`'dir (`08 §2.1.5`; `06 §4.35`).
+  6. `failed_reason_code` ve ileti saklanmaz, seyreltilerek uygulama kaydına yazılır (`08 §2.1.5`).
+  7. Yanıt kararı (`OK`, 400, 500) T311'in ucundadır; bu katman yalnız sınıfı verir (`08 §2.1.5`; `05` MK-39).
+  8. Test modunda gerçek bildirimle DV-1, DV-2, DV-4, DV-9, DV-35, DV-36, DV-42 gözlenir; kayıt referans kurulumun işaretli kaydından okunur (`08 §2.1.10`, §4.1).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: örnek bildirimde özet tutar.
+  - KK2: bozuk ve eksik `hash` ayrı testte.
+  - KK3: yedi sıranın her biri bir test.
+  - KK4: taksit farkı geçer, eksik tutar geçmez.
+  - KK5: üç alan eşlemesi.
+  - KK6: red kodu kayda seyreltilmiş yazılır.
+  - KK7: katman 400 ya da 500 üretmez.
+  - KK8: DV-1, 2, 4, 9, 35, 36, 42 satırları.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T403: PayTR: son sorgu ve tek tahsilat
+- **Bağımlılık:** T402
+- **Dokümanlar:** çekirdek; `09` §11, §14 (§14.2); `08 §2.1.6`, §2.1.7; `03 §2.5`, §3.2, §10.1; `05` MK-39, §4.5
+- **Kabul kriterleri:**
+  1. Son sorgu `POST /odeme/durum-sorgu`, form kodlu; `paytr_token` üç girdilidir; süre 30 sn'dir (`08 §2.1.6`).
+  2. Eşleşen başarılı ödeme `Paid`'dir; `004` "ödeme yok" sayılır ve `NoPayment` döner (`08 §2.1.6`).
+  3. `001`, `002`, `003`, zaman aşımı, bağlantı hatası ve tabloda olmayan yanıt `NoResponse`'dur; sipariş iptal edilmez, olay kayda yazılır (`08 §2.1.6`).
+  4. Beş dakikalık aralık yalnız kesinti ve tablosuz yanıt içindir; `001`–`003` kod hatası kuralıyla yinelenir (`08 §2.1.6`; `05 §4.3.4`).
+  5. Başarı için `payment_amount` eşit, `payment_total` ≥, `odeme_tipi` `KART`, para birimi `TL` ya da `TRY` olmalı; canlıda `test_mode` 1 ise uygulanmaz (`08 §2.1.6`).
+  6. Tutar metni tek ayraçlı ve en çok iki ondalıklıdır; başkası tanınmaz ve `NoResponse` olur (`08 §2.1.6`; `09 §14.2`).
+  7. Kart ve kişisel alanlar okunmaz, saklanmaz (`08 §2.1.6`).
+  8. Aynı `merchant_oid`'li ikinci başarılı bildirim tekrardır ve yazılmaz; ikinci tahsilatı ürün görmez, kalan risk DV-11'dedir (`08 §2.1.7`).
+  9. DV-12'nin tutar ayracı ve para birimi yazımı gözlenip `08 §2.1.6`'ya eklenir (`08 §4.1`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: istek biçimi ve süre.
+  - KK2: `004` ayrı sonuç.
+  - KK3: altı hata girdisi `NoResponse`, sipariş sabit.
+  - KK4: iki aralık ayrı sınıfta.
+  - KK5: beş koşuldan biri bozulunca uygulanmaz.
+  - KK6: `10,8`, `9.76`, `1.234,56` tablosu.
+  - KK7: okunmayan alan sonuçta yok.
+  - KK8: ikinci bildirimde satır yok.
+  - KK9: DV-12 satırı.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T404: PayTR: bağlantı hatası ve ayrım
+- **Bağımlılık:** T403
+- **Dokümanlar:** çekirdek; `09` §11 (§11.1, §11.2); `08 §2.1.8`, §4.1; `03 §3.2`, §10.1; `05` MK-40, §3.6, §4.6
+- **Kabul kriterleri:**
+  1. Bağlanılamama, 15 sn aşımı, 5xx, `failed` + `reason` ve tablosuz yanıt `ConnectionFailed`'dır; kayda yalnız `reason` yazılır (`08 §2.1.8`).
+  2. Aynı `merchant_oid`'nin ikinci jeton reddi `SecondTokenRejected`'dır; ayırt eden `reason` metni tabloya ve runbook'a yazılır (`08 §2.1.8`; DV-11).
+  3. Form açılamadan iptal L-7'ye sayılmaz; açılıp başarısız olan ödeme sayılır (`08 §2.1.8`; `02 §8.2`).
+  4. Bağlantı hatasından sonra ödeme modülü bellekte iki dakika tutulur: kart "şu an kullanılamıyor" görünür, kart onayı 422 alır; hâl yalnız onaydan öncesini etkiler (`08 §2.1.8`).
+  5. Son sorgu ve iade sorgusunda yanıtsız çağrı sonucu bilinmeyen sayılır; para gönderen çağrı yeniden gönderilmez (`08 §2.1.8`; `05` MK-40).
+  6. Hiçbir çağrı yeniden denenmez; dayanıklılık işleyicisi yoktur, istemci fabrikadan gelir, yönlendirme ve çerez kapalıdır (`08 §2.1.8`; `09 §11.2`).
+  7. Beş hatalı jeton ve on beş dakika durum ucunun uyarı koşuludur; başarılı jeton diziyi sıfırlar, ikinci ret saymaz (`08 §2.1.8`; `05 §9.4`).
+  8. DV-12'nin HTTP kodları ve tablosuz yanıtlar gözlenip `08 §2.1.8` tablosuna eklenir (`08 §4.1`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: altı yanıt sınıfı birer test.
+  - KK2: ikinci ret bağlantı hatası değil.
+  - KK3: iki iptal biçimi L-7'de ayrı.
+  - KK4: iki dakika sahte saatle; hâl yeniden başlatmada silinir.
+  - KK5: yanıtsız çağrıda ikinci istek yok.
+  - KK6: çağrı sayısı bir.
+  - KK7: dizinin sıfırlanması ve eşiği.
+  - KK8: DV-12 satırı.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T405: PayTR: kart iadesi
+- **Bağımlılık:** T404
+- **Dokümanlar:** çekirdek; `09` §11, §14 (§14.2); `08 §2.1.9`, §2.1.2, §4.1; `03 §2.7`, §2.8, §3.3, §8.3; `05` MK-40, §4.6
+- **Kabul kriterleri:**
+  1. İade `POST /odeme/iade` ile istenir; `paytr_token` dört girdilidir, `reference_no` özete girmez, süre 30 sn'dir (`08 §2.1.9`).
+  2. `return_amount` iki ondalıklı, noktalı, kültürden bağımsız metindir; özete giren dizge gönderilendir (`08 §2.1.9`; `09 §14.2`).
+  3. `reference_no` iade kaydının tiresiz kimliğidir; eşleştirme içindir, tekrar koruması değildir (`08 §2.1.9`).
+  4. İstek, kayıt "istek gönderiliyor" kesinleştikten sonra gider ve yeniden gönderilmez; geri ödeme başına bir açık ve bir başarılı istek vardır (`08 §2.1.9`; `05 §4.6`).
+  5. `success` → `Accepted`; `failed` ya da `error` → `NotCompleted`; yanıtsızlık → `Unknown` (`08 §2.1.9`).
+  6. Sorguda `returns` içinde kimliği ve tutarı eşit öğe `Completed`'dır; `004` ve öğe yokluğu dahil başkası `NoResult`'tır (`08 §2.1.9`).
+  7. Sorgu 1, 5, 15, 60 dakika, sonra saatlik yinelenir; üst sınırı yoktur (`08 §2.1.9`).
+  8. İki sonuç yolu aynı işlevle uygulanır; firma işaretinden sonra sorgu durur ve geç iade işlenmez (`08 §2.1.9`; `05 §4.6.2`).
+  9. Anahtarlar kaldırılmışsa istek yapılmaz, geri ödeme "gerçekleşmedi" olur (`08 §2.1.2`).
+  10. DV-6, DV-7, DV-10 gözlenir; DV-10 sonucu `02`'ye geri beslemedir (`08 §4.1`, §5.2).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: istek biçimi ve özet.
+  - KK2: 10 → `10.00`, `tr-TR`'de de.
+  - KK3: `reference_no` tiresiz kimlik.
+  - KK4: kayıt istekten önce.
+  - KK5: üç yanıt sınıfı.
+  - KK6: dört sorgu durumu.
+  - KK7: beş aralık.
+  - KK8: ikinci uygulama sonucu değiştirmez.
+  - KK9: anahtarsız istek yok.
+  - KK10: DV-6, 7, 10 satırları.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T406: PayTR: 3D Secure kurulum şartı, test ve canlı kanıt
+- **Bağımlılık:** T402, T405
+- **Dokümanlar:** çekirdek; `09` §11, §19; `08 §2.1.3`, §2.1.10, §4.1; `02 §3.21.3`; `05` §8.1
+- **Kabul kriterleri:**
+  1. Her kart ödemesi 3D Secure'dan geçer; doğrulama başarısızsa ödeme gerçekleşmez, sipariş ödenmiş sayılmaz (`02 §3.21.3`; `08 §2.1.3`).
+  2. Başarı `status` = `success` ve `payment_type` = `card` ister; `failed_reason_code` 1, 2, 10 ödeme gerçekleşmedi demektir (`08 §2.1.3`).
+  3. Kurulum şartı: PayTR'den yazılı teyit ve test modunda 3D'siz işlemin tamamlanmaması; teyit yoksa kart anahtarları tanımlanmaz (`08 §2.1.3`; DV-3).
+  4. Test `test_mode` alanıyla seçilir; test mağazanın canlı anahtarıyla imzalanır; CI PayTR'ye bağlanmaz, firma anahtarı geliştirmeye geçmez (`08 §2.1.10`).
+  5. Canlı kurulumda `test_mode` 1 olan bildirim işaretlenir ve uygulanmaz; sorgu sonucu da uygulanmaz (`08 §2.1.10`).
+  6. Sandbox kanıtı: başlatma, 3D, bildirim, sorgu ve iade referans kurulumda test modunda uçtan uca geçer; sonuç runbook'a yazılır (`08 §2.1.10`; K-1411).
+  7. Canlı kanıtın satırları `DEPLOY_RUNBOOK`'ta yazılıdır; taksit varsa taksitli yapılır; yürütme F6'dadır (`08 §2.1.10`).
+  8. DV-3 satırı kanıtla kapanır; test kanıtı canlı kanıtın yerini tutmaz (`08 §2.1.10`, §4.1).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: 3D'siz başarı sayılmaz.
+  - KK2: `payment_type` farklıysa uygulanmaz.
+  - KK3: teyitsiz kurulumda anahtar yok.
+  - KK4: testte ağ çağrısı yok.
+  - KK5: canlıda test bildirimi işaretli.
+  - KK6: sandbox tablosu doludur.
+  - KK7: runbook canlı kanıt satırları.
+  - KK8: DV-3 tarihli.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T407: SES: gönderim ve sonuç sınıfları
+- **Bağımlılık:** —
+- **Dokümanlar:** çekirdek; `09` §3 (§3.2, §3.3), §11 (§11.1, §11.2), §19; `08 §2.2`, §2.2.1, §2.2.2; `03 §10.1`; `02 §9.1`, §9.1.5, §9.1.6; `10` KP-66
+- **Kabul kriterleri:**
+  1. `SesEmailGateway` AWS istemcisiyle SendEmail yapar: bir çağrı bir alıcı; Cc, Bcc, yapılandırma kümesi, ek ve başlık gönderilmez (`08 §2.2.2`).
+  2. İstemci tekildir; yeniden deneme kapalı, süre 30 sn, kimlik açıktır, ortam kimlik zinciri kullanılmaz (`09 §11.2`).
+  3. Erişim anahtarı, gizli anahtar, bölge ve gönderen adresi zorunlu ayardır; eksikse uygulama açılmaz (`08 §2.2`; `02 §9.1.5`).
+  4. `FromEmailAddress` kaçışlı marka adıyla, `ReplyToAddresses` firma e-postasıyla gider; HTML ve düz metin birlikte, UTF-8 (`08 §2.2.2`).
+  5. Her gönderimden önce alıcı sorulur: 200 ve `BOUNCE` → `RecipientError`, çağrı yok; 404 → gönderilir; başka yanıt gönderimi durdurmaz (`08 §2.2.2`).
+  6. Hata eşlemesi saf işlevdir: 200 `Sent`; doğrulanmamış kimlik, `MessageRejected`, kota, `NotFoundException`, kimlik reddi, 5xx, zaman aşımı ve tablosuz yanıt `ChannelError` (`08 §2.2.2`).
+  7. `MessageId` saklanmaz; kayda yalnız hata kodu ve sınıf yazılır (`08 §2.2.2`; `09 §11.1`).
+  8. IAM kullanıcısının üç izni vardır; gönderme gönderen alan adı kimliğine ve `ses:FromAddress`'e bağlıdır, silme izni yoktur (`08 §2.2`).
+  9. `AMAZON_SES.md` aynı PR'da açılır; DV-16, DV-17, DV-19, DV-21, DV-23 gözlenip satıra yazılır (`08 §4.1`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: tek alıcı, yasak alanlar yok.
+  - KK2: yeniden deneme sıfır, çağrı bir.
+  - KK3: ayar eksikse açılış durur.
+  - KK4: ad kaçışı ve yanıt adresi.
+  - KK5: ön sorgunun üç kolu.
+  - KK6: tablonun her satırı bir test.
+  - KK7: kayıtta adres ve anahtar yok.
+  - KK8: politika üç ifadeli.
+  - KK9: DV satırlarında tarih.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T408: SES: geri dönen adreslerin öğrenilmesi
+- **Bağımlılık:** T407
+- **Dokümanlar:** çekirdek; `09` §11, §13 (§13.1); `08 §2.2.3`, §4.1; `05` §4.3.4, §5.2
+- **Kabul kriterleri:**
+  1. Yöntem sorgudur: iş türü her on beş dakikada hesap listesinden son 24 saatin `BOUNCE` adreslerini okur; web kancası ve SNS yoktur (`08 §2.2.3`).
+  2. İstek `StartDate`, `Reason` = `BOUNCE` ve sayfalama taşır; `COMPLAINT` işlenmez (`08 §2.2.3`).
+  3. Eşleşme harf ayrımsızdır; pencerede `Sent` olan bütün satırlar `Undelivered` ve `RecipientError` olur, `SentAt` kalır (`08 §2.2.3`).
+  4. Kanal hâli kaydı etkilenmez; `Undelivered` satıra ikinci uygulama bir şey değiştirmez (`08 §2.2.3`).
+  5. Başarısız tur boş geçer, kanal hâline yazılmaz, imleç saklanmaz; hata kayda yazılır ve satır başarısız olmaz (`08 §2.2.3`; `05 §4.3.4`).
+  6. İş türünün tek bekleyen satırı vardır; ilgili kayıt kimliği boştur (`05 §5.2`; `08 §2.2.3`).
+  7. Ürün listeden adres silmez; silme çağrısı kodda yoktur (`08 §2.2.3`).
+  8. DV-22 üretim erişimli hesapta konsoldan eklenen adresle gözlenir ve satıra yazılır (`08 §4.1`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: on beş dakikalık yineleme sahte saatle.
+  - KK2: şikâyet adresi işlenmez.
+  - KK3: büyük harfli adres eşleşir.
+  - KK4: kanal hâli değişmez, ikinci uygulama etkisiz.
+  - KK5: 429 turu boş geçer.
+  - KK6: ikinci bekleyen satır yok.
+  - KK7: kodda silme çağrısı yok.
+  - KK8: DV-22 satırı.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T409: Google: giriş, kayıt ve yeniden doğrulama bağlayıcısı
+- **Bağımlılık:** T407
+- **Dokümanlar:** çekirdek; `09` §3 (§3.2, §3.3), §11 (§11.1–§11.3), §15; `08 §2.3`, §4.1; `03 §9.1`, §10.1; `02 §3.13.6`, §3.13.7, P-13; `05` MK-46, §6.1; `10` KP-26, KD-11
+- **Kabul kriterleri:**
+  1. `GoogleIdentityGateway` yetki kodu akışını uygular: kod değişimi `POST` ile gider, `userinfo` çağrılmaz (`08 §2.3`; `09 §11.3`).
+  2. İstemci kimliği ve sırrı kurulum ayarıdır; biri eksikse çağrı yapılmaz (`08 §2.3`).
+  3. Yetkilendirme ve kod değişimi adresleri sabittir; istek `openid email profile`, `state`, `nonce`, S256 taşır, `prompt` ve `max_age` taşımaz (`08 §2.3`).
+  4. Belirteçte yalnız `RS256`, imza, `iss`, `aud`, `exp` doğrulanır; `email` yoksa tutmaz; `nonce` ve `auth_time` sonuca alan olarak girer (`08 §2.3`; `09 §11.3`).
+  5. Keşif belgesi ve anahtar kümesi önbelleğe alınır; bilinmeyen `kid` yenileme getirir, yine yoksa imza tutmaz (`08 §2.3`).
+  6. Sonuç yalnız e-posta, doğrulama bayrağı, ad, `hd` ve `auth_time` taşır; `sub` alınmaz, kayda yazılmaz (`08 §2.3`; K-1061).
+  7. Vazgeçme ve doğrulama hatası `Failed`'dır; bağlanamama, 15 sn aşımı ve Google hata yanıtı `Unavailable`'dır; yeniden deneme yoktur (`08 §2.3`).
+  8. `GOOGLE.md` aynı PR'da açılır; DV-25, DV-26, DV-27, DV-28, DV-31, DV-37, DV-43 gerçek uygulamayla gözlenir (`08 §4.1`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: kod değişimi gövdesi, `userinfo` çağrısı yok.
+  - KK2: ayarsız çağrı yok.
+  - KK3: adresler sabit, istekte yasak alan yok.
+  - KK4: yedi belirteç durumu.
+  - KK5: bilinmeyen `kid` bir kez yenilenir.
+  - KK6: `sub` sonuçta ve kayıtta yok.
+  - KK7: iki sonuç sınıfı ve çağrı sayısı bir.
+  - KK8: DV satırlarında tarih.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T410: Dış olgu varsayımlarının doğrulama kanıtları (DV)
+- **Bağımlılık:** T404, T406, T408, T409
+- **Dokümanlar:** çekirdek; `08 §4.1`, §5.2; `10` ÖK-4, ÖK-12
+- **Kabul kriterleri:**
+  1. Her DV satırına kanıtı alan task tarihi ve kanıt yerini yazmıştır; T401–T409 payları kapalıdır (`08 §4.1`).
+  2. Kurulumu yapanın payı olan satırlar (DV-7, DV-8, DV-13, DV-15, DV-18, DV-20, DV-24, DV-29, DV-30, DV-40) referans kurulumun yazılı yanıtı ya da okumasıyla kapatılır (`08 §4.1`).
+  3. DV-1, DV-2, DV-9 referans kurulumun işaretli kaydından okunmuştur; PayTR imza doğrulaması tutan, bozuk ve imzasız bildirimle gösterilmiştir (`08 §2.1.5`; K-1411).
+  4. Üç servisin sandbox kanıtı tek tabloda yazılıdır: PayTR test modu, SES simülatörü ve doğrulanmış alıcı, Google gerçek uygulama (`08 §2.1.10`, §2.2, §2.3).
+  5. Beklenen sonucu vermeyen kanıt satırın "Yanlış çıkarsa" hükmünü işletir; yöntem karar kaydıyla kurulur, `08` aynı değişiklikte güncellenir (`08 §4.1`).
+  6. Doğrulanamayan kart yeteneği varsa kart anahtarları tanımlanmaz ve satış havaleyle sürer (`08 §4.1`; ÖK-4).
+  7. DV-10 sonucu `02`'ye geri beslemedir; §5.2'nin bekleyen satırları sonuçlarla eşitlenir (`08 §5.2`).
+  8. DV-5 gözlemi çerçeveli sayfa gelince T510'da alınır; satır "Bekliyor — T510" yazar ve F4 kapısına girmez (K-1450).
+  9. Runbook ve PR'da firma anahtarı, sır, belirteç ve bildirim gövdesi yoktur (`08 §2.1.2`).
+- **Test beklentisi:** Yok — kod üretmez; kanıt referans kurulumda alınır ve runbook'a yazılır
+- **Doğrulama kontrol listesi:**
+  - KK1: tabloda bu fazın payı olan "Bekliyor" yok.
+  - KK2: kurulumu yapan satırları tarihli.
+  - KK3: DV-1, 2, 9 ve üç imza durumu kayıtta.
+  - KK4: sandbox tablosunda üç servis.
+  - KK5: tutmayan kanıtın karar kaydı.
+  - KK6: doğrulanamayan yetenekte anahtar yok.
+  - KK7: DV-10 geri beslemesi.
+  - KK8: DV-5 satırı T510'a bağlı.
+  - KK9: sır taraması temiz.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 ## 6. Faz geçiş kapıları

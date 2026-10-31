@@ -2519,6 +2519,160 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK8: iki eşzamanlı onayda fazla ayırma olmaz.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+#### T335: Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı
+- **Bağımlılık:** T332, T321
+- **Dokümanlar:** çekirdek; `09` §9, §10; `02 §3.7.1`…§3.7.8, §5.1, §5.2, §6.6, Z-24, P-44; `10` KP-7, KP-39, KP-40, KD-28, KD-38
+- **Kabul kriterleri:**
+  1. Ürün ve varyant yayın durumunu ayrı taşır; durum geçişleri T321'in makinesinden geçer (`02 §3.7.1`).
+  2. Arşiv silme değildir; arşivlenen ürünün kaydı korunur, yalnız vitrinden çıkar (`02 §3.7.2`).
+  3. Ürün yayına yalnız adı, ana kategorisi ve tipi girilmişse ve en az bir Yayında varyantı varsa alınır; açıklama ve görsel zorunlu değildir (`02 §3.7.3`).
+  4. Dijital üründe yayındaki her varyant bir dosyaya bağlıdır; hizmette kapı ifa süresini de ister (`02 §3.7.4`).
+  5. Yayındaki dijital varyantı dosyasız bırakacak dosya silme engellenir (`02 §3.7.4`).
+  6. Taslak ürünün adresi ziyaretçiye "sayfa bulunamadı" döner, yöneticiye "Taslak" bandıyla görünür; taslak varyant ziyaretçiye görünmez (`02 §3.7.5`).
+  7. Arşiv ürünün adresi "Bu ürün artık satılmıyor" sayfasını döner; fiyat ve sepete ekleme yoktur, listelerde ve aramada görünmez (`02 §3.7.6`).
+  8. Silme kalıcıdır ve ayrı yoldur; geçmiş siparişler silmeden etkilenmez, açık siparişi olan ürün de panel uyarısıyla silinebilir (`02 §3.7.7`).
+  9. Yayındaki ürünün son Yayında varyantı arşivlenemez, taslağa çekilemez ve silinemez; panel durdurur ve ürünü taslağa ya da arşive almaya yönlendirir (`02 §3.7.8`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: ürün ve varyant durumu bağımsız değişir.
+  - KK2: arşivde kayıt durur, vitrinde yok.
+  - KK3: eksik ad, kategori, tip ya da varyantla Yayında reddedilir.
+  - KK4: dosyasız dijital varyantla kapı kapalı.
+  - KK5: dosya silme yayındaki varyantı dosyasız bırakıyorsa engellenir.
+  - KK6: taslak adres ziyaretçide yok, yöneticide bant.
+  - KK7: arşiv sayfasında fiyat ve sepet düğmesi yok.
+  - KK8: silinen ürünün eski siparişi bozulmaz.
+  - KK9: son Yayında varyant üç yolla da korunur.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T336: Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri
+- **Bağımlılık:** T332
+- **Dokümanlar:** çekirdek; `09` §7, §14; `02 §3.8.1`…§3.8.5, §6.6, P-10, §12.1.5; `10` KP-5, KP-39
+- **Kabul kriterleri:**
+  1. Fiyat varyantta yaşar ve KDV dahil girilir; yöneticinin yazdığı sayı ile ziyaretçinin gördüğü sayı aynıdır (`02 §3.8.1`).
+  2. KDV oranı ürün düzleminde tutulur, varyantlar devralır ve varsayılanı ayardan gelir (`02 §3.8.2`).
+  3. Matrah ve KDV tutarı sipariş kaydında ayrışır; kargo ücretinin oranı siparişteki fiziksel kalemlerin oranını izler (`02 §3.8.2`).
+  4. KDV kalem bazında hesaplanır ve kuruşa kalemde yuvarlanır; sipariş toplamı yuvarlanmış kalemlerin toplamıdır (`02 §3.8.3`).
+  5. Hesap sırası sabittir: indirimli birim fiyat × adet, kupon payı düşümü, kalan tutardan KDV (`02 §3.8.3`).
+  6. Tek tutar kuruşa en yakın kuruşa yuvarlanır, tam yarım kuruş yukarı gider; orantılı bölünen tutarın parçaları aşağı yuvarlanır ve kalan kuruş en büyük parçaya yazılır (`02 §3.8.3`).
+  7. Fiyatın hassasiyeti iki ondalıktır; fiyat sıfırdan büyüktür ve 0,00 TL kaydedilmez; tutarlar ondalık türde tutulur (`09` §7) (`02 §3.8.4`).
+  8. Ürün sayfası "üretim yeri (ülke)" ve ölçüyle satılan üründe ölçü birimi ile net miktarı taşır; ölçü birimi ürün, net miktar varyant düzlemindedir (`02 §3.8.5`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: girilen fiyat ekranda aynen görünür.
+  - KK2: KDV oranı ürüne yazılır, varyant devralır.
+  - KK3: sipariş kaydında matrah ve KDV ayrı.
+  - KK4: toplam kalem toplamıdır, yeniden türetilmez.
+  - KK5: üç adımlı sıra sınanmış örneklerle doğru.
+  - KK6: 12,345 -> 12,35; orantılı bölümde parçalar aşağı, artık en büyük parçada.
+  - KK7: üç ondalık ve 0,00 TL reddedilir.
+  - KK8: fiziksel üründe ülke zorunlu, dijitalde isteğe bağlı.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T337: İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar
+- **Bağımlılık:** T336
+- **Dokümanlar:** çekirdek; `09` §10, §14; `02 §3.9.1`…§3.9.6, §4.1.4, Z-20, Z-21, §5.11.1, §6.6, §12.1.6; `10` KP-5, KP-43
+- **Kabul kriterleri:**
+  1. İndirim ürün düzleminde yüzde olarak tanımlanır ve her varyanta kendi fiyatı üzerinden iner (`02 §3.9.1`).
+  2. Hiçbir varyantın fiyatı sıfıra inmez; %100 indirim girilemez, yuvarlanmış indirimli fiyat 0,00 TL ise indirim kaydedilmez ve sebep söylenir (`02 §3.9.1`).
+  3. İndirim tarihlidir; sistem indirimi kendisi başlatır ve bitirir (`02 §3.9.2`).
+  4. İndirim beyanı gösterilen her yerde başlangıç ve bitiş tarihi de görünür (`02 §3.9.2`).
+  5. Referans fiyatı sistem hesaplar, yönetici giremez; sistem her varyantın fiyat geçmişini tutar (`02 §3.9.3`).
+  6. Referans, indirimin başladığı andan önceki 10 gün içinde o varyanta uygulanan en düşük fiyattır (`02 §3.9.3`).
+  7. 10 günlük geçmişi olmayan varyantta referans, varyantın satışa sunulduğu andan beri en düşük fiyattır; öteki varyantların fiyatı referans olmaz (`02 §3.9.4`).
+  8. İndirimli fiyat referansın altına inmiyorsa indirim kaydedilmez ve yönetici sebebiyle uyarılır (`02 §3.9.5`).
+  9. Beyan edilen referans fiyat sipariş kalemine donar (`02 §3.9.6`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: indirim her varyantta kendi fiyatından hesaplanır.
+  - KK2: %100 ve sıfıra yuvarlanan indirim reddedilir.
+  - KK3: başlangıç ve bitişte indirim kendiliğinden açılıp kapanır.
+  - KK4: tarihler ürün sayfasında ve kartta görünür.
+  - KK5: referans alanı panelde girilemez.
+  - KK6: 10 günlük en düşük fiyat örnekle doğrulanır.
+  - KK7: yeni eklenen varyantta referans kendi geçmişinden gelir.
+  - KK8: referansın altına inmeyen indirim kaydedilmez.
+  - KK9: sipariş kaleminde referans donmuş.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T338: Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması
+- **Bağımlılık:** T336
+- **Dokümanlar:** çekirdek; `09` §10, §14; `02 §3.10.1`…§3.10.7, §4.1.4, Z-22, §5.11.2…§5.11.4, §6.2, §7.2.6, §7.4.8, §8.2, L-6, P-36; `10` KP-11, KP-16, KP-43
+- **Kabul kriterleri:**
+  1. Kupon ödeme adımında girilen ve sepet toplamına inen bir koddur (`02 §3.10.1`).
+  2. Kupon yüzde ya da sabit tutar olarak tanımlanır (`02 §3.10.2`).
+  3. Kuponun payı kalem kalem belirlenir; yüzdesel kuponda her kalem kendi içinde küçülür, sabit tutar tutarlarıyla orantılı dağıtılır ve kalan kuruş en büyük kaleme yazılır (`02 §3.10.3`).
+  4. Kalemin kupon payı kaleme donar ve KDV bu pay düşüldükten sonra hesaplanır (`02 §3.10.3`; `02 §3.8.3`).
+  5. Sepet toplamına eşit ya da onu aşan kupon reddedilir; kupon siparişi sıfır tutara indirmez (`02 §3.10.4`).
+  6. Sınır tarih aralığı ve toplam kullanım adedidir; kişiye özel kod toplam kullanım adedi 1 olan koddur (`02 §3.10.5`).
+  7. Kupon kodu kuponlar arasında tekildir; art arda geçersiz denemede o sepetin kupon alanı geçici kapanır (`02 §3.10.5`, §8.2).
+  8. Kullanım hakkı onayda ayrılır, ödeme başarılı olunca kullanılmış sayılır, ödeme süresi dolunca ya da başarısızlıkta geri döner (`02 §3.10.6`).
+  9. Kupon ücretsiz kargo eşiğinin ve asgari sipariş tutarının tabanını düşürmez (`02 §3.10.7`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: kupon kodu ödeme adımında uygulanır.
+  - KK2: yüzde ve sabit tutar iki tanım da çalışır.
+  - KK3: kuruş artığı en büyük kaleme yazılır.
+  - KK4: kalem payı donar, KDV paydan sonra hesaplanır.
+  - KK5: sepete eşit kupon reddedilir.
+  - KK6: süresi ya da hakkı dolan kod reddedilir.
+  - KK7: yinelenen kod kaydedilmez, deneme limiti alanı kapatır.
+  - KK8: son hakkı iki sipariş birden alamaz, iptalde hak döner.
+  - KK9: kuponlu sepet eşiği düşürmez.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T339: Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti
+- **Bağımlılık:** T332
+- **Dokümanlar:** çekirdek; `09` §10, §15; `02 §3.11.1`…§3.11.7, §3.27.16, §11.2, P-22, P-23, P-24, P-27; `05 MK-29`, MK-54, §6.5; `10` KP-5, KP-42, KD-63
+- **Kabul kriterleri:**
+  1. Görsel ürün düzleminde yaşar; varyant isterse kendi görselini taşır, taşımıyorsa ürününkini devralır (`02 §3.11.1`).
+  2. Ayrı bir ana görsel işareti vardır ve galeri sırasından bağımsızdır; ilk eklenen görsel işaretle gelir, kaldırılınca sıradaki ilk görsel ana olur (`02 §3.11.2`).
+  3. Galeri sırasını firma panelde elle belirler (`02 §3.11.2`).
+  4. Görsele format listesi, tek dosya boyut tavanı ve ürün başına adet tavanı uygulanır; değerler ayardan okunur (`02 §3.11.3`).
+  5. Yüklenen görsel yeniden kodlanır; yön uygulanır, meta veri atılır, hareketli görsel ilk karesiyle işlenir (`05 MK-29`, §6.5).
+  6. Alternatif metin isteğe bağlıdır ve geri düşüşlüdür; yazılmazsa sistem ürün adından ve varyant değerlerinden üretir, çıktı boş kalmaz (`02 §3.11.4`).
+  7. Ürün adına karakter tavanı konur; açıklama serbesttir (`02 §3.11.5`).
+  8. Ürün açıklaması, kurumsal içeriğin uzun metinleri ve iki yasal metin tek kapalı metin biçimi setini kullanır; ham HTML yoktur ve setin dışındaki biçim düşer (`02 §3.11.6`).
+  9. Garanti bilgisinin ayrı alanı yoktur (`02 §3.11.7`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: varyantsız görsel ürünün, varyantlı görsel varyantın.
+  - KK2: ana görsel kaldırılınca sıradaki ana olur.
+  - KK3: galeri sırası panelden değişir.
+  - KK4: format, boyut ve adet tavanı aşılınca reddedilir.
+  - KK5: yüklenen görselin meta verisi atılmış, yönü uygulanmış çıkar.
+  - KK6: alternatif metin boş bırakılınca üretilen metin dolar.
+  - KK7: ad tavanı aşılınca kaydedilmez.
+  - KK8: betik içeren metin temizlenir, set dışı biçim düşer.
+  - KK9: garanti alanı yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T340: Dijital ürün: dosya, indirme hakkı, hak yenileme, yeniden satın alma
+- **Bağımlılık:** T332, T312, T335
+- **Dokümanlar:** çekirdek; `09` §10, §15; `03 §8.1`; `02 §3.12.1`…§3.12.9, §3.7.4, Z-19, §6.6, §7.2.5, §7.5.4, B-4, P-8, P-26, P-44; `05 MK-30`, MK-31, §7.7; `10` KP-9, KP-20, KP-44
+- **Kabul kriterleri:**
+  1. Dijital ürünü sistem teslim eder; ödeme başarılı olunca sipariş sayfasında indirme düğmesi açılır (havalede "ödendi" işaretiyle) (`02 §3.12.1`).
+  2. Dosya ürün düzleminde yaşar; varyant kendi dosyasını taşıyabilir, taşımıyorsa ürününkini devralır (`02 §3.12.2`).
+  3. Tek dosyanın boyut tavanı vardır ve değer ayardan okunur (`02 §3.12.3`).
+  4. Dijital üründe adet her zaman 1'dir (`02 §3.12.4`).
+  5. İndirmenin adet sınırı vardır, süre sınırı yoktur; adet dolunca indirme kapanır (`02 §3.12.5`; `03 §4.1.22`).
+  6. Hakkı dolan müşteri için yönetici o kalemin hakkını sipariş sayfasından yeniler ve sayaç sıfırlanır (`02 §3.12.6`).
+  7. Sipariş sayfası kalemin bağlı olduğu varyantın o anki dosyasını verir; dondurma kuralının tek istisnasıdır (`02 §3.12.7`).
+  8. Dosya güncellemesi indirme hakkını değiştirmez; yeni hâli indirmek de haktan bir indirme harcar (`02 §3.12.8`).
+  9. Daha önce alınmış varyantı sepete ekleyen üyeye uyarı gösterilir, yine de satın alabilir; misafirde uyarı yoktur (`02 §3.12.9`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: ödeme onayında dijital kalem teslim edilir.
+  - KK2: varyant dosyasızsa ürünün dosyası indirilir.
+  - KK3: tavanı aşan dosya reddedilir.
+  - KK4: dijital kalemde adet 1'den fazla yazılamaz.
+  - KK5: hak dolunca indirme reddedilir, süre kontrolü yok.
+  - KK6: yenilemede sayaç sıfırlanır.
+  - KK7: dosya değişince eski alıcı yeni dosyayı indirir.
+  - KK8: güncelleme hakkı artırmaz.
+  - KK9: üyede uyarı var, misafirde yok, satın alma engellenmez.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ## 6. Faz geçiş kapıları
 
 ### 6.1 Genel gate check (tüm fazlarda)

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.37** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.38** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -932,7 +932,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   6. Aynı bildirimin tekrarı kaydedilmez, işlenmez ve yine "alındı" alır (`08 §3.2` ilke 3).
   7. Kaydedilemeyen bildirim "alındı" almaz; yanıt 500'dür (`08 §3.2` ilke 3).
   8. Gelen kayıt kişisel alan taşımaz (`08 §3.2` ilke 4).
-  9. Gövde tavanı 64 KB'tır ve gövde okunmadan, imzadan önce uygulanır; aşan istek 413 alır; imzası tutmayan istek form gönderimi sınırını aşarsa 429 alır (T215 madde 4); imzalı uç sahteciliğe karşı korumanın dışındadır (`08 §3.2` ilke 5; `07 §4.30.1`, §2.8.7).
+  9. Gövde tavanı 64 KB'tır ve gövde okunmadan, imzadan önce uygulanır; aşan istek 413 alır; imzası tutmayan isteğin form gönderimi sınırına sayılması ve 429'u T215'tedir (T215 madde 4); imzalı uç sahteciliğe karşı korumanın dışındadır (`08 §3.2` ilke 5; `07 §4.30.1`, §2.8.7).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: imza denetimi işleyiciden önce koşar.
@@ -943,7 +943,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK6: tekrar gönderimde ikinci satır yok, yanıt aynı.
   - KK7: veritabanı hatasında 500 döner.
   - KK8: kayıtta kişisel alan yok.
-  - KK9: 64 KB üstü gövde imza denetiminden önce 413; sınırı aşan bozuk imza 429; sahtecilik denetimi bu uca uygulanmaz.
+  - KK9: 64 KB üstü gövde imza denetiminden önce 413; sahtecilik denetimi bu uca uygulanmaz; bozuk imzanın 429'u T215 KK4'te sınanır.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T204: Dış servis çökmesi davranışı ve sahtelerle sınama
@@ -1080,7 +1080,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   4. Bütün tarayıcı POST'ları çatının sahteciliğe karşı korumasından geçer; parçalı yüklemede değer `RequestVerificationToken` başlığındadır (`07 §2.5.4`; `05 §6.5.1`).
   5. Doğrulama başarısızsa istek yazılmaz; sayfa 400 ve yeni değerle yeniden gösterilir (`07 §2.5.4`).
   6. Korumanın dışındaki uçlar kapalı listedir; yalnız imzalı bildirim bu listededir (`07 §2.5.5`).
-  7. Güvenlik başlıkları makine uçları dahil her yanıta uygulanır; içerik güvenlik politikası dış betiği ve gömme içeriği yükletmez (`07 §2.5.6`; `05 §6.5.4`; MK-53; `02 §8.3.2`, §8.3.3).
+  7. Güvenlik başlıkları makine uçları dahil her yanıttadır; içerik güvenlik politikası dış betiği ve gömmeyi yükletmez, ödeme çerçevesi T510'dadır (`07 §2.5.6`; `05 §6.5.4`; MK-53; `02 §8.3.2`, §8.3.3).
   8. Kişisel veri, oturum, sepet ya da erişim anahtarı taşıyan yanıt `Cache-Control: no-store` taşır (`07 §2.5.6`).
   9. Site yalnız HTTPS'tir; HSTS'i ters vekil yazar: bir yıl, alt alan adları ve ön yükleme yok; uygulama `UseHsts` çağırmaz (`05 §6.8.1`; `09 §15` madde 3; MK-58).
 - **Test beklentisi:** Integration
@@ -1091,7 +1091,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK4: doğrulama değersiz POST reddedilir.
   - KK5: reddedilen formda yazılanlar korunur.
   - KK6: imzalı uç dışında korumasız POST ucu yok.
-  - KK7: başlıklar bir makine ucunda da var; dış kaynaklı betik politikayla engellenir.
+  - KK7: makine ucunda da başlıklar var; dış betik politikayla engellenir.
   - KK8: oturumlu yanıtta `no-store` var.
   - KK9: uygulamanın yanıtında HSTS yok; değeri T05'te sınanır.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -3427,7 +3427,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T325, T332, T351, T356
 - **Dokümanlar:** çekirdek; `09` §9, §10, §14; `02 §7.1.1`, §7.1.2, §7.3.1…§7.3.4, Z-13, Z-14, Z-15, §6.4, §7.4.9, §10.4.5, §12.1.9; `10` KP-22, KP-45
 - **Kabul kriterleri:**
-  1. Cayma penceresi on dört gündür ve sabittir; firma uzatamaz, ayar değildir; m.10'un yasal uzaması pencere dışı kayıtla işler (`02 §7.3.1`; T528 k5).
+  1. Cayma penceresi on dört gündür ve sabittir; firma uzatamaz, ayar değildir; m.10'un yasal uzaması pencere dışı kayıtla işler (`02 §7.3.1`; T372 k6).
   2. Pencere fiziksel kalemde teslim tarihinden, hizmette sipariş tarihinden, onay anında fiziksel kalem içeren siparişin hizmetinde teslim tarihinden işler; teslim tarihi girilmemişse ya da fiziksel kalemlerin tamamı teslimden önce kapandıysa bu pencere başlamaz, sipariş tarihine çekilmez (`02 §7.3.1`, §7.3.3; Z-13, Z-14).
   3. Müşteri malı teslim almadan, sipariş kargoya verildikten sonra da cayabilir (`02 §7.3.1`).
   4. Pencere kapanınca düğme kapanır; önceden yapılmış beyan geçerli kalır ve pencere işaret anından yeniden başlatılmaz (`02 §7.3.1`).
@@ -3460,9 +3460,9 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   3. Koşullu istisnalı üründe beyan ekranı koruyucu ambalaj koşulunu gösterir (`02 §7.3.5`).
   4. Beyan ekseni kendi başına değiştirmez, ödeme durumu geri ödemeyle değişir; teslim işaretsiz kalemde cayılan adetleri kapatır, son açık kalemde sipariş kapanır (`02 §7.3.6`, §5.6.6; `03 §1.7.1.5`, §1.4.3).
   5. B-9 iki yolda müşteriye, F-3 yalnız müşterinin beyanında gider (`02 §9.2`; `03 §7.3.24`).
-  6. Başka kanaldan gelen bildirim panelden kalem ve adetle kaydedilir; tarih bildirimin ulaştığı tarihtir, geçmişe dönük olabilir, ileri tarihli olamaz (`02 §7.3.5`; §10.4.10).
-  7. Siparişin e-postasından gelmeyen bildirimi firma teyit eder, ürün denetlemez; teyit tarihi değiştirmez; havalede IBAN yalnız siparişin e-postasından gelen bildirimden aktarılır, aktarılamazsa alan açılır ve B-14 gider (`02 §8.3.8`; §10.4.10).
-  8. Kargoya verilmemiş fiziksel kalemde cayma düğmesi yoktur; başka kanaldan gelen bildirim "müşteriyle anlaşıldı" iptaliyle işlenir, cayma kaydı açılmaz (`02 §7.3.7`).
+  6. Başka kanaldan gelen bildirim kalem ve adetle kaydedilir; tarih ulaşma tarihidir, geçmişe dönük olabilir, ileri olamaz; pencere dışı kayıt da olur (`02 §7.3.5`; §10.4.10; K-709).
+  7. Siparişin e-postasından gelmeyen bildirimi firma teyit eder, ürün denetlemez; teyit tarihi değiştirmez; havalede IBAN yalnız siparişin e-postasından gelen bildirimden aktarılır, yoksa alan açılır, B-14 gider (`02 §8.3.8`; §10.4.10).
+  8. Kargoya verilmemiş fiziksel kalemde cayma düğmesi ve kaydı yoktur; başka kanaldan gelen bildirim "müşteriyle anlaşıldı" iptaliyle işlenir (`02 §7.3.7`).
   9. Beyan geri alınmaz ve düzeltilmez; firmanın kaydı da öyledir, onay ister (`02 §7.6.7`; §5.9).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
@@ -3471,7 +3471,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: koşul metni yalnız koşullu üründe.
   - KK4: teslimli kalemde eksenler değişmez; işaretsiz son açık kalemde sipariş kapanır.
   - KK5: B-9 ve F-3 gider.
-  - KK6: ileri tarih reddedilir.
+  - KK6: ileri tarih; pencere dışı onay, bir yıl.
   - KK7: teyit denetimi yok, tarih sabit; B-14 yalnız havalede.
   - KK8: kargo öncesi iptal yolu, cayma kaydı yok.
   - KK9: onaysız kayıt, geri alma, düzeltme yok.
@@ -5368,7 +5368,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   3. Kapalı listeden seçilen alan (il, konu tipi, firma tipi, sebep) serbest metin kabul etmez (`04` 2.12.1.3).
   4. Baştaki ve sondaki boşluk yok sayılır; yalnız boşluktan oluşan değer boştur (`04` 7.3.1; K-1214).
   5. Adres formu alıcı adı, il, ilçe ve tek metin alanında açık adresi taşır; teslimat ayrıca telefon; posta kodu ve T.C. kimlik no alanı yoktur (`04` 2.12.2.1).
-  6. Teslimat yapılmayan ildeki adres kabul edilmez, sebebi yerinde söylenir (`04` 2.12.2.3).
+  6. Teslimat varyantında teslimat yapılmayan ildeki adres kabul edilmez, sebebi yerinde söylenir; defter varyantı o ildeki kaydı tutar, kayıt ödemede seçilemez (`04` 2.12.2.3, 5.26.5).
   7. IBAN alanı yalnız havale hattında ve iki istisna geri ödemede görünür; girilen IBAN işlenene kadar sipariş sayfasından düzeltilir (`04` 2.12.3.1, 2.12.3.3).
   8. Sebep kapalı listeden seçilir; sebepsiz firma iptalinin onayı açılmaz, durum düzeltmesi gönderilmez; "diğer" açıklamayı zorunlu yapar (`04` 2.12.4.1).
   9. Deneme limiti aşılınca yalnız o işlem engellenir; engelin dili nötrdür (`04` 7.3.3, 7.3.4).
@@ -5380,7 +5380,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: serbest metin reddi.
   - KK4: boşluk boştur.
   - KK5: alanlar; olmayan iki alan.
-  - KK6: kapalı il.
+  - KK6: kapalı il teslimat varyantında reddedilir, defter varyantında tutulur.
   - KK7: IBAN yerleri; düzeltme.
   - KK8: sebepsiz onay açılmaz.
   - KK9: limit işlemi engeller.
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.37*
+*Shopfolio — Implementation Plan v0.38*

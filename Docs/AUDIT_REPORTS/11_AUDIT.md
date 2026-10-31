@@ -208,6 +208,22 @@ Plan 20 doğrulayıcı (94 bulgu) kurdu; **20'si koştu** (iki dalga, 1–10 ve 
 
 **İlerleme:** 435 bulgudan **236'sı hükme bağlandı** (2a 55 + 2b 87 + 2c 94); **kalan 199** (2b'den 10 dahil; 2d, 2e, 2f) + #336, #437, #350 (2r) ve 2b ile 2c'nin sekiz yükselen bulgusu. Kapılar: `11_matris_kapsama.py` 1.501/1.501 sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214.
 
+### Doğrulanmamış bulgular — KD-audit-2d
+
+Plan 20 doğrulayıcı (82 bulgu) kurdu; **20'si koştu** (iki dalga, 1–10 ve 11–20), bekçi olayı yok. Doğrulamasız uygulama yoktur.
+
+| Doğrulayıcı | Model | Kademe | Modül | Sayı |
+|---|---|---|---|---|
+| 1, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20 | Opus / high | Orta 4'lü | Ortak (1), Ortak altyapı (7–11, 13–20) | 14 |
+| 2, 4, 5 | Opus / high | Orta 3'lü | Ortak | 3 |
+| 3, 6 | Opus / high | Düşük 5'li | Ortak | 2 |
+| 12 | Opus / high | Düşük 7'li | Ortak altyapı | 1 |
+| **Toplam** | | | | **20** |
+
+**Hükümler (82 bulgu):** 39 doğru · 33 kısmen · 10 çürük. **Uygulanan:** 133 şartname çifti (141 çiftten 8'i yükselen bulguların) ve üç elle satır (#34 T06 Test beklentisi, #48 T216 Test beklentisi, #461 T07 bağımlılığı). Liste: `C:/Users/teknodeveloper/.claude/helper-state/shopfolio/kd-audit-2/2d/uygulanan.md` (yardımcı durum dizini). **Seviyesi düşen** 17 bulgu uygulandı. **Yükselen:** #459 (Orta → Yüksek; T01 ↔ T03 sırası, KARAR satırı var), #174 (Orta → Yüksek) ve #462 (Düşük → Orta) uygulanmadı; KD-audit-2r'de yeniden doğrulanır. **Blok bayt sınırı:** T601 ve T602 kısaltıldı (bölme yok; K-1467 (3)'te kayıp listesi). **KARAR #112** (`05 §6.x.6` ↔ `09 §17` madde 1, kurucu betik parolaları): (A) seçeneğiyle kaydedildi (K-1467 (4); ⚠ değil). **Üst doküman:** `05 §6.x.6` ve `DEPLOY_RUNBOOK` sır envanteri cümlesi (`05` v0.41), `06 §7.1.1` ve §7.1 `Job` satırı (`06` v0.44; K-652).
+
+**İlerleme:** 435 bulgudan **318'i hükme bağlandı** (2a 55 + 2b 87 + 2c 94 + 2d 82); **kalan 117** (2e, 2f) + #336, #437, #350 (2r) ve 2b, 2c, 2d'nin 11 yükselen bulgusu. Kapılar: `11_matris_kapsama.py` 1.501/1.501 sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214.
+
 ### Sınırlar
 
 - **Uygulanmayan 435 bulgu** gövdede hâlâ bulunabilir; bu raporun "temiz" okunmaması gerekir: audit yalnız 44 bulguyu hükme bağladı.

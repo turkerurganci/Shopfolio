@@ -12,7 +12,7 @@ Denetlenen aileler DOLU listesindedir; matris oturumu kendi ailesini listeye ekl
 Ek denetimler:
   - her satirin Task hucresi aday kimlik listesi ("T107" ya da "T402, T311") ya da "-" olur;
   - kullanilan her aday kimlik 11 7'deki aday task tablosunda tanimlidir (K-1407 faz araliklari);
-  - geri yon (O6 1/2): her aday task >=1 kaynak; 11 7.1 ile 7.2 iki yonlu esit (11_geri_yon.py);
+  - geri yon (O6 2/2): her aday task >=1 kaynak; 11 7.1 ile 7.2 iki yonlu esit (11_geri_yon.py);
     K-1409 boyut sinirlari asilmaz;
   - "Implement edildi" ve "Kanit" hucreleri bu asamada bostur (gate'te dolar).
 
@@ -339,7 +339,7 @@ if diger:
     p()
     p("Uyari: DOLU listesinde olmayan ailelerin satiri var: %s (betige ekle)" % diger)
 
-# ------------------------------------------------------------ geri yon (O6 1/2): 11 7.2
+# ------------------------------------------------------------ geri yon (O6 2/2): 11 7.2
 import importlib.util
 _spec = importlib.util.spec_from_file_location("geri_yon", str(Path(__file__).resolve().parent / "11_geri_yon.py"))
 gy = importlib.util.module_from_spec(_spec)
@@ -364,7 +364,7 @@ aday_tum = gy.aday_tablosu(plan)
 kaynaksiz = sorted(t for t in aday_tum if not any(t == x[1] for x in ileri_cift))
 geri_yin = sorted(t for t, v in Counter(geri_task).items() if v > 1)
 p()
-p("## Geri yon denetimi (11 7.2, O6 1/2)")
+p("## Geri yon denetimi (11 7.2, O6 2/2)")
 p("7.1 cift (kaynak, task): %d; 7.2 cift: %d; yalniz 7.1'de: %d; yalniz 7.2'de: %d" % (
     len(ileri_cift), len(geri_cift), len(ileri_cift - geri_cift), len(geri_cift - ileri_cift)))
 p("7.2 satiri %d, aday %d; 7.2'de olmayan aday: %s; 7.2'de aday olmayan: %s; yinelenen: %s; bicim sorunu: %d" % (

@@ -46,6 +46,11 @@ INCELENEN = {
     "T538": ("✓ gerekçeli (alt bölüm) — K-1416, K-1418", ""),
     "T546": ("✓ gerekçeli (alt bölüm) — K-1418", ""),
     "T548": ("✓ gerekçeli (alt bölüm + devir) — K-1435", ""),
+    "T10": ("✓ gerekçeli (alt bölüm) — K-1441", ""),
+    "T232": ("✓ gerekçeli (alt bölüm) — K-1441", ""),
+    "T233": ("✓ gerekçeli (alt bölüm) — K-1441", ""),
+    "T389": ("✓ gerekçeli (alt bölüm) — K-1441", ""),
+    "T390": ("✓ gerekçeli (alt bölüm) — K-1441", ""),
 }
 
 

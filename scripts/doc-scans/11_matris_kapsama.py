@@ -137,7 +137,7 @@ def beklenen_03():
 
 # O4a: 02 §1-§3 (kural 257 + alt bolum 40); O4b 1/2: §4-§8 (kural 101, kimlikli satir 56, alt bolum 36); O4b 2/2 §9-§13'u ekler:
 # ekler: KAPSAM_02'ye bolum numaralarini ve kimlikli satirlari katar.
-KAPSAM_02 = tuple(range(1, 9))  # O4b 1/2: §4-§8; O4b 2/2 §9-§13'u ekler
+KAPSAM_02 = tuple(range(1, 14))  # O4b 2/2: §9-§13 eklendi (§1-§13)
 
 
 def beklenen_02():

@@ -10,6 +10,7 @@ mumkunse ayni adimdadir. Sira: para/durum riski (Odeme, Iptal-cayma-iade, Sepet 
 Kullanim:
   python -I scripts/doc-scans/11_audit_grupla2.py <dizin> [--girdi <kd-audit dizini>]            -> plan.json, plan.md
   python -I scripts/doc-scans/11_audit_grupla2.py <dizin> --paket <adim> [--girdi ...]           -> <dizin>/<adim>/dogrulayici_<k>.md
+  ... --paket 2e --ek 2b:19,2b:20   (--ek: baska adimdaki grup, k sirasiyla adimin sonuna eklenir)
 <dizin> = .../kd-audit-2
 """
 import json
@@ -32,6 +33,11 @@ if "--girdi" in args:
 if "--paket" in args:
     i = args.index("--paket")
     PAKET = args[i + 1]
+    del args[i:i + 2]
+EK = []
+if "--ek" in args:
+    i = args.index("--ek")
+    EK = [x for x in args[i + 1].split(",") if x]
     del args[i:i + 2]
 D = Path(args[0])
 if GIRDI is None:
@@ -74,8 +80,12 @@ if PAKET:
     out_dir.mkdir(parents=True, exist_ok=True)
     bs = blok_basla()
     yol = str(D).replace("\\", "/")
-    for k, g in enumerate(adim["gruplar"], 1):
-        out = ["# Dogrulayici %s/%d -- %s %d'li (%s)" % (PAKET, k, g["seviye"], len(g["nolar"]), g["modul"]), "",
+    gl = list(adim["gruplar"])
+    for e in EK:   # ek gruplar: baska adimda kosmamis gruplar bu adimin dizinine eklenir (plan.json degismez)
+        ea, ek_k = e.split(":")
+        gl.append(next(a for a in plan["adimlar"] if a["adim"] == ea)["gruplar"][int(ek_k) - 1])
+    for k, g in enumerate(gl, 1):
+        out =["# Dogrulayici %s/%d -- %s %d'li (%s)" % (PAKET, k, g["seviye"], len(g["nolar"]), g["modul"]), "",
                "Talimat: %s/talimat_dogrulayici.md (once oku)." % yol,
                "Hukum dosyasi: %s/%s/hukum_%d.md" % (yol, PAKET, k),
                "Bulgu sayisi: %d (kimlikler: %s)" % (len(g["nolar"]), ", ".join("#%d" % n for n in g["nolar"])),
@@ -90,7 +100,7 @@ if PAKET:
             out.append(blok(b["task"], bs) if b["task"] else "(task yok)")
             out.append("")
         (out_dir / ("dogrulayici_%d.md" % k)).write_text("\n".join(out), encoding="utf-8", newline="\n")
-    print("paket: %s -> %d dogrulayici paketi (%s)" % (PAKET, len(adim["gruplar"]), out_dir))
+    print("paket: %s -> %d dogrulayici paketi (%s)" % (PAKET, len(gl), out_dir))
     sys.exit(0)
 
 # ------------------------------------------------------------------ modul eslemesi

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.20** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.21** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -53,7 +53,7 @@ Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 sat
 | Y4d | §5 F3 son çeyrek ve F3 `Yürütme sırası` | `T368`–`T390` (23) | `IP5-09`, `IP5-13` | ✓ |
 | Y5 | §5 F4 | `T401`–`T410` (10) | `IP5-10` | ✓ |
 | Y6a | §5 F5 başlığı ve birinci üçte bir | `T501`–`T516` (16) | `IP5-11` | ✓ |
-| Y6b | §5 F5 ikinci üçte bir | `T517`–`T532` (16) | `IP5-11` | ⏳ |
+| Y6b | §5 F5 ikinci üçte bir | `T517`–`T532` (16) | `IP5-11` | ✓ |
 | Y6c | §5 F5 son üçte bir ve F5 `Yürütme sırası` | `T533`–`T549` (17) | `IP5-11`, `IP5-08` (T548) | ⏳ |
 | Y7 | §5 F6, §6.1, §6.2 | `T601`–`T602` (2) | `IP5-12`, `IP6-01`, `IP6-02` | ⏳ |
 | Y8 | §8 son hali, §9, §1, §2 (sayımlar kesin) | — | `IP8-01`, `IP9-01`, `IP1-01`, `IP2-01` | ⏳ |
@@ -4724,7 +4724,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T521: Panel ana sayfası ve yönetici hesabının doğrulama ekranları (E-31, E-54)
 - **Bağımlılık:** T520, T540, T541, T542, T543
-- **Dokümanlar:** çekirdek; `09` §3.4, §8, §15 (§15.1), §16 (§16.2); `07 UC-86`, `UC-108`, `UC-185`…`UC-187`; `04` E-31, E-54; `03 §8.9`, §10.1; `10` KP-50
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §15 (§15.1), §16 (§16.2); `07 UC-86`, `UC-108`, `UC-185`…`UC-187`; `04` E-31, E-54; `03 §8.9`, §10.1; `10` KP-50, KP-65
 - **Kabul kriterleri:**
   1. `GET /panel` uyarıları, kurulum kontrol listesini, altı sayacı ve "Müşteriden beklenenler"i verir; boş bölüm görünmez (`07 UC-86`).
   2. Değerler istek anında sunucunun hesabıdır, sayaçlar saklanmaz; eksik madde satış kapısının koşullarındandır ve kendi ayar ekranına bağlanır (`07 UC-86`; `02 §10.8.2`).
@@ -4735,7 +4735,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   7. `VerifyEmail` bağlantıyı tek koşullu tüketir, e-postayı yeni adres yapar, eski adrese bildirim ve geri alma bağlantısı gönderir, iz yazar; oturum açmaz (`07 UC-186`).
   8. UC-186: bağlantı arada geçersizleştiyse 200 ve yazmaz; yeni adres başka yöneticinin olduysa 422 ve tüketilmez (`07 UC-186`).
   9. `RevertPendingEmailChange` e-postayı eski adrese döndürür, bütün oturumları siler, şifreyi geçersiz kılar, sıfırlama bağlantısı gönderir (`07 UC-187`; K-1210).
-  10. UC-187: eski adres başka yöneticinin olduysa 422, tüketim geri döner; bağlantı arada geçersizleştiyse 200 (`07 UC-187`; K-1218).
+  10. UC-187: eski adres başka yöneticinin olduysa 422, tüketim geri döner; bağlantı arada geçersizleştiyse 200 (`07 UC-187`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: boş bölüm gizli.

@@ -29,7 +29,7 @@ root = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
 out_path = sys.argv[2] if len(sys.argv) > 2 else None
 
 # Matris oturumu kendi ailesini ekler (alt bolum haritasi: 11 7).
-DOLU = ["06", "07", "08", "04", "03", "02"]
+DOLU = ["06", "07", "08", "04", "03", "02", "05"]
 # Ailenin yerlestigi alt bolum (K-1404, K-1412).
 ALT_BOLUM = {"06": "7.1.1", "07": "7.1.2", "08": "7.1.3", "04": "7.1.4", "03": "7.1.4",
              "02": "7.1.5", "10": "7.1.5", "05": "7.1.5", "09": "7.1.5", "devir": "7.1.5"}
@@ -157,8 +157,20 @@ def beklenen_02():
     return kural + kimlikli + sub, {"kural": len(kural), "kimlikli satir": len(kimlikli), "alt bolum": len(sub)}
 
 
+def beklenen_05():
+    """O5 1/2: 05 -- MK-nn karari (§12 tablosu) ve ### alt bolum (§3-§11; `### 6.x` kimligi `05:§6`)."""
+    d = load("05")
+    mk = []
+    for _, l in bolum(d, 12):
+        m = re.match(r"\| (MK-\d+) \|", l)
+        if m:
+            mk.append("05:" + m.group(1))
+    sub = ["05:§" + x for x in alt_bolumler(d, range(3, 12))]
+    return mk + sub, {"MK karari": len(mk), "alt bolum": len(sub)}
+
+
 BEKLENEN = {"06": beklenen_06, "07": beklenen_07, "08": beklenen_08, "04": beklenen_04, "03": beklenen_03,
-            "02": beklenen_02}
+            "02": beklenen_02, "05": beklenen_05}
 
 # ------------------------------------------------------------ matris satirlari
 plan_f = sorted((root / "Docs").glob("11_*.md"))[0]
@@ -176,6 +188,9 @@ def kimlik(hucre):
     mk = re.match(r"^(02):((?:Z|L|P|B|F|H)-\d+)\b", h)
     if mk:
         return "%s:%s" % (mk.group(1), mk.group(2))
+    mm = re.match(r"^(05):(MK-\d+)\b", h)
+    if mm:
+        return "%s:%s" % (mm.group(1), mm.group(2))
     mu = re.match(r"^(07) (UC-\d+)\b", h)
     if mu:
         return "%s:%s" % (mu.group(1), mu.group(2))

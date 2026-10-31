@@ -224,6 +224,25 @@ Plan 20 doğrulayıcı (82 bulgu) kurdu; **20'si koştu** (iki dalga, 1–10 ve 
 
 **İlerleme:** 435 bulgudan **318'i hükme bağlandı** (2a 55 + 2b 87 + 2c 94 + 2d 82); **kalan 117** (2e, 2f) + #336, #437, #350 (2r) ve 2b, 2c, 2d'nin 11 yükselen bulgusu. Kapılar: `11_matris_kapsama.py` 1.501/1.501 sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214.
 
+### Doğrulanmamış bulgular — KD-audit-2e
+
+Plan 19 doğrulayıcı (85 bulgu) kurdu; **19'u koştu** (2e/13 yarıda düşüp yeniden koşturuldu; sayaç 20/20, bekçi olayı yok). 2b'nin koşmayan iki grubu (2b-19, 2b-20) 2e/18 ve 2e/19'da koştu. Doğrulamasız uygulama yoktur.
+
+| Doğrulayıcı | Model | Kademe | Modül | Sayı |
+|---|---|---|---|---|
+| 1, 5, 6, 9, 11, 12, 13 | Opus / high | Orta 4'lü | Ortak altyapı (1, 5, 6, 9), Yönetim ve işlem izi (11–13) | 7 |
+| 8, 10, 14, 18 | Opus / high | Orta 3'lü | Ortak altyapı (8, 10), Yönetim ve işlem izi (14), Bildirim (18) | 4 |
+| 16 | Opus / high | Orta 1'li | Karma üst | 1 |
+| 2, 3, 4, 19 | Opus / high | Düşük 7'li | Ortak altyapı (2–4), Bildirim (19) | 4 |
+| 7 | Opus / high | Düşük 6'lı | Ortak altyapı | 1 |
+| 15 | Opus / high | Düşük 8'li | Yönetim ve işlem izi | 1 |
+| 17 | Opus / high | Düşük 2'li | Karma üst | 1 |
+| **Toplam** | | | | **19** |
+
+**Hükümler (85 bulgu):** 32 doğru · 31 kısmen · 22 çürük. **Uygulanan:** 120 şartname çifti (132 çiftten 12'si yükselen bulguların; #395 ile #183 aynı ESKI'yi paylaştığı için #183'ün cümlesi 2r'ye not düşüldü). **Seviyesi düşen** 15 bulgu uygulandı. **Yükselen:** #452, #183, #71 (Orta → Yüksek) ve #54 (Düşük → Orta) uygulanmadı; KD-audit-2r'de yeniden doğrulanır. **Blok bayt sınırı:** T379, T385 ve T521 kısaltıldı (bölme yok; K-1468 (3)'te kayıp listesi). **KARAR:** yok. **Üst doküman:** `02 §8.2.1` son cümle (`02` v0.105) ve `07` UC-76, UC-187 yan etkileri (`07` v0.35; K-652).
+
+**İlerleme:** 435 bulgudan **403'ü hükme bağlandı** (2a 55 + 2b 87 + 2c 94 + 2d 82 + 2e 85); **kalan 32** (2f) + #336, #437, #350 (2r) ve 2b, 2c, 2d, 2e'nin 15 yükselen bulgusu. Kapılar: `11_matris_kapsama.py` 1.501/1.501 sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214.
+
 ### Sınırlar
 
 - **Uygulanmayan 435 bulgu** gövdede hâlâ bulunabilir; bu raporun "temiz" okunmaması gerekir: audit yalnız 44 bulguyu hükme bağladı.

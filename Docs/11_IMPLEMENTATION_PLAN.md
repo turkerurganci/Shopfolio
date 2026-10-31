@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.22** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.23** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -55,7 +55,7 @@ Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 sat
 | Y6a | §5 F5 başlığı ve birinci üçte bir | `T501`–`T516` (16) | `IP5-11` | ✓ |
 | Y6b | §5 F5 ikinci üçte bir | `T517`–`T532` (16) | `IP5-11` | ✓ |
 | Y6c | §5 F5 son üçte bir ve F5 `Yürütme sırası` | `T533`–`T549` (17) | `IP5-11`, `IP5-08` (T548) | ✓ |
-| Y7 | §5 F6, §6.1, §6.2 | `T601`–`T602` (2) | `IP5-12`, `IP6-01`, `IP6-02` | ⏳ |
+| Y7 | §5 F6, §6.1, §6.2 | `T601`–`T602` (2) | `IP5-12`, `IP6-01`, `IP6-02` | ✓ |
 | Y8 | §8 son hali, §9, §1, §2 (sayımlar kesin) | — | `IP8-01`, `IP9-01`, `IP1-01`, `IP2-01` | ⏳ |
 
 Task toplamı 30 + 33 + 90 + 10 + 49 + 2 = 214 (aday tablo; sayım `11_task_blok_denetle.py` çıktısındadır). Yedi faz biter bitmez `11_task_blok_denetle.py --tam` sorunsuz koşar.
@@ -5506,16 +5506,93 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK8: görselsiz hâl.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+### F6 — Uçtan uca doğrulama
+
+**Yürütme sırası:** T601 → T602
+
+#### T601: `DEPLOY_RUNBOOK` provası, canlı kanıt, dış sistemde kayıtlı adresler ve yansıyan tablolar
+- **Bağımlılık:** —
+- **Dokümanlar:** çekirdek; `09` §19, §21; `08 §2.1.10`, §4.1, §4.2; `06 §8.5`; `05` MK-07, MK-25, MK-27, MK-75, MK-76, §6.3, §6.9, §7.6, §8.8, §8.9; `02 §9.1`, §9.1.5, §10.1, §10.1.3, §10.2, §10.2.7, §12.2, §12.3, §12.5; `10 §4.1`
+- **Kabul kriterleri:**
+  1. `§I.2` boot reçetesi gerçek yapılandırmayla sıfırdan koşar; test yapılandırması sayılmaz (`DEPLOY_RUNBOOK §I`; `00 §L.1`).
+  2. Kırılan her adım `§I.3` tablosuna kök nedeniyle ve bir runbook satırıyla girer; reçete ikinci kez sıfırdan tekrarlanır (`§I.3`, `§I.4`).
+  3. `§F` ve `§I.4` kutuları işaretlenir: sağlık uçları, `§C` ayarları, arka plan işleri, uyarı kanalı, geri alma yolu (`DEPLOY_RUNBOOK §F`).
+  4. Dört dış adres kayıtlıdır ve `08 §4.2` tablosu, `07` ve runbook birbirine eşittir; `/odeme/donus/…` PayTR'de kayıtlı değildir (`08 §4.2`).
+  5. `06 §8.5`'in `§A` ve `§H` satırları ile veritabanı açılış ayarı adımları runbook'ta yazılıdır ve provada koşulmuştur (`06 §8.5.1`, §8.5.2).
+  6. Sunucuda yalnız 80, 443 ve SSH açıktır; SSH anahtarla ve kurulum başına anahtarladır; işletim sistemi yamaları kendiliğinden gelir (`05 MK-75`, MK-76; §8.8, §8.9).
+  7. Günlük aktarımı sunucu dışına akar; kurtarma hedefi aynı gündür; prova dış depodan döner (`05 MK-25`, MK-27; §7.6).
+  8. Canlı kanıt: gerçek kartla küçük tutarlı sipariş, 3D geçilir, panelden uçtan uca işletilir, bedel geri ödenir; taksit sunuluyorsa taksitli; satırlar runbook'a yazılır (`08 §2.1.10`; K-1411).
+  9. Kurulum tarafı satırları runbook'tadır: gönderen adresinden deneme iletisi, panele erişim kaybında yeni yönetici hesabı, ÖK-1…ÖK-12 (`02 §9.1.5`, §10.2.7; `10 §4.1`).
+  10. Kanıtlar `12` senaryolarının kabul kanıtına bağlanır (ileri işaret: 12); senaryo kimlikleri `12` yazılınca eşlenir.
+- **Test beklentisi:** E2E
+- **Doğrulama kontrol listesi:**
+  - KK1: gerçek yapılandırmayla açılış.
+  - KK2: prova tablosu ve ikinci tekrar.
+  - KK3: `§F` kutuları.
+  - KK4: dört adres kaydı.
+  - KK5: `§A`, `§H` satırları.
+  - KK6: açık kapılar ve yama ayarı.
+  - KK7: kurtarma provası.
+  - KK8: canlı kanıt satırları; taksit.
+  - KK9: kurulum tarafı satırları.
+  - KK10: `12` bağlanışı.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T602: Güncelleme komutu: referanstan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu
+- **Bağımlılık:** T601
+- **Dokümanlar:** çekirdek; `09` §21; `05` MK-73, MK-74, §8.6, §8.7
+- **Kabul kriterleri:**
+  1. Güncelleme kurulumu yapanın makinesinden tek komutla başlar; kurulum listesi repoya girmez ve kurulumlar kendiliğinden güncellenmez (`05 §8.6.1`, §8.6.4).
+  2. Sürüm önce referans kuruluma iner; tur kurulumları teker teker günceller ve biri başarısız olursa durur (`05 §8.6.2`).
+  3. Bir kurulumun adımları sırayla işler: ön denetim, artımlı yedek, özetle çekme, dönüş noktası ve göç, yeniden başlatma, uç denetimi, kurtarma provası, kapasite okuma (`05 §8.6.3`).
+  4. Dönüş noktası ofsetle (UTC `Z` ya da `+03:00`) prova kaydına yazılır; ofsetsiz an kullanım hatasıdır (`05 §8.6.3`, §8.7.4).
+  5. Çalışan sürüm sunucudan okunur; geride kalmış kurulum aradaki her ara sürümden sırayla geçer, sürüm atlanmaz (`05 §8.7.1`; MK-74).
+  6. Büyük veri dönüşümünü kuyruğa bırakan adımdan sonra tur, dönüşüm bitmeden sonraki adıma geçmez (`05 §8.7.5`).
+  7. Geri alma önceki imaja dönmektir; şema geri alınmaz; yama sürümü göç taşımaz (`05 §8.7.3`).
+  8. Yedekten dönüş yalnız dönüş noktasından sonra sipariş tarafında kayıt yoksa yapılır; önce uygulama durur, sonra dönüş denetimi komutu koşar (`05 §8.7.4`; T388).
+  9. Bakım aboneliği biten kurulum tura alınmaz; tur gece kendiliğinden çalışmaz (`05 §8.6.5`, §8.6.6).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: tek komut; listesiz repo.
+  - KK2: referans önce; başarısızlıkta durma.
+  - KK3: adım sırası.
+  - KK4: ofsetsiz an reddedilir.
+  - KK5: ara sürümlerden sırayla geçiş.
+  - KK6: dönüşüm bitmeden adım yok.
+  - KK7: önceki imaja dönüş; şema sabit.
+  - KK8: yazım varsa dönüş reddedilir.
+  - KK9: aboneliği biten kurulum atlanır.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ## 6. Faz geçiş kapıları
 
 ### 6.1 Genel gate check (tüm fazlarda)
 
 > Detaylı prosedür: `.claude/skills/gate-check/SKILL.md`. Burada faz-spesifik ek kontroller listelenir.
 
+Her fazın sonunda ayrı sohbette `/gate-check FX` koşar; PASS almadan sonraki faza geçilmez (`00 §E.1`; K-1408 (1)). Prosedürün ayrıntısı skill'dedir ve burada yinelenmez; bu liste her fazda koşanları ve bu projenin eklediklerini sayar (K-1411).
+
+1. **Skill'in ön kontrolü ve sekiz adımı her fazda koşar:** regresyon (fazın ve önceki fazların testleri), build ve ortam, göç provası (F1'den itibaren), izlenebilirlik ve boşluk taraması, güvenlik özeti, verdict, öğrenim terfisi, backlog hijyeni; sonra PASS ritüeli ve `phase/FX-pass` etiketi.
+2. **Referans kuruluma iniş gate'ten öncedir:** her fazın sürümü gate'ten önce referans kuruluma iner (`05 §8.1.4`; K-1407 (4)). Gate raporu ortam denetiminin hangi yapılandırmayla koştuğunu yazar; son fazda yalnız gerçek dağıtım yapılandırması geçerlidir (skill adım 9; `00 §L.1`).
+3. **§7.1'in "Implement edildi" ve "Kanıt" sütunları gate'te dolar:** fazın task'larına bağlı her satır implement edilmiş ve kanıtlıdır; bağlı olup implement edilmeyen satır S3'tür (skill adım 11).
+4. **Task boyutu eşikleri F0 ve F1 gate'inde ölçülür:** `token-usage.log` ile; ayar gate'in öğrenim terfisinde yapılır (K-1409 (3)).
+5. **Gate'in bulguları** `00 §D.10` ve §4'e göre numaralanır: düzeltme aynı fazdadır, sonraki faza ertelenmez (skill, "FAIL durumunda").
+
 ### 6.2 Faz-spesifik kontroller
+
+Genel gate check'e (§6.1) eklenen kontroller K-1411'dendir; fazın kapısı hepsi sağlanınca PASS alır.
 
 | Faz | Ek kontrol |
 |---|---|
+| F0 | Üç imaj derlenir; canlılık ucu 200 verir; referans kuruluma ilk iniş gerçek yapılandırmayla yapılmıştır (`DEPLOY_RUNBOOK §I`'nin 1. turu); Lint eşitlik testleri kırmızıdan yeşile gösterilmiştir (`09 §21.4` madde 1) |
+| F1 | Göç ileri, idempotent ve geri alınabilirdir (CI adım 6, Migration dry-run); eşitlik denetimleri yeşildir; göç referans kuruluma uygulanmıştır |
+| F2 | Mimari testler kasıtlı bir ihlalle kırmızıya döner; kayıt maskeleme testleri yeşildir (`09 §19.2`) |
+| F3 | İlk uçtan uca akış testi (T329) yeşildir; durum makinesi geçiş tablosu `02 §5.4` ve §5.5 ile eşittir; F4 ön koşullarının (OK-1, OK-2, OK-3, OK-4, OK-6, OK-12) hazır olup olmadığı sorulur (K-1408 (3)) |
+| F4 | PayTR, SES ve Google sandbox kanıtı alınmıştır; imza doğrulaması sınanmıştır; DV-1, DV-2 ve DV-9 referans kurulumun işaretli kaydından okunmuştur (`08 §2.1.10`, §4.1); DV-5 bu kapıya girmez, T510'dadır (K-1450 (4)) |
+| F5 | Betiksiz yol çalışır; erişilebilirlik taraması (A seviyesi) temizdir; sürüm referans kuruluma inmiştir; DV-5 satırı T510'un gözlemiyle kapanmıştır |
+| F6 | Gerçek yapılandırmayla açılış provası koşmuştur (`DEPLOY_RUNBOOK §I`); canlı kanıt alınmıştır — gerçek kartla küçük tutar, 3D Secure, panelden uçtan uca işletme, geri ödeme; taksit sunuluyorsa taksitli (`08 §2.1.10`); güvenlik taraması temizdir; `DEPLOY_RUNBOOK §F` kutuları işaretlidir |
+
+**F6'nın `12` ile bağı.** F6'nın kabul kanıtı `12` senaryolarına bağlanır; `12` henüz yazılmadığından bağlanış ileri işarettir (ileri işaret: 12) ve `12` yazılınca T601'in kabul kriteri 10'u senaryo kimlikleriyle eşler.
 
 ## 7. Traceability Matrix (ÖNCE BU)
 

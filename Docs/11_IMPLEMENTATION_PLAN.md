@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.7** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.8** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -109,7 +109,7 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | 7.1.2 | API → task | `07` (208: uç 187 · alt bölüm 21) | O2 | ✓ |
 | 7.1.3 | Entegrasyon → task | `08` (30: entegrasyon 3 · çağrısı olmayan bağlantı 1 · alt bölüm 26) | O1 | ✓ |
 | 7.1.4 | Arayüz → task | `04` (102: ekran 53 · ortak bileşen 20 · alt bölüm 29) ve `03` (55 alt bölüm) | O3 | ✓ |
-| 7.1.5 | İş kuralı → task — kalın etiketli beş grup: **`02`** · **`05`** · **`09`** · **`10`** · **Devir satırları** | `02 §1`–§3 (297) O4a; `02 §4`–§8 (193) O4b 1/2; `02 §9`–§13 (176) O4b 2/2; `05` (136) · `09` (25) · `10` (143) · devir (19) O5 | O4a, O4b, O5 | ⬚ (`02` §1–§13 ✓ O4a, O4b; `05`, `09`, `10`, devir O5'te) |
+| 7.1.5 | İş kuralı → task — kalın etiketli beş grup: **`02`** · **`05`** · **`09`** · **`10`** · **Devir satırları** | `02 §1`–§3 (297) O4a; `02 §4`–§8 (193) O4b 1/2; `02 §9`–§13 (176) O4b 2/2; `05` (136) O5 1/2; `09` (25) · `10` (143) · devir (19) O5 | O4a, O4b, O5 | ⬚ (`02` §1–§13 ✓ O4a, O4b; `05` ✓ O5 1/2; `09`, `10`, devir O5 2/2'de) |
 | 7.2, §8 | Geri izlenebilirlik, gerekçesiz eklemeler, GAP kararları | task → kaynak | O6 | ⬚ |
 
 **Kaynak kimliğinin biçimi (K-1412).** Satırın ilk hücresi kimlikle başlar; kimliğin ardından başlık ya da ad gelir (en çok 500 bayt/satır). Kapsama betiği yalnız kimliği okur.
@@ -121,7 +121,7 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | `08` entegrasyon, çağrısı olmayan bağlantı, alt bölüm | `08:§<n.m[.k]> <başlık>` | `08:§2.1.4 …`, `08:§3.1 …` |
 | `02` kural ve alt bölüm (O4a) | `02:§3.<n.m> <kural başlığı>` (kalın başlık cümlesi), `02:§<n.m> <başlık>` — `02 §1`–§3 | `02:§3.6.7 Stok ve hizmet kontenjanı…`, `02:§3.6 Stok ve tükenme` |
 | `02` kimlikli satır (O4b 1/2) | `02:<Z-n \| L-n> <satır adı>` — `02 §4.2` (Z-1…Z-47) ve `§8.2` (L-1…L-9); `02 §4`–§8 kural ve alt bölümü O4a biçiminde | `02:Z-7 Kart ödeme süresi`, `02:L-5 Başarısız misafir sipariş takibi sorgusu` |
-| Sonraki aileler | `05 MK-nn`, `02 §9`–§13 kimlikli satırlar (P, B, F, H), `10 KP-n`, `09 §n`, devir `K-n` (K-1406 (3)) — biçimi kendi oturumu betiğe ekler | |
+| Sonraki aileler | `02 §9`–§13 kimlikli satırlar (P, B, F, H), `10 KP-n`, `09 §n`, devir `K-n` (K-1406 (3)) — biçimi kendi oturumu betiğe ekler | |
 
 **Satır sütunları (K-1412).** **Kaynak öğe** (kimlik + ad) · **Task** (aday task kimliği; birden çok ise virgülle; task gerektirmeyen birim `—`) · **Implement edildi** (boş — gate'te dolar) · **Kanıt** (boş — gate'te dolar). Kapsama betiği son iki sütunun bu aşamada boş olduğunu da denetler.
 
@@ -133,25 +133,35 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 
 Kaynak (O4b 2/2): `02 §9`–§13 (176: iş kuralı 80 `02:§n.m.k` · kimlikli satır 75 — B-1…B-16, F-1…F-6, P-1…P-49 ve H-1…H-4 · alt bölüm 21 `02:§n.m`; §9 37 · §10 50 · §11 56 · §12 33 · §13 0). `§13` tablosu boştur ve numaralı kural taşımaz (`§13.1`–§13.4 iki basamaklıdır, K-1404'ün kalıp dışı içerik kuralı): açık karar yoktur. `§11`'in P satırları parametre kimliğidir: her satır T381'e (ayar katmanları ve envanter) ve "Nerede kullanılır" sütununun işaret ettiği kuralların task'larına (en çok beş) bağlanır; `P-2` ve `P-11` "Kaldırıldı" satırlarıdır. `§12.5` firma yükümlülükleri tablosunun satırları birim değildir; alt bölüm satırı onların task birleşimini taşır. Alt bölüm satırı altındaki birimlerin task birleşimidir (`§9.4`, `§9.5` ve `§12.5` kural taşımadığı için açık yazılır).
 
+Kaynak (O5 1/2): `05` (136: mimari karar 78 `05:MK-nn` · `###` alt bölümü 58 `05:§n.m`; §3 8 · §4 7 · §5 4 · §6 10 · §7 10 · §8 9 · §9 4 · §10 3 · §11 3). `### 6.x Secret yönetimi` başlığı kimlikte `05:§6 6.x Secret yönetimi` diye yazılır (betik `05:§6` okur). Bir mimari karar birden çok task alır; alt bölüm satırı o bölümün task birleşimini taşır (K-1431). Yeni aday 23: F0 T02–T09 (iskele), F2 T218–T229 (ortak altyapı), F3 T387–T388 (yönetim komutları), F6 T602 (güncelleme komutu) — K-1432 (⚠). **Task gerektirmeyen dört birim (GAP değil):** `05:MK-77` (H-3, H-4 hacim kestirimleri; sistem hiçbirini uygulamaz — `02 §11.3`), `05:MK-78` (büyüme yolunun sırası ve tetikleyicileri — bugün alınan kararların açtığı kapılar), `05:§11.2` (bilinçli tekil bırakılanlar) ve `05:§11.3` (büyüme yolu) — "Task" hücresi `—` (O5 1/2).
+
 **Task gerektirmeyen birimler (O4b 2/2, GAP değil).** (1) `02:P-2` ve `02:P-11` — "Kaldırıldı" satırları: kimlik yeniden kullanılmaz, uygulanacak değer yoktur. (2) `02:H-1`, `02:H-3`, `02:H-4` — hacim kabulleri parametre değildir ve "sistem hiçbirini uygulamaz" (§11.3): tasarım tabanıdır; H-3'ün yanıt süresi ve H-4 `05`'in tasarım girdisidir; H-2 ise satış özetinin günlük sayısını okuyan tetikleyiciye dayandığı için T383'e bağlıdır. (3) `02:§10.5.5` — hacim varsayımı, "bir hedef değil, tasarım varsayımıdır". (4) `02:§12.1.12` ve `02:§12.2.11` — ürün ne satıldığını ve kurumsal içerikte yayımlanan üçüncü kişi verisinin iznini denetlemez; yükümlülük firmanındır (§12.5), yazılacak kod yoktur (Z-25 ve Z-37'nin kalıbı, K-1426 (3)). Bu sekiz birimin "Task" hücresi `—`.
 
 **Aday task kimliği (K-1412).** "Task" sütunu aday kimliktir; adı ve gövdesi `§5`'te yazılır. Kurallar: (1) kimlik K-1407'nin faz aralığından gelir ve aşağıdaki aday tablosunda tanımlıdır (kapsama betiği denetler). (2) F1'in kimlikleri baştan ayrıldı; öteki fazlarda her matris oturumu kendi satırlarının gerek duyduğu kimliği sayaçtaki sonraki boş numaradan alır ve tabloya ekler. (3) Kimlikler faz içi sıra gözetmeden verilebilir; sıra `§5`'in işidir, araya `TXXa` girer (`00 §J`); gerekirse O6 betikli tek bir yeniden numaralama yapar ve kapsama betiği öncesini ve sonrasını koşar. (4) Var olan satıra aday kimlik eklenebilir (ör. UC-80'in F3 task'ı `08:§2.1.5` satırına girer); satır silinmez. (5) F1'in sırası modül akış sırasını (K-1410) bağların kurduğu sırayla daraltır: bir göç, bağlandığı tabloların göçünden sonra gelir (`06 §7.2`'nin 130 bağı betikle sınandı — sıra ihlali 0); Yönetim ve Üyelik ile iptal–cayma–iade ve Ödeme bu yüzden akış sırasından ayrılır.
 
 | Faz | Son ayrılan | Sonraki boş |
 |---|---|---|
-| F0 | T01 | T02 |
+| F0 | T09 | T10 |
 | F1 | T120 | T121 |
-| F2 | T217 | T218 |
-| F3 | T386 | T387 |
+| F2 | T229 | T230 |
+| F3 | T388 | T389 |
 | F4 | T410 | T411 |
 | F5 | T547 | T548 |
-| F6 | T601 | T602 |
+| F6 | T602 | T603 |
 
-**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125; O4a 37 aday ekledi: F3 `T330`–`T366`, `02 §3`'ün iş kuralı task'ları; toplam 162; O4b 1/2 12 aday ekledi: F3 `T367`–`T378`, `02 §4`–§8'in iş kuralı task'ları; toplam 174; O4b 2/2 8 aday ekledi: F3 `T379`–`T386`, `02 §9`–§12'nin iş kuralı task'ları; toplam 182) — sonraki oturumlar ekler.
+**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125; O4a 37 aday ekledi: F3 `T330`–`T366`, `02 §3`'ün iş kuralı task'ları; toplam 162; O4b 1/2 12 aday ekledi: F3 `T367`–`T378`, `02 §4`–§8'in iş kuralı task'ları; toplam 174; O4b 2/2 8 aday ekledi: F3 `T379`–`T386`, `02 §9`–§12'nin iş kuralı task'ları; toplam 182); O5 1/2 23 aday ekledi: F0 `T02`–`T09`, F2 `T218`–`T229`, F3 `T387`–`T388`, F6 `T602`, `05`in mimari kararları; toplam 205) — sonraki oturumlar ekler.
 
 | Aday | Faz | Kısa ad | Modül | Kaynak birimi |
 |---|---|---|---|---|
 | T01 | F0 | Canlılık ucu: uygulama ve veritabanı yanıtı, 200 ya da 503, gövdesiz | Ortak altyapı | `07` UC-81 (1) |
+| T02 | F0 | Çözüm ve proje düzeni: C#/.NET 10 tek uygulama, Razor Pages, düz JavaScript ve CSS (npm hattı yok), yığının kuruluma yansıması (D-01) | Ortak altyapı | `05 §2.1`–§2.3, §3.1, §3.8 (MK-01…MK-05) |
+| T03 | F0 | Test altyapısı: birim, mimari ve gerçek veritabanıyla entegrasyon testi projeleri | Ortak altyapı | `05 §8.3`, §3.3 (mimari test) (MK-15, MK-70) |
+| T04 | F0 | CI hattı ve eşitlik denetimleri: Lint, `publish.yml` denetimleri, sürüm etiketi, göç adımının önceki imajla sınaması | Ortak altyapı | `05 §8.3`, §8.7.4 (MK-12, MK-70) |
+| T05 | F0 | Compose geliştirme ortamı: dört konteyner, ayrı iç ağlar, ters vekil, güvenlik duvarı ve açık kapılar | Ortak altyapı | `05 §3.2`, §8.1, §6.8 (MK-06, MK-08, MK-10, MK-14, MK-68, MK-76) |
+| T06 | F0 | Üç imaj ve kayıt defteri: uygulama, pgBackRest'li veritabanı ve yedek aracı; özetle sabitleme, tek eser sürüm | Ortak altyapı | `05 §8.2`, §3.2 (MK-02, MK-09…MK-11, MK-69) |
+| T07 | F0 | Yedek düzeni: sürekli günlük aktarımı, gecelik tam ve dosya yedeği, iki anahtarla şifreleme, saklama ve silmeye karşı koruma | Ortak altyapı | `05 §7.6.1`–§7.6.6 (MK-09, MK-25, MK-26) |
+| T08 | F0 | Sır düzeni: bileşen başına dosya sırları, paylaşılan sır yok, döndürme | Ortak altyapı | `05 §6.x` (MK-59, MK-60) |
+| T09 | F0 | İlk yayın ve referans kuruluma ilk iniş: boş uygulama imajı canlılık ucuna yanıt verir | Ortak altyapı | `05 §8.1`, §8.2 (MK-68) · K-1407 (4) |
 | T101 | F1 | Veri modeli temeli: anahtarlar, türler, adlandırma, sürüm sütunu, metin karşılaştırma, enum biçimi, bağların silme davranışı | Ortak | `06 §2.1`–§2.6, §2.8–§2.10, §5.1 (10) |
 | T102 | F1 | Enum tanımları ve değer dönüşümü | Ortak | `06 §5.2`–§5.6 (5) |
 | T103 | F1 | Başlangıç listeleri, firma ve yasal metin sürümü: Province, Country, Company, CompanySettings, CompanyDeliveryProvince, LegalTextVersion | Ayarlar | 6 entity |
@@ -189,6 +199,18 @@ Kaynak (O4b 2/2): `02 §9`–§13 (176: iş kuralı 80 `02:§n.m.k` · kimlikli 
 | T215 | F2 | Hız sınırı, deneme limitleri ve gövde tavanı | Ortak altyapı | `07 §2.8` (1) |
 | T216 | F2 | Tarih, sayı ve para biçimi: istek ve gösterim | Ortak altyapı | `07 §2.9` (1) |
 | T217 | F2 | Yapılabilir işlemlerin sunucuda üretimi ve POST işleyicisinde yeniden denetim | Ortak altyapı | `07 §8.1` (1) |
+| T218 | F2 | Dokuz modülün iskeleti ve Contracts: açık arayüz, eşzamanlı ve aynı işlemde erişim, mimari testle sınır | Ortak altyapı | `05 §3.3`, §3.4 (MK-13, MK-15) |
+| T219 | F2 | Arama motoru verileri kalıbı: adres üretimi, JSON-LD, Open Graph, kapalı sayfada `noindex` | Ortak altyapı | `05 §3.7` (MK-18) |
+| T220 | F2 | İş kuyruğu çalıştırıcısı: iş satırı, sıralı işleme, beş yeniden deneme, başarısız durum, geçişle aynı işlemde iç yan etki | Ortak altyapı | `05 §4.3`, §5.1, §5.2 (MK-37, MK-42) |
+| T221 | F2 | Zamanlayıcı: dakikalık işler, nabız döngüsü, gecelik iş, işin zamanı kendi kaydında, kesinti tespiti ve dönüş sırası | Ortak altyapı | `05 §5.1`–§5.4 (MK-41, MK-43, MK-44) |
+| T222 | F2 | Anahtarlar ve tek kullanımlık bağlantılar: kriptografik üreteç, türetme sırrı, özetli bağlantı kaydı, açılışın işlem yapmaması | Ortak altyapı | `05 §6.4` (MK-50, MK-51) |
+| T223 | F2 | Dosya deposu: arayüz, görselin yeniden kodlanması, WebP türevleri, yetim görsel imhası, yüklenen dosya sınırları | Ortak altyapı | `05 §6.6`, §7.7.1, §7.7.2 (MK-28, MK-29, MK-54) |
+| T224 | F2 | Çerez politikası: birinci taraf, `__Host-` önekli çerezler, ödeme adımı çerezi, çerez başlığı ara katmanı | Ortak altyapı | `05 §6.7` (MK-55…MK-57) |
+| T225 | F2 | Sistem kayıtları: kaynaklar, istek kimliği, maskeleme, saklama süresi ve imha kaydı satırı | Ortak altyapı | `05 §9.1`, §9.2 (MK-64, MK-65) |
+| T226 | F2 | Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi | Ortak altyapı | `05 §8.4`, §11.1 (MK-71) |
+| T227 | F2 | Zaman ve para: UTC saklama, Türkiye saatiyle sayım, tek yuvarlama işlevi | Ortak altyapı | `05 §7.2` (MK-19) |
+| T228 | F2 | Eşzamanlılık denetimi: kayıt sürümü, sipariş sürümü ve satır kilidi, kilit sırası | Ortak altyapı | `05 §7.3` (MK-20, MK-21) |
+| T229 | F2 | Uygulama belleğinde önbellek: kapsam ve geçersiz kılma | Ortak altyapı | `05 §7.10` (MK-34) |
 | T301 | F3 | Siparişin imha parçası | Sepet ve sipariş | `06 §9.2` |
 | T302 | F3 | Öteki kayıtların süreyle imhası | Modüller | `06 §9.3` |
 | T303 | F3 | İlk yönetici yönetim komutu | Yönetim ve işlem izi | `06 §8.3` |
@@ -275,6 +297,8 @@ Kaynak (O4b 2/2): `02 §9`–§13 (176: iş kuralı 80 `02:§n.m.k` · kimlikli 
 | T384 | F3 | Dışa aktarma: sipariş CSV (fatura verisi), üye ve iletişim talebi listesi, işlem izine yazım, imha edilmiş siparişin boş sütunları | Yönetim ve işlem izi | `02 §10.7.1`–§10.7.4 (4) |
 | T385 | F3 | Gönderim yeniden denemesi ve "e-posta ulaşmadı" işareti: üç deneme, işaretin düşüşü, panelden yeniden gönderim, işaretsiz bildirimler | Bildirim | `02 §9.1.6` (1) · P-38 |
 | T386 | F3 | Sipariş müdahaleleri: kalem adedi azaltma ve çıkarma, kargo bilgisinin ve teslim tarihinin düzeltilmesi, iç not | Sepet ve sipariş | `02 §10.4.3`–§10.4.5, §10.4.7 (4) |
+| T387 | F3 | Kurulum tarafı yönetim komutları: iş satırını yeniden kuyruğa alma ya da kapatma, anahtar yenilemesi sonrası ödeme sonucunun uygulanması, kayıt okuma komutu | Yönetim ve işlem izi | `05 §8.5`, §9.3, §6.9 (MK-66, MK-72) |
+| T388 | F3 | Dönüş denetimi komutu ve dönüşten sonra silmelerin yeniden uygulanması | Yönetim ve işlem izi | `05 §8.5`, §8.7 (MK-72, MK-74) |
 | T401 | F4 | PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve | Ödeme | `08 §2.1`, §2.1.1, §2.1.2, §2.1.4 |
 | T402 | F4 | PayTR: bildirim imzası ve alan eşlemesi | Ödeme | `08 §2.1.5` |
 | T403 | F4 | PayTR: son sorgu ve tek tahsilat | Ödeme | `08 §2.1.6`, §2.1.7 |
@@ -333,12 +357,13 @@ Kaynak (O4b 2/2): `02 §9`–§13 (176: iş kuralı 80 `02:§n.m.k` · kimlikli 
 | T546 | F5 | Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler | Ortak altyapı | `04 §3.3`–§3.7 (5) |
 | T547 | F5 | Durum × rol matrisi ve form envanteri eşitlik denetimleri | Ortak altyapı | `04 §6.1`–§6.3, §7.1, §7.2 (5) |
 | T601 | F6 | `DEPLOY_RUNBOOK` provası, dış sistemde kayıtlı adresler ve yansıyan tablolar | Ortak | `06 §8.5`, `08 §4.2` |
+| T602 | F6 | Güncelleme komutu: referans kurulumdan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu | Ortak | `05 §8.6`, §8.7 (MK-73, MK-74) |
 
 **Kapsama komutları (Git Bash; depo kökünden).** Sayımlar aşağıdaki sayılarla aynı çıkmalı, her iki betik de çıkış kodu 0 vermelidir (eksik, fazla, yinelenen 0).
 
 ```sh
 python -I scripts/doc-scans/11_matris_envanter.py . /tmp/envanter.txt    # kaynak envanteri: 06 117, 07 208, 08 30 (ve öteki aileler)
-python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matris satırları ↔ beklenen küme (dolu aileler: 06, 07, 08, 04, 03, 02 §1–§13)
+python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matris satırları ↔ beklenen küme (dolu aileler: 06, 07, 08, 04, 03, 02 §1–§13, 05)
 ```
 
 **Okuma derinliği (O1).** `06`: §3.1 entity tablosu bütün, §2/§5–§9 alt bölüm başlıkları ve ilk paragrafları, §8 bütün, §7.2'nin 130 bağı betikle; §4 entity tanımları okunmadı — kaynak birim §3.1'in satırıdır. `08`: §1 bütün, §2–§5 başlıkları ve her başlığın ilk iki paragrafı (satır başına ilk 300–380 karakter; kesilerek okundu).
@@ -350,6 +375,8 @@ python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matri
 **Okuma derinliği (O4b 1/2).** `02 §4`–§8 (satır 1094–1802): her kural satırı, Z ve L satırı ve `###` başlığı tamamıyla okundu; satırların uzun olanları ilk 430–700 karakter ve kalan parçalar ayrı ikinci okumayla (kesilmiş satır kalmadı). Okunmadı: her bölümün sonundaki `Kaynak:` satırlarının K-no sütunu (karar atıfları; birim değildir) ve tablo satırlarındaki K-no sütunu. `§6`'nın `6.2.n`…`6.9.n` satırları (birim değildir) alt bölüm satırının task birleşimi için okundu. §9–§13 bu oturumda okunmadı.
 
 **Okuma derinliği (O4b 2/2).** `02 §9`–§13 (satır 1803–2241): her kural satırı, B ve F satırı, P ve H satırı ve `###` başlığı tamamıyla okundu (uzun satırlar kesilmeden, `§10.4` ve `§12.2.7` dahil); `§12.5` tablosunun 32 satırı bütün okundu; `§13` bütün. Okunmadı: bölüm sonlarındaki `Kaynak:` satırlarının K-no listeleri (karar atfı; birim değildir) ve dosya sonundaki sürüm geçmişi. Eşleme `02` metninden elle yapıldı; betikle üretilen yalnız satır metni, başlık, sayım ve `§11` P satırlarının "Nerede kullanılır" atıflarından çıkan task adayıdır. Örneklem: `§5` yazım oturumu her F3 task'ının kural kümesini kaynak satırlarıyla yeniden okur, ayrışma %10'u aşarsa genişletir (K-1424 (4)'ün kalıbı).
+
+**Okuma derinliği (O5 1/2).** `05 §12` (satır 1440–1529): 78 MK satırının her hücresi (karar, gerekçe, geri alınabilirlik) tamamıyla, kesme yapılmadan; `###` alt bölümlerinin 58 başlığı; `§11.1`, `§11.2` ve `§11.3`'ün girişi. Okunmadı: `§3`–§11 alt bölüm gövdeleri, `§0`–§2 gövdeleri, `§12`'nin `Kaynak:` satırı ve dosya sonundaki sürüm geçmişi (alt bölüm birimi başlık satırıdır; task birleşimi MK satırlarının `(§n.m)` atıflarından kuruldu). Gövde okuması `§5` yazım oturumuna kalır (K-1433).
 
 #### 7.1.1 Veri modeli → task
 
@@ -891,7 +918,7 @@ Kaynak: `04` (102: ekran 53 `04:E-nn` · ortak bileşen 20 `04:OB-nn` · alt bö
 
 #### 7.1.5 İş kuralı → task
 
-> Doldurulacak: O4a (`02 §1`–§3; yazıldı), O4b 1/2 (`02 §4`–§8; yazıldı), O4b 2/2 (`02 §9`–§13; yazıldı), O5. Beş kalın etiketli grup, her birinin kendi tablosu: **`02`** (O4a: §1–§3; O4b: §4–§13) · **`05`** · **`09`** · **`10`** · **Devir satırları** (O5).
+> Doldurulacak: O4a (`02 §1`–§3; yazıldı), O4b 1/2 (`02 §4`–§8; yazıldı), O4b 2/2 (`02 §9`–§13; yazıldı), O5 1/2 (`05`; yazıldı), O5 2/2 (`09`, `10`, devir). Beş kalın etiketli grup, her birinin kendi tablosu: **`02`** (O4a: §1–§3; O4b: §4–§13) · **`05`** · **`09`** · **`10`** · **Devir satırları** (O5).
 
 Kaynak: `02 §1`–§3 (297: iş kuralı 257 `02:§3.n.m` · alt bölüm 40 `02:§n.m` — §1'in 3'ü, §2'nin 3'ü, §3'ün 34'ü). Kural satırı kuralın kalın başlık cümlesidir; kuralın iş mantığı F3'ün modül task'larındadır (T330–T366, K-1421), ekranda görünen yüzü F5'in ekran task'larındadır — bir kural birden çok task alabilir. `02 §3.26` ve `§1.1`–§1.2 task gerektirmez (gerekçesi yukarıda).
 
@@ -1567,6 +1594,147 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:§12.4 Erişilebilirlik | T540, T543, T544 | | |
 | 02:§12.4.1 Erişilebilirlik yasal bir yükümlülüktür; taban Kontrol Listesi A Seviyesi ile WCAG 2.2'dir, hedef WC… | T540, T543, T544 | | |
 | 02:§12.5 Firmanın yükümlülükleri | T330, T357, T366, T370, T372, T373, T375, T384, T601 | | |
+
+**`05`** — Teknik Mimari (O5 1/2: MK-01…MK-78 kararı 78 · `###` alt bölümü 58)
+
+| Kaynak öğe | Task | Implement edildi | Kanıt |
+|---|---|---|---|
+| 05:MK-01 C# / .NET; tek uygulama, sayfalar sunucuda üretilir | T02 | | |
+| 05:MK-02 ASP.NET Core; .NET 10, yalnız uzun süreli destekli (LTS) sürümler | T02, T06 | | |
+| 05:MK-03 Entity Framework Core; şema değişiklikleri onun göçleriyle | T02, T101 | | |
+| 05:MK-04 Razor Pages; bütün sayfalar sunucuda tam HTML, gönder–yönlendir–göster; ayrı JSON API katmanı yok | T02, T206 | | |
+| 05:MK-05 Düz JavaScript modülleri ve düz CSS; ön yüz çatısı ve npm hattı yok, JavaScript yalnız iyileştirir | T02, T540, T539 | | |
+| 05:MK-06 PostgreSQL 18; tek örnek, aynı sunucuda kendi konteynerinde | T05, T06, T101 | | |
+| 05:MK-07 Firmanın adına kiralanan sanal sunucu; Linux konteynerleri | T05, T601 | | |
+| 05:MK-08 Caddy 2 | T05 | | |
+| 05:MK-09 Veritabanının yedeği pgBackRest'le, veritabanı konteynerinde; dosyaların ve sistem kayıtlarının yedeği bir… | T06, T07 | | |
+| 05:MK-10 Tek Compose tanımı; her imaj etiket ve özetle sabit | T05, T06 | | |
+| 05:MK-11 GitHub Container Registry | T06 | | |
+| 05:MK-12 GitHub Actions; iskelet değişmez, `publish.yml` kalır, kurulumlara otomatik dağıtım yok | T04 | | |
+| 05:MK-13 Tek dağıtılabilir uygulama | T218 | | |
+| 05:MK-14 Sunucuda dört konteyner | T05 | | |
+| 05:MK-15 Dokuz modül; modüller arası erişim yalnız açık arayüzden, eşzamanlı ve aynı işlemde; uygulama içi olay yayı… | T218 | | |
+| 05:MK-16 Vitrin ve panel aynı alan adında; panel ayrı bir yol alanı | T206, T207 | | |
+| 05:MK-17 Uygulamanın çağırdığı üç dış servis bir bağlantı katmanının arkasında; ürün kuralı çekirdekte; dış serviste… | T202, T203 | | |
+| 05:MK-18 Adres addan sunucuda üretilir; arama motoru verileri JSON-LD ve Open Graph ile ilk yanıtta; kapalı sayfalar… | T219, T206 | | |
+| 05:MK-19 Zaman UTC'de tutulur, Türkiye saatiyle sayılır; para ondalıklı sayıyla; yuvarlama tek işlevden | T227, T101 | | |
+| 05:MK-20 Kayıt varyantı: iyimser eşzamanlılık, sürüm değeri, kilit yok | T228, T208 | | |
+| 05:MK-21 Sipariş varyantı: sürüm ve kısa satır kilidi; kilit sırası bütün işlemlerde aynı | T228, T348 | | |
+| 05:MK-22 Tek gecelik imha işi; süre veriden hesaplanır; imha kaydı ayrı tabloda | T201 | | |
+| 05:MK-23 İmha fiziksel silmedir; siparişte ve ona bağlı kayıtlarda kişisel alanlar boşaltılır | T201, T301, T302 | | |
+| 05:MK-24 İz tablosunda uygulama kullanıcısı yalnız ekler ve okur; süresi dolan satırı veritabanı fonksiyonu siler | T106, T380 | | |
+| 05:MK-25 Sürekli günlük aktarımı | T07, T601 | | |
+| 05:MK-26 Yedeğin kapsamı, yeri, iki anahtarla şifrelenmesi, her kopyada otuz günlük saklaması | T07 | | |
+| 05:MK-27 Kurtarma hedefi aynı gün | T601, T07 | | |
+| 05:MK-28 Dosyalar sunucunun diskinde, dosya deposu arayüzüyle; dijital dosya genel adresle sunulmaz | T223 | | |
+| 05:MK-29 Yüklenen görsel yeniden kodlanır | T223, T339 | | |
+| 05:MK-30 Dijital ürün dosyası parçalı yüklenir; her yükleme yeni bir dosya kaydıdır | T312, T340 | | |
+| 05:MK-31 İndirme hakkı düğmeye basılıp gönderim başlayınca bir kez düşer; bir saatlik bağlantı, ömrü isteğin kabulün… | T312, T340, T531 | | |
+| 05:MK-32 Önerilen stok kodu ürünün adresinden ve varyantın sırasından; kaydedilmemiş üründe o anki addan, ad boşsa ö… | T332 | | |
+| 05:MK-33 Site içi arama veritabanında, sadeleştirilmiş ad üzerinde içerir eşleşmesiyle | T333 | | |
+| 05:MK-34 Önbellek uygulamanın belleğinde; ayrı önbellek sunucusu yok | T229 | | |
+| 05:MK-35 Durum makinesi tek geçiş biriminde; beyaz liste | T315, T319 | | |
+| 05:MK-36 Onay isteği müşterinin gördüğünü taşır; onay tek işlemde, koşullu ayırmayla | T348 | | |
+| 05:MK-37 İç yan etkiler geçişle aynı işlemde, dış yan etkiler veritabanındaki iş kuyruğunda, e-posta gönderim kaydın… | T220, T305 | | |
+| 05:MK-38 Her e-posta gönderim kaydında bir satır olarak doğar; gövde gönderim anında üretilir | T305, T220, T117 | | |
+| 05:MK-39 Tek işlenme: onay anahtarı, önce kaydedilen sağlayıcı bildirimi | T311, T348, T403 | | |
+| 05:MK-40 Karta para gönderen istekten önce geri ödeme kaydı; sonucu bilinmeyen istek yeniden gönderilmez, sonuç bekl… | T370, T404, T405 | | |
+| 05:MK-41 Uygulamanın içinde tek zamanlayıcı | T221 | | |
+| 05:MK-42 İşlerin envanteri | T220, T221 | | |
+| 05:MK-43 Hatırlatma 08:00, imha 03:00, son sorgu beş dakikada bir | T221 | | |
+| 05:MK-44 Kesinti nabızla ölçülür; dönüşte havale iptali ertelenir, kaçırılmış hatırlatması düşer | T221, T327 | | |
+| 05:MK-45 Oturum sunucuda tutulur; iki hesap türü iki kimlik şeması | T207, T342 | | |
+| 05:MK-46 Şifre çatının özetleyicisiyle; Google ile giriş OpenID Connect'in yetki kodu akışı | T342, T343, T409 | | |
+| 05:MK-47 Yetki sunucuda, varsayılan kapalı, kayıt düzeyinde süzülerek | T207, T323 | | |
+| 05:MK-48 Deneme limitleri veritabanında, deneme kaydıyla; IPv6'da /64 | T215, T108 | | |
+| 05:MK-49 Genel istek hızı sınırı uygulamada | T215, T203 | | |
+| 05:MK-50 Anahtarlar kriptografik üreteçle | T222, T108 | | |
+| 05:MK-51 E-postayla gelen bağlantının açılması işlem yapmaz; işlem ekrandaki düğmeyle | T222, T342 | | |
+| 05:MK-52 Her POST sahteciliğe karşı korumadan geçer | T209 | | |
+| 05:MK-53 Güvenlik başlıkları: içerik güvenlik politikası | T209 | | |
+| 05:MK-54 Görselin türü içerikten; piksel tavanı; dijital dosyada tür sınırı yok, ek olarak sunulur | T223, T339 | | |
+| 05:MK-55 Bütün çerezler birinci taraf, zorunlu, Secure, HttpOnly, SameSite=Lax, `__Host-` önekli | T224 | | |
+| 05:MK-56 Ödeme adımında yazılanlar oturumluk, şifreli bir çerezde; sunucuda kayıt yok | T224, T356 | | |
+| 05:MK-57 Çerez politikası yayına alınana kadar vitrinin yanıtlarından çerez başlıklarını çıkaran ara katman | T224 | | |
+| 05:MK-58 Yalnız HTTPS ve bir yıllık HSTS; kart verisi ürüne gelmez; alan düzeyinde şifreleme yok | T209, T05 | | |
+| 05:MK-59 Sırlar bileşen başına dosyalarda, yalnız kullanan konteynere; paylaşılan sır yok | T08 | | |
+| 05:MK-60 Döndürme yılda bir ve olay üzerine; iki yedeğin şifreleme anahtarı döndürülmez; sırların ayrı yedeği yok | T08 | | |
+| 05:MK-61 Dış çağrı süreli | T202 | | |
+| 05:MK-62 Kanal uyarısı art arda beş kanal hatası ve on beş dakikada; firma bildirimleri uyarısı gönderim kaydından,… | T314, T382 | | |
+| 05:MK-63 Beklenmeyen hata tek yakalama katmanında üç hâle ayrılır; sonucu belirsiz işlemler kodda adıyla işaretli | T212 | | |
+| 05:MK-64 Sistem kayıtları üç kaynak | T225 | | |
+| 05:MK-65 Sistem kayıtları P-45 kadar saklanır; kayıt dosyalarını imha işi siler; sunucunun kayıtları kendi döngüleriyle | T225, T201 | | |
+| 05:MK-66 Kayıtları kurulumu yapan okuma komutuyla okur; sonuç şifreli iletilir ve sunucudan silinir | T387 | | |
+| 05:MK-67 Canlılık ve durum uçları | T314, T01 | | |
+| 05:MK-68 Dört ortam; ayrı hazırlık sunucusu yok, referans kurulum öncüdür | T05, T09 | | |
+| 05:MK-69 Bir sürüm tek eser | T06 | | |
+| 05:MK-70 CI adımlarının işi | T04 | | |
+| 05:MK-71 Üç ayar katmanı ve tasarım değerleri; açılışta ayar denetimi | T226 | | |
+| 05:MK-72 Kurulum tarafının işlemleri uygulama imajındaki yönetim komutlarıyla | T387, T388, T303 | | |
+| 05:MK-73 Güncellemeyi kurulumu yapan tek komutla, önce referans kurulumda, sonra teker teker başlatır; kurulumlar ke… | T602 | | |
+| 05:MK-74 Göçler genişlet–daralt | T602, T04, T101 | | |
+| 05:MK-75 İşletim sistemi yamaları kendiliğinden, gerekirse 04:30'da yeniden başlatma; aylık bakım sürümü ve acil yama | T601 | | |
+| 05:MK-76 Sunucuya yalnız SSH ve anahtarla, kurulum başına anahtar; açık kapılar 80, 443 ve SSH | T05, T601 | | |
+| 05:MK-77 H-3: isteklerin %95'i bir saniyede; H-4: dakikada 100 farklı ziyaretçi | — | | |
+| 05:MK-78 Büyüme yolunun sırası ve tetikleyicileri | — | | |
+| 05:§3.1 Uygulamanın biçimi | T02, T218 | | |
+| 05:§3.2 Sunucudaki bileşenler ve ağ | T05, T06 | | |
+| 05:§3.3 Modüller | T218 | | |
+| 05:§3.4 Modüller arası iletişim kuralı | T218 | | |
+| 05:§3.5 Vitrin ve panel | T206, T207 | | |
+| 05:§3.6 Dış servislerin sınırı — bağlantı katmanı | T202, T203 | | |
+| 05:§3.7 Sayfa adresleri ve arama motoru verileri | T219, T313, T206 | | |
+| 05:§3.8 Ön yüz ve tasarım tabanının uygulanması | T540, T539, T02 | | |
+| 05:§4.1 Durum makinesinin yeri — geçiş birimi | T315, T319 | | |
+| 05:§4.2 Sipariş onayı | T348 | | |
+| 05:§4.3 Yan etkiler ve iş kuyruğu — olay kaybı | T220 | | |
+| 05:§4.4 E-postanın gönderimi ve gönderim kaydı | T305, T220, T117 | | |
+| 05:§4.5 Tek işlenme — sipariş onayı, sağlayıcı bildirimi ve son sorgu | T311, T348, T403 | | |
+| 05:§4.6 Karta para gönderen isteğin tek işlenmesi | T370, T404, T405 | | |
+| 05:§4.7 İşlem izi | T380, T106 | | |
+| 05:§5.1 Çalıştırıcılar — zamanlayıcı ve iş kuyruğu | T220, T221 | | |
+| 05:§5.2 İşlerin envanteri | T221, T201, T302 | | |
+| 05:§5.3 İşlerin saatleri ve gecenin sırası | T221 | | |
+| 05:§5.4 Kesintinin tespiti ve dönüşteki sıra | T221, T327 | | |
+| 05:§6.1 Kimlik doğrulama ve oturum | T207, T342, T343, T409 | | |
+| 05:§6.2 Yetkilendirme | T207, T323 | | |
+| 05:§6.3 Deneme limitleri ve istek hızı | T215 | | |
+| 05:§6.4 Anahtarlar ve tek kullanımlık bağlantılar | T222 | | |
+| 05:§6.5 Form ve site güvenliği | T209 | | |
+| 05:§6.6 Yüklenen dosya | T223 | | |
+| 05:§6.7 Çerezler ve tarayıcıda tutulan veri | T224 | | |
+| 05:§6.8 Hassas verinin taşınması ve saklanması | T209, T05, T07 | | |
+| 05:§6.9 Kurulum tarafının işlemleri ve bakım erişimi | T387, T601 | | |
+| 05:§6 6.x Secret yönetimi (bu alt bölüm zorunludur) | T08 | | |
+| 05:§7.1 Veritabanı ve işlem bütünlüğü | T101, T228 | | |
+| 05:§7.2 Zamanın ve paranın temsili | T227 | | |
+| 05:§7.3 Eşzamanlılık kontrolü | T228, T208 | | |
+| 05:§7.4 Saklama ve imha | T201, T301, T302 | | |
+| 05:§7.5 İşlem izinin korunması | T106, T380, T201 | | |
+| 05:§7.6 Yedekleme ve kurtarma | T07, T601 | | |
+| 05:§7.7 Dosya depolama ve dijital teslim | T223, T312, T340 | | |
+| 05:§7.8 Önerilen stok kodu | T332 | | |
+| 05:§7.9 Site içi arama | T333 | | |
+| 05:§7.10 Önbellek | T229 | | |
+| 05:§8.1 Ortamlar | T05, T09 | | |
+| 05:§8.2 Paketleme ve kayıt defteri | T06 | | |
+| 05:§8.3 Dal stratejisi ve CI/CD hattı | T04, T03 | | |
+| 05:§8.4 Konfigürasyon yönetimi | T226 | | |
+| 05:§8.5 Yönetim komutları ve ilk kayıtlar | T303, T387, T388 | | |
+| 05:§8.6 Güncellemenin kurulumlara ulaşması | T602 | | |
+| 05:§8.7 Göçler ve geri alma | T602, T04, T388 | | |
+| 05:§8.8 Güvenlik güncellemeleri | T601 | | |
+| 05:§8.9 Sunucuya bakım erişimi | T601, T05 | | |
+| 05:§9.1 Sistem kayıtları — kaynaklar, içerik ve maskeleme | T225 | | |
+| 05:§9.2 Kayıtların saklanması ve korunması | T225, T201 | | |
+| 05:§9.3 Kayıtların okuma yolu | T387 | | |
+| 05:§9.4 İzleme ve uyarı | T314, T01 | | |
+| 05:§10.1 Dış bağımlılıklar — "çökerse ne olur" | T204, T202 | | |
+| 05:§10.2 E-posta kanalının ve firma bildirimlerinin uyarısı | T314, T382, T385 | | |
+| 05:§10.3 Beklenmeyen hata | T212 | | |
+| 05:§11.1 Tasarım değerleri | T226 | | |
+| 05:§11.2 Bilinçli tekil bırakılanlar | — | | |
+| 05:§11.3 Büyüme yolu | — | | |
 
 ### 7.2 Geri izlenebilirlik (task → kaynak öğe)
 

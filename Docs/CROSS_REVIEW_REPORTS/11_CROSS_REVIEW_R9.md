@@ -366,3 +366,53 @@ Hepsi aynı alt sınıf: kriterin istediği sonuç hiçbir KK'de sınanmıyordu 
 ### Çıkış değerlendirmesi
 
 Alt sınıf kapanmadı: 64 hükmün 40'ı kabul ve kısmi (31 Orta); bu hükümler 8 ve 9. turun Orta kabullerinin devamıdır, yeni sınıf değil. Doğrulanmayan 32 Düşük bulgu ve yukarıdaki üç ek not sıradaki adımda ele alınır; ardından cross-review 10. tur (aynı betik ve parça sınırları). ⚠ karar: yok. Önerilen `00`/`CLAUDE.md`/`SETUP.md` değişikliği yok.
+
+### Doğrulanmayanların doğrulaması (KD-cross-m2b)
+
+**Tarih:** 2026-11-01 · **Hedef:** `Docs/11_IMPLEMENTATION_PLAN.md` v0.48 → v0.49 · Hedefli mercek 2'nin 32 doğrulanmayan Düşük bulgusu ve üç ek notu (M97–M99; Orta sayıldı) sıradaki adımda doğrulandı. Yeni mercek koşulmadı; paket betiği (`kd-cross/m2b/paketle.py`) bulguları `kd-cross/m2/tum_bulgular.md`'den, task bloklarını güncel `11`'den alır. Talimat m2'ninki; ek olarak doğrulanmayanların kimliği ve "kriter yok" bulgusunun (M97) nasıl ele alınacağı yazıldı.
+
+**Doğrulayıcılar:** 10 `[dogrulama]` Opus / high (bekçi olayı yok; adım başına sınır 20): 7 Düşük kademe (4–6'lı, task sırasıyla) ve 3 ek not (tek tek). 35 hüküm: **9 doğru · 6 kısmen · 20 çürük**. Hüküm sorunu: `11_audit_hukum_denetle.py` sorun 0. **21 şartname çifti** 15 task bloğunda uygulandı (T09, T101, T111, T220, T230, T233, T305, T336, T341, T359, T408, T409, T513, T525, T534); hiçbir blok 2 560 baytı aşmadı (`11_task_blok_denetle.py --tam` sorun 0).
+
+| D | Kademe | Bulgu (M) | Doğru | Kısmen | Çürük |
+|---|---|---|---|---|---|
+| D1 | Düşük | M04, M05, M06, M11 | 0 | 2 | 2 |
+| D2 | Düşük | M14–M19 | 1 | 2 | 3 |
+| D3 | Düşük | M30, M31, M45, M46 | 2 | 0 | 2 |
+| D4 | Düşük | M47, M48, M54, M58 | 1 | 0 | 3 |
+| D5 | Düşük | M66, M67, M68, M96 | 1 | 1 | 2 |
+| D6 | Düşük | M80–M84 | 1 | 0 | 4 |
+| D7 | Düşük | M87, M89–M92 | 0 | 1 | 4 |
+| D8 | Orta (ek not a) | M97 | 1 | 0 | 0 |
+| D9 | Orta (ek not b) | M98 | 1 | 0 | 0 |
+| D10 | Orta (ek not c) | M99 | 1 | 0 | 0 |
+| **Toplam** | | **35** | **9** | **6** | **20** |
+
+**Seviye:** 32 Düşük bulgunun hepsi Düşük kaldı. Ek notlardan M97 Orta kaldı; M98 ve M99 Düşük'e indi (iz geçişte T321 KK2'de zaten sınanıyor; yarım iade adresi ayardan kopyalandığı için zor oluşur).
+
+**Kabul ve kısmi (15 bulgu, 21 çift):**
+
+| M | Task | Hüküm (seviye) | Çift | Ne sınanmıyordu → ne eklendi |
+|---|---|---|---|---|
+| M05 | T09 | KISMI (Düşük) | 2 | yayın varken göç adımının son sürümün şemasına uygulanması ve geri alma sınaması (T04'e değil ilk yayının task'ına) → k2, KK2 |
+| M11 | T101 | KISMI (Düşük) | 1 | `created_at` bulunması (`DataProtectionKey` dışında) → KK7; ICU sıralama kısmı T10'da sınanıyor |
+| M15 | T230 | KABUL (Düşük) | 1 | normal yazıcının isteği düşürmemesi (`09 §18.1` madde 8) → KK5 |
+| M16 | T220 | KISMI (Düşük) | 1 | varsayılan kuralın deneme anları (`05 §4.3.4`) → KK5 |
+| M18 | T233 | KISMI (Düşük) | 1 | göç hizmeti kolunun `Maintenance` profiliyle bağlanması → KK3 |
+| M31 | T305 | KABUL (Düşük) | 2 | logolu e-postada mutlak adres ve alt metin → KK3; k8'den `08` kopyası çıkarıldı |
+| M46 | T341 | KABUL (Düşük) | 2 | Z-1 dolunca aynı e-postayla yeniden kayıt → KK5 |
+| M48 | T359 | KABUL (Düşük) | 1 | silinen ürünün bağdan kalkması (`02 §3.27.10`) → KK1 |
+| M67 | T408 | KISMI (Düşük) | 1 | 429 turunda satır ve kanal hâli değişmez, hata kayda yazılır → KK5 |
+| M68 | T409 | KABUL (Düşük) | 1 | Google isteğinde `state`, `nonce`, `S256` → KK3 |
+| M84 | T513 | KABUL (Düşük) | 2 | müşterinin yeniden açmasının durum geçmişine satır yazması (Z-29 saklama başlangıcı) → KK10 |
+| M87 | T534 | KISMI (Düşük) | 1 | ilk yayında adresin sabitlenmesi → KK6; 409 kısmı çürük |
+| M97 | T336 | KABUL (Orta) | 3 | `02 §3.8.5` fiyatın uygulanmaya başlandığı tarihin ürün sayfasında gösterimi (Fiyat Etiketi Yönetmeliği m.5): kriter yoktu → k8 ve KK8; yer için k7 tekrarı kısaltıldı |
+| M98 | T525 | KABUL (Düşük) | 1 | yayın durumu ucunun izi → KK7 |
+| M99 | T111 | KABUL (Düşük) | 1 | iade adresinin dört alanından bir kısmı dolu talebin reddi → KK5 |
+
+**Çürük (20 bulgu):** M04 (ilk etikette denetim T09 KK1'de), M06 (HSTS T209 KK9), M14 (şerit ve önizleme yüzü T540 KK9, T360 KK5, T503 KK3), M17 (`X-Robots-Tag` T312 KK10, T313 KK7), M19 (ölçü dışı: zararsız 409), M30 (yeniden açma T320 KK6, T513 KK10, T528 KK10), M45 (hesap silmede yeniden doğrulama T521 KK4; ikinci adım sistemde yok), M47 (tavan T534 KK4), M54 (aydınlatma bağlantısı T366 KK5), M58 (alan adı geri düşüşü T537 KK2, T305 KK4), M66 (ölçü dışı: `MessageId` kişisel veri değil), M96 (T04 KK7), M80 (T346 KK5, T340 KK4), M81 (ölçü dışı), M82 (ölçü dışı, K-776), M83 (T326 KK3, T380), M89 (T528 KK2, T530 KK6, T368 KK7), M90 (T212 KK8, T541 KK7), M91 (T201 gecelik temizlik), M92 (T339 KK2, KK3, KK6). Ortak kalıp m2 ile aynıdır: davranış kimlikle işaret edilen başka task'ın KK'sinde sınanıyor ya da ölçü dışı.
+
+**Ek bulgular (uygulanmadı; doğrulayıcıların yan yüzleri):** (1) T520 KK9, T521 KK7 ve T522 KK5 de kriterleri "iz yazar" dediği hâlde izi sınamıyor (11:4760, 11:4786, 11:4812; D9) — T525'le aynı kalıp, Düşük; (2) T111 kriter 2 (cayma beyanı) `06 §4.25`'in aynı dört alan kısıtını anmıyor (11:644; D10) — Düşük; (3) T548 (2 550 bayt) ve T544 (2 558 bayt) sınırda, bu bloklara ek yapılamaz (D7).
+
+**Kapılar:** `11_audit_uygula.py` 21 çift; `11_task_blok_denetle.py --tam`, `11_matris_kapsama.py`, `11_yazim_kapanis.py`, `11_geri_yon.py . --denetle` ve `geri_isaret_tara.py` (K-1490) sorun 0.
+
+**Çıkış değerlendirmesi:** Hedefli mercek 2 kapandı: 96 bulgunun tamamı hükme bağlandı, kalan doğrulanmamış bulgu yok. Kabul ve kısmi 15 bulgunun 14'ü Düşük, biri Orta (M97, gerçek bir "kriter yok" boşluğu). Sıradaki: cross-review 10. tur (aynı betik ve parça sınırları). ⚠ karar: yok. Önerilen `00`/`CLAUDE.md`/`SETUP.md` değişikliği yok.

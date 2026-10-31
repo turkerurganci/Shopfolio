@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.48** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.49** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -369,7 +369,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `09` §4, §17, §21; `05 §8.1`, §8.2; `05 MK-68`; `07 UC-81`; `10 §4.1`
 - **Kabul kriterleri:**
   1. İlk sürüm etiketi açıklamalı `vANA.ARA.YAMA` biçimindedir ve `publish.yml` imajları yayımlar (`05 §8.3.12`; `09 §21.4` madde 2, 4).
-  2. İlk yayında geri alma sınaması atlanır ve atlandığı CI çıktısında yazılıdır (`09 §21.4` madde 3; K-1358).
+  2. İlk yayında geri alma sınaması atlanır ve atlandığı CI çıktısında yazılıdır; yayından sonraki ilk CI koşusunda göç adımı son yayımlanan sürümün şemasına da uygular ve geri alma sınamasını koşar (`09 §21.4` madde 3; K-1358).
   3. Üç imaj paketi ilk yayından sonra açık yapılır ve sunucu kimlik bilgisiz çeker (`05 §8.2.5`).
   4. Referans kuruluma ilk iniş yapılır; boş uygulama imajı canlılık ucuna 200 verir (`05 §8.1.4`; `MK-68`; `10 §4.1` ÖK-12; `07 UC-81`).
   5. Referans kurulumda denetlenen imajların özeti, güncelleme turunun kurulumlara çekeceği özet olarak kaydedilir (`05 §8.2.3`, §8.6.3).
@@ -377,7 +377,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Test beklentisi:** Yok — yayın ve kurulum işlemidir; kanıt referans kurulumdaki canlılık yanıtı ve CI çıktısıdır
 - **Doğrulama kontrol listesi:**
   - KK1: etiket açıklamalı; kayıt defterinde imajlar var.
-  - KK2: CI çıktısında atlama satırı.
+  - KK2: CI çıktısında atlama satırı; yayından sonraki koşuda atlama yok, iki uygulama ve geri alma sınaması koşar.
   - KK3: sunucu imajı kimliksiz çeker.
   - KK4: referans kurulumda canlılık ucu 200.
   - KK5: kaydedilen özet kurulumdakiyle eşit.
@@ -432,7 +432,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK4: tür eşlemesi tabloyla eşit.
   - KK5: eski sürümle güncelleme sıfır satır etkiler.
   - KK6: `I`, `İ`, `ı`, `i` aynı normal biçime iner.
-  - KK7: boş metin kaydedilmez, `NULL` kaydedilir.
+  - KK7: model testi `DataProtectionKey` dışında her varlıkta `created_at` bulur; boş metin kaydedilmez, `NULL` kaydedilir.
   - KK8: model testi her bağda `Cascade`, `SetNull` ya da `NoAction` bulur; `pg_constraint`'te `r` yoktur (`09 §10.1` madde 5).
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -654,7 +654,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: kupon payı ürün tutarını aşan kayıt reddedilir.
   - KK3: müşteri kaydında yönetici alanı dolu satır reddedilir.
   - KK4: iki bağlı `Return` satırı reddedilir.
-  - KK5: aynı kaleme ikinci ayıp talebi reddedilir.
+  - KK5: aynı kaleme ikinci ayıp talebi reddedilir; iade adresinin dört alanından bir kısmı dolu talep reddedilir.
   - KK6: küçük harfli IBAN reddedilir.
   - KK7: kalemi bağlı kayıt varken kalem silme reddedilir.
   - KK8: kaynak taraması temiz.
@@ -1357,7 +1357,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: iki çalıştırıcı aynı satırı almaz; işlerken öldürülen sürecin satırı yeniden başlayınca işlenir.
   - KK3: aynı satır iki kez işlenince sonuç aynı.
   - KK4: geçiş geri alınınca kuyruk satırı da yok.
-  - KK5: varsayılan kuralda altı başarısız denemeden sonra durum "başarısız"; hatalı satır döngüyü durdurmaz, sıradaki satır işlenir.
+  - KK5: varsayılan kuralda denemelerin anı `05 §4.3.4`'ün aralıklarıyla, altıncı hatada durum "başarısız"; sıradaki satır işlenir.
   - KK6: temizlik "başarısız" satırı silmez.
   - KK7: gönderilmiş iade isteği tekrar gönderilmez; istekten sonra çöken süreçte sonuç sorulur.
   - KK8: e-posta için ayrı satır yok.
@@ -1597,7 +1597,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: üç dosya ayrı ayrı oluşur.
   - KK3: dosya sayısı otuz birin üstüne çıkınca (otuz ikinci dosya) eski dosya silinmez (`09 §18.1` madde 8).
   - KK4: ayar bilgiye inince çatı satır yazmaz; düzey ayarı yükseltilince de denetim satırı yazılır.
-  - KK5: yazılamayan dizinde denetim yazıcısı hata verir; doğrulanan bilgim tarihli adlar ve seçilen denetim yazıcısı PR açıklamasında.
+  - KK5: yazılamayan dizinde denetim yazıcısı hata verir, normal yazıcı isteği düşürmez; doğrulanan bilgim tarihli adlar ve seçilen denetim yazıcısı PR açıklamasında.
   - KK6: her ortak alan adı ve türü beklenen.
   - KK7: listede olmayan olay adı derlemede ya da testte reddedilir.
   - KK8: örnek alan doğrulama reddi tek satır, `fields` dizisiyle.
@@ -1665,7 +1665,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Doğrulama kontrol listesi:**
   - KK1: sabitler `09 §3.5` satırlarıyla bire bir.
   - KK2: tek kuruluş noktası; başka yerde bağlantı dizgesi kurulmuyor.
-  - KK3: Maintenance profili daha uzun sorgu süresi taşır; iki profilin bağlantı dizisi ayrı; `DatabaseConnection` ve testler dışına konan `SET statement_timeout` taramayı kırar.
+  - KK3: Maintenance profili daha uzun sorgu süresi taşır; göç hizmeti `Maintenance` ile bağlanır (yönetim komutu T303 KK4); iki profilin bağlantı dizisi ayrı; `DatabaseConnection` ve testler dışına konan `SET statement_timeout` taramayı kırar.
   - KK4: istemci süresi sunucu süresinden uzun.
   - KK5: aşım testi beklenmeyen hata yanıtına düşer; işlem gövdesine konan `HttpClient` taramayı kırar.
   - KK6: yeniden deneme stratejisi etkin değil.
@@ -1791,13 +1791,13 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   5. Gövdedeki her değişken değer HTML'de kaçışlanır, ham basılmaz; düz metinde satır sonu boşluk olur (`08 §2.2.4` Kaçış).
   6. Bağlantı tam `https` adrestir; ana eylem düğmedir, altında adresi düz metindir; misafire erişim anahtarlı bağlantı, üyeye hesaptaki sipariş adresi; B-15 ve silinme bildirimi bağlantısızdır (`08 §2.2.5` madde 4).
   7. Tarih, tutar ve sayı `04 §8.2` biçimindedir ve olayın kaydından üretilir (`08 §2.2.5` madde 5).
-  8. Yeniden gönderimde konu aynıdır, gövde üstünde ilk bildirimin tarihli tek cümlesi durur; şablon bunu `OriginalDispatchId`'den bilir; yeni olay (ikinci hatırlatma) cümleyi taşımaz (`08 §2.2.5` madde 6).
+  8. Yeniden gönderimde konu aynıdır, gövde üstünde ilk bildirimin tarihli tek cümlesi durur; yeni olay (ikinci hatırlatma) cümleyi taşımaz (`08 §2.2.5` madde 6).
   9. Altbilgide unvan, iletişim e-postası ve yanıt cümlesi vardır; abonelik bağlantısı ve pazarlama dili yoktur (`08 §2.2.5` madde 8).
 - **Test beklentisi:** Unit
 - **Doğrulama kontrol listesi:**
   - KK1: iki parça; düz metinde tam adres.
   - KK2: HTML'de betik, dış stil, form, izleme pikseli yok.
-  - KK3: logosuzda marka adı metni; marka rengi yalnız düğme zemininde, yazı rengi kontrastla.
+  - KK3: logo mutlak adresli, alt metin marka adı; logosuzda ad metni; renk yalnız düğme zemini, yazı kontrastlı.
   - KK4: konu biçimi, sipariş eki, adsızda alan adı; satır sonlu marka adı tek satır.
   - KK5: `<b>`'li ürün adı HTML'de metin; düz metinde satır sonu boşluk.
   - KK6: misafir ve üye bağlantısı ayrı; düğme altında düz adres; B-15 ve silinmede bağlantı yok.
@@ -2591,8 +2591,8 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   4. KDV kalem bazında hesaplanır ve kuruşa kalemde yuvarlanır; sipariş toplamı yuvarlanmış kalemlerin toplamıdır (`02 §3.8.3`).
   5. Hesap sırası sabittir: indirimli birim fiyat × adet, kupon payı düşümü, kalan tutardan KDV (`02 §3.8.3`).
   6. Tek tutar kuruşa en yakın kuruşa yuvarlanır, tam yarım kuruş yukarı gider; orantılı bölünen tutarın parçaları aşağı yuvarlanır ve kalan kuruş en büyük parçaya yazılır (`02 §3.8.3`).
-  7. Fiyatın hassasiyeti iki ondalıktır; fiyat sıfırdan büyüktür ve 0,00 TL kaydedilmez; tutarlar ondalık türde tutulur (`09` §7) (`02 §3.8.4`).
-  8. Ürün sayfası "üretim yeri (ülke)" ve ölçüyle satılan üründe ölçü birimi ile net miktarı taşır; ölçü birimi ürün düzleminde ve kapalı listedendir, net miktar varyant düzlemindedir; birim seçiliyse her varyantta net miktar zorunlu ve sıfırdan büyüktür; birim fiyat varyantın fiyatından ve net miktarından türetilir (`02 §3.8.5`; K-1018, K-1019, K-1020).
+  7. Fiyatın hassasiyeti iki ondalıktır; fiyat sıfırdan büyüktür; tutarlar ondalık türde tutulur (`09` §7) (`02 §3.8.4`).
+  8. Ürün sayfası "üretim yeri (ülke)"yi, fiyat geçmişinden fiyatın uygulanmaya başlandığı tarihi ve ölçüyle satılan üründe ölçü birimi ile net miktarı taşır; ölçü birimi ürünün, kapalı listeden; net miktar varyantın, birim seçiliyse zorunlu ve sıfırdan büyük; birim fiyat varyantın fiyatı ve net miktarından türetilir (`02 §3.8.5`; K-1018…K-1020).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: girilen fiyat ekranda aynen görünür.
@@ -2602,7 +2602,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK5: üç adımlı sıra sınanmış örneklerle doğru.
   - KK6: 12,345 -> 12,35; orantılı bölümde parçalar aşağı, artık en büyük parçada.
   - KK7: üç ondalık ve 0,00 TL reddedilir.
-  - KK8: fiziksel üründe ülke zorunlu, dijitalde isteğe bağlı; ürün sayfası ülkeyi fizikselde ve dolu dijitalde gösterir, boş dijitalde ülke satırı yok; birim seçili üründe net miktarsız ya da sıfır miktarlı varyant reddedilir, birim fiyat türetilir.
+  - KK8: fiziksel üründe ülke zorunlu, dijitalde isteğe bağlı; ülke fizikselde ve dolu dijitalde görünür, boş dijitalde satır yok; fiyat değişince tarih yeni geçmiş satırınındır; birim seçiliyken net miktarı boş ya da sıfır varyant reddedilir, birim fiyat türetilir.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T337: İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar
@@ -2717,7 +2717,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   2. Hesap açıldığında o e-postaya ait geçmiş misafir siparişleri hesaba düşer; tek dayanak doğrulanmış e-postadır ve silinmiş hesabın siparişleri bağlanmaz (`02 §3.13.2`).
   3. Doğrulanmış hesabı olan kişi giriş yapmadan sipariş verirse sipariş kabul edilir ve hesaba anında tam bağlanır, bekleyen kayda bağlanmaz; giriş duvarı yoktur (`02 §3.13.3`).
   4. E-posta doğrulaması sert kapıdır: doğrulanmamış hesapla giriş yapılamaz ve sipariş verilemez; tek tip hesap vardır (`02 §3.13.4`).
-  5. Doğrulanmamış hesap geçicidir; Z-1 dolunca kayıt silinir, e-posta yeniden kayda açılır ve süresi geçmiş bağlantı "bağlantı geçersiz, yeniden kayıt olun" mesajını verir (`02 §3.13.5`).
+  5. Z-1 dolunca doğrulanmamış kayıt silinir, e-posta yeniden kayda açılır ve süresi geçmiş bağlantı "bağlantı geçersiz, yeniden kayıt olun" mesajını verir (`02 §3.13.5`).
   6. Doğrulama bağlantıyla değil, açılan ekrandaki düğmeyle olur (`02 §3.13.5`).
   7. Kayıt formu ad, e-posta ve şifre ister; ad zorunludur ve kullanıcı adını yeniden doğrulamasız değiştirir (`02 §3.13.21`).
   8. Kayıtta ve hesapta pazarlama onayı alanı yoktur (`02 §3.13.18`).
@@ -2728,7 +2728,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: geçmiş misafir siparişi doğrulanmış e-postayla hesaba düşer.
   - KK3: misafir sipariş doğrulanmış hesaba anında bağlanır, bekleyen kayda bağlanmaz.
   - KK4: doğrulanmamış hesap girişte ve siparişte reddedilir.
-  - KK5: Z-1 sonrası kayıt silinir, bağlantı geçersiz mesajı çıkar.
+  - KK5: Z-1 sonrası kayıt silinir, e-posta yeniden kaydolur; geçersiz bağlantı mesajı.
   - KK6: bağlantıya tıklamak doğrulamaz, düğme doğrular.
   - KK7: adsız kayıt reddedilir; ad değişimi yeniden doğrulama istemez.
   - KK8: formda ve kayıtta pazarlama alanı yok.
@@ -3151,7 +3151,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   8. Müşteri görüşü tipi, dönen alıntı bloğu ve blog yoktur (`02 §3.27.19`; `02 §3.27.20`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: taslak ürün bağda kalır, görünmez, yeniden yayında görünür; bağda varyant alanı yok; ürün sayfasında ters bağ ve öneri bloğu yok.
+  - KK1: taslak ürün bağda kalır, görünmez, yeniden yayında görünür; silinen ürün bağdan kalkar; bağda varyant alanı yok; ürün sayfasında ters bağ ve öneri bloğu yok.
   - KK2: sıra liste, ana sayfa, menüde aynı.
   - KK3: eksik alanlı kayıt yayına alınamaz.
   - KK4: boş Hakkımızda blokta marka adı çıkar.
@@ -4161,7 +4161,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: `StartDate` 24 saat öncesidir; şikâyet adresi işlenmez; ikinci sayfadaki adres işlenir.
   - KK3: büyük harfli adres eşleşir; `SentAt`'i 24 saatten eski satır değişmez.
   - KK4: kanal hâli değişmez, ikinci uygulama etkisiz.
-  - KK5: 429 turu boş geçer.
+  - KK5: 429 turu boş geçer: satır ve kanal hâli değişmez, hata kayda yazılır; sonraki tur yine 24 saat öncesinden sorar.
   - KK6: ikinci bekleyen satır yok.
   - KK7: kodda silme çağrısı yok; `AMAZON_SES.md`'de liste ayarı yalnız `BOUNCE`.
   - KK8: DV-22 satırı.
@@ -4183,7 +4183,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Doğrulama kontrol listesi:**
   - KK1: kod değişimi gövdesi, `userinfo` çağrısı yok.
   - KK2: ayarsız çağrı yok.
-  - KK3: adresler sabit, istekte yasak alan yok; yeniden doğrulama isteğinde `claims` `auth_time`'ı ister; `max_age` yalnız DV-26 doğruysa istekte.
+  - KK3: adresler sabit; istekte `openid email profile`, `state`, `nonce` ve `S256` var, yasak alan yok; yeniden doğrulama isteğinde `claims` `auth_time`'ı ister; `max_age` yalnız DV-26 doğruysa istekte.
   - KK4: yedi belirteç durumu.
   - KK5: önbellek; bilinmeyen `kid` çatının yenilemesiyle çekilir, elle yeniden deneme yok; yine yoksa imza tutmaz.
   - KK6: `sub` sonuçta ve kayıtta yok; `nonce` sonuçta var.
@@ -4552,7 +4552,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   7. UC-44 303 kök: yeni talep açık değil, talep Çözüldü değil ya da Z-18 doldu; 404: kök tutmuyor, `orderItemId` yabancı ya da talep yok (`07 UC-44`).
   8. `SubmitDefectClaim` kalem başına tek talebi Açık durumunda açar; iade adresi talebe yazılır; onay adımı yoktur (`07 UC-45`; `04` 5.19.5).
   9. UC-45 422: kalem seçilmemiş, adet geçersiz, açıklama boş; kalemde talep varsa ya da adet aşılıyorsa 303 kök (`07 UC-45`; `03 §1.11.9`).
-  10. `ReopenDefectClaim` Çözüldü talebi Z-18 içinde Açık yapar, açıklama almaz, durum geçmişine müşteri satırı yazar; aksi hâlde 303 kök (`07 UC-46`; K-681).
+  10. `ReopenDefectClaim` Çözüldü talebi Z-18 içinde Açık yapar, açıklama almaz, durum geçmişine müşteri satırı yazar; aksi 303 kök (`07 UC-46`; K-681).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: sayfa içeriği; kapalı hâl.
@@ -4564,7 +4564,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK7: üç 303 sebebi ve 404.
   - KK8: tek talep, Açık.
   - KK9: üç 422 sebebi, 303.
-  - KK10: Z-18 içi ve dışı.
+  - KK10: Z-18 içi ve dışı; müşteri satırı.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T514: Kayıt ve doğrulama bağlantısının inişi (E-20, E-21)
@@ -4893,7 +4893,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK4: koşullu stok; fiyat geçmişi.
   - KK5: 422 sebepleri ayrı testte.
   - KK6: 409 ve ret sırası.
-  - KK7: mutlak durum, adres, sepet.
+  - KK7: mutlak, adres, sepet, iz.
   - KK8: üç 422 sebebi.
   - KK9: onay hâli; son varyant.
   - KK10: kaydetmez; üç ret; 413.
@@ -5140,7 +5140,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: Taslak doğum, grup sonu; işaret yazılır.
   - KK4: beş 422 sebebi; iki 409 (sürüm, tekil kayıt).
   - KK5: arama yazmaz.
-  - KK6: mutlak durum; eksik kapı; iz ve sürüm.
+  - KK6: mutlak durum; eksik kapı; ilk yayında adres sabit; iz ve sürüm.
   - KK7: onay; Hakkımızda; 404.
   - KK8: 409 ve 422.
   - KK9: geri düşüş; kayıt.
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.48*
+*Shopfolio — Implementation Plan v0.49*

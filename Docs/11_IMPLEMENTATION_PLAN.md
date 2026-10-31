@@ -4301,6 +4301,146 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK8: yabancı Slug 404.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+#### T506: Sık sorulan sorular ve iletişim sayfası ve formu (E-09, E-10)
+- **Bağımlılık:** T537, T540, T541, T543
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §15 (§15.2, §15.4), §16 (§16.2); `07 UC-13`…`UC-15`; `04` E-09, E-10; `03 §2.2`, §5.1; `02 §3.27.6`, §3.32.1…§3.32.3; `10` KP-30, KP-33, KP-34
+- **Kabul kriterleri:**
+  1. `GET /sss` yayındaki soruları firmanın elle sırasıyla tek listede verir; sayfalama ve sayfa içi arama yoktur; soru yoksa boş hâl satırı çıkar (`07 UC-13`; `04` 5.9.4, 5.9.8).
+  2. Panel oturumuyla taslak sorular yerinde "Taslak" etiketiyle görünür; SSS'nin yapılandırılmış verisi ilk yanıttadır (`07 UC-13`; `05 §3.7.2`).
+  3. `GET /iletisim` kimlik bloğunu, formu ve şubeleri gösterir; üyede ad ve e-posta ön dolu ve düzenlenebilir gelir (`07 UC-14`; `04` 5.10.11).
+  4. Veri toplayan girişlerin kapısı kapalıyken form kapalı olduğunu söyler ve gönderim düğmesi yoktur; kimlik bloğu ve şubeler görünür kalır (`07 UC-14`; K-850).
+  5. Gönderim sonrası hâli koda göre formun yerinde durur: talep iletildi, cevap e-postayla sistem dışında gelir, talep numarası yok (`07 UC-14`; K-1180).
+  6. `POST ?handler=SendContactRequest` talebi Açık durumunda yazar, 303 → `/iletisim` koduyla döner; gönderene alındı e-postası gitmez (`07 UC-15`; K-678).
+  7. 422: boş zorunlu alan, geçersiz e-posta ya da telefon, kapalı beş değerin dışında konu tipi; hatalar birlikte işaretlenir; kapı kapalıysa sayfa kapalı hâliyle döner (`07 UC-15`).
+  8. 429 (L-4): nötr mesaj düğmenin yanındadır, yazılanlar korunur; her deneme kaydedilir (`07 UC-15`; `03 §3.5.3.8`).
+  9. `Website` tuzak alanı doluysa kayıt yazılmaz, yanıt başarıyla aynıdır; deneme kaydı ve L-4 sayımı yoktur (`07 UC-15`; `02 §3.32.7`).
+  10. Tekrar gönderim ikinci talep açar ve L-4'e sayılır; firmaya F-2 tuzak boşken gider (`07 UC-15`; K-1179 (1)).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: elle sıra, boş hâl.
+  - KK2: taslak etiketi; veri ilk yanıtta.
+  - KK3: üye ön dolu, misafir boş.
+  - KK4: kapalı kapıda düğme yok.
+  - KK5: kod başına hâl.
+  - KK6: talep Açık; alındı e-postası yok.
+  - KK7: üç 422 sebebi ve kapalı kapı.
+  - KK8: 429 ve deneme kaydı.
+  - KK9: tuzakta kayıt ve sayaç yok.
+  - KK10: ikinci talep ve F-2.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T507: Yasal metin sayfaları ve panelde yönetimi (E-11, E-47)
+- **Bağımlılık:** T540, T541, T542, T543
+- **Dokümanlar:** çekirdek; `09` §15 (§15.3); `07 UC-16`…`UC-18`, `UC-102`, `UC-173`, `UC-174`; `04` E-11, E-47; `03 §8.7`; `02 §3.33.1`, §3.33.2; `10` KP-61
+- **Kabul kriterleri:**
+  1. Aydınlatma metni ve çerez politikası güncel yayındaki sürümdür; işlem rehberi sabit metindir ve satış kapalıyken de görünür (`07 UC-16`…`UC-18`; K-626).
+  2. İlk kurulumda hiç yayına alınmamış aydınlatma metni ve çerez politikası 404 verir; işlem rehberi bu kapıya bağlı değildir (`07 UC-16`…`UC-18`; K-770).
+  3. `GET /panel/yasal-metinler` dört metnin satırını, düzenlenen iki metnin bölümünü ve üretilen iki metnin güncel hâlini verir; her form taslağın `Version`'ını taşır (`07 UC-102`).
+  4. Sayfa yayındaki sürümün numarasını ve tarihini, düzenlenenin yayından farkını, tamamlanma satırını ve satışın kapalı olduğunu söyler (`07 UC-102`; K-818, K-850).
+  5. Aydınlatma taslağının yer tutucuları kimlikteki güncel değerlerle gösterilir (`07 UC-102`; `04` 9.19.11).
+  6. `SaveLegalTextDraft` taslağı kapalı biçim setiyle süzüp yazar; yayındaki sürüm ve işlem izi değişmez, taslağın sürümü artar (`07 UC-173`; `05 §6.5.3`).
+  7. UC-173 422: metin boşaltılıyor, doldurulmuş barındırma konumu boşaltılıyor, tür listede yok ya da üretilen metin; 409 yalnız o bölümde iki düğme gösterir (`07 UC-173`; `07 §2.4.5`).
+  8. `PublishLegalText` aynı metinde de yeni sürüm numarası açar; onay penceresi, bildirim ve yeniden onay yoktur; işlem izi yazılır (`07 UC-174`; `02 §3.33.3`).
+  9. Tamamlanmamış aydınlatma metni 422 alır: istek uygulanmaz, taslak da yazılmaz; eşzamanlı ikinci yayın 409 alır (`07 UC-174`; K-1194 (3)).
+  10. İki metnin ilk yayını satış ve veri toplayan girişlerin kapılarını açar; çerez politikasının ilk yayınından sonra vitrin çerez yazar (`07 UC-174`; `05 §6.7.10`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: üç adres, satış kapalı rehber.
+  - KK2: yayınsızda 404, rehber 200.
+  - KK3: dört satır, iki bölüm.
+  - KK4: sürüm, fark, kapı.
+  - KK5: yer tutucu güncel değerle.
+  - KK6: yayındaki sürüm sabit, iz yok.
+  - KK7: dört 422 sebebi, 409 düğmeleri.
+  - KK8: aynı metinde yeni numara.
+  - KK9: eksik alanda taslak yok.
+  - KK10: kapılar, çerez.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T508: Sepet (E-12)
+- **Bağımlılık:** T537, T540, T541
+- **Dokümanlar:** çekirdek; `09` §3.4, §7, §9, §14, §16 (§16.2); `07 UC-19`…`UC-21`; `04` E-12; `03 §2.3`, §3.2; `02 §3.16.1`…§3.16.10, §3.18.1; `05 §6.7.7`, §6.7.8; `10` KP-9…KP-11, KP-38
+- **Kabul kriterleri:**
+  1. `GET /sepet` kalemleri, tutarın dökümünü, kargo ücretini, ücretsiz kargo mesajını ve asgari tutarın eksiğini sunucunun hesabıyla gösterir (`07 UC-19`; `04` 5.12.6).
+  2. Kalem fiyatı ve satın alınabilirliği güncel üründen okunur; satır mesajları koşul sürdükçe durur (`07 UC-19`; `02 §3.16.5`).
+  3. Ödeme adımına geçişin hâli — açık ya da sebebiyle kapalı — sunucunun kararıdır: siparişe girecek kalem yok, asgari tutar eksik, satış kapalı (`07 UC-19`; `04` 5.12.10, 5.12.14).
+  4. Bir kez söylenen mesajlar içerik alanının başındadır; gösterilen işaretli kalem silinir ve yenilemede mesaj gelmez (`07 UC-19`; `04` 2.3.1.3; K-1179 (3), K-1183).
+  5. Çerezsiz misafirin sepeti boştur ve GET çerez açmaz; çerezli misafirde son erişim yazılır ve çerez yenilenir (`07 UC-19`; `05 §6.7.8`).
+  6. Sepet boşalırsa yanıt ödeme adımının çerezini siler (`07 UC-19`, `UC-21`; `05 §6.7.7`).
+  7. `UpdateCartItem` adedi mutlak değer olarak yazar ve 303 → `/sepet` verir; ilk eklenme fiyatı değişmez, dijital kalemde adet alanı yoktur (`07 UC-20`; `02 §3.16.5`).
+  8. UC-20 422: adet birden küçük ya da tam sayı değil; artırma stoku ya da sınırı aşıyor (adet yazılmaz, satırda mesaj durur); 404: kalem bu sepette değil (`07 UC-20`; K-1179 (2)).
+  9. Vitrinden kalkmış kalemde adet yazılmaz; kalem bir kez söylenip silinir (`07 UC-20`; K-1179 (3)).
+  10. `RemoveCartItem` işaretli kalemi de yayın durumundan bağımsız çıkarır; yabancı ya da çıkarılmış kalem 404 alır (`07 UC-21`; K-1209 (2)).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: dökümün her satırı sunucu hesabında.
+  - KK2: fiyat değişince satır güncel.
+  - KK3: üç kapalı sebep ayrı testte.
+  - KK4: mesaj bir kez, kalem silinir.
+  - KK5: çerezsiz GET çerez açmaz.
+  - KK6: son kalemden sonra çerez silinir.
+  - KK7: mutlak adet, tekrar aynı sonuç.
+  - KK8: iki 422 sebebi ve 404.
+  - KK9: kalkmış kalemde adet sabit.
+  - KK10: çıkarma ve ikinci 404.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T509: Ödeme adımı (E-13)
+- **Bağımlılık:** T508, T537, T540, T541, T543, T544
+- **Dokümanlar:** çekirdek; `09` §3.4, §7, §8, §9, §14, §15 (§15.2, §15.4), §16 (§16.2); `07 UC-22`…`UC-27`; `04` E-13; `03 §2.4`, §6.1; `02 §3.14.1`…§3.14.6, §3.17.1, §3.17.2, §3.20.1; `05 §4.2.2`, §6.7.9; `10` KP-8, KP-12…KP-15
+- **Kabul kriterleri:**
+  1. `GET /odeme` beş bölümü tek sayfada verir; form her gösterimde yeni `ConfirmationKey`, özet parmak izi ve iki metnin sürüm kimliklerini taşır (`07 UC-22`; `05 §4.2.1`).
+  2. Satış kapalı, siparişe girecek kalem yok ya da asgari tutar eksikse 303 → `/sepet`; sebep sepettedir (`07 UC-22`; K-1181 (3)).
+  3. Alanlar ödeme adımının çerezinden dolar; çerez yalnız ayrılışta yazılır ve yalnız `05 §6.7.9`'un alanlarını taşır (`07 UC-22`, `UC-26`).
+  4. `ApplyCoupon` yazmadan 200 döner; 422: asgari tutarın altındaki geçerli kod asgari tutarla, öteki retler tek mesajla; 429 (L-6); hak ayrılmaz (`07 UC-23`; K-845).
+  5. `RemoveCoupon` kodu kaldırır; `Recalculate` özeti yeniden hesaplar, zorunluluk denetlemez ve hatırlatma L-3'e sayılmaz (`07 UC-24`, `UC-25`; K-758).
+  6. `Leave` çerezi yazar: `login` → `/giris?returnUrl=/odeme`, `cart` → `/sepet`; başka hedef sepet sayılır (`07 UC-26`; K-1181 (2)).
+  7. `PlaceOrder` siparişi `05 §4.2.2`'nin tek işleminde kurar, 303 → `{kök}/teyit` verir ve çerezi siler (`07 UC-27`; K-1181 (6)).
+  8. UC-27 422: eksik alan ya da kutu, teslimat yapılmayan il, özet farkı, kapanan satış, seçilemeyen yöntem; 429 (L-7, L-8); yabancı defter girdisi 404 (`07 UC-27`; `04` 5.13.18).
+  9. UC-27 303'leri: kalem kalmadı → `/sepet`; oluşmuş sipariş → teyit; belirsiz sonuç → sonucu gösteren ekran; kapanan oturum → giriş (`07 UC-27`; K-1199).
+  10. Aynı onay anahtarıyla ikinci gönderim yeni sipariş açmaz; iki sekme sepet kilidiyle sıraya girer (`07 UC-27`; `07 §2.5.8`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: beş bölüm, taze anahtar.
+  - KK2: üç kapalı sebep.
+  - KK3: çerez alan listesi; kutu yazılmaz.
+  - KK4: üç kupon sonucu ve L-6.
+  - KK5: kaldırma, ara gönderim, hatırlatma.
+  - KK6: üç hedef değeri.
+  - KK7: tek işlem, çerez silinir.
+  - KK8: beş 422 sebebi, 429, 404.
+  - KK9: dört 303 hedefi.
+  - KK10: eşzamanlı iki sipariş sıraya girer.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T510: Sipariş teyit ve bekleme ekranı, ödeme sağlayıcısına geçiş ve dönüş (E-14)
+- **Bağımlılık:** T509, T511, T537, T540, T541
+- **Dokümanlar:** çekirdek; `09` §3.4, §11 (§11.1), §15 (§15.2), §16; `07 UC-28`…`UC-30`; `08 §2.1.4`, §4.1; `04` E-14; `03 §2.4`, §2.5; `02 §3.17.1`, §3.17.6; `05 §6.5.4`; `10` KP-15, KD-23
+- **Kabul kriterleri:**
+  1. `GET {kök}/teyit` sipariş numarasını gösterir; kartta geçiş formu, havalede donmuş IBAN, toplam ve son ödeme günü durur; kendiliğinden yönlendirmez (`07 UC-28`; K-776).
+  2. Sipariş Alındı + Bekliyor değilse 303: üye sipariş sayfasına, misafir takip girişine; kök tutmuyorsa 404 (`07 UC-28`; K-1209 (1)).
+  3. `StartPayment` ödeme sayfasını 200 verir: sağlayıcı formu çerçevede açılır; jeton saklanmaz, her açılış yeni jeton ister (`07 UC-29`; `08 §2.1.4`).
+  4. Çerçeve izni yalnız bu sayfada, yalnız sağlayıcı adresi ve `'self'` için açılır; `form-action` sağlayıcı adresini taşımaz (`07 UC-29`; `05 §6.5.4`).
+  5. Sağlayıcıya bağlanılamazsa sipariş iptal edilir, 303 → `/sepet` ve sepet bir kez söyler; L-7'ye sayılmaz (`07 UC-29`; K-1183, K-1200).
+  6. Sipariş artık Alındı + Bekliyor değilse UC-28'in yönlendirmesi; havale siparişinde teyit ekranı (`07 UC-29`).
+  7. `GET /odeme/donus/{anahtar}` çerçevesiz tek cümlelik geçiş sayfasıdır; durum yazmaz, oturum çerezine dayanmaz (`07 UC-30`; K-1259 (1)).
+  8. Geçiş sayfası üst pencereyi `/siparis/erisim/{anahtar}`'a götürür — betik, betiksizde `target="_top"` bağlantısı; `frame-ancestors 'self'` yalnız bu yanıttadır (`07 UC-30`).
+  9. Anahtar biçimi tutmuyorsa 404 döner; geçersiz anahtarın 404'ünü sipariş sayfası verir (`07 UC-30`).
+  10. DV-5 gözlenir: dönüşün yüklendiği pencere, iki hâlde üst pencereye geçiş, yükseklik, 3D Secure'un `frame-src`'ye takılmaması; sonuç satıra tarihle yazılır (`08 §4.1`; K-1450 (4)).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: kart ve havale görünümü.
+  - KK2: iki yönlendirme ve 404.
+  - KK3: jeton kayıtta yok; her açılışta yeni.
+  - KK4: başlıkta çerçeve izni yalnız bu sayfada.
+  - KK5: iptal, işaret, tek mesaj, L-7.
+  - KK6: yönlendirme ve havale dönüşü.
+  - KK7: geçiş sayfası durum yazmaz.
+  - KK8: betikli ve betiksiz geçiş.
+  - KK9: biçim 404.
+  - KK10: DV-5 satırında tarih ve ihlal kaydı.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ## 6. Faz geçiş kapıları
 
 ### 6.1 Genel gate check (tüm fazlarda)

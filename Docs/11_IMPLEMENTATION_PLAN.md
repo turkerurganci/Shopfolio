@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.19** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.20** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -23,7 +23,7 @@
 | P8.2 — eşitlik denetimlerinin Lint adımına girmesi (K-1356) | T04 (komutlar `.github/ci-commands.env`) | Y2 | Task yazıldı ✓ — Y8 doğrular |
 | P8.3 — yama sürümü denetiminin `publish.yml`'e girmesi (K-1356, K-1358) | T04, T09 | Y2 | Task yazıldı ✓ — Y8 doğrular |
 | P8.4 — sahtelerin paylaşımı, xUnit v3 sınaması (K-1355) | T03 | Y2 | Task yazıldı ✓ — Y8 doğrular |
-| P8.5 — yükleme betiği, kayıt biçimleyicisi, maskeleme testleri (K-1354, K-1391) | T230 (üç yazıcı ve biçimleyici), T231 (maskeleme testleri), T548 (yükleme betiği) | Y3 (T230, T231) · Y6b (T548) | T230, T231 yazıldı ✓ — T548 Y6b'de; Y8 doğrular |
+| P8.5 — yükleme betiği, kayıt biçimleyicisi, maskeleme testleri (K-1354, K-1391) | T230 (üç yazıcı ve biçimleyici), T231 (maskeleme testleri), T548 (yükleme betiği) | Y3 (T230, T231) · Y6c (T548) | T230, T231 yazıldı ✓ — T548 Y6c'de; Y8 doğrular |
 
 **Yazım konvansiyonları (K-1443).** (1) **Sıra:** W-1 ✓ → başlık notu ve §3, §3.1, §4, §5'in "Task yapısı"nı (Y1) → matris ✓ → §5 task blokları fazlar halinde (aşağıdaki harita) → §6, §8, §9 → §1, §2 son (sayımlar bloklar bitince kesinleşir) → özet ↔ ayrıntı taraması → kalite döngüsü. (2) **Dil:** bu doküman Türkçe; kod, sembol ve dosya adları İngilizce. (3) **Kimlikler (K-1406 (3)):** konu `IPn-mm`; task `TXX`, araya `TXXa`/`TXXb`, devam turu `TXX.1` (`00 §J`); matris kaynak kimliği ailesine göre (§7'nin "Kaynak kimliğinin biçimi" tablosu). (4) **Atıf biçimi:** `02 §3.8.3`, `07 UC-12`, `09 §10`, `05 MK-12` — önsüz `§` bu dokümanın bölümüdür; başka doküman her zaman numarasıyla anılır. (5) **Tüketici ilkesi:** kaynakla çelişki çıkarsa kaynak kazanır, fark bu dokümana hizalama olarak yazılır; kaynağın kendisi yanlışsa §8'e GAP olarak girer (K-1406 (2)(d)). (6) **Kural ayrıntısı evinde kalır:** task bloğu kaynağın kuralını kopyalamaz, kimlikle işaret eder. (7) **Açık kararlar bölümü yoktur:** açık kalem karar kaydının §4'ündedir; sonraki dokümana talimat o dokümanın park bloğundadır (PF-143).
 
@@ -40,7 +40,7 @@
 
 Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 satırı, kaynak satırlarının kimlikleri, ilgili §6.2 satırı, kaynak dokümanın o birimleri ve `09` için çekirdek yedi bölüm artı `Dokümanlar` alanının saydığı ek bölümler (`09` başlık notunun okuma tablosu). **Boyut hedefi:** bütün dosya 1,5 MB'ın altında; task bloğu en çok 2,5 KB; matris satırı en çok 500 bayt. Sınır aşılırsa karar kaydında konu açılır; doküman bölünmez (dosya adı ve bölüm numaraları değişmez). Blok boyutu ve alan eksiksizliği `scripts/doc-scans/11_task_blok_denetle.py` ile, matris kapsamı `11_matris_kapsama.py` ile denetlenir.
 
-**Yazım turunun haritası (K-1443).** Yazım oturumları on iki tanedir (Y1…Y8; F3 dörde, F5 ikiye bölünür); harita burada sabittir, değişirse tablo ve ona atıf yapan satırlar aynı PR'da güncellenir. **Bölüm çizgisi kimlik sırasıyla çekilir:** F3 dört parçadır — `T301`–`T322`, `T323`–`T345`, `T346`–`T367`, `T368`–`T390` (22 + 23 + 22 + 23 task); `T345`/`T346` çizgisi modül sınırındadır (Üyelik modülünün son task'ı ile Sepet ve sipariş modülünün sıradaki bloğu arasında), öteki iki çizgi boyuta göredir: Y2 30, Y3 33 blokta 250k bağlam sınırına ulaştığı için 45'lik yarı bir oturuma sığmaz (K-1448); F5 `T524`/`T525` (24 + 25 task; ilk yarı `T501`–`T524` ilk ekran grubudur, ikinci yarı kalan ekranları, ortak bileşenleri ve yükleme betiğini taşır). Bloklar fazın içinde kimlik sırasıyla yazılır; yürütme sırasını bloğun `Bağımlılık` alanı ve fazın `Yürütme sırası` satırı verir (§5, "Task yapısı"). Task'ın kimliği yarısını belirler; ortak bileşen ya da sonraki yarıdaki task'a bağımlılık kimlikle yazılır, o blok henüz yazılmamış olsa da aday tabloda tanımlıdır.
+**Yazım turunun haritası (K-1443).** Yazım oturumları on üç tanedir (Y1…Y8; F3 dörde, F5 üçe bölünür); harita burada sabittir, değişirse tablo ve ona atıf yapan satırlar aynı PR'da güncellenir. **Bölüm çizgisi kimlik sırasıyla çekilir:** F3 dört parçadır — `T301`–`T322`, `T323`–`T345`, `T346`–`T367`, `T368`–`T390` (22 + 23 + 22 + 23 task); `T345`/`T346` çizgisi modül sınırındadır (Üyelik modülünün son task'ı ile Sepet ve sipariş modülünün sıradaki bloğu arasında), öteki iki çizgi boyuta göredir: Y2 30, Y3 33 blokta 250k bağlam sınırına ulaştığı için 45'lik yarı bir oturuma sığmaz (K-1448); F5 üç parçadır — `T501`–`T516`, `T517`–`T532`, `T533`–`T549` (16 + 16 + 17 task); çizgiler boyuta göredir, çünkü F2, F3 ve F4 oturumları 20–33 blokta 250k bağlam sınırına ulaştığı için 24–25'lik yarı bir oturuma sığmaz; son parça ortak bileşenleri ve yükleme betiğini taşır ve F5 `Yürütme sırası`nı yazar (K-1451). Bloklar fazın içinde kimlik sırasıyla yazılır; yürütme sırasını bloğun `Bağımlılık` alanı ve fazın `Yürütme sırası` satırı verir (§5, "Task yapısı"). Task'ın kimliği yarısını belirler; ortak bileşen ya da sonraki yarıdaki task'a bağımlılık kimlikle yazılır, o blok henüz yazılmamış olsa da aday tabloda tanımlıdır.
 
 | Oturum | Kapsam | Task | Konu | Durum |
 |---|---|---|---|---|
@@ -52,8 +52,9 @@ Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 sat
 | Y4c | §5 F3 üçüncü çeyrek | `T346`–`T367` (22) | `IP5-09`, `IP5-13` | ✓ |
 | Y4d | §5 F3 son çeyrek ve F3 `Yürütme sırası` | `T368`–`T390` (23) | `IP5-09`, `IP5-13` | ✓ |
 | Y5 | §5 F4 | `T401`–`T410` (10) | `IP5-10` | ✓ |
-| Y6a | §5 F5 ilk yarı | `T501`–`T524` (24) | `IP5-11` | ⏳ |
-| Y6b | §5 F5 ikinci yarı ve F5 `Yürütme sırası` | `T525`–`T549` (25) | `IP5-11`, `IP5-08` (T548) | ⏳ |
+| Y6a | §5 F5 başlığı ve birinci üçte bir | `T501`–`T516` (16) | `IP5-11` | ✓ |
+| Y6b | §5 F5 ikinci üçte bir | `T517`–`T532` (16) | `IP5-11` | ⏳ |
+| Y6c | §5 F5 son üçte bir ve F5 `Yürütme sırası` | `T533`–`T549` (17) | `IP5-11`, `IP5-08` (T548) | ⏳ |
 | Y7 | §5 F6, §6.1, §6.2 | `T601`–`T602` (2) | `IP5-12`, `IP6-01`, `IP6-02` | ⏳ |
 | Y8 | §8 son hali, §9, §1, §2 (sayımlar kesin) | — | `IP8-01`, `IP9-01`, `IP1-01`, `IP2-01` | ⏳ |
 

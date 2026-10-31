@@ -834,6 +834,368 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK8: testler `UnitTests` altındadır, bağlantı dizesi okumaz.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+### F2 — Çekirdek servisler
+
+#### T201: İmha düzenleyicisi, süre ayarları ve gecelik temizlik
+- **Bağımlılık:** T221, T226
+- **Dokümanlar:** çekirdek; `09` §9; `06 §9.1`, §9.4, §9.5; `02 §4.2` Z-36, Z-44; `05 MK-22`, `MK-23`, §7.4, §7.5
+- **Kabul kriterleri:**
+  1. İmha işi her gece Türkiye saatiyle 03:00'te çalışır ve süre envanterinin satırlarını sırayla işler (`05 §7.4.1`; MK-22).
+  2. Süre kaydın başlangıç değerinden bugüne hesaplanır; kaçırılan gece sonraki çalışmada telafi edilir (`06 §9.1.1`).
+  3. Süre değerleri `02 §11`'den okunur; kodda ve tabloda yinelenmez (`06 §9.1.2`).
+  4. Silme fiziksel silmedir; "silindi" işaretli satır ve arşiv tablosu yoktur (`05 §7.4.3`; `06 §9.5.1`).
+  5. İmha kaydı silmeyle aynı veritabanı işleminde yazılır (`06 §9.4.1`).
+  6. Gecelik temizlik aynı çalışmadadır; kişisel veri taşıyan satırın silinmesi imha kaydına tür ve sayıyla yazılır (`06 §9.4.3`).
+  7. Kalıcı kayıtlar ile sipariş tarafının ticari kayıtları süreyle silinmez; "başarısız" iş satırı temizlikte silinmez (`06 §9.1.4`, §9.4.4).
+  8. İşlem izi satırını yalnız veritabanındaki imha fonksiyonu siler (`05 §7.5.1`).
+  9. Süresi dolan kayıt dosyaları aynı çalışmada silinir ve imha kaydına dosya sayısıyla yazılır (`05 §7.4.4`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: zamanlayıcı 03:00 Türkiye anında işi tetikler.
+  - KK2: iki gece atlanınca üçüncü gece iki gecenin kaydı silinir.
+  - KK3: süre değeri kodda sabit yazılı değil.
+  - KK4: silinen satır sorguda yok; işaret sütunu yok.
+  - KK5: imha kaydı hata verince silme geri alınır.
+  - KK6: temizlik satırı tür ve sayı taşır, değer taşımaz.
+  - KK7: kalıcı kayıt ve "başarısız" iş satırı yerinde kalır.
+  - KK8: uygulama kullanıcısı iz satırını silemez.
+  - KK9: eski kayıt dosyası silinir, sayısı kayda girer.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T202: Dış servislerin bağlantı katmanı: ortak yüz, hata sınıfı, zaman aşımı, sahteler
+- **Bağımlılık:** T201
+- **Dokümanlar:** çekirdek; `09` §4 (§4.3), §11, §19 (§19.1); `08 §3.1`; `05 MK-17`, `MK-61`, §3.6, §10.1; `02 §8.3.4`
+- **Kabul kriterleri:**
+  1. Üç dış servis tek bağlantı katmanının arkasındadır; modül ürün düzeyindeki işi çağırır (`08 §3.1` kural 1; `05 §3.6.1`; MK-17).
+  2. Uç, alan ve değer adları sağlayıcının adını taşımaz (`08 §3.1` kural 1).
+  3. Kullanıcının beklediği çağrı 15 sn, kuyruktan giden 30 sn sürelidir; katman kendiliğinden yeniden denemez (`08 §3.1` kural 2; MK-61).
+  4. İstemci kitaplığının kendi yeniden denemesi kapalıdır (`08 §3.1` kural 2).
+  5. Zaman aşımı ve yanıtsızlık "sonucu bilinmeyen" çağrıdır (`08 §3.1` kural 3).
+  6. Katman bağlantı hatasını ödeme hatasından, alıcı hatasını kanal hatasından ayırır; ürün sonucunu çekirdek verir (`08 §3.1` kural 4).
+  7. Yanıtta okunmayan alan kayda girmez; hata kaydına yalnız hata nedeni yazılır (`08 §3.1` kural 5).
+  8. Tabloda olmayan yanıt ödemede bağlantı hatası, e-postada kanal hatası, Google'da başarısızdır ve kayda yazılır (`08 §3.1`).
+  9. Her servisin sahte sağlayıcısı vardır; geliştirmede e-posta `SmtpCaptureEmailGateway` ile Mailpit'e gider (`09 §4.3`, §19.1; K-1441).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: modül kodu sağlayıcı türüne başvurmaz.
+  - KK2: arayüz adlarında sağlayıcı adı yok.
+  - KK3: iki süre sınıfı sahte gecikmeyle sınanır.
+  - KK4: istemci yeniden deneme ayarı kapalı.
+  - KK5: zaman aşımı "bilinmeyen" döner.
+  - KK6: bağlantı ve alıcı hataları ayrı sonuç.
+  - KK7: kayıtta istek alanı ve anahtar yok.
+  - KK8: tanınmayan yanıt sınıf tablosuna göre döner.
+  - KK9: sahteler gerçek ağ çağrısı yapmaz; Mailpit'te ileti görünür.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T203: İmzalı makine ucu altyapısı: imza denetimi, gövde tavanı
+- **Bağımlılık:** T202
+- **Dokümanlar:** çekirdek; `09` §11, §12; `08 §3.2`; `05 MK-17`, `MK-49`, §3.6
+- **Kabul kriterleri:**
+  1. İmza bağlantı katmanında, işleyiciden ve iş kuyruğundan önce doğrulanır (`08 §3.2` ilke 1).
+  2. Hesaplanan imza gelenle sabit zamanlı karşılaştırılır (`08 §3.2` ilke 1).
+  3. İmzası tutmayan ya da imzasız istek kayda yazılmaz, işlenmez; 400 ve gövdesiz yanıt alır (`08 §3.2` ilke 2).
+  4. Reddedilen istek uygulama kaydına seyreltilmiş güvenlik olayı olarak yazılır (`08 §3.2` ilke 2; `09 §18.2`).
+  5. İmzası doğru istek önce kaydedilir; diske kesinleştikten sonra "alındı" der (`08 §3.2` ilke 3).
+  6. Aynı bildirimin tekrarı kaydedilmez, işlenmez ve yine "alındı" alır (`08 §3.2` ilke 3).
+  7. Kaydedilemeyen bildirim "alındı" almaz; yanıt 500'dür (`08 §3.2` ilke 3).
+  8. Gelen kayıt kişisel alan taşımaz (`08 §3.2` ilke 4).
+  9. Gövde tavanı 64 KB'tır, aşan istek 413 alır; imzalı uç sahteciliğe karşı korumanın dışındadır (`08 §3.2` ilke 5).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: imza denetimi işleyiciden önce koşar.
+  - KK2: karşılaştırma sabit zamanlı işlevle yapılır.
+  - KK3: bozuk imzada 400, gövde boş, satır yok.
+  - KK4: güvenlik olayı satırı seyreltilmiş yazılır.
+  - KK5: kayıt diske kesinleştikten sonra yanıt döner.
+  - KK6: tekrar gönderimde ikinci satır yok, yanıt aynı.
+  - KK7: veritabanı hatasında 500 döner.
+  - KK8: kayıtta kişisel alan yok.
+  - KK9: 64 KB üstü gövde 413; sahtecilik denetimi bu uca uygulanmaz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T204: Dış servis çökmesi davranışı ve sahtelerle sınama
+- **Bağımlılık:** T203, T220
+- **Dokümanlar:** çekirdek; `09` §19 (§19.1); `08 §3.3`; `03 §10.1`; `05 §10.1`
+- **Kabul kriterleri:**
+  1. Sahte sağlayıcı zaman aşımı, bağlantı hatası ve beklenmeyen yanıt üretebilir; gerçek servise çağrı yapılmaz (`09 §19.1`).
+  2. Ödemeyi başlatma bağlantı hatasında "bağlantı hatası", ikinci jeton reddinde ayrı sonuç döner (`08 §3.1`, §3.3).
+  3. Son sorgu yanıtsızlığı "sonucu bilinmeyen" döner; katman siparişe dokunmaz (`08 §3.1` kural 3–4).
+  4. E-posta gönderimi alıcı hatasını kanal hatasından ayırır; kanal hatası 5 dk, 30 dk, 2 saatlik deneme anını kurar (`08 §3.3`; `05 §4.4.3`).
+  5. Daha uzun kesintide satır "ulaşmadı" olur; toplu yeniden gönderim yoktur (`08 §3.3`).
+  6. Google çağrısı yanıtsızsa sonuç "kullanılamıyor" ya da "başarısız"dır (`08 §3.1` tablosu).
+  7. Hiçbir süre servise bağlı değildir; kesinti süre saymayı durdurmaz (`08 §3.3`).
+  8. Ürün kesinti için müşteriye bildirim üretmez (`08 §3.3`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: sahteler üç hata türünü üretir.
+  - KK2: iki ödeme sonucu ayrı sınıfta.
+  - KK3: yanıtsız sorguda sipariş satırı değişmez.
+  - KK4: deneme anları 5 dk, 30 dk, 2 saat.
+  - KK5: son denemeden sonra "ulaşmadı".
+  - KK6: Google sonuçları tablodaki sınıfta.
+  - KK7: sahte kesintide süre ilerler.
+  - KK8: kesintide e-posta satırı üretilmez.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T205: Açılışta veritabanı fail-fast denetimi
+- **Bağımlılık:** T233
+- **Dokümanlar:** çekirdek; `09` §8; `06 §8.2`
+- **Kabul kriterleri:**
+  1. Açılışta il listesinin dolu olduğu denetlenir (`06 §8.2.1` madde 1).
+  2. Açılışta ülke listesinin dolu olduğu denetlenir (`06 §8.2.1` madde 2).
+  3. Altı tek satırlık kaydın varlığı denetlenir: `Company`, `CompanySettings`, `Branding`, `ChannelStateRecord`, `HeartbeatRecord`, `BackupStatusRecord` (`06 §8.2.1` madde 3).
+  4. Eksik varsa uygulama açılmaz ve eksik kaydı adıyla yazar; eksiklik yarım kalmış göç sayılır (`06 §8.2.1`).
+  5. Denetlenen satırın varlığıdır, değeri değildir (`06 §8.2.1`).
+  6. Hakkımızda ve duyuru kaydının yokluğu geçerli hâldir; teslimat illeri ve taslaklar denetlenmez (`06 §8.2.2`).
+  7. Denetim beklenmeyen hata kalıbına girer ve ayar denetimiyle aynı açılış adımındadır (`09 §8`; `06 §8.2.3`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: boş il tablosuyla açılış düşer.
+  - KK2: boş ülke tablosuyla açılış düşer.
+  - KK3: altı kayıttan biri silinince açılış düşer ve adı yazılır.
+  - KK4: hata iletisinde kayıt adı var, değer yok.
+  - KK5: değeri boş ama satırı olan kayıt açılışı engellemez.
+  - KK6: Hakkımızda satırsız açılış geçer.
+  - KK7: ayar eksikliği ile veritabanı eksikliği ayrı iletidir.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T218: Dokuz modülün iskeleti ve Contracts
+- **Bağımlılık:** —
+- **Dokümanlar:** çekirdek; `09` §6, §9; `05 MK-13`, `MK-15`, §3.1, §3.3, §3.4; `10 KD-21`
+- **Kabul kriterleri:**
+  1. Dokuz modül kendi klasöründe iskelet taşır: Katalog, Sepet ve sipariş, Ödeme, İptal–cayma–iade, Üyelik, Kurumsal içerik, Bildirim, Yönetim ve işlem izi, Ayarlar (`05 §3.3.1`; MK-15).
+  2. Ortak altyapı modül değildir ve iş kuralı taşımaz (`05 §3.3.11`).
+  3. Her modül yalnız `Contracts` altındaki açık arayüzünü dışa açar; iç türler `internal`'dır (`05 §3.4.1`; MK-13).
+  4. Başka modülün tablosuna doğrudan yazılmaz ve doğrudan okunmaz (`05 §3.4.1`).
+  5. Modüller arası çağrı eşzamanlıdır ve çağıranın veritabanı işleminin içindedir (`05 §3.4.2`).
+  6. Dış yan etki iş kuyruğuna satır olarak yazılır; uygulama içi olay yayını yoktur (`05 §3.4.3`, §3.4.6).
+  7. Mimari test, bir modülün başka modülün iç türüne başvurmasında kırılır (`05 §3.4.5`; `09 §6`).
+  8. Vitrin ve panel modül değildir; sayfa modül arayüzünü çağırır, veriye doğrudan dokunmaz (`05 §3.3.12`).
+  9. Her modül `Program.cs`'e tek kayıt uzantısıyla girer; bu dosya F2'de zincirli değişir (`09 §4.1`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: dokuz modül klasörü ve her birinde `Contracts` var.
+  - KK2: ortak altyapı klasörü modül sayılmaz.
+  - KK3: `Contracts` dışındaki türler `internal`.
+  - KK4: başka modül tablosuna erişim mimari testte kırmızı.
+  - KK5: örnek çağrı aynı işlemde yürür.
+  - KK6: kodda olay yayıncısı yok; yan etki kuyruk satırı.
+  - KK7: ihlal eden örnek proje başvurusu testi düşürür.
+  - KK8: sayfa sınıfı `DbContext`'e başvurmaz.
+  - KK9: `Program.cs` modül başına tek çağrı içerir.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T220: İş kuyruğu çalıştırıcısı
+- **Bağımlılık:** T222
+- **Dokümanlar:** çekirdek; `09` §12, §13, §20; `05 MK-37`, `MK-38`, `MK-42`, §4.3, §4.4, §5.1, §5.2; `10 KP-68`
+- **Kabul kriterleri:**
+  1. Çalıştırıcı uygulama içinde tek arka plan döngüsüdür; işlem bitince uyanır, ayrıca beş saniyede bir bakar (`05 §4.3.2`).
+  2. Zamanı gelmiş satırı kilitleyerek alır; aynı satır iki kez alınmaz (`05 §4.3.2`).
+  3. Teslim en az bir keredir; işleyici ikinci görüşte sonucu değiştirmez (`05 §4.3.3`).
+  4. İç yan etki geçişle aynı veritabanı işleminde, dış yan etki iş satırı olarak aynı işlemde yazılır (`05 §4.3.1`; MK-37).
+  5. Yeniden deneme iş türünün kuralıdır; beş yeniden denemeden sonra satır "başarısız" olur (`05 §4.3.4`; MK-42).
+  6. "Başarısız" satır silinmez (`06 §9.4.4`).
+  7. Gönderilmiş kart iadesi isteği kendiliğinden yeniden denenmez (`05 §4.3.4`).
+  8. E-posta ayrı kuyruk satırı yazmaz; gönderim kaydı onun kuyruğudur (`05 §4.4.1`; MK-38).
+  9. Dış çağrı veritabanı kilidinin içinde beklenmez (`05 §3.6.3`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: yazma sonrası çalıştırıcı beş saniyeyi beklemeden uyanır.
+  - KK2: iki çalıştırıcı aynı satırı almaz.
+  - KK3: aynı satır iki kez işlenince sonuç aynı.
+  - KK4: geçiş geri alınınca kuyruk satırı da yok.
+  - KK5: altı başarısız denemeden sonra durum "başarısız".
+  - KK6: temizlik "başarısız" satırı silmez.
+  - KK7: gönderilmiş iade isteği tekrar gönderilmez.
+  - KK8: e-posta için ayrı satır yok.
+  - KK9: işleyici kilit altında dış çağrı yapmaz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T221: Zamanlayıcı
+- **Bağımlılık:** T220
+- **Dokümanlar:** çekirdek; `09` §10, §13; `05 MK-41`, `MK-43`, `MK-44`, §5.1–§5.4
+- **Kabul kriterleri:**
+  1. Zamanlayıcı uygulamanın içinde tektir; dakikada bir uyanıp zamanı gelen işleri tarar (`05 §5.1.1`; MK-41).
+  2. Nabız ayrı, otuz saniyelik bir döngüdür; işin süresi nabzı geciktirmez (`05 §5.4.1`; MK-44).
+  3. Zamanı gelen kayıt kendi geçişiyle, siparişin kilidi altında işlenir (`05 §5.1.2`).
+  4. Her iş türü çalışırken veritabanında kilit tutar; aynı iş aynı anda iki kez çalışmaz (`05 §5.1.3`).
+  5. İşin zamanı kendi kaydındadır; ayrı takvim tablosu yoktur (`05 §5.2.1`; `06 §9.1.3`).
+  6. Havale hatırlatması son iş gününün 08:00'inde, gecelik iş 03:00'te çalışır; saatler tasarım değeridir (`05 §5.3.1`, §5.3.2, §5.3.5; MK-43).
+  7. Dönüşte önce kesinti kaydı yazılır: ilk nabız, kesinti kaydı ve son anların taşınması tek işlemdedir (`05 §5.4.3`).
+  8. Süreler kesintide dondurulmaz; kaçırılan işler kaçırdıkları sırayla çalışır (`05 §5.4.2`).
+  9. Saat tek kaynaktan okunur (`05 §5.2.14`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: sahte saatle dakika taraması işi bir kez tetikler.
+  - KK2: yavaş iş nabzı geciktirmez.
+  - KK3: iş siparişin kilidi altında koşar.
+  - KK4: iki örnek aynı işi aynı anda çalıştırmaz.
+  - KK5: iş zamanı kayıt alanından okunur.
+  - KK6: 08:00 ve 03:00 Türkiye anları doğru.
+  - KK7: kesinti sonrası kayıt ve ilk nabız tek işlemde.
+  - KK8: kaçırılan işler sırayla çalışır.
+  - KK9: kodda sistem saati doğrudan okunmaz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T222: Anahtarlar ve tek kullanımlık bağlantılar
+- **Bağımlılık:** T228, T232
+- **Dokümanlar:** çekirdek; `09` §15; `05 MK-50`, `MK-51`, §6.4
+- **Kabul kriterleri:**
+  1. Bütün anahtarlar işletim sisteminin kriptografik rastgele üreteciyle üretilir (`05 §6.4.1`; MK-50).
+  2. Hesap bağlantılarının anahtarı, ayardaki türetme sırrından türetilir (`05 §6.4.1`; K-1081).
+  3. Veritabanında yalnız anahtarın özeti saklanır (`05 §6.8.2`).
+  4. Bağlantının hâli bağlantı kaydından okunur: kayıt yok, ömrü dolmuş, kullanılmış, yerine yenisi geçmiş, geçerli (`05 §6.4.6`).
+  5. Bağlantıyı açmak (GET) hiçbir kaydı değiştirmez (`05 §6.4.7`; MK-51).
+  6. Tüketim tek koşullu güncellemedir; güncellenen satır yoksa güncel hâl gösterilir (`07 §2.5.3`).
+  7. Anahtar taşıyan yol sistem kayıtlarında maskelenir (`05 §6.4.8`).
+  8. Açılışta, iş kuyruğundan önce, bekleyen geri alma bildiriminin bağlantı özeti o anki sırla yeniden yazılır (K-1137; K-1441).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: üreteç kodda `RandomNumberGenerator`'dır.
+  - KK2: sır değişince üretilen anahtar değişir.
+  - KK3: tabloda ham anahtar yok.
+  - KK4: beş hâl de ayrı sonuç verir.
+  - KK5: GET sonrası oturum anı ve sayaçlar değişmez.
+  - KK6: ikinci tüketim sıfır satır etkiler.
+  - KK7: kayıtta anahtarlı yol maskeli.
+  - KK8: açılış sonrası kuyruk işlenmeden özet yeni sırla yazılmış.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T225: Sistem kayıtları
+- **Bağımlılık:** T205, T226
+- **Dokümanlar:** çekirdek; `09` §18; `05 MK-64`, `MK-65`, §9.1, §9.2; `10 KP-74`, `KD-58`
+- **Kabul kriterleri:**
+  1. Sistem kayıtları üç kaynaktır ve sunucu diskinde günlük dosyalarda durur (`05 §9.1.1`; MK-64).
+  2. Her isteğe bir istek kimliği verilir ve kayıt satırları onu taşır (`05 §9.1`; `09 §18.2`).
+  3. Şifre, anahtar, sır, kart verisi, IBAN, e-posta, adres, telefon, form gövdesi ve çerez değeri hiçbir kayda, hiçbir düzeyde yazılmaz (`05 §9.1.5`; §6.8.3).
+  4. Kayıt düzeyi tasarım değeridir ve ayar dosyasında değişir; çatı kategorileri uyarıda kalır (`05 §9.1.6`; `09 §18.1` madde 4).
+  5. Kayıt dosyaları yazıldığı andan P-45 kadar saklanır ve yalnız imha işi siler (`05 §9.2.1`, §9.2.2; MK-65).
+  6. İmha işi silinen kayıt dosyalarını imha kaydına tür ve dosya sayısıyla yazar (`05 §9.2.2`; `06 §9.1`).
+  7. Ayrı metrik toplama ve gösterge panosu yoktur (`05 §9.1.7`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: üç kaynak ayrı dosyaya yazar.
+  - KK2: aynı isteğin satırlarında aynı istek kimliği.
+  - KK3: örnek satırlarda yasaklı alan yok.
+  - KK4: düzey ayarı uygulama kategorisini değiştirir, çatıyı değiştirmez.
+  - KK5: süresi dolmamış dosya silinmez.
+  - KK6: imha kaydı dosya sayısını taşır.
+  - KK7: metrik paketi bağımlılıkta yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T226: Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi
+- **Bağımlılık:** T227
+- **Dokümanlar:** çekirdek; `09` §3 (§3.5), §6, §15; `05 MK-71`, §8.4, §11.1; `10 KP-64`
+- **Kabul kriterleri:**
+  1. Her değerin tek evi vardır; ürün parametreleri üç katmandadır ve katmanlar karışmaz (`05 §8.4.1`; MK-71; `02 §11`).
+  2. Ürün sabitleri kodda, tasarım değerleri `09 §3.5` tablosundaki yerinde, kurulum ayarları ayar dosyası ve ortamdadır (`05 §8.4`; `09 §3.5`).
+  3. Sır olmayan ayar tek dosyada, sırlar ayrı yerde durur (`05 §8.4.7`).
+  4. Açılışta bütün ayarlar doğrulanır; zorunlu ayar eksikse uygulama açılmaz ve eksiğin adını yazar (`05 §8.4.6`).
+  5. Zorunlu ayarlar: alan adı, gönderen adresi, e-posta gönderim kimliği, veritabanı bağlantısı, türetme sırrı (`05 §8.4.6`; `06 §8.2.3`).
+  6. Tasarım değerleri referans sunucu ölçüsünde geçerlidir ve sistem onları uygulamaz (`05 §11.1.1`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: aynı değer iki yerde tanımlı değil.
+  - KK2: örnek değer her katmanda beklenen yerde.
+  - KK3: sır ayar dosyasında yok.
+  - KK4: zorunlu ayar eksikken uygulama açılmaz.
+  - KK5: hata iletisi eksik ayarın adını taşır, değerini taşımaz.
+  - KK6: tasarım değeri aşımı çalışmayı durdurmaz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T227: Zaman ve para
+- **Bağımlılık:** T218
+- **Dokümanlar:** çekirdek; `09` §7, §14; `05 MK-19`, §7.2
+- **Kabul kriterleri:**
+  1. Zaman UTC'de saat dilimli damga olarak saklanır; sayım ve gösterim Türkiye saatiyledir (`05 §7.2.1`; MK-19).
+  2. Uygulama zamanı tek bir kaynaktan okur; testte o kaynak değiştirilir (`05 §7.2.4`).
+  3. Gün olarak belirlenen süre başlangıç gününün ertesi günü başlar ve son günün 23:59'unda dolar (`05 §7.2.2`).
+  4. İş günü takvimi ürünle gelen veri dosyasıdır; kapsamadığı yılda yalnız hafta sonu sayılır (`05 §7.2.3`).
+  5. Para ondalıklı sayıyla tutulur; kayan noktalı tür yoktur (`05 §7.2.5`).
+  6. Tek bir kuruşa yuvarlama işlevi vardır: en yakın kuruş, tam yarım yukarı (`05 §7.2.6`; `02 §3.8.3`).
+  7. Parçalara orantılı bölme kalan kuruşu kayıpsız dağıtır (`05 §7.2.6`).
+- **Test beklentisi:** Unit
+- **Doğrulama kontrol listesi:**
+  - KK1: yaz saati sınırında bir an UTC'ye ve geri doğru çevrilir.
+  - KK2: sahte saatle süre testi yazılabilir.
+  - KK3: 23:59 sınırı ve ertesi gün başlangıcı.
+  - KK4: kapsam dışı yılda hafta sonu dışında tatil yok.
+  - KK5: kodda `double` ve `float` para yok.
+  - KK6: 0,005 yukarı, 0,004 aşağı yuvarlanır.
+  - KK7: bölünen parçaların toplamı tutara eşit.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T230: Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi
+- **Bağımlılık:** T225
+- **Dokümanlar:** çekirdek; `09` §18 (§18.1, §18.2), §4 (§4.1); `05 §9.1`
+- **Kabul kriterleri:**
+  1. Kütüphane Serilog'dur; tek yapılandırma noktası `Infrastructure/Logging/LoggingSetup`'tır (`09 §18.1` madde 1).
+  2. Üç yazıcı üç dosyaya yazar; günlük dosya günü adından okunur (`09 §18.1` madde 2).
+  3. Dosya sayısı ve boyut sınırı kapalıdır; dosyayı yalnız imha işi siler (`09 §18.1` madde 3).
+  4. Düzey ayarı çatı ve veri erişim kategorilerini indirmez; denetim ve komut yazıcısı düzeyden bağımsızdır (`09 §18.1` madde 4).
+  5. Denetim yazıcısı hata atarsa hata çağırana döner; normal yazıcı istek düşürmez (`09 §18.1` madde 6, madde 8).
+  6. Her satır tek JSON nesnesidir; alan adları camelCase'tir; biçimleyici `ApplicationLogFormatter`'dır (`09 §18.2` madde 1).
+  7. Olay adları kapalı `LogEvents` listesidir; serbest metin `event` alanına yazılmaz (`09 §18.2` madde 3).
+  8. Red satırı yalnız red olan istek için yazılır ve hata kodunu taşır (`09 §18.2` madde 4).
+  9. Anlık silme ve komut satırları yalnız iç kimlik taşır (`09 §18.2` madde 5).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: yapılandırma tek yerde; modül Serilog'a başvurmaz.
+  - KK2: üç dosya ayrı ayrı oluşur.
+  - KK3: otuz birinci dosyada eski dosya silinmez.
+  - KK4: ayar bilgiye inince çatı satır yazmaz.
+  - KK5: yazılamayan dizinde denetim yazıcısı hata verir.
+  - KK6: her ortak alan adı ve türü beklenen.
+  - KK7: listede olmayan olay adı derlemede ya da testte reddedilir.
+  - KK8: alan doğrulama reddi tek satır, alanlar dizisiyle.
+  - KK9: silme ve komut satırında alan değeri yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T231: Maskelemenin üç katmanının testleri
+- **Bağımlılık:** T230
+- **Dokümanlar:** çekirdek; `09` §18 (§18.2), §19; `05 §9.1.5`
+- **Kabul kriterleri:**
+  1. Yazım katmanı: kayıt çağrısı değeri değil iç kimliği yazar; şablonda kişisel veri adlı özellik yoktur (`09 §18.2` madde 2a).
+  2. Kaynak taraması `ILogger` şablonlarında yasaklı alan adlarını (`Email`, `Phone`, `Address`, `Password`, `Token`, `Key`, `Secret`, `Iban`, `Card`) bulursa kırılır (`09 §18.2` madde 2a).
+  3. Yol katmanı: `PathMasker.Mask` anahtarlı yolu maskeler; sorgu dizgesi değerleri `*` olur (`09 §18.2` madde 2b, madde 7).
+  4. Anahtarlı her yol için tabloda bir satır vardır; üyenin sipariş yolu ve anahtarsız yol değişmez (`09 §18.2` madde 7).
+  5. Biçimleyici katmanı: istisna iletisinde ve iç istisnanın iletisinde kişisel dizgi geçmez (`09 §18.2` madde 2c, madde 7).
+  6. `ExceptionMasker` istisna iletisini kayda yazmadan önce temizler (`09 §18.2`).
+  7. Her ortak alan adı ve türü biçimleyici testinde doğrulanır (`09 §18.2` madde 7).
+- **Test beklentisi:** Unit
+- **Doğrulama kontrol listesi:**
+  - KK1: örnek çağrı kimlik yazar, adres yazmaz.
+  - KK2: yasaklı ada sahip sahte şablon taramayı kırar.
+  - KK3: `/siparis/erisim/ABC123/teyit?email=a@b.com` maskelenir.
+  - KK4: tablo her anahtarlı yolu kapsar.
+  - KK5: `a@b.com` içeren istisna kayıtta yok.
+  - KK6: iç istisna iletisi de temiz.
+  - KK7: alan adı ya da türü bozulunca test kırılır.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T233: Veritabanı oturum süreleri
+- **Bağımlılık:** T226
+- **Dokümanlar:** çekirdek; `09` §10 (§10.7), §3 (§3.5)
+- **Kabul kriterleri:**
+  1. Süre değerleri `Infrastructure/DatabaseTimeouts`'ta adlı sabitlerdir; değerin tek yeri `09 §3.5` tablosudur (`09 §10.7` madde 1).
+  2. Bağlantı kuruluşu tek yerdedir: `DatabaseConnection.Configure` üç sunucu ayarını ve istemci süresini kurar (`09 §10.7` madde 2).
+  3. İki profil vardır: `Web` ve `Maintenance`; göç ve yönetim komutları `Maintenance` kullanır (`09 §10.7` madde 2).
+  4. İstemci süresi her profilde o profilin sunucu sürelerinden uzundur; komut başına süre atanmaz (`09 §10.7` madde 3).
+  5. Kilit aşımı, sorgu iptali ve boşta işlem aşımı beklenmeyen hâle düşer; kod onları yakalamaz, çevirmez, yeniden denemez (`09 §10.7` madde 4).
+  6. Veri sağlayıcının otomatik yeniden deneme stratejisi kapalıdır (`09 §10.7` madde 4).
+  7. Bilgim tarihli `Options` ve `CommandTimeout` adları Npgsql sürümüne karşı doğrulanır (`09 §10.7`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: sabitler `09 §3.5` satırlarıyla bire bir.
+  - KK2: tek kuruluş noktası; başka yerde bağlantı dizgesi kurulmuyor.
+  - KK3: Maintenance profili daha uzun sorgu süresi taşır.
+  - KK4: istemci süresi sunucu süresinden uzun.
+  - KK5: aşım testi beklenmeyen hata yanıtına düşer.
+  - KK6: yeniden deneme stratejisi etkin değil.
+  - KK7: doğrulanan ad farkı PR açıklamasında.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ## 6. Faz geçiş kapıları
 
 ### 6.1 Genel gate check (tüm fazlarda)

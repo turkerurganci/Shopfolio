@@ -1644,6 +1644,8 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 ### F3 — İş mantığı
 
+**Yürütme sırası:** T313 → T314 → T378 → T330 → T331 → T303 → T304 → T305 → T366 → T306 → T307 → T308 → T309 → T328 → T312 → T332 → T333 → T334 → T336 → T337 → T338 → T339 → T341 → T342 → T379 → T380 → T381 → T389 → T343 → T344 → T345 → T301 → T302 → T388 → T310 → T315 → T321 → T335 → T340 → T316 → T346 → T347 → T349 → T350 → T354 → T355 → T357 → T356 → T317 → T324 → T318 → T325 → T319 → T348 → T376 → T377 → T351 → T364 → T311 → T387 → T352 → T329 → T353 → T320 → T323 → T367 → T368 → T369 → T370 → T371 → T372 → T375 → T386 → T373 → T374 → T322 → T326 → T327 → T358 → T359 → T360 → T361 → T362 → T363 → T365 → T382 → T383 → T384 → T385 → T390
+
 #### T301: Siparişin imha parçası
 - **Bağımlılık:** —
 - **Dokümanlar:** çekirdek; `09` §9; `06 §9.2`; `02 §4.2` Z-28, Z-41; `05 MK-23`, §7.4
@@ -3783,6 +3785,140 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK7: B-15 eski adrese gider.
   - KK8: yeniden gönderim izde.
   - KK9: yeniden gönderim kuyruktan geçer.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T386: Sipariş müdahaleleri: kalem adedi azaltma ve çıkarma, kargo bilgisinin ve teslim tarihinin düzeltilmesi, iç not
+- **Bağımlılık:** T367, T369, T375, T380
+- **Dokümanlar:** çekirdek; `09` §9, §10; `02 §10.4.1`, §10.4.3…§10.4.5, §10.4.7, §7.1.7, §7.2.2, §7.2.8, §7.2.9, §7.4.1; `10` KP-8, KP-48
+- **Kabul kriterleri:**
+  1. Kalem adedi azaltılır ya da kalem çıkarılır; kalem eklenemez ve fiyat değiştirilemez (`02 §10.4.3`).
+  2. Ödeme onayından önce kalem çıkarılamaz; yalnız sipariş bütünüyle iptal edilir (`02 §7.2.2`).
+  3. Çıkarılan kalemin ya da azaltılan adedin parası `02 §7.1.7` tutarıyla ve `02 §7.2.8` hattından geri ödenir; havale hattında IBAN isteği çıkarma kaydıyla düşer (`02 §10.4.3`).
+  4. Stok, hizmet kontenjanı ve kupon hakkı iptaldeki rejimle döner; kargo ücreti `02 §7.2.9` tetiğiyle geri ödenir (`02 §10.4.3`).
+  5. Çıkarma sebep listesi istemez, iz bırakır ve müşteriye bildirilir (`02 §10.4.3`).
+  6. Kargo şirketi ve takip numarası düzeltilir; düzeltilmiş bilgi müşteriye bildirilir (`02 §10.4.4`).
+  7. Teslim tarihi sipariş düzeyinde düzeltilir; kargoya verildiği günden önce ve ileri tarihli olamaz, tek kalemin tarihi ayrıca düzeltilmez (`02 §10.4.5`).
+  8. Cayma penceresi ve ayıp süresi düzeltilmiş tarihten işler; önceki cayma beyanı geçerli kalır; tarih bir beyanın günüyle çakışırsa panel teslim sorusunu sorar (`02 §10.4.5`; §7.4.1).
+  9. Teslim tarihi düzeltmesi bildirim üretmez; izde eski ve yeni tarihle durur (`02 §10.4.5`).
+  10. İç not müşteriye görünmez; sipariş sayfasına, e-postalara ve sözleşmeye girmez; yazılması ve değişmesi izde durur, notun metni ize girmez, imha edilmiş siparişe not yazılamaz (`02 §10.4.7`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: kalem ekleme ve fiyat değişimi yok.
+  - KK2: ödeme öncesi çıkarma reddedilir.
+  - KK3: tutar kalemin donmuş değerinden, hat doğru.
+  - KK4: sayaçlar ve kargo ücreti iptal gibi.
+  - KK5: sebepsiz çıkarma, iz ve bildirim.
+  - KK6: takip düzeltmesi bildirilir.
+  - KK7: tarih sınırları reddedilir.
+  - KK8: pencere yeniden hesaplanır, eski beyan sürer.
+  - KK9: tarih düzeltmesinde e-posta yok.
+  - KK10: iç not hiçbir çıktıda yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T387: Kurulum tarafı yönetim komutları: iş satırını yeniden kuyruğa alma ya da kapatma, anahtar yenilemesi sonrası ödeme sonucunun uygulanması, kayıt okuma komutu
+- **Bağımlılık:** T303, T311
+- **Dokümanlar:** çekirdek; `09` §13 (§13.2); `03 §1.7`; `05 MK-66`, MK-72, §6.9, §8.5, §9.3
+- **Kabul kriterleri:**
+  1. `job` komutu "Başarısız" iş satırını `--id` ve `--action` (`requeue`, `close`) ile yeniden kuyruğa alır ya da kapatır; durum ucunun iş kuyruğu koşulu ancak böyle kalkar (`05 §8.5.9`).
+  2. `read-logs` giriş kaydını, sistem kayıtlarını ve imha kaydını `--source`, `--from`, `--to` ve `--filter` ile süzerek okur (`05 §8.5.5`; `09 §13.2` madde 3).
+  3. IP ve hesabın e-postası argümanla verilmez; terminalden okunur ve e-posta hesabın iç kimliğine çevrilir (`09 §13.2` madde 3).
+  4. Sonuç CSV'dir; kayıtların ve yedeğin dışındaki geçici dizinde üretilir, firmaya şifreli iletilir ve iletimden sonra silinir (`05 §9.3.3`).
+  5. `read-logs` her çalışmasını uygulama kaydına yazar; satır okumadan önce yazılır ve diske inmesi beklenir (`05 §9.3.4`).
+  6. Kayıtlar panelde görünmez; yalnız bu komutla okunur (`05 §9.3.1`; MK-66).
+  7. `apply-payment-result` yalnız "ödeme sonucu alınamadı" işaretli kart siparişinde çalışır; başka siparişi ve işaretsizi reddeder (`05 §8.5.12`).
+  8. Komut sipariş numarasını ve panelde okunan sonucu alır; başarılı ödeme var ve tutar `Order.Total`'a eşitse başarı, ödeme yoksa ya da başarısızsa başarısızlık olarak olağan tek yoldan uygulanır; tutar eşit değilse uygulanmaz ve 3 döner (`05 §8.5.12`; `09 §13.2` madde 2).
+  9. Komut sağlayıcıyı çağırmaz, sır istemez, e-posta göndermez ve iş kuyruğunu çalıştırmaz (`05 §8.5.7`, §8.5.12).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: iş satırı iki eylemle, koşul kalkar.
+  - KK2: kaynak, aralık ve süzgeç çalışır.
+  - KK3: IP ve e-posta argümanı reddedilir.
+  - KK4: dosya yedek dizininde değil, iletimden sonra silinir.
+  - KK5: kayıt satırı okumadan önce yazılır.
+  - KK6: panelde kayıt ekranı yok.
+  - KK7: işaretsiz sipariş reddedilir.
+  - KK8: eşit olmayan tutarda 3, başarıda B-4 yolu.
+  - KK9: sağlayıcı çağrısı ve e-posta yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T388: Dönüş denetimi komutu ve dönüşten sonra silmelerin yeniden uygulanması
+- **Bağımlılık:** T301, T302, T303, T345
+- **Dokümanlar:** çekirdek; `09` §13 (§13.2); `05 MK-72`, MK-74, §8.5, §8.7
+- **Kabul kriterleri:**
+  1. `rollback-check` salt okumadır ve veritabanı döndürülmeden önce, uygulama dururken çalışır (`05 §8.5.11`).
+  2. `--restore-point` ofsetli an olmak zorundadır; ofsetsiz ya da yalnız tarih kullanım hatasıdır ve 2 döner (`09 §13.2` madde 3).
+  3. Komut kaydın her tablosunda ve gelen bildirim kaydında dönüş noktasından sonra kesinleşen işlemlerin eklediği ya da güncellediği satırları sayar; ölçüt kesinleşme anıdır (`05 §8.5.11`).
+  4. Silme yalnız süreye bağlı silme ve anlık silmedir; ikisi dönüşten sonra yeniden uygulanır; silmenin yazdığı boşaltma ve bağ güncellemeleri güncelleme sayılır (`05 §8.5.11`).
+  5. Sayı sıfır değilse dönülmez; dönüş yalnız sipariş tarafında dönüş noktasından sonra kayıt yazılmamışsa yapılır (`05 §8.5.11`, §8.7.4).
+  6. `reapply-deletions` dönüşten sonra, uygulama başlamadan önce çalışır; uygulama kaydındaki anlık silme satırlarını dönüş anından bugüne okur ve her birini aynı silme yoluyla yeniden uygular (`05 §8.5.10`).
+  7. Kullanıcı işleminin kapıları uygulanmaz; kaydı dönüşte zaten yoksa satır atlanır (`05 §8.5.10`).
+  8. Komut bütün oturum kayıtlarını siler ve kullanılmamış hesap bağlantılarının ömrünü dönüş anına çeker; e-posta değişikliğini geri alma bağlantısı hariçtir (`05 §8.5.10`).
+  9. Göçler genişlet–daralt kuralıyla yazılır; geri alma önceki imaja dönmektir, şema geri alınmaz (`05 §8.7.1`, §8.7.3; MK-74).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: komut yalnız okur, uygulama durmuşken.
+  - KK2: ofsetsiz an 2 döner.
+  - KK3: sayım kesinleşme anına göre.
+  - KK4: boşaltma güncellemesi sayılır.
+  - KK5: sıfırdan büyük sayı dönüşü reddeder.
+  - KK6: silmeler dönüş anından sonrası için uygulanır.
+  - KK7: kapılar atlanır, eksik kayıt atlanır.
+  - KK8: oturumlar silinir, geri alma bağlantısı sürer.
+  - KK9: şema geri alınmadan önceki imaj çalışır.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T389: Hesap ve durum yönetim komutları: oturumları sonlandırma, şifreyi geçersiz kılma, durum
+- **Bağımlılık:** T303, T314, T342
+- **Dokümanlar:** çekirdek; `09` §13 (§13.2, §13.3); `05` §6.9, §8.5
+- **Kabul kriterleri:**
+  1. `end-sessions` e-postayla gösterilen yönetici hesabının bütün oturum kayıtlarını siler; e-posta terminalden okunur (`05 §8.5.3`).
+  2. `invalidate-password` hesabın şifresini kullanılamaz kılar ve aynı veritabanı işleminde bütün oturum kayıtlarını siler; hesap yalnız şifre sıfırlamayla yeniden açılır (`05 §8.5.4`).
+  3. İki komut hesabı e-postayla bulur; hesap yoksa kayıt satırına hedef "yok" yazılır ve komut 3 ile biter (`09 §13.2` madde 5).
+  4. Sıra: e-posta terminalden, hesabın iç kimliği bulunur, kayıt satırı yazılır, işlem yapılır; e-posta ve ad kayda girmez (`09 §13.2` madde 5).
+  5. Kurtarmada ele geçirilmiş hesabın oturumları bu komutlarla sonlandırılır ve şifresi geçersiz kılınır (`05 §6.9.2`).
+  6. `status` durum ucunun koşullarını, çalışan sürümü, açık ve kapalı hatları ayrıntısıyla yazar; "başarısız" iş satırları dahildir (`05 §8.5.6`).
+  7. `status` sağlayıcı anahtarlarını kaldırmanın şartlarını sayar: açık kart işi sayısı ve geri ödemesi doğabilecek kart siparişi sayısı; ikinci sayı panel sayaçlarına girmez (`05 §8.5.6`).
+  8. `status` kayıtlı her büyük veri dönüşümü için kalan satır sayısını yazar (`09 §13.3` madde 5).
+  9. Üç komut da işlem izine yazılmaz ve bildirim üretmez (`05 §6.9.3`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: hesabın bütün oturumları silinir.
+  - KK2: şifre kullanılamaz, oturumlar aynı işlemde silinir.
+  - KK3: bilinmeyen e-postada 3 ve "yok" satırı.
+  - KK4: kayıtta e-posta ve ad yok.
+  - KK5: kurtarma sırası uçtan uca.
+  - KK6: durum çıktısı koşulları ve iş satırlarını içerir.
+  - KK7: iki sayı yazılır, panel sayacı değişmez.
+  - KK8: dönüşüm için kalan sayı yazılır.
+  - KK9: izde satır, bildirim yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T390: Uçtan uca dal akış testleri (servis düzeyi): karışık sipariş, kargoda cayma, IBAN'sız iade, e-posta düzeltme
+- **Bağımlılık:** T329, T351, T353, T367, T370, T372, T373, T375
+- **Dokümanlar:** çekirdek; `09` §9, §19; `03 §2.10.2`…§2.10.5; `02 §7.3.3`, §7.4.1, §7.4.5, §10.4.9, §10.4.11
+- **Kabul kriterleri:**
+  1. Dört anlatı `FakePaymentGateway` ile servis katmanından ayrı Integration testlerinde baştan sona geçer (`03 §2.10.2`…§2.10.5; K-1441).
+  2. Karışık sipariş: ödeme onayında Ö1 ve S1 birlikte işler, dijital kalem o anda teslim edilir ve B-4 gider; dijital kalemin iptal ve cayma yolu kapanır (`03 §2.10.2`).
+  3. Lamba kargodan önce iptal edilir: B-7 gider, kart iadesi kendiliğinden başlar, kargo ücreti eklenir, ödeme Kısmen geri ödendi olur (Ö3, B-8) ve kupon hakkı dönmez (`03 §2.10.2`).
+  4. Hizmet son açık kalem olarak tamamlanınca sipariş Teslim edildi'ye geçer; teslim tarihi oluşmadığı için cayma hakkı tamamlanma işaretine kadar sürer (`03 §2.10.2`).
+  5. Kargoda cayma: beyan IBAN'ı ve iade adresini yazar, kalemi kapatır, B-9 ve F-3 gider; sipariş Kargoya verildi'de kalır ve süre beyandan işler (`03 §2.10.3`).
+  6. Dönüşte "teslim edilemedi" B-6 gönderir; kapanışta iptal kaydı, ikinci geri ödeme ve B-7 yoktur; teslim alma alt sınırsızdır ve süreyi başlatmaz (`03 §2.10.3`).
+  7. Geri ödeme IBAN'a kargo ücretiyle gider; ödeme Geri ödendi olur (Ö4, B-8) (`03 §2.10.3`).
+  8. IBAN'sız iade: mal gelmezse kendiliğinden işlem yoktur; "mal dönmedi" kapatması IBAN'ı siler; ulaşan mal kalemi yeniden açar, B-14 gider ve süre IBAN beklerken durmaz (`03 §2.10.4`).
+  9. E-posta düzeltmesi: yeni anahtar üretilir, yeni adrese B-1 ve eski adrese B-15 gider; durumlar, süreler, kalemler ve IBAN değişmez (`03 §2.10.5`).
+  10. Her adımda iki eksen beklenen durumdadır; ana akış T329'dadır (`03 §2.10.1`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: dört anlatı dört testte, sahte ödemeyle.
+  - KK2: dijital teslim ve iptal yolu kapanışı.
+  - KK3: iptalde B-7, kargo ücreti, kupon dönmez.
+  - KK4: hizmet kapanışı sipariş durumunu geçirir.
+  - KK5: kargoda cayma kalemi kapatır, durum sabit.
+  - KK6: dönüşte ikinci iptal ve B-7 yok.
+  - KK7: geri ödeme tutarı ve Ö4.
+  - KK8: IBAN silme ve yeniden açılış.
+  - KK9: düzeltmede değişmeyenler sabit.
+  - KK10: her adımda iki eksen doğru.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 ## 6. Faz geçiş kapıları

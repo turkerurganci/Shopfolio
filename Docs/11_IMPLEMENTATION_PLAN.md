@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.36** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.37** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -1812,18 +1812,18 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. Her bildirim bir `DispatchType` değeridir (`B1`…`B8`); gövde iskeleti ortaktır ve hitapta ad yoktur; yeniden gönderimde B-2, B-3 ve B-5 güncel bilgi cümlesini de taşır (`08 §2.2.6` madde 1, 5).
   2. Sipariş numarası konuda ve olayın cümlesindedir; ana düğme misafir ve hesabı silinmiş siparişte erişim anahtarlı, üyede hesap adresidir (`08 §2.2.6` madde 2, 3).
-  3. B-1 sipariş oluşunca ve misafir e-postası düzeltilince gider; iki yasal metin siparişe donan sürümleriyle, 12 puntodan küçük olmayan tam metin gelir, dosya eki yoktur (`08 §2.2.6` B-1 ve yerleşim).
+  3. B-1 sipariş oluşunca ve misafir e-postası düzeltilince gider; iki yasal metin siparişe donan sürümleriyle, en az 12 punto tam metin gelir, dosya eki yoktur (`08 §2.2.6` B-1 ve yerleşim).
   4. B-2 siparişe donan IBAN'ı, sipariş numarasını ve son ödeme gününü taşır (`08 §2.2.6` B-2).
-  5. B-3 süre başına bir kez, son iş gününün başında gider; kesintide zamanı gelen site dönünce gönderilir (`08 §2.2.6` B-3).
+  5. B-3 süre başına bir kez, son iş gününün başında gider; kesintide kaçanın dönüş koşulu T324'tedir (`08 §2.2.6` B-3).
   6. B-4 kart onayında ve "ödendi" işaretinde gider; dijital kalemde indirme cümlesi sipariş sayfasına işaret eder (`08 §2.2.6` B-4).
-  7. B-5 kargo bloğunu şirket türüne göre yazar; takip bağlantısı yalnız listedeki şirkette ve `noreferrer`'lidir (`08 §2.2.6` B-5; `08 §2.4`).
+  7. B-5 kargo bloğunu şirket türüne göre yazar; takip bağlantısı yalnız listedeki şirkette ve `noreferrer`'lidir (`08 §2.2.6` B-5, §2.4).
   8. B-6 ve B-7 (üç söyleyişte de) firmanın iletişim e-postasını ve telefonunu yazar (`08 §2.2.6` B-6, B-7, madde 6).
   9. B-7 müşteri, yönetici ve sistem söyleyişini ayırır, sistem iptalinde de sebebi yazar; kalem iptalinin konusu ayrıdır; kalem ve adet yalnız onda yazılır; yönetici sebebi aynen ve on dört gün cümlesiyle yazar (`08 §2.2.6` B-7).
   10. B-8 nedeni, tutarı ve yöntemi yazar; IBAN yazılmaz, geç ödemede ayrı cümle gelir (`08 §2.2.6` B-8).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: sekiz tür kapalı listede; hitapta ad yok; B-2, B-3, B-5 yeniden gönderiminde ikinci cümle var.
-  - KK2: misafir ve üye bağlantısı ayrı.
+  - KK2: misafir ve silinmiş hesapta anahtarlı, üyede hesap adresi.
   - KK3: yasal metinler tam, en az 12 punto, ek yok.
   - KK4: B-2 donan IBAN'ı yazar.
   - KK5: B-3 süre başına bir.
@@ -2297,7 +2297,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   4. Z-7 dolunca sağlayıcıya son sorgu yapılır; ödeme alınmışsa Ö1 işler, alınmamışsa sipariş iptal edilir ve ayrılanlar serbest kalır (`03 §4.1.7`; `02 §6.1.2`).
   5. Sorgu yanıtsızsa sipariş iptal edilmez, "ödeme sonucu alınamadı" işaretiyle bekler ve sorgu sağlayıcı yanıt verene kadar yinelenir; aralık T221 k6'da, kod hatası yanıtları T403 k4'tedir (`03 §4.1.7`; `02 §6.1.2`).
   6. Z-8 dolunca havale siparişi kendiliğinden iptal edilir; iptal edilmiş sipariş sonradan "ödendi" yapılamaz (`03 §4.1.8`).
-  7. Z-9 hatırlatması (B-3) son iş gününün başında bir kez gider; havale işareti düzeltilirse bir kez daha gider (`03 §4.1.9`).
+  7. Z-9 hatırlatması (B-3) son iş gününün başında bir kez gider; havale işareti düzeltilirse bir kez daha gider; kesintide kaçan dönüşte süre hâlâ işliyorsa gider, dolmuşsa gitmez (`03 §4.1.9`).
   8. Havale süresi firma ayarından okunur (P-7, `02 §11.1`); öteki süreler ürün sabitidir ve `ProductConstants`'tan gelir (P-12…P-16, P-18, `02 §11.2`); sayı kodda başka yerde yazılmaz (`09 §3.5`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
@@ -2307,7 +2307,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK4: Z-7'de ödeme alınmışsa Ö1, alınmamışsa iptal.
   - KK5: yanıtsız sorguda iptal yok, işaret var, sorgu yanıt gelene kadar vazgeçmeden yinelenir.
   - KK6: iptal edilmiş havale siparişi "ödendi" yapılamaz.
-  - KK7: B-3 bir kez gider, düzeltmede yeniden gider.
+  - KK7: B-3 bir kez gider, düzeltmede yeniden gider; kesinti dönüşünde süre dolmuşsa gitmez.
   - KK8: havale süresi firma ayarı değişince değişir; öteki süreler `ProductConstants`'tan okunur.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -5451,7 +5451,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   2. Panelin geçişleri (`04 §3.4`) — ana sayfa, süzülmüş liste, kayıt, işlem — eşittir.
   3. Sitenin dışından girişler (`04 §3.5`) — e-posta bağlantıları ve dış dönüşler — inilen ekran ve koşulla eşittir.
   4. Oturumsuz gelen kendi kapısının giriş ekranına gider ve girişten sonra istediği ekrana iner; ödeme adımından girişe giden oraya döner (`04 §3.6`; K-758, K-768).
-  5. Panel ile vitrin arasındaki geçişler (`04 §3.7`) eşittir: "Siteyi görüntüle", "Önizle", "Sitede gör", "Panele dön".
+  5. Panel ile vitrin arasındaki geçişler (`04 §3.7`) eşittir: tablonun beş satırı, "Düzenlemeye dön" ve oturumsuz taslak adresinin E-06'ya düşmesi dahil.
   6. Vitrin ve panel iskeletinin bağlantıları (`04 §3.1`, §3.2) çerçevede bulunur ve denetime girer.
   7. Tabloda olmayan geçiş koda sızmaz; denetimler `Consistency` özelliğiyle işaretli birim testidir, veritabanına ve ağa dokunmaz (`09 §19.2`; K-1356).
 - **Test beklentisi:** Unit
@@ -5460,7 +5460,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: panel geçişi eksilince test kırılır.
   - KK3: dış giriş eksilince test kırılır.
   - KK4: dönüş hedefi değişince test kırılır.
-  - KK5: üç vitrin geçişi aranır.
+  - KK5: `04 §3.7`'nin beş satırından biri silinince ya da koddaki bağlantı kalkınca test kırılır.
   - KK6: iskelet bağlantısı eksilince test kırılır.
   - KK7: her denetimde koda tabloda olmayan geçiş eklenince test kırılır; testler `UnitTests/Consistency/` altındadır.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.36*
+*Shopfolio — Implementation Plan v0.37*

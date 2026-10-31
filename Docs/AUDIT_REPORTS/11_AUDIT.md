@@ -191,6 +191,23 @@ Plan 20 doğrulayıcı (97 bulgu) kurmuştu; **18'i koştu**, 19. ve 20. doğrul
 
 **İlerleme:** 435 bulgudan **142'si hükme bağlandı** (2a 55 + 2b 87); **kalan 293** (2b'den 10, 2c…2f) + #336, #437, #350 (2r) ve 2b'nin beş yükselen bulgusu. Kapılar: `11_matris_kapsama.py` 1.501/1.501 sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214.
 
+### Doğrulanmamış bulgular — KD-audit-2c
+
+Plan 20 doğrulayıcı (94 bulgu) kurdu; **20'si koştu** (iki dalga, 1–10 ve 11–20), bekçi olayı yok. Doğrulamasız uygulama yoktur.
+
+| Doğrulayıcı | Model | Kademe | Modül | Sayı |
+|---|---|---|---|---|
+| 2, 3, 5, 6, 7, 8, 9, 10, 14, 17 | Opus / high | Orta 4'lü | Ayarlar (2, 3), Katalog (5–10), Kurumsal içerik (14, 17) | 10 |
+| 4, 16, 18, 20 | Opus / high | Orta 3'lü | Ayarlar (4), Kurumsal içerik (16, 18, 20) | 4 |
+| 1 | Opus / high | Düşük 8'li | Ayarlar | 1 |
+| 11, 12, 13, 15 | Opus / high | Düşük 7'li | Katalog (11–13), Kurumsal içerik (15) | 4 |
+| 19 | Opus / high | Düşük 6'lı | Kurumsal içerik | 1 |
+| **Toplam** | | | | **20** |
+
+**Hükümler (94 bulgu):** 34 doğru · 49 kısmen · 11 çürük. **Uygulanan:** 74 bulgu, **171 şartname çifti** (179 çiftten 8'i yükselen bulguların; 4 ESKI çakışması hükümde birleştirildi). Liste: `C:/Users/teknodeveloper/.claude/helper-state/shopfolio/kd-audit-2/2c/uygulanan.md` (yardımcı durum dizini). **Seviyesi düşen** 25 bulgu uygulandı. **Yükselen:** #469 (Orta → Yüksek), #322 ve #261 (Düşük → Orta) uygulanmadı; KD-audit-2r'de yeniden doğrulanır. **Blok bayt sınırı:** T330, T337, T338, T339, T366, T507, T536 kısaltıldı (bölme yok; K-1465 (3)'te kayıp listesi). **Üst doküman:** `07 §4.10.1` isteğinin "kısa süreli bildirimin koduyla" ifadesi "sonuç hâlinin koduyla" oldu (`07` v0.34; K-652). KARAR satırı çıkmadı.
+
+**İlerleme:** 435 bulgudan **236'sı hükme bağlandı** (2a 55 + 2b 87 + 2c 94); **kalan 199** (2b'den 10 dahil; 2d, 2e, 2f) + #336, #437, #350 (2r) ve 2b ile 2c'nin sekiz yükselen bulgusu. Kapılar: `11_matris_kapsama.py` 1.501/1.501 sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214.
+
 ### Sınırlar
 
 - **Uygulanmayan 435 bulgu** gövdede hâlâ bulunabilir; bu raporun "temiz" okunmaması gerekir: audit yalnız 44 bulguyu hükme bağladı.

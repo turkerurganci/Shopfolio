@@ -4180,6 +4180,8 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 ### F5 — Kullanıcı arayüzü
 
+**Yürütme sırası:** T537 → T540 → T541 → T542 → T543 → T544 → T545 → T539 → T504 → T501 → T502 → T503 → T549 → T505 → T506 → T507 → T508 → T509 → T511 → T510 → T512 → T513 → T514 → T515 → T516 → T517 → T518 → T519 → T520 → T521 → T522 → T523 → T524 → T525 → T526 → T527 → T529 → T528 → T530 → T531 → T532 → T533 → T534 → T535 → T536 → T548 → T538 → T546 → T547
+
 #### T501: Yerli üretim logosu varlığı ve gösterimi
 - **Bağımlılık:** T540
 - **Dokümanlar:** çekirdek; `09` §3.1, §3.2, §16; `08 §4.3`; `02 §3.8.5`, §12.1, §12.1.5; `04` 5.4.4; `10` KP-5
@@ -5452,7 +5454,57 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK9: testler `UnitTests/Consistency/` altındadır.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
-<!--Y6C-->
+#### T548: Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme
+- **Bağımlılık:** T525, T539
+- **Dokümanlar:** çekirdek; `09` §15 (§15.7), §16 (§16.1, §16.2); `07 §4.31.2`, §5.4.2; `04` 2.12.8; K-1354
+- **Kabul kriterleri:**
+  1. Modül `pages/panel/products/edit.js`'tedir ve `data-js="digital-file-upload"` kancasındaki dosya girdisine bağlanır; hedef alanın adı `data-target-field`'dan gelir (`09 §16.2` madde 6).
+  2. Seçimde boy karşılaştırılmaz; yükleme sürerken kayıt düğmesi `aria-disabled` alır, gönderim durur (`04` 2.12.8.4).
+  3. Başlatma `POST /panel/yukleme` ile JSON `{ fileName, sizeBytes }` ve `RequestVerificationToken` başlığıyla gider; `id` ve `chunkSizeBytes` 201 yanıtından alınır, betikte 5 MB yazılmaz (`09 §16.2` madde 6; `07 §5.4.2`).
+  4. Parça `Blob.slice` ile `POST /panel/yukleme/{id}`'e gider; `Content-Range: bytes <start>-<end>/<sizeBytes>` (`end` dahil) ilk, ortadaki, son ve tek parçada doğrudur (`09 §16.2`).
+  5. 200 yanıtında `receivedBytes` sonraki başlangıçtır; `isCompleted` doğruysa `id` hedef gizli alana yazılır ve önizleme ad ile boyu gösterir (`09 §16.2`).
+  6. 409 gövdedeki `receivedBytes`'tan sürdürür; `isCompleted` doğruysa biter (`07 §4.31.2`).
+  7. 404'te aynı dosyayla baştan başlar; yeni `id` ile de 404 gelirse yükleme durur ve genel hata gösterilir; 400 ve 413'te yükleme durur, yeniden denenmez (`09 §16.2`; K-1100).
+  8. Başlatmada 422 gelirse `maxSizeBytes` dosya boyuyla karşılaştırılır: aşıyorsa dosyanın büyüklüğü, aşmıyorsa disk eşiği mesajı gösterilir (`04` 2.12.8.3).
+  9. Yönlendirme `redirect: "manual"` ile yakalanır ve yükleme durur; ağ hatasında durum isteğiyle (`GET /panel/yukleme/{id}`) alınan bayttan en çok üç kez sürdürülür (`09 §16.2`).
+  10. Vazgeçme ve sayfadan ayrılma uç çağırmaz; betikte `5242880` ve P-26'nın sayısı yoktur (`09 §16.2` madde 5, 7).
+- **Test beklentisi:** Unit
+- **Doğrulama kontrol listesi:**
+  - KK1: kanca ve hedef alan.
+  - KK2: boyut karşılaştırması yok; kayıt kilidi.
+  - KK3: başlatma gövdesi ve başlık; parça boyu yanıttan.
+  - KK4: dört parça durumunda `Content-Range`.
+  - KK5: tamamlanma; hedef alan.
+  - KK6: 409'dan sürme.
+  - KK7: 404'te baştan başlama; 400 ve 413'te durma.
+  - KK8: iki 422 mesajı.
+  - KK9: yönlendirmede durma; üç deneme.
+  - KK10: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T549: Vitrin: arşivlenmiş ürün sayfası (E-05)
+- **Bağımlılık:** T503, T537, T540
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §16 (§16.2); `07 UC-04`, §4.5; `04` E-05; `02 §3.7.6`, §3.7.7; `10` KP-7
+- **Kabul kriterleri:**
+  1. Ürün Arşiv'deyken `GET /urun/{Slug}` 200 verir ve E-05'i gösterir; adres değişmez, ayrı uç yoktur (`07 §4.5.1`; K-1437).
+  2. Sayfa yalnız ürün adı, ana görsel, "Bu ürün artık satılmıyor" bilgisi ve ana sayfaya ile ürünlere dönüş bağlantılarını taşır (`04` 5.5.3).
+  3. Fiyat, varyant verisi ve sepete ekleme formu yanıtta yoktur; birincil düğme yoktur (`07 §4.5.1`; `04` 5.5.4).
+  4. Sayfa listelerde, kategori sayfalarında, aramada ve site haritasında görünmez ve noindex'tir (`04` 5.5.4; `02 §3.30.6`).
+  5. Ziyaretçiye ve yöneticiye aynı görünür; yönetici şeridi çerçevenin parçasıdır (`04` 5.5.7).
+  6. Arşiv ürününe sepete ekleme UC-05'in 404'üdür (`07 §4.5.1`).
+  7. Yeniden yayına alınan ürünün adresi E-04'ü, kalıcı silinenin adresi 404'ü verir (`07 §4.5.1`; `02 §3.7.7`).
+  8. Görselsiz arşiv ürünü yalnız adıyla görünür; yükleniyor ve hata hâlleri OB-07'nin kalıbıdır (`04` 5.5.8).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: 200 ve E-05; adres sabit.
+  - KK2: yalnız üç bilgi ve iki bağlantı.
+  - KK3: fiyat ve form yok.
+  - KK4: dört yerde yok; noindex.
+  - KK5: iki rolde aynı.
+  - KK6: sepete ekleme 404.
+  - KK7: yayına dönüş; silinince 404.
+  - KK8: görselsiz hâl.
+  - `09 §25` ilgili satırlar; güvenlik taraması
 
 ## 6. Faz geçiş kapıları
 

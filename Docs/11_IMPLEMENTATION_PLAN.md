@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.11** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.12** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -14,6 +14,48 @@
 > - **K-1356 · D-01 — yama sürümü denetiminin `publish.yml`'e girmesi:** "Yama sürümü göç taşımaz" denetimi yayın akışında, etiket imaja basılmadan önce koşar (`09 §21.4` madde 2; `§10.6` madde 7); PR'da koşmaz, çünkü PR sürüm etiketini bilmez. İstisna — veri bozan bir göçün düzeltmesi — etiket mesajındaki `migration-fix: K-<numara>` satırıdır. İlk yayından önce son yayımlanan sürüm bulunmadığından geri alma sınaması atlanır ve atlandığı CI çıktısında yazılır (`09 §21.4` madde 3).
 > - **K-1355 · Test projeleri — sahtelerin paylaşımı:** `UnitTests/Fakes/` altındaki sahteleri `IntegrationTests` bağlantılı dosya olarak derler (ikinci kopya yok, iki projeyi bağlayan proje başvurusu yok); çalıştırılabilir bir test projesine başvuru xUnit v3'te sorun çıkarabilir (bilgim tarihli) — test altyapısını kuran ilk task'ta sınanır (`09 §19.1`).
 > - **K-1354 · Yükleme betiği, kayıt biçimleyicisi ve maskeleme testleri:** Kodlama Kılavuzu (`09`) üç yapım işi bırakır ve her birinin bu planda bir task karşılığı bulunur: (1) parçalı yükleme betiği — başlatma–parça–durum akışını, 409/404/400/413 yanıtlarını ve ağ hatasında üç kez sürdürmeyi kapsar (`09 §16.2`; `07 §4.31.2`). (2) Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi `ApplicationLogFormatter` — alan adlarını ve kapalı olay listesini (`LogEvents`) kapsar (`09 §17`, `§18.1`, `§18.2`; `05 §9.1`). (3) Maskelemenin üç katmanının testleri: yazım, `PathMasker`, biçimleyici ve `ExceptionMasker` (`09 §18.2`). Bu işler izlenebilirlik matrisinin (§7.1) kaynak öğelerinde adıyla geçmeyebilir; task'ın kaynağı `09` bölümüdür. Task'ın nasıl bölünüceğine bu aşama karar verir.
+
+**Aşama 8 park bloğunun durumu (K-1443).** Yukarıdaki beş madde talimattır; bu tablo her birinin task karşılığını ve yazan oturumu söyler. Blok yazım turu bitene kadar yerinde kalır; son oturum (Y8) her satırın karşılığını task'ta bulduğunu doğrular ve durum sütununu kapatır.
+
+| Park maddesi | Karşılığı | Yazan oturum | Durum |
+|---|---|---|---|
+| P8.1 — okunacak `09` bölümleri (K-1302 (4), K-1357) | Okuma biçimi: bu başlık notunun okuma tablosu ve §5 "Task yapısı"nın `Dokümanlar` kuralı; her task'ın alanı kendi bloğunda | Y1 (biçim) · her task'ı yazan oturum (alan) | Biçim ✓ — alanlar task'larla |
+| P8.2 — eşitlik denetimlerinin Lint adımına girmesi (K-1356) | T04 (komutlar `.github/ci-commands.env` — T02) | Y2 | ⏳ |
+| P8.3 — yama sürümü denetiminin `publish.yml`'e girmesi (K-1356, K-1358) | T04, T09 | Y2 | ⏳ |
+| P8.4 — sahtelerin paylaşımı, xUnit v3 sınaması (K-1355) | T03 | Y2 | ⏳ |
+| P8.5 — yükleme betiği, kayıt biçimleyicisi, maskeleme testleri (K-1354, K-1391) | T230 (üç yazıcı ve biçimleyici), T231 (maskeleme testleri), T548 (yükleme betiği) | Y3 (T230, T231) · Y6b (T548) | ⏳ |
+
+**Yazım konvansiyonları (K-1443).** (1) **Sıra:** W-1 ✓ → başlık notu ve §3, §3.1, §4, §5'in "Task yapısı"nı (Y1) → matris ✓ → §5 task blokları fazlar halinde (aşağıdaki harita) → §6, §8, §9 → §1, §2 son (sayımlar bloklar bitince kesinleşir) → özet ↔ ayrıntı taraması → kalite döngüsü. (2) **Dil:** bu doküman Türkçe; kod, sembol ve dosya adları İngilizce. (3) **Kimlikler (K-1406 (3)):** konu `IPn-mm`; task `TXX`, araya `TXXa`/`TXXb`, devam turu `TXX.1` (`00 §J`); matris kaynak kimliği ailesine göre (§7'nin "Kaynak kimliğinin biçimi" tablosu). (4) **Atıf biçimi:** `02 §3.8.3`, `07 UC-12`, `09 §10`, `05 MK-12` — önsüz `§` bu dokümanın bölümüdür; başka doküman her zaman numarasıyla anılır. (5) **Tüketici ilkesi:** kaynakla çelişki çıkarsa kaynak kazanır, fark bu dokümana hizalama olarak yazılır; kaynağın kendisi yanlışsa §8'e GAP olarak girer (K-1406 (2)(d)). (6) **Kural ayrıntısı evinde kalır:** task bloğu kaynağın kuralını kopyalamaz, kimlikle işaret eder. (7) **Açık kararlar bölümü yoktur:** açık kalem karar kaydının §4'ündedir; sonraki dokümana talimat o dokümanın park bloğundadır (PF-143).
+
+**Okuma tablosu ve boyut (K-1406 (4), K-1443).** Bu doküman 100 KB'ı çoktan aştı ve `INSTRUCTIONS §9` (7) bütün okumayı yasaklar; `task` ve `validate` skill'leri "hedef task'ın tanımını" bu tabloyla okur. Komutlar depo kökünden, dosya `Docs/11_IMPLEMENTATION_PLAN.md`:
+
+- **Bölüm başlıkları:** `grep -n '^## ' <dosya>` — satır numaraları; bölüm aralıkla okunur.
+- **Faz başlığı ve yürütme sırası:** `grep -n -A 3 '^### F3 ' <dosya>` — fazın adı ve `**Yürütme sırası:**` satırı.
+- **Task bloğu:** `grep -n -A 30 '^#### T123: ' <dosya>` — tek blok (en çok 2,5 KB, yaklaşık 30 satır; sonraki `####` başlığında biter).
+- **Aday tablo ve geri yön satırı:** `grep -n '^| T123 |' <dosya>` — iki satır: §7 aday tablosu (kısa ad, kaynak birimi) ve §7.2 (kaynak kimlikleri).
+- **Kaynak satırları (ileri yön):** `grep -nE '(\| |, )T123(,| \|)' <dosya>` — her satırın ilk hücresi kaynak kimliğidir; kimlikten kaynak dokümanın aralığı bulunur.
+- **Matris alt bölümü:** `grep -n '^#### 7\.1\.' <dosya>` — 7.1.1…7.1.5 başlık satırları.
+- **Faz ek kontrolü:** `grep -n '^| F3 |' <dosya>` — §3 faz satırı ve §6.2 satırı.
+- **Kaynak doküman aralığı:** `grep -n '<kimliğin başlığı>' Docs/0N_*.md`, sonra `sed -n 'a,bp'` — yalnız task'ın kaynak birimleri.
+
+Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 satırı, kaynak satırlarının kimlikleri, ilgili §6.2 satırı, kaynak dokümanın o birimleri ve `09` için çekirdek yedi bölüm artı `Dokümanlar` alanının saydığı ek bölümler (`09` başlık notunun okuma tablosu). **Boyut hedefi:** bütün dosya 1,5 MB'ın altında; task bloğu en çok 2,5 KB; matris satırı en çok 500 bayt. Sınır aşılırsa karar kaydında konu açılır; doküman bölünmez (dosya adı ve bölüm numaraları değişmez). Blok boyutu ve alan eksiksizliği `scripts/doc-scans/11_task_blok_denetle.py` ile, matris kapsamı `11_matris_kapsama.py` ile denetlenir.
+
+**Yazım turunun haritası (K-1443).** Yazım oturumları on tanedir (Y1…Y8; F3, F5 ikiye bölünür); harita burada sabittir, değişirse tablo ve ona atıf yapan satırlar aynı PR'da güncellenir. **Bölüm çizgisi kimlik sırasıyla, modül sınırında çekilir:** F3 `T345`/`T346` (45 + 45 task; Üyelik modülünün son task'ı ile Sepet ve sipariş modülünün sıradaki bloğu arasında) ve F5 `T524`/`T525` (24 + 25 task; ilk yarı `T501`–`T524` ilk ekran grubudur, ikinci yarı kalan ekranları, ortak bileşenleri ve yükleme betiğini taşır). Bloklar fazın içinde kimlik sırasıyla yazılır; yürütme sırasını bloğun `Bağımlılık` alanı ve fazın `Yürütme sırası` satırı verir (§5, "Task yapısı"). Task'ın kimliği yarısını belirler; ortak bileşen ya da sonraki yarıdaki task'a bağımlılık kimlikle yazılır, o blok henüz yazılmamış olsa da aday tabloda tanımlıdır.
+
+| Oturum | Kapsam | Task | Konu | Durum |
+|---|---|---|---|---|
+| Y1 | Başlık notu, §3, §3.1, §4, §5 "Task yapısı" | — | `IP0-05`, `IP3-01`/`IP3-02` metni, `IP4-01`, `IP5-03` | ✓ |
+| Y2 | §5 F0 ve F1 | `T01`–`T10`, `T101`–`T120` (30) | `IP5-04`, `IP5-05`, `IP5-06` | ⏳ |
+| Y3 | §5 F2 | `T201`–`T233` (33) | `IP5-07`, `IP5-08` (F2 payı) | ⏳ |
+| Y4a | §5 F3 ilk yarı | `T301`–`T345` (45) | `IP5-09`, `IP5-13` | ⏳ |
+| Y4b | §5 F3 ikinci yarı ve F3 `Yürütme sırası` | `T346`–`T390` (45) | `IP5-09`, `IP5-13` | ⏳ |
+| Y5 | §5 F4 | `T401`–`T410` (10) | `IP5-10` | ⏳ |
+| Y6a | §5 F5 ilk yarı | `T501`–`T524` (24) | `IP5-11` | ⏳ |
+| Y6b | §5 F5 ikinci yarı ve F5 `Yürütme sırası` | `T525`–`T549` (25) | `IP5-11`, `IP5-08` (T548) | ⏳ |
+| Y7 | §5 F6, §6.1, §6.2 | `T601`–`T602` (2) | `IP5-12`, `IP6-01`, `IP6-02` | ⏳ |
+| Y8 | §8 son hali, §9, §1, §2 (sayımlar kesin) | — | `IP8-01`, `IP9-01`, `IP1-01`, `IP2-01` | ⏳ |
+
+Task toplamı 30 + 33 + 90 + 10 + 49 + 2 = 214 (aday tablo; sayım `11_task_blok_denetle.py` çıktısındadır). Yedi faz biter bitmez `11_task_blok_denetle.py --tam` sorunsuz koşar.
 
 ---
 
@@ -32,19 +74,31 @@
 
 > **Ne yazılır:** Fazlar ve task aralıkları. Faz sayısı projeye göre değişir; **şekil sabittir**: iskelet → veri → çekirdek servisler → iş mantığı → entegrasyonlar → arayüz → uçtan uca doğrulama.
 
+Yedi faz sabittir (K-1407 (1)); faz sayısı artırılmaz ya da azaltılmaz. Task aralıkları yüzlük bloklardır, arada `TXXa` girer (`00 §J`; K-1407 (2)). Task sayıları §7 aday task tablosundandır (214 task; sayım `scripts/doc-scans/11_task_blok_denetle.py` çıktısında).
+
 | Faz | Ad | Kapsam | Task aralığı |
 |---|---|---|---|
-| F0 | Proje iskeleti | | |
-| F1 | Veri katmanı | | |
-| F2 | Çekirdek servisler | | |
-| F3 | İş mantığı | | |
-| F4 | Entegrasyonlar | | |
-| F5 | Kullanıcı arayüzü | | |
-| F6 | Uçtan uca doğrulama | | |
+| F0 | Proje iskeleti | Çözüm ve proje düzeni (D-01 dahil), test altyapısı, CI hattı ve eşitlik denetimleri, Compose geliştirme ortamı, üç imaj, yedek ve sır düzeni, veritabanı kullanıcıları, canlılık ucu, ilk yayın. **Çıkış ürünü:** boş uygulama imajı canlılık ucuna yanıt verir, ilk yayın yapılmıştır; referans kuruluma ilk iniş F0'ın sonundadır | `T01`–`T10` (10) |
+| F1 | Veri katmanı | Veri modeli temeli ve enum'lar, 79 entity on altı göçte (en çok 8 entity, tek modül), başlangıç verisi, model eşitlik denetimleri. **Çıkış ürünü:** göçler ileri, idempotent ve geri alınabilir; eşitlik denetimleri yeşil; referans kuruluma göç | `T101`–`T120` (20) |
+| F2 | Çekirdek servisler | Ortak altyapı (`05 §3.3.11`): modül iskeletleri ve Contracts, kimlik şemaları ve sayfa–form kalıbı, iş kuyruğu ve zamanlayıcı, dosya deposu, kayıt ve maskeleme, ayar katmanları, veri koruma halkası, dış servislerin bağlantı katmanı arayüzleri ve sahteleri (gerçek bağlayıcılar F4'tedir). **Çıkış ürünü:** modül sınırı mimari testle korunur, kayıt maskeleme testleri geçer | `T201`–`T233` (33) |
+| F3 | İş mantığı | Dokuz modülün iş mantığı: sipariş ve ödeme durum makinesi (`02 §5.4`, §5.5), stok, kupon, iptal–cayma–iade, zaman kuralları, bildirim kararları, yönetim komutları, sayfasız uçlar. **Çıkış ürünü:** ürün → sepet → sipariş → `FakePaymentGateway` sonucu → kargo → teslim akışı servis düzeyinde entegrasyon testiyle geçer (K-1410 (2)) | `T301`–`T390` (90) |
+| F4 | Entegrasyonlar | Gerçek bağlayıcılar: PayTR (başlatma, bildirim, sorgu, iade, 3D Secure), SES (gönderim, geri dönen adresler), Google girişi; dış olgu varsayımlarının doğrulama kanıtları. **Çıkış ürünü:** üç servisin sandbox kanıtı, imza doğrulaması, DV-1, DV-2, DV-9 | `T401`–`T410` (10) |
+| F5 | Kullanıcı arayüzü | Ortak bileşenler (`OB-01`…`OB-20`), ekranlar (`E-01`…`E-53`), sayfa işleyicileri, betiksiz yol, parçalı yükleme betiği. **Çıkış ürünü:** betiksiz yol çalışır, erişilebilirlik (A seviyesi) taraması geçer, referans kuruluma iniş | `T501`–`T549` (49) |
+| F6 | Uçtan uca doğrulama | `DEPLOY_RUNBOOK §I` provası ve güncelleme komutu; canlı kanıt ve dağıtım; `12` senaryolarına bağlanış (`12` henüz yazılmadı — bağlanış ileri işaret olarak `IP5-12`'de yazılır). **Çıkış ürünü:** gerçek yapılandırmayla açılış provası ve canlı ödeme kanıtı (K-1411) | `T601`–`T602` (2) |
+
+Faz başına kapı ölçütleri §6.2'dedir (`IP6-01`, K-1411).
 
 ### 3.1 Faz bağımlılıkları
 
 > **Ne yazılır:** Zincir ve varsa kontrollü paralellik istisnaları.
+
+**Zincir (K-1408 (1)).** F0 → F1 → F2 → F3 → F4 → F5 → F6. Faz gate'i PASS almadan sonraki faza geçilmez (`00 §E.1`); fazlar arasında örtüşme yoktur. Bu yüzden task'ın `Bağımlılık` alanı yalnız **aynı fazdaki** task'ları yazar; önceki fazların tamamı gate ile karşılanır. Her fazın sonunda, gate'ten önce, yeni sürüm referans kuruluma iner (`05 §8.1.4`; K-1407 (4)).
+
+**Faz içi kontrollü paralellik (K-1408 (2)).** `Bağımlılık` alanı ayrık olan ve farklı modül klasörüne dokunan task'lar eşzamanlı yapılabilir. Ortak dosyalara dokunan task'lar sıralıdır; liste kapalıdır: göç klasörü ve model anlık görüntüsü, `Directory.Packages.props`, `Program.cs`, `.github/ci-commands.env`. Sıralılık blokta yazılıdır: bu dosyalardan birine dokunan task'lar, aynı fazda, `Bağımlılık` zinciriyle birbirine bağlanır (K-1444 (2)).
+
+**Faz içi yürütme sırası (K-1410 (1), K-1413 (4), K-1444 (2)).** Faz içi sıra modül akış sırasıdır (Katalog → Sepet ve sipariş → Ödeme → İptal, cayma ve iade → Üyelik → …; `03 §2`) ve `Bağımlılık` zincirini bozmaz; F1'de bir göç, bağlandığı tabloların göçünden sonra gelir. Bloklar fazın içinde kimlik sırasıyla yazıldığından yürütme sırası her fazın başlığı altındaki `**Yürütme sırası:**` satırında kimliklerle yazılır; satırı fazı tamamlayan oturum yazar ve `11_task_blok_denetle.py` her bağımlılığın kendinden önce geldiğini denetler.
+
+**Dış ön koşullar task değildir (K-1408 (3)).** OK-1, OK-2, OK-3, OK-4, OK-6 ve OK-12'nin kurulumu yapanın işidir ve F0'da başlar (SES üretim erişimi ile PayTR sözleşmesi gün ya da hafta sürer); F4 ön koşullarının hazır olduğu F3 gate'inde sorulur (`IP6-01`, K-1411).
 
 ## 4. Hata sınıflandırması ve çözüm akışı
 
@@ -56,30 +110,43 @@
 
 **Kritik kural:** Düzeltme task'ı bir sonraki faza ertelenmez — hatanın oluştuğu fazda çözülür.
 
+**Düzeltme task'ının numarası (K-1444 (3)).** (a) Task'ın PR'ı merge edilmeden bulunan S1 aynı PR'da düzeltilir; yeni numara açılmaz. (b) Merge'den sonra bulunan S1, S2 ve S3'ün düzeltmesi `TXXa`, `TXXb` numarasını alır (`00 §J`): `XX` düzeltmenin dayandığı task'tır, faz aralığı bozulmaz, blok §5'te o fazın başlığı altına kimlik sırasıyla eklenir ve §7 aday tablosuna satır olur. (c) Aynı task'ın devam turu (sonradan eklenen savunma katmanı, kapanış işi) `TXX.1`'dir. (d) S3 bir kaynak öğenin hiçbir task'a bağlı olmamasından çıkarsa düzeltme yeni bir `TXXa`, matris satırı (§7) ve `11_matris_kapsama.py` koşusudur. Çözüm akışı (kayıt → etki analizi → karar → güncelleme) `00 §D.8`'dedir; burada tekrarlanmaz.
+
 ## 5. Task listesi
+
+> **Kapı:** §7 tamamdır (ileri yön 1.501/1.501, §8'de açık boşluk yok). Aday task'ların kimliği, fazı, kısa adı ve kaynak birimi §7'nin aday task tablosundadır; bu bölüm yalnız task'ın gövdesini yazar. Yazım oturumları ve sırası başlık notunun yazım haritasındadır; bir fazın başlığı (`### Fn — <ad>`) o fazın ilk oturumu gelince eklenir.
 
 ### Task yapısı
 
+Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-1406 (5), K-1445):
+
 ```
-Task TXX: [Task adı]
-  Bağımlılık:              [Önceden tamamlanmış olması gereken task'lar]
-  Dokümanlar:              [Ajana verilecek dosyalar ve bölümler]
-  Kabul kriterleri:        [Ne olduğunda "tamam"]
-  Test beklentisi:         [Unit / Integration / Contract / E2E / Yok]
-  Doğrulama kontrol listesi: [Validator'ın neye bakacağı]
+#### TXX: <task adı>
+- **Bağımlılık:** T01, T02 (ya da —)
+- **Dokümanlar:** çekirdek; `09` §10, §12; `02 §3.8.3`; `07 UC-12`; `06` Order
+- **Kabul kriterleri:**
+  1. <tek gözlenebilir sonuç> (`02 §3.8.3`)
+  2. <...>
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: <neye bakılır>
+  - `09 §25` <ilgili satır>; güvenlik taraması
 ```
+
+**Konvansiyonlar (K-1445).**
+
+1. **Yerleşim.** Faz başlığı `### F0 — <faz adı>` (ad §3'tendir); bloklar fazın içinde kimlik sırasıyla yazılır; başlığın hemen altındaki `**Yürütme sırası:** T01 → T02 → …` satırı fazı tamamlayan oturumun işidir (§3.1).
+2. **Başlık.** Kimlik ve ad §7 aday tablosundandır (ad kısaltılabilir, kapsam değişmez). Kapsam yazımda değişirse §7 aynı PR'da hizalanır; yeni task gerekirse `TXXa`, aday tablo satırı ve matris satırı eklenir ve `11_matris_kapsama.py` koşar.
+3. **Bağımlılık.** Yalnız aynı fazdaki task'lar, kimlikle (§3.1); bağımlılığı olmayan task `—` yazar. Ortak dosyaya dokunan task'lar zincirlenir (§3.1).
+4. **Dokümanlar.** `09` için `çekirdek` (çekirdek yedi bölüm — `§1`, `§2`, `§5`, `§6`, `§23`, `§24`, `§25` — her satırda anılır, ayrıca sayılmaz) ve ek bölümler `09` başlık notunun okuma tablosundan alınır (`çekirdek; 09 §10, §12`); öteki girdiler kaynak kimliğiyle (`02 §3.8.3`, `07 UC-12`, `06` entity adı, `05 MK-12`) ve yalnız task'ın kaynak birimleri için yazılır; ek bölümler ile kaynak toplamı en çok 150 KB (K-1409). Task'ı yapan PR, okunan `09` bölümlerini açıklamasında yazar (`09 §21.3`, `§24` madde 1).
+5. **Kabul kriterleri.** En çok 10 numaralı madde (K-1409). Madde kaynak satırın cümlesinden türer; kural ayrıntısı **kopyalanmaz**, parantez içinde kimlikle işaret edilir (`(02 §3.8.3)`). Her madde tek bir gözlenebilir sonuçtur ve doğru ya da yanlış denebilir; böylece `12` çevirisi madde başına bir doğrulama maddesi çıkarır (`12`, değişmez giriş kuralı 3).
+6. **Test beklentisi.** Değer kümesi şablonun beşidir — Unit, Integration, Contract, E2E, Yok — ve birden çok değer yazılabilir (`Unit, Integration`). `Yok` yalnız kod üretmeyen task'ta, tek başına ve gerekçesiyle yazılır (`Yok — gerekçe`). `Contract` bu projede yoktur (sayfa ve uç testleri Integration'dır; `05 §8.3.8`, `09 §19.1`) ve `E2E` `12`'nin kapsamıdır, bu yüzden task'ta yalnız F6'da yazılır.
+7. **Doğrulama kontrol listesi.** Kabul kriteri başına bir madde (`KK1`, `KK2`, …), ardından `09 §25`'in task'a düşen satırları ve güvenlik taraması; madde sayısı kabul kriteri sayısından az olamaz.
+8. **Boyut.** Blok en çok 2,5 KB (başlık satırından sonraki başlığa kadar); aşım task'ı bölmenin işaretidir (`TXXb`, K-1409 (2)). Boyut, alan eksiksizliği, bağımlılık ve yürütme sırası `11_task_blok_denetle.py` ile denetlenir.
+9. **İleri işaret.** Henüz yazılmamış dokümana (`12`) verilen atıf `(ileri işaret: 12)` diye açıkça işaretlenir; bu bir eksik bağımlılık değildir.
 
 > **Numaralandırma:** Araya task gerektiğinde `TXXa`/`TXXb` (faz aralığını bozmadan). Aynı task'ın devam turu `TXX.1`. Konvansiyonların tamamı: `00_PROJECT_METHODOLOGY.md` §J.
 > **Forward pointer:** Henüz yazılmamış bir dokümana verilen referans **açıkça** öyle işaretlenir — bu bir eksik bağımlılık değildir.
-
-### F0 — <Faz adı>
-
-#### T01: <Task adı>
-- **Bağımlılık:**
-- **Dokümanlar:**
-- **Kabul kriterleri:**
-- **Test beklentisi:**
-- **Doğrulama kontrol listesi:**
 
 ## 6. Faz geçiş kapıları
 

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.12** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.13** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -20,9 +20,9 @@
 | Park maddesi | Karşılığı | Yazan oturum | Durum |
 |---|---|---|---|
 | P8.1 — okunacak `09` bölümleri (K-1302 (4), K-1357) | Okuma biçimi: bu başlık notunun okuma tablosu ve §5 "Task yapısı"nın `Dokümanlar` kuralı; her task'ın alanı kendi bloğunda | Y1 (biçim) · her task'ı yazan oturum (alan) | Biçim ✓ — alanlar task'larla |
-| P8.2 — eşitlik denetimlerinin Lint adımına girmesi (K-1356) | T04 (komutlar `.github/ci-commands.env` — T02) | Y2 | ⏳ |
-| P8.3 — yama sürümü denetiminin `publish.yml`'e girmesi (K-1356, K-1358) | T04, T09 | Y2 | ⏳ |
-| P8.4 — sahtelerin paylaşımı, xUnit v3 sınaması (K-1355) | T03 | Y2 | ⏳ |
+| P8.2 — eşitlik denetimlerinin Lint adımına girmesi (K-1356) | T04 (komutlar `.github/ci-commands.env`) | Y2 | Task yazıldı ✓ — Y8 doğrular |
+| P8.3 — yama sürümü denetiminin `publish.yml`'e girmesi (K-1356, K-1358) | T04, T09 | Y2 | Task yazıldı ✓ — Y8 doğrular |
+| P8.4 — sahtelerin paylaşımı, xUnit v3 sınaması (K-1355) | T03 | Y2 | Task yazıldı ✓ — Y8 doğrular |
 | P8.5 — yükleme betiği, kayıt biçimleyicisi, maskeleme testleri (K-1354, K-1391) | T230 (üç yazıcı ve biçimleyici), T231 (maskeleme testleri), T548 (yükleme betiği) | Y3 (T230, T231) · Y6b (T548) | ⏳ |
 
 **Yazım konvansiyonları (K-1443).** (1) **Sıra:** W-1 ✓ → başlık notu ve §3, §3.1, §4, §5'in "Task yapısı"nı (Y1) → matris ✓ → §5 task blokları fazlar halinde (aşağıdaki harita) → §6, §8, §9 → §1, §2 son (sayımlar bloklar bitince kesinleşir) → özet ↔ ayrıntı taraması → kalite döngüsü. (2) **Dil:** bu doküman Türkçe; kod, sembol ve dosya adları İngilizce. (3) **Kimlikler (K-1406 (3)):** konu `IPn-mm`; task `TXX`, araya `TXXa`/`TXXb`, devam turu `TXX.1` (`00 §J`); matris kaynak kimliği ailesine göre (§7'nin "Kaynak kimliğinin biçimi" tablosu). (4) **Atıf biçimi:** `02 §3.8.3`, `07 UC-12`, `09 §10`, `05 MK-12` — önsüz `§` bu dokümanın bölümüdür; başka doküman her zaman numarasıyla anılır. (5) **Tüketici ilkesi:** kaynakla çelişki çıkarsa kaynak kazanır, fark bu dokümana hizalama olarak yazılır; kaynağın kendisi yanlışsa §8'e GAP olarak girer (K-1406 (2)(d)). (6) **Kural ayrıntısı evinde kalır:** task bloğu kaynağın kuralını kopyalamaz, kimlikle işaret eder. (7) **Açık kararlar bölümü yoktur:** açık kalem karar kaydının §4'ündedir; sonraki dokümana talimat o dokümanın park bloğundadır (PF-143).
@@ -45,7 +45,7 @@ Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 sat
 | Oturum | Kapsam | Task | Konu | Durum |
 |---|---|---|---|---|
 | Y1 | Başlık notu, §3, §3.1, §4, §5 "Task yapısı" | — | `IP0-05`, `IP3-01`/`IP3-02` metni, `IP4-01`, `IP5-03` | ✓ |
-| Y2 | §5 F0 ve F1 | `T01`–`T10`, `T101`–`T120` (30) | `IP5-04`, `IP5-05`, `IP5-06` | ⏳ |
+| Y2 | §5 F0 ve F1 | `T01`–`T10`, `T101`–`T120` (30) | `IP5-04`, `IP5-05`, `IP5-06` | ✓ |
 | Y3 | §5 F2 | `T201`–`T233` (33) | `IP5-07`, `IP5-08` (F2 payı) | ⏳ |
 | Y4a | §5 F3 ilk yarı | `T301`–`T345` (45) | `IP5-09`, `IP5-13` | ⏳ |
 | Y4b | §5 F3 ikinci yarı ve F3 `Yürütme sırası` | `T346`–`T390` (45) | `IP5-09`, `IP5-13` | ⏳ |
@@ -147,6 +147,692 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 > **Numaralandırma:** Araya task gerektiğinde `TXXa`/`TXXb` (faz aralığını bozmadan). Aynı task'ın devam turu `TXX.1`. Konvansiyonların tamamı: `00_PROJECT_METHODOLOGY.md` §J.
 > **Forward pointer:** Henüz yazılmamış bir dokümana verilen referans **açıkça** öyle işaretlenir — bu bir eksik bağımlılık değildir.
+
+### F0 — Proje iskeleti
+
+**Yürütme sırası:** T02 → T01 → T03 → T04 → T06 → T05 → T08 → T07 → T10 → T09
+
+#### T01: Canlılık ucu
+- **Bağımlılık:** T02
+- **Dokümanlar:** çekirdek; `09` §8, §10 (§10.7), §19; `07 UC-81`; `05 MK-67`, §9.4.1
+- **Kabul kriterleri:**
+  1. Uygulama ve veritabanı yanıt veriyorsa canlılık ucu 200 döner (`07 UC-81`; `05 §9.4.1`).
+  2. Veritabanına ulaşılamıyorsa uç 503 döner.
+  3. Yanıt gövdesiz ve ayrıntısızdır; hata metni, bağlantı bilgisi ya da sürüm sızmaz (`05 §9.4.1`).
+  4. Uç imzasız açık GET'tir; çerez ve oturum gerektirmez (`07 UC-81`).
+  5. Veritabanı denetimi sabit sürede biter; süre dolarsa 503 döner (`09 §10.7`).
+  6. Uç `Endpoints/` altındadır, sayfa değildir ve sayfa işleyicisinin hata kalıbına girmez (`09 §4.1`, §8).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: sağlıklı veritabanıyla `WebApplicationFactory` isteği 200 ve boş gövde.
+  - KK2: veritabanı bağlantısı kesilince 503.
+  - KK3: iki yanıtın gövdesi boş; başlıklarda sürüm bilgisi yok.
+  - KK4: çerezsiz istek 200.
+  - KK5: yavaşlatılmış veritabanı sınırda 503 verir (`09 §19.2` madde 4).
+  - KK6: dosya yeri ve ad alanı `09 §4.1` ağacına uyar.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T02: Çözüm ve proje düzeni
+- **Bağımlılık:** —
+- **Dokümanlar:** çekirdek; `09` §3 (§3.1, §3.2), §4; `05 MK-01`…`MK-05`, §2.3, §3.1, §3.8
+- **Kabul kriterleri:**
+  1. Kökteki `Shopfolio.slnx` üç projeyi toplar: `Shopfolio.Web`, `Shopfolio.UnitTests`, `Shopfolio.IntegrationTests`; dördüncü proje yoktur (`09 §4.1` madde 1; `05 MK-13`).
+  2. `Shopfolio.Web` .NET 10 Razor Pages uygulamasıdır; `Modules/`, `Infrastructure/`, `Pages/`, `Endpoints/`, `wwwroot/` klasörleri vardır (`05 MK-01`…`MK-04`; `09 §4.1` madde 2).
+  3. Kökteki `Directory.Build.props` boş olabilir başvuru denetimini açar ve uyarıları hata sayar (`09 §3.1` madde 2).
+  4. Kökte tek `.editorconfig` vardır ve `dotnet format` doğrulaması temiz geçer (`09 §3.1` madde 3).
+  5. `Directory.Packages.props` sürümleri merkezî ve tam sabit tutar; `packages.lock.json` ve yalnız nuget.org kaynaklı `nuget.config` repodadır (`09 §3.2`).
+  6. `wwwroot/` düz JavaScript ve CSS taşır; npm hattı ve ön yüz çatısı yoktur (`05 MK-05`; `09 §4.1` madde 4).
+  7. D-01 yığın parçaları — `CONTEXT.md` §1 ve §3, `.gitignore`, `.gitattributes`, `.env.example` — yığına uyarlanır; `CONTEXT.md` §3'ün "kod klasörü henüz yok" satırı kalkar (`05 §2.3.1`…`§2.3.4`; `09 §4.2`).
+  8. Bilgim tarihli ayar adları SDK'ya karşı derlenerek doğrulanır; çıkan fark ilgili `09` satırına aynı PR'da yazılır (`09 §3.1` madde 2, §4.1 madde 1).
+- **Test beklentisi:** Yok — davranış kodu yoktur; çözümün derlenmesi ve biçim denetimi Build ve Lint adımlarının sınamasıdır
+- **Doğrulama kontrol listesi:**
+  - KK1: `dotnet build` yapılandırmasında uyarısız derlenir; proje sayısı üçtür.
+  - KK2: klasör ağacı `09 §4.1` ile aynıdır.
+  - KK3: `Directory.Build.props` ayarları `09 §3.1`'dekidir.
+  - KK4: `dotnet format --verify-no-changes` temiz.
+  - KK5: proje dosyalarında `Version` yazılı paket yok; kilit dosyası var.
+  - KK6: `package.json` yoktur.
+  - KK7: `CONTEXT.md` §3 klasör düzeyinde güncel; `.env.example` sır taşımaz.
+  - KK8: doğrulanan bilgim tarihli ayarlar PR açıklamasında listeli.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T03: Test altyapısı
+- **Bağımlılık:** T02, T01
+- **Dokümanlar:** çekirdek; `09` §3 (§3.2), §4, §6, §19, §20; `05 §8.3`, §3.3; `05 MK-15`, `MK-70`
+- **Kabul kriterleri:**
+  1. Her iki test projesi xUnit v3 ile çalışır; çalıştırılabilir proje biçimi .NET 10 SDK'da sınanır ve sonuç kayda geçer (`09 §19.1` madde 1; K-1355).
+  2. `UnitTests/Fakes/` beş sahteyi taşır: `ManualTimeProvider`, `FakePaymentGateway`, `FakeEmailGateway`, `FakeGoogleIdentityGateway`, `InMemoryFileStore`; `IntegrationTests` onları bağlantılı dosya olarak derler (`09 §19.1` madde 3).
+  3. Bağlantılı dosya paylaşımı xUnit v3'te derlenir; olmazsa çıkan yol karar kaydına yazılır (K-1355).
+  4. Entegrasyon bağlantısı `SHOPFOLIO_TEST_DATABASE` ya da `Tests:Database` ayarından gelir; ortam değişkeni kazanır (`09 §19.1` madde 4).
+  5. `shopfolio_test_template` her çalıştırmada göç demetiyle kurulur; her koleksiyon şablondan kendi veritabanını alır ve siler (`09 §19.1` madde 4).
+  6. `WebApplicationFactory` tabanlı sayfa ve uç testi örneği geçer; `Program` erişimi `09 §19.1` madde 5'e göredir.
+  7. `UnitTests/Architecture/` ArchUnitNET ile modül sınırı testini taşır; kasıtlı ihlalli derleme onu kırar (`09 §19.2` madde 3; `05 MK-15`).
+  8. Yasak test kalıplarını arayan kaynak taraması test projelerinde koşar (`09 §19.2` madde 6).
+  9. `UnitTests/Consistency/` klasörü ve `Consistency` özelliği vardır; kütüphane tablosu eşitliği denetimi `Directory.Packages.props` ile Kütüphaneler tablosunu paket kimliğiyle karşılaştırır (`09 §3.2`, §21.4 madde 1; K-1446).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: iki proje boş çözümde `dotnet test` ile koşar.
+  - KK2: beş sahte tek kopyadır; ikinci kopya yok.
+  - KK3: bağlantılı derleme yeşil.
+  - KK4: ayar sırası testle gösterilir.
+  - KK5: şablon ve koleksiyon veritabanı oluşur ve silinir.
+  - KK6: örnek uç testi geçer.
+  - KK7: ihlalli örnekte mimari test kırmızı.
+  - KK8: tarama `Skip` içeren örnekte kırmızı.
+  - KK9: tablo ile paket kümesi eşit; fazla ve eksik satır testi kırar.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T04: CI hattı ve eşitlik denetimleri
+- **Bağımlılık:** T03
+- **Dokümanlar:** çekirdek; `09` §3 (§3.2), §10 (§10.6), §19, §21; `05 §8.3`, §8.7; `05 MK-12`, `MK-70`, `MK-74`
+- **Kabul kriterleri:**
+  1. `.github/ci-commands.env` sekiz adımın komutlarını taşır; Contract `NOT_APPLICABLE`'dır (`05 §2.3.5`, §8.3.8).
+  2. Lint komutu `dotnet format` doğrulamasını ve `Consistency` özellikli testleri koşar; Unit komutu o testleri dışarıda bırakır (`09 §21.4` madde 1; K-1356).
+  3. Build komutu yayın yapılandırmasında uyarıları hata sayar, kilitli geri yükleme ve bilinen açık taraması koşar (`09 §3.2`, §21.4).
+  4. Integration komutu gerçek PostgreSQL 18 hizmetine karşı koşar (`05 §2.3.6`).
+  5. Migration dry-run komutu göç demetini boş veritabanına uygular; son yayımlanan sürüm yoksa geri alma sınaması atlanır ve atlandığı CI çıktısında yazılır (`09 §21.4` madde 3; K-1356).
+  6. Package build komutu üç imajı derler, yayımlamaz (`05 §8.3.10`); komutun sınaması T06'dadır.
+  7. `publish.yml` yama sürümünde göç klasörü değişmişse etiket imaja basılmadan önce düşer; `migration-fix: K-<numara>` etiket mesajı istisnadır; ilk etikette denetim koşmaz (`09 §21.4` madde 2; `05 §8.3.12`, §8.7.4; K-1356).
+  8. `publish.yml` ana dala her merge'de imajı commit kimliğiyle, sürüm etiketinde sürüm numarasıyla yayımlar; kayıt defteri yazma izni açılır (`05 MK-12`, §8.3.12).
+  9. Dependabot açıktır; boş komut kapıyı geçmez (`05 §8.3.14`; `09 §21.4` madde 5).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: sekiz komut dolu; Contract değeri `NOT_APPLICABLE`.
+  - KK2: Lint ve Unit koşusunda `Consistency` testi yalnız Lint'te görünür.
+  - KK3: uyarı içeren örnek derleme düşer.
+  - KK4: PostgreSQL hizmetli koşu yeşil.
+  - KK5: CI çıktısında atlama satırı var.
+  - KK6: komut yazılıdır, sınama T06'ya bırakılmıştır.
+  - KK7: yama etiketli, göç eklenmiş dalda yayın düşer; istisna mesajında geçer.
+  - KK8: yayın akışı dosyası imaj adlarını commit ve sürüm etiketiyle üretir.
+  - KK9: boş komutla `SETUP_COMPLETE=true` CI'ı düşürür.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T05: Compose geliştirme ortamı
+- **Bağımlılık:** T06, T01
+- **Dokümanlar:** çekirdek; `09` §4 (§4.3), §17; `05 §3.2`, §6.3, §6.8, §8.1; `05 MK-06`, `MK-08`, `MK-10`, `MK-14`, `MK-68`, `MK-76`
+- **Kabul kriterleri:**
+  1. `deploy/compose.yaml` dört hizmeti ve tek seferlik göç hizmetini tanımlar (`05 §3.2`, §8.2.4; `MK-14`).
+  2. Ters vekil ile uygulama, uygulama ile veritabanı ayrı iç ağlardadır; ters vekil ve yedek aracı veritabanına ulaşamaz (`05 §3.2.5`).
+  3. Dışarıya açık kapı yalnız 80 ve 443'tür (`05 §3.2.3`; `MK-08`).
+  4. Veritabanı ve yedek aracının dışarıya çıkışı `DOCKER-USER` zincirinde hedef adresli kuralla sınırlıdır (`05 §3.2.5`; `MK-76`).
+  5. Veri, dosya, kayıt, sertifika ve durum dosyası adlandırılmış bölümlerdedir; ters vekile yalnız görseller salt okuma bağlıdır (`05 §8.2.4`).
+  6. `deploy/compose.dev.yaml` üstüne bindirilir; e-posta yakalayıcıyı ekler ve gönderimi ona yönlendirir; ayrı imaj ya da veritabanı sürümü tanımlamaz (`09 §4.3` madde 2; `05 §8.1.2`).
+  7. Her imaj etiket ve özetle sabittir; `latest` yoktur (`05 MK-10`; `09 §4.3` madde 4).
+- **Test beklentisi:** Yok — Compose ve ağ tanımıdır; sınama Paketleme adımı ve kurulumda konteyner içinden çıkış denemesidir (`05 §3.2.5`)
+- **Doğrulama kontrol listesi:**
+  - KK1: `docker compose config` geçerli; hizmet sayısı dört.
+  - KK2: ters vekilden veritabanına bağlantı reddedilir.
+  - KK3: ana makinede yalnız 80 ve 443 dinler.
+  - KK4: veritabanı konteynerinden başka adrese çıkış reddedilir, nesne depolamaya geçer.
+  - KK5: volume adları listeyle eşit; vekilde yalnız görsel bölümü.
+  - KK6: geliştirme varyantıyla e-posta yakalayıcıya düşer, dışarı çıkmaz.
+  - KK7: dosyalarda `latest` yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T06: Üç imaj ve kayıt defteri
+- **Bağımlılık:** T02, T04
+- **Dokümanlar:** çekirdek; `09` §4 (§4.3), §17, §21; `05 §3.2`, §8.2; `05 MK-02`, `MK-09`…`MK-11`, `MK-69`
+- **Kabul kriterleri:**
+  1. Uygulama imajı çok aşamalıdır, kök olmayan kullanıcıyla çalışır ve göç demetini taşır (`05 §8.2.1`; `MK-69`).
+  2. Veritabanı imajı resmî PostgreSQL 18 imajına pgBackRest ve gecelik tam yedeğin zamanlayıcısını ekler (`05 §8.2.2`; `09 §17` madde 1).
+  3. Yedek aracı imajı restic ikilisini SHA-256 özetiyle sabitler; özet tutmazsa derleme düşer (`09 §17` madde 6).
+  4. Her derleme dosyası taban imajı etiket ve özetle sabitler; `latest` yoktur (`05 MK-10`; `09 §4.3` madde 4).
+  5. Derleme bağlamı repo köküdür; Dockerfile `src/` altında değildir (`09 §4.3` madde 1).
+  6. Imajlara sır girmez; sırlar dosya olarak bağlanır (`09 §17` madde 2).
+  7. Kayıt defteri GitHub Container Registry'dir; paket görünürlüğünün ilk yayından sonra açılışı adım olarak yazılıdır (`05 MK-11`, §8.2.5).
+  8. CI Paketleme adımı üç imajı derler ve uygulama konteyneri canlılık ucuna yanıt verene kadar ayağa kalkar (`05 §8.3.10`).
+- **Test beklentisi:** Unit
+- **Doğrulama kontrol listesi:**
+  - KK1: uygulama imajı kullanıcısı kök değildir; demet imajdadır.
+  - KK2: veritabanı imajında pgBackRest ve zamanlayıcı bulunur.
+  - KK3: yanlış özetli ikili derlemeyi düşürür.
+  - KK4: kaynak taraması `latest` bulmaz.
+  - KK5: derleme komutu `-f deploy/images/<ad>/Dockerfile .` biçimindedir.
+  - KK6: sır değeri taraması temiz.
+  - KK7: paket görünürlüğü adımı kayıtlı.
+  - KK8: Paketleme adımı yeşil ve canlılık denemesi geçer.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T07: Yedek düzeni
+- **Bağımlılık:** T06
+- **Dokümanlar:** çekirdek; `09` §17, §21; `05 §7.6`, §6.8, §9.2, §9.4; `05 MK-09`, `MK-25`…`MK-27`; `10 KP-75`
+- **Kabul kriterleri:**
+  1. İşlem günlüğü en geç dakikada bir nesne depolamaya taşınır; `archive_timeout` elli saniyedir (`05 §7.6.1`; `MK-25`).
+  2. Gecelik tam yedek imha işinden (03:00) önce biter (`05 §7.6.1`; `09 §17` madde 3).
+  3. Dosya yedeği sırası `backup`, `forget --keep-within 30d`, `prune --max-unused 0`, `check`'tir; bir adım düşerse sonrakiler atlanır (`09 §17` madde 4).
+  4. Yedek durum dosyası atomik yazılır; başarısız turda `lastSuccessAt` önceki değeri taşır (`09 §17` madde 5).
+  5. İki yedeğin ayrı şifreleme anahtarı vardır; kovada sürüm tutma ve otuz günlük yaşam döngüsü kuralı kurulur (`05 §7.6.5`, §7.6.6).
+  6. Otuz günden eski tam yedek ve günlükler silinir; sınırdan eski en yeni tam yedek tutulur (`05 §7.6.6`).
+  7. Kurtarma provası sunucu dışındaki depodan döner; sonuç `DEPLOY_RUNBOOK`'a yazılır (`05 §7.6.8`).
+- **Test beklentisi:** Unit
+- **Doğrulama kontrol listesi:**
+  - KK1: arşiv ayarı dosyada elli saniye.
+  - KK2: zamanlama saati imhadan önce biter.
+  - KK3: budama komutu `--max-unused 0` ile koşar (komut satırı testi).
+  - KK4: durum dosyası her sonuç için şemaya uyar.
+  - KK5: anahtarlar ayrı sır dosyalarıdır; kova kuralı kayıtlı.
+  - KK6: saklama ayarı otuz gün.
+  - KK7: prova kaydı depo adını ve sonucu taşır.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T08: Sır düzeni
+- **Bağımlılık:** T05
+- **Dokümanlar:** çekirdek; `09` §4 (§4.3), §17, §18; `05 §6.x`; `05 MK-59`, `MK-60`
+- **Kabul kriterleri:**
+  1. Sırlar bileşen başına ayrı dosyadadır, yalnız köke açık dizinde durur ve Compose sır tanımıyla yalnız ilgili konteynere bağlanır (`05 §6.x.1`; `MK-59`).
+  2. Uygulama sırları dosyadan okur; ortam değişkenine konmaz (`05 §6.x.1`).
+  3. Her sırrın sahibi onu okuyan konteyner kullanıcısıdır (`05 §6.x.1`).
+  4. Paylaşılan sır yoktur; her bileşen yalnız `05 §6.x.3`…`§6.x.7` tablosundaki sırları alır (`05 §6.x.8`).
+  5. Döndürme kuralları `05 §6.x.9` tablosunda yazılıdır; şifreleme anahtarları döndürülmez (`MK-60`).
+  6. Repo yalnız `.env.example` şablonunu izler; sır değeri repoya ve kayda girmez (`05 §6.x.16`; `09 §18`).
+- **Test beklentisi:** Unit
+- **Doğrulama kontrol listesi:**
+  - KK1: Compose'ta her sır yalnız bir hizmette tanımlı.
+  - KK2: kaynak taraması ortam değişkeninden sır okuyan kod bulmaz.
+  - KK3: sır dosyası sahipliği konteyner kullanıcısıdır.
+  - KK4: bileşen–sır eşlemesi tabloyla aynı.
+  - KK5: döndürme tablosu ile `DEPLOY_RUNBOOK §B` uyumlu.
+  - KK6: repoda sır değeri taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T09: İlk yayın ve referans kuruluma ilk iniş
+- **Bağımlılık:** T04, T07, T08, T10
+- **Dokümanlar:** çekirdek; `09` §4, §17, §21; `05 §8.1`, §8.2, §8.6; `05 MK-68`; `10 §4.1`
+- **Kabul kriterleri:**
+  1. İlk sürüm etiketi açıklamalı `vANA.ARA.YAMA` biçimindedir ve `publish.yml` imajları yayımlar (`05 §8.3.12`; `09 §21.4` madde 2, 4).
+  2. İlk yayında geri alma sınaması atlanır ve atlandığı CI çıktısında yazılıdır (`09 §21.4` madde 3; K-1358).
+  3. Üç imaj paketi ilk yayından sonra açık yapılır ve sunucu kimlik bilgisiz çeker (`05 §8.2.5`).
+  4. Referans kuruluma ilk iniş yapılır; boş uygulama imajı canlılık ucuna 200 verir (`05 §8.1.4`; `MK-68`).
+  5. Kurulum, referans kurulumda imaj özetini kaydeder (`05 §8.2.3`).
+  6. Gerçek yapılandırmayla ayağa kaldırma provası sonucu `DEPLOY_RUNBOOK`'a yazılır (`05 §8.1.4`).
+- **Test beklentisi:** Yok — yayın ve kurulum işlemidir; kanıt referans kurulumdaki canlılık yanıtı ve CI çıktısıdır
+- **Doğrulama kontrol listesi:**
+  - KK1: etiket açıklamalı; kayıt defterinde imajlar var.
+  - KK2: CI çıktısında atlama satırı.
+  - KK3: sunucu imajı kimliksiz çeker.
+  - KK4: referans kurulumda canlılık ucu 200.
+  - KK5: kaydedilen özet kurulumdakiyle eşit.
+  - KK6: prova kaydı runbook'ta.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T10: Veritabanı kullanıcıları
+- **Bağımlılık:** T06, T08, T03
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6, §10.8), §17, §19; `05 §7.1.3`, §6.x; `05 §7.1`
+- **Kabul kriterleri:**
+  1. Kurucu betik beş kullanıcıyı kurar; dördünde `SUPERUSER`, `CREATEDB`, `CREATEROLE`, `REPLICATION`, `BYPASSRLS` yoktur (`09 §10.8` madde 1).
+  2. `pg_trgm` kurucu kullanıcıyla kurulur; veritabanı UTF-8 ve ICU Türkçe sıralamayla açılır (`05 §7.1.3`; `06 §2.8.3`).
+  3. Uygulama kullanıcısı şema değiştiremez; `audit_logs`'ta yalnız ekler ve okur (`09 §10.8` madde 2, 3).
+  4. Salt okuma kullanıcısı yalnız `SELECT` alır; `data_protection_keys`'i okuyamaz (`09 §10.8` madde 3).
+  5. Yedek durum kullanıcısı yalnız `backup_status_records` iki sütununda `UPDATE` yapar; `pg_hba.conf` genel `trust` satırı kaldırılır (`09 §10.8` madde 1).
+  6. Kullanıcı adları göç kullanıcısının üç rol ayarından gelir (`09 §10.8` madde 5).
+  7. Yetki matrisi testi `public` şemasındaki her tabloyu karşılaştırır (`09 §10.8` madde 7).
+  8. Hiçbir bileşen ağdan kurucu kullanıcıyla bağlanmaz (`05 §7.1.3`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: `rolsuper` ve yaratma bayrakları rol başına yanlış.
+  - KK2: `pg_trgm` ve sıralama ayarı kurulumda var.
+  - KK3: uygulama kullanıcısı `CREATE TABLE` ve `UPDATE audit_logs` deyimlerinde reddedilir.
+  - KK4: okuyucu `INSERT` ve `data_protection_keys` okumada reddedilir.
+  - KK5: durum kullanıcısı ikinci sütunda reddedilir.
+  - KK6: ayar yokken ilgili göç geri alınır.
+  - KK7: matris testi istisna dışı fazlalıkta kırılır.
+  - KK8: ağdan kurucu bağlantısı reddedilir (Compose denemesi).
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+### F1 — Veri katmanı
+
+**Yürütme sırası:** T101 → T102 → T103 → T104 → T105 → T106 → T107 → T108 → T109 → T110 → T111 → T112 → T113 → T114 → T115 → T116 → T117 → T118 → T119 → T120
+
+#### T101: Veri modeli temeli
+- **Bağımlılık:** —
+- **Dokümanlar:** çekirdek; `09` §5, §9, §10 (§10.1, §10.6), §12; `06 §2.1`–§2.6, §2.8–§2.10, §5.1; `02 §4.1.1`; `05 MK-03`, `MK-06`, `MK-19`, `MK-74`
+- **Kabul kriterleri:**
+  1. Veritabanı bağlamı tektir ve `Infrastructure/` altındadır; modül kendi bağlamını açmaz (`09 §4.1` madde 2).
+  2. Birincil anahtar tek sütunlu `id`, sürüm 7 UUID'dir ve uygulama üretir (`06 §2.3.1`).
+  3. Tablo adı çoğul, sütun adı küçük harf ve alt çizgilidir; `pk_`, `fk_`, `ix_` ve `ck_` adları kuralla türer, elle verilmez (`06 §2.4.1`, §2.4.3).
+  4. Türler `06 §2.5.1` tablosuna uyar: para `numeric(12,2)`, an `timestamptz`, tarih `date`.
+  5. Sürüm taşıyan kayıtta `version` tamsayı sütunudur ve yazım koşullu güncellemedir (`06 §2.6.1`).
+  6. Kimlik karşılaştırması tek normalleştirme işleviyle, ayrı sütunda yapılır; veritabanı sıralaması ICU Türkçedir (`06 §2.8.1`…`§2.8.3`).
+  7. Her tablo `created_at` taşır; boş değer yalnız `NULL`'dur (`06 §2.8.4`, §2.8.5).
+  8. Bağ `NO ACTION` ya da yalnız sahibiyle basamaklıdır; `RESTRICT` kullanılmaz (`06 §2.2.5`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: çözümde tek bağlam sınıfı var.
+  - KK2: örnek kaydın anahtarı UUID v7.
+  - KK3: örnek tablonun kısıt adları kuraldan türer.
+  - KK4: tür eşlemesi tabloyla eşit.
+  - KK5: eski sürümle güncelleme sıfır satır etkiler.
+  - KK6: `I`, `İ`, `ı`, `i` aynı normal biçime iner.
+  - KK7: boş metin kaydedilmez, `NULL` kaydedilir.
+  - KK8: silme davranışı modelde `NO ACTION`.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T102: Enum tanımları ve değer dönüşümü
+- **Bağımlılık:** T101
+- **Dokümanlar:** çekirdek; `09` §10 (§10.1), §12; `06 §5.2`–§5.6
+- **Kabul kriterleri:**
+  1. Her enum `06 §5.2`…`§5.6` tablosundaki kod adlarıyla, birebir tanımlıdır (`06 §5.1.2`).
+  2. Enum değeri veritabanında metin olarak kod adıyla saklanır; sayısal değer anlam taşımaz (`06 §2.9.1`).
+  3. Enum sütunu izinli değerlerin kontrol kısıtını taşır; alt küme kullanan alan o alt kümeyi sayar (`06 §2.9.2`).
+  4. Değer dönüşümü her enum için tek yerde tanımlıdır ve bilinmeyen metinde hata verir.
+  5. Kalıcı her enum için `UnitTests/Locks/<EnumTamAdı>.txt` kilit dosyası vardır ve eşitlik iki yönlü sınanır (`09 §12`).
+  6. Davranışı olan değerin kuralı enum'da yinelenmez; kuralın evine işaret edilir (`06 §5.1.3`).
+- **Test beklentisi:** Unit
+- **Doğrulama kontrol listesi:**
+  - KK1: tablo ile enum üye kümesi eşit.
+  - KK2: örnek kayıt veritabanında metin olarak görünür.
+  - KK3: izinli olmayan metin kısıtı ihlal eder.
+  - KK4: bilinmeyen metin okunurken hata verir.
+  - KK5: üye eklenip kilit dosyası güncellenmezse test kırılır.
+  - KK6: enum dosyalarında kural kopyası yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T103: Başlangıç listeleri, firma ve yasal metin sürümü
+- **Bağımlılık:** T102
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6), §12; `06` Province, Country, Company, CompanySettings, CompanyDeliveryProvince, LegalTextVersion; `02 §3.1.1`, §3.14.3
+- **Kabul kriterleri:**
+  1. Altı entity `06 §4.1`…`§4.4` ve `§4.56` alan tablolarıyla tek göçle kurulur.
+  2. `Company` ve `CompanySettings` tek satırdır; sabit ifadenin tekil dizini korur (`06 §2.3.2`).
+  3. `CompanySettings` havale açıksa IBAN dolu ve iade adresinin dört alanı birlikte dolu ya da boş kısıtlarını, bölüm sürümü sütunlarını taşır (`06 §4.2`; `§2.6.3`).
+  4. `Province.Code` tekil ve iki rakam, `Country.Code` tekil ve iki büyük harftir; `ProvinceId` teslimat ili satırında tekildir.
+  5. `LegalTextVersion` (`LegalTextType`, `VersionNumber`) çiftini dolu satırlarda tekil tutar; sürüm numarası ile yayın anı birlikte doludur (`06 §4.56`).
+  6. İl ve ülke satırı silinmez; gelen bağlar kısıtlayıcıdır; teslimat ili satırı olayla silinir (`06 §4.2`…`§4.4`).
+  7. Göç tek konudur; `Down` ve işlem dışı adım yoktur (`09 §10.6` madde 1, 2).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, altı tablo var.
+  - KK2: ikinci `Company` satırı reddedilir.
+  - KK3: havale açık ve IBAN boşken kayıt reddedilir.
+  - KK4: kodu üç haneli il reddedilir.
+  - KK5: aynı tür ve sürüm numarası ikinci kez reddedilir.
+  - KK6: il silme, bağlı satır varken reddedilir.
+  - KK7: kaynak taraması `Down` bulmaz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T104: Ürün çekirdeği ve görsel
+- **Bağımlılık:** T103
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6), §12; `06` Image, Product, Option, OptionValue, Variant, Category, ProductCategory, ProductImage
+- **Kabul kriterleri:**
+  1. Sekiz entity `06 §4.5`…`§4.10`, `§4.69`, `§4.71` alan tablolarıyla tek göçle kurulur.
+  2. `Product.VatRate` 0 ≤ oran < 100 ve çit kısıtlarını taşır (`06 §4.5`).
+  3. `Variant` stok kodunun normalleştirilmiş sütunu tekildir; (`ProductId`, birinci ve ikinci değer) kombinasyonu `NULLS NOT DISTINCT` tekildir (`06 §4.6`).
+  4. `Option` (`ProductId`, `SortOrder`) tekildir ve sıra 1 ile P-21 arasındadır (`06 §4.7`).
+  5. `Category.Level` 1 ile P-20 arasındadır; üst kategori boşsa 1'dir (`06 §4.9`).
+  6. Ana kategori ürün başına en çoktur (filtreli tekil dizin); ana görsel sahip başına en çoktur (`06 §4.10`, §4.71).
+  7. `Image` boyutu sıfırdan büyük ve 2560'ı aşmaz; ürün silinince varyant, seçenek ve bağlar basamaklanır, dolu kategori silinmez (`06 §4.5`, §4.9, §4.69).
+  8. Göç tek konudur; `Down` yoktur (`09 §10.6`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, sekiz tablo.
+  - KK2: yüz oranlı KDV reddedilir.
+  - KK3: aynı stok kodu farklı harfle reddedilir.
+  - KK4: üçüncü seçenek reddedilir.
+  - KK5: dördüncü düzey kategori reddedilir.
+  - KK6: ikinci ana kategori ve ikinci ana görsel reddedilir.
+  - KK7: ürün silmede varyant gider; dolu kategori silme reddedilir.
+  - KK8: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T105: Fiyat, kupon ve dijital dosya
+- **Bağımlılık:** T104
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6), §12; `06` PriceHistory, Discount, Coupon, DigitalFile
+- **Kabul kriterleri:**
+  1. Dört entity `06 §4.11`…`§4.13` ve `§4.70` alan tablolarıyla tek göçle kurulur.
+  2. `PriceHistory.Price` sıfırdan büyüktür; varyantla basamaklanır (`06 §4.11`).
+  3. `Discount` ürün başına tekildir; 0 < yüzde < 100 ve bitiş ≥ başlangıç kısıtlarını taşır (`06 §4.12`).
+  4. `Coupon` normalleştirilmiş kodda tekildir; yüzde ile tutardan tam biri doludur; tutar doluysa asgari sepet tutarı doludur ve büyüktür (`06 §4.13`).
+  5. Kupon silinmez; gelen bağlar kısıtlayıcıdır (`06 §4.13`).
+  6. `DigitalFile` ürün ya da varyanttan en çok birine bağlıdır; yükleme tamamlanmadan bağ ve bağlanma anı boştur; bayt boyutu `bigint` ve sıfırdan büyüktür (`06 §4.70`).
+  7. Göç tek konudur; `Down` yoktur (`09 §10.6`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, dört tablo.
+  - KK2: sıfır fiyat reddedilir.
+  - KK3: ikinci indirim ve %100 indirim reddedilir.
+  - KK4: yüzde ve tutar birlikte dolu kupon reddedilir.
+  - KK5: kupon silme bağlıyken reddedilir.
+  - KK6: tamamlanmamış yüklemede bağ dolu satır reddedilir.
+  - KK7: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T106: Yönetici hesabı, davet ve işlem izi
+- **Bağımlılık:** T105
+- **Dokümanlar:** çekirdek; `09` §9, §10 (§10.6, §10.8), §12; `06` Admin, AdminInvitation, AuditLog; `02 §1.3`, `Z-3`, `Z-30`, §6.9, §10.3; `05 MK-24`, §7.5
+- **Kabul kriterleri:**
+  1. Üç entity `06 §4.37`, `§4.38`, `§4.63` alan tablolarıyla tek göçle kurulur.
+  2. `Admin` normalleştirilmiş e-postada tekildir (`06 §4.37`).
+  3. `AdminInvitation` geri çekilme, geçersiz kılınma ve kabul anlarından en çok birini taşır; üçü boş satırlarda adres tekildir (`06 §4.38`).
+  4. `audit_logs` göçü uygulama kullanıcısından `UPDATE` ve `DELETE` yetkisini rol ayarından okuduğu adla geri alır (`09 §10.8` madde 3; `05 §7.5.1`).
+  5. İz satırı yöneticiyi ad ve e-postayla değer olarak taşır; `AuditLog` başka tabloya bağ taşımaz (`06 §2.2.5`).
+  6. Yönetici hesabına giden bağlar boşaltılır (`06 §2.2.5`).
+  7. Göç tek konudur; `Down` yoktur (`09 §10.6`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, üç tablo.
+  - KK2: aynı e-posta farklı harfle reddedilir.
+  - KK3: iki sonuçlanmış davet anı reddedilir.
+  - KK4: uygulama kullanıcısı `audit_logs` güncellemede reddedilir.
+  - KK5: rol ayarı yokken göç geri alınır.
+  - KK6: `audit_logs` yabancı anahtar taşımaz.
+  - KK7: kaynak taraması sabit kullanıcı adı bulmaz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T107: Müşteri hesabı
+- **Bağımlılık:** T106
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6), §12; `06` Customer, AddressBook, PendingEmailChange; `02 §1.3`
+- **Kabul kriterleri:**
+  1. Üç entity `06 §4.36`, `§4.40`, `§4.45` alan tablolarıyla tek göçle kurulur.
+  2. `Customer` normalleştirilmiş e-postada tekildir; doğrulanmamış hesapta şifre özeti dolu ve Google bağı boştur (`06 §4.36`).
+  3. `PendingEmailChange` müşteri ya da yöneticiden tam birine bağlıdır; her biri ayrı tekildir, yeni e-posta tekil değildir (`06 §4.40`).
+  4. `AddressBook.Phone` on rakamdır (`06 §4.45`).
+  5. Hesapla birlikte adres defteri ve bekleyen değişiklik basamaklanır (`06 §2.2.5`).
+  6. Göç tek konudur; `Down` yoktur (`09 §10.6`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, üç tablo.
+  - KK2: aynı e-posta farklı harfle reddedilir.
+  - KK3: doğrulanmamış hesapta şifresiz kayıt reddedilir.
+  - KK4: iki hesaba bağlı bekleyen değişiklik satırı reddedilir.
+  - KK5: dokuz haneli telefon reddedilir.
+  - KK6: hesap silmede adres defteri gider.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T108: Oturum, bağlantı, deneme ve giriş kayıtları
+- **Bağımlılık:** T107
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6), §12; `06` Session, LinkRecord, AttemptRecord, RecognizedBrowserMark, LoginRecord; `02 §3.13.20`, `P-45`; `05 MK-48`, `MK-50`
+- **Kabul kriterleri:**
+  1. Beş entity `06 §4.39`, `§4.41`…`§4.44` alan tablolarıyla tek göçle kurulur.
+  2. `Session` müşteri ya da yöneticiden tam birine bağlıdır; belirteç özeti tekildir (`06 §4.39`).
+  3. `RecognizedBrowserMark` işaret özeti tekil, hesap bağı tam birdir (`06 §4.41`).
+  4. `LinkRecord` müşteri, yönetici ve davetten tam birine bağlıdır; `AdminInvitation` türünde ve yalnız o zaman davet bağı doludur (`06 §4.42`).
+  5. `AttemptRecord` ekseni limitin eksenine uyar (`06 §4.43`).
+  6. `LoginRecord` yalnız eklenir; satır güncellenmez (`06 §4.44`).
+  7. Oturum ve bağlantı kaydı sahibiyle basamaklanır (`06 §2.2.5`).
+  8. Göç tek konudur; `Down` yoktur (`09 §10.6`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, beş tablo.
+  - KK2: hem müşteri hem yönetici bağlı oturum reddedilir.
+  - KK3: aynı belirteç özeti reddedilir.
+  - KK4: davet türünde davetsiz bağlantı reddedilir.
+  - KK5: L4 satırında e-posta ekseni reddedilir.
+  - KK6: giriş kaydına güncelleme yolu kodda yoktur.
+  - KK7: hesap silmede oturum gider.
+  - KK8: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T109: Sepet ve sipariş çekirdeği
+- **Bağımlılık:** T108
+- **Dokümanlar:** çekirdek; `09` §9, §10 (§10.6), §12; `06` Cart, CartItem, Order, OrderItem, TransitionRecord, InternalNote, CheckboxAcceptance, CheckboxAcceptanceOrderItem
+- **Kabul kriterleri:**
+  1. Sekiz entity `06 §4.15`…`§4.21` alan tablolarıyla tek göçle kurulur.
+  2. `Cart` müşteri ya da misafir anahtarı özetinden tam birini taşır; ikisi ayrı tekildir (`06 §4.15`).
+  3. `CartItem` (`CartId`, `VariantId`) tekildir; varyant bağı boşsa kaldırılan ürün adı doludur (`06 §4.16`).
+  4. `Order` numara, erişim anahtarı ve onay anahtarında ayrı ayrı tekildir; iki eksenin yasak çiftleri kontrol kısıtıdır (`06 §4.17`).
+  5. `OrderItem` adet, fiyat, indirim, KDV ve kupon payı kısıtlarını taşır (`06 §4.18`).
+  6. `TransitionRecord` neden alanlarından en çok birini taşır; düzeltme satırı yalnız düzeltme alanlarını taşır (`06 §4.19`).
+  7. `InternalNote` siparişte tekildir; `CheckboxAcceptance` (`OrderId`, tür) tekildir (`06 §4.20`, §4.21).
+  8. Sipariş ve kalem silinmez; bağlar kısıtlayıcı, hesap ve yönetici bağı boşaltılır (`06 §4.17`…§4.19).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, sekiz tablo.
+  - KK2: sahipsiz ya da iki sahipli sepet reddedilir.
+  - KK3: işaretsiz varyantsız kalem reddedilir.
+  - KK4: ödeme Başarısız ve sipariş Alındı birleşimi reddedilir.
+  - KK5: sıfır adetli kalem reddedilir.
+  - KK6: iki nedenli geçiş satırı reddedilir.
+  - KK7: siparişe bağlı kalem varken sipariş silme reddedilir.
+  - KK8: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T110: Ayırma ve düzeltme geçmişleri
+- **Bağımlılık:** T109
+- **Dokümanlar:** çekirdek; `09` §9, §10 (§10.6), §12; `06` StockReservation, OrderEmailHistory, OrderAddressHistory
+- **Kabul kriterleri:**
+  1. Üç entity `06 §4.14`, `§4.61`, `§4.62` alan tablolarıyla tek göçle kurulur.
+  2. `StockReservation` varyant ile kuponun tam birine bağlıdır; adet sıfırdan büyük, kupon satırında 1'dir (`06 §4.14`).
+  3. (`OrderId`, `VariantId`) varyant satırlarında, `OrderId` kupon satırlarında tekildir (filtreli tekil dizinler).
+  4. Ayırma varyantla basamaklanır; sipariş ve kupon bağı kısıtlayıcıdır (`06 §4.14`).
+  5. `OrderAddressHistory` teslimat adresinde iki telefonu dolu, fatura adresinde boş tutar; telefonlar on rakamdır (`06 §4.62`).
+  6. İki geçmiş uygulama düzeyinde yalnız eklenir (`06 §2.2.3`).
+  7. Göç tek konudur; `Down` yoktur (`09 §10.6`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, üç tablo.
+  - KK2: varyantsız ve kuponsuz ayırma reddedilir.
+  - KK3: ikinci aynı varyant ayırması reddedilir.
+  - KK4: varyant silmede ayırma gider.
+  - KK5: fatura adresinde telefon dolu satır reddedilir.
+  - KK6: geçmiş tablolarında güncelleme yolu yok.
+  - KK7: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T111: Kalem kayıtları
+- **Bağımlılık:** T110
+- **Dokümanlar:** çekirdek; `09` §9, §10 (§10.6), §12; `06` RefundIban, DefectClaim, Cancellation, ItemRemoval, LateDeliveryTermination, Withdrawal, Return, NotReturnedClosure
+- **Kabul kriterleri:**
+  1. Sekiz entity `06 §4.22`…`§4.26`, `§4.28`, `§4.30`, `§4.31` alan tablolarıyla tek göçle kurulur.
+  2. İptal, çıkarma, gecikme feshi ve cayma kayıtlarında adet ve ürün tutarı sıfırdan büyük, 0 ≤ kupon payı ≤ ürün tutarı, KDV ≥ 0'dır (`06 §4.22`…`§4.25`).
+  3. Eylemi yapanın türü müşteri ya da yönetici olan kayıtlarda yönetici alanları tür kuralına uyar (`06 §4.22`, §4.24, §4.25).
+  4. `Return` cayma, gecikme feshi ve ayıp talebi bağlarından en çok birini taşır (`06 §4.26`).
+  5. `DefectClaim` kalem başına tekildir; iade adresinin dört alanı birlikte dolu ya da boştur (`06 §4.30`).
+  6. `RefundIban` biçim kısıtını taşır; IBAN olayla silinir (`06 §4.31`).
+  7. Kayıtlar silinmez; kalem bağı kısıtlayıcı, yönetici ve IBAN bağı boşaltılır (`06 §4.22`…§4.28).
+  8. Göç tek konudur; `Down` yoktur (`09 §10.6`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, sekiz tablo.
+  - KK2: kupon payı ürün tutarını aşan kayıt reddedilir.
+  - KK3: müşteri kaydında yönetici alanı dolu satır reddedilir.
+  - KK4: iki bağlı `Return` satırı reddedilir.
+  - KK5: aynı kaleme ikinci ayıp talebi reddedilir.
+  - KK6: küçük harfli IBAN reddedilir.
+  - KK7: kalemi bağlı kayıt varken kalem silme reddedilir.
+  - KK8: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T112: Ödeme ve geri ödeme kayıtları
+- **Bağımlılık:** T111
+- **Dokümanlar:** çekirdek; `09` §9, §10 (§10.6), §12, §14; `06` PaymentRecord, Refund, RefundRecord, InboundNotificationRecord
+- **Kabul kriterleri:**
+  1. Dört entity `06 §4.32`…`§4.35` alan tablolarıyla tek göçle kurulur.
+  2. `PaymentRecord` sağlayıcı işlem kimliğinde dolu satırlarda tekildir; işlem kimliği ile geçiş kaydından en az biri doludur (`06 §4.32`).
+  3. `Refund` türe göre bağları taşır; kalem kaydı bağı yalnız tutar temelli türde doludur; tutar ve adet sıfırdan büyüktür (`06 §4.33`).
+  4. `RefundRecord` sonuç anını yalnız başarılı ya da gerçekleşmedi hâlinde taşır; firma işareti hâli gerçekleşmedi yapar (`06 §4.34`).
+  5. `InboundNotificationRecord` bildirim kimliği ya da işlem kimliğinden en az birini taşır; iki filtreli tekil dizin bildirimin tekrarını engeller (`06 §4.35`).
+  6. Tutar sütunları `numeric(12,2)` türündedir (`06 §2.5.1`).
+  7. Göç tek konudur; `Down` yoktur (`09 §10.6`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, dört tablo.
+  - KK2: aynı işlem kimlikli ikinci ödeme kaydı reddedilir.
+  - KK3: tutar temelsiz türde kapanış bağı dolu satır reddedilir.
+  - KK4: bekleyen hâlde sonuç anı dolu satır reddedilir.
+  - KK5: kimliksiz bildirim satırı reddedilir; aynı bildirim ikinci kez reddedilir.
+  - KK6: tutar sütunu türü tabloyla eşit.
+  - KK7: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T113: İade reddi ve IBAN isteği
+- **Bağımlılık:** T112
+- **Dokümanlar:** çekirdek; `09` §9, §10 (§10.6), §12; `06` ReturnRejection, RefundIbanRequest
+- **Kabul kriterleri:**
+  1. İki entity `06 §4.27` ve `§4.29` alan tablolarıyla tek göçle kurulur.
+  2. `ReturnRejection` adedi sıfırdan büyüktür; kalem ve cayma beyanı bağları kısıtlayıcıdır (`06 §4.27`).
+  3. `RefundIbanRequest` karşılanma ve kapanış anlarından en çok birini taşır (`06 §4.29`).
+  4. IBAN bağı yalnız karşılanma anı doluyken doludur (`06 §4.29`).
+  5. Geri ödeme bağı sebebe göre dolu ya da boştur: kart geri ödemesi başarısızlığında ve kalemsiz istekte aktarım başarısızlığında doludur (`06 §4.29`).
+  6. Kayıtlar silinmez; yönetici bağı boşaltılır, IBAN olayla silinir (`06 §2.2.5`).
+  7. Göç tek konudur; `Down` yoktur (`09 §10.6`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, iki tablo.
+  - KK2: sıfır adetli ret reddedilir.
+  - KK3: hem karşılanmış hem kapanmış istek reddedilir.
+  - KK4: karşılanmamış istekte IBAN bağı dolu satır reddedilir.
+  - KK5: sebebe aykırı geri ödeme bağı reddedilir.
+  - KK6: IBAN silinince istek satırı kalır, bağ boşalır.
+  - KK7: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T114: İçerik kayıtları ve marka
+- **Bağımlılık:** T113
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6), §12; `06` AboutPage, Offering, PortfolioItem, FaqItem, CustomPage, Announcement, SocialLink, Branding
+- **Kabul kriterleri:**
+  1. Sekiz entity `06 §4.46`…`§4.49`, `§4.51`, `§4.52`, `§4.54`, `§4.55` alan tablolarıyla tek göçle kurulur.
+  2. `AboutPage`, `Announcement` ve `Branding` en çok bir satırdır; sabit ifadenin tekil dizini korur (`06 §2.3.2`).
+  3. Yayın durumu yalnız taslak ya da yayımlanmış değerini alır (`06 §2.9.2`).
+  4. `Announcement` bitiş tarihi başlangıçtan önce olamaz (`06 §4.52`).
+  5. `SocialLink` platform başına tekildir (`06 §4.55`).
+  6. `Branding` marka rengi `#` ve altı büyük onaltılık hane biçimindedir (`06 §4.54`).
+  7. Elle sıra tekil değildir (`06 §4.47`).
+  8. Uzun metin `text` sütunundadır (`06 §2.10.1`); kurumsal içerik kaydı silinince bağlı kayıtları basamaklanır (`06 §2.2.5`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, sekiz tablo.
+  - KK2: ikinci `Announcement` satırı reddedilir.
+  - KK3: üçüncü yayın durumu değeri reddedilir.
+  - KK4: bitişi başlangıçtan önce duyuru reddedilir.
+  - KK5: aynı platformda ikinci bağlantı reddedilir.
+  - KK6: kısa renk kodu reddedilir.
+  - KK7: aynı sıra değerli iki satır kaydedilir.
+  - KK8: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T115: Şube, içerik–ürün bağları ve iletişim talebi
+- **Bağımlılık:** T114
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6), §12; `06` Branch, OfferingProduct, PortfolioItemProduct, ContactRequest
+- **Kabul kriterleri:**
+  1. Dört entity `06 §4.50`, `§4.53`, `§4.57` alan tablolarıyla tek göçle kurulur.
+  2. `Branch` ve `ContactRequest` telefonu on rakamdır (`06 §4.50`, §4.57).
+  3. `Branch` görseli yoksa görsel alt metni boştur (`06 §4.50`).
+  4. İki içerik–ürün bağı (içerik, `ProductId`) çiftinde tekildir (`06 §4.53`).
+  5. İçerik–ürün bağı ürün ve içerik kaydıyla basamaklanır (`06 §2.2.5`).
+  6. Kapalı iletişim talebinde son kapanış anı doludur (`06 §4.57`).
+  7. Göç tek konudur; `Down` yoktur (`09 §10.6`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, dört tablo.
+  - KK2: dokuz haneli telefon reddedilir.
+  - KK3: görselsiz şubede alt metin dolu satır reddedilir.
+  - KK4: aynı ürünü ikinci kez bağlamak reddedilir.
+  - KK5: ürün silmede bağ gider.
+  - KK6: kapalı ve kapanış anı boş talep reddedilir.
+  - KK7: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T116: Galeri bağları
+- **Bağımlılık:** T115
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6), §12; `06` AboutPageImage, OfferingImage, PortfolioItemImage, FaqItemImage, CustomPageImage
+- **Kabul kriterleri:**
+  1. Beş galeri bağı `06 §4.71` alan tablosuyla tek göçle kurulur; `ProductImage` T104'tedir.
+  2. Her bağ (sahibin bağı, `ImageId`) çiftinde tekildir (`06 §4.71`).
+  3. Ana görsel sahip başına en çoktur; filtreli tekil dizin korur (`06 §4.71`).
+  4. Bağ sahibiyle basamaklanır; görsele giden bağ kısıtlayıcıdır ve görseli imhadan korur (`06 §2.2.5`).
+  5. Elle sıra tekil değildir (`06 §4.71`).
+  6. Göç tek konudur; `Down` yoktur (`09 §10.6`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, beş tablo.
+  - KK2: aynı görseli galeriye ikinci kez eklemek reddedilir.
+  - KK3: ikinci ana görsel reddedilir.
+  - KK4: sahip silmede bağ gider; bağlı görsel silme reddedilir.
+  - KK5: aynı sıra değerli iki bağ kaydedilir.
+  - KK6: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T117: Gönderim kaydı ve kanal hâli
+- **Bağımlılık:** T116
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6), §12; `06` DispatchRecord, ChannelStateRecord; `05 MK-38`, §4.4
+- **Kabul kriterleri:**
+  1. İki entity `06 §4.58` ve `§4.60` alan tablolarıyla tek göçle kurulur.
+  2. `DispatchRecord` sipariş bağı ve ilgili kayıt türü, gönderim türüne göre dolu ya da boştur; tür ile kimlik birlikte doludur (`06 §4.58`).
+  3. Gönderim anı yalnız gönderilmiş hâlinde doludur (`06 §4.58`).
+  4. İlgili kaydın kimliği bağ değil değer olarak durur; siparişe bağlı gönderim kaydı siparişi silinemez kılar (`06 §2.2.5`, §2.2.6).
+  5. `ChannelStateRecord` tek satırdır; art arda hata sayısı sıfırdan küçük olamaz ve ilk hata anı yalnız sayı sıfırken boştur (`06 §4.60`).
+  6. Göç tek konudur; `Down` yoktur (`09 §10.6`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, iki tablo.
+  - KK2: türe aykırı sipariş bağı reddedilir.
+  - KK3: sırada bekleyen satırda gönderim anı dolu ise reddedilir.
+  - KK4: ilgili kayıt silinince gönderim kaydı kalır.
+  - KK5: ikinci `ChannelStateRecord` satırı reddedilir.
+  - KK6: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T118: Zamanlayıcı, yedek, imha ve anahtar kayıtları
+- **Bağımlılık:** T117
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6, §10.8), §12; `06` Job, HeartbeatRecord, OutageRecord, BackupStatusRecord, DataProtectionKey, DisposalRecord; `02 §3.34`; `10 KP-75`
+- **Kabul kriterleri:**
+  1. Altı entity `06 §4.59`, `§4.64`…`§4.68` alan tablolarıyla tek göçle kurulur.
+  2. `Job` (iş türü, ilgili kayıt) çiftinde bekleyen satırlarda tekildir; tamamlandı hâli ile tamamlanma anı birlikte doludur; deneme sayısı ≥ 0'dır (`06 §4.59`).
+  3. `HeartbeatRecord` ve `BackupStatusRecord` tek satırdır (`06 §2.3.2`).
+  4. `OutageRecord` süresi iki dakikadan uzundur (`06 §4.66`).
+  5. `DisposalRecord` sayı ve tarih alanları türe göre dolu ya da boştur; bitiş ≥ başlangıçtır (`06 §4.64`).
+  6. `DataProtectionKey` paketin şemasıdır: tamsayı anahtar, oluşturulma anı yok (`06 §4.68`).
+  7. Göç `data_protection_keys` okumasını salt okuma kullanıcısından alır ve `backup_status_records` iki sütununda güncelleme yetkisini durum kullanıcısına verir; adlar rol ayarından okunur (`09 §10.8` madde 3).
+  8. Göç tek konudur; `Down` yoktur (`09 §10.6`).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: göç boş veritabanına uygulanır, altı tablo.
+  - KK2: aynı bekleyen iş ikinci kez reddedilir.
+  - KK3: tamamlanma anı dolu bekleyen iş reddedilir.
+  - KK4: ikinci `HeartbeatRecord` satırı reddedilir.
+  - KK5: iki dakikalık kesinti satırı reddedilir.
+  - KK6: sayısız imha satırı reddedilir.
+  - KK7: okuyucu `data_protection_keys` okumada reddedilir; durum kullanıcısı ikinci sütunda reddedilir.
+  - KK8: kaynak taraması temiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T119: Başlangıç verisi göçü ve seed olmayanların sınırı
+- **Bağımlılık:** T118
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6), §12; `06 §8.1`, §8.4 (2)
+- **Kabul kriterleri:**
+  1. Seed göçün veri adımında yazılır; kodda "kayıt yoksa oluştur" dalı yoktur (`06 §8.1.1`).
+  2. Göç 81 il ile ülke listesini yazar; il kodu plakadır (`06 §8.1.1`).
+  3. Göç `Company`, `CompanySettings`, `Branding`, `ChannelStateRecord`, `HeartbeatRecord`, `BackupStatusRecord` tek satırlarını başlangıç değerleriyle yazar (`06 §8.1.1`).
+  4. `CompanySettings` varsayılanları `02 §11.1`'dendir; havale kapalı, ana sayfa düzeni `ContentFirst`'tür (`06 §8.1.1`).
+  5. `CompanyDeliveryProvince` 81 il satırıyla, varsayılan tüm Türkiye olarak yazılır (`06 §8.1.1`).
+  6. İki `LegalTextVersion` taslağı yayın anı ve sürüm numarası boş yazılır (`06 §8.1.1`).
+  7. Göç var olan satırı değiştirmez; `UPDATE` ve `DELETE` izinli tablolar dışında yazılmaz (`06 §8.1.2`; `09 §10.6` madde 4).
+  8. Seed olmayanlar koddadır ya da kuruluma özgüdür: enum'lar, iş günü takvimi, kargo şirketi listesi koda; ilk yönetici ve kurulum ayarları kuruluma aittir (`06 §8.3`, §8.4).
+- **Test beklentisi:** Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: boş veritabanında 81 il ve 81 teslimat ili satırı var.
+  - KK2: altı tek satırlık kayıt başlangıç değerlerinde.
+  - KK3: iki taslak metin yayımlanmamış.
+  - KK4: seed göçü ikinci uygulamada satır sayısını değiştirmez.
+  - KK5: kaynak taraması `UPDATE` ve `DELETE` için izinli tablo dışında eşleşme bulmaz.
+  - KK6: kodda varsayılan kaydı oluşturan yol yoktur.
+  - KK7: ayar varsayılanı tabloyla eşit.
+  - KK8: seed olmayanlar listede açıkça yazılı.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T120: Model eşitlik denetimleri
+- **Bağımlılık:** T119
+- **Dokümanlar:** çekirdek; `09` §5, §10, §19; `06 §2.7`, §6.1…§6.6, §7.1…§7.6
+- **Kabul kriterleri:**
+  1. İlişki diyagramının 130 çizgisi modelin yabancı anahtarlarıyla birebir eşleşir (`06 §6`, §7.2).
+  2. Tekil dizin listesi modelle eşittir; filtreli tekil dizinlerin filtresi de eşleşir (`06 §7.1`).
+  3. Yabancı anahtar ve silme davranışı listesi modelle eşittir; `RESTRICT` yoktur (`06 §7.2`, §2.2.5).
+  4. Kontrol kısıtı listesi modelle eşittir (`06 §7.3`).
+  5. Sorgu dizinleri modelle eşittir (`06 §7.5`).
+  6. Saklanan türetilmiş değerler denormalizasyon envanterindeki dört türle sınırlıdır (`06 §2.7.1`).
+  7. Modelde göçe dönüşmemiş değişiklik yoktur (`09 §10.6` madde 11).
+  8. Denetimler birim testidir; veritabanına ve ağa dokunmaz (`09 §19.2` madde 2).
+- **Test beklentisi:** Unit
+- **Doğrulama kontrol listesi:**
+  - KK1: 130 çizgi, 130 yabancı anahtar.
+  - KK2: tekil dizin tablosundan bir satır silinince test kırılır.
+  - KK3: bir bağın davranışı değişince test kırılır.
+  - KK4: kontrol kısıtı eksilince test kırılır.
+  - KK5: dizin eksilince test kırılır.
+  - KK6: envanterde olmayan saklanan alan testi kırar.
+  - KK7: göçsüz model değişikliği Migration dry-run'ı düşürür.
+  - KK8: testler `UnitTests` altındadır, bağlantı dizesi okumaz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
 
 ## 6. Faz geçiş kapıları
 

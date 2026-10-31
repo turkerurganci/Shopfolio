@@ -217,3 +217,152 @@ Ham bulgular numaralandı: tek parça B-1…B-2 (F1–F2), parça 1 B-1…B-2 (F
 - [ ] F15 — RET (uygulanmadı)
 
 ⚠ karar: yok. Önerilen `00`/`CLAUDE.md`/`SETUP.md` değişikliği yok.
+
+
+## Hedefli mercek 2 (Faz 4 madde 6)
+
+**Tarih:** 2026-10-31 · **Hedef:** `Docs/11_IMPLEMENTATION_PLAN.md` v0.47 → v0.48 (girdi commit'i `f25366c`) · **Sınıf:** kabul kriteri (k_n) bir davranış, gösterim, saklama ya da koşul istiyor; aynı numaralı KK_n (ya da bloğun hiçbir KK'si) o davranışı sınamıyor, yalnız varlığını, ayarını ya da zorunluluğunu sınıyor. Bu, ilk hedefli merceğin (R3 sonundaki "Hedefli mercek", K-1481) daha dar bir alt sınıfıdır ve 8. ile 9. turun Orta kabullerinden çıktı (R8 F3, F7, F9; R9 F2, F8). İkinci modele (Codex) çıkılmadı; mercek ve doğrulayıcılar alt ajandır.
+
+### Koşum
+
+`paketle.py` (ilk merceğin paketleyicisi) ile 214 task bloğunun tamamı faz dilimlerine bölündü (her paket ≤ 85 KB; yalnız `#### Txxx` blokları, `Yazım konvansiyonları` satırı ve `## 5` girişi; satır numaralı `11:<n>|`). Her dilime bir `[ozet]` Sonnet / low mercek (talimat 3,5 KB'ın altında): yalnız bu alt sınıf, her blokta k_n ↔ KK_n satırlarını tek tek eşle, örnekler (düzeltilmiş olanlar), 1.–9. turlarda ve ilk merceklerde RET edilen iddiaların listesi ("yeniden getirme"), bulgu biçimi (seviye, yer, iki satırın aynen alıntısı, öneri; öneri 2 560 baytı aşacaksa kısaltma ya da bölme), bulguyu bulduğu anda kendi dosyasına yazar, dolgu yok. İki beşli dalga, ön planda. Kapsanmayan task yok (214 / 214).
+
+| Dilim | Task | Task sayısı | Ham bulgu (Yüksek · Orta · Düşük) |
+|---|---|---|---|
+| F0_01 | T01–T10 | 10 | 6 (0 · 3 · 3) |
+| F1_01 | T101–T120 | 20 | 5 (1 · 3 · 1) |
+| F2_01 | T201–T233 | 33 | 8 (0 · 2 · 6) |
+| F3_01 | T301–T331 | 31 | 12 (1 · 9 · 2) |
+| F3_02 | T332–T361 | 30 | 17 (1 · 12 · 4) |
+| F3_03 | T362–T390 | 29 | 10 (1 · 7 · 2) |
+| F4_01 | T401–T410 | 10 | 10 (2 · 5 · 3) |
+| F5_01 | T501–T529 | 29 | 16 (1 · 10 · 5) |
+| F5_02 | T530–T549 | 20 | 8 (0 · 3 · 5) |
+| F6_01 | T601–T602 | 2 | 4 (1 · 1 · 2) |
+| **Toplam** | | **214** | **96 (8 · 55 · 33)** |
+
+**Ham → tekil:** 96 ham bulgu = 96 tekil bulgu (yinelenen yok). Mercek ajanı (Sonnet low) bu sınıfta ilk merceğe göre daha çok Orta ve 8 Yüksek verdi; Yüksek verdiği sekiz bulgunun hiçbiri doğrulayıcıda Yüksek kalmadı (beşi Orta, üçü çürük/Düşük).
+
+### Doğrulayıcılar
+
+Bulgu sayısı (96) bekçinin adım başına 20 doğrulayıcı sınırını aştığı için kademeli ve sıralı seçim yapıldı: 7 Yüksek doğrulayıcı (D1 T111; D2 T302; D3 T348, üç bulgu — aynı task'ın Yüksek bulgusu ve iki Orta bulgusu birlikte; D4 T387; D5 T405, üç bulgu; D6 T517; D7 T601, üç bulgu) ve 13 Orta doğrulayıcı (D8–D20; aynı faz bölümünden 3–4'lü, task sırasıyla). **64 bulgu hükme bağlandı; 32 Düşük bulgu doğrulanmadı** (`kd-cross/m2/dogrulanmadi.md`; bekçi 21. doğrulayıcıyı açmaz; yardımcı sonraki adımı açar). 20 `[dogrulama]` Opus / high doğrulayıcı, bekçi olayı yok. Doğrulayıcı talimatı: ilk merceğin talimatı, bu alt sınıfa uyarlanmış (ölçü dört sınıf; RET listesi; kriter kimlikle işaret ediyorsa ve işaret edilen task'ın KK'si sınıyorsa çürük; kabulde şartname KK'yi güçlendirir, blok ≤ 2 560 bayt). Hükümler `11_audit_hukum_denetle.py` ile sınandı: sorun 0, yinelenen bulgu hükmü yok.
+
+| D | Kademe | Bulgu | Doğru | Kısmen | Çürük |
+|---|---|---|---|---|---|
+| D1 | Yüksek | 1 | 0 | 0 | 1 |
+| D2 | Yüksek | 1 | 1 | 0 | 0 |
+| D3 | Yüksek | 3 | 0 | 2 | 1 |
+| D4 | Yüksek | 1 | 0 | 1 | 0 |
+| D5 | Yüksek | 3 | 1 | 1 | 1 |
+| D6 | Yüksek | 1 | 0 | 1 | 0 |
+| D7 | Yüksek | 3 | 1 | 2 | 0 |
+| D8 | Orta | 4 | 1 | 2 | 1 |
+| D9 | Orta | 4 | 2 | 1 | 1 |
+| D10 | Orta | 4 | 3 | 1 | 0 |
+| D11 | Orta | 4 | 2 | 0 | 2 |
+| D12 | Orta | 4 | 1 | 1 | 2 |
+| D13 | Orta | 4 | 0 | 1 | 3 |
+| D14 | Orta | 4 | 1 | 1 | 2 |
+| D15 | Orta | 4 | 1 | 1 | 2 |
+| D16 | Orta | 4 | 2 | 1 | 1 |
+| D17 | Orta | 4 | 1 | 2 | 1 |
+| D18 | Orta | 4 | 2 | 0 | 2 |
+| D19 | Orta | 4 | 0 | 2 | 2 |
+| D20 | Orta | 3 | 0 | 1 | 2 |
+| **Toplam** | | **64** | **19** | **21** | **24** |
+
+**Seviye:** mercek Yüksek 8 → hüküm sonrası Yüksek 0 (M20, M49, M59, M69, M93 Orta; M07, M40, M60 çürük). Kabul ve kısmi 40 bulgunun 31'i Orta, 9'u Düşük. **Uygulanan: 70 şartname çifti**, 33 task bloğunda (T07, T103, T109, T119, T202, T302, T303, T304, T306, T309, T312, T316, T331, T334, T336, T347, T348, T365, T382, T385, T387, T390, T401, T404, T405, T406, T507, T509, T510, T517, T525, T530, T601), ayrıca T601'de bayt kısaltması elle (beş satır).
+
+### Kabul ve kısmi (40 bulgu, 70 çift)
+
+Hepsi aynı alt sınıf: kriterin istediği sonuç hiçbir KK'de sınanmıyordu (ya da yalnız varlığı sınanıyordu); şartname KK satırını güçlendirir, gerekirse bloğa yer açmak için ayrıntıyı kimlikle işaret edecek biçimde kısaltır (K-1445). "Çift" sütunu o bulgudaki ESKI → YENI sayısıdır.
+
+| M | Task | Hüküm (seviye) | Çift | Ne sınanmıyordu → ne eklendi |
+|---|---|---|---|---|
+| M01 | T07 | KISMI (Orta) | 1 | k4 `lastSuccessAt`'in başarısız turda korunması → KK4'e eklendi (`09 §17` madde 7); atomik yazım alınmadı |
+| M02 | T07 | KABUL (Orta) | 3 | k3 adım sırası ve "bir adım düşerse sonrakiler atlanır" → KK3; blok sınırı için k3 ve KK7 kimlikle kısaltıldı |
+| M08 | T103 | KISMI (Düşük) | 1 | k3 iade adresinin dört alanının birlikte dolu ya da boş olması → KK3; öteki iddialar T507/T536 işi |
+| M09 | T109 | KABUL (Orta) | 3 | k7 `InternalNote` ve `CheckboxAcceptance` tekilliği (KK7 aslında k8'i sınıyordu) → KK3, KK6, KK7 |
+| M10 | T119 | KISMI (Orta) | 2 | firmanın değiştirdiği ayar değerinin varsayılan değişince korunması → KK4; il kodunun plaka olması → KK1 |
+| M12 | T202 | KABUL (Orta) | 1 | okunmayan yanıt alanı kayıtta yok (`08 §3.1` kural 5) → KK7 |
+| M20 | T302 | KABUL (Orta) | 3 | k4 giriş kaydının Z-40 süresinde silinmesi → KK4; yer için KK1 ve KK6 anlam kaybı olmadan kısaltıldı |
+| M21 | T303 | KABUL (Orta) | 1 | komut adının işlemden önce kayıt dosyasına yazılması ve bildirim üretmemesi → KK9 |
+| M22 | T304 | KABUL (Orta) | 1 | sınırı aşan satırın `Undelivered` + `RecipientError` olması → KK6 |
+| M23 | T306 | KISMI (Düşük) | 4 | B-8 e-postasının neden, tutar, yöntem ve geç ödeme cümlesi → KK10; blok tam 2 560 bayt, k1/KK1/KK8 kısaltıldı |
+| M24 | T309 | KABUL (Orta) | 1 | doğrulama e-postası yeni adrese, değişiklik bildirimi eski adrese ve geri alma bağlantısı → KK8 |
+| M25 | T312 | KABUL (Orta) | 2 | durum isteğinin alınan bayt ve tamamlandı bilgisi, bilinmeyen yüklemede 404 → KK9; k8 sırası `07 UC-83` kimliğiyle işaretlendi |
+| M26 | T316 | KABUL (Orta) | 1 | yalnız açık fiziksel kalemin gönderilmesi, yönetici tetiklemesi, B-5 → KK7 |
+| M29 | T331 | KISMI (Düşük) | 2 | k2 kapatma sonuçlarından sınanmayan kısım → KK2; k6 kısaltıldı |
+| M33 | T334 | KABUL (Düşük) | 1 | retin ayırmayı tutan siparişleri de vermesi (`02 §3.6.7`) → KK7 |
+| M37 | T336 | KISMI (Düşük) | 1 | kargo ücretinin KDV oranının yalnız fiziksel kalemlerden gelmesi → KK |
+| M39 | T348 | KISMI (Düşük) | 1 | havalede ayırmanın süre boyunca sürmesi → KK4 (kart süresi T324 KK8'de sınanıyor) |
+| M41 | T348 | KISMI (Orta) | 1 | B-1 ve F-1'in sipariş oluşunca gitmesi → KK1 (alındı ve numara T510 KK1'de) |
+| M42 | T347 | KABUL (Orta) | 1 | stoğun ayrılmış adetler düşülerek okunması → KK1 |
+| M49 | T387 | KISMI (Orta) | 2 | k4 "firmaya şifreli iletilir" → kriter ve KK4 `DEPLOY_RUNBOOK` adımı kalıbıyla (11:335, 11:4131) yeniden yazıldı; iletim komutun değil kurulumu yapanın adımıdır (`05:1224`) |
+| M50 | T390 | KISMI (Orta) | 2 | k3 kart iadesinin kendiliğinden başlaması ve B-8 → KK3, KK7; iki çift birlikte (blok tam 2 560) |
+| M51 | T390 | KISMI (Düşük) | 6 | k4–k6 hak ve süre sonuçları (işarete kadar sürer, süre beyandan işler, teslim alma başlatmaz) → KK4–KK6; k4–k6 kısaltıldı, net bayt 0 |
+| M53 | T365 | KABUL (Orta) | 1 | "Sipariş hakkında" tipinin on yıl saklanması (`6563` m.11/3, P-40) → KK5 |
+| M56 | T385 | KISMI (Orta) | 2 | "e-posta ulaşmadı" sayısını veren ve süzülmüş listeye götüren ana sayfa satırı → KK5; k5 kısaltıldı |
+| M57 | T382 | KABUL (Orta) | 5 | "IBAN bekleniyor" sayılmaz, yeniden açılan kalem sayaca döner → KK4, KK5; k1, k8, k9 kısaltıldı |
+| M59 | T405 | KISMI (Orta) | 1 | firma işaretinden sonra sorgunun durması → KK8 (geç iadenin yazılmaması alınmadı: kayıt işaretli kalır, `08 §2.1.9`) |
+| M61 | T405 | KABUL (Orta) | 1 | sorgunun üst sınırı yoktur (K-1238 (3)) → KK7 |
+| M63 | T404 | KABUL (Orta) | 1 | hâl sürerken kart "şu an kullanılamıyor", onay jetonsuz 422, onaylanmış siparişte jetonun yine istenmesi → KK4 |
+| M64 | T406 | KISMI (Orta) | 1 | firma anahtarının geliştirme ve CI ayarında bulunmaması → KK4 (sorgu sonucunun uygulanmaması T403'te sınanıyor) |
+| M65 | T401 | KISMI (Orta) | 1 | yanıtın çerçeve adresini döndürmesi ve iki dönüş adresinin biçimi → KK8 (kart yönteminin görünmemesi T352 KK4'te) |
+| M69 | T517 | KISMI (Orta) | 2 | k10 onaylı silmenin sonucu (tek işlemde silme, siparişe işaret, 303, sonuç hâli) → KK |
+| M70 | T509 | KABUL (Orta) | 2 | "yazmadan 200" ve "hak ayrılmaz" (kupon hakkı tüketilmez) → KK4; KK10 kısaltıldı |
+| M72 | T510 | KABUL (Orta) | 2 | iznin kapsamı ve `form-action`'ın sağlayıcıyı taşımaması → KK4; k10 DV-5 maddeleri kimlikle işaretlendi |
+| M73 | T510 | KABUL (Orta) | 1 | `frame-ancestors 'self'` yalnız geçiş yanıtında → KK8 |
+| M78 | T507 | KISMI (Orta) | 2 | yayının işlem izi → KK8; k8 kısaltıldı |
+| M79 | T525 | KISMI (Düşük) | 2 | yüklemenin kayıt yazmaması ve sürümü değiştirmemesi → KK10 |
+| M85 | T530 | KISMI (Orta) | 2 | k8 IBAN isteğinin kapanması ve IBAN'ın silinmesi (`07 UC-150`) → KK8; k8 kısaltıldı |
+| M93 | T601 | KISMI (Orta) | 1 | k7 günlük aktarımın sunucu dışına akması, prova dış depodan, süre ve son an kaydı → KK7 |
+| M94 | T601 | KABUL (Orta) | 1 | k6 SSH yalnız anahtarla ve kurulum başına → KK6 |
+| M95 | T601 | KISMI (Düşük) | 1 | üç kaynağın (`08 §4.2`, `07 §2.1.9`, runbook) eşitliği → KK4 |
+
+**T601 bayt kısaltması (elle).** D7'nin üç çiftinin yanındaki hesap bloğu 2 559 bayt saydı; `11_task_blok_denetle.py --tam` uygulamadan sonra 2 668 bayt ölçtü (sorun 1). Anlam kaybı olmadan beş satır kısaltıldı: k2'de tekrar eden `(§I.3, §I.4)` atfı ve "bir" sözcüğü, k3'te `DEPLOY_RUNBOOK §F` atfı, k5'te "yazılıdır ve" → "yazılı ve", k6'da "işletim sistemi yamaları" → "yamalar", k10'da "senaryo kimlikleri `12` yazılınca eşlenir" (ileri işaret zaten yazılı). Sonuç: sorun 0.
+
+### Çürük (24 bulgu)
+
+| M | Task | Çürük gerekçesi (kısa) |
+|---|---|---|
+| M03 | T10 | Oturum salt okuma ayarı güvenlik sınırı değil kazaya karşıdır (`09 §10.8` madde 2); asıl güvence yetkidir ve KK4 yazma reddini sınıyor |
+| M07 | T111 | "IBAN olayla silinir" ve `DefectClaim` süreyle silme F1'in task'ına konamaz; silen olaylar ve imha F3'tedir (T370 KK5, T327 KK6, T529 KK6, T302 KK6) |
+| M13 | T217 | Satır kilidi altında denetim T228 KK4'te sınanıyor; T228 yürütme sırasında T217'den önce |
+| M27 | T324 | Z-1 dolunca silme T341 KK5'te; Z-3'ün öteki koşulları T379 KK4 ve KK8'de |
+| M28 | T326 | Onay anında biten indirim `03:738` özet farkı listesinde ve T348 KK2'nin "her fark siparişi durdurur" sınamasında |
+| M32 | T334 | Kalem çıkarma T386 KK4'te, iptal düzeltmesi T319 KK6'da; iadeyi panelden ekleme olağan stok artırma (KK7) |
+| M34 | T334 | Onayda ayırma, ödeme başarısında kesin düşme işaret edilen T348 KK3'te sınanıyor |
+| M35 | T335 | Arşiv ürünün listede ve aramada görünmemesi T321 KK4 ve T503 KK2'de |
+| M36 | T335 | Açık siparişli silme ve sayı T525 KK9'da; ayırmanın düşmesi T110 KK4 ve T318 KK8'de |
+| M38 | T338 | Kuponun kullanılmış sayılması ve dönüşü T348 KK3/KK5, T367 KK6, T318 KK8'de sınanıyor |
+| M40 | T348 | İptalden önce sağlayıcıya son sorgu bağımlı olunan T324 KK4/KK5'te sınanıyor (Yüksek → Düşük) |
+| M43 | T353 | Müşterinin IBAN ve numarayı görmesi T510 KK1'de, IBAN'ın siparişe donması T353 KK3'te |
+| M44 | T355 | Tutarın donma anı KK5'te, sonraki fiyat değişikliği KK1'de; sağlayıcıya giden tutar T402 k4'te karşılaştırılıyor |
+| M52 | T371 | Onay kutusu zorunluluğu T356 KK2'de; "ifa başlangıcı kaydedilmez" bir alan yokluğu, hakkın düşme sınırı T371 KK6'da |
+| M55 | T368 | "Diğer"de açıklama zorunluluğu T528 KK2'de (UC-129 422), sebebin B-7'de müşteriye gitmesi T306 KK9'da |
+| M60 | T405 | "Yeniden gönderilmez" ve "bir açık, bir başarılı istek" T220 KK7, T404 KK5/KK6, T112 KK4'te (Yüksek → Düşük) |
+| M62 | T404 | KK7 koşulu durum ucundan gözler, jeton sonucu yazılmasa sonuç oluşmaz; dizi kaydı T314 KK8'de |
+| M71 | T508 | Çerezin yenilenmesi T224 KK4'te; son erişim yalnız 400 günü aşan açık misafir sepetinde fark yaratır (ölçü dışı) |
+| M74 | T512 | Ayırma, stok, kupon etkisi T318 KK8'de; iptalin geçiş biriminden geçmesi T315 KK2 ve T317 KK4'te |
+| M75 | T528 | Kart iadesi ve firma iptalinde IBAN isteği T370 KK2 ve KK6'da |
+| M76 | T525 | Açıklamanın kapalı biçim setiyle süzülmesi T339'da kurulur ve T339 KK8'de sınanır; T525 k3 yalnız işaret eder (K-1445) |
+| M77 | T507 | Süzme T339 KK8'de, sürüm artışı T228 KK1'de, 409 T507 KK7'de |
+| M86 | T534 | "Marka siparişe donmaz" T355 k6/KK6'da sınanıyor |
+| M88 | T536 | IBAN'ın siparişe donması T355 KK4'te, bekleyen siparişin donmuş IBAN'la sürmesi T331 KK7'de |
+
+**Çürüklerin ortak kalıbı:** mercek (Sonnet, tek dilim) davranışı kendi bloğunun KK'sinde aradı; kriter çoğunlukla başka task'ta zaten sınanan bir davranışa kimlikle işaret ediyordu (T348 KK3, T339 KK8, T318 KK8, T355 KK4–KK6, T510 KK1, T228 KK1/KK4). 24 çürüğün 20'si Düşük'e indi.
+
+### Doğrulanmayan bulgular ve ek notlar
+
+**32 Düşük bulgu doğrulanmadı** (`dogrulanmadi.md`; ham mercek seviyesi Düşük; 20 doğrulayıcı sınırı). Doğrulanmayan bulguların task'ları: T04, T05, T101, T207, T219, T220, T228, T230, T233, T305, T320, T341, T342, T358, T359, T362, T365, T407, T408, T409, T503, T508, T510, T513, T526, T533, T534, T543, T544, T548, T602 (tam liste: `dogrulanmadi.md`). Yardımcı bu 32 bulguyu sıradaki adımda doğrulayıcılara verir (Düşük 5–8'li kademe).
+
+**Ek notlar (uygulanmadı; doğrulayıcıların yan yüzleri):** (1) T525 k7 "iz yazar" der, KK7 (11:4884, 11:4896) izi sınamıyor (D19); (2) 9. turun D8 doğrulayıcısının adayı olan `02 §3.8.5`'in "fiyatın uygulanmaya başlandığı tarih" gösterimi bu mercekte ham bulgu olarak çıkmadı; `grep` ile 11'de bu gösterimi isteyen kriter bulunmadığı görüldü (T336 k8 yalnız üretim yerini ve ölçü bilgisini taşır; T337 k5 fiyat geçmişini tutmayı ister) — bu bir "kriter yok" farkıdır, bu alt sınıfın dışındadır ve sıradaki adımda ayrı bir bulgu olarak doğrulanmalıdır; (3) T111 iade adresi dört alanının birlikte dolu/boş kısıtı T103'teki gibi KK'de yok (11:647, 11:657; D8 yan yüz).
+
+### Kapılar
+
+`11_audit_uygula.py` 70 çift; `11_task_blok_denetle.py --tam` sorun 0 (T601 kısaltmasından sonra), `11_matris_kapsama.py` sorun 0, `11_yazim_kapanis.py` sorun 0, `11_geri_yon.py . --denetle` sorun 0, `geri_isaret_tara.py` K-1489 için sorun 0.
+
+### Çıkış değerlendirmesi
+
+Alt sınıf kapanmadı: 64 hükmün 40'ı kabul ve kısmi (31 Orta); bu hükümler 8 ve 9. turun Orta kabullerinin devamıdır, yeni sınıf değil. Doğrulanmayan 32 Düşük bulgu ve yukarıdaki üç ek not sıradaki adımda ele alınır; ardından cross-review 10. tur (aynı betik ve parça sınırları). ⚠ karar: yok. Önerilen `00`/`CLAUDE.md`/`SETUP.md` değişikliği yok.

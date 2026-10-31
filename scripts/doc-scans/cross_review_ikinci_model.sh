@@ -6,6 +6,8 @@
 # A round is never split: partial outputs of a model that hit its limit are moved aside
 # (kismi-codex/, kismi-cursor/) and the whole round is re-run with the other model.
 # Claude (including API) is never a second model: it is the same family as the first model.
+# Caller note: use a long Bash timeout; if the fallback runs, the two runs together can exceed 600 s,
+# in which case re-run the script (Codex limit is already exhausted, so it returns quickly).
 
 IN="$1"; OUT="$2"; shift 2
 if [ -z "$IN" ] || [ -z "$OUT" ] || [ "$#" -eq 0 ]; then
@@ -16,7 +18,7 @@ fi
 CODEX_MODEL="gpt-5.6-terra"
 CURSOR_MODEL="${CURSOR_MODEL:-gpt-5.6-sol-high}"
 CA="C:/Users/teknodeveloper/AppData/Local/cursor-agent/cursor-agent.cmd"
-LIMIT_RE='usage limit|hit your usage limit|rate limit|quota'
+LIMIT_RE='hit your usage limit|^ERROR:.*usage limit|ActionRequiredError'
 
 if [ "$CURSOR_MODEL" = "auto" ]; then
   echo "ERROR: CURSOR_MODEL=auto is forbidden; pass an explicit model" >&2

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.16** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.17** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -49,7 +49,7 @@ Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 sat
 | Y3 | §5 F2 | `T201`–`T233` (33) | `IP5-07`, `IP5-08` (F2 payı) | ✓ |
 | Y4a | §5 F3 birinci çeyrek (F3 başlığı dahil) | `T301`–`T322` (22) | `IP5-09` | ✓ |
 | Y4b | §5 F3 ikinci çeyrek | `T323`–`T345` (23) | `IP5-09`, `IP5-13` | ✓ |
-| Y4c | §5 F3 üçüncü çeyrek | `T346`–`T367` (22) | `IP5-09`, `IP5-13` | ⏳ |
+| Y4c | §5 F3 üçüncü çeyrek | `T346`–`T367` (22) | `IP5-09`, `IP5-13` | ✓ |
 | Y4d | §5 F3 son çeyrek ve F3 `Yürütme sırası` | `T368`–`T390` (23) | `IP5-09`, `IP5-13` | ⏳ |
 | Y5 | §5 F4 | `T401`–`T410` (10) | `IP5-10` | ⏳ |
 | Y6a | §5 F5 ilk yarı | `T501`–`T524` (24) | `IP5-11` | ⏳ |
@@ -2801,6 +2801,510 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK7: veri indirme ucu yok, üye kaydı görünümünde düzenleme yok.
   - KK8: yönetici silmesi kendi silmesiyle aynı sonucu verir.
   - KK9: açık geri alma bağlantısında silme reddedilir, sebep gösterilir.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T346: Sepet: sahiplik, giriş anında birleşme, canlı kalem, siparişe girmeyen kalemler
+- **Bağımlılık:** T332, T334, T335, T336, T342
+- **Dokümanlar:** çekirdek; `09` §10, §15; `02 §3.16.1`…§3.16.7, Z-6, §6.1.4, §6.2, §12.2.5; `10` KP-9, KP-10, KD-10
+- **Kabul kriterleri:**
+  1. Üyenin sepeti hesabında durur ve her cihazda aynıdır; misafirin sepeti tarayıcıya bağlıdır ve üye çıkınca o tarayıcıda sepet boş görünür (`02 §3.16.1`).
+  2. Sepet kendiliğinden boşalmaz; süre parametresi yoktur (`02 §3.16.2`).
+  3. Girişte iki sepet birleşir; aynı varyantta büyük adet kalır, farklı varyantlar ayrı kalem olur; kural giriş yolundan bağımsızdır (`02 §3.16.3`).
+  4. Birleştirme müşterinin görmediği ürün ya da adet eklediyse bir kez söylenir ve eklenenler adıyla listelenir; eklemediyse mesaj yoktur (`02 §3.16.4`).
+  5. Kalem fiyatını ve satın alınabilirliğini güncel üründen okur; ilk eklenme fiyatından farklıysa tek metinle işaretlenir (`02 §3.16.5`).
+  6. Satın alınamayan "Tükendi" kalem sepette kalır ve siparişe girmez; stok dönünce yeniden alınabilir (`02 §3.16.6`).
+  7. Vitrinden kalkan kalem sepetten çıkar ve bir kez söylenir; siparişe girebilecek kalem kalmazsa ödeme adımı açılmaz (`02 §3.16.7`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: üye başka tarayıcıda aynı sepeti görür, çıkışta boş görünür.
+  - KK2: sepet süreyle boşalmaz.
+  - KK3: aynı varyantta büyük adet kalır, giriş yolu fark etmez.
+  - KK4: görülmeyen ekleme bir kez söylenir, eklenmediyse mesaj yok.
+  - KK5: fiyat farkı tek metinle işaretlenir, yön gösterilmez.
+  - KK6: tükenen kalem siparişe girmez, stok dönünce girer.
+  - KK7: kalkan kalem çıkar, boş sepette ödeme açılmaz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T347: Sepet adet kuralları: stok ve sipariş başına sınır, boşalma, istek listesi yokluğu
+- **Bağımlılık:** T332, T334, T346
+- **Dokümanlar:** çekirdek; `09` §3 (§3.4), §10; `02 §3.16.8`…§3.16.13, §6.2, §11.1, P-9; `10` KP-9, KD-7, KD-35, KD-59
+- **Kabul kriterleri:**
+  1. Stoktan fazla adet sepete eklenmez; mesaj alınabilecek adedi söylemez ve stok ayrılmış adetler düşülerek okunur (`02 §3.16.8`).
+  2. Adet artırma ve girişteki birleştirme aynı stok kuralından geçer; stok sepet adedinin altına düşerse kalem sepette kalır ve adet kendiliğinden indirilmez (`02 §3.16.8`).
+  3. "Bir siparişte en fazla" sınırı ürünün bütün varyantlarının toplamına uygulanır; aşan adet eklenmez ve sınır sayısıyla söylenir (`02 §3.16.9`).
+  4. Sonradan aşılan sınırda kalemler mesajla sepette kalır, siparişe girmez ve toplama sayılmaz (`02 §3.16.10`).
+  5. Sepetteki kalem sayısına tavan yoktur; elli kalem performans kabulüdür (`02 §3.16.11`).
+  6. Sepet ödeme başarılı olunca yalnız siparişe giren kalemlerden boşalır; birleşen misafir sepetinin siparişi için ayrı istisna işler (`02 §3.16.12`).
+  7. İstek listesi, favori düğmesi ve sepet hatırlatma e-postası yoktur (`02 §3.16.13`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: fazla adet reddedilir, mesajda adet yok.
+  - KK2: birleşmede ve artırmada aynı kural çalışır, adet indirilmez.
+  - KK3: iki varyantın toplamı sınırı aşamaz.
+  - KK4: düşürülen sınırda kalem sepette kalır, toplama girmez.
+  - KK5: kalem sayısı için sınır yok.
+  - KK6: ödemeden sonra yalnız giren kalemler çıkar, istisna sınanır.
+  - KK7: favori ucu ve hatırlatma e-postası yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T348: Sipariş onayı: oluşma anı, özet eşitliği, stok ayırma, ödeme süresi, kendiliğinden iptal
+- **Bağımlılık:** T331, T338, T347, T349, T354, T355, T356, T316, T317, T324
+- **Dokümanlar:** çekirdek; `09` §9, §10, §13, §14; `02 §3.17.1`…§3.17.8, §3.10.6, Z-7, Z-8, §4.3, §5.3, §5.6, §6.1, §6.3, §8.2, L-7, L-8, §10.6, §11.1, P-7, P-18; `05` MK-21, MK-36, MK-39; `10` KP-8, KP-11, KP-14…KP-17
+- **Kabul kriterleri:**
+  1. Sipariş ödeme adımında onay anında oluşur; aynı anda numara verilir, kalem, adres ve sürümler donar, stok ayrılır; iki ödeme yolunda da alındığı ve numara gösterilir (`02 §3.17.1`).
+  2. Onay anında sepet yeniden değerlendirilir; tutarı, dökümü ya da kalemleri değiştiren her fark siparişi durdurur ve güncel özet yeniden onaylanır (`02 §3.17.2`).
+  3. Onayda adet stoktan, hizmet kontenjanından ve kupon hakkından ayrılır; ödeme başarılı olunca kesin düşer (`02 §3.17.3`).
+  4. Kart süresi dakikayla ve ürün sabitidir; havale süresi iş günüyle ve panel girdisidir, çit dışı reddedilir; havalede ayırma süre boyunca sürer (`02 §3.17.4`).
+  5. Süresi dolan ya da kart ödemesi başarısız sipariş kendiliğinden iptal olur, ayırmalar aynı anda serbest kalır; kartta iptalden önce sonuç son kez sorulur (`02 §3.17.5`).
+  6. Başarısız ödemenin tekrarı yeni siparişle olur; aynı siparişi sürdürme yolu yoktur (`02 §3.17.6`).
+  7. Aynı sepetten yeni onayda ödenmemiş önceki sipariş iptal edilir; birleşen misafir sepeti istisnadır (`02 §3.17.7`).
+  8. Ödemesi hiç başarılı olmamış ve kendiliğinden iptal olmuş sipariş müşteri listesinde görünmez, panelde görünür (`02 §3.17.8`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: onayda numara, donma ve ayırma birlikte olur.
+  - KK2: her fark siparişi durdurur, yeniden onay ister.
+  - KK3: ayırma ve kesin düşme ödeme sonucuna göre işler.
+  - KK4: havale çit dışı değer panelde reddedilir.
+  - KK5: süre dolunca ayırmalar tek anda döner, ödemesi Başarısız olur.
+  - KK6: tekrar yeni numarayla olur.
+  - KK7: önceki ödenmemiş sipariş iptal edilir, istisna sınanır.
+  - KK8: görünürlük müşteri ve panel için doğru.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T349: Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği
+- **Bağımlılık:** T332, T336, T346
+- **Dokümanlar:** çekirdek; `09` §14; `02 §3.18.1`…§3.19.6, §3.10.7, §6.2, §7.2.9, §7.4.6, §11.1, P-1, P-3, P-4; `10` KP-13, KP-59, KD-26
+- **Kabul kriterleri:**
+  1. Asgari sipariş tutarı isteğe bağlı tektir; altındaki sipariş verilemez, eksik tutar gösterilir; sepette ve onayda denetlenir (`02 §3.18.1`).
+  2. Karşılaştırma tabanı kupondan önceki indirimli toplamdır; kupon siparişi engellemez (`02 §3.18.2`; `02 §3.19.4`).
+  3. Asgari tutar yalnız fiziksel kalemli siparişe uygulanır; koşul siparişe giren kalemlere bakar (`02 §3.18.3`).
+  4. Kargo ücreti sipariş başına sabittir; fiziksel kalem varsa bir kez alınır, yoksa alınmaz; 0 TL her siparişi ücretsiz yapar (`02 §3.19.1`).
+  5. Ücret KDV dahil girilir; farklı oranlı fiziksel kalemlerde orantılı bölünür ve her parça kendi oranıyla dökümde yer alır (`02 §3.19.2`).
+  6. Ücretsiz kargo eşiği isteğe bağlıdır; taban eşiğe eşit ya da üstündeyse ücret alınmaz (`02 §3.19.3`).
+  7. Eşik tabanı indirimli tutardır; indirim tabanı düşürür, kupon düşürmez (`02 §3.19.4`).
+  8. Eşik ve fiziksel kalem varsa sepet ve özet kalan tutarı ya da "Kargo ücretsiz"i yazar; yoksa mesaj yoktur (`02 §3.19.5`).
+  9. Ücret ve ücretsiz kararı sipariş düzleminde donar; kısmi iptal ya da iade yeniden hesaplatmaz (`02 §3.19.6`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: tutar altında sipariş durur, eksik tutar yazar.
+  - KK2: kuponlu sepet tabanı değişmez.
+  - KK3: dijital sepette asgari tutar uygulanmaz.
+  - KK4: ücret bir kez alınır, dijital siparişte yok.
+  - KK5: karışık oranda bölüşüm ve kalan kuruş doğru.
+  - KK6: eşikte ve üstünde ücret sıfır.
+  - KK7: indirim tabanı düşürür, kupon düşürmez.
+  - KK8: kalan tutar mesajı koşula bağlı çıkar.
+  - KK9: iptalden sonra ücret yeniden hesaplanmaz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T350: Teslim: il kısıtı, tek yol, kargoya verme süresi ve sözü, kargoya verildi işareti, kargo şirketi
+- **Bağımlılık:** T310, T316, T332, T344
+- **Dokümanlar:** çekirdek; `09` §9, §10; `02 §3.20.1`…§3.20.8, §4.1.2, Z-10, Z-11, §5.7, §6.2, §6.4, §6.9, §7.2.3, §9.2, B-5, §10.4.4, §10.6.3, §11.1, P-5, P-6; `10` KP-13, KP-19, KP-46, KP-59, KD-2, KD-24, KD-25
+- **Kabul kriterleri:**
+  1. Firma teslimat illerini seçer (varsayılan tüm Türkiye); seçili olmayan ildeki fiziksel sipariş verilemez ve sebep söylenir; kısıt il düzeyindedir (`02 §3.20.1`).
+  2. Defterdeki teslimat yapılmayan ildeki adres ödemede seçilemez (`02 §3.20.1`).
+  3. Tek teslimat yolu kargodur; teslimat seçeneği, mağazadan teslim ve adlandırılmış seçenek yoktur (`02 §3.20.2`).
+  4. Sipariş tek parça gider ve tek takip numarası taşır; kalemler en uzun süreyi birlikte bekler (`02 §3.20.3`).
+  5. Teslimat sözü kargoya verme süresidir; panel üst çit koyar ve çit üstünü reddeder (`02 §3.20.4`).
+  6. Firma varsayılanını ürün ezer, varyant devralır; siparişin sözü en uzun süredir ve onayda donar (`02 §3.20.5`).
+  7. Süre ödemenin onaylandığı anda başlar: kartta başarı bildiriminde, havalede ödendi işaretinde (`02 §3.20.6`).
+  8. Kargoya verildi işareti kargo şirketi ve takip numarası ya da "kendi aracımızla teslim" olmadan konmaz; müşteri sipariş sayfasında görür (`02 §3.20.7`).
+  9. Kargo şirketi ürünle gelen listeden seçilir; listede olmayan "Diğer" olarak adla yazılır; "Takip et" bağlantısı yalnız listedekilerde çıkar (`02 §3.20.8`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: kapalı ildeki teslimat sebebiyle reddedilir.
+  - KK2: kapalı ildeki defter adresi seçilemez.
+  - KK3: teslimat seçeneği ve mağaza teslimi yok.
+  - KK4: tek parça, tek takip numarası.
+  - KK5: çit üstü süre reddedilir.
+  - KK6: ürün ve varyant önceliği ve donan söz doğru.
+  - KK7: süre başlangıcı kart ve havalede doğru anda.
+  - KK8: bilgisiz kargoya verildi işareti reddedilir.
+  - KK9: liste ve "Diğer" davranışı doğru.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T351: Teslim işaretleri: kalem tipine göre teslim, karışık sipariş, fiziksel teslim tarihi
+- **Bağımlılık:** T316, T318, T350
+- **Dokümanlar:** çekirdek; `09` §9; `02 §3.20.9`…§3.20.12, Z-12, Z-13, §5.8, §6.4, §6.7, §7.2.5, §7.3.1, §7.3.3, §10.4.5; `10` KP-6
+- **Kabul kriterleri:**
+  1. Teslim tipe göre işler: fiziksel kalem kargo hattından ve firma teslim işaretiyle, dijital kalem ödeme onayında sistemce, hizmet kalemi firmanın "tamamlandı" işaretiyle (`02 §3.20.9`).
+  2. Teslim işareti ödeme onaylanmışken konur; ödeme Bekliyor ya da Başarısız iken konmaz (`02 §3.20.9`).
+  3. Karışık siparişte sevkiyat tek eksende kalır ve iptal edilmemiş fiziksel kalem sürdükçe fiziksel hattı izler; dijital kalem beklemeden indirilebilir (`02 §3.20.10`).
+  4. Kalem düzeyinde tutulan şey teslim işaretidir; ayrı durum makinesi yoktur (`02 §3.20.10`).
+  5. Fiziksel teslimi firma işaretler ve tarihi girer; geçmiş tarih olur, ileri tarih ve kargoya verme gününden önceki tarih panelde sebebiyle reddedilir (`02 §3.20.11`).
+  6. Fiziksel kalemlerin tamamı iptal edilirse sipariş fiziksel kalemsiz siparişin hattına düşer (`02 §3.20.10`).
+  7. Fiziksel kalemi olmayan sipariş kargo adımlarından geçmez; Alındı'da bekler ve tüm kalemler teslim işareti alınca Teslim edildi olur (`02 §3.20.12`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: üç tipin teslim yolu ayrı ayrı çalışır.
+  - KK2: ödeme Bekliyor iken işaret reddedilir.
+  - KK3: karışık siparişte dijital indirme fiziksel hattı beklemez.
+  - KK4: kalem için durum makinesi tablosu yok.
+  - KK5: tarih sınırları doğru, ret sebep söyler.
+  - KK6: fiziksel kalemler iptal edilince hat değişir.
+  - KK7: kalemsiz siparişte kargo adımı yok, son işaretle Teslim edildi.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T352: Ödeme: satıcı ve kart verisi, iki yöntem, 3D Secure, taksit, ters ibraz
+- **Bağımlılık:** T317, T348
+- **Dokümanlar:** çekirdek; `09` §9, §11; `02 §3.21.1`…§3.21.4, §3.21.9…§3.21.11, Z-7, §6.1.2, §6.1.4, §6.2, §6.9, §8.3.3, §8.3.4, §11.2, P-18, §12.1.3; `10` KP-15, KD-4, KD-23, KD-62, KD-64
+- **Kabul kriterleri:**
+  1. Satıcı firmadır; tahsilat firmanın kendi sağlayıcı hesabına geçer, kart bilgisi sağlayıcının sayfasında girilir ve ürün kart verisini görmez, saklamaz, loglamaz (`02 §3.21.1`).
+  2. İki ödeme yöntemi vardır: kart ve havale/EFT; kapıda ödeme yoktur (`02 §3.21.2`).
+  3. Her kart ödemesi istisnasız 3D Secure'den geçer; doğrulama başarısızsa sipariş ödenmiş sayılmaz; tutar eşiği ya da sağlayıcı takdiri yoktur (`02 §3.21.3`).
+  4. Kartın panelde açık/kapalı anahtarı yoktur; sağlayıcı anahtarları tanımlıysa açık, değilse görünmez ve satış yalnız havaleyle açılır (`02 §3.21.4`).
+  5. Ürün taksiti bilmez; hiçbir yerde taksit bilgisi gösterilmez ve sipariş tek tutar taşır (`02 §3.21.9`).
+  6. Sipariş hazırlığa ancak ödeme onaylandığında geçer (`02 §3.21.10`).
+  7. Ters ibraz ürünün dışındadır; ürün sağlayıcıdan ters ibraz bilgisi almaz ve ödeme eksenini değiştirmez (`02 §3.21.11`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: kart verisi kayıtta, veritabanında ve günlükte yok.
+  - KK2: yalnız iki yöntem sunulur.
+  - KK3: 3D başarısızsa ödeme onaylanmaz, eşik yok.
+  - KK4: anahtarsız kurulumda kart görünmez, havale açık kalır.
+  - KK5: taksit bilgisi hiçbir ekranda ve modelde yok.
+  - KK6: ödeme onayı olmadan hazırlığa geçiş reddedilir.
+  - KK7: ters ibraz için uç, durum ve alan yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T353: Havale/EFT: IBAN ve siparişe donması, ödendi işareti, hatırlatma, süresi dolmuş sipariş
+- **Bağımlılık:** T317, T324, T352
+- **Dokümanlar:** çekirdek; `09` §9, §11, §13; `02 §3.21.5`…§3.21.8, §4.1.2, Z-8, Z-9, §6.2, §6.7, §6.9, §7.2.8, §7.6.2, §9.2, B-2, B-3, B-13, §9.3.3, F-5, §10.4.6, §10.6.1, §11.1, P-7, P-46; `10` KP-15, KP-46, KP-59, KD-3
+- **Kabul kriterleri:**
+  1. Havale panelden açılıp kapatılır; açıkken IBAN zorunludur; kapalıyken yöntem ödemede görünmez (`02 §3.21.5`).
+  2. Açık ödenmemiş sipariş tavanı (L-8) dolunca havale o müşteriye seçilemez ve kart yolu açık kalır (`02 §3.21.5`).
+  3. IBAN siparişe donar; IBAN'ın girilmesi ve değişmesi bütün yöneticilere e-postayla bildirilir (`02 §3.21.5`; `02 §9.3.3`).
+  4. Havale ile onaylayan müşteri donan IBAN'ı ve sipariş numarasını görür; firma "ödendi" işaretleyince ödeme onaylanır (`02 §3.21.6`).
+  5. Süre dolmadan müşteriye bir kez, son iş gününün ilk gönderim çalışmasında hatırlatma gider (`02 §3.21.6`).
+  6. Gelen tutar alanı, tutar karşılaştırması ve "eksik ödeme" durumu yoktur (`02 §3.21.7`).
+  7. Süresi dolup iptal edilmiş sipariş sonradan "ödendi" işaretlenemez; kesintide dolan sürenin iptali ertelenir; sınır yönetici düzeltmesinin de dışındadır (`02 §3.21.8`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: IBAN'sız havale açılmaz, kapalıyken yöntem yok.
+  - KK2: tavan dolunca havale kapanır, kart açık kalır.
+  - KK3: IBAN siparişte sabit, değişiklik e-postası gider.
+  - KK4: ödendi işareti ödemeyi onaylar.
+  - KK5: hatırlatma bir kez ve doğru günde gider.
+  - KK6: eksik ödeme durumu ve gelen tutar alanı yok.
+  - KK7: iptalli siparişte işaret reddedilir, yönetici de aşamaz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T354: Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı
+- **Bağımlılık:** T340, T341
+- **Dokümanlar:** çekirdek; `09` §10, §15; `02 §3.22.1`…§3.22.5, §6.1.1, §6.3, §8.2, L-5, §8.3.5, §8.3.6, §10.4.11, §11.2, P-19, P-35; `10` KP-17, KP-18
+- **Kabul kriterleri:**
+  1. Sipariş numarası yıl ve rastgele bloktur; karışabilen karakterler kullanılmaz ve blok uzunluğu §11 değeridir (`02 §3.22.1`).
+  2. Numara sipariş oluşurken verilir, iptalde de yeniden kullanılmaz ve tekildir; çakışmada sipariş oluşmadan yenisi üretilir; fatura numarası değildir (`02 §3.22.2`).
+  3. Sipariş sayfasına üç yoldan girilir: üye geçmişten, misafir numara ve e-postayla, e-posta bağlantısıyla (`02 §3.22.3`).
+  4. Misafir ve silinmiş hesap için e-posta bağlantısı siparişe özgü, tahmin edilemez bir erişim anahtarı taşır ve e-posta sormaz (`02 §3.22.5`).
+  5. Üyenin bağlantısı hesaptaki sayfanın adresidir ve girişsiz açılmaz; numara tek başına sayfayı açmaz (`02 §3.22.5`).
+  6. Sipariş sayfası durum, takip bağlantısı, indirme düğmesi ve donmuş IBAN'ı taşır; hiçbir akış e-postanın ulaşmasına bağlı değildir (`02 §3.22.4`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: numara biçimi ve karakter kümesi doğru.
+  - KK2: çakışma ve iptalde yeniden kullanım yok.
+  - KK3: üç giriş yolu çalışır.
+  - KK4: anahtarlı bağlantı e-posta sormadan açar, anahtar tahmin edilemez.
+  - KK5: üye bağlantısı girişsiz açılmaz, yalnız numara reddedilir.
+  - KK6: sayfa dört bilgiyi taşır, e-postasız da erişilir.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T355: Sipariş anında donan değerler
+- **Bağımlılık:** T338, T344, T349
+- **Dokümanlar:** çekirdek; `09` §9, §10; `02 §3.23.1`…§3.23.5, §3.8.3, §3.9.6, §3.14.5, §3.19.6, §3.24.6, Z-39, §5.3, §5.11.4, §10.4.2, §11.1, P-8, §12.1.6, §12.1.7; `10` KP-17
+- **Kabul kriterleri:**
+  1. Kalem ödenen tutarı üreten değerleri (birim fiyat, KDV oranı ve tutarı, indirim oranı, referans fiyat, kupon payı) ve ürünün o anki tanımını (ad, seçenekler, görsel) dondurur (`02 §3.23.1`).
+  2. Teslim hattını ve cayma rejimini belirleyen nitelikler de donar: ürün tipi, istisna işareti, sebebi ve koşulu (`02 §3.23.1`).
+  3. Donan değerler kalemde düz yaşar; sipariş düzleminde yalnız kupon kodu, kargo ücreti ve toplamlar durur; ara gruplama katmanı yoktur (`02 §3.23.2`).
+  4. Sipariş adreslerini, iletişim e-postasını, firmanın o günkü yasal kimliğini, Ön Bilgilendirme Formu ve sözleşme sürümlerini, onay kutusu kaydını, havale IBAN'ını ve aydınlatma sürümünü dondurur (`02 §3.23.3`).
+  5. Donma anı siparişin oluştuğu andır; onaylanan tutar bağlayıcıdır ve ödeme sonucundan bağımsızdır; kargoya verme sözü de o anda donar (`02 §3.23.4`).
+  6. Marka ayarları siparişe donmaz; geçmiş sipariş güncel logo, ad ve renkle görünür (`02 §3.23.5`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: ürün sonradan değişince kalem eski değerleri korur.
+  - KK2: tip ve istisna nitelikleri donar.
+  - KK3: kalem alanları düzdür, ara katman tablosu yok.
+  - KK4: adres, kimlik, sürüm, kutu, IBAN donar.
+  - KK5: donma anı doğru, söz onayda sabit.
+  - KK6: marka değişikliği eski siparişte görünür.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T356: Onay adımı: onay kutuları, Ön Bilgilendirme Formu içeriği, işlem rehberi
+- **Bağımlılık:** T350, T355, T366
+- **Dokümanlar:** çekirdek; `09` §9, §11, §12; `02 §3.24.1`…§3.24.8, §6.1.3, §7.3.2…§7.3.4, §7.4.2, §7.4.4, §8.4.1, §8.4.3, §12.1.2, §12.1.7, §12.2.2, §12.2.4, §12.2.12; `05` MK-56; `10` KP-6, KP-8, KP-14, KP-35, KD-29; `devir` 04-1948
+- **Kabul kriterleri:**
+  1. Sipariş iki ayrı kutuyla onaylanır (Ön Bilgilendirme Formu okundu, sözleşme onayı); biri eksikse onaylanamaz; KVKK rızası kutusu yoktur (`02 §3.24.1`).
+  2. Dijital kalem için üçüncü, hizmet kalemi için ayrı kutu çıkar; işaretlenmeden o kalem siparişe giremez (`02 §3.24.2`).
+  3. Form onay özetiyle birebir aynıdır ve dört bilgi ekler: il kısıtı, kargoya verme süresi, cayma koşulları ve süresi, firma kimliği (`02 §3.24.3`).
+  4. Özeti ya da sürümü değiştiren her fark siparişi durdurur (`02 §3.24.3`).
+  5. Yaş beyanı kutusu, doğum tarihi alanı ve üyelik sözleşmesi yoktur (`02 §3.24.4`).
+  6. Misafir e-postası kodla sınanmaz; özette gösterilir ve onaydan önce düzeltilebilir (`02 §3.24.5`).
+  7. Onaylanan sürümler, firma kimliği ve işaretlenen kutular metniyle ve kapsadığı kalemlerle siparişe donar (`02 §3.24.6`).
+  8. Ödeme adımında müşteri notu ya da teslimat talimatı alanı yoktur (`02 §3.24.7`).
+  9. "İşlem rehberi" sabit sayfası altbilgide her sayfada bağlantılıdır ve sabit metni taşır (`02 §3.24.8`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: tek kutuyla onay reddedilir, rıza kutusu yok.
+  - KK2: dijital ve hizmet kutuları kalemi koşullar.
+  - KK3: form özetle eşit, dört ek bilgi var.
+  - KK4: sürüm artışı siparişi durdurur.
+  - KK5: yaş ve doğum tarihi alanı yok.
+  - KK6: e-posta özette görünür ve düzeltilebilir.
+  - KK7: kutu kaydı ve sürümler siparişe donar.
+  - KK8: not alanı ve ucu yok.
+  - KK9: rehber bağlantısı ana sayfada da görünür.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T357: Fatura verisi ve dışa aktarmada donmuş kimlik
+- **Bağımlılık:** T349, T355
+- **Dokümanlar:** çekirdek; `09` §9, §10; `02 §3.25.1`…§3.25.3, §10.5.3, §10.7.1, §12.1.10, §12.5; `10` KP-52, KD-1
+- **Kabul kriterleri:**
+  1. Ürün fatura kesmez; e-Arşiv ve e-Fatura entegrasyonu yoktur (`02 §3.25.1`).
+  2. Sistem fatura verisini taşır: kalem dökümü, KDV, indirim ve kupon payı, kargo ücreti ve oranlara bölünmüş KDV'si, fatura adresi, donmuş kimlik, ödeme ve kargo tarihleri, alan adı; sipariş dışa aktarmasıyla verilir (`02 §3.25.1`).
+  3. Fatura sistemde saklanmaz ve gösterilmez; sipariş sayfasında yükleme, iletme ve arşiv yoktur (`02 §3.25.2`).
+  4. Dışa aktarmada siparişin donmuş firma kimliği kullanılır, panelin o anki kimliği değil (`02 §3.25.3`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: fatura kesen ya da entegre eden uç yok.
+  - KK2: dışa aktarma bütün alanları taşır, kargo KDV'si bölünmüş.
+  - KK3: fatura dosyası için alan, uç ve ekran yok.
+  - KK4: firma kimliği değişince eski sipariş dışa aktarması eski kimliği verir.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T358: Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar
+- **Bağımlılık:** T322, T339
+- **Dokümanlar:** çekirdek; `09` §10, §15; `02 §3.27.1`…§3.27.9, §3.27.12, §2.3, §6.8, §11.2, P-28, P-29; `10` KP-32, KP-33, KP-36, KP-54, KD-14, KD-39, KD-41…KD-45, KD-63
+- **Kabul kriterleri:**
+  1. İçerik hazır tiplerle ve sabit düzenli genel sayfayla girilir; sayfa kurucu yoktur (`02 §3.27.1`).
+  2. Beş hazır tip (Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube) vardır; genel sayfa ve duyuru eklenir; galeri tipi yoktur (`02 §3.27.2`).
+  3. Hakkımızda tek kayıttır; ikincisi açılmaz, silinmez, yalnız taslağa alınır (`02 §3.27.3`).
+  4. Hizmet tanıtımı fiyatsızdır, satın alınmaz; "Bize ulaşın" iletişim formuna götürür (`02 §3.27.4`).
+  5. Referans iş başlık, kısa açıklama, metin ve görselden oluşur; müşteri adı, yıl, kategori alanı yoktur (`02 §3.27.5`).
+  6. SSS soru ve cevaptır; tek sayfada listelenir, başlıklara bölünmez (`02 §3.27.6`).
+  7. Şube İletişim sayfasında listelenir; ad ve adres zorunlu, il kapalı listeden; gömülü harita yok (`02 §3.27.7`).
+  8. İletişim sayfası ayrı tip değildir; kimlik bilgileri, şubeler ve form birleşir (`02 §3.27.8`).
+  9. Genel sayfa adet sınırsızdır; yasal metin genel sayfa olarak girilmez (`02 §3.27.9`).
+  10. Sosyal bağlantılar kapalı altı platformla ve isteğe bağlı WhatsApp numarasıyla girilir; siparişe donmaz (`02 §3.27.12`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: sayfa kurucu ucu yok.
+  - KK2: tip listesi kapalı, galeri tipi yok.
+  - KK3: ikinci Hakkımızda ve silme reddedilir.
+  - KK4: hizmette sepet yok, form bağlantısı var.
+  - KK5: referans işte ek alan yok.
+  - KK6: SSS tek listedir.
+  - KK7: şubede zorunlu alan ve harita bağlantısı doğru.
+  - KK8: iletişim sayfası kendi kaydı yok.
+  - KK9: genel sayfada sınır yok.
+  - KK10: platform listesi kapalı, donma yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T359: Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler
+- **Bağımlılık:** T335, T358
+- **Dokümanlar:** çekirdek; `09` §10, §15; `02 §3.27.10`, §3.27.11, §3.27.13…§3.27.20, §6.8, §11.2, P-22, P-23, P-25, P-27…P-29; `10` KP-32, KP-54, KD-8, KD-34, KD-44, KD-63
+- **Kabul kriterleri:**
+  1. Hizmet ve referans işe katalogdan ürün bağlanır; yalnız yayındakiler "İlgili ürünler"de görünür, silinen bağdan kalkar (`02 §3.27.10`).
+  2. Beş liste elle sıralanır; vitrin, ana sayfa ve menü sırayı izler; ürün listeleri etkilenmez (`02 §3.27.11`).
+  3. Hiçbir tip zorunlu değildir; yayın kapısı tipe göre zorunlu alanlardır (`02 §3.27.13`).
+  4. Hakkımızda boşken ya da yayında değilken kurumsal blok marka adı ve logoyu gösterir (`02 §3.27.14`).
+  5. Görseller ve kısa alanlar ürün kurallarına tabidir: ana görsel sıradan bağımsız, alternatif metin isteğe bağlı, tavanlar parametrede (`02 §3.27.15`).
+  6. Uzun metin ürünün metin biçimi setini kullanır (`02 §3.27.16`).
+  7. Gömülü video ve dosya eki yoktur; video bağlantısı platformunda açılır (`02 §3.27.17`; `02 §3.27.18`).
+  8. Müşteri görüşü tipi, dönen alıntı bloğu ve blog yoktur (`02 §3.27.19`; `02 §3.27.20`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: taslak ürün bağda kalır, görünmez.
+  - KK2: sıra liste, ana sayfa, menüde aynı.
+  - KK3: eksik alanlı kayıt yayına alınamaz.
+  - KK4: boş Hakkımızda blokta marka adı çıkar.
+  - KK5: alt metin boşsa ad ve sıra kullanılır.
+  - KK6: biçim seti dışı etiket temizlenir.
+  - KK7: video oynatıcı ve ek yükleme ucu yok.
+  - KK8: görüş tipi ve blog uçları yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T360: Duyuru şeridi, boş kurulum, içerik yayın durumu, önizleme ve silme
+- **Bağımlılık:** T322, T326, T358
+- **Dokümanlar:** çekirdek; `09` §10, §13; `03 §10.2`; `02 §3.27.21`…§3.27.28, §2.3, §4.1.4, Z-23, Z-24, §5.2, §6.8, §7.6.4, §10.8.1, §11.2, P-30; `10` KP-36, KP-54, KP-57, KD-38, KD-45
+- **Kabul kriterleri:**
+  1. Duyuru tektir: her sayfanın üstünde bir satır metin ve isteğe bağlı bağlantı; tarih girilirse yalnız aralıkta görünür (`02 §3.27.21`).
+  2. Site boş kurulur; içerik, katalog ve duyuru örnek kayıt taşımaz (`02 §3.27.22`).
+  3. Her kayıt Taslak ya da Yayında'dır; arşiv yoktur; ikinci onay yoktur (`02 §3.27.23`).
+  4. Taslak yalnız adla kaydedilir; yayına almak zorunlu alanları ister; eksik alanı panel gösterir (`02 §3.27.24`).
+  5. Taslak sayfa ziyaretçiye "sayfa bulunamadı" döner, yöneticiye "Taslak" bandıyla görünür (`02 §3.27.25`).
+  6. Sürüm geçmişi yoktur; kayıt hemen yayına girer; yayına alma ve kaldırma işlem izindedir (`02 §3.27.26`).
+  7. Kalıcı silme geri alınamaz uyarısıyla yapılır ve menü, işaret ve ürün bağlarını kaldırır; Hakkımızda silinmez (`02 §3.27.27`).
+  8. İleri tarihli yayın yoktur; tek istisna duyuru aralığıdır (`02 §3.27.28`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: aralık dışında duyuru görünmez.
+  - KK2: temiz kurulumda örnek kayıt yok.
+  - KK3: iki durum var, arşiv ve onay yok.
+  - KK4: eksik alanlı yayına alma reddedilir.
+  - KK5: taslak bandı yalnız yöneticide.
+  - KK6: eski sürüme dönüş yok, izde kim yazılı.
+  - KK7: silme uyarılı, Hakkımızda silinmez.
+  - KK8: ileri tarih yalnız duyuruda.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T361: Ana sayfa düzeni ve üst menü
+- **Bağımlılık:** T333, T358
+- **Dokümanlar:** çekirdek; `09` §10; `02 §3.28.1`…§3.28.6, §2.3, §6.8; `10` KP-1, KP-31, KP-55, KD-39, KD-40
+- **Kabul kriterleri:**
+  1. İki hazır ana sayfa düzeninden biri seçilir; kurumsal tanıtım ve vitrin birlikte durur; vitrin en yeni yayındaki ürünlerdir (`02 §3.28.1`).
+  2. Kurumsal blok her zaman Hakkımızda'dır; uzun metin kendi sayfasında durur (`02 §3.28.2`).
+  3. "Ana sayfada göster" işaretli hizmet ve referanslar elle sırayla görünür; işaretli yoksa blok çıkmaz (`02 §3.28.3`).
+  4. Menü düzenleyici yoktur; sabit iskelette kaydı olmayan tip görünmez; firma menü adlarını değiştirebilir (`02 §3.28.4`).
+  5. Genel sayfalar altbilgide listelenir; "menüde göster" işaretiyle üst menüye çıkar (`02 §3.28.5`).
+  6. Yayında ürünü olmayan kategori menüde görünmez; boş kategori adresi boş sayfa gösterir (`02 §3.28.6`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: düzen seçimi iki değerle sınırlı.
+  - KK2: blokta kısa tanıtım ve ana görsel var.
+  - KK3: işaretsiz blok hiç görünmez.
+  - KK4: menü adı değişir, tip kaydı yoksa gizlenir.
+  - KK5: genel sayfa altbilgide, işaretliyse menüde.
+  - KK6: boş kategori menüde yok, adresi 404 vermez.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T362: Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası
+- **Bağımlılık:** T330, T339
+- **Dokümanlar:** çekirdek; `09` §10, §15; `02 §3.29.1`…§3.29.6, §6.9, §9.1.4, §11.2, P-22, P-23; `10` KP-56, KD-46, KD-47
+- **Kabul kriterleri:**
+  1. Dört ayar vardır: logo, marka adı, site simgesi, tek marka rengi; vitrine ve e-postaya uygulanır, panele değil; koyu tema yoktur (`02 §3.29.1`).
+  2. Logo zorunlu değildir; yoksa marka adı yazıyla gösterilir; tek logo her yerde kullanılır (`02 §3.29.2`).
+  3. Marka adı unvandan ayrı ve zorunludur; boşaltılamaz; girilene kadar alan adı görünür (`02 §3.29.3`).
+  4. Site simgesi yoksa marka adının baş harfi marka rengi zeminde çıkar (`02 §3.29.4`).
+  5. Yazı rengini (siyah ya da beyaz) sistem yeterli kontrastla seçer; anlam renkleri sabittir (`02 §3.29.5`).
+  6. "Shopfolio ile kuruldu" imzası varsayılan açıktır, yalnız altbilgidedir; kapatma işlem izine yazılır (`02 §3.29.6`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: dört ayar var, panel görünümü sabit.
+  - KK2: logosuz sitede ad yazıyla çıkar.
+  - KK3: marka adı boşaltılamaz.
+  - KK4: simge yoksa baş harf çıkar.
+  - KK5: açık ve koyu renklerde yazı okunur.
+  - KK6: imza anahtarı çalışır, e-postada imza yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T363: Sayfa adresleri, arama motoru bilgileri, kapalı sayfalar ve paylaşım
+- **Bağımlılık:** T313, T333, T335, T358
+- **Dokümanlar:** çekirdek; `09` §10; `02 §3.30.1`…§3.30.7; `10` KP-7, KP-36, KP-37, KD-48, KD-49
+- **Kabul kriterleri:**
+  1. Ürün ve kategori adresi ağaçtaki yerden bağımsız, adından üretilir (`02 §3.30.1`).
+  2. Adres ilk yayında sabitlenir; Türkçe harfler sadeleşir; çakışmada sayı eklenir; ad boşsa kök tür adıdır (`02 §3.30.2`).
+  3. Yönlendirme sistemi yoktur (`02 §3.30.3`).
+  4. Olmayan, silinmiş ya da taslak adres sitenin görünümünde "sayfa bulunamadı"ya düşer (`02 §3.30.4`).
+  5. Arama motoru bilgileri otomatik üretilir; elle SEO alanı yoktur (`02 §3.30.5`).
+  6. Sepet, ödeme, hesap, takip, panel, arama sonuçları, taslak ve arşiv sayfası arama motorlarına kapalıdır (`02 §3.30.6`).
+  7. Tek "Paylaş" düğmesi cihaz menüsünü ya da bağlantı kopyalamayı kullanır; platform kodu yoktur (`02 §3.30.7`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: kategori taşınınca ürün adresi değişmez.
+  - KK2: sadeleşme, çakışma ve boş ad kökü doğru.
+  - KK3: yönlendirme ucu yok.
+  - KK4: üç hâl aynı sayfayı verir.
+  - KK5: başlık ve açıklama kuralla üretilir.
+  - KK6: kapalı sayfalar işaretli, haritada yok.
+  - KK7: paylaşım betiği tek düğme, harici kod yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T364: Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler
+- **Bağımlılık:** T316, T317
+- **Dokümanlar:** çekirdek; `09` §10; `02 §3.31.1`, §3.31.2, §6.6…§6.8, §10.1.4; `10` KP-76
+- **Kabul kriterleri:**
+  1. Sessiz üzerine yazma yoktur: ikinci kaydeden kaydın değiştiğini görür ve üzerine yazmadan önce uyarılır (`02 §3.31.1`).
+  2. Kural kurumsal içerik, ürün ve ayarlar için aynıdır (`02 §3.31.1`).
+  3. Siparişe yönelik her işlem siparişin güncel hâline karşı uygulanır; eşzamanlı işlemde önce tamamlanan uygulanır (`02 §3.31.2`).
+  4. Yöneticinin gördüğü hâlden sonra sipariş değiştiyse işlem uygulanmaz; panel değiştiğini söyler ve güncel hâli gösterir (`02 §3.31.2`).
+  5. Aynı geçiş, aynı geri ödeme kaydı ve aynı kalem çıkarma iki kez işlenmez (`02 §3.31.2`).
+  6. Kural müşterinin sayfadaki işlemiyle ve sistemin kendiliğinden geçişiyle çakışmada da işler; sonraki işlem uygulanır ya da sebebi söylenerek reddedilir; sipariş kilitlenmez (`02 §3.31.2`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: eski sürümle kayıt uyarı verir, sessiz yazmaz.
+  - KK2: içerik, ürün ve ayarda aynı davranış.
+  - KK3: iki yönetici aynı işlemde yalnız biri uygulanır.
+  - KK4: değişmiş siparişte ret ve güncel hâl gösterimi var.
+  - KK5: çift geçiş ve çift geri ödeme kaydı oluşmaz.
+  - KK6: müşteri ve sistem çakışmasında sebep söylenir, kilit yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T365: İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması
+- **Bağımlılık:** T308, T322, T331, T366
+- **Dokümanlar:** çekirdek; `09` §3 (§3.4), §10, §15; `02 §3.15.4`, §3.32.1…§3.32.10, Z-33, §5.13, §6.8, §7.1.5, §8.2, L-4, §8.3.1, §8.4.1, §9.3, F-2, §9.5, §11.2, P-34, P-40, §12.2.6, §12.2.12; `10` KP-30, KP-34, KP-49, KD-42, KD-50, KD-51, KD-57
+- **Kabul kriterleri:**
+  1. Form girişsizdir; üye girişliyse ad ve e-posta ön dolu ve değiştirilebilir; her gönderim bir talep kaydı oluşturur (`02 §3.32.1`).
+  2. Ad, e-posta, konu tipi ve mesaj zorunlu, telefon isteğe bağlıdır; dosya eki ve sipariş numarası alanı yoktur (`02 §3.32.2`).
+  3. Konu tipi kapalı beş değerdir; ayıp talebi listede yoktur (`02 §3.32.3`).
+  4. Talep Açık doğar; firma kapatır ve yeniden açabilir; KVKK talebi aynı iki durumu kullanır (`02 §3.32.4`).
+  5. Saklama son kapatılmadan işler, kapatılmamış talep açılıştan itibaren imha edilir; "Sipariş hakkında" on yıl saklanır (`02 §3.32.4`).
+  6. Talep kaydedilir ve firmaya bildirim e-postası gider; yanıt ekranı ve yazışma dizisi yoktur (`02 §3.32.5`).
+  7. Müşteriye talep numarası, "taleplerim" sayfası ya da alındı e-postası yoktur (`02 §3.32.6`).
+  8. Görünmez tuzak alan dolarsa gönderim sessizce düşer; IP başına gönderim limiti vardır; captcha yoktur (`02 §3.32.7`).
+  9. Aydınlatma ya da çerez politikası yayında değilse form kapalıdır ve formda aydınlatma bağlantısı görünür (`02 §3.32.8`).
+  10. Şikâyet kanalı ve canlı destek yoktur; indirme hakkı yenileme başvurusu "Sipariş hakkında" tipiyle gelir (`02 §3.32.9`; `02 §3.32.10`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: girişsiz gönderim çalışır, üyede alanlar dolu.
+  - KK2: eksik zorunlu alan reddedilir, ek alanı yok.
+  - KK3: altı değer ve ayıp tipi yok.
+  - KK4: durum geçişleri iki durumla sınırlı.
+  - KK5: saklama sayacı iki yolda doğru.
+  - KK6: bildirim gider, yanıt ucu yok.
+  - KK7: müşteri tarafında takip ucu ve e-posta yok.
+  - KK8: dolu tuzak sessiz düşer, limit aşımı reddedilir.
+  - KK9: metin yayında değilken form kapalı.
+  - KK10: şikâyet ve sohbet uçları yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T366: Yasal metinler: dört metin, sürüm artışı, aydınlatma bağlantıları, e-postada tam metin
+- **Bağımlılık:** T305, T330
+- **Dokümanlar:** çekirdek; `09` §10, §11, §12; `02 §3.24.3`, §3.33.1…§3.33.9, §6.5, §6.9, §7.1.5, §7.4.4, §10.8.2, §12.1.2, §12.1.7, §12.2.1…§12.2.5, §12.2.8, §12.5; `10` KP-14, KP-25, KP-35, KP-61, KP-73, KD-53, KD-55, KD-56; `devir` 04-1948
+- **Kabul kriterleri:**
+  1. Dört yasal metin vardır (Ön Bilgilendirme Formu, sözleşme, aydınlatma, çerez); sürümlüdür, genel sayfa olarak girilmez; ilk ikisi üretilir, son ikisini ürün taslakla getirir ve firma düzenler (`02 §3.33.1`).
+  2. Firmanın düzenlediği iki metin boşaltılamaz; barındırma konumu bölümü doldurulmadan aydınlatma tamamlanmış sayılmaz (`02 §3.33.2`).
+  3. Sürüm kendiliğinden artar: firma metni yayına alınca, üretilen metni besleyen ayar değişince, ürün şablonu değişince; elle girilmez (`02 §3.33.3`).
+  4. Metin değişince yeniden onay alınmaz; açık onay adımında sürüm artarsa sipariş oluşmaz; yeni sürüm yalnız yeni siparişlere uygulanır; "kabul et" penceresi ve değişiklik bildirimi yoktur (`02 §3.33.4`).
+  5. Aydınlatma bağlantısı yeni kişisel veri alanı açan her ekranda görünür; çerez politikası altbilgidedir; çerez onay bandı yoktur (`02 §3.33.5`).
+  6. Ön Bilgilendirme Formu ve sözleşme onay e-postasının gövdesinde donan sürümleriyle tam metin gider; dosya eki yoktur; firma donmuş sürümle yeniden gönderebilir (`02 §3.33.6`).
+  7. Form ve sözleşme uyuşmazlık başvuru bilgisini yazar; parasal görev sınırı rakamla yazılmaz (`02 §3.33.7`).
+  8. Ayarlarla çelişen serbest metin firmanın sorumluluğundadır; ürün çelişkiyi tespit etmez (`02 §3.33.8`).
+  9. Dört metin tamamlanmadan satış açılmaz; panel eksik metni adıyla gösterir (`02 §3.33.9`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: dört metin ayrı kayıt, genel sayfa değil.
+  - KK2: boşaltma reddedilir, bölüm eksikse tamamlanmamış.
+  - KK3: değeri değişmeyen kayıt sürüm yazmaz.
+  - KK4: açık adımda sürüm artışı siparişi durdurur.
+  - KK5: bağlantı sayılan ekranlarda ve altbilgide var.
+  - KK6: e-posta gövdesinde tam metin, ek dosya yok.
+  - KK7: metinde mercii bilgisi var, rakam yok.
+  - KK8: çelişki denetimi ve bilgi sayfası yok.
+  - KK9: eksik metin satış kapısını kapatır, adıyla görünür.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T367: Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon
+- **Bağımlılık:** T316, T318, T320, T334, T338, T348, T350
+- **Dokümanlar:** çekirdek; `09` §9, §10, §14; `02 §7.1.1`, §7.1.4, §7.2.1, §7.2.2, §7.2.5…§7.2.7, Z-39, §5.8, §5.9, §5.11.3, §6.4, §7.3.7, §9.2, B-7, §10.4.3; `10` KP-21, KP-24
+- **Kabul kriterleri:**
+  1. Müşteri fiziksel kalemi sipariş "Kargoya verildi"ye geçene kadar sipariş sayfasından, firma onayı beklemeden iptal eder; sonrasında yol caymadır (`02 §7.2.1`).
+  2. Firma hazırlamaya başladığı siparişin iptalini engelleyemez (`02 §7.2.1`).
+  3. İptal kalem ve adet düzeyindedir; siparişin tamamı ancak bütün adetler iptal edilince İptal edildi olur; fiziksel kalemlerin tamamı iptal edilen karışık sipariş kalan hatta düşer (`02 §7.2.2`).
+  4. Kalem ve adet iptali ödeme onayından sonra açılır; onaydan önce yalnız sipariş bütünüyle iptal edilir (`02 §7.2.2`).
+  5. Dijital kalem ödeme onayından sonra iptal edilemez; hizmet kalemi "tamamlandı"ya kadar adetle iptal edilir (`02 §7.2.5`).
+  6. İptal edilen adet stoğa, hizmet kontenjanı havuza döner; kupon hakkı yalnız siparişin tamamı iptal ya da iade edilince döner (`02 §7.2.6`).
+  7. Kısmi iptalde kupon yeniden hesaplanmaz; iptal edilen adetlerin kupon payı geri ödemeye girer ve kalan tutar için asgari sepet tutarına bakılmaz (`02 §7.2.7`).
+  8. Müşteri kendi iptalinin tarihli kayıt kopyası e-postasını alır (`02 §7.1.4`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: kargoya verildi sonrası iptal reddedilir, öncesi onaysız işler.
+  - KK2: hazırlanan siparişte iptal engellenmez.
+  - KK3: kısmi iptalde sipariş yaşar, tam iptalde kapanır.
+  - KK4: ödeme öncesi kalem iptali reddedilir.
+  - KK5: dijital iptal reddedilir, hizmet adetle iptal edilir.
+  - KK6: stok, kontenjan ve kupon sayaçları doğru döner.
+  - KK7: kupon payı geri ödemeye girer, kalanlar korunur.
+  - KK8: iptal e-postası tarihle gider.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 ## 6. Faz geçiş kapıları

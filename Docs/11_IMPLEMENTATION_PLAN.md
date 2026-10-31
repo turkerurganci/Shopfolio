@@ -4177,6 +4177,130 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK9: sır taraması temiz.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+### F5 — Kullanıcı arayüzü
+
+#### T501: Yerli üretim logosu varlığı ve gösterimi
+- **Bağımlılık:** T540
+- **Dokümanlar:** çekirdek; `09` §3.1, §3.2, §16; `08 §4.3`; `02 §3.8.5`, §12.1, §12.1.5; `04` 5.4.4; `10` KP-5
+- **Kabul kriterleri:**
+  1. Logo dosyası kodla birlikte gelir; firma panelden değiştiremez ve kapatamaz (`08 §4.3` madde 1; K-610).
+  2. Logo yalnız üretim yeri Türkiye olan fiziksel ürünün sayfasında, fiyatın yanında görünür; dijital üründe ve hizmette görünmez (`02 §3.8.5`).
+  3. Üretim yeri başka ülke ya da boşsa logo yoktur; logolu etikette ülke adı yine yazılır (`02 §3.8.5`).
+  4. Logo hiçbir genişlik sınıfında gizlenmez (`04` 5.4.18).
+  5. Logoyu gösteren bileşen tektir; ürün sayfasının fiyat bloğu (T503) onu çağırır (`04` 5.4.4).
+  6. Güncel dosya Bakanlığın duyurusundan alınır, kullanım koşulu okunur ve DV-34 satırına tarihle yazılır; duyuru satıra kaynak olur (`08 §4.3` madde 2–3, §4.1).
+  7. Malın yerli sayılması firmanın beyanıdır; ürün bunu denetlemez (`08 §4.3` madde 4).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: dosya imajda var, panelde ayarı yok.
+  - KK2: dört ürün türü ve ülke birleşimi.
+  - KK3: başka ülke ve boş üretim yeri.
+  - KK4: dar ve geniş sınıfta görünür.
+  - KK5: bileşen tek, ürün sayfası çağırır.
+  - KK6: DV-34 satırında tarih ve kaynak.
+  - KK7: logo kararı üretim yerinden başka alana bakmaz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T502: Vitrin: ana sayfa ve kategori sayfası (E-01, E-02)
+- **Bağımlılık:** T537, T540, T545
+- **Dokümanlar:** çekirdek; `09` §3.4, §7, §16 (§16.2), §20; `07 UC-01`, `UC-02`; `04` E-01, E-02; `03 §2.1`; `02 §3.4.3`, §3.5.3, §3.28.1…§3.28.3; `10` KP-1
+- **Kabul kriterleri:**
+  1. `GET /` dört blok gösterir — kurumsal blok, Hizmetlerimiz, Referanslarımız, ürün vitrini — firmanın seçtiği düzende (`07 UC-01`).
+  2. Hizmet ve referans blokları "ana sayfada göster" işaretlilerin elle sıradaki ilk üçüdür; vitrin yayındaki en yeni ürünlerdir, düzene göre en çok sekiz ya da dört (`07 UC-01`; K-754, K-755).
+  3. Yayında ürünü olan birinci seviye kategorilerin bağlantıları görünür; görünmez bloklar ve boş sitenin geri düşüşü `04` 5.1.11'dedir (`07 UC-01`; K-805).
+  4. Satış kapalıyken vitrin aynıdır; firmanın yapılandırılmış verisi ilk yanıttadır (`07 UC-01`; `05 §3.7.2`).
+  5. `GET /kategori/{Slug}` kategorinin ve alt dallarının yayındaki ürünlerini tek listede, en yeni önce verir (`07 UC-02`; `02 §3.4.3`).
+  6. `page`, `minPrice`, `maxPrice`, `inStock` parametreleri çalışır; son sayfayı aşan `page` son sayfayı gösterir; `page` dışı parametreli adres noindex'tir (`07 UC-02`; `07 §2.6.2`, §2.6.7).
+  7. Alt fiyat üst fiyattan büyükse süzgeç uygulanmaz, alan mesajı çıkar ve durum 200'dür (`07 UC-02`; `04` 7.1.1.1).
+  8. Yayında ürünü olmayan kategori boş sayfadır, 404 değildir; süzgeç sonucu boşsa süzgeci kaldırma yolu görünür (`07 UC-02`; `02 §3.28.6`).
+  9. `Slug` bir kategoriye ait değilse 404 döner (`07 UC-06`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: dört blok iki düzende.
+  - KK2: işaretli üç kayıt, sekiz ve dört ürün.
+  - KK3: ürünsüz kategori bağlantısı yok.
+  - KK4: satış kapalı vitrin; yapılandırılmış veri.
+  - KK5: alt dal ürünü listede, sıra en yeni önce.
+  - KK6: son sayfa aşımı ve noindex.
+  - KK7: ters fiyat aralığı 200.
+  - KK8: boş kategori ve boş süzgeç.
+  - KK9: yabancı Slug 404.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T503: Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04)
+- **Bağımlılık:** T501, T537, T540, T541, T545
+- **Dokümanlar:** çekirdek; `09` §3.4, §7, §8, §15 (§15.2), §16 (§16.2); `07 UC-03`…`UC-05`; `04` E-03, E-04; `03 §2.1`, §8.1; `02 §3.5.1`, §3.6.5, §3.16.5…§3.16.9; `10` KP-2…KP-7
+- **Kabul kriterleri:**
+  1. `GET /arama` ürün adında büyük-küçük harfe ve Türkçe karaktere duyarsız arar; sözcük 150 karakterde kırpılır, `%` ve `_` harfi harfine eşlenir (`07 UC-03`; `05 §7.9`).
+  2. Boş `search` sonuç üretmez ve arama alanını gösterir; sonuçsuz arama boş hâl satırıdır; arşivlenmiş ürün sonuçta yoktur; sayfa noindex'tir (`07 UC-03`).
+  3. `GET /urun/{Slug}` yayında E-04'ü, arşivde E-05'i (T549), panel oturumuyla taslakta önizlemeyi verir; taslak ve yok 404'tür, sebep ayırt edilmez (`07 UC-04`).
+  4. Seçim `firstOptionValue` ve `secondOptionValue`'dur; eksik ya da tutmayan değer varsayılan varyantla üretilir, hata vermez (`07 UC-04`; K-1176 (1), K-1178).
+  5. Fiyat, birim fiyat, indirim ve görsel seçilen varyantındır; satın alınabilirlik ayrılmış adetler düşülerek okunur; logo T501'in bileşenidir (`07 UC-04`; `04` 5.4.4, 5.4.6).
+  6. Betikli yol için sayfa yayındaki varyantların verisini taşır; stok adedi bu veride yoktur (`07 UC-04`; `02 §3.6.5`).
+  7. `POST ?handler=AddCartItem` 303 ile ürün sayfasına döner: seçilen varyantın iki parametresi ve "sepete eklendi" bildirimi, sepet sayısı yeni yanıtta (`07 UC-05`).
+  8. Stok, "bir siparişte en fazla" sınırı (sınır önce), sepetteki aynı dijital varyant, tükenmiş varyant, kapalı satış ve geçersiz adet 422 verir; yayında olmayan `VariantId` 404'tür (`07 UC-05`; `03 §3.2.1.6`…§3.2.1.8).
+  9. Tekrar gönderim ikinci eklemedir; çift tıklamayı betikli yolda düğmenin kilidi önler (`07 UC-05`; K-1179 (1)).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: Türkçe karakter ve `%` aramaları.
+  - KK2: boş arama, sonuçsuz arama, arşiv ürünü.
+  - KK3: üç yayın durumu ve 404.
+  - KK4: bozuk parametre varsayılana düşer.
+  - KK5: varyanta göre fiyat; ayrılmış adet düşülür.
+  - KK6: sayfa verisinde stok adedi yok.
+  - KK7: 303 adresi ve sepet sayısı.
+  - KK8: sekiz ret sebebi ayrı testte.
+  - KK9: ikinci gönderim adedi artırır.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T504: Hata sayfaları: bulunamayan adres ve beklenmeyen hata (E-06, 500)
+- **Bağımlılık:** T537, T540, T541
+- **Dokümanlar:** çekirdek; `09` §8, §15 (§15.2), §18; `07 UC-06`, `UC-78`; `04` E-06; `02 §3.30.4`; `05 §10.3`; `10` KP-7
+- **Kabul kriterleri:**
+  1. 404 yanıtı vitrinin tam çerçevesinde E-06'dır: bulunamadığını söyleyen başlık, ana sayfaya ve ürünlere dönüş (`07 UC-06`; `04` 5.6.3).
+  2. 404 şu hâllerde döner: bilinmeyen ilk yol bölümü ya da kayda ait olmayan `Slug`, oturumsuza taslak ve silinmiş kayıt, sahiplik denetimini geçmeyen istek, geçersiz erişim anahtarı, imha edilmiş sipariş bağlantısı, ömrü dolmuş indirme değeri, yayına alınmamış aydınlatma metni ve çerez politikası (`07 UC-06`).
+  3. Yanıt sebebi ayırt etmez; boş kategori bu yanıt değildir (`07 UC-06`; `07 §2.3.3`).
+  4. Beklenmeyen hata GET'te vitrinde vitrinin, panelde panelin çerçevesinde 500 hata sayfasıdır (`07 UC-78`; `04` 2.7.3.2).
+  5. POST'ta 500, formu gönderilen değerlerle ve işlem düzeyindeki kalıcı mesajla yeniden gösterir (`07 UC-78`; `04` 2.7.3.1).
+  6. Sonucu belirsiz işlemde hata nerede olursa olsun 303 sonucu gösteren ekrana gider (`07 UC-78`; `04` 2.7.3.3; `05 §10.3.4`).
+  7. Yanıt hatanın ayrıntısını ve kodunu taşımaz; hata uygulama kaydına yazılır ve durum ucunun sayacına girer (`07 UC-78`; `05 §9.4.8`).
+  8. Makine ucunda 500 gövdesizdir (`07 UC-78`; `07 §2.7.2`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: 404 çerçevesi ve iki bağlantı.
+  - KK2: sekiz düşme hâli ayrı testte.
+  - KK3: iki sebebin yanıtı aynı; boş kategori 200.
+  - KK4: vitrin ve panel 500 çerçevesi.
+  - KK5: POST 500'de değerler korunur.
+  - KK6: belirsiz işlem 303 hedefi.
+  - KK7: gövdede istisna metni yok; kayıtta var.
+  - KK8: makine ucu gövdesiz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T505: İçerik liste ve içerik sayfaları (E-07, E-08)
+- **Bağımlılık:** T537, T540, T545
+- **Dokümanlar:** çekirdek; `09` §3.4, §16 (§16.2); `07 UC-07`…`UC-12`; `04` E-07, E-08; `03 §2.2`; `02 §3.27.4`, §3.27.5, §3.27.10, §3.27.25; `10` KP-32
+- **Kabul kriterleri:**
+  1. `GET /hizmetler` ve `GET /referanslar` tipin yayındaki kayıtlarını firmanın elle sırasıyla listeler; `page` 24 kayıttan sonra; tipin adı firmanın verdiği addır (`07 UC-07`, `UC-08`; K-851).
+  2. Taslak kayıt listede yoktur; yayında kaydı olmayan tipin adresi boş hâl satırıdır ve menü öğesi görünmez (`07 UC-07`; `04` 5.7.8).
+  3. Hakkımızda tek kayıttır ve sabit adrestedir; hizmet, referans ve genel sayfa `{Slug}`'la açılır (`07 UC-09`…`UC-12`).
+  4. Sayfa ad ya da başlığı, görselleri, metni ve türe özgü bölgeyi gösterir (`07 UC-09`; `04` 5.8.3, 5.8.4).
+  5. "İlgili ürünler" bağlı ürünlerin yalnız yayındakilerini gösterir (`07 UC-10`, `UC-11`; `04` 5.8.5).
+  6. "Bize ulaşın" E-10'un formuna giden bağlantıdır; video bağlantısı ve "Paylaş" uç doğurmaz (`07 UC-09`…`UC-12`).
+  7. Taslak kayıt panel oturumuyla "Taslak" bandıyla açılır ve noindex'tir; oturumsuza 404'tür (`07 UC-09`; `04` 5.8.9; `02 §3.30.6`).
+  8. `Slug` kayda ait değilse 404 döner (`07 UC-06`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: elle sıra, 24'lük sayfa, ad değişikliği.
+  - KK2: taslak listede yok; boş tip.
+  - KK3: dört adres ve sabit Hakkımızda.
+  - KK4: türe özgü bölge.
+  - KK5: taslak ürün ilgili ürünlerde yok.
+  - KK6: bağlantı var, ek uç yok.
+  - KK7: bant, noindex, oturumsuz 404.
+  - KK8: yabancı Slug 404.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ## 6. Faz geçiş kapıları
 
 ### 6.1 Genel gate check (tüm fazlarda)

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.25** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.26** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -3480,12 +3480,12 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `09` §9, §10, §14; `02 §7.4.1`…§7.4.10, Z-16, Z-42, Z-38, §5.8, §6.4, §8.4.2, B-14, B-16, §10.4.5, §10.4.9, §10.6.1, P-43; `10` KP-22, KP-24, KP-47; `devir` 04-1948
 - **Kabul kriterleri:**
   1. Cayma ve ayıpta iade kargo bedeli firmaya aittir ve ayarı yoktur; müşteri masrafı önden ödemez (`02 §7.4.2`, §7.4.3, §7.4.4).
-  2. Taşıyıcıyı müşteri seçer; ürün iade etiketi üretmez, firma malı geri almayı teklif etmez (`02 §7.4.4`).
-  3. Müşteri malı beyandan on dört gün içinde gönderir; süre dolunca sistem kalemde kendiliğinden işlem başlatmaz (`02 §7.4.4`).
-  4. Teslim alma adımı ulaşan adetle ve ulaşma tarihiyle yapılır; tarih geçmişe dönük olabilir, ileri tarihli ya da girilmiş teslim tarihinden önce olamaz; teslimden önce cayılan gönderide alt sınır yoktur (`02 §7.4.7`).
+  2. Taşıyıcıyı müşteri seçer; ürün etiket üretmez, firma geri almayı teklif etmez (`02 §7.4.4`).
+  3. Müşteri malı beyandan on dört gün içinde gönderir; süre dolunca kalemde kendiliğinden işlem başlamaz (`02 §7.4.4`).
+  4. Teslim alma adımı ulaşan adetle ve tarihiyle yapılır; tarih geçmişe dönük olabilir, ileri tarihli ya da girilmiş teslim tarihinden önce olamaz; teslimden önce cayılan gönderide alt sınır yoktur (`02 §7.4.7`).
   5. İade edilen adet stoğa kendiliğinden eklenmez; firma kontrolden sonra teslim alınan adet kadar ekler (`02 §7.4.7`).
   6. IBAN silindikten sonra ulaşan malda adım IBAN isteğini yeniden açar ve B-14 gider; firma IBAN girmez (`02 §7.4.5`).
-  7. Koşullu istisnalı kalemde firma malı kabul etmek yerine "iade reddedildi — koruyucu ambalaj açılmış" kaydını seçebilir; ret yalnız bu kalemde sunulur (`02 §7.4.9`).
+  7. Koşullu istisnalı kalemde firma "iade reddedildi — koruyucu ambalaj açılmış" kaydını seçebilir; ret yalnız bu kalemde sunulur (`02 §7.4.9`).
   8. Ret geri ödemeyi ve süreyi durdurur, kalemi bekleyen işlerden düşürür, stoğa eklemez, havalede IBAN'ı siler, B-16 gönderir ve geri alınmaz (`02 §7.4.9`).
   9. Kriter 7'nin dışında kullanılmış ya da hasarlı mal reddedilmez; kesinti ve değer kaybı tutarı yoktur (`02 §7.4.10`).
   10. Malı dönmeyen kalem süre geçince "mal dönmedi" ile kapatılır; geri ödeme olmaz, bildirim gitmez, havalede IBAN silinir; ret ve kapanış başka bekleyen geri ödemenin IBAN'ını silmez (`02 §10.4.9`; K-1127).
@@ -3668,15 +3668,15 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `09` §9, §10; `02 §10.3.1`…§10.3.5, §10.2, §10.2.2, §10.2.4, §10.2.6, §10.4, §10.4.1, §12.2, §12.2.9; `05 MK-24`, §4.7, §7.5; `10` KP-63, KP-77, KD-58
 - **Kabul kriterleri:**
   1. İz sekiz alanda tutulur: firma kimliği ve marka, yayın durumu, siparişe yönelik yönetici işlemleri, yönetici davet ve hesapları, yasal metin sürümü, panelden değişen ayarlar, dışa aktarma, üye hesabının silinmesi (`02 §10.3.1`).
-  2. Her satır kimin, ne zaman, neyi değiştirdiğini ve eski ile yeni değeri taşır (`02 §10.3.1`; `05 §4.7.1`).
+  2. Her satır kimin, ne zaman, neyi değiştirdiğini, eski ve yeni değeri taşır (`02 §10.3.1`; `05 §4.7.1`).
   3. Sipariş satırları kişisel veriyi değer olarak taşımaz: adres düzeltmesinde sipariş, alan ve işlem yazılır; iç notun metni ize girmez (`02 §10.3.1`).
-  4. İz satırı işlemle aynı veritabanı işleminde yazılır; işlem ya iz satırıyla olur ya hiç olmaz (`05 §4.7.2`).
+  4. İz satırı işlemle aynı veritabanı işleminde yazılır; işlem ya iz satırıyla olur ya olmaz (`05 §4.7.2`).
   5. İz süresi boyunca değiştirilemez ve silinemez; uygulamanın veritabanı kullanıcısı yalnız ekler ve okur, süresi dolanı veritabanı fonksiyonu siler (`02 §10.3.2`; MK-24).
   6. Yanlış işlemin düzeltmesi yeni satır üretir; yanlış işlemin satırı izde kalır (`02 §10.3.2`).
-  7. Sistem olayları ize yazılmaz: "e-posta ulaşmadı" işareti, imha kaydı, giriş denemeleri; kurulum tarafının komutları da yazılmaz (`02 §10.3.3`; `05 §4.7.4`).
+  7. Sistem olayları ize yazılmaz: "e-posta ulaşmadı" işareti, imha kaydı, giriş denemeleri; kurulum komutları da yazılmaz (`02 §10.3.3`; `05 §4.7.4`).
   8. Panelde düz liste görünür; tarih aralığı ve yönetici süzgeci vardır, arama, gruplama ve dışa aktarma yoktur (`02 §10.3.4`).
   9. İz on yıl saklanır; kaldırılan yöneticinin satırları adıyla durur (`02 §10.3.5`).
-  10. Ayrı veri ihlali kaydı modülü, ihlali tespit etme ve toplu ihlal bildirimi yoktur; ihlalin kapsamı iz, giriş kaydı ve sistem kayıtlarından okunur (`02 §12.2.9`; `10` KD-58).
+  10. Ayrı veri ihlali kaydı modülü, ihlali tespit etme ve toplu ihlal bildirimi yoktur; kapsam iz, giriş kaydı ve sistem kayıtlarından okunur (`02 §12.2.9`; `10` KD-58).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: sekiz alanın her biri satır üretir.
@@ -4929,26 +4929,26 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T520, T540, T541, T542, T543, T544, T545
 - **Dokümanlar:** çekirdek; `09` §3.4, §8, §9, §16 (§16.2); `07 UC-91`, `UC-92`, `UC-123`…`UC-128`; `04` E-36, E-37; `03 §8.2`; `02 §3.20.7`, §3.20.11; `10` KP-46, KD-13
 - **Kabul kriterleri:**
-  1. `GET /panel/siparisler` arama (numara ya da e-posta, tam eşleşme), sipariş ve ödeme durumu süzgeçleri ile bekleyen iş süzgecini birlikte uygular; geçersiz değer süzgeci uygulamaz (`07 UC-91`).
-  2. Sıra en yeni önce, süreli süzgeçte kalanı en az olan önce, süresi aşılmış en başta; kendiliğinden iptal edilmiş ödenmemiş sipariş görünür (`07 UC-91`).
-  3. `GET /panel/siparisler/{iç anahtar}` bölümleri, işaretleri ve açık işlemleri verir; birincil düğme hattın sıradaki adımıdır; yabancı anahtar 404 (`07 UC-92`; K-803).
-  4. Kalem başına açık adet, süreler, kalanı ve bekleyen geri ödeme tutarı sunucunun hesabıdır; adres ve e-posta geçmişi ile iç not yalnız paneldedir (`07 UC-92`; K-788, K-1188 (3)).
+  1. `GET /panel/siparisler` arama (tam numara ya da e-posta), sipariş ve ödeme durumu süzgeçleri ile bekleyen iş süzgecini uygular; geçersiz değer süzgeci uygulamaz (`07 UC-91`).
+  2. Sıra en yeni önce; süreli süzgeçte kalanı en az olan, süresi aşılmış en başta; kendiliğinden iptal edilen ödenmemiş sipariş görünür (`07 UC-91`).
+  3. `GET /panel/siparisler/{iç anahtar}` bölümleri, işaretleri, açık işlemleri verir; birincil düğme hattın sıradaki adımdır; yabancı anahtar 404 (`07 UC-92`; K-803).
+  4. Kalem başına açık adet, süre, kalanı ve bekleyen geri ödeme tutarı sunucunun hesabıdır; adres, e-posta geçmişi ve iç not yalnız paneldedir (`07 UC-92`; K-788, K-1188 (3)).
   5. `MarkPaid` onaysızda donmuş IBAN ve tutarla 200 verir; onaylıda ayırmayı kesinleştirir, kuponu kullanılmış sayar, kalemleri sepetten çıkarır; açık değilse 422 (`07 UC-123`).
-  6. `MarkShipped` ve `MarkReshipped` kargo şirketi ve takip numarasını ya da araç beyanını ister, kalem seçtirmez; yalnız açık fiziksel kalemleri gönderir; eksikse 422 (`07 UC-124`, `UC-125`; K-590).
+  6. `MarkShipped` ve `MarkReshipped` kargo şirketi ve takip numarasını ya da araç beyanını ister; yalnız açık fiziksel kalem gönderir; eksikse 422 (`07 UC-124`, `UC-125`; K-590).
   7. `MarkDelivered` teslim tarihini yazar; ileri ya da kargo gününden önceki tarih 422'dir; beyanla çakışan tarih sıra sorusu ister (`07 UC-126`; K-554, K-608).
-  8. `MarkDeliveryFailed` teslim edilmiş bir kalem varken açık kalem kalmadıysa siparişi aynı anda Teslim edildi'ye geçirir (S11), hiçbir kalem teslim edilmemişse sipariş Teslim edilemedi'de kalır; `CloseDeliveryFailed` iptal kaydı ve geri ödeme açmaz (`07 UC-127`, `UC-128`; `03 §1.4.3`; K-717).
-  9. Hepsi `Version` taşır; eşzamanlı ikinci gönderim sürüme takılır ve hiçbir şey yazmaz (`07 UC-123`…`UC-128`).
+  8. `MarkDeliveryFailed` teslim edilmiş kalem varken açık kalem kalmadıysa siparişi Teslim edildi'ye geçirir (S11), yoksa Teslim edilemedi'de kalır; `CloseDeliveryFailed` iptal kaydı ve geri ödeme açmaz (`07 UC-127`, `UC-128`; `03 §1.4.3`; K-717).
+  9. Hepsi `Version` taşır; eşzamanlı ikinci gönderim sürüme takılır, yazmaz (`07 UC-123`…`UC-128`).
   10. Her geçiş işlem izine yazılır (`07 UC-123`…`UC-128`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: arama, üç süzgeç, geçersiz değer.
+  - KK1: arama, süzgeçler, geçersiz değer.
   - KK2: üç sıra kuralı.
   - KK3: birincil düğme; yabancı 404.
   - KK4: sunucu hesapları.
-  - KK5: onay hâli; Ö1 yan etkileri; 422.
-  - KK6: iki işleyici; eksik bilgi 422.
+  - KK5: onay hâli; Ö1 etkileri; 422.
+  - KK6: iki işleyici; eksik 422.
   - KK7: üç tarih durumu.
-  - KK8: teslim edilmiş kalemli ve kalemsiz iki hâl; kapatma.
+  - KK8: kalemli ve kalemsiz hâl; kapatma.
   - KK9: eşzamanlı iki gönderim.
   - KK10: iz satırı.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -7505,7 +7505,7 @@ Her task → hangi kaynak öğeden besleniyor?
 |---|---|---|
 | T01 | `07` UC-81; `05` MK-67, §9.4; `09` §10 | ✓ 4 kaynak (özgün 2, alt bölüm 2, devir 0) |
 | T02 | `05` MK-01, MK-02, MK-03, MK-04, MK-05, MK-13, §3.1, §3.8; `09` §3, §4; `devir` D-01 | ✓ 11 kaynak (özgün 6, alt bölüm 4, devir 1) |
-| T03 | `05` MK-15, §3.3, §3.4, §8.3; `09` §3, §6, §19, §20, §21, §23; `devir` K-1355, K-1356, P8.4, D-01 | ✓ gerekçeli (alt bölüm + devir) — K-1432, K-1434 |
+| T03 | `05` MK-15, §3.3, §3.4, §8.3; `09` §3, §6, §19, §21, §23; `devir` K-1355, K-1356, P8.4, D-01 | ✓ gerekçeli (alt bölüm + devir) — K-1432, K-1434 |
 | T04 | `05` MK-12, MK-70, MK-74, §8.3, §8.7; `09` §3, §10, §19, §21, §23; `devir` K-1356, K-1358, P8.2, P8.3, D-01 | ✓ 15 kaynak (özgün 3, alt bölüm 7, devir 5) |
 | T05 | `05` MK-06, MK-07, MK-08, MK-10, MK-14, MK-28, MK-58, MK-68, MK-76, §3.2, §6.3, §6.8, §8.1, §8.2, §8.9; `09` §4; `devir` D-01 | ✓ 17 kaynak (özgün 9, alt bölüm 7, devir 1) |
 | T06 | `05` MK-02, MK-06, MK-09, MK-10, MK-11, MK-69, §3.2, §8.2, §8.3; `09` §4, §17, §21; `devir` D-01 | ✓ 13 kaynak (özgün 6, alt bölüm 6, devir 1) |
@@ -7513,7 +7513,7 @@ Her task → hangi kaynak öğeden besleniyor?
 | T08 | `05` MK-59, MK-60, §6; `09` §17 | ✓ 4 kaynak (özgün 2, alt bölüm 2, devir 0) |
 | T09 | `05` MK-68, §8.1, §8.2; `09` §21; `10` §4.1; `devir` K-1358, P8.3, D-01 | ✓ 8 kaynak (özgün 1, alt bölüm 4, devir 3) |
 | T10 | `06` §2.8; `05` §7.1; `09` §10, §17 | ✓ gerekçeli (alt bölüm) — K-1441 |
-| T101 | `06` §2.1, §2.2, §2.3, §2.4, §2.5, §2.6, §2.8, §2.9, §2.10, §5.1; `02` §4.1.1; `05` MK-03, MK-06, MK-19, MK-74, §7.1; `09` §5, §9, §10, §12 | ✓ 20 kaynak (özgün 5, alt bölüm 15, devir 0) |
+| T101 | `06` §2.1, §2.2, §2.3, §2.4, §2.5, §2.6, §2.8, §2.10; `02` §4.1.1; `05` MK-03, MK-06, MK-19, §7.1; `09` §5, §10 | ✓ 15 kaynak (özgün 4, alt bölüm 11, devir 0) |
 | T102 | `06` §2.9, §5.1, §5.2, §5.3, §5.4, §5.5, §5.6; `09` §12 | ✓ gerekçeli (alt bölüm) — K-1413, K-1414 |
 | T103 | `06` §4.1 Company, §4.2 CompanySettings, §4.2 CompanyDeliveryProvince, §4.3 Province, §4.4 Country, §4.56 LegalTextVersion; `02` §3.1.1, §3.14.3 | ✓ 8 kaynak (özgün 8, alt bölüm 0, devir 0) |
 | T104 | `06` §4.5 Product, §4.6 Variant, §4.7 Option, §4.8 OptionValue, §4.9 Category, §4.10 ProductCategory, §4.69 Image, §4.71 ProductImage | ✓ 8 kaynak (özgün 8, alt bölüm 0, devir 0) |
@@ -7541,7 +7541,7 @@ Her task → hangi kaynak öğeden besleniyor?
 | T206 | `07` §2.1, §2.2, §2.10; `05` MK-04, MK-16, MK-18, §3.5, §3.7; `09` §5; `10` KD-20 | ✓ 10 kaynak (özgün 4, alt bölüm 6, devir 0) |
 | T207 | `07` §2.3; `02` §1.3; `05` MK-16, MK-45, MK-47, §3.5, §6.1, §6.2, §6.5; `09` §15; `10` KD-18 | ✓ 11 kaynak (özgün 4, alt bölüm 7, devir 0) |
 | T208 | `07` §2.4; `02` §3.31.1; `05` MK-20, §7.3; `09` §10; `10` KP-76 | ✓ 6 kaynak (özgün 3, alt bölüm 3, devir 0) |
-| T209 | `07` §2.5; `02` §8.3.2, §8.3.3, §8.4.4, §12.2, §12.2.5, §12.2.8; `05` MK-52, MK-53, MK-58, §4.5, §6.5, §6.8; `09` §15; `10` KD-47, KD-57 | ✓ 16 kaynak (özgün 10, alt bölüm 6, devir 0) |
+| T209 | `07` §2.5; `02` §8.3.2, §8.3.3, §8.4.4, §12.2, §12.2.5, §12.2.8; `05` MK-52, MK-53, MK-58, §4.5, §6.5, §6.8; `09` §15; `10` KD-47 | ✓ 15 kaynak (özgün 9, alt bölüm 6, devir 0) |
 | T210 | `07` §2.6; `09` §10, §20; `10` KP-3, KD-32 | ✓ 5 kaynak (özgün 2, alt bölüm 3, devir 0) |
 | T211 | `07` §5.1; `09` §3, §7 | ✓ gerekçeli (alt bölüm) — K-1416 |
 | T212 | `07` §2.7, §6.1, §6.4; `03` §3.1; `05` MK-63, §10.3; `09` §8 | ✓ 7 kaynak (özgün 1, alt bölüm 6, devir 0) |
@@ -7557,7 +7557,7 @@ Her task → hangi kaynak öğeden besleniyor?
 | T222 | `05` MK-50, MK-51, §6.4, §6; `09` §15 | ✓ 5 kaynak (özgün 2, alt bölüm 3, devir 0) |
 | T223 | `05` MK-28, MK-29, MK-54, §6.6, §7.7; `09` §6, §15, §20; `10` KP-42 | ✓ 9 kaynak (özgün 4, alt bölüm 5, devir 0) |
 | T224 | `05` MK-55, MK-56, MK-57, §6.7; `09` §5, §15; `10` KP-73, KD-15, KD-19, KD-41, KD-55 | ✓ 11 kaynak (özgün 8, alt bölüm 3, devir 0) |
-| T225 | `05` MK-64, MK-65, §9.1, §9.2; `09` §18; `10` KP-74, KD-58 | ✓ 7 kaynak (özgün 4, alt bölüm 3, devir 0) |
+| T225 | `05` MK-64, MK-65, §9.1, §9.2; `09` §18; `10` KP-74 | ✓ 6 kaynak (özgün 3, alt bölüm 3, devir 0) |
 | T226 | `05` MK-71, §8.4, §11.1; `09` §3; `10` KP-64, §4.2 | ✓ 6 kaynak (özgün 2, alt bölüm 4, devir 0) |
 | T227 | `05` MK-19, §7.2; `09` §7, §14 | ✓ 4 kaynak (özgün 1, alt bölüm 3, devir 0) |
 | T228 | `05` MK-20, MK-21, §7.1, §7.3; `09` §9, §10; `10` KP-76 | ✓ 7 kaynak (özgün 3, alt bölüm 4, devir 0) |
@@ -7567,10 +7567,10 @@ Her task → hangi kaynak öğeden besleniyor?
 | T232 | `05` §7.6; `09` §15 | ✓ gerekçeli (alt bölüm) — K-1441 |
 | T233 | `09` §10 | ✓ gerekçeli (alt bölüm) — K-1441 |
 | T301 | `06` §9.2; `03` §4.1; `02` §4.2, Z-28, Z-41, Z-43, §8.4, §8.4.3, §8.4.5, §10.4, §10.4.7, §12.2, §12.2.3, §12.2.7; `05` MK-23, §7.4; `09` §9; `10` KP-74 | ✓ 18 kaynak (özgün 10, alt bölüm 8, devir 0) |
-| T302 | `06` §9.3; `03` §4.1; `02` §4.2, Z-29, Z-30, Z-33, Z-34, Z-43, Z-35, Z-40, Z-44, Z-45, Z-46, §8.4, §8.4.5, §8.5, §8.5.1, §8.5.2, §11.2, P-47, P-48, P-40, P-41, P-45, §12.2, §12.2.3, §12.2.7; `05` MK-23, §5.2, §7.4, §7.7; `10` KP-74 | ✓ 32 kaynak (özgün 22, alt bölüm 10, devir 0) |
+| T302 | `06` §9.3; `03` §4.1; `02` §4.2, Z-29, Z-30, Z-33, Z-34, Z-43, Z-40, Z-44, §8.4, §8.4.5, §8.5, §8.5.1, §8.5.2, §11.2, P-40, P-41, P-45, §12.2, §12.2.3, §12.2.7; `05` MK-23, §5.2, §7.4, §7.7; `10` KP-74 | ✓ 27 kaynak (özgün 17, alt bölüm 10, devir 0) |
 | T303 | `06` §8.3; `03` §10.4; `02` §10.2, §10.2.1, §10.2.7; `05` MK-72, §6.9, §8.5; `09` §13; `10` §4.1 | ✓ 10 kaynak (özgün 3, alt bölüm 7, devir 0) |
 | T304 | `08` §2.2.4; `02` §9.1, §9.1.2, §9.1.6 | ✓ 4 kaynak (özgün 2, alt bölüm 2, devir 0) |
-| T305 | `08` §2.2.5; `02` Z-26, Z-34, Z-43, §6.1, §6.1.1, §6.7, §9.1, §9.1.1, §9.1.2, §9.1.3, §9.1.4, §9.2, B-1, §9.5, §11.2, P-38, P-41, §12.1, §12.1.7, §12.1.11; `05` MK-37, MK-38, §4.4; `09` §11; `10` KP-66, KP-68, KD-16, KD-17 | ✓ 29 kaynak (özgün 19, alt bölüm 10, devir 0) |
+| T305 | `08` §2.2.5; `02` Z-34, Z-43, §6.1, §6.1.1, §6.7, §9.1, §9.1.1, §9.1.2, §9.1.3, §9.1.4, §9.2, B-1, §9.5, §11.2, §12.1, §12.1.7, §12.1.11; `05` MK-37, MK-38, §4.4; `09` §11; `10` KP-66, KP-68, KD-16, KD-17 | ✓ 26 kaynak (özgün 16, alt bölüm 10, devir 0) |
 | T306 | `08` §2.2.6; `03` §7.1; `02` §3.33.6, Z-9, Z-47, §6.1, §6.1.1, §6.3, §6.7, §7.1, §7.1.4, §7.2, §7.2.4, §7.3, §7.3.5, §9.2, B-1, B-2, B-3, B-4, B-5, B-6, B-7, B-8, §12.1, §12.1.7; `10` KP-66 | ✓ 27 kaynak (özgün 17, alt bölüm 10, devir 0) |
 | T307 | `08` §2.2.6; `03` §7.1; `02` §3.21.6, §6.1, §6.1.1, §6.3, §7.1, §7.1.4, §7.2, §7.2.4, §7.3, §7.3.5, §7.4, §7.4.9, §8.3, §8.3.6, §8.3.7, §8.3.8, §9.2, B-9, B-10, B-11, B-12, B-13, B-14, B-15, B-16, §10.4, §10.4.2, §10.4.4, §10.4.6, §10.4.10, §10.4.11; `10` KP-66 | ✓ 34 kaynak (özgün 23, alt bölüm 11, devir 0) |
 | T308 | `08` §2.2.7; `03` §7.1; `02` §3.32.5, §9.3, F-1, F-2, F-3, F-4, F-5, F-6, §9.3.1, §9.3.2, §9.3.3, §9.3.4, §9.5, §10.1, §10.1.5, §10.2, §10.2.2, §10.2.6; `10` KP-34, KP-67 | ✓ 22 kaynak (özgün 16, alt bölüm 6, devir 0) |
@@ -7607,7 +7607,7 @@ Her task → hangi kaynak öğeden besleniyor?
 | T339 | `06` §2.10; `02` §3.11, §3.11.1, §3.11.2, §3.11.3, §3.11.4, §3.11.5, §3.11.6, §3.11.7, §3.27.16, §11.2, P-22, P-23, P-24, P-27; `05` MK-29, MK-54, §6.5; `09` §15; `10` KP-5, KP-42, KD-63 | ✓ 22 kaynak (özgün 17, alt bölüm 5, devir 0) |
 | T340 | `03` §4.1, §8.1; `02` §3.7.4, §3.12, §3.12.1, §3.12.2, §3.12.3, §3.12.4, §3.12.5, §3.12.6, §3.12.7, §3.12.8, §3.12.9, Z-19, §6.2, §6.6, §6.7, §7.2, §7.2.5, §7.5, §7.5.4, §9.2, B-4, §11.1, P-8, P-44, §11.2, P-26; `05` MK-30, MK-31, §7.7; `10` KP-9, KP-20, KP-44 | ✓ 34 kaynak (özgün 22, alt bölüm 12, devir 0) |
 | T341 | `02` §3.13, §3.13.1, §3.13.2, §3.13.3, §3.13.4, §3.13.5, §3.13.18, §3.13.19, §3.13.20, §3.13.21, Z-1, Z-40, §5.12, §5.12.1, §6.5, §8.1, §8.1.1, §8.1.2, §8.1.3, §8.1.4, §8.2, L-3, L-9, §8.4, §8.4.1, §8.5, §8.5.1, §9.4, §10.2, §10.2.5, §10.3, §10.3.3, §10.4, §10.4.11, §10.7, §10.7.4, §11.2, P-12, P-33, P-49, P-45, §12.2, §12.2.9, §12.2.12; `10` KP-8, KP-25, KP-28 | ✓ 47 kaynak (özgün 33, alt bölüm 14, devir 0) |
-| T342 | `02` §3.13, §3.13.9, §3.13.10, §3.13.11, §3.13.12, §3.13.13, §3.13.15, §3.13.16, §3.13.17, Z-2, Z-4, Z-5, §5.12, §5.12.2, §6.5, §8.1, §8.1.1, §8.1.3, §8.1.4, §8.1.5, §8.1.6, §8.1.7, §8.2, L-1, L-2, L-3, L-9, §8.2.4, §8.2.6, §9.4, §10.2, §10.2.4, §10.2.5, §11.2, P-13, P-15, P-16, P-48, P-17, P-31, P-32, P-33, P-49, §12.2, §12.2.5; `05` MK-45, MK-46, MK-51, §6.1; `09` §15; `10` KP-27 | ✓ 51 kaynak (özgün 40, alt bölüm 11, devir 0) |
+| T342 | `02` §3.13, §3.13.9, §3.13.10, §3.13.11, §3.13.12, §3.13.13, §3.13.15, §3.13.16, §3.13.17, Z-2, Z-4, Z-5, §5.12, §5.12.2, §6.5, §8.1, §8.1.1, §8.1.3, §8.1.4, §8.1.5, §8.1.6, §8.1.7, §8.2, L-1, L-2, L-3, L-9, §8.2.4, §9.4, §10.2, §10.2.4, §10.2.5, §11.2, P-13, P-15, P-16, P-17, P-31, P-32, P-33, P-49, §12.2, §12.2.5; `05` MK-45, MK-46, MK-51, §6.1; `09` §15; `10` KP-27 | ✓ 49 kaynak (özgün 38, alt bölüm 11, devir 0) |
 | T343 | `02` §3.13, §3.13.6, §3.13.7, §3.13.8, §3.13.14, §3.13.17, Z-2, Z-45, §5.12, §5.12.2, §6.5, §8.1, §8.1.2, §8.1.3, §8.1.5, §8.2, L-9, §9.4, §10.2, §10.2.4, §10.2.5, §11.2, P-13, P-47, P-49; `05` MK-46, §6.1; `10` KP-26, KP-27, KD-11 | ✓ 30 kaynak (özgün 21, alt bölüm 9, devir 0) |
 | T344 | `02` §3.14, §3.14.1, §3.14.2, §3.14.3, §3.14.4, §3.14.5, §3.14.6; `10` KP-12, KP-13, KP-27, KD-27 | ✓ 11 kaynak (özgün 10, alt bölüm 1, devir 0) |
 | T345 | `02` §3.15, §3.15.1, §3.15.2, §3.15.3, §3.15.4, §3.15.5, §3.15.6, Z-31, Z-32, §5.3, §5.3.5, §5.9, §6.5, §7.6, §7.6.5, §9.4, §10.3, §10.3.1, §12.2, §12.2.6, §12.2.7; `05` §6.1; `10` KP-29, KP-30, KP-77, KD-36 | ✓ 26 kaynak (özgün 17, alt bölüm 9, devir 0) |
@@ -7640,7 +7640,7 @@ Her task → hangi kaynak öğeden besleniyor?
 | T372 | `02` §5.6, §5.6.6, §5.8, §5.9, §6.4, §7.1, §7.1.4, §7.1.6, §7.3, §7.3.5, §7.3.6, §7.3.7, §7.6, §7.6.7, §8.3, §8.3.8, §9.2, B-9, B-14, §9.3, F-3, §10.4, §10.4.10, §12.1, §12.1.9, §12.5; `10` KP-22, KP-47 | ✓ 28 kaynak (özgün 15, alt bölüm 13, devir 0) |
 | T373 | `02` Z-16, Z-42, Z-38, §5.8, §6.4, §7.4, §7.4.1, §7.4.2, §7.4.3, §7.4.4, §7.4.5, §7.4.6, §7.4.7, §7.4.8, §7.4.9, §7.4.10, §8.4, §8.4.2, §9.2, B-14, B-16, §10.4, §10.4.5, §10.4.9, §10.6, §10.6.1, §11.2, P-43, §12.1, §12.1.9, §12.5; `10` KP-22, KP-24, KP-47; `devir` 04-1948 | ✓ 35 kaynak (özgün 24, alt bölüm 10, devir 1) |
 | T374 | `02` Z-18, Z-29, §5.8, §5.10, §6.4, §7.1, §7.1.1, §7.1.4, §7.4, §7.4.3, §7.5, §7.5.1, §7.5.2, §7.5.3, §7.5.4, §9.2, B-9, §9.3, F-3, §12.1, §12.1.9; `10` KP-23, KP-49, KD-42, KD-61 | ✓ 25 kaynak (özgün 16, alt bölüm 9, devir 0) |
-| T375 | `02` §6.1, §6.1.1, §6.3, §6.7, §7.6, §7.6.6, §7.6.7, §8.1, §8.1.2, §8.3, §8.3.6, §8.3.7, §9.2, B-1, B-3, B-10, B-11, B-12, B-13, B-15, §10.1, §10.1.2, §10.3, §10.3.1, §10.4, §10.4.1, §10.4.2, §10.4.11, §12.2, §12.2.7, §12.5; `05` §4.4; `10` KP-8, KP-17, KP-28, KP-48, KD-13 | ✓ 37 kaynak (özgün 24, alt bölüm 13, devir 0) |
+| T375 | `02` §6.1, §6.1.1, §6.3, §6.7, §7.6, §7.6.6, §7.6.7, §8.1, §8.1.2, §8.3, §8.3.6, §8.3.7, §9.2, B-1, B-10, B-15, §10.1, §10.1.2, §10.3, §10.3.1, §10.4, §10.4.1, §10.4.2, §10.4.11, §12.2, §12.2.7, §12.5; `05` §4.4; `10` KP-8, KP-17, KP-28, KP-48, KD-13 | ✓ 33 kaynak (özgün 20, alt bölüm 13, devir 0) |
 | T376 | `03` §6.1; `02` §5.3, §5.3.4, §5.12, §5.12.3, §6.1, §6.1.5, §6.2, §6.3, §6.5, §8.1, §8.1.4, §8.2, L-1, L-2, L-3, L-4, L-5, L-6, L-7, L-8, L-9, §8.2.1, §11.2, P-31, P-32, P-33, P-34, P-35, P-36, P-37, P-46, P-49; `09` §15; `10` KP-72 | ✓ 35 kaynak (özgün 24, alt bölüm 11, devir 0) |
 | T377 | `03` §6.1; `02` Z-27, Z-46, §6.1, §6.1.5, §8.2, §8.2.2, §8.2.3, §8.2.4, §8.2.5, §8.2.6, §8.3, §8.3.5, §11.2, P-48, §12.2, §12.2.5; `10` KP-72 | ✓ 18 kaynak (özgün 12, alt bölüm 6, devir 0) |
 | T378 | `02` §4.1, §4.1.1, §4.1.2, §4.1.3, §4.1.4, §4.1.5; `09` §7 | ✓ 7 kaynak (özgün 5, alt bölüm 2, devir 0) |
@@ -7651,7 +7651,7 @@ Her task → hangi kaynak öğeden besleniyor?
 | T383 | `02` §10.4, §10.4.9, §10.6, §10.6.2, §10.6.3, §11.3, H-2; `10` KP-53 | ✓ 8 kaynak (özgün 5, alt bölüm 3, devir 0) |
 | T384 | `03` §8.9; `02` §10.3, §10.3.1, §10.7, §10.7.1, §10.7.2, §10.7.3, §10.7.4, §12.1, §12.1.10, §12.2, §12.2.9, §12.3, §12.3.2, §12.5; `09` §10; `10` KP-52, KD-1, KD-54 | ✓ 19 kaynak (özgün 11, alt bölüm 8, devir 0) |
 | T385 | `03` §1.7, §7.1, §8.9, §10.1; `02` §9.1, §9.1.6, §9.3, §9.3.3, §9.3.4, §10.6, §10.6.1, §11.2, P-38; `05` §4.4, §5.2, §10.2; `10` KP-68 | ✓ 17 kaynak (özgün 6, alt bölüm 11, devir 0) |
-| T386 | `02` §7.1, §7.1.7, §7.2, §7.2.2, §7.2.8, §7.2.9, §7.4, §7.4.1, §10.4, §10.4.1, §10.4.3, §10.4.4, §10.4.5, §10.4.7; `09` §10; `10` KP-48 | ✓ 16 kaynak (özgün 11, alt bölüm 5, devir 0) |
+| T386 | `02` §7.1, §7.1.7, §7.2, §7.2.2, §7.2.8, §7.2.9, §7.4, §7.4.1, B-11, B-12, §10.4, §10.4.1, §10.4.3, §10.4.4, §10.4.5, §10.4.7; `09` §10; `10` KP-48 | ✓ 18 kaynak (özgün 13, alt bölüm 5, devir 0) |
 | T387 | `03` §1.7; `05` MK-66, MK-72, §6.9, §8.5, §9.3; `09` §13 | ✓ 7 kaynak (özgün 2, alt bölüm 5, devir 0) |
 | T388 | `05` MK-72, §8.5, §8.7; `09` §13 | ✓ 4 kaynak (özgün 1, alt bölüm 3, devir 0) |
 | T389 | `05` §6.9, §8.5; `09` §13 | ✓ gerekçeli (alt bölüm) — K-1441 |
@@ -7704,8 +7704,8 @@ Her task → hangi kaynak öğeden besleniyor?
 | T536 | `07` UC-100, UC-101, UC-167, UC-168, UC-169, UC-170, UC-171, UC-172; `04` E-45, E-46; `03` §3.5, §6.2, §6.3, §8.7; `02` §2.1, §3.17.4, §3.18.1, §3.19.1, §3.19.2, §3.19.3, §3.20.1, §3.20.4, §3.20.5, §3.21.2, §3.21.5, §3.33.3, §4.1.5, §11.1, P-1, P-3, P-5, P-6, P-7, §11.2, P-18; `10` KP-59, KP-64 | ✓ 37 kaynak (özgün 30, alt bölüm 7, devir 0) |
 | T537 | `07` §5.5; `04` OB-02, §2.2, §2.9; `03` §2.2; `02` §3.1.4, §3.28.4, §3.28.5, §3.29.2; `10` KP-35, KP-36 | ✓ 11 kaynak (özgün 7, alt bölüm 4, devir 0) |
 | T538 | `07` §5.2, §5.3, §5.4; `09` §12, §19 | ✓ gerekçeli (alt bölüm) — K-1416, K-1418 |
-| T539 | `07` §8.2; `05` MK-05, §3.8; `09` §16; `10` KP-70, KD-22 | ✓ 6 kaynak (özgün 3, alt bölüm 3, devir 0) |
-| T540 | `04` OB-01, OB-02, OB-09, §2.1, §2.2, §2.9, §3.1, §3.2, §8.3; `03` §8.1; `02` §3.33.5, §3.34, §3.34.1, §3.34.2, §3.34.3, §3.34.4, §3.34.5, §3.34.6, §6.1.6, §8.3.2, §8.3.3, §8.4.1, §8.4.4, §10.1, §10.1.4, §11.2, P-42, §12.4, §12.4.1; `05` MK-05, §3.8; `09` §16; `10` KP-69, KP-70, KP-71, KD-22, KD-46 | ✓ 37 kaynak (özgün 24, alt bölüm 13, devir 0) |
+| T539 | `07` §8.2; `05` MK-05, §3.8; `09` §16; `10` KD-22 | ✓ 5 kaynak (özgün 2, alt bölüm 3, devir 0) |
+| T540 | `04` OB-01, OB-02, OB-09, §2.1, §2.2, §2.9, §3.1, §3.2, §8.3; `03` §8.1; `02` §3.33.5, §3.34, §3.34.1, §3.34.2, §3.34.3, §3.34.4, §3.34.5, §3.34.6, §6.1.6, §8.3.2, §8.3.3, §8.4.1, §8.4.4, §10.1, §10.1.4, §11.2, P-42, §12.4, §12.4.1; `05` MK-05, §3.8; `09` §16; `10` KP-69, KP-70, KP-71, KD-46 | ✓ 36 kaynak (özgün 23, alt bölüm 13, devir 0) |
 | T541 | `04` OB-03, OB-04, OB-07, OB-08, §2.3, §2.4, §2.7, §2.8; `03` §3.1; `02` §6.1.5, §6.1.6; `10` KP-38, KP-69 | ✓ 13 kaynak (özgün 8, alt bölüm 5, devir 0) |
 | T542 | `04` OB-05, OB-06, OB-10, §2.5, §2.6, §2.10; `02` §3.19.5, §5.3, §5.3.1, §5.8, §5.12, §5.12.1; `10` KP-76 | ✓ 13 kaynak (özgün 7, alt bölüm 6, devir 0) |
 | T543 | `04` OB-12, OB-13, OB-14, OB-15, §2.12, §7.3; `02` §3.34.5, §7.4.5, §11.2, P-43, §12.4, §12.4.1; `09` §16; `10` KP-12, KP-71 | ✓ 15 kaynak (özgün 10, alt bölüm 5, devir 0) |
@@ -7755,4 +7755,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.25*
+*Shopfolio — Implementation Plan v0.26*

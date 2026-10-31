@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.3** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.4** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -108,7 +108,7 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | 7.1.1 | Veri modeli → task | `06` (117: entity 79 · enum alt bölümü 6 · alt bölüm 32) | O1 | ✓ |
 | 7.1.2 | API → task | `07` (208: uç 187 · alt bölüm 21) | O2 | ✓ |
 | 7.1.3 | Entegrasyon → task | `08` (30: entegrasyon 3 · çağrısı olmayan bağlantı 1 · alt bölüm 26) | O1 | ✓ |
-| 7.1.4 | Arayüz → task | `04` (102: ekran 53 · ortak bileşen 20 · alt bölüm 29) ve `03` (55 alt bölüm) | O3 | ⬚ |
+| 7.1.4 | Arayüz → task | `04` (102: ekran 53 · ortak bileşen 20 · alt bölüm 29) ve `03` (55 alt bölüm) | O3 | ✓ |
 | 7.1.5 | İş kuralı → task — kalın etiketli beş grup: **`02`** · **`05`** · **`09`** · **`10`** · **Devir satırları** | `02 §1`–§3 (297) O4a; `02 §4`–§13 (369) O4b; `05` (136) · `09` (25) · `10` (143) · devir (19) O5 | O4a, O4b, O5 | ⬚ |
 | 7.2, §8 | Geri izlenebilirlik, gerekçesiz eklemeler, GAP kararları | task → kaynak | O6 | ⬚ |
 
@@ -125,6 +125,8 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 
 **Task gerektirmeyen birim.** `08:§5.1` — `07`'ye geri yansıyan uçların kaydı: yeni uç çıkmamıştır ve üç mevcut ucun (UC-29, UC-30, UC-80) işi `07` satırlarının task'larındadır (O2: UC-29 ve UC-30 T510'da, UC-80 T311'de; ikisi de `08:§2.1.4` ve `08:§2.1.5` satırlarına eklendi). GAP değildir.
 
+`03:§9.5` — Tercih yönetimi: bölüm tercih yönetiminin ürünün içinde karşılığı olmadığını yazar (işlem bildirimleri kapatılamaz, bildirim tercihi ekranı yoktur — `02 §9.1.3`); yapılacak iş çıkmaz, "Task" hücresi `—` (O3). GAP değildir.
+
 **Aday task kimliği (K-1412).** "Task" sütunu aday kimliktir; adı ve gövdesi `§5`'te yazılır. Kurallar: (1) kimlik K-1407'nin faz aralığından gelir ve aşağıdaki aday tablosunda tanımlıdır (kapsama betiği denetler). (2) F1'in kimlikleri baştan ayrıldı; öteki fazlarda her matris oturumu kendi satırlarının gerek duyduğu kimliği sayaçtaki sonraki boş numaradan alır ve tabloya ekler. (3) Kimlikler faz içi sıra gözetmeden verilebilir; sıra `§5`'in işidir, araya `TXXa` girer (`00 §J`); gerekirse O6 betikli tek bir yeniden numaralama yapar ve kapsama betiği öncesini ve sonrasını koşar. (4) Var olan satıra aday kimlik eklenebilir (ör. UC-80'in F3 task'ı `08:§2.1.5` satırına girer); satır silinmez. (5) F1'in sırası modül akış sırasını (K-1410) bağların kurduğu sırayla daraltır: bir göç, bağlandığı tabloların göçünden sonra gelir (`06 §7.2`'nin 130 bağı betikle sınandı — sıra ihlali 0); Yönetim ve Üyelik ile iptal–cayma–iade ve Ödeme bu yüzden akış sırasından ayrılır.
 
 | Faz | Son ayrılan | Sonraki boş |
@@ -132,12 +134,12 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | F0 | T01 | T02 |
 | F1 | T120 | T121 |
 | F2 | T217 | T218 |
-| F3 | T314 | T315 |
+| F3 | T329 | T330 |
 | F4 | T410 | T411 |
-| F5 | T539 | T540 |
+| F5 | T547 | T548 |
 | F6 | T601 | T602 |
 
-**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102) — sonraki oturumlar ekler.
+**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125) — sonraki oturumlar ekler.
 
 | Aday | Faz | Kısa ad | Modül | Kaynak birimi |
 |---|---|---|---|---|
@@ -193,6 +195,21 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | T312 | F3 | Dosya uçları: imzalı indirme ucu ve parçalı yükleme ucu | Katalog | `07` UC-37, UC-83 (2) · `07 §5.4` (1) |
 | T313 | F3 | Site haritası ve robots.txt | Ortak altyapı | `07` UC-79 (1) |
 | T314 | F3 | Durum ucu: uyarı koşulları ve 500 sayacı | Ortak altyapı | `07` UC-82 (1) |
+| T315 | F3 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | Sepet ve sipariş | `03 §1.1`, §1.10 (2) |
+| T316 | F3 | Sipariş durumu geçişleri: sevkiyat ekseni | Sepet ve sipariş | `03 §1.2` |
+| T317 | F3 | Ödeme durumu geçişleri: ödeme ekseni | Ödeme | `03 §1.3` |
+| T318 | F3 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | Sepet ve sipariş | `03 §1.4`, §1.5, §8.5 (3) |
+| T319 | F3 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | Sepet ve sipariş | `03 §1.6` |
+| T320 | F3 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | İptal, cayma ve iade | `03 §1.7`, §1.9, §5.3 (3) |
+| T321 | F3 | Ürün yayın durumları | Katalog | `03 §1.8` |
+| T322 | F3 | İçerik yayın durumları ve iletişim talebi durumları | Kurumsal içerik | `03 §1.8`, §1.9 |
+| T323 | F3 | Durum × rol × işlem tablosu | Sepet ve sipariş | `03 §1.11` |
+| T324 | F3 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | Ortak altyapı | `03 §4.1` (Z-1…Z-47'nin ilk iki grubu) |
+| T325 | F3 | Zaman aşımı akışları: teslim, cayma, geri ödeme ve ayıp talebi süreleri | Ortak altyapı | `03 §4.1` (üçüncü ve dördüncü grup) |
+| T326 | F3 | Zaman aşımı akışları: katalog, kupon, içerik, iletişim ve bildirim süreleri | Ortak altyapı | `03 §4.1` (beşinci ve altıncı grup; yedinci grup saklama ve imha T201, T301, T302'dedir) |
+| T327 | F3 | Kendiliğinden işleyen anlar ve sitenin kesintisinde süreler | Sepet ve sipariş | `03 §4.2`, §10.3 (2) |
+| T328 | F3 | Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi | Bildirim | `03 §7.1`–§7.3 (3) |
+| T329 | F3 | İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi) | Sepet ve sipariş | `03 §2.10` (K-1410) |
 | T401 | F4 | PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve | Ödeme | `08 §2.1`, §2.1.1, §2.1.2, §2.1.4 |
 | T402 | F4 | PayTR: bildirim imzası ve alan eşlemesi | Ödeme | `08 §2.1.5` |
 | T403 | F4 | PayTR: son sorgu ve tek tahsilat | Ödeme | `08 §2.1.6`, §2.1.7 |
@@ -242,16 +259,26 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | T537 | F5 | Vitrin çerçevesinin modeli: marka, menü, duyuru şeridi, hesap alanı, sepet sayısı | Ortak altyapı | `07 §5.5` (1) |
 | T538 | F5 | Uç ve model eşitlik denetimleri: uç envanteri, form girdi ve sorgu modelleri | Ortak altyapı | `07 §5.2`, `§5.3` (2) |
 | T539 | F5 | Betiksiz yol: JavaScript kapalıyken temel akışlar ve betikli iyileştirme | Ortak altyapı | `07 §8.2` (1) |
+| T540 | F5 | Tasarım tabanı, vitrin ve panel çerçevesi, yönetici şeridi ve Taslak bandı (OB-01, OB-02, OB-09) | Ortak altyapı | `04 §2.1`, §2.2, §2.9, §3.1, §3.2, §8.3 (3 OB + 3 alt bölüm) |
+| T541 | F5 | Mesaj, onay, boş ve hata hâlleri ve satış kapalı hâli (OB-03, OB-04, OB-07, OB-08) | Ortak altyapı | `04 §2.3`, §2.4, §2.7, §2.8 (4 OB) |
+| T542 | F5 | Rozet ve işaretler, sayaç ve süre göstergeleri, eşzamanlı düzenleme uyarısı (OB-05, OB-06, OB-10) | Ortak altyapı | `04 §2.5`, §2.6, §2.10 (3 OB) |
+| T543 | F5 | Form alanı ve düzeni, adres formu, IBAN alanı, sebep seçimi ve ortak alan kuralları (OB-12…OB-15) | Ortak altyapı | `04 §2.12.1`–§2.12.4, §7.3 (4 OB + 1) |
+| T544 | F5 | Tarih alanı, kupon alanı, onay kutuları, görsel ve dosya yükleme arayüzü (OB-16…OB-19) | Ortak altyapı | `04 §2.12.5`–§2.12.8 (4 OB) |
+| T545 | F5 | Liste ve tablo, ürün kartı (OB-20, OB-11) | Ortak altyapı | `04 §2.11`, §2.13 (2 OB) |
+| T546 | F5 | Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler | Ortak altyapı | `04 §3.3`–§3.7 (5) |
+| T547 | F5 | Durum × rol matrisi ve form envanteri eşitlik denetimleri | Ortak altyapı | `04 §6.1`–§6.3, §7.1, §7.2 (5) |
 | T601 | F6 | `DEPLOY_RUNBOOK` provası, dış sistemde kayıtlı adresler ve yansıyan tablolar | Ortak | `06 §8.5`, `08 §4.2` |
 
 **Kapsama komutları (Git Bash; depo kökünden).** Sayımlar aşağıdaki sayılarla aynı çıkmalı, her iki betik de çıkış kodu 0 vermelidir (eksik, fazla, yinelenen 0).
 
 ```sh
 python -I scripts/doc-scans/11_matris_envanter.py . /tmp/envanter.txt    # kaynak envanteri: 06 117, 07 208, 08 30 (ve öteki aileler)
-python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matris satırları ↔ beklenen küme (dolu aileler: 06, 07, 08)
+python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matris satırları ↔ beklenen küme (dolu aileler: 06, 07, 08, 04, 03)
 ```
 
 **Okuma derinliği (O1).** `06`: §3.1 entity tablosu bütün, §2/§5–§9 alt bölüm başlıkları ve ilk paragrafları, §8 bütün, §7.2'nin 130 bağı betikle; §4 entity tanımları okunmadı — kaynak birim §3.1'in satırıdır. `08`: §1 bütün, §2–§5 başlıkları ve her başlığın ilk iki paragrafı (satır başına ilk 300–380 karakter; kesilerek okundu).
+
+**Okuma derinliği (O3).** `04`: §4 ekran envanteri (53 satır) ve §4.3, §4.4 bütün; §2'nin bileşen özet tablosu (20 satır, her hücre) ve alt bölüm başlıkları; §3, §6, §7, §8 alt bölüm başlıkları ve ilk paragrafları. Okunmadı: §5 ve §9 ekran tanımları, §2 bileşen tanımlarının gövdesi, §6.2–§6.3 matris satırları, §7.1–§7.3 alan tabloları. `03`: bütün `###` başlıkları (55); §2.10, §4, §5, §6, §7, §8.2, §8.5, §9.5, §10 bölümlerinin girişi ve ilk tablo satırları (satır başına ilk 250–420 karakter); §1, §2.1–§2.9, §3, §8.1, §8.3, §8.4, §8.6–§8.9, §9.1–§9.4 yalnız başlık ve ilk paragraf. Eşleme ekran adı ve `07`'nin F5 gruplarından türer; gövdesi okunmayan alt bölümlerde (özellikle `03 §3.5`, §6.2) task listesi sonraki oturumda örneklemle doğrulanır.
 
 #### 7.1.1 Veri modeli → task
 
@@ -629,10 +656,167 @@ python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matri
 
 #### 7.1.4 Arayüz → task
 
-> Doldurulacak: O3 (`04` 102 + `03` 55 = 157 birim).
+Kaynak: `04` (102: ekran 53 `04:E-nn` · ortak bileşen 20 `04:OB-nn` · alt bölüm 29 `04:§n.m`) ve `03` (55 alt bölüm, `03:§n.m`). Ekran birimleri O2'nin F5 ekran gruplu task'larına (T502–T539) bağlandı; ortak bileşenler, gezinme ve form eşitliği için F5'te sekiz, durum makinesi, süreler ve bildirim eşlemesi için F3'te on beş aday açıldı (K-1418).
 
 | Kaynak öğe | Task | Implement edildi | Kanıt |
 |---|---|---|---|
+| 04:E-01 Ana sayfa | T502 | | |
+| 04:E-02 Kategori sayfası | T502 | | |
+| 04:E-03 Arama sonuçları | T503 | | |
+| 04:E-04 Ürün sayfası | T503 | | |
+| 04:E-05 Arşivlenmiş ürün sayfası | T503 | | |
+| 04:E-06 "Sayfa bulunamadı" sayfası | T504 | | |
+| 04:E-07 İçerik liste sayfası | T505 | | |
+| 04:E-08 İçerik sayfası | T505 | | |
+| 04:E-09 Sık sorulan sorular sayfası | T506 | | |
+| 04:E-10 İletişim sayfası ve formu | T506 | | |
+| 04:E-11 Yasal metin sayfası | T507 | | |
+| 04:E-12 Sepet | T508 | | |
+| 04:E-13 Ödeme adımı | T509 | | |
+| 04:E-14 Sipariş teyit ve bekleme ekranı | T510 | | |
+| 04:E-15 Sipariş takibi girişi | T511 | | |
+| 04:E-16 Sipariş sayfası | T511, T512 | | |
+| 04:E-17 İptal ve gecikme feshi ekranı | T512 | | |
+| 04:E-18 Cayma beyanı ekranı | T513 | | |
+| 04:E-19 Ayıp talebi ekranı | T513 | | |
+| 04:E-20 Kayıt ekranı | T514 | | |
+| 04:E-21 Doğrulama bağlantısının iniş ekranı | T514 | | |
+| 04:E-22 Müşteri girişi | T515 | | |
+| 04:E-23 Şifre sıfırlama ekranları | T516 | | |
+| 04:E-24 Yeniden doğrulama ekranı | T516 | | |
+| 04:E-25 Hesap — profil ve güvenlik | T517 | | |
+| 04:E-26 Adres defteri | T518 | | |
+| 04:E-27 Sipariş geçmişi | T518 | | |
+| 04:E-28 E-posta değişikliğini geri alma ekranı | T519 | | |
+| 04:E-29 Panel girişi ve şifre sıfırlama | T520 | | |
+| 04:E-30 Yönetici daveti kabul ekranı | T520 | | |
+| 04:E-31 Panel ana sayfası | T521 | | |
+| 04:E-32 Ürün listesi | T525 | | |
+| 04:E-33 Ürün formu | T525 | | |
+| 04:E-34 Kategori ağacı | T526 | | |
+| 04:E-35 Kuponlar | T526 | | |
+| 04:E-36 Sipariş listesi | T527 | | |
+| 04:E-37 Sipariş ayrıntısı | T527, T528, T529, T530, T531 | | |
+| 04:E-38 Talepler | T532 | | |
+| 04:E-39 İletişim talebi ayrıntısı | T532 | | |
+| 04:E-40 Üye kaydı görünümü | T533 | | |
+| 04:E-41 Kurumsal içerik | T534 | | |
+| 04:E-42 Ana sayfa ve menü | T535 | | |
+| 04:E-43 Marka | T534 | | |
+| 04:E-44 Firma kimliği ve satış | T535 | | |
+| 04:E-45 Ödeme yöntemleri | T536 | | |
+| 04:E-46 Kargo, süreler ve varsayılanlar | T536 | | |
+| 04:E-47 Yasal metinler | T507 | | |
+| 04:E-49 Yönetici hesapları | T522 | | |
+| 04:E-50 Yöneticinin kendi hesabı | T523 | | |
+| 04:E-51 Satış özeti | T524 | | |
+| 04:E-52 İşlem izi | T522 | | |
+| 04:E-53 Dışa aktarma | T524 | | |
+| 04:E-54 Yönetici hesabının doğrulama ekranları | T521 | | |
+| 04:OB-01 Tasarım tabanı | T540 | | |
+| 04:OB-02 Çerçeve | T540, T537 | | |
+| 04:OB-03 Mesaj | T541 | | |
+| 04:OB-04 Onay | T541 | | |
+| 04:OB-05 Rozet ve işaretler | T542 | | |
+| 04:OB-06 Sayaç ve süre göstergeleri | T542 | | |
+| 04:OB-07 Boş, yükleniyor ve hata hâlleri | T541 | | |
+| 04:OB-08 Satış kapalı hâli | T541 | | |
+| 04:OB-09 "Taslak" bandı ve yönetici şeridi | T540 | | |
+| 04:OB-10 Eşzamanlı düzenleme uyarısı | T542 | | |
+| 04:OB-11 Ürün kartı | T545 | | |
+| 04:OB-12 Form alanı ve form düzeni | T543 | | |
+| 04:OB-13 Adres formu | T543 | | |
+| 04:OB-14 IBAN alanı | T543 | | |
+| 04:OB-15 Sebep seçimi | T543 | | |
+| 04:OB-16 Tarih alanı | T544 | | |
+| 04:OB-17 Kupon alanı | T544 | | |
+| 04:OB-18 Onay kutuları | T544 | | |
+| 04:OB-19 Görsel ve dosya yükleme | T544 | | |
+| 04:OB-20 Liste ve tablo | T545 | | |
+| 04:§2.1 Tasarım tabanı | T540 | | |
+| 04:§2.2 Çerçeve | T540, T537 | | |
+| 04:§2.3 Mesaj | T541 | | |
+| 04:§2.4 Onay | T541 | | |
+| 04:§2.5 Rozet ve işaretler | T542 | | |
+| 04:§2.6 Sayaç ve süre göstergeleri | T542 | | |
+| 04:§2.7 Boş, yükleniyor ve hata hâlleri | T541 | | |
+| 04:§2.8 Satış kapalı hâli | T541 | | |
+| 04:§2.9 "Taslak" bandı ve yönetici şeridi | T540 | | |
+| 04:§2.10 Eşzamanlı düzenleme uyarısı | T542 | | |
+| 04:§2.11 Ürün kartı | T545 | | |
+| 04:§2.12 Form bileşenleri | T543, T544 | | |
+| 04:§2.13 Liste ve tablo | T545 | | |
+| 04:§3.1 Vitrinin gezinme iskeleti | T540 | | |
+| 04:§3.2 Panelin gezinme iskeleti | T540 | | |
+| 04:§3.3 Müşteri tarafının geçişleri | T546 | | |
+| 04:§3.4 Panelin geçişleri | T546 | | |
+| 04:§3.5 Sitenin dışından girişler | T546 | | |
+| 04:§3.6 Girişten ve çıkıştan dönüş | T546 | | |
+| 04:§3.7 Panel ile vitrin arasındaki geçişler | T546 | | |
+| 04:§6.1 Kapsam ve okunuş — durum taşıyan ekranlar | T547 | | |
+| 04:§6.2 Müşteri tarafı | T547 | | |
+| 04:§6.3 Panel | T547 | | |
+| 04:§7.1 Müşteri tarafının formları | T547 | | |
+| 04:§7.2 Panelin formları | T547 | | |
+| 04:§7.3 Ortak alan kuralları | T543 | | |
+| 04:§8.1 Tek dil ve dil seçiminin yokluğu | T216 | | |
+| 04:§8.2 Türkçenin biçimleri — tarih, sayı, para | T216 | | |
+| 04:§8.3 Metin uzunluğunun yerleşime etkisi | T540 | | |
+| 03:§1.1 Envanter | T315 | | |
+| 03:§1.2 Sevkiyat ekseni — Sipariş durumu | T316 | | |
+| 03:§1.3 Ödeme ekseni — Ödeme durumu | T317 | | |
+| 03:§1.4 İki eksenin bağı | T318 | | |
+| 03:§1.5 Tipe göre hatlar | T318 | | |
+| 03:§1.6 Geri alınamaz geçişler, onay pencereleri ve düzeltme | T319 | | |
+| 03:§1.7 Kalem kayıtları ve panel işaretleri | T320 | | |
+| 03:§1.8 Yayın durumları | T321, T322 | | |
+| 03:§1.9 Talep durumları | T320, T322 | | |
+| 03:§1.10 Durum makinesi olmayan varlıklar | T315 | | |
+| 03:§1.11 Durum × rol × işlem | T323, T217 | | |
+| 03:§2.1 Ziyaretçi: vitrinde gezinme ve ürünü bulma | T502, T503 | | |
+| 03:§2.2 Ziyaretçi: kurumsal içerik ve iletişim formu | T505, T506 | | |
+| 03:§2.3 Müşteri: sepet | T508 | | |
+| 03:§2.4 Müşteri: ödeme adımı ve sipariş onayı | T509, T510 | | |
+| 03:§2.5 Müşteri: ödeme ve teslim | T510, T311, T316, T317 | | |
+| 03:§2.6 Müşteri: sipariş takibi (akış 2) | T511 | | |
+| 03:§2.7 Müşteri: iptal ve gecikme feshi | T512 | | |
+| 03:§2.8 Müşteri: cayma ve iade | T513 | | |
+| 03:§2.9 Müşteri: ayıp talebi | T513 | | |
+| 03:§2.10 Uçtan uca anlatılar | T329 | | |
+| 03:§3.1 Bütün akışlara uygulanan ilkeler | T212, T541 | | |
+| 03:§3.2 Satın alma ve sipariş takibi | T508, T509, T510, T511 | | |
+| 03:§3.3 İptal, cayma ve iade (akış 3) | T512, T513 | | |
+| 03:§3.4 Üyelik (akış 4) | T514, T515, T516, T517 | | |
+| 03:§3.5 Firma tarafı | T525, T527, T528, T529, T530, T534, T535, T536 | | |
+| 03:§4.1 Süre envanterinden zaman aşımı akışları | T324, T325, T326, T201 | | |
+| 03:§4.2 Kendiliğinden işleyen anlar | T327 | | |
+| 03:§5.1 Üç yol ve itirazın yeri | T511, T512, T513, T506 | | |
+| 03:§5.2 Ürünün dışında çözülen anlaşmazlıklar | T506, T528, T529, T530 | | |
+| 03:§5.3 İade reddi ve değer kaybı | T320, T528 | | |
+| 03:§6.1 Deneme limitleri | T215, T509, T515, T516 | | |
+| 03:§6.2 Teyit ve kandırılma akışları | T519, T527, T530 | | |
+| 03:§6.3 Firmanın inceleme akışları | T521, T527 | | |
+| 03:§7.1 Bildirimler ve tetikleyicileri | T306, T307, T308, T309, T328 | | |
+| 03:§7.2 Bildirim üretmeyen olaylar ve olmayan bildirimler | T328 | | |
+| 03:§7.3 Geçiş ve olay bazlı eşleme | T328 | | |
+| 03:§8.1 Katalog yönetimi (akış 5) | T525, T526 | | |
+| 03:§8.2 Sipariş yürütümü: olağan hat (akış 6) | T316, T318, T527 | | |
+| 03:§8.3 Firma iptali, iade teslim alma ve geri ödeme | T528, T529 | | |
+| 03:§8.4 Sipariş müdahaleleri | T528, T530, T531 | | |
+| 03:§8.5 Manuel adım bütçesi | T318 | | |
+| 03:§8.6 Kurumsal içerik, marka, duyuru ve iletişim talepleri (akış 7'nin panel yüzü) | T532, T534 | | |
+| 03:§8.7 Mağaza ayarları, satış kapısı ve kurulum kontrol listesi (akış 8) | T521, T535, T536 | | |
+| 03:§8.8 Yönetici hesapları ve davet | T520, T522 | | |
+| 03:§8.9 Bekleyen işler, satış özeti, işlem izi ve dışa aktarma | T521, T522, T524 | | |
+| 03:§9.1 Kayıt, e-posta doğrulama ve Google ile ilk giriş | T409, T514, T515 | | |
+| 03:§9.2 Giriş, oturum, şifre sıfırlama ve yeniden doğrulama | T515, T516, T520 | | |
+| 03:§9.3 Profil ve adres defteri | T517, T518 | | |
+| 03:§9.4 Hesabın silinmesi ve kişisel veri başvurusu | T517, T533 | | |
+| 03:§9.5 Tercih yönetimi | — | | |
+| 03:§10.1 Dış servis kesintileri | T204, T407, T509 | | |
+| 03:§10.2 Bakım ve güncelleme | T535 | | |
+| 03:§10.3 Sitenin kesintisi | T327 | | |
+| 03:§10.4 Panele erişimin kaybı | T520 | | |
 
 #### 7.1.5 İş kuralı → task
 

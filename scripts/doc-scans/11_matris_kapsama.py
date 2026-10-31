@@ -7,7 +7,7 @@ kumeyle karsilastirir; eksik, fazla ve yinelenen sayar. Envanter betigi
 o sayimi eksiksiz tasidigini denetler.
 
 Denetlenen aileler DOLU listesindedir; matris oturumu kendi ailesini listeye ekler:
-  O1: 06, 08 (7.1.1, 7.1.3) ... O2: 07 ... O3: 04, 03 ... O4: 02 ... O5: 05, 09, 10, devir.
+  O1: 06, 08 (7.1.1, 7.1.3) ... O2: 07 ... O3: 04, 03 (7.1.4) ... O4: 02 ... O5: 05, 09, 10, devir.
 
 Ek denetimler:
   - her satirin Task hucresi aday kimlik listesi ("T107" ya da "T402, T311") ya da "-" olur;
@@ -29,7 +29,7 @@ root = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
 out_path = sys.argv[2] if len(sys.argv) > 2 else None
 
 # Matris oturumu kendi ailesini ekler (alt bolum haritasi: 11 7).
-DOLU = ["06", "07", "08"]
+DOLU = ["06", "07", "08", "04", "03"]
 # Ailenin yerlestigi alt bolum (K-1404, K-1412).
 ALT_BOLUM = {"06": "7.1.1", "07": "7.1.2", "08": "7.1.3", "04": "7.1.4", "03": "7.1.4",
              "02": "7.1.5", "10": "7.1.5", "05": "7.1.5", "09": "7.1.5", "devir": "7.1.5"}
@@ -113,7 +113,29 @@ def beklenen_07():
     return ucs + sub, {"uc": len(ucs), "alt bolum": len(sub)}
 
 
-BEKLENEN = {"06": beklenen_06, "07": beklenen_07, "08": beklenen_08}
+def beklenen_04():
+    d = load("04")
+    ekran = []
+    for _, l in bolum(d, 4):
+        m = re.match(r"\| (E-\d+) \|", l)
+        if m:
+            ekran.append("04:" + m.group(1))
+    ob = []
+    for _, l in bolum(d, 2):
+        m = re.match(r"#{3,4} \d+(?:\.\d+)* .*\((OB-\d+)\)", l)
+        if m:
+            ob.append("04:" + m.group(1))
+    sub = ["04:§" + x for x in alt_bolumler(d, (2, 3, 6, 7, 8))]
+    return ekran + ob + sub, {"ekran": len(ekran), "ortak bilesen": len(ob), "alt bolum": len(sub)}
+
+
+def beklenen_03():
+    d = load("03")
+    sub = ["03:§" + x for x in alt_bolumler(d, range(1, 11))]
+    return sub, {"alt bolum": len(sub)}
+
+
+BEKLENEN = {"06": beklenen_06, "07": beklenen_07, "08": beklenen_08, "04": beklenen_04, "03": beklenen_03}
 
 # ------------------------------------------------------------ matris satirlari
 plan_f = sorted((root / "Docs").glob("11_*.md"))[0]
@@ -125,6 +147,9 @@ def kimlik(hucre):
     """`06:§4.17 Order` -> '06:§4.17 Order'; `06:§2.1 Baslik` -> '06:§2.1';
     `07 UC-12 ...` -> '07:UC-12'."""
     h = hucre.strip().strip("`")
+    me = re.match(r"^(04):((?:E|OB)-\d+)\b", h)
+    if me:
+        return "%s:%s" % (me.group(1), me.group(2))
     mu = re.match(r"^(07) (UC-\d+)\b", h)
     if mu:
         return "%s:%s" % (mu.group(1), mu.group(2))

@@ -7,7 +7,7 @@ kumeyle karsilastirir; eksik, fazla ve yinelenen sayar. Envanter betigi
 o sayimi eksiksiz tasidigini denetler.
 
 Denetlenen aileler DOLU listesindedir; matris oturumu kendi ailesini listeye ekler:
-  O1: 06, 08 (7.1.1, 7.1.3) ... O2: 07 ... O3: 04, 03 (7.1.4) ... O4a: 02 §1-§3 ... O4b: 02 §4-§13 ... O5: 05, 09, 10, devir.
+  O1: 06, 08 (7.1.1, 7.1.3) ... O2: 07 ... O3: 04, 03 (7.1.4) ... O4a: 02 §1-§3 ... O4b 1/2: 02 §4-§8 (KAPSAM_02) ... O4b 2/2: 02 §9-§13 ... O5: 05, 09, 10, devir.
 
 Ek denetimler:
   - her satirin Task hucresi aday kimlik listesi ("T107" ya da "T402, T311") ya da "-" olur;
@@ -135,14 +135,14 @@ def beklenen_03():
     return sub, {"alt bolum": len(sub)}
 
 
-# O4a: 02 yalniz §1-§3 (kural 257 + alt bolum 40). O4b §4-§13'u (kural, kimlikli satir, alt bolum)
+# O4a: 02 §1-§3 (kural 257 + alt bolum 40); O4b 1/2: §4-§8 (kural 101, kimlikli satir 56, alt bolum 36); O4b 2/2 §9-§13'u ekler:
 # ekler: KAPSAM_02'ye bolum numaralarini ve kimlikli satirlari katar.
-KAPSAM_02 = (1, 2, 3)
+KAPSAM_02 = tuple(range(1, 9))  # O4b 1/2: §4-§8; O4b 2/2 §9-§13'u ekler
 
 
 def beklenen_02():
     d = load("02")
-    kural = []
+    kural, kimlikli = [], []
     for n in KAPSAM_02:
         if n < 3:
             continue
@@ -150,8 +150,11 @@ def beklenen_02():
             m = re.match(r"\*\*(\d+\.\d+\.\d+)[\s .*]", l)
             if m:
                 kural.append("02:§" + m.group(1))
+            m2 = re.match(r"\| ((?:Z|L|P|B|F|H)-\d+) \|", l)
+            if m2:
+                kimlikli.append("02:" + m2.group(1))
     sub = ["02:§" + x for x in alt_bolumler(d, KAPSAM_02)]
-    return kural + sub, {"kural": len(kural), "alt bolum": len(sub)}
+    return kural + kimlikli + sub, {"kural": len(kural), "kimlikli satir": len(kimlikli), "alt bolum": len(sub)}
 
 
 BEKLENEN = {"06": beklenen_06, "07": beklenen_07, "08": beklenen_08, "04": beklenen_04, "03": beklenen_03,
@@ -170,6 +173,9 @@ def kimlik(hucre):
     me = re.match(r"^(04):((?:E|OB)-\d+)\b", h)
     if me:
         return "%s:%s" % (me.group(1), me.group(2))
+    mk = re.match(r"^(02):((?:Z|L|P|B|F|H)-\d+)\b", h)
+    if mk:
+        return "%s:%s" % (mk.group(1), mk.group(2))
     mu = re.match(r"^(07) (UC-\d+)\b", h)
     if mu:
         return "%s:%s" % (mu.group(1), mu.group(2))

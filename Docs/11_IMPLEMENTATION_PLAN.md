@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.5** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.6** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -109,7 +109,7 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | 7.1.2 | API → task | `07` (208: uç 187 · alt bölüm 21) | O2 | ✓ |
 | 7.1.3 | Entegrasyon → task | `08` (30: entegrasyon 3 · çağrısı olmayan bağlantı 1 · alt bölüm 26) | O1 | ✓ |
 | 7.1.4 | Arayüz → task | `04` (102: ekran 53 · ortak bileşen 20 · alt bölüm 29) ve `03` (55 alt bölüm) | O3 | ✓ |
-| 7.1.5 | İş kuralı → task — kalın etiketli beş grup: **`02`** · **`05`** · **`09`** · **`10`** · **Devir satırları** | `02 §1`–§3 (297) O4a; `02 §4`–§13 (369) O4b; `05` (136) · `09` (25) · `10` (143) · devir (19) O5 | O4a, O4b, O5 | ⬚ (`02 §1`–§3 ✓ O4a) |
+| 7.1.5 | İş kuralı → task — kalın etiketli beş grup: **`02`** · **`05`** · **`09`** · **`10`** · **Devir satırları** | `02 §1`–§3 (297) O4a; `02 §4`–§8 (193) O4b 1/2; `02 §9`–§13 (176) O4b 2/2; `05` (136) · `09` (25) · `10` (143) · devir (19) O5 | O4a, O4b, O5 | ⬚ (`02 §1`–§3 ✓ O4a; `§4`–§8 ✓ O4b 1/2) |
 | 7.2, §8 | Geri izlenebilirlik, gerekçesiz eklemeler, GAP kararları | task → kaynak | O6 | ⬚ |
 
 **Kaynak kimliğinin biçimi (K-1412).** Satırın ilk hücresi kimlikle başlar; kimliğin ardından başlık ya da ad gelir (en çok 500 bayt/satır). Kapsama betiği yalnız kimliği okur.
@@ -120,7 +120,8 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | `06` enum alt bölümü ve alt bölüm | `06:§<n.m> <başlık>` | `06:§5.2 Durum setleri ve geçiş kimlikleri` |
 | `08` entegrasyon, çağrısı olmayan bağlantı, alt bölüm | `08:§<n.m[.k]> <başlık>` | `08:§2.1.4 …`, `08:§3.1 …` |
 | `02` kural ve alt bölüm (O4a) | `02:§3.<n.m> <kural başlığı>` (kalın başlık cümlesi), `02:§<n.m> <başlık>` — `02 §1`–§3 | `02:§3.6.7 Stok ve hizmet kontenjanı…`, `02:§3.6 Stok ve tükenme` |
-| Sonraki aileler | `05 MK-nn`, `02 §4`–§13 kimlikli satırlar (Z, L, P, B, F, H), `10 KP-n`, `09 §n`, devir `K-n` (K-1406 (3)) — biçimi kendi oturumu betiğe ekler | |
+| `02` kimlikli satır (O4b 1/2) | `02:<Z-n \| L-n> <satır adı>` — `02 §4.2` (Z-1…Z-47) ve `§8.2` (L-1…L-9); `02 §4`–§8 kural ve alt bölümü O4a biçiminde | `02:Z-7 Kart ödeme süresi`, `02:L-5 Başarısız misafir sipariş takibi sorgusu` |
+| Sonraki aileler | `05 MK-nn`, `02 §9`–§13 kimlikli satırlar (P, B, F, H), `10 KP-n`, `09 §n`, devir `K-n` (K-1406 (3)) — biçimi kendi oturumu betiğe ekler | |
 
 **Satır sütunları (K-1412).** **Kaynak öğe** (kimlik + ad) · **Task** (aday task kimliği; birden çok ise virgülle; task gerektirmeyen birim `—`) · **Implement edildi** (boş — gate'te dolar) · **Kanıt** (boş — gate'te dolar). Kapsama betiği son iki sütunun bu aşamada boş olduğunu da denetler.
 
@@ -137,12 +138,12 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | F0 | T01 | T02 |
 | F1 | T120 | T121 |
 | F2 | T217 | T218 |
-| F3 | T366 | T367 |
+| F3 | T378 | T379 |
 | F4 | T410 | T411 |
 | F5 | T547 | T548 |
 | F6 | T601 | T602 |
 
-**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125; O4a 37 aday ekledi: F3 `T330`–`T366`, `02 §3`'ün iş kuralı task'ları; toplam 162) — sonraki oturumlar ekler.
+**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125; O4a 37 aday ekledi: F3 `T330`–`T366`, `02 §3`'ün iş kuralı task'ları; toplam 162; O4b 1/2 12 aday ekledi: F3 `T367`–`T378`, `02 §4`–§8'in iş kuralı task'ları; toplam 174) — sonraki oturumlar ekler.
 
 | Aday | Faz | Kısa ad | Modül | Kaynak birimi |
 |---|---|---|---|---|
@@ -250,6 +251,18 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | T364 | F3 | Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler | Sepet ve sipariş | `02 §3.31.1`, §3.31.2 (2) |
 | T365 | F3 | İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması | Kurumsal içerik | `02 §3.32.1`–§3.32.10 (10) |
 | T366 | F3 | Yasal metinler: dört metin, sürüm artışı, aydınlatma bağlantıları, e-postada tam metin | Ayarlar | `02 §3.33.1`–§3.33.9 (9) |
+| T367 | F3 | Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon | İptal, cayma ve iade | `02 §7.1.1`, §7.1.4, §7.2.1, §7.2.2, §7.2.5–§7.2.7 (7) |
+| T368 | F3 | Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi | İptal, cayma ve iade | `02 §7.2.3`, §7.2.4 (2) |
+| T369 | F3 | İşlemin adet birimi ve geri ödeme tutarı: açık adet, kupon payı, KDV, kargo ücretinin iptalde ve caymada ayrılması | İptal, cayma ve iade | `02 §7.1.3`, §7.1.6, §7.1.7, §7.2.9, §7.4.6 (5) |
+| T370 | F3 | Geri ödeme hattı: ödemenin geldiği yol, kart ve havale, IBAN'ın ömrü, geri ödeme süresi, kart iadesi hataları | Ödeme | `02 §7.2.8`, §7.4.1, §7.4.5, §8.4.2 (4) |
+| T371 | F3 | Cayma hakkı: pencere, dijital ve hizmet istisnası, ürün istisna işareti, tek rejim | İptal, cayma ve iade | `02 §7.1.2`, §7.3.1–§7.3.4 (5) |
+| T372 | F3 | Cayma beyanı: sipariş sayfasından ve başka kanaldan, beyanın etkisi, kargoya verilmemiş kalemde iptal yolu, firmanın teyidi | İptal, cayma ve iade | `02 §7.3.5`–§7.3.7, §8.3.8 (4) |
+| T373 | F3 | İade: iade kargo bedeli, ödemeli gönderim ve iade adresi, teslim alma adımı, stoğa ekleme, koşullu istisnada ret, kullanılmış mal | İptal, cayma ve iade | `02 §7.4.2`–§7.4.4, §7.4.7–§7.4.10 (7) |
+| T374 | F3 | Ayıp talebi: kanal, iki yıllık süre, durumlar, çözüm, dijital dosya güncellemesi | İptal, cayma ve iade | `02 §7.5.1`–§7.5.4 (4) |
+| T375 | F3 | Yöneticinin sipariş düzeltmeleri: ileri yönlü kayıt, tutar değişmez, firmanın teyidiyle e-posta ve adres düzeltmesi, cayma beyanı geri alınmaz | Sepet ve sipariş | `02 §7.6.6`, §7.6.7, §8.3.6, §8.3.7 (4) |
+| T376 | F3 | Deneme limitleri: dokuz limit, kayan pencere, hesap kilitlenmez, nötr mesaj | Ortak altyapı | `02 §8.2.1`, L-1…L-9 (10) |
+| T377 | F3 | Limit ilkeleri: iki eksen, ödenmemiş sipariş sayımı, yönetici muafiyeti yok, tanınan tarayıcı işareti | Ortak altyapı | `02 §8.2.2`–§8.2.6 (5) |
+| T378 | F3 | Zaman sayımı: tek saat dilimi, iş günü ve resmî tatil listesi, takvim ve iş günü sayımı, gün sonu, tarih aralığı, çitler | Ortak altyapı | `02 §4.1.1`–§4.1.5 (5) |
 | T401 | F4 | PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve | Ödeme | `08 §2.1`, §2.1.1, §2.1.2, §2.1.4 |
 | T402 | F4 | PayTR: bildirim imzası ve alan eşlemesi | Ödeme | `08 §2.1.5` |
 | T403 | F4 | PayTR: son sorgu ve tek tahsilat | Ödeme | `08 §2.1.6`, §2.1.7 |
@@ -321,6 +334,8 @@ python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matri
 **Okuma derinliği (O3).** `04`: §4 ekran envanteri (53 satır) ve §4.3, §4.4 bütün; §2'nin bileşen özet tablosu (20 satır, her hücre) ve alt bölüm başlıkları; §3, §6, §7, §8 alt bölüm başlıkları ve ilk paragrafları. Okunmadı: §5 ve §9 ekran tanımları, §2 bileşen tanımlarının gövdesi, §6.2–§6.3 matris satırları, §7.1–§7.3 alan tabloları. `03`: bütün `###` başlıkları (55); §2.10, §4, §5, §6, §7, §8.2, §8.5, §9.5, §10 bölümlerinin girişi ve ilk tablo satırları (satır başına ilk 250–420 karakter); §1, §2.1–§2.9, §3, §8.1, §8.3, §8.4, §8.6–§8.9, §9.1–§9.4 yalnız başlık ve ilk paragraf. Eşleme ekran adı ve `07`'nin F5 gruplarından türer; gövdesi okunmayan alt bölümlerde (özellikle `03 §3.5`, §6.2) task listesi sonraki oturumda örneklemle doğrulanır.
 
 **Okuma derinliği (O4a).** `02 §3`'ün 257 kuralı ve 34 alt bölümü bütün okundu — her kural satırı tamamıyla (§3.1–§3.34, satır 497–1090); §2 (§2.1 envanter tablosu, §2.2 ve §2.3 bütün) ve §1.1, §1.3 bütün okundu. **Okunmadı:** §1.2 terim sözlüğünün tablo satırları (birim değildir; alt bölüm satırı karşılar), her bölümün sonundaki `Kaynak:` satırları (karar atıfları; birim değildir). Okunan kuralların hiçbirinde kesme yapılmadı.
+
+**Okuma derinliği (O4b 1/2).** `02 §4`–§8 (satır 1094–1802): her kural satırı, Z ve L satırı ve `###` başlığı tamamıyla okundu; satırların uzun olanları ilk 430–700 karakter ve kalan parçalar ayrı ikinci okumayla (kesilmiş satır kalmadı). Okunmadı: her bölümün sonundaki `Kaynak:` satırlarının K-no sütunu (karar atıfları; birim değildir) ve tablo satırlarındaki K-no sütunu. `§6`'nın `6.2.n`…`6.9.n` satırları (birim değildir) alt bölüm satırının task birleşimi için okundu. §9–§13 bu oturumda okunmadı.
 
 #### 7.1.1 Veri modeli → task
 
@@ -862,11 +877,13 @@ Kaynak: `04` (102: ekran 53 `04:E-nn` · ortak bileşen 20 `04:OB-nn` · alt bö
 
 #### 7.1.5 İş kuralı → task
 
-> Doldurulacak: O4a (`02 §1`–§3; yazıldı), O4b, O5. Beş kalın etiketli grup, her birinin kendi tablosu: **`02`** (O4a: §1–§3; O4b: §4–§13) · **`05`** · **`09`** · **`10`** · **Devir satırları** (O5).
+> Doldurulacak: O4a (`02 §1`–§3; yazıldı), O4b 1/2 (`02 §4`–§8; yazıldı), O4b 2/2 (`02 §9`–§13), O5. Beş kalın etiketli grup, her birinin kendi tablosu: **`02`** (O4a: §1–§3; O4b: §4–§13) · **`05`** · **`09`** · **`10`** · **Devir satırları** (O5).
 
 Kaynak: `02 §1`–§3 (297: iş kuralı 257 `02:§3.n.m` · alt bölüm 40 `02:§n.m` — §1'in 3'ü, §2'nin 3'ü, §3'ün 34'ü). Kural satırı kuralın kalın başlık cümlesidir; kuralın iş mantığı F3'ün modül task'larındadır (T330–T366, K-1421), ekranda görünen yüzü F5'in ekran task'larındadır — bir kural birden çok task alabilir. `02 §3.26` ve `§1.1`–§1.2 task gerektirmez (gerekçesi yukarıda).
 
-**`02`** — `§1`–§3 (O4a)
+Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli satır 56 — Z-1…Z-47 ve L-1…L-9 · alt bölüm 36 `02:§n.m`; §4 55 · §5 31 · §6 15 · §7 50 · §8 42). `§6`'nın `6.2.n`…`6.9.n` senaryo satırları birim değildir: alt bölüm satırı o bölümün task birleşimini taşır. `§5.4` ve `§5.5`'in geçiş tabloları (S1–S11, Ö1–Ö5) T315–T319'a bağlıdır (K-1419 (5)); yeni durum makinesi task'ı açılmadı. `§4.2`'nin Z satırları süre akışlarına T324–T326'dan (O3), saklama satırları T201, T301, T302'den gelir. İptal, cayma, iade ve ayıp (`§7`) için F3'ün modül task'ları T367–T375'tir (K-1425); sınır deneme limitleri ve zaman sayımı T376–T378'dir. Kuralın ekranda görünen yüzü F5 task'larındadır (T511–T513, T528–T531, T541, T543). **Task gerektirmeyen iki birim:** `02:Z-25` (KVKK başvurusuna cevap, 30 gün) ve `02:Z-37` (veri ihlalinde Kurul'a bildirim, 72 saat) — satır "sistemde sayaç tutulmaz; yükümlülük firmanındır" der, ürün bir süre işletmez; "Task" hücresi `—` (K-1426). GAP değildir. `02:§3.26`'nın işaret ettiği kurallar `§7.2`–§7.5 satırlarında eşlendi.
+
+**`02`** — `§1`–§8 (O4a: `§1`–§3; O4b 1/2: `§4`–§8)
 
 | Kaynak öğe | Task | Implement edildi | Kanıt |
 |---|---|---|---|
@@ -1167,6 +1184,199 @@ Kaynak: `02 §1`–§3 (297: iş kuralı 257 `02:§3.n.m` · alt bölüm 40 `02:
 | 02:§3.34.6 Sitede ziyaretçi ölçümü yoktur | T540 | | |
 | 02:§3.34.7 Ürün çalışma süresi taahhüdü vermez | T327 | | |
 | 02:§3.34.8 Sipariş tarafında veri kaybı toleransı sıfırdır | T118, T327 | | |
+| 02:§4.1 Sayım kuralları | T324, T325, T337, T338, T350, T353, T360, T378 | | |
+| 02:§4.1.1 Tek saat dilimi Türkiye saatidir | T378, T101, T216 | | |
+| 02:§4.1.2 İş günü pazartesi–cumadır, resmî tatiller hariç | T378, T350, T353 | | |
+| 02:§4.1.3 İki süre iş günüyle, gerisi takvim günüyle sayılır | T378, T324, T325 | | |
+| 02:§4.1.4 Gün olarak belirlenen süre, başlangıç gününün ertesi günü başlar ve son günün 23:59'unda dolar | T378, T337, T338, T360 | | |
+| 02:§4.1.5 Üç süre çitlidir: | T378, T350, T353, T536 | | |
+| 02:§4.2 Süreler | T324, T325, T326, T301, T302, T201 | | |
+| 02:Z-1 E-posta doğrulama bağlantısının ömrü | T324, T341 | | |
+| 02:Z-2 Şifre sıfırlama bağlantısının ömrü | T324, T342, T343 | | |
+| 02:Z-3 Yönetici daveti bağlantısının ömrü | T324, T106, T520 | | |
+| 02:Z-4 Kısa oturum — "beni hatırla" işaretsiz | T324, T342 | | |
+| 02:Z-5 Uzun oturum — "beni hatırla" işaretli | T324, T342 | | |
+| 02:Z-6 Sepetin ömrü | T324, T346 | | |
+| 02:Z-7 Kart ödeme süresi — stok ayırma bu süre boyunca sürer | T324, T348, T352, T311 | | |
+| 02:Z-8 Havale ödeme süresi — stok ayırma bu süre boyunca sürer | T324, T348, T353, T327 | | |
+| 02:Z-9 Havale ödeme hatırlatması | T324, T353, T306 | | |
+| 02:Z-10 Kargoya verme süresi — firmanın vitrindeki sözü | T325, T350 | | |
+| 02:Z-11 Yasal teslim üst sınırı — kişiye özel üretilen mallar dışında | T325, T350, T368 | | |
+| 02:Z-12 Teslim tarihi | T325, T351 | | |
+| 02:Z-39 İfa süresi — hizmet kalemi; firmanın hizmetteki sözü | T325, T332, T355, T367, T368 | | |
+| 02:Z-13 Cayma penceresi — fiziksel kalem | T325, T371, T351 | | |
+| 02:Z-14 Cayma penceresi — hizmet kalemi | T325, T371 | | |
+| 02:Z-15 Cayma hakkı — dijital kalem | T325, T371 | | |
+| 02:Z-16 Geri ödeme — cayma | T325, T370, T373 | | |
+| 02:Z-42 Müşterinin iade malını gönderme süresi | T325, T373 | | |
+| 02:Z-17 Geri ödeme — iptal edilen ödenmiş sipariş ya da kalem | T325, T370 | | |
+| 02:Z-47 İfanın imkânsızlaştığının bildirimi | T325, T368, T370, T306 | | |
+| 02:Z-18 Ayıp talebinin iki yıllık zamanaşımı | T325, T374 | | |
+| 02:Z-19 İndirme hakkı | T325, T340 | | |
+| 02:Z-20 İndirimin tarih aralığı | T326, T337 | | |
+| 02:Z-21 Referans fiyatın geriye bakış penceresi | T326, T337 | | |
+| 02:Z-22 Kuponun tarih aralığı | T326, T338 | | |
+| 02:Z-23 Duyurunun tarih aralığı | T326, T360 | | |
+| 02:Z-24 İleri tarihli yayın | T326, T335, T360 | | |
+| 02:Z-25 KVKK başvurusuna cevap | — | | |
+| 02:Z-26 Gönderilemeyen e-postanın yeniden denenmesi | T326, T305 | | |
+| 02:Z-27 Deneme limitlerinin penceresi | T326, T377 | | |
+| 02:Z-28 Sipariş, ödeme ve fatura verisi; sözleşme ve ön bilgilendirme kayıtları; siparişe donmuş yasal… | T301 | | |
+| 02:Z-41 Ödemesi hiç alınmamış (Başarısız) siparişin kişisel verisi | T301 | | |
+| 02:Z-29 Ayıp talebi kaydı | T302, T374 | | |
+| 02:Z-30 İşlem izi | T302, T106 | | |
+| 02:Z-31 Hesap verisi — giriş bilgileri, şifre, açık oturumlar, adres defteri | T345 | | |
+| 02:Z-32 Sepet | T345 | | |
+| 02:Z-33 İletişim talebi — KVKK talebi dahil | T302, T365 | | |
+| 02:Z-34 Bildirim gönderim kaydı — hesap ve yönetim e-postaları ile firmaya giden bildirimler; yeniden… | T302, T305 | | |
+| 02:Z-43 Bildirim gönderim kaydı — siparişe bağlı müşteri bildirimleri (B-1…B-16); yeniden denemeler ve… | T302, T301, T305 | | |
+| 02:Z-35 Havale hattında müşterinin geri ödeme için girdiği IBAN | T302, T370 | | |
+| 02:Z-36 Periyodik imha | T201 | | |
+| 02:Z-40 Giriş kaydı ve sistem kayıtları | T302, T341 | | |
+| 02:Z-44 İmha kaydı — her periyodik imha çalışmasının ve kişisel veriyi hemen silen her işlemin (hesabın… | T201 | | |
+| 02:Z-45 E-posta değişikliğini geri alma bağlantısının ömrü | T302, T343 | | |
+| 02:Z-46 Girişte tanınan tarayıcı işareti | T302, T377 | | |
+| 02:Z-37 Veri ihlalinde Kurul'a bildirim | — | | |
+| 02:Z-38 Malı dönmeyen caymada havale hattı IBAN'ının kendiliğinden silinmesi | T327, T370, T373 | | |
+| 02:§4.3 Kendiliğinden işleyen anlar | T327, T348, T370 | | |
+| 02:§5.1 Ürün ve varyantın yayın durumu | T321, T335 | | |
+| 02:§5.2 Kurumsal içeriğin yayın durumu | T322, T360, T335 | | |
+| 02:§5.3 Sipariş: iki eksen ve oluşma anı | T315, T316, T317, T318, T345, T348, T355, T376 | | |
+| 02:§5.3.1 Sipariş iki bağımsız eksende durum taşır: | T315, T318 | | |
+| 02:§5.3.2 Sipariş, müşteri onayladığı anda Alındı + Bekliyor olarak doğar | T348, T355, T316, T317 | | |
+| 02:§5.3.3 Onay anında özet değişmişse sipariş hiç doğmaz | T348 | | |
+| 02:§5.3.4 Her ödeme denemesi ayrı bir sipariştir | T348, T376 | | |
+| 02:§5.3.5 Sipariş hesabın kaderinden bağımsızdır: | T345 | | |
+| 02:§5.4 Sevkiyat ekseni — Sipariş durumu | T315, T316, T319, T320 | | |
+| 02:§5.5 Ödeme ekseni — Ödeme durumu | T315, T317, T319, T370 | | |
+| 02:§5.6 İki eksenin bağı ve kendiliğinden geçişler | T311, T316, T317, T318, T324, T348, T372 | | |
+| 02:§5.6.1 İki eksen tek bir kapı koşuluyla bağlıdır: | T318, T316, T317 | | |
+| 02:§5.6.2 Yalnız dijital siparişte ödemenin onayı sevkiyatı doğrudan Teslim edildi'ye alır | T318, T316 | | |
+| 02:§5.6.3 Ödeme süresi dolduğunda ya da kart ödemesi başarısız olduğunda — hangisi önce gelirse — sipariş kendiliğinden İptal edildi, ödemesi Başarısız olur; | T348, T318, T317, T324, T311 | | |
+| 02:§5.6.4 Müşteri aynı sepetten yeni bir siparişi onayladığında o sepete bağlı ödenmemiş önceki sipariş kendiliğinden iptal edilir | T348 | | |
+| 02:§5.6.5 Ödenmeden iptal edilen siparişin ödemesi Başarısız olur | T317, T318 | | |
+| 02:§5.6.6 Cayma beyanı kendi başına hiçbir ekseni değiştirmez: | T318, T372 | | |
+| 02:§5.7 Tipe göre sevkiyat hattı | T318, T350 | | |
+| 02:§5.8 Sipariş kalemi düzeyindeki kayıtlar | T320, T351, T367, T368, T372, T373, T374 | | |
+| 02:§5.9 Geri alınamaz geçişler | T319, T367, T368, T372, T345 | | |
+| 02:§5.10 Ayıp talebinin durumu | T320, T374 | | |
+| 02:§5.11 İndirim ve kuponun zamana ve kullanıma bağlı geçerliliği | T337, T338, T355, T367 | | |
+| 02:§5.11.1 İndirim tarih aralığında kendiliğinden işler: | T337 | | |
+| 02:§5.11.2 Kupon, tarih aralığının içinde ve kullanım hakkı kaldıkça geçerlidir | T338 | | |
+| 02:§5.11.3 Kuponun kullanım hakkının ömrü: | T338, T367 | | |
+| 02:§5.11.4 Kuponun kalemlere dağıtılan payı sipariş anında donar | T338, T355 | | |
+| 02:§5.12 Hesap ve oturum | T341, T342, T343, T376 | | |
+| 02:§5.12.1 Hesabın durum makinesi yoktur | T341 | | |
+| 02:§5.12.2 Oturum "beni hatırla" seçimine göre kısa ya da uzun ömürlü açılır | T342, T343 | | |
+| 02:§5.12.3 Deneme limiti hesabın durumunu değiştirmez | T376 | | |
+| 02:§5.13 İletişim talebinin durumu | T322, T365 | | |
+| 02:§6.1 Bütün akışlara uygulanan ilkeler | T305, T306, T307, T311, T324, T331, T346, T348, T352, T354, T356, T375, T376, T377 | | |
+| 02:§6.1.1 Hiçbir sipariş ya da talep akışı bir e-postanın ulaşmasına bağlı değildir | T305, T306, T307, T354, T375, T511, T531 | | |
+| 02:§6.1.2 Sistem, müşterinin ödediği bir siparişi kendi bilgisizliği yüzünden iptal etmez | T348, T352, T311, T324 | | |
+| 02:§6.1.3 Onaylanan özet ile oluşan sipariş birebir aynıdır | T348, T356 | | |
+| 02:§6.1.4 Sepet hatalarda korunur | T346, T352, T331 | | |
+| 02:§6.1.5 Limit aşımı nötr konuşur | T376, T377, T541 | | |
+| 02:§6.1.6 Hata ve uyarının anlamı yalnız renkle taşınmaz; | T540, T541 | | |
+| 02:§6.2 Satın alma (akış 1) | T346, T347, T348, T349, T350, T352, T353, T334, T338, T340, T331, T376, T356, T354 | | |
+| 02:§6.3 Sipariş takibi (akış 2) | T354, T375, T376, T306, T307, T348 | | |
+| 02:§6.4 İptal, cayma ve iade (akış 3) | T367, T368, T369, T370, T371, T372, T373, T374, T351, T350, T316 | | |
+| 02:§6.5 Üyelik (akış 4) | T341, T342, T343, T345, T376, T309, T366 | | |
+| 02:§6.6 Katalog yönetimi (akış 5) | T333, T334, T335, T336, T337, T338, T340, T350, T364 | | |
+| 02:§6.7 Sipariş yürütümü (akış 6) | T305, T306, T316, T317, T319, T340, T351, T353, T364, T368, T375 | | |
+| 02:§6.8 Kurumsal içerik (akış 7) | T358, T359, T360, T361, T364, T365 | | |
+| 02:§6.9 Mağaza ayarları (akış 8) | T330, T331, T350, T352, T353, T362, T366, T106, T520 | | |
+| 02:§7.1 Üç yol ve ortak ilkeler | T306, T307, T365, T366, T367, T369, T371, T372, T374 | | |
+| 02:§7.1.1 Müşterinin satın almadan sonra başvurabileceği üç ayrı yol vardır | T367, T371, T374 | | |
+| 02:§7.1.2 Tek akış tüketici akışıdır | T371 | | |
+| 02:§7.1.3 İptal ve iade kalem düzeyinde ve adetle işler | T369, T367 | | |
+| 02:§7.1.4 Üç yol da sipariş sayfasından kullanılır; | T367, T372, T374, T306, T307, T511 | | |
+| 02:§7.1.5 İtirazın sistemdeki yeri | T365, T366 | | |
+| 02:§7.1.6 Kalemin işlem birimi adettir; kalem parça parça kapanabilir (K-787, K-790) | T369, T367, T372 | | |
+| 02:§7.1.7 İşleme giren adetlerin tutarı kalemin donmuş değerlerinden ayrılır (K-788) | T369 | | |
+| 02:§7.2 İptal | T306, T307, T316, T325, T334, T338, T340, T349, T350, T351, T353, T367, T368, T369, T370 | | |
+| 02:§7.2.1 Müşteri fiziksel kalemi, sipariş "Kargoya verildi"ye geçene kadar kendi iptal eder | T367, T316 | | |
+| 02:§7.2.2 İptal kalem ve adet düzeyindedir | T367, T316 | | |
+| 02:§7.2.3 Teslimat gecikmesinde fesih iki yoldan işler | T368, T350, T325 | | |
+| 02:§7.2.4 Firma da iptal edebilir | T368, T306, T307 | | |
+| 02:§7.2.5 Dijital kalem ödeme onayından sonra iptal edilemez: | T367, T340, T351 | | |
+| 02:§7.2.6 İptalde sayaçlar kendiliğinden döner | T367, T334, T338 | | |
+| 02:§7.2.7 Kısmi iptalde kupon yeniden hesaplanmaz | T367, T369 | | |
+| 02:§7.2.8 İptal edilen ödenmiş kalemin parası, ödemenin geldiği yoldan geri ödenir | T370, T369, T353 | | |
+| 02:§7.2.9 İptalde kargo ücreti sebebe ve kapsama göre ayrılır | T369, T349 | | |
+| 02:§7.3 Cayma | T306, T307, T318, T325, T330, T332, T351, T356, T367, T371, T372 | | |
+| 02:§7.3.1 Cayma penceresi on dört gündür ve sabittir; | T371, T351, T325 | | |
+| 02:§7.3.2 Dijital üründe cayma hakkı yoktur; koşulu ayrı bir onaydır | T371, T356 | | |
+| 02:§7.3.3 Hizmette cayma hakkı, müşterinin onayıyla başlayan ifa tamamlanınca düşer | T371, T356, T351 | | |
+| 02:§7.3.4 Fiziksel üründe cayma istisnası ürün düzleminde isteğe bağlı bir işarettir | T371, T332, T356 | | |
+| 02:§7.3.5 Cayma sipariş sayfasından bildirilir | T372, T330, T306, T307 | | |
+| 02:§7.3.6 Cayma beyanı siparişi kapatmaz | T372, T318 | | |
+| 02:§7.3.7 Kargoya verilmemiş fiziksel kalemde tüketicinin yolu iptaldir | T372, T367 | | |
+| 02:§7.4 İade ve geri ödeme | T307, T325, T330, T334, T338, T349, T356, T366, T369, T370, T371, T373, T374 | | |
+| 02:§7.4.1 Geri ödemenin on dört günü, cayma beyanı kalemin teslim tarihinden önce yapıldıysa ya da kalem hizmetse beyandan, teslimden sonra yapıldıysa iade… | T370, T373, T325 | | |
+| 02:§7.4.2 Cayma hâlinde iade kargo bedeli firmaya aittir; | T373, T356 | | |
+| 02:§7.4.3 Ayıplı malda iade kargo bedeli her hâlükârda firmaya aittir | T373, T374 | | |
+| 02:§7.4.4 Müşteri malı firmanın iade adresine karşı ödemeli gönderir | T373, T330, T356, T366 | | |
+| 02:§7.4.5 Geri ödeme, ödemenin geldiği yoldan gider | T370, T543 | | |
+| 02:§7.4.6 Kısmi iadede kargo ücreti ve ücretsiz kargo kararı yeniden hesaplanmaz | T369, T349, T373 | | |
+| 02:§7.4.7 İade edilen fiziksel kalemin adedi stoğa kendiliğinden eklenmez | T373, T334 | | |
+| 02:§7.4.8 Caymada hizmet kontenjanı cayılan adet kadar havuza döner; kuponun kullanım hakkı yalnız siparişin tamamı — bütün kalemlerinin bütün adetleri — iptal… | T373, T334, T338 | | |
+| 02:§7.4.9 Koşullu istisna kaleminde koruyucu ambalajı açılmış dönen mal reddedilebilir | T373, T371, T307 | | |
+| 02:§7.4.10 Kullanılmış ya da hasar görmüş dönen malda geri ödeme tam tutarla yapılır; değer kaybı talebi ürünün dışındadır | T373 | | |
+| 02:§7.5 Ayıp talebi | T320, T325, T340, T370, T374 | | |
+| 02:§7.5.1 Ayıp talebi üçüncü yoldur | T374, T325 | | |
+| 02:§7.5.2 Kanal sipariş sayfasındaki "sorun bildir"dir | T374, T513 | | |
+| 02:§7.5.3 Sistem talebi kaydeder ve iletir, çözümü yürütmez | T374, T320, T370 | | |
+| 02:§7.5.4 Ayıplı dijital üründe doğal çözüm dosya güncellemesidir | T374, T340 | | |
+| 02:§7.6 Geri alma sınırları | T316, T317, T319, T345, T353, T360, T372, T375 | | |
+| 02:§7.6.1 Panel "geri al" düğmesi sunmaz | T319 | | |
+| 02:§7.6.2 Süresi dolup iptal edilmiş siparişe gelen ödeme işlenemez; | T353, T317 | | |
+| 02:§7.6.3 Müşteri akışında iptal edilmiş ya da teslim edilmiş sipariş yeniden açılmaz; | T316, T319 | | |
+| 02:§7.6.4 Kurumsal içerikte eski hâle dönülmez ve silme geri alınmaz: | T360 | | |
+| 02:§7.6.5 Silinmiş bir hesabın siparişleri hiçbir hesaba geri bağlanmaz | T345 | | |
+| 02:§7.6.6 Yöneticinin sipariş düzeltmeleri ileri yönlü kayıtlardır ve tutarı değiştirmez | T375 | | |
+| 02:§7.6.7 Cayma beyanı geri alınmaz ve düzeltilmez | T372, T375 | | |
+| 02:§8.1 Kimlik doğrulama tabanı | T341, T342, T343, T375, T376 | | |
+| 02:§8.1.1 Doğrulanmamış hesapla giriş ve sipariş yoktur | T341, T342 | | |
+| 02:§8.1.2 Bir siparişin ya da bir giriş yolunun hesaba bağlanmasının tek dayanağı doğrulanmış e-postadır | T341, T343, T375 | | |
+| 02:§8.1.3 Bağlantılar süreli ve tek kullanımlıktır | T341, T342, T343, T520 | | |
+| 02:§8.1.4 Ekranlar hesabın varlığını kayıtta, ödeme adımının hatırlatmasında ve hesabın e-posta değişikliğinde ele verir | T341, T342, T376 | | |
+| 02:§8.1.5 Üç işlem oturum açıkken de yeniden doğrulama ister: | T342, T343 | | |
+| 02:§8.1.6 Şifre politikası uzunluk tabanlıdır | T342 | | |
+| 02:§8.1.7 Yönetici tarafı aynı rejimdedir | T342, T106, T520 | | |
+| 02:§8.2 Deneme limitleri | T338, T341, T342, T343, T348, T354, T365, T376, T377 | | |
+| 02:L-1 Başarısız giriş denemesi — şifreyle; yeniden doğrulamadaki başarısız şifre denemesi de (§3.13.13;… | T376, T342 | | |
+| 02:L-2 Şifre sıfırlama talebi | T376, T342 | | |
+| 02:L-3 Hesap kaydı | T376, T341 | | |
+| 02:L-4 İletişim formu gönderimi | T376, T365 | | |
+| 02:L-5 Başarısız misafir sipariş takibi sorgusu | T376, T354 | | |
+| 02:L-6 Geçersiz kupon kodu denemesi | T376, T338 | | |
+| 02:L-7 Kendiliğinden iptal edilen ödenmemiş sipariş | T376, T348 | | |
+| 02:L-8 Aynı anda açık ödenmemiş sipariş | T376, T348 | | |
+| 02:L-9 Doğrulama bağlantısının yeniden istenmesi | T376, T341, T343 | | |
+| 02:§8.2.1 Limit aşıldığında yalnız o işlem geçici olarak engellenir | T376 | | |
+| 02:§8.2.2 İki eksen ayrı sayılır | T377 | | |
+| 02:§8.2.3 L-7 tekrarı ölçer, tek denemeyi değil | T377, T348 | | |
+| 02:§8.2.4 Yönetici de aynı limitlere aynı değerlerle tabidir; | T377, T342 | | |
+| 02:§8.2.5 Sepet ve stok tarafında ürün düzeyinde limit yoktur | T377 | | |
+| 02:§8.2.6 Girişin e-posta ekseni tanınan tarayıcıyı engellemez | T377, T342 | | |
+| 02:§8.3 Form ve site güvenliği | T307, T352, T354, T365, T368, T372, T375, T377 | | |
+| 02:§8.3.1 İletişim formu üçüncü taraf captcha kullanmaz | T365, T215 | | |
+| 02:§8.3.2 Siteye kod eklenmez | T209, T540 | | |
+| 02:§8.3.3 Sitede üçüncü taraf gömme içerik yoktur: | T209, T540, T352 | | |
+| 02:§8.3.4 Ürün kart verisini görmez, saklamaz, loglamaz | T352, T202 | | |
+| 02:§8.3.5 Sipariş erişimi tahmin edilemez anahtarlara dayanır | T354, T377 | | |
+| 02:§8.3.6 Misafir siparişinin e-postası yalnız firmanın teyidiyle değişir | T375, T354, T307 | | |
+| 02:§8.3.7 Siparişin adresi yalnız firmanın teyidiyle düzeltilir | T375, T307 | | |
+| 02:§8.3.8 Başka kanaldan gelen cayma bildirimi yalnız firmanın teyidiyle işlenir | T372, T368, T307 | | |
+| 02:§8.4 Veri asgariliği | T301, T302, T341, T356, T365, T370, T373 | | |
+| 02:§8.4.1 Ürün yalnız işlediği kişisel veriyi toplar | T356, T365, T341, T540 | | |
+| 02:§8.4.2 IBAN yalnız gerektiğinde istenir ve iş bitince silinir | T370, T373, T201 | | |
+| 02:§8.4.3 Serbest metin alanları kayda geçen bir risk taşır | T301, T356, T531 | | |
+| 02:§8.4.4 Çerezler yalnız zorunludur ve — ödeme sağlayıcısının çerçevesi dışında — birinci taraftır; onay bandı yoktur | T209, T540 | | |
+| 02:§8.4.5 Saklama süreleri §4'te, imhanın biçimi ve kişisel veri yükümlülükleri §12'dedir | T201, T301, T302 | | |
+| 02:§8.5 Kayıtlar ve veri ihlali | T302, T341 | | |
+| 02:§8.5.1 Ürün ayrı bir ihlal kaydı tutmaz | T341, T302, T106, T201 | | |
+| 02:§8.5.2 İşlem izi on yıllık saklama süresi boyunca değiştirilemez ve silinemez; | T106, T302, T201 | | |
 
 ### 7.2 Geri izlenebilirlik (task → kaynak öğe)
 

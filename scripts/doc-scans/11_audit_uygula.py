@@ -45,9 +45,9 @@ for f in sorted(D.glob("hukum_*.md"), key=lambda p: int(re.search(r"(\d+)", p.st
         if cur is None or cur[1] not in ("dogru", "kismen") or cur[0] in HARIC:
             continue
         if l.startswith("ESKI:"):
-            eski = l.split(":", 1)[1].strip()
+            eski = l.split(":", 1)[1].strip().replace("\\n", "\n")
         elif l.startswith("YENI:") and eski is not None:
-            ciftler.append((cur[0], f.name, eski, l.split(":", 1)[1].strip()))
+            ciftler.append((cur[0], f.name, eski, l.split(":", 1)[1].strip().replace("\\n", "\n")))
             eski = None
 
 sorun = []

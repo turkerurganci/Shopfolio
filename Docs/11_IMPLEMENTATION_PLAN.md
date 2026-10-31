@@ -4441,6 +4441,174 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK10: DV-5 satırında tarih ve ihlal kaydı.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+#### T511: Sipariş takibi girişi, sipariş sayfası ve indirme bağlantısı (E-15, E-16)
+- **Bağımlılık:** T537, T540, T541, T542
+- **Dokümanlar:** çekirdek; `09` §3.4, §15 (§15.4, §15.7), §16 (§16.2); `07 UC-31`…`UC-34`, `UC-36`; `04` E-15, E-16; `03 §2.6`; `02 §3.12.1`, §3.22.3…§3.22.5; `10` KP-18…KP-20
+- **Kabul kriterleri:**
+  1. `GET /siparis-takibi` sorgu formunu ve iki yolun hatırlatmasını verir; sayfa noindex'tir (`07 UC-31`).
+  2. `FindOrder` numara (harf büyüklüğüne duyarsız) ve normalleştirilmiş e-posta eşleşirse 303 → `/siparis/erisim/{anahtar}` verir; silinmiş hesabın ve değişmiş e-postanın siparişi donmuş e-postayla eşleşir (`07 UC-32`; `04` 5.15.6).
+  3. UC-32 422: boş alan ya da biçim; eşleşmeme alan ve sipariş varlığı söylemeyen nötr mesajdır, imha edilmiş sipariş eşleşmez; 429 (L-5) iki eksende ayrı sayılır; eşleşmeyen sorgu kaydedilir (`07 UC-32`; K-772).
+  4. `GET /siparis/{numara}` üyenin kendi siparişidir: oturum yoksa 302 girişe; yabancı ya da bağlanmamış sipariş 404 (`07 UC-33`).
+  5. `GET /siparis/erisim/{anahtar}` üyeye de açıktır; geçersiz, yenilenmiş ya da imha edilmiş sipariş 404'tür; yönetici oturumu müşteri sayılmaz (`07 UC-34`; `02 §3.22.3`).
+  6. Sayfa iki ekseni, beklenen işlemi, kalemleri, dökümü, geri ödemeleri, teslimatı, adresleri ve belgeleri gösterir; belgeler onaylanan sürümlerdir (`07 UC-33`; `04` 5.16.3, 5.16.9).
+  7. Yapılabilir işlemleri sunucu belirler; açık olmayan işlem hiç sunulmaz (`07 UC-33`; `03 §1.11`).
+  8. Kart dönüşünde sonuç gelmediyse sayfa ödemenin beklendiğini söyler ve kendiliğinden yenilenmez (`07 UC-33`; `04` 5.16.4).
+  9. `DownloadDigitalFile` bir saatlik imzalı bağlantı üretir, 303 → `/indir/{değer}`; hak tek koşullu güncellemeyle düşer, her basış bir haktır (`07 UC-36`; `05 §7.7.4`).
+  10. UC-36 422: hak dolmuş, havalede ödeme işaretsiz, dosya yok; 404: kalem bu siparişin dijital kalemi değil (`07 UC-36`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: form, hatırlatma, noindex.
+  - KK2: eşleşme, büyük harf, donmuş e-posta.
+  - KK3: nötr mesaj, L-5, imha.
+  - KK4: üç yetki sonucu.
+  - KK5: anahtar durumları ve yönetici.
+  - KK6: bölümler ve belge sürümü.
+  - KK7: kapalı işlem sunulmaz.
+  - KK8: bekleme metni, yenileme yok.
+  - KK9: bir saatlik bağlantı, hak düşer.
+  - KK10: üç 422 sebebi ve 404.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T512: İptal ve gecikme feshi ekranı, geri ödeme IBAN girişi (E-17, E-16 IBAN formu)
+- **Bağımlılık:** T511, T541, T543
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §9, §16 (§16.2); `07 UC-35`, `UC-38`…`UC-41`; `04` E-16, E-17; `03 §2.7`, §3.3, §5.1…§5.3; `10` KP-21
+- **Kabul kriterleri:**
+  1. `SaveRefundIban` IBAN'ı yazar ya da işlenene kadar yerinde düzeltir; boşluk yok sayılır; 303 → kök "kaydedildi" bildirimiyle (`07 UC-35`; `07 §2.9.5`).
+  2. UC-35 422: biçim ya da sağlama basamağı tutmuyor, alan açık değil; 404: kalem bu siparişin değil (`07 UC-35`).
+  3. IBAN isteği karşılanır; kart iadesi gerçekleşmeyip havale yolu açıldıysa geri ödeme havaleye döner, e-posta üretmez (`07 UC-35`; K-569, K-710).
+  4. `GET {kök}/iptal` ve `…/gecikme-feshi` kapsamı, geri ödemeyi ve son adımı gösterir; `…/iptal` Bekliyor'da sipariş iptalini, ödenmişte kalem iptalini açar (`07 UC-38`; K-1162 (3)).
+  5. Kalem başına açık adet, varsayılan ve üst sınır sunucudandır; dijital ve adedi bir kalemde adet alanı yoktur; IBAN alanı yalnız ödenmiş havale siparişindedir (`07 UC-38`; K-1170 (2)).
+  6. İşlem açık değilse 303 → kök sebep koduyla; kök tutmuyorsa 404 (`07 UC-38`; K-1170 (1)).
+  7. `CancelOrder` onaysız ilk gönderimde son adımı 200 verir ve yazmaz; onaylıda 303 → kök, iptal geçiş biriminde işlenir, ayırmalar serbest kalır (`07 UC-39`; `05 §4.1`).
+  8. `CancelOrderItems` 422: kalem seçilmemiş, adet geçersiz, havalede IBAN eksik; işlem kapanmış ya da açık adet farklıysa 303 kök ve istek bütünüyle uygulanmaz (`07 UC-40`; K-1170 (4), K-1202).
+  9. UC-40 geri ödemesi kart hattında kendiliğinden başlar, havalede IBAN'la firma işler; bütün fiziksel adetler kapsanırsa kargo ücreti de iade edilir (`07 UC-40`; `05 §4.6`; K-789).
+  10. `SubmitLateDeliveryTermination` açık adetlerin tamamını kapsar, kalem ve adet alanlarını yok sayar; kargo ücreti her durumda iade edilir (`07 UC-41`; K-796).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: boşluklu IBAN, yerinde düzeltme.
+  - KK2: iki 422 sebebi ve 404.
+  - KK3: havale yoluna dönüş, e-posta yok.
+  - KK4: iki adres ve iki işlem.
+  - KK5: üç değer; alan görünürlüğü.
+  - KK6: sebep kodlu 303 ve 404.
+  - KK7: onaysızda kayıt yok; onaylıda iptal.
+  - KK8: bütün istek reddi.
+  - KK9: iki hat ve kargo iadesi.
+  - KK10: alan yok sayma; kargo iadesi.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T513: Cayma beyanı ve ayıp talebi ekranları (E-18, E-19)
+- **Bağımlılık:** T511, T541, T543, T544
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §9, §16 (§16.2); `07 UC-42`…`UC-46`; `04` E-18, E-19; `03 §2.8`, §2.9, §3.3, §5.1; `02 §3.1.7`, §7.5.2; `10` KP-22, KP-23
+- **Kabul kriterleri:**
+  1. `GET {kök}/cayma` caymaya açık kalemleri, adetleri, koşullu istisna satırını, güncel iade adresini ve süresini, geri ödeme bilgisini gösterir; açık değilse 303 → kök sebep koduyla (`07 UC-42`; K-509, K-665).
+  2. `SubmitWithdrawal` onaysız ilk gönderimde son adımı 200 verir; onaylıda 303 → kök, tarih ve iade adresi kalemde kalıcı durur (`07 UC-43`; `04` 5.18.10).
+  3. Beyan kalem başına tarih damgası ve adetle yazılır; fiziksel kalemde iade adresi o anki değerle yazılır ve değişmez; geri alınmaz (`07 UC-43`; `06 §4.25`; `02 §7.6.7`).
+  4. UC-43 422: kalem seçilmemiş, adet geçersiz, havalede IBAN; pencere kapandıysa ya da açık adet farklıysa 303 kök, istek uygulanmaz; yabancı kalem 404 (`07 UC-43`; K-1202).
+  5. Kısmi seçimin tekrarı ikinci cayma olmaz: 303 kök, sebep koduyla (`07 UC-43`).
+  6. `GET {kök}/ayip-talebi` yeni talepte açık kalemleri, varsayılan adet bir ve üst sınırı, iade adresini; yeniden açmada `orderItemId`'li talebi ve Çözüldü rozetini gösterir (`07 UC-44`; K-783, K-830).
+  7. UC-44 303 kök: yeni talep açık değil, talep Çözüldü değil ya da Z-18 doldu; 404: kök tutmuyor, `orderItemId` yabancı ya da talep yok (`07 UC-44`).
+  8. `SubmitDefectClaim` kalem başına tek talebi Açık durumunda açar; iade adresi talebe yazılır; onay adımı yoktur (`07 UC-45`; `04` 5.19.5).
+  9. UC-45 422: kalem seçilmemiş, adet geçersiz, açıklama boş; kalemde talep varsa ya da adet aşılıyorsa 303 kök (`07 UC-45`; `03 §1.11.9`).
+  10. `ReopenDefectClaim` Çözüldü talebi Z-18 içinde Açık yapar, açıklama almaz, durum geçmişine müşteri satırı yazar; aksi hâlde 303 kök (`07 UC-46`; K-681).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: sayfa içeriği; kapalı hâl.
+  - KK2: onaysızda kayıt yok.
+  - KK3: iade adresi sonradan değişmez.
+  - KK4: üç 422 sebebi, pencere, 404.
+  - KK5: ikinci gönderim cayma açmaz.
+  - KK6: iki hâl, varsayılan adet.
+  - KK7: dört 303 sebebi ve 404.
+  - KK8: tek talep, Açık.
+  - KK9: üç 422 sebebi, 303.
+  - KK10: Z-18 içi ve dışı.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T514: Kayıt ve doğrulama bağlantısının inişi (E-20, E-21)
+- **Bağımlılık:** T537, T540, T541, T543
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §15 (§15.1, §15.4), §16 (§16.2); `07 UC-47`…`UC-49`, `UC-52`, `UC-53`; `04` E-20, E-21; `03 §3.4`, §9.1; `02 §3.13.4`, §3.13.5, §3.13.11, §3.13.18; `10` KP-25
+- **Kabul kriterleri:**
+  1. `GET /kayit` ad, e-posta ve şifre formunu verir; kapı kapalıyken form kapalı olduğunu söyler; Google düğmesi ve işleyicisi T515'tedir (`07 UC-47`; `04` 5.20.10; K-850).
+  2. Gönderim sonrası hâli koda ve `pendingRegistration` değerine bağlıdır; değer çatının anahtarıyla şifreli ve imzalıdır, kayıtta tutulmaz (`07 UC-47`; K-1186 (2)).
+  3. `Register` doğrulanmamış bekleyen kaydı açar: `EmailVerifiedAt` boş, bağlantı Z-1 ömürlü, doğrulama e-postası; oturum açılmaz; 303 → `/kayit` (`07 UC-48`; `02 §3.13.4`).
+  4. UC-48 422: ad boş, e-posta geçersiz, şifre P-17 altı ya da yaygın, e-posta kayıtlı, kapı kapalı; 429 (L-3) (`07 UC-48`; `03 §3.4.6`).
+  5. Tekrar gönderim 422 alır; ikinci kayıt ve bağlantı açılmaz (`07 UC-48`; `06 §4.36`).
+  6. `ResendVerificationLink` yeni bağlantı gönderir; öncekiler `SupersededAt` alır, kaydın ömrü uzamaz; 429 (L-9) (`07 UC-49`; `05 §6.4.6`).
+  7. `GET /dogrulama/{anahtar}` bağlantının hâline göre altı hâlden birini verir; geçerli bağlantıda doğrulama adımıdır, açılış doğrulamaz (`07 UC-52`; K-904, K-780).
+  8. Başka türün ya da yönetici hesabının bağlantısı tanınmaz ve tüketilmez (`07 UC-52`).
+  9. `VerifyEmail` bağlantıyı tek koşullu güncellemeyle tüketir, 303 sonuç koduyla döner, oturum açmaz; kayıtta `EmailVerifiedAt` yazılır ve misafir siparişleri hesaba bağlanır (`07 UC-53`; K-1186 (1)).
+  10. UC-53: bağlantı o arada geçersizleştiyse 200; yeni adres başkasına geçtiyse 422 ve tüketim geri döner (`07 UC-53`; `02 §3.13.14`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: kapalı kapıda düğme yok.
+  - KK2: değer kayıtta yok.
+  - KK3: bekleyen kayıt, Z-1, oturum yok.
+  - KK4: beş 422 sebebi ve 429.
+  - KK5: ikinci kayıt açılmaz.
+  - KK6: eski bağlantı geçersiz, ömür sabit.
+  - KK7: altı hâl; açılış yazmaz.
+  - KK8: yabancı tür tüketilmez.
+  - KK9: tek tüketim; sipariş bağlama.
+  - KK10: yarış ve başkasına geçen adres.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T515: Müşteri girişi ve Google ile giriş (E-22)
+- **Bağımlılık:** T514, T537, T540, T541, T543
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §11, §15 (§15.1, §15.4), §16 (§16.2); `07 UC-50`, `UC-51`, `UC-54`, `UC-55`; `04` E-22; `03 §3.4`, §6.1, §9.1, §9.2; `02 §3.13.6`, §3.13.12; `10` KP-26, KP-27
+- **Kabul kriterleri:**
+  1. `GET /giris` e-posta, şifre, "beni hatırla", Google, şifremi unuttum ve kayıt bağlantılarını verir; Google tanımsızsa düğme yoktur; kapı kapalıyken giriş çalışır (`07 UC-54`).
+  2. `returnUrl` yerel yol denetiminden geçerse dönüş yeridir; giriş, kayıt, sıfırlama ya da iniş ekranıysa ya da yoksa ana sayfaya dönülür (`07 UC-55`; `04` 3.6.1…3.6.3).
+  3. `SignIn` her girişte yeni oturum anahtarı açar, sepetler birleşir ve dönülen sayfa eklenenleri bir kez söyler (`07 UC-55`; `05 §6.1.1`; K-1183).
+  4. UC-55 422: boş alan ya da biçim; yanlış e-posta ya da şifre hesabın varlığını söylemeyen tek mesajdır, hesap yokken de sahte özete karşı doğrulanır (`07 UC-55`; K-779, K-1204 (1)).
+  5. Doğrulanmamış hesapta oturum açılmaz; doğrulamanın beklendiği hâl ve yeniden gönderim durur; gönderim T514'ün servisini çağırır (`07 UC-55`, `UC-49`).
+  6. `StartSocialLogin` (`/giris` ve `/kayit`) 303 → Google adresi verir; akış çerezi `state`, `nonce` ve PKCE taşır; Google tanımsızsa 422 (`07 UC-50`; `05 §6.7.12`).
+  7. `GET /giris/google`: doğrulanmış e-posta eşleşen hesaba girer ve Google bağı yazılır — adres için yetkiliyse ya da hesap bağlıysa —; eşleşme yoksa ve kapı açıksa şifresiz hesap açılır (`07 UC-51`; `06 §4.36`).
+  8. Yetkisiz adreste bağ yerine `GoogleLinkConfirmation` teyit bağlantısı gider, oturum açılmaz (`07 UC-51`).
+  9. Doğrulanmamış Google e-postası 303 → `/kayit`, eşleşme yok ya da kapı kapalı 303 → `/giris` kodla döner (`07 UC-51`; K-697).
+  10. Akış değerleri bir kez kullanılır: yenilenen dönüş hiçbir şey yazmadan 303 → `/giris` alır (`07 UC-51`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: Google tanımsız ve kapı kapalı.
+  - KK2: dönüş yeri üç durumda.
+  - KK3: oturum, işaret, birleşme mesajı.
+  - KK4: tek mesaj; sabit süre.
+  - KK5: doğrulanmamış hesap hâli.
+  - KK6: çerez alanları, 422.
+  - KK7: üç Google sonucu.
+  - KK8: teyit bağlantısı, oturum yok.
+  - KK9: iki kodlu 303.
+  - KK10: tekrar dönüş yazmaz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T516: Şifre sıfırlama ve yeniden doğrulama (E-23, E-24)
+- **Bağımlılık:** T515, T537, T540, T541, T543
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §15 (§15.1, §15.4), §16 (§16.2); `07 UC-56`…`UC-62`; `04` E-23, E-24; `03 §3.4`, §6.1, §9.2; `02 §3.13.8`…§3.13.11
+- **Kabul kriterleri:**
+  1. `GET /sifre-sifirlama` e-posta alanını verir; müşteri oturumu açıksa alan hesabın e-postasıyla dolar ve e-posta adreste taşınmaz (`07 UC-56`; K-1186 (6)).
+  2. `RequestPasswordReset` 303 → `/sifre-sifirlama` nötr hâliyle döner; yanıt adresin kayıtlı olup olmamasına göre değişmez (`07 UC-57`; `02 §8.1.4`).
+  3. Doğrulanmış hesapta `PasswordReset` bağlantısı (Z-2) ve e-postası yazılır; şifresiz hesapta bağlantı şifre belirlemedir; kayıtsız adrese e-posta gitmez (`07 UC-57`; K-1204 (2)).
+  4. UC-57 422: boş ya da biçim; 429 (L-2) nötr mesajdır; her istek kaydedilir (`07 UC-57`).
+  5. `GET /sifre-sifirlama/{anahtar}` geçerli bağlantıda kurma adımını açar; kullanılmış, dolmuş, yenilenmiş ya da tanınmayan bağlantı adımı açmaz (`07 UC-58`).
+  6. `ResetPassword` şifreyi kurar, bağlantıyı tek koşullu güncellemeyle tüketir, hesabın bütün oturumlarını siler, oturum açmaz (`07 UC-59`; `05 §6.1.2`).
+  7. UC-59: P-17 altı ya da yaygın şifre 422 alır, bağlantı tüketilmez; bağlantı o arada geçersizleştiyse 200 döner (`07 UC-59`; `03 §3.4.6`).
+  8. `GET /hesap/yeniden-dogrulama` işlemin adını, şifre alanını (şifre varsa) ve Google düğmesini (`GoogleLinkedAt` doluysa) gösterir; işlem listede yoksa 303 → `/hesap` (`07 UC-60`; K-1186 (4)).
+  9. `Reauthenticate` şifre doğruysa 303 → `/hesap`'a işlem ve tek kullanımlık değerle gider, oturumda tek izin kalır; yanlış şifre 422'dir, L-1'e sayılır (`07 UC-61`; K-971).
+  10. `StartSocialReauthentication` taze giriş ister (`auth_time`), dönüş UC-51'in adresine iner; Google'sız hesapta 422; L-1'e girmez (`07 UC-62`; `05 §6.1.5`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: oturumlu ön dolu, adreste e-posta yok.
+  - KK2: kayıtlı ve kayıtsız aynı yanıt.
+  - KK3: üç bağlantı hâli, e-posta yok.
+  - KK4: 422, 429 ve deneme kaydı.
+  - KK5: beş bağlantı durumu.
+  - KK6: oturumlar silinir, oturum açılmaz.
+  - KK7: ret tüketmez; yarışta 200.
+  - KK8: üç işlem, iki alan koşulu.
+  - KK9: tek izin; L-1 sayımı.
+  - KK10: Google dönüşü; L-1 dışı.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ## 6. Faz geçiş kapıları
 
 ### 6.1 Genel gate check (tüm fazlarda)

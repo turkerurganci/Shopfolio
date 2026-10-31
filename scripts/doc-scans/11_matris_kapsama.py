@@ -29,7 +29,7 @@ root = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
 out_path = sys.argv[2] if len(sys.argv) > 2 else None
 
 # Matris oturumu kendi ailesini ekler (alt bolum haritasi: 11 7).
-DOLU = ["06", "08"]
+DOLU = ["06", "07", "08"]
 # Ailenin yerlestigi alt bolum (K-1404, K-1412).
 ALT_BOLUM = {"06": "7.1.1", "07": "7.1.2", "08": "7.1.3", "04": "7.1.4", "03": "7.1.4",
              "02": "7.1.5", "10": "7.1.5", "05": "7.1.5", "09": "7.1.5", "devir": "7.1.5"}
@@ -102,7 +102,18 @@ def beklenen_08():
     return exp, {"entegrasyon (2.x, cagrisiz dahil)": ent, "alt bolum": len(sub)}
 
 
-BEKLENEN = {"06": beklenen_06, "08": beklenen_08}
+def beklenen_07():
+    d = load("07")
+    ucs = []
+    for _, l in bolum(d, 3):
+        m = re.match(r"\| (UC-\d+) \|", l)
+        if m:
+            ucs.append("07:" + m.group(1))
+    sub = ["07:§" + x for x in alt_bolumler(d, (2, 5, 6, 7, 8))]
+    return ucs + sub, {"uc": len(ucs), "alt bolum": len(sub)}
+
+
+BEKLENEN = {"06": beklenen_06, "07": beklenen_07, "08": beklenen_08}
 
 # ------------------------------------------------------------ matris satirlari
 plan_f = sorted((root / "Docs").glob("11_*.md"))[0]
@@ -111,8 +122,12 @@ plan = plan_f.read_text(encoding="utf-8").split("\n")
 
 
 def kimlik(hucre):
-    """`06:§4.17 Order` -> '06:§4.17 Order'; `06:§2.1 Baslik` -> '06:§2.1'."""
+    """`06:§4.17 Order` -> '06:§4.17 Order'; `06:§2.1 Baslik` -> '06:§2.1';
+    `07 UC-12 ...` -> '07:UC-12'."""
     h = hucre.strip().strip("`")
+    mu = re.match(r"^(07) (UC-\d+)\b", h)
+    if mu:
+        return "%s:%s" % (mu.group(1), mu.group(2))
     m = re.match(r"^(\d\d):(§\d+(?:\.\d+)*)(?: (.*))?$", h)
     if not m:
         return None

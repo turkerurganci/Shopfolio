@@ -243,6 +243,21 @@ Plan 19 doğrulayıcı (85 bulgu) kurdu; **19'u koştu** (2e/13 yarıda düşüp
 
 **İlerleme:** 435 bulgudan **403'ü hükme bağlandı** (2a 55 + 2b 87 + 2c 94 + 2d 82 + 2e 85); **kalan 32** (2f) + #336, #437, #350 (2r) ve 2b, 2c, 2d, 2e'nin 15 yükselen bulgusu. Kapılar: `11_matris_kapsama.py` 1.501/1.501 sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214.
 
+### Doğrulanmamış bulgular — KD-audit-2f
+
+Plan 6 doğrulayıcı (32 bulgu) kurdu; **6'sı koştu**, bekçi olayı yok (sayaç 6/20). Bu, KD-audit-2'nin son doğrulama adımıdır. Doğrulamasız uygulama yoktur.
+
+| Doğrulayıcı | Model | Kademe | Modül | Sayı |
+|---|---|---|---|---|
+| 1, 2, 3 | Opus / high | Orta 4'lü | Üyelik | 3 |
+| 4, 5 | Opus / high | Düşük 6'lı | Üyelik | 2 |
+| 6 | Opus / high | Düşük 8'li | Üyelik | 1 |
+| **Toplam** | | | | **6** |
+
+**Hükümler (32 bulgu):** 8 doğru · 13 kısmen · 11 çürük. **Uygulanan:** 40 şartname çifti (yükselen bulgu yok; ham çift 40, birleştirme gerekmedi). Liste: `C:/Users/teknodeveloper/.claude/helper-state/shopfolio/kd-audit-2/2f/uygulanan.md` (yardımcı durum dizini). **Seviyesi düşen** 4 bulgu (#91, #279, #280, #417; Orta → Düşük) uygulandı. **Yükselen:** yok. **Blok bayt sınırı:** T341 ve T342 kısaltıldı (bölme yok; K-1469 (3)'te kayıp listesi). KARAR ve ÜST DOKÜMAN satırı çıkmadı.
+
+**İlerleme:** 435 bulgudan **435'i hükme bağlandı** (2a 55 + 2b 87 + 2c 94 + 2d 82 + 2e 85 + 2f 32): **171 doğru · 180 kısmen · 84 çürük**; **661 şartname çifti** uygulandı (71 + 126 + 171 + 133 + 120 + 40). Yeniden doğrulamada bekleyen **18 bulgu** KD-audit-2r'ye kaldı: #336 (KD-audit'ten, Orta → Yüksek) + 17 yükselen (#437, #350, #210, #12, #134, #186, #467, #469, #322, #261, #459, #462, #174, #452, #183, #71, #54). Kapılar: `11_matris_kapsama.py` 1.501/1.501 sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214.
+
 ### Sınırlar
 
 - **Uygulanmayan 435 bulgu** gövdede hâlâ bulunabilir; bu raporun "temiz" okunmaması gerekir: audit yalnız 44 bulguyu hükme bağladı.

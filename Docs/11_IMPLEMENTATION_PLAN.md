@@ -2673,6 +2673,136 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK9: üyede uyarı var, misafirde yok, satın alma engellenmez.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+#### T341: Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı
+- **Bağımlılık:** —
+- **Dokümanlar:** çekirdek; `09` §10, §15; `02 §3.13.1`…§3.13.5, §3.13.18…§3.13.21, Z-1, Z-40, §5.12.1, §6.5, §8.1, §8.4, §8.5.1, L-3, L-9, §10.2.5, §10.3.3, §10.7.4; `10` KP-28
+- **Kabul kriterleri:**
+  1. Sipariş vermek için üyelik zorunlu değildir; misafir siparişi doğrulama kapısının dışındadır (`02 §3.13.1`, §3.13.4).
+  2. Hesap açıldığında o e-postaya ait geçmiş misafir siparişleri hesaba düşer; tek dayanak doğrulanmış e-postadır ve silinmiş hesabın siparişleri bağlanmaz (`02 §3.13.2`).
+  3. Hesabı olan kişi giriş yapmadan sipariş verirse sipariş kabul edilir ve hesaba anında tam olarak bağlanır; giriş duvarı yoktur (`02 §3.13.3`).
+  4. E-posta doğrulaması sert kapıdır: doğrulanmamış hesapla giriş yapılamaz ve sipariş verilemez; tek tip hesap vardır (`02 §3.13.4`).
+  5. Doğrulanmamış hesap geçicidir; Z-1 dolunca kayıt silinir, e-posta yeniden kayda açılır ve süresi geçmiş bağlantı "bağlantı geçersiz, yeniden kayıt olun" mesajını verir (`02 §3.13.5`).
+  6. Doğrulama bağlantının açılmasıyla değil, açılan ekrandaki doğrulama düğmesiyle olur (`02 §3.13.5`).
+  7. Kayıt formu ad, e-posta ve şifre ister; ad zorunludur ve kullanıcı adını yeniden doğrulamasız değiştirir (`02 §3.13.21`).
+  8. Kayıtta ve hesapta pazarlama onayı alanı yoktur (`02 §3.13.18`).
+  9. Hesap kaydı veri toplayan girişlerin kapısına bağlıdır; her giriş denemesi zaman, IP, e-posta ve sonuçla giriş kaydına yazılır ve Z-40 ile imha edilir (`02 §3.13.19`, §3.13.20).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: misafir sipariş verir, doğrulama aranmaz.
+  - KK2: geçmiş misafir siparişi doğrulanmış e-postayla hesaba düşer.
+  - KK3: hesaplı e-postayla misafir sipariş hesaba anında bağlanır.
+  - KK4: doğrulanmamış hesap girişte ve siparişte reddedilir.
+  - KK5: Z-1 sonrası kayıt silinir, bağlantı geçersiz mesajı çıkar.
+  - KK6: bağlantıya tıklamak doğrulamaz, düğme doğrular.
+  - KK7: adsız kayıt reddedilir, ad değişimi yeniden doğrulama istemez.
+  - KK8: formda ve kayıtta pazarlama alanı yok.
+  - KK9: başarılı ve başarısız giriş kaydı yazılır.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T342: Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri
+- **Bağımlılık:** T341
+- **Dokümanlar:** çekirdek; `09` §8, §15; `02 §3.13.9`…§3.13.13, §3.13.15…§3.13.17, Z-2, Z-4, Z-5, §5.12.2, §6.5, §8.1, §8.2, L-1, L-2, §10.2.4, §10.2.5, P-13, P-15, P-16, P-17, P-31, P-32, P-48; `05 MK-45`, MK-46, MK-51; `10` KP-27
+- **Kabul kriterleri:**
+  1. Şifre sıfırlama bağlantısının ömrü vardır ve tek kullanımlıktır; kullanılmış ya da süresi dolmuş bağlantı geçersizdir (`02 §3.13.9`).
+  2. Şifre sıfırlanınca hesabın bütün oturumları kapanır; hesaptan değiştirilince öteki oturumlar kapanır, değişikliği yapan oturum açık kalır (`02 §3.13.10`).
+  3. Şifre sıfırlama ekranı nötr, kayıt ekranı dürüst konuşur (`02 §3.13.11`).
+  4. Oturum ömrünü kullanıcı seçer: "beni hatırla" uzun, işaretsiz kısa oturum açar (`02 §3.13.12`).
+  5. Şifre değiştirme, e-posta değiştirme ve hesap silme açık oturumda da yeniden doğrulama ister; başka işlem istemez (`02 §3.13.13`).
+  6. Google hesabında yeniden doğrulama Google ile yapılır; yeniden doğrulamadaki başarısız şifre L-1'e sayılır (`02 §3.13.13`).
+  7. Şifre politikası uzunluk tabanlıdır; asgari uzunluk aranır, karakter türü dayatılmaz, yaygın şifreler yerel listeyle reddedilir (`02 §3.13.15`).
+  8. Bu kurallar yönetici hesaplarına aynı değerlerle uygulanır; iki adımlı doğrulama yoktur (`02 §3.13.16`).
+  9. Giriş, şifre sıfırlama, kayıt ve doğrulama bağlantısı isteği limitlidir; eşikte işlem geçici engellenir, hesap kilitlenmez, mesaj nötrdür (`02 §3.13.17`; L-1, L-2).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: sıfırlama bağlantısı ikinci kullanımda reddedilir.
+  - KK2: sıfırlamada tüm oturumlar kapanır, değiştirmede yalnız öteki oturumlar.
+  - KK3: iki ekranın mesajları iki ayrı biçimde.
+  - KK4: "beni hatırla" iki ayrı süre açar.
+  - KK5: üç işlem yeniden doğrulama ister, öteki işlem istemez.
+  - KK6: Google hesabı Google ile doğrulanır.
+  - KK7: kısa şifre ve yaygın şifre reddedilir, karakter dayatması yok.
+  - KK8: yönetici girişinde aynı süre ve politika işler.
+  - KK9: eşikte engel açılır, hesap kilitlenmez, kalan sayı söylenmez.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T343: Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma
+- **Bağımlılık:** T342
+- **Dokümanlar:** çekirdek; `09` §11, §15; `02 §3.13.6`…§3.13.8, §3.13.14, Z-2, Z-45, §5.12.2, §6.5, §8.1.2, §8.1.3, §8.1.5, §8.2, L-9, §10.2.4, §10.2.5, P-13, P-47, P-49; `05 MK-46`, §6.1; `10` KP-26, KP-27, KD-11
+- **Kabul kriterleri:**
+  1. Sosyal giriş yalnız Google iledir; Facebook girişi yoktur (`02 §3.13.6`).
+  2. Google uygulamasının kimlik bilgileri kurulum ayarıdır; tanımlı değilse düğme görünmez ve panelde açma kapama anahtarı yoktur (`02 §3.13.6`).
+  3. Sağlayıcının doğrulanmış verdiği e-posta mevcut hesapla eşleşirse hesap tek kalır ve iki giriş yolunu da taşır (`02 §3.13.7`).
+  4. Google'ın adres için yetkili olmadığı ve hesabın Google'a bağlı olmadığı durumda önce teyit istenir (`02 §3.13.7`).
+  5. Google ile açılan hesap şifresiz başlar ve sonradan şifre konabilir; sıfırlama akışı "şifre belirle" işlevi görür (`02 §3.13.8`).
+  6. Hesabın e-posta adresi, yeni adres doğrulanmadan değişmez; doğrulama yeni adrese giden bağlantının ekranındaki düğmeyle olur (`02 §3.13.14`).
+  7. Doğrulanınca bağlama kuralı yeni adres için yeniden işler; eski adrese bağlı siparişler hesapta kalır, bağlanmış sipariş çözülmez (`02 §3.13.14`).
+  8. Eski adrese Z-45 ömürlü geri alma bağlantısı gider; ömrü dolunca bağlantı ve eski adres silinir (`02 §3.13.14`; Z-45).
+  9. Giriş ve hesap bağlama istekleri limitlidir ve Google bağlayıcısının arayüzü sahteyle çalışır (`02 §3.13.17`; L-9).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: Facebook yolu yok.
+  - KK2: kimlik bilgisi yokken Google düğmesi görünmez, panelde anahtar yok.
+  - KK3: eşleşen doğrulanmış e-posta tek hesaba bağlanır.
+  - KK4: yetkisiz sağlayıcıda teyit istenir.
+  - KK5: şifresiz hesapta sıfırlama şifre belirler.
+  - KK6: yeni adres doğrulanmadan e-posta değişmez.
+  - KK7: eski adrese bağlı sipariş hesapta kalır.
+  - KK8: geri alma bağlantısı Z-45'te geçersizleşir, eski adres silinir.
+  - KK9: sahte Google bağlayıcısıyla akış testi geçer.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T344: Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma
+- **Bağımlılık:** T341
+- **Dokümanlar:** çekirdek; `09` §3 (§3.4), §10; `02 §3.14.1`…§3.14.6, §3.20.1, §3.23.3; `10` KP-12, KP-13, KP-27, KD-27
+- **Kabul kriterleri:**
+  1. Üye müşteri adres defterinde birden çok adres kaydeder ve adlandırır; misafirin adres defteri yoktur (`02 §3.14.1`).
+  2. Üye ödeme adımında yeni adres yazabilir; yeni adres siparişe donar, deftere yalnız kaydetmeyi seçerse yazılır (`02 §3.14.1`).
+  3. Fatura adresi varsayılan olarak teslimat adresiyle aynıdır; kullanıcı ayrı bir fatura adresi seçebilir (`02 §3.14.2`).
+  4. İl serbest metin değildir; 81 ilden oluşan kapalı listeden seçilir (`02 §3.14.3`).
+  5. En az bir fiziksel kalemli sipariş teslimat ve fatura adresi ister (`02 §3.14.4`).
+  6. Yalnız dijital ve hizmet kalemli sipariş teslimat adresi alanlarını göstermez ve yalnız fatura adresi ister (`02 §3.14.4`).
+  7. Sipariş adreslerini kendi içine dondurur; defterdeki sonraki değişiklik ya da silme geçmiş siparişe dokunmaz (`02 §3.14.5`).
+  8. Adres alanları ad-soyad, il, ilçe ve açık adrestir ve dördü zorunludur; ilçe serbest metindir (`02 §3.14.6`).
+  9. Teslimat adresi ayrıca zorunlu telefon taşır (`02 §3.14.6`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: üye ikinci adresi adlandırarak kaydeder, misafirde defter yok.
+  - KK2: kaydetmeden kullanılan adres deftere girmez.
+  - KK3: fatura adresi seçilmeyince teslimat adresiyle aynı.
+  - KK4: listede olmayan il reddedilir, liste 81 il.
+  - KK5: fiziksel kalemli siparişte iki adres istenir.
+  - KK6: dijital siparişte teslimat alanı yok, fatura adresi var.
+  - KK7: deftere sonradan yapılan düzenleme eski siparişi değiştirmez.
+  - KK8: dört alandan biri boşsa kayıt reddedilir.
+  - KK9: telefonsuz teslimat adresi reddedilir.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T345: Hesabın silinmesi ve kişisel veri başvurusu
+- **Bağımlılık:** T341, T343
+- **Dokümanlar:** çekirdek; `09` §10, §13; `02 §3.15.1`…§3.15.6, Z-31, Z-32, §5.3.5, §5.9, §6.5, §7.6.5, §9.4, §10.3.1, §12.2.6, §12.2.7; `05 §6.1`; `10` KP-29, KP-30, KP-77, KD-36
+- **Kabul kriterleri:**
+  1. Hesap silinince hesabın adı, giriş bilgileri, şifre, açık oturumlar, adres defteri ve sepet hemen silinir (`02 §3.15.1`; Z-31, Z-32).
+  2. Siparişin kişisel verileri yasal saklama süresi dolunca imha edilir; tutar ve tarih gibi alanlar ticari kayıt olarak kalır (`02 §3.15.1`).
+  3. Silme anında hesabın e-posta adresine bir kez hesabın silindiği bildirimi gider (`02 §3.15.1`; `02 §9.4`).
+  4. Yürüyen sipariş hesap silmeyi engellemez; takip, cayma ve iade siparişin iletişim e-postası ile sürer (`02 §3.15.2`).
+  5. Silinmiş hesabın siparişleri hiçbir hesaba bağlanmaz (`02 §3.15.3`).
+  6. Başvuru kanalı iletişim formunun "KVKK talebi" konu tipidir; ayrı modül, durum makinesi ve süre sayacı yoktur (`02 §3.15.4`).
+  7. Uygulama içi veri indirme yoktur; hesap verisi panelde düzenlemesiz üye kaydı görünümünden okunur (`02 §3.15.5`).
+  8. Firma, talep üzerine hesabı panelden silebilir; silme aynı kuralla işler (`02 §3.15.5`).
+  9. E-posta değişikliğini geri alma bağlantısı açıkken hesap silinmez; ekran sebebi ve bitiş tarihini söyler (`02 §3.15.6`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: silmeden sonra ad, şifre, oturum, defter ve sepet yok.
+  - KK2: sipariş kişisel verisi saklama süresine kadar durur.
+  - KK3: silme e-postası bir kez gider.
+  - KK4: açık siparişli hesap silinir, sipariş misafir yoluyla izlenir.
+  - KK5: silinmiş hesabın siparişi yeni hesaba bağlanmaz.
+  - KK6: KVKK talebi için ayrı tablo ve sayaç yok.
+  - KK7: veri indirme ucu yok, üye kaydı görünümünde düzenleme yok.
+  - KK8: yönetici silmesi kendi silmesiyle aynı sonucu verir.
+  - KK9: açık geri alma bağlantısında silme reddedilir, sebep gösterilir.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ## 6. Faz geçiş kapıları
 
 ### 6.1 Genel gate check (tüm fazlarda)

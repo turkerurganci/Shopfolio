@@ -3307,6 +3307,164 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK8: iptal e-postası tarihle gider.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+#### T368: Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi
+- **Bağımlılık:** T306, T319, T325, T367
+- **Dokümanlar:** çekirdek; `09` §9, §10, §14; `03 §4.1`; `02 §7.2.3`, §7.2.4, Z-11, Z-39, Z-47, §5.8, §5.9, §6.4, §8.3.8, §9.2, B-7, B-9, §10.4.8, §10.4.10, §12.5; `10` KP-21, KP-47
+- **Kabul kriterleri:**
+  1. Kargoya verme süresi aşılınca fesih mevcut iptal düğmesiyle kullanılır; otuz günlük yasal sınır aşılınca sipariş sayfasında ayrı kayıt tipiyle "gecikme nedeniyle fesih" düğmesi açılır (`02 §7.2.3`).
+  2. Düğme, firmaya ulaşmadan otuz gün geçmiş, teslim tarihi girilmemiş, işleme açık adedi kalan fiziksel kalemli siparişte görünür ve cayma istisnalı ürünü de kapsar (`02 §7.2.3`).
+  3. Fesih teslim edilmemiş fiziksel kalemlerin açık adetlerinin tamamına uygulanır; kalem ve adet seçilmez, teslim işaretli dijital ve hizmet kalemi dışarıda kalır (`02 §7.2.3`).
+  4. Feshedilen kalem kargoya verilmez ve firma iptaline konu olmaz; açık kalem kalmazsa sipariş İptal edildi'ye geçer, B-7 üretmez (`02 §7.2.3`).
+  5. Başka kanaldan bildirilen fesih panelden kaydedilir, düğmeyle yapılmış gibi işler; süre bildirimin ulaştığı tarihten başlar (`02 §7.2.3`; §10.4.10).
+  6. Panel fesih satırında ve taahhüt süresi aşıldıktan sonraki iptalde kanuni faiz uyarısını gösterir; sistem faiz hesaplamaz (`02 §7.2.3`).
+  7. Firma iptali kapalı altı sebepten birini seçer, "diğer"de açıklama zorunludur, geri alınamaz onayı ister ve sebep müşteriye B-7 ile gider (`02 §7.2.4`; §5.9).
+  8. "Stokta bulunamadı" seçilince panel onaydan önce stok yokluğunun yasal imkânsızlık sayılmadığını söyler (`02 §7.2.4`).
+  9. "Müşteriyle anlaşıldı" iptalinde talep siparişin e-postasından gelmediyse firma teyidi ister (`02 §7.2.4`; §8.3.8).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: iki fesih yolu ve ayrı kayıt tipi.
+  - KK2: düğme koşulları ve istisnalı ürün.
+  - KK3: seçimsiz, tüm açık adetler; dijital ve hizmet dışarıda.
+  - KK4: kargo ve firma iptali yok, B-7 yok.
+  - KK5: bildirim tarihinden işleyen süre.
+  - KK6: faiz uyarısı görünür, hesap yok.
+  - KK7: sebep listesi kapalı, onay istenir, B-7 gider.
+  - KK8: stok uyarısı onaydan önce.
+  - KK9: teyit istenmeden "anlaşıldı" iptali yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T369: İşlemin adet birimi ve geri ödeme tutarı: açık adet, kupon payı, KDV, kargo ücretinin iptalde ve caymada ayrılması
+- **Bağımlılık:** T320, T338, T355, T367
+- **Dokümanlar:** çekirdek; `09` §9, §14; `02 §7.1.3`, §7.1.6, §7.1.7, §7.2.7, §7.2.9, §7.4.6, §6.4, §7.2, §7.4; `10` KP-21, KP-22, KP-24
+- **Kabul kriterleri:**
+  1. İşlem birimi adettir; işlemin adedi kalemin işleme açık adedini aşamaz, açık adet iptal, çıkarma, gecikme feshi ve cayma beyanıyla kapanan adetler düşülerek okunur (`02 §7.1.6`).
+  2. Bir işlemin kapattığı adet başka işlemin konusu olamaz; ayıpta sözleşmeden dönülen adet de işleme açık adetten düşer (`02 §7.1.6`).
+  3. Ürün bedeli donmuş birim fiyatla işleme giren adedin çarpımıdır; kupon payı oranla ve aşağı yuvarlanır, KDV aynı oranla ve yuvarlamayla ayrılır (`02 §7.1.7` (1)–(3)).
+  4. Kalemin son açık adetlerini kapatan işlem kupon payının ve KDV'nin kalanını alır; ayrılan paylar kalemin payına kuruşu kuruşuna eşittir (`02 §7.1.7` (4)).
+  5. Teslim almaları parça parça gelen cayma beyanında her parçanın payı beyanın payından orantıyla ayrılır; son parça kalanı alır (`02 §7.1.7` (5)).
+  6. Kısmi iptalde kupon yeniden hesaplanmaz ve kalan tutar için asgari sepet tutarına bakılmaz (`02 §7.2.7`).
+  7. Kargoya verilmeden bütün fiziksel adetler iptal edilirse kargo ücreti son iptalin geri ödemesine eklenir; bir adet bile gidecekse alıkonur ve adede bölünmez (`02 §7.2.9`).
+  8. Kısmi iadede kargo ücreti ve ücretsiz kargo kararı yeniden hesaplanmaz; kargoyla gönderilen bütün adetlerden cayılınca kargo ücreti son geri ödemeye eklenir (`02 §7.4.6`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: açık adedi aşan adet reddedilir.
+  - KK2: kapanmış adet ikinci işleme girmez.
+  - KK3: üç adet × 300 TL örneği 266,67 / 266,67 / 266,66.
+  - KK4: paylar toplamı kalemin payına eşit.
+  - KK5: parçalı teslim almada pay orantılı.
+  - KK6: kısmi iptalde kupon sabit.
+  - KK7: kargo ücreti iptalde tetiğe göre.
+  - KK8: iadede kargo ücreti yeniden hesaplanmaz.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T370: Geri ödeme hattı: ödemenin geldiği yol, kart ve havale, IBAN'ın ömrü, geri ödeme süresi, kart iadesi hataları
+- **Bağımlılık:** T317, T352, T353, T369
+- **Dokümanlar:** çekirdek; `09` §9, §10, §11, §14; `05 MK-40`, §4.6; `02 §7.2.8`, §7.4.1, §7.4.5, §8.4.2, Z-16, Z-17, Z-35, Z-38, §4.3, §5.5, B-8, B-14, F-4, §10.4.9, §10.6.1, P-43; `10` KP-15, KP-21, KP-22; `03 §1.7`
+- **Kabul kriterleri:**
+  1. Geri ödeme ödemenin geldiği yoldan gider: kart sağlayıcı üzerinden karta, havale müşterinin IBAN'ına (`02 §7.4.5`).
+  2. Kart hattında sistem iadeyi kendiliğinden başlatır, onay penceresi yoktur ve IBAN alanı açılmaz; havale hattında firma panelden işler (`02 §7.2.8`).
+  3. Süre iptalde iptalden, teslimden önceki caymada beyandan, teslimden sonraki caymada malın ulaştığı tarihten başlar; başlangıç ikisinden geç olanıdır (`02 §7.4.1`).
+  4. IBAN girişte biçim ve sağlamayla denetlenir, işlenene kadar müşterice düzeltilir; firma IBAN girmez (`02 §7.4.5`).
+  5. IBAN geri ödeme tamamlanınca silinir; başka bekleyen geri ödeme kullanıyorsa ondan sonra silinir (`02 §7.4.5`).
+  6. Firma iptalinde IBAN isteği iptal kaydıyla düşer, B-14 gider ve süre IBAN beklenirken durmaz (`02 §7.2.8`).
+  7. "Havale gerçekleşmedi" bildirimi IBAN'ı siler, alanı yeniden açar ve B-14 gönderir (`02 §7.4.5`).
+  8. Kart iadesi reddedilirse ödeme ekseni değişmez, "geri ödeme gerçekleşmedi" işareti düşer ve kalem bekleyen işlere girer (`02 §7.2.8`).
+  9. Sonuç bilinmezse "geri ödeme sonucu bekleniyor" işareti düşer; sonuç beklenirken yeniden deneme ve havale yolu kapalıdır (`02 §7.2.8`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: yol ödeme yönteminden.
+  - KK2: kartta alan yok, onay yok.
+  - KK3: süre başlangıcı üç durumda.
+  - KK4: IBAN denetimi ve düzeltme.
+  - KK5: silme zamanı, ortak kullanımda erteleme.
+  - KK6: firma iptalinde alan açılır, B-14.
+  - KK7: havale hatasında alan yeniden açılır.
+  - KK8: ret işareti, eksen sabit.
+  - KK9: bekleme işaretinde deneme kapalı.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T371: Cayma hakkı: pencere, dijital ve hizmet istisnası, ürün istisna işareti, tek rejim
+- **Bağımlılık:** T325, T332, T351, T356
+- **Dokümanlar:** çekirdek; `09` §9, §10, §14; `02 §7.1.1`, §7.1.2, §7.3.1…§7.3.4, Z-13, Z-14, Z-15, §6.4, §7.4.9, §10.4.5; `10` KP-22, KP-45
+- **Kabul kriterleri:**
+  1. Cayma penceresi on dört gündür ve sabittir; firma uzatamaz, ayar değildir (`02 §7.3.1`).
+  2. Pencere fiziksel kalemde teslim tarihinden, hizmette sipariş tarihinden, fiziksel kalemli siparişte teslimden işler (`02 §7.3.1`; Z-13, Z-14).
+  3. Müşteri malı teslim almadan, sipariş kargoya verildikten sonra da cayabilir (`02 §7.3.1`).
+  4. Pencere kapanınca düğme kapanır; önceden yapılmış beyan geçerli kalır ve pencere işaret anından yeniden başlatılmaz (`02 §7.3.1`).
+  5. Dijital kalemde cayma hakkı yoktur; hak ödeme başarısında düşer ve ayrı onay kutusu zorunludur (`02 §7.3.2`; Z-15).
+  6. Hizmette hak, firma "tamamlandı" işaretleyene kadar sürer; onay kutusu zorunludur ve ürün ifanın başlangıcını kaydetmez (`02 §7.3.3`).
+  7. Kısmen ifa edilmiş hizmetten cayma tam caymadır; yapılmış kısım için bedel kesilmez (`02 §7.3.3`).
+  8. Fiziksel üründe istisna işareti ürün düzeyinde isteğe bağlıdır; mutlak sebepte düğme yoktur, koşullu sebepte açıktır ve koşul yazılır (`02 §7.3.4`).
+  9. İşaret ve sebep sipariş anında kaleme donar; sonraki ürün değişikliği verilmiş siparişi etkilemez (`02 §7.3.4`).
+  10. Ürün tek tüketici rejimini işletir; alıcıdan ticari bilgi istemez (`02 §7.1.2`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: ayar yok, süre sabit.
+  - KK2: başlangıç üç durumda.
+  - KK3: kargodaki kalemde düğme açık.
+  - KK4: kapanış ve eski beyanın korunması.
+  - KK5: dijital düğme yok, hak ödemede düşer.
+  - KK6: hizmet tamamlanana kadar açık.
+  - KK7: kısmi ifada tam geri ödeme.
+  - KK8: mutlak ve koşullu sebep düğmesi.
+  - KK9: donma sonradan değişmez.
+  - KK10: ticari bilgi alanı yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T372: Cayma beyanı: sipariş sayfasından ve başka kanaldan, beyanın etkisi, kargoya verilmemiş kalemde iptal yolu, firmanın teyidi
+- **Bağımlılık:** T307, T320, T330, T371
+- **Dokümanlar:** çekirdek; `09` §9, §10; `02 §7.3.5`…§7.3.7, §7.1.4, §7.1.6, §7.6.7, §5.6.6, §5.8, §5.9, §6.4, §8.3.8, §9.2, B-9, B-14, §9.3, F-3, §10.4.10, §12.5; `10` KP-22, KP-47
+- **Kabul kriterleri:**
+  1. Müşteri sipariş sayfasından kalemi ve adedi seçip beyan eder; beyan tarih damgasıyla kaydolur, ayrı form ya da noter kanalı gerekmez; aynı kalemde ardışık beyan yapılır (`02 §7.3.5`).
+  2. Beyan ekranı güncel iade adresini ve on dört gün içinde gönderme yükümlülüğünü gösterir; adres beyan kaydına yazılır ve sonradan değişse de o beyan için değişmez (`02 §7.3.5`).
+  3. Koşullu istisnalı üründe beyan ekranı koruyucu ambalaj koşulunu gösterir (`02 §7.3.5`).
+  4. Beyan siparişi kapatmaz; sevkiyat durumu değişmez, ödeme durumu para geri ödenince değişir (`02 §7.3.6`).
+  5. Müşteri kayıt kopyası e-postasını (B-9) alır, firmaya F-3 gider (`02 §7.1.4`; §9.2).
+  6. Başka kanaldan gelen bildirim panelden kalem ve adetle kaydedilir; tarih bildirimin ulaştığı tarihtir, geçmişe dönük olabilir, ileri tarihli olamaz (`02 §7.3.5`; §10.4.10).
+  7. Firma bildirimin siparişin sahibinden geldiğini teyit eder; teyit kaydın tarihini değiştirmez, IBAN yalnız siparişin e-postasından gelen bildirimde aktarılır (`02 §8.3.8`).
+  8. Kargoya verilmemiş fiziksel kalemde cayma düğmesi yoktur; başka kanaldan gelen bildirim "müşteriyle anlaşıldı" iptali olarak işlenir ve cayma kaydı açılmaz (`02 §7.3.7`).
+  9. Beyan geri alınmaz ve düzeltilmez; firmanın kaydettiği de aynıdır (`02 §7.6.7`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: damga, ardışık beyan, ek kanal zorunluluğu yok.
+  - KK2: iade adresi beyan kaydında donar.
+  - KK3: koşul metni yalnız koşullu üründe.
+  - KK4: eksenler beyanla değişmez.
+  - KK5: B-9 ve F-3 gider.
+  - KK6: ileri tarih reddedilir.
+  - KK7: teyitsiz kayıt yok, tarih sabit.
+  - KK8: kargo öncesi iptal yolu, cayma kaydı yok.
+  - KK9: geri alma ve düzeltme yolu yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T373: İade: iade kargo bedeli, ödemeli gönderim ve iade adresi, teslim alma adımı, stoğa ekleme, koşullu istisnada ret, kullanılmış mal
+- **Bağımlılık:** T334, T370, T372
+- **Dokümanlar:** çekirdek; `09` §9, §10, §14; `02 §7.4.1`…§7.4.4, §7.4.6…§7.4.10, Z-16, Z-42, Z-38, §5.8, §6.4, §8.4.2, B-14, B-16, §10.4.5, §10.4.9, §10.6.1, P-43; `10` KP-22, KP-24, KP-47; `devir` 04-1948
+- **Kabul kriterleri:**
+  1. Cayma ve ayıpta iade kargo bedeli firmaya aittir, bunu değiştiren ayar yoktur; müşteri masrafı önden ödemez (`02 §7.4.2`, §7.4.3, §7.4.4).
+  2. Taşıyıcıyı müşteri seçer; ürün iade etiketi üretmez, firma malı geri almayı teklif etmez (`02 §7.4.4`).
+  3. Müşteri malı beyandan on dört gün içinde gönderir; süre dolunca sistem kalemde kendiliğinden işlem başlatmaz (`02 §7.4.4`).
+  4. Teslim alma adımı ulaşan adetle ve ulaşma tarihiyle yapılır; tarih geçmişe dönük olabilir, ileri tarihli ya da kalemin teslim tarihinden önce olamaz (`02 §7.4.7`).
+  5. İade edilen adet stoğa kendiliğinden eklenmez; firma kontrolden sonra panelden ekler ve ekleme teslim alınan adet kadardır (`02 §7.4.7`).
+  6. IBAN silindikten sonra ulaşan malda adım IBAN isteğini yeniden açar ve B-14 gider; firma IBAN girmez (`02 §7.4.5`).
+  7. Koşullu istisnalı kalemde firma malı kabul etmek yerine "iade reddedildi — koruyucu ambalaj açılmış" kaydını seçebilir; ret yalnız bu kalemde sunulur (`02 §7.4.9`).
+  8. Ret geri ödemeyi ve süreyi durdurur, kalemi bekleyen işlerden düşürür, stoğa eklemez, B-16 gönderir ve geri alınmaz (`02 §7.4.9`).
+  9. İstisnasız ya da ambalajı açılmamış malda kullanılmış ya da hasarlı mal reddedilmez, kesinti yapılmaz; ürün değer kaybı tutarı kaydetmez (`02 §7.4.10`).
+  10. Malı dönmeyen kalem süre geçince "mal dönmedi" ile kapatılır; geri ödeme olmaz, bildirim gitmez (`02 §10.4.9`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: iade masrafı ayarı yok.
+  - KK2: etiket yok, taşıyıcı müşteride.
+  - KK3: süre dolunca otomatik işlem yok.
+  - KK4: tarih sınırları reddedilir.
+  - KK5: stoğa ekleme ayrı adım, adet kadar.
+  - KK6: IBAN yeniden istenir, B-14.
+  - KK7: ret yalnız koşullu kalemde.
+  - KK8: ret sonuçları ve B-16.
+  - KK9: kesinti ve değer kaybı alanı yok.
+  - KK10: erken kapatma reddedilir, geç kapatma işler.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ## 6. Faz geçiş kapıları
 
 ### 6.1 Genel gate check (tüm fazlarda)

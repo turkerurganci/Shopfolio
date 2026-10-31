@@ -5026,6 +5026,34 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK9: hepsi ya da hiç.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+#### T532: Talepler ve iletişim talebi ayrıntısı (E-38, E-39)
+- **Bağımlılık:** T520, T540, T541, T542, T545
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §16 (§16.2); `07 UC-93`, `UC-94`, `UC-155`, `UC-156`; `04` E-38, E-39; `03 §8.6`; `02 §3.32.4`, §3.32.5; `10` KP-49, KD-50, KD-51
+- **Kabul kriterleri:**
+  1. `GET /panel/talepler` iletişim ve ayıp taleplerini tek listede verir; tür ve durum süzgeçleri birden çok değer alır; arama ve konu tipi süzgeci yoktur (`07 UC-93`; K-751, K-809).
+  2. Sıra açılış tarihine göre en yeni önce; yeniden açılan ayıp talebi son açılış tarihiyle sıralanır (`07 UC-93`).
+  3. "Açık" süzgeciyle satır sayısı ana sayfanın açık talep sayacına eşittir; saklama süresi dolan talep listede yoktur (`07 UC-93`).
+  4. İletişim satırı UC-94'e, ayıp satırı siparişin ayıp talepleri bölümüne gider; ikisi listenin adresini `returnUrl`'de taşır; ulaşmamış ayıp talebi işaret taşır (`07 UC-93`).
+  5. Geçersiz süzgeç değeri süzgeci uygulamaz; boş sonuç boş hâl satırıdır (`07 UC-93`).
+  6. `GET /panel/talepler/{iç anahtar}` konu tipini, durumu, göndereni, mesajı, ulaştığı anı, son kapatılışı ve yeniden açılmışta sürenin işlediği tarihi verir (`07 UC-94`; K-1099).
+  7. Birincil düğme Açık talepte "Talebi kapat", Kapatıldı talepte "Yeniden aç"tır; "Siparişlerde ara" ve "Üye kaydında ara" talebin e-postasıyla aranmış açılır, adres kayıtlarda maskelenir (`07 UC-94`; K-810).
+  8. Talep yoksa ya da saklama süresinin sonunda imha edilmişse 404 döner; iki işleyicide de aynıdır (`07 UC-94`, `UC-155`; K-1192).
+  9. `CloseContactRequest` durumu Kapatıldı yapar, `LastClosedAt` yazar, açık talep sayacından düşer, bildirim göndermez; zaten Kapatıldı'daysa 303 verir (`07 UC-155`; K-810).
+  10. `ReopenContactRequest` durumu Açık yapar, `LastClosedAt`'i değiştirmez: süre durmaz, talep açık dururken de sürenin sonunda imha edilir; zaten Açık'taysa 303 (`07 UC-156`; K-1099).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: iki tür, üç durum; arama yok.
+  - KK2: iki sıra durumu.
+  - KK3: sayaç eşitliği; süresi dolan yok.
+  - KK4: iki bağlantı; işaret.
+  - KK5: geçersiz değer; boş hâl.
+  - KK6: tarihler; KVKK ulaşma anı.
+  - KK7: iki düğme; iki arama; maske.
+  - KK8: iki işleyicide 404.
+  - KK9: kapatma; ikinci gönderim.
+  - KK10: süre durmaz; ikinci gönderim.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ## 6. Faz geçiş kapıları
 
 ### 6.1 Genel gate check (tüm fazlarda)

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.42** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.43** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -818,7 +818,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T119: Başlangıç verisi göçü ve seed olmayanların sınırı
 - **Bağımlılık:** T118
-- **Dokümanlar:** çekirdek; `09` §10 (§10.6), §12; `06 §8.1`, §8.3, §8.4 (2)
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6), §12; `06 §8.1`, §8.3, §8.4 (2); `02 §11.1` (P-1, P-3, P-4, P-5, P-7, P-8, P-10)
 - **Kabul kriterleri:**
   1. Seed göçün veri adımında yazılır; kodda "kayıt yoksa oluştur" dalı yoktur (`06 §8.1.1`).
   2. Göç 81 il ile ülke listesini yazar; il kodu plakadır (`06 §8.1.1`).
@@ -872,7 +872,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T221, T226
 - **Dokümanlar:** çekirdek; `09` §3 (§3.5), §9; `06 §9.1`, §9.4, §9.5; `02 §4.2` Z-36, Z-44; `03 §4.1`; `05 MK-22`, `MK-23`, `MK-65`, §5.2, §7.4, §7.5, §9.2; `10` KP-74, KD-56
 - **Kabul kriterleri:**
-  1. İmha işi her gece Türkiye saatiyle 03:00'te çalışır ve süre envanterinin satırlarını sırayla işler (`05 §7.4.1`; MK-22).
+  1. İmha işi her gece Türkiye saatiyle 03:00'te çalışır ve süre envanterini sırayla işler; imha parçaları F3'tedir (T301, T302) (`05 §7.4.1`; MK-22).
   2. Süre kaydın başlangıç değerinden bugüne hesaplanır; kaçırılan gece sonraki çalışmada telafi edilir (`06 §9.1.1`).
   3. Süre değerleri `02 §11.2`'nin P sabitiyse yalnız `ProductConstants`'ta, yasal süreyse kendi evinde tanımlıdır; imha işinde ve süre tablosunda yinelenmez, istisnalar `06 §9.1.2`'dedir (`09 §3.5` madde 1).
   4. Silme fiziksel silmedir; "silindi" işaretli satır ve arşiv tablosu yoktur (`05 §7.4.3`; `06 §9.5.1`).
@@ -2614,7 +2614,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   3. İndirim tarihlidir; başlangıç gününün 00.00'ında başlar, bitiş gününün 23.59'unda biter (T378) (`02 §3.9.2`, §4.1.4).
   4. İndirim beyanı gösterilen her yerde başlangıç ve bitiş tarihi görünür (`02 §3.9.2`).
   5. Referans fiyatı sistem hesaplar, yönetici giremez; her varyantın fiyat geçmişi tutulur (`02 §3.9.3`).
-  6. Fiziksel ve dijital üründe referans, indirimin başladığı andan önceki 10 gün içinde o varyanta uygulanan en düşük fiyattır (satışa kapalı aralıklar dahil; indirimli fiyat da geçmişe yazılır); hizmette ve çabuk bozulan (cayma istisnası) üründe indirimden hemen önceki fiyattır (`02 §3.9.3`, Z-21).
+  6. Fiziksel ve dijital üründe referans, indirimin başladığı andan önceki 10 gün içinde o varyanta uygulanan en düşük fiyattır (satışa kapalı aralıklar dahil; indirimli fiyat da geçmişe yazılır); hizmette ve istisna sebebi çabuk bozulan üründe hemen önceki fiyattır (`02 §3.9.3`, §7.3.4, Z-21).
   7. 10 günlük geçmişi olmayan malda referans, varyantın satışa sunulduğu andan (varyant ve ürün birlikte Yayında olduğu ilk an) beri en düşük fiyattır; öteki varyantların fiyatı referans olmaz (`02 §3.9.4`).
   8. İndirimli fiyat referansın altına inmiyorsa indirim kaydedilmez, sebebi söylenir (`02 §3.9.5`).
   9. Beyan edilen referans sipariş kalemine T355'te donar (`02 §3.9.6`).
@@ -2625,7 +2625,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: indirim başlangıç günü 00.00'da açılır, bitiş günü 23.59'da kapanır.
   - KK4: tarihler ürün sayfasında ve kartta görünür.
   - KK5: referans alanı panelde girilemez.
-  - KK6: 10 günlük en düşük fiyat (satışa kapalı aralık ve önceki indirimli) ile hizmette ve çabuk bozulan üründe hemen önceki fiyat örnekle doğrulanır.
+  - KK6: 10 günlük en düşük (kapalı aralık, önceki indirimli, başka sebeple istisnalı mal) ile hizmette ve çabuk bozulanda hemen önceki fiyat örnekle doğrulanır.
   - KK7: yeni varyantta referans kendi geçmişinden gelir.
   - KK8: referansın altına inmeyen indirim kaydedilmez.
   - KK9: donma T355 KK1'de sınanır.
@@ -5288,7 +5288,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   3. Marka rengi vitrinde yalnız dolu zemindir; yazı, çizgi ve simge rengi değildir (`04` 2.1.3).
   4. Klavye, odak ve %200 yakınlaştırma kuralları bileşenlerde yürür, tarayıcı sınamaları `12`'dedir; ölçüm, dış betik ve gömme içerik yoktur (`04` 2.1.4; `02 §3.34.5`, §3.34.6, §8.3.2, §8.3.3; ileri işaret: 12).
   5. Vitrin çerçevesi beş bölgeyi verir; dar sınıfta menü, arama ve sosyal bağlantılar açılır menüdedir (`04` 2.2.1, 2.2.4).
-  6. Altbilgi hiçbir vitrin ekranında kaldırılmaz; "İletişim" başlığı E-10'a gider; aydınlatma metni ve çerez politikası bağlantıları vardır (`04` 2.2.5, 2.2.6; `02 §3.33.5`).
+  6. Altbilgi hiçbir vitrin ekranında kaldırılmaz; "İletişim" başlığı E-10'a gider; yalnız yayındaki yasal metinlerin bağlantıları vardır (`04` 2.2.5, 2.2.6; `02 §3.33.5`; K-770).
   7. Ödeme adımının üst bölümü yalnız logo ya da marka adı ile "Sepete dön"ü taşır (`04` 2.2.7).
   8. Panel çerçevesi üst satırı ve sekiz girişli menüyü taşır; giriş ve davet kabulü çerçevesizdir; `PanelFrame` ikisinin verisini ve bekleyen iş işaretlerini taşır (`04` 2.2.8, 2.2.9; `07 §5.5.1`).
   9. Yönetici şeridi yalnız panel oturumunda görünür, "Panele dön" taşır; "Taslak" bandı şeridin yerini alır, "Düzenlemeye dön" verir; müşteri görmez (`04` 2.9.1, 2.9.2; `03 §8.1.7`).
@@ -5299,7 +5299,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: marka rengi yalnız zemin.
   - KK4: ölçüm, betik, gömme yok; klavye, odak, %200 `12`'de.
   - KK5: beş bölge; açılır menü.
-  - KK6: altbilgi; yasal bağlantılar.
+  - KK6: altbilgi; yayınsız metne bağlantı yok.
   - KK7: sade üst bölüm.
   - KK8: üst satır; menü; çerçevesiz; panel modeli.
   - KK9: şerit, bant; müşteride yok.
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.42*
+*Shopfolio — Implementation Plan v0.43*

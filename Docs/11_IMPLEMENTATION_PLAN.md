@@ -3071,6 +3071,144 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK4: firma kimliği değişince eski sipariş dışa aktarması eski kimliği verir.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+#### T358: Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar
+- **Bağımlılık:** T322, T339
+- **Dokümanlar:** çekirdek; `09` §10, §15; `02 §3.27.1`…§3.27.9, §3.27.12, §2.3, §6.8, §11.2, P-28, P-29; `10` KP-32, KP-33, KP-36, KP-54, KD-14, KD-39, KD-41…KD-45, KD-63
+- **Kabul kriterleri:**
+  1. İçerik hazır tiplerle ve sabit düzenli genel sayfayla girilir; sayfa kurucu yoktur (`02 §3.27.1`).
+  2. Beş hazır tip (Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube) vardır; genel sayfa ve duyuru eklenir; galeri tipi yoktur (`02 §3.27.2`).
+  3. Hakkımızda tek kayıttır; ikincisi açılmaz, silinmez, yalnız taslağa alınır (`02 §3.27.3`).
+  4. Hizmet tanıtımı fiyatsızdır, satın alınmaz; "Bize ulaşın" iletişim formuna götürür (`02 §3.27.4`).
+  5. Referans iş başlık, kısa açıklama, metin ve görselden oluşur; müşteri adı, yıl, kategori alanı yoktur (`02 §3.27.5`).
+  6. SSS soru ve cevaptır; tek sayfada listelenir, başlıklara bölünmez (`02 §3.27.6`).
+  7. Şube İletişim sayfasında listelenir; ad ve adres zorunlu, il kapalı listeden; gömülü harita yok (`02 §3.27.7`).
+  8. İletişim sayfası ayrı tip değildir; kimlik bilgileri, şubeler ve form birleşir (`02 §3.27.8`).
+  9. Genel sayfa adet sınırsızdır; yasal metin genel sayfa olarak girilmez (`02 §3.27.9`).
+  10. Sosyal bağlantılar kapalı altı platformla ve isteğe bağlı WhatsApp numarasıyla girilir; siparişe donmaz (`02 §3.27.12`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: sayfa kurucu ucu yok.
+  - KK2: tip listesi kapalı, galeri tipi yok.
+  - KK3: ikinci Hakkımızda ve silme reddedilir.
+  - KK4: hizmette sepet yok, form bağlantısı var.
+  - KK5: referans işte ek alan yok.
+  - KK6: SSS tek listedir.
+  - KK7: şubede zorunlu alan ve harita bağlantısı doğru.
+  - KK8: iletişim sayfası kendi kaydı yok.
+  - KK9: genel sayfada sınır yok.
+  - KK10: platform listesi kapalı, donma yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T359: Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler
+- **Bağımlılık:** T335, T358
+- **Dokümanlar:** çekirdek; `09` §10, §15; `02 §3.27.10`, §3.27.11, §3.27.13…§3.27.20, §6.8, §11.2, P-22, P-23, P-25, P-27…P-29; `10` KP-32, KP-54, KD-8, KD-34, KD-44, KD-63
+- **Kabul kriterleri:**
+  1. Hizmet ve referans işe katalogdan ürün bağlanır; yalnız yayındakiler "İlgili ürünler"de görünür, silinen bağdan kalkar (`02 §3.27.10`).
+  2. Beş liste elle sıralanır; vitrin, ana sayfa ve menü sırayı izler; ürün listeleri etkilenmez (`02 §3.27.11`).
+  3. Hiçbir tip zorunlu değildir; yayın kapısı tipe göre zorunlu alanlardır (`02 §3.27.13`).
+  4. Hakkımızda boşken ya da yayında değilken kurumsal blok marka adı ve logoyu gösterir (`02 §3.27.14`).
+  5. Görseller ve kısa alanlar ürün kurallarına tabidir: ana görsel sıradan bağımsız, alternatif metin isteğe bağlı, tavanlar parametrede (`02 §3.27.15`).
+  6. Uzun metin ürünün metin biçimi setini kullanır (`02 §3.27.16`).
+  7. Gömülü video ve dosya eki yoktur; video bağlantısı platformunda açılır (`02 §3.27.17`; `02 §3.27.18`).
+  8. Müşteri görüşü tipi, dönen alıntı bloğu ve blog yoktur (`02 §3.27.19`; `02 §3.27.20`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: taslak ürün bağda kalır, görünmez.
+  - KK2: sıra liste, ana sayfa, menüde aynı.
+  - KK3: eksik alanlı kayıt yayına alınamaz.
+  - KK4: boş Hakkımızda blokta marka adı çıkar.
+  - KK5: alt metin boşsa ad ve sıra kullanılır.
+  - KK6: biçim seti dışı etiket temizlenir.
+  - KK7: video oynatıcı ve ek yükleme ucu yok.
+  - KK8: görüş tipi ve blog uçları yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T360: Duyuru şeridi, boş kurulum, içerik yayın durumu, önizleme ve silme
+- **Bağımlılık:** T322, T326, T358
+- **Dokümanlar:** çekirdek; `09` §10, §13; `03 §10.2`; `02 §3.27.21`…§3.27.28, §2.3, §4.1.4, Z-23, Z-24, §5.2, §6.8, §7.6.4, §10.8.1, §11.2, P-30; `10` KP-36, KP-54, KP-57, KD-38, KD-45
+- **Kabul kriterleri:**
+  1. Duyuru tektir: her sayfanın üstünde bir satır metin ve isteğe bağlı bağlantı; tarih girilirse yalnız aralıkta görünür (`02 §3.27.21`).
+  2. Site boş kurulur; içerik, katalog ve duyuru örnek kayıt taşımaz (`02 §3.27.22`).
+  3. Her kayıt Taslak ya da Yayında'dır; arşiv yoktur; ikinci onay yoktur (`02 §3.27.23`).
+  4. Taslak yalnız adla kaydedilir; yayına almak zorunlu alanları ister; eksik alanı panel gösterir (`02 §3.27.24`).
+  5. Taslak sayfa ziyaretçiye "sayfa bulunamadı" döner, yöneticiye "Taslak" bandıyla görünür (`02 §3.27.25`).
+  6. Sürüm geçmişi yoktur; kayıt hemen yayına girer; yayına alma ve kaldırma işlem izindedir (`02 §3.27.26`).
+  7. Kalıcı silme geri alınamaz uyarısıyla yapılır ve menü, işaret ve ürün bağlarını kaldırır; Hakkımızda silinmez (`02 §3.27.27`).
+  8. İleri tarihli yayın yoktur; tek istisna duyuru aralığıdır (`02 §3.27.28`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: aralık dışında duyuru görünmez.
+  - KK2: temiz kurulumda örnek kayıt yok.
+  - KK3: iki durum var, arşiv ve onay yok.
+  - KK4: eksik alanlı yayına alma reddedilir.
+  - KK5: taslak bandı yalnız yöneticide.
+  - KK6: eski sürüme dönüş yok, izde kim yazılı.
+  - KK7: silme uyarılı, Hakkımızda silinmez.
+  - KK8: ileri tarih yalnız duyuruda.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T361: Ana sayfa düzeni ve üst menü
+- **Bağımlılık:** T333, T358
+- **Dokümanlar:** çekirdek; `09` §10; `02 §3.28.1`…§3.28.6, §2.3, §6.8; `10` KP-1, KP-31, KP-55, KD-39, KD-40
+- **Kabul kriterleri:**
+  1. İki hazır ana sayfa düzeninden biri seçilir; kurumsal tanıtım ve vitrin birlikte durur; vitrin en yeni yayındaki ürünlerdir (`02 §3.28.1`).
+  2. Kurumsal blok her zaman Hakkımızda'dır; uzun metin kendi sayfasında durur (`02 §3.28.2`).
+  3. "Ana sayfada göster" işaretli hizmet ve referanslar elle sırayla görünür; işaretli yoksa blok çıkmaz (`02 §3.28.3`).
+  4. Menü düzenleyici yoktur; sabit iskelette kaydı olmayan tip görünmez; firma menü adlarını değiştirebilir (`02 §3.28.4`).
+  5. Genel sayfalar altbilgide listelenir; "menüde göster" işaretiyle üst menüye çıkar (`02 §3.28.5`).
+  6. Yayında ürünü olmayan kategori menüde görünmez; boş kategori adresi boş sayfa gösterir (`02 §3.28.6`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: düzen seçimi iki değerle sınırlı.
+  - KK2: blokta kısa tanıtım ve ana görsel var.
+  - KK3: işaretsiz blok hiç görünmez.
+  - KK4: menü adı değişir, tip kaydı yoksa gizlenir.
+  - KK5: genel sayfa altbilgide, işaretliyse menüde.
+  - KK6: boş kategori menüde yok, adresi 404 vermez.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T362: Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası
+- **Bağımlılık:** T330, T339
+- **Dokümanlar:** çekirdek; `09` §10, §15; `02 §3.29.1`…§3.29.6, §6.9, §9.1.4, §11.2, P-22, P-23; `10` KP-56, KD-46, KD-47
+- **Kabul kriterleri:**
+  1. Dört ayar vardır: logo, marka adı, site simgesi, tek marka rengi; vitrine ve e-postaya uygulanır, panele değil; koyu tema yoktur (`02 §3.29.1`).
+  2. Logo zorunlu değildir; yoksa marka adı yazıyla gösterilir; tek logo her yerde kullanılır (`02 §3.29.2`).
+  3. Marka adı unvandan ayrı ve zorunludur; boşaltılamaz; girilene kadar alan adı görünür (`02 §3.29.3`).
+  4. Site simgesi yoksa marka adının baş harfi marka rengi zeminde çıkar (`02 §3.29.4`).
+  5. Yazı rengini (siyah ya da beyaz) sistem yeterli kontrastla seçer; anlam renkleri sabittir (`02 §3.29.5`).
+  6. "Shopfolio ile kuruldu" imzası varsayılan açıktır, yalnız altbilgidedir; kapatma işlem izine yazılır (`02 §3.29.6`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: dört ayar var, panel görünümü sabit.
+  - KK2: logosuz sitede ad yazıyla çıkar.
+  - KK3: marka adı boşaltılamaz.
+  - KK4: simge yoksa baş harf çıkar.
+  - KK5: açık ve koyu renklerde yazı okunur.
+  - KK6: imza anahtarı çalışır, e-postada imza yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T363: Sayfa adresleri, arama motoru bilgileri, kapalı sayfalar ve paylaşım
+- **Bağımlılık:** T313, T333, T335, T358
+- **Dokümanlar:** çekirdek; `09` §10; `02 §3.30.1`…§3.30.7; `10` KP-7, KP-36, KP-37, KD-48, KD-49
+- **Kabul kriterleri:**
+  1. Ürün ve kategori adresi ağaçtaki yerden bağımsız, adından üretilir (`02 §3.30.1`).
+  2. Adres ilk yayında sabitlenir; Türkçe harfler sadeleşir; çakışmada sayı eklenir; ad boşsa kök tür adıdır (`02 §3.30.2`).
+  3. Yönlendirme sistemi yoktur (`02 §3.30.3`).
+  4. Olmayan, silinmiş ya da taslak adres sitenin görünümünde "sayfa bulunamadı"ya düşer (`02 §3.30.4`).
+  5. Arama motoru bilgileri otomatik üretilir; elle SEO alanı yoktur (`02 §3.30.5`).
+  6. Sepet, ödeme, hesap, takip, panel, arama sonuçları, taslak ve arşiv sayfası arama motorlarına kapalıdır (`02 §3.30.6`).
+  7. Tek "Paylaş" düğmesi cihaz menüsünü ya da bağlantı kopyalamayı kullanır; platform kodu yoktur (`02 §3.30.7`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: kategori taşınınca ürün adresi değişmez.
+  - KK2: sadeleşme, çakışma ve boş ad kökü doğru.
+  - KK3: yönlendirme ucu yok.
+  - KK4: üç hâl aynı sayfayı verir.
+  - KK5: başlık ve açıklama kuralla üretilir.
+  - KK6: kapalı sayfalar işaretli, haritada yok.
+  - KK7: paylaşım betiği tek düğme, harici kod yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ## 6. Faz geçiş kapıları
 
 ### 6.1 Genel gate check (tüm fazlarda)

@@ -157,6 +157,24 @@ Ayrıntı kaynağa göre doğrudur; `11` tüketicidir (K-1406 (2)(d)). İki doğ
 
 **435 bulgu** (Orta 249 + Düşük 186) bu adımda **doğrulanmadı ve dokümana uygulanmadı** — adım başına 20 Opus doğrulayıcı sınırı. Liste puana göre sıralı: `C:/Users/teknodeveloper/.claude/helper-state/shopfolio/kd-audit/dogrulanmadi.md` (300 KB; yardımcı durum dizini, depoda değil). Öneri: sonraki adım "audit 2" olarak Orta'yı dört bulgulu gruplarla (~62 doğrulayıcı) ya da ayrı adımlara bölerek doğrulasın; **#336'nın (Orta → Yüksek) yeniden doğrulaması** aynı adıma kalır. Sıra: doğrulanmamış bulguların doğrulanması, sonra deep review.
 
+### Doğrulanmamış bulgular — KD-audit-2a
+
+Plan (`scripts/doc-scans/11_audit_grupla2.py`): 435 bulgu → **95 doğrulayıcı grubu**, **6 adım** (2a 12 · 2b 20 · 2c 20 · 2d 20 · 2e 17 · 2f 6; adım başına en çok 20); sıra para ve durum riskine göre (Ödeme, İptal-cayma-iade, Sepet ve sipariş önce). Doğrulamasız uygulama, örnekleme ya da atlama yoktur (proje sahibinin kararı, 2026-10-31).
+
+| Doğrulayıcı | Model | Kademe | Modül | Sayı |
+|---|---|---|---|---|
+| 1–2, 5 | Opus / high | Orta 4'lü (1–2), 3'lü (5) | Ödeme | 3 |
+| 3–4 | Opus / high | Düşük 6'lı | Ödeme | 2 |
+| 6, 8–10 | Opus / high | Orta 4'lü | İptal, cayma ve iade | 4 |
+| 7 | Opus / high | Düşük 7'li | İptal, cayma ve iade | 1 |
+| 11 | Opus / high | Düşük 6'lı | İptal, cayma ve iade | 1 |
+| 12 | Opus / high | Orta 3'lü | İptal, cayma ve iade | 1 |
+| **Toplam** | | | | **12** |
+
+**Hükümler (55 bulgu):** 25 doğru · 21 kısmen · 9 çürük. **Uygulanan:** 44 doğru ya da kısmen bulgudan 37'si, **71 şartname çifti** (7 bulgu ek şartname istemedi: önceki turda karşılanmış ya da başka bulguyla birleşti; üç çakışma Parça A'da elle birleştirildi). Liste: `C:/Users/teknodeveloper/.claude/helper-state/shopfolio/kd-audit-2/2a/uygulanan.md` (yardımcı durum dizini). **Seviyesi düşen** 13 bulgu (Orta/Düşük → Düşük) uygulandı. **Yükselen:** #437 ve #350 (Düşük → Orta) uygulanmadı; KD-audit-2r'de yeniden doğrulanır. **Blok bayt sınırı:** T368, T369, T372, T374, T528 kısaltıldı (bölme yok; K-1462 (3)).
+
+**İlerleme:** 435 bulgudan **55'i hükme bağlandı**; **kalan 380** (2b…2f) + #336, #437, #350 (2r). Kapılar: `11_matris_kapsama.py` 1.501/1.501 sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214.
+
 ### Sınırlar
 
 - **Uygulanmayan 435 bulgu** gövdede hâlâ bulunabilir; bu raporun "temiz" okunmaması gerekir: audit yalnız 44 bulguyu hükme bağladı.

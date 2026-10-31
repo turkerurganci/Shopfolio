@@ -164,10 +164,149 @@ Audit ve KD-audit-2'de blok bayt sınırı (2.560) için kısaltılan cümleler 
 
 **143 bulgu** (Orta ve Düşük) bu adımda doğrulanmadı ve dokümana uygulanmadı — adım başına 20 Opus doğrulayıcı sınırı. Liste puana göre sıralı: `C:/Users/teknodeveloper/.claude/helper-state/shopfolio/kd-deep/dogrulanmadi.md` (yardımcı durum dizini). #12 (T342 KK3 "iki ayrı biçimde" söz kaybı) dahil. Sıradaki adımlar **KD-deep-2a, 2b**: Orta 4'lü, Düşük 8'li gruplarla; güvenlik (GV) ve hata modu (HM) bulguları önce, sonra veri akışı (VA), ölçeklenebilirlik (ÖB) ve teknik derinlik (TD).
 
+### Doğrulanmamış bulgular — KD-deep-2a
+
+Plan (`scripts/doc-scans/11_dr_grupla2.py`) 143 bulguyu 39 doğrulayıcı grubuna ve iki adıma böldü (2a 19, 2b 20; adım başına sınır 20). **2a'da 19 doğrulayıcı koştu**, hepsi `[dogrulama]` Opus / high; bekçi olayı yok (sayaç 19/20; D19'un ilk açılışı eşzamanlı 20 ajan sınırına takıldı, hüküm yazılmadan reddedildi ve bir kez yeniden açıldı). Doğrulamasız uygulama, örnekleme ya da atlama yoktur.
+
+| Doğrulayıcı | Model | Kademe, modül | Bulgular | Hüküm |
+|---|---|---|---|---|
+| D1 | Opus / high | Düşük 5'li, karma F3 | #12, #36, #138, #35, #189 | 2 doğru · 0 kısmen · 3 çürük |
+| D2 | Opus / high | Düşük 6'li, karma F3 | #117, #71, #80, #129, #128, #139 | 1 doğru · 3 kısmen · 2 çürük |
+| D3 | Opus / high | Düşük 3'li, karma F4 | #60, #150, #149 | 0 doğru · 1 kısmen · 2 çürük |
+| D4 | Opus / high | Düşük 6'li, karma F5 | #161, #41, #42, #62, #160, #43 | 1 doğru · 3 kısmen · 2 çürük |
+| D5 | Opus / high | Orta 3'li, Ödeme | #183, #65, #130 | 0 doğru · 1 kısmen · 2 çürük |
+| D6 | Opus / high | Orta 4'li, Ödeme | #33, #140, #144, #142 | 0 doğru · 2 kısmen · 2 çürük |
+| D7 | Opus / high | Orta 3'li, Ödeme | #145, #141, #66 | 1 doğru · 2 kısmen · 0 çürük |
+| D8 | Opus / high | Orta 3'li, İptal, cayma ve iade | #107, #134, #155 | 0 doğru · 2 kısmen · 1 çürük |
+| D9 | Opus / high | Orta 2'li, İptal, cayma ve iade | #37, #158 | 0 doğru · 1 kısmen · 1 çürük |
+| D10 | Opus / high | Orta 4'li, Sepet ve sipariş | #48, #115, #110, #111 | 1 doğru · 2 kısmen · 1 çürük |
+| D11 | Opus / high | Orta 4'li, Sepet ve sipariş | #176, #122, #29, #57 | 1 doğru · 0 kısmen · 3 çürük |
+| D12 | Opus / high | Orta 4'li, Sepet ve sipariş | #178, #124, #131, #133 | 0 doğru · 2 kısmen · 2 çürük |
+| D13 | Opus / high | Orta 4'li, Sepet ve sipariş | #187, #34, #157, #156 | 1 doğru · 0 kısmen · 3 çürük |
+| D14 | Opus / high | Orta 3'li, Üyelik | #31, #52, #32 | 0 doğru · 1 kısmen · 2 çürük |
+| D15 | Opus / high | Orta 3'li, Üyelik | #56, #188, #38 | 1 doğru · 2 kısmen · 0 çürük |
+| D16 | Opus / high | Düşük 1'li, karma F1 | #22 | 0 doğru · 1 kısmen · 0 çürük |
+| D17 | Opus / high | Orta 3'li, Ayarlar | #190, #164, #191 | 0 doğru · 1 kısmen · 2 çürük |
+| D18 | Opus / high | Orta 2'li, Kurumsal içerik | #126, #125 | 0 doğru · 1 kısmen · 1 çürük |
+| D19 | Opus / high | Orta 2'li, Modüller | #24, #179 | 0 doğru · 2 kısmen · 0 çürük |
+
+**Hükümler (65 bulgu):** 9 doğru · 27 kısmen · 29 çürük. Şartname çifti 73 ham; **yükselen #117** (T306 kesinti sonrası gönderim, Düşük → Orta; 6 çift) bu adımda **uygulanmadı** (`kd-deep-2/yeniden.md`; KD-deep-2b'nin sonunda ya da `KD-deep-2r`'de yeniden doğrulanır). Uygulanan: **35 bulgu, 66 şartname çifti** `11_audit_uygula.py` ile tek seferde (67 çift − 1 birleştirme: #133'ün 2. şartnamesi, aynı k8 satırını aynı kısaltmayla değiştiren #187'nin 3. şartnamesinde eridi; sorun 0). **Seviyesi düşen 25 bulgu** (Orta → Düşük) uygulandı: #183, #65, #130, #33, #140, #107, #155, #37, #115, #110, #29, #178, #124, #34, #157, #156, #31, #52, #32, #188, #38, #164, #191, #126, #24. 29 çürük hükümde şartname yoktur (çoğu "zaten karşılandı: 11:<n>"). Elle satır: T331'in bağımlılık satırı (11:2457, `T330` → `T330, T380`) satır numarasıyla yapıldı (ESKI parça olarak üç yerde geçtiği için şartnamede tekil kurulamamıştı).
+
+### Bulgu → hüküm → uygulama (KD-deep-2a)
+
+Numaralar `kd-deep/bulgular.md` sıra numarasıdır; "Task" ana task'tır; "↓" mercekten düşüşü gösterir.
+
+| # | Task | Bulgu (özet) | Hüküm | Seviye | Uygulandı |
+|---|---|---|---|---|---|
+| 12 | T342 | T342 AC8 bütün kuralları yönetici hesaplarına uygular, T521 yönetici y | doğru | Düşük | evet (1 çift) |
+| 36 | T352 | Aynı kural iki task'ta kopyalanmış (KK8 ve T346 KK2 aynı davranışı sın | çürük | Düşük | hayır |
+| 138 | T367 | Karışık siparişin kalan hatta düşmesi (k3'ün ikinci yarısı) hiçbir KK' | doğru | Düşük | evet (1 çift) |
+| 35 | T383 | Günlük sayının ödemesi tamamlanmış siparişlerden oluştuğu kaydı düştü | çürük | Düşük | hayır |
+| 189 | T384 | Yönetici e-posta düzeltmesinden sonra "donmuş" e-postanın yeni adrese | çürük | Düşük | hayır |
+| 117 | T306 | Kesinti sonrası gönderim (kriter 5) ve hesabı silinmiş siparişte erişi | doğru | Orta ↑ | hayır (Orta'ya yükseldi → yeniden doğrulama) |
+| 71 | T308 | F-1…F-4'ün yeniden denenip denenmediği T308'de açık değil (F-5/F-6 den | kısmen | Düşük | evet (4 çift) |
+| 80 | T312 | "boy aşımı 400/422" hangi durumda 400 hangisinde 422 olduğunu söylemiy | çürük | Düşük | hayır |
+| 129 | T354 | Adres/telefon/IBAN taşıyan sayfayı süresiz açan taşıyıcı bağlantı | çürük | Düşük | hayır |
+| 128 | T361 | "Her zaman" ifadesi T359 k4'teki yedek davranışla çelişiyor | kısmen | Düşük | evet (1 çift) |
+| 139 | T386 | Hangi bildirimin (B-11/B-12) hangi müdahalede gittiği kriterlerde adla | kısmen | Düşük | evet (4 çift) |
+| 60 | T401 | DV-38/39/41 (ve T402'de DV-36) hem task'ın test modunda gözleyeceği he | kısmen | Düşük | evet (1 çift) |
+| 150 | T401 | Sunucuda 80/443 önünde ters vekil varsa "istek anındaki adres" vekilin | çürük | Düşük | hayır |
+| 149 | T409 | Kod değişiminde Google'ın kalıcı hata yanıtları (örn | çürük | Düşük | hayır |
+| 161 | T501 | İki kriter elle gözlem/belge işi | çürük | Düşük | hayır |
+| 41 | T503 | GET'te eksik seçim varsayılana düşerken AddCartItem'da "seçilmemiş" 42 | çürük | Düşük | hayır |
+| 42 | T517 | Aynı kavram T517'de "tarayıcı işaretleri", T519'da "tanınan tarayıcı i | kısmen | Düşük | evet (1 çift) |
+| 62 | T517 | Müşteri tarafı işaretlerin tamamını (değiştirenin tarayıcısı dahil) si | kısmen | Düşük | evet (0 çift) |
+| 160 | T522 | "girişe iner" durum kodu ve hedefi (302/303, `/panel/giris`) vermiyor | kısmen | Düşük | evet (1 çift) |
+| 43 | T529 | "İlki/ikincisi" işlem adlarına bağlı değil, ters okunması kolay | doğru | Düşük | evet (1 çift) |
+| 183 | T353 | Kart için iptal sonrası gelen ödemenin geri ödenmesi tanımlı, havale i | çürük | Düşük ↓ | hayır |
+| 65 | T370 | Sonucu bilinmeyen iadeyi kimin, ne zaman ve kaç kez sorgulayıp kapattı | çürük | Düşük ↓ | hayır |
+| 130 | T370 | "ikisinden geç olanı" hangi iki tarihi kastettiği yazılı değil (beyan | kısmen | Düşük ↓ | evet (2 çift) |
+| 33 | T401 | Sınıra uymayan (ör | çürük | Düşük ↓ | hayır |
+| 140 | T402 | Kabul kriterlerinde "tanınmayan değer" sırasının dört kolu sayılmamış | çürük | Düşük ↓ | hayır |
+| 144 | T404 | AC1 beş girdi sayar, KK1 "altı" der | kısmen | Orta | evet (3 çift) |
+| 142 | T408 | "Pencere" iki şey olabilir | kısmen | Orta | evet (3 çift) |
+| 145 | T404 | Cümle iki biçimde okunur | kısmen | Orta | evet (2 çift) |
+| 141 | T406 | Bildirimde 3D'li ya da 3D'siz ayrımı yapan bir alan yok | doğru | Orta | evet (2 çift) |
+| 66 | T510 | Müşteri ödeme sayfasını yenilerse yeni jeton istenir ve sağlayıcı ikin | kısmen | Orta | evet (2 çift) |
+| 107 | T320 | İki yıllık sürenin başlangıcı (teslim, ilk açılış, son çözüm) yazılı d | kısmen | Düşük ↓ | evet (2 çift) |
+| 134 | T374 | Bedel indiriminin tutarı kimden/nasıl gelir (firma girer mi, üst sınır | kısmen | Orta | evet (2 çift) |
+| 155 | T512 | IBAN isteği ve "havale yolu açıldı" durumu T529'da (`RequestRefundIban | çürük | Düşük ↓ | hayır |
+| 37 | T528 | Kısaltmada ölçülebilir eşik (bir yıl, Z-11) ve parametre adı düştü | çürük | Düşük ↓ | hayır |
+| 158 | T528 | KK10'u karşılayan kabul kriteri yok (k10 yalnız Çözüldü/Açık yapmayı a | kısmen | Orta | evet (3 çift) |
+| 48 | T301 | Gönderim kaydı alıcı adresini satırda taşıyorsa (T304 satır bazında ad | çürük | Orta | hayır |
+| 115 | T301 | "Kilitten sonra koşulu yeniden okur" (seçim ile kilit arasında başka i | kısmen | Düşük ↓ | evet (1 çift) |
+| 110 | T310 | "Okunabilirse" ölçülemez | kısmen | Düşük ↓ | evet (1 çift) |
+| 111 | T319 | Yetersiz stokta düzeltmenin reddi ve Z-8/B-3 yeniden başlaması hiçbir | doğru | Orta | evet (3 çift) |
+| 176 | T347 | Havalede "ödeme başarılı" ancak günler sonra "ödendi" işaretiyle olur | çürük | Orta | hayır |
+| 122 | T348 | Kaybeden onayın sonucu hiçbir yerde yazılı değil | çürük | Orta | hayır |
+| 29 | T349 | Aynı cümlede "taban bütün kalemler" ve "siparişe giren kalemlere bakar | doğru | Düşük ↓ | evet (1 çift) |
+| 57 | T354 | FindOrder eşleşmesi siparişin üyeye bağlı olup olmadığını ayırmıyor | çürük | Orta | hayır |
+| 178 | T354 | Anahtarın ne zaman üretildiği belirsiz (üyenin siparişinde de var mı | çürük | Düşük ↓ | hayır |
+| 124 | T364 | Uyarıdan sonra üzerine yazılabilir mi (onayla yaz) yoksa kayıt reddedi | çürük | Düşük ↓ | hayır |
+| 131 | T375 | T375 ve T379 işlem izine yazmayı kabul kriteri yapıyor, iz altyapısı i | kısmen | Orta | evet (6 çift) |
+| 133 | T386 | "Sıra sorusu"nun içeriği, seçeneklerin sonuçları (pencere/süre nasıl d | kısmen | Orta | evet (3 çift) |
+| 187 | T386 | Teslim tarihi sonradan ileri çekilirse, daha önce kaydedilmiş iade tes | doğru | Orta | evet (4 çift) |
+| 34 | T390 | "Başka bekleyen geri ödeme IBAN'ı tutuyorsa silinmez" istisnası yalnız | çürük | Düşük ↓ | hayır |
+| 157 | T527 | "yoksa" iki koşuldan hangisinin değilini kapsıyor belli değil (teslim | çürük | Düşük ↓ | hayır |
+| 156 | T530 | Yanlış iptal (T528) ve geri ödeme/IBAN isteği (T529) olmadan k7-k8 (KK | çürük | Düşük ↓ | hayır |
+| 31 | T343 | Dış sağlayıcıyı sahtelemeden akış testinin yapılacağı kuralı kayboldu | çürük | Düşük ↓ | hayır |
+| 52 | T343 | Otomatik hesap bağlama güvenliği "Google adres için yetkili" ölçütüne | çürük | Düşük ↓ | hayır |
+| 32 | T409 | Kod davranışı kodlama sırasında bilinmeyen canlı doğrulama sonucuna (D | kısmen | Düşük ↓ | evet (1 çift) |
+| 56 | T515 | T515 tanınan tarayıcının hiç engellenmediğini söylüyor | doğru | Orta | evet (1 çift) |
+| 188 | T516 | Doğrulanmamış (bekleyen) hesap için sıfırlama isteğinin ne yaptığı (ba | kısmen | Düşük ↓ | evet (1 çift) |
+| 38 | T517 | "Üç işlem" task'ta adlandırılmıyor | kısmen | Düşük ↓ | evet (1 çift) |
+| 22 | T117 | Hiç gönderilmeden `Undelivered` olan (boş gönderim anlı) satırın kabul | kısmen | Düşük | evet (1 çift) |
+| 190 | T525 | İki panel kayıt işleminde (SaveProduct, SaveCoupon) 409 ile 422 sırası | çürük | Orta | hayır |
+| 164 | T536 | KK10 kabul kriterinde olmayan bir davranışı (onay hâlinin iade malı be | çürük | Düşük ↓ | hayır |
+| 191 | T536 | "İki metin" adı verilmemiş | kısmen | Düşük ↓ | evet (2 çift) |
+| 126 | T361 | Kaç ürün gösterileceği ve "en yeni"nin neye göre (ilk yayın tarihi mi | çürük | Düşük ↓ | hayır |
+| 125 | T362 | "Yeterli kontrast" ve "okunur" ölçülemez | kısmen | Orta | evet (2 çift) |
+| 24 | T302 | Z-41 11:1683'te kişisel veri süresi olarak geçer | kısmen | Düşük ↓ | evet (3 çift) |
+| 179 | T302 | Tek madde iki ayrı kaydı (ödeme bildirimi, ayıp talebi) karıştırıyor | kısmen | Orta | evet (0 çift) |
+
+### KARAR satırları (KD-deep-2a; toplu onay modu, K-1472)
+
+Üç KARAR doğrulayıcının önerisiyle kaydedildi; üçü de şartnamelerde uygulanan seçenektir.
+
+- **#131 (K-1473, `öneriyle kaydedildi`):** T380 (işlem izi) T379'dan ayrıldı ve F3 yürütme sırasının başına alındı; T379, T331 ve T375 T380'e bağlandı (iz arayüzü ilk yazandan önce doğar, döngü kalkar). `11_geri_yon.py . --denetle` 214 = 214.
+- **#187 (K-1474, `toplu onayla kaydedildi — ⚠`):** teslim tarihi kayıtlı bir iade ulaşma tarihinden sonraya düzeltilemez (422); firma önce ulaşma tarihini düzeltir. Cayma ve iade süresine dokunduğu için ⚠ grubunda sayılır; aşamanın ⚠ listesinde proje sahibine tek listede gösterilir. T386 bağımlılığına T373 eklendi, yürütme sırası `T375 → T373 → T386 → T374`.
+- **#125 (K-1473, `öneriyle kaydedildi`):** marka rengi üzerindeki yazı rengi WCAG kontrast oranı yüksek olan taraftan seçilir (her renkte en az 4,5:1).
+
+### Blok bayt sınırı (2.560) ve söz kayıpları — KD-deep-2a
+
+Uygulama sonrası iki blok sınırı aştı: **T370** (2.582) ve **T386** (2.568). Bölme yok; ikisi de sözcük sadeleştirmesiyle kısaltıldı (kural kaybı yok):
+
+| Blok | Kayıp | Kural kaybı |
+|---|---|---|
+| T370 kriter 2 | "sistem kendiliğinden ve onaysız başlatır" → "sistem onaysız başlatır" | yok ("onaysız" aynı anlamı taşır) |
+| T370 kriter 8 | "IBAN girildikten sonra yeniden deneme kapalıdır" → "… sonra deneme kapalıdır" | yok |
+| T370 kriter 9 | "havale yolu kapalıdır" → "havale yolu kapalı" | yok |
+| T386 kriter 6 | "düzeltilmiş bilgi B-12'yle bildirilir" → "B-12'yle bildirilir" | yok |
+
+Riskli T379 (2.555), T380 (2.550) ve hukum_10, hukum_6, hukum_7'nin blokları sınırın altında kaldı. `11_task_blok_denetle.py --tam` sorun 0.
+
+### Üst dokümana geri besleme (K-652) — KD-deep-2a
+
+Üç doğrulayıcı notu üst dokümanda eksik ya da belirsiz bir yer buldu; ikisi metin hizalamasıdır (#29, #125), biri bir ürün kuralının üst dokümanda tanımsız kalmış sınırıdır (#187, ⚠). Aynı PR'da işlendi; yeni kural numarası yoktur (✓ korunur).
+
+| Not | Doküman | Düzeltme | Sürüm |
+|---|---|---|---|
+| hukum 11 (#29) | `02 §3.18.3` — "taban yine bütün kalemlerin toplamıdır" siparişe girmeyen kalemi de kapsıyor gibi okunur | "siparişe giren bütün kalemlerin toplamıdır" | `02` v0.107 |
+| hukum 13 (#187) | `02 §10.4.5` — düzeltilmiş teslim tarihinin kayıtlı iade ulaşma tarihiyle ilişkisi tanımsız (ulaşma tarihinin alt sınırı teslim tarihidir, §7.4.7) | "kayıtlı bir iade ulaşma tarihinden sonraya düşemez (§7.4.7)" | `02` v0.107 |
+| hukum 13 (#187) | `03 §8.4.4` — tarih sınırı yalnız kargo günü ve ileri tarih | aynı sınır ve "firma önce ulaşma tarihini düzeltir" | `03` v0.45 |
+| hukum 13 (#187) | `04 7.2.8.1` — olay tarihi sınırı | düzeltmede kayıtlı iade ulaşma tarihinden sonra olamaz | `04` v0.48 |
+| hukum 13 (#187) | `07 §9.9.27` UC-148 — 422 listesi | "teslim tarihi kayıtlı bir iade ulaşma tarihinden sonraya düşüyor" | `07` v0.36 |
+| hukum 18 (#125) | `02 §3.29.5` — "yeterli kontrastı veren tarafı seçerek" ölçüsüz | "WCAG kontrast oranı yüksek olan tarafı seçerek; seçilen taraf her renkte en az 4,5:1 (hedef AA, §3.34.5)" | `02` v0.107 |
+| hukum 18 (#125) | `04 2.1.3` — "yazıyı sistem siyah ya da beyaz seçer" | "kontrast oranı yüksek olan taraf olarak" | `04` v0.48 |
+
+**Anahtar terim taraması (K-1471 biçimi).** `02 §3.18.3`: "taban yine", "bütün kalemlerin toplam" — `02 §3.18.3` dışında eşleşme yok. `02 §10.4.5`: "ulaşma tarihinden sonra", "kargoya verildiği günden önce", "ileri tarihli" — eşleşmeler `02` Z-12, S6, §3.20.11 (işaret anındaki giriş sınırı, düzeltmeyi anlatmaz), `03 §8.4.4`, `04 7.2.8.1`, `07 §9.9.5` (UC-126, işaret; ulaşma tarihi kaydı yoktur, kural değişmez) ve `07 §9.9.27`; işaret anı sınırı olanlar elenir, `03`, `04`, `07 §9.9.27` bu PR'da işlendi. `02 §3.29.5`: "kontrast", "siyah ya da beyaz", "siyah mı beyaz" — `02 §3.34.5` (erişilebilirlik tabanı, aynı hedefi taşır), `04 2.1.3` (işlendi), `04` 2.1'in (1) satırı ve `08` e-posta üst bilgisi ("kontrasta göre seçer") çelişmez; elenir.
+
+**İlerleme:** KD-deep'in 143 doğrulanmamış bulgusundan **65'i bu adımda hükme bağlandı** (KD-deep-2: **65/143**, kalan **78** → KD-deep-2b). Yeniden doğrulamaya bekleyen: **#117** (2b'nin yükselenleri eklenir). Kapılar: `11_matris_kapsama.py` 1.501/1.501 sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214 · `geri_isaret_tara.py 1473 1474` eksik 0.
+
 ### Aksiyon Planı
 
 1. **Bu adım:** 34 bulgu / 82 şartname çifti `11` v0.34'e uygulandı; `02` v0.106, `09` v0.26 geri besleme.
-2. **KD-deep-2a, 2b:** 143 doğrulanmamış bulgu doğrulanır ve uygulanır.
+2. **KD-deep-2a (yapıldı):** 65 bulgu hükme bağlandı, 35 bulgu / 66 çift `11` v0.35'e uygulandı; `02` v0.107, `03` v0.45, `04` v0.48, `07` v0.36 geri besleme. **KD-deep-2b:** kalan 78 bulgu doğrulanır ve uygulanır; #117 yeniden doğrulanır.
 3. **Sonra:** cross-review (Aşama 9 kalite döngüsünün son adımı) ve aşama kapanışı.
 
 ### Sınırlar

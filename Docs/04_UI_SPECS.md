@@ -1,6 +1,6 @@
 # Shopfolio — UI Specifications
 
-**Versiyon: v0.47** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-29
+**Versiyon: v0.48** | **Bağımlılıklar:** `02_PRODUCT_REQUIREMENTS.md`, `03_USER_FLOWS.md`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 3 — UI/UX Tasarım · **Rol:** Senior Product Designer / UX Architect
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §4'e (ekran envanteri) geçilmez.
@@ -2390,7 +2390,7 @@ Tasarım tabanı bir bileşen değil, bütün bileşenlerin ve ekranların uydu�
 
 Zamana duyarlı beş iş — kargoya verme, havale onayı, hizmet tamamlama, iptal, teslim işareti — dar sınıfta sayaçtan en çok üç adımda yapılır: sayaç → liste → sipariş (K-741). %200 yakınlaştırma ayrı bir düzen değildir; bir alt sınıfın düzenini verir (K-740).
 
-**2.1.3 Marka rengi vitrinde yalnız dolu zemin olarak kullanılır; yazı, ince çizgi ve simge rengi olarak kullanılmaz** (K-742). Yerleri: ekranın birincil eylem düğmesi — ekran başına bir tane · duyuru şeridinin zemini · sepetteki kalem sayısı rozeti · etkin menü öğesinin ve etkin sekmenin kalın işareti · site simgesinin zemini (`02 §3.29.4`). Üstündeki yazıyı sistem siyah ya da beyaz seçer (`02 §3.29.5`). **Kullanılmadığı yerler:** bağlantı ve gövde metni, başlıklar, odak göstergesi, form alanlarının kenarı, ikincil düğmeler, anlam renkleri (hata, uyarı, başarı, "Tükendi", indirim), altbilginin yasal bloğu ve panelin tamamı (`02 §3.29.1`). Renk seçilmemişse ürünün varsayılan rengi aynı yerlere uygulanır. E-postadaki yeri Entegrasyon Spesifikasyonu'nun işidir.
+**2.1.3 Marka rengi vitrinde yalnız dolu zemin olarak kullanılır; yazı, ince çizgi ve simge rengi olarak kullanılmaz** (K-742). Yerleri: ekranın birincil eylem düğmesi — ekran başına bir tane · duyuru şeridinin zemini · sepetteki kalem sayısı rozeti · etkin menü öğesinin ve etkin sekmenin kalın işareti · site simgesinin zemini (`02 §3.29.4`). Üstündeki yazıyı sistem, kontrast oranı yüksek olan taraf olarak siyah ya da beyaz seçer (`02 §3.29.5`). **Kullanılmadığı yerler:** bağlantı ve gövde metni, başlıklar, odak göstergesi, form alanlarının kenarı, ikincil düğmeler, anlam renkleri (hata, uyarı, başarı, "Tükendi", indirim), altbilginin yasal bloğu ve panelin tamamı (`02 §3.29.1`). Renk seçilmemişse ürünün varsayılan rengi aynı yerlere uygulanır. E-postadaki yeri Entegrasyon Spesifikasyonu'nun işidir.
 
 **2.1.4 Erişilebilirlik tabanı bileşenlere şöyle yansır.** Taban ve hedef `02 §3.34.5` ile §12.4.1'dedir; uyumluluk beyanı verilmez ve Kontrol Listesi'nin maddeleri Doğrulama Protokolü'nde eşlenir. Bu doküman tabanın test edilen yedi kuralını ve WCAG 2.2'nin iki ölçütünü bileşenlere bağlar; yeni bir erişilebilirlik kuralı koymaz.
 
@@ -4446,7 +4446,7 @@ Panel tek roldür; rol sütunu Yönetici'dir — panel girişi dahil —, davet,
 
 | # | Alan | Zorunluluk | Kural | Hata mesajı | Limit |
 |---|---|---|---|---|---|
-| 7.2.8.1 | Teslim tarihi — işaret ve düzeltme | Zorunlu | Olay tarihi (7.3.2.11) — ileri ya da kargoya verildiği günden önce olamaz (K-554) | Alan mesajı — K-799'un metni | — |
+| 7.2.8.1 | Teslim tarihi — işaret ve düzeltme | Zorunlu | Olay tarihi (7.3.2.11) — ileri, kargoya verildiği günden önce ya da düzeltmede kayıtlı iade ulaşma tarihinden sonra olamaz (K-554) | Alan mesajı — K-799'un metni | — |
 | 7.2.8.2 | Sıra sorusu | Zorunlu — tarih bir cayma beyanının günüyle çakışırsa | Teslim beyandan önce mi sonra mı (2.12.5.2; K-608) | Alan mesajı | — |
 | 7.2.8.3 | Ulaşma tarihi — teslim almada ve düzeltmede | Zorunlu | Olay tarihi — ileri ya da teslim tarihinden önce olamaz; kargodan dönen malda alt sınır yok (`03 §2.10.3`) | Alan mesajı — K-799'un metni | — |
 

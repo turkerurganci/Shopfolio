@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.9** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v1.0** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -109,8 +109,8 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | 7.1.2 | API → task | `07` (208: uç 187 · alt bölüm 21) | O2 | ✓ |
 | 7.1.3 | Entegrasyon → task | `08` (30: entegrasyon 3 · çağrısı olmayan bağlantı 1 · alt bölüm 26) | O1 | ✓ |
 | 7.1.4 | Arayüz → task | `04` (102: ekran 53 · ortak bileşen 20 · alt bölüm 29) ve `03` (55 alt bölüm) | O3 | ✓ |
-| 7.1.5 | İş kuralı → task — kalın etiketli beş grup: **`02`** · **`05`** · **`09`** · **`10`** · **Devir satırları** | `02 §1`–§3 (297) O4a; `02 §4`–§8 (193) O4b 1/2; `02 §9`–§13 (176) O4b 2/2; `05` (136) O5 1/2; `09` (25) · `10` (143) · devir (19) O5 | O4a, O4b, O5 | ⬚ (`02` §1–§13 ✓ O4a, O4b; `05` ✓ O5 1/2; `09`, `10`, devir ✓ O5 2/2 — ileri yön 1.501/1.501) |
-| 7.2, §8 | Geri izlenebilirlik, gerekçesiz eklemeler, GAP kararları | task → kaynak | O6 | ⬚ |
+| 7.1.5 | İş kuralı → task — kalın etiketli beş grup: **`02`** · **`05`** · **`09`** · **`10`** · **Devir satırları** | `02 §1`–§3 (297) O4a; `02 §4`–§8 (193) O4b 1/2; `02 §9`–§13 (176) O4b 2/2; `05` (136) O5 1/2; `09` (25) · `10` (143) · devir (19) O5 | O4a, O4b, O5 | ✓ (`02` §1–§13 ✓ O4a, O4b; `05` ✓ O5 1/2; `09`, `10`, devir ✓ O5 2/2 — ileri yön 1.501/1.501) |
+| 7.2, §8 | Geri izlenebilirlik, gerekçesiz eklemeler, GAP kararları | task → kaynak | O6 | ⬚ (7.2 ve gerekçesiz ekleme taraması ✓ O6 1/2; GAP kararları ve §8 O6 2/2) |
 
 **Kaynak kimliğinin biçimi (K-1412).** Satırın ilk hücresi kimlikle başlar; kimliğin ardından başlık ya da ad gelir (en çok 500 bayt/satır). Kapsama betiği yalnız kimliği okur.
 
@@ -148,13 +148,13 @@ Kaynak (O5 2/2): `09` (25: `## n.` bölümü), `10` (143: KP satırı 77 · KD s
 |---|---|---|
 | F0 | T09 | T10 |
 | F1 | T120 | T121 |
-| F2 | T229 | T230 |
+| F2 | T231 | T232 |
 | F3 | T388 | T389 |
 | F4 | T410 | T411 |
-| F5 | T547 | T548 |
+| F5 | T549 | T550 |
 | F6 | T602 | T603 |
 
-**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125; O4a 37 aday ekledi: F3 `T330`–`T366`, `02 §3`'ün iş kuralı task'ları; toplam 162; O4b 1/2 12 aday ekledi: F3 `T367`–`T378`, `02 §4`–§8'in iş kuralı task'ları; toplam 174; O4b 2/2 8 aday ekledi: F3 `T379`–`T386`, `02 §9`–§12'nin iş kuralı task'ları; toplam 182); O5 1/2 23 aday ekledi: F0 `T02`–`T09`, F2 `T218`–`T229`, F3 `T387`–`T388`, F6 `T602`, `05`in mimari kararları; toplam 205); O5 2/2 3 aday ekledi: F2 `T230`, `T231`, F5 `T548`, `09`'un park bloğunun üç yapım işi; toplam 208. Sayaçlar: F0 T10 · F2 T232 · F3 T389 · F4 T411 · F5 T549 · F6 T603) — O6 yalnız geri yönde yeni aday gerekirse ekler.
+**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125; O4a 37 aday ekledi: F3 `T330`–`T366`, `02 §3`'ün iş kuralı task'ları; toplam 162; O4b 1/2 12 aday ekledi: F3 `T367`–`T378`, `02 §4`–§8'in iş kuralı task'ları; toplam 174; O4b 2/2 8 aday ekledi: F3 `T379`–`T386`, `02 §9`–§12'nin iş kuralı task'ları; toplam 182); O5 1/2 23 aday ekledi: F0 `T02`–`T09`, F2 `T218`–`T229`, F3 `T387`–`T388`, F6 `T602`, `05`in mimari kararları; toplam 205); O5 2/2 3 aday ekledi: F2 `T230`, `T231`, F5 `T548`, `09`'un park bloğunun üç yapım işi; toplam 208); O6 1/2 1 aday ekledi: F5 `T549`, K-1409 ekran sınırını aşan T503'ün E-05 payı (K-1437); toplam 209. Sayaçlar: F0 T10 · F2 T232 · F3 T389 · F4 T411 · F5 T550 · F6 T603) — O6 yalnız geri yönde yeni aday gerekirse ekler.
 
 | Aday | Faz | Kısa ad | Modül | Kaynak birimi |
 |---|---|---|---|---|
@@ -318,7 +318,7 @@ Kaynak (O5 2/2): `09` (25: `## n.` bölümü), `10` (143: KP satırı 77 · KD s
 | T410 | F4 | Dış olgu varsayımlarının doğrulama kanıtları (DV) | Ortak | `08 §4.1`, §5.2 |
 | T501 | F5 | Yerli üretim logosu varlığı ve gösterimi | Katalog | `08 §4.3` |
 | T502 | F5 | Vitrin: ana sayfa ve kategori sayfası (E-01, E-02) | Katalog | `07` UC-01, UC-02 (2) |
-| T503 | F5 | Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04; arşivdeki E-05 aynı ucun hâlidir) | Katalog | `07` UC-03…UC-05 (3) |
+| T503 | F5 | Vitrin: arama sonuçları, ürün sayfası ve sepete ekleme (E-03, E-04; arşivdeki E-05 T549'da) | Katalog | `07` UC-03…UC-05 (3) |
 | T504 | F5 | Hata sayfaları: bulunamayan adres ve beklenmeyen hata (E-06, 500) | Ortak altyapı | `07` UC-06, UC-78 (2) |
 | T505 | F5 | İçerik liste ve içerik sayfaları (E-07, E-08) | Kurumsal içerik | `07` UC-07…UC-12 (6) |
 | T506 | F5 | Sık sorulan sorular ve iletişim sayfası ve formu (E-09, E-10) | Kurumsal içerik | `07` UC-13…UC-15 (3) |
@@ -364,6 +364,7 @@ Kaynak (O5 2/2): `09` (25: `## n.` bölümü), `10` (143: KP satırı 77 · KD s
 | T546 | F5 | Gezinme ve geçiş eşitlik denetimleri: iskeletler, geçişler, dışarıdan girişler, dönüşler | Ortak altyapı | `04 §3.3`–§3.7 (5) |
 | T547 | F5 | Durum × rol matrisi ve form envanteri eşitlik denetimleri | Ortak altyapı | `04 §6.1`–§6.3, §7.1, §7.2 (5) |
 | T548 | F5 | Parçalı yükleme betiği: başlatma–parça–durum akışı, 409/404/400/413 yanıtları, ağ hatasında üç kez sürdürme | Ortak altyapı | `09 §16.2`; `07 §4.31.2`; K-1354 |
+| T549 | F5 | Vitrin: arşivlenmiş ürün sayfası (E-05) — "bu ürün artık satılmıyor" bilgisi, fiyatsız gösterim (KP-7, `02 §3.7`, §5.1) | Katalog | `04` E-05; `07` UC-04 (K-1437) |
 | T601 | F6 | `DEPLOY_RUNBOOK` provası, dış sistemde kayıtlı adresler ve yansıyan tablolar | Ortak | `06 §8.5`, `08 §4.2` |
 | T602 | F6 | Güncelleme komutu: referans kurulumdan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu | Ortak | `05 §8.6`, §8.7 (MK-73, MK-74) |
 
@@ -372,6 +373,7 @@ Kaynak (O5 2/2): `09` (25: `## n.` bölümü), `10` (143: KP satırı 77 · KD s
 ```sh
 python -I scripts/doc-scans/11_matris_envanter.py . /tmp/envanter.txt    # kaynak envanteri: 06 117, 07 208, 08 30 (ve öteki aileler)
 python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matris satırları ↔ beklenen küme (dolu aileler: 06, 07, 08, 04, 03, 02 §1–§13, 05, 09, 10, devir — 1.501/1.501)
+python -I scripts/doc-scans/11_geri_yon.py . --denetle                       # 7.2 ↔ 7.1 iki yönlü eşitlik (kapsama betiği aynı denetimi ve K-1409 boyut sınırlarını da koşar — 209 aday, 3.239 bağ)
 ```
 
 **Okuma derinliği (O1).** `06`: §3.1 entity tablosu bütün, §2/§5–§9 alt bölüm başlıkları ve ilk paragrafları, §8 bütün, §7.2'nin 130 bağı betikle; §4 entity tanımları okunmadı — kaynak birim §3.1'in satırıdır. `08`: §1 bütün, §2–§5 başlıkları ve her başlığın ilk iki paragrafı (satır başına ilk 300–380 karakter; kesilerek okundu).
@@ -387,6 +389,8 @@ python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matri
 **Okuma derinliği (O5 1/2).** `05 §12` (satır 1440–1529): 78 MK satırının her hücresi (karar, gerekçe, geri alınabilirlik) tamamıyla, kesme yapılmadan; `###` alt bölümlerinin 58 başlığı; `§11.1`, `§11.2` ve `§11.3`'ün girişi. Okunmadı: `§3`–§11 alt bölüm gövdeleri, `§0`–§2 gövdeleri, `§12`'nin `Kaynak:` satırı ve dosya sonundaki sürüm geçmişi (alt bölüm birimi başlık satırıdır; task birleşimi MK satırlarının `(§n.m)` atıflarından kuruldu). Gövde okuması `§5` yazım oturumuna kalır (K-1433).
 
 **Okuma derinliği (O5 2/2).** `10 §2` (satır 135–233): 77 KP satırının her hücresi (özellik, neden, kaynak) tamamıyla, kesme yapılmadan; `§3` (satır 237–324): 64 KD satırının özellik ve kaynak hücresi, uzun gerekçe hücrelerinin ilk 470 ve son 140 karakteri (620 karakteri aşan satırlarda) ve girişin biçim paragrafları; `§4.1` ve `§4.2` başlıkları, girişleri ve ÖK/SK satırlarının ilk 330 karakteri. Okunmadı: KD gerekçe hücrelerinin ortası, `§4.1`/`§4.2` satırlarının sonları ve `Kaynak:` satırları, `§1`, `§5`. `09`: 25 bölümün başlığı ve `§1`, `§2`, `§17`, `§20`, `§22`, `§24`, `§25`'in girişi ve ilk maddeleri (ilk 340 karakter); öteki bölümler başlık düzeyinde (alt bölüm başlık listesi) ve `09` başlık notunun okuma tablosuna göre eşlendi — gövde okunmadı (465 KB). Devir: `11` park bloğu (P8.1–P8.5) tam, `DEFERRED_BACKLOG` D-01 satırı tam, `04` 1948 (GA-7) karar kaydı §22.1'in ★ paragrafı üzerinden (K-1403). Gövde okuması `§5` yazım oturumuna kalır (K-1436).
+
+**Geri yön ve gerekçesiz ekleme taraması (O6 1/2).** `7.2` (task → kaynak öğe) `scripts/doc-scans/11_geri_yon.py --yaz` ile 7.1'in "Task" hücrelerinden türetildi: 209 aday task, 3.239 (kaynak, task) bağı; `Durum` sütunu kaynak sayısını ve türünü (özgün · alt bölüm · devir) yazar. Kapsama betiği 7.1 ile 7.2'nin iki yönlü eşitliğini (yalnız 7.1'de: 0, yalnız 7.2'de: 0), her aday task'ın ≥1 kaynağı olduğunu ve K-1409 sınırlarını denetler. **Gerekçesiz ekleme taraması:** kaynağı yalnız alt bölüm satırı ya da yalnız alt bölüm + devir olan 18 task (T03, T102, T119, T120, T204, T205, T211, T213, T214, T217, T230, T231, T402, T408, T410, T538, T546, T548) aday tablosundaki kısa adlarına ve kayıt satırlarına karşı okundu; 18'i de ilgili matris kararında adıyla bağlı (örtük işi anlatan K'si var) — **gerekçesiz ekleme: 0**, `§8`e aday yok. **Boyut denetimi:** F1 entity ≤8, F3 ve F4 uç ≤8, F5 ekran ≤2, OB ≤4 (K-1409) — tek aşım T503 (üç ekran: E-03, E-04, E-05); E-05 (arşivlenmiş ürün sayfası) `T549`'a ayrıldı (K-1437), aşım 0. Faz başına task: F0 9 · F1 20 · F2 31 · F3 88 · F4 10 · F5 49 · F6 2. **Okuma derinliği:** bu oturum satır kümelerini kesmeden okumadı; 7.1'in "Task" hücreleri ve aday tablosu betikle işlendi, 18 zayıf kaynaklı task'ın K satırları ilgili cümleye kadar okundu (tam K gövdesi değil).
 
 #### 7.1.1 Veri modeli → task
 
@@ -772,7 +776,7 @@ Kaynak: `04` (102: ekran 53 `04:E-nn` · ortak bileşen 20 `04:OB-nn` · alt bö
 | 04:E-02 Kategori sayfası | T502 | | |
 | 04:E-03 Arama sonuçları | T503 | | |
 | 04:E-04 Ürün sayfası | T503 | | |
-| 04:E-05 Arşivlenmiş ürün sayfası | T503 | | |
+| 04:E-05 Arşivlenmiş ürün sayfası | T549 | | |
 | 04:E-06 "Sayfa bulunamadı" sayfası | T504 | | |
 | 04:E-07 İçerik liste sayfası | T505 | | |
 | 04:E-08 İçerik sayfası | T505 | | |
@@ -1955,6 +1959,215 @@ Her task → hangi kaynak öğeden besleniyor?
 
 | Task | Beslendiği kaynak öğe(ler) | Durum |
 |---|---|---|
+| T01 | `07` UC-81; `05` MK-67, §9.4 | ✓ 3 kaynak (özgün 2, alt bölüm 1, devir 0) |
+| T02 | `05` MK-01, MK-02, MK-03, MK-04, MK-05, §3.1, §3.8; `09` §3, §4; `devir` K-1356, D-01 | ✓ 11 kaynak (özgün 5, alt bölüm 4, devir 2) |
+| T03 | `05` §8.3; `09` §3, §6, §19, §23; `devir` K-1355, P8.4, D-01 | ✓ gerekçeli (alt bölüm + devir) — K-1432, K-1434 |
+| T04 | `05` MK-12, MK-70, MK-74, §8.3, §8.7; `09` §3, §19, §21, §23; `devir` K-1356, K-1358, P8.2, P8.3, D-01 | ✓ 14 kaynak (özgün 3, alt bölüm 6, devir 5) |
+| T05 | `05` MK-06, MK-07, MK-08, MK-10, MK-14, MK-58, MK-68, MK-76, §3.2, §6.8, §8.1, §8.9; `09` §4; `devir` D-01 | ✓ 14 kaynak (özgün 8, alt bölüm 5, devir 1) |
+| T06 | `05` MK-02, MK-06, MK-09, MK-10, MK-11, MK-69, §3.2, §8.2; `09` §4, §17, §21; `devir` D-01 | ✓ 12 kaynak (özgün 6, alt bölüm 5, devir 1) |
+| T07 | `05` MK-09, MK-25, MK-26, MK-27, §6.8, §7.6; `09` §17; `10` KP-75; `devir` D-01 | ✓ 9 kaynak (özgün 5, alt bölüm 3, devir 1) |
+| T08 | `05` MK-59, MK-60, §6; `09` §17 | ✓ 4 kaynak (özgün 2, alt bölüm 2, devir 0) |
+| T09 | `05` MK-68, §8.1; `09` §21; `10` §4.1; `devir` K-1358, P8.3, D-01 | ✓ 7 kaynak (özgün 1, alt bölüm 3, devir 3) |
+| T101 | `06` §2.1, §2.2, §2.3, §2.4, §2.5, §2.6, §2.8, §2.9, §2.10, §5.1; `02` §4.1.1; `05` MK-03, MK-06, MK-19, MK-74, §7.1; `09` §5, §10 | ✓ 18 kaynak (özgün 5, alt bölüm 13, devir 0) |
+| T102 | `06` §5.2, §5.3, §5.4, §5.5, §5.6 | ✓ gerekçeli (alt bölüm) — K-1413, K-1414 |
+| T103 | `06` §4.1 Company, §4.2 CompanySettings, §4.2 CompanyDeliveryProvince, §4.3 Province, §4.4 Country, §4.56 LegalTextVersion; `02` §3.1.1, §3.14.3 | ✓ 8 kaynak (özgün 8, alt bölüm 0, devir 0) |
+| T104 | `06` §4.5 Product, §4.6 Variant, §4.7 Option, §4.8 OptionValue, §4.9 Category, §4.10 ProductCategory, §4.69 Image, §4.71 ProductImage | ✓ 8 kaynak (özgün 8, alt bölüm 0, devir 0) |
+| T105 | `06` §4.11 PriceHistory, §4.12 Discount, §4.13 Coupon, §4.70 DigitalFile | ✓ 4 kaynak (özgün 4, alt bölüm 0, devir 0) |
+| T106 | `06` §4.37 Admin, §4.38 AdminInvitation, §4.63 AuditLog; `02` §1.3, Z-3, Z-30, §6.9, §8.1.7, §8.5.1, §8.5.2, §10.3, §10.3.2, §11.2, P-14, P-45; `05` MK-24, §4.7, §7.5; `09` §9 | ✓ 19 kaynak (özgün 12, alt bölüm 7, devir 0) |
+| T107 | `06` §4.36 Customer, §4.40 PendingEmailChange, §4.45 AddressBook; `02` §1.3 | ✓ 4 kaynak (özgün 3, alt bölüm 1, devir 0) |
+| T108 | `06` §4.39 Session, §4.41 RecognizedBrowserMark, §4.42 LinkRecord, §4.43 AttemptRecord, §4.44 LoginRecord; `02` §3.13.20, §11.2, P-45; `05` MK-48, MK-50 | ✓ 10 kaynak (özgün 9, alt bölüm 1, devir 0) |
+| T109 | `06` §4.15 Cart, §4.16 CartItem, §4.17 Order, §4.18 OrderItem, §4.19 TransitionRecord, §4.20 InternalNote, §4.21 CheckboxAcceptance, §4.21 CheckboxAcceptanceOrderItem | ✓ 8 kaynak (özgün 8, alt bölüm 0, devir 0) |
+| T110 | `06` §4.14 StockReservation, §4.61 OrderEmailHistory, §4.62 OrderAddressHistory | ✓ 3 kaynak (özgün 3, alt bölüm 0, devir 0) |
+| T111 | `06` §4.22 Cancellation, §4.23 ItemRemoval, §4.24 LateDeliveryTermination, §4.25 Withdrawal, §4.26 Return, §4.28 NotReturnedClosure, §4.30 DefectClaim, §4.31 RefundIban | ✓ 8 kaynak (özgün 8, alt bölüm 0, devir 0) |
+| T112 | `06` §4.32 PaymentRecord, §4.33 Refund, §4.34 RefundRecord, §4.35 InboundNotificationRecord | ✓ 4 kaynak (özgün 4, alt bölüm 0, devir 0) |
+| T113 | `06` §4.27 ReturnRejection, §4.29 RefundIbanRequest | ✓ 2 kaynak (özgün 2, alt bölüm 0, devir 0) |
+| T114 | `06` §4.46 AboutPage, §4.47 Offering, §4.48 PortfolioItem, §4.49 FaqItem, §4.51 CustomPage, §4.52 Announcement, §4.54 Branding, §4.55 SocialLink | ✓ 8 kaynak (özgün 8, alt bölüm 0, devir 0) |
+| T115 | `06` §4.50 Branch, §4.53 OfferingProduct, §4.53 PortfolioItemProduct, §4.57 ContactRequest | ✓ 4 kaynak (özgün 4, alt bölüm 0, devir 0) |
+| T116 | `06` §4.71 AboutPageImage, §4.71 OfferingImage, §4.71 PortfolioItemImage, §4.71 FaqItemImage, §4.71 CustomPageImage | ✓ 5 kaynak (özgün 5, alt bölüm 0, devir 0) |
+| T117 | `06` §4.58 DispatchRecord, §4.60 ChannelStateRecord; `05` MK-38, §4.4 | ✓ 4 kaynak (özgün 3, alt bölüm 1, devir 0) |
+| T118 | `06` §4.59 Job, §4.64 DisposalRecord, §4.65 HeartbeatRecord, §4.66 OutageRecord, §4.67 BackupStatusRecord, §4.68 DataProtectionKey; `02` §3.34, §3.34.8; `09` §10; `10` KP-75 | ✓ 10 kaynak (özgün 8, alt bölüm 2, devir 0) |
+| T119 | `06` §8.1, §8.4; `09` §10 | ✓ gerekçeli (alt bölüm) — K-1413, K-1414 |
+| T120 | `06` §2.7, §6.1, §6.2, §6.3, §6.4, §6.5, §6.6, §7.1, §7.2, §7.3, §7.4, §7.5, §7.6; `09` §5, §19 | ✓ gerekçeli (alt bölüm) — K-1414, K-1416 |
+| T201 | `06` §9.1, §9.4, §9.5; `03` §4.1; `02` §4.2, Z-36, Z-44, §8.4.2, §8.4.5, §8.5.1, §8.5.2, §9.1, §9.1.6, §10.3, §10.3.3, §10.3.5, §11.2, P-39, P-45, §12.2, §12.2.7; `05` MK-22, MK-23, MK-65, §5.2, §7.4, §7.5, §9.2; `09` §9; `10` KP-74, KD-56 | ✓ 31 kaynak (özgün 17, alt bölüm 14, devir 0) |
+| T202 | `08` §3.1; `02` §8.3.4; `05` MK-17, MK-61, §3.6, §10.1; `09` §11; `10` KD-64 | ✓ 8 kaynak (özgün 4, alt bölüm 4, devir 0) |
+| T203 | `08` §3.2; `05` MK-17, MK-49, §3.6; `09` §11, §12 | ✓ 6 kaynak (özgün 2, alt bölüm 4, devir 0) |
+| T204 | `08` §3.3; `03` §10.1; `05` §10.1 | ✓ gerekçeli (alt bölüm) — K-1414, K-1419 |
+| T205 | `06` §8.2; `09` §8 | ✓ gerekçeli (alt bölüm) — K-1414 |
+| T206 | `07` §2.1, §2.2, §2.10; `05` MK-04, MK-16, MK-18, §3.5, §3.7; `09` §5; `10` KD-20 | ✓ 10 kaynak (özgün 4, alt bölüm 6, devir 0) |
+| T207 | `07` §2.3; `02` §1.3; `05` MK-16, MK-45, MK-47, §3.5, §6.1, §6.2; `09` §15; `10` KD-18 | ✓ 10 kaynak (özgün 4, alt bölüm 6, devir 0) |
+| T208 | `07` §2.4; `02` §3.31.1; `05` MK-20, §7.3; `09` §10; `10` KP-76 | ✓ 6 kaynak (özgün 3, alt bölüm 3, devir 0) |
+| T209 | `07` §2.5; `02` §8.3.2, §8.3.3, §8.4.4, §12.2, §12.2.5, §12.2.8; `05` MK-52, MK-53, MK-58, §6.5, §6.8; `09` §15; `10` KD-47, KD-57 | ✓ 15 kaynak (özgün 10, alt bölüm 5, devir 0) |
+| T210 | `07` §2.6; `09` §10, §20; `10` KP-3, KD-32 | ✓ 5 kaynak (özgün 2, alt bölüm 3, devir 0) |
+| T211 | `07` §5.1; `09` §3 | ✓ gerekçeli (alt bölüm) — K-1416 |
+| T212 | `07` §2.7, §6.1, §6.4; `03` §3.1; `05` MK-63, §10.3; `09` §8 | ✓ 7 kaynak (özgün 1, alt bölüm 6, devir 0) |
+| T213 | `07` §6.2; `09` §5, §8 | ✓ gerekçeli (alt bölüm) — K-1416 |
+| T214 | `07` §6.3; `09` §8 | ✓ gerekçeli (alt bölüm) — K-1416 |
+| T215 | `07` §2.8; `03` §6.1; `02` §3.13.17, §3.17.8, §3.22.3, §3.32.7, §8.3.1, §11.2, P-31, P-32, P-33, P-34, P-35, P-37, P-46; `05` MK-48, MK-49, §6.3; `09` §15; `10` KP-72, KD-59 | ✓ 21 kaynak (özgün 16, alt bölüm 5, devir 0) |
+| T216 | `07` §2.9; `04` §8.1, §8.2; `02` §4.1.1, §12.1, §12.1.1; `09` §7; `10` KD-20 | ✓ 8 kaynak (özgün 3, alt bölüm 5, devir 0) |
+| T217 | `07` §8.1; `03` §1.11 | ✓ gerekçeli (alt bölüm) — K-1416, K-1419 |
+| T218 | `05` MK-13, MK-15, §3.1, §3.3, §3.4; `09` §6; `10` KD-21 | ✓ 7 kaynak (özgün 3, alt bölüm 4, devir 0) |
+| T219 | `05` MK-18, §3.7; `10` KP-37, KD-48 | ✓ 4 kaynak (özgün 3, alt bölüm 1, devir 0) |
+| T220 | `05` MK-37, MK-38, MK-42, §4.3, §4.4, §5.1; `09` §12, §13, §20; `10` KP-68 | ✓ 10 kaynak (özgün 4, alt bölüm 6, devir 0) |
+| T221 | `05` MK-41, MK-42, MK-43, MK-44, §5.1, §5.2, §5.3, §5.4; `09` §13 | ✓ 9 kaynak (özgün 4, alt bölüm 5, devir 0) |
+| T222 | `05` MK-50, MK-51, §6.4; `09` §15 | ✓ 4 kaynak (özgün 2, alt bölüm 2, devir 0) |
+| T223 | `05` MK-28, MK-29, MK-54, §6.6, §7.7; `09` §15, §20; `10` KP-42 | ✓ 8 kaynak (özgün 4, alt bölüm 4, devir 0) |
+| T224 | `05` MK-55, MK-56, MK-57, §6.7; `09` §5, §15; `10` KP-73, KD-15, KD-19, KD-41, KD-55 | ✓ 11 kaynak (özgün 8, alt bölüm 3, devir 0) |
+| T225 | `05` MK-64, MK-65, §9.1, §9.2; `09` §18; `10` KP-74, KD-58 | ✓ 7 kaynak (özgün 4, alt bölüm 3, devir 0) |
+| T226 | `05` MK-71, §8.4, §11.1; `09` §3; `10` KP-64, §4.2 | ✓ 6 kaynak (özgün 2, alt bölüm 4, devir 0) |
+| T227 | `05` MK-19, §7.2; `09` §7, §14 | ✓ 4 kaynak (özgün 1, alt bölüm 3, devir 0) |
+| T228 | `05` MK-20, MK-21, §7.1, §7.3; `09` §10; `10` KP-76 | ✓ 6 kaynak (özgün 3, alt bölüm 3, devir 0) |
+| T229 | `05` MK-34, §7.10; `09` §10, §20 | ✓ 4 kaynak (özgün 1, alt bölüm 3, devir 0) |
+| T230 | `05` §9.1; `09` §18; `devir` K-1354, K-1391, P8.5 | ✓ gerekçeli (alt bölüm + devir) — K-1435 |
+| T231 | `05` §9.1; `09` §18; `devir` K-1354, K-1391, P8.5 | ✓ gerekçeli (alt bölüm + devir) — K-1435 |
+| T301 | `06` §9.2; `02` §4.2, Z-28, Z-41, Z-43, §8.4, §8.4.3, §8.4.5, §10.4, §10.4.7, §12.2, §12.2.3, §12.2.7; `05` MK-23, §7.4; `09` §9; `10` KP-74 | ✓ 17 kaynak (özgün 10, alt bölüm 7, devir 0) |
+| T302 | `06` §9.3; `02` §4.2, Z-29, Z-30, Z-33, Z-34, Z-43, Z-35, Z-40, Z-45, Z-46, §8.4, §8.4.5, §8.5, §8.5.1, §8.5.2, §10.7, §10.7.1, §11.2, P-47, P-48, P-40, P-41, P-45, §12.2, §12.2.3, §12.2.7; `05` MK-23, §5.2, §7.4; `10` KP-74 | ✓ 31 kaynak (özgün 22, alt bölüm 9, devir 0) |
+| T303 | `06` §8.3; `02` §10.2, §10.2.1, §10.2.7; `05` MK-72, §8.5; `09` §13; `10` §4.1 | ✓ 8 kaynak (özgün 3, alt bölüm 5, devir 0) |
+| T304 | `08` §2.2.4; `02` §9.1, §9.1.6 | ✓ 3 kaynak (özgün 1, alt bölüm 2, devir 0) |
+| T305 | `08` §2.2.5; `02` Z-26, Z-34, Z-43, §6.1, §6.1.1, §6.7, §9.1, §9.1.1, §9.1.2, §9.1.3, §9.1.4, §9.2, B-1, §9.5, §11.2, P-38, P-41, §12.1, §12.1.7, §12.1.11; `05` MK-37, MK-38, §4.4; `09` §11; `10` KP-66, KP-68, KD-16, KD-17 | ✓ 29 kaynak (özgün 19, alt bölüm 10, devir 0) |
+| T306 | `08` §2.2.6; `03` §7.1; `02` §3.33.6, Z-9, Z-47, §6.1, §6.1.1, §6.3, §6.7, §7.1, §7.1.4, §7.2, §7.2.4, §7.3, §7.3.5, §9.2, B-1, B-2, B-3, B-4, B-5, B-6, B-7, B-8, §12.1, §12.1.7; `10` KP-66 | ✓ 27 kaynak (özgün 17, alt bölüm 10, devir 0) |
+| T307 | `08` §2.2.6; `03` §7.1; `02` §3.21.6, §6.1, §6.1.1, §6.3, §7.1, §7.1.4, §7.2, §7.2.4, §7.3, §7.3.5, §7.4, §7.4.9, §8.3, §8.3.6, §8.3.7, §8.3.8, §9.2, B-9, B-10, B-11, B-12, B-13, B-14, B-15, B-16, §10.4, §10.4.2, §10.4.4, §10.4.6, §10.4.10, §10.4.11; `10` KP-66 | ✓ 34 kaynak (özgün 23, alt bölüm 11, devir 0) |
+| T308 | `08` §2.2.7; `03` §7.1; `02` §3.32.5, §9.3, F-1, F-2, F-3, F-4, F-5, F-6, §9.3.1, §9.3.2, §9.3.3, §9.3.4, §9.5, §10.1, §10.1.5, §10.2, §10.2.2, §10.2.6; `10` KP-34, KP-67 | ✓ 22 kaynak (özgün 16, alt bölüm 6, devir 0) |
+| T309 | `08` §2.2.8; `03` §7.1; `02` §3.15.1, §6.5, §9.4, §10.2, §10.2.1; `10` KP-66, KP-67, KD-52 | ✓ 10 kaynak (özgün 5, alt bölüm 5, devir 0) |
+| T310 | `08` §2.4; `02` §3.20.7, §3.20.8; `10` KP-19, KD-2 | ✓ 5 kaynak (özgün 5, alt bölüm 0, devir 0) |
+| T311 | `07` UC-80; `08` §2.1.5; `03` §2.5; `02` Z-7, §5.6, §5.6.3, §6.1, §6.1.2, §9.2, B-4, §11.2, P-18; `05` MK-39, §4.5; `09` §12; `10` KP-15 | ✓ 16 kaynak (özgün 8, alt bölüm 8, devir 0) |
+| T312 | `07` UC-37, UC-83, §5.4; `02` §3.12.1, §3.12.3, §3.12.5, §3.12.7, §11.1, P-8, §11.2, P-26; `05` MK-30, MK-31, §7.7; `09` §15; `10` KP-20, KP-42, KP-44 | ✓ 18 kaynak (özgün 13, alt bölüm 5, devir 0) |
+| T313 | `07` UC-79; `02` §3.30.5, §3.30.6; `05` §3.7; `10` KP-37 | ✓ 5 kaynak (özgün 4, alt bölüm 1, devir 0) |
+| T314 | `07` UC-82; `05` MK-62, MK-67, §9.4, §10.2; `09` §18; `10` KP-50, KD-60 | ✓ 8 kaynak (özgün 5, alt bölüm 3, devir 0) |
+| T315 | `03` §1.1, §1.10; `02` §5.3, §5.3.1, §5.4, §5.5; `05` MK-35, §4.1; `09` §9 | ✓ 9 kaynak (özgün 2, alt bölüm 7, devir 0) |
+| T316 | `03` §1.2, §2.5, §8.2; `02` §3.20.10, §3.20.12, §3.21.10, §5.3, §5.3.2, §5.4, §5.6, §5.6.1, §5.6.2, §6.4, §6.7, §7.2, §7.2.1, §7.2.2, §7.6, §7.6.3, §9.2, B-6, §10.4, §10.4.6; `10` KP-46, KD-24 | ✓ 25 kaynak (özgün 13, alt bölüm 12, devir 0) |
+| T317 | `03` §1.3, §2.5; `02` §3.21.8, §5.3, §5.3.2, §5.5, §5.6, §5.6.1, §5.6.3, §5.6.5, §6.7, §7.6, §7.6.2, §10.4, §10.4.6; `10` KP-18, KD-62 | ✓ 17 kaynak (özgün 9, alt bölüm 8, devir 0) |
+| T318 | `03` §1.4, §1.5, §8.2, §8.5; `02` §5.3, §5.3.1, §5.6, §5.6.1, §5.6.2, §5.6.3, §5.6.5, §5.6.6, §5.7, §7.3, §7.3.6, §10.5, §10.5.1, §10.5.2, §10.5.4; `10` KP-46, KP-51, §4.2 | ✓ 22 kaynak (özgün 12, alt bölüm 10, devir 0) |
+| T319 | `03` §1.6; `02` §5.4, §5.5, §5.9, §6.7, §7.6, §7.6.1, §7.6.3, §10.4, §10.4.3, §10.4.6, §10.4.8; `05` MK-35, §4.1; `10` KP-46 | ✓ 15 kaynak (özgün 7, alt bölüm 8, devir 0) |
+| T320 | `03` §1.7, §1.9, §5.3; `02` §5.4, §5.8, §5.10, §7.5, §7.5.3; `10` KP-23 | ✓ 9 kaynak (özgün 2, alt bölüm 7, devir 0) |
+| T321 | `03` §1.8; `02` §3.7.1, §5.1; `10` KP-7, KP-40 | ✓ 5 kaynak (özgün 3, alt bölüm 2, devir 0) |
+| T322 | `03` §1.8, §1.9; `02` §3.27.23, §3.32.4, §5.2, §5.13; `10` KD-38 | ✓ 7 kaynak (özgün 3, alt bölüm 4, devir 0) |
+| T323 | `03` §1.11; `02` §10.1, §10.1.2; `05` MK-47, §6.2 | ✓ 5 kaynak (özgün 2, alt bölüm 3, devir 0) |
+| T324 | `03` §4.1; `02` §3.17.4, §3.17.5, §4.1, §4.1.3, §4.2, Z-1, Z-2, Z-3, Z-4, Z-5, Z-6, Z-7, Z-8, Z-9, §5.6, §5.6.3, §6.1, §6.1.2, §10.2, §10.2.6, §11.1, P-7, §11.2, P-12, P-13, P-14, P-15, P-16, P-18 | ✓ 30 kaynak (özgün 22, alt bölüm 8, devir 0) |
+| T325 | `03` §4.1; `02` §3.20.6, §4.1, §4.1.3, §4.2, Z-10, Z-11, Z-12, Z-39, Z-13, Z-14, Z-15, Z-16, Z-42, Z-17, Z-47, Z-18, Z-19, §7.2, §7.2.3, §7.3, §7.3.1, §7.4, §7.4.1, §7.5, §7.5.1, §11.1, P-5, P-44 | ✓ 29 kaynak (özgün 21, alt bölüm 8, devir 0) |
+| T326 | `03` §4.1; `02` §4.2, Z-20, Z-21, Z-22, Z-23, Z-24, Z-26, Z-27, §11.2, P-38 | ✓ 11 kaynak (özgün 8, alt bölüm 3, devir 0) |
+| T327 | `03` §4.2, §10.3; `02` §3.34, §3.34.7, §3.34.8, Z-8, Z-38, §4.3, §11.1, P-7, §11.2, P-43, §12.3, §12.3.3; `05` MK-44, §5.4; `10` KP-75 | ✓ 17 kaynak (özgün 9, alt bölüm 8, devir 0) |
+| T328 | `03` §7.1, §7.2, §7.3; `02` §9.1, §9.1.1, §9.1.2, §9.1.3, §9.5, §12.1, §12.1.11; `10` KP-66, KP-67, KD-10, KD-16, KD-17, KD-52 | ✓ 16 kaynak (özgün 10, alt bölüm 6, devir 0) |
+| T329 | `03` §2.10; `02` §2.1, §2.2, §3.17.1; `09` §19 | ✓ 5 kaynak (özgün 1, alt bölüm 4, devir 0) |
+| T330 | `02` §3.1, §3.1.1, §3.1.2, §3.1.3, §3.1.4, §3.1.7, §6.9, §7.3, §7.3.5, §7.4, §7.4.4, §9.1, §9.1.4, §9.3, §9.3.1, §10.1, §10.1.1, §12.1, §12.1.1, §12.1.4, §12.5; `10` KP-35, KP-58, KD-21, §4.1, §4.2 | ✓ 26 kaynak (özgün 15, alt bölüm 11, devir 0) |
+| T331 | `02` §3.1, §3.1.5, §3.1.6, §3.13.19, §3.32.8, §3.33.9, §6.1, §6.1.4, §6.2, §6.9, §10.8, §10.8.2, §12.2, §12.2.5; `10` KP-25, KP-38, KP-59, KP-60, KD-60, §4.1 | ✓ 20 kaynak (özgün 13, alt bölüm 7, devir 0) |
+| T332 | `02` §3.2, §3.2.1, §3.2.2, §3.2.3, §3.3, §3.3.1, §3.3.2, §3.3.3, §3.3.4, §3.3.5, §3.3.6, Z-39, §7.3, §7.3.4, §11.1, P-44, §11.2, P-21; `05` MK-32, §7.8; `10` KP-4, KP-5, KP-6, KP-39, KD-28, KD-35, KD-37, KD-61, §4.2 | ✓ 29 kaynak (özgün 22, alt bölüm 7, devir 0) |
+| T333 | `02` §3.4, §3.4.1, §3.4.2, §3.4.3, §3.4.4, §3.4.5, §3.4.6, §3.5, §3.5.1, §3.5.2, §3.5.3, §3.28.6, §6.6, §11.2, P-20; `05` MK-33, §7.9; `10` KP-1, KP-2, KP-3, KP-41, KD-30, KD-31, KD-32, KD-37, §4.2 | ✓ 26 kaynak (özgün 20, alt bölüm 6, devir 0) |
+| T334 | `02` §3.6, §3.6.1, §3.6.2, §3.6.3, §3.6.4, §3.6.5, §3.6.6, §3.6.7, §6.2, §6.6, §7.2, §7.2.6, §7.4, §7.4.7, §7.4.8, §10.4, §10.4.3, §10.4.6; `10` KP-4, KP-16, KP-39, KD-9, KD-33 | ✓ 23 kaynak (özgün 17, alt bölüm 6, devir 0) |
+| T335 | `02` §3.7, §3.7.1, §3.7.2, §3.7.3, §3.7.4, §3.7.5, §3.7.6, §3.7.7, §3.7.8, Z-24, §5.1, §5.2, §6.6, §11.1, P-44; `10` KP-7, KP-39, KP-40, KD-28, KD-38 | ✓ 20 kaynak (özgün 15, alt bölüm 5, devir 0) |
+| T336 | `02` §3.8, §3.8.1, §3.8.2, §3.8.3, §3.8.4, §3.8.5, §6.6, §11.1, P-10, §12.1, §12.1.5; `09` §14; `10` KP-5, KP-39 | ✓ 14 kaynak (özgün 9, alt bölüm 5, devir 0) |
+| T337 | `02` §3.9, §3.9.1, §3.9.2, §3.9.3, §3.9.4, §3.9.5, §3.9.6, §4.1, §4.1.4, Z-20, Z-21, §5.11, §5.11.1, §6.6, §12.1, §12.1.6; `10` KP-5, KP-43 | ✓ 18 kaynak (özgün 13, alt bölüm 5, devir 0) |
+| T338 | `02` §3.10, §3.10.1, §3.10.2, §3.10.3, §3.10.4, §3.10.5, §3.10.6, §3.10.7, §4.1, §4.1.4, Z-22, §5.11, §5.11.2, §5.11.3, §5.11.4, §6.2, §6.6, §7.2, §7.2.6, §7.4, §7.4.8, §8.2, L-6, §11.2, P-36; `10` KP-11, KP-16, KP-43 | ✓ 28 kaynak (özgün 19, alt bölüm 9, devir 0) |
+| T339 | `02` §3.11, §3.11.1, §3.11.2, §3.11.3, §3.11.4, §3.11.5, §3.11.6, §3.11.7, §3.27.16, §11.2, P-22, P-23, P-24, P-27; `05` MK-29, MK-54; `10` KP-5, KP-42, KD-63 | ✓ 19 kaynak (özgün 17, alt bölüm 2, devir 0) |
+| T340 | `02` §3.7.4, §3.12, §3.12.1, §3.12.2, §3.12.3, §3.12.4, §3.12.5, §3.12.6, §3.12.7, §3.12.8, §3.12.9, Z-19, §6.2, §6.6, §6.7, §7.2, §7.2.5, §7.5, §7.5.4, §9.2, B-4, §11.1, P-8, P-44, §11.2, P-26; `05` MK-30, MK-31, §7.7; `10` KP-9, KP-20, KP-44 | ✓ 32 kaynak (özgün 22, alt bölüm 10, devir 0) |
+| T341 | `02` §3.13, §3.13.1, §3.13.2, §3.13.3, §3.13.4, §3.13.5, §3.13.18, §3.13.19, §3.13.20, §3.13.21, Z-1, Z-40, §5.12, §5.12.1, §6.5, §8.1, §8.1.1, §8.1.2, §8.1.3, §8.1.4, §8.2, L-3, L-9, §8.4, §8.4.1, §8.5, §8.5.1, §9.4, §10.2, §10.2.5, §10.3, §10.3.3, §10.4, §10.4.11, §10.7, §10.7.4, §11.2, P-12, P-33, P-49, P-45, §12.2, §12.2.9, §12.2.12; `10` KP-8, KP-25, KP-28 | ✓ 47 kaynak (özgün 33, alt bölüm 14, devir 0) |
+| T342 | `02` §3.13, §3.13.9, §3.13.10, §3.13.11, §3.13.12, §3.13.13, §3.13.15, §3.13.16, §3.13.17, Z-2, Z-4, Z-5, §5.12, §5.12.2, §6.5, §8.1, §8.1.1, §8.1.3, §8.1.4, §8.1.5, §8.1.6, §8.1.7, §8.2, L-1, L-2, §8.2.4, §8.2.6, §9.4, §10.2, §10.2.4, §10.2.5, §11.2, P-13, P-15, P-16, P-48, P-17, P-31, P-32, P-33, §12.2, §12.2.5; `05` MK-45, MK-46, MK-51, §6.1; `10` KP-27 | ✓ 47 kaynak (özgün 37, alt bölüm 10, devir 0) |
+| T343 | `02` §3.13, §3.13.6, §3.13.7, §3.13.8, §3.13.14, Z-2, Z-45, §5.12, §5.12.2, §6.5, §8.1, §8.1.2, §8.1.3, §8.1.5, §8.2, L-9, §9.4, §10.2, §10.2.4, §10.2.5, §11.2, P-13, P-47, P-49; `05` MK-46, §6.1; `10` KP-26, KP-27, KD-11 | ✓ 29 kaynak (özgün 20, alt bölüm 9, devir 0) |
+| T344 | `02` §3.14, §3.14.1, §3.14.2, §3.14.3, §3.14.4, §3.14.5, §3.14.6; `10` KP-12, KP-13, KP-27, KD-27 | ✓ 11 kaynak (özgün 10, alt bölüm 1, devir 0) |
+| T345 | `02` §3.15, §3.15.1, §3.15.2, §3.15.3, §3.15.4, §3.15.5, §3.15.6, Z-31, Z-32, §5.3, §5.3.5, §5.9, §6.5, §7.6, §7.6.5, §9.4, §10.3, §10.3.1, §12.2, §12.2.6, §12.2.7; `10` KP-29, KP-30, KP-77, KD-36 | ✓ 25 kaynak (özgün 17, alt bölüm 8, devir 0) |
+| T346 | `02` §3.16, §3.16.1, §3.16.2, §3.16.3, §3.16.4, §3.16.5, §3.16.6, §3.16.7, Z-6, §6.1, §6.1.4, §6.2, §12.2, §12.2.5; `10` KP-9, KP-10, KD-10 | ✓ 17 kaynak (özgün 13, alt bölüm 4, devir 0) |
+| T347 | `02` §3.16, §3.16.8, §3.16.9, §3.16.10, §3.16.11, §3.16.12, §3.16.13, §6.2, §11.1, P-9; `10` KP-9, KD-7, KD-35, KD-59 | ✓ 14 kaynak (özgün 11, alt bölüm 3, devir 0) |
+| T348 | `02` §3.10.6, §3.16.12, §3.17, §3.17.1, §3.17.2, §3.17.3, §3.17.4, §3.17.5, §3.17.6, §3.17.7, §3.17.8, Z-7, Z-8, §4.3, §5.3, §5.3.2, §5.3.3, §5.3.4, §5.6, §5.6.3, §5.6.4, §6.1, §6.1.2, §6.1.3, §6.2, §6.3, §8.2, L-7, L-8, §8.2.3, §9.2, B-1, §9.3, F-1, §10.6, §10.6.3, §11.1, P-7, §11.2, P-18, P-37, P-46, §12.1, §12.1.7; `05` MK-21, MK-36, MK-39, §4.2, §4.5; `09` §9; `10` KP-8, KP-11, KP-14, KP-15, KP-16, KP-17 | ✓ 56 kaynak (özgün 39, alt bölüm 17, devir 0) |
+| T349 | `02` §3.10.7, §3.18, §3.18.1, §3.18.2, §3.18.3, §3.19, §3.19.1, §3.19.2, §3.19.3, §3.19.4, §3.19.5, §3.19.6, §6.2, §7.2, §7.2.9, §7.4, §7.4.6, §11.1, P-1, P-3, P-4; `10` KP-13, KP-59, KD-26 | ✓ 24 kaynak (özgün 18, alt bölüm 6, devir 0) |
+| T350 | `02` §3.20, §3.20.1, §3.20.2, §3.20.3, §3.20.4, §3.20.5, §3.20.6, §3.20.7, §3.20.8, §4.1, §4.1.2, §4.1.5, Z-10, Z-11, §5.7, §6.2, §6.4, §6.6, §6.9, §7.2, §7.2.3, §9.2, B-5, §10.4, §10.4.4, §10.6, §10.6.3, §11.1, P-5, P-6, §12.1, §12.1.8; `10` KP-13, KP-19, KP-46, KP-59, KD-2, KD-24, KD-25 | ✓ 39 kaynak (özgün 26, alt bölüm 13, devir 0) |
+| T351 | `02` §3.20, §3.20.9, §3.20.10, §3.20.11, §3.20.12, Z-12, Z-13, §5.8, §6.4, §6.7, §7.2, §7.2.5, §7.3, §7.3.1, §7.3.3, §10.4, §10.4.5; `10` KP-6 | ✓ 18 kaynak (özgün 11, alt bölüm 7, devir 0) |
+| T352 | `02` §3.21, §3.21.1, §3.21.2, §3.21.3, §3.21.4, §3.21.9, §3.21.10, §3.21.11, Z-7, §6.1, §6.1.2, §6.1.4, §6.2, §6.9, §8.3, §8.3.3, §8.3.4, §11.2, P-18, §12.1, §12.1.3; `10` KP-15, KD-4, KD-23, KD-62, KD-64 | ✓ 26 kaynak (özgün 19, alt bölüm 7, devir 0) |
+| T353 | `02` §3.21, §3.21.5, §3.21.6, §3.21.7, §3.21.8, §4.1, §4.1.2, §4.1.5, Z-8, Z-9, §6.2, §6.7, §6.9, §7.2, §7.2.8, §7.6, §7.6.2, §9.2, B-2, B-3, B-13, §9.3, F-5, §9.3.3, §10.4, §10.4.6, §10.6, §10.6.1, §11.1, P-7, §11.2, P-46; `10` KP-15, KP-46, KP-59, KD-3 | ✓ 36 kaynak (özgün 23, alt bölüm 13, devir 0) |
+| T354 | `02` §3.22, §3.22.1, §3.22.2, §3.22.3, §3.22.4, §3.22.5, §6.1, §6.1.1, §6.2, §6.3, §8.2, L-5, §8.3, §8.3.5, §8.3.6, §10.4, §10.4.11, §11.2, P-19, P-35; `10` KP-17, KP-18 | ✓ 22 kaynak (özgün 14, alt bölüm 8, devir 0) |
+| T355 | `02` §3.8.3, §3.9.6, §3.14.5, §3.19.6, §3.23, §3.23.1, §3.23.2, §3.23.3, §3.23.4, §3.23.5, §3.24.6, Z-39, §5.3, §5.3.2, §5.11, §5.11.4, §10.4, §10.4.2, §11.1, P-8, §12.1, §12.1.6, §12.1.7; `10` KP-17 | ✓ 24 kaynak (özgün 18, alt bölüm 6, devir 0) |
+| T356 | `02` §3.24, §3.24.1, §3.24.2, §3.24.3, §3.24.4, §3.24.5, §3.24.6, §3.24.7, §3.24.8, §6.1, §6.1.3, §6.2, §7.3, §7.3.2, §7.3.3, §7.3.4, §7.4, §7.4.2, §7.4.4, §8.4, §8.4.1, §8.4.3, §12.1, §12.1.2, §12.1.7, §12.2, §12.2.2, §12.2.4, §12.2.12; `05` MK-56; `10` KP-6, KP-8, KP-14, KP-35, KD-29; `devir` 04-1948 | ✓ 36 kaynak (özgün 27, alt bölüm 8, devir 1) |
+| T357 | `02` §3.25, §3.25.1, §3.25.2, §3.25.3, §10.5, §10.5.3, §10.7, §10.7.1, §12.1, §12.1.10, §12.5; `10` KP-52, KD-1 | ✓ 13 kaynak (özgün 8, alt bölüm 5, devir 0) |
+| T358 | `02` §2.3, §3.27, §3.27.1, §3.27.2, §3.27.3, §3.27.4, §3.27.5, §3.27.6, §3.27.7, §3.27.8, §3.27.9, §3.27.12, §6.8, §11.2, P-28, P-29; `10` KP-32, KP-33, KP-36, KP-54, KD-14, KD-39, KD-41, KD-42, KD-43, KD-44, KD-45, KD-63 | ✓ 28 kaynak (özgün 24, alt bölüm 4, devir 0) |
+| T359 | `02` §3.27, §3.27.10, §3.27.11, §3.27.13, §3.27.14, §3.27.15, §3.27.16, §3.27.17, §3.27.18, §3.27.19, §3.27.20, §6.8, §11.2, P-22, P-23, P-25, P-27, P-28, P-29; `10` KP-32, KP-54, KD-8, KD-34, KD-44, KD-63 | ✓ 25 kaynak (özgün 22, alt bölüm 3, devir 0) |
+| T360 | `02` §2.3, §3.27, §3.27.21, §3.27.22, §3.27.23, §3.27.24, §3.27.25, §3.27.26, §3.27.27, §3.27.28, §4.1, §4.1.4, Z-23, Z-24, §5.2, §6.8, §7.6, §7.6.4, §10.8, §10.8.1, §11.2, P-30; `10` KP-36, KP-54, KP-57, KD-38, KD-45 | ✓ 27 kaynak (özgün 19, alt bölüm 8, devir 0) |
+| T361 | `02` §2.3, §3.28, §3.28.1, §3.28.2, §3.28.3, §3.28.4, §3.28.5, §3.28.6, §6.8; `10` KP-1, KP-31, KP-55, KD-39, KD-40 | ✓ 14 kaynak (özgün 11, alt bölüm 3, devir 0) |
+| T362 | `02` §3.29, §3.29.1, §3.29.2, §3.29.3, §3.29.4, §3.29.5, §3.29.6, §6.9, §9.1, §9.1.4, §11.2, P-22, P-23; `10` KP-56, KD-46, KD-47 | ✓ 16 kaynak (özgün 12, alt bölüm 4, devir 0) |
+| T363 | `02` §3.30, §3.30.1, §3.30.2, §3.30.3, §3.30.4, §3.30.5, §3.30.6, §3.30.7; `10` KP-7, KP-36, KP-37, KD-48, KD-49 | ✓ 13 kaynak (özgün 12, alt bölüm 1, devir 0) |
+| T364 | `02` §3.31, §3.31.1, §3.31.2, §6.6, §6.7, §6.8, §10.1, §10.1.4; `10` KP-76 | ✓ 9 kaynak (özgün 4, alt bölüm 5, devir 0) |
+| T365 | `02` §3.15.4, §3.32, §3.32.1, §3.32.2, §3.32.3, §3.32.4, §3.32.5, §3.32.6, §3.32.7, §3.32.8, §3.32.9, §3.32.10, Z-33, §5.13, §6.8, §7.1, §7.1.5, §8.2, L-4, §8.3, §8.3.1, §8.4, §8.4.1, §9.3, F-2, §9.5, §11.2, P-34, P-40, §12.2, §12.2.6, §12.2.12; `10` KP-30, KP-34, KP-49, KD-42, KD-50, KD-51, KD-57 | ✓ 39 kaynak (özgün 28, alt bölüm 11, devir 0) |
+| T366 | `02` §3.24.3, §3.33, §3.33.1, §3.33.2, §3.33.3, §3.33.4, §3.33.5, §3.33.6, §3.33.7, §3.33.8, §3.33.9, §6.5, §6.9, §7.1, §7.1.5, §7.4, §7.4.4, §10.8, §10.8.2, §12.1, §12.1.2, §12.1.7, §12.2, §12.2.1, §12.2.2, §12.2.3, §12.2.4, §12.2.5, §12.2.8, §12.5; `10` KP-14, KP-25, KP-35, KP-61, KP-73, KD-53, KD-55, KD-56; `devir` 04-1948 | ✓ 39 kaynak (özgün 29, alt bölüm 9, devir 1) |
+| T367 | `02` Z-39, §5.8, §5.9, §5.11, §5.11.3, §6.4, §7.1, §7.1.1, §7.1.3, §7.1.4, §7.1.6, §7.2, §7.2.1, §7.2.2, §7.2.5, §7.2.6, §7.2.7, §7.3, §7.3.7, §9.2, B-7, §10.4, §10.4.3; `10` KP-21, KP-24 | ✓ 25 kaynak (özgün 16, alt bölüm 9, devir 0) |
+| T368 | `02` Z-11, Z-39, Z-47, §5.8, §5.9, §6.4, §6.7, §7.2, §7.2.3, §7.2.4, §8.3, §8.3.8, §9.2, B-7, B-9, §10.4, §10.4.8, §10.4.10, §12.1, §12.1.8; `10` KP-21, KP-47 | ✓ 22 kaynak (özgün 13, alt bölüm 9, devir 0) |
+| T369 | `02` §6.4, §7.1, §7.1.3, §7.1.6, §7.1.7, §7.2, §7.2.7, §7.2.8, §7.2.9, §7.4, §7.4.6; `09` §14; `10` KP-21, KP-22, KP-24 | ✓ 15 kaynak (özgün 10, alt bölüm 5, devir 0) |
+| T370 | `02` Z-16, Z-17, Z-47, Z-35, Z-38, §4.3, §5.5, §6.4, §7.2, §7.2.8, §7.4, §7.4.1, §7.4.5, §7.5, §7.5.3, §8.4, §8.4.2, §9.2, B-8, B-14, §9.3, F-4, §10.4, §10.4.3, §10.4.9, §10.4.10, §10.6, §10.6.1, §11.2, P-43, §12.1, §12.1.8, §12.1.9, §12.2, §12.2.7, §12.5; `05` MK-40, §4.6; `09` §14; `10` KP-15, KP-21, KP-22, KP-47 | ✓ 43 kaynak (özgün 26, alt bölüm 17, devir 0) |
+| T371 | `02` Z-13, Z-14, Z-15, §6.4, §7.1, §7.1.1, §7.1.2, §7.3, §7.3.1, §7.3.2, §7.3.3, §7.3.4, §7.4, §7.4.9, §10.4, §10.4.5, §12.1, §12.1.9; `10` KP-22, KP-45 | ✓ 20 kaynak (özgün 14, alt bölüm 6, devir 0) |
+| T372 | `02` §5.6, §5.6.6, §5.8, §5.9, §6.4, §7.1, §7.1.4, §7.1.6, §7.3, §7.3.5, §7.3.6, §7.3.7, §7.6, §7.6.7, §8.3, §8.3.8, §9.2, B-9, B-14, §9.3, F-3, §10.4, §10.4.10, §12.1, §12.1.9, §12.5; `10` KP-22, KP-47 | ✓ 28 kaynak (özgün 15, alt bölüm 13, devir 0) |
+| T373 | `02` Z-16, Z-42, Z-38, §5.8, §6.4, §7.4, §7.4.1, §7.4.2, §7.4.3, §7.4.4, §7.4.6, §7.4.7, §7.4.8, §7.4.9, §7.4.10, §8.4, §8.4.2, §9.2, B-14, B-16, §10.4, §10.4.5, §10.4.9, §10.6, §10.6.1, §11.2, P-43, §12.1, §12.1.9, §12.5; `10` KP-22, KP-24, KP-47; `devir` 04-1948 | ✓ 34 kaynak (özgün 23, alt bölüm 10, devir 1) |
+| T374 | `02` Z-18, Z-29, §5.8, §5.10, §6.4, §7.1, §7.1.1, §7.1.4, §7.4, §7.4.3, §7.5, §7.5.1, §7.5.2, §7.5.3, §7.5.4, §9.2, B-9, §9.3, F-3, §12.1, §12.1.9; `10` KP-23, KP-49, KD-42, KD-61 | ✓ 25 kaynak (özgün 16, alt bölüm 9, devir 0) |
+| T375 | `02` §6.1, §6.1.1, §6.3, §6.7, §7.6, §7.6.6, §7.6.7, §8.1, §8.1.2, §8.3, §8.3.6, §8.3.7, §9.2, B-1, B-3, B-10, B-11, B-12, B-13, B-15, §10.1, §10.1.2, §10.3, §10.3.1, §10.4, §10.4.1, §10.4.2, §10.4.11, §12.2, §12.2.7, §12.5; `10` KP-17, KP-28, KP-48, KD-13 | ✓ 35 kaynak (özgün 23, alt bölüm 12, devir 0) |
+| T376 | `02` §5.3, §5.3.4, §5.12, §5.12.3, §6.1, §6.1.5, §6.2, §6.3, §6.5, §8.1, §8.1.4, §8.2, L-1, L-2, L-3, L-4, L-5, L-6, L-7, L-8, L-9, §8.2.1, §11.2, P-31, P-32, P-33, P-34, P-35, P-36, P-37, P-46, P-49; `10` KP-72 | ✓ 33 kaynak (özgün 24, alt bölüm 9, devir 0) |
+| T377 | `02` Z-27, Z-46, §6.1, §6.1.5, §8.2, §8.2.2, §8.2.3, §8.2.4, §8.2.5, §8.2.6, §8.3, §8.3.5, §11.2, P-48, §12.2, §12.2.5; `10` KP-72 | ✓ 17 kaynak (özgün 12, alt bölüm 5, devir 0) |
+| T378 | `02` §4.1, §4.1.1, §4.1.2, §4.1.3, §4.1.4, §4.1.5; `09` §7 | ✓ 7 kaynak (özgün 5, alt bölüm 2, devir 0) |
+| T379 | `02` §9.3, F-6, §9.3.4, §9.4, §10.1, §10.1.2, §10.2, §10.2.1, §10.2.2, §10.2.3, §10.2.4, §10.2.5, §10.2.6, §10.2.7, §10.3, §10.3.1, §12.2, §12.2.10; `10` KP-62, KD-18 | ✓ 20 kaynak (özgün 14, alt bölüm 6, devir 0) |
+| T380 | `02` §10.2, §10.2.2, §10.2.4, §10.2.6, §10.3, §10.3.1, §10.3.2, §10.3.3, §10.3.4, §10.3.5, §10.4, §10.4.1, §12.2, §12.2.9; `05` MK-24, §4.7, §7.5; `09` §9; `10` KP-63, KP-77, KD-58 | ✓ 21 kaynak (özgün 14, alt bölüm 7, devir 0) |
+| T381 | `02` §10.1, §10.1.3, §10.3, §10.3.1, §11.1, P-1, P-3, P-4, P-5, P-6, P-7, P-8, P-9, P-10, P-44, §11.2, P-12, P-13, P-14, P-47, P-15, P-16, P-48, P-17, P-18, P-19, P-20, P-21, P-22, P-23, P-24, P-25, P-26, P-27, P-28, P-29, P-30, P-31, P-32, P-33, P-34, P-35, P-36, P-37, P-46, P-49, P-38, P-39, P-40, P-41, P-43, P-45, P-42; `10` KP-64, §4.2 | ✓ 55 kaynak (özgün 50, alt bölüm 5, devir 0) |
+| T382 | `02` §9.1, §9.1.6, §9.3, §9.3.1, §9.3.2, §10.4, §10.4.9, §10.6, §10.6.1, §10.8, §10.8.2; `05` MK-62, §10.2; `10` KP-50, KP-65, §4.1 | ✓ 16 kaynak (özgün 9, alt bölüm 7, devir 0) |
+| T383 | `02` §10.4, §10.4.9, §10.6, §10.6.2, §10.6.3, §11.3, H-2; `10` KP-53 | ✓ 8 kaynak (özgün 5, alt bölüm 3, devir 0) |
+| T384 | `02` §10.3, §10.3.1, §10.7, §10.7.1, §10.7.2, §10.7.3, §10.7.4, §12.1, §12.1.10, §12.2, §12.2.9, §12.3, §12.3.2, §12.5; `10` KP-52, KD-1, KD-54 | ✓ 17 kaynak (özgün 11, alt bölüm 6, devir 0) |
+| T385 | `02` §9.1, §9.1.6, §9.3, §9.3.3, §9.3.4, §10.6, §10.6.1, §11.2, P-38; `05` §10.2; `10` KP-68 | ✓ 11 kaynak (özgün 6, alt bölüm 5, devir 0) |
+| T386 | `02` §10.4, §10.4.1, §10.4.3, §10.4.4, §10.4.5, §10.4.7; `10` KP-8, KP-48 | ✓ 8 kaynak (özgün 7, alt bölüm 1, devir 0) |
+| T387 | `05` MK-66, MK-72, §6.9, §8.5, §9.3; `09` §13 | ✓ 6 kaynak (özgün 2, alt bölüm 4, devir 0) |
+| T388 | `05` MK-72, §8.5, §8.7; `09` §13 | ✓ 4 kaynak (özgün 1, alt bölüm 3, devir 0) |
+| T401 | `08` §2.1, §2.1.1, §2.1.2, §2.1.4; `02` §3.21.1, §3.21.4, §12.1, §12.1.3, §12.2, §12.2.8; `09` §11; `10` KP-15, KD-64, §4.1 | ✓ 14 kaynak (özgün 7, alt bölüm 7, devir 0) |
+| T402 | `08` §2.1.5 | ✓ gerekçeli (alt bölüm) — K-1415 |
+| T403 | `08` §2.1.6, §2.1.7; `05` MK-39, §4.5 | ✓ 4 kaynak (özgün 1, alt bölüm 3, devir 0) |
+| T404 | `08` §2.1.8; `05` MK-40, §4.6 | ✓ 3 kaynak (özgün 1, alt bölüm 2, devir 0) |
+| T405 | `08` §2.1.9; `05` MK-40, §4.6; `09` §14 | ✓ 4 kaynak (özgün 1, alt bölüm 3, devir 0) |
+| T406 | `08` §2.1.3, §2.1.10; `02` §3.21.3 | ✓ 3 kaynak (özgün 1, alt bölüm 2, devir 0) |
+| T407 | `08` §2.2, §2.2.1, §2.2.2; `03` §10.1; `02` §9.1, §9.1.5, §9.1.6; `09` §11; `10` KP-66, §4.1 | ✓ 10 kaynak (özgün 4, alt bölüm 6, devir 0) |
+| T408 | `08` §2.2.3 | ✓ gerekçeli (alt bölüm) — K-1414 |
+| T409 | `08` §2.3; `03` §9.1; `02` §3.13.6, §3.13.7, §11.2, P-13, §12.2, §12.2.8; `05` MK-46, §6.1; `09` §11; `10` KP-26, KD-11, §4.1 | ✓ 14 kaynak (özgün 8, alt bölüm 6, devir 0) |
+| T410 | `08` §4.1, §5.2 | ✓ gerekçeli (alt bölüm) — K-1413, K-1414 |
+| T501 | `08` §4.3; `02` §3.8.5, §12.1, §12.1.5; `10` KP-5 | ✓ 5 kaynak (özgün 3, alt bölüm 2, devir 0) |
+| T502 | `07` UC-01, UC-02; `04` E-01, E-02; `03` §2.1; `02` §3.4.2, §3.4.3, §3.5.2, §3.5.3, §3.9.2, §3.27.14, §3.28.1, §3.28.2, §3.28.3; `10` KP-1, KP-31, KD-40 | ✓ 17 kaynak (özgün 16, alt bölüm 1, devir 0) |
+| T503 | `07` UC-03, UC-04, UC-05; `04` E-03, E-04; `03` §2.1; `02` §3.1.5, §3.2.1, §3.3.1, §3.3.3, §3.3.6, §3.5.1, §3.5.2, §3.5.3, §3.6.3, §3.6.4, §3.6.5, §3.7.5, §3.7.6, §3.8.5, §3.9.2, §3.16.8, §3.16.9, §3.20.4, §3.30.7, §11.1, P-5, P-9, §12.1, §12.1.5; `10` KP-2, KP-3, KP-4, KP-5, KP-6, KP-7, KD-6, KD-8, KD-9, KD-33, KD-34 | ✓ 41 kaynak (özgün 38, alt bölüm 3, devir 0) |
+| T504 | `07` UC-06, UC-78; `04` E-06; `02` §3.30.4; `10` KP-7 | ✓ 5 kaynak (özgün 5, alt bölüm 0, devir 0) |
+| T505 | `07` UC-07, UC-08, UC-09, UC-10, UC-11, UC-12; `04` E-07, E-08; `03` §2.2; `02` §3.27.4, §3.27.5, §3.27.10, §3.27.25, §3.30.7; `10` KP-32 | ✓ 15 kaynak (özgün 14, alt bölüm 1, devir 0) |
+| T506 | `07` UC-13, UC-14, UC-15; `04` E-09, E-10; `03` §2.2, §5.1, §5.2; `02` §3.1.4, §3.27.6, §3.27.7, §3.27.8, §3.32.1, §3.32.2, §3.32.3, §11.2, P-28; `10` KP-30, KP-33, KP-34, KD-15 | ✓ 21 kaynak (özgün 17, alt bölüm 4, devir 0) |
+| T507 | `07` UC-16, UC-17, UC-18, UC-102, UC-173, UC-174; `04` E-11, E-47; `02` §3.24.8, §3.33.1, §3.33.2, §12.2, §12.2.2; `10` KP-61, KD-53 | ✓ 15 kaynak (özgün 14, alt bölüm 1, devir 0) |
+| T508 | `07` UC-19, UC-20, UC-21; `04` E-12; `03` §2.3, §3.2; `02` §3.1.6, §3.12.4, §3.12.9, §3.16.1, §3.16.3, §3.16.4, §3.16.5, §3.16.6, §3.16.7, §3.16.8, §3.16.10, §3.18.1, §3.19.5, §11.1, P-3; `10` KP-9, KP-10, KP-11, KP-38 | ✓ 25 kaynak (özgün 22, alt bölüm 3, devir 0) |
+| T509 | `07` UC-22, UC-23, UC-24, UC-25, UC-26, UC-27; `04` E-13; `03` §2.4, §3.2, §6.1, §10.1; `02` §2.2, §3.1.5, §3.10.1, §3.13.1, §3.13.3, §3.14.1, §3.14.2, §3.14.4, §3.14.6, §3.17.1, §3.17.2, §3.18.1, §3.19.5, §3.20.1, §3.24.1, §3.24.2, §3.24.5, §11.1, P-3; `10` KP-8, KP-12, KP-13, KP-14, KP-15, KD-5 | ✓ 36 kaynak (özgün 30, alt bölüm 6, devir 0) |
+| T510 | `07` UC-28, UC-29, UC-30; `08` §2.1.4; `04` E-14; `03` §2.4, §2.5, §3.2; `02` §2.2, §3.17.1, §3.17.6; `10` KP-15, KD-23 | ✓ 13 kaynak (özgün 8, alt bölüm 5, devir 0) |
+| T511 | `07` UC-31, UC-32, UC-33, UC-34, UC-36; `04` E-15, E-16; `03` §2.6, §3.2, §5.1; `02` §2.1, §3.12.1, §3.12.5, §3.17.8, §3.22.3, §3.22.4, §3.22.5, §6.1.1, §7.1.4, §9.1, §9.1.2, §11.1, P-8, §11.2, P-35, P-37, P-46; `10` KP-18, KP-19, KP-20 | ✓ 30 kaynak (özgün 23, alt bölüm 7, devir 0) |
+| T512 | `07` UC-35, UC-38, UC-39, UC-40, UC-41; `04` E-16, E-17; `03` §2.7, §3.3, §5.1; `02` §2.1; `10` KP-21 | ✓ 12 kaynak (özgün 8, alt bölüm 4, devir 0) |
+| T513 | `07` UC-42, UC-43, UC-44, UC-45, UC-46; `04` E-18, E-19; `03` §2.8, §2.9, §3.3, §5.1; `02` §2.1, §3.1.7, §7.5.2; `10` KP-22, KP-23 | ✓ 16 kaynak (özgün 11, alt bölüm 5, devir 0) |
+| T514 | `07` UC-47, UC-48, UC-49, UC-52, UC-53; `04` E-20, E-21; `03` §3.4, §9.1; `02` §2.1, §3.13.4, §3.13.5, §3.13.11, §3.13.18, §11.2, P-12, P-49; `10` KP-25 | ✓ 18 kaynak (özgün 14, alt bölüm 4, devir 0) |
+| T515 | `07` UC-50, UC-51, UC-54, UC-55; `04` E-22; `03` §3.4, §6.1, §9.1, §9.2; `02` §3.13.6, §3.13.12, §11.2, P-15, P-16; `10` KP-26, KP-27 | ✓ 16 kaynak (özgün 11, alt bölüm 5, devir 0) |
+| T516 | `07` UC-56, UC-57, UC-58, UC-59, UC-60, UC-61, UC-62; `04` E-23, E-24; `03` §3.4, §6.1, §9.2; `02` §3.13.8, §3.13.9, §3.13.10, §3.13.11, §11.2, P-13; `10` KP-27 | ✓ 19 kaynak (özgün 15, alt bölüm 4, devir 0) |
+| T517 | `07` UC-63, UC-64, UC-65, UC-66, UC-67, UC-68, UC-69; `04` E-25; `03` §3.4, §9.3, §9.4; `02` §3.13.10, §3.13.13, §3.13.14, §3.13.15, §3.13.21, §3.15.1, §3.15.6, §11.2, P-47, P-17; `10` KP-27, KP-29, KD-36 | ✓ 24 kaynak (özgün 20, alt bölüm 4, devir 0) |
+| T518 | `07` UC-70, UC-71, UC-72, UC-73, UC-74; `04` E-26, E-27; `03` §9.3; `02` §3.14.1, §3.14.6 | ✓ 10 kaynak (özgün 9, alt bölüm 1, devir 0) |
+| T519 | `07` UC-75, UC-76, UC-77; `04` E-28; `03` §6.2; `02` §3.13.14, §11.2, P-47; `10` KP-27 | ✓ 9 kaynak (özgün 7, alt bölüm 2, devir 0) |
+| T520 | `07` UC-84, UC-85, UC-109, UC-110, UC-111, UC-112, UC-113; `04` E-29, E-30; `03` §8.8, §9.2, §10.4; `02` §3.13.16, Z-3, §6.9, §8.1.3, §8.1.7, §10.2, §10.2.1, §11.2, P-14; `10` KP-62 | ✓ 22 kaynak (özgün 16, alt bölüm 6, devir 0) |
+| T521 | `07` UC-86, UC-108, UC-185, UC-186, UC-187; `04` E-31, E-54; `03` §6.3, §8.7, §8.9; `10` KP-50, KP-65 | ✓ 12 kaynak (özgün 9, alt bölüm 3, devir 0) |
+| T522 | `07` UC-103, UC-106, UC-175, UC-176, UC-177; `04` E-49, E-52; `03` §8.8, §8.9; `02` §10.1, §10.1.2, §10.3, §10.3.4; `10` KP-62, KP-63 | ✓ 15 kaynak (özgün 11, alt bölüm 4, devir 0) |
+| T523 | `07` UC-104, UC-178, UC-179, UC-180, UC-181; `04` E-50; `02` §3.13.16; `10` KP-62 | ✓ 8 kaynak (özgün 8, alt bölüm 0, devir 0) |
+| T524 | `07` UC-105, UC-107, UC-182, UC-183, UC-184; `04` E-51, E-53; `03` §8.9; `02` §3.25.1, §3.25.3; `10` KP-52, KP-53, KD-54 | ✓ 13 kaynak (özgün 12, alt bölüm 1, devir 0) |
+| T525 | `07` UC-87, UC-88, UC-114, UC-115, UC-116, UC-117; `04` E-32, E-33; `03` §3.5, §8.1; `02` §2.1, §3.2.2, §3.3.2, §3.3.4, §3.4.4, §3.6.1, §3.6.2, §3.6.7, §3.7.1, §3.7.3, §3.7.4, §3.7.7, §3.7.8, §3.8.1, §3.8.2, §3.8.4, §3.8.5, §3.9.1, §3.9.5, §3.11.1, §3.11.2, §3.11.3, §3.11.5, §3.12.2, §3.16.9, §3.20.5, §10.7, §10.7.2, §11.1, P-5, P-6, P-9, P-10, P-44, §11.2, P-21, P-22, P-23, P-24, P-27; `10` KP-39, KP-40, KP-42, KP-43, KP-44, KP-45, KD-12 | ✓ 57 kaynak (özgün 51, alt bölüm 6, devir 0) |
+| T526 | `07` UC-89, UC-90, UC-118, UC-119, UC-120, UC-121, UC-122; `04` E-34, E-35; `03` §8.1; `02` §3.4.1, §3.4.5, §3.4.6, §3.10.2, §3.10.4, §3.10.5, §3.10.6, §11.2, P-20, P-36; `10` KP-41, KP-43 | ✓ 22 kaynak (özgün 20, alt bölüm 2, devir 0) |
+| T527 | `07` UC-91, UC-92, UC-123, UC-124, UC-125, UC-126, UC-127, UC-128; `04` E-36, E-37; `03` §3.5, §6.2, §6.3, §8.2; `02` §2.1, §3.20.7, §3.20.11, §3.31.2; `10` KP-46, KD-13 | ✓ 20 kaynak (özgün 15, alt bölüm 5, devir 0) |
+| T528 | `07` UC-129, UC-130, UC-138, UC-140, UC-141, UC-142, UC-144, UC-145; `04` E-37; `03` §3.5, §5.2, §5.3, §8.3, §8.4; `02` §3.6.6; `10` KP-47 | ✓ 16 kaynak (özgün 11, alt bölüm 5, devir 0) |
+| T529 | `07` UC-131, UC-132, UC-133, UC-134, UC-135, UC-136, UC-137; `04` E-37; `03` §3.5, §5.2, §8.3; `02` §3.21.11; `10` KP-47 | ✓ 13 kaynak (özgün 10, alt bölüm 3, devir 0) |
+| T530 | `07` UC-146, UC-147, UC-148, UC-149, UC-150, UC-151; `04` E-37; `03` §3.5, §5.2, §6.2, §8.4; `02` §3.23.3; `10` KP-48 | ✓ 13 kaynak (özgün 9, alt bölüm 4, devir 0) |
+| T531 | `07` UC-139, UC-143, UC-152, UC-153, UC-154; `04` E-37; `03` §8.4; `02` §3.12.6, §3.20.9, §3.32.10, §6.1.1, §8.4.3, §9.1, §9.1.6; `05` MK-31; `10` KP-44, KP-48 | ✓ 17 kaynak (özgün 15, alt bölüm 2, devir 0) |
+| T532 | `07` UC-93, UC-94, UC-155, UC-156; `04` E-38, E-39; `03` §8.6; `02` §3.32.4, §3.32.5; `10` KP-49, KD-50, KD-51 | ✓ 12 kaynak (özgün 11, alt bölüm 1, devir 0) |
+| T533 | `07` UC-95, UC-157; `04` E-40; `03` §9.4; `02` §3.15.5, §3.15.6; `10` KP-29, KP-77 | ✓ 8 kaynak (özgün 7, alt bölüm 1, devir 0) |
+| T534 | `07` UC-96, UC-98, UC-158, UC-159, UC-160, UC-161, UC-163; `04` E-41, E-43; `03` §3.5, §8.6; `02` §2.1, §2.3, §3.11.6, §3.27.3, §3.27.9, §3.27.11, §3.27.12, §3.27.13, §3.27.15, §3.27.21, §3.27.24, §3.27.27, §3.28.3, §3.29.1, §3.29.3, §3.29.6, §11.2, P-22, P-23, P-25, P-27, P-28, P-29, P-30; `10` KP-54, KP-56, KP-57 | ✓ 38 kaynak (özgün 33, alt bölüm 5, devir 0) |
+| T535 | `07` UC-97, UC-99, UC-162, UC-164, UC-165, UC-166; `04` E-42, E-44; `03` §3.5, §8.7, §10.2; `02` §3.1.2, §3.1.3, §3.1.5, §3.1.6, §3.1.7, §3.28.1, §3.28.4, §12.1, §12.1.4; `10` KP-31, KP-55, KP-58, KP-60, KP-64 | ✓ 25 kaynak (özgün 21, alt bölüm 4, devir 0) |
+| T536 | `07` UC-100, UC-101, UC-167, UC-168, UC-169, UC-170, UC-171, UC-172; `04` E-45, E-46; `03` §3.5, §8.7; `02` §2.1, §3.17.4, §3.18.1, §3.19.1, §3.19.2, §3.19.3, §3.20.1, §3.20.4, §3.20.5, §3.21.2, §3.21.5, §4.1.5, §11.1, P-1, P-3, P-5, P-6, P-7, §11.2, P-18; `10` KP-59, KP-64 | ✓ 34 kaynak (özgün 29, alt bölüm 5, devir 0) |
+| T537 | `07` §5.5; `04` OB-02, §2.2; `02` §3.1.4, §3.28.4, §3.28.5, §3.29.2; `10` KP-35, KP-36 | ✓ 9 kaynak (özgün 7, alt bölüm 2, devir 0) |
+| T538 | `07` §5.2, §5.3, §5.4; `09` §12, §19 | ✓ gerekçeli (alt bölüm) — K-1416, K-1418 |
+| T539 | `07` §8.2; `05` MK-05, §3.8; `09` §16; `10` KP-70, KD-22 | ✓ 6 kaynak (özgün 3, alt bölüm 3, devir 0) |
+| T540 | `04` OB-01, OB-02, OB-09, §2.1, §2.2, §2.9, §3.1, §3.2, §8.3; `02` §3.33.5, §3.34, §3.34.1, §3.34.2, §3.34.3, §3.34.4, §3.34.5, §3.34.6, §6.1.6, §8.3.2, §8.3.3, §8.4.1, §8.4.4, §10.1, §10.1.4, §11.2, P-42, §12.4, §12.4.1; `05` MK-05, §3.8; `10` KP-69, KP-70, KP-71, KD-22, KD-46 | ✓ 35 kaynak (özgün 24, alt bölüm 11, devir 0) |
+| T541 | `04` OB-03, OB-04, OB-07, OB-08, §2.3, §2.4, §2.7, §2.8; `03` §3.1; `02` §6.1.5, §6.1.6; `10` KP-38, KP-69 | ✓ 13 kaynak (özgün 8, alt bölüm 5, devir 0) |
+| T542 | `04` OB-05, OB-06, OB-10, §2.5, §2.6, §2.10; `10` KP-76 | ✓ 7 kaynak (özgün 4, alt bölüm 3, devir 0) |
+| T543 | `04` OB-12, OB-13, OB-14, OB-15, §2.12, §7.3; `02` §3.34.5, §7.4.5, §11.2, P-43, §12.4, §12.4.1; `09` §16; `10` KP-12, KP-71 | ✓ 15 kaynak (özgün 10, alt bölüm 5, devir 0) |
+| T544 | `04` OB-16, OB-17, OB-18, OB-19, §2.12; `02` §3.24.1, §3.24.2, §12.4, §12.4.1; `09` §16; `10` KP-71 | ✓ 11 kaynak (özgün 8, alt bölüm 3, devir 0) |
+| T545 | `04` OB-11, OB-20, §2.11, §2.13 | ✓ 4 kaynak (özgün 2, alt bölüm 2, devir 0) |
+| T546 | `04` §3.3, §3.4, §3.5, §3.6, §3.7; `09` §19 | ✓ gerekçeli (alt bölüm) — K-1418 |
+| T547 | `04` §6.1, §6.2, §6.3, §7.1, §7.2; `02` §10.1, §10.1.2; `09` §19 | ✓ 8 kaynak (özgün 1, alt bölüm 7, devir 0) |
+| T548 | `09` §16; `devir` K-1354, K-1391, P8.5 | ✓ gerekçeli (alt bölüm + devir) — K-1435 |
+| T549 | `04` E-05 | ✓ 1 kaynak (özgün 1, alt bölüm 0, devir 0) |
+| T601 | `06` §8.5; `08` §4.2; `02` §9.1, §9.1.5, §10.1, §10.1.3, §10.2, §10.2.7, §12.2, §12.2.1, §12.2.8, §12.3, §12.3.1, §12.3.2, §12.3.3, §12.5; `05` MK-07, MK-25, MK-27, MK-75, MK-76, §6.9, §7.6, §8.8, §8.9; `10` §4.1 | ✓ 26 kaynak (özgün 13, alt bölüm 13, devir 0) |
+| T602 | `05` MK-73, MK-74, §8.6, §8.7 | ✓ 4 kaynak (özgün 2, alt bölüm 2, devir 0) |
 
 > **Neden geri yön de gerekli:** İleri yön yalnız **eksik** task'ı yakalar (S3). Planın kendisine sızmış, hiçbir gereksinime dayanmayan işi ise yalnız geri yön yakalar — ve o iş bir kez plana girdiğinde faz boyunca "planda var" gerekçesiyle sorgulanmadan yapılır.
 

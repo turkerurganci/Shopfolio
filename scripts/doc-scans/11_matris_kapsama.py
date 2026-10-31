@@ -12,6 +12,8 @@ Denetlenen aileler DOLU listesindedir; matris oturumu kendi ailesini listeye ekl
 Ek denetimler:
   - her satirin Task hucresi aday kimlik listesi ("T107" ya da "T402, T311") ya da "-" olur;
   - kullanilan her aday kimlik 11 7'deki aday task tablosunda tanimlidir (K-1407 faz araliklari);
+  - geri yon (O6 1/2): her aday task >=1 kaynak; 11 7.1 ile 7.2 iki yonlu esit (11_geri_yon.py);
+    K-1409 boyut sinirlari asilmaz;
   - "Implement edildi" ve "Kanit" hucreleri bu asamada bostur (gate'te dolar).
 
 Kullanim (depo kokunden): python -I scripts/doc-scans/11_matris_kapsama.py . [cikti_dosyasi]
@@ -336,6 +338,47 @@ diger = sorted({s[1].split(":")[0] for s in satirlar} - set(DOLU))
 if diger:
     p()
     p("Uyari: DOLU listesinde olmayan ailelerin satiri var: %s (betige ekle)" % diger)
+
+# ------------------------------------------------------------ geri yon (O6 1/2): 11 7.2
+import importlib.util
+_spec = importlib.util.spec_from_file_location("geri_yon", str(Path(__file__).resolve().parent / "11_geri_yon.py"))
+gy = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(gy)
+
+ileri_cift = {(k, t) for _, k, tasks in gy.matris_satirlari(plan) for t in tasks}
+geri_cift, geri_task, geri_bicim = set(), [], 0
+for l in gy.oku_7_2(plan):
+    c = [x.strip() for x in l.strip().strip("|").split("|")]
+    if len(c) != 3:
+        geri_bicim += 1
+        continue
+    geri_task.append(c[0])
+    for gr in c[1].split("; "):
+        m = re.match(r"^`(\w+)` (.*)$", gr)
+        if not m:
+            geri_bicim += 1
+            continue
+        for kid in m.group(2).split(", "):
+            geri_cift.add(("%s:%s" % (m.group(1), kid), c[0]))
+aday_tum = gy.aday_tablosu(plan)
+kaynaksiz = sorted(t for t in aday_tum if not any(t == x[1] for x in ileri_cift))
+geri_yin = sorted(t for t, v in Counter(geri_task).items() if v > 1)
+p()
+p("## Geri yon denetimi (11 7.2, O6 1/2)")
+p("7.1 cift (kaynak, task): %d; 7.2 cift: %d; yalniz 7.1'de: %d; yalniz 7.2'de: %d" % (
+    len(ileri_cift), len(geri_cift), len(ileri_cift - geri_cift), len(geri_cift - ileri_cift)))
+p("7.2 satiri %d, aday %d; 7.2'de olmayan aday: %s; 7.2'de aday olmayan: %s; yinelenen: %s; bicim sorunu: %d" % (
+    len(geri_task), len(aday_tum), sorted(set(aday_tum) - set(geri_task))[:10] or "yok",
+    sorted(set(geri_task) - set(aday_tum))[:10] or "yok", geri_yin or "yok", geri_bicim))
+p("Kaynagi olmayan aday task: %s" % (kaynaksiz or "yok"))
+tablo_esit = gy.tablo_satirlari(plan) == gy.oku_7_2(plan)
+p("7.2, 7.1'den betikle turetilenle birebir esit: %s" % tablo_esit)
+asim = gy.boyut_asimlari(plan)
+p("K-1409 boyut asimi (entity<=8, uc<=8, ekran<=2, OB<=4): %s" % (asim or "yok"))
+fz = Counter(v[0] for v in aday_tum.values())
+p("Faz basina task: " + ", ".join("%s %d" % (f, fz[f]) for f in sorted(fz)))
+problems += (len(ileri_cift ^ geri_cift) + len(kaynaksiz) + len(geri_yin) + geri_bicim + (0 if tablo_esit else 1)
+             + len(set(aday_tum) ^ set(geri_task)) + len(asim))
 
 kullanilmayan = sorted(aday - set(kullanilan))
 p()

@@ -1,6 +1,6 @@
 # Shopfolio — API Design
 
-**Versiyon: v0.35** | **Bağımlılıklar:** `02`, `03`, `04`, `05`, `06`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.36** | **Bağımlılıklar:** `02`, `03`, `04`, `05`, `06`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 6 — API Tasarımı · **Rol:** API Designer
 > **Traceability zorunlu: EVET** — §1 tamamlanmadan §3'e (endpoint envanteri) geçilmez.
@@ -5870,7 +5870,7 @@ Ekran `04 §9.9` · durum × rol `04` 6.3.9 · formlar `04` 7.2.7–7.2.15. Yön
 - **Amaç:** teslim tarihini düzeltmek (`03 §8.4.4`, §1.11.25; `04` 9.9.31; `02 §10.4.5`) · **Yetki:** Yönetici — panel oturumu · **Hız sınırı:** form · 64 KB.
 - **İstek:** 9.9.5'in teslim tarihi ve — beyanın günüyle çakışmada — sıranın cevabı; `Version`. Onay istemez.
 - **Yanıt (başarı):** 303.
-- **Yanıt (hata):** **422** — 9.9.5'in tarih hâlleri · işlem açık değil — teslim işaretlenmemiş.
+- **Yanıt (hata):** **422** — 9.9.5'in tarih hâlleri · teslim tarihi kayıtlı bir iade ulaşma tarihinden sonraya düşüyor (`02 §10.4.5`) · işlem açık değil — teslim işaretlenmemiş.
 - **Yan etkiler:** teslim tarihi (`06 §4.18`); cayma penceresi ve ayıp süresi düzeltilmiş tarihten işler, caymanın teslimden önce mi sonra mı yapıldığı bu tarihe göre ayrılır (`02 §10.4.5`); bildirim gitmez; işlem izi.
 - **Idempotency:** sürüm.
 

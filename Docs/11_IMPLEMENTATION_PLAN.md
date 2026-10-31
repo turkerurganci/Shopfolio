@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.34** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.35** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -786,7 +786,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Doğrulama kontrol listesi:**
   - KK1: göç boş veritabanına uygulanır, iki tablo.
   - KK2: türe aykırı sipariş bağı reddedilir.
-  - KK3: sırada bekleyen satırda gönderim anı dolu ya da gönderilmiş satırda boş ise reddedilir; gönderim anı dolu `Undelivered` satır kabul edilir; sıra dışındaki satırda sonraki deneme anı dolu ya da sıfırdan küçük deneme sayısı reddedilir.
+  - KK3: sırada bekleyen satırda gönderim anı dolu ya da gönderilmiş satırda boş ise reddedilir; gönderim anı dolu da boş da `Undelivered` satır kabul edilir; sıra dışındaki satırda sonraki deneme anı dolu ya da sıfırdan küçük deneme sayısı reddedilir.
   - KK4: ilgili kayıt silinince gönderim kaydı kalır.
   - KK5: ikinci `ChannelStateRecord` satırı reddedilir; sayı sıfırken dolu ya da sıfırdan büyükken boş ilk hata anı reddedilir.
   - KK6: kaynak taraması temiz.
@@ -953,7 +953,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   1. Sahte sağlayıcı zaman aşımı, bağlantı hatası ve beklenmeyen yanıt üretebilir; gerçek servise çağrı yapılmaz (`09 §19.1`).
   2. Ödemeyi başlatma bağlantı hatasında "bağlantı hatası", ikinci jeton reddinde ayrı sonuç döner (`08 §3.1`, §3.3).
   3. Son sorgu yanıtsızlığı "sonucu bilinmeyen" döner; katman siparişe dokunmaz (`08 §3.1` kural 3–4).
-  4. E-posta gönderimi alıcı hatasını kanal hatasından ayırır; kanal hatası 5 dk, 30 dk, 2 saatlik deneme anını kurar (`08 §3.3`; `05 §4.4.3`).
+  4. E-posta gönderimi alıcı hatasını kanal hatasından ayırır; kanal hatası da alıcı hatası da ilk denemeden 5 dk, 30 dk ve 2 saat sonraki deneme anlarını kurar; yeniden denenmeyen sınır aşımı T385'tedir (`08 §3.3`, §2.2.2; `05 §4.4.3`).
   5. Daha uzun kesintide satır "ulaşmadı" olur; toplu yeniden gönderim yoktur (`08 §3.3`).
   6. Google çağrısı yanıtsızsa giriş ve kayıt `SocialLoginFailed`, yeniden doğrulama `SocialReauthenticationUnavailable` sonucunu alır; yeniden deneme yoktur (`08 §2.3` hata tablosu, §3.1).
   7. Hiçbir süre servise bağlı değildir; kesinti süre saymayı durdurmaz (`08 §3.3`).
@@ -963,7 +963,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK1: sahteler üç hata türünü üretir.
   - KK2: iki ödeme sonucu ayrı sınıfta.
   - KK3: yanıtsız sorguda sipariş satırı değişmez.
-  - KK4: deneme anları 5 dk, 30 dk, 2 saat.
+  - KK4: deneme anları ilk denemeden 5 dk, 30 dk, 2 saat; alıcı hatasında da.
   - KK5: son denemeden sonra "ulaşmadı".
   - KK6: yanıtsız sahte Google'da giriş `SocialLoginFailed`, yeniden doğrulama `SocialReauthenticationUnavailable` alır.
   - KK7: sahte kesintide süre ilerler.
@@ -1674,7 +1674,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 ### F3 — İş mantığı
 
-**Yürütme sırası:** T313 → T314 → T378 → T330 → T331 → T303 → T304 → T305 → T310 → T366 → T306 → T307 → T308 → T309 → T328 → T312 → T332 → T333 → T334 → T336 → T337 → T338 → T339 → T341 → T342 → T379 → T380 → T381 → T389 → T343 → T344 → T345 → T301 → T302 → T388 → T315 → T321 → T335 → T340 → T316 → T346 → T347 → T349 → T350 → T354 → T355 → T357 → T356 → T317 → T324 → T318 → T325 → T319 → T348 → T376 → T377 → T351 → T311 → T387 → T352 → T329 → T353 → T320 → T323 → T367 → T368 → T369 → T370 → T371 → T372 → T375 → T386 → T373 → T374 → T322 → T326 → T327 → T358 → T364 → T359 → T360 → T361 → T362 → T363 → T365 → T382 → T383 → T384 → T385 → T390
+**Yürütme sırası:** T380 → T313 → T314 → T378 → T330 → T331 → T303 → T304 → T305 → T310 → T366 → T306 → T307 → T308 → T309 → T328 → T312 → T332 → T333 → T334 → T336 → T337 → T338 → T339 → T341 → T342 → T379 → T381 → T389 → T343 → T344 → T345 → T301 → T302 → T388 → T315 → T321 → T335 → T340 → T316 → T346 → T347 → T349 → T350 → T354 → T355 → T357 → T356 → T317 → T324 → T318 → T325 → T319 → T348 → T376 → T377 → T351 → T311 → T387 → T352 → T329 → T353 → T320 → T323 → T367 → T368 → T369 → T370 → T371 → T372 → T375 → T373 → T386 → T374 → T322 → T326 → T327 → T358 → T364 → T359 → T360 → T361 → T362 → T363 → T365 → T382 → T383 → T384 → T385 → T390
 
 #### T301: Siparişin imha parçası
 - **Bağımlılık:** —
@@ -1693,7 +1693,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Doğrulama kontrol listesi:**
   - KK1: iki süre ayrı anda tetiklenir; geç ödemesi geri ödenmiş Başarısız sipariş Z-41'de imha edilmez, Z-28'i bekler; parça tek işlemdir.
   - KK2: yarışan panel işlemi sürüm uyarısı alır.
-  - KK3: imha edilmiş sipariş ikinci kez seçilmez.
+  - KK3: imha edilmiş sipariş ikinci kez seçilmez; seçimle kilit arasında imha edilen sipariş atlanır ve sayılmaz.
   - KK4: kontrol kısıtı birlikte boşalmayı korur; erişim anahtarı boş, onay anahtarı dolu.
   - KK5: yönetici adı, not ve kalemin dosya bağı boşalır.
   - KK6: silinen bağlı kayıt sorguda yok.
@@ -1704,14 +1704,14 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T302: Öteki kayıtların süreyle imhası
 - **Bağımlılık:** T301
-- **Dokümanlar:** çekirdek; `09` §9; `06 §9.3`; `03 §4.1`; `02 §4.2` Z-29, Z-30, Z-33, Z-34, Z-40, Z-43, Z-44; `05 MK-23`, §7.4, §7.7
+- **Dokümanlar:** çekirdek; `09` §9; `06 §9.3`; `03 §4.1`; `02 §4.2` Z-29, Z-30, Z-33, Z-34, Z-40, Z-41, Z-43, Z-44; `05 MK-23`, §7.4, §7.7
 - **Kabul kriterleri:**
   1. Her parça kendi veritabanı işleminde küçük parçalar hâlinde siler ve imha kaydına satırını yazar; silecek kaydı olmayan parça satır yazmaz (`06 §9.3.1`, §4.64).
   2. Gönderim kaydı siparişe bağlı değilse Z-34'te, bağlıysa Z-43'ün kuralına göre silinir ya da boşaltılır; kol siparişin düzeltilmemiş ödeme kaydından okunur (`06 §9.3.1`, §9.1 Z-43).
   3. İletişim talebi konu tipinin süresi dolunca, açıkken de silinir (`06 §9.3.1`).
   4. Giriş kaydı Z-40'ta, imha kaydı Z-44'te silinir; kendi silmesi de satırdır (`06 §9.3.1`).
   5. İşlem izini yalnız imha fonksiyonu parça parça siler ve döndürdüğü sayı yazılır (`06 §9.3.3`).
-  6. Gelen bildirim oluşturulmasından, ayıp talebi durumunun son değişmesinden (Z-29) on yıl sonra, siparişin imha parçasından önce olmamak üzere silinir; ödemesi hiç alınmamış siparişin bildirimi Z-41'in on yılında; talep silinince teslim alma ve geri ödeme bağları boşalır (`06 §9.3.1`).
+  6. Ayıp talebi durumunun son değiştiği andan (Z-29), gelen bildirim oluşturulmasından on yıl sonra silinir, ikisi de siparişin imha parçasından önce değil; ödemesi hiç alınmamış siparişin bildirimi siparişin Başarısız olduğu andan on yılda silinir (Z-41); talep silinince teslim alma ve geri ödeme bağları boşalır (`06 §9.3.1`).
   7. Bağı kalmamış ve bir günden eski görsel ve dosya silinir; önce satır, sonra dosya (`06 §9.3.1`; `05 §7.7`).
   8. Bağlı görsel ve açılabilen kalemin dosyası silinmez (`06 §9.3.2`).
   9. Dosya silen parça satırını dosyayı silmeden önce yazar (`06 §9.3.4`).
@@ -1722,7 +1722,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: açık iletişim talebi süresi dolunca silinir.
   - KK4: imha kaydının silinmesi yeni satır yazar.
   - KK5: uygulama kullanıcısı iz satırını silemez.
-  - KK6: sipariş imhadan önce talep ve bildirim kalır; talebin süresi son durum değişikliğinden sayılır, silinince bağlar boşalır.
+  - KK6: sipariş imhadan önce talep ve bildirim kalır; talebin süresi son durum değişikliğinden, bildirimin oluşturulmasından, ödemesi hiç alınmamış siparişin bildiriminin Başarısız anından sayılır; talep silinince bağlar boşalır.
   - KK7: bağsız görsel ve dosya silinir.
   - KK8: bağlı görsel ve dosya yerinde.
   - KK9: dosya silinmeden önce satır diskte.
@@ -1869,7 +1869,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   1. F-1…F-4 firma iletişim e-postasına gider; F-5 ve F-6 her yönetici hesabının kendi adresine ayrı satırla gider (`08 §2.2.7`).
   2. Konuda sipariş soneki yoktur; gövde müşterinin kişisel verisini taşımaz (`08 §2.2.7` ortak kurallar).
   3. Ana düğme `/panel/…` ekranına iner; F-1…F-4'te iç anahtar satıra olayın değeri olarak yazılır; oturum yoksa giriş sonrası ekrana yönlenir (T207, T520); F-5 ve F-6'da geri alma bağlantısı yoktur (`08 §2.2.7`; `02 §9.3.3`, §9.3.4).
-  4. Yeniden gönderim cümlesi yoktur; ulaşmayan F-1…F-4 satıra işaret düşürmez, F-5 ve F-6 yeniden denenir (`08 §2.2.7`).
+  4. Yeniden gönderim cümlesi yoktur; F-1…F-6 yeniden denenir ve ulaşmayan hiçbiri satıra işaret düşürmez; F-1…F-4'ün ana sayfa uyarısı T385'tedir (`08 §2.2.7`; `02 §9.1.6`, §9.3.3, §9.3.4).
   5. F-1 yeni siparişin tarih ve saatini, numarasını, ödeme yöntemini ve toplamını yazar (`08 §2.2.7` F-1).
   6. F-2 yalnız konu tipini yazar; talep metni, ad ve e-posta yoktur (`08 §2.2.7` F-2).
   7. F-3 dört başlıktan birini taşır: cayma, gecikme feshi, ayıp talebi, yeniden açma (`08 §2.2.7` F-3).
@@ -1881,7 +1881,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK1: F-5 her yöneticiye ayrı satır yazar.
   - KK2: konuda sipariş yok; gövdede kişisel veri yok.
   - KK3: bağlantı panel adresine iner; F-1…F-4 satırında iç anahtar değer olarak var; F-5 ve F-6 gövdesinde geri alma bağlantısı yok.
-  - KK4: ulaşmayan F-1'de işaret yok, F-5 yeniden denenir.
+  - KK4: gönderilemeyen F-1 ve F-5 yeniden denenir; ulaşmayanda işaret yok.
   - KK5: F-1 dört değeri taşır.
   - KK6: F-2 gövdesinde mesaj yok.
   - KK7: dört F-3 konusu ayrı.
@@ -1935,7 +1935,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Doğrulama kontrol listesi:**
   - KK1: liste kodda; ayar ve tablo yok.
   - KK2: kod adları ASCII, büyük harfle başlar ve tekil.
-  - KK3: her kalıpta tek yer tutucu, `https`; DV-32 ve DV-33 satırları tarihli.
+  - KK3: her kalıpta tek yer tutucu, `https`; DV-32 ve DV-33 satırları tarihli ve sonuçlu; listede yalnız denemede gönderiyi açan şirket var.
   - KK4: boşluklu numara kodlanır.
   - KK5: numarasız şirkette bağlantı yok.
   - KK6: üç durumda bağlantı yok; "Diğer" ve çıkmış şirkette ad ve numara, kendi aracımızla teslimde yalnız beyan var.
@@ -2168,7 +2168,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   5. Teslim işareti düzeltilince sipariş bir önceki duruma döner cayma ve ayıp süresi yeni tarihe kadar işlemez (`03 §1.6.2.1`).
   6. Yanlış siparişte yapılmış firma iptali yalnız ödeme Ödendi'deyken ve kart iadesi sonucu beklenmiyorken düzeltilir; ayırmalar yeniden yapılır, yetmezse düzeltme yapılamaz; kapanışla İptal edildi'ye geçiş düzeltilmez (`03 §1.6.2.2`).
   7. Yanlış Kargoya verildi ya da Teslim edilemedi işareti eksen bağını bozmadan geri alınır; o aralıkta doğan cayma beyanı ve ayıp talebi kalır, açık kalemsiz sipariş aynı işlemde kapanış kuralından geçer (`03 §1.6.2.3`; T315).
-  8. Havale "ödendi" düzeltmesi yalnız kargoya verilmemişken, geri ödeme yapılmamışken, hiçbir kalem teslim işareti almamışken ve hiçbir kalemde iptal, çıkarma, gecikme feshi ya da cayma yokken yapılır; Z-8 yeniden başlar, B-3 yeni sürede bir kez daha gider (`03 §1.6.2.4`).
+  8. Havale "ödendi" düzeltmesi yalnız kargo, geri ödeme, teslim işareti ve kalem kaydı (iptal, çıkarma, gecikme feshi, cayma) yokken yapılır; Z-8 yeniden başlar, B-3 bir kez daha gider (`03 §1.6.2.4`).
   9. Kart hattında ödeme ekseninin düzeltmesi yoktur; cayma beyanı düzeltilmez (`03 §1.6.2`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
@@ -2177,9 +2177,9 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: geçiş kaydında iki satır kalır.
   - KK4: sebepsiz düzeltme reddedilir, B-13 yazılır.
   - KK5: teslim düzeltmesi pencereyi öteler.
-  - KK6: bekleyen iadede ve kapanışla iptalde düzeltme reddedilir.
+  - KK6: bekleyen iadede, yetmeyen stokta ve kapanışla iptalde düzeltme reddedilir.
   - KK7: yanlış kargo işareti geri döner; cayma ve ayıp kaydı kalır, açık kalemsiz sipariş kapanır.
-  - KK8: dört koşuldan biri bozukken havale düzeltmesi reddedilir.
+  - KK8: dört koşuldan biri bozukken havale düzeltmesi reddedilir; geçerse Z-8 yeniden başlar, ikinci B-3 yazılır.
   - KK9: kart ödemesi ve cayma düzeltilemez.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -2193,8 +2193,8 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   4. Ardışık cayma beyanları ve parça parça ulaşan iadenin her teslim alması ayrı kayıttır (`03 §1.7.1`).
   5. İade reddi yalnız koşullu istisna kaleminde ve teslim alma adımında yapılır; B-16 gider (`03 §1.7.1`).
   6. Kalem başına tek ayıp talebi vardır; Açık'ken yeni talep açılmaz, Çözüldü'yken aynı kayıt yeniden açılır (`03 §1.9.1`).
-  7. Açık'tan Çözüldü'ye yalnız yönetici geçirir; yeniden açmayı müşteri ya da yönetici iki yıllık süre içinde yapar (`03 §1.9.1`).
-  8. Ayıp talebi doğunca ve müşteri yeniden açınca B-9 ve F-3 gider; çözüldü işareti bildirim üretmez (`03 §1.9.1`).
+  7. Açık'tan Çözüldü'ye yalnız yönetici geçirir; yeniden açmayı müşteri ya da yönetici iki yıllık süre içinde yapar (`03 §1.9.1`; `02` Z-18).
+  8. Ayıp talebi doğunca ve müşteri yeniden açınca B-9 ve F-3 gider; yönetici yeniden açması ve çözüldü işareti bildirim üretmez (`03 §1.9.1`).
   9. Ayıp talebi sevkiyat hattını etkilemez; para gerektiren çözüm ödeme ekseni geçişleriyle işler (`03 §1.7.1`, §1.9.1).
   10. Panel işaretleri durum değildir; koşul sürdükçe görünür, kalkınca kalkar (`03 §1.7.3`).
 - **Test beklentisi:** Unit, Integration
@@ -2454,13 +2454,13 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T331: Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması
-- **Bağımlılık:** T330
+- **Bağımlılık:** T330, T380
 - **Dokümanlar:** çekirdek; `09` §10, §13; `03 §10.2`; `02 §3.1.5`, §3.1.6, §3.13.19, §3.32.8, §3.33.9, §6.1.4, §6.9, §10.8.2, §12.2.5; `10` KP-25, KP-38, KP-59, KP-60, KD-60
 - **Kabul kriterleri:**
   1. Satış yalnız dört koşul birlikte sağlanınca açıktır: kimlik alanları, açık ödeme yöntemi, kapalı geçici kapatma anahtarı, tamamlanmış dört yasal metin — üretilen iki metin için iade adresi dahil (`02 §3.1.5`).
   2. Koşullardan biri bozulunca sepete ekleme ve ödeme adımına geçiş kapanır, yeni sipariş onayı reddedilir; sebep ve eksik koşul söylenir; vitrin yayında kalır, var olan sepet korunur (`02 §3.1.5`, §6.1.4; `03 §10.2`).
   3. Veri toplayan girişler (hesap kaydı, yeni hesap açacak Google girişi, iletişim formu) aydınlatma metni ve çerez politikası koşuluna bağlıdır; mevcut hesapların girişi etkilenmez (`02 §3.13.19`, §3.32.8, §3.33.9).
-  4. Satışı geçici kapatma anahtarı panelden açılıp kapanır ve işlem izine yazılır (`02 §3.1.6`).
+  4. Satışı geçici kapatma anahtarı panelden açılıp kapanır ve işlem izine yazılır (`02 §3.1.6`; T380).
   5. Anahtar açıkken açık siparişler etkilenmez; havale onayı dahil yürümeye devam eder (`02 §3.1.6`).
   6. Kural dört koşulun hepsinde aynıdır: kimlik alanının boşalması ya da havalenin kapanması açık siparişleri etkilemez; yayındaki yasal metin yayından çekilmez (`02 §3.1.6`).
   7. Havale siparişi siparişe donan IBAN'ıyla sürer (`02 §3.1.6`).
@@ -2746,7 +2746,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   5. Şifre değiştirme, e-posta değiştirme ve hesap silme açık oturumda da yeniden doğrulama ister; başka işlem istemez (`02 §3.13.13`; T517 k2).
   6. Yeniden doğrulamadaki başarısız şifre L-1'e sayılır; Google yolu T516 k8, k10'dadır (`02 §3.13.13`).
   7. Şifre politikası uzunluk tabanlıdır; asgari uzunluk P-17'dir, karakter türü dayatılmaz, yaygın şifreler yerel listeyle reddedilir (`02 §3.13.15`).
-  8. Bu kurallar yönetici hesaplarına aynı değerlerle uygulanır; iki adımlı doğrulama yoktur (`02 §3.13.16`).
+  8. Yöneticiye aynı değerler işler; Google, hesap silme ve iki adımlı doğrulama yoktur (`02 §3.13.16`; T521 k4).
   9. Giriş, şifre sıfırlama, kayıt ve doğrulama bağlantısı isteği limitlidir; eşikte işlem geçici engellenir, hesap kilitlenmez, mesaj nötrdür (`02 §3.13.17`; L-1…L-3, L-9; T376 k5).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
@@ -2913,7 +2913,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. Asgari sipariş tutarı isteğe bağlı tektir; altındaki sipariş verilemez, eksik tutar gösterilir; sepette ve onayda denetlenir (`02 §3.18.1`).
   2. Karşılaştırma tabanı kupondan önceki indirimli toplamdır; kupon siparişi engellemez (`02 §3.18.2`; `02 §3.19.4`).
-  3. Asgari tutar yalnız fiziksel kalemli siparişe uygulanır, taban yine bütün kalemlerdir (karışık siparişte dijital ve hizmet de girer); koşul siparişe giren kalemlere bakar (`02 §3.18.3`).
+  3. Asgari tutar yalnız fiziksel kalemli siparişe uygulanır, taban siparişe giren bütün kalemlerdir (karışık siparişte dijital ve hizmet de girer); koşul da siparişe giren kalemlere bakar (`02 §3.18.3`).
   4. Kargo ücreti sipariş başına sabittir; fiziksel kalem varsa bir kez alınır, yoksa alınmaz; 0 TL her siparişi ücretsiz yapar (`02 §3.19.1`).
   5. Ücret KDV dahil girilir; farklı oranlı fiziksel kalemlerde orantılı bölünür ve her parça kendi oranıyla dökümde yer alır (`02 §3.19.2`).
   6. Ücretsiz kargo eşiği isteğe bağlıdır; taban eşiğe eşit ya da üstündeyse ücret alınmaz (`02 §3.19.3`).
@@ -3190,7 +3190,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `09` §10; `02 §3.28.1`…§3.28.6, §2.3, §6.8; `10` KP-1, KP-31, KP-55, KD-39, KD-40
 - **Kabul kriterleri:**
   1. İki hazır ana sayfa düzeninden biri seçilir, kurulumda tanıtım öncelikli seçili gelir; kurumsal tanıtım ve vitrin birlikte durur; vitrin en yeni yayındaki ürünlerdir, firma ürün seçmez ve ürüne ana sayfa işareti konmaz; yayında ürün yoksa vitrin bloğu görünmez; kayan afiş ve kampanya görseli yoktur (`02 §3.28.1`; K-754, K-813; `10` KD-40).
-  2. Kurumsal blok her zaman Hakkımızda'dır; uzun metin kendi sayfasında durur (`02 §3.28.2`).
+  2. Kurumsal blok her zaman Hakkımızda'dır; uzun metin kendi sayfasında durur; boşken ya da yayında değilken hâli T359'dadır (`02 §3.28.2`, §3.27.14).
   3. "Ana sayfada göster" işaretli hizmet ve referanslar elle sırayla görünür; işaretli yoksa blok çıkmaz (`02 §3.28.3`).
   4. Menü düzenleyici yoktur; sabit iskelette yayında kaydı olmayan tip görünmez, yalnız taslağı olan tip ve yayında olmayan Hakkımızda dahil; firma menü adlarını değiştirebilir (`02 §3.28.4`).
   5. Genel sayfalar altbilgide listelenir; "menüde göster" işaretiyle üst menüye çıkar (`02 §3.28.5`).
@@ -3213,7 +3213,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   2. Logo zorunlu değildir; yoksa marka adı yazıyla gösterilir; tek logo her yerde kullanılır; logoya görsel dosya kuralları uygulanır (`02 §3.29.2`; P-22, P-23).
   3. Marka adı unvandan ayrı ve zorunludur; boşaltılamaz; girilene kadar alan adı görünür (`02 §3.29.3`).
   4. Site simgesi yoksa marka adının baş harfi marka rengi zeminde çıkar; firmanın sitesinde Shopfolio simgesi çıkmaz (`02 §3.29.4`).
-  5. Yazı rengini (siyah ya da beyaz) sistem yeterli kontrastla seçer; renk seçilmezse ürünün varsayılan rengi kullanılır; anlam renkleri sabittir (`02 §3.29.5`).
+  5. Yazı rengini (siyah ya da beyaz) sistem seçer: marka rengiyle WCAG kontrast oranı yüksek olan taraf — her renkte en az 4,5:1; yazı rengi saklanmaz; renk seçilmezse ürünün varsayılan rengi kullanılır; anlam renkleri sabittir (`02 §3.29.5`, §3.34.5).
   6. "Shopfolio ile kuruldu" imzası varsayılan açıktır, yalnız altbilgidedir; anahtarın her değişikliği (açma ve kapatma) işlem izine yazılır (`02 §3.29.6`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
@@ -3221,7 +3221,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: logosuz sitede ad yazıyla çıkar; biçim ya da boyut dışı logo reddedilir.
   - KK3: marka adı boşaltılamaz.
   - KK4: simge yoksa baş harf çıkar; Shopfolio simgesi yok.
-  - KK5: açık ve koyu renklerde yazı okunur; renk seçilmemişse varsayılan renk.
+  - KK5: #FFFF00'da siyah, #000080'de beyaz, sınır rengi #777777'de siyah (beyaz 4,5:1'in altında) seçilir; seçilen yazının oranı en az 4,5:1; renk seçilmemişse varsayılan renk.
   - KK6: imza anahtarı çalışır, açma ve kapatma işlem izinde, e-postada imza yok.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -3339,7 +3339,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Doğrulama kontrol listesi:**
   - KK1: kargoya verildi sonrası iptal reddedilir, öncesi onaysız işler.
   - KK2: hazırlanan siparişte iptal engellenmez.
-  - KK3: kısmi iptalde sipariş yaşar, tam iptalde kapanır.
+  - KK3: kısmi iptalde sipariş yaşar, tam iptalde kapanır; fiziksel kalemi biten karışık sipariş kalan hatta düşer.
   - KK4: ödeme öncesi kalem iptali reddedilir.
   - KK5: dijital iptal reddedilir, hizmet adetle iptal edilir.
   - KK6: stok, kontenjan ve kupon sayaçları doğru döner.
@@ -3402,19 +3402,19 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `09` §9, §10, §11, §14; `05 MK-40`, §4.6; `02 §7.2.8`, §7.4.1, §7.4.5, §8.4.2, Z-16, Z-17, Z-35, Z-38, Z-47, §4.3, §5.5, §6.4, §7.5.3, §9.2, B-8, B-14, §9.3, F-4, §10.4.3, §10.4.9, §10.4.10, §10.6.1, §11.2, P-43, §12.1.8, §12.1.9, §12.2.7, §12.5; `10` KP-15, KP-21, KP-22, KP-47; `03 §1.7`
 - **Kabul kriterleri:**
   1. Geri ödeme ödemenin geldiği yoldan gider: kart sağlayıcı üzerinden karta, havale müşterinin IBAN'ına (`02 §7.4.5`).
-  2. İptalde kart iadesini sistem kendiliğinden ve onaysız başlatır, IBAN alanı açılmaz; havale hattında ve caymada firma panelden işler (`02 §7.2.8`; `03 §2.8.4.1`).
-  3. Süre iptalde iptalden, teslimden önceki caymada ve hizmette beyandan, teslimden sonraki caymada malın ulaştığı tarihten başlar; başlangıç ikisinden geç olanıdır (`02 §7.4.1`).
+  2. İptalde kart iadesini sistem onaysız başlatır, IBAN alanı açılmaz; havale hattında ve caymada firma panelden işler (`02 §7.2.8`; `03 §2.8.4.1`).
+  3. Süre iptalde iptalden, teslimden önceki caymada ve hizmette beyandan, teslimden sonraki caymada malın ulaştığı tarihle beyandan geç olanından başlar (`02 §7.4.1`).
   4. IBAN girişte biçim ve sağlamayla denetlenir, işlenene kadar müşterice düzeltilir; firma IBAN girmez (`02 §7.4.5`).
   5. IBAN geri ödeme tamamlanınca silinir; başka bekleyen geri ödeme kullanıyorsa ondan sonra silinir (`02 §7.4.5`).
   6. Firma iptalinde IBAN isteği iptal kaydıyla düşer, B-14 gider ve süre IBAN beklenirken durmaz (`02 §7.2.8`).
   7. "Havale gerçekleşmedi" bildirimi IBAN'ı siler, alanı yeniden açar ve B-14 gönderir; kalem "IBAN bekleniyor"a döner, süre durmaz (`02 §7.4.5`).
-  8. Kart iadesi reddedilirse ödeme ekseni değişmez, "geri ödeme gerçekleşmedi" işareti düşer ve kalem bekleyen işlere girer; firma yeniden dener ya da havale yolunu açar (B-14), IBAN girildikten sonra yeniden deneme kapalıdır (`02 §7.2.8`; §6.4.24).
-  9. Sonuç bilinmezse "geri ödeme sonucu bekleniyor" işareti düşer; sonuç beklenirken yeniden deneme ve havale yolu kapalıdır (`02 §7.2.8`).
+  8. Kart iadesi reddedilirse ödeme ekseni değişmez, "geri ödeme gerçekleşmedi" işareti düşer ve kalem bekleyen işlere girer; firma yeniden dener ya da havale yolunu açar (B-14), IBAN girildikten sonra deneme kapalıdır (`02 §7.2.8`; §6.4.24).
+  9. Sonuç bilinmezse "geri ödeme sonucu bekleniyor" işareti düşer; sonuç beklenirken yeniden deneme ve havale yolu kapalı (`02 §7.2.8`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: yol ödeme yönteminden.
   - KK2: iptalde kartta onay ve alan yok.
-  - KK3: süre başlangıcı üç durumda.
+  - KK3: süre başlangıcı üç durumda; mal beyandan önce ulaştıysa beyandan.
   - KK4: IBAN denetimi ve düzeltme.
   - KK5: silme zamanı, ortak kullanımda erteleme.
   - KK6: firma iptalinde alan açılır, B-14.
@@ -3516,7 +3516,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   5. Teslim tarihi girilmemişse süre işlemez; risk firmadadır (`02 §7.5.2`).
   6. Süre dolunca kanal kapanır, müşteri iletişim formuna yönlenir; formun konu tiplerinde ayıp talebi yoktur (`02 §7.5.1`, §7.5.2).
   7. Talep Açık ve Çözüldü durumludur; firma çözüldü işaretler, firma ya da müşteri yeniden açar, kayıt tektir; sistem çözümü yürütmez (`02 §7.5.3`).
-  8. Sözleşmeden dönmede iade hattı geri alınan adetlerle, bedel indiriminde kalem iade edilmeden kısmi geri ödeme işler; dönülen adet açık adetten düşer; havalede IBAN yoksa firma ister, müşteri sayfadan girer ve B-14 gider (`02 §7.5.3`; K-686).
+  8. Sözleşmeden dönmede iade hattı geri alınan adetlerle, bedel indiriminde kalem iade edilmeden tutar bazlı geri ödeme işler (`02 §5.5`); dönülen adet açık adetten düşer; havalede IBAN yoksa firma ister ve B-14 gider (`02 §7.5.3`; K-686).
   9. Ayıplı dijital üründe firma dosyayı yeniden yükler, düzeltilmiş dosya eski alıcılara da ulaşır; garanti süresi alanı yoktur (`02 §7.5.4`; KD-61).
   10. Talep doğunca ve müşteri yeniden açınca müşteriye B-9, firmaya F-3 gider; yönetici yeniden açması ve çözüldü işareti bildirimsizdir (`02 §7.1.4`, §9.2; K-681).
 - **Test beklentisi:** Unit, Integration
@@ -3528,13 +3528,13 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK5: tarihsiz kalemde süre işlemez.
   - KK6: kapanışta forma yönlendirme.
   - KK7: durumlar ve yeniden açma.
-  - KK8: iki çözüm yolu doğru hatta; havalede IBAN isteği ve B-14.
+  - KK8: iki çözüm yolu doğru hatta, tutar sınırı; IBAN isteği ve B-14.
   - KK9: dosya güncellemesi eski alıcıya ulaşır.
   - KK10: doğuşta ve müşteri yeniden açınca B-9, F-3; öteki geçişte yok.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T375: Yöneticinin sipariş düzeltmeleri: ileri yönlü kayıt, tutar değişmez, firmanın teyidiyle e-posta ve adres düzeltmesi, cayma beyanı geri alınmaz
-- **Bağımlılık:** T307, T344, T369, T372
+- **Bağımlılık:** T307, T344, T369, T372, T380
 - **Dokümanlar:** çekirdek; `09` §9, §10; `02 §7.6.6`, §7.6.7, §8.3.6, §8.3.7, §10.4.1, §10.4.2, §10.4.11, §6.1.1, §6.3, §9.2, B-1, B-10, B-15, §12.2.7; `05` §4.4; `10` KP-8, KP-17, KP-28, KP-48, KD-13
 - **Kabul kriterleri:**
   1. Düzeltmeler ileri yönlü kayıttır ve onaylanan tutarı değiştirmez; kalem eklenemez, fiyat değiştirilemez (`02 §7.6.6`).
@@ -3640,7 +3640,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T379: Yönetici hesapları: ilk yönetici ve davet, kaldırma kuralları, tek rol, ayrı hesap türü, davetin geri çekilmesi, erişim kaybında kurtarma sınırı
-- **Bağımlılık:** T303, T308, T309, T342
+- **Bağımlılık:** T303, T308, T309, T342, T380
 - **Dokümanlar:** çekirdek; `09` §10, §15; `02 §10.2.1`…§10.2.7, §9.3, F-6, §9.3.4, §9.4, §10.1.2, §10.3.1, §12.2.10; `05` §6.1; `10` KP-62, KD-18
 - **Kabul kriterleri:**
   1. İlk yönetici kurulumda doğar; sonrakiler yöneticinin e-posta davetiyle açılır, kendi kaydı yoktur (`02 §10.2.1`).
@@ -3648,7 +3648,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   3. Yönetici başkasını kaldırabilir; son yönetici ve kendini kaldırma engellenir, panel sebebi söyler; geri alınamaz onay ister (`02 §10.2.2`).
   4. Kaldırılanın oturumları anında biter, kullanılmamış davetleri geçersizleşir, onay bunu sayıyla söyler; iz satırları ad ve e-postayla kalır, F-6 bütün yöneticilere gider (`02 §10.2.2`).
   5. Yöneticiler aynı yetkidedir; rol ve yetki matrisi yoktur (`02 §10.2.3`; KD-18).
-  6. Yönetici müşteriyle aynı kimlik doğrulama rejimine ve limitlere tabidir; e-postayı bu rejimle değiştirir, değişiklik ize yazılır, firma iletişim e-postası değişmez; adı yeniden doğrulamasız değişir (`02 §10.2.4`).
+  6. Yönetici müşterinin kimlik doğrulama rejimine ve limitlerine tabidir; e-postayı bu rejimle değiştirir, değişiklik ize yazılır, firma iletişim e-postası değişmez; adı yeniden doğrulamasız değişir (`02 §10.2.4`).
   7. Yöneticinin sepeti ve siparişi olmaz; yönetici ve müşteri ayrı hesap türleridir; e-posta kendi türü içinde tekildir, harf ayrımsızdır (T216 k7; `02 §10.2.5`).
   8. Kullanılmamış davet geri çekilir; aynı adrese yeni davet öncekini geçersiz kılar; yöneticisi olan adrese davet gönderilemez, kabulde adres yöneticinin olmuşsa hesap açılmaz, davet geçersizleşir; yalnız gönderim F-6 üretir, geri çekme ve süre dolumu bildirim üretmez (`02 §10.2.6`, §9.3.4; K-1085).
   9. Erişim kaybında ürün içinde kurtarma akışı yoktur; kurtarma kurulumu yapanın yönetici açma komutudur (`02 §10.2.7`).
@@ -3666,7 +3666,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T380: İşlem izi: sekiz alan, kim-ne zaman-ne değişti, değiştirilemez ve silinemez, sistem olayları ize girmez, düz liste, on yıl
-- **Bağımlılık:** T379
+- **Bağımlılık:** —
 - **Dokümanlar:** çekirdek; `09` §9, §10; `02 §10.3.1`…§10.3.5, §10.2, §10.2.2, §10.2.4, §10.2.6, §10.4, §10.4.1, §12.2, §12.2.9; `05 MK-24`, §4.7, §7.5; `10` KP-63, KP-77, KD-58
 - **Kabul kriterleri:**
   1. İz sekiz alanda tutulur: firma kimliği ve marka, yayın durumu, siparişe yönelik yönetici işlemleri, yönetici davet ve hesapları, yasal metin sürümü, panelden değişen ayarlar, dışa aktarma, üye hesabının silinmesi (`02 §10.3.1`).
@@ -3828,17 +3828,17 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T386: Sipariş müdahaleleri: kalem adedi azaltma ve çıkarma, kargo bilgisinin ve teslim tarihinin düzeltilmesi, iç not
-- **Bağımlılık:** T367, T369, T375, T380
+- **Bağımlılık:** T367, T369, T373, T375, T380
 - **Dokümanlar:** çekirdek; `09` §9, §10; `02 §10.4.1`, §10.4.3…§10.4.5, §10.4.7, §7.1.7, §7.2.2, §7.2.8, §7.2.9, §7.4.1; B-11, B-12; `10` KP-48
 - **Kabul kriterleri:**
   1. Kalem adedi azaltılır ya da kalem çıkarılır; kalem eklenemez ve fiyat değiştirilemez (`02 §10.4.3`).
-  2. Ödeme onayından önce kalem çıkarılamaz, yalnız sipariş bütünüyle iptal edilir (`02 §7.2.2`); kargodan sonra fiziksel, teslim işaretli dijital ve hizmet kalemi çıkarılamaz (`02 §10.4.3`).
+  2. Ödeme onayından önce kalem çıkarılamaz, sipariş bütünüyle iptal edilir; kargodan sonra fiziksel, teslim işaretli dijital ve hizmet kalemi çıkarılamaz (`02 §7.2.2`, §10.4.3).
   3. Çıkarılan kalemin ya da azaltılan adedin parası `02 §7.1.7` tutarıyla ve `02 §7.2.8` hattından geri ödenir; havale hattında IBAN isteği çıkarma kaydıyla düşer (`02 §10.4.3`).
   4. Stok, hizmet kontenjanı ve kupon hakkı iptaldeki rejimle döner; kargo ücreti `02 §7.2.9` tetiğiyle geri ödenir (`02 §10.4.3`).
-  5. Çıkarma sebep listesi istemez, iz bırakır ve müşteriye bildirilir (`02 §10.4.3`).
-  6. Kargo şirketi ve takip numarası düzeltilir; düzeltilmiş bilgi müşteriye bildirilir (`02 §10.4.4`).
-  7. Teslim tarihi sipariş düzeyinde düzeltilir; kargoya verildiği günden önce ve ileri tarihli olamaz, tek kalemin tarihi ayrıca düzeltilmez (`02 §10.4.5`).
-  8. Cayma penceresi ve ayıp süresi düzeltilmiş tarihten işler; önceki cayma beyanı geçerli kalır; tarih bir beyanın günüyle çakışırsa panel sıra sorusunu sorar (`02 §10.4.5`; §7.4.1).
+  5. Çıkarma sebep listesi istemez, iz bırakır ve müşteriye B-11'le bildirilir (`02 §10.4.3`).
+  6. Kargo şirketi ve takip numarası düzeltilir; B-12'yle bildirilir (`02 §10.4.4`).
+  7. Teslim tarihi sipariş düzeyinde düzeltilir; kargo gününden önce, ileri ya da ulaşma tarihinden sonra olamaz, tek kalemin tarihi ayrıca düzeltilmez (`02 §10.4.5`, §7.4.7).
+  8. Cayma penceresi ve ayıp süresi yeni tarihten işler; önceki beyan geçerli kalır; tarih bir beyanın gününe düşerse panel sırayı sorar (`02 §10.4.5`; §7.4.1).
   9. Teslim tarihi düzeltmesi bildirim üretmez; izde eski ve yeni tarihle durur (`02 §10.4.5`).
   10. İç not müşteriye görünmez (sipariş sayfası, e-posta, sözleşme); yazılması ve değişmesi izde durur, metni ize girmez; imha edilmiş siparişe yazılamaz (`02 §10.4.7`).
 - **Test beklentisi:** Unit, Integration
@@ -3847,10 +3847,10 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: ödeme öncesi, kargo sonrası fiziksel ve teslim işaretli kalemde çıkarma reddedilir.
   - KK3: tutar kalemin donmuş değerinden, hat doğru.
   - KK4: sayaçlar ve kargo ücreti iptal gibi.
-  - KK5: sebepsiz çıkarma, iz ve bildirim.
-  - KK6: takip düzeltmesi bildirilir.
+  - KK5: sebepsiz çıkarma, iz ve B-11.
+  - KK6: takip düzeltmesinde B-12 gider.
   - KK7: tarih sınırları reddedilir.
-  - KK8: pencere düzeltilen tarihten işler; eski beyan sürer.
+  - KK8: pencere düzeltilen tarihten işler; eski beyan sürer; çakışmada cevapsız ret.
   - KK9: tarih düzeltmesinde e-posta yok.
   - KK10: çıktıda yok; iz metinsiz; imha sonrası ret.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -3977,7 +3977,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   6. Sınıra uymayan e-posta yerine firma e-postası, fiziksel kalemsiz siparişte boş telefon yerine firma telefonu gider; ad 60, adres 400 karakterde kesilir (`08 §2.1.4`).
   7. `user_ip` istek anındaki adrestir; `timeout_limit` ödeme süresinin bitişine kalan dakikadır, yukarı yuvarlanır, en az 1 (`08 §2.1.4`).
   8. Başarılı yanıt çerçeve adresini döndürür, jeton saklanmaz; dönüş adresleri `/odeme/donus/{erişim anahtarı}`'dır; sayfa T510'dadır (`08 §2.1.4`).
-  9. `INTEGRATION_RUNBOOKS/PAYTR.md` aynı PR'da açılır; DV-11, DV-14, DV-38, DV-39, DV-41 test modunda gözlenip satıra yazılır (`08 §4.1`).
+  9. `INTEGRATION_RUNBOOKS/PAYTR.md` aynı PR'da açılır; DV-11, DV-14, DV-38, DV-39 test modunda gözlenip satıra yazılır; geliştirme ortamı DV-41'in yanıtına göre kurulur (`08 §4.1`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: başlatma sahte işleyiciyle form kodlu gider.
@@ -4045,23 +4045,23 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T403
 - **Dokümanlar:** çekirdek; `09` §11 (§11.1, §11.2); `08 §2.1.8`, §4.1; `03 §3.2`, §10.1; `05` MK-40, §3.6, §4.6
 - **Kabul kriterleri:**
-  1. Bağlanılamama, 15 sn aşımı, 5xx, `failed` + `reason` ve tablosuz yanıt `ConnectionFailed`'dır; kayda yalnız `reason` yazılır (`08 §2.1.8`).
+  1. Ayrım yalnız başlatma yanıtında yapılır: bağlanılamama, 15 sn aşımı, 5xx, `failed` + `reason` ve tablosuz yanıt `ConnectionFailed`'dır; kayda yalnız `reason` yazılır (`08 §2.1.8`).
   2. Aynı `merchant_oid`'nin ikinci jeton reddi `SecondTokenRejected`'dır; ayırt eden `reason` metni tabloya ve runbook'a yazılır (`08 §2.1.8`; DV-11).
   3. Form açılamadan iptal L-7'ye sayılmaz; açılıp başarısız olan ödeme sayılır (`08 §2.1.8`; `02 §8.2`).
-  4. Bağlantı hatasından sonra ödeme modülü bellekte iki dakika tutulur: kart "şu an kullanılamıyor" görünür, kart onayı 422 alır; hâl yalnız onaydan öncesini etkiler (`08 §2.1.8`).
+  4. Jeton isteğindeki bağlantı hatasından sonra ödeme modülü bellekte iki dakika tutulur: kart "şu an kullanılamıyor" görünür, kart onayı 422 alır; hâl yalnız onaydan öncesini etkiler (`08 §2.1.8`).
   5. Son sorgu ve iade sorgusunda yanıtsız çağrı sonucu bilinmeyen sayılır; para gönderen çağrı yeniden gönderilmez (`08 §2.1.8`; `05` MK-40).
   6. Katman hiçbir çağrıyı kendiliğinden yeniden denemez, zamanlı yineleme T403 ve T405'tedir; dayanıklılık işleyicisi yoktur, istemci fabrikadan gelir, yönlendirme ve çerez kapalıdır (`08 §2.1.8`; `09 §11.2`).
-  7. Beş hatalı jeton ve on beş dakika durum ucunun uyarı koşuludur; başarılı jeton diziyi sıfırlar, ikinci ret saymaz (`08 §2.1.8`; `05 §9.4`).
+  7. Art arda en az beş hatalı jeton isteği, dizinin ilk hatası on beş dakikadan eskiyse durum ucunun uyarı koşuludur; başarılı jeton diziyi sıfırlar, ikinci ret diziyi ne sayar ne bozar (`08 §2.1.8`; `05 §9.4.18`).
   8. DV-12'nin HTTP kodları ve tablosuz yanıtlar gözlenip `08 §2.1.8` tablosuna eklenir (`08 §4.1`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: altı yanıt sınıfı birer test.
+  - KK1: başlatma yanıtı tablosunun altı satırı birer test.
   - KK2: ikinci ret bağlantı hatası değil.
   - KK3: iki iptal biçimi L-7'de ayrı.
   - KK4: iki dakika sahte saatle; hâl yeniden başlatmada silinir.
   - KK5: yanıtsız çağrıda ikinci istek yok.
   - KK6: katmanda çağrı başına istek sayısı bir.
-  - KK7: dizinin sıfırlanması ve eşiği.
+  - KK7: sahte saatle dört hata ya da on beş dakikadan genç dizi koşul açmaz, beş hata ve on beş dakikalık dizi açar; başarılı jeton sıfırlar, ikinci ret diziyi bozmaz.
   - KK8: DV-12 satırı.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -4097,7 +4097,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T402, T405
 - **Dokümanlar:** çekirdek; `09` §11, §19; `08 §2.1.3`, §2.1.10, §4.1; `02 §3.21.3`; `05` §8.1
 - **Kabul kriterleri:**
-  1. Her kart ödemesi 3D Secure'dan geçer; doğrulama başarısızsa ödeme gerçekleşmez, sipariş ödenmiş sayılmaz (`02 §3.21.3`; `08 §2.1.3`).
+  1. Her kart ödemesi 3D Secure'dan geçer; bildirimde 3D işareti yoktur, güvence kurulum şartı (3) ve canlı kanıttır (7); doğrulama başarısızsa ödeme gerçekleşmez, sipariş ödenmiş sayılmaz (`02 §3.21.3`; `08 §2.1.3`).
   2. Başarı `status` = `success` ve `payment_type` = `card` ister; `failed_reason_code` 1, 2, 10 ödeme gerçekleşmedi demektir (`08 §2.1.3`).
   3. Kurulum şartı: PayTR'den yazılı teyit ve test modunda 3D'siz işlemin tamamlanmaması; teyit yoksa kart anahtarları tanımlanmaz (`08 §2.1.3`; DV-3).
   4. Test `test_mode` alanıyla seçilir; test mağazanın canlı anahtarıyla imzalanır; CI PayTR'ye bağlanmaz, firma anahtarı geliştirmeye geçmez (`08 §2.1.10`).
@@ -4107,7 +4107,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   8. DV-3 satırı kanıtla kapanır; test kanıtı canlı kanıtın yerini tutmaz (`08 §2.1.10`, §4.1).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: 3D'siz başarı sayılmaz.
+  - KK1: `failed` + kod 1, 2 ya da 10 bildirimi ödeme sayılmaz, sipariş ödenmiş olmaz; kodda 3D alanı aranmaz.
   - KK2: `payment_type` farklıysa uygulanmaz.
   - KK3: teyitsiz kurulumda anahtar yok.
   - KK4: testte ağ çağrısı yok.
@@ -4149,7 +4149,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. Yöntem sorgudur: iş türü her on beş dakikada hesap listesinden son 24 saatin `BOUNCE` adreslerini okur; web kancası ve SNS yoktur (`08 §2.2.3`).
   2. İstek `StartDate`, `Reason` = `BOUNCE` ve sayfalama taşır; `COMPLAINT` işlenmez (`08 §2.2.3`).
-  3. Eşleşme harf ayrımsızdır; pencerede `Sent` olan bütün satırlar `Undelivered` ve `RecipientError` olur, `SentAt` kalır (`08 §2.2.3`).
+  3. Eşleşme harf ayrımsızdır; `SentAt`'i son 24 saatte olan bütün `Sent` satırlar `Undelivered` ve `RecipientError` olur, `SentAt` kalır (`08 §2.2.3`).
   4. Kanal hâli kaydı etkilenmez; `Undelivered` satıra ikinci uygulama bir şey değiştirmez (`08 §2.2.3`).
   5. Başarısız tur boş geçer, kanal hâline yazılmaz, imleç saklanmaz; hata kayda yazılır ve satır başarısız olmaz (`08 §2.2.3`; `05 §4.3.4`).
   6. İş türünün tek bekleyen satırı vardır; ilgili kayıt kimliği boştur (`05 §5.2`; `08 §2.2.3`).
@@ -4158,8 +4158,8 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: on beş dakikalık yineleme sahte saatle.
-  - KK2: şikâyet adresi işlenmez.
-  - KK3: büyük harfli adres eşleşir.
+  - KK2: `StartDate` 24 saat öncesidir; şikâyet adresi işlenmez; ikinci sayfadaki adres işlenir.
+  - KK3: büyük harfli adres eşleşir; `SentAt`'i 24 saatten eski satır değişmez.
   - KK4: kanal hâli değişmez, ikinci uygulama etkisiz.
   - KK5: 429 turu boş geçer.
   - KK6: ikinci bekleyen satır yok.
@@ -4183,7 +4183,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Doğrulama kontrol listesi:**
   - KK1: kod değişimi gövdesi, `userinfo` çağrısı yok.
   - KK2: ayarsız çağrı yok.
-  - KK3: adresler sabit, istekte yasak alan yok; yeniden doğrulama isteğinde `claims` `auth_time`'ı ister.
+  - KK3: adresler sabit, istekte yasak alan yok; yeniden doğrulama isteğinde `claims` `auth_time`'ı ister; `max_age` yalnız DV-26 doğruysa istekte.
   - KK4: yedi belirteç durumu.
   - KK5: önbellek; bilinmeyen `kid` çatının yenilemesiyle çekilir, elle yeniden deneme yok; yine yoksa imza tutmaz.
   - KK6: `sub` sonuçta ve kayıtta yok; `nonce` sonuçta var.
@@ -4464,7 +4464,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   3. `StartPayment` ödeme sayfasını 200 verir: sağlayıcı formu çerçevede açılır; jeton saklanmaz, her açılış yeni jeton ister (`07 UC-29`; `08 §2.1.4`).
   4. Çerçeve izni yalnız bu sayfada, yalnız sağlayıcı adresi ve `'self'` için açılır; `form-action` sağlayıcı adresini taşımaz (`07 UC-29`; `05 §6.5.4`).
   5. Sağlayıcıya bağlanılamazsa sipariş iptal edilir, 303 → `/sepet` ve sepet bir kez söyler; L-7'ye sayılmaz (`07 UC-29`; K-1183, K-1200).
-  6. Sipariş artık Alındı + Bekliyor değilse UC-28'in yönlendirmesi; havale siparişinde teyit ekranı (`07 UC-29`).
+  6. Sipariş Alındı + Bekliyor değilse UC-28'in yönlendirmesi; havalede ve ikinci jeton reddinde iptalsiz teyit ekranı (`07 UC-29`).
   7. `GET /odeme/donus/{anahtar}` çerçevesiz tek cümlelik geçiş sayfasıdır; durum yazmaz, oturum çerezine dayanmaz (`07 UC-30`; K-1259 (1)).
   8. Geçiş sayfası üst pencereyi `/siparis/erisim/{anahtar}`'a götürür — betik, betiksizde `target="_top"` bağlantısı; `frame-ancestors 'self'` yalnız bu yanıttadır (`07 UC-30`).
   9. Anahtar biçimi tutmuyorsa 404 döner; geçersiz anahtarın 404'ünü sipariş sayfası verir (`07 UC-30`).
@@ -4476,7 +4476,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: jeton kayıtta yok; her açılışta yeni.
   - KK4: başlıkta çerçeve izni yalnız bu sayfada.
   - KK5: iptal, işaret, tek mesaj, L-7.
-  - KK6: yönlendirme ve havale dönüşü.
+  - KK6: yönlendirme, havale ve ikinci ret dönüşü.
   - KK7: geçiş sayfası durum yazmaz.
   - KK8: betikli ve betiksiz geçiş.
   - KK9: biçim 404.
@@ -4602,7 +4602,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   1. `GET /giris` e-posta, şifre, "beni hatırla", Google, şifremi unuttum ve kayıt bağlantılarını verir; Google tanımsızsa düğme yoktur; kapı kapalıyken giriş çalışır (`07 UC-54`).
   2. `returnUrl` yerel yol denetiminden geçerse dönüş yeridir; giriş, kayıt, sıfırlama, iniş ekranıysa ya da yoksa ana sayfaya dönülür (`07 UC-55`; `04` 3.6.1…3.6.3).
   3. `SignIn` her girişte yeni oturum anahtarı açar, sepetler birleşir, dönülen sayfa eklenenleri bir kez söyler; "beni hatırla" uzun (Z-5), değilse kısa (Z-4) oturum açar (`07 UC-55`; `05 §6.1.1`).
-  4. UC-55 422: boş alan, biçim; yanlış e-posta ya da şifre hesabı ele vermeyen tek mesajdır, hesap yokken de sahte özete karşı doğrulanır; 429 (L-1) nötrdür; hesap kilitlenmez, tanınan tarayıcı engellenmez (`07 UC-55`).
+  4. UC-55 422: boş alan, biçim; yanlış e-posta ya da şifre hesabı ele vermeyen tek mesaj, hesap yokken sahte özetle doğrulanır; 429 (L-1) nötr, hesap kilitlenmez; tanınan tarayıcı e-posta ekseninde engellenmez (`07 UC-55`).
   5. Doğrulanmamış hesapta oturum açılmaz; doğrulama beklenir, yeniden gönderim T514'ün servisini çağırır (`07 UC-55`, `UC-49`).
   6. `StartSocialLogin` (`/giris`, `/kayit`) 303 → Google adresi verir; akış çerezi `state`, `nonce` ve PKCE taşır; Google tanımsızsa 422 (`07 UC-50`; `05 §6.7.12`).
   7. `GET /giris/google`: doğrulanmış e-posta eşleşen hesaba girer, bağ yazılır (adres için yetkili ya da hesap bağlıysa); eşleşme yoksa kapı açıkken şifresiz hesap açılır, bekleyen kayıt devralınmaz, silinir; yetkisizde `GoogleLinkConfirmation` teyidi gider, oturum açılmaz (`07 UC-51`; `06 §4.36`).
@@ -4627,7 +4627,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. `GET /sifre-sifirlama` e-posta alanını verir; müşteri oturumu açıksa alan hesabın e-postasıyla dolar ve e-posta adreste taşınmaz (`07 UC-56`).
   2. `RequestPasswordReset` 303 → `/sifre-sifirlama` nötr hâliyle döner; yanıt adresin kayıtlı olup olmamasına göre değişmez (`07 UC-57`; `02 §8.1.4`).
-  3. Doğrulanmış hesapta `PasswordReset` bağlantısı (Z-2) ve e-postası yazılır; şifresiz hesapta bağlantı şifre belirlemedir; kayıtsız adrese e-posta gitmez (`07 UC-57`).
+  3. Doğrulanmış hesapta `PasswordReset` bağlantısı (Z-2) ve e-postası yazılır; şifresiz hesapta bağlantı şifre belirlemedir; kayıtsız adrese ve bekleyen kayda e-posta gitmez (`07 UC-57`).
   4. UC-57 422: boş ya da biçim; 429 (L-2) nötr mesajdır; her istek kaydedilir (`07 UC-57`).
   5. `GET /sifre-sifirlama/{anahtar}` geçerli bağlantıda kurma adımını açar; kullanılmış, dolmuş, yenilenmiş ya da tanınmayan bağlantı adımı açmaz (`07 UC-58`).
   6. `ResetPassword` şifreyi kurar, bağlantıyı tek koşullu güncellemeyle tüketir, hesabın bütün oturumlarını siler, oturum açmaz (`07 UC-59`; `05 §6.1.2`).
@@ -4654,10 +4654,10 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `09` §3.4, §8, §15 (§15.1, §15.4), §16 (§16.2); `07 UC-63`…`UC-69`; `04` E-25; `03 §3.4`, §9.3, §9.4; `02 §3.13.10`, §3.13.14, §3.13.21, §3.15.6; `10` KP-27, KP-29
 - **Kabul kriterleri:**
   1. `GET /hesap` beş bölümü verir; oturum yoksa 302 girişe gider (`07 UC-63`).
-  2. İşlemin formu yalnız oturumun izni o işlem içinse ve değerin özeti oturum kaydındakiyle aynıysa açık gelir; tutmayan parametre yok sayılır; değer yok ya da tutmuyorsa üç işlem 303 → yeniden doğrulama verir (`07 UC-63`; `05 §6.1.5`; K-971).
+  2. İşlemin formu yalnız oturumun izni o işlem içinse ve değerin özeti oturumdakiyle aynıysa açık gelir; tutmayan parametre yok sayılır; değer yok ya da tutmuyorsa şifre, e-posta ve silme 303 → yeniden doğrulama (`07 UC-63`; `05 §6.1.5`; K-971).
   3. Geri alma bağlantısı açıkken e-posta değiştirme ve hesap silme sebep ve bitiş tarihiyle kapalıdır; şifresiz hesapta şifre belirleme bağlantısı sunulur (`07 UC-63`; `02 §3.15.6`).
   4. `ChangeName` adı yazar, 303 → `/hesap`; boş ad 422'dir; geçmiş siparişin alıcı adı değişmez (`07 UC-64`; `02 §3.13.21`).
-  5. `ChangePassword` değeri tek koşullu güncellemeyle tüketir, değiştiren dışındaki oturumları ve tarayıcı işaretlerini siler (`07 UC-65`; K-695).
+  5. `ChangePassword` değeri tek koşullu güncellemeyle tüketir, öteki oturumları siler, öteki tarayıcıların işaretleri düşer (`07 UC-65`; K-695).
   6. UC-65: P-17 altı ya da yaygın şifre 422'dir ve değeri tüketmez; şifresiz hesapta işlem sunulmaz (`07 UC-65`).
   7. `ChangeEmail` bekleyen değişikliği yazar, öncekinin yerine geçer, yeni adrese bağlantı gönderir; hesap eski adresle çalışır (`07 UC-66`; K-734).
   8. UC-66 422: biçim, doğrulanmış başka hesabın adresi, açık geri alma bağlantısı; 429 (L-9) yalnız yerine geçen istekte; hatada değer tüketilmez (`07 UC-66`; K-1134).
@@ -4799,7 +4799,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   4. Aynı adresin önceki daveti aynı işlemde geçersiz olur; L-9'a girmez; 422: biçim, yönetici hesabının adresi (`07 UC-175`; K-661, K-820).
   5. `RevokeAdminInvitation` bağlantıyı geçersiz kılar, iz yazar, bildirim göndermez; kullanılmış davette 303 yazmaz; satır yoksa 404 (`07 UC-176`; K-660).
   6. `RemoveAdmin` onaysızda onay hâlini 200 verir ve yazmaz; onaylıda 303; 422: kendi satırı, son yönetici; 404: yok (`07 UC-177`; K-662, K-814).
-  7. Kilidin altında önce işlemi yapanın hâlâ yönetici olduğu, sonra son yönetici denetlenir; yönetici değilse hiçbir şey yazılmaz, istek girişe iner (`07 UC-177`).
+  7. Kilidin altında önce işlemi yapanın hâlâ yönetici olduğu, sonra son yönetici denetlenir; yönetici değilse hiçbir şey yazılmaz, istek 303 ile girişe iner (`07 UC-177`).
   8. Kaldırma tek işlemde hesabı, oturumları ve bağlantıları siler, davetlerini geçersiz kılar; iz, `Admin` imha kaydı ve F-6 yazılır (`07 UC-177`).
   9. `GET /panel/islem-izi` satırları en yeni önce, sayfada 25 verir; satırda işlem anındaki ad ve e-posta vardır, müşterinin kişisel verisi yoktur; kaldırılmış yönetici seçilir (`07 UC-106`; K-1067).
   10. Tarih ve yönetici süzgeci birlikte uygulanır; ileri ya da ters aralıkta alan mesajı çıkar, süzgeç uygulanmaz, durum 200'dür; boş sonuç süzgeci kaldırma yolunu taşır (`07 UC-106`).
@@ -4965,13 +4965,13 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   4. `RecordWithdrawal` kalem ve adetle cayma yazar; `RecordLateDeliveryTermination` kalem ve adet almaz, teslim edilmemiş fiziksel kalemlerin hepsine düşer (`07 UC-130`).
   5. UC-130 422: kalem ya da adet geçersiz, tarih ileri ya da süre dışı, IBAN hatası, onay kutusu ya da sıra cevabı yok, fesih aralık dışı (`07 UC-130`; K-709).
   6. `RemoveOrderItem` ödenmiş siparişte kalem ya da adet çıkarır; kart hattında onay ister, havalede istemez; dijital, ödenmemiş ve aralık dışı kalem 422 (`07 UC-138`).
-  7. `ReceiveReturn` her teslim almayı ayrı kaydeder, geri ödemeyi başlatmaz, "mal dönmedi" kalemi yeniden açar; sınır dışı tarih ve adet 422; `RejectReturn` yalnız koşullu istisna kaleminde ve onayla çalışır (`07 UC-140`).
+  7. `ReceiveReturn` her teslim almayı ayrı kaydeder, geri ödemeyi başlatmaz, "mal dönmedi" kalemi yeniden açar; sınır dışı tarih ve adet 422; `RejectReturn` yalnız koşullu istisnada, onayla (`07 UC-140`).
   8. `RestockReturn` teslim alınan adedi stoğa ekler; ikinci ekleme, ret, silinmiş varyant 422 (`07 UC-141`).
   9. `CloseNotReturned` Z-42 geçince ulaşmamış adedi geri ödemesiz kapatır; Z-42 öncesi, geçersiz adet 422 (`07 UC-142`).
-  10. `ResolveDefectClaim` Açık talebi Çözüldü, `ReopenDefectClaim` Z-18 içinde Açık yapar, yeni talep açmaz; aksi 422 (`07 UC-144`, `UC-145`).
+  10. `ResolveDefectClaim` Açık talebi Çözüldü, `ReopenDefectClaim` Z-18 içinde Açık yapar, durum geçmişiyle; yeni talep açmaz; aksi 422 (`07 UC-144`, `UC-145`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: dört uyarı, onay hâli.
+  - KK1: uyarılar, onay hâli.
   - KK2: dört 422 sebebi.
   - KK3: iki hat ve ayırma.
   - KK4: cayma ve fesih alanları.
@@ -4996,7 +4996,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   7. `ProcessAmountBasedRefund` boş, sıfır ya da geri ödenmemiş tutarı aşan tutarı 422 reddeder; havalede IBAN yoksa 422; kapatılmış kalem kapalı kalır (`07 UC-133`; K-596, K-1078).
   8. `RequestRefundIban` sebebi sunucu yazar, yönetici IBAN girmez; kalem seçilmemiş ya da havale hattında değilse 422 (`07 UC-134`; K-1201).
   9. `RetryCardRefund` onayla yeni iade ister; sonuç beklenirken ya da IBAN girilmişse 422; ters ibraz uyarısı görünür (`07 UC-135`; K-940, K-705).
-  10. `SwitchRefundToBankTransfer` `CardRefundFailed` sebepli IBAN isteği açar, B-14 gönderir; `MarkCardRefundFailed` işareti çevirir, sorguyu durdurur, bildirim göndermez; sonuç beklenirken ilki, beklenmezken ikincisi 422'dir; geç "gerçekleşti" işlenmez (`07 UC-136`, `UC-137`; K-978).
+  10. `SwitchRefundToBankTransfer` `CardRefundFailed` sebepli IBAN isteği açar, B-14 gönderir, sonuç beklenirken 422'dir; `MarkCardRefundFailed` işareti çevirir, sorguyu durdurur, bildirim göndermez, sonuç beklenmezken 422'dir; geç "gerçekleşti" işlenmez (`07 UC-136`, `UC-137`; K-978).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: yedi bağdan biri; 404.
@@ -5183,7 +5183,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   2. `SavePaymentMethods` havalenin açılmasını ve ilk IBAN'ı onaysız yazar; dolu IBAN değişimi ve havale kapatma onaysızda onay hâlini 200 verir (`07 UC-167`; K-1194).
   3. UC-167 422: IBAN boşken havale açma, açıkken IBAN boşaltma, bozuk IBAN; 409: sürüm; yeni IBAN yeni siparişe işler (`07 UC-167`; K-817).
   4. IBAN girilmesi ve değişmesi bütün yöneticilere bildirim gönderir; iz eski ve yeni değeri taşır (`07 UC-167`; K-616).
-  5. `GET /panel/kargo-sureler-ve-varsayilanlar` beş bölümü ayrı sürümlerle verir; hiç il seçili değilse ve eşik boşsa bölüm söyler; her bölüm eski sürümle 409, iz yazar; ücret, il, kargoya verme süresi ya da iade adresi değişince iki metnin sürümü artar (`07 UC-101`, `UC-168`…`UC-172`).
+  5. `GET /panel/kargo-sureler-ve-varsayilanlar` beş bölümü ayrı sürümle verir; hiç il seçili değilse ve eşik boşsa bölüm söyler; her bölüm eski sürümle 409, iz yazar; ücret, il, kargoya verme süresi, iade adresi değişince Ön Bilgilendirme Formu ile sözleşmenin sürümü artar (`07 UC-101`, `UC-168`…`UC-172`).
   6. `SaveShippingFee` ücreti ve eşikleri yazar; negatif, fazla ondalıklı, üst sınırı aşan tutar ve boş ücret 422'dir (`07 UC-168`; K-1214).
   7. `SaveDeliveryProvinces` il satırlarını tek işlemde yazar; kapalı liste dışı il 422; hiç il seçmek engellenmez; betiksiz yolda "Tümünü seç" yoktur (`07 UC-169`).
   8. `SavePeriods` iki süreyi yazar; P-5'in üst, P-7'nin alt ya da üst çitini aşan süre 422'dir (`07 UC-170`).
@@ -5200,7 +5200,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK7: il 422; seçimsiz kayıt.
   - KK8: iki çit.
   - KK9: çit; oran sabit.
-  - KK10: 422; beyan adresi sabit; onay hâli iade malı beklenen kalem sayısını söyler.
+  - KK10: 422; beyan adresi sabit; onay hâli: beklenen iade sayısı.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T537: Vitrin çerçevesinin modeli: marka, menü, duyuru şeridi, hesap alanı, sepet sayısı
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.34*
+*Shopfolio — Implementation Plan v0.35*

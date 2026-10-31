@@ -258,6 +258,26 @@ Plan 6 doğrulayıcı (32 bulgu) kurdu; **6'sı koştu**, bekçi olayı yok (say
 
 **İlerleme:** 435 bulgudan **435'i hükme bağlandı** (2a 55 + 2b 87 + 2c 94 + 2d 82 + 2e 85 + 2f 32): **171 doğru · 180 kısmen · 84 çürük**; **661 şartname çifti** uygulandı (71 + 126 + 171 + 133 + 120 + 40). Yeniden doğrulamada bekleyen **18 bulgu** KD-audit-2r'ye kaldı: #336 (KD-audit'ten, Orta → Yüksek) + 17 yükselen (#437, #350, #210, #12, #134, #186, #467, #469, #322, #261, #459, #462, #174, #452, #183, #71, #54). Kapılar: `11_matris_kapsama.py` 1.501/1.501 sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214.
 
+### Yeniden doğrulama — KD-audit-2r
+
+Yeniden doğrulamaya #336 (KD-audit'ten, Orta → Yüksek) ve KD-audit-2'de yükselen 17 bulgu girdi (18); yeni kademede doğrulandı. **14 doğrulayıcı koştu**, hepsi tek dalgada, bekçi olayı yok (sayaç 14/20). Bu, KD-audit-2'nin son adımıdır. Doğrulamasız uygulama yoktur.
+
+| Doğrulayıcı | Model | Kademe | Modül | Bulgu |
+|---|---|---|---|---|
+| 1, 3, 6, 10 | Opus / high | Yüksek tek | Bildirim | #12, #134, #186, #467 |
+| 2, 5 | Opus / high | Yüksek tek | Yönetim ve işlem izi | #71, #183 |
+| 4, 8, 9 | Opus / high | Yüksek tek | Ortak altyapı | #174, #452, #459 |
+| 7 | Opus / high | Yüksek tek | İptal, cayma ve iade | #336 |
+| 11 | Opus / high | Yüksek tek | Ayarlar | #469 |
+| 12 | Opus / high | Orta 2'li | Ortak altyapı | #54, #462 |
+| 13 | Opus / high | Orta 4'lü | Katalog + Kurumsal içerik + Sepet ve sipariş + İptal, cayma ve iade | #261, #322, #210, #350 |
+| 14 | Opus / high | Orta tek | Ödeme | #437 |
+| **Toplam** | | | | **14** |
+
+**Hükümler (18 bulgu):** 11 doğru · 6 kısmen · 1 çürük (#336: zaten karşılandı). **Uygulanan:** 58 şartname çifti (ham 62; #12 → #134 ve #54 → #174 birleştirildi). Liste: `C:/Users/teknodeveloper/.claude/helper-state/shopfolio/kd-audit-2/2r/uygulanan.md` (yardımcı durum dizini). **Yükselen:** yok. **Seviyesi düşen:** #350 (Orta → Düşük), uygulandı. **Blok bayt sınırı:** T306 ve T307 kısaltıldı (bölme yok; K-1470 (4)'te kayıp listesi). **KARAR:** #459 — T03, T01'den önce yürür (öneriyle; K-1470 (1); K-1446 (1)-(2)'yi geçersiz kılar); §7.2 `11_geri_yon.py --yaz` ile yeniden türetildi. ÜST DOKÜMAN: yalnız karar kaydı (K-1446'ya geri atıf).
+
+**İlerleme (KD-audit-2'nin sonu):** 435 bulgunun tamamı hükme bağlandı (2a 55 + 2b 87 + 2c 94 + 2d 82 + 2e 85 + 2f 32): 171 doğru · 180 kısmen · 84 çürük; ayrıca 18 yeniden doğrulama (2r) sonuçlandı: 11 doğru · 6 kısmen · 1 çürük. Uygulanan şartname çifti 661 + 58 = **719**. Kalite döngüsünün audit kısmı kapandı; **sıradaki adım KD-deep** (deep review; girdi: K-1459, K-1463 (T374), K-1464 (3), K-1465 (3), K-1467 (3), K-1468 (3), K-1469 (3) söz kayıpları). Kapılar: `11_matris_kapsama.py` sorun 0 · `11_task_blok_denetle.py --tam` 0 · `11_yazim_kapanis.py` 0 · `11_geri_yon.py . --denetle` 214 = 214.
+
 ### Sınırlar
 
 - **Uygulanmayan 435 bulgu** gövdede hâlâ bulunabilir; bu raporun "temiz" okunmaması gerekir: audit yalnız 44 bulguyu hükme bağladı.

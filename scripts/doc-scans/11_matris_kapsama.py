@@ -29,7 +29,7 @@ root = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
 out_path = sys.argv[2] if len(sys.argv) > 2 else None
 
 # Matris oturumu kendi ailesini ekler (alt bolum haritasi: 11 7).
-DOLU = ["06", "07", "08", "04", "03", "02", "05"]
+DOLU = ["06", "07", "08", "04", "03", "02", "05", "09", "10", "devir"]
 # Ailenin yerlestigi alt bolum (K-1404, K-1412).
 ALT_BOLUM = {"06": "7.1.1", "07": "7.1.2", "08": "7.1.3", "04": "7.1.4", "03": "7.1.4",
              "02": "7.1.5", "10": "7.1.5", "05": "7.1.5", "09": "7.1.5", "devir": "7.1.5"}
@@ -169,8 +169,38 @@ def beklenen_05():
     return mk + sub, {"MK karari": len(mk), "alt bolum": len(sub)}
 
 
+def beklenen_09():
+    """O5 2/2: 09 -- `## n.` bolumu (n = 1..25); kimlik `09:§n`."""
+    d = load("09")
+    b = []
+    for l in d:
+        m = re.match(r"## (\d+)\. ", l)
+        if m:
+            b.append("09:§" + m.group(1))
+    return b, {"bolum": len(b)}
+
+
+def beklenen_10():
+    """O5 2/2: 10 -- KP satiri (§2), KD satiri (§3), alt bolum (§1, §3, §4 `###`; yalniz §4.1 ve §4.2)."""
+    d = load("10")
+    kp = ["10:" + m.group(1) for _, l in bolum(d, 2) for m in [re.match(r"\| (KP-\d+) \|", l)] if m]
+    kd = ["10:" + m.group(1) for _, l in bolum(d, 3) for m in [re.match(r"\| (KD-\d+) \|", l)] if m]
+    sub = ["10:§" + x for x in alt_bolumler(d, (1, 3, 4))]
+    return kp + kd + sub, {"KP": len(kp), "KD (negatif denetim)": len(kd), "alt bolum": len(sub)}
+
+
+# 11_devir_esle.py A-F tablosu (11 22.1): 9 karar + 5 park maddesi + 4 govde anmasi + D-01 = 19.
+DEVIR = (["devir:K-%d" % n for n in (423, 424, 1302, 1354, 1355, 1356, 1357, 1358, 1391)]
+         + ["devir:P8.%d" % n for n in range(1, 6)]
+         + ["devir:04-1948", "devir:09-117", "devir:09-2249", "devir:12-177", "devir:D-01"])
+
+
+def beklenen_devir():
+    return list(DEVIR), {"karar (A)": 9, "park maddesi (B)": 5, "govde anmasi (F)": 4, "D-01": 1}
+
+
 BEKLENEN = {"06": beklenen_06, "07": beklenen_07, "08": beklenen_08, "04": beklenen_04, "03": beklenen_03,
-            "02": beklenen_02, "05": beklenen_05}
+            "02": beklenen_02, "05": beklenen_05, "09": beklenen_09, "10": beklenen_10, "devir": beklenen_devir}
 
 # ------------------------------------------------------------ matris satirlari
 plan_f = sorted((root / "Docs").glob("11_*.md"))[0]
@@ -191,6 +221,12 @@ def kimlik(hucre):
     mm = re.match(r"^(05):(MK-\d+)\b", h)
     if mm:
         return "%s:%s" % (mm.group(1), mm.group(2))
+    mp = re.match(r"^(10):((?:KP|KD)-\d+)\b", h)
+    if mp:
+        return "%s:%s" % (mp.group(1), mp.group(2))
+    mv = re.match(r"^(devir):(K-\d+|P8\.\d|D-01|\d\d-\d+)\b", h)
+    if mv:
+        return "%s:%s" % (mv.group(1), mv.group(2))
     mu = re.match(r"^(07) (UC-\d+)\b", h)
     if mu:
         return "%s:%s" % (mu.group(1), mu.group(2))

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.46** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.47** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -340,7 +340,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: budama komutu `--max-unused 0` ile koşar (komut satırı testi); bağlı yollar kapsamla aynı, sır ve ayar dosyası yok.
   - KK4: durum dosyası her sonuç için şemaya uyar.
   - KK5: anahtarlar ayrı sır dosyalarıdır; kova kuralı, anahtar yetkisi ve anahtarla eski sürüm silme ile önek dışına yazmanın reddi denemesi runbook adımıdır, kurulumda koşar.
-  - KK6: saklama ayarı otuz gün.
+  - KK6: pgBackRest saklaması zaman tipli otuz gün, sayı tipli değil; kova kuralı yalnız eski sürümü siler.
   - KK7: runbook'taki prova adımı dış depo seçimini, dosya örneğini ve kural denetimini içerir; kaydın alanları depo adı, süre ve dönülen son andır.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -2602,7 +2602,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK5: üç adımlı sıra sınanmış örneklerle doğru.
   - KK6: 12,345 -> 12,35; orantılı bölümde parçalar aşağı, artık en büyük parçada.
   - KK7: üç ondalık ve 0,00 TL reddedilir.
-  - KK8: fiziksel üründe ülke zorunlu, dijitalde isteğe bağlı; birim seçili üründe net miktarsız ya da sıfır miktarlı varyant reddedilir, birim fiyat türetilir.
+  - KK8: fiziksel üründe ülke zorunlu, dijitalde isteğe bağlı; ürün sayfası ülkeyi fizikselde ve dolu dijitalde gösterir, boş dijitalde ülke satırı yok; birim seçili üründe net miktarsız ya da sıfır miktarlı varyant reddedilir, birim fiyat türetilir.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T337: İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.46*
+*Shopfolio — Implementation Plan v0.47*

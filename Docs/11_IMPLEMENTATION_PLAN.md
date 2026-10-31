@@ -4832,6 +4832,200 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK10: üç 422 ve boş küme; 500'de iz yok.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+#### T525: Ürün listesi ve ürün formu, görsel yükleme (E-32, E-33)
+- **Bağımlılık:** T521, T540, T541, T542, T543, T544, T545
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §16 (§16.2); `07 UC-87`, `UC-88`, `UC-114`…`UC-117`; `04` E-32, E-33; `03 §8.1`; `02 §3.6`, §3.9, §3.11; `10` KP-39, KP-40
+- **Kabul kriterleri:**
+  1. `GET /panel/urunler` ürünleri en yeni önce verir; arama taslak ve arşivi de bulur; fiyat aralığı ve stok durumu sunucunun hesabıdır (`07 UC-87`; K-737).
+  2. `GET /panel/urunler/yeni` ve `/{iç anahtar}` formu verir; var olan form `Version`, gösterilen stok, ayrılmış adet ve yayın kapısı eksiklerini taşır (`07 UC-88`; K-653).
+  3. `SaveProduct` ürünü, varyantları, galeriyi ve indirimi tek işlemde yazar; yeni ürün ve varyant Taslak doğar; açıklama kapalı biçim setiyle süzülür (`07 UC-114`).
+  4. Stok ya da kontenjan gösterilen değere karşı kendi koşullu güncellemesiyle yazılır; fiyat değişikliği fiyat geçmişine girer; ikisi de işlem izine girmez (`07 UC-114`; K-980).
+  5. UC-114 422: alan kuralı, yayın kapısını bozan kayıt, indirim sınırları, ayrılmış adedin altı, stok kodu çakışması, silinmiş görsel ya da kategori (`07 UC-114`; K-1171 (4)).
+  6. UC-114 409: sürüm ya da gösterilen stok farklıdır; ret hiçbir şey yazmaz, sıra 404, 422, 409'dur (`07 UC-114`; K-800).
+  7. `ChangeProductPublishStatus` ve `ChangeVariantPublishStatus` hedef durumu mutlak yazar; ilk yayın adresi sabitler, vitrinden kalkan kalemi sepetten çıkarır, iz yazar (`07 UC-115`).
+  8. UC-115 422: yayın kapısı eksik, son Yayında varyant, yayındaki üründe dosyasız ya da fiyatsız varyantı yayına alma (`07 UC-115`).
+  9. `DeleteProduct` ve `DeleteVariant` onaysızda açık sipariş sayısıyla 200 verir; onaylıda siler; yayındaki ürünün son Yayında varyantı 422'dir (`07 UC-116`; K-674).
+  10. `UploadImage` kaydı yazmadan formu yeni görselle 200 döner; tür içerikten okunur; P-22, P-23, P-24 aşımı 422, gövde tavanı 413'tür (`07 UC-117`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: arama, süzgeç, fiyat aralığı.
+  - KK2: yeni ve var olan form.
+  - KK3: tek işlem; Taslak doğum.
+  - KK4: koşullu stok; fiyat geçmişi.
+  - KK5: 422 sebepleri ayrı testte.
+  - KK6: 409 ve ret sırası.
+  - KK7: mutlak durum, adres, sepet.
+  - KK8: üç 422 sebebi.
+  - KK9: onay hâli; son varyant.
+  - KK10: üç ret; 413.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T526: Kategori ağacı ve kuponlar (E-34, E-35)
+- **Bağımlılık:** T521, T540, T541, T543, T544, T545
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §16 (§16.2); `07 UC-89`, `UC-90`, `UC-118`…`UC-122`; `04` E-34, E-35; `03 §8.1`; `02 §3.4`, §3.10; `10` KP-41, KP-43
+- **Kabul kriterleri:**
+  1. `GET /panel/kategoriler` en çok üç seviyeli ağacı aynı seviyede alfabetik verir; üçüncü seviyede "alt kategori ekle" yoktur; boş ağaç boş hâl satırıdır (`07 UC-89`; K-805).
+  2. Düğümün ürün ve alt kategori sayısı ile yayında ürünü yoksa menüde görünmediği satırı sunucunun hesabıdır (`07 UC-89`; `02 §3.28.6`).
+  3. `CreateCategory` ad ve üst kategoriyle açar; adres adından üretilip sabitlenir, çakışırsa sayı eklenir; ağacın danışma kilidiyle sıralanır (`07 UC-118`; K-1089).
+  4. UC-118 422: ad boş, üst kategori üçüncü seviyede; 404: üst kategori yok; tekrar gönderim ikinci kategori açar (`07 UC-118`; K-1191).
+  5. `RenameCategory` adı değiştirir, adres değişmez; boş ad 422, yok 404 (`07 UC-119`).
+  6. `MoveCategory` sınırları kilidin altında yeniden denetler; üç seviyeyi aşan ya da kendi alt dalına giden taşıma 422, yok 404 (`07 UC-120`).
+  7. `DeleteCategory` onaysız siler; içinde ürün ya da alt kategori varsa 422 engelleyenlerin sayısıyla ve taşımayı önerir; yok 404 (`07 UC-121`; K-799).
+  8. `GET /panel/kuponlar` en yeni önce verir; satırın hâli tarihten ve kalan haktan okunur; kullanılmış ve ayrılmış hak salt okunurdur; yabancı anahtar 404 (`07 UC-90`; K-654).
+  9. `SaveCoupon` yazar; değişiklik yalnız yeni siparişlere işler; bitiş öne çekilince yeni siparişte kupon kabul edilmez, ayrılmış haklar kalır; iz yazılmaz (`07 UC-122`; K-806).
+  10. UC-122 422: boş ya da harf ayrımsız çakışan kod, sıfır değer, %100, asgari tutar kuralları, ters tarih, kullanımın altında adet; 409: sürüm (`07 UC-122`; K-799, K-800).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: sıra, seviye sınırı, boş ağaç.
+  - KK2: sayılar ve menü satırı.
+  - KK3: adres, çakışma, kilit.
+  - KK4: iki ret, 404.
+  - KK5: ad değişir, adres sabit.
+  - KK6: iki taşıma reddi.
+  - KK7: dolu kategori silinmez.
+  - KK8: dört hâl; yabancı 404.
+  - KK9: yeni siparişe işler; bitiş çekme.
+  - KK10: 422 sebepleri ayrı testte; 409.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T527: Sipariş listesi, sipariş ayrıntısı ve durum geçişleri (E-36, E-37)
+- **Bağımlılık:** T520, T540, T541, T542, T543, T544, T545
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §9, §16 (§16.2); `07 UC-91`, `UC-92`, `UC-123`…`UC-128`; `04` E-36, E-37; `03 §8.2`; `02 §3.20.7`, §3.20.11; `10` KP-46, KD-13
+- **Kabul kriterleri:**
+  1. `GET /panel/siparisler` arama (numara ya da e-posta, tam eşleşme), sipariş ve ödeme durumu süzgeçleri ile bekleyen iş süzgecini birlikte uygular; geçersiz değer süzgeci uygulamaz (`07 UC-91`).
+  2. Sıra en yeni önce, süreli süzgeçte kalanı en az olan önce, süresi aşılmış en başta; kendiliğinden iptal edilmiş ödenmemiş sipariş görünür (`07 UC-91`).
+  3. `GET /panel/siparisler/{iç anahtar}` bölümleri, işaretleri ve açık işlemleri verir; birincil düğme hattın sıradaki adımıdır; yabancı anahtar 404 (`07 UC-92`; K-803).
+  4. Kalem başına açık adet, süreler, kalanı ve bekleyen geri ödeme tutarı sunucunun hesabıdır; adres ve e-posta geçmişi ile iç not yalnız paneldedir (`07 UC-92`; K-788, K-1188 (3)).
+  5. `MarkPaid` onaysızda donmuş IBAN ve tutarla 200 verir; onaylıda ayırmayı kesinleştirir, kuponu kullanılmış sayar, kalemleri sepetten çıkarır; açık değilse 422 (`07 UC-123`).
+  6. `MarkShipped` ve `MarkReshipped` kargo şirketi ve takip numarasını ya da araç beyanını ister, kalem seçtirmez; yalnız açık fiziksel kalemleri gönderir; eksikse 422 (`07 UC-124`, `UC-125`; K-590).
+  7. `MarkDelivered` teslim tarihini yazar; ileri ya da kargo gününden önceki tarih 422'dir; beyanla çakışan tarih sıra sorusu ister (`07 UC-126`; K-554, K-608).
+  8. `MarkDeliveryFailed` açık kalem kalmadıysa siparişi Teslim edildi'ye geçirir; `CloseDeliveryFailed` iptal kaydı ve geri ödeme açmaz (`07 UC-127`, `UC-128`; K-717).
+  9. Hepsi `Version` taşır; eşzamanlı ikinci gönderim sürüme takılır ve hiçbir şey yazmaz (`07 UC-123`…`UC-128`).
+  10. Her geçiş işlem izine yazılır (`07 UC-123`…`UC-128`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: arama, üç süzgeç, geçersiz değer.
+  - KK2: üç sıra kuralı.
+  - KK3: birincil düğme; yabancı 404.
+  - KK4: sunucu hesapları.
+  - KK5: onay hâli; Ö1 yan etkileri; 422.
+  - KK6: iki işleyici; eksik bilgi 422.
+  - KK7: üç tarih durumu.
+  - KK8: Teslim edildi'ye geçiş; kapatma.
+  - KK9: eşzamanlı iki gönderim.
+  - KK10: iz satırı.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T528: Sipariş ayrıntısı: firma iptali, bildirim kaydı, kalem çıkarma, iade malı ve ayıp talebi (E-37)
+- **Bağımlılık:** T527, T529, T540, T541, T543, T544
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §9, §16 (§16.2); `07 UC-129`, `UC-130`, `UC-138`, `UC-140`…`UC-142`, `UC-144`, `UC-145`; `04` E-37; `03 §5.3`, §8.3; `10` KP-47
+- **Kabul kriterleri:**
+  1. `CancelOrderByCompany` ödeme beklerken siparişin tamamını, ödemeden sonra kalem ve adedi sebeple iptal eder; onaysız ilk gönderim uyarılı onay hâlini 200 verir, onaylı 303 (`07 UC-129`; K-797).
+  2. UC-129 422: sebep ya da "diğer"de açıklama yok, kalem seçilmemiş, adet geçersiz ya da açık adedi aşıyor, kalem iptale açık değil; istek bütünüyle uygulanmaz (`07 UC-129`).
+  3. İptal ödenmemişte ayırmayı bırakır, kuponu geri verir; ödenmişte iptal kaydı yazar, adedi stoğa döndürür; kart iadesi kendiliğinden başlar, havalede IBAN istenir (`07 UC-129`).
+  4. `RecordWithdrawal` kalem ve adetle cayma yazar; `RecordLateDeliveryTermination` kalem ve adet almaz, teslim edilmemiş fiziksel kalemlerin tamamına düşer (`07 UC-130`).
+  5. UC-130 422: ileri ya da bir yıl sonrası tarih, IBAN hatası, gereken ayrı onay kutusu ya da sıra cevabı yok, Z-11 geçmemiş fesih (`07 UC-130`; K-709).
+  6. `RemoveOrderItem` ödenmiş siparişte kalemi ya da adedi çıkarır; kart hattında onay ister, havalede istemez; dijital, ödenmemiş ve aralık dışı kalem 422'dir (`07 UC-138`).
+  7. `ReceiveReturn` her teslim almayı ayrı kayıt yazar, geri ödemeyi başlatmaz, "mal dönmedi" kalemi yeniden açar; ileri ya da teslimden önceki tarih 422; `RejectReturn` yalnız koşullu istisna kaleminde ve onayla çalışır (`07 UC-140`).
+  8. `RestockReturn` teslim alınan adedi stoğa ekler; ikinci eklemede ve ret kaydında 422'dir (`07 UC-141`).
+  9. `CloseNotReturned` Z-42 geçince ulaşmamış adedi kapatır, geri ödeme yapmaz; Z-42 geçmemişse 422 (`07 UC-142`).
+  10. `ResolveDefectClaim` Açık talebi Çözüldü, `ReopenDefectClaim` Z-18 içinde Açık yapar, yeni talep açmaz; aksi 422 (`07 UC-144`, `UC-145`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: dört uyarı, onay hâli.
+  - KK2: dört 422 sebebi.
+  - KK3: iki hat ve ayırma.
+  - KK4: cayma ve fesih alanları.
+  - KK5: altı 422 sebebi.
+  - KK6: iki hat.
+  - KK7: ayrı kayıt; ret koşulu.
+  - KK8: ikinci ekleme.
+  - KK9: Z-42 sınırı.
+  - KK10: durum geçmişi.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T529: Sipariş ayrıntısı: geri ödeme işlemleri (E-37)
+- **Bağımlılık:** T527, T540, T541, T543
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §9, §11 (§11.1), §16 (§16.2); `07 UC-131`…`UC-137`; `04` E-37; `03 §5.2`, §5.3, §8.3; `02 §3.21.11`; `10` KP-47
+- **Kabul kriterleri:**
+  1. `ProcessRefund` geri ödemeyi doğuran kaydın anahtarını alır; onaysız ilk gönderim tutarı ve havalede IBAN'ı yineler (200), onaylı 303; yabancı ya da yok kayıt 404 (`07 UC-131`).
+  2. Havalede geri ödeme işlemle gönderilmiş sayılır ve IBAN silinir; IBAN yoksa 422'dir (`07 UC-131`; K-686, K-1110).
+  3. Kart hattında POST sağlayıcıyı çağırmaz; geri ödeme satırı, iş satırı, iz ve sürüm tek işlemde yazılır; sonuç sağlayıcının yanıtıyla işler (`07 UC-131`; `05 §4.6`; K-970).
+  4. İkinci gönderim ve onay hâli açıkken müşterinin IBAN'ı düzeltmesi 409'dur, güncel hâl gösterilir (`07 UC-131`; K-1188 (2)).
+  5. "Mal dönmedi" kapanışına bağlı tutar bazlı geri ödemeler sonraki teslim almalardan sırayla düşülür; hesap sunucunundur (`07 UC-131`; K-1105).
+  6. `MarkBankTransferRefundFailed` IBAN'ı siler, alanı yeniden açar, kalemi "IBAN bekleniyor"a döndürür; işlenmiş geri ödemede 422 (`07 UC-132`; K-1131).
+  7. `ProcessAmountBasedRefund` boş, sıfır ya da geri ödenmemiş tutarı aşan tutarı 422 reddeder; havalede IBAN yoksa 422; kapatılmış kalem kapalı kalır (`07 UC-133`; K-596, K-1078).
+  8. `RequestRefundIban` sebebi sunucu yazar, yönetici IBAN girmez; kalem seçilmemiş ya da havale hattında değilse 422 (`07 UC-134`; K-1201).
+  9. `RetryCardRefund` onayla yeni iade isteği yollar; sonuç beklenirken ya da IBAN girilmişse 422'dir (`07 UC-135`; K-940).
+  10. `SwitchRefundToBankTransfer` `CardRefundFailed` sebepli IBAN isteği açar; `MarkCardRefundFailed` işareti çevirir, sorguyu durdurur, bildirim göndermez; sonradan gelen "gerçekleşti" işlenmez (`07 UC-136`, `UC-137`; K-978).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: yedi bağdan biri; 404.
+  - KK2: havale hattı; IBAN yok.
+  - KK3: kart hattı sırası, sonuç.
+  - KK4: iki 409 sebebi.
+  - KK5: düşümün sırası.
+  - KK6: IBAN silinir; işlenmişte 422.
+  - KK7: dört tutar durumu.
+  - KK8: sebep sunucuda.
+  - KK9: iki ret.
+  - KK10: iki işlem; geç gelen sonuç.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T530: Sipariş ayrıntısı: adres, kargo, teslim tarihi, durum geçişi ve e-posta düzeltmeleri (E-37)
+- **Bağımlılık:** T527, T540, T541, T543, T544
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §16 (§16.2); `07 UC-146`…`UC-151`; `04` E-37; `03 §2.8`, §5.2, §6.2, §8.4; `02 §3.23.3`; `10` KP-48
+- **Kabul kriterleri:**
+  1. `CorrectAddress` teslimat ve fatura adresini ve telefonu düzeltir; eski ve yeni değer adres geçmişine yazılır, adres değeri ize girmez (`07 UC-146`; K-1136).
+  2. UC-146 422: alan kuralı; Kargoya verildi'den sonra (fiziksel kalemsizde Teslim edildi'den sonra) işlem açık değildir (`07 UC-146`).
+  3. `CorrectCarrier` takip bilgisini düzeltir; boş bilgi ya da kargoya verilmemiş sipariş 422'dir (`07 UC-147`).
+  4. `CorrectDeliveryDate` cayma penceresini ve ayıp süresini düzeltilmiş tarihten işletir, caymanın teslimden önce mi sonra mı olduğunu yeniden ayırır; teslim işaretlenmemişse 422 (`07 UC-148`).
+  5. `CorrectArrivalDate` Z-16'yı yeni tarihten işletir; ileri ya da teslimden önceki tarih 422'dir (`07 UC-149`; K-554).
+  6. `CorrectTransition` düzeltilen geçişe bağlı yeni geçiş yazar; dönülecek durumu kayıttan okur; sebep ve "diğer"de açıklama ister (`07 UC-150`).
+  7. UC-150 422: kart iadesi beklenirken yanlış iptal, yetmeyen stok ya da kontenjan, kaydı olan havale siparişinde "ödendi", kart hattında ödeme ekseni — engel mesajıyla (`07 UC-150`; K-703).
+  8. Yanlış iptalin düzeltmesi ayırmaları yeniden yapar, başlatılmış geri ödemeyi ve IBAN isteğini kapatır; dış dünyaya çıkmış sonuç geri alınmaz (`07 UC-150`; K-1056).
+  9. `CorrectOrderEmail` e-postayı ve erişim anahtarını yeniler, eski bağlantıları açmaz, hesap bağını yeni adrese göre değiştirir, gönderilmemiş bildirimlerin alıcısını yeni adres yapar (`07 UC-151`; K-1116, K-1138).
+  10. UC-151: B-1 yeni adrese, B-15 eski adrese gider, e-posta geçmişine yazılır; üyeli ya da imha edilmiş sipariş ve geçersiz e-posta 422'dir (`07 UC-151`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: geçmiş satırı; izde adres yok.
+  - KK2: alan 422; iki sınır.
+  - KK3: iki 422 sebebi.
+  - KK4: pencere ve süre yeni tarihten.
+  - KK5: Z-16; iki tarih reddi.
+  - KK6: sebep zorunlu; geçiş kaydı.
+  - KK7: dört engel ayrı testte.
+  - KK8: ayırma ve geri ödeme kapanışı.
+  - KK9: anahtar, hesap bağı, alıcı.
+  - KK10: iki e-posta; üç 422.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T531: Sipariş ayrıntısı: hizmet kalemi, indirme hakkı, iç not ve e-posta yeniden gönderim (E-37)
+- **Bağımlılık:** T527, T540, T541
+- **Dokümanlar:** çekirdek; `09` §3.4, §8, §15 (§15.2), §16 (§16.2); `07 UC-139`, `UC-143`, `UC-152`…`UC-154`; `04` E-37; `03 §8.2`, §8.4, §8.9; `02 §3.12.6`, §3.20.9; `05` MK-31; `10` KP-44, KP-48
+- **Kabul kriterleri:**
+  1. `CompleteServiceItem` ödemesi onaylanmış hizmet kaleminin açık adetlerinin tamamını tamamlandı işaretler; cayma düşer, "sorun bildir" açılır; son açık kalemse kapanış kuralı işler (`07 UC-139`; K-792).
+  2. UC-139: ödenmemiş sipariş ya da kapanmış kalem 422'dir; onay istenmez (`07 UC-139`).
+  3. `ResetDownloadCount` dijital kalemin sayacını sıfırlar ve bildirim göndermez; dijital olmayan kalem 422'dir (`07 UC-143`; K-683).
+  4. `SaveInternalNote` notu yazar, boşaltılan notu siler; siparişin sürümü artmaz; notun metni ize girmez (`07 UC-152`; K-1051).
+  5. UC-152 409: notun o anki metni gösterilenden farklıdır, güncel not gösterilir; imha edilmiş siparişte alan kapalıdır, 422 (`07 UC-152`; K-1095).
+  6. `ResendNotification` "ulaşmadı" işaretli bildirimin grubuna yeni "gönderilecek" satırı yazar ve gönderimi iş kuyruğuna bırakır; sonuç sonraki gösterimdedir (`07 UC-153`; K-1262).
+  7. Sipariş e-postası donmuş sürümüyle gider; koşul sipariş kilidi altında okunur, eşzamanlı ikinci istek ikinci satır yazmaz (`07 UC-153`; K-1115).
+  8. UC-153: satır işaretli değilse ya da grubunun son satırı değilse 422'dir; siparişin sürümü artmadığından 409 çıkmaz (`07 UC-153`).
+  9. `ResendAllNotifications` işaretli her satır için tek işlemde satır yazar, hepsi ya da hiç; siparişler arası toplu gönderim yoktur (`07 UC-154`; K-761).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: tamamlama, cayma düşer, kapanış.
+  - KK2: iki 422 sebebi.
+  - KK3: sayaç sıfır; bildirim yok.
+  - KK4: boşaltma siler; izde metin yok.
+  - KK5: 409 ve imha edilmiş sipariş.
+  - KK6: yeni satır ve sonuç.
+  - KK7: donmuş sürüm; eşzamanlı iki istek.
+  - KK8: ikinci gönderim 422.
+  - KK9: hepsi ya da hiç.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ## 6. Faz geçiş kapıları
 
 ### 6.1 Genel gate check (tüm fazlarda)

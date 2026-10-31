@@ -3209,6 +3209,104 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK7: paylaşım betiği tek düğme, harici kod yok.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+#### T364: Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler
+- **Bağımlılık:** T316, T317
+- **Dokümanlar:** çekirdek; `09` §10; `02 §3.31.1`, §3.31.2, §6.6…§6.8, §10.1.4; `10` KP-76
+- **Kabul kriterleri:**
+  1. Sessiz üzerine yazma yoktur: ikinci kaydeden kaydın değiştiğini görür ve üzerine yazmadan önce uyarılır (`02 §3.31.1`).
+  2. Kural kurumsal içerik, ürün ve ayarlar için aynıdır (`02 §3.31.1`).
+  3. Siparişe yönelik her işlem siparişin güncel hâline karşı uygulanır; eşzamanlı işlemde önce tamamlanan uygulanır (`02 §3.31.2`).
+  4. Yöneticinin gördüğü hâlden sonra sipariş değiştiyse işlem uygulanmaz; panel değiştiğini söyler ve güncel hâli gösterir (`02 §3.31.2`).
+  5. Aynı geçiş, aynı geri ödeme kaydı ve aynı kalem çıkarma iki kez işlenmez (`02 §3.31.2`).
+  6. Kural müşterinin sayfadaki işlemiyle ve sistemin kendiliğinden geçişiyle çakışmada da işler; sonraki işlem uygulanır ya da sebebi söylenerek reddedilir; sipariş kilitlenmez (`02 §3.31.2`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: eski sürümle kayıt uyarı verir, sessiz yazmaz.
+  - KK2: içerik, ürün ve ayarda aynı davranış.
+  - KK3: iki yönetici aynı işlemde yalnız biri uygulanır.
+  - KK4: değişmiş siparişte ret ve güncel hâl gösterimi var.
+  - KK5: çift geçiş ve çift geri ödeme kaydı oluşmaz.
+  - KK6: müşteri ve sistem çakışmasında sebep söylenir, kilit yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T365: İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması
+- **Bağımlılık:** T308, T322, T331, T366
+- **Dokümanlar:** çekirdek; `09` §3 (§3.4), §10, §15; `02 §3.15.4`, §3.32.1…§3.32.10, Z-33, §5.13, §6.8, §7.1.5, §8.2, L-4, §8.3.1, §8.4.1, §9.3, F-2, §9.5, §11.2, P-34, P-40, §12.2.6, §12.2.12; `10` KP-30, KP-34, KP-49, KD-42, KD-50, KD-51, KD-57
+- **Kabul kriterleri:**
+  1. Form girişsizdir; üye girişliyse ad ve e-posta ön dolu ve değiştirilebilir; her gönderim bir talep kaydı oluşturur (`02 §3.32.1`).
+  2. Ad, e-posta, konu tipi ve mesaj zorunlu, telefon isteğe bağlıdır; dosya eki ve sipariş numarası alanı yoktur (`02 §3.32.2`).
+  3. Konu tipi kapalı beş değerdir; ayıp talebi listede yoktur (`02 §3.32.3`).
+  4. Talep Açık doğar; firma kapatır ve yeniden açabilir; KVKK talebi aynı iki durumu kullanır (`02 §3.32.4`).
+  5. Saklama son kapatılmadan işler, kapatılmamış talep açılıştan itibaren imha edilir; "Sipariş hakkında" on yıl saklanır (`02 §3.32.4`).
+  6. Talep kaydedilir ve firmaya bildirim e-postası gider; yanıt ekranı ve yazışma dizisi yoktur (`02 §3.32.5`).
+  7. Müşteriye talep numarası, "taleplerim" sayfası ya da alındı e-postası yoktur (`02 §3.32.6`).
+  8. Görünmez tuzak alan dolarsa gönderim sessizce düşer; IP başına gönderim limiti vardır; captcha yoktur (`02 §3.32.7`).
+  9. Aydınlatma ya da çerez politikası yayında değilse form kapalıdır ve formda aydınlatma bağlantısı görünür (`02 §3.32.8`).
+  10. Şikâyet kanalı ve canlı destek yoktur; indirme hakkı yenileme başvurusu "Sipariş hakkında" tipiyle gelir (`02 §3.32.9`; `02 §3.32.10`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: girişsiz gönderim çalışır, üyede alanlar dolu.
+  - KK2: eksik zorunlu alan reddedilir, ek alanı yok.
+  - KK3: altı değer ve ayıp tipi yok.
+  - KK4: durum geçişleri iki durumla sınırlı.
+  - KK5: saklama sayacı iki yolda doğru.
+  - KK6: bildirim gider, yanıt ucu yok.
+  - KK7: müşteri tarafında takip ucu ve e-posta yok.
+  - KK8: dolu tuzak sessiz düşer, limit aşımı reddedilir.
+  - KK9: metin yayında değilken form kapalı.
+  - KK10: şikâyet ve sohbet uçları yok.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T366: Yasal metinler: dört metin, sürüm artışı, aydınlatma bağlantıları, e-postada tam metin
+- **Bağımlılık:** T305, T330
+- **Dokümanlar:** çekirdek; `09` §10, §11, §12; `02 §3.24.3`, §3.33.1…§3.33.9, §6.5, §6.9, §7.1.5, §7.4.4, §10.8.2, §12.1.2, §12.1.7, §12.2.1…§12.2.5, §12.2.8, §12.5; `10` KP-14, KP-25, KP-35, KP-61, KP-73, KD-53, KD-55, KD-56; `devir` 04-1948
+- **Kabul kriterleri:**
+  1. Dört yasal metin vardır (Ön Bilgilendirme Formu, sözleşme, aydınlatma, çerez); sürümlüdür, genel sayfa olarak girilmez; ilk ikisi üretilir, son ikisini ürün taslakla getirir ve firma düzenler (`02 §3.33.1`).
+  2. Firmanın düzenlediği iki metin boşaltılamaz; barındırma konumu bölümü doldurulmadan aydınlatma tamamlanmış sayılmaz (`02 §3.33.2`).
+  3. Sürüm kendiliğinden artar: firma metni yayına alınca, üretilen metni besleyen ayar değişince, ürün şablonu değişince; elle girilmez (`02 §3.33.3`).
+  4. Metin değişince yeniden onay alınmaz; açık onay adımında sürüm artarsa sipariş oluşmaz; yeni sürüm yalnız yeni siparişlere uygulanır; "kabul et" penceresi ve değişiklik bildirimi yoktur (`02 §3.33.4`).
+  5. Aydınlatma bağlantısı yeni kişisel veri alanı açan her ekranda görünür; çerez politikası altbilgidedir; çerez onay bandı yoktur (`02 §3.33.5`).
+  6. Ön Bilgilendirme Formu ve sözleşme onay e-postasının gövdesinde donan sürümleriyle tam metin gider; dosya eki yoktur; firma donmuş sürümle yeniden gönderebilir (`02 §3.33.6`).
+  7. Form ve sözleşme uyuşmazlık başvuru bilgisini yazar; parasal görev sınırı rakamla yazılmaz (`02 §3.33.7`).
+  8. Ayarlarla çelişen serbest metin firmanın sorumluluğundadır; ürün çelişkiyi tespit etmez (`02 §3.33.8`).
+  9. Dört metin tamamlanmadan satış açılmaz; panel eksik metni adıyla gösterir (`02 §3.33.9`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: dört metin ayrı kayıt, genel sayfa değil.
+  - KK2: boşaltma reddedilir, bölüm eksikse tamamlanmamış.
+  - KK3: değeri değişmeyen kayıt sürüm yazmaz.
+  - KK4: açık adımda sürüm artışı siparişi durdurur.
+  - KK5: bağlantı sayılan ekranlarda ve altbilgide var.
+  - KK6: e-posta gövdesinde tam metin, ek dosya yok.
+  - KK7: metinde mercii bilgisi var, rakam yok.
+  - KK8: çelişki denetimi ve bilgi sayfası yok.
+  - KK9: eksik metin satış kapısını kapatır, adıyla görünür.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
+#### T367: Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon
+- **Bağımlılık:** T316, T318, T320, T334, T338, T348, T350
+- **Dokümanlar:** çekirdek; `09` §9, §10, §14; `02 §7.1.1`, §7.1.4, §7.2.1, §7.2.2, §7.2.5…§7.2.7, Z-39, §5.8, §5.9, §5.11.3, §6.4, §7.3.7, §9.2, B-7, §10.4.3; `10` KP-21, KP-24
+- **Kabul kriterleri:**
+  1. Müşteri fiziksel kalemi sipariş "Kargoya verildi"ye geçene kadar sipariş sayfasından, firma onayı beklemeden iptal eder; sonrasında yol caymadır (`02 §7.2.1`).
+  2. Firma hazırlamaya başladığı siparişin iptalini engelleyemez (`02 §7.2.1`).
+  3. İptal kalem ve adet düzeyindedir; siparişin tamamı ancak bütün adetler iptal edilince İptal edildi olur; fiziksel kalemlerin tamamı iptal edilen karışık sipariş kalan hatta düşer (`02 §7.2.2`).
+  4. Kalem ve adet iptali ödeme onayından sonra açılır; onaydan önce yalnız sipariş bütünüyle iptal edilir (`02 §7.2.2`).
+  5. Dijital kalem ödeme onayından sonra iptal edilemez; hizmet kalemi "tamamlandı"ya kadar adetle iptal edilir (`02 §7.2.5`).
+  6. İptal edilen adet stoğa, hizmet kontenjanı havuza döner; kupon hakkı yalnız siparişin tamamı iptal ya da iade edilince döner (`02 §7.2.6`).
+  7. Kısmi iptalde kupon yeniden hesaplanmaz; iptal edilen adetlerin kupon payı geri ödemeye girer ve kalan tutar için asgari sepet tutarına bakılmaz (`02 §7.2.7`).
+  8. Müşteri kendi iptalinin tarihli kayıt kopyası e-postasını alır (`02 §7.1.4`).
+- **Test beklentisi:** Unit, Integration
+- **Doğrulama kontrol listesi:**
+  - KK1: kargoya verildi sonrası iptal reddedilir, öncesi onaysız işler.
+  - KK2: hazırlanan siparişte iptal engellenmez.
+  - KK3: kısmi iptalde sipariş yaşar, tam iptalde kapanır.
+  - KK4: ödeme öncesi kalem iptali reddedilir.
+  - KK5: dijital iptal reddedilir, hizmet adetle iptal edilir.
+  - KK6: stok, kontenjan ve kupon sayaçları doğru döner.
+  - KK7: kupon payı geri ödemeye girer, kalanlar korunur.
+  - KK8: iptal e-postası tarihle gider.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ## 6. Faz geçiş kapıları
 
 ### 6.1 Genel gate check (tüm fazlarda)

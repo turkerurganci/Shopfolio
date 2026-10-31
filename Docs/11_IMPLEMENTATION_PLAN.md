@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.6** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.7** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -109,7 +109,7 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | 7.1.2 | API → task | `07` (208: uç 187 · alt bölüm 21) | O2 | ✓ |
 | 7.1.3 | Entegrasyon → task | `08` (30: entegrasyon 3 · çağrısı olmayan bağlantı 1 · alt bölüm 26) | O1 | ✓ |
 | 7.1.4 | Arayüz → task | `04` (102: ekran 53 · ortak bileşen 20 · alt bölüm 29) ve `03` (55 alt bölüm) | O3 | ✓ |
-| 7.1.5 | İş kuralı → task — kalın etiketli beş grup: **`02`** · **`05`** · **`09`** · **`10`** · **Devir satırları** | `02 §1`–§3 (297) O4a; `02 §4`–§8 (193) O4b 1/2; `02 §9`–§13 (176) O4b 2/2; `05` (136) · `09` (25) · `10` (143) · devir (19) O5 | O4a, O4b, O5 | ⬚ (`02 §1`–§3 ✓ O4a; `§4`–§8 ✓ O4b 1/2) |
+| 7.1.5 | İş kuralı → task — kalın etiketli beş grup: **`02`** · **`05`** · **`09`** · **`10`** · **Devir satırları** | `02 §1`–§3 (297) O4a; `02 §4`–§8 (193) O4b 1/2; `02 §9`–§13 (176) O4b 2/2; `05` (136) · `09` (25) · `10` (143) · devir (19) O5 | O4a, O4b, O5 | ⬚ (`02` §1–§13 ✓ O4a, O4b; `05`, `09`, `10`, devir O5'te) |
 | 7.2, §8 | Geri izlenebilirlik, gerekçesiz eklemeler, GAP kararları | task → kaynak | O6 | ⬚ |
 
 **Kaynak kimliğinin biçimi (K-1412).** Satırın ilk hücresi kimlikle başlar; kimliğin ardından başlık ya da ad gelir (en çok 500 bayt/satır). Kapsama betiği yalnız kimliği okur.
@@ -131,6 +131,10 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 
 `02:§1.1` — Sözlük kuralı ve `02:§1.2` — Terim sözlüğü: doküman yazım konvansiyonudur ("tek ad, İngilizce karşılık Aşama 1'de, `06`/`07`/`09` isim icat etmez"); kod adları `06` ve `07` satırlarındaki task'larda (T101–T120, T206–T217, T502–T539) ve her task'ın kendi kavramının adında yaşar, yapılacak ayrı iş çıkmaz — "Task" hücresi `—` (O4a). GAP değildir. `02:§3.26` — İptal, cayma, iade ve ayıp talebi: bölüm kuralların `§7`'de olduğunu söyleyen bir işarettir, kendi kuralı yoktur; kuralları `02 §7` satırlarında eşlenir (O4b) — "Task" hücresi `—` (O4a). GAP değildir.
 
+Kaynak (O4b 2/2): `02 §9`–§13 (176: iş kuralı 80 `02:§n.m.k` · kimlikli satır 75 — B-1…B-16, F-1…F-6, P-1…P-49 ve H-1…H-4 · alt bölüm 21 `02:§n.m`; §9 37 · §10 50 · §11 56 · §12 33 · §13 0). `§13` tablosu boştur ve numaralı kural taşımaz (`§13.1`–§13.4 iki basamaklıdır, K-1404'ün kalıp dışı içerik kuralı): açık karar yoktur. `§11`'in P satırları parametre kimliğidir: her satır T381'e (ayar katmanları ve envanter) ve "Nerede kullanılır" sütununun işaret ettiği kuralların task'larına (en çok beş) bağlanır; `P-2` ve `P-11` "Kaldırıldı" satırlarıdır. `§12.5` firma yükümlülükleri tablosunun satırları birim değildir; alt bölüm satırı onların task birleşimini taşır. Alt bölüm satırı altındaki birimlerin task birleşimidir (`§9.4`, `§9.5` ve `§12.5` kural taşımadığı için açık yazılır).
+
+**Task gerektirmeyen birimler (O4b 2/2, GAP değil).** (1) `02:P-2` ve `02:P-11` — "Kaldırıldı" satırları: kimlik yeniden kullanılmaz, uygulanacak değer yoktur. (2) `02:H-1`, `02:H-3`, `02:H-4` — hacim kabulleri parametre değildir ve "sistem hiçbirini uygulamaz" (§11.3): tasarım tabanıdır; H-3'ün yanıt süresi ve H-4 `05`'in tasarım girdisidir; H-2 ise satış özetinin günlük sayısını okuyan tetikleyiciye dayandığı için T383'e bağlıdır. (3) `02:§10.5.5` — hacim varsayımı, "bir hedef değil, tasarım varsayımıdır". (4) `02:§12.1.12` ve `02:§12.2.11` — ürün ne satıldığını ve kurumsal içerikte yayımlanan üçüncü kişi verisinin iznini denetlemez; yükümlülük firmanındır (§12.5), yazılacak kod yoktur (Z-25 ve Z-37'nin kalıbı, K-1426 (3)). Bu sekiz birimin "Task" hücresi `—`.
+
 **Aday task kimliği (K-1412).** "Task" sütunu aday kimliktir; adı ve gövdesi `§5`'te yazılır. Kurallar: (1) kimlik K-1407'nin faz aralığından gelir ve aşağıdaki aday tablosunda tanımlıdır (kapsama betiği denetler). (2) F1'in kimlikleri baştan ayrıldı; öteki fazlarda her matris oturumu kendi satırlarının gerek duyduğu kimliği sayaçtaki sonraki boş numaradan alır ve tabloya ekler. (3) Kimlikler faz içi sıra gözetmeden verilebilir; sıra `§5`'in işidir, araya `TXXa` girer (`00 §J`); gerekirse O6 betikli tek bir yeniden numaralama yapar ve kapsama betiği öncesini ve sonrasını koşar. (4) Var olan satıra aday kimlik eklenebilir (ör. UC-80'in F3 task'ı `08:§2.1.5` satırına girer); satır silinmez. (5) F1'in sırası modül akış sırasını (K-1410) bağların kurduğu sırayla daraltır: bir göç, bağlandığı tabloların göçünden sonra gelir (`06 §7.2`'nin 130 bağı betikle sınandı — sıra ihlali 0); Yönetim ve Üyelik ile iptal–cayma–iade ve Ödeme bu yüzden akış sırasından ayrılır.
 
 | Faz | Son ayrılan | Sonraki boş |
@@ -138,12 +142,12 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | F0 | T01 | T02 |
 | F1 | T120 | T121 |
 | F2 | T217 | T218 |
-| F3 | T378 | T379 |
+| F3 | T386 | T387 |
 | F4 | T410 | T411 |
 | F5 | T547 | T548 |
 | F6 | T601 | T602 |
 
-**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125; O4a 37 aday ekledi: F3 `T330`–`T366`, `02 §3`'ün iş kuralı task'ları; toplam 162; O4b 1/2 12 aday ekledi: F3 `T367`–`T378`, `02 §4`–§8'in iş kuralı task'ları; toplam 174) — sonraki oturumlar ekler.
+**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125; O4a 37 aday ekledi: F3 `T330`–`T366`, `02 §3`'ün iş kuralı task'ları; toplam 162; O4b 1/2 12 aday ekledi: F3 `T367`–`T378`, `02 §4`–§8'in iş kuralı task'ları; toplam 174; O4b 2/2 8 aday ekledi: F3 `T379`–`T386`, `02 §9`–§12'nin iş kuralı task'ları; toplam 182) — sonraki oturumlar ekler.
 
 | Aday | Faz | Kısa ad | Modül | Kaynak birimi |
 |---|---|---|---|---|
@@ -203,7 +207,7 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | T316 | F3 | Sipariş durumu geçişleri: sevkiyat ekseni | Sepet ve sipariş | `03 §1.2` |
 | T317 | F3 | Ödeme durumu geçişleri: ödeme ekseni | Ödeme | `03 §1.3` |
 | T318 | F3 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | Sepet ve sipariş | `03 §1.4`, §1.5, §8.5 (3) |
-| T319 | F3 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | Sepet ve sipariş | `03 §1.6` |
+| T319 | F3 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | Sepet ve sipariş | `03 §1.6` · `02 §10.4.6`, §10.4.8 (2) |
 | T320 | F3 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | İptal, cayma ve iade | `03 §1.7`, §1.9, §5.3 (3) |
 | T321 | F3 | Ürün yayın durumları | Katalog | `03 §1.8` |
 | T322 | F3 | İçerik yayın durumları ve iletişim talebi durumları | Kurumsal içerik | `03 §1.8`, §1.9 |
@@ -256,13 +260,21 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | T369 | F3 | İşlemin adet birimi ve geri ödeme tutarı: açık adet, kupon payı, KDV, kargo ücretinin iptalde ve caymada ayrılması | İptal, cayma ve iade | `02 §7.1.3`, §7.1.6, §7.1.7, §7.2.9, §7.4.6 (5) |
 | T370 | F3 | Geri ödeme hattı: ödemenin geldiği yol, kart ve havale, IBAN'ın ömrü, geri ödeme süresi, kart iadesi hataları | Ödeme | `02 §7.2.8`, §7.4.1, §7.4.5, §8.4.2 (4) |
 | T371 | F3 | Cayma hakkı: pencere, dijital ve hizmet istisnası, ürün istisna işareti, tek rejim | İptal, cayma ve iade | `02 §7.1.2`, §7.3.1–§7.3.4 (5) |
-| T372 | F3 | Cayma beyanı: sipariş sayfasından ve başka kanaldan, beyanın etkisi, kargoya verilmemiş kalemde iptal yolu, firmanın teyidi | İptal, cayma ve iade | `02 §7.3.5`–§7.3.7, §8.3.8 (4) |
-| T373 | F3 | İade: iade kargo bedeli, ödemeli gönderim ve iade adresi, teslim alma adımı, stoğa ekleme, koşullu istisnada ret, kullanılmış mal | İptal, cayma ve iade | `02 §7.4.2`–§7.4.4, §7.4.7–§7.4.10 (7) |
+| T372 | F3 | Cayma beyanı: sipariş sayfasından ve başka kanaldan, beyanın etkisi, kargoya verilmemiş kalemde iptal yolu, firmanın teyidi | İptal, cayma ve iade | `02 §7.3.5`–§7.3.7, §8.3.8 (4) · `02 §10.4.10` (1) |
+| T373 | F3 | İade: iade kargo bedeli, ödemeli gönderim ve iade adresi, teslim alma adımı, stoğa ekleme, koşullu istisnada ret, kullanılmış mal | İptal, cayma ve iade | `02 §7.4.2`–§7.4.4, §7.4.7–§7.4.10 (7) · `02 §10.4.9` (1) |
 | T374 | F3 | Ayıp talebi: kanal, iki yıllık süre, durumlar, çözüm, dijital dosya güncellemesi | İptal, cayma ve iade | `02 §7.5.1`–§7.5.4 (4) |
-| T375 | F3 | Yöneticinin sipariş düzeltmeleri: ileri yönlü kayıt, tutar değişmez, firmanın teyidiyle e-posta ve adres düzeltmesi, cayma beyanı geri alınmaz | Sepet ve sipariş | `02 §7.6.6`, §7.6.7, §8.3.6, §8.3.7 (4) |
+| T375 | F3 | Yöneticinin sipariş düzeltmeleri: ileri yönlü kayıt, tutar değişmez, firmanın teyidiyle e-posta ve adres düzeltmesi, cayma beyanı geri alınmaz | Sepet ve sipariş | `02 §7.6.6`, §7.6.7, §8.3.6, §8.3.7 (4) · `02 §10.4.1`, §10.4.2, §10.4.11 (3) |
 | T376 | F3 | Deneme limitleri: dokuz limit, kayan pencere, hesap kilitlenmez, nötr mesaj | Ortak altyapı | `02 §8.2.1`, L-1…L-9 (10) |
 | T377 | F3 | Limit ilkeleri: iki eksen, ödenmemiş sipariş sayımı, yönetici muafiyeti yok, tanınan tarayıcı işareti | Ortak altyapı | `02 §8.2.2`–§8.2.6 (5) |
 | T378 | F3 | Zaman sayımı: tek saat dilimi, iş günü ve resmî tatil listesi, takvim ve iş günü sayımı, gün sonu, tarih aralığı, çitler | Ortak altyapı | `02 §4.1.1`–§4.1.5 (5) |
+| T379 | F3 | Yönetici hesapları: ilk yönetici ve davet, kaldırma kuralları, tek rol, ayrı hesap türü, davetin geri çekilmesi, erişim kaybında kurtarma sınırı | Yönetim ve işlem izi | `02 §10.2.1`–§10.2.7 (7) |
+| T380 | F3 | İşlem izi: sekiz alan, kim-ne zaman-ne değişti, değiştirilemez ve silinemez, sistem olayları ize girmez, düz liste, on yıl | Yönetim ve işlem izi | `02 §10.3.1`–§10.3.5 (5) |
+| T381 | F3 | Ayar katmanları ve parametre envanteri: firma ayarı, kurulum ayarı, ürün sabiti, varsayılan ve çit, değişikliğin ize yazılması | Ayarlar | `02 §10.1.3` (1) · `02 §11.1`, §11.2 P-1…P-49 (47) |
+| T382 | F3 | Panel ana sayfası verisi: altı bekleyen iş sayacı, kanal ve firma bildirimi uyarıları, kurulum kontrol listesi | Yönetim ve işlem izi | `02 §10.6.1`, §10.8.2 (2) |
+| T383 | F3 | Satış özeti ve ölçüler: dönem seçimi, ciro, sayılar, dört mağaza ölçüsü, sıfır payda, tepe gün sayısı | Yönetim ve işlem izi | `02 §10.6.2`, §10.6.3, H-2 (3) |
+| T384 | F3 | Dışa aktarma: sipariş CSV (fatura verisi), üye ve iletişim talebi listesi, işlem izine yazım, imha edilmiş siparişin boş sütunları | Yönetim ve işlem izi | `02 §10.7.1`–§10.7.4 (4) |
+| T385 | F3 | Gönderim yeniden denemesi ve "e-posta ulaşmadı" işareti: üç deneme, işaretin düşüşü, panelden yeniden gönderim, işaretsiz bildirimler | Bildirim | `02 §9.1.6` (1) · P-38 |
+| T386 | F3 | Sipariş müdahaleleri: kalem adedi azaltma ve çıkarma, kargo bilgisinin ve teslim tarihinin düzeltilmesi, iç not | Sepet ve sipariş | `02 §10.4.3`–§10.4.5, §10.4.7 (4) |
 | T401 | F4 | PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve | Ödeme | `08 §2.1`, §2.1.1, §2.1.2, §2.1.4 |
 | T402 | F4 | PayTR: bildirim imzası ve alan eşlemesi | Ödeme | `08 §2.1.5` |
 | T403 | F4 | PayTR: son sorgu ve tek tahsilat | Ödeme | `08 §2.1.6`, §2.1.7 |
@@ -326,7 +338,7 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 
 ```sh
 python -I scripts/doc-scans/11_matris_envanter.py . /tmp/envanter.txt    # kaynak envanteri: 06 117, 07 208, 08 30 (ve öteki aileler)
-python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matris satırları ↔ beklenen küme (dolu aileler: 06, 07, 08, 04, 03, 02 §1–§3)
+python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matris satırları ↔ beklenen küme (dolu aileler: 06, 07, 08, 04, 03, 02 §1–§13)
 ```
 
 **Okuma derinliği (O1).** `06`: §3.1 entity tablosu bütün, §2/§5–§9 alt bölüm başlıkları ve ilk paragrafları, §8 bütün, §7.2'nin 130 bağı betikle; §4 entity tanımları okunmadı — kaynak birim §3.1'in satırıdır. `08`: §1 bütün, §2–§5 başlıkları ve her başlığın ilk iki paragrafı (satır başına ilk 300–380 karakter; kesilerek okundu).
@@ -336,6 +348,8 @@ python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matri
 **Okuma derinliği (O4a).** `02 §3`'ün 257 kuralı ve 34 alt bölümü bütün okundu — her kural satırı tamamıyla (§3.1–§3.34, satır 497–1090); §2 (§2.1 envanter tablosu, §2.2 ve §2.3 bütün) ve §1.1, §1.3 bütün okundu. **Okunmadı:** §1.2 terim sözlüğünün tablo satırları (birim değildir; alt bölüm satırı karşılar), her bölümün sonundaki `Kaynak:` satırları (karar atıfları; birim değildir). Okunan kuralların hiçbirinde kesme yapılmadı.
 
 **Okuma derinliği (O4b 1/2).** `02 §4`–§8 (satır 1094–1802): her kural satırı, Z ve L satırı ve `###` başlığı tamamıyla okundu; satırların uzun olanları ilk 430–700 karakter ve kalan parçalar ayrı ikinci okumayla (kesilmiş satır kalmadı). Okunmadı: her bölümün sonundaki `Kaynak:` satırlarının K-no sütunu (karar atıfları; birim değildir) ve tablo satırlarındaki K-no sütunu. `§6`'nın `6.2.n`…`6.9.n` satırları (birim değildir) alt bölüm satırının task birleşimi için okundu. §9–§13 bu oturumda okunmadı.
+
+**Okuma derinliği (O4b 2/2).** `02 §9`–§13 (satır 1803–2241): her kural satırı, B ve F satırı, P ve H satırı ve `###` başlığı tamamıyla okundu (uzun satırlar kesilmeden, `§10.4` ve `§12.2.7` dahil); `§12.5` tablosunun 32 satırı bütün okundu; `§13` bütün. Okunmadı: bölüm sonlarındaki `Kaynak:` satırlarının K-no listeleri (karar atfı; birim değildir) ve dosya sonundaki sürüm geçmişi. Eşleme `02` metninden elle yapıldı; betikle üretilen yalnız satır metni, başlık, sayım ve `§11` P satırlarının "Nerede kullanılır" atıflarından çıkan task adayıdır. Örneklem: `§5` yazım oturumu her F3 task'ının kural kümesini kaynak satırlarıyla yeniden okur, ayrışma %10'u aşarsa genişletir (K-1424 (4)'ün kalıbı).
 
 #### 7.1.1 Veri modeli → task
 
@@ -877,7 +891,7 @@ Kaynak: `04` (102: ekran 53 `04:E-nn` · ortak bileşen 20 `04:OB-nn` · alt bö
 
 #### 7.1.5 İş kuralı → task
 
-> Doldurulacak: O4a (`02 §1`–§3; yazıldı), O4b 1/2 (`02 §4`–§8; yazıldı), O4b 2/2 (`02 §9`–§13), O5. Beş kalın etiketli grup, her birinin kendi tablosu: **`02`** (O4a: §1–§3; O4b: §4–§13) · **`05`** · **`09`** · **`10`** · **Devir satırları** (O5).
+> Doldurulacak: O4a (`02 §1`–§3; yazıldı), O4b 1/2 (`02 §4`–§8; yazıldı), O4b 2/2 (`02 §9`–§13; yazıldı), O5. Beş kalın etiketli grup, her birinin kendi tablosu: **`02`** (O4a: §1–§3; O4b: §4–§13) · **`05`** · **`09`** · **`10`** · **Devir satırları** (O5).
 
 Kaynak: `02 §1`–§3 (297: iş kuralı 257 `02:§3.n.m` · alt bölüm 40 `02:§n.m` — §1'in 3'ü, §2'nin 3'ü, §3'ün 34'ü). Kural satırı kuralın kalın başlık cümlesidir; kuralın iş mantığı F3'ün modül task'larındadır (T330–T366, K-1421), ekranda görünen yüzü F5'in ekran task'larındadır — bir kural birden çok task alabilir. `02 §3.26` ve `§1.1`–§1.2 task gerektirmez (gerekçesi yukarıda).
 
@@ -1377,6 +1391,182 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:§8.5 Kayıtlar ve veri ihlali | T302, T341 | | |
 | 02:§8.5.1 Ürün ayrı bir ihlal kaydı tutmaz | T341, T302, T106, T201 | | |
 | 02:§8.5.2 İşlem izi on yıllık saklama süresi boyunca değiştirilemez ve silinemez; | T106, T302, T201 | | |
+| 02:§9.1 Kanal ve ilkeler | T201, T304, T305, T328, T330, T362, T382, T385, T407, T511, T531, T601 | | |
+| 02:§9.1.1 Tek kanal e-postadır | T305, T328 | | |
+| 02:§9.1.2 Hiçbir sipariş ya da talep akışı bir e-postanın ulaşmasına bağlı değildir | T305, T328, T511 | | |
+| 02:§9.1.3 İşlem bildirimleri ticari elektronik ileti değildir ve kapatılamaz | T305, T328 | | |
+| 02:§9.1.4 Gönderen ve yanıt | T305, T330, T362 | | |
+| 02:§9.1.5 Çalışan bir e-posta gönderim yapılandırması her kurulumun dış ön koşuludur; | T407, T601 | | |
+| 02:§9.1.6 Gönderilemeyen e-posta üç kez, artan aralıkla yeniden denenir | T385, T304, T407, T382, T531, T201 | | |
+| 02:§9.2 Müşteriye giden bildirimler | T305, T306, T307, T311, T316, T340, T348, T350, T353, T367, T368, T370, T372, T373, T374, T375 | | |
+| 02:B-1 Sipariş alındı — firma misafir siparişinin e-postasını düzelttiğinde yeni adrese yeniden gider (§10.… | T306, T305, T348, T375 | | |
+| 02:B-2 Havale/EFT seçildi | T306, T353 | | |
+| 02:B-3 Havale ödeme hatırlatması — havale "ödendi" işaretinin düzeltilmesiyle yeniden başlayan sürede bir k… | T306, T353, T375 | | |
+| 02:B-4 Ödeme onaylandı | T306, T311, T340 | | |
+| 02:B-5 Kargoya verildi | T306, T350 | | |
+| 02:B-6 Teslim edilemedi | T306, T316 | | |
+| 02:B-7 İptal edildi — sipariş ya da tek bir kalem | T306, T367, T368 | | |
+| 02:B-8 Geri ödeme işlendi — sistemin iptal edilmiş siparişe gelen kart ödemesini kendiliğinden geri ödemesi… | T306, T370 | | |
+| 02:B-9 Cayma beyanı, gecikme feshi ya da ayıp talebi alındı — firmanın başka kanaldan gelen cayma ya da gec… | T307, T372, T368, T374 | | |
+| 02:B-10 Teslimat ya da fatura adresi düzeltildi | T307, T375 | | |
+| 02:B-11 Kalem çıkarıldı ya da adedi azaltıldı | T307, T375 | | |
+| 02:B-12 Kargo şirketi ya da takip numarası düzeltildi | T307, T375 | | |
+| 02:B-13 Yanlış durum geçişi düzeltildi | T307, T375, T353 | | |
+| 02:B-14 Havale hattında IBAN silindikten sonra iade edilen mal firmaya ulaştı — firma teslim alma adımını iş… | T307, T370, T373, T372 | | |
+| 02:B-15 Firma misafir siparişinin e-postasını düzeltti (§10.4.11) — eski adrese gider | T307, T375 | | |
+| 02:B-16 İade reddedildi — firma koşullu istisna kaleminde koruyucu ambalajı açılmış dönen malı reddetti (§7.… | T307, T373 | | |
+| 02:§9.3 Firmaya giden bildirimler | T308, T330, T348, T353, T365, T370, T372, T374, T379, T382, T385 | | |
+| 02:F-1 Yeni sipariş | T308, T348 | | |
+| 02:F-2 Yeni iletişim talebi | T308, T365 | | |
+| 02:F-3 Yeni cayma beyanı, gecikme feshi ya da ayıp talebi — müşterinin çözülmüş ayıp talebini yeniden açmas… | T308, T372, T374 | | |
+| 02:F-4 Sistemin kendiliğinden yaptığı karta geri ödeme — iptal edilmiş siparişe gelen ödemenin geri ödenmes… | T308, T370 | | |
+| 02:F-5 Havale/EFT'nin IBAN'ı panelde girildi ya da değiştirildi — bütün yöneticilerin kendi adreslerine gid… | T308, T353 | | |
+| 02:F-6 Yönetici daveti gönderildi ya da bir yönetici kaldırıldı — bütün yöneticilerin kendi adreslerine gid… | T308, T379 | | |
+| 02:§9.3.1 Firmaya giden bildirimler firma kimliğindeki iletişim e-postasına gider | T308, T330, T382 | | |
+| 02:§9.3.2 Firmanın kendi yaptığı işlem kendisine bildirilmez; | T308, T382 | | |
+| 02:§9.3.3 Havale IBAN'ının değişikliği bütün yöneticilere bildirilir (F-5) | T308, T353, T385 | | |
+| 02:§9.3.4 Yönetici daveti gönderildiğinde ya da bir yönetici kaldırıldığında bütün yöneticilere bildirim gider… | T308, T379, T385 | | |
+| 02:§9.4 Hesap ve yönetim e-postaları | T309, T341, T342, T343, T345, T379 | | |
+| 02:§9.5 Olmayan bildirimler | T328, T308, T365, T305 | | |
+| 02:§10.1 Panelin kapsamı | T308, T323, T330, T364, T375, T379, T381, T522, T540, T547, T601 | | |
+| 02:§10.1.1 Panel tek firmayı yönetir; firma seçimi yoktur | T330 | | |
+| 02:§10.1.2 Yöneticinin yapabildikleri ve yapamadıkları | T323, T547, T379, T375, T522 | | |
+| 02:§10.1.3 Parametreler üç katmandadır | T381, T601 | | |
+| 02:§10.1.4 Panelde hiçbir işlev mobilde kapatılmaz; | T364, T540 | | |
+| 02:§10.1.5 Firmaya giden bildirimler | T308 | | |
+| 02:§10.2 Yönetici hesapları | T303, T308, T309, T324, T341, T342, T343, T379, T380, T520, T601 | | |
+| 02:§10.2.1 İlk yönetici kurulumda doğar, sonrakiler davetle açılır | T379, T303, T309, T520 | | |
+| 02:§10.2.2 Bir yönetici başka bir yöneticiyi kaldırabilir; son yönetici kaldırılamaz ve hiç kimse kendi hesabın… | T379, T308, T380 | | |
+| 02:§10.2.3 Bütün yöneticiler aynı yetkiye sahiptir | T379 | | |
+| 02:§10.2.4 Kimlik doğrulama müşteri tarafıyla aynıdır | T342, T343, T379, T380 | | |
+| 02:§10.2.5 Yönetici hesabının sepeti ve siparişi olmaz | T379, T341, T342, T343 | | |
+| 02:§10.2.6 Kullanılmamış davet geri çekilebilir; bir adres için aynı anda tek geçerli davet vardır | T379, T308, T380, T324 | | |
+| 02:§10.2.7 Panele erişimin kaybında kurtarma ürünün dışındadır ve kurulum tarafının işidir | T379, T303, T601 | | |
+| 02:§10.3 İşlem izi | T106, T201, T341, T345, T375, T379, T380, T381, T384, T522 | | |
+| 02:§10.3.1 İz sekiz alanda tutulur | T380, T379, T381, T384, T375, T345 | | |
+| 02:§10.3.2 İz saklama süresi boyunca (§10.3.5) değiştirilemez ve silinemez | T380, T106 | | |
+| 02:§10.3.3 Sistem olayları ize yazılmaz | T380, T201, T341 | | |
+| 02:§10.3.4 İz panelde düz bir liste olarak görünür; | T380, T522 | | |
+| 02:§10.3.5 İz on yıl saklanır; | T380, T201 | | |
+| 02:§10.4 Sipariş müdahaleleri | T301, T307, T316, T317, T319, T334, T341, T350, T351, T353, T354, T355, T367, T368, T370, T371, T372, T373, T375, T380, T382, T383, T386 | | |
+| 02:§10.4.1 Dokuz müdahale vardır | T375, T386, T380 | | |
+| 02:§10.4.2 Adres yalnız "Kargoya verildi"ye kadar düzeltilir | T375, T355, T307 | | |
+| 02:§10.4.3 Kalem adedi azaltılabilir ya da kalem çıkarılabilir; kalem eklenemez ve fiyat değiştirilemez | T386, T367, T370, T319, T334 | | |
+| 02:§10.4.4 Kargo şirketi ve takip numarası düzeltilebilir; | T386, T350, T307 | | |
+| 02:§10.4.5 Teslim tarihi düzeltilebilir; | T386, T351, T371, T373 | | |
+| 02:§10.4.6 Yanlış yapılmış durum geçişi yeni bir geçişle düzeltilir | T319, T316, T317, T353, T334, T307 | | |
+| 02:§10.4.7 İç not müşteriye hiçbir yerde görünmez | T386, T301 | | |
+| 02:§10.4.8 Firma iptalinin sebep listesi §7.2.4'te, | T368, T319 | | |
+| 02:§10.4.9 Malı dönmemiş cayma kalemi "mal dönmedi" gerekçesiyle kapatılabilir | T373, T370, T382, T383 | | |
+| 02:§10.4.10 Başka bir kanaldan gelen cayma bildirimi panelden kaydedilir | T372, T368, T370, T307 | | |
+| 02:§10.4.11 Misafir siparişinin iletişim e-postası müşterinin talebi üzerine düzeltilir | T375, T354, T341, T307 | | |
+| 02:§10.5 Manuel adımlar ve bütçe | T318, T357 | | |
+| 02:§10.5.1 Sipariş başına sistem içi zorunlu elle adımlar | T318 | | |
+| 02:§10.5.2 Koşullu adımlar — her biri bir adım | T318 | | |
+| 02:§10.5.3 Fatura sipariş başına bir sistem dışı adımdır | T357 | | |
+| 02:§10.5.4 Bütçe hat başınadır: tek tipli bir siparişin hattında sistem içi zorunlu elle adım üçü geçmez | T318 | | |
+| 02:§10.5.5 Hacim varsayımı | — | | |
+| 02:§10.6 Bekleyen işler ve satış özeti | T348, T350, T353, T370, T373, T382, T383, T385 | | |
+| 02:§10.6.1 Panel ana sayfası bekleyen işleri sayar | T382, T385, T370, T373, T353 | | |
+| 02:§10.6.2 Panelde bir satış özeti vardır ve analitik değildir | T383 | | |
+| 02:§10.6.3 Ölçülerin tanımı | T383, T348, T350 | | |
+| 02:§10.7 Toplu veri işlemleri | T302, T341, T357, T384, T525 | | |
+| 02:§10.7.1 Siparişler dışa aktarılır | T384, T357, T302 | | |
+| 02:§10.7.2 Ürün içe aktarma ve toplu güncelleme yoktur | T525, T384 | | |
+| 02:§10.7.3 Katalog ve içerik için ürün içinde dışa aktarma yoktur; | T384 | | |
+| 02:§10.7.4 Sipariş dışındaki kişilere ulaşma listesi de dışa aktarılır | T384, T341 | | |
+| 02:§10.8 İlk kurulum kontrol listesi | T331, T360, T366, T382 | | |
+| 02:§10.8.1 Site boş kurulur; | T360 | | |
+| 02:§10.8.2 Panel ana sayfasında bir kurulum kontrol listesi durur | T382, T331, T366 | | |
+| 02:§11.1 Firma ayarları | T312, T324, T325, T327, T332, T335, T336, T340, T347, T348, T349, T350, T353, T355, T381, T503, T508, T509, T511, T525, T536 | | |
+| 02:P-1 Kargo ücreti — sipariş başına, KDV dahil | T381, T349, T536 | | |
+| 02:P-2 Kaldırıldı — kargo ücretinin KDV'si fiziksel kalemlerin oranını izler, firma ayarı değildir (§3.19.2… | — | | |
+| 02:P-3 Ücretsiz kargo eşiği | T381, T349, T508, T509, T536 | | |
+| 02:P-4 Asgari sipariş tutarı | T381, T349 | | |
+| 02:P-5 Kargoya verme süresi — firma varsayılanı | T381, T325, T350, T503, T525, T536 | | |
+| 02:P-6 Kargoya verme süresi — ürün düzeyi | T381, T350, T525, T536 | | |
+| 02:P-7 Havale ödeme süresi | T381, T324, T327, T348, T353, T536 | | |
+| 02:P-8 İndirme hakkı — sipariş kalemi başına | T381, T312, T340, T355, T511 | | |
+| 02:P-9 Bir siparişte en fazla adet — ürün başına | T381, T347, T503, T525 | | |
+| 02:P-10 KDV oranı varsayılanı | T381, T336, T525 | | |
+| 02:P-11 Kaldırıldı — duyuru metni firma ayarı değil, kurumsal içerik kaydıdır (§3.27.21); kimlik yeniden kul… | — | | |
+| 02:P-44 İfa süresi — hizmet ürünü | T381, T325, T332, T335, T340, T525 | | |
+| 02:§11.2 Ürün sabitleri | T106, T108, T201, T215, T302, T305, T311, T312, T324, T326, T327, T332, T333, T338, T339, T340, T341, T342, T343, T348, T352, T353, T354, T358, T359, T360, T362, T365, T370, T373, T376, T377, T381, T385, T409, T506, T511, T514, T515, T516, T517, T519, T520, T525, T526, T534, T536, T540, T543 | | |
+| 02:P-12 E-posta doğrulama bağlantısının ömrü | T381, T324, T341, T514 | | |
+| 02:P-13 Şifre sıfırlama bağlantısının ömrü — Google girişinin teyit bağlantısı da bu ömrü taşır | T381, T324, T342, T343, T409, T516 | | |
+| 02:P-14 Yönetici daveti bağlantısının ömrü | T381, T106, T324, T520 | | |
+| 02:P-47 E-posta değişikliğini geri alma bağlantısının ömrü | T381, T302, T343, T517, T519 | | |
+| 02:P-15 Kısa oturum — "beni hatırla" işaretsiz | T381, T324, T342, T515 | | |
+| 02:P-16 Uzun oturum — "beni hatırla" işaretli | T381, T324, T342, T515 | | |
+| 02:P-48 Girişte tanınan tarayıcı işaretinin ömrü | T381, T302, T342, T377 | | |
+| 02:P-17 Asgari şifre uzunluğu | T381, T342, T517 | | |
+| 02:P-18 Kart ödeme süresi | T381, T311, T324, T348, T352, T536 | | |
+| 02:P-19 Sipariş numarasının rastgele blok uzunluğu | T381, T354 | | |
+| 02:P-20 Kategori ağacının derinliği | T381, T333, T526 | | |
+| 02:P-21 Ürün başına seçenek boyutu | T381, T332, T525 | | |
+| 02:P-22 Kabul edilen görsel biçimleri | T381, T339, T359, T362, T525, T534 | | |
+| 02:P-23 Tek görsel dosyasının boyut tavanı | T381, T339, T359, T362, T525, T534 | | |
+| 02:P-24 Ürün başına görsel adedi — ürünün ve varyantlarının görselleri birlikte | T381, T339, T525 | | |
+| 02:P-25 Kurumsal içerik kaydı başına görsel adedi | T381, T359, T534 | | |
+| 02:P-26 Dijital ürün dosyasının boyut tavanı | T381, T312, T340 | | |
+| 02:P-27 Ürün adının ve kurumsal içerikte ad ya da başlığın karakter tavanı | T381, T339, T359, T525, T534 | | |
+| 02:P-28 SSS sorusunun, kısa açıklamanın ve şubenin çalışma saatlerinin karakter tavanı | T381, T358, T359, T506, T534 | | |
+| 02:P-29 Hakkımızda kısa tanıtımının karakter tavanı | T381, T358, T359, T534 | | |
+| 02:P-30 Duyuru metninin karakter tavanı | T381, T360, T534 | | |
+| 02:P-31 L-1 Başarısız giriş denemesi | T381, T215, T342, T376 | | |
+| 02:P-32 L-2 Şifre sıfırlama talebi | T381, T215, T342, T376 | | |
+| 02:P-33 L-3 Hesap kaydı | T381, T215, T341, T342, T376 | | |
+| 02:P-34 L-4 İletişim formu gönderimi | T381, T215, T365, T376 | | |
+| 02:P-35 L-5 Başarısız misafir sipariş takibi sorgusu | T381, T215, T354, T376, T511 | | |
+| 02:P-36 L-6 Geçersiz kupon kodu denemesi | T381, T338, T376, T526 | | |
+| 02:P-37 L-7 Kendiliğinden iptal edilen ödenmemiş sipariş | T381, T215, T348, T376, T511 | | |
+| 02:P-46 L-8 Aynı anda açık ödenmemiş sipariş | T381, T215, T348, T353, T376, T511 | | |
+| 02:P-49 L-9 Doğrulama bağlantısının yeniden istenmesi | T381, T341, T343, T376, T514 | | |
+| 02:P-38 Gönderilemeyen e-postanın yeniden deneme aralıkları | T381, T385, T305, T326 | | |
+| 02:P-39 Periyodik imha aralığı | T381, T201 | | |
+| 02:P-40 İletişim talebinin saklama süresi | T381, T302, T365 | | |
+| 02:P-41 Bildirim gönderim kaydının saklama süresi — hesap ve yönetim e-postaları ile firmaya giden bildiriml… | T381, T302, T305 | | |
+| 02:P-43 Malı dönmeyen caymada havale hattı IBAN'ının saklama süresi | T381, T327, T370, T373, T543 | | |
+| 02:P-45 Giriş kaydının ve sistem kayıtlarının saklama süresi | T381, T106, T108, T201, T302, T341 | | |
+| 02:P-42 En dar desteklenen ekran genişliği | T381, T540 | | |
+| 02:§11.3 Hacim kabulleri | T383 | | |
+| 02:H-1 Katalog | — | | |
+| 02:H-2 Sipariş hacmi | T383 | | |
+| 02:H-3 Sepet | — | | |
+| 02:H-4 Eşzamanlı ziyaretçi | — | | |
+| 02:§12.1 Ticari çerçeve ve tüketici rejimi | T216, T305, T306, T328, T330, T336, T337, T348, T350, T352, T355, T356, T357, T366, T368, T370, T371, T372, T373, T374, T384, T401, T501, T503, T535 | | |
+| 02:§12.1.1 Tek pazar Türkiye'dir; | T216, T330 | | |
+| 02:§12.1.2 Ürün tüketiciye satış için kurulmuştur | T356, T366 | | |
+| 02:§12.1.3 Satıcı firmadır | T352, T401 | | |
+| 02:§12.1.4 ETBİS kaydı ve yasal kimlik | T330, T535 | | |
+| 02:§12.1.5 Fiyat tüketiciye KDV dahil gösterilir | T336, T501, T503 | | |
+| 02:§12.1.6 İndirim beyanı referans fiyata dayanır | T337, T355 | | |
+| 02:§12.1.7 Mesafeli satış | T356, T366, T348, T355, T305, T306 | | |
+| 02:§12.1.8 Teslim | T368, T350, T370 | | |
+| 02:§12.1.9 Cayma, iade ve ayıp | T371, T372, T373, T374, T370 | | |
+| 02:§12.1.10 Fatura ürünün dışındadır | T357, T384 | | |
+| 02:§12.1.11 Ticari elektronik ileti gönderilmez | T328, T305 | | |
+| 02:§12.1.12 Ürün ne satıldığını denetlemez | — | | |
+| 02:§12.2 Kişisel verilerin korunması | T201, T209, T301, T302, T331, T341, T342, T345, T346, T356, T365, T366, T370, T375, T377, T379, T380, T384, T401, T409, T507, T601 | | |
+| 02:§12.2.1 Veri sorumlusu firmadır | T366, T601 | | |
+| 02:§12.2.2 Aydınlatma yükümlülüğü | T366, T507, T356 | | |
+| 02:§12.2.3 Hukuki sebepler KVKK m.5/2'nin kapalı sayımıyla yazılır; açık rıza alınmaz | T366, T301, T302 | | |
+| 02:§12.2.4 Ürün hiçbir noktada açık rıza toplamaz | T356, T366 | | |
+| 02:§12.2.5 Çerezler | T366, T331, T346, T209, T342, T377 | | |
+| 02:§12.2.6 İletişim formunun "KVKK talebi" tipi ürünün sunduğu başvuru kanalıdır | T365, T345 | | |
+| 02:§12.2.7 Saklama ve imha | T201, T301, T302, T345, T370, T375 | | |
+| 02:§12.2.8 Kişisel verinin yurt dışına aktarımı | T366, T209, T401, T409, T601 | | |
+| 02:§12.2.9 Veri ihlali | T380, T384, T341 | | |
+| 02:§12.2.10 Yönetim tarafında veri erişimi ayrımı yoktur | T379 | | |
+| 02:§12.2.11 Kurumsal içerikte başkasına ait kişisel veriyi yayımlamanın sorumluluğu firmadadır | — | | |
+| 02:§12.2.12 Veri asgariliği | T356, T365, T341 | | |
+| 02:§12.3 Veri sahipliği ve süreklilik | T327, T384, T601 | | |
+| 02:§12.3.1 Veri firmanındır | T601 | | |
+| 02:§12.3.2 Çıkış hakkı barındırma düzleminde karşılanır | T384, T601 | | |
+| 02:§12.3.3 Ürün çalışma süresi taahhüdü vermez ve sipariş tarafında veri kaybına tolerans sıfırdır — tek istisn… | T327, T601 | | |
+| 02:§12.4 Erişilebilirlik | T540, T543, T544 | | |
+| 02:§12.4.1 Erişilebilirlik yasal bir yükümlülüktür; taban Kontrol Listesi A Seviyesi ile WCAG 2.2'dir, hedef WC… | T540, T543, T544 | | |
+| 02:§12.5 Firmanın yükümlülükleri | T330, T357, T366, T370, T372, T373, T375, T384, T601 | | |
 
 ### 7.2 Geri izlenebilirlik (task → kaynak öğe)
 

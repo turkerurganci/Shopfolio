@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.39** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.40** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -31,7 +31,7 @@
 
 - **Bölüm başlıkları:** `grep -n '^## ' <dosya>` — satır numaraları; bölüm aralıkla okunur.
 - **Faz başlığı ve yürütme sırası:** `grep -n -A 3 '^### F3 ' <dosya>` — fazın adı ve `**Yürütme sırası:**` satırı.
-- **Task bloğu:** `grep -n -A 30 '^#### T123: ' <dosya>` — tek blok (en çok 2,5 KB, yaklaşık 30 satır; sonraki `####` başlığında biter).
+- **Task bloğu:** `awk '/^#### T123: /{f=1;print NR": "$0;next} f&&/^##/{exit} f{print NR": "$0}' <dosya>` — tek blok, satır numarasıyla (en çok 2,5 KB, yaklaşık 30 satır); sonraki `##`…`####` başlığında durur, sonraki task'ın satırlarını basmaz.
 - **Aday tablo ve geri yön satırı:** `grep -n '^| T123 |' <dosya>` — iki satır: §7 aday tablosu (kısa ad, kaynak birimi) ve §7.2 (kaynak kimlikleri).
 - **Kaynak satırları (ileri yön):** `grep -nE '(\| |, )T123(,| \|)' <dosya>` — her satırın ilk hücresi kaynak kimliğidir; kimlikten kaynak dokümanın aralığı bulunur.
 - **Matris alt bölümü:** `grep -n '^#### 7\.1\.' <dosya>` — 7.1.1…7.1.5 başlık satırları.
@@ -288,9 +288,9 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Test beklentisi:** Yok — Compose ve ağ tanımıdır; sınama kurulumda çıkış, yönlendirme, HSTS ve istemci adresi denemesidir (`05 §3.2.5`)
 - **Doğrulama kontrol listesi:**
   - KK1: `docker compose config` geçerli; beş hizmet, biri göç.
-  - KK2: ters vekilden veritabanına bağlantı reddedilir.
+  - KK2: ters vekil ve yedek aracı veritabanına bağlanamaz.
   - KK3: Compose yalnız 80 ve 443'ü yayımlar.
-  - KK4: veritabanı konteynerinden başka adrese çıkış reddedilir, nesne depolamaya geçer.
+  - KK4: veritabanı ve yedek aracından başka adrese çıkış reddedilir, nesne depolamaya geçer.
   - KK5: volume adları listeyle eşit; vekilde yalnız görsel bölümü.
   - KK6: yakalayıcı ayakta; geliştirme dosyasında e-posta sırrı yok.
   - KK7: dosyalarda `latest` yok.
@@ -446,11 +446,11 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   4. Değer dönüşümü her enum için tek yerde tanımlıdır ve bilinmeyen metinde hata verir; `AuditOperation` okuyucusu tanınmayan kodu kodun kendisiyle gösterir (`09 §9.2` madde 2, §12).
   5. Kalıcı her enum için `UnitTests/Locks/<EnumTamAdı>.txt` kilit dosyası vardır ve eşitlik iki yönlü sınanır (`09 §12`).
   6. Davranışı olan değerin kuralı enum'da yinelenmez; kuralın evine işaret edilir (`06 §5.1.3`).
-- **Test beklentisi:** Unit
+- **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: tablo ile enum üye kümesi eşit.
   - KK2: örnek kayıt veritabanında metin olarak görünür.
-  - KK3: izinli olmayan metin kısıtı ihlal eder; `audit_logs.operation`'da kısıt yoktur.
+  - KK3: izinli olmayan metin kısıtı ihlal eder; `audit_logs.operation`'da kısıt yoktur; KK2 ve KK3 gerçek PostgreSQL'de entegrasyon testidir (`09 §10.1` madde 5, §12 madde 8).
   - KK4: bilinmeyen metin okunurken hata verir; `AuditOperation`'da tanınmayan kod hata vermez, kodun kendisiyle görünür.
   - KK5: üye eklenip kilit dosyası güncellenmezse test kırılır.
   - KK6: enum dosyalarında kural kopyası yok.
@@ -1085,7 +1085,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   9. Site yalnız HTTPS'tir; HSTS'i ters vekil yazar: bir yıl, alt alan adları ve ön yükleme yok; uygulama `UseHsts` çağırmaz (`05 §6.8.1`; `09 §15` madde 3; MK-58).
 - **Test beklentisi:** Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: iki kez gönderilen aynı formun etkisi tektir.
+  - KK1: k1 listesi dışındaki formun etkisi tektir.
   - KK2: aynı onay anahtarı ikinci sipariş açmaz.
   - KK3: değer tüketilince ikinci gönderim yeniden doğrulama ister.
   - KK4: doğrulama değersiz POST reddedilir.
@@ -1989,7 +1989,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   10. Yükleme işlem izine yazılmaz; HTML olmayan yanıtlar `X-Robots-Tag: noindex` taşır (`07 UC-83`; `07 §4.32.2`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: değer imzasız ya da oturumsuz açılır.
+  - KK1: imzalı değer oturumsuz açılır.
   - KK2: üç 404 nedeni ayrı sınanır.
   - KK3: dosya değiştirildikten sonra indirme yeni dosyayı verir; başlıklar ve 206 doğru.
   - KK4: ikinci indirme ve `Range` sayacı değiştirmez; aktarım sürerken ömür dolarsa aktarım tamamlanır, sonraki `Range` isteği 404 alır.
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.39*
+*Shopfolio — Implementation Plan v0.40*

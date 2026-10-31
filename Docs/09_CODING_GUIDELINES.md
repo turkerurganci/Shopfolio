@@ -1,6 +1,6 @@
 # Shopfolio — Coding Guidelines
 
-**Versiyon: v0.25** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-30
+**Versiyon: v0.26** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 8 — Kodlama Kılavuzu · **Rol:** Tech Lead
 > **Amaç:** Ajanın tutarlı kod üretmesi. Bu doküman **her kodlama görevinde** ajana verilir.
@@ -2120,7 +2120,7 @@ Komutlar: `.github/ci-commands.env` · Kurulum: `Docs/CI_CD_SETUP.md`. Aşağıd
 | 6. Migration dry-run | Boş veritabanı ve son yayımlanan sürümün şeması; geri alma sınaması (madde 3); modelde göçe dönüşmemiş değişiklik yok (§10.6) |
 | 7. Paketleme | Üç imajın derlenmesi (§4.3, §17); `latest` etiketi ve sır değeri taraması (§17) |
 
-1. **Eşitlik denetimleri birim testidir ve Lint adımında koşar.** Doküman tablosu ile kod envanterinin eşitliğini sınayan beş denetim `UnitTests/Consistency/` klasöründe, `Consistency` özelliğiyle işaretli sıradan birim testleridir; repo kökünü `Shopfolio.slnx`'ten bulur ve `Docs/` dosyalarındaki tabloyu okur. Lint adımı onları koşar, Unit adımı dışarıda bırakır (iki yerde iki kez koşmaz); özellik süzgecinin komutu D-01'in işidir (bilgim tarihli). Beşi:
+1. **Eşitlik denetimleri birim testidir ve Lint adımında koşar.** Doküman tablosu ile kod envanterinin eşitliğini sınayan denetimler `UnitTests/Consistency/` klasöründe, `Consistency` özelliğiyle işaretli sıradan birim testleridir; repo kökünü `Shopfolio.slnx`'ten bulur ve `Docs/` dosyalarındaki tabloyu okur. Lint adımı onları koşar, Unit adımı dışarıda bırakır (iki yerde iki kez koşmaz); özellik süzgecinin komutu D-01'in işidir (bilgim tarihli). Aşağıdaki beşi bu dokümanın kapalı olmayan, en az listesidir: `11`'in model, uç, gezinme, durum × rol ve form envanteri eşitlik denetimleri (T120, T538, T546, T547) da aynı klasörde, aynı özellikle ve aynı adımda koşar (K-1471). En az şu beşi:
 
    | İş adı | Doküman tarafı | Kod tarafı | Ev |
    |---|---|---|---|
@@ -2143,7 +2143,7 @@ Komutlar: `.github/ci-commands.env` · Kurulum: `Docs/CI_CD_SETUP.md`. Aşağıd
 
 Bu kılavuzun payı üç yerdedir: yerel hook'lar (`scripts/git-hooks/`), CI'ın Guard ve Lint adımları ve 21.4'ün eşitlik denetimleri. Bir kuralın yalnız dokümanda yazılı olması koruma sayılmaz; kod kuralı için ilgili testin ya da denetimin adı kuralın bölümünde yazılıdır (yazım konvansiyonu 10).
 
-*Kaynak: K-1371, K-1389 · K-1356 · K-859 · K-1355 · `INSTRUCTIONS §3.2` · `05 §2.3.5`, §2.3.8, §8.3, §8.7 · `CI_CD_SETUP.md` §1, §2, §3.3 · `DEFERRED_BACKLOG.md` D-01 · §3.1, §3.2, §3.5, §4.3, §8.1, §8.2, §9.1, §10.6, §17, §19.*
+*Kaynak: K-1371, K-1389, K-1471 · K-1356 · K-859 · K-1355 · `INSTRUCTIONS §3.2` · `05 §2.3.5`, §2.3.8, §8.3, §8.7 · `CI_CD_SETUP.md` §1, §2, §3.3 · `DEFERRED_BACKLOG.md` D-01 · §3.1, §3.2, §3.5, §4.3, §8.1, §8.2, §9.1, §10.6, §17, §19.*
 
 ## 22. Refactor kuralları
 
@@ -2401,4 +2401,4 @@ Bu liste her kod tesliminde — yapım PR'ında ve bağımsız doğrulamada — 
 
 ---
 
-*Shopfolio — Coding Guidelines v0.25 — ✓ Tamamlandı (v0.25 Kodlama kılavuzu aşamasının kapanışının arşiv işaretidir — kapanış sürümü; yalnız başlık notunun yazım durumu paragrafı ve bu dipnot değişti, gövdeye dokunulmadı; ⚠ öneriyle kaydedilen kararlar gözden geçirildi, itiraz yok — K-1400; K-437'nin altı adımı tamam)*
+*Shopfolio — Coding Guidelines v0.26 — ✓ Tamamlandı (v0.26 Aşama 9 — Implementation Planı kalite döngüsünün deep review'unun geri beslemesi — K-1471; §21.4 madde 1 (eşitlik denetimleri listesi kapalı değil, en az beşidir; `11`'in öteki eşitlik denetimleri aynı klasörde ve adımda koşar); ✓ korunur, kalite döngüsü yeniden açılmaz · v0.25 Kodlama kılavuzu aşamasının kapanışının arşiv işaretidir — kapanış sürümü; yalnız başlık notunun yazım durumu paragrafı ve bu dipnot değişti, gövdeye dokunulmadı; ⚠ öneriyle kaydedilen kararlar gözden geçirildi, itiraz yok — K-1400; K-437'nin altı adımı tamam)*

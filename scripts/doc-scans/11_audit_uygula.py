@@ -4,7 +4,7 @@ Girdi: <dizin>/hukum_<k>.md. Yalniz `SARTNAME n` bloklari (DOSYA/SATIR/ESKI/YENI
 Once hepsi sinanir (her ESKI dosyada tam bir kez, ESKI iki ciftte yok, ESKI != YENI, cakisan aralik yok); sorun varsa
 hicbir sey yazilmaz. Sonra uygulanir; her YENI dosyada artik ESKI'yi icermez. Bir uygulanan cift listesi
 `<dizin>/uygulanan.md`'ye yazilir (bulgu, satir, ESKI ilk 60 karakter).
-Kullanim: python -I scripts/doc-scans/11_audit_uygula.py <dizin> [--doc yol] [--kuru]
+Kullanim: python -I scripts/doc-scans/11_audit_uygula.py <dizin> [--doc yol] [--kuru] [--haric no,no]
 """
 import re
 import sys
@@ -22,6 +22,11 @@ if "--doc" in args:
     i = args.index("--doc")
     DOC = Path(args[i + 1])
     del args[i:i + 2]
+HARIC = set()
+if "--haric" in args:
+    i = args.index("--haric")
+    HARIC = {int(x) for x in args[i + 1].split(",")}
+    del args[i:i + 2]
 D = Path(args[0])
 raw = DOC.read_bytes().decode("utf-8")
 crlf = "\r\n" in raw
@@ -37,7 +42,7 @@ for f in sorted(D.glob("hukum_*.md"), key=lambda p: int(re.search(r"(\d+)", p.st
         if m:
             cur = (int(m.group(1)), m.group(2).lower())
             continue
-        if cur is None or cur[1] not in ("dogru", "kismen"):
+        if cur is None or cur[1] not in ("dogru", "kismen") or cur[0] in HARIC:
             continue
         if l.startswith("ESKI:"):
             eski = l.split(":", 1)[1].strip()

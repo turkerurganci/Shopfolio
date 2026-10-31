@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.23** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.24** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-10-31
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -15,15 +15,15 @@
 > - **K-1355 · Test projeleri — sahtelerin paylaşımı:** `UnitTests/Fakes/` altındaki sahteleri `IntegrationTests` bağlantılı dosya olarak derler (ikinci kopya yok, iki projeyi bağlayan proje başvurusu yok); çalıştırılabilir bir test projesine başvuru xUnit v3'te sorun çıkarabilir (bilgim tarihli) — test altyapısını kuran ilk task'ta sınanır (`09 §19.1`).
 > - **K-1354 · Yükleme betiği, kayıt biçimleyicisi ve maskeleme testleri:** Kodlama Kılavuzu (`09`) üç yapım işi bırakır ve her birinin bu planda bir task karşılığı bulunur: (1) parçalı yükleme betiği — başlatma–parça–durum akışını, 409/404/400/413 yanıtlarını ve ağ hatasında üç kez sürdürmeyi kapsar (`09 §16.2`; `07 §4.31.2`). (2) Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi `ApplicationLogFormatter` — alan adlarını ve kapalı olay listesini (`LogEvents`) kapsar (`09 §17`, `§18.1`, `§18.2`; `05 §9.1`). (3) Maskelemenin üç katmanının testleri: yazım, `PathMasker`, biçimleyici ve `ExceptionMasker` (`09 §18.2`). Bu işler izlenebilirlik matrisinin (§7.1) kaynak öğelerinde adıyla geçmeyebilir; task'ın kaynağı `09` bölümüdür. Task'ın nasıl bölünüceğine bu aşama karar verir.
 
-**Aşama 8 park bloğunun durumu (K-1443).** Yukarıdaki beş madde talimattır; bu tablo her birinin task karşılığını ve yazan oturumu söyler. Blok yazım turu bitene kadar yerinde kalır; son oturum (Y8) her satırın karşılığını task'ta bulduğunu doğrular ve durum sütununu kapatır.
+**Aşama 8 park bloğunun durumu (K-1443).** Yukarıdaki beş madde talimattır; bu tablo her birinin task karşılığını ve yazan oturumu söyler. Blok yerinde kalır (K-36); son oturum (Y8) her satırın karşılığını task'ta buldu ve durum sütununu kapattı; D-01 de aynı taramayla doğrulandı (T02–T07, T09).
 
 | Park maddesi | Karşılığı | Yazan oturum | Durum |
 |---|---|---|---|
-| P8.1 — okunacak `09` bölümleri (K-1302 (4), K-1357) | Okuma biçimi: bu başlık notunun okuma tablosu ve §5 "Task yapısı"nın `Dokümanlar` kuralı; her task'ın alanı kendi bloğunda | Y1 (biçim) · her task'ı yazan oturum (alan) | Biçim ✓ — alanlar task'larla |
-| P8.2 — eşitlik denetimlerinin Lint adımına girmesi (K-1356) | T04 (komutlar `.github/ci-commands.env`) | Y2 | Task yazıldı ✓ — Y8 doğrular |
-| P8.3 — yama sürümü denetiminin `publish.yml`'e girmesi (K-1356, K-1358) | T04, T09 | Y2 | Task yazıldı ✓ — Y8 doğrular |
-| P8.4 — sahtelerin paylaşımı, xUnit v3 sınaması (K-1355) | T03 | Y2 | Task yazıldı ✓ — Y8 doğrular |
-| P8.5 — yükleme betiği, kayıt biçimleyicisi, maskeleme testleri (K-1354, K-1391) | T230 (üç yazıcı ve biçimleyici), T231 (maskeleme testleri), T548 (yükleme betiği) | Y3 (T230, T231) · Y6c (T548) | T230, T231 yazıldı ✓ — T548 yazıldı ✓ (Y6c); Y8 doğrular |
+| P8.1 — okunacak `09` bölümleri (K-1302 (4), K-1357) | Okuma biçimi: bu başlık notunun okuma tablosu ve §5 "Task yapısı"nın `Dokümanlar` kuralı; her task'ın alanı kendi bloğunda | Y1 (biçim) · her task'ı yazan oturum (alan) | karşılandı: 214 task bloğunun `Dokümanlar` alanı (Y8 doğruladı; denetim betiği, beş alan 214 / 214) |
+| P8.2 — eşitlik denetimlerinin Lint adımına girmesi (K-1356) | T04 (komutlar `.github/ci-commands.env`) | Y2 | karşılandı: T04 (Y8 doğruladı) |
+| P8.3 — yama sürümü denetiminin `publish.yml`'e girmesi (K-1356, K-1358) | T04, T09 | Y2 | karşılandı: T04, T09 (Y8 doğruladı) |
+| P8.4 — sahtelerin paylaşımı, xUnit v3 sınaması (K-1355) | T03 | Y2 | karşılandı: T03 (Y8 doğruladı) |
+| P8.5 — yükleme betiği, kayıt biçimleyicisi, maskeleme testleri (K-1354, K-1391) | T230 (üç yazıcı ve biçimleyici), T231 (maskeleme testleri), T548 (yükleme betiği) | Y3 (T230, T231) · Y6c (T548) | karşılandı: T230, T231, T548 (Y8 doğruladı) |
 
 **Yazım konvansiyonları (K-1443).** (1) **Sıra:** W-1 ✓ → başlık notu ve §3, §3.1, §4, §5'in "Task yapısı"nı (Y1) → matris ✓ → §5 task blokları fazlar halinde (aşağıdaki harita) → §6, §8, §9 → §1, §2 son (sayımlar bloklar bitince kesinleşir) → özet ↔ ayrıntı taraması → kalite döngüsü. (2) **Dil:** bu doküman Türkçe; kod, sembol ve dosya adları İngilizce. (3) **Kimlikler (K-1406 (3)):** konu `IPn-mm`; task `TXX`, araya `TXXa`/`TXXb`, devam turu `TXX.1` (`00 §J`); matris kaynak kimliği ailesine göre (§7'nin "Kaynak kimliğinin biçimi" tablosu). (4) **Atıf biçimi:** `02 §3.8.3`, `07 UC-12`, `09 §10`, `05 MK-12` — önsüz `§` bu dokümanın bölümüdür; başka doküman her zaman numarasıyla anılır. (5) **Tüketici ilkesi:** kaynakla çelişki çıkarsa kaynak kazanır, fark bu dokümana hizalama olarak yazılır; kaynağın kendisi yanlışsa §8'e GAP olarak girer (K-1406 (2)(d)). (6) **Kural ayrıntısı evinde kalır:** task bloğu kaynağın kuralını kopyalamaz, kimlikle işaret eder. (7) **Açık kararlar bölümü yoktur:** açık kalem karar kaydının §4'ündedir; sonraki dokümana talimat o dokümanın park bloğundadır (PF-143).
 
@@ -56,9 +56,9 @@ Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 sat
 | Y6b | §5 F5 ikinci üçte bir | `T517`–`T532` (16) | `IP5-11` | ✓ |
 | Y6c | §5 F5 son üçte bir ve F5 `Yürütme sırası` | `T533`–`T549` (17) | `IP5-11`, `IP5-08` (T548) | ✓ |
 | Y7 | §5 F6, §6.1, §6.2 | `T601`–`T602` (2) | `IP5-12`, `IP6-01`, `IP6-02` | ✓ |
-| Y8 | §8 son hali, §9, §1, §2 (sayımlar kesin) | — | `IP8-01`, `IP9-01`, `IP1-01`, `IP2-01` | ⏳ |
+| Y8 | §8 son hali, §9, §1, §2 (sayımlar kesin); yazım turunun kapanışı | — | `IP8-01`, `IP9-01`, `IP1-01`, `IP2-01` | ✓ |
 
-Task toplamı 30 + 33 + 90 + 10 + 49 + 2 = 214 (aday tablo; sayım `11_task_blok_denetle.py` çıktısındadır). Yedi faz biter bitmez `11_task_blok_denetle.py --tam` sorunsuz koşar.
+Task toplamı 30 + 33 + 90 + 10 + 49 + 2 = 214 (aday tablo; sayım `11_task_blok_denetle.py` çıktısındadır). Yedi faz bitti; `11_task_blok_denetle.py --tam` sorunsuz koşar (Y8: sorun 0).
 
 ---
 
@@ -66,12 +66,33 @@ Task toplamı 30 + 33 + 90 + 10 + 49 + 2 = 214 (aday tablo; sayım `11_task_blok
 
 > **Ne yazılır:** Tüm işi küçük, bağımsız, sıralı task'lara bölmek. Her task'ın ne olduğu, neye bağımlı olduğu, hangi dokümanlarla yapılacağı ve nasıl kabul edileceği.
 
+**Amaç.** Bu doküman, `02`–`10`'un tarif ettiği ürünü yedi fazda **214 task**'a böler (§3, §5): her task tek PR, tek bağlam ve tek bağımsız doğrulamayla biter (K-1409) ve bloğunda bağımlılığını, okunacak dokümanlarını, kabul kriterlerini, test beklentisini ve doğrulama kontrol listesini taşır (§5 "Task yapısı"). Task'ı yapan `task` skill'i, doğrulayan `validate` skill'i ve faz sonunu denetleyen `gate-check` skill'i işi buradan okur; `12` için "kabul kriterleri ve kontrol listesi `11`'de tanımlı olmadan doğrulama başlamaz" ilkesi bu bloklarla karşılanır.
+
+**Kapsam.** Planın kapsamı `10 §2`'nin 77 kapsam satırıdır (`KP-1`…`KP-77`); MVP'nin çıtası ve kabulleri `10 §1`'dedir ve bu doküman onları yeniden tanımlamaz. `10 §3`'ün 64 kapsam dışı satırı (`KD-1`…`KD-64`) task üretmez; matriste negatif denetim olarak yer alır — her satırın "yok" kararını koruyan task'ı vardır (§7.1.5, `10` grubu). MVP'ye girmeyen işler §9'a işaret edilir, burada ayrıntılanmaz. Plan yalnız yapım işini bölüştürür; zaman çizelgesi ya da süre tahmini yazmaz.
+
+**Girdiler ve ilke.** Girdi dokümanları `02`–`10`'dur (`00 §C.1`); `DEPLOY_RUNBOOK` F6'nın, `DEFERRED_BACKLOG.md`'deki D-01 F0'ın girdisidir (§7.1.5, devir satırları). Bu doküman **tüketicidir**: kaynakla çelişki çıkarsa kaynak kazanır ve fark buraya hizalama olarak yazılır; kaynağın kendisi yanlışsa §8'e GAP olarak girer. Task blokları kaynağın kuralını kopyalamaz, kimlikle işaret eder (kural ayrıntısı evinde kalır). İzlenebilirlik zorunludur: §7'nin iki yönü (ileri 1.501 kaynak birimi, geri 214 task) eşit olmadan §5'e geçilmez — matris tamamdır (§8).
+
 ## 2. Kaynak envanteri özeti
 
 > **Ne yazılır:** Her kaynak dokümandan çıkarılan öğe sayısı. Traceability matrisinin denetlenebilirliği bu sayılara dayanır.
 
+Sayımlar `scripts/doc-scans/11_matris_envanter.py` ve `11_matris_kapsama.py` çıktısıdır (yazım turunun sonunda koşuldu); matris her birimi §7.1'de bir satırla taşır. Birimin tanımı ve dışarıda kalanlar K-1404, K-1412 ve K-1434'tedir; kimlik biçimleri §7.1'in "Kaynak kimliğinin biçimi" tablosundadır.
+
 | Doküman | Öğe sayısı | Kapsam |
 |---|---|---|
+| `02` Ürün Gereksinimleri | 666 | iş kuralı 438 · kimlikli satır 131 (Z, L, P, B, F, H) · alt bölüm 97 — §7.1.5 |
+| `03` Kullanıcı Akışları | 55 | alt bölüm 55 — §7.1.4 |
+| `04` Arayüz Tanımları | 102 | ekran 53 · ortak bileşen 20 · alt bölüm 29 — §7.1.4 |
+| `05` Teknik Mimari | 136 | mimari karar (MK) 78 · alt bölüm 58 — §7.1.5 |
+| `06` Veri Modeli | 117 | entity 79 · enum alt bölümü 6 · alt bölüm 32 — §7.1.1 |
+| `07` API Tasarımı | 208 | uç 187 · alt bölüm 21 — §7.1.2 |
+| `08` Entegrasyon Spesifikasyonları | 30 | entegrasyon 3 · çağrısı olmayan bağlantı 1 · alt bölüm 26 — §7.1.3 |
+| `09` Kodlama Kılavuzu | 25 | bölüm 25 — §7.1.5 |
+| `10` MVP Kapsamı | 143 | kapsam satırı (KP) 77 · kapsam dışı satır (KD) 64 · alt bölüm 2 — §7.1.5 |
+| Devir satırları | 19 | karar 9 · park maddesi 5 · gövde anması 4 · D-01 1 — §7.1.5 |
+| **Toplam** | **1.501** | ileri yön 1.501 / 1.501: eksik, fazla ve yinelenen 0 |
+
+**Matrisin çıktısı.** 1.501 kaynak birimi 214 aday task'a **3.367 (kaynak, task) çiftiyle** eşlenir; §7.2 bu çiftleri §7.1'den betikle türetilmiş hâliyle birebir taşır. Task'ların fazlara dağılımı (§3) F0 10 · F1 20 · F2 33 · F3 90 · F4 10 · F5 49 · F6 2'dir. Task gerektirmeyen birimler gerekçesiyle §7.1'de yazılıdır ve GAP değildir. Sayımlar kaynak dokümanlar değiştiğinde betikle yeniden alınır; bu tablo elle düzeltilmez.
 
 ## 3. Faz tanımları
 
@@ -6441,7 +6462,7 @@ Kaynak: `04` (102: ekran 53 `04:E-nn` · ortak bileşen 20 `04:OB-nn` · alt bö
 
 #### 7.1.5 İş kuralı → task
 
-> Doldurulacak: O4a (`02 §1`–§3; yazıldı), O4b 1/2 (`02 §4`–§8; yazıldı), O4b 2/2 (`02 §9`–§13; yazıldı), O5 1/2 (`05`; yazıldı), O5 2/2 (`09`, `10`, devir; yazıldı). Beş kalın etiketli grup, her birinin kendi tablosu: **`02`** (O4a: §1–§3; O4b: §4–§13) · **`05`** · **`09`** · **`10`** · **Devir satırları** (O5).
+> Doldurulan oturumlar: O4a (`02 §1`–§3; yazıldı), O4b 1/2 (`02 §4`–§8; yazıldı), O4b 2/2 (`02 §9`–§13; yazıldı), O5 1/2 (`05`; yazıldı), O5 2/2 (`09`, `10`, devir; yazıldı). Beş kalın etiketli grup, her birinin kendi tablosu: **`02`** (O4a: §1–§3; O4b: §4–§13) · **`05`** · **`09`** · **`10`** · **Devir satırları** (O5).
 
 Kaynak: `02 §1`–§3 (297: iş kuralı 257 `02:§3.n.m` · alt bölüm 40 `02:§n.m` — §1'in 3'ü, §2'nin 3'ü, §3'ün 34'ü). Kural satırı kuralın kalın başlık cümlesidir; kuralın iş mantığı F3'ün modül task'larındadır (T330–T366, K-1421), ekranda görünen yüzü F5'in ekran task'larındadır — bir kural birden çok task alabilir. `02 §3.26` ve `§1.1`–§1.2 task gerektirmez (gerekçesi yukarıda).
 
@@ -7703,12 +7724,21 @@ Her task → hangi kaynak öğeden besleniyor?
 
 **Boşluk olmayanlar (doğrulayıcı reddetti, K-1440).** Dependabot ve derleme adımında açık taraması (T04'ün `05 §8.3` kaynağında); girdi doğrulama kalıbı (T211, T212, T213; yalnız T211'in kısa adı "doğrulama" demiyor); işletim sistemi güncellemesi, sıralama sürümü denetimi, kurtarma sonrası eksik dosya listesi ve kapasite okuma komutu (`DEPLOY_RUNBOOK` işi, provası T601); demo sitesi (T09, T602). Bunlar §7.1 satırlarında ya da K-1440'ta gerekçelidir.
 
+**Yazım turunun sonunda durum (K-1454).** Yedi GAP'in sekiz kapatan task'ının hepsi §5'te blok olarak yazıldı (T303, T389, T202, T232, T222, T233, T10, T390; kapsamları kendi bloklarında, kabul kriterleriyle). Task blokları yazılırken **yeni boşluk çıkmadı** (`GAP-22` açılmadı): kayıtta olmayan yazım kararları plan kararı olarak K-1443…K-1453'te kaydedildi ve hiçbiri `02`–`10`'a geriye etki yaratmadı. Matris sayımları yazım sonunda yeniden koşuldu: ileri yön 1.501 / 1.501, 7.1 ile 7.2 arasında 3.367 çift ve yalnız bir yönde olan çift yok, 214 aday task'ın 214'ü blok olarak yazılı.
+
 **Açık boşluk: yok.** Matris tamamdır (ileri yön 1.501/1.501, 7.2 eşit, 214 aday task); task listesine (`§5`) geçiş kapısı açıktır.
 
 ## 9. Post-MVP parkı
 
 > **Ne yazılır:** Plan yazılırken ortaya çıkan ama MVP'ye girmeyen işler. Ertelenen işlerden farklıdır — bunlar hiç başlanmamış, bilinçli olarak kapsam dışı bırakılmış kalemlerdir.
 
+**Bu bölüm yol haritasının evi değildir (K-1454).** MVP sonrası adayların listesi, sıralama ölçütü, eşikleri ve bağımlılık zincirleri `10 §5`'tedir (`YH-1`…`YH-23`; K-422…K-424, K-560); bu doküman onları kopyalamaz ve sıralamaz. Bölümün işi iki şeyi söylemektir:
+
+1. **Plan bu adaylardan hiçbirinin işini taşımaz.** Adayların kaynağı olan `10 §3`'ün 64 kapsam dışı satırı matriste negatif denetimdir (§7.1.5, `10:KD-1`…`10:KD-64`): her satırın "yok" kararını koruyan task'ı vardır — örneğin fatura kesilmez kararını T357 ve T384, mobil uygulama ve PWA yok kararını T539 ve T540 korur. Bir adayın MVP sonrası hayata geçmesi, o satırın task'ının kabul kriterini değiştiren yeni bir karar ve yeni task'tır; bu planın geriye dönük düzeltmesi değildir.
+2. **Yazım turu yeni park kalemi doğurmadı.** K-1401…K-1454 `10 §5`'e aday eklemedi; plan yazılırken MVP'den çıkarılan ya da sonraya bırakılan iş çıkmadı. Plan yazılırken ortaya çıkıp kapsama alınan işler (§8: GAP-15…GAP-21) MVP içidir ve task'larıyla §5'tedir.
+
+**Ertelenmiş iş ayrıdır.** `DEFERRED_BACKLOG.md`'deki iş (D-01) post-MVP değildir: ilk implementation task'ından önceki kapıdır ve F0'ın task'larındadır (T02–T07, T09; §7.1.5, `devir:D-01`). Plan yazılırken ortaya çıkıp MVP'ye girmeyen yeni bir iş çıkarsa buraya, `10 §3`'ün K-25 sözlüğüyle yazılır ve `10 §5` adayı olup olmadığı karar kaydında belirlenir; bölüm o zamana kadar boştur ve boş olması bir eksik değildir.
+
 ---
 
-*Shopfolio — Implementation Plan v0.3*
+*Shopfolio — Implementation Plan v0.24*

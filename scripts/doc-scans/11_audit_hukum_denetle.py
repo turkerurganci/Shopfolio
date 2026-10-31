@@ -45,7 +45,7 @@ for f in dosyalar:
         if cur is None:
             continue
         if l.startswith("ESKI:") or l.startswith("ESKİ:"):
-            eski = l.split(":", 1)[1].strip()
+            eski = l.split(":", 1)[1].strip().replace("\\n", "\n")  # "\n" yazimi: iki satirlik ESKI (baslik + satir)
             n = TXT.count(eski)
             eskiler[eski] += 1
             cur["cift"] += 1

@@ -101,6 +101,11 @@ while IFS= read -r path; do
     lhs="${body%%[=:]*}"
     [ "$lhs" != "$body" ] || continue
     echo "$lhs" | grep -qiE "$KEY_RE" || continue
+    # The left side must look like a key: at most two prefix words (export, const ...)
+    # and then one identifier. A sentence or a URL path that merely contains the word
+    # ("POST /odeme/api/get-token: ...") is prose (Phase 9: false positive on a task
+    # block, learning promotion Ö-171).
+    echo "$lhs" | grep -qE "^[[:space:]]*([\"']?[A-Za-z]+[\"']?[[:space:]]+){0,2}[\"']?[]A-Za-z0-9_.[-]+[\"']?[[:space:]]*\$" || continue
     # Grab whatever is on the right-hand side of = or :
     value="$(echo "$body" | sed -E 's/^[^=:]*[=:][[:space:]]*//')"
     echo "$value" | grep -qiE "$PLACEHOLDER" && continue

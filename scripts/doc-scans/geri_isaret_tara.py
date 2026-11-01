@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 """Back-reference check for the decision log (checklist section 3, back-reference rule).
 
-Usage: python -I -X utf8 scripts/doc-scans/geri_isaret_tara.py <first K> <last K>
+Usage: python -I -X utf8 scripts/doc-scans/geri_isaret_tara.py <first K> <last K> [--tum]
+
+With --tum (all mentions) the relation-word window and the eliminated-option filter are
+dropped: every older K number the row names becomes a pair. The default pass misses
+phrases such as "narrows the wording of K-n" when the relation word sits outside the
+window (Phase 9 conflict scan: 5 real back-references were found only by an all-mentions
+pass over 359 pairs). The all-mentions list is long; the relation word is used only to
+sort the output (relation-word pairs first) and every line is read by a human.
 
 For every decision row K-n in the range, the script finds the older K numbers the row
 names next to a relation word (narrows, widens, changes, reverses, replaces, fixes ...)
@@ -35,10 +42,12 @@ def load_rows():
 
 
 def main():
-    if len(sys.argv) != 3:
+    args = [a for a in sys.argv[1:] if a != '--tum']
+    every = len(args) != len(sys.argv) - 1
+    if len(args) != 2:
         print(__doc__)
         return 2
-    first, last = int(sys.argv[1]), int(sys.argv[2])
+    first, last = int(args[0]), int(args[1])
     rows = load_rows()
     pairs = 0
     missing = []
@@ -53,16 +62,20 @@ def main():
             if old >= number or old in seen or old not in rows:
                 continue
             around = body[max(0, found.start() - WINDOW):found.end() + WINDOW]
-            if not RELATION.search(around) or re.search(r'elenen', around, re.IGNORECASE):
+            related = bool(RELATION.search(around)) and not re.search(r'elenen', around, re.IGNORECASE)
+            if not related and not every:
                 continue  # an eliminated option quotes an older decision, it does not change it
             seen.add(old)
             pairs += 1
             impact = rows[old][-1]
             if ('K-%d' % number) not in impact:
-                missing.append((number, old))
-    print('pairs: %d; missing back-reference: %d' % (pairs, len(missing)))
-    for number, old in missing:
-        print('K-%d -> K-%d: the impact column of K-%d does not name K-%d' % (number, old, old, number))
+                missing.append((number, old, related))
+    # --tum: relation-word pairs first (most likely real), then the rest
+    missing.sort(key=lambda item: (not item[2], item[0], item[1]))
+    print('pairs: %d; missing back-reference: %d%s' % (pairs, len(missing), ' (all mentions)' if every else ''))
+    for number, old, related in missing:
+        print('K-%d -> K-%d: the impact column of K-%d does not name K-%d%s' % (
+            number, old, old, number, '' if related or not every else ' [no relation word]'))
     return 1 if missing else 0
 
 

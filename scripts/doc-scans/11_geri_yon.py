@@ -267,5 +267,7 @@ if __name__ == "__main__":
                     i += 1
                 continue
             i += 1
-        f.write_text("\n".join(out), encoding="utf-8")
+        # the plan file is LF; Path.write_text would write CRLF on Windows
+        with open(f, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write("\n".join(out))
         print("yazildi: %d satir" % len(yeni))

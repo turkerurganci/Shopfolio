@@ -1,6 +1,6 @@
 ---
 name: validate
-description: "Tamamlanmış bir task'ı bağımsız doğrular — kabul kriterleri kanıtla, CI kontrolü, güvenlik taraması, verdict ve merge. Kullan: 'TXX doğrula', /validate TXX. AYRI chat'te çalıştırılır; yapan denetlemez."
+description: "Tamamlanmış bir task'ı bağımsız doğrular — kabul kriterleri kanıtla, CI kontrolü, güvenlik taraması, verdict ve merge. Kullan: 'TXX doğrula', /validate TXX. AYRI chat'te çalıştırılır — yönetici yardımcı düzeninde yardımcının açtığı izole doğrulama ajanında, merge'ü yardımcı yapar; yapan denetlemez."
 user-invocable: true
 ---
 
@@ -10,6 +10,7 @@ user-invocable: true
 > **Tetikleme:** "TXX doğrula", "validate TXX" veya `/validate TXX`.
 > **Parametre:** `hedef` — task numarası
 > **Kural:** Bu skill **asla yapım chat'inde çalıştırılmaz.** Yapan ≠ denetleyen.
+> **Yönetici yardımcı düzeni açıkken (`INSTRUCTIONS.md` §3.3; K-1505):** "ayrı chat" yerine yardımcının açtığı izole doğrulama ajanında (`general-purpose`, `[dogrulama]`, Opus + `high`) koşar; girdisi yalnız yardımcının yazdığı talimat dosyasıdır. Ajan 16. adımda durur — **merge etmez**; verdict'i (Çıktı formatı bloğu) talimattaki rapor dosyasına yazar. 17–18. adımı yardımcı, rapor dosyasında PASS okuduktan ve dal CI'ı yeşilse yapar.
 
 ---
 
@@ -19,7 +20,7 @@ user-invocable: true
 - **Yapım raporunu (`TXX_REPORT.md`) GÖRME.** Kendi verdict'ini önce bağımsız oluştur; raporu Faz 3'te aç.
 - **Anchoring'e karşı dikkatli ol.** Commit mesajı, dal adı, PR başlığı gibi ipuçlarından "muhtemelen doğrudur" varsayımı yapma.
 - **Kanıt olmadan onaylama.** Her kabul kriteri için somut kanıt (komut çıktısı, test sonucu, kod referansı) gerekir.
-- **Merge senin sorumluluğun.** PASS verdikten sonra sen merge edersin; FAIL/BLOCKED'da merge yok.
+- **Merge senin sorumluluğun.** PASS verdikten sonra sen merge edersin; FAIL/BLOCKED'da merge yok. Yönetici yardımcı düzeninde merge'ü yardımcı yapar, ama yalnız senin PASS'inle — veto yetkisi sende kalır.
 
 ---
 
@@ -137,13 +138,13 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 16. **Rapor + status + memory commit ve push** — **merge'den önce**. Aksi hâlde squash merge bu değişiklikleri içermez.
     **Not:** Post-merge teyit bilgileri (merge sonrası run ID'leri) bu commit'e **giremez** — merge henüz olmadı. Onlar bir sonraki task dalında veya ayrı bir `chore:` PR'ında eklenir; **doğrudan ana dala push edilmez.**
 
-17. **Merge** (yalnız PASS) — squash merge, mesaj `TXX: Task adı (#NN)`.
+17. **Merge** (yalnız PASS) — squash merge, mesaj `TXX: Task adı (#NN)`. Yönetici yardımcı düzeninde bu adımı ve 18. adımı yardımcı yapar; doğrulama ajanı 16. adımda verdict'i rapor dosyasına yazıp biter.
     **Dikkat:** Bazı CLI'lar `--subject` verildiğinde `(#NN)` sonekini otomatik eklemez. PR referansı olmayan squash commit'i ana dal CI'ının **guard job**'unu FAIL'ler. Ya numarayı elle ekle ya `--subject` bayrağını hiç kullanma.
 
 18. **Post-merge CI watch (ZORUNLU çıkış kapısı)**
     - Squash merge ana dalda yeni commit yaratır → o commit için **tüm** workflow'lar tetiklenir.
     - `gh run list --branch main --limit 5 --json databaseId,status,workflowName,headSha` ile yeni SHA'ya ait run'ları topla.
-    - Her biri için `gh run watch <ID> --exit-status` — **concluded** olana kadar izle.
+    - Her biri için `gh run view <ID> --json status,conclusion` ile **concluded** olana kadar yokla (`gh run watch` genel hook'la yasak; yardımcıda her yoklama < 170 sn).
     - Hepsi `success` → raporla. Biri başarısız → root cause (`gh run view <ID> --log-failed`) + düzeltme önerisi.
     - **Atlanması yasak.** Task/chore/docs PR ayrımı yok; workflow tipi ayrımı yok. Adım 18 yapılmadan bu skill tamamlanmış sayılmaz.
 

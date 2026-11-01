@@ -31,7 +31,7 @@ Proje sahibinden **açık onay** almadan değiştirilemez:
 - Kapsam değişikliği (MVP'ye özellik ekleme/çıkarma)
 - Karar değiştirme (daha önce alınmış bir kararı revize etme)
 - Geri alınamaz git işlemleri (force-push, hard reset, dal silme)
-- Ana dala merge, deploy, dış sisteme mesaj — merge'ün istisnaları proje sahibinin açtığı kalıcı merge yetkisi (`INSTRUCTIONS.md` §9; K-1504) ve implementation'da validator'ın PASS sonrası merge'üdür (`INSTRUCTIONS.md` §3.2)
+- Ana dala merge, deploy, dış sisteme mesaj — merge'ün istisnaları proje sahibinin açtığı kalıcı merge yetkisi (`INSTRUCTIONS.md` §9; K-1504) ve implementation'da validator PASS'inden sonraki task merge'üdür — merge'ü validator chat, yönetici yardımcı düzeninde yardımcı yapar (`INSTRUCTIONS.md` §3.2, §3.3; K-1505)
 
 ---
 

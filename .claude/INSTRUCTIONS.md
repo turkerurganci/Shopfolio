@@ -69,6 +69,7 @@ Her oturumda ilgili işin doküman referanslarını oku. Tüm dokümanı değil,
 - Her task **ayrı bir chat**'te yapılır (`/task TXX`).
 - Her task tamamlandığında **ayrı bir doğrulama chat'i** açılır (`/validate TXX`).
 - **Doğrulamayı yapım chat'inde başlatma.** Yapım chat'i bittiğinde yalnızca "doğrulama için yeni chat aç" de.
+- **Yönetici yardımcı düzeni açıkken (K-1504, K-1505):** task'ı yardımcının açtığı temiz bağlamlı yapım işçisi yapar (`/task TXX` akışı); doğrulamayı yardımcının açtığı izole doğrulama ajanı yapar (`/validate TXX` akışı, §3.3). "Ayrı chat" şartı izole alt ajanla karşılanır; yapım işçisi doğrulamayı başlatmaz.
 - Task sırası plana sadıktır. Atlama yok.
 
 ### 3.2 Branching ve merge
@@ -81,7 +82,7 @@ Her oturumda ilgili işin doküman referanslarını oku. Tüm dokümanı değil,
 | Faz tag'i | `phase/FX-pass` |
 | Direct push | Yasak — `scripts/git-hooks/pre-push` bloklar |
 | Merge ön koşulu | CI yeşil **ve** validator PASS |
-| Merge'ü kim yapar | **Validator chat** (yapım chat'i PR'ı açık bırakır) |
+| Merge'ü kim yapar | **Validator chat** (yapım chat'i PR'ı açık bırakır); yönetici yardımcı düzeni açıkken **yardımcı**, validator'ın rapor dosyasında PASS okuduktan sonra (§3.3; K-1505) |
 
 **PR base'i her zaman `main`'dir — evrensel.** Kural her dönemde geçerlidir: doküman döneminin oturum sonu PR'ı da, implementation'ın task PR'ı da bir önceki oturumun ya da başka bir task'ın dalını base almaz. Sebebi disiplin değil **mekanik**: `ci.yml` tetikleyicisi PR'ı base'ine göre değerlendirir ve dal koruma rejimi yalnız `main`'i korur — base `main` değilse CI koşmayabilir, koşsa bile zorunlu kontrol o PR'a uygulanmaz ve PR **yanlış yere `CLEAN`** görünür. Hata sessizdir: kimse base sütununa bakmadıkça ortaya çıkmaz. Bir oturum, önceki oturumun henüz merge edilmemiş kayıtlarının üstüne yazacaksa dal yine `main`'den açılır; önceki PR merge edildikten sonra `git rebase --onto origin/main <önceki-dalın-ucu>` ile hizalanır — squash merge yüzünden önceki commit `main`'de başka bir kimlikle yaşadığı için düz retarget çakışma üretir. **Mekanik ağ:** `ci.yml`'in `pull_request` tetikleyicisinde base filtresi **yoktur**, böylece yanlış base'li bir PR'da da CI koşar ve sessiz kalmaz.
 
@@ -108,6 +109,12 @@ Açtığın **her** PR'ın CI run'ını `concluded + success` olana kadar **sen*
   - Validator'a verilen girdiler: task tanımı, kabul kriterleri, doğrulama kontrol listesi, referans dokümanlar, dal kodu, CI sonuçları. **Başka bir şey verilmez.**
   - Validator kendi bağımsız verdict'ini oluşturduktan **sonra** yapım raporuyla karşılaştırır.
   - Anchoring yasağı: commit mesajı, dal adı gibi ipuçlarından "muhtemelen doğrudur" varsayımı yapılmaz.
+- **Yönetici yardımcı düzeninde doğrulama (K-1505; D-02):** yardımcı her task için doğrulama talimatını yazar ve izole doğrulama ajanını `SubAgentIndependentValidation` kalıbıyla **kendisi açar** — talimat proje sahibine gösterilmez, "başlat" beklenmez (skill §0, yönetici düzeni istisnası).
+  - Ajan `general-purpose` (fork değil), `[dogrulama]` etiketli, Opus + `high`; görev metni talimat yolunu taşıyan tek satırdır. Talimat yukarıdaki izolasyon girdilerinden başka bir şey taşımaz; yardımcının yorumu ve yapım işçisinin dönüş metni girmez.
+  - Validator `skills/validate`'i 16. adıma kadar koşar (rapor, status, memory commit + push), **merge etmez**; verdict'i talimattaki rapor dosyasına yazar.
+  - Yardımcı sonucu ajanın dönüş metninden değil rapor dosyasından okur — yol, değişiklik zamanı (başlatmadan sonra), başlıkta task ve tur numarası. **PASS ve dal CI yeşilse** squash merge'ü ve merge sonrası CI izlemesini (`skills/validate` 17–18. adım) yardımcı yapar. FAIL / BLOCKED'da merge yok; düzeltmeden sonra doğrulama tam yeniden yapılır (`[yeniden-dogrulama]`).
+  - Validator'ın merge-öncesi veto yetkisi (00 §D.9) korunur: merge'ün tek kapısı validator'ın PASS'idir. Bekçi değişmez — merge'ü yalnız yardımcı ve ana oturum çalıştırır.
+  - **Neden:** Escrow'un F8 / F9 yönetici düzeninde aynı akış işledi (doğrulamayı yönetici başlatır, PASS + CI yeşilse yönetici merge eder); proje sahibi 2026-11-01'de Shopfolio'ya taşınmasını onayladı.
 - **CI rasyonelizasyon yasağı:**
   - Validator Adım 0'da ana dalın son 3 CI run'ını kontrol eder. Biri bile FAIL ise **HARD STOP**.
   - Task dalı CI'sı da kontrol edilir; FAIL veya yok ise → bulgu / BLOCKED.
@@ -241,7 +248,7 @@ Düzenin dört işletim kuralı (UI/UX tasarım aşaması, K-852):
 3. **⚠ listesi kapıdan önce de gösterilebilir.** Kapı "en geç arşiv işaretinden önce"dir; proje sahibi isterse ya da yönetici uygun görürse liste o ana kadarki kararlarla erken gösterilir. İşaret dönüşümü gösterim tarihini taşır ve en geç arşiv işaretinin PR'ında kayda işlenir; gösterimden sonra kaydedilen ⚠ kararlar arşiv işaretinden önce ayrıca gösterilir. **Neden:** UI/UX tasarım aşamasında liste kırk karara çıktı ve proje sahibi kapanıştan önce görmek istedi (2026-10-05); erken gösterimden sonraki kararların kapısı yazılı değildi.
 4. **Limitte düşen alt ajanın görevi aynı kapsamla yeniden verilmez** — yönetici işi böler; kural ve kanıtı `checklists/document-stage.md` §4'ün çok oturumlu yazım maddesindedir (K-778).
 
-**Yönetici yardımcı düzeni (Aşama 9, K-1402).** Ana oturum yalnız aracıdır; yöneticinin işi — sıradaki adımı işçiye vermek, işçinin PR'ının CI'ını beklemek, yeşilse merge etmek, kayıtları güncellemek — `[yonetici]` etiketli Opus alt ajanındadır (yardımcı). Bu, (1)'in Sonnet / Haiku kuralına `[dogrulama]` gibi tek istisnadır; yardımcının açtığı işçiler (1)'e göre koşar. Tek düğme `~/.claude/rules/agent-rules.json` > `helperMode`'dur; bekçiler ve devir kontrolü `~/.claude/hooks/` altındadır (proje dışı). Düğme açıkken yalnız yardımcı ve ana oturum merge eder. **Düzen 2026-11-01'den beri kalıcıdır** — doküman döneminin kalan aşamalarında ve implementation döneminde açıktır, açılışta yeniden sorulmaz (K-1504). Implementation döneminde validator'ın merge ettiği akışın (§3.2, `skills/validate`) bekçiyle uyumu ilk task'ın doğrulamasından önce kurulur — yardımcının işçiye verdiği doğrulama `gh pr merge` çalıştıramaz; bu proje sahibine soru değil, kurulum işidir (`Docs/DEFERRED_BACKLOG.md` D-02). Aşama 9'un eski düzenle karşılaştırması `Docs/CHECKPOINT_REPORTS/PHASE9_LEARNING_PROMOTION.md` §3.4'tedir. **Neden:** Yöneticinin işi uzun bir oturum bağlamı ister ve ana oturumun bağlamını doldurur; proje sahibi 2026-10-30'da yardımcı tasarımını onayladı, tasarım beş denemeyle sınandı ve yedi bağımsız doğrulama turunun yedisi de "geçti" dedi (K-1402). Yardımcı `soru` ile durduğunda ana oturum soruyu aynı chat'te proje sahibine sorar, cevabı görev dosyasına yazar ve sonraki yardımcıyı aynı chat'ten açar; proje sahibi istemedikçe yeni chat'e geçilmez. **Neden:** Aşama 9'da proje sahibinin kararı (2026-10-31).
+**Yönetici yardımcı düzeni (Aşama 9, K-1402).** Ana oturum yalnız aracıdır; yöneticinin işi — sıradaki adımı işçiye vermek, işçinin PR'ının CI'ını beklemek, yeşilse merge etmek, kayıtları güncellemek — `[yonetici]` etiketli Opus alt ajanındadır (yardımcı). Bu, (1)'in Sonnet / Haiku kuralına `[dogrulama]` gibi tek istisnadır; yardımcının açtığı işçiler (1)'e göre koşar. Tek düğme `~/.claude/rules/agent-rules.json` > `helperMode`'dur; bekçiler ve devir kontrolü `~/.claude/hooks/` altındadır (proje dışı). Düğme açıkken yalnız yardımcı ve ana oturum merge eder. **Düzen 2026-11-01'den beri kalıcıdır** — doküman döneminin kalan aşamalarında ve implementation döneminde açıktır, açılışta yeniden sorulmaz (K-1504). Implementation döneminde validator'ın merge ettiği akışın (§3.2, `skills/validate`) bekçiyle uyumu ilk task'ın doğrulamasından önce kurulur — yardımcının işçiye verdiği doğrulama `gh pr merge` çalıştıramaz; bu proje sahibine soru değil, kurulum işidir (`Docs/DEFERRED_BACKLOG.md` D-02). Aşama 9'un eski düzenle karşılaştırması `Docs/CHECKPOINT_REPORTS/PHASE9_LEARNING_PROMOTION.md` §3.4'tedir. **Neden:** Yöneticinin işi uzun bir oturum bağlamı ister ve ana oturumun bağlamını doldurur; proje sahibi 2026-10-30'da yardımcı tasarımını onayladı, tasarım beş denemeyle sınandı ve yedi bağımsız doğrulama turunun yedisi de "geçti" dedi (K-1402). Yardımcı `soru` ile durduğunda ana oturum soruyu aynı chat'te proje sahibine sorar, cevabı görev dosyasına yazar ve sonraki yardımcıyı aynı chat'ten açar; proje sahibi istemedikçe yeni chat'e geçilmez. **Neden:** Aşama 9'da proje sahibinin kararı (2026-10-31). Implementation döneminde task'ın yapımı ve doğrulaması da yardımcıdadır; akış §3.1 ve §3.3'te (K-1505).
 
 ---
 
@@ -249,7 +256,7 @@ Düzenin dört işletim kuralı (UI/UX tasarım aşaması, K-852):
 
 **Implementation:**
 - `/task TXX` — yapım chat'i
-- `/validate TXX` — doğrulama chat'i (ayrı chat'te)
+- `/validate TXX` — doğrulama chat'i (ayrı chat'te; yönetici yardımcı düzeninde yardımcının açtığı izole doğrulama ajanında — §3.3)
 - `/gate-check FX` — faz sonu doğrulama
 
 **Doküman ve kalite:**

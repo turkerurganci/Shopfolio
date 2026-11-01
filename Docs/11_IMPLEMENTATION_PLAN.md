@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.59** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.60** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -5562,7 +5562,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   7. Günlük aktarımı firma hesabındaki dış depoya akar; kurtarma hedefi aynı gündür; prova oradan döner, firmanın erişimini doğrular (`05 MK-25`, MK-27; §7.6).
   8. Canlı kanıt: gerçek kartla küçük tutarlı sipariş, 3D geçilir, panelden uçtan uca işletilir, bedel geri ödenir; taksit sunuluyorsa taksitli; satırlar runbook'a yazılır (`08 §2.1.10`; K-1411).
   9. Kurulum tarafı satırları runbook'tadır: gönderen adresinden deneme iletisi, erişim kaybında yeni yönetici ve isteyenin doğrulanması, ÖK-1…ÖK-12 (`02 §9.1.5`, §10.2.7; `10 §4.1`).
-  10. Kanıtlar `12` senaryolarının kabul kanıtına bağlanır (ileri işaret: 12).
+  10. Kanıtlar `12` §12.1 `VAL-F001`…`VAL-F012` satırlarına bağlanır.
 - **Test beklentisi:** E2E
 - **Doğrulama kontrol listesi:**
   - KK1: gerçek yapılandırmayla açılış.

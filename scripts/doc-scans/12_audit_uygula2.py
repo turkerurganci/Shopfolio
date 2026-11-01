@@ -27,14 +27,15 @@ if "--haric" in args:
 D = Path(args[0])
 DOC = Path(r"C:\projects\Shopfolio\Docs\12_VALIDATION_PROTOCOL.md")
 COL = {"Kural": 2, "Kaynak": 3, "Ön koşul": 4, "Beklenen": 5, "Beklenen sonuç": 5, "Kanıt türü": 6,
-       "Severity": 8, "Seviye": 8, "Durum": 9}
+       "Kanıt ortamı": 7, "Severity": 8, "Seviye": 8, "Durum": 9}
 
 # Ayni hucreyi birden fazla bulgu degistiriyorsa birlesik metin: (VAL, hucre) -> metin
-YAMA = {
-    ("VAL-D089", "Beklenen sonuç"):
-        "Bir gün önce satırlar alıcısıyla ve olayın değerleriyle durur (üç yılda boşaltılmamıştır); sonra silinir; "
-        "iptal ve geri ödeme kolu süreyi kısaltmaz ve geç gelip geri ödenen ödemenin siparişi Başarısız kalsa da "
-        "ödemesi alınmış kolundadır — üç yılda alıcısı silinmemiştir",
+YAMA = {}
+
+# Ayni ESKI icin birlesik YENI (Y5 + #70, 2b): ESKI -> YENI
+PAIR_OVR = {
+    "Sipariş toplamı = sağlayıcıdaki ödeme tutarı = geri ödenen tutar; kart ekstresinde ya da sağlayıcı kaydında ödeme ve iade ayrı satırlar olarak görünür;":
+        "Sipariş toplamı = sağlayıcıdaki ödeme tutarı (`payment_amount`, taksit farkı hariç; 08 §2.1.2, §2.1.5) = iade isteğinin tutarı (`Refund.Amount`; 08 §2.1.9); taksitli ödemede bildirimdeki `total_amount` taksit farkı kadar yüksektir ve bu eşitliğe girmez (VAL-F010; VAL-E011); kart ekstresinde ya da sağlayıcı kaydında ödeme ve iade ayrı satırlar olarak görünür (taksitli kanıtta ekstredeki tutarlar taksit farkını da taşır; VAL-F010);",
 }
 
 raw = DOC.read_bytes().decode("utf-8")
@@ -63,6 +64,8 @@ for f in sorted(D.glob("hukum_*.md"), key=lambda p: int(re.search(r"(\d+)", p.st
             eski = None
         elif l.startswith("SATIR:") and l[6:].strip() != "yok":
             p = [x.strip() for x in l[6:].split(" | ", 2)]
+            if len(p) < 3:
+                continue
             cells.append((cur, p[0], p[1], p[2]))
         elif l.startswith("YENI_SATIR:"):
             body = l.split(":", 1)[1].strip()
@@ -70,6 +73,9 @@ for f in sorted(D.glob("hukum_*.md"), key=lambda p: int(re.search(r"(\d+)", p.st
             row = body[body.index("| VAL-"):]
             newrows.append((cur, a.group(1) or a.group(2), row))
 
+seen = set()
+pairs = [p for p in pairs if not ((p[1], p[2]) in seen or seen.add((p[1], p[2])))]
+pairs = [(a, b, PAIR_OVR.get(b_, c)) for a, b_, c in pairs for b in [b_]]
 sorun, log = [], []
 # 1) ESKI/YENI
 araliklar = []

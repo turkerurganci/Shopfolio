@@ -125,7 +125,7 @@ for no, c in rows:
     seviye_say[m.group(1)] = seviye_say.get(m.group(1), 0) + 1
     sev_say[sev] = sev_say.get(sev, 0) + 1
     # kaynak
-    if re.search(r"\b(KD|YH)-\d+", kaynak):
+    if re.search(r"\b(KD|SK|YH)-\d+", kaynak):
         hata(no, kimlik, "Kaynak KD/SK/YH kimligi tasiyor (kriter yazilmaz)")
     kps = {int(x) for x in re.findall(r"KP-(\d+)(?!\d)", kaynak)}
     if not (kps or re.search(r"ÖK-\d+|K-\d+|Ö\d+|\b\d{2} §\d", kaynak)):

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.62** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.63** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-02
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -2438,8 +2438,8 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   1. Kurulum tek firmaya hizmet eder; firma ekleme, seçme ve geçiş yoktur ve firma kimlik kaydı silinemez, yalnız düzenlenir; pazar (Türkiye), dil (Türkçe) ve para birimi (TRY) tektir, seçilemez (`02 §3.1.1`, §12.1.1).
   2. Firma kimliği panelden, altyapısı kurulumdan gelir; alanları ayrıdır (`02 §3.1.2`).
   3. Firma tipi Esnaf, Gerçek kişi tacir ve Tüzel kişi değerlerinden biridir; zorunlu kimlik alanları tipe göre değişir (`02 §3.1.3`).
-  4. Üç tipte de adres, telefon, e-posta ve KEP adresi zorunludur; boş zorunlu alan kaydı engellemez, satış kapısını kapalı tutar (T331); dolu zorunlu alan boşaltılamaz ve tip değişikliği reddedilmez. Firma bildirimleri (F-1…F-4) bu iletişim e-postasına gider; panelde ayrı bir "bildirim adresi" alanı yoktur (`02 §3.1.2`, §3.1.3, §6.9.1, §9.3.1).
-  5. İsteğe bağlı meslek odası, işletme adı ya da tescilli marka ve davranış kuralları tipten bağımsızdır, doluysa yasal kimlikle görünür (`02 §3.1.3`).
+  4. Üç tipte de adres, telefon, e-posta, KEP adresi, meslek odası ve meslekle ilgili davranış kuralları zorunludur; boş zorunlu alan kaydı engellemez, satış kapısını kapalı tutar (T331); dolu zorunlu alan boşaltılamaz ve tip değişikliği reddedilmez. Firma bildirimleri (F-1…F-4) bu iletişim e-postasına gider; panelde ayrı bir "bildirim adresi" alanı yoktur (`02 §3.1.2`, §3.1.3, §6.9.1, §9.3.1).
+  5. Meslek odası ve davranış kuralları tipten bağımsız zorunludur ve yasal kimlikle görünür; işletme adı ya da tescilli marka isteğe bağlıdır, doluysa görünür (`02 §3.1.3`; K-1568).
   6. Yasal kimlik bilgileri ana sayfadan İletişim başlığı altında sürekli erişilebilir (`02 §3.1.4`).
   7. ETBİS kaydı yapılmaz; kayıt bilgisi isteğe bağlı alandır, satış kapısını tutmaz ve doluysa doğrulama bandı gösterilir (`02 §3.1.4`, §12.5).
   8. İade adresi zorunlu ayrı bir firma ayarıdır; beyanla birlikte beyan kaydına yazılır ve sonradan değişirse yapılmış beyanın adresi değişmez (`02 §3.1.7`).

@@ -1,12 +1,12 @@
 # Shopfolio — Validation Protocol
 
-**Versiyon: v0.12** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.13** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 10 — Doğrulama Protokolü · **Rol:** QA / Verification Lead
 > **Bu bir test case deposu değildir.** Cevapladığı soru: **"Bu ürün bir sonraki aşamaya geçilebilecek olgunlukta mı?"**
 > **Kapsam `10_MVP_SCOPE.md` ile birebir hizalıdır.**
 
-> **Yazım durumu (K-28, K-30, K-1516; karar kaydı §24): yazım turu sürüyor (v0.12).** Yazım oturumları: Y1 ✓ (bu başlık notu), Y2 ✓ (çerçeve bölümleri §3, §5…§11; K-1517…K-1520); Y3a-1 ✓ (§4 matris biçimi ve KP-1…KP-30, KP-77 matrisi; K-1521…K-1523); Y3a-2 ✓ (§4.8…§4.10: KP-31…KP-36, KP-38…KP-57 matrisi; K-1524, K-1525); Y3a-3 ✓ (§4.11, §4.12: KP-58…KP-76 matrisi; K-1526); Y3b-1 ✓ (§4.13…§4.16: KP-37 matrisi, genişlik sınıfları, vitrinin eksik satır kuralı, seviye E; K-1527…K-1531); Y3b-2 ✓ (§4.17…§4.19: ön yüz, çatının yanıtları, hata kodları; K-1532…K-1535); Y3b-3 ✓ (§4.20: uçların doğrulanacak davranışları; matris kapandı; K-1536); Y4-1 ✓ (§12.1…§12.4: F6 kabul kanıtı zinciri, A seviyesi erişilebilirlik ölçütleri, durum geçiş matrisi, kritik hesaplamalar; T601 kabul kriteri 10 geri yazıldı; K-1537…K-1539); Y4-2a ✓ (§12.5…§12.7: sahiplik ve silmeler, eşzamanlılık ve kesinti, denetim izi ve saklama; K-1540, K-1541); Y4-2b ✓ (§12.8, §12.9: belge, onay, yasal kimlik ve çerez; kısmi adet, iade ve ayıp; K-1542); Y4-3, Y5 bekliyor (harita, konvansiyonlar ve okuma tablosu park bloklarının altındadır). Sıra: başlık notu → çerçeve bölümleri (§3, §5…§11) → matris (§4) → proje-spesifik ek (§12) → §1 ve §2 son → kalite döngüsü. Bölümlerin gövdesi şablonun yönerge ve örnek metniyle durur; her oturum kendi bölümünde yönergeyi gerçek içerikle değiştirir.
+> **Yazım durumu (K-28, K-30, K-1516; karar kaydı §24): yazım turu sürüyor (v0.13).** Yazım oturumları: Y1 ✓ (bu başlık notu), Y2 ✓ (çerçeve bölümleri §3, §5…§11; K-1517…K-1520); Y3a-1 ✓ (§4 matris biçimi ve KP-1…KP-30, KP-77 matrisi; K-1521…K-1523); Y3a-2 ✓ (§4.8…§4.10: KP-31…KP-36, KP-38…KP-57 matrisi; K-1524, K-1525); Y3a-3 ✓ (§4.11, §4.12: KP-58…KP-76 matrisi; K-1526); Y3b-1 ✓ (§4.13…§4.16: KP-37 matrisi, genişlik sınıfları, vitrinin eksik satır kuralı, seviye E; K-1527…K-1531); Y3b-2 ✓ (§4.17…§4.19: ön yüz, çatının yanıtları, hata kodları; K-1532…K-1535); Y3b-3 ✓ (§4.20: uçların doğrulanacak davranışları; matris kapandı; K-1536); Y4-1 ✓ (§12.1…§12.4: F6 kabul kanıtı zinciri, A seviyesi erişilebilirlik ölçütleri, durum geçiş matrisi, kritik hesaplamalar; T601 kabul kriteri 10 geri yazıldı; K-1537…K-1539); Y4-2a ✓ (§12.5…§12.7: sahiplik ve silmeler, eşzamanlılık ve kesinti, denetim izi ve saklama; K-1540, K-1541); Y4-2b ✓ (§12.8, §12.9: belge, onay, yasal kimlik ve çerez; kısmi adet, iade ve ayıp; K-1542); Y4-3a ✓ (§12.10, §12.11: indirme hakkı, e-posta bağlantıları ve çerezler; uyarılar ve hata hâlleri; K-1543, K-1544); Y4-3b, Y5 bekliyor (harita, konvansiyonlar ve okuma tablosu park bloklarının altındadır). Sıra: başlık notu → çerçeve bölümleri (§3, §5…§11) → matris (§4) → proje-spesifik ek (§12) → §1 ve §2 son → kalite döngüsü. Bölümlerin gövdesi şablonun yönerge ve örnek metniyle durur; her oturum kendi bölümünde yönergeyi gerçek içerikle değiştirir.
 
 > **Aşama 1'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36.
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
@@ -105,10 +105,10 @@
 | P3.7 — dışa aktarmanın izi (K-823) | `VP12-07` | Y4-2a | §12.7 yazıldı; Y5 doğrular |
 | P3.8 — ilk kurulumda çerez (K-834, K-850) | `VP12-08` | Y4-2b | §12.8 yazıldı; Y5 doğrular |
 | P3.9 — Aşama 3 dizini | `VP0-01` | Y1 | dizin yerinde (18 atıf; Y1 doğruladı) |
-| P4.1 — indirme hakkının düştüğü an (K-884, K-980) | `VP12-10` | Y4 | bekliyor |
+| P4.1 — indirme hakkının düştüğü an (K-884, K-980) | `VP12-10` | Y4-3a | §12.10 yazıldı; Y5 doğrular |
 | P4.2 — eşzamanlılık, tek işlenme, kesinti (K-890…K-980) | `VP12-06` | Y4-2a | §12.6 yazıldı; Y5 doğrular |
-| P4.3 — bağlantılar ve çerezler (K-904…K-1161) | `VP12-10` | Y4 | bekliyor |
-| P4.4 — uyarılar ve hata hâlleri (K-913…K-975) | `VP12-11` | Y4 | bekliyor |
+| P4.3 — bağlantılar ve çerezler (K-904…K-1161) | `VP12-10` | Y4-3a | §12.10 yazıldı; Y5 doğrular |
+| P4.4 — uyarılar ve hata hâlleri (K-913…K-975) | `VP12-11` | Y4-3a | §12.11 yazıldı; Y5 doğrular |
 | P4.5 — tasarım değerleri, yük (K-928) | `VP12-12` (+ `VP3-02`) | Y4 | bekliyor (karar K-1515, K-1512) |
 | P4.6 — on yıllık saklama (K-951, K-1092) | `VP12-07` | Y4-2a | §12.7 yazıldı; Y5 doğrular |
 | P4.7 — Aşama 4 dizini | `VP0-01` | Y1 | dizin yerinde (20 atıf; Y1 doğruladı) |
@@ -130,7 +130,7 @@
 
 Aşama 1 ve Aşama 6…9 bloklarında dizin satırı yoktur ve eklenmedi (devrin evi karar satırıdır). Dizin satırlarında Y1'de değişiklik gerekmedi: dizin ile etki sütunu açılışta karşılaştırıldı (karar kaydı §24.1 fark C, K-1508); Y1 dört dizinin gösterdiği raporların (`CHECKPOINT_REPORTS/PHASE2…5_CONFLICT_SCAN.md` §6) varlığını sınadı ve satırların yalnız işaret ettiğini, devri ikinci kez kaydetmediğini doğruladı.
 
-**Yazım konvansiyonları (K-1516; checklist §4).** (1) **Sıra:** başlık notu (Y1) → çerçeve bölümleri §3, §5…§11 (Y2) → §4 matris (Y3a-1, Y3a-2, Y3a-3, Y3b-1, Y3b-2, Y3b-3) → §12 proje-spesifik ek (Y4-1, Y4-2, Y4-3) → §1, §2 son (Y5; sayımlar matris bitince kesinleşir) → özet ↔ ayrıntı taraması → kalite döngüsü. (2) **Dil:** bu doküman Türkçe; kod, sembol ve dosya adları İngilizce. (3) **Kimlikler:** konu `VPn-mm` (karar kaydı §24.2); matris satırı `VAL-<seviye><NNN>` (örnek `VAL-A001`) — seviye kimlikte okunur ve "Seviye" sütunuyla çelişemez (K-1511 (2)); kaynak birimi `10` KP, KD, ÖK, SK, YH kimliği ya da K / bölüm numarasıdır. Severity (KRİTİK / ORTA / DÜŞÜK) ile `00 §D.10`'un S1 / S2 / S3 hata sınıfı iki ayrı eksendir (K-1511 (3)). (4) **Atıf biçimi:** `02 §3.8.3`, `10 KP-37`, `09 §16.1` — önsüz `§` bu dokümanın bölümüdür; başka doküman her zaman numarasıyla anılır. (5) **Tüketici ilkesi:** bu doküman `02`–`11`'i tüketir, onlara geriye etki yaratmaz; kaynakla çelişen bir kural çıkarsa kaynak kazanır ve fark bu dokümana hizalama olarak yazılır. (6) **Kural ayrıntısı evinde kalır:** satır kuralı kopyalamaz, kimlikle işaret eder (kapsam cümleleri hariç: `10 §2` ve `§3` cümleleri çevrilmeden devralınır, K-24). (7) **Kapsam hizası:** MVP'de olmayan özellik kriter olamaz, MVP'de olan çıkarılamaz; KD ve YH satırlarına kriter yazılmaz. (8) **Tür etiketi (K-1512 (2)):** matris satırının `Kural` hücresi gerektiğinde köşeli etiketle başlar — `[tarayıcı]`, `[erişilebilirlik]`, `[güvenlik]`, `[yük]`; yeni seviye ya da sütun açılmaz. (9) **Açık kararlar bölümü yoktur:** açık kalem karar kaydının §4'ündedir, sonraki dokümana talimat o dokümanın park bloğundadır (PF-158). (10) **Betik:** matris kimlik tekilliği, seviye–kimlik uyumu ve KP kapsaması `scripts/doc-scans/12_matris_denetle.py` ile denetlenir (ilk matris oturumu yazar, sonrakiler koşar); kapsam hizası `12_kapsam_hizasi.py` ile yazımdan önce sınandı, kapanışta yeniden koşulur.
+**Yazım konvansiyonları (K-1516; checklist §4).** (1) **Sıra:** başlık notu (Y1) → çerçeve bölümleri §3, §5…§11 (Y2) → §4 matris (Y3a-1, Y3a-2, Y3a-3, Y3b-1, Y3b-2, Y3b-3) → §12 proje-spesifik ek (Y4-1, Y4-2a, Y4-2b, Y4-3a, Y4-3b) → §1, §2 son (Y5; sayımlar matris bitince kesinleşir) → özet ↔ ayrıntı taraması → kalite döngüsü. (2) **Dil:** bu doküman Türkçe; kod, sembol ve dosya adları İngilizce. (3) **Kimlikler:** konu `VPn-mm` (karar kaydı §24.2); matris satırı `VAL-<seviye><NNN>` (örnek `VAL-A001`) — seviye kimlikte okunur ve "Seviye" sütunuyla çelişemez (K-1511 (2)); kaynak birimi `10` KP, KD, ÖK, SK, YH kimliği ya da K / bölüm numarasıdır. Severity (KRİTİK / ORTA / DÜŞÜK) ile `00 §D.10`'un S1 / S2 / S3 hata sınıfı iki ayrı eksendir (K-1511 (3)). (4) **Atıf biçimi:** `02 §3.8.3`, `10 KP-37`, `09 §16.1` — önsüz `§` bu dokümanın bölümüdür; başka doküman her zaman numarasıyla anılır. (5) **Tüketici ilkesi:** bu doküman `02`–`11`'i tüketir, onlara geriye etki yaratmaz; kaynakla çelişen bir kural çıkarsa kaynak kazanır ve fark bu dokümana hizalama olarak yazılır. (6) **Kural ayrıntısı evinde kalır:** satır kuralı kopyalamaz, kimlikle işaret eder (kapsam cümleleri hariç: `10 §2` ve `§3` cümleleri çevrilmeden devralınır, K-24). (7) **Kapsam hizası:** MVP'de olmayan özellik kriter olamaz, MVP'de olan çıkarılamaz; KD ve YH satırlarına kriter yazılmaz. (8) **Tür etiketi (K-1512 (2)):** matris satırının `Kural` hücresi gerektiğinde köşeli etiketle başlar — `[tarayıcı]`, `[erişilebilirlik]`, `[güvenlik]`, `[yük]`; yeni seviye ya da sütun açılmaz. (9) **Açık kararlar bölümü yoktur:** açık kalem karar kaydının §4'ündedir, sonraki dokümana talimat o dokümanın park bloğundadır (PF-158). (10) **Betik:** matris kimlik tekilliği, seviye–kimlik uyumu ve KP kapsaması `scripts/doc-scans/12_matris_denetle.py` ile denetlenir (ilk matris oturumu yazar, sonrakiler koşar); kapsam hizası `12_kapsam_hizasi.py` ile yazımdan önce sınandı, kapanışta yeniden koşulur.
 
 **Okuma tablosu ve boyut (K-1511 (1), K-1516).** Bu doküman 100 KB'ı aşacaktır ve `INSTRUCTIONS §9` (7) bütün okumayı yasaklar; `validate` skill'i ve doğrulayıcılar hedef task'ın VAL satırlarını bu tabloyla okur, bütün dosyayı okumaz. Dosyanın boyutu `wc -c` ile ölçülür; 100 KB'ın altında bütün okunabilir. Komutlar depo kökünden, dosya `Docs/12_VALIDATION_PROTOCOL.md`:
 
@@ -141,7 +141,7 @@ Aşama 1 ve Aşama 6…9 bloklarında dizin satırı yoktur ve eklenmedi (devrin
 - **Tür etiketi:** `grep -nF '[yük]' <dosya>` (ve `[tarayıcı]`, `[erişilebilirlik]`, `[güvenlik]`) — türün bütün satırları.
 - **Durum:** `grep -n 'BEKLEMEDE' <dosya>`; `grep -nE '\| (FAIL|KABUL EDİLMİŞ RİSK) \|$' <dosya>`.
 - **Park maddesi:** `grep -n '^> - \*\*K-' <dosya>`.
-- **Proje-spesifik ek:** `grep -n '^### 12\.' <dosya>` — alt bölüm başlıkları (başlıklar Y4-1…Y4-3'te yazılır).
+- **Proje-spesifik ek:** `grep -n '^### 12\.' <dosya>` — alt bölüm başlıkları (başlıklar Y4-1…Y4-3b'de yazılır).
 - **Kaynak satırı ve aralığı:** `grep -n '^| KP-37 ' Docs/10_MVP_SCOPE.md`; başka kaynak için `grep -n '<kimliğin başlığı>' Docs/0N_*.md`, sonra `sed -n 'a,bp'` — yalnız satırın kaynak birimi.
 
 **Boyut hedefi yoktur;** doküman bölünmez (dosya adı ve bölüm numaraları değişmez; PF-144'ün `12` karşılığı). Büyüme matris ve ekten gelir; okuma tablosu bunu karşılar.
@@ -161,7 +161,8 @@ Aşama 1 ve Aşama 6…9 bloklarında dizin satırı yoktur ve eklenmedi (devrin
 | Y4-1 | §12 proje-spesifik ek, birinci parça: §12.1 F6 kabul kanıtı, §12.2 A seviyesi erişilebilirlik, §12.3 durum geçiş matrisi, §12.4 kritik hesaplamalar; F6 kabul kanıtı senaryolarının `11` T601 kabul kriteri 10'a geri yazımı (K-1537…K-1539) | `VP12-01`…`VP12-04` | +25 KB | ✓ |
 | Y4-2a | §12 devamı, birinci parça: §12.5 hesap silmeleri ve sahiplik, §12.6 eşzamanlılık, tek işlenme ve kesinti, §12.7 denetim izi, saklama ve imha (K-1540…K-1541) | `VP12-05`…`VP12-07` | +20 KB (gerçekleşen 39 KB, 56 satır) | ✓ |
 | Y4-2b | §12 devamı, ikinci parça: §12.8 belge, onay, yasal kimlik ve çerez; §12.9 kısmi adet, iade ve ayıp (K-1541, K-1542) | `VP12-08`, `VP12-09` | +15 KB (gerçekleşen 56 KB, 95 satır) | ✓ |
-| Y4-3 | §12 devamı: indirme hakkı, uyarılar, tasarım değerleri ve yük, panelin yasal uyarıları | `VP12-10`…`VP12-13` | +15 KB | bekliyor |
+| Y4-3a | §12 devamı, üçüncü parça: §12.10 indirme hakkı, e-posta bağlantıları ve çerezler; §12.11 uyarılar ve hata hâlleri (K-1543, K-1544) | `VP12-10`, `VP12-11` | +10 KB (gerçekleşen 41 KB, 67 satır) | ✓ |
+| Y4-3b | §12 devamı, dördüncü parça: §12.12 tasarım değerleri ve yük; §12.13 panelin yasal uyarıları | `VP12-12`, `VP12-13` | +5 KB | bekliyor |
 | Y5 | §1 kapsam, §2 prensipler; yazım turunun kapanışı (park bloklarının son durumu, kapsam hizası betiği yeniden) | `VP1-01`…`VP1-04`, `VP2-01` | +20 KB | bekliyor |
 
 Tahminle toplam yaklaşık 360 KB'a ulaşır.
@@ -2410,4 +2411,4 @@ Kaynak: Karar kaydı K-913 (e-posta kanal uyarısının eşiği, firma bildiriml
 
 ---
 
-*Shopfolio — Validation Protocol v0.12*
+*Shopfolio — Validation Protocol v0.13*

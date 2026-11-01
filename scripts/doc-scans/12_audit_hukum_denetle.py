@@ -21,18 +21,19 @@ if "--doc" in args:
     del args[i:i + 2]
 D = Path(args[0])
 text = DOC.read_text(encoding="utf-8")
-HEAD = re.compile(r"^## #(\d+) \| hukum: (dogru|kismen|curuk)\s*$")
+HEAD = re.compile(r"^## (#\d+|Y\d+) \| hukum: (dogru|kismen|curuk)\s*$")
 tot = Counter()
 sorun = []
 pairs = []   # (dosya, bulgu, eski, yeni)
 yuks = []
+satir = [0]
 for p in sorted(D.glob("hukum_*.md"), key=lambda x: int(re.search(r"(\d+)", x.stem).group(1))):
     cur = None
     eski = None
     for l in p.read_text(encoding="utf-8").split("\n"):
         m = HEAD.match(l)
         if m:
-            cur = int(m.group(1))
+            cur = m.group(1)
             tot[m.group(2)] += 1
             eski = None
             continue
@@ -44,6 +45,8 @@ for p in sorted(D.glob("hukum_*.md"), key=lambda x: int(re.search(r"(\d+)", x.st
             continue
         if l.startswith("Seviye:") and "YUKSELTILDI" in l:
             yuks.append((p.name, cur, l))
+        if l.startswith("SATIR:") or l.startswith("YENI_SATIR:"):
+            satir[0] += 1
         if l.startswith("ESKI:"):
             eski = l[5:].strip()
         elif l.startswith("YENI:") and eski is not None:
@@ -54,7 +57,7 @@ spans = []
 for f, n, e, y in pairs:
     c = text.count(e) if e else 0
     if c != 1:
-        sorun.append("%s #%d: ESKI %d kez geciyor: %s" % (f, n, c, e[:90]))
+        sorun.append("%s %s: ESKI %d kez geciyor: %s" % (f, n, c, e[:90]))
     else:
         cnt += 1
         a = text.index(e)
@@ -62,10 +65,11 @@ for f, n, e, y in pairs:
 spans.sort()
 for k in range(len(spans) - 1):
     if spans[k][1] > spans[k + 1][0]:
-        sorun.append("ESKI ortusmesi: %s #%d <-> %s #%d" % (spans[k][2], spans[k][3], spans[k + 1][2], spans[k + 1][3]))
+        sorun.append("ESKI ortusmesi: %s %s <-> %s %s" % (spans[k][2], spans[k][3], spans[k + 1][2], spans[k + 1][3]))
 print("hukum: %s; cift: %d (uygulanabilir %d); yukseltilen: %d" % (dict(tot), len(pairs), cnt, len(yuks)))
 for y in yuks:
     print("YUKSELTILDI", y)
+print("satir kimlikli SATIR/YENI_SATIR: %d" % satir[0])
 print("sorun: %d" % len(sorun))
 for s in sorun:
     print("  " + s)

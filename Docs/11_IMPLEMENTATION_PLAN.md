@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.51** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.52** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -644,7 +644,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   2. İptal, çıkarma, gecikme feshi ve cayma kayıtlarında adet ve ürün tutarı sıfırdan büyük, 0 ≤ kupon payı ≤ ürün tutarı, KDV ≥ 0'dır (`06 §4.22`…`§4.25`).
   3. Eylemi yapanın türü müşteri ya da yönetici olan kayıtlarda yönetici alanları tür kuralına uyar (`06 §4.22`, §4.24, §4.25).
   4. `Return` cayma, gecikme feshi ve ayıp talebi bağlarından en çok birini taşır (`06 §4.26`).
-  5. `DefectClaim` kalem başına tekildir; iade adresinin dört alanı birlikte dolu ya da boştur (`06 §4.30`).
+  5. `DefectClaim` kalem başına tekildir; `Withdrawal` ve `DefectClaim`'da iade adresinin dört alanı birlikte dolu ya da boştur (`06 §4.25`, `§4.30`).
   6. `RefundIban` biçim kısıtını taşır; IBAN olayla silinir (`06 §4.31`).
   7. Kalem kayıtları silinmez; kalem bağı kısıtlayıcı, yönetici, IBAN ve ayıp talebi bağı boşaltılır (`06 §4.22`…§4.26, §4.28); `DefectClaim` süreyle silinir (`06 §4.30`).
   8. Göç tek konudur; `Down` yoktur (`09 §10.6`).
@@ -654,7 +654,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: kupon payı ürün tutarını aşan kayıt reddedilir.
   - KK3: müşteri kaydında yönetici alanı dolu satır reddedilir.
   - KK4: iki bağlı `Return` satırı reddedilir.
-  - KK5: aynı kaleme ikinci ayıp talebi reddedilir; iade adresinin dört alanından bir kısmı dolu talep reddedilir.
+  - KK5: aynı kaleme ikinci ayıp talebi reddedilir; iade adresinin dört alanından bir kısmı dolu cayma beyanı ya da talep reddedilir.
   - KK6: küçük harfli IBAN reddedilir.
   - KK7: kalemi bağlı kayıt varken kalem silme reddedilir.
   - KK8: kaynak taraması temiz.
@@ -2625,7 +2625,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: indirim başlangıç günü 00.00'da açılır, bitiş günü 23.59'da kapanır.
   - KK4: tarihler ürün sayfasında ve kartta görünür.
   - KK5: referans alanı panelde girilemez.
-  - KK6: 10 günlük en düşük (kapalı aralık, önceki indirimli, başka sebeple istisnalı mal) ile hizmette ve çabuk bozulanda hemen önceki fiyat örnekle doğrulanır.
+  - KK6: 10 günlük en düşük (kapalı aralık, önceki indirimli, son kullanma tarihi sebepli mal) ile hizmette ve çabuk bozulanda hemen önceki fiyat örnekle doğrulanır.
   - KK7: yeni varyantta referans kendi geçmişinden gelir.
   - KK8: referansın altına inmeyen indirim kaydedilmez.
   - KK9: donma T355 KK1'de sınanır.
@@ -4757,7 +4757,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK6: e-posta yok; L-2.
   - KK7: tek tüketim; oturumlar silinir.
   - KK8: ret tüketmez; yarışta 200.
-  - KK9: geçersiz davet; hesap açılır.
+  - KK9: geçersiz davet; hesap açılır; iz.
   - KK10: iki 422; yarışta 200; çıkış.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -4783,7 +4783,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK4: iki işlem; dışı 303.
   - KK5: yanlış şifre L-1; tek izin.
   - KK6: üç iniş hâli, kod koşulu.
-  - KK7: tek tüketim; bildirim ve bağlantı.
+  - KK7: tek tüketim; bildirim, bağlantı ve iz.
   - KK8: yarışta 200; başkasına geçen adres.
   - KK9: oturumlar, şifre, e-posta.
   - KK10: çakışmada geri dönüş; yarışta 200.
@@ -4809,7 +4809,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: davet satırı.
   - KK3: bağlantı, e-posta, iz, F-6.
   - KK4: önceki davet; iki 422.
-  - KK5: geri çekme, 303, 404.
+  - KK5: geri çekme, iz, 303, 404.
   - KK6: onay hâli, iki 422, 404.
   - KK7: karşılıklı kaldırma.
   - KK8: basamaklı silme, iz, imha kaydı.
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.51*
+*Shopfolio — Implementation Plan v0.52*

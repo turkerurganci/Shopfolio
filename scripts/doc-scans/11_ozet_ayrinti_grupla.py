@@ -33,7 +33,7 @@ for pk, ln in rows:
 HDR = """# Doğrulama grubu {n} ({sev}, {k} bulgu)
 
 Sen bağımsız bir doğrulayıcısın. Depo: C:/projects/Shopfolio. Aşağıdaki bulgular `Docs/11_IMPLEMENTATION_PLAN.md`'nin özet yerleri ile ayrıntı yerleri arasında bir okuyucunun bulduğu iddia edilen farklardır. Okuyucu hatalı olabilir; **her bulguyu kendin sına**. Dosya 687 KB'tır — **bütün okuma**; yalnız ilgili satırları oku:
-- task bloğu: `grep -n -A 30 '^#### T123: ' Docs/11_IMPLEMENTATION_PLAN.md`
+- task bloğu: `awk '/^#### T123: /{f=1;n=0} f&&n++<31' Docs/11_IMPLEMENTATION_PLAN.md` (ya da `grep -n '^#### T123: '` ile satır no, sonra `sed -n 'a,bp'`)
 - aday tablo ve 7.2 satırı: `grep -n '^| T123 |' Docs/11_IMPLEMENTATION_PLAN.md`
 - 7.1 matris satırı (kaynak kimliği ilk hücre): `grep -n '^| 02:§3.8.3' ...` (kaynak kimliği biçimi: `06:§4.17 Order`, `07 UC-12`, `04:E-05`, `02:Z-24`, `05:MK-12`, `09:§10`, `10:KP-5`, `devir:K-1356`)
 - kaynak doküman: `Docs/0N_*.md` (başlığı grep'le, sonra `sed -n 'a,bp'`); kimlik ya da kural metni orada **gerçek** ne diyor?

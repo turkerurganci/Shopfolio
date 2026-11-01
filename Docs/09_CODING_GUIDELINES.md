@@ -1,6 +1,6 @@
 # Shopfolio — Coding Guidelines
 
-**Versiyon: v0.27** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-10-31
+**Versiyon: v0.28** | **Bağımlılıklar:** `02`, `04`, `05`, `06`, `07`, `08`, `10_MVP_SCOPE.md` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 8 — Kodlama Kılavuzu · **Rol:** Tech Lead
 > **Amaç:** Ajanın tutarlı kod üretmesi. Bu doküman **her kodlama görevinde** ajana verilir.
@@ -1925,11 +1925,11 @@ Sistem kayıtları üç kaynaktır (`05 §9.1.1`): erişim kaydını ters vekil,
 5. **"Diske inme"** satırın uygulama sürecinin tamponundan işletim sistemine teslimi demektir: yazım çağrısının dönmesi. İşletim sisteminin diske yazma önbelleğinin boşaltılması (fsync) kapsam dışıdır (K-1314 (6); `05 §7.4.5`, K-1317). Denetim yolunun dosya yazıcısında diske boşaltma çağrısı belgeden okunamadı; ilk task'ta SDK ve pakete karşı doğrulanır. Doğrulanamazsa denetim ve komut yazıcısı kendi küçük yazıcısıyla (`AuditLogWriter`: dosyayı ekleme kipinde açar, satırı yazar, akışı boşaltır, hatayı atar) uygulanır — karar değişmez. Okuma komutunun kendi satırı okumadan önce `FileStream.Flush(true)` ile yazılır (§13.2 madde 5).
 6. **Anlık silmenin sırası** (K-962'nin sırası): silme işlemi kesinleşir, ondan sonra denetim yazıcısı satırı yazar; geri alınan silme satır bırakmaz. Yazıcı hata atarsa hata çağırana döner ve beklenmeyen hâl olarak §8.1'e düşer. Kalan risk `05 §7.4.5`'tedir: satır işletim sistemine teslim edildikten (madde 5) sonra süreç çökmesinde kaybolmaz, sunucu çökmesinde kaybolabilir; silmenin kesinleşmesi ile satırın teslimi arasındaki pencerede süreç ya da sunucu çökerse silme kalıcıdır ama satırı yoktur (K-969, K-1317).
 7. **Maskeleme kütüphanenin işi değildir;** kodda uygulanır (§18.2).
-8. **Test.** Entegrasyon: denetim yazıcısı yazılamayan bir dizinde çağırana hata atar, normal yazıcı aynı durumda istek düşürmez; çatı kategorisi bilgi düzeyinde satır yazmaz (ayar bilgiye indirilse bile); kütüphanenin silme sınırı: dosya sayısı otuz birin üstüne çıkınca dosya silinmez.
+8. **Test.** Entegrasyon: denetim yazıcısı yazılamayan bir dizinde çağırana hata atar, normal yazıcı aynı durumda istek düşürmez; çatı kategorisi bilgi düzeyinde satır yazmaz (ayar bilgiye indirilse bile); düzey ayarı yükseltilse bile denetim ve komut satırı yazılır; kütüphanenin silme sınırı: dosya sayısı otuz birin üstüne çıkınca dosya silinmez.
 
 **Yasak.** Yalnız çatının yerleşik kaydı (dosya yazıcısı yok, uygulama kaydı diskte dosyadır — `05 §9.1.1`); kendi yazıcımızı baştan yazmak (tek özel davranışı — hatayı döndürme — kütüphanede denetim yolu olarak vardır; yedek yol madde 5); her satırı denetim yoluyla yazmak (her kayıt çağrısı atabilir, bilgi satırı yüzünden istek düşer).
 
-*Kaynak: K-962 · K-1314, K-1317, K-969, K-975 · K-1354 · `05 §2.2.4`, §7.4.5, §8.5.7, §9.1.1, §9.1.3, §9.1.6, §9.2.2 · §4.1, §13.2.*
+*Kaynak: K-962 · K-1314, K-1317, K-969, K-975 · K-1354 · K-1493 · `05 §2.2.4`, §7.4.5, §8.5.7, §9.1.1, §9.1.3, §9.1.6, §9.2.2 · §4.1, §13.2.*
 
 ### 18.2 Kayıt alanları, maskeleme, kategoriler
 
@@ -2401,4 +2401,4 @@ Bu liste her kod tesliminde — yapım PR'ında ve bağımsız doğrulamada — 
 
 ---
 
-*Shopfolio — Coding Guidelines v0.27 — ✓ Tamamlandı (v0.27 Aşama 9 — Implementation Planı kalite döngüsünün deep review doğrulamasının (2b) geri beslemesi — K-1475, K-1476; §13.2 (`--amount` panelin sipariş tutarıdır, taksit farkı hariç), §16.2 madde 6.4 ve 7 (yükleme betiği ağ hatasında üç denemeden sonra durur); ✓ korunur, kalite döngüsü yeniden açılmaz · v0.26 Aşama 9 — Implementation Planı kalite döngüsünün deep review'unun geri beslemesi — K-1471; §21.4 madde 1 (eşitlik denetimleri listesi kapalı değil, en az beşidir; `11`'in öteki eşitlik denetimleri aynı klasörde ve adımda koşar); ✓ korunur, kalite döngüsü yeniden açılmaz · v0.25 Kodlama kılavuzu aşamasının kapanışının arşiv işaretidir — kapanış sürümü; yalnız başlık notunun yazım durumu paragrafı ve bu dipnot değişti, gövdeye dokunulmadı; ⚠ öneriyle kaydedilen kararlar gözden geçirildi, itiraz yok — K-1400; K-437'nin altı adımı tamam)*
+*Shopfolio — Coding Guidelines v0.28 — ✓ Tamamlandı (v0.28 Aşama 9 — Implementation Planı kalite döngüsünün etki yansıtmasının (cross-review Faz 5) geri beslemesi — K-1493; §18.1 madde 8 (Test: düzey ayarı yükseltilse bile denetim ve komut satırı yazılır); ✓ korunur, kalite döngüsü yeniden açılmaz · v0.27 Aşama 9 — Implementation Planı kalite döngüsünün deep review doğrulamasının (2b) geri beslemesi — K-1475, K-1476; §13.2 (`--amount` panelin sipariş tutarıdır, taksit farkı hariç), §16.2 madde 6.4 ve 7 (yükleme betiği ağ hatasında üç denemeden sonra durur); ✓ korunur, kalite döngüsü yeniden açılmaz · v0.26 Aşama 9 — Implementation Planı kalite döngüsünün deep review'unun geri beslemesi — K-1471; §21.4 madde 1 (eşitlik denetimleri listesi kapalı değil, en az beşidir; `11`'in öteki eşitlik denetimleri aynı klasörde ve adımda koşar); ✓ korunur, kalite döngüsü yeniden açılmaz · v0.25 Kodlama kılavuzu aşamasının kapanışının arşiv işaretidir — kapanış sürümü; yalnız başlık notunun yazım durumu paragrafı ve bu dipnot değişti, gövdeye dokunulmadı; ⚠ öneriyle kaydedilen kararlar gözden geçirildi, itiraz yok — K-1400; K-437'nin altı adımı tamam)*

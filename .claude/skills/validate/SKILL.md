@@ -88,6 +88,7 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
    - `✗ Karşılanmadı` — eksik veya hatalı, detay yaz
    - `~ Kısmi` — ne eksik, detaylı açıkla
    - `? Doğrulanamadı` — kanıt üretilemedi (**FAIL değil**, kanıt eksikliği)
+   - **Kabul edilmiş risk (`12 §8.4`, §6.1):** `✗` alan kriterin satırı için `grep -n '<VAL-kimliği>' Docs/DEFERRED_BACKLOG.md` çalıştırılır; açıklaması "KABUL EDİLMİŞ RİSK — `VAL-…`" diye başlayan kayıt varsa ve satır KRİTİK değilse satır `KABUL EDİLMİŞ RİSK` olur ve verdict'i FAIL yapmaz; kayıt yoksa ya da satır KRİTİK'se satır `FAIL`'dir. Onay doğrulayıcının kararı değildir (`12 §9`); onay yoksa önerilmez, verdict FAIL'dir.
 
 6. **Doğrulama kontrol listesini çalıştır** — plandaki maddeleri tek tek geç.
 
@@ -114,8 +115,8 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 ## Faz 2 — Verdict
 
 11. **Genel verdict:**
-    - **PASS** — tüm kriterler `✓` — `~ Kısmi` PASS sayılmaz (`12 §6.1`, K-1521), güvenlik temiz, testler geçiyor, CI yeşil
-    - **FAIL** — en az bir `✗`, kritik güvenlik bulgusu veya kırık test/CI
+    - **PASS** — tüm kriterler `✓` (adım 5'teki kabul edilmiş risk istisnası hariç; `12 §6.1`, §8.4) — `~ Kısmi` PASS sayılmaz (`12 §6.1`, K-1521), güvenlik temiz, testler geçiyor, CI yeşil
+    - **FAIL** — en az bir `✗` (adım 5'teki kabul edilmiş risk istisnası dışında), kritik güvenlik bulgusu veya kırık test/CI
     - **BLOCKED** — doğrulama yapılamıyor (kod eksik, dal yok, önceki task borcu)
 
 12. **Bulguları sınıfla:**
@@ -138,7 +139,7 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 15. **Status güncelle** (yalnız PASS) — `Docs/IMPLEMENTATION_STATUS.md`'de `✓ Tamamlandı`.
     **Kural:** Rapor finalize edilmeden status güncellenmiş sayılmaz.
 
-16. **Rapor + status + memory commit ve push** — **merge'den önce**. Aksi hâlde squash merge bu değişiklikleri içermez.
+16. **Rapor + status + memory + matris `Durum` hücreleri commit ve push** — **merge'den önce**; PASS'te de FAIL'de de koşar (FAIL'de dal merge edilmez, kayıt dalda kalır). Task'ın satırlarının `Durum` hücresi `Docs/12_VALIDATION_PROTOCOL.md`'de sonuca göre yazılır (`12 §7.5`; eşleme `12 §6.1` ilk satır): `✓` → `PASS`, `✗` → `FAIL`, `?` → `BEKLEMEDE`, `~` → `12 §6.1` eşlemesi, adım 5'teki onaylı kabul edilmiş risk → `KABUL EDİLMİŞ RİSK`. Aksi hâlde squash merge bu değişiklikleri içermez.
     **Not:** Post-merge teyit bilgileri (merge sonrası run ID'leri) bu commit'e **giremez** — merge henüz olmadı. Onlar bir sonraki task dalında veya ayrı bir `chore:` PR'ında eklenir; **doğrudan ana dala push edilmez.**
 
 17. **Merge** (yalnız PASS) — squash merge, mesaj `TXX: Task adı (#NN)`. Yönetici yardımcı düzeninde bu adımı ve 18. adımı yardımcı yapar; doğrulama ajanı 16. adımda verdict'i rapor dosyasına yazıp biter.
@@ -212,7 +213,7 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 - Bulguları proje sahibine sun.
 - **Dal merge edilmez.**
 - Düzeltme için yeni yapım chat'i açılır; düzeltme sonrası **yeni** doğrulama chat'i.
-- Rapor başlığındaki tur numarası iterasyon sayacıdır (12 §8.5: 2 iterasyon sınırı, 00 §A.3). İkinci iterasyonun düzeltmesi de FAIL verirse yeni doğrulama chat'i açılmaz; eskalasyona gidilir (`INSTRUCTIONS.md` §3.3).
+- Rapor başlığındaki tur numarası iterasyon sayacıdır (12 §8.5: 2 iterasyon sınırı, 00 §A.3). İkinci iterasyonun düzeltmesi de FAIL verirse yeni doğrulama chat'i açılmaz; eskalasyona gidilir (`INSTRUCTIONS.md` §3.3). Proje sahibi bir satırı kabul edilmiş risk olarak onaylarsa (ilk FAIL'den sonra ya da eskalasyonda) düzeltmesiz bir "kabul turu" açılır; tur numarası artmaz, iterasyon sayılmaz (`12 §8.4`).
 
 ## "Doğrulanamadı" durumunda
 

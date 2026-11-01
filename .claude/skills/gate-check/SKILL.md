@@ -27,7 +27,7 @@ user-invocable: true
 
 6. **Mevcut fazın testleri** — tüm test katmanları. Sonuçları kaydet (sayı, süre, başarısız varsa detay).
 
-7. **Önceki fazların testleri** (ilk fazdan sonra) — tekrar çalıştırılır. Kırılan test = **S2 Kırılma** → gate FAIL.
+7. **Önceki fazların testleri** (ilk fazdan sonra) — tekrar çalıştırılır. Kırılan test = **S2 Kırılma** → gate FAIL. Kayıtlı `Durum` yeterli değildir: `12`'nin kanıtı Test raporu olmayan A–E satırlarından yeni kodun etkileyebilecekleri kanıt yeniden üretilerek doğrulanır (`12 §6.2` "Regresyon kontrolü", §11 "Faz geçişi"; şüphede yeniden doğrulanır, §8.3). Daha önce PASS almış satırın FAIL'i **S2 Kırılma**dır, satır severity'sini ayrıca alır (`12 §11.1` madde 2) → gate FAIL.
 
 > **Test altyapısı artefaktı ≠ regresyon.** Paralel koşumda kaynak açlığından düşen testler *rasyonelize edilmez*, **temiz yeniden koşumla** ayrıştırılır: (a) seri/izole koşumda geçiyor mu, (b) aynı commit'in CI run'ı yeşil mi. Her iki kanıt da yoksa bu bir regresyondur.
 
@@ -64,6 +64,8 @@ user-invocable: true
 
 13. **Doküman uyumu** — enum değerleri, API sözleşmeleri, entity alanları referans dokümanlarla tutarlı mı?
 
+   **Faz satırları (`12 §6.2`, `11 §6.2`):** fazın `11 §6.2` ek kontrolleri ve `12 §6.2` tablosunda bu faz için sayılan `12` satırları okunur, kanıtları üretilir ve gate raporunun "Faz Satırları" tablosuna satır kimliğiyle yazılır. Satır `PASS` ya da kaydı bulunan `KABUL EDİLMİŞ RİSK` (`grep -n 'VAL-…' Docs/DEFERRED_BACKLOG.md`; `12 §8.4`) değilse — `BEKLEMEDE` dahil — verdict FAIL'dir. Satırların `Durum` hücresi gate raporuyla aynı commit'te güncellenir (`12 §7.5`).
+
 ---
 
 ## Adım 5 — Güvenlik özeti
@@ -79,10 +81,10 @@ user-invocable: true
 ## Adım 6 — Verdict
 
 15. **Verdict:**
-    - **PASS** — testler geçiyor, build temiz, ortam ayağa kalkıyor, migration temiz, traceability boşluğu yok, S2 yok
-    - **FAIL** — en az bir kritik bulgu (kırık test, build hatası, traceability boşluğu, S2)
+    - **PASS** — testler geçiyor, build temiz, ortam ayağa kalkıyor, migration temiz, traceability boşluğu yok, S2 yok, fazın `12` satırları ve `11 §6.2` ek kontrolleri karşılanmış (Adım 4), açık risk envanteri proje sahibince görülmüş ve kabul edilmiş (Adım 8; `12 §6.2`)
+    - **FAIL** — en az bir kritik bulgu (kırık test, build hatası, traceability boşluğu, S2, `PASS` ya da kaydı bulunan `KABUL EDİLMİŞ RİSK` olmayan faz satırı, kaydı olmayan `KABUL EDİLMİŞ RİSK` hücresi)
 
-16. **Bloke-etmeyen bulgular** ayrı tabloda listelenir. Her biri ya bu gate'in chore PR'ında kapatılır ya `Docs/DEFERRED_BACKLOG.md`'ye forward edilir. **Kaydı olmayan bulgu yoktur.**
+16. **Bloke-etmeyen bulgular** ayrı tabloda listelenir. Her biri ya bu gate'in chore PR'ında kapatılır ya `Docs/DEFERRED_BACKLOG.md`'ye forward edilir. **Kaydı olmayan bulgu yoktur.** Bloke-etmeyen bulgu yalnız `12` satırına bağlı olmayan gözlemdir: FAIL alan satır severity'sine bakılmadan bloke eder ve backlog'a yalnız proje sahibinin o risk için onayıyla `KABUL EDİLMİŞ RİSK` olarak yazılır (KRİTİK olamaz; `12 §8.4`); düzeltme bu fazda yapılır (`12 §8.2`).
 
 ---
 
@@ -110,9 +112,10 @@ user-invocable: true
 ## Adım 8 — Backlog hijyeni
 
 18. `Docs/DEFERRED_BACKLOG.md`'deki açık kalemleri **kod düzeyinde** yeniden doğrula:
-    - Araya giren işlerle çözülmüş olanlar → `✅ Çözüldü → <nerede>`
+    - Araya giren işlerle çözülmüş olanlar → `✅ Çözüldü → <nerede>`; kayıt kabul edilmiş riskse ("KABUL EDİLMİŞ RİSK — `VAL-…`") satır bu gate'te yeniden doğrulanır ve `Durum` hücresi `PASS` olur (`12 §8.4`)
     - Stale olanlar (açıklama artık gerçeği yansıtmıyor) → düzelt/daralt
     - Hâlâ açık olanlar → öncelik ve "neyi bloklar" alanını güncelle
+    - **Açık risk envanteri (`12 §6.2`, §8.4, §10):** açıklaması "KABUL EDİLMİŞ RİSK — `VAL-…`" diye başlayan her kalem listelenir; matriste `Durum` hücresi `KABUL EDİLMİŞ RİSK` olan her satırın kaydı `grep -n 'VAL-…' Docs/DEFERRED_BACKLOG.md` ile bulunur (kaydı olmayan hücre `FAIL`'dir → verdict FAIL), kaydın kabul tarihi ve proje sahibinin o risk için onayı okunur; envanter proje sahibine gösterilir ve kabulü gate raporuna yazılır. Onay gate-check'in kararı değildir.
 
 ---
 
@@ -123,6 +126,7 @@ user-invocable: true
     - `Docs/IMPLEMENTATION_STATUS.md` faz satırı `✓ PASS`
     - Repo memory: faz özet satırı (tarih, PR no, squash hash, tag, ana metrikler) + "sıradaki" satırı + tarih başlığı
     - Backlog forward'ları ve hijyen düzeltmeleri
+    - Gate'te okunan ya da yeniden doğrulanan `12` satırlarının `Durum` hücreleri (`12 §7.5`, `§11.1` madde 1 ve 4, mock `PASS`'in `BEKLEMEDE`'ye dönüşü dahil; `12`'nin sürümünü artırmaz)
     - Öğrenim terfileri
 
 20. PR merge + CI yeşil + **tüm workflow'lar** teyit edildikten sonra ana dal üzerinde tag:
@@ -174,6 +178,10 @@ user-invocable: true
 | Kategori | Eşlenen | Implement | Boşluk (S3) | Kanıt |
 |---|---|---|---|---|
 
+### Faz Satırları (`12 §6.2`)
+| Satır (`VAL-…`) | Severity | Kanıt | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+
 ### Güvenlik Özeti
 - Açık bulgu: N
 - Yeni dış bağımlılıklar: [liste veya yok]
@@ -190,6 +198,10 @@ user-invocable: true
 ### Öğrenim Terfileri
 | # | Öğrenim | Sınıf | Hedef katman | Uygulanan değişiklik |
 |---|---|---|---|---|
+
+### Açık Risk Envanteri (`12 §6.2`, §8.4)
+| Backlog ID | Madde (`VAL-…`) | Severity | Kabul tarihi | Matris `Durum` | Proje sahibi gördü ve kabul etti |
+|---|---|---|---|---|---|
 
 ### Backlog Hijyeni
 | ID | Önceki durum | Yeni durum | Gerekçe |

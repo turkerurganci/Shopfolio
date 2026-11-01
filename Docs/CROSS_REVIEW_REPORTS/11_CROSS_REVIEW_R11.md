@@ -216,3 +216,29 @@ Yazım kapanışı, matris kapsama, task blok denetimi (`--tam`), geri yön dene
 - [ ] Çıkış kuralıyla kapanış — "TEMİZ — çıkış kuralıyla, 11 tur" (toplu onayla kaydedildi)
 
 ⚠ karar: yok. Önerilen `00`/`CLAUDE.md`/`SETUP.md` değişikliği yok.
+
+## Etki yansıtma sonucu (cross-review Faz 5; 2026-11-01, `11` v0.52, K-1493)
+
+Altı adım koştu; taramalar betikle (`park.py`, `newnames.py`, `kaynak.py`) ve düzeltmeler tek spec dosyasıyla (her ESKİ metin dosyada tam bir kez; uygulayıcı aksi hâlde hata verir) yapıldı. İki Opus/high doğrulayıcı: biri `02 §7.4.1` dayanak tarihini resmî metinle sınadı, biri uygulanan farkı (K-1483 F2 bölmesi, K-1491, diğer hunk'lar) üst dokümanlara ve yasal dayanağa karşı sınadı; bekçi olayı yok.
+
+| Adım | Kapsam | Bulgu | Komut ya da yöntem |
+|---|---|---|---|
+| 1. Downstream | `12`, `DEPLOY_RUNBOOK`, `DEFERRED_BACKLOG`, `CI_CD_SETUP` | 0 düzeltme (kalite döngüsünün K-1401…K-1492 kararlarını anmıyorlar) | okuma, `grep` |
+| 2. Upstream ve park | `02`–`10`, bütün park blokları | 22 park isabeti, hepsi RET atfı (kural değişikliği yok); `05` 24. satır K-745 ve `07` 35. satır K-914/978 talimattır, değişmedi | `park.py` |
+| 3. Yeni alan ve kural | `11`'e kalite döngüsünde eklenen adlar | 132 yeni ifade, 3 "üstte yok" (`05 §6.x.12`, `05 §11.1.2`, `audit_logs.operation`): üçü de üstte karşılıklı var; gerçek yeni alan yok; tek yeni değer `ExpiryDated` K-1483'ün kararıdır | `newnames.py` |
+| 4. Kaynak satırları | `02`, `06`, `09`, `10` (K-1401…K-1492) | gerçek eksik: `02` §3 (K-1471, K-1473), §10 (K-1474); kalanı dipnot ya da değişiklik kaydı yanlış pozitifi; dipnotlarda eksik sürüm notu: `02` v0.107, `03` v0.45, `07` v0.36 | `kaynak.py`, `kaynakyer.py` |
+| 5. Taşınan notlar | cross-review 10 ve 11 üst doküman notları, K-1481, K-1483, K-1490 | aşağıdaki tablo | elle |
+| 6. Düzeltmeler | `02` v0.108, `03` v0.46, `04` v0.50, `05` v0.43, `06` v0.45, `07` v0.37, `09` v0.28, `10` v0.59, `11` v0.52 | K-1493 | `apply.py` + `spec1.py` |
+
+**Taşınan notlar ve kapanışı**
+
+| # | Kaynak | Not | Kapanış |
+|---|---|---|---|
+| 1 | K-1483 | `02 §7.3.4` (c) ve `06` `Perishable` bölme kararı | uygulandı: `ExpiryDated` eklendi (`02` §7.3.4, §3.9.3, §1.2; `06` §5.3.7, matris; `10` KP-22, KP-45; `11` T337 KK6); `04`, `05`, `07` sebep listesini saymaz, değişmedi |
+| 2 | K-1491 | `04` 2.7.3.2, `05` §10.3.2, `07` §4.34.2 çerçevesiz panel hata sayfası | uygulandı: sayfa düzeyindeki hata sayfası çerçevesiz, yalnız panel başlığıyla (`04` 2.2.9 dahil) |
+| 3 | K-1481 | `06` §8.2.3 ↔ `05` §8.4.6 ayar listesi; `09` §18.1 madde 8 | `06` listesine hesap bağlantılarının türetme sırrı eklendi; `09` Test maddesine "düzey yükseltilse bile denetim ve komut satırı yazılır" eklendi |
+| 4 | K-1490 | T520 KK9, T521 KK7, T522 KK5 iz; T111 dört alan | uygulandı (`11`; bayt ≤ 2 560) |
+| 5 | K-1480 | `scripts/doc-scans/11_ozet_ayrinti_grupla.py` eski `grep -A 30` kalıbı | `awk` aralığına çevrildi |
+| 6 | K-1492 (5) | kabul kriteri ya da KK'nin kaynak cümlenin yanlış okunabilen kısaltması olması | `checkpoint`'in iç tutarlılık merceğine devredildi |
+
+`02 §7.4.1` dayanağı: Mesafeli Sözleşmeler Yönetmeliği m.12/1–3 (RG 23/8/2022-31932 ile değişik), geçici madde 1 uyarınca 1/1/2026'dan beri uygulanır (RG 14/9/2022-31953, 4/11/2023-32359 ve 10/8/2024-32628 ertelemeleri; 24/5/2025-32909 yalnız m.12/4–5'i değiştirdi) — tarih doğru, yalnız dayanak cümlesi eklendi. Açık kalan not yok. **Kalite döngüsü tamam; sıradaki Aşama 9 checkpoint'i.**

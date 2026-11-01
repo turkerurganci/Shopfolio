@@ -148,3 +148,19 @@ Toplu onay modu açık (K-1504); karar **(toplu onayla kaydedildi)**; ⚠ taşı
 - [x] Sayımlar: satır eklenmedi — matris 1.502 satır, ORTA 733, KRİTİK 637, DÜŞÜK 132, `[güvenlik]` 63; `12_matris_denetle.py --kapsam 1-77`, `12_kapsam_hizasi.py`, `12_atif_denetle.py` hata 0
 
 **Sonuç: TEMİZ — çıkış kuralıyla, 6 tur; cross-review döngüsü kapandı.** Sıradaki: etki yansıtma (A10-KD-etki).
+
+## 6. Etki yansıtma (A10-KD-etki; cross-review Faz 5; K-1570; `12` v0.30 → v0.31)
+
+Kalite döngüsünün bütün geri beslemeleri (audit, audit-2, deep review, deep-2, cross-review 1–6) kümeler hâlinde `01`–`11`, L4 ve `12`'ye yansıtıldı. İş iki işçiye bölündü (1/2: K-1568…K-1566 kaynakları, P7, KP-31, F6 istisnası, L4; 2/2: aşağıdakiler).
+
+1. **Deep review #130 (seyreltme penceresi):** karara bağlandı. Seyreltmenin penceresi `07 §2.8.2`'nin altmış saniyelik kayan penceresidir; IP başına ilk imzası tutmayan istek bir `SignatureFailureSampled` satırı doğurur, sonraki istekler altmış saniye satır doğurmaz ve sayılır, sayı süre dolduktan sonraki ilk satırın alanıdır. Yazıldı: `05 §4.5.2`, `§6.3.5` ("pencerenin türü `07`'nin işidir" cümlesi kapandı), `§9.1.3`; `07 §2.8.2`, `§4.30` UC-80 hata satırı, §1.1.11 ve §1.1.12 eşleme satırları; `09 §11.1` madde 5, `§18.2` olay listesi; `12` VAL-E045 (pencereyi sınayan beklenen sonuç).
+2. **`[güvenlik]` ORTA taraması (VAL-A190 emsali):** 12 matris satırı (görevdeki "13" başlık notundaki bir anmayı da sayıyordu); 4 Opus/high doğrulayıcı (adım sınırı 4/20): D1 (VAL-A352, A353, A358, A360) 2 doğru · 2 çürük; D2 (VAL-A354…A357) 4 çürük; D3 (VAL-A617, A685) 1 doğru · 1 çürük; D4 (VAL-A628, A629) 2 çürük. **KRİTİK'e yükseltilen 3 satır:** VAL-A353 ve VAL-A358 (L-5'in e-posta ekseni; başkasının siparişine dağıtık deneme), VAL-A617 (başka oturumun değeriyle gelen formda yazım olmamalı; VAL-A618/A619 KRİTİK). Yan bulgu: VAL-A489 `Beklenen` hücresindeki "numara ekseni" `02 §8.2.2` ile çelişiyordu, "sorguya yazılan e-posta ekseni" yapıldı; satırın severity'si (L-5'in 07 hata kodu) ORTA kaldı, doğrulayıcı hükmü yok — checkpoint'in iç tutarlılık merceğine devredildi. Sayımlar: KRİTİK 638 → 641, ORTA 733 → 730 (`[güvenlik]` 63 aynı).
+3. **Kayıt notları:** K-1517 (5) ve K-1545 (1) satırlarına "Kayıt notu, K-1570" eklendi.
+4. **Kaynak satırı taraması:** değişen bölümlerin `*Kaynak:` satırlarına K-1568, K-1563, K-1565, K-1566, K-1570 betikle eklendi (01, 02, 04, 05, 06, 07, 09, 10; `03` ve `11`'de Kaynak satırı konvansiyonu yok).
+5. **Park blokları ve yeni alan taraması:** meslek odası, bir yıl sınırı ve ayıplı adet kalıpları 01–11'de arandı; başka etkilenen yer çıkmadı (`ChamberName`/`ProfessionalConductRules` yalnız `06`, `07` SaveCompanyInput ve `04` 7.2.19.6'dadır).
+6. **Sürümler:** `01` v0.34 · `02` v0.113 · `03` v0.48 · `04` v0.54 · `05` v0.51 · `06` v0.47 · `07` v0.41 · `09` v0.30 · `10` v0.63 · `11` v0.63 · `12` v0.31; karar kaydı v0.326.
+7. **L4:** `skills/gate-check` (F6 final çıkış `12 §6.3` adımı, "bu MVP'nin son uygulama fazı F6'dir") ve `skills/validate` uygulandı.
+8. **Kapılar:** `12_kapsam_hizasi.py`, `12_matris_denetle.py --kapsam 1-77`, `12_atif_denetle.py` hata 0.
+
+`00`, `CLAUDE.md` ve `SETUP.md` değişikliği önerilmedi. **Kalite döngüsü tamam.**
+

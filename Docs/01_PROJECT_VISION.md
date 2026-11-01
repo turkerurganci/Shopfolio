@@ -1,6 +1,6 @@
 # Shopfolio — Project Vision
 
-**Versiyon: v0.33** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-10-04
+**Versiyon: v0.34** | **Bağımlılıklar:** `PRODUCT_DISCOVERY_STATUS.md` | **Son güncelleme:** 2026-11-02
 
 > **Aşama:** 1 — Product Discovery · **Rol:** Product Manager / Discovery Facilitator
 > **Traceability zorunlu:** Hayır (kök doküman)
@@ -246,7 +246,7 @@ Kriterler **tek bir tabloda, iki eksende** gruplanır (K-433):
 | — | Sepet terk oranı ve hunideki diğer üst basamaklar — ürün sayfasına bakan, sepete ekleyen, ödeme adımını terk eden | Ölçülmez (K-400) | — | Kriter değildir |
 | — | Sipariş hacmi | Sayılır ama kriter değildir: hacmi ürün belirlemez (K-417). "Günde ortalama 10, tepe 50" bir tasarım varsayımıdır, hedef değildir (K-403) — §8, V-2 | — | Kriter değildir |
 
-*Kaynak: K-433 (tablonun biçimi) · K-415 (ürün düzeyi) · K-416 (mağaza düzeyi) · K-418 (kabul kapısı ve ölçüm penceresi) · K-434 (`10 §1` ile sınır) · K-444, K-476, K-477 (ürün düzeyi listelerinin tamamlanması) · K-441 (satış özetinin içeriği) · K-483 (ölçülerin kaynağı) · K-457, K-484, K-485 (ölçülerin tanımı) · K-486, K-488, K-495 (ölçüm penceresinin başlangıcı, M-4'ün okunma anı ve caymanın sayıldığı an) · K-499, K-580 (gecikme feshinin M-4'te sayılması) · K-576 (satış kapısının yasal metin koşulu) · K-454 (bütçenin okunuşu) · K-400, K-417 (ölçülemeyenler ve hacim) · K-02 · K-03 · K-04 · K-05 · K-08 · K-12 · K-14 · K-18 · K-19 · K-20 · K-22 · K-23 · K-103 · K-139 · K-159 · K-163 · K-140 · K-168 · K-180 · K-181 · K-182 · K-195 · K-203 · K-207 · K-296 · K-300 · K-303 · K-308 · K-337 · K-358 · K-365 · K-378 · K-397 · K-398 · K-401 · K-402 · K-403 · K-404 · K-423 · K-465 · K-478 · K-534 · K-560 · K-635 · K-628 · K-790 (Aşama 3 — kısmi adet kararı).*
+*Kaynak: K-1568 · K-433 (tablonun biçimi) · K-415 (ürün düzeyi) · K-416 (mağaza düzeyi) · K-418 (kabul kapısı ve ölçüm penceresi) · K-434 (`10 §1` ile sınır) · K-444, K-476, K-477 (ürün düzeyi listelerinin tamamlanması) · K-441 (satış özetinin içeriği) · K-483 (ölçülerin kaynağı) · K-457, K-484, K-485 (ölçülerin tanımı) · K-486, K-488, K-495 (ölçüm penceresinin başlangıcı, M-4'ün okunma anı ve caymanın sayıldığı an) · K-499, K-580 (gecikme feshinin M-4'te sayılması) · K-576 (satış kapısının yasal metin koşulu) · K-454 (bütçenin okunuşu) · K-400, K-417 (ölçülemeyenler ve hacim) · K-02 · K-03 · K-04 · K-05 · K-08 · K-12 · K-14 · K-18 · K-19 · K-20 · K-22 · K-23 · K-103 · K-139 · K-159 · K-163 · K-140 · K-168 · K-180 · K-181 · K-182 · K-195 · K-203 · K-207 · K-296 · K-300 · K-303 · K-308 · K-337 · K-358 · K-365 · K-378 · K-397 · K-398 · K-401 · K-402 · K-403 · K-404 · K-423 · K-465 · K-478 · K-534 · K-560 · K-635 · K-628 · K-790 (Aşama 3 — kısmi adet kararı).*
 
 ---
 
@@ -299,4 +299,4 @@ Shopfolio gerçek kullanıcı geri bildirimi olmadan geliştirilir ve ilk müşt
 
 ---
 
-*Shopfolio — Project Vision v0.33 (v0.33 Aşama 3 kısmi adet kararının yansımasıdır — M-4, K-790; §1–§8; kalite döngüsü: audit ✓, deep review ✓, cross-review TEMİZ ✓, etki yansıtma ✓ — K-430, K-431; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP01_PHASE1_CHECKPOINT.md`)*
+*Shopfolio — Project Vision v0.34 (v0.34 Aşama 10 — Doğrulama Protokolü kalite döngüsünün etki yansıtmasının (cross-review Faz 5) geri beslemesi: K-1568 (meslek odası ve meslekle ilgili davranış kuralları üç firma tipinde zorunlu); ✓ korunur, kalite döngüsü yeniden açılmaz · v0.33 Aşama 3 kısmi adet kararının yansımasıdır — M-4, K-790; §1–§8; kalite döngüsü: audit ✓, deep review ✓, cross-review TEMİZ ✓, etki yansıtma ✓ — K-430, K-431; checkpoint ✓ — K-437'nin 4. adımı, `Docs/CHECKPOINT_REPORTS/CP01_PHASE1_CHECKPOINT.md`)*

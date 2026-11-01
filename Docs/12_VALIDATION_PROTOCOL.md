@@ -2409,6 +2409,44 @@ Kaynak: Karar kaydı K-913 (e-posta kanal uyarısının eşiği, firma bildiriml
 | VAL-A974 | A | Veritabanı kesikken sayfa istekleri sayfa düzeyi hataya düşer, canlılık 503 verir ve onaylanmış işlem kaybolmaz; dönüşte sipariş yerindedir ve kesinti kaydı yazılır. | 05 §10.1.6 · K-914, K-975 · 04 §2.7.3.2 | İki dakika kesilen veritabanı; kesintiden önce onaylanmış sipariş | Kesintide vitrin sayfası çerçeve içinde hata sayfası ve 500 verir, canlılık 503 verir; dönüşte sipariş değişmemiştir ve kesinti kaydı vardır | Uç yanıtı + Veri kaydı | yok | KRİTİK | BEKLEMEDE |
 | VAL-A975 | A | Nesne depolama kesikken site etkilenmez, yedek aktarımı durur ve günlük düşürülmez; bağlantı dönünce aktarım kaldığı yerden sürer ve koşul kalkar. | 05 §10.1.10 · K-918 (2) · 05 §9.4.4 | Erişilemeyen sahte nesne depolama; 11 dakika sonra bağlantının dönmesi | Site siparişleri kabul eder; 11. dakikada durum ucu 503 verir; dönüşte bekleyen günlükler aktarılır, hiçbiri silinmez ve durum ucu 200'e döner | Uç yanıtı + Veri kaydı | mock | ORTA | BEKLEMEDE |
 
+### 12.12 Tasarım değerleri ve yük (`VP12-12`)
+
+Kaynak: Karar kaydı K-1515 (yük senaryosunun kurulumu: ortam, veri, ölçüm, araç, kanıt, zamanlama), K-928 (iki tasarım değeri ve referans sunucu ölçüsü), K-1512 (`[yük]` etiketi, seviye F), K-1546 (k6 betiğinin sahibi), K-890 (yeniden değerlendirme ve sipariş onayı tek işlemdedir), K-901 (IPv6'da /64 ekseni); Teknik Mimari `05` §11.1 (11.1.1…11.1.5), §6.3.3, §6.3.5, §4.2.4, §0.5; Ürün Gereksinimleri `02` §11.3 (H-1…H-4); Kodlama Kılavuzu `09` §20 (madde 1 ve 10); Uygulama Planı `11` T601 (kabul kriteri 11). Park bloğunun P4.5 maddesinin senaryosudur.
+
+**Sınır.** İki değerin sayısı — elli kalem, %95, bir saniye, yüz ziyaretçi, 500 milisaniye — evinde `05 §11.1`'dedir ve **tabandır, tavan değildir**: sistem hiçbirini uygulamaz, aşıldığında çalışmayı sürdürür (`02 §11.3`; `09 §20` madde 1). Sepette kalem sayısının tavansızlığı `VAL-A033`'te, hız sınırının 429 davranışı `VAL-A439` ve `VAL-A630`'dadır; sağlayıcı bildiriminin hız sınırı dışında kalması `VAL-E053`'tedir. Bu bölüm **iki değerin referans ölçüde tutulduğunu ölçer**: ölçülen şey kodun kuralı değil, kurulu sistemin hızıdır. Kodun performans kuralları (sayfalama, N+1, önbellek) `09 §20`'dedir ve görev doğrulamasında sınanır; bu bölüm onlara satır yazmaz.
+
+**Satır birimi.** İki değerin her biri bir satırdır (`VAL-F013`, `VAL-F014`; ikisi `[yük]` etiketli, seviye F — K-1512). Koşunun ortamı, verisi ve ölçüm düzeni satırların **ön koşuludur** ve aşağıdaki kurulum tablosunda yazılıdır; ayrı satırı yoktur. Kurulum tablosundaki bir madde koşuda sağlanmamışsa koşu geçersizdir ve yeniden yapılır — sonuç ne olursa olsun PASS yazılmaz. Satırların kanıtı koşunun test raporudur: aracın çıktı özeti (istek sayısı, %95 değerleri, hata oranı) ve koşunun sınır ayarları; ikinci katman olarak ölçülen isteklerin sunucu tarafı erişim kaydı kullanılır (`05 §9.1.2`).
+
+**Kurulum.**
+
+| Madde | Kurulum | Dayanak |
+|---|---|---|
+| Ortam | Geliştirme Compose'u; üretimle aynı üç hizmet — ters vekil, uygulama, veritabanı — **birlikte** 2 sanal işlemci ve 4 GB belleğe sınırlanır (çalıştırıcının işlemci kümesi ve bellek sınırı ya da 2 işlemcili, 4 GB'lık sanal makine). Yük aracı sınırın dışında, ayrı işlemcide koşar. Dış sağlayıcı bağlantıları sahtedir ve ölçüm dışıdır: sağlayıcıya yönlendirme işlemden sonradır. Referans kurulumda koşulmaz — yüz ziyaretçi ve iki yüz sipariş gerçek kayıt bırakır | K-1515 (1) · `05 §0.5`, §4.2.4, §11.1.1 |
+| Veri | 500 ürün (varyantlı, H-1'in üst ucu), 5.000 sipariş (H-2'nin bir yıllık hacmi, yuvarlanmış), 40 kategori. Başlangıç değeridir; ölçümde değeri savuşturuyorsa ayarlanır ve ayar rapora yazılır | K-1515 (2) · `02 §11.3` H-1, H-2 |
+| H-3 isteği | Her tekrar için ayrı, **elli farklı kalemli** sepet önceden kurulur (stok en az iki yüz tekrarı karşılar). Ölçülen iki istek: ödeme öncesi yeniden değerlendirme ve sipariş onayı; en az **200 tekrar**. Her tekrar kendi istemci adresiyle gelir | K-1515 (3) · K-890 · `05 §11.1.2` |
+| H-4 yükü | Her sanal ziyaretçi **ayrı istemci adresiyle** gelir (adres ters vekilin ilettiği başlıktan okunur; IPv6 kullanılırsa her ziyaretçinin ayrı /64 öneki vardır). 100 ziyaretçi bir dakikada, ziyaretçi başına birkaç sayfa isteği: ana sayfa, kategori, ürün, arama ve sepet karışımı. Statik dosya, görsel, sağlık ucu ve sağlayıcı bildirimi sayılmaz | K-1515 (4) · K-901 · `05 §6.3.3`, §11.1.3 |
+| Hız sınırı | **Açık kalır:** sayfa ve form istekleri IP başına dakikada 300, form gönderimleri dakikada 30. Kapatılırsa üretimde olmayan bir yol ölçülür; ziyaretçi başına istek bu yüzden sınırın altındadır ve H-3 istekleri de ayrı adresle gelir (form gönderimi sınırı iki yüz tekrarı tek adreste boğmasın) | K-1515 (4) · K-1545 · `05 §6.3.5` |
+| Koşu | H-4 yükü sürerken H-3 istekleri ölçülür — en kötü örtüşme; boş sunucuda geçen ölçüm yeterli değildir. 1 dakika ısınma, ardından en az 10 dakika ölçüm | K-1515 (5) |
+| Araç | **k6** — açık kaynak, tek ikili dosya, betik JavaScript. Senaryo betiği depoda durur ve CI'a bağlanmaz. Araç ürün derlemesine ve paket listesine girmez | K-1515 (6) |
+| Kanıt ve sonuç | Araç çıktısının özeti ve koşunun sınır ayarları test raporudur (§7.1). Sonuç seviye F'dir, `[yük]` etiketli iki satırdır; **hata oranı sıfırdan büyükse PASS değildir** | K-1515 (7) · K-1512 |
+| Zamanlama | F5 çıkışından sonra, final çıkıştan önce (§6.3); satırın kapıya bağı §6'dadır, kanıt ortamı değeri §7.4'tedir (ölçülen iki istek sağlayıcının davranışına dayanmaz; değer `mock`) | K-1515 (8) · K-1512 (5) |
+| Betiğin sahibi | k6 senaryo betiğini yazan ve koşan görev `11` T601'dir (kabul kriteri 11); betik depoda `scripts/load/` altında durur | K-1546 |
+
+**Dayanak değerleri kestirimdir** (K-928): ilk gerçek kurulumun erişim kaydı bu iki değeri doğrular ya da yanlışlar. Kayıt yanlışlarsa değerler karar kaydıyla yeniden belirlenir ve iki satır aynı değişiklikte güncellenir (§7.5).
+
+**Var olan satırlar (yinelenmez).**
+
+| Kural | Satır |
+|---|---|
+| Sepette kalem sayısına tavan yoktur; elliden çok kalem sepete girer | `VAL-A033` (§4.4) |
+| Genel hız sınırı aşılınca 429; deneme limiti; gövde tavanları | `VAL-A439` (§4.19), `VAL-A630` (§4.20) |
+| Sağlayıcı bildirimi hız sınırının dışındadır; imzası tutmayan istek form gönderimi sınırına sayılır | `VAL-E053` (§4.16) |
+
+| ID | Seviye | Kural | Kaynak | Ön koşul | Beklenen sonuç | Kanıt türü | Kanıt ortamı | Severity | Durum |
+|---|---|---|---|---|---|---|---|---|---|
+| VAL-F013 | F | [yük] H-3: elli farklı kalemli sepette ödeme öncesi yeniden değerlendirme ve sipariş onayı, H-4 yükü sürerken en az 200 tekrarda isteklerin %95'inde bir saniye içinde tamamlanır. | K-928 (1), (4), K-1515 (3), (5), (7) · 05 §11.1.1, §11.1.2 · 02 §11.3 H-3 | Kurulum tablosunun tamamı sağlanmıştır: üç hizmet birlikte 2 sanal işlemci ve 4 GB'a sınırlı, sağlayıcılar sahte, 500 ürün, 5.000 sipariş, 40 kategori; 200 tekrar için ayrı istemci adresli elli kalemli sepet hazır; H-4 yükü sürüyor; 1 dakika ısınma ve en az 10 dakika ölçüm; hız sınırı açık | İki isteğin her birinin yanıt süresinin %95'i 1 saniyenin altındadır; tekrar sayısı en az 200'dür; hata oranı sıfırdır ve hiçbir istek 429 almamıştır; rapor sınır ayarlarını ve araç çıktısının özetini taşır | Test raporu + Uygulama kaydı | mock | ORTA | BEKLEMEDE |
+| VAL-F014 | F | [yük] H-4: dakikada 100 farklı ziyaretçi yükünde sayfa yanıtlarının %95'i 500 milisaniye içindedir. | K-928 (2), (4), K-1515 (4), (5), (7) · 05 §11.1.1, §11.1.3 · 02 §11.3 H-4 | Kurulum tablosunun tamamı sağlanmıştır; 100 ziyaretçi ayrı istemci adresiyle bir dakikada ana sayfa, kategori, ürün, arama ve sepet isteklerini karışık yapar; statik dosya, görsel, sağlık ucu ve sağlayıcı bildirimi ölçüme girmez; H-3 istekleri aynı koşuda sürer | Sayfa yanıtlarının %95'i 500 milisaniyenin altındadır; hata oranı sıfırdır; ziyaretçi başına istek hız sınırının altındadır ve hiçbir ziyaretçi 429 almamıştır; erişim kaydındaki farklı ziyaretçi sayısı yüze ulaşır | Test raporu + Uygulama kaydı | mock | ORTA | BEKLEMEDE |
+
 ---
 
 *Shopfolio — Validation Protocol v0.13*

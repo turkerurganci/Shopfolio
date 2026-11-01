@@ -184,4 +184,48 @@ Y21 (VAL-A823: Beklenen "aynı anahtarla gider" diyor; `05 §4.3.3`/`§4.6.1`'e 
 
 105 maddenin 31'i hükme bağlandı (27 bulgu · 4 `YAN`); **kalan 74 madde** (55 bulgu + 19 `YAN`; 2b: 20 · 2c: 16 doğrulayıcı) ve 2r (Y21, #95). Açık madde: `07 §2.8` ters vekil 413 (#16) ve `10` KD-59 ↔ P-9 (#56) bu adımda düşmedi. Kapılar: `12_kapsam_hizasi.py` 0 · `12_matris_denetle.py --kapsam 1-77` hata 0 (1.473 satır, 77/77 KP) · `12_atif_denetle.py` 0. Bekçi olayı 1 (Parça A; betik yanlışlıkla heredoc ile yazılmak istendi, engellendi).
 
+## Doğrulanmamış bulgular — KD-audit-2b
+
+**Tarih:** 2026-11-01 · **Girdi:** KD-audit-2a'dan kalan 74 madde; 2b: 46 madde hükme bağlandı (hukum_1…18).
+
+### Doğrulayıcılar (18; hepsi `[dogrulama]` Opus / high)
+
+| Doğrulayıcı | Kapsam | Hüküm |
+|---|---|---|
+| 1 | Y13, Y14, Y15, Y16, Y3, Y8 | doğru 3 · kısmen 2 (Y16, Y8) · çürük 1 (Y3) |
+| 2 · 3 · 4 · 5 | #83 · Y7 · #70 · Y5 | her biri doğru 1 |
+| 6 | #46, #47, #48 | doğru 3 |
+| 7 | #100, Y18, Y19 | doğru 2 · çürük 1 (Y19) |
+| 8 | #51, #52, #53 | doğru 2 · kısmen 1 (#51; Orta → Düşük) |
+| 9 | #54, #55 | doğru 2 |
+| 10 | #103, #104, #105, Y1 | doğru 4 (Y1 yükseltildi) |
+| 11 | #61, #62, #63 | doğru 3 |
+| 12 | #64, #65 | doğru 1 · çürük 1 (#65) |
+| 13 | #109…#112, Y20 | doğru 5 |
+| 14 · 15 | #25, #26, #27 · #28, #29 | doğru 3 · doğru 2 |
+| 16 | #88, #89, #90 | doğru 2 (#88 yükseltildi) · çürük 1 (#90) |
+| 17 · 18 | #91 · #96, Y11 | doğru 1 · doğru 1 · çürük 1 (Y11) |
+
+Planlanan iki doğrulayıcı (19: #97; 20: #98, Y10, Y12, Y2) eşzamanlı 20 sınırı nedeniyle yazılamadı; paketleri (`dogrulama_19.md`, `dogrulama_20.md`) duruyor, 5 madde **2c'ye** taşındı. Bekçi olayı: eşzamanlı sınır hatası 19 ve 20'yi saydı, yeniden denemeler engellendi.
+
+**Toplam hüküm: 46 madde — 38 doğru · 3 kısmen · 5 çürük.** Seviye: #51 Orta → Düşük (uygulandı); Y1 ve #88 Düşük → Orta **yükseltildi**.
+
+### Uygulama
+
+39 madde uygulandı: **43 ESKİ → YENİ çifti** ve **45 hücre düzeltmesi** (`12_audit_uygula2.py`; yeni satır yok). Çakışmalar: hukum_1 Y8 ↔ hukum_17 #91 (aynı KP-6 atıf çifti; tek değişiklik) ve hukum_5 Y5 ↔ hukum_4 #70 (ödeme tutarı = iade tutarı cümlesi; iki şartname tek birleşik metinde). Uygulanan liste: `a10-kd-audit-2/2b/uygulanan.md`.
+
+**Matris sayımı (betik):** 1.473 satır (değişmedi); Severity KRİTİK 610 → **611** · ORTA 731 → **730** · DÜŞÜK 132 (VAL-D051, #48); Kanıt ortamı `gerçek` 37 → **38** · `sandbox` 24 → **23** (VAL-E029, #104).
+
+### Üst dokümana geri besleme (K-652)
+
+Yok. `08` DV-30 için hükmün üst doküman notu koşulludur (tepe gün giriş sayısı kaynaktan konunca VAL-E031 yazılır); öneriyle kapı korunur (K-1553).
+
+### Yükseltilenler (uygulanmadı → KD-audit-2r)
+
+Y1 (VAL-B016: güvenlik kuralını tek başına sınar ama ORTA; iki yoldan biri) ve #88 (açık iletişim talebi ile durumu hiç değişmemiş ayıp talebinin "açılıştan" kolunu hiçbir satır sınamaz). Dosya: `a10-kd-audit-2/yeniden.md`.
+
+### Kalan
+
+105 maddenin 77'si hükme bağlandı (2a 31 · 2b 46); **kalan 28 madde** (2c; #97, #98, Y10, Y12, Y2 dahil) ve 2r (Y21, #95, Y1, #88). Kapılar: `12_kapsam_hizasi.py` 0 · `12_matris_denetle.py --kapsam 1-77` hata 0 (1.473 satır, 77/77 KP) · `12_atif_denetle.py` hata 0.
+
 Prosedür: [`.claude/skills/audit/SKILL.md`](../../.claude/skills/audit/SKILL.md)

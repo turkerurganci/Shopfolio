@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-10-31 | **Satır:** 145 | **Gönderilen:** 0
+**Son güncelleme:** 2026-11-01 | **Satır:** 151 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -20,7 +20,7 @@
    git log --oneline e74883f..HEAD -- Docs/00_PROJECT_METHODOLOGY.md CLAUDE.md SETUP.md .claude/INSTRUCTIONS.md .claude/GUARDRAILS.md .claude/CONTEXT.md .claude/checklists .claude/skills .claude/hooks scripts .github
    ```
 
-**Durum sözlüğü:** `Uygulandı` — bu repoda uygulandı, playbook'a gidecek · `Aday` — henüz karara bağlanmadı, kapısı satırda · `Onay bekliyor` — metodoloji değişikliği, proje sahibinin onayında · `Reddedildi` — proje sahibi bu repoda uygulanmamasına karar verdi; satır kalır ve gönderimde kararıyla birlikte gider (K-649) · `Projeye özgü?` — gönderirken ayıklanacak · `Gönderildi`
+**Durum sözlüğü:** `Uygulandı` — bu repoda uygulandı, playbook'a gidecek · `Aday` — henüz karara bağlanmadı, kapısı satırda · `Onay bekliyor` — metodoloji değişikliği, proje sahibinin onayında · `Öneri` — proje dışı dosyaya (`~/.claude`) bilgi olarak yazılan öneri, bu repoda uygulanmaz · `Reddedildi` — proje sahibi bu repoda uygulanmamasına karar verdi; satır kalır ve gönderimde kararıyla birlikte gider (K-649) · `Projeye özgü?` — gönderirken ayıklanacak · `Gönderildi`
 
 ---
 
@@ -174,3 +174,9 @@
 | PF-144 | Implementation Planı şablonunda okuma düzeni ve boyut hedefi yok — task listesi ve matris dokümanı 100 KB'ın çok üstüne çıkarır; `task` ve `validate` skill'leri `11`'den hedef task'ı okur ama bütün dosyayı okuma yolu söylenmez (PF-131'in `11` karşılığı) | Tracker §22.1 şablon taraması (2026-10-31, Aşama 9 açılışı) | K-1403 (1) (plan önerisi; A2'nin konu planında karara bağlanır: başlık notunda okuma tablosu, boyut hedefi) | `Docs/11_IMPLEMENTATION_PLAN.md` şablonu başlık · `.claude/skills/task/SKILL.md` · `.claude/skills/validate/SKILL.md` | Karara bağlandı (K-1406 (4); okuma tablosu, boyut hedefi ve bölünmezlik — yazım turunda uygulanır) |
 | PF-145 | Yönetici yardımcı düzeni: ana oturum aracıdır, yöneticinin işi `[yonetici]` Opus alt ajanındadır; tek düğme, bekçiler ve devir kontrolü proje dışıdır (`~/.claude/`); yalnız Aşama 9'da açık, aşama sonunda eski düzenle karşılaştırılır | K-1402 (Aşama 9 açılışı, 2026-10-31); yedi bağımsız doğrulama turu | `INSTRUCTIONS §9` | `.claude/INSTRUCTIONS.md` §9 · `~/.claude/rules/agent-rules.json` (proje dışı) | Aday (kapısı Aşama 9'un öğrenim terfisi: karşılaştırma sonucu playbook'a gidecek biçimi belirler) |
 | PF-146 | Implementation Planı şablonunun izlenebilirlik matrisi beş alt bölümlüdür (7.1.1 veri modeli · 7.1.2 API · 7.1.3 entegrasyon · 7.1.4 arayüz · 7.1.5 iş kuralı) ama girdi dokuzdur (`02`–`10`): teknik mimari kararları (`05`), kodlama kılavuzu (`09`) ve devir satırları (park maddeleri, ertelenmiş iş) için alt bölüm yoktur | Tracker §22.2 matris birimi (2026-10-31, Aşama 9 açılışı 2/2) | K-1404, K-1406 (2c) (7.1.5 altında kalın etiketli gruplar; yeni bölüm numarası açılmaz) | `Docs/11_IMPLEMENTATION_PLAN.md` şablonu §7.1 | Aday (kapısı Aşama 9 matrisinin 5. oturumu — gruplar işleyiş denenince playbook biçimi belli olur) |
+| PF-147 | Görev talimatı doğrulayıcı sınırını adımın toplamı diye yazar; toplu onay kapsam kapatmaz; işçi ilerlemesini sınırdan önce dalına yazar; işçi dalı `origin/main`'den açılır | Aşama 9 öğrenim terfisi (2026-11-01; Ö-161, Ö-162, Ö-172, Ö-173) | K-1501 | `INSTRUCTIONS §2`, §9 | Uygulandı |
+| PF-148 | Kontrol merceğinin dilimi yaklaşık 60 KB ve 8–12 task; matris dilimi task başına; mercek bitiş satırını yazar; kapsam açığı başka kapıya devredilmez | Aşama 9 öğrenim terfisi (Ö-164, Ö-165) | K-1501 | `.claude/skills/checkpoint/SKILL.md` | Uygulandı |
+| PF-149 | Doğrulayıcı hükmü sabit biçimde istenir; aynı yere dokunan bulgular tek pakette; elle kısaltmadan sonra düzeltmeyle karşılaştırma | Aşama 9 öğrenim terfisi (Ö-166, Ö-167, Ö-168) | K-1501 | `.claude/skills/audit/SKILL.md` | Uygulandı |
+| PF-150 | Geri işaret taramasında `--tum` geçişi; `11` yazan betik LF yazar; pre-commit hook'unda anahtar biçimi | Aşama 9 öğrenim terfisi (Ö-169, Ö-170, Ö-171) | K-1501 | `scripts/doc-scans/` · `scripts/git-hooks/pre-commit` · `.claude/checklists/document-stage.md` §3 | Uygulandı |
+| PF-151 | `00 §N.1`'e Aşama 9'un dört dersi (yardımcı düzeni, küçük dilim ve bitiş satırı, toplu onay kapsam kapatmaz, sabit hüküm biçimi) | Aşama 9 öğrenim terfisi, rapor §5.3 Soru 1 | K-1501 (proje sahibinin cevabı bekleniyor) | `00 §N.1` | Onay bekliyor |
+| PF-152 | Hook ve talimat şablonu: işçi talimatına sabit yasak satırı, sözcük yasaklarının yalnız komuta bakması, merge denetimi çıktısının kısalması | Aşama 9 öğrenim terfisi (P-1, P-2, P-3) | K-1501 (Karar C: bilgi olarak) | `~/.claude/hooks/` · `agent-rules.json` (proje dışı) | Öneri |

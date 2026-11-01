@@ -72,6 +72,11 @@
 > - **K-1353 · Hız sınırının ayarları:** genel istek hızı sınırının iki sayısı kurulum ayarıdır — sayfa ve form istekleri için IP başına dakikada `RateLimitOptions.PageRequestsPerMinute` (varsayılan 300) ve form gönderimleri için `RateLimitOptions.FormSubmissionsPerMinute` (varsayılan 30); sıfır ya da negatif değerle uygulama açılmaz. §C'nin ayar envanteri bu iki adı varsayılanlarıyla taşır; pencere (60 saniye) ve dilim sayısı kodda sabittir (`09 §15.4` madde 2; `05 §8.4.5`).
 > - **K-1354 · Yedek zamanlayıcısının iki ayarı, kayıt dizini ve düzeyi, istek kimliği başlığı:** yedek zamanlayıcısının çalışma saati `BACKUP_RUN_TIME` (`SS:DD`) ve saat dilimi `BACKUP_TIME_ZONE` ayarıdır, iki yardımcı imajda aynıdır; varsayılan saat bu belgede yazılır ve imha işinden (03:00) önce biter; uygulama kaydının dizini `LoggingOptions.Directory`, uygulamanın kendi kayıt düzeyi `LoggingOptions.Level` (varsayılan bilgi) kurulum ayarıdır ve dizin kayıt dosyalarını yedek aracına salt okuma bağlanan yolla aynıdır; ters vekil her isteğe bir istek kimliği üretir, uygulamaya `X-Request-Id` başlığıyla iletir ve kendi erişim kaydına aynı değerle yazar (`05 §9.1.5`; bilgim tarihli — Caddy'de kimlik üretimi kurulumda denetlenir). Biçimi `09 §17`, `§18.1`, `§18.2`'dedir.
 
+> **Aşama 9'dan park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §22.1, çakışma taraması, K-1494).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-1407 · K-1411 · K-1453 · Boot provasının iki turu:** §I iki kez koşar. 1. tur F0'ın sonunda, referans kuruluma ilk inişte yapılır (`11` T09 kabul kriteri 6; F0 kapısı, `11 §6.2`) ve sonucu §I.3'e yazılır. 2. tur F6'da T601'in kabul kriteri 1'idir: `§I.2` reçetesi gerçek yapılandırmayla sıfırdan koşar; kapanış ritüelinin zorunlu provası (`00 §L` adım 6, §L.1) bu turdur. §I'nin "Ne zaman" satırı doldurulurken iki turu bu sırayla söyler.
+
 ---
 
 ## 0. Hızlı özet

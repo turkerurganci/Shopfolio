@@ -151,4 +151,4 @@ p(f"  Toplam: {tot} bayt ({tot / 1048576:.2f} MB)")
 p(f"  Okunacak sablon + park bloklari: `12` {size} bayt")
 
 if out_path:
-    Path(out_path).write_text("\n".join(lines_out) + "\n", encoding="utf-8")
+    Path(out_path).write_text("\n".join(lines_out) + "\n", encoding="utf-8", newline="\n")

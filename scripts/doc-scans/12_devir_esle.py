@@ -309,4 +309,4 @@ ps("F: siniflar (matris hucre degeri / kayit notu / aday): " + ", ".join(f"{k} {
 sys.stdout.flush()
 
 if out_path:
-    Path(out_path).write_text("\n".join(buf) + "\n", encoding="utf-8")
+    Path(out_path).write_text("\n".join(buf) + "\n", encoding="utf-8", newline="\n")

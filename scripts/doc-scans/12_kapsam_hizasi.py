@@ -196,4 +196,4 @@ for kid, grp, ln_no, ks, ln in rows:
     if kid == "KP-37":
         p(f"  satir {ln_no}; grup {grp}; K {sorted(ks)}; etkide {bool(ks & a_set)}")
 if out_path:
-    Path(out_path).write_text("\n".join(buf) + "\n", encoding="utf-8")
+    Path(out_path).write_text("\n".join(buf) + "\n", encoding="utf-8", newline="\n")

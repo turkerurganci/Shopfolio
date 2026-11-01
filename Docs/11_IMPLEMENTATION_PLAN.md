@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.50** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.51** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -3054,7 +3054,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   1. Kalem ödenen tutarı üreten değerleri (birim fiyat, KDV oranı ve tutarı, indirim oranı, referans fiyat, kupon payı) ve ürünün o anki tanımını (ad, seçenekler, görsel) dondurur (`02 §3.23.1`).
   2. Teslim hattını ve cayma rejimini belirleyen nitelikler de donar: ürün tipi, istisna işareti, sebebi ve koşulu, hizmette ifa süresi (Z-39), dijital kalemde indirme hakkı (P-8); sonraki değişiklik yalnız yeni siparişe işler (`02 §3.23.1`).
   3. Donan değerler kalemde düz yaşar; sipariş düzleminde yalnız kupon kodu, kargo ücreti ve toplamlar durur; ara gruplama katmanı yoktur (`02 §3.23.2`).
-  4. Sipariş adreslerini, iletişim e-postasını, firmanın o günkü yasal kimliğini, Ön Bilgilendirme Formu ve sözleşme sürümlerini, onay kutusu kaydını, havale IBAN'ını ve aydınlatma sürümünü dondurur; iki istisna firmanın adres ve misafir e-postası düzeltmesidir, önceki değer geçmişte durur (T375); donan form ve sözleşme onay anındaki ad, adres ve e-postayı geçmişin ilk satırından gösterir (`02 §3.23.3`; K-1027).
+  4. Sipariş adreslerini, iletişim e-postasını, firmanın o günkü yasal kimliğini, Ön Bilgilendirme Formu ve sözleşme sürümlerini, onay kutusu kaydını, havale IBAN'ını ve aydınlatma sürümünü dondurur; iki istisna firmanın düzeltmesidir — teslimat ve fatura adresi ile misafir e-postası; firma kimliği düzeltilmez, önceki değer geçmişte durur (T375); donan form ve sözleşme onay anındaki ad, adres ve e-postayı geçmişin ilk satırından gösterir (`02 §3.23.3`; K-1027).
   5. Donma anı siparişin oluştuğu andır; onaylanan tutar bağlayıcıdır ve ödeme sonucundan bağımsızdır; kargoya verme sözü de o anda donar (`02 §3.23.4`).
   6. Marka ayarları siparişe donmaz; geçmiş sipariş güncel logo, ad ve renkle görünür (`02 §3.23.5`).
 - **Test beklentisi:** Unit, Integration
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.50*
+*Shopfolio — Implementation Plan v0.51*

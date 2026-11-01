@@ -1,12 +1,12 @@
 # Shopfolio — Validation Protocol
 
-**Versiyon: v0.11** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.12** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 10 — Doğrulama Protokolü · **Rol:** QA / Verification Lead
 > **Bu bir test case deposu değildir.** Cevapladığı soru: **"Bu ürün bir sonraki aşamaya geçilebilecek olgunlukta mı?"**
 > **Kapsam `10_MVP_SCOPE.md` ile birebir hizalıdır.**
 
-> **Yazım durumu (K-28, K-30, K-1516; karar kaydı §24): yazım turu sürüyor (v0.11).** Yazım oturumları: Y1 ✓ (bu başlık notu), Y2 ✓ (çerçeve bölümleri §3, §5…§11; K-1517…K-1520); Y3a-1 ✓ (§4 matris biçimi ve KP-1…KP-30, KP-77 matrisi; K-1521…K-1523); Y3a-2 ✓ (§4.8…§4.10: KP-31…KP-36, KP-38…KP-57 matrisi; K-1524, K-1525); Y3a-3 ✓ (§4.11, §4.12: KP-58…KP-76 matrisi; K-1526); Y3b-1 ✓ (§4.13…§4.16: KP-37 matrisi, genişlik sınıfları, vitrinin eksik satır kuralı, seviye E; K-1527…K-1531); Y3b-2 ✓ (§4.17…§4.19: ön yüz, çatının yanıtları, hata kodları; K-1532…K-1535); Y3b-3 ✓ (§4.20: uçların doğrulanacak davranışları; matris kapandı; K-1536); Y4-1 ✓ (§12.1…§12.4: F6 kabul kanıtı zinciri, A seviyesi erişilebilirlik ölçütleri, durum geçiş matrisi, kritik hesaplamalar; T601 kabul kriteri 10 geri yazıldı; K-1537…K-1539); Y4-2a ✓ (§12.5…§12.7: sahiplik ve silmeler, eşzamanlılık ve kesinti, denetim izi ve saklama; K-1540, K-1541); Y4-2b, Y4-3, Y5 bekliyor (harita, konvansiyonlar ve okuma tablosu park bloklarının altındadır). Sıra: başlık notu → çerçeve bölümleri (§3, §5…§11) → matris (§4) → proje-spesifik ek (§12) → §1 ve §2 son → kalite döngüsü. Bölümlerin gövdesi şablonun yönerge ve örnek metniyle durur; her oturum kendi bölümünde yönergeyi gerçek içerikle değiştirir.
+> **Yazım durumu (K-28, K-30, K-1516; karar kaydı §24): yazım turu sürüyor (v0.12).** Yazım oturumları: Y1 ✓ (bu başlık notu), Y2 ✓ (çerçeve bölümleri §3, §5…§11; K-1517…K-1520); Y3a-1 ✓ (§4 matris biçimi ve KP-1…KP-30, KP-77 matrisi; K-1521…K-1523); Y3a-2 ✓ (§4.8…§4.10: KP-31…KP-36, KP-38…KP-57 matrisi; K-1524, K-1525); Y3a-3 ✓ (§4.11, §4.12: KP-58…KP-76 matrisi; K-1526); Y3b-1 ✓ (§4.13…§4.16: KP-37 matrisi, genişlik sınıfları, vitrinin eksik satır kuralı, seviye E; K-1527…K-1531); Y3b-2 ✓ (§4.17…§4.19: ön yüz, çatının yanıtları, hata kodları; K-1532…K-1535); Y3b-3 ✓ (§4.20: uçların doğrulanacak davranışları; matris kapandı; K-1536); Y4-1 ✓ (§12.1…§12.4: F6 kabul kanıtı zinciri, A seviyesi erişilebilirlik ölçütleri, durum geçiş matrisi, kritik hesaplamalar; T601 kabul kriteri 10 geri yazıldı; K-1537…K-1539); Y4-2a ✓ (§12.5…§12.7: sahiplik ve silmeler, eşzamanlılık ve kesinti, denetim izi ve saklama; K-1540, K-1541); Y4-2b ✓ (§12.8, §12.9: belge, onay, yasal kimlik ve çerez; kısmi adet, iade ve ayıp; K-1542); Y4-3, Y5 bekliyor (harita, konvansiyonlar ve okuma tablosu park bloklarının altındadır). Sıra: başlık notu → çerçeve bölümleri (§3, §5…§11) → matris (§4) → proje-spesifik ek (§12) → §1 ve §2 son → kalite döngüsü. Bölümlerin gövdesi şablonun yönerge ve örnek metniyle durur; her oturum kendi bölümünde yönergeyi gerçek içerikle değiştirir.
 
 > **Aşama 1'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36.
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
@@ -97,13 +97,13 @@
 | P1.5 — iki ana sayfa düzeni (K-27) | `VP4-02` | Y3a-1 | §4.3 yazıldı; Y5 doğrular |
 | P2.1 — Aşama 2 dizini | `VP0-01` | Y1 | dizin yerinde (58 atıf; Y1 doğruladı) |
 | P3.1 — genişlik sınıfları (K-740, K-741) | `VP4-13` | Y3b-1 | §4.14 yazıldı; Y5 doğrular (karar K-1513) |
-| P3.2 — yasal kimlik bloğu ve ETBİS bandı (K-747) | `VP12-08` | Y4 | bekliyor |
-| P3.3 — onay bölümü (K-756, K-831, K-833) | `VP12-08` | Y4 | bekliyor |
-| P3.4 — kısmi adet senaryoları (K-787…K-796) | `VP12-09` (kuruş yuvarlaması: `VP12-04`) | Y4-2 | kuruş yuvarlaması §12.4'te yazıldı (Y4-1; Y5 doğrular); kısmi adet senaryoları bekliyor |
+| P3.2 — yasal kimlik bloğu ve ETBİS bandı (K-747) | `VP12-08` | Y4-2b | §12.8 yazıldı; Y5 doğrular |
+| P3.3 — onay bölümü (K-756, K-831, K-833) | `VP12-08` | Y4-2b | §12.8 yazıldı; Y5 doğrular |
+| P3.4 — kısmi adet senaryoları (K-787…K-796) | `VP12-09` (kuruş yuvarlaması: `VP12-04`) | Y4-1, Y4-2b | kuruş yuvarlaması §12.4'te (Y4-1), kısmi adet senaryoları §12.9'da yazıldı; Y5 doğrular |
 | P3.5 — panelin yasal uyarıları (K-798) | `VP12-13` | Y4 | bekliyor (karar K-1514) |
-| P3.6 — ayıpta sözleşmeden dönme (K-808) | `VP12-09` | Y4 | bekliyor |
+| P3.6 — ayıpta sözleşmeden dönme (K-808) | `VP12-09` | Y4-2b | §12.9 yazıldı; Y5 doğrular |
 | P3.7 — dışa aktarmanın izi (K-823) | `VP12-07` | Y4-2a | §12.7 yazıldı; Y5 doğrular |
-| P3.8 — ilk kurulumda çerez (K-834, K-850) | `VP12-08` | Y4 | bekliyor |
+| P3.8 — ilk kurulumda çerez (K-834, K-850) | `VP12-08` | Y4-2b | §12.8 yazıldı; Y5 doğrular |
 | P3.9 — Aşama 3 dizini | `VP0-01` | Y1 | dizin yerinde (18 atıf; Y1 doğruladı) |
 | P4.1 — indirme hakkının düştüğü an (K-884, K-980) | `VP12-10` | Y4 | bekliyor |
 | P4.2 — eşzamanlılık, tek işlenme, kesinti (K-890…K-980) | `VP12-06` | Y4-2a | §12.6 yazıldı; Y5 doğrular |
@@ -115,8 +115,8 @@
 | P5.1 — sayaçların değişmezi (K-1015…K-1091) | `VP12-04` (+ `VP12-06`) | Y4-1 | §12.4 yazıldı; Y5 doğrular |
 | P5.2 — birim fiyat (K-1018…K-1020) | `VP12-04` | Y4-1 | §12.4 yazıldı; Y5 doğrular |
 | P5.3 — tarih aralığı sınırları (K-1023, K-1041) | `VP12-04` | Y4-1 | §12.4 yazıldı; Y5 doğrular |
-| P5.4 — belge kopyası ve onay anı (K-1027) | `VP12-08`, `VP12-07` | Y4-2a (imha yüzü), Y4-2b | imha yüzü §12.7'de yazıldı; onay anı ve gösterim `VP12-08`'de bekliyor |
-| P5.5 — kalem kayıtlarının ve geri ödemenin değişmezleri (K-1054…K-1131) | `VP12-09` | Y4 | bekliyor |
+| P5.4 — belge kopyası ve onay anı (K-1027) | `VP12-08`, `VP12-07` | Y4-2a (imha yüzü), Y4-2b | imha yüzü §12.7'de, onay anı ve gösterim §12.8'de yazıldı; Y5 doğrular |
+| P5.5 — kalem kayıtlarının ve geri ödemenin değişmezleri (K-1054…K-1131) | `VP12-09` | Y4-2b | §12.9 yazıldı; Y5 doğrular |
 | P5.6 — hesap tarafının silmeleri (K-1064, K-1065, K-1083) | `VP12-05` | Y4-2a | §12.5 yazıldı; Y5 doğrular |
 | P5.7 — Aşama 5 dizini | `VP0-01` | Y1 | dizin yerinde (22 atıf; Y1 doğruladı) |
 | P6.1…P6.5 — uçların doğrulanacak davranışları (K-1163…K-1203, K-1213, K-1217) | `VP4-18` (P6.1 ayrıca `VP12-05`) | Y3b-3, Y4-2a | §4.20 ve §12.5 yazıldı; Y5 doğrular |
@@ -160,7 +160,7 @@ Aşama 1 ve Aşama 6…9 bloklarında dizin satırı yoktur ve eklenmedi (devrin
 | Y3b-3 | §4 matris devamı, üçüncü parça: uçlar (K-1536) | `VP4-18` | +40 KB (gerçekleşen 73 KB, 179 satır) | ✓ |
 | Y4-1 | §12 proje-spesifik ek, birinci parça: §12.1 F6 kabul kanıtı, §12.2 A seviyesi erişilebilirlik, §12.3 durum geçiş matrisi, §12.4 kritik hesaplamalar; F6 kabul kanıtı senaryolarının `11` T601 kabul kriteri 10'a geri yazımı (K-1537…K-1539) | `VP12-01`…`VP12-04` | +25 KB | ✓ |
 | Y4-2a | §12 devamı, birinci parça: §12.5 hesap silmeleri ve sahiplik, §12.6 eşzamanlılık, tek işlenme ve kesinti, §12.7 denetim izi, saklama ve imha (K-1540…K-1541) | `VP12-05`…`VP12-07` | +20 KB (gerçekleşen 39 KB, 56 satır) | ✓ |
-| Y4-2b | §12 devamı, ikinci parça: §12.8 belge, onay, yasal kimlik ve çerez; §12.9 kısmi adet, iade ve ayıp (K-1541) | `VP12-08`, `VP12-09` | +15 KB | bekliyor |
+| Y4-2b | §12 devamı, ikinci parça: §12.8 belge, onay, yasal kimlik ve çerez; §12.9 kısmi adet, iade ve ayıp (K-1541, K-1542) | `VP12-08`, `VP12-09` | +15 KB (gerçekleşen 56 KB, 95 satır) | ✓ |
 | Y4-3 | §12 devamı: indirme hakkı, uyarılar, tasarım değerleri ve yük, panelin yasal uyarıları | `VP12-10`…`VP12-13` | +15 KB | bekliyor |
 | Y5 | §1 kapsam, §2 prensipler; yazım turunun kapanışı (park bloklarının son durumu, kapsam hizası betiği yeniden) | `VP1-01`…`VP1-04`, `VP2-01` | +20 KB | bekliyor |
 
@@ -2292,4 +2292,4 @@ Kaynak: Karar kaydı K-787 (adet seçilir), K-789 (kargo ücreti ve eşik), K-79
 
 ---
 
-*Shopfolio — Validation Protocol v0.11*
+*Shopfolio — Validation Protocol v0.12*

@@ -1,12 +1,12 @@
 # Shopfolio — Validation Protocol
 
-**Versiyon: v0.6** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.7** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 10 — Doğrulama Protokolü · **Rol:** QA / Verification Lead
 > **Bu bir test case deposu değildir.** Cevapladığı soru: **"Bu ürün bir sonraki aşamaya geçilebilecek olgunlukta mı?"**
 > **Kapsam `10_MVP_SCOPE.md` ile birebir hizalıdır.**
 
-> **Yazım durumu (K-28, K-30, K-1516; karar kaydı §24): yazım turu sürüyor (v0.6).** Yazım oturumları: Y1 ✓ (bu başlık notu), Y2 ✓ (çerçeve bölümleri §3, §5…§11; K-1517…K-1520); Y3a-1 ✓ (§4 matris biçimi ve KP-1…KP-30, KP-77 matrisi; K-1521…K-1523); Y3a-2 ✓ (§4.8…§4.10: KP-31…KP-36, KP-38…KP-57 matrisi; K-1524, K-1525); Y3a-3 ✓ (§4.11, §4.12: KP-58…KP-76 matrisi; K-1526); Y3b, Y4, Y5 bekliyor (harita, konvansiyonlar ve okuma tablosu park bloklarının altındadır). Sıra: başlık notu → çerçeve bölümleri (§3, §5…§11) → matris (§4) → proje-spesifik ek (§12) → §1 ve §2 son → kalite döngüsü. Bölümlerin gövdesi şablonun yönerge ve örnek metniyle durur; her oturum kendi bölümünde yönergeyi gerçek içerikle değiştirir.
+> **Yazım durumu (K-28, K-30, K-1516; karar kaydı §24): yazım turu sürüyor (v0.7).** Yazım oturumları: Y1 ✓ (bu başlık notu), Y2 ✓ (çerçeve bölümleri §3, §5…§11; K-1517…K-1520); Y3a-1 ✓ (§4 matris biçimi ve KP-1…KP-30, KP-77 matrisi; K-1521…K-1523); Y3a-2 ✓ (§4.8…§4.10: KP-31…KP-36, KP-38…KP-57 matrisi; K-1524, K-1525); Y3a-3 ✓ (§4.11, §4.12: KP-58…KP-76 matrisi; K-1526); Y3b-1 ✓ (§4.13…§4.16: KP-37 matrisi, genişlik sınıfları, vitrinin eksik satır kuralı, seviye E; K-1527…K-1531); Y3b-2, Y4, Y5 bekliyor (harita, konvansiyonlar ve okuma tablosu park bloklarının altındadır). Sıra: başlık notu → çerçeve bölümleri (§3, §5…§11) → matris (§4) → proje-spesifik ek (§12) → §1 ve §2 son → kalite döngüsü. Bölümlerin gövdesi şablonun yönerge ve örnek metniyle durur; her oturum kendi bölümünde yönergeyi gerçek içerikle değiştirir.
 
 > **Aşama 1'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36.
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
@@ -96,7 +96,7 @@
 | P1.4 — kapsam cümleleri (K-24) | `VP1-01`, `VP4-01` | Y5 · Y3a-1 | §4.2 yazıldı; Y5 doğrular |
 | P1.5 — iki ana sayfa düzeni (K-27) | `VP4-02` | Y3a-1 | §4.3 yazıldı; Y5 doğrular |
 | P2.1 — Aşama 2 dizini | `VP0-01` | Y1 | dizin yerinde (58 atıf; Y1 doğruladı) |
-| P3.1 — genişlik sınıfları (K-740, K-741) | `VP4-13` | Y3b | bekliyor (karar K-1513) |
+| P3.1 — genişlik sınıfları (K-740, K-741) | `VP4-13` | Y3b-1 | §4.14 yazıldı; Y5 doğrular (karar K-1513) |
 | P3.2 — yasal kimlik bloğu ve ETBİS bandı (K-747) | `VP12-08` | Y4 | bekliyor |
 | P3.3 — onay bölümü (K-756, K-831, K-833) | `VP12-08` | Y4 | bekliyor |
 | P3.4 — kısmi adet senaryoları (K-787…K-796) | `VP12-09` (kuruş yuvarlaması: `VP12-04`) | Y4 | bekliyor |
@@ -119,18 +119,18 @@
 | P5.5 — kalem kayıtlarının ve geri ödemenin değişmezleri (K-1054…K-1131) | `VP12-09` | Y4 | bekliyor |
 | P5.6 — hesap tarafının silmeleri (K-1064, K-1065, K-1083) | `VP12-05` | Y4 | bekliyor |
 | P5.7 — Aşama 5 dizini | `VP0-01` | Y1 | dizin yerinde (22 atıf; Y1 doğruladı) |
-| P6.1…P6.5 — uçların doğrulanacak davranışları (K-1163…K-1203, K-1213, K-1217) | `VP4-18` (P6.1 ayrıca `VP12-05`) | Y3b | bekliyor |
-| P6.6, P6.7 — hata kodları, girdi modelleri, derin gözden geçirme (K-1196…K-1216) | `VP4-19` | Y3b | bekliyor |
-| P7.1 — dış servislerin davranışları (K-1257…K-1291) | `VP4-15` | Y3b | bekliyor |
-| P8.1 — ön yüzün tarayıcıda doğrulanması (K-1325, K-1354, K-1355) | `VP4-16` (+ `VP3-02`) | Y3b | bekliyor |
-| P8.2 — çatının kendi yanıtları (K-1334) | `VP4-17` | Y3b | bekliyor |
-| P9.1 — vitrinin eksik satır kuralı (K-755, K-841) | `VP4-14` | Y3b | bekliyor |
+| P6.1…P6.5 — uçların doğrulanacak davranışları (K-1163…K-1203, K-1213, K-1217) | `VP4-18` (P6.1 ayrıca `VP12-05`) | Y3b-2 | bekliyor |
+| P6.6, P6.7 — hata kodları, girdi modelleri, derin gözden geçirme (K-1196…K-1216) | `VP4-19` | Y3b-2 | bekliyor |
+| P7.1 — dış servislerin davranışları (K-1257…K-1291) | `VP4-15` | Y3b-1 | §4.16 yazıldı; Y5 doğrular |
+| P8.1 — ön yüzün tarayıcıda doğrulanması (K-1325, K-1354, K-1355) | `VP4-16` (+ `VP3-02`) | Y3b-2 | bekliyor |
+| P8.2 — çatının kendi yanıtları (K-1334) | `VP4-17` | Y3b-2 | bekliyor |
+| P9.1 — vitrinin eksik satır kuralı (K-755, K-841) | `VP4-14` | Y3b-1 | §4.15 yazıldı; Y5 doğrular |
 | P9.2 — erişilebilirlik taraması (K-625, K-1411) | `VP12-02` (+ `VP3-02`) | Y4 | bekliyor |
 | P9.3 — F6 kabul kanıtının senaryolara bağlanışı (K-23, K-1453) | `VP12-01` | Y4 | bekliyor |
 
 Aşama 1 ve Aşama 6…9 bloklarında dizin satırı yoktur ve eklenmedi (devrin evi karar satırıdır). Dizin satırlarında Y1'de değişiklik gerekmedi: dizin ile etki sütunu açılışta karşılaştırıldı (karar kaydı §24.1 fark C, K-1508); Y1 dört dizinin gösterdiği raporların (`CHECKPOINT_REPORTS/PHASE2…5_CONFLICT_SCAN.md` §6) varlığını sınadı ve satırların yalnız işaret ettiğini, devri ikinci kez kaydetmediğini doğruladı.
 
-**Yazım konvansiyonları (K-1516; checklist §4).** (1) **Sıra:** başlık notu (Y1) → çerçeve bölümleri §3, §5…§11 (Y2) → §4 matris (Y3a-1, Y3a-2, Y3a-3, Y3b) → §12 proje-spesifik ek (Y4) → §1, §2 son (Y5; sayımlar matris bitince kesinleşir) → özet ↔ ayrıntı taraması → kalite döngüsü. (2) **Dil:** bu doküman Türkçe; kod, sembol ve dosya adları İngilizce. (3) **Kimlikler:** konu `VPn-mm` (karar kaydı §24.2); matris satırı `VAL-<seviye><NNN>` (örnek `VAL-A001`) — seviye kimlikte okunur ve "Seviye" sütunuyla çelişemez (K-1511 (2)); kaynak birimi `10` KP, KD, ÖK, SK, YH kimliği ya da K / bölüm numarasıdır. Severity (KRİTİK / ORTA / DÜŞÜK) ile `00 §D.10`'un S1 / S2 / S3 hata sınıfı iki ayrı eksendir (K-1511 (3)). (4) **Atıf biçimi:** `02 §3.8.3`, `10 KP-37`, `09 §16.1` — önsüz `§` bu dokümanın bölümüdür; başka doküman her zaman numarasıyla anılır. (5) **Tüketici ilkesi:** bu doküman `02`–`11`'i tüketir, onlara geriye etki yaratmaz; kaynakla çelişen bir kural çıkarsa kaynak kazanır ve fark bu dokümana hizalama olarak yazılır. (6) **Kural ayrıntısı evinde kalır:** satır kuralı kopyalamaz, kimlikle işaret eder (kapsam cümleleri hariç: `10 §2` ve `§3` cümleleri çevrilmeden devralınır, K-24). (7) **Kapsam hizası:** MVP'de olmayan özellik kriter olamaz, MVP'de olan çıkarılamaz; KD ve YH satırlarına kriter yazılmaz. (8) **Tür etiketi (K-1512 (2)):** matris satırının `Kural` hücresi gerektiğinde köşeli etiketle başlar — `[tarayıcı]`, `[erişilebilirlik]`, `[güvenlik]`, `[yük]`; yeni seviye ya da sütun açılmaz. (9) **Açık kararlar bölümü yoktur:** açık kalem karar kaydının §4'ündedir, sonraki dokümana talimat o dokümanın park bloğundadır (PF-158). (10) **Betik:** matris kimlik tekilliği, seviye–kimlik uyumu ve KP kapsaması `scripts/doc-scans/12_matris_denetle.py` ile denetlenir (ilk matris oturumu yazar, sonrakiler koşar); kapsam hizası `12_kapsam_hizasi.py` ile yazımdan önce sınandı, kapanışta yeniden koşulur.
+**Yazım konvansiyonları (K-1516; checklist §4).** (1) **Sıra:** başlık notu (Y1) → çerçeve bölümleri §3, §5…§11 (Y2) → §4 matris (Y3a-1, Y3a-2, Y3a-3, Y3b-1, Y3b-2) → §12 proje-spesifik ek (Y4) → §1, §2 son (Y5; sayımlar matris bitince kesinleşir) → özet ↔ ayrıntı taraması → kalite döngüsü. (2) **Dil:** bu doküman Türkçe; kod, sembol ve dosya adları İngilizce. (3) **Kimlikler:** konu `VPn-mm` (karar kaydı §24.2); matris satırı `VAL-<seviye><NNN>` (örnek `VAL-A001`) — seviye kimlikte okunur ve "Seviye" sütunuyla çelişemez (K-1511 (2)); kaynak birimi `10` KP, KD, ÖK, SK, YH kimliği ya da K / bölüm numarasıdır. Severity (KRİTİK / ORTA / DÜŞÜK) ile `00 §D.10`'un S1 / S2 / S3 hata sınıfı iki ayrı eksendir (K-1511 (3)). (4) **Atıf biçimi:** `02 §3.8.3`, `10 KP-37`, `09 §16.1` — önsüz `§` bu dokümanın bölümüdür; başka doküman her zaman numarasıyla anılır. (5) **Tüketici ilkesi:** bu doküman `02`–`11`'i tüketir, onlara geriye etki yaratmaz; kaynakla çelişen bir kural çıkarsa kaynak kazanır ve fark bu dokümana hizalama olarak yazılır. (6) **Kural ayrıntısı evinde kalır:** satır kuralı kopyalamaz, kimlikle işaret eder (kapsam cümleleri hariç: `10 §2` ve `§3` cümleleri çevrilmeden devralınır, K-24). (7) **Kapsam hizası:** MVP'de olmayan özellik kriter olamaz, MVP'de olan çıkarılamaz; KD ve YH satırlarına kriter yazılmaz. (8) **Tür etiketi (K-1512 (2)):** matris satırının `Kural` hücresi gerektiğinde köşeli etiketle başlar — `[tarayıcı]`, `[erişilebilirlik]`, `[güvenlik]`, `[yük]`; yeni seviye ya da sütun açılmaz. (9) **Açık kararlar bölümü yoktur:** açık kalem karar kaydının §4'ündedir, sonraki dokümana talimat o dokümanın park bloğundadır (PF-158). (10) **Betik:** matris kimlik tekilliği, seviye–kimlik uyumu ve KP kapsaması `scripts/doc-scans/12_matris_denetle.py` ile denetlenir (ilk matris oturumu yazar, sonrakiler koşar); kapsam hizası `12_kapsam_hizasi.py` ile yazımdan önce sınandı, kapanışta yeniden koşulur.
 
 **Okuma tablosu ve boyut (K-1511 (1), K-1516).** Bu doküman 100 KB'ı aşacaktır ve `INSTRUCTIONS §9` (7) bütün okumayı yasaklar; `validate` skill'i ve doğrulayıcılar hedef task'ın VAL satırlarını bu tabloyla okur, bütün dosyayı okumaz. Dosyanın boyutu `wc -c` ile ölçülür; 100 KB'ın altında bütün okunabilir. Komutlar depo kökünden, dosya `Docs/12_VALIDATION_PROTOCOL.md`:
 
@@ -146,7 +146,7 @@ Aşama 1 ve Aşama 6…9 bloklarında dizin satırı yoktur ve eklenmedi (devrin
 
 **Boyut hedefi yoktur;** doküman bölünmez (dosya adı ve bölüm numaraları değişmez; PF-144'ün `12` karşılığı). Büyüme matris ve ekten gelir; okuma tablosu bunu karşılar.
 
-**Yazım turunun haritası (K-1516).** Yazım oturumları beş tanedir, matris iki parçadır (Y3a, Y3b; Y3a baştan ikiye, Y3a-2 bağlam yüzünden bir kez daha bölündü — Y3a-1, Y3a-2, Y3a-3, K-1522, K-1524); harita burada sabittir, bir oturum bölünürse karar satırıyla tabloya ve ona atıf yapan satırlara aynı PR'da işlenir. **Bölüm çizgisi konu sırasıyla çekilir:** Y3a, KP gruplarının matrisini (`VP4-02`…`VP4-11`, KP-1…KP-77) ve matris biçimini (`VP4-01`) yazar; Y3b, KP kümesinin dışında kalan teknik kesitleri (`VP4-12`…`VP4-19`: KP-37'nin arama motoru verileri, genişlik sınıfları, vitrin kuralı, seviye E, ön yüz, çatının yanıtları, uçlar, hata kodları) yazar. Çizgi KP gruplarıyla teknik kesit arasındadır, çünkü Y3a'nın çıktısı KP kapsamasını betikle sınar (KP-37 hariç: onun satırı `VP4-12` ile Y3b'de gelir) ve Y3b uç ve hata kodu satırlarını `07`'den çeker. Y3a 250k bağlama sığmayacağı için baştan yedek çizgiyle ikiye bölündü: `VP4-06`/`VP4-07` (31 KP + 46 KP; KP dağılımı konu planındaki gibi) — Y3a-1 KP-1…KP-30 ve KP-77'yi, Y3a-2 KP-31…KP-57'yi (KP-37 hariç; `VP4-07`…`VP4-09`), Y3a-3 KP-58…KP-76'yı (`VP4-10`, `VP4-11`) yazar. Boyut tahminleri (K-32 — tahmin, kural değil) oturumun ekleyeceği metindir.
+**Yazım turunun haritası (K-1516).** Yazım oturumları beş tanedir, matris iki parçadır (Y3a, Y3b; Y3a baştan ikiye, Y3a-2 bağlam yüzünden bir kez daha bölündü — Y3a-1, Y3a-2, Y3a-3, K-1522, K-1524); harita burada sabittir, bir oturum bölünürse karar satırıyla tabloya ve ona atıf yapan satırlara aynı PR'da işlenir. **Bölüm çizgisi konu sırasıyla çekilir:** Y3a, KP gruplarının matrisini (`VP4-02`…`VP4-11`, KP-1…KP-77) ve matris biçimini (`VP4-01`) yazar; Y3b, KP kümesinin dışında kalan teknik kesitleri (`VP4-12`…`VP4-19`: KP-37'nin arama motoru verileri, genişlik sınıfları, vitrin kuralı, seviye E, ön yüz, çatının yanıtları, uçlar, hata kodları) yazar. Çizgi KP gruplarıyla teknik kesit arasındadır, çünkü Y3a'nın çıktısı KP kapsamasını betikle sınar (KP-37 hariç: onun satırı `VP4-12` ile Y3b'de gelir) ve Y3b uç ve hata kodu satırlarını `07`'den çeker. Y3a 250k bağlama sığmayacağı için baştan yedek çizgiyle ikiye bölündü: `VP4-06`/`VP4-07` (31 KP + 46 KP; KP dağılımı konu planındaki gibi) — Y3a-1 KP-1…KP-30 ve KP-77'yi, Y3a-2 KP-31…KP-57'yi (KP-37 hariç; `VP4-07`…`VP4-09`), Y3a-3 KP-58…KP-76'yı (`VP4-10`, `VP4-11`) yazar. Y3b de bağlam yüzünden baştan ikiye bölündü (K-1527): Y3b-1 `VP4-12`…`VP4-15`i (KP-37, genişlik sınıfları, vitrinin eksik satır kuralı, seviye E), Y3b-2 `VP4-16`…`VP4-19`u (ön yüz, çatının yanıtları, uçlar, hata kodları) yazar. Boyut tahminleri (K-32 — tahmin, kural değil) oturumun ekleyeceği metindir.
 
 | Oturum | Kapsam | Konu | Tahmini boyut | Durum |
 |---|---|---|---|---|
@@ -155,7 +155,8 @@ Aşama 1 ve Aşama 6…9 bloklarında dizin satırı yoktur ve eklenmedi (devrin
 | Y3a-1 | §4 matris biçimi (§4.2) ve KP gruplarının matrisi, birinci yarı: KP-1…KP-30 ve KP-77; `12_matris_denetle.py` yazıldı (K-1521…K-1523) | `VP4-01`…`VP4-06` | +66 KB (gerçekleşen 66 KB, 186 satır) | ✓ |
 | Y3a-2 | KP gruplarının matrisi, ikinci yarının birinci parçası: KP-31…KP-36 ve KP-38…KP-57 (KP-37 hariç; 26 KP); betik `--kapsam` argümanıyla koşar (K-1524, K-1525) | `VP4-07`…`VP4-09` | +44 KB (gerçekleşen 65 KB, 217 satır) | ✓ |
 | Y3a-3 | KP gruplarının matrisi, ikinci yarının ikinci parçası: KP-58…KP-76 (19 KP) | `VP4-10`, `VP4-11` | +25 KB (gerçekleşen 43 KB, 131 satır) | ✓ |
-| Y3b | §4 matris devamı: KP-37, genişlik sınıfları, vitrin kuralı, seviye E, ön yüz, çatı, uçlar, hata kodları | `VP4-12`…`VP4-19` | +70 KB | bekliyor |
+| Y3b-1 | §4 matris devamı, birinci parça: KP-37, genişlik sınıfları, vitrinin eksik satır kuralı, seviye E (K-1527…K-1531) | `VP4-12`…`VP4-15` | +35 KB (gerçekleşen 60 KB, 205 satır) | ✓ |
+| Y3b-2 | §4 matris devamı, ikinci parça: ön yüz, çatının yanıtları, uçlar, hata kodları | `VP4-16`…`VP4-19` | +35 KB | bekliyor |
 | Y4 | §12 proje-spesifik ek; F6 kabul kanıtı senaryolarının `11` T601 kabul kriteri 10'a geri yazımı | `VP12-01`…`VP12-13` | +60 KB | bekliyor |
 | Y5 | §1 kapsam, §2 prensipler; yazım turunun kapanışı (park bloklarının son durumu, kapsam hizası betiği yeniden) | `VP1-01`…`VP1-04`, `VP2-01` | +20 KB | bekliyor |
 
@@ -240,7 +241,7 @@ Tarayıcıda ön yüz, erişilebilirlik, güvenlik ve yük A–F'nin bir "neyin"
 
 ## 4. Doğrulama matrisi
 
-Her doğrulama maddesi bir satırdır. Matris iki katmanda yazılır: biçim ve KP gruplarının satırları (`VP4-01`…`VP4-11`, K-1521…K-1526) ve devamı. Satır yazım kuralları §4.2'dedir; satırlar §4.3'ten itibaren kaynak grubuna göre durur ve tek bir ortak sütun düzenini paylaşır.
+Her doğrulama maddesi bir satırdır. Matris iki katmanda yazılır: biçim ve KP gruplarının satırları (`VP4-01`…`VP4-11`, K-1521…K-1526) ve KP kümesi dışındaki teknik kesitler (`VP4-12`…`VP4-19`; K-1527…K-1531 ve devamı). Satır yazım kuralları §4.2'dedir; satırlar §4.3'ten itibaren kaynak grubuna göre durur ve tek bir ortak sütun düzenini paylaşır.
 
 | Sütun | Açıklama |
 |---|---|

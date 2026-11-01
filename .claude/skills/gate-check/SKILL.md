@@ -126,7 +126,7 @@ user-invocable: true
     - `Docs/IMPLEMENTATION_STATUS.md` faz satırı `✓ PASS`
     - Repo memory: faz özet satırı (tarih, PR no, squash hash, tag, ana metrikler) + "sıradaki" satırı + tarih başlığı
     - Backlog forward'ları ve hijyen düzeltmeleri
-    - Gate'te okunan ya da yeniden doğrulanan `12` satırlarının `Durum` hücreleri (`12 §7.5`, `§11.1` madde 1 ve 4, mock `PASS`'in `BEKLEMEDE`'ye dönüşü dahil; `12`'nin sürümünü artırmaz)
+    - Gate'te okunan ya da yeniden doğrulanan `12` satırlarının `Durum` hücreleri (`12 §7.5`, `§11.1` madde 1 ve 4, Kanıt ortamı hücresi üst ortamı yazan satırda düşük ortam `PASS`'inin `BEKLEMEDE`'ye dönüşü dahil; `12`'nin sürümünü artırmaz)
     - Öğrenim terfileri
 
 20. PR merge + CI yeşil + **tüm workflow'lar** teyit edildikten sonra ana dal üzerinde tag:

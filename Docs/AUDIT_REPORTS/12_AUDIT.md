@@ -134,4 +134,54 @@ KD mercekleri tam okuma için yeniden koşuldu. SV merceğinin anahtar sözcük 
 
 **Denetlenebilirlik kuralı:** Bir audit raporu, envanter toplamı ile eşleştirme sayısı **eşleşmiyorsa** geçersizdir — öğe atlanmış demektir. Rapor bu iki sayıyı açıkça gösterir (126 ham = 92 + 14 + 7 + 7 + 5 + 1; 120 tekil = 38 hükümlü + 82 doğrulanmayan).
 
+## Doğrulanmamış bulgular — KD-audit-2a
+
+**Tarih:** 2026-11-01 · **Girdi:** 82 doğrulanmayan bulgu + hüküm dosyalarındaki 23 `YAN:` notu = 105 madde; `scripts/doc-scans/12_audit_grupla2.py` onları 56 doğrulayıcıya ve 3 adıma (2a 20 · 2b 20 · 2c 16) böldü. Her madde kademeli düzenle doğrulanır (Yüksek tek · Orta 1–3'lü · Düşük 3–4'lü); örnekleme ya da atlama yoktur. 2a: 31 madde (27 bulgu: Yüksek 10 · Orta 11 · Düşük 6; 4 `YAN`: Y6, Y9, Y21, Y22).
+
+### Doğrulayıcılar (20; hepsi `[dogrulama]` Opus / high)
+
+| Doğrulayıcı | Kademe | Kapsam | Hüküm |
+|---|---|---|---|
+| D1…D10 | Yüksek (tek) | #1, #2, #8, #9, #10, #4, #11, #15, #20, #23 | her biri doğru 1 (#9 Orta'ya indi) |
+| D11 | Orta | #72, #73 | doğru 2 |
+| D12 · D13 | Orta (tek) | #74 · #76 | doğru 1 · doğru 1 |
+| D14 | Düşük | #116, Y21, Y22, Y6 | doğru 2 · kısmen 1 (#116) · çürük 1 (Y6) |
+| D15 | Orta | #80, #81, #82 | doğru 1 · kısmen 2 (#80, #81) |
+| D16 | Orta | #84, #85, #86 | doğru 3 |
+| D17 | Düşük (tek) | #117 | doğru 1 |
+| D18 | Düşük | #92, #93, Y9 | doğru 3 |
+| D19 | Orta (tek) | #34 | doğru 1 |
+| D20 | Düşük | #94, #95 | doğru 2 |
+
+**Toplam hüküm: 31 madde — 27 doğru · 3 kısmen · 1 çürük.** Çürük: Y6 (VAL-A824, "doğrulanamayan bildirim kayda yazılır" — `12`'de zaten karşılanmış, 12:2174). Seviye değişimi: #9 Yüksek → Orta (uygulandı); Y21 ve #95 Düşük → Orta **yükseltildi**.
+
+### Uygulama
+
+28 madde uygulandı: **20 ESKİ → YENİ çifti** (`12_audit_uygula2.py`; #80'in çifti VAL-D089 Beklenen hücresinde #2'nin hücre düzeltmesiyle birleştirildi), **33 hücre düzeltmesi** (32 matris hücresi + park tablosu P4.6 Durum hücresi), **2 yeni matris satırı**: VAL-A976 (§12.6; ödeme süresi dolumu ile yeniden onayın kilit sırası; park P4.2 (5)) ve VAL-D120 (§12.7; iptalden sonra gelip sistemce geri ödenen ödemenin saklama kolu; park P4.6 (4)). Severity ORTA → KRİTİK: VAL-C008 (#4), VAL-A825 (#20), VAL-D082 (#76), VAL-D093, VAL-D095, VAL-D096 (#81), VAL-A079 (#34) — para, silme ve iade/cayma/fesih süresini doğrudan etkileyen kural (`12` §4.2 kural 6). Park tablosu P4.2 ve P4.6 satırları yeni satırlara bağlandı. Uygulanan liste: yardımcı durum dizini `a10-kd-audit-2/2a/uygulanan.md` (depoda değil).
+
+**Matris sayımı (betik):** 1.471 → **1.473** satır; Seviye A 976 · D 120; Severity KRİTİK 601 → **610** · ORTA 738 → **731** · DÜŞÜK 132; Kanıt ortamı `yok` 1.223; `BEKLEMEDE` 1.473; §12.1…§12.13 343 → 345.
+
+### Üst dokümana geri besleme (K-652)
+
+| Bulgu | Doküman | Düzeltme |
+|---|---|---|
+| #116 | `05` v0.44 → v0.45 (§4.2.2 adım (0)) | "müşteri o siparişin sayfasına gider" → "teyit ekranına gider" (§4.5.1 ve K-1199 ile aynı; K-1552) |
+
+### Yükseltilenler (uygulanmadı → KD-audit-2r)
+
+Y21 (VAL-A823: Beklenen "aynı anahtarla gider" diyor; `05 §4.3.3`/`§4.6.1`'e göre istek yeniden gönderilmez, sonuç sağlayıcıya sorulur) ve #95 (VAL-A081: ürünün yapmadığı gönderim tarihi denetimini bekliyor; bir yıllık sınırı VAL-A236 sınar). Dosya: `a10-kd-audit-2/yeniden.md`.
+
+### 2c'ye ek: hükümlerin yeni `YAN:` notları (doğrulanmadı, uygulanmadı)
+
+- VAL-A070 (12:518): baska kanaldan gelen gecikme feshinin kaydı ORTA; geri ödemenin on dört günü bildirimin firmaya ulaştığı tarihten işler (`02 §7.2.3`, K-706) — KRİTİK adayı (#4'ün yanı).
+- VAL-D094 (12:2224): sipariş imhasından önce on yılı dolan talebi sınamıyor; ikinci bir talep eklenmeli (#82'nin yanı).
+- VAL-C052 (12:757): reddin "mal stoğa eklenmez" sonucunu doğrulamıyor; `02 §7.4.9`, K-656 (#85'in yanı).
+- `02 §3.16.8`, `§3.16.10`: girişte sepet birleşmesinin stok ve ürün sınırı kolu 12'de sınanmıyor (VAL-A030, VAL-A031 yalnız sepete eklemeyi sınar; #92'nin yanı).
+- VAL-A278 ve VAL-A280 paydası: bu adımda #8 ve #10 ile karşılandı (ayrı madde gerekmez).
+- Kaynak hücresi atıf kayması: VAL-A278 ve VAL-A280 `02 §10.6.2` yazıyor, oranı tanımlayan `§10.6.3`'tür (A280'de atıf Beklenen içinde verildi; A278 için #8 aynısını yaptı).
+
+### Kalan
+
+105 maddenin 31'i hükme bağlandı (27 bulgu · 4 `YAN`); **kalan 74 madde** (55 bulgu + 19 `YAN`; 2b: 20 · 2c: 16 doğrulayıcı) ve 2r (Y21, #95). Açık madde: `07 §2.8` ters vekil 413 (#16) ve `10` KD-59 ↔ P-9 (#56) bu adımda düşmedi. Kapılar: `12_kapsam_hizasi.py` 0 · `12_matris_denetle.py --kapsam 1-77` hata 0 (1.473 satır, 77/77 KP) · `12_atif_denetle.py` 0. Bekçi olayı 1 (Parça A; betik yanlışlıkla heredoc ile yazılmak istendi, engellendi).
+
 Prosedür: [`.claude/skills/audit/SKILL.md`](../../.claude/skills/audit/SKILL.md)

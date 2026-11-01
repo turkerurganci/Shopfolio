@@ -12,7 +12,7 @@ Sinananlar (12'nin `| VAL-` ile baslayan satirlari):
   2  Kimlik `VAL-<A-F><NNN>` ve tekil; Seviye sutunu kimlikteki harfle ayni.
   3  Kanit ortami {mock, sandbox, gercek, yok}; Severity {KRITIK, ORTA, DUSUK}; Durum 4 deger.
   4  Kural hucresi bos degil; bir tur etiketi varsa dortten biri ve hucrenin basinda.
-  5  Kaynak hucresi KP, OK ya da K kimligi tasir; KD ve YH kimligi tasimaz; KP kimlikleri 10'da var.
+  5  Kaynak hucresi KP, OK ya da K kimligi tasir; KD, SK ve YH kimligi tasimaz; KP kimlikleri 10'da var.
   6  Kanit turu 7.1'in tur adlarindan; KRITIK satirda en az iki farkli tur.
   7  On kosul bos degil.
   8  Kapsam: verilen KP kumesinin her biri en az bir satirin Kaynak hucresinde.
@@ -126,7 +126,7 @@ for no, c in rows:
     sev_say[sev] = sev_say.get(sev, 0) + 1
     # kaynak
     if re.search(r"\b(KD|YH)-\d+", kaynak):
-        hata(no, kimlik, "Kaynak KD/YH kimligi tasiyor (kriter yazilmaz)")
+        hata(no, kimlik, "Kaynak KD/SK/YH kimligi tasiyor (kriter yazilmaz)")
     kps = {int(x) for x in re.findall(r"KP-(\d+)(?!\d)", kaynak)}
     if not (kps or re.search(r"ÖK-\d+|K-\d+|Ö\d+|\b\d{2} §\d", kaynak)):
         hata(no, kimlik, "Kaynak KP, OK ya da K kimligi tasimiyor")

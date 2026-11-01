@@ -1,12 +1,12 @@
 # Shopfolio — Validation Protocol
 
-**Versiyon: v0.8** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.9** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 10 — Doğrulama Protokolü · **Rol:** QA / Verification Lead
 > **Bu bir test case deposu değildir.** Cevapladığı soru: **"Bu ürün bir sonraki aşamaya geçilebilecek olgunlukta mı?"**
 > **Kapsam `10_MVP_SCOPE.md` ile birebir hizalıdır.**
 
-> **Yazım durumu (K-28, K-30, K-1516; karar kaydı §24): yazım turu sürüyor (v0.8).** Yazım oturumları: Y1 ✓ (bu başlık notu), Y2 ✓ (çerçeve bölümleri §3, §5…§11; K-1517…K-1520); Y3a-1 ✓ (§4 matris biçimi ve KP-1…KP-30, KP-77 matrisi; K-1521…K-1523); Y3a-2 ✓ (§4.8…§4.10: KP-31…KP-36, KP-38…KP-57 matrisi; K-1524, K-1525); Y3a-3 ✓ (§4.11, §4.12: KP-58…KP-76 matrisi; K-1526); Y3b-1 ✓ (§4.13…§4.16: KP-37 matrisi, genişlik sınıfları, vitrinin eksik satır kuralı, seviye E; K-1527…K-1531); Y3b-2 ✓ (§4.17…§4.19: ön yüz, çatının yanıtları, hata kodları; K-1532…K-1535); Y3b-3, Y4, Y5 bekliyor (harita, konvansiyonlar ve okuma tablosu park bloklarının altındadır). Sıra: başlık notu → çerçeve bölümleri (§3, §5…§11) → matris (§4) → proje-spesifik ek (§12) → §1 ve §2 son → kalite döngüsü. Bölümlerin gövdesi şablonun yönerge ve örnek metniyle durur; her oturum kendi bölümünde yönergeyi gerçek içerikle değiştirir.
+> **Yazım durumu (K-28, K-30, K-1516; karar kaydı §24): yazım turu sürüyor (v0.9).** Yazım oturumları: Y1 ✓ (bu başlık notu), Y2 ✓ (çerçeve bölümleri §3, §5…§11; K-1517…K-1520); Y3a-1 ✓ (§4 matris biçimi ve KP-1…KP-30, KP-77 matrisi; K-1521…K-1523); Y3a-2 ✓ (§4.8…§4.10: KP-31…KP-36, KP-38…KP-57 matrisi; K-1524, K-1525); Y3a-3 ✓ (§4.11, §4.12: KP-58…KP-76 matrisi; K-1526); Y3b-1 ✓ (§4.13…§4.16: KP-37 matrisi, genişlik sınıfları, vitrinin eksik satır kuralı, seviye E; K-1527…K-1531); Y3b-2 ✓ (§4.17…§4.19: ön yüz, çatının yanıtları, hata kodları; K-1532…K-1535); Y3b-3 ✓ (§4.20: uçların doğrulanacak davranışları; matris kapandı; K-1536); Y4, Y5 bekliyor (harita, konvansiyonlar ve okuma tablosu park bloklarının altındadır). Sıra: başlık notu → çerçeve bölümleri (§3, §5…§11) → matris (§4) → proje-spesifik ek (§12) → §1 ve §2 son → kalite döngüsü. Bölümlerin gövdesi şablonun yönerge ve örnek metniyle durur; her oturum kendi bölümünde yönergeyi gerçek içerikle değiştirir.
 
 > **Aşama 1'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36.
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
@@ -119,7 +119,7 @@
 | P5.5 — kalem kayıtlarının ve geri ödemenin değişmezleri (K-1054…K-1131) | `VP12-09` | Y4 | bekliyor |
 | P5.6 — hesap tarafının silmeleri (K-1064, K-1065, K-1083) | `VP12-05` | Y4 | bekliyor |
 | P5.7 — Aşama 5 dizini | `VP0-01` | Y1 | dizin yerinde (22 atıf; Y1 doğruladı) |
-| P6.1…P6.5 — uçların doğrulanacak davranışları (K-1163…K-1203, K-1213, K-1217) | `VP4-18` (P6.1 ayrıca `VP12-05`) | Y3b-3 | bekliyor |
+| P6.1…P6.5 — uçların doğrulanacak davranışları (K-1163…K-1203, K-1213, K-1217) | `VP4-18` (P6.1 ayrıca `VP12-05`) | Y3b-3 | §4.20 yazıldı; Y5 doğrular |
 | P6.6, P6.7 — hata kodları, girdi modelleri, derin gözden geçirme (K-1196…K-1216) | `VP4-19` | Y3b-2 | §4.19 yazıldı; Y5 doğrular |
 | P7.1 — dış servislerin davranışları (K-1257…K-1291) | `VP4-15` | Y3b-1 | §4.16 yazıldı; Y5 doğrular |
 | P8.1 — ön yüzün tarayıcıda doğrulanması (K-1325, K-1354, K-1355) | `VP4-16` (+ `VP3-02`) | Y3b-2 | §4.17 yazıldı; Y5 doğrular (karar K-1533) |
@@ -157,7 +157,7 @@ Aşama 1 ve Aşama 6…9 bloklarında dizin satırı yoktur ve eklenmedi (devrin
 | Y3a-3 | KP gruplarının matrisi, ikinci yarının ikinci parçası: KP-58…KP-76 (19 KP) | `VP4-10`, `VP4-11` | +25 KB (gerçekleşen 43 KB, 131 satır) | ✓ |
 | Y3b-1 | §4 matris devamı, birinci parça: KP-37, genişlik sınıfları, vitrinin eksik satır kuralı, seviye E (K-1527…K-1531) | `VP4-12`…`VP4-15` | +35 KB (gerçekleşen 60 KB, 205 satır) | ✓ |
 | Y3b-2 | §4 matris devamı, ikinci parça: ön yüz, çatının yanıtları, hata kodları (K-1532…K-1535) | `VP4-16`, `VP4-17`, `VP4-19` | +35 KB (gerçekleşen 79 KB, 210 satır) | ✓ |
-| Y3b-3 | §4 matris devamı, üçüncü parça: uçlar | `VP4-18` | +40 KB | bekliyor |
+| Y3b-3 | §4 matris devamı, üçüncü parça: uçlar (K-1536) | `VP4-18` | +40 KB (gerçekleşen 73 KB, 179 satır) | ✓ |
 | Y4 | §12 proje-spesifik ek; F6 kabul kanıtı senaryolarının `11` T601 kabul kriteri 10'a geri yazımı | `VP12-01`…`VP12-13` | +60 KB | bekliyor |
 | Y5 | §1 kapsam, §2 prensipler; yazım turunun kapanışı (park bloklarının son durumu, kapsam hizası betiği yeniden) | `VP1-01`…`VP1-04`, `VP2-01` | +20 KB | bekliyor |
 
@@ -242,7 +242,7 @@ Tarayıcıda ön yüz, erişilebilirlik, güvenlik ve yük A–F'nin bir "neyin"
 
 ## 4. Doğrulama matrisi
 
-Her doğrulama maddesi bir satırdır. Matris iki katmanda yazılır: biçim ve KP gruplarının satırları (`VP4-01`…`VP4-11`, K-1521…K-1526) ve KP kümesi dışındaki teknik kesitler (`VP4-12`…`VP4-19`; K-1527…K-1535 ve devamı). Satır yazım kuralları §4.2'dedir; satırlar §4.3'ten itibaren kaynak grubuna göre durur ve tek bir ortak sütun düzenini paylaşır.
+Her doğrulama maddesi bir satırdır. Matris iki katmanda yazılır: biçim ve KP gruplarının satırları (`VP4-01`…`VP4-11`, K-1521…K-1526) ve KP kümesi dışındaki teknik kesitler (`VP4-12`…`VP4-19`; K-1527…K-1536). Satır yazım kuralları §4.2'dedir; satırlar §4.3'ten itibaren kaynak grubuna göre durur ve tek bir ortak sütun düzenini paylaşır.
 
 | Sütun | Açıklama |
 |---|---|
@@ -1545,7 +1545,7 @@ Kaynak: API Tasarımı `07` §2 (sayfa ve form ucunun ortak biçimi), §4 (vitri
 | VAL-A770 | A | Dışa aktarmanın izi dosya üretildikten sonra, gönderimden önce yazılır; dosya üretilemezse (500) iz yazılmaz ve sayfa seçimle yeniden gösterilir. | K-1195 (3) · 07 §9.24.2 · 02 §10.3.1 (7) · 06 §4.63 | Dosya üretimini bozan sahte; başarılı üretim | Başarıda iz satırı (tür ve aralık `Details`'te); başarısızlıkta iz yok, 500 ve işlem düzeyinde mesaj | Uç yanıtı + Veri kaydı | yok | ORTA | BEKLEMEDE |
 | VAL-A771 | A | Dışa aktarma sunucuda dosya bırakmaz: geçici dosya yedeğe girmeyen dizinde üretilir ve gönderimden sonra silinir. | K-1195 (3) · 07 §9.24.2 · 05 §6.8.4 | Başarılı ve yarıda kesilen dışa aktarma | Gönderimden sonra dizinde dosya kalmaz; yedekte yoktur | Test raporu + Runbook kaydı | yok | ORTA | BEKLEMEDE |
 | VAL-A772 | A | Dışa aktarmada tekrar gönderim ikinci dosyayı ve ikinci iz satırını üretir: her indirme izde görünür. | K-1195 (5) · 07 §9.24.2, §2.5.1 · 02 §10.7.4 | Düğmeye iki basış | İki dosya, iki iz satırı | Uç yanıtı + Veri kaydı | yok | ORTA | BEKLEMEDE |
-| VAL-A773 | A | [güvenlik] Kişisel veri ya da erişim anahtarı taşıyan oturumlu sayfalar `Cache-Control: no-store` döner; vitrinin herkese açık sayfaları önbelleğe kapanmaz. | K-1217 (1) · 05 §6.5.4 · 07 §2.5.6 | Hesap, adres defteri, sipariş sayfası (erişim anahtarlı), panel sayfaları, dışa aktarma; ana sayfa, kategori ve ürün sayfaları | İlk grupta `no-store`; ikinci grupta yok | Uç yanıtı | yok | KRİTİK | BEKLEMEDE |
+| VAL-A773 | A | [güvenlik] Kişisel veri ya da erişim anahtarı taşıyan oturumlu sayfalar `Cache-Control: no-store` döner; vitrinin herkese açık sayfaları önbelleğe kapanmaz. | K-1217 (1) · 05 §6.5.4 · 07 §2.5.6 | Hesap, adres defteri, sipariş sayfası (erişim anahtarlı), panel sayfaları, dışa aktarma; ana sayfa, kategori ve ürün sayfaları | İlk grupta `no-store`; ikinci grupta yok | Uç yanıtı + Test raporu | yok | KRİTİK | BEKLEMEDE |
 | VAL-A774 | A | Misafir e-postası doğrulanmadığı için başkasının adresine sipariş e-postası gidebilir: bu kalan risktir ve sipariş engellenmez. | K-1217 (2) · 02 §3.13.3 · 07 §4.13.6 | Başkasına ait kayıtlı olmayan bir e-postayla misafir siparişi | Sipariş oluşur; bildirim gönderim kaydı yazılır; doğrulama adımı sorulmaz | Uç yanıtı + Veri kaydı | mock | DÜŞÜK | BEKLEMEDE |
 | VAL-A775 | A | Panelde kişisel veri taşıyan listeler ve dışa aktarma yöneticiye açıktır; yönetici olmayan istek dışa aktarma yapamaz. | K-1195 · 07 §9.24.1 (UC-107), §2.3.1 | Oturumsuz ve müşteri oturumlu istek | Dosya verilmez; oturumsuz istek girişe gider, iz yazılmaz | Uç yanıtı + Veri kaydı | yok | KRİTİK | BEKLEMEDE |
 

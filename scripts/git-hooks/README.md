@@ -15,6 +15,8 @@ Bu hook'lar **iyi niyete bağlı olmayan** savunma katmanıdır. Disiplin kurall
 
 > **Sır guard'ı bilinçli olarak jeneriktir.** Domain'e veya sağlayıcıya özgü kalıp içermez — o kalıplar `hooks.config`'e yazılır, hook gövdesine değil. Aşırı hevesli bir tarayıcı yanlış pozitif üretir, yanlış pozitif bypass alışkanlığı doğurur ve guard fiilen ölür.
 >
+> **Anahtar biçimi (2026-11-01).** Soldaki parça ayrıca anahtar gibi görünmelidir: en çok iki ön sözcük (`export`, `const` …) ve tek bir tanımlayıcı. Bir cümle ya da yol (`POST /odeme/api/get-token: …`) sır anahtarı sözcüğünü taşısa da atama sayılmaz (Aşama 9'un öğrenim terfisi, Ö-171).
+>
 > **Atama biçimi (2026-10-03).** İçerik katmanı bir satırı ancak sır anahtarı ilk `=` ya da `:` işaretinin **solunda** duruyorsa atama sayar (`API_KEY=…`, `"apiKey": …`, `password: …`). Düz metinde bir etiketten sonra geçen sözcük (`Sorun: … token …`) atama değildir; ayırıcısı olmayan satır da atama değildir — `.netrc` gibi ayırıcısız biçimler yol katmanında yakalanır. **Neden:** Aşama 1'in cross-review raporlarında ikinci modelin ham çıktısındaki böyle bir cümle commit'i blokladı; geçici çözüm metni alıntı bloğuna saklamaktı ve guard'ın yorum-atlama kuralına yaslanıyordu — yukarıdaki uyarının tarif ettiği bypass alışkanlığı. Kaynak: `Docs/CHECKPOINT_REPORTS/PHASE1_LEARNING_PROMOTION.md`.
 
 ---

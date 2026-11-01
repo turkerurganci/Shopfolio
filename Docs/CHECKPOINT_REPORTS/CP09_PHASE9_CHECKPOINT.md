@@ -2,7 +2,7 @@
 
 **Tarih:** 2026-11-01 | **Aşama:** 9 — Implementation Planı | **Kapanış adımı:** K-437'nin 4. adımı (`/checkpoint`; `checklists/document-stage.md` §7)
 **Girdi sürümleri:** karar kaydı v0.281 · Implementation Planı (`11`) v0.52 · Ürün Gereksinimleri (`02`) v0.108 · Kullanıcı Akışları (`03`) v0.46 · Arayüz Tanımları (`04`) v0.50 · Teknik Mimari (`05`) v0.43 · Veri Modeli (`06`) v0.45 · API Tasarımı (`07`) v0.37 · Entegrasyon Spesifikasyonları (`08`) v0.20 · Kodlama Kılavuzu (`09`) v0.28 · MVP Kapsamı (`10`) v0.59 · `12` ve `DEPLOY_RUNBOOK` (Aşama 9 park blokları) — `origin/main` @ `7be455a`
-**Çıktı sürümleri:** karar kaydı v0.282 · `11` v0.53 · öteki dokümanlar değişmedi; KP-checkpoint-2 (§5.1) sonrası: karar kaydı v0.283 · `11` v0.54; KP-checkpoint-3 (§5.2) sonrası: karar kaydı v0.284 · `11` v0.55; KP-checkpoint-4a (§5.3) sonrası: karar kaydı v0.285 · `11` v0.56; KP-checkpoint-4b (§5.4) sonrası: karar kaydı v0.286 · `11` v0.57
+**Çıktı sürümleri:** karar kaydı v0.282 · `11` v0.53 · öteki dokümanlar değişmedi; KP-checkpoint-2 (§5.1) sonrası: karar kaydı v0.283 · `11` v0.54; KP-checkpoint-3 (§5.2) sonrası: karar kaydı v0.284 · `11` v0.55; KP-checkpoint-4a (§5.3) sonrası: karar kaydı v0.285 · `11` v0.56; KP-checkpoint-4b (§5.4) sonrası: karar kaydı v0.286 · `11` v0.57; KP-checkpoint-4c (§5.5) sonrası: karar kaydı v0.287 · `11` v0.58 · `07` v0.38
 **Girdi raporu:** [Aşama 9 — Çakışma Taraması](PHASE9_CONFLICT_SCAN.md) (K-437'nin 3. adımı) — açık kalem durumu ve altı geri işaret oradan alındı; K-1492 (5)'in devrettiği sınıf bu raporun iç tutarlılık merceğinde arandı. Audit, deep review, on bir cross-review turu, hedefli mercekler ve etki yansıtmanın hükme bağlanmış bulguları ikinci kez açılmadı; RET edilmiş iddialar yeniden getirilmedi.
 
 > **Ne işe yarar:** Aşama kapanmadan önce Implementation Planı'nın (`11`) kendi içinde ve üst dokümanlarla tutarlı olduğunu, özellikle task bloklarındaki kabul kriteri ve doğrulama kontrol listesi (KK) maddelerinin kaynak cümleyi yanlış okutmadığını doğrular; bulunan her uyumsuzluğu ya kapatır ya da adıyla sonraki adıma bırakır. Sonuç öğrenim terfisinin (5. adım) ve arşiv işaretinin (6. adım) girdisidir.
@@ -768,6 +768,93 @@ Her satır bir mercek paketidir: C paketleri task'lara, X paketleri matris kayna
 | #4006 | X03-06 | T387 <-> 05 §9.3.1 (matris 05:§9.3 -> yalnız T387) | çürük | Düşük |
 | #4007 | X03-07 | T314 <-> 05 §9.4.10 | çürük | Düşük |
 
+### 5.5 Checkpoint'in son kalanı (`KP-checkpoint-4c`) ve checkpoint'in kapanışı
+
+**Kapsam.** §5.4'te `KP-checkpoint-4c`'ye bırakılan her şey: (1) planın **V41…V44** grupları (26 Düşük bulgu); (2) dört yan gözlem (T529 k7, T516 k10, T530 k10, T387); (3) C32, X05, X07 mercek kapsam notları; (4) yükselen altı bulgunun (#705, #904, #1408, #2803, #3008, #3102) `INSTRUCTIONS §9` gereği Orta kademede yeniden doğrulaması; (5) #3705 notu: `07 §2.1.9` ↔ `08 §4.2`. Talimatlarda kapsamı daraltan ifade yoktur.
+
+**Koşum.** **14** `[dogrulama]` / `[yeniden-dogrulama]` Opus / high doğrulayıcı (sınır 20; bekçi olayı yok): V41…V44 (4), yan gözlemler (1), yeniden doğrulama (2 üçlü paket), `07/08` sorusu (1), kapsam notu mercek bulguları (6 paket). Kapsam notları için 3 + 2 küçük `[ozet]` Sonnet / low mercek koşuldu: mercek paketi yalnız önceki koşuda açılmayan kaynak bölümlerini içerdi (C32: `04`, `03`, `02` kaynakları; X05: `10` KP-74/KP-75 ve `06 §9.4.1` dışındaki kaynaklar; X07: paketin 595. satırından sonrası). İlk X05 koşusu 844 satırın 598'ini okuyabildi (T301, T118, T345, T380, T533 karşılaştırılmadı) ve ilk X07 koşusu `ÖK-2`'nin sonunu bıraktı; **ikinci tur** yalnız bu açıklar için koşuldu ve bitirdi (18 ham bulgu: C32 2, X05 10, X07 6). Her doğrulayıcıya bulgu tam metni, güncel task blokları, güncel matris satırları ve atıf edilen kaynak bölümleri dosya olarak verildi.
+
+**Hüküm.** **55 bulgu hükme bağlandı (11 doğru · 10 kısmen · 34 çürük)**; Düşük bulgu kümesinde (V41…V44): 1 doğru · 4 kısmen · 21 çürük; yan gözlemler: 2 doğru · 1 kısmen · 1 çürük (T516 k10 #3102 ile zaten karşılanmıştı); yeniden doğrulama: 5 doğru · 1 kısmen; `07/08` sorusu: çürük (aşağıda); kapsam notu bulguları: 3 doğru · 4 kısmen · 11 çürük. `11_audit_hukum_denetle.py` sorun 0.
+
+**Uygulama.** 16 bulgu / 44 şartname çifti 16 task bloğunda uygulandı (matris satırı değişmedi): 44 şartname çifti, çakışan çift yok (`11_audit_uygula.py`); blok sınırı 2 560 bayt aşılmadı (sığmayan eklemeler doğrulayıcıların anlam kaybı olmayan kısaltmalarıyla karşılandı). `11` v0.57 → v0.58; `11 §7.2` `11_geri_yon.py --yaz` ile yeniden türetildi (214 satır).
+
+**Yükselen bulgular.** Bu adımda seviyesi yükselen bulgu **yok**. #4901 (K-X07-01, T410 k6) Orta olarak gelmişti, Düşük'e indi (çürük: koşul T352 k4 ve T331'de kodlanır). Yan gözlem #4501 (T529 k7) doğrulayıcıda Orta olarak değerlendirildi (`07 UC-133`'ün bağı hiçbir kriterde yoktu) ve uygulandı; ilk seviyesi Düşük olmadığı için yeniden doğrulama gerektirmez.
+
+**Yükselen altı bulgunun yeniden doğrulaması (Orta kademe; hepsi önceki adımlarda uygulanmıştı, doğrulayıcı uygulanmış güncel metni kaynağa karşı sınadı):**
+
+- **#705 (C07-01, T208 k3/KK3 <-> `07 §2.4.3`) — kısmen:** uygulanan k3 son adımın ilk formdaki değeri taşımasını doğru yazıyordu; ancak "onaysız ilk gönderimde de yazma olmaz" ifadesi bir şey söylemiyordu (onaysız gönderim zaten bir şey yazmaz). Kaynağın istediği bu gönderimde de karşılaştırmanın yapılması ve değer tutmazsa son adımın gösterilmemesidir. k3 ve KK3 iki şartnameyle düzeltildi; blok 2 552 bayt.
+- **#904 (C07-12, T211 k2/KK2 <-> `07 §5.1.5`) — doğru:** `Items` içinde aynı kalemin birden çok satırı 422 alır, adetler toplanmaz ve hiçbir satır işlenmez; uygulanan kural eksiksiz. Blok 1 999 bayt.
+- **#1408 (C13-07, T315 KK5) — doğru:** yeni KK5, k5 ve `05 §4.1.2`, §7.3.2 ile uyumlu (yarışan geçiş kilidi bekler, koşul o anki hâle karşı denetlenir). Blok 2 548 bayt.
+- **#2803 (C31-04, T509 k6/KK6 <-> `07 UC-26`) — doğru:** `Leave` alanları doğrulamadan çereze yazar; k6 ve KK6 bunu artık taşıyor. Blok 2 558 bayt.
+- **#3008 (C32-09, T514 k6 <-> `07 UC-49`) — doğru:** k6 iki adresi (`/kayit`, `/giris`) ve bağlantı gönderilmeme dalını taşıyor; T515'in devri karşılık buluyor. Blok 2 556 bayt.
+- **#3102 (C33-02, T516 k10/KK10 <-> `07 UC-51`) — doğru:** yeniden doğrulama dalının sahibi artık T516 k10; koşul ayrıntısı kopyalanmaz (K-1445 (3)). Blok 2 554 bayt.
+
+**Üst doküman: `07 §2.1.9` ↔ `08 §4.2` (#3705'in notu).** Bir doğrulayıcı hangisinin doğru olduğunu üst dokümanlara karşı sınadı: **`08 §4.2` doğru** (08:236 "`merchant_ok_url` ve `merchant_fail_url` jeton isteğinde verilir … sabit kayıt gerektirmez"; 08:228 "istek başına verilir"; 08:899 "PayTR'de kayıtlı değildir"; K-1185; `07`'nin kendi §4.29.2'si de aynısını söyler). `07 §2.1.9` `/odeme/donus/…` yolunu "dış sistemde kayıtlı adresler" listesine yanlış sokuyordu; bu, hem `08` ile hem `07 §4.29.2` ile çelişen tek cümleydi. **Düzeltme bu PR'da:** `07 §2.1.9` listeden çıkarıldı ve "sağlayıcıda kayıtlı değildir, her jeton isteğinde verilir; panelde alan adı kaydı gerekip gerekmediği `08` DV-5" yazıldı (`07` v0.37 → v0.38, başlık, alt bilgi ve tracker §1 birebir); `DEPLOY_RUNBOOK` park satırı (şablon, sürümsüz) aynı yanlış okumayı taşıyordu ve aynı biçimde düzeltildi. `11`'e şartname gerekmedi (T601 k4 ve KK4 `08` ile aynı). `Address` tablosu bu konuyla ilgisizdir ("adres" burada URL yoludur). 11 geri beslemesi gerekmedi; 00/CLAUDE.md/SETUP.md'ye dokunulmadı.
+
+**Kapsam notları.** C32: `04`, `03`, `02` kaynak cümleleri açıldı (2 bulgu, ikisi de çürük). X05: ikinci turla 10 task'ın hepsi kaynaklarıyla karşılaştırıldı (10 bulgu: 2 doğru · 3 kısmen · 5 çürük). X07: `ÖK-1…ÖK-12`'nin hepsi karşılaştırıldı (6 bulgu: 1 doğru · 1 kısmen · 4 çürük). Açık kapsam notu kalmadı.
+
+**Checkpoint'in kapanışı.** CP09'un yapısı tamamlandı: ilk koşu (63 bulgu, K-1495), `KP-checkpoint-2` (K-1496), `KP-checkpoint-3` (K-1497), `KP-checkpoint-4a/4b` (K-1498, K-1499) ve bu adım (K-1500). **Doğrulanmayan bulgu, açık kapsam notu, yeniden doğrulaması bekleyen yükselen bulgu ve devredilmiş yan gözlem kalmadı;** `dogrulanmadi-4c.md` yazılmadı. Sıradaki adım öğrenim terfisidir (K-437'nin 5. adımı).
+
+#### Hüküm tablosu (4c; V41…V44, yan gözlemler, yeniden doğrulama, `07/08` sorusu, kapsam notu bulguları)
+
+| Hüküm no | Bulgu | Yer | Hüküm | Seviye |
+|---|---|---|---|---|
+| #4101 | X04-02 | matris 05:§10.3 <-> T504 (500 hâlleri) | çürük | Düşük |
+| #4102 | X04-03 | T314 k7 <-> 05 §9.4.10, §11.2.9 (500 sayacı belleği) | kısmen | Düşük |
+| #4103 | X04-04 | T314 k10 <-> 05 §9.4.10 (okunamayan kaynak) | çürük | Düşük |
+| #4104 | X04-05 | T385 k5 <-> 02 §9.1.6 / 05 §10.2.4 (F-1…F-4) | çürük | Düşük |
+| #4105 | X05-02 | KP-74 matris satırı <-> `10` KP-74 birinci cümle (aydınlatma bağlantısı, açık rıza) | çürük | Düşük |
+| #4201 | X06-01 | matris KD-23 <-> T510 (kriter yok) | çürük | Düşük |
+| #4202 | X06-02 | matris KD-24 <-> T316 (kriter yok) | çürük | Düşük |
+| #4203 | X06-03 | matris KD-26 <-> T349 (anlık fiyat yarısı) | çürük | Düşük |
+| #4204 | X06-04 | matris KD-41 <-> T224/T358 (T359 k7 atanmamış; video dosyası) | çürük | Düşük |
+| #4205 | X07-01 | T382 k8 <-> 10 §4.1 ÖK-8/ÖK-10; 02 §10.8.2 | kısmen | Düşük |
+| #4301 | X08-04 | T226 k4 / KK4 <-> `09 §3.5` madde 2, `05 §8.4.4`, §8.4.7 | çürük | Düşük |
+| #4302 | X08-05 | T302 k6 <-> `06 §9.3.1` InboundNotificationRecord satırı | çürük | Düşük |
+| #4303 | X08-06 | T302 k6 <-> `02 §4.2` Z-29 | çürük | Düşük |
+| #4304 | X08-07 | T381 k5 <-> `02 §11.1` P-3, P-4, P-6, P-9 | çürük | Düşük |
+| #4305 | X08-08 | T332 k6 <-> `02 §3.3.4` | çürük | Düşük |
+| #4306 | X08-09 | T333 k1 <-> `02 §3.4.1` | çürük | Düşük |
+| #4307 | X08-10 | T333 KK7 <-> k7 / `02 §3.5.1` | kısmen | Düşük |
+| #4401 | X09-01 | T230 k9/KK9 <-> 09 §18.2 madde 5 | çürük | Düşük |
+| #4402 | X09-02 | T230 KK4 <-> 09 §18.1 madde 8 / k4 | doğru | Düşük |
+| #4403 | X09-03 | T231 k4 <-> 09 §18.2 madde 7 | çürük | Düşük |
+| #4404 | X09-04 | T548 k4/KK4 <-> 09 §16.2 madde 6.3 | kısmen | Düşük |
+| #4405 | X09-05 | T548 k9 <-> 09 §16.2 madde 6.4 | çürük | Düşük |
+| #4406 | X09-08 | T230 KK6 <-> 09 §18.2 madde 7 entegrasyon cümlesi | çürük | Düşük |
+| #4407 | X09-09 | devir K-1354 (2) <-> T230 Dokümanlar | çürük | Düşük |
+| #4408 | X10-06 | T356 k3, T373 k2 <-> `02 §3.24.3`, §7.4.4 (devir:04-1948, K-493, K-494) | çürük | Düşük |
+| #4409 | X10-07 | T366 k2 <-> `02 §3.33.2` | çürük | Düşük |
+| #4501 | Y1 | T529 k7 (yan gözlem) <-> `07 UC-133` mal dönmedi kapanışı | doğru | Orta |
+| #4502 | Y2 | T516 k10 (yan gözlem) <-> `07 UC-51` yeniden doğrulama dalı | çürük | Düşük |
+| #4503 | Y3 | T530 k10 (yan gözlem) <-> `07 UC-151` işlem izi | doğru | Düşük |
+| #4504 | Y4 | T387 (yan gözlem) <-> `read-logs` borulu girdi sınaması | kısmen | Düşük |
+| #4601 | #705 | T208 k3/KK3 <-> `07 §2.4.3` (yeniden doğrulama) | kısmen | Orta |
+| #4602 | #904 | T211 k2/KK2 <-> `07 §5.1.5` (yeniden doğrulama) | doğru | Orta |
+| #4603 | #1408 | T315 KK5 <-> k5, `05 §4.1.2`, §7.3.2 (yeniden doğrulama) | doğru | Orta |
+| #4701 | #2803 | T509 k6/KK6 <-> `07 UC-26` (yeniden doğrulama) | doğru | Orta |
+| #4702 | #3008 | T514 k6 <-> `07 UC-49` (yeniden doğrulama) | doğru | Orta |
+| #4703 | #3102 | T516 k10/KK10 <-> `07 UC-51` (yeniden doğrulama) | doğru | Orta |
+| #4801 | N1 | `07 §2.1.9` <-> `08 §4.2` dönüş adresi (T601 k4; üst doküman sorusu) | çürük | Düşük |
+| #4901 | K-X07-01 | T410 k6 <-> 10 §4.1 ÖK-4 "Karşılanmazsa" | çürük | Düşük (Orta'dan düştü) |
+| #4902 | K-X07-02 | T303 k5/KK5 <-> 10 §4.1 ÖK-7 (`02 §10.2.1`) | doğru | Düşük |
+| #4903 | K-X07-04 | T382 k8 <-> 10 §4.1 ÖK-10 | çürük | Düşük |
+| #5001 | K-X07-03 | T601 k9 <-> 10 §4.1 ÖK-12 | çürük | Düşük |
+| #5002 | K-X07-05 | T09 k4 <-> 10 §4.1 ÖK-12 | çürük | Düşük |
+| #5003 | K-X07b-01 | T601 k7 <-> 10 §4.1 ÖK-2 (sonu, satır 341) | kısmen | Düşük |
+| #5101 | K-X05-01 | T302 k3 <-> 06 §9.3.1 (ContactRequest satırı) | çürük | Düşük |
+| #5102 | K-X05-02 | T302 k7 <-> 06 §9.3.1 (Image ve DigitalFile satırları) | çürük | Düşük |
+| #5103 | K-X05-05 | T327 <-> matris KP-75 / 02 §3.34.8 | çürük | Düşük |
+| #5201 | K-X05-03 | T225 k5 <-> 05 §9.2.1 / MK-65 | kısmen | Düşük |
+| #5202 | K-X05-04 | T201 k7 / KK7 <-> 06 §9.4.4 | doğru | Düşük |
+| #5203 | K-X05b-05 | matris `02 §5.9` <-> T345 k8 / T517 k10 | çürük | Düşük |
+| #5301 | K-X05b-01 | T345 k3/KK3 <-> `02 §3.15.1`, `02 §9.4`, `10` KP-29 | kısmen | Düşük |
+| #5302 | K-X05b-02 | T345 k9/KK9 <-> `02 §3.15.6`, `02 §6.5.15`, `03 §3.4.15` | çürük | Düşük |
+| #5303 | K-X05b-03 | T533 k3/KK3 <-> `07 UC-95`, `04` 9.12.6 | doğru | Düşük |
+| #5304 | K-X05b-04 | T533 k6/KK6 <-> `07 UC-95` (sonuç kodu hâli), `04` 9.12.10 | kısmen | Düşük |
+| #5401 | K-C32-01 | T514 KK1 <-> 04 5.20.10, 6.2.20.5 | çürük | Düşük |
+| #5402 | K-C32-02 | T511 k8 <-> 03 2.5.1.2, 04 5.16.4 | çürük | Düşük |
+
 ---
 
 ## 6. Öğrenim terfisine notlar — 5. adımın girdisi
@@ -780,5 +867,6 @@ Her satır bir mercek paketidir: C paketleri task'lara, X paketleri matris kayna
 | 4 | 80 KB'lık dilim bir Sonnet / low mercek için kaynak karşılaştırmasını örneklemeyle bırakıyor (dilim 4, 6, 9); kapsam açığı doğrulanmayan listeye düşüyor. Dilim ≤ 40 KB ya da dilim başına kaynak aile sınırı ölçülebilir | Bu adım; §5 madde 1–4 | `checkpoint` skill'i "Koşum" (dilim büyüklüğü) |
 | 5 | Sonnet / low merceğe 140 satırlık matris bölümü (`05` satırları) ve 140 satırlık `10` bölümü verilince de bağlam sınırında bölündü (B3a, B3c) ve kapsamı bitiremedi; tablo satırı başına kaynak cümle açma, task bloğu başına açmaktan çok daha pahalı. Matris dilimleri satır başına değil task başına kümelenmeli, ya da matris için betikle kapsama kontrolü (atıf ↔ `Dokümanlar`) yeterli sayılmalı | KP-checkpoint-2; §5.1 | `checkpoint` skill'i "Koşum" (matris dilimi) |
 | 6 | İki doğrulayıcı aynı satıra (T515, T520) farklı kısaltma şartnamesi yazdı; betik yakaladı, birini atıp elle kısaltma gerekti. Aynı task'a dokunan bulgular tek pakete verilirse çakışma doğmaz (paketleyicinin bulgu → task kümelemesi) | KP-checkpoint-2; CP08 §6 tek seferlik gözlem 1 (tekrar) | `checkpoint` skill'i "Koşum" (paketleme) |
+| 7 | Kapsam notu merceği (Sonnet / low) 844 satırlık paketi bitiremedi (X05: 598 satır) ve bir `ÖK` öğesini bıraktı; ikinci tur gerekti. Kapsam notu için paket yalnız açık kalan kaynak bölümlerine ve en çok ~12 task'a indirilir ya da mercek sonunda "hangi task'ları bitirdim" satırı zorunlu tutulur (bu adımda satır sayesinde açık görüldü) | Bu adım (4c) | Tek seferlik gözlem (raporda kalır) |
 
 **Tek seferlik gözlemler (raporda kalır):** (1) Üç mercek bulgularını taramanın sonunda yazdı; "bulduğun anda ekle" kuralına uyulmadı. (2) Bir doğrulayıcı kendi paket başlığındaki sayı farkını bildirdi (V08: "Toplam: 10 bulgu", dosyada beş; V17: "7 (1 orta, 6 düşük)", dosyada altı düşük) — paketleyicinin alıntı başlığı kaynak dosyadaki sayıyı taşıyordu, bulgu kaybı olmadı. (3) Doğrulayıcılar mercek önerisinin metnini bayt sınırı nedeniyle çoğunlukla yeniden yazdı; mercek önerileri 2 560 baytı aşıyordu (en az 14 yerde).

@@ -2,7 +2,7 @@
 
 **Tarih:** 2026-11-01 | **Aşama:** 9 — Implementation Planı | **Kapanış adımı:** K-437'nin 4. adımı (`/checkpoint`; `checklists/document-stage.md` §7)
 **Girdi sürümleri:** karar kaydı v0.281 · Implementation Planı (`11`) v0.52 · Ürün Gereksinimleri (`02`) v0.108 · Kullanıcı Akışları (`03`) v0.46 · Arayüz Tanımları (`04`) v0.50 · Teknik Mimari (`05`) v0.43 · Veri Modeli (`06`) v0.45 · API Tasarımı (`07`) v0.37 · Entegrasyon Spesifikasyonları (`08`) v0.20 · Kodlama Kılavuzu (`09`) v0.28 · MVP Kapsamı (`10`) v0.59 · `12` ve `DEPLOY_RUNBOOK` (Aşama 9 park blokları) — `origin/main` @ `7be455a`
-**Çıktı sürümleri:** karar kaydı v0.282 · `11` v0.53 · öteki dokümanlar değişmedi; KP-checkpoint-2 (§5.1) sonrası: karar kaydı v0.283 · `11` v0.54; KP-checkpoint-3 (§5.2) sonrası: karar kaydı v0.284 · `11` v0.55
+**Çıktı sürümleri:** karar kaydı v0.282 · `11` v0.53 · öteki dokümanlar değişmedi; KP-checkpoint-2 (§5.1) sonrası: karar kaydı v0.283 · `11` v0.54; KP-checkpoint-3 (§5.2) sonrası: karar kaydı v0.284 · `11` v0.55; KP-checkpoint-4a (§5.3) sonrası: karar kaydı v0.285 · `11` v0.56
 **Girdi raporu:** [Aşama 9 — Çakışma Taraması](PHASE9_CONFLICT_SCAN.md) (K-437'nin 3. adımı) — açık kalem durumu ve altı geri işaret oradan alındı; K-1492 (5)'in devrettiği sınıf bu raporun iç tutarlılık merceğinde arandı. Audit, deep review, on bir cross-review turu, hedefli mercekler ve etki yansıtmanın hükme bağlanmış bulguları ikinci kez açılmadı; RET edilmiş iddialar yeniden getirilmedi.
 
 > **Ne işe yarar:** Aşama kapanmadan önce Implementation Planı'nın (`11`) kendi içinde ve üst dokümanlarla tutarlı olduğunu, özellikle task bloklarındaki kabul kriteri ve doğrulama kontrol listesi (KK) maddelerinin kaynak cümleyi yanlış okutmadığını doğrular; bulunan her uyumsuzluğu ya kapatır ya da adıyla sonraki adıma bırakır. Sonuç öğrenim terfisinin (5. adım) ve arşiv işaretinin (6. adım) girdisidir.
@@ -455,6 +455,163 @@ Her satır bir mercek paketidir: C paketleri task'lara, X paketleri matris kayna
 | X08 | T226, T318, T330, T332, T333, T381, T302 | 10 |
 | X09 | T230, T231, T548, T03, T04, T09 | 9 |
 | X10 | T02, T03, T04, T05, T06, T07, T09, T356, T366, T373 | 9 |
+
+### 5.3 Checkpoint-3 Düşüklerinin doğrulanması (`KP-checkpoint-4a`)
+
+**Neden.** §5.2'de doğrulayıcı sınırı (20) dolduğu için 294 Düşük bulgu hüküm almadan kaldı. Proje sahibinin kuralı (KD-audit-2: doğrulamasız uygulama, örneklem ya da atlama yok) gereği hepsi doğrulanır; sınır yüzünden iş iki adıma bölündü (K-1498; `4a` bu adım, `4b` sonraki).
+
+**Plan.** 294 bulgu, aynı paketten ve aynı task'tan 5–8'li **44 gruba** bölündü (aynı task bloğuna dokunanlar aynı grupta; `kapanis/checkpoint-4/plan.md`). **4a:** ilk 20 grup (V01…V20, 134 bulgu). **4b:** kalan 24 grup (V21…V44, 160 bulgu) + dört yan gözlem + C32/X05/X07 kapsam notları.
+
+**Koşum.** 20 `[dogrulama]` Opus / high doğrulayıcı (sınır 20; beşli dalgalar; bekçi olayı yok). Her doğrulayıcıya bulgu tam metni, ilgili task blokları, matris satırları ve atıf edilen kaynak bölümleri dosya olarak verildi; talimatta kapsamı daraltan ifade yok, her bulgu tam doğrulandı. **134 bulgu hükme bağlandı: 58 doğru · 47 kısmen · 29 çürük** (çürüklerin başlıca nedenleri: kural ayrıntısının kritere kopyalanmaması — konvansiyon 5, K-1445 (3); başka task'ta zaten karşılanma; daha önce RET edilmiş iddia). `11_audit_hukum_denetle.py` sorun 0.
+
+**Uygulama.** 105 bulgu (doğru + kısmen) `11_audit_uygula.py` ile **178 şartname çiftiyle** uygulandı (62 task bloğu, 3 matris satırı; çakışma sorun 0, blok sınırı 2 560 bayt aşılmadı; sığmayan eklemeler doğrulayıcıların anlam kaybı olmayan kısaltmalarıyla karşılandı). `11` v0.55 → v0.56; `11 §7.2` `11_geri_yon.py --yaz` ile yeniden türetildi (214 satır). Üst doküman değişmedi; karar bekleyen hüküm yok; ⚠ yok.
+
+**Yükselen bulgular (Düşük → Orta; üçü de uygulandı):**
+
+- **#705 (C07-01, T208 k3/KK3 <-> `07 §2.4.3` son cümle (K-1212 (1))) — doğru:** Son adımın gizli alanı ilk formun değerini taşır (`07 §2.4.3`, K-1212 (1)); `11`'de bu kural hiçbir kriter ya da KK'de yok, güncel adetle yeniden çizen uygulama iki sekme korumasını sessizce kaldırır.
+- **#904 (C07-12, T211 k2/KK2 <-> `07 §5.1.5`) — kısmen:** `07 §5.1.5`: `Items` kalem başına tek satırdır, aynı kalemin birden çok satırı 422 verir ve adetler toplanmaz; `11`'in hiçbir yerinde yok (T512, T513, T528 aynı kurala dayanır).
+- **#1408 (C13-07, T315 KK5 <-> T315 k5 ve `05 §4.1.2`, §7.3.2) — kısmen:** `05 §7.3.2`: müşteri ve sistem geçişi sürüm değil, o anki hâle karşı denetlenir; T315 KK5 her yarışta sürüm uyarısı sınadığı için elenmiş bir mekanizmayı ister.
+
+**Kalan (`KP-checkpoint-4b`).** Yükselen üç bulgunun yeniden doğrulaması ayrı adımda yapılır (`INSTRUCTIONS §9`, K-1224); ayrıca 24 grup (V21…V44, 160 Düşük bulgu), yan gözlemler (T529 k7, T516 k10, T530 k10, T387) ve mercek kapsam notları (C32 `04`/`03`/`02` kaynakları, X05 kaynak cümleleri, X07 `10 §4.1` 595. satırdan sonrası) — `kapanis/checkpoint-4/plan.md` ve `dogrulanmadi.md`.
+
+#### Hüküm tablosu (4a; V01…V20)
+
+| Hüküm no | Bulgu | Yer | Hüküm | Seviye |
+|---|---|---|---|---|
+| #101 | C02-12 | T102 k3/KK3 <-> 09 §10.1 madde 5, §12 madde 8 | doğru | Düşük |
+| #102 | C02-13 | T102 k2 <-> 06 §2.9.1 | doğru | Düşük |
+| #103 | C02-14 | T102 k6/KK6 <-> 06 §5.1.3 | kısmen | Düşük |
+| #104 | C03-01 | T103 k3 <-> 06 §4.2 CompanySettings Kısıtlar | doğru | Düşük |
+| #105 | C03-02 | T103 KK6 <-> k6 | kısmen | Düşük |
+| #106 | C03-03 | T103 k5 <-> 06 §4.56 Kısıtlar | doğru | Düşük |
+| #107 | C03-04 | T104 k5 <-> 06 §4.9 Kısıtlar | doğru | Düşük |
+| #108 | C03-05 | T104 k7 <-> 06 §4.6, §4.69 Silme davranışı | doğru | Düşük |
+| #201 | C03-06 | T105 k2 <-> 06 §4.11 Kısıtlar | doğru | Düşük |
+| #202 | C03-07 | T105 k3 <-> 06 §4.12 Silme davranışı | doğru | Düşük |
+| #203 | C03-08 | T105 k6 <-> 06 §4.70 Kısıtlar | doğru | Düşük |
+| #204 | C03-09 | T106 KK4 <-> k4 | doğru | Düşük |
+| #205 | C03-10 | T106 k4/KK4 <-> Z-30, 06 §4.63 | kısmen | Düşük |
+| #206 | C03-11 | T106 KK3 <-> k3 | doğru | Düşük |
+| #207 | C03-12 | T106 matris <-> T106 bloğu (P-45) | kısmen | Düşük |
+| #301 | C03-13 | T107 KK3 <-> k2 | doğru | Düşük |
+| #302 | C03-14 | T107 KK4 <-> k3 | doğru | Düşük |
+| #303 | C03-15 | T107 KK6 <-> k5 | doğru | Düşük |
+| #304 | C03-16 | T108 k4 <-> 06 §4.42 Kısıtlar | doğru | Düşük |
+| #305 | C03-17 | T108 KK7 <-> k7 | doğru | Düşük |
+| #306 | C03-18 | T108 k3, k5 <-> KK | doğru | Düşük |
+| #307 | C03-19 | T108 k7 <-> 06 §2.2.6, §4.43, §4.44 | doğru | Düşük |
+| #308 | C03-20 | T108 KK2 <-> k2 | doğru | Düşük |
+| #401 | C04-01 | T109 k7 / KK7 <-> 06 §4.21 CheckboxAcceptanceOrderItem Kısıtlar | doğru | Düşük |
+| #402 | C04-03 | T109 k2, k3 <-> 06 §4.15 ve §4.16 Kısıtlar | kısmen | Düşük |
+| #403 | C04-04 | T110 KK2 <-> 06 §4.14 Kısıtlar | doğru | Düşük |
+| #404 | C04-05 | T111 k2 <-> 06 §4.26, §4.28, §4.30 Kısıtlar | doğru | Düşük |
+| #405 | C04-06 | T111 k3, k5 <-> 06 §4.22 ve §4.25 Kısıtlar | doğru | Düşük |
+| #406 | C04-09 | T112 k3, k4, k5 <-> 06 §4.33, §4.34, §4.35 Kısıtlar | kısmen | Düşük |
+| #407 | C04-11 | T115 KK5 <-> k5 | doğru | Düşük |
+| #408 | C04-12 | T116 k4 / KK4 <-> 06 §4.71 ve §4.46 Silme davranışı | çürük | Düşük |
+| #501 | C05-02 | T118 k5 <-> `06 §4.64` Kısıtlar | doğru | Düşük |
+| #502 | C05-03 | T118 k6 / KK1 <-> `06 §4.68` | çürük | Düşük |
+| #503 | C05-04 | T120 k5 <-> matris 11:5728 (§7.4, §7.6) | kısmen | Düşük |
+| #504 | C06-01 | T202 k3 <-> `05` MK-61 / §10.1.1, `09 §11.2` madde 3 | kısmen | Düşük |
+| #505 | C06-02 | T202 k7 / KK7 <-> `08 §3.1` kural 5, `02 §8.3.4` | çürük | Düşük |
+| #506 | C06-03 | T202 KK2 <-> T202 k2, `08 §3.1` kural 1 | doğru | Düşük |
+| #507 | C06-04 | T202 KK9 <-> `09 §19.1` madde 7 | kısmen | Düşük |
+| #601 | C06-05 | T203 KK1 <-> T203 k1, `08 §3.2` ilke 1 | kısmen | Düşük |
+| #602 | C06-06 | T203 k9 / KK9 <-> `08 §3.2` ilke 5, `07 §2.8.7` | çürük | Düşük |
+| #603 | C06-08 | T204 k1 <-> `09 §19.1` madde 3 ve 6 | çürük | Düşük |
+| #604 | C06-10 | T206 k9 <-> `07 §2.10.1` | doğru | Düşük |
+| #605 | C06-11 | T206 KK1 <-> T206 k1, T219 k1 | doğru | Düşük |
+| #606 | C06-12 | T206 KK4, KK5 <-> k4, k5, `07 §2.1.6`, §2.1.7 | kısmen | Düşük |
+| #701 | C06-13 | T207 k5 <-> `07 §2.3.2` | doğru | Düşük |
+| #702 | C06-14 | T207 k6 / KK6 <-> `05 §6.5.6` | kısmen | Düşük |
+| #703 | C06-15 | T207 k7 <-> `07 §2.3.3` | kısmen | Düşük |
+| #704 | C06-16 | T207 k2 / k3 <-> `07 §2.3.1` | kısmen | Düşük |
+| #705 | C07-01 | T208 k3/KK3 <-> `07 §2.4.3` son cümle (K-1212 (1)) | doğru | Orta (yükseldi) |
+| #801 | C07-02 | T209 k1 <-> `07 §2.5.1` | çürük | Düşük |
+| #802 | C07-03 | T209 k3/KK3 <-> `07 §2.5.2` | çürük | Düşük |
+| #803 | C07-04 | T209 k5/KK5 <-> `07 §2.5.4` | kısmen | Düşük |
+| #804 | C07-05 | T209 k7 <-> `05 §6.5.4` / `02 §8.3.3` | çürük | Düşük |
+| #805 | C07-06 | T210 k4/KK4 <-> `07 §2.6.5` | kısmen | Düşük |
+| #806 | C07-07 | T210 k7/KK7 <-> `07 §2.6.3` | doğru | Düşük |
+| #901 | C07-09 | T211 k1 <-> `07 §5.1.1` | kısmen | Düşük |
+| #902 | C07-10 | T211 k3, k5 <-> `07 §5.1.3` | kısmen | Düşük |
+| #903 | C07-11 | T211 k6/KK6 <-> `07 §5.1.2` | doğru | Düşük |
+| #904 | C07-12 | T211 k2/KK2 <-> `07 §5.1.5` | kısmen | Orta (yükseldi) |
+| #905 | C07-13 | T212 k2/KK2 <-> `07 §2.7.1`, §2.2.2 | çürük | Düşük |
+| #906 | C07-16 | T212 k8 <-> `07 §6.4.2` | kısmen | Düşük |
+| #907 | C07-18 | T213 k3 <-> `07 §6.1.1` | çürük | Düşük |
+| #908 | C07-21 | T214 k6 <-> `07 §6.3.1` | doğru | Düşük |
+| #1001 | C08-02 | T216 k8 <-> 07 §2.9.6 | doğru | Düşük |
+| #1002 | C08-04 | T217 k5 <-> 07 §8.1.3 | kısmen | Düşük |
+| #1003 | C08-05 | T218 k9 <-> 09 §4.1 / 09 §6 madde 3 | doğru | Düşük |
+| #1004 | C08-06 | T218 k7 <-> 09 §6 madde 2 ve 4 | doğru | Düşük |
+| #1005 | C08-07 | T218 k6 <-> 05 §3.4.3 | çürük | Düşük |
+| #1006 | C08-08 | T215 k5 <-> 07 §2.8.4 | doğru | Düşük |
+| #1101 | C09-01 | T221 k2 / KK2 <-> 05 §5.4.1 | kısmen | Düşük |
+| #1102 | C09-02 | T224 k9 <-> 02 §12.2.5 | kısmen | Düşük |
+| #1103 | C09-03 | T224 Dokümanlar (KD-15) <-> 10 KD-15 | çürük | Düşük |
+| #1104 | C09-04 | T223 KK3 <-> 05 §6.6.1 | kısmen | Düşük |
+| #1105 | C09-05 | T220 k2 / k5 <-> 05 §4.3.2, §5.1.4 | çürük | Düşük |
+| #1201 | C10-02 | T225 matris satırı <-> T225 k6 | doğru | Düşük |
+| #1202 | C10-04 | T225 k2 <-> `05 §9.1.5`, `09 §18.2` madde 1 | kısmen | Düşük |
+| #1203 | C10-06 | T226 k2 <-> `09 §3.5` tablo ve madde 2, `05 §8.4.2` | kısmen | Düşük |
+| #1204 | C10-07 | T226 k5 <-> `05 §8.4.6` | doğru | Düşük |
+| #1205 | C10-08 | T227 k4 <-> `05 §7.2.3` | çürük | Düşük |
+| #1206 | C10-09 | T227 k3 <-> `05 §7.2.2`, `09 §7.1` madde 3 | çürük | Düşük |
+| #1207 | C10-11 | T228 k5/k6 <-> `05 §7.3.1`, §7.3.3 | kısmen | Düşük |
+| #1208 | C10-12 | T228 k7/k8 <-> `05 §7.3.5` | doğru | Düşük |
+| #1301 | C10-14 | T230 k4 <-> `09 §18.1` madde 4, `05 §9.1.6` | çürük | Düşük |
+| #1302 | C10-15 | T230 KK6/KK8 <-> T231 k7, T213 KK8 | kısmen | Düşük |
+| #1303 | C10-16 | T231 k4 <-> `09 §18.2` madde 7 ve madde 2b | doğru | Düşük |
+| #1304 | C10-17 | T231 k5/KK7 <-> `09 §18.2` madde 2c | doğru | Düşük |
+| #1305 | C10-18 | T225/T230/T231 <-> `09 §18.2` madde 7 Entegrasyon | kısmen | Düşük |
+| #1401 | C11-01 | T302 k6 <-> `06 §9.3.1` InboundNotificationRecord satırı | kısmen | Düşük |
+| #1402 | C11-02 | T232 k1/KK1 <-> `09 §15.5` Test paragrafı | doğru | Düşük |
+| #1403 | C12-02 | T305 k9/KK9 <-> `08 §2.2.5` madde 8 (ve `02 §9.1.4`) | çürük | Düşük |
+| #1404 | C12-03 | T311 k5 <-> `07 UC-80` Yanıt (başarı) | doğru | Düşük |
+| #1405 | C13-04 | T318 KK6 <-> `03 §1.4.3`, `03 §1.2` S11 | doğru | Düşük |
+| #1406 | C13-05 | T317 KK4 <-> T317 k4 ve `03 §1.3` Ö2 | doğru | Düşük |
+| #1407 | C13-06 | T315 k2 <-> `05 §4.1.1`, `05 §3.4.4` | doğru | Düşük |
+| #1408 | C13-07 | T315 KK5 <-> T315 k5 ve `05 §4.1.2`, §7.3.2 | kısmen | Orta (yükseldi) |
+| #1501 | C14-02 | T320 k2 <-> `03 §1.7.1` "Hatta sayılışı" sütunu | kısmen | Düşük |
+| #1502 | C14-03 | T321 k3, k4 <-> `02 §5.1`, `03 §1.8.1` | doğru | Düşük |
+| #1503 | C14-04 | T327 k6/KK6 <-> `02` Z-38, `03 §4.2.8` | kısmen | Düşük |
+| #1504 | C14-05 | T327 k3/KK3 <-> `03 §4.2.11`, `02 §4.3`, `05` MK-44 | kısmen | Düşük |
+| #1505 | C14-06 | T327 matris ataması <-> `02 §3.34.8`, `02 §12.3.3`, `10` KP-75 | çürük | Düşük |
+| #1506 | C14-07 | T328 k6/KK6 <-> `03 §7` "Adres" maddesi, `02 §9.3.1` | kısmen | Düşük |
+| #1507 | C14-08 | T328 matris ataması <-> `02 §9.1.2` | çürük | Düşük |
+| #1601 | C15-01 | T331 KK3 <-> `02 §3.1.5` (veri toplayan girişlerin ayrı kapısı) | kısmen | Düşük |
+| #1602 | C15-02 | T339 k9/KK9 <-> `02 §3.11.7`, `10` KD-61 | çürük | Düşük |
+| #1603 | C15-03 | T340 k6 <-> `02 §3.12.6` | doğru | Düşük |
+| #1604 | C15-04 | T340 KK8 <-> k8 / `02 §3.12.8` | çürük | Düşük |
+| #1605 | C16-01 | T342 KK9 <-> `02 §3.13.17` | kısmen | Düşük |
+| #1606 | C16-02 | T342 KK1 <-> T342 k1 / `02 §3.13.9` | çürük | Düşük |
+| #1607 | C16-03 | T343 k8 / başlık <-> `02 §3.13.14`, §5.12.2 (matris: §5.12.2 T342, T343) | kısmen | Düşük |
+| #1701 | C17-01 | T344 k9 / KK9 <-> 02 §3.14.6 (son cümle, K-561) | doğru | Düşük |
+| #1702 | C17-02 | T345 KK6 <-> 02 §3.15.4 | kısmen | Düşük |
+| #1703 | C17-03 | T348 KK2 (ikinci yarı) <-> T348 k2 ve 02 §3.17.2 / T347 k7 | kısmen | Düşük |
+| #1704 | C17-04 | T348 k2 <-> 02 §3.17.2 (ikinci yarı), §6.1.3 | çürük | Düşük |
+| #1705 | C17-05 | T348 k5 / KK5 <-> 02 §3.17.5, §5.6.3, §6.1.2, Z-7 | kısmen | Düşük |
+| #1801 | C18-01 | T349 k7 <-> 02 §3.19.4 | doğru | Düşük |
+| #1802 | C19-01 | T355 k4 <-> 02 §3.24.6, §12.1.7 | çürük | Düşük |
+| #1803 | C19-02 | T355 k4 <-> 02 §3.23.3 | doğru | Düşük |
+| #1804 | C19-03 | T355 KK4 <-> T355 k4, 02 §3.23.3 | doğru | Düşük |
+| #1805 | C19-04 | T355 k3 <-> 02 §3.19.6 (matris: T349, T355) | çürük | Düşük |
+| #1806 | C19-05 | T355 k2 <-> 02 §3.23.1 | kısmen | Düşük |
+| #1807 | C19-06 | T353 KK6 <-> T353 k6, 02 §3.21.7 | çürük | Düşük |
+| #1901 | C19-07 | T354 k1 <-> 02 §3.22.1 | doğru | Düşük |
+| #1902 | C19-08 | T354 KK4 <-> T354 k4, 02 §3.22.5 | kısmen | Düşük |
+| #1903 | C20-01 | T357 k2 <-> `02` §3.25.1 | doğru | Düşük |
+| #1904 | C20-02 | T357 k1 <-> `02` §3.25.1 (son cümle) | çürük | Düşük |
+| #1905 | C20-03 | T356 Dokümanlar satırı <-> koşullu matris satırı (11:7626) ve k8 | çürük | Düşük |
+| #2001 | C22-01 | T364 KK5 <-> 02 §3.31.2 | doğru | Düşük |
+| #2002 | C22-02 | T365 KK9 / k9 <-> 02 §3.32.8 | kısmen | Düşük |
+| #2003 | C22-03 | T365 k7 <-> 02 §3.32.6 / KD-50 | doğru | Düşük |
+| #2004 | C22-04 | T365 KK2 <-> 02 §3.32.2 | doğru | Düşük |
+| #2005 | C23-02 | T373 k10 <-> `02 §10.4.9`, §7.4.1 | kısmen | Düşük |
+| #2006 | C23-03 | T373 k8 <-> `02 §7.4.9` | çürük | Düşük |
+| #2007 | C23-04 | T370 k6 <-> `02 §7.2.8`, §7.4.5 | kısmen | Düşük |
+| #2008 | C23-05 | T370 k4 / T373 k6 <-> `02 §8.4.2`, T372 k7 | kısmen | Düşük |
 
 ---
 

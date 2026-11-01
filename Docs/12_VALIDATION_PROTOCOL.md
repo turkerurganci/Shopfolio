@@ -1,12 +1,12 @@
 # Shopfolio — Validation Protocol
 
-**Versiyon: v0.14** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.15** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 10 — Doğrulama Protokolü · **Rol:** QA / Verification Lead
 > **Bu bir test case deposu değildir.** Cevapladığı soru: **"Bu ürün bir sonraki aşamaya geçilebilecek olgunlukta mı?"**
 > **Kapsam `10_MVP_SCOPE.md` ile birebir hizalıdır.**
 
-> **Yazım durumu (K-28, K-30, K-1516; karar kaydı §24): yazım turu sürüyor (v0.14).** Yazım oturumları: Y1 ✓ (bu başlık notu), Y2 ✓ (çerçeve bölümleri §3, §5…§11; K-1517…K-1520); Y3a-1 ✓ (§4 matris biçimi ve KP-1…KP-30, KP-77 matrisi; K-1521…K-1523); Y3a-2 ✓ (§4.8…§4.10: KP-31…KP-36, KP-38…KP-57 matrisi; K-1524, K-1525); Y3a-3 ✓ (§4.11, §4.12: KP-58…KP-76 matrisi; K-1526); Y3b-1 ✓ (§4.13…§4.16: KP-37 matrisi, genişlik sınıfları, vitrinin eksik satır kuralı, seviye E; K-1527…K-1531); Y3b-2 ✓ (§4.17…§4.19: ön yüz, çatının yanıtları, hata kodları; K-1532…K-1535); Y3b-3 ✓ (§4.20: uçların doğrulanacak davranışları; matris kapandı; K-1536); Y4-1 ✓ (§12.1…§12.4: F6 kabul kanıtı zinciri, A seviyesi erişilebilirlik ölçütleri, durum geçiş matrisi, kritik hesaplamalar; T601 kabul kriteri 10 geri yazıldı; K-1537…K-1539); Y4-2a ✓ (§12.5…§12.7: sahiplik ve silmeler, eşzamanlılık ve kesinti, denetim izi ve saklama; K-1540, K-1541); Y4-2b ✓ (§12.8, §12.9: belge, onay, yasal kimlik ve çerez; kısmi adet, iade ve ayıp; K-1542); Y4-3a ✓ (§12.10, §12.11: indirme hakkı, e-posta bağlantıları ve çerezler; uyarılar ve hata hâlleri; K-1543, K-1544); Y4-3b ✓ (§12.12, §12.13: tasarım değerleri ve yük; panelin yasal uyarıları; §12 ve Y4 kapandı; K-1545…K-1547); Y5 bekliyor (harita, konvansiyonlar ve okuma tablosu park bloklarının altındadır). Sıra: başlık notu → çerçeve bölümleri (§3, §5…§11) → matris (§4) → proje-spesifik ek (§12) → §1 ve §2 son → kalite döngüsü. Bölümlerin gövdesi şablonun yönerge ve örnek metniyle durur; her oturum kendi bölümünde yönergeyi gerçek içerikle değiştirir.
+> **Yazım durumu (K-28, K-30, K-1516; karar kaydı §24): yazım turu kapandı (v0.15); sıradaki kalite döngüsünün audit adımıdır.** Yazım oturumları: Y1 ✓ (bu başlık notu), Y2 ✓ (çerçeve bölümleri §3, §5…§11; K-1517…K-1520); Y3a-1 ✓ (§4 matris biçimi ve KP-1…KP-30, KP-77 matrisi; K-1521…K-1523); Y3a-2 ✓ (§4.8…§4.10: KP-31…KP-36, KP-38…KP-57 matrisi; K-1524, K-1525); Y3a-3 ✓ (§4.11, §4.12: KP-58…KP-76 matrisi; K-1526); Y3b-1 ✓ (§4.13…§4.16: KP-37 matrisi, genişlik sınıfları, vitrinin eksik satır kuralı, seviye E; K-1527…K-1531); Y3b-2 ✓ (§4.17…§4.19: ön yüz, çatının yanıtları, hata kodları; K-1532…K-1535); Y3b-3 ✓ (§4.20: uçların doğrulanacak davranışları; matris kapandı; K-1536); Y4-1 ✓ (§12.1…§12.4: F6 kabul kanıtı zinciri, A seviyesi erişilebilirlik ölçütleri, durum geçiş matrisi, kritik hesaplamalar; T601 kabul kriteri 10 geri yazıldı; K-1537…K-1539); Y4-2a ✓ (§12.5…§12.7: sahiplik ve silmeler, eşzamanlılık ve kesinti, denetim izi ve saklama; K-1540, K-1541); Y4-2b ✓ (§12.8, §12.9: belge, onay, yasal kimlik ve çerez; kısmi adet, iade ve ayıp; K-1542); Y4-3a ✓ (§12.10, §12.11: indirme hakkı, e-posta bağlantıları ve çerezler; uyarılar ve hata hâlleri; K-1543, K-1544); Y4-3b ✓ (§12.12, §12.13: tasarım değerleri ve yük; panelin yasal uyarıları; §12 ve Y4 kapandı; K-1545…K-1547); Y5 ✓ (§1, §2; park bloklarının son durumu, kapsam hizası, atıf denetimi; K-1548); harita, konvansiyonlar ve okuma tablosu park bloklarının altındadır). Sıra: başlık notu → çerçeve bölümleri (§3, §5…§11) → matris (§4) → proje-spesifik ek (§12) → §1 ve §2 son → kalite döngüsü. Bütün bölümler gerçek içerikle yazılıdır; şablonun yönerge ve örnek metni kalmamıştır.
 
 > **Aşama 1'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36.
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
@@ -90,45 +90,45 @@
 
 | Park maddesi | Konu | Oturum | Durum |
 |---|---|---|---|
-| P1.1 — aktörler (K-06, K-97) | `VP1-01` | Y5 | bekliyor |
-| P1.2 — MVP başarı çıtası (K-22, K-415, K-417, K-418) | `VP1-02` | Y5 | bekliyor |
-| P1.3 — kabul kanıtı (K-23) | `VP12-01` | Y4-1 | §12.1 yazıldı; Y5 doğrular |
-| P1.4 — kapsam cümleleri (K-24) | `VP1-01`, `VP4-01` | Y5 · Y3a-1 | §4.2 yazıldı; Y5 doğrular |
-| P1.5 — iki ana sayfa düzeni (K-27) | `VP4-02` | Y3a-1 | §4.3 yazıldı; Y5 doğrular |
+| P1.1 — aktörler (K-06, K-97) | `VP1-01` | Y5 | §1.2 yazıldı; karşılandı (Y5 doğruladı) |
+| P1.2 — MVP başarı çıtası (K-22, K-415, K-417, K-418) | `VP1-02` | Y5 | §1.4 yazıldı; karşılandı (Y5 doğruladı) |
+| P1.3 — kabul kanıtı (K-23) | `VP12-01` | Y4-1 | §12.1 yazıldı; karşılandı (Y5 doğruladı) |
+| P1.4 — kapsam cümleleri (K-24) | `VP1-01`, `VP4-01` | Y5 · Y3a-1 | §1.2 ve §4.2 yazıldı; karşılandı (Y5 doğruladı) |
+| P1.5 — iki ana sayfa düzeni (K-27) | `VP4-02` | Y3a-1 | §4.3 yazıldı; karşılandı (Y5 doğruladı) |
 | P2.1 — Aşama 2 dizini | `VP0-01` | Y1 | dizin yerinde (58 atıf; Y1 doğruladı) |
-| P3.1 — genişlik sınıfları (K-740, K-741) | `VP4-13` | Y3b-1 | §4.14 yazıldı; Y5 doğrular (karar K-1513) |
-| P3.2 — yasal kimlik bloğu ve ETBİS bandı (K-747) | `VP12-08` | Y4-2b | §12.8 yazıldı; Y5 doğrular |
-| P3.3 — onay bölümü (K-756, K-831, K-833) | `VP12-08` | Y4-2b | §12.8 yazıldı; Y5 doğrular |
-| P3.4 — kısmi adet senaryoları (K-787…K-796) | `VP12-09` (kuruş yuvarlaması: `VP12-04`) | Y4-1, Y4-2b | kuruş yuvarlaması §12.4'te (Y4-1), kısmi adet senaryoları §12.9'da yazıldı; Y5 doğrular |
-| P3.5 — panelin yasal uyarıları (K-798) | `VP12-13` | Y4-3b | §12.13 yazıldı; Y5 doğrular |
-| P3.6 — ayıpta sözleşmeden dönme (K-808) | `VP12-09` | Y4-2b | §12.9 yazıldı; Y5 doğrular |
-| P3.7 — dışa aktarmanın izi (K-823) | `VP12-07` | Y4-2a | §12.7 yazıldı; Y5 doğrular |
-| P3.8 — ilk kurulumda çerez (K-834, K-850) | `VP12-08` | Y4-2b | §12.8 yazıldı; Y5 doğrular |
+| P3.1 — genişlik sınıfları (K-740, K-741) | `VP4-13` | Y3b-1 | §4.14 yazıldı; karşılandı (Y5 doğruladı) (karar K-1513) |
+| P3.2 — yasal kimlik bloğu ve ETBİS bandı (K-747) | `VP12-08` | Y4-2b | §12.8 yazıldı; karşılandı (Y5 doğruladı) |
+| P3.3 — onay bölümü (K-756, K-831, K-833) | `VP12-08` | Y4-2b | §12.8 yazıldı; karşılandı (Y5 doğruladı) |
+| P3.4 — kısmi adet senaryoları (K-787…K-796) | `VP12-09` (kuruş yuvarlaması: `VP12-04`) | Y4-1, Y4-2b | kuruş yuvarlaması §12.4'te (Y4-1), kısmi adet senaryoları §12.9'da yazıldı; karşılandı (Y5 doğruladı) |
+| P3.5 — panelin yasal uyarıları (K-798) | `VP12-13` | Y4-3b | §12.13 yazıldı; karşılandı (Y5 doğruladı) |
+| P3.6 — ayıpta sözleşmeden dönme (K-808) | `VP12-09` | Y4-2b | §12.9 yazıldı; karşılandı (Y5 doğruladı) |
+| P3.7 — dışa aktarmanın izi (K-823) | `VP12-07` | Y4-2a | §12.7 yazıldı; karşılandı (Y5 doğruladı) |
+| P3.8 — ilk kurulumda çerez (K-834, K-850) | `VP12-08` | Y4-2b | §12.8 yazıldı; karşılandı (Y5 doğruladı) |
 | P3.9 — Aşama 3 dizini | `VP0-01` | Y1 | dizin yerinde (18 atıf; Y1 doğruladı) |
-| P4.1 — indirme hakkının düştüğü an (K-884, K-980) | `VP12-10` | Y4-3a | §12.10 yazıldı; Y5 doğrular |
-| P4.2 — eşzamanlılık, tek işlenme, kesinti (K-890…K-980) | `VP12-06` | Y4-2a | §12.6 yazıldı; Y5 doğrular |
-| P4.3 — bağlantılar ve çerezler (K-904…K-1161) | `VP12-10` | Y4-3a | §12.10 yazıldı; Y5 doğrular |
-| P4.4 — uyarılar ve hata hâlleri (K-913…K-975) | `VP12-11` | Y4-3a | §12.11 yazıldı; Y5 doğrular |
-| P4.5 — tasarım değerleri, yük (K-928) | `VP12-12` (+ `VP3-02`) | Y4-3b | §12.12 yazıldı; Y5 doğrular |
-| P4.6 — on yıllık saklama (K-951, K-1092) | `VP12-07` | Y4-2a | §12.7 yazıldı; Y5 doğrular |
+| P4.1 — indirme hakkının düştüğü an (K-884, K-980) | `VP12-10` | Y4-3a | §12.10 yazıldı; karşılandı (Y5 doğruladı) |
+| P4.2 — eşzamanlılık, tek işlenme, kesinti (K-890…K-980) | `VP12-06` | Y4-2a | §12.6 yazıldı; karşılandı (Y5 doğruladı) |
+| P4.3 — bağlantılar ve çerezler (K-904…K-1161) | `VP12-10` | Y4-3a | §12.10 yazıldı; karşılandı (Y5 doğruladı) |
+| P4.4 — uyarılar ve hata hâlleri (K-913…K-975) | `VP12-11` | Y4-3a | §12.11 yazıldı; karşılandı (Y5 doğruladı) |
+| P4.5 — tasarım değerleri, yük (K-928) | `VP12-12` (+ `VP3-02`) | Y4-3b | §12.12 yazıldı; karşılandı (Y5 doğruladı) |
+| P4.6 — on yıllık saklama (K-951, K-1092) | `VP12-07` | Y4-2a | §12.7 yazıldı; karşılandı (Y5 doğruladı) |
 | P4.7 — Aşama 4 dizini | `VP0-01` | Y1 | dizin yerinde (20 atıf; Y1 doğruladı) |
-| P5.1 — sayaçların değişmezi (K-1015…K-1091) | `VP12-04` (+ `VP12-06`) | Y4-1 | §12.4 yazıldı; Y5 doğrular |
-| P5.2 — birim fiyat (K-1018…K-1020) | `VP12-04` | Y4-1 | §12.4 yazıldı; Y5 doğrular |
-| P5.3 — tarih aralığı sınırları (K-1023, K-1041) | `VP12-04` | Y4-1 | §12.4 yazıldı; Y5 doğrular |
-| P5.4 — belge kopyası ve onay anı (K-1027) | `VP12-08`, `VP12-07` | Y4-2a (imha yüzü), Y4-2b | imha yüzü §12.7'de, onay anı ve gösterim §12.8'de yazıldı; Y5 doğrular |
-| P5.5 — kalem kayıtlarının ve geri ödemenin değişmezleri (K-1054…K-1131) | `VP12-09` | Y4-2b | §12.9 yazıldı; Y5 doğrular |
-| P5.6 — hesap tarafının silmeleri (K-1064, K-1065, K-1083) | `VP12-05` | Y4-2a | §12.5 yazıldı; Y5 doğrular |
+| P5.1 — sayaçların değişmezi (K-1015…K-1091) | `VP12-04` (+ `VP12-06`) | Y4-1 | §12.4 yazıldı; karşılandı (Y5 doğruladı) |
+| P5.2 — birim fiyat (K-1018…K-1020) | `VP12-04` | Y4-1 | §12.4 yazıldı; karşılandı (Y5 doğruladı) |
+| P5.3 — tarih aralığı sınırları (K-1023, K-1041) | `VP12-04` | Y4-1 | §12.4 yazıldı; karşılandı (Y5 doğruladı) |
+| P5.4 — belge kopyası ve onay anı (K-1027) | `VP12-08`, `VP12-07` | Y4-2a (imha yüzü), Y4-2b | imha yüzü §12.7'de, onay anı ve gösterim §12.8'de yazıldı; karşılandı (Y5 doğruladı) |
+| P5.5 — kalem kayıtlarının ve geri ödemenin değişmezleri (K-1054…K-1131) | `VP12-09` | Y4-2b | §12.9 yazıldı; karşılandı (Y5 doğruladı) |
+| P5.6 — hesap tarafının silmeleri (K-1064, K-1065, K-1083) | `VP12-05` | Y4-2a | §12.5 yazıldı; karşılandı (Y5 doğruladı) |
 | P5.7 — Aşama 5 dizini | `VP0-01` | Y1 | dizin yerinde (22 atıf; Y1 doğruladı) |
-| P6.1…P6.5 — uçların doğrulanacak davranışları (K-1163…K-1203, K-1213, K-1217) | `VP4-18` (P6.1 ayrıca `VP12-05`) | Y3b-3, Y4-2a | §4.20 ve §12.5 yazıldı; Y5 doğrular |
-| P6.6, P6.7 — hata kodları, girdi modelleri, derin gözden geçirme (K-1196…K-1216) | `VP4-19` | Y3b-2 | §4.19 yazıldı; Y5 doğrular |
-| P7.1 — dış servislerin davranışları (K-1257…K-1291) | `VP4-15` | Y3b-1 | §4.16 yazıldı; Y5 doğrular |
-| P8.1 — ön yüzün tarayıcıda doğrulanması (K-1325, K-1354, K-1355) | `VP4-16` (+ `VP3-02`) | Y3b-2 | §4.17 yazıldı; Y5 doğrular (karar K-1533) |
-| P8.2 — çatının kendi yanıtları (K-1334) | `VP4-17` | Y3b-2 | §4.18 yazıldı; Y5 doğrular |
-| P9.1 — vitrinin eksik satır kuralı (K-755, K-841) | `VP4-14` | Y3b-1 | §4.15 yazıldı; Y5 doğrular |
-| P9.2 — erişilebilirlik taraması (K-625, K-1411) | `VP12-02` (+ `VP3-02`) | Y4-1 | §12.2 yazıldı; Y5 doğrular |
-| P9.3 — F6 kabul kanıtının senaryolara bağlanışı (K-23, K-1453) | `VP12-01` | Y4-1 | §12.1 yazıldı; Y5 doğrular |
+| P6.1…P6.5 — uçların doğrulanacak davranışları (K-1163…K-1203, K-1213, K-1217) | `VP4-18` (P6.1 ayrıca `VP12-05`) | Y3b-3, Y4-2a | §4.20 ve §12.5 yazıldı; karşılandı (Y5 doğruladı) |
+| P6.6, P6.7 — hata kodları, girdi modelleri, derin gözden geçirme (K-1196…K-1216) | `VP4-19` | Y3b-2 | §4.19 yazıldı; karşılandı (Y5 doğruladı) |
+| P7.1 — dış servislerin davranışları (K-1257…K-1291) | `VP4-15` | Y3b-1 | §4.16 yazıldı; karşılandı (Y5 doğruladı) |
+| P8.1 — ön yüzün tarayıcıda doğrulanması (K-1325, K-1354, K-1355) | `VP4-16` (+ `VP3-02`) | Y3b-2 | §4.17 yazıldı; karşılandı (Y5 doğruladı) (karar K-1533) |
+| P8.2 — çatının kendi yanıtları (K-1334) | `VP4-17` | Y3b-2 | §4.18 yazıldı; karşılandı (Y5 doğruladı) |
+| P9.1 — vitrinin eksik satır kuralı (K-755, K-841) | `VP4-14` | Y3b-1 | §4.15 yazıldı; karşılandı (Y5 doğruladı) |
+| P9.2 — erişilebilirlik taraması (K-625, K-1411) | `VP12-02` (+ `VP3-02`) | Y4-1 | §12.2 yazıldı; karşılandı (Y5 doğruladı) |
+| P9.3 — F6 kabul kanıtının senaryolara bağlanışı (K-23, K-1453) | `VP12-01` | Y4-1 | §12.1 yazıldı; karşılandı (Y5 doğruladı) |
 
-Aşama 1 ve Aşama 6…9 bloklarında dizin satırı yoktur ve eklenmedi (devrin evi karar satırıdır). Dizin satırlarında Y1'de değişiklik gerekmedi: dizin ile etki sütunu açılışta karşılaştırıldı (karar kaydı §24.1 fark C, K-1508); Y1 dört dizinin gösterdiği raporların (`CHECKPOINT_REPORTS/PHASE2…5_CONFLICT_SCAN.md` §6) varlığını sınadı ve satırların yalnız işaret ettiğini, devri ikinci kez kaydetmediğini doğruladı.
+**Y5 kapanışı (K-1548):** her satır gövdede sınandı ve tablodaki bütün park maddeleri karşılandı; açık madde yoktur. Dört dizin satırı (Aşama 2…5) yerinde kalır. Aşama 1 ve Aşama 6…9 bloklarında dizin satırı yoktur ve eklenmedi (devrin evi karar satırıdır). Dizin satırlarında Y1'de değişiklik gerekmedi: dizin ile etki sütunu açılışta karşılaştırıldı (karar kaydı §24.1 fark C, K-1508); Y1 dört dizinin gösterdiği raporların (`CHECKPOINT_REPORTS/PHASE2…5_CONFLICT_SCAN.md` §6) varlığını sınadı ve satırların yalnız işaret ettiğini, devri ikinci kez kaydetmediğini doğruladı.
 
 **Yazım konvansiyonları (K-1516; checklist §4).** (1) **Sıra:** başlık notu (Y1) → çerçeve bölümleri §3, §5…§11 (Y2) → §4 matris (Y3a-1, Y3a-2, Y3a-3, Y3b-1, Y3b-2, Y3b-3) → §12 proje-spesifik ek (Y4-1, Y4-2a, Y4-2b, Y4-3a, Y4-3b) → §1, §2 son (Y5; sayımlar matris bitince kesinleşir) → özet ↔ ayrıntı taraması → kalite döngüsü. (2) **Dil:** bu doküman Türkçe; kod, sembol ve dosya adları İngilizce. (3) **Kimlikler:** konu `VPn-mm` (karar kaydı §24.2); matris satırı `VAL-<seviye><NNN>` (örnek `VAL-A001`) — seviye kimlikte okunur ve "Seviye" sütunuyla çelişemez (K-1511 (2)); kaynak birimi `10` KP, KD, ÖK, SK, YH kimliği ya da K / bölüm numarasıdır. Severity (KRİTİK / ORTA / DÜŞÜK) ile `00 §D.10`'un S1 / S2 / S3 hata sınıfı iki ayrı eksendir (K-1511 (3)). (4) **Atıf biçimi:** `02 §3.8.3`, `10 KP-37`, `09 §16.1` — önsüz `§` bu dokümanın bölümüdür; başka doküman her zaman numarasıyla anılır. (5) **Tüketici ilkesi:** bu doküman `02`–`11`'i tüketir, onlara geriye etki yaratmaz; kaynakla çelişen bir kural çıkarsa kaynak kazanır ve fark bu dokümana hizalama olarak yazılır. (6) **Kural ayrıntısı evinde kalır:** satır kuralı kopyalamaz, kimlikle işaret eder (kapsam cümleleri hariç: `10 §2` ve `§3` cümleleri çevrilmeden devralınır, K-24). (7) **Kapsam hizası:** MVP'de olmayan özellik kriter olamaz, MVP'de olan çıkarılamaz; KD ve YH satırlarına kriter yazılmaz. (8) **Tür etiketi (K-1512 (2)):** matris satırının `Kural` hücresi gerektiğinde köşeli etiketle başlar — `[tarayıcı]`, `[erişilebilirlik]`, `[güvenlik]`, `[yük]`; yeni seviye ya da sütun açılmaz. (9) **Açık kararlar bölümü yoktur:** açık kalem karar kaydının §4'ündedir, sonraki dokümana talimat o dokümanın park bloğundadır (PF-158). (10) **Betik:** matris kimlik tekilliği, seviye–kimlik uyumu ve KP kapsaması `scripts/doc-scans/12_matris_denetle.py` ile denetlenir (ilk matris oturumu yazar, sonrakiler koşar); kapsam hizası `12_kapsam_hizasi.py` ile yazımdan önce sınandı, kapanışta yeniden koşulur.
 
@@ -163,30 +163,112 @@ Aşama 1 ve Aşama 6…9 bloklarında dizin satırı yoktur ve eklenmedi (devrin
 | Y4-2b | §12 devamı, ikinci parça: §12.8 belge, onay, yasal kimlik ve çerez; §12.9 kısmi adet, iade ve ayıp (K-1541, K-1542) | `VP12-08`, `VP12-09` | +15 KB (gerçekleşen 56 KB, 95 satır) | ✓ |
 | Y4-3a | §12 devamı, üçüncü parça: §12.10 indirme hakkı, e-posta bağlantıları ve çerezler; §12.11 uyarılar ve hata hâlleri (K-1543, K-1544) | `VP12-10`, `VP12-11` | +10 KB (gerçekleşen 41 KB, 68 satır) | ✓ |
 | Y4-3b | §12 devamı, dördüncü parça: §12.12 tasarım değerleri ve yük; §12.13 panelin yasal uyarıları | `VP12-12`, `VP12-13` | +5 KB (gerçekleşen 30 KB, 34 satır) | ✓ |
-| Y5 | §1 kapsam, §2 prensipler; yazım turunun kapanışı (park bloklarının son durumu, kapsam hizası betiği yeniden) | `VP1-01`…`VP1-04`, `VP2-01` | +20 KB | bekliyor |
+| Y5 | §1 kapsam, §2 prensipler; yazım turunun kapanışı (park bloklarının son durumu, kapsam hizası betiği yeniden) | `VP1-01`…`VP1-04`, `VP2-01` | +20 KB (gerçekleşen 15 KB) | ✓ |
 
-Tahminin üstüne çıkıldı: Y4-3b sonunda doküman yaklaşık 726 KB'tır; Y5 yaklaşık 20 KB ekler.
+Tahminin üstüne çıkıldı: Y4-3b sonunda doküman yaklaşık 726 KB idi; Y5 yaklaşık 15 KB ekledi (gerçekleşen toplam 741 KB, 1.471 matris satırı). Harita değişmedi; bölünen oturum yoktur.
 
 ---
 
 ## 1. Amaç ve kapsam
 
+Kararlar K-1548'dedir (`VP1-01`…`VP1-04`). Bu bölüm kapsamı **yeniden yazmaz**: kapsamın evi `10`'dur (`10 §2`…`§5`) ve bu doküman onun tüketicisidir; burada yalnız hangi kapsam biriminin matrisin hangi bölümünde sınandığı, hangisinin hiç sınanmadığı ve çıtanın hangi satırlarla kapandığı yazılır. Sayımlar matris bittikten sonra betikle alınmıştır (`python -I scripts/doc-scans/12_matris_denetle.py . --kapsam 1-77`; `12_kapsam_hizasi.py`).
+
 ### 1.1 Amaç
+
+Bu doküman bir test case deposu değildir. Cevapladığı soru, başlıktaki gibi, **"Bu ürün bir sonraki aşamaya geçilebilecek olgunlukta mı?"**dır; üç ölçekte sorulur: bir task bitince (task doğrulaması, §3.2 Katman 1), bir faz bitince (faz gate'i, §6.2) ve MVP için (final çıkış ve kabul kanıtı, §6.3, §12.1). Amacı üç iştir:
+
+1. **Kapsamı sınanabilir kılmak.** `10 §2`'nin 77 kapsam cümlesinin her biri en az bir doğrulama satırına bağlanır; satırlar `VAL-<seviye><NNN>` kimliğiyle §4 ve §12'dedir (toplam 1.471 satır; sayım §1.2'de). Beklenen sonuç **önceden** yazılıdır (§2 P1).
+2. **Kapıların ölçüsünü vermek.** Hangi satırın hangi kapıda okunduğu (§3.2), hangi kanıtın yeterli olduğu (§7), bulgunun nasıl sınıflandığı ve nasıl kapandığı (§8) ve yeniden doğrulamanın kapsamı (§11) bu dokümandadır; doğrulayıcıya task'ın satırlarından başka bir şey verilmez (§9).
+3. **MVP başarı çıtasının kanıtını toplamak.** Çıta `01 §6`'nın ürün düzeyi kriterleridir; bu dokümanın işi onları satırlara ve kabul kanıtına bağlamaktır (§1.4).
+
+**Bu doküman kural koymaz.** İş kuralı `02`'de, akış `03`'te, ekran `04`'te, mimari `05`–`08`'de, kod kuralı `09`'dadır; matris satırı kuralı kimliğiyle ve `Kaynak` hücresiyle işaret eder, kopyalamaz (§4.2 madde 3). Kaynak ile bu doküman çelişirse **kaynak kazanır**; satır düzeltilir.
+
 ### 1.2 Kapsam dahili
 
-| Alan | Kapsam |
+**Kapsam `10` ile birebir hizalıdır** (K-24). `10 §2`'nin 77 kapsam cümlesi (KP-1…KP-77; boşluk yok) çeviri yapılmadan doğrulama kaynağı olur: bir KP satırının doğrulanabilir her kural parçası ayrı bir matris satırıdır, parçanın olumsuz yüzü — olmaması gereken davranış — kendi satırıdır (§4.2 madde 1). Hiza iki yönlüdür ve betikle sınanır (§2 P7): `12` MVP'de olmayan hiçbir şeyi kriter yapmaz; `10`'daki hiçbir KP satırı `12`'den düşmez (12 KP grubunun hepsi bir konuya bağlıdır; konuya bağlanmayan KP 0).
+
+**Aktörler.** Doğrulama senaryoları dört aktör üzerinden kurulur (K-06, K-97; `02 §1.3`): ziyaretçi · misafir alıcı · üye müşteri · firma yöneticisi. **Müşteri**, misafir alıcıyla üye müşterinin ortak adıdır (bir aktör değildir); iki aktörün yolu ayrıldığı yerde — sipariş numarası ve e-postayla takip, girişte misafir siparişlerinin hesaba düşmesi, hesabın silinmesi — satır aktörü adıyla yazar. Platform operatörü uygulama içi aktör değildir ve satırı yoktur (`02 §1.3`; K-06).
+
+| Aktör | Doğrulandığı başlıca bölümler |
 |---|---|
+| Ziyaretçi | §4.3 (vitrin ve katalog), §4.8 (kurumsal içerik ve site, vitrin tarafı), §4.12 (site geneli), §4.14 (genişlik sınıfları), §4.17 (ön yüz) |
+| Misafir alıcı | §4.4 (sepet, ödeme ve sipariş), §4.5 (sipariş takibi), §4.6 (iptal, cayma, iade, ayıp), §4.7 (misafir siparişlerinin hesaba düşmesi), §12.8, §12.9 |
+| Üye müşteri | §4.7 (üyelik ve hesap), §4.4…§4.6 (üyelikle gelen süreklilik: adres defteri, sipariş geçmişi), §12.5 (hesap silmeleri) |
+| Firma yöneticisi | §4.8 (panel tarafı: KP-54…KP-57), §4.9 (katalog yönetimi), §4.10 (sipariş yürütümü), §4.11 (mağaza ayarları ve yönetim), §4.20 (panel uçları), §12.13 (panelin yasal uyarıları) |
+
+**Kapsamın matristeki karşılığı.** Tablo `10 §2`'nin KP kümelerini §4'ün alt bölümlerine bağlar; kümelerin ağırlığı satır sayısından okunur. Tablonun altındaki iki küme KP kümesinin dışındadır: teknik kesitler ve proje-spesifik ek.
+
+| Matris bölümü | KP kümesi (`10 §2` grubu) | KP | Satır |
+|---|---|---|---|
+| §4.3 | KP-1…KP-7 (vitrin ve katalog) | 7 | 30 |
+| §4.4 | KP-8…KP-17 (sepet, ödeme ve sipariş) | 10 | 54 |
+| §4.5 | KP-18…KP-20 (sipariş takibi ve teslim) | 3 | 18 |
+| §4.6 | KP-21…KP-24 (iptal, cayma, iade ve ayıp talebi) | 4 | 47 |
+| §4.7 | KP-25…KP-30 ve KP-77 (üyelik ve hesap) | 7 | 37 |
+| §4.8 | KP-31…KP-36, KP-38, KP-54…KP-57 (kurumsal içerik, marka ve site; vitrin ve panel tarafı) | 11 | 58 |
+| §4.9 | KP-39…KP-45 (katalog yönetimi) | 7 | 47 |
+| §4.10 | KP-46…KP-53 (sipariş yürütümü) | 8 | 112 |
+| §4.11 | KP-58…KP-65 (mağaza ayarları ve yönetim) | 8 | 57 |
+| §4.12 | KP-66…KP-76 (bildirimler; site geneli, güvenlik ve yasal uyum) | 11 | 74 |
+| §4.13 | KP-37 (arama motoru verileri; doğrulamayı `03 §0.1.4` üzerinden bu dokümana bırakır) | 1 | 38 |
+| **KP kümesi, toplam** | KP-1…KP-77 | **77** | **572** |
+| §4.14…§4.20 | Teknik kesitler: genişlik sınıfları (KP-69 ile), vitrinin eksik satır kuralı, seviye E (dış servis sözleşmeleri), ön yüz, çatının yanıtları, hata kodları ve girdi modelleri, uçlar | — | 556 |
+| §12.1…§12.13 | Proje-spesifik ek: kabul kanıtı, erişilebilirlik taraması, durum geçişleri, hesaplamalar, silmeler, eşzamanlılık, denetim izi, belge ve onay, kısmi adet, indirme hakkı, uyarılar, yük, yasal uyarılar | — | 343 |
+| **Matris, toplam** | | | **1.471** |
+
+**Matrisin kesin sayımı** (betik çıktısı; satırın kimliği tekildir, kimlikteki harf `Seviye` sütunuyla çelişmez):
+
+| Eksen | Dağılım |
+|---|---|
+| Seviye | A 975 · B 161 · C 114 · D 119 · E 88 · F 14 |
+| Severity | KRİTİK 601 · ORTA 738 · DÜŞÜK 132 |
+| Tür etiketi (§3.3) | `[tarayıcı]` 180 · `[güvenlik]` 38 · `[erişilebilirlik]` 27 · `[yük]` 2 |
+| Kanıt ortamı | `yok` 1.221 · `mock` 189 · `gerçek` 37 · `sandbox` 24 |
+| Durum | `BEKLEMEDE` 1.471 — doğrulama Implementation döneminde başlar; hiçbir satır bu dokümanın yazımında PASS almış değildir |
+
+Sayım her matris değişikliğinden sonra aynı betikle yeniden alınır; bu tablodaki sayıların güncel hâli betiğin çıktısıdır, tablo bir kayıt değil son sayımdır.
 
 ### 1.3 Kapsam dışı
 
+**Kapsam dışına kriter yazılmaz.** `10 §3`, §4.2 ve §5'in kalemleri doğrulama kriteri olamaz (§2 P7); matristeki hiçbir satır KD ya da YH kimliği taşımaz ve bu `12_matris_denetle.py`'nin her koşuda sınadığı bir yasaktır. Tabloda kalemin neden kriter olmadığı ve olumsuz yüzünün nerede durduğu yazılıdır.
+
 | Alan | Neden |
 |---|---|
+| **Kapsam dışı kalemler** — `10 §3`, KD-1…KD-64 (yol haritası adayları ve yol haritasında olmayanlar) | MVP'de yoktur; yoklukları bilinçli bir karardır, ertelenmiş iş değildir (`10 §3`). Olmayan özelliğin "yoktur" demesi bir doğrulama değildir: KP cümlesinin kendi olumsuz parçası — ör. stok adedinin gösterilmemesi, faturanın sistem dışı olması — **KP satırıdır** ve KP kimliğiyle yazılır (§4.2 madde 1). Kalemin kendisi hiçbir satırın kaynağı olmaz |
+| **Yol haritası** — `10 §5`, YH-1…YH-23 | MVP sonrasıdır; sırası ve kapsamı karar bekler. Bir aday karara bağlanıp `10 §2`'ye KP olarak girdiği anda kapsam hizası betiği (`12_kapsam_hizasi.py`) `12`'de eksik KP'yi gösterir ve satır o zaman yazılır; o ana kadar `12`'de karşılığı yoktur |
+| **Kapsam sınırları ve kabuller** — `10 §4.2`, SK-1…SK-10 | Sınırdır, kriter değildir. SK-3'ün elle adım sayıları KP-51'in satırlarındadır (`VAL-B023`…`VAL-B026`); fatura ürünün dışındadır (SK-4; `VAL-A265`). SK-5'in hacim kabulleri **tabandır**, sistem hiçbirini uygulamaz: yük satırları (`VAL-F013`, `VAL-F014`) tasarım değerini referans ölçüde ölçer, sipariş hacmini değil (§12.12; K-417, K-928). Kalıcı sınırlar (SK-8…SK-10; `01 §7`) olumsuz cümlelerini KP satırlarında bulur |
+| **Başarı ölçüsü olmayanlar** | Sipariş hacmi başarı kriteri değildir (K-417); çalışma süresi taahhüdü yoktur (K-406). `01 §6`'nın mağaza düzeyi ölçüleri (M-1…M-4) kabul kapısı değildir ve senaryoya çevrilmez (K-418, K-635); ölçüm tanımının bir iş kuralı olarak sayım davranışı (ör. kısmi adet iptalinin M-4'e sayılması, `VAL-A887`) bir KP-dışı kaynağın satırıdır, ölçünün değeri sınanmaz |
+
+### 1.4 MVP başarı çıtası ve kabul kapısı
+
+**Çıta** (K-22; `10 §1`): firma siteyi kendi kendine ayaklar, içeriğini ve kataloğunu yönetir, gelen siparişleri panelden uçtan uca işletir ve düzenli sipariş alır. Çıtanın **sınanan karşılığı** `01 §6`'nın dört ürün düzeyi kriteridir — Ü-1…Ü-4 — ve kabul kapısı bunlardır (K-415, K-418); sipariş hacmi kriter değildir (K-417). Her Ü kriteri ayrı bir "Ü satırı" açmaz: aynı kural iki satırda yazılmaz (K-1512), kriter mevcut satırlara bağlanır ve §6.3'ün "MVP başarı çıtası karşılanmış" kapısı bu satırların PASS'idir.
+
+| Kriter | Sınanışı | Satırlar | Kanıt ortamı |
+|---|---|---|---|
+| **Ü-1 Kurulabilirlik** — `10 §4.1`'in ÖK-1…ÖK-11 kontrol listesi tamamlanır ve ilk sipariş koda dokunulmadan alınır | Kurulum ön koşulları referans kurulumda (ÖK-12) karşılanır (§1.5); sipariş zinciri o kurulumda, gerçek yapılandırmada yürür | `VAL-F001`, `VAL-F002` ve zincir (§12.1); satış kapısının koşulları: `VAL-A136`…`VAL-A145` (KP-38) | `gerçek` |
+| **Ü-2 Kendi kendine yetme** — firma sekiz işi geliştirici olmadan, yalnız panel arayüzüyle yapar | Her iş KP satırlarının panel ekranında koşan satırlarıdır: ürün ekleyip yayına alma (KP-39, KP-40; §4.9) · kurumsal içerik (KP-54; §4.8) · firma kimliği (KP-58; §4.11) · marka (KP-56; §4.8) · sipariş adımları (KP-51; §4.10) · iptal ve iade (KP-47; §4.10, §4.6) · yasal metin (KP-61; §4.11) · yönetici daveti (KP-62; §4.11). İşin kod, veritabanı ya da kurulum ayarı gerektirmeden bitmesi satırın kanıtının yalnız panel ekranı olmasıdır | §4.8, §4.9, §4.10, §4.11 | `yok` |
+| **Ü-3 Manuel adım bütçesi** — hat başına en çok üç sistem içi zorunlu elle adım | Hat başına ayrı satır ve bir karışık sipariş satırı: kart + fiziksel 2 · havale + fiziksel 3 · hizmet 1 · dijital 0 · karışık siparişte toplam; faturanın sistem dışı oluşu ayrı satır; kısmi adet ve ardışık beyanlar bütçeyi bozmaz | `VAL-B023`…`VAL-B026`, `VAL-A265`, `VAL-A904` | `yok` |
+| **Ü-4 Bitti çizgisi** — canlı ortamda gerçek kartla küçük tutarlı sipariş, 3D Secure, panelden uçtan uca işletme, iade | Kabul kanıtı: referans kurulum, canlı ortam, gerçek para; kanıt geliştiriciye bağlıdır (K-23) | `VAL-F001`…`VAL-F012` (§12.1) | `gerçek` |
+
+**Kabul kapısı yalnız ürün düzeyidir.** Mağaza düzeyi ölçüler (`01 §6` M-1…M-4) ilk gerçek kurulumun ilk üç ayında toplanır ve post-MVP sıralamasını besler; haftalarca işletme ister, referans kurulumdaki tek gerçek siparişle ölçülemez (K-418). Bu yüzden kabul kapısı olamazlar ve doğrulamayı kilitlemezler.
+
+### 1.5 Dış ön koşullar ve satış kapısı
+
+`10 §4.1`'in kurulum kontrol listesi bir kısıt değildir: her kurulumda yeniden karşılanır (K-476). Üç gruptur; hangisinin nerede sınandığı aşağıdadır. Kurulum ayarları (alan adı, e-posta gönderim kimliği, ödeme anahtarları, Google kimlik bilgileri) kurulumda girilir ve panelden değişmez; kurulumun adımları `DEPLOY_RUNBOOK`'tadır (K-284, K-427) ve bu doküman onları tekrarlamaz.
+
+| Grup | Ön koşullar | Nasıl sınanır |
+|---|---|---|
+| **Dış ön koşullar — panelin dışında** | ÖK-1 alan adı · ÖK-2 barındırma ve yedek · ÖK-3 e-posta gönderim yapılandırması · ÖK-4 ödeme sağlayıcı sözleşmesi ve anahtarları · ÖK-5 ETBİS kaydı · ÖK-6 Google uygulaması · ÖK-7 ilk yönetici hesabı | Kurulum işidir ve kurulumu yapanındır; ürünün bir davranışı değildir. Ön koşulun **eksik olduğunda ürünün ne yaptığı** satırdır: ÖK-6 tanımsızken Google düğmesi görünmez (`VAL-A091`, `VAL-E080`), ÖK-4 ve ÖK-3 dış servis sözleşmesi olarak seviye E'dedir (§4.16). Kurulumun kendisinin kanıtı `DEPLOY_RUNBOOK` kaydıdır ve referans kurulumun açılış provası `VAL-F001`'in ön koşuludur |
+| **Satış kapısının koşulları — panelde** | ÖK-8 firma kimliği · ÖK-9 en az bir açık ödeme yöntemi · ÖK-10 aydınlatma metni ve çerez politikası · ÖK-11 iade adresi | Ürünün davranışıdır ve KP-38'in satırlarıdır (`VAL-A136`…`VAL-A145`): koşul eksikse satış kapalı kalır, kurumsal taraf yayınlanabilir. Koşulların panelde girilişi KP-58, KP-59 ve KP-61'in satırlarındadır (§4.11); ETBİS doğrulama bandı ve alanı satış kapısını tutmaz (ÖK-5) |
+| **Yalnız MVP kabulü için** | ÖK-12 referans kurulum | Geliştirici kendi tüzel kişiliği adına ÖK-1…ÖK-11'in tamamını karşılar; kurulum aynı zamanda demo sitesidir. Kabul kanıtının kendisi §12.1'dedir (K-23); kurulum yoksa MVP kabul edilemez (`01 §6` Ü-1, Ü-2, Ü-4) |
+
+*Kaynak: K-24 (kapsam cümleleri çevrilmeden devralınır) · K-06, K-97 (dört aktör) · K-22, K-415, K-417, K-418 (çıta, kabul kapısı, hacim) · K-635 (mağaza düzeyi ölçüler) · K-23 (kabul kanıtı) · K-476 (kurulum kontrol listesinin biçimi) · K-1509 (`12`'nin kapsamının `10` ile hizası; envanter 77 KP · 64 KD · 12 ÖK · 10 SK · 23 YH) · K-1512 (aynı kural iki satırda olmaz) · K-1516 (yazım konvansiyonları); `10 §1`…`§5`; `01 §6`; `02 §1.3`.*
 
 ---
 
 ## 2. Doğrulama prensipleri
 
-> Bu bölüm **dolu başlar** — evrensel prensiplerdir, projeye göre değişmez.
+Prensipler evrenseldir ve projeye göre değişmez; bu projede yalnız P5 (yönetici yardımcı düzeni) ve P7 (hizanın sınanışı) uygulamasını yazar (`VP2-01`; K-1548).
 
 | # | Prensip | Anlamı |
 |---|---|---|
@@ -194,9 +276,9 @@ Tahminin üstüne çıkıldı: Y4-3b sonunda doküman yaklaşık 726 KB'tır; Y5
 | **P2** | Kanıt zorunluluğu | Kanıtsız PASS geçersizdir. Her sonuç en az bir kanıt türüyle desteklenir (§7). |
 | **P3** | Çok katmanlı kanıt | Kritik akışlarda tek bir arayüz gözlemi yetmez; durum, veri, log ve olay düzeyinde tutarlılık aranır. |
 | **P4** | Failure ve geri alma dahil | Yalnız happy path doğrulanmaz. "Başarısız olduğunda güvenli duruma dönüyor mu?" da kanıtlanır. |
-| **P5** | Yapan ≠ denetleyen | Kodu yazan ajan kendi çıktısını doğrulayamaz. Doğrulama **ayrı context**te yapılır. |
+| **P5** | Yapan ≠ denetleyen | Kodu yazan ajan kendi çıktısını doğrulayamaz. Doğrulama **ayrı context**te yapılır. **Yönetici yardımcı düzeninde de değişmez** (K-1505, K-1506): doğrulamayı yardımcının açtığı izole doğrulayıcı yapar (`general-purpose`, fork değil; Opus + `high`), yapım işçisi doğrulamayı başlatmaz, yardımcı doğrulayıcı olamaz ve PASS / FAIL veremez; merge'ün tek kapısı doğrulayıcının PASS'idir (veto korunur). Kimin ne yaptığı §9, §10'dadır; kural `INSTRUCTIONS §3.1`, §3.3 ve `00 §D.9` madde 4'tedir. |
 | **P6** | Tekrar edilebilirlik | Manuel doğrulama geçici olarak kabul edilir; otomatize edilebilenler zamanla otomatize edilir. |
-| **P7** | Kapsam hizalaması | MVP'de olmayan özellik kriter olamaz; MVP'de olan çıkarılamaz. |
+| **P7** | Kapsam hizalaması | MVP'de olmayan özellik kriter olamaz; MVP'de olan çıkarılamaz. **Hiza iki yönlü ve betikle sınanır** (K-1509): `12_kapsam_hizasi.py` `10`'un envanterini (KP, KD, ÖK, SK, YH) çıkarır, her KP'nin bir konuya bağlı olduğunu ve `12`'de kriter satırı taşıyan KD, SK ya da YH olmadığını gösterir; `12_matris_denetle.py --kapsam 1-77` her KP'nin en az bir `VAL` satırında geçtiğini, kimliklerin tekil olduğunu ve hiçbir satırın KD ya da YH kimliği taşımadığını sınar (olan çıkarılamaz / olmayan eklenemez). İkisi her matris değişikliğinden sonra ve yazım turunun kapanışında koşar; hata 0 olmadan kapanmaz. Kapsamı değiştiren karar önce `10`'a girer, bu doküman onu izler (§1). |
 | **P8** | Tıkanma yasağı | FAIL'de net düzeltme akışı vardır (§8). Kritik olmayan açık bulgular **kayıtlı** risk olarak kabul edilebilir. |
 
 ---

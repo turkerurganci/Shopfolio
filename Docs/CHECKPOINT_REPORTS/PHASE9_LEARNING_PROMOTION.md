@@ -6,6 +6,8 @@
 
 > **Ne işe yarar:** `00 §K` gereği aşama, öğrenimi yazılmadan kapanmaz. Bu rapor Aşama 9 boyunca kayda, raporlara, yönetici yardımcının gözlemlerine ve hafızaya düşen her öğrenim adayının sonucunu yazar. On iki aday L3–L5'e terfi etti ve bu PR'da uygulandı. Aşama 9'un maliyet ölçümü ve yönetici yardımcı düzeninin eski düzenle karşılaştırması §3'te; checklist'in skill'e dönüşmesi §4'te; proje sahibinin cevabını bekleyen tek soru §5'te — ayrı numaralı, sade dille, K numarasız. Toplu onay (K-1472) açık olduğu için öğrenim sorularından `00`, `CLAUDE.md` ve `SETUP.md` dışında kalanlar önerimle cevaplandı (§5.1, "toplu onayla kaydedildi"); yalnız `00 §N.1` önerisi (Soru 1) uygulanmadı (GUARDRAILS §2).
 
+> **Sonuç (2026-11-01, K-1503):** tek soru (`00 §N.1`'e Aşama 9'un dersleri) proje sahibine, uyarılı üç kararla (K-1474, K-1476, K-1483) aynı mesajda gösterildi; cevap "Hepsi ok" — seçenek 1, yazılsın (§5.3). Metin `00 §N.1`'e aynen yazıldı, `00` v1.0.11; PF-151 `Uygulandı`. Bu raporun başlığındaki "`00` ... değişmedi" ifadesi öğrenim terfisi adımı için doğruydu; `00`, arşiv işareti adımında (K-437'nin 6. adımı) değişti. Uyarı eşitlemesi (§8) arşiv işaretinde 9 / 9 oldu (K-1494 eklendi); yedi işaret betikle dönüştürüldü.
+
 ---
 
 ## 1. Sonuç
@@ -17,7 +19,7 @@
 | **Raporda kalır** — tek seferlik gözlem, bilgi ya da proje dışı öneri | 11 | Ö-174 … Ö-184 |
 | **Hafızada kalır** | 1 | Ö-185 |
 | **Yeniden değerlendirildi, sorulmaz** | 1 | Ö-23 (checklist beceriye dönüşsün mü; K-1399 gereği artık sorulmaz) |
-| **Proje sahibine sorulur** | 1 soru | `00 §N.1`'e Aşama 9'un dersleri (Soru 1) |
+| **Proje sahibine soruldu — cevap: yazılsın** (2026-11-01, K-1503) | 1 soru | `00 §N.1`'e Aşama 9'un dersleri (Soru 1) |
 | **Toplu onayla kaydedilen kararlar** | 3 | Karar A, B, C (§5.1) |
 | **Önceden terfi etmişti ya da dokümanda yaşar** — süreç kararları | 7 grup | S-1…S-7 (§2.4) |
 | **Hafızadaki yeni notlar** | 3 not | H-1…H-3 (§2.5) |
@@ -181,13 +183,15 @@ Toplu onay Aşama 9'un sonuna kadar açık (`INSTRUCTIONS §2` mod 1); öğrenim
 - **P-2 — hook sözcük yasakları yalnız komuta bakmalı, talimat metnine değil.** "Hedefli" ve "merge" sözcükleri bir görev talimatında kuralın adı olarak geçince çağrıyı engelliyor; çözüm yeniden ifade. Öneri: bu iki sözcük yalnız komut satırında (`gh pr merge`) engellensin.
 - **P-3 — merge denetimi çıktısı kısalsın.** Her merge'in çıktısı yardımcının bağlamına yaklaşık 4 bin belirteç ekliyor; yardımcı 2 bu yüzden 338 bine ulaştı. Öneri: çıktı yalnız UYARI varsa uzun, yoksa tek satır.
 
-### 5.3 Proje sahibinin cevabını bekleyen soru
+### 5.3 Proje sahibinin sorusu ve cevabı
 
 #### Soru 1 — Yöntem dosyasına Aşama 9'un dersleri (`00 §N.1`)
 
 > **Sorun:** Yöntem dosyası her aşamanın tekrarlanan derslerini kısa bir paragrafla tutuyor; Aşama 9 için henüz yok. **Ne değişir:** Evet derseniz aşağıdaki dört ders yöntem dosyasına yazılır (sonraki projelerin aynı hataya düşmemesi için); hayır derseniz dersler yalnız bu raporda ve çalışma kurallarımızda kalır. Dört ders: (1) çok uzun bir aşamada yöneticilik işini temiz bağlamlı bir yardımcıya vermek ana oturumu doldurmadan yürüttü ve yöneticinin payını yarıya indirdi; (2) kontrol yapan ajanlara verilen iş parçası küçük tutulunca (yaklaşık 60 KB) bitti, büyük olunca kapsam açık kaldı ve ek adımlar gerekti — her ajan hangi parçaları bitirdiğini de yazmalı; (3) "sonuna kadar git" izni kapsamı küçültme ya da sonraya bırakma izni değildir ve bir sayı sınırı, adımın toplamı olarak yazılmazsa parti başına okunur; (4) bir ajanın önerdiği düzeltme sabit bir biçimde istenmezse yeniden biçimlendirmek için ek ajan gerekir, ve elle kısaltılan metin düzeltmeyle karşılaştırılmazsa bir ek sessizce düşebilir.
 > **1 ·** dört ders yöntem dosyasına yazılsın (öneri) · **2 ·** yazılmasın
 > Kaynak: Ö-161, Ö-162, Ö-164, Ö-165, Ö-166, Ö-167, Ö-168, Ö-160 · `00 §N.1` · PF-151
+
+**Cevap (2026-11-01, proje sahibi; arşiv işaretinde uyarılı kararların listesiyle aynı mesajda, "Hepsi ok"):** seçenek 1, yazılsın. Aşağıdaki "Uygulanacak metin" `00 §N.1`'e, Aşama 8 paragrafının altına aynen yazıldı; `00` v1.0.11 (Son güncelleme 2026-11-01, dipnot v1.0.11); PF-151 `Uygulandı` (K-1503).
 
 **Uygulanacak metin (1 ise).** `00 §N.1`'e, Aşama 8 paragrafının altına: *"**Aşama 9 — Implementation Planı (2026-11-01).** Kurallar `.claude/INSTRUCTIONS.md` §2, §9, `.claude/skills/audit/SKILL.md`, `.claude/skills/checkpoint/SKILL.md`, `.claude/checklists/document-stage.md` §3 ve rapor `Docs/CHECKPOINT_REPORTS/PHASE9_LEARNING_PROMOTION.md`. Tekrarlanacak desenler: 1. **Uzun bir aşamada yöneticilik temiz bağlamlı bir yardımcıya verilir.** Aşama 9'da (214 task, yaklaşık 750 KB plan, otuz saat) sekiz yardımcı ardışık çalıştı; en yüksek bağlam 338 bin (sınır 400 bin), yönetici işi toplam belirtecin yüzde 9,3'üne indi (Aşama 8'de yüzde 18), sorunsuzluk yüksekti (sekiz yardımcıdan bir düşme, kayıpsız toparlandı). 2. **Kontrol ajanının dilimi küçük ve bitiş satırı zorunludur.** 80 KB'lık dilimler, 140 satırlık matris bölümleri ve 598 satırlık kapsam notu paketi Sonnet / `low` merceğin bağlamına sığmadı ve checkpoint beş ek adım istedi; yaklaşık 60 KB ve 8–12 task'lık paketler bitti. Her mercek hangi dilimleri bitirdiğini yazar; kapsam açığı başka bir kapıya devredilmez. 3. **Toplu onay kapsamı daraltma izni değildir; sayı sınırı adımın toplamıdır.** Bir işçi kalan kapsam açıklarını 'başka kapıda kapanır' diye bıraktı (yönetici geri aldı); bir işçi 20 doğrulayıcı sınırını parti başına okudu ve 61 doğrulayıcı koştu. 4. **Düzeltme hükmü sabit biçimde istenir ve elle kısaltma şartnameyle karşılaştırılır.** Serbest yazılan hükümler için beş ek ajan gerekti; bayt sınırı için elle kısaltmada doğrulanmış bir kabul kriterinin eki düştü (T370 KK7 'IBAN silinir')."* `00` sürümü +1 (v1.0.11). PF-151 `Uygulandı` olur.
 
@@ -224,7 +228,7 @@ Liste 146 satırdan **152**'ye çıktı. Var olan satırlar tekrar açılmadı.
 | **PF-148** (yeni) | Kontrol merceğinin dilimi ~60 KB ve 8–12 task; matris dilimi task başına; mercek bitiş satırı; kapsam açığı devredilmez (Ö-164, Ö-165) | `skills/checkpoint` |
 | **PF-149** (yeni) | Doğrulayıcı hükmü sabit biçimde; aynı yere dokunan bulgular tek pakette; elle kısaltmadan sonra karşılaştırma (Ö-166, Ö-167, Ö-168) | `skills/audit` |
 | **PF-150** (yeni) | Geri işaret `--tum` geçişi; `11` yazan betik LF; pre-commit anahtar biçimi (Ö-169, Ö-170, Ö-171) | `scripts/doc-scans/` · `scripts/git-hooks/` · checklist §3 |
-| **PF-151** (yeni) | Soru 1: `00 §N.1`'e Aşama 9'un dersleri | `00 §N.1` — `Onay bekliyor` |
+| **PF-151** (yeni) | Soru 1: `00 §N.1`'e Aşama 9'un dersleri | `00 §N.1` — `Uygulandı` (2026-11-01, K-1503) |
 | **PF-152** (yeni) | Hook ve talimat şablonu: işçi talimatına sabit yasak satırı, sözcük yasaklarının yalnız komuta bakması, merge denetimi çıktısının kısalması (P-1, P-2, P-3) | `~/.claude/hooks/` · `agent-rules.json` (proje dışı) — `Öneri` |
 
 ---
@@ -232,5 +236,5 @@ Liste 146 satırdan **152**'ye çıktı. Var olan satırlar tekrar açılmadı.
 ## 8. Kayda ve hafızaya yansıma
 
 - **Karar kaydı v0.288:** K-1501 (öğrenim terfisi — otuz yedi kalemin dökümü, on iki terfi, bir soru, üç toplu onay kararı) ve K-1502 (Aşama 9'un belirteç ölçümü ve yardımcı düzeninin karşılaştırması); §22.1'e öğrenim terfisi maddesi (yardımcı düzeninin ölçümü kapandı; "Aşama kapanışının adımları" güncellendi); tracker başlığı v0.288.
-- **`.claude/memory/MEMORY.md` Güncel Durum:** Aşama 9 öğrenim terfisi tamam; sırada arşiv işareti (adım 6).
+- **`.claude/memory/MEMORY.md` Güncel Durum:** Aşama 9 öğrenim terfisi tamam; sırada arşiv işareti (adım 6) — **yapıldı (2026-11-01, K-1503)**.
 - **⚠ eşitlemesi:** konu hücresi ⚠ taşıyan Aşama 9 satırı 8 (K-1411, K-1413, K-1432, K-1458, K-1463, K-1474, K-1476, K-1483); `onerilen-uyarili.md` girişi 8; **8 / 8, eksik 0, fazla 0.** K-1501 ve K-1502'nin konu hücreleri ⚠ taşımaz. ⚠ listesi arşiv işaretinden (adım 6) önce proje sahibine tek listede gösterilir.

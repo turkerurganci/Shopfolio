@@ -1,6 +1,6 @@
 # Project Playbook — Metodoloji
 
-**Versiyon: v1.0.10** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-10-30
+**Versiyon: v1.0.11** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-11-01
 
 > Bu doküman bir yazılım projesini **fikirden çalışan MVP'ye** taşıyan yöntemin tamamıdır:
 > doküman üretimi, implementasyon, doğrulama, borç kapatma ve kapanış.
@@ -756,6 +756,8 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 
 **Aşama 8 — Kodlama kılavuzu (2026-10-30).** Kurallar `.claude/INSTRUCTIONS.md` §3.2, §9, `.claude/checklists/document-stage.md` §3, §6 ve rapor `Docs/CHECKPOINT_REPORTS/PHASE8_LEARNING_PROMOTION.md`. Tekrarlanacak desenler: 1. **Uzun bir dokümanın yazımında her parçaya kaynak paketi verilir.** Paketsiz yazım parçaları adım başına 10–12 M belirteç ve 70–80 araç çağrısıyla bağlam sınırına ulaştı; betikle hazırlanmış tek dosyalık paket (plan satırları, park metinleri, ilgili kararlar, kaynak bölümler) verilen parça 41 çağrı ve 5,6 M ile bitti. 2. **Yalnız yazılı bir kural uygulanmıyorsa betik denetler.** Geri işaret (yönetici dört kez elle ekledi, çakışma taraması 16 satır daha buldu) ve üst doküman cümlesinin okunuşunun geri beslemesi (beş kez atlandı) checklist'te yazılıydı ve ilk uygulamada tutmadı. 3. **'Kalan eşleşme yoktur' tarama terimleri kadar doğrudur.** Etki yansıtmanın terimleri yalnız kararın cümlesinden türetildi, bölümün kapalı liste ve sayım cümleleri taranmadı; checkpoint dört yerde buldu.
 
+**Aşama 9 — Implementation Planı (2026-11-01).** Kurallar `.claude/INSTRUCTIONS.md` §2, §9, `.claude/skills/audit/SKILL.md`, `.claude/skills/checkpoint/SKILL.md`, `.claude/checklists/document-stage.md` §3 ve rapor `Docs/CHECKPOINT_REPORTS/PHASE9_LEARNING_PROMOTION.md`. Tekrarlanacak desenler: 1. **Uzun bir aşamada yöneticilik temiz bağlamlı bir yardımcıya verilir.** Aşama 9'da (214 task, yaklaşık 750 KB plan, otuz saat) sekiz yardımcı ardışık çalıştı; en yüksek bağlam 338 bin (sınır 400 bin), yönetici işi toplam belirtecin yüzde 9,3'üne indi (Aşama 8'de yüzde 18), sorunsuzluk yüksekti (sekiz yardımcıdan bir düşme, kayıpsız toparlandı). 2. **Kontrol ajanının dilimi küçük ve bitiş satırı zorunludur.** 80 KB'lık dilimler, 140 satırlık matris bölümleri ve 598 satırlık kapsam notu paketi Sonnet / `low` merceğin bağlamına sığmadı ve checkpoint beş ek adım istedi; yaklaşık 60 KB ve 8–12 task'lık paketler bitti. Her mercek hangi dilimleri bitirdiğini yazar; kapsam açığı başka bir kapıya devredilmez. 3. **Toplu onay kapsamı daraltma izni değildir; sayı sınırı adımın toplamıdır.** Bir işçi kalan kapsam açıklarını 'başka kapıda kapanır' diye bıraktı (yönetici geri aldı); bir işçi 20 doğrulayıcı sınırını parti başına okudu ve 61 doğrulayıcı koştu. 4. **Düzeltme hükmü sabit biçimde istenir ve elle kısaltma şartnameyle karşılaştırılır.** Serbest yazılan hükümler için beş ek ajan gerekti; bayt sınırı için elle kısaltmada doğrulanmış bir kabul kriterinin eki düştü (T370 KK7 'IBAN silinir').
+
 ### N.2 Dönem 2 — Implementation
 
 *(Bu projede henüz faz kapanmadı.)*
@@ -781,4 +783,4 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 
 ---
 
-*Project Playbook — Metodoloji v1.0.10*
+*Project Playbook — Metodoloji v1.0.11*

@@ -76,6 +76,8 @@ Tracker'da yer alan, §22.1 dışı iki dış kapı (`PLAYBOOK_FEEDBACK.md` — 
 
 **Gösterim durumu.** K-1411, K-1413, K-1432, K-1458 proje sahibine 2026-10-31'de gösterildi ve onaylandı (K-1463) — yeniden sorulmaz, dosyadaki işaret korundu. K-1474, K-1476, K-1483 toplu onayla (K-1472) kaydedildi ve kapanışta tek listede gösterilir. Bu tarama yeni ⚠ karar kaydetmedi.
 
+> **Sonuç (2026-11-01, K-1503):** liste proje sahibine tek mesajda gösterildi; K-1474, K-1476 ve K-1483 "kalsın", itiraz yok. Yedi işaret `(… — ⚠ — gözden geçirildi <tarih>, itiraz yok)` oldu (betikle 7 / 7; K-1411, K-1413, K-1432, K-1458 için 2026-10-31, öteki üçü için 2026-11-01). Bu taramadaki 8 / 8, K-1401…K-1493 aralığınaydı; arşiv işaretinde K-1494'ün konu hücresi de ⚠ listesini sözle anıyor (K-1463 gibi anma kaydı, işaret taşımaz, dönüşmez) ve eşleme dosyasına eklenerek küme 9 / 9, eksik 0, fazla 0 oldu.
+
 ---
 
 ## 5. Çakışmalar

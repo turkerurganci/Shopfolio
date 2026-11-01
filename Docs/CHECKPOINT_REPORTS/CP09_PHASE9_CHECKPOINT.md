@@ -32,8 +32,10 @@
 - [x] Yeni karar: K-1495 (düzeltmelerin kaydı; toplu onayla kaydedildi; ⚠ yok)
 - [x] Dokunulan kararların etki sütununa `(checkpoint — CP09 …)` işareti eklendi (§3.3)
 - [x] **`KP-checkpoint-2`** (tamamlandı, K-1496, §5.1; kalan açıklar §5.1'de, yeni adım açılmaz) — doğrulanmayan 10 madde (kapsam açıkları ve yan gözlemler, §5): yeni mercek ve doğrulayıcı; çıktı `CP09_PHASE9_CHECKPOINT.md`'ye eklenir
-- [ ] ⚠ listesinin proje sahibine gösterilmesi — 8 karar (K-1411, K-1413, K-1432, K-1458, K-1463, K-1474, K-1476, K-1483); kapı: arşiv işaretinden önce, tek mesajda (`INSTRUCTIONS.md` §2). Bu adım ⚠ kararı eklemedi (8 / 8)
-- [ ] Sırada öğrenim terfisi (K-437'nin 5. adımı) — §6'nın adayları
+- [x] ⚠ listesinin proje sahibine gösterilmesi — 8 karar (K-1411, K-1413, K-1432, K-1458, K-1463, K-1474, K-1476, K-1483); kapı: arşiv işaretinden önce, tek mesajda (`INSTRUCTIONS.md` §2). Bu adım ⚠ kararı eklemedi (8 / 8) — **yapıldı (2026-11-01, K-1503): üç yeni karar (K-1474, K-1476, K-1483) "kalsın"; dördü K-1463'te 2026-10-31'de gösterilmişti**
+- [x] Sırada öğrenim terfisi (K-437'nin 5. adımı) — §6'nın adayları — **yapıldı (K-1501, K-1502)**
+
+> **Sonuç (2026-11-01, K-1503):** uyarılı kararlar proje sahibine tek listede gösterildi; K-1474, K-1476 ve K-1483 "kalsın", itiraz yok. Konu hücresinde işaret taşıyan yedi satırın işareti `(… — ⚠ — gözden geçirildi <tarih>, itiraz yok)` oldu (betikle 7 / 7; ilk dördü 2026-10-31, son üçü 2026-11-01). `11` v0.59 ✓ Tamamlandı (kapanış sürümü). Tracker §1'deki `11` satırının sütun kayması düzeltildi.
 
 ### Notlar
 
@@ -154,7 +156,7 @@ Aşama 9'un çıktısı `11` son doküman değildir: sırada `12` (Doğrulama Pr
 
 | Girdi | Durum |
 |---|---|
-| `11` v0.53 | ⏳ → ✓ arşiv adımında (K-437'nin 6. adımı); öğrenim terfisi sonrası |
+| `11` v0.53 | ⏳ → ✓ arşiv adımında (K-437'nin 6. adımı); öğrenim terfisi sonrası — **yapıldı (2026-11-01, `11` v0.59; K-1503)** |
 | `12` ve `DEPLOY_RUNBOOK` park blokları | "Aşama 9'dan park edilen girdiler" blokları var (çakışma taraması K-1494); checkpoint yeni iş bırakmadı |
 | `DEFERRED_BACKLOG` | Değişmedi; D-01 ilk implementation task'ından önce, task karşılığı F0'dadır (T02–T07, T09) |
 

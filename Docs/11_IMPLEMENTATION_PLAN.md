@@ -1,10 +1,12 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.58** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.59** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
 > **Not:** Bu doküman **tüketici**dir — `02`–`10`'u tüketir, onlara geriye etki yaratmaz. Buradaki düzeltmeler yalnız bu dokümanı hizalar.
+
+> **Yazım durumu (K-28, K-30, K-432; karar kaydı §22.1): yazım turu tamamdır (v0.24).** Yazım oturumları Y1…Y8 ✓ (harita ve konvansiyonlar aşağıdadır). **Özet ↔ ayrıntı taraması tamam** (v0.25; K-1455). **Kalite döngüsü tamam** (v0.26…v0.52: audit, deep review, cross-review 11 tur — TEMİZ, etki yansıtma; K-1456…K-1493). **Çakışma taraması tamam** (aşama kapanışının 3. adımı; `Docs/CHECKPOINT_REPORTS/PHASE9_CONFLICT_SCAN.md`; K-1494). **Checkpoint tamam** (v0.53…v0.58; 4. adım; `CP09_PHASE9_CHECKPOINT.md`; K-1495…K-1500). **Öğrenim terfisi tamam** (5. adım; bu dokümana dokunmadı; K-1501, K-1502). **Arşiv işareti** (v0.59, 2026-11-01; aşama kapanışının 6. adımı): doküman ✓ Tamamlandı; yalnız bu paragraf ve dipnot değişti, gövdeye dokunulmadı; uyarılı üç karar (K-1474, K-1476, K-1483) gözden geçirildi, itiraz yok; `00 §N.1`'e Aşama 9'un dersleri yazıldı (K-1503); K-437'nin altı adımı tamam. Sıradaki aşama Doğrulama Protokolü'dür (karar kaydı §23).
 
 > **Aşama 8'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §20.1, yazım turu Y-6b).
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
@@ -7757,4 +7759,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.58*
+*Shopfolio — Implementation Plan v0.59 — ✓ Tamamlandı (v0.59 Implementation Planı aşamasının kapanışının arşiv işaretidir — kapanış sürümü; yalnız başlık notunun yazım durumu paragrafı ve bu dipnot değişti, gövdeye dokunulmadı; uyarılı üç karar gözden geçirildi, itiraz yok — K-1503; K-437'nin altı adımı tamam)*

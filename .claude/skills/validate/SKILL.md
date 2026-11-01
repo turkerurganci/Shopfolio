@@ -46,7 +46,7 @@ git config core.hooksPath
 ### Adım 0 — Ana dal CI startup check (HARD STOP)
 
 ```bash
-gh run list --branch main --limit 3 --json databaseId,conclusion,status,displayTitle,createdAt
+gh run list --branch main --status completed --limit 3 --json databaseId,conclusion,status,displayTitle,createdAt
 ```
 
 - Üç tamamlanmış run'ın hepsi `success` → devam.
@@ -97,7 +97,8 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 
    **8a. Task dalı CI kontrolü (zorunlu):**
    ```bash
-   gh run list --branch task/TXX-* --limit 3 --json databaseId,conclusion,status
+   # dal adı joker kabul etmez: önce tam adı al — gh pr view <n> --json headRefName
+   gh run list --branch <tam dal adı> --limit 3 --json databaseId,conclusion,status
    ```
    En az bir run `success` olmalı. Hiç run yoksa veya son run `failure` ise → **bu bir bulgudur, sessizce geçilemez.**
    - Başarısız adım (Lint / Build / Unit / Integration / Contract / Migration / Paketleme) bulguda belirtilir.
@@ -211,6 +212,7 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 - Bulguları proje sahibine sun.
 - **Dal merge edilmez.**
 - Düzeltme için yeni yapım chat'i açılır; düzeltme sonrası **yeni** doğrulama chat'i.
+- Rapor başlığındaki tur numarası iterasyon sayacıdır (12 §8.5: 2 iterasyon sınırı, 00 §A.3). İkinci iterasyonun düzeltmesi de FAIL verirse yeni doğrulama chat'i açılmaz; eskalasyona gidilir (`INSTRUCTIONS.md` §3.3).
 
 ## "Doğrulanamadı" durumunda
 

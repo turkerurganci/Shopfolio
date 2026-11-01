@@ -10,6 +10,7 @@ user-invocable: true
 > **Tetikleme:** "TXX yap", "task TXX" veya `/task TXX`.
 > **Parametre:** `hedef` — task numarası (örn. `T01`, `T14`, `T63a`, `WP3`)
 > **Kural:** Bu skill **yalnız yapım** yapar. Doğrulama ayrı chat'te (`/validate TXX`), merge validator'ın işidir.
+> **Yönetici yardımcı düzeni açıkken (`INSTRUCTIONS.md` §3.1, §3.3; K-1505):** bu skill'i yardımcının açtığı yapım işçisi koşar. İşçi push edip PR açar ve biter — dal CI'ını izlemez (genel hook engeller), doğrulamayı başlatmaz, merge etmez; CI'ı, doğrulamayı ve merge'ü yardımcı yürütür. 19–20. adımlar yerine işçi yardımcıya PR numarasını ve son commit SHA'sını döner.
 
 ---
 
@@ -148,7 +149,7 @@ gh run list --branch main --limit 3 --json databaseId,conclusion,status,displayT
 19. **CI'yi izle** — `gh run watch <ID> --exit-status` (arka planda başlatılabilir). **Sen izlersin**; kullanıcıya sorma. Aynı ref'e bağlı **tüm** workflow'ların sonucu beklenir.
 
 20. **Proje sahibine bildir** — *"TXX yapım bitti, CI yeşil, PR #NN açık. Doğrulama için yeni chat açılabilir."*
-    **PR'ı merge etme** — merge validator'ın işidir.
+    **PR'ı merge etme** — merge validator'ın işidir (yönetici yardımcı düzeninde validator'ın PASS'iyle yardımcının).
 
 ---
 

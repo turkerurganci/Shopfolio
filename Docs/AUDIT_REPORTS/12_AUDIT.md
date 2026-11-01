@@ -256,4 +256,45 @@ Yok.
 
 **105 maddenin tamamı hükme bağlandı** (2a 31 · 2b 46 · 2c 28). Kalan: 2r — Y21, #95, Y1, #88 ve 2a'nın yeni YAN notları. Kapılar: `12_kapsam_hizasi.py` 0 · `12_matris_denetle.py --kapsam 1-77` hata 0 (1.473 satır, 77/77 KP) · `12_atif_denetle.py` hata 0.
 
+## Doğrulanmamış bulgular — KD-audit-2r
+
+**Tarih:** 2026-11-01 · **Girdi:** 2a ve 2b'de Düşük → Orta yükseltilen 4 madde (Y21, #95, Y1, #88) ve 2a hükümlerindeki doğrulanmamış yeni YAN notları (8 madde; 2b'nin açıkça 2r'ye bıraktığı üç not dahil). 2c'den yükselen yok.
+
+### Doğrulayıcılar (4; hepsi `[dogrulama]` Opus / high, ön planda)
+
+| k | Kademe | Maddeler |
+|---|---|---|
+| 1 | Orta + ona bağlı Düşük | #88, Z1 (VAL-D094 on yılı) |
+| 2 | Orta (iki bölüm) | Y21, #95 |
+| 3 | Orta + Orta aday | Y1 (VAL-B016), Z2 (VAL-A070 KRİTİK adayı) |
+| 4 | Düşük (6 madde) | Z3 (VAL-C052), Z4 (birleşmede stok/sınır), Z5 (A278/A280 Kaynak), Z6 (VAL-A600), Z7 (bölüm girişi K-1319), Z8 (A102/C028/A103 atfı) |
+
+Orta kademede Y21 ve #95 farklı bölümlerden olduğu için çift olarak gruplandı (4 doğrulayıcı sınırı). `12` v0.19'da zaten karşılananlar (VAL-A278/A280 paydası, VAL-A354…A357 atfı) betik ve `grep` ile ayıklandı; Z3 doğrulayıcıca da çürük çıktı.
+
+**Toplam hüküm: 12 madde — 10 doğru · 1 kısmen (Z8) · 1 çürük (Z3).** Yeniden yükselen yok.
+
+### Uygulama
+
+11 madde uygulandı: **7 ESKİ → YENİ çifti**, **21 hücre düzeltmesi** ve **3 yeni satır** (`12_audit_uygula2.py`; uygulanan liste `a10-kd-audit-2/2r/uygulanan.md`). Z-kimlikleri betik başlığına eklendi.
+
+- VAL-A070 ve VAL-A736 ORTA → KRİTİK (A736 kanıt türü "Uç yanıtı + Veri kaydı"; Kaynak ve ön koşulu talep ayrıntısını anar).
+- VAL-A823 beklenen sonuç ve Kaynak `05 §4.3.3`, `§4.6.1`, `§4.6.2` ile hizalandı; VAL-A081 kural, ön koşul, beklenen ve Kaynak ürünün davranışına (gönderim tarihi tutulmaz, bir yıl üst sınırı, panel kaydı) çekildi.
+- VAL-D094 ve VAL-D092: durumu hiç değişmemiş / hiç kapatılmamış talep eklendi (#88 ve Z1 tek çiftte).
+- Y1 kararı (öneriyle): VAL-B016 ORTA kaldı; üye bağlantısı yeni `[güvenlik]` KRİTİK **VAL-A977**; birleşmede ürün sınırı aşımı **VAL-A978**, sonradan aşılan stok/sınır **VAL-A979** (ORTA).
+- Z5: VAL-A277, A278, A280, A282, A283 Kaynak hücreleri `02 §10.6.3`/`§6.2.16` ile; Z6: VAL-A600 beklenen; Z7: bölüm girişi (`05 §9.1.3`, `07 §6.1.4`); Z8: VAL-A102, C028, A103 Kaynak.
+
+**Matris sayımı (betik):** 1.476 satır (+3); Seviye A 979; Severity KRİTİK 614 · ORTA 730 · DÜŞÜK 132; `[güvenlik]` 39; Kanıt ortamı `yok` 1.226; §4.4 56, §4.5 19 satır.
+
+### Üst dokümana geri besleme (K-652)
+
+`05` v0.47 (§7.4.4: ayıp talebinin on yılı hiç değişmemişse açıldığı andan), `10` v0.62 (KP-27 Kaynak hücresine `02 §8.1.5`).
+
+### Yükseltilenler
+
+Yok.
+
+### Toplam ilerleme — audit tamamlandı
+
+**105 maddenin tamamı hükme bağlandı** (2a 31 · 2b 46 · 2c 28), yeniden doğrulama 2r ile kapandı (12 madde). **Audit tamamlandı; sıradaki adım deep review.** Kalan (doğrulanmamış, deep review girdisi) yeni YAN notları: VAL-A080, C012, C015, A072 Kaynak hücresi `02 §7.4` yerine `02 §7.3.1` (Düşük); VAL-A068/A078 (IBAN'ın geri ödemeye bağlanması, ORTA) ↔ A238/A069 (KRİTİK); birleşmede stok kolunun sonucu kaynakta "eklenmez mi, mesajla kalır mı" belirsiz (`02 §3.16.8`); 2b/2c hükümlerindeki öteki "ayrı madde" notları. Kapılar: `12_kapsam_hizasi.py` 0 · `12_matris_denetle.py --kapsam 1-77` hata 0 (1.476 satır, 77/77 KP) · `12_atif_denetle.py` hata 0.
+
 Prosedür: [`.claude/skills/audit/SKILL.md`](../../.claude/skills/audit/SKILL.md)

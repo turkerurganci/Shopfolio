@@ -1,9 +1,9 @@
-"""Asama 10 -- 12 kalite dongusu audit-2, Parca B: hukum_*.md'yi 12'ye uygular.
+"""Asama 10 -- 12 kalite dongusu audit-2, Parca B:(#d+|Yd+|Zd+) | hukum_*.md'yi 12'ye uygular.
 
-Okunan bicim (KD-audit-2): `## #N | hukum: x` ve `## Y<n> | hukum: x` basliklari; `ESKI:`/`YENI:` ciftleri;
+Okunan bicim (KD-audit-2): `## #N |(#d+|Yd+|Zd+) | hukum: x` ve `## Y<n> | hukum: x` basliklari; `ESKI:`/`YENI:` ciftleri;
 `SATIR: <VAL> | <hucre> | <yeni>` (tekil olmayan hucre; `P4.n | Durum | ...` park tablosu satiri da olur);
 `YENI_SATIR: <aciklama>: | VAL-... |` (anchor VAL'in hemen ardina yeni matris satiri).
-Uygulanmaz: hukum `curuk`, baslikta YUKSELTILDI, `--haric` ile verilenler.
+Uygulanmaz:(#d+|Yd+|Zd+) | hukum `curuk`, baslikta YUKSELTILDI, `--haric` ile verilenler.
 Once hepsi sinanir (ESKI tam bir kez, hucre var ve tek satir, cakisma yok); sorun varsa hicbir sey yazilmaz.
 `--yama VAL:hucre=metin` yok; birden fazla bulgunun ayni hucreye yazdigi durumlar `YAMA` sozlugunde elle birlestirilir.
 Kullanim: python -I scripts/doc-scans/12_audit_uygula2.py <dizin> [--kuru] [--haric no,no]
@@ -43,7 +43,7 @@ crlf = "\r\n" in raw
 lines = raw.replace("\r\n", "\n").split("\n")
 TXT = "\n".join(lines)
 
-hdr = re.compile(r"^## (#\d+|Y\d+) \| hukum: (\w+)(.*)$")
+hdr = re.compile(r"^## (#\d+|Y\d+|Z\d+) \| hukum: (\w+)(.*)$")
 pairs, cells, newrows = [], [], []
 for f in sorted(D.glob("hukum_*.md"), key=lambda p: int(re.search(r"(\d+)", p.stem).group(1))):
     cur, ok, eski = None, False, None

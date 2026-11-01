@@ -16,7 +16,7 @@
 | **Önceden terfi etmişti** | 1 | Ö-188 (ikinci model kuralı, K-1484) |
 | **Raporda kalır** — tek seferlik gözlem, bilgi ya da proje dışı öneri | 7 | Ö-193, Ö-200, Ö-201, Ö-202, Ö-203, Ö-205, Ö-206 |
 | **Yeniden değerlendirildi, sorulmaz** | 1 | Ö-23 |
-| **Proje sahibine soruluyor** | 1 soru | `00 §N.1`'e Aşama 10'un dersleri (Soru 1) |
+| **Proje sahibine soruldu — onay yok, uygulanmadı** (2026-11-02, K-1574) | 1 soru | `00 §N.1`'e Aşama 10'un dersleri (Soru 1) |
 | **Toplu onayla kaydedilen kararlar** | 3 | Karar A, B, C (§5.1) |
 
 Toplam yirmi dört aday kimliği. Terfilerin 14'ü ayrı değişiklik (Ö-192 ve Ö-198 `INSTRUCTIONS §9` (11)'de tek maddedir). ⚠ taşıyan karar yok; ⚠ eşitlemesi 8 / 8 değişmedi (§8).
@@ -24,6 +24,8 @@ Toplam yirmi dört aday kimliği. Terfilerin 14'ü ayrı değişiklik (Ö-192 ve
 **Aşamanın asıl öğrenimi.** Doğrulama Protokolü (`12`, ~800 KB, 1.503 matris satırı) uzun bir aşamaydı ve Aşama 9'un ağır dersleri tuttu: yönetici düzeni sorunsuz yürüdü, 60 KB mercek kuralı çalıştı (checkpoint altı parça yerine tek parça, 20 / 20 mercek bitirdi; Ö-203). Üç şey belirgin: (1) **Sayaç, sayı ve ajan sözü dosyayla sınanmadıkça güvenilmez**: doğrulayıcı sayacı adım adını aşamasız tuttu (22 engel), bir merceğin "plan.md'ye yazdım" sözü boştu, `12 §1.2`'nin elle yazılmış sayım tablosu üç satır saptı ve betik bunu ancak bu adımda yakaladı (Ö-186, Ö-192, Ö-195). (2) **Karar kaydı ve yazım araçları sessizce yanlış yere yazabiliyor**: 29 madde yanlış bölüme (§22.1, §12.1) yazılmış, üç betik CRLF yazmıştı (Ö-190, Ö-199). (3) **Betik kapıları süreci aşar**: hükümlü geri işaret çiftleri, bölüm denetimi ve sayım karşılaştırması artık betikte, el hesabında değil (Ö-190, Ö-191, Ö-195, Ö-196).
 
 ---
+
+> **Sonuç (2026-11-02, K-1574):** tek soru (`00 §N.1`'e Aşama 10'un dersleri) ve yedi ⚠ karar proje sahibine gösterildi; yedi karar 'kalsın', itiraz yok; `00` önerisi için onay verilmedi, **uygulanmadı** (GUARDRAILS §2), PF-168 `Öneri` kalır. Konu hücresi ⚠ taşıyan yedi satırın işareti `— ⚠ — gözden geçirildi 2026-11-02, itiraz yok` oldu (betikle 7 / 7); eşitleme (§8) arşiv işaretinde 9 / 9 oldu: K-1571'in konu hücresi ⚠ listesini sözle andığı için K-1494 gibi anma kaydı olarak eşleme dosyasına eklendi (eksik 0, fazla 0).
 
 ## 2. Adaylar ve sonuçları
 
@@ -98,7 +100,9 @@ Aşama 9 2.244,9 M idi (3,3 kat); Aşama 10 yaklaşık dörtte üçü kadar tuta
 - **P-2 — işçi talimat şablonuna sabit yasak satırı.** Aşama 9'da 97, Aşama 10'da 70 heredoc engeli; işçiler yasağı talimatta görmeden denedi. "Kabukta heredoc, here-string, `python -c`, `node -e`, `python -` yok; betik `Write` ile" satırı yönetici şablonuna sabit eklenir (Aşama 9 PF-152 hâlâ açık).
 - **P-3 — CR tarayıcı hook'u.** `INSTRUCTIONS §7` (1) tarama kuralı elle işletiliyor; Windows'ta CRLF yazan her araç sessizce bozuyor (Ö-199). Bir hook ya da CI adımı değişen dosyalarda CR arayabilir.
 
-### 5.3 Proje sahibine soru
+### 5.3 Proje sahibinin sorusu ve cevabı
+
+**Cevap (2026-11-02, proje sahibi; arşiv işaretinde ⚠ listesiyle aynı gösterimde):** onay verilmedi; öneri uygulanmadı, `00` değişmedi (v1.0.12), PF-168 `Öneri` kalır. Aşağıdaki metin yalnız öneridir (K-1574).
 
 #### Soru 1 — Yöntem dosyasına Aşama 10'un dersleri (`00 §N.1`)
 
@@ -146,7 +150,7 @@ Liste 162 satırdan **168**'e çıktı (PF-163…PF-168). Var olan satırlar tek
 | **PF-165** (yeni) | Bulgu dosyası önceden; §1.2 ve severity betik karşılaştırması; üst doküman hizası; "açıklanmış fark" talimatı (Ö-194, Ö-195, Ö-196, Ö-197, Ö-204) | `skills/audit` · `skills/checkpoint` · `scripts/doc-scans/` |
 | **PF-166** (yeni) | Dokümanı yazan betik LF (Ö-199) | `INSTRUCTIONS §7` · `scripts/doc-scans/` |
 | **PF-167** (yeni) | Dönem geçişinde `IMPLEMENTATION_STATUS.md` doldurma; `validate` matris kapısı (Ö-207a, Ö-207b) | checklist §7 adım 6 · `skills/validate` |
-| **PF-168** (yeni) | Soru 1: `00 §N.1`'e Aşama 10'un dersleri | `00 §N.1` — `Öneri` |
+| **PF-168** (yeni) | Soru 1: `00 §N.1`'e Aşama 10'un dersleri | `00 §N.1` — `Öneri` (gösterildi 2026-11-02, onay yok, uygulanmadı; K-1574) |
 
 PF-152 (hook ve talimat şablonu, proje dışı) açık kalır; Ö-200 ve P-1, P-2, P-3 onun devamıdır.
 
@@ -155,5 +159,5 @@ PF-152 (hook ve talimat şablonu, proje dışı) açık kalır; Ö-200 ve P-1, P
 ## 8. Kayda ve hafızaya yansıma
 
 - **Karar kaydı v0.329:** K-1573 (öğrenim terfisi — yirmi dört kalemin dökümü, on beş terfi, bir soru, üç toplu onay kararı, maliyet ölçümü); §24.1'e öğrenim terfisi maddesi; tracker başlığı v0.329; `12` v0.33 (§1.2 sayım düzeltmesi, tracker §1 hücresi).
-- **`.claude/memory/MEMORY.md` Güncel Durum:** öğrenim terfisi tamam; sırada arşiv işareti (adım 6) — ⚠ listesi ve öneriler proje sahibine gösterildikten sonra.
+- **`.claude/memory/MEMORY.md` Güncel Durum:** öğrenim terfisi tamam; sırada arşiv işareti (adım 6) — ⚠ listesi ve öneriler proje sahibine gösterildikten sonra — **yapıldı (2026-11-02, K-1574)**.
 - **⚠ eşitlemesi:** konu hücresi ⚠ taşıyan Aşama 10 satırı 8 (K-1547, K-1557, K-1560, K-1563, K-1566, K-1568, K-1572 ve anma kaydı K-1504); `onerilen-uyarili.md` girişi 8; K-1573'ün konu hücresi ⚠ taşımaz; **8 / 8, eksik 0, fazla 0.** ⚠ listesi arşiv işaretinden (adım 6) önce proje sahibine tek listede gösterilir.

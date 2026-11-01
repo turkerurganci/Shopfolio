@@ -2,7 +2,7 @@
 
 **Tarih:** 2026-11-01 | **Aşama:** 9 — Implementation Planı | **Kapanış adımı:** K-437'nin 4. adımı (`/checkpoint`; `checklists/document-stage.md` §7)
 **Girdi sürümleri:** karar kaydı v0.281 · Implementation Planı (`11`) v0.52 · Ürün Gereksinimleri (`02`) v0.108 · Kullanıcı Akışları (`03`) v0.46 · Arayüz Tanımları (`04`) v0.50 · Teknik Mimari (`05`) v0.43 · Veri Modeli (`06`) v0.45 · API Tasarımı (`07`) v0.37 · Entegrasyon Spesifikasyonları (`08`) v0.20 · Kodlama Kılavuzu (`09`) v0.28 · MVP Kapsamı (`10`) v0.59 · `12` ve `DEPLOY_RUNBOOK` (Aşama 9 park blokları) — `origin/main` @ `7be455a`
-**Çıktı sürümleri:** karar kaydı v0.282 · `11` v0.53 · öteki dokümanlar değişmedi; KP-checkpoint-2 (§5.1) sonrası: karar kaydı v0.283 · `11` v0.54
+**Çıktı sürümleri:** karar kaydı v0.282 · `11` v0.53 · öteki dokümanlar değişmedi; KP-checkpoint-2 (§5.1) sonrası: karar kaydı v0.283 · `11` v0.54; KP-checkpoint-3 (§5.2) sonrası: karar kaydı v0.284 · `11` v0.55
 **Girdi raporu:** [Aşama 9 — Çakışma Taraması](PHASE9_CONFLICT_SCAN.md) (K-437'nin 3. adımı) — açık kalem durumu ve altı geri işaret oradan alındı; K-1492 (5)'in devrettiği sınıf bu raporun iç tutarlılık merceğinde arandı. Audit, deep review, on bir cross-review turu, hedefli mercekler ve etki yansıtmanın hükme bağlanmış bulguları ikinci kez açılmadı; RET edilmiş iddialar yeniden getirilmedi.
 
 > **Ne işe yarar:** Aşama kapanmadan önce Implementation Planı'nın (`11`) kendi içinde ve üst dokümanlarla tutarlı olduğunu, özellikle task bloklarındaki kabul kriteri ve doğrulama kontrol listesi (KK) maddelerinin kaynak cümleyi yanlış okutmadığını doğrular; bulunan her uyumsuzluğu ya kapatır ya da adıyla sonraki adıma bırakır. Sonuç öğrenim terfisinin (5. adım) ve arşiv işaretinin (6. adım) girdisidir.
@@ -295,6 +295,166 @@ Yukarıdaki 10 madde yeni merceklerle arandı ve doğrulatıldı. **Mercek (9, S
 **Akıbet (toplu onayla kaydedildi; öneri):** yeni bir `KP-checkpoint-3` açılmaz. 74 bulgunun dörtte biri çürük çıktı, getiri düşüktür; her implementation task'ı zaten kabul kriterlerini kaynağa karşı bağımsız doğrulatır (`validate`), kalan task'lar orada kapanır; geri dönüşü kolay olduğundan ⚠ değil. Beşinci madde (yan gözlemler) implementation başlangıcında ilgili task'ın `validate` girdisi olarak işaretli kalır.
 
 **Süreç olayları.** Bekçi: ajan çağrılarında engel olmadı (12 / 20). Yürütücüde bir kez `<<<` here-string (boş bir komut) kural gereği engellendi (komut çalışmadı); betik Write ile dosyaya yazıldı. İki mercek (B3a, B3c) bağlam sınırında bölündü ve kalanını kendi bulgu dosyalarında "devir" olarak yazdı; B3b ve A3 kapsamdaki task'ların bir kısmına bakamadığını bildirdi; kapsamı daraltılmış hâliyle kabul edilip kalan yukarıda listelendi.
+
+### 5.2 Kapsam açıklarının kapanışı (`KP-checkpoint-3`)
+
+**Neden.** K-1496 kalan açıkları "checkpoint-3 açılmaz, `validate`'te kapanır" diye bırakmıştı. Bu kabul edilmedi: proje sahibinin kuralı (KD-audit-2: doğrulamasız uygulama, örneklem ya da atlama yok) ve checkpoint'in tam kapsamı gereği açıklar burada ele alındı (K-1497; K-1496'nın etki sütununa geri işaret konuldu).
+
+**Koşum.** Girdi §5.1'in kalan maddeleri 1–9 (madde 10 yeniden getirilmedi: K-1488 (3) RET). Mercek dilimleri küçük tutuldu (§6 öğrenim notu: büyük matris dilimlerinde Sonnet / low kapsamı bitiremedi): betikle, her paket yalnız ilgili task blokları + o task'ların matris satırları + atıf ettikleri kaynak bölümleri (`02`–`10`, `DEFERRED_BACKLOG`); en çok 8 task, ≤ 60 KB.
+
+- **41 görev paketi (C01…C41)** 180 task'ı kapsar: madde 1, 2, 3 ve 5'te anılan her task bir pakete girdi (T01–T10, T101–T120, T201–T233, T302–T331, T339–T389, T401–T410, T501–T548, T601–T602); kapsam tablosunda **açık task 0**.
+- **10 matris kaynak öğesi paketi (X01…X10)**: `05` §6.9, §8.1–§8.9, §9.1–§9.4, §10.1–§10.3, §11.1–§11.3, MK-77/78; `10` KP-74, KP-75, KD-23/24/26/41, §4.1 (ÖK-1…ÖK-12), §4.2 (SK-1…SK-10; T302 k6 ↔ `02` Z-29/Z-30); devir satırları (K-1354…K-1391, P8.1–P8.5, `04`-1948 ↔ T356/T366/T373, D-01 ↔ `DEFERRED_BACKLOG.md` ↔ T02…T09).
+- 51 `[ozet]` Sonnet / low mercek, beşli dalgalarla: **375 ham bulgu** (61 Orta, 314 Düşük).
+- **20 `[dogrulama]` Opus / high doğrulayıcı** (sınır 20; bekçi olayı yok): Orta bulgular aynı kriter/blok bir pakette kalacak biçimde 4'lü 17 pakete, Düşük bulgulardan 3 paket (20 bulgu) daha. **81 bulgu hükme bağlandı: 26 doğru · 41 kısmen · 14 çürük** (Yüksek yok; çürüklerin başlıca nedeni: kural ayrıntısının kritere kopyalanmaması — konvansiyon 5, K-1445 (3); aynı satıra başka paketin şartnamesi zaten düşmüş; kaynakta dayanak olmaması).
+- Yan gözlemler (madde 6–9) için doğrulayıcı payı kalmadı; `dogrulanmadi.md`'ye yazıldı.
+
+**Uygulama.** 67 bulgu (doğru + kısmen) `11_audit_uygula.py` ile **140 şartname çiftiyle** uygulandı (45 task bloğu, 17 matris satırı; şartname çakışması sorun 0, blok sınırı 2 560 bayt aşılmadı). `11` v0.54 → v0.55; `11 §7.2` `11_geri_yon.py --yaz` ile yeniden türetildi (214 satır). Üst doküman değişmedi; üst doküman notu isteyen hükümler (`UST DOKUMAN:`) hüküm dosyalarındadır. Karar bekleyen iki hüküm (V17 #1704: veritabanı ana sürüm geçişi — T602'ye kriter ya da `11 §9` listesi; V20 #2004: T10 KK8) önerilen seçenekle uygulandı, ⚠ değil.
+
+**Kalan (bu adımda kapatılamadı; işçi kapatma kararı vermez, yönetici sonraki adımı açar).** Doğrulayıcı sınırı (20) doldu: **294 Düşük bulgu** hüküm beklemiyor, üç mercek kapsam notu (C32: `04`/`03`/`02` kaynakları açılmadı; X05; X07) ve dört yan gözlem (T529 k7, T516 k10, T530 k10, T387) `dogrulanmadi.md`'dedir (`C:/Users/teknodeveloper/.claude/helper-state/shopfolio/kapanis/checkpoint-3/dogrulanmadi.md`; bulgu metinleri `bulgu_<paket>.md`).
+
+#### Hükümler (81)
+
+| Hüküm no | Bulgu | Yer | Hüküm | Seviye |
+|---|---|---|---|---|
+| #101 | C01-01 | T01 k5 | kısmen | Orta |
+| #102 | C01-02 | T02 k5 | doğru | Düşük (indi) |
+| #103 | C01-03 | T03 k6 | çürük | Düşük (indi) |
+| #201 | C01-04 | T04 k1 / KK1 | doğru | Orta |
+| #202 | X10-03 | D-01 "ardından SETUP_COMPLETE=true" | doğru | Orta |
+| #203 | C01-05 | T06 k3 | doğru | Düşük (indi) |
+| #204 | X10-01 | T06 k2 / T07 k1 | kısmen | Orta |
+| #301 | C02-01 | T07 k7/KK7 | doğru | Orta |
+| #302 | X10-02 | T07 k5 | kısmen | Düşük (indi) |
+| #303 | C02-11 | T102 k5 | kısmen | Düşük (indi) |
+| #304 | C04-02 | T109 k5 / KK5 | kısmen | Orta |
+| #401 | C04-07 | T111 k7 | kısmen | Düşük (indi) |
+| #402 | C04-08 | T112 kabul kriterleri | kısmen | Orta |
+| #403 | C04-10 | T115 kabul kriterleri | doğru | Düşük (indi) |
+| #501 | C05-01 | T201 k5 | kısmen | Orta |
+| #502 | X05-01 | KP-74 matris satırı (T201, T225, T301, T302) | kısmen | Orta |
+| #503 | C06-07 | T204 KK8 | doğru | Orta |
+| #504 | C06-09 | T206 k6 | kısmen | Düşük (indi) |
+| #601 | C07-08 | T210 k9/KK9 | doğru | Orta |
+| #602 | C07-14 | T212 k4 | çürük | Düşük (indi) |
+| #603 | C07-15 | T212 k6/KK6 | doğru | Orta |
+| #701 | C07-17 | T213 k2/k4/KK2 | kısmen | Orta |
+| #702 | C07-19 | T213 k8/KK8 | doğru | Orta |
+| #703 | C07-20 | T214 k4 | kısmen | Orta |
+| #704 | C08-01 | T216 k1 | kısmen | Düşük (indi) |
+| #801 | C08-03 | T217 k6 | çürük | Düşük (indi) |
+| #802 | C10-01 | T225 k1/KK1 | kısmen | Orta |
+| #803 | C10-03 | T225 KK5 | kısmen | Düşük (indi) |
+| #901 | C10-05 | T226 k6/KK6 | kısmen | Düşük (indi) |
+| #902 | X08-01 | matris `10:§4.2` (SK-1…SK-10) | kısmen | Düşük (indi) |
+| #903 | C10-10 | T228 k3 | kısmen | Orta |
+| #904 | C10-13 | T229 k6 | doğru | Orta |
+| #1001 | C12-01 | T314 k10/KK10 | doğru | Orta |
+| #1002 | C13-01 | T316 k5 | kısmen | Düşük (indi) |
+| #1003 | C13-02 | T316 KK3 | kısmen | Orta |
+| #1101 | C13-03 | T318 k9 / KK9 | doğru | Düşük (indi) |
+| #1102 | X08-02 | T318 k9 | kısmen | Düşük (indi) |
+| #1103 | C14-01 | T320 k1/KK1 | kısmen | Düşük (indi) |
+| #1104 | X10-05 | T366 | kısmen | Orta |
+| #1201 | C23-01 | T373 KK3 | çürük | Düşük (indi) |
+| #1202 | X08-03 | T381 k3 | kısmen | Düşük (indi) |
+| #1203 | X04-01 | T385 k1 / matris 05:§10.2 | kısmen | Orta |
+| #1204 | C28-01 | T404 k7 / KK7 | kısmen | Düşük (indi) |
+| #1301 | C28-02 | T405 k10 / KK10 | doğru | Orta |
+| #1302 | C29-01 | T410 k2 | doğru | Düşük (indi) |
+| #1303 | C29-02 | T410 k7/KK7 | doğru | Orta |
+| #1401 | C29-10 | T503 k5 | kısmen | Orta |
+| #1402 | C29-12 | T503 k5 | kısmen | Orta |
+| #1403 | C31-01 | T509 k2/k4/k5 | doğru | Orta |
+| #1404 | C31-09 | T510 k7 | kısmen | Düşük (indi) |
+| #1501 | C32-04 | T513 k9 | doğru | Orta |
+| #1502 | C38-05 | T535 k4 | doğru | Orta |
+| #1503 | C39-01 | T540 k4 | çürük | Düşük (indi) |
+| #1504 | C39-02 | T541 k10 / KK10 | kısmen | Düşük (indi) |
+| #1601 | C40-01 | T544 k8 | çürük | Düşük (indi) |
+| #1602 | C41-01 | T547 k8 | kısmen | Orta |
+| #1603 | C41-02 | T547 k7 ve KK7 | kısmen | Orta |
+| #1701 | C41-05 | T601 k3 | kısmen | Düşük (indi) |
+| #1702 | C41-10 | T601 k5 / T602 k3 | çürük | Düşük (indi) |
+| #1703 | X01-02 | T601 k6 | kısmen | Orta |
+| #1704 | X02-07 | T601 k6 / T602 | kısmen | Düşük (indi) |
+| #1801 | X10-08 | T02 k5 | çürük | Düşük |
+| #1802 | X02-09 | Matris 05:§8.8 | çürük | Düşük |
+| #1803 | X02-11 | T04 KK5 | çürük | Düşük |
+| #1804 | X09-06 | T04 KK7 / T09 | kısmen | Düşük |
+| #1805 | X10-04 | T04 k1/KK1 | çürük | Düşük |
+| #1806 | X02-10 | T05 k4 | doğru | Düşük |
+| #1807 | C01-06 | T06 k2/k3/k1 | kısmen | Düşük |
+| #1901 | X03-04 | T07 k6 | kısmen | Düşük |
+| #1902 | X05-03 | KP-75 matris satırı (T07, T118, T327) | çürük | Düşük |
+| #1903 | X10-09 | T07 k7/KK7 | çürük | Düşük |
+| #1904 | C02-02 | T08 k3/KK3 | doğru | Düşük |
+| #1905 | C02-03 | T09 k3/KK3 | kısmen | Düşük |
+| #1906 | X09-07 | T09 k2 | doğru | Düşük |
+| #2001 | C02-04 | T10 k1/KK1 | doğru | Düşük |
+| #2002 | C02-05 | T10 k4/KK4 | doğru | Düşük |
+| #2003 | C02-06 | T10 k5/KK5 | doğru | Düşük |
+| #2004 | C02-07 | T10 KK8 | kısmen | Düşük |
+| #2005 | C02-08 | T101 k6/KK6 | kısmen | Düşük |
+| #2006 | C02-09 | T101 k8/KK8 | doğru | Düşük |
+| #2007 | C02-10 | T101 k4 | çürük | Düşük |
+
+#### Kapsam tablosu (açık task 0)
+
+Her satır bir mercek paketidir: C paketleri task'lara, X paketleri matris kaynak öğelerine (ve onların task'larına) bakar.
+
+| Paket | Task'lar (matris satırı paketlerinde: kaynak öğe ve ilgili task'lar) | Ham bulgu |
+|---|---|---|
+| C01 | T01, T02, T03, T04, T06 | 6 |
+| C02 | T07, T08, T09, T10, T101, T102 | 14 |
+| C03 | T103, T104, T105, T106, T107, T108 | 20 |
+| C04 | T109, T110, T111, T112, T113, T114, T115, T116 | 12 |
+| C05 | T117, T118, T119, T120, T201 | 4 |
+| C06 | T202, T203, T204, T205, T206, T207 | 16 |
+| C07 | T208, T209, T210, T211, T212, T213, T214 | 21 |
+| C08 | T215, T216, T217, T218, T219 | 8 |
+| C09 | T220, T221, T222, T223, T224 | 5 |
+| C10 | T225, T226, T227, T228, T229, T230, T231 | 18 |
+| C11 | T232, T233, T302, T303 | 2 |
+| C12 | T305, T311, T313, T314 | 3 |
+| C13 | T315, T316, T317, T318, T319 | 7 |
+| C14 | T320, T321, T323, T327, T328 | 8 |
+| C15 | T331, T339, T340 | 4 |
+| C16 | T341, T342, T343 | 3 |
+| C17 | T344, T345, T348 | 5 |
+| C18 | T349, T351, T352 | 1 |
+| C19 | T353, T354, T355 | 8 |
+| C20 | T356, T357, T358 | 3 |
+| C21 | T359, T360, T361, T362 | 0 |
+| C22 | T363, T364, T365 | 4 |
+| C23 | T366, T370, T373 | 8 |
+| C24 | T374, T375, T376 | 1 |
+| C25 | T377, T378, T379, T380 | 5 |
+| C26 | T382, T383, T384, T385 | 3 |
+| C27 | T386, T387, T388, T389, T401 | 6 |
+| C28 | T402, T403, T404, T405, T406, T407 | 14 |
+| C29 | T408, T409, T410, T501, T503 | 14 |
+| C30 | T504, T505, T506, T507 | 6 |
+| C31 | T508, T509, T510 | 14 |
+| C32 | T511, T512, T513, T514 | 9 |
+| C33 | T515, T516, T517, T518 | 6 |
+| C34 | T519, T520, T521, T522 | 7 |
+| C35 | T523, T524, T525 | 3 |
+| C36 | T526, T527, T528, T529 | 7 |
+| C37 | T530, T531, T532, T533 | 1 |
+| C38 | T534, T535, T536 | 7 |
+| C39 | T537, T538, T539, T540, T541 | 6 |
+| C40 | T542, T543, T544, T545, T546 | 7 |
+| C41 | T547, T548, T601, T602 | 14 |
+| X01 | T303, T387, T389, T601, T05, T09, T406, T06, T04, T03, T226 | 6 |
+| X02 | T303, T387, T388, T389, T602, T04, T601, T05 | 11 |
+| X03 | T225, T230, T231, T07, T201, T387, T01, T314 | 7 |
+| X04 | T204, T202, T314, T382, T385, T212, T226 | 5 |
+| X05 | T201, T225, T301, T302, T07, T118, T327, T345, T380, T533 | 3 |
+| X06 | T352, T510, T316, T350, T224, T358, T349, T359 | 4 |
+| X07 | T09, T303, T330, T331, T382, T401, T407, T409, T410, T601 | 1 |
+| X08 | T226, T318, T330, T332, T333, T381, T302 | 10 |
+| X09 | T230, T231, T548, T03, T04, T09 | 9 |
+| X10 | T02, T03, T04, T05, T06, T07, T09, T356, T366, T373 | 9 |
 
 ---
 

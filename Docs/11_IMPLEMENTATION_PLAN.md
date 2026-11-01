@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.54** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.55** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -184,7 +184,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   2. Veritabanına ulaşılamıyorsa uç 503 döner.
   3. Yanıt gövdesiz ve ayrıntısızdır; hata metni, bağlantı bilgisi ya da sürüm sızmaz (`05 §9.4.1`).
   4. Uç imzasız açık GET'tir; çerez ve oturum gerektirmez (`07 UC-81`).
-  5. Veritabanı denetimi sabit sürede biter; süre dolarsa 503 döner (`09 §10.7`).
+  5. Veritabanı denetimi kurulum ayarı olan sürede biter; süre dolarsa 503 döner; ayar geçersizse uygulama açılmaz (`09 §10.7` madde 6).
   6. Uç `Endpoints/` altındadır, sayfa değildir ve sayfa işleyicisinin hata kalıbına girmez (`09 §4.1`, §8).
 - **Test beklentisi:** Integration
 - **Doğrulama kontrol listesi:**
@@ -192,7 +192,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: veritabanı bağlantısı kesilince 503.
   - KK3: iki yanıtın gövdesi boş; başlıklarda sürüm bilgisi yok.
   - KK4: çerezsiz istek 200.
-  - KK5: yavaşlatılmış veritabanı sınırda 503 verir (`09 §19.2` madde 4).
+  - KK5: yavaşlatılmış veritabanı sınırda 503 verir (`09 §19.2` madde 4); sıfır, negatif ya da istemci süresinden uzun ayar açılışı durdurur (`09 §10.7` madde 7).
   - KK6: dosya yeri ve ad alanı `09 §4.1` ağacına uyar.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -204,7 +204,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   2. `Shopfolio.Web` .NET 10 Razor Pages uygulamasıdır; `Modules/`, `Infrastructure/`, `Pages/`, `Endpoints/`, `wwwroot/` klasörleri vardır (`05 MK-01`…`MK-04`; `09 §4.1` madde 2, 4).
   3. Kökteki `Directory.Build.props` boş olabilir başvuru denetimini açar ve uyarıları hata sayar (`09 §3.1` madde 2).
   4. Kökte tek `.editorconfig` vardır ve `dotnet format` doğrulaması temiz geçer (`09 §3.1` madde 3).
-  5. `Directory.Packages.props` sürümleri merkezî ve tam sabit tutar; `packages.lock.json` ve yalnız nuget.org kaynaklı `nuget.config` repodadır (`09 §3.2`).
+  5. `Directory.Packages.props` sürümleri merkezî ve tam sabit tutar; `packages.lock.json`, yalnız nuget.org kaynaklı `nuget.config` ve SDK sürümünü sabitleyen `global.json` repodadır (`09 §3.2`).
   6. `wwwroot/` düz JavaScript ve CSS taşır; npm hattı ve ön yüz çatısı yoktur (`05 MK-05`; `09 §4.1` madde 4).
   7. D-01 yığın parçaları — `CONTEXT.md` §1 ve §3, `.gitignore`, `.gitattributes`, `.env.example` — yığına uyarlanır; `CONTEXT.md` §3'ün "kod klasörü henüz yok" satırı kalkar (`05 §2.3.1`…`§2.3.4`; `09 §4.2`).
   8. Bilgim tarihli ayar adları SDK'ya karşı derlenerek doğrulanır; çıkan fark ilgili `09` satırına aynı PR'da yazılır (`09` yazım konvansiyonu 3; §3.1 madde 2, 4, §3.2, §4.1 madde 1).
@@ -214,7 +214,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: klasör ağacı `09 §4.1` ile aynıdır.
   - KK3: `Directory.Build.props` ayarları `09 §3.1`'dekidir.
   - KK4: `dotnet format --verify-no-changes` temiz.
-  - KK5: proje dosyalarında `Version` yazılı paket yok; kilit dosyası var.
+  - KK5: proje dosyalarında `Version` yazılı paket yok; kilit dosyası ve `global.json` var.
   - KK6: `package.json` yoktur.
   - KK7: `CONTEXT.md` §3 klasör düzeyinde güncel; `.env.example` sır taşımaz.
   - KK8: doğrulanan bilgim tarihli ayarlar PR açıklamasında listeli; fark çıkan ad `09`'un satırında aynı PR'da düzeltilmiş.
@@ -250,7 +250,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T03
 - **Dokümanlar:** çekirdek; `09` §3 (§3.2), §10 (§10.6), §19, §21; `05 §2.3`, §8.3, §8.7; `05 MK-12`, `MK-70`, `MK-74`
 - **Kabul kriterleri:**
-  1. `.github/ci-commands.env` Paketleme dışı adımların komutlarını taşır; Contract `NOT_APPLICABLE`'dır (`05 §2.3.5`, §8.3.8).
+  1. `.github/ci-commands.env` Paketleme ve E2E dışı adımların komutlarını taşır; Contract `NOT_APPLICABLE`'dır (`05 §2.3.5`, §8.3.8, §8.3.11).
   2. Lint komutu `dotnet format` doğrulamasını ve `Consistency` özellikli testleri koşar; Unit komutu o testleri dışarıda bırakır (`09 §21.4` madde 1; K-1356).
   3. Build komutu yayın yapılandırmasında uyarıları hata sayar, kilitli geri yükleme ve bilinen açık taraması koşar (`09 §3.2`, §21.4).
   4. Integration komutu gerçek PostgreSQL 18 hizmetine karşı koşar (`05 §2.3.6`).
@@ -261,13 +261,13 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   9. Dependabot açıktır; boş komut kapıyı geçmez (`05 §8.3.14`; `09 §21.4` madde 5).
 - **Test beklentisi:** Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: Paketleme dışı komutlar dolu; Contract değeri `NOT_APPLICABLE`.
+  - KK1: Paketleme ve E2E dışı komutlar dolu; Contract `NOT_APPLICABLE`.
   - KK2: `Consistency` testi yalnız Lint'te koşar; bozulan eşitlik Lint'i kırmızı, düzeltme yeşil yapar.
   - KK3: uyarılı ya da bilinen açıklı paketli örnek derleme düşer.
   - KK4: PostgreSQL hizmetli koşu yeşil.
   - KK5: yayın yokken atlama satırı var; önceki sürüm bölümü komutta yazılı; göçsüz model değişikliği adımı düşürür.
   - KK6: Paketleme ve yayın komutu boş; adım uyarıyla atlanır.
-  - KK7: yama etiketli, göç eklenmiş dalda yayın düşer; istisna mesajında geçer.
+  - KK7: göç eklenmiş yama etiketinde yayın düşer; istisnada ve ilk etikette geçer.
   - KK8: `publish.yml` merge ve etikette tetiklenir; yazma izni var.
   - KK9: Dependabot ayarı var; boş komutla `SETUP_COMPLETE=true` CI'ı düşürür.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -278,8 +278,8 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. `deploy/compose.yaml` dört hizmeti ve tek seferlik göç hizmetini tanımlar (`05 §3.2`, §8.2.4; `MK-14`).
   2. Ters vekil ile uygulama, uygulama ile veritabanı ayrı iç ağlardadır; ters vekil ve yedek aracı veritabanına ulaşamaz (`05 §3.2.5`).
-  3. Compose dışarıya yalnız 80 ve 443'ü yayımlar (`05 §3.2.3`, §8.9.3; `MK-08`).
-  4. Veritabanı ve yedek aracının dışarıya çıkışı `DOCKER-USER` zincirinde hedef adresli kuralla sınırlıdır (`05 §3.2.5`; `MK-76`).
+  3. Compose dışarıya yalnız 80 ve 443'ü yayımlar (`05 §3.2.3`, §8.9.3; `MK-08`, `MK-76`).
+  4. Veritabanı ve yedek aracının dışarıya çıkışı `DOCKER-USER` zincirinde hedef adresli kuralla sınırlıdır (`05 §3.2.5`; `MK-14`).
   5. Veri, dosya, kayıt, sertifika ve durum dosyası adlandırılmış bölümlerdedir; ters vekile yalnız görseller salt okuma bağlıdır (`05 §8.2.4`).
   6. `deploy/compose.dev.yaml` üstüne bindirilir; e-posta yakalayıcıyı ekler, gerçek e-posta sırrı taşımaz; ayrı imaj ya da veritabanı sürümü tanımlamaz (`09 §4.3` madde 2; `05 §8.1.2`).
   7. Her imaj etiket ve özetle sabittir; `latest` yoktur (`05 MK-10`; `09 §4.3` madde 4).
@@ -303,21 +303,21 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `09` §4 (§4.3), §17, §21; `05 §3.2`, §8.2, §8.3, §9.4.1; `05 MK-02`, `MK-09`…`MK-11`, `MK-69`
 - **Kabul kriterleri:**
   1. Uygulama imajı çok aşamalıdır, kök olmayan kullanıcıyla çalışır ve göç demetini taşır (`05 §8.2.1`; `MK-69`).
-  2. Veritabanı imajı resmî PostgreSQL 18 imajına pgBackRest ve gecelik tam yedeğin zamanlayıcısını ekler (`05 §8.2.2`; `09 §17` madde 1).
-  3. Yedek aracı imajı restic ikilisini SHA-256 özetiyle sabitler; özet tutmazsa derleme düşer (`09 §17` madde 6).
+  2. Veritabanı imajı resmî PostgreSQL 18 imajına pgBackRest ve gecelik tam yedeğin zamanlayıcısını ekler, işlem kesinleşme anını tutmayı açar (`05 §8.2.2`, §8.5.11 — bilgim tarihli, doğrulanır; `09 §17` madde 1).
+  3. Yedek aracı imajı zamanlayıcıyı taşır, restic ikilisini SHA-256 özetiyle sabitler; özet tutmazsa derleme düşer; restic'in lisansı ve sürümü doğrulanıp Kütüphaneler tablosuna yazılır (`09 §17` madde 6).
   4. Her derleme dosyası taban imajı etiket ve özetle sabitler; `latest` yoktur (`05 MK-10`; `09 §4.3` madde 4).
   5. Derleme bağlamı repo köküdür; Dockerfile `src/` altında değildir (`09 §4.3` madde 1).
-  6. Imajlara sır girmez; sırlar dosya olarak bağlanır (`09 §17` madde 2).
+  6. Imajlara sır girmez, kullanıcıları kök değildir; sırlar dosya olarak bağlanır (`09 §17` madde 2).
   7. Kayıt defteri GitHub Container Registry'dir; paket görünürlüğünün ilk yayından sonra açılışı adım olarak yazılıdır (`05 MK-11`, §8.2.5).
   8. CI Paketleme adımı üç imajı derler; uygulama konteyneri CI'ın PostgreSQL hizmetine bağlanır ve canlılık ucu 200 verene kadar ayağa kalkar (`05 §8.3.10`, §9.4.1); Paketleme ve yayın komutları burada girer, `publish.yml` imajları commit kimliğiyle, sürüm etiketinde sürüm numarasıyla yayımlar (`05 §8.3.12`; T04 kriter 6).
 - **Test beklentisi:** Yok — imaj tanımıdır; sınama CI Paketleme adımının derlemesi ve canlılık denemesidir (`05 §8.3.10`)
 - **Doğrulama kontrol listesi:**
   - KK1: uygulama imajı kullanıcısı kök değildir; demet imajdadır.
-  - KK2: veritabanı imajında pgBackRest ve zamanlayıcı bulunur.
-  - KK3: yanlış özetli ikili derlemeyi düşürür.
+  - KK2: veritabanı imajında pgBackRest ve zamanlayıcı bulunur; `track_commit_timestamp` açık.
+  - KK3: yanlış özetli ikili derlemeyi düşürür; tablodaki restic satırı doğrulanmış.
   - KK4: kaynak taraması `latest` bulmaz.
   - KK5: derleme komutu `-f deploy/images/<ad>/Dockerfile .` biçimindedir.
-  - KK6: sır değeri taraması temiz.
+  - KK6: sır değeri taraması temiz; üç imajda kullanıcı kök değil.
   - KK7: paket görünürlüğü adımı kayıtlı.
   - KK8: Paketleme adımı yeşil; konteynerin canlılık ucu 200 verir; ana dal merge'inde üç imaj commit adıyla yayımlanır.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -328,20 +328,20 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. İşlem günlüğü en geç dakikada bir nesne depolamaya taşınır; `archive_timeout` elli saniyedir (`05 §7.6.1`; `MK-25`).
   2. Gecelik tam yedek ve dosya yedeği imha işinden (03:00) önce biter (`05 §7.6.1`; `09 §17` madde 3).
-  3. Dosya yedeği görselleri, dijital ürün dosyalarını ve sistem kayıtlarını alır, ayar ve sır dosyalarını almaz (`05 §7.6.1`, §7.6.3); dört adımı `09 §17` madde 4 sırasıyla koşar, biri düşerse sonrakiler atlanır.
+  3. Dosya yedeği görselleri, dijital ürün dosyalarını ve sistem kayıtlarını alır, ayar ve sır dosyalarını almaz (`05 §7.6.1`, §7.6.3); dört adımı `09 §17` madde 4'e göre koşar.
   4. Yedek durum dosyası atomik yazılır; başarısız turda `lastSuccessAt` önceki değeri taşır (`09 §17` madde 5).
-  5. İki yedeğin ayrı şifreleme anahtarı vardır; iki yedek aynı kovada ayrı önektedir; kovada sürüm tutma ve otuz günlük yaşam döngüsü kuralı kurulur, kural yarıda kalan yüklemeleri de durdurur; her nesne depolama anahtarı yalnız kendi önekinde çalışır, eski sürümü ve kova ayarlarını silemez ya da değiştiremez (`05 §7.6.4`–§7.6.6; `MK-26`).
-  6. Otuz günden eski tam yedek ve günlükler silinir; sınırdan eski en yeni tam yedek tutulur (`05 §7.6.6`).
-  7. Kurtarma provası `DEPLOY_RUNBOOK` adımıdır: sunucu dışındaki depodan döner, dosya yedeğinden örnek geri alır ve yaşam döngüsü kuralının varlığını denetler; kaydı dönülen depoyu, süreyi ve dönülen son anı taşır; koşumu kurulumdadır (T601) (`05 §7.6.8`; `MK-27`).
+  5. İki yedeğin ayrı şifreleme anahtarı ve aynı kovada ayrı öneki vardır; kovada sürüm tutma ve otuz günlük yaşam döngüsü kuralı kurulur, kural yarıda kalan yüklemeleri de durdurur; her nesne depolama anahtarı yalnız kendi önekinde çalışır, güncel nesneyi siler (gereği D-01'de doğrulanır), eski sürümü ve kova ayarlarını silemez ya da değiştiremez (`05 §7.6.4`–§7.6.6; `MK-26`).
+  6. İki yedeğin saklaması otuz gündür; sınırdan eski en yeni tam yedek tutulur (`05 §7.6.6`).
+  7. Kurtarma provası `DEPLOY_RUNBOOK` adımıdır: sunucu dışındaki depodan döner, dosya yedeğinden örnek geri alır, depo bütünlüğünü veri okuyarak sınar ve yaşam döngüsü kuralının varlığını denetler; kaydı dönülen depoyu, süreyi ve son anı taşır; koşumu kurulumdadır (T601) (`05 §7.6.8`; `MK-27`).
 - **Test beklentisi:** Unit
 - **Doğrulama kontrol listesi:**
   - KK1: arşiv ayarı dosyada elli saniye.
-  - KK2: iki işin zamanlama saati imhadan önce biter.
-  - KK3: komut satırı testi: adımlar k3 sırasıyla çağrılır, düşen adımdan sonrakiler çağrılmaz; budama `--max-unused 0` ile; bağlı yollar kapsamla aynı, sır ve ayar dosyası yok.
+  - KK2: iki iş zamanlamayla imhadan önce biter.
+  - KK3: betik testi: adımlar k3 sırasıyla çağrılır, düşen adımdan sonrakiler çağrılmaz; budama `--max-unused 0` ile; bağlı yollar kapsamla aynı, sır ve ayar dosyası yok.
   - KK4: durum dosyası her sonuçta şemaya uyar; başarısız turda `lastSuccessAt` öncekini taşır, ilk koşuda boştur.
-  - KK5: anahtarlar ayrı sır dosyalarıdır; kova kuralı, anahtar yetkisi ve anahtarla eski sürüm silme ile önek dışına yazmanın reddi denemesi runbook adımıdır, kurulumda koşar.
-  - KK6: pgBackRest saklaması zaman tipli otuz gün, sayı tipli değil; kova kuralı yalnız eski sürümü siler.
-  - KK7: runbook prova adımı k7'nin üç denetimini, kayıt k7'nin üç alanını içerir.
+  - KK5: anahtarlar ayrı sır dosyalarıdır; kova kuralı, anahtar yetkisi, eski sürüm silmenin ve önek dışına yazmanın reddi runbook denemesidir, kurulumda koşar.
+  - KK6: pgBackRest ve restic saklaması zaman tipli otuz gün, sayı tipli değil; kova kuralı yalnız eski sürümü siler.
+  - KK7: runbook prova adımı k7'nin dört denetimini ve kaydın üç alanını içerir.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T08: Sır düzeni
@@ -350,7 +350,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. Sırlar bileşen başına ayrı dosyadadır, yalnız köke açık dizinde durur ve Compose sır tanımıyla yalnız ilgili konteynere bağlanır (`05 §6.x.1`; `MK-59`).
   2. Uygulama sırları dosyadan okur; ortam değişkenine konmaz (`05 §6.x.1`).
-  3. Her sırrın sahibi onu okuyan konteyner kullanıcısıdır (`05 §6.x.1`).
+  3. Her sırrın sahibi onu okuyan konteyner kullanıcısıdır ve dosyayı yalnız o okur (`05 §6.x.1`).
   4. Paylaşılan sır yoktur; her bileşen ve tek seferlik komut yalnız `05 §6.x.2` tablosundaki satırının (`§6.x.3`…`§6.x.7`, `§6.x.18`, `§6.x.19`) sırlarını alır (`05 §6.x.8`).
   5. Döndürme kuralları `05 §6.x.9` tablosunda yazılıdır; döndürülmeyen yalnız iki yedeğin şifreleme anahtarlarıdır (`05 §6.x.12`; `MK-60`).
   6. Repo yalnız `.env.example` şablonunu izler; sır değeri repoya ve kayda girmez (`05 §6.x.16`; `09 §18`).
@@ -358,7 +358,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Doğrulama kontrol listesi:**
   - KK1: Compose'ta her sır yalnız tablodaki satırının hizmetlerinde tanımlı; uygulama kullanıcısının parolası uygulamada ve komut hizmetinde, salt okuma parolası okuma komutunda, dönüş denetiminde ve bakım incelemesinde; şema sahibinin parolası yalnız göç hizmetinde; veritabanı üç kullanıcının (göç, uygulama, salt okuma) parolasını yalnız ilk kurulumda alır; sürekli çalışan uygulamada salt okuma parolası yok.
   - KK2: kaynak taraması ortam değişkeninden sır okuyan kod bulmaz.
-  - KK3: sır dosyası sahipliği konteyner kullanıcısıdır.
+  - KK3: sır dosyasının sahibi konteyner kullanıcısıdır, başka kullanıcı okuyamaz.
   - KK4: bileşen–sır eşlemesi tabloyla aynı.
   - KK5: döndürme tablosu ile `DEPLOY_RUNBOOK §B` uyumlu.
   - KK6: repoda sır değeri taraması temiz.
@@ -369,43 +369,43 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `09` §4, §17, §21; `05 §8.1`, §8.2; `05 MK-68`; `07 UC-81`; `10 §4.1`
 - **Kabul kriterleri:**
   1. İlk sürüm etiketi açıklamalı `vANA.ARA.YAMA` biçimindedir ve `publish.yml` imajları yayımlar (`05 §8.3.12`; `09 §21.4` madde 2, 4).
-  2. İlk yayında geri alma sınaması atlanır ve atlandığı CI çıktısında yazılıdır; yayından sonraki ilk CI koşusunda göç adımı son yayımlanan sürümün şemasına da uygular ve geri alma sınamasını koşar (`09 §21.4` madde 3; K-1358).
+  2. İlk yayından önceki CI koşularında geri alma sınaması atlanır ve atlandığı CI çıktısında yazılıdır; yayından sonraki ilk CI koşusunda göç adımı son yayımlanan sürümün şemasına da uygular ve geri alma sınamasını koşar (`09 §21.4` madde 3; K-1358).
   3. Üç imaj paketi ilk yayından sonra açık yapılır ve sunucu kimlik bilgisiz çeker (`05 §8.2.5`).
   4. Referans kuruluma ilk iniş yapılır; boş uygulama imajı canlılık ucuna 200 verir (`05 §8.1.4`; `MK-68`; `10 §4.1` ÖK-12; `07 UC-81`).
   5. Referans kurulumda denetlenen imajların özeti, güncelleme turunun kurulumlara çekeceği özet olarak kaydedilir (`05 §8.2.3`, §8.6.3).
-  6. Gerçek yapılandırmayla ayağa kaldırma provası sonucu `DEPLOY_RUNBOOK`'a yazılır (`05 §8.1.4`).
+  6. Gerçek yapılandırmayla ayağa kaldırma provası sonucu `DEPLOY_RUNBOOK`'a yazılır (`05 §8.1.4`); ardından `.github/ci-commands.env`'de `SETUP_COMPLETE=true` yapılır, CI kapısı yeşil kalır ve D-01 kapanır (`09 §21.4` madde 5; `SETUP.md` §4, §8).
 - **Test beklentisi:** Yok — yayın ve kurulum işlemidir; kanıt referans kurulumdaki canlılık yanıtı ve CI çıktısıdır
 - **Doğrulama kontrol listesi:**
   - KK1: etiket açıklamalı; kayıt defterinde imajlar var.
   - KK2: CI çıktısında atlama satırı; yayından sonraki koşuda atlama yok, iki uygulama ve geri alma sınaması koşar.
-  - KK3: sunucu imajı kimliksiz çeker.
+  - KK3: sunucu üç imajı da kimliksiz çeker.
   - KK4: referans kurulumda canlılık ucu 200.
   - KK5: kaydedilen özet kurulumdakiyle eşit.
-  - KK6: prova kaydı runbook'ta.
+  - KK6: prova kaydı runbook'ta; `SETUP_COMPLETE=true` iken CI kapısı yeşil; D-01 satırı kapalı.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T10: Veritabanı kullanıcıları
 - **Bağımlılık:** T06, T08, T03
-- **Dokümanlar:** çekirdek; `09` §10 (§10.6, §10.8), §17, §19; `05 §7.1.3`, §6.x; `05 §7.1`; `06 §2.8.3`
+- **Dokümanlar:** çekirdek; `09` §10 (§10.6, §10.8), §17, §19; `05 §6.x`, §7.1; `06 §2.8.3`
 - **Kabul kriterleri:**
   1. Kurucu betik, kurucu dışındaki dört kullanıcıyı kurar; dördünde `SUPERUSER`, `CREATEDB`, `CREATEROLE`, `REPLICATION`, `BYPASSRLS` yoktur (`09 §10.8` madde 1, §17 madde 1; `05 §6.x.6`).
   2. `pg_trgm` kurucu kullanıcıyla kurulur; veritabanı UTF-8 ve ICU Türkçe sıralamayla açılır (`05 §7.1.3`; `06 §2.8.3`).
   3. Uygulama kullanıcısı şema değiştiremez; göç kullanıcısının sonradan kurduğu tabloda varsayılan yetkiyle `SELECT`, `INSERT`, `UPDATE`, `DELETE` alır ve `pg_ls_archive_statusdir()`'i çağırabilir (`09 §10.8` madde 2); üç tablonun istisnası tabloyu kuran göçtedir (T106, T118; `09 §10.8` madde 3).
   4. Salt okuma kullanıcısı yeni tabloda yalnız `SELECT` alır; oturumu salt okumadır (`09 §10.8` madde 1, 2).
-  5. Yedek durum kullanıcısı varsayılan tablo yetkisi almaz (sütun yetkisi T118'de); `pg_hba.conf` genel `trust` satırı kaldırılır (`09 §10.8` madde 1, 2).
+  5. Yedek durum kullanıcısı varsayılan tablo yetkisi almaz (sütun yetkisi T118'de); `pg_hba.conf` genel `trust` satırı kaldırılır, durum satırı yalnız onu ve veritabanını anar (`09 §10.8` madde 1, 2).
   6. Adlar göç kullanıcısının üç rol ayarındadır; test şablonu bu ayarla göç kullanıcısıyla kurulur (`09 §10.8` madde 5, §19.1 madde 4).
   7. `PUBLIC`'ten veritabanı ve şema yetkisi alınır; yetki matrisi testi `public` şemasındaki her tabloyu karşılaştırır; göç geçmişi tablosunun kapalılık beklentisini ilk göçle T103 ekler (`09 §10.8` madde 1, 3, 7).
   8. Hiçbir bileşen ağdan kurucu kullanıcıyla bağlanmaz (`05 §7.1.3`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: `rolsuper` ve yaratma bayrakları betiğin kurduğu dört rolde yanlış.
+  - KK1: k1'in beş bayrağı (`pg_roles`) betiğin kurduğu dört rolde yanlış.
   - KK2: `pg_trgm` ve sıralama ayarı kurulumda var.
-  - KK3: uygulama kullanıcısı `CREATE TABLE`'da reddedilir; göç kullanıcısının kurduğu deneme tablosunda dört deyim çalışır; `pg_ls_archive_statusdir()` çağrısı çalışır.
-  - KK4: okuyucu deneme tablosunda `SELECT` yapar, `INSERT`'te reddedilir.
-  - KK5: durum kullanıcısı deneme tablosunda `SELECT` ve `UPDATE`'te reddedilir; genel `trust` satırı yoktur.
+  - KK3: uygulama kullanıcısı `CREATE TABLE`'da reddedilir; göç kullanıcısının deneme tablosunda dört deyim ve `pg_ls_archive_statusdir()` çalışır.
+  - KK4: okuyucu deneme tablosunda `SELECT` yapar, `INSERT`'te reddedilir; oturumu salt okumadır.
+  - KK5: durum kullanıcısı deneme tablosunda `SELECT` ve `UPDATE`'te reddedilir; `pg_hba.conf` k5'e uyar.
   - KK6: şablonda göç kullanıcısının üç ayarı kullanıcı adlarıdır.
   - KK7: matris testi istisna dışı fazlalıkta kırılır; `PUBLIC`'in veritabanı ve şema yetkisi yoktur.
-  - KK8: ağdan kurucu bağlantısı reddedilir (Compose denemesi).
+  - KK8: hiçbir bileşenin bağlantı kullanıcısı kurucu değil.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 ### F1 — Veri katmanı
@@ -431,9 +431,9 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: örnek tablonun kısıt adları kuraldan türer.
   - KK4: tür eşlemesi tabloyla eşit.
   - KK5: eski sürümle güncelleme sıfır satır etkiler.
-  - KK6: `I`, `İ`, `ı`, `i` aynı normal biçime iner.
+  - KK6: `I`, `İ`, `ı`, `i` aynı normal biçime iner; baştaki ve sondaki boşluk atılır.
   - KK7: model testi `DataProtectionKey` dışında her varlıkta `created_at` bulur; boş metin kaydedilmez, `NULL` kaydedilir.
-  - KK8: model testi her bağda `Cascade`, `SetNull` ya da `NoAction` bulur; `pg_constraint`'te `r` yoktur (`09 §10.1` madde 5).
+  - KK8: model testi her bağda `Cascade`, `SetNull` ya da `NoAction` bulur; `Cascade` kümesi `06 §2.2.5`'in basamaklı satırına eşittir; `pg_constraint`'te `r` yoktur (`09 §10.1` madde 5).
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T102: Enum tanımları ve değer dönüşümü
@@ -598,7 +598,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   2. `Cart` müşteri ya da misafir anahtarı özetinden tam birini taşır; ikisi ayrı tekildir (`06 §4.15`).
   3. `CartItem` (`CartId`, `VariantId`) tekildir; varyant bağı boşsa kaldırılan ürün adı doludur (`06 §4.16`).
   4. `Order` numara, erişim anahtarı ve onay anahtarında ayrı ayrı tekildir; iki eksenin yasak çiftleri ve Kısıtlar maddesinin öteki kontrol kısıtları — imhanın birlikte boşalttığı alanlar, silinmiş hesapta boş hesap bağı, ödeme yöntemi–IBAN dahil — kurulur (`06 §4.17`).
-  5. `OrderItem` adet, fiyat, indirim, KDV ve kupon payı kısıtlarını ve tipe göre alan kısıtlarını — indirme sayacı hakkı aşmaz dahil — taşır (`06 §4.18`).
+  5. `OrderItem` Kısıtlar maddesinin bütün kontrol kısıtlarını taşır — tipe göre alanlar ve hakkı aşmayan indirme sayacı dahil (`06 §4.18`).
   6. `TransitionRecord` neden alanlarından en çok birini taşır; düzeltme alanları düzeltme satırında ve yalnız onda doludur (`06 §4.19`).
   7. `InternalNote` siparişte tekildir; `CheckboxAcceptance` (`OrderId`, tür) tekildir (`06 §4.20`, §4.21).
   8. Sipariş ve kalem silinmez; bağlar kısıtlayıcı, hesap ve yönetici bağı ile kalemin ürün ve varyant bağı boşaltılır (`06 §4.17`…§4.19); üyenin sepeti hesapla, kalemi sepetle basamaklanır (`06 §4.15`, §4.16).
@@ -646,7 +646,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   4. `Return` cayma, gecikme feshi ve ayıp talebi bağlarından en çok birini taşır (`06 §4.26`).
   5. `DefectClaim` kalem başına tekildir; `Withdrawal` ve `DefectClaim`'da iade adresinin dört alanı birlikte dolu ya da boştur (`06 §4.25`, `§4.30`).
   6. `RefundIban` biçim kısıtını taşır; IBAN olayla silinir (`06 §4.31`).
-  7. Kalem kayıtları silinmez; kalem bağı kısıtlayıcı, yönetici, IBAN ve ayıp talebi bağı boşaltılır (`06 §4.22`…§4.26, §4.28); `DefectClaim` süreyle silinir (`06 §4.30`).
+  7. Kalem kayıtları silinmez; yönetici, IBAN ve ayıp talebi bağı boşaltılır, öteki bağlar kısıtlayıcıdır (`06 §4.22`…§4.26, §4.28); `DefectClaim` süreyle silinir (`06 §4.30`).
   8. Göç tek konudur; `Down` yoktur (`09 §10.6`).
 - **Test beklentisi:** Integration
 - **Doğrulama kontrol listesi:**
@@ -669,7 +669,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   3. `Refund` türe göre bağları taşır; kapanış bağı yalnız tutar temelli türde dolu olabilir; tutar ve adet sıfırdan büyüktür; kargo ücreti işareti yalnız iptal, çıkarma, fesih ve cayma türlerinde doğru olabilir ve siparişin geçersizleşmemiş en çok bir geri ödemesinde doğrudur ve ödeme kaydı bağı tekildir (iki filtreli tekil dizin); gönderim ile geçersizleşme anından en çok biri doludur (`06 §4.33`).
   4. `RefundRecord` sonuç anını başarılı ya da gerçekleşmedi hâlinde ve yalnız o zaman taşır; firma işareti hâli gerçekleşmedi yapar; geri ödeme başına en çok bir açık ve bir başarılı istek vardır (iki filtreli tekil dizin) (`06 §4.34`).
   5. `InboundNotificationRecord` bildirim kimliği ya da işlem kimliğinden en az birini taşır; iki filtreli tekil dizin bildirimin tekrarını engeller (`06 §4.35`).
-  6. Tutar sütunları `numeric(12,2)` türündedir (`06 §2.5.1`).
+  6. Tutar sütunları `numeric(12,2)` türündedir (`06 §2.5.1`); bildirim kaydı süreyle silinir, ötekiler silinmez; geri ödemenin ayıp talebi ve yönetici bağı boşaltılır, öteki bağlar kısıtlayıcıdır (`06 §4.32`…§4.35).
   7. Göç tek konudur; `Down` yoktur (`09 §10.6`).
 - **Test beklentisi:** Integration
 - **Doğrulama kontrol listesi:**
@@ -678,7 +678,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: tutar temelsiz türde kapanış bağı dolu satır reddedilir; siparişte ikinci kargo ücretli geri ödeme ve kargo ücretli tutar temelli geri ödeme reddedilir; aynı ödeme kaydına ikinci geri ödeme ve gönderim ile geçersizleşme anı birlikte dolu satır reddedilir.
   - KK4: bekleyen hâlde sonuç anı dolu, başarılı hâlde boş satır reddedilir; aynı geri ödemeye ikinci açık istek reddedilir.
   - KK5: kimliksiz bildirim satırı reddedilir; aynı bildirim ikinci kez reddedilir.
-  - KK6: tutar sütunu türü tabloyla eşit.
+  - KK6: tutar sütunu türü tabloyla eşit; ayıp talebi silinince geri ödemenin talep bağı boşalır.
   - KK7: kaynak taraması temiz.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -736,7 +736,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. Dört entity `06 §4.50`, `§4.53`, `§4.57` alan tablolarıyla tek göçle kurulur.
   2. `Branch` ve `ContactRequest` telefonu on rakamdır (`06 §4.50`, §4.57).
-  3. `Branch` görseli yoksa görsel alt metni boştur (`06 §4.50`).
+  3. `Branch` görseli yoksa görsel alt metni boştur; yayın durumu yalnız taslak ya da yayımlanmış değerini alır, elle sıra tekil değildir, il ve görsel bağı kısıtlayıcıdır (`06 §4.50`).
   4. İki içerik–ürün bağı (içerik, `ProductId`) çiftinde tekildir (`06 §4.53`).
   5. İçerik–ürün bağı ürün ve içerik kaydıyla basamaklanır (`06 §2.2.5`).
   6. Kapalı iletişim talebinde son kapanış anı doludur (`06 §4.57`).
@@ -745,7 +745,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Doğrulama kontrol listesi:**
   - KK1: göç boş veritabanına uygulanır, dört tablo.
   - KK2: dokuz haneli telefon reddedilir.
-  - KK3: görselsiz şubede alt metin dolu satır reddedilir.
+  - KK3: görselsiz şubede alt metin dolu satır reddedilir; aynı sıra değerli iki şube kaydedilir; şubeye bağlı görselin silinmesi reddedilir.
   - KK4: aynı ürünü ikinci kez bağlamak reddedilir.
   - KK5: ürün silmede bağ gider.
   - KK6: kapalı ve kapanış anı boş talep reddedilir.
@@ -872,11 +872,11 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T221, T226
 - **Dokümanlar:** çekirdek; `09` §3 (§3.5), §9; `06 §9.1`, §9.4, §9.5; `02 §4.2` Z-36, Z-44; `03 §4.1`; `05 MK-22`, `MK-23`, `MK-65`, §5.2, §7.4, §7.5, §9.2; `10` KP-74, KD-56
 - **Kabul kriterleri:**
-  1. İmha işi her gece Türkiye saatiyle 03:00'te çalışır ve süre envanterini sırayla işler; imha parçaları F3'tedir (T301, T302) (`05 §7.4.1`; MK-22).
+  1. İmha işi her gece Türkiye saatiyle 03:00'te süre envanterini sırayla işler; parçalar T301, T302'dedir (`05 §7.4.1`; MK-22).
   2. Süre kaydın başlangıç değerinden bugüne hesaplanır; kaçırılan gece sonraki çalışmada telafi edilir (`06 §9.1.1`).
   3. Süre değerleri `02 §11.2`'nin P sabitiyse yalnız `ProductConstants`'ta, yasal süreyse kendi evinde tanımlıdır; imha işinde ve süre tablosunda yinelenmez, istisnalar `06 §9.1.2`'dedir (`09 §3.5` madde 1).
   4. Silme fiziksel silmedir; "silindi" işaretli satır ve arşiv tablosu yoktur (`05 §7.4.3`; `06 §9.5.1`).
-  5. Tablodan silmede imha kaydı silmeyle aynı işlemde yazılır (`06 §9.4.1`).
+  5. Anlık silmelerden yalnız Z-44 listesindekiler imha kaydı yazar, silmenin işleminde (`06 §9.4.1`, §9.4.2).
   6. Gecelik temizlik aynı çalışmadadır; kişisel veri taşıyan satırın silinmesi ve kişisel alanlarının boşaltılması imha kaydına tür ve sayıyla yazılır (`06 §9.4.3`).
   7. Kalıcı kayıtlar ile sipariş tarafının ticari kayıtları süreyle silinmez; "başarısız" iş satırı temizlikte silinmez (`06 §9.1.4`, §9.4.4).
   8. İşlem izi satırını yalnız veritabanındaki imha fonksiyonu siler (`05 §7.5.1`).
@@ -948,12 +948,12 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T204: Dış servis çökmesi davranışı ve sahtelerle sınama
 - **Bağımlılık:** T203, T220
-- **Dokümanlar:** çekirdek; `09` §19 (§19.1); `08 §3.1`, §3.3; `03 §10.1`; `05 §4.4`, §10.1
+- **Dokümanlar:** çekirdek; `09` §19 (§19.1); `08 §3.1`, §3.3; `03 §10.1`; `05 §4.4`, §10.1, §10.2
 - **Kabul kriterleri:**
   1. Sahte sağlayıcı zaman aşımı, bağlantı hatası ve beklenmeyen yanıt üretebilir; gerçek servise çağrı yapılmaz (`09 §19.1`).
   2. Ödemeyi başlatmanın bağlantı hatasında ve 15 sn zaman aşımında "bağlantı hatası", ikinci jeton reddinde ayrı sonuç döner (`08 §3.1`, §2.1.8, §3.3).
   3. Son sorgu yanıtsızlığı "sonucu bilinmeyen" döner; katman siparişe dokunmaz (`08 §3.1` kural 3–4).
-  4. E-posta gönderimi alıcı hatasını kanal hatasından ayırır; kanal hatası da alıcı hatası da ilk denemeden 5 dk, 30 dk ve 2 saat sonraki deneme anlarını kurar; yeniden denenmeyen sınır aşımı T385'tedir (`08 §3.3`, §2.2.2; `05 §4.4.3`).
+  4. E-posta gönderimi alıcı hatasını kanal hatasından ayırır; kanal hatası da alıcı hatası da ilk denemeden 5 dk, 30 dk ve 2 saat sonraki deneme anlarını kurar; her denemenin sonucu kanal hâline yazılır: kanal hatası diziyi sayar, başarılı gönderim sıfırlar, alıcı hatası ne sayar ne bozar; yeniden denenmeyen sınır aşımı T385'tedir (`08 §3.3`, §2.2.2; `05 §4.4.3`, §10.2.3).
   5. Daha uzun kesintide satır "ulaşmadı" olur; toplu yeniden gönderim yoktur (`08 §3.3`).
   6. Google çağrısı yanıtsızsa giriş ve kayıt `SocialLoginFailed`, yeniden doğrulama `SocialReauthenticationUnavailable` sonucunu alır; yeniden deneme yoktur (`08 §2.3` hata tablosu, §3.1).
   7. Hiçbir süre e-postaya ya da Google'a bağlı değildir; ödeme süresi işler, son sorgu yanıtsızsa iptal ertelenir; kesinti süre saymayı durdurmaz (`08 §3.3`).
@@ -963,11 +963,11 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK1: sahteler üç hata türünü üretir.
   - KK2: iki ödeme sonucu ayrı sınıfta; başlatmada zaman aşımı "bağlantı hatası" döner.
   - KK3: yanıtsız sorguda sipariş satırı değişmez.
-  - KK4: deneme anları ilk denemeden 5 dk, 30 dk, 2 saat; alıcı hatasında da.
+  - KK4: deneme anları ilk denemeden 5 dk, 30 dk, 2 saat; alıcı hatasında da; kanal hâli kanal hatasında artar, başarıda sıfırlanır, alıcı hatasında değişmez.
   - KK5: son denemeden sonra "ulaşmadı".
   - KK6: yanıtsız sahte Google'da giriş `SocialLoginFailed`, yeniden doğrulama `SocialReauthenticationUnavailable` alır.
   - KK7: sahte kesintide süre ilerler.
-  - KK8: kesintide e-posta satırı üretilmez.
+  - KK8: kesintinin kendisi için müşteriye e-posta satırı üretilmez; olağan geçişlerin satırları etkilenmez.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T205: Açılışta veritabanı fail-fast denetimi
@@ -1001,7 +1001,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   3. Sipariş sayfasının iki kökü vardır: üyenin numara kökü ve erişim anahtarlı kök; bu task iki kökün yol kalıbını kurar, sayfalar T511'dedir (`07 §2.1.3`).
   4. Panel `/panel` yol alanındadır; vitrinde iç anahtar yola girmez, forma ya da sorguya girer (`07 §2.1.5`, §2.1.6).
   5. Gelen yol harf büyüklüğüne ve sondaki eğik çizgiye duyarsız eşlenir, yönlendirme yapılmaz; anahtar değerleri harf duyarlıdır (`07 §2.1.7`).
-  6. Bir ekran bir Razor sayfasıdır; her POST adlandırılmış işleyicidir ve `handler` parametresiyle gelir (`07 §2.2`, §2.2.1).
+  6. Bir ekran bir Razor sayfasıdır; sayfanın her POST'u adlandırılmış işleyicidir ve `handler` parametresiyle gelir (`07 §2.2`, §2.2.1).
   7. Yazan başarılı POST 303 ile GET'e yönlendirir, dışa aktarma 200 ve CSV'dir; yazmayan POST yönlendirmez, sayfayı değerlerle yeniden gösterir — sebebi yönlendirmeyle söyleyen ret ve kapanmış oturum 303'tür (`07 §2.2.2`, §2.7.1).
   8. GET hiçbir kaydı değiştirmez; istisnalar kapalı listedir (`07 §2.2.5`).
   9. Değişen statik dosya yeni adres alır; dışarıya açık sürümlü API yoktur (`07 §2.10.1`, §2.10.3).
@@ -1108,7 +1108,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   6. Alt fiyat üst fiyattan büyükse fiyat süzgeci uygulanmaz ve alan mesajı çıkar (`07 §2.6.3`).
   7. Boş ya da yalnız boşluktan oluşan arama sözcüğü sonuç listesi üretmez (`07 §2.6.3`).
   8. `page` dışında parametre taşıyan vitrin listesi ve arama sayfası kapalıdır: kalıp bu işareti sayfa modeline koyar, `noindex` etiketini basan kalıp T219'undur (`07 §2.6.7`; `05 §3.7.4`).
-  9. Panel listesinden kayda bağlantı `returnUrl` taşır; değer yerel yol denetiminden geçer (`07 §2.6.8`).
+  9. Panel listesinden kayda bağlantı listenin adresini `returnUrl`'de taşır; kaydın "listeye dön"ü ve kayıttan sonraki yönlendirme onu kullanır; her uç değeri okuduğu yerde yerel yol denetiminden geçirir, geçmeyen ya da olmayan değerde dönüş listenin köküdür (`07 §2.6.8`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: sorgu modeli alan adı parametre adıyla bağlanır.
@@ -1119,7 +1119,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK6: ters fiyat aralığında mesaj var, süzgeç yok.
   - KK7: boşluk arama sözcüğü boş sonuç değil, boş arama ekranı.
   - KK8: `?minPrice=1` listesinin sayfa modeli kapalı işaretli, yalnız `page` taşıyan liste değil; etiketin HTML'de görünmesi T219 KK8'dedir.
-  - KK9: `returnUrl` dış adresi listeye döndürmez.
+  - KK9: dış adresli, ağ yollu ya da boş `returnUrl`'de "listeye dön" ve kayıttan sonraki yönlendirme listenin köküne gider; geçerli değer bırakılan sayfayı ve süzgeci verir.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T211: Model bağlama kalıbı
@@ -1166,7 +1166,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: iş kuralı reddinde 422 ve değerler korunur.
   - KK4: çakışma 409; açık adet ve anahtar tutmamasının 303'ü T512, T513 ve T535'in KK'larında sınanır.
   - KK5: limit aşımının 429'u T215 KK5–KK6'da sınanır.
-  - KK6: makine ucu yanıtları gövdesiz; canlılık ve durum `no-store` taşır.
+  - KK6: canlılık ve durum gövdesiz ve `no-store`; ortak 429 ve 413 makine ucunda gövdesiz; bildirimin 200'ü gövdesiz sayılmaz, düz metin `OK`'tur (T311 madde 3).
   - KK7: kaçan istisna tek katmanda yakalanır.
   - KK8: belirsiz sonuç 303'tür.
   - KK9: silinmiş görselle kayıt 422.
@@ -1174,45 +1174,45 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T213: Hata kodu kayıt defteri
 - **Bağımlılık:** T212
-- **Dokümanlar:** çekirdek; `09` §5, §8, §18 (§18.2); `07 §6.1`, §6.2
+- **Dokümanlar:** çekirdek; `09` §5, §8, §12, §18 (§18.2); `07 §6.1`, §6.2
 - **Kabul kriterleri:**
-  1. Kod İngilizce PascalCase bir addır, uygulamada tekildir ve bir kez verilen kod değişmez (`07 §6.1.1`).
-  2. `07 §6.2`'nin kodları (ortak yanıtlar, alan doğrulaması ve uç tabloları) tek kayıt defterindedir ve `06 §5`'in kapalı değerlerinin biçimindedir (`07 §6.1.1`, §6.2).
+  1. Kod İngilizce PascalCase bir addır, uygulamada tekildir ve bir kez verilen kod değişmez; `ErrorCode` T102'nin kilit dosyası testine eklenir (`07 §6.1.1`; `09 §12` madde 3).
+  2. `07 §6.2`'nin kodları (ortak yanıtlar, alan doğrulaması ve uç tabloları) tek kayıt defterindedir — `07 §6.4.2`'nin yalnız kayıtta yazılan `OutcomeUncertain` kodu dahil — ve `06 §5`'in kapalı değerlerinin biçimindedir (`07 §6.1.1`, §6.2, §6.4.2; `09 §8.2` madde 1).
   3. Aynı hâl birden çok uçta dönüyorsa kod tektir (`07 §6.1.1`).
   4. Her kodun HTTP durumu `07 §2.7.1`'in değeridir (`07 §6.1.2`).
   5. Alan doğrulaması kural türü başına koddur; formun alanına özgü kural — stok kodunun tekilliği gibi — kendi kodudur ve ilgili uç tablosunda durur (`07 §6.1.3`; K-1198 (2)).
   6. Kod yanıtın gövdesinde ve başlığında taşınmaz (`07 §2.7.3`).
   7. `02 §6`'nın her satırı bir kodun anlamında ya da hata yanıtı doğurmayan satırlar tablosunda geçer (`07 §6.1.5`).
-  8. Red satırı yalnız red olan istek için yazılır; kod uygulama kaydına yalnız bu satırda yazılır (`09 §18.2` madde 4; satır biçimi T230).
+  8. Red satırı yalnız red olan istek için yazılır; kod yanıta değil uygulama kaydına yazılır; red satırının dışında kodu yalnız `09 §8.1`'in beklenmeyen hata ve sonucu belirsiz hâl satırları taşır (`09 §18.2` madde 4, §8.1 madde 3, §8.2 madde 3; satır biçimi T230).
 - **Test beklentisi:** Unit
 - **Doğrulama kontrol listesi:**
-  - KK1: kod adı kalıp testinden geçer; yinelenen ad yok.
-  - KK2: tek kayıt defteri sınıfı var; `07 §6.2` tablolarındaki her kod içinde.
+  - KK1: kod adı kalıp testinden geçer; yinelenen ad yok; `ErrorCode`'un kilit dosyası iki yönlü eşittir.
+  - KK2: tek kayıt defteri sınıfı var; `07 §6.2` tablolarındaki her kod ve `OutcomeUncertain` içinde.
   - KK3: iki uçta dönen hâl aynı koda gider.
   - KK4: durum sütunu `07 §2.7.1` ile uyumlu.
   - KK5: kural türü başına tek kod var; forma özgü kural kendi kodunu taşır.
   - KK6: yanıt gövdesi testinde kod görünmez.
   - KK7: `02 §6` kapsama betiği temiz.
-  - KK8: red dışı satırda kod alanı yok; alan doğrulama reddi tek satır, `fields` dizisiyle.
+  - KK8: başarılı istek satır üretmez; red, beklenmeyen hata ve sonucu belirsiz hâl dışındaki satırda kod alanı yok; alan doğrulama reddi tek satır, `fields` dizisiyle.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T214: Kısa süreli bildirim kodları
 - **Bağımlılık:** T213
-- **Dokümanlar:** çekirdek; `09` §8; `07 §2.2.3`, §6.1.1, §6.3
+- **Dokümanlar:** çekirdek; `09` §8, §12; `07 §2.2.3`, §6.1.1, §6.3
 - **Kabul kriterleri:**
   1. `notice` parametresinin kapalı listesi vardır; listenin dışındaki değer yok sayılır (`07 §6.3`).
   2. Kod yönlendirme adresinde taşınır; serbest metin ve kişisel veri taşımaz (`07 §2.2.3`, §6.3).
   3. Bildirim için yeni çerez ve sunucuda geçici kayıt açılmaz (`07 §2.2.3`).
-  4. Kısa süreli bildirim ile sonuç hâli ayrı listelerdir; sonuç hâli formun yerinde kalıcıdır (`07 §6.3.2`).
-  5. Kodun biçimi `07 §6.1.1`'inkidir (`07 §6.3`).
+  4. Kısa süreli bildirim, sonuç hâli ve müşterinin işlem ekranından sipariş sayfasına dönüşün sebebi ayrı listelerdir; sonuç hâli formun yerinde kalıcıdır, sebebi sipariş sayfası işlemin yerinde söyler (`07 §6.1.4`, §6.3.2, §6.3.3; T512, T513).
+  5. Kodun biçimi `07 §6.1.1`'inkidir; `NoticeCode` T102'nin kilit dosyası testine eklenir (`07 §6.3`; `09 §12` madde 3).
   6. Başarılı kayıt `Saved`, sepete ekleme `CartItemAdded`, davet `InvitationSent`, talebin kapanması ve yeniden açılması `ContactRequestClosed` ve `ContactRequestReopened` koduyla yönlendirir (`07 §6.3.1`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: listede olmayan kod ekranda görünmez.
   - KK2: adreste serbest metin kabul edilmez.
   - KK3: yanıtta ek çerez yok.
-  - KK4: sonuç hâli sayfa yenilenince kaybolmaz, bildirim yinelenebilir.
-  - KK5: kod adları kalıp testinden geçer.
+  - KK4: sonuç hâli sayfa yenilenince kaybolmaz, bildirim yinelenebilir; `07 §6.3.3`'ün sebep kodları da `notice` listesindedir.
+  - KK5: kod adları kalıp testinden geçer; `NoticeCode`'un kilit dosyası iki yönlü eşittir.
   - KK6: `07 §6.3.1`'in beş kodu tablodaki uçtan tablodaki hedefe yönlendirir.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -1244,7 +1244,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T215
 - **Dokümanlar:** çekirdek; `09` §7; `07 §2.9`; `04 §8.1`, §8.2; `02 §4.1.1`, §12.1; `10 KD-20`
 - **Kabul kriterleri:**
-  1. Sayfanın gösterdiği tarih, saat, sayı, yüzde, tutar, süre, telefon ve IBAN vitrinde ve panelde aynı Türkçe biçimdedir; dil seçimi yoktur ve tarayıcının dil ayarı arayüzü ve biçimi değiştirmez (`07 §2.9.1`; `04 §8.1.1`; `10 KD-20`; K-824).
+  1. Sayfanın gösterdiği tarih, saat, sayı, yüzde, tutar, süre, telefon ve IBAN vitrinde ve panelde aynı Türkçe biçimdedir; dil seçimi yoktur ve tarayıcının dil ayarı arayüzü ve sayfanın ürettiği biçimi değiştirmez, tarih alanının tarayıcı denetimindeki görünümü kalan risktir (`07 §2.9.1`, §2.9.9; `04 §8.1.1`; `10 KD-20`; K-824).
   2. İstek saat taşımaz; tarih alanı Türkiye saatiyle o gündür; saat dilimi yazılmaz (`07 §2.9.2`).
   3. Tarih alanı istekte `yyyy-AA-GG` biçiminde gelir (`07 §2.9.3`).
   4. Tutar ve ondalıklı sayı metin alanıdır; ondalık ayırıcı virgüldür ve sunucu Türkçe kültürle ayrıştırır; kabul edilen biçim yalnız rakamlar ve en çok bir virgüldür — nokta, boşluk, "TL" ya da işaret taşıyan değer ayrıştırılamaz, `12.50` 1250 olmaz (`07 §2.9.4`; `09 §7.2` madde 3).
@@ -1470,7 +1470,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T230
 - **Dokümanlar:** çekirdek; `09` §18; `05 MK-64`, `MK-65`, §9.1, §9.2; `10 KP-74`
 - **Kabul kriterleri:**
-  1. Sistem kayıtları üç kaynaktır ve sunucu diskinde günlük dosyalarda durur (`05 §9.1.1`; MK-64); uygulama kaydının yazıcıları, biçimleyicisi ve düzey ayarı T230'dadır, bu task üç kaynağın davranışını T230'un kurduğu yazıcılar üzerinde sınar.
+  1. Sistem kayıtları üç kaynaktır ve sunucu diskinde günlük dosyalarda durur (`05 §9.1.1`; MK-64); uygulama kaydının yazıcıları, biçimleyicisi ve düzey ayarı T230'dadır, bu task uygulama kaydının davranışını T230'un yazıcıları üzerinde sınar; erişim kaydını ters vekil, sunucunun kayıtlarını işletim sistemi, konteyner çalıştırıcısı, veritabanı ve yedek aracı yazar, ayarları `DEPLOY_RUNBOOK`'tadır ve kurulumda denetlenir (`05 §9.1.5`, §9.2.2).
   2. Her isteğe bir istek kimliği verilir ve kayıt satırları onu taşır (`05 §9.1`; `09 §18.2`).
   3. Şifre, anahtar, sır, kart verisi, IBAN, e-posta, adres, telefon, form gövdesi ve çerez değeri hiçbir kayda, hiçbir düzeyde yazılmaz (`05 §9.1.5`; §6.8.3).
   4. Kayıt düzeyi tasarım değeridir ve ayar dosyasında değişir; çatı kategorileri uyarıda kalır (`05 §9.1.6`; `09 §18.1` madde 4).
@@ -1479,11 +1479,11 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   7. Ayrı metrik toplama ve gösterge panosu yoktur (`05 §9.1.7`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: üç kaynak ayrı dosyaya yazar.
+  - KK1: uygulama kaydı erişim kaydından ve sunucunun kayıtlarından ayrı günlük dosyada; o ikisi bu task'ta sınanmaz, kurulumda denetlenir.
   - KK2: aynı isteğin satırlarında aynı istek kimliği.
   - KK3: örnek satırlarda yasaklı alan yok.
   - KK4: düzey ayarı uygulama kategorisini değiştirir, çatıyı değiştirmez.
-  - KK5: süresi dolmamış dosya silinmez.
+  - KK5: süresi dolmamış kayıt dosyası gün dönümünde ve uygulama yeniden başlayınca diskte kalır; imha işinin silmesi T201 KK9'dadır.
   - KK6: blokta kayıt dosyası silen kod ve imha kaydı satırı yok; ikisi T201 KK9'da sınanır.
   - KK7: metrik paketi bağımlılıkta yok.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -1497,7 +1497,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   3. Sır olmayan ayar tek dosyada, sırlar ayrı yerde durur (`05 §8.4.3`, §8.4.7).
   4. Açılışta bütün ayarlar doğrulanır; zorunlu ayar eksik ya da biçimsizse uygulama açılmaz ve eksik ayarı adıyla kaydeder; koşullu ayar (ödeme sağlayıcısının anahtarları, Google uygulaması) eksikse uygulama açılır, ilgili hat kapalıdır ve bu hâl açılışta kayda yazılır; durum komutundaki gösterimi T389 madde 6'dadır; kayıt satırı `ILogger<T>` iledir, dosyaya inişi T230'dadır (`05 §8.4.6`; `09 §3.5` madde 2, §18.1 madde 1).
   5. Zorunlu ayarlar: alan adı, gönderen adresi, e-posta gönderim kimliği, veritabanı bağlantısı, türetme sırrı (`05 §8.4.6`).
-  6. Tasarım değerleri referans sunucu ölçüsünde geçerlidir ve sistem onları uygulamaz (`05 §11.1.1`; `10 §4.2` SK-5).
+  6. Yanıt süresi ve eşzamanlı ziyaretçi tasarım değerleri referans sunucu ölçüsünde geçerlidir; sistem onları ve SK-5'in hacim kabullerini uygulamaz (`05 §11.1.1`…§11.1.3; `10 §4.2` SK-5).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: aynı değer iki yerde tanımlı değil.
@@ -1505,7 +1505,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: sır ayar dosyasında yok.
   - KK4: zorunlu ayar eksik ya da biçimsizken uygulama açılmaz; koşullu ayar eksikken uygulama açılır, ilgili hat kapalıdır ve açılış kaydı bunu yazar.
   - KK5: hata iletisi eksik ayarın adını taşır, değerini taşımaz.
-  - KK6: tasarım değeri aşımı çalışmayı durdurmaz.
+  - KK6: yanıt süresi, eşzamanlı ziyaretçi ya da hacim kabulünün aşımı çalışmayı durdurmaz.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T227: Zaman ve para
@@ -1536,7 +1536,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. Kayıt sürüm taşır; yazma yalnız sürüm aynıysa olur ve sürümü artırır — tek koşullu güncelleme, arada okuma yok (`05 §7.3.1`; MK-20).
   2. Kayıt varyantında kilit yoktur; ürünün sürümü varyantların değişikliğini de kapsar, ama stok ve kontenjan alanı ve sistemin stok ve kontenjan hareketleri (ayırma, kesin düşme, dönüş) ürünün sürümünü artırmaz (`05 §7.3.1`; K-980).
-  3. Sipariş sürümü siparişin, kalemlerinin, kalem kayıtlarının ve bağlı müşteri girdilerinin her değişikliğinde artar; artırmayan sistem yazımları kapalı listedir (`05 §7.3.2`; `06 §2.6.4`).
+  3. Sipariş sürümü siparişin, kalemlerinin, kalem kayıtlarının, ödeme kaydının, geri ödemenin, geri ödeme kaydının hâlinin ve bağlı müşteri girdilerinin her değişikliğinde artar; artırmayan sistem yazımları kapalı listedir (`05 §7.3.2`; `06 §2.6.4`).
   4. Her sipariş işlemi siparişin satırını kısa kilitle alır; yöneticinin işlemi gördüğü sürümü karşılaştırır, sürüm değişmişse uygulanmaz; müşterinin işlemi ve sistemin geçişi koşulu o anki hâle karşı denetler; kalem iptali ve cayma ayrıca gösterilen açık adedi karşılaştırır (`05 §7.3.2`; MK-21; K-1202).
   5. Ayırma koşullu güncellemeyle korunur: yalnız kalan adet yetiyorsa yazılır (`05 §7.3.3`).
   6. Panelin stok yazımı ayırmanın tuttuğu adedin altına inmez (`05 §7.3.3`).
@@ -1565,7 +1565,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   3. İlgili kayıt panelden kaydedilince, işlem kesinleştikten sonra önbellek hemen geçersiz kılınır (`05 §7.10.1`).
   4. Araya giren eski okumanın önbelleğe yazılmasını kuşak sayacı önler (`05 §7.10.1`).
   5. Zamana bağlı görünürlük önbellekteki kayda karşı her istekte hesaplanır (`05 §7.10.1`).
-  6. Fiyat, stok ve sepet her istekte veritabanından okunur; satış kapısının hâli her istekte hesaplanır (`05 §7.10.1`, §4.1.5).
+  6. Fiyat, stok ve sepet her istekte veritabanından okunur; satış kapısının hâli her istekte hesaplanır; sipariş onayının işlemi kapıyı ve tutarı etkileyen ayarları önbellekten değil veritabanından okur (`05 §7.10.1`, §4.1.5).
   7. Sayfanın tamamı önbelleğe alınmaz (`05 §7.10.1`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
@@ -1574,7 +1574,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: kayıt sonrası bir sonraki okuma yeni değeri verir.
   - KK4: eski okuma yarışında bayat değer yazılmaz.
   - KK5: aralığı biten duyuru önbellekte olsa da gizlenir.
-  - KK6: fiyat değişince anında yansır.
+  - KK6: fiyat değişince anında yansır; önbellekte eski ayar dururken sipariş onayı veritabanındaki değeri kullanır.
   - KK7: sayfa çıktısı önbelleğe alınmaz.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -2038,21 +2038,21 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   5. Son nabız beş dakikadan eskiyse koşul açılır (`05 §9.4.6`).
   6. E-posta kanal uyarısı açıksa koşul açılır (`05 §9.4.7`).
   7. Son on beş dakikada en az on beklenmeyen hata koşuldur; yalnız 500 sayılır, 422, 409 ve 429 girmez (`05 §9.4.8`; `07 UC-82`).
-  8. Ödeme başlatmada art arda en az beş bağlantı hatası, dizinin ilk hatası on beş dakikadan eskiyse koşuldur ve ilk başarılı jetonda kalkar; dizinin bellekteki kaydı burada kurulur, jetonun sonucunu F4'te T404 yazar; sitenin sertifikasına on dört günden az kalması da koşuldur (`05 §9.4.9`, §9.4.10, §9.4.18).
+  8. Ödeme başlatmada art arda en az beş bağlantı hatası, ilk hatadan en az on beş dakika geçmişse koşuldur ve ilk başarılı jetonda kalkar; dizinin bellekteki kaydı burada kurulur, jetonun sonucunu F4'te T404 yazar; sitenin sertifikasına on dört günden az kalması da koşuldur (`05 §9.4.9`, §9.4.10, §9.4.18).
   9. Zamanı gelmiş en eski satır on beş dakikadan eskiyse ya da "başarısız" satır varsa; gecelik imha yirmi altı saatten eskiyse koşul açılır (`05 §9.4.16`, §9.4.17).
-  10. Eşikler kurulum ayar dosyasından okunur; uyarı koşulları canlılık ucuna girmez (`05 §9.4.2`, §9.4.15).
+  10. Eşikler kurulum ayar dosyasından okunur; kaynağı okunamayan koşul açıktır; koşullar canlılık ucuna girmez (`05 §9.4.2`, §9.4.10, §9.4.15).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: koşulsuzken 200, koşulda 503, gövde boş.
   - KK2: yanıtta koşul adı yok.
   - KK3: disk ve aktarım eşikleri sahte ölçümle sınanır.
-  - KK4: iki yedeğin her biri yirmi altı saat eşiğini ayrı açar; yalnız yerel kopyası başarılı tam yedek koşulu kapatmaz.
+  - KK4: iki yedeğin her biri koşulu ayrı açar; yalnız yerel kopya koşulu kapatmaz.
   - KK5: nabız beş dakika eşiği.
   - KK6: kanal uyarısı açık ve kapalı.
   - KK7: dokuz hata kapalı, on hata açık; 409 sayılmaz.
   - KK8: beş hatalı dizi on beş dakikadan gençken kapalı, eskiyince açık; dizi ilk başarıda kalkar; sertifika eşiği.
   - KK9: on beş dakikadan eski satır da, başarısız iş satırı da açar; imha eşiği.
-  - KK10: eşik ayarı değişir; canlılık ucu 200 kalır.
+  - KK10: eşik ayarı değişir; canlılık ucu 200 kalır; okuma hatasında 503.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T315: Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı
@@ -2087,7 +2087,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   2. Teslim edildi ve İptal edildi terminaldir; yalnız yöneticinin düzeltmesiyle çıkılır (`03 §1.2`).
   3. S1 ödeme onayıyla aynı anda ve yalnız en az bir fiziksel kalemli siparişte işler; B-4 Ö1'in bildirimidir, S1 ayrıca bildirim üretmez (`03 §1.2` S1).
   4. S2, S10 ve S11 kapanış kuralını tamamlayan son olayla işler; ayrı tetikleyen yoktur (`03 §1.2`).
-  5. S3, S4 ve S9 iptaldir; S3'ü müşteri, sebepli yönetici ve sistem, S4'ü müşteri ve sebepli yönetici, S9'u yalnız sebepli yönetici tetikler; B-7 gider (`03 §1.2`).
+  5. S3, S4 ve S9 iptaldir; S3'ü müşteri, sebepli yönetici ve sistem, S4'ü müşteri ve sebepli yönetici, S9'u sebepli yönetici tetikler; B-7 gider; kapanış yolu k6'dadır (`03 §1.2`).
   6. Kapanışla işleyen S3, S4 ve S9'da sebep seçilmez ve B-7 gitmez (`03 §1.2`).
   7. S5 ve S8 yalnız yöneticidir, geri alınamaz onayı ister ve yalnız açık fiziksel kalemleri gönderir; B-5 gider (`03 §1.2`).
   8. S6 yöneticinin teslim işareti ve tarihidir; kendiliğinden geçiş yoktur, bildirim yoktur (`03 §1.2` S6).
@@ -2096,10 +2096,10 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Doğrulama kontrol listesi:**
   - KK1: tablo dışı ve geri yönlü geçiş reddedilir; T319'un düzeltme işlemi bu redde takılmaz.
   - KK2: terminal durumdan çıkış yok.
-  - KK3: dijital kalemli sipariş S1'e girmez; Ö1 ile S1'de tek B-4 satırı yazılır.
+  - KK3: fiziksel kalemi olmayan sipariş S1'e girmez, karışık fiziksel kalemli girer; Ö1 ile S1'de tek B-4 satırı yazılır.
   - KK4: son olay kapanışı geçişi doğurur.
   - KK5: her iptal geçişi yalnız kendi tetikleyenleriyle işler, ötekiler reddedilir; B-7 gider.
-  - KK6: kapanışta sebep ve B-7 yok.
+  - KK6: kapanışla S3, S4 ve S9 sebepsiz işler, KK5'in reddine takılmaz; B-7 yok.
   - KK7: onaysız ya da yönetici dışı S5 ve S8 reddedilir; yalnız açık fiziksel kalemler gönderilir; ikisinde de B-5 satırı yazılır.
   - KK8: S6'dan sonra kendiliğinden geçiş yok.
   - KK9: S7'de B-6 satırı yazılır.
@@ -2141,7 +2141,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   6. Hiçbir kalem teslim edilmemişse Kargoya verildi ve Teslim edilemedi'de sipariş gönderinin dönüşünü bekler; kart son sorgusu yanıtsızken iptal ertelenir (`03 §1.4.3`).
   7. Kalem adetle açık sayılır; kapanışta iptal kaydı ve ikinci geri ödeme açılmaz (`03 §1.4.3`).
   8. Geçişin stok, kontenjan ve kupon hakkına etkisi an tablosuyla uyar (`03 §1.4.4`).
-  9. Yedi hattın olağan dizisi ve zorunlu elle adım sayısı tabloyla uyar; karışık hatta adımlar toplanır (`03 §1.5`, §8.5).
+  9. Yedi hattın olağan dizisi ve zorunlu elle adım sayısı tabloyla uyar; karışık hatta adımlar toplanır ve havaledeki "ödendi" işareti siparişte bir kez sayılır (`03 §1.5`, §8.5).
   10. Tek tipli hatta zorunlu elle adım üçü geçmez (`03 §8.5`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
@@ -2153,7 +2153,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK6: teslim edilmiş kalemi olan Teslim edilemedi siparişi S11 ile hemen kapanır; yanıtsız sorguda iptal ertelenir.
   - KK7: kapanışta ikinci iade satırı yok.
   - KK8: dokuz an için sayaç değişimi tabloyla aynı.
-  - KK9: yedi hattın adım sayısı doğru.
+  - KK9: yedi hattın adım sayısı doğru; havale ile ödenen fiziksel + hizmet siparişi dört adım.
   - KK10: en ağır hat üç adım.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -2187,7 +2187,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T318, T307, T308
 - **Dokümanlar:** çekirdek; `09` §9; `03 §1.7`, §1.9, §5.3; `02 §5.4`, §5.8, §5.10, §7.5, §7.5.3, Z-18; `05 §4.1.2`; `10` KP-23
 - **Kabul kriterleri:**
-  1. Kalem durum taşımaz; yolunu kayıtlar anlatır ve her kayıt kendi satırında yapanı, anı ve adedi taşır (`03 §1.7.1`; `05 §4.1.2`).
+  1. Kalem durum taşımaz; yolunu kayıtlar anlatır; teslim işareti ve indirme sayacı dışındaki her kayıt kendi satırında yapanı ve anı, adetli kayıt adedi de taşır (`03 §1.7.1`, §1.7.4; `02 §5.8`; `05 §4.1.2`).
   2. Her kaydın hatta sayılışı — teslim edilmiş, kapanmış, etkilemez — tabloyla uyar (`03 §1.7.1`).
   3. İşlemin birimi adettir; seçilebilen adet açık adettir ve aşan değer reddedilir (`03 §1.7.4`).
   4. Ardışık cayma beyanları ve parça parça ulaşan iadenin her teslim alması ayrı kayıttır (`03 §1.7.1`).
@@ -2199,7 +2199,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   10. Panel işaretleri durum değildir; koşul sürdükçe görünür, kalkınca kalkar (`03 §1.7.3`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: kalemde durum alanı yok, kayıt satırı üç alan taşır.
+  - KK1: kalemde durum alanı yok; kayıt satırı yapanı ve anı, adetli kayıtta adedi de taşır.
   - KK2: kayıt türü başına hat etkisi tabloyla aynı.
   - KK3: açık adedi aşan adet reddedilir.
   - KK4: iki beyan iki satır, iki teslim alma iki satır.
@@ -2291,7 +2291,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T317
 - **Dokümanlar:** çekirdek; `09` §7, §13, §3 (§3.5); `03 §4.1`; `02 §3.17.4`, §3.17.5, §4.1.3, Z-1…Z-9, §5.6.3, §6.1.2, §10.2.6, P-7, P-12…P-16, P-18
 - **Kabul kriterleri:**
-  1. Z-1, Z-2 ve Z-3 bağlantıları süre dolunca, yenisi istenince ya da `03 §4.1.3`'ün öteki koşullarında geçersizleşir; Z-1'de doğrulanmamış kayıt silinir (`03 §4.1.1`–§4.1.3).
+  1. Z-1, Z-2 ve Z-3 bağlantıları süre dolunca, yenisi istenince ya da `03 §4.1.3`'ün öteki koşullarında geçersizleşir; Z-1'de doğrulanmamış kayıt ve bekleyen e-posta değişikliği silinir, silme imha kaydına yazılır (`03 §4.1.1`–§4.1.3; `06 §9.4.1`).
   2. Z-4 ve Z-5 oturumları son işlemden itibaren sayılır ve süre dolunca kapanır; üyenin sepeti hesabında kalır (`03 §4.1.4`, §4.1.5).
   3. Sepet kendiliğinden boşalmaz; Z-6 için zamanlayıcı yoktur (`03 §4.1.6`).
   4. Z-7 dolunca sağlayıcıya son sorgu yapılır; ödeme alınmışsa Ö1 işler, alınmamışsa sipariş iptal edilir ve ayrılanlar serbest kalır (`03 §4.1.7`; `02 §6.1.2`).
@@ -2301,7 +2301,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   8. Havale süresi firma ayarından okunur (P-7, `02 §11.1`); öteki süreler ürün sabitidir ve `ProductConstants`'tan gelir (P-12…P-16, P-18, `02 §11.2`); sayı kodda başka yerde yazılmaz (`09 §3.5`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
-  - KK1: bağlantı süresi dolunca ve yenisi istenince eskisi geçersiz.
+  - KK1: bağlantı süresi dolunca ve yenisi istenince eskisi geçersiz; Z-1 silmesi imha kaydında.
   - KK2: oturum süreleri son işlemden sayılır.
   - KK3: sepet için süre işi kayıtlı değil.
   - KK4: Z-7'de ödeme alınmışsa Ö1, alınmamışsa iptal.
@@ -3299,20 +3299,20 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T305, T330, T331
 - **Dokümanlar:** çekirdek; `09` §10–§12; `02 §3.24.3`, §3.33.1…§3.33.9, §6.5, §6.9, §7.1.5, §7.4.4, §10.8.2, §12.1.2, §12.1.7, §12.2.1…§12.2.5, §12.2.8, §12.5; `10` KP-14, KP-25, KP-35, KP-61, KP-73, KD-53, KD-55, KD-56; `devir` 04-1948
 - **Kabul kriterleri:**
-  1. Dört yasal metin (Ön Bilgilendirme Formu, sözleşme, aydınlatma, çerez) sürümlüdür, genel sayfa değildir; ilk ikisi üretilir, son ikisi taslaktır, firma düzenler (`02 §3.33.1`).
-  2. Firmanın düzenlediği iki metin boşaltılamaz; barındırma konumu doldurulmadan aydınlatma tamamlanmış sayılmaz (`02 §3.33.2`).
-  3. Sürüm kendiliğinden artar, elle girilmez: her yayında, besleyen ayarın değeri değişince, şablon değişince; şablonunki ize girmez (`02 §3.33.3`).
-  4. Onay adımında form ya da sözleşme sürümü artarsa sipariş oluşmaz; yeni sürüm yalnız yeni siparişlere uygulanır; yeniden onay ve bildirim yoktur (`02 §3.33.4`).
+  1. Dört yasal metin (form, sözleşme, aydınlatma, çerez) sürümlüdür, genel sayfa değildir; ilk ikisi üretilir, son ikisi taslaktır, firma düzenler (`02 §3.33.1`).
+  2. Son iki metin boşaltılamaz; aydınlatma taslağı alıcı gruplarını, hukuki sebepleri ve başvuru yollarını yazar, barındırma konumu dolmadan tamamlanmaz (`02 §3.33.2`).
+  3. Sürüm kendiliğinden artar, elle girilmez: her yayında, besleyen ayar değeri ya da şablon değişince; şablonunki ize girmez (`02 §3.33.3`).
+  4. Onay adımında form ya da sözleşme sürümü artarsa sipariş oluşmaz; yeni sürüm yalnız yeni siparişe uygulanır; yeniden onay ve bildirim yoktur (`02 §3.33.4`).
   5. Aydınlatma bağlantısı yeni kişisel veri alanı açan her ekranda görünür, onay kutusu, "gördü" kaydı ve onay bandı yoktur; çerez politikası altbilgidedir (`02 §3.33.5`).
-  6. Form ve sözleşme onay e-postasının gövdesinde donan sürümle tam metin gider, ek yoktur; gövde T306, yeniden gönderim T385'tedir (`02 §3.33.6`).
+  6. Form ve sözleşme onay e-postasında donan sürümle tam metin gider, ek yoktur (gövde T306, yeniden gönderim T385; `02 §3.33.6`).
   7. Form ve sözleşme uyuşmazlık başvuru bilgisini yazar; parasal sınır rakamla yazılmaz (`02 §3.33.7`).
-  8. Ayarla çelişen serbest metni ürün tespit etmez, bilgi sayfası kurmaz, hatırlatma satırı koyar; sorumluluk firmadadır (`02 §3.33.8`).
+  8. Ayarla çelişen serbest metni ürün tespit etmez, bilgi sayfası kurmaz, hatırlatma satırı koyar (`02 §3.33.8`).
   9. Dört metin tamamlanmadan satış açılmaz (T331); panel eksiği adıyla gösterir (`02 §3.33.9`).
   10. Açık rıza yönetimi yoktur (`10` KD-56).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: dört metin ayrı kayıt.
-  - KK2: boşaltma reddedilir; bölüm eksikse tamam değil.
+  - KK2: boşaltma reddedilir; bölüm eksikse tamam değil; taslakta üç içerik var.
   - KK3: değişmeyen ayar sürüm yazmaz; şablonunki, ilk sürüm dahil, izde yok.
   - KK4: sürüm artışı siparişi durdurur; yeniden onay ve bildirim yok.
   - KK5: bağlantı ekranlarda ve altbilgide; kutu ve gördü kaydı yok.
@@ -3401,11 +3401,11 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Bağımlılık:** T317, T352, T353, T369
 - **Dokümanlar:** çekirdek; `09` §9, §10, §11, §14; `05 MK-40`, §4.6; `02 §7.2.8`, §7.4.1, §7.4.5, §8.4.2, Z-16, Z-17, Z-35, Z-38, Z-47, §4.3, §5.5, §6.4, §7.5.3, §9.2, B-8, B-14, §9.3, F-4, §10.4.3, §10.4.9, §10.4.10, §10.6.1, §11.2, P-43, §12.1.8, §12.1.9, §12.2.7, §12.5; `10` KP-15, KP-21, KP-22, KP-47; `03 §1.7`
 - **Kabul kriterleri:**
-  1. Geri ödeme ödemenin geldiği yoldan gider: kart sağlayıcı üzerinden karta, havale müşterinin IBAN'ına (`02 §7.4.5`).
+  1. Geri ödeme ödemenin geldiği yoldan gider: kart sağlayıcıyla karta, havale müşterinin IBAN'ına (`02 §7.4.5`).
   2. İptalde kart iadesini sistem onaysız başlatır, IBAN alanı açılmaz; havale hattında ve caymada firma panelden işler (`02 §7.2.8`; `03 §2.8.4.1`).
   3. Süre iptalde iptalden, teslimden önceki caymada ve hizmette beyandan, teslimden sonraki caymada malın ulaştığı tarihle beyandan geç olanından başlar (`02 §7.4.1`).
   4. IBAN girişte biçim ve sağlamayla denetlenir, işlenene kadar müşterice düzeltilir; firma IBAN girmez (`02 §7.4.5`).
-  5. IBAN geri ödeme tamamlanınca silinir; başka bekleyen geri ödeme kullanıyorsa ondan sonra silinir (`02 §7.4.5`).
+  5. IBAN onu kullanan son bekleyen geri ödeme tamamlanınca silinir; her silinmesi imha kaydına yazılır (`02 §7.4.5`; Z-44).
   6. Firma iptalinde IBAN isteği iptal kaydıyla düşer, B-14 gider, süre durmaz (`02 §7.2.8`).
   7. "Havale gerçekleşmedi" bildirimi IBAN'ı siler, alanı yeniden açar ve B-14 gönderir; kalem "IBAN bekleniyor"a döner, süre durmaz (`02 §7.4.5`).
   8. Kart iadesi reddedilirse ödeme ekseni değişmez, "geri ödeme gerçekleşmedi" işareti düşer ve kalem bekleyen işlere girer; firma yeniden dener ya da havale yolunu açar (B-14), IBAN girilince deneme kapalıdır (`02 §7.2.8`; §6.4.24).
@@ -3699,7 +3699,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. Parametre üç katmandadır: firma ayarı panelden değişir, kurulum ayarı kurulumdan gelir ve panelden değişmez, ürün sabiti değişmez (`02 §10.1.3`).
   2. Atama ölçütü: zarar yalnız firmaya dokunuyorsa ve karar işletme kararıysa firma ayarı; güvenliğe, yasal uyuma ya da müşteriye dokunuyorsa ürün sabiti (`02 §10.1.3`).
-  3. Kurulum ayarları alan adı, e-posta gönderim kimliği, ödeme sağlayıcı anahtarları ve Google uygulamasının kimlik bilgileridir (`02 §10.1.3`).
+  3. Kurulum ayarları alan adı, gönderen adresi, e-posta gönderim kimliği, ödeme sağlayıcı anahtarları ve Google uygulamasının kimlik bilgileridir (`02 §10.1.3`).
   4. On firma ayarı vardır: P-1, P-3…P-10, P-44; panelden değişir (`02 §11.1`; KP-64).
   5. Firma ayarları kurulumda varsayılanla dolu gelir; firma sayı girmeden sistem uçtan uca çalışır, tek istisna ürün formundaki hizmet ifa süresidir (P-44) (`02 §10.1.3`; KP-64).
   6. Çitler panelde uygulanır: P-5 ve P-6 üst çit 10 iş günü, P-7 alt 1 üst 3 iş günü, P-8 ve P-9 en az 1, P-44 en az 1 gün; çit dışı değer reddedilir (`02 §11.1`).
@@ -4051,7 +4051,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   4. Jeton isteğindeki bağlantı hatasından sonra ödeme modülü bellekte iki dakika tutulur: kart "şu an kullanılamıyor" görünür, kart onayı 422 alır; hâl yalnız onaydan öncesini etkiler (`08 §2.1.8`).
   5. Son sorgu ve iade sorgusunda yanıtsız çağrı sonucu bilinmeyen sayılır; para gönderen çağrı yeniden gönderilmez (`08 §2.1.8`; `05` MK-40).
   6. Katman hiçbir çağrıyı kendiliğinden yeniden denemez, zamanlı yineleme T403 ve T405'tedir; dayanıklılık işleyicisi yoktur, istemci fabrikadan gelir, yönlendirme ve çerez kapalıdır (`08 §2.1.8`; `09 §11.2`).
-  7. Art arda en az beş hatalı jeton isteği, dizinin ilk hatası on beş dakikadan eskiyse durum ucunun uyarı koşuludur; başarılı jeton diziyi sıfırlar, ikinci ret diziyi ne sayar ne bozar; jetonun sonucu T314 k8'in dizi kaydına yazılır (`08 §2.1.8`; `05 §9.4.18`).
+  7. Art arda en az beş hatalı jeton isteği, dizinin ilk hatasının üzerinden en az on beş dakika geçmişse durum ucunun uyarı koşuludur; başarılı jeton diziyi sıfırlar, ikinci ret diziyi ne sayar ne bozar; jetonun sonucu T314 k8'in dizi kaydına yazılır (`08 §2.1.8`; `05 §9.4.18`).
   8. DV-12'nin HTTP kodları ve tablosuz yanıtlar gözlenip `08 §2.1.8` tablosuna eklenir (`08 §4.1`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
@@ -4078,7 +4078,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   7. İlk sorgu zaman aşımından 1 dakika sonra, sonrakiler bir önceki sorgudan 1, 5, 15 ve 60 dakika sonra, sonra saatte bir yinelenir; üst sınırı yoktur (`08 §2.1.9`).
   8. İki sonuç yolu aynı işlevle uygulanır; firma işaretinden sonra sorgu durur ve geç iade işlenmez (`08 §2.1.9`; `05 §4.6.2`).
   9. Anahtarlar kaldırılmışsa istek yapılmaz, geri ödeme "gerçekleşmedi" olur (`08 §2.1.2`).
-  10. DV-6, DV-7, DV-10 gözlenir; DV-10 sonucu `02`'ye geri beslemedir (`08 §4.1`, §5.2).
+  10. DV-6 ve DV-10 gözlenir; DV-10 sonucunun `02`'ye dönüşü T410'dadır (`08 §4.1`, §5.2).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: istek biçimi ve özet.
@@ -4090,7 +4090,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK7: beş aralık; sahte saatle Z-17 süresi dolduktan sonra da saatlik sorgu sürer.
   - KK8: ikinci uygulama sonucu değiştirmez; firma işaretinden sonra sorgu satırı yazılmaz, işaret anında yanıtı beklenen sorgunun "gerçekleşti"si siparişe işlenmez, kayıtta işaretli kalır.
   - KK9: anahtarsız istek yok.
-  - KK10: DV-6, 7, 10 satırları.
+  - KK10: DV-6 ve DV-10 satırları.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T406: PayTR: 3D Secure kurulum şartı, test kanıtı ve canlı kanıtın satırları
@@ -4196,12 +4196,12 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `08 §2.1.2`, §2.1.5, §2.1.10, §2.2, §2.3, §4.1, §5.2; `10` ÖK-4, ÖK-12
 - **Kabul kriterleri:**
   1. Her DV satırına kanıtı alan task tarihi ve kanıt yerini yazmıştır; T401–T409 payları kapalıdır (`08 §4.1`).
-  2. Kurulumu yapanın payı olan satırlar (DV-7, DV-8, DV-13, DV-15, DV-17, DV-18, DV-20, DV-24, DV-29, DV-30, DV-36, DV-38, DV-39, DV-40, DV-41; DV-3 T406'da, DV-5 T510'da) referans kurulumun yazılı yanıtı ya da okumasıyla kapatılır; satırın task ya da kabul payı kendi yerinde kalır (`08 §4.1`).
+  2. Kurulumu yapanın payı olan satırlar (DV-7, DV-8, DV-13, DV-15, DV-17, DV-18, DV-20, DV-24, DV-29, DV-30, DV-36, DV-38, DV-39, DV-40, DV-41; test gözlemi alınamazsa DV-10 ve DV-42; DV-3 T406'da, DV-5 T510'da) referans kurulumun yazılı yanıtı ya da okumasıyla kapatılır; satırın task ya da kabul payı kendi yerinde kalır (`08 §4.1`).
   3. DV-1, DV-2, DV-9 referans kurulumun işaretli kaydından okunmuştur; PayTR imza doğrulaması tutan, bozuk ve imzasız bildirimle gösterilmiştir (`08 §2.1.5`; K-1411).
   4. Üç servisin sandbox kanıtı tek tabloda yazılıdır: PayTR test modu, SES simülatörü ve doğrulanmış alıcı, Google gerçek uygulama (`08 §2.1.10`, §2.2, §2.3).
   5. Beklenen sonucu vermeyen kanıt satırın "Yanlış çıkarsa" hükmünü işletir; yöntem karar kaydıyla kurulur, `08` aynı değişiklikte güncellenir (`08 §4.1`).
   6. Doğrulanamayan kart yeteneği varsa kart anahtarları tanımlanmaz ve satış havaleyle sürer (`08 §4.1`; ÖK-4).
-  7. DV-10 sonucu `02`'ye geri beslemedir; §5.2'nin bekleyen tek satırı (15) bu sonuçla eşitlenir (`08 §5.2`).
+  7. §5.2'nin bekleyen tek satırı (15) DV-10 sonucuyla eşitlenir: fark müşteriye dönmüyorsa karar kaydıyla `02`'ye döner; dönüyorsa ya da taksit sunulmuyorsa `02` değişmez; sonuç canlı kanıta kalırsa satır bekler (`08 §4.1`, §5.2).
   8. DV-5 gözlemi çerçeveli sayfa gelince T510'da alınır; satır "Bekliyor — T510" yazar ve F4 kapısına girmez (K-1450).
   9. Runbook ve PR'da firma anahtarı, sır, belirteç ve bildirim gövdesi yoktur (`08 §2.1.2`).
 - **Test beklentisi:** Yok — kod üretmez; kanıt referans kurulumda alınır ve runbook'a yazılır
@@ -4212,7 +4212,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK4: sandbox tablosunda üç servis.
   - KK5: tutmayan kanıtın karar kaydı.
   - KK6: doğrulanamayan yetenekte anahtar yok.
-  - KK7: DV-10 geri beslemesi.
+  - KK7: satır 15 DV-10 sonucuyla eşit; `02` yalnız fark dönmüyorsa, karar kaydıyla değişir.
   - KK8: DV-5 satırı T510'a bağlı.
   - KK9: sır taraması temiz.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -4274,13 +4274,13 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `09` §3.4, §7, §8, §15 (§15.2), §16 (§16.2); `07 UC-03`…`UC-05`; `04` E-03, E-04; `03 §2.1`, §8.1; `02 §3.5.1`, §3.6.5, §3.16.5…§3.16.9, §3.30.7, P-44; `10` KP-2…KP-7
 - **Kabul kriterleri:**
   1. `GET /arama` ürün adında büyük-küçük harfe ve Türkçe karaktere duyarsız arar; sözcük 150 karakterde kırpılır, `%` ve `_` harfi harfine eşlenir (`07 UC-03`; `05 §7.9`).
-  2. Boş `search` sonuç üretmez ve arama alanını gösterir; sonuçsuz arama boş hâl satırıdır; arşivlenmiş ürün sonuçta yoktur; süzgeçler, `page` ve sıra kategori sayfasıyla aynıdır; sayfa noindex'tir (`07 UC-03`).
-  3. `GET /urun/{Slug}` yayında E-04'ü, panel oturumuyla taslakta önizlemeyi verir (arşivdeki E-05 T549'da); taslak ve yok 404'tür, sebep ayırt edilmez (`07 UC-04`).
+  2. Boş `search` yalnız arama alanını gösterir; sonuçsuz arama boş hâl satırıdır; arşiv sonuçta yoktur; süzgeçler, `page` ve sıra kategori sayfasıyla aynıdır; sayfa noindex'tir (`07 UC-03`).
+  3. `GET /urun/{Slug}` yayında E-04'ü, panel oturumuyla taslakta önizlemeyi verir (E-05 T549'da); taslak ve yok 404'tür, sebep ayırt edilmez (`07 UC-04`).
   4. Seçim `firstOptionValue` ve `secondOptionValue`'dur; eksik ya da tutmayan değerde varsayılan varyant gelir (`07 UC-04`).
-  5. Fiyat, birim fiyat, indirim ve görsel seçilen varyantındır; hizmette ifa süresi yazar; satın alınabilirlik ayrılmış adet düşülerek okunur; logo T501'in bileşenidir (`07 UC-04`; `04` 5.4.4, 5.4.6; P-44).
-  6. Betikli yol için sayfa yayındaki varyantların verisini taşır; stok adedi bu veride yoktur; "Paylaş" düğmesi vardır (`02 §3.6.5`; `04` 5.4.11).
+  5. Fiyat bloğu ve görsel seçilen varyantındır; teslimat bilgisi tipe göredir; seçilemezlik ve "Tükendi" sayfadadır (T332 k5, T334 k3, k4); satın alınabilirlik ayrılmış adet düşülerek okunur; logo T501'indir (`07 UC-04`; `04` 5.4.4…5.4.6, 5.4.13; P-44).
+  6. Betikli yol için sayfa yayındaki varyantların verisini stok adedi olmadan taşır; "Paylaş" düğmesi vardır (`02 §3.6.5`; `04` 5.4.11).
   7. `POST ?handler=AddCartItem` 303 ile ürün sayfasına döner: seçilen varyantın iki parametresi, "sepete eklendi" bildirimi, yeni sepet sayısı (`07 UC-05`).
-  8. Stok, "bir siparişte en fazla" sınırı (sınır önce), sepetteki aynı dijital varyant, tükenmiş ya da seçilmemiş varyant, kapalı satış ve geçersiz adet 422'dir; yayında olmayan `VariantId` 404'tür (`07 UC-05`; `03 §3.2.1`).
+  8. Stok, P-9 sınırı (sınır önce), sepetteki aynı dijital varyant, tükenmiş ya da seçilmemiş varyant, kapalı satış ve geçersiz adet 422'dir; yayında olmayan `VariantId` 404'tür (`07 UC-05`; `03 §3.2.1`).
   9. Tekrar gönderim ikinci eklemedir; çift tıklamayı betikli yolda düğmenin kilidi önler (`07 UC-05`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
@@ -4288,7 +4288,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK2: boş, sonuçsuz, arşiv, süzgeç.
   - KK3: iki yayın durumu ve 404.
   - KK4: bozuk parametre varsayılana düşer.
-  - KK5: varyanta göre fiyat; ayrılmış adet düşülür; ifa süresi; T501 logosu.
+  - KK5: varyantın fiyatı; tipe göre teslimat; Tükendi; ayrılmış adet düşülür; T501 logosu.
   - KK6: sayfa verisinde stok adedi yok; Paylaş düğmesi.
   - KK7: 303 adresi ve sepet sayısı.
   - KK8: her ret sebebi.
@@ -4432,7 +4432,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `09` §3.4, §7, §8, §9, §14, §15 (§15.2, §15.4), §16 (§16.2); `07 UC-22`…`UC-27`; `04` E-13; `03 §2.4`, §6.1; `02 §3.13.1, §3.14.1`…§3.14.6, §3.17.1, §3.17.2, §3.20.1, §3.24.5; `05 §4.2.2`, §6.7.9; `10` KP-8, KP-11…KP-15
 - **Kabul kriterleri:**
   1. `GET /odeme` beş bölümü tek sayfada verir; form her gösterimde yeni `ConfirmationKey`, özet parmak izi ve iki metnin sürüm kimliklerini taşır; misafir e-postası özette görünür, kodla sınanmaz, onaydan önce düzeltilir (`07 UC-22`; `05 §4.2.1`; `02 §3.24.5`).
-  2. Sepetin geçişi kapalıysa (T508 k3) 303 → `/sepet`; sebep sepettedir (`07 UC-22`).
+  2. Sepetin geçişi kapalıysa (T508 k3) UC-22…UC-25 303 → `/sepet` verir (`07 §4.13`).
   3. Alanlar ödeme adımının çerezinden dolar; çerez yalnız ayrılışta yazılır ve yalnız `05 §6.7.9`'un alanlarını taşır (`07 UC-22`, `UC-26`).
   4. `ApplyCoupon` yazmadan 200 döner; 422: asgari tutarın altındaki geçerli kod asgari tutarla, öteki retler tek mesajla; 429 (L-6); hak ayrılmaz (`07 UC-23`).
   5. `RemoveCoupon` kodu kaldırır; `Recalculate` özeti yeniden hesaplar, zorunluluk denetlemez ve hatırlatma L-3'e sayılmaz (`07 UC-24`, `UC-25`).
@@ -4444,7 +4444,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: beş bölüm, taze anahtar; misafir e-postası özette.
-  - KK2: üç kapalı sebep.
+  - KK2: üç sebep, dört uçta.
   - KK3: çerez alan listesi; kutu yazılmaz.
   - KK4: üç sonuç, L-6; 200 yazmaz, hak ayırmaz.
   - KK5: kaldırma, ara gönderim, hatırlatma.
@@ -4462,12 +4462,12 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   1. `GET {kök}/teyit` sipariş numarasını gösterir; kartta geçiş formu, havalede donmuş IBAN, toplam ve son ödeme günü durur; kendiliğinden yönlendirmez (`07 UC-28`; K-776).
   2. Sipariş Alındı + Bekliyor değilse 303: üye sipariş sayfasına, misafir takip girişine; kök tutmuyorsa 404 (`07 UC-28`; K-1209 (1)).
   3. `StartPayment` ödeme sayfasını 200 verir: sağlayıcı formu çerçevede açılır; jeton saklanmaz, her açılış yeni jeton ister (`07 UC-29`; `08 §2.1.4`).
-  4. Çerçeve izni yalnız bu sayfada, yalnız sağlayıcı adresi ve `'self'` için açılır; `form-action` sağlayıcı adresini taşımaz (`07 UC-29`; `05 §6.5.4`).
+  4. Çerçeve izni yalnız bu sayfada, yalnız sağlayıcı ve `'self'` için açılır; `form-action` sağlayıcı adresini taşımaz (`07 UC-29`; `05 §6.5.4`).
   5. Sağlayıcıya bağlanılamazsa sipariş iptal edilir, 303 → `/sepet` ve sepet bir kez söyler; L-7'ye sayılmaz (`07 UC-29`; K-1183, K-1200).
   6. Sipariş Alındı + Bekliyor değilse UC-28'in yönlendirmesi; havalede ve ikinci jeton reddinde iptalsiz teyit ekranı (`07 UC-29`).
-  7. `GET /odeme/donus/{anahtar}` çerçevesiz tek cümlelik geçiş sayfasıdır; durum yazmaz, oturum çerezine dayanmaz (`07 UC-30`; K-1259 (1)).
+  7. `GET /odeme/donus/{anahtar}` başlıksız, altlıksız tek cümlelik geçiş sayfasıdır; durum yazmaz, oturum çerezine dayanmaz (`07 UC-30`; K-1259 (1)).
   8. Geçiş sayfası üst pencereyi `/siparis/erisim/{anahtar}`'a götürür — betik, betiksizde `target="_top"` bağlantısı; `frame-ancestors 'self'` yalnız bu yanıttadır (`07 UC-30`).
-  9. Anahtar biçimi tutmuyorsa 404 döner; geçersiz anahtarın 404'ünü sipariş sayfası verir (`07 UC-30`).
+  9. Biçimi tutmayan anahtar 404'tür; geçersiz anahtarın 404'ünü sipariş sayfası verir (`07 UC-30`).
   10. DV-5'in bütün maddeleri gözlenir; sonuç satıra tarihle yazılır (`08 §4.1`; K-1450 (4)).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
@@ -4544,26 +4544,26 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `09` §3.4, §8, §9, §16 (§16.2); `07 UC-42`…`UC-46`; `04` E-18, E-19; `03 §1.11.9`, §2.8, §2.9, §3.3, §5.1; `02 §3.1.7`, §7.5.2, §7.6.7; `06 §4.25`; `10` KP-22, KP-23
 - **Kabul kriterleri:**
   1. `GET {kök}/cayma` caymaya açık kalemleri, adetleri, koşullu istisna satırını, güncel iade adresini ve süresini, geri ödeme bilgisini gösterir; açık değilse 303 → kök sebep koduyla (`07 UC-42`; K-509, K-665).
-  2. `SubmitWithdrawal` onaysız ilk gönderimde son adımı 200 verir; onaylıda 303 → kök, tarih ve adres kökte durur (`07 UC-43`; `04` 5.18.10).
-  3. Beyan kalem başına tarih damgası ve adetle yazılır; fiziksel kalemde o anki iade adresi yazılır, değişmez; geri alınmaz (`07 UC-43`; `06 §4.25`; `02 §7.6.7`).
+  2. `SubmitWithdrawal` onaysız ilk gönderimde son adımı 200 verir; onaylıda 303 kök, tarih ve adres kökte durur (`07 UC-43`; `04` 5.18.10).
+  3. Beyan kalem başına tarih damgası ve adetle yazılır; fiziksel kalemde o anki iade adresi donar; geri alınmaz (`07 UC-43`; `06 §4.25`; `02 §7.6.7`).
   4. UC-43 422: kalem seçilmemiş, adet geçersiz, havalede IBAN; pencere kapandıysa, adet aşıyorsa ya da açık adet farklıysa 303 kök, istek uygulanmaz; yabancı kalem 404 (`07 UC-43`; K-1202).
   5. Kısmi seçimin tekrarı ikinci cayma olmaz: 303 kök, sebep koduyla (`07 UC-43`).
   6. `GET {kök}/ayip-talebi` yeni talepte açık kalemleri, varsayılan adet bir, üst sınırı, iade adresini; yeniden açmada `orderItemId`'li talebi ve Çözüldü rozetini gösterir (`07 UC-44`; K-783, K-830).
   7. UC-44 303 kök: yeni talep açık değil, talep Çözüldü değil ya da Z-18 doldu; 404: kök tutmuyor, `orderItemId` yabancı ya da talep yok (`07 UC-44`).
   8. `SubmitDefectClaim` kalem başına tek talebi Açık olarak açar; iade adresi talebe yazılır; onay adımı yoktur (`07 UC-45`; `04` 5.19.5).
-  9. UC-45 422: kalem seçilmemiş, adet geçersiz, açıklama boş; kalemde talep varsa ya da adet aşılıyorsa 303 kök (`07 UC-45`; `03 §1.11.9`).
+  9. UC-45 422: kalem seçilmemiş, adet geçersiz, açıklama boş; 303 kök: kalemde talep var, talebe kapalı ya da adet aşıyor; yabancı kalem 404 (`07 UC-45`; `03 §1.11.9`).
   10. `ReopenDefectClaim` Çözüldü talebi Z-18 içinde Açık yapar, açıklama almaz, durum geçmişine müşteri satırı yazar; aksi 303 kök, talep yoksa 404 (`07 UC-46`; K-681).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: sayfa içeriği; kapalı hâl.
   - KK2: onaysızda kayıt yok.
-  - KK3: iade adresi sonradan değişmez.
+  - KK3: iade adresi donar.
   - KK4: üç 422 sebebi, pencere, 404.
   - KK5: ikinci gönderim cayma açmaz.
   - KK6: iki hâl, varsayılan adet.
   - KK7: üç 303 sebebi, 404.
   - KK8: tek talep, Açık.
-  - KK9: üç 422 sebebi, 303.
+  - KK9: üç 422, üç 303, 404.
   - KK10: Z-18 içi ve dışı; müşteri satırı.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -5154,10 +5154,10 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   1. `GET /panel/ana-sayfa-ve-menu` düzeni, menü adlarını, sosyal bağlantıları verir; her menü öğesinin görünmeme sebebi okunur; ilk kurulumda varsayılanlar gelir (`07 UC-97`).
   2. `SaveHomepage` düzeni, altı menü adını, WhatsApp numarasını ve bağlantıları yazar; boş bağlantı platformun satırını siler; değişen ayar eski ve yeni değerle ize yazılır (`07 UC-162`).
   3. UC-162 422: boş menü adı (varsayılanı hatırlatır), bağlantı ve numara biçimi; 409: bölüm sürümü (`07 UC-162`; K-813).
-  4. `GET /panel/firma-kimligi-ve-satis` satışın açık ya da kapalı olduğunu ve kapının koşullarını tek tek okur, karşılanmayanın ekranına bağlar (`07 UC-99`; K-850).
+  4. `GET /panel/firma-kimligi-ve-satis` satış hâlini ve kapı koşullarını tek tek okur, karşılanmayanı ekranına bağlar; firma bildirimi ulaşmıyorsa e-posta alanı uyarır (`07 UC-99`; K-799, K-850).
   5. Anahtarın düğmesi o anki değere göre "Satışı geçici olarak kapat" ya da "Satışı yeniden aç"tır; iki ayrı formdur (`07 UC-99`; K-752).
   6. `SaveCompany` kimliği yazar; dolu zorunlu alanı boşaltma, bozuk e-posta, telefon, KEP, bağlantı ve il 422; tip değişikliği reddedilmez; iz eski ve yeni değerle yazılır (`07 UC-164`).
-  7. Kimlik değişirse iki yasal metnin yeni sürümü aynı işlemde, ayar satırının kilidi altında yazılır ve ize girer; kayıt sürümü 409 verir (`07 UC-164`; K-1088).
+  7. Kimlik değişirse iki yasal metnin yeni sürümü aynı işlemde, ayar satırı kilitliyken yazılır, ize girer; kayıt sürümü 409 verir (`07 UC-164`; K-1088).
   8. `SuspendSales` onaysızda 200, onaylıda anahtarı gösterilen değere karşı yazar; sepete ekleme ve ödeme kapanır, açık siparişler yürür; iz yazılır (`07 UC-165`; K-814).
   9. Anahtar o arada değişmiş ya da zaten istenen hâldeyse 303, hiçbir şey yazılmaz, 409 çıkmaz (`07 UC-165`, `UC-166`; K-1194).
   10. `ResumeSales` kapının öteki koşulu karşılanmıyorsa satışı kapalı bırakır ve koşulu adıyla söyler; iz yazılır (`07 UC-166`).
@@ -5166,7 +5166,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK1: sebepler; ilk kurulum.
   - KK2: bağlantı silme; iz.
   - KK3: iki 422; 409.
-  - KK4: koşul listesi; bağlantı.
+  - KK4: koşullar; bağlantı; e-posta uyarısı.
   - KK5: iki düğme.
   - KK6: 422 sebepleri; tip değişimi; iz.
   - KK7: yeni sürüm ve izi; kilit.
@@ -5318,7 +5318,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   7. Onaydan sonra düğme ikinci kez basılamaz; sonucu belirsiz onay kullanıcıyı sonucu görmeye götürür (`04` 2.4.6, 2.7.3.3).
   8. Boş hâl ya görünmez bölge ya boş hâl satırıdır; yükleniyor hâli çerçeveyi yerinde bırakır ve metin taşır (`04` 2.7.1, 2.7.2; K-765).
   9. Beklenmeyen hata işlem, sayfa ve sonucu belirsiz işlem olarak üç hâldedir; hata kodu göstermez (`04` 2.7.3; K-745).
-  10. Satış kapalıyken ürün ve içerik görünür, sepete ekleme ve ödeme geçişi kapalıdır; veri toplayan girişlerin kapısı ayrı hâldir (`04` 2.8; K-850).
+  10. Satış kapalıyken ürün ve içerik görünür, sepete ekleme ve ödeme geçişi kapalıdır; panelde hâl dört yerde görünür; veri toplayan girişlerin kapısı ayrı hâldir (`04` 2.8; K-850).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: simge ve metin.
@@ -5475,8 +5475,8 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   4. Durum sütunundaki sipariş, yayın ve talep durumu adları `02 §5`'inkidir; eş anlamlı yoktur (`04` 6.1.8).
   5. Yönetici vitrinde ziyaretçinin gördüğünü görür; Yönetici satırı yalnız taslak önizlemenin ya da "Taslak" etiketinin değiştirdiği ekranlardadır (E-05'in satırı ekranın yöneticiye de aynı olduğunu söyler) (`04` 6.1.5.1).
   6. Form envanteri (`04 §7.1`, §7.2): her form bir blok, her alan bir satırdır; alan, zorunluluk ve kural kodun doğrulamasıyla eşittir.
-  7. Alan kuralı değeri yazmaz, kimlikle (P-, L-) işaret eder; değer `02 §11`'dendir ve doğrulama onu `ProductConstants`'tan okur (`04` §7 girişi; `09 §3.5` madde 1).
-  8. Panel tek roldür; panel formları ve işlemleri `/panel` altındadır ve yalnız panel oturumuyla açılır; oturumsuz isteğin reddi T207'nindir (`04` 6.1.3; `02 §10.1`).
+  7. Alan kuralı değeri yazmaz, `02` kimliğiyle (bölüm, P-, L-) işaret eder; değer `02 §11`'dendir; ürün sabitini (`02 §11.2`) doğrulama `ProductConstants`'tan okur, firma ayarının çiti T381 k6'dır (`04` §7 girişi; `09 §3.5` madde 1).
+  8. Panel tek roldür; panel formları ve işlemleri `/panel` altındadır ve açık sayfalar (T207 k2) dışında panel oturumuyla açılır; oturumsuz isteğin reddi T207'nindir (`04` 6.1.3; `02 §10.1`).
   9. 2 dışındaki denetimler `Consistency` özelliğiyle işaretli birim testidir, veritabanına ve ağa dokunmaz; 2'nin sayfa testi Integration'dır (`09 §19.2`; K-1356).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
@@ -5486,7 +5486,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK4: eş anlamlı durum adı testi kırar.
   - KK5: Yönetici satırı sınırı.
   - KK6: alan silinince ya da kural değişince test kırılır.
-  - KK7: tabloda kimlik yerine sayı ya da doğrulamada `ProductConstants` yerine sayı testi kırar.
+  - KK7: tabloda kimlik yerine sayı ya da ürün sabitinde `ProductConstants` yerine sayı testi kırar.
   - KK8: `/panel` dışındaki panel formu ya da işlemi testi kırar.
   - KK9: testler `UnitTests/Consistency/` altındadır.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -5553,10 +5553,10 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. `§I.2` boot reçetesi gerçek yapılandırmayla sıfırdan koşar; test yapılandırması sayılmaz (`DEPLOY_RUNBOOK §I`; `00 §L.1`).
   2. Kırılan her adım `§I.3` tablosuna kök nedeniyle ve runbook satırıyla girer; reçete ikinci kez sıfırdan koşar.
-  3. `§F` ve `§I.4` kutuları işaretlenir: sağlık uçları, `§C` ayarları, arka plan işleri, uyarı kanalı, geri alma yolu.
+  3. `§F` ve `§I.4` kutularının hepsi işaretlenir.
   4. Üç adres dış sistemde kayıtlıdır; `/odeme/donus/…` kayıtlı değildir, her jeton isteğinde verilir; `08 §4.2` tablosu, `07 §2.1.9` ve runbook eşittir.
   5. `06 §8.5`'in `§A` ve `§H` satırları ile veritabanı açılış ayarı adımları runbook'ta yazılı ve provada koşulmuştur (`06 §8.5.1`, §8.5.2).
-  6. Sunucuda yalnız 80, 443 ve SSH açıktır; SSH anahtarla ve kurulum başına anahtarladır; yamalar kendiliğinden gelir (`05 MK-75`, MK-76; §8.8, §8.9).
+  6. Yalnız 80, 443 ve SSH açıktır; SSH yalnız kurulum başına anahtarla girilir, kök ve parola girişi kapalıdır; yamalar kendiliğinden gelir, gerekirse 04:30'da yeniden başlar (`05 MK-75`, MK-76; §8.8, §8.9).
   7. Günlük aktarımı sunucu dışına akar; kurtarma hedefi aynı gündür; prova dış depodan döner (`05 MK-25`, MK-27; §7.6).
   8. Canlı kanıt: gerçek kartla küçük tutarlı sipariş, 3D geçilir, panelden uçtan uca işletilir, bedel geri ödenir; taksit sunuluyorsa taksitli; satırlar runbook'a yazılır (`08 §2.1.10`; K-1411).
   9. Kurulum tarafı satırları runbook'tadır: gönderen adresinden deneme iletisi, panele erişim kaybında yeni yönetici hesabı, ÖK-1…ÖK-12 (`02 §9.1.5`, §10.2.7; `10 §4.1`).
@@ -5565,10 +5565,10 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Doğrulama kontrol listesi:**
   - KK1: gerçek yapılandırmayla açılış.
   - KK2: prova tablosu ve ikinci tekrar.
-  - KK3: `§F` kutuları.
+  - KK3: `§F`, `§I.4` kutuları.
   - KK4: üç adres kaydı; dönüş adresi kayıtsız; kaynaklar eşit.
   - KK5: `§A`, `§H` satırları.
-  - KK6: açık kapılar; SSH yalnız anahtarla, kurulum başına; yama ayarı.
+  - KK6: kapılar; kurulum başına anahtar, kök ve parola kapalı; yama ve 04:30 ayarı.
   - KK7: günlük dışarıda güncel; prova dış depodan; süre, son an kaydı.
   - KK8: canlı kanıt satırları; taksit.
   - KK9: kurulum tarafı satırları.
@@ -7290,7 +7290,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:§9.3 Kayıtların okuma yolu | T387 | | |
 | 05:§9.4 İzleme ve uyarı | T01, T07, T314 | | |
 | 05:§10.1 Dış bağımlılıklar — "çökerse ne olur" | T204, T202 | | |
-| 05:§10.2 E-posta kanalının ve firma bildirimlerinin uyarısı | T314, T382, T385 | | |
+| 05:§10.2 E-posta kanalının ve firma bildirimlerinin uyarısı | T204, T314, T382, T385 | | |
 | 05:§10.3 Beklenmeyen hata | T212 | | |
 | 05:§11.1 Tasarım değerleri | T226 | | |
 | 05:§11.2 Bilinçli tekil bırakılanlar | — | | |
@@ -7403,7 +7403,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 10:KP-71 Erişilebilirlik: A Seviyesi, WCAG 2.2, yedi ayrıca sınanan kural | T540, T543, T544 | | |
 | 10:KP-72 Deneme limitleri, ödenmemiş sipariş tavanı, giriş kaydı | T215, T341, T376, T377 | | |
 | 10:KP-73 Çerez onayı gerektirmeyen site: yalnız zorunlu çerezler; ödeme çerçevesi dışında hepsi birinci taraf | T224, T366 | | |
-| 10:KP-74 Aydınlatma bağlantısı, günlük imha, imha kaydı | T201, T225, T301, T302 | | |
+| 10:KP-74 Aydınlatma bağlantısı, günlük imha, imha kaydı | T201, T225, T301, T302, T324, T327, T343, T345, T370, T373, T514, T519, T522, T529, T533 | | |
 | 10:KP-75 Kayıtların saklama süresince kaybolmaması; yedek penceresi | T07, T118, T327 | | |
 | 10:KP-76 Eşzamanlı düzenleme uyarısı; siparişte önce tamamlanan geçerli | T208, T228, T364, T542 | | |
 | 10:KP-77 Salt okunur üye kaydı görünümü ve firma tarafından hesap silme | T345, T380, T533 | | |
@@ -7472,7 +7472,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 10:KD-63 Ayrı galeri içerik tipi yok | T339, T358, T359 | | |
 | 10:KD-64 İkinci ödeme sağlayıcısı desteklenmez | T202, T352, T401 | | |
 | 10:§4.1 Kurulum kontrol listesi (ÖK-1…ÖK-12) | T09, T303, T330, T331, T382, T401, T407, T409, T410, T601 | | |
-| 10:§4.2 Kısıtlar ve kabuller (SK-1…SK-10) | T226, T318, T330, T332, T333, T381 | | |
+| 10:§4.2 Kısıtlar ve kabuller (SK-1…SK-10) | T226, T318, T330, T332, T333, T357, T371, T381 | | |
 
 **Devir satırları** — Aşama 8'den ve Aşama 1'den gelen devirler (O5 2/2: karar 9 · park maddesi 5 · gövde anması 4 · D-01 1 = 19; `11_devir_esle.py` A–F)
 
@@ -7538,7 +7538,7 @@ Her task → hangi kaynak öğeden besleniyor?
 | T201 | `06` §9.1, §9.4, §9.5; `03` §4.1; `02` §4.2, Z-36, Z-44, §8.4.2, §8.4.5, §8.5.1, §8.5.2, §9.1, §9.1.6, §10.3, §10.3.3, §10.3.5, §11.2, P-39, P-45, §12.2, §12.2.7; `05` MK-22, MK-23, MK-65, §5.2, §7.4, §7.5, §9.2; `09` §9; `10` KP-74, KD-56 | ✓ 31 kaynak (özgün 17, alt bölüm 14, devir 0) |
 | T202 | `08` §3.1; `02` §8.3.4; `05` MK-17, MK-61, §3.6, §10.1; `09` §4, §11, §19; `10` KD-64 | ✓ 10 kaynak (özgün 4, alt bölüm 6, devir 0) |
 | T203 | `08` §3.2; `05` MK-17, MK-49, §3.6; `09` §11, §12, §18 | ✓ 7 kaynak (özgün 2, alt bölüm 5, devir 0) |
-| T204 | `08` §3.3; `03` §10.1; `05` §4.4, §10.1 | ✓ gerekçeli (alt bölüm) — K-1414, K-1419 |
+| T204 | `08` §3.3; `03` §10.1; `05` §4.4, §10.1, §10.2 | ✓ gerekçeli (alt bölüm) — K-1414, K-1419 |
 | T205 | `06` §8.2; `09` §8 | ✓ gerekçeli (alt bölüm) — K-1414 |
 | T206 | `07` §2.1, §2.2, §2.10; `05` MK-04, MK-16, MK-18, §3.5, §3.7; `09` §5; `10` KD-20 | ✓ 10 kaynak (özgün 4, alt bölüm 6, devir 0) |
 | T207 | `07` §2.3; `02` §1.3; `05` MK-16, MK-45, MK-47, §3.5, §6.1, §6.2, §6.5; `09` §15; `10` KD-18 | ✓ 11 kaynak (özgün 4, alt bölüm 7, devir 0) |
@@ -7591,10 +7591,10 @@ Her task → hangi kaynak öğeden besleniyor?
 | T321 | `03` §1.8; `02` §3.7.1, §5.1; `10` KP-7, KP-40 | ✓ 5 kaynak (özgün 3, alt bölüm 2, devir 0) |
 | T322 | `03` §1.8, §1.9; `02` §3.27.23, §3.32.4, §5.2, §5.13; `10` KD-38 | ✓ 7 kaynak (özgün 3, alt bölüm 4, devir 0) |
 | T323 | `03` §1.11; `02` §5.8, §10.1, §10.1.2; `05` MK-47, §6.2 | ✓ 6 kaynak (özgün 2, alt bölüm 4, devir 0) |
-| T324 | `03` §4.1; `02` §3.17.4, §3.17.5, §4.1, §4.1.3, §4.2, Z-1, Z-2, Z-3, Z-4, Z-5, Z-6, Z-7, Z-8, Z-9, §5.6, §5.6.3, §6.1, §6.1.2, §10.2, §10.2.6, §11.1, P-7, §11.2, P-12, P-13, P-14, P-15, P-16, P-18 | ✓ 30 kaynak (özgün 22, alt bölüm 8, devir 0) |
+| T324 | `03` §4.1; `02` §3.17.4, §3.17.5, §4.1, §4.1.3, §4.2, Z-1, Z-2, Z-3, Z-4, Z-5, Z-6, Z-7, Z-8, Z-9, §5.6, §5.6.3, §6.1, §6.1.2, §10.2, §10.2.6, §11.1, P-7, §11.2, P-12, P-13, P-14, P-15, P-16, P-18; `10` KP-74 | ✓ 31 kaynak (özgün 23, alt bölüm 8, devir 0) |
 | T325 | `03` §4.1; `02` §3.20.6, §4.1, §4.1.3, §4.2, Z-10, Z-11, Z-12, Z-39, Z-13, Z-14, Z-15, Z-16, Z-42, Z-17, Z-47, Z-18, Z-19, §7.2, §7.2.3, §7.3, §7.3.1, §7.4, §7.4.1, §7.5, §7.5.1, §11.1, P-5, P-44 | ✓ 29 kaynak (özgün 21, alt bölüm 8, devir 0) |
 | T326 | `03` §4.1; `02` §4.2, Z-20, Z-21, Z-22, Z-23, Z-24, Z-26, Z-27, §11.2, P-38 | ✓ 11 kaynak (özgün 8, alt bölüm 3, devir 0) |
-| T327 | `03` §4.2, §10.3; `02` §3.34, §3.34.7, §3.34.8, Z-8, Z-38, §4.3, §11.1, P-7, §11.2, P-43, §12.3, §12.3.3; `05` MK-44, §5.4; `10` KP-75, KD-60 | ✓ 18 kaynak (özgün 10, alt bölüm 8, devir 0) |
+| T327 | `03` §4.2, §10.3; `02` §3.34, §3.34.7, §3.34.8, Z-8, Z-38, §4.3, §11.1, P-7, §11.2, P-43, §12.3, §12.3.3; `05` MK-44, §5.4; `10` KP-74, KP-75, KD-60 | ✓ 19 kaynak (özgün 11, alt bölüm 8, devir 0) |
 | T328 | `03` §7.1, §7.2, §7.3; `02` §9.1, §9.1.1, §9.1.2, §9.1.3, §9.5, §12.1, §12.1.11; `10` KP-66, KP-67, KD-10, KD-16, KD-17, KD-52 | ✓ 16 kaynak (özgün 10, alt bölüm 6, devir 0) |
 | T329 | `03` §2.10; `02` §2.1, §2.2, §3.17.1; `09` §19 | ✓ 5 kaynak (özgün 1, alt bölüm 4, devir 0) |
 | T330 | `02` §3.1, §3.1.1, §3.1.2, §3.1.3, §3.1.4, §3.1.7, §6.9, §7.3, §7.3.5, §7.4, §7.4.4, §9.1, §9.1.4, §9.3, §9.3.1, §10.1, §10.1.1, §12.1, §12.1.1, §12.1.4, §12.5; `10` KP-35, KP-58, KD-21, §4.1, §4.2 | ✓ 26 kaynak (özgün 15, alt bölüm 11, devir 0) |
@@ -7610,9 +7610,9 @@ Her task → hangi kaynak öğeden besleniyor?
 | T340 | `03` §4.1, §8.1; `02` §3.7.4, §3.12, §3.12.1, §3.12.2, §3.12.3, §3.12.4, §3.12.5, §3.12.6, §3.12.7, §3.12.8, §3.12.9, Z-19, §6.2, §6.6, §6.7, §7.2, §7.2.5, §7.5, §7.5.4, §9.2, B-4, §11.1, P-8, P-44, §11.2, P-26; `05` MK-30, MK-31, §7.7; `10` KP-9, KP-20, KP-44 | ✓ 34 kaynak (özgün 22, alt bölüm 12, devir 0) |
 | T341 | `02` §3.13, §3.13.1, §3.13.2, §3.13.3, §3.13.4, §3.13.5, §3.13.18, §3.13.19, §3.13.20, §3.13.21, Z-1, Z-40, §5.12, §5.12.1, §6.5, §8.1, §8.1.1, §8.1.2, §8.1.3, §8.1.4, §8.2, L-3, L-9, §8.4, §8.4.1, §8.5, §8.5.1, §9.4, §10.2, §10.2.5, §10.3, §10.3.3, §10.4, §10.4.11, §10.7, §10.7.4, §11.2, P-12, P-33, P-49, P-45, §12.2, §12.2.9, §12.2.12; `10` KP-8, KP-25, KP-28, KP-72 | ✓ 48 kaynak (özgün 34, alt bölüm 14, devir 0) |
 | T342 | `02` §3.13, §3.13.9, §3.13.10, §3.13.11, §3.13.12, §3.13.13, §3.13.15, §3.13.16, §3.13.17, Z-2, Z-4, Z-5, §5.12, §5.12.2, §6.5, §8.1, §8.1.1, §8.1.3, §8.1.4, §8.1.5, §8.1.6, §8.1.7, §8.2, L-1, L-2, L-3, L-9, §8.2.4, §9.4, §10.2, §10.2.4, §10.2.5, §11.2, P-13, P-15, P-16, P-17, P-31, P-32, P-33, P-49, §12.2, §12.2.5; `05` MK-45, MK-46, MK-51, §6.1; `09` §15; `10` KP-27 | ✓ 49 kaynak (özgün 38, alt bölüm 11, devir 0) |
-| T343 | `02` §3.13, §3.13.6, §3.13.7, §3.13.8, §3.13.14, §3.13.17, Z-2, Z-45, §5.12, §5.12.2, §6.5, §8.1, §8.1.2, §8.1.3, §8.1.5, §8.2, L-9, §9.4, §10.2, §10.2.4, §10.2.5, §11.2, P-13, P-47, P-49; `05` MK-46, §6.1; `10` KP-26, KP-27, KD-11 | ✓ 30 kaynak (özgün 21, alt bölüm 9, devir 0) |
+| T343 | `02` §3.13, §3.13.6, §3.13.7, §3.13.8, §3.13.14, §3.13.17, Z-2, Z-45, §5.12, §5.12.2, §6.5, §8.1, §8.1.2, §8.1.3, §8.1.5, §8.2, L-9, §9.4, §10.2, §10.2.4, §10.2.5, §11.2, P-13, P-47, P-49; `05` MK-46, §6.1; `10` KP-26, KP-27, KP-74, KD-11 | ✓ 31 kaynak (özgün 22, alt bölüm 9, devir 0) |
 | T344 | `02` §3.14, §3.14.1, §3.14.2, §3.14.3, §3.14.4, §3.14.5, §3.14.6; `10` KP-12, KP-13, KP-27, KD-27 | ✓ 11 kaynak (özgün 10, alt bölüm 1, devir 0) |
-| T345 | `02` §3.15, §3.15.1, §3.15.2, §3.15.3, §3.15.4, §3.15.5, §3.15.6, Z-31, Z-32, §5.3, §5.3.5, §5.9, §6.5, §7.6, §7.6.5, §9.4, §10.3, §10.3.1, §12.2, §12.2.6, §12.2.7; `05` §6.1; `10` KP-29, KP-30, KP-77, KD-36 | ✓ 26 kaynak (özgün 17, alt bölüm 9, devir 0) |
+| T345 | `02` §3.15, §3.15.1, §3.15.2, §3.15.3, §3.15.4, §3.15.5, §3.15.6, Z-31, Z-32, §5.3, §5.3.5, §5.9, §6.5, §7.6, §7.6.5, §9.4, §10.3, §10.3.1, §12.2, §12.2.6, §12.2.7; `05` §6.1; `10` KP-29, KP-30, KP-74, KP-77, KD-36 | ✓ 27 kaynak (özgün 18, alt bölüm 9, devir 0) |
 | T346 | `02` §3.16, §3.16.1, §3.16.2, §3.16.3, §3.16.4, §3.16.5, §3.16.6, §3.16.7, Z-6, §6.1, §6.1.4, §6.2, §12.2, §12.2.5; `10` KP-9, KP-10, KD-10 | ✓ 17 kaynak (özgün 13, alt bölüm 4, devir 0) |
 | T347 | `02` §3.16, §3.16.8, §3.16.9, §3.16.10, §3.16.11, §3.16.12, §3.16.13, §6.2, §11.1, P-9; `10` KP-9, KD-7, KD-10, KD-35, KD-59 | ✓ 15 kaynak (özgün 12, alt bölüm 3, devir 0) |
 | T348 | `02` §3.10.6, §3.16.12, §3.17, §3.17.1, §3.17.2, §3.17.3, §3.17.4, §3.17.5, §3.17.6, §3.17.7, §3.17.8, Z-7, Z-8, §4.3, §5.3, §5.3.2, §5.3.3, §5.3.4, §5.6, §5.6.3, §5.6.4, §6.1, §6.1.2, §6.1.3, §6.2, §6.3, §8.2, L-7, L-8, §8.2.3, §9.2, B-1, §9.3, F-1, §10.6, §10.6.3, §11.1, P-7, §11.2, P-18, P-37, P-46, §12.1, §12.1.7; `05` MK-21, MK-36, MK-39, §4.2, §4.5; `09` §9; `10` KP-8, KP-11, KP-14, KP-15, KP-16, KP-17 | ✓ 56 kaynak (özgün 39, alt bölüm 17, devir 0) |
@@ -7624,7 +7624,7 @@ Her task → hangi kaynak öğeden besleniyor?
 | T354 | `02` §3.22, §3.22.1, §3.22.2, §3.22.3, §3.22.4, §3.22.5, §6.1, §6.1.1, §6.2, §6.3, §8.2, L-5, §8.3, §8.3.5, §8.3.6, §10.4, §10.4.11, §11.2, P-19, P-35; `09` §15; `10` KP-17, KP-18 | ✓ 23 kaynak (özgün 14, alt bölüm 9, devir 0) |
 | T355 | `02` §3.8.3, §3.9.6, §3.14.5, §3.19.6, §3.23, §3.23.1, §3.23.2, §3.23.3, §3.23.4, §3.23.5, §3.24.6, Z-39, §5.3, §5.3.2, §5.11, §5.11.4, §10.4, §10.4.2, §11.1, P-8, §12.1, §12.1.6, §12.1.7; `09` §9; `10` KP-17 | ✓ 25 kaynak (özgün 18, alt bölüm 7, devir 0) |
 | T356 | `02` §3.24, §3.24.1, §3.24.2, §3.24.3, §3.24.4, §3.24.5, §3.24.6, §3.24.7, §3.24.8, §6.1, §6.1.3, §6.2, §7.3, §7.3.2, §7.3.3, §7.3.4, §7.4, §7.4.2, §7.4.4, §8.4, §8.4.1, §8.4.3, §12.1, §12.1.2, §12.1.7, §12.2, §12.2.2, §12.2.4, §12.2.12; `05` MK-56; `09` §9; `10` KP-6, KP-8, KP-14, KP-35, KD-5, KD-29; `devir` 04-1948 | ✓ 38 kaynak (özgün 28, alt bölüm 9, devir 1) |
-| T357 | `02` §3.25, §3.25.1, §3.25.2, §3.25.3, §10.5, §10.5.3, §10.7, §10.7.1, §12.1, §12.1.10, §12.5; `10` KP-52, KD-1 | ✓ 13 kaynak (özgün 8, alt bölüm 5, devir 0) |
+| T357 | `02` §3.25, §3.25.1, §3.25.2, §3.25.3, §10.5, §10.5.3, §10.7, §10.7.1, §12.1, §12.1.10, §12.5; `10` KP-52, KD-1, §4.2 | ✓ 14 kaynak (özgün 8, alt bölüm 6, devir 0) |
 | T358 | `02` §2.3, §3.27, §3.27.1, §3.27.2, §3.27.3, §3.27.4, §3.27.5, §3.27.6, §3.27.7, §3.27.8, §3.27.9, §3.27.12, §6.8, §11.2, P-28, P-29; `10` KP-32, KP-33, KP-36, KP-54, KD-14, KD-39, KD-41, KD-42, KD-43, KD-44, KD-45, KD-63 | ✓ 28 kaynak (özgün 24, alt bölüm 4, devir 0) |
 | T359 | `02` §3.27, §3.27.10, §3.27.11, §3.27.13, §3.27.14, §3.27.15, §3.27.16, §3.27.17, §3.27.18, §3.27.19, §3.27.20, §6.8, §11.2, P-22, P-23, P-25, P-27, P-28, P-29; `10` KP-32, KP-54, KD-8, KD-14, KD-34, KD-42, KD-43, KD-44, KD-63 | ✓ 28 kaynak (özgün 25, alt bölüm 3, devir 0) |
 | T360 | `03` §10.2; `02` §2.3, §3.27, §3.27.21, §3.27.22, §3.27.23, §3.27.24, §3.27.25, §3.27.26, §3.27.27, §3.27.28, §4.1, §4.1.4, Z-23, Z-24, §5.2, §6.8, §7.6, §7.6.4, §10.8, §10.8.1, §11.2, P-30; `10` KP-36, KP-54, KP-57, KD-38, KD-45 | ✓ 28 kaynak (özgün 19, alt bölüm 9, devir 0) |
@@ -7637,10 +7637,10 @@ Her task → hangi kaynak öğeden besleniyor?
 | T367 | `02` Z-39, §5.8, §5.9, §5.11, §5.11.3, §6.4, §7.1, §7.1.1, §7.1.3, §7.1.4, §7.1.6, §7.2, §7.2.1, §7.2.2, §7.2.5, §7.2.6, §7.2.7, §7.3, §7.3.7, §9.2, B-7, §10.4, §10.4.3; `10` KP-21, KP-24 | ✓ 25 kaynak (özgün 16, alt bölüm 9, devir 0) |
 | T368 | `03` §4.1; `02` Z-11, Z-39, Z-47, §5.8, §5.9, §6.4, §6.7, §7.2, §7.2.3, §7.2.4, §8.3, §8.3.8, §9.2, B-7, B-9, §10.4, §10.4.8, §10.4.10, §12.1, §12.1.8, §12.5; `10` KP-21, KP-47 | ✓ 24 kaynak (özgün 13, alt bölüm 11, devir 0) |
 | T369 | `02` §6.4, §7.1, §7.1.3, §7.1.6, §7.1.7, §7.2, §7.2.7, §7.2.9, §7.4, §7.4.6; `09` §14; `10` KP-21, KP-22, KP-24 | ✓ 14 kaynak (özgün 9, alt bölüm 5, devir 0) |
-| T370 | `03` §1.7; `02` Z-16, Z-17, Z-47, Z-35, Z-38, §4.3, §5.5, §6.4, §7.2, §7.2.8, §7.4, §7.4.1, §7.4.5, §7.5, §7.5.3, §8.4, §8.4.2, §9.2, B-8, B-14, §9.3, F-4, §10.4, §10.4.3, §10.4.9, §10.4.10, §10.6, §10.6.1, §11.2, P-43, §12.1, §12.1.8, §12.1.9, §12.2, §12.2.7, §12.5; `05` MK-40, §4.6; `09` §14; `10` KP-15, KP-21, KP-22, KP-47 | ✓ 44 kaynak (özgün 26, alt bölüm 18, devir 0) |
-| T371 | `02` Z-13, Z-14, Z-15, §6.4, §7.1, §7.1.1, §7.1.2, §7.3, §7.3.1, §7.3.2, §7.3.3, §7.3.4, §7.4, §7.4.9, §10.4, §10.4.5, §12.1, §12.1.9; `10` KP-22, KP-45 | ✓ 20 kaynak (özgün 14, alt bölüm 6, devir 0) |
+| T370 | `03` §1.7; `02` Z-16, Z-17, Z-47, Z-35, Z-38, §4.3, §5.5, §6.4, §7.2, §7.2.8, §7.4, §7.4.1, §7.4.5, §7.5, §7.5.3, §8.4, §8.4.2, §9.2, B-8, B-14, §9.3, F-4, §10.4, §10.4.3, §10.4.9, §10.4.10, §10.6, §10.6.1, §11.2, P-43, §12.1, §12.1.8, §12.1.9, §12.2, §12.2.7, §12.5; `05` MK-40, §4.6; `09` §14; `10` KP-15, KP-21, KP-22, KP-47, KP-74 | ✓ 45 kaynak (özgün 27, alt bölüm 18, devir 0) |
+| T371 | `02` Z-13, Z-14, Z-15, §6.4, §7.1, §7.1.1, §7.1.2, §7.3, §7.3.1, §7.3.2, §7.3.3, §7.3.4, §7.4, §7.4.9, §10.4, §10.4.5, §12.1, §12.1.9; `10` KP-22, KP-45, §4.2 | ✓ 21 kaynak (özgün 14, alt bölüm 7, devir 0) |
 | T372 | `02` §5.6, §5.6.6, §5.8, §5.9, §6.4, §7.1, §7.1.4, §7.1.6, §7.3, §7.3.5, §7.3.6, §7.3.7, §7.6, §7.6.7, §8.3, §8.3.8, §9.2, B-9, B-14, §9.3, F-3, §10.4, §10.4.10, §12.1, §12.1.9, §12.5; `10` KP-22, KP-47 | ✓ 28 kaynak (özgün 15, alt bölüm 13, devir 0) |
-| T373 | `02` Z-16, Z-42, Z-35, Z-38, §5.8, §6.4, §7.4, §7.4.1, §7.4.2, §7.4.3, §7.4.4, §7.4.5, §7.4.6, §7.4.7, §7.4.8, §7.4.9, §7.4.10, §8.4, §8.4.2, §9.2, B-14, B-16, §10.4, §10.4.5, §10.4.9, §10.6, §10.6.1, §11.2, P-43, §12.1, §12.1.9, §12.5; `10` KP-22, KP-24, KP-47; `devir` 04-1948 | ✓ 36 kaynak (özgün 25, alt bölüm 10, devir 1) |
+| T373 | `02` Z-16, Z-42, Z-35, Z-38, §5.8, §6.4, §7.4, §7.4.1, §7.4.2, §7.4.3, §7.4.4, §7.4.5, §7.4.6, §7.4.7, §7.4.8, §7.4.9, §7.4.10, §8.4, §8.4.2, §9.2, B-14, B-16, §10.4, §10.4.5, §10.4.9, §10.6, §10.6.1, §11.2, P-43, §12.1, §12.1.9, §12.5; `10` KP-22, KP-24, KP-47, KP-74; `devir` 04-1948 | ✓ 37 kaynak (özgün 26, alt bölüm 10, devir 1) |
 | T374 | `02` Z-18, Z-29, §5.8, §5.10, §6.4, §7.1, §7.1.1, §7.1.4, §7.4, §7.4.3, §7.5, §7.5.1, §7.5.2, §7.5.3, §7.5.4, §9.2, B-9, §9.3, F-3, §12.1, §12.1.9; `10` KP-23, KP-49, KD-42, KD-61 | ✓ 25 kaynak (özgün 16, alt bölüm 9, devir 0) |
 | T375 | `02` §6.1, §6.1.1, §6.3, §6.7, §7.6, §7.6.6, §7.6.7, §8.1, §8.1.2, §8.3, §8.3.6, §8.3.7, §9.2, B-1, B-10, B-15, §10.1, §10.1.2, §10.3, §10.3.1, §10.4, §10.4.1, §10.4.2, §10.4.11, §12.2, §12.2.7, §12.5; `05` §4.4; `10` KP-8, KP-17, KP-28, KP-48, KD-13 | ✓ 33 kaynak (özgün 20, alt bölüm 13, devir 0) |
 | T376 | `03` §6.1; `02` §5.3, §5.3.4, §5.12, §5.12.3, §6.1, §6.1.5, §6.2, §6.3, §6.5, §8.1, §8.1.4, §8.2, L-1, L-2, L-3, L-4, L-5, L-6, L-7, L-8, L-9, §8.2.1, §11.2, P-31, P-32, P-33, P-34, P-35, P-36, P-37, P-46, P-49; `09` §15; `10` KP-72 | ✓ 35 kaynak (özgün 24, alt bölüm 11, devir 0) |
@@ -7681,26 +7681,26 @@ Her task → hangi kaynak öğeden besleniyor?
 | T511 | `07` UC-31, UC-32, UC-33, UC-34, UC-36; `04` E-15, E-16; `03` §2.6, §3.2, §5.1; `02` §2.1, §3.12.1, §3.12.5, §3.17.8, §3.22.3, §3.22.4, §3.22.5, §6.1.1, §7.1.4, §9.1, §9.1.2, §11.1, P-8, §11.2, P-35, P-37, P-46; `05` MK-31; `10` KP-18, KP-19, KP-20 | ✓ 31 kaynak (özgün 24, alt bölüm 7, devir 0) |
 | T512 | `07` UC-35, UC-38, UC-39, UC-40, UC-41; `04` E-16, E-17; `03` §2.7, §3.3, §5.1, §5.2, §5.3; `02` §2.1; `10` KP-21 | ✓ 14 kaynak (özgün 8, alt bölüm 6, devir 0) |
 | T513 | `07` UC-42, UC-43, UC-44, UC-45, UC-46; `04` E-18, E-19; `03` §2.8, §2.9, §3.3, §5.1; `02` §2.1, §3.1.7, §7.5.2; `10` KP-22, KP-23 | ✓ 16 kaynak (özgün 11, alt bölüm 5, devir 0) |
-| T514 | `07` UC-47, UC-48, UC-49, UC-52, UC-53; `04` E-20, E-21; `03` §3.4, §9.1; `02` §2.1, §3.13.4, §3.13.5, §3.13.11, §3.13.18, §11.2, P-12, P-49; `10` KP-25 | ✓ 18 kaynak (özgün 14, alt bölüm 4, devir 0) |
+| T514 | `07` UC-47, UC-48, UC-49, UC-52, UC-53; `04` E-20, E-21; `03` §3.4, §9.1; `02` §2.1, §3.13.4, §3.13.5, §3.13.11, §3.13.18, §11.2, P-12, P-49; `10` KP-25, KP-74 | ✓ 19 kaynak (özgün 15, alt bölüm 4, devir 0) |
 | T515 | `07` UC-50, UC-51, UC-54, UC-55; `04` E-22; `03` §3.4, §6.1, §9.1, §9.2; `02` §3.13.6, §3.13.12, §3.16.6, §3.16.7, §11.2, P-15, P-16; `10` KP-26, KP-27 | ✓ 18 kaynak (özgün 13, alt bölüm 5, devir 0) |
 | T516 | `07` UC-56, UC-57, UC-58, UC-59, UC-60, UC-61, UC-62; `04` E-23, E-24; `03` §3.4, §6.1, §9.2; `02` §3.13.8, §3.13.9, §3.13.10, §3.13.11, §8.1.4, §11.2, P-13; `10` KP-27 | ✓ 20 kaynak (özgün 16, alt bölüm 4, devir 0) |
 | T517 | `07` UC-63, UC-64, UC-65, UC-66, UC-67, UC-68, UC-69; `04` E-25; `03` §3.4, §9.3, §9.4; `02` §3.13.10, §3.13.13, §3.13.14, §3.13.15, §3.13.21, §3.15.1, §3.15.6, §8.1.4, §11.2, P-47, P-17; `10` KP-27, KP-29, KD-36 | ✓ 25 kaynak (özgün 21, alt bölüm 4, devir 0) |
 | T518 | `07` UC-70, UC-71, UC-72, UC-73, UC-74; `04` E-26, E-27; `03` §2.6, §9.3; `02` §3.14.1, §3.14.5, §3.14.6, §3.17.8; `10` KP-27 | ✓ 14 kaynak (özgün 12, alt bölüm 2, devir 0) |
-| T519 | `07` UC-75, UC-76, UC-77; `04` E-28; `03` §3.4, §6.2, §9.2, §9.3; `02` §3.13.14, §11.2, P-47; `10` KP-27 | ✓ 12 kaynak (özgün 7, alt bölüm 5, devir 0) |
+| T519 | `07` UC-75, UC-76, UC-77; `04` E-28; `03` §3.4, §6.2, §9.2, §9.3; `02` §3.13.14, §11.2, P-47; `10` KP-27, KP-74 | ✓ 13 kaynak (özgün 8, alt bölüm 5, devir 0) |
 | T520 | `07` UC-84, UC-85, UC-109, UC-110, UC-111, UC-112, UC-113; `04` E-29, E-30; `03` §3.5, §8.8, §9.2, §10.4; `02` §3.13.16, Z-3, §6.9, §8.1.3, §8.1.7, §10.2, §10.2.1, §11.2, P-14; `10` KP-62 | ✓ 23 kaynak (özgün 16, alt bölüm 7, devir 0) |
 | T521 | `07` UC-86, UC-108, UC-185, UC-186, UC-187; `04` E-31, E-54; `03` §6.3, §8.7, §8.9, §10.1; `02` §10.8.2; `10` KP-50, KP-65 | ✓ 14 kaynak (özgün 10, alt bölüm 4, devir 0) |
-| T522 | `07` UC-103, UC-106, UC-175, UC-176, UC-177; `04` E-49, E-52; `03` §3.5, §6.2, §6.3, §8.8, §8.9; `02` §10.1, §10.1.2, §10.2, §10.2.6, §10.3, §10.3.4; `10` KP-62, KP-63 | ✓ 20 kaynak (özgün 12, alt bölüm 8, devir 0) |
+| T522 | `07` UC-103, UC-106, UC-175, UC-176, UC-177; `04` E-49, E-52; `03` §3.5, §6.2, §6.3, §8.8, §8.9; `02` §10.1, §10.1.2, §10.2, §10.2.6, §10.3, §10.3.4; `10` KP-62, KP-63, KP-74 | ✓ 21 kaynak (özgün 13, alt bölüm 8, devir 0) |
 | T523 | `07` UC-104, UC-178, UC-179, UC-180, UC-181; `04` E-50; `03` §9.3; `02` §3.13.16, §10.3.1; `10` KP-62 | ✓ 10 kaynak (özgün 9, alt bölüm 1, devir 0) |
 | T524 | `07` UC-105, UC-107, UC-182, UC-183, UC-184; `04` E-51, E-53; `03` §6.3, §8.9; `02` §3.25.1, §3.25.3, §10.3.1, §10.6, §10.6.3, §10.7; `10` KP-52, KP-53, KD-54 | ✓ 18 kaynak (özgün 14, alt bölüm 4, devir 0) |
 | T525 | `07` UC-87, UC-88, UC-114, UC-115, UC-116, UC-117; `04` E-32, E-33; `03` §3.5, §8.1; `02` §2.1, §3.2.2, §3.3.2, §3.3.4, §3.4.4, §3.6.1, §3.6.2, §3.6.7, §3.7.1, §3.7.3, §3.7.4, §3.7.7, §3.7.8, §3.8.1, §3.8.2, §3.8.4, §3.8.5, §3.9.1, §3.9.5, §3.11.1, §3.11.2, §3.11.3, §3.11.5, §3.12.2, §3.16.9, §3.20.5, §10.7, §10.7.2, §11.1, P-5, P-6, P-9, P-10, P-44, §11.2, P-21, P-22, P-23, P-24, P-27; `09` §16; `10` KP-39, KP-40, KP-42, KP-43, KP-44, KP-45, KD-12 | ✓ 58 kaynak (özgün 51, alt bölüm 7, devir 0) |
 | T526 | `07` UC-89, UC-90, UC-118, UC-119, UC-120, UC-121, UC-122; `04` E-34, E-35; `03` §3.5, §8.1; `02` §3.4.1, §3.4.5, §3.4.6, §3.10.2, §3.10.4, §3.10.5, §3.10.6, §3.28.6, §11.2, P-20, P-36; `10` KP-41, KP-43 | ✓ 24 kaynak (özgün 21, alt bölüm 3, devir 0) |
 | T527 | `07` UC-91, UC-92, UC-123, UC-124, UC-125, UC-126, UC-127, UC-128; `04` E-36, E-37; `03` §2.8, §3.5, §4.1, §6.2, §6.3, §8.2; `02` §2.1, §3.20.7, §3.20.11, §3.31.2; `10` KP-46, KD-13 | ✓ 22 kaynak (özgün 15, alt bölüm 7, devir 0) |
 | T528 | `07` UC-129, UC-130, UC-138, UC-140, UC-141, UC-142, UC-144, UC-145; `04` E-37; `03` §3.5, §5.2, §5.3, §8.3, §8.4; `02` §3.6.6; `10` KP-47 | ✓ 16 kaynak (özgün 11, alt bölüm 5, devir 0) |
-| T529 | `07` UC-131, UC-132, UC-133, UC-134, UC-135, UC-136, UC-137; `04` E-37; `03` §3.5, §5.2, §5.3, §8.3; `02` §3.21.11; `05` §4.6; `10` KP-47 | ✓ 15 kaynak (özgün 10, alt bölüm 5, devir 0) |
+| T529 | `07` UC-131, UC-132, UC-133, UC-134, UC-135, UC-136, UC-137; `04` E-37; `03` §3.5, §5.2, §5.3, §8.3; `02` §3.21.11; `05` §4.6; `10` KP-47, KP-74 | ✓ 16 kaynak (özgün 11, alt bölüm 5, devir 0) |
 | T530 | `07` UC-146, UC-147, UC-148, UC-149, UC-150, UC-151; `04` E-37; `03` §2.8, §3.5, §5.2, §6.2, §8.4; `02` §3.23.3; `10` KP-48 | ✓ 14 kaynak (özgün 9, alt bölüm 5, devir 0) |
 | T531 | `07` UC-139, UC-143, UC-152, UC-153, UC-154; `04` E-37; `03` §3.5, §8.2, §8.4, §8.9; `02` §3.12.6, §3.20.9, §3.32.10, §6.1.1, §8.4.3, §9.1, §9.1.6; `05` MK-31; `10` KP-44, KP-48 | ✓ 20 kaynak (özgün 15, alt bölüm 5, devir 0) |
 | T532 | `07` UC-93, UC-94, UC-155, UC-156; `04` E-38, E-39; `03` §8.6; `02` §3.32.4, §3.32.5; `10` KP-49, KD-50, KD-51 | ✓ 12 kaynak (özgün 11, alt bölüm 1, devir 0) |
-| T533 | `07` UC-95, UC-157; `04` E-40; `03` §3.4, §9.4; `02` §3.15.5, §3.15.6; `10` KP-29, KP-77 | ✓ 9 kaynak (özgün 7, alt bölüm 2, devir 0) |
+| T533 | `07` UC-95, UC-157; `04` E-40; `03` §3.4, §9.4; `02` §3.15.5, §3.15.6; `10` KP-29, KP-74, KP-77 | ✓ 10 kaynak (özgün 8, alt bölüm 2, devir 0) |
 | T534 | `07` UC-96, UC-98, UC-117, UC-158, UC-159, UC-160, UC-161, UC-163; `04` E-41, E-43; `03` §3.5, §8.6, §10.2; `02` §2.1, §2.3, §3.11.6, §3.27.3, §3.27.9, §3.27.11, §3.27.12, §3.27.13, §3.27.15, §3.27.21, §3.27.24, §3.27.27, §3.28.3, §3.29.1, §3.29.3, §3.29.6, §11.2, P-22, P-23, P-25, P-27, P-28, P-29, P-30; `10` KP-54, KP-56, KP-57 | ✓ 40 kaynak (özgün 34, alt bölüm 6, devir 0) |
 | T535 | `07` UC-97, UC-99, UC-162, UC-164, UC-165, UC-166; `04` E-42, E-44; `03` §3.5, §8.6, §8.7, §10.2; `02` §3.1.2, §3.1.3, §3.1.5, §3.1.6, §3.1.7, §3.28.1, §3.28.4, §12.1, §12.1.4; `10` KP-31, KP-55, KP-58, KP-60, KP-64 | ✓ 26 kaynak (özgün 21, alt bölüm 5, devir 0) |
 | T536 | `07` UC-100, UC-101, UC-167, UC-168, UC-169, UC-170, UC-171, UC-172; `04` E-45, E-46; `03` §3.5, §6.2, §6.3, §8.7; `02` §2.1, §3.17.4, §3.18.1, §3.19.1, §3.19.2, §3.19.3, §3.20.1, §3.20.4, §3.20.5, §3.21.2, §3.21.5, §3.33.3, §4.1.5, §11.1, P-1, P-3, P-5, P-6, P-7, §11.2, P-18; `10` KP-59, KP-64 | ✓ 37 kaynak (özgün 30, alt bölüm 7, devir 0) |
@@ -7738,7 +7738,7 @@ Her task → hangi kaynak öğeden besleniyor?
 | GAP-20 | Veritabanı kullanıcıları: kurucu betik, beş kullanıcı, `pg_hba`, rol ayarları, `pg_trgm`, yetki matrisi testi (`09 §10.8`, `05 §7.1.3`) | Kapandı — yeni T10 (K-1441) | T10 |
 | GAP-21 | `03 §2.10.2`–§2.10.5 anlatılarının (karışık sipariş, kargoda cayma, IBAN'sız iade, e-posta düzeltme) servis düzeyi uçtan uca testi — T329 yalnız ana akışı sınar | Kapandı — yeni T390 (K-1441) | T390 |
 
-**Boşluk olmayanlar (doğrulayıcı reddetti, K-1440).** Dependabot ve derleme adımında açık taraması (T04'ün `05 §8.3` kaynağında); girdi doğrulama kalıbı (T211, T212, T213; hiçbirinin kısa adı "doğrulama" demiyor, kural T211 KK7–KK8 ve T212 KK3'tedir); işletim sistemi güncellemesi, sıralama sürümü denetimi, kurtarma sonrası eksik dosya listesi ve kapasite okuma komutu (`DEPLOY_RUNBOOK` işi; yama ayarını T601 k6, açılış ayarını T601 k5, kapasite okumayı T602 k3 sınar; sıralama sürümü denetimi ve kurtarma sonrası eksik dosya listesi runbook adımıdır, task kriteri yoktur); demo sitesi (T09, T602). Bunlar §7.1 satırlarında ya da K-1440'ta gerekçelidir.
+**Boşluk olmayanlar (doğrulayıcı reddetti, K-1440).** Dependabot ve derleme adımında açık taraması (T04'ün `05 §8.3` kaynağında); girdi doğrulama kalıbı (T211, T212, T213; hiçbirinin kısa adı "doğrulama" demiyor, kural T211 KK7–KK8 ve T212 KK3'tedir); işletim sistemi güncellemesi, sıralama sürümü denetimi, veritabanının ana sürüm geçişi, kurtarma sonrası eksik dosya listesi ve kapasite okuma komutu (`DEPLOY_RUNBOOK` işi; yama ayarını T601 k6, açılış ayarını T601 k5, kapasite okumayı T602 k3 sınar; sıralama sürümü denetimi, ana sürüm geçişi — desteği bitmeden ayrı bir sürümün işi, `05 §8.8.5`, §8.6.7 — ve kurtarma sonrası eksik dosya listesi runbook adımıdır, task kriteri yoktur); demo sitesi (T09, T602). Bunlar §7.1 satırlarında ya da K-1440'ta gerekçelidir.
 
 **Yazım turunun sonunda durum (K-1454).** Yedi GAP'in sekiz kapatan task'ının hepsi §5'te blok olarak yazıldı (T303, T389, T202, T232, T222, T233, T10, T390; kapsamları kendi bloklarında, kabul kriterleriyle). Task blokları yazılırken **yeni boşluk çıkmadı** (`GAP-22` açılmadı): kayıtta olmayan yazım kararları plan kararı olarak K-1443…K-1453'te kaydedildi ve hiçbiri `02`–`10`'a geriye etki yaratmadı. Matris sayımları yazım sonunda yeniden koşuldu: ileri yön 1.501 / 1.501, 7.1 ile 7.2 arasında 3.367 çift ve yalnız bir yönde olan çift yok, 214 aday task'ın 214'ü blok olarak yazılı.
 
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.54*
+*Shopfolio — Implementation Plan v0.55*

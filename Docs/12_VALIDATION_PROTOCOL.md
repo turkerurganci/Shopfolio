@@ -1,12 +1,12 @@
 # Shopfolio — Validation Protocol
 
-**Versiyon: v0.2** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.3** | **Bağımlılıklar:** `02`–`11` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 10 — Doğrulama Protokolü · **Rol:** QA / Verification Lead
 > **Bu bir test case deposu değildir.** Cevapladığı soru: **"Bu ürün bir sonraki aşamaya geçilebilecek olgunlukta mı?"**
 > **Kapsam `10_MVP_SCOPE.md` ile birebir hizalıdır.**
 
-> **Yazım durumu (K-28, K-30, K-1516; karar kaydı §24): yazım turu sürüyor (v0.2).** Yazım oturumları: Y1 ✓ (bu başlık notu); Y2, Y3a, Y3b, Y4, Y5 bekliyor (harita, konvansiyonlar ve okuma tablosu park bloklarının altındadır). Sıra: başlık notu → çerçeve bölümleri (§3, §5…§11) → matris (§4) → proje-spesifik ek (§12) → §1 ve §2 son → kalite döngüsü. Bölümlerin gövdesi şablonun yönerge ve örnek metniyle durur; her oturum kendi bölümünde yönergeyi gerçek içerikle değiştirir.
+> **Yazım durumu (K-28, K-30, K-1516; karar kaydı §24): yazım turu sürüyor (v0.3).** Yazım oturumları: Y1 ✓ (bu başlık notu), Y2 ✓ (çerçeve bölümleri §3, §5…§11; K-1517…K-1520); Y3a, Y3b, Y4, Y5 bekliyor (harita, konvansiyonlar ve okuma tablosu park bloklarının altındadır). Sıra: başlık notu → çerçeve bölümleri (§3, §5…§11) → matris (§4) → proje-spesifik ek (§12) → §1 ve §2 son → kalite döngüsü. Bölümlerin gövdesi şablonun yönerge ve örnek metniyle durur; her oturum kendi bölümünde yönergeyi gerçek içerikle değiştirir.
 
 > **Aşama 1'den park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36.
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
@@ -151,7 +151,7 @@ Aşama 1 ve Aşama 6…9 bloklarında dizin satırı yoktur ve eklenmedi (devrin
 | Oturum | Kapsam | Konu | Tahmini boyut | Durum |
 |---|---|---|---|---|
 | Y1 | Başlık notu: sürüm satırı, yazım durumu, park bloklarının durumu, konvansiyonlar, okuma tablosu, harita; dizin satırları | `VP0-01`, `VP0-02` | +11 KB | ✓ |
-| Y2 | §3 seviyeler (+ W-1 etiketleri), §5 giriş, §6 çıkış, §7 kanıt, §8 severity, defect ve risk, §9 ajan modeli, §10 roller, §11 yeniden doğrulama | `VP3-01`, `VP3-02`, `VP5-01`, `VP6-01`, `VP7-01`, `VP8-01`…`VP8-03`, `VP9-01`, `VP10-01`, `VP11-01` | +35 KB | bekliyor |
+| Y2 | §3 seviyeler (+ W-1 etiketleri), §5 giriş, §6 çıkış, §7 kanıt, §8 severity, defect ve risk, §9 ajan modeli, §10 roller, §11 yeniden doğrulama | `VP3-01`, `VP3-02`, `VP5-01`, `VP6-01`, `VP7-01`, `VP8-01`…`VP8-03`, `VP9-01`, `VP10-01`, `VP11-01` | +35 KB | ✓ |
 | Y3a | §4 matris biçimi ve KP gruplarının matrisi (KP-1…KP-77; `12_matris_denetle.py`) | `VP4-01`…`VP4-11` | +110 KB | bekliyor |
 | Y3b | §4 matris devamı: KP-37, genişlik sınıfları, vitrin kuralı, seviye E, ön yüz, çatı, uçlar, hata kodları | `VP4-12`…`VP4-19` | +70 KB | bekliyor |
 | Y4 | §12 proje-spesifik ek; F6 kabul kanıtı senaryolarının `11` T601 kabul kriteri 10'a geri yazımı | `VP12-01`…`VP12-13` | +60 KB | bekliyor |
@@ -195,16 +195,44 @@ Tahminle toplam yaklaşık 360 KB'a ulaşır.
 
 ## 3. Doğrulama seviyeleri
 
-> **Not:** Doğrulama **seviyeleri** (bu bölüm) ile kalite **kapıları** (00 §D.6) farklı eksenlerdir. Seviyeler *neyin* doğrulandığını, kapılar *ne zaman* doğrulandığını söyler.
+> **Not:** Doğrulama **seviyeleri** (bu bölüm) ile kalite **kapıları** (`00 §D.6`) farklı eksenlerdir. Seviyeler *neyin* doğrulandığını, kapılar *ne zaman* doğrulandığını söyler. Seviye, matris satırının kimliğinde okunur (`VAL-C012` — C seviyesi) ve "Seviye" sütunuyla çelişemez (K-1511 (2)). Bu bölümün kararları K-1517'dedir (`VP3-01`) ve K-1512'dir (`VP3-02`).
+
+### 3.1 Seviyeler
 
 | Seviye | Soru | Ne zaman tetiklenir | Kaynak |
 |---|---|---|---|
-| **A — Gereksinim** | İş kuralları gerçekten karşılanıyor mu? | İlgili task bitince | `02`, `10` |
-| **B — Fonksiyonel** | Akışlar uçtan uca çalışıyor mu? | Task + faz | `02`, `03`, `10` |
-| **C — Durum makinesi** | İzinli geçişler çalışıyor, yasak geçişler engelleniyor mu? | Durum makinesine dokunan her task | `03`, `06` |
-| **D — Veri** | Veri doğru saklanıyor, dönüşüyor, siliniyor mu? | Veri katmanı task'ları | `06`, `09` |
-| **E — Entegrasyon** | Dış servislerle sözleşme doğru mu? | Entegrasyon task'ları | `08` |
-| **F — Operasyonel** | Sistem gerçek koşullarda ayakta kalıyor mu? | Faz sonu + final | `05`, `08`, `09` |
+| **A — Gereksinim** | `10 §2` kapsam cümleleri ve `02`'nin iş kuralları gerçekten karşılanıyor mu? | İlgili task bitince (task doğrulaması); sonraki fazların gate'inde regresyon olarak yeniden | `02`, `10`; `[erişilebilirlik]` satırlarında `04` |
+| **B — Fonksiyonel** | Akışlar uçtan uca çalışıyor mu — servis düzeyinde (F3) ve ekran düzeyinde (F5)? | Task doğrulaması ve faz gate'i (F3'te ilk uçtan uca akış, F5'te betiksiz yol) | `02`, `03`, `04`, `07`, `10` |
+| **C — Durum makinesi** | İzinli geçişler çalışıyor, yasak geçişler engelleniyor mu? | Bir durum makinesine dokunan her task (sipariş, ödeme, iptal–cayma–iade…); F3 gate'inde geçiş tablosunun eşitliği | `02 §5.4`, `§5.5`; `03`; `06` |
+| **D — Veri** | Veri doğru saklanıyor, dönüşüyor, siliniyor ve saklama süresi dolunca imha ediliyor mu? | Veri katmanı task'ları (F1) ve veriye dokunan her task; göç ve saklama senaryolarında F1 gate'i | `06`, `05`, `09` |
+| **E — Entegrasyon** | Dış servislerle — ödeme sağlayıcısı, e-posta altyapısı, Google — sözleşme doğru mu? | Entegrasyon task'ları (F4) ve bir dış servisin sonucuna dayanan her task; F4 gate'i | `08`; makine uçları için `07` |
+| **F — Operasyonel** | Sistem gerçek koşullarda ayakta kalıyor mu — kurulum, yedek, canlılık, yük, güvenlik taraması, canlı kanıt? | Faz sonu (gate) ve final çıkış; sürüm referans kuruluma indiğinde açılış provası | `05`, `08`, `09`, `DEPLOY_RUNBOOK` |
+
+Her satır **tek** seviyededir: aynı kuralın iki seviyede satırı olmaz (K-1512). Bir kural hem iş kuralı hem veri davranışı taşıyorsa satır, sınadığı şeye göre seçilir — kuralın kendisi A'da, saklanışı D'dedir ve iki ayrı kuraldır.
+
+### 3.2 Seviye ve kapı
+
+Kapılar `00 §D.6` ve §E.2'dedir ve burada tekrarlanmaz; tablo hangi kapının hangi seviyeleri okuduğunu söyler.
+
+| Kapı | Okunan satırlar | Kural evi |
+|---|---|---|
+| **Katman 1 — task doğrulaması** | Task'ın kabul kriterlerine ve kaynak birimlerine bağlı A–E satırları; her kabul kriteri en az bir satıra denk gelir | `11` §5 "Task yapısı" madde 5, §7.1; `skills/validate` |
+| **Katman 2 — PR / CI** | Satır değildir: CI, satırın **kanıtı** olan otomatik testleri koşar; CI yeşili satırın yerine geçmez | `00 §D.6`; `INSTRUCTIONS §3.3` |
+| **Katman 3 — faz gate'i** | Önceki fazlar dahil A–E regresyonu; fazın kapı ölçütlerinin satırları (§6.2); F satırları; ayrı chat'te | `00 §E.2`; `11 §6`; `skills/gate-check` |
+| **Final çıkış** | Bütün satırlar (§6.3) | §6.3 |
+
+### 3.3 Seviye dışı doğrulama türleri
+
+Tarayıcıda ön yüz, erişilebilirlik, güvenlik ve yük A–F'nin bir "neyin"i değil bir "nasıl"ıdır. **Yeni seviye ve yeni matris sütunu açılmaz** (K-1512 (1)); dört tür, matriste `Kural` hücresinin başındaki köşeli **tür etiketiyle** taşınır. Bir satır en çok bir etiket taşır; iki tür birlikte sınanıyorsa iki satır yazılır. Etiket betikle sayılır (tür başına satır, seviye dağılımı). Türlerin satırları §4 matrisinde kendi KP gruplarının yanında durur; yalnız projeye özgü kurulum — yük senaryosu ve yasal uyarıların senaryo biçimi — §12'dedir (`VP12-12`, `VP12-13`).
+
+| Etiket | Ne sınar | Seviye | Hangi kapıda okunur | Ayrıntının evi |
+|---|---|---|---|---|
+| `[tarayıcı]` | Tarayıcıda koşan ön yüz davranışı ve yerleşim: ortak betik, sayfa modülleri, betikli ve betiksiz yol, genişlik sınıfları (K-1325, K-1354, K-1355) | **B**; iş kuralının kendisi tarayıcıda gösterilen satır **A** | Ekranın task doğrulaması (F5); betiksiz yol F5 gate'i | §4 (`VP4-13`, `VP4-14`, `VP4-16`); `09 §16.1`, §19.2 |
+| `[erişilebilirlik]` | Kontrol Listesi A seviyesi ve WCAG 2.2 A maddeleri — bir gereksinimdir (KP-71) | **A** | A seviyesi tarama F5 gate'inde koşar ve temiz çıkmalıdır (K-625, K-1411); bileşen tabanı T540, T543, T544 | §12 (`VP12-02`); `11 §6.2` F5 |
+| `[güvenlik]` | Yetki, oturum ve veri koruma davranışı; F6'nın güvenlik ve bağımlılık taraması | Tek seviyeye bağlanmaz: davranış kendi konusunun seviyesindedir (A, C, D); F6 taraması **F** | Davranış satırları task doğrulamasında; tarama F6 gate'inde | §4 (ilgili KP grupları); `11 §6.2` F6 |
+| `[yük]` | H-3 ve H-4 tasarım değerleri (K-928) — elli kalemli sepet, dakikada yüz ziyaretçi, referans sunucu ölçüsü | **F** | Final çıkışın seviye F koşulu; koşu F5 gate'i PASS aldıktan sonra yapılır (§6.3) | §12 (`VP12-12`, k6 — K-1515) |
+
+**Kanıt ve zamanlama bu etiketlerin kimliğinde yazılmaz:** kanıt ortamı §7.4'te, kapıya bağ §6'dadır; tarayıcı akışlarının listesi ve hangi akışın hangi tarayıcıda sınanacağı `VP4-16`'dadır (taban: son iki büyük sürüm — `05 §3.8.4`).
 
 ---
 
@@ -221,7 +249,7 @@ Tahminle toplam yaklaşık 360 KB'a ulaşır.
 | **Ön koşul** | Doğrulama öncesi sağlanması gereken durum |
 | **Beklenen sonuç** | PASS için sağlanması gereken koşul |
 | **Kanıt türü** | Kabul edilen kanıt(lar) — §7 |
-| **Kanıt ortamı** | `mock` / `sandbox` / `gerçek` — kanıtın hangi ortamda üretildiği |
+| **Kanıt ortamı** | `mock` / `sandbox` / `gerçek` / `yok` — kanıtın dış servisin hangi hâlinde üretildiği (§7.4) |
 | **Severity** | KRİTİK / ORTA / DÜŞÜK — §8 |
 | **Durum** | `BEKLEMEDE` / `PASS` / `FAIL` / `KABUL EDİLMİŞ RİSK` |
 
@@ -246,40 +274,75 @@ Tahminle toplam yaklaşık 360 KB'a ulaşır.
 
 ## 5. Giriş kriterleri
 
-> **Ne yazılır:** Bir doğrulamanın başlayabilmesi için sağlanması gerekenler (seviye bazlı).
+Bir doğrulamanın başlayabilmesi için sağlanması gerekenler; önce değişmez kapılar ve kurallar, sonra seviyeye göre ek girişler. Kararlar K-1517'dedir (`VP5-01`).
 
-**Değişmez kapılar (00 §F.1):** working tree temiz · ana dal CI son 3 run yeşil · repo hafızası güncel · hook'lar kurulu (`git config core.hooksPath`).
+**Değişmez kapılar (`00 §F.1`; HARD STOP).** Her doğrulama (task doğrulaması ve gate) üç kapıdan geçerek başlar; kapı geçilmeden hiçbir satıra durum verilmez.
+
+| # | Kapı | Kontrol |
+|---|---|---|
+| -1 | Working tree temiz | `git status --short` boş; ayrıca hook'lar kurulu — `git config core.hooksPath` değeri `scripts/git-hooks` (`skills/validate` Adım -1) |
+| 0 | Ana dal CI | Ana dalın son 3 tamamlanmış run'ı `success` |
+| 0b | Repo hafızası güncel *(yalnız task doğrulaması)* | `.claude/memory/MEMORY.md`'de task'ın satırı var; yoksa BLOCKED (`DEPENDENCY_MISMATCH`) |
+
+Kapıların başarısızlıkta işleyişi ve yasak rasyonelizasyonlar `00 §F.1`'dedir ve burada yinelenmez.
 
 **Değişmez giriş kuralları:**
 
 | # | Kural |
 |---|---|
-| 1 | **Ön koşulu sağlanmayan madde `BEKLEMEDE` kalır — PASS veya FAIL verilemez.** Doğrulanamayan bir maddeyi FAIL saymak yanlış sinyal, PASS saymak kanıtsız onaydır. |
-| 2 | **Mock/gerçek ayrımı kayıt altındadır.** Seviye E (entegrasyon) doğrulaması, hangi dış servisin mock, hangisinin gerçek olduğu kaydedilmeden **başlatılamaz**. Kayıt yeri: matrisin "Kanıt ortamı" sütunu. |
-| 3 | Task bazlı doğrulama, task'ın kabul kriterleri ve doğrulama kontrol listesi `11`'de tanımlı olmadan başlatılamaz. |
+| 1 | **Ön koşulu sağlanmayan madde `BEKLEMEDE` kalır — PASS veya FAIL verilemez.** Doğrulanamayan bir maddeyi FAIL saymak yanlış sinyal, PASS saymak kanıtsız onaydır. Kabul kriteri düzeyindeki karşılığı `? Doğrulanamadı`'dır (`00 §D.7`) — FAIL değildir, PASS için çözülmesi gerekir. |
+| 2 | **Kanıt ortamı kayıt altındadır.** Beklenen sonucu bir dış servisin davranışına dayanan satır (seviye E ve onlara bağlı B, C, D, F satırları), hangi servisin `mock`, `sandbox` ya da `gerçek` olduğu satırın "Kanıt ortamı" sütununa yazılmadan **başlatılamaz** (§7.4). |
+| 3 | Task bazlı doğrulama, task'ın kabul kriterleri ve doğrulama kontrol listesi `11`'de tanımlı olmadan başlatılamaz (`11` §5 "Task yapısı" madde 5 ve 7). |
+
+**Seviyeye göre ek girişler:**
+
+| Doğrulama | Ek giriş koşulu |
+|---|---|
+| Task doğrulaması (A–E) | Task'ın yapım PR'ı açıktır; task dalının CI'ında en az bir run `success`'tir — hiç run yoksa ya da son run `failure` ise bu bir bulgudur, sessizce geçilmez; dal yoksa ya da PR açılmamışsa BLOCKED (`skills/validate` Adım 8a). Doğrulayıcının girdisi §9'daki listedir; yapım raporu girmez. |
+| Seviye E, `sandbox` ya da `gerçek` ortam | Ortamın dış ön koşulu hazırdır: e-posta altyapısı (ÖK-3), ödeme sağlayıcısı (ÖK-4), Google uygulaması (ÖK-6) ve sağlayıcıya bağlanılan referans kurulum (ÖK-12; `10 §4.1`). Hazır değilse satır `BEKLEMEDE` kalır. `mock` ortamı ön koşul istemez. |
+| Faz gate'i (F satırları dahil) | Gate ayrı chat'te koşar; fazın bütün task'ları ✓ ve raporları finalizedir; sürüm referans kuruluma inmiştir (`05 §8.1.4`; `11 §6.1` madde 2); gate raporu ortam denetiminin hangi yapılandırmayla koştuğunu yazar (`skills/gate-check` ön kontrol). |
+| `[yük]` satırları | F5 gate'i PASS almıştır; ortam K-1515'in kurulumudur (§12, `VP12-12`). |
+| Final çıkış | Yedi fazın hepsinin gate'i PASS'tır (`phase/FX-pass` etiketleri); F6'nın canlı kanıtı alınmıştır (§6.3). |
 
 ---
 
 ## 6. Çıkış kriterleri
 
+Kapıya bağ (hangi kapı hangi seviyeyi ve türü okur) ve kararlar K-1517'dedir (`VP6-01`). Üç çıkış birbirini içerir: faz çıkışı task çıkışını, final çıkış faz çıkışını varsayar.
+
 ### 6.1 Task bazlı çıkış
 
 | Kriter | Açıklama |
 |---|---|
-| İlgili maddeler PASS | Task'a ait tüm doğrulama maddeleri PASS |
-| KRİTİK açık bulgu yok | |
-| ORTA bulgular kayıt altında | `DEFERRED_BACKLOG.md`'ye yazılmış |
-| Kanıt üretilmiş | §7'ye uygun |
+| İlgili maddeler PASS | Task'ın kabul kriterlerine ve kontrol listesine bağlı bütün satırlar PASS. Kabul kriterinin sonucu satıra şöyle yansır: `✓ Karşılandı` → `PASS`; `✗ Karşılanmadı` → `FAIL`; `? Doğrulanamadı` → `BEKLEMEDE`; `~ Kısmi` → satır kısmi PASS olamaz — beklenen sonucun tamamı karşılanmadıysa `FAIL`, kriter birden çok satıra bölünmüşse karşılananlar PASS, karşılanmayanlar FAIL |
+| Verdict PASS | `skills/validate` verdict'i: tüm kriterler `✓`, güvenlik temiz, testler geçiyor, CI yeşil; FAIL ve BLOCKED'da merge yok |
+| KRİTİK açık bulgu yok | Hiçbir KRİTİK satır FAIL ya da BEKLEMEDE değil |
+| ORTA bulgular kayıt altında | `DEFERRED_BACKLOG.md`'ye yazılmış (§8.4); kaydı olmayan bulgu yoktur (`00 §E.3`) |
+| Mini güvenlik kontrolü temiz | Secret sızıntısı · auth etkisi · girdi doğrulaması · yeni dış bağımlılık (`00 §D.6`) |
+| Kanıt üretilmiş | §7'ye uygun; her kanıt satır kimliğiyle eşleşmiş |
+| Rapor, status ve hafıza merge'den önce | Önce rapor, sonra status (`00 §D.9`); satırların `Durum` hücresi aynı commit'te güncellenir (§7.5) |
 
 ### 6.2 Faz bazlı çıkış
 
 | Kriter | Açıklama |
 |---|---|
-| Faz içi tüm task'lar §6.1'i karşılamış | |
-| Entegrasyon kontrolü yapılmış | |
-| Regresyon kontrolü yapılmış | Önceki fazlar dahil |
-| Açık risk envanteri güncel | Proje sahibi tarafından kabul edilmiş |
-| Öğrenim terfisi yapılmış | 00 §K |
+| Faz içi tüm task'lar §6.1'i karşılamış | Raporlar finalize, status tutarlı |
+| Entegrasyon kontrolü yapılmış | Gate'in build, ortam ve faz-spesifik kontrolleri (`11 §6.2`) |
+| Regresyon kontrolü yapılmış | Önceki fazlar dahil A–E satırları yeniden okunur; yeni FAIL §11.1'e göre işler |
+| Açık risk envanteri güncel | `DEFERRED_BACKLOG.md`'deki kabul edilmiş riskler proje sahibince görülmüş ve kabul edilmiş (§8.4) |
+| Öğrenim terfisi yapılmış | `00 §K` |
+
+Fazın ölçütleri `11 §6.2`'dedir ve bu bölümde yinelenmez; tablo yalnız **hangi satırların** gate'te okunduğunu söyler:
+
+| Faz | Gate'te okunan satırlar |
+|---|---|
+| F0 | F — boot provasının 1. turu, canlılık ucu |
+| F1 | D — göçün ileri, idempotent ve geri alınabilir olması; model eşitlik denetimleri |
+| F2 | D — kayıt maskeleme |
+| F3 | B — ilk uçtan uca akış (T329) · C — durum makinesi geçiş tablosunun `02 §5.4` ve §5.5 ile eşitliği |
+| F4 | E — PayTR, SES ve Google sandbox kanıtı, imza doğrulaması; DV-1, DV-2, DV-9 |
+| F5 | A `[erişilebilirlik]` — A seviyesi tarama temiz · B `[tarayıcı]` — betiksiz yol |
+| F6 | F — açılış provası, canlı kanıt, `[güvenlik]` taraması · E `gerçek` — K-23'ün zinciri |
 
 ### 6.3 Final çıkış (MVP release gate)
 
@@ -288,129 +351,196 @@ Tahminle toplam yaklaşık 360 KB'a ulaşır.
 | Tüm KRİTİK maddeler PASS | Hiçbiri FAIL veya BEKLEMEDE olamaz |
 | ORTA maddeler PASS veya kabul edilmiş risk | |
 | DÜŞÜK maddeler bloklamaz | Ama kayıtlıdır |
-| Operasyonel doğrulama tamamlanmış | Seviye F |
-| Happy path uçtan uca geçmiş | |
-| Çekirdek entegrasyonlar **mock olmayan** ortamda doğrulanmış | Mock PASS bu maddeler için final gate'i geçemez — BEKLEMEDE kalır |
-| Kanıt arşivi erişilebilir | |
+| Operasyonel doğrulama tamamlanmış | Seviye F: açılış provası, yedek ve kurtarma, canlılık, `[güvenlik]` taraması ve `[yük]` iki satırı. **Yük koşusu faz kapısı değildir:** F5 gate'i PASS aldıktan sonra, final çıkıştan önce koşar ve final çıkışın bu koşuluna girer (K-1515 (8)) |
+| Happy path uçtan uca geçmiş | Ürün → sepet → sipariş → ödeme → kargo → teslim; yönetici panelinden işletme |
+| Çekirdek entegrasyonlar **mock olmayan** ortamda doğrulanmış | Seviye E satırları (ödeme sağlayıcısı, e-posta altyapısı, Google) `mock` ile PASS olarak sayılmaz — BEKLEMEDE kalır. K-23'ün canlı kanıt zincirine ve `08 §2.1.10`'un kabul kanıtına düşürdüğü DV satırlarına (DV-6, DV-7, DV-10; test modunun 3D sayfası bankanın gerçek adresi değilse DV-5) yalnız `gerçek` PASS verir |
+| Kabul kanıtı alınmış | Referans kurulum, canlı ortam, gerçek para: gerçek kartla küçük tutarlı sipariş, 3D Secure, panelden uçtan uca işletme, iade (K-23; senaryolar `VP12-01`) |
+| MVP başarı çıtası karşılanmış | Ü-1…Ü-4 kabul kapısı (`01 §6`; K-415, K-418) |
+| Kanıt arşivi erişilebilir | `Docs/TASK_REPORTS/`, `Docs/CHECKPOINT_REPORTS/` ve `DEPLOY_RUNBOOK`'un canlı kanıt satırları (§7.5) |
 | Proje sahibi onayı | |
 
 ---
 
 ## 7. Kanıt standardı
 
+Kararlar K-1518'dedir (`VP7-01`).
+
 ### 7.1 Kabul edilen kanıt türleri
 
 | Tür | Örnek |
 |---|---|
-| API/arayüz yanıtı | İstek + tam yanıt (durum kodu + gövde) |
-| Veri kaydı | İlgili tablo satırının snapshot'ı |
-| Yapılandırılmış log | Korelasyon kimliğiyle filtrelenmiş çıktı |
-| Olay kaydı | Yayınlanmış/işlenmiş olay satırı |
-| Test raporu | Otomatik test çıktısı (**tekrar edilebilirlik açısından tercih edilir**) |
-| Dış sistem kaydı | Üçüncü parti tarafındaki işlem kaydı |
-| İzleme/uyarı | Tetiklenen uyarı veya pano görüntüsü |
+| Uç yanıtı | İstek + tam yanıt: yöntem, adres, durum kodu, başlıklar ve gövde (vitrin, hesap, panel ve makine uçları — `07`) |
+| Tarayıcı gözlemi | Sayfanın tarayıcıdaki hâli: ekran görüntüsü ve gözlenen genişlik/tarayıcı; betikli ve betiksiz yolun ikisi için ayrı (`[tarayıcı]`, `[erişilebilirlik]`) |
+| Veri kaydı | İlgili tablo satırının snapshot'ı (`06`); kişisel veri maskeli |
+| Uygulama kaydı | İlgili işlemin kayıt satırları, süzülmüş çıktı; sır ve kişisel veri taşımaz |
+| İş kaydı | İş kuyruğu satırı, e-posta gönderim kaydı, işlem izi satırı — olayın işlendiğini ya da işlenmediğini gösterir |
+| Test raporu | Otomatik test çıktısı ve k6 çıktı özeti (**tekrar edilebilirlik açısından tercih edilir**); commit ve CI run numarası ile |
+| Dış sistem kaydı | Üçüncü parti tarafındaki işlem kaydı: ödeme sağlayıcısı panelindeki işlem, e-posta altyapısındaki gönderim ve geri dönme kaydı, Google tarafındaki oturum kaydı |
+| İzleme/uyarı | Durum ucunun yanıtı (200 / 503), panelde açılan uyarı |
+| Runbook kaydı | `DEPLOY_RUNBOOK`'ta işaretlenmiş prova satırı ya da kutu (DV-1, DV-2, DV-9'un gözlemi referans kurulumun işaretli kaydından okunur — `08 §2.1.10`) |
 
 ### 7.2 Severity'ye göre minimum kanıt
 
 | Severity | Minimum |
 |---|---|
-| KRİTİK | **En az 2 farklı türde** kanıt (çok katmanlı — P3) |
+| KRİTİK | **En az 2 farklı türde** kanıt (çok katmanlı — §2 P3); biri sonucun kendisini, öteki yan etkisini (kayıt, iz, dış sistem) göstermelidir |
 | ORTA | 1 kanıt türü |
 | DÜŞÜK | 1 kanıt türü |
 
 ### 7.3 Kanıt kuralları
 
-- Kanıt **doğrulama anında** üretilmiş olmalıdır — eski veya başka ortamdan alınan kanıt geçersizdir.
-- Kanıtlar madde ID'siyle eşleştirilerek saklanır.
-- Tek bir arayüz gözlemi KRİTİK akışlarda tek başına yeterli değildir.
+- Kanıt **doğrulama anında** üretilmiş olmalıdır — eski veya başka ortamdan alınan kanıt geçersizdir; kanıtın yanında çalıştırılan komut ve bakılan commit yazılır (`00 §D.7`).
+- Kanıtlar satır kimliğiyle eşleştirilerek saklanır (§7.5).
+- Tek bir arayüz gözlemi KRİTİK satırlarda tek başına yeterli değildir.
 - *"Lokal makinemde geçiyor"* CI kanıtını ikame etmez.
+- Kanıt **sır ve kart verisi taşımaz:** anahtar, parola, kart numarası ve CVV kanıta yazılmaz; kişisel veri maskelenir. Canlı kanıt satırları (gerçek kartlı sipariş) sipariş numarasını ve tutarı yazar, kart bilgisini yazmaz.
+
+### 7.4 Kanıt ortamı
+
+"Kanıt ortamı" sütunu, satırın sonucunun **dış servisin hangi hâlinde** üretildiğini kaydeder. Değer kümesi dörttür:
+
+| Değer | Anlamı |
+|---|---|
+| `mock` | Dış servis sahtedir: `FakePaymentGateway`, `FakeEmailGateway`, `FakeGoogleIdentityGateway` (`09 §19.1` madde 3, 6) — CI ve geliştirme makinesi; veritabanı gerçek PostgreSQL'dir |
+| `sandbox` | Servisin kendi test imkânı: PayTR'de referans mağazanın `test_mode` = `1` işlemi, SES sandbox'ı ve posta kutusu simülatörü, Google'ın test uygulaması (`08 §2.1.10`, §2.2) |
+| `gerçek` | Referans kurulum (ÖK-12), gerçek yapılandırma, gerçek servis — gerçek kart, SES üretim erişimi, Google üretim uygulaması (K-23) |
+| `yok` | Beklenen sonuç hiçbir dış servisin davranışına dayanmıyor — çoğu A, C ve D satırı, tarayıcı ve erişilebilirlik satırları |
+
+Sahte bir sağlayıcıyla koşan ama sonucu sağlayıcının davranışına dayanmayan satır (ör. yük koşusunun ölçtüğü iki istek — sağlayıcıya yönlendirme işlemden sonradır, K-1515) `mock` yazar. Ortam değerinin sonuçları: `gerçek` olmayan bir değer final çıkışta çekirdek entegrasyon satırını PASS saymaz (§6.3), ortam değişince önceki PASS geçersizleşir (§11.1 madde 4).
+
+### 7.5 Kanıtın ve durumun saklanışı
+
+- **Task satırları:** kanıt, task doğrulama raporunun (`Docs/TASK_REPORTS/TXX_REPORT.md`, "Doğrulama") kabul kriterleri ve bulgu tablosundadır; her kanıt satır kimliğiyle anılır.
+- **Faz satırları:** gate raporunda (`Docs/CHECKPOINT_REPORTS/GATE_CHECK_FX.md`).
+- **Canlı kanıt:** `DEPLOY_RUNBOOK`'un canlı kanıt satırlarında; final çıkış raporu satırlara bu kayıtla bağlanır.
+- **Durum:** matrisin `Durum` sütunu **işletim alanıdır**, kural değildir. Yazımda her satır `BEKLEMEDE` doğar; durumu doğrulayıcı kendi commit'inde (rapor + status + hafıza, `skills/validate` adım 16) günceller. `Durum` hücresinin değişmesi `12`'nin sürümünü artırmaz; `Kural`, `Beklenen sonuç`, `Severity`, `Kanıt ortamı` hücrelerinin değişmesi artırır ve bir karar satırı ister.
 
 ---
 
 ## 8. Severity ve hata yönetimi
 
+Kararlar K-1519'dadır (`VP8-01`, `VP8-02`, `VP8-03`).
+
 ### 8.1 Sınıflandırma
+
+Severity, hatanın **etkisinin ağırlığını** söyler. `00 §D.10`'un S1 / S2 / S3 hata sınıfı ise hatanın **türünü** söyler. İki ayrı eksendir (K-1511 (3)); biri ötekini belirlemez.
 
 | Severity | Tanım |
 |---|---|
-| **KRİTİK** | Veri/varlık kaybı, yanlış sahiplik, yasak durum geçişi, mükerrer tamamlanma, güvenlik ihlali. Release'i mutlak bloklar. |
+| **KRİTİK** | Veri/varlık kaybı, yanlış sahiplik, yasak durum geçişi, mükerrer tamamlanma, güvenlik ihlali. Bu üründe ayrıca: yanlış tutar ya da çift tahsilat, başka bir müşterinin verisinin görünmesi, yasal yükümlülüğü atlayan davranış (yasal metnin eksik ya da yanlış gösterilmesi, cayma ve iade süresinin yanlış işlemesi). Release'i mutlak bloklar. |
 | **ORTA** | Yanlış retry davranışı, eksik log, kurtarma zayıflığı, kayıp yaratmayan iş kuralı defekti. Kayıtlı risk olarak kabul edilebilir. |
 | **DÜŞÜK** | Arayüz kusuru, metin hatası, operasyonu bloklamayan görünürlük sorunu. |
+
+| Hata sınıfı (`00 §D.10`) | Anlamı | Doğrulamada nerede doğar |
+|---|---|---|
+| **S1 — Sapma** | Task tamamlandı ama dokümanla uyumsuz | Task doğrulamasında FAIL alan satır |
+| **S2 — Kırılma** | Bir task başka bir task'ın çıktısını bozuyor | Gate regresyonunda ya da yeniden doğrulamada (§11.1 madde 2) PASS'ten FAIL'e düşen satır |
+| **S3 — Eksik** | Eşlenmiş öğe implement edilmemiş | Gate'in boşluk taramasında — bir satırın kaynak birimine bağlı task'ın çıktısı yok |
+
+Defect kaydı **ikisini birlikte** taşır. S2 sınıfı otomatik KRİTİK değildir; yeniden doğrulamada FAIL çıkan satır severity'sini ayrıca alır.
 
 ### 8.2 FAIL akışı
 
 ```
 FAIL tespit edilir
-  → Defect kaydı (madde ID, severity, beklenen vs gerçekleşen, etkilenen komşu maddeler)
-  → Düzeltme (etki alanı belirlenir)
-  → Yeniden doğrulama (+ regresyon — §8.3)
-  → PASS → kapatılır, kanıt eklenir | Tekrar FAIL → döngüye döner
+  → Defect kaydı (doğrulama raporunun bulgu tablosu — aşağıda)
+  → Düzeltme (etki alanı belirlenir; numara ve dal 11 §4'e göre)
+  → Yeniden doğrulama (task'ın tamamı + regresyon — §8.3, §11)
+  → PASS → kapatılır, kanıt eklenir | Tekrar FAIL → döngüye döner (§8.5)
 ```
+
+**Defect kaydı** Implementation döneminde ayrı bir dosya değildir: kaydın evi, task doğrulama raporunun (gate bulgularında gate raporunun) **bulgu tablosudur** (K-1511 (4)). Tablo şu alanları taşır:
+
+| Alan | İçerik |
+|---|---|
+| # | Bulgu sırası |
+| Madde | `VAL-…` kimliği |
+| Severity | KRİTİK / ORTA / DÜŞÜK |
+| Hata sınıfı | S1 / S2 / S3 |
+| Beklenen ↔ gerçekleşen | Satırın beklenen sonucu ve gözlenen sonuç, kanıta bağlı |
+| Etkilenen komşu maddeler | Aynı akışa ait satırlar; yeniden doğrulamanın kapsamı buradan okunur |
+| Karar | Bu PR'da düzeltildi / `DEFERRED_BACKLOG`'e yazıldı (kimliği) / kabul edilmiş risk |
+
+Düzeltme `11 §4`'ün kuralıyladır: merge'den önce bulunan S1 aynı PR'da düzelir; merge'den sonrakinin düzeltmesi `TXXa` numarasını alır; düzeltme sonraki faza ertelenmez. Kapanmayan ORTA ve DÜŞÜK bulgu `DEFERRED_BACKLOG.md`'ye taşınır (§8.4); yeni bir kayıt dosyası açılmaz.
 
 ### 8.3 Regresyon kuralları
 
+- **FAIL alan task'ın yeniden doğrulaması task'ın bütün satırlarını kapsar** — hedefli kapsam yoktur (`INSTRUCTIONS §3.3`, `[yeniden-dogrulama]`). Aşağıdaki kurallar **öteki task'ların** satırları içindir.
 - KRİTİK durum-akışı veya veri-akışı düzeltmelerinde **aynı akışa ait tüm maddeler** yeniden doğrulanır. Dar kapsam kabul edilmez.
-- ORTA/DÜŞÜK düzeltmelerde yalnız doğrudan etkilenen maddeler.
+- ORTA/DÜŞÜK düzeltmelerde yalnız doğrudan etkilenen maddeler (defect kaydının "etkilenen komşu maddeler" alanı).
 - **Şüphe durumunda yeniden doğrulanır.** Şüpheli maddeyi atlamak kabul edilmez.
 
 ### 8.4 Kabul edilmiş risk
 
-Koşullar: severity **KRİTİK olamaz** · proje sahibi onayı zorunlu · risk kaydı oluşturulur (madde ID, açıklama, olası etki, mitigasyon, kabul tarihi) · `DEFERRED_BACKLOG.md`'ye yazılır · final çıkışta yeniden değerlendirilir.
+Koşullar: severity **KRİTİK olamaz** · proje sahibinin **o risk için** açık onayı zorunlu (toplu onay ve ⚠ öneriyle kayıt modları bunun yerine geçmez) · risk kaydı oluşturulur · `DEFERRED_BACKLOG.md`'ye yazılır · final çıkışta yeniden değerlendirilir.
+
+**Kayıt biçimi.** Backlog satırı `00 §H`'nin alanlarını taşır (ID, kanıt, tip `k-note`, öncelik, "neyi bloklar") ve açıklaması "KABUL EDİLMİŞ RİSK — `VAL-…`" diye başlayıp madde kimliğini, açıklamayı, olası etkiyi, mitigasyonu ve kabul tarihini yazar. Matrisin `Durum` hücresi `KABUL EDİLMİŞ RİSK` olur ve backlog kimliğini anar; onay alınmadan hücre `FAIL` kalır. Her faz gate'inde açık risk kalemleri kod düzeyinde yeniden doğrulanır (`00 §H` hijyen taraması).
 
 ### 8.5 Tıkanma yasağı
 
-- Bir FAIL düzeltilirken bağımsız task'ların doğrulaması devam eder.
-- Düzeltme **2 iterasyonda** çözülemezse proje sahibine eskale edilir: kapsam daraltma, alternatif yaklaşım veya kabul edilmiş risk.
+- Bir FAIL düzeltilirken bağımsız task'ların doğrulaması devam eder (faz içi paralellik kuralı: `11 §3.1`).
+- Düzeltme **2 iterasyonda** çözülemezse proje sahibine eskale edilir: kapsam daraltma, alternatif yaklaşım veya kabul edilmiş risk. İterasyon, bir düzeltme ve onu izleyen tam yeniden doğrulamadır.
+- **BLOCKED, FAIL değildir:** doğrulama yapılamıyorsa (kod eksik, dal yok, önceki task'ın borcu) BLOCKED verilir ve alt türü yazılır (`SPEC_GAP`, `DEPENDENCY_MISMATCH`, `PLAN_CORRECTION_REQUIRED`, `EXTERNAL_BLOCKER`); akış `00 §D.8`'dedir ve BLOCKED sessizce geçilmez.
 
 ---
 
 ## 9. Ajan çalışma modeli
 
+Kararlar K-1520'dedir (`VP9-01`). Düzenin kuralları `INSTRUCTIONS §3.1`, §3.3'tedir; bu bölüm onları tekrarlamaz, doğrulamanın rollerini ve girdisini söyler.
+
 | Rol | Sorumluluk | Context |
 |---|---|---|
-| **Coding agent** | Task'ı implement eder, testleri yazar | Kendi context'i |
-| **Reviewer agent** | Doğrulama maddelerini çalıştırır, kanıt üretir, PASS/FAIL verir | **Ayrı context** — coding context'ini görmez |
+| **Yapım işçisi** (coding agent) | Task'ı implement eder, testleri yazar, PR açar, rapor taslağını yazar; dal CI'ını izlemez, doğrulamayı başlatmaz | Kendi context'i — temiz bağlam |
+| **Doğrulayıcı** (validator; reviewer agent) | Satırları çalıştırır, kanıt üretir, PASS / FAIL / BLOCKED verir; `skills/validate`'i 16. adıma kadar koşar. Yönetici yardımcı düzeninde **merge etmez** | **Ayrı, izole context** — yapım raporunu görmez; `general-purpose` (fork değil), Opus + `high` |
+| **Gate-check** | Faz sonu regresyonu ve kapı ölçütleri; `skills/gate-check` | Ayrı chat |
+| **Yardımcı** (yönetici yardımcı düzeni açıkken) | Talimatı yazar, doğrulayıcıyı kendisi açar, sonucu rapor dosyasından okur; PASS ve dal CI yeşilse merge eder | Kodlamaz, doğrulamaz, PASS / FAIL vermez |
 
-Aynı ajan aynı task için iki rolü üstlenemez.
+Aynı ajan aynı task için iki rolü üstlenemez (§2 P5). Yardımcı doğrulayıcı da olamaz; doğrulayıcının merge-öncesi veto yetkisi korunur — merge'ün tek kapısı doğrulayıcının PASS'idir (`00 §D.9` madde 4).
 
-**Reviewer'a verilecek dokümanlar:** 00 §C.6 katman tablosu + task tanımı + değişen kod.
-**Kaynak-güdümlü ek:** Bir maddenin kaynak sütununda referans verilen doküman katman setinde yoksa **yine de eklenir**.
+**Doğrulayıcıya verilecekler** (`INSTRUCTIONS §3.3`; başka bir şey verilmez): task tanımı, kabul kriterleri, doğrulama kontrol listesi, referans dokümanlar, dal kodu, CI sonuçları; ek olarak task'ın **`12` satırları**. Yapım raporu doğrulayıcı kendi verdict'ini oluşturduktan sonra açılır; commit mesajı ve dal adı gibi ipuçları verdict'e girmez (anchoring yasağı).
+
+**Katman seti ve büyük doküman.** Doğrulayıcı `00 §C.6` tablosundaki katmanlardan görevinin gerektirenini alır: teknik (`05`–`08`), standartlar (`09` — çekirdek ve task'ın ek bölümleri), görev planı (`11` — yalnız task bloğu) ve doğrulama (`12`). Bir katmandaki doküman 100 KB'ı aşıyorsa bütünü verilmez (`INSTRUCTIONS §9` (7)); `12` için görevin satırları başlık notundaki okuma tablosunun komutlarıyla çekilir — task'ın kaynak birimlerinden (`11` §7.1) `grep -nE 'KP-37([^0-9]|$)'` gibi. **Kaynak-güdümlü ek:** bir satırın kaynak sütununda anılan doküman katman setinde yoksa **yine de eklenir** (anılan bölüm okunur, doküman bütünüyle değil).
 
 ---
 
 ## 10. Roller ve onay
 
+Kararlar K-1520'dedir (`VP10-01`).
+
 | Karar | Onay veren |
 |---|---|
-| Madde PASS / FAIL | Reviewer agent (kanıtla) |
+| Madde PASS / FAIL / BLOCKED | Doğrulayıcı (kanıtla) |
+| Task PR'ının merge'ü | Doğrulayıcının PASS'i ve dal CI yeşili şartıyla: validator chat; yönetici yardımcı düzeninde yardımcı (`00 §D.9` madde 4; K-1505, K-1506) |
 | Kabul edilmiş risk | **Proje sahibi** |
-| Faz bazlı çıkış | Proje sahibi |
-| Final çıkış | Proje sahibi |
-| Eskalasyon | Proje sahibi |
-| Regresyon kapsamını genişletme | Teknik karar verici |
+| Faz bazlı çıkış | Gate-check verdict'i (`00 §E.3`); açık risk envanterinin kabulü proje sahibinindir |
+| Final çıkış | **Proje sahibi** |
+| Eskalasyon | **Proje sahibi** |
+| Regresyon kapsamını genişletme | Doğrulayıcı (şüphe durumunda genişletir, §8.3); yardımcı ya da ana oturum da genişletilmesini isteyebilir. Daraltma yalnız ORTA/DÜŞÜK düzeltmede §8.3'ün sınırı içindedir |
 
-**Sorumluluk sınırları:** Reviewer PASS/FAIL verir ama kabul edilmiş risk kararı **alamaz**. Coding agent kendi kodunu review edemez. Hiçbir rol tek başına final çıkış kararı veremez.
+**Sorumluluk sınırları:** Doğrulayıcı PASS/FAIL verir ama kabul edilmiş risk kararı **alamaz**. Yapım işçisi kendi kodunu doğrulayamaz. Yardımcı PASS ya da FAIL veremez; yalnız doğrulayıcının PASS'inden sonra merge eder. Hiçbir rol tek başına final çıkış kararı veremez. Toplu onay ve ⚠ öneriyle kayıt (K-1504) doküman kararlarının cevaplanışını kolaylaştırır; kabul edilmiş risk, final çıkış ve eskalasyon kararlarını kapsamaz — onlar proje sahibinin o karar için açık onayıdır.
 
 ---
 
 ## 11. Yeniden doğrulama
 
+Kararlar K-1520'dedir (`VP11-01`).
+
 | Tetikleyici | Kapsam |
 |---|---|
-| Defect düzeltmesi | FAIL alan madde + etkilenen komşu maddeler |
-| Mock → gerçek entegrasyon geçişi | O entegrasyonun **tüm** maddeleri + bağımlı fonksiyonel maddeler. **Mock ile alınmış PASS'ler geçersiz sayılır.** |
-| Faz geçişi | Yeni kodun etkileyebileceği önceki faz maddeleri |
-| Konfigürasyon değişikliği | Değişen parametreye bağımlı maddeler |
-| Altyapı değişikliği | Şema değişimi, ortam değişimi, bağımlılık güncellemesi → etkilenen seviyedeki tüm maddeler |
+| Defect düzeltmesi | FAIL alan task'ın **bütün** satırları (tam yeniden doğrulama — `INSTRUCTIONS §3.3`) + etkilenen komşu maddeler (§8.3) |
+| Kanıt ortamı yükselmesi (`mock` → `sandbox` → `gerçek`) | O entegrasyonun **tüm** E satırları + sonucu o servise dayanan bağımlı B, C, D, F satırları. **Düşük ortamla alınmış PASS'ler geçersiz sayılır.** Yükselme F4'te (sahte bağlayıcıdan gerçeğine) ve F6'da (referans kurulumda gerçek yapılandırmaya) olur |
+| Faz geçişi | Yeni kodun etkileyebileceği önceki faz satırları (gate regresyonu, A–E) |
+| Konfigürasyon değişikliği | Değişen ayara (`02 §11`), sırra ya da dış hesaba bağımlı satırlar |
+| Altyapı değişikliği | Şema değişimi (göç), ortam değişimi, bağımlılık ya da imaj sürümü güncellemesi → etkilenen seviyedeki tüm maddeler; yeni sürümün referans kuruluma inişinde F seviyesi açılış provası (`05 §8.1.4`) |
 
 ### 11.1 Yeniden doğrulama sonuçları
 
 | # | Kural |
 |---|---|
-| 1 | Re-validation sonucu orijinal maddenin **Durum** alanını günceller. |
-| 2 | **Re-validation'da FAIL çıkarsa bu bir regresyondur** — normal bir FAIL gibi işlenmez; §8 akışı **S2 Kırılma** olarak başlar. Daha önce PASS almış bir maddenin geri düşmesi, yeni bir maddenin FAIL almasından farklı bir sinyaldir. |
+| 1 | Re-validation sonucu orijinal maddenin **Durum** alanını günceller (§7.5). |
+| 2 | **Re-validation'da FAIL çıkarsa bu bir regresyondur** — normal bir FAIL gibi işlenmez; §8 akışı **S2 Kırılma** olarak başlar. Daha önce PASS almış bir maddenin geri düşmesi, yeni bir maddenin FAIL almasından farklı bir sinyaldir. S2 sınıfı satırın severity'sini belirlemez; satır severity'sini ayrıca alır (§8.1). |
 | 3 | **En güncel kanıt geçerlidir.** Yeni kanıt eskisinin yerine geçer; eski kanıt arşivde kalır ama geçerliliğini yitirir. Aynı madde için iki çelişen kanıt yan yana bırakılmaz. |
-| 4 | Mock ile alınmış PASS'ler gerçek entegrasyona geçildiğinde **geçersiz sayılır** ve madde `BEKLEMEDE`'ye döner (§6.3). |
+| 4 | Düşük kanıt ortamında alınmış PASS'ler üst ortama geçildiğinde **geçersiz sayılır** ve madde `BEKLEMEDE`'ye döner (§6.3). Dış servise dayanmayan (`yok`) satırlar bundan etkilenmez. |
 
 ---
 
@@ -421,4 +551,4 @@ Aynı ajan aynı task için iki rolü üstlenemez.
 
 ---
 
-*Shopfolio — Validation Protocol v0.1*
+*Shopfolio — Validation Protocol v0.3*

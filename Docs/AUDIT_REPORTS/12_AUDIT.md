@@ -228,4 +228,32 @@ Y1 (VAL-B016: güvenlik kuralını tek başına sınar ama ORTA; iki yoldan biri
 
 105 maddenin 77'si hükme bağlandı (2a 31 · 2b 46); **kalan 28 madde** (2c; #97, #98, Y10, Y12, Y2 dahil) ve 2r (Y21, #95, Y1, #88). Kapılar: `12_kapsam_hizasi.py` 0 · `12_matris_denetle.py --kapsam 1-77` hata 0 (1.473 satır, 77/77 KP) · `12_atif_denetle.py` hata 0.
 
+## Doğrulanmamış bulgular — KD-audit-2c
+
+**Tarih:** 2026-11-01 · **Girdi:** KD-audit-2b'den kalan 28 madde (2b'den devreden #97, #98, Y10, Y12, Y2 dahil); 2c: 28 madde hükme bağlandı (hukum_1…18).
+
+### Doğrulayıcılar (18; hepsi `[dogrulama]` Opus / high; iki dalga: 10 + 8)
+
+Kademe: Orta 8 madde (#50, #56, #66, #67, #68, #69, #71, #87), Düşük 20 madde (14 bulgu + Y17, Y4, Y23, Y10, Y12, Y2). Paket 1–16 `--paket 2c`; 17 = #97, 18 = #98, Y10, Y12, Y2 (2b'den devreden).
+
+**Toplam hüküm: 28 madde — 13 doğru · 11 kısmen · 4 çürük** (çürük: Y17, Y4, #114, Y12). Seviye: #56 ve #87 Orta → Düşük (**düşürüldü, uygulandı**); yükselen yok.
+
+### Uygulama
+
+24 madde uygulandı: **19 ESKİ → YENİ çifti** ve **13 hücre düzeltmesi** (`12_audit_uygula2.py`; yeni satır yok). Y23'ün aynı satırdaki çoklu SATIR'ı (VAL-A944, A826, A834) ve VAL-A195'in 4 SATIR'ı betikçe okundu; VAL-A013/A015 düzeltmesi Y10'da tek kez. Uygulanan liste: `a10-kd-audit-2/2c/uygulanan.md`.
+
+**Matris sayımı (betik):** 1.473 satır (değişmedi); Severity KRİTİK 611 · ORTA 730 · DÜŞÜK 132 (değişmedi).
+
+### Üst dokümana geri besleme (K-652)
+
+`10` v0.61 (KD-59 ifadesi `02 §8.2.5` ve P-9'a hizalandı), `05` v0.46 (§10.1.8: yükleme diski tam %85'e getirirse de reddedilir). L4: `.claude/skills/validate/SKILL.md` adım 11 ve 12, `12` ve `00 §D.10` ile hizalandı. `PRODUCT_DISCOVERY_STATUS.md` §24.1'e K-1538 (4) açık noktası eklendi (K-1554).
+
+### Yükseltilenler
+
+Yok.
+
+### Toplam ilerleme
+
+**105 maddenin tamamı hükme bağlandı** (2a 31 · 2b 46 · 2c 28). Kalan: 2r — Y21, #95, Y1, #88 ve 2a'nın yeni YAN notları. Kapılar: `12_kapsam_hizasi.py` 0 · `12_matris_denetle.py --kapsam 1-77` hata 0 (1.473 satır, 77/77 KP) · `12_atif_denetle.py` hata 0.
+
 Prosedür: [`.claude/skills/audit/SKILL.md`](../../.claude/skills/audit/SKILL.md)

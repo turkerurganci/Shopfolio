@@ -113,14 +113,16 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 ## Faz 2 — Verdict
 
 11. **Genel verdict:**
-    - **PASS** — tüm kriterler `✓` veya kabul edilebilir `~`, güvenlik temiz, testler geçiyor, CI yeşil
+    - **PASS** — tüm kriterler `✓` — `~ Kısmi` PASS sayılmaz (`12 §6.1`, K-1521), güvenlik temiz, testler geçiyor, CI yeşil
     - **FAIL** — en az bir `✗`, kritik güvenlik bulgusu veya kırık test/CI
     - **BLOCKED** — doğrulama yapılamıyor (kod eksik, dal yok, önceki task borcu)
 
 12. **Bulguları sınıfla:**
-    - `S1 Sapma` — tamamlandı ama dokümanla uyumsuz
-    - `S2 Kırılma` — mevcut işlevselliği bozan değişiklik
-    - `S3 Eksik` — kabul kriterinde tanımlı ama implement edilmemiş
+    - `S1 Sapma` — task tamamlandı ama dokümanla uyumsuz (task doğrulamasında karşılanmamış kabul kriteri de S1'dir)
+    - `S2 Kırılma` — bir task başka bir task'ın çıktısını bozuyor (regresyon; mevcut task'tan doğan ana dal kırılması da S2)
+    - `S3 Eksik` — traceability'de eşlenmiş öğe implement edilmemiş (gate'in boşluk taraması)
+
+    Tanım kaynağı `00 §D.10`; hatanın nerede doğduğu `12 §8.1`'dedir.
 
     **Bloke-etmeyen gözlemler** ayrı listelenir (K-notu). Her K-notu ya bu PR'da kapatılır ya `Docs/DEFERRED_BACKLOG.md`'ye **forward edilir**. Üçüncü seçenek yoktur.
 

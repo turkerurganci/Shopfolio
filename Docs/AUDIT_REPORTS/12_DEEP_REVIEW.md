@@ -82,7 +82,7 @@ Katman AY = audit kararlarının etrafı. "Uygulama" sütunu `uygulanan.md` sat�
 | #14 | 3 | Orta | VAL-A051,VAL-A052 | doğru | Kural uc ayri surum degisikligini (ozet, Ön Bilgilendirme Formu, Mesafeli Satis Sozlesmesi) kap… | 3 düzeltme |
 | #18 | 3 | Orta | VAL-A067,VAL-A069,VAL-A074,VAL-A075 | kısmen | "On dort gun icinde geri odenir" kurallari icin on kosul zaman ilerletme/vade kontrolunu tarif e… | 4 düzeltme |
 | #19 | AY | Orta | VAL-A068,VAL-A069,VAL-A077,VAL-A078,VAL-A079,VAL-A217,VAL-A230,VAL-A238,VAL-A251 | doğru | IBAN'in geri odemeye baglanmasi (iptal, cayma, sonradan yeniden alma) ORTA, ayni IBAN hatti bask… | 3 düzeltme |
-| #20 | AY | Orta | VAL-A069,VAL-A070,VAL-A080 | doğru | A070 K-1555'te "para/yasal sure" gerekcesiyle KRITIK'e yukseltildi, ama Beklenen yalniz "sipari�… | 1 düzeltme |
+| #20 | AY | Orta | VAL-A069,VAL-A070,VAL-A080 | doğru | A070 K-1555'te "para/yasal sure" gerekcesiyle KRITIK'e yukseltildi, ama Beklenen yalniz "sipari… | 1 düzeltme |
 | #69 | 3 | Orta | VAL-C079,VAL-C087,VAL-C090 | kısmen | "iki degisim tek islemdedir", "ayni anda" gibi atomiklik beklentisi icin gozlem yontemi yok (yal… | 2 düzeltme |
 | #70 | 3 | Orta | VAL-C082,VAL-C106 | doğru | Sure/zaman bagimli beklenen sonuclar icin on kosulda zaman ilerletme (test saati) yok; C082'de "… | 2 düzeltme |
 | #71 | 3 | Orta | VAL-C088 | kısmen | "sorgu yinelenir" icin aralik/sayi/bekleme siniri yok; ayrica sonuc gelince "Ö1 ya da S3 + Ö2"… | 1 düzeltme |
@@ -175,3 +175,85 @@ Hiçbiri yeni kural değildir; kaynak kazandı. `00`, `CLAUDE.md` ve `SETUP.md` 
 - Yeni güvenlik satırları (VAL-A980…A983, D121, D122, F015) `[güvenlik]` KRİTİK'tir ve kanıt ortamı `yok`/`mock`; gerçek kanıtın nasıl alınacağı Implementation döneminde ilgili task'ın işidir.
 - Hüküm dosyalarında "satır kimlikli şartname" sayısı (Parça A devir notunda 77: 67 SATIR + 10 YENI_SATIR) Parça B'de betikle yeniden sayıldı: 39 hücre düzeltmesi ve 14 yeni satır (13 hükümde yazılı + #12'nin YAN'ında bekleyen VAL-A989; üst doküman kapandıktan sonra eklendi). ESKİ → YENİ çifti sayısı 46'dır.
 - Karar kaydı K-1556 koşumu, K-1557 ⚠ kararı taşır. Toplu onay modu açıktır (K-1504).
+
+### Doğrulanmamış bulgular — A10-KD-deep-2a
+
+**Tarih:** 2026-11-01 · **Girdi:** `a10-kd-deep/dogrulanmadi.md`'deki 127 bulgu (Orta 75 · Düşük 52); `12_dr_grupla2.py` ile 34 grup, iki adım (2a: 20 doğrulayıcı, 79 madde; 2b: 14 doğrulayıcı, 48 madde). Parça A hükümleri `a10-kd-deep-2/2a/hukum_1…20.md`.
+
+#### Doğrulayıcılar (20; hepsi `[dogrulama]` Opus / high, ön planda; adım sınırı 20/20)
+
+| Doğrulayıcı | Kademe | Bulgu | Hüküm |
+|---|---|---|---|
+| D1 | Orta 3'lü | #106, #103, #104 | 1 doğru (#106) · 2 kısmen |
+| D2 | Orta 3'lü | #96, #97, #98 | 1 doğru (#98) · 1 kısmen (#96) · 1 çürük (#97) |
+| D3 | Orta 2'li | #76, #77 | 2 doğru |
+| D4 | Orta 3'lü | #15, #16, #17 | 1 doğru (#16) · 1 kısmen (#15) · 1 çürük (#17) |
+| D5 | Orta 3'lü | #21, #22, #23 | 3 kısmen |
+| D6 | Orta 4'lü | #89, #90, #91, #92 | 1 doğru (#89) · 3 kısmen |
+| D7 | Düşük 6'lı | #148, #149, #150, #147, #156, #157 | 4 doğru · 2 kısmen (#150, #157) |
+| D8 | Düşük 6'lı | #141, #142, #143, #144, #145, #146 | 3 doğru (#143, #145, #146) · 2 kısmen (#142, #144) · 1 çürük (#141) |
+| D9 | Orta 3'lü | #31, #32, #33 | 3 kısmen |
+| D10 | Orta 3'lü | #34, #35, #36 | 1 doğru (#34) · 2 kısmen |
+| D11 | Orta 3'lü | #37, #38, #39 | 3 doğru |
+| D12 | Düşük 7'li | #122…#128 | 6 doğru · 1 kısmen (#125) |
+| D13 | Orta 4'lü | #41, #42, #43, #44 | 2 doğru (#42, #43) · 2 kısmen (#41, #44) |
+| D14 | Orta 4'lü | #45, #46, #47, #49 | 3 doğru · 1 kısmen (#49) |
+| D15 | Orta 3'lü | #50, #51, #105 | 1 doğru (#51) · 2 kısmen |
+| D16 | Orta 4'lü | #54, #56, #57, #58 | 3 doğru · 1 kısmen (#57) |
+| D17 | Orta 4'lü | #59, #62, #63, #64 | 1 doğru (#62) · 3 kısmen |
+| D18 | Orta 4'lü | #65, #66, #67, #68 | 3 doğru · 1 kısmen (#66) |
+| D19 | Düşük 6'lı | #114, #135…#139 | 6 doğru |
+| D20 | Düşük 4'lü (çerçeve havuzu) | #112, #163, #140, #164 | 2 doğru (#112, #140) · 2 kısmen (#163, #164) |
+
+Toplam 79 bulgu: **44 doğru · 32 kısmen · 3 çürük**. Çürük üçü "zaten karşılandı" (önceki adımların uygulaması). Seviyesi yükselen yok; dört bulgu düştü (#44, #90, #91, #98 Orta → Düşük). Hükümde seviye sütunu: 42 Orta · 37 Düşük.
+
+#### Uygulama
+
+`12_dr_uygula2.py` (önce kuru koşu, sorun 0): 83 ESKİ → YENİ çifti (hükümlerde 84; #59'un `[güvenlik]` sayım çifti betikle yeniden sayıldı, aynı hücreye yazan ikinci çift #58'in hücre düzeltmesiyle karşılandı), 49 hücre düzeltmesi, 8 yeni satır. Hükümlerde sayılan 61 satır kimlikli şartnamenin 51'i SATIR, 10'u YENI_SATIR idi; ikişi boş (`SATIR:` / `YENI_SATIR:` değersiz) olduğundan uygulanan 49 + 8'dir. Uygulanan liste `a10-kd-deep-2/2a/uygulanan.md`.
+
+| Yeni satır | Konum (sonrasına) | Bulgu |
+|---|---|---|
+| VAL-C115 | VAL-C088 | #106 |
+| VAL-E089 | VAL-E061 | #43 |
+| VAL-E090 | VAL-E056 | #46 |
+| VAL-E091 | VAL-E083 | #51 |
+| VAL-E092 | VAL-E086 | #51 |
+| VAL-E093 | VAL-E056 | #105 |
+| VAL-A990 | VAL-A829 | #105 |
+| VAL-D123 | VAL-A703 | #137 |
+
+`[güvenlik]` etiketi (#58, #59, #63 ve devredenler) 16 satıra eklendi: 46 → 62 (`12 §1.2`'de betikle yeniden sayıldı). Matris 1.490 → 1.498 satır (A 990 · B 161 · C 115 · D 123 · E 93 · F 16); KRİTİK 634 · ORTA 732 · DÜŞÜK 132; kanıt ortamı `yok` 1.238 · `mock` 198 · `gerçek` 39 · `sandbox` 23; `12 §1.2` bölüm satır sayıları (§4.14…§4.20: 565; §12: 356; toplam 1.498) hizalandı.
+
+#### KARAR (beş madde; ⚠ yok; toplu onayla kaydedildi, K-1558)
+
+1. **#103** — Yük koşusunda ayrı istemci adresi yük makinesinde üretilir; ters vekilin güven ayarı üretimdeki gibi kalır. Ziyaretçi başına istek sayısı, karışım ve H-3 dağılışı sabitlenmez, T601 betiği seçer ve gerçekleşen değer rapora yazılır.
+2. **#15** — Sipariş numarası ön koşulunda adet: en az 20 art arda verilmiş sipariş (test düzeni kararı).
+3. **#125** — Kısa alanı olmayan sayfada açıklama metnin düz hâlinin başından 200 karakterle (P-28) alınır, sözcük ortasında kesilmez (`02 §3.30.5` (2) ve VAL-A375).
+4. **#41** — Ödeme çerçevesinde çerçeve içi kaydırma kabul edilir (`08 §2.1.4`, DV-5; `04` 5.14.6).
+5. **#164** — FAIL eskalasyonunu yönetici yardımcı düzeninde yardımcı, düzen kapalıyken ana oturum açar (`INSTRUCTIONS.md` §3.3).
+
+#### Üst doküman geri beslemesi (K-652, aynı PR)
+
+| Doküman | Yer | Değişiklik | Sürüm |
+|---|---|---|---|
+| `02` | §3.30.5 (2) | Açıklama sınırı 200 karakter, sözcük ortasında kesilmez (#125) | v0.110 → v0.111 |
+| `04` | 2.7.3; 5.14.6 | Sepetin durduğu yalnız müşteri tarafında (#150); çerçeve yüksekliği kuralı (#41) | v0.51 → v0.52 |
+| `05` | §6.5.6 | Panelin liste dönüşünde düşüş yeri listenin kökü (#63) | v0.48 → v0.49 |
+| `08` | §2.1.4 madde 2; §4.1 DV-5 | Çerçeve içi kaydırma kabulü (#41) | v0.20 → v0.21 |
+| `.claude/INSTRUCTIONS.md` (L3) | §3.3 | "Tamamlanmış" CI run'ı (#163); eskalasyon kuralı (#164) | — |
+| `.claude/skills/validate/SKILL.md` (L4) | Adım 0, 8a, FAIL durumunda | `--status completed`; tam dal adı; tur sayacı ve eskalasyon (#163, #164) | — |
+
+`.claude/INSTRUCTIONS.md` ve `skills/validate` GUARDRAILS §2'deki onay kapısında değildir; uygulandı. `00`, `CLAUDE.md` ve `SETUP.md` değişikliği önerilmedi.
+
+**Üst dokümanda açık kalan boşluklar (uygulanmadı; ürün kararı ister):** `02 §3.31.2` (#39: ret sebebinin kime ve nerede söylendiği), `08 §2.1.6` (#46: tutarı tutmayan son sorgu yanıtından sonra siparişin ve sorgu satırının akıbeti), `04 §5.22.11` (#150: Google'a ulaşılamadığında ekran ve mesaj), `02 §3.30.5` (1) (#142: hesap ve panel sekme başlığı), `02 §4.1.4` (#144: bitiş gününün son saniyesi). 12'deki satırlar bugünkü kaynağa göre yazıldı; boşluklar kapanınca ilgili satırlar sayıyla sıkılaştırılır.
+
+#### Kapılar
+
+- `12_kapsam_hizasi.py`: hata 0.
+- `12_matris_denetle.py --kapsam 1-77`: 1.498 satır, kimlik tekil, 77 KP kapsanan, eksik 0; hata 0.
+- `12_atif_denetle.py .`: hedefi bulunamayan atıf 0; hata 0.
+- `12_audit_hukum_denetle.py a10-kd-deep-2/2a`: Parça A'da sorun 0.
+
+#### İlerleme
+
+**79/127** bulgu hükme bağlandı; kalan 48 bulgu (2b: 14 doğrulayıcı; `a10-kd-deep-2/plan.md`). Sıradaki adım A10-KD-deep-2b, sonra cross-review. Yükselen yok (`yeniden.md` boş).

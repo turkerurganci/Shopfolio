@@ -113,10 +113,11 @@ Açtığın **her** PR'ın CI run'ını `concluded + success` olana kadar **sen*
   - Ajan `general-purpose` (fork değil), `[dogrulama]` etiketli, Opus + `high`; görev metni talimat yolunu taşıyan tek satırdır. Talimat yukarıdaki izolasyon girdilerinden başka bir şey taşımaz; yardımcının yorumu ve yapım işçisinin dönüş metni girmez.
   - Validator `skills/validate`'i 16. adıma kadar koşar (rapor, status, memory commit + push), **merge etmez**; verdict'i talimattaki rapor dosyasına yazar.
   - Yardımcı sonucu ajanın dönüş metninden değil rapor dosyasından okur — yol, değişiklik zamanı (başlatmadan sonra), başlıkta task ve tur numarası. **PASS ve dal CI yeşilse** squash merge'ü ve merge sonrası CI izlemesini (`skills/validate` 17–18. adım) yardımcı yapar. FAIL / BLOCKED'da merge yok; düzeltmeden sonra doğrulama tam yeniden yapılır (`[yeniden-dogrulama]`).
+  - **Eskalasyon (12 §8.5; 2 iterasyon sınırı):** iterasyon, bir düzeltme ve onu izleyen tam yeniden doğrulamadır; sayaç doğrulama raporlarının başlığındaki tur numarasıdır. Düzeltmeden sonraki ikinci yeniden doğrulama da FAIL verirse eskalasyonu yönetici yardımcı düzeninde yardımcı, düzen kapalıyken ana oturum açar (proje sahibine bulgularla sunar); ikisi de tur numarasını rapordan okur, doğrulayıcı önceki turları bilmediği için eskalasyonu açamaz. Yeni doğrulama chat'i bu noktada açılmaz.
   - Validator'ın merge-öncesi veto yetkisi (00 §D.9) korunur: merge'ün tek kapısı validator'ın PASS'idir. Bekçi değişmez — merge'ü yalnız yardımcı ve ana oturum çalıştırır.
   - **Neden:** Escrow'un F8 / F9 yönetici düzeninde aynı akış işledi (doğrulamayı yönetici başlatır, PASS + CI yeşilse yönetici merge eder); proje sahibi 2026-11-01'de Shopfolio'ya taşınmasını onayladı.
 - **CI rasyonelizasyon yasağı:**
-  - Validator Adım 0'da ana dalın son 3 CI run'ını kontrol eder. Biri bile FAIL ise **HARD STOP**.
+  - Validator Adım 0'da ana dalın son 3 tamamlanmış CI run'ını kontrol eder. Biri bile FAIL ise **HARD STOP**.
   - Task dalı CI'sı da kontrol edilir; FAIL veya yok ise → bulgu / BLOCKED.
   - Yasak: *"lokal temiz, geç"* · *"benim task'ımla ilgisiz kırılma"* · *"önceki task'ın borcu, şimdilik görmezden gel"* · *"sadece şu workflow kırıldı"* · *"küçük değişiklik CI'yi bekleyemez"*.
   - CI kırılması mevcut task'tan ise → **S2 Kırılma** (FAIL). Önceki task'ın borcundan ise → **BLOCKED (DEPENDENCY_MISMATCH)**.

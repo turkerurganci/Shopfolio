@@ -245,7 +245,7 @@ Toplam 79 bulgu: **44 doğru · 32 kısmen · 3 çürük**. Çürük üçü "zat
 
 `.claude/INSTRUCTIONS.md` ve `skills/validate` GUARDRAILS §2'deki onay kapısında değildir; uygulandı. `00`, `CLAUDE.md` ve `SETUP.md` değişikliği önerilmedi.
 
-**Üst dokümanda açık kalan boşluklar (uygulanmadı; ürün kararı ister):** `02 §3.31.2` (#39: ret sebebinin kime ve nerede söylendiği), `08 §2.1.6` (#46: tutarı tutmayan son sorgu yanıtından sonra siparişin ve sorgu satırının akıbeti), `04 §5.22.11` (#150: Google'a ulaşılamadığında ekran ve mesaj), `02 §3.30.5` (1) (#142: hesap ve panel sekme başlığı), `02 §4.1.4` (#144: bitiş gününün son saniyesi). 12'deki satırlar bugünkü kaynağa göre yazıldı; boşluklar kapanınca ilgili satırlar sayıyla sıkılaştırılır.
+**Üst dokümanda açık kalan boşluklar (2a'da uygulanmadı; 2b'de beşi de karara bağlanıp uygulandı, K-1559 ve K-1560 — bkz. "Doğrulanmamış bulgular — A10-KD-deep-2b"):** `02 §3.31.2` (#39: ret sebebinin kime ve nerede söylendiği), `08 §2.1.6` (#46: tutarı tutmayan son sorgu yanıtından sonra siparişin ve sorgu satırının akıbeti), `04 §5.22.11` (#150: Google'a ulaşılamadığında ekran ve mesaj), `02 §3.30.5` (1) (#142: hesap ve panel sekme başlığı), `02 §4.1.4` (#144: bitiş gününün son saniyesi). 12'deki satırlar bugünkü kaynağa göre yazıldı; boşluklar kapanınca ilgili satırlar sayıyla sıkılaştırılır.
 
 #### Kapılar
 
@@ -257,3 +257,80 @@ Toplam 79 bulgu: **44 doğru · 32 kısmen · 3 çürük**. Çürük üçü "zat
 #### İlerleme
 
 **79/127** bulgu hükme bağlandı; kalan 48 bulgu (2b: 14 doğrulayıcı; `a10-kd-deep-2/plan.md`). Sıradaki adım A10-KD-deep-2b, sonra cross-review. Yükselen yok (`yeniden.md` boş).
+
+
+### Doğrulanmamış bulgular — A10-KD-deep-2b
+
+**Tarih:** 2026-11-01 · **Girdi:** 2a'dan kalan 48 bulgu (Orta 25 · Düşük 23; `a10-kd-deep-2/plan.md`) ve 2a'nın açık bıraktığı beş üst doküman boşluğu. Parça A hükümleri `a10-kd-deep-2/2b/hukum_1…16.md`. Bu, deep review'un son alt adımıdır: yükselen bulgu olmadığı için 2r açılmadı.
+
+#### Doğrulayıcılar (16; hepsi `[dogrulama]` Opus / high, ön planda; adım sınırı 16/20)
+
+| Doğrulayıcı | Kademe | Bulgu | Hüküm |
+|---|---|---|---|
+| D1 | Orta 3'lü | #10, #109, #111 | 2 doğru · 1 kısmen (#10) |
+| D2 | Orta 3'lü | #11, #26, #27 | 2 doğru (#11, #27) · 1 kısmen (#26) |
+| D3 | Orta 2'li | #24, #25 | 1 kısmen (#25) · 1 çürük (#24) |
+| D4 | Düşük 7'li | #115…#121 | 6 doğru · 1 kısmen (#115) |
+| D5 | Orta 3'lü | #28, #29, #30 | 1 doğru (#29) · 2 kısmen (#28, #30) |
+| D6 | Orta 2'li | #40, #53 | 1 doğru (#53) · 1 kısmen (#40) |
+| D7 | Düşük 6'lı | #129…#134 | 5 doğru · 1 kısmen (#130) |
+| D8 | Orta 2'li | #48, #52 | 1 doğru (#52) · 1 çürük (#48) |
+| D9 | Orta 3'lü | #55, #60, #61 | 2 doğru · 1 kısmen (#61) |
+| D10 | Orta 3'lü | #110, #107, #108 | 3 kısmen |
+| D11 | Orta 2'li | #99, #100 | 1 doğru (#99) · 1 kısmen (#100) |
+| D12 | Düşük 5'li | #151…#155 | 2 doğru (#152, #154) · 2 kısmen (#151, #153) · 1 çürük (#155) |
+| D13 | Orta 2'li | #101, #102 | 2 doğru |
+| D14 | Düşük 5'li | #158…#162 | 4 doğru · 1 çürük (#159) |
+| D15 | Boşluk (`02`) | #39, #142, #144 | 3 kısmen (karar önerisi) |
+| D16 | Boşluk (`08`, `04`) | #46, #150 | 2 kısmen (karar önerisi) |
+
+D1…D14: 48 bulgu, **29 doğru · 15 kısmen · 4 çürük**. Çürük dördü "zaten karşılandı" (#24, #48, #155, #159). Seviyesi yükselen yok; üç bulgu düştü (#10, #24, #40 Orta → Düşük). Hükümde seviye sütunu: 22 Orta · 26 Düşük. D15 ve D16 yeni bulgu değil, 2a'nın beş boşluğunun karar önerisidir; hiçbiri "yine de sorulur" ölçütünü karşılamadı.
+
+#### Uygulama
+
+`12_dr_uygula2.py` (önce kuru koşu, sorun 0): 48 ESKİ → YENİ çifti, 26 hücre düzeltmesi, 3 yeni satır (hükümlerdeki 29 satır kimlikli şartnamenin tamamı). Uygulanan liste `a10-kd-deep-2/2b/uygulanan.md`; 44 bulgu uygulandı, 4 çürük uygulanmadı. Ayrıca VAL-A190 seviyesi Orta → Kritik yapıldı (KARAR) ve VAL-D039'un listesine ürün formundaki P-6, P-9, P-44 eklendi.
+
+| Yeni satır | Konum (sonrasına) | Bulgu |
+|---|---|---|
+| VAL-C116 | VAL-C029 | #25 |
+| VAL-E094 | VAL-E089 | #131 |
+| VAL-A991 | VAL-A981 | #101 |
+
+Matris 1.498 → 1.501 satır (A 991 · B 161 · C 116 · D 123 · E 94 · F 16); KRİTİK 637 · ORTA 732 · DÜŞÜK 132; `[güvenlik]` 62 → 63; kanıt ortamı `yok` 1.240 · `mock` 199 · `gerçek` 39 · `sandbox` 23; `12 §1.2` sayımı ve bölüm satır sayıları (§4.7: 38; KP kümesi 578; §4.14…§4.20: 567; §12: 356) aynı PR'da hizalandı.
+
+#### KARAR (toplu onayla kaydedildi; K-1559, K-1560)
+
+1. **#39** — Sistemin kendiliğinden geçişinin (ödeme süresinin dolması, sağlayıcı bildirimi, son sorgu) reddinde sebep, siparişin iç kimliği ve sebebin koduyla uygulama kaydına yazılır; bildirim üretilmez. Müşterinin işleminin reddini sipariş sayfası, yöneticininkini panel söyler. ⚠ değil.
+2. **#142** — Arama motoruna kapalı ekranların (sepet, ödeme adımı, sipariş takibi, hesap, panel) sekme başlığı ekranın `04 §4` envanterindeki adı ve marka adıdır. ⚠ değil.
+3. **#144** — Tarih aralığının bitiş günü bütünüyle dahildir; aralık bitiş tarihinden sonraki günün 00.00'ında biter ve indirimin bitişi fiyat geçmişine o anla yazılır (`09 §7.1` (3) ile hizalı). ⚠ değil.
+4. **#46** — Başarısı uygulanmayan (tutarı tutmayan) `success` yanıtı "yanıt alınamadı" gibi işlenir: sipariş iptal edilmez, "ödeme sonucu alınamadı" işaretiyle Bekliyor'da kalır, sorgu yinelenir, sonra "başarısız" ve uyarı; sipariş panelden elle kapatılır. **⚠** (K-1560).
+5. **#150** — Google ile giriş tamamlanmazsa giriş ekranı formun başında kalıcı bir mesajla bunu söyler; tek kod üç sebebi kapsadığı için metin sebebi ayırmaz, yalnız sonucu ve iki yolu (yeniden denemek, şifreyle girmek) söyler. ⚠ değil.
+6. **#26** — VAL-A190 (açıklama alanında saldırı kümesi) seviyesi Orta → Kritik; aynı gözle taranması gereken 13 `[güvenlik]` Orta satır cross-review'a bırakıldı.
+7. **#30** — Ürün formundaki firma ayarları (P-6, P-9, P-44) eski ve yeni değeriyle ize yazılır (`02 §10.3.1` (6)).
+8. **#100** — Parça boyutu (bayt) sınırı `12`'de taşınmaz; `05 §6.7.9`'a istenirse eklenir.
+9. **#53** (kaydın yeri) — Kayıt yeri testin beklenen değeri ve ilk koşunun doğrulama raporudur.
+
+#### Üst doküman geri beslemesi (K-652, aynı PR)
+
+| Doküman | Yer | Değişiklik | Sürüm |
+|---|---|---|---|
+| `02` | §3.31.2; §3.30.5 (1); §4.1.4; §3.13.14; §6.1.2; §10.3.1 (6) | Ret sebebinin yeri (#39); ekran adı sekme başlığı (#142); bitiş ertesi günün 00.00'ı (#144); şifresiz hesapta sıfırlama bağlantısı gitmez (#25); tutarı tutmayan `success` (#46); ürün formu ayarları ize yazılır (#30) | v0.111 → v0.112 |
+| `03` | §10.1.3.1 | Google ile giriş tamamlanmazsa giriş ekranı söyler (#150) | v0.46 → v0.47 |
+| `04` | 4.4.6; 5.22.11; 6.2.22.6 | Sekme başlığı (#142); Google ile giriş mesajı (#150) | v0.52 → v0.53 |
+| `05` | §9.1.3; §5.2.2; §10.3.6 | Sistem geçişinin reddi kayda yazılır (#39); "ödeme yoksa" (#46); en yalın hata yanıtı 500 (#102) | v0.49 → v0.50 |
+| `06` | §2.5.2; §1 `02 §4.1.4` satırı; iki EndDate satırı | Bitiş ertesi günün 00.00'ı (#144) | v0.45 → v0.46 |
+| `07` | §2.9.2; §2.8.10; §9.26.2; görsel yükleme satırı | Bitiş (#144); 413 sınırı gövdeyle: P-23 + 1 MB (#52) | v0.39 → v0.40 |
+| `08` | §2.1.6 | Başarısı uygulanmayan `success` yanıtı yanıt alınamamış sayılır (#46) | v0.21 → v0.22 |
+
+Üst dokümanda yazılı öneriler uygulanmadı: `07 §4.5.2` ve `09 §18.2` (seyreltmenin penceresi, #130), `05 §6.7.9` (bayt sınırı, #100 kararı gereği). L4 (doğrudan değiştirilmedi, öneri): `.claude/skills/gate-check/SKILL.md` — son fazın gate'inde `12 §6.3` kriterlerini satır kimlikleriyle işaretleyen adım ve "bu MVP'nin son uygulama fazıdır" notu; `.claude/skills/validate/SKILL.md` — Faz 1'e `12` satırlarını okuma ve `Durum` hücrelerini güncelleme adımı, çıktı formatına `12 §8.2` alanları (#107, #108, #110). `00`, `CLAUDE.md` ve `SETUP.md` değişikliği önerilmedi.
+
+#### Kapılar
+
+- `12_kapsam_hizasi.py`: hata 0.
+- `12_matris_denetle.py --kapsam 1-77`: 1.501 satır, kimlik tekil, 77 KP kapsanan, eksik 0; hata 0.
+- `12_atif_denetle.py .`: hedefi bulunamayan atıf 0; hata 0.
+- `12_audit_hukum_denetle.py a10-kd-deep-2/2b`: Parça A'da sorun 0.
+
+#### İlerleme
+
+**127/127** bulgu hükme bağlandı; deep review tamamlandı. Yükselen yok (`yeniden.md` boş); 2r açılmadı. Sıradaki adım A10-KD-cross-1.

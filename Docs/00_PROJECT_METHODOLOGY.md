@@ -1,6 +1,6 @@
 # Project Playbook — Metodoloji
 
-**Versiyon: v1.0.11** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-11-01
+**Versiyon: v1.0.12** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-11-01
 
 > Bu doküman bir yazılım projesini **fikirden çalışan MVP'ye** taşıyan yöntemin tamamıdır:
 > doküman üretimi, implementasyon, doğrulama, borç kapatma ve kapanış.
@@ -349,7 +349,7 @@ Akış: **kayıt** (BLOCKED raporu) → **etki analizi** (hangi doküman/task et
 1. Her task için `TASK_REPORTS/TXX_REPORT.md` (şablon: [`_TEMPLATE.md`](TASK_REPORTS/_TEMPLATE.md)).
 2. **Güncelleme sırası kuralı:** Rapor finalize edilmeden status güncellenmiş sayılmaz. **Önce rapor, sonra status.** Bu kural drift'i önler.
 3. Rapor + status **merge'den önce** commit+push edilir — aksi halde squash merge bu değişiklikleri içermez.
-4. Merge'ü validator yapar (yalnız PASS durumunda).
+4. Merge'ü validator yapar (yalnız PASS durumunda). **İstisna — yönetici yardımcı düzeni:** proje sahibinin açtığı bu düzende doğrulamayı yardımcının açtığı izole doğrulama ajanı yapar ve merge etmeden verdict'ini rapor dosyasına yazar; merge'ü, rapor dosyasında PASS okuduktan ve dal CI'ı yeşilse yardımcı yapar. Merge'ün tek kapısı yine validator'ın PASS'idir — veto yetkisi korunur (`.claude/INSTRUCTIONS.md` §3.3).
 5. **Merge teyidi doğrudan ana dala push edilemez.** Post-merge run ID'leri gibi kozmetik ekler ya sonraki task dalında ya ayrı bir `chore:` PR'ında gider.
 
 > **Vaka:** Bir task chat'i CI yeşilini görünce kendi PR'ını merge etti; validator yalnız post-hoc finalize yapabildi. Bu akış resmîleştirilseydi validator'ın **merge-öncesi veto yetkisi** tamamen kalkacaktı — nadiren kullanılan ama "sapma avcısı" rolünün gerçek kapısı olan yetki. Karar: tempo kaybına rağmen veto yetkisi korunur.
@@ -783,4 +783,4 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 
 ---
 
-*Project Playbook — Metodoloji v1.0.11*
+*Project Playbook — Metodoloji v1.0.12*

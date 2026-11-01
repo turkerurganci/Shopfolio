@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-11-01 | **Satır:** 151 | **Gönderilen:** 0
+**Son güncelleme:** 2026-11-01 | **Satır:** 153 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -180,3 +180,4 @@
 | PF-150 | Geri işaret taramasında `--tum` geçişi; `11` yazan betik LF yazar; pre-commit hook'unda anahtar biçimi | Aşama 9 öğrenim terfisi (Ö-169, Ö-170, Ö-171) | K-1501 | `scripts/doc-scans/` · `scripts/git-hooks/pre-commit` · `.claude/checklists/document-stage.md` §3 | Uygulandı |
 | PF-151 | `00 §N.1`'e Aşama 9'un dört dersi (yardımcı düzeni, küçük dilim ve bitiş satırı, toplu onay kapsam kapatmaz, sabit hüküm biçimi) | Aşama 9 öğrenim terfisi, rapor §5.3 Soru 1 | K-1501; cevap ve uygulama K-1503 | `00 §N.1` | Uygulandı (2026-11-01, K-1503): Soru 1 seçenek 1 (`00 §N.1` Aşama 9 paragrafı, `00` v1.0.11) |
 | PF-152 | Hook ve talimat şablonu: işçi talimatına sabit yasak satırı, sözcük yasaklarının yalnız komuta bakması, merge denetimi çıktısının kısalması | Aşama 9 öğrenim terfisi (P-1, P-2, P-3) | K-1501 (Karar C: bilgi olarak) | `~/.claude/hooks/` · `agent-rules.json` (proje dışı) | Öneri |
+| PF-153 | Yönetici yardımcı düzeni projenin kalanında kalıcı ve implementation akışında: çalışma modları açılışta sorulmaz; task doğrulaması yardımcının açtığı izole doğrulama ajanında ("başlat" beklenmez), validator 16. adımda biter, PASS + CI yeşilse yardımcı merge eder; `00 §D.9` madde 4 istisnası | K-1504, K-1505, K-1506 (proje sahibinin kararları, 2026-11-01) | `INSTRUCTIONS.md` §2, §3.1, §3.2, §3.3, §9 · `GUARDRAILS.md` §3, §6 · `checklists/document-stage.md` §1 · `skills/validate`, `skills/task` · `00 §D.9` (v1.0.12) | `00 §D.9` · `.claude/INSTRUCTIONS.md` · `.claude/skills/validate`, `.claude/skills/task` · `.claude/checklists/document-stage.md` | Uygulandı (2026-11-01, K-1504…K-1506) |

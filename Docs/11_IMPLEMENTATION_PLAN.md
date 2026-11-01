@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.49** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.50** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -474,7 +474,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK3: havale açık ve IBAN boşken kayıt reddedilir; iade adresinin dört alanından bir kısmı dolu kayıt reddedilir.
   - KK4: kodu üç haneli il, küçük harfli ülke kodu ve aynı ilin ikinci teslimat ili satırı reddedilir.
   - KK5: aynı tür ve sürüm numarası ikinci kez reddedilir; sürüm numarası dolu, yayın anı boş satır reddedilir.
-  - KK6: il silme, bağlı satır varken reddedilir.
+  - KK6: il silme, bağlı satır varken reddedilir; yayımlanmış `LegalTextVersion` satırına güncelleme ve silme yolu kodda yoktur.
   - KK7: kaynak taraması `Down` bulmaz; uygulama ve salt okuma kullanıcısı göç geçmişi tablosunda `SELECT`'te reddedilir.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
@@ -3408,8 +3408,8 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   5. IBAN geri ödeme tamamlanınca silinir; başka bekleyen geri ödeme kullanıyorsa ondan sonra silinir (`02 §7.4.5`).
   6. Firma iptalinde IBAN isteği iptal kaydıyla düşer, B-14 gider, süre durmaz (`02 §7.2.8`).
   7. "Havale gerçekleşmedi" bildirimi IBAN'ı siler, alanı yeniden açar ve B-14 gönderir; kalem "IBAN bekleniyor"a döner, süre durmaz (`02 §7.4.5`).
-  8. Kart iadesi reddedilirse ödeme ekseni değişmez, "geri ödeme gerçekleşmedi" işareti düşer ve kalem bekleyen işlere girer; firma yeniden dener ya da havale yolunu açar (B-14), IBAN girildikten sonra deneme kapalıdır (`02 §7.2.8`; §6.4.24).
-  9. Sonuç bilinmezse "geri ödeme sonucu bekleniyor" işareti düşer; sonuç beklenirken yeniden deneme ve havale yolu kapalı (`02 §7.2.8`).
+  8. Kart iadesi reddedilirse ödeme ekseni değişmez, "geri ödeme gerçekleşmedi" işareti düşer ve kalem bekleyen işlere girer; firma yeniden dener ya da havale yolunu açar (B-14), IBAN girilince deneme kapalıdır (`02 §7.2.8`; §6.4.24).
+  9. Sonuç bilinmezse "geri ödeme sonucu bekleniyor" işareti düşer; bu sürede yeniden deneme ve havale yolu kapalı (`02 §7.2.8`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: yol ödeme yönteminden.
@@ -3418,7 +3418,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK4: IBAN denetimi ve düzeltme.
   - KK5: silme zamanı, ortak kullanımda erteleme.
   - KK6: firma iptalinde alan açılır, B-14; süre durmaz.
-  - KK7: havale hatasında alan açılır, B-14; süre durmaz.
+  - KK7: havale hatasında IBAN silinir, alan açılır, B-14; süre durmaz.
   - KK8: ret işareti, eksen sabit; havale yolunda B-14, IBAN'dan sonra deneme yok.
   - KK9: bekleme işaretinde deneme kapalı.
   - `09 §25` ilgili satırlar; güvenlik taraması
@@ -4302,7 +4302,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   1. 404 yanıtı vitrinin tam çerçevesinde E-06'dır: bulunamadığını söyleyen başlık, ana sayfaya ve ürünlere dönüş (`07 UC-06`; `04` 5.6.3).
   2. 404 şu hâllerde döner: bilinmeyen ilk yol bölümü ya da kayda ait olmayan `Slug`, oturumsuza taslak kayıt ve adresi yeni kayda verilmemiş silinmiş kayıt, sahiplik denetimini geçmeyen istek, geçersiz ya da yenilenmiş erişim anahtarı, imha edilmiş sipariş bağlantısı, ömrü dolmuş indirme değeri, ilk kez yayına alınmamış aydınlatma metni ve çerez politikası (`07 UC-06`).
   3. Yanıt sebebi ayırt etmez; boş kategori bu yanıt değildir; sayfa noindex'tir ve 404 durum ucunun sayacına girmez (`07 UC-06`; `07 §2.3.3`, §2.7.5).
-  4. Beklenmeyen hata GET'te vitrinde vitrinin, panelde panelin çerçevesinde 500 hata sayfasıdır (`07 UC-78`; `04` 2.7.3.2).
+  4. Beklenmeyen hata GET'te vitrinde vitrinin, panelde panelin çerçevesinde 500 hata sayfasıdır; çerçevesiz panel ekranlarında hata sayfası da çerçevesizdir (`07 UC-78`; `04` 2.7.3.2, 2.2.9).
   5. POST'ta 500, formu gönderilen değerlerle ve işlem düzeyindeki kalıcı mesajla yeniden gösterir (`07 UC-78`; `04` 2.7.3.1).
   6. Sonucu belirsiz işlemde hata nerede olursa olsun 303 sonucu gösteren ekrana gider (`07 UC-78`; `04` 2.7.3.3; `05 §10.3.4`).
   7. Yanıt hatanın ayrıntısını ve kodunu taşımaz; hata uygulama kaydına yazılır ve durum ucunun sayacına girer (`07 UC-78`; `05 §9.4.8`).
@@ -4312,7 +4312,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK1: 404 çerçevesi ve iki bağlantı.
   - KK2: T206'nın ilk yol bölümü, T207'nin sahiplik reddi ve T312'nin ömrü dolmuş indirme değeri ayrı testte E-06 verir; k2'nin öteki hâlleri kendi task'ında sınanır (T502 k9, T503 k3, T505 k7, T507 k2, T511 k5) (`07 UC-06`).
   - KK3: iki sebebin yanıtı aynı; boş kategori 200; 404'te noindex var, sayaç artmaz.
-  - KK4: vitrin ve panel 500 çerçevesi.
+  - KK4: vitrin ve panel 500 çerçevesi; panel girişinde 500 çerçevesiz.
   - KK5: POST 500'de değerler korunur.
   - KK6: belirsiz işlem 303 hedefi.
   - KK7: gövdede istisna metni yok; kayıtta var.
@@ -4580,7 +4580,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   7. `GET /dogrulama/{anahtar}` bağlantının hâline göre altı hâlden birini verir; geçerli bağlantıda doğrulama adımıdır, açılış doğrulamaz (`07 UC-52`; K-904, K-780).
   8. Başka türün ya da yönetici hesabının bağlantısı tanınmaz ve tüketilmez (`07 UC-52`).
   9. `VerifyEmail` bağlantıyı tek koşullu güncellemeyle tüketir, 303 sonuç koduyla döner, oturum açmaz; kayıtta `EmailVerifiedAt` yazılır ve misafir siparişleri hesaba bağlanır (`07 UC-53`; K-1186 (1)).
-  10. UC-53: bağlantı o arada geçersizleştiyse 200; yeni adres başkasına geçtiyse 422 ve tüketim geri döner (`07 UC-53`; `02 §3.13.14`).
+  10. UC-53: bağlantı o arada geçersizleştiyse 200; yeni adres başkasınınsa 422, tüketim döner, değilse onu tutan bekleyen kayıt silinir (`07 UC-53`; K-1080).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: kapalı kapıda düğme yok.
@@ -4592,7 +4592,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK7: altı hâl; açılış yazmaz.
   - KK8: yabancı tür tüketilmez.
   - KK9: tek tüketim; sipariş bağlama.
-  - KK10: yarış ve başkasına geçen adres.
+  - KK10: yarış; başka hesap; kayıt silme.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T515: Müşteri girişi ve Google ile giriş (E-22)
@@ -7757,4 +7757,4 @@ Her task → hangi kaynak öğeden besleniyor?
 
 ---
 
-*Shopfolio — Implementation Plan v0.49*
+*Shopfolio — Implementation Plan v0.50*

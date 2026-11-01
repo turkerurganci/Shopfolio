@@ -76,6 +76,13 @@
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
 > - **K-1407 · K-1411 · K-1453 · Boot provasının iki turu:** §I iki kez koşar. 1. tur F0'ın sonunda, referans kuruluma ilk inişte yapılır (`11` T09 kabul kriteri 6; F0 kapısı, `11 §6.2`) ve sonucu §I.3'e yazılır. 2. tur F6'da T601'in kabul kriteri 1'idir: `§I.2` reçetesi gerçek yapılandırmayla sıfırdan koşar; kapanış ritüelinin zorunlu provası (`00 §L` adım 6, §L.1) bu turdur. §I'nin "Ne zaman" satırı doldurulurken iki turu bu sırayla söyler.
+>
+> **Aşama 10'dan park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §24.1, çakışma taraması, K-1571).
+> Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
+>
+> - **K-1518 · K-1537 · Canlı kanıt satırları:** zincirin her halkası (`12` §12.1, `VAL-F001`…`VAL-F012`) ayrı bir satırdır ve madde kimliğini taşır; satırda sipariş numarası, tutar, işlem anı ve kanıt türü yazar, kart verisi ve sır yazılmaz. Son fazın gate raporu (`GATE_CHECK_F6.md`) bu satırlara kimlikle bağlanır (`12` §7.5, §6.3). Aşama 7 bloğunun K-1239 (6) tarifindeki dört alanlı kayıt bu biçimle genişler. Satırların yeri ve düzeni bu dokümanın kararıdır.
+> - **K-1550 (#16) · K-1558 · Ters vekilin gövde tavanı:** ürünle gelen ters vekil yapılandırması görsel yükleme yolunda tavanı aşan isteğe uygulamanın çerçeveli 413 yanıtıyla aynı görünümü vermelidir (`12` VAL-A629). Yöntem bu aşamanın kararıdır: ters vekilin tavanı uygulamanınkinin üstünde tutulup 413'ü uygulama verir ya da ters vekil kendi hata sayfasını sunar; karar `07` §2.8.7 ile birlikte verilir.
+> - **K-1518 (3) · DV gözlem kayıtları:** `12`'de kanıt türü "Runbook kaydı" olan E satırlarının gözlemleri (örneğin yeniden gönderim sayısı ve aralığı, `auth_time`, bildirimlerin sırası; DV-1, DV-2, DV-9) bu runbook'ta madde kimliğiyle işaretli satır olarak tutulur; `08 §4` yalnız sonucu (doğrulandı mı) taşır. Satırların yeri bu dokümanın kararıdır.
 
 ---
 

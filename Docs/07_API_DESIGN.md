@@ -1537,7 +1537,7 @@ Ortak bileşen bileşen kimliğiyle tek satırdır; bileşenin bütün maddeleri
 | `04 §9.16` m2 | Firma tipi — Esnaf · Gerçek kişi tacir · Tüzel kişi; tip seçilmeden alanlar açılmaz; tip değişirken yeni tipin zorunlu alanları dolana kadar satışın kapalı kalacağı | UC-99 · UC-164 | eşlendi |
 | `04 §9.16` m3 | Tipin zorunlu alanları — esnafta ad-soyad ve VKN; tacirde unvan, MERSİS, sicil numarası; tüzel kişide unvan, MERSİS, sicil numarası | UC-99 · UC-164 | eşlendi |
 | `04 §9.16` m4 | Üç tipte zorunlu: adres — il kapalı listeden —, telefon, e-posta — firmaya giden bildirimlerin adresi —, KEP adresi | UC-99 · UC-164 | eşlendi |
-| `04 §9.16` m5 | İsteğe bağlı: meslek odası, işletme adı ya da marka, davranış kuralları; satış kapısını tutmaz | UC-99 · UC-164 | eşlendi |
+| `04 §9.16` m5 | Meslek odası ve davranış kuralları zorunlu (satış kapısının koşulu, K-1568); isteğe bağlı: işletme adı ya da marka, satış kapısını tutmaz | UC-99 · UC-164 | eşlendi |
 | `04 §9.16` m6 | ETBİS doğrulama bilgisi — isteğe bağlı bağlantı; yanında yükümlülüğün hatırlatması (K-815); boşken bant görünmez | UC-99 · UC-164 | eşlendi |
 | `04` 9.16.5 | Yoktur: kimliğin silinmesi, zorunlu alanın boşaltılması, bakım modu, ürünün içinden ETBİS kaydı, kurulum ayarlarının panelden değişmesi, kimliğin doğruluk denetimi | uç doğurmaz — yoktur | uç doğurmaz |
 | `04` 9.16.6 | Kimliği kaydetmek: onaysız, kısa bildirim; dolu zorunlu alanı boşaltan kayıt kaydedilmez; tip değişikliği kaydedilir, kapı yeni seti denetler; eski ve yeni değerle işlem izi; satış durumu bölümü ve gösterge hemen güncellenir | UC-164 · konvansiyon — API2-07 | eşlendi |
@@ -2243,7 +2243,7 @@ Ortak bileşen bileşen kimliğiyle tek satırdır; bileşenin bütün maddeleri
 | `04` 7.2.19.3 | Adres — il kapalı listeden, ilçe, açık adres | UC-164 | eşlendi |
 | `04` 7.2.19.4 | Telefon — zorunlu | UC-164 | eşlendi |
 | `04` 7.2.19.5 | E-posta ve KEP adresi — zorunlu; KEP'in geçerliliği doğrulanmaz | UC-164 | eşlendi |
-| `04` 7.2.19.6 | Meslek odası, işletme adı ya da marka, davranış kuralları — isteğe bağlı | UC-164 | eşlendi |
+| `04` 7.2.19.6 | Meslek odası ve davranış kuralları — zorunlu (K-1568); işletme adı ya da marka — isteğe bağlı | UC-164 | eşlendi |
 | `04` 7.2.19.7 | ETBİS doğrulama bilgisi — bağlantı | UC-164 | eşlendi |
 | `04` 7.2.20 | E-45 ödeme yöntemleri formu | UC-167 | eşlendi |
 | `04` 7.2.20.1 | Havale açık ya da kapalı — IBAN'sız açılmaz, K-817'nin metni | UC-167 | eşlendi |
@@ -3024,7 +3024,7 @@ Kaynağın sırasıyla: `03 §5` (itiraz ve anlaşmazlık), §6 (kötüye kullan
 | `03 §8.4.5` | Yanlış durum geçişinin düzeltilmesi — kapalı listeden sebep; "geri al" yok, yeni geçiş; havale işaretinde Z-8 yeniden işler (K-685) | UC-150 · konvansiyon — API8-01 | eşlendi |
 | `03 §8.4.6` | İç not — müşteriye görünmez; yazılması ize, metni yazılmaz | UC-152 | eşlendi |
 | `03 §8.4.7` | "Mal dönmedi" kapanışı — Z-42 geçmiş ve mal ulaşmamışken; ulaşmamış adetlere; geri ödeme yok; IBAN silinir (K-686, K-794) | UC-142 · konvansiyon — API8-01 | eşlendi |
-| `03 §8.4.8` | Başka kanaldan cayma ya da gecikme feshi kaydı — kalem ve adet (cayma), bildirimin tarihi; teyit; pencere dışı kayıt ayrıca onaylatılır, bir yıldan sonraya tarihli reddedilir; IBAN aktarımının koşulu; kayıt açılmayan hâller; geri alınamaz onay (K-706, K-709, K-715, K-796) | UC-130 · konvansiyon — API8-01 · konvansiyon — API5-01 · konvansiyon — API2-02 | eşlendi |
+| `03 §8.4.8` | Başka kanaldan cayma ya da gecikme feshi kaydı — kalem ve adet (cayma), bildirimin tarihi; teyit; pencere dışı kayıt — bir yıldan sonraya tarihlisi dahil — ayrıca onaylatılır (K-1563); IBAN aktarımının koşulu; kayıt açılmayan hâller; geri alınamaz onay (K-706, K-709, K-715, K-796) | UC-130 · konvansiyon — API8-01 · konvansiyon — API5-01 · konvansiyon — API2-02 | eşlendi |
 | `03 §8.4.9` | Misafir siparişinin iletişim e-postasının düzeltilmesi — yalnız misafir siparişinde ve imhaya kadar; yeni erişim anahtarı, eski bağlantılar açılmaz; "e-posta düzeltildi" işareti (K-1138) | UC-151 · UC-34 · konvansiyon — API8-01 | eşlendi |
 | `03 §8.4.10` | Yeni ayıp talebinin okunması — kalem, ayıplı adet, iade adresi; kanıt e-postayla; para gerekiyorsa iade hattı ya da tutar bazlı geri ödeme, havalede IBAN isteği; dijitalde dosya güncellemesi (K-793) | UC-92 · UC-93 · UC-140 · UC-131 · UC-133 · UC-134 · UC-83 | eşlendi |
 | `03 §8.4.11` | Ayıp talebinin "çözüldü" işareti ya da yeniden açılması — Z-18 içinde, yeni talep açılmaz (K-676) | UC-144 · UC-145 · konvansiyon — API8-01 | eşlendi |
@@ -4530,7 +4530,7 @@ Ekran `04 §5.19` · durum × rol `04` 6.2.19 · form `04` 7.1.10. Ekranın iki 
 **4.19.1 `UC-44` · GET `{kök}/ayip-talebi` — ayıp talebi ekranı**
 - **Amaç:** yeni talepte talebe açık kalemler ve açıklama alanı; yeniden açmada talebin kendisi (`04` 5.19.2) · **Yetki:** Müşteri — kök · **Hız sınırı:** sayfa.
 - **İstek:** kök. Parametresiz istek yeni talep hâlidir. **Yeniden açma hâli** sipariş kaleminin iç anahtarını `orderItemId` sorgu parametresinde taşır (`06 §4.30` `OrderItemId`; §2.1.6; K-1182 (3)) — talep kalem başına tektir (`02 §5.10`).
-- **Yanıt (başarı):** 200 — görünüm `04` 5.19.3–5.19.5. Yeni talepte talebe açık kalemler, adedi birden büyük kalemde ayıplı adedin varsayılanı — bir — ve üst sınırı — talebe açık adet, kapanmış adetler düşülmüş (K-1170 (2); K-830); fiziksel kalemde firmanın güncel iade adresi. Yeniden açmada talebin kalemi, ayıplı adedi, ilk açıklaması, açılış tarihi ve Çözüldü rozeti; ek bilginin firmanın e-postasına yazılacağı (`04` 5.19.4; K-783). Sayfa noindex'tir.
+- **Yanıt (başarı):** 200 — görünüm `04` 5.19.3–5.19.5. Yeni talepte talebe açık kalemler, adedi birden büyük kalemde ayıplı adedin varsayılanı — bir — ve üst sınırı — talebe açık adet, kapanmış adetler düşülmüş (K-1170 (2); K-830); fiziksel kalemde firmanın güncel iade adresi. Yeniden açmada talebin kalemi, ayıplı adedi — adedi birden büyük kalemde varsayılan ve alt sınır mevcut adettir, üst sınır talebe açık adettir (K-1566) —, ilk açıklaması, açılış tarihi ve Çözüldü rozeti; ek bilginin firmanın e-postasına yazılacağı (`04` 5.19.4; K-783). Sayfa noindex'tir.
 - **Yanıt (hata):** **303 → kök, sebebin koduyla** — yeni talep siparişte açık değilse; yeniden açma hâlinde kalemin talebi Çözüldü değilse ya da Z-18 dolduysa (K-1170 (1); `04` 5.19.10). **404** — kök tutmuyorsa, `orderItemId` bu siparişin kalemi değilse ya da yeniden açma hâlinde kalemin talebi yoksa (§2.3.3).
 - **Yan etkiler · Idempotency:** yoktur — GET.
 
@@ -4544,13 +4544,13 @@ Ekran `04 §5.19` · durum × rol `04` 6.2.19 · form `04` 7.1.10. Ekranın iki 
 
 **4.19.3 `UC-46` · POST `{kök}/ayip-talebi?handler=ReopenDefectClaim` — ayıp talebinin yeniden açılması**
 - **Amaç:** Çözüldü talebi Z-18 içinde yeniden açmak (`03 §1.11.10`, §2.9.6; `02 §5.10`) · **Yetki:** Müşteri — kök; kalem için sahiplik · **Hız sınırı:** form · 64 KB.
-- **İstek:** kalemin iç anahtarı (`OrderItemId`); açıklama alanı yoktur (`04` 5.19.4; K-783).
+- **İstek:** kalemin iç anahtarı (`OrderItemId`) ve — adedi birden büyük kalemde adet artırılacaksa — ayıplı adedin yeni değeri (`Quantity`; mevcut adetten küçük olamaz, kalemin talebe açık adedini aşamaz; K-1566); açıklama alanı yoktur (`04` 5.19.4; K-783).
 - **Yanıt (başarı):** 303 → kök (`04` 5.19.7).
 - **Yanıt (hata):** **303 → kök, sebebin koduyla** — talep Çözüldü değil ya da Z-18 doldu (K-1170 (4); `04` 5.19.10). **404** — kalem bu siparişin değilse ya da kalemin talebi yoksa.
-- **Yan etkiler:** talep Çözüldü → Açık; durum geçmişine müşterinin satırı eklenir (`06 §4.30`); B-9 yeniden açmanın tarihini taşır (K-681); firmaya F-3.
+- **Yan etkiler:** talep Çözüldü → Açık; durum geçmişine müşterinin satırı eklenir (`06 §4.30`); adet artırıldıysa talep yeni adedi taşır ve satır yeni adedi yazar (K-1566); B-9 yeniden açmanın tarihini ve yeni adedi taşır (K-681, K-790); firmaya F-3.
 - **Idempotency:** tekrar gönderim talebi Açık bulur — güncel hâl: 303 kök, sebebin koduyla (§2.5.1).
 
-*Kaynak: `04 §5.19`, 6.2.19, 7.1.10 · `02 §3.1.7`, §5.10, §7.5.1–§7.5.3, §9.2 · `03 §1.11.9`, §1.11.10, §2.9, §4.1.21, §5.1.4 · `06 §4.30` · K-665, K-676, K-681, K-783, K-790, K-793, K-795, K-830, K-1170, K-1182 (3).*
+*Kaynak: `04 §5.19`, 6.2.19, 7.1.10 · `02 §3.1.7`, §5.10, §7.5.1–§7.5.3, §9.2 · `03 §1.11.9`, §1.11.10, §2.9, §4.1.21, §5.1.4 · `06 §4.30` · K-665, K-676, K-681, K-783, K-790, K-793, K-795, K-830, K-1170, K-1182 (3), K-1566.*
 
 ### 4.20 E-20 — Kayıt ekranı
 
@@ -4982,7 +4982,7 @@ Vitrinin çerçevesi her sayfa yanıtının parçasıdır — modeli §5.5'te (K
 | `SubmitLateDeliveryTerminationInput` | UC-41 | `Iban` — havale hattında (`04` 7.1.8.3) · `Confirmed`; kalem ve adet alanı yoktur (K-1170 (3)) |
 | `SubmitWithdrawalInput` | UC-43 | `Items` — kalem başına `OrderItemId`, `Quantity` ve `OriginalOpenQuantity` — gösterilen açık adet (§2.4.3; K-1202) (`06 §4.25`; `04` 7.1.9.1, 7.1.9.2) · `Iban` — havale hattında (`04` 7.1.9.3) · `Confirmed` |
 | `SubmitDefectClaimInput` | UC-45 | `OrderItemId`, `Quantity` — adedi birden büyük kalemde, `Description` (`06 §4.30`; `04` 7.1.10.1–7.1.10.3) |
-| `ReopenDefectClaimInput` | UC-46 | `OrderItemId` (`06 §4.30`) |
+| `ReopenDefectClaimInput` | UC-46 | `OrderItemId`, `Quantity` (isteğe bağlı; `06 §4.30`) |
 | `RegisterInput` | UC-48 | `Name`, `Email` (`06 §4.36`; `04` 7.1.11.1, 7.1.11.2) · **`Password`** — özeti `PasswordHash`'e yazılır (`04` 7.1.11.3) |
 | `ResendVerificationLinkInput` | UC-49 | **`PendingRegistration`** — bekleyen kaydın korumalı değeri, gizli (§5.3.2; K-1186 (2)) |
 | `StartSocialLoginInput` | UC-50 | `ReturnUrl` — giriş ekranında |
@@ -5278,7 +5278,7 @@ Müşterinin işlem ekranlarının (UC-38…UC-46) reddi sipariş sayfasına seb
 | `ShipmentInfoMissing` | 422 | Kargo şirketi ve takip numarası ya da araç beyanı yok (`02 §6.7.4`; `03 §3.5.2.4`) — düzeltmede de (`04` 7.2.14.2, 7.2.7) | UC-124, UC-125, UC-147 |
 | `DeliverySequenceRequired` | 422 | Tarih bir beyanın günüyle çakışıyor ve sıranın cevabı yok — form sıra sorusuyla (K-608; `04` 2.12.5.2; `03 §3.3.34`) | UC-126, UC-130, UC-148 |
 | `NotShippedPhysicalItem` | 422 | Caymada kargoya verilmemiş fiziksel kalem — yol "müşteriyle anlaşıldı" iptalidir (`02 §6.4.31`; K-604; `03 §3.3.31`) | UC-130 |
-| `DeclarationOutsideWindow` | 422 | Bildirimin tarihi kabul süresinin dışında; gecikme feshi aralığın dışında (`02 §6.4.25`; `03 §8.4.8`, §1.11.8; K-799) | UC-130 |
+| `DeclarationOutsideWindow` | 422 | Bildirimin tarihi ileri; gecikme feshi aralığın dışında (`02 §6.4.25`; `03 §8.4.8`, §1.11.8; K-799) — pencerenin bitiminden bir yıldan sonraya tarihli cayma kaydı reddedilmez, ayrıca onaylatılır (K-1563) | UC-130 |
 | `ExceptionAcknowledgementRequired` | 422 | Pencere dışı tarihte ya da mutlak istisnalı kalemde ayrı onayın kutusu işaretsiz — onay hâli açılmaz (`02 §6.4.32`; K-709) | UC-130 |
 | `RefundIbanChanged` | 409 | Onay hâli açıkken müşteri IBAN'ı düzeltti — güncel IBAN (`03 §3.5.2.15`) | UC-131 |
 | `RefundIbanMissing` | 422 | Havale hattında IBAN yok — önce IBAN istenir (K-686) | UC-131, UC-133 |
@@ -5726,7 +5726,7 @@ Ekran `04 §9.9` · durum × rol `04` 6.3.9 · formlar `04` 7.2.7–7.2.15. Yön
 - **Amaç:** e-postayla, mektupla ya da formla gelen bildirimi siparişe kaydetmek (`03 §8.4.8`, §1.11.34, §1.11.41; `04` 9.9.20; `02 §10.4.10`) · **Yetki:** Yönetici — panel oturumu · **Hız sınırı:** form · 64 KB.
 - **İstek:** **cayma** (`RecordWithdrawal`) — kalem başına iç anahtar ve adet: kargoya verilmiş fiziksel kalemler ve ödemesi onaylanmış hizmet kalemleri (K-604, K-787) · **gecikme feshi** (`RecordLateDeliveryTermination`) — kalem ve adet taşımaz; gelen kalem ve adet alanları yok sayılır, fesih teslim edilmemiş fiziksel kalemlerin işleme açık adetlerinin tamamına düşer (K-796, K-1077; K-1188 (5)) · ikisinde: bildirimin firmaya ulaştığı tarih (`DeclarationDate`; `06 §4.24`, §4.25), bildirimin siparişin iletişim e-postasından geldiğini söyleyen seçenek ve onunla `Iban` (OB-14; `02 §10.4.10`; K-581), tarih pencerenin dışındaysa ya da kalem mutlak istisnalıysa ayrı onayın kutusu (K-709), tarih kalemin teslim günüyse sıranın cevabı (K-608) — seçeneğin ve kutunun adları `IsFromContactEmail`, `IsExceptionAcknowledged` (§5.2.2) —, `Version`, onay (K-715). Doğrulama `04` 7.2.10.
 - **Yanıt (başarı):** onay işaretsiz ilk gönderim 200 — onay hâli; formun başında K-798'in teyit hatırlatması (K-607). Onaylı gönderim 303.
-- **Yanıt (hata):** **422** — caymada kalem seçilmemiş ya da kalem kargoya verilmemiş fiziksel kalem — form yolun "müşteriyle anlaşıldı" iptali olduğunu söyler (K-604; `03 §3.3.31`) · tarih ileri ya da kabul süresinin dışında — pencereden bir yıl sonrasına tarihli kayıt (`03 §1.11.34`, §8.4.8; K-799) · IBAN'ın biçimi ya da sağlama basamağı tutmuyor (OB-14) · ayrı onayın kutusu gerekiyor ve işaretsiz — onay hâli açılmaz (`04` 7.2.10.5) · sıranın cevabı gerekiyor ve yok · adet birden küçük ya da tam sayı değil · adet işleme açık adedi aşıyor — istek bütünüyle uygulanmaz (K-1188 (4)) · gecikme feshi aralığın dışında — Z-11 geçmemiş, teslim tarihi girilmiş ya da işleme açık adedi kalan fiziksel kalem yok (`03 §1.11.8`, §1.11.41; K-1140).
+- **Yanıt (hata):** **422** — caymada kalem seçilmemiş ya da kalem kargoya verilmemiş fiziksel kalem — form yolun "müşteriyle anlaşıldı" iptali olduğunu söyler (K-604; `03 §3.3.31`) · tarih ileri (`03 §1.11.34`, §8.4.8; K-799; bir yıldan sonraya tarihli kayıt reddedilmez, pencere dışı onayı ister — K-1563) · IBAN'ın biçimi ya da sağlama basamağı tutmuyor (OB-14) · ayrı onayın kutusu gerekiyor ve işaretsiz — onay hâli açılmaz (`04` 7.2.10.5) · sıranın cevabı gerekiyor ve yok · adet birden küçük ya da tam sayı değil · adet işleme açık adedi aşıyor — istek bütünüyle uygulanmaz (K-1188 (4)) · gecikme feshi aralığın dışında — Z-11 geçmemiş, teslim tarihi girilmiş ya da işleme açık adedi kalan fiziksel kalem yok (`03 §1.11.8`, §1.11.41; K-1140).
 - **Yan etkiler:** kalem başına cayma beyanı — adet, tarih ve iade adresiyle (`06 §4.25`) — ya da gecikme feshi (`06 §4.24`); B-9; IBAN aktarıldıysa geri ödeme IBAN'ı (`06 §4.31`), aktarılmadıysa havale hattında IBAN isteği ve B-14 (K-706); kapanış kuralı (`03 §1.4.3`), siparişin bütün adetleri kapanırsa kupon hakkı §9.9 girişinin kuralıyla döner; kayıt geri alınmaz ve düzeltilmez (`03 §1.6.1.7`; K-688); işlem izi (`02 §10.4.1` (8)).
 - **Idempotency:** sürüm.
 

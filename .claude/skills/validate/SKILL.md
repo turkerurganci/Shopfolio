@@ -79,6 +79,8 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 
 2. **Referans dokümanları oku** — task tanımında belirtilen bölümler. Bunlar source of truth.
 
+   **2a. Task'ın `12` satırlarını oku (`12` okuma tablosu, K-1511 (1)):** `Docs/12_VALIDATION_PROTOCOL.md` bütün okunmaz (100 KB üstü; `INSTRUCTIONS §9` (7)). Task'ın kaynak birimleri (`11 §7.1`; KP-n) için `grep -nE 'KP-n([^0-9]|$)' Docs/12_VALIDATION_PROTOCOL.md` komutu satırları getirir; her satır kimliğiyle (`VAL-…`) bir kabul kriterine eşlenir, eşlenmeyen satır adım 5'te ayrıca doğrulanır. Satırın `Ön koşul`, `Beklenen sonuç`, `Kanıt türü` ve `Kanıt ortamı` hücreleri doğrulamanın ölçüsüdür (`12 §7`)
+
 3. **Remote'u güncelle** — `git fetch origin`. Fetch yapılmazsa eski dal state'i incelenir.
 
 4. **Dal kodunu incele** — hangi dosyalar değişmiş/oluşturulmuş, değişiklikler dokümanlarla uyumlu mu.
@@ -174,6 +176,10 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 |---|---|---|---|
 | 1 | ... | ✓/✗/~/? | komut + çıktı |
 
+### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+
 ### Doğrulama Kontrol Listesi
 - [x] / [ ] madde
 
@@ -187,10 +193,10 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 - Input validation: Temiz / Bulgu
 - Yeni bağımlılık: Yok / [liste]
 
-### Bulgular
-| # | Seviye | Açıklama | Etkilenen dosya |
-|---|---|---|---|
-| 1 | S1/S2/S3 | ... | ... |
+### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| 1 | ... | KRİTİK/ORTA/DÜŞÜK | S1/S2/S3 | ... | ... | bu PR'da düzeltildi / `TXXa` / kabul edilmiş risk | ... |
 
 ### Bloke-etmeyen Notlar (K-notları)
 | # | Not | Karar |

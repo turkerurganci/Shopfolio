@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.60** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.61** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -5551,7 +5551,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T601: `DEPLOY_RUNBOOK` provası, canlı kanıt, dış sistemde kayıtlı adresler ve yansıyan tablolar
 - **Bağımlılık:** —
-- **Dokümanlar:** çekirdek; `09` §19, §21; `08 §2.1.10`, §4.1, §4.2; `07 §2.1.9`; `06 §8.5`; `05` MK-07, MK-25, MK-27, MK-75, MK-76, §6.3, §6.9, §7.6, §8.8, §8.9; `02 §9.1`, §9.1.5, §10.1, §10.1.3, §10.2, §10.2.7, §12.2, §12.3, §12.5; `10 §4.1`
+- **Dokümanlar:** çekirdek; `09` §19, §21; `08 §2.1.10`, §4.1, §4.2; `07 §2.1.9`; `06 §8.5`; `05` MK-07, MK-25, MK-27, MK-75, MK-76, §6.3, §6.9, §7.6, §8.8, §8.9, §11.1; `02 §9.1`, §9.1.5, §10.1, §10.1.3, §10.2, §10.2.7, §12.2, §12.3, §12.5; `10 §4.1`
 - **Kabul kriterleri:**
   1. `DEPLOY_RUNBOOK §I.2` boot reçetesi gerçek yapılandırmayla sıfırdan koşar (`00 §L.1`).
   2. Kırılan her adım `§I.3` tablosuna kök nedeniyle ve runbook satırıyla girer; reçete ikinci kez sıfırdan koşar.
@@ -5563,6 +5563,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   8. Canlı kanıt: gerçek kartla küçük tutarlı sipariş, 3D geçilir, panelden uçtan uca işletilir, bedel geri ödenir; taksit sunuluyorsa taksitli; satırlar runbook'a yazılır (`08 §2.1.10`; K-1411).
   9. Kurulum tarafı satırları runbook'tadır: gönderen adresinden deneme iletisi, erişim kaybında yeni yönetici ve isteyenin doğrulanması, ÖK-1…ÖK-12 (`02 §9.1.5`, §10.2.7; `10 §4.1`).
   10. Kanıtlar `12` §12.1 `VAL-F001`…`VAL-F012` satırlarına bağlanır.
+  11. Yük senaryosu k6 betiği `scripts/load/` altında yazılır ve `12` §12.12'nin kurulumuyla koşulur; koşunun çıktı özeti ve sınır ayarları `VAL-F013`, `VAL-F014` satırlarına bağlanır (`05 §11.1`).
 - **Test beklentisi:** E2E
 - **Doğrulama kontrol listesi:**
   - KK1: gerçek yapılandırmayla açılış.
@@ -5575,6 +5576,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK8: canlı kanıt satırları; taksit.
   - KK9: kurulum tarafı satırları.
   - KK10: `12` bağlanışı.
+  - KK11: yük betiği depoda; kurulum maddeleri; çıktı özeti `VAL-F013`, `VAL-F014`'e bağlı.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T602: Güncelleme komutu: referanstan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu

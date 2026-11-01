@@ -13,6 +13,8 @@ sort the output (relation-word pairs first) and every line is read by a human.
 For every decision row K-n in the range, the script finds the older K numbers the row
 names next to a relation word (narrows, widens, changes, reverses, replaces, fixes ...)
 and checks that the older row's impact column (last cell) names K-n back.
+Pairs a verifier already read and dropped are listed in scripts/doc-scans/geri_isaret_hukum.txt
+(`<new K> <old K> # reason`) and are counted as "judged and dropped", not as missing.
 Output: pair count, missing back-references. Exit code 1 when any is missing, so the
 step-end script can chain it next to the duplicate-K and column-count checks.
 Pairs are candidates: every missing line is read by a human; a pair that only quotes
@@ -27,6 +29,29 @@ RELATION = re.compile(
     re.IGNORECASE,
 )
 WINDOW = 60
+
+
+JUDGED = 'scripts/doc-scans/geri_isaret_hukum.txt'
+
+
+def load_judged():
+    """Pairs a verifier already read against the current text and dropped (new K, old K).
+
+    File lines: `<new K> <old K> # reason`. A closing-step decision (conflict scan, checkpoint,
+    learning promotion) names the rows it scanned or fixed, so its own mentions sit next to
+    relation words; the pair stays out of the count only when its line is listed here with
+    the ruling's place (Phase 10 learning promotion, Ö-191). The list is the audit trail.
+    """
+    judged = set()
+    try:
+        with open(JUDGED, encoding='utf-8') as handle:
+            for line in handle:
+                line = line.split('#', 1)[0].split()
+                if len(line) == 2:
+                    judged.add((int(line[0]), int(line[1])))
+    except FileNotFoundError:
+        pass
+    return judged
 
 
 def load_rows():
@@ -50,6 +75,8 @@ def main():
     first, last = int(args[0]), int(args[1])
     rows = load_rows()
     pairs = 0
+    judged = load_judged()
+    dropped = 0
     missing = []
     for number in sorted(rows):
         if number < first or number > last:
@@ -69,10 +96,15 @@ def main():
             pairs += 1
             impact = rows[old][-1]
             if ('K-%d' % number) not in impact:
+                if (number, old) in judged:
+                    dropped += 1
+                    continue
                 missing.append((number, old, related))
     # --tum: relation-word pairs first (most likely real), then the rest
     missing.sort(key=lambda item: (not item[2], item[0], item[1]))
-    print('pairs: %d; missing back-reference: %d%s' % (pairs, len(missing), ' (all mentions)' if every else ''))
+    print('pairs: %d; missing back-reference: %d%s%s' % (
+        pairs, len(missing), ' (all mentions)' if every else '',
+        '; judged and dropped: %d (geri_isaret_hukum.txt)' % dropped if dropped else ''))
     for number, old, related in missing:
         print('K-%d -> K-%d: the impact column of K-%d does not name K-%d%s' % (
             number, old, old, number, '' if related or not every else ' [no relation word]'))

@@ -1,7 +1,7 @@
 """Asama 10 yazim -- 12 dogrulama matrisi denetimi (VP4-01; K-1521).
 
 Kullanim (depo kokunden):
-  python -I scripts/doc-scans/12_matris_denetle.py . --kapsam 1-30,77 [--cikti dosya]
+  python -I scripts/doc-scans/12_matris_denetle.py . --kapsam 1-30,77 [--cikti dosya] [--severity]
 
 --kapsam: bu oturumda kapsamasi zorunlu KP numaralari (aralik ve tek numara, virgulle).
   Kapsam verilmezse yalniz satir ve kimlik denetimleri calisir (KP kapsamasi sinanmaz).
@@ -16,6 +16,10 @@ Sinananlar (12'nin `| VAL-` ile baslayan satirlari):
   6  Kanit turu 7.1'in tur adlarindan; KRITIK satirda en az iki farkli tur.
   7  On kosul bos degil.
   8  Kapsam: verilen KP kumesinin her biri en az bir satirin Kaynak hucresinde.
+  9  1.2 "Matrisin kesin sayimi" tablosu (Seviye, Severity, Tur etiketi, Kanit ortami, toplam)
+     betik sayimiyla ayni (Durum satiri islem alanidir, karsilastirilmaz). Asama 10 checkpoint'inde
+     sayim hucreleri severity kaymasindan sonra elle duzeltiliyordu (CP10 §6).
+  --severity: ayni Kaynak hucresi, farkli severity listesi (UYARI; kapi degil, insan okur).
 Ekrana sayim ve hatalar yazilir; --cikti verilirse ayrintili dokum dosyaya.
 """
 import re
@@ -86,6 +90,8 @@ etiket_say = {}
 seviye_say = {}
 seviye_etiket = {}
 sev_say = {}
+ortam_say = {}
+kaynak_sev = {}  # Kaynak hucresi -> {severity: [kimlik]} (9 = ayni kaynak, farkli severity uyarisi)
 for no, c in rows:
     if len(c) != 10:
         hata(no, c[0] if c else "?", f"sutun sayisi {len(c)} (10 olmali)")
@@ -124,6 +130,8 @@ for no, c in rows:
         seviye_etiket[(tag, m.group(1))] = seviye_etiket.get((tag, m.group(1)), 0) + 1
     seviye_say[m.group(1)] = seviye_say.get(m.group(1), 0) + 1
     sev_say[sev] = sev_say.get(sev, 0) + 1
+    ortam_say[ortam] = ortam_say.get(ortam, 0) + 1
+    kaynak_sev.setdefault(kaynak, {}).setdefault(sev, []).append(kimlik)
     # kaynak
     if re.search(r"\b(KD|SK|YH)-\d+", kaynak):
         hata(no, kimlik, "Kaynak KD/SK/YH kimligi tasiyor (kriter yazilmaz)")
@@ -146,6 +154,46 @@ print(f"Matris satiri: {len(rows)}; kimlik tekil: {len(gorulen)}")
 print("Seviye dagilimi: " + " ".join(f"{k}={v}" for k, v in sorted(seviye_say.items())))
 print("Severity dagilimi: " + " ".join(f"{k}={v}" for k, v in sorted(sev_say.items())))
 print("Tur etiketi: " + (" ".join(f"{k}={v}" for k, v in sorted(etiket_say.items())) or "yok"))
+
+# 9  Aynı Kaynak hücresi, farklı severity: UYARI (hata değil; insan okur). Kural 8.1 sınıfının
+#    satır yazımında tutarlı uygulanmadığı yer buradan görünür (Aşama 10 checkpoint, CP10 §6).
+#    Yalniz --severity ile calisir: varsayilan koşumda 67 kaynak listelenir ve cogu mesru fark
+#    (Aşama 10 checkpoint'inde 7 bulgu / 67 aday); her satiri insan okur, kapi degildir.
+if "--severity" in args:
+    farkli = {k: v for k, v in kaynak_sev.items() if len(v) > 1}
+    print(f"UYARI (okunur, hata degil): ayni Kaynak hucresi, farkli severity: {len(farkli)} kaynak")
+    for k, v in sorted(farkli.items(), key=lambda kv: -sum(len(x) for x in kv[1].values())):
+        print("  " + k[:70] + " -> " + "; ".join(f"{s}={len(ids)}" for s, ids in sorted(v.items())))
+
+# 10 §1.2 "Matrisin kesin sayimi" tablosu betik sayimiyla ayni (Durum satiri islem alani, karsilastirilmaz)
+def _say(metin):
+    return int(metin.replace(".", ""))
+
+blok = None
+for i, ln in enumerate(doc12):
+    if ln.startswith("**Matrisin kesin sayımı**"):
+        blok = doc12[i + 1:i + 14]
+        break
+if blok is None:
+    hatalar.append("1.2: 'Matrisin kesin sayimi' blogu bulunamadi")
+else:
+    beklenen = {
+        "| Seviye |": ({m: n for m, n in seviye_say.items()}, r"\b([A-F]) (\d[\d.]*)"),
+        "| Severity |": ({m: n for m, n in sev_say.items()}, r"(KRİTİK|ORTA|DÜŞÜK) (\d[\d.]*)"),
+        "| Tür etiketi": ({m: n for m, n in etiket_say.items()}, r"`(\[[^\]]+\])` (\d[\d.]*)"),
+        "| Kanıt ortamı |": ({m: n for m, n in ortam_say.items()}, r"`(yok|mock|gerçek|sandbox)` (\d[\d.]*)"),
+    }
+    for onek, (gercek, desen) in beklenen.items():
+        satir = next((x for x in blok if x.startswith(onek)), None)
+        if satir is None:
+            hatalar.append(f"1.2: '{onek.strip('| ')}' satiri bulunamadi")
+            continue
+        yazili = {m.group(1): _say(m.group(2)) for m in re.finditer(desen, satir)}
+        if yazili != gercek:
+            hatalar.append(f"1.2 sayim tablosu: '{onek.strip('| ')}' satiri betikle ayni degil (yazili {yazili}, betik {gercek})")
+    toplam = next((x for x in doc12 if x.startswith("| **Matris, toplam**")), None)
+    if toplam is None or f"{len(rows):,}".replace(",", ".") not in toplam:
+        hatalar.append(f"1.2 'Matris, toplam' hucresi satir sayisiyla ({len(rows)}) ayni degil")
 
 eksik = []
 if kapsam_arg:

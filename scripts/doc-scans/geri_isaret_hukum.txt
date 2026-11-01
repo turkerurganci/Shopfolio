@@ -1,0 +1,10 @@
+# geri_isaret_tara.py: pairs a verifier read against the current text and dropped.
+# Line format: <new K> <old K> # reason (ruling place). See load_judged() in the script.
+1561 1517 # K-1561 F4 applies K-1517 (5), the rule is unchanged (PHASE10_CONFLICT_SCAN 5.2, 5.5)
+1571 606 # K-1571 (conflict scan) names the row it scanned; the back-reference it added is K-1563 (PHASE10_CONFLICT_SCAN 5.2)
+1571 709 # same: the scan named K-709 and found K-1563 keeps it (PHASE10_CONFLICT_SCAN 5.5)
+1571 798 # same: row scanned, back-reference added is K-1563 (PHASE10_CONFLICT_SCAN 5.2)
+1571 884 # same: row scanned, no change (PHASE10_CONFLICT_SCAN 5.5)
+1571 1517 # same: row scanned, rule unchanged (PHASE10_CONFLICT_SCAN 5.5)
+1571 1547 # same: row scanned, K-1547 fills a gap, rule unchanged (PHASE10_CONFLICT_SCAN 5.5)
+1571 1561 # same: row scanned, back-reference added to K-1545 (PHASE10_CONFLICT_SCAN 5.2)

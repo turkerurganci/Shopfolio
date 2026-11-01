@@ -128,7 +128,7 @@ for no, c in rows:
     if re.search(r"\b(KD|YH)-\d+", kaynak):
         hata(no, kimlik, "Kaynak KD/YH kimligi tasiyor (kriter yazilmaz)")
     kps = {int(x) for x in re.findall(r"KP-(\d+)(?!\d)", kaynak)}
-    if not (kps or re.search(r"ÖK-\d+|K-\d+", kaynak)):
+    if not (kps or re.search(r"ÖK-\d+|K-\d+|Ö\d+|\b\d{2} §\d", kaynak)):
         hata(no, kimlik, "Kaynak KP, OK ya da K kimligi tasimiyor")
     for k in kps:
         if k not in kp_var:

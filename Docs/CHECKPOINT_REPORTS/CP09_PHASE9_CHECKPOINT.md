@@ -2,7 +2,7 @@
 
 **Tarih:** 2026-11-01 | **Aşama:** 9 — Implementation Planı | **Kapanış adımı:** K-437'nin 4. adımı (`/checkpoint`; `checklists/document-stage.md` §7)
 **Girdi sürümleri:** karar kaydı v0.281 · Implementation Planı (`11`) v0.52 · Ürün Gereksinimleri (`02`) v0.108 · Kullanıcı Akışları (`03`) v0.46 · Arayüz Tanımları (`04`) v0.50 · Teknik Mimari (`05`) v0.43 · Veri Modeli (`06`) v0.45 · API Tasarımı (`07`) v0.37 · Entegrasyon Spesifikasyonları (`08`) v0.20 · Kodlama Kılavuzu (`09`) v0.28 · MVP Kapsamı (`10`) v0.59 · `12` ve `DEPLOY_RUNBOOK` (Aşama 9 park blokları) — `origin/main` @ `7be455a`
-**Çıktı sürümleri:** karar kaydı v0.282 · `11` v0.53 · öteki dokümanlar değişmedi; KP-checkpoint-2 (§5.1) sonrası: karar kaydı v0.283 · `11` v0.54; KP-checkpoint-3 (§5.2) sonrası: karar kaydı v0.284 · `11` v0.55; KP-checkpoint-4a (§5.3) sonrası: karar kaydı v0.285 · `11` v0.56
+**Çıktı sürümleri:** karar kaydı v0.282 · `11` v0.53 · öteki dokümanlar değişmedi; KP-checkpoint-2 (§5.1) sonrası: karar kaydı v0.283 · `11` v0.54; KP-checkpoint-3 (§5.2) sonrası: karar kaydı v0.284 · `11` v0.55; KP-checkpoint-4a (§5.3) sonrası: karar kaydı v0.285 · `11` v0.56; KP-checkpoint-4b (§5.4) sonrası: karar kaydı v0.286 · `11` v0.57
 **Girdi raporu:** [Aşama 9 — Çakışma Taraması](PHASE9_CONFLICT_SCAN.md) (K-437'nin 3. adımı) — açık kalem durumu ve altı geri işaret oradan alındı; K-1492 (5)'in devrettiği sınıf bu raporun iç tutarlılık merceğinde arandı. Audit, deep review, on bir cross-review turu, hedefli mercekler ve etki yansıtmanın hükme bağlanmış bulguları ikinci kez açılmadı; RET edilmiş iddialar yeniden getirilmedi.
 
 > **Ne işe yarar:** Aşama kapanmadan önce Implementation Planı'nın (`11`) kendi içinde ve üst dokümanlarla tutarlı olduğunu, özellikle task bloklarındaki kabul kriteri ve doğrulama kontrol listesi (KK) maddelerinin kaynak cümleyi yanlış okutmadığını doğrular; bulunan her uyumsuzluğu ya kapatır ya da adıyla sonraki adıma bırakır. Sonuç öğrenim terfisinin (5. adım) ve arşiv işaretinin (6. adım) girdisidir.
@@ -612,6 +612,161 @@ Her satır bir mercek paketidir: C paketleri task'lara, X paketleri matris kayna
 | #2006 | C23-03 | T373 k8 <-> `02 §7.4.9` | çürük | Düşük |
 | #2007 | C23-04 | T370 k6 <-> `02 §7.2.8`, §7.4.5 | kısmen | Düşük |
 | #2008 | C23-05 | T370 k4 / T373 k6 <-> `02 §8.4.2`, T372 k7 | kısmen | Düşük |
+
+### 5.4 Checkpoint-3 Düşüklerinin doğrulanması, ikinci kısım (`KP-checkpoint-4b`)
+
+**Kapsam.** §5.3'teki planın (`kapanis/checkpoint-4/plan.md`) **V21…V40** grupları (20 grup, 134 Düşük bulgu). V41…V44 (26 bulgu), dört yan gözlem (T529 k7, T516 k10, T530 k10, T387), C32/X05/X07 mercek kapsam notları ve 4a'da yükselen üç bulgunun yeniden doğrulaması bu adımda yapılmadı; `KP-checkpoint-4c`'dedir (K-1499).
+
+**Koşum.** 20 `[dogrulama]` Opus / high doğrulayıcı (sınır 20; beşli dalgalar; bekçi olayı yok). Her doğrulayıcıya bulgu tam metni, güncel (4a sonrası) task blokları, güncel matris satırları ve atıf edilen kaynak bölümleri dosya olarak verildi; talimatta kapsamı daraltan ifade yok, her bulgu tam doğrulandı. **134 bulgu hükme bağlandı: 40 doğru · 40 kısmen · 54 çürük** (çürüklerin başlıca nedenleri: başka task'ta zaten karşılanma, kural ayrıntısının kritere kopyalanmaması — K-1445 (3), eksik olanın yalnız atıf olması). `11_audit_hukum_denetle.py` sorun 0.
+
+**Uygulama.** 80 bulgu (doğru + kısmen) `11_audit_uygula.py` ile uygulandı: hüküm dosyalarında 161 şartname çifti vardı; **üç çakışan çift tek şartnamede birleştirildi** (#3806 + #3903: T303 k9 `apply-payment-result` istisnası; #3801 + #3907: T602 k5 "her ara sürümün son yamasından … (yedek ve prova bir kez)"; #3803 + #3908: T602 k8 dönüş koşulu ve imaj geri yazımı), böylece **158 çift** uygulandı (46 task bloğu; matris satırı değişmedi; blok sınırı 2 560 bayt aşılmadı — sığmayan eklemeler doğrulayıcıların anlam kaybı olmayan kısaltmalarıyla karşılandı). `11` v0.56 → v0.57; `11 §7.2` `11_geri_yon.py --yaz` ile yeniden türetildi (214 satır). Üst doküman değişmedi; karar bekleyen hüküm yok (#3705: `07 §2.1.9` dönüş adresini kayıtlı adresler arasında sayıyor, `08 §4.2` "kayıtlı değildir" diyor — `11`'e şartname yok, üst doküman notu hükümde; 00/CLAUDE.md/SETUP.md'ye dokunulmadı); ⚠ yok.
+
+**Yükselen bulgular (Düşük → Orta; üçü de uygulandı; 4c'de yeniden doğrulanacak):**
+
+- **#2803 (C31-04, T509 k6 <-> 07 UC-26) — doğru:** `07 UC-26`: `Leave` alanları doğrulamadan çereze yazar; T509 k6/KK6 bunu taşımaz, sayfa süzgeci 422 verirse müşteri ödeme adımından çıkamaz.
+- **#3008 (C32-09, T514 k6 <-> 07 UC-49 adresler ve gönderilmeme dalı) — doğru:** `07 UC-49` iki adreslidir (`/kayit`, `/giris`) ve geçersiz değer ya da kayıtta bağlantı göndermez; T514 k6 ikisini söylemez, T515 k5 giriş ekranındaki yeniden gönderimi T514'e devreder — işleyicisiz kalabilir.
+- **#3102 (C33-02, T516 k10 / KK10 <-> 07 UC-51 yeniden doğrulama dalı, UC-60) — kısmen:** `07 UC-51` yeniden doğrulama dalı (izin yazılır, ya da kodla E-24'e gidilir) hiçbir task'ın kriterinde yok (T515 k6–k9 yalnız giriş ve kayıt akışı, T516 k10 sonucu söylemez); dalın sahibi kalmıyordu.
+
+**Kalan (`KP-checkpoint-4c`).** V41…V44 (26 Düşük bulgu), yan gözlemler, mercek kapsam notları (C32, X05, X07) ve yükselen altı bulgunun (#705, #904, #1408, #2803, #3008, #3102) Orta kademede yeniden doğrulaması — `kapanis/checkpoint-4/dogrulanmadi.md`.
+
+#### Hüküm tablosu (4b; V21…V40)
+
+| Hüküm no | Bulgu | Yer | Hüküm | Seviye |
+|---|---|---|---|---|
+| #2101 | C23-06 | T366 k2 <-> `02 §3.33.2` | çürük | Düşük |
+| #2102 | C23-07 | T366 k4 <-> `02 §3.33.4` | çürük | Düşük |
+| #2103 | C23-08 | T373 matris satırı <-> `02 §7.4.8` | çürük | Düşük |
+| #2104 | C24-01 | T374 kriterleri <-> `02 §7.4.3` (matris satırı) | çürük | Düşük |
+| #2105 | C25-01 | T378 KK5 <-> `09 §7.1` madde numarası | kısmen | Düşük |
+| #2106 | C25-02 | T379 KK7 <-> k7 | kısmen | Düşük |
+| #2107 | C25-03 | T379 k5 <-> `02 §10.2.3`, §12.2.10, KD-18 | çürük | Düşük |
+| #2108 | C25-04 | T379 k4 / T380 k1 <-> `02 §10.2.2`, §10.2.6 | çürük | Düşük |
+| #2201 | C25-05 | T380 KK3 <-> k3 | çürük | Düşük |
+| #2202 | C26-01 | T384 k3 <-> `02 §10.7.1` | çürük | Düşük |
+| #2203 | C26-02 | T384 k5/KK5 <-> `02 §10.7.1` | çürük | Düşük |
+| #2204 | C26-03 | T384 k9 <-> `10` KD-12 (matris 11:7421, kapsam tablosu 11:7654) | çürük | Düşük |
+| #2205 | C27-01 | T386 k7 <-> `02 §10.4.5` | kısmen | Düşük |
+| #2206 | C27-02 | T386 k8 ve KK8 <-> `02 §10.4.5`, `02 §7.4.1` | çürük | Düşük |
+| #2207 | C27-03 | T386 k4 <-> `02 §10.4.3` durum makinesi karşılığı (belirsiz) | çürük | Düşük |
+| #2208 | C27-04 | T387 k8 <-> `03 §1.7.3.2` | çürük | Düşük |
+| #2301 | C27-05 | T388 k4 <-> `05 §8.5.11` | doğru | Düşük |
+| #2302 | C27-06 | T401 k1 <-> `08 §2.1.4`, `02 §3.21.1`, `02 §12.2.8` (belirsiz) | çürük | Düşük |
+| #2303 | C28-03 | T407 k5 / k6 <-> `08 §2.2.2` Askıdaki alıcının ön sorgusu, `09 §11.2` madde 4 | kısmen | Düşük |
+| #2304 | C28-04 | T407 k4 <-> `08 §2.2.2` alan eşleme tablosu | doğru | Düşük |
+| #2305 | C28-05 | T407 k1 <-> `08 §2.2.2` "Gönderilmez" satırı | kısmen | Düşük |
+| #2306 | C28-06 | T407 KK2 / KK7 <-> k2 / k7 | doğru | Düşük |
+| #2401 | C28-07 | T403 k5 <-> `08 §2.1.6` tablo satırları | kısmen | Düşük |
+| #2402 | C28-08 | T403 k6 <-> `08 §2.1.6` Tutar metninin ayrıştırılması | çürük | Düşük |
+| #2403 | C28-09 | T403 <-> `08 §2.1.7` (matris: 08:§2.1.7 → yalnız T403) | çürük | Düşük |
+| #2404 | C28-10 | T406 k3 <-> `08 §2.1.3` madde 1, DV-3 | doğru | Düşük |
+| #2405 | C28-11 | T406 k4 <-> `08 §2.1.10`, KK4 | doğru | Düşük |
+| #2406 | C28-12 | T402 k1 <-> `08 §2.1.5` İmza | doğru | Düşük |
+| #2407 | C28-13 | T404 k1 <-> `08 §2.1.8` başlatma tablosu | kısmen | Düşük |
+| #2408 | C28-14 | T406 KK5 <-> k5 | doğru | Düşük |
+| #2501 | C29-03 | T410 k5/KK5 <-> `08 §4.1` okuma kuralı | doğru | Düşük |
+| #2502 | C29-04 | T410 k9 <-> `08 §2.1.2` | kısmen | Düşük |
+| #2503 | C29-05 | T501 KK7 <-> k2 | doğru | Düşük |
+| #2504 | C29-06 | T501 k1/KK1 <-> `09 §11.1` madde 7, `08 §4.3` madde 1 | doğru | Düşük |
+| #2601 | C29-07 | T503 k3 <-> `07 UC-04` hata yanıtı | çürük | Düşük |
+| #2602 | C29-08 | T503 k4 <-> `07 UC-04` istek | kısmen | Düşük |
+| #2603 | C29-09 | T503 k8 <-> `07 UC-05` hata yanıtı | kısmen | Düşük |
+| #2604 | C29-11 | T503 k6 <-> `02 §3.3.6`, `10` KD-6, KD-8, KD-9, KD-34 | çürük | Düşük |
+| #2605 | C29-13 | T503 KK1 <-> k1 | doğru | Düşük |
+| #2606 | C29-14 | T409 Dokümanlar/matris <-> k1–k8 | çürük | Düşük |
+| #2701 | C30-01 | T504 KK1 <-> `04` 5.6.3 | doğru | Düşük |
+| #2702 | C30-02 | T504 KK2 <-> k2 "kayda ait olmayan `Slug`" | doğru | Düşük |
+| #2703 | C30-03 | T505 k5/KK5 <-> `04` 5.8.5 | kısmen | Düşük |
+| #2704 | C30-04 | T505 matris satırı (§7.2) <-> T505 Dokümanlar ve k7 | çürük | Düşük |
+| #2705 | C30-05 | T506 k3/KK3 <-> `04` 5.10.4 ve `02 §3.27.7` | kısmen | Düşük |
+| #2706 | C30-06 | T507 k4 <-> `07` UC-102 | kısmen | Düşük |
+| #2801 | C31-02 | T509 k3 <-> 07 §4.13 giriş bloğu (K-1181 (4)) | çürük | Düşük |
+| #2802 | C31-03 | T509 k1 <-> 04 5.13.4 / 5.13.26 | kısmen | Düşük |
+| #2803 | C31-04 | T509 k6 <-> 07 UC-26 | doğru | Orta (yükseldi) |
+| #2804 | C31-05 | T509 kapsam (matris) <-> 02 §3.14.2, §3.14.4, §3.19.5, §3.24.1, §3.24.2 | çürük | Düşük |
+| #2805 | C31-06 | T509 KK10 <-> k10 | çürük | Düşük |
+| #2806 | C31-07 | T508 k10 <-> 07 UC-21 | çürük | Düşük |
+| #2807 | C31-08 | T508 KK2 <-> k2 | kısmen | Düşük |
+| #2901 | C31-10 | T510 k1 <-> 04 5.14.4 (5) | doğru | Düşük |
+| #2902 | C31-11 | T510 k6 <-> 07 UC-29 hata maddesi | çürük | Düşük |
+| #2903 | C31-12 | T510 k3/k4 <-> 08 DV-5 "Yanlış çıkarsa" | çürük | Düşük |
+| #2904 | C31-13 | T510 kapsam (matris) <-> 02 §3.17.6 | çürük | Düşük |
+| #2905 | C31-14 | T510 KK9 <-> k9 | kısmen | Düşük |
+| #3001 | C32-01 | T512 k10 <-> 07 UC-41 hata yanıtı | doğru | Düşük |
+| #3002 | C32-02 | T512 k7 <-> 07 UC-39 hata yanıtı | doğru | Düşük |
+| #3003 | C32-03 | T512 k8 <-> 07 UC-40 422 sebebi | doğru | Düşük |
+| #3004 | C32-05 | T513 k4 <-> 07 UC-43 303 sebebi | doğru | Düşük |
+| #3005 | C32-06 | T514 k9 <-> 07 UC-53 sipariş bağlama istisnası | çürük | Düşük |
+| #3006 | C32-07 | T514 k10 <-> 07 UC-53 422 koşulu | doğru | Düşük |
+| #3007 | C32-08 | T514 UC-53 ataması <-> kriterler (yeni adres ve Google teyidi) | kısmen | Düşük |
+| #3008 | C32-09 | T514 k6 <-> 07 UC-49 adresler ve gönderilmeme dalı | doğru | Orta (yükseldi) |
+| #3101 | C33-01 | T515 k7 <-> 07 UC-51 (4.22.3) / 04 5.22.6 | çürük | Düşük |
+| #3102 | C33-02 | T516 k10 / KK10 <-> 07 UC-51 yeniden doğrulama dalı, UC-60 | kısmen | Orta (yükseldi) |
+| #3103 | C33-03 | T516 k9 / KK9 <-> 07 UC-61 | çürük | Düşük |
+| #3104 | C33-04 | T517 k2 <-> 07 UC-63 / UC-65 / UC-66 / UC-68 | çürük | Düşük |
+| #3105 | C33-05 | T517 KK6 <-> T517 k6 / 07 UC-65 | çürük | Düşük |
+| #3106 | C33-06 | T515 k3 / KK3 <-> 07 UC-55 yan etkiler | çürük | Düşük |
+| #3201 | C34-01 | T520 k2 <-> 07 §9.1.1 (UC-84 kurma adımı) | kısmen | Düşük |
+| #3202 | C34-02 | T520 k7 <-> 07 UC-112 yan etkiler | kısmen | Düşük |
+| #3203 | C34-03 | T520 k4 <-> 07 UC-110 hata | çürük | Düşük |
+| #3204 | C34-04 | T520 k6 <-> 07 UC-111 yan etkiler | kısmen | Düşük |
+| #3205 | C34-05 | T521 k4 <-> 07 UC-108 hata | doğru | Düşük |
+| #3206 | C34-06 | T521 k5 <-> 07 UC-185 hata | kısmen | Düşük |
+| #3207 | C34-07 | T519 k5 <-> 02 §3.13.14 | doğru | Düşük |
+| #3301 | C35-01 | T525 k8 <-> 07 UC-115 (9.5.3) | doğru | Düşük |
+| #3302 | C35-02 | T525 k3 <-> 07 UC-114 (9.5.2 Amaç) | doğru | Düşük |
+| #3303 | C35-03 | T525 k5 <-> 07 UC-114 (9.5.2 hata) | kısmen | Düşük |
+| #3304 | C36-01 | T526 k10 <-> 07 UC-122 (hata) | doğru | Düşük |
+| #3305 | C36-02 | T526 k2 <-> 02 §3.28.6 | kısmen | Düşük |
+| #3306 | C36-03 | T527 k4 <-> 07 UC-92 (başarı) | doğru | Düşük |
+| #3307 | C36-04 | T527 k8 <-> 07 UC-128 (amaç) | çürük | Düşük |
+| #3401 | C36-05 | T528 k6 <-> 07 UC-138 (hata) | doğru | Düşük |
+| #3402 | C36-06 | T528 k9 <-> 07 UC-142 (yan etkiler) | kısmen | Düşük |
+| #3403 | C36-07 | T528 k4 <-> 07 UC-130 (başarı) | doğru | Düşük |
+| #3404 | C37-01 | T530 k2 <-> 07 UC-146 (9.9.25) Yanıt (hata) | kısmen | Düşük |
+| #3405 | C38-01 | T534 k4 <-> 07 UC-158 Yanıt (hata) 422 | kısmen | Düşük |
+| #3406 | C38-02 | T534 k8 / KK8 <-> 07 UC-161 Yanıt (hata) 422 | doğru | Düşük |
+| #3407 | C38-03 | T535 k5 <-> 07 UC-99 / 9.16 girişi | doğru | Düşük |
+| #3408 | C38-04 | T535 k4 <-> 07 UC-99 Yanıt (başarı) / 03 §8.7.1.2 | çürük | Düşük |
+| #3501 | C38-06 | T536 k2 / KK2 <-> 07 UC-167 Yanıt (başarı) / 03 §8.7.3.2–§8.7.3.3 | kısmen | Düşük |
+| #3502 | C38-07 | T534 k3 <-> 07 UC-117 (matris T525, T534) | kısmen | Düşük |
+| #3503 | C39-03 | T541 k4 <-> `04` 2.3.1.4 / 2.3.4 | kısmen | Düşük |
+| #3504 | C39-04 | T539 k10 <-> KD-22 / `02 §3.34.1` | çürük | Düşük |
+| #3505 | C39-05 | T540 k6 <-> `04` 2.2.5 / 2.2.6 | kısmen | Düşük |
+| #3506 | C39-06 | T539 k2 <-> k3 / `09 §16.2` madde 1 ve 5 | çürük | Düşük |
+| #3601 | C40-02 | T542 k8 <-> 04 2.6.5 | çürük | Düşük |
+| #3602 | C40-03 | T546 k4 <-> 04 3.6.3-3.6.5 | doğru | Düşük |
+| #3603 | C40-04 | T546 Dokümanlar <-> k6 | doğru | Düşük |
+| #3604 | C40-05 | T544 k9/k10 <-> 04 2.12.8.5, 2.12.8.7 | kısmen | Düşük |
+| #3605 | C40-06 | T543 k7 <-> 04 2.12.3.1 | doğru | Düşük |
+| #3606 | C40-07 | T542 k9 <-> 04 2.10.1 | kısmen | Düşük |
+| #3701 | C41-03 | T547 k3 <-> `04` 6.1.5.2 | kısmen | Düşük |
+| #3702 | C41-04 | T548 k2 ve KK2 <-> `09 §16.2` madde 6 (1) | çürük | Düşük |
+| #3703 | C41-06 | T601 k8 <-> `08 §2.1.10` | çürük | Düşük |
+| #3704 | C41-07 | T601 k7 / KK7 <-> `05` MK-27 | çürük | Düşük |
+| #3705 | C41-08 | T601 k4 <-> `07 §2.1.9` | kısmen | Düşük |
+| #3706 | C41-09 | T601 k9 <-> `02 §9.1.5` | çürük | Düşük |
+| #3801 | C41-11 | T602 k5 <-> `05 §8.7.1`, §8.6.3 | kısmen | Düşük |
+| #3802 | C41-12 | T602 k7 <-> `05 §8.7.4`, §8.3.12 | çürük | Düşük |
+| #3803 | C41-13 | T602 k8 <-> `05 §8.7.4` | doğru | Düşük |
+| #3804 | C41-14 | T602 k2 <-> `05 §8.8.3` | çürük | Düşük |
+| #3805 | X01-01 | T406 k4 <-> `08 §2.1.10` | çürük | Düşük |
+| #3806 | X01-03 | T303 k9 <-> T387 k9 / `05 §8.5.7` | doğru | Düşük |
+| #3807 | X01-04 | matris `05:§6.9` <-> `05 §6.9.1` / T388 | çürük | Düşük |
+| #3901 | X01-05 | T601 k4 <-> `08 §4.2` | çürük | Düşük |
+| #3902 | X01-06 | T601 k9 <-> `05 §6.9.2` | kısmen | Düşük |
+| #3903 | X02-01 | T303 k9 <-> 05 §8.5.7 ve 09 §13.2 madde 5 | kısmen | Düşük |
+| #3904 | X02-02 | T387 k8/k9 <-> 05 §8.5.12 ve §8.5.7 | doğru | Düşük |
+| #3905 | X02-03 | T388 k4 <-> 05 §8.5.11 | çürük | Düşük |
+| #3906 | X02-04 | T602 k3 <-> 05 §8.6.3 | doğru | Düşük |
+| #3907 | X02-05 | T602 k5 <-> 05 §8.7.1 ve §8.6.3 | kısmen | Düşük |
+| #3908 | X02-06 | T602 k8 <-> 05 §8.7.4 | doğru | Düşük |
+| #4001 | X02-08 | T601 k6 <-> 05 §8.9.1, §8.9.2 | çürük | Düşük |
+| #4002 | X03-01 | T225 k4 <-> 05 §9.1.6 | doğru | Düşük |
+| #4003 | X03-02 | T225 k2 <-> 05 §9.1.5 / §9.1.3 | çürük | Düşük |
+| #4004 | X03-03 | T225 k5 <-> 05 §9.2.1 / MK-65 | çürük | Düşük |
+| #4005 | X03-05 | T387 k6 <-> 05 §9.3.1 / §9.3.5 | kısmen | Düşük |
+| #4006 | X03-06 | T387 <-> 05 §9.3.1 (matris 05:§9.3 -> yalnız T387) | çürük | Düşük |
+| #4007 | X03-07 | T314 <-> 05 §9.4.10 | çürük | Düşük |
 
 ---
 

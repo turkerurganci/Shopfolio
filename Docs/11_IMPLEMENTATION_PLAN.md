@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Plan
 
-**Versiyon: v0.61** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
+**Versiyon: v0.62** | **Bağımlılıklar:** `02`–`10` | **Son güncelleme:** 2026-11-01
 
 > **Aşama:** 9 — Implementation Planı · **Rol:** Delivery Lead
 > **Traceability zorunlu: EVET** — §7 tamamlanmadan §5'e (task listesi) geçilmez.
@@ -5631,7 +5631,7 @@ Genel gate check'e (§6.1) eklenen kontroller K-1411'dendir; fazın kapısı hep
 | F3 | İlk uçtan uca akış testi (T329) yeşildir; durum makinesi geçiş tablosu `02 §5.4` ve §5.5 ile eşittir; F4 ön koşullarının (OK-1, OK-2, OK-3, OK-4, OK-6, OK-12) hazır olup olmadığı sorulur (K-1408 (3)) |
 | F4 | PayTR, SES ve Google sandbox kanıtı alınmıştır; imza doğrulaması sınanmıştır; DV-1, DV-2 ve DV-9 referans kurulumun işaretli kaydından okunmuştur (`08 §2.1.10`, §4.1); DV-5 bu kapıya girmez, T510'dadır (K-1450 (4)) |
 | F5 | Betiksiz yol çalışır; erişilebilirlik taraması (A seviyesi) gate-check'te koşar ve temizdir — bileşen tabanı T540, T543, T544'tedir, taramanın maddeleri ve yöntemi `12`'dedir (`02 §3.34.5`; `04` 2.1.4; ileri işaret: 12); sürüm referans kuruluma inmiştir; DV-5 satırı T510'un gözlemiyle kapanmıştır |
-| F6 | Gerçek yapılandırmayla açılış provası koşmuştur (`DEPLOY_RUNBOOK §I`); canlı kanıt alınmıştır — gerçek kartla küçük tutar, 3D Secure, panelden uçtan uca işletme, geri ödeme; taksit sunuluyorsa taksitli (`08 §2.1.10`); güvenlik taraması temizdir; `DEPLOY_RUNBOOK §F` kutuları işaretlidir |
+| F6 | Gerçek yapılandırmayla açılış provası koşmuştur (`DEPLOY_RUNBOOK §I`); canlı kanıt alınmıştır — gerçek kartla küçük tutar, 3D Secure, panelden uçtan uca işletme, geri ödeme; taksit sunuluyorsa taksitli (`08 §2.1.10`); güvenlik taraması temizdir (derlemenin bilinen açık taraması bulgusuzdur ve gate-check'in güvenlik özeti temizdir; `05 §8.8.4`, K-1512 (3), K-1556); `DEPLOY_RUNBOOK §F` kutuları işaretlidir |
 
 **F6'nın `12` ile bağı.** F6'nın kabul kanıtı `12` senaryolarına bağlanır; `12` henüz yazılmadığından bağlanış ileri işarettir (ileri işaret: 12) ve `12` yazılınca T601'in kabul kriteri 10'u senaryo kimlikleriyle eşler.
 

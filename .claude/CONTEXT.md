@@ -95,7 +95,7 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 |---|---|
 | `src/Shopfolio.Web/` | Uygulamanın tamamı — tek proje (.NET 10 Razor Pages); modüller bu projenin klasörüdür (`09 §4.1`) |
 | `src/Shopfolio.Web/Modules/<Modül>/` | Her iş modülü için bir klasör ve ad alanı `Shopfolio.Modules.<Modül>` |
-| `src/Shopfolio.Web/Infrastructure/` | Ortak altyapı: zaman kaynağı, dosya deposu, önbellek, hata yakalama, kayıt, bağlantı katmanı, tek veritabanı bağlamı ve göçler |
+| `src/Shopfolio.Web/Infrastructure/` | Ortak altyapı: zaman kaynağı, dosya deposu, önbellek, hata yakalama, kayıt, bağlantı katmanı, tek veritabanı bağlamı ve göçler; veritabanı kurulum ayarları `DatabaseOptions` (`Database:ConnectionString` bağlantı dizisi — sır dosyasında —, `Database:LivenessTimeoutSeconds`; `09 §3.5`, §10.7) |
 | `src/Shopfolio.Web/Pages/` | Razor sayfaları — `Storefront/` (vitrin), `Account/` (müşteri hesabı), `Panel/` (yönetim paneli), `Shared/` (ortak parçalar); sayfa modül klasörüne girmez |
 | `src/Shopfolio.Web/Endpoints/` | Makine uçları (sayfa olmayan GET ve POST uçları) |
 | `src/Shopfolio.Web/wwwroot/` | Düz JavaScript ve CSS (`css/`, `js/`); derleme hattı ve çatı yok |

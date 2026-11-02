@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-11-01 | **Satır:** 162 | **Gönderilen:** 0
+**Son güncelleme:** 2026-11-02 | **Satır:** 171 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -203,4 +203,7 @@
 | PF-165 | Bulgu dosyası önceden; sayım tablosu ve severity betik karşılaştırması; üst doküman hizası; "açıklanmış fark" mercek talimatı | Aşama 10 öğrenim terfisi (Ö-194, Ö-195, Ö-196, Ö-197, Ö-204) | K-1573 | `skills/audit` · `skills/checkpoint` · `scripts/doc-scans/12_matris_denetle.py` | Uygulandı |
 | PF-166 | Dokümanı yazan betik Windows'ta CRLF yazıyor | Aşama 10 öğrenim terfisi (Ö-199) | K-1573 | `INSTRUCTIONS §7` (1) · `scripts/doc-scans/12_*` | Uygulandı |
 | PF-167 | Dönem geçişinde `IMPLEMENTATION_STATUS.md` doldurma ve `validate` matris kapısı şablonda yok | Aşama 10 öğrenim terfisi (Ö-207a, Ö-207b) | K-1573 | checklist §7 adım 6 · `skills/validate` adım 16 | Uygulandı |
-| PF-168 | `00 §N.1`'e Aşama 10'un dersleri | Aşama 10 öğrenim terfisi (Soru 1) | K-1573 | `00 §N.1` | Öneri (gösterildi 2026-11-02, onay yok, uygulanmadı — `00` değişmedi; K-1574) |
+| PF-168 | `00 §N.1`'e Aşama 10'un dersleri | Aşama 10 öğrenim terfisi (Soru 1) | K-1573 | `00 §N.1` | Uygulandı (onaylandı 2026-11-02, `00` v1.0.13; K-1574) |
+| PF-169 | Doğrulayıcı sayacı anahtarı aşamasız: adım adı önceki aşamanın aynı adlı adımlarıyla çakışıp işi durdurdu (22 engel); sayaç aşamaya ya da oturuma bağlanmalı | Aşama 10 öğrenim terfisi (P-1) | K-1573 | `~/.claude/hooks/helper-guard.js` ve sayaç dosyası (proje dışı) | Onaylandı — ana oturum uygular (2026-11-02, K-1574) |
+| PF-170 | İşçi talimat şablonuna sabit yasak satırı: 'kabukta heredoc, here-string, `python -c`, `node -e`, `python -` yok; betik `Write` ile' (Aşama 9'da 97, Aşama 10'da 70 heredoc engeli); PF-152'nin devamı | Aşama 10 öğrenim terfisi (P-2) | K-1573 | yönetici işçi talimat şablonu (`~/.claude`, proje dışı) | Onaylandı — ana oturum uygular (2026-11-02, K-1574) |
+| PF-171 | CR tarayıcı hook'u: `INSTRUCTIONS §7` (1) kuralı elle işletiliyor, Windows'ta CRLF yazan araçlar dosyayı sessizce bozuyor; değişen dosyalarda CR arayan hook ya da CI adımı | Aşama 10 öğrenim terfisi (P-3, Ö-199) | K-1573 | `~/.claude/hooks/` (proje dışı) | Onaylandı — ana oturum uygular (2026-11-02, K-1574) |

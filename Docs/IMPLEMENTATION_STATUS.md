@@ -59,7 +59,7 @@
 | T01 | Canlılık ucu | ⬚ | — | — | — |
 | T02 | Çözüm ve proje düzeni | ✓ | ✓ PASS (tur 2) | — | #335 |
 | T03 | Test altyapısı | ✓ | ✓ PASS (tur 3) | — | #337 |
-| T04 | CI hattı ve eşitlik denetimleri | ⬚ | — | — | — |
+| T04 | CI hattı ve eşitlik denetimleri | ⏳ | — | 532cfe1 | #339 |
 | T05 | Compose geliştirme ortamı | ⬚ | — | — | — |
 | T06 | Üç imaj ve kayıt defteri | ⬚ | — | — | — |
 | T07 | Yedek düzeni | ⬚ | — | — | — |

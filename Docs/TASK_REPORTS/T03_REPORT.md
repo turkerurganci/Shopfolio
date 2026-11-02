@@ -1,6 +1,6 @@
 # T03 — Test altyapısı
 
-**Faz:** F0 | **Durum:** ⏳ Devam ediyor (yapım bitti; doğrulama bekliyor) | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -42,6 +42,8 @@
 | 8 | Yasak kalıp taraması | ✓ | `ForbiddenTestPatternScanTests` (`Skip` örneği 8. satırda kırmızı, temiz örnek boş) |
 | 9 | `Consistency` klasörü/özelliği; tablo–props eşitliği | ✓ (açık karar) | `LibraryTableConsistencyTests`; fazla/eksik satır kırar; tablo henüz eklenmemiş paketleri içerdiğinden denetim props ⊆ tablo ve tablo − props == açık liste (D-14) |
 
+**Validator kanıtı (tur 1, 2026-11-03, `dabda76`):** 1 ✓ · 2 ✓ · 3 ✓ · 4 ✓ · **5 ✗** · 6 ✓ · 7 ✓ · 8 ✓ · 9 ✓. Kriter 5: `dotnet test Shopfolio.slnx --no-build -c Release` (PostgreSQL 18.6 konteyneri) 34 testten 2'si kırmızı — `CollectionDatabase_AfterFixtureDispose_IsDropped` ve `CollectionDatabases_OfTwoFixtures_AreIsolatedFromEachOther`, `55006: source database "shopfolio_test_template" is being accessed by other users`; iki ayrı koşuda aynı. Neden: `Template_AfterBundleRun_ExistsWithMigrationHistoryTable` şablona havuzlu bağlantı açıp havuzda bırakıyor; sonra koşan `CREATE DATABASE … TEMPLATE` düşüyor (yalnız bu test + dispose testi: 1 hata; şablon testi olmadan üçü yeşil). Sıra xUnit'in test sırasına bağlı — yapım ortamında yeşil, burada kırmızı. Sondaj: `CreateDatabaseFromTemplateAsync` kopyadan önce şablonun havuzunu boşaltınca 12/12 yeşil (sondaj geri alındı). Kriter 7 ve 8 ayrıca uygulama derlemesine geçici ihlalle sınandı (Ordering → Catalog iç türü; `[Fact(Skip=…)]`): iki test kırmızı oldu, sondaj geri alındı.
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
@@ -58,10 +60,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — (doğrulama chat'i doldurur) |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-03, `dabda76`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r1.md` |
+| Bulgu sayısı | 2 — (1) S1 ORTA: entegrasyon testleri sıraya bağlı kırmızı (şablona açık kalan havuzlu bağlantı, kriter 5); (2) S1 DÜŞÜK: yeni paketlerin `09 §3.3` madde 2 kanıtı PR açıklamasında eksik (bakımcı/son yayın, geçişli bağımlılık lisansları, gerekçe, erişim tarihi; validator nuspec'lerden okudu: 8 paket + `dotnet-ef` ve 82 kilitli paketin hepsi MIT/Apache-2.0/PostgreSQL) |
+| Düzeltme gerekli mi | Evet — yeni yapım turu: şablon kopyasından önce havuz boşaltma (ya da şablon sınamalarında havuzsuz bağlantı) ve tam test koşusu yeşil; PR açıklamasına kanıt bloğu |
+| Bloke-etmeyen not (K) sayısı | 4 — K1 MTP telemetrisi → D-15 (T04); K2 `MigrationBundle.FindRepositoryRoot` `RepositoryRoot.Find`'ın ikinci kopyası, K3 `EFCore.NamingConventions` çağrısı (T101'in konusu) PR'da gerekçesiz, K4 demet kurulumunun 5 dk zaman aşımı süreci öldürmüyor → üçü bu PR'ın düzeltme turunda kapanır |
 
 ## Altyapı Değişiklikleri
 

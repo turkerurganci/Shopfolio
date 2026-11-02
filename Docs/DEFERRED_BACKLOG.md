@@ -1,6 +1,6 @@
 # Shopfolio — Ertelenmiş İşler Backlog'u
 
-**Son güncelleme:** 2026-11-03 | **Aktif kalem:** 9 | **Gate'i bloklayan:** 1
+**Son güncelleme:** 2026-11-03 | **Aktif kalem:** 10 | **Gate'i bloklayan:** 1
 
 > **Amaç:** Bilinçli olarak ertelenen **her** somut işin tek izlenebilir listesi.
 >
@@ -66,6 +66,7 @@
 | ⚪ | D-12 | **Uygulamanın veritabanı bağlantı ayarının adı dokümanda yok.** T03'ün `WebApplicationFactory` fabrikası uygulamanın bağlantı ayarını okumaz; DI'daki `AppDbContext` kaydını koleksiyon veritabanına çevirir (T03'te uygulamada `AppDbContext` kaydı yoktur, kayıt fabrikada eklenir). Bağlantı ayarının adı ve uygulamanın `AppDbContext` kaydı ilk okuyan task'ta (T101 ya da T01) yazılır; o zaman fabrika ayarı değiştirmeye döner ya da kayıt değiştirmesi kalır ve `09 §19.1` madde 5 buna göre güncellenir. | `doc-drift` | T101 / T01 | `tests/Shopfolio.IntegrationTests/Web/ShopfolioWebApplicationFactory.cs` · `09 §19.1` madde 5 · `TASK_REPORTS/T03_REPORT.md` |
 | ⚪ | D-13 | **Mimari testin diğer iki kuralı (sayfa ve altyapı) T03'te yazılmadı.** T03 yalnız modül sınırı kuralını (`Contracts` dışına başvuru yok) ve kasıtlı ihlalli derlemeyi kurar; "sayfa modül türlerine/bağlama dokunmaz" ve "ortak altyapı modül türlerine başvurmaz" kuralları T218'dedir (`09 §6` madde 2, `11` T218). | `test-gap` | T218 | `tests/Shopfolio.UnitTests/Architecture/ModuleBoundaryTests.cs` · `09 §6` madde 2 |
 | ⚪ | D-14 | **Kütüphane tablosu eşitliği iki yönlü katı değil.** Tabloda henüz eklenmemiş gelecek paketler (Serilog…, HtmlSanitizer, Magick.NET, AWSSDK, Microsoft.IdentityModel*, DataProtection.EFCore) satır olarak durur; katı eşitlik T03'te kırmızı olurdu. Denetim: props ⊆ tablo ve tablo − props == koddaki açık "henüz eklenmemiş" listesi (`LibraryTableConsistency.NotYetAdded`); paketi ekleyen task listeden çıkarır. `09 §3.2` cümlesi "tablo, henüz eklenmemiş paketleri içerebilir; denetim bunları kodda açık bir listeyle izler" diye netleştirilmeli (doküman boşluğu). | `doc-drift` | `09` bir sonraki düzeltme PR'ı ya da T04 (Lint adımı) | `tests/Shopfolio.UnitTests/Consistency/LibraryTableConsistency.cs` · `09 §3.2` · `TASK_REPORTS/T03_REPORT.md` |
+| ⚪ | D-15 | **Test koşucusunun telemetrisi açık.** `xunit.v3` geçişli olarak `Microsoft.Testing.Extensions.Telemetry` 1.9.1 ve `Microsoft.ApplicationInsights` 2.23.0 getirir (iki test projesinin kilit dosyası); Microsoft.Testing.Platform telemetrisi varsayılan açıktır (bilgim tarihli). `09 §19.1` madde 6 "dış ağ yoktur" test kodunu sınırlar; koşucunun kendi gönderimi kapsamda yazılı değil. CI komutları bağlanırken `TESTINGPLATFORM_TELEMETRY_OPTOUT=1` (adı bilgim tarihli — sınanır) ortamına konur ya da açık kalması gerekçesiyle `09 §19.1`'e yazılır. | `k-note` | T04 (CI test komutları) | `tests/Shopfolio.UnitTests/packages.lock.json` · `tests/Shopfolio.IntegrationTests/packages.lock.json` · `09 §19.1` madde 6 · T03 doğrulama tur 1 (K1) |
 
 ---
 

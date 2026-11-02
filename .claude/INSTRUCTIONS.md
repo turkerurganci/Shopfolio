@@ -71,6 +71,11 @@ Her oturumda ilgili işin doküman referanslarını oku. Tüm dokümanı değil,
 - **Doğrulamayı yapım chat'inde başlatma.** Yapım chat'i bittiğinde yalnızca "doğrulama için yeni chat aç" de.
 - **Yönetici yardımcı düzeni açıkken (K-1504, K-1505):** task'ı yardımcının açtığı temiz bağlamlı yapım işçisi yapar (`/task TXX` akışı); doğrulamayı yardımcının açtığı izole doğrulama ajanı yapar (`/validate TXX` akışı, §3.3). "Ayrı chat" şartı izole alt ajanla karşılanır; yapım işçisi doğrulamayı başlatmaz.
 - Task sırası plana sadıktır. Atlama yok.
+- **Faz içi paralel task (2026-11-02, proje sahibinin kararı).** Bir fazda o an başlayabilecek task'ların hepsi birlikte başlar: bağımlılıklarının hepsi ✓ olan, başlamamış task'lar (`11 §4` kontrollü paralellik — ortak dosyaya dokunan task'lar zaten bağımlılıkla sıralıdır). Fazlar örtüşmez; yürütme sırası satırı yalnız aynı anda hazır olanların sırasıdır.
+  - Hazır listeyi yardımcı yorumlamaz, betikten alır: `node ~/.claude/hooks/tools/hazir-tasklar.js` (kaynak `origin/main`'deki plan ve tracker). Aynı anda en çok 4 task; hepsi tek mesajda, her yapım işçisi ayrı worktree'de (`isolation: "worktree"`).
+  - Boş yer ve hazır task varken yardımcı doğrulama açmaz, merge etmez; önce hazır task'ları başlatır. Kuralı `~/.claude/hooks/helper-guard.js` zorlar (yalnız bu proje; iş listesi kimliği `impl` ile başlar, ör. `impl-F0`).
+  - Merge'ler tek tek yapılır. Sonraki PR merge'den önce `main`'e rebase edilir; çakışma yalnız tracker ya da hafıza satırlarındaysa yardımcı çözer, CI yeniden yeşil beklenir, doğrulama tekrarlanmaz. Kod dosyasında çakışma çıkarsa rebase'i işçi yapar ve doğrulama tam yeniden koşar.
+  - **Neden:** Proje sahibi fazlardaki bağımsız task'ların paralel başlamasını istedi ve kuralın atlanmamasını şart koştu; yalnız talimatta kalan kural yardımcı tarafından atlanabilirdi, bu yüzden bekçiye bağlandı.
 
 ### 3.2 Branching ve merge
 

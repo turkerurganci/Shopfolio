@@ -1,6 +1,6 @@
 # T03 — Test altyapısı
 
-**Faz:** F0 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✗ Doğrulama tur 2 FAIL — eskalasyon (`12 §8.5`, ikinci iterasyon) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -44,6 +44,8 @@
 
 **Validator kanıtı (tur 1, 2026-11-03, `dabda76`):** 1 ✓ · 2 ✓ · 3 ✓ · 4 ✓ · **5 ✗** · 6 ✓ · 7 ✓ · 8 ✓ · 9 ✓. Kriter 5: `dotnet test Shopfolio.slnx --no-build -c Release` (PostgreSQL 18.6 konteyneri) 34 testten 2'si kırmızı — `CollectionDatabase_AfterFixtureDispose_IsDropped` ve `CollectionDatabases_OfTwoFixtures_AreIsolatedFromEachOther`, `55006: source database "shopfolio_test_template" is being accessed by other users`; iki ayrı koşuda aynı. Neden: `Template_AfterBundleRun_ExistsWithMigrationHistoryTable` şablona havuzlu bağlantı açıp havuzda bırakıyor; sonra koşan `CREATE DATABASE … TEMPLATE` düşüyor (yalnız bu test + dispose testi: 1 hata; şablon testi olmadan üçü yeşil). Sıra xUnit'in test sırasına bağlı — yapım ortamında yeşil, burada kırmızı. Sondaj: `CreateDatabaseFromTemplateAsync` kopyadan önce şablonun havuzunu boşaltınca 12/12 yeşil (sondaj geri alındı). Kriter 7 ve 8 ayrıca uygulama derlemesine geçici ihlalle sınandı (Ordering → Catalog iç türü; `[Fact(Skip=…)]`): iki test kırmızı oldu, sondaj geri alındı.
 
+**Validator kanıtı (tur 2, 2026-11-03, `325ac7e`):** 1 ✓ · 2 ✓ · 3 ✓ · 4 ✓ · **5 ~ (satır FAIL)** · 6 ✓ · 7 ✓ · 8 ✓ · 9 ✓. Tur 1'in iki bulgusu kapandı: PostgreSQL 18.6 konteynerinde `dotnet test Shopfolio.slnx` 35/35, yedi veritabanı testi `--filter-method` ile tek tek yeşil; `ClearTemplatePool()` geçici çıkarılınca yeni test 55006 ile kırmızı (sondaj geri alındı); PR açıklamasında `09 §3.3` kanıt bloğu var. Kriter 5'in yeni eksiği: temiz `dotnet restore --locked-mode` → build → `dotnet test Shopfolio.slnx` sonrası `src/Shopfolio.Web/packages.lock.json` değişir (`"net10.0/win-x64": {}`); ardından `dotnet restore Shopfolio.slnx --locked-mode` NU1004 ile düşer. Kök neden: `dotnet ef migrations bundle` içte `dotnet publish --runtime <rid>` koşar ve uygulama projesini RID'le geri yükler (`--verbose` çıktısında görüldü). Derleme Debug/Release 0 uyarı, `dotnet format --verify-no-changes` temiz, dal CI 41537202645 success.
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
@@ -60,10 +62,13 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-03, `dabda76`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r1.md` |
-| Bulgu sayısı | 2 — (1) S1 ORTA: entegrasyon testleri sıraya bağlı kırmızı (şablona açık kalan havuzlu bağlantı, kriter 5); (2) S1 DÜŞÜK: yeni paketlerin `09 §3.3` madde 2 kanıtı PR açıklamasında eksik (bakımcı/son yayın, geçişli bağımlılık lisansları, gerekçe, erişim tarihi; validator nuspec'lerden okudu: 8 paket + `dotnet-ef` ve 82 kilitli paketin hepsi MIT/Apache-2.0/PostgreSQL) |
-| Düzeltme gerekli mi | Evet — yeni yapım turu: şablon kopyasından önce havuz boşaltma (ya da şablon sınamalarında havuzsuz bağlantı) ve tam test koşusu yeşil; PR açıklamasına kanıt bloğu |
-| Bloke-etmeyen not (K) sayısı | 4 — K1 MTP telemetrisi → D-15 (T04); K2 `MigrationBundle.FindRepositoryRoot` `RepositoryRoot.Find`'ın ikinci kopyası, K3 `EFCore.NamingConventions` çağrısı (T101'in konusu) PR'da gerekçesiz, K4 demet kurulumunun 5 dk zaman aşımı süreci öldürmüyor → üçü bu PR'ın düzeltme turunda kapanır |
+| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-03, `325ac7e`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r2.md`. İkinci iterasyon → proje sahibine eskalasyon (`12 §8.5`). Önceki: ✗ FAIL — tur 1 (`dabda76`; `dogrulama-raporu-r1.md`) |
+| Bulgu sayısı (tur 2) | 1 — S1 ORTA: entegrasyon koşusu (göç demetinin kurulumu) izlenen `src/Shopfolio.Web/packages.lock.json`'a RID hedefi yazar, sonra `dotnet restore --locked-mode` NU1004 ile düşer (`09 §3.2`; kriter 5) |
+| Düzeltme gerekli mi (tur 2) | Evet — demet kurulumu kilit dosyasını değiştirmemeli (ör. uygulama projesine sabit `RuntimeIdentifiers` ya da kilit dosyası yazmayan geri yükleme) ve bunu gösteren kanıt; ya da proje sahibinin kabul edilmiş risk onayı |
+| Bloke-etmeyen not (K) sayısı (tur 2) | 3 — veri niteliklerindeki `Skip =` taranmıyor → D-16; `TestDatabaseSettingsTests` koleksiyon niteliksiz ve saf mantık → D-17; `.config/` `09 §4`'te yok → D-18 |
+| Bulgu sayısı (tur 1) | 2 — (1) S1 ORTA: entegrasyon testleri sıraya bağlı kırmızı (şablona açık kalan havuzlu bağlantı, kriter 5); (2) S1 DÜŞÜK: yeni paketlerin `09 §3.3` madde 2 kanıtı PR açıklamasında eksik (bakımcı/son yayın, geçişli bağımlılık lisansları, gerekçe, erişim tarihi; validator nuspec'lerden okudu: 8 paket + `dotnet-ef` ve 82 kilitli paketin hepsi MIT/Apache-2.0/PostgreSQL) |
+| Düzeltme gerekli mi (tur 1) | Evet — yeni yapım turu: şablon kopyasından önce havuz boşaltma (ya da şablon sınamalarında havuzsuz bağlantı) ve tam test koşusu yeşil; PR açıklamasına kanıt bloğu |
+| Bloke-etmeyen not (K) sayısı (tur 1) | 4 — K1 MTP telemetrisi → D-15 (T04); K2 `MigrationBundle.FindRepositoryRoot` `RepositoryRoot.Find`'ın ikinci kopyası, K3 `EFCore.NamingConventions` çağrısı (T101'in konusu) PR'da gerekçesiz, K4 demet kurulumunun 5 dk zaman aşımı süreci öldürmüyor → üçü bu PR'ın düzeltme turunda kapanır |
 
 ## Altyapı Değişiklikleri
 

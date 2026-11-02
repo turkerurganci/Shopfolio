@@ -18,6 +18,15 @@ Bu hook'lar **iyi niyete bağlı olmayan** savunma katmanıdır. Disiplin kurall
 > **Anahtar biçimi (2026-11-01).** Soldaki parça ayrıca anahtar gibi görünmelidir: en çok iki ön sözcük (`export`, `const` …) ve tek bir tanımlayıcı. Bir cümle ya da yol (`POST /odeme/api/get-token: …`) sır anahtarı sözcüğünü taşısa da atama sayılmaz (Aşama 9'un öğrenim terfisi, Ö-171).
 >
 > **Atama biçimi (2026-10-03).** İçerik katmanı bir satırı ancak sır anahtarı ilk `=` ya da `:` işaretinin **solunda** duruyorsa atama sayar (`API_KEY=…`, `"apiKey": …`, `password: …`). Düz metinde bir etiketten sonra geçen sözcük (`Sorun: … token …`) atama değildir; ayırıcısı olmayan satır da atama değildir — `.netrc` gibi ayırıcısız biçimler yol katmanında yakalanır. **Neden:** Aşama 1'in cross-review raporlarında ikinci modelin ham çıktısındaki böyle bir cümle commit'i blokladı; geçici çözüm metni alıntı bloğuna saklamaktı ve guard'ın yorum-atlama kuralına yaslanıyordu — yukarıdaki uyarının tarif ettiği bypass alışkanlığı. Kaynak: `Docs/CHECKPOINT_REPORTS/PHASE1_LEARNING_PROMOTION.md`.
+>
+> **Kilit dosyası ve kaynak kod istisnası (2026-11-02).** İçerik katmanı eski mantıkla çalışır (sağ taraf 8+ karakter ve yer tutucu değilse bulgu); üstüne yalnız iki dar istisna vardır.
+>
+> 1. **Kilit dosyaları** (`packages.lock.json`, `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `Cargo.lock`, `poetry.lock`) atama denetiminden muaftır. Yol katmanı ve private key bloğu denetimi bu dosyalarda da sürer.
+> 2. **Kaynak kod dosyalarında** (`.cs .ts .tsx .js .jsx .py .go .rb .php .java .kt .rs .swift .razor .cshtml`) sağ taraf, satır sonundaki `;` `,` `)` `{` ve boşluklar kırpıldıktan sonra **tamamıyla** şunlardan biriyse satır aday sayılmaz: tek tanımlayıcı ya da noktalı zincir (`CancellationToken`, `builder.ConnectionString`, `options.Value.ApiKey`), `nameof(<zincir>)`, `null`, `default`, `default(<tip>)` ya da yer tutucu (`"changeme"`, `"<YOUR_KEY>"`, `""`). Rakamla başlayan, tırnak, parantez (çağrı), köşeli parantez, `+` ya da boşluk içeren sağ taraf istisnaya girmez (`Foo.Bar + "…"`, `Convert.FromBase64String("…")`, `some_func(x)`, `0x…` yine yakalanır).
+>
+> Env, yaml, json, ini, md, config ve uzantısız dosyalarda istisna yoktur. İstisna yalnız o satırı atlar; aynı dosyanın private key ve yol denetimi sürer. Bekçi jeneriktir; alan/sağlayıcı kalıbı yoktur.
+>
+> **Bilinen sınır:** kaynak kodda tırnaksız tek tanımlayıcıya (`Token = AKIAEXAMPLEKEY123`) ya da tırnaksız noktalı zincire (ör. JWT biçimi `a.b.c`) atama geçer; sonraki satıra taşan birleştirmede ilk satır zincirse ikisi de geçer. Kilit dosyası istisnası dosya adına göredir (içeriğine bakılmaz). Sınama: `bash scripts/git-hooks/test-pre-commit.sh`.
 
 ---
 

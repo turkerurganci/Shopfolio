@@ -9,6 +9,23 @@
 # Layer 2 (content) — staged content contains a private key block, or assigns
 #                     a real-looking value to a known secret key name
 #
+#                     Two narrow carve-outs, nothing else:
+#                     1. Generated package lock files (packages.lock.json,
+#                        package-lock.json, yarn.lock, pnpm-lock.yaml,
+#                        Cargo.lock, poetry.lock) skip the assignment check.
+#                        Layer 1 and the private key check still apply.
+#                     2. In source code files (.cs .ts .tsx .js .jsx .py .go
+#                        .rb .php .java .kt .rs .swift .razor .cshtml) a line is
+#                        not a candidate when its right side (trailing ; , ) {
+#                        and blanks trimmed) is ENTIRELY one of: a single
+#                        identifier or dotted chain (CancellationToken,
+#                        builder.ConnectionString), nameof(<chain>), null,
+#                        default, default(<type>), or a placeholder. Anything
+#                        with a quote, bracket, operator or digit start is
+#                        still checked.
+#                        Known limit: `Token = AKIAEXAMPLEKEY123` (bare
+#                        identifier) passes in source code.
+#
 # Deliberately generic: no domain- or vendor-specific patterns. Project
 # specifics go in scripts/git-hooks/hooks.config, not here.
 #
@@ -82,6 +99,17 @@ while IFS= read -r path; do
     # This hook itself and its docs describe the patterns on purpose.
     scripts/git-hooks/pre-commit|scripts/git-hooks/README.md) continue ;;
   esac
+  # Generated package lock files hold names and hashes, never authored secrets.
+  # (Layer 1 path check and the private key block check do not skip them.)
+  is_lock=0
+  case "$path" in
+    packages.lock.json|*/packages.lock.json|package-lock.json|*/package-lock.json|yarn.lock|*/yarn.lock|pnpm-lock.yaml|*/pnpm-lock.yaml|Cargo.lock|*/Cargo.lock|poetry.lock|*/poetry.lock) is_lock=1 ;;
+  esac
+  # Narrow identifier carve-out applies to source code files only.
+  is_code=0
+  case "$path" in
+    *.cs|*.ts|*.tsx|*.js|*.jsx|*.py|*.go|*.rb|*.php|*.java|*.kt|*.rs|*.swift|*.razor|*.cshtml) is_code=1 ;;
+  esac
   # Only added lines, and skip binaries.
   added="$(git diff --cached -U0 -- "$path" 2>/dev/null | grep -E '^\+[^+]' || true)"
   [ -n "$added" ] || continue
@@ -89,6 +117,8 @@ while IFS= read -r path; do
   if echo "$added" | grep -qE 'BEGIN ([A-Z ]+ )?PRIVATE KEY'; then
     add_finding "icerik: $path — private key blogu" "private-key:$path"
   fi
+
+  [ "$is_lock" = "1" ] && continue
 
   while IFS= read -r line; do
     body="${line#+}"
@@ -108,7 +138,29 @@ while IFS= read -r path; do
     echo "$lhs" | grep -qE "^[[:space:]]*([\"']?[A-Za-z]+[\"']?[[:space:]]+){0,2}[\"']?[]A-Za-z0-9_.[-]+[\"']?[[:space:]]*\$" || continue
     # Grab whatever is on the right-hand side of = or :
     value="$(echo "$body" | sed -E 's/^[^=:]*[=:][[:space:]]*//')"
-    echo "$value" | grep -qiE "$PLACEHOLDER" && continue
+    MULTI=0
+    if [ "$is_code" = "1" ]; then
+      # Narrow carve-out: the whole right side is an identifier, dotted chain,
+      # nameof(chain), null, default, default(Type) or a placeholder -- not a
+      # literal.
+      ID='[A-Za-z_][A-Za-z0-9_]*'
+      CHAIN="$ID(\\.$ID)*"
+      v_loose="$(echo "$value" | sed -E 's/[;,){[:space:]]*$//')"
+      v_strict="$(echo "$value" | sed -E 's/[;,{[:space:]]*$//')"
+      echo "$v_loose" | grep -qE "^$CHAIN\$" && continue
+      # Placeholder carve-out applies to a single literal only: a concatenation,
+      # list or several quoted parts ("<" + secret + ">") is still checked.
+      MULTI=0
+      echo "$v_loose" | grep -qE '[+,=]|(["'"'"'].*){3}' && MULTI=1
+      if [ "$MULTI" = "0" ]; then
+        echo "$v_loose" | grep -qiE "$PLACEHOLDER" && continue
+      fi
+      echo "$v_strict" | grep -qE "^(nameof\\($CHAIN\\)|default\\($CHAIN\\))\$" && continue
+    fi
+    # In source code a multi-part right side never counts as a placeholder.
+    if [ "${MULTI:-0}" = "0" ]; then
+      echo "$value" | grep -qiE "$PLACEHOLDER" && continue
+    fi
     # Ignore prose/markdown and code that merely names the key.
     echo "$body" | grep -qE '^[[:space:]]*(#|//|\*|>|\|)' && continue
     [ "${#value}" -lt 8 ] && continue

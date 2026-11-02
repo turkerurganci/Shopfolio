@@ -1,6 +1,6 @@
 # T03 — Test altyapısı
 
-**Faz:** F0 | **Durum:** ✗ Doğrulama tur 2 FAIL — eskalasyon (`12 §8.5`, ikinci iterasyon) | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✓ Doğrulama tur 3 PASS (merge yardımcıda) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -46,11 +46,13 @@
 
 **Validator kanıtı (tur 2, 2026-11-03, `325ac7e`):** 1 ✓ · 2 ✓ · 3 ✓ · 4 ✓ · **5 ~ (satır FAIL)** · 6 ✓ · 7 ✓ · 8 ✓ · 9 ✓. Tur 1'in iki bulgusu kapandı: PostgreSQL 18.6 konteynerinde `dotnet test Shopfolio.slnx` 35/35, yedi veritabanı testi `--filter-method` ile tek tek yeşil; `ClearTemplatePool()` geçici çıkarılınca yeni test 55006 ile kırmızı (sondaj geri alındı); PR açıklamasında `09 §3.3` kanıt bloğu var. Kriter 5'in yeni eksiği: temiz `dotnet restore --locked-mode` → build → `dotnet test Shopfolio.slnx` sonrası `src/Shopfolio.Web/packages.lock.json` değişir (`"net10.0/win-x64": {}`); ardından `dotnet restore Shopfolio.slnx --locked-mode` NU1004 ile düşer. Kök neden: `dotnet ef migrations bundle` içte `dotnet publish --runtime <rid>` koşar ve uygulama projesini RID'le geri yükler (`--verbose` çıktısında görüldü). Derleme Debug/Release 0 uyarı, `dotnet format --verify-no-changes` temiz, dal CI 41537202645 success.
 
+**Validator kanıtı (tur 3, 2026-11-03, `475735e`):** 1 ✓ · 2 ✓ · 3 ✓ · 4 ✓ · 5 ✓ · 6 ✓ · 7 ✓ · 8 ✓ · 9 ✓. Temiz `dotnet restore Shopfolio.slnx --locked-mode` (çıkış 0) → `dotnet build` 0 uyarı → PostgreSQL 18.6 konteyneriyle `dotnet test Shopfolio.slnx` 36/36 (Unit 22, Integration 14; atlanan 0) → `git status --short` boş → `dotnet restore --locked-mode` yine çıkış 0, kilit dosyalarında fark yok (tur 2 bulgusu kapandı; `MigrationBundleTests` aynı şeyi bayt bayt sınıyor). Entegrasyon derlemesi iki kez daha tek başına koştu: 14/14 ve 14/14; koşu sonunda `shopfolio%` veritabanı kalmadı. Kırmızı sondajları (geri alındı): `tests/` altına `[Fact(Skip = …)]` taşıyan geçici dosya → `TestProjects_Sources_HaveNoForbiddenPatterns` kırmızı; `Directory.Packages.props`'a tabloda olmayan paket ve `09` tablosuna props'ta olmayan satır → `RepositoryFiles_LibraryTableAndPackagesProps_Agree` ikisinde de kırmızı. İhlal örneği ayrı derlemede (`ModuleBoundaryViolationSample.dll`; test derlemesinde `ForbiddenCaller` yok), sahteler `IntegrationTests.dll`'e bağlantılı derlenmiş. `dotnet format --verify-no-changes` temiz; `dotnet list package --vulnerable --include-transitive` üç projede bulgusuz; dal CI 41540949169 success.
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test Shopfolio.slnx -c Release` | UnitTests yeşil (toplam 34, hata 0, atlanan 0) |
+| Unit | ✓ | `dotnet test Shopfolio.slnx -c Release` | UnitTests yeşil (ilk yapımda toplam 34; düzeltme turlarından sonra 36: Unit 22, Integration 14; hata 0, atlanan 0) |
 | Integration | ✓ | aynı komut; `SHOPFOLIO_TEST_DATABASE` yerel PostgreSQL 18.6 konteyneri | IntegrationTests yeşil (~32 sn) |
 | Contract | NOT_APPLICABLE | — | — |
 | Build | ✓ | `dotnet build Shopfolio.slnx -c Release` | 0 uyarı, 0 hata |
@@ -62,7 +64,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-03, `325ac7e`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r2.md`. İkinci iterasyon → proje sahibine eskalasyon (`12 §8.5`). Önceki: ✗ FAIL — tur 1 (`dabda76`; `dogrulama-raporu-r1.md`) |
+| Doğrulama durumu | ✓ PASS — tur 3 (2026-11-03, `475735e`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r3.md`. Önceki: ✗ FAIL — tur 2 (`325ac7e`; `dogrulama-raporu-r2.md`; eskalasyon, `12 §8.5`) · ✗ FAIL — tur 1 (`dabda76`; `dogrulama-raporu-r1.md`) |
+| Bulgu sayısı (tur 3) | 0 — tur 2'nin S1 ORTA bulgusu (kilit dosyası) kapandı |
+| Düzeltme gerekli mi (tur 3) | Hayır |
+| Bloke-etmeyen not (K) sayısı (tur 3) | 2 — K1 `MigrationBundleTests` koleksiyon niteliksiz ve derleme fikstürünün demet kurulumuyla paralel koşuyor → D-17'ye eklendi; K2 bu raporun test tablosundaki eski "34" sayısı → bu PR'da düzeltildi. Task'a bağlı `12` satırı yok (kaynak birimleri KP değil; `Durum` hücresi yazılmadı) |
 | Bulgu sayısı (tur 2) | 1 — S1 ORTA: entegrasyon koşusu (göç demetinin kurulumu) izlenen `src/Shopfolio.Web/packages.lock.json`'a RID hedefi yazar, sonra `dotnet restore --locked-mode` NU1004 ile düşer (`09 §3.2`; kriter 5) |
 | Düzeltme gerekli mi (tur 2) | Evet — demet kurulumu kilit dosyasını değiştirmemeli (ör. uygulama projesine sabit `RuntimeIdentifiers` ya da kilit dosyası yazmayan geri yükleme) ve bunu gösteren kanıt; ya da proje sahibinin kabul edilmiş risk onayı |
 | Bloke-etmeyen not (K) sayısı (tur 2) | 3 — veri niteliklerindeki `Skip =` taranmıyor → D-16; `TestDatabaseSettingsTests` koleksiyon niteliksiz ve saf mantık → D-17; `.config/` `09 §4`'te yok → D-18 |

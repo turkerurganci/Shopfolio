@@ -1,6 +1,6 @@
 # T02 — Çözüm ve proje düzeni
 
-**Faz:** F0 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-02
+**Faz:** F0 | **Durum:** ✓ Doğrulama PASS (tur 2; merge yardımcıda) | **Tarih:** 2026-11-02
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -13,7 +13,7 @@
 - `src/Shopfolio.Web`: .NET 10 Razor Pages uygulaması (şablon içeriği temizlendi; yalnız `Program.cs` ve `appsettings.json`); `Modules/`, `Infrastructure/`, `Pages/`, `Endpoints/` (`.gitkeep`) ve `wwwroot/css/base.css`, `wwwroot/js/common.js` (düz CSS/JS, `09 §16.1`).
 - İki test projesi: davranış kodu ve test çatısı yok (xUnit v3 T03'tedir); ikisi de `Shopfolio.Web`'e başvurur.
 - `Directory.Build.props` (`09 §3.1` madde 2), `Directory.Packages.props` (merkezî sürüm, kilit dosyası, geçişli sabitleme), `nuget.config` (yalnız nuget.org), `global.json` (SDK 10.0.400, `latestPatch`), `packages.lock.json` (üç proje), `.editorconfig` (tek, kökte).
-- D-01 kalemleri: `.claude/CONTEXT.md` §1 (yığın; dönem "Implementation") ve §3 (klasör düzeyinde, `deploy/` dahil; "kod klasörü henüz yok" satırı kalktı) · `.gitignore` (.NET, test sonucu, IDE, sır dosyası desenleri) · `.gitattributes` (woff2, woff, webp ikili) · `deploy/.env.example` (`09 §4.3` yolu; sır taşımaz) · `SETUP.md` §2 altı kutu işaretlendi. `SETUP_COMPLETE` ve `.github/ci-commands.env` değişmedi.
+- D-01 kalemleri: `.claude/CONTEXT.md` §1 (yığın; dönem "Implementation") ve §3 (klasör düzeyinde, `deploy/` dahil; "kod klasörü henüz yok" satırı kalktı) · `.gitignore` (.NET, test sonucu, IDE, sır dosyası desenleri) · `.gitattributes` (woff2, woff, webp ikili) · `deploy/.env.example` (`09 §4.3` yolu; sır taşımaz) · ~~`SETUP.md` §2 altı kutu işaretlendi~~ (düzeltme turu 1'de geri alındı; `SETUP.md` bu PR'da değişmez — validator tur 2 notu). `SETUP_COMPLETE` ve `.github/ci-commands.env` değişmedi.
 - `09`: iki "bilgim tarihli" satır sonuçla güncellendi (§3.1 madde 4, §3.2).
 
 ## Etkilenen Modüller / Dosyalar
@@ -49,10 +49,33 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-02, head `09c4d41`) |
-| Bulgu sayısı | 4 (S1 ×4; KRİTİK yok) |
-| Düzeltme gerekli mi | Evet — yeni yapım chat'i; ardından tur 2 doğrulaması |
-| Bloke-etmeyen not (K) sayısı | 4 (`DEFERRED_BACKLOG.md` D-03…D-06'ya forward) |
+| Doğrulama durumu | ✓ PASS — tur 2 (2026-11-02, head `01de8f4`) · önceki: ✗ FAIL — tur 1 (head `09c4d41`) |
+| Bulgu sayısı | Tur 2: 0 · tur 1: 4 (S1 ×4; KRİTİK yok; hepsi düzeltme turu 1'de kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 5 (`DEFERRED_BACKLOG.md` D-07…D-11'e forward) · tur 1: 4 (D-03…D-06, kapandı) |
+
+### Validator kanıtları — tur 2
+
+**Başlangıç kapıları:** working tree temiz · `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (mutlak yol, aynı repo; etkin) · ana dal son 3 run 41473772963, 41473773052, 41365430173 — üçü `success` · memory satırı var (MEMORY.md satır 22). Dal CI: run 41487386671 (head `01de8f4`) `success`, 10 check (Guard skipped, 9 success) — `SETUP_COMPLETE=false` olduğu için Lint/Build komutları boştur; derleme ve biçim kanıtı yereldir (SDK 10.0.400).
+
+| # | Kriter | Validator sonucu | Validator kanıtı |
+|---|---|---|---|
+| 1 | Üç proje | ✓ | `dotnet sln Shopfolio.slnx list` → 3 proje; repoda 3 `.csproj`; `restore --locked-mode` geçti; `build -c Release` ve `-c Debug` 0 uyarı 0 hata |
+| 2 | Razor Pages + klasörler | ✓ | `Microsoft.NET.Sdk.Web`, `net10.0`, `AddRazorPages`/`MapRazorPages`; `Modules/`, `Infrastructure/`, `Pages/`, `Endpoints/` (`.gitkeep`), `wwwroot/css/base.css`, `wwwroot/js/common.js` (`09 §16.1` adları) |
+| 3 | `Directory.Build.props` | ✓ | Beş ayar `09 §3.1` madde 2 örneğiyle birebir; sondaj: CS8600/CS8602 ve IDE0161 `-c Release` derlemede hata; CA1304/CA1305/CA1311 hata (`latest-recommended` etkin) |
+| 4 | Tek `.editorconfig`, format temiz | ✓ | `find` tek dosya; `dotnet format Shopfolio.slnx --verify-no-changes` çıkış 0; sondaj: IDE0008 ve IDE1006 format'ta hata |
+| 5 | Merkezî sabit sürüm, kilit, kaynak, SDK | ✓ | csproj'larda `Version` yok; üç kilit dosyası; `nuget.config` `<clear />` + nuget.org; `global.json` 10.0.400 (`latestPatch` — K-notu D-08) |
+| 6 | Düz JS/CSS, npm yok | ✓ | `package.json` yok |
+| 7 | D-01 yığın parçaları | ✓ | CONTEXT §1 yığın satırı `05 §2.3.1` ile eşit (dosya yedeği aracı dahil); §3 yalnız klasör düzeyinde, `09 §4.2` madde 1'in sekiz satırı var, "kod klasörü henüz yok" kalktı · `.gitignore`: `git check-ignore` ile `.env`, `**/secrets/`, `*.pem`, `appsettings.Production.json`, `bin/`, `obj/`, `TestResults/` yok sayılır; `.env.example`, `packages.lock.json`, `appsettings.json` izlenir; izlenen dosyalardan yok sayılan yok · `.gitattributes` woff2/woff/webp ikili · `.env.example` sır taşımaz, tek anahtar `Database__LivenessTimeoutSeconds` (`09 §10.7` madde 6) · `git diff origin/main -- SETUP.md` boş |
+| 8 | Bilgim tarihli ayarlar | ✓ | PR #335 "Dış Varsayımlar" listeliyor; fark (IDE0008, IDE1006 yalnız format'ta) `09 §3.1` madde 4'te, `09 §3.2` güncel; validator sondajı: `RootNamespace=Shopfolio` ile IDE0130 `Infrastructure/` için `Shopfolio.Infrastructure` bekliyor |
+
+**`09 §25`:** okunan bölümler açıklamada (evet) · bulunmayan ad yok (evet) · çelişki yok · diff yalnız görev (evet) · bilgim tarihli doğrulandı (evet) · `.env.example` güncel (evet) · §4.1 düzeni ve CONTEXT §3 (evet) · §3.1 standartları (evet) · sır yok (evet) · öteki sorular uygulanamaz (paket, POST, göç, test yok).
+
+**Güvenlik:** diff'te sır deseni taraması temiz (eşleşmeler yalnız `.gitignore` desenleri ve `.env.example` yorumları); yeni paket yok; auth ve girdi etkisi yok.
+
+**K-notları (forward):** D-07 Dependabot kilit sınaması · D-08 `global.json` `latestPatch` · D-09 IDE0130 Lint'te zorlanmıyor · D-10 `.env.example` başlığı ve `Export:TempDirectory` · D-11 `09`'da kalan bilgim tarihli işaretler.
+
+**Yapım raporu karşılaştırması (tur 2):** verdict uyumlu (8/8 ✓). Uyuşmazlıklar: (1) "Yapılan İşler"de `SETUP.md` §2 kutularının işaretlendiği yazıyordu — düzeltme turunda geri alınmıştı; satır bu turda düzeltildi. (2) Known Limitations 1 (Dependabot) backlog ID taşımıyordu — D-07 olarak forward edildi. (3) D-03 kanıtı "sondaj sayfası `Shopfolio.Pages.Storefront` ad alanıyla derlendi" — sayfa sınıfının ad alanı açıkça yazıldığında `RootNamespace`'ten bağımsız derlenir; `RootNamespace`'in etkisi validator'ın IDE0130 sondajıyla doğrulandı (sonuç değişmez).
 
 ### Validator kanıtları — tur 1
 
@@ -124,7 +147,7 @@
 
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
-| 1 | Dependabot kilit dosyası güncellemesi (`09 §3.2`) sınanmadı | — | Dependabot yapılandırması bu task'ın kapsamı değil; ilk PR'ında gözlenir ve gerekirse `09 §3.2` aynı PR'da düzeltilir |
+| 1 | Dependabot kilit dosyası güncellemesi (`09 §3.2`) sınanmadı | D-07 | Dependabot yapılandırması bu task'ın kapsamı değil; ilk PR'ında gözlenir ve gerekirse `09 §3.2` aynı PR'da düzeltilir |
 | 2 | Test projeleri çatısız; xUnit v3 T03'te | — | Plan T03'ü işaret eder |
 
 ## Notlar

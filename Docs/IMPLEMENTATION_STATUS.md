@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-02 — Implementation dönemi açıldı: tracker `11`'in faz ve task listesiyle dolduruldu (7 faz, 214 task, hepsi ⬚); sıradaki iş `/task T02` (önce D-01 kapısı, `Docs/PRODUCT_DISCOVERY_STATUS.md` §25).
+**Son güncelleme:** 2026-11-02 — T02 (Çözüm ve proje düzeni) bağımsız doğrulama tur 2: ✓ PASS (8/8 kabul kriteri; K-notları D-07…D-11 `DEFERRED_BACKLOG.md`'ye); merge yardımcıda (PR #335). F0 sırada sonraki: T03.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -57,7 +57,7 @@
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
 | T01 | Canlılık ucu | ⬚ | — | — | — |
-| T02 | Çözüm ve proje düzeni | ⏳ | — | — | — |
+| T02 | Çözüm ve proje düzeni | ✓ | ✓ PASS (tur 2) | — | #335 |
 | T03 | Test altyapısı | ⬚ | — | — | — |
 | T04 | CI hattı ve eşitlik denetimleri | ⬚ | — | — | — |
 | T05 | Compose geliştirme ortamı | ⬚ | — | — | — |

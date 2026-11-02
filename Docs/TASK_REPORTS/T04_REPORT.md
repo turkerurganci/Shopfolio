@@ -93,6 +93,13 @@
 | 1 | Geri alma sınamasının imaj ve önceki sürüm testi bölümü | D-19 | imajlar T06'da |
 | 2 | Dependabot'un kilit dosyasını güncellemesi | D-07 | ilk Dependabot PR'ı gerekir |
 
+## Düzeltme Turu 1
+
+Doğrulama tur 1 FAIL (iki DÜŞÜK, kayıt düzeltmesi; kod değişmedi):
+- Bulgu 1: PR #339 açıklamasına "Okunan bölümler" ve "`09 §25` soruları" blokları eklendi.
+- Bulgu 2: `Docs/CI_CD_SETUP.md` §1 `publish.yml` satırı (etiket tetikleyicisi `vX.Y.Z`, imajdan önce `patch-migration-check`) ve §4.2 "Test filtreleme" (Consistency özelliği Lint'te, Unit'te dışarıda; proje bazlı komutlar) yazıldı.
+- K2: `Docs/DEFERRED_BACKLOG.md` D-19 hedefi zaten T06 olarak yazılı; dokunulmadı. K1 D-20 olarak kayıtlı.
+
 ## Notlar
 
 - **Working tree (Adım -1):** temiz; hook yolu `scripts/git-hooks`.

@@ -231,7 +231,7 @@ Yerleşik .NET araçlarıyla, kökte tek ayar dosyası kümesiyle ve uyarıları
    private readonly ILogger<Product> _logger;                 // özel alan: _camelCase
    public async Task<Product?> FindAsync(Guid id, CancellationToken ct)   // Async soneki; ct son parametre
    ```
-   Değişmez veri taşıyıcısı `record`'dur; `var` yalnız sağ taraf türü açıkça söylüyorsa (`var product = new Product();`, tür dönüşümü) kullanılır; yöntem çağrısının ve `await`'in dönüşü açık sayılmaz, `var x = Get();` yazılmaz. Kural `.editorconfig`'te zorlanır: `csharp_style_var_when_type_is_apparent = true`, `csharp_style_var_elsewhere = false`, `csharp_style_var_for_built_in_types = false` ve `dotnet_diagnostic.IDE0008.severity = error` (ayar adları bilgim tarihli — ilk task'ta sınanır). Bu kılavuzun kod örneklerinde çağrı dönüşüne yazılan `var` kalıbı kısaltan bir yazımdır; kodda tür adı yazılır.
+   Değişmez veri taşıyıcısı `record`'dur; `var` yalnız sağ taraf türü açıkça söylüyorsa (`var product = new Product();`, tür dönüşümü) kullanılır; yöntem çağrısının ve `await`'in dönüşü açık sayılmaz, `var x = Get();` yazılmaz. Kural `.editorconfig`'te zorlanır: `csharp_style_var_when_type_is_apparent = true`, `csharp_style_var_elsewhere = false`, `csharp_style_var_for_built_in_types = false` ve `dotnet_diagnostic.IDE0008.severity = error` (ayar adları T02'de .NET 10.0.400 SDK'ya karşı sınandı ve geçerlidir; fark: IDE0008 yalnız `dotnet format --verify-no-changes` doğrulamasında hata verir, `dotnet build` onu raporlamaz — kuralı Lint adımı zorlar). Bu kılavuzun kod örneklerinde çağrı dönüşüne yazılan `var` kalıbı kısaltan bir yazımdır; kodda tür adı yazılır.
 5. **Yasaklar.** Null-forgiving `!` (gerekçe yorumuyla tek satır istisna) · `async void` (olay işleyici hariç) · `dynamic` · uyarı bastırma yalnız gerekçe yorumuyla ve en dar kapsamda.
 
    ```csharp
@@ -245,13 +245,14 @@ Yerleşik .NET araçlarıyla, kökte tek ayar dosyası kümesiyle ve uyarıları
 
 ### 3.2 Paket sürüm yönetimi
 
-Paket sürümü merkezîdir (K-1306 (6)): kökte `Directory.Packages.props` tek sürüm kaynağıdır; **sürümler tam sabittir** (kayan aralık yok); `packages.lock.json` repoda durur ve CI'da kilitli geri yükleme koşar (Dependabot PR'ının kilit dosyasını güncellediği bilgim tarihlidir — ilk task'ta sınanır; güncellemiyorsa kilit dosyası aynı PR'da yeniden üretilir); paket kaynağı yalnız nuget.org'dur (kökteki `nuget.config` öteki kaynakları `<clear />` ile siler); bilinen açık taraması geçişli paketleri de kapsar ve geçişli paketteki açık, sürümü merkezî dosyada sabitlenerek kapatılır (geçişli sabitleme açıktır; bilgim tarihli, ilk task'ta doğrulanır) — sabitlenen paket Kütüphaneler tablosuna satır olarak girer; .NET SDK sürümü `global.json` ile sabitlenir. Bu dosyalar `Directory.Build.props` ile aynı kökte ve aynı PR'dadır.
+Paket sürümü merkezîdir (K-1306 (6)): kökte `Directory.Packages.props` tek sürüm kaynağıdır; **sürümler tam sabittir** (kayan aralık yok); `packages.lock.json` repoda durur ve CI'da kilitli geri yükleme koşar (Dependabot PR'ının kilit dosyasını güncellediği bilgim tarihlidir — ilk task'ta sınanır; güncellemiyorsa kilit dosyası aynı PR'da yeniden üretilir); paket kaynağı yalnız nuget.org'dur (kökteki `nuget.config` öteki kaynakları `<clear />` ile siler); bilinen açık taraması geçişli paketleri de kapsar ve geçişli paketteki açık, sürümü merkezî dosyada sabitlenerek kapatılır (geçişli sabitleme `CentralPackageTransitivePinningEnabled` ile açıktır; T02'de sınandı — sabitlenen geçişli paket kilit dosyasında `CentralTransitive` olarak çözülür) — sabitlenen paket Kütüphaneler tablosuna satır olarak girer; .NET SDK sürümü `global.json` ile sabitlenir. Bu dosyalar `Directory.Build.props` ile aynı kökte ve aynı PR'dadır.
 
 ```xml
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>   <!-- bilgim tarihli — ilk task'ta doğrulanır -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>   <!-- T02'de sınandı: kilit dosyası üretilir -->
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
     <!-- Sürüm yalnız burada, tam sabit. Proje dosyasında Version yazılmaz. -->

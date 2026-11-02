@@ -57,7 +57,7 @@
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
 | T01 | Canlılık ucu | ⬚ | — | — | — |
-| T02 | Çözüm ve proje düzeni | ⬚ | — | — | — |
+| T02 | Çözüm ve proje düzeni | ⏳ | — | — | — |
 | T03 | Test altyapısı | ⬚ | — | — | — |
 | T04 | CI hattı ve eşitlik denetimleri | ⬚ | — | — | — |
 | T05 | Compose geliştirme ortamı | ⬚ | — | — | — |

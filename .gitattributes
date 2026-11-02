@@ -16,7 +16,10 @@ scripts/git-hooks/commit-msg text eol=lf
 *.yaml                      text eol=lf
 *.env                       text eol=lf
 
-# Binaries — add project-specific types in SETUP §2.
+# Binaries — project-specific types (05 §2.3.3): self-hosted font files (05 §3.8.1) and WebP images.
+*.woff2 binary
+*.woff  binary
+*.webp  binary
 *.png  binary
 *.jpg  binary
 *.gif  binary

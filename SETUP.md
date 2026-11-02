@@ -27,15 +27,15 @@
 
 ## 2. Teknoloji parametreleri
 
-- [ ] Teknoloji yığını belirlendi ve `.claude/CONTEXT.md` §1'e yazıldı
-- [ ] `.claude/CONTEXT.md` §3'e **kod klasörleri** klasör düzeyinde eklendi (dosya listesi **değil**)
+- [x] Teknoloji yığını belirlendi ve `.claude/CONTEXT.md` §1'e yazıldı
+- [x] `.claude/CONTEXT.md` §3'e **kod klasörleri** klasör düzeyinde eklendi (dosya listesi **değil**)
 
 **Repo konfigürasyon dosyaları yığına uyarlanır** (bunlar template'te bilinçli olarak eksik bırakıldı — yığına bağlıdır):
 
-- [ ] `.gitignore`'a eklendi: bağımlılık klasörleri · derleme çıktısı · log / coverage / test sonucu · IDE artifact'ları
-- [ ] `.gitignore`'a eklendi: **projeye özgü sır dosyası desenleri** (sertifika, anahtar dosyası, sağlayıcıya özgü kimlik dosyası)
-- [ ] `.gitattributes`'a eklendi: projeye özgü **binary** dosya tipleri
-- [ ] `.env.example` şablonu oluşturuldu — **gerçek değerler `.env`'de ve gitignored**; strateji `Docs/05_TECHNICAL_ARCHITECTURE.md §6`'ya yazılacak
+- [x] `.gitignore`'a eklendi: bağımlılık klasörleri · derleme çıktısı · log / coverage / test sonucu · IDE artifact'ları
+- [x] `.gitignore`'a eklendi: **projeye özgü sır dosyası desenleri** (sertifika, anahtar dosyası, sağlayıcıya özgü kimlik dosyası)
+- [x] `.gitattributes`'a eklendi: projeye özgü **binary** dosya tipleri
+- [x] `.env.example` şablonu oluşturuldu — **gerçek değerler `.env`'de ve gitignored**; strateji `Docs/05_TECHNICAL_ARCHITECTURE.md §6`'ya yazılacak
 
 > `.env` / `.env.*` / `!.env.example` varsayılanı template ile birlikte gelir; bu adım **yığına özgü** olanları ekler.
 

@@ -2,11 +2,46 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="TngTech.ArchUnitNET" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Shopfolio.Web\Shopfolio.Web.csproj" />
   </ItemGroup>
+
+  <!--
+    Deliberate violation samples (09 6 item 4, 19.2 item 3): each folder under Architecture/ViolationSamples/ is compiled
+    into its own assembly next to the test assembly, so an architecture rule can be shown to fail on it. No fourth project.
+  -->
+  <ItemGroup>
+    <Compile Remove="Architecture/ViolationSamples/**" />
+    <None Remove="Architecture/ViolationSamples/**" />
+    <ViolationSampleSource Include="Architecture/ViolationSamples/ModuleBoundary/*.cs" />
+  </ItemGroup>
+
+  <Target Name="BuildViolationSamples" AfterTargets="Build" Inputs="@(ViolationSampleSource)" Outputs="$(OutDir)ModuleBoundaryViolationSample.dll">
+    <Csc Sources="@(ViolationSampleSource)"
+         References="@(ReferencePathWithRefAssemblies)"
+         OutputAssembly="$(OutDir)ModuleBoundaryViolationSample.dll"
+         TargetType="library"
+         NoStandardLib="true"
+         Nullable="enable"
+         EmitDebugInformation="true"
+         DebugType="portable"
+         UseSharedCompilation="false"
+         ToolPath="$(CscToolPath)"
+         ToolExe="$(CscToolExe)"
+         TreatWarningsAsErrors="true" />
+  </Target>
 
 </Project>

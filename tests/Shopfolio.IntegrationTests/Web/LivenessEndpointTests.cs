@@ -1,6 +1,7 @@
 using System.Net;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 using Npgsql;
 
@@ -8,6 +9,7 @@ using Shopfolio.Endpoints;
 using Shopfolio.Infrastructure;
 using Shopfolio.IntegrationTests.Database;
 
+using Abort = System.Threading.CancellationTokenSource;
 using DsnBuilder = Npgsql.NpgsqlConnectionStringBuilder;
 
 namespace Shopfolio.IntegrationTests.Web;
@@ -69,7 +71,12 @@ public sealed class LivenessEndpointTests
 
             Assert.Equal(0, response.Content.Headers.ContentLength ?? 0);
             Assert.Equal(string.Empty, await response.Content.ReadAsStringAsync(ct));
-            Assert.False(response.Headers.Contains("Server"));
+            // TestServer writes no Server header; a real Kestrel writes a bare "Kestrel". Either way no version is carried.
+            if (response.Headers.TryGetValues("Server", out IEnumerable<string>? server))
+            {
+                Assert.DoesNotContain(server, v => v.Contains('/', StringComparison.Ordinal));
+            }
+
             Assert.False(response.Headers.Contains("X-Powered-By"));
             Assert.False(response.Headers.Contains("X-AspNet-Version"));
         }
@@ -122,6 +129,24 @@ public sealed class LivenessEndpointTests
         using HttpResponseMessage response = await client.GetAsync(_livenessUri, ct);
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.DoesNotContain(logs.Lines, l => l.Contains("DbTimeout", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task CheckDatabase_WhenTheRequestIsCancelled_LetsTheCancellationPassUpAndWritesNoTimeoutLine()
+    {
+        // 09 10.7 item 7: a cancelled request is not a failure; the cancellation passes up (false is not returned) and nothing is logged.
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        CollectingLoggerProvider logs = new();
+        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(logs));
+        ILogger logger = loggerFactory.CreateLogger("LivenessProbeTest");
+        await using NpgsqlDataSource dataSource = NpgsqlDataSource.Create(_database.Dsn);
+        using Abort aborted = Abort.CreateLinkedTokenSource(ct);
+        await aborted.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => LivenessProbe.CheckDatabaseAsync(dataSource, TimeSpan.FromSeconds(2), logger, aborted.Token));
+
         Assert.DoesNotContain(logs.Lines, l => l.Contains("DbTimeout", StringComparison.Ordinal));
     }
 

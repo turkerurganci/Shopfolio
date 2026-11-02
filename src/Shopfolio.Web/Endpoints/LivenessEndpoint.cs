@@ -28,7 +28,7 @@ internal static class LivenessEndpoint
         HttpContext context,
         CancellationToken ct)
     {
-        ILogger logger = loggerFactory.CreateLogger(typeof(LivenessProbe).FullName!);
+        ILogger logger = loggerFactory.CreateLogger(typeof(LivenessProbe).FullName ?? nameof(LivenessProbe));
         bool alive = await LivenessProbe.CheckDatabaseAsync(dataSource, options.Value.LivenessTimeout, logger, ct);
 
         context.Response.Headers.CacheControl = "no-store";

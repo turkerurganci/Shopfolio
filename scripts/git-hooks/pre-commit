@@ -13,8 +13,8 @@
 #                     (packages.lock.json, package-lock.json, yarn.lock,
 #                     pnpm-lock.yaml, Cargo.lock, poetry.lock). In source code
 #                     files (.cs .ts .js .java .go .py ...) only an assignment
-#                     whose right side holds a quoted string literal of 8+
-#                     characters counts (type annotations, :=, =>, and string
+#                     whose right side holds a quoted string literal of 6+
+#                     characters inside the quotes counts (type annotations, :=, =>, and string
 #                     prefixes like @ $ f r b r#, or a literal inside an
 #                     expression such as `?? "..."`, are all covered).
 #
@@ -136,9 +136,15 @@ while IFS= read -r path; do
     if [ "$is_code" = "1" ]; then
       # Source code: the right side (after a type annotation, :=, =>, any
       # string prefix such as @ $ $@ f r b r#) must hold a quoted string
-      # literal of 8+ characters anywhere; the first non-placeholder one is
+      # literal of 6+ characters (8+ with quotes, as before) anywhere; the first non-placeholder one is
       # the value. No literal -> an expression or type name, not a secret.
-      literals="$(echo "$value" | grep -oE "\"[^\"]{8,}\"|'[^']{8,}'|\`[^\`]{8,}\`" || true)"
+      # Before matching: drop backslash escapes (so "Pa\"ss" stays one literal),
+      # fuse "a" + "b" into one literal, and in .py fuse implicit "a" "b".
+      value="$(echo "$value" | sed -E 's/\\.//g; s/(["'"'"'`])[[:space:]]*\+[[:space:]]*\1//g')"
+      case "$path" in
+        *.py) value="$(echo "$value" | sed -E 's/(["'"'"'])[[:space:]]+\1//g')" ;;
+      esac
+      literals="$(echo "$value" | grep -oE "\"[^\"]{6,}\"|'[^']{6,}'|\`[^\`]{6,}\`" || true)"
       value=""
       while IFS= read -r lit; do
         [ -n "$lit" ] || continue

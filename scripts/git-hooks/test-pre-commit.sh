@@ -80,7 +80,17 @@ check 1 "php =>"                     "src/v37.php"         "'api_key' => 'abcd12
 check 1 "ruby =>"                    "src/v38.rb"          '"api_key" => "abcd1234efgh5678",'
 check 1 "ruby symbol key"            "src/v39.rb"          'api_key: "abcd1234efgh5678",'
 check 1 "java string"                "src/v40.java"        'String apiKey = "abcd1234efgh5678";'
-check 1 "private key block (txt)"   "notes/k.txt"         "-----BEGIN RSA PRIV""ATE KEY-----"
+check 1 "cs 7-char literal"          "src/r1.cs"           'var Password = "abc1234";'
+check 1 "cs 6-char literal"          "src/r2.cs"           'var Password = "abc123";'
+check 1 "cs 6-char no var"           "src/r3.cs"           'Password = "abc123"'
+check 1 "ts 7-char literal"          "src/r4.ts"           "const token = 'abc1234';"
+check 1 "py 7-char literal"          "src/r5.py"           'PASSWORD = "abc1234"'
+check 1 "cs escaped quote"           "src/r6.cs"           'var Password = "Pa\"ss12345";'
+check 1 "cs verbatim doubled quote"  "src/r7.cs"           'var Password = @"Pa""ss12345";'
+check 1 "cs plus concatenation"      "src/r8.cs"           'var Password = "abcd" + "efgh";'
+check 1 "py implicit concatenation"  "src/r9.py"           'API_KEY = ("abcd" "efgh")'
+check 1 "json 6-char"                "app/b.json"          '"Password": "abc123"'
+check 1 "private key block (txt)"  "notes/k.txt"         "-----BEGIN RSA PRIV""ATE KEY-----"
 check 1 "private key in lock file"   "packages.lock.json"  "-----BEGIN PRIV""ATE KEY-----"
 check 1 "private key in cs"          "src/k.cs"            "// -----BEGIN PRIV""ATE KEY-----"
 check 1 ".env path"                  ".env"                'A=1'
@@ -96,7 +106,9 @@ check 0 "cs comment"                 "src/E2.cs"           '// Password = "abc12
 check 0 "cs nameof"                  "src/E3.cs"           'var ApiKeyName = nameof(ApiKey);'
 check 0 "cs string.Empty"            "src/E4.cs"           'Password = string.Empty;'
 check 0 "cs placeholder literal"     "src/E5.cs"           'var Password = "<YOUR_PASSWORD>";'
-check 0 "ts process.env"             "src/E6.ts"           'const token = process.env.TOKEN;'
+check 0 "cs changeme literal"        "src/p1.cs"           'var Password = "changeme";'
+check 0 "cs env placeholder literal" "src/p2.cs"           'var Password = "${DB_PASSWORD}";'
+check 0 "ts process.env"            "src/E6.ts"           'const token = process.env.TOKEN;'
 check 0 "ts short literal"           "src/E7.ts"           'const token = "abc";'
 check 0 "lock file UserSecrets"     "src/Api/packages.lock.json" '"Microsoft.Extensions.Configuration.UserSecrets": "10.0.11",'
 check 0 "lock file token key"        "package-lock.json"   '"token": "abcdefgh12345678"'

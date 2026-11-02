@@ -15,7 +15,8 @@
 #                     files (.cs .ts .js .java .go .py ...) an assignment whose
 #                     right side has no quote (an expression or type name) is
 #                     skipped, unless it looks like embedded key material
-#                     (8+ decimal/hex digits, 4+ array items, Ruby %q, heredoc).
+#                     (8+ decimal/hex digits, 4+ array items or 3+ hex items,
+#                     Ruby %q, heredoc).
 #                     Quoted right sides keep the generic length rule (8+ chars
 #                     in total); if every literal is a placeholder AND no key
 #                     material remains outside the literals, skipped.
@@ -43,10 +44,12 @@ DEFAULT_SECRET_KEYS='(SECRET|PASSWORD|PASSWD|API_?KEY|ACCESS_?KEY|PRIVATE_?KEY|T
 PLACEHOLDER='^[[:space:]]*("|'"'"')?(<[^>]*>|\$\{[^}]*\}|changeme|change_me|xxx+|todo|placeholder|your[-_].*|example|dummy|\*+|)("|'"'"')?[[:space:]]*$'
 
 # Unquoted embedded key material (source code only): 8+ decimal or hex digits
-# (_ separators allowed), or 4+ numeric/hex array items with optional (type)
-# cast, minus sign, 0X, suffix (u8, L, .toByte()). Keep this in ONE place.
+# (_ separators allowed), or 4+ numeric/hex array items (3+ when every item is
+# hex) with optional (type) cast, minus sign, 0X, suffix (u8, L, .toByte()).
+# Keep this in ONE place.
 KEY_ITEM='(\([A-Za-z]+\))?-?(0[xX][0-9A-Fa-f_]+|[0-9][0-9_]*)[A-Za-z0-9_.()]*[[:space:]]*,[[:space:]]*'
-KEY_MATERIAL='[0-9][0-9_]{7,}|0[xX][0-9A-Fa-f_]{8,}|('"$KEY_ITEM"'){3,}'
+HEX_ITEM='(\([A-Za-z]+\))?-?0[xX][0-9A-Fa-f_]+[A-Za-z0-9_.()]*'
+KEY_MATERIAL='[0-9][0-9_]{7,}|0[xX][0-9A-Fa-f_]{8,}|('"$KEY_ITEM"'){3,}|('"$HEX_ITEM"'[[:space:]]*,[[:space:]]*){2}'"$HEX_ITEM"
 # Ruby string-like literals with an arbitrary delimiter (%q/../, %W[..], %i<..>).
 RUBY_PERCENT='%[qQwWiI]?[^[:alnum:][:space:]=]'
 # Heredoc opener (<<~X, <<-X, <<X, <<"X"); only .rb and .php use it.

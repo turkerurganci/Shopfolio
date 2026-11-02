@@ -9,6 +9,12 @@
 # Layer 2 (content) — staged content contains a private key block, or assigns
 #                     a real-looking value to a known secret key name
 #
+#                     Skipped in Layer 2: generated package lock files
+#                     (packages.lock.json, package-lock.json, yarn.lock,
+#                     pnpm-lock.yaml, Cargo.lock, poetry.lock). In source code
+#                     files (.cs .ts .js .java .go .py ...) only an assignment
+#                     whose right side is a quoted string literal counts.
+#
 # Deliberately generic: no domain- or vendor-specific patterns. Project
 # specifics go in scripts/git-hooks/hooks.config, not here.
 #
@@ -82,6 +88,19 @@ while IFS= read -r path; do
     # This hook itself and its docs describe the patterns on purpose.
     scripts/git-hooks/pre-commit|scripts/git-hooks/README.md) continue ;;
   esac
+  # Generated package lock files hold names and hashes, never authored secrets.
+  # (Layer 1 path check and the private key block check do not skip them.)
+  is_lock=0
+  case "$path" in
+    packages.lock.json|*/packages.lock.json|package-lock.json|*/package-lock.json|yarn.lock|*/yarn.lock|pnpm-lock.yaml|*/pnpm-lock.yaml|Cargo.lock|*/Cargo.lock|poetry.lock|*/poetry.lock) is_lock=1 ;;
+  esac
+  # In source code only a quoted string literal on the right-hand side is a
+  # secret candidate; type names and expressions (`CancellationToken ct`,
+  # `ConnectionString = builder.ConnectionString`) are not.
+  is_code=0
+  case "$path" in
+    *.cs|*.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs|*.java|*.kt|*.go|*.py|*.rs|*.rb|*.php|*.swift|*.scala) is_code=1 ;;
+  esac
   # Only added lines, and skip binaries.
   added="$(git diff --cached -U0 -- "$path" 2>/dev/null | grep -E '^\+[^+]' || true)"
   [ -n "$added" ] || continue
@@ -89,6 +108,8 @@ while IFS= read -r path; do
   if echo "$added" | grep -qE 'BEGIN ([A-Z ]+ )?PRIVATE KEY'; then
     add_finding "icerik: $path — private key blogu" "private-key:$path"
   fi
+
+  [ "$is_lock" = "1" ] && continue
 
   while IFS= read -r line; do
     body="${line#+}"
@@ -108,6 +129,9 @@ while IFS= read -r path; do
     echo "$lhs" | grep -qE "^[[:space:]]*([\"']?[A-Za-z]+[\"']?[[:space:]]+){0,2}[\"']?[]A-Za-z0-9_.[-]+[\"']?[[:space:]]*\$" || continue
     # Grab whatever is on the right-hand side of = or :
     value="$(echo "$body" | sed -E 's/^[^=:]*[=:][[:space:]]*//')"
+    if [ "$is_code" = "1" ]; then
+      echo "$value" | grep -qE "^[[:space:]]*[@\$]?[\"'\`]" || continue
+    fi
     echo "$value" | grep -qiE "$PLACEHOLDER" && continue
     # Ignore prose/markdown and code that merely names the key.
     echo "$body" | grep -qE '^[[:space:]]*(#|//|\*|>|\|)' && continue

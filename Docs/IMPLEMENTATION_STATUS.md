@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-03 — T03 (Test altyapısı) yapım bitti, ⏳ doğrulama bekliyor (PR PR_NO_BURAYA). T02 ✓ (PR #335).
+**Son güncelleme:** 2026-11-03 — T03 (Test altyapısı) yapım bitti, ⏳ doğrulama bekliyor (PR #337). T02 ✓ (PR #335).
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -58,7 +58,7 @@
 |---|---|---|---|---|---|
 | T01 | Canlılık ucu | ⬚ | — | — | — |
 | T02 | Çözüm ve proje düzeni | ✓ | ✓ PASS (tur 2) | — | #335 |
-| T03 | Test altyapısı | ⏳ | — | — | PR_NO_BURAYA |
+| T03 | Test altyapısı | ⏳ | — | — | #337 |
 | T04 | CI hattı ve eşitlik denetimleri | ⬚ | — | — | — |
 | T05 | Compose geliştirme ortamı | ⬚ | — | — | — |
 | T06 | Üç imaj ve kayıt defteri | ⬚ | — | — | — |

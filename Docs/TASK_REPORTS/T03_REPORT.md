@@ -73,8 +73,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T03-test-altyapisi`
-- **Commit:** `64487a1` — T03: Test altyapisi
-- **PR:** PR_NO_BURAYA
+- **Commit:** `64487a1` (kod) + sonraki rapor commit'i — T03: Test altyapisi
+- **PR:** #337
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

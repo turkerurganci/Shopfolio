@@ -31,9 +31,11 @@
 - [x] 57 doğrulanan hüküm uygulandı (§3.1); 16 çürük uygulanmadı (§3.2).
 - [x] Severity kayması 10 satır: §1 sayımları KRİTİK 647 · ORTA 726 · DÜŞÜK 130; `[tarayıcı]` 181.
 - [x] Dört üst doküman notu karara bağlandı ve kaynağa uygulandı (§5).
-- [ ] ⚠ listesi (8 karar, K-1572 dahil) arşiv işaretinden önce proje sahibine gösterilir (kapı: 6. adım).
-- [ ] Öğrenim terfisi (5. adım): §6'daki notlar girdidir.
-- [ ] `00`, `CLAUDE.md`, `SETUP.md` için öneri çıkmadı (§7).
+- [x] ⚠ listesi (8 karar, K-1572 dahil) arşiv işaretinden önce proje sahibine gösterilir (kapı: 6. adım) — **yapıldı (2026-11-02, K-1574): yedi ürün kararı "kalsın", itiraz yok**
+- [x] Öğrenim terfisi (5. adım): §6'daki notlar girdidir — **yapıldı (K-1573)**
+- [x] `00`, `CLAUDE.md`, `SETUP.md` için öneri çıkmadı (§7).
+
+> **Sonuç (2026-11-02, K-1574):** ⚠ listesi (K-1547, K-1557, K-1560, K-1563, K-1566, K-1568, K-1572) proje sahibine tek listede gösterildi; yedisi 'kalsın', itiraz yok; işaret dönüştürüldü (betikle 7 / 7). `12` v0.34 ✓ Tamamlandı — v1.0'a geçmedi (öteki on bir doküman gibi v0.x'te ✓). Karar kaydının tamamı arşivlendi, Implementation dönemine devir karar kaydı §25'te.
 
 ### Notlar
 
@@ -172,7 +174,7 @@ K-1569 ve K-1570 satırlarının etki sütununa "(checkpoint — CP10: devredile
 
 ## 4. Kontrol 6 — sonraki aşamanın girdileri
 
-Aşama 10 doküman döneminin son aşamasıdır; sonraki adım Implementation dönemidir. Bu checkpoint'ten devreden iş yok: `12` v0.32 kapanışa girer (arşiv adımında ✓ ve v1.0 kararı). `DEPLOY_RUNBOOK` Aşama 10 bloğu (üç madde: canlı kanıt satırları, ters vekilin gövde tavanı, DV gözlem kayıtları) çakışma taramasında yazıldı ve F6 kapısına bağlıdır. ⚠ listesi (K-1547, K-1557, K-1560, K-1563, K-1566, K-1568, K-1572) arşiv işaretinden önce proje sahibine tek mesajda gösterilir.
+Aşama 10 doküman döneminin son aşamasıdır; sonraki adım Implementation dönemidir. Bu checkpoint'ten devreden iş yok: `12` v0.32 kapanışa girer (arşiv adımında ✓ ve v1.0 kararı) — **sonuç (K-1574): v0.34 ✓, v1.0'a geçmedi**. `DEPLOY_RUNBOOK` Aşama 10 bloğu (üç madde: canlı kanıt satırları, ters vekilin gövde tavanı, DV gözlem kayıtları) çakışma taramasında yazıldı ve F6 kapısına bağlıdır. ⚠ listesi (K-1547, K-1557, K-1560, K-1563, K-1566, K-1568, K-1572) arşiv işaretinden önce proje sahibine tek mesajda gösterilir.
 
 ## 5. Dört üst doküman notunun hükmü (K-652: kaynak kazanır, geri besleme aynı PR)
 

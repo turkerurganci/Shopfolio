@@ -78,6 +78,8 @@ Tracker'da yer alan, §24.1 dışı iki dış kapı (`PLAYBOOK_FEEDBACK.md` — 
 
 **Gösterim durumu.** Altı ⚠ ürün kararı (K-1547, K-1557, K-1560, K-1563, K-1566, K-1568) toplu onayla kaydedildi ve proje sahibine arşiv işaretinden **önce** tek listede gösterilir (`INSTRUCTIONS §2`). Bu tarama yeni ⚠ karar kaydetmedi.
 
+> **Sonuç (2026-11-02, K-1574):** liste proje sahibine tek mesajda gösterildi; altı ürün kararı (K-1547, K-1557, K-1560, K-1563, K-1566, K-1568) ve checkpoint'te eklenen K-1572 'kalsın', itiraz yok. Yedi işaret `(… — ⚠ — gözden geçirildi 2026-11-02, itiraz yok)` oldu (betikle 7 / 7). Bu taramadaki 7 / 7, K-1504…K-1570 aralığınaydı; sonradan K-1572 eklenmiş (8 / 8, K-1572) ve arşiv işaretinde K-1571'in konu hücresi de ⚠ listesini sözle anıyor (K-1494 gibi anma kaydı, işaret taşımaz, dönüşmez); eşleme dosyasına eklenerek küme 9 / 9, eksik 0, fazla 0 oldu.
+
 ---
 
 ## 5. Çakışmalar

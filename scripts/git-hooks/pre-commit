@@ -13,7 +13,10 @@
 #                     (packages.lock.json, package-lock.json, yarn.lock,
 #                     pnpm-lock.yaml, Cargo.lock, poetry.lock). In source code
 #                     files (.cs .ts .js .java .go .py ...) only an assignment
-#                     whose right side is a quoted string literal counts.
+#                     whose right side holds a quoted string literal of 8+
+#                     characters counts (type annotations, :=, =>, and string
+#                     prefixes like @ $ f r b r#, or a literal inside an
+#                     expression such as `?? "..."`, are all covered).
 #
 # Deliberately generic: no domain- or vendor-specific patterns. Project
 # specifics go in scripts/git-hooks/hooks.config, not here.
@@ -126,11 +129,24 @@ while IFS= read -r path; do
     # and then one identifier. A sentence or a URL path that merely contains the word
     # ("POST /odeme/api/get-token: ...") is prose (Phase 9: false positive on a task
     # block, learning promotion Ö-171).
-    echo "$lhs" | grep -qE "^[[:space:]]*([\"']?[A-Za-z]+[\"']?[[:space:]]+){0,2}[\"']?[]A-Za-z0-9_.[-]+[\"']?[[:space:]]*\$" || continue
+    max_words=2
+    echo "$lhs" | grep -qE "^[[:space:]]*([\"']?[A-Za-z]+[\"']?[[:space:]]+){0,$max_words}[\"']?[]A-Za-z0-9_.[-]+[\"']?[[:space:]]*\$" || continue
     # Grab whatever is on the right-hand side of = or :
     value="$(echo "$body" | sed -E 's/^[^=:]*[=:][[:space:]]*//')"
     if [ "$is_code" = "1" ]; then
-      echo "$value" | grep -qE "^[[:space:]]*[@\$]?[\"'\`]" || continue
+      # Source code: the right side (after a type annotation, :=, =>, any
+      # string prefix such as @ $ $@ f r b r#) must hold a quoted string
+      # literal of 8+ characters anywhere; the first non-placeholder one is
+      # the value. No literal -> an expression or type name, not a secret.
+      literals="$(echo "$value" | grep -oE "\"[^\"]{8,}\"|'[^']{8,}'|\`[^\`]{8,}\`" || true)"
+      value=""
+      while IFS= read -r lit; do
+        [ -n "$lit" ] || continue
+        echo "$lit" | grep -qiE "$PLACEHOLDER" && continue
+        value="$lit"
+        break
+      done <<< "$literals"
+      [ -n "$value" ] || continue
     fi
     echo "$value" | grep -qiE "$PLACEHOLDER" && continue
     # Ignore prose/markdown and code that merely names the key.

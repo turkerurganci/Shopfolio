@@ -1,6 +1,6 @@
 # Proje Bağlamı ve Klasör Haritası
 
-**Katman:** L3 | **Son güncelleme:** 2026-10-04
+**Katman:** L3 | **Son güncelleme:** 2026-11-02
 
 ---
 
@@ -20,8 +20,8 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 |---|---|
 | Proje adı | Shopfolio |
 | Tek cümlelik tanım | Herhangi bir firmanın kendi ürünlerini sergileyip çevrimiçi satabileceği ve kurumsal tanıtımını yapabileceği; üyelik (sipariş vermek için zorunlu değil — K-97), Google ile giriş (K-103), sipariş, ödeme ve sipariş takibi içeren web uygulaması. |
-| Mevcut dönem | Doküman üretimi |
-| Teknoloji yığını | Aşama 4'te belirlenir → [`Docs/05_TECHNICAL_ARCHITECTURE.md`](../Docs/05_TECHNICAL_ARCHITECTURE.md) |
+| Mevcut dönem | Implementation |
+| Teknoloji yığını | C# / .NET 10 (LTS), ASP.NET Core Razor Pages (tek uygulama, sayfalar sunucuda üretilir), Entity Framework Core, PostgreSQL 18, düz JavaScript ve CSS (çatı ve npm yok); Linux konteynerleri, Compose, Caddy 2, pgBackRest, dosya yedeği aracı (aday restic, §2.2.9); GitHub Actions ve GitHub Container Registry → [`Docs/05_TECHNICAL_ARCHITECTURE.md`](../Docs/05_TECHNICAL_ARCHITECTURE.md) §2 |
 | Dal koruma rejimi | **B — sistem-enforced** (ruleset aktif, `CI Gate` required; hook'lar da yerinde) |
 
 ---
@@ -93,7 +93,15 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 
 | Yol | Rol |
 |---|---|
-| — | Kod klasörü henüz yok. Yığın Aşama 4'te seçilir; ilk klasörler Dönem 2'nin (implementation) ilk task'ında bu tabloya eklenir. |
+| `src/Shopfolio.Web/` | Uygulamanın tamamı — tek proje (.NET 10 Razor Pages); modüller bu projenin klasörüdür (`09 §4.1`) |
+| `src/Shopfolio.Web/Modules/<Modül>/` | Her iş modülü için bir klasör ve ad alanı `Shopfolio.Modules.<Modül>` |
+| `src/Shopfolio.Web/Infrastructure/` | Ortak altyapı: zaman kaynağı, dosya deposu, önbellek, hata yakalama, kayıt, bağlantı katmanı, tek veritabanı bağlamı ve göçler |
+| `src/Shopfolio.Web/Pages/` | Razor sayfaları — `Storefront/` (vitrin), `Account/` (müşteri hesabı), `Panel/` (yönetim paneli), `Shared/` (ortak parçalar); sayfa modül klasörüne girmez |
+| `src/Shopfolio.Web/Endpoints/` | Makine uçları (sayfa olmayan GET ve POST uçları) |
+| `src/Shopfolio.Web/wwwroot/` | Düz JavaScript ve CSS (`css/`, `js/`); derleme hattı ve çatı yok |
+| `tests/Shopfolio.UnitTests/` | Birim testleri ve modül sınırlarının mimari testleri; veritabanı gerektirmez |
+| `tests/Shopfolio.IntegrationTests/` | Gerçek PostgreSQL 18'e karşı entegrasyon testleri |
+| `deploy/` | İmaj, Compose, ters vekil dosyaları ve `.env.example` (kurulumun sır olmayan ayar şablonu); uygulama kodu değildir (`09 §4.3`) |
 
 ---
 

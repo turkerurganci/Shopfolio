@@ -9,8 +9,27 @@ _archaeology/
 .env.*
 !.env.example
 
-# Projeye özgü sır dosyası desenleri SETUP §2'de buraya eklenir
-# (ör. sertifika/anahtar dosyaları, sağlayıcıya özgü kimlik dosyaları).
+# Projeye özgü sır dosyası desenleri (05 §6.x.1, §2.3.3): sırlar sunucuda,
+# bileşen başına ayrı dosyalarda durur; repoya yalnız şablon (.env.example) girer.
+secrets/
+**/secrets/
+*.secret
+*.secrets
+secrets.json
+*.pfx
+*.p12
+*.pem
+*.key
+*.crt
+*.cer
+*.snk
+*.keystore
+# Kuruluma özgü ayar dosyaları (sunucuda durur, repoya girmez)
+appsettings.*.local.json
+appsettings.Production.json
+# Sağlayıcıya özgü kimlik dosyaları
+*credentials*.json
+*service-account*.json
 
 # --- Editör / OS -------------------------------------------------------------
 .DS_Store
@@ -26,8 +45,34 @@ Thumbs.db
 .claude/scheduled_tasks.lock
 
 # --- Projeye özgü -----------------------------------------------------------
-# Bağımlılık klasörleri, derleme çıktısı, log/coverage/test sonucu ve IDE
-# artifact'ları SETUP §2'de buraya eklenir — yığına bağlıdır.
+# .NET: derleme çıktısı ve bağımlılık klasörleri
+# (packages.lock.json repoda durur — 09 §3.2; ignore edilmez)
+[Bb]in/
+[Oo]bj/
+artifacts/
+publish/
+*.user
+*.suo
+*.userprefs
+.vs/
+project.lock.json
+# Log, coverage ve test sonuçları
+*.log
+logs/
+TestResults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+coverage.cobertura.xml
+# Geliştirme veritabanı ve geçici dosyalar
+*.db
+*.sqlite
+*.tmp
+# IDE artifact'ları (Rider/ReSharper/Visual Studio)
+.idea/
+*.DotSettings.user
+_ReSharper*/
 
 # --- Python -----------------------------------------------------------------
 __pycache__/

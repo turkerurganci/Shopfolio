@@ -50,10 +50,10 @@ Ek: `dotnet build Shopfolio.slnx` 0 uyarı; `dotnet format --verify-no-changes` 
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | (validator doldurur) |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-03, `217af58`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r1.md`. Kabul kriterleri 6/6 ✓ ve KK1–KK6 ✓; kontrol listesinin `09 §25` maddesi ✗ (dört "hayır" cevabı) |
+| Bulgu sayısı (tur 1) | 4 — hepsi S1 DÜŞÜK: (1) `Infrastructure/DatabaseOptions.cs` iki üst düzey tür taşıyor (`DatabaseOptions`, `DatabaseOptionsValidator`; `09 §5.1` madde 7 "bir dosyada bir üst düzey tür"); (2) `Endpoints/LivenessEndpoint.cs:31` `typeof(LivenessProbe).FullName!` gerekçe yorumsuz null-forgiving (`09 §3.1` madde 5); (3) `09 §10.7` madde 7'nin canlılık testi cümlesinin üçüncü parçası — istek iptalinde iptal yukarı geçer, `false` dönmez, kayıt yazılmaz — testsiz (davranış doğrulamada Kestrel'de gözlendi: istemci 1 sn'de vazgeçti, istek 499, `DbTimeout` satırı yok); (4) PR açıklamasında okunan `09` bölümleri (çekirdek yedi dahil) ve `09 §25` cevapları yok (`09 §21.3`, §24 madde 1 ve 7, §25 ilk satır) |
+| Düzeltme gerekli mi (tur 1) | Evet — yeni yapım turu: doğrulayıcıyı kendi dosyasına ayır; `!`'ı gerekçelendir ya da kaldır; istek iptali testi (iptal yukarı geçer, 503/`false` yok, `DbTimeout` satırı yok); PR açıklamasına okunan bölümler ve `§25` cevapları |
+| Bloke-etmeyen not (K) sayısı (tur 1) | 3 — K1 sır bekçisi tür adında `Token`/`ConnectionString` geçen yerel değişken bildirimini takıyor, yapım `Deadline`/`DsnBuilder` takma adlarına kaçtı → D-19; K2 `Get_Answers_WithoutVersionOrDetailInHeadersOrBody`'deki `Server` başlığı onayı `TestServer`'da her zaman geçer (Kestrel gerçekte `Server: Kestrel` yazar, sürümsüz) → düzeltme turunda bu PR'da kapatılır; K3 `09 §10.7` madde 6'nın `CancelAfter`'ı gerçek zamanlayıcıdır, süre testi 1 sn gerçek bekler — `§19.2` madde 2 ve `§19.1` madde 6 ile gerilim → D-20. Task'a bağlı `12` satırı yok (kaynak birimi `07` UC-81; `11 §7.1`'de T01'e bağlı KP yok); canlılığı anan `VAL-A709` ve `VAL-A446` durum ucunu (T314) da kapsar, `BEKLEMEDE` kalır |
 
 ## Altyapı Değişiklikleri
 

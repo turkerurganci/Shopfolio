@@ -38,6 +38,10 @@ internal sealed class MigrationBundle : IDisposable
             "dotnet",
             ["ef", "migrations", "bundle", "--project", project, "--output", executable, "--force", "--no-build", "--configuration", configuration],
             repositoryRoot,
+            // The bundle publishes with a runtime identifier, which would add a target (win-x64, linux-x64, ...) to the committed
+            // src/Shopfolio.Web/packages.lock.json and break `dotnet restore --locked-mode` on another operating system.
+            // Pointing NuGet at a throwaway lock file keeps every tracked file untouched, on every platform.
+            new Dictionary<string, string> { ["NuGetLockFilePath"] = Path.Combine(directory, "throwaway.packages.lock.json") },
             ct);
 
         return new MigrationBundle(directory, executable);
@@ -48,7 +52,7 @@ internal sealed class MigrationBundle : IDisposable
     /// </summary>
     public async Task ApplyAsync(string connectionString, CancellationToken ct)
     {
-        await RunAsync(ExecutablePath, ["--connection", connectionString], _directory, ct);
+        await RunAsync(ExecutablePath, ["--connection", connectionString], _directory, environment: null, ct);
     }
 
     public void Dispose()
@@ -63,7 +67,7 @@ internal sealed class MigrationBundle : IDisposable
         }
     }
 
-    private static async Task RunAsync(string fileName, string[] arguments, string workingDirectory, CancellationToken ct)
+    private static async Task RunAsync(string fileName, string[] arguments, string workingDirectory, IReadOnlyDictionary<string, string>? environment, CancellationToken ct)
     {
         ProcessStartInfo startInfo = new(fileName)
         {
@@ -72,6 +76,11 @@ internal sealed class MigrationBundle : IDisposable
             RedirectStandardError = true,
             UseShellExecute = false,
         };
+        foreach ((string name, string value) in environment ?? new Dictionary<string, string>())
+        {
+            startInfo.Environment[name] = value;
+        }
+
         foreach (string argument in arguments)
         {
             startInfo.ArgumentList.Add(argument);

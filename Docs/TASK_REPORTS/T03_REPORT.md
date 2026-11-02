@@ -86,6 +86,14 @@
 - **K4:** `MigrationBundle.RunAsync` zaman aşımı/iptalde `process.Kill(entireProcessTree: true)`.
 - **Koşular:** PostgreSQL 18 (Docker), `dotnet test --solution Shopfolio.slnx -c Release --no-build` 3 kez: 35/35 yeşil (Unit + Integration). Build 0 uyarı; `dotnet format --verify-no-changes` temiz.
 
+## Düzeltme Turu 2 (doğrulama tur 2 FAIL sonrası)
+
+- **Bulgu 1:** göç demeti (`dotnet ef migrations bundle`) içte `dotnet publish --runtime <rid>` koşar; bu geri yükleme `src/Shopfolio.Web/packages.lock.json`'a RID hedefi (`net10.0/win-x64`, Linux'ta `linux-x64`) ekliyordu; ardından `dotnet restore --locked-mode` NU1004 ile düşüyordu.
+- **Seçilen çözüm (a):** `MigrationBundle.BuildAsync` demet sürecine `NuGetLockFilePath` ortam değişkenini demetin geçici dizinindeki bir dosyaya yönlendirerek verir. Gömülü publish'in geri yüklemesi o geçici dosyaya yazar, izlenen kilit dosyası hiç açılmaz; demet dizini silinince geçici dosya da gider. Proje dosyalarına platform listesi gömülmez, her işletim sisteminde aynı çalışır.
+- **Elenen yollar:** `ef bundle -- <msbuild argümanı>` publish'e iletilmiyor ("Remaining arguments" uyarısı, etkisiz). `RestorePackagesWithLockFile=false` ortam değişkeni `Directory.Packages.props`'taki atamayla ezilir; koşullu yapılınca da var olan kilit dosyası NU1005 verir. (b) sabit `RuntimeIdentifiers` listesi her yeni platformda kilit dosyasını değiştirmeyi gerektirir; gerekmedi.
+- **Denetim:** yeni test `MigrationBundleTests.BuildAsync_WhenBundleIsBuilt_LeavesTrackedLockFilesUnchanged` demet kurulumundan önce/sonra `src/**/packages.lock.json` içeriğini bayt bayt karşılaştırır.
+- **Koşular:** temiz checkout'ta `restore --locked-mode` → build → PostgreSQL 18 (Docker) ile `dotnet test Shopfolio.slnx` (36/36) → `git status --short` (yalnız kendi düzenlemeleri / commit sonrası boş) → `restore --locked-mode` çıkış 0; iki kez. Release build 0 uyarı; `dotnet format --verify-no-changes` temiz.
+
 ## Commit & PR
 
 - **Branch:** `task/T03-test-altyapisi`

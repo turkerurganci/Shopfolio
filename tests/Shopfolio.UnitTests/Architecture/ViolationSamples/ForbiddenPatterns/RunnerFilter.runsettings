@@ -1,0 +1,4 @@
+<RunSettings>
+  <!-- Deliberate violation sample: a committed runner filter that selects one test. -->
+  <TestingPlatformCommandLineArguments>--filter-method Shopfolio.Samples.ForbiddenTests.Skipped_Test_IsForbidden</TestingPlatformCommandLineArguments>
+</RunSettings>

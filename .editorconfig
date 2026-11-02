@@ -387,3 +387,8 @@ dotnet_naming_style.camelcase.capitalization = camel_case
 
 # Project rule (09 section 3.1 item 4): var only when the right-hand type is apparent.
 dotnet_diagnostic.IDE0008.severity = error
+
+# Test methods are named Method_Condition_Expected (09 section 19.2 item 7), which CA1707 rejects.
+# Narrowest scope: the test projects only (09 section 3.1 item 5).
+[tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none

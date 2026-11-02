@@ -2,11 +2,29 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
+    <UserSecretsId>shopfolio-integration-tests</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="xunit.v3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Shopfolio.Web\Shopfolio.Web.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The hand-written fakes are shared as linked files; no second copy, no reference between test projects (09 19.1 item 3; K-1355). -->
+    <Compile Include="..\Shopfolio.UnitTests\Fakes\**\*.cs" LinkBase="Fakes" />
+    <Compile Include="..\Shopfolio.UnitTests\Support\RepositoryRoot.cs" LinkBase="Support" />
   </ItemGroup>
 
 </Project>

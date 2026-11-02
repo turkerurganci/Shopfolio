@@ -138,6 +138,7 @@ while IFS= read -r path; do
     echo "$lhs" | grep -qE "^[[:space:]]*([\"']?[A-Za-z]+[\"']?[[:space:]]+){0,2}[\"']?[]A-Za-z0-9_.[-]+[\"']?[[:space:]]*\$" || continue
     # Grab whatever is on the right-hand side of = or :
     value="$(echo "$body" | sed -E 's/^[^=:]*[=:][[:space:]]*//')"
+    MULTI=0
     if [ "$is_code" = "1" ]; then
       # Narrow carve-out: the whole right side is an identifier, dotted chain,
       # nameof(chain), null, default, default(Type) or a placeholder -- not a
@@ -147,10 +148,19 @@ while IFS= read -r path; do
       v_loose="$(echo "$value" | sed -E 's/[;,){[:space:]]*$//')"
       v_strict="$(echo "$value" | sed -E 's/[;,{[:space:]]*$//')"
       echo "$v_loose" | grep -qE "^$CHAIN\$" && continue
-      echo "$v_loose" | grep -qiE "$PLACEHOLDER" && continue
+      # Placeholder carve-out applies to a single literal only: a concatenation,
+      # list or several quoted parts ("<" + secret + ">") is still checked.
+      MULTI=0
+      echo "$v_loose" | grep -qE '[+,=]|(["'"'"'].*){3}' && MULTI=1
+      if [ "$MULTI" = "0" ]; then
+        echo "$v_loose" | grep -qiE "$PLACEHOLDER" && continue
+      fi
       echo "$v_strict" | grep -qE "^(nameof\\($CHAIN\\)|default\\($CHAIN\\))\$" && continue
     fi
-    echo "$value" | grep -qiE "$PLACEHOLDER" && continue
+    # In source code a multi-part right side never counts as a placeholder.
+    if [ "${MULTI:-0}" = "0" ]; then
+      echo "$value" | grep -qiE "$PLACEHOLDER" && continue
+    fi
     # Ignore prose/markdown and code that merely names the key.
     echo "$body" | grep -qE '^[[:space:]]*(#|//|\*|>|\|)' && continue
     [ "${#value}" -lt 8 ] && continue

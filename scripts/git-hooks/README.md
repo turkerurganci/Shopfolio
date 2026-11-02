@@ -26,7 +26,7 @@ Bu hook'lar **iyi niyete bağlı olmayan** savunma katmanıdır. Disiplin kurall
 >
 > Env, yaml, json, ini, md, config ve uzantısız dosyalarda istisna yoktur. İstisna yalnız o satırı atlar; aynı dosyanın private key ve yol denetimi sürer. Bekçi jeneriktir; alan/sağlayıcı kalıbı yoktur.
 >
-> **Bilinen sınır:** kaynak kodda tırnaksız tek tanımlayıcıya atama (`Token = AKIAEXAMPLEKEY123`) geçer. Sınama: `bash scripts/git-hooks/test-pre-commit.sh`.
+> **Bilinen sınır:** kaynak kodda tırnaksız tek tanımlayıcıya (`Token = AKIAEXAMPLEKEY123`) ya da tırnaksız noktalı zincire (ör. JWT biçimi `a.b.c`) atama geçer; sonraki satıra taşan birleştirmede ilk satır zincirse ikisi de geçer. Kilit dosyası istisnası dosya adına göredir (içeriğine bakılmaz). Sınama: `bash scripts/git-hooks/test-pre-commit.sh`.
 
 ---
 

@@ -41,6 +41,16 @@ check() {
 }
 
 echo "--- must be caught (exit 1) ---"
+check 1 "cs placeholder concat"      "src/r1.cs"           'Password = "<" + "Zx9kLmQ2rT7vWp" + ">";'
+check 1 "cs env-style concat"        "src/r2.cs"           'Password = "${" + "Zx9kLmQ2rT7vWp" + "}";'
+check 1 "ts angle concat"            "src/r3.ts"           "const token = '<' + 'Zx9kLmQ2rT7vWp' + '>';"
+check 1 "java angle concat"          "src/r4.java"         'String password = "<" + "Zx9kLmQ2rT7vWp" + ">";'
+check 1 "cs angle concat comma"      "src/r5.cs"           'Password = "<" + "Zx9kLmQ2rT7vWp" + ">",'
+check 1 "cs angle list"              "src/r6.cs"           'Password = "<", Other = "Zx9kLmQ2rT7vWp>";'
+check 1 "cs angle concat variable"   "src/r7.cs"           'Password = "<" + realSecretValue + ">";'
+check 1 "cs your- concat"            "src/r8.cs"           'Password = "your-" + "Zx9kLmQ2rT7vWp";'
+check 1 "py angle concat no ;"       "src/r9.py"           'PASSWORD = "<" + "Zx9kLmQ2rT7vWp" + ">"'
+check 1 "ts angle concat no ;"       "src/r10.ts"          "const token = '<' + 'Zx9kLmQ2rT7vWp' + '>'"
 check 1 "config.env value"           "app/config.env"      'API_KEY=sk_live_9f3a1b2c3d4e'
 check 1 "yaml password"              "app/settings.yaml"   'password: hunter2hunter2'
 check 1 "json password"              "app/appsettings.json" '  "password": "abc12345xyz",'
@@ -206,7 +216,9 @@ check 0 "cs placeholder literal"     "src/E5.cs"           'var Password = "<YOU
 check 0 "cs changeme literal"        "src/p1.cs"           'var Password = "changeme";'
 check 0 "cs env placeholder literal" "src/p2.cs"           'var Password = "${DB_PASSWORD}";'
 check 0 "cs placeholder CRLF"        "src/p3.cs"           $'var Password = "<YOUR_PASSWORD>";\r'
-check 0 "cs changeme ;"              "src/p4.cs"           'var Password = "changeme";'
+check 0 "cs placeholder comma"       "src/p5.cs"           'Password = "<YOUR_TOKEN>",'
+check 0 "cs empty literal"           "src/p6.cs"           'Password = "";'
+check 0 "cs changeme ;"             "src/p4.cs"           'var Password = "changeme";'
 check 0 "cs CRLF type name"          "src/p10.cs"          $'CancellationToken ct = default;\r'
 check 0 "cs CRLF expression"         "src/p11.cs"          $'options.ConnectionString = builder.ConnectionString;\r'
 check 0 "cs nameof ApiKey"           "src/n9.cs"           'var ApiKeyName = nameof(ApiKey);'

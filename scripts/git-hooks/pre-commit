@@ -9,17 +9,22 @@
 # Layer 2 (content) — staged content contains a private key block, or assigns
 #                     a real-looking value to a known secret key name
 #
-#                     Skipped in Layer 2: generated package lock files
-#                     (packages.lock.json, package-lock.json, yarn.lock,
-#                     pnpm-lock.yaml, Cargo.lock, poetry.lock). In source code
-#                     files (.cs .ts .js .java .go .py ...) an assignment whose
-#                     right side has no quote (an expression or type name) is
-#                     skipped, unless it looks like embedded key material
-#                     (8+ decimal/hex digits, 4+ array items or 3+ hex items,
-#                     Ruby %q, heredoc).
-#                     Quoted right sides keep the generic length rule (8+ chars
-#                     in total); if every literal is a placeholder AND no key
-#                     material remains outside the literals, skipped.
+#                     Two narrow carve-outs, nothing else:
+#                     1. Generated package lock files (packages.lock.json,
+#                        package-lock.json, yarn.lock, pnpm-lock.yaml,
+#                        Cargo.lock, poetry.lock) skip the assignment check.
+#                        Layer 1 and the private key check still apply.
+#                     2. In source code files (.cs .ts .tsx .js .jsx .py .go
+#                        .rb .php .java .kt .rs .swift .razor .cshtml) a line is
+#                        not a candidate when its right side (trailing ; , ) {
+#                        and blanks trimmed) is ENTIRELY one of: a single
+#                        identifier or dotted chain (CancellationToken,
+#                        builder.ConnectionString), nameof(<chain>), null,
+#                        default, default(<type>), or a placeholder. Anything
+#                        with a quote, bracket, operator or digit start is
+#                        still checked.
+#                        Known limit: `Token = AKIAEXAMPLEKEY123` (bare
+#                        identifier) passes in source code.
 #
 # Deliberately generic: no domain- or vendor-specific patterns. Project
 # specifics go in scripts/git-hooks/hooks.config, not here.
@@ -42,18 +47,6 @@ DEFAULT_SECRET_KEYS='(SECRET|PASSWORD|PASSWD|API_?KEY|ACCESS_?KEY|PRIVATE_?KEY|T
 
 # Values that are obviously not real secrets.
 PLACEHOLDER='^[[:space:]]*("|'"'"')?(<[^>]*>|\$\{[^}]*\}|changeme|change_me|xxx+|todo|placeholder|your[-_].*|example|dummy|\*+|)("|'"'"')?[[:space:]]*$'
-
-# Unquoted embedded key material (source code only): 8+ decimal or hex digits
-# (_ separators allowed), or 4+ numeric/hex array items (3+ when every item is
-# hex) with optional (type) cast, minus sign, 0X, suffix (u8, L, .toByte()).
-# Keep this in ONE place.
-KEY_ITEM='(\([A-Za-z]+\))?-?(0[xX][0-9A-Fa-f_]+|[0-9][0-9_]*)[A-Za-z0-9_.()]*[[:space:]]*,[[:space:]]*'
-HEX_ITEM='(\([A-Za-z]+\))?-?0[xX][0-9A-Fa-f_]+[A-Za-z0-9_.()]*'
-KEY_MATERIAL='[0-9][0-9_]{7,}|0[xX][0-9A-Fa-f_]{8,}|('"$KEY_ITEM"'){3,}|('"$HEX_ITEM"'[[:space:]]*,[[:space:]]*){2}'"$HEX_ITEM"
-# Ruby string-like literals with an arbitrary delimiter (%q/../, %W[..], %i<..>).
-RUBY_PERCENT='%[qQwWiI]?[^[:alnum:][:space:]=]'
-# Heredoc opener (<<~X, <<-X, <<X, <<"X"); only .rb and .php use it.
-HEREDOC_OPEN='<<[~-]?[A-Za-z_"'"'"']'
 
 log_bypass() {
   local repo_root log_file timestamp git_user reason note="$1"
@@ -112,12 +105,10 @@ while IFS= read -r path; do
   case "$path" in
     packages.lock.json|*/packages.lock.json|package-lock.json|*/package-lock.json|yarn.lock|*/yarn.lock|pnpm-lock.yaml|*/pnpm-lock.yaml|Cargo.lock|*/Cargo.lock|poetry.lock|*/poetry.lock) is_lock=1 ;;
   esac
-  # In source code only a quoted string literal on the right-hand side is a
-  # secret candidate; type names and expressions (`CancellationToken ct`,
-  # `ConnectionString = builder.ConnectionString`) are not.
+  # Narrow identifier carve-out applies to source code files only.
   is_code=0
   case "$path" in
-    *.cs|*.ts|*.tsx|*.js|*.jsx|*.mjs|*.cjs|*.java|*.kt|*.go|*.py|*.rs|*.rb|*.php|*.swift|*.scala) is_code=1 ;;
+    *.cs|*.ts|*.tsx|*.js|*.jsx|*.py|*.go|*.rb|*.php|*.java|*.kt|*.rs|*.swift|*.razor|*.cshtml) is_code=1 ;;
   esac
   # Only added lines, and skip binaries.
   added="$(git diff --cached -U0 -- "$path" 2>/dev/null | grep -E '^\+[^+]' || true)"
@@ -144,38 +135,25 @@ while IFS= read -r path; do
     # and then one identifier. A sentence or a URL path that merely contains the word
     # ("POST /odeme/api/get-token: ...") is prose (Phase 9: false positive on a task
     # block, learning promotion Ö-171).
-    max_words=2
-    echo "$lhs" | grep -qE "^[[:space:]]*([\"']?[A-Za-z]+[\"']?[[:space:]]+){0,$max_words}[\"']?[]A-Za-z0-9_.[-]+[\"']?[[:space:]]*\$" || continue
+    echo "$lhs" | grep -qE "^[[:space:]]*([\"']?[A-Za-z]+[\"']?[[:space:]]+){0,2}[\"']?[]A-Za-z0-9_.[-]+[\"']?[[:space:]]*\$" || continue
     # Grab whatever is on the right-hand side of = or :
     value="$(echo "$body" | sed -E 's/^[^=:]*[=:][[:space:]]*//')"
-    short_ok=0
     if [ "$is_code" = "1" ]; then
-      # Source code: a right side with no quote is an expression or type name
-      # (`CancellationToken ct`, `builder.ConnectionString`), unless it looks
-      # like embedded key material (long number, numeric/hex array, Ruby %q()).
-      # The length check below runs on the whole right side, as it always did.
-      mat_re="$KEY_MATERIAL"
-      case "$path" in
-        *.rb) mat_re="$KEY_MATERIAL|$RUBY_PERCENT|$HEREDOC_OPEN" ;;
-        *.php) mat_re="$KEY_MATERIAL|$HEREDOC_OPEN" ;;
-      esac
-      case "$value" in
-        *[\"\'\`]*) ;;
-        *) echo "$value" | grep -qE "$mat_re" || continue; short_ok=1 ;;
-      esac
-      # Every literal is a placeholder ("changeme", "<YOUR_KEY>", "") -> not a
-      # secret, unless key material remains OUTSIDE the literals ("" + 12345678).
-      escaped="$(echo "$value" | sed -E 's/\\./_/g')"
-      literals="$(echo "$escaped" | grep -oE "\"[^\"]*\"|'[^']*'|\`[^\`]*\`" || true)"
-      outside="$(echo "$escaped" | sed -E "s/\"[^\"]*\"|'[^']*'|\`[^\`]*\`//g")"
-      if [ -n "$literals" ] && ! echo "$literals" | grep -qviE "$PLACEHOLDER" \
-         && ! echo "$outside" | grep -qE "$mat_re"; then continue; fi
+      # Narrow carve-out: the whole right side is an identifier, dotted chain,
+      # nameof(chain), null, default, default(Type) or a placeholder -- not a
+      # literal.
+      ID='[A-Za-z_][A-Za-z0-9_]*'
+      CHAIN="$ID(\\.$ID)*"
+      v_loose="$(echo "$value" | sed -E 's/[;,){[:space:]]*$//')"
+      v_strict="$(echo "$value" | sed -E 's/[;,{[:space:]]*$//')"
+      echo "$v_loose" | grep -qE "^$CHAIN\$" && continue
+      echo "$v_loose" | grep -qiE "$PLACEHOLDER" && continue
+      echo "$v_strict" | grep -qE "^(nameof\\($CHAIN\\)|default\\($CHAIN\\))\$" && continue
     fi
     echo "$value" | grep -qiE "$PLACEHOLDER" && continue
     # Ignore prose/markdown and code that merely names the key.
     echo "$body" | grep -qE '^[[:space:]]*(#|//|\*|>|\|)' && continue
-    # (key material found in an unquoted right side is a hit however short: <<-EOS)
-    [ "$short_ok" = "1" ] || { [ "${#value}" -lt 8 ] && continue; }
+    [ "${#value}" -lt 8 ] && continue
     add_finding "icerik: $path — sir anahtarina gercek deger atamasi: $(echo "$body" | cut -c1-60)" "anahtar-atamasi:$path"
     break
   done <<< "$added"

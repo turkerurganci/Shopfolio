@@ -56,7 +56,7 @@
 
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
-| T01 | Canlılık ucu | ⏳ | — | — | — |
+| T01 | Canlılık ucu | ⏳ | — | — | #338 |
 | T02 | Çözüm ve proje düzeni | ✓ | ✓ PASS (tur 2) | — | #335 |
 | T03 | Test altyapısı | ✓ | ✓ PASS (tur 3) | — | #337 |
 | T04 | CI hattı ve eşitlik denetimleri | ⬚ | — | — | — |

@@ -65,8 +65,8 @@ Ek: `dotnet build Shopfolio.slnx` 0 uyarı; `dotnet format --verify-no-changes` 
 ## Commit & PR
 
 - **Branch:** `task/T01-canlilik-ucu`
-- **Commit:** `dc585df` — T01: Canlilik ucu
-- **PR:** (açıldığında eklenir)
+- **Commit:** `dc585df` — T01: Canlilik ucu (rapor/durum/hafıza: `8c2c6f9`)
+- **PR:** #338
 - **CI:** yapım işçisi izlemez
 - **Post-merge run'lar:** *(validator doldurur)*
 

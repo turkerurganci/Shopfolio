@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-11-02 | **Satır:** 171 | **Gönderilen:** 0
+**Son güncelleme:** 2026-11-02 | **Satır:** 172 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -207,3 +207,4 @@
 | PF-169 | Doğrulayıcı sayacı anahtarı aşamasız: adım adı önceki aşamanın aynı adlı adımlarıyla çakışıp işi durdurdu (22 engel); sayaç aşamaya ya da oturuma bağlanmalı | Aşama 10 öğrenim terfisi (P-1) | K-1573 | `~/.claude/hooks/helper-guard.js` ve sayaç dosyası (proje dışı) | Onaylandı — ana oturum uygular (2026-11-02, K-1574) |
 | PF-170 | İşçi talimat şablonuna sabit yasak satırı: 'kabukta heredoc, here-string, `python -c`, `node -e`, `python -` yok; betik `Write` ile' (Aşama 9'da 97, Aşama 10'da 70 heredoc engeli); PF-152'nin devamı | Aşama 10 öğrenim terfisi (P-2) | K-1573 | yönetici işçi talimat şablonu (`~/.claude`, proje dışı) | Onaylandı — ana oturum uygular (2026-11-02, K-1574) |
 | PF-171 | CR tarayıcı hook'u: `INSTRUCTIONS §7` (1) kuralı elle işletiliyor, Windows'ta CRLF yazan araçlar dosyayı sessizce bozuyor; değişen dosyalarda CR arayan hook ya da CI adımı | Aşama 10 öğrenim terfisi (P-3, Ö-199) | K-1573 | `~/.claude/hooks/` (proje dışı) | Onaylandı — ana oturum uygular (2026-11-02, K-1574) |
+| PF-172 | Faz içi paralel task: plan kontrollü paralelliğe izin veriyor ama yönetici yardımcı düzeni task'ları tek tek yürütüyordu; hazır task'ların (bağımlılıkları ✓) hepsi birlikte, ayrı worktree'lerde başlar, hazır listeyi betik verir, bekçi zorlar. Playbook'a **en son**, proje bittikten sonra eklenecek not | Proje sahibinin isteği (2026-11-02, Implementation dönemi açılışı) | `INSTRUCTIONS §3.1` | `00 §D` (task döngüsü) · `.claude/INSTRUCTIONS.md` §3.1 · `~/.claude/hooks/helper-guard.js` kural 6, `lib/parallel.js`, `tools/hazir-tasklar.js` (proje dışı) | Uygulandı (bu repoda); playbook'a gönderim proje sonunda |

@@ -1,6 +1,6 @@
 # T04 — CI hattı ve eşitlik denetimleri
 
-**Faz:** F0 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -34,6 +34,8 @@
 | 8 | publish.yml main merge + sürüm etiketi; yazma izni | ✓ | `on.push.branches/tags`, `permissions.packages: write` |
 | 9 | Dependabot açık; boş komut kapıyı geçmez | ✓ | `dependabot.yml`; `ci-run.sh` `SETUP_COMPLETE=true` + boş → exit 1 (değişmedi) |
 
+**Validator kanıtı (tur 1, 2026-11-03, `c90bb8e`; dal CI'ı run 41545040571 success, 10 check):** 1 ✓ · 2 ✓ · 3 ✓ · 4 ✓ · 5 ✓ · 6 ✓ · 7 ✓ · 8 ✓ · 9 ✓. Kriter 2: CI günlüğünde Lint 9 test, Unit 15 test, filtresiz koşu 24 (kümeler ayrık); geçici kopyada props'a tablo dışı paket → Lint `RepositoryFiles_LibraryTableAndPackagesProps_Agree` kırmızı (exit 2), Unit 15/15 yeşil; geri alınınca Lint 9/9. Yanlış ad alanı dosyası → Lint `error IDE0130`. Kriter 3: geçici kopyada `CS0168` uyarılı dosya → `BUILD_CMD` `error CS0168`, Build FAILED; `log4net` 2.0.9 (kilit yeniden üretilmiş) → `error NU1904`/`NU1902` "Warning As Error", geri yükleme düştü. Kriter 4: CI `postgres:18` hizmeti, entegrasyon 14/14; yerelde PostgreSQL 18.6 konteyneriyle 14/14, koşu sonrası çalışma ağacı temiz. Kriter 5: CI günlüğünde `== 1/4` "No changes have been made to the model", boş veritabanına demet, `##[notice]No published release yet…` ve iki `SKIPPED:` satırı; geçici kopyada göçsüz varlık eklenince "Changes have been made to the model" + `::error`, exit 1; geçici depoda `v0.1.0` etiketiyle 3. bölüm (önceki demet + yeni demet önceki şemaya) koştu, 4. bölüm `::warning` (D-19). Kriter 6: CI'da `PACKAGE_BUILD_CMD henuz bos — adim atlandi` uyarısı; `PUBLISH_CMD` boş → uyarı, exit 0. Kriter 7: geçici depoda 9 sondaj — PATCH 0 geçer; göçsüz yama geçer; göçlü açıklamalı yama exit 1; `migration-fix: K-1234` satırıyla uyarıyla geçer; bozuk `K-12x` exit 1; hafif etiket (commit mesajı satırı taşısa da) exit 1; sürüm sırasında ilk etiket "check does not run"; etiket dışı ad exit 1. Kriter 8: `on.push.branches: [main]` + `tags: v[0-9]+.[0-9]+.[0-9]+`, `packages: write`; actionlint 1.7.7 iki iş akışında temiz. Kriter 9: `.github/dependabot.yml` (nuget + github-actions); geçici kopyada `SETUP_COMPLETE=true` + boş `PACKAGE_BUILD_CMD` → `::error`, exit 1.
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
@@ -49,10 +51,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-03, `c90bb8e`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r1.md`. Kabul kriterleri 9/9 ✓; FAIL `09 §25` gereğidir ("hayır" cevabı düzeltilmeden kabul edilmez) |
+| Bulgu sayısı | 2 — (1) S1 DÜŞÜK: PR #339 açıklamasında okunan `09` bölümleri (çekirdek yedi bölüm §1, §2, §5, §6, §23, §24, §25; §3.1) ve `05` MK-12/MK-70/MK-74, `GUARDRAILS` §8 yazılı değil, `09 §25` sorularının cevapları yok (`09 §21.3`, §24 madde 1 ve 7); (2) S1 DÜŞÜK: `Docs/CI_CD_SETUP.md` §1 envanteri `publish.yml`'i hâlâ "Ana dala merge sonrası artifact yayınlama · push (main) + manuel" diye yazıyor — PR etiket tetikleyicisini ve yama-göç denetimini ekledi; §4.2 "Test filtreleme" boş kaldı (ayrım T04'te `Consistency` özelliğiyle kuruldu) |
+| Düzeltme gerekli mi | Evet — yeni yapım turu: PR açıklamasına "Okunan bölümler" ve "`09 §25` soruları" blokları; `CI_CD_SETUP.md` §1 `publish.yml` satırı ve §4.2 |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 `05 §8.7.4` ↔ `09 §10.6` madde 7 çelişkisi (veri bozan göçün düzeltmesi gövde değişikliği mi, yeni göç mü; T04 öncesi; denetim iki okumada da doğru) → D-20; K2 T06'nın kriterlerinde D-19 yazılı değil, ilk yayından sonra 6. adım yalnız uyarıyla yeşil kalır → D-19'a eklendi |
 
 ## Altyapı Değişiklikleri
 

@@ -4,11 +4,6 @@ builder.Services.AddRazorPages();
 
 WebApplication app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-}
-
 app.UseRouting();
 
 app.MapStaticAssets();

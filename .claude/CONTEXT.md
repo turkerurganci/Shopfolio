@@ -21,7 +21,7 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 | Proje adı | Shopfolio |
 | Tek cümlelik tanım | Herhangi bir firmanın kendi ürünlerini sergileyip çevrimiçi satabileceği ve kurumsal tanıtımını yapabileceği; üyelik (sipariş vermek için zorunlu değil — K-97), Google ile giriş (K-103), sipariş, ödeme ve sipariş takibi içeren web uygulaması. |
 | Mevcut dönem | Implementation |
-| Teknoloji yığını | C# / .NET 10 (LTS), ASP.NET Core Razor Pages (tek uygulama, sayfalar sunucuda üretilir), Entity Framework Core, PostgreSQL 18, düz JavaScript ve CSS (çatı ve npm yok); Linux konteynerleri, Compose, Caddy 2, pgBackRest; GitHub Actions ve GitHub Container Registry → [`Docs/05_TECHNICAL_ARCHITECTURE.md`](../Docs/05_TECHNICAL_ARCHITECTURE.md) §2 |
+| Teknoloji yığını | C# / .NET 10 (LTS), ASP.NET Core Razor Pages (tek uygulama, sayfalar sunucuda üretilir), Entity Framework Core, PostgreSQL 18, düz JavaScript ve CSS (çatı ve npm yok); Linux konteynerleri, Compose, Caddy 2, pgBackRest, dosya yedeği aracı (aday restic, §2.2.9); GitHub Actions ve GitHub Container Registry → [`Docs/05_TECHNICAL_ARCHITECTURE.md`](../Docs/05_TECHNICAL_ARCHITECTURE.md) §2 |
 | Dal koruma rejimi | **B — sistem-enforced** (ruleset aktif, `CI Gate` required; hook'lar da yerinde) |
 
 ---
@@ -93,7 +93,6 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 
 | Yol | Rol |
 |---|---|
-| `Shopfolio.slnx` · `global.json` · `Directory.Build.props` · `Directory.Packages.props` · `nuget.config` · `.editorconfig` | Kökteki çözüm ve derleme ayarları: üç proje, SDK sürümü, uyarıların hata sayılması, merkezî sabit paket sürümü, tek biçim kuralı (`09 §3.1`, §3.2, §4.1) |
 | `src/Shopfolio.Web/` | Uygulamanın tamamı — tek proje (.NET 10 Razor Pages); modüller bu projenin klasörüdür (`09 §4.1`) |
 | `src/Shopfolio.Web/Modules/<Modül>/` | Her iş modülü için bir klasör ve ad alanı `Shopfolio.Modules.<Modül>` |
 | `src/Shopfolio.Web/Infrastructure/` | Ortak altyapı: zaman kaynağı, dosya deposu, önbellek, hata yakalama, kayıt, bağlantı katmanı, tek veritabanı bağlamı ve göçler |

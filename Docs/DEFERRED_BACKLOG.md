@@ -1,6 +1,6 @@
 # Shopfolio — Ertelenmiş İşler Backlog'u
 
-**Son güncelleme:** 2026-11-02 | **Aktif kalem:** 5 | **Gate'i bloklayan:** 1
+**Son güncelleme:** 2026-11-02 | **Aktif kalem:** 1 | **Gate'i bloklayan:** 1
 
 > **Amaç:** Bilinçli olarak ertelenen **her** somut işin tek izlenebilir listesi.
 >
@@ -54,10 +54,10 @@
 
 | Önc. | ID | Açıklama | Tip | Hedef | Kanıt / kaynak |
 |---|---|---|---|---|---|
-| 🟡 | D-03 | `Shopfolio.Web.csproj`'da `<RootNamespace>Shopfolio</RootNamespace>` yok; şu an kök ad alanı `Shopfolio.Web` → ilk Razor sayfası `Shopfolio.Web.Pages.…` alır, `09 §5.1` madde 7 `Shopfolio.Pages.…` ister ("iskeleti kuran task'ta derlenerek sınanır"). `11`'de bu satırı taşıyan başka task yok. | `k-note` | T02 düzeltme turu ya da ilk sayfa/modül klasörünü açan task | `src/Shopfolio.Web/Shopfolio.Web.csproj` · `09 §5.1` madde 7 · `TASK_REPORTS/T02_REPORT.md` (tur 1) |
-| ⚪ | D-04 | IDE1006 (`_camelCase` adlandırma) IDE0008 gibi yalnız `dotnet format`'ta yakalanıyor, `dotnet build`'de değil (sondaj); `.editorconfig`'e `dotnet_diagnostic.IDE1006.severity = warning` eklenince build hata veriyor (sondaj). `09 §3.1` madde 4 notu yalnız IDE0008'i anıyor. | `doc-drift` | T04 (Lint komutu) ya da T02 düzeltme turu | `.editorconfig` · `09 §3.1` madde 4 · `TASK_REPORTS/T02_REPORT.md` (tur 1) |
-| ⚪ | D-05 | `.editorconfig` özel statik alanlara `s_camelCase` öneriyor (şablon artığı; severity `suggestion`) — `09 §3.1` madde 4 "özel alanlar `_camelCase`" ile çelişir. | `k-note` | T02 düzeltme turu ya da T04 | `.editorconfig:251-253`, `:388-391` · `09 §3.1` madde 4 |
-| ⚪ | D-06 | `Program.cs` `UseExceptionHandler("/Error")` var olmayan sayfaya işaret ediyor (şablon artığı); hata katmanı `09 §8.1`'in task'ında yeniden yazılır. | `code-todo` | `09 §8.1`'in hata katmanı task'ı | `src/Shopfolio.Web/Program.cs:9` · `09 §8.1` |
+| ✅ | D-03 | **✅ Çözüldü → T02 düzeltme turu 1: `Shopfolio.Web.csproj`'a `<RootNamespace>Shopfolio</RootNamespace>` yazıldı; sondaj sayfası `Shopfolio.Pages.Storefront` ad alanıyla derlendi.** Önceki kayıt: `Shopfolio.Web.csproj`'da `<RootNamespace>Shopfolio</RootNamespace>` yok; şu an kök ad alanı `Shopfolio.Web` → ilk Razor sayfası `Shopfolio.Web.Pages.…` alır, `09 §5.1` madde 7 `Shopfolio.Pages.…` ister ("iskeleti kuran task'ta derlenerek sınanır"). `11`'de bu satırı taşıyan başka task yok. | `k-note` | T02 düzeltme turu ya da ilk sayfa/modül klasörünü açan task | `src/Shopfolio.Web/Shopfolio.Web.csproj` · `09 §5.1` madde 7 · `TASK_REPORTS/T02_REPORT.md` (tur 1) |
+| ✅ | D-04 | **✅ Çözüldü → T02 düzeltme turu 1: `09 §3.1` madde 4 notuna IDE1006 eklendi (sondajla doğrulandı: yalnız `dotnet format`'ta hata).** Önceki kayıt: IDE1006 (`_camelCase` adlandırma) IDE0008 gibi yalnız `dotnet format`'ta yakalanıyor, `dotnet build`'de değil (sondaj); `.editorconfig`'e `dotnet_diagnostic.IDE1006.severity = warning` eklenince build hata veriyor (sondaj). `09 §3.1` madde 4 notu yalnız IDE0008'i anıyor. | `doc-drift` | T04 (Lint komutu) ya da T02 düzeltme turu | `.editorconfig` · `09 §3.1` madde 4 · `TASK_REPORTS/T02_REPORT.md` (tur 1) |
+| ✅ | D-05 | **✅ Çözüldü → T02 düzeltme turu 1: özel statik alan kuralı `_camelCase` yapıldı, `s_camelcase` stili silindi.** Önceki kayıt: `.editorconfig` özel statik alanlara `s_camelCase` öneriyor (şablon artığı; severity `suggestion`) — `09 §3.1` madde 4 "özel alanlar `_camelCase`" ile çelişir. | `k-note` | T02 düzeltme turu ya da T04 | `.editorconfig:251-253`, `:388-391` · `09 §3.1` madde 4 |
+| ✅ | D-06 | **✅ Çözüldü → T02 düzeltme turu 1: var olmayan sayfaya işaret eden `UseExceptionHandler("/Error")` bloğu kaldırıldı; hata katmanı `09 §8.1` task'ında yazılır.** Önceki kayıt: `Program.cs` `UseExceptionHandler("/Error")` var olmayan sayfaya işaret ediyor (şablon artığı); hata katmanı `09 §8.1`'in task'ında yeniden yazılır. | `code-todo` | `09 §8.1`'in hata katmanı task'ı | `src/Shopfolio.Web/Program.cs:9` · `09 §8.1` |
 
 ---
 

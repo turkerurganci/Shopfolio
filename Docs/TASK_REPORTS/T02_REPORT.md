@@ -18,7 +18,7 @@
 
 ## Etkilenen Modüller / Dosyalar
 
-- Kök: `Shopfolio.slnx`, `global.json`, `nuget.config`, `Directory.*.props`, `.editorconfig`, `.gitignore`, `.gitattributes`, `SETUP.md`
+- Kök: `Shopfolio.slnx`, `global.json`, `nuget.config`, `Directory.*.props`, `.editorconfig`, `.gitignore`, `.gitattributes`
 - `src/Shopfolio.Web/**`, `tests/*/**`, `deploy/.env.example`
 - `.claude/CONTEXT.md`, `Docs/09_CODING_GUIDELINES.md`, `Docs/IMPLEMENTATION_STATUS.md`, `.claude/memory/MEMORY.md`
 
@@ -79,10 +79,26 @@
 
 **Yapım raporu karşılaştırması:** 3 uyuşmazlık — KK7'yi rapor ✓ sayıyor (validator ~); rapor "anahtar adları örnektir" diyerek uydurma adları kabul ediyor; SETUP onayı raporda yok. Notlardaki `core.hooksPath` = `scripts/git-hooks` gözlemi validator ortamında mutlak yoldur (etkin; fark önemsiz).
 
+## Düzeltme turu 1
+
+| Bulgu | Yapılan |
+|---|---|
+| 1 — `CONTEXT.md` §3 dosya listesi | Kök dosyaları sayan ilk satır kaldırıldı; §3 yalnız klasör düzeyinde (`09 §4.2`) |
+| 2 — yığında dosya yedeği aracı yok | §1 yığın satırına "dosya yedeği aracı (aday restic, §2.2.9)" eklendi (`05 §2.3.1`) |
+| 3 — `.env.example` uydurma anahtarlar | `Shopfolio__Domain`, `SenderAddress`, `Google__ClientId`, `RateLimit__…`, `StatusThreshold__…` çıkarıldı; yalnız dokümandaki `Database__LivenessTimeoutSeconds` (`09 §10.7` madde 6, §3.5 varsayılan 2) kaldı; başlıkta "anahtarı getiren task ekler" notu; sır değeri yok |
+| 4 — PR açıklaması | Okunan `09` bölümleri, `05` birimleri ve `09 §25` cevapları PR #335 açıklamasına yazıldı |
+| K1 (D-03) | `Shopfolio.Web.csproj`'a `<RootNamespace>Shopfolio</RootNamespace>`; sondaj sayfası `Shopfolio.Pages.Storefront` ad alanıyla derlendi, `msbuild -getProperty:RootNamespace` = `Shopfolio`; sondaj silindi |
+| K2 (D-04) | `09 §3.1` madde 4 notuna IDE1006 eklendi; sondajla doğrulandı (yalnız `dotnet format`'ta hata) |
+| K3 (D-05) | `.editorconfig` özel statik alan kuralı `_camelCase` (`warning`); `s_camelcase` stili silindi |
+| K4 (D-06) | Var olmayan `/Error` sayfasına işaret eden `UseExceptionHandler` bloğu `Program.cs`'ten kaldırıldı; hata katmanı `09 §8.1`'in task'ında yazılır |
+| Ek gözlem — `SETUP.md` | `SETUP.md` değişiklikleri geri alındı (`git diff origin/main -- SETUP.md` boş): değişiklik proje sahibi onayıyla yapılır (GUARDRAILS §2; `09 §4.2` madde 2); kutular ve parametre tablosu T09'dan önce tek öneriyle sorulacak |
+
+`DEFERRED_BACKLOG.md`: D-03…D-06 kapalı işaretlendi, aktif kalem 1. Doğrulama: `dotnet build Shopfolio.slnx -c Release` 0 uyarı, `dotnet format Shopfolio.slnx --verify-no-changes` temiz.
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok
-- **Config / ortam değişkeni:** Var — `deploy/.env.example` (sır olmayan ayar şablonu; anahtar adları örnektir, ayarı getiren task'ta kesinleşir — `09 §4.3` madde 3)
+- **Config / ortam değişkeni:** Var — `deploy/.env.example` (sır olmayan ayar şablonu; yalnız dokümanda adı geçen anahtar; ayarı getiren task satırını ekler — `09 §4.3` madde 3)
 - **Paketleme / dağıtım:** Yok
 - **Yeni bağımlılık:** Yok (NuGet paketi eklenmedi)
 

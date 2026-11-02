@@ -15,9 +15,10 @@
 #                     files (.cs .ts .js .java .go .py ...) an assignment whose
 #                     right side has no quote (an expression or type name) is
 #                     skipped, unless it looks like embedded key material
-#                     (8+ digits, 4+ numeric/hex array items, Ruby %q()).
+#                     (8+ decimal/hex digits, 4+ array items, Ruby %q, heredoc).
 #                     Quoted right sides keep the generic length rule (8+ chars
-#                     in total); if every literal is a placeholder, skipped.
+#                     in total); if every literal is a placeholder AND no key
+#                     material remains outside the literals, skipped.
 #
 # Deliberately generic: no domain- or vendor-specific patterns. Project
 # specifics go in scripts/git-hooks/hooks.config, not here.
@@ -40,6 +41,16 @@ DEFAULT_SECRET_KEYS='(SECRET|PASSWORD|PASSWD|API_?KEY|ACCESS_?KEY|PRIVATE_?KEY|T
 
 # Values that are obviously not real secrets.
 PLACEHOLDER='^[[:space:]]*("|'"'"')?(<[^>]*>|\$\{[^}]*\}|changeme|change_me|xxx+|todo|placeholder|your[-_].*|example|dummy|\*+|)("|'"'"')?[[:space:]]*$'
+
+# Unquoted embedded key material (source code only): 8+ decimal or hex digits
+# (_ separators allowed), or 4+ numeric/hex array items with optional (type)
+# cast, minus sign, 0X, suffix (u8, L, .toByte()). Keep this in ONE place.
+KEY_ITEM='(\([A-Za-z]+\))?-?(0[xX][0-9A-Fa-f_]+|[0-9][0-9_]*)[A-Za-z0-9_.()]*[[:space:]]*,[[:space:]]*'
+KEY_MATERIAL='[0-9][0-9_]{7,}|0[xX][0-9A-Fa-f_]{8,}|('"$KEY_ITEM"'){3,}'
+# Ruby string-like literals with an arbitrary delimiter (%q/../, %W[..], %i<..>).
+RUBY_PERCENT='%[qQwWiI]?[^[:alnum:][:space:]=]'
+# Heredoc opener (<<~X, <<-X, <<X, <<"X"); only .rb and .php use it.
+HEREDOC_OPEN='<<[~-]?[A-Za-z_"'"'"']'
 
 log_bypass() {
   local repo_root log_file timestamp git_user reason note="$1"
@@ -134,23 +145,34 @@ while IFS= read -r path; do
     echo "$lhs" | grep -qE "^[[:space:]]*([\"']?[A-Za-z]+[\"']?[[:space:]]+){0,$max_words}[\"']?[]A-Za-z0-9_.[-]+[\"']?[[:space:]]*\$" || continue
     # Grab whatever is on the right-hand side of = or :
     value="$(echo "$body" | sed -E 's/^[^=:]*[=:][[:space:]]*//')"
+    short_ok=0
     if [ "$is_code" = "1" ]; then
       # Source code: a right side with no quote is an expression or type name
       # (`CancellationToken ct`, `builder.ConnectionString`), unless it looks
       # like embedded key material (long number, numeric/hex array, Ruby %q()).
       # The length check below runs on the whole right side, as it always did.
+      mat_re="$KEY_MATERIAL"
+      case "$path" in
+        *.rb) mat_re="$KEY_MATERIAL|$RUBY_PERCENT|$HEREDOC_OPEN" ;;
+        *.php) mat_re="$KEY_MATERIAL|$HEREDOC_OPEN" ;;
+      esac
       case "$value" in
         *[\"\'\`]*) ;;
-        *) echo "$value" | grep -qE '[0-9]{8,}|((0x[0-9A-Fa-f]+|[0-9]+)[[:space:]]*,[[:space:]]*){3,}|%[qQw]?[([{<|!]' || continue ;;
+        *) echo "$value" | grep -qE "$mat_re" || continue; short_ok=1 ;;
       esac
-      # Every literal is a placeholder ("changeme", "<YOUR_KEY>", "") -> not a secret.
-      literals="$(echo "$value" | sed -E 's/\\./_/g' | grep -oE "\"[^\"]*\"|'[^']*'|\`[^\`]*\`" || true)"
-      if [ -n "$literals" ] && ! echo "$literals" | grep -qviE "$PLACEHOLDER"; then continue; fi
+      # Every literal is a placeholder ("changeme", "<YOUR_KEY>", "") -> not a
+      # secret, unless key material remains OUTSIDE the literals ("" + 12345678).
+      escaped="$(echo "$value" | sed -E 's/\\./_/g')"
+      literals="$(echo "$escaped" | grep -oE "\"[^\"]*\"|'[^']*'|\`[^\`]*\`" || true)"
+      outside="$(echo "$escaped" | sed -E "s/\"[^\"]*\"|'[^']*'|\`[^\`]*\`//g")"
+      if [ -n "$literals" ] && ! echo "$literals" | grep -qviE "$PLACEHOLDER" \
+         && ! echo "$outside" | grep -qE "$mat_re"; then continue; fi
     fi
     echo "$value" | grep -qiE "$PLACEHOLDER" && continue
     # Ignore prose/markdown and code that merely names the key.
     echo "$body" | grep -qE '^[[:space:]]*(#|//|\*|>|\|)' && continue
-    [ "${#value}" -lt 8 ] && continue
+    # (key material found in an unquoted right side is a hit however short: <<-EOS)
+    [ "$short_ok" = "1" ] || { [ "${#value}" -lt 8 ] && continue; }
     add_finding "icerik: $path — sir anahtarina gercek deger atamasi: $(echo "$body" | cut -c1-60)" "anahtar-atamasi:$path"
     break
   done <<< "$added"

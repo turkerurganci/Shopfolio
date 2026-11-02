@@ -1,5 +1,7 @@
 using Npgsql;
 
+using DsnBuilder = Npgsql.NpgsqlConnectionStringBuilder;
+
 namespace Shopfolio.IntegrationTests.Database;
 
 [Collection(DatabaseInfrastructureDefinition.Name)]
@@ -76,6 +78,25 @@ public sealed class TestDatabaseInfrastructureTests
             await ExecuteAsync(_collection.Dsn, "DROP TABLE IF EXISTS isolation_probe", ct);
             await other.DisposeAsync();
         }
+    }
+
+    [Fact]
+    public async Task CreateDatabaseFromTemplate_AfterPooledConnectionToTemplate_Succeeds()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        DsnBuilder poolingTarget = new(_template.TemplateDsn);
+        poolingTarget.Pooling = true;
+        await using (NpgsqlConnection idle = new(poolingTarget.ConnectionString))
+        {
+            await idle.OpenAsync(ct);
+        }
+
+        // The connection is now idle in the pool of the template; the copy must still work whatever order the tests run in.
+        string name = await _template.CreateDatabaseFromTemplateAsync(ct);
+        bool exists = await _template.DatabaseExistsAsync(name, ct);
+        await _template.DropDatabaseAsync(name, ct);
+
+        Assert.True(exists);
     }
 
     private static async Task<bool> TableExistsAsync(string connectionString, string table, CancellationToken ct)

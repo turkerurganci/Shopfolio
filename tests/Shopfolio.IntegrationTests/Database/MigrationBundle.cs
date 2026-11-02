@@ -2,6 +2,8 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 
+using Shopfolio.UnitTests.Support;
+
 namespace Shopfolio.IntegrationTests.Database;
 
 /// <summary>
@@ -24,7 +26,7 @@ internal sealed class MigrationBundle : IDisposable
 
     public static async Task<MigrationBundle> BuildAsync(CancellationToken ct)
     {
-        string repositoryRoot = FindRepositoryRoot();
+        string repositoryRoot = RepositoryRoot.Find();
         string project = Path.Combine(repositoryRoot, "src", "Shopfolio.Web", "Shopfolio.Web.csproj");
         string directory = Path.Combine(Path.GetTempPath(), "shopfolio-bundle-" + Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(6)));
         Directory.CreateDirectory(directory);
@@ -61,17 +63,6 @@ internal sealed class MigrationBundle : IDisposable
         }
     }
 
-    private static string FindRepositoryRoot()
-    {
-        DirectoryInfo? directory = new(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "Shopfolio.slnx")))
-        {
-            directory = directory.Parent;
-        }
-
-        return directory?.FullName ?? throw new InvalidOperationException("Shopfolio.slnx was not found above the test assembly.");
-    }
-
     private static async Task RunAsync(string fileName, string[] arguments, string workingDirectory, CancellationToken ct)
     {
         ProcessStartInfo startInfo = new(fileName)
@@ -95,7 +86,16 @@ internal sealed class MigrationBundle : IDisposable
 
         using CancellationTokenSource timeoutSource = new();
         timeoutSource.CancelAfter(_buildTimeout);
-        await process.WaitForExitAsync(timeoutSource.Token).WaitAsync(ct);
+        try
+        {
+            await process.WaitForExitAsync(timeoutSource.Token).WaitAsync(ct);
+        }
+        catch (OperationCanceledException)
+        {
+            // Timeout or cancellation: do not leave a stuck process (and its children) behind.
+            process.Kill(entireProcessTree: true);
+            throw;
+        }
 
         if (process.ExitCode != 0)
         {

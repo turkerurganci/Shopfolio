@@ -24,6 +24,7 @@
   <ItemGroup>
     <!-- The hand-written fakes are shared as linked files; no second copy, no reference between test projects (09 19.1 item 3; K-1355). -->
     <Compile Include="..\Shopfolio.UnitTests\Fakes\**\*.cs" LinkBase="Fakes" />
+    <Compile Include="..\Shopfolio.UnitTests\Support\RepositoryRoot.cs" LinkBase="Support" />
   </ItemGroup>
 
 </Project>

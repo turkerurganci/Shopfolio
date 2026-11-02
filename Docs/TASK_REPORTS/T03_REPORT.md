@@ -70,7 +70,16 @@
 - **Şema/migration:** Yok — demet sıfır göç taşır; `AppDbContext` varlıksızdır (T101 doldurur).
 - **Config / ortam değişkeni:** Var — test için `SHOPFOLIO_TEST_DATABASE` (ya da `Tests:Database` kullanıcı sırrı). Değer repoya girmedi.
 - **Paketleme / dağıtım:** Yok.
-- **Yeni bağımlılık:** Var — xunit.v3 3.2.2, Mvc.Testing 10.0.11, ArchUnitNET 0.13.3, EFCore 10.0.11, EFCore.Design 10.0.11 (PrivateAssets=all), Npgsql 10.0.3, Npgsql.EFCore.PostgreSQL 10.0.3, EFCore.NamingConventions 10.0.1; yerel araç dotnet-ef 10.0.11. Lisanslar deponun LICENSE dosyalarından okundu (Apache-2.0, MIT, PostgreSQL License); hepsi `09` Kütüphaneler tablosunda.
+- **Yeni bağımlılık:** Var — xunit.v3 3.2.2, Mvc.Testing 10.0.11, ArchUnitNET 0.13.3, EFCore 10.0.11, EFCore.Design 10.0.11 (PrivateAssets=all), Npgsql 10.0.3, Npgsql.EFCore.PostgreSQL 10.0.3, EFCore.NamingConventions 10.0.1; yerel araç dotnet-ef 10.0.11. Lisanslar nuspec SPDX ifadesi ve deponun LICENSE dosyasından okundu, ikisi uyuşur (xunit.v3, ArchUnitNET, NamingConventions: Apache-2.0; Mvc.Testing, EFCore, EFCore.Design, dotnet-ef: MIT; Npgsql, Npgsql.EFCore.PostgreSQL: PostgreSQL); üç kilit dosyasındaki 82 paketin hepsi MIT/Apache-2.0/PostgreSQL (validator da okudu). Hepsi `09` Kütüphaneler tablosunda. Paket başına tam sürüm, bakımcı (nuspec `authors`), son yayın, geçişli bağımlılık lisansları, gerekçe ve erişim tarihi (2026-11-03) PR #337 açıklamasındaki "Yeni paket kanıtı" bloğunda (`09 §3.3` madde 1–2). `EFCore.NamingConventions` gerekçesi: `09 §5.2` madde 1 bağlam kurulumunda `UseSnakeCaseNamingConvention()` ister (K-1309); kalır.
+
+## Düzeltme Turu 1 (doğrulama tur 1 FAIL sonrası)
+
+- **Bulgu 1 (ORTA):** `TemplateDatabaseFixture` her şablon kopyasından önce `NpgsqlConnection.ClearAllPools()` çağırır; `TemplateDsn` havuzsuzdur (`Pooling=false`). Yeni test `CreateDatabaseFromTemplate_AfterPooledConnectionToTemplate_Succeeds` sıradan bağımsız tekrarlar (şablona havuzlu bağlantı boşta bırakılır, sonra kopya); boşaltma satırı çıkarılınca 55006 ile kırmızı olduğu gösterildi, geri konunca yeşil.
+- **Bulgu 2 (DÜŞÜK):** PR #337 açıklamasına paket kanıt bloğu eklendi; yukarıdaki "Yeni bağımlılık" satırı tamamlandı.
+- **K2:** `MigrationBundle.FindRepositoryRoot` kaldırıldı; `UnitTests/Support/RepositoryRoot.cs` bağlantılı derlenir.
+- **K3:** paket kalır; gerekçe PR açıklamasında.
+- **K4:** `MigrationBundle.RunAsync` zaman aşımı/iptalde `process.Kill(entireProcessTree: true)`.
+- **Koşular:** PostgreSQL 18 (Docker), `dotnet test --solution Shopfolio.slnx -c Release --no-build` 3 kez: 35/35 yeşil (Unit + Integration). Build 0 uyarı; `dotnet format --verify-no-changes` temiz.
 
 ## Commit & PR
 

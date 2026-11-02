@@ -19,12 +19,16 @@ public sealed class TemplateDatabaseFixture : IAsyncLifetime
 
     private string _adminDsn = string.Empty;
 
+    /// <summary>
+    /// Connection string of the template for tests. Not pooled: an idle pooled connection would block the next copy (55006).
+    /// </summary>
     public string TemplateDsn { get; private set; } = string.Empty;
 
     public async ValueTask InitializeAsync()
     {
         _adminDsn = TestDatabaseSettings.GetRequired();
-        TemplateDsn = WithDatabase(_adminDsn, TemplateName);
+        DsnBuilder unpooled = new(WithDatabase(_adminDsn, TemplateName)) { Pooling = false };
+        TemplateDsn = unpooled.ConnectionString;
 
         CancellationToken ct = TestContext.Current.CancellationToken;
         await DropDatabaseAsync(TemplateName, ct);
@@ -33,9 +37,7 @@ public sealed class TemplateDatabaseFixture : IAsyncLifetime
         using MigrationBundle bundle = await MigrationBundle.BuildAsync(ct);
         await bundle.ApplyAsync(TemplateDsn, ct);
 
-        // A database cannot be copied while another session is connected to it (09 19.1 item 4): empty the template's pool.
-        using NpgsqlConnection pooled = new(TemplateDsn);
-        NpgsqlConnection.ClearPool(pooled);
+        ClearTemplatePool();
     }
 
     public async ValueTask DisposeAsync()
@@ -54,6 +56,7 @@ public sealed class TemplateDatabaseFixture : IAsyncLifetime
     public async Task<string> CreateDatabaseFromTemplateAsync(CancellationToken ct)
     {
         string name = "shopfolio_test_" + Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(6));
+        ClearTemplatePool();
         await ExecuteAdminAsync($"CREATE DATABASE {name} TEMPLATE {TemplateName}", ct);
         return name;
     }
@@ -76,6 +79,15 @@ public sealed class TemplateDatabaseFixture : IAsyncLifetime
         command.Parameters.AddWithValue("name", name);
         object? count = await command.ExecuteScalarAsync(ct);
         return Convert.ToInt64(count, System.Globalization.CultureInfo.InvariantCulture) > 0;
+    }
+
+    /// <summary>
+    /// A database cannot be copied while another session is connected to it (09 19.1 item 4): empty the template's pool before every copy.
+    /// </summary>
+    private static void ClearTemplatePool()
+    {
+        // Every pool, not only the one of one exact connection string: a spelling difference gives another pool. Only idle connections are closed.
+        NpgsqlConnection.ClearAllPools();
     }
 
     private async Task ExecuteAdminAsync(string sql, CancellationToken ct)

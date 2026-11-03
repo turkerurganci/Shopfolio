@@ -71,6 +71,16 @@
 
 **Testler:** betik testleri 11 + 129 + 27 (üç kabukta; dosya yedeği +12), Unit 76/76 (Consistency dahil), `-warnaserror` ve `dotnet format --verify-no-changes` temiz, `docker compose config` çıkış 0, paketleme adım 1 taramaları yerelde temiz.
 
+## Düzeltme 2
+
+Tur 3 FAIL sonrası (birleşik hâl `c929163`; bulgu 1, `VAL-F016`, S1 ORTA; K11). Karar: kod `05 §7.6.8` ve MK-27'ye uyar.
+
+- **Bulgu 1:** `database-restore-drill.sh` kopyayı açtıktan sonra `pg_is_in_recovery()` yanlış olana dek yoklar (`DRILL_POLL_SECONDS`, varsayılan 2 sn; üst süre `DRILL_RECOVERY_TIMEOUT`, varsayılan 600 sn; aşılırsa betik hata verir, kayıt yazmaz). `pg_ctl -w` sıcak beklemede ilk tutarlılıkta döndüğü için eski betik kurtarma bitmeden okuyordu. Süre = temel yedek indirme + günlük indirme/uygulama (kurtarma bitene dek); "dönülen son an" kurtarma bittikten sonra okunur. Runbook §J.5 madde 1 buna göre güncellendi.
+- **Deneme (betik):** `tests/scripts/database-restore-drill.test.sh` (13 doğrulama; sahte `pgbackrest`, `pg_ctl`, `psql`): kopya üç yoklama boyunca kurtarmada, betik beklemeye devam eder ve arşivin son anını yazar (temel yedeğin anını değil); kurtarma hiç bitmezse üst süre içinde hata verir ve kayıt yazmaz.
+- **Deneme (gerçek imaj):** son tam yedekten (16:00:40) sonra 8 000 satır yazıldı, günlük arşivlendi (son WAL `…0B`); prova çıktısı: günlük `…03`–`…0B` geri yüklendi, `archive recovery complete`, `last-moment=2026-11-03 16:01:49.329111+00` (birincil sunucudaki son işlemle aynı; eski betik 16:00:40 civarını yazardı), `restore-duration-seconds=5`, depo `repo2`. Docker kaynakları (`shopfolio-t07fix2-*` konteyner, üç birim, imaj) adıyla silindi.
+- **K11:** PR #351 açıklaması birleşik hâle göre güncellendi (Unit 68 + Consistency 34 = 102; betik testleri 4 dosya). K10 kapalı.
+- **Testler:** betik testleri 4 dosya geçti (11 + 13 + 129 + 27), Unit + Consistency 102/102, `-warnaserror` 0/0, `dotnet format --verify-no-changes` 0, `docker compose config` üç bileşimde 0, paketleme adım 1 taramaları (`latest`, sır adı) temiz, `dotnet restore --locked-mode` 0.
+
 ## Doğrulama
 
 | Alan | Sonuç |

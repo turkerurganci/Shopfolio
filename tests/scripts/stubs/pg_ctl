@@ -1,0 +1,5 @@
+#!/bin/sh
+# Stub of pg_ctl for the script tests: records each call in STUB_CALLS and succeeds.
+
+echo "pg_ctl $*" >>"${STUB_CALLS:?STUB_CALLS is required}"
+exit 0

@@ -1,13 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure.DataModel;
+using Shopfolio.Modules.Settings;
 
 namespace Shopfolio.Infrastructure;
 
 /// <summary>
-/// The single database context (09 4.1 item 2, 5.2). It carries no entity yet: the entities arrive with the tasks that own them
-/// (T103 and on), each with its <c>DbSet</c> property (09 5.2 item 2) and its entity configuration in the module's folder; the context
-/// applies those configurations and does no other work. A module never opens a context of its own.
+/// The single database context (09 4.1 item 2, 5.2). The entities arrive with the tasks that own them, each with its <c>DbSet</c> property
+/// (09 5.2 item 2) and its entity configuration in the module's folder; the context applies those configurations and does no other work.
+/// A module never opens a context of its own.
 /// </summary>
 internal sealed class AppDbContext : DbContext
 {
@@ -15,6 +16,18 @@ internal sealed class AppDbContext : DbContext
         : base(options)
     {
     }
+
+    public DbSet<Province> Provinces => Set<Province>();
+
+    public DbSet<Country> Countries => Set<Country>();
+
+    public DbSet<Company> Companies => Set<Company>();
+
+    public DbSet<CompanySettings> CompanySettings => Set<CompanySettings>();
+
+    public DbSet<CompanyDeliveryProvince> CompanyDeliveryProvinces => Set<CompanyDeliveryProvince>();
+
+    public DbSet<LegalTextVersion> LegalTextVersions => Set<LegalTextVersion>();
 
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).
@@ -24,7 +37,7 @@ internal sealed class AppDbContext : DbContext
         return builder
             .UseNpgsql(connectionString)
             .UseSnakeCaseNamingConvention()
-            .AddInterceptors(EmptyKeyGuard.Instance, EmptyTextGuard.Instance);
+            .AddInterceptors(EmptyKeyGuard.Instance, EmptyTextGuard.Instance, ProtectedRecordsGuard.Instance);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

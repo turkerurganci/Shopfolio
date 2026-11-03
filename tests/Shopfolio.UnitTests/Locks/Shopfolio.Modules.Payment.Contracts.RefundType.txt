@@ -1,0 +1,7 @@
+Cancellation
+ItemRemoval
+LateDeliveryTermination
+Withdrawal
+DefectClaimRescission
+AmountBased
+LatePayment

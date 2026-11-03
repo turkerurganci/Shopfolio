@@ -36,6 +36,7 @@ public sealed class DataModelSourceScanTests
     [InlineData("HandWrittenName.cs", DataModelSourceScan.HandWrittenName)]
     [InlineData("RestrictDelete.cs", DataModelSourceScan.ForbiddenDeleteBehavior)]
     [InlineData("TurkishLetter.cs", DataModelSourceScan.TurkishLetterConstant)]
+    [InlineData("NumericEnumConversion.cs", DataModelSourceScan.NumericConversion)]
     public void Scan_OnViolationSample_ReportsTheRuleOnItsLine(string sample, string rule)
     {
         string path = SamplePath(sample);

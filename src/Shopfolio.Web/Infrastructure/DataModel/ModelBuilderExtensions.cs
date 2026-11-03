@@ -41,6 +41,40 @@ internal static partial class ModelBuilderExtensions
         return builder.HasAnnotation(RuleAnnotationPrefix + ruleName, sql);
     }
 
+    internal const string AllowedValuesAnnotation = "Shopfolio:AllowedValues";
+
+    /// <summary>
+    /// Declares the subset of an enum that the field uses (06 2.9.2): the check constraint of the column lists only these members.
+    /// A field without the declaration allows every member of the enum.
+    /// </summary>
+    public static PropertyBuilder<TEnum> HasAllowedValues<TEnum>(this PropertyBuilder<TEnum> builder, params TEnum[] values)
+        where TEnum : struct, Enum
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        return builder.HasAnnotation(AllowedValuesAnnotation, AllowedNames(values));
+    }
+
+    /// <inheritdoc cref="HasAllowedValues{TEnum}(PropertyBuilder{TEnum}, TEnum[])"/>
+    public static PropertyBuilder<TEnum?> HasAllowedValues<TEnum>(this PropertyBuilder<TEnum?> builder, params TEnum[] values)
+        where TEnum : struct, Enum
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        return builder.HasAnnotation(AllowedValuesAnnotation, AllowedNames(values));
+    }
+
+    private static string[] AllowedNames<TEnum>(TEnum[] values)
+        where TEnum : struct, Enum
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        string[] names = values.Select(EnumText<TEnum>.ToText).Distinct(StringComparer.Ordinal).ToArray();
+        if (names.Length == 0)
+        {
+            throw new ArgumentException("An allowed subset names at least one member.", nameof(values));
+        }
+
+        return names;
+    }
+
     /// <summary>The column holds money: <c>numeric(12,2)</c>.</summary>
     public static PropertyBuilder AsMoney(this PropertyBuilder builder)
     {

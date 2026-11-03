@@ -19,6 +19,8 @@ internal static partial class DataModelSourceScan
 
     public const string TurkishLetterConstant = "writes a Turkish letter constant outside TextNormalizer.cs";
 
+    public const string NumericConversion = "converts a value to a number (an enum is stored as its code name; 09 10.1 item 3)";
+
     /// <summary>The file that may make ids.</summary>
     public const string EntityIdsFile = "EntityIds.cs";
 
@@ -62,6 +64,11 @@ internal static partial class DataModelSourceScan
             {
                 findings.Add((TurkishLetterConstant, i + 1));
             }
+
+            if (NumericConversionCall().IsMatch(line))
+            {
+                findings.Add((NumericConversion, i + 1));
+            }
         }
 
         return findings;
@@ -78,6 +85,9 @@ internal static partial class DataModelSourceScan
 
     [GeneratedRegex(@"\bDeleteBehavior\s*\.\s*(Restrict|ClientCascade|ClientSetNull|ClientNoAction)\b")]
     private static partial Regex ForbiddenDeleteBehaviorName();
+
+    [GeneratedRegex(@"\bHasConversion\s*<\s*(int|short|long|byte|sbyte|ushort|uint|ulong|Int16|Int32|Int64)\s*>|\bEnumToNumberConverter\b")]
+    private static partial Regex NumericConversionCall();
 
     [GeneratedRegex("'[ıİçÇğĞöÖşŞüÜ]'")]
     private static partial Regex TurkishLetterLiteral();

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Shopfolio.Infrastructure.DataModel;
 
@@ -15,6 +16,8 @@ namespace Shopfolio.Infrastructure.DataModel;
 /// <item>a <c>Version</c> integer is a concurrency token: the update carries the loaded version as its condition;</item>
 /// <item>a rule declared with <see cref="ModelBuilderExtensions.HasRule{TEntity}"/> becomes a check constraint named
 /// <c>ck_&lt;table&gt;_&lt;rule&gt;</c>;</item>
+/// <item>an enum property must be stored as text, and its column gets the check constraint of the allowed code names
+/// (<c>ck_&lt;table&gt;_&lt;column&gt;</c>); a subset is declared with <c>HasAllowedValues</c>;</item>
 /// <item>a <see cref="decimal"/> must say its type: money, percent or net quantity (06 2.5.1).</item>
 /// </list>
 /// </summary>
@@ -35,6 +38,71 @@ internal sealed class ModelRulesConvention : IModelFinalizingConvention
             ApplyKeyRule(entityType);
             ApplyPropertyRules(entityType);
             ApplyCheckRules(entityType);
+            ApplyEnumRules(entityType);
+        }
+    }
+
+    /// <summary>
+    /// The one enum that is written as text without a check constraint: the audit trail cannot be converted by a migration and shows an
+    /// unrecognized code as it is (09 10.1 item 3; 9.2 item 2). The type is named, not referenced: shared infrastructure does not refer
+    /// to a module type (09 6 item 2); a test holds the name equal to the type's.
+    /// </summary>
+    private const string ValueConverterTypeAnnotation = "ValueConverterType";
+
+    internal const string AuditOperationTypeName = "Shopfolio.Modules.Administration.Contracts.AuditOperation";
+
+    /// <summary>
+    /// Whether the property has a conversion to text: set by instance, by provider type, or by converter type (the way the context's
+    /// convention sets it, before the model is finished).
+    /// </summary>
+    private static bool IsStoredAsText(IConventionProperty property)
+    {
+        Type? provider = property.GetProviderClrType() ?? property.GetValueConverter()?.ProviderClrType;
+        if (provider is not null)
+        {
+            return provider == typeof(string);
+        }
+
+        for (Type? converter = property.FindAnnotation(ValueConverterTypeAnnotation)?.Value as Type; converter is not null; converter = converter.BaseType)
+        {
+            if (converter.IsGenericType && converter.GetGenericTypeDefinition() == typeof(ValueConverter<,>))
+            {
+                return converter.GetGenericArguments()[1] == typeof(string);
+            }
+        }
+
+        return false;
+    }
+
+    private static void ApplyEnumRules(IConventionEntityType entityType)
+    {
+        foreach (IConventionProperty property in entityType.GetDeclaredProperties())
+        {
+            Type type = Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType;
+            if (!type.IsEnum)
+            {
+                continue;
+            }
+
+            if (!IsStoredAsText(property))
+            {
+                throw new InvalidOperationException(
+                    $"The enum property '{entityType.DisplayName()}.{property.Name}' is not stored as text; an enum is stored as its code name (06 2.9.1; 09 10.1 item 3).");
+            }
+
+            if (type.FullName == AuditOperationTypeName)
+            {
+                continue;
+            }
+
+            string table = entityType.GetTableName()
+                ?? throw new InvalidOperationException($"The entity '{entityType.DisplayName()}' is not mapped to a table but has the enum property '{property.Name}'.");
+            string column = property.GetColumnName(StoreObjectIdentifier.Table(table, entityType.GetSchema()))
+                ?? throw new InvalidOperationException($"The enum property '{entityType.DisplayName()}.{property.Name}' has no column name.");
+            string[] allowed = property.FindAnnotation(ModelBuilderExtensions.AllowedValuesAnnotation)?.Value as string[]
+                ?? Enum.GetNames(type);
+            string list = string.Join(", ", allowed.Select(name => "'" + name.Replace("'", "''", StringComparison.Ordinal) + "'"));
+            entityType.AddCheckConstraint("ck_" + table + "_" + column, $"\"{column}\" IN ({list})");
         }
     }
 

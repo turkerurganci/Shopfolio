@@ -1,6 +1,6 @@
 # T06 — Üç imaj ve kayıt defteri
 
-**Faz:** F0 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -37,6 +37,8 @@
 | 7 | Kayıt defteri GHCR; görünürlük adımı yazılı | ✓ | `publish-images.sh`, `CI_CD_SETUP.md` §3.4 (açılış T09) |
 | 8 | CI Paketleme adımı üç imajı derler, canlılık 200; yayın komutları | ✓ (yerel) / ? (CI) | Yerel: `package-build.sh` baştan sona geçti (PostgreSQL = yerel derlenen veritabanı imajı); `publish-images.sh` kuru koşusu. **Actions'ta koşusu ve ana dal merge'indeki gerçek yayın bu PR'ın CI'ında / merge sonrası gözlenir** |
 
+**Validator kanıtı (tur 1, 2026-11-03, `7097b0c`; dal CI'ı run 41590959817 success, 10 check):** 1 ✓ · 2 ✓ · 3 ✓ · 4 ✓ · 5 ✓ · 6 ✓ · 7 ✓ · 8 ✓. Paketleme günlüğü (iş 125767890424): `== 1/7`…`== 7/7` satırları, üç `naming to …shopfolio-{app,database,backup}:ci`, `/tmp/restic.bz2: OK`, kullanıcılar `app` 1654 / `postgres` 999 / `backup` 10001, `/sistem/canlilik answered 200`, `pgBackRest 2.60.0`, `track_commit_timestamp on`, `restic 0.19.1`, "all checks passed" — atlanmış adım yok. Yerel (Docker 29.2.1): üç imaj `--no-cache` ile `-f deploy/images/<ad>/Dockerfile .` derlendi (62 / 10 / 8 sn); `id` → üçü de kök değil; veritabanı imajında `SHOW track_commit_timestamp` → `on`, `config_file` `/etc/postgresql/postgresql.conf`, süreç `postgres` kullanıcısı; uygulama imajının `/app/efbundle`'ı veritabanı imajına karşı çalıştı ("No migrations were applied"); uygulama konteyneri canlılıkta 200, veritabanı durdurulunca 503. `RESTIC_SHA256_AMD64` yanlışken derleme `sha256sum: … did NOT match` ile düştü; `SHA256SUMS` (GitHub yayını) iki özeti, `gh api` 0.19.1 = 2026-07-05 ve lisans BSD-2-Clause'u verdi; dört taban imajın `imagetools inspect` özeti Dockerfile'larla aynı. `package-build.sh` yerelde 7/7 (kullanıcı ağı); sondajlar geçici değişiklikle, geri alındı: yorumda `latest` → adım 1 düşer; özetsiz `FROM` → düşer; `ENV DB_PASSWORD=…` → sır taraması düşer; `USER app` silinince → adım 4 "runs as 'root'"; `track_commit_timestamp = off` → adım 6 düşer; erişilemeyen veritabanı → adım 5 "last status 503". `publish-images.sh` kuru koşusu `v2.3.4` etiketiyle commit kimliği + `2.3.4`; `release-1` etiketi `::error`, kimliksiz gerçek koşu durur. Docker Hub `pgbackrest` kuruluşunda yalnız `test` ve `doc`; pgBackRest son sürüm `release/2.60.0` 2026-10-18. KK8'in "ana dal merge'inde yayım" kısmı merge sonrası Publish koşusunda gözlenir (adım 18).
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
@@ -51,10 +53,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-03, `7097b0c`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r1.md`. Kabul kriterleri 8/8 ✓, KK1–KK8 ✓, dal CI yeşil; FAIL `09 §25` gereğidir ("hayır" cevabı düzeltilmeden kabul edilmez) |
+| Bulgu sayısı | 1 — S1 DÜŞÜK: PR #347 açıklamasında okunan `09` bölümleri (çekirdek yedi bölüm §1, §2, §5, §6, §23, §24, §25) ve `GUARDRAILS` §8 yazılı değil, `09 §25` sorularının cevapları yok (`09 §21.3`, §24 madde 1 ve 7); bu raporda da yok |
+| Düzeltme gerekli mi | Evet — yeni yapım turu: PR açıklamasına "Okunan bölümler" ve "`09 §25` soruları" blokları; K1–K5 aynı turda |
+| Bloke-etmeyen not (K) sayısı | 5 — düzeltme turunda kapanır: K1 `.dockerignore` desenleri yalnız kökte eşleşir (`*.pem`, `*.key`, `.env`, `appsettings.Production.json` …); sondajda `src/Shopfolio.Web/appsettings.Production.json`, `deploy/.env`, `deploy/*.pem` bağlama girdi — `**/` öneki; K2 `package-build.sh` adım 3 düşüşün nedenini sınamıyor (çıktı `/dev/null`; ağ hatası da "ok" verir) — `did NOT match` satırı aranır; K3 pgBackRest sürümü sabit değil ve Dockerfile yorumu ile bu rapor "taban imaj özeti imajın kalanını yeniden üretilebilir yapar" diyor — `apt-get update` güncel PGDG dizinini çeker, cümle yanlış; yorum düzeltilir, ⚠ 3 gerçek gerekçesiyle yazılır (`09 §17` madde 6 "araç sürümü sabittir"); K4 `09 §17` madde 1 ağacında yeni `database/postgresql.conf` (ana dosya, `-c config_file=`) yok — ağaca satır; K5 uygulama imajında belgede olmayan iki ayar (`09 §24` madde 3): `ASPNETCORE_URLS` taban imajın `ASPNETCORE_HTTP_PORTS=8080`'iyle aynı ve her açılışta "Overriding HTTP_PORTS" uyarısı yazdırır, `DOTNET_EnableDiagnostics=0` sunucuda tanı araçlarını kapatır — kaldırılır ya da ⚠ kararla gerekçelenir |
 
 ## Altyapı Değişiklikleri
 

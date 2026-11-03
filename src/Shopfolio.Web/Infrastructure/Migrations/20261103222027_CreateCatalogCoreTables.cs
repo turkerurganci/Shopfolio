@@ -75,7 +75,7 @@ namespace Shopfolio.Infrastructure.Migrations
                     name_search_form = table.Column<string>(type: "text", nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
                     product_type = table.Column<string>(type: "text", nullable: false),
-                    publish_status = table.Column<string>(type: "text", nullable: false),
+                    publish_status = table.Column<string>(type: "text", nullable: false, defaultValue: "Draft"),
                     vat_rate = table.Column<decimal>(type: "numeric(5,2)", precision: 5, scale: 2, nullable: false),
                     origin_country_id = table.Column<Guid>(type: "uuid", nullable: true),
                     measurement_unit = table.Column<string>(type: "text", nullable: true),
@@ -85,7 +85,7 @@ namespace Shopfolio.Infrastructure.Migrations
                     withdrawal_exemption_reason = table.Column<string>(type: "text", nullable: true),
                     slug = table.Column<string>(type: "text", nullable: false),
                     slug_fixed_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    version = table.Column<int>(type: "integer", nullable: false)
+                    version = table.Column<int>(type: "integer", nullable: false, defaultValue: 1)
                 },
                 constraints: table =>
                 {
@@ -136,7 +136,7 @@ namespace Shopfolio.Infrastructure.Migrations
                     created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     product_id = table.Column<Guid>(type: "uuid", nullable: false),
                     category_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    is_primary_category = table.Column<bool>(type: "boolean", nullable: false)
+                    is_primary_category = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
@@ -163,7 +163,7 @@ namespace Shopfolio.Infrastructure.Migrations
                     product_id = table.Column<Guid>(type: "uuid", nullable: false),
                     image_id = table.Column<Guid>(type: "uuid", nullable: false),
                     sort_order = table.Column<int>(type: "integer", nullable: false),
-                    is_main = table.Column<bool>(type: "boolean", nullable: false),
+                    is_main = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     alt_text = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -216,9 +216,9 @@ namespace Shopfolio.Infrastructure.Migrations
                     normalized_sku = table.Column<string>(type: "text", nullable: false),
                     price = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: false),
                     net_quantity = table.Column<decimal>(type: "numeric(12,3)", precision: 12, scale: 3, nullable: true),
-                    publish_status = table.Column<string>(type: "text", nullable: false),
+                    publish_status = table.Column<string>(type: "text", nullable: false, defaultValue: "Draft"),
                     stock_quantity = table.Column<int>(type: "integer", nullable: true),
-                    reserved_quantity = table.Column<int>(type: "integer", nullable: false),
+                    reserved_quantity = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     image_id = table.Column<Guid>(type: "uuid", nullable: true),
                     first_on_sale_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
                 },

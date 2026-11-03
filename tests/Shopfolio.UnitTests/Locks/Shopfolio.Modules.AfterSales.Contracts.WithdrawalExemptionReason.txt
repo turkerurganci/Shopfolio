@@ -1,0 +1,5 @@
+MadeToOrder
+Perishable
+ExpiryDated
+HygieneSensitive
+SealedMedia

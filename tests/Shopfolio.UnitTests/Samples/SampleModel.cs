@@ -48,6 +48,18 @@ internal static class SampleModel
         return new AppDbContext(builder.Options);
     }
 
+    /// <summary>The application context with a sample entity whose enum property the context does not convert to text; the model rule refuses it.</summary>
+    public static AppDbContext CreateUnconvertedEnumContext()
+    {
+        DbContextOptionsBuilder<AppDbContext> builder = new();
+        AppDbContext.Configure(builder, "Host=localhost;Database=shopfolio_sample_model");
+        builder.ReplaceService<IModelCustomizer, UnconvertedEnumModelCustomizer>();
+        return new AppDbContext(builder.Options);
+    }
+
+    private sealed class UnconvertedEnumModelCustomizer(ModelCustomizerDependencies dependencies)
+        : SampleModelCustomizer(dependencies, "Shopfolio.UnitTests.Samples.EnumWithoutText");
+
     private sealed class UntypedDecimalModelCustomizer(ModelCustomizerDependencies dependencies)
         : SampleModelCustomizer(dependencies, UntypedDecimalNamespace);
 

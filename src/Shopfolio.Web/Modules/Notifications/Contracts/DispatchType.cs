@@ -1,0 +1,35 @@
+namespace Shopfolio.Modules.Notifications.Contracts;
+
+/// <summary>The closed values of DispatchType (06 5.5.1). Only the code names live here; the behavior of a value lives in the rule that owns it (06 5.1.3).</summary>
+public enum DispatchType
+{
+    B1,
+    B2,
+    B3,
+    B4,
+    B5,
+    B6,
+    B7,
+    B8,
+    B9,
+    B10,
+    B11,
+    B12,
+    B13,
+    B14,
+    B15,
+    B16,
+    F1,
+    F2,
+    F3,
+    F4,
+    F5,
+    F6,
+    EmailVerificationLink,
+    PasswordResetLink,
+    NewEmailVerificationLink,
+    EmailChangeNotice,
+    AdminInvitation,
+    AccountDeletedNotice,
+    GoogleLinkConfirmationLink,
+}

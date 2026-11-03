@@ -31,6 +31,13 @@ internal sealed class AppDbContext : DbContext
     {
         ArgumentNullException.ThrowIfNull(configurationBuilder);
         configurationBuilder.Conventions.Add(_ => new ModelRulesConvention());
+
+        // Every enum of the application is stored as its code name (06 2.9.1; 09 10.1 item 3). The conversion is made here once;
+        // an enum property never writes its own. The audit operation is the one exception and is mapped by the audit trail itself.
+        foreach (Type enumType in typeof(EntityIds).Assembly.GetTypes().Where(t => t.IsEnum && t.FullName != ModelRulesConvention.AuditOperationTypeName))
+        {
+            configurationBuilder.Properties(enumType).HaveConversion(typeof(EnumTextConverter<>).MakeGenericType(enumType));
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,0 +1,6 @@
+OutOfStock
+DamagedOrUnsellable
+CannotShipToAddress
+UndeliveredBuyerCaused
+AgreedWithBuyer
+Other

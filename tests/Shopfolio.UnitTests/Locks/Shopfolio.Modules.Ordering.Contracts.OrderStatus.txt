@@ -1,0 +1,6 @@
+Placed
+Preparing
+Shipped
+Delivered
+DeliveryFailed
+Cancelled

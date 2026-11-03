@@ -1,0 +1,5 @@
+PaymentWindowExpired
+CardPaymentFailed
+PaymentPageNotOpened
+SameCartReorder
+Closure

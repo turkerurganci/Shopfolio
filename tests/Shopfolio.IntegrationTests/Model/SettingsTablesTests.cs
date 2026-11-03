@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 using Npgsql;
 
@@ -29,6 +31,8 @@ public sealed class SettingsTablesTests : IAsyncLifetime
     private const string UniqueViolation = PostgresErrorCodes.UniqueViolation;
 
     private static readonly string[] SixTables = ["provinces", "countries", "companies", "company_settings", "company_delivery_provinces", "legal_text_versions"];
+
+    private static readonly string[] SingleRowTableNames = ["companies", "company_settings"];
 
     private static readonly DateTimeOffset Now = new(2026, 11, 4, 9, 0, 0, TimeSpan.Zero);
 
@@ -182,12 +186,54 @@ public sealed class SettingsTablesTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task LegalTextVersion_TemplateVersionOnAFirmEditedText_IsRefused()
+    public async Task LegalTextVersion_TemplateVersionOnAPublishedPrivacyNotice_IsRefused()
+    {
+        LegalTextVersion version = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, 1, Now, "metin", Now).WithHosting();
+        version.TemplateVersion = "t1";
+
+        Assert.Equal((CheckViolation, "ck_legal_text_versions_template_version_only_generated"), await ViolationOfAsync(c => c.LegalTextVersions.Add(version)));
+    }
+
+    [Fact]
+    public async Task LegalTextVersion_TemplateVersionOnAPrivacyNoticeDraft_IsRefused()
+    {
+        LegalTextVersion version = LegalTextVersion.CreateDraft(LegalTextType.PrivacyNotice, "taslak", Now);
+        version.TemplateVersion = "t1";
+
+        Assert.Equal((CheckViolation, "ck_legal_text_versions_template_version_only_generated"), await ViolationOfAsync(c => c.LegalTextVersions.Add(version)));
+    }
+
+    [Fact]
+    public async Task LegalTextVersion_TemplateVersionOnAFirmEditedCookiePolicy_IsRefused()
     {
         LegalTextVersion version = LegalTextVersion.CreatePublished(LegalTextType.CookiePolicy, 1, Now, "metin", Now);
         version.TemplateVersion = "t1";
 
         Assert.Equal((CheckViolation, "ck_legal_text_versions_template_version_only_generated"), await ViolationOfAsync(c => c.LegalTextVersions.Add(version)));
+    }
+
+    [Fact]
+    public async Task SingleRowTables_CarryOnlyTheSingleRowIndex()
+    {
+        List<string> indexes = await QueryAsync(
+            _collection.Dsn,
+            "SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND tablename = ANY(@names) ORDER BY 1",
+            ("names", SingleRowTableNames));
+
+        Assert.Equal(["ix_companies_single_row", "ix_company_settings_single_row", "pk_companies", "pk_company_settings"], indexes);
+    }
+
+    [Fact]
+    public void ModelOfTheSingleRowTables_HasNoForeignKeyIndex()
+    {
+        DbContextOptionsBuilder<AppDbContext> options = new();
+        AppDbContext.Configure(options, _collection.Dsn);
+        using AppDbContext context = new(options.Options);
+
+        IModel model = context.GetService<IDesignTimeModel>().Model;
+
+        Assert.Empty(model.FindEntityType(typeof(Company))!.GetIndexes());
+        Assert.Empty(model.FindEntityType(typeof(CompanySettings))!.GetIndexes());
     }
 
     [Fact]

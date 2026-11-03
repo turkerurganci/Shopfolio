@@ -65,6 +65,7 @@ internal sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
     public void Configure(EntityTypeBuilder<Company> builder)
     {
         builder.HasKey(c => c.Id);
+        builder.AsSingleRow();
         builder.Property(c => c.Phone).HasMaxLength(10);
         builder.HasOne<Province>().WithMany().HasForeignKey(c => c.ProvinceId).OnDelete(DeleteBehavior.NoAction);
 

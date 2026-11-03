@@ -100,6 +100,7 @@ internal sealed class CompanySettingsConfiguration : IEntityTypeConfiguration<Co
     public void Configure(EntityTypeBuilder<CompanySettings> builder)
     {
         builder.HasKey(s => s.Id);
+        builder.AsSingleRow();
         builder.Property(s => s.ShippingFee).AsMoney();
         builder.Property(s => s.FreeShippingThreshold).AsMoney();
         builder.Property(s => s.MinimumOrderAmount).AsMoney();

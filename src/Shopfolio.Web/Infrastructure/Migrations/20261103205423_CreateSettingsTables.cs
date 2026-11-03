@@ -176,20 +176,10 @@ namespace Shopfolio.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "ix_companies_province_id",
-                table: "companies",
-                column: "province_id");
-
-            migrationBuilder.CreateIndex(
                 name: "ix_company_delivery_provinces_province_id",
                 table: "company_delivery_provinces",
                 column: "province_id",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_company_settings_return_province_id",
-                table: "company_settings",
-                column: "return_province_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_countries_code",

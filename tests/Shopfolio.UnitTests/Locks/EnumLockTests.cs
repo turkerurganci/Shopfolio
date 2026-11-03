@@ -62,17 +62,21 @@ public sealed class EnumLockTests
     }
 
     [Fact]
-    public void StoredEnums_AreTheUnionOfTheNamespaceEnumsAndTheEnumsOfTheModel_WithoutANamespaceFilter()
+    public void EveryEnumOfTheModel_HasALockFileOnDisk_WhateverItsNamespace()
     {
         DbContextOptionsBuilder<Shopfolio.Infrastructure.AppDbContext> options = new();
         Shopfolio.Infrastructure.AppDbContext.Configure(options, "Host=localhost;Database=shopfolio_lock_model");
         using Shopfolio.Infrastructure.AppDbContext context = new(options.Options);
+        string root = RepositoryRoot.Find();
 
-        HashSet<Type> stored = [.. StoredEnums()];
-        HashSet<Type> union = [.. ApplicationEnums.Persistent(), .. ModelEnums(context)];
+        // Independent of StoredEnums(): the files on disk are looked up straight from the model's property types.
+        string[] modelEnumsWithoutAFile = ModelEnums(context)
+            .Where(t => !File.Exists(EnumLock.FilePath(root, t)))
+            .Select(t => t.FullName!)
+            .ToArray();
 
-        Assert.True(union.SetEquals(stored));
-        Assert.All(ModelEnums(context), t => Assert.Contains(t, stored));
+        Assert.Empty(modelEnumsWithoutAFile);
+        Assert.NotEmpty(ModelEnums(context));
     }
 
     [Fact]

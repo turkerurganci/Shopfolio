@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Modules.Settings;
@@ -43,6 +44,7 @@ internal sealed class AppDbContext : DbContext
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         ArgumentNullException.ThrowIfNull(configurationBuilder);
+        configurationBuilder.Conventions.Remove<ForeignKeyIndexConvention>();
         configurationBuilder.Conventions.Add(_ => new ModelRulesConvention());
 
         // Every enum of the application is stored as its code name (06 2.9.1; 09 10.1 item 3). The conversion is made here once;

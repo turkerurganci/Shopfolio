@@ -63,6 +63,15 @@
 
 **Yapım raporu karşılaştırması:** kriter 1–7 ve test sayıları uyumlu; uyuşmazlık 1 — yapım FK dizinlerini "zararsız" sayıp bıraktı (⚠ karar 2, Notlar "Diğer"), validator `06 §7.5.2` ile çelişki sayar ve kaldırmanın mümkün olduğunu gösterdi. CI düzeltmeleri (`a69f574` imaja `.editorconfig`; `1b317d0` dry-run kurucu SQL ile rol ayarlı göç kullanıcısı) `09 §10.6` m.9 ve §10.8 m.5 ile uyumlu; iki `PB_ALLOW_DIRECT_PUSH` `[ci-failure]` atlaması `BYPASS_LOG`'da (`b185bf6`, `6e88812`), `PB_ALLOW_SECRET` yok. D-37 (a), D-46 (a)(b), D-48 (b) kapanışları doğrulandı.
 
+## Düzeltme turu 1 (2026-11-04)
+
+- **Bulgu 1 (S1, DÜŞÜK) — kapandı:** `AppDbContext.ConfigureConventions` çerçevenin `ForeignKeyIndexConvention`'ını kaldırır; yerine `ModelRulesConvention` her yabancı anahtara aynı dizini (başında anahtar sütunları olan bir dizin ya da anahtar yoksa) kendisi ekler, ama `AsSingleRow()` ile işaretli tabloya eklemez. `Company` ve `CompanySettings` işaretlidir; böylece yalnız tek satırın tekil dizinini taşır (`06 §7.5.2`, §7.2). Diğer tablolarda davranış değişmedi (açık `HasIndex`'ler korunur). Göç `CreateSettingsTables`, tasarım dosyası ve anlık görüntüden iki dizin çıkarıldı (göç ana dalda değil; model ile uyumlu, `has-pending-model-changes` temiz). PR ⚠ karar 2 düzeltildi.
+- **Test:** `SettingsTablesTests.SingleRowTables_CarryOnlyTheSingleRowIndex` (veritabanında yalnız `pk_*` ve `ix_*_single_row`) ve `ModelOfTheSingleRowTables_HasNoForeignKeyIndex` (modelde dizin yok).
+- **K1 — kapandı:** şablon sürümü testi artık aydınlatma metnini sınar: yayımlanmış ve taslak aydınlatma metninde `TemplateVersion` reddedilir (`ck_…_template_version_only_generated`); çerez politikası testi ayrı kaldı.
+- **K3 — kapandı:** totolojik enum kilit testi (`StoredEnums_AreTheUnionOf…`) yerine `EveryEnumOfTheModel_HasALockFileOnDisk_WhateverItsNamespace`: modelin her enum özelliği için kilit dosyası diskte bağımsızca aranır (`StoredEnums()` kullanılmaz).
+- **K2:** D-49'a (T106) ileri alındı, bu turda değişmedi.
+- **Yerel sınama:** `build -c Release -warnaserror` 0 uyarı 0 hata; Unit 217/217; Integration 123/123 (PostgreSQL 18); `scripts/ci/migration-dry-run.sh` (`MIGRATION_DRYRUN_CMD`, Docker `shopfolio-t103d1-pg`, iş bitince silindi) çıkış 0, "Done".
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Var — `CreateSettingsTables`
@@ -97,4 +106,4 @@
 - **Ana dal CI startup (Adım 0):** yapım işçisi izlemez
 - **Repo memory (bitiş kapısı 8):** güncellendi
 - **CI düzeltmesi (6. Migration dry-run):** `scripts/ci/migration-dry-run.sh` artık göçü T10 kurucu SQL dosyalarıyla (`deploy/images/database/bootstrap`) kurulan veritabanına göç kullanıcısıyla uygular; üç rol ayarı hazırdır. Ayar yokken göç 42704 ile düşmeye devam eder. Yerelde PostgreSQL 18 ile koşuldu: geçti.
-- **Diğer:** FK indeksleri (`ix_companies_province_id`, `ix_company_settings_return_province_id`) EF konvansiyonuyla oluşuyor, zararsız.
+- **Diğer:** Tek satırlık iki tabloda FK dizini yok (düzeltme turu 1: `06 §7.5.2`); ilk sürümdeki "zararsız" notu geçersizdir.

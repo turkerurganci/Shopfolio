@@ -101,9 +101,6 @@ namespace Shopfolio.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_companies");
 
-                    b.HasIndex("ProvinceId")
-                        .HasDatabaseName("ix_companies_province_id");
-
                     b.ToTable("companies", null, t =>
                         {
                             t.HasCheckConstraint("ck_companies_company_type", "\"company_type\" IN ('Tradesman', 'NaturalPersonMerchant', 'LegalEntity')");
@@ -281,9 +278,6 @@ namespace Shopfolio.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_company_settings");
-
-                    b.HasIndex("ReturnProvinceId")
-                        .HasDatabaseName("ix_company_settings_return_province_id");
 
                     b.ToTable("company_settings", null, t =>
                         {

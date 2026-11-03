@@ -8,11 +8,11 @@
 
 ## Yapılan İşler
 
-- **Uygulama sırları dosyadan okur** (`src/Shopfolio.Web/Infrastructure/FileSecrets/`): `SecretFiles` `/run/secrets/<ad>` dosyasını kapanış satır sonu olmadan okur (dosya yoksa `null`; yol ayırıcılı ad reddedilir; değer hiçbir yere yazılmaz). `DatabasePasswordPostConfigure` bağlantı dizisinin kullanıcısına göre (`shopfolio_app` → `db_app_password`, `shopfolio_reader` → `db_reader_password`) parolayı dosyadan diziye ekler; dosya bağlı değilse dizi olduğu gibi kalır (geliştirme ve test). Ortam değişkeninden sır okuyan kod yok. Yeni NuGet bağımlılığı yok.
-- **Compose** (`deploy/compose.yaml`): `app` hizmetine `Database__ConnectionString=Host=database;Database=shopfolio;Username=shopfolio_app` (sır değil, parola yok); tek seferlik iki komut hizmeti, profil `tools` (`command`: yalnız `db_app_password`; `read-command`: yalnız `db_reader_password`, kullanıcı `shopfolio_reader`); `database` hizmeti kalıcı olarak yalnız iki yedek anahtarını alır.
-- **İlk kurulum bindirmesi** (`deploy/compose.install.yaml`, yeni): kurucu kullanıcının ve göç, uygulama, salt okuma parolalarının veritabanına yalnız ilk başlatmada geçmesi (`05 §6.x.6`); `POSTGRES_PASSWORD_FILE` de burada.
-- **`DEPLOY_RUNBOOK §B`** dolduruldu: 12 sır dosyası için kaynak, alan bileşen, ALMAMALI, döndürme ve dosya sahibi/izni; **§B.1** konteyner kullanıcıları (1654, 999, 10001), dizin 0700, `install -o -g -m /dev/stdin` ile yazma, ilk kurulumdaki grup istisnası ve doğrulama.
-- **Testler** (`tests/Shopfolio.UnitTests/FileSecrets/`, 36 yeni test): sır okuyucusu ve parola ekleme; Compose hizmet–sır eşlemesi `05 §6.x.2` tablosuna eşit; bindirme; sır adları Compose'ta tanımlı; runbook §B ile Compose eşitliği (bileşenler ve döndürülmeyen iki anahtar); ortam değişkeninden sır okuma taraması (+ kasıtlı ihlal örnekleri); `.gitignore` desenleri; `.env.example` sır taşımıyor.
+- **Uygulama sırları dosyadan okur** (`src/Shopfolio.Web/Infrastructure/FileSecrets/`): `SecretFiles` `/run/secrets/<ad>` dosyasını kapanış satır sonu olmadan okur (dosya yoksa `null`; yol ayırıcılı ad reddedilir; değer hiçbir yere yazılmaz). `SecretFileConfigurationSource` `Database:ConnectionString` ayarının değerini tamamen bağlı bağlantı dizisi dosyasından (`db_app_connection` ya da `db_reader_connection`) alır; dosya bağlı değilse kaynak bir şey katmaz (geliştirme ve test). Ortam değişkeninden sır okuyan kod yok. Yeni NuGet bağımlılığı yok. (Düzeltme 1'den önce parolayı sonradan ekleyen `DatabasePasswordPostConfigure` vardı; kaldırıldı.)
+- **Compose** (`deploy/compose.yaml`): bağlantı için ortam satırı yok; `app` ve `command` `db_app_connection`, `read-command` `db_reader_connection`, `migrate` `db_migrator_password` alır; tek seferlik iki komut hizmeti, profil `tools`; `database` hizmeti kalıcı olarak yalnız iki yedek anahtarını alır.
+- **İlk kurulum bindirmesi** (`deploy/compose.install.yaml`, yeni): kurucu parola ve veritabanı kullanıcısına (999) ait üç ayrı kopya (`db_setup_migrator_password`, `db_setup_app_password`, `db_setup_reader_password`) veritabanına yalnız ilk başlatmada geçer (`05 §6.x.6`); `POSTGRES_PASSWORD_FILE` de burada.
+- **`DEPLOY_RUNBOOK §B`** dolduruldu: 15 sır dosyası için kaynak, alan bileşen, ALMAMALI, döndürme ve dosya sahibi/izni; **§B.1** konteyner kullanıcıları (1654, 999, 10001), dizin 0700, `install -o -g -m /dev/stdin` ile yazma, her dosyayı tek kullanıcının okuması, döndürmede iki dosyanın birlikte yazılması ve doğrulama.
+- **Testler** (`tests/Shopfolio.UnitTests/FileSecrets/` ve `Architecture/`): sır okuyucusu ve ayar kaynağı; Compose hizmet–sır eşlemesi `05 §6.x.2` tablosuna eşit; her sır tek konteyner kullanıcısına gider; bindirme; sır adları Compose'ta tanımlı; runbook §B ile Compose eşitliği; ortam değişkeninden sır okuma taraması `Architecture/` altında, kasıtlı ihlal örnekleri `Architecture/ViolationSamples/SecretSources/*.cs` (ayrı dosyalar, derlemeden çıkarılmış); `.gitignore` desenleri; `.env.example` sır taşımıyor.
 - Dokümanlar: `.claude/CONTEXT.md`, `09 §4.3` ağacına `compose.install.yaml` satırı, `compose.dev.yaml` başlığı, `.gitignore` açıklaması, `DEFERRED_BACKLOG.md`.
 
 ## Etkilenen Modüller / Dosyalar
@@ -74,10 +74,27 @@ Başlangıç kapıları: working tree temiz; `core.hooksPath` kurulu; ana dal so
 
 Bulgular: (1) kriter 3 — ilk kurulumda üç parola dosyası iki konteyner kullanıcısına açık (`05 §6.x.1`); (2) `09 §3.5` madde 2 bağlantı dizisinin sır dosyasında olduğunu söyler, kod dizinin parolasız kısmını Compose ortamından alıyor — çelişki BLOCKED akışı yerine D-35 (a) ile backlog'a yazıldı (`09 §2`, §24 madde 8, §25); (3) yeni kaynak taraması `UnitTests/Architecture/` yerine `FileSecrets/`'ta ve ihlal örnekleri ayrı dosya yerine satır içi (`09 §19.2` madde 3). K-notları: K1 D-32 (b) kodu `Infrastructure/Secrets` diye anıyor (klasör `FileSecrets/`); K2 D-35 (b) `05 §8.2.4` hizmet listesi cümlesi — backlog'da.
 
+## Düzeltme 1 (doğrulama tur 1 FAIL sonrası)
+
+Karar (yardımcı, proje sahibi yetkisiyle 2026-11-03): kod dokümana uyar, doküman değişmez. Bu karar ilk yapım raporundaki ⚠ 2 ve ⚠ 3'ü kaldırır.
+
+| Bulgu | Durum | Ne yapıldı |
+|---|---|---|
+| 1 (`05 §6.x.1`) | Düzeltildi | İlk kurulumdaki 0440/grup-999 ortak okuma kalktı. Veritabanının kurucu betiği için `db_setup_migrator_password`, `db_setup_app_password`, `db_setup_reader_password` (999'a ait 0400, yalnız `compose.install.yaml`'da); uygulama imajı tüketicileri 1654'e ait 0400 dosyalarını okur. Aynı değer iki dosyada durur, her dosyayı bir kullanıcı okur. Runbook §B/§B.1, `SecretLayoutTests` (yeni `Compose_GivesEverySecretToOneContainerUserOnly`), Compose tanımları güncellendi |
+| 2 (`09 §3.5` madde 2) | Düzeltildi | `Database:ConnectionString` tamamen sır dosyasından (`db_app_connection`, `db_reader_connection`); `Database__ConnectionString` ortam satırları kalktı; `DatabasePasswordPostConfigure` yerine `SecretFileConfigurationSource`; `CONTEXT.md`, `compose.dev.yaml` başlığı, D-34 (b) güncellendi |
+| 3 (`09 §19.2` madde 3) | Düzeltildi | Kaynak taraması ve testleri `tests/Shopfolio.UnitTests/Architecture/`; kasıtlı ihlaller `Architecture/ViolationSamples/SecretSources/` altında ayrı dosyalarda; `CONTEXT.md` §3 `tests/` satırı |
+| K1 | Kapandı | D-32 (b) notunda `Infrastructure/FileSecrets/` |
+| K2 | D-35 (b)'de kalır | `05 §8.2.4` cümlesi |
+
+- **Sır adları değişti:** `db_app_password` → `db_app_connection` (bağlantı dizisinin tamamı), `db_reader_password` → `db_reader_connection`; yeni `db_setup_*_password` üç dosya. Toplam 15 sır dosyası.
+- **Testler:** Unit 66/66 (eski 69'dan; parola ekleme testleri ayar kaynağı testleriyle değişti), Integration 29/29 (yerel PostgreSQL 18 konteyneri, adıyla silindi). `dotnet build -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` temiz; `docker compose config` (taban+tools, +dev, +dev+install) geçerli; `restore --locked-mode` çıkış 0.
+- **KK3 yeniden:** konteynerlerde (alpine, geçici bölüm) 1654 ve 999 kullanıcıları ayrı 0400 dosyalar aldı; her kullanıcı yalnız kendi dosyalarını okudu, çapraz okuma reddedildi (`db_app_connection`/`db_migrator_password` yalnız 1654; `db_setup_*` yalnız 999). Bölüm ve imaj adıyla silindi.
+- **D-35:** (a) ve (c) "çözüldü (T08 düzeltme 1)"; (b) ve (d) açık.
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok
-- **Config / ortam değişkeni:** Var — `Database__ConnectionString` (`app`, `command`, `read-command` hizmetlerinde; parolasız)
+- **Config / ortam değişkeni:** Yok — bağlantı dizisi sır dosyasından gelir (düzeltme 1)
 - **Paketleme / dağıtım:** Var — `compose.yaml` (iki komut hizmeti, `database` sırları), `compose.install.yaml` (yeni), runbook §B/§B.1
 - **Yeni bağımlılık:** Yok
 

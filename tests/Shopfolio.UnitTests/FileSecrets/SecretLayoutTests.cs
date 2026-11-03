@@ -13,17 +13,17 @@ public sealed class SecretLayoutTests
     // A component with no secret receives none (the reverse proxy: 6.x.7).
     private static readonly Dictionary<string, string[]> _expectedPerService = new(StringComparer.Ordinal)
     {
-        ["app"] = ["db_app_password", "payment_provider_keys", "email_credential", "google_client_secret", "link_derivation_secret"],
+        ["app"] = ["db_app_connection", "payment_provider_keys", "email_credential", "google_client_secret", "link_derivation_secret"],
         ["migrate"] = ["db_migrator_password"],
         ["backup"] = ["file_backup_storage_key", "file_backup_cipher_key"],
         ["database"] = ["db_backup_storage_key", "db_backup_cipher_key"],
         ["proxy"] = [],
-        ["read-command"] = ["db_reader_password"],
-        ["command"] = ["db_app_password"],
+        ["read-command"] = ["db_reader_connection"],
+        ["command"] = ["db_app_connection"],
     };
 
     // 05 6.x.6: what the database receives only at the first install (deploy/compose.install.yaml).
-    private static readonly string[] _expectedFirstInstallOnly = ["db_superuser_password", "db_migrator_password", "db_app_password", "db_reader_password"];
+    private static readonly string[] _expectedFirstInstallOnly = ["db_superuser_password", "db_setup_migrator_password", "db_setup_app_password", "db_setup_reader_password"];
 
     // 05 6.x.12: the only secrets that are never rotated.
     private static readonly string[] _neverRotated = ["db_backup_cipher_key", "file_backup_cipher_key"];
@@ -91,7 +91,7 @@ public sealed class SecretLayoutTests
 
         // 6.x.3 and 6.x.18: the running application has no schema owner password, no read-only password, no backup secret.
         Assert.DoesNotContain("db_migrator_password", actual["app"]);
-        Assert.DoesNotContain("db_reader_password", actual["app"]);
+        Assert.DoesNotContain("db_reader_connection", actual["app"]);
         Assert.DoesNotContain(actual["app"], s => s.Contains("backup", StringComparison.Ordinal));
     }
 
@@ -121,20 +121,65 @@ public sealed class SecretLayoutTests
     }
 
     [Fact]
-    public void Compose_GivesTheConnectionUserTheSecretOfThatUser()
+    public void Compose_GivesTheConnectionStringFromTheFileAndFromNoEnvironmentSetting()
     {
         string compose = ComposeText();
         IReadOnlyDictionary<string, IReadOnlyList<string>> secrets = ComposeSecrets.ReadServiceSecrets(compose);
         IReadOnlyDictionary<string, string> defined = ComposeSecrets.ReadDefinedSecrets(compose);
 
-        // The application reads the password file of the user its connection string names (SecretNames.PasswordFileOf).
-        Assert.Contains($"Username={SecretNames.DatabaseAppUser}", compose, StringComparison.Ordinal);
-        Assert.Contains($"Username={SecretNames.DatabaseReaderUser}", compose, StringComparison.Ordinal);
-        Assert.Contains(SecretNames.DatabaseAppPassword, defined.Keys);
-        Assert.Contains(SecretNames.DatabaseReaderPassword, defined.Keys);
-        Assert.Contains(SecretNames.DatabaseAppPassword, secrets["app"]);
-        Assert.Contains(SecretNames.DatabaseAppPassword, secrets["command"]);
-        Assert.Contains(SecretNames.DatabaseReaderPassword, secrets["read-command"]);
+        // 09 3.5 item 2: the whole value of Database:ConnectionString is the content of a secret file; no environment line carries it.
+        Assert.DoesNotContain("Database__ConnectionString", compose, StringComparison.Ordinal);
+        Assert.DoesNotContain("Username=shopfolio_app", compose, StringComparison.Ordinal);
+        Assert.DoesNotContain("Username=shopfolio_reader", compose, StringComparison.Ordinal);
+        Assert.Equal(2, SecretNames.DatabaseConnectionFiles.Count);
+        Assert.Contains(SecretNames.DatabaseAppConnection, defined.Keys);
+        Assert.Contains(SecretNames.DatabaseReaderConnection, defined.Keys);
+        Assert.Contains(SecretNames.DatabaseAppConnection, secrets["app"]);
+        Assert.Contains(SecretNames.DatabaseAppConnection, secrets["command"]);
+        Assert.Contains(SecretNames.DatabaseReaderConnection, secrets["read-command"]);
+        foreach (string service in secrets.Keys)
+        {
+            Assert.True(secrets[service].Count(SecretNames.DatabaseConnectionFiles.Contains) <= 1, $"{service} gets more than one connection string file");
+        }
+    }
+
+    [Fact]
+    public void Compose_GivesEverySecretToOneContainerUserOnly()
+    {
+        // 05 6.x.1: every secret file belongs to the user of the container that reads it, and only that user reads it. The
+        // application image runs as one user (app, migrate, command, read-command); the other images have their own users.
+        // The first install overlay (database) is part of the picture: a password the database reads at the first install has its own file.
+        Dictionary<string, string> userOfService = new(StringComparer.Ordinal)
+        {
+            ["app"] = "application image",
+            ["migrate"] = "application image",
+            ["command"] = "application image",
+            ["read-command"] = "application image",
+            ["database"] = "database image",
+            ["backup"] = "backup image",
+            ["proxy"] = "proxy image",
+        };
+
+        Dictionary<string, HashSet<string>> usersOfSecret = new(StringComparer.Ordinal);
+        foreach (IReadOnlyDictionary<string, IReadOnlyList<string>> file in new[] { ComposeSecrets.ReadServiceSecrets(ComposeText()), ComposeSecrets.ReadServiceSecrets(InstallText()) })
+        {
+            foreach ((string service, IReadOnlyList<string> names) in file)
+            {
+                foreach (string name in names)
+                {
+                    if (!usersOfSecret.TryGetValue(name, out HashSet<string>? users))
+                    {
+                        users = new HashSet<string>(StringComparer.Ordinal);
+                        usersOfSecret[name] = users;
+                    }
+
+                    users.Add(userOfService[service]);
+                }
+            }
+        }
+
+        Assert.Equal(AllSecretNames(), usersOfSecret.Keys.Order(StringComparer.Ordinal));
+        Assert.All(usersOfSecret, pair => Assert.True(pair.Value.Count == 1, $"{pair.Key} is read by {string.Join(", ", pair.Value)}"));
     }
 
     [Fact]

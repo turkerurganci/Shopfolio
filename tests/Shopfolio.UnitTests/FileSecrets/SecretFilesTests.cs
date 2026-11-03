@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 using Npgsql;
@@ -58,77 +59,65 @@ public sealed class SecretFilesTests : IDisposable
         Assert.ThrowsAny<ArgumentException>(() => new SecretFiles(_directory).Read(name));
     }
 
-    [Fact]
-    public void PostConfigure_WithAppUserAndMountedFile_PutsThePasswordIntoTheConnectionString()
+
+    private IConfigurationRoot Configure(IEnumerable<KeyValuePair<string, string?>>? other = null)
     {
-        File.WriteAllText(Path.Combine(_directory, SecretNames.DatabaseAppPassword), "made-up;pass=word\n");
-        DatabaseOptions options = new() { ConnectionString = "Host=database;Database=shopfolio;Username=shopfolio_app" };
-
-        new DatabasePasswordPostConfigure(new SecretFiles(_directory)).PostConfigure(null, options);
-
-        Assert.Equal("made-up;pass=word", Parse(options.ConnectionString).Password);
-        Assert.Equal("shopfolio_app", Parse(options.ConnectionString).Username);
-        Assert.Equal("database", Parse(options.ConnectionString).Host);
+        ConfigurationBuilder builder = new();
+        builder.AddInMemoryCollection(other ?? []);
+        builder.Add(new SecretFileConfigurationSource(new SecretFiles(_directory)));
+        return builder.Build();
     }
 
     [Fact]
-    public void PostConfigure_WithReaderUser_ReadsTheReaderFileNotTheAppFile()
+    public void ConfigurationSource_WithAppConnectionFile_GivesTheWholeFileAsTheConnectionString()
     {
-        File.WriteAllText(Path.Combine(_directory, SecretNames.DatabaseAppPassword), "app-made-up\n");
-        File.WriteAllText(Path.Combine(_directory, SecretNames.DatabaseReaderPassword), "reader-made-up\n");
-        DatabaseOptions options = new() { ConnectionString = "Host=database;Database=shopfolio;Username=shopfolio_reader" };
+        File.WriteAllText(Path.Combine(_directory, SecretNames.DatabaseAppConnection), "Host=database;Database=shopfolio;Username=shopfolio_app;Password=made-up-pass-word\n");
 
-        new DatabasePasswordPostConfigure(new SecretFiles(_directory)).PostConfigure(null, options);
+        IConfigurationRoot configuration = Configure();
 
-        Assert.Equal("reader-made-up", Parse(options.ConnectionString).Password);
+        string? value = configuration[DatabaseOptions.ConnectionStringKey];
+        Assert.Equal("Host=database;Database=shopfolio;Username=shopfolio_app;Password=made-up-pass-word", value);
+        Assert.Equal("shopfolio_app", Parse(value!).Username);
     }
 
     [Fact]
-    public void PostConfigure_WithoutMountedFile_LeavesTheConnectionStringAsItIs()
+    public void ConfigurationSource_WithReaderConnectionFile_GivesTheReaderString()
     {
-        const string complete = "Host=localhost;Database=shopfolio;Username=shopfolio_app;Password=from-the-setting";
-        DatabaseOptions options = new() { ConnectionString = complete };
+        File.WriteAllText(Path.Combine(_directory, SecretNames.DatabaseReaderConnection), "Host=database;Username=shopfolio_reader;Password=reader-made-up\n");
 
-        new DatabasePasswordPostConfigure(new SecretFiles(_directory)).PostConfigure(null, options);
-
-        Assert.Equal(complete, options.ConnectionString);
+        Assert.Equal("Host=database;Username=shopfolio_reader;Password=reader-made-up", Configure()[DatabaseOptions.ConnectionStringKey]);
     }
 
     [Fact]
-    public void PostConfigure_WithOtherUser_DoesNotReadAnyFile()
+    public void ConfigurationSource_WithMountedFile_WinsOverTheOtherSources()
     {
-        File.WriteAllText(Path.Combine(_directory, SecretNames.DatabaseAppPassword), "app-made-up\n");
-        DatabaseOptions options = new() { ConnectionString = "Host=localhost;Database=x;Username=somebody" };
+        File.WriteAllText(Path.Combine(_directory, SecretNames.DatabaseAppConnection), "Host=from-the-file\n");
 
-        new DatabasePasswordPostConfigure(new SecretFiles(_directory)).PostConfigure(null, options);
+        IConfigurationRoot configuration = Configure([new(DatabaseOptions.ConnectionStringKey, "Host=from-the-setting")]);
 
-        Assert.Equal("Host=localhost;Database=x;Username=somebody", options.ConnectionString);
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    [InlineData("this is not a connection string")]
-    public void PostConfigure_WithMissingOrUnparsableConnectionString_LeavesItToTheValidator(string connectionString)
-    {
-        File.WriteAllText(Path.Combine(_directory, SecretNames.DatabaseAppPassword), "app-made-up\n");
-        DatabaseOptions options = new() { ConnectionString = connectionString };
-
-        new DatabasePasswordPostConfigure(new SecretFiles(_directory)).PostConfigure(null, options);
-
-        Assert.Equal(connectionString, options.ConnectionString);
-        Assert.True(new DatabaseOptionsValidator().Validate(null, options).Failed);
+        Assert.Equal("Host=from-the-file", configuration[DatabaseOptions.ConnectionStringKey]);
     }
 
     [Fact]
-    public void ValidatorFailure_NeverPrintsThePasswordFromTheFile()
+    public void ConfigurationSource_WithoutMountedFile_LeavesTheSettingToTheOtherSources()
     {
-        File.WriteAllText(Path.Combine(_directory, SecretNames.DatabaseAppPassword), "made-up-never-print\n");
-        DatabaseOptions options = new() { ConnectionString = "Host=database;Username=shopfolio_app", LivenessTimeoutSeconds = 0 };
+        IConfigurationRoot configuration = Configure([new(DatabaseOptions.ConnectionStringKey, "Host=localhost;Database=x;Username=somebody;Password=made-up")]);
 
-        new DatabasePasswordPostConfigure(new SecretFiles(_directory)).PostConfigure(null, options);
+        Assert.Equal("Host=localhost;Database=x;Username=somebody;Password=made-up", configuration[DatabaseOptions.ConnectionStringKey]);
+        Assert.Null(Configure()[DatabaseOptions.ConnectionStringKey]);
+    }
+
+    [Fact]
+    public void ConnectionStringFromTheFile_BindsIntoTheOptionsAndNoPasswordReachesTheValidatorMessage()
+    {
+        File.WriteAllText(Path.Combine(_directory, SecretNames.DatabaseAppConnection), "Host=database;Username=shopfolio_app;Password=made-up-never-print\n");
+        DatabaseOptions options = new();
+        Configure().GetSection(DatabaseOptions.SectionName).Bind(options);
+        options.LivenessTimeoutSeconds = 0;
+
         ValidateOptionsResult result = new DatabaseOptionsValidator().Validate(null, options);
 
+        Assert.Equal("shopfolio_app", Parse(options.ConnectionString).Username);
         Assert.True(result.Failed);
         Assert.DoesNotContain("made-up-never-print", string.Join(' ', result.Failures), StringComparison.Ordinal);
     }

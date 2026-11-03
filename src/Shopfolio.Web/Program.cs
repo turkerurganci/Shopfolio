@@ -10,9 +10,11 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
 
-// Secrets come from files Compose mounts under /run/secrets, never from the environment (05 6.x.1).
-builder.Services.AddSingleton(new SecretFiles(SecretFiles.DefaultDirectory));
-builder.Services.AddSingleton<IPostConfigureOptions<DatabaseOptions>, DatabasePasswordPostConfigure>();
+// Secrets come from files Compose mounts under /run/secrets, never from the environment (05 6.x.1). The connection string of the
+// database (password included) is the whole content of one such file and is the value of Database:ConnectionString (09 3.5 item 2).
+var mountedFiles = new SecretFiles(SecretFiles.DefaultDirectory);
+((IConfigurationBuilder)builder.Configuration).Add(new SecretFileConfigurationSource(mountedFiles));
+builder.Services.AddSingleton(mountedFiles);
 builder.Services.AddOptions<DatabaseOptions>()
     .BindConfiguration(DatabaseOptions.SectionName)
     .ValidateOnStart();

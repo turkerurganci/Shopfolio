@@ -52,12 +52,11 @@ services:
     env_file:
       - path: ${SHOPFOLIO_SETTINGS_FILE:-/etc/shopfolio/settings.env}
         required: false
-    environment:
-      # Host, database and user of the application's connection: fixed by this file's topology, not a secret, not a per-installation
-      # setting. The password is not here: the application reads it from /run/secrets/db_app_password (05 6.x.1; 09 3.5 item 2).
-      - Database__ConnectionString=Host=database;Database=shopfolio;Username=shopfolio_app
+    # No environment line for the database connection: the whole connection string (host, database, user and password) is the
+    # content of the secret file db_app_connection, and the application reads the setting Database:ConnectionString from it
+    # (05 6.x.1; 09 3.5 item 2).
     secrets:
-      - db_app_password
+      - db_app_connection
       - payment_provider_keys
       - email_credential
       - google_client_secret
@@ -92,9 +91,9 @@ services:
       - no-new-privileges:true
     environment:
       - POSTGRES_DB=shopfolio
-    # Only the backup keys are mounted for good. The superuser password and the three users' passwords reach the database only
-    # at the first install, through deploy/compose.install.yaml (05 6.x.6): the setup script reads them while it creates the
-    # users, and later starts of this service do not carry them.
+    # Only the backup keys are mounted for good. The superuser password and the setup copies of the three users' passwords reach
+    # the database only at the first install, through deploy/compose.install.yaml (05 6.x.6): the setup script reads them while it
+    # creates the users, and later starts of this service do not carry them.
     secrets:
       - db_backup_storage_key
       - db_backup_cipher_key
@@ -170,10 +169,8 @@ services:
     restart: "no"
     security_opt:
       - no-new-privileges:true
-    environment:
-      - Database__ConnectionString=Host=database;Database=shopfolio;Username=shopfolio_app
     secrets:
-      - db_app_password
+      - db_app_connection
     networks:
       - app-data
     depends_on:
@@ -188,10 +185,8 @@ services:
     restart: "no"
     security_opt:
       - no-new-privileges:true
-    environment:
-      - Database__ConnectionString=Host=database;Database=shopfolio;Username=shopfolio_reader
     secrets:
-      - db_reader_password
+      - db_reader_connection
     networks:
       - app-data
     depends_on:
@@ -252,15 +247,25 @@ volumes:
 
 secrets:
   # One file per secret, in a directory only root can open; each file belongs to the user of the container that reads it (05 6.x.1).
-  # Distribution follows 05 6.x.2-6.x.7 and 6.x.19: no container is given a secret it does not use.
+  # Distribution follows 05 6.x.2-6.x.7 and 6.x.19: no container is given a secret it does not use. The password of a database
+  # user sits in two files with the same value, each read by one container user only: the connection string file of the
+  # application image (db_app_connection, db_reader_connection) and, for the database's setup script at the first install, a
+  # password file owned by the database user (db_setup_*_password; the migration password has db_migrator_password for
+  # the migration service). A rotation writes both files of the user (DEPLOY_RUNBOOK section B.1).
   db_superuser_password:
     file: ${SHOPFOLIO_SECRETS_DIR:-/etc/shopfolio/secrets}/db_superuser_password
   db_migrator_password:
     file: ${SHOPFOLIO_SECRETS_DIR:-/etc/shopfolio/secrets}/db_migrator_password
-  db_app_password:
-    file: ${SHOPFOLIO_SECRETS_DIR:-/etc/shopfolio/secrets}/db_app_password
-  db_reader_password:
-    file: ${SHOPFOLIO_SECRETS_DIR:-/etc/shopfolio/secrets}/db_reader_password
+  db_app_connection:
+    file: ${SHOPFOLIO_SECRETS_DIR:-/etc/shopfolio/secrets}/db_app_connection
+  db_reader_connection:
+    file: ${SHOPFOLIO_SECRETS_DIR:-/etc/shopfolio/secrets}/db_reader_connection
+  db_setup_migrator_password:
+    file: ${SHOPFOLIO_SECRETS_DIR:-/etc/shopfolio/secrets}/db_setup_migrator_password
+  db_setup_app_password:
+    file: ${SHOPFOLIO_SECRETS_DIR:-/etc/shopfolio/secrets}/db_setup_app_password
+  db_setup_reader_password:
+    file: ${SHOPFOLIO_SECRETS_DIR:-/etc/shopfolio/secrets}/db_setup_reader_password
   db_backup_storage_key:
     file: ${SHOPFOLIO_SECRETS_DIR:-/etc/shopfolio/secrets}/db_backup_storage_key
   db_backup_cipher_key:

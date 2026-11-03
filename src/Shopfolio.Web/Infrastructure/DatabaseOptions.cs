@@ -13,8 +13,9 @@ internal sealed class DatabaseOptions
     public const string LivenessTimeoutKey = SectionName + ":" + nameof(LivenessTimeoutSeconds);
 
     /// <summary>
-    /// The connection string of the application's database user. It carries a credential, so it lives in the secret file of the
-    /// installation (never in the settings template) and is a required setting: the application does not open without it.
+    /// The connection string of the container's database user. It carries a credential, so its whole value is the content of a
+    /// secret file (never an environment variable or the settings template) and it is a required setting: the application does not
+    /// open without it.
     /// </summary>
     public string ConnectionString { get; set; } = string.Empty;
 

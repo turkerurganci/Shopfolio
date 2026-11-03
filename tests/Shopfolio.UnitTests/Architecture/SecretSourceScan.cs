@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Shopfolio.UnitTests.FileSecrets;
+namespace Shopfolio.UnitTests.Architecture;
 
 /// <summary>
 /// Source scan for code that reads a secret from the environment (05 6.x.1: secrets arrive as files, never as environment

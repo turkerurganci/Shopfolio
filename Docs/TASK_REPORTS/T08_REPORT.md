@@ -1,6 +1,6 @@
 # T08 — Sır düzeni
 
-**Faz:** F0 | **Durum:** Düzeltme 3 yapıldı (tur 3 FAIL sonrası); tam doğrulama bekliyor | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✓ Doğrulama tur 4 PASS (2026-11-03, `363dd4d`); merge yardımcıda | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -54,10 +54,25 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Düzeltme 3 sonrası tam doğrulama bekliyor · ✗ FAIL — tur 3 (2026-11-03, `22d22f6`); tur 2 ✗ FAIL (`848da1f`); tur 1 ✗ FAIL (`dda60d3`) |
-| Bulgu sayısı | Tur 3: 2 (S1, DÜŞÜK) — tur 2'nin üç bulgusu ve üç K-notu kapandı, iki yeni `09 §25` bulgusu · Tur 2: 3 (S1, DÜŞÜK) · Tur 1: 3 (S1, DÜŞÜK) |
-| Düzeltme gerekli mi | Yapıldı (düzeltme 3, yardımcı kararıyla proje sahibi yetkisiyle); sonrasında tam doğrulama |
-| Bloke-etmeyen not (K) sayısı | Tur 3: 5 (dördü düzeltme turunda kapanır, biri D-35 (b)'ye eklenir) · Tur 2: 3 · Tur 1: 2 |
+| Doğrulama durumu | ✓ PASS — tur 4 (2026-11-03, `363dd4d`; kapsam tam) · tur 3 ✗ FAIL (`22d22f6`); tur 2 ✗ FAIL (`848da1f`); tur 1 ✗ FAIL (`dda60d3`) |
+| Bulgu sayısı | Tur 4: 0 — tur 3'ün iki bulgusu ve K1–K5 kapandı · Tur 3: 2 (S1, DÜŞÜK) · Tur 2: 3 (S1, DÜŞÜK) · Tur 1: 3 (S1, DÜŞÜK) |
+| Düzeltme gerekli mi | Hayır (tur 4) |
+| Bloke-etmeyen not (K) sayısı | Tur 4: 3 → D-36 · Tur 3: 5 · Tur 2: 3 · Tur 1: 2 |
+
+### Doğrulama tur 4 — validator kanıtları (tam kapsam)
+
+Başlangıç kapıları: working tree temiz; `core.hooksPath` kurulu; ana dal son 3 run (41630669794, 41630669803, 41619599572) success; memory'de T08 satırı var. `12`'de T08'in kaynak birimlerine bağlı VAL satırı yok (`grep -nE 'MK-59([^0-9]|$)|MK-60([^0-9]|$)|05 §6\.x|09 §17|\bT08\b'` boş) — `Durum` hücresi yazılmadı; `12_matris_denetle.py --kapsam 1-77` hata 0. Dal CI run 41646506249 (head `363dd4d`) success — Lint 11, Unit 50, Integration 45 test; dokuz iş yeşil.
+
+| # | Validator sonucu | Validator kanıtı |
+|---|---|---|
+| 1 | ✓ | `docker compose --env-file deploy/release.env --env-file deploy/.env.example -f deploy/compose.yaml [+install / +dev / +dev+install] --profile tools config --format json` (Compose v5.1.0) betikle ayrıştırıldı: `app` = `db_app_connection` + dört dış servis/türetme sırrı; `command` = `db_app_connection`; `read-command` = `db_reader_connection`; `migrate` = `db_migrator_password`; `backup` = iki dosya yedeği anahtarı; `database` kalıcı = iki veritabanı yedeği anahtarı, install bindirmesiyle + kurucu ve üç `db_setup_*`; `proxy` sırsız. Her tanımın dosyası `${SHOPFOLIO_SECRETS_DIR:-/etc/shopfolio/secrets}/<ad>`; dizin root 0700 (runbook §B.1) |
+| 2 | ✓ | Dalın Release yayını uygulama imajında (uid 1654) PostgreSQL 18'e karşı: `db_app_connection` (1654, 0400) bağlı + ortamda yanlış `Database__ConnectionString` → `GET /sistem/canlilik` **200** (canlılık veritabanına bağlanır; dosya kazandı); dosya yok + ortamda geçerli dizi → **200**; ikisi yok → açılış `Database:ConnectionString is missing` ile durdu; üç koşuda kayıtta parola 0 satır. Taban ve install çıktısında `app`/`command`/`read-command` ortamı boş. Mutasyon: `Program.cs`'e `Environment.GetEnvironmentVariable` → `ApplicationSource_ReadsNoSecretFromTheEnvironment` kırmızı |
+| 3 | ✓ | Yerel Docker 29.2.1: `t08v4-secrets` bölümüne §B.1'in 15 dosyası sahibi ve 0400 izniyle yazıldı; üç imaj kendi kullanıcısıyla (`id -u`: 1654, 999, 10001) her dosyayı denedi — 1654 yalnız kendi 7, 999 yalnız kendi 6, 10001 yalnız kendi 2 dosyasını okudu; çapraz okuma yok |
+| 4 | ✓ | Compose çıktısı `05 §6.x.3`–§6.x.7, §6.x.18, §6.x.19 ile satır satır eşleşti; mutasyon `app`'e `db_reader_connection` → dört test kırmızı |
+| 5 | ✓ | Runbook §B "Rotation" `05 §6.x.10`–§6.x.12, §6.x.20 ile 15 satırda uyumlu; yalnız iki şifreleme anahtarı "Döndürülmez"; `Runbook_RotatesEverySecretExceptTheTwoBackupCipherKeys` yeşil |
+| 6 | ✓ | `git ls-files` sır deseninde yalnız `deploy/.env.example` (+ sırsız `ci-commands.env`, `release.env`, kod/test dosyaları); `git check-ignore -v` desenleri tutuyor, `.env.example` izlenir; dal farkında yalnız uydurma değerler; `BYPASS_LOG.md` farkı boş; commit'lerde `PB_ALLOW_*` ve atıf satırı yok. Mutasyon: `.env.example`'a `SMTP_PASSWORD=x` → `SettingsTemplate_…` kırmızı |
+
+Tur 3 bulguları: (1) ✓ kapandı — iki deploy taraması `Architecture/`'de, ayrı ihlal örnekleriyle; eşleme biçimli `PAYMENT_PASSWORD: made-up-value` artık `ComposeFile_PutsNoSecretIntoAnEnvironmentSetting(compose.yaml)`'ı kırmızı yapıyor; install'a `- POSTGRES_PASSWORD=made-up` de kırmızı. (2) ✓ kapandı — PR #349 açıklamasında okunan bölümler ve `09 §25` cevapları var, gövde güncel. K1–K5 kapandı. Yeni K-notları D-36'ya: (a) Compose taraması tırnaklı liste öğesini (`- "PAYMENT_PASSWORD=…"`), tırnaklı anahtarı ve `environment: !override` bölümünü okumuyor (üç mutasyon doğrudan kırmızı vermedi; repo dosyalarında bu biçimler yok); (b) D-01'in T08 notundaki `SecretSourceScanTests` atfı eski; (c) Known Limitations 4'ün backlog kimliği yoktu.
 
 ### Doğrulama tur 3 — validator kanıtları (tam kapsam)
 
@@ -166,9 +181,9 @@ Testler: Unit 50 + Consistency 11 (61), Integration 45/45 (yerel `postgres:18` k
 ## Commit & PR
 
 - **Branch:** `task/T08-sir-duzeni`
-- **Commit:** *(PR'da)*
-- **PR:** *(PR'da)*
-- **CI:** *(yardımcı izler)*
+- **Commit:** `363dd4d` (doğrulanan head)
+- **PR:** #349
+- **CI:** dal run 41646506249 success (head `363dd4d`)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar
@@ -188,7 +203,7 @@ Testler: Unit 50 + Consistency 11 (61), Integration 45/45 (yerel `postgres:18` k
 | 1 | Üst dokümanlarda açık kalan uyumsuzluklar: D-35 (b) (`05 §8.2.4` hizmet listesi ve `09 §4.3` ağacının `compose.yaml` satırı) ve (d) (döndürme adımlarının ayrıntısı); (a) ve (c) düzeltme 1'de çözüldü | D-35 (yeni) | `05`/`09` doküman değişikliği (GUARDRAILS §3) |
 | 2 | Dosya/kayıt klasörlerinin yolları, pgBackRest kaydı | D-32 (b) kalanı | T07 |
 | 3 | `SETUP_COMPLETE` ve D-01 | D-01 | T09 (T08 ilerleme notu eklendi) |
-| 4 | Komut hizmetlerinin bağlandığı komut kipi (`command`/`read-command` imajın giriş noktasını kullanır) | — | Yönetim komutlarını yazan task'lar (`05 §8.5`) |
+| 4 | Komut hizmetlerinin bağlandığı komut kipi (`command`/`read-command` imajın giriş noktasını kullanır) | D-36 (c) | Yönetim komutlarını yazan task'lar (`05 §8.5`) |
 
 ## Notlar
 

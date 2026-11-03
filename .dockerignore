@@ -1,0 +1,35 @@
+# Docker build context filter. The context is the repository root for all three images (09 4.3 item 1), so this file keeps
+# the context small and keeps anything that must not travel into an image out of it.
+
+# Version control and agent working files
+.git
+.github
+.claude
+.vscode
+.idea
+
+# Documents and tests are not part of any image
+Docs
+tests
+scripts/doc-scans
+scripts/metrics
+scripts/git-hooks
+
+# Build output of a local build must never shadow the in-image build
+**/bin
+**/obj
+
+# Secrets and installation settings never enter an image (09 17 item 2); only the template is allowed
+**/.env
+**/.env.*
+!**/.env.example
+**/secrets
+**/*.secret
+**/*.secrets
+**/secrets.json
+**/*.pem
+**/*.key
+**/*.pfx
+**/*.p12
+**/appsettings.*.local.json
+**/appsettings.Production.json

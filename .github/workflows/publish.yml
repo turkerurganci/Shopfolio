@@ -2,7 +2,7 @@ name: Publish
 
 # Imaj yayinlama (05 §8.3.12, MK-12): ana dala her merge'de commit kimligiyle, surum etiketinde (vANA.ARA.YAMA)
 # surum numarasiyla. PR'larda calismaz — ci.yml "7. Paketleme dogrulamasi" build'i dogrular.
-# Imaj komutu (PUBLISH_CMD) T06'da girer; o gune dek bos komut uyari ile atlanir. Kurulumlara otomatik dagitim yoktur (05 §8.3.13).
+# Imaj komutu (PUBLISH_CMD, scripts/ci/publish-images.sh) uc imaji GitHub Container Registry'ye iter. Kurulumlara otomatik dagitim yoktur (05 §8.3.13).
 #
 # Bu workflow'un varligi bilinclidir: ayni ref'e bagli IKINCI bir workflow,
 # "post-merge CI watch" disiplininin (00 §F.4) gercek testidir — bir merge'de
@@ -48,5 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # SETUP.md §4: registry login / auth adimlarini buraya ekleyin.
+      # Kayit defteri girisi scripts/ci/publish-images.sh icindedir; kimlik yalniz bu is akisinin GITHUB_TOKEN'idir (packages: write).
       - run: bash .github/ci-run.sh PUBLISH_CMD "Publish"
+        env:
+          REGISTRY_CREDENTIAL: ${{ github.token }}

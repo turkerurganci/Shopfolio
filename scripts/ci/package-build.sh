@@ -183,7 +183,7 @@ expect "number of shopfolio users" 4 "$(db_query "select count(*) from pg_roles 
 expect "users with SUPERUSER/CREATEDB/CREATEROLE/REPLICATION/BYPASSRLS" 0 \
   "$(db_query "select count(*) from pg_roles where rolname like 'shopfolio\_%' and (rolsuper or rolcreatedb or rolcreaterole or rolreplication or rolbypassrls)")"
 expect "database encoding, locale provider and ICU locale" "UTF8|i|tr-TR" \
-  "$(db_query "select pg_encoding_to_char(encoding) || '|' || datlocprovider || '|' || datlocale from pg_database where datname = 'shopfolio'")"
+  "$(db_query "select pg_encoding_to_char(encoding) || '|' || datlocprovider::text || '|' || datlocale from pg_database where datname = 'shopfolio'")"
 expect "pg_trgm installed" 1 "$(db_query "select count(*) from pg_extension where extname = 'pg_trgm'")"
 expect "role settings of the schema owner" 3 \
   "$(db_query "select array_length(setconfig, 1) from pg_db_role_setting s join pg_roles r on r.oid = s.setrole where r.rolname = 'shopfolio_migrator'")"

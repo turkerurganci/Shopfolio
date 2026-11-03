@@ -78,7 +78,7 @@
 | 2 | `psql` `\set x \`cat dosya\`` ile parolayı dosyadan okur, parola komut satırında ve günlükte yoktur | Gerçek imajda sunucu günlüğü denetlendi, parola yok; betik parolayı komut satırına vermez (`DatabaseImageScan` parola argümanı ihlal örneği) | ✓ |
 | 3 | `peer` + `pg_ident` eşlemesi konteynerin `postgres` işletim sistemi kullanıcısını durum kullanıcısına geçirir | Gerçek imajda yerel soketten `shopfolio_backup_status` olarak bağlanıldı; ağdan kurucu reddedildi | ✓ |
 | 4 | ICU `tr-TR` sıralaması resmî imajda kullanılabilir | `SELECT datlocprovider, datlocale` → `i`, `tr-TR` | ✓ |
-| 5 | Windows'ta yerel CI betiği adım 6 (MSYS yol dönüşümü) | Parçalar ayrı sınandı; bütün olarak yerelde koşturulamadı | ~ D-37 (b); CI Linux'ta koşar |
+| 5 | Windows'ta yerel CI betiği adım 6 (MSYS yol dönüşümü) | CI'da `datlocprovider` `"char"` birleştirme hatası düzeltildi (`::text`); bölüm Linux konteynerinde uçtan uca geçti | ✓ D-37 (b) çözüldü |
 | 6 | Plan tier / kota / API anahtarı / dış hizmet | Bu task'ta yok | Dış varsayım yok (başka) |
 
 ## Known Limitations / Follow-up
@@ -86,7 +86,7 @@
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
 | 1 | Göç geçmişi tablosunun uygulamaya ve salt okumaya kapalılık beklentisi matrise yazılmadı | D-37 (a) | Tabloyu kuran ilk göç henüz yok; planda T103 ekler |
-| 2 | `package-build.sh` adım 6'nın ilk kurulum bölümü yerelde bütün olarak koşturulamadı | D-37 (b) | Windows MSYS yol dönüşümü; CI'ın Linux koşusunda sınanır |
+| 2 | ~~`package-build.sh` adım 6'nın ilk kurulum bölümü yerelde koşturulamadı~~ ✅ Çözüldü: Linux konteynerinde uçtan uca geçti | D-37 (b) | CI hatası (`datlocprovider::text`) düzeltildi |
 | 3 | Betiğin gerçek sunucuda ilk kurulumda koşması; pgBackRest'in yerel soketten `peer` ile bağlanması | D-01 (c), D-31 | Gerçek sunucu T09'da; pgBackRest işi T07'de |
 
 ## Notlar

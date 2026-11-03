@@ -85,6 +85,10 @@ Tur 3 FAIL sonrası (birleşik hâl `c929163`; bulgu 1, `VAL-F016`, S1 ORTA; K11
 
 | Alan | Sonuç |
 |---|---|
+| Doğrulama durumu (tur 4) | ✓ PASS — 2026-11-03 (`aa1cfe6`; düzeltme 2 sonrası, `main` ile birleşik hâl; kapsam tam). Kriter 1–7 ✓, KK1–KK7 ✓, `09 §25` evet/uygulanamaz, güvenlik temiz. Dal CI run 41670381320 yeşil (Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate) |
+| Bulgu sayısı (tur 4) | 0 — tur 3'ün bulgusu (`VAL-F016`, prova son anı ve süresi) kapandı |
+| Düzeltme gerekli mi (tur 4) | Hayır |
+| Bloke-etmeyen not (tur 4) | 2 — K12 `core.hooksPath` yine mutlak yolda bulundu (üçüncü kez), `install.sh` ile düzeltildi (kapandı; kaynağı repo dışında, yardımcıya bildirildi); K13 D-39 (d) (prova `archive-get`'inin hangi depodan çektiği) gerçek imajda gözlendi ve kapatıldı |
 | Doğrulama durumu (tur 3) | ✗ FAIL — 2026-11-03 (`c929163`; tur 2 PASS'ten sonra `main` (T10, #350) ile birleşik hâl; kapsam tam; iki doğrulayıcıyla, ilki bağlam sınırında bölündü). Kriter 1–6 ✓, **7 ✗**; KK1–KK7 ✓ (KK7 adım ve alanların varlığını sınar, değerlerin doğruluğunu değil). Dal CI run 41665382289 yeşil; güvenlik temiz |
 | Bulgu sayısı (tur 3) | 1 — S1 ORTA (`VAL-F016`): veritabanı provası son anı ve süreyi yanlış kaydeder (ayrıntı aşağıda) |
 | Düzeltme gerekli mi (tur 3) | Evet — `database-restore-drill.sh` kurtarmanın bitmesini beklemeli; süre kurtarmanın sonuna dek ölçülmeli |
@@ -97,6 +101,26 @@ Tur 3 FAIL sonrası (birleşik hâl `c929163`; bulgu 1, `VAL-F016`, S1 ORTA; K11
 | Bulgu sayısı | 4 — (1) S1 KRİTİK: yedek kullanıcısı (10001) pgBackRest kaydını (0640 postgres) ve systemd günlüğünü (0640) okuyamaz; gerçek imajlarla koşuda restic çıkış 3, durum `failure/backup`, forget/prune/check hiç koşmaz (yerel Docker kanıtı); (2) S1 ORTA: yedek aracının kendi kaydı (`/var/log/backup`, `05 §9.1.4`) dosya yedeğinin yollarında yok; (3) S1 DÜŞÜK: `09 §17` madde 7 metni çift kaldı; (4) S1 DÜŞÜK: dosya provası "birkaç dosya" yerine bütün görsel dizinini geri alır |
 | Düzeltme gerekli mi | Evet — yeni yapım turu; `09 §17` m.7'nin "geçici depoda yedek–budama–denetim–kurtarma" kabulü gerçek imajlarla koşulup rapora yazılır |
 | Bloke-etmeyen not (K) sayısı | 7 — K1 ilk açılışta erişilemeyen depoda geçici sunucu kapanmıyor (bir kez `Exited (1)`); K2 nesne kilidi red denemesi yok; K3 prova `archive-get`'inin hangi depodan çektiği kurulumda gözlenmeli; K4 `init` hatası durmuyor; K5 paketleme taramaları geniş; K6 D-39 atıfları; K7 PR'da `09 §25` soru başına cevap yok — düzeltme turunda ya da D-39/backlog'a |
+
+### Doğrulama tur 4 — validator kanıtları (tam kapsam, birleşik hâl, düzeltme 2)
+
+Başlangıç kapıları: working tree temiz; `core.hooksPath` yine mutlak yoldaydı → `install.sh` ile `scripts/git-hooks` (K12); ana dal son 3 run (41664366613, 41664366553, 41649150934) success; memory'de T07 satırı var. Dal CI run 41670381320 (head `aa1cfe6`) success — Lint (Consistency 34), Build, Unit (betik testleri 4 dosya, `database-restore-drill.test.sh` 13 doğrulama; 68 test), Integration 62, Contract, Migration, Paketleme (pgBackRest 2.60.0, `archive_timeout` 50s; restic 0.19.1), E2E, CI Gate. Yerel: `dotnet restore --locked-mode` 0; `dotnet build -c Release -warnaserror` 0/0; Unit 68/68; Consistency 34/34; `dotnet format --verify-no-changes` 0; betik testleri 4 dosya (11 + 13 + 129 + 27); `docker compose ... config -q` (temel, `compose.install.yaml`, `compose.dev.yaml`) 0. Betik testi düzeltme öncesi betiğe (`e159127`) karşı koşuldu: 13 doğrulamanın 7'si düşer — deneme hatayı yakalar.
+
+Yerel Docker (`shopfolio-valr4-*`, hepsi adıyla silindi): dalın iki imajı derlendi; veritabanı ilk kurulumla açıldı (T10 kurucu + T07 giriş), depo 2 ortamla yerel yola çevrildi (`PGBACKREST_REPO2_TYPE=posix`). `database-job.sh` çıkış 0 (önce `--repo=2`, sonra `--repo=1` tam yedek; `pgbackrest info` status ok, depo 2 `aes-256-cbc`, kayıtta şifre `<redacted>`). Yedekten sonra dört işlem ve 30 sn arayla `archive_timeout` kapanışları; son işlem `16:12:46.42299`, son arşivlenen WAL `…08`. Prova runbook'taki gibi ayrı konteynerde (`db-data` bağlı): günlükler `…03`–`…08` geri yüklendi, "consistent recovery state" sonrasında da uygulama sürdü, `redo done`, `archive recovery complete`; `drill-record: last-moment=2026-11-03 16:12:46.42299+00` (birincil sunucudaki son işlemle aynı), `restore-duration-seconds=6`, `repository=object-storage (repo2)`. Aynı imajda `--repo=2` geri alımının `restore_command`'ı `--repo=2` taşır → günlükler dış depodan (D-39 (d) kapandı). Yedek imajı (gerçek restic, varsayılan yollar, `--group-add 10002`): dört adım çıkış 0, durum dosyası `success` ve `lastSuccessAt` dolu; anlık görüntüde `/data/db-logs/pgbackrest/*` ve `/var/log/backup/file-backup.log`; dosya provası 4 dosya, `check --read-data-subset=5%` "no errors", dört `drill-record` satırı.
+
+| # | Validator sonucu | Validator kanıtı |
+|---|---|---|
+| 1 | ✓ | Çalışan imajda `SHOW archive_timeout` → `50s`, `archive_mode` on; `ArchiveSettings_…`; CI Paketleme |
+| 2 | ✓ | `compose config`: iki hizmette 01:30 / `Europe/Istanbul`; `BackupSchedule_…` |
+| 3 | ✓ | Gerçek restic dört adım sırayla çıkış 0; betik testi (sıra, düşen adım, `--max-unused 0`); `FileBackupPaths_…` |
+| 4 | ✓ | `write-status.sh` geçici dosya + `mv`; durum dosyası şemaya uygun; betik testi önceki `lastSuccessAt`, ilk koşuda boş |
+| 5 | ✓ | Ayrı sır dosyaları (`db_backup_*`, `file_backup_*`), önekler `database/`, `files/`; `bucket-lifecycle.json`, `key-policy.template.json`, `bucket-checks.sh` runbook §J.3–J.5'te, kurulumda koşar (KK5; D-01 açık, `SETUP_COMPLETE=false`) |
+| 6 | ✓ | pgBackRest `repo2-retention-full-type=time`/30, restic `--keep-within 30d`; kova kuralı yalnız eski sürüm; eşitlik testleri |
+| 7 | ✓ | Veritabanı provası kurtarmanın sonunu bekler, son an arşivin son işlemi, süre indirme + uygulama, depo 2 (yukarıda); dosya provası örnek + veri okuyan denetim; runbook §J.5 dört denetim ve üç kayıt alanı; koşum kurulumda (T601) |
+
+`12`: `VAL-F016` FAIL → BEKLEMEDE (kriter 7 ✓; satırın ön koşulu — referans kurulum ve firmanın nesne depolaması — T601'de sağlanır, `12 §5` kural 1; tur 2 ile aynı); `VAL-D052`…`D055` BEKLEMEDE kalır. Atlama kaydı: iki `[ci-failure]` `PB_ALLOW_DIRECT_PUSH` `00 §F.2`'ye uygun (kök neden düzeltmeleri, kayıt sonraki commit'te); `PB_ALLOW_SECRET` yok; diff'te sır deseni yok.
+
+Yapım raporu karşılaştırması: uyuşmazlık yok (verdict'i etkileyen). Kriter 5'te yapım `~`, doğrulayıcı ✓ (KK5 tanımı; tur 2–3 ile aynı). Düzeltme 2'nin gerçek imaj kanıtı doğrulayıcının koşusuyla örtüşür.
 
 ### Doğrulama tur 3 — validator kanıtları (tam kapsam, birleşik hâl)
 

@@ -12,6 +12,7 @@ internal sealed class StallingTcpProxy : IAsyncDisposable
 {
     private readonly TcpListener _listener = new(IPAddress.Loopback, 0);
     private readonly CancellationTokenSource _stop = new();
+    private readonly TaskCompletionSource _stopped = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly string _upstreamHost;
     private readonly int _upstreamPort;
     private readonly Task _accepting;
@@ -34,12 +35,21 @@ internal sealed class StallingTcpProxy : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await _stop.CancelAsync();
+        _stopped.TrySetResult();
         _listener.Stop();
         try
         {
             await _accepting;
         }
-        catch (Exception ex) when (ex is OperationCanceledException or ObjectDisposedException or SocketException)
+        catch (OperationCanceledException)
+        {
+            // The listener is closed; the loop ends.
+        }
+        catch (ObjectDisposedException)
+        {
+            // The listener is closed; the loop ends.
+        }
+        catch (SocketException)
         {
             // The listener is closed; the loop ends.
         }
@@ -52,7 +62,7 @@ internal sealed class StallingTcpProxy : IAsyncDisposable
         while (!_stop.IsCancellationRequested)
         {
             TcpClient client = await _listener.AcceptTcpClientAsync(_stop.Token);
-            _ = Task.Run(() => RelayAsync(client), CancellationToken.None);
+            _ = RelayAsync(client);
         }
     }
 
@@ -64,7 +74,7 @@ internal sealed class StallingTcpProxy : IAsyncDisposable
             {
                 if (_stalled)
                 {
-                    await Task.Delay(Timeout.Infinite, _stop.Token);
+                    await _stopped.Task;
                     return;
                 }
 
@@ -76,7 +86,19 @@ internal sealed class StallingTcpProxy : IAsyncDisposable
                     PumpAsync(clientStream, upstreamStream, stallable: true),
                     PumpAsync(upstreamStream, clientStream, stallable: false));
             }
-            catch (Exception ex) when (ex is OperationCanceledException or IOException or SocketException or ObjectDisposedException)
+            catch (OperationCanceledException)
+            {
+                // The proxy is stopping; the relay ends.
+            }
+            catch (IOException)
+            {
+                // A closed or aborted connection ends the relay.
+            }
+            catch (SocketException)
+            {
+                // A closed or aborted connection ends the relay.
+            }
+            catch (ObjectDisposedException)
             {
                 // A closed or aborted connection ends the relay.
             }
@@ -96,7 +118,8 @@ internal sealed class StallingTcpProxy : IAsyncDisposable
 
             if (stallable && _stalled)
             {
-                await Task.Delay(Timeout.Infinite, _stop.Token);
+                await _stopped.Task;
+                return;
             }
 
             await to.WriteAsync(buffer.AsMemory(0, read), _stop.Token);

@@ -19,9 +19,9 @@
 ## Etkilenen Modüller / Dosyalar
 
 - `src/Shopfolio.Web/Endpoints/LivenessEndpoint.cs` (yeni; `.gitkeep` silindi)
-- `src/Shopfolio.Web/Infrastructure/{DatabaseOptions,DatabaseTimeouts,LivenessProbe}.cs`, `Infrastructure/Logging/LogEvents.cs` (yeni)
+- `src/Shopfolio.Web/Infrastructure/{DatabaseOptions,DatabaseOptionsValidator,DatabaseTimeouts,LivenessProbe}.cs`, `Infrastructure/Logging/LogEvents.cs` (yeni)
 - `src/Shopfolio.Web/Program.cs`
-- `tests/Shopfolio.IntegrationTests/Web/{LivenessEndpointTests,CollectingLoggerProvider,ShopfolioWebApplicationFactory}.cs`
+- `tests/Shopfolio.IntegrationTests/Web/{LivenessEndpointTests,StallingTcpProxy,CollectingLoggerProvider,ShopfolioWebApplicationFactory}.cs`
 - `tests/Shopfolio.UnitTests/Infrastructure/DatabaseOptionsValidatorTests.cs`
 - `Docs/09_CODING_GUIDELINES.md`, `Docs/DEFERRED_BACKLOG.md`, `.claude/CONTEXT.md`
 
@@ -40,8 +40,8 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test Shopfolio.slnx` | yeni 11 test dahil hepsi geçti |
-| Integration | ✓ | aynı komut, PostgreSQL 18 (`SHOPFOLIO_TEST_DATABASE`, yerel docker) | yeni 11 test dahil; toplam 56/56, 0 başarısız, 0 atlanan |
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj -c Release` | 33/33 (24 birim + 9 tutarlılık), 0 başarısız, 0 atlanan (düzeltme turu 3 koşusu) |
+| Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj -c Release`, PostgreSQL 18 (`SHOPFOLIO_TEST_DATABASE`, yerel docker) | 29/29, 0 başarısız, 0 atlanan (düzeltme turu 3 koşusu) |
 | Contract | — | — | task'ın test beklentisi Integration |
 
 Ek: `dotnet build Shopfolio.slnx` 0 uyarı; `dotnet format --verify-no-changes` temiz; koşu sonrası `git status` temiz (kilit dosyaları değişmedi).
@@ -82,10 +82,10 @@ Ek: `dotnet build Shopfolio.slnx` 0 uyarı; `dotnet format --verify-no-changes` 
 
 | # | Varsayım | Kanıt | Sonuç |
 |---|---|---|---|
-| 1 | Npgsql `NpgsqlDataSource.OpenConnectionAsync(ct)` ve `CancelAfter` ile havuz beklemesi iptal edilir (`09 §10.7` örneği "bilgim tarihli") | havuzu 1'e indirip bağlantıyı tutan test: 1 sn'de 503 + tek `DbTimeout` satırı | ✓ |
-| 2 | `WebApplicationFactory.UseSetting("Database:ConnectionString", …)` uygulamanın seçeneklerine ulaşır | 56 testin hepsi fabrika üzerinden uygulamayı açıp veritabanına bağlanıyor | ✓ |
+| 1 | Npgsql `NpgsqlDataSource.OpenConnectionAsync(ct)` ve `CancelAfter` ile havuz beklemesi iptal edilir (`09 §10.7` örneği "bilgim tarihli") | havuzu 1'e indirip bağlantıyı tutan test: 1 sn'de 503 + tek `DbTimeout` satırı. Not: fiziksel açılışta `CancelAfter` yetmedi (doğrulama tur 2); açılış ve komut yavaşlatma testleri (`StallingTcpProxy`, TCP aktarıcı) süreyi `WaitAsync` ile doğruluyor | ✓ (havuz beklemesi için; açılışta ✗, `WaitAsync` ile çözüldü) |
+| 2 | `WebApplicationFactory.UseSetting("Database:ConnectionString", …)` uygulamanın seçeneklerine ulaşır | 29 entegrasyon testinin canlılık ve açılış testleri fabrika üzerinden uygulamayı açıp veritabanına bağlanıyor | ✓ |
 | 3 | `ValidateOnStart` geçersiz ayarda açılışı durdurur ve ayarı adıyla söyler | `Start_WithInvalidLivenessTimeout_...` ve `Start_WithoutConnectionString_...` | ✓ |
-| 4 | Windows'ta erişilemeyen port hızlı hata vermez (sınırı bekler) | ilk koşuda `Port=1` ile `DbTimeout` satırı çıktı; hızlı hata testi var olmayan veritabanı adıyla yazıldı | ✓ |
+| 4 | Windows'ta erişilemeyen port hızlı hata vermez (sınırı bekler) | ilk koşuda `Port=1` ile `DbTimeout` satırı çıktı; hızlı hata testi var olmayan veritabanı adıyla yazıldı. Erişilemeyen sunucu ve yanıtsız bağlantı için `StallingTcpProxy` aktarıcılı yavaşlatma testleri ve `192.0.2.1` testi sınırı doğruluyor | ✓ |
 | 5 | Plan tier, kota, API anahtarı vb. dış kısıt | Yok; yerel PostgreSQL 18 imajı | ✓ (dış varsayım yok) |
 
 ## Known Limitations / Follow-up
@@ -124,3 +124,15 @@ Doğrulama tur 2 FAIL (1 ORTA, kriter 5 / KK5). Giderilenler:
 - K1: `Server` başlığı onayı kaldırıldı (TestServer başlık yazmaz); gerekçe test yorumunda.
 - K2: `DEFERRED_BACKLOG.md` D-22 satır atfı güncellendi.
 - Sonuç: build 0 uyarı, `dotnet format --verify-no-changes` temiz, Unit + Integration yeşil (PostgreSQL 18), koşu sonrası `git status` temiz.
+
+## Düzeltme Turu 3
+
+Doğrulama tur 3 FAIL (iki DÜŞÜK bulgu, beş K-notu). Giderilenler:
+- Bulgu 1: `LivenessEndpointTests` içindeki iki `real.Host!` kalktı; `UpstreamHost` yardımcısı `Host ?? throw new InvalidOperationException(...)` kullanır (`09 §3.1` madde 5).
+- Bulgu 2: `09 §8.1` madde 6 canlılık parçası `§10.7` madde 6 ile uyumlu: geniş `catch` istek iptalini de yakalar, iptal denetim görevinin dışında `WaitAsync(süre, ct)` ile yukarı geçer.
+- K1: iki yavaşlatma testinde `DbTimeout` satırı `Assert.Single` ile sınanır.
+- K2: `StallingTcpProxy` süzgeçsiz tipli `catch` bloklarına, doğrudan çağrıya (`Task.Run` yok) ve `TaskCompletionSource` bekleyişine (`Task.Delay(Timeout.Infinite, ...)` yok) çevrildi; yavaşlatma testleri aynı sınırda geçer.
+- K3: `DEFERRED_BACKLOG.md` D-21 atfı `LivenessEndpointTests.cs:13-14`.
+- K4: `IMPLEMENTATION_STATUS.md` "Son güncelleme" bloğunda yalnız son giriş kaldı; "Önceki (main):" girişi `STATUS_CHANGELOG.md`ye taşındı.
+- K5: PR #338 açıklaması ve bu rapor güncellendi (test sayıları, ⚠ karar 6, Dış Varsayımlar 1 ve 4, etkilenen dosyalar).
+- Sonuç: restore `--locked-mode`, build 0 uyarı, `dotnet format --verify-no-changes` temiz, Unit 33/33 (24 + 9 tutarlılık), Integration 29/29 (PostgreSQL 18), koşu sonrası kilit dosyaları değişmedi.

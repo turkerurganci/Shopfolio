@@ -119,11 +119,11 @@ public sealed class LivenessEndpointTests
         // The server accepts the connection and never answers: the physical open is slow, which Npgsql's token does not cut.
         CancellationToken ct = TestContext.Current.CancellationToken;
         DsnBuilder real = new(_database.Dsn);
-        await using StallingTcpProxy proxy = new(real.Host!, real.Port, stalled: true);
+        await using StallingTcpProxy proxy = new(UpstreamHost(real), real.Port, stalled: true);
         DsnBuilder slow = new(_database.Dsn) { Host = "127.0.0.1", Port = proxy.Port, Pooling = false };
 
         CollectingLoggerProvider logs = await AssertAnswers503WithinTheLimitAsync(slow.ConnectionString, warmPool: false, stallAfterWarmUp: null, ct);
-        Assert.Contains(logs.Lines, l => l.Contains("DbTimeout", StringComparison.Ordinal));
+        Assert.Single(logs.Lines, l => l.Contains("DbTimeout", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -132,11 +132,11 @@ public sealed class LivenessEndpointTests
         // The pool holds a good connection; then the server stops answering, so the open is instant and SELECT 1 hangs.
         CancellationToken ct = TestContext.Current.CancellationToken;
         DsnBuilder real = new(_database.Dsn);
-        await using StallingTcpProxy proxy = new(real.Host!, real.Port, stalled: false);
+        await using StallingTcpProxy proxy = new(UpstreamHost(real), real.Port, stalled: false);
         DsnBuilder viaProxy = new(_database.Dsn) { Host = "127.0.0.1", Port = proxy.Port, Pooling = true, MaxPoolSize = 1 };
 
         CollectingLoggerProvider logs = await AssertAnswers503WithinTheLimitAsync(viaProxy.ConnectionString, warmPool: true, stallAfterWarmUp: proxy, ct);
-        Assert.Contains(logs.Lines, l => l.Contains("DbTimeout", StringComparison.Ordinal));
+        Assert.Single(logs.Lines, l => l.Contains("DbTimeout", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -149,6 +149,9 @@ public sealed class LivenessEndpointTests
         CollectingLoggerProvider logs = await AssertAnswers503WithinTheLimitAsync(unreachable.ConnectionString, warmPool: false, stallAfterWarmUp: null, ct);
         Assert.DoesNotContain(logs.Lines, l => l.Contains("192.0.2.1", StringComparison.Ordinal));
     }
+
+    private static string UpstreamHost(DsnBuilder dsn) =>
+        dsn.Host ?? throw new InvalidOperationException("The test database connection string has no host.");
 
     private static async Task<CollectingLoggerProvider> AssertAnswers503WithinTheLimitAsync(
         string connectionString, bool warmPool, StallingTcpProxy? stallAfterWarmUp, CancellationToken ct)

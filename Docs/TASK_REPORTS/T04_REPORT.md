@@ -1,6 +1,6 @@
 # T04 — CI hattı ve eşitlik denetimleri
 
-**Faz:** F0 | **Durum:** ✓ Doğrulama tur 2 PASS — merge bekliyor | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✓ PASS (doğrulama tur 2) — merge `20fdd0c` (#339) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -75,7 +75,7 @@
 - **Commit:** `532cfe1` — T04: CI hattı ve eşitlik denetimleri
 - **PR:** #339
 - **CI:** yapım işçisi beklemez (yardımcı izler)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `20fdd0c` (#339) — CI 41552961812 ve Publish 41552961821 success (F0 gate'inde doğrulandı, 2026-11-03)
 
 ## Dış Varsayımlar
 

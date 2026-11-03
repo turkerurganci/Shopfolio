@@ -1,6 +1,6 @@
 # T02 — Çözüm ve proje düzeni
 
-**Faz:** F0 | **Durum:** ✓ Doğrulama PASS (tur 2; merge yardımcıda) | **Tarih:** 2026-11-02
+**Faz:** F0 | **Durum:** ✓ PASS (doğrulama tur 2) — merge `f83876a` (#335) | **Tarih:** 2026-11-02
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -128,7 +128,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T02-cozum-ve-proje-duzeni`
-- **Commit / PR / CI:** PR açıklamasında (işçi CI izlemez)
+- **PR:** #335
+- **Post-merge run'lar:** squash `f83876a` (#335) — CI 41489370654 ve Publish 41489370463 success (F0 gate'inde doğrulandı, 2026-11-03)
 
 ## Dış Varsayımlar
 

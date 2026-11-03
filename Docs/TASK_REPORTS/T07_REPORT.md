@@ -1,6 +1,6 @@
 # T07 — Yedek düzeni
 
-**Faz:** F0 | **Durum:** ✗ Doğrulama tur 3 FAIL (2026-11-03, `c929163`; main ile birleşik hâl); düzeltme turu gerekli | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✓ PASS (doğrulama tur 4) — merge `6a8dc38` (#351) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -176,7 +176,7 @@ K8 (yeni, D-39 (f)): geliştirme bindirmesi (`compose.dev.yaml`) veritabanının
 - **PR:** #351
 - **CI:** dal run 41660924636 success (validator)
 - **CI düzeltmesi:** Paketleme doğrulamasının kaynak taraması (`05 MK-10`) için tatbikat betiklerinde `latest` kalktı; yedek tatbikatı en yeni anlık görüntünün kimliğini önce bulup `restore`/`snapshots` ile onu kullanır.
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
+- **Post-merge run'lar:** squash `6a8dc38` (#351) — CI 41673898932 ve Publish 41673898671 success (F0 gate'inde doğrulandı, 2026-11-03)
 
 ## Dış Varsayımlar
 

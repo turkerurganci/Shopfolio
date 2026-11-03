@@ -138,6 +138,7 @@ gh run list --branch main --limit 3 --json databaseId,conclusion,status,displayT
 
 15. **Status güncelle** — `Docs/IMPLEMENTATION_STATUS.md`'de task `⏳ Devam ediyor`.
     **`✓ Tamamlandı` yapma** — bu doğrulama chat'inin işidir.
+    **Önceki task'ların merge kaydı:** merge edilmiş bir task'ın raporunda "Post-merge run'lar" satırı ya da status'ta "Commit" hücresi boşsa bu dalda doldurulur — squash hash ve ana dal run'ları (`gh run list --branch main`); `skills/validate` 16. adımın notu (F0 gate'inde on raporun hepsi boş bulundu).
 
 16. **Repo memory güncelle** — `.claude/memory/MEMORY.md` "Güncel Durum" bloğuna TXX için 1–2 satır (commit hash + PR no + tek cümle çıktı).
 

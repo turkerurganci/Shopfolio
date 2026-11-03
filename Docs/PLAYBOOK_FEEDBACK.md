@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-11-02 | **Satır:** 172 | **Gönderilen:** 0
+**Son güncelleme:** 2026-11-03 | **Satır:** 174 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -208,3 +208,5 @@
 | PF-170 | İşçi talimat şablonuna sabit yasak satırı: 'kabukta heredoc, here-string, `python -c`, `node -e`, `python -` yok; betik `Write` ile' (Aşama 9'da 97, Aşama 10'da 70 heredoc engeli); PF-152'nin devamı | Aşama 10 öğrenim terfisi (P-2) | K-1573 | yönetici işçi talimat şablonu (`~/.claude`, proje dışı) | Onaylandı — ana oturum uygular (2026-11-02, K-1574) |
 | PF-171 | CR tarayıcı hook'u: `INSTRUCTIONS §7` (1) kuralı elle işletiliyor, Windows'ta CRLF yazan araçlar dosyayı sessizce bozuyor; değişen dosyalarda CR arayan hook ya da CI adımı | Aşama 10 öğrenim terfisi (P-3, Ö-199) | K-1573 | `~/.claude/hooks/` (proje dışı) | Onaylandı — ana oturum uygular (2026-11-02, K-1574) |
 | PF-172 | Faz içi paralel task: plan kontrollü paralelliğe izin veriyor ama yönetici yardımcı düzeni task'ları tek tek yürütüyordu; hazır task'ların (bağımlılıkları ✓) hepsi birlikte, ayrı worktree'lerde başlar, hazır listeyi betik verir, bekçi zorlar. Playbook'a **en son**, proje bittikten sonra eklenecek not | Proje sahibinin isteği (2026-11-02, Implementation dönemi açılışı) | `INSTRUCTIONS §3.1` | `00 §D` (task döngüsü) · `.claude/INSTRUCTIONS.md` §3.1 · `~/.claude/hooks/helper-guard.js` kural 6, `lib/parallel.js`, `tools/hazir-tasklar.js` (proje dışı) | Uygulandı (bu repoda); playbook'a gönderim proje sonunda |
+| PF-173 | Matris kapsama betiği "Implement edildi" ve "Kanıt" hücrelerinin boş olmasını şart koşuyordu; gate'in bu hücreleri doldurması betiği kırıyordu. Betik gate'i geçmiş fazların listesini (`GATE_DOLU`) tutar: o fazlara bağlı satırda hücreler dolu, ötekilerde boş olmalı; PASS ritüeli fazı listeye ekler | F0 gate öğrenim terfisi (Ö-1) | — | `scripts/doc-scans/11_matris_kapsama.py` · `11 §7` satır sütunları · `skills/gate-check` 19. adım | Uygulandı |
+| PF-174 | Yardımcı düzeninde merge sonrası run ID'leri ve squash hash'i hiçbir task'ta rapora ve status'a yazılmadı ("sonraki task dalında" kuralının sahibi yoktu); F0 gate'inde on raporun hepsi boştu. Sonraki task'ın yapımı önceki task'ların boş merge kaydını doldurur | F0 gate öğrenim terfisi (Ö-2) | — | `skills/task` 15. adım · `skills/validate` 16. adım notu | Uygulandı |

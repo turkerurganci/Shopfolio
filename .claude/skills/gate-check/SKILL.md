@@ -129,6 +129,7 @@ user-invocable: true
     - Repo memory: faz özet satırı (tarih, PR no, squash hash, tag, ana metrikler) + "sıradaki" satırı + tarih başlığı
     - Backlog forward'ları ve hijyen düzeltmeleri
     - Gate'te okunan ya da yeniden doğrulanan `12` satırlarının `Durum` hücreleri (`12 §7.5`, `§11.1` madde 1 ve 4, Kanıt ortamı hücresi üst ortamı yazan satırda düşük ortam `PASS`'inin `BEKLEMEDE`'ye dönüşü dahil; `12`'nin sürümünü artırmaz)
+    - `11 §7.1`'de fazın task'larına bağlı satırların "Implement edildi" ve "Kanıt" hücreleri (`11 §6.1` madde 3) ve faz, kapsama betiğinin `GATE_DOLU` listesine (`scripts/doc-scans/11_matris_kapsama.py`; betik çıkış 0)
     - Öğrenim terfileri
 
 20. PR merge + CI yeşil + **tüm workflow'lar** teyit edildikten sonra ana dal üzerinde tag:

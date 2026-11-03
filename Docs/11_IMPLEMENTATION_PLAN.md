@@ -5695,7 +5695,7 @@ Tüm önceki doküman çıktıları (entity, endpoint, ekran, entegrasyon, iş k
 | `10` satır ve alt bölüm (O5 2/2) | `10:KP-<n>` (§2), `10:KD-<n>` (§3, negatif denetim), `10:§4.1`, `10:§4.2` | `10:KP-15 …`, `10:KD-3 …` |
 | Devir satırı (O5 2/2) | `devir:K-<n>` (karar), `devir:P8.<n>` (park maddesi), `devir:<doküman>-<satır>` (gövde anması), `devir:D-01` | `devir:K-1356 …`, `devir:04-1948 …` |
 
-**Satır sütunları (K-1412).** **Kaynak öğe** (kimlik + ad) · **Task** (aday task kimliği; birden çok ise virgülle; task gerektirmeyen birim `—`) · **Implement edildi** (boş — gate'te dolar) · **Kanıt** (boş — gate'te dolar). Kapsama betiği son iki sütunun bu aşamada boş olduğunu da denetler.
+**Satır sütunları (K-1412).** **Kaynak öğe** (kimlik + ad) · **Task** (aday task kimliği; birden çok ise virgülle; task gerektirmeyen birim `—`) · **Implement edildi** (fazın gate'inde dolar: `✓ T05`; birden çok faza bağlı satırda `✓ F0 payı (T05); kalan T601`) · **Kanıt** (gate'te dolar: kabul kriteri, test ya da kayıt ve task'ın PR'ı). Kapsama betiği gate'i geçmiş fazlara (`GATE_DOLU`; PASS ritüelinin chore PR'ı fazı ekler) bağlı satırlarda iki hücrenin dolu, ötekilerde boş olduğunu denetler.
 
 **Task gerektirmeyen birim.** `08:§5.1` — `07`'ye geri yansıyan uçların kaydı: yeni uç çıkmamıştır ve üç mevcut ucun (UC-29, UC-30, UC-80) işi `07` satırlarının task'larındadır (O2: UC-29 ve UC-30 T510'da, UC-80 T311'de; ikisi de `08:§2.1.4` ve `08:§2.1.5` satırlarına eklendi). GAP değildir.
 
@@ -5980,7 +5980,7 @@ python -I scripts/doc-scans/11_geri_yon.py . --denetle                       # 7
 | 06:§2.5 Türler ve sayısal ölçek | T101 | | |
 | 06:§2.6 Eşzamanlılık — sürüm değeri ve koşullu güncelleme | T101 | | |
 | 06:§2.7 Denormalizasyon envanteri | T120 | | |
-| 06:§2.8 Metin karşılaştırma, sıralama, oluşturulma anı ve boş değer | T10, T101 | | |
+| 06:§2.8 Metin karşılaştırma, sıralama, oluşturulma anı ve boş değer | T10, T101 | ✓ F0 payı (T10); kalan T101 | T10 KK2: UTF-8, ICU Türkçe sıralama — `DatabaseUsersTests.Database_AfterSetup_IsUtf8WithIcuTurkishCollation…` · T10 #350 |
 | 06:§2.9 Enum'ların biçimi | T102 | | |
 | 06:§2.10 Uzun metnin saklanışı | T101, T114, T339 | | |
 | 06:§4.1 Company | T103 | | |
@@ -6189,7 +6189,7 @@ python -I scripts/doc-scans/11_geri_yon.py . --denetle                       # 7
 | 07 UC-78 — sayfa isteğinin yanıtı (500; §2.7.1) — Beklenmeyen hata sayfası | T504 | | |
 | 07 UC-79 GET `/sitemap.xml` ve 1 adres daha — Site haritası ve robots.txt | T313 | | |
 | 07 UC-80 POST `/sistem/odeme-bildirimi` — Ödeme sağlayıcısının bildirim ucu | T311 | | |
-| 07 UC-81 GET `/sistem/canlilik` — Canlılık ucu | T01 | | |
+| 07 UC-81 GET `/sistem/canlilik` — Canlılık ucu | T01 | ✓ T01 | T01 KK1–KK6 — `LivenessEndpointTests` (200/503, gövdesiz, çerezsiz, süre sınırı); T09 yerel kurulumda 200 · T01 #338 |
 | 07 UC-82 GET `/sistem/durum` — Durum ucu | T314 | | |
 | 07 UC-83 POST `/panel/yukleme` (başlatma) ve 2 adres daha — Parçalı dosya yükleme ucu | T312 | | |
 | 07 UC-84 GET `/panel/giris` ve 2 adres daha — Panel girişi ve şifre sıfırlama | T520 | | |
@@ -6815,7 +6815,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:§3.34.5 Erişilebilirliğin tabanı Aile ve Sosyal Hizmetler Bakanlığı'nın "Web Siteleri ve Mobil Uygulamaların Erişilebilirliği Kontrol Listesi — A Seviyesi"… | T540, T543 | | |
 | 02:§3.34.6 Sitede ziyaretçi ölçümü yoktur | T540 | | |
 | 02:§3.34.7 Ürün çalışma süresi taahhüdü vermez | T327 | | |
-| 02:§3.34.8 Sipariş tarafında veri kaybı toleransı sıfırdır | T07, T118, T327 | | |
+| 02:§3.34.8 Sipariş tarafında veri kaybı toleransı sıfırdır | T07, T118, T327 | ✓ F0 payı (T07); kalan T118, T327 | T07 KK1: işlem günlüğü ≤ 1 dk, `archive_timeout` 50 sn — `BackupLayoutConsistencyTests.ArchiveSettings_…` · T07 #351 |
 | 02:§4.1 Sayım kuralları | T324, T325, T337, T338, T350, T353, T360, T378 | | |
 | 02:§4.1.1 Tek saat dilimi Türkiye saatidir | T378, T101, T216 | | |
 | 02:§4.1.2 İş günü pazartesi–cumadır, resmî tatiller hariç | T378, T350, T353 | | |
@@ -7190,21 +7190,21 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 
 | Kaynak öğe | Task | Implement edildi | Kanıt |
 |---|---|---|---|
-| 05:MK-01 C# / .NET; tek uygulama, sayfalar sunucuda üretilir | T02 | | |
-| 05:MK-02 ASP.NET Core; .NET 10, yalnız uzun süreli destekli (LTS) sürümler | T02, T06 | | |
-| 05:MK-03 Entity Framework Core; şema değişiklikleri onun göçleriyle | T02, T101 | | |
-| 05:MK-04 Razor Pages; bütün sayfalar sunucuda tam HTML, gönder–yönlendir–göster; ayrı JSON API katmanı yok | T02, T206 | | |
-| 05:MK-05 Düz JavaScript modülleri ve düz CSS; ön yüz çatısı ve npm hattı yok, JavaScript yalnız iyileştirir | T02, T540, T539 | | |
-| 05:MK-06 PostgreSQL 18; tek örnek, aynı sunucuda kendi konteynerinde | T05, T06, T101 | | |
-| 05:MK-07 Firmanın adına kiralanan sanal sunucu; Linux konteynerleri | T05, T601 | | |
-| 05:MK-08 Caddy 2 | T05 | | |
-| 05:MK-09 Veritabanının yedeği pgBackRest'le, veritabanı konteynerinde; dosyaların ve sistem kayıtlarının yedeği bir… | T06, T07 | | |
-| 05:MK-10 Tek Compose tanımı; her imaj etiket ve özetle sabit | T05, T06 | | |
-| 05:MK-11 GitHub Container Registry | T06 | | |
-| 05:MK-12 GitHub Actions; iskelet değişmez, `publish.yml` kalır, kurulumlara otomatik dağıtım yok | T04 | | |
-| 05:MK-13 Tek dağıtılabilir uygulama | T218, T02 | | |
-| 05:MK-14 Sunucuda dört konteyner | T05, T09 | | |
-| 05:MK-15 Dokuz modül; modüller arası erişim yalnız açık arayüzden, eşzamanlı ve aynı işlemde; uygulama içi olay yayı… | T218, T03 | | |
+| 05:MK-01 C# / .NET; tek uygulama, sayfalar sunucuda üretilir | T02 | ✓ T02 | T02 KK2: `Shopfolio.Web` .NET 10 Razor Pages, tek uygulama · T02 #335 |
+| 05:MK-02 ASP.NET Core; .NET 10, yalnız uzun süreli destekli (LTS) sürümler | T02, T06 | ✓ T02, T06 | T02 KK2 (.NET 10, `global.json`); T06 KK1 uygulama imajı .NET 10 taban · T02 #335, T06 #347 |
+| 05:MK-03 Entity Framework Core; şema değişiklikleri onun göçleriyle | T02, T101 | ✓ F0 payı (T02); kalan T101 | T02/T03: EF Core paketi ve varlıksız `AppDbContext`, göç demeti (T03 KK5) · T02 #335 |
+| 05:MK-04 Razor Pages; bütün sayfalar sunucuda tam HTML, gönder–yönlendir–göster; ayrı JSON API katmanı yok | T02, T206 | ✓ F0 payı (T02); kalan T206 | T02 KK2: Razor Pages, `Pages/` klasörü · T02 #335 |
+| 05:MK-05 Düz JavaScript modülleri ve düz CSS; ön yüz çatısı ve npm hattı yok, JavaScript yalnız iyileştirir | T02, T540, T539 | ✓ F0 payı (T02); kalan T540, T539 | T02 KK6: `wwwroot/` düz JS ve CSS; npm hattı yok · T02 #335 |
+| 05:MK-06 PostgreSQL 18; tek örnek, aynı sunucuda kendi konteynerinde | T05, T06, T101 | ✓ F0 payı (T05, T06); kalan T101 | T05 KK1, T06 KK2: PostgreSQL 18 kendi konteynerinde (özetle sabit taban) · T05 #348, T06 #347 |
+| 05:MK-07 Firmanın adına kiralanan sanal sunucu; Linux konteynerleri | T05, T601 | ✓ F0 payı (T05); kalan T601 | T05: Linux konteynerleri Compose ile; T09 yerel referans kurulum (Linux, iç Docker) · T05 #348 |
+| 05:MK-08 Caddy 2 | T05 | ✓ T05 | T05 KK3, KK8: Caddy 2 ters vekil, yalnız 80/443 · T05 #348 |
+| 05:MK-09 Veritabanının yedeği pgBackRest'le, veritabanı konteynerinde; dosyaların ve sistem kayıtlarının yedeği bir… | T06, T07 | ✓ T06, T07 | T06 KK2 pgBackRest veritabanı imajında; T07 KK1–KK6 — `BackupLayoutConsistencyTests` · T06 #347, T07 #351 |
+| 05:MK-10 Tek Compose tanımı; her imaj etiket ve özetle sabit | T05, T06 | ✓ T05, T06 | T05 KK7, T06 KK4: tek Compose, etiket+özetle sabit imajlar, `latest` yok · T05 #348, T06 #347 |
+| 05:MK-11 GitHub Container Registry | T06 | ✓ T06 | T06 KK7–KK8: GHCR, `publish.yml` (Publish 41696545899 yeşil) · T06 #347 |
+| 05:MK-12 GitHub Actions; iskelet değişmez, `publish.yml` kalır, kurulumlara otomatik dağıtım yok | T04 | ✓ T04 | T04 KK8: GitHub Actions, `publish.yml` ana dal ve etikette · T04 #339 |
+| 05:MK-13 Tek dağıtılabilir uygulama | T218, T02 | ✓ F0 payı (T02); kalan T218 | T02 KK1: `Shopfolio.slnx` üç proje, tek dağıtılabilir uygulama · T02 #335 |
+| 05:MK-14 Sunucuda dört konteyner | T05, T09 | ✓ T05, T09 | T05 KK1, KK4; T09 KK2, KK6: dört hizmet + göç, egress 6 ok · T05 #348, T09 #354 |
+| 05:MK-15 Dokuz modül; modüller arası erişim yalnız açık arayüzden, eşzamanlı ve aynı işlemde; uygulama içi olay yayı… | T218, T03 | ✓ F0 payı (T03); kalan T218 | T03 KK7: modül sınırı testi — `ModuleBoundaryTests` (kasıtlı ihlal kırmızı) · T03 #337 |
 | 05:MK-16 Vitrin ve panel aynı alan adında; panel ayrı bir yol alanı | T206, T207 | | |
 | 05:MK-17 Uygulamanın çağırdığı üç dış servis bir bağlantı katmanının arkasında; ürün kuralı çekirdekte; dış serviste… | T202, T203 | | |
 | 05:MK-18 Adres addan sunucuda üretilir; arama motoru verileri JSON-LD ve Open Graph ile ilk yanıtta; kapalı sayfalar… | T219, T206 | | |
@@ -7214,10 +7214,10 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:MK-22 Tek gecelik imha işi; süre veriden hesaplanır; imha kaydı ayrı tabloda | T201 | | |
 | 05:MK-23 İmha fiziksel silmedir; siparişte ve ona bağlı kayıtlarda kişisel alanlar boşaltılır | T201, T301, T302 | | |
 | 05:MK-24 İz tablosunda uygulama kullanıcısı yalnız ekler ve okur; süresi dolan satırı veritabanı fonksiyonu siler | T106, T380 | | |
-| 05:MK-25 Sürekli günlük aktarımı | T07, T601 | | |
-| 05:MK-26 Yedeğin kapsamı, yeri, iki anahtarla şifrelenmesi, her kopyada otuz günlük saklaması | T07 | | |
-| 05:MK-27 Kurtarma hedefi aynı gün | T601, T07 | | |
-| 05:MK-28 Dosyalar sunucunun diskinde, dosya deposu arayüzüyle; dijital dosya genel adresle sunulmaz | T223, T05, T312 | | |
+| 05:MK-25 Sürekli günlük aktarımı | T07, T601 | ✓ F0 payı (T07); kalan T601 | T07 KK1: `archive_timeout` 50 sn — `BackupLayoutConsistencyTests` · T07 #351 |
+| 05:MK-26 Yedeğin kapsamı, yeri, iki anahtarla şifrelenmesi, her kopyada otuz günlük saklaması | T07 | ✓ T07 | T07 KK3, KK5: iki anahtar, ayrı önek, kapsam — `BackupLayoutConsistencyTests`, betik testleri · T07 #351 |
+| 05:MK-27 Kurtarma hedefi aynı gün | T601, T07 | ✓ F0 payı (T07); kalan T601 | T07 KK7: kurtarma provası runbook adımı — `RunbookDrill_HasTheFourChecks…` · T07 #351 |
+| 05:MK-28 Dosyalar sunucunun diskinde, dosya deposu arayüzüyle; dijital dosya genel adresle sunulmaz | T223, T05, T312 | ✓ F0 payı (T05); kalan T223, T312 | T05 KK5: dosyalar adlandırılmış bölümlerde, vekile görseller salt okuma · T05 #348 |
 | 05:MK-29 Yüklenen görsel yeniden kodlanır | T223, T339 | | |
 | 05:MK-30 Dijital ürün dosyası parçalı yüklenir; her yükleme yeni bir dosya kaydıdır | T312, T340 | | |
 | 05:MK-31 İndirme hakkı düğmeye basılıp gönderim başlayınca bir kez düşer; bir saatlik bağlantı, ömrü isteğin kabulün… | T312, T340, T531, T511 | | |
@@ -7247,35 +7247,35 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:MK-55 Bütün çerezler birinci taraf, zorunlu, Secure, HttpOnly, SameSite=Lax, `__Host-` önekli | T224 | | |
 | 05:MK-56 Ödeme adımında yazılanlar oturumluk, şifreli bir çerezde; sunucuda kayıt yok | T224, T356 | | |
 | 05:MK-57 Çerez politikası yayına alınana kadar vitrinin yanıtlarından çerez başlıklarını çıkaran ara katman | T224 | | |
-| 05:MK-58 Yalnız HTTPS ve bir yıllık HSTS; kart verisi ürüne gelmez; alan düzeyinde şifreleme yok | T209, T05 | | |
-| 05:MK-59 Sırlar bileşen başına dosyalarda, yalnız kullanan konteynere; paylaşılan sır yok | T08 | | |
-| 05:MK-60 Döndürme yılda bir ve olay üzerine; iki yedeğin şifreleme anahtarı döndürülmez; sırların ayrı yedeği yok | T08 | | |
+| 05:MK-58 Yalnız HTTPS ve bir yıllık HSTS; kart verisi ürüne gelmez; alan düzeyinde şifreleme yok | T209, T05 | ✓ F0 payı (T05); kalan T209 | T05 KK8: HTTP→HTTPS, bir yıllık HSTS; T09 redirect-hsts 3 ok · T05 #348 |
+| 05:MK-59 Sırlar bileşen başına dosyalarda, yalnız kullanan konteynere; paylaşılan sır yok | T08 | ✓ T08 | T08 KK1–KK4 — `SecretLayoutTests`, `SecretFilesTests` · T08 #349 |
+| 05:MK-60 Döndürme yılda bir ve olay üzerine; iki yedeğin şifreleme anahtarı döndürülmez; sırların ayrı yedeği yok | T08 | ✓ T08 | T08 KK5 — `SecretRunbookConsistencyTests.Runbook_RotatesEverySecretExceptTheTwoBackupCipherKeys`; adım ayrıntısı D-35 (d) · T08 #349 |
 | 05:MK-61 Dış çağrı süreli | T202 | | |
 | 05:MK-62 Kanal uyarısı art arda beş kanal hatası ve on beş dakikada; firma bildirimleri uyarısı gönderim kaydından,… | T314, T382 | | |
 | 05:MK-63 Beklenmeyen hata tek yakalama katmanında üç hâle ayrılır; sonucu belirsiz işlemler kodda adıyla işaretli | T212 | | |
 | 05:MK-64 Sistem kayıtları üç kaynak | T225 | | |
 | 05:MK-65 Sistem kayıtları P-45 kadar saklanır; kayıt dosyalarını imha işi siler; sunucunun kayıtları kendi döngüleriyle | T225, T201 | | |
 | 05:MK-66 Kayıtları kurulumu yapan okuma komutuyla okur; sonuç şifreli iletilir ve sunucudan silinir | T387 | | |
-| 05:MK-67 Canlılık ve durum uçları | T314, T01 | | |
-| 05:MK-68 Dört ortam; ayrı hazırlık sunucusu yok, referans kurulum öncüdür | T05, T09, T603 | | |
-| 05:MK-69 Bir sürüm tek eser | T06 | | |
-| 05:MK-70 CI adımlarının işi | T04 | | |
+| 05:MK-67 Canlılık ve durum uçları | T314, T01 | ✓ F0 payı (T01); kalan T314 | T01: canlılık ucu — `LivenessEndpointTests` · T01 #338 |
+| 05:MK-68 Dört ortam; ayrı hazırlık sunucusu yok, referans kurulum öncüdür | T05, T09, T603 | ✓ F0 payı (T05, T09); kalan T603 | T05 geliştirme ortamı; T09 yerel referans kurulumda canlılık 200 (DEPLOY_RUNBOOK §K.10) · T05 #348, T09 #354 |
+| 05:MK-69 Bir sürüm tek eser | T06 | ✓ T06 | T06 KK1, KK8: tek uygulama imajı, göç demeti içinde · T06 #347 |
+| 05:MK-70 CI adımlarının işi | T04 | ✓ T04 | T04 KK1–KK6: `ci-commands.env` adımları (CI 41696545511 yeşil) · T04 #339 |
 | 05:MK-71 Üç ayar katmanı ve tasarım değerleri; açılışta ayar denetimi | T226 | | |
 | 05:MK-72 Kurulum tarafının işlemleri uygulama imajındaki yönetim komutlarıyla | T387, T388, T303 | | |
 | 05:MK-73 Güncellemeyi kurulumu yapan tek komutla, önce referans kurulumda, sonra teker teker başlatır; kurulumlar ke… | T602 | | |
-| 05:MK-74 Göçler genişlet–daralt | T602, T04 | | |
+| 05:MK-74 Göçler genişlet–daralt | T602, T04 | ✓ F0 payı (T04); kalan T602 | T04 KK5, KK7: Migration dry-run ve yama sürümü denetimi · T04 #339 |
 | 05:MK-75 İşletim sistemi yamaları kendiliğinden, gerekirse 04:30'da yeniden başlatma; aylık bakım sürümü ve acil yama | T601 | | |
-| 05:MK-76 Sunucuya yalnız SSH ve anahtarla, kurulum başına anahtar; açık kapılar 80, 443 ve SSH | T05, T601 | | |
+| 05:MK-76 Sunucuya yalnız SSH ve anahtarla, kurulum başına anahtar; açık kapılar 80, 443 ve SSH | T05, T601 | ✓ F0 payı (T05); kalan T601 | T05 KK3: Compose yalnız 80/443 yayımlar · T05 #348 |
 | 05:MK-77 H-3: isteklerin %95'i bir saniyede; H-4: dakikada 100 farklı ziyaretçi | — | | |
 | 05:MK-78 Büyüme yolunun sırası ve tetikleyicileri | — | | |
-| 05:§3.1 Uygulamanın biçimi | T02, T218 | | |
-| 05:§3.2 Sunucudaki bileşenler ve ağ | T05, T06, T09, T603 | | |
-| 05:§3.3 Modüller | T218, T03 | | |
-| 05:§3.4 Modüller arası iletişim kuralı | T218, T03 | | |
+| 05:§3.1 Uygulamanın biçimi | T02, T218 | ✓ F0 payı (T02); kalan T218 | T02 KK1–KK2: tek uygulama, klasör düzeni · T02 #335 |
+| 05:§3.2 Sunucudaki bileşenler ve ağ | T05, T06, T09, T603 | ✓ F0 payı (T05, T06, T09); kalan T603 | T05 KK1–KK4, T06, T09 KK2, KK6: dört hizmet, iç ağlar, isolation 7 ok · T05 #348, T06 #347, T09 #354 |
+| 05:§3.3 Modüller | T218, T03 | ✓ F0 payı (T03); kalan T218 | T03 KK7: modül sınırı testi altyapısı · T03 #337 |
+| 05:§3.4 Modüller arası iletişim kuralı | T218, T03 | ✓ F0 payı (T03); kalan T218 | T03 KK7: modüller arası erişim yalnız Contracts — `ModuleBoundaryTests` · T03 #337 |
 | 05:§3.5 Vitrin ve panel | T206, T207 | | |
 | 05:§3.6 Dış servislerin sınırı — bağlantı katmanı | T202, T203, T401, T404 | | |
 | 05:§3.7 Sayfa adresleri ve arama motoru verileri | T219, T313, T206 | | |
-| 05:§3.8 Ön yüz ve tasarım tabanının uygulanması | T540, T539, T02 | | |
+| 05:§3.8 Ön yüz ve tasarım tabanının uygulanması | T540, T539, T02 | ✓ F0 payı (T02); kalan T540, T539 | T02 KK6: `wwwroot/css/base.css`, `js/common.js` · T02 #335 |
 | 05:§4.1 Durum makinesinin yeri — geçiş birimi | T315, T319 | | |
 | 05:§4.2 Sipariş onayı | T348 | | |
 | 05:§4.3 Yan etkiler ve iş kuyruğu — olay kaybı | T220 | | |
@@ -7289,37 +7289,37 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:§5.4 Kesintinin tespiti ve dönüşteki sıra | T221, T327 | | |
 | 05:§6.1 Kimlik doğrulama ve oturum | T207, T342, T343, T345, T379, T409 | | |
 | 05:§6.2 Yetkilendirme | T207, T323 | | |
-| 05:§6.3 Deneme limitleri ve istek hızı | T05, T09, T215, T601, T603 | | |
+| 05:§6.3 Deneme limitleri ve istek hızı | T05, T09, T215, T601, T603 | ✓ F0 payı (T05, T09); kalan T215, T601, T603 | T05 KK9; T09 KK7: IPv4/IPv6 istemci adresi eşit · T05 #348, T09 #354 |
 | 05:§6.4 Anahtarlar ve tek kullanımlık bağlantılar | T222 | | |
 | 05:§6.5 Form ve site güvenliği | T207, T209, T339, T401 | | |
 | 05:§6.6 Yüklenen dosya | T223 | | |
 | 05:§6.7 Çerezler ve tarayıcıda tutulan veri | T224 | | |
-| 05:§6.8 Hassas verinin taşınması ve saklanması | T209, T05, T07 | | |
+| 05:§6.8 Hassas verinin taşınması ve saklanması | T209, T05, T07 | ✓ F0 payı (T05, T07); kalan T209 | T05 KK8 HSTS; T07 KK5 yedek şifreleme · T05 #348, T07 #351 |
 | 05:§6.9 Kurulum tarafının işlemleri ve bakım erişimi | T303, T387, T389, T601 | | |
-| 05:§6 6.x Secret yönetimi (bu alt bölüm zorunludur) | T08, T222 | | |
-| 05:§7.1 Veritabanı ve işlem bütünlüğü | T10, T101, T228 | | |
+| 05:§6 6.x Secret yönetimi (bu alt bölüm zorunludur) | T08, T222 | ✓ F0 payı (T08); kalan T222 | T08 KK1–KK6 — `SecretLayoutTests`, `SecretRunbookConsistencyTests`, `SecretSourceScanTests` · T08 #349 |
+| 05:§7.1 Veritabanı ve işlem bütünlüğü | T10, T101, T228 | ✓ F0 payı (T10); kalan T101, T228 | T10 KK1–KK8 — `DatabaseUsersTests`, `DatabaseUsersConsistencyTests` · T10 #350 |
 | 05:§7.2 Zamanın ve paranın temsili | T227 | | |
 | 05:§7.3 Eşzamanlılık kontrolü | T228, T208 | | |
 | 05:§7.4 Saklama ve imha | T201, T301, T302 | | |
 | 05:§7.5 İşlem izinin korunması | T106, T380, T201 | | |
-| 05:§7.6 Yedekleme ve kurtarma | T07, T232, T601 | | |
+| 05:§7.6 Yedekleme ve kurtarma | T07, T232, T601 | ✓ F0 payı (T07); kalan T232, T601 | T07 KK1–KK7 — `BackupLayoutConsistencyTests`, betik testleri (4 dosya) · T07 #351 |
 | 05:§7.7 Dosya depolama ve dijital teslim | T223, T302, T312, T340 | | |
 | 05:§7.8 Önerilen stok kodu | T332 | | |
 | 05:§7.9 Site içi arama | T333 | | |
 | 05:§7.10 Önbellek | T229 | | |
-| 05:§8.1 Ortamlar | T05, T09, T406, T603 | | |
-| 05:§8.2 Paketleme ve kayıt defteri | T06, T05, T09, T603 | | |
-| 05:§8.3 Dal stratejisi ve CI/CD hattı | T04, T03, T06 | | |
+| 05:§8.1 Ortamlar | T05, T09, T406, T603 | ✓ F0 payı (T05, T09); kalan T406, T603 | T05 KK6 geliştirme ortamı; T09 yerel referans kurulum · T05 #348, T09 #354 |
+| 05:§8.2 Paketleme ve kayıt defteri | T06, T05, T09, T603 | ✓ F0 payı (T06, T05, T09); kalan T603 | T06 KK1–KK8, T05 KK1, T09 KK4: üç imaj, kimlikler prova kaydında · T06 #347, T05 #348, T09 #354 |
+| 05:§8.3 Dal stratejisi ve CI/CD hattı | T04, T03, T06 | ✓ T04, T03, T06 | T04 KK1–KK9, T03, T06 KK8 — CI 41696545511 (9 iş + CI Gate) ve Publish yeşil · T04 #339, T03 #337, T06 #347 |
 | 05:§8.4 Konfigürasyon yönetimi | T226 | | |
 | 05:§8.5 Yönetim komutları ve ilk kayıtlar | T303, T387, T388, T389 | | |
 | 05:§8.6 Güncellemenin kurulumlara ulaşması | T602 | | |
-| 05:§8.7 Göçler ve geri alma | T602, T04, T388 | | |
+| 05:§8.7 Göçler ve geri alma | T602, T04, T388 | ✓ F0 payı (T04); kalan T602, T388 | T04 KK5, KK7: dry-run, geri alma sınaması, yama denetimi · T04 #339 |
 | 05:§8.8 Güvenlik güncellemeleri | T601 | | |
-| 05:§8.9 Sunucuya bakım erişimi | T601, T05 | | |
+| 05:§8.9 Sunucuya bakım erişimi | T601, T05 | ✓ F0 payı (T05); kalan T601 | T05 KK3: dışarıya yalnız 80/443 · T05 #348 |
 | 05:§9.1 Sistem kayıtları — kaynaklar, içerik ve maskeleme | T225, T230, T231 | | |
-| 05:§9.2 Kayıtların saklanması ve korunması | T07, T201, T225 | | |
+| 05:§9.2 Kayıtların saklanması ve korunması | T07, T201, T225 | ✓ F0 payı (T07); kalan T201, T225 | T07 KK3: sistem kayıtları dosya yedeğinde · T07 #351 |
 | 05:§9.3 Kayıtların okuma yolu | T387 | | |
-| 05:§9.4 İzleme ve uyarı | T01, T07, T314 | | |
+| 05:§9.4 İzleme ve uyarı | T01, T07, T314 | ✓ F0 payı (T01, T07); kalan T314 | T01 canlılık ucu; T07 KK4 yedek durum dosyası · T01 #338, T07 #351 |
 | 05:§10.1 Dış bağımlılıklar — "çökerse ne olur" | T204, T202 | | |
 | 05:§10.2 E-posta kanalının ve firma bildirimlerinin uyarısı | T204, T314, T382, T385 | | |
 | 05:§10.3 Beklenmeyen hata | T212 | | |
@@ -7333,27 +7333,27 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 |---|---|---|---|
 | 09:§1 Temel ilkeler | — | | |
 | 09:§2 Source of truth hiyerarşisi | — | | |
-| 09:§3 Genel kod yazım kuralları | T02, T03, T04, T211, T226, T381 | | |
-| 09:§4 Proje yapısı ve klasör organizasyonu | T02, T05, T06, T202 | | |
+| 09:§3 Genel kod yazım kuralları | T02, T03, T04, T211, T226, T381 | ✓ F0 payı (T02, T03, T04); kalan T211, T226, T381 | T02 KK3–KK5, KK8; T03; T04 KK3: uyarılar hata, merkezî paket, kilitli geri yükleme · T02 #335, T03 #337, T04 #339 |
+| 09:§4 Proje yapısı ve klasör organizasyonu | T02, T05, T06, T202 | ✓ F0 payı (T02, T05, T06); kalan T202 | T02 KK2, T05 KK6, T06 KK5: proje ve `deploy/` düzeni · T02 #335, T05 #348, T06 #347 |
 | 09:§5 Adlandırma konvansiyonları | T101, T120, T206, T213, T224 | | |
-| 09:§6 Mimari sınırlar | T03, T218, T223 | | |
+| 09:§6 Mimari sınırlar | T03, T218, T223 | ✓ F0 payı (T03); kalan T218, T223 | T03 KK7 — `ModuleBoundaryTests` · T03 #337 |
 | 09:§7 Zaman ve biçim standartları | T211, T216, T227, T378 | | |
 | 09:§8 Hata yönetimi | T205, T212, T213, T214 | | |
 | 09:§9 Domain kuralları | T106, T201, T218, T219, T228, T301, T315, T333, T348, T355, T356, T363, T380 | | |
-| 09:§10 Veri erişimi | T01, T04, T10, T101, T118, T119, T208, T210, T228, T229, T233, T333, T384, T386 | | |
+| 09:§10 Veri erişimi | T01, T04, T10, T101, T118, T119, T208, T210, T228, T229, T233, T333, T384, T386 | ✓ F0 payı (T01, T04, T10); kalan T101, T118, T119, T208, T210, T228, T229, T233, T333, T384, T386 | T01 KK5 (§10.7), T04 KK5 (§10.6), T10 KK1–KK8 (§10.8) — `DatabaseUsersTests` · T01 #338, T04 #339, T10 #350 |
 | 09:§11 Entegrasyon kuralları | T202, T203, T305, T366, T401, T407, T409, T501 | | |
 | 09:§12 Sözleşme ve olay sürümleme | T102, T203, T220, T311, T538 | | |
 | 09:§13 Arka plan iş kuralları | T220, T221, T303, T387, T388, T389 | | |
 | 09:§14 Hassas hesaplama kuralları | T227, T336, T337, T338, T349, T369, T370, T401, T402, T403, T405 | | |
-| 09:§15 Güvenlik kuralları | T207, T209, T09, T215, T219, T222, T223, T224, T232, T312, T339, T342, T354, T376, T603 | | |
+| 09:§15 Güvenlik kuralları | T207, T209, T09, T215, T219, T222, T223, T224, T232, T312, T339, T342, T354, T376, T603 | ✓ F0 payı (T09); kalan T207, T209, T215, T219, T222, T223, T224, T232, T312, T339, T342, T354, T376, T603 | T09 KK7: istemci adresi (§15.1 m8); T05 KK8 (§15.2) · T09 #354 |
 | 09:§16 İstemci tarafı kurallar | T525, T539, T540, T543, T544, T548 | | |
-| 09:§17 Yardımcı servis / sidecar standartları (varsa) | T06, T07, T08, T10 | | |
+| 09:§17 Yardımcı servis / sidecar standartları (varsa) | T06, T07, T08, T10 | ✓ T06, T07, T08, T10 | T06 KK2–KK6, T07 KK2–KK5, T08, T10 KK1 — betik testleri, `BackupLayoutConsistencyTests` · T06 #347, T07 #351, T08 #349, T10 #350 |
 | 09:§18 Loglama ve gözlemlenebilirlik | T225, T230, T231, T314, T203, T213 | | |
-| 09:§19 Test kuralları | T03, T04, T120, T202, T329, T538, T546, T547 | | |
+| 09:§19 Test kuralları | T03, T04, T120, T202, T329, T538, T546, T547 | ✓ F0 payı (T03, T04); kalan T120, T202, T329, T538, T546, T547 | T03 KK1–KK9, T04 KK2 — Unit 68, Integration 62, `ForbiddenTestPatternScanTests` · T03 #337, T04 #339 |
 | 09:§20 Performans kuralları | T210, T220, T223, T229 | | |
-| 09:§21 Git ve CI/CD kuralları | T03, T04, T06, T09, T603 | | |
+| 09:§21 Git ve CI/CD kuralları | T03, T04, T06, T09, T603 | ✓ F0 payı (T03, T04, T06, T09); kalan T603 | T03, T04, T06, T09 KK3, KK5: CI ve Publish yeşil, `SETUP_COMPLETE=true` · T03 #337, T04 #339, T06 #347, T09 #354 |
 | 09:§22 Refactor kuralları | — | | |
-| 09:§23 Yasaklar | T03, T04 | | |
+| 09:§23 Yasaklar | T03, T04 | ✓ T03, T04 | T03 KK8 yasak test kalıbı taraması; T04 Lint · T03 #337, T04 #339 |
 | 09:§24 AI çalışma kuralları | — | | |
 | 09:§25 Review checklist | — | | |
 
@@ -7435,7 +7435,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 10:KP-72 Deneme limitleri, ödenmemiş sipariş tavanı, giriş kaydı | T215, T341, T376, T377 | | |
 | 10:KP-73 Çerez onayı gerektirmeyen site: yalnız zorunlu çerezler; ödeme çerçevesi dışında hepsi birinci taraf | T224, T366 | | |
 | 10:KP-74 Aydınlatma bağlantısı, günlük imha, imha kaydı | T201, T225, T301, T302, T324, T327, T343, T345, T370, T373, T514, T519, T522, T529, T533 | | |
-| 10:KP-75 Kayıtların saklama süresince kaybolmaması; yedek penceresi | T07, T118, T327 | | |
+| 10:KP-75 Kayıtların saklama süresince kaybolmaması; yedek penceresi | T07, T118, T327 | ✓ F0 payı (T07); kalan T118, T327 | T07 KK1–KK6: sürekli günlük aktarımı ve gecelik yedek · T07 #351 |
 | 10:KP-76 Eşzamanlı düzenleme uyarısı; siparişte önce tamamlanan geçerli | T208, T228, T364, T542 | | |
 | 10:KP-77 Salt okunur üye kaydı görünümü ve firma tarafından hesap silme | T345, T380, T533 | | |
 | 10:KD-1 Fatura kesilmez ve saklanmaz; e-Arşiv, e-Fatura ve fatura yükleme yok | T357, T384 | | |
@@ -7502,7 +7502,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 10:KD-62 Ters ibraz ürüne girmez | T317, T352 | | |
 | 10:KD-63 Ayrı galeri içerik tipi yok | T339, T358, T359 | | |
 | 10:KD-64 İkinci ödeme sağlayıcısı desteklenmez | T202, T352, T401 | | |
-| 10:§4.1 Kurulum kontrol listesi (ÖK-1…ÖK-12) | T09, T303, T330, T331, T382, T401, T407, T409, T410, T601, T603 | | |
+| 10:§4.1 Kurulum kontrol listesi (ÖK-1…ÖK-12) | T09, T303, T330, T331, T382, T401, T407, T409, T410, T601, T603 | ✓ F0 payı (T09); kalan T303, T330, T331, T382, T401, T407, T409, T410, T601, T603 | T09 KK2: ÖK-12 yerel referans kurulumda canlılık 200 · T09 #354 |
 | 10:§4.2 Kısıtlar ve kabuller (SK-1…SK-10) | T226, T318, T330, T332, T333, T357, T371, T381 | | |
 
 **Devir satırları** — Aşama 8'den ve Aşama 1'den gelen devirler (O5 2/2: karar 9 · park maddesi 5 · gövde anması 4 · D-01 1 = 19; `11_devir_esle.py` A–F)
@@ -7513,21 +7513,21 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | devir:K-424 Yol haritası adayları arası bağımlılık zincirleri | — | | |
 | devir:K-1302 Okunacak 09 bölümleri ve okuma düzeni | — | | |
 | devir:K-1354 Yükleme betiği, kayıt biçimleyicisi ve maskeleme testleri | T230, T231, T548 | | |
-| devir:K-1355 Test projelerinde sahtelerin paylaşımı ve xUnit v3 sınaması | T03 | | |
-| devir:K-1356 Eşitlik denetimlerinin Lint adımına ve yama sürümü denetiminin publish.yml'e girmesi | T03, T04 | | |
+| devir:K-1355 Test projelerinde sahtelerin paylaşımı ve xUnit v3 sınaması | T03 | ✓ T03 | T03 KK1–KK3: xUnit v3, bağlantılı sahteler · T03 #337 |
+| devir:K-1356 Eşitlik denetimlerinin Lint adımına ve yama sürümü denetiminin publish.yml'e girmesi | T03, T04 | ✓ T03, T04 | T03 KK9, T04 KK2, KK5, KK7: Lint eşitlik, dry-run, yama denetimi · T03 #337, T04 #339 |
 | devir:K-1357 Okunacak 09 bölümleri (çekirdek yedi bölüm) | — | | |
-| devir:K-1358 Yama sürümü denetimi ve ilk yayında geri alma sınamasının atlanması | T04, T09, T603 | | |
+| devir:K-1358 Yama sürümü denetimi ve ilk yayında geri alma sınamasının atlanması | T04, T09, T603 | ✓ F0 payı (T04, T09); kalan T603 | T04 KK7; T09 KK3: ilk yayın öncesi geri alma sınaması atlanır ve yazılır · T04 #339, T09 #354 |
 | devir:K-1391 Yükleme betiği, kayıt biçimleyicisi ve maskeleme testleri (açılış) | T230, T231, T548 | | |
 | devir:P8.1 Park maddesi 1 — okunacak 09 bölümleri | — | | |
-| devir:P8.2 Park maddesi 2 — eşitlik denetimlerinin Lint adımına girmesi | T04 | | |
-| devir:P8.3 Park maddesi 3 — yama sürümü denetiminin publish.yml'e girmesi | T04, T09, T603 | | |
-| devir:P8.4 Park maddesi 4 — sahtelerin paylaşımı, xUnit v3 sınaması | T03 | | |
+| devir:P8.2 Park maddesi 2 — eşitlik denetimlerinin Lint adımına girmesi | T04 | ✓ T04 | T04 KK2: eşitlik denetimleri Lint adımında · T04 #339 |
+| devir:P8.3 Park maddesi 3 — yama sürümü denetiminin publish.yml'e girmesi | T04, T09, T603 | ✓ F0 payı (T04, T09); kalan T603 | T04 KK7: `publish.yml` yama sürümü denetimi; T09 KK3 · T04 #339, T09 #354 |
+| devir:P8.4 Park maddesi 4 — sahtelerin paylaşımı, xUnit v3 sınaması | T03 | ✓ T03 | T03 KK1–KK3: sahtelerin paylaşımı xUnit v3'te sınandı · T03 #337 |
 | devir:P8.5 Park maddesi 5 — yükleme betiği, kayıt biçimleyicisi, maskeleme testleri | T230, T231, T548 | | |
 | devir:04-1948 Gövde anması: yasal metinlerin içeriği (GA-7) ★ | T356, T366, T373 | | |
 | devir:09-117 Gövde anması: okunacak 09 bölümleri | — | | |
 | devir:09-2249 Gövde anması: okunacak 09 bölümleri (§24 madde 1) | — | | |
 | devir:12-177 Gövde anması: kabul kriterleri ve kontrol listesi 11'de tanımlı olmadan doğrulama başlamaz | — | | |
-| devir:D-01 SETUP §2 ve §4 kurulumda tamamlanmadı (DEFERRED_BACKLOG) | T02, T03, T04, T05, T06, T07, T09, T603 | | |
+| devir:D-01 SETUP §2 ve §4 kurulumda tamamlanmadı (DEFERRED_BACKLOG) | T02, T03, T04, T05, T06, T07, T09, T603 | ✓ F0 payı (T02, T03, T04, T05, T06, T07, T09); kalan T603 | T09 KK5: D-01 kapandı, gerçek sunucu artıkları D-40 (T603) · T02 #335, T03 #337, T04 #339, T05 #348, T06 #347, T07 #351, T09 #354 |
 
 ### 7.2 Geri izlenebilirlik (task → kaynak öğe)
 

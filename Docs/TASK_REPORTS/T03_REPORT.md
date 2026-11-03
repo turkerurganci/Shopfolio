@@ -1,6 +1,6 @@
 # T03 — Test altyapısı
 
-**Faz:** F0 | **Durum:** ✓ Doğrulama tur 3 PASS (merge yardımcıda) | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✓ PASS (doğrulama tur 3) — merge `e4de649` (#337) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -105,7 +105,7 @@
 - **Commit:** `64487a1` (kod) + sonraki rapor commit'i — T03: Test altyapisi
 - **PR:** #337
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `e4de649` (#337) — CI 41542556291 ve Publish 41542556242 success (F0 gate'inde doğrulandı, 2026-11-03)
 
 ## Dış Varsayımlar
 

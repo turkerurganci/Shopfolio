@@ -5,7 +5,7 @@
 #   docker compose ... run --rm --no-deps database /usr/local/bin/database-restore-drill.sh
 #
 # What it does, in order:
-#   1. restores the latest backup and its log files from the OFF-SERVER repository (--repo=2, named explicitly: without it
+#   1. restores the most recent backup and its log files from the OFF-SERVER repository (--repo=2, named explicitly: without it
 #      pgBackRest restores from the local copy, which does not test the object storage's key, the cipher key or the remote
 #      full backup; K-963) into a scratch directory;
 #   2. checks the repository's integrity by reading its data (`pgbackrest verify --repo=2`);

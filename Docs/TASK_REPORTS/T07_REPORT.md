@@ -71,6 +71,7 @@
 - **Commit:** *(PR açılışında)*
 - **PR:** *(PR açılışında)*
 - **CI:** *(yapım chat'i izlemez)*
+- **CI düzeltmesi:** Paketleme doğrulamasının kaynak taraması (`05 MK-10`) için tatbikat betiklerinde `latest` kalktı; yedek tatbikatı en yeni anlık görüntünün kimliğini önce bulup `restore`/`snapshots` ile onu kullanır.
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 
 ## Dış Varsayımlar

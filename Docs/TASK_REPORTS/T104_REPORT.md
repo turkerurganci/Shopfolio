@@ -1,6 +1,6 @@
 # T104 — Ürün çekirdeği ve görsel
 
-**Faz:** F1 | **Durum:** ✗ FAIL (doğrulama tur 1) | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✗ FAIL (doğrulama tur 2) | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -24,7 +24,7 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Sekiz entity tek göçle | ✓ | `Migration_MakesTheEightTables`; göç betiği yerelde PostgreSQL 18'e uygulandı |
+| 1 | Sekiz entity tek göçle | ✗ (tur 2) | `Migration_MakesTheEightTables`; göç betiği yerelde PostgreSQL 18'e uygulandı — *validator tur 2:* `06` alan tablolarının "Varsayılan" sütunu (veritabanının varsayılanı) altı sütunda karşılanmıyor (bulgu 1) |
 | 2 | VatRate, süre çitleri, trigram dizin | ✓ | `CatalogCoreTablesTests` KDV/süre/dizin testleri |
 | 3 | Varyant tekillikleri ve kısıtları | ✓ | stok kodu, `NULLS NOT DISTINCT`, fiyat/stok/ayrılmış adet testleri |
 | 4 | Option sırası | ✓ | üçüncü seçenek ve sıra çiti testleri |
@@ -34,6 +34,8 @@
 | 8 | Göç tek konu, `Down` yok | ✓ | `MigrationSourceScan` (Unit) |
 
 *Validator kanıtı (tur 1, `b4c73c8`):* sekiz kriterin her biri PostgreSQL 18'e uygulanan göç üzerinde ham SQL, `pg_constraint`/`pg_indexes` ve sorgu planıyla yeniden sınandı — ✓ (ayrıntı: "Doğrulama tur 1"); verdict `09 §25` bulguları yüzünden FAIL.
+
+*Validator kanıtı (tur 2, `1b9132d`):* kriter 2–8 ve KK1–KK8 ✓; kriter 1 ✗ — sütunlar, türler, zorunluluk, dizinler ve silme eylemleri `06` ile birebir, ama Varsayılan'ı dolu altı sütunun veritabanı varsayılanı yok (ayrıntı: "Doğrulama tur 2").
 
 ## Test Sonuçları
 
@@ -48,10 +50,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-04, head `b4c73c8`) |
-| Bulgu sayısı | 3 (S1 DÜŞÜK ×3) |
-| Düzeltme gerekli mi | Evet |
-| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-51, K2 → D-45) |
+| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-04, head `1b9132d`); tur 1 ✗ FAIL (`b4c73c8`) |
+| Bulgu sayısı | Tur 2: 1 (S1 DÜŞÜK); tur 1: 3 (S1 DÜŞÜK ×3, düzeltme 1'de kapandı) |
+| Düzeltme gerekli mi | Evet — ikinci iterasyon FAIL: `12 §8.5` sınırı, eskalasyon (`INSTRUCTIONS.md` §3.3) |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (K1 → D-52); tur 1: 2 (K1 → D-51, K2 → D-45) |
 
 ### Doğrulama tur 1 — ✗ FAIL (2026-11-04)
 
@@ -78,6 +80,31 @@
 | 3 | `Simplify` Latin dışı işaretleri atıyor | FormD sonrası işaret yalnız Latin taban harfin (Temel Latin, Latin-1, Latin Genişletilmiş-A/B, Ek Latin) ardından atılır; ötekiler kalır | `Simplify_LeavesTheNonLatinLettersAlone` (`й`, `ά`, `कु`, karma satırlar) |
 
 Test sonuçları (düzeltme sonrası): Unit 230/230, Integration 185/185 (gerçek PostgreSQL 18), Release `-warnaserror` 0 uyarı, `restore --locked-mode` 0.
+
+### Doğrulama tur 2 — ✗ FAIL (2026-11-04)
+
+Yeniden doğrulama, kapsam tam (bütün kriterler, KK'lar, `09 §25`, güvenlik).
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (mutlak yol, hook dosyaları mevcut — tur 1 ile aynı); ana dal son 3 run `41728889871`, `41728889974`, `41715894986` success; `MEMORY.md` satır 22'de T104.
+
+**Kabul kriterleri (validator kanıtı):** bütün göçlerin betiği (`dotnet ef migrations script`) `pg_trgm`'li boş PostgreSQL 18 veritabanına uygulandı; `pg_constraint`, `pg_indexes`, `information_schema.columns` okundu.
+- **1 ✗** — sekiz tablo, sütun adları/türleri (`varchar(150)`, `numeric(5,2)`, `numeric(12,2)`, `numeric(12,3)`), `NOT NULL`'lar, dizinler ve silme eylemleri `06 §4.5`…§4.10, §4.69, §4.71 ile birebir; `has-pending-model-changes` temiz. Ancak `06 §4`'ün sütun okunuşu "**Varsayılan** veritabanının varsayılanıdır" der ve Varsayılan'ı dolu altı sütunun `column_default`'u boştur (bulgu 1).
+- **2 ✓** `ck_products_vat_rate_range` (`>= 0 AND < 100`), `shipping_period` 0–10 (P-5 üst çiti), `fulfilment_period >= 1` (P-44), `max_quantity_per_order >= 1` (P-9); `ix_products_name_search_form` `USING gin (name_search_form gin_trgm_ops)`. **3 ✓** `ix_variants_normalized_sku` tekil; kombinasyon dizini `NULLS NOT DISTINCT`; fiyat, net miktar, ayrılmış adet, stok kısıtları; `second_value_needs_first`. **4 ✓** `ix_options_product_id_sort_order` tekil, `sort_order` 1–2. **5 ✓** `level` 1–3, `(parent_category_id IS NULL) = (level = 1)`. **6 ✓** filtreli tekil `ix_product_categories_product_id` (`WHERE is_primary_category`), `ix_product_images_product_id` (`WHERE is_main`); filtresiz `ix_products_slug`, `ix_categories_slug`; Slug deseni. **7 ✓** `ck_images_dimensions_within_limits`; `confdeltype` — products'a bağlı dört bağ ve `option_values → options` `c`, öteki yedi bağ `a`. **8 ✓** tek göç, `Down` ve yasak deyim yok; ilk deyim `pg_trgm` denetimi.
+- **KK1–KK8 ✓** — `CatalogCoreTablesTests` her maddeyi ihlal adıyla sınıyor (SQLSTATE + kısıt adı); tur 1'in üç bulgusu kapandı (`pg_trgm` ilk deyimi ve iki test; `SKU`/`NormalizedSKU`; `Simplify` yalnız Latin taban harfin işaretini atar). D-50 (a)(b)(c) kapanışı doğru.
+
+**Yerel:** `dotnet build -warnaserror` 0 uyarı; Unit 230/230 (Consistency dahil); Integration 185/185 (PostgreSQL 18, kendi konteyneri); `dotnet format --verify-no-changes` 0; `restore --locked-mode` 0. **Dal CI** `41739943430` (head `1b9132d`) dokuz iş success (E2E advisory success); önceki kırmızı `41739162198` Lint WHITESPACE → `2dda9cd`, `BYPASS_LOG`'da.
+
+**Güvenlik:** sır yok; yetki/giriş yüzeyi yok; yeni bağımlılık yok; girdi denetimi veritabanı kısıtlarıyla (uygulama yazımı sonraki task'larda).
+
+**`12` satırları:** task'ın kaynak birimleri `06` entity'leridir; `12` matrisinde bu birimlere bağlı satır yok — `Durum` hücresi değişmedi.
+
+| # | Madde | Severity | Sınıf | Beklenen ↔ gerçekleşen | Etkilenen komşu | Dosya |
+|---|---|---|---|---|---|---|
+| 1 | Kriter 1; `06 §4` girişi ("Varsayılan veritabanının varsayılanıdır"); §4.5, §4.6, §4.10, §4.71; `09 §25` "doküman cümlesiyle çelişmiyor mu" | DÜŞÜK | S1 | `products.publish_status` DEFAULT `'Draft'`, `products.version` DEFAULT `1`, `variants.publish_status` DEFAULT `'Draft'`, `variants.reserved_quantity` DEFAULT `0`, `product_categories.is_primary_category` DEFAULT `false`, `product_images.is_main` DEFAULT `false` ↔ altısında da `column_default` boş; varsayılan yalnız C# başlatıcısında. Yoklama: bu sütunları yazmayan ham `INSERT INTO products` → `23502 null value in column "publish_status"`. Düzeltme: modelde `HasDefaultValue` (göç aynı dosyada, main'de değil), göç/anlık görüntü yeniden üretilir, varsayılanları sınayan test. | T103 tabloları (D-52); T119 başlangıç verisi göçü | `Modules/Catalog/{Product,Variant,ProductCategory,ProductImage}.cs`, `Migrations/20261103222027_CreateCatalogCoreTables*.cs`, `AppDbContextModelSnapshot.cs` |
+
+**K-notları:** K1 (→ D-52) aynı boşluk T103 tablolarında: `companies.version` ve `company_settings`'in yedi bölüm sürümü veritabanında varsayılansız; T103 göçü main'de olduğu için ayrı genişletme göçü.
+
+**Yapım raporu karşılaştırması:** kriter 2–8, KK'lar, test sayıları (Unit 230, Integration 185) ve düzeltme 1 tablosu uyumlu; uyuşmazlık 1 — rapor kriter 1'i ✓ der, Varsayılan sütunu gözden kaçmış (tur 1 doğrulaması da görmedi).
 
 ## Altyapı Değişiklikleri
 

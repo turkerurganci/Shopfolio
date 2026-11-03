@@ -86,7 +86,7 @@
 | 3 | restic lisansı ve sürümü | Deponun LICENSE dosyası "BSD 2-Clause License"; `gh api …/releases` → v0.19.1, 2026-07-05, önceki v0.19.0 2026-06-09; `SHA256SUMS` ile indirilen `.bz2`'lerin `sha256sum`'u aynı | ✓ |
 | 4 | pgBackRest PGDG deposunda var ve postgres:18.6-trixie imajında kurulur | Derleme günlüğü, `pgbackrest version` → 2.60.0; son sürüm `release/2.60.0` 2026-10-18 | ✓ |
 | 5 | Taban imaj sürümleri var | `docker buildx imagetools inspect` özetleri; `sdk:10.0.400-noble` (= `global.json`), `aspnet:10.0.14-noble`, `postgres:18.6-trixie` (= `postgres:18`'in özeti), `alpine:3.24.3` | ✓ |
-| 6 | GHCR paket görünürlüğü repodan geçmez; ilk yayın paketi özel doğurur | Bilgim tarihli (05 §8.2.5); **bu PR'da sınanamaz** (ilk yayın ana dal merge'inde). Adım `CI_CD_SETUP.md` §3.4'te; ilk yayından sonra gözlenip D-01 notunda kapanır | ? Doğrulanamadı (ilk yayına bağlı) |
+| 6 | GHCR paket görünürlüğü repodan geçmez; ilk yayın paketi özel doğurur | Bilgim tarihli (05 §8.2.5); **bu PR'da sınanamaz** (ilk yayın ana dal merge'inde). Adım `CI_CD_SETUP.md` §3.4'te; ilk yayından sonra gözlenip D-01 notunda kapanır. **Gözlem (T09 doğrulama tur 1, 2026-11-03):** varsayım tutmuyor, üç paket kimliksiz çekilebiliyor (anonim belirteçle manifest HTTP 200); bkz. `DEFERRED_BACKLOG.md` D-40 (b), `CI_CD_SETUP.md` §3.4 | ? Doğrulanamadı (ilk yayına bağlı) |
 | 7 | Actions `ubuntu-latest`'te `docker`, `curl`, `--network host` kullanılabilir | GitHub barındırılan Linux runner standart içeriği; **Actions'ta bu PR'ın CI'ında gözlenir** | ? |
 | 8 | Yerel (Windows/Docker Desktop) sonucu CI (Linux) ile aynı | İmajlar Linux'tur; yalnız ağ kipi farklı (yerelde kullanıcı ağı, CI'da `host`) | ~ |
 

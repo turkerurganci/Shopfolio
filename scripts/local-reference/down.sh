@@ -25,7 +25,7 @@ case "${1:-}" in
   installation) installation ;;
   all)
     installation
-    for name in t09-client t09-capture t09-minio "$HOST"; do docker rm -f "$name" >/dev/null 2>&1 || true; done
+    for name in t09-client t09-capture t09-minio "$HOST"; do docker rm -f -v "$name" >/dev/null 2>&1 || true; done
     for volume in t09-work t09-minio-certs t09-minio-data t09-docker-data t09-host-etc; do docker volume rm -f "$volume" >/dev/null 2>&1 || true; done
     docker network rm t09-net >/dev/null 2>&1 || true
     rm -rf "$STATE_DIR"

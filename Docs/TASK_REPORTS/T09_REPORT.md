@@ -62,6 +62,16 @@
 
 **Yapım raporu karşılaştırması:** kriter 1, 2, 4, 6, 7 uyumlu; yapımın `~` bıraktığı 3 ve 5'i validator CI günlüğü ve CI Gate ile ✓ yaptı; uyuşmazlık 1 — yapım ⚠ karar 2'yi ve PR'ın `09 §25` "çelişmiyor" cevabını uygun saydı, validator `05 §8.3.11` / `11` F6 ile çelişki sayar.
 
+### Düzeltme turu 1 (2026-11-03)
+
+- **Bulgu 1:** seçilen çözüm — `E2E_CMD=NOT_APPLICABLE` kalır ama gerekçe düzeldi: E2E katmanı henüz kurulmadı, komut F6'da (T601) bağlanır (`05 §8.3.11`); `NOT_APPLICABLE` bir yer tutucudur. Gerekçe: advisory bir yer tutucu komut (`true` benzeri) "yaniltici yesil" doğurur; boş komut advisory işi düşürürdü; `NOT_APPLICABLE` kapıyı ve `ci.yml`'i değiştirmeden en dar çözümdür. Bağlama yeni **D-41** (T601, F6) ile izlenir. Metinler: `ci-commands.env`, `SETUP.md` §4/§8, `DEPLOY_RUNBOOK` §K.11, D-01 satırı.
+- **K1:** `down.sh all` `docker rm -f -v` kullanır; bırakılan iki eski adsız birim (`7ce3c9ab…`, `9b4b3c58…`; boş, kapsayıcısız, MinIO imajının `/bitnami/minio/data` birimi) silindi. Yeniden kurulum + `down.sh all` sonrası yeni adsız birim kalmadı.
+- **K2:** D-40 (f) ve (k) birleşti (uygulamanın kendi adres değeri, T603 kriter 7, (f)'de).
+- **K3:** GHCR paketlerinin kimliksiz çekilebildiği gözlemi `CI_CD_SETUP.md` §3.4, D-40 (b) ve T06 raporu dış varsayım 6'ya yazıldı; `05 §8.2.5`/MK-11 metni D-40 (b)'de "yansıtılacak" olarak izlenir; `11` ve paket görünürlüğü değişmedi.
+- **K4:** `DEPLOY_RUNBOOK` §J.5 prova tablosuna iki satır (veritabanı 8 sn, dosya 1 sn; yaşam döngüsü sütunu D-40 (g)).
+- **K5:** (a) yerel betiklerdeki araç imajları etiket + özetle sabitlendi (`docker:29.9.2-dind`, `bitnamilegacy/minio:2025.5.24`, `bitnamilegacy/minio-client:2025.5.21`, `amazon/aws-cli:2.39.3`, `alpine:3.24.3`, `curlimages/curl:8.21.0`; özetler etiketle aynı doğrulandı); (b) `deploy/compose.local-reference.yaml` `09 §4.3` ağacına ve `CONTEXT.md` §3 `deploy/` satırına eklendi.
+- **Sınama:** `dotnet build -warnaserror` 0/0, Unit 102/102, betik testleri 4 dosya; reçete sıfırdan koşuldu (üç imaj kimliği §K.6 ile aynı, `host-up`, `storage-setup` "All checks passed", `install-installation`, `liveness` 200, `egress` 6 `ok:`, `client-address` çıkış 0, iki kurtarma provası), sonunda `down.sh all`; `skinora-*` dokunulmadı.
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok
@@ -87,7 +97,7 @@
 
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
-| 1 | Etiket, paketler, firmanın kovası, VPS, gerçek alan adı ve IPv6, systemd birimi, `journald` ACL'i | D-40 (a)–(k) | Gerçek sunucu T603 |
+| 1 | Etiket, paketler, firmanın kovası, VPS, gerçek alan adı ve IPv6, systemd birimi, `journald` ACL'i | D-40 (a)–(j), D-41 | Gerçek sunucu T603; D-41 E2E komutu F6 |
 | 2 | Yedi günlük yarım yükleme kuralı MinIO'da tutmuyor | D-40 (g) | Gerçek kovada sınanır |
 | 3 | Uygulamanın kendi kaydında istemci adresi | D-31 (d) → T215 | Alanı uygulama yazar |
 | 4 | Egress denemesinde ad yolu yalnız yedek işleriyle kanıtlı | — | Throw-away konteyner dış ağın adını çözmez |

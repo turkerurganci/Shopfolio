@@ -20,9 +20,9 @@ cd "$(dirname "$0")/../.."
 IMAGE_TAG="${IMAGE_TAG:-t09}"
 STATE_DIR="${T09_STATE_DIR:-/tmp/t09-state}"
 NET="t09-net"
-DIND_IMAGE="docker:dind"
+DIND_IMAGE="docker:29.9.2-dind@sha256:9e79b879b177fbd72c34376a3dd3d91747da5db49e1f560f76aea59561471977"
 # MinIO's own image and binary downloads were withdrawn (2026); the last Bitnami mirror is used for the local object storage only.
-MINIO_IMAGE="bitnamilegacy/minio:latest"
+MINIO_IMAGE="bitnamilegacy/minio:2025.5.24@sha256:451fe6858cb770cc9d0e77ba811ce287420f781c7c1b806a386f6896471a349c"
 HOST="t09-host"
 MINIO="t09-minio"
 

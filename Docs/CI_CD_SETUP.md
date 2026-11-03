@@ -146,14 +146,16 @@ onay sayisi    : 0
 
 ### 3.4 İmaj paketlerinin görünürlüğü (ilk yayından sonra, bir kez)
 
-İmajlar GitHub Container Registry'ye `publish.yml` ile gider (`05 §8.2.5`, MK-11). Paketin görünürlüğü repodan geçmez: ilk yayın paketi **özel** doğurur, sunucuların kimlik bilgisi olmadan çekebilmesi için **her paket bir kez açık yapılır**. Açık paket yeniden özel yapılamaz (repo özel yapılırsa yeni paket adları ve salt okuma çekme belirteci gerekir — `05 §8.2.5`; K-981).
+İmajlar GitHub Container Registry'ye `publish.yml` ile gider (`05 §8.2.5`, MK-11). Beklenen: sunucuların kimlik bilgisi olmadan çekebilmesi için paketler **açık** olmalıdır; açık paket yeniden özel yapılamaz (repo özel yapılırsa yeni paket adları ve salt okuma çekme belirteci gerekir — `05 §8.2.5`; K-981).
+
+**Gözlem (T09 doğrulama tur 1, 2026-11-03):** `05 §8.2.5`'in ve T06 dış varsayımının "ilk yayın paketi özel doğurur" dediği bilgim tarihlidir ve tutmuyor: üç paket (`shopfolio-app`, `shopfolio-database`, `shopfolio-backup`) anonim belirteçle çekilebiliyordu (`65250d8…` manifesti HTTP 200). Bu yüzden "her paketi açık yap" adımı gereksizdir; adım **görünürlüğü doğrulamaktır**. Görünürlük T09'da değiştirilmedi.
 
 Adım (ilk ana dal yayını bittikten sonra, repo sahibi; Actions günlüğünde "Publish artifacts" işinin özeti üç paketin özetini yazar):
 
 1. GitHub'da repo sahibinin hesabında **Packages** sekmesini aç; üç paket görünür: `shopfolio-app`, `shopfolio-database`, `shopfolio-backup`.
-2. Her paket için **Package settings → Danger Zone → Change visibility → Public**.
+2. Her paketin görünürlüğüne bak (**Package settings → Danger Zone**). Public ise bir şey yapma; Private ise **Change visibility → Public** yap.
 3. Doğrula, kimlik bilgisi olmayan bir makineden: `docker logout ghcr.io; docker pull ghcr.io/<sahip>/shopfolio-app:<tam commit kimliği>` (üç paket için).
-4. Sonucu `DEPLOY_RUNBOOK` ya da ilgili task raporuna işle. Açılış gerçek sunucuya ilk inişte, T603'te yapılır (`DEFERRED_BACKLOG.md` D-40 (b); T09 yerel referans kurulumda koşar, paket açmaz); önce açılırsa CI'ın geri alma sınaması (`migration-dry-run.sh` 4. bölüm) ilk sürüm etiketinden sonra önceki imajı çekebilir.
+4. Sonucu `DEPLOY_RUNBOOK` ya da ilgili task raporuna işle. Açılış gerçek sunucuya ilk inişte, T603'te yapılır (`DEFERRED_BACKLOG.md` D-40 (b); T09 yerel referans kurulumda koşar, paketlerin görünürlüğünü değiştirmez); önce açılırsa CI'ın geri alma sınaması (`migration-dry-run.sh` 4. bölüm) ilk sürüm etiketinden sonra önceki imajı çekebilir.
 
 Not: paket `org.opencontainers.image.source` etiketiyle repoya bağlıdır (`scripts/ci/publish-images.sh`); `GITHUB_TOKEN` yalnız bu repoya bağlı paketlere yazabilir.
 

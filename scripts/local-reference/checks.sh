@@ -83,7 +83,7 @@ case "${1:-}" in
     minio_ip="$(docker inspect --format '{{(index .NetworkSettings.Networks "t09-net").IPAddress}}' t09-minio)"
     on_host "COMPOSE_FILES='$FILES' OBJECT_STORAGE_HOST=$minio_ip sh deploy/firewall/installation-checks.sh egress"
     echo "-- DNS from a container on a filtered network while the rule is applied (D-31 (b)): a public name must resolve"
-    on_host "docker run --rm --network shopfolio-db-egress alpine nslookup example.com 2>&1 | grep -c '^Address: [0-9]' | sed 's/^/addresses returned for example.com: /'"
+    on_host "docker run --rm --network shopfolio-db-egress alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a nslookup example.com 2>&1 | grep -c '^Address: [0-9]' | sed 's/^/addresses returned for example.com: /'"
     ;;
   redirect-hsts)
     prepare_trust

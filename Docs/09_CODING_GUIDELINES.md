@@ -440,6 +440,7 @@ Klasör düzeni bu dokümanın işidir ve D-01'in kapanışında, bu dokümanla 
 deploy/
   compose.yaml                  kurulumun Compose tanımı: dört hizmet ve tek seferlik göç hizmeti (05 §8.2.4)
   compose.dev.yaml              geliştirme varyantı: ödeme sağlayıcısının test ortamı ve e-posta yakalayıcı
+  compose.local-reference.yaml  yerel referans kurulum bindirmesi (yalnız yerel; gerçek sunucuda kullanılmaz): MinIO'nun sertifikasına güven (DEPLOY_RUNBOOK §K)
   compose.install.yaml          ilk kurulum bindirmesi: kurucu kullanıcının ve üç kullanıcının parolaları yalnız veritabanının ilk başlatmasında (05 §6.x.6)
   .env.example                  kurulumun sır olmayan ayar dosyasının şablonu (05 §2.3.4)
   release.env                   bir sürümün üç imaj başvurusu (etiket + özet); Compose'a --env-file ile verilir (05 §8.2.3)

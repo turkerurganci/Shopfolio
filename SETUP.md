@@ -71,7 +71,7 @@
   - `CONTRACT_TEST_CMD` *(yoksa `NOT_APPLICABLE`)*
   - `MIGRATION_DRYRUN_CMD` *(yoksa `NOT_APPLICABLE`)*
   - `PACKAGE_BUILD_CMD` *(yoksa `NOT_APPLICABLE`)*
-  - `E2E_CMD` *(uçtan uca faza kadar boş kalabilir)*
+  - `E2E_CMD` *(uçtan uca doğrulama fazına (F6, T601) kadar `NOT_APPLICABLE` yer tutucu; `05 §8.3.11`, D-41)*
 - [x] `.github/workflows/ci.yml` içindeki her job'a **runtime kurulum adımları** eklendi (dil/SDK kurulumu, bağımlılık cache'i)
 - [x] Yayınlanacak artifact **yoksa** `.github/workflows/publish.yml` **silindi**; varsa `PUBLISH_CMD` ve auth adımları dolduruldu
 - [x] Pipeline en az bir kez PR üzerinde çalıştırıldı ve yeşil
@@ -188,7 +188,7 @@ grep -rn '`<[^>]*>`' Docs/ .claude/ \
 | Korunan dallar | `main` (`~DEFAULT_BRANCH`) — sunucu tarafı ruleset + lokal `PB_PROTECTED_BRANCHES` varsayılanı | 2026-08-11 |
 | İkinci AI (cross-review) | **Codex CLI, ChatGPT hesabıyla** (`codex exec`, model `gpt-5.6-terra`, düşünme düzeyi `high`). Yalnız `scripts/doc-scans/cross_review_ikinci_model.sh` ile çağrılır. Koşum: boş bir klasörde, salt okunur (`-s read-only`), kişisel ayarlar yüklenmeden (`--ignore-user-config`). Talimat, doküman ve şablon stdin'den tek metin olarak verilir, karar kaydı verilmez (K-431). Model her çağrıda açıkça verilir; `auto` yasak. Raporlar `Docs/CROSS_REVIEW_REPORTS/` altına yazılır; raporun başlığı turun hangi modelle koştuğunu söyler. **Kaynak:** Proje sahibinin kararı, 2026-10-31 (K-1484; sıra Aşama 9 cross-review 5. turundaki sınır deneyimiyle tersine çevrildi). | 2026-10-31 |
 | İkinci AI — yedek yöntem | **`cursor-agent`** (CLI, hesap tabanlı auth — API key kullanılmıyor), model `CURSOR_MODEL` (varsayılan `gpt-5.6-sol-high`; `auto` yasak). **Yalnız betiğin sağlık çağrısını geçerse** kullanılır (boş klasörde belirteç okutma; model açık değilse ya da dosya okunamıyorsa kullanılamaz). Asıl yöntemin kullanım sınırı dolunca tur **baştan** bu yöntemle koşulur; tur iki modele bölünmez, kısmi çıktılar kullanılmaz. İkisi de kullanılamazsa ilk açılan beklenir. **Kaynak:** Proje Vizyonu'nun cross-review'ı, 8.–18. tur — proje sahibinin kararı; sıra 2026-10-31'de değişti (K-1484). | 2026-10-31 |
-| `SETUP_COMPLETE=true` tarihi | **2026-11-03** — T09 yerel referans kurulum provasından sonra (`Docs/DEPLOY_RUNBOOK.md` §K.10; D-01 kapandı; gerçek sunucu artıkları D-40). `E2E_CMD=NOT_APPLICABLE` (uçtan uca faz yok; advisory). | 2026-11-03 |
+| `SETUP_COMPLETE=true` tarihi | **2026-11-03** — T09 yerel referans kurulum provasından sonra (`Docs/DEPLOY_RUNBOOK.md` §K.10; D-01 kapandı; gerçek sunucu artıkları D-40). `E2E_CMD=NOT_APPLICABLE` (E2E katmanı henüz kurulmadı, F6 T601 bağlar — D-41; advisory). | 2026-11-03 |
 
 ---
 

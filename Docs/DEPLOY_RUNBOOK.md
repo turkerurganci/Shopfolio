@@ -307,6 +307,8 @@ Kurulumda bir kez ve her güncellemede (`05 §7.6.8`). **Prova sunucunun dışı
 
 | Tarih | Yedek | Dönülen depo | Geri dönüşün süresi (indirme dahil) | Dönülen son an | Yaşam döngüsü kuralı var mı | Sonuç |
 |---|---|---|---|---|---|---|
+| 2026-11-03 | Veritabanı (pgBackRest tam yedek; T09 yerel referans kurulum, §K.7) | Depo 2 (nesne depolama, yerel MinIO) | 8 sn | Boş: veritabanında göç ya da işlem yok; `last-moment` yedeğin kendi anı (2026-11-03 18:16:20 UTC) | MinIO'da yedi günlük yarım yükleme kuralı yok — D-40 (g); otuz günlük eski sürüm kuralı var | ✓ çıkış 0, `pgbackrest verify` veriyi okuyarak geçti |
+| 2026-11-03 | Dosya (restic anlık görüntü; T09 yerel referans kurulum, §K.7) | Nesne depolama (dosyalar öneki, yerel MinIO) | 1 sn (geri alınan dosya 0: dosya alanları boş) | 2026-11-03 18:16:40 UTC (son anlık görüntü) | MinIO'da yedi günlük yarım yükleme kuralı yok — D-40 (g); otuz günlük eski sürüm kuralı var | ✓ çıkış 0, `restic check --read-data-subset=5%` hatasız |
 
 Koşumu kurulumdadır (T601; ilk iniş T09, yerel MinIO ile — §K.10 satır 9).
 
@@ -328,7 +330,7 @@ Koşumu kurulumdadır (T601; ilk iniş T09, yerel MinIO ile — §K.10 satır 9)
 5. **Denemeler:** `bash scripts/local-reference/checks.sh liveness | secrets | bootstrap | image-ids | isolation | egress | redirect-hsts | client-address` (§K.2–K.6) ve yedek komutları (§K.7).
 6. **Temizlik:** `bash scripts/local-reference/down.sh installation` (yalnız kurulum) ya da `down.sh all` (her `t09-*` konteyner, birim, ağ; kayıt dizini); imaj etiketleri `docker rmi shopfolio-app:t09 shopfolio-database:t09 shopfolio-backup:t09`.
 
-**Ayar farkları:** MinIO'nun resmî imajı ve ikilisi geri çekildiği için (2026) yerel depolama `bitnamilegacy/minio` ile kuruldu (yalnız yerel). MinIO'da `s3:prefix` koşulu `ListBucketMultipartUploads`'ta reddedilir (yerel politika uyarlandı), `DeleteObject` sürüm silmeyi de izin verir (yerel politikaya `Deny s3:DeleteObjectVersion` eklendi) ve yaşam döngüsü **yedi günlük yarım yükleme kuralını tutmaz** — bu üç fark gerçek kovada T603'te yeniden sınanır (D-40).
+**Ayar farkları:** MinIO'nun resmî imajı ve ikilisi geri çekildiği için (2026) yerel depolama `bitnamilegacy/minio` ile kuruldu (yalnız yerel). Yerel betiklerin araç imajları sürüm etiketi ve özetle sabittir (`docker:29.9.2-dind`, `bitnamilegacy/minio:2025.5.24`, `bitnamilegacy/minio-client:2025.5.21`, `amazon/aws-cli:2.39.3`, `alpine:3.24.3`, `curlimages/curl:8.21.0`; `latest` yok): reçetenin tekrarı aynı imajları getirir. MinIO'da `s3:prefix` koşulu `ListBucketMultipartUploads`'ta reddedilir (yerel politika uyarlandı), `DeleteObject` sürüm silmeyi de izin verir (yerel politikaya `Deny s3:DeleteObjectVersion` eklendi) ve yaşam döngüsü **yedi günlük yarım yükleme kuralını tutmaz** — bu üç fark gerçek kovada T603'te yeniden sınanır (D-40).
 
 ### K.2 Canlılık (T09 kriter 2; `05 §8.1.4`, MK-68; `10 §4.1` ÖK-12; `07 UC-81`)
 
@@ -399,7 +401,7 @@ Kural uygulanınca zincir `SHOPFOLIO-EGRESS`'e iki çıkış ağından (172.30.2
 
 ### K.11 Kapanış (T09 kriter 5; `09 §21.4` madde 5; `SETUP.md` §4, §8)
 
-`.github/ci-commands.env` `SETUP_COMPLETE=true` ve `E2E_CMD=NOT_APPLICABLE` (⚠ karar 2: uçtan uca faz yok, boş komut `true` iken FAIL eder); `SETUP.md` §2, §4, §6 işaretleri ve parametre kaydı güncellendi (D-29 (a)); D-01 ✅; gerçek sunucu artıkları D-40'ta. CI kapısı `SETUP_COMPLETE=true` iken yeşil olmalıdır (`SETUP.md` §8 kontrol 1, 2); kırmızıysa kapanış tamam değildir.
+`.github/ci-commands.env` `SETUP_COMPLETE=true` ve `E2E_CMD=NOT_APPLICABLE` (⚠ karar 2, düzeltme 1: E2E katmanı henüz kurulmadı, komut uçtan uca doğrulama fazında (F6, T601) bağlanır (`05 §8.3.11`); o zamana dek `NOT_APPLICABLE` yer tutucudur, "katman yok" demek değildir; bağlama D-41'de izlenir); `SETUP.md` §2, §4, §6 işaretleri ve parametre kaydı güncellendi (D-29 (a)); D-01 ✅; gerçek sunucu artıkları D-40'ta. CI kapısı `SETUP_COMPLETE=true` iken yeşil olmalıdır (`SETUP.md` §8 kontrol 1, 2); kırmızıysa kapanış tamam değildir.
 
 ### K.12 Bu reçeteye bağlanan açık backlog kalemleri
 

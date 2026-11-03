@@ -19,8 +19,9 @@ NET="t09-net"
 BUCKET="shopfolio-backup"
 REGION="us-east-1"
 ENDPOINT="t09-minio"
-MC_IMAGE="bitnamilegacy/minio-client:latest"
-AWS_IMAGE="amazon/aws-cli:latest"
+MC_IMAGE="bitnamilegacy/minio-client:2025.5.21@sha256:00dcc4e58ada0df45bb7d9ee435af98295f96c27c3c68292ce78ec700a87b511"
+AWS_IMAGE="amazon/aws-cli:2.39.3@sha256:d557b3524475d70dd3104cf44d96568ee3188897b73a6ece2b37aa50e1af362f"
+DIND_IMAGE="docker:29.9.2-dind@sha256:9e79b879b177fbd72c34376a3dd3d91747da5db49e1f560f76aea59561471977"
 MC=/opt/bitnami/minio-client/bin/mc
 
 ADMIN_CREDENTIAL="$(cat "$STATE_DIR/minio-admin-password")"
@@ -30,8 +31,8 @@ printf '%s\n%s\n' "$(cat "$STATE_DIR/files-key-id")" "$(cat "$STATE_DIR/files-ke
 # A throw-away volume carries the files the containers below need (no bind mounts: the paths of a Windows host do not map).
 docker volume rm -f t09-work >/dev/null 2>&1 || true
 docker volume create t09-work >/dev/null
-tar -cf - deploy/backup | docker run -i --rm -v t09-work:/work docker:dind sh -c "tar -xf - -C /work && chmod -R a+rX /work"
-tar -cf - -C "$STATE_DIR" minio-ca.crt db_backup_storage_key file_backup_storage_key | docker run -i --rm -v t09-work:/work docker:dind sh -c "tar -xf - -C /work && chmod -R a+rX /work"
+tar -cf - deploy/backup | docker run -i --rm -v t09-work:/work "$DIND_IMAGE" sh -c "tar -xf - -C /work && chmod -R a+rX /work"
+tar -cf - -C "$STATE_DIR" minio-ca.crt db_backup_storage_key file_backup_storage_key | docker run -i --rm -v t09-work:/work "$DIND_IMAGE" sh -c "tar -xf - -C /work && chmod -R a+rX /work"
 
 echo "== bucket and keys (MinIO administration)"
 docker run --rm --network "$NET" --entrypoint sh -v t09-work:/work -e HOME=/tmp \

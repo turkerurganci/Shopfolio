@@ -16,7 +16,7 @@ export MSYS_NO_PATHCONV=1
 HOST="t09-host"
 CLIENT="t09-client"
 CAPTURE="t09-capture"
-CLIENT_IMAGE="curlimages/curl:8.21.0"
+CLIENT_IMAGE="curlimages/curl:8.21.0@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13"
 FILES="--env-file /etc/shopfolio/release.local.env --env-file /etc/shopfolio/settings.env -f deploy/compose.yaml -f deploy/compose.local-reference.yaml"
 
 net_value() { docker inspect --format "{{(index .NetworkSettings.Networks \"t09-net\").$2}}" "$1"; }
@@ -31,7 +31,7 @@ echo "server ${SERVER_V4} / ${SERVER_V6}; client ${CLIENT_V4} / ${CLIENT_V6}"
 
 echo "== capture in the application container's network namespace (inside the server)"
 docker exec "$HOST" docker rm -f "$CAPTURE" >/dev/null 2>&1 || true
-docker exec "$HOST" docker run -d --name "$CAPTURE" --network container:shopfolio-app-1 --cap-add NET_RAW --cap-add NET_ADMIN alpine \
+docker exec "$HOST" docker run -d --name "$CAPTURE" --network container:shopfolio-app-1 --cap-add NET_RAW --cap-add NET_ADMIN alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a \
   sh -c "apk add -q tcpdump && exec tcpdump -i any -A -nn -l -U 'tcp dst port 8080' >/tmp/capture.txt 2>/dev/null" >/dev/null
 for _ in $(seq 1 30); do
   docker exec "$HOST" docker exec "$CAPTURE" pgrep tcpdump >/dev/null 2>&1 && break

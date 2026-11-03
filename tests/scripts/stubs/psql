@@ -1,0 +1,31 @@
+#!/bin/sh
+# Stub of psql for the restore drill test: a restored copy that is still replaying the archived log. The query is the last
+# argument. `pg_is_in_recovery()` answers 't' for the first STUB_RECOVERY_POLLS calls and 'f' afterwards (STUB_RECOVERY_POLLS
+# empty or very large: never ends). The last committed moment is the base backup's moment while the copy is still in recovery
+# and the archive's last moment after it (the behaviour of a real copy that is read too early).
+
+query=""
+for argument in "$@"; do
+  query="$argument"
+done
+echo "psql $query" >>"${STUB_CALLS:?STUB_CALLS is required}"
+
+counter_file="${STUB_STATE:?STUB_STATE is required}"
+polls=0
+[ -f "$counter_file" ] && polls="$(cat "$counter_file")"
+
+case "$query" in
+  *pg_is_in_recovery*)
+    polls=$((polls + 1))
+    echo "$polls" >"$counter_file"
+    if [ "$polls" -le "${STUB_RECOVERY_POLLS:-999999}" ]; then echo t; else echo f; fi
+    ;;
+  *pg_last_committed_xact*)
+    if [ "$polls" -le "${STUB_RECOVERY_POLLS:-999999}" ]; then
+      echo "2026-11-03 15:45:00+00"
+    else
+      echo "2026-11-03 15:46:29+00"
+    fi
+    ;;
+esac
+exit 0

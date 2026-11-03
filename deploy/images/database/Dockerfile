@@ -9,21 +9,31 @@ FROM postgres:18.6-trixie@sha256:3a4264520e121176619f54ff867d12774bc81e95e7b84db
 # pgBackRest comes from the PostgreSQL project's own apt repository, which the official image already trusts and configures.
 # The version is not pinned: apt-get update reads the repository index at build time, and the PGDG repository keeps only the
 # current pgBackRest release, so a pinned version would break the build later. The installed version is printed into the build
-# log; the base image digest pins the base only, so two builds of this file on different days can carry different pgBackRest releases.
+# log; the base image digest pins the base only, so two builds of this file on different days can carry different pgBackRest
+# releases. This is the one exception to "the tool version is pinned" (09 17 item 6); the version is reviewed in the monthly
+# maintenance release (05 8.8.2).
 RUN apt-get update \
     && apt-get install --no-install-recommends -y pgbackrest \
     && rm -rf /var/lib/apt/lists/* \
     && pgbackrest version
 
-# The scheduler is the same file in this image and in the backup image (09 17 item 3). The job it runs arrives with the backup
-# task; this image only carries the scheduler.
+# The scheduler is the same file in this image and in the backup image (09 17 item 3). It starts the nightly job at
+# BACKUP_RUN_TIME; the job and the one-time stanza creation are the backup task's scripts.
 COPY --chmod=0555 deploy/images/shared/scheduler.sh /usr/local/bin/scheduler.sh
+COPY --chmod=0555 deploy/images/database/database-job.sh /usr/local/bin/database-job.sh
+COPY --chmod=0555 deploy/images/database/stanza-bootstrap.sh /usr/local/bin/stanza-bootstrap.sh
+# The recovery drill (DEPLOY_RUNBOOK section J.5): run by hand in a one-off container, never by the scheduler.
+COPY --chmod=0555 deploy/images/database/database-restore-drill.sh /usr/local/bin/database-restore-drill.sh
+COPY --chmod=0555 deploy/images/database/database-entrypoint.sh /usr/local/bin/database-entrypoint.sh
 
 # Configuration is a main file that includes a directory: later tasks add their settings (archive, backup) as files in the
 # directory without touching the main file. track_commit_timestamp makes the database record when each transaction committed,
-# which the restore guard counts rows by (05 8.5.11).
+# which the restore guard counts rows by (05 8.5.11). The archive settings (05 7.6.1) are the second file of the directory.
 COPY deploy/images/database/postgresql.conf /etc/postgresql/postgresql.conf
 COPY deploy/images/database/postgresql.conf.d/ /etc/postgresql/postgresql.conf.d/
+
+# pgBackRest's configuration (two repositories, retention by time; no secret in it).
+COPY deploy/images/database/pgbackrest.conf /etc/pgbackrest/pgbackrest.conf
 
 # The setup script (09 10.8, 17 item 1): the official image runs the files of /docker-entrypoint-initdb.d once, on the first start
 # with an empty data directory. The SQL and the client authentication templates it uses are not in that directory (the image would
@@ -33,13 +43,28 @@ COPY --chmod=0555 deploy/images/database/initdb/10-bootstrap.sh /docker-entrypoi
 COPY --chmod=0755 deploy/images/database/bootstrap/ /usr/local/share/shopfolio/bootstrap/
 
 # pgBackRest's own directories are writable by the database user: the image runs as that user, not as root.
-RUN mkdir -p /etc/pgbackrest /var/log/pgbackrest /var/spool/pgbackrest /var/lib/pgbackrest \
-    && chown -R postgres:postgres /etc/pgbackrest /var/log/pgbackrest /var/spool/pgbackrest /var/lib/pgbackrest
+RUN mkdir -p /etc/pgbackrest /var/spool/pgbackrest /var/lib/pgbackrest \
+    && chown -R postgres:postgres /etc/pgbackrest /var/spool/pgbackrest /var/lib/pgbackrest
 
-# Mount point of the database log volume (deploy/compose.yaml); the backup tool reads it read-only (05 9.1.4). Where the server
-# and pgBackRest write their logs is set by the task that configures them.
-RUN mkdir -p /var/log/postgresql && chown postgres:postgres /var/log/postgresql
+# The local copy of the last full backup lives in the database's own volume, next to the data directory (05 7.6.1). The directory
+# is created here so that the volume takes it (and its owner) from the image when it is first mounted.
+RUN mkdir -p /var/lib/postgresql/local-backup && chown postgres:postgres /var/lib/postgresql/local-backup
 
-# No secret enters the image: passwords and backup keys arrive as mounted files at run time (09 17 item 2).
+# Mount point of the database log volume (deploy/compose.yaml); the backup tool reads it read-only (05 9.1.4). pgBackRest and the
+# backup scripts write their logs here, in their own files, not to the container output (05 9.1.4; D-32).
+RUN mkdir -p /var/log/postgresql/pgbackrest && chown -R postgres:postgres /var/log/postgresql
+# pgBackRest writes its log files as 0640 (owner and group read), so the backup tool's user (uid 10001, another container) could
+# not read them. Narrowest fix: a group (gid 10002) for pgBackRest's own log directory only, with the setgid bit so that every
+# log file created there takes that group; the backup service joins the group (`group_add` in deploy/compose.yaml). The data
+# directory, the settings and the secrets keep their owner and mode (05 7.6.3). The setgid directory is created here; a volume
+# that already exists takes the change by hand (DEPLOY_RUNBOOK section J.4).
+RUN groupadd --gid 10002 logread \
+    && chgrp logread /var/log/postgresql/pgbackrest \
+    && chmod 2750 /var/log/postgresql/pgbackrest
+
+# No secret enters the image: passwords and backup keys arrive as mounted files at run time (09 17 item 2). The entrypoint
+# wraps the official one: it turns the two backup key files into pgBackRest's environment, starts the scheduler and runs the
+# official entrypoint unchanged (the server still runs as the database user).
 USER postgres
+ENTRYPOINT ["/usr/local/bin/database-entrypoint.sh"]
 CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]

@@ -142,18 +142,22 @@ echo "== 6/7 Database image: first install (users, collation, client authenticat
 DB_CONTAINER="shopfolio-ci-db-$$"
 CONTAINERS+=("$DB_CONTAINER")
 # The first install as an installation does it (compose.install.yaml): the four setup secrets as files, with made-up values that
-# exist only in this job. 0444: the container's database user (not the runner) reads them.
+# exist only in this job. 0444: the container's database user (not the runner) reads them. The image's entrypoint also wants the
+# backup settings and the two backup key files (09 17 item 2); those are throw-away placeholders of this check (the storage
+# endpoint is unreachable, no network, so the stanza creation keeps retrying and the server runs on). All files share one directory.
 SETUP_FILES_DIR="$(mktemp -d)"
+chmod 755 "$SETUP_FILES_DIR"
 for name in db_superuser_password db_setup_migrator_password db_setup_app_password db_setup_reader_password; do
   head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n' >"$SETUP_FILES_DIR/$name"
-  chmod 0444 "$SETUP_FILES_DIR/$name"
 done
+printf '%s\n%s\n' "placeholder-access-id" "placeholder-access-value" >"$SETUP_FILES_DIR/db_backup_storage_key"
+printf '%s' "placeholder-cipher-value" >"$SETUP_FILES_DIR/db_backup_cipher_key"
+chmod 0444 "$SETUP_FILES_DIR"/*
 docker run -d --name "$DB_CONTAINER" --network none \
   -e POSTGRES_DB=shopfolio -e POSTGRES_PASSWORD_FILE=/run/secrets/db_superuser_password \
-  -v "$SETUP_FILES_DIR/db_superuser_password:/run/secrets/db_superuser_password:ro" \
-  -v "$SETUP_FILES_DIR/db_setup_migrator_password:/run/secrets/db_setup_migrator_password:ro" \
-  -v "$SETUP_FILES_DIR/db_setup_app_password:/run/secrets/db_setup_app_password:ro" \
-  -v "$SETUP_FILES_DIR/db_setup_reader_password:/run/secrets/db_setup_reader_password:ro" \
+  -v "$SETUP_FILES_DIR:/run/secrets:ro" \
+  -e BACKUP_S3_ENDPOINT=storage.invalid -e BACKUP_S3_BUCKET=ci-placeholder -e BACKUP_S3_REGION=ci-placeholder \
+  -e BACKUP_RUN_TIME=01:30 -e BACKUP_TIME_ZONE=Europe/Istanbul \
   "shopfolio-database:$TAG" postgres -c config_file=/etc/postgresql/postgresql.conf -c log_statement=all >/dev/null
 commit_timestamps=""
 for _ in $(seq 1 45); do
@@ -170,7 +174,16 @@ if [ "$commit_timestamps" != "on" ]; then
 fi
 docker exec "$DB_CONTAINER" pgbackrest version
 docker exec "$DB_CONTAINER" test -x /usr/local/bin/scheduler.sh || fail "the scheduler is not in the database image"
-echo "ok: track_commit_timestamp on, pgBackRest and the scheduler present"
+for script in database-job.sh stanza-bootstrap.sh database-restore-drill.sh database-entrypoint.sh; do
+  docker exec "$DB_CONTAINER" test -x "/usr/local/bin/$script" || fail "$script is not in the database image"
+done
+archive_timeout="$(docker exec "$DB_CONTAINER" psql -U postgres -Atc 'show archive_timeout')"
+[ "$archive_timeout" = "50s" ] || fail "archive_timeout is '${archive_timeout}', expected '50s' (05 7.6.1)"
+# The configuration parses: the info command (run through the entrypoint, which carries the backup environment) reads it and
+# reports the stanza without a configuration error.
+docker exec "$DB_CONTAINER" /usr/local/bin/database-entrypoint.sh pgbackrest --stanza=shopfolio --repo=1 info \
+  || fail "pgBackRest does not accept the configuration of the database image"
+echo "ok: track_commit_timestamp on, archive_timeout 50s, pgBackRest configuration and the scripts present"
 
 # What the setup script made (09 10.8; T10). Each query runs as the founding user through the local socket.
 db_query() {
@@ -221,6 +234,11 @@ echo "ok: four users without the five attributes, UTF-8 and ICU tr-TR, pg_trgm, 
 echo "== 7/7 Backup tool image: restic and scheduler"
 docker run --rm --entrypoint restic "shopfolio-backup:$TAG" version
 docker run --rm --entrypoint test "shopfolio-backup:$TAG" -x /usr/local/bin/scheduler.sh || fail "the scheduler is not in the backup image"
-echo "ok: restic and the scheduler present"
+for script in file-backup-job.sh file-restore-drill.sh; do
+  docker run --rm --entrypoint test "shopfolio-backup:$TAG" -x "/usr/local/bin/$script" || fail "$script is not in the backup image"
+done
+# write-status.sh is sourced by the job, not run: readable, not executable.
+docker run --rm --entrypoint test "shopfolio-backup:$TAG" -r /usr/local/bin/write-status.sh || fail "write-status.sh is not in the backup image"
+echo "ok: restic, the scheduler and the file backup scripts present"
 
 echo "Package build: all checks passed."

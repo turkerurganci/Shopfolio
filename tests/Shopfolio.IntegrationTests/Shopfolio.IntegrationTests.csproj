@@ -25,6 +25,9 @@
     <!-- The hand-written fakes are shared as linked files; no second copy, no reference between test projects (09 19.1 item 3; K-1355). -->
     <Compile Include="..\Shopfolio.UnitTests\Fakes\**\*.cs" LinkBase="Fakes" />
     <Compile Include="..\Shopfolio.UnitTests\Support\RepositoryRoot.cs" LinkBase="Support" />
+    <!-- The sample entities of the model rule tests and the storage type table are shared the same way (T101). -->
+    <Compile Include="..\Shopfolio.UnitTests\Samples\**\*.cs" LinkBase="Samples" />
+    <Compile Include="..\Shopfolio.UnitTests\Consistency\ColumnTypeTable.cs" LinkBase="Consistency" />
   </ItemGroup>
 
 </Project>

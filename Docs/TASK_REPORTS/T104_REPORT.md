@@ -129,6 +129,25 @@ Dış varsayım: yok.
 |---|---|---|---|
 | 1 | `Simplify` bu task'ta üretildi; D-45'in notu bu dosyada bulunamadı | — | Plan başka task'a yazmıyor; ⚠ olarak PR'da |
 
+## Düzeltme 2 (tur 2 FAIL sonrası, 2026-11-04)
+
+Bulgu 1 (S1 DÜŞÜK, kriter 1): `06 §4` "Varsayılan veritabanının varsayılanıdır" der; T104'ün sekiz entity'sinin (`06 §4.5`–§4.10, §4.69, §4.71) alan tablolarında Varsayılan sütunu dolu her alan tarandı — altı alan çıktı (başka yok), altısına da modelde `HasDefaultValue` verildi (enum alanlarda değer dönüşümüyle saklanan metin değeri).
+
+| Alan | Varsayılan | Model |
+|---|---|---|
+| `products.publish_status` | `'Draft'` | `HasDefaultValue(PublishStatus.Draft)` |
+| `products.version` | `1` | `HasDefaultValue(1)` |
+| `variants.publish_status` | `'Draft'` | `HasDefaultValue(PublishStatus.Draft)` |
+| `variants.reserved_quantity` | `0` | `HasDefaultValue(0)` |
+| `product_categories.is_primary_category` | `false` | `HasDefaultValue(false)` |
+| `product_images.is_main` | `false` | `HasDefaultValue(false)` |
+
+`CreateCatalogCoreTables` göçü yerinde güncellendi (main'de değil; Designer ve anlık görüntü yeniden üretildi; ilk deyim `pg_trgm` denetimi, `Down` yok); `has-pending-model-changes` temiz. T103 tablolarındaki aynı boşluk D-52'de — dokunulmadı.
+
+Testler (`CatalogCoreTablesTests`): `ColumnsWithADefault_AreExactlyTheSixOfTheFieldTables_WithTheirDocumentedValues` (`information_schema.columns.column_default`, sekiz tabloda tam altı) ve `RawInsertsWithoutTheDefaultedColumns_GetTheDocumentedDefaults` (ham `INSERT` bu sütunlar yazılmadan satır ekler, varsayılanlar gelir).
+
+Test sonuçları (düzeltme 2): Unit 230/230, Integration 187/187 (gerçek PostgreSQL 18), `-warnaserror` 0 uyarı, `dotnet format --verify-no-changes` 0, `restore --locked-mode` 0.
+
 ## Notlar
 
 - **Ön koşul:** örnek şema sıfırlaması `pg_trgm`'yi düşürüyordu; `SampleDatabaseFixture` düzeltildi (main'de katalog dizini olmadığı için görünmüyordu).

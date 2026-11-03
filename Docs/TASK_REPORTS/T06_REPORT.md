@@ -1,6 +1,6 @@
 # T06 — Üç imaj ve kayıt defteri
 
-**Faz:** F0 | **Durum:** ✓ Tamamlandı — doğrulama tur 2 PASS (merge yardımcıda) | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✓ PASS (doğrulama tur 2) — merge `aaf2f2a` (#347) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -75,7 +75,7 @@
 - **PR:** #347
 - **CI:** yapım işçisi izlemez (yönetici izler)
 - **Doğrulama commit'i:** tur 2 kaydı (rapor, status, hafıza, backlog D-29/D-30) dalda; squash ve post-merge run'lar merge'den sonra yardımcı tarafından eklenir
-- **Post-merge run'lar:** *(merge sonrası — yardımcı)*
+- **Post-merge run'lar:** squash `aaf2f2a` (#347) — CI 41619412629 ve Publish 41619412883 success (F0 gate'inde doğrulandı, 2026-11-03)
 
 ## Dış Varsayımlar
 

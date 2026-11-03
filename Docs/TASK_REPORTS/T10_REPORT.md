@@ -1,6 +1,6 @@
 # T10 — Veritabanı kullanıcıları
 
-**Faz:** F0 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS; merge yardımcıda) | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✓ PASS (doğrulama tur 2) — merge `af4103c` (#350) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -92,7 +92,7 @@
 - **Commit:** `03f6252` — T10: Veritabanı kullanıcıları (kurucu betik, testler; devam gerekiyor); sonraki commit'ler: dokümanlar, rapor, status, hafıza
 - **PR:** #350
 - **CI:** yapım işçisi izlemez (yönetici düzeni); CI'ı yardımcı yürütür
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `af4103c` (#350) — CI 41664366553 ve Publish 41664366613 success (F0 gate'inde doğrulandı, 2026-11-03)
 
 ## Dış Varsayımlar
 

@@ -14,7 +14,8 @@ Ek denetimler:
   - kullanilan her aday kimlik 11 7'deki aday task tablosunda tanimlidir (K-1407 faz araliklari);
   - geri yon (O6 2/2): her aday task >=1 kaynak; 11 7.1 ile 7.2 iki yonlu esit (11_geri_yon.py);
     K-1409 boyut sinirlari asilmaz;
-  - "Implement edildi" ve "Kanit" hucreleri bu asamada bostur (gate'te dolar).
+  - "Implement edildi" ve "Kanit" hucreleri faz gate'inde dolar: GATE_DOLU'daki bir faza
+    bagli satirda ikisi dolu ("Implement edildi" "✓" ile baslar), oteki satirlarda bos.
 
 Kullanim (depo kokunden): python -I scripts/doc-scans/11_matris_kapsama.py . [cikti_dosyasi]
 Cikis kodu: eksik, fazla, yinelenen ya da bicim sorunu sifirdan buyukse 1.
@@ -274,6 +275,10 @@ for l in plan:
 TASK_RE = re.compile(r"^T\d+[a-z]?(?:\.\d+)?$")
 FAZ = [(1, 99, "F0"), (101, 199, "F1"), (201, 299, "F2"), (301, 399, "F3"),
        (401, 499, "F4"), (501, 599, "F5"), (601, 699, "F6")]
+# Gate'i "Implement edildi" ve "Kanit" hucrelerini doldurmus fazlar (11 6.1 madde 3).
+# gate-check PASS rituelinin chore PR'i fazini buraya ekler; listedeki bir faza bagli
+# satirin iki hucresi dolu olmali, oteki satirlarinki bos.
+GATE_DOLU = {"F0"}
 
 
 def faz_of(t):
@@ -329,9 +334,14 @@ for fam in DOLU:
             if t not in aday:
                 problems += 1
                 p("    aday listesinde tanimsiz task: %s -> %s" % (s[1], t))
-        if s[3] or s[4]:
+        gated = [t for t in ids if TASK_RE.match(t) and faz_of(t) in GATE_DOLU]
+        if gated:
+            if not s[3].startswith("✓") or not s[4]:
+                problems += 1
+                p("    gate'i gecmis faza bagli satirda implement/kanit dolu olmali: %s" % s[1])
+        elif s[3] or s[4]:
             problems += 1
-            p("    implement/kanit bos olmali: %s" % s[1])
+            p("    implement/kanit bos olmali (bagli fazin gate'i yok): %s" % s[1])
 
 # doldurulmamis aileler: satiri varsa uyar (DOLU listesine eklenmemis)
 diger = sorted({s[1].split(":")[0] for s in satirlar} - set(DOLU))

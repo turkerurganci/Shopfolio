@@ -1,6 +1,6 @@
 # T08 — Sır düzeni
 
-**Faz:** F0 | **Durum:** ✓ Doğrulama tur 4 PASS (2026-11-03, `363dd4d`); merge yardımcıda | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✓ PASS (doğrulama tur 4) — merge `ca42ca9` (#349) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -184,7 +184,7 @@ Testler: Unit 50 + Consistency 11 (61), Integration 45/45 (yerel `postgres:18` k
 - **Commit:** `363dd4d` (doğrulanan head)
 - **PR:** #349
 - **CI:** dal run 41646506249 success (head `363dd4d`)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `ca42ca9` (#349) — CI 41649150934 ve Publish 41649150970 success (F0 gate'inde doğrulandı, 2026-11-03)
 
 ## Dış Varsayımlar
 

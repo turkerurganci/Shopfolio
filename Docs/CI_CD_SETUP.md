@@ -1,6 +1,6 @@
 # Shopfolio — CI/CD Setup Kılavuzu
 
-**Son güncelleme:** 2026-08-11
+**Son güncelleme:** 2026-11-03 (T04, T06, T09 değişiklikleri; F0 gate hijyeni D-23 (c))
 
 > Workflow dosyaları sürüm kontrolündedir; **repo ayarları, secret'lar ve dal koruma kuralları platform arayüzünden/API'sinden manuel yapılır.** Bu doküman o manuel kısmın kaydıdır.
 

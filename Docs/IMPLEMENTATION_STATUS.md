@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-03 — T09 (İlk iniş provası: yerel referans kurulumda canlılık) bağımsız doğrulama tur 2: ✓ PASS (`303c074`; kapsam tam; kriter 1–7 ve KK1–KK7 ✓ — kurulum validator tarafından reçeteyle sıfırdan kuruldu; dal CI run 41692602124 yeşil; tur 1 bulgu 1 ve K1–K5 kapandı; K-notları D-42). Sırada: merge (yardımcı), sonra F0 gate. Önceki giriş `STATUS_CHANGELOG.md`'ye taşındı (T09 doğrulama tur 1 FAIL).
+**Son güncelleme:** 2026-11-03 — F0 (Proje iskeleti) faz kapısı: ✓ PASS (`GATE_CHECK_F0.md`; ana dal `93ba91f`; testler, üç imaj, yerel referans kurulumda taze ortam ve canlılık 200, Lint kırmızı→yeşil; `11 §7.1`'in F0'a bağlı 66 satırı dolduruldu; backlog hijyeni: D-07, D-11, D-18, D-23 ✅, yeni D-43, D-44). Sırada: gate PR'ının merge'ü ve `phase/F0-pass` etiketi (yardımcı), sonra F1. Önceki giriş `STATUS_CHANGELOG.md`'ye taşındı (T09 doğrulama tur 2 PASS).
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -29,7 +29,7 @@
 
 | Faz | Ad | Task aralığı | Gate | Tag | Rapor |
 |---|---|---|---|---|---|
-| F0 | Proje iskeleti | `T01`–`T10` (10) | ⬚ | — | |
+| F0 | Proje iskeleti | `T01`–`T10` (10) | ✓ PASS | `phase/F0-pass` | [GATE_CHECK_F0](CHECKPOINT_REPORTS/GATE_CHECK_F0.md) |
 | F1 | Veri katmanı | `T101`–`T120` (20) | ⬚ | — | |
 | F2 | Çekirdek servisler | `T201`–`T233` (33) | ⬚ | — | |
 | F3 | İş mantığı | `T301`–`T390` (90) | ⬚ | — | |
@@ -56,16 +56,16 @@
 
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
-| T01 | Canlılık ucu | ✓ | ✓ PASS (tur 4) | — | #338 |
-| T02 | Çözüm ve proje düzeni | ✓ | ✓ PASS (tur 2) | — | #335 |
-| T03 | Test altyapısı | ✓ | ✓ PASS (tur 3) | — | #337 |
-| T04 | CI hattı ve eşitlik denetimleri | ✓ | ✓ PASS (tur 2) | — | #339 |
-| T05 | Compose geliştirme ortamı | ✓ | ✓ PASS (tur 2) | — | #348 |
-| T06 | Üç imaj ve kayıt defteri | ✓ | ✓ PASS (tur 2) | — | #347 |
-| T07 | Yedek düzeni | ✓ | ✓ PASS (tur 4) | — | #351 |
-| T08 | Sır düzeni | ✓ | ✓ PASS (tur 4) | — | #349 |
-| T09 | İlk iniş provası: yerel referans kurulumda canlılık | ✓ | ✓ PASS (tur 2) | — | #354 |
-| T10 | Veritabanı kullanıcıları | ✓ | ✓ PASS (tur 2) | — | #350 |
+| T01 | Canlılık ucu | ✓ | ✓ PASS (tur 4) | `6c07304` | #338 |
+| T02 | Çözüm ve proje düzeni | ✓ | ✓ PASS (tur 2) | `f83876a` | #335 |
+| T03 | Test altyapısı | ✓ | ✓ PASS (tur 3) | `e4de649` | #337 |
+| T04 | CI hattı ve eşitlik denetimleri | ✓ | ✓ PASS (tur 2) | `20fdd0c` | #339 |
+| T05 | Compose geliştirme ortamı | ✓ | ✓ PASS (tur 2) | `5509c5d` | #348 |
+| T06 | Üç imaj ve kayıt defteri | ✓ | ✓ PASS (tur 2) | `aaf2f2a` | #347 |
+| T07 | Yedek düzeni | ✓ | ✓ PASS (tur 4) | `6a8dc38` | #351 |
+| T08 | Sır düzeni | ✓ | ✓ PASS (tur 4) | `ca42ca9` | #349 |
+| T09 | İlk iniş provası: yerel referans kurulumda canlılık | ✓ | ✓ PASS (tur 2) | `93ba91f` | #354 |
+| T10 | Veritabanı kullanıcıları | ✓ | ✓ PASS (tur 2) | `af4103c` | #350 |
 
 ---
 

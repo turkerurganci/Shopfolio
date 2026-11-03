@@ -1,6 +1,6 @@
 # T01 — Canlılık ucu
 
-**Faz:** F0 | **Durum:** ✓ Doğrulama tur 4 PASS (merge yardımcıda) | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✓ PASS (doğrulama tur 4) — merge `6c07304` (#338) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -82,7 +82,7 @@ Ek: `dotnet build Shopfolio.slnx` 0 uyarı; `dotnet format --verify-no-changes` 
 - **Commit:** `dc585df` — T01: Canlilik ucu (rapor/durum/hafıza: `8c2c6f9`)
 - **PR:** #338
 - **CI:** yapım işçisi izlemez
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `6c07304` (#338) — CI 41588356448 ve Publish 41588356390 success (F0 gate'inde doğrulandı, 2026-11-03)
 
 ## Dış Varsayımlar
 

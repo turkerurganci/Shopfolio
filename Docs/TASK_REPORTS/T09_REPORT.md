@@ -1,6 +1,6 @@
 # T09 — İlk iniş provası: yerel referans kurulumda canlılık
 
-**Faz:** F0 | **Durum:** ✓ Doğrulama tur 2 PASS | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✓ PASS (doğrulama tur 2) — merge `93ba91f` (#354) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -103,7 +103,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T09-ilk-yayin`
-- **PR:** PR açıklamasında
+- **PR:** #354
+- **Post-merge run'lar:** squash `93ba91f` (#354) — CI 41696545511 ve Publish 41696545899 success (F0 gate'inde doğrulandı, 2026-11-03)
 - **CI:** yapım ajanı izlemez
 
 ## Dış Varsayımlar

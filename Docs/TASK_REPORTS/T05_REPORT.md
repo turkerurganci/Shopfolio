@@ -1,6 +1,6 @@
 # T05 — Compose geliştirme ortamı
 
-**Faz:** F0 | **Durum:** ✓ PASS (doğrulama tur 2) — merge yardımcıda | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✓ PASS (doğrulama tur 2) — merge `5509c5d` (#348) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -77,7 +77,7 @@
 - **Commit:** `3efc774` — T05: Compose geliştirme ortamı (rapor/status/hafıza commit'i ayrı)
 - **PR:** #348
 - **CI:** yöneticide izlenir
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
+- **Post-merge run'lar:** squash `5509c5d` (#348) — CI 41630669803 ve Publish 41630669794 success (F0 gate'inde doğrulandı, 2026-11-03)
 
 ## Dış Varsayımlar
 

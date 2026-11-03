@@ -74,7 +74,7 @@
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
 | T101 | Veri modeli temeli | ✓ | ✓ PASS (tur 1) | `f7b33c7` | #358 |
-| T102 | Enum tanımları ve değer dönüşümü | ⏳ Devam ediyor | — | `84f729c` | PR açıldı (no dönüşte) |
+| T102 | Enum tanımları ve değer dönüşümü | ⏳ Devam ediyor | — | `84f729c` | #359 |
 | T103 | Başlangıç listeleri, firma ve yasal metin sürümü | ⬚ | — | — | — |
 | T104 | Ürün çekirdeği ve görsel | ⬚ | — | — | — |
 | T105 | Fiyat, kupon ve dijital dosya | ⬚ | — | — | — |

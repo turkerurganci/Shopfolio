@@ -44,7 +44,7 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { fetch-depth: 1 }
       - name: Check for PR merge reference
         run: |
@@ -65,7 +65,7 @@ jobs:
     name: 1. Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
@@ -76,7 +76,7 @@ jobs:
     needs: [lint]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
@@ -87,7 +87,7 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
@@ -113,7 +113,7 @@ jobs:
     env:
       SHOPFOLIO_TEST_DATABASE: Host=localhost;Port=5432;Username=postgres;Database=postgres
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
@@ -124,7 +124,7 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: bash .github/ci-run.sh CONTRACT_TEST_CMD "5. Contract test"
 
   migration-dry-run:
@@ -154,7 +154,7 @@ jobs:
       REGISTRY_CREDENTIAL: ${{ github.token }}
     steps:
       # Son yayimlanan surum etiketi icin tum gecmis ve etiketler gerekir.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
       - uses: actions/setup-dotnet@v4
         with:
@@ -181,7 +181,7 @@ jobs:
     env:
       SHOPFOLIO_TEST_DATABASE: Host=localhost;Port=5432;Username=postgres;Database=postgres
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: bash .github/ci-run.sh PACKAGE_BUILD_CMD "7. Paketleme"
 
   # --------------------------------------------------------------------------
@@ -199,7 +199,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: bash .github/ci-run.sh E2E_CMD "8. E2E"
 
   # --------------------------------------------------------------------------

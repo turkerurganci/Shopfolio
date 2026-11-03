@@ -368,7 +368,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T09: İlk yayın ve referans kuruluma ilk iniş
 - **Bağımlılık:** T04, T07, T08, T10
-- **Dokümanlar:** çekirdek; `09` §4, §15 (§15.1), §17, §21; `05 §3.2`, §6.3, §8.1, §8.2; `05 MK-68`; `07 UC-81`; `10 §4.1`
+- **Dokümanlar:** çekirdek; `09` §4, §15 (§15.1), §17, §21; `05 §3.2`, §6.3, §8.1, §8.2; `05 MK-14`, `05 MK-68`; `07 UC-81`; `10 §4.1`
 - **Kabul kriterleri:**
   1. İlk sürüm etiketi açıklamalı `vANA.ARA.YAMA` biçimindedir ve `publish.yml` imajları yayımlar (`05 §8.3.12`; `09 §21.4` madde 2, 4).
   2. İlk yayından önceki CI koşularında geri alma sınaması atlanır ve atlandığı CI çıktısında yazılıdır; yayından sonraki ilk CI koşusunda göç adımı son yayımlanan sürümün şemasına da uygular ve geri alma sınamasını koşar (`09 §21.4` madde 3; K-1358).
@@ -7180,7 +7180,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:MK-11 GitHub Container Registry | T06 | | |
 | 05:MK-12 GitHub Actions; iskelet değişmez, `publish.yml` kalır, kurulumlara otomatik dağıtım yok | T04 | | |
 | 05:MK-13 Tek dağıtılabilir uygulama | T218, T02 | | |
-| 05:MK-14 Sunucuda dört konteyner | T05 | | |
+| 05:MK-14 Sunucuda dört konteyner | T05, T09 | | |
 | 05:MK-15 Dokuz modül; modüller arası erişim yalnız açık arayüzden, eşzamanlı ve aynı işlemde; uygulama içi olay yayı… | T218, T03 | | |
 | 05:MK-16 Vitrin ve panel aynı alan adında; panel ayrı bir yol alanı | T206, T207 | | |
 | 05:MK-17 Uygulamanın çağırdığı üç dış servis bir bağlantı katmanının arkasında; ürün kuralı çekirdekte; dış serviste… | T202, T203 | | |
@@ -7521,7 +7521,7 @@ Her task → hangi kaynak öğeden besleniyor?
 | T06 | `05` MK-02, MK-06, MK-09, MK-10, MK-11, MK-69, §3.2, §8.2, §8.3; `09` §4, §17, §21; `devir` D-01 | ✓ 13 kaynak (özgün 6, alt bölüm 6, devir 1) |
 | T07 | `02` §3.34.8; `05` MK-09, MK-25, MK-26, MK-27, §6.8, §7.6, §9.2, §9.4; `09` §17; `10` KP-75; `devir` D-01 | ✓ 12 kaynak (özgün 6, alt bölüm 5, devir 1) |
 | T08 | `05` MK-59, MK-60, §6; `09` §17 | ✓ 4 kaynak (özgün 2, alt bölüm 2, devir 0) |
-| T09 | `05` MK-68, §3.2, §6.3, §8.1, §8.2; `09` §15, §21; `10` §4.1; `devir` K-1358, P8.3, D-01 | ✓ 11 kaynak (özgün 1, alt bölüm 7, devir 3) |
+| T09 | `05` MK-14, MK-68, §3.2, §6.3, §8.1, §8.2; `09` §15, §21; `10` §4.1; `devir` K-1358, P8.3, D-01 | ✓ 12 kaynak (özgün 2, alt bölüm 7, devir 3) |
 | T10 | `06` §2.8; `05` §7.1; `09` §10, §17 | ✓ gerekçeli (alt bölüm) — K-1441 |
 | T101 | `06` §2.1, §2.2, §2.3, §2.4, §2.5, §2.6, §2.8, §2.10; `02` §4.1.1; `05` MK-03, MK-06, MK-19, §7.1; `09` §5, §10 | ✓ 15 kaynak (özgün 4, alt bölüm 11, devir 0) |
 | T102 | `06` §2.9, §5.1, §5.2, §5.3, §5.4, §5.5, §5.6; `09` §12 | ✓ gerekçeli (alt bölüm) — K-1413, K-1414 |

@@ -100,6 +100,7 @@
 | Seed edilemeyen ilk kayıtlar (ilk yönetici vb.) nasıl oluşur? | §H |
 | Gerçek konfigürasyonla boot provası | §I ⚠ |
 | Yedek ayarları, kova kuralı, anahtar yetkisi ve kurtarma provası | §J |
+| Referans kuruluma ilk iniş (T09): sunucu, yayın, güvenlik duvarı, canlılık, denemeler, prova kaydı | §K |
 
 ---
 
@@ -237,6 +238,8 @@ Yetkilendirmesi olan her sistem ilk deploy'da aynı duvara çarpar: *"sistem aç
 
 > **Ne yazılır:** Adım adım, ikinci bir kişinin tekrarlayabileceği açıklıkta. "Bilinen" adımlar da yazılır.
 
+**İlk tur (T09, referans kuruluma ilk iniş) reçetesi §K'dadır;** ikinci tur (T601) aynı reçeteyi sıfırdan koşar.
+
 ### I.3 Prova sonucu
 
 | # | Adım | Sonuç | Kırıldıysa: kök neden | Runbook'a eklenen satır |
@@ -306,3 +309,156 @@ Kurulumda bir kez ve her güncellemede (`05 §7.6.8`). **Prova sunucunun dışı
 
 Koşumu kurulumdadır (T601; ilk iniş T09).
 
+
+---
+
+## K. Referans kuruluma ilk iniş (T09) — sırayla reçete
+
+> **Kaynak:** `11` T09; `05 §3.2.5`, §6.3.3, §8.1.4, §8.2, §8.3.12; `09 §15.1`, §21.4; D-01, D-29, D-30, D-31, D-34, D-39. Bu bölüm §I.2'nin (boot reçetesi) ilk turudur: ilk iniş bu sırayla koşar, her adımın sonucu §K.10 tablosuna ve §I.3'e yazılır. **Hazırlık durumu:** adımlar T09 hazırlığında sunucusuz yazıldı; hiçbiri henüz koşmadı (referans sunucu, kova, alan adı ve sırlar proje sahibinden bekleniyor — `Docs/TASK_REPORTS/T09_REPORT.md`).
+>
+> **Sıra bağlayıcıdır:** etiket ve paket açılışı, sunucu kurulumundan önce olmak zorundadır (imajlar çekilebilir olmalı); güvenlik duvarı kuralı, yedek denemelerinden ve `egress` denemesinden önce uygulanır.
+
+`COMPOSE` değişkeni §J'dekiyle aynıdır: `COMPOSE="docker compose --env-file deploy/release.env --env-file /etc/shopfolio/settings.env -f deploy/compose.yaml"`.
+
+### K.1 Sunucu hazırlığı (D-31 (d))
+
+1. Linux sunucu, kök yetkili kurulum kullanıcısı, SSH anahtarıyla giriş (parola girişi kapalı); açık kapılar yalnız 80, 443 ve SSH (`05 §8.9.3`). Docker'ın yayımladığı kapılar `ufw`/`INPUT` kurallarını aşar; bu yüzden kapı denetimi dışarıdan yapılır: `nmap -Pn <adres>` yalnız bu üç kapıyı gösterir.
+2. `iptables` kurulu (`iptables -V`; nft arka uçlu `iptables-nft` olur). Alan adının hem `A` hem `AAAA` kaydı sunucunun IPv4 ve IPv6 adresine bakar (`SHOPFOLIO_DOMAIN`).
+3. Docker Engine ve Compose eklentisi, Docker'ın kendi apt deposundan (sürüm ve erişim tarihi prova kaydına yazılır). `docker compose version` v2 ve üstü.
+4. **IPv6 ve istemci adresi (T09 kriter 8):** Docker belgesi IPv6 istemci adresinin korunduğunu yazmıyor; kullanıcı alanı vekili (`userland-proxy`) adresi ağ geçidi adresine çevirebilir. `/etc/docker/daemon.json` içine `{"ipv6": true, "ip6tables": true, "fixed-cidr-v6": "fd00:db8:1::/64", "experimental": true}` yazılır (Docker sürümünün istediği alanlarla; `ip6tables` bazı sürümlerde `experimental` ister), `systemctl restart docker`. Sonuç §K.7'deki `client-address` denemesiyle sınanır; adres ağ geçidi adresi görünürse `"userland-proxy": false` eklenir ve yeniden denenir. Değişen ayar bu satıra yazılır (D-31 (d)).
+5. `/etc/shopfolio` (sahibi `root`, `0755`), `/etc/shopfolio/secrets` (sahibi `root`, `0700`); depo `git clone` ile `/opt/shopfolio`'ya, ilk yayın etiketine çekilir (§K.3 sonrası); `deploy/` dizini oradadır.
+6. Sistem günlüğü ACL'i için `acl` paketi (`setfacl`; §J.4 madde 5).
+
+### K.2 Ayar ve sır dosyaları (`05 §6.x`; §B)
+
+1. Ayar dosyası: `cp deploy/.env.example /etc/shopfolio/settings.env` ve değerleri gerçekleriyle değiştir (`SHOPFOLIO_DOMAIN`, `BACKUP_S3_ENDPOINT`, `BACKUP_S3_REGION`, `BACKUP_S3_BUCKET`, `BACKUP_S3_URI_STYLE`; `BACKUP_RUN_TIME` ve `BACKUP_TIME_ZONE` varsayılanda kalabilir). Dosya sır taşımaz (§J.1).
+2. Sır dosyaları §B.1'e göre `install -o <UID> -g <GID> -m 0400 /dev/stdin /etc/shopfolio/secrets/<ad>` ile yazılır: 15 satırlık tablonun hepsi (1–15). Üretilen sırlar `openssl rand -base64 32` ile; ikili dosyalar (2 ile 5, 3 ile 6, 4 ile 7) aynı değerden iki dosya olarak yazılır; 8–11 §J.2'ye göre; 12–14 sağlayıcıların panelinden, 15 üretilir. Değer komut satırına yazılmaz (standart girdi).
+3. Sağlayıcı sırları (12, 13, 14) ilk inişte **gerçek olmak zorunda değildir**: canlılık ucu bunlara bakmıyorsa uydurma ama biçimce geçerli değerle başlatılır ve değerler gerçeğiyle değiştirilene kadar iniş "prova" sayılır; hangi dosyanın uydurma olduğu §K.10'a yazılır. Açılış denetimi (§A) bir dosyayı reddederse red mesajı runbook satırına dönüşür.
+4. Doğrulama: §B.1 "Doğrulama" maddesi (her konteynerde `ls -ln /run/secrets`).
+
+### K.3 İlk yayın: sürüm etiketi, paketler, özet (T09 kriter 1, 2, 3; D-29 (a), D-30 (a), D-31 (f))
+
+> Bu adımlar proje sahibinin deposunda, sunucudan bağımsız yapılır; **sunucu hazır olmadan etiket basılmaz** (etiket ve paket açılışı tek oturumda, kurulumla birlikte yapılır — açılan paket geri kapatılamaz).
+
+1. **Etiket öncesi CI kanıtı (kriter 2):** ana dalın son CI koşusu yeşildir ve göç adımının çıktısında `No published release yet (no vMAJOR.MINOR.PATCH tag): the bundle was applied to the empty database only; …skipped` uyarısı vardır (`scripts/ci/migration-dry-run.sh`). Koşunun bağlantısı §K.10'a yazılır.
+2. Açıklamalı etiket (hafif etiket değil; `09 §21.4` madde 2): `git tag -a v0.1.0 -m "İlk yayın" <ana dalın yeşil commit'i>` ve `git push origin v0.1.0`. `publish.yml` etiketle tetiklenir: yama-göç denetimi (`patch-migration-check.sh`; ilk sürümde göç taşıma sınırı yok, denetim geçer), sonra üç imaj derlenip yayımlanır.
+3. Actions günlüğünde "Publish artifacts" işinin özetinden üç imajın **özetlerini** (`sha256:…`) kopyala; imajlar `ghcr.io/<sahip>/shopfolio-app|database|backup:0.1.0` ve commit kimliği etiketiyle durur. **D-30 (a):** etiket üç imajı yeniden derler ve `:<commit>` etiketini yeniden iter; kurulum özetle sabitlendiği için güvenlidir, referans kurulumda **denetlenen özet tag'in yayımladığı özettir** — ana daldaki `:<commit>` imajı değildir. Bu fark §K.10'a yazılır.
+4. **Paket görünürlüğü (kriter 3; `CI_CD_SETUP.md` §3.4, K-981):** repo sahibinin hesabında üç paket **Public** yapılır. Doğrulama kimlik bilgisiz bir makineden: `docker logout ghcr.io; docker pull ghcr.io/<sahip>/shopfolio-app@sha256:<özet>` (üç paket için). Sunucudan da aynı çekme denenir (§K.5 başında).
+5. **`release.env` (D-31 (f); kriter 5):** `deploy/release.env`'deki üç yer tutucu satır (`0.0.0@sha256:000…`) gerçek sürüm ve özetle değiştirilir; değişiklik dal + PR ile ana dala girer ve sunucuda `git pull` ile alınır (sunucuda yerinde düzenleme yapılmaz). `docker compose config --images` aynı üç başvuruyu gösterir.
+6. **Yayından sonraki ilk CI koşusu (kriter 2):** `release.env` PR'ının CI'ında göç adımı, son yayımlanan sürümün (`v0.1.0`) şemasına da uygular ve geri alma sınamasını koşar; çıktıda atlama uyarısı **yoktur**, iki uygulama ve geri alma sınaması vardır. Bağlantı §K.10'a yazılır. Paketler açılmadan bu koşu önceki imajı çekemez (§3.4 madde 4) — sıra: madde 4, sonra madde 5/6.
+7. **D-29 (a)/(b):** `CI_CD_SETUP.md` §3.1 notu hazırlıkta düzeltildi; `SETUP.md` §6 maddesi proje sahibinin onayıyla (GUARDRAILS §2) `SETUP_COMPLETE=true` değişikliğiyle aynı PR'da güncellenir.
+
+### K.4 Güvenlik duvarı: `DOCKER-USER` kuralı ve açılış/zamanlayıcı birimi (T09 kriter 7; D-31 (b))
+
+1. Sunucuda, Docker çalışırken, kök olarak: `OBJECT_STORAGE_HOSTS="<BACKUP_S3_ENDPOINT>" sh /opt/shopfolio/deploy/firewall/docker-user-egress.sh apply`. Beklenen son satır: `ok: 172.30.2.0/24 and 172.30.3.0/24 may reach only tcp/443 of: <adresler>`. `status` ile zincir okunur. Yalnız IPv4 sınırlanır (iki çıkış ağı yalnız IPv4'tür).
+2. **Birimler** (kural yeniden başlatmada kaybolur, sağlayıcı adresi değişebilir; bu yüzden açılışta ve her 15 dakikada `apply` koşar). `/etc/shopfolio/egress.env`: tek satır `OBJECT_STORAGE_HOSTS=<BACKUP_S3_ENDPOINT>` (sır değildir; `0644`).
+
+   `/etc/systemd/system/shopfolio-egress.service`:
+
+   ```
+   [Unit]
+   Description=Shopfolio container egress limit (DOCKER-USER)
+   After=docker.service network-online.target
+   Requires=docker.service
+   [Service]
+   Type=oneshot
+   EnvironmentFile=/etc/shopfolio/egress.env
+   ExecStart=/bin/sh /opt/shopfolio/deploy/firewall/docker-user-egress.sh apply
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+   `/etc/systemd/system/shopfolio-egress.timer`:
+
+   ```
+   [Unit]
+   Description=Refresh the Shopfolio egress limit
+   [Timer]
+   OnBootSec=2min
+   OnUnitActiveSec=15min
+   [Install]
+   WantedBy=timers.target
+   ```
+
+   `systemctl daemon-reload && systemctl enable --now shopfolio-egress.service shopfolio-egress.timer`. Docker her yeniden başlatıldığında `DOCKER-USER` zinciri sıfırlanabilir: Docker yeniden başlatıldıktan sonra `systemctl restart shopfolio-egress.service` koşar (sınama: `systemctl restart docker; iptables -nL DOCKER-USER` kural satırlarını gösterir mi — göstermiyorsa `docker.service`'e bağlı `PartOf=` ile birime yeniden başlatma bağı eklenir; sonuç §K.10'a yazılır).
+3. Kuralın etkisi §K.7'de (`egress`) sınanır; zincir bir kez uygulandıktan sonra §K.5 başlar.
+
+### K.5 İlk kurulum bindirmesi ve açılış (§B.2; D-01 (c); D-31 (e), (g))
+
+1. Sunucudan üç imajın kimliksiz çekildiğini doğrula: `cd /opt/shopfolio && $COMPOSE pull` (kimlik bilgisi girişi yapılmamıştır — `docker logout ghcr.io`).
+2. Yalnız veritabanı, ilk kurulum bindirmesiyle, boş veri dizinleriyle: `$COMPOSE -f deploy/compose.install.yaml up -d database`. Kurucu betiğin günlüğünü izle (`$COMPOSE logs database`); §B.2 madde 5'in doğrulamalarını koş (`\du`, `\drds`, kurucu kullanıcıyla ağdan bağlantının reddi, günlükte parola yok). Kurucu kullanıcıyla pgBackRest'in yerel soketten `peer` ile bağlandığı §K.8'de görülür (D-01 (c)).
+3. Bindirme olmadan hepsi: `$COMPOSE up -d` (`up` `migrate` hizmetini de koşar; çıkış 0). **D-31 (g):** göç gerçek `efbundle` ile koşar; Npgsql `PGPASSWORD`'ü okumuyorsa göç `password authentication failed` ile düşer — o durumda göç hizmetinin parolası bağlantı dizisine geri alınır, sonuç §K.10'a ve D-31'e yazılır. **D-31 (e):** Caddy yapılandırmasının sözdizimi (`$COMPOSE logs proxy` hatasız), `format filter` alan yolları, `tmpfs /config`, bölüm sahipliği (backup'ın `app`'ten sonra kurulması) bu açılışta ilk kez gerçek daemon'da çalışır; kırılan her şey runbook satırı olur.
+4. 5, 6 ve 7 numaralı kurulum dosyaları kurulum bitince bindirmeden çıkarılır (§B.2 madde 6).
+5. Her bileşende `ls -ln /run/secrets` (§B.1 doğrulaması).
+
+### K.6 Canlılık denemesi (T09 kriter 4; `05 §8.1.4`, MK-68; `10 §4.1` ÖK-12; `07 UC-81`)
+
+1. `$COMPOSE ps`: beş hizmet `running`, `proxy`, `app`, `database` `healthy`; `migrate` çıkış 0.
+2. Konteyner içinden: `$COMPOSE exec app bash -c "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /sistem/canlilik HTTP/1.0\r\n\r\n' >&3 && head -n 1 <&3"` → `HTTP/1.0 200`.
+3. Dışarıdan, alan adı üzerinden: `curl -sS -o /dev/null -w '%{http_code}\n' https://$SHOPFOLIO_DOMAIN/sistem/canlilik` → `200` (ters vekil sertifikayı kendisi alır; ilk istek birkaç saniye sürebilir).
+4. İki satır (zaman damgalı çıktı) §K.10'a yazılır. Boş uygulama imajıdır: iş ucu beklenmez, yalnız canlılık.
+
+### K.7 Kurulum denemeleri (`installation-checks.sh`; T09 kriter 7 ve 8; D-31 (a)–(d); D-34 (c))
+
+`cd /opt/shopfolio` ve `SHOPFOLIO_DOMAIN`, `OBJECT_STORAGE_HOST=<BACKUP_S3_ENDPOINT>` verilerek, sırayla:
+
+| Komut | Kanıtladığı | Beklenen |
+|---|---|---|
+| `sh deploy/firewall/installation-checks.sh isolation` | Ters vekil ve yedek aracı veritabanına ulaşamaz (T05 KK2; D-31 (a)) | Tüm satırlar `ok:`; kontrol satırı veritabanını `app-data`'da erişilir gösterir |
+| `sh deploy/firewall/installation-checks.sh egress` | Veritabanı ve yedek ağı nesne depolama dışında reddedilir (**T09 KK7**; kriter 7) | `FOREIGN_ADDRESS` reddedilir, nesne depolama adı çözülür ve 443'e geçer. **DNS (D-31 (b)):** ad çözülemiyorsa kurala çözücü adreslerine udp/tcp 53 açılır: `docker-user-egress.sh`'a çözücü eklenir (bu görev T09 oturumunda, betik değişikliğiyle); çözücü adresi §K.10'a yazılır |
+| `sh deploy/firewall/installation-checks.sh redirect-hsts` | HTTP yönlenir, HSTS bir yıl, alt alan adı ve ön yükleme yok (T05 KK8; D-31 (c)) | Tüm satırlar `ok:` |
+| `EXPECT_IPV4=<adres> EXPECT_IPV6=<adres> sh deploy/firewall/installation-checks.sh client-address` | Bir IPv4 ve bir IPv6 isteğinin istemci adresi vekilin kaydında doğru ve uygulamada aynıdır (**T09 KK8**; kriter 8) | Vekilin kaydı iki adresi doğru gösterir; betiğin "manual" satırı: uygulamanın kendi kaydı aynı iki isteği aynı adresle gösterir. Uygulama bir ağ geçidi adresi görüyorsa §K.1 madde 4'ün `userland-proxy` ayarı denenir; uygulama tarafı kaydı istemci adresi alanı (T215 kriter 3) yoksa bu kriter **T215 sonrası** tamamlanır ve eksik §K.10'a ve D-31 (d)'ye yazılır |
+
+Betik çıkışının tamamı (`ok:`/`FAIL:` satırları) §K.10'a eklenir. Başarısız her satır kök nedenle runbook satırına dönüşür.
+
+### K.8 Yedek: kova, anahtarlar, ilk tam yedek, kurtarma provası (D-01 (c); D-39 (b), (c); §J)
+
+§J.3 (kova, anahtarlar, `bucket-checks.sh setup|lifecycle|keys`), §J.4 (ilk başlatma, ilk tam yedek, okuma hakkı, **ACL**) ve §J.5 (kurtarma provası) bu sırayla koşar. Bu iniş için ek gözlemler:
+- **D-01 (c) / K-987:** gerçek yedeğin kurucu kullanıcıyla yerel soketten `peer` ile alındığı: `$COMPOSE exec database /usr/local/bin/database-entrypoint.sh pgbackrest --stanza=shopfolio check` hata vermez; `database-job.sh` çıkış 0. `bucket-checks.sh keys` "All checks passed" der ve güncel nesne silme yetkisinin pgBackRest/restic saklamasına yettiği ilk tam yedekte görülür (§J.3 madde 4).
+- **D-39 (b):** depo 1'in tutma süresi (1 gün) ve ikinci tam yedeğin yerel kopyayı silmesi gerçek diskte `df -h` ve `pgbackrest info` ile gözlenir; disk gereksiz doluyorsa `repo1-retention-full` ayarlanır ve değişiklik raporlanır.
+- **D-39 (c):** gecelik dosya yedeğinin sistem günlüğüyle `result: success` verdiği (§J.4 madde 5'in "Deneme"si; ACL uygulandıktan sonra).
+- **K-961 / D-01 (c):** kova ve anahtar denemesinin çıktısı D-01 satırına yazılır.
+
+### K.9 İmaj özeti kaydı (T09 kriter 5; `05 §8.2.3`, §8.6.3)
+
+Referans kurulumda **çalışan** imajların özeti, güncelleme turunun kurulumlara çekeceği özet olarak kaydedilir:
+
+1. `for s in app database backup; do docker inspect --format '{{.Config.Image}} {{.Image}}' $($COMPOSE ps -q $s); done`, ve her başvuru için `docker image inspect --format '{{index .RepoDigests 0}}' <imaj>`.
+2. Üç özet `deploy/release.env`'dekilerle (§K.3 madde 5) ve §K.3 madde 3'teki yayın özetiyle **eşit** olmalıdır; eşitlik satırı §K.10'a yazılır (KK5). Eşit değilse kayıt kurulumdaki özetle düzeltilir ve neden yazılır.
+
+### K.10 Prova kaydı (T09 kriter 6; `05 §8.1.4`; §I.3'ün ilk turu)
+
+İniş bittiğinde aşağıdaki tablo doldurulur (her satır: tarih, adımın yapılışı, sonuç; kırıldıysa kök neden ve eklenen runbook satırı); aynı satırlar §I.3'e taşınır.
+
+| # | Adım | Sonuç | Kırıldıysa: kök neden | Runbook'a eklenen satır |
+|---|---|---|---|---|
+| 1 | Sunucu hazırlığı, Docker, `daemon.json` (§K.1) | | | |
+| 2 | Ayar ve sır dosyaları; uydurma sır listesi (§K.2) | | | |
+| 3 | Etiket öncesi CI atlama satırı bağlantısı (§K.3.1) | | | |
+| 4 | `v0.1.0` etiketi, `publish.yml` koşusu, üç özet (§K.3.2–3) | | | |
+| 5 | Paketler açık, kimliksiz çekme (iki yerde) (§K.3.4, §K.5.1) | | | |
+| 6 | `release.env` ve yayından sonraki CI koşusu: atlama yok, iki uygulama, geri alma (§K.3.5–6) | | | |
+| 7 | `DOCKER-USER` kuralı ve birimler (§K.4) | | | |
+| 8 | İlk kurulum bindirmesi, §B.2 doğrulamaları, `migrate` (§K.5) | | | |
+| 9 | Canlılık 200 (konteyner içi ve alan adı) (§K.6) | | | |
+| 10 | `isolation`, `egress`, `redirect-hsts`, `client-address` çıktıları (§K.7) | | | |
+| 11 | Kova, anahtarlar, ilk tam yedek, ACL, kurtarma provası (§K.8; §J.5 tablosuna da) | | | |
+| 12 | Çalışan imaj özeti = `release.env` = yayın özeti (§K.9) | | | |
+| 13 | Reçetenin ikinci kez, sıfırdan tekrarı (§I.4) | | | |
+
+### K.11 Kapanış (T09 kriter 6; `09 §21.4` madde 5; `SETUP.md` §4, §8)
+
+1. §K.10 ve §J.5 tabloları dolu; §I.4 işaretlendi.
+2. **Aynı PR'da:** `.github/ci-commands.env` `SETUP_COMPLETE=true`; D-01 satırı kapatıldı (kalan ilerleme notları sonuçla birlikte kısaltılır); `SETUP.md` §6'daki yayın izni maddesi ve D-29 (a)/(b) güncellendi (proje sahibinin onayıyla); D-31, D-39 (b)(c) ve D-30 (a) kararıyla kapatıldı ya da yeni kalemle taşındı; `T09_REPORT.md` tamamlandı; `IMPLEMENTATION_STATUS.md` güncellendi.
+3. CI kapısı `SETUP_COMPLETE=true` iken yeşil olmalıdır (§8 kontrol 1 ve 2); kırmızıysa kapanış tamam değildir.
+
+### K.12 Bu reçeteye bağlanan açık backlog kalemleri
+
+| Kalem | Bağlandığı adım |
+|---|---|
+| D-01 | §K.3 (yayın, paketler), §K.4, §K.5, §K.8, §K.11 (kapanış) |
+| D-29 (a), (b) | §K.3.7, §K.11 (`SETUP.md` §6; `CI_CD_SETUP.md` §3.1 hazırlıkta düzeltildi) |
+| D-30 (a) | §K.3.3 |
+| D-31 (a)–(g) | (a) §K.7 `isolation`; (b) §K.4, §K.7 `egress` (DNS); (c) §K.7 `redirect-hsts`; (d) §K.1.4, §K.7 `client-address`; (e) §K.5.3; (f) §K.3.5; (g) §K.5.3 |
+| D-34 (c), (d) | hazırlıkta kapandı (betik başlığı, `11` iz satırı); koşumu §K.7 |
+| D-39 | (b), (c) §K.8; (a), (e), (f) T09'a bağlı değil |

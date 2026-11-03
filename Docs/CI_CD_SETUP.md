@@ -68,7 +68,7 @@ $ gh api repos/turkerurganci/Shopfolio/actions/permissions/fork-pr-contributor-a
 
 > Fork PR onayı varsayılan olarak `first_time_contributors` geliyordu — repo public olduğu için bu, tanıdık olmayan her katkıcının workflow'u **otomatik** çalıştırabilmesi demekti. `all_external_contributors` ile dış katkıcıların tamamı manuel onaya bağlandı.
 >
-> Yayınlama yazma izni **açılmadı**: `publish.yml` henüz kullanılmıyor (`PUBLISH_CMD` boş). İzin, yayınlama gerçekten devreye alınırsa Aşama 4 sonrasında verilir.
+> Yayınlama yazma izni: `publish.yml`'in iş akışı düzeyindeki `packages: write` izni T04'ten beri iş akışındadır (deponun varsayılan iş akışı izni `read` kalır; izin iş akışında verilir). `PUBLISH_CMD` T06'da doldu; ilk sürüm etiketi T09'dadır (D-29 (a) T09 hazırlık).
 
 ### 3.2 Secret'lar
 

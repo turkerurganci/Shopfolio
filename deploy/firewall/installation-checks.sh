@@ -1,12 +1,12 @@
 #!/bin/sh
-# Installation checks of the Compose definition and its network (T05; run on the server by T09, 11 T05 KK2, KK4, KK8, KK9).
+# Installation checks of the Compose definition and its network (T05; run on the server by T09: 11 T09 KK7 and KK8, and the two T05 checks D-31 leaves to the installation).
 # The checks need a real server with Docker, the running installation and, for `egress`, the firewall rules applied
 # (docker-user-egress.sh). They are not run in CI.
 #
-#   installation-checks.sh isolation       KK2: the proxy and the backup tool cannot reach the database
-#   installation-checks.sh egress          KK4: database and backup subnets are refused except the object storage
-#   installation-checks.sh redirect-hsts   KK8: HTTP redirects, HSTS is one year, no sub-domain, no preload
-#   installation-checks.sh client-address  KK9: an IPv4 and an IPv6 request show the same client address in two places
+#   installation-checks.sh isolation       T05 KK2 (D-31 a): the proxy and the backup tool cannot reach the database
+#   installation-checks.sh egress          T09 KK7: database and backup subnets are refused except the object storage
+#   installation-checks.sh redirect-hsts   T05 KK8 (D-31 c): HTTP redirects, HSTS is one year, no sub-domain, no preload
+#   installation-checks.sh client-address  T09 KK8: an IPv4 and an IPv6 request show the same client address in two places
 #
 # Settings (environment):
 #   COMPOSE_FILES   Compose command's file and env arguments; default: the installation's own

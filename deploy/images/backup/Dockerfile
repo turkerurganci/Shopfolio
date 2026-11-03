@@ -29,6 +29,11 @@ RUN apk add --no-cache ca-certificates tzdata \
     && adduser -u 10001 -S -G backup -h /home/backup backup
 COPY --from=fetch /tmp/restic /usr/local/bin/restic
 COPY --chmod=0555 deploy/images/shared/scheduler.sh /usr/local/bin/scheduler.sh
+# The nightly job and the status writer it sources (09 17 items 4 and 5). Compose gives the scheduler the job as its command.
+COPY --chmod=0555 deploy/images/backup/file-backup-job.sh /usr/local/bin/file-backup-job.sh
+COPY --chmod=0444 deploy/images/shared/write-status.sh /usr/local/bin/write-status.sh
+# The recovery drill (DEPLOY_RUNBOOK section J.5): run by hand in a one-off container, never by the scheduler.
+COPY --chmod=0555 deploy/images/backup/file-restore-drill.sh /usr/local/bin/file-restore-drill.sh
 
 # Mount points of the Compose volumes (deploy/compose.yaml): the tool's own log directory and the status file directory. The
 # status directory is shared with the application (another user reads it), so it is open to both and holds only the status file.
@@ -37,6 +42,6 @@ RUN mkdir -p /var/log/backup /var/lib/backup/status \
     && chmod 1777 /var/lib/backup/status
 
 # No secret enters the image: the repository password and the object storage key arrive as mounted files at run time
-# (09 17 item 2). The file-backup job and the status writer arrive with the backup task.
+# (09 17 item 2).
 USER backup
 ENTRYPOINT ["/usr/local/bin/scheduler.sh"]

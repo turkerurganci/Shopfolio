@@ -1,0 +1,12 @@
+#!/bin/sh
+# Stub of the pgbackrest binary for the script tests: records each call (all arguments, one line) in STUB_CALLS and fails when the
+# call contains STUB_FAIL_ON (a fixed text), with exit code STUB_FAIL_CODE (default 5).
+
+echo "$*" >>"${STUB_CALLS:?STUB_CALLS is required}"
+
+if [ -n "${STUB_FAIL_ON:-}" ]; then
+  case "$*" in
+    *"$STUB_FAIL_ON"*) exit "${STUB_FAIL_CODE:-5}" ;;
+  esac
+fi
+exit 0

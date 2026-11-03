@@ -68,7 +68,13 @@ main() {
     echo "scheduler: BACKUP_RUN_TIME must be HH:MM (24-hour); got '${BACKUP_RUN_TIME}'" >&2
     exit 64
   fi
-  TZ="${BACKUP_TIME_ZONE:-UTC}"
+  # No silent default: a missing zone would run the backup in a zone nobody chose, possibly after 03:00 Turkey time (05 5.3.2).
+  # Compose gives the installation's default (deploy/compose.yaml, DEPLOY_RUNBOOK section J); a direct start must set it.
+  if [ -z "${BACKUP_TIME_ZONE:-}" ]; then
+    echo "scheduler: BACKUP_TIME_ZONE is required (a tz database name, for example Europe/Istanbul)" >&2
+    exit 64
+  fi
+  TZ="$BACKUP_TIME_ZONE"
   export TZ
   run_loop "$@"
 }

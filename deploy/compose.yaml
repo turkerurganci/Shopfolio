@@ -91,6 +91,15 @@ services:
       - no-new-privileges:true
     environment:
       - POSTGRES_DB=shopfolio
+      # Backup settings (DEPLOY_RUNBOOK section J): where the object storage is and when the nightly full backup runs. The run
+      # time and the zone have defaults here so that a settings file without them still gives a backup that ends before the
+      # 03:00 destruction job (05 5.3.2); the endpoint, bucket and region have none: the installation names its own storage.
+      - BACKUP_S3_ENDPOINT=${BACKUP_S3_ENDPOINT:?BACKUP_S3_ENDPOINT is required (the object storage's host name)}
+      - BACKUP_S3_BUCKET=${BACKUP_S3_BUCKET:?BACKUP_S3_BUCKET is required (the bucket both backups share)}
+      - BACKUP_S3_REGION=${BACKUP_S3_REGION:?BACKUP_S3_REGION is required (the object storage's region)}
+      - BACKUP_S3_URI_STYLE=${BACKUP_S3_URI_STYLE:-host}
+      - BACKUP_RUN_TIME=${BACKUP_RUN_TIME:-01:30}
+      - BACKUP_TIME_ZONE=${BACKUP_TIME_ZONE:-Europe/Istanbul}
     # Only the backup keys are mounted for good. The superuser password and the setup copies of the three users' passwords reach
     # the database only at the first install, through deploy/compose.install.yaml (05 6.x.6): the setup script reads them while it
     # creates the users, and later starts of this service do not carry them.
@@ -116,6 +125,17 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    # The scheduler is the image's entrypoint and needs a job: the nightly file backup (09 17 item 3; D-34 (a)). Without it the
+    # entrypoint exits with a usage error and the restart policy loops.
+    command: ["/usr/local/bin/file-backup-job.sh"]
+    environment:
+      # The same settings as the database service's (DEPLOY_RUNBOOK section J); the run time is one setting for both jobs.
+      - BACKUP_S3_ENDPOINT=${BACKUP_S3_ENDPOINT:?BACKUP_S3_ENDPOINT is required (the object storage's host name)}
+      - BACKUP_S3_BUCKET=${BACKUP_S3_BUCKET:?BACKUP_S3_BUCKET is required (the bucket both backups share)}
+      - BACKUP_S3_REGION=${BACKUP_S3_REGION:?BACKUP_S3_REGION is required (the object storage's region)}
+      - BACKUP_S3_URI_STYLE=${BACKUP_S3_URI_STYLE:-host}
+      - BACKUP_RUN_TIME=${BACKUP_RUN_TIME:-01:30}
+      - BACKUP_TIME_ZONE=${BACKUP_TIME_ZONE:-Europe/Istanbul}
     secrets:
       - file_backup_storage_key
       - file_backup_cipher_key

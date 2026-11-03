@@ -99,6 +99,7 @@
 | Geri alma | §G |
 | Seed edilemeyen ilk kayıtlar (ilk yönetici vb.) nasıl oluşur? | §H |
 | Gerçek konfigürasyonla boot provası | §I ⚠ |
+| Yedek ayarları, kova kuralı, anahtar yetkisi ve kurtarma provası | §J |
 
 ---
 
@@ -230,3 +231,55 @@ Yetkilendirmesi olan her sistem ilk deploy'da aynı duvara çarpar: *"sistem aç
 - [ ] Bileşenler arası kimlik ve adresler gerçek değerlerle çözülüyor
 - [ ] §C ayarları varsayılanda kalmadı (kural sessiz değil)
 - [ ] Reçete ikinci kez, sıfırdan tekrarlandı
+
+---
+
+## J. Yedek düzeni — ayarlar, kova ve kurtarma provası
+
+> **Kaynak:** `05 §7.6`, `09 §17`; T07. Kurulumda koşan adımlar bu bölümdedir; kova ve anahtar gerçek bir hesap ister, bu yüzden CI'da değil kurulumda (T09; prova için ayrıca T601) koşar. Aşağıdaki `COMPOSE` değişkeni: `COMPOSE="docker compose --env-file deploy/release.env --env-file /etc/shopfolio/settings.env -f deploy/compose.yaml"`.
+
+### J.1 Yedek ayarları
+
+Ayar dosyasındadır (`deploy/.env.example`); sır değildir. Aynı ayar veritabanı ve yedek aracı konteynerinde aynıdır: tam yedek ve dosya yedeği aynı saatte başlar.
+
+| Ayar | Varsayılan | Ne işe yarar |
+|---|---|---|
+| `BACKUP_RUN_TIME` | `01:30` | İki gecelik işin başlama saati (`SS:DD`, 24 saatlik, `BACKUP_TIME_ZONE` diliminde). İki iş 03:00 imha işinden önce biter (`05 §5.3.2`); saati değiştiren, işlerin süresini ölçüp 03:00'ten önce bittiğini denetler |
+| `BACKUP_TIME_ZONE` | `Europe/Istanbul` | Saat dilimi (tz veritabanı adı); imha işinin Türkiye saatiyle aynı. Ayar boş bırakılırsa Compose varsayılanı yazar; zamanlayıcı doğrudan başlatılıp ayar verilmezse durur — sessiz varsayılan yoktur (D-30 (b)) |
+| `BACKUP_S3_ENDPOINT` | yok (zorunlu) | Nesne depolamanın sunucu adı, `https://` olmadan |
+| `BACKUP_S3_REGION` | yok (zorunlu) | Nesne depolamanın bölgesi |
+| `BACKUP_S3_BUCKET` | yok (zorunlu) | İki yedeğin ortak kovası: veritabanı yedeği `database/`, dosya yedeği `files/` önekinde |
+| `BACKUP_S3_URI_STYLE` | `host` | `host` (kova adı sunucu adında) ya da `path` (kova adı yolda); sağlayıcının belgesi söyler |
+
+### J.2 Sır dosyalarının içeriği (`§B` satır 8–11)
+
+- `db_backup_storage_key` ve `file_backup_storage_key`: iki satır — 1. satır erişim anahtarı kimliği, 2. satır gizli anahtar; başka içerik yok.
+- `db_backup_cipher_key` ve `file_backup_cipher_key`: tek satır — yedeğin şifreleme parolası, kriptografik üreteçle (en az 32 karakter). **Döndürülmez** (`§B`); ikinci kopya firmaya teslim edilir. İki yedeğin anahtarı ve parolası ayrıdır; aynı değer kullanılmaz.
+
+### J.3 Kovanın kurulumu (firmanın hesabının yönetim girişi)
+
+1. Kovayı firmanın hesabında aç (Türkiye'de bir sağlayıcı önerilir, `05 §7.6.4`). Nesne kilidi gerekmez.
+2. Yönetim kimlik bilgileriyle (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` ortam değişkenleri; AWS komut satırı aracı kurulu) çalıştır: `BACKUP_S3_ENDPOINT=… BACKUP_S3_BUCKET=… BACKUP_S3_REGION=… sh deploy/backup/bucket-checks.sh setup`. Betik **sürüm tutmayı** açar ve `deploy/backup/bucket-lifecycle.json` **yaşam döngüsü kuralını** kurar: eski (güncel olmayan) sürümler otuz günde silinir, tamamlanmamış çok parçalı yüklemeler yedi günde durdurulur; güncel nesneye süre konmaz (`05 §7.6.6`). Kuralı bir kez daha denetle: `sh deploy/backup/bucket-checks.sh lifecycle`.
+3. İki erişim anahtarı üret — biri `database/`, öteki `files/` öneki için. Yetki şablonu `deploy/backup/key-policy.template.json`'dır (`__BUCKET__` ve `__PREFIX__` yerine kova adı ve `database`/`files` yazılır): anahtar yalnız kendi önekine yazar, okur ve **güncel nesneyi siler**; eski sürümü silemez; sürüm tutmayı, nesne kilidini ve yaşam döngüsü kuralını değiştiremez; kovanın bu ayarlarını okuyabilir. Anahtarları iki sır dosyasına (J.2) yaz. Sağlayıcı bu yetki ayrımını vermiyorsa nesne kilidi uyum kipinde ve otuz günlük sürüyle açılır ve kalan risk `05 §7.6.6`'da okunur.
+4. **Anahtar yetkisi ve reddedilen eylemler denemesi** (D-01 (c); K-961): `DB_KEY_FILE=<db_backup_storage_key> FILES_KEY_FILE=<file_backup_storage_key> sh deploy/backup/bucket-checks.sh keys`. Beklenen: her anahtar kendi önekine yazar, okur, üzerine yazar ve güncel nesneyi siler; **önek dışına yazma**, **eski sürümü silme**, sürüm tutmayı kapatma ve yaşam döngüsü kuralını değiştirme ya da silme **reddedilir**; kova ayarlarını okuma çalışır. Deneme "All checks passed" demeden kurulum ilerlemez. Güncel nesneyi silme yetkisinin pgBackRest ve restic saklamasına yettiği ilk tam yedekte (J.4) ayrıca görülür: saklama eski yedekleri silerken hata vermez. Sonuç D-01 satırına yazılır.
+
+### J.4 İlk başlatma ve ilk tam yedek
+
+1. `$COMPOSE up -d` — veritabanı konteyneri açılır, zamanlayıcıyı ve pgBackRest stanza'sını kurar (`stanza-bootstrap.log`, `db-logs` bölümünde). Yedek aracı konteyneri `file-backup-job.sh`'ı zamanlar.
+2. Gece beklenmeden ilk tam yedek: `$COMPOSE exec database /usr/local/bin/database-entrypoint.sh /usr/local/bin/database-job.sh` (iki depoya, depoyu açıkça seçerek; giriş betiği sır dosyalarından yedek ortamını kurar, düz `exec` onu taşımaz) ve `$COMPOSE exec backup /usr/local/bin/file-backup-job.sh`. İkincisi dosya yedeğinin durum dosyasını yazar (`/var/lib/backup/status/backup-status.json`).
+3. İşlem günlüğü aktarımı: `$COMPOSE exec database /usr/local/bin/database-entrypoint.sh pgbackrest --stanza=shopfolio check` hata vermez; `archive_timeout` elli saniyedir (`SHOW archive_timeout`).
+
+### J.5 Kurtarma provası
+
+Kurulumda bir kez ve her güncellemede (`05 §7.6.8`). **Prova sunucunun dışındaki depodan döner:** yerel kopya provayı karşılamaz. İki betik ayrı, tek seferlik konteynerde koşar; çalışan veritabanına ve yedeğe dokunmaz.
+
+1. **Veritabanı yedeği:** `$COMPOSE run --rm --no-deps database /usr/local/bin/database-restore-drill.sh`. Betik depoyu açıkça seçer (`--repo=2`, nesne depolama), son tam yedeği ve günlükleri geçici dizine geri alır, **depo bütünlüğünü veri okuyarak** sınar (`pgbackrest verify`), geri alınan kopyayı özel bir soketle açıp son işlemin kesinleşme anını okur ve `drill-record:` satırlarını yazar.
+2. **Dosya yedeği:** `$COMPOSE run --rm --no-deps --entrypoint /usr/local/bin/file-restore-drill.sh backup`. Betik son anlık görüntüden kayıt dizinini ve görsellerden birkaç dosyayı geçici dizine **örnek geri alır**, `restic check --read-data-subset=5%` ile **depo bütünlüğünü verinin bir alt kümesini okuyarak** sınar ve `drill-record:` satırlarını yazar.
+3. **Yaşam döngüsü kuralının varlığı:** `sh deploy/backup/bucket-checks.sh lifecycle` — otuz günlük eski sürüm kuralı ve yedi günlük yarım yükleme kuralı vardır. Kural yoksa prova başarısızdır.
+4. **Prova kaydı** aşağıdaki tabloya yazılır. Her satır **dönülen depoyu**, **geri dönüşün süresini** (indirme dahil) ve **dönülen son anı** taşır; kurtarmanın en uzun parçası böylece her güncellemede ölçülür (`05 §7.6.7`).
+
+| Tarih | Yedek | Dönülen depo | Geri dönüşün süresi (indirme dahil) | Dönülen son an | Yaşam döngüsü kuralı var mı | Sonuç |
+|---|---|---|---|---|---|---|
+
+Koşumu kurulumdadır (T601; ilk iniş T09).
+

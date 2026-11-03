@@ -1,0 +1,41 @@
+#!/bin/sh
+# Stub of the restic binary for the script tests. It records every call and the settings restic's process would see, and fails the
+# sub-command named in STUB_FAIL_AT with the exit code STUB_FAIL_CODE (default 3). `cat` and `init` (repository creation) succeed
+# unless named too. It never prints a secret.
+#
+#   STUB_CALLS  file that receives one line per call: the sub-command and its arguments (the -o option pairs are dropped)
+#   STUB_ENV    file that receives the PATH-valued settings restic would read (the password FILE path, the repository)
+
+if [ -n "${STUB_ENV:-}" ]; then
+  {
+    echo "RESTIC_PASSWORD_FILE=${RESTIC_PASSWORD_FILE:-}"
+    echo "RESTIC_REPOSITORY=${RESTIC_REPOSITORY:-}"
+    echo "KEY_ID_SET=$([ -n "${AWS_ACCESS_KEY_ID:-}" ] && echo yes || echo no)"
+    echo "SECOND_LINE_SET=$([ -n "$(printenv AWS_SECRET_ACCESS_KEY)" ] && echo yes || echo no)"
+  } >>"$STUB_ENV"
+fi
+
+line=""
+sub=""
+skip_next=0
+for argument in "$@"; do
+  if [ "$skip_next" -eq 1 ]; then
+    skip_next=0
+    continue
+  fi
+  if [ "$argument" = "-o" ]; then
+    skip_next=1
+    continue
+  fi
+  if [ -z "$sub" ]; then
+    sub="$argument"
+  fi
+  line="${line:+$line }${argument}"
+done
+
+echo "$line" >>"${STUB_CALLS:?STUB_CALLS is required}"
+
+if [ -n "${STUB_FAIL_AT:-}" ] && [ "$sub" = "$STUB_FAIL_AT" ]; then
+  exit "${STUB_FAIL_CODE:-3}"
+fi
+exit 0

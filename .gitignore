@@ -11,6 +11,8 @@ _archaeology/
 
 # Projeye özgü sır dosyası desenleri (05 §6.x.1, §2.3.3): sırlar sunucuda,
 # bileşen başına ayrı dosyalarda durur; repoya yalnız şablon (.env.example) girer.
+# (Windows matches folder names without regard to case: a code folder named `Secrets/` would be ignored too, so code folders
+# use another name, e.g. `FileSecrets/`.)
 secrets/
 **/secrets/
 *.secret

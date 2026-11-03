@@ -1,14 +1,36 @@
 # Development variant (05 8.1.2; 09 4.3 item 2): laid on top of compose.yaml,
 #   docker compose --env-file deploy/release.env --env-file deploy/.env.example -f deploy/compose.yaml -f deploy/compose.dev.yaml up
-# It adds the e-mail capture tool and nothing else: no other image, no other database version, no secret. No e-mail leaves the
+# It adds the e-mail capture tool and one environment setting of the application (the made-up development connection string,
+# below), and replaces the application's secrets list; no other image, no other database version, no secret of an installation. No e-mail leaves the
 # machine: the application's development setting selects the gateway that writes to the capture tool's SMTP port (09 4.3
 # item 2); that setting is added by the task that introduces it.
 #
 # Secret files: compose.yaml reads them from SHOPFOLIO_SECRETS_DIR. On a development machine point it at an untracked local
 # directory that holds made-up values (the payment provider's test keys, made-up passwords) and an EMPTY file for the e-mail
 # sending credential: the real credential of an installation never reaches a development machine (05 8.1.2).
+# The database connection of the application: this file carries its development value (09 4.3 item 2). The value is made up and
+# is no secret of any installation: the whole connection string with a made-up password, which is also the made-up content of
+# the db_setup_app_password file that the first start of the development database reads (below). The application therefore
+# gets no db_app_connection file here (its secrets list is replaced); without the file the setting comes from the environment
+# line below (05 6.x.1; 09 3.5 item 2, 4.3 item 2). The compose.yaml of an installation keeps the value in the secret file only.
+# The very first start of an empty development database adds deploy/compose.install.yaml, as an installation does (05 6.x.6):
+#   docker compose --env-file deploy/release.env --env-file deploy/.env.example -f deploy/compose.yaml -f deploy/compose.dev.yaml -f deploy/compose.install.yaml up -d database
 
 services:
+  app:
+    environment:
+      # Made-up development value; the password is the made-up content of the db_setup_app_password file of the development directory.
+      # SHOPFOLIO_DEV_DATABASE (shell or env file) replaces the default when the local database differs; it is a development
+      # convenience, not an installation setting, and is not in .env.example.
+      Database__ConnectionString: ${SHOPFOLIO_DEV_DATABASE:-Host=database;Database=shopfolio;Username=shopfolio_app;Password=dev-only-made-up-password}
+    # Replaces (does not extend) the list of compose.yaml: the same list without db_app_connection.
+    secrets:
+      !override
+      - payment_provider_keys
+      - email_credential
+      - google_client_secret
+      - link_derivation_secret
+
   proxy:
     environment:
       # A local name: Caddy then serves it with its own local certificate authority instead of asking Let's Encrypt.

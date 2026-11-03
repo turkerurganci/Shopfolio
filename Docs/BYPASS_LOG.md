@@ -40,3 +40,4 @@
 | 2026-11-03 14:38 UTC | Türker urgancı | task/T07-yedek-duzeni | `9a4174f` | **[ci-failure]** T07 CI kirmizi (paketleme taramasi 'latest'); bu push kok nedenin duzeltmesi 9a4174f — kirmizi uzerine is yigma degil  |
 | 2026-11-03 14:42 UTC | Türker urgancı | task/T07-yedek-duzeni | `5b68386` | **[ci-failure]** T07 CI kirmizi (paketleme sir taramasi, ${X_SECRETS_DIR:-/run/secrets} yanlis pozitif); bu push kok neden duzeltmesi  |
 | 2026-11-03 14:38 UTC | Türker urgancı | task/T10-veritabani-kullanicilari | `08acff8` | **[ci-failure]** T10 CI kirmizi (package-build adim 6 text||char); bu push kok nedenin duzeltmesi 08acff8 — kirmizi uzerine is yigma degil  |
+| 2026-11-03 21:12 UTC | Türker urgancı | task/T103-baslangic-listeleri | `a69f574` | **[ci-failure]** [ci-failure] T103 dal CI'ı kırmızı (run 41718782046, Paketleme CA1861); bu push kök neden düzeltmesi (a69f574: imaj derlemesine .editorconfig). Yardımcı, sahip yerine karar (F0'daki T07/T10 emsali).  |

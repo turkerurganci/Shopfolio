@@ -6,7 +6,7 @@ using Npgsql;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.FileSecrets;
 
-namespace Shopfolio.UnitTests.FileSecrets;
+namespace Shopfolio.IntegrationTests.FileSecrets;
 
 public sealed class SecretFilesTests : IDisposable
 {

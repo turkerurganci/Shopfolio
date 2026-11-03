@@ -144,7 +144,7 @@ Compose dosya kaynaklı sırrı sunucudaki dosyanın sahipliği ve iziyle bağla
 | Konteyner kullanıcısı | UID:GID | Okuduğu dosyalar |
 |---|---|---|
 | `app` (uygulama imajının `app` kullanıcısı; `migrate`, `command`, `read-command` aynı imajdır) | 1654:1654 | 2, 3, 4, 12, 13, 14, 15 |
-| `postgres` (veritabanı imajı) | 999:999 | 1, 8, 9; ilk kurulumda 5, 6, 7 |
+| `postgres` (veritabanı imajı) | 999:999 | 8, 9; yalnız ilk kurulumda 1, 5, 6, 7 |
 | `backup` (yedek aracı imajı) | 10001:10001 | 10, 11 |
 
 - **Dizin:** `/etc/shopfolio/secrets` sahibi `root`, izni `0700` — köke açık tek dizin.

@@ -5,28 +5,10 @@ namespace Shopfolio.UnitTests.FileSecrets;
 
 /// <summary>
 /// Keeps the secret layout of the installation equal to its three descriptions (05 6.x.2, MK-59): the table in the architecture
-/// document (written out below), the Compose files in <c>deploy/</c> and the inventory in <c>DEPLOY_RUNBOOK</c> section B.
+/// document (ExpectedSecretLayout) and the Compose files in <c>deploy/</c>. The runbook inventory is checked in Consistency/.
 /// </summary>
 public sealed class SecretLayoutTests
 {
-    // 05 6.x.2 for the continuously running installation and the one-off services: the secrets each component receives.
-    // A component with no secret receives none (the reverse proxy: 6.x.7).
-    private static readonly Dictionary<string, string[]> _expectedPerService = new(StringComparer.Ordinal)
-    {
-        ["app"] = ["db_app_connection", "payment_provider_keys", "email_credential", "google_client_secret", "link_derivation_secret"],
-        ["migrate"] = ["db_migrator_password"],
-        ["backup"] = ["file_backup_storage_key", "file_backup_cipher_key"],
-        ["database"] = ["db_backup_storage_key", "db_backup_cipher_key"],
-        ["proxy"] = [],
-        ["read-command"] = ["db_reader_connection"],
-        ["command"] = ["db_app_connection"],
-    };
-
-    // 05 6.x.6: what the database receives only at the first install (deploy/compose.install.yaml).
-    private static readonly string[] _expectedFirstInstallOnly = ["db_superuser_password", "db_setup_migrator_password", "db_setup_app_password", "db_setup_reader_password"];
-
-    // 05 6.x.12: the only secrets that are never rotated.
-    private static readonly string[] _neverRotated = ["db_backup_cipher_key", "file_backup_cipher_key"];
 
     private static string ReadRepositoryFile(params string[] parts) => File.ReadAllText(Path.Combine([RepositoryRoot.Find(), .. parts]));
 
@@ -34,18 +16,13 @@ public sealed class SecretLayoutTests
 
     private static string InstallText() => ReadRepositoryFile("deploy", "compose.install.yaml");
 
-    private static string RunbookText() => ReadRepositoryFile("Docs", "DEPLOY_RUNBOOK.md");
-
-    private static string[] AllSecretNames() =>
-        _expectedPerService.Values.SelectMany(s => s).Concat(_expectedFirstInstallOnly).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
-
     [Fact]
     public void Compose_GivesEachServiceExactlyTheSecretsOfItsTableRow()
     {
         IReadOnlyDictionary<string, IReadOnlyList<string>> actual = ComposeSecrets.ReadServiceSecrets(ComposeText());
 
-        Assert.Equal(_expectedPerService.Keys.Order(StringComparer.Ordinal), actual.Keys.Order(StringComparer.Ordinal));
-        foreach ((string service, string[] expected) in _expectedPerService)
+        Assert.Equal(ExpectedSecretLayout.PerService.Keys.Order(StringComparer.Ordinal), actual.Keys.Order(StringComparer.Ordinal));
+        foreach ((string service, string[] expected) in ExpectedSecretLayout.PerService)
         {
             Assert.Equal(expected.Order(StringComparer.Ordinal), actual[service].Order(StringComparer.Ordinal));
         }
@@ -57,7 +34,7 @@ public sealed class SecretLayoutTests
         IReadOnlyDictionary<string, IReadOnlyList<string>> actual = ComposeSecrets.ReadServiceSecrets(InstallText());
 
         Assert.Equal(["database"], actual.Keys);
-        Assert.Equal(_expectedFirstInstallOnly.Order(StringComparer.Ordinal), actual["database"].Order(StringComparer.Ordinal));
+        Assert.Equal(ExpectedSecretLayout.FirstInstallOnly.Order(StringComparer.Ordinal), actual["database"].Order(StringComparer.Ordinal));
         Assert.Contains("POSTGRES_PASSWORD_FILE=/run/secrets/db_superuser_password", InstallText(), StringComparison.Ordinal);
     }
 
@@ -67,7 +44,7 @@ public sealed class SecretLayoutTests
         string compose = ComposeText();
         IReadOnlyDictionary<string, IReadOnlyList<string>> secrets = ComposeSecrets.ReadServiceSecrets(compose);
 
-        foreach (string name in _expectedFirstInstallOnly)
+        foreach (string name in ExpectedSecretLayout.FirstInstallOnly)
         {
             Assert.DoesNotContain(name, secrets["database"]);
         }
@@ -80,7 +57,7 @@ public sealed class SecretLayoutTests
     {
         IReadOnlyDictionary<string, string> defined = ComposeSecrets.ReadDefinedSecrets(ComposeText());
 
-        Assert.Equal(AllSecretNames(), defined.Keys.Order(StringComparer.Ordinal));
+        Assert.Equal(ExpectedSecretLayout.AllSecretNames(), defined.Keys.Order(StringComparer.Ordinal));
         Assert.All(defined, pair => Assert.Equal(pair.Key, pair.Value));
     }
 
@@ -178,36 +155,7 @@ public sealed class SecretLayoutTests
             }
         }
 
-        Assert.Equal(AllSecretNames(), usersOfSecret.Keys.Order(StringComparer.Ordinal));
+        Assert.Equal(ExpectedSecretLayout.AllSecretNames(), usersOfSecret.Keys.Order(StringComparer.Ordinal));
         Assert.All(usersOfSecret, pair => Assert.True(pair.Value.Count == 1, $"{pair.Key} is read by {string.Join(", ", pair.Value)}"));
-    }
-
-    [Fact]
-    public void Runbook_ListsEverySecretWithTheComponentsThatReceiveIt()
-    {
-        IReadOnlyList<RunbookSecretRow> rows = ComposeSecrets.ReadRunbookSecrets(RunbookText());
-        List<IReadOnlyDictionary<string, IReadOnlyList<string>>> compose =
-            [ComposeSecrets.ReadServiceSecrets(ComposeText()), ComposeSecrets.ReadServiceSecrets(InstallText())];
-
-        Assert.Equal(AllSecretNames(), rows.Select(r => r.Secret).Order(StringComparer.Ordinal));
-        foreach (RunbookSecretRow row in rows)
-        {
-            string[] mounted = compose.SelectMany(file => file).Where(pair => pair.Value.Contains(row.Secret)).Select(pair => pair.Key)
-                .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
-            Assert.Equal(mounted, row.Receivers.Order(StringComparer.Ordinal));
-        }
-    }
-
-    [Fact]
-    public void Runbook_RotatesEverySecretExceptTheTwoBackupCipherKeys()
-    {
-        IReadOnlyList<RunbookSecretRow> rows = ComposeSecrets.ReadRunbookSecrets(RunbookText());
-
-        Assert.NotEmpty(rows);
-        foreach (RunbookSecretRow row in rows)
-        {
-            bool neverRotated = row.Rotation.StartsWith("Döndürülmez", StringComparison.Ordinal);
-            Assert.Equal(_neverRotated.Contains(row.Secret, StringComparer.Ordinal), neverRotated);
-        }
     }
 }

@@ -31,6 +31,7 @@ public sealed class SecretSourceScanTests
 
     [Theory]
     [InlineData("EnvironmentRead.cs", SecretSourceScan.EnvironmentRead)]
+    [InlineData("EnvironmentReadAll.cs", SecretSourceScan.EnvironmentRead)]
     [InlineData("EnvironmentConfiguration.cs", SecretSourceScan.EnvironmentConfiguration)]
     [InlineData("DatabasePasswordVariable.cs", SecretSourceScan.DatabasePasswordVariable)]
     public void Scan_OnViolationSample_ReportsTheRuleOnItsLine(string sample, string rule)

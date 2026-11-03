@@ -87,6 +87,17 @@ public sealed class DataModelFoundationTests
         Assert.Equal(expected, TextNormalizer.Simplify(input));
     }
 
+    [Theory]
+    [InlineData("й", "й")]
+    [InlineData("ά", "ά")]
+    [InlineData("कु", "कु")]
+    [InlineData("Йод Ά", "йод ά")]
+    [InlineData("Ǻ Éé й", "a ee й")]
+    public void Simplify_LeavesTheNonLatinLettersAlone(string input, string expected)
+    {
+        Assert.Equal(expected, TextNormalizer.Simplify(input));
+    }
+
     [Fact]
     public void Simplify_TheSearchExpressionAndTheStoredNameReachTheSameForm()
     {

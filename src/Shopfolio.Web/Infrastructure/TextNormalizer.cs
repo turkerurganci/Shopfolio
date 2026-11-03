@@ -42,15 +42,34 @@ internal static class TextNormalizer
             });
         }
 
+        // A combining mark is dropped only when it follows a Latin base letter (09 9.4 item 2); the marks of other scripts stay.
         StringBuilder result = new(value.Length);
+        bool afterLatinBase = false;
         foreach (char c in folded.ToString().Normalize(NormalizationForm.FormD))
         {
-            if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+            if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark)
             {
+                if (afterLatinBase)
+                {
+                    continue;
+                }
+
                 result.Append(c);
+                continue;
             }
+
+            result.Append(c);
+            afterLatinBase = IsLatinLetter(c);
         }
 
         return result.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
+    }
+
+    // Basic Latin, Latin-1 Supplement letters and Latin Extended-A/B/Additional: the ranges an accented Latin base letter comes from.
+    private static bool IsLatinLetter(char c)
+    {
+        return c is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z')
+            or (>= 'À' and <= 'ɏ' and not '×' and not '÷')
+            or (>= 'Ḁ' and <= 'ỿ');
     }
 }

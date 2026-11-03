@@ -65,7 +65,7 @@
 | T07 | Yedek düzeni | ⬚ | — | — | — |
 | T08 | Sır düzeni | ✓ | ✓ PASS (tur 4) | — | #349 |
 | T09 | İlk yayın ve referans kuruluma ilk iniş | ⬚ | — | — | — |
-| T10 | Veritabanı kullanıcıları | ⏳ | — | — | PR sonra |
+| T10 | Veritabanı kullanıcıları | ⏳ | — | — | #350 |
 
 ---
 

@@ -66,7 +66,7 @@
 
 - **Branch:** `task/T10-veritabani-kullanicilari`
 - **Commit:** `03f6252` — T10: Veritabanı kullanıcıları (kurucu betik, testler; devam gerekiyor); sonraki commit'ler: dokümanlar, rapor, status, hafıza
-- **PR:** PR numarası açılışta yazılır
+- **PR:** #350
 - **CI:** yapım işçisi izlemez (yönetici düzeni); CI'ı yardımcı yürütür
 - **Post-merge run'lar:** *(validator doldurur)*
 

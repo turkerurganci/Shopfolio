@@ -1,6 +1,6 @@
 # T05 — Compose geliştirme ortamı
 
-**Faz:** F0 | **Durum:** ⏳ Devam ediyor — yapım bitti, doğrulama bekliyor | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme ve plan kararı bekliyor | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -38,6 +38,8 @@
 
 > `~` = yapı olarak karşılandı, sınama kurulumda (T09); FAIL değildir. Yerelde Docker kapalıydı.
 
+**Validator kanıtı (tur 1, 2026-11-03, `cc554ea`; dal CI'ı run 41621640998 success, 9 pass + Guard skipping):** 1 ✓ · 2 ? · 3 ✓ · 4 ? · 5 ✓ · 6 ? · 7 ✓ · 8 ? · 9 ?. `docker compose … config` (v5.1.0, daemon'suz; taban ve bindirmeli): hizmetler `database, migrate, app, proxy, backup` (+ bindirmede `mailpit`); yalnız `proxy` `80/tcp`, `443/tcp`; bölümler dokuz; vekilde dosya alanından yalnız `files-images:ro`; bindirme yalnız `mailpit` ve `SITE_DOMAIN=localhost` ekler. `grep -rniw latest deploy` boş; Caddy ve Mailpit özetleri Docker Hub'dan yeniden okundu, aynı. Caddy 2.11.7 (SHA-512 doğrulanmış ikili) `caddy adapt` çıkış 0: HSTS yalnız `max-age=31536000`, `h1 h2`, yönetim ucu kapalı. `src`/`tests`'te HSTS yok. Betikler `bash -n`/`sh -n` temiz, mantık okundu. Docker daemon kapalı → 2, 4, 6 ("ayakta"), 8, 9'un çalışma zamanı kanıtı üretilemedi (`?`, FAIL değil ama PASS için gerekir). **`~` notu `12 §6.1` ile çelişir:** `~` PASS sayılmaz (K-1521) ve task'a bağlı KRİTİK satır (VAL-A982) BEKLEMEDE ile çıkamaz; D-31 risk kaydı değildir, T09'un kriterleri bu denemeleri içermez — erteleme kabul edilmedi. Kriter 9'un uygulama yanı T215'in kodudur (`09 §15.1` madde 8) → plan düzeltmesi proje sahibine.
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
@@ -51,10 +53,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-03, `cc554ea`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r1.md`. Kriter 1, 3, 5, 7 ✓; 2, 4, 6, 8, 9 `?` (daemon/sunucu yok); dal CI yeşil; FAIL `09 §25` gereğidir ("hayır" cevabı düzeltilmeden kabul edilmez). VAL-A982 (KRİTİK) `BEKLEMEDE` kalır |
+| Bulgu sayısı | 1 — S1 DÜŞÜK: `09` Kütüphaneler tablosunun Mailpit satırı kanıtsız ("1.28.x ikincil kaynakta"); aracı repoya sokan PR satırı tam sürüm (v1.33.0, 31 Ekim 2026), LICENSE'tan lisans (MIT), bakımcı ve erişim tarihiyle günceller (`09 §3.3` madde 2, 3, 8; §25) |
+| Düzeltme gerekli mi | Evet — yeni yapım turu: Mailpit satırı; K1, K3, K4, K7 aynı turda; K2, K5, K6 backlog eki. Daemon'lu kanıt: KK2, KK6, KK8 yerelde (imajlar yerel derlenip `SHOPFOLIO_*_IMAGE` ile; `installation-checks.sh isolation`, `redirect-hsts` `CURL_OPTS=-k`), KK4 Linux Docker motorunda. **Plan kararı (proje sahibi):** KK9 (uygulama yanı T215, IPv6 yanı gerçek sunucu) ve VAL-A982'nin hangi task'ta çevrileceği (`PLAN_CORRECTION_REQUIRED`) |
+| Bloke-etmeyen not (K) sayısı | 7 — K1 `compose.yaml:162` olmayan `deploy/firewall/README`'ye atıf, :161 "a test keeps the two equal" (test T215'te); K2 çıkış kuralı DNS'i hesaba katmıyor (gömülü çözücü dış sorguyu konteyner ad alanından iletiyorsa ad çözülemez; bilgim tarihli); K3 göç parolası `efbundle` komut satırında (süreç listesinde görünür; `PGPASSWORD` daha dar); K4 `isolation` denemesi veritabanının `db-egress` adresini denemiyor; K5 `/var/log/pgbackrest` bölümde değil (`05 §9.1.4`) → D-32 (b); K6 Caddyfile tarayıcı tanıtımını da siliyor (`05 §9.1.2`) → D-33; K7 Caddyfile `caddy fmt` biçiminde değil |
 
 ## Altyapı Değişiklikleri
 

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-03 — T06 (Üç imaj ve kayıt defteri) yapım bitti, PR #PRNO açık, doğrulama bekliyor (⏳); D-01 kalemleri (PACKAGE_BUILD/PUBLISH, doğrulanacaklar) ve D-19 kararı raporda; önceki giriş `STATUS_CHANGELOG.md`'ye taşındı (T01 doğrulama tur 4 PASS).
+**Son güncelleme:** 2026-11-03 — T06 (Üç imaj ve kayıt defteri) yapım bitti, PR #347 açık, doğrulama bekliyor (⏳); D-01 kalemleri (PACKAGE_BUILD/PUBLISH, doğrulanacaklar) ve D-19 kararı raporda; önceki giriş `STATUS_CHANGELOG.md`'ye taşındı (T01 doğrulama tur 4 PASS).
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -61,7 +61,7 @@
 | T03 | Test altyapısı | ✓ | ✓ PASS (tur 3) | — | #337 |
 | T04 | CI hattı ve eşitlik denetimleri | ✓ | ✓ PASS (tur 2) | — | #339 |
 | T05 | Compose geliştirme ortamı | ⬚ | — | — | — |
-| T06 | Üç imaj ve kayıt defteri | ⏳ | — | — | #PRNO |
+| T06 | Üç imaj ve kayıt defteri | ⏳ | — | — | #347 |
 | T07 | Yedek düzeni | ⬚ | — | — | — |
 | T08 | Sır düzeni | ⬚ | — | — | — |
 | T09 | İlk yayın ve referans kuruluma ilk iniş | ⬚ | — | — | — |

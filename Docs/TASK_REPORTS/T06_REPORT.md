@@ -66,8 +66,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T06-uc-imaj-kayit-defteri`
-- **Commit:** PR'da son commit
-- **PR:** #PRNO
+- **Commit:** b7b817b (+ PR numarası commit'i)
+- **PR:** #347
 - **CI:** yapım işçisi izlemez (yönetici izler)
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -30,8 +30,7 @@ COPY --from=build /out/app ./
 COPY --from=build --chmod=0555 /out/efbundle ./efbundle
 
 # No secret enters the image: the database credential and every other secret arrives as a mounted file at run time (09 17 item 2).
-ENV ASPNETCORE_URLS=http://+:8080 \
-    DOTNET_EnableDiagnostics=0
+# No ENV: the base image already listens on port 8080 (ASPNETCORE_HTTP_PORTS=8080), and the runtime diagnostics stay at their defaults.
 EXPOSE 8080
 USER app
 ENTRYPOINT ["dotnet", "Shopfolio.Web.dll"]

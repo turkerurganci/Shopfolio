@@ -8,7 +8,7 @@
 
 ## Yapılan İşler
 
-- `deploy/images/app/Dockerfile`: çok aşamalı; derleme `mcr.microsoft.com/dotnet/sdk:10.0.400-noble` (etiket `global.json`'ın SDK sürümü), çalışma `aspnet:10.0.14-noble`, ikisi etiket ve özetle sabit. Kilitli geri yükleme, `dotnet publish`, ve `dotnet ef migrations bundle` ile üretilen `efbundle` imajda (`/app/efbundle`, `0555`). Kullanıcı `app` (UID 1654); `ASPNETCORE_URLS=http://+:8080`.
+- `deploy/images/app/Dockerfile`: çok aşamalı; derleme `mcr.microsoft.com/dotnet/sdk:10.0.400-noble` (etiket `global.json`'ın SDK sürümü), çalışma `aspnet:10.0.14-noble`, ikisi etiket ve özetle sabit. Kilitli geri yükleme, `dotnet publish`, ve `dotnet ef migrations bundle` ile üretilen `efbundle` imajda (`/app/efbundle`, `0555`). Kullanıcı `app` (UID 1654); `ENV` yok (taban imaj zaten `ASPNETCORE_HTTP_PORTS=8080` ile 8080'i dinler; tanı araçları varsayılanda).
 - `deploy/images/database/`: resmî `postgres:18.6-trixie@sha256:…` + PGDG deposundan pgBackRest (2.60.0) + `scheduler.sh`. `track_commit_timestamp = on` dosyası (`postgresql.conf.d/10-commit-timestamp.conf`), ana dosya (`postgresql.conf`) dizini `include_dir` ile içerir; sunucu `-c config_file=` ile bu dosyadan başlar. Kullanıcı `postgres` (imaj `USER postgres`; resmî giriş betiği kök olmayan kullanıcıyla başlatıldı ve çalıştı).
 - `deploy/images/backup/Dockerfile`: `alpine:3.24.3@sha256:…`, restic 0.19.1 ikilisi **SHA-256 ile sabit** (amd64 ve arm64; özet tutmazsa `sha256sum -c` derlemeyi düşürür), `scheduler.sh`. Kullanıcı `backup` (UID 10001).
 - `deploy/images/shared/scheduler.sh`: iki imajda aynı dosya (`09 §17` madde 3) — `BACKUP_RUN_TIME`/`BACKUP_TIME_ZONE`, bir sonraki anı `date +%H %M %S` ile hesaplar, işi çalıştırır, tur bitince yeniden hesaplar; kron yok; POSIX. İşi (gecelik yedek betikleri) ve durum dosyası yazıcısı T07'dedir.
@@ -95,6 +95,7 @@
 | 3 | Uygulama imajında HEALTHCHECK yok (`curl` yok); sağlık denetimi Compose tanımında | — (Compose görevi) | Compose tanımı T05/ilgili task |
 | 4 | `libgssapi_krb5` açılış satırı | D-27 | Zararsız; karar kayıt düzeninde |
 | 5 | Paket görünürlüğü açılışı | D-01 | T09 |
+| 6 | pgBackRest sürümü sabit değil (`09 §17` madde 6 ile gerilim) | D-28 | PGDG yalnız güncel sürümü tutar; karar `09 §17` istisnası ya da kaynak aynası |
 
 ### D-19 kararı (⚠ 1)
 
@@ -104,9 +105,25 @@
 
 1. **D-19:** yayın varken geri alma sınaması (B) bağlanana dek adımı düşürür (yukarıda).
 2. **İmaj adları:** `shopfolio-app`, `shopfolio-database`, `shopfolio-backup` (`ghcr.io/<sahip>/…`); dokümanlarda ad geçmiyor. İlk yayından sonra değiştirmek yeni paket demektir.
-3. **pgBackRest apt sürümü sabitlenmedi:** PGDG eski sürümleri tutmadığı için sabit sürüm derlemeyi zamanla düşürürdü; yeniden üretilebilirlik taban imaj özetinden gelir, kurulan sürüm derleme günlüğüne yazılır (`pgbackrest version`). İstenirse sürüm kısıtı eklenir.
+3. **pgBackRest apt sürümü sabitlenmedi:** PGDG eski sürümleri tutmadığı için sabit sürüm derlemeyi zamanla düşürürdü. Taban imaj özeti yalnız tabanı sabitler; `apt-get update` derleme anındaki dizini çeker, yani aynı Dockerfile farklı günlerde farklı pgBackRest sürümü üretebilir (imaj yeniden üretilebilir değildir). Kurulan sürüm derleme günlüğüne yazılır (`pgbackrest version`). `09 §17` madde 6 ("araç sürümü sabittir") ile bu gerilim D-28'e kaydedildi.
 4. **Veritabanı yapılandırması:** `postgresql.conf` + `postgresql.conf.d/` ve sunucunun `-c config_file=` ile başlatılması; imaj `USER postgres` (kök olmayan kullanıcı). `09 §17` yalnız `postgresql.conf.d/` dizinini adlandırır; mekanizma benim seçimim.
 5. **Taban imaj çeşitleri:** .NET için `noble` (Ubuntu), PostgreSQL için `trixie` (Debian; resmî imajın varsayılan çizgisi), yedek aracı için `alpine`. `chiseled` (kabuksuz) .NET imajı seçilmedi: Compose sağlık denetimi ve hata ayıklama için kabuk gerekebilir.
+6. **Uygulama imajında `ENV` yok:** `ASPNETCORE_URLS` (taban imajın `ASPNETCORE_HTTP_PORTS=8080`'iyle aynı, her açılışta uyarı yazdırıyordu) ve `DOTNET_EnableDiagnostics=0` (belgesiz, sunucuda tanı araçlarını kapatır) kaldırıldı (doğrulama tur 1, K5).
+
+### Okunan bölümler
+
+`09` çekirdek yedi bölüm (§1, §2, §5, §6, §23, §24, §25); görevin bölümleri §4.3, §17, §21; `GUARDRAILS` §8; `05` ilgili bölümler (§3.2, §8.2.1–8.2.5, §8.3.9–8.3.12, §9.4.1, MK-02, MK-09…MK-11, MK-69).
+
+### `09 §25` soruları
+
+- Doküman uyumu: diff `11` T06 kabul kriterleri 1–8 ve D-01/D-19 kalemleri içinde; `09 §17` madde 1 ağacına ana `postgresql.conf` satırı eklendi (ağaç gerçeği yansıtsın diye). `09 §17` madde 6 ("araç sürümü sabittir") ile pgBackRest apt sürümü arasındaki gerilim gizlenmedi: ⚠ 3 ve D-28.
+- "Bilgim tarihli" olgular sınandı (Dış Varsayımlar): pgBackRest resmî imajı yok, `track_commit_timestamp`, restic lisansı/sürümü/özeti, taban imaj özetleri.
+- Mimari ve kod: uygulama kodu değişmedi; yeni proje yok. Uygulama imajında `ENV` yok (belgesiz ayar bırakılmadı, `09 §24` madde 3).
+- Veri ve göç: şema değişikliği yok; imajdaki göç demeti veritabanı imajına karşı çalıştı.
+- Güvenlik: imajlarda sır yok (`Config.Env` temiz); `.dockerignore` sır desenleri `**/` ile iç içe yollarda da eşleşir; kullanıcılar kök değil (1654 / 999 / 10001); `packages: write` yalnız Publish işinde; `PB_ALLOW_*` kullanılmadı.
+- Test: task tanımı test beklentisi koymaz; sınama CI Paketleme adımıdır (7 adım, yanlış restic özetinin nedeni `did NOT match` ile sınanır); yerel koşu geçti.
+- Yeni paket yok (NuGet); yeni ayar/sabit yok (`BACKUP_*` T07'de).
+- CI/CD: `PACKAGE_BUILD_CMD` ve `PUBLISH_CMD` dolu; `SETUP_COMPLETE=false` kalır; GHCR görünürlük adımı `CI_CD_SETUP.md` §3.4.
 
 ## Notlar
 
@@ -114,5 +131,5 @@
 - **Ana dal CI startup (Adım 0):** 41588356448 (CI, success), 41588356390 (Publish, success), 41552961812 (CI, success).
 - **Repo memory (bitiş kapısı 8):** güncellendi.
 - **Dal izolasyonu:** yalnız T06.
-- **Mini güvenlik kontrolü:** sır yok (CI bağlantı dizesi parolasızdır ve yalnız o işin geçici hizmetine bağlanır); kayıt defteri kimliği yalnız iş akışının `GITHUB_TOKEN`'ı (`packages: write` yalnız Publish işinde); yeni dış bağımlılıklar taban imajlar, restic (özet sabit), pgBackRest (PGDG, kurulu imajın taban özetiyle yeniden üretilebilir; apt sürümü sabitlenmedi — ⚠ 3).
+- **Mini güvenlik kontrolü:** sır yok (CI bağlantı dizesi parolasızdır ve yalnız o işin geçici hizmetine bağlanır); kayıt defteri kimliği yalnız iş akışının `GITHUB_TOKEN`'ı (`packages: write` yalnız Publish işinde); yeni dış bağımlılıklar taban imajlar, restic (özet sabit), pgBackRest (PGDG; apt sürümü sabitlenmedi, derleme anındaki dizinden gelir — ⚠ 3, D-28).
 - **Uzun derleme:** yerel ilk SDK imajı çekimi 170 sn'yi aştı; ikinci denemede önbellekle 40 sn.

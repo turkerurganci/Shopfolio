@@ -7,7 +7,9 @@
 FROM postgres:18.6-trixie@sha256:3a4264520e121176619f54ff867d12774bc81e95e7b84db58d63bccdb6144b81
 
 # pgBackRest comes from the PostgreSQL project's own apt repository, which the official image already trusts and configures.
-# The installed version is printed into the build log; the base image digest above is what makes the rest of the image repeatable.
+# The version is not pinned: apt-get update reads the repository index at build time, and the PGDG repository keeps only the
+# current pgBackRest release, so a pinned version would break the build later. The installed version is printed into the build
+# log; the base image digest pins the base only, so two builds of this file on different days can carry different pgBackRest releases.
 RUN apt-get update \
     && apt-get install --no-install-recommends -y pgbackrest \
     && rm -rf /var/lib/apt/lists/* \

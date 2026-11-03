@@ -1865,6 +1865,7 @@ Yardımcı servis iki imajdır: **veritabanı imajı** (PostgreSQL'in yanında p
      database/
        Dockerfile                 resmî PostgreSQL 18 imajı (sürüm + özet sabit) + pgBackRest + zamanlayıcı
        initdb/10-bootstrap.sh     kurucu betik (§10.8): dört kullanıcıyı, yetkileri ve pg_trgm'i kurar
+       postgresql.conf            ana yapılandırma dosyası; sunucu -c config_file= ile bundan başlar ve postgresql.conf.d/'yi içerir
        postgresql.conf.d/         track_commit_timestamp ve arşiv ayarları (05 §7.6.1)
        database-job.sh            gecelik tam yedek işi (pgBackRest)
      backup/

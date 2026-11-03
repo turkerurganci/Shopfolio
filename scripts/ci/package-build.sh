@@ -77,13 +77,22 @@ done
 
 # ---- 3. wrong restic digest ---------------------------------------------------------------------------------------------
 echo "== 3/7 A restic archive with a wrong SHA-256 fails the backup image build"
+WRONG_DIGEST_LOG="$(mktemp)"
 if docker build -f deploy/images/backup/Dockerfile \
   --build-arg RESTIC_SHA256_AMD64=0000000000000000000000000000000000000000000000000000000000000000 \
   --build-arg RESTIC_SHA256_ARM64=0000000000000000000000000000000000000000000000000000000000000000 \
-  --no-cache-filter fetch -t "shopfolio-backup:wrong-digest" . >/dev/null 2>&1; then
+  --no-cache-filter fetch --progress=plain -t "shopfolio-backup:wrong-digest" . >"$WRONG_DIGEST_LOG" 2>&1; then
+  rm -f "$WRONG_DIGEST_LOG"
   fail "the backup image built with a wrong restic SHA-256; the digest check does not gate the build"
 fi
-echo "ok: the build failed as required"
+# The build must fail for the right reason: the digest check said so, not a network or download error.
+if ! grep -q 'did NOT match' "$WRONG_DIGEST_LOG"; then
+  tail -n 30 "$WRONG_DIGEST_LOG"
+  rm -f "$WRONG_DIGEST_LOG"
+  fail "the backup image build failed, but not with a SHA-256 mismatch ('did NOT match' is missing from its output)"
+fi
+rm -f "$WRONG_DIGEST_LOG"
+echo "ok: the build failed with a SHA-256 mismatch, as required"
 
 # ---- 4. users ---------------------------------------------------------------------------------------------------------
 echo "== 4/7 No image runs as root"

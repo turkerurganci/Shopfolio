@@ -1,0 +1,33 @@
+# Local reference installation overlay (T09; DEPLOY_RUNBOOK section K): laid on top of compose.yaml, never on a real server.
+#
+#   docker compose --env-file /etc/shopfolio/release.local.env --env-file /etc/shopfolio/settings.env \
+#     -f deploy/compose.yaml -f deploy/compose.local-reference.yaml up -d
+#
+# The local object storage (MinIO in the next container, scripts/local-reference) answers with a self-signed certificate. A real
+# bucket's certificate comes from a public authority and needs nothing here. This file only makes the two backup tools trust that
+# one certificate; it changes no network, port, secret or image.
+#   database  pgBackRest: PGBACKREST_REPO2_STORAGE_CA_FILE (repo-storage-ca-file; read next to the settings database-entrypoint.sh builds)
+#   backup    restic (Go): SSL_CERT_FILE
+# The certificate file is public (a certificate, not a key) and sits next to the settings file on the local server.
+#
+# The object storage's name (`t09-minio`) belongs to the OUTER Docker's network; the server's own Docker cannot resolve it
+# (its embedded resolver forwards to Docker Desktop's DNS, which does not know the name), so `extra_hosts` maps it to the
+# container's address (T09_MINIO_IP, from release.local.env). On a real server the endpoint is a public DNS name and needs no
+# mapping: the trial run showed that a container on the filtered networks resolves public names through Docker's embedded
+# resolver while the DOCKER-USER rule is applied (DEPLOY_RUNBOOK K.7).
+
+services:
+  database:
+    environment:
+      - PGBACKREST_REPO2_STORAGE_CA_FILE=/etc/local-reference/minio-ca.crt
+    extra_hosts:
+      - "t09-minio:${T09_MINIO_IP:?T09_MINIO_IP is required (release.local.env)}"
+    volumes:
+      - /etc/shopfolio/minio-ca.crt:/etc/local-reference/minio-ca.crt:ro
+  backup:
+    environment:
+      - SSL_CERT_FILE=/etc/local-reference/minio-ca.crt
+    extra_hosts:
+      - "t09-minio:${T09_MINIO_IP:?T09_MINIO_IP is required (release.local.env)}"
+    volumes:
+      - /etc/shopfolio/minio-ca.crt:/etc/local-reference/minio-ca.crt:ro

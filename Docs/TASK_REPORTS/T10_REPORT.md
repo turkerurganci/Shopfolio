@@ -50,10 +50,20 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-03, head `5534acd`) |
+| Bulgu sayısı | 1 (ORTA, S1) |
+| Düzeltme gerekli mi | Evet — bulgu 1 |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama tur 1 — ✗ FAIL (2026-11-03)
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana checkout'un hook klasörü); ana dal son 3 run `41649150934`, `41649150970`, `41630669794` success; `MEMORY.md`'de T10 satırı var.
+
+**Kabul kriterleri (validator kanıtı):** 1–8 ✓. Dalın imajı (`docker build`) boş veri dizinli ilk kurulumda koşturuldu: dört rolde beş bayrak `f`, durum kullanıcısının parolası yok; `shopfolio` `UTF8|i|tr-TR`, sahibi göç kullanıcısı; `pg_trgm` sahibi kurucu; göç kullanıcısının `shopfolio` için üç ayarı kullanıcı adları; `pg_hba_file_rules` dört satır (kurucu `local peer map=founder`, kurucu `host … reject`, durum `local shopfolio … peer`, üç kullanıcı `host shopfolio … scram-sha-256`), `trust` yok; kurucu ağdan iki veritabanına da reddedildi; durum kullanıcısı soketten `shopfolio`'ya bağlandı, `postgres`'e ve ağdan reddedildi; uygulama/okuyucu/göç ağdan bağlandı (okuyucu `default_transaction_read_only=on`), uygulama `postgres`'e ve yerel soketten reddedildi; sunucu günlüğünde dört parola yok; yeniden başlatmada betik koşmadı; sır dosyası eksikken kurulum adını yazıp durdu. Unit 87/87 (Consistency dahil), Integration 62/62 (yerel `postgres:18`), `dotnet build -warnaserror` 0/0; dal CI `41655753293` (head `5534acd`) dokuz işin hepsi success. `12`'de T10'un kaynak birimlerine (`06 §2.8`, `05 §7.1`, `09 §10`, §17) eşlenen task satırı yok; `12_matris_denetle.py --kapsam 1-77` hata 0. `[ci-failure]` atlaması (`08acff8`) yalnız CI'ın kök neden düzeltmesini taşıyor, kaydı sonraki commit'te — kabul edilebilir; `PB_ALLOW_SECRET` yok, repoda sır değeri yok.
+
+**Bulgu 1 (ORTA, S1 Sapma; `09 §25` "Kod hiçbir doküman cümlesiyle çelişmiyor mu" → hayır):** `10-roles.sql` üç parolayı `CREATE ROLE … PASSWORD :'…_password'` ile verir; psql değişkeni istemcide açılır ve sunucuya açık metin parola taşıyan deyim gider (validator denemesi: aynı kalıp `log_statement=all` ile `CREATE ROLE t10probe2 PASSWORD 'plainProbe456';` diye kayda düştü). Bu `05 §6.x.16`, `09 §10.8` madde 1 son cümlesi, karar K-973 (7) ("veritabanı parolası açık metinle bir deyime yazılmaz") ve `DEPLOY_RUNBOOK §B` satır 1 notuyla çelişir; oturumda kaydı kapatmak kuralın yerine geçmez (deyim metni `pg_stat_activity`'de ve ileride açılacak her deyim kaydı/eklentisinde görünür) ve yapım ⚠ kararı (1) çelişkiyi BLOCKED bildirmek ya da uymak yerine "yorum"la geçti. Uyan yol imajda mevcut: `createuser -P` tty yokken parolayı standart girdiden okur ve istemcide SCRAM özeti üretir (validator denemesi: deyim yalnız `PASSWORD 'SCRAM-SHA-256$4096:…'` taşıdı, açık metin kayıtta 0). **Düzeltme:** parolalar sunucuya yalnız istemcide hesaplanmış SCRAM özeti olarak gider (ör. `createuser -P`, ya da rolü parolasız kurup özeti istemcide hesaplayıp yazmak); `DEPLOY_RUNBOOK §B.2` madde 4, `DatabaseImageScan`'in parola kuralı ve `package-build.sh` adım 1'in `PASSWORD :'` muafiyeti buna göre güncellenir; entegrasyon testleri aynı dosyaları koşmayı sürdürür. Etkilenen: `deploy/images/database/bootstrap/10-roles.sql`, `initdb/10-bootstrap.sh`, `Docs/DEPLOY_RUNBOOK.md` §B.2, `tests/Shopfolio.UnitTests/Architecture/DatabaseImageScan.cs`, `scripts/ci/package-build.sh`, `tests/Shopfolio.IntegrationTests/Database/BootstrapScript.cs`.
+
+**Yapım raporu karşılaştırması:** kriter 1–8 değerlendirmesi uyumlu; uyuşmazlık 1 — yapım ⚠ (1)'i uygun yorum saydı, validator `05 §6.x.16` / K-973 (7) sapması sayar.
 
 ## Altyapı Değişiklikleri
 

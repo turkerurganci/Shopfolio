@@ -20,6 +20,8 @@
 	# The access log (05 9.1.2) goes to its own file in its own volume. Request and response headers are not written (05 9.1.5).
 	log {
 		output file /var/log/caddy/access.log {
+			# Caddy's default is 0600 (root only); the file backup tool (uid 10001) reads this volume read-only (found at T09).
+			mode 0644
 			roll_size 50MiB
 			roll_keep 40
 		}

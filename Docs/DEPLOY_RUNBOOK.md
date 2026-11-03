@@ -75,7 +75,7 @@
 > **Aşama 9'dan park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §22.1, çakışma taraması, K-1494).
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
 >
-> - **K-1407 · K-1411 · K-1453 · Boot provasının iki turu:** §I iki kez koşar. 1. tur F0'ın sonunda, referans kuruluma ilk inişte yapılır (`11` T09 kabul kriteri 6; F0 kapısı, `11 §6.2`) ve sonucu §I.3'e yazılır. 2. tur F6'da T601'in kabul kriteri 1'idir: `§I.2` reçetesi gerçek yapılandırmayla sıfırdan koşar; kapanış ritüelinin zorunlu provası (`00 §L` adım 6, §L.1) bu turdur. §I'nin "Ne zaman" satırı doldurulurken iki turu bu sırayla söyler.
+> - **K-1407 · K-1411 · K-1453 · Boot provasının iki turu:** §I iki kez koşar. 1. tur F0'ın sonunda, **yerel referans kuruluma** ilk inişte yapılır (`11` T09; F0 kapısı, `11 §6.2`) ve sonucu §I.3'e yazılır; gerçek sunucuya ilk iniş T603'tedir. 2. tur F6'da T601'in kabul kriteri 1'idir: `§I.2` reçetesi gerçek yapılandırmayla sıfırdan koşar; kapanış ritüelinin zorunlu provası (`00 §L` adım 6, §L.1) bu turdur. §I'nin "Ne zaman" satırı doldurulurken iki turu bu sırayla söyler.
 >
 > **Aşama 10'dan park edilen girdiler** — kaynak: [`PRODUCT_DISCOVERY_STATUS.md`](PRODUCT_DISCOVERY_STATUS.md) §2, mekanizma: K-36 (yeri: §24.1, çakışma taraması, K-1571).
 > Bu satırlar **talimattır, karar değildir** — bağlayıcı olan kaynak karardır; bu aşamada karara bağlanacak olan, talimatın nasıl uygulanacağıdır.
@@ -100,7 +100,7 @@
 | Seed edilemeyen ilk kayıtlar (ilk yönetici vb.) nasıl oluşur? | §H |
 | Gerçek konfigürasyonla boot provası | §I ⚠ |
 | Yedek ayarları, kova kuralı, anahtar yetkisi ve kurtarma provası | §J |
-| Referans kuruluma ilk iniş (T09): sunucu, yayın, güvenlik duvarı, canlılık, denemeler, prova kaydı | §K |
+| Yerel referans kuruluma ilk iniş (T09): sunucu, güvenlik duvarı, canlılık, denemeler, prova kaydı; gerçek sunucu T603 | §K |
 
 ---
 
@@ -171,7 +171,7 @@ Veritabanı konteyneri ilk kez, **boş veri dizinleriyle** ve `compose.install.y
 5. **Doğrulama** (kurulumda, betikten sonra): `\du` dört kullanıcıyı gösterir ve hiçbiri süper kullanıcı değildir; `\drds` çıktısında `shopfolio_migrator` için üç `shopfolio.*` ayarı görünür; kurucu kullanıcıyla ağdan bağlantı `pg_hba.conf` satırı tarafından reddedilir; sunucu günlüğünde parola yoktur (CI'ın paketleme adımı bunu her koşuda `log_statement = all` ile sınar: günlükte yalnız üç `SCRAM-SHA-256$` özeti vardır ve üç kullanıcı kendi parolasıyla bağlanır). Aynı denetimlerin yerel kaydı: `Docs/TASK_REPORTS/T10_REPORT.md`.
 6. **Kurulumdan sonra:** 5, 6 ve 7 numaralı dosyalar kurulum bindirmesinden çıkarılır (§B).
 
-**Durum:** T10 betiği ve şablonları yazdı ve gerçek imajla yerel Docker'da denedi; gerçek sunucuda ilk kurulum T09 provasında koşar ve §I.3'e yazılır (D-01, D-31).
+**Durum:** T10 betiği ve şablonları yazdı ve gerçek imajla yerel Docker'da denedi; yerel referans kurulumda ilk kurulum T09 provasında koştu (§K.5, §K.10; D-01, D-31); gerçek sunucuda T603'te yinelenir.
 
 ## C. ⚠ Prod'da ayarlanması gereken ayarlar (yoksa kural sessiz kalır)
 
@@ -257,7 +257,7 @@ Yetkilendirmesi olan her sistem ilk deploy'da aynı duvara çarpar: *"sistem aç
 
 ## J. Yedek düzeni — ayarlar, kova ve kurtarma provası
 
-> **Kaynak:** `05 §7.6`, `09 §17`; T07. Kurulumda koşan adımlar bu bölümdedir; kova ve anahtar gerçek bir hesap ister, bu yüzden CI'da değil kurulumda (T09; prova için ayrıca T601) koşar. Aşağıdaki `COMPOSE` değişkeni: `COMPOSE="docker compose --env-file deploy/release.env --env-file /etc/shopfolio/settings.env -f deploy/compose.yaml"`.
+> **Kaynak:** `05 §7.6`, `09 §17`; T07. Kurulumda koşan adımlar bu bölümdedir; kova ve anahtar gerçek bir hesap ister, bu yüzden CI'da değil kurulumda koşar (T09'da yerel MinIO ile, §K.8; gerçek kovada T603; prova için ayrıca T601). Aşağıdaki `COMPOSE` değişkeni: `COMPOSE="docker compose --env-file deploy/release.env --env-file /etc/shopfolio/settings.env -f deploy/compose.yaml"`.
 
 ### J.1 Yedek ayarları
 
@@ -307,7 +307,7 @@ Kurulumda bir kez ve her güncellemede (`05 §7.6.8`). **Prova sunucunun dışı
 | Tarih | Yedek | Dönülen depo | Geri dönüşün süresi (indirme dahil) | Dönülen son an | Yaşam döngüsü kuralı var mı | Sonuç |
 |---|---|---|---|---|---|---|
 
-Koşumu kurulumdadır (T601; ilk iniş T09).
+Koşumu kurulumdadır (T601; ilk iniş T09, yerel MinIO ile — §K.10 satır 11).
 
 
 ---

@@ -68,7 +68,7 @@ $ gh api repos/turkerurganci/Shopfolio/actions/permissions/fork-pr-contributor-a
 
 > Fork PR onayı varsayılan olarak `first_time_contributors` geliyordu — repo public olduğu için bu, tanıdık olmayan her katkıcının workflow'u **otomatik** çalıştırabilmesi demekti. `all_external_contributors` ile dış katkıcıların tamamı manuel onaya bağlandı.
 >
-> Yayınlama yazma izni: `publish.yml`'in iş akışı düzeyindeki `packages: write` izni T04'ten beri iş akışındadır (deponun varsayılan iş akışı izni `read` kalır; izin iş akışında verilir). `PUBLISH_CMD` T06'da doldu; ilk sürüm etiketi T09'dadır (D-29 (a) T09 hazırlık).
+> Yayınlama yazma izni: `publish.yml`'in iş akışı düzeyindeki `packages: write` izni T04'ten beri iş akışındadır (deponun varsayılan iş akışı izni `read` kalır; izin iş akışında verilir). `PUBLISH_CMD` T06'da doldu; ilk sürüm etiketi T603'tedir (D-40 (a); T09 yerel referans kurulumda etiket basılmaz).
 
 ### 3.2 Secret'lar
 
@@ -153,7 +153,7 @@ Adım (ilk ana dal yayını bittikten sonra, repo sahibi; Actions günlüğünde
 1. GitHub'da repo sahibinin hesabında **Packages** sekmesini aç; üç paket görünür: `shopfolio-app`, `shopfolio-database`, `shopfolio-backup`.
 2. Her paket için **Package settings → Danger Zone → Change visibility → Public**.
 3. Doğrula, kimlik bilgisi olmayan bir makineden: `docker logout ghcr.io; docker pull ghcr.io/<sahip>/shopfolio-app:<tam commit kimliği>` (üç paket için).
-4. Sonucu `DEPLOY_RUNBOOK` ya da ilgili task raporuna işle. Açılış T09'da yapılır (`DEFERRED_BACKLOG.md` D-01); önce açılırsa CI'ın geri alma sınaması (`migration-dry-run.sh` 4. bölüm) ilk sürüm etiketinden sonra önceki imajı çekebilir.
+4. Sonucu `DEPLOY_RUNBOOK` ya da ilgili task raporuna işle. Açılış gerçek sunucuya ilk inişte, T603'te yapılır (`DEFERRED_BACKLOG.md` D-40 (b); T09 yerel referans kurulumda koşar, paket açmaz); önce açılırsa CI'ın geri alma sınaması (`migration-dry-run.sh` 4. bölüm) ilk sürüm etiketinden sonra önceki imajı çekebilir.
 
 Not: paket `org.opencontainers.image.source` etiketiyle repoya bağlıdır (`scripts/ci/publish-images.sh`); `GITHUB_TOKEN` yalnız bu repoya bağlı paketlere yazabilir.
 

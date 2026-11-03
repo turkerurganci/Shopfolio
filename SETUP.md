@@ -27,15 +27,15 @@
 
 ## 2. Teknoloji parametreleri
 
-- [ ] Teknoloji yığını belirlendi ve `.claude/CONTEXT.md` §1'e yazıldı
-- [ ] `.claude/CONTEXT.md` §3'e **kod klasörleri** klasör düzeyinde eklendi (dosya listesi **değil**)
+- [x] Teknoloji yığını belirlendi ve `.claude/CONTEXT.md` §1'e yazıldı
+- [x] `.claude/CONTEXT.md` §3'e **kod klasörleri** klasör düzeyinde eklendi (dosya listesi **değil**)
 
 **Repo konfigürasyon dosyaları yığına uyarlanır** (bunlar template'te bilinçli olarak eksik bırakıldı — yığına bağlıdır):
 
-- [ ] `.gitignore`'a eklendi: bağımlılık klasörleri · derleme çıktısı · log / coverage / test sonucu · IDE artifact'ları
-- [ ] `.gitignore`'a eklendi: **projeye özgü sır dosyası desenleri** (sertifika, anahtar dosyası, sağlayıcıya özgü kimlik dosyası)
-- [ ] `.gitattributes`'a eklendi: projeye özgü **binary** dosya tipleri
-- [ ] `.env.example` şablonu oluşturuldu — **gerçek değerler `.env`'de ve gitignored**; strateji `Docs/05_TECHNICAL_ARCHITECTURE.md §6`'ya yazılacak
+- [x] `.gitignore`'a eklendi: bağımlılık klasörleri · derleme çıktısı · log / coverage / test sonucu · IDE artifact'ları
+- [x] `.gitignore`'a eklendi: **projeye özgü sır dosyası desenleri** (sertifika, anahtar dosyası, sağlayıcıya özgü kimlik dosyası)
+- [x] `.gitattributes`'a eklendi: projeye özgü **binary** dosya tipleri
+- [x] `.env.example` şablonu oluşturuldu — **gerçek değerler `.env`'de ve gitignored**; strateji `Docs/05_TECHNICAL_ARCHITECTURE.md §6`'ya yazılacak
 
 > `.env` / `.env.*` / `!.env.example` varsayılanı template ile birlikte gelir; bu adım **yığına özgü** olanları ekler.
 
@@ -63,7 +63,7 @@
 
 > Adım **isimleri** ve **kapılar** sabittir (playbook). Yalnız **komutlar** projeye özeldir.
 
-- [ ] `.github/ci-commands.env` dolduruldu:
+- [x] `.github/ci-commands.env` dolduruldu (T04, T06, T09):
   - `LINT_CMD`
   - `BUILD_CMD`
   - `UNIT_TEST_CMD`
@@ -72,13 +72,13 @@
   - `MIGRATION_DRYRUN_CMD` *(yoksa `NOT_APPLICABLE`)*
   - `PACKAGE_BUILD_CMD` *(yoksa `NOT_APPLICABLE`)*
   - `E2E_CMD` *(uçtan uca faza kadar boş kalabilir)*
-- [ ] `.github/workflows/ci.yml` içindeki her job'a **runtime kurulum adımları** eklendi (dil/SDK kurulumu, bağımlılık cache'i)
-- [ ] Yayınlanacak artifact **yoksa** `.github/workflows/publish.yml` **silindi**; varsa `PUBLISH_CMD` ve auth adımları dolduruldu
-- [ ] Pipeline en az bir kez PR üzerinde çalıştırıldı ve yeşil
+- [x] `.github/workflows/ci.yml` içindeki her job'a **runtime kurulum adımları** eklendi (dil/SDK kurulumu, bağımlılık cache'i)
+- [x] Yayınlanacak artifact **yoksa** `.github/workflows/publish.yml` **silindi**; varsa `PUBLISH_CMD` ve auth adımları dolduruldu
+- [x] Pipeline en az bir kez PR üzerinde çalıştırıldı ve yeşil
 
 > ⚠️ **Bir katman bu projede yoksa boş bırakmayın — `NOT_APPLICABLE` yazın.** Boş bırakılan komut `SETUP_COMPLETE=true` yapıldığında CI'ı FAIL eder. Bu bilinçlidir: hiçbir şey çalıştırmayan yeşil bir pipeline, bu playbook'un önlemek için var olduğu defektin kendisidir.
 
-- [ ] **Son adım (§4 bitince):** `.github/ci-commands.env` içinde `SETUP_COMPLETE=true` yapıldı ve CI hâlâ yeşil
+- [x] **Son adım (§4 bitince):** `.github/ci-commands.env` içinde `SETUP_COMPLETE=true` yapıldı (2026-11-03); CI'ın yeşil kalması T09 PR'ının CI koşusunda doğrulanır
 
 ---
 
@@ -115,7 +115,7 @@
 - [x] Merge stratejisi: **yalnız squash** (merge commit ve rebase kapalı) — `mergeCommitAllowed:false, rebaseMergeAllowed:false, squashMergeAllowed:true`
 - [x] Merge sonrası dal otomatik silinir — `deleteBranchOnMerge:true`
 - [x] Fork PR'larının workflow çalıştırması kapalı — `approval_policy: all_external_contributors` (varsayılan `first_time_contributors`'dan sıkılaştırıldı)
-- [x] Yayınlama workflow'u varsa gerekli yazma izni verildi → **Gerekmedi:** `publish.yml` henüz kullanılmıyor (`PUBLISH_CMD` boş). İzin, yayınlama devreye alınırsa D-01 kapanışında verilir.
+- [x] Yayınlama workflow'u varsa gerekli yazma izni verildi → `publish.yml` kullanılıyor (`PUBLISH_CMD` = `scripts/ci/publish-images.sh`, T06). Yazma izni iş akışı düzeyindeki `packages: write` ile verilir (T04'ten beri; deponun varsayılan iş akışı izni `read` kalır). İlk sürüm etiketi ve paket görünürlüğünün açılması gerçek sunucuya ilk inişte (T603; D-40) yapılır — T09 yerel referans kurulumda etiket basmaz. *(D-29 (a), T09 kapanışında sahip yerine güncellendi.)*
 - [x] Gerekli gizli değerler tanımlandı ve `Docs/CI_CD_SETUP.md` §3.2'ye yazıldı
       > **Gerekmedi.** Bu aşamada hiçbir workflow secret kullanmıyor. §3.2 tablosu ilk dış servis entegrasyonunda (Aşama 8 / `INTEGRATION_RUNBOOKS`) dolar.
       >
@@ -182,21 +182,20 @@ grep -rn '`<[^>]*>`' Docs/ .claude/ \
 | Parametre | Değer | Tarih |
 |---|---|---|
 | Proje adı | **Shopfolio** — `github.com/turkerurganci/Shopfolio` (public) | 2026-08-11 |
-| Teknoloji yığını | *Belirlenmedi* — Aşama 4 kararı (`05_TECHNICAL_ARCHITECTURE.md`); bkz. `DEFERRED_BACKLOG.md` D-01 | — |
+| Teknoloji yığını | C# / .NET 10, ASP.NET Core Razor Pages, EF Core, PostgreSQL 18, Caddy 2, Docker Compose — `.claude/CONTEXT.md` §1, `Docs/05_TECHNICAL_ARCHITECTURE.md` §2 | 2026-11-03 |
 | Dal koruma rejimi | **B — sistem-enforced** | 2026-08-11 |
 | Dal koruma kanıtı | `gh api repos/turkerurganci/Shopfolio/rulesets` → HTTP 200 (ön-uçuş) · ruleset id `20666567`, `enforcement: active`, `bypass_actors: []` (uygulama) → `Docs/CI_CD_SETUP.md` §3.3 | 2026-08-11 |
 | Korunan dallar | `main` (`~DEFAULT_BRANCH`) — sunucu tarafı ruleset + lokal `PB_PROTECTED_BRANCHES` varsayılanı | 2026-08-11 |
 | İkinci AI (cross-review) | **Codex CLI, ChatGPT hesabıyla** (`codex exec`, model `gpt-5.6-terra`, düşünme düzeyi `high`). Yalnız `scripts/doc-scans/cross_review_ikinci_model.sh` ile çağrılır. Koşum: boş bir klasörde, salt okunur (`-s read-only`), kişisel ayarlar yüklenmeden (`--ignore-user-config`). Talimat, doküman ve şablon stdin'den tek metin olarak verilir, karar kaydı verilmez (K-431). Model her çağrıda açıkça verilir; `auto` yasak. Raporlar `Docs/CROSS_REVIEW_REPORTS/` altına yazılır; raporun başlığı turun hangi modelle koştuğunu söyler. **Kaynak:** Proje sahibinin kararı, 2026-10-31 (K-1484; sıra Aşama 9 cross-review 5. turundaki sınır deneyimiyle tersine çevrildi). | 2026-10-31 |
 | İkinci AI — yedek yöntem | **`cursor-agent`** (CLI, hesap tabanlı auth — API key kullanılmıyor), model `CURSOR_MODEL` (varsayılan `gpt-5.6-sol-high`; `auto` yasak). **Yalnız betiğin sağlık çağrısını geçerse** kullanılır (boş klasörde belirteç okutma; model açık değilse ya da dosya okunamıyorsa kullanılamaz). Asıl yöntemin kullanım sınırı dolunca tur **baştan** bu yöntemle koşulur; tur iki modele bölünmez, kısmi çıktılar kullanılmaz. İkisi de kullanılamazsa ilk açılan beklenir. **Kaynak:** Proje Vizyonu'nun cross-review'ı, 8.–18. tur — proje sahibinin kararı; sıra 2026-10-31'de değişti (K-1484). | 2026-10-31 |
-| `SETUP_COMPLETE=true` tarihi | *Yapılmadı* — §4 ertelendi (`DEFERRED_BACKLOG.md` D-01). Aşama 4 kapanışından sonra, ilk implementation task'ından önce. | — |
+| `SETUP_COMPLETE=true` tarihi | **2026-11-03** — T09 yerel referans kurulum provasından sonra (`Docs/DEPLOY_RUNBOOK.md` §K.10; D-01 kapandı; gerçek sunucu artıkları D-40). `E2E_CMD=NOT_APPLICABLE` (uçtan uca faz yok; advisory). | 2026-11-03 |
 
 ---
 
-## Kurulum durumu (2026-08-11)
+## Kurulum durumu (2026-11-03)
 
-**Tamamlanan:** §1 · §3 · §5 · §6 · §7 (2 madde hariç)
-**Ertelenen:** §2 · §4 → `DEFERRED_BACKLOG.md` D-01 (yığın Aşama 4'ün kararı — SETUP §2 uyarısı)
-**§7'de açık:** metodolojinin proje sahibiyle gözden geçirilmesi · Aşama 1 oturumunun başlatılması (ayrı chat)
-**§8 durumu:** kontrol 3–8 geçti · kontrol 1 ve 2 D-01'e bağlı, henüz geçmedi
+**Tamamlanan:** §1 · §2 · §3 · §4 · §5 · §6 · §7
+**Ertelenen:** yok (D-01 ✅ T09; gerçek sunucu artıkları D-40 → T603)
+**§8 durumu:** kontrol 2 (`SETUP_COMPLETE=true`) geçti; kontrol 1 (CI yeşil ve gerçekten bir şey çalıştırıyor) T09 PR'ının CI koşusunda doğrulanır; 3–9 önceden geçti.
 
-Kurulum **§8'in tamamı geçene kadar bitmiş sayılmaz** (bu dosyanın girişi). D-01 kapanmadan ilk implementation task'ı başlatılamaz.
+Kurulum **§8'in tamamı geçene kadar bitmiş sayılmaz** (bu dosyanın girişi).

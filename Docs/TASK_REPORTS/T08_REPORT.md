@@ -1,6 +1,6 @@
 # T08 — Sır düzeni
 
-**Faz:** F0 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✗ Doğrulama tur 2 FAIL — ikinci iterasyon; proje sahibine eskalasyon (`12 §8.5`) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -54,10 +54,27 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-03, `dda60d3`) |
-| Bulgu sayısı | 3 (S1, DÜŞÜK) |
-| Düzeltme gerekli mi | Evet — aynı PR'da |
-| Bloke-etmeyen not (K) sayısı | 2 |
+| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-03, `848da1f`); tur 1 ✗ FAIL (`dda60d3`) |
+| Bulgu sayısı | Tur 2: 3 (S1, DÜŞÜK) — tur 1'in üç bulgusu kapandı, üç yeni `09 §25` bulgusu · Tur 1: 3 (S1, DÜŞÜK) |
+| Düzeltme gerekli mi | Evet — aynı PR'da; ikinci iterasyon FAIL olduğu için önce proje sahibine eskalasyon (`12 §8.5`; kod düzeltmesi ya da `09` cümlesinin değişmesi kararı) |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 3 (düzeltme turunda kapanır) · Tur 1: 2 |
+
+### Doğrulama tur 2 — validator kanıtları (tam kapsam)
+
+Başlangıç kapıları: working tree temiz; `core.hooksPath` kurulu; ana dal son 3 run (41630669794, 41630669803, 41619599572) success; memory'de T08 satırı var. `12`'de T08'in kaynak birimlerine bağlı VAL satırı yok (`grep -nE 'MK-59([^0-9]|$)|MK-60([^0-9]|$)|05 §6\.x|09 §17'` boş; T08'in `10 KP-n`'i yok) — `Durum` hücresi yazılmadı; `12_matris_denetle.py --kapsam 1-77` hata 0. Dal CI run 41639445142 (head `848da1f`) success — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate yeşil.
+
+| # | Validator sonucu | Validator kanıtı |
+|---|---|---|
+| 1 | ✓ | `docker compose ... --profile tools config` (taban; taban+dev+install): `app` = `db_app_connection` + dört dış servis/türetme sırrı; `command` = `db_app_connection`; `read-command` = `db_reader_connection`; `migrate` = `db_migrator_password`; `backup` = iki dosya yedeği anahtarı; `database` kalıcı = iki veritabanı yedeği anahtarı, install bindirmesiyle + `db_superuser_password` ve üç `db_setup_*`; `proxy` yok. 15 sır `${SHOPFOLIO_SECRETS_DIR:-/etc/shopfolio/secrets}/<ad>` |
+| 2 | ✓ | Kod okundu (`SecretFiles`, `SecretFileConfigurationSource`, `Program.cs`); hiçbir hizmette bağlantı ortam satırı yok. Dalın derlemesi uygulama imajında koşturuldu: `db_app_connection` bağlıyken uygulama açıldı, canlılık `503` (veritabanı yok), kayıtta sır değeri 0 satır; dosya yokken açılış doğrulamada durdu (çıkış 134). Mutasyon: `Program.cs`'e `Environment.GetEnvironmentVariable` → `ApplicationSource_ReadsNoSecretFromTheEnvironment` kırmızı |
+| 3 | ✓ | Yerel Docker (29.2.1): bölüme runbook §B.1'in 15 dosyası sahibi/izniyle yazıldı (hepsi 0400); üç imaj kendi kullanıcısıyla okudu — 1654 yalnız kendi 7 dosyasını, 999 yalnız kendi 6 dosyasını, 10001 yalnız kendi 2 dosyasını; iki kullanıcıya açık dosya yok. Mutasyon: install bindirmesine `db_migrator_password` → `Compose_GivesEverySecretToOneContainerUserOnly` ve iki test kırmızı. Compose `uid/gid/mode` uyarısı yeniden görüldü |
+| 4 | ✓ | Compose çıktısı `05 §6.x.3`–§6.x.7, §6.x.18, §6.x.19 ile satır satır eşleşti; mutasyon `app`'e `db_reader_connection` → dört test kırmızı |
+| 5 | ✓ | Runbook §B "Rotation" `05 §6.x.10`–§6.x.12, §6.x.20 ile uyumlu; mutasyon `file_backup_cipher_key` döndürme hücresi → `Runbook_RotatesEverySecretExceptTheTwoBackupCipherKeys` kırmızı |
+| 6 | ✓ | `git ls-files` sır deseninde yalnız `deploy/.env.example`; `git check-ignore` `.env`, `**/secrets/`, `*.secret`, `appsettings.Production.json` tutuyor; dal farkında yalnız uydurma değerler; `BYPASS_LOG.md` farkı boş, commit'lerde `PB_ALLOW_*` yok |
+
+Tur 1 bulguları: (1) ✓ kapandı — her dosya tek kullanıcıya, 0440 yok (Docker'da gösterildi); (2) ✓ kapandı — kod `09 §3.5` madde 2'ye uydu; (3) ✓ kapandı — tarama `Architecture/`, örnekler derlemeden çıkarılmış ayrı dosyalar. K1 kapandı, K2 D-35 (b)'de.
+
+Tur 2 bulguları (`09 §25` "hayır" cevapları; üçü S1 DÜŞÜK): (1) `09 §4.3` madde 2 — zorunlu ayarın geliştirme değeri `compose.dev.yaml`'da ya da test kurulumunda durur; geliştirme yığınında `Database:ConnectionString`'in değeri geliştiricinin elle yazdığı, izlenmeyen yerel `db_app_connection` dosyasında; D-34 (b) bu kurala rağmen "çözüldü" işaretli. (2) `09 §19.2` madde 2 — davranış sınayan birim testi dosya sistemine dokunmaz; `SecretFilesTests` geçici dizine dosya yazıp okuyor (UnitTests'te dosya yazan tek test). (3) `09 §21.4` madde 1 — doküman tablosu ile kod envanterinin eşitlik denetimleri `UnitTests/Consistency/`'de, `Consistency` özelliğiyle ve Lint'te koşar; runbook §B ↔ Compose eşitliği (`Runbook_*`) `FileSecrets/`'ta, özelliksiz, Unit adımında. K-notları (düzeltme turunda): runbook §B.1 tablosu 1 numaralı dosyayı 999'un kalıcı dosyaları arasında sayıyor (satırı "yalnız ilk kurulumda"); bu raporun kabul kriterleri ve test tabloları eski adları (`DatabasePasswordPostConfigure`, `db_app_password`, 69/69, "⚠ 2") taşıyor; `GetEnvironmentVariables` için ihlal örneği yok (desen kapsıyor).
 
 ### Doğrulama tur 1 — validator kanıtları
 

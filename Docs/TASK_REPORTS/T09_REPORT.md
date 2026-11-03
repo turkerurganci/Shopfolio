@@ -1,6 +1,6 @@
 # T09 — İlk iniş provası: yerel referans kurulumda canlılık
 
-**Faz:** F0 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -45,10 +45,22 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-03, head `a4632b1`) |
+| Bulgu sayısı | 1 (DÜŞÜK, S1) |
+| Düzeltme gerekli mi | Evet — bulgu 1 |
+| Bloke-etmeyen not (K) sayısı | 5 (bu PR'ın düzeltme turunda kapatılır) |
+
+### Doğrulama tur 1 — ✗ FAIL (2026-11-03)
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana checkout'un hook klasörü); ana dal son 3 run `41681819821`, `41681819807`, `41675738538` success; `MEMORY.md`'de T09 satırı var.
+
+**Kabul kriterleri (validator kanıtı, kurulum validator tarafından reçeteyle sıfırdan kuruldu, 2026-11-03 17:54Z–18:03Z):** 1–7 ✓, KK1–KK7 ✓. Üç imaj dal Dockerfile'larından derlendi (kimlikler §K.6 ile birebir); `host-up` → `storage-setup` → `install-installation` → `checks.sh` hepsi çıkış 0: `t09-host` `privileged=true`, `docker:dind`, `daemon.json` ipv6/ip6tables açık; WSL'de yalnız önceden var olan `Ubuntu` (2023) ve `docker-desktop`; `git ls-remote --tags` 0. Canlılık konteyner içi `HTTP/1.1 200 OK`, alan adıyla `-> 200`; `migrate` çıkış 0. `image-ids` 3 `ok:`; çalışan konteynerin kendi `.Image`'ından ayrıca `docker save` ile yapılandırma özeti okundu, dış `.Id` ile eşit. `egress` 6 `ok:` + kontrol: süzülmeyen ağdan (`bridge`, `shopfolio-edge`) `1.1.1.1:443` geçer, `db-egress`'ten reddedilir; çalışan `backup` ve `database` konteynerlerinden `1.1.1.1:443` reddedilir, `t09-minio:443` geçer; MinIO'nun 9001'i süzülen ağdan reddedilir. `client-address`: vekil kaydı `172.31.90.4` / `fd09:0:0:90::4`, uygulamaya giden `X-Forwarded-For` aynı iki adres. Kriter 3: dal CI'ı `41687547294` günlüğünde Migration dry-run `##[notice]No published release yet … rollback test are skipped`. Kriter 5: aynı koşuda CI Gate success, Contract ve E2E `NOT_APPLICABLE` notu; D-01 ✅, artıklar D-40. Ayrıca yedek (iki depoya tam yedek, `check` 0, `cipher: mixed`), dosya yedeği `success` (`access.log` `-rw-r--r--`), iki kurtarma provası çıkış 0, sunucu yeniden başlayınca `DOCKER-USER` boş (§K.8 iddiası doğru). Temizlik `down.sh all` + `docker rmi`; `skinora-*` dokunulmadı.
+
+**Bulgu 1 (DÜŞÜK, S1 Sapma; `09 §25` "Kod hiçbir doküman cümlesiyle çelişmiyor mu" → hayır):** `.github/ci-commands.env` `E2E_CMD=NOT_APPLICABLE` gerekçesi "Uctan uca dogrulama fazi yok (11)"; aynı iddia `DEPLOY_RUNBOOK §K.11` ("uçtan uca faz yok"), D-01 satırı ve PR ⚠ karar 2'de. `11 §3` F6'nın adı "Uçtan uca doğrulama"dır, T601'in test beklentisi E2E'dir ve `05 §8.3.11` / §2.3.5 E2E adımının "uçtan uca doğrulama fazında bağlanır" dediğini yazar; `SETUP.md` §4'e göre `NOT_APPLICABLE` "bu katman projede yok" demektir. Bağlama yükümlülüğü hiçbir yerde izlenmiyor. Ayrıca E2E işi advisory'dir (`ci.yml` `continue-on-error`, `ci-gate.needs` dışında): boş komut yalnız advisory işi kırar, kapıyı değil. Düzeltme: gerekçe metinleri F6'da bağlanacağını yazsın (`05 §8.3.11`) ve bağlama bir backlog kalemiyle (F6 / T601) izlensin.
+
+**K-notları (bu PR'ın düzeltme turunda kapatılır):** K1 `down.sh all` `t09-minio`'yu `docker rm -f` ile `-v`'siz siler; `bitnamilegacy/minio` imajının `VOLUME /bitnami/minio/data`'sı her turda adsız birim bırakır (validator turu 1, yapım turları 2 birim bıraktı: `7ce3c9ab…`, `9b4b3c58…`). K2 D-40 (f) ve (k) aynı maddedir ("gerçek IPv6 isteğinde istemci adresi"). K3 Üç paket kimliksiz çekilebiliyor (GHCR anonim belirteçle `65250d8` manifesti HTTP 200, üçü de): `05 §8.2.5` ve T06 dış varsayım 6'nın "ilk yayın paketi özel doğurur" iddiası tutmuyor; D-40 (b) ve `CI_CD_SETUP.md` §3.4 "açık yap" adımı "doğrula"ya çevrilmeli (T09 görünürlüğü değiştirmedi). K4 `DEPLOY_RUNBOOK §J.5` prova kaydı tablosu boş; §K.7'deki iki provanın satırı oraya yazılmadı. K5 Yerel betikler sabitlenmemiş imajlar kullanır (`docker:dind`, `bitnamilegacy/minio:latest`, `minio-client:latest`, `amazon/aws-cli:latest`, `alpine`); ayrıca `deploy/compose.local-reference.yaml` `09 §4.3` `deploy/` ağacında ve `CONTEXT.md` §3 `deploy/` satırında yok (başlığı "gerçek sunucuda asla" der; `09 §4.3` `deploy/`'u sürümle gelen ürün dosyası sayar — yer ya da ağaç satırı netleşmeli).
+
+**Yapım raporu karşılaştırması:** kriter 1, 2, 4, 6, 7 uyumlu; yapımın `~` bıraktığı 3 ve 5'i validator CI günlüğü ve CI Gate ile ✓ yaptı; uyuşmazlık 1 — yapım ⚠ karar 2'yi ve PR'ın `09 §25` "çelişmiyor" cevabını uygun saydı, validator `05 §8.3.11` / `11` F6 ile çelişki sayar.
 
 ## Altyapı Değişiklikleri
 

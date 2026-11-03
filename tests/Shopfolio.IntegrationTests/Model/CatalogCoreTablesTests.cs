@@ -10,6 +10,7 @@ using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Settings;
+
 using DsnBuilder = Npgsql.NpgsqlConnectionStringBuilder;
 
 namespace Shopfolio.IntegrationTests.Model;

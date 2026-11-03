@@ -1,6 +1,7 @@
 # Development variant (05 8.1.2; 09 4.3 item 2): laid on top of compose.yaml,
 #   docker compose --env-file deploy/release.env --env-file deploy/.env.example -f deploy/compose.yaml -f deploy/compose.dev.yaml up
-# It adds the e-mail capture tool and nothing else: no other image, no other database version, no secret. No e-mail leaves the
+# It adds the e-mail capture tool and one environment setting of the application (the made-up development connection string,
+# below), and replaces the application's secrets list; no other image, no other database version, no secret of an installation. No e-mail leaves the
 # machine: the application's development setting selects the gateway that writes to the capture tool's SMTP port (09 4.3
 # item 2); that setting is added by the task that introduces it.
 #
@@ -19,7 +20,8 @@ services:
   app:
     environment:
       # Made-up development value; the password is the made-up content of the db_setup_app_password file of the development directory.
-      # The default can be overridden from the shell or the env file (SHOPFOLIO_DEV_DATABASE) when the local database differs.
+      # SHOPFOLIO_DEV_DATABASE (shell or env file) replaces the default when the local database differs; it is a development
+      # convenience, not an installation setting, and is not in .env.example.
       Database__ConnectionString: ${SHOPFOLIO_DEV_DATABASE:-Host=database;Database=shopfolio;Username=shopfolio_app;Password=dev-only-made-up-password}
     # Replaces (does not extend) the list of compose.yaml: the same list without db_app_connection.
     secrets:

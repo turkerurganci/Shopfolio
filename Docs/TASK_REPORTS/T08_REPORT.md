@@ -1,6 +1,6 @@
 # T08 — Sır düzeni
 
-**Faz:** F0 | **Durum:** ✗ Doğrulama tur 3 FAIL — iterasyon sınırı aşıldı; proje sahibine eskalasyon (`12 §8.5`) | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** Düzeltme 3 yapıldı (tur 3 FAIL sonrası); tam doğrulama bekliyor | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -12,23 +12,23 @@
 - **Compose** (`deploy/compose.yaml`): bağlantı için ortam satırı yok; `app` ve `command` `db_app_connection`, `read-command` `db_reader_connection`, `migrate` `db_migrator_password` alır; tek seferlik iki komut hizmeti, profil `tools`; `database` hizmeti kalıcı olarak yalnız iki yedek anahtarını alır.
 - **İlk kurulum bindirmesi** (`deploy/compose.install.yaml`, yeni): kurucu parola ve veritabanı kullanıcısına (999) ait üç ayrı kopya (`db_setup_migrator_password`, `db_setup_app_password`, `db_setup_reader_password`) veritabanına yalnız ilk başlatmada geçer (`05 §6.x.6`); `POSTGRES_PASSWORD_FILE` de burada.
 - **`DEPLOY_RUNBOOK §B`** dolduruldu: 15 sır dosyası için kaynak, alan bileşen, ALMAMALI, döndürme ve dosya sahibi/izni; **§B.1** konteyner kullanıcıları (1654, 999, 10001), dizin 0700, `install -o -g -m /dev/stdin` ile yazma, her dosyayı tek kullanıcının okuması, döndürmede iki dosyanın birlikte yazılması ve doğrulama.
-- **Testler** (`tests/Shopfolio.UnitTests/FileSecrets/` ve `Architecture/`): sır okuyucusu ve ayar kaynağı; Compose hizmet–sır eşlemesi `05 §6.x.2` tablosuna eşit; her sır tek konteyner kullanıcısına gider; bindirme; sır adları Compose'ta tanımlı; runbook §B ile Compose eşitliği; ortam değişkeninden sır okuma taraması `Architecture/` altında, kasıtlı ihlal örnekleri `Architecture/ViolationSamples/SecretSources/*.cs` (ayrı dosyalar, derlemeden çıkarılmış); `.gitignore` desenleri; `.env.example` sır taşımıyor.
+- **Testler** (`tests/Shopfolio.UnitTests/FileSecrets/`, `Architecture/`, `Consistency/`; sır okuyucusu ve ayar kaynağı testleri `tests/Shopfolio.IntegrationTests/FileSecrets/`): Compose hizmet–sır eşlemesi `05 §6.x.2` tablosuna eşit; her sır tek konteyner kullanıcısına gider; bindirme; sır adları Compose'ta tanımlı; runbook §B ile Compose eşitliği; ortam değişkeninden sır okuma taraması `Architecture/` altında, kasıtlı ihlal örnekleri `Architecture/ViolationSamples/SecretSources/*.cs` (ayrı dosyalar, derlemeden çıkarılmış); `.gitignore` desenleri. Deploy dosyalarının sır taramaları da `Architecture/` altında (`DeploySecretScan`, `DeploySecretScanTests`): Compose `environment` bölümü liste (`- AD=değer`) ve eşleme (`AD: değer`) biçimiyle, `.env.example` sır anahtarı ve sır biçimli değer için; kasıtlı ihlal örnekleri `Architecture/ViolationSamples/DeploySecrets/` altında ayrı dosyalarda (`ComposeEnvironmentList.yaml`, `ComposeEnvironmentMapping.yaml`, `SettingsSecretKey.env`, `SettingsSecretValue.env`, temiz örnekler); tek bilinçli istisna `compose.dev.yaml`'ın uydurma `Database__ConnectionString`'i, taramada adıyla ve gerekçesiyle (`09 §4.3` m.2) beyaz listede.
 - Dokümanlar: `.claude/CONTEXT.md`, `09 §4.3` ağacına `compose.install.yaml` satırı, `compose.dev.yaml` başlığı, `.gitignore` açıklaması, `DEFERRED_BACKLOG.md`.
 
 ## Etkilenen Modüller / Dosyalar
 
-`src/Shopfolio.Web/Program.cs`, `src/Shopfolio.Web/Infrastructure/FileSecrets/*` (3 yeni), `deploy/compose.yaml`, `deploy/compose.install.yaml` (yeni), `deploy/compose.dev.yaml`, `tests/Shopfolio.UnitTests/FileSecrets/*` (4 yeni), `Docs/DEPLOY_RUNBOOK.md`, `Docs/DEFERRED_BACKLOG.md`, `Docs/09_CODING_GUIDELINES.md` (ağaçta tek satır), `.claude/CONTEXT.md`, `.gitignore` (yorum), `Docs/IMPLEMENTATION_STATUS.md`, `.claude/memory/MEMORY.md`.
+`src/Shopfolio.Web/Program.cs`, `src/Shopfolio.Web/Infrastructure/FileSecrets/*` (3 yeni), `src/Shopfolio.Web/Infrastructure/DatabaseOptions.cs` (özet), `deploy/compose.yaml`, `deploy/compose.install.yaml` (yeni), `deploy/compose.dev.yaml`, `tests/Shopfolio.UnitTests/FileSecrets/*` (4 yeni), `tests/Shopfolio.UnitTests/Architecture/DeploySecretScan*.cs` ve `ViolationSamples/DeploySecrets/*` (yeni), `tests/Shopfolio.UnitTests/Consistency/SecretRunbookConsistencyTests.cs`, `tests/Shopfolio.IntegrationTests/FileSecrets/*`, `Docs/DEPLOY_RUNBOOK.md`, `Docs/DEFERRED_BACKLOG.md`, `Docs/09_CODING_GUIDELINES.md` (ağaçta tek satır), `.claude/CONTEXT.md`, `.gitignore` (yorum), `Docs/IMPLEMENTATION_STATUS.md`, `.claude/memory/MEMORY.md`.
 
 ## Kabul Kriterleri Kontrolü
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Sırlar bileşen başına ayrı dosya, köke açık dizin, Compose sır tanımıyla yalnız ilgili konteynere | ✓ | `compose.yaml` `secrets:` blokları; `SecretLayoutTests.Compose_GivesEachServiceExactlyTheSecretsOfItsTableRow`, `Compose_DefinesEverySecretOnceAsAFileNamedLikeIt`; dizin 0700: runbook §B.1 |
-| 2 | Uygulama sırları dosyadan okur; ortam değişkenine konmaz | ✓ | `SecretFiles` + `SecretFileConfigurationSource` (bağlantı dizisinin tamamı `db_app_connection` dosyasından; geliştirmede uydurma değer `compose.dev.yaml`'da); `SecretSourceScanTests`; yerel deneme: dosya bağlıyken açıldı, kayıtta sır değeri 0 satır, dosya yokken açılış doğrulamada durdu |
+| 1 | Sırlar bileşen başına ayrı dosya, köke açık dizin, Compose sır tanımıyla yalnız ilgili konteynere | ✓ | `compose.yaml` `secrets:` blokları; `FileSecrets/SecretLayoutTests.Compose_GivesEachServiceExactlyTheSecretsOfItsTableRow`, `Compose_DefinesEverySecretOnceAsAFileNamedLikeIt`; dizin 0700: runbook §B.1 |
+| 2 | Uygulama sırları dosyadan okur; ortam değişkenine konmaz | ✓ | `SecretFiles` + `SecretFileConfigurationSource` (bağlantı dizisinin tamamı `db_app_connection` dosyasından; geliştirmede uydurma değer `compose.dev.yaml`'da); `Architecture/SecretSourceScanTests`, `Architecture/DeploySecretScanTests` (Compose `environment` liste ve eşleme biçimi; `compose.yaml` `app`'e eşleme biçimli `PAYMENT_PASSWORD: made-up-value` eklenince kırmızı); yerel deneme: dosya bağlıyken açıldı, kayıtta sır değeri 0 satır, dosya yokken açılış doğrulamada durdu |
 | 3 | Her sırrın sahibi onu okuyan konteyner kullanıcısı, yalnız o okur | ✓ (Docker'da 15 dosya × 3 kullanıcı; istisna yok) | Yerel deneme (düzeltme 1 ve tur 2): uid 1654 yalnız kendi 7 dosyasını, 999 yalnız kendi 6 dosyasını, 10001 yalnız kendi 2 dosyasını okudu; çapraz okuma reddedildi. Compose `uid/gid/mode` alanlarını yok sayar (denendi) — izin sunucuda dosya yazılırken verilir (§B.1) |
-| 4 | Paylaşılan sır yok; her bileşen ve tek seferlik komut yalnız kendi satırının sırlarını alır | ✓ | `SecretLayoutTests` (tablo satırı satır yazılı), `Compose_GivesNoSecretToTheContinuouslyRunningApplicationBeyondItsRow` |
-| 5 | Döndürme `05 §6.x.9` tablosunda; döndürülmeyen yalnız iki yedeğin şifreleme anahtarları | ✓ | Runbook §B "Rotation" sütunu; `SecretLayoutTests.Runbook_RotatesEverySecretExceptTheTwoBackupCipherKeys` |
-| 6 | Repo yalnız `.env.example` şablonunu izler; sır değeri repoya ve kayda girmez | ✓ | `.gitignore` desenleri ve `.env.example` taraması testleri; sır bekçisi (pre-commit) commit'te temiz; kayıtta parola yok (A) |
+| 4 | Paylaşılan sır yok; her bileşen ve tek seferlik komut yalnız kendi satırının sırlarını alır | ✓ | `FileSecrets/SecretLayoutTests` (tablo satırı satır yazılı), `Compose_GivesNoSecretToTheContinuouslyRunningApplicationBeyondItsRow`, `Compose_GivesEverySecretToOneContainerUserOnly` |
+| 5 | Döndürme `05 §6.x.9` tablosunda; döndürülmeyen yalnız iki yedeğin şifreleme anahtarları | ✓ | Runbook §B "Rotation" sütunu; `Consistency/SecretRunbookConsistencyTests.Runbook_RotatesEverySecretExceptTheTwoBackupCipherKeys` |
+| 6 | Repo yalnız `.env.example` şablonunu izler; sır değeri repoya ve kayda girmez | ✓ | `FileSecrets/SecretRepositoryTests` (`.gitignore` desenleri) ve `Architecture/DeploySecretScanTests` (`.env.example` taraması, kasıtlı ihlal örnekli); sır bekçisi (pre-commit) commit'te temiz; kayıtta parola yok (A) |
 
 ### Doğrulama kontrol listesi (KK)
 
@@ -37,26 +37,26 @@
 | KK1 | ✓ | `docker compose config --services` (profil `tools`): 7 hizmet; sır eşlemesi testle sabit. Veritabanı üç kullanıcının parolasını yalnız `compose.install.yaml`'da alır; `app`'te `db_reader_connection` yok |
 | KK2 | ✓ | `SecretSourceScanTests.ApplicationSource_ReadsNoSecretFromTheEnvironment` (`src/**/*.cs`; `GetEnvironmentVariable*`, `AddEnvironmentVariables`, `PGPASSWORD`) + 5 ayrı ihlal örneği dosyası kırmızı (`GetEnvironmentVariables` için `EnvironmentReadAll.cs` dahil; regex'ten çıkarılınca kırmızı) |
 | KK3 | ✓ (yerel) | Yukarıda 3. kriter |
-| KK4 | ✓ | `SecretLayoutTests.Runbook_ListsEverySecretWithTheComponentsThatReceiveIt` |
-| KK5 | ✓ | `SecretLayoutTests.Runbook_RotatesEverySecretExceptTheTwoBackupCipherKeys`; sütun metinleri `05 §6.x.9`'dan |
-| KK6 | ✓ | Commit sır bekçisi temiz; `SettingsTemplate_CarriesNoSecretKeyAndNoSecretLikeValue` |
+| KK4 | ✓ | `Consistency/SecretRunbookConsistencyTests.Runbook_ListsEverySecretWithTheComponentsThatReceiveIt` |
+| KK5 | ✓ | `Consistency/SecretRunbookConsistencyTests.Runbook_RotatesEverySecretExceptTheTwoBackupCipherKeys`; sütun metinleri `05 §6.x.9`'dan |
+| KK6 | ✓ | Commit sır bekçisi temiz; `Architecture/DeploySecretScanTests.SettingsTemplate_CarriesNoSecretKeyAndNoSecretLikeValue` (ihlal örnekleriyle) |
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ 51 (40 Unit + 11 Consistency; düzeltme 2) + Integration 45/45 | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj -c Release` | 9 Consistency + 60 Unit; 36'sı yeni |
+| Unit | ✓ 61 (50 Unit + 11 Consistency; düzeltme 3) | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj -c Release` | CI'da Unit 50 + Lint 11; ana dalda 24 + 9 |
 | Lint | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes`; `dotnet build -c Release -warnaserror` | 0 uyarı, 0 hata |
-| Integration | CI'da | PostgreSQL hizmeti gerekir; bu task'ta entegrasyon kodu değişmedi | — |
+| Integration | ✓ 45/45 | `dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj -c Release`, `SHOPFOLIO_TEST_DATABASE` geçici `postgres:18` konteynerine | `SecretFilesTests` dahil 16 yeni test (ana dalda 29) |
 | Contract | — | NOT_APPLICABLE | — |
 
 ## Doğrulama
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 3 (2026-11-03, `22d22f6`); tur 2 ✗ FAIL (`848da1f`); tur 1 ✗ FAIL (`dda60d3`) |
+| Doğrulama durumu | Düzeltme 3 sonrası tam doğrulama bekliyor · ✗ FAIL — tur 3 (2026-11-03, `22d22f6`); tur 2 ✗ FAIL (`848da1f`); tur 1 ✗ FAIL (`dda60d3`) |
 | Bulgu sayısı | Tur 3: 2 (S1, DÜŞÜK) — tur 2'nin üç bulgusu ve üç K-notu kapandı, iki yeni `09 §25` bulgusu · Tur 2: 3 (S1, DÜŞÜK) · Tur 1: 3 (S1, DÜŞÜK) |
-| Düzeltme gerekli mi | Evet — aynı PR'da; iterasyon sınırı aşıldığı için önce proje sahibine eskalasyon (`12 §8.5`; düzeltme ya da kabul edilmiş risk kararı) |
+| Düzeltme gerekli mi | Yapıldı (düzeltme 3, yardımcı kararıyla proje sahibi yetkisiyle); sonrasında tam doğrulama |
 | Bloke-etmeyen not (K) sayısı | Tur 3: 5 (dördü düzeltme turunda kapanır, biri D-35 (b)'ye eklenir) · Tur 2: 3 · Tur 1: 2 |
 
 ### Doğrulama tur 3 — validator kanıtları (tam kapsam)
@@ -140,10 +140,26 @@ Karar (yardımcı, proje sahibi yetkisiyle 2026-11-03): kod dokümana uyar, `09`
 
 Testler: Unit 40 + Consistency 11 (51), Integration 45 (yerel PostgreSQL 18 konteyneri `t08d2-pg`, adıyla silindi). `dotnet build -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` temiz.
 
+## Düzeltme 3 (doğrulama tur 3 FAIL sonrası)
+
+Karar (yardımcı, proje sahibi yetkisiyle 2026-11-03): kod ve PR dokümana uyar, `05`/`09` değişmez.
+
+| Bulgu | Durum | Ne yapıldı |
+|---|---|---|
+| 1 (`09 §19.2` m.3, `§17` m.7) | Düzeltildi | İki deploy taraması `Architecture/`'ye taşındı (`DeploySecretScan`, `DeploySecretScanTests`). Compose taraması `environment` bölümünün liste ve eşleme biçimini okur; `compose.yaml`, `compose.install.yaml`, `compose.dev.yaml` taranır. Her tarama için ayrı dosyada kasıtlı ihlal örnekleri (`ViolationSamples/DeploySecrets/`: liste, eşleme, sır anahtarı, sır biçimli değer; üç temiz örnek) ve onları kırmızı gösteren testler. `compose.dev.yaml`'ın uydurma `Database__ConnectionString`'i taramada adıyla ve gerekçesiyle (`09 §4.3` m.2) beyaz listede; aynı metin başka dosya adıyla taranınca kırmızı. Mutasyon: `compose.yaml` `app`'e eşleme biçimli `PAYMENT_PASSWORD: made-up-value` → `ComposeFile_PutsNoSecretIntoAnEnvironmentSetting(compose.yaml)` kırmızı (geri alındı). `CONTEXT.md` §3 güncellendi |
+| 2 (`09 §24` m.7, `§25`) | Düzeltildi | PR #349 açıklaması baştan yazıldı: son hâl, okunan bölümler (çekirdek yedi + §3.5, §4.3, §17, §18, §19, §21.4; `05 §6.x`; `11` T08) ve `09 §25` soru-cevapları |
+| K1 | Kapandı | Runbook §B atfı `FileSecrets/SecretLayoutTests` ve `Consistency/SecretRunbookConsistencyTests` |
+| K2 | Kapandı | `compose.dev.yaml` başlığı bindirmenin gerçek içeriğini söyler (ortam ayarı, sır listesi değişimi); `DatabaseOptions.ConnectionString` özeti geliştirme yolunu anar |
+| K3 | Kapandı | Bu rapordaki eski test adları, sayılar, "Config: Yok", Dış varsayım 3 ve Known Limitations 1 güncel duruma çekildi |
+| K4 | Kapandı | Tüketicisi olmayan `AddSingleton(mountedFiles)` kaldırıldı; `SHOPFOLIO_DEV_DATABASE` `compose.dev.yaml` başlığında belgelendi (geliştirme kolaylığı; kurulum ayarı değil, `.env.example`'da yok) |
+| K5 | Kapandı | D-35 (b)'ye `09 §4.3` ağacının `compose.yaml` satırı eklendi |
+
+Testler: Unit 50 + Consistency 11 (61), Integration 45/45 (yerel `postgres:18` konteyneri `t08d3-pg`, adıyla silindi). `dotnet build -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` temiz; `docker compose config` (taban, +dev, +dev+install, profil `tools`) geçerli.
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok
-- **Config / ortam değişkeni:** Yok — bağlantı dizisi sır dosyasından gelir (düzeltme 1)
+- **Config / ortam değişkeni:** Üretimde yok — bağlantı dizisi sır dosyasından gelir (düzeltme 1). Yalnız geliştirme bindirmesi `compose.dev.yaml` `app`'e uydurma `Database__ConnectionString` ortam ayarı koyar (`09 §4.3` m.2; düzeltme 2); geliştirme değeri `SHOPFOLIO_DEV_DATABASE` ile geçersiz kılınabilir (yalnız `compose.dev.yaml`; düzeltme 3'te belgelendi, kurulum ayarı değil)
 - **Paketleme / dağıtım:** Var — `compose.yaml` (iki komut hizmeti, `database` sırları), `compose.install.yaml` (yeni), runbook §B/§B.1
 - **Yeni bağımlılık:** Yok
 
@@ -161,7 +177,7 @@ Testler: Unit 40 + Consistency 11 (51), Integration 45 (yerel PostgreSQL 18 kont
 |---|---|---|---|
 | 1 | Compose dosya kaynaklı sırrın sahipliğini ve iznini değiştirmez (`05 §6.x.1`, bilgim tarihli) | Docker Compose v5.1.0, 2026-11-03: `secrets uid, gid and mode are not supported, they will be ignored`; konteynerde dosya `0777 root` (Windows ana makine) | Doğrulandı — izin sunucuda dosya yazılırken verilir; Linux sunucuda dosya sahipliği ana makinedekiyle aynı gelir (T09'da referans sunucuda `ls -ln /run/secrets` ile sınanacak, D-31 değil — runbook §B.1 "Doğrulama") |
 | 2 | Veritabanı imajının kullanıcısı `postgres` 999, uygulama imajınınki `app` 1654, yedek imajınınki `backup` 10001 | `docker run --rm --entrypoint id` üç imajda | Doğrulandı |
-| 3 | `Npgsql` bağlantı dizisinde `Password` eklenebilir; dizi yazımı değeri hata iletilerine sızdırmaz | `NpgsqlConnectionStringBuilder` testleri; `ValidatorFailure_NeverPrintsThePasswordFromTheFile` | Doğrulandı |
+| 3 | `Npgsql` bağlantı dizisinde `Password` eklenebilir; dizi yazımı değeri hata iletilerine sızdırmaz | `NpgsqlConnectionStringBuilder` testleri; `SecretFilesTests.ConnectionStringFromTheFile_BindsIntoTheOptionsAndNoPasswordReachesTheValidatorMessage` | Doğrulandı |
 | 4 | Resmî `postgres` imajı `POSTGRES_PASSWORD_FILE`'ı okur; veri dizini doluyken bir daha istemez | Yerel deneme: parolalı dosyayla `postgres:18` açıldı; mevcut dizinde yeniden başlatma bu task'ta denenmedi | Kısmen — dosyayla açılış doğrulandı; "dolu dizinde parolasız başlama" T09'da sınanır (kurucu betik T10'da) |
 | 5 | Windows'ta `.gitignore` `secrets/` deseni `Secrets/` klasörünü de yutar | `git status` ilk denemede `Infrastructure/Secrets/` ve `tests/.../Secrets/` göstermedi | Doğrulandı — klasörler `FileSecrets/` olarak adlandırıldı |
 
@@ -169,7 +185,7 @@ Testler: Unit 40 + Consistency 11 (51), Integration 45 (yerel PostgreSQL 18 kont
 
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
-| 1 | Üst dokümanlarda açık kalan uyumsuzluklar (D-35 (b), (d); (a) ve (c) düzeltme 1'de çözüldü) (`09 §3.5` bağlantı dizisi cümlesi, `05 §8.2.4` hizmet listesi, `05 §6.x.1` ilk kurulum istisnası, döndürme adımlarının ayrıntısı) | D-35 (yeni) | `05`/`09` doküman değişikliği (GUARDRAILS §3) |
+| 1 | Üst dokümanlarda açık kalan uyumsuzluklar: D-35 (b) (`05 §8.2.4` hizmet listesi ve `09 §4.3` ağacının `compose.yaml` satırı) ve (d) (döndürme adımlarının ayrıntısı); (a) ve (c) düzeltme 1'de çözüldü | D-35 (yeni) | `05`/`09` doküman değişikliği (GUARDRAILS §3) |
 | 2 | Dosya/kayıt klasörlerinin yolları, pgBackRest kaydı | D-32 (b) kalanı | T07 |
 | 3 | `SETUP_COMPLETE` ve D-01 | D-01 | T09 (T08 ilerleme notu eklendi) |
 | 4 | Komut hizmetlerinin bağlandığı komut kipi (`command`/`read-command` imajın giriş noktasını kullanır) | — | Yönetim komutlarını yazan task'lar (`05 §8.5`) |

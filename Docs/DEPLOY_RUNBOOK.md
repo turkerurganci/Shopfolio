@@ -115,7 +115,7 @@
 > Strateji `05_TECHNICAL_ARCHITECTURE.md §6`'da; burada **envanter** tutulur.
 > **Dağıtım yarıçapı kolonu boş bırakılmaz** — "hepsine verilir" bir cevap değil, bir karardır ve gerekçesi yazılır.
 
-> **Dosya adı = Compose sır adı = bu tablonun "Secret" hücresi** (`deploy/compose.yaml`, `secrets:`); sunucuda `/etc/shopfolio/secrets/<ad>` (ya da `SHOPFOLIO_SECRETS_DIR`), konteynerde `/run/secrets/<ad>`. "Hangi bileşen alır" hücresindeki adlar Compose hizmet adlarıdır (`05 §6.x.2`); `command` veri yazan yönetim komutları ve durum komutu, `read-command` okuma komutu, dönüş denetimi ve bakımdaki incelemedir — ikisi `--profile tools` ile istek üzerine koşar. Hücre `deploy/compose.yaml` ve `deploy/compose.install.yaml` ile eşit tutulur (`tests/Shopfolio.UnitTests/FileSecrets/SecretLayoutTests`). Dosya sahibi ve izni: B.1.
+> **Dosya adı = Compose sır adı = bu tablonun "Secret" hücresi** (`deploy/compose.yaml`, `secrets:`); sunucuda `/etc/shopfolio/secrets/<ad>` (ya da `SHOPFOLIO_SECRETS_DIR`), konteynerde `/run/secrets/<ad>`. "Hangi bileşen alır" hücresindeki adlar Compose hizmet adlarıdır (`05 §6.x.2`); `command` veri yazan yönetim komutları ve durum komutu, `read-command` okuma komutu, dönüş denetimi ve bakımdaki incelemedir — ikisi `--profile tools` ile istek üzerine koşar. Hücre `deploy/compose.yaml` ve `deploy/compose.install.yaml` ile eşit tutulur (`tests/Shopfolio.UnitTests/FileSecrets/SecretLayoutTests` ve `tests/Shopfolio.UnitTests/Consistency/SecretRunbookConsistencyTests`). Dosya sahibi ve izni: B.1.
 
 | # | Secret | Nereden alınır | **Hangi bileşen alır** | **Hangisi ALMAMALI** | Rotation | Runbook |
 |---|---|---|---|---|---|---|

@@ -14,7 +14,6 @@ builder.Services.AddRazorPages();
 // database (password included) is the whole content of one such file and is the value of Database:ConnectionString (09 3.5 item 2).
 var mountedFiles = new SecretFiles(SecretFiles.DefaultDirectory);
 ((IConfigurationBuilder)builder.Configuration).Add(new SecretFileConfigurationSource(mountedFiles));
-builder.Services.AddSingleton(mountedFiles);
 builder.Services.AddOptions<DatabaseOptions>()
     .BindConfiguration(DatabaseOptions.SectionName)
     .ValidateOnStart();

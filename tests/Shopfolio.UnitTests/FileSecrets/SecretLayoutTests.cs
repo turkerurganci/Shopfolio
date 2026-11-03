@@ -5,7 +5,7 @@ namespace Shopfolio.UnitTests.FileSecrets;
 
 /// <summary>
 /// Keeps the secret layout of the installation equal to its three descriptions (05 6.x.2, MK-59): the table in the architecture
-/// document (ExpectedSecretLayout) and the Compose files in <c>deploy/</c>. The runbook inventory is checked in Consistency/.
+/// document (ExpectedSecretLayout) and the Compose files in <c>deploy/</c>. The runbook inventory is checked in Consistency/, the secret scans of the deploy files in Architecture/.
 /// </summary>
 public sealed class SecretLayoutTests
 {
@@ -70,31 +70,6 @@ public sealed class SecretLayoutTests
         Assert.DoesNotContain("db_migrator_password", actual["app"]);
         Assert.DoesNotContain("db_reader_connection", actual["app"]);
         Assert.DoesNotContain(actual["app"], s => s.Contains("backup", StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public void Compose_PutsNoSecretIntoAnEnvironmentSetting()
-    {
-        // Passwords reach containers as files; the only password-like value in an environment line is a path to a file. The one
-        // exception is the one-off migration process, which hands the file's content to its own process (see `migrate` in the file).
-        foreach (string text in new[] { ComposeText(), InstallText() })
-        {
-            foreach (string line in text.ReplaceLineEndings("\n").Split('\n'))
-            {
-                string trimmed = line.Trim();
-                if (trimmed.StartsWith('#') || !trimmed.StartsWith("- ", StringComparison.Ordinal) || !trimmed.Contains('=', StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                if (trimmed.Contains("PASSWORD", StringComparison.OrdinalIgnoreCase))
-                {
-                    Assert.True(
-                        trimmed.Contains("_FILE=/run/secrets/", StringComparison.Ordinal) || trimmed.Contains("$$(cat /run/secrets/", StringComparison.Ordinal),
-                        trimmed);
-                }
-            }
-        }
     }
 
     [Fact]

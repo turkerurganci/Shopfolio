@@ -1,0 +1,10 @@
+# Clean sample of the Compose environment scan: a plain setting in both forms and a path to a secret file.
+# This file is not part of the deployment; the scan test reads it as text.
+services:
+  app:
+    environment:
+      SITE_DOMAIN: localhost
+  database:
+    environment:
+      - POSTGRES_DB=shopfolio
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_superuser_password

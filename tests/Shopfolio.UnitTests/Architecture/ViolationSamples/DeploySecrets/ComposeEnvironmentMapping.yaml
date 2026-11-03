@@ -1,0 +1,6 @@
+# Deliberate violation sample of the Compose environment scan (09 19.2 item 3): a secret in the mapping form of environment.
+# This file is not part of the deployment; the scan test reads it as text. The violation is on line 6.
+services:
+  app:
+    environment:
+      PAYMENT_PASSWORD: dummy

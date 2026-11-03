@@ -1,3 +1,5 @@
+using System.Text;
+
 using Microsoft.EntityFrameworkCore;
 
 using Npgsql;
@@ -8,6 +10,7 @@ using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Settings;
+using DsnBuilder = Npgsql.NpgsqlConnectionStringBuilder;
 
 namespace Shopfolio.IntegrationTests.Model;
 
@@ -61,6 +64,75 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
             ("names", EightTables));
 
         Assert.Equal(EightTables, tables);
+    }
+
+    [Fact]
+    public async Task Migration_WhenPgTrgmIsNotInstalled_StopsWithAClearMessageAndKeepsTheEarlierMigrations()
+    {
+        // 09 10.6 items 8 and 11: the migration that makes the trigram index checks the extension first. A copy of the collection database is
+        // taken back to the state before it (no extension, no product core tables, no history row) and the bundle is applied to it.
+        string copy = "shopfolio_test_trgm_" + Convert.ToHexStringLower(System.Security.Cryptography.RandomNumberGenerator.GetBytes(4));
+        DsnBuilder serverBuilder = new(_collection.Dsn) { Pooling = false };
+        string originalDatabase = serverBuilder.Database!;
+        serverBuilder.Database = "postgres";
+        NpgsqlConnection.ClearAllPools();
+        await using (NpgsqlConnection connection = new(serverBuilder.ConnectionString))
+        {
+            await connection.OpenAsync(Ct);
+            await using NpgsqlCommand create = new($"CREATE DATABASE {copy} TEMPLATE {originalDatabase}", connection);
+            await create.ExecuteNonQueryAsync(Ct);
+        }
+
+        try
+        {
+            serverBuilder.Database = copy;
+            string copyDsn = serverBuilder.ConnectionString;
+            await ExecuteOnAsync(
+                copyDsn,
+                "DROP EXTENSION pg_trgm CASCADE; "
+                + "DROP TABLE product_categories, product_images, variants, option_values, options, categories, images, products CASCADE; "
+                + "DELETE FROM \"__EFMigrationsHistory\" WHERE migration_id LIKE '%CreateCatalogCoreTables'");
+
+            using MigrationBundle bundle = await MigrationBundle.BuildAsync(Ct);
+            InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() => bundle.ApplyAsync(copyDsn, Ct));
+
+            Assert.Contains("pg_trgm extension is not installed; the database creator user installs it", error.Message, StringComparison.Ordinal);
+            Assert.EndsWith("_CreateSettingsTables", (await QueryOnAsync(copyDsn, "SELECT migration_id FROM \"__EFMigrationsHistory\"")).Single(), StringComparison.Ordinal);
+            Assert.Empty(await QueryOnAsync(copyDsn, "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'products'"));
+        }
+        finally
+        {
+            NpgsqlConnection.ClearAllPools();
+            serverBuilder.Database = "postgres";
+            await using NpgsqlConnection connection = new(serverBuilder.ConnectionString);
+            await connection.OpenAsync(Ct);
+            await using NpgsqlCommand drop = new($"DROP DATABASE IF EXISTS {copy} WITH (FORCE)", connection);
+            await drop.ExecuteNonQueryAsync(Ct);
+        }
+    }
+
+    [Fact]
+    public async Task ProductNameSearch_UsesTheTrigramIndex()
+    {
+        // 09 10.6 item 11: with sequential scans switched off the plan of the contains search on the search form is an index scan.
+        await using NpgsqlConnection connection = new(_collection.Dsn);
+        await connection.OpenAsync(Ct);
+        await using (NpgsqlCommand off = new("SET enable_seqscan = off", connection))
+        {
+            await off.ExecuteNonQueryAsync(Ct);
+        }
+
+        await using NpgsqlCommand explain = new("EXPLAIN SELECT id FROM products WHERE name_search_form LIKE '%celik%'", connection);
+        StringBuilder plan = new();
+        await using (NpgsqlDataReader reader = await explain.ExecuteReaderAsync(Ct))
+        {
+            while (await reader.ReadAsync(Ct))
+            {
+                plan.AppendLine(reader.GetString(0));
+            }
+        }
+
+        Assert.Contains("ix_products_name_search_form", plan.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -718,6 +790,29 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
 
         PostgresException inner = Assert.IsType<PostgresException>(error.InnerException);
         return (inner.SqlState, inner.ConstraintName);
+    }
+
+    private static async Task ExecuteOnAsync(string dsn, string sql)
+    {
+        await using NpgsqlConnection connection = new(dsn);
+        await connection.OpenAsync(Ct);
+        await using NpgsqlCommand command = new(sql, connection);
+        await command.ExecuteNonQueryAsync(Ct);
+    }
+
+    private static async Task<List<string>> QueryOnAsync(string dsn, string sql)
+    {
+        await using NpgsqlConnection connection = new(dsn);
+        await connection.OpenAsync(Ct);
+        await using NpgsqlCommand command = new(sql, connection);
+        List<string> rows = [];
+        await using NpgsqlDataReader reader = await command.ExecuteReaderAsync(Ct);
+        while (await reader.ReadAsync(Ct))
+        {
+            rows.Add(reader.GetString(0));
+        }
+
+        return rows;
     }
 
     private async Task ExecuteAsync(string sql)

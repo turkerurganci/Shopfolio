@@ -11,6 +11,17 @@ namespace Shopfolio.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // The trigram index below needs pg_trgm, which the database creator user installs (09 10.6 item 8; K-1124): the migration does not
+            // install it, it checks it first and stops with a clear message.
+            migrationBuilder.Sql(
+                """
+                DO $$ BEGIN
+                  IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_trgm') THEN
+                    RAISE EXCEPTION 'pg_trgm extension is not installed; the database creator user installs it (DEPLOY_RUNBOOK)';
+                  END IF;
+                END $$;
+                """);
+
             migrationBuilder.CreateTable(
                 name: "categories",
                 columns: table => new

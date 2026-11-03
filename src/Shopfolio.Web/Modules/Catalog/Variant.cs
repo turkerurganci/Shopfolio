@@ -25,10 +25,10 @@ internal sealed class Variant
     public Guid? SecondOptionValueId { get; set; }
 
     /// <summary>The stock code as typed; shown as typed. Written only with its normalized form by <see cref="SetSku"/>.</summary>
-    public string Sku { get; private set; } = string.Empty;
+    public string SKU { get; private set; } = string.Empty;
 
     /// <summary>The normalized stock code: the column of the unique index (09 9.4 item 1).</summary>
-    public string NormalizedSku { get; private set; } = string.Empty;
+    public string NormalizedSKU { get; private set; } = string.Empty;
 
     /// <summary>Price, VAT included; above zero.</summary>
     public decimal Price { get; set; }
@@ -59,8 +59,8 @@ internal sealed class Variant
     public void SetSku(string sku)
     {
         ArgumentNullException.ThrowIfNull(sku);
-        Sku = sku;
-        NormalizedSku = TextNormalizer.NormalizeIdentity(sku);
+        SKU = sku;
+        NormalizedSKU = TextNormalizer.NormalizeIdentity(sku);
     }
 }
 
@@ -69,8 +69,8 @@ internal sealed class VariantConfiguration : IEntityTypeConfiguration<Variant>
     public void Configure(EntityTypeBuilder<Variant> builder)
     {
         builder.HasKey(v => v.Id);
-        builder.Property(v => v.Sku).HasColumnType("text");
-        builder.Property(v => v.NormalizedSku).HasColumnType("text");
+        builder.Property(v => v.SKU).HasColumnType("text");
+        builder.Property(v => v.NormalizedSKU).HasColumnType("text");
         builder.Property(v => v.Price).AsMoney();
         builder.Property(v => v.NetQuantity).AsNetQuantity();
 
@@ -79,7 +79,7 @@ internal sealed class VariantConfiguration : IEntityTypeConfiguration<Variant>
         builder.HasOne<OptionValue>().WithMany().HasForeignKey(v => v.SecondOptionValueId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<Image>().WithMany().HasForeignKey(v => v.ImageId).OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasIndex(v => v.NormalizedSku).IsUnique();
+        builder.HasIndex(v => v.NormalizedSKU).IsUnique();
 
         // The combination is unique with empty values counted equal: the one variant of a product without options and the one variant per
         // value of a single-dimension product are kept by this index. Its first column is the product, so the product's variants are read by it.

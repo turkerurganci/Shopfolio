@@ -162,4 +162,4 @@ Hâlâ açık ve hedefi geçerli: D-10, D-13, D-20, D-22, D-26, D-40, D-41, D-42
 **Yardımcıya — sahip yerine karar:** (1) task boyutu eşiği (öneri: değişmez, F1 ölçümüyle); (2) D-21'in tasarım kararı; (3) açık Dependabot PR'ları (D-43) F1'den önce birleştirilir ya da kapatılır; (4) açık risk envanteri boş — kabul edilecek kalem yok.
 
 ### Faz Tag
-- Tag: `phase/F0-pass`   - Commit: gate PR'ının squash commit'i (merge ve etiket yardımcıda, PASS ritüeli 20. adım)
+- Tag: `phase/F0-pass`   - Commit: gate PR'ının (#356) squash commit'i (merge ve etiket yardımcıda, PASS ritüeli 20. adım)

@@ -1,14 +1,15 @@
 #!/bin/sh
-# Installation checks of the Compose definition and its network (T05; run on the server by T09: 11 T09 KK7 and KK8, and the two T05 checks D-31 leaves to the installation).
-# The checks need a real server with Docker, the running installation and, for `egress`, the firewall rules applied
-# (docker-user-egress.sh). They are not run in CI.
+# Installation checks of the Compose definition and its network (T05; run by T09 on the local reference installation: 11 T09 KK6 and KK7, and the two T05 checks D-31 leaves to the installation).
+# The checks need a server with Docker, the running installation and, for `egress`, the firewall rules applied
+# (docker-user-egress.sh). They are not run in CI. On the real server (T603) they run again.
 #
 #   installation-checks.sh isolation       T05 KK2 (D-31 a): the proxy and the backup tool cannot reach the database
-#   installation-checks.sh egress          T09 KK7: database and backup subnets are refused except the object storage
+#   installation-checks.sh egress          T09 KK6: database and backup subnets are refused except the object storage
 #   installation-checks.sh redirect-hsts   T05 KK8 (D-31 c): HTTP redirects, HSTS is one year, no sub-domain, no preload
-#   installation-checks.sh client-address  T09 KK8: an IPv4 and an IPv6 request show the same client address in two places
+#   installation-checks.sh client-address  T09 KK7: an IPv4 and an IPv6 request show the same client address in two places
 #
 # Settings (environment):
+#   SKIP_REQUESTS=1                     client-address: the two requests were sent from another machine already; read the log only
 #   COMPOSE_FILES   Compose command's file and env arguments; default: the installation's own
 #   SHOPFOLIO_DOMAIN                    redirect-hsts, client-address
 #   OBJECT_STORAGE_HOST                 egress: a host name the object storage answers on (must pass)
@@ -88,10 +89,14 @@ check_redirect_hsts() {
 
 check_client_address() {
   : "${SHOPFOLIO_DOMAIN:?SHOPFOLIO_DOMAIN is required}"
-  # shellcheck disable=SC2086
-  curl -4 -sS -o /dev/null $CURL_OPTS "https://$SHOPFOLIO_DOMAIN/client-address-check-v4" || true
-  # shellcheck disable=SC2086
-  curl -6 -sS -o /dev/null $CURL_OPTS "https://$SHOPFOLIO_DOMAIN/client-address-check-v6" || true
+  # SKIP_REQUESTS=1: the two requests were already sent from another machine (the local reference installation sends them from a
+  # client container so that the source address is the client's own; scripts/local-reference/client-address.sh); only the log is read.
+  if [ "${SKIP_REQUESTS:-}" != "1" ]; then
+    # shellcheck disable=SC2086
+    curl -4 -sS -o /dev/null $CURL_OPTS "https://$SHOPFOLIO_DOMAIN/client-address-check-v4" || true
+    # shellcheck disable=SC2086
+    curl -6 -sS -o /dev/null $CURL_OPTS "https://$SHOPFOLIO_DOMAIN/client-address-check-v6" || true
+  fi
   for family in v4 v6; do
     line="$(compose exec -T proxy sh -c "grep client-address-check-$family /var/log/caddy/access.log | tail -n 1" || true)"
     seen="$(echo "$line" | sed -n 's/.*"remote_ip":"\([^"]*\)".*/\1/p')"

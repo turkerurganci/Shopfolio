@@ -15,7 +15,7 @@
 - **Kova ve anahtar** (`deploy/backup/`): `bucket-lifecycle.json`, `key-policy.template.json`, `bucket-checks.sh setup|keys|lifecycle` (kurulumda koşar).
 - **Testler:** `tests/scripts/` betik testleri (sh, alpine ash, debian dash'te), `.github/ci-commands.env` `UNIT_TEST_CMD` başına bağlandı; `Consistency/BackupLayoutConsistencyTests.cs` (15 eşitlik denetimi).
 - **CI Paketleme:** `scripts/ci/package-build.sh` adım 6 artık veritabanı konteynerini yedek ayarları ve yer tutucu sır dosyalarıyla başlatır, `archive_timeout`'u ve pgBackRest yapılandırmasının okunmasını sınar; adım 7 yedek betiklerinin varlığını sınar.
-- **Dokümanlar:** `09 §17` (ağaç, madde 6 pgBackRest istisnası, madde 7 betik testi, yeni madde 8), `DEPLOY_RUNBOOK` §J (J.1–J.5), backlog (D-28, D-30 (b), D-34 (a) kapandı; D-32 ve D-01 notları; yeni D-37), `CONTEXT.md`, `IMPLEMENTATION_STATUS.md`, hafıza.
+- **Dokümanlar:** `09 §17` (ağaç, madde 6 pgBackRest istisnası, madde 7 betik testi, yeni madde 8), `DEPLOY_RUNBOOK` §J (J.1–J.5), backlog (D-28, D-30 (b), D-34 (a) kapandı; D-32 ve D-01 notları; yeni D-39), `CONTEXT.md`, `IMPLEMENTATION_STATUS.md`, hafıza.
 
 ## Etkilenen Modüller / Dosyalar
 
@@ -51,20 +51,20 @@
 
 ## Düzeltme 1
 
-**Karar (yardımcı, proje sahibi yetkisiyle): kod dokümana uyar.** Tur 1 FAIL'ın (bulgu 1–4) düzeltmesi; K1, K2, K4, K6, K7 bu turda kapandı, K3 ve K5 D-37'ye eklendi.
+**Karar (yardımcı, proje sahibi yetkisiyle): kod dokümana uyar.** Tur 1 FAIL'ın (bulgu 1–4) düzeltmesi; K1, K2, K4, K6, K7 bu turda kapandı, K3 ve K5 D-39'ye eklendi.
 
 | # | Bulgu / not | Durum | Ne yapıldı |
 |---|---|---|---|
-| 1 | KRİTİK: yedek kullanıcısı pgBackRest kaydını ve sistem günlüğünü okuyamaz | ✓ (pgBackRest kaydı gerçek imajlarla); sistem günlüğü kısmı T09'da | `logread` grubu (gid 10002) yalnız `/var/log/postgresql/pgbackrest` dizinine, setgid + `2750` (`deploy/images/database/Dockerfile`); `backup` hizmeti `group_add: ["10002"]` (`deploy/compose.yaml`). Veri dizini, ayar ve sır dosyaları aynı kaldı (`05 §7.6.3`). Sistem günlüğü: yalnız `/var/log/journal` için `setfacl` (runbook §J.4 madde 5); Linux sunucu ister, deneme kurulumda (T09), D-37 (c) |
+| 1 | KRİTİK: yedek kullanıcısı pgBackRest kaydını ve sistem günlüğünü okuyamaz | ✓ (pgBackRest kaydı gerçek imajlarla); sistem günlüğü kısmı T09'da | `logread` grubu (gid 10002) yalnız `/var/log/postgresql/pgbackrest` dizinine, setgid + `2750` (`deploy/images/database/Dockerfile`); `backup` hizmeti `group_add: ["10002"]` (`deploy/compose.yaml`). Veri dizini, ayar ve sır dosyaları aynı kaldı (`05 §7.6.3`). Sistem günlüğü: yalnız `/var/log/journal` için `setfacl` (runbook §J.4 madde 5); Linux sunucu ister, deneme kurulumda (T09), D-39 (c) |
 | 2 | `/var/log/backup` yedek kapsamında değil | ✓ | `DEFAULT_BACKUP_PATHS`'e eklendi; eşitlik testi salt okuma bağlamalar + bu kayıt dizini (yazılabilir bağlama olarak Compose'da bulunmak zorunda) ile karşılaştırır; `09 §17` m.7'nin eşitlik cümlesi buna göre yazıldı |
 | 3 | `09 §17` m.7 çift metin | ✓ | yinelenen kuyruk silindi |
 | 4 | Prova bütün görselleri geri alıyor | ✓ | `file-restore-drill.sh` kayıt dizinini ve görsellerin ilk üç dosyasını (`restic ls --json`) geri alır |
 | K1 | İlk açılışta geçici sunucu kapanmıyor | ✓ | runbook §J.4 madde 4: beklenen davranış, yeniden başlatma politikası düzeltir |
 | K2 | Nesne kilidi red denemesi yok | ✓ | `bucket-checks.sh keys`: `put-object-lock-configuration` ve `put-bucket-policy` red denemesi; eşitlik testi ve runbook §J.3 madde 4 |
-| K3 | Prova `archive-get` | ertelendi | D-37 (d), T09 |
+| K3 | Prova `archive-get` | ertelendi | D-39 (d), T09 |
 | K4 | `init` hatası `set -e` altında yutulur | ✓ | `ensure_repository` ve `step_backup` hatayı elle döndürür; betik testi (`cat init` düşer, `backup` çağrılmaz) |
-| K5 | Paketleme taramaları geniş | ertelendi | D-37 (e) |
-| K6 | D-37 metni | ✓ | yanlış `05 §7.6.7` atfı ve olmayan "kayıt dosyasını okuyan durum ucu" cümlesi düzeltildi; "`09 §17` madde 8" yerine `pgbackrest.conf`'taki `repo1-retention-full` |
+| K5 | Paketleme taramaları geniş | ertelendi | D-39 (e) |
+| K6 | D-39 metni | ✓ | yanlış `05 §7.6.7` atfı ve olmayan "kayıt dosyasını okuyan durum ucu" cümlesi düzeltildi; "`09 §17` madde 8" yerine `pgbackrest.conf`'taki `repo1-retention-full` |
 | K7 | PR açıklaması `09 §25` | ✓ | PR açıklaması soru başına evet/hayır/uygulanamaz + gerekçe verir |
 
 **Yerel tam tur (`09 §17` m.7 ilk task kabulü; gerçek iki imaj, Docker):** veritabanı imajında pgBackRest'in yazdığı kayıt dosyaları `postgres:10002 0640` olur; `group_add 10002` ile koşan yedek konteyneri (uid 10001) `file-backup-job.sh`'ı koşar: backup, forget, prune (`--max-unused 0`), check çıkış 0; durum dosyası `result: success`, `lastSuccessAt` dolu; anlık görüntüde `/data/db-logs/pgbackrest/*` ve `/var/log/backup/file-backup.log` var; prova: 3 dosya geri alındı, `check --read-data-subset=5%` "no errors", üç `drill-record` alanı. Depo yerel (`/repo/files`); nesne depolama ve sistem günlüğü kurulumdadır. Docker kaynakları adıyla silindi.
@@ -76,13 +76,13 @@
 | Alan | Sonuç |
 |---|---|
 | Doğrulama durumu (tur 2) | ✓ PASS — 2026-11-03 (`501c24b`; kapsam tam; iki doğrulayıcıyla, ilki bağlam sınırında bölündü). Kriter 1–7 ✓, KK1–KK7 ✓, `09 §25` evet/uygulanamaz, güvenlik temiz. Dal CI run 41660924636 yeşil (10 check-run) |
-| Bulgu sayısı (tur 2) | 0 — tur 1'in dört bulgusu ve K1–K7 kapandı (K3, K5 D-37'de) |
+| Bulgu sayısı (tur 2) | 0 — tur 1'in dört bulgusu ve K1–K7 kapandı (K3, K5 D-39'de) |
 | Düzeltme gerekli mi (tur 2) | Hayır |
-| Bloke-etmeyen not (tur 2) | 2 — K8 → D-37 (f); K9 (PR açıklamasında `09 §25` "Performans" ve "Git ve süreç" grupları yanıtsız) bu raporda yanıtlandı |
+| Bloke-etmeyen not (tur 2) | 2 — K8 → D-39 (f); K9 (PR açıklamasında `09 §25` "Performans" ve "Git ve süreç" grupları yanıtsız) bu raporda yanıtlandı |
 | Doğrulama durumu (tur 1) | ✗ FAIL — 2026-11-03 (`fc2977c`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r1.md`. Kriter 1, 2, 4, 5, 6, 7 ✓; **3 ✗**. Dal CI run 41656454884 yeşil; build `-warnaserror` temiz, Unit 76/76 (Backup eşitlik 15/15), betik testleri sh/dash/ash'te yeşil, `compose config` geçerli |
 | Bulgu sayısı | 4 — (1) S1 KRİTİK: yedek kullanıcısı (10001) pgBackRest kaydını (0640 postgres) ve systemd günlüğünü (0640) okuyamaz; gerçek imajlarla koşuda restic çıkış 3, durum `failure/backup`, forget/prune/check hiç koşmaz (yerel Docker kanıtı); (2) S1 ORTA: yedek aracının kendi kaydı (`/var/log/backup`, `05 §9.1.4`) dosya yedeğinin yollarında yok; (3) S1 DÜŞÜK: `09 §17` madde 7 metni çift kaldı; (4) S1 DÜŞÜK: dosya provası "birkaç dosya" yerine bütün görsel dizinini geri alır |
 | Düzeltme gerekli mi | Evet — yeni yapım turu; `09 §17` m.7'nin "geçici depoda yedek–budama–denetim–kurtarma" kabulü gerçek imajlarla koşulup rapora yazılır |
-| Bloke-etmeyen not (K) sayısı | 7 — K1 ilk açılışta erişilemeyen depoda geçici sunucu kapanmıyor (bir kez `Exited (1)`); K2 nesne kilidi red denemesi yok; K3 prova `archive-get`'inin hangi depodan çektiği kurulumda gözlenmeli; K4 `init` hatası durmuyor; K5 paketleme taramaları geniş; K6 D-37 atıfları; K7 PR'da `09 §25` soru başına cevap yok — düzeltme turunda ya da D-37/backlog'a |
+| Bloke-etmeyen not (K) sayısı | 7 — K1 ilk açılışta erişilemeyen depoda geçici sunucu kapanmıyor (bir kez `Exited (1)`); K2 nesne kilidi red denemesi yok; K3 prova `archive-get`'inin hangi depodan çektiği kurulumda gözlenmeli; K4 `init` hatası durmuyor; K5 paketleme taramaları geniş; K6 D-39 atıfları; K7 PR'da `09 §25` soru başına cevap yok — düzeltme turunda ya da D-39/backlog'a |
 
 ### Doğrulama tur 2 — validator kanıtları (tam kapsam)
 
@@ -102,7 +102,7 @@ Atlama kaydı: iki `[ci-failure]` `PB_ALLOW_DIRECT_PUSH` (9a4174f, 5b68386 — k
 
 `09 §25` PR'da yanıtsız kalan gruplar (K9): **Performans** — uygulanamaz (uygulama kodu, sorgu, eşzamansız yol, önbellek yok; performans iddiası yok). **Git ve süreç** — PR tek amaçlı (T07), dal adı ve commit/PR biçimi kurala uygun, AI atıf satırı yok; CI yeşil ve sonucu beklendi (41660924636); göç yok; refactor yok.
 
-K8 (yeni, D-37 (f)): geliştirme bindirmesi (`compose.dev.yaml`) veritabanının arşivini kapatmıyor; `.env.example`'daki yer tutucu depoya (`s3.example.com`) arşiv düşer, günlük dosyaları `pg_wal`'da birikir.
+K8 (yeni, D-39 (f)): geliştirme bindirmesi (`compose.dev.yaml`) veritabanının arşivini kapatmıyor; `.env.example`'daki yer tutucu depoya (`s3.example.com`) arşiv düşer, günlük dosyaları `pg_wal`'da birikir.
 
 ## Altyapı Değişiklikleri
 
@@ -132,8 +132,8 @@ K8 (yeni, D-37 (f)): geliştirme bindirmesi (`compose.dev.yaml`) veritabanının
 
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
-| 1 | Veritabanı yedeğinin sonucu `backup_status_records`'a yazılmıyor | D-37 (a) | tablo ve `shopfolio_backup_status` kullanıcısı T10 / veri modeli task'ındadır |
-| 2 | Depo 1 saklaması ve disk kullanımı gerçek sunucuda gözlenecek | D-37 (b) | kurulum denemesi (T09) |
+| 1 | Veritabanı yedeğinin sonucu `backup_status_records`'a yazılmıyor | D-39 (a) | tablo ve `shopfolio_backup_status` kullanıcısı T10 / veri modeli task'ındadır |
+| 2 | Depo 1 saklaması ve disk kullanımı gerçek sunucuda gözlenecek | D-39 (b) | kurulum denemesi (T09) |
 | 3 | Uygulama dosya/kayıt klasör yolları | D-32 (a)/(b) kalan | dosya deposunu ve kaydı yazan task |
 | 4 | Kova kuralı, anahtar yetkisi ve kurucu yetkili yedek denemeleri | D-01 | gerçek kova gerekir; kurulumda koşar |
 

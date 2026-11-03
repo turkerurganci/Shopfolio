@@ -9,7 +9,7 @@
 # The repository is ALWAYS named: a backup without --repo goes to the first repository, which would leave the off-server copy
 # untaken (05 7.6.1; K-963). The off-server repository goes first, so a day with a slow local disk never costs the real backup.
 # A failing command stops the round and the job exits with its code; the scheduler logs the code. Writing the result into the
-# database's status record (05 7.6.1, 09 10.8) arrives with the task that creates that table (DEFERRED_BACKLOG D-37).
+# database's status record (05 7.6.1, 09 10.8) arrives with the task that creates that table (DEFERRED_BACKLOG D-39).
 # Retention is set by time in pgbackrest.conf (30 days off-server) and applied by pgBackRest's own expire after each backup.
 # Shell tracing stays off; no secret is written to the log.
 

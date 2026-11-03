@@ -39,3 +39,4 @@
 | 2026-11-03 00:33 UTC | Türker urgancı | task/T01-canlilik-ucu | `e2995b3` | **[bundled-pr]** main ile birlestirme: yerel main eski (e4de649), T04 origin/main'de zaten var — yabanci TXX: T04 |
 | 2026-11-03 14:38 UTC | Türker urgancı | task/T07-yedek-duzeni | `9a4174f` | **[ci-failure]** T07 CI kirmizi (paketleme taramasi 'latest'); bu push kok nedenin duzeltmesi 9a4174f — kirmizi uzerine is yigma degil  |
 | 2026-11-03 14:42 UTC | Türker urgancı | task/T07-yedek-duzeni | `5b68386` | **[ci-failure]** T07 CI kirmizi (paketleme sir taramasi, ${X_SECRETS_DIR:-/run/secrets} yanlis pozitif); bu push kok neden duzeltmesi  |
+| 2026-11-03 14:38 UTC | Türker urgancı | task/T10-veritabani-kullanicilari | `08acff8` | **[ci-failure]** T10 CI kirmizi (package-build adim 6 text||char); bu push kok nedenin duzeltmesi 08acff8 — kirmizi uzerine is yigma degil  |

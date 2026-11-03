@@ -69,6 +69,16 @@
 
 **Yapım raporu karşılaştırması:** kriter 1–8 ve test sayıları uyumlu; uyuşmazlık 3 — rapor ve PR `09 §25` sorularının her birini uyumlu der, bulgular 1–3 yapımda görülmedi. D-50 (a)(b)(c) kapanışı doğrulandı (anlık görüntüde `SingleRow` yok, iki yön testi ve FK dizin kilidi testi var).
 
+## Düzeltme 1 (tur 1 FAIL sonrası, 2026-11-04)
+
+| # | Bulgu | Değişiklik | Test |
+|---|---|---|---|
+| 1 | `pg_trgm` denetimi ve `09 §10.6` m.11 testleri yok | `CreateCatalogCoreTables.Up` ilk deyimi: `DO $$ … RAISE EXCEPTION 'pg_trgm extension is not installed; the database creator user installs it (DEPLOY_RUNBOOK)'` (m.8 kalıbı; göç henüz main'de değildi, yerinde düzeltildi, `Down` yok) | `Migration_WhenPgTrgmIsNotInstalled_StopsWithAClearMessageAndKeepsTheEarlierMigrations` (koleksiyon veritabanının kopyasında eklenti ve sekiz tablo silinir, göç satırı geri alınır, paket uygulanır → açık ileti; geçmişte yalnız `CreateSettingsTables`; `products` yok); `ProductNameSearch_UsesTheTrigramIndex` (`enable_seqscan = off`, `LIKE '%celik%'` planı `ix_products_name_search_form`) |
+| 2 | `Variant.Sku`/`NormalizedSku` ↔ `06 §4.6` `SKU`/`NormalizedSKU` | Özellik adları `SKU`, `NormalizedSKU`; `SetSku` yöntemi ve parametre adı aynı kaldı (dokümanda yöntem adı yok). Sütun (`sku`, `normalized_sku`) ve dizin adları değişmedi; Designer ve anlık görüntü güncellendi, `has-pending-model-changes` temiz | Mevcut `Variant` testleri (`ix_variants_normalized_sku` ihlali, `sku` sütunu) yeşil |
+| 3 | `Simplify` Latin dışı işaretleri atıyor | FormD sonrası işaret yalnız Latin taban harfin (Temel Latin, Latin-1, Latin Genişletilmiş-A/B, Ek Latin) ardından atılır; ötekiler kalır | `Simplify_LeavesTheNonLatinLettersAlone` (`й`, `ά`, `कु`, karma satırlar) |
+
+Test sonuçları (düzeltme sonrası): Unit 230/230, Integration 185/185 (gerçek PostgreSQL 18), Release `-warnaserror` 0 uyarı, `restore --locked-mode` 0.
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Var — `CreateCatalogCoreTables` (sekiz tablo, trigram GIN dizini; `pg_trgm` eklentisi kurulum SQL'inde zaten var).

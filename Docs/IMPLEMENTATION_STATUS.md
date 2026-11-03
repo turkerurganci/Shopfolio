@@ -76,7 +76,7 @@
 | T101 | Veri modeli temeli | ✓ | ✓ PASS (tur 1) | `f7b33c7` | #358 |
 | T102 | Enum tanımları ve değer dönüşümü | ✓ | ✓ PASS (tur 1) | `8277427` | #359 |
 | T103 | Başlangıç listeleri, firma ve yasal metin sürümü | ✓ | ✓ PASS (tur 2) | `7c04318` | #360 |
-| T104 | Ürün çekirdeği ve görsel | ✗ | ✗ FAIL (tur 1) | — | #361 |
+| T104 | Ürün çekirdeği ve görsel | ✓ (düzeltme 1) | ✗ FAIL (tur 1) — yeniden doğrulama bekliyor | — | #361 |
 | T105 | Fiyat, kupon ve dijital dosya | ⬚ | — | — | — |
 | T106 | Yönetici hesabı, davet ve işlem izi | ⬚ | — | — | — |
 | T107 | Müşteri hesabı | ⬚ | — | — | — |

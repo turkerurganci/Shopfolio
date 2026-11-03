@@ -36,3 +36,4 @@
 > **Kurulum notu (2026-08-11).** Template'ten devralınan bir satır burada duruyordu: playbook'un **kendi** repo'sunun bootstrap'ına ait `0c6213f` referanslı bir `[direct-push]` kaydı. O commit bu repo'da yok; satır Shopfolio'nun `main`'inde olmamış bir bypass'ı bildirdiği için kaldırıldı.
 >
 > Shopfolio'nun bootstrap push'u bypass **gerektirmedi**: hook'lar bilinçli olarak ilk push'tan sonra kuruldu, CI guard'ı ise commit mesajındaki `[skip-guard]` ile — kendi tasarlanmış çıkışıyla — geçildi.
+| 2026-11-03 00:33 UTC | Türker urgancı | task/T01-canlilik-ucu | `e2995b3` | **[bundled-pr]** main ile birlestirme: yerel main eski (e4de649), T04 origin/main'de zaten var — yabanci TXX: T04 |

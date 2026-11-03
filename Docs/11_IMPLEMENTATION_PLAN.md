@@ -21,7 +21,7 @@
 
 | Park maddesi | Karşılığı | Yazan oturum | Durum |
 |---|---|---|---|
-| P8.1 — okunacak `09` bölümleri (K-1302 (4), K-1357) | Okuma biçimi: bu başlık notunun okuma tablosu ve §5 "Task yapısı"nın `Dokümanlar` kuralı; her task'ın alanı kendi bloğunda | Y1 (biçim) · her task'ı yazan oturum (alan) | karşılandı: 214 task bloğunun `Dokümanlar` alanı (Y8 doğruladı; denetim betiği, beş alan 214 / 214) |
+| P8.1 — okunacak `09` bölümleri (K-1302 (4), K-1357) | Okuma biçimi: bu başlık notunun okuma tablosu ve §5 "Task yapısı"nın `Dokümanlar` kuralı; her task'ın alanı kendi bloğunda | Y1 (biçim) · her task'ı yazan oturum (alan) | karşılandı: 215 task bloğunun `Dokümanlar` alanı (Y8 doğruladı; denetim betiği, beş alan 214 / 214) |
 | P8.2 — eşitlik denetimlerinin Lint adımına girmesi (K-1356) | T04 (komutlar `.github/ci-commands.env`) | Y2 | karşılandı: T04 (Y8 doğruladı) |
 | P8.3 — yama sürümü denetiminin `publish.yml`'e girmesi (K-1356, K-1358) | T04, T09 | Y2 | karşılandı: T04, T09 (Y8 doğruladı) |
 | P8.4 — sahtelerin paylaşımı, xUnit v3 sınaması (K-1355) | T03 | Y2 | karşılandı: T03 (Y8 doğruladı) |
@@ -60,7 +60,7 @@ Bir task okunurken yalnız şunlar okunur: kendi bloğu, aday tablo ve §7.2 sat
 | Y7 | §5 F6, §6.1, §6.2 | `T601`–`T602` (2) | `IP5-12`, `IP6-01`, `IP6-02` | ✓ |
 | Y8 | §8 son hali, §9, §1, §2 (sayımlar kesin); yazım turunun kapanışı | — | `IP8-01`, `IP9-01`, `IP1-01`, `IP2-01` | ✓ |
 
-Task toplamı 30 + 33 + 90 + 10 + 49 + 2 = 214 (aday tablo; sayım `11_task_blok_denetle.py` çıktısındadır). Yedi faz bitti; `11_task_blok_denetle.py --tam` sorunsuz koşar (Y8: sorun 0).
+Task toplamı 30 + 33 + 90 + 10 + 49 + 3 = 215 (aday tablo; sayım `11_task_blok_denetle.py` çıktısındadır). Yedi faz bitti; `11_task_blok_denetle.py --tam` sorunsuz koşar (Y8: sorun 0).
 
 ---
 
@@ -68,11 +68,11 @@ Task toplamı 30 + 33 + 90 + 10 + 49 + 2 = 214 (aday tablo; sayım `11_task_blok
 
 > **Ne yazılır:** Tüm işi küçük, bağımsız, sıralı task'lara bölmek. Her task'ın ne olduğu, neye bağımlı olduğu, hangi dokümanlarla yapılacağı ve nasıl kabul edileceği.
 
-**Amaç.** Bu doküman, `02`–`10`'un tarif ettiği ürünü yedi fazda **214 task**'a böler (§3, §5): her task tek PR, tek bağlam ve tek bağımsız doğrulamayla biter (K-1409) ve bloğunda bağımlılığını, okunacak dokümanlarını, kabul kriterlerini, test beklentisini ve doğrulama kontrol listesini taşır (§5 "Task yapısı"). Task'ı yapan `task` skill'i, doğrulayan `validate` skill'i ve faz sonunu denetleyen `gate-check` skill'i işi buradan okur; `12` için "kabul kriterleri ve kontrol listesi `11`'de tanımlı olmadan doğrulama başlamaz" ilkesi bu bloklarla karşılanır.
+**Amaç.** Bu doküman, `02`–`10`'un tarif ettiği ürünü yedi fazda **215 task**'a böler (§3, §5): her task tek PR, tek bağlam ve tek bağımsız doğrulamayla biter (K-1409) ve bloğunda bağımlılığını, okunacak dokümanlarını, kabul kriterlerini, test beklentisini ve doğrulama kontrol listesini taşır (§5 "Task yapısı"). Task'ı yapan `task` skill'i, doğrulayan `validate` skill'i ve faz sonunu denetleyen `gate-check` skill'i işi buradan okur; `12` için "kabul kriterleri ve kontrol listesi `11`'de tanımlı olmadan doğrulama başlamaz" ilkesi bu bloklarla karşılanır.
 
 **Kapsam.** Planın kapsamı `10 §2`'nin 77 kapsam satırıdır (`KP-1`…`KP-77`); MVP'nin çıtası ve kabulleri `10 §1`'dedir ve bu doküman onları yeniden tanımlamaz. `10 §3`'ün 64 kapsam dışı satırı (`KD-1`…`KD-64`) task üretmez; matriste negatif denetim olarak yer alır — her satırın "yok" kararını koruyan task'ı vardır (§7.1.5, `10` grubu). MVP'ye girmeyen işler §9'a işaret edilir, burada ayrıntılanmaz. Plan yalnız yapım işini bölüştürür; zaman çizelgesi ya da süre tahmini yazmaz.
 
-**Girdiler ve ilke.** Girdi dokümanları `02`–`10`'dur (`00 §C.1`); `DEPLOY_RUNBOOK` F6'nın, `DEFERRED_BACKLOG.md`'deki D-01 F0'ın girdisidir (§7.1.5, devir satırları). Bu doküman **tüketicidir**: kaynakla çelişki çıkarsa kaynak kazanır ve fark buraya hizalama olarak yazılır; kaynağın kendisi yanlışsa §8'e GAP olarak girer. Task blokları kaynağın kuralını kopyalamaz, kimlikle işaret eder (kural ayrıntısı evinde kalır). İzlenebilirlik zorunludur: §7'nin iki yönü (ileri 1.501 kaynak birimi, geri 214 task) eşit olmadan §5'e geçilmez — matris tamamdır (§8).
+**Girdiler ve ilke.** Girdi dokümanları `02`–`10`'dur (`00 §C.1`); `DEPLOY_RUNBOOK` F6'nın, `DEFERRED_BACKLOG.md`'deki D-01 F0'ın girdisidir (§7.1.5, devir satırları). Bu doküman **tüketicidir**: kaynakla çelişki çıkarsa kaynak kazanır ve fark buraya hizalama olarak yazılır; kaynağın kendisi yanlışsa §8'e GAP olarak girer. Task blokları kaynağın kuralını kopyalamaz, kimlikle işaret eder (kural ayrıntısı evinde kalır). İzlenebilirlik zorunludur: §7'nin iki yönü (ileri 1.501 kaynak birimi, geri 215 task) eşit olmadan §5'e geçilmez — matris tamamdır (§8).
 
 ## 2. Kaynak envanteri özeti
 
@@ -94,23 +94,23 @@ Sayımlar `scripts/doc-scans/11_matris_envanter.py` ve `11_matris_kapsama.py` ç
 | Devir satırları | 19 | karar 9 · park maddesi 5 · gövde anması 4 · D-01 1 — §7.1.5 |
 | **Toplam** | **1.501** | ileri yön 1.501 / 1.501: eksik, fazla ve yinelenen 0 |
 
-**Matrisin çıktısı.** 1.501 kaynak birimi 214 aday task'a **3.367 (kaynak, task) çiftiyle** eşlenir; §7.2 bu çiftleri §7.1'den betikle türetilmiş hâliyle birebir taşır. Task'ların fazlara dağılımı (§3) F0 10 · F1 20 · F2 33 · F3 90 · F4 10 · F5 49 · F6 2'dir. Task gerektirmeyen birimler gerekçesiyle §7.1'de yazılıdır ve GAP değildir. Sayımlar kaynak dokümanlar değiştiğinde betikle yeniden alınır; bu tablo elle düzeltilmez.
+**Matrisin çıktısı.** 1.501 kaynak birimi 215 aday task'a **3.470 (kaynak, task) çiftiyle** eşlenir; §7.2 bu çiftleri §7.1'den betikle türetilmiş hâliyle birebir taşır. Task'ların fazlara dağılımı (§3) F0 10 · F1 20 · F2 33 · F3 90 · F4 10 · F5 49 · F6 3'tür. Task gerektirmeyen birimler gerekçesiyle §7.1'de yazılıdır ve GAP değildir. Sayımlar kaynak dokümanlar değiştiğinde betikle yeniden alınır; bu tablo elle düzeltilmez.
 
 ## 3. Faz tanımları
 
 > **Ne yazılır:** Fazlar ve task aralıkları. Faz sayısı projeye göre değişir; **şekil sabittir**: iskelet → veri → çekirdek servisler → iş mantığı → entegrasyonlar → arayüz → uçtan uca doğrulama.
 
-Yedi faz sabittir (K-1407 (1)); faz sayısı artırılmaz ya da azaltılmaz. Task aralıkları yüzlük bloklardır, arada `TXXa` girer (`00 §J`; K-1407 (2)). Task sayıları §7 aday task tablosundandır (214 task; sayım `scripts/doc-scans/11_task_blok_denetle.py` çıktısında).
+Yedi faz sabittir (K-1407 (1)); faz sayısı artırılmaz ya da azaltılmaz. Task aralıkları yüzlük bloklardır, arada `TXXa` girer (`00 §J`; K-1407 (2)). Task sayıları §7 aday task tablosundandır (215 task; sayım `scripts/doc-scans/11_task_blok_denetle.py` çıktısında).
 
 | Faz | Ad | Kapsam | Task aralığı |
 |---|---|---|---|
-| F0 | Proje iskeleti | Çözüm ve proje düzeni (D-01 dahil), test altyapısı, CI hattı ve eşitlik denetimleri, Compose geliştirme ortamı, üç imaj, yedek ve sır düzeni, veritabanı kullanıcıları, canlılık ucu, ilk yayın. **Çıkış ürünü:** boş uygulama imajı canlılık ucuna yanıt verir, ilk yayın yapılmıştır; referans kuruluma ilk iniş F0'ın sonundadır | `T01`–`T10` (10) |
+| F0 | Proje iskeleti | Çözüm ve proje düzeni (D-01 dahil), test altyapısı, CI hattı ve eşitlik denetimleri, Compose geliştirme ortamı, üç imaj, yedek ve sır düzeni, veritabanı kullanıcıları, canlılık ucu, yerel referans kurulumda ilk iniş provası. **Çıkış ürünü:** boş uygulama imajı yerel referans kurulumda canlılık ucuna yanıt verir; gerçek sunucuya ilk iniş ve ilk yayın F6'dadır (T603) | `T01`–`T10` (10) |
 | F1 | Veri katmanı | Veri modeli temeli ve enum'lar, 79 entity on altı göçte (en çok 8 entity, tek modül), başlangıç verisi, model eşitlik denetimleri. **Çıkış ürünü:** göçler ileri, idempotent ve geri alınabilir; eşitlik denetimleri yeşil; referans kuruluma göç | `T101`–`T120` (20) |
 | F2 | Çekirdek servisler | Ortak altyapı (`05 §3.3.11`): modül iskeletleri ve Contracts, kimlik şemaları ve sayfa–form kalıbı, iş kuyruğu ve zamanlayıcı, dosya deposu, kayıt ve maskeleme, ayar katmanları, veri koruma halkası, dış servislerin bağlantı katmanı arayüzleri ve sahteleri (gerçek bağlayıcılar F4'tedir). **Çıkış ürünü:** modül sınırı mimari testle korunur, kayıt maskeleme testleri geçer | `T201`–`T233` (33) |
 | F3 | İş mantığı | Dokuz modülün iş mantığı: sipariş ve ödeme durum makinesi (`02 §5.4`, §5.5), stok, kupon, iptal–cayma–iade, zaman kuralları, bildirim kararları, yönetim komutları, sayfasız uçlar. **Çıkış ürünü:** ürün → sepet → sipariş → `FakePaymentGateway` sonucu → kargo → teslim akışı servis düzeyinde entegrasyon testiyle geçer (K-1410 (2)) | `T301`–`T390` (90) |
 | F4 | Entegrasyonlar | Gerçek bağlayıcılar: PayTR (başlatma, bildirim, sorgu, iade, 3D Secure), SES (gönderim, geri dönen adresler), Google girişi; dış olgu varsayımlarının doğrulama kanıtları. **Çıkış ürünü:** üç servisin sandbox kanıtı, imza doğrulaması, DV-1, DV-2, DV-9 | `T401`–`T410` (10) |
 | F5 | Kullanıcı arayüzü | Ortak bileşenler (`OB-01`…`OB-20`), ekranlar (`E-01`…`E-54`; E-48 ekran değildir — `04 §4.3`), sayfa işleyicileri, betiksiz yol, parçalı yükleme betiği. **Çıkış ürünü:** betiksiz yol çalışır, erişilebilirlik (A seviyesi) taraması geçer, referans kuruluma iniş | `T501`–`T549` (49) |
-| F6 | Uçtan uca doğrulama | `DEPLOY_RUNBOOK §I` provası ve güncelleme komutu; canlı kanıt ve dağıtım; `12` senaryolarına bağlanış (`12` henüz yazılmadı — bağlanış ileri işaret olarak `IP5-12`'de yazılır). **Çıkış ürünü:** gerçek yapılandırmayla açılış provası ve canlı ödeme kanıtı (K-1411) | `T601`–`T602` (2) |
+| F6 | Uçtan uca doğrulama | gerçek sunucuya ilk iniş (T603); `DEPLOY_RUNBOOK §I` provası ve güncelleme komutu; canlı kanıt ve dağıtım; `12` senaryolarına bağlanış (`12` henüz yazılmadı — bağlanış ileri işaret olarak `IP5-12`'de yazılır). **Çıkış ürünü:** gerçek yapılandırmayla açılış provası ve canlı ödeme kanıtı (K-1411) | `T601`–`T603` (3) |
 
 Faz başına kapı ölçütleri §6.2'dedir (`IP6-01`, K-1411).
 
@@ -366,28 +366,26 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK6: repoda sır değeri taraması temiz.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
-#### T09: İlk yayın ve referans kuruluma ilk iniş
+#### T09: İlk iniş provası: yerel referans kurulumda canlılık
 - **Bağımlılık:** T04, T07, T08, T10
 - **Dokümanlar:** çekirdek; `09` §4, §15 (§15.1), §17, §21; `05 §3.2`, §6.3, §8.1, §8.2; `05 MK-14`, `05 MK-68`; `07 UC-81`; `10 §4.1`
 - **Kabul kriterleri:**
-  1. İlk sürüm etiketi açıklamalı `vANA.ARA.YAMA` biçimindedir ve `publish.yml` imajları yayımlar (`05 §8.3.12`; `09 §21.4` madde 2, 4).
-  2. İlk yayından önceki CI koşularında geri alma sınaması atlanır ve atlandığı CI çıktısında yazılıdır; yayından sonraki ilk CI koşusunda göç adımı son yayımlanan sürümün şemasına da uygular ve geri alma sınamasını koşar (`09 §21.4` madde 3; K-1358).
-  3. Üç imaj paketi ilk yayından sonra açık yapılır ve sunucu kimlik bilgisiz çeker (`05 §8.2.5`).
-  4. Referans kuruluma ilk iniş yapılır; boş uygulama imajı canlılık ucuna 200 verir (`05 §8.1.4`; `MK-68`; `10 §4.1` ÖK-12; `07 UC-81`).
-  5. Referans kurulumda denetlenen imajların özeti, güncelleme turunun kurulumlara çekeceği özet olarak kaydedilir (`05 §8.2.3`, §8.6.3).
-  6. Gerçek yapılandırmayla ayağa kaldırma provası sonucu `DEPLOY_RUNBOOK`'a yazılır (`05 §8.1.4`); ardından `.github/ci-commands.env`'de `SETUP_COMPLETE=true` yapılır, CI kapısı yeşil kalır ve D-01 kapanır (`09 §21.4` madde 5; `SETUP.md` §4, §8).
-  7. Referans sunucuda (Linux, iptables) T05'in `DOCKER-USER` kuralı uygulanır; veritabanı ve yedek aracı yalnız nesne depolamaya çıkar (`05 §3.2.5`; `MK-14`).
-  8. Referans sunucuda bir IPv4 ve bir IPv6 isteğinin istemci adresi erişim kaydında ve uygulamada aynıdır (`05 §6.3.3`; `09 §15.1` m8).
-- **Test beklentisi:** Yok — yayın ve kurulum işlemidir; kanıt canlılık yanıtı, çıkış ve IPv4/IPv6 adres denemeleri ve CI çıktısıdır
+  1. Yerel referans kurulum Docker içinde ayrıcalıklı bir Linux konteynerinde (iç Docker ve iptables, IPv4 ve IPv6) kurulur; WSL dağıtımı kurulmaz. Nesne depolama MinIO'dur; alan adı yereldir ve Caddy iç sertifikasıyla sunulur; ödeme, e-posta ve Google sırları sahte değerdir. Etiket basılmaz, paket görünürlüğü değişmez; imajlar yerelde paketleme betiğiyle kurulup iç Docker'a yüklenir (`05 §8.1.4`; `MK-68`).
+  2. Yerel kurulumda boş uygulama imajı canlılık ucuna 200 verir (`05 §8.1.4`; `MK-68`; `10 §4.1` ÖK-12; `07 UC-81`).
+  3. İlk yayından önceki CI koşularında geri alma sınaması atlanır ve CI çıktısında yazılıdır; yayından sonrası T603'tedir (`09 §21.4` madde 3; K-1358).
+  4. Yerel kurulumdaki üç imajın kimlikleri prova kaydına yazılır (`05 §8.2.3`).
+  5. Yerel yapılandırmayla ayağa kaldırma provası sonucu `DEPLOY_RUNBOOK`'a yazılır (`05 §8.1.4`); ardından `.github/ci-commands.env`'de `SETUP_COMPLETE=true` yapılır, CI kapısı yeşil kalır ve D-01 kapanır; D-01'in gerçek sunucu isteyen artıkları `DEFERRED_BACKLOG.md` D-40'a taşınır (T603) (`09 §21.4` madde 5; `SETUP.md` §4, §8).
+  6. Yerel kurulumda (Linux, iptables) T05'in `DOCKER-USER` kuralı uygulanır; veritabanı ve yedek aracı yalnız nesne depolamaya (MinIO) çıkar (`05 §3.2.5`; `MK-14`).
+  7. Yerel kurulumda bir IPv4 ve bir IPv6 isteğinin istemci adresi erişim kaydında ve uygulamada aynıdır (`05 §6.3.3`; `09 §15.1` m8).
+- **Test beklentisi:** Yok — kurulum işlemidir; kanıt canlılık yanıtı, çıkış ve adres denemeleri, CI çıktısı
 - **Doğrulama kontrol listesi:**
-  - KK1: etiket açıklamalı; kayıt defterinde imajlar var.
-  - KK2: CI çıktısında atlama satırı; yayından sonraki koşuda atlama yok, iki uygulama ve geri alma sınaması koşar.
-  - KK3: sunucu üç imajı da kimliksiz çeker.
-  - KK4: referans kurulumda canlılık ucu 200.
-  - KK5: kaydedilen özet kurulumdakiyle eşit.
-  - KK6: prova kaydı runbook'ta; `SETUP_COMPLETE=true` iken CI kapısı yeşil; D-01 satırı kapalı.
-  - KK7: veritabanı ve yedek aracından başka adrese çıkış reddedilir, nesne depolamaya geçer.
-  - KK8: IPv4 ve IPv6 isteğinde iki yerde aynı istemci adresi.
+  - KK1: kurulum ayrıcalıklı konteynerde; WSL yok; etiket yok, görünürlük aynı.
+  - KK2: yerel kurulumda canlılık ucu 200.
+  - KK3: CI çıktısında atlama satırı.
+  - KK4: prova kaydındaki imaj kimlikleri kurulumdakiyle eşit.
+  - KK5: prova kaydı runbook'ta; `SETUP_COMPLETE=true` iken CI kapısı yeşil; D-01 satırı kapalı, artıklar D-40'ta.
+  - KK6: veritabanı ve yedek aracından başka adrese çıkış reddedilir, MinIO'ya geçer.
+  - KK7: IPv4 ve IPv6 isteğinde iki yerde aynı istemci adresi.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T10: Veritabanı kullanıcıları
@@ -5551,10 +5549,10 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 ### F6 — Uçtan uca doğrulama
 
-**Yürütme sırası:** T601 → T602
+**Yürütme sırası:** T603 → T601 → T602
 
 #### T601: `DEPLOY_RUNBOOK` provası, canlı kanıt, dış sistemde kayıtlı adresler ve yansıyan tablolar
-- **Bağımlılık:** —
+- **Bağımlılık:** T603
 - **Dokümanlar:** çekirdek; `09` §19, §21; `08 §2.1.10`, §4.1, §4.2; `07 §2.1.9`; `06 §8.5`; `05` MK-07, MK-25, MK-27, MK-75, MK-76, §6.3, §6.9, §7.6, §8.8, §8.9, §11.1; `02 §9.1`, §9.1.5, §10.1, §10.1.3, §10.2, §10.2.7, §12.2, §12.3, §12.5; `10 §4.1`
 - **Kabul kriterleri:**
   1. `DEPLOY_RUNBOOK §I.2` boot reçetesi gerçek yapılandırmayla sıfırdan koşar (`00 §L.1`).
@@ -5609,6 +5607,30 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK9: aboneliği biten kurulum atlanır; gece tur tetiği yok.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
+#### T603: Gerçek sunucuya ilk iniş: ilk sürüm etiketi, açık imajlar, gerçek alan adı ve bulut deposu
+- **Bağımlılık:** —
+- **Dokümanlar:** çekirdek; `09` §15 (§15.1), §21; `05 §3.2`, §6.3, §8.1, §8.2; `05 MK-68`; `07 UC-81`; `10 §4.1`
+- **Kabul kriterleri:**
+  1. İlk sürüm etiketi açıklamalı `vANA.ARA.YAMA` biçimindedir ve `publish.yml` imajları yayımlar (`05 §8.3.12`; `09 §21.4` madde 2, 4).
+  2. Yayından sonraki ilk CI koşusunda göç adımı son yayımlanan sürümün şemasına da uygular ve geri alma sınamasını koşar (`09 §21.4` madde 3; K-1358).
+  3. Üç imaj paketi ilk yayından sonra açık yapılır ve sunucu kimlik bilgisiz çeker (`05 §8.2.5`; K-981).
+  4. Gerçek sunucuda denetlenen imajların özeti, güncelleme turunun kurulumlara çekeceği özet olarak kaydedilir (`05 §8.2.3`, §8.6.3).
+  5. Gerçek sunucuda boş uygulama imajı gerçek alan adında ve geçerli sertifikayla canlılık ucuna 200 verir (`05 §8.1.4`; `MK-68`; `10 §4.1` ÖK-12; `07 UC-81`).
+  6. Gerçek sunucuda `DOCKER-USER` kuralı uygulanır; veritabanı ve yedek aracı yalnız firmanın kovasına ve anahtarlarıyla çıkar; kovada silme yetkisi denemesi reddedilir (`05 §3.2.5`; `MK-14`; K-961). VPS güvenlik duvarı yalnız 80, 443 ve SSH'yi açar.
+  7. Gerçek sunucuda bir IPv4 ve bir IPv6 isteğinin istemci adresi erişim kaydında ve uygulamada aynıdır (`05 §6.3.3`; `09 §15.1` m8).
+  8. T09'un yerel provası ✓ olmadan başlanmaz (F0 kapısıyla karşılanır). Sonuçlar `DEPLOY_RUNBOOK`'a yazılır; D-40 kapanır.
+- **Test beklentisi:** Yok — yayın ve kurulum işlemidir; kanıt canlılık yanıtı, çıkış ve IPv4/IPv6 adres denemeleri ve CI çıktısıdır
+- **Doğrulama kontrol listesi:**
+  - KK1: etiket açıklamalı; kayıt defterinde imajlar var.
+  - KK2: yayından sonraki koşuda atlama yok; iki uygulama ve geri alma sınaması koşar.
+  - KK3: sunucu üç imajı da kimliksiz çeker.
+  - KK4: kaydedilen özet kurulumdakiyle eşit.
+  - KK5: gerçek alan adında canlılık ucu 200, sertifika geçerli.
+  - KK6: başka adrese çıkış reddedilir, firmanın kovasına geçer; silme yetkisi reddedilir; açık kapılar 80, 443, SSH.
+  - KK7: IPv4 ve IPv6 isteğinde iki yerde aynı istemci adresi.
+  - KK8: sonuçlar runbook'ta; D-40 kapalı.
+  - `09 §25` ilgili satırlar; güvenlik taraması
+
 ## 6. Faz geçiş kapıları
 
 ### 6.1 Genel gate check (tüm fazlarda)
@@ -5629,13 +5651,13 @@ Genel gate check'e (§6.1) eklenen kontroller K-1411'dendir; fazın kapısı hep
 
 | Faz | Ek kontrol |
 |---|---|
-| F0 | Üç imaj derlenir; canlılık ucu 200 verir; referans kuruluma ilk iniş gerçek yapılandırmayla yapılmıştır (`DEPLOY_RUNBOOK §I`'nin 1. turu); Lint eşitlik testleri kırmızıdan yeşile gösterilmiştir (`09 §21.4` madde 1) |
+| F0 | Üç imaj derlenir; canlılık ucu yerel referans kurulumda 200 verir (T09; gerçek sunucuya ilk iniş T603'tedir); Lint eşitlik testleri kırmızıdan yeşile gösterilmiştir (`09 §21.4` madde 1) |
 | F1 | Göç ileri, idempotent ve geri alınabilirdir (CI adım 6, Migration dry-run); eşitlik denetimleri yeşildir; göç referans kuruluma uygulanmıştır |
 | F2 | Mimari testler kasıtlı bir ihlalle kırmızıya döner; kayıt maskeleme testleri yeşildir (`09 §19.2`) |
 | F3 | İlk uçtan uca akış testi (T329) yeşildir; durum makinesi geçiş tablosu `02 §5.4` ve §5.5 ile eşittir; F4 ön koşullarının (OK-1, OK-2, OK-3, OK-4, OK-6, OK-12) hazır olup olmadığı sorulur (K-1408 (3)) |
 | F4 | PayTR, SES ve Google sandbox kanıtı alınmıştır; imza doğrulaması sınanmıştır; DV-1, DV-2 ve DV-9 referans kurulumun işaretli kaydından okunmuştur (`08 §2.1.10`, §4.1); DV-5 bu kapıya girmez, T510'dadır (K-1450 (4)) |
 | F5 | Betiksiz yol çalışır; erişilebilirlik taraması (A seviyesi) gate-check'te koşar ve temizdir — bileşen tabanı T540, T543, T544'tedir, taramanın maddeleri ve yöntemi `12`'dedir (`02 §3.34.5`; `04` 2.1.4; ileri işaret: 12); sürüm referans kuruluma inmiştir; DV-5 satırı T510'un gözlemiyle kapanmıştır |
-| F6 | Gerçek yapılandırmayla açılış provası koşmuştur (`DEPLOY_RUNBOOK §I`); canlı kanıt alınmıştır — gerçek kartla küçük tutar, 3D Secure, panelden uçtan uca işletme, geri ödeme; taksit sunuluyorsa taksitli (`08 §2.1.10`); güvenlik taraması temizdir (derlemenin bilinen açık taraması bulgusuzdur ve gate-check'in güvenlik özeti temizdir; `05 §8.8.4`, K-1512 (3), K-1556); `DEPLOY_RUNBOOK §F` kutuları işaretlidir |
+| F6 | Gerçek sunucuya ilk iniş yapılmıştır (T603); gerçek yapılandırmayla açılış provası koşmuştur (`DEPLOY_RUNBOOK §I`); canlı kanıt alınmıştır — gerçek kartla küçük tutar, 3D Secure, panelden uçtan uca işletme, geri ödeme; taksit sunuluyorsa taksitli (`08 §2.1.10`); güvenlik taraması temizdir (derlemenin bilinen açık taraması bulgusuzdur ve gate-check'in güvenlik özeti temizdir; `05 §8.8.4`, K-1512 (3), K-1556); `DEPLOY_RUNBOOK §F` kutuları işaretlidir |
 
 **F6'nın `12` ile bağı.** F6'nın kabul kanıtı `12` senaryolarına bağlanır; `12` henüz yazılmadığından bağlanış ileri işarettir (ileri işaret: 12) ve `12` yazılınca T601'in kabul kriteri 10'u senaryo kimlikleriyle eşler.
 
@@ -5699,9 +5721,9 @@ Kaynak (O5 2/2): `09` (25: `## n.` bölümü), `10` (143: KP satırı 77 · KD s
 | F3 | T390 | T391 |
 | F4 | T410 | T411 |
 | F5 | T549 | T550 |
-| F6 | T602 | T603 |
+| F6 | T603 | T604 |
 
-**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125; O4a 37 aday ekledi: F3 `T330`–`T366`, `02 §3`'ün iş kuralı task'ları; toplam 162; O4b 1/2 12 aday ekledi: F3 `T367`–`T378`, `02 §4`–§8'in iş kuralı task'ları; toplam 174; O4b 2/2 8 aday ekledi: F3 `T379`–`T386`, `02 §9`–§12'nin iş kuralı task'ları; toplam 182; O5 1/2 23 aday ekledi: F0 `T02`–`T09`, F2 `T218`–`T229`, F3 `T387`–`T388`, F6 `T602`, `05`in mimari kararları; toplam 205; O5 2/2 3 aday ekledi: F2 `T230`, `T231`, F5 `T548`, `09`'un park bloğunun üç yapım işi; toplam 208; O6 1/2 1 aday ekledi: F5 `T549`, K-1409 ekran sınırını aşan T503'ün E-05 payı (K-1437); toplam 209; O6 2/2 5 aday ekledi: F0 `T10`, F2 `T232`, `T233`, F3 `T389`, `T390`, okuma derinliği örnekleminin genişlemesinden çıkan sahipsiz işler (K-1441); toplam 214. Sayaçlar: F0 T11 · F2 T234 · F3 T391 · F4 T411 · F5 T550 · F6 T603).
+**Aday task tablosu (O1).** F1 eksiksiz ayrıldı (79 entity, en çok 8 entity/göç — K-1409; sıra yukarıdaki (5)); öteki fazlarda yalnız `06`, `07` ve `08` satırlarının gerek duyduğu task'lar vardır (O2 55 aday ekledi: F0 1, F2 12, F3 4, F5 38; toplam 102; O3 23 aday ekledi: F3 15 `T315`–`T329`, F5 8 `T540`–`T547`; toplam 125; O4a 37 aday ekledi: F3 `T330`–`T366`, `02 §3`'ün iş kuralı task'ları; toplam 162; O4b 1/2 12 aday ekledi: F3 `T367`–`T378`, `02 §4`–§8'in iş kuralı task'ları; toplam 174; O4b 2/2 8 aday ekledi: F3 `T379`–`T386`, `02 §9`–§12'nin iş kuralı task'ları; toplam 182; O5 1/2 23 aday ekledi: F0 `T02`–`T09`, F2 `T218`–`T229`, F3 `T387`–`T388`, F6 `T602`, `05`in mimari kararları; toplam 205; O5 2/2 3 aday ekledi: F2 `T230`, `T231`, F5 `T548`, `09`'un park bloğunun üç yapım işi; toplam 208; O6 1/2 1 aday ekledi: F5 `T549`, K-1409 ekran sınırını aşan T503'ün E-05 payı (K-1437); toplam 209; O6 2/2 5 aday ekledi: F0 `T10`, F2 `T232`, `T233`, F3 `T389`, `T390`, okuma derinliği örnekleminin genişlemesinden çıkan sahipsiz işler (K-1441); toplam 214; plan düzeltmesi (T09, 2026-11-03) 1 aday ekledi: F6 T603; toplam 215. Sayaçlar: F0 T11 · F2 T234 · F3 T391 · F4 T411 · F5 T550 · F6 T604).
 
 | Aday | Faz | Kısa ad | Modül | Kaynak birimi |
 |---|---|---|---|---|
@@ -5713,7 +5735,7 @@ Kaynak (O5 2/2): `09` (25: `## n.` bölümü), `10` (143: KP satırı 77 · KD s
 | T06 | F0 | Üç imaj ve kayıt defteri: uygulama, pgBackRest'li veritabanı ve yedek aracı; özetle sabitleme, tek eser sürüm | Ortak altyapı | `05 §8.2`, §3.2 (MK-02, MK-09…MK-11, MK-69) |
 | T07 | F0 | Yedek düzeni: sürekli günlük aktarımı, gecelik tam ve dosya yedeği, iki anahtarla şifreleme, saklama ve silmeye karşı koruma | Ortak altyapı | `05 §7.6.1`–§7.6.6 (MK-09, MK-25, MK-26) |
 | T08 | F0 | Sır düzeni: bileşen başına dosya sırları, paylaşılan sır yok, döndürme | Ortak altyapı | `05 §6.x` (MK-59, MK-60) |
-| T09 | F0 | İlk yayın ve referans kuruluma ilk iniş: boş uygulama imajı canlılık ucuna yanıt verir | Ortak altyapı | `05 §8.1`, §8.2 (MK-68) · K-1407 (4) |
+| T09 | F0 | İlk iniş provası: yerel referans kurulumda canlılık | Ortak altyapı | `05 §8.1`, §8.2 (MK-68) · K-1407 (4) |
 | T101 | F1 | Veri modeli temeli: anahtarlar, türler, adlandırma, sürüm sütunu, metin karşılaştırma, enum biçimi, bağların silme davranışı | Ortak | `06 §2.1`–§2.6, §2.8–§2.10, §5.1 (10) |
 | T102 | F1 | Enum tanımları ve değer dönüşümü | Ortak | `06 §5.2`–§5.6 (5) |
 | T103 | F1 | Başlangıç listeleri, firma ve yasal metin sürümü: Province, Country, Company, CompanySettings, CompanyDeliveryProvince, LegalTextVersion | Ayarlar | 6 entity |
@@ -5919,13 +5941,14 @@ Kaynak (O5 2/2): `09` (25: `## n.` bölümü), `10` (143: KP satırı 77 · KD s
 | T390 | F3 | Uçtan uca dal akış testleri (servis düzeyi): karışık sipariş, kargoda cayma, IBAN'sız iade, e-posta düzeltme | Sepet ve sipariş | `03 §2.10.2`–§2.10.5 (K-1410, K-1419; K-1441) |
 | T601 | F6 | `DEPLOY_RUNBOOK` provası, canlı kanıt, dış sistemde kayıtlı adresler ve yansıyan tablolar | Ortak | `06 §8.5`, `08 §4.2` |
 | T602 | F6 | Güncelleme komutu: referans kurulumdan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu | Ortak | `05 §8.6`, §8.7 (MK-73, MK-74) |
+| T603 | F6 | Gerçek sunucuya ilk iniş: ilk sürüm etiketi, açık imajlar, gerçek alan adı ve bulut deposu | Ortak altyapı | `05 §8.1`, §8.2 (MK-68) · K-1407 (4); plan düzeltmesi (T09) |
 
 **Kapsama komutları (Git Bash; depo kökünden).** Sayımlar aşağıdaki sayılarla aynı çıkmalı, her iki betik de çıkış kodu 0 vermelidir (eksik, fazla, yinelenen 0).
 
 ```sh
 python -I scripts/doc-scans/11_matris_envanter.py . /tmp/envanter.txt    # kaynak envanteri: 06 117, 07 208, 08 30 (ve öteki aileler)
 python -I scripts/doc-scans/11_matris_kapsama.py . /tmp/kapsama.txt      # matris satırları ↔ beklenen küme (dolu aileler: 06, 07, 08, 04, 03, 02 §1–§13, 05, 09, 10, devir — 1.501/1.501)
-python -I scripts/doc-scans/11_geri_yon.py . --denetle                       # 7.2 ↔ 7.1 iki yönlü eşitlik (kapsama betiği aynı denetimi ve K-1409 boyut sınırlarını da koşar — 214 aday, 3.367 bağ)
+python -I scripts/doc-scans/11_geri_yon.py . --denetle                       # 7.2 ↔ 7.1 iki yönlü eşitlik (kapsama betiği aynı denetimi ve K-1409 boyut sınırlarını da koşar — 215 aday, 3.470 bağ)
 ```
 
 **Okuma derinliği (O1).** `06`: §3.1 entity tablosu bütün, §2/§5–§9 alt bölüm başlıkları ve ilk paragrafları, §8 bütün, §7.2'nin 130 bağı betikle; §4 entity tanımları okunmadı — kaynak birim §3.1'in satırıdır. `08`: §1 bütün, §2–§5 başlıkları ve her başlığın ilk iki paragrafı (satır başına ilk 300–380 karakter; kesilerek okundu).
@@ -7234,7 +7257,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:MK-65 Sistem kayıtları P-45 kadar saklanır; kayıt dosyalarını imha işi siler; sunucunun kayıtları kendi döngüleriyle | T225, T201 | | |
 | 05:MK-66 Kayıtları kurulumu yapan okuma komutuyla okur; sonuç şifreli iletilir ve sunucudan silinir | T387 | | |
 | 05:MK-67 Canlılık ve durum uçları | T314, T01 | | |
-| 05:MK-68 Dört ortam; ayrı hazırlık sunucusu yok, referans kurulum öncüdür | T05, T09 | | |
+| 05:MK-68 Dört ortam; ayrı hazırlık sunucusu yok, referans kurulum öncüdür | T05, T09, T603 | | |
 | 05:MK-69 Bir sürüm tek eser | T06 | | |
 | 05:MK-70 CI adımlarının işi | T04 | | |
 | 05:MK-71 Üç ayar katmanı ve tasarım değerleri; açılışta ayar denetimi | T226 | | |
@@ -7246,7 +7269,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:MK-77 H-3: isteklerin %95'i bir saniyede; H-4: dakikada 100 farklı ziyaretçi | — | | |
 | 05:MK-78 Büyüme yolunun sırası ve tetikleyicileri | — | | |
 | 05:§3.1 Uygulamanın biçimi | T02, T218 | | |
-| 05:§3.2 Sunucudaki bileşenler ve ağ | T05, T06, T09 | | |
+| 05:§3.2 Sunucudaki bileşenler ve ağ | T05, T06, T09, T603 | | |
 | 05:§3.3 Modüller | T218, T03 | | |
 | 05:§3.4 Modüller arası iletişim kuralı | T218, T03 | | |
 | 05:§3.5 Vitrin ve panel | T206, T207 | | |
@@ -7266,7 +7289,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:§5.4 Kesintinin tespiti ve dönüşteki sıra | T221, T327 | | |
 | 05:§6.1 Kimlik doğrulama ve oturum | T207, T342, T343, T345, T379, T409 | | |
 | 05:§6.2 Yetkilendirme | T207, T323 | | |
-| 05:§6.3 Deneme limitleri ve istek hızı | T05, T09, T215, T601 | | |
+| 05:§6.3 Deneme limitleri ve istek hızı | T05, T09, T215, T601, T603 | | |
 | 05:§6.4 Anahtarlar ve tek kullanımlık bağlantılar | T222 | | |
 | 05:§6.5 Form ve site güvenliği | T207, T209, T339, T401 | | |
 | 05:§6.6 Yüklenen dosya | T223 | | |
@@ -7284,8 +7307,8 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:§7.8 Önerilen stok kodu | T332 | | |
 | 05:§7.9 Site içi arama | T333 | | |
 | 05:§7.10 Önbellek | T229 | | |
-| 05:§8.1 Ortamlar | T05, T09, T406 | | |
-| 05:§8.2 Paketleme ve kayıt defteri | T06, T05, T09 | | |
+| 05:§8.1 Ortamlar | T05, T09, T406, T603 | | |
+| 05:§8.2 Paketleme ve kayıt defteri | T06, T05, T09, T603 | | |
 | 05:§8.3 Dal stratejisi ve CI/CD hattı | T04, T03, T06 | | |
 | 05:§8.4 Konfigürasyon yönetimi | T226 | | |
 | 05:§8.5 Yönetim komutları ve ilk kayıtlar | T303, T387, T388, T389 | | |
@@ -7322,13 +7345,13 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 09:§12 Sözleşme ve olay sürümleme | T102, T203, T220, T311, T538 | | |
 | 09:§13 Arka plan iş kuralları | T220, T221, T303, T387, T388, T389 | | |
 | 09:§14 Hassas hesaplama kuralları | T227, T336, T337, T338, T349, T369, T370, T401, T402, T403, T405 | | |
-| 09:§15 Güvenlik kuralları | T207, T209, T09, T215, T219, T222, T223, T224, T232, T312, T339, T342, T354, T376 | | |
+| 09:§15 Güvenlik kuralları | T207, T209, T09, T215, T219, T222, T223, T224, T232, T312, T339, T342, T354, T376, T603 | | |
 | 09:§16 İstemci tarafı kurallar | T525, T539, T540, T543, T544, T548 | | |
 | 09:§17 Yardımcı servis / sidecar standartları (varsa) | T06, T07, T08, T10 | | |
 | 09:§18 Loglama ve gözlemlenebilirlik | T225, T230, T231, T314, T203, T213 | | |
 | 09:§19 Test kuralları | T03, T04, T120, T202, T329, T538, T546, T547 | | |
 | 09:§20 Performans kuralları | T210, T220, T223, T229 | | |
-| 09:§21 Git ve CI/CD kuralları | T03, T04, T06, T09 | | |
+| 09:§21 Git ve CI/CD kuralları | T03, T04, T06, T09, T603 | | |
 | 09:§22 Refactor kuralları | — | | |
 | 09:§23 Yasaklar | T03, T04 | | |
 | 09:§24 AI çalışma kuralları | — | | |
@@ -7479,7 +7502,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 10:KD-62 Ters ibraz ürüne girmez | T317, T352 | | |
 | 10:KD-63 Ayrı galeri içerik tipi yok | T339, T358, T359 | | |
 | 10:KD-64 İkinci ödeme sağlayıcısı desteklenmez | T202, T352, T401 | | |
-| 10:§4.1 Kurulum kontrol listesi (ÖK-1…ÖK-12) | T09, T303, T330, T331, T382, T401, T407, T409, T410, T601 | | |
+| 10:§4.1 Kurulum kontrol listesi (ÖK-1…ÖK-12) | T09, T303, T330, T331, T382, T401, T407, T409, T410, T601, T603 | | |
 | 10:§4.2 Kısıtlar ve kabuller (SK-1…SK-10) | T226, T318, T330, T332, T333, T357, T371, T381 | | |
 
 **Devir satırları** — Aşama 8'den ve Aşama 1'den gelen devirler (O5 2/2: karar 9 · park maddesi 5 · gövde anması 4 · D-01 1 = 19; `11_devir_esle.py` A–F)
@@ -7493,18 +7516,18 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | devir:K-1355 Test projelerinde sahtelerin paylaşımı ve xUnit v3 sınaması | T03 | | |
 | devir:K-1356 Eşitlik denetimlerinin Lint adımına ve yama sürümü denetiminin publish.yml'e girmesi | T03, T04 | | |
 | devir:K-1357 Okunacak 09 bölümleri (çekirdek yedi bölüm) | — | | |
-| devir:K-1358 Yama sürümü denetimi ve ilk yayında geri alma sınamasının atlanması | T04, T09 | | |
+| devir:K-1358 Yama sürümü denetimi ve ilk yayında geri alma sınamasının atlanması | T04, T09, T603 | | |
 | devir:K-1391 Yükleme betiği, kayıt biçimleyicisi ve maskeleme testleri (açılış) | T230, T231, T548 | | |
 | devir:P8.1 Park maddesi 1 — okunacak 09 bölümleri | — | | |
 | devir:P8.2 Park maddesi 2 — eşitlik denetimlerinin Lint adımına girmesi | T04 | | |
-| devir:P8.3 Park maddesi 3 — yama sürümü denetiminin publish.yml'e girmesi | T04, T09 | | |
+| devir:P8.3 Park maddesi 3 — yama sürümü denetiminin publish.yml'e girmesi | T04, T09, T603 | | |
 | devir:P8.4 Park maddesi 4 — sahtelerin paylaşımı, xUnit v3 sınaması | T03 | | |
 | devir:P8.5 Park maddesi 5 — yükleme betiği, kayıt biçimleyicisi, maskeleme testleri | T230, T231, T548 | | |
 | devir:04-1948 Gövde anması: yasal metinlerin içeriği (GA-7) ★ | T356, T366, T373 | | |
 | devir:09-117 Gövde anması: okunacak 09 bölümleri | — | | |
 | devir:09-2249 Gövde anması: okunacak 09 bölümleri (§24 madde 1) | — | | |
 | devir:12-177 Gövde anması: kabul kriterleri ve kontrol listesi 11'de tanımlı olmadan doğrulama başlamaz | — | | |
-| devir:D-01 SETUP §2 ve §4 kurulumda tamamlanmadı (DEFERRED_BACKLOG) | T02, T03, T04, T05, T06, T07, T09 | | |
+| devir:D-01 SETUP §2 ve §4 kurulumda tamamlanmadı (DEFERRED_BACKLOG) | T02, T03, T04, T05, T06, T07, T09, T603 | | |
 
 ### 7.2 Geri izlenebilirlik (task → kaynak öğe)
 
@@ -7727,6 +7750,7 @@ Her task → hangi kaynak öğeden besleniyor?
 | T549 | `04` E-05; `02` §3.7.6; `10` KP-7 | ✓ 3 kaynak (özgün 3, alt bölüm 0, devir 0) |
 | T601 | `06` §8.5; `08` §4.2; `02` §9.1, §9.1.5, §10.1, §10.1.3, §10.2, §10.2.7, §12.2, §12.2.1, §12.2.8, §12.3, §12.3.1, §12.3.2, §12.3.3, §12.5; `05` MK-07, MK-25, MK-27, MK-75, MK-76, §6.3, §6.9, §7.6, §8.8, §8.9; `10` §4.1 | ✓ 27 kaynak (özgün 13, alt bölüm 14, devir 0) |
 | T602 | `05` MK-73, MK-74, §8.6, §8.7 | ✓ 4 kaynak (özgün 2, alt bölüm 2, devir 0) |
+| T603 | `05` MK-68, §3.2, §6.3, §8.1, §8.2; `09` §15, §21; `10` §4.1; `devir` K-1358, P8.3, D-01 | ✓ 11 kaynak (özgün 1, alt bölüm 7, devir 3) |
 
 > **Neden geri yön de gerekli:** İleri yön yalnız **eksik** task'ı yakalar (S3). Planın kendisine sızmış, hiçbir gereksinime dayanmayan işi ise yalnız geri yön yakalar — ve o iş bir kez plana girdiğinde faz boyunca "planda var" gerekçesiyle sorgulanmadan yapılır.
 
@@ -7750,7 +7774,7 @@ Her task → hangi kaynak öğeden besleniyor?
 
 **Yazım turunun sonunda durum (K-1454).** Yedi GAP'in sekiz kapatan task'ının hepsi §5'te blok olarak yazıldı (T303, T389, T202, T232, T222, T233, T10, T390; kapsamları kendi bloklarında, kabul kriterleriyle). Task blokları yazılırken **yeni boşluk çıkmadı** (`GAP-22` açılmadı): kayıtta olmayan yazım kararları plan kararı olarak K-1443…K-1453'te kaydedildi ve hiçbiri `02`–`10`'a geriye etki yaratmadı. Matris sayımları yazım sonunda yeniden koşuldu: ileri yön 1.501 / 1.501, 7.1 ile 7.2 arasında 3.367 çift ve yalnız bir yönde olan çift yok, 214 aday task'ın 214'ü blok olarak yazılı.
 
-**Açık boşluk: yok.** Matris tamamdır (ileri yön 1.501/1.501, 7.2 eşit, 214 aday task); task listesine (`§5`) geçiş kapısı açıktır.
+**Açık boşluk: yok.** Matris tamamdır (ileri yön 1.501/1.501, 7.2 eşit, 215 aday task); task listesine (`§5`) geçiş kapısı açıktır.
 
 ## 9. Post-MVP parkı
 

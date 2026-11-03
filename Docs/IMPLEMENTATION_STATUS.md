@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-03 — T07 (Yedek düzeni) bağımsız doğrulama tur 4 (düzeltme 2 sonrası, `main` ile birleşik hâl): ✓ PASS (`aa1cfe6`; kapsam tam; 7/7 kabul kriteri, KK1–KK7 ✓; dal CI run 41670381320 yeşil; tur 3'ün bulgusu (`VAL-F016`, prova son anı) kapandı — yerel Docker'da gerçek imajla prova kurtarmanın bitmesini bekledi, `last-moment` birincil sunucudaki son işlemle aynı, günlükler `--repo=2` ile dış depodan; bulgu 0; K-notları: `core.hooksPath` yine mutlak yol (düzeltildi), D-39 (d) kapandı). Merge yardımcıda (PR #351). Önceki giriş `STATUS_CHANGELOG.md`'ye taşındı (T07 doğrulama tur 3 FAIL).
+**Son güncelleme:** 2026-11-03 — T09 plan düzeltmesi (PLAN_CORRECTION_REQUIRED; PR #353; proje sahibinin kararı): T09 "İlk iniş provası: yerel referans kurulumda canlılık" oldu (Docker içinde ayrıcalıklı Linux konteyneri, MinIO, sahte sırlar) ve ⬚ Bekliyor'a döndü; gerçek sunucuya ilk iniş yeni F6 task'ı T603'e taşındı (⬚); D-01'in gerçek sunucu artıkları `DEFERRED_BACKLOG.md` D-40'ta. Toplam 215 task. T01–T08 ve T10 ✓. Önceki giriş `STATUS_CHANGELOG.md`'ye taşındı (T09 BLOCKED OWNER_INPUT).
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -35,7 +35,7 @@
 | F3 | İş mantığı | `T301`–`T390` (90) | ⬚ | — | |
 | F4 | Entegrasyonlar | `T401`–`T410` (10) | ⬚ | — | |
 | F5 | Kullanıcı arayüzü | `T501`–`T549` (49) | ⬚ | — | |
-| F6 | Uçtan uca doğrulama | `T601`–`T602` (2) | ⬚ | — | |
+| F6 | Uçtan uca doğrulama | `T601`–`T603` (3) | ⬚ | — | |
 
 ---
 
@@ -64,7 +64,7 @@
 | T06 | Üç imaj ve kayıt defteri | ✓ | ✓ PASS (tur 2) | — | #347 |
 | T07 | Yedek düzeni | ✓ | ✓ PASS (tur 4) | — | #351 |
 | T08 | Sır düzeni | ✓ | ✓ PASS (tur 4) | — | #349 |
-| T09 | İlk yayın ve referans kuruluma ilk iniş | ⬚ | — | — | — |
+| T09 | İlk iniş provası: yerel referans kurulumda canlılık | ⬚ | — | — | — |
 | T10 | Veritabanı kullanıcıları | ✓ | ✓ PASS (tur 2) | — | #350 |
 
 ---
@@ -312,6 +312,7 @@
 |---|---|---|---|---|---|
 | T601 | `DEPLOY_RUNBOOK` provası, canlı kanıt, dış sistemde kayıtlı adresler ve yansıyan tablolar | ⬚ | — | — | — |
 | T602 | Güncelleme komutu: referanstan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu | ⬚ | — | — | — |
+| T603 | Gerçek sunucuya ilk iniş: ilk sürüm etiketi, açık imajlar, gerçek alan adı ve bulut deposu | ⬚ | — | — | — |
 
 ---
 

@@ -297,7 +297,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK6: yakalayıcı ayakta; geliştirme dosyasında e-posta sırrı yok.
   - KK7: dosyalarda `latest` yok.
   - KK8: HTTP yönlenir; HSTS bir yıllıktır, alt alan ve ön yükleme yok.
-  - KK9: IPv6 açık ya da userland proxy kapalı; uygulama T215 KK9, deneme T09 KK8.
+  - KK9: IPv6 açık ya da userland proxy kapalı; uygulama T215 KK3, deneme T09 KK8.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T06: Üç imaj ve kayıt defteri
@@ -1227,25 +1227,23 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Dokümanlar:** çekirdek; `09` §15; `07 §2.8`; `03 §6.1`; `02 §8.3.1`, §11.2 P-31…P-37, P-46, P-49; `05 MK-48`, `MK-49`, §6.3; `10 KP-72`, `KD-59`
 - **Kabul kriterleri:**
   1. Gövde tavanı uç sınıfı başınadır: GET gövde taşımaz, genel form 64 KB, uzun metinli panel formu 1 MB, görsel yükleme işleyicisi P-23 + 1 MB, parça 5 MB, bildirim 64 KB (`07 §2.8.1`; T203).
-  2. Tavanı aşan istek 413 alır; form yeniden gösterilmez (`07 §2.8.7`).
-  3. Genel sınır kayan penceredir: altmış saniye, altı dilim; eksen vekilin ilettiği IP, IPv6'da /64 (`07 §2.8.2`; `09 §15.1` m8).
+  2. Tavanı aşan istek 413 alır; gövde okunmadığı için form yeniden gösterilmez (`07 §2.8.7`).
+  3. Genel sınır kayan penceredir: altmış saniye, altı dilim; eksen vekilin ilettiği IP, IPv6'da /64 (`07 §2.8.2`; `09 §15.1` madde 8).
   4. Statik dosyalar ve görseller sınırın dışındadır; bildirim ucu imzası doğruysa sınıra girmez, imzası tutmayan bildirim form gönderimi sınırına sayılır; parçalı yükleme, canlılık, durum, site haritası, robots.txt ve indirme ucu yalnız sayfa isteği sınırındadır (`07 §2.8.3`; K-947).
   5. Genel sınırın yanıtı 429'dur: sayfada nötr mesaj, form yeniden gösterilmez; makine ucunda gövdesiz; `Retry-After` yoktur (`07 §2.8.4`).
-  6. Deneme limitleri L-1…L-9 işleyicide sayılır, 429 verir ve form değerleriyle yeniden gösterilir; nötr mesaj engellenen düğmenin yanındadır (`07 §2.8.5`); limitlerin kendisi T376–T377'dedir (`10 KD-59`).
+  6. Deneme limitleri L-1…L-9 işleyicide sayılır, 429 verir ve form değerleriyle yeniden gösterilir; nötr mesaj engellenen düğmenin yanındadır (`07 §2.8.5`); limitlerin kendisi, eksenleri ve ürün düzeyinde limit olmaması T376–T377'dedir (`10 KD-59`).
   7. L-7 ve L-8'in e-posta anahtarı formdan değil oturumdaki hesaptandır; sayım T377'de (`07 §2.8.6`).
-  8. Parametre değerleri (L-, P-) `02 §11`'den okunur; genel sınır ve tavanlar tasarım değeridir, genel sınır kurulum ayarındadır (`07 §2.9.7`, §2.8.1; `05 §6.3.5`).
-  9. Uygulamanın gördüğü istemci adresi vekilinki; IPv4/IPv6 denemesi T09'da (`09 §15.1` m8).
+  8. Parametre değerleri (L-, P-) `02 §11`'den okunur; genel sınır ve gövde tavanları tasarım değeridir, genel sınır kurulum ayarındadır; uçta yeniden yazılmaz (`07 §2.9.7`, §2.8.1; `05 §6.3.5`).
 - **Test beklentisi:** Unit, Integration
 - **Doğrulama kontrol listesi:**
   - KK1: her uç sınıfının tavanı yoklanır.
   - KK2: 64 KB üstü gövde 413, form gösterilmez.
   - KK3: pencere dilimleri sahte saatle sınanır; /64 ekseni; iç ağ dışından gelen başlık adresi değiştirmez.
   - KK4: statik dosya ve imzası doğru bildirim sınıra girmez; bozuk imza sayılır; parça form gönderimi sınırına sayılmaz.
-  - KK5: 429 sayfası nötr, form yok; `Retry-After` yok.
+  - KK5: 429 sayfası nötr, form gösterilmez; `Retry-After` yok.
   - KK6: limit aşımında 429, değerler korunur, mesaj düğmenin yanında.
   - KK7: misafirin yazdığı e-posta eksene girmez.
-  - KK8: limit sayısı yalnız `ProductConstants`'ta.
-  - KK9: uygulama vekilin adresini görür.
+  - KK8: limit sayısı yalnız `ProductConstants`'ta; uçta sayı yok.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T216: Tarih, sayı ve para biçimi: istek ve gösterim

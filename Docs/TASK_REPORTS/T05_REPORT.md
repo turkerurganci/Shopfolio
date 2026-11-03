@@ -34,9 +34,9 @@
 | 6 | `compose.dev.yaml` bindirme, e-posta sırrı yok, ayrı imaj/sürüm yok | ✓ | Bindirme `config` geçerli; yalnız Mailpit eklenir, sır dosyası boş; yerel Docker'da `mailpit` `Up (healthy)`, `GET 127.0.0.1:8025/api/v1/info` → 200, `v1.33.0` (düzeltme turu 1) |
 | 7 | Her imaj etiket + özetle sabit; `latest` yok | ✓ | `grep -rniw latest deploy` boş (KK7); özetler Docker Hub `docker-content-digest` ile |
 | 8 | HTTP→HTTPS, bir yıllık HSTS, alt alan/ön yükleme yok, uygulama başlık yazmaz | ✓ | Yerel Docker'da `installation-checks.sh redirect-hsts` (`CURL_OPTS=-k`, `SITE_DOMAIN=localhost`) çıkış 0: HTTP `308` → `Location: https://localhost/`; HTTPS yanıtında `strict-transport-security: max-age=31536000`; uygulama başlık yazmaz (kodda HSTS yok) (düzeltme turu 1, aşağıda) |
-| 9 | Vekil istemci adresini görecek biçimde yapılandırılmış (IPv6 açık ya da userland proxy kapalı); uygulama tarafı T215'te, IPv4/IPv6 denemesi T09'da | ✓ (yapılandırma) | `compose.yaml` satır 168: `edge` ağında `enable_ipv6: true`. Uygulama tarafı T215 KK9, gerçek deneme T09 KK8; D-31 (d) |
+| 9 | Vekil istemci adresini görecek biçimde yapılandırılmış (IPv6 açık ya da userland proxy kapalı); uygulama tarafı T215'te, IPv4/IPv6 denemesi T09'da | ✓ (yapılandırma) | `compose.yaml` satır 168: `edge` ağında `enable_ipv6: true`. Uygulama tarafı T215 kriter 3 (vekilin ilettiği IP ekseni), gerçek deneme T09 KK8; D-31 (d) |
 
-> Kriter 4 ve 9 plan düzeltmesiyle yeniden yazıldı (aşağıda, "Plan düzeltmesi"); gerçek denemeler T09 KK7, KK8 ve T215 KK9'da.
+> Kriter 4 ve 9 plan düzeltmesiyle yeniden yazıldı (aşağıda, "Plan düzeltmesi"); gerçek denemeler T09 KK7, KK8 ve T215 KK3'te.
 
 **Validator kanıtı (tur 1, 2026-11-03, `cc554ea`; dal CI'ı run 41621640998 success, 9 pass + Guard skipping):** 1 ✓ · 2 ? · 3 ✓ · 4 ? · 5 ✓ · 6 ? · 7 ✓ · 8 ? · 9 ?. `docker compose … config` (v5.1.0, daemon'suz; taban ve bindirmeli): hizmetler `database, migrate, app, proxy, backup` (+ bindirmede `mailpit`); yalnız `proxy` `80/tcp`, `443/tcp`; bölümler dokuz; vekilde dosya alanından yalnız `files-images:ro`; bindirme yalnız `mailpit` ve `SITE_DOMAIN=localhost` ekler. `grep -rniw latest deploy` boş; Caddy ve Mailpit özetleri Docker Hub'dan yeniden okundu, aynı. Caddy 2.11.7 (SHA-512 doğrulanmış ikili) `caddy adapt` çıkış 0: HSTS yalnız `max-age=31536000`, `h1 h2`, yönetim ucu kapalı. `src`/`tests`'te HSTS yok. Betikler `bash -n`/`sh -n` temiz, mantık okundu. Docker daemon kapalı → 2, 4, 6 ("ayakta"), 8, 9'un çalışma zamanı kanıtı üretilemedi (`?`, FAIL değil ama PASS için gerekir). **`~` notu `12 §6.1` ile çelişir:** `~` PASS sayılmaz (K-1521) ve task'a bağlı KRİTİK satır (VAL-A982) BEKLEMEDE ile çıkamaz; D-31 risk kaydı değildir, T09'un kriterleri bu denemeleri içermez — erteleme kabul edilmedi. Kriter 9'un uygulama yanı T215'in kodudur (`09 §15.1` madde 8) → plan düzeltmesi proje sahibine.
 
@@ -112,7 +112,7 @@ Tur 1 doğrulaması `PLAN_CORRECTION_REQUIRED` verdi (KK4 ve KK9 T05'te karşıl
 
 - **Seçenekler:** (1) KK4'ün gerçek denemesi T09'a, KK9'un uygulama tarafı T215'e, IPv4/IPv6 denemesi T09'a taşınır; T05 statik ve yerel kanıtla geçer. (2) Denemeler T05'te kalır, T05 referans sunucu ve T215 kodunu bekler. (3) Kriterler gevşetilir, kanıtsız geçilir. **Seçilen: 1.**
 - **Gerekçe:** iki deneme kurulum işidir; T09 zaten referans sunucu ister; uygulama tarafı T215'in kodudur.
-- **Değişenler:** `11` T05 kriter 4, 9, test beklentisi, KK4, KK9; T09 kriter 7, 8, KK7, KK8 (+ Dokümanlar, matris satırları); T215 kriter 9, KK9. `12` VAL-A982 kaynak sütunundan `11 T05 KK8` atfı çıkarıldı (satır T209'a kalır, `Durum` değişmedi); T05 KK8 yerel kanıtla geçer.
+- **Değişenler:** `11` T05 kriter 4, 9, test beklentisi, KK4, KK9; T09 kriter 7, 8, KK7, KK8 (+ Dokümanlar, matris satırları); T215 değişmedi (uygulama tarafı zaten kriter 3 + KK3'te). `12` VAL-A982 kaynak sütunundan `11 T05 KK8` atfı çıkarıldı (satır T209'a kalır, `Durum` değişmedi); T05 KK8 yerel kanıtla geçer.
 - **Tarama:** `12_matris_denetle.py --kapsam 1-77` Hata: 0; `11_task_blok_denetle.py` yalnız önceden var olan 3 sorun (T330, T601).
 
 ## Known Limitations / Follow-up

@@ -11,7 +11,8 @@
 # Development adds a second file (deploy/compose.dev.yaml) on top of this one.
 #
 # Values of the installation live outside this file: the plain settings file and the per-component secret files on the server
-# (05 6.x.1, 8.4.3). Secrets reach a container only as files under /run/secrets; none is an environment variable.
+# (05 6.x.1, 8.4.3). Secrets reach a container only as files under /run/secrets; none is an environment variable of
+# a long-running service (the one-off migration process gets its password in its own process environment, see `migrate`).
 # The network section below is the single place where the trusted proxy network of the application is defined (09 15.1 item 8).
 
 name: shopfolio
@@ -137,8 +138,9 @@ services:
 
   migrate:
     # One-off: applies the migration bundle the application image carries, as the schema owner, then exits (05 3.2.6, 8.7.2).
-    # The password comes from the secret file; it never enters the image or an environment variable. $$ keeps the shell
-    # substitution away from Compose's own interpolation.
+    # The password comes from the secret file; it never enters the image or the Compose file. It is handed to the migration
+    # process through PGPASSWORD (Npgsql reads it), not through the command line, where the host's process list would show it.
+    # $$ keeps the shell substitution away from Compose's own interpolation.
     image: ${SHOPFOLIO_APP_IMAGE:?SHOPFOLIO_APP_IMAGE is required (deploy/release.env)}
     restart: "no"
     security_opt:
@@ -146,7 +148,7 @@ services:
     entrypoint:
       - /bin/sh
       - -c
-      - exec ./efbundle --connection "Host=database;Database=shopfolio;Username=shopfolio_migrator;Password=$$(cat /run/secrets/db_migrator_password)"
+      - export PGPASSWORD="$$(cat /run/secrets/db_migrator_password)" && exec ./efbundle --connection "Host=database;Database=shopfolio;Username=shopfolio_migrator"
     secrets:
       - db_migrator_password
     networks:
@@ -158,8 +160,9 @@ services:
 networks:
   # Proxy and application. Not internal: the proxy publishes the ports and obtains the certificate, and the application reaches
   # the payment provider, the e-mail service and Google over encrypted connections (05 3.2.1). The subnets are fixed: the IPv4 one
-  # is the proxy's trust network in the application (ReverseProxyTrust.TrustedNetwork, 09 15.1 item 8); a test keeps the two equal.
-  # IPv6 is on so that the proxy sees an IPv6 visitor's own address (05 6.3.3; checked at installation, deploy/firewall/README).
+  # is the proxy's trust network in the application (ReverseProxyTrust.TrustedNetwork, 09 15.1 item 8); the test that keeps the two equal is added by the task that adds the setting (T215).
+  # IPv6 is on so that the proxy sees an IPv6 visitor's own address (05 6.3.3; checked at installation with
+  # deploy/firewall/installation-checks.sh client-address).
   edge:
     name: shopfolio-edge
     enable_ipv6: true

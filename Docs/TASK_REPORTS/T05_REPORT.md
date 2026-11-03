@@ -27,16 +27,16 @@
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
 | 1 | `compose.yaml` dört hizmet + tek seferlik göç | ✓ | `docker compose --env-file deploy/release.env --env-file deploy/.env.example -f deploy/compose.yaml config` geçerli, beş hizmet (KK1) |
-| 2 | Vekil–uygulama, uygulama–veritabanı ayrı iç ağlar; vekil ve yedek veritabanına ulaşamaz | ~ | Yapı `config` ile doğrulandı (`edge`, `app-data` internal, `db-egress`, `backup-egress`); gerçek bağlanamama denemesi (KK2) kurulumda — D-31 (a) |
+| 2 | Vekil–uygulama, uygulama–veritabanı ayrı iç ağlar; vekil ve yedek veritabanına ulaşamaz | ✓ | Yapı `config` ile doğrulandı; çalışma zamanı: `installation-checks.sh isolation` yerel Docker'da çıkış 0 — kontrol bağlantısı geçti, vekil ve yedek veritabanına ad ve iki adresle (`172.30.4.2` app-data, `172.30.2.2` db-egress) bağlanamadı (düzeltme turu 1, aşağıda) |
 | 3 | Yalnız 80 ve 443 yayımlanır | ✓ | `config` çıktısında yalnız `proxy` 80/443 tcp; HTTP/3 (443/udp) yayımlanmaz (KK3) |
-| 4 | Veritabanı ve yedek çıkışı `DOCKER-USER`'da hedef adresli kuralla sınırlı | ~ | `docker-user-egress.sh` yazıldı (`sh -n` temiz); kuralın etkisi (KK4) kurulumda — D-31 (b) |
+| 4 | Veritabanı ve yedek çıkışı `DOCKER-USER`'da hedef adresli kuralla sınırlı | ? | `docker-user-egress.sh` yazıldı (`sh -n` temiz); kuralın etkisi (KK4) Linux Docker motoru ve iptables ister — plan düzeltmesi bekliyor (proje sahibi karar verir); DNS riski D-31 (b)'de |
 | 5 | Veri/dosya/kayıt/sertifika/durum adlandırılmış bölümlerde; vekilde yalnız görsel salt okuma | ✓ | Dokuz bölüm `config` ile; vekil `files-images` (ro), `caddy-data`, `access-logs` bağlar (KK5) |
-| 6 | `compose.dev.yaml` bindirme, e-posta sırrı yok, ayrı imaj/sürüm yok | ✓ | Bindirme `config` geçerli; yalnız Mailpit eklenir, sır dosyası boş (KK6; yakalayıcının ayağa kalkışı kurulumda) |
+| 6 | `compose.dev.yaml` bindirme, e-posta sırrı yok, ayrı imaj/sürüm yok | ✓ | Bindirme `config` geçerli; yalnız Mailpit eklenir, sır dosyası boş; yerel Docker'da `mailpit` `Up (healthy)`, `GET 127.0.0.1:8025/api/v1/info` → 200, `v1.33.0` (düzeltme turu 1) |
 | 7 | Her imaj etiket + özetle sabit; `latest` yok | ✓ | `grep -rniw latest deploy` boş (KK7); özetler Docker Hub `docker-content-digest` ile |
-| 8 | HTTP→HTTPS, bir yıllık HSTS, alt alan/ön yükleme yok, uygulama başlık yazmaz | ~ | Caddyfile yazıldı; sözdizimi ve çalışma denemesi (KK8) kurulumda — D-31 (c), (e) |
-| 9 | Vekil istemci adresini görür (IPv6 açık) | ~ | `edge` ağında IPv6 açık; IPv4/IPv6 isteğinde aynı adres (KK9) kurulumda — D-31 (d) |
+| 8 | HTTP→HTTPS, bir yıllık HSTS, alt alan/ön yükleme yok, uygulama başlık yazmaz | ✓ | Yerel Docker'da `installation-checks.sh redirect-hsts` (`CURL_OPTS=-k`, `SITE_DOMAIN=localhost`) çıkış 0: HTTP `308` → `Location: https://localhost/`; HTTPS yanıtında `strict-transport-security: max-age=31536000`; uygulama başlık yazmaz (kodda HSTS yok) (düzeltme turu 1, aşağıda) |
+| 9 | Vekil istemci adresini görür (IPv6 açık) | ? | `edge` ağında IPv6 açık; IPv4/IPv6 isteğinde aynı adres (KK9) gerçek IPv6'lı sunucu ve T215 kodu ister — plan düzeltmesi bekliyor (proje sahibi karar verir); D-31 (d) |
 
-> `~` = yapı olarak karşılandı, sınama kurulumda (T09); FAIL değildir. Yerelde Docker kapalıydı.
+> `?` = kanıt üretilemedi; `12 §6.1`'e göre PASS değil, task satırı BEKLEMEDE. Kriter 4 ve 9 için plan düzeltmesi bekliyor.
 
 **Validator kanıtı (tur 1, 2026-11-03, `cc554ea`; dal CI'ı run 41621640998 success, 9 pass + Guard skipping):** 1 ✓ · 2 ? · 3 ✓ · 4 ? · 5 ✓ · 6 ? · 7 ✓ · 8 ? · 9 ?. `docker compose … config` (v5.1.0, daemon'suz; taban ve bindirmeli): hizmetler `database, migrate, app, proxy, backup` (+ bindirmede `mailpit`); yalnız `proxy` `80/tcp`, `443/tcp`; bölümler dokuz; vekilde dosya alanından yalnız `files-images:ro`; bindirme yalnız `mailpit` ve `SITE_DOMAIN=localhost` ekler. `grep -rniw latest deploy` boş; Caddy ve Mailpit özetleri Docker Hub'dan yeniden okundu, aynı. Caddy 2.11.7 (SHA-512 doğrulanmış ikili) `caddy adapt` çıkış 0: HSTS yalnız `max-age=31536000`, `h1 h2`, yönetim ucu kapalı. `src`/`tests`'te HSTS yok. Betikler `bash -n`/`sh -n` temiz, mantık okundu. Docker daemon kapalı → 2, 4, 6 ("ayakta"), 8, 9'un çalışma zamanı kanıtı üretilemedi (`?`, FAIL değil ama PASS için gerekir). **`~` notu `12 §6.1` ile çelişir:** `~` PASS sayılmaz (K-1521) ve task'a bağlı KRİTİK satır (VAL-A982) BEKLEMEDE ile çıkamaz; D-31 risk kaydı değildir, T09'un kriterleri bu denemeleri içermez — erteleme kabul edilmedi. Kriter 9'un uygulama yanı T215'in kodudur (`09 §15.1` madde 8) → plan düzeltmesi proje sahibine.
 
@@ -53,7 +53,7 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-03, `cc554ea`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r1.md`. Kriter 1, 3, 5, 7 ✓; 2, 4, 6, 8, 9 `?` (daemon/sunucu yok); dal CI yeşil; FAIL `09 §25` gereğidir ("hayır" cevabı düzeltilmeden kabul edilmez). VAL-A982 (KRİTİK) `BEKLEMEDE` kalır |
+| Doğrulama durumu | ✗ FAIL (düzeltme turu 1 yapıldı, yeniden doğrulama bekliyor) — tur 1 (2026-11-03, `cc554ea`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r1.md`. Kriter 1, 3, 5, 7 ✓; 2, 4, 6, 8, 9 `?` (daemon/sunucu yok); dal CI yeşil; FAIL `09 §25` gereğidir ("hayır" cevabı düzeltilmeden kabul edilmez). VAL-A982 (KRİTİK) `BEKLEMEDE` kalır |
 | Bulgu sayısı | 1 — S1 DÜŞÜK: `09` Kütüphaneler tablosunun Mailpit satırı kanıtsız ("1.28.x ikincil kaynakta"); aracı repoya sokan PR satırı tam sürüm (v1.33.0, 31 Ekim 2026), LICENSE'tan lisans (MIT), bakımcı ve erişim tarihiyle günceller (`09 §3.3` madde 2, 3, 8; §25) |
 | Düzeltme gerekli mi | Evet — yeni yapım turu: Mailpit satırı; K1, K3, K4, K7 aynı turda; K2, K5, K6 backlog eki. Daemon'lu kanıt: KK2, KK6, KK8 yerelde (imajlar yerel derlenip `SHOPFOLIO_*_IMAGE` ile; `installation-checks.sh isolation`, `redirect-hsts` `CURL_OPTS=-k`), KK4 Linux Docker motorunda. **Plan kararı (proje sahibi):** KK9 (uygulama yanı T215, IPv6 yanı gerçek sunucu) ve VAL-A982'nin hangi task'ta çevrileceği (`PLAN_CORRECTION_REQUIRED`) |
 | Bloke-etmeyen not (K) sayısı | 7 — K1 `compose.yaml:162` olmayan `deploy/firewall/README`'ye atıf, :161 "a test keeps the two equal" (test T215'te); K2 çıkış kuralı DNS'i hesaba katmıyor (gömülü çözücü dış sorguyu konteyner ad alanından iletiyorsa ad çözülemez; bilgim tarihli); K3 göç parolası `efbundle` komut satırında (süreç listesinde görünür; `PGPASSWORD` daha dar); K4 `isolation` denemesi veritabanının `db-egress` adresini denemiyor; K5 `/var/log/pgbackrest` bölümde değil (`05 §9.1.4`) → D-32 (b); K6 Caddyfile tarayıcı tanıtımını da siliyor (`05 §9.1.2`) → D-33; K7 Caddyfile `caddy fmt` biçiminde değil |
@@ -85,11 +85,32 @@
 | 6 | Compose dosyası geçerli | `docker compose … config` (v5.1.0, daemon'suz) | ✓ |
 | 7 | PG 18 imajında veri dizini `/var/lib/postgresql` altında | Bilgim tarihli; yerelde Docker kapalı | ? (D-31) |
 
+## Düzeltme Turu 1 (2026-11-03)
+
+Doğrulama tur 1 FAIL'ine yanıt. Değişiklikler:
+
+- **Bulgu 1:** `09` Kütüphaneler tablosunda Mailpit satırı restic satırı biçiminde güncellendi: v1.33.0, 31 Ekim 2026 (önceki 22 ve 15 Ekim 2026), bakımcı axllent/mailpit, lisans MIT (GitHub API `repos/axllent/mailpit/license`, LICENSE dosyası), erişim 2026-11-03, imaj özeti.
+- **K1:** `compose.yaml` yorumu düzeltildi (olmayan `firewall/README` yerine `installation-checks.sh client-address`; eşitlik testinin T215'te ekleneceği yazıldı).
+- **K2:** DNS riski D-31 (b)'ye denenecek madde olarak yazıldı (çözücü adresi sunucuya özgü olduğu için kuralda sabit yazılamaz; Linux motoru yerelde yok).
+- **K3:** `migrate` parolayı `PGPASSWORD` ortamıyla verir, komut satırından çıktı. Yerel denemede göç rol yokluğundan düştü (rolleri T10 kurar); sunucu günlüğü `password authentication failed for user shopfolio_migrator` gösterdi, yani parola istemciden gönderildi. Gerçek göçte doğrulama D-31 (g).
+- **K4:** `isolation` denemesi artık veritabanının `db-egress` adresini de dener (vekil ve yedekten).
+- **K5:** D-32 (b)'ye eklendi. **K6:** D-33'e eklendi. **K7:** `caddy fmt` farkı (global bloktan önceki boş satır) giderildi; `caddy fmt --diff` fark yok, `caddy adapt` çıkış 0.
+- **KK4 ve KK9:** dokunulmadı; `?`, plan düzeltmesi bekliyor.
+
+**Yerel kanıt (Docker Desktop 29.2.1, WSL 3.8 GiB):** üç imaj T06 Dockerfile'larından yerel derlendi (`docker build -f deploy/images/<ad>/Dockerfile -t shopfolio-<ad>:t05 .`), `SHOPFOLIO_*_IMAGE` ile verildi; bindirmeyle (`compose.dev.yaml`) `SITE_DOMAIN=localhost`; sırlar uydurma değerli geçici dizinde. Bellek hatası olmadı.
+
+- `docker compose … up -d`: `database` healthy, `mailpit` healthy; `migrate` çıkış 1 (roller T10'da kurulur, bu turun işi değil) → `app` başlamadı. Denemeler için `up -d --no-deps proxy backup` kullanıldı.
+- Sapmalar (yalnız yerel yerleşim, repoya girmedi): ana makinede 80. kapı Windows'ta ayrılmış, bu yüzden vekil geçici bindirmeyle 18080/18443'e yayımlandı; `backup` imajının zamanlayıcısı iş komutu ister (T07) ve yeniden başlama döngüsüne girdiği için bindirmede `sleep` ile ayakta tutuldu.
+- KK2: `sh deploy/firewall/installation-checks.sh isolation` → `ok: control: a container on app-data reaches database:5432`; `ok: proxy cannot reach database:5432 by name`; `… by address 172.30.4.2`; `… 172.30.2.2`; aynı üç satır `backup` için; `exit=0`.
+- KK6: `shopfolio-mailpit-1 Up (healthy)`, `127.0.0.1:8025/api/v1/info` → HTTP 200, `"Version":"v1.33.0"`.
+- KK8: vekil ağında curl konteynerinden `CURL_OPTS="-k --resolve localhost:80:<vekil> --resolve localhost:443:<vekil>" sh installation-checks.sh redirect-hsts` → `ok: HTTP answers with a redirect`; `ok: redirect points to HTTPS`; `ok: HSTS is exactly: max-age=31536000`; `exit=0`. Ham yanıt: `HTTP/1.1 308 Permanent Redirect … Location: https://localhost/`; `HTTP/2 502 … strict-transport-security: max-age=31536000` (502: uygulama çalışmıyor, başlık yine yazıldı).
+- Temizlik: `docker compose down -v`; konteynerler, `shopfolio-*` ağları ve bölümleri, üç yerel imaj, curl/mailpit/caddy imajları silindi.
+
 ## Known Limitations / Follow-up
 
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
-| 1 | KK2, KK4, KK8, KK9 ve Caddyfile/Compose'un gerçek daemon'da çalıştırılması; `release.env` özetleri yer tutucu; göç bağlantı dizisinde parola `;` içermemeli | D-31 | Docker kapalı, gerçek sunucu yok; T09'da sınanır |
+| 1 | KK4, KK9 ve DNS denemesi (Linux sunucu); `release.env` özetleri yer tutucu; göç hizmetinin `PGPASSWORD`'ü gerçek göçte denenmesi | D-31 | Linux Docker motoru ve gerçek sunucu yok; KK2, KK6, KK8 düzeltme turunda yerelde kanıtlandı |
 | 2 | `SHOPFOLIO_DOMAIN` ile uygulama alan adı ayarının tek kaynağa bağlanması; sır dosyası adları ve bağlama yolları (T07, T08) | D-32 | Ayar ve sır düzeni ilgili task'larda |
 | 3 | Erişim kaydı: alan listesi, maskeleme, istek kimliği, günlük dosya adı, dışa aktarma süresi | D-33 | Kayıt/dışa aktarma task'larının işi |
 | 4 | K-987 doğrulamaları yapıldı, D-01 kalemi kapanmadı | D-01 | `SETUP_COMPLETE` T09'da true olur |

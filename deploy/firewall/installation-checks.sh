@@ -45,17 +45,23 @@ check_isolation() {
   # Control: a container on the database's own network reaches it (otherwise the negative results below prove nothing).
   if connect shopfolio-app-data database 5432; then ok "control: a container on app-data reaches database:5432"; else bad "control: database:5432 not reachable on app-data"; fi
 
+  # The database has a second address, on db-egress: the likeliest way across networks, so it is tried as well.
+  egress_ip="$(docker inspect -f '{{ (index .NetworkSettings.Networks "shopfolio-db-egress").IPAddress }}' "$(compose ps -q database)")"
+  [ -n "$egress_ip" ] || { bad "database address on shopfolio-db-egress not found"; return; }
+
   for service in proxy backup; do
     if compose exec -T "$service" sh -c "nc -w 3 database 5432 </dev/null" >/dev/null 2>&1; then
       bad "$service reaches database:5432 by name"
     else
       ok "$service cannot reach database:5432 by name"
     fi
-    if compose exec -T "$service" sh -c "nc -w 3 $db_ip 5432 </dev/null" >/dev/null 2>&1; then
-      bad "$service reaches $db_ip:5432 by address"
-    else
-      ok "$service cannot reach $db_ip:5432 by address"
-    fi
+    for address in "$db_ip" "$egress_ip"; do
+      if compose exec -T "$service" sh -c "nc -w 3 $address 5432 </dev/null" >/dev/null 2>&1; then
+        bad "$service reaches $address:5432 by address"
+      else
+        ok "$service cannot reach $address:5432 by address"
+      fi
+    done
   done
 }
 

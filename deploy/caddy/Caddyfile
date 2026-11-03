@@ -3,7 +3,6 @@
 #
 # SITE_DOMAIN is a variable of the proxy container (deploy/compose.yaml); it is not an application setting. A site address that is
 # a host name makes Caddy redirect HTTP to HTTPS and obtain the certificate on its own (automatic HTTPS, on by default).
-
 {
 	# No admin endpoint: nothing configures the proxy at run time, and the endpoint would be one more open port inside the network.
 	admin off

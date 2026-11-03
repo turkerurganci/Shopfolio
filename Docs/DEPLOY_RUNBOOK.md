@@ -153,6 +153,24 @@ Compose dosya kaynaklı sırrı sunucudaki dosyanın sahipliği ve iziyle bağla
 - **Döndürmede iki dosya birlikte yazılır:** bir veritabanı kullanıcısının parolası değişince, o kullanıcının iki dosyası aynı değerle yazılır (2 ile 5; 3 ile 6; 4 ile 7). 3 ve 4 numaralı dosyaya parola bağlantı dizisinin içine yazılır, 5, 6 ve 7'ye düz parola olarak. Önce veritabanında parola değiştirilir, sonra dosyalar yazılır, sonra bileşen yeniden başlar (bağlantı dizisi açılışta bir kez okunur).
 - **Doğrulama** (kurulumda): her bileşenin konteynerinde `ls -ln /run/secrets` yalnız kendi dosyalarını, sahibi kendi UID'si ve izni 0400 olarak gösterir; başka kullanıcıyla `cat` reddedilir. Yerel deneme kaydı: `Docs/TASK_REPORTS/T08_REPORT.md`.
 
+### B.2 İlk kurulumda veritabanı kullanıcıları (`09 §10.8`, §17 madde 1; `05 §7.1.3`)
+
+Veritabanı konteyneri ilk kez, **boş veri dizinleriyle** ve `compose.install.yaml` bindirmesiyle başlatıldığında resmî imajın başlatma düzeni `deploy/images/database/initdb/10-bootstrap.sh` kurucu betiğini bir kez koşar. Veri dizini doluysa betik koşmaz; kullanıcıları sonradan değiştirmek betiği yeniden koşmak değil, §B'nin döndürme adımlarıdır.
+
+1. **Önkoşul:** §B.1'e göre `db_setup_migrator_password`, `db_setup_app_password` ve `db_setup_reader_password` (5, 6, 7) dosyaları yazılı ve 999:999 0400'dür. Kurucu kullanıcının parolası ayrı bir dosya gerektirmez: kurucu yalnız konteynerin içinden yerel soketle bağlanır. Betik üç dosyadan biri yoksa ya da boşsa adını yazıp durur.
+2. **Betiğin yaptığı** (SQL dosyaları imajda `/usr/local/share/shopfolio/bootstrap/`'tadır; entegrasyon testleri aynı dosyaları koşar):
+   - `10-roles.sql`: `shopfolio_migrator`, `shopfolio_app`, `shopfolio_reader` (parolalı) ve `shopfolio_backup_status` (parolasız) kullanıcılarını yaratır; hiçbiri süper kullanıcı değildir; okuyucunun oturumu salt okumadır.
+   - `20-database.sql`: `shopfolio` veritabanını (UTF-8, ICU `tr-TR`) göç kullanıcısının sahipliğinde yeniden yaratır. İmajın `POSTGRES_DB` ile kendiliğinden açtığı boş veritabanı atılır (`DROP DATABASE … FORCE`); veritabanı adı `shopfolio`'dur (D-31 (g)).
+   - `30-database-access.sql`: veritabanında `PUBLIC` yetkisini geri alır, dört kullanıcıya bağlanma yetkisini verir ve göç kullanıcısının rol ayarına `shopfolio.application_user`, `shopfolio.reader_user` ve `shopfolio.backup_status_user` değerlerini yazar (§10.8 madde 5).
+   - `40-schema.sql` (`shopfolio` veritabanında): `pg_trgm`'i kurar, `public` şemasını göç kullanıcısına verir, şemada `PUBLIC` yetkisini geri alır, üç kullanıcıya `USAGE` ve varsayılan tablo yetkilerini yazar, uygulama kullanıcısına `pg_ls_archive_statusdir()` çalıştırma yetkisini verir.
+   - `pg_hba.conf` ve `pg_ident.conf` şablonlarını veri dizinindeki dosyaların üstüne yazar (`@FOUNDER@`, `@DATABASE@` yerine konur). İmajın kendi dosyasındaki her bağlantıya açık `trust` satırları bu yüzden kalmaz; hiçbir satırda `trust` yoktur.
+3. **Kimlik doğrulama (`pg_hba.conf`):** kurucu kullanıcı yalnız yerel soketten (`peer`, `pg_ident` eşlemesi `founder`) bağlanır; ağdan `reject`. **Yedeğin durum kullanıcısı `peer` ile bağlanır** (`pg_ident` eşlemesi `backup_status`: konteynerin işletim sistemi kullanıcısı `postgres` → `shopfolio_backup_status`), parolası yoktur ve satır yalnız `shopfolio` veritabanını adlandırır; `trust` seçilmedi (§10.8 madde 1'in "peer ya da trust" seçimi `peer` olarak kapandı). Göç, uygulama ve salt okuma kullanıcıları ağdan `scram-sha-256` ile ve yalnız `shopfolio` veritabanına bağlanır; öteki her bağlantı hiçbir satırla eşleşmez ve reddedilir.
+4. **Parola sızıntısı:** parolalar komut satırına, ortam değişkenine ya da kabuk değişkenine girmez; betik `psql`'in kendi `\set … \`cat dosya\`` komutuyla sır dosyasından okur ve parola taşıyan üç `CREATE ROLE` deyiminin süresince yalnız o oturumda `log_statement = none`, `log_min_duration_statement = -1` ve `log_min_error_statement = panic` açar (deyim hata verse bile metni sunucu günlüğüne düşmez; deyimlerden sonra üçü sıfırlanır). Kabuk izleme (`set -x`) kapalıdır.
+5. **Doğrulama** (kurulumda, betikten sonra): `\du` dört kullanıcıyı gösterir ve hiçbiri süper kullanıcı değildir; `\drds` çıktısında `shopfolio_migrator` için üç `shopfolio.*` ayarı görünür; kurucu kullanıcıyla ağdan bağlantı `pg_hba.conf` satırı tarafından reddedilir; sunucu günlüğünde parola yoktur. Aynı denetimlerin yerel kaydı: `Docs/TASK_REPORTS/T10_REPORT.md`.
+6. **Kurulumdan sonra:** 5, 6 ve 7 numaralı dosyalar kurulum bindirmesinden çıkarılır (§B).
+
+**Durum:** T10 betiği ve şablonları yazdı ve gerçek imajla yerel Docker'da denedi; gerçek sunucuda ilk kurulum T09 provasında koşar ve §I.3'e yazılır (D-01, D-31).
+
 ## C. ⚠ Prod'da ayarlanması gereken ayarlar (yoksa kural sessiz kalır)
 
 > **En kritik bölüm.** Buradaki bir ayar eksikse sistem sorunsuz açılır, testler geçer, ama bir iş kuralı **hiç çalışmaz**.

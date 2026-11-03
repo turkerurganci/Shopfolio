@@ -66,7 +66,7 @@ public sealed class SettingsTablesTests : IAsyncLifetime
     {
         await SaveAsync(c => c.Companies.Add(Company.Create(Now)));
 
-        await AssertViolationAsync(c => c.Companies.Add(Company.Create(Now)), UniqueViolation, "ix_companies_single_row");
+        Assert.Equal((UniqueViolation, "ix_companies_single_row"), await ViolationOfAsync(c => c.Companies.Add(Company.Create(Now))));
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public sealed class SettingsTablesTests : IAsyncLifetime
     {
         await SaveAsync(c => c.CompanySettings.Add(ValidSettings()));
 
-        await AssertViolationAsync(c => c.CompanySettings.Add(ValidSettings()), UniqueViolation, "ix_company_settings_single_row");
+        Assert.Equal((UniqueViolation, "ix_company_settings_single_row"), await ViolationOfAsync(c => c.CompanySettings.Add(ValidSettings())));
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public sealed class SettingsTablesTests : IAsyncLifetime
         CompanySettings settings = ValidSettings();
         settings.IsBankTransferEnabled = true;
 
-        await AssertViolationAsync(c => c.CompanySettings.Add(settings), CheckViolation, "ck_company_settings_bank_transfer_iban_required");
+        Assert.Equal((CheckViolation, "ck_company_settings_bank_transfer_iban_required"), await ViolationOfAsync(c => c.CompanySettings.Add(settings)));
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public sealed class SettingsTablesTests : IAsyncLifetime
         CompanySettings settings = ValidSettings();
         settings.ReturnRecipientName = "Ayşe Yılmaz";
 
-        await AssertViolationAsync(c => c.CompanySettings.Add(settings), CheckViolation, "ck_company_settings_return_address_all_or_none");
+        Assert.Equal((CheckViolation, "ck_company_settings_return_address_all_or_none"), await ViolationOfAsync(c => c.CompanySettings.Add(settings)));
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public sealed class SettingsTablesTests : IAsyncLifetime
         CompanySettings settings = ValidSettings();
         settings.ShippingFee = -1m;
 
-        await AssertViolationAsync(c => c.CompanySettings.Add(settings), CheckViolation, "ck_company_settings_amounts_not_negative");
+        Assert.Equal((CheckViolation, "ck_company_settings_amounts_not_negative"), await ViolationOfAsync(c => c.CompanySettings.Add(settings)));
     }
 
     [Fact]
@@ -118,19 +118,19 @@ public sealed class SettingsTablesTests : IAsyncLifetime
         Company company = Company.Create(Now);
         company.Phone = "532123456";
 
-        await AssertViolationAsync(c => c.Companies.Add(company), CheckViolation, "ck_companies_phone_ten_digits");
+        Assert.Equal((CheckViolation, "ck_companies_phone_ten_digits"), await ViolationOfAsync(c => c.Companies.Add(company)));
     }
 
     [Fact]
     public async Task ProvinceCodeWithThreeDigits_IsRefused()
     {
-        await AssertViolationAsync(c => c.Provinces.Add(Province.Create("123", "Deneme", Now)), CheckViolation, "ck_provinces_code_two_digits");
+        Assert.Equal((CheckViolation, "ck_provinces_code_two_digits"), await ViolationOfAsync(c => c.Provinces.Add(Province.Create("123", "Deneme", Now))));
     }
 
     [Fact]
     public async Task CountryCodeInLowerCase_IsRefused()
     {
-        await AssertViolationAsync(c => c.Countries.Add(Country.Create("tr", "Türkiye", Now)), CheckViolation, "ck_countries_code_two_capital_letters");
+        Assert.Equal((CheckViolation, "ck_countries_code_two_capital_letters"), await ViolationOfAsync(c => c.Countries.Add(Country.Create("tr", "Türkiye", Now))));
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public sealed class SettingsTablesTests : IAsyncLifetime
             c.CompanyDeliveryProvinces.Add(CompanyDeliveryProvince.Create(province.Id, Now));
         });
 
-        await AssertViolationAsync(c => c.CompanyDeliveryProvinces.Add(CompanyDeliveryProvince.Create(province.Id, Now)), UniqueViolation, "ix_company_delivery_provinces_province_id");
+        Assert.Equal((UniqueViolation, "ix_company_delivery_provinces_province_id"), await ViolationOfAsync(c => c.CompanyDeliveryProvinces.Add(CompanyDeliveryProvince.Create(province.Id, Now))));
     }
 
     [Fact]
@@ -151,10 +151,9 @@ public sealed class SettingsTablesTests : IAsyncLifetime
     {
         await SaveAsync(c => c.LegalTextVersions.Add(LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, 1, Now, "metin", Now).WithHosting()));
 
-        await AssertViolationAsync(
-            c => c.LegalTextVersions.Add(LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, 1, Now, "metin", Now).WithHosting()),
-            UniqueViolation,
-            "ix_legal_text_versions_legal_text_type_version_number");
+        Assert.Equal(
+            (UniqueViolation, "ix_legal_text_versions_legal_text_type_version_number"),
+            await ViolationOfAsync(c => c.LegalTextVersions.Add(LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, 1, Now, "metin", Now).WithHosting())));
     }
 
     [Fact]
@@ -163,16 +162,15 @@ public sealed class SettingsTablesTests : IAsyncLifetime
         LegalTextVersion version = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, 1, Now, "metin", Now).WithHosting();
         version.VersionNumber = null;
 
-        await AssertViolationAsync(c => c.LegalTextVersions.Add(version), CheckViolation, "ck_legal_text_versions_number_and_published_at_together");
+        Assert.Equal((CheckViolation, "ck_legal_text_versions_number_and_published_at_together"), await ViolationOfAsync(c => c.LegalTextVersions.Add(version)));
     }
 
     [Fact]
     public async Task LegalTextVersion_DraftOfAGeneratedText_IsRefused()
     {
-        await AssertViolationAsync(
-            c => c.LegalTextVersions.Add(LegalTextVersion.CreateDraft(LegalTextType.PreInformationForm, "metin", Now)),
-            CheckViolation,
-            "ck_legal_text_versions_draft_only_for_firm_edited_text");
+        Assert.Equal(
+            (CheckViolation, "ck_legal_text_versions_draft_only_for_firm_edited_text"),
+            await ViolationOfAsync(c => c.LegalTextVersions.Add(LegalTextVersion.CreateDraft(LegalTextType.PreInformationForm, "metin", Now))));
     }
 
     [Fact]
@@ -180,7 +178,7 @@ public sealed class SettingsTablesTests : IAsyncLifetime
     {
         await SaveAsync(c => c.LegalTextVersions.Add(LegalTextVersion.CreateDraft(LegalTextType.CookiePolicy, "bir", Now)));
 
-        await AssertViolationAsync(c => c.LegalTextVersions.Add(LegalTextVersion.CreateDraft(LegalTextType.CookiePolicy, "iki", Now)), UniqueViolation, "ix_legal_text_versions_legal_text_type");
+        Assert.Equal((UniqueViolation, "ix_legal_text_versions_legal_text_type"), await ViolationOfAsync(c => c.LegalTextVersions.Add(LegalTextVersion.CreateDraft(LegalTextType.CookiePolicy, "iki", Now))));
     }
 
     [Fact]
@@ -189,7 +187,7 @@ public sealed class SettingsTablesTests : IAsyncLifetime
         LegalTextVersion version = LegalTextVersion.CreatePublished(LegalTextType.CookiePolicy, 1, Now, "metin", Now);
         version.TemplateVersion = "t1";
 
-        await AssertViolationAsync(c => c.LegalTextVersions.Add(version), CheckViolation, "ck_legal_text_versions_template_version_only_generated");
+        Assert.Equal((CheckViolation, "ck_legal_text_versions_template_version_only_generated"), await ViolationOfAsync(c => c.LegalTextVersions.Add(version)));
     }
 
     [Fact]
@@ -206,10 +204,9 @@ public sealed class SettingsTablesTests : IAsyncLifetime
     [Fact]
     public async Task LegalTextVersion_PublishedPrivacyNoticeWithoutHostingLocation_IsRefused()
     {
-        await AssertViolationAsync(
-            c => c.LegalTextVersions.Add(LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, 1, Now, "metin", Now)),
-            CheckViolation,
-            "ck_legal_text_versions_hosting_location_only_on_privacy_notice");
+        Assert.Equal(
+            (CheckViolation, "ck_legal_text_versions_hosting_location_only_on_privacy_notice"),
+            await ViolationOfAsync(c => c.LegalTextVersions.Add(LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, 1, Now, "metin", Now))));
     }
 
     [Fact]
@@ -343,7 +340,8 @@ public sealed class SettingsTablesTests : IAsyncLifetime
         await context.SaveChangesAsync(Ct);
     }
 
-    private async Task AssertViolationAsync(Action<AppDbContext> change, string sqlState, string constraint)
+    /// <summary>Saves the change and returns the SQLSTATE and the constraint name of the database error it raises.</summary>
+    private async Task<(string SqlState, string? Constraint)> ViolationOfAsync(Action<AppDbContext> change)
     {
         await using AppDbContext context = NewContext();
         change(context);
@@ -351,8 +349,7 @@ public sealed class SettingsTablesTests : IAsyncLifetime
         DbUpdateException error = await Assert.ThrowsAsync<DbUpdateException>(() => context.SaveChangesAsync(Ct));
 
         PostgresException inner = Assert.IsType<PostgresException>(error.InnerException);
-        Assert.Equal(sqlState, inner.SqlState);
-        Assert.Equal(constraint, inner.ConstraintName);
+        return (inner.SqlState, inner.ConstraintName);
     }
 
     private async Task AssertDeleteRefusedAsync(Action<AppDbContext> change)

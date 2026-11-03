@@ -31,8 +31,8 @@ public sealed class MigrationSourceScanTests
     }
 
     [Theory]
-    [InlineData("DownAndTransaction.cs", MigrationSourceScan.SuppressedTransaction, 6)]
-    [InlineData("DownAndTransaction.cs", MigrationSourceScan.DownMethod, 8)]
+    [InlineData("DownAndTransaction.cs", MigrationSourceScan.SuppressedTransaction, 5)]
+    [InlineData("DownAndTransaction.cs", MigrationSourceScan.DownMethod, 7)]
     [InlineData("DangerousSql.cs", MigrationSourceScan.NonTransactionalStatement, 7)]
     [InlineData("DangerousSql.cs", MigrationSourceScan.NonTransactionalStatement, 8)]
     [InlineData("DangerousSql.cs", MigrationSourceScan.NonTransactionalStatement, 9)]

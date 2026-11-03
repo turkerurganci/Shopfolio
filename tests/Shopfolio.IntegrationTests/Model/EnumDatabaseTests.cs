@@ -185,7 +185,9 @@ public sealed partial class EnumDatabaseTests : IClassFixture<SampleDatabaseFixt
             }
         }
 
-        Assert.Equal(5, compared);
+        // Five enum columns of the sample entities and the three of the application's own tables (companies.company_type,
+        // company_settings.homepage_layout, legal_text_versions.legal_text_type; T103). The task that adds an enum column raises this.
+        Assert.Equal(8, compared);
     }
 
     [Fact]

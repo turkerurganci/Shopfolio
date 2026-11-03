@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-03 — T01 (Canlılık ucu) bağımsız doğrulama tur 4: ✓ PASS (6/6 kabul kriteri; 62/62 test — Lint 9, Unit 24, Integration 29 PostgreSQL 18.6'da; Kestrel'de dondurulmuş veritabanında 503 ayarın süresinde; dal CI yeşil; K-notları D-25, D-26); merge yardımcıda (PR #338). F0 sırada sonraki: T06.
+**Son güncelleme:** 2026-11-03 — T06 (Üç imaj ve kayıt defteri) yapım bitti, PR #PRNO açık, doğrulama bekliyor (⏳); D-01 kalemleri (PACKAGE_BUILD/PUBLISH, doğrulanacaklar) ve D-19 kararı raporda; önceki giriş `STATUS_CHANGELOG.md`'ye taşındı (T01 doğrulama tur 4 PASS).
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -61,7 +61,7 @@
 | T03 | Test altyapısı | ✓ | ✓ PASS (tur 3) | — | #337 |
 | T04 | CI hattı ve eşitlik denetimleri | ✓ | ✓ PASS (tur 2) | — | #339 |
 | T05 | Compose geliştirme ortamı | ⬚ | — | — | — |
-| T06 | Üç imaj ve kayıt defteri | ⬚ | — | — | — |
+| T06 | Üç imaj ve kayıt defteri | ⏳ | — | — | #PRNO |
 | T07 | Yedek düzeni | ⬚ | — | — | — |
 | T08 | Sır düzeni | ⬚ | — | — | — |
 | T09 | İlk yayın ve referans kuruluma ilk iniş | ⬚ | — | — | — |

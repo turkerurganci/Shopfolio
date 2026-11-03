@@ -143,10 +143,15 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 12
+    # Geri alma sinamasi onceki surumun uygulama imajini kayit defterinden ceker (09 21.4 madde 3).
+    permissions:
+      contents: read
+      packages: read
     env:
       PGHOST: localhost
       PGPORT: "5432"
       PGUSER: postgres
+      REGISTRY_CREDENTIAL: ${{ github.token }}
     steps:
       # Son yayimlanan surum etiketi icin tum gecmis ve etiketler gerekir.
       - uses: actions/checkout@v4
@@ -160,6 +165,21 @@ jobs:
     name: 7. Paketleme dogrulamasi
     needs: [build]
     runs-on: ubuntu-latest
+    # Uygulama konteyneri bu hizmete baglanir ve canlilik ucu 200 verene kadar ayaga kaldirilir (05 8.3.10, 9.4.1).
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      SHOPFOLIO_TEST_DATABASE: Host=localhost;Port=5432;Username=postgres;Database=postgres
     steps:
       - uses: actions/checkout@v4
       - run: bash .github/ci-run.sh PACKAGE_BUILD_CMD "7. Paketleme"

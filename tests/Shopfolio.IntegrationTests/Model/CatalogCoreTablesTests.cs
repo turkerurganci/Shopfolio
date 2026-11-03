@@ -135,6 +135,8 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
         product.ShippingPeriod = days;
 
         await SaveAsync(c => c.Products.Add(product));
+
+        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM products"));
     }
 
     [Fact]
@@ -565,6 +567,8 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
     public async Task WellFormedSlug_IsAccepted(string slug)
     {
         await SaveAsync(c => c.Products.Add(NewProduct(slug)));
+
+        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM products"));
     }
 
     // ---- KK7: image fences and deletion ----

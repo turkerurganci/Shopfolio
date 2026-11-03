@@ -74,6 +74,25 @@ public sealed class DataModelFoundationTests
         Assert.Equal(expected, TextNormalizer.NormalizeIdentity(input));
     }
 
+    [Theory]
+    [InlineData("ÇELİK", "celik")]
+    [InlineData("Işıl ĞÜŞ Öz", "isil gus oz")]
+    [InlineData("çağrı", "cagri")]
+    [InlineData("Café Müller", "cafe muller")]
+    [InlineData("  Boşluk  ", "  bosluk  ")]
+    [InlineData("A-1_b", "a-1_b")]
+    [InlineData("", "")]
+    public void Simplify_FoldsTheTurkishLettersAndAccentsAndLowercases(string input, string expected)
+    {
+        Assert.Equal(expected, TextNormalizer.Simplify(input));
+    }
+
+    [Fact]
+    public void Simplify_TheSearchExpressionAndTheStoredNameReachTheSameForm()
+    {
+        Assert.Equal(TextNormalizer.Simplify("ÇELİK Kupa"), TextNormalizer.Simplify("celik kupa"));
+    }
+
     [Fact]
     public void NormalizeIdentity_TheFourIs_ReachTheSameForm()
     {

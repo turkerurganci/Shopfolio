@@ -158,7 +158,7 @@ public sealed class ModelRuleTests
     {
         using AppDbContext context = SampleModel.CreateGoodContext();
 
-        IReadOnlyList<string> cascades = ModelRules.CascadeRelations(ModelRules.ModelOf(context));
+        IReadOnlyList<string> cascades = ModelRules.CascadeRelations(ModelRules.ModelOf(context), e => !IsApplicationEntity(e));
 
         Assert.Equal(["sample_items -> sample_owners (OwnerId)"], cascades);
     }

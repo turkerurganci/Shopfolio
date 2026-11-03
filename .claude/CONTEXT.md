@@ -81,6 +81,10 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 | Yol | Rol | Kim günceller |
 |---|---|---|
 | `scripts/git-hooks/` | pre-commit (sır guard'ı) + commit-msg + pre-push (3 katman) + kurulum | Nadiren; değişimi ayrı `hooks:` PR'ı ister |
+| `scripts/ci/` | CI adımlarının betikleri (`migration-dry-run.sh`, `patch-migration-check.sh`, `package-build.sh`, `publish-images.sh`); `ci-commands.env` çağırır | Adımın işini değiştiren task |
+| `scripts/local-reference/` | Yerel referans kurulumun betikleri (`DEPLOY_RUNBOOK` §K; adlar `t09-*`) | Yerel kurulum reçetesine dokunan task |
+| `scripts/doc-scans/` | Doküman dönemi tarama ve denetim betikleri (`11_matris_kapsama.py`, `12_matris_denetle.py` vb.) | Betiğin denetlediği dokümana dokunan PR |
+| `scripts/metrics/` | Belirteç ve süreç ölçüm betikleri | Nadiren |
 | `.github/workflows/` | CI pipeline + (varsa) yayınlama workflow'u | CI task'ında + pipeline genişledikçe |
 | `.github/ci-commands.env` | Teknoloji-spesifik CI komutları (SETUP'ta doldurulur) | Kurulumda + yeni test katmanı eklendiğinde |
 | `.github/pull_request_template.md` | PR şablonu | Nadiren |

@@ -221,7 +221,7 @@ Yerleşik .NET araçlarıyla, kökte tek ayar dosyası kümesiyle ve uyarıları
      </PropertyGroup>
    </Project>
    ```
-   Ayar adları ve düzey değerleri bilgim tarihlidir — ilk task'ta SDK'ya karşı derlenerek doğrulanır.
+   Ayar adları ve düzey değerleri T02'de SDK'ya karşı derlenerek doğrulandı (fark madde 4'ün notunda; PR #335).
 3. **Kökte tek `.editorconfig`;** biçim denetimi `dotnet format` ile "değişiklik yok" doğrulamasıdır (CI'ın Lint adımı).
 4. **Stil.** Dosya kapsamlı ad alanı · özel alanlar `_camelCase` · asenkron metot `Async` soneki alır ve `CancellationToken` son parametredir · değişmez veri taşıyıcısı `record` · `var` yalnız tür sağ tarafta açıksa · sınıflar varsayılan `sealed`.
 
@@ -245,7 +245,7 @@ Yerleşik .NET araçlarıyla, kökte tek ayar dosyası kümesiyle ve uyarıları
 
 ### 3.2 Paket sürüm yönetimi
 
-Paket sürümü merkezîdir (K-1306 (6)): kökte `Directory.Packages.props` tek sürüm kaynağıdır; **sürümler tam sabittir** (kayan aralık yok); `packages.lock.json` repoda durur ve CI'da kilitli geri yükleme koşar (Dependabot PR'ının kilit dosyasını güncellediği bilgim tarihlidir — ilk task'ta sınanır; güncellemiyorsa kilit dosyası aynı PR'da yeniden üretilir); paket kaynağı yalnız nuget.org'dur (kökteki `nuget.config` öteki kaynakları `<clear />` ile siler); bilinen açık taraması geçişli paketleri de kapsar ve geçişli paketteki açık, sürümü merkezî dosyada sabitlenerek kapatılır (geçişli sabitleme `CentralPackageTransitivePinningEnabled` ile açıktır; T02'de sınandı — sabitlenen geçişli paket kilit dosyasında `CentralTransitive` olarak çözülür) — sabitlenen paket Kütüphaneler tablosuna satır olarak girer; .NET SDK sürümü `global.json` ile sabitlenir. Bu dosyalar `Directory.Build.props` ile aynı kökte ve aynı PR'dadır.
+Paket sürümü merkezîdir (K-1306 (6)): kökte `Directory.Packages.props` tek sürüm kaynağıdır; **sürümler tam sabittir** (kayan aralık yok); `packages.lock.json` repoda durur ve CI'da kilitli geri yükleme koşar (Dependabot PR'ı yalnız paketi doğrudan kullanan projenin kilit dosyasını günceller; o projeye başvuran test projelerinin kilitleri güncellenmez ve kilitli geri yükleme `NU1004` ile düşer — F0 gate'inde gözlendi, PR #344, run 41553206361; bu yüzden kilit dosyaları Dependabot PR'ının dalında `dotnet restore Shopfolio.slnx --force-evaluate` ile yeniden üretilir); paket kaynağı yalnız nuget.org'dur (kökteki `nuget.config` öteki kaynakları `<clear />` ile siler); bilinen açık taraması geçişli paketleri de kapsar ve geçişli paketteki açık, sürümü merkezî dosyada sabitlenerek kapatılır (geçişli sabitleme `CentralPackageTransitivePinningEnabled` ile açıktır; T02'de sınandı — sabitlenen geçişli paket kilit dosyasında `CentralTransitive` olarak çözülür) — sabitlenen paket Kütüphaneler tablosuna satır olarak girer; .NET SDK sürümü `global.json` ile sabitlenir. Bu dosyalar `Directory.Build.props` ile aynı kökte ve aynı PR'dadır.
 
 ```xml
 <Project>
@@ -387,7 +387,7 @@ Kütüphane yalnız bu tabloda seçilir; kuralı kullanan bölüm tabloya atıf 
 
 Uygulama **tek projedir**; modüller o projenin klasörü ve ad alanıdır, derleme projesi değildir (K-1307). Modüller çevrimsel çağırır — sipariş onayı ödemenin başlatılmasını ister, ödeme bildirimi siparişin geçişini ister (`05 §3.3.3`–§3.3.5, §4.5) — ve derleyici çevrimsel proje başvurusunu reddeder; sınırı derleyici değil mimari test korur (§6).
 
-1. **Çözüm üç projedir.** Kökteki çözüm dosyası bunları toplar (`Shopfolio.slnx` — .NET 10 SDK'nın yeni çözüm biçimi, bilgim tarihli; SDK `.slnx`'i üretmiyorsa `Shopfolio.sln` yazılır ve bu satır aynı PR'da düzeltilir).
+1. **Çözüm üç projedir.** Kökteki çözüm dosyası bunları toplar (`Shopfolio.slnx` — .NET 10 SDK'nın yeni çözüm biçimi; T02'de doğrulandı).
 
    ```text
    src/Shopfolio.Web/                 uygulamanın tamamı: modüller, altyapı, sayfalar, göçler, yönetim komutları
@@ -434,11 +434,11 @@ Klasör düzeni bu dokümanın işidir ve D-01'in kapanışında, bu dokümanla 
 
 ### 4.3 İmaj, Compose ve geliştirme ortamı dosyalarının yeri
 
-İmaj, Compose ve ters vekil dosyaları ürünün parçasıdır; repoda ve sürümle gelir (`05 §8.2.4`). Hepsi kökteki **`deploy/`** altındadır; uygulama kodunun klasörüne ve `scripts/`'e (playbook betikleri) karışmaz (K-1331 (3)).
+İmaj, Compose ve ters vekil dosyaları ürünün parçasıdır; repoda ve sürümle gelir (`05 §8.2.4`). Hepsi kökteki **`deploy/`** altındadır; uygulama kodunun klasörüne ve `scripts/`'e (playbook betikleri) karışmaz (K-1331 (3)). Kökteki **`.config/`** yerel .NET araçlarının bildirimidir (`dotnet-tools.json`: `dotnet-ef`, sürümü Kütüphaneler tablosundaki `Microsoft.EntityFrameworkCore.Design` satırıyla aynı; T03) ve uygulama kodu taşımaz.
 
 ```text
 deploy/
-  compose.yaml                  kurulumun Compose tanımı: dört hizmet ve tek seferlik göç hizmeti (05 §8.2.4)
+  compose.yaml                  kurulumun Compose tanımı: dört hizmet, tek seferlik göç hizmeti ve iki tek seferlik komut hizmeti (command, read-command; profil tools) (05 §8.2.4, §8.5.1)
   compose.dev.yaml              geliştirme varyantı: ödeme sağlayıcısının test ortamı ve e-posta yakalayıcı
   compose.local-reference.yaml  yerel referans kurulum bindirmesi (yalnız yerel; gerçek sunucuda kullanılmaz): MinIO'nun sertifikasına güven (DEPLOY_RUNBOOK §K)
   compose.install.yaml          ilk kurulum bindirmesi: kurucu kullanıcının ve üç kullanıcının parolaları yalnız veritabanının ilk başlatmasında (05 §6.x.6)
@@ -492,7 +492,7 @@ Bu bölümün kuralı iki cümledir: **ad sözlükten ve Veri Modeli'nden birebi
    ```
 
    Yeni ürün kavramı gerekirse önce `02 §1.2`'ye girer; kod onu sözlükten alır (K-17). Sözlükte olmayan bir yardımcı tür (örneğin bir yardımcı sınıf) ürün kavramını adlandırmıyorsa C# kuralıyla (madde 7) serbestçe adlanır.
-7. **C# adları** §3.1'in stilini izler (`_camelCase` özel alan, `Async` soneki, `record`) ve şunları ekler: tür, metot, özellik ve ad alanı PascalCase; parametre ve yerel değişken camelCase; arayüz `I` önekiyle (`IFileStore`); bir dosyada bir üst düzey tür ve dosya adı türün adıdır (`OrderItem.cs`); kapalı değer `enum`'u tekil ad alır ve değerler PascalCase'tir (`OrderStatus`, değeri `Placed`); mantıksal özellik `Is`, `Has` ya da `Can` ile başlar (`06 §2.5.1`: mantıksal alanın adı `Is…` ile başlar); ad alanı klasör yolunu izler (`Modules/Ordering/` → `Shopfolio.Modules.Ordering`); bunun için `Shopfolio.Web.csproj`'da `<RootNamespace>Shopfolio</RootNamespace>` yazılır (`Infrastructure/` → `Shopfolio.Infrastructure`, `Pages/Storefront/` → `Shopfolio.Pages.Storefront`; bilgim tarihli — iskeleti kuran task'ta derlenerek sınanır).
+7. **C# adları** §3.1'in stilini izler (`_camelCase` özel alan, `Async` soneki, `record`) ve şunları ekler: tür, metot, özellik ve ad alanı PascalCase; parametre ve yerel değişken camelCase; arayüz `I` önekiyle (`IFileStore`); bir dosyada bir üst düzey tür ve dosya adı türün adıdır (`OrderItem.cs`); kapalı değer `enum`'u tekil ad alır ve değerler PascalCase'tir (`OrderStatus`, değeri `Placed`); mantıksal özellik `Is`, `Has` ya da `Can` ile başlar (`06 §2.5.1`: mantıksal alanın adı `Is…` ile başlar); ad alanı klasör yolunu izler (`Modules/Ordering/` → `Shopfolio.Modules.Ordering`); bunun için `Shopfolio.Web.csproj`'da `<RootNamespace>Shopfolio</RootNamespace>` yazılır (`Infrastructure/` → `Shopfolio.Infrastructure`, `Pages/Storefront/` → `Shopfolio.Pages.Storefront`; T02'de derlenerek sınandı).
 
 *Kaynak: K-17, K-977, K-988, K-1036, K-1038 · K-41, K-54, K-253, K-266, K-272, K-455, K-458, K-1034 · K-1307 (2) · K-1331 (4) · `02 §1.2` · `05 §3.3` · `06 §2.5.1`, §4, §5.1.*
 
@@ -2154,7 +2154,7 @@ Komutlar: `.github/ci-commands.env` · Kurulum: `Docs/CI_CD_SETUP.md`. Aşağıd
    | İşaretli işlem listesi eşitliği denetimi | `07 §6.4.2` UC listesi | `[OutcomeUncertain]` işleyicileri | §8.1 madde 4 |
 
    Denetim doküman tablosunun satırını ayrıştırır; tablonun biçimi değişirse test ve tablo aynı PR'da güncellenir. Eşitlik bozulduğunda kural kaynak dokümandadır: doküman kazanır (`02`, `07`) ya da fark geri besleme tablosuna girer (§2).
-2. **Yama sürümü göç taşımaz** (§10.6 madde 7; `05 §8.3.12`, §8.7.3). Denetim yayın akışında, sürüm etiketi imajlara basılmadan önce koşar: etiketin yama bileşeni sıfırdan büyükse önceki sürüm etiketinden bu yana göç klasörüne dosya eklenmemiş olmalıdır; aksi hâlde yayın düşer. **İstisna** veri bozan bir göçün düzeltmesidir (`05 §8.7.4`): etiket mesajı `migration-fix: K-<numara>` satırı taşır ve denetim onu arar; sürüm etiketi açıklamalıdır (`git tag -a` — hafif etiketin mesajı yoktur), önceki sürüm etiketi `vANA.ARA.YAMA` biçimindeki en yakın önceki etikettir (`05 §8.3.12`; komutu D-01'in işidir, bilgim tarihli). İlk yayından önce önceki etiket yoktur; denetim ilk etikette koşmaz.
+2. **Yama sürümü göç taşımaz** (§10.6 madde 7; `05 §8.3.12`, §8.7.3). Denetim yayın akışında, sürüm etiketi imajlara basılmadan önce koşar: etiketin yama bileşeni sıfırdan büyükse önceki sürüm etiketinden bu yana göç klasörüne dosya eklenmemiş olmalıdır; aksi hâlde yayın düşer. **İstisna** veri bozan bir göçün düzeltmesidir (`05 §8.7.4`): etiket mesajı `migration-fix: K-<numara>` satırı taşır ve denetim onu arar; sürüm etiketi açıklamalıdır (`git tag -a` — hafif etiketin mesajı yoktur), önceki sürüm etiketi `vANA.ARA.YAMA` biçimindeki en yakın önceki etikettir (`05 §8.3.12`; denetim `scripts/ci/patch-migration-check.sh`'tadır, T04'te geçici depoda sınandı; Actions'taki ilk gerçek etiket D-24). İlk yayından önce önceki etiket yoktur; denetim ilk etikette koşmaz.
 3. **Geri alma sınaması 6. adımdadır** (`05 §8.3.9`): göç demeti önce boş bir veritabanına, sonra son yayımlanan sürümün şemasına uygulanır; ardından son yayımlanan sürümün imajı yeni şemaya karşı açılır ve o sürümün entegrasyon testleri aynı şemaya karşı koşar. Önceki sürümün imajı ve testleri kayıt defterinden alınır (paket görünürlüğü ilk yayından sonra açık yapılır, `05 §2.3.8`). **İlk yayından önce son yayımlanan sürüm yoktur;** adım göç demetini yalnız boş veritabanına uygular; son sürümün şemasına uygulama ve geri alma bölümü atlanır, atlandığı CI çıktısında yazılır.
 4. **`publish.yml`** ana dala her merge'de imajları commit kimliğiyle, sürüm etiketinde sürüm numarasıyla yayımlar (`05 §8.3.12`); kurulumlara otomatik dağıtım yoktur (`05 §8.3.13`). Bağımlılık güncelleme önerileri Dependabot'la gelir ve sıradan PR kurallarından geçer (`05 §8.3.14`; §3.2).
 5. **Kapı kuralı.** Boş komut kapıyı sessizce geçmez (`SETUP_COMPLETE=true` iken eksik komut CI'ı düşürür; `CI_CD_SETUP.md` §2): yeni bir denetim ilgili adımın komutuna eklenmeden "CI'da denetlenir" denmez.

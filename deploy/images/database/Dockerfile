@@ -25,6 +25,13 @@ COPY --chmod=0555 deploy/images/shared/scheduler.sh /usr/local/bin/scheduler.sh
 COPY deploy/images/database/postgresql.conf /etc/postgresql/postgresql.conf
 COPY deploy/images/database/postgresql.conf.d/ /etc/postgresql/postgresql.conf.d/
 
+# The setup script (09 10.8, 17 item 1): the official image runs the files of /docker-entrypoint-initdb.d once, on the first start
+# with an empty data directory. The SQL and the client authentication templates it uses are not in that directory (the image would
+# run every .sql file there on its own, without the script's variables). Passwords are not in the image: the script reads them from
+# the setup secret files that compose.install.yaml mounts at the first install (09 17 item 2).
+COPY --chmod=0555 deploy/images/database/initdb/10-bootstrap.sh /docker-entrypoint-initdb.d/10-bootstrap.sh
+COPY --chmod=0755 deploy/images/database/bootstrap/ /usr/local/share/shopfolio/bootstrap/
+
 # pgBackRest's own directories are writable by the database user: the image runs as that user, not as root.
 RUN mkdir -p /etc/pgbackrest /var/log/pgbackrest /var/spool/pgbackrest /var/lib/pgbackrest \
     && chown -R postgres:postgres /etc/pgbackrest /var/log/pgbackrest /var/spool/pgbackrest /var/lib/pgbackrest

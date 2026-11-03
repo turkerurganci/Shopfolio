@@ -63,7 +63,7 @@
 | T05 | Compose geliştirme ortamı | ✓ | ✓ PASS (tur 2) | — | #348 |
 | T06 | Üç imaj ve kayıt defteri | ✓ | ✓ PASS (tur 2) | — | #347 |
 | T07 | Yedek düzeni | ⬚ | — | — | — |
-| T08 | Sır düzeni | ⬚ | — | — | — |
+| T08 | Sır düzeni | ⏳ | — | — | — |
 | T09 | İlk yayın ve referans kuruluma ilk iniş | ⬚ | — | — | — |
 | T10 | Veritabanı kullanıcıları | ⬚ | — | — | — |
 

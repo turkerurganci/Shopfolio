@@ -7,6 +7,10 @@
 # Secret files: compose.yaml reads them from SHOPFOLIO_SECRETS_DIR. On a development machine point it at an untracked local
 # directory that holds made-up values (the payment provider's test keys, made-up passwords) and an EMPTY file for the e-mail
 # sending credential: the real credential of an installation never reaches a development machine (05 8.1.2).
+# The database connection of the application needs no value here: compose.yaml fixes host, database and user, and the password
+# is read from the made-up db_app_password file of that directory (05 6.x.1; 09 3.5 item 2, 4.3 item 2).
+# The very first start of an empty development database adds deploy/compose.install.yaml, as an installation does (05 6.x.6):
+#   docker compose --env-file deploy/release.env --env-file deploy/.env.example -f deploy/compose.yaml -f deploy/compose.dev.yaml -f deploy/compose.install.yaml up -d database
 
 services:
   proxy:

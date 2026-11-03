@@ -5,6 +5,7 @@
 #   database  PostgreSQL 18 and pgBackRest        reachable only on `app-data`; leaves only through `db-egress`
 #   backup    file backup tool (restic)           never connects to the database; leaves only through `backup-egress`
 #   migrate   migration bundle, one-off           runs at first install and at each update, then exits (05 3.2.6, 8.7)
+#   command, read-command   management commands, one-off, profile `tools`   started on request only (05 3.2.6, 8.5.1, 6.x.18, 6.x.19)
 #
 # Run it with the release's image references and the installation settings as env files (09 4.3):
 #   docker compose --env-file deploy/release.env --env-file /etc/shopfolio/settings.env -f deploy/compose.yaml up -d
@@ -51,6 +52,10 @@ services:
     env_file:
       - path: ${SHOPFOLIO_SETTINGS_FILE:-/etc/shopfolio/settings.env}
         required: false
+    environment:
+      # Host, database and user of the application's connection: fixed by this file's topology, not a secret, not a per-installation
+      # setting. The password is not here: the application reads it from /run/secrets/db_app_password (05 6.x.1; 09 3.5 item 2).
+      - Database__ConnectionString=Host=database;Database=shopfolio;Username=shopfolio_app
     secrets:
       - db_app_password
       - payment_provider_keys
@@ -87,13 +92,10 @@ services:
       - no-new-privileges:true
     environment:
       - POSTGRES_DB=shopfolio
-      # A path to the secret file, not the secret itself (the official image reads the password from the file).
-      - POSTGRES_PASSWORD_FILE=/run/secrets/db_superuser_password
+    # Only the backup keys are mounted for good. The superuser password and the three users' passwords reach the database only
+    # at the first install, through deploy/compose.install.yaml (05 6.x.6): the setup script reads them while it creates the
+    # users, and later starts of this service do not carry them.
     secrets:
-      - db_superuser_password
-      - db_migrator_password
-      - db_app_password
-      - db_reader_password
       - db_backup_storage_key
       - db_backup_cipher_key
     volumes:
@@ -151,6 +153,45 @@ services:
       - export PGPASSWORD="$$(cat /run/secrets/db_migrator_password)" && exec ./efbundle --connection "Host=database;Database=shopfolio;Username=shopfolio_migrator"
     secrets:
       - db_migrator_password
+    networks:
+      - app-data
+    depends_on:
+      database:
+        condition: service_healthy
+
+  # The two one-off command services below start only on request (`docker compose run --rm <service> ...`, profile `tools`), never
+  # with `up`. They run the application image, so they get exactly the secrets of their row in 05 6.x.2 (05 6.x.18, 6.x.19).
+  command:
+    # Commands that write data and the status command (05 8.5.1, 6.x.19): the application user's password, nothing else. The
+    # application's outside-service secrets and the derivation secret are not mounted: commands send no notification and run
+    # no job queue.
+    image: ${SHOPFOLIO_APP_IMAGE:?SHOPFOLIO_APP_IMAGE is required (deploy/release.env)}
+    profiles: ["tools"]
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - Database__ConnectionString=Host=database;Database=shopfolio;Username=shopfolio_app
+    secrets:
+      - db_app_password
+    networks:
+      - app-data
+    depends_on:
+      database:
+        condition: service_healthy
+
+  read-command:
+    # Read command, return check and maintenance inspection (05 8.5.1, 6.x.18): the read-only user's password, nothing else.
+    # The continuously running application never receives it.
+    image: ${SHOPFOLIO_APP_IMAGE:?SHOPFOLIO_APP_IMAGE is required (deploy/release.env)}
+    profiles: ["tools"]
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - Database__ConnectionString=Host=database;Database=shopfolio;Username=shopfolio_reader
+    secrets:
+      - db_reader_password
     networks:
       - app-data
     depends_on:

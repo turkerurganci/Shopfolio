@@ -95,14 +95,14 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 |---|---|
 | `src/Shopfolio.Web/` | Uygulamanın tamamı — tek proje (.NET 10 Razor Pages); modüller bu projenin klasörüdür (`09 §4.1`) |
 | `src/Shopfolio.Web/Modules/<Modül>/` | Her iş modülü için bir klasör ve ad alanı `Shopfolio.Modules.<Modül>` |
-| `src/Shopfolio.Web/Infrastructure/` | Ortak altyapı: zaman kaynağı, dosya deposu, önbellek, hata yakalama, kayıt, bağlantı katmanı, tek veritabanı bağlamı ve göçler; veritabanı kurulum ayarları `DatabaseOptions` (`Database:ConnectionString` bağlantı dizisi — sır dosyasında —, `Database:LivenessTimeoutSeconds`; `09 §3.5`, §10.7) |
+| `src/Shopfolio.Web/Infrastructure/` | Ortak altyapı: zaman kaynağı, dosya deposu, önbellek, hata yakalama, kayıt, bağlantı katmanı, tek veritabanı bağlamı ve göçler; veritabanı kurulum ayarları `DatabaseOptions` (`Database:ConnectionString` bağlantı dizisi — sunucu, veritabanı ve kullanıcı Compose'tan gelir, parola `FileSecrets/` ile sır dosyasından eklenir —, `Database:LivenessTimeoutSeconds`; `09 §3.5`, §10.7); `FileSecrets/` sır dosyalarını `/run/secrets`'ten okur (`05 §6.x.1`) |
 | `src/Shopfolio.Web/Pages/` | Razor sayfaları — `Storefront/` (vitrin), `Account/` (müşteri hesabı), `Panel/` (yönetim paneli), `Shared/` (ortak parçalar); sayfa modül klasörüne girmez |
 | `src/Shopfolio.Web/Endpoints/` | Makine uçları (sayfa olmayan GET ve POST uçları) |
 | `src/Shopfolio.Web/wwwroot/` | Düz JavaScript ve CSS (`css/`, `js/`); derleme hattı ve çatı yok |
-| `tests/Shopfolio.UnitTests/` | Birim testleri ve modül sınırlarının mimari testleri; veritabanı gerektirmez. Alt klasörler: `Fakes/` (elle yazılmış sahteler), `Architecture/` (mimari testler, yasak test kalıbı taraması, kasıtlı ihlal örnekleri `ViolationSamples/`), `Consistency/` (doküman–kod eşitlik denetimleri), `Support/` |
+| `tests/Shopfolio.UnitTests/` | Birim testleri ve modül sınırlarının mimari testleri; veritabanı gerektirmez. Alt klasörler: `Fakes/` (elle yazılmış sahteler), `Architecture/` (mimari testler, yasak test kalıbı taraması, kasıtlı ihlal örnekleri `ViolationSamples/`), `Consistency/` (doküman–kod eşitlik denetimleri), `FileSecrets/` (sır dosyası okuyucusu, sır–bileşen eşlemesinin Compose ve runbook ile eşitliği, ortam değişkeninden sır okuma taraması), `Support/` |
 | `tests/Shopfolio.IntegrationTests/` | Gerçek PostgreSQL 18'e karşı entegrasyon testleri. Alt klasörler: `Database/` (şablon ve koleksiyon veritabanı fikstürleri, göç demeti), `Web/` (`WebApplicationFactory` fabrikası); `Fakes/` UnitTests'ten bağlantılı derlenir |
 | `.config/` | Yerel .NET araçları (`dotnet-tools.json`: `dotnet-ef`) |
-| `deploy/` | İmaj, Compose (`compose.yaml`, `compose.dev.yaml`), ters vekil (`caddy/Caddyfile`), `release.env` (bir sürümün üç imaj başvurusu), `firewall/` (`DOCKER-USER` çıkış kuralı betiği ve kurulum denemeleri) ve `.env.example` (kurulumun sır olmayan ayar şablonu); uygulama kodu değildir (`09 §4.3`) |
+| `deploy/` | İmaj, Compose (`compose.yaml`, `compose.dev.yaml`, `compose.install.yaml` — ilk kurulumun veritabanı sırları), ters vekil (`caddy/Caddyfile`), `release.env` (bir sürümün üç imaj başvurusu), `firewall/` (`DOCKER-USER` çıkış kuralı betiği ve kurulum denemeleri) ve `.env.example` (kurulumun sır olmayan ayar şablonu); uygulama kodu değildir (`09 §4.3`) |
 
 ---
 

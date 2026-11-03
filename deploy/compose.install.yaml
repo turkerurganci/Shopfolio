@@ -1,0 +1,24 @@
+# First-install variant (05 6.x.6; 09 17 item 1): laid on top of compose.yaml for the very first start of the database only,
+#   docker compose --env-file deploy/release.env --env-file /etc/shopfolio/settings.env -f deploy/compose.yaml -f deploy/compose.install.yaml up -d database
+# and left out of every later start (`up -d` with compose.yaml alone), so the database container carries these secrets only
+# while it creates its data directory and its users:
+#   db_superuser_password   the database's founding (super) user; the official image reads it from the file while it initialises
+#   db_migrator_password    password of the schema owner, set by the setup script
+#   db_app_password         password of the application user, set by the setup script
+#   db_reader_password      password of the read-only user, set by the setup script
+# The secret definitions themselves are in compose.yaml. With an existing data directory the image does not look at the
+# founding password again, so starting without this file after the first install is the normal case.
+#
+# The files of the three users' passwords are also read by the application containers, so during the first install they carry
+# the database user's group as well (DEPLOY_RUNBOOK section B); the runbook returns them to the owner-only mode afterwards.
+
+services:
+  database:
+    environment:
+      # A path to the secret file, not the secret itself (the official image reads the password from the file).
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db_superuser_password
+    secrets:
+      - db_superuser_password
+      - db_migrator_password
+      - db_app_password
+      - db_reader_password

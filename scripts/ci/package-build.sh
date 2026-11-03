@@ -7,7 +7,8 @@
 #   4. No image runs as root.
 #   5. The application image carries the migration bundle; the container starts against the PostgreSQL service and the
 #      liveness endpoint answers 200.
-#   6. The database image records transaction commit times, carries pgBackRest and the scheduler.
+#   6. The database image's first install makes the four users, the UTF-8 / ICU Turkish database, pg_trgm and the client
+#      authentication files (T10); it records transaction commit times, carries pgBackRest and the scheduler.
 #   7. The backup image carries the pinned restic and the scheduler.
 #
 # Images are built, never pushed (publish.yml pushes). Needs: docker, curl, and for step 5 a reachable PostgreSQL 18:
@@ -31,6 +32,7 @@ cleanup() {
   for container in "${CONTAINERS[@]:-}"; do
     [ -n "$container" ] && docker rm -f "$container" >/dev/null 2>&1 || true
   done
+  [ -n "${SETUP_FILES_DIR:-}" ] && rm -rf "$SETUP_FILES_DIR" || true
 }
 trap cleanup EXIT
 
@@ -61,7 +63,7 @@ done
 # A secret value in a build file: a *PASSWORD/SECRET/TOKEN/KEY name given a literal value, a private key block, a cloud key id.
 # A name ending in _FILE carries a path, not a value.
 SENSITIVE_NAME='[A-Za-z0-9_]*(PASSWORD|PASSWD|SECRET|TOKEN|PRIVATE_KEY|ACCESS_KEY|API_KEY)[A-Za-z0-9_]*'
-if grep -rnE -- "(^|[^A-Za-z0-9_])${SENSITIVE_NAME}[[:space:]]*[=:][[:space:]]*[\"']?[^[:space:]\"'\$]" deploy/images | grep -vE '_FILE[[:space:]]*[=:]'; then
+if grep -rnE -- "(^|[^A-Za-z0-9_])${SENSITIVE_NAME}[[:space:]]*[=:][[:space:]]*[\"']?[^[:space:]\"'\$]" deploy/images | grep -vE "_FILE[[:space:]]*[=:]"; then
   fail "a secret value appears in a build file above; secrets arrive as mounted files (09 17 item 2)"
 fi
 if grep -rnE -- 'BEGIN [A-Z ]*PRIVATE KEY|AKIA[0-9A-Z]{16}' deploy; then
@@ -136,15 +138,29 @@ fi
 echo "ok: ${LIVENESS_PATH} answered 200"
 
 # ---- 6. database image ------------------------------------------------------------------------------------------------
-echo "== 6/7 Database image: commit timestamps, pgBackRest, scheduler"
+echo "== 6/7 Database image: first install (users, collation, client authentication), commit timestamps, pgBackRest, scheduler"
 DB_CONTAINER="shopfolio-ci-db-$$"
 CONTAINERS+=("$DB_CONTAINER")
-docker run -d --name "$DB_CONTAINER" --network none -e POSTGRES_HOST_AUTH_METHOD=trust "shopfolio-database:$TAG" >/dev/null
+# The first install as an installation does it (compose.install.yaml): the four setup secrets as files, with made-up values that
+# exist only in this job. 0444: the container's database user (not the runner) reads them.
+SETUP_FILES_DIR="$(mktemp -d)"
+for name in db_superuser_password db_setup_migrator_password db_setup_app_password db_setup_reader_password; do
+  head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n' >"$SETUP_FILES_DIR/$name"
+  chmod 0444 "$SETUP_FILES_DIR/$name"
+done
+docker run -d --name "$DB_CONTAINER" --network none \
+  -e POSTGRES_DB=shopfolio -e POSTGRES_PASSWORD_FILE=/run/secrets/db_superuser_password \
+  -v "$SETUP_FILES_DIR/db_superuser_password:/run/secrets/db_superuser_password:ro" \
+  -v "$SETUP_FILES_DIR/db_setup_migrator_password:/run/secrets/db_setup_migrator_password:ro" \
+  -v "$SETUP_FILES_DIR/db_setup_app_password:/run/secrets/db_setup_app_password:ro" \
+  -v "$SETUP_FILES_DIR/db_setup_reader_password:/run/secrets/db_setup_reader_password:ro" \
+  "shopfolio-database:$TAG" postgres -c config_file=/etc/postgresql/postgresql.conf -c log_statement=all >/dev/null
 commit_timestamps=""
 for _ in $(seq 1 45); do
   # The first start runs the official image's initialization on a temporary server that does not read the image's
   # configuration (it reports 'off'); only the final server reports the image's setting. Wait for 'on'.
-  commit_timestamps="$(docker exec "$DB_CONTAINER" psql -U postgres -Atc 'show track_commit_timestamp' 2>/dev/null || true)"
+  # `docker exec` runs as the image's database user: the local socket accepts that user (pg_hba.conf, peer).
+  commit_timestamps="$(docker exec "$DB_CONTAINER" psql -U postgres -d shopfolio -Atc 'show track_commit_timestamp' 2>/dev/null || true)"
   [ "$commit_timestamps" = "on" ] && break
   sleep 2
 done
@@ -155,6 +171,51 @@ fi
 docker exec "$DB_CONTAINER" pgbackrest version
 docker exec "$DB_CONTAINER" test -x /usr/local/bin/scheduler.sh || fail "the scheduler is not in the database image"
 echo "ok: track_commit_timestamp on, pgBackRest and the scheduler present"
+
+# What the setup script made (09 10.8; T10). Each query runs as the founding user through the local socket.
+db_query() {
+  docker exec "$DB_CONTAINER" psql -U postgres -d shopfolio -Atc "$1"
+}
+expect() { # $1 = what, $2 = expected, $3 = actual
+  [ "$3" = "$2" ] || fail "setup script: $1 is '$3', expected '$2'"
+}
+expect "number of shopfolio users" 4 "$(db_query "select count(*) from pg_roles where rolname like 'shopfolio\_%'")"
+expect "users with SUPERUSER/CREATEDB/CREATEROLE/REPLICATION/BYPASSRLS" 0 \
+  "$(db_query "select count(*) from pg_roles where rolname like 'shopfolio\_%' and (rolsuper or rolcreatedb or rolcreaterole or rolreplication or rolbypassrls)")"
+expect "database encoding, locale provider and ICU locale" "UTF8|i|tr-TR" \
+  "$(db_query "select pg_encoding_to_char(encoding) || '|' || datlocprovider::text || '|' || datlocale from pg_database where datname = 'shopfolio'")"
+expect "pg_trgm installed" 1 "$(db_query "select count(*) from pg_extension where extname = 'pg_trgm'")"
+expect "role settings of the schema owner" 3 \
+  "$(db_query "select array_length(setconfig, 1) from pg_db_role_setting s join pg_roles r on r.oid = s.setrole where r.rolname = 'shopfolio_migrator'")"
+expect "pg_hba.conf lines that use trust" 0 "$(db_query "select count(*) from pg_hba_file_rules where auth_method = 'trust'")"
+expect "pg_hba.conf lines that name the backup status user" 1 "$(db_query "select count(*) from pg_hba_file_rules where 'shopfolio_backup_status' = any(user_name)")"
+# The backup status user connects through the local socket without a password; the founding user is refused over the network.
+expect "backup status user through the local socket" shopfolio_backup_status \
+  "$(docker exec "$DB_CONTAINER" psql -U shopfolio_backup_status -d shopfolio -Atc 'select current_user')"
+if docker exec -e PGPASSWORD="$(cat "$SETUP_FILES_DIR/db_superuser_password")" "$DB_CONTAINER" psql -h 127.0.0.1 -U postgres -d shopfolio -Atc 'select 1' >/dev/null 2>&1; then
+  fail "the founding user connected over the network (05 7.1.3)"
+fi
+expect "application user over the network" shopfolio_app \
+  "$(docker exec -e PGPASSWORD="$(cat "$SETUP_FILES_DIR/db_setup_app_password")" "$DB_CONTAINER" psql -h 127.0.0.1 -U shopfolio_app -d shopfolio -Atc 'select current_user')"
+# The three network users log in with their own passwords (the migrator and the reader here; the application user above).
+expect "schema owner over the network" shopfolio_migrator \
+  "$(docker exec -e PGPASSWORD="$(cat "$SETUP_FILES_DIR/db_setup_migrator_password")" "$DB_CONTAINER" psql -h 127.0.0.1 -U shopfolio_migrator -d shopfolio -Atc 'select current_user')"
+expect "read-only user over the network" shopfolio_reader \
+  "$(docker exec -e PGPASSWORD="$(cat "$SETUP_FILES_DIR/db_setup_reader_password")" "$DB_CONTAINER" psql -h 127.0.0.1 -U shopfolio_reader -d shopfolio -Atc 'select current_user')"
+# No password reached the server's log (05 6.x.16). The server logs every statement (log_statement=all, set above), so the log
+# shows what the setup script sent: only SCRAM-SHA-256 verifiers, made in the client, three of them (one per password).
+DB_LOG="$(docker logs "$DB_CONTAINER" 2>&1)"
+for name in db_superuser_password db_setup_migrator_password db_setup_app_password db_setup_reader_password; do
+  if printf '%s\n' "$DB_LOG" | grep -qF -- "$(cat "$SETUP_FILES_DIR/$name")"; then
+    fail "the value of $name is in the database container's log"
+  fi
+done
+expect "ALTER ROLE ... PASSWORD statements with a SCRAM-SHA-256 verifier in the log" 3 \
+  "$(printf '%s\n' "$DB_LOG" | grep -ciE "PASSWORD 'SCRAM-SHA-256\\$" || true)"
+expect "PASSWORD statements with anything else than a verifier in the log" 0 \
+  "$(printf '%s\n' "$DB_LOG" | grep -iE "PASSWORD '" | grep -vciE "PASSWORD 'SCRAM-SHA-256\\$" || true)"
+rm -rf "$SETUP_FILES_DIR"
+echo "ok: four users without the five attributes, UTF-8 and ICU tr-TR, pg_trgm, role settings, no trust line, founder refused over the network"
 
 # ---- 7. backup image --------------------------------------------------------------------------------------------------
 echo "== 7/7 Backup tool image: restic and scheduler"

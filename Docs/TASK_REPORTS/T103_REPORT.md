@@ -84,4 +84,5 @@
 - **Working tree (Adım -1):** temiz
 - **Ana dal CI startup (Adım 0):** yapım işçisi izlemez
 - **Repo memory (bitiş kapısı 8):** güncellendi
+- **CI düzeltmesi (6. Migration dry-run):** `scripts/ci/migration-dry-run.sh` artık göçü T10 kurucu SQL dosyalarıyla (`deploy/images/database/bootstrap`) kurulan veritabanına göç kullanıcısıyla uygular; üç rol ayarı hazırdır. Ayar yokken göç 42704 ile düşmeye devam eder. Yerelde PostgreSQL 18 ile koşuldu: geçti.
 - **Diğer:** FK indeksleri (`ix_companies_province_id`, `ix_company_settings_return_province_id`) EF konvansiyonuyla oluşuyor, zararsız.

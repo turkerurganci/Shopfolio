@@ -1,6 +1,6 @@
 # T08 — Sır düzeni
 
-**Faz:** F0 | **Durum:** ⏳ Devam ediyor — yapım bitti, doğrulama bekliyor | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -54,10 +54,25 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-03, `dda60d3`) |
+| Bulgu sayısı | 3 (S1, DÜŞÜK) |
+| Düzeltme gerekli mi | Evet — aynı PR'da |
+| Bloke-etmeyen not (K) sayısı | 2 |
+
+### Doğrulama tur 1 — validator kanıtları
+
+Başlangıç kapıları: working tree temiz; `core.hooksPath` kurulu; ana dal son 3 run (41630669794, 41630669803, 41619599572) success; memory'de T08 satırı var. `12`'de T08'in kaynak birimlerine (`05 MK-59`, `MK-60`, §6.x; `09 §17`) bağlı VAL satırı yok — `Durum` hücresi yazılmadı; `12_matris_denetle.py --kapsam 1-77` hata 0. Dal CI run 41633970318 (head `dda60d3`) success — 9 iş yeşil.
+
+| # | Validator sonucu | Validator kanıtı |
+|---|---|---|
+| 1 | ✓ | `docker compose ... config` (taban `--profile tools`; taban+dev+install): `app` 5 sır, `command` yalnız `db_app_password`, `read-command` yalnız `db_reader_password`, `migrate` yalnız `db_migrator_password`, `backup` iki dosya yedeği anahtarı, `database` kalıcı olarak iki veritabanı yedeği anahtarı + install bindirmesinde kurucu ve üç kullanıcı parolası, `proxy` hiç — `05 §6.x.2` ile birebir |
+| 2 | ✓ | `SecretFiles` + `DatabasePasswordPostConfigure` kodu okundu; `ApplicationSource_ReadsNoSecretFromTheEnvironment` `Program.cs`'e geçici `Environment.GetEnvironmentVariable` eklenince kırmızı (geri alındı) |
+| 3 | ✗ | Yerel Docker'da bölüme runbook §B.1'in izinleri yazıldı ve üç imajın kendi kullanıcısıyla (1654, 999, 10001) okundu: 0400 dosyaları yalnız sahibi okudu; ilk kurulum düzenindeki `db_migrator_password` (1654:999 0440) **iki konteyner kullanıcısınca (1654 ve 999) okundu**. `05 §6.x.1` "dosyayı yalnız o okur" ve "bileşen başına ayrı dosyalarda" der; belgeye uygun yol (veritabanına ayrı dosya) varken paylaşılan dosya seçildi; D-35 (c) proje sahibi onayı değildir (`12 §6.1`, §8.4) — bulgu 1 |
+| 4 | ✓ | `05 §6.x.2` satırları Compose çıktısıyla tek tek karşılaştırıldı; `SecretLayoutTests` `app`'e `db_reader_password` eklenince iki testte kırmızı (geri alındı) |
+| 5 | ✓ | Runbook §B "Rotation" sütunu `05 §6.x.10`–§6.x.12, §6.x.20 ile karşılaştırıldı; döndürülmeyen yalnız iki şifreleme anahtarı |
+| 6 | ✓ | `git ls-files` sır deseni yalnız `deploy/.env.example`; `git check-ignore` desenleri tutuyor; dal farkında sır değeri yok (testlerde uydurma değer); `BYPASS_LOG.md` farkı boş |
+
+Bulgular: (1) kriter 3 — ilk kurulumda üç parola dosyası iki konteyner kullanıcısına açık (`05 §6.x.1`); (2) `09 §3.5` madde 2 bağlantı dizisinin sır dosyasında olduğunu söyler, kod dizinin parolasız kısmını Compose ortamından alıyor — çelişki BLOCKED akışı yerine D-35 (a) ile backlog'a yazıldı (`09 §2`, §24 madde 8, §25); (3) yeni kaynak taraması `UnitTests/Architecture/` yerine `FileSecrets/`'ta ve ihlal örnekleri ayrı dosya yerine satır içi (`09 §19.2` madde 3). K-notları: K1 D-32 (b) kodu `Infrastructure/Secrets` diye anıyor (klasör `FileSecrets/`); K2 D-35 (b) `05 §8.2.4` hizmet listesi cümlesi — backlog'da.
 
 ## Altyapı Değişiklikleri
 

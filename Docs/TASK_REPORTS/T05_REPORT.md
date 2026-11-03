@@ -1,6 +1,6 @@
 # T05 — Compose geliştirme ortamı
 
-**Faz:** F0 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme ve plan kararı bekliyor | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** Plan düzeltmesi uygulandı (seçenek 1) — tur 2 doğrulaması bekliyor | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -29,14 +29,14 @@
 | 1 | `compose.yaml` dört hizmet + tek seferlik göç | ✓ | `docker compose --env-file deploy/release.env --env-file deploy/.env.example -f deploy/compose.yaml config` geçerli, beş hizmet (KK1) |
 | 2 | Vekil–uygulama, uygulama–veritabanı ayrı iç ağlar; vekil ve yedek veritabanına ulaşamaz | ✓ | Yapı `config` ile doğrulandı; çalışma zamanı: `installation-checks.sh isolation` yerel Docker'da çıkış 0 — kontrol bağlantısı geçti, vekil ve yedek veritabanına ad ve iki adresle (`172.30.4.2` app-data, `172.30.2.2` db-egress) bağlanamadı (düzeltme turu 1, aşağıda) |
 | 3 | Yalnız 80 ve 443 yayımlanır | ✓ | `config` çıktısında yalnız `proxy` 80/443 tcp; HTTP/3 (443/udp) yayımlanmaz (KK3) |
-| 4 | Veritabanı ve yedek çıkışı `DOCKER-USER`'da hedef adresli kuralla sınırlı | ? | `docker-user-egress.sh` yazıldı (`sh -n` temiz); kuralın etkisi (KK4) Linux Docker motoru ve iptables ister — plan düzeltmesi bekliyor (proje sahibi karar verir); DNS riski D-31 (b)'de |
+| 4 | Veritabanı ve yedek çıkışını nesne depolamayla sınırlayan hedef adresli `DOCKER-USER` kuralı betikte tanımlı; gerçek deneme T09'da | ✓ (statik) | `deploy/firewall/docker-user-egress.sh` (`sh -n` temiz): iki alt ağ için `DOCKER-USER` başına zincir atlaması; zincir yalnız nesne depolama adres ve kapısına `RETURN`, geri kalanı `REJECT`. Gerçek deneme T09 KK7; DNS riski D-31 (b)'de |
 | 5 | Veri/dosya/kayıt/sertifika/durum adlandırılmış bölümlerde; vekilde yalnız görsel salt okuma | ✓ | Dokuz bölüm `config` ile; vekil `files-images` (ro), `caddy-data`, `access-logs` bağlar (KK5) |
 | 6 | `compose.dev.yaml` bindirme, e-posta sırrı yok, ayrı imaj/sürüm yok | ✓ | Bindirme `config` geçerli; yalnız Mailpit eklenir, sır dosyası boş; yerel Docker'da `mailpit` `Up (healthy)`, `GET 127.0.0.1:8025/api/v1/info` → 200, `v1.33.0` (düzeltme turu 1) |
 | 7 | Her imaj etiket + özetle sabit; `latest` yok | ✓ | `grep -rniw latest deploy` boş (KK7); özetler Docker Hub `docker-content-digest` ile |
 | 8 | HTTP→HTTPS, bir yıllık HSTS, alt alan/ön yükleme yok, uygulama başlık yazmaz | ✓ | Yerel Docker'da `installation-checks.sh redirect-hsts` (`CURL_OPTS=-k`, `SITE_DOMAIN=localhost`) çıkış 0: HTTP `308` → `Location: https://localhost/`; HTTPS yanıtında `strict-transport-security: max-age=31536000`; uygulama başlık yazmaz (kodda HSTS yok) (düzeltme turu 1, aşağıda) |
-| 9 | Vekil istemci adresini görür (IPv6 açık) | ? | `edge` ağında IPv6 açık; IPv4/IPv6 isteğinde aynı adres (KK9) gerçek IPv6'lı sunucu ve T215 kodu ister — plan düzeltmesi bekliyor (proje sahibi karar verir); D-31 (d) |
+| 9 | Vekil istemci adresini görecek biçimde yapılandırılmış (IPv6 açık ya da userland proxy kapalı); uygulama tarafı T215'te, IPv4/IPv6 denemesi T09'da | ✓ (yapılandırma) | `compose.yaml` satır 168: `edge` ağında `enable_ipv6: true`. Uygulama tarafı T215 KK9, gerçek deneme T09 KK8; D-31 (d) |
 
-> `?` = kanıt üretilemedi; `12 §6.1`'e göre PASS değil, task satırı BEKLEMEDE. Kriter 4 ve 9 için plan düzeltmesi bekliyor.
+> Kriter 4 ve 9 plan düzeltmesiyle yeniden yazıldı (aşağıda, "Plan düzeltmesi"); gerçek denemeler T09 KK7, KK8 ve T215 KK9'da.
 
 **Validator kanıtı (tur 1, 2026-11-03, `cc554ea`; dal CI'ı run 41621640998 success, 9 pass + Guard skipping):** 1 ✓ · 2 ? · 3 ✓ · 4 ? · 5 ✓ · 6 ? · 7 ✓ · 8 ? · 9 ?. `docker compose … config` (v5.1.0, daemon'suz; taban ve bindirmeli): hizmetler `database, migrate, app, proxy, backup` (+ bindirmede `mailpit`); yalnız `proxy` `80/tcp`, `443/tcp`; bölümler dokuz; vekilde dosya alanından yalnız `files-images:ro`; bindirme yalnız `mailpit` ve `SITE_DOMAIN=localhost` ekler. `grep -rniw latest deploy` boş; Caddy ve Mailpit özetleri Docker Hub'dan yeniden okundu, aynı. Caddy 2.11.7 (SHA-512 doğrulanmış ikili) `caddy adapt` çıkış 0: HSTS yalnız `max-age=31536000`, `h1 h2`, yönetim ucu kapalı. `src`/`tests`'te HSTS yok. Betikler `bash -n`/`sh -n` temiz, mantık okundu. Docker daemon kapalı → 2, 4, 6 ("ayakta"), 8, 9'un çalışma zamanı kanıtı üretilemedi (`?`, FAIL değil ama PASS için gerekir). **`~` notu `12 §6.1` ile çelişir:** `~` PASS sayılmaz (K-1521) ve task'a bağlı KRİTİK satır (VAL-A982) BEKLEMEDE ile çıkamaz; D-31 risk kaydı değildir, T09'un kriterleri bu denemeleri içermez — erteleme kabul edilmedi. Kriter 9'un uygulama yanı T215'in kodudur (`09 §15.1` madde 8) → plan düzeltmesi proje sahibine.
 
@@ -95,7 +95,7 @@ Doğrulama tur 1 FAIL'ine yanıt. Değişiklikler:
 - **K3:** `migrate` parolayı `PGPASSWORD` ortamıyla verir, komut satırından çıktı. Yerel denemede göç rol yokluğundan düştü (rolleri T10 kurar); sunucu günlüğü `password authentication failed for user shopfolio_migrator` gösterdi, yani parola istemciden gönderildi. Gerçek göçte doğrulama D-31 (g).
 - **K4:** `isolation` denemesi artık veritabanının `db-egress` adresini de dener (vekil ve yedekten).
 - **K5:** D-32 (b)'ye eklendi. **K6:** D-33'e eklendi. **K7:** `caddy fmt` farkı (global bloktan önceki boş satır) giderildi; `caddy fmt --diff` fark yok, `caddy adapt` çıkış 0.
-- **KK4 ve KK9:** dokunulmadı; `?`, plan düzeltmesi bekliyor.
+- **KK4 ve KK9:** yeni kriter metnine göre statik kanıtla kapandı (aşağıda, "Plan düzeltmesi").
 
 **Yerel kanıt (Docker Desktop 29.2.1, WSL 3.8 GiB):** üç imaj T06 Dockerfile'larından yerel derlendi (`docker build -f deploy/images/<ad>/Dockerfile -t shopfolio-<ad>:t05 .`), `SHOPFOLIO_*_IMAGE` ile verildi; bindirmeyle (`compose.dev.yaml`) `SITE_DOMAIN=localhost`; sırlar uydurma değerli geçici dizinde. Bellek hatası olmadı.
 
@@ -105,6 +105,15 @@ Doğrulama tur 1 FAIL'ine yanıt. Değişiklikler:
 - KK6: `shopfolio-mailpit-1 Up (healthy)`, `127.0.0.1:8025/api/v1/info` → HTTP 200, `"Version":"v1.33.0"`.
 - KK8: vekil ağında curl konteynerinden `CURL_OPTS="-k --resolve localhost:80:<vekil> --resolve localhost:443:<vekil>" sh installation-checks.sh redirect-hsts` → `ok: HTTP answers with a redirect`; `ok: redirect points to HTTPS`; `ok: HSTS is exactly: max-age=31536000`; `exit=0`. Ham yanıt: `HTTP/1.1 308 Permanent Redirect … Location: https://localhost/`; `HTTP/2 502 … strict-transport-security: max-age=31536000` (502: uygulama çalışmıyor, başlık yine yazıldı).
 - Temizlik: `docker compose down -v`; konteynerler, `shopfolio-*` ağları ve bölümleri, üç yerel imaj, curl/mailpit/caddy imajları silindi.
+
+## Plan düzeltmesi (2026-11-03, `00 §D.8`)
+
+Tur 1 doğrulaması `PLAN_CORRECTION_REQUIRED` verdi (KK4 ve KK9 T05'te karşılanamaz; VAL-A982 kanıtı T209'undur). Proje sahibi seçenek 1'i onayladı; karar = plan güncellemesi. **K numarası yok:** karar kaydı (`PRODUCT_DISCOVERY_STATUS.md`) arşivlidir ve yeni karar kabul etmez (başlık, K-1574; §25); karar bu raporda ve PR #348'de tutulur.
+
+- **Seçenekler:** (1) KK4'ün gerçek denemesi T09'a, KK9'un uygulama tarafı T215'e, IPv4/IPv6 denemesi T09'a taşınır; T05 statik ve yerel kanıtla geçer. (2) Denemeler T05'te kalır, T05 referans sunucu ve T215 kodunu bekler. (3) Kriterler gevşetilir, kanıtsız geçilir. **Seçilen: 1.**
+- **Gerekçe:** iki deneme kurulum işidir; T09 zaten referans sunucu ister; uygulama tarafı T215'in kodudur.
+- **Değişenler:** `11` T05 kriter 4, 9, test beklentisi, KK4, KK9; T09 kriter 7, 8, KK7, KK8 (+ Dokümanlar, matris satırları); T215 kriter 9, KK9. `12` VAL-A982 kaynak sütunundan `11 T05 KK8` atfı çıkarıldı (satır T209'a kalır, `Durum` değişmedi); T05 KK8 yerel kanıtla geçer.
+- **Tarama:** `12_matris_denetle.py --kapsam 1-77` Hata: 0; `11_task_blok_denetle.py` yalnız önceden var olan 3 sorun (T330, T601).
 
 ## Known Limitations / Follow-up
 

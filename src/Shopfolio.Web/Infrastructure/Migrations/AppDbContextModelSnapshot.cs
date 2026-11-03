@@ -421,7 +421,7 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasColumnType("numeric(12,3)")
                         .HasColumnName("net_quantity");
 
-                    b.Property<string>("NormalizedSku")
+                    b.Property<string>("NormalizedSKU")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("normalized_sku");
@@ -448,7 +448,7 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("second_option_value_id");
 
-                    b.Property<string>("Sku")
+                    b.Property<string>("SKU")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("sku");
@@ -466,7 +466,7 @@ namespace Shopfolio.Infrastructure.Migrations
                     b.HasIndex("ImageId")
                         .HasDatabaseName("ix_variants_image_id");
 
-                    b.HasIndex("NormalizedSku")
+                    b.HasIndex("NormalizedSKU")
                         .IsUnique()
                         .HasDatabaseName("ix_variants_normalized_sku");
 

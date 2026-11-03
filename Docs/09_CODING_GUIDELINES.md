@@ -1113,29 +1113,34 @@ Bu alt bölüm veritabanı oturumunun üç sunucu taraflı zaman aşımını ve 
 3. **İstemci süresi yedektir.** İstemci süresi her profilde o profilin sunucu sürelerinden uzundur (§3.5): sunucu iptali önce gelir, istemci yalnız sunucu yanıt vermezse keser. Komut başına `CommandTimeout` atanmaz; uzun süren iş yeni bir süre değil, sayfalamadır (§10.10 madde 4).
 4. **Aşım ayrı bir hâl değildir.** Kilit bekleme aşımı (`55P03`), sorgu iptali (`57014`) ve boşta işlem aşımının kestiği bağlantı beklenmeyen hatadır ve tek yakalama katmanında üç hâlden birine düşer (§8.1; `05 §10.3`). Kod bunları **yakalamaz, çevirmez, yeniden denemez;** veri sağlayıcının otomatik yeniden deneme stratejisi (`EnableRetryOnFailure`) de açılmaz — tek yeniden yürütme §10.2'nin tekil dizin aşırı yüklemesidir. `PostgresException`'ı `SqlState`'ine göre ayıran `catch` yalnız tekil dizin çakışmasında (`23505`, §10.2) vardır. Ayrı ekran ya da ileti yoktur. Kuyruk satırı bu hatalarda iş türünün kuralına göre denenir (`05 §4.3.4`; §13).
 5. **Öncül: işlemin içinde dış çağrı yoktur.** Boşta işlem süresi, açık işlemin bir dış servisi beklemediği varsayımına dayanır; dış yan etki iş kuyruğuna yazılır ve çağrı işlemin dışındadır (§9.1 madde 6). Kaynak taraması (birim, `Infrastructure/` dışında): `ITransactionRunner` gövdesinde `HttpClient` ya da dış servis arayüzü kullanımı yoktur.
-6. **Canlılık ucunun veritabanı denetimi.** `Infrastructure/LivenessProbe.CheckDatabaseAsync(ct)` bir bağlantı açar ve `SELECT 1` çalıştırır; süre **kurulum ayarıdır** (§3.5 tablosunun satırı; varsayılanı tabloda): ayar anahtarı `Database:LivenessTimeoutSeconds`, seçenekler sınıfı `DatabaseOptions`. Açılışta doğrulanır: sıfırdan büyük ve `CommandTimeout`'tan kısa olmalıdır; değilse uygulama açılmaz ve ayarı adıyla kaydeder (§3.5 madde 2). Denetim hem bağlantıyı açmayı hem komutu kapsar: istek iptali belirteciyle bağlı bir `CancellationTokenSource` `CancelAfter(ayar)` ile kurulur; süre dolarsa ya da komut hata verirse yöntem `false` döner ve uç gövdesiz 503 yazar (`07 §4.33.1`; makine ucu, §8.1). Süre dolması bir kayıt satırı yazar (§18.2); istek iptali yazmaz.
+6. **Canlılık ucunun veritabanı denetimi.** `Infrastructure/LivenessProbe.CheckDatabaseAsync(ct)` bir bağlantı açar ve `SELECT 1` çalıştırır; süre **kurulum ayarıdır** (§3.5 tablosunun satırı; varsayılanı tabloda): ayar anahtarı `Database:LivenessTimeoutSeconds`, seçenekler sınıfı `DatabaseOptions`. Açılışta doğrulanır: sıfırdan büyük ve `CommandTimeout`'tan kısa olmalıdır; değilse uygulama açılmaz ve ayarı adıyla kaydeder (§3.5 madde 2). Denetim hem bağlantıyı açmayı hem komutu kapsar: süre sürücünün iptal desteğine bırakılmaz — Npgsql fiziksel bağlantı açılışında iptal belirtecine uymaz (T01'de ölçüldü: ayar 3 sn iken açılışı 8 sn süren veritabanında 503 8,3 sn'de, durdurulmuş veritabanında bağlantı dizisinin `Timeout`'u kadar gelir); denetim görevi `Task.WaitAsync(ayar, ct)` ile beklenir, görev arkada kendi bağlantısını kapatıp kendi hatasını yutarak biter, süre dolunca belirtecini iptal eder; süre dolarsa ya da komut hata verirse yöntem `false` döner ve uç gövdesiz 503 yazar (`07 §4.33.1`; makine ucu, §8.1). Süre dolması bir kayıt satırı yazar (§18.2); istek iptali yazmaz.
 
    ```csharp
    public static async Task<bool> CheckDatabaseAsync(NpgsqlDataSource dataSource, TimeSpan limit, ILogger logger, CancellationToken ct)
    {
-       using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-       timeout.CancelAfter(limit);
+       var abort = CancellationTokenSource.CreateLinkedTokenSource(ct);
+       var check = RunCheckAsync(dataSource, abort); // arkada koşar; bağlantısını kendi kapatır, hatasını kendi yutar (§8.1 madde 6: geniş catch'in altıncı yeri)
        try
        {
-           await using var connection = await dataSource.OpenConnectionAsync(timeout.Token);
-           await using var command = new NpgsqlCommand("SELECT 1", connection);
-           await command.ExecuteScalarAsync(timeout.Token);
-           return true;
+           var alive = await check.WaitAsync(limit, ct); // süre sürücüden bağımsız
+           ct.ThrowIfCancellationRequested();
+           return alive;
        }
-       catch (Exception ex) when (!ct.IsCancellationRequested) // §8.1 madde 6: geniş catch'in altıncı yeri; istek iptali buraya düşmez (§8.1 madde 8)
+       catch (TimeoutException)
        {
-           if (timeout.IsCancellationRequested) logger.LogWarning(ex, "{Event}", LogEvents.DbTimeout); // süre doldu: tek kayıt satırı (§18.2)
+           abort.Cancel();
+           logger.LogWarning("{Event}", LogEvents.DbTimeout); // süre doldu: tek kayıt satırı (§18.2); hata metni yazılmaz
            return false;
+       }
+       catch (OperationCanceledException) // istek iptali: hata değil, yukarı geçer (§8.1 madde 8); kayıt yazılmaz
+       {
+           abort.Cancel();
+           throw;
        }
    }
    ```
    Compose sağlık denetiminin kendi zaman aşımı bu süreden uzun olmalıdır; değeri D-01'in işidir ve burada yazılmaz.
-7. **Test.** Birim: üç sunucu ayarı ve istemci süresi `Web` ve `Maintenance` profillerinde bağlantı dizisinde doğru yazılır; `DatabaseTimeouts` sabitleri §3.5'in çelişki taramasını sağlar (her iki profilde kilit < sorgu < istemci süresi; dışa aktarma sayfa sorgusu < üretim tavanı < ters vekil süresi); `DatabaseOptions` doğrulaması (sıfır, negatif ve istemci süresinden uzun değer açılışı reddeder); kaynak taramaları (madde 2 ve 5). Entegrasyon (gerçek PostgreSQL, §19.1): iki işlemle kilit bekleme — ikincisi `lock_timeout` içinde düşer ve beklenmeyen hâle gider; `pg_sleep` ile sorgu iptali; boşta kalan açık işlemin bağlantısı kesilir; `Maintenance` profilinde `SHOW statement_timeout` uzun değeri, `Web` profilinde kısa değeri gösterir. Canlılık denetimi: yavaş veritabanında `false`, 503 ve tek `DbTimeout` satırı; erişilemeyen veritabanında `false`; istek iptalinde iptal yukarı geçer (`false` dönmez) ve kayıt yazılmaz (§8.1 madde 8).
+7. **Test.** Birim: üç sunucu ayarı ve istemci süresi `Web` ve `Maintenance` profillerinde bağlantı dizisinde doğru yazılır; `DatabaseTimeouts` sabitleri §3.5'in çelişki taramasını sağlar (her iki profilde kilit < sorgu < istemci süresi; dışa aktarma sayfa sorgusu < üretim tavanı < ters vekil süresi); `DatabaseOptions` doğrulaması (sıfır, negatif ve istemci süresinden uzun değer açılışı reddeder); kaynak taramaları (madde 2 ve 5). Entegrasyon (gerçek PostgreSQL, §19.1): iki işlemle kilit bekleme — ikincisi `lock_timeout` içinde düşer ve beklenmeyen hâle gider; `pg_sleep` ile sorgu iptali; boşta kalan açık işlemin bağlantısı kesilir; `Maintenance` profilinde `SHOW statement_timeout` uzun değeri, `Web` profilinde kısa değeri gösterir. Canlılık denetimi: veritabanı gerçekten yavaşlatılarak (bağlantı açılışı yanıtsız, komut yanıtsız, erişilemeyen sunucu) ayar süresi + küçük pay içinde `false`, 503 ve tek `DbTimeout` satırı; erişilemeyen veritabanında `false`; istek iptalinde iptal yukarı geçer (`false` dönmez) ve kayıt yazılmaz (§8.1 madde 8).
 
 *Kaynak: K-1342 · K-1328 · K-1257, K-1258, K-1322 · K-889, K-1272 · `05 §10.3`, §10.1.14, §4.3.4 · `07 §4.33.1` · §3.5, §8.1, §9.1, §10.2, §10.10, §13, §15.*
 

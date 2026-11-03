@@ -110,3 +110,13 @@ Doğrulama tur 1 FAIL (dört DÜŞÜK bulgu). Giderilenler:
 - K1/K3 backlog kayıtları, PR #339 ile çakışmamak için D-21 ve D-22 olarak yeniden numaralandı.
 - K2: `Server` başlığı onayı "başlık varsa sürüm taşımaz" biçimine çevrildi.
 - Sonuç: build 0 uyarı, `dotnet format --verify-no-changes` temiz, Unit + Integration yeşil (PostgreSQL 18), koşu sonrası `git status` temiz.
+
+## Düzeltme Turu 2
+
+Doğrulama tur 2 FAIL (1 ORTA, kriter 5 / KK5). Giderilenler:
+- Bulgu 1: Npgsql fiziksel bağlantı açılışında iptal belirtecine uymuyordu; süre artık `Task.WaitAsync(limit, ct)` ile sürücüden bağımsız uygulanır (`LivenessProbe`). Denetim görevi arkada kendi bağlantısını kapatır ve hatasını yutar; süre dolunca belirteci iptal eder ve tek `DbTimeout` satırı yazılır. İstek iptali yukarı geçer, satır yazılmaz.
+- Test: veritabanı gerçekten yavaşlatılarak (`StallingTcpProxy`) üç durum: bağlantı açılışı yanıtsız, komut yanıtsız (sıcak havuz), erişilemeyen sunucu. Ayar 1 sn; her biri 503 ve 3 sn altında (ölçülen test süresi 1,05-1,11 sn). Havuz bekleme testi korundu.
+- `09 §10.7` madde 6 metni, kod örneği ve test cümlesi sonuca göre güncellendi.
+- K1: `Server` başlığı onayı kaldırıldı (TestServer başlık yazmaz); gerekçe test yorumunda.
+- K2: `DEFERRED_BACKLOG.md` D-22 satır atfı güncellendi.
+- Sonuç: build 0 uyarı, `dotnet format --verify-no-changes` temiz, Unit + Integration yeşil (PostgreSQL 18), koşu sonrası `git status` temiz.

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -71,12 +72,8 @@ public sealed class LivenessEndpointTests
 
             Assert.Equal(0, response.Content.Headers.ContentLength ?? 0);
             Assert.Equal(string.Empty, await response.Content.ReadAsStringAsync(ct));
-            // TestServer writes no Server header; a real Kestrel writes a bare "Kestrel". Either way no version is carried.
-            if (response.Headers.TryGetValues("Server", out IEnumerable<string>? server))
-            {
-                Assert.DoesNotContain(server, v => v.Contains('/', StringComparison.Ordinal));
-            }
-
+            // No "Server" assertion here: TestServer writes no such header, so a check would pass without testing anything.
+            // The version-free "Server: Kestrel" of a real server is checked in the validation run against Kestrel (T01 report).
             Assert.False(response.Headers.Contains("X-Powered-By"));
             Assert.False(response.Headers.Contains("X-AspNet-Version"));
         }
@@ -114,6 +111,69 @@ public sealed class LivenessEndpointTests
         Assert.Equal(string.Empty, await response.Content.ReadAsStringAsync(ct));
         string line = Assert.Single(logs.Lines, l => l.Contains("DbTimeout", StringComparison.Ordinal));
         Assert.Contains("Warning", line, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Get_WhenTheConnectionOpenIsSlow_Returns503WithinTheLimit()
+    {
+        // The server accepts the connection and never answers: the physical open is slow, which Npgsql's token does not cut.
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        DsnBuilder real = new(_database.Dsn);
+        await using StallingTcpProxy proxy = new(real.Host!, real.Port, stalled: true);
+        DsnBuilder slow = new(_database.Dsn) { Host = "127.0.0.1", Port = proxy.Port, Pooling = false };
+
+        CollectingLoggerProvider logs = await AssertAnswers503WithinTheLimitAsync(slow.ConnectionString, warmPool: false, stallAfterWarmUp: null, ct);
+        Assert.Contains(logs.Lines, l => l.Contains("DbTimeout", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Get_WhenTheCommandIsSlow_Returns503WithinTheLimit()
+    {
+        // The pool holds a good connection; then the server stops answering, so the open is instant and SELECT 1 hangs.
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        DsnBuilder real = new(_database.Dsn);
+        await using StallingTcpProxy proxy = new(real.Host!, real.Port, stalled: false);
+        DsnBuilder viaProxy = new(_database.Dsn) { Host = "127.0.0.1", Port = proxy.Port, Pooling = true, MaxPoolSize = 1 };
+
+        CollectingLoggerProvider logs = await AssertAnswers503WithinTheLimitAsync(viaProxy.ConnectionString, warmPool: true, stallAfterWarmUp: proxy, ct);
+        Assert.Contains(logs.Lines, l => l.Contains("DbTimeout", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Get_WhenTheServerIsUnreachable_Returns503WithinTheLimit()
+    {
+        // 192.0.2.1 (TEST-NET-1) is never routed: the connect attempt hangs or fails; either way the limit holds.
+        CancellationToken ct = TestContext.Current.CancellationToken;
+        DsnBuilder unreachable = new(_database.Dsn) { Host = "192.0.2.1", Pooling = false };
+
+        CollectingLoggerProvider logs = await AssertAnswers503WithinTheLimitAsync(unreachable.ConnectionString, warmPool: false, stallAfterWarmUp: null, ct);
+        Assert.DoesNotContain(logs.Lines, l => l.Contains("192.0.2.1", StringComparison.Ordinal));
+    }
+
+    private static async Task<CollectingLoggerProvider> AssertAnswers503WithinTheLimitAsync(
+        string connectionString, bool warmPool, StallingTcpProxy? stallAfterWarmUp, CancellationToken ct)
+    {
+        // Limit 1 s; the margin allows for a slow CI host. The connection string's own Timeout (15 s) must not decide.
+        CollectingLoggerProvider logs = new();
+        Dictionary<string, string> settings = new() { [DatabaseOptions.LivenessTimeoutKey] = "1" };
+        await using ShopfolioWebApplicationFactory factory = new(connectionString, settings, logs);
+        using HttpClient client = factory.CreateClient();
+        if (warmPool)
+        {
+            NpgsqlDataSource dataSource = factory.Services.GetRequiredService<NpgsqlDataSource>();
+            await using NpgsqlConnection warm = await dataSource.OpenConnectionAsync(ct);
+        }
+
+        stallAfterWarmUp?.Stall();
+        Stopwatch watch = Stopwatch.StartNew();
+
+        using HttpResponseMessage response = await client.GetAsync(_livenessUri, ct);
+
+        watch.Stop();
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+        Assert.Equal(string.Empty, await response.Content.ReadAsStringAsync(ct));
+        Assert.True(watch.Elapsed < TimeSpan.FromSeconds(3), $"The answer took {watch.Elapsed.TotalSeconds:F1} s; the limit is 1 s.");
+        return logs;
     }
 
     [Fact]

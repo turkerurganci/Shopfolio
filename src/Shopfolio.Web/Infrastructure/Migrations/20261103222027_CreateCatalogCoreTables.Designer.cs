@@ -238,7 +238,9 @@ namespace Shopfolio.Infrastructure.Migrations
 
                     b.Property<string>("PublishStatus")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("text")
+                        .HasDefaultValue("Draft")
                         .HasColumnName("publish_status");
 
                     b.Property<int?>("ShippingPeriod")
@@ -261,7 +263,9 @@ namespace Shopfolio.Infrastructure.Migrations
 
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("version");
 
                     b.Property<string>("WithdrawalExemptionReason")
@@ -324,7 +328,9 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasColumnName("created_at");
 
                     b.Property<bool>("IsPrimaryCategory")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
+                        .HasDefaultValue(false)
                         .HasColumnName("is_primary_category");
 
                     b.Property<Guid>("ProductId")
@@ -368,7 +374,9 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasColumnName("image_id");
 
                     b.Property<bool>("IsMain")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
+                        .HasDefaultValue(false)
                         .HasColumnName("is_main");
 
                     b.Property<Guid>("ProductId")
@@ -440,21 +448,25 @@ namespace Shopfolio.Infrastructure.Migrations
 
                     b.Property<string>("PublishStatus")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("text")
+                        .HasDefaultValue("Draft")
                         .HasColumnName("publish_status");
 
                     b.Property<int>("ReservedQuantity")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(0)
                         .HasColumnName("reserved_quantity");
-
-                    b.Property<Guid?>("SecondOptionValueId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("second_option_value_id");
 
                     b.Property<string>("SKU")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("sku");
+
+                    b.Property<Guid?>("SecondOptionValueId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("second_option_value_id");
 
                     b.Property<int?>("StockQuantity")
                         .HasColumnType("integer")

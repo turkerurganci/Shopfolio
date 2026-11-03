@@ -102,7 +102,7 @@ Bir dosyanın nerede olduğunu öğrenmek için dosya sistemine bak. Bir klasör
 | `tests/Shopfolio.UnitTests/` | Birim testleri ve modül sınırlarının mimari testleri; veritabanı gerektirmez. Alt klasörler: `Fakes/` (elle yazılmış sahteler), `Architecture/` (mimari testler, yasak test kalıbı taraması, kasıtlı ihlal örnekleri `ViolationSamples/`), `Consistency/` (doküman–kod eşitlik denetimleri), `Support/` |
 | `tests/Shopfolio.IntegrationTests/` | Gerçek PostgreSQL 18'e karşı entegrasyon testleri. Alt klasörler: `Database/` (şablon ve koleksiyon veritabanı fikstürleri, göç demeti), `Web/` (`WebApplicationFactory` fabrikası); `Fakes/` UnitTests'ten bağlantılı derlenir |
 | `.config/` | Yerel .NET araçları (`dotnet-tools.json`: `dotnet-ef`) |
-| `deploy/` | İmaj, Compose, ters vekil dosyaları ve `.env.example` (kurulumun sır olmayan ayar şablonu); uygulama kodu değildir (`09 §4.3`) |
+| `deploy/` | İmaj, Compose (`compose.yaml`, `compose.dev.yaml`), ters vekil (`caddy/Caddyfile`), `release.env` (bir sürümün üç imaj başvurusu), `firewall/` (`DOCKER-USER` çıkış kuralı betiği ve kurulum denemeleri) ve `.env.example` (kurulumun sır olmayan ayar şablonu); uygulama kodu değildir (`09 §4.3`) |
 
 ---
 

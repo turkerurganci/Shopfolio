@@ -281,23 +281,23 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   1. `deploy/compose.yaml` dört hizmeti ve tek seferlik göç hizmetini tanımlar (`05 §3.2`, §8.2.4; `MK-14`).
   2. Ters vekil ile uygulama, uygulama ile veritabanı ayrı iç ağlardadır; ters vekil ve yedek aracı veritabanına ulaşamaz (`05 §3.2.5`).
   3. Compose dışarıya yalnız 80 ve 443'ü yayımlar (`05 §3.2.3`, §8.9.3; `MK-08`, `MK-76`).
-  4. Veritabanı ve yedek aracının dışarıya çıkışı `DOCKER-USER` zincirinde hedef adresli kuralla sınırlıdır (`05 §3.2.5`; `MK-14`).
+  4. Veritabanı ve yedek aracının çıkışını nesne depolamayla sınırlayan hedef adresli `DOCKER-USER` kuralı betikte tanımlıdır; gerçek deneme T09'da (`05 §3.2.5`; `MK-14`).
   5. Veri, dosya, kayıt, sertifika ve durum dosyası adlandırılmış bölümlerdedir; ters vekile yalnız görseller salt okuma bağlıdır (`05 §8.2.4`).
   6. `deploy/compose.dev.yaml` üstüne bindirilir; e-posta yakalayıcıyı ekler, gerçek e-posta sırrı taşımaz; ayrı imaj ya da veritabanı sürümü tanımlamaz (`09 §4.3` madde 2; `05 §8.1.2`).
   7. Her imaj etiket ve özetle sabittir; `latest` yoktur (`05 MK-10`; `09 §4.3` madde 4).
   8. Ters vekil HTTP'yi HTTPS'e yönlendirir ve tarayıcıya bir yıllık HSTS verir; alt alan adlarını kapsamaz, ön yükleme listesine girmez; uygulama başlığı yazmaz (`05 §6.8.1`; `09 §15.2` madde 3).
-  9. Ters vekil istemcinin gerçek adresini görür: ağında IPv6 açıktır ya da kullanıcı alanı vekili kapalıdır; bir IPv4 ve bir IPv6 isteğinin istemci adresi erişim kaydında ve uygulamanın gördüğü adreste aynıdır (`05 §6.3.3`).
-- **Test beklentisi:** Yok — Compose ve ağ tanımıdır; sınama kurulumda çıkış, yönlendirme, HSTS ve istemci adresi denemesidir (`05 §3.2.5`)
+  9. Ters vekil istemci adresini görecek biçimde yapılandırılmıştır: edge ağında IPv6 açık ya da kullanıcı alanı vekili kapalı. Uygulama tarafı T215'te, IPv4/IPv6 denemesi T09'dadır (`05 §6.3.3`).
+- **Test beklentisi:** Yok — Compose ve ağ tanımıdır; sınama yerelde yalıtım, yönlendirme, HSTS ve yapılandırma denetimidir (`05 §3.2.5`)
 - **Doğrulama kontrol listesi:**
   - KK1: `docker compose config` geçerli; beş hizmet, biri göç.
   - KK2: ters vekil ve yedek aracı veritabanına bağlanamaz.
   - KK3: Compose yalnız 80 ve 443'ü yayımlar.
-  - KK4: veritabanı ve yedek aracından başka adrese çıkış reddedilir, nesne depolamaya geçer.
+  - KK4: kural betiği nesne depolama dışını reddeder; deneme T09 KK7.
   - KK5: volume adları listeyle eşit; vekilde yalnız görsel bölümü.
   - KK6: yakalayıcı ayakta; geliştirme dosyasında e-posta sırrı yok.
   - KK7: dosyalarda `latest` yok.
   - KK8: HTTP yönlenir; HSTS bir yıllıktır, alt alan ve ön yükleme yok.
-  - KK9: IPv4 ve IPv6 isteğinde iki yerde aynı istemci adresi.
+  - KK9: IPv6 açık ya da userland proxy kapalı; uygulama T215 KK3, deneme T09 KK8.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T06: Üç imaj ve kayıt defteri
@@ -368,7 +368,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 
 #### T09: İlk yayın ve referans kuruluma ilk iniş
 - **Bağımlılık:** T04, T07, T08, T10
-- **Dokümanlar:** çekirdek; `09` §4, §17, §21; `05 §8.1`, §8.2; `05 MK-68`; `07 UC-81`; `10 §4.1`
+- **Dokümanlar:** çekirdek; `09` §4, §15 (§15.1), §17, §21; `05 §3.2`, §6.3, §8.1, §8.2; `05 MK-68`; `07 UC-81`; `10 §4.1`
 - **Kabul kriterleri:**
   1. İlk sürüm etiketi açıklamalı `vANA.ARA.YAMA` biçimindedir ve `publish.yml` imajları yayımlar (`05 §8.3.12`; `09 §21.4` madde 2, 4).
   2. İlk yayından önceki CI koşularında geri alma sınaması atlanır ve atlandığı CI çıktısında yazılıdır; yayından sonraki ilk CI koşusunda göç adımı son yayımlanan sürümün şemasına da uygular ve geri alma sınamasını koşar (`09 §21.4` madde 3; K-1358).
@@ -376,7 +376,9 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   4. Referans kuruluma ilk iniş yapılır; boş uygulama imajı canlılık ucuna 200 verir (`05 §8.1.4`; `MK-68`; `10 §4.1` ÖK-12; `07 UC-81`).
   5. Referans kurulumda denetlenen imajların özeti, güncelleme turunun kurulumlara çekeceği özet olarak kaydedilir (`05 §8.2.3`, §8.6.3).
   6. Gerçek yapılandırmayla ayağa kaldırma provası sonucu `DEPLOY_RUNBOOK`'a yazılır (`05 §8.1.4`); ardından `.github/ci-commands.env`'de `SETUP_COMPLETE=true` yapılır, CI kapısı yeşil kalır ve D-01 kapanır (`09 §21.4` madde 5; `SETUP.md` §4, §8).
-- **Test beklentisi:** Yok — yayın ve kurulum işlemidir; kanıt referans kurulumdaki canlılık yanıtı ve CI çıktısıdır
+  7. Referans sunucuda (Linux, iptables) T05'in `DOCKER-USER` kuralı uygulanır; veritabanı ve yedek aracı yalnız nesne depolamaya çıkar (`05 §3.2.5`; `MK-14`).
+  8. Referans sunucuda bir IPv4 ve bir IPv6 isteğinin istemci adresi erişim kaydında ve uygulamada aynıdır (`05 §6.3.3`; `09 §15.1` m8).
+- **Test beklentisi:** Yok — yayın ve kurulum işlemidir; kanıt canlılık yanıtı, çıkış ve IPv4/IPv6 adres denemeleri ve CI çıktısıdır
 - **Doğrulama kontrol listesi:**
   - KK1: etiket açıklamalı; kayıt defterinde imajlar var.
   - KK2: CI çıktısında atlama satırı; yayından sonraki koşuda atlama yok, iki uygulama ve geri alma sınaması koşar.
@@ -384,6 +386,8 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK4: referans kurulumda canlılık ucu 200.
   - KK5: kaydedilen özet kurulumdakiyle eşit.
   - KK6: prova kaydı runbook'ta; `SETUP_COMPLETE=true` iken CI kapısı yeşil; D-01 satırı kapalı.
+  - KK7: veritabanı ve yedek aracından başka adrese çıkış reddedilir, nesne depolamaya geçer.
+  - KK8: IPv4 ve IPv6 isteğinde iki yerde aynı istemci adresi.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T10: Veritabanı kullanıcıları
@@ -7242,7 +7246,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:MK-77 H-3: isteklerin %95'i bir saniyede; H-4: dakikada 100 farklı ziyaretçi | — | | |
 | 05:MK-78 Büyüme yolunun sırası ve tetikleyicileri | — | | |
 | 05:§3.1 Uygulamanın biçimi | T02, T218 | | |
-| 05:§3.2 Sunucudaki bileşenler ve ağ | T05, T06 | | |
+| 05:§3.2 Sunucudaki bileşenler ve ağ | T05, T06, T09 | | |
 | 05:§3.3 Modüller | T218, T03 | | |
 | 05:§3.4 Modüller arası iletişim kuralı | T218, T03 | | |
 | 05:§3.5 Vitrin ve panel | T206, T207 | | |
@@ -7262,7 +7266,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:§5.4 Kesintinin tespiti ve dönüşteki sıra | T221, T327 | | |
 | 05:§6.1 Kimlik doğrulama ve oturum | T207, T342, T343, T345, T379, T409 | | |
 | 05:§6.2 Yetkilendirme | T207, T323 | | |
-| 05:§6.3 Deneme limitleri ve istek hızı | T05, T215, T601 | | |
+| 05:§6.3 Deneme limitleri ve istek hızı | T05, T09, T215, T601 | | |
 | 05:§6.4 Anahtarlar ve tek kullanımlık bağlantılar | T222 | | |
 | 05:§6.5 Form ve site güvenliği | T207, T209, T339, T401 | | |
 | 05:§6.6 Yüklenen dosya | T223 | | |
@@ -7318,7 +7322,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 09:§12 Sözleşme ve olay sürümleme | T102, T203, T220, T311, T538 | | |
 | 09:§13 Arka plan iş kuralları | T220, T221, T303, T387, T388, T389 | | |
 | 09:§14 Hassas hesaplama kuralları | T227, T336, T337, T338, T349, T369, T370, T401, T402, T403, T405 | | |
-| 09:§15 Güvenlik kuralları | T207, T209, T215, T219, T222, T223, T224, T232, T312, T339, T342, T354, T376 | | |
+| 09:§15 Güvenlik kuralları | T207, T209, T09, T215, T219, T222, T223, T224, T232, T312, T339, T342, T354, T376 | | |
 | 09:§16 İstemci tarafı kurallar | T525, T539, T540, T543, T544, T548 | | |
 | 09:§17 Yardımcı servis / sidecar standartları (varsa) | T06, T07, T08, T10 | | |
 | 09:§18 Loglama ve gözlemlenebilirlik | T225, T230, T231, T314, T203, T213 | | |
@@ -7517,7 +7521,7 @@ Her task → hangi kaynak öğeden besleniyor?
 | T06 | `05` MK-02, MK-06, MK-09, MK-10, MK-11, MK-69, §3.2, §8.2, §8.3; `09` §4, §17, §21; `devir` D-01 | ✓ 13 kaynak (özgün 6, alt bölüm 6, devir 1) |
 | T07 | `02` §3.34.8; `05` MK-09, MK-25, MK-26, MK-27, §6.8, §7.6, §9.2, §9.4; `09` §17; `10` KP-75; `devir` D-01 | ✓ 12 kaynak (özgün 6, alt bölüm 5, devir 1) |
 | T08 | `05` MK-59, MK-60, §6; `09` §17 | ✓ 4 kaynak (özgün 2, alt bölüm 2, devir 0) |
-| T09 | `05` MK-68, §8.1, §8.2; `09` §21; `10` §4.1; `devir` K-1358, P8.3, D-01 | ✓ 8 kaynak (özgün 1, alt bölüm 4, devir 3) |
+| T09 | `05` MK-68, §3.2, §6.3, §8.1, §8.2; `09` §15, §21; `10` §4.1; `devir` K-1358, P8.3, D-01 | ✓ 11 kaynak (özgün 1, alt bölüm 7, devir 3) |
 | T10 | `06` §2.8; `05` §7.1; `09` §10, §17 | ✓ gerekçeli (alt bölüm) — K-1441 |
 | T101 | `06` §2.1, §2.2, §2.3, §2.4, §2.5, §2.6, §2.8, §2.10; `02` §4.1.1; `05` MK-03, MK-06, MK-19, §7.1; `09` §5, §10 | ✓ 15 kaynak (özgün 4, alt bölüm 11, devir 0) |
 | T102 | `06` §2.9, §5.1, §5.2, §5.3, §5.4, §5.5, §5.6; `09` §12 | ✓ gerekçeli (alt bölüm) — K-1413, K-1414 |

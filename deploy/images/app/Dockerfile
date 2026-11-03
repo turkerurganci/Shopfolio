@@ -18,7 +18,7 @@ COPY src/Shopfolio.Web src/Shopfolio.Web
 # The application: framework-dependent, no native host (the runtime image carries the shared framework).
 RUN dotnet publish src/Shopfolio.Web/Shopfolio.Web.csproj -c Release --no-restore -p:UseAppHost=false -o /out/app
 
-# The migration bundle (09 10.6): one self-contained executable made from the EF Core migrations. A throwaway lock file keeps the
+# The migration bundle (09 10.6): one single executable file made from the EF Core migrations. A throwaway lock file keeps the
 # tracked packages.lock.json untouched (the bundle publishes with a runtime identifier, which would add a target to it).
 RUN NuGetLockFilePath=/tmp/throwaway.packages.lock.json \
     dotnet ef migrations bundle --project src/Shopfolio.Web/Shopfolio.Web.csproj --output /out/efbundle --force
@@ -28,6 +28,13 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0.14-noble@sha256:de0ee358cdd672f7017a00
 WORKDIR /app
 COPY --from=build /out/app ./
 COPY --from=build --chmod=0555 /out/efbundle ./efbundle
+
+# Mount points of the Compose volumes (deploy/compose.yaml). A named volume takes its owner from the image's directory, so
+# the directories exist here and belong to the non-root user. The backup-status directory is written by the backup tool (another
+# user) and read by the application, so it is open to both; it holds only the status file (05 9.4.10).
+RUN mkdir -p /var/lib/shopfolio/images /var/lib/shopfolio/digital /var/log/shopfolio/access /var/log/shopfolio/app /var/lib/shopfolio/backup-status \
+    && chown -R app:app /var/lib/shopfolio/images /var/lib/shopfolio/digital /var/log/shopfolio \
+    && chmod 1777 /var/lib/shopfolio/backup-status
 
 # No secret enters the image: the database credential and every other secret arrives as a mounted file at run time (09 17 item 2).
 # No ENV: the base image already listens on port 8080 (ASPNETCORE_HTTP_PORTS=8080), and the runtime diagnostics stay at their defaults.

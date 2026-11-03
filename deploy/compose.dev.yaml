@@ -1,0 +1,27 @@
+# Development variant (05 8.1.2; 09 4.3 item 2): laid on top of compose.yaml,
+#   docker compose --env-file deploy/release.env --env-file deploy/.env.example -f deploy/compose.yaml -f deploy/compose.dev.yaml up
+# It adds the e-mail capture tool and nothing else: no other image, no other database version, no secret. No e-mail leaves the
+# machine: the application's development setting selects the gateway that writes to the capture tool's SMTP port (09 4.3
+# item 2); that setting is added by the task that introduces it.
+#
+# Secret files: compose.yaml reads them from SHOPFOLIO_SECRETS_DIR. On a development machine point it at an untracked local
+# directory that holds made-up values (the payment provider's test keys, made-up passwords) and an EMPTY file for the e-mail
+# sending credential: the real credential of an installation never reaches a development machine (05 8.1.2).
+
+services:
+  proxy:
+    environment:
+      # A local name: Caddy then serves it with its own local certificate authority instead of asking Let's Encrypt.
+      SITE_DOMAIN: localhost
+
+  mailpit:
+    # Development tool, not shipped with the product (09 3.2 table). Full version tag and digest, never a floating tag.
+    image: axllent/mailpit:v1.33.0@sha256:9b3a463be15354c0f0eba91697d80e3e0d8a5623ef0e627cacc836bc17fd5231
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      # The inbox web page, on this machine only. The SMTP port (1025) is reached by the application inside the network.
+      - "127.0.0.1:8025:8025"
+    networks:
+      - edge

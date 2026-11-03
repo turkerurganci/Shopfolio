@@ -42,4 +42,12 @@ public sealed class ForbiddenTests
         object result = new();
         Assert.NotNull(result);
     }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2, Skip = "one row skipped")]
+    public void SkippedRow_Test_IsForbidden(int value)
+    {
+        Assert.Equal(value, value);
+    }
 }

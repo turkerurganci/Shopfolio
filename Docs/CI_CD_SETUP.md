@@ -11,7 +11,7 @@
 | Dosya | Ne yapar | Tetikleyici |
 |---|---|---|
 | `.github/workflows/ci.yml` | 0. Guard → 1. Lint → 2. Build → 3. Unit → 4. Integration → 5. Contract → 6. Migration dry-run → 7. Paketleme → 8. E2E (advisory) → **CI Gate** | `pull_request` (**base filtresi yok**) + `push` (main) |
-| `.github/workflows/publish.yml` | Ana dala merge sonrası artifact yayınlama | `push` (main) + manuel |
+| `.github/workflows/publish.yml` | Ana dala merge sonrası ve sürüm etiketinde imaj yayınlama; yama etiketinde (`YAMA > 0`) imajdan önce `patch-migration-check` işi göç eklenmişse yayını düşürür (`migration-fix: K-<no>` istisnası; ilk etikette koşmaz) | `push` (main) + `push` etiketi `vX.Y.Z` + manuel |
 | `.github/ci-commands.env` | Teknoloji-spesifik komutlar (SETUP.md §4) | — |
 | `.github/ci-run.sh` | Adım çalıştırıcı + eksik komut kapısı | — |
 | `.github/pull_request_template.md` | PR şablonu | PR açılınca |
@@ -155,7 +155,12 @@ onay sayisi    : 0
 
 ### 4.2 Test filtreleme
 
-> **Ne yazılır:** Unit / integration / contract ayrımının nasıl yapıldığı (namespace, etiket, klasör).
+Ayrım proje ve özellik (trait) iledir; komutlar `.github/ci-commands.env`'dedir:
+
+- **Lint:** `UnitTests` projesinde `Consistency=true` özellikli testler (`--filter-trait "Consistency=true"`; eşitlik denetimleri, `UnitTests/Consistency/`).
+- **Unit:** aynı proje, `Consistency` özellikli testler dışarıda (`--filter-not-trait "Consistency=true"`); eşitlik denetimleri iki kez koşmaz.
+- **Integration:** `IntegrationTests` projesi, filtresiz; gerçek PostgreSQL 18 (`SHOPFOLIO_TEST_DATABASE`).
+- **Contract:** `NOT_APPLICABLE` (`05 §8.3.8`).
 
 ### 4.3 Eşzamanlılık
 

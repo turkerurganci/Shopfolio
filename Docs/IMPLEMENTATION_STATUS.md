@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-03 — T101 (Veri modeli temeli) bağımsız doğrulama tur 1: ✓ PASS (head `f7b33c7`; kriter 1–8 ve KK1–KK8 ✓; Unit 128/128, Integration 81/81 PostgreSQL 18.6; dal CI `41706961892` yeşil; bulgu 0, K1–K3 → D-46). Sırada: PR #358'in merge'ü ve post-merge CI (yardımcı), sonra T102. Önceki iki giriş `STATUS_CHANGELOG.md`'ye taşındı (F0 faz kapısı PASS; T101 yapım bitti).
+**Son güncelleme:** 2026-11-03 — T102 (Enum tanımları ve değer dönüşümü) yapım bitti: 42 enum, metin dönüşümü, izinli değer kısıtı, kilit dosyaları; Unit 199/199, Integration 94/94 (PostgreSQL 18); doğrulama bekliyor. Önceki giriş (T101 doğrulama tur 1 PASS) `STATUS_CHANGELOG.md`'ye taşındı.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -74,7 +74,7 @@
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
 | T101 | Veri modeli temeli | ✓ | ✓ PASS (tur 1) | `f7b33c7` | #358 |
-| T102 | Enum tanımları ve değer dönüşümü | ⬚ | — | — | — |
+| T102 | Enum tanımları ve değer dönüşümü | ⏳ Devam ediyor | — | `84f729c` | PR açıldı (no dönüşte) |
 | T103 | Başlangıç listeleri, firma ve yasal metin sürümü | ⬚ | — | — | — |
 | T104 | Ürün çekirdeği ve görsel | ⬚ | — | — | — |
 | T105 | Fiyat, kupon ve dijital dosya | ⬚ | — | — | — |

@@ -15,6 +15,12 @@
 
 ---
 
+## 2026-11-03 — T101 doğrulama tur 1 PASS
+
+2026-11-03 — T101 (Veri modeli temeli) bağımsız doğrulama tur 1: ✓ PASS (head `f7b33c7`; kriter 1–8 ve KK1–KK8 ✓; Unit 128/128, Integration 81/81 PostgreSQL 18.6; dal CI `41706961892` yeşil; bulgu 0, K1–K3 → D-46). PR #358 merge ve post-merge CI yardımcıda.
+
+---
+
 ## 2026-11-03 — T101 yapım bitti
 
 2026-11-03 — T101 (Veri modeli temeli) yapım bitti, PR #358, doğrulama bekliyor.

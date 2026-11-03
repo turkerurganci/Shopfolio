@@ -123,7 +123,14 @@ assert_schema "failure" "backup" "4"
 assert_eq "" "$(json_field lastSuccessAt)" "first run failing: lastSuccessAt is empty"
 assert_contains "${ROUND}/status/backup-status.json" '"lastSuccessAt": ""' "first run failing: the field is present and empty"
 
-# ---- 4. a damaged previous file counts as "never" --------------------------------------------------------------------------
+# ---- 3b. the repository cannot be created: `init` fails, the backup step stops there (set -e is off inside a step) -----------
+prepare init-fails
+run_job "cat init" 5
+assert_eq "5" "$JOB_CODE" "init failing: the job exits with init's code"
+assert_eq "cat init" "$(sed 's/ .*//' "$CALLS" | tr '\n' ' ' | sed 's/ $//')" "init failing: restic backup is not called"
+assert_schema "failure" "backup" "5"
+
+# ---- 4. a damaged previous file counts as "never"--------------------------------------------------------------------------
 prepare damaged
 printf 'not json at all\n"lastSuccessAt": "tomorrow"\n' >"${ROUND}/status/backup-status.json"
 run_job check 2

@@ -49,6 +49,28 @@
 | Contract | — | — | NOT_APPLICABLE |
 | İmaj | ✓ | `docker build` (veritabanı, yedek) + çalıştırma | `archive_timeout 50s`, `track_commit_timestamp on`, `pgbackrest info` yapılandırmayı okudu; yerel imajlar ve denemede açılan kaynaklar adıyla silindi |
 
+## Düzeltme 1
+
+**Karar (yardımcı, proje sahibi yetkisiyle): kod dokümana uyar.** Tur 1 FAIL'ın (bulgu 1–4) düzeltmesi; K1, K2, K4, K6, K7 bu turda kapandı, K3 ve K5 D-37'ye eklendi.
+
+| # | Bulgu / not | Durum | Ne yapıldı |
+|---|---|---|---|
+| 1 | KRİTİK: yedek kullanıcısı pgBackRest kaydını ve sistem günlüğünü okuyamaz | ✓ (pgBackRest kaydı gerçek imajlarla); sistem günlüğü kısmı T09'da | `logread` grubu (gid 10002) yalnız `/var/log/postgresql/pgbackrest` dizinine, setgid + `2750` (`deploy/images/database/Dockerfile`); `backup` hizmeti `group_add: ["10002"]` (`deploy/compose.yaml`). Veri dizini, ayar ve sır dosyaları aynı kaldı (`05 §7.6.3`). Sistem günlüğü: yalnız `/var/log/journal` için `setfacl` (runbook §J.4 madde 5); Linux sunucu ister, deneme kurulumda (T09), D-37 (c) |
+| 2 | `/var/log/backup` yedek kapsamında değil | ✓ | `DEFAULT_BACKUP_PATHS`'e eklendi; eşitlik testi salt okuma bağlamalar + bu kayıt dizini (yazılabilir bağlama olarak Compose'da bulunmak zorunda) ile karşılaştırır; `09 §17` m.7'nin eşitlik cümlesi buna göre yazıldı |
+| 3 | `09 §17` m.7 çift metin | ✓ | yinelenen kuyruk silindi |
+| 4 | Prova bütün görselleri geri alıyor | ✓ | `file-restore-drill.sh` kayıt dizinini ve görsellerin ilk üç dosyasını (`restic ls --json`) geri alır |
+| K1 | İlk açılışta geçici sunucu kapanmıyor | ✓ | runbook §J.4 madde 4: beklenen davranış, yeniden başlatma politikası düzeltir |
+| K2 | Nesne kilidi red denemesi yok | ✓ | `bucket-checks.sh keys`: `put-object-lock-configuration` ve `put-bucket-policy` red denemesi; eşitlik testi ve runbook §J.3 madde 4 |
+| K3 | Prova `archive-get` | ertelendi | D-37 (d), T09 |
+| K4 | `init` hatası `set -e` altında yutulur | ✓ | `ensure_repository` ve `step_backup` hatayı elle döndürür; betik testi (`cat init` düşer, `backup` çağrılmaz) |
+| K5 | Paketleme taramaları geniş | ertelendi | D-37 (e) |
+| K6 | D-37 metni | ✓ | yanlış `05 §7.6.7` atfı ve olmayan "kayıt dosyasını okuyan durum ucu" cümlesi düzeltildi; "`09 §17` madde 8" yerine `pgbackrest.conf`'taki `repo1-retention-full` |
+| K7 | PR açıklaması `09 §25` | ✓ | PR açıklaması soru başına evet/hayır/uygulanamaz + gerekçe verir |
+
+**Yerel tam tur (`09 §17` m.7 ilk task kabulü; gerçek iki imaj, Docker):** veritabanı imajında pgBackRest'in yazdığı kayıt dosyaları `postgres:10002 0640` olur; `group_add 10002` ile koşan yedek konteyneri (uid 10001) `file-backup-job.sh`'ı koşar: backup, forget, prune (`--max-unused 0`), check çıkış 0; durum dosyası `result: success`, `lastSuccessAt` dolu; anlık görüntüde `/data/db-logs/pgbackrest/*` ve `/var/log/backup/file-backup.log` var; prova: 3 dosya geri alındı, `check --read-data-subset=5%` "no errors", üç `drill-record` alanı. Depo yerel (`/repo/files`); nesne depolama ve sistem günlüğü kurulumdadır. Docker kaynakları adıyla silindi.
+
+**Testler:** betik testleri 11 + 129 + 27 (üç kabukta; dosya yedeği +12), Unit 76/76 (Consistency dahil), `-warnaserror` ve `dotnet format --verify-no-changes` temiz, `docker compose config` çıkış 0, paketleme adım 1 taramaları yerelde temiz.
+
 ## Doğrulama
 
 | Alan | Sonuç |

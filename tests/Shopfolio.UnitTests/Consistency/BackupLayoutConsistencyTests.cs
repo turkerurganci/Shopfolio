@@ -132,7 +132,15 @@ public sealed partial class BackupLayoutConsistencyTests
         string[] jobPaths = defaults.Groups["paths"].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries).Order(StringComparer.Ordinal).ToArray();
 
         Assert.NotEmpty(jobPaths);
-        Assert.Equal(readOnlyTargets, jobPaths);
+
+        // The backup tool's own log directory is a server log too (05 9.1.4): it is mounted writable (the tool writes it) and is
+        // the one path beside the read-only mounts that the job reads.
+        const string ownLogDirectory = "/var/log/backup";
+        Assert.Contains(block, line => ComposeMount().Match(line) is { Success: true } mount
+            && mount.Groups["target"].Value == ownLogDirectory
+            && mount.Groups["mode"].Value != "ro");
+        string[] expectedPaths = readOnlyTargets.Append(ownLogDirectory).Order(StringComparer.Ordinal).ToArray();
+        Assert.Equal(expectedPaths, jobPaths);
 
         // No settings file and no secret directory is mounted into the backup container or read by the job (05 7.6.3).
         string mounts = string.Join('\n', block.Where(line => ComposeMount().IsMatch(line)));
@@ -251,6 +259,8 @@ public sealed partial class BackupLayoutConsistencyTests
             "switches versioning off",
             "changes the lifecycle rule",
             "deletes the lifecycle rule",
+            "changes the object lock",
+            "writes the bucket policy",
         })
         {
             Assert.Contains($"expect_denied \"${{_name}}: {denied}", script, StringComparison.Ordinal);

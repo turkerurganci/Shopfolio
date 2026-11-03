@@ -35,7 +35,10 @@ done
 
 echo "$line" >>"${STUB_CALLS:?STUB_CALLS is required}"
 
-if [ -n "${STUB_FAIL_AT:-}" ] && [ "$sub" = "$STUB_FAIL_AT" ]; then
-  exit "${STUB_FAIL_CODE:-3}"
+# STUB_FAIL_AT is one sub-command or a space-separated list of them (`cat init` fails the repository creation).
+if [ -n "${STUB_FAIL_AT:-}" ]; then
+  case " $STUB_FAIL_AT " in
+    *" $sub "*) exit "${STUB_FAIL_CODE:-3}" ;;
+  esac
 fi
 exit 0

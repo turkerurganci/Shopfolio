@@ -46,6 +46,14 @@ RUN mkdir -p /var/lib/postgresql/local-backup && chown postgres:postgres /var/li
 # Mount point of the database log volume (deploy/compose.yaml); the backup tool reads it read-only (05 9.1.4). pgBackRest and the
 # backup scripts write their logs here, in their own files, not to the container output (05 9.1.4; D-32).
 RUN mkdir -p /var/log/postgresql/pgbackrest && chown -R postgres:postgres /var/log/postgresql
+# pgBackRest writes its log files as 0640 (owner and group read), so the backup tool's user (uid 10001, another container) could
+# not read them. Narrowest fix: a group (gid 10002) for pgBackRest's own log directory only, with the setgid bit so that every
+# log file created there takes that group; the backup service joins the group (`group_add` in deploy/compose.yaml). The data
+# directory, the settings and the secrets keep their owner and mode (05 7.6.3). The setgid directory is created here; a volume
+# that already exists takes the change by hand (DEPLOY_RUNBOOK section J.4).
+RUN groupadd --gid 10002 logread \
+    && chgrp logread /var/log/postgresql/pgbackrest \
+    && chmod 2750 /var/log/postgresql/pgbackrest
 
 # No secret enters the image: passwords and backup keys arrive as mounted files at run time (09 17 item 2). The entrypoint
 # wraps the official one: it turns the two backup key files into pgBackRest's environment, starts the scheduler and runs the

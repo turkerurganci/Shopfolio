@@ -5,8 +5,8 @@
 #   docker compose ... run --rm --no-deps --entrypoint /usr/local/bin/file-restore-drill.sh backup
 #
 # What it does:
-#   1. restores a small sample of the most recent snapshot (the log directory of the application and, when present, one more
-#      directory) into a scratch directory and counts the restored files;
+#   1. restores a small sample of the most recent snapshot (the log directory of the application and the first three image
+#      files, not the whole image directory) into a scratch directory and counts the restored files;
 #   2. checks the repository's integrity by reading a subset of its data (`restic check --read-data-subset=5%`; the nightly
 #      round never reads data, 09 17 item 4);
 #   3. prints the drill record: the repository restored from, the duration (download included) and the moment of the snapshot
@@ -42,8 +42,16 @@ snapshot_id="$(restic -o "$lookup" snapshots --host shopfolio --json | grep -o '
   exit 1
 }
 
+# A sample, not the whole image directory (05 7.6.8): the log directory and the first few image files of the snapshot. A large
+# installation's whole image directory would fill the container's disk and stretch the drill.
+sample_files="$(restic -o "$lookup" ls "$snapshot_id" /data/images --json | grep '"type":"file"' | head -n 3 | sed -n 's/.*"path":"\([^"]*\)".*/\1/p')"
+set -- --include /data/app-logs
+for sample in $sample_files; do
+  set -- "$@" --include "$sample"
+done
+
 started="$(date +%s)"
-restic -o "$lookup" restore "$snapshot_id" --target "$SCRATCH" --include /data/app-logs --include /data/images
+restic -o "$lookup" restore "$snapshot_id" --target "$SCRATCH" "$@"
 finished="$(date +%s)"
 duration=$((finished - started))
 

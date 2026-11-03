@@ -19,9 +19,10 @@
 
 set -eu
 
-# The paths the backup reads: exactly the read-only mounts of the `backup` service in deploy/compose.yaml. The consistency test
-# keeps the two equal. Settings files and secret files are not in this list and are not mounted into the container.
-DEFAULT_BACKUP_PATHS="/data/images /data/digital /data/access-logs /data/app-logs /data/db-logs /data/os-journal"
+# The paths the backup reads: the read-only mounts of the `backup` service in deploy/compose.yaml plus the tool's own log
+# directory /var/log/backup (05 9.1.4: the backup tool's log is one of the server's logs). The consistency test keeps the list
+# equal to those mounts. Settings files and secret files are not in this list and are not mounted into the container.
+DEFAULT_BACKUP_PATHS="/data/images /data/digital /data/access-logs /data/app-logs /data/db-logs /data/os-journal /var/log/backup"
 
 SCRIPT_DIR="$(dirname "$0")"
 # shellcheck disable=SC1091 # sourced at run time; the image keeps both files in /usr/local/bin
@@ -78,7 +79,8 @@ bucket_lookup() {
 # ensure_repository: the first run creates the repository (counted as part of the `backup` step).
 ensure_repository() {
   if ! restic -o "s3.bucket-lookup=$(bucket_lookup)" cat config >/dev/null 2>&1; then
-    restic -o "s3.bucket-lookup=$(bucket_lookup)" init
+    # `set -e` is suspended while a step runs under run_step's `||`, so the failure is returned by hand.
+    restic -o "s3.bucket-lookup=$(bucket_lookup)" init || return $?
   fi
 }
 
@@ -101,7 +103,7 @@ run_step() {
 }
 
 step_backup() {
-  ensure_repository
+  ensure_repository || return $?
   # shellcheck disable=SC2086 # the path list is split on purpose
   restic -o "s3.bucket-lookup=$(bucket_lookup)" backup --host shopfolio --exclude-caches $BACKUP_PATHS
 }

@@ -128,6 +128,10 @@ services:
     # The scheduler is the image's entrypoint and needs a job: the nightly file backup (09 17 item 3; D-34 (a)). Without it the
     # entrypoint exits with a usage error and the restart policy loops.
     command: ["/usr/local/bin/file-backup-job.sh"]
+    # Group 10002 owns pgBackRest's log directory in the database image (setgid, files 0640): the one extra right the backup
+    # user needs to read the database's backup log. Nothing else of the database volume is readable through it (05 7.6.3).
+    group_add:
+      - "10002"
     environment:
       # The same settings as the database service's (DEPLOY_RUNBOOK section J); the run time is one setting for both jobs.
       - BACKUP_S3_ENDPOINT=${BACKUP_S3_ENDPOINT:?BACKUP_S3_ENDPOINT is required (the object storage's host name)}

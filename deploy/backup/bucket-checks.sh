@@ -103,6 +103,10 @@ check_key() {
   expect_denied "${_name}: switches versioning off" as_key "$_key_file" put-bucket-versioning --bucket "$BACKUP_S3_BUCKET" --versioning-configuration Status=Suspended
   expect_denied "${_name}: changes the lifecycle rule" as_key "$_key_file" put-bucket-lifecycle-configuration --bucket "$BACKUP_S3_BUCKET" --lifecycle-configuration "file://${SCRIPT_DIR}/bucket-lifecycle.json"
   expect_denied "${_name}: deletes the lifecycle rule" as_key "$_key_file" delete-bucket-lifecycle --bucket "$BACKUP_S3_BUCKET"
+  # The object lock and the bucket policy are bucket settings too (05 7.6.6). A bucket without the lock refuses the call for that
+  # reason as well, so this check cannot tell the two refusals apart; it still fails when the key's call goes through.
+  expect_denied "${_name}: changes the object lock" as_key "$_key_file" put-object-lock-configuration --bucket "$BACKUP_S3_BUCKET" --object-lock-configuration ObjectLockEnabled=Enabled
+  expect_denied "${_name}: writes the bucket policy" as_key "$_key_file" put-bucket-policy --bucket "$BACKUP_S3_BUCKET" --policy '{"Version":"2012-10-17","Statement":[]}'
   expect_ok "${_name}: reads the versioning setting" as_key "$_key_file" get-bucket-versioning --bucket "$BACKUP_S3_BUCKET"
   expect_ok "${_name}: reads the lifecycle rule" as_key "$_key_file" get-bucket-lifecycle-configuration --bucket "$BACKUP_S3_BUCKET"
 }

@@ -86,6 +86,8 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.NameSearchForm).HasColumnType("text");
         builder.Property(p => p.Description).HasColumnType("text");
         builder.Property(p => p.VatRate).AsPercent();
+        builder.Property(p => p.PublishStatus).HasDefaultValue(PublishStatus.Draft);
+        builder.Property(p => p.Version).HasDefaultValue(1);
 
         // The country list belongs to the Settings module, whose types a module reaches only through Contracts (09 6 item 2): the
         // relationship is therefore declared by the entity's name, not by its type. A restrictive link (06 4.5).

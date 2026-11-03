@@ -69,6 +69,8 @@ internal sealed class VariantConfiguration : IEntityTypeConfiguration<Variant>
     public void Configure(EntityTypeBuilder<Variant> builder)
     {
         builder.HasKey(v => v.Id);
+        builder.Property(v => v.PublishStatus).HasDefaultValue(PublishStatus.Draft);
+        builder.Property(v => v.ReservedQuantity).HasDefaultValue(0);
         builder.Property(v => v.SKU).HasColumnType("text");
         builder.Property(v => v.NormalizedSKU).HasColumnType("text");
         builder.Property(v => v.Price).AsMoney();

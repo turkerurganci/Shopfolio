@@ -32,6 +32,7 @@ internal sealed class ProductCategoryConfiguration : IEntityTypeConfiguration<Pr
     public void Configure(EntityTypeBuilder<ProductCategory> builder)
     {
         builder.HasKey(p => p.Id);
+        builder.Property(p => p.IsPrimaryCategory).HasDefaultValue(false);
         builder.HasOne<Product>().WithMany().HasForeignKey(p => p.ProductId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<Category>().WithMany().HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.NoAction);
 

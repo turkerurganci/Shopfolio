@@ -38,6 +38,7 @@ internal sealed class ProductImageConfiguration : IEntityTypeConfiguration<Produ
     {
         builder.HasKey(p => p.Id);
         builder.Property(p => p.AltText).HasColumnType("text");
+        builder.Property(p => p.IsMain).HasDefaultValue(false);
         builder.HasOne<Product>().WithMany().HasForeignKey(p => p.ProductId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne<Image>().WithMany().HasForeignKey(p => p.ImageId).OnDelete(DeleteBehavior.NoAction);
 

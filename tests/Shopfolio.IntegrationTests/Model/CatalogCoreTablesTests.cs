@@ -165,6 +165,62 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
         Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM product_images"));
     }
 
+    // ---- 06 4 "Default": the database's own defaults (T104 correction 2) ----
+
+    [Fact]
+    public async Task ColumnsWithADefault_AreExactlyTheSixOfTheFieldTables_WithTheirDocumentedValues()
+    {
+        List<string> defaults = await QueryAsync(
+            "SELECT table_name || '.' || column_name || '=' || column_default FROM information_schema.columns " +
+            "WHERE table_schema = 'public' AND table_name = ANY(@names) AND column_default IS NOT NULL ORDER BY 1",
+            ("names", EightTables));
+
+        Assert.Equal(
+            [
+                "product_categories.is_primary_category=false",
+                "product_images.is_main=false",
+                "products.publish_status='Draft'::text",
+                "products.version=1",
+                "variants.publish_status='Draft'::text",
+                "variants.reserved_quantity=0",
+            ],
+            defaults);
+    }
+
+    [Fact]
+    public async Task RawInsertsWithoutTheDefaultedColumns_GetTheDocumentedDefaults()
+    {
+        Guid productId = Guid.CreateVersion7();
+        Guid variantId = Guid.CreateVersion7();
+        Category category = Category.Create("Kapılar", "kapilar", null, 1, Now);
+        Image image = Image.Create("abc123", ImageFormat.Jpeg, 2560, 2560, Now);
+        await SaveAsync(c =>
+        {
+            c.Categories.Add(category);
+            c.Images.Add(image);
+        });
+
+        await ExecuteAsync(
+            "INSERT INTO products (id, created_at, name, name_search_form, product_type, vat_rate, slug) " +
+            $"VALUES ('{productId}', now(), 'Kapı', 'kapi', 'Physical', 20, 'kapi')");
+        await ExecuteAsync(
+            "INSERT INTO variants (id, created_at, product_id, sku, normalized_sku, price) " +
+            $"VALUES ('{variantId}', now(), '{productId}', 'K-1', 'k-1', 10)");
+        await ExecuteAsync(
+            "INSERT INTO product_categories (id, created_at, product_id, category_id) " +
+            $"VALUES ('{Guid.CreateVersion7()}', now(), '{productId}', '{category.Id}')");
+        await ExecuteAsync(
+            "INSERT INTO product_images (id, created_at, product_id, image_id, sort_order) " +
+            $"VALUES ('{Guid.CreateVersion7()}', now(), '{productId}', '{image.Id}', 1)");
+
+        Assert.Equal("Draft", await ScalarAsync<string>($"SELECT publish_status FROM products WHERE id = '{productId}'"));
+        Assert.Equal(1, await ScalarAsync<int>($"SELECT version FROM products WHERE id = '{productId}'"));
+        Assert.Equal("Draft", await ScalarAsync<string>($"SELECT publish_status FROM variants WHERE id = '{variantId}'"));
+        Assert.Equal(0, await ScalarAsync<int>($"SELECT reserved_quantity FROM variants WHERE id = '{variantId}'"));
+        Assert.False(await ScalarAsync<bool>($"SELECT is_primary_category FROM product_categories WHERE product_id = '{productId}'"));
+        Assert.False(await ScalarAsync<bool>($"SELECT is_main FROM product_images WHERE product_id = '{productId}'"));
+    }
+
     // ---- KK2: product fences, search form, trigram index ----
 
     [Fact]

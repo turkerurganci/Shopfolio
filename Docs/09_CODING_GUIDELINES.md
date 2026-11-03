@@ -441,6 +441,8 @@ deploy/
   compose.yaml                  kurulumun Compose tanımı: dört hizmet ve tek seferlik göç hizmeti (05 §8.2.4)
   compose.dev.yaml              geliştirme varyantı: ödeme sağlayıcısının test ortamı ve e-posta yakalayıcı
   .env.example                  kurulumun sır olmayan ayar dosyasının şablonu (05 §2.3.4)
+  release.env                   bir sürümün üç imaj başvurusu (etiket + özet); Compose'a --env-file ile verilir (05 §8.2.3)
+  firewall/                     sunucu güvenlik duvarı: DOCKER-USER çıkış kuralı betiği ve kurulum denemeleri (05 §3.2.5)
   caddy/Caddyfile               ters vekil yapılandırması
   images/app/Dockerfile         uygulama imajı (çok aşamalı, kök olmayan kullanıcı, göç demeti)
   images/database/              veritabanı imajının derleme dosyası ve zamanlayıcısı

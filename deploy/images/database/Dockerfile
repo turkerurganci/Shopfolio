@@ -29,6 +29,10 @@ COPY deploy/images/database/postgresql.conf.d/ /etc/postgresql/postgresql.conf.d
 RUN mkdir -p /etc/pgbackrest /var/log/pgbackrest /var/spool/pgbackrest /var/lib/pgbackrest \
     && chown -R postgres:postgres /etc/pgbackrest /var/log/pgbackrest /var/spool/pgbackrest /var/lib/pgbackrest
 
+# Mount point of the database log volume (deploy/compose.yaml); the backup tool reads it read-only (05 9.1.4). Where the server
+# and pgBackRest write their logs is set by the task that configures them.
+RUN mkdir -p /var/log/postgresql && chown postgres:postgres /var/log/postgresql
+
 # No secret enters the image: passwords and backup keys arrive as mounted files at run time (09 17 item 2).
 USER postgres
 CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]

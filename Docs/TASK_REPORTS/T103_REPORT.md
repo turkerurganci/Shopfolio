@@ -1,6 +1,6 @@
 # T103 — Başlangıç listeleri, firma ve yasal metin sürümü
 
-**Faz:** F1 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Tamamlandı — doğrulama tur 2 PASS | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -34,6 +34,8 @@
 | 6 | Silme ve güncelleme kuralları | ✓ | `ProvinceInUse_…`, `PermanentRows_…`, `PublishedLegalTextVersion_…`, `DeliveryProvinceRow_CanBeDeleted` |
 | 7 | Göç tek konu, `Down` yok, geçmiş tablosu kapalı | ✓ | `MigrationSourceScanTests`, `MigrationHistoryTable_IsClosedTo…` |
 
+*Validator kanıtı (tur 2, `7c04318`):* yedi kriterin her biri kurucu SQL'le kurulan PostgreSQL 18'de göç kullanıcısıyla uygulanan göç üzerinde ham SQL'le yeniden sınandı — ✓ (ayrıntı: "Doğrulama tur 2").
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
@@ -46,10 +48,26 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-04, head `6e88812`) |
-| Bulgu sayısı | 1 (DÜŞÜK, S1) |
-| Düzeltme gerekli mi | Evet — bulgu 1 |
-| Bloke-etmeyen not (K) sayısı | 3 (K1, K3 bu PR'ın düzeltme turunda kapatılır; K2 → D-49) |
+| Doğrulama durumu | ✓ PASS — tur 2 (2026-11-04, head `7c04318`); önceki: ✗ FAIL tur 1 (`6e88812`) |
+| Bulgu sayısı | 0 (tur 1'in bulgusu 1 düzeltme 1'de kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 3 (K1–K3 → D-50); tur 1: 3 (K1, K3 kapandı; K2 → D-49) |
+
+### Doğrulama tur 2 — ✓ PASS (2026-11-04)
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` yine mutlak yoldu (`C:\projects\Shopfolio\scripts\git-hooks`) — `install.sh` ile `scripts/git-hooks`'a döndürüldü; ana dal son 3 run `41715894986`, `41715895065`, `41710384453` success; `MEMORY.md`'de T103 satırı var.
+
+**Kabul kriterleri (validator kanıtı; `postgres:18` konteyneri, veritabanı `deploy/images/database/bootstrap` SQL dosyalarıyla kuruldu, göç `v_migrator` ile `dotnet ef database update` — "Applying migration '20261103205423_CreateSettingsTables'. Done."; KK2–KK7 ayrıca uygulama ve salt okuma kullanıcısıyla ham SQL yoklamasıyla sınandı):** 1–7 ✓, KK1–KK7 ✓. KK1 altı tablo, alanlar `06 §4.1`…§4.4, §4.56 tablolarıyla birebir; dizin kümesi: `companies` ve `company_settings`'te yalnız `pk_*` + `ix_*_single_row`, `company_delivery_provinces`'te tekil `province_id`, `provinces`/`countries`'te tekil `code`, `legal_text_versions`'ta iki filtreli tekil dizin. KK2 ikinci firma ve ayar satırı `ix_*_single_row` ile reddedildi. KK3 IBAN'sız açık havale, yarım iade adresi, eksi kargo ücreti ve eşik, süre 11, pencere 4, indirme 0, KDV 100, dokuz rakamlı firma ve iade telefonu, harfli WhatsApp numarası, geçersiz ana sayfa düzeni → adlı `ck_` ihlali; tam iade adresi + on rakam + IBAN'lı havale kabul. KK4 `123` il kodu, tekrar il kodu, `tr` ve tekrar ülke kodu, aynı ilin ikinci teslimat satırı reddedildi. KK5 aynı tür+numara (tekil dizin), **numarası dolu yayın anı boş satır** (`ck_…_number_and_published_at_together`), Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi taslağı, aynı türde ikinci taslak, yayımlanmış ve taslak aydınlatma metninde şablon sürümü, çerez politikasında barındırma konumu, barındırma konumsuz yayımlanmış aydınlatma metni reddedildi; şablon sürümlü üretilen metin ve barındırma konumlu aydınlatma taslağı kabul. KK6 bağlı il silme `fk_companies_provinces_province_id` ile reddedildi, teslimat satırı silindi, üç bağ `confdeltype=a`; bekçi testleri yeşil. KK7 `MigrationSourceScanTests` yeşil; `__EFMigrationsHistory`'de `v_app` ve `v_reader` yedi yetkinin hiçbirini taşımaz (SELECT 42501), `v_migrator` taşır; rol ayarı olmayan veritabanında göç 42704 ile düştü ve altı tablonun hiçbiri kalmadı (işlem geri alındı).
+
+**Tur 1 bulgusunun kapanışı:** modelde ve veritabanında tek satırlık iki tablonun FK dizini yok. Yeni kuralın öteki tablolardaki etkisi: doğrulayıcı geçici testle örnek model (`sample_items`, dört bağ) ve uygulama modelinin dizinlerini iki hâlde döktü — çerçevenin `ForeignKeyIndexConvention`'ı açıkken ve kaldırılıp `ApplyForeignKeyIndexRule` çalışırken; tek fark iki tek satırlık tablonun dizinleri, `ix_sample_items_*` dört dizin ad, sütun ve teklikle aynı (geçici dosya silindi). Elle düzeltilen göç: geçici `migrations add` boş `Up` üretti (şema farkı yok); anlık görüntü yeniden üretilseydi yalnız iki `HasAnnotation("Shopfolio:SingleRow", true)` satırı eklenirdi (K1). Göç dosyasının elle düzeltilmesi PR açıklamasında gerekçeli (`09 §10.6` m.1).
+
+**Yerel:** `restore --locked-mode` 0; Release `-warnaserror --no-incremental` 0 uyarı 0 hata; Unit 217/217 (Consistency dahil); Integration 123/123 (PostgreSQL 18); `has-pending-model-changes` "No changes". Dal CI `41725873130` (`7c04318`) success; PR #360'ta dokuz denetim yeşil (Guard atlandı), check-run 10.
+
+**CI düzeltmeleri ve atlama:** `a69f574` (imaja `.editorconfig`) ve `1b317d0` (dry-run veritabanı kurucu SQL'le, göç kullanıcısı rol ayarlı) kök neden düzeltmeleridir; dry-run `09 §10.6` m.9, §10.8 m.5–6 ile uyumlu (göç şema sahibiyle ve rol ayarından okunan adlarla), `CI_CD_SETUP.md` adımın iç düzenini yazmaz — çelişki yok. İki `PB_ALLOW_DIRECT_PUSH` `[ci-failure]` itişi `BYPASS_LOG`'da gerekçeli (`b185bf6`, `6e88812`; T07/T10 emsali), `PB_ALLOW_SECRET` yok, commit'lerde AI atıf satırı yok.
+
+**K-notları (→ D-50, T104):** K1 anlık görüntü yeniden üretilince iki tek satır işareti satırı eklenir — kural işareti kullanınca kaldırabilir ya da satırlar gerekçeyle kabul edilir. K2 KK5'in yazıldığı yön (numara dolu, yayın anı boş) entegrasyon testinde yok; ters yön var, davranışı doğrulayıcı gösterdi. K3 sıradan tablonun FK dizinini kilitleyen test yok (çerçeve kuralı kaldırıldığı için). Ayrıca D-48 (b) kapanış metnindeki test adı düzeltme 1'deki yeni adla güncellendi; backlog "Aktif kalem" sayacı 26.
+
+**Yapım raporu karşılaştırması:** kriter 1–7 ve test sayıları (Unit 217, Integration 123) uyumlu; "diğer tablolarda davranış değişmedi" iddiası doğrulayıcının karşılaştırmasıyla doğrulandı. Küçük uyuşmazlık: "Yapılan İşler"deki `SettingsTablesTests` sayısı (23) düzeltme 1'den önceki hâldir, dosyada şimdi 27 test var; anlık görüntünün araçla üretilen biçimden farkı (K1) raporda yok.
 
 ### Doğrulama tur 1 — ✗ FAIL (2026-11-04)
 

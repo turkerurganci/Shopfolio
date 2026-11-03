@@ -24,6 +24,19 @@ internal static partial class ModelBuilderExtensions
 
     internal const string RuleAnnotationPrefix = "Shopfolio:Rule:";
 
+    internal const string SingleRowAnnotation = "Shopfolio:SingleRow";
+
+    /// <summary>
+    /// Marks a one-row table (06 2.3.2). Such a table carries no foreign-key index (06 7.5.2; 7.2 "no index: single row"): the model
+    /// finalizing rule removes the indexes the framework adds for its foreign keys, so the single-row index is its only index.
+    /// </summary>
+    public static EntityTypeBuilder<TEntity> AsSingleRow<TEntity>(this EntityTypeBuilder<TEntity> builder)
+        where TEntity : class
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        return builder.HasAnnotation(SingleRowAnnotation, true);
+    }
+
     /// <summary>
     /// Declares a check constraint by the name of its rule. The constraint is named <c>ck_&lt;table&gt;_&lt;rule&gt;</c>, so the rule name
     /// is lowercase with underscores; the name is never given by hand (06 2.4.3).

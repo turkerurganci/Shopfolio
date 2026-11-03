@@ -62,6 +62,24 @@ public sealed class EnumLockTests
     }
 
     [Fact]
+    public void EveryEnumOfTheModel_HasALockFileOnDisk_WhateverItsNamespace()
+    {
+        DbContextOptionsBuilder<Shopfolio.Infrastructure.AppDbContext> options = new();
+        Shopfolio.Infrastructure.AppDbContext.Configure(options, "Host=localhost;Database=shopfolio_lock_model");
+        using Shopfolio.Infrastructure.AppDbContext context = new(options.Options);
+        string root = RepositoryRoot.Find();
+
+        // Independent of StoredEnums(): the files on disk are looked up straight from the model's property types.
+        string[] modelEnumsWithoutAFile = ModelEnums(context)
+            .Where(t => !File.Exists(EnumLock.FilePath(root, t)))
+            .Select(t => t.FullName!)
+            .ToArray();
+
+        Assert.Empty(modelEnumsWithoutAFile);
+        Assert.NotEmpty(ModelEnums(context));
+    }
+
+    [Fact]
     public void Compare_WhenAMemberIsAddedAndTheFileIsNotUpdated_Fails()
     {
         IReadOnlyList<string> findings = EnumLock.Compare(["Placed", "Preparing"], ["Placed", "Preparing", "Shipped"]);
@@ -90,7 +108,7 @@ public sealed class EnumLockTests
         DbContextOptionsBuilder<Shopfolio.Infrastructure.AppDbContext> options = new();
         Shopfolio.Infrastructure.AppDbContext.Configure(options, "Host=localhost;Database=shopfolio_lock_model");
         using Shopfolio.Infrastructure.AppDbContext context = new(options.Options);
-        return ApplicationEnums.Persistent().Concat(ModelEnums(context).Where(t => ApplicationEnums.IsPersistentNamespace(t.Namespace))).Distinct().ToList();
+        return ApplicationEnums.Persistent().Concat(ModelEnums(context)).Distinct().ToList();
     }
 
     private static IEnumerable<Type> ModelEnums(DbContext context)

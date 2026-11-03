@@ -27,8 +27,13 @@ internal static partial class DataModelSourceScan
     /// <summary>The file that may hold the Turkish letter constants.</summary>
     public const string TextNormalizerFile = "TextNormalizer.cs";
 
-    public static IReadOnlyList<(string Rule, int Line)> Scan(string fileName, string text)
+    /// <summary>
+    /// Scans one file. The generated migration files (a <c>Migrations</c> folder, given by <paramref name="filePath"/>) are exempt from the
+    /// hand-written name rule: the snapshot and the designer files spell out the names the convention derived (T103).
+    /// </summary>
+    public static IReadOnlyList<(string Rule, int Line)> Scan(string fileName, string text, string? filePath = null)
     {
+        bool inMigrations = filePath is not null && filePath.Replace('\\', '/').Contains("/Migrations/", StringComparison.Ordinal);
         List<(string Rule, int Line)> findings = [];
         string[] lines = text.ReplaceLineEndings("\n").Split('\n');
         for (int i = 0; i < lines.Length; i++)
@@ -50,7 +55,7 @@ internal static partial class DataModelSourceScan
                 findings.Add((DatabaseIdDefault, i + 1));
             }
 
-            if (HandWrittenNameCall().IsMatch(line))
+            if (!inMigrations && HandWrittenNameCall().IsMatch(line))
             {
                 findings.Add((HandWrittenName, i + 1));
             }

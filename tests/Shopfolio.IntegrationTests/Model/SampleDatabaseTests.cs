@@ -155,7 +155,8 @@ public sealed class SampleDatabaseTests : IClassFixture<SampleDatabaseFixture>
         required.Name = string.Empty;
         await using AppDbContext refusing = SampleModel.CreateGoodContext(_database.Dsn);
         refusing.Set<SampleOwner>().Add(required);
-        await Assert.ThrowsAnyAsync<Exception>(() => refusing.SaveChangesAsync(Ct));
+        DbUpdateException refused = await Assert.ThrowsAsync<DbUpdateException>(() => refusing.SaveChangesAsync(Ct));
+        Assert.Equal("23502", Assert.IsType<PostgresException>(refused.InnerException).SqlState);
         long written = await _database.ScalarAsync<long>("SELECT count(*) FROM sample_owners WHERE id = @id", Ct, ("id", required.Id));
         Assert.Equal(0, written);
     }

@@ -392,3 +392,8 @@ dotnet_diagnostic.IDE0008.severity = error
 # Narrowest scope: the test projects only (09 section 3.1 item 5).
 [tests/**.cs]
 dotnet_diagnostic.CA1707.severity = none
+
+# The migrations and the model snapshot are made by `dotnet ef migrations add` (09 10.6 item 1); the generator's own style is not ours.
+# Narrowest scope: the migrations folder only. The generated-code mark switches the analyzers and style rules off for these files.
+[src/Shopfolio.Web/Infrastructure/Migrations/*.cs]
+generated_code = true

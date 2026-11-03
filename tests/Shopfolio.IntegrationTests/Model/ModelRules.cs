@@ -27,9 +27,13 @@ internal static partial class ModelRules
         return context.GetService<IDesignTimeModel>().Model;
     }
 
-    public static IReadOnlyList<string> Check(IModel model, Func<IEntityType, bool>? include = null)
+    /// <param name="model">The finished model.</param>
+    /// <param name="include">Which entities to check; all when null.</param>
+    /// <param name="contextType">When given, every checked entity must have a <c>DbSet</c> property on this context and its table name must be the snake_case of that property's name (09 5.2 item 2; D-46 b).</param>
+    public static IReadOnlyList<string> Check(IModel model, Func<IEntityType, bool>? include = null, Type? contextType = null)
     {
         List<string> findings = [];
+        Dictionary<Type, string> setNames = contextType is null ? [] : DbSetNames(contextType);
         foreach (IEntityType entityType in model.GetEntityTypes().Where(e => include is null || include(e)))
         {
             string? table = entityType.GetTableName();
@@ -41,6 +45,11 @@ internal static partial class ModelRules
 
             StoreObjectIdentifier store = StoreObjectIdentifier.Table(table, entityType.GetSchema());
             CheckName(findings, $"{table}: table name", table);
+            if (contextType is not null)
+            {
+                CheckDbSetName(findings, setNames, entityType, table);
+            }
+
             foreach (IProperty property in entityType.GetProperties())
             {
                 CheckName(findings, $"{table}: column name", property.GetColumnName(store));
@@ -85,6 +94,37 @@ internal static partial class ModelRules
             .Order(StringComparer.Ordinal)
             .ToList();
     }
+
+    /// <summary>The public <c>DbSet&lt;T&gt;</c> properties of a context, by entity type.</summary>
+    private static Dictionary<Type, string> DbSetNames(Type contextType)
+    {
+        return contextType.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+            .Where(p => p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+            .ToDictionary(p => p.PropertyType.GetGenericArguments()[0], p => p.Name);
+    }
+
+    private static void CheckDbSetName(List<string> findings, Dictionary<Type, string> setNames, IEntityType entityType, string table)
+    {
+        if (entityType.ClrType.Name == DataProtectionKeyEntity)
+        {
+            return;
+        }
+
+        if (!setNames.TryGetValue(entityType.ClrType, out string? setName))
+        {
+            findings.Add($"{table}: the context has no DbSet property for {entityType.DisplayName()} (09 5.2 item 2).");
+            return;
+        }
+
+        string expected = SnakeCase().Replace(setName, "$1_$2").ToLowerInvariant();
+        if (table != expected)
+        {
+            findings.Add($"{table}: the table name is not the snake_case of the DbSet property '{setName}' ('{expected}').");
+        }
+    }
+
+    [GeneratedRegex("([a-z0-9])([A-Z])")]
+    private static partial Regex SnakeCase();
 
     private static void CheckName(List<string> findings, string what, string? name)
     {

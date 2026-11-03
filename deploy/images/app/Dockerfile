@@ -13,6 +13,9 @@ COPY src/Shopfolio.Web/Shopfolio.Web.csproj src/Shopfolio.Web/packages.lock.json
 RUN dotnet tool restore \
     && dotnet restore src/Shopfolio.Web/Shopfolio.Web.csproj --locked-mode
 
+# The analyzer configuration (.editorconfig, incl. the generated-code mark of the migrations folder) must reach the in-image build,
+# so the image build sees the same analysis as the local and CI builds. It is copied here, not in the restore layer, as it does not affect restore.
+COPY .editorconfig ./
 COPY src/Shopfolio.Web src/Shopfolio.Web
 
 # The application: framework-dependent, no native host (the runtime image carries the shared framework).

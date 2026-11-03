@@ -9,8 +9,7 @@ namespace Shopfolio.IntegrationTests.Model;
 
 /// <summary>
 /// A database of its own for the model rule tests (T101): copied from the template, with the tables of the sample model made by the
-/// script the model produces. The application has no migration of its own that makes tables yet (T103 brings the first), so the sample
-/// tables come from the model's create script; the database is dropped when the tests of the class end.
+/// script the model produces. The sample tables come from the model's create script, after the schema is emptied of the real tables; the database is dropped when the tests of the class end.
 /// </summary>
 public sealed class SampleDatabaseFixture : IAsyncLifetime
 {
@@ -38,8 +37,11 @@ public sealed class SampleDatabaseFixture : IAsyncLifetime
             script = context.Database.GenerateCreateScript();
         }
 
+        // The template now holds the application's real tables (T103), which the sample script would collide with: start from an empty schema.
         await using NpgsqlConnection connection = new(Dsn);
         await connection.OpenAsync(ct);
+        await using NpgsqlCommand reset = new("DROP SCHEMA public CASCADE; CREATE SCHEMA public;", connection);
+        await reset.ExecuteNonQueryAsync(ct);
         await using NpgsqlCommand command = new(script, connection);
         await command.ExecuteNonQueryAsync(ct);
     }

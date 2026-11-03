@@ -7,7 +7,7 @@ namespace Shopfolio.Infrastructure;
 /// <summary>
 /// Makes the one form of an empty value (06 2.8.5): an empty text is never stored; the empty value of an optional field is NULL.
 /// Before a save, an empty string in a new or changed record becomes null: an optional column then gets NULL, and a required
-/// column is refused (EF reports the missing value before any SQL is sent). Whitespace is not touched; trimming belongs to the input (09 3.4).
+/// column is refused by the database's NOT NULL constraint (a DbUpdateException carrying SQLSTATE 23502; no row is written). Whitespace is not touched; trimming belongs to the input (09 3.4).
 /// </summary>
 internal sealed class EmptyTextGuard : SaveChangesInterceptor
 {

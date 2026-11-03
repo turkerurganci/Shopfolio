@@ -29,13 +29,45 @@ EXT=""
 case "$(uname -s)" in MINGW* | MSYS* | CYGWIN*) EXT=".exe" ;; esac
 
 dsn() {
-  local dsn="Host=$PGHOST;Port=$PGPORT;Username=$PGUSER;Database=$1;Pooling=false"
+  local dsn="Host=$PGHOST;Port=$PGPORT;Username=${2:-$PGUSER};Database=$1;Pooling=false"
   if [ -n "${PGPASSWORD:-}" ]; then dsn="$dsn;Password=$PGPASSWORD"; fi
   printf '%s' "$dsn"
 }
 
+# The database is made the way an installation makes it (09 10.8, 10.6 item 9; 19.1 item 4): the setup SQL files of the database image
+# (deploy/images/database/bootstrap, run as the founding user) create the users, the database and the three role settings the
+# migrations read the user names from; the bundle then runs as the schema owner. Without the settings a migration fails with 42704
+# (unrecognized configuration parameter): it is never skipped, since a skipped REVOKE would be a hole in a real installation.
+BOOTSTRAP_DIR="$ROOT/deploy/images/database/bootstrap"
+MIGRATOR=shopfolio_dry_migrator
+APPUSER=shopfolio_dry_app
+READER=shopfolio_dry_reader
+BACKUP_STATUS=shopfolio_dry_status
+
+bootstrap_sql() {
+  local file="$1" connect="$2" database="${3:-}"
+  psql -X -q -v ON_ERROR_STOP=1 \
+    -v "db=$database" -v "migrator=$MIGRATOR" -v "app=$APPUSER" -v "reader=$READER" -v "backup_status=$BACKUP_STATUS" \
+    -d "$connect" -f "$BOOTSTRAP_DIR/$file"
+}
+
+# The four users are cluster-wide: made once per run, after the databases of an earlier run are gone.
+fresh_users() {
+  local role
+  psql -d postgres -v ON_ERROR_STOP=1 -q -c "DROP DATABASE IF EXISTS shopfolio_dry_empty WITH (FORCE)" \
+    -c "DROP DATABASE IF EXISTS shopfolio_dry_previous WITH (FORCE)"
+  for role in "$MIGRATOR" "$APPUSER" "$READER" "$BACKUP_STATUS"; do
+    psql -d postgres -v ON_ERROR_STOP=1 -q -c "DROP ROLE IF EXISTS $role"
+  done
+  bootstrap_sql 10-roles.sql postgres
+}
+
+# fresh_database <name>: an installation's database, with the privileges, the role settings and the schema in place.
 fresh_database() {
-  psql -d postgres -v ON_ERROR_STOP=1 -q -c "DROP DATABASE IF EXISTS $1 WITH (FORCE)" -c "CREATE DATABASE $1"
+  psql -d postgres -v ON_ERROR_STOP=1 -q -c "DROP DATABASE IF EXISTS $1 WITH (FORCE)"
+  bootstrap_sql 20-database.sql postgres "$1"
+  bootstrap_sql 30-database-access.sql postgres "$1"
+  bootstrap_sql 40-schema.sql "$1" "$1"
 }
 
 # build_bundle <source root> <output name>: a throwaway lock file keeps the tracked packages.lock.json files untouched
@@ -61,8 +93,9 @@ fi
 
 echo "== 2/4 Bundle on an empty database"
 build_bundle "$ROOT" new
+fresh_users
 fresh_database shopfolio_dry_empty
-"$WORK/new$EXT" --connection "$(dsn shopfolio_dry_empty)"
+"$WORK/new$EXT" --connection "$(dsn shopfolio_dry_empty "$MIGRATOR")"
 
 echo "== 3/4 Bundle on the schema of the last published release"
 PREVIOUS_TAG="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)"
@@ -77,8 +110,8 @@ echo "Last published release: $PREVIOUS_TAG"
 git worktree add --detach "$WORK/previous" "$PREVIOUS_TAG" >/dev/null
 build_bundle "$WORK/previous" previous
 fresh_database shopfolio_dry_previous
-"$WORK/previous$EXT" --connection "$(dsn shopfolio_dry_previous)"
-"$WORK/new$EXT" --connection "$(dsn shopfolio_dry_previous)"
+"$WORK/previous$EXT" --connection "$(dsn shopfolio_dry_previous "$MIGRATOR")"
+"$WORK/new$EXT" --connection "$(dsn shopfolio_dry_previous "$MIGRATOR")"
 
 echo "== 4/4 Rollback test"
 # Part A: the application image of the last release is pulled from the registry and started against the schema the new bundle

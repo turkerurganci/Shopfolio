@@ -17,6 +17,8 @@ internal static class PrivilegeMatrix
 
     public const string BackupStatusRecords = "backup_status_records";
 
+    public const string MigrationsHistory = "__EFMigrationsHistory";
+
     /// <summary>The columns of the one table the backup status user may update (09 10.8 item 3).</summary>
     public static readonly IReadOnlyList<string> BackupStatusWritableColumns = ["last_succeeded_at", "last_failed_at"];
 
@@ -55,7 +57,15 @@ internal static class PrivilegeMatrix
         }
 
         // The migration history table (__EFMigrationsHistory) is closed to the application and read-only users by the first
-        // migration (T103; 09 10.8 item 3); until that migration exists it has the default, and T103 adds the expectation here.
+        // migration (T103; 09 10.8 item 3; D-37 a): neither user has any privilege on it.
+        if (table == MigrationsHistory && (app || reader))
+        {
+            foreach (string privilege in expected.Keys.ToList())
+            {
+                expected[privilege] = false;
+            }
+        }
+
         return expected;
     }
 

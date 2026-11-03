@@ -39,6 +39,30 @@ internal sealed class ModelRulesConvention : IModelFinalizingConvention
             ApplyPropertyRules(entityType);
             ApplyCheckRules(entityType);
             ApplyEnumRules(entityType);
+            ApplyForeignKeyIndexRule(entityType);
+        }
+    }
+
+    /// <summary>
+    /// A foreign key gets the index the framework's own convention would make (it is removed in the context, see <c>AppDbContext</c>),
+    /// except on a one-row table, whose only index is the single-row index (06 7.5.2; 7.2 "no index: single row"). An index that already
+    /// starts with the key's columns (an explicit one) is not repeated.
+    /// </summary>
+    private static void ApplyForeignKeyIndexRule(IConventionEntityType entityType)
+    {
+        if (entityType.FindAnnotation(ModelBuilderExtensions.SingleRowAnnotation) is not null)
+        {
+            return;
+        }
+
+        foreach (IConventionForeignKey foreignKey in entityType.GetDeclaredForeignKeys())
+        {
+            bool covered = entityType.GetIndexes().Any(i => i.Properties.Take(foreignKey.Properties.Count).SequenceEqual(foreignKey.Properties))
+                || entityType.GetKeys().Any(k => k.Properties.Take(foreignKey.Properties.Count).SequenceEqual(foreignKey.Properties));
+            if (!covered)
+            {
+                entityType.AddIndex(foreignKey.Properties)?.SetIsUnique(foreignKey.IsUnique);
+            }
         }
     }
 

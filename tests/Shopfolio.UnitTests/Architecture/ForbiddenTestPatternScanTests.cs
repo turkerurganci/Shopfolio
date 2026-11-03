@@ -51,6 +51,7 @@ public sealed class ForbiddenTestPatternScanTests
             ForbiddenTestPatterns.OnlyNotNull,
             ForbiddenTestPatterns.RuntimeSkip,
             ForbiddenTestPatterns.SkippedTest,
+            ForbiddenTestPatterns.SkippedDataRow,
         ];
         Assert.Equal(expected.Order(StringComparer.Ordinal).ToArray(), rules);
     }
@@ -72,6 +73,41 @@ public sealed class ForbiddenTestPatternScanTests
         string path = SamplePath("CleanTests.cs");
 
         IReadOnlyList<(string Rule, int Line)> findings = ForbiddenTestPatterns.Scan(path, File.ReadAllText(path));
+
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void Scan_OnSkippedDataRow_ReportsTheRow()
+    {
+        // The forbidden word is assembled so that the real scan does not see these samples as test attributes.
+        string skip = "Sk" + "ip";
+        string[] attributes =
+        [
+            $"[InlineData(2, {skip} = \"later\")]",
+            $"[MemberData(nameof(Rows), {skip} = \"later\")]",
+            $"[ClassData(typeof(Rows), {skip}Unless = \"Flag\")]",
+            $"[InlineData(\n    2,\n    {skip} = \"later\")]",
+        ];
+
+        foreach (string attribute in attributes)
+        {
+            string source = $"public sealed class T\n{{\n    [Theory]\n    {attribute}\n    public void M(int value)\n    {{\n        Assert.Equal(value, value);\n    }}\n}}\n";
+
+            IReadOnlyList<(string Rule, int Line)> findings = ForbiddenTestPatterns.Scan("T.cs", source);
+
+            (string Rule, int Line) finding = Assert.Single(findings);
+            Assert.Equal(ForbiddenTestPatterns.SkippedDataRow, finding.Rule);
+        }
+    }
+
+    [Fact]
+    public void Scan_OnDataRowWithoutSkipArgument_ReportsNothing()
+    {
+        string skip = "Sk" + "ip";
+        string source = $"public sealed class T\n{{\n    public int {skip} = 3;\n\n    [Theory]\n    [InlineData(1)]\n    [InlineData(\"{skip} = 2\")]\n    public void M(object value)\n    {{\n        Assert.Equal(value, value);\n    }}\n}}\n";
+
+        IReadOnlyList<(string Rule, int Line)> findings = ForbiddenTestPatterns.Scan("T.cs", source);
 
         Assert.Empty(findings);
     }

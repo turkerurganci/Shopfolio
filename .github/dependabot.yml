@@ -1,0 +1,16 @@
+version: 2
+
+# Bagimlilik guncelleme onerileri (05 §8.3.14, 09 §21.4 madde 4): sıradan PR kurallarindan gecer.
+# NuGet: surumler Directory.Packages.props'ta tam sabittir; kilit dosyalari (packages.lock.json) ayni PR'da guncel olmalidir (09 §3.2).
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

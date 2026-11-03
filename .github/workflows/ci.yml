@@ -4,6 +4,7 @@ name: CI
 #   - Adim ISIMLERI, SIRASI ve KAPILAR sabittir.
 #   - KOMUTLAR .github/ci-commands.env'de (SETUP.md §4).
 #   - Bos komut: SETUP_COMPLETE=false iken uyari, true iken FAIL (ci-run.sh).
+#   - Runtime: .NET SDK global.json'dan (setup-dotnet); PostgreSQL 18 hizmeti entegrasyon ve gocun adimlarinda (05 §2.3.6).
 
 on:
   # pull_request'te base filtresi YOK -- bilerek. Filtre konursa base'i main
@@ -21,6 +22,12 @@ permissions:
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  # Test kosucusunun (Microsoft.Testing.Platform) telemetrisi kapali: 09 §19.1 madde 6 "dis ag yoktur" (D-15).
+  TESTINGPLATFORM_TELEMETRY_OPTOUT: "1"
 
 jobs:
   # --------------------------------------------------------------------------
@@ -59,7 +66,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # SETUP.md §4: dil/runtime kurulum adimlarini buraya ekleyin.
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
       - run: bash .github/ci-run.sh LINT_CMD "1. Lint"
 
   build:
@@ -68,6 +77,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
       - run: bash .github/ci-run.sh BUILD_CMD "2. Build"
 
   unit-test:
@@ -76,14 +88,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
       - run: bash .github/ci-run.sh UNIT_TEST_CMD "3. Unit test"
 
   integration-test:
     name: 4. Integration test
     needs: [build]
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          # Yalniz bu isin atilabilir hizmet konteyneri; disaridan erisilmez.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      SHOPFOLIO_TEST_DATABASE: Host=localhost;Port=5432;Username=postgres;Database=postgres
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
       - run: bash .github/ci-run.sh INTEGRATION_TEST_CMD "4. Integration test"
 
   contract-test:
@@ -98,8 +131,29 @@ jobs:
     name: 6. Migration dry-run
     needs: [build]
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
     steps:
+      # Son yayimlanan surum etiketi icin tum gecmis ve etiketler gerekir.
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
       - run: bash .github/ci-run.sh MIGRATION_DRYRUN_CMD "6. Migration dry-run"
 
   package-build:

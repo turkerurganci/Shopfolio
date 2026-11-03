@@ -1,22 +1,25 @@
 name: Publish
 
-# Ana dala merge sonrasi artifact yayinlama (image, paket, vb.).
-# PR'larda calismaz — ci.yml "7. Paketleme dogrulamasi" zaten build'i dogrular.
+# Imaj yayinlama (05 §8.3.12, MK-12): ana dala her merge'de commit kimligiyle, surum etiketinde (vANA.ARA.YAMA)
+# surum numarasiyla. PR'larda calismaz — ci.yml "7. Paketleme dogrulamasi" build'i dogrular.
+# Imaj komutu (PUBLISH_CMD) T06'da girer; o gune dek bos komut uyari ile atlanir. Kurulumlara otomatik dagitim yoktur (05 §8.3.13).
 #
 # Bu workflow'un varligi bilinclidir: ayni ref'e bagli IKINCI bir workflow,
 # "post-merge CI watch" disiplininin (00 §F.4) gercek testidir — bir merge'de
 # tum workflow'larin conclusion'i beklenir, biri success digeri devam ederken
 # "bitti" denmez.
 #
-# Projede yayinlanacak artifact yoksa bu dosya SILINIR (SETUP.md §4).
+# Yama etiketinde (YAMA > 0) onceki etiketten bu yana gocu eklenmisse yayin imaja basilmadan duser (09 §21.4 madde 2).
 
 on:
   push:
     branches: [main]
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
   workflow_dispatch:
 
 permissions:
   contents: read
+  # Kayit defterine (GitHub Container Registry) yazma izni (05 §8.3.12).
   packages: write
 
 concurrency:
@@ -24,8 +27,24 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  patch-migration-check:
+    name: Patch release carries no migration
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      # Aciklamali etiket nesnesi (mesaj: migration-fix istisnasi) tam gelsin.
+      - run: git fetch --force --tags origin
+      - run: bash scripts/ci/patch-migration-check.sh "${GITHUB_REF_NAME}"
+
   publish:
     name: Publish artifacts
+    needs: [patch-migration-check]
+    # Ana dal push'unda patch-migration-check atlanir (skipped); etikette gecmesi sart.
+    if: ${{ !cancelled() && (needs.patch-migration-check.result == 'success' || needs.patch-migration-check.result == 'skipped') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

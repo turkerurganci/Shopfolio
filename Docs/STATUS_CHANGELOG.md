@@ -15,6 +15,12 @@
 
 ---
 
+## 2026-11-03 — T03 doğrulama tur 3 PASS
+
+**Son güncelleme:** 2026-11-03 — T03 (Test altyapısı) bağımsız doğrulama tur 3: ✓ PASS (9/9 kabul kriteri; 36/36 test PostgreSQL 18.6'da, kilit dosyaları koşu sonrası değişmiyor; K-notu D-17'ye eklendi); merge yardımcıda (PR #337). F0 sırada sonraki: T01.
+
+---
+
 ## 2026-11-03 — T03 yapım bitti, doğrulama bekliyor
 
 2026-11-03 — T03 (Test altyapısı) yapım bitti, ⏳ doğrulama bekliyor (PR #337). T02 ✓ (PR #335).

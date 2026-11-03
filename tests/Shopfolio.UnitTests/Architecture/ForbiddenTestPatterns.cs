@@ -10,6 +10,7 @@ namespace Shopfolio.UnitTests.Architecture;
 internal static class ForbiddenTestPatterns
 {
     public const string SkippedTest = "SkippedTest";
+    public const string SkippedDataRow = "SkippedDataRow";
     public const string ExplicitTest = "ExplicitTest";
     public const string RuntimeSkip = "RuntimeSkip";
     public const string AlwaysTrue = "AlwaysPassingAssertion";
@@ -22,6 +23,8 @@ internal static class ForbiddenTestPatterns
     private static readonly (string Rule, Regex Pattern)[] _sourceRules =
     [
         (SkippedTest, new Regex(@"\[(?:Fact|Theory)\s*\((?:[^\]])*?\bSkip(?:Unless|When|Type|Exceptions)?\s*=", RegexOptions.CultureInvariant, _matchTimeout)),
+        // A data attribute with a Skip property skips one row of a theory (InlineData, MemberData, ClassData and the like); named argument, any line.
+        (SkippedDataRow, new Regex(@"\[\w*Data\s*\([^;{}]*?[(,]\s*Skip(?:Unless|When|Type|Exceptions)?\s*=", RegexOptions.CultureInvariant, _matchTimeout)),
         (ExplicitTest, new Regex(@"\bExplicit\s*=\s*true\b", RegexOptions.CultureInvariant, _matchTimeout)),
         (RuntimeSkip, new Regex(@"\bAssert\s*\.\s*Skip\w*\s*\(|\bSkip\s*\.\s*(?:If|IfNot|Unless|When)\s*\(", RegexOptions.CultureInvariant, _matchTimeout)),
         (AlwaysTrue, new Regex(@"\bAssert\s*\.\s*True\s*\(\s*true\s*\)|\bAssert\s*\.\s*False\s*\(\s*false\s*\)", RegexOptions.CultureInvariant, _matchTimeout)),

@@ -2,6 +2,7 @@ using Shopfolio.UnitTests.Support;
 
 namespace Shopfolio.IntegrationTests.Database;
 
+[Collection(DatabaseInfrastructureDefinition.Name)]
 public sealed class MigrationBundleTests
 {
     [Fact]

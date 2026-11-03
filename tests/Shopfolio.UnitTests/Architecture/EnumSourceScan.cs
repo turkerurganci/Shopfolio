@@ -50,9 +50,9 @@ internal static partial class EnumSourceScan
         return findings;
     }
 
-    [GeneratedRegex(@"^public enum (\w+)\s*$", RegexOptions.Multiline)]
+    [GeneratedRegex(@"^public enum (\w+)(?:\s*:\s*\w+)?\s*$", RegexOptions.Multiline)]
     private static partial Regex EnumHead();
 
-    [GeneratedRegex(@"^(namespace [\w.]+;|public enum \w+|\{|\}|[A-Z][A-Za-z0-9]*,)$")]
+    [GeneratedRegex(@"^(namespace [\w.]+;|public enum \w+(?:\s*:\s*\w+)?|\{|\}|[A-Z][A-Za-z0-9]*,)$")]
     private static partial Regex AllowedLine();
 }

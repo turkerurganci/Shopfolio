@@ -34,11 +34,20 @@ public sealed class EnumSourceScanTests
     [InlineData("EnumWithMethod.cs", EnumSourceScan.ForeignLine, 11)]
     [InlineData("EnumWithValues.cs", EnumSourceScan.ForeignLine, 8)]
     [InlineData("EnumWithAttribute.cs", EnumSourceScan.ForeignLine, 6)]
+    [InlineData("EnumWithBaseType.cs", EnumSourceScan.ForeignLine, 9)]
     public void Scan_OnViolationSample_ReportsTheRuleOnItsLine(string sample, string rule, int line)
     {
         IReadOnlyList<(string Rule, int Line)> findings = EnumSourceScan.Scan(sample, File.ReadAllText(SamplePath(sample)));
 
         Assert.Contains((rule, line), findings);
+    }
+
+    [Fact]
+    public void Applies_ToAnEnumDeclaredWithABaseType()
+    {
+        string text = File.ReadAllText(SamplePath("EnumWithBaseType.cs"));
+
+        Assert.True(EnumSourceScan.Applies("src/Shopfolio.Web/Modules/Sample/Contracts/EnumWithBaseType.cs", text));
     }
 
     [Fact]

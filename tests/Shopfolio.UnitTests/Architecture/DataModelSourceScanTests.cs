@@ -21,7 +21,7 @@ public sealed class DataModelSourceScanTests
         List<string> findings = [];
         foreach (string file in files)
         {
-            foreach ((string rule, int line) in DataModelSourceScan.Scan(Path.GetFileName(file), File.ReadAllText(file)))
+            foreach ((string rule, int line) in DataModelSourceScan.Scan(Path.GetFileName(file), File.ReadAllText(file), file))
             {
                 findings.Add($"{Path.GetRelativePath(root, file)}:{line} {rule}");
             }
@@ -58,6 +58,15 @@ public sealed class DataModelSourceScanTests
         string text = File.ReadAllText(SamplePath("GuidFactory.cs"));
 
         Assert.Empty(DataModelSourceScan.Scan(DataModelSourceScan.EntityIdsFile, text));
+    }
+
+    [Fact]
+    public void Scan_HandWrittenNameInAMigrationsFolder_IsAllowed_ButNotElsewhere()
+    {
+        string text = File.ReadAllText(SamplePath("HandWrittenName.cs"));
+
+        Assert.Empty(DataModelSourceScan.Scan("Snapshot.cs", text, "src/Shopfolio.Web/Infrastructure/Migrations/Snapshot.cs"));
+        Assert.Single(DataModelSourceScan.Scan("Snapshot.cs", text, "src/Shopfolio.Web/Modules/Settings/Snapshot.cs"));
     }
 
     [Fact]

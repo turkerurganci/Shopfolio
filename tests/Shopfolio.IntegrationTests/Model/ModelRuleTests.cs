@@ -25,8 +25,43 @@ public sealed class ModelRuleTests
         using AppDbContext context = SampleModel.CreateGoodContext();
         IModel model = ModelRules.ModelOf(context);
 
-        Assert.Empty(ModelRules.Check(model, IsApplicationEntity));
+        Assert.Empty(ModelRules.Check(model, IsApplicationEntity, typeof(AppDbContext)));
         Assert.Equal(RegisteredCascades, ModelRules.CascadeRelations(model, IsApplicationEntity));
+    }
+
+    [Fact]
+    public void ApplicationEntities_TableNameIsTheSnakeCaseOfTheDbSetName_AndAMismatchIsReported()
+    {
+        using AppDbContext context = SampleModel.CreateGoodContext();
+        IModel model = ModelRules.ModelOf(context);
+
+        Assert.Contains(model.GetEntityTypes(), e => e.GetTableName() == "company_delivery_provinces");
+        IReadOnlyList<string> findings = ModelRules.Check(model, e => e.ClrType.Name == "Province", typeof(MisnamedSets));
+
+        Assert.Contains(findings, f => f.Contains("provinces: the table name is not the snake_case of the DbSet property 'Cities'", StringComparison.Ordinal));
+        IReadOnlyList<string> missing = ModelRules.Check(model, e => e.ClrType.Name == "Province", typeof(EmptySets));
+        Assert.Contains(missing, f => f.Contains("the context has no DbSet property", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void CompanySettings_SectionVersionsAreNotConcurrencyTokens()
+    {
+        using AppDbContext context = SampleModel.CreateGoodContext();
+        IEntityType settings = ModelRules.ModelOf(context).GetEntityTypes().Single(e => e.GetTableName() == "company_settings");
+
+        string[] versions = [.. settings.GetProperties().Select(p => p.Name).Where(n => n.EndsWith("Version", StringComparison.Ordinal))];
+
+        Assert.Equal(7, versions.Length);
+        Assert.All(versions, v => Assert.False(settings.FindProperty(v)!.IsConcurrencyToken, v));
+    }
+
+    private sealed class MisnamedSets
+    {
+        public DbSet<Shopfolio.Modules.Settings.Province> Cities { get; set; } = null!;
+    }
+
+    private sealed class EmptySets
+    {
     }
 
     [Fact]

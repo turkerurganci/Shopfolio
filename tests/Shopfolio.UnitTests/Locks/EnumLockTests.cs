@@ -62,6 +62,20 @@ public sealed class EnumLockTests
     }
 
     [Fact]
+    public void StoredEnums_AreTheUnionOfTheNamespaceEnumsAndTheEnumsOfTheModel_WithoutANamespaceFilter()
+    {
+        DbContextOptionsBuilder<Shopfolio.Infrastructure.AppDbContext> options = new();
+        Shopfolio.Infrastructure.AppDbContext.Configure(options, "Host=localhost;Database=shopfolio_lock_model");
+        using Shopfolio.Infrastructure.AppDbContext context = new(options.Options);
+
+        HashSet<Type> stored = [.. StoredEnums()];
+        HashSet<Type> union = [.. ApplicationEnums.Persistent(), .. ModelEnums(context)];
+
+        Assert.True(union.SetEquals(stored));
+        Assert.All(ModelEnums(context), t => Assert.Contains(t, stored));
+    }
+
+    [Fact]
     public void Compare_WhenAMemberIsAddedAndTheFileIsNotUpdated_Fails()
     {
         IReadOnlyList<string> findings = EnumLock.Compare(["Placed", "Preparing"], ["Placed", "Preparing", "Shipped"]);
@@ -90,7 +104,7 @@ public sealed class EnumLockTests
         DbContextOptionsBuilder<Shopfolio.Infrastructure.AppDbContext> options = new();
         Shopfolio.Infrastructure.AppDbContext.Configure(options, "Host=localhost;Database=shopfolio_lock_model");
         using Shopfolio.Infrastructure.AppDbContext context = new(options.Options);
-        return ApplicationEnums.Persistent().Concat(ModelEnums(context).Where(t => ApplicationEnums.IsPersistentNamespace(t.Namespace))).Distinct().ToList();
+        return ApplicationEnums.Persistent().Concat(ModelEnums(context)).Distinct().ToList();
     }
 
     private static IEnumerable<Type> ModelEnums(DbContext context)

@@ -53,10 +53,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulayıcı doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu (tur 1) | ✗ FAIL — 2026-11-03 (`fc2977c`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r1.md`. Kriter 1, 2, 4, 5, 6, 7 ✓; **3 ✗**. Dal CI run 41656454884 yeşil; build `-warnaserror` temiz, Unit 76/76 (Backup eşitlik 15/15), betik testleri sh/dash/ash'te yeşil, `compose config` geçerli |
+| Bulgu sayısı | 4 — (1) S1 KRİTİK: yedek kullanıcısı (10001) pgBackRest kaydını (0640 postgres) ve systemd günlüğünü (0640) okuyamaz; gerçek imajlarla koşuda restic çıkış 3, durum `failure/backup`, forget/prune/check hiç koşmaz (yerel Docker kanıtı); (2) S1 ORTA: yedek aracının kendi kaydı (`/var/log/backup`, `05 §9.1.4`) dosya yedeğinin yollarında yok; (3) S1 DÜŞÜK: `09 §17` madde 7 metni çift kaldı; (4) S1 DÜŞÜK: dosya provası "birkaç dosya" yerine bütün görsel dizinini geri alır |
+| Düzeltme gerekli mi | Evet — yeni yapım turu; `09 §17` m.7'nin "geçici depoda yedek–budama–denetim–kurtarma" kabulü gerçek imajlarla koşulup rapora yazılır |
+| Bloke-etmeyen not (K) sayısı | 7 — K1 ilk açılışta erişilemeyen depoda geçici sunucu kapanmıyor (bir kez `Exited (1)`); K2 nesne kilidi red denemesi yok; K3 prova `archive-get`'inin hangi depodan çektiği kurulumda gözlenmeli; K4 `init` hatası durmuyor; K5 paketleme taramaları geniş; K6 D-37 atıfları; K7 PR'da `09 §25` soru başına cevap yok — düzeltme turunda ya da D-37/backlog'a |
 
 ## Altyapı Değişiklikleri
 

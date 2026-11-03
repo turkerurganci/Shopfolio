@@ -1,35 +1,88 @@
-# T09 — İlk yayın ve referans kuruluma ilk iniş
+# T09 — İlk iniş provası: yerel referans kurulumda canlılık
 
-**Faz:** F0 | **Durum:** ⛔ BLOCKED (OWNER_INPUT) — hazırlık yapıldı | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-03
 
----
-
-## Sahipten beklenen girdiler
-
-Aşağıdakilerin hepsi geldiğinde T09 tek oturumda biter (`DEPLOY_RUNBOOK` §K sırayla koşar). Sırlar sohbete yazılmaz; sunucuya ya da proje sahibinin kendi makinesine doğrudan konur.
-
-1. **Referans sunucu:** Linux, `iptables` kurulu, kök yetkili kullanıcı, kamu IPv4 ve IPv6 adresi, açık kapılar 80, 443 ve SSH; adresi ve SSH kullanıcısını (anahtar girişi, parola girişi kapalı) proje sahibi bildirir.
-2. **SSH erişimi:** kurulumu yapanın genel anahtarı sunucunun yetkili anahtarlar dosyasında olmalı ya da özel anahtar kurulumu yapan makinede bulunmalı; anahtarın parolası kurulum başına ayrıdır.
-3. **Alan adı ve DNS:** `SHOPFOLIO_DOMAIN` değeri (örn. `magaza.firma.com`) ve bu adın hem `A` (IPv4) hem `AAAA` (IPv6) kaydının sunucuya baktığı; değer `/etc/shopfolio/settings.env`'e yazılır.
-4. **Nesne depolama kovası:** firmanın hesabında S3 uyumlu bir kova; sunucu adı (`BACKUP_S3_ENDPOINT`, `https://` olmadan), bölge (`BACKUP_S3_REGION`), kova adı (`BACKUP_S3_BUCKET`) ve adres biçimi (`BACKUP_S3_URI_STYLE`: `host` ya da `path`); değerler `/etc/shopfolio/settings.env`'e yazılır.
-5. **Kova yönetim kimlik bilgileri:** kovada sürüm tutmayı ve yaşam döngüsü kuralını kurabilen geçici yönetim anahtarı (kimlik ve gizli anahtar); yalnız kurulumu yapanın makinesinde `AWS_ACCESS_KEY_ID` ve `AWS_SECRET_ACCESS_KEY` ortam değişkeni olarak verilir (`DEPLOY_RUNBOOK` §J.3), repoya ve sohbete yazılmaz.
-6. **İki yedek öneki için iki erişim anahtarı:** biri `database/`, öteki `files/` önekine yazan, okuyan ve güncel nesneyi silen; kimlik ve gizli anahtar iki satırlı dosya olarak `db_backup_storage_key` ve `file_backup_storage_key` sır dosyalarına yazılır (yetki şablonu `deploy/backup/key-policy.template.json`).
-7. **İki şifreleme parolası:** `db_backup_cipher_key` ve `file_backup_cipher_key` kurulumda kriptografik üreteçle (en az 32 karakter, iki ayrı değer) üretilir; proje sahibi **ikinci kopyayı** güvenli bir yerde saklar (kurulumda firmaya teslim edilir; döndürülemez).
-8. **Kurulum sırları (üretilen):** `db_superuser_password`, `db_migrator_password` ile `db_setup_migrator_password` (aynı değer), `db_app_connection` ile `db_setup_app_password`, `db_reader_connection` ile `db_setup_reader_password`, `link_derivation_secret` sunucuda kurulumu yapan tarafından üretilir; proje sahibinden girdi gerekmez, yalnız kurulumu yapan kişinin sunucuya yazma yetkisi gerekir.
-9. **Sağlayıcı sırları (12, 13, 14):** `payment_provider_keys` (PayTR), `email_credential` (e-posta sağlayıcısı), `google_client_secret`; ilk inişte canlılık ucu bunlara bakmaz, bu yüzden proje sahibi ya gerçek değerleri sır dosyalarına yazar ya da biçimce geçerli uydurma değerle başlanmasını onaylar (uydurma dosyalar prova kaydına yazılır).
-10. **GitHub tarafı:** repo sahibi hesabıyla (a) `v0.1.0` açıklamalı etiketinin basılmasına, (b) üç imaj paketinin (`shopfolio-app`, `shopfolio-database`, `shopfolio-backup`) **Public** yapılmasına (geri alınamaz) açık onay verir; etiket ve paket açılışı sunucu hazır olduktan sonra, aynı oturumda yapılır.
-11. **`SETUP.md` değişikliği onayı:** `SETUP_COMPLETE=true` PR'ında `SETUP.md` §6'daki "yayın izni gerekmedi" maddesinin güncellenmesi için proje sahibinin onayı (`GUARDRAILS` §2).
+> Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
+> Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
 
 ---
 
-## Hazırlık (sunucusuz, bu oturumda yapıldı)
+## Yapılan İşler
 
-- `Docs/DEPLOY_RUNBOOK.md`: yeni **§K "Referans kuruluma ilk iniş"** (K.1–K.12): sunucu ve Docker hazırlığı, IPv6 ayarı, ayar ve sır dosyaları, ilk yayın (etiket, paketler, özet, `release.env`, yayından sonraki CI koşusu), `DOCKER-USER` kuralı ile açılış ve zamanlayıcı birimleri, ilk kurulum bindirmesi, canlılık denemesi, `installation-checks.sh` koşumları, yedek (§J'ye bağlı), imaj özeti kaydı, prova kaydı tablosu, kapanış; §0 hızlı özet ve §I.2 §K'ya bağlandı. Reçete T09'a bağlı backlog kalemlerine bağlandı (K.12 tablosu).
-- Sunucusuz kapanan backlog kalemleri: **D-34 (c)** (`installation-checks.sh` başlığı), **D-34 (d)** (`11`'de T09 "Dokümanlar" satırına ve kapsama tablosuna `MK-14`), **D-29 (a)'nın `CI_CD_SETUP.md` §3.1 kısmı**; hepsi "✅ Çözüldü → T09 hazırlık" diye işaretlendi. D-29 (a)'nın `SETUP.md` kısmı ve (b) kapanış PR'ında kalır.
-- Sunucuda koşacak, bu oturumda kapanamayanlar: D-01, D-29 (a) `SETUP.md`, D-30 (a), D-31 (a)–(g), D-39 (b), (c).
-- Yerel doğrulama: `Consistency` özellikli 34 test geçti.
-- Yapılmadı (talimat gereği): sürüm etiketi, `publish.yml` tetikleme, paket görünürlüğü, `SETUP_COMPLETE`, D-01 kapatma, PR.
+- **Yerel referans kurulum betikleri** (`scripts/local-reference/`): `host-up.sh` (ayrıcalıklı `docker:dind` sunucu `t09-host`, MinIO `t09-minio`, ağ `t09-net` IPv4+IPv6, imajların `save` → `load`), `storage-setup.sh` (kova, iki anahtar, `bucket-checks.sh`), `host-secrets.sh` ve `install-installation.sh` (uydurma sırlar, `DOCKER-USER` kuralı, ilk kurulum bindirmesi, `up -d`), `checks.sh` (liveness, secrets, bootstrap, image-ids, isolation, egress, redirect-hsts, client-address), `client-address.sh`, `host-image-ids.sh`, `down.sh` (adıyla temizlik).
+- `deploy/compose.local-reference.yaml` (yalnız yerel: MinIO CA güveni, `extra_hosts`), `deploy/firewall/installation-checks.sh` (`SKIP_REQUESTS`, KK numaraları).
+- **Bulunan ve düzeltilen hata:** Caddy erişim kaydı varsayılan 0600 root yazıyordu; `backup` (uid 10001) `access.log`'u okuyamadı (`file-backup-job.sh` çıkış 3). `deploy/caddy/Caddyfile` erişim kaydına `mode 0644`.
+- `DEPLOY_RUNBOOK.md` §K yerel referans kuruluma göre baştan yazıldı (§K.10 prova tablosu, §I.3, §I.4, §J ifadeleri); `CI_CD_SETUP.md` §3.1 ve §3.4 gerçek sunucu T603'e hizalandı.
+- `.github/ci-commands.env`: `SETUP_COMPLETE=true`, `E2E_CMD=NOT_APPLICABLE`; `SETUP.md` §2, §4, §6, parametre kaydı ve durum bloğu.
+- Backlog: D-01, D-29, D-30, D-31, D-34 ✅; D-36 (b) ✅; D-39 (b)(c) yerelde; D-40'a (g)–(k) eklendi (MinIO farkları ve 7 günlük yarım yükleme kuralı, systemd birimi ve zincir boşluğu, `release.env`, `journald` ACL'i, gerçek IPv6).
+
+## Etkilenen Modüller / Dosyalar
+
+`scripts/local-reference/*`, `deploy/compose.local-reference.yaml`, `deploy/caddy/Caddyfile`, `deploy/firewall/installation-checks.sh`, `.github/ci-commands.env`, `SETUP.md`, `Docs/DEPLOY_RUNBOOK.md`, `Docs/CI_CD_SETUP.md`, `Docs/DEFERRED_BACKLOG.md`, `Docs/IMPLEMENTATION_STATUS.md`, `Docs/STATUS_CHANGELOG.md`, `.claude/memory/MEMORY.md`.
+
+## Kabul Kriterleri Kontrolü
+
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Ayrıcalıklı Linux konteyneri, iç Docker + iptables, IPv4+IPv6; MinIO; yerel alan adı + Caddy iç CA; sahte sırlar; etiket yok | ✓ | `host-up.sh` (iç Docker 29.9.2, iptables nf_tables, `t09-minio` TLS); `docker ps` WSL yok; etiket basılmadı, paket görünürlüğü değişmedi; `DEPLOY_RUNBOOK` §K.1 |
+| 2 | Boş uygulama imajı canlılık ucuna 200 | ✓ | konteyner içi `HTTP/1.1 200 OK`; `https://shopfolio.internal/sistem/canlilik -> 200` (iki tur; §K.2) |
+| 3 | İlk yayından önceki CI'da geri alma sınaması atlanır, CI çıktısında yazılı | ~ | Satırın kaynağı `scripts/ci/migration-dry-run.sh:70` (`::notice … skipped`); ana dal koşusu `41681819821` yeşil ve T04 doğrulamasında satırın görüldüğü koşu `41548360499`. **Bu oturumda koşu günlüğünün kendisi okunamadı** (yapım ajanı dal CI'ını/günlüğünü yoklayamaz); satırın günlükte görülmesi doğrulayıcıya bırakıldı |
+| 4 | Üç imaj kimliği prova kaydında | ✓ | §K.6: app `4ee0b1ad…`, database `b89b75a6…`, backup `45a6c9da…`; dış `.Id` = iç çalışan yapılandırma özeti (iki tur) |
+| 5 | Prova runbook'ta; `SETUP_COMPLETE=true`; CI kapısı yeşil; D-01 kapalı, artıklar D-40 | ~ | §K.10, `SETUP_COMPLETE=true`, D-01 ✅, D-40 (g)–(k). **CI kapısının yeşilliği** bu PR'ın CI koşusunda görülür (yapım ajanı beklemez) |
+| 6 | `DOCKER-USER` kuralı uygulanır; veritabanı ve yedek yalnız MinIO'ya çıkar | ✓ | `egress` 6 `ok:` (iki ağdan `1.1.1.1:80/443` reddedilir, MinIO geçer); kural adla uygulandı, yedekler `t09-minio` adıyla yazdı; yeniden başlamada zincir boşalır → `apply` (§K.3, §K.8) |
+| 7 | IPv4 ve IPv6 isteğinin istemci adresi erişim kaydında ve uygulamada aynı | ✓ | vekil kaydı `172.31.90.4` ve `fd09:0:0:90::4`; uygulamaya giden `X-Forwarded-For` aynı iki adres (paket yakalama); uygulamanın kendi kaydı T215 (⚠ 5) (§K.4) |
+
+## Test Sonuçları
+
+| Tür | Sonuç | Komut | Çıktı özeti |
+|---|---|---|---|
+| Unit (Consistency) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --filter-trait "Consistency=true"` | 34/34 |
+| Unit (diğer + Architecture) | ✓ | `… --filter-not-trait "Consistency=true"` | 68/68 |
+| Betik testleri | ✓ | `sh tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Kurulum denemeleri | ✓ | `checks.sh` (§K.3–K.6), yedek komutları (§K.7) | `/tmp/t09-state/*.log` (yerel, kayıt dışı) |
+
+## Doğrulama
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | bekliyor |
+| Bulgu sayısı | — |
+| Düzeltme gerekli mi | — |
+| Bloke-etmeyen not (K) sayısı | — |
+
+## Altyapı Değişiklikleri
+
+- **Şema/migration:** Yok
+- **Config / ortam değişkeni:** `SETUP_COMPLETE=true`, `E2E_CMD=NOT_APPLICABLE`; Caddy erişim kaydı `mode 0644`
+- **Paketleme / dağıtım:** Yerel referans kurulum betikleri ve `compose.local-reference.yaml` (yalnız yerel)
+- **Yeni bağımlılık:** Yerel deneme için `bitnamilegacy/minio`, `docker:dind`, `curlimages/curl:8.21.0`, `amazon/aws-cli`; hiçbiri üretime girmez
+
+## Commit & PR
+
+- **Branch:** `task/T09-ilk-yayin`
+- **PR:** PR açıklamasında
+- **CI:** yapım ajanı izlemez
+
+## Dış Varsayımlar
+
+| # | Varsayım | Kanıt | Sonuç |
+|---|---|---|---|
+| 1 | MinIO resmî imajı kullanılabilir | Docker Hub / indirme 410 (2026) | ✗ → `bitnamilegacy/minio` yalnız yerelde |
+| 2 | Docker Desktop ortamında ayrıcalıklı dind, iç iptables ve IPv6 çalışır | `host-up.sh`, `egress`, `client-address` koşumları | ✓ |
+| 3 | Npgsql `PGPASSWORD`'ü okur (D-31 (g)) | `migrate` çıkış 0 | ✓ |
+
+## Known Limitations / Follow-up
+
+| # | Kalem | Backlog ID | Neden ertelendi |
+|---|---|---|---|
+| 1 | Etiket, paketler, firmanın kovası, VPS, gerçek alan adı ve IPv6, systemd birimi, `journald` ACL'i | D-40 (a)–(k) | Gerçek sunucu T603 |
+| 2 | Yedi günlük yarım yükleme kuralı MinIO'da tutmuyor | D-40 (g) | Gerçek kovada sınanır |
+| 3 | Uygulamanın kendi kaydında istemci adresi | D-31 (d) → T215 | Alanı uygulama yazar |
+| 4 | Egress denemesinde ad yolu yalnız yedek işleriyle kanıtlı | — | Throw-away konteyner dış ağın adını çözmez |
 
 ## Notlar
 
-- Alt tür: `EXTERNAL_BLOCKER` (proje sahibi girdisi). Yardımcı bloku PR #352 ile kaydetti.
+- **Working tree (Adım -1):** temiz.
+- **Ana dal CI startup (Adım 0):** son koşu `41681819821` yeşil (`65250d8`).
+- **Repo memory (bitiş kapısı 8):** güncellendi.
+- **Okunan bölümler ve `09 §25`:** PR açıklamasında.

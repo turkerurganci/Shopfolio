@@ -47,7 +47,8 @@ export_pair() {
 
 # load_environment: the object storage key and the repository password reach restic's process only.
 load_environment() {
-  _secrets="${FILE_BACKUP_SECRETS_DIR:-/run/secrets}"
+  _secrets="${FILE_BACKUP_SECRETS_DIR-}"
+  [ -n "$_secrets" ] || _secrets=/run/secrets
   if [ ! -r "${_secrets}/file_backup_cipher_key" ]; then
     echo "file-backup: the repository password file is missing or unreadable" >&2
     return 1

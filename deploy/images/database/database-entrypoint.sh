@@ -14,7 +14,9 @@
 
 set -eu
 
-SECRETS_DIR="${DATABASE_SECRETS_DIR:-/run/secrets}"
+DEFAULT_MOUNT_DIR=/run/secrets
+SECRETS_DIR="${DATABASE_SECRETS_DIR-}"
+[ -n "$SECRETS_DIR" ] || SECRETS_DIR="$DEFAULT_MOUNT_DIR"
 
 require_setting() {
   eval "_value=\${$1:-}"

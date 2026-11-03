@@ -1,6 +1,6 @@
 # T07 — Yedek düzeni
 
-**Faz:** F0 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✓ Doğrulama tur 2 PASS (2026-11-03, `501c24b`); merge yardımcıda | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -75,10 +75,34 @@
 
 | Alan | Sonuç |
 |---|---|
+| Doğrulama durumu (tur 2) | ✓ PASS — 2026-11-03 (`501c24b`; kapsam tam; iki doğrulayıcıyla, ilki bağlam sınırında bölündü). Kriter 1–7 ✓, KK1–KK7 ✓, `09 §25` evet/uygulanamaz, güvenlik temiz. Dal CI run 41660924636 yeşil (10 check-run) |
+| Bulgu sayısı (tur 2) | 0 — tur 1'in dört bulgusu ve K1–K7 kapandı (K3, K5 D-37'de) |
+| Düzeltme gerekli mi (tur 2) | Hayır |
+| Bloke-etmeyen not (tur 2) | 2 — K8 → D-37 (f); K9 (PR açıklamasında `09 §25` "Performans" ve "Git ve süreç" grupları yanıtsız) bu raporda yanıtlandı |
 | Doğrulama durumu (tur 1) | ✗ FAIL — 2026-11-03 (`fc2977c`); rapor: yardımcı durum klasöründe `dogrulama-raporu-r1.md`. Kriter 1, 2, 4, 5, 6, 7 ✓; **3 ✗**. Dal CI run 41656454884 yeşil; build `-warnaserror` temiz, Unit 76/76 (Backup eşitlik 15/15), betik testleri sh/dash/ash'te yeşil, `compose config` geçerli |
 | Bulgu sayısı | 4 — (1) S1 KRİTİK: yedek kullanıcısı (10001) pgBackRest kaydını (0640 postgres) ve systemd günlüğünü (0640) okuyamaz; gerçek imajlarla koşuda restic çıkış 3, durum `failure/backup`, forget/prune/check hiç koşmaz (yerel Docker kanıtı); (2) S1 ORTA: yedek aracının kendi kaydı (`/var/log/backup`, `05 §9.1.4`) dosya yedeğinin yollarında yok; (3) S1 DÜŞÜK: `09 §17` madde 7 metni çift kaldı; (4) S1 DÜŞÜK: dosya provası "birkaç dosya" yerine bütün görsel dizinini geri alır |
 | Düzeltme gerekli mi | Evet — yeni yapım turu; `09 §17` m.7'nin "geçici depoda yedek–budama–denetim–kurtarma" kabulü gerçek imajlarla koşulup rapora yazılır |
 | Bloke-etmeyen not (K) sayısı | 7 — K1 ilk açılışta erişilemeyen depoda geçici sunucu kapanmıyor (bir kez `Exited (1)`); K2 nesne kilidi red denemesi yok; K3 prova `archive-get`'inin hangi depodan çektiği kurulumda gözlenmeli; K4 `init` hatası durmuyor; K5 paketleme taramaları geniş; K6 D-37 atıfları; K7 PR'da `09 §25` soru başına cevap yok — düzeltme turunda ya da D-37/backlog'a |
+
+### Doğrulama tur 2 — validator kanıtları (tam kapsam)
+
+Başlangıç kapıları: working tree temiz; `core.hooksPath` kurulu; ana dal son 3 run (41649150934, 41649150970, 41630669794) success; memory'de T07 satırı var. Dal CI run 41660924636 (head `501c24b`) success — Lint (26 Consistency), Build, Unit (betik testleri 3 dosya + 50), Integration, Contract, Migration, Paketleme, E2E, CI Gate. Yerel: `dotnet build -c Release -warnaserror` 0/0; Unit+Consistency 76/76; betik testleri 11 + 129 + 27 (Git sh, BusyBox ash, Debian dash); `docker compose ... config` çıkış 0; `dotnet restore --locked-mode` 0.
+
+| # | Validator sonucu | Validator kanıtı |
+|---|---|---|
+| 1 | ✓ | Çalışan veritabanı imajında `archive_timeout=50`, `archive_mode=on`, `track_commit_timestamp=on`; `ArchiveSettings_…` testi |
+| 2 | ✓ | `compose config`: iki hizmette 01:30 / `Europe/Istanbul`; zamanlayıcı imha (03:00) öncesine uyuyor |
+| 3 | ✓ | Gerçek iki imaj (`t07val2-*`, yerel depo `/repo/files`): grupsuz yedek konteyneri çıkış 3 / `failedStep: backup` (tur 1 hatası yeniden üretildi); `group_add 10002` ile dört adım çıkış 0, anlık görüntüde `/data/db-logs/pgbackrest/shopfolio-stanza-create.log` ve `/var/log/backup/file-backup.log`; veritabanı imajında kayıt dizini `drwxr-s--- 999:10002`, dosya `-rw-r----- 999:10002` |
+| 4 | ✓ | Aynı koşuda `result: success`, `lastSuccessAt` dolu; betik testleri şema, önceki değer, ilk koşuda boş |
+| 5 | ✓ | Ayrı sır dosyaları ve önekler; `bucket-lifecycle.json`, `key-policy.template.json`; `bucket-checks.sh keys` reddedilen eylemleri (nesne kilidi ve kova politikası dahil) dener — KK5 bunu runbook denemesi sayar, kurulumda koşar (D-01). Yapım `~` yazmıştı; KK5'in tanımına göre ✓ |
+| 6 | ✓ | `PgBackRestRetention_…`, `FileBackupJob_KeepsThirtyDays…`, `BucketLifecycleRule_…` testleri |
+| 7 | ✓ | Prova yerelde: 4 dosya (app-logs 1 + görsellerden 3) geri alındı, `check --read-data-subset=5%` no errors, `drill-record` üç alan; runbook §J.5 dört denetimi taşır |
+
+Atlama kaydı: iki `[ci-failure]` `PB_ALLOW_DIRECT_PUSH` (9a4174f, 5b68386 — kırmızı dal CI'ının kök neden düzeltmeleri), kayıt sonraki commit'te (d17a85b, fc2977c); `00 §F.2`'ye uygun. `PB_ALLOW_SECRET` yok, dalda sır değeri yok. `12`: VAL-D052…D055 (KP-75, T327) ve VAL-F016 (T07 (7), T601 (7); `gerçek` ortam) BEKLEMEDE kalır; `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+`09 §25` PR'da yanıtsız kalan gruplar (K9): **Performans** — uygulanamaz (uygulama kodu, sorgu, eşzamansız yol, önbellek yok; performans iddiası yok). **Git ve süreç** — PR tek amaçlı (T07), dal adı ve commit/PR biçimi kurala uygun, AI atıf satırı yok; CI yeşil ve sonucu beklendi (41660924636); göç yok; refactor yok.
+
+K8 (yeni, D-37 (f)): geliştirme bindirmesi (`compose.dev.yaml`) veritabanının arşivini kapatmıyor; `.env.example`'daki yer tutucu depoya (`s3.example.com`) arşiv düşer, günlük dosyaları `pg_wal`'da birikir.
 
 ## Altyapı Değişiklikleri
 
@@ -90,9 +114,9 @@
 ## Commit & PR
 
 - **Branch:** `task/T07-yedek-duzeni`
-- **Commit:** *(PR açılışında)*
-- **PR:** *(PR açılışında)*
-- **CI:** *(yapım chat'i izlemez)*
+- **Commit:** `501c24b` (doğrulanan head)
+- **PR:** #351
+- **CI:** dal run 41660924636 success (validator)
 - **CI düzeltmesi:** Paketleme doğrulamasının kaynak taraması (`05 MK-10`) için tatbikat betiklerinde `latest` kalktı; yedek tatbikatı en yeni anlık görüntünün kimliğini önce bulup `restore`/`snapshots` ile onu kullanır.
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 

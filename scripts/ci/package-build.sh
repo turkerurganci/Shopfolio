@@ -139,7 +139,18 @@ echo "ok: ${LIVENESS_PATH} answered 200"
 echo "== 6/7 Database image: commit timestamps, pgBackRest, scheduler"
 DB_CONTAINER="shopfolio-ci-db-$$"
 CONTAINERS+=("$DB_CONTAINER")
-docker run -d --name "$DB_CONTAINER" --network none -e POSTGRES_HOST_AUTH_METHOD=trust "shopfolio-database:$TAG" >/dev/null
+# The image's entrypoint wants the backup settings and the two backup key files (09 17 item 2). They are throw-away placeholders
+# of this check: the storage endpoint is unreachable (no network), so the stanza creation keeps retrying and the server runs on.
+PLACEHOLDER_DIR="$(mktemp -d)"
+chmod 755 "$PLACEHOLDER_DIR"
+printf '%s\n%s\n' "placeholder-access-id" "placeholder-access-value" >"$PLACEHOLDER_DIR/db_backup_storage_key"
+printf '%s' "placeholder-cipher-value" >"$PLACEHOLDER_DIR/db_backup_cipher_key"
+chmod 644 "$PLACEHOLDER_DIR"/*
+docker run -d --name "$DB_CONTAINER" --network none -e POSTGRES_HOST_AUTH_METHOD=trust \
+  -v "$PLACEHOLDER_DIR:/run/secrets:ro" \
+  -e BACKUP_S3_ENDPOINT=storage.invalid -e BACKUP_S3_BUCKET=ci-placeholder -e BACKUP_S3_REGION=ci-placeholder \
+  -e BACKUP_RUN_TIME=01:30 -e BACKUP_TIME_ZONE=Europe/Istanbul \
+  "shopfolio-database:$TAG" >/dev/null
 commit_timestamps=""
 for _ in $(seq 1 45); do
   # The first start runs the official image's initialization on a temporary server that does not read the image's
@@ -154,12 +165,27 @@ if [ "$commit_timestamps" != "on" ]; then
 fi
 docker exec "$DB_CONTAINER" pgbackrest version
 docker exec "$DB_CONTAINER" test -x /usr/local/bin/scheduler.sh || fail "the scheduler is not in the database image"
-echo "ok: track_commit_timestamp on, pgBackRest and the scheduler present"
+for script in database-job.sh stanza-bootstrap.sh database-restore-drill.sh database-entrypoint.sh; do
+  docker exec "$DB_CONTAINER" test -x "/usr/local/bin/$script" || fail "$script is not in the database image"
+done
+archive_timeout="$(docker exec "$DB_CONTAINER" psql -U postgres -Atc 'show archive_timeout')"
+[ "$archive_timeout" = "50s" ] || fail "archive_timeout is '${archive_timeout}', expected '50s' (05 7.6.1)"
+# The configuration parses: the info command (run through the entrypoint, which carries the backup environment) reads it and
+# reports the stanza without a configuration error.
+docker exec "$DB_CONTAINER" /usr/local/bin/database-entrypoint.sh pgbackrest --stanza=shopfolio --repo=1 info \
+  || fail "pgBackRest does not accept the configuration of the database image"
+rm -rf "$PLACEHOLDER_DIR"
+echo "ok: track_commit_timestamp on, archive_timeout 50s, pgBackRest configuration and the scripts present"
 
 # ---- 7. backup image --------------------------------------------------------------------------------------------------
 echo "== 7/7 Backup tool image: restic and scheduler"
 docker run --rm --entrypoint restic "shopfolio-backup:$TAG" version
 docker run --rm --entrypoint test "shopfolio-backup:$TAG" -x /usr/local/bin/scheduler.sh || fail "the scheduler is not in the backup image"
-echo "ok: restic and the scheduler present"
+for script in file-backup-job.sh file-restore-drill.sh; do
+  docker run --rm --entrypoint test "shopfolio-backup:$TAG" -x "/usr/local/bin/$script" || fail "$script is not in the backup image"
+done
+# write-status.sh is sourced by the job, not run: readable, not executable.
+docker run --rm --entrypoint test "shopfolio-backup:$TAG" -r /usr/local/bin/write-status.sh || fail "write-status.sh is not in the backup image"
+echo "ok: restic, the scheduler and the file backup scripts present"
 
 echo "Package build: all checks passed."

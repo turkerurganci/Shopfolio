@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+
 using Shopfolio.UnitTests.Support;
 
 namespace Shopfolio.UnitTests.Consistency;
@@ -18,11 +19,11 @@ public sealed partial class BackupLayoutConsistencyTests
     private static string ReadLines(string text) => text.ReplaceLineEndings("\n");
 
     /// <summary>The setting lines of a configuration file: comments and blank lines dropped.</summary>
-    private static IReadOnlyList<string> SettingLines(string text) =>
+    private static string[] SettingLines(string text) =>
         ReadLines(text).Split('\n').Select(line => line.Trim()).Where(line => line.Length > 0 && !line.StartsWith('#')).ToArray();
 
     /// <summary>The lines of one service block of the Compose file (two-space service name, four-space keys).</summary>
-    private static IReadOnlyList<string> ServiceBlock(string compose, string service)
+    private static List<string> ServiceBlock(string compose, string service)
     {
         List<string> block = [];
         bool inside = false;
@@ -159,8 +160,9 @@ public sealed partial class BackupLayoutConsistencyTests
         string example = ReadRepositoryFile("deploy", ".env.example");
         string runbook = ReadRepositoryFile("Docs", "DEPLOY_RUNBOOK.md");
 
-        string[] runTimes = ["database", "backup"].Select(service => Default(ServiceBlock(compose, service), "BACKUP_RUN_TIME")).ToArray();
-        string[] zones = ["database", "backup"].Select(service => Default(ServiceBlock(compose, service), "BACKUP_TIME_ZONE")).ToArray();
+        string[] services = ["database", "backup"];
+        string[] runTimes = services.Select(service => Default(ServiceBlock(compose, service), "BACKUP_RUN_TIME")).ToArray();
+        string[] zones = services.Select(service => Default(ServiceBlock(compose, service), "BACKUP_TIME_ZONE")).ToArray();
         Assert.Equal(runTimes[0], runTimes[1]);
         Assert.Equal(zones[0], zones[1]);
 

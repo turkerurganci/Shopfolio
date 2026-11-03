@@ -9,7 +9,7 @@
 
 ## Yapılan İşler
 
-- **Kurucu betik** (`deploy/images/database/initdb/10-bootstrap.sh`, POSIX `sh`): resmî imajın ilk başlatma düzeninde, boş veri dizininde bir kez koşar. Dört kullanıcıyı (`shopfolio_migrator`, `shopfolio_app`, `shopfolio_reader`, `shopfolio_backup_status`), `shopfolio` veritabanını (UTF-8, ICU `tr-TR`; imajın `POSTGRES_DB` ile boş açtığı veritabanı atılıp yeniden yaratılır), yetkileri, `pg_trgm`'i ve göç kullanıcısının üç rol ayarını kurar; `pg_hba.conf` ve `pg_ident.conf`'u şablonlardan yazar. Parolalar komut satırına, ortam değişkenine ya da kabuk değişkenine girmez: `psql`'in `\set … \`cat dosya\`` komutuyla `db_setup_*_password` sır dosyalarından okunur; parola taşıyan üç `CREATE ROLE` deyimi süresince oturumda deyim günlüğü kapatılır.
+- **Kurucu betik** (`deploy/images/database/initdb/10-bootstrap.sh`, POSIX `sh`): resmî imajın ilk başlatma düzeninde, boş veri dizininde bir kez koşar. Dört kullanıcıyı (`shopfolio_migrator`, `shopfolio_app`, `shopfolio_reader`, `shopfolio_backup_status`), `shopfolio` veritabanını (UTF-8, ICU `tr-TR`; imajın `POSTGRES_DB` ile boş açtığı veritabanı atılıp yeniden yaratılır), yetkileri, `pg_trgm`'i ve göç kullanıcısının üç rol ayarını kurar; `pg_hba.conf` ve `pg_ident.conf`'u şablonlardan yazar. Parolalar komut satırına, ortam değişkenine ya da kabuk değişkenine girmez: `db_setup_*_password` sır dosyalarından standart girdiyle `psql \password`'e verilir; parola istemcide SCRAM-SHA-256 özetine çevrilir, sunucuya yalnız özet gider (Düzeltme 1).
 - **SQL dosyaları** (`deploy/images/database/bootstrap/`): `10-roles.sql`, `20-database.sql`, `30-database-access.sql`, `40-schema.sql`. Kullanıcı ve veritabanı adları değişkendir; entegrasyon testleri aynı dosyaları koşar (betik yalnız değerleri verir).
 - **İstemci kimlik doğrulama şablonları** (`bootstrap/pg_hba.conf`, `pg_ident.conf`): `trust` satırı yok; kurucu yalnız yerel soketten `peer` ile bağlanır, ağdan `reject`; yedeğin durum kullanıcısı yalnız `local shopfolio … peer map=backup_status`; üç ağ kullanıcısı `scram-sha-256` ve yalnız `shopfolio` veritabanı.
 - **Dockerfile** (`deploy/images/database/Dockerfile`): betik `/docker-entrypoint-initdb.d/`'ye, SQL ve şablonlar `/usr/local/share/shopfolio/bootstrap/`'a kopyalanır (SQL başlatma dizininde durmaz — imaj orada her `.sql`'i değişkensiz koşardı).
@@ -85,7 +85,7 @@
 | # | Varsayım | Kanıt | Sonuç |
 |---|---|---|---|
 | 1 | Resmî `postgres:18` imajı `/docker-entrypoint-initdb.d/*.sh` dosyalarını boş veri dizininde, yerel soketli geçici sunucuya karşı kurucu kullanıcı olarak koşar | Gerçek imajla Docker'da: roller, veritabanı ve `pg_hba` kuruldu; veri dizini doluyken betik koşmadı | ✓ |
-| 2 | `psql` `\set x \`cat dosya\`` ile parolayı dosyadan okur, parola komut satırında ve günlükte yoktur | Gerçek imajda sunucu günlüğü denetlendi, parola yok; betik parolayı komut satırına vermez (`DatabaseImageScan` parola argümanı ihlal örneği) | ✓ |
+| 2 | `psql \password` parolayı dosyadan standart girdiyle okur ve SCRAM özetini istemcide üretir; parola komut satırında ve günlükte yoktur | Gerçek imajda sunucu günlüğü denetlendi, parola yok; betik parolayı komut satırına vermez (`DatabaseImageScan` parola argümanı ihlal örneği) | ✓ |
 | 3 | `peer` + `pg_ident` eşlemesi konteynerin `postgres` işletim sistemi kullanıcısını durum kullanıcısına geçirir | Gerçek imajda yerel soketten `shopfolio_backup_status` olarak bağlanıldı; ağdan kurucu reddedildi | ✓ |
 | 4 | ICU `tr-TR` sıralaması resmî imajda kullanılabilir | `SELECT datlocprovider, datlocale` → `i`, `tr-TR` | ✓ |
 | 5 | Windows'ta yerel CI betiği adım 6 (MSYS yol dönüşümü) | CI'da `datlocprovider` `"char"` birleştirme hatası düzeltildi (`::text`); bölüm Linux konteynerinde uçtan uca geçti | ✓ D-37 (b) çözüldü |
@@ -104,6 +104,17 @@
 - **Working tree (Adım -1):** temiz
 - **Ana dal CI startup (Adım 0):** `41649150934` success, `41649150970` success, `41630669794` success
 - **Repo memory (bitiş kapısı 8):** güncellendi
-- **⚠ Kararlar (PR açıklamasında numaralı):** (1) parola SQL deyiminde `psql` değişkeni olarak gider; sızıntıyı önlemek için oturumda `log_statement = none`, `log_min_duration_statement = -1`, `log_min_error_statement = panic` açılır (`05 §6.x.16`'nın "açık metinle deyime yazılmaz" cümlesinin yorumu; istemci tarafında SCRAM özeti hesaplamak yerine); (2) yedek durum kullanıcısı `peer` + `pg_ident` eşlemesi (`trust` değil); (3) kurucu ağdan `reject`; (4) `POSTGRES_DB`'yi imaj boş yaratır, betik `DROP DATABASE … FORCE` ile atıp ICU `tr-TR` ile yeniden yaratır; (5) test rolleri çalıştırmaya özel adlı, SQL'ler rol adlarını değişken alır; (6) göç geçmişi tablosu matriste şimdilik varsayılan beklenir, kapalılığı T103 ekler.
+- **⚠ Kararlar (PR açıklamasında numaralı):** (1) [Düzeltme 1 ile değişti] parola sunucuya açık metinle gitmez: kurucu betik `psql \password` ile istemcide SCRAM-SHA-256 özeti üretir, sunucuya yalnız özet gider; oturumda günlük kapatma yoktur (eski karar — psql değişkeniyle açık metin, günlük kapatma — `05 §6.x.16`'ya aykırı bulundu ve kaldırıldı); (2) yedek durum kullanıcısı `peer` + `pg_ident` eşlemesi (`trust` değil); (3) kurucu ağdan `reject`; (4) `POSTGRES_DB`'yi imaj boş yaratır, betik `DROP DATABASE … FORCE` ile atıp ICU `tr-TR` ile yeniden yaratır; (5) test rolleri çalıştırmaya özel adlı, SQL'ler rol adlarını değişken alır; (6) göç geçmişi tablosu matriste şimdilik varsayılan beklenir, kapalılığı T103 ekler.
 - **Yerel deneme temizliği:** `t10pg` konteyneri ve `t10-database:dev`, `shopfolio-database:dev` imaj etiketleri adıyla silindi; `prune` kullanılmadı.
 - **Doküman dili:** Türkçe · **Kod dili:** İngilizce
+
+## Düzeltme 1 (doğrulama tur 1, bulgu 1)
+
+**Karar:** kod dokümana uyar (`05 §6.x.16`, `09 §10.8` madde 1, `DEPLOY_RUNBOOK §B` satır 1).
+
+- `10-roles.sql` dört kullanıcıyı parolasız yaratır (beş bayrak aynı). Oturumdaki `log_statement = none` vb. kapatmalar kalktı.
+- `10-bootstrap.sh` her ağ kullanıcısı için `psql -c "\password <kullanıcı>"` koşar; parola ve tekrarı sır dosyasından standart girdiyle verilir (komut satırı, ortam değişkeni, kabuk değişkeni yok), psql SCRAM-SHA-256 özetini istemcide üretir, sunucuya yalnız özet gider.
+- Entegrasyon fixture'ı kullanıcıların parolalarını (`ALTER ROLE … PASSWORD`) kendisi verir; `10-roles.sql` artık parola değişkeni almaz.
+- `package-build.sh` adım 6: veritabanı konteyneri `log_statement=all` ile açılır; günlükte `PASSWORD 'SCRAM-SHA-256$…'` tam üç kez, başka biçimde `PASSWORD '` sıfır kez, dört parola değeri günlükte yok; göç, uygulama ve okuyucu kullanıcıları kendi parolasıyla ağdan bağlanır. Adım 1 taramasındaki `PASSWORD :'` muafiyeti kaldırıldı.
+- `DEPLOY_RUNBOOK §B.2` madde 1, 4 ve 5 güncellendi; madde 4 ile §B satır 1 çelişkisi bitti. PR açıklaması ⚠ (1) güncellendi.
+- Kanıt (gerçek imaj, `log_statement=all`, Linux konteyneri): günlükte açık parola yok, yalnız üç `SCRAM-SHA-256$` özeti; üç kullanıcı kendi parolasıyla bağlandı; adım 6 uçtan uca geçti (Windows'ta `MSYS_NO_PATHCONV=1` ve Windows biçimli yol ile). Adım 1 taraması yerelde temiz.

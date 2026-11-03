@@ -131,7 +131,7 @@ internal static partial class DatabaseImageScan
     private static partial Regex ShellTrace();
 
     // A -v option whose variable name carries "password", an assignment of such a variable, PGPASSWORD, or --password= on a command line.
-    // The `\set <name>_password` lines the script prints for psql's own backtick command are no command line and do not match.
+    // The password reaches psql's \password through standard input, from the secret file; no line of the script names it as an option or variable.
     [GeneratedRegex(@"(-v\s+""?\w*password|^\s*\w*password\w*=|PGPASSWORD|--password=)", RegexOptions.IgnoreCase)]
     private static partial Regex PasswordOnCommandLine();
 

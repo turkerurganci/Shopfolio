@@ -33,7 +33,7 @@ internal static class BootstrapScript
         string path = Path.Combine(RepositoryRoot.Find(), "deploy", "images", "database", "bootstrap", fileName);
         IReadOnlyList<string> statements = Split(await File.ReadAllTextAsync(path, ct), variables);
 
-        // Not pooled: the files change session settings (statement logging), which must not outlive the run on a pooled connection.
+        // Not pooled: a file may change session settings, which must not outlive the run on a pooled connection.
         DsnBuilder builder = new(connectionString) { Pooling = false };
         await using NpgsqlConnection connection = new(builder.ConnectionString);
         await connection.OpenAsync(ct);

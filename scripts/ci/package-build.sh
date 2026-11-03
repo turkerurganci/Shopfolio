@@ -61,9 +61,9 @@ for dockerfile in "${DOCKERFILES[@]}"; do
 done
 
 # A secret value in a build file: a *PASSWORD/SECRET/TOKEN/KEY name given a literal value, a private key block, a cloud key id.
-# A name ending in _FILE carries a path, not a value; `PASSWORD :'name'` in a setup SQL file is a psql variable reference.
+# A name ending in _FILE carries a path, not a value.
 SENSITIVE_NAME='[A-Za-z0-9_]*(PASSWORD|PASSWD|SECRET|TOKEN|PRIVATE_KEY|ACCESS_KEY|API_KEY)[A-Za-z0-9_]*'
-if grep -rnE -- "(^|[^A-Za-z0-9_])${SENSITIVE_NAME}[[:space:]]*[=:][[:space:]]*[\"']?[^[:space:]\"'\$]" deploy/images | grep -vE "_FILE[[:space:]]*[=:]|PASSWORD[[:space:]]+:'"; then
+if grep -rnE -- "(^|[^A-Za-z0-9_])${SENSITIVE_NAME}[[:space:]]*[=:][[:space:]]*[\"']?[^[:space:]\"'\$]" deploy/images | grep -vE "_FILE[[:space:]]*[=:]"; then
   fail "a secret value appears in a build file above; secrets arrive as mounted files (09 17 item 2)"
 fi
 if grep -rnE -- 'BEGIN [A-Z ]*PRIVATE KEY|AKIA[0-9A-Z]{16}' deploy; then
@@ -154,7 +154,7 @@ docker run -d --name "$DB_CONTAINER" --network none \
   -v "$SETUP_FILES_DIR/db_setup_migrator_password:/run/secrets/db_setup_migrator_password:ro" \
   -v "$SETUP_FILES_DIR/db_setup_app_password:/run/secrets/db_setup_app_password:ro" \
   -v "$SETUP_FILES_DIR/db_setup_reader_password:/run/secrets/db_setup_reader_password:ro" \
-  "shopfolio-database:$TAG" >/dev/null
+  "shopfolio-database:$TAG" postgres -c config_file=/etc/postgresql/postgresql.conf -c log_statement=all >/dev/null
 commit_timestamps=""
 for _ in $(seq 1 45); do
   # The first start runs the official image's initialization on a temporary server that does not read the image's
@@ -197,12 +197,23 @@ if docker exec -e PGPASSWORD="$(cat "$SETUP_FILES_DIR/db_superuser_password")" "
 fi
 expect "application user over the network" shopfolio_app \
   "$(docker exec -e PGPASSWORD="$(cat "$SETUP_FILES_DIR/db_setup_app_password")" "$DB_CONTAINER" psql -h 127.0.0.1 -U shopfolio_app -d shopfolio -Atc 'select current_user')"
-# No password reached the server's log (05 6.x.16).
+# The three network users log in with their own passwords (the migrator and the reader here; the application user above).
+expect "schema owner over the network" shopfolio_migrator \
+  "$(docker exec -e PGPASSWORD="$(cat "$SETUP_FILES_DIR/db_setup_migrator_password")" "$DB_CONTAINER" psql -h 127.0.0.1 -U shopfolio_migrator -d shopfolio -Atc 'select current_user')"
+expect "read-only user over the network" shopfolio_reader \
+  "$(docker exec -e PGPASSWORD="$(cat "$SETUP_FILES_DIR/db_setup_reader_password")" "$DB_CONTAINER" psql -h 127.0.0.1 -U shopfolio_reader -d shopfolio -Atc 'select current_user')"
+# No password reached the server's log (05 6.x.16). The server logs every statement (log_statement=all, set above), so the log
+# shows what the setup script sent: only SCRAM-SHA-256 verifiers, made in the client, three of them (one per password).
+DB_LOG="$(docker logs "$DB_CONTAINER" 2>&1)"
 for name in db_superuser_password db_setup_migrator_password db_setup_app_password db_setup_reader_password; do
-  if docker logs "$DB_CONTAINER" 2>&1 | grep -qF -- "$(cat "$SETUP_FILES_DIR/$name")"; then
+  if printf '%s\n' "$DB_LOG" | grep -qF -- "$(cat "$SETUP_FILES_DIR/$name")"; then
     fail "the value of $name is in the database container's log"
   fi
 done
+expect "ALTER ROLE ... PASSWORD statements with a SCRAM-SHA-256 verifier in the log" 3 \
+  "$(printf '%s\n' "$DB_LOG" | grep -ciE "PASSWORD 'SCRAM-SHA-256\\$" || true)"
+expect "PASSWORD statements with anything else than a verifier in the log" 0 \
+  "$(printf '%s\n' "$DB_LOG" | grep -iE "PASSWORD '" | grep -vciE "PASSWORD 'SCRAM-SHA-256\\$" || true)"
 rm -rf "$SETUP_FILES_DIR"
 echo "ok: four users without the five attributes, UTF-8 and ICU tr-TR, pg_trgm, role settings, no trust line, founder refused over the network"
 

@@ -40,9 +40,6 @@ public sealed record TestDatabaseUsers(string Migrator, string App, string Reade
             ["app"] = App,
             ["reader"] = Reader,
             ["backup_status"] = BackupStatus,
-            ["migrator_password"] = MigratorPassword,
-            ["app_password"] = AppPassword,
-            ["reader_password"] = ReaderPassword,
         };
     }
 }
@@ -82,6 +79,12 @@ public sealed class TemplateDatabaseFixture : IAsyncLifetime
         // settings of the schema owner (09 10.8 item 5) are among them, so the migrations of the bundle read the user names from them.
         Dictionary<string, string> variables = Users.Variables(TemplateName);
         await BootstrapScript.RunAsync(_adminDsn, BootstrapScript.RolesFile, variables, ct);
+
+        // The file makes the users without a password (the setup script gives them theirs as SCRAM verifiers, not through SQL text);
+        // the tests need to log in as them, so they set theirs here. Made-up hex values; the run's own throwaway server.
+        await ExecuteAdminAsync($"ALTER ROLE {Users.Migrator} PASSWORD '{Users.MigratorPassword}'", ct);
+        await ExecuteAdminAsync($"ALTER ROLE {Users.App} PASSWORD '{Users.AppPassword}'", ct);
+        await ExecuteAdminAsync($"ALTER ROLE {Users.Reader} PASSWORD '{Users.ReaderPassword}'", ct);
         await BootstrapScript.RunAsync(_adminDsn, BootstrapScript.DatabaseFile, variables, ct);
         await BootstrapScript.RunAsync(_adminDsn, BootstrapScript.DatabaseAccessFile, variables, ct);
         await BootstrapScript.RunAsync(TemplateDsn, BootstrapScript.SchemaFile, variables, ct);

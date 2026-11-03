@@ -9,8 +9,9 @@
 # the same files); this script only supplies the values.
 #
 # The passwords come from the setup copies of the secret files (compose.install.yaml; DEPLOY_RUNBOOK section B). They reach psql
-# through its own backtick command, never on a command line, in an environment variable, or in a shell variable. No shell trace
-# (`set -x`) is switched on, and nothing here prints a password (09 17 item 2).
+# through psql's \password (below), which sends a SCRAM-SHA-256 verifier made in the client, never the clear text, and never on a
+# command line, in an environment variable, or in a shell variable. No shell trace (`set -x`) is switched on, and nothing here
+# prints a password (09 17 item 2).
 set -eu
 
 SQL_DIR=/usr/local/share/shopfolio/bootstrap
@@ -41,20 +42,31 @@ for name in db_setup_migrator_password db_setup_app_password db_setup_reader_pas
   [ -s "$MOUNT_DIR/$name" ] || fail "the secret file $MOUNT_DIR/$name is missing or empty (compose.install.yaml)"
 done
 
-# Runs one SQL file as the founding user against one database. $1 = file, $2 = database. Standard input carries the `\set` lines
-# that read the passwords, then the file.
+# Runs one SQL file as the founding user against one database. $1 = file, $2 = database. The file carries no password.
 run_sql() {
-  {
-    printf '%s\n' "\\set migrator_password \`cat $MOUNT_DIR/db_setup_migrator_password\`"
-    printf '%s\n' "\\set app_password \`cat $MOUNT_DIR/db_setup_app_password\`"
-    printf '%s\n' "\\set reader_password \`cat $MOUNT_DIR/db_setup_reader_password\`"
-    cat "$SQL_DIR/$1"
-  } | psql -X -q -v ON_ERROR_STOP=1 \
+  psql -X -q -v ON_ERROR_STOP=1 \
     -v "db=$DATABASE" -v "migrator=$MIGRATOR" -v "app=$APPLICATION" -v "reader=$READER" -v "backup_status=$BACKUP_STATUS" \
-    --username "$FOUNDER" --no-password --dbname "$2" --file -
+    --username "$FOUNDER" --no-password --dbname "$2" --file "$SQL_DIR/$1"
+}
+
+# Gives one user its password from the setup copy of the secret file. psql's \password turns the password into a SCRAM-SHA-256
+# verifier in the client and sends only that, so the server (its log, pg_stat_activity) never sees the clear text (05 6.x.16).
+# With no terminal, psql reads the new password and its repetition from standard input; the file is the only place they come from
+# (no command line, no environment variable, no shell variable). $1 = user name, $2 = file name.
+set_password() {
+  {
+    tr -d '\n' <"$MOUNT_DIR/$2"
+    printf '\n'
+    tr -d '\n' <"$MOUNT_DIR/$2"
+    printf '\n'
+  } | psql -X -q -v ON_ERROR_STOP=1 --username "$FOUNDER" --no-password --dbname postgres -c "\\password $1" >/dev/null 2>&1 \
+    || fail "could not set the password of $1 (the secret file $2)"
 }
 
 run_sql 10-roles.sql postgres
+set_password "$MIGRATOR" db_setup_migrator_password
+set_password "$APPLICATION" db_setup_app_password
+set_password "$READER" db_setup_reader_password
 run_sql 20-database.sql postgres
 run_sql 30-database-access.sql postgres
 run_sql 40-schema.sql "$DATABASE"

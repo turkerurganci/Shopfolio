@@ -1,6 +1,6 @@
 # T08 — Sır düzeni
 
-**Faz:** F0 | **Durum:** ✗ Doğrulama tur 2 FAIL — ikinci iterasyon; proje sahibine eskalasyon (`12 §8.5`) | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✗ Doğrulama tur 3 FAIL — iterasyon sınırı aşıldı; proje sahibine eskalasyon (`12 §8.5`) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -54,10 +54,27 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-03, `848da1f`); tur 1 ✗ FAIL (`dda60d3`) |
-| Bulgu sayısı | Tur 2: 3 (S1, DÜŞÜK) — tur 1'in üç bulgusu kapandı, üç yeni `09 §25` bulgusu · Tur 1: 3 (S1, DÜŞÜK) |
-| Düzeltme gerekli mi | Evet — aynı PR'da; ikinci iterasyon FAIL olduğu için önce proje sahibine eskalasyon (`12 §8.5`; kod düzeltmesi ya da `09` cümlesinin değişmesi kararı) |
-| Bloke-etmeyen not (K) sayısı | Tur 2: 3 (düzeltme turunda kapanır) · Tur 1: 2 |
+| Doğrulama durumu | ✗ FAIL — tur 3 (2026-11-03, `22d22f6`); tur 2 ✗ FAIL (`848da1f`); tur 1 ✗ FAIL (`dda60d3`) |
+| Bulgu sayısı | Tur 3: 2 (S1, DÜŞÜK) — tur 2'nin üç bulgusu ve üç K-notu kapandı, iki yeni `09 §25` bulgusu · Tur 2: 3 (S1, DÜŞÜK) · Tur 1: 3 (S1, DÜŞÜK) |
+| Düzeltme gerekli mi | Evet — aynı PR'da; iterasyon sınırı aşıldığı için önce proje sahibine eskalasyon (`12 §8.5`; düzeltme ya da kabul edilmiş risk kararı) |
+| Bloke-etmeyen not (K) sayısı | Tur 3: 5 (dördü düzeltme turunda kapanır, biri D-35 (b)'ye eklenir) · Tur 2: 3 · Tur 1: 2 |
+
+### Doğrulama tur 3 — validator kanıtları (tam kapsam)
+
+Başlangıç kapıları: working tree temiz; `core.hooksPath` kurulu; ana dal son 3 run (41630669794, 41630669803, 41619599572) success; memory'de T08 satırı var. `12`'de T08'in kaynak birimlerine bağlı VAL satırı yok (`grep -nE 'MK-59([^0-9]|$)|MK-60([^0-9]|$)|05 §6\.x|09 §17'` boş) — `Durum` hücresi yazılmadı; `12_matris_denetle.py --kapsam 1-77` hata 0. Dal CI run 41642740870 (head `22d22f6`) success — Lint 11, Unit 40, Integration 45 test; dokuz iş yeşil.
+
+| # | Validator sonucu | Validator kanıtı |
+|---|---|---|
+| 1 | ✓ | `docker compose ... --profile tools config` (taban; taban+install; taban+dev+install), Compose v5.1.0: `app` = `db_app_connection` + dört dış servis/türetme sırrı; `command` = `db_app_connection`; `read-command` = `db_reader_connection`; `migrate` = `db_migrator_password`; `backup` = iki dosya yedeği anahtarı; `database` kalıcı = iki veritabanı yedeği anahtarı, install bindirmesiyle + kurucu ve üç `db_setup_*`; `proxy` sırsız. 15 tanım `${SHOPFOLIO_SECRETS_DIR:-/etc/shopfolio/secrets}/<ad>`, ad = dosya adı |
+| 2 | ✓ | Dalın Release yayını uygulama imajında (uid 1654) üç kez koşturuldu: `db_app_connection` bağlı + ortamda yanlış `Database__ConnectionString` → canlılık `200` (dosya kazandı); dosya yok + geliştirme bindirmesinin yolu (ortam) → `200`; ikisi de yok → açılış doğrulamada durdu (çıkış 134, `Database:ConnectionString is missing`); kayıtta uydurma değer 0 satır. Taban ve install çıktısında hiçbir hizmetin ortamında bağlantı ya da parola yok |
+| 3 | ✓ | Yerel Docker 29.2.1: bölüme §B.1'in 15 dosyası sahibi ve 0400 izniyle yazıldı; üç imaj kendi kullanıcısıyla (`id`: 1654, 999, 10001) her dosyayı denedi — 1654 yalnız kendi 7, 999 yalnız kendi 6, 10001 yalnız kendi 2 dosyasını okudu. Compose `uid/gid/mode` uyarısı yeniden görüldü |
+| 4 | ✓ | Compose çıktısı `05 §6.x.3`–§6.x.7, §6.x.18, §6.x.19 ile satır satır eşleşti; mutasyon `app`'e `db_reader_connection` → dört test kırmızı; install'a `db_migrator_password` → üç test kırmızı |
+| 5 | ✓ | Runbook §B "Rotation" `05 §6.x.10`–§6.x.12, §6.x.20 ile uyumlu; mutasyon `file_backup_cipher_key` hücresi → `Runbook_RotatesEverySecretExceptTheTwoBackupCipherKeys` kırmızı |
+| 6 | ✓ | `git ls-files` sır deseninde yalnız `deploy/.env.example`; `git check-ignore` desenleri tutuyor; dal farkında yalnız uydurma değerler; `BYPASS_LOG.md` farkı boş; commit'lerde `PB_ALLOW_*` ve atıf satırı yok |
+
+Tur 2 bulguları: (1) ✓ kapandı — uydurma geliştirme değeri `compose.dev.yaml`'da (`09 §4.3` m.2); (2) ✓ kapandı — dosya yazan testler `IntegrationTests/FileSecrets/`'te, yerelde PostgreSQL 18 ile 45/45; (3) ✓ kapandı — runbook eşitliği `Consistency/`'de, `Consistency` özelliğiyle, CI Lint'te 11 test. K1–K3 kapandı.
+
+Tur 3 bulguları (`09 §25` "hayır" cevapları; ikisi S1 DÜŞÜK): (1) `09 §19.2` m.3 — deploy dosyalarındaki iki yasak taraması (`SecretLayoutTests.Compose_PutsNoSecretIntoAnEnvironmentSetting`, `SecretRepositoryTests.SettingsTemplate_CarriesNoSecretKeyAndNoSecretLikeValue`) `Architecture/` dışında ve kasıtlı ihlal örneği yok; Compose taraması yalnız `- AD=değer` biçimli satırı okur — `app`'e eşleme biçimli `PAYMENT_PASSWORD: made-up-value` ortam satırı eklenince 51 testin hiçbiri kırmızı olmadı (aynı dosyanın `proxy`'si eşleme biçimini kullanır). (2) `09 §24` m.7 ve §25 ilk satırı — PR #349 açıklaması okunan bölümleri (çekirdek yedi bölüm, §18, §19 …) ve `09 §25` cevaplarını yazmıyor; açıklamanın gövdesi de düzeltme 1 öncesini anlatıyor ("parolasız bağlantı dizisi", "12 sır dosyası", "entegrasyon kodu değişmedi"). K-notları: runbook §B'nin eşitlik testi atfı eski sınıfı gösteriyor; `compose.dev.yaml` başlığı ve `DatabaseOptions` özeti geliştirme ortam satırıyla çelişiyor; bu raporda eski test adları ve sayıları; `Program.cs`'te kullanılmayan `AddSingleton(mountedFiles)` ve belgesiz `SHOPFOLIO_DEV_DATABASE`; `09 §4.3` ağacının `compose.yaml` satırı komut hizmetlerini anmıyor (D-35 (b) ile aynı).
 
 ### Doğrulama tur 2 — validator kanıtları (tam kapsam)
 

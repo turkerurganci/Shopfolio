@@ -1,6 +1,6 @@
 # T103 — Başlangıç listeleri, firma ve yasal metin sürümü
 
-**Faz:** F1 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -46,10 +46,22 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | (doğrulayıcı doldurur) |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-04, head `6e88812`) |
+| Bulgu sayısı | 1 (DÜŞÜK, S1) |
+| Düzeltme gerekli mi | Evet — bulgu 1 |
+| Bloke-etmeyen not (K) sayısı | 3 (K1, K3 bu PR'ın düzeltme turunda kapatılır; K2 → D-49) |
+
+### Doğrulama tur 1 — ✗ FAIL (2026-11-04)
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` mutlak yol (`C:\projects\Shopfolio\scripts\git-hooks`, hook içeriği main ile aynı); ana dal son 3 run `41715894986`, `41715895065`, `41710384453` success; `MEMORY.md`'de T103 satırı var.
+
+**Kabul kriterleri (validator kanıtı; PostgreSQL 18 konteyneri, göç T10 kurucu SQL'iyle kurulan veritabanına göç kullanıcısıyla uygulandı — "Applying migration 20261103205423_CreateSettingsTables. Done."; KK2–KK6 ayrıca uygulama kullanıcısıyla ham SQL yoklamasıyla sınandı):** 1–7 ✓, KK1–KK7 ✓. KK1 altı tablo; KK2 ikinci `companies` ve `company_settings` satırı `ix_*_single_row` (`((true))`) ile reddedildi; KK3 IBAN'sız açık havale, yarım iade adresi, eksi eşik ve asgari tutar, süre/pencere/indirme/KDV çitleri, dokuz rakamlı firma telefonu, iade telefonu ve WhatsApp numarası, harfli telefon, geçersiz ana sayfa düzeni reddedildi (her biri adıyla `ck_` kısıtı), on rakamlı telefon kabul; KK4 `123`/`6` il kodu, `tr`/`TUR` ülke kodu, tekrarlanan kod ve aynı ilin ikinci teslimat satırı reddedildi; KK5 aynı tür+numara, numarasız yayın anı ve tersi, Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi taslağı, ikinci aydınlatma metni taslağı, **şablon sürümlü aydınlatma metni** (yayımlanmış ve taslak — `ck_legal_text_versions_template_version_only_generated`), çerez politikasında barındırma konumu ve barındırma konumsuz yayımlanmış aydınlatma metni reddedildi; üretilen metinde şablon sürümü kabul; KK6 bağlı il silme `fk_companies_provinces_province_id` ile reddedildi, teslimat ili satırı silindi, bağlar `NO ACTION` (`confdeltype=a`); KK7 `__EFMigrationsHistory`'de uygulama ve salt okuma kullanıcısının SELECT/INSERT/UPDATE/DELETE yetkisi yok, göç kullanıcısınınki var; altı yeni tabloda uygulama kullanıcısı okur-yazar. Yerel: `restore --locked-mode` 0; Release `-warnaserror` 0 uyarı; Unit 217/217; Integration 119/119; `has-pending-model-changes` temiz. Dal CI `41721390301` (`6e88812`) success, PR #360 dokuz denetim yeşil.
+
+**Bulgu 1 (DÜŞÜK, S1 Sapma; `09 §25` "Kod hiçbir doküman cümlesiyle çelişmiyor mu" → hayır):** göç tek satırlık iki tabloya yabancı anahtar dizini kurar — `ix_companies_province_id`, `ix_company_settings_return_province_id`. `06 §7.5.2`: "Tek satırlık kayıtlar yalnız tek satırın tekil dizinini taşır"; `06 §4.1` ve §4.2 "İndeksler" yalnız tek satırın tekil dizinini sayar (§4.1: "yabancı anahtarın dizini gerekmez"); `06 §7.2` tablosu iki bağ için "Dizin: gerekmez — tek satır". PR ⚠ karar 2 "kaldırma etkisiz kaldı; zararsız" diyerek bıraktı, BLOCKED bildirmedi. Validator yoklaması: `ConfigureConventions`'a `Conventions.Remove<ForeignKeyIndexConvention>()` eklenince `dotnet ef migrations has-pending-model-changes` "Changes have been made to the model" der — dizinler kaldırılabilir (deneme geri alındı). Düzeltme: iki dizin modelden kalkar (kural genel kaldırılırsa `06 §7.2`'nin "Dizin" sütunu dizin isteyen bağlara açık `HasIndex` yazılır; ya da yalnız bu iki dizin hedefli kaldırılır), göç yeniden üretilir (göç henüz ana dalda değil), tek satırlık tabloların dizin kümesi testle kilitlenir; rapor ve PR'daki karar 2 ile "Diğer" notu düzeltilir.
+
+**K-notları:** K1 (bu PR'ın düzeltme turunda) KK5'in "şablon sürümlü aydınlatma metni" maddesini entegrasyon testi çerez politikasıyla sınar (`SettingsTablesTests.LegalTextVersion_TemplateVersionOnAFirmEditedText_IsRefused`); davranış doğru (validator ham SQL'le aydınlatma metninde gösterdi), test aydınlatma metni durumunu da sınamalı. K2 (→ D-49) `MigrationSourceScan` `09 §10.6` m.11'in "`UPDATE` ve `DELETE FROM` yalnız izinli tablolardadır" ve `audit_logs` denetimlerini içermez; `PublicPrivilege` kuralı `09 §10.8` m.7'nin imha fonksiyonu için istediği `REVOKE … FROM PUBLIC`'i de reddeder. T103 göçünde etkisi yok. K3 (bu PR'ın düzeltme turunda) `EnumLockTests.StoredEnums_AreTheUnionOf…` totolojiktir — `StoredEnums()` tanımı zaten `Persistent() ∪ ModelEnums()`'tır, test bir süzgecin geri gelmesini yakalamaz; D-48 (b)'nin üretim değişikliği (süzgecin kalkması) doğrudur, kilidi anlamlı bir örnekle (ad alanı dışındaki model enumu) sınanmalı.
+
+**Yapım raporu karşılaştırması:** kriter 1–7 ve test sayıları uyumlu; uyuşmazlık 1 — yapım FK dizinlerini "zararsız" sayıp bıraktı (⚠ karar 2, Notlar "Diğer"), validator `06 §7.5.2` ile çelişki sayar ve kaldırmanın mümkün olduğunu gösterdi. CI düzeltmeleri (`a69f574` imaja `.editorconfig`; `1b317d0` dry-run kurucu SQL ile rol ayarlı göç kullanıcısı) `09 §10.6` m.9 ve §10.8 m.5 ile uyumlu; iki `PB_ALLOW_DIRECT_PUSH` `[ci-failure]` atlaması `BYPASS_LOG`'da (`b185bf6`, `6e88812`), `PB_ALLOW_SECRET` yok. D-37 (a), D-46 (a)(b), D-48 (b) kapanışları doğrulandı.
 
 ## Altyapı Değişiklikleri
 

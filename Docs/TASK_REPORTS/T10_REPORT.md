@@ -1,6 +1,6 @@
 # T10 — Veritabanı kullanıcıları
 
-**Faz:** F0 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-03
+**Faz:** F0 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS; merge yardımcıda) | **Tarih:** 2026-11-03
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -50,10 +50,24 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-03, head `5534acd`) |
-| Bulgu sayısı | 1 (ORTA, S1) |
-| Düzeltme gerekli mi | Evet — bulgu 1 |
-| Bloke-etmeyen not (K) sayısı | 0 |
+| Doğrulama durumu | ✓ PASS — tur 2 (2026-11-03, head `76979dc`); tur 1 ✗ FAIL (head `5534acd`) |
+| Bulgu sayısı | 0 (tur 1'in bulgu 1'i kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 (K1, K2 → D-38; K3 bu PR'da kapatıldı) |
+
+### Doğrulama tur 2 — ✓ PASS (2026-11-03)
+
+**Kapsam tam** (bütün kabul kriterleri, KK1–KK8, `09 §25`, güvenlik taraması baştan). **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks`; ana dal son 3 run `41649150934`, `41649150970`, `41630669794` success; `MEMORY.md` satır 22'de T10.
+
+**Kabul kriterleri (validator kanıtı):** 1–8 ✓. Dalın veritabanı imajı (`docker build`) boş veri dizininde `log_statement=all` ile ilk kurulumda koşturuldu; sır dosyaları gerçekçi biçimde (Base64 `+`, `/`, `=` ve sonda satır sonu; birinde `'`, `\`, `$`, boşluk): dört rolde beş bayrak `f`, üç ağ kullanıcısının `rolpassword`'ü `SCRAM-SHA-256$`, durum kullanıcısınınki boş; `shopfolio` `UTF8|i|tr-TR`, sahibi göç kullanıcısı, `datacl`'da PUBLIC yok; `pg_trgm` sahibi kurucu; ICU sıralaması `h,ı,I,i,İ`; `public` şeması göç kullanıcısında, PUBLIC yok; varsayılan ACL `app=arwd`, `reader=r`; işlev ACL'inde `shopfolio_app=X` (`pg_monitor` verilmedi); göç kullanıcısının `shopfolio` için üç ayarı kullanıcı adları, okuyucu `default_transaction_read_only=on`; `pg_hba_file_rules` dört satır, `trust` yok, durum satırı `local {shopfolio} {shopfolio_backup_status} peer map=backup_status`; kurucu ağdan iki veritabanına `rejects`; durum kullanıcısı soketten `shopfolio`'ya bağlandı, `postgres`'e ve ağdan reddedildi; üç ağ kullanıcısı kendi parolasıyla bağlandı, uygulama `postgres`'e reddedildi; yeniden başlatmada betik koşmadı. Entegrasyon testleri (yetki matrisi, dört deyim, `pg_ls_archive_statusdir()`, okuyucu, durum kullanıcısı, rol ayarları, PUBLIC) yeşil.
+
+**Tur 1 bulgu 1 kapandı:** sunucu günlüğünde (`log_statement=all`) dört parola değeri yok; parola taşıyan deyimler yalnız üç `ALTER USER "…" PASSWORD 'SCRAM-SHA-256$4096:…'` (psql `\password`); SCRAM dışı `PASSWORD '` yok. `10-roles.sql` parolasız; `DEPLOY_RUNBOOK §B.2` m.4 ile §B satır 1 ("istemcinin parola değiştirme komutuyla") artık uyumlu; `package-build.sh` adım 1'in `PASSWORD :'` muafiyeti kalktı (taramanın `PASSWORD :'ad'` biçimini yakaladığı denendi) ve adım 6 SCRAM sayısını (3) ve SCRAM dışı `PASSWORD '` sayısını (0) her koşuda sınar.
+
+**Testler:** `dotnet build Shopfolio.slnx -warnaserror` 0/0; Unit 87/87 (Consistency dahil); Integration 62/62 (yerel `postgres:18` 18.6; koşu sonrası artık rol/veritabanı yok); dal CI `41661056056` (head `76979dc`) dokuz işin hepsi success (Guard skipped), Paketleme günlüğünde ilk kurulum denetimleri `ok`. `12`'de T10'un kaynak birimlerine (`06 §2.8`, `05 §7.1`, `09 §10`, §17) eşlenen task satırı yok (`VAL-A588` `09 §10.5` aramadır); `12_matris_denetle.py --kapsam 1-77` hata 0. `[ci-failure]` atlaması (`08acff8`, kaydı `5534acd`) yalnız kırık CI'ın kök neden düzeltmesini taşıdı, kayıt sonraki commit'te (`00 §F.2`) — kabul edilebilir; `PB_ALLOW_SECRET` yok; repoda sır değeri yok (testlerin parolaları çalıştırmaya özel uydurma değerler).
+
+**K-notları:** K1 (D-38 (a)) — birim taraması `SqlLiteralPassword` `PASSWORD :'ad'` biçimini yakalamaz, ihlal örneği bu biçimi bilerek temiz sayar, `ScriptClean.sh` terk edilen `\set … \`cat\`` yolunu taşır; kural CI'da adım 1 ve adım 6 ile korunuyor. K2 (D-38 (b)) — konteyner terminalle (`docker run -t`, `tty: true`) başlatılırsa `\password` `/dev/tty`'den okur ve ilk kurulum iletisiz bekler (denendi); Compose'da terminal yok, runbook koşulu yazar. K3 — düzeltme commit'i `MEMORY.md`'yi güncellememişti ("Sırada: T10 düzeltme 1"); bu kayıt commit'inde güncellendi.
+
+**Yapım raporu karşılaştırması:** kriter 1–8 ve Düzeltme 1 değerlendirmesi uyumlu. Uyuşmazlıklar (bloke etmeyen): (1) "Yapılan İşler" CI Paketleme maddesi hâlâ "adım 1 sır taramasına `PASSWORD :'ad'` değişken kalıbı muaf tutuldu" der — Düzeltme 1 muafiyeti kaldırdı; (2) tur 1 düzeltme önerisindeki `DatabaseImageScan` parola kuralı güncellenmedi (yalnız yorum) — K1; (3) Dış varsayım 2 "`\password` standart girdiyle okur" terminalsiz koşula bağlıdır — K2.
 
 ### Doğrulama tur 1 — ✗ FAIL (2026-11-03)
 

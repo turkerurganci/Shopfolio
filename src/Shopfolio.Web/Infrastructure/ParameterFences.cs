@@ -18,4 +18,10 @@ internal static class ParameterFences
 
     /// <summary>P-8 — lower fence of the download allowance per order line.</summary>
     public const int DownloadAllowanceLower = 1;
+
+    /// <summary>P-9 — lower fence of the quantity limit of one order per product.</summary>
+    public const int MaxQuantityPerOrderLower = 1;
+
+    /// <summary>P-44 — lower fence of the fulfilment period of a service product, in days.</summary>
+    public const int FulfilmentPeriodLower = 1;
 }

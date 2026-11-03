@@ -15,7 +15,14 @@ namespace Shopfolio.IntegrationTests.Model;
 public sealed class ModelRuleTests
 {
     /// <summary>The relationships of the application's own entities that cascade; equal to the cascading line of 06 2.2.5. The task that adds an entity adds its lines.</summary>
-    private static readonly string[] RegisteredCascades = [];
+    private static readonly string[] RegisteredCascades =
+    [
+        "option_values -> options (OptionId)",
+        "options -> products (ProductId)",
+        "product_categories -> products (ProductId)",
+        "product_images -> products (ProductId)",
+        "variants -> products (ProductId)",
+    ];
 
     private static bool IsApplicationEntity(IEntityType entityType) => entityType.ClrType.Assembly == typeof(AppDbContext).Assembly;
 
@@ -53,6 +60,63 @@ public sealed class ModelRuleTests
 
         Assert.Equal(7, versions.Length);
         Assert.All(versions, v => Assert.False(settings.FindProperty(v)!.IsConcurrencyToken, v));
+    }
+
+    /// <summary>D-50 c: the foreign-key index rule is held by a test. Every foreign key of an ordinary table starts an index; only the two single-row tables have none.</summary>
+    [Fact]
+    public void ApplicationModel_EveryForeignKeyOfAnOrdinaryTableStartsAnIndex_AndTheSingleRowTablesHaveNone()
+    {
+        using AppDbContext context = SampleModel.CreateGoodContext();
+        IModel model = ModelRules.ModelOf(context);
+        string[] singleRow = ["companies", "company_settings"];
+
+        List<string> unindexed = [];
+        foreach (IEntityType entityType in model.GetEntityTypes().Where(IsApplicationEntity).Where(e => !singleRow.Contains(e.GetTableName())))
+        {
+            foreach (IForeignKey foreignKey in entityType.GetForeignKeys())
+            {
+                bool indexed = entityType.GetIndexes().Any(i => i.Properties.Take(foreignKey.Properties.Count).SequenceEqual(foreignKey.Properties))
+                    || entityType.GetKeys().Any(k => k.Properties.Take(foreignKey.Properties.Count).SequenceEqual(foreignKey.Properties));
+                if (!indexed)
+                {
+                    unindexed.Add($"{entityType.GetTableName()} ({string.Join(",", foreignKey.Properties.Select(p => p.Name))})");
+                }
+            }
+        }
+
+        Assert.Empty(unindexed);
+        Assert.All(singleRow, table => Assert.Empty(model.GetEntityTypes().Single(e => e.GetTableName() == table).GetIndexes()));
+    }
+
+    /// <summary>D-50 c: on the sample table with four links the rule makes exactly the four single-column indexes the framework's own rule would have made.</summary>
+    [Fact]
+    public void SampleModel_ForeignKeyIndexRuleMakesTheFourIndexesOfTheSampleItems()
+    {
+        using AppDbContext context = SampleModel.CreateGoodContext();
+        IEntityType item = ModelRules.ModelOf(context).GetEntityTypes().Single(e => e.GetTableName() == "sample_items");
+
+        string[] indexes = [.. item.GetIndexes().Select(i => i.GetDatabaseName()!).Order(StringComparer.Ordinal)];
+
+        Assert.Equal(
+            [
+                "ix_sample_items_emptied_owner_id",
+                "ix_sample_items_owner_id",
+                "ix_sample_items_restrictive_owner_id",
+                "ix_sample_items_unwritten_owner_id",
+            ],
+            indexes);
+        Assert.All(item.GetIndexes(), i => Assert.False(i.IsUnique));
+    }
+
+    /// <summary>D-50 a: the single-row mark is a declaration; the finished model (and so the snapshot) does not carry it.</summary>
+    [Fact]
+    public void SingleRowMark_IsRemovedFromTheFinishedModel()
+    {
+        using AppDbContext context = SampleModel.CreateGoodContext();
+        IModel model = ModelRules.ModelOf(context);
+
+        Assert.Null(model.FindEntityType(typeof(Shopfolio.Modules.Settings.Company))!.FindAnnotation("Shopfolio:SingleRow"));
+        Assert.Null(model.FindEntityType(typeof(Shopfolio.Modules.Settings.CompanySettings))!.FindAnnotation("Shopfolio:SingleRow"));
     }
 
     private sealed class MisnamedSets

@@ -61,7 +61,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T104-urun-cekirdegi`
-- **PR:** aşağıda PR açıklamasında
+- **PR:** #361
 - **CI:** doğrulayıcı izler
 
 ## Dış Varsayımlar

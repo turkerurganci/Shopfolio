@@ -16,6 +16,7 @@ using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Migrations;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.UnitTests.Support;
 
 namespace Shopfolio.IntegrationTests.Model;
 
@@ -479,6 +480,17 @@ public sealed class SchedulerBackupDisposalAndKeyTablesTests : IAsyncLifetime
         Assert.Equal("true true", Assert.Single(await QueryAsync(
             _collection.Dsn,
             "SELECT (last_succeeded_at IS NOT NULL)::text || ' ' || (last_failed_at IS NOT NULL)::text FROM backup_status_records")));
+    }
+
+    [Fact]
+    public async Task BackupJob_WritesTheResultWithExactlyTheStatementsTheUserMayRun()
+    {
+        // The statements above are the job's own (D-39 (a)): a change in the script that the privilege would refuse fails here.
+        string script = await File.ReadAllTextAsync(
+            Path.Combine(RepositoryRoot.Find(), "deploy", "images", "database", "database-job.sh"), TestContext.Current.CancellationToken);
+
+        Assert.Contains($"\"{SucceededStatement}\"", script, StringComparison.Ordinal);
+        Assert.Contains($"\"{FailedStatement}\"", script, StringComparison.Ordinal);
     }
 
     [Theory]

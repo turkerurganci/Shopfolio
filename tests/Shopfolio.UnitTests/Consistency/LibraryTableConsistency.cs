@@ -27,7 +27,6 @@ internal static partial class LibraryTableConsistency
         "AWSSDK.SimpleEmailV2",
         "Microsoft.IdentityModel.Protocols.OpenIdConnect",
         "Microsoft.IdentityModel.JsonWebTokens",
-        "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore",
     };
 
     /// <summary>Returns the problems found; an empty list means the table and the props file agree.</summary>

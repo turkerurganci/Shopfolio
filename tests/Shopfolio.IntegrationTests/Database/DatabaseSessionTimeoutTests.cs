@@ -27,6 +27,9 @@ public sealed class DatabaseSessionTimeoutTests
     private const string LockTimeoutState = "55P03";
     private const string QueryCancelledState = "57014";
 
+    // The wait is measured on the client around a round trip, so it may start a little after the server's clock: a lower bound with some slack.
+    private static readonly TimeSpan Slack = TimeSpan.FromSeconds(1);
+
     private readonly CollectionDatabaseFixture _collection;
 
     public DatabaseSessionTimeoutTests(CollectionDatabaseFixture collection)
@@ -35,17 +38,20 @@ public sealed class DatabaseSessionTimeoutTests
     }
 
     [Theory]
-    [InlineData(DatabaseSessionProfile.Web, "5s", "15s", "30s")]
-    [InlineData(DatabaseSessionProfile.Maintenance, "5s", "10min", "30s")]
-    public async Task Show_EachProfile_GivesTheServerTimesOfThatProfile(DatabaseSessionProfile profile, string lockTime, string statementTime, string idleTime)
+    [InlineData(DatabaseSessionProfile.Web)]
+    [InlineData(DatabaseSessionProfile.Maintenance)]
+    public async Task Show_EachProfile_GivesTheServerTimesOfThatProfile(DatabaseSessionProfile profile)
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
+        TimeSpan statementTime = profile == DatabaseSessionProfile.Maintenance
+            ? DatabaseTimeouts.MaintenanceStatementTimeout
+            : DatabaseTimeouts.StatementTimeout;
         await using NpgsqlConnection connection = new(Dsn(profile));
         await connection.OpenAsync(ct);
 
-        Assert.Equal(lockTime, await ShowAsync(connection, "lock_timeout", ct));
-        Assert.Equal(statementTime, await ShowAsync(connection, "statement_timeout", ct));
-        Assert.Equal(idleTime, await ShowAsync(connection, "idle_in_transaction_session_timeout", ct));
+        Assert.Equal(DatabaseTimeouts.LockTimeout, await ServerTimeAsync(connection, "lock_timeout", ct));
+        Assert.Equal(statementTime, await ServerTimeAsync(connection, "statement_timeout", ct));
+        Assert.Equal(DatabaseTimeouts.IdleInTransactionTimeout, await ServerTimeAsync(connection, "idle_in_transaction_session_timeout", ct));
     }
 
     [Fact]
@@ -58,8 +64,8 @@ public sealed class DatabaseSessionTimeoutTests
         await maintenance.OpenAsync(ct);
 
         // Both sessions are open at the same time: neither changed the other's time.
-        Assert.Equal("15s", await ShowAsync(web, "statement_timeout", ct));
-        Assert.Equal("10min", await ShowAsync(maintenance, "statement_timeout", ct));
+        Assert.Equal(DatabaseTimeouts.StatementTimeout, await ServerTimeAsync(web, "statement_timeout", ct));
+        Assert.Equal(DatabaseTimeouts.MaintenanceStatementTimeout, await ServerTimeAsync(maintenance, "statement_timeout", ct));
     }
 
     [Fact]
@@ -81,7 +87,7 @@ public sealed class DatabaseSessionTimeoutTests
             watch.Stop();
 
             Assert.Equal(LockTimeoutState, error.SqlState);
-            Assert.InRange(watch.Elapsed, TimeSpan.FromSeconds(4), DatabaseTimeouts.CommandTimeout);
+            Assert.InRange(watch.Elapsed, DatabaseTimeouts.LockTimeout - Slack, DatabaseTimeouts.CommandTimeout);
         }
         finally
         {
@@ -101,7 +107,7 @@ public sealed class DatabaseSessionTimeoutTests
         watch.Stop();
 
         Assert.Equal(QueryCancelledState, error.SqlState);
-        Assert.InRange(watch.Elapsed, TimeSpan.FromSeconds(14), DatabaseTimeouts.CommandTimeout);
+        Assert.InRange(watch.Elapsed, DatabaseTimeouts.StatementTimeout - Slack, DatabaseTimeouts.CommandTimeout);
     }
 
     [Fact]
@@ -113,7 +119,7 @@ public sealed class DatabaseSessionTimeoutTests
         await using NpgsqlTransaction transaction = await connection.BeginTransactionAsync(ct);
         await ExecuteAsync(connection, "SELECT 1", ct);
 
-        await Task.Delay(DatabaseTimeouts.IdleInTransactionTimeout + TimeSpan.FromSeconds(2), ct);
+        await Task.Delay(DatabaseTimeouts.IdleInTransactionTimeout + (2 * Slack), ct);
 
         await Assert.ThrowsAnyAsync<NpgsqlException>(() => ExecuteAsync(connection, "SELECT 1", ct));
         Assert.NotEqual(System.Data.ConnectionState.Open, connection.State);
@@ -125,10 +131,13 @@ public sealed class DatabaseSessionTimeoutTests
         return builder.ConnectionString;
     }
 
-    private static async Task<string> ShowAsync(NpgsqlConnection connection, string setting, CancellationToken ct)
+    // The three settings are kept in milliseconds in pg_settings, whatever unit SHOW prints.
+    private static async Task<TimeSpan> ServerTimeAsync(NpgsqlConnection connection, string setting, CancellationToken ct)
     {
-        await using NpgsqlCommand command = new($"SHOW {setting}", connection);
-        return (string)(await command.ExecuteScalarAsync(ct))!;
+        await using NpgsqlCommand command = new("SELECT setting FROM pg_settings WHERE name = @name", connection);
+        command.Parameters.AddWithValue("name", setting);
+        string milliseconds = (string)(await command.ExecuteScalarAsync(ct))!;
+        return TimeSpan.FromMilliseconds(long.Parse(milliseconds, System.Globalization.CultureInfo.InvariantCulture));
     }
 
     private static async Task ExecuteAsync(string dsn, string sql, CancellationToken ct)

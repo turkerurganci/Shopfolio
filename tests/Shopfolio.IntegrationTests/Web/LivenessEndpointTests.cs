@@ -148,6 +148,8 @@ public sealed class LivenessEndpointTests
 
         CollectingLoggerProvider logs = await AssertAnswers503WithinTheLimitAsync(unreachable.ConnectionString, warmPool: false, stallAfterWarmUp: null, ct);
         Assert.DoesNotContain(logs.Lines, l => l.Contains("192.0.2.1", StringComparison.Ordinal));
+        // 09 10.7 item 7: an unreachable server writes at most one DbTimeout line (a fast refusal is a failure, not a timeout, and writes none).
+        Assert.True(logs.Lines.Count(l => l.Contains("DbTimeout", StringComparison.Ordinal)) <= 1);
     }
 
     private static string UpstreamHost(DsnBuilder dsn) =>

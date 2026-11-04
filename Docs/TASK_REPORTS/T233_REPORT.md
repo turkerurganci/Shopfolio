@@ -30,10 +30,10 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Süre değerleri `DatabaseTimeouts`'ta adlı sabit; tek yer `09 §3.5` | ✓ | `DatabaseTimeouts.cs`; `Timeouts_AreTheRowsOfTheTable`; `WebRowOfTheTable_EqualsTheWebConstants`, `MaintenanceRowOfTheTable_EqualsTheMaintenanceConstants` (tablo satırını okur) |
+| 1 | Süre değerleri `DatabaseTimeouts`'ta adlı sabit; tek yer `09 §3.5` | ✓ | `DatabaseTimeouts.cs`; `WebRowOfTheTable_EqualsTheWebConstants`, `MaintenanceRowOfTheTable_EqualsTheMaintenanceConstants` (tablo satırını okur) |
 | 2 | Bağlantı kuruluşu tek yerde: üç sunucu ayarı ve istemci süresi | ✓ | `DatabaseConnection.Configure`; `Configure_WebProfile_WritesTheThreeServerTimesAndTheClientTime`; `Program.cs` `WebConnectionString`; `Show_EachProfile_GivesTheServerTimesOfThatProfile` (gerçek sunucu) |
 | 3 | İki profil; ayrı bağlantı dizisi (ayrı havuz); `SET` yok; tarama yalnız `DatabaseConnection`'da ve testlerde bulur | ✓ | `Create_TheTwoProfiles_AreTwoConnectionStrings`, `Show_TheTwoProfiles_AreNotOneSessionSetting`; `ApplicationSource_ChangesNoSessionTimeoutOutsideDatabaseConnection`, `SessionScan_OnViolationSample_...`, `Applies_LeavesOutOnlyTheDatabaseConnectionFile`; Compose: `MigrationService_ConnectsWithTheMaintenanceProfile` |
-| 4 | İstemci süresi her profilde sunucu sürelerinden uzun; komut başına süre yok | ✓ (⚠ boşta işlem süresi hariç) | `Configure_EachProfile_LeavesTheClientTimeLongerThanTheLockAndStatementTimes`; `CommandTimeout` ataması yalnız `DatabaseConnection`'da (`grep -rn "CommandTimeout" src/` → `DatabaseConnection.cs`, `DatabaseTimeouts.cs`, `DatabaseOptionsValidator.cs`); boşta işlem 30 sn > istemci 20 sn: `09` kendi cümlesiyle çelişir, D-83 |
+| 4 | İstemci süresi her profilde kilit ve sorgu sürelerinden uzun; komut başına süre yok | ✓ | `Configure_EachProfile_LeavesTheClientTimeLongerThanTheLockAndStatementTimes`; `CommandTimeout` ataması yalnız `DatabaseConnection`'da (`grep -rn "CommandTimeout" src/` → `DatabaseConnection.cs`, `DatabaseTimeouts.cs`, `DatabaseOptionsValidator.cs`); boşta işlem 30 sn > istemci 20 sn: `09` kendi cümlesiyle çelişir, D-83 ✅ (düzeltme 1: cümle kilit ve sorgu sürelerine daraltıldı) |
 | 5 | Aşım beklenmeyen hâle düşer; kod yakalamaz/çevirmez/yeniden denemez; `ITransactionRunner` gövdesinde dış çağrı yok | ✓ | `LockWait_...FailsWithTheServersLockError` (55P03), `LongQuery_...IsCancelledByTheServerBeforeTheClientTime` (57014, 14–20 sn), `IdleOpenTransaction_...LosesItsConnection`; hata kodu anan kod yok: `SessionScan_...` örnek satır 15; `ApplicationSource_UsesNoOutsideServiceInsideATransactionBody`, `TransactionBodyScan_OnViolationSample_...` |
 | 6 | Otomatik yeniden deneme kapalı | ✓ | `AppDbContext_AsConfigured_HasNoRetryStrategy`; kırmızı gösterimi `AppDbContext_WithRetryOnFailureTurnedOn_ShowsTheCheckCanGoRed`; kaynakta `EnableRetryOnFailure` taraması (örnek satır 14) |
 | 7 | `Options` ve `CommandTimeout` adları Npgsql sürümüne karşı doğrulandı | ✓ | Kilit dosyası `src/Shopfolio.Web/packages.lock.json`: `Npgsql` 10.0.3 (çözülen); `NpgsqlConnectionStringBuilder.Options` ve `.CommandTimeout` bu sürümde derlenir; `Show_EachProfile_...` sunucuya gerçekten gittiğini gösterir; fark: PR açıklamasında |
@@ -44,8 +44,8 @@
 |---|---|---|
 | k1/KK1: sabitler `09 §3.5` satırlarıyla bire bir | ✓ | `DatabaseTimeouts.cs` altı sabit; tablo satırını ayrıştıran `DatabaseTimeoutsConsistencyTests` iki testi (Lint adımında koşar); `Timeouts_PassTheContradictionScanOfTheTable` |
 | k2/KK2: tek kuruluş noktası; başka yerde bağlantı dizgesi kurulmuyor | ✓ | `grep -rn "NpgsqlDataSource.Create\|UseNpgsql(\|new NpgsqlConnectionStringBuilder" src/` → `Program.cs` (yalnız `DatabaseConnection.Create` çıktısıyla), `AppDbContext.Configure` (dizeyi alır), `DatabaseConnection.cs`, `DatabaseOptionsValidator.cs` (yalnız ayrıştırma sınaması), `AppDbContextDesignTimeFactory` (bağlantısız yer tutucu, tasarım zamanı); `Options`/`CommandTimeout` yazan başka yer yok |
-| k3/KK3: Maintenance daha uzun sorgu süresi; göç hizmeti `Maintenance` ile bağlanır; iki dizi ayrı; `SET statement_timeout` taramayı kırar | ✓ | `Configure_MaintenanceProfile_*`, `Show_EachProfile_*` (Maintenance `10min`), `MigrationService_ConnectsWithTheMaintenanceProfile` + `MigrationServiceConnectionInTheComposeFile_ParsesToTheMaintenanceTimes` + `MigrationServiceCheck_WithTheWebProfile_WouldDiffer`; tarama kırılışı `SessionScan_OnViolationSample_...` (satır 5, 6, 9) ve `SET LOCAL`/`set_config` (satır 7, 8). Yönetim komutu `CommandHost` T303 KK4'ündür |
-| k4/KK4: istemci süresi her iki profilde sunucu sürelerinden uzun | ✓ (kilit ve sorgu; boşta işlem ⚠) | `Configure_EachProfile_LeavesTheClientTimeLongerThanTheLockAndStatementTimes` (Theory, iki profil); boşta işlem Web'de 30 > 20: D-83 |
+| k3/KK3: Maintenance daha uzun sorgu süresi; göç hizmeti `Maintenance` ile bağlanır; iki dizi ayrı; `SET statement_timeout` taramayı kırar | ✓ | `Configure_MaintenanceProfile_*`, `Show_EachProfile_*` (Maintenance sunucu süresi `DatabaseTimeouts.MaintenanceStatementTimeout`ten), `MigrationService_ConnectsWithTheMaintenanceProfile` + `MigrationServiceConnectionInTheComposeFile_ParsesToTheMaintenanceTimes` + `MigrationServiceCheck_WithTheWebProfile_WouldDiffer`; tarama kırılışı `SessionScan_OnViolationSample_...` (satır 5, 6, 9) ve `SET LOCAL`/`set_config` (satır 7, 8). Yönetim komutu `CommandHost` T303 KK4'ündür |
+| k4/KK4: istemci süresi her iki profilde kilit ve sorgu sürelerinden uzun | ✓ (kilit ve sorgu; D-83 ✅) | `Configure_EachProfile_LeavesTheClientTimeLongerThanTheLockAndStatementTimes` (Theory, iki profil); boşta işlem Web'de 30 > 20: D-83 ✅ (boşta işlem süresi komut süresi değildir; 09 §10.7 madde 2-3) |
 | k5/KK5: aşım testi beklenmeyen hata yanıtına düşer; işlem gövdesine konan `HttpClient` taramayı kırar | ✓ (⚠ yanıt katmanı yok) | Aşım testleri sunucunun ham hatasını (55P03/57014/bağlantı kaybı) görür; "tek yakalama katmanı" (`§8.1`) henüz yazılmadı, bu yüzden "yanıta düşer" doğrudan sınanamaz — kodun onu yakalamadığı kaynak taramasıyla sınanır (`SessionTimeoutHandled`, örnek satır 15). `HttpClient` örneği: `TransactionBodyScan_OnViolationSample_...` (satır 5, 15), `IPaymentGateway` (satır 10) |
 | k6/KK6: yeniden deneme stratejisi etkin değil | ✓ | `AppDbContext_AsConfigured_HasNoRetryStrategy` + kırmızı gösterimi + `RetryStrategy` taraması |
 | k7/KK7: ad farkı PR açıklamasında | ✓ | PR açıklamasında "Npgsql 10.0.3: `Options`, `CommandTimeout` adları aynı; fark yok" |
@@ -61,7 +61,7 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --no-build` | 544/544 (Unit adımı `--filter-not-trait "Consistency=true"`: 433; Consistency: 111) |
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --no-build` | 543/543 (düzeltme 1 sonrası; `Timeouts_AreTheRowsOfTheTable` kaldırıldı) |
 | Integration | ✓ | PostgreSQL 18, konteyner `shopfolio-t233-pg` (127.0.0.1:55233); `Database` ad alanı 35/35 (yeni 6 dahil), `Web`+`FileSecrets` 58/58, `Model` 893 geçti, 29 "Test Collection Cleanup Failure" (`SettingsTablesTests` ve `StartupDataReapplyTests` sınıf veritabanını düşürürken zaman aşımı; hiçbir test gövdesi kırmızı değil — D-68'in bilinen deseni, T233'e bağlı değil) | yeni testler tek başına: 6/6 (~55 sn gerçek bekleme) |
 | Biçim ve derleme | ✓ | `dotnet build Shopfolio.slnx -warnaserror` (Debug ve Release); `dotnet format Shopfolio.slnx --no-restore --verify-no-changes` | 0 uyarı, 0 hata; format çıkış 0 |
 | Contract | — | yok | |
@@ -95,6 +95,35 @@ Testler (validator, yerel): build `-warnaserror` 0 uyarı · `dotnet format --ve
 
 **Yapım raporu karşılaştırması:** 2 uyuşmazlık — (1) kriter 1 için "sayı başka yerde yazılmaz" denmiş, kanıt olarak gösterilen `Timeouts_AreTheRowsOfTheTable` kuralın ihlalidir; (2) KK2 kanıtı yalnız grep, korunma testi yok (K2). Yerel Integration'da yapım "29 Test Collection Cleanup Failure" yazdı; validator koşusunda yok (bir test gövdesi zaman aşımı, tek başına yeşil). Öz denetim tablosu var ve her maddesi kanıtlı.
 
+## Düzeltme Turu 1 (2026-11-05)
+
+Kapanan: B1, K2, K3, K4 (K1 → D-84, dokunulmadı).
+
+- **B1:** `DatabaseConnectionTests` beklenen bağlantı dizisini ve istemci süresini `DatabaseTimeouts` sabitlerinden kurar (`ExpectedOptions`, `Seconds`); `Timeouts_AreTheRowsOfTheTable` silindi (tablo ↔ sabit eşitliğini `DatabaseTimeoutsConsistencyTests` sağlar). `DatabaseSessionTimeoutTests` sunucu değerini `pg_settings` milisaniyesinden okur ve sabitle karşılaştırır; alt sınırlar `LockTimeout - Slack`, `StatementTimeout - Slack`.
+- **K2:** `ShopfolioWebApplicationFactoryTests.DatabaseConnections_OfTheWebHost_CarryTheWebSessionProfile`: ev sahibinin `NpgsqlDataSource` ve `AppDbContext` bağlantı dizisi `Web` profilinin `Options` ve `CommandTimeout` değerine eşit, sunucuda `statement_timeout` Web sabitine eşit. Bozma sınaması: `Program.cs`'te `WebConnectionString` ham diziye çevrildi → test kırmızı; geri alındı.
+- **K3:** `09 §10.7` madde 2 ve 3 ile `11` T233 kriter 4 ve KK4 "kilit ve sorgu sürelerinden uzundur" diye daraltıldı; D-83 ✅.
+- **K4:** `Get_WhenTheServerIsUnreachable_Returns503WithinTheLimit` en çok bir `DbTimeout` satırı onayı aldı.
+
+Elle yazılmış süre sayısı denetimi: `grep -rnE` ile bütün `tests/` tarandı; kalanlar yalnız girdi (`Options=-c statement_timeout=0;Command Timeout=1`, ihlal örneği `SET statement_timeout = 600000`) ve Consistency testinin doküman tablosundan ayrıştırdığı değerler.
+
+Testler: build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` 0; Unit 543/543; Integration (`DatabaseSessionTimeoutTests`, `ShopfolioWebApplicationFactoryTests`, `LivenessEndpointTests`) 24/24.
+
+### Öz denetim — düzeltme turu (11 T233 k1–k7, KK1–KK7; 12 ilgili kontrol listesi)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| k1/KK1: sabitler `09 §3.5` ile bire bir; sayı başka yerde yazılmaz | ✓ | `DatabaseTimeouts.cs`; `DatabaseTimeoutsConsistencyTests` (tablo ↔ sabit); testlerde sabitten türetme (`ExpectedOptions`, `ServerTimeAsync`); `grep -rnE` ile elle yazılmış süre sayısı yok |
+| k2/KK2: tek kuruluş noktası; ev sahibi Web profilini kullanır | ✓ | `DatabaseConnection.Configure`; `DatabaseConnections_OfTheWebHost_CarryTheWebSessionProfile` (bozma → kırmızı) |
+| k3/KK3: Maintenance uzun sorgu; iki dizi ayrı; `SET` taraması | ✓ | `Configure_MaintenanceProfile_*`, `Show_TheTwoProfiles_AreNotOneSessionSetting`, `MigrationServiceConnectionInTheComposeFile_ParsesToTheMaintenanceTimes`, `ApplicationSource_ChangesNoSessionTimeoutOutsideDatabaseConnection` |
+| k4/KK4: istemci süresi kilit ve sorgu sürelerinden uzun | ✓ | `Configure_EachProfile_LeavesTheClientTimeLongerThanTheLockAndStatementTimes`; `09 §10.7` madde 2-3 ve `11` aynı cümleyle |
+| k5/KK5: aşım ham hatayla yukarı çıkar; gövdede dış çağrı yok | ✓ | `LockWait_*`, `LongQuery_*`, `IdleOpenTransaction_*`; yanıt katmanı D-84 |
+| k6/KK6: yeniden deneme kapalı | ✓ | `AppDbContext_AsConfigured_HasNoRetryStrategy` |
+| k7/KK7: Npgsql ad farkı PR açıklamasında | ✓ | PR #384 açıklaması (Npgsql 10.0.3) |
+| Sık FAIL: beklenen değer sabitten türer | ✓ | `DatabaseConnectionTests`, `DatabaseSessionTimeoutTests` |
+| Sık FAIL: kural değişince öteki yerler | ✓ | "sunucu sürelerinden uzun" cümlesi `09` (2 yer), `11` (2 yer), D-83, bu rapor; `grep -rn "o profilin sunucu"` boş |
+| Sık FAIL: tarama istisnası geniş / DB varsayılanı / FK dizini | ✓ / uygulanamaz | Tarama istisnası değişmedi (tek dosya yolu); şema/göç yok |
+| `09 §25` — test | ✓ | Yeni test ayrı ihlal örneğiyle sınandı (Program.cs bozması kırmızı); birim testleri dosya yazmaz |
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok
@@ -125,7 +154,7 @@ Testler (validator, yerel): build `-warnaserror` 0 uyarı · `dotnet format --ve
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
 | 1 | `ITransactionRunner` gövde taraması çalıştırıcı yazılana kadar gerçek çağrı bulmaz; yöntem grubu izlenmez | D-82 | Çalıştırıcı sonraki task'ın; taramayı o PR'da sınamak gerekir |
-| 2 | `09 §10.7` madde 2 cümlesi boşta işlem süresiyle çelişir | D-83 | Doküman düzeltmesi sahibin kararı |
+| 2 | `09 §10.7` madde 2 cümlesi boşta işlem süresiyle çelişir | D-83 | ✅ Düzeltme 1de kapandı (09 §10.7 madde 2-3 ve 11 T233 k4 ve KK4 daraltıldı) |
 
 ## Notlar
 

@@ -25,8 +25,8 @@ public sealed class DatabaseConnectionTests
 
         DatabaseConnection.Configure(builder, DatabaseSessionProfile.Web);
 
-        Assert.Equal("-c lock_timeout=5000 -c statement_timeout=15000 -c idle_in_transaction_session_timeout=30000", builder.Options);
-        Assert.Equal(20, builder.CommandTimeout);
+        Assert.Equal(ExpectedOptions(DatabaseTimeouts.StatementTimeout), builder.Options);
+        Assert.Equal(Seconds(DatabaseTimeouts.CommandTimeout), builder.CommandTimeout);
     }
 
     [Fact]
@@ -36,8 +36,8 @@ public sealed class DatabaseConnectionTests
 
         DatabaseConnection.Configure(builder, DatabaseSessionProfile.Maintenance);
 
-        Assert.Equal("-c lock_timeout=5000 -c statement_timeout=600000 -c idle_in_transaction_session_timeout=30000", builder.Options);
-        Assert.Equal(605, builder.CommandTimeout);
+        Assert.Equal(ExpectedOptions(DatabaseTimeouts.MaintenanceStatementTimeout), builder.Options);
+        Assert.Equal(Seconds(DatabaseTimeouts.MaintenanceCommandTimeout), builder.CommandTimeout);
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public sealed class DatabaseConnectionTests
         DatabaseConnection.Configure(builder, DatabaseSessionProfile.Web);
 
         Assert.DoesNotContain("statement_timeout=0", builder.Options, StringComparison.Ordinal);
-        Assert.Equal(20, builder.CommandTimeout);
+        Assert.Equal(Seconds(DatabaseTimeouts.CommandTimeout), builder.CommandTimeout);
     }
 
     [Fact]
@@ -134,20 +134,10 @@ public sealed class DatabaseConnectionTests
     }
 
     [Fact]
-    public void Timeouts_AreTheRowsOfTheTable()
-    {
-        Assert.Equal(TimeSpan.FromSeconds(5), DatabaseTimeouts.LockTimeout);
-        Assert.Equal(TimeSpan.FromSeconds(15), DatabaseTimeouts.StatementTimeout);
-        Assert.Equal(TimeSpan.FromMinutes(10), DatabaseTimeouts.MaintenanceStatementTimeout);
-        Assert.Equal(TimeSpan.FromSeconds(30), DatabaseTimeouts.IdleInTransactionTimeout);
-        Assert.Equal(TimeSpan.FromSeconds(20), DatabaseTimeouts.CommandTimeout);
-        Assert.Equal(TimeSpan.FromSeconds(605), DatabaseTimeouts.MaintenanceCommandTimeout);
-    }
-
-    [Fact]
     public void Timeouts_PassTheContradictionScanOfTheTable()
     {
-        // 09 3.5 contradiction scan: lock < statement < client time in both profiles; the 15 second user call is shorter than the 20 second command time.
+        // 09 3.5 contradiction scan: lock < statement < client time in both profiles. The values themselves are the rows of the 09 3.5 table;
+        // DatabaseTimeoutsConsistencyTests holds them equal to the constants, so no number is written here.
         Assert.True(DatabaseTimeouts.LockTimeout < DatabaseTimeouts.StatementTimeout);
         Assert.True(DatabaseTimeouts.StatementTimeout < DatabaseTimeouts.CommandTimeout);
         Assert.True(DatabaseTimeouts.LockTimeout < DatabaseTimeouts.MaintenanceStatementTimeout);
@@ -176,6 +166,15 @@ public sealed class DatabaseConnectionTests
 
         Assert.True(context.Database.CreateExecutionStrategy().RetriesOnFailure);
     }
+
+    private static int Milliseconds(TimeSpan time) => (int)time.TotalMilliseconds;
+
+    private static int Seconds(TimeSpan time) => (int)time.TotalSeconds;
+
+    private static string ExpectedOptions(TimeSpan statementTime) =>
+        $"-c lock_timeout={Milliseconds(DatabaseTimeouts.LockTimeout)} " +
+        $"-c statement_timeout={Milliseconds(statementTime)} " +
+        $"-c idle_in_transaction_session_timeout={Milliseconds(DatabaseTimeouts.IdleInTransactionTimeout)}";
 
     private static double Server(string options, string name)
     {

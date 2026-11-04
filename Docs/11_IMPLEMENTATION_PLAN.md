@@ -1661,7 +1661,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   1. Süre değerleri `Infrastructure/DatabaseTimeouts`'ta adlı sabitlerdir; değerin tek yeri `09 §3.5` tablosudur (`09 §10.7` madde 1).
   2. Bağlantı kuruluşu tek yerdedir: `DatabaseConnection.Configure` üç sunucu ayarını ve istemci süresini kurar (`09 §10.7` madde 2).
   3. İki profil vardır: `Web` ve `Maintenance`; göç ve yönetim komutları `Maintenance` kullanır; profiller ayrı bağlantı dizisidir (ayrı havuz), süre bağlantıda `SET` ile değiştirilmez ve kaynak taraması `SET` biçimlerini yalnız `DatabaseConnection`'da ve testlerde bulur (`09 §10.7` madde 2).
-  4. İstemci süresi her profilde o profilin sunucu sürelerinden uzundur; komut başına süre atanmaz (`09 §10.7` madde 3).
+  4. İstemci süresi her profilde o profilin kilit ve sorgu sürelerinden uzundur; komut başına süre atanmaz (`09 §10.7` madde 3).
   5. Kilit aşımı, sorgu iptali ve boşta işlem aşımı beklenmeyen hâle düşer; kod onları yakalamaz, çevirmez, yeniden denemez (`09 §10.7` madde 4); öncülün kaynak taraması: `ITransactionRunner` gövdesinde `HttpClient` ya da dış servis arayüzü yoktur (`09 §10.7` madde 5).
   6. Veri sağlayıcının otomatik yeniden deneme stratejisi kapalıdır (`09 §10.7` madde 4).
   7. Bilgim tarihli `Options` ve `CommandTimeout` adları Npgsql sürümüne karşı doğrulanır (`09 §10.7`).
@@ -1670,7 +1670,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK1: sabitler `09 §3.5` satırlarıyla bire bir.
   - KK2: tek kuruluş noktası; başka yerde bağlantı dizgesi kurulmuyor.
   - KK3: Maintenance profili daha uzun sorgu süresi taşır; göç hizmeti `Maintenance` ile bağlanır (yönetim komutu T303 KK4); iki profilin bağlantı dizisi ayrı; `DatabaseConnection` ve testler dışına konan `SET statement_timeout` taramayı kırar.
-  - KK4: istemci süresi her iki profilde o profilin sunucu sürelerinden uzun.
+  - KK4: istemci süresi her iki profilde o profilin kilit ve sorgu sürelerinden uzun.
   - KK5: aşım testi beklenmeyen hata yanıtına düşer; işlem gövdesine konan `HttpClient` taramayı kırar.
   - KK6: yeniden deneme stratejisi etkin değil.
   - KK7: doğrulanan ad farkı PR açıklamasında.

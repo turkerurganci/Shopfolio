@@ -191,32 +191,16 @@ public sealed class ModuleBoundaryTests
     [Fact]
     public void ModuleFolders_InViolationSample_ReportTheMissingTheExtraTheEmptyAndTheContractsLessFolder()
     {
-        string root = Directory.CreateTempSubdirectory("shopfolio-modules-").FullName;
-        try
-        {
-            foreach (string module in _theNineModules.Where(m => m is not "Settings" and not "Payment" and not "Catalog"))
-            {
-                Directory.CreateDirectory(Path.Combine(root, module, "Contracts"));
-                File.WriteAllText(Path.Combine(root, module, "Contracts", $"I{module}Module.cs"), "// sample");
-            }
+        string root = Path.Combine(RepositoryRoot.Find(), "tests", "Shopfolio.UnitTests", "Architecture", "ViolationSamples", "ModuleFolders");
 
-            Directory.CreateDirectory(Path.Combine(root, "Catalog", "Contracts"));
-            Directory.CreateDirectory(Path.Combine(root, "Payment"));
-            Directory.CreateDirectory(Path.Combine(root, "Extra", "Contracts"));
-            File.WriteAllText(Path.Combine(root, "Extra", "Contracts", "IExtraModule.cs"), "// sample");
+        List<string> problems = FindModuleFolderProblems(root);
 
-            List<string> problems = FindModuleFolderProblems(root);
-
-            Assert.Contains(problems, p => p.Contains("missing Settings", StringComparison.Ordinal));
-            Assert.Contains(problems, p => p.Contains("unexpected Extra", StringComparison.Ordinal));
-            Assert.Contains(problems, p => p.Contains("Catalog has no Contracts source", StringComparison.Ordinal));
-            Assert.Contains(problems, p => p.Contains("Payment has no Contracts folder", StringComparison.Ordinal));
-            Assert.DoesNotContain(problems, p => p.Contains("Ordering", StringComparison.Ordinal));
-        }
-        finally
-        {
-            Directory.Delete(root, recursive: true);
-        }
+        Assert.Contains(problems, p => p.Contains("missing Settings", StringComparison.Ordinal));
+        Assert.Contains(problems, p => p.Contains("unexpected Extra", StringComparison.Ordinal));
+        Assert.Contains(problems, p => p.Contains("Catalog has no Contracts source", StringComparison.Ordinal));
+        Assert.Contains(problems, p => p.Contains("Payment has no Contracts folder", StringComparison.Ordinal));
+        Assert.DoesNotContain(problems, p => p.Contains("Ordering", StringComparison.Ordinal));
+        Assert.Equal(4, problems.Count);
     }
 
     [Fact]

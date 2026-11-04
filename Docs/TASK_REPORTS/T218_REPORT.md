@@ -144,6 +144,30 @@ K1 ve K2 doğrulayıcının D-72, D-73 kayıtlarıdır; dokunulmadı.
 
 Testler (düzeltme sonrası): Unit 369/369 · `dotnet build -c Release -warnaserror` 0 uyarı · `dotnet format --verify-no-changes` 0. Integration kodu ve altyapısı değişmedi; tur 1'deki 955/955 geçerlidir, yeniden koşulmadı.
 
+## Düzeltme Turu 2 (B2)
+
+**B2 nasıl kapandı:** `ModuleFolders_InViolationSample_ReportTheMissingTheExtraTheEmptyAndTheContractsLessFolder` artık geçici dizin açmaz, dosya yazmaz. Örnek klasör ağacı depoda salt okunur durur: `tests/Shopfolio.UnitTests/Architecture/ViolationSamples/ModuleFolders/` (`Payment/.gitkeep` Contracts'sız; `Catalog/Contracts/.gitkeep` kaynaksız; `Extra/Contracts/IExtraModule.cs` fazla; `Settings` yok; `Administration`, `AfterSales`, `CorporateContent`, `Membership`, `Notifications`, `Ordering` temiz `Contracts/I<Modül>Module.cs`). Test yolu `RepositoryRoot.Find()` ile kurar ve yalnız okur (`ViolationSamples/ModuleSource/` kalıbı); bulgu listesi tam doğrulanır (dört bulgu: eksik, fazla, boş, Contracts'sız; `Assert.Equal(4, problems.Count)`; `Ordering` sessiz). Örnek `.cs` dosyaları derlemeden çıkarılmıştır: `Shopfolio.UnitTests.csproj` `Compile Remove="Architecture/ViolationSamples/**"` (yalnız `ModuleBoundary/*.cs` ayrı derlenir).
+
+### Öz denetim (düzeltme turu 2; bütün maddeler yeniden denetlendi)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 / KK1 | ✓ | `ModuleFolders_InSource_AreTheNineModulesEachWithContracts`, `Application_HasNoTenantAndNoOperatorPanel`; ihlal: `ModuleFolders_InViolationSample_...` (depodaki örnek ağaç), `TenantAndOperatorScan_InViolationSample_...` |
+| Kriter 2 / KK2 | ✓ | `ModuleNames_InApplicationAssembly_AreTheNineModulesOnly`, `Infrastructure_InApplicationAssembly_ReachesNoModuleTypeExceptInTheContext` |
+| Kriter 3 / KK3 | ✓ | `ModuleTypes_OutsideContracts_AreNotPublic` + ihlal `ModuleTypes_InViolationSample_...` (`PublicLeak`); `EveryModule_InViolationSample_OnlyOrderingHasNoOpenInterface` |
+| Kriter 4 / KK4 | ✓ | `ModuleReferences_InApplicationAssembly_OnlyGoThroughContracts`; ihlal `ForbiddenCaller`, `ForbiddenContextReader` testleri |
+| Kriter 5 / KK5 | ✓ | `ModuleCallTransactionTests` (kod değişmedi) |
+| Kriter 6 / KK6 | ✓ / T220 | `ModuleSourceScanTests.Application_HasNoEventPublisher` + `ScanEventPublisher_OnViolationSample_ReportsTheLine`; kuyruk satırı T220 |
+| Kriter 7 / KK7 | ✓ | `ModuleReferences_InViolationSample_BreakTheRuleOnlyForTheInternalReference`, `Infrastructure_InViolationSample_ReportsTheForbiddenTypeAndSparesTheContextClass`; istisna yalnız `AppDbContext` adıyla |
+| Kriter 8 / KK8 | ✓ | `PagesAndEndpoints_InApplicationAssembly_...` + ihlal `PagesAndEndpoints_InViolationSample_...` |
+| Kriter 9 / KK9 | ✓ | `Program_RegistersEachModuleWithOnePlainCall` + ihlal `ScanProgram_OnViolationSample_ReportsTheRuleForTheModule` |
+| 09 §25 test: ihlal örneği (§19.2 m.3) | ✓ | her kuralın ayrı ihlal örneği var (Düzeltme Turu 1 tablosu; klasör kuralı artık `ViolationSamples/ModuleFolders/`) |
+| 09 §25 test: dosya yazmaz (§19.2 m.2) | ✓ | `grep -rn "File.Write\|CreateTempSubdirectory\|GetTempPath\|Directory.CreateDirectory\|File.Create\|File.Copy\|File.Delete\|Directory.Delete" tests/Shopfolio.UnitTests --include=*.cs` (örnek klasör dışı) 0 sonuç |
+| Sık FAIL nedenleri | ✓ | DB default / FK dizini / varlık modülü: diff'te veri modeli yok; tarama istisnası genişletilmedi; kural başına ihlal örneği tam; birim testi dosya yazmaz (yukarıdaki grep) |
+| Güvenlik | ✓ | yalnız test ve örnek dosyası; sır, auth, bağımlılık yok |
+
+Testler: `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı · `dotnet format Shopfolio.slnx --verify-no-changes` 0 · Unit 369/369. Integration kodu değişmedi; 955/955 geçerlidir.
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok

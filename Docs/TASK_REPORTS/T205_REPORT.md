@@ -69,6 +69,26 @@
 | Contract | — | — | bu task'ta yok |
 | Biçim | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes` | temiz |
 
+## Düzeltme turu 1 (CI paketleme)
+
+**Sorun:** CI "7. Paketleme dogrulamasi" (run 41921021654) kırmızı. `package-build.sh` adım 5/7 uygulama konteynerini göçsüz CI veritabanına karşı açıyordu; T205 açılış denetimi doğru biçimde reddetti ("relation backup_status_records does not exist", "Province list is empty", "Hosting failed to start"), canlılık 90 sn içinde 200 vermedi.
+
+**Düzeltme (betik tarafı; denetim gevşetilmedi):** adım 5'te uygulama açılmadan önce, kurulumun sırasıyla (kurucu SQL → `deploy/compose.yaml` `migrate` hizmeti: göç → uygulama), imajdaki göç demeti (`/app/efbundle`) CI hizmetine karşı çalışır. Yalnız demet yetmedi: göçler kullanıcı adlarını göç kullanıcısının rol ayarından okur (`shopfolio.application_user`, `09 §10.6` madde 9) ve boş CI veritabanında ayar yoktur (yerelde 42704 ile görüldü). Bu yüzden betik, `migration-dry-run.sh` gibi, veritabanı imajındaki kurucu SQL'i (`10-roles` … `40-schema`, imajın `psql`'i ile, `/usr/local/share/shopfolio/bootstrap`) önce uygular; kullanıcı ve veritabanı adları işe özgüdür (`shopfolio_pkg*`), önceki koşudan kalan varsa önce düşürülür; Host/Port/Username `SHOPFOLIO_TEST_DATABASE`'ten okunur. Demet göç kullanıcısıyla, uygulama konteyneri uygulama kullanıcısıyla (parolasız, CI hizmeti güvenir) bağlanır. Herhangi bir adım başarısızsa betik `fail` iletisiyle düşer. Betik başı madde 5 ve adım başlığı güncellendi. Hizalanan yerler: `.github/ci-commands.env` yorumu, `05 §8.3.10`, `09 §21.4` tablosu 7. satır. `ci.yml`, `CI_CD_SETUP.md`, `11` T205 dışı satırlar adımın içeriğini sayı/adım olarak anmıyor (grep ile denetlendi).
+
+**Yerel sınama:** betik testleri `bash tests/scripts/run-script-tests.sh` yeşil (4 dosya). Betiğin kendisi yerelde koşuldu (`PACKAGE_BUILD_NETWORK` + `shopfolio-t205-pkg-pg` PostgreSQL 18): adım 1–5 geçti, kurucu SQL + göç demeti uygulandı ve `/sistem/canlilik` 200 verdi. Adım 6'da düştü: Windows'ta `mktemp` dizini Docker'a bağlanamadığı için `db_backup_storage_key` görünmedi — adım 6–7 bu değişiklikten bağımsızdır ve yerelde (Windows) koşulamaz; CI Linux'ta sınanır. Konteyner ve ağ adıyla silindi.
+
+**Öz denetim (düzeltme turu):**
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1–7 (açılış denetimi) | ✓ | kod değişmedi; denetim gevşetilmedi (`git diff origin/main -- src tests` bu turda boş) |
+| KK1–KK7 | ✓ | aynı; testler değişmedi |
+| `09 §25` Aynı sayıyı/adımı anan öteki yerler | ✓ | `grep -rn "package-build\|Paketleme"`: betik başı, adım başlığı, `ci-commands.env`, `05 §8.3.10`, `09 §21.4` hizalandı |
+| `09 §25` Test beklenen değeri sabitten türer | ✓ yok | yeni test yok; betikte sabit yalnız göç demeti yolu (`/app/efbundle`, satır 113'teki denetimle aynı) |
+| Bekçi/tarama istisnası | ✓ yok | istisna eklenmedi |
+| Güvenlik taraması | ✓ | sır yok; bağlantı dizisi CI ortam değişkeninden (parolasız, geçici hizmet); betik tarama adım 1'i geçer |
+| DB varsayılanı / FK dizini | ✓ yok | şema değişikliği yok |
+
 ## Doğrulama
 
 | Alan | Sonuç |
@@ -82,7 +102,7 @@
 
 - **Şema/migration:** Yok
 - **Config / ortam değişkeni:** Yok
-- **Paketleme / dağıtım:** Yok
+- **Paketleme / dağıtım:** Uygulama imajı ve kurulum değişmedi; yalnız CI betiği `scripts/ci/package-build.sh` (düzeltme turu 1)
 - **Yeni bağımlılık:** Yok
 
 ## Commit & PR

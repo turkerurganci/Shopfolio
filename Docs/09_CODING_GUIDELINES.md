@@ -2142,7 +2142,7 @@ Komutlar: `.github/ci-commands.env` · Kurulum: `Docs/CI_CD_SETUP.md`. Aşağıd
 | 3. Unit | Birim testleri, mimari testler ve kaynak taramaları (§19.2) |
 | 4. Integration | Gerçek PostgreSQL 18, sayfa ve uç testleri (§19.1) |
 | 6. Migration dry-run | Boş veritabanı ve son yayımlanan sürümün şeması; geri alma sınaması (madde 3); modelde göçe dönüşmemiş değişiklik yok (§10.6) |
-| 7. Paketleme | Üç imajın derlenmesi (§4.3, §17); `latest` etiketi ve sır değeri taraması (§17) |
+| 7. Paketleme | Üç imajın derlenmesi (§4.3, §17); `latest` etiketi ve sır değeri taraması (§17); kurucu SQL ve göç demeti uygulandıktan sonra uygulamanın canlılık denemesi |
 
 1. **Eşitlik denetimleri birim testidir ve Lint adımında koşar.** Doküman tablosu ile kod envanterinin eşitliğini sınayan denetimler `UnitTests/Consistency/` klasöründe, `Consistency` özelliğiyle işaretli sıradan birim testleridir; repo kökünü `Shopfolio.slnx`'ten bulur ve `Docs/` dosyalarındaki tabloyu okur. Lint adımı onları koşar, Unit adımı dışarıda bırakır (iki yerde iki kez koşmaz); özellik süzgeci `dotnet test --project … --filter-trait "Consistency=true"` (Lint) ve `--filter-not-trait "Consistency=true"` (Unit) komutlarıdır (T04'te sınandı). Aşağıdaki beşi bu dokümanın kapalı olmayan, en az listesidir: `11`'in model, uç, gezinme, durum × rol ve form envanteri eşitlik denetimleri (T120, T538, T546, T547) da aynı klasörde, aynı özellikle ve aynı adımda koşar (K-1471). En az şu beşi:
 

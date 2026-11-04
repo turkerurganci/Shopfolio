@@ -1,6 +1,6 @@
 # T117 — Gönderim kaydı ve kanal hâli
 
-**Faz:** F1 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -64,10 +64,33 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-04, head `ba81b23`, PR #375) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama tur 1 — ✓ PASS (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks` (ana checkout'un hook'ları; eşdeğer); ana dal son 3 run `41825046782` (Publish), `41825046994` (CI), `41820820561` (Publish) success; `MEMORY.md`'de T117 satırı var.
+
+**Kabul kriterleri:** kapsam tam (6 kriter, KK1–KK6, `09 §25`, güvenlik); hepsi ✓. Validator göçü ve iki yapılandırmayı `06 §4.58`, §4.60, §4'ün girişi, §2.2.5, §2.2.6, §2.3.2, §2.4.3, §7.1–§7.5 satırlarına ve önceki tek satır kalıbına (`Company`, `Branding`) karşı elle okudu:
+- Kriter 1, 6: iki tablo tek göçte (`20261104120550_CreateDispatchAndChannelStateTables`), `Down` yok; alan, tip ve boşluk `06` alan tablolarıyla birebir (`id`, `created_at` + 12 ve + 3 alan); varsayılanlar DB default'u (`'Queued'`, `0`, `0`); beş dizin `06 §7.5` satırlarıyla eşit, kuyruk dizini `dispatch_state = 'Queued'` filtreli; göçte `suppressTransaction`/`CONCURRENTLY`/`now()`/`UPDATE`/`DELETE` yok (grep eşleşmeleri yalnız enum adlarındaki `Deleted`); model ve anlık görüntü uyumlu (validator `dotnet ef migrations has-pending-model-changes` → "No changes").
+- Kriter 2: `CASE dispatch_type` kısıtı `06 §4.58` tür tablosunun 11 satırıyla validator karşılaştırmasında birebir; her `IN` listesi `IS NOT NULL` ile başlıyor (boş türün `NULL` sonucu kısıtı geçmez), `ELSE false`; tür ile kimlik birlikte kısıtı var. Test tablonun bağımsız kopyasıyla 29 tür × sipariş dolu/boş × 10 tür değerini dener.
+- Kriter 3: `sent_at_with_state` `Sent`'te dolu, `Queued`'da boş ister, `Undelivered`'ı serbest bırakır (K-1120); `next_attempt_only_when_queued`; `attempt_count >= 0`.
+- Kriter 4: tek FK `fk_dispatch_records_orders_order_id`, `NO ACTION` (`06 §2.2.5`, §4'ün girişi — `RESTRICT` değil); `RelatedRecordId` ve `OriginalDispatchId` FK'siz (`06 §7.2.3`); sipariş silme `23503` ile reddediliyor, ilgili kayıt ve ilk satır silinince gönderim satırı kalıyor.
+- Kriter 5: `AsSingleRow()` + göçte `ix_channel_state_records_single_row ON public.channel_state_records ((true))` (`Company`, `Branding` kalıbı); iki kontrol kısıtı `06 §4.60` ile birebir; sürüm alanı yok (`06 §4.60` "sürüm taşımaz").
+
+**`09 §25`:** göç genişletmedir; FK silme davranışı açık; anahtar `EntityIds.New()`; enum sütunları kod adıyla metin ve izinli değer kısıtlı (enum'lar T102'nin, yeni kapalı değer yok); yeni tablolar varsayılan yetkide (`Database` testleri yeşil); modül sınırı — `Order`'a yalnız tür adıyla bağ; varlıklar `05 §3.3.8` "Bildirim" modülünde; diff yalnız görevin istediği (T116 post-merge satırı dışında).
+
+**Testler (validator, yerel PostgreSQL 18 `shopfolio-t117-val-pg`):** build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` çıkış 0; Unit 245/245 (Consistency dahil); Integration 871 — T117 sınıfı 30/30, Model sınıfları iki grupta 452/452 ve 327/327, Database+FileSecrets+Web 62/62; yerel zaman aşımı yok; `dotnet restore --locked-mode` çıkış 0; koşu sonrası `git status` temiz. Dal CI `41827953732` (head `ba81b23`) success (önceki `41827881422` head `68df0dc` iptal — yeni push).
+
+**Güvenlik:** sır yok; yalnız şema, auth etkisi yok; girdi doğrulama uygulanamaz (uç yok); yeni bağımlılık yok (csproj ve kilit dosyası değişmedi).
+
+**`12` satırları:** kaynak birimleri `06` entity'leri ve `05 MK-38`, §4.4 (KP yok); `VAL-A951` `06 §4.58`'i anar ama geri dönme bildiriminin işlenişi ve uyarının satırıdır (gönderim akışı task'ının), T117'nin değil; `Durum` değişmedi; `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları:** yok.
+
+**Yapım raporu karşılaştırması:** kriter tablosu, KK listesi ve ⚠ kararlar validator'ın bağımsız okumasıyla tam uyumlu. ⚠ 2 (kanal hâli için silme bekçisi yok) kriter dışıdır; kalıcı kayıtların imhada silinmemesi imha task'ının kriteridir (`11` "Kalıcı kayıtlar … süreyle … silinmez", `06 §9.1.4`).
 
 ## Altyapı Değişiklikleri
 

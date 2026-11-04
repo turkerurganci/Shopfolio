@@ -207,7 +207,10 @@ public sealed class ModelRuleTests
         using AppDbContext context = SampleModel.CreateGoodContext();
         IModel model = ModelRules.ModelOf(context);
 
-        Assert.All(model.GetEntityTypes(), e => Assert.Equal(ValueGenerated.Never, e.FindPrimaryKey()!.Properties.Single().ValueGenerated));
+        // The package's DataProtectionKey keeps its database-generated integer key (06 §4.68); only Guid keys are bound by the rule.
+        IEnumerable<IProperty> guidKeys = model.GetEntityTypes().Select(e => e.FindPrimaryKey()!.Properties.Single()).Where(p => p.ClrType == typeof(Guid));
+        Assert.NotEmpty(guidKeys);
+        Assert.All(guidKeys, p => Assert.Equal(ValueGenerated.Never, p.ValueGenerated));
         IEntityType owner = model.GetEntityTypes().Single(e => e.GetTableName() == "sample_owners");
         Assert.True(owner.FindProperty("Version")!.IsConcurrencyToken);
         Assert.False(owner.FindProperty("Count")!.IsConcurrencyToken);

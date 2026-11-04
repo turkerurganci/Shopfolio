@@ -1,6 +1,6 @@
 # T110 — Ayırma ve düzeltme geçmişleri
 
-**Faz:** F1 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Doğrulama tur 1 PASS | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -25,6 +25,8 @@
 - `Docs/DEFERRED_BACKLOG.md` (D-54), `Docs/IMPLEMENTATION_STATUS.md`, `Docs/STATUS_CHANGELOG.md`, `.claude/memory/MEMORY.md`, `Docs/TASK_REPORTS/{T108,T109}_REPORT.md` (post-merge satırı).
 
 ## Kabul Kriterleri Kontrolü
+
+> **Validator kanıtı (tur 1, head `a7954b7`):** 7 kriterin hepsi ✓ — boş veritabanına (PostgreSQL 18) bütün göçler `dotnet ef database update` ile uygulandı, son göç tek `20261104060034_CreateStockReservationAndHistoryTables`, üç tablo var; sütun türleri ve boşalabilirlik `06 §4.14`, §4.61, §4.62 ve §2.5.1 ile birebir (telefon `varchar(10)`, varsayılan yok). `pg_constraint.confdeltype`: ayırma→varyant `c`, iki yönetici bağı `n`, öteki altısı (sipariş ×3, kupon, iki il) `a` — `06 §7.2` ile eşit. 15 ham SQL yoklamasında (FK tetikleri kapalı, `session_replication_role = replica`) varyantsız/kuponsuz ve ikisi dolu ayırma `ck_stock_reservations_exactly_one_of_variant_and_coupon`, sıfır adet ve iki adetli kupon satırı `ck_stock_reservations_quantity_above_zero_one_if_coupon`, aynı sipariş+varyant `ix_stock_reservations_order_id_variant_id`, aynı siparişte ikinci kupon satırı `ix_stock_reservations_order_id`, telefonlu fatura ve tek telefonlu teslimat satırı `ck_order_address_histories_phones_by_address_type`, dokuz haneli telefon `ck_order_address_histories_old_phone_ten_digits`, enum dışı tür `ck_order_address_histories_address_type` ile reddedildi; izinli satırlar (varyant adedi 3, kupon adedi 1, başka siparişte aynı varyant, iki telefonlu teslimat, telefonsuz fatura) kabul edildi. Kodda iki geçmişin başka yazım yolu yok; `OrderingRecordsGuard` yalnız `AdminId`'nin boşaltılmasına izin verir. `Down` yok, `GRANT`/`REVOKE` yok; yetki matrisi 8/8.
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
@@ -53,9 +55,26 @@ Doğrulama kontrol listesi: KK1 kriter 1; KK2 kriter 2; KK3 kriter 3; KK4 kriter
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-04, head `a7954b7`, PR #367) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-66) |
+
+### Doğrulama tur 1 — ✓ PASS (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks` (eşdeğer); ana dal son 3 run `41782286498`, `41782286493`, `41777013421` success; `MEMORY.md` satır 22'de T110.
+
+**Kabul kriterleri ve testler:** kapsam tam (7 kriter, KK1–KK7, `09 §25`, güvenlik); hepsi ✓. Yerel: `restore --locked-mode` 0; Release build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` 0; Unit 245/245 (Consistency dahil); Integration 478 (T110 sınıfı 28/28, Model 416/416, öteki 62/62; PostgreSQL 18); yetki matrisi 8/8; `has-pending-model-changes` "No changes". Dal CI `41784121098` (head `a7954b7`) success — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, Gate. Varlıklar `Modules/Ordering/` (`11` aday tablosu "Sepet ve sipariş"); modüller arası bağlar (`Variant`, `Coupon`, `Admin`, `Province`) `const string` + `HasOne` (`09 §10.1` m.1). `ModelRuleTests` basamak listesi (+1, `06 §2.2.5`'in "varyant → stok ayırma"sı), `EnumDatabaseTests` (33 → 34) doğru; `AddressType` kilit dosyası T102'den beri var. D-54 T110 payının kapanışı doğru (test kodda ve yeşil).
+
+**`09 §25`:** cevaplar evet ya da gerekçeli uygulanamaz. Göç genişletmedir (üç yeni tablo); yeni değer yok; `Down`, `suppressTransaction`, `CONCURRENTLY`, `now()` yok; siparişle büyüyen tabloda `UPDATE`/`DELETE` yok. §10.8: üç tablo istisna listesinde değil, göçte `GRANT`/`REVOKE` yok. §21: dal adı, commit biçimi `T110: …`, PR base `main` kurala uygun; T108/T109 raporlarının post-merge satırı bu dalda dolduruldu (validate adım 16 notunun izin verdiği yer).
+
+**Güvenlik:** sır yok; yalnız şema, auth etkisi yok; girdi doğrulama uygulanamaz (uç yok); yeni bağımlılık yok.
+
+**`12` satırları:** task'ın kaynak birimleri `06` entity'leridir (`11 §7.1`; KP birimi yok). `06 §4.14`'ü kaynak hücresinde anan tek satır `VAL-D103` (iptalde stok dönüşü) ve ayırmanın K numaralarını anan `VAL-D064`…`VAL-D070` (onay, serbest bırakma, varyant silme, havale ve iptal düzeltmesi akışları) sonraki akış task'larınındır — BEKLEMEDE kalır, `Durum` değişmedi; `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notu:** K1 → D-66 (iki geçmiş varlığının ayarlayıcıları public; kardeş yalnız-eklenen kayıtlar — `TransitionRecord`, `PriceHistory`, `LoginRecord` — `private set` taşır. Koruma bekçide eksiksiz, bugün yazan kod yok; hedef geçmişleri ilk yazan T375).
+
+**Yapım raporu karşılaştırması:** KK tablosu, test sayıları ve ⚠ kararlar uyumlu; uyuşmazlık yok. Yapım raporu "ayarlayıcıyı çağıran kod yok" diyerek K1'in bugünkü zararsızlığını zaten saptamıştı.
 
 ## Altyapı Değişiklikleri
 
@@ -87,6 +106,7 @@ Dış varsayım: yok (plan katmanı, kota, dış servis, paket sürümü yok; Po
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
 | 1 | Geçmişlerin yazım yolları (sipariş e-posta/adres düzeltmesi, onay ve serbest bırakma) | — | İlgili akış task'larının işi; bu task yalnız tabloları kurar |
+| 2 | İki geçmiş varlığının public ayarlayıcıları | D-66 | Yazan kod yok; geçmişleri ilk yazan task (T375) |
 
 ## Notlar
 

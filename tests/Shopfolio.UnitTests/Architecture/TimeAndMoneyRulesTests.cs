@@ -16,6 +16,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <c>DateTimeOffset.LocalDateTime</c>, a <c>DateTimeOffset</c> made from a <c>DateTime</c>, <c>TimeProvider.GetLocalNow</c>,
 /// <c>TimeProvider.LocalTimeZone</c>).</item>
 /// <item><c>TimeProvider.System</c> is named only by the registration class <c>Infrastructure.TimeSource</c>.</item>
+/// <item>No field, property, parameter or return is a <c>DateTime</c>: an instant is a <c>DateTimeOffset</c> (read by reflection).</item>
 /// <item><c>Math</c>, <c>MathF</c>, <c>decimal</c>, <c>double</c> and <c>float</c> rounding (<c>Round</c>, <c>Floor</c>, <c>Ceiling</c>,
 /// <c>Truncate</c>) and any call that takes a <c>MidpointRounding</c> is made only in <c>Infrastructure.Money</c>.</item>
 /// <item>No module type and not <c>Money</c> depends on <c>double</c> or <c>float</c>.</item>
@@ -75,6 +76,29 @@ public sealed partial class TimeAndMoneyRulesTests
         Assert.Contains((Sample, "InLambda()", "System.DateTime System.DateTime::get_UtcNow()"), findings);
         Assert.Contains((Sample, "InAsyncMethod()", "System.DateTimeOffset System.DateTimeOffset::get_UtcNow()"), findings);
         Assert.Contains((Sample, ".cctor()", "System.DateTime System.DateTime::get_UtcNow()"), findings);
+    }
+
+    // --- An instant is a DateTimeOffset, never a DateTime (09 7.1 item 2; 05 7.2.1) ---
+
+    [Fact]
+    public void Application_DeclaresNoDateTimeFieldPropertyParameterOrReturn()
+    {
+        Assert.Empty(DateTimeSignatures(typeof(Program).Assembly));
+    }
+
+    [Fact]
+    public void DateTimeSignatures_OnViolationSample_CatchEachPlace()
+    {
+        IReadOnlyList<string> findings = DateTimeSignatures(
+            System.Reflection.Assembly.LoadFrom(Path.Combine(AppContext.BaseDirectory, "TimeAndMoneyViolationSample.dll")));
+
+        const string Sample = "Shopfolio.Modules.Sample.LocalTimeRecord";
+        Assert.Contains($"{Sample}.CreatedAt (property)", findings);
+        Assert.Contains($"{Sample}._shippedAt (field)", findings);
+        Assert.Contains($"{Sample}.Expire(dueAt) (parameter)", findings);
+        Assert.Contains($"{Sample}.DueAt (return)", findings);
+        Assert.Contains($"{Sample}..ctor(openedAt) (parameter)", findings);
+        Assert.DoesNotContain(findings, f => f.StartsWith($"{Sample}.StoredAt", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -157,6 +181,43 @@ public sealed partial class TimeAndMoneyRulesTests
     private static List<(string Caller, string Member, string Target)> ForbiddenTimeCalls(ArchUnitNET.Domain.Architecture architecture)
     {
         return Calls(architecture).Where(c => ForbiddenTimeMember().IsMatch(c.Target)).ToList();
+    }
+
+    /// <summary>
+    /// Every field, property, method parameter and method return of <see cref="DateTime"/> (or <c>DateTime?</c>) declared in the assembly,
+    /// compiler-made members included: a <c>DateTime</c> whose <c>Kind</c> is wrong or unspecified shifts the time zone silently, so an
+    /// instant is a <see cref="DateTimeOffset"/> everywhere (09 7.1 item 2). A local inside a method body is not a declaration and is not
+    /// listed - <c>TurkeyTime</c> builds its day boundary that way.
+    /// </summary>
+    private static List<string> DateTimeSignatures(System.Reflection.Assembly assembly)
+    {
+        const System.Reflection.BindingFlags Declared = System.Reflection.BindingFlags.DeclaredOnly | System.Reflection.BindingFlags.Instance
+            | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
+        static bool IsDateTime(System.Type type) => (Nullable.GetUnderlyingType(type) ?? type) == typeof(DateTime);
+
+        List<string> findings = [];
+        foreach (System.Type type in assembly.GetTypes())
+        {
+            findings.AddRange(type.GetFields(Declared).Where(f => IsDateTime(f.FieldType)).Select(f => $"{type.FullName}.{f.Name} (field)"));
+            findings.AddRange(type.GetProperties(Declared).Where(p => IsDateTime(p.PropertyType))
+                .Select(p => $"{type.FullName}.{p.Name} (property)"));
+
+            // Accessors and operators are methods too; constructors take part through their parameters.
+            IEnumerable<System.Reflection.MethodBase> methods =
+                type.GetMethods(Declared).Concat<System.Reflection.MethodBase>(type.GetConstructors(Declared));
+            foreach (System.Reflection.MethodBase method in methods)
+            {
+                if (method is System.Reflection.MethodInfo info && IsDateTime(info.ReturnType))
+                {
+                    findings.Add($"{type.FullName}.{method.Name} (return)");
+                }
+
+                findings.AddRange(method.GetParameters().Where(p => IsDateTime(p.ParameterType))
+                    .Select(p => $"{type.FullName}.{method.Name}({p.Name}) (parameter)"));
+            }
+        }
+
+        return findings;
     }
 
     private static List<(string Caller, string Member, string Target)> SystemClockOutsideTimeSource(ArchUnitNET.Domain.Architecture architecture)

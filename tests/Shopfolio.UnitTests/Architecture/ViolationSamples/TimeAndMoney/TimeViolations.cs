@@ -49,3 +49,23 @@ public static class TimeViolations
 
     public static DateTime LoadedAt() => _loadedAt;
 }
+
+// An instant kept as DateTime (09 7.1 item 2): a property, a field, a parameter, a constructor parameter and a return. StoredAt is the
+// allowed form and is not reported.
+public sealed class LocalTimeRecord
+{
+    private DateTime? _shippedAt;
+
+    public LocalTimeRecord(DateTime openedAt)
+    {
+        CreatedAt = openedAt;
+    }
+
+    public DateTime CreatedAt { get; set; }
+
+    public DateTimeOffset StoredAt { get; set; }
+
+    public void Expire(DateTime dueAt) => _shippedAt = dueAt;
+
+    public DateTime? DueAt() => _shippedAt;
+}

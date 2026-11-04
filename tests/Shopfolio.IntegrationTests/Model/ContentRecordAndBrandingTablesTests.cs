@@ -352,7 +352,7 @@ public sealed class ContentRecordAndBrandingTablesTests : IAsyncLifetime
     public async Task PublishStatus_DraftAndPublished_AreAccepted(string table, string insert)
     {
         await ExecuteAsync(insert, ("status", "Draft"));
-        await ExecuteAsync($"TRUNCATE {table}");
+        await ExecuteAsync($"TRUNCATE {table} CASCADE");
         await ExecuteAsync(insert, ("status", "Published"));
 
         Assert.Equal(1L, await ScalarAsync<long>($"SELECT count(*) FROM {table}"));

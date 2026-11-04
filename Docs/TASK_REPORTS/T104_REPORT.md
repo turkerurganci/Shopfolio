@@ -1,6 +1,6 @@
 # T104 — Ürün çekirdeği ve görsel
 
-**Faz:** F1 | **Durum:** ✗ FAIL (doğrulama tur 2) | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ PASS (doğrulama tur 3) | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -24,7 +24,7 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Sekiz entity tek göçle | ✗ (tur 2) | `Migration_MakesTheEightTables`; göç betiği yerelde PostgreSQL 18'e uygulandı — *validator tur 2:* `06` alan tablolarının "Varsayılan" sütunu (veritabanının varsayılanı) altı sütunda karşılanmıyor (bulgu 1) |
+| 1 | Sekiz entity tek göçle | ✓ (tur 3) | `Migration_MakesTheEightTables`; göç betiği yerelde PostgreSQL 18'e uygulandı — *validator tur 2:* `06` alan tablolarının "Varsayılan" sütunu (veritabanının varsayılanı) altı sütunda karşılanmıyordu (bulgu 1); *validator tur 3:* altı sütunun `column_default`'u `06` ile birebir, düzeltme 2 doğrulandı |
 | 2 | VatRate, süre çitleri, trigram dizin | ✓ | `CatalogCoreTablesTests` KDV/süre/dizin testleri |
 | 3 | Varyant tekillikleri ve kısıtları | ✓ | stok kodu, `NULLS NOT DISTINCT`, fiyat/stok/ayrılmış adet testleri |
 | 4 | Option sırası | ✓ | üçüncü seçenek ve sıra çiti testleri |
@@ -36,6 +36,8 @@
 *Validator kanıtı (tur 1, `b4c73c8`):* sekiz kriterin her biri PostgreSQL 18'e uygulanan göç üzerinde ham SQL, `pg_constraint`/`pg_indexes` ve sorgu planıyla yeniden sınandı — ✓ (ayrıntı: "Doğrulama tur 1"); verdict `09 §25` bulguları yüzünden FAIL.
 
 *Validator kanıtı (tur 2, `1b9132d`):* kriter 2–8 ve KK1–KK8 ✓; kriter 1 ✗ — sütunlar, türler, zorunluluk, dizinler ve silme eylemleri `06` ile birebir, ama Varsayılan'ı dolu altı sütunun veritabanı varsayılanı yok (ayrıntı: "Doğrulama tur 2").
+
+*Validator kanıtı (tur 3, `fa4c2a0`):* kriter 1–8 ve KK1–KK8 ✓ — boş PostgreSQL 18 veritabanına `dotnet ef database update` ile uygulanan göç üzerinde `information_schema.columns`, `pg_constraint`, `pg_indexes` okundu ve 22 ham SQL yoklaması koşuldu (ayrıntı: "Doğrulama tur 3").
 
 ## Test Sonuçları
 
@@ -50,10 +52,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-04, head `1b9132d`); tur 1 ✗ FAIL (`b4c73c8`) |
-| Bulgu sayısı | Tur 2: 1 (S1 DÜŞÜK); tur 1: 3 (S1 DÜŞÜK ×3, düzeltme 1'de kapandı) |
-| Düzeltme gerekli mi | Evet — ikinci iterasyon FAIL: `12 §8.5` sınırı, eskalasyon (`INSTRUCTIONS.md` §3.3) |
-| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (K1 → D-52); tur 1: 2 (K1 → D-51, K2 → D-45) |
+| Doğrulama durumu | ✓ PASS — tur 3 (2026-11-04, head `fa4c2a0`); tur 2 ✗ FAIL (`1b9132d`); tur 1 ✗ FAIL (`b4c73c8`) |
+| Bulgu sayısı | Tur 3: 0; tur 2: 1 (S1 DÜŞÜK, düzeltme 2'de kapandı); tur 1: 3 (S1 DÜŞÜK ×3, düzeltme 1'de kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 3: 1 (K1 → D-53); tur 2: 1 (K1 → D-52); tur 1: 2 (K1 → D-51, K2 → D-45) |
 
 ### Doğrulama tur 1 — ✗ FAIL (2026-11-04)
 
@@ -147,6 +149,31 @@ Bulgu 1 (S1 DÜŞÜK, kriter 1): `06 §4` "Varsayılan veritabanının varsayıl
 Testler (`CatalogCoreTablesTests`): `ColumnsWithADefault_AreExactlyTheSixOfTheFieldTables_WithTheirDocumentedValues` (`information_schema.columns.column_default`, sekiz tabloda tam altı) ve `RawInsertsWithoutTheDefaultedColumns_GetTheDocumentedDefaults` (ham `INSERT` bu sütunlar yazılmadan satır ekler, varsayılanlar gelir).
 
 Test sonuçları (düzeltme 2): Unit 230/230, Integration 187/187 (gerçek PostgreSQL 18), `-warnaserror` 0 uyarı, `dotnet format --verify-no-changes` 0, `restore --locked-mode` 0.
+
+### Doğrulama tur 3 — ✓ PASS (2026-11-04)
+
+Yeniden doğrulama, kapsam tam (bütün kriterler, KK'lar, `09 §25`, güvenlik; yalnız düzeltilen yer değil).
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (mutlak yol, hook dosyaları mevcut — tur 1–2 ile aynı); ana dal son 3 run `41728889871`, `41728889974`, `41715894986` success; `MEMORY.md` satır 22'de T104.
+
+**Kabul kriterleri (validator kanıtı):** kendi PostgreSQL 18 konteynerinde `pg_trgm`'li boş veritabanına `dotnet ef database update` ile iki göç (`CreateSettingsTables`, `CreateCatalogCoreTables`) uygulandı; `information_schema.columns`, `pg_constraint` (`confdeltype` dahil), `pg_indexes` okundu ve 22 ham SQL yoklaması koşuldu.
+- **1 ✓** — sekiz tablo; 66 sütunun adı, türü (`varchar(150)`, `numeric(5,2)`, `numeric(12,2)`, `numeric(12,3)`), boş olabilirliği `06 §4.5`…§4.10, §4.69, §4.71 ile birebir; Varsayılan'ı dolu altı sütunun `column_default`'u `'Draft'`, `1`, `'Draft'`, `0`, `false`, `false` — başka sütunda varsayılan yok (tur 2 bulgusu kapandı); `has-pending-model-changes` temiz.
+- **2 ✓** KDV 100 → `ck_products_vat_rate_range`, 99,99 kabul; kargoya verme süresi 11 ve −1 → `ck_products_shipping_period_fence` (0–10, P-5); ifa süresi 0 ve sipariş tavanı 0 → `>= 1` çitleri (P-44, P-9); `ix_products_name_search_form` `USING gin (name_search_form gin_trgm_ops)`. **3 ✓** `KAPI-1` (normal biçimi `kapi-1` aynı) → `ix_variants_normalized_sku`; sıfır fiyat → `ck_variants_price_above_zero`; ayrılmış adet 3'ken stok 2 → `ck_variants_stock_not_below_reserved`; seçeneksiz üründe ikinci varyant → kombinasyon dizini (`NULLS NOT DISTINCT`); birinci değer boş, ikinci dolu → `ck_variants_second_value_needs_first`. **4 ✓** sıra 3 → `ck_options_sort_order_fence`; `ix_options_product_id_sort_order` tekil. **5 ✓** düzey 4 → `ck_categories_level_fence`; üstü dolu düzey 1 → `ck_categories_level_follows_parent`. **6 ✓** ikinci ana kategori → `ix_product_categories_product_id` (`WHERE is_primary_category`); ikinci ana görsel → `ix_product_images_product_id` (`WHERE is_main`); arşivdeki üründe aynı `Slug` → `ix_products_slug` (filtresiz); `celik-`, `a--b`, `Ab` → `ck_*_slug_format`. **7 ✓** 2561 piksel → `ck_images_dimensions_within_limits`; ürün silinince varyant, seçenek, seçenek değeri, iki bağ 0'a iner, kategori ve görsel kalır; dolu kategori, varyantın görseli, varyantın seçenek değeri ve alt kategorili üst kategori `NO ACTION` (`a`) yabancı anahtarla durur; ülke bağı `a`; basamaklı beş bağ `c`, `r` yok. **8 ✓** tek göç (`CreateCatalogCoreTables`), `Down` yok; göç dosyalarında `suppressTransaction`, `CONCURRENTLY`, `VACUUM`, `ALTER SYSTEM`, `CREATE DATABASE`, `now()`, `CREATE EXTENSION`, `UPDATE`, `DELETE FROM` yok; ilk deyim `pg_trgm` denetimi (`09 §10.6` m.8 kalıbı).
+- **KK1–KK8 ✓** — `CatalogCoreTablesTests` her maddeyi ihlal adıyla sınıyor; eklentisiz göç ve trigram planı testleri var; `MigrationSourceScan` ve `DataModelSourceScan` yeşil. D-50 (a)(b)(c) kapanışı yerinde (anlık görüntüde `SingleRow` yok; iki test).
+
+**Yerel:** `dotnet build -warnaserror` 0 uyarı; Unit 230/230 (Consistency dahil); betik testleri 4 dosya geçti; Integration 187/187 (PostgreSQL 18, kendi konteyneri); `dotnet format --verify-no-changes` 0; `restore --locked-mode` 0; koşu sonrası `git status` temiz. **Dal CI** `41743500401` (head `fa4c2a0`) dokuz iş success (E2E advisory success).
+
+**`09 §25`:** ad uyumu (`SKU`, `NormalizedSKU`, `IsMain`, `AltText`, `IsPrimaryCategory` …) birebir; kapsam yalnız sekiz entity + D-50; ürün sabitleri `ProductConstants`'ta (P-20, P-21, P-27), çitler `ParameterFences`'ta (P-9, P-44); silme davranışı her ilişkide açık, `Restrict` yok; kimlik `EntityIds`'ten; enum metin ve izinli değer kısıtlı; `Product.Version` eşzamanlılık belirteci (`09 §10.2` m.1); göç genişletmedir, eklenti kurmaz; yeni kilit dosyası gerekmedi (enum'lar T102'de); yeni paket yok.
+
+**Güvenlik:** sır yok; yetki/giriş yüzeyi yok; girdi denetimi veritabanı kısıtlarıyla (uygulama yazımı sonraki task'larda); yeni bağımlılık yok.
+
+**`12` satırları:** task'ın kaynak birimleri `06` entity'leridir (`11 §7.1`); `12` matrisinde bu birimlere bağlı satır yok (`06 §4.5`'i anan tek satır `VAL-A743`, kaynağı K-1193 (3) / `07 §9.13.2` — içerik formunun task'ı) — `Durum` hücresi değişmedi; `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**Bulgular:** yok.
+
+**K-notları:** K1 (→ D-53) kaynak kopyanın 2560 piksellik kenarı `Image.SourceMaxEdge` olarak yazıldı; `09 §15.6`'nın `ImagingLimits` sınıfı geldiğinde değer iki yerde yaşamamalı.
+
+**Yapım raporu karşılaştırması:** tam uyumlu — kriterler, düzeltme 2 tablosu (altı varsayılan) ve test sayıları (Unit 230, Integration 187) doğrulayıcının bulgusuyla aynı.
 
 ## Notlar
 

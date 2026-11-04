@@ -199,6 +199,8 @@ internal sealed class AppDbContext : DbContext, IDataProtectionKeyContext
     /// </summary>
     public static DbContextOptionsBuilder Configure(DbContextOptionsBuilder builder, string connectionString)
     {
+        // No retry strategy (09 10.7 item 4): the provider's automatic retry (EnableRetryOnFailure) stays off, so a lock timeout, a cancelled
+        // query or a connection cut for idling goes up as it is. The connection string carries the session times (DatabaseConnection).
         return builder
             .UseNpgsql(connectionString)
             .UseSnakeCaseNamingConvention()

@@ -169,6 +169,8 @@ services:
     # The password comes from the secret file; it never enters the image or the Compose file. It is handed to the migration
     # process through PGPASSWORD (Npgsql reads it), not through the command line, where the host's process list would show it.
     # $$ keeps the shell substitution away from Compose's own interpolation.
+    # The migration service connects with the maintenance session profile (09 10.7 item 2): the Options and Command Timeout keys carry the
+    # profile's times in the same form DatabaseConnection.Configure writes them; a consistency test keeps the two equal.
     image: ${SHOPFOLIO_APP_IMAGE:?SHOPFOLIO_APP_IMAGE is required (deploy/release.env)}
     restart: "no"
     security_opt:
@@ -176,7 +178,7 @@ services:
     entrypoint:
       - /bin/sh
       - -c
-      - export PGPASSWORD="$$(cat /run/secrets/db_migrator_password)" && exec ./efbundle --connection "Host=database;Database=shopfolio;Username=shopfolio_migrator"
+      - export PGPASSWORD="$$(cat /run/secrets/db_migrator_password)" && exec ./efbundle --connection "Host=database;Database=shopfolio;Username=shopfolio_migrator;Options=-c lock_timeout=5000 -c statement_timeout=600000 -c idle_in_transaction_session_timeout=30000;Command Timeout=605"
     secrets:
       - db_migrator_password
     networks:

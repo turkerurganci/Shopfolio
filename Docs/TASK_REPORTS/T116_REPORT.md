@@ -1,6 +1,6 @@
 # T116 — Galeri bağları
 
-**Faz:** F1 | **Durum:** ⏳ Yapım bitti, doğrulama bekliyor | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Doğrulama tur 1 PASS | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -62,7 +62,33 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-04, head `2c19c0c`, PR #374) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama tur 1 — ✓ PASS (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks` (ana checkout'un hook'ları; eşdeğer); ana dal son 3 run `41820820561` (CI), `41820820591` (Publish), `41815985996` (CI) success; `MEMORY.md`'de T116 satırı var.
+
+**Kabul kriterleri:** kapsam tam (6 kriter, KK1–KK6, `09 §25`, güvenlik); hepsi ✓. Validator göçü ve beş yapılandırmayı `06 §4.71`, §2.2.5, §2.3.1, §2.4, §7.1 (on satır), §7.2 (on FK satırı), §7.5 satırlarına ve `ProductImage` (T104) kalıbına karşı elle okudu:
+- Kriter 1, 6: beş tablo tek göçte (`20261104112826_CreateGalleryLinkTables`), `Down` yok; her tabloda `id`, `created_at`, sahip bağı, `image_id` (`uuid` NOT NULL), `sort_order` `integer` NOT NULL, `is_main` `boolean` NOT NULL `DEFAULT false`, `alt_text` `text` boş olabilir; göçte `suppressTransaction`/`CONCURRENTLY`/`now()`/`UPDATE`/`DELETE`/`GRANT` yok; `has-pending-model-changes` "No changes"; anlık görüntü farkı yalnız beş varlık.
+- Kriter 2: (sahip, `image_id`) tekil dizini beş tabloda; ikinci bağ `23505` ile `ix_<tablo>_<sahip>_image_id`'de reddediliyor; bir görsel iki galeriye girebiliyor.
+- Kriter 3: sahip bağında `WHERE is_main` filtreli tekil dizin; ikinci ana görsel reddediliyor, iki sahibin birer ana görseli ve ana olmayan çok görsel kabul.
+- Kriter 4: sahip bağı `ON DELETE CASCADE`, görsel bağı `NO ACTION` (`confdeltype` `c`/`a`); sahip silmede bağ gidiyor, görseller ve öteki galeri kalıyor; bağlı görselin silinmesi `23503` ile reddediliyor, bağ kalkınca siliniyor; `ModelRuleTests` basamaklama listesi beş satırla `06 §2.2.5`'in "kurumsal içerik kaydı → galeri bağları" maddesine eşit.
+- Kriter 5: sıra üzerinde dizin yok; aynı sıralı üç bağ kaydediliyor.
+
+**`09 §25`:** göç genişletmedir; FK silme davranışı açık; anahtar `EntityIds.New()`; yeni kapalı değer ve paket yok; yeni tablolar varsayılan yetkide (`PrivilegeMatrix` bütün `public` tablolarını tarar; `Database` testleri yeşil); modül sınırı — `Image`'e yalnız tür adıyla bağ (`Branch`, `Branding` kalıbı); diff yalnız görevin istediği (sahip yorumları ve T115 post-merge satırı dışında).
+
+**Testler (validator, yerel PostgreSQL 18 `shopfolio-t116-val-pg`, `fsync=off`):** build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` çıkış 0; Unit 245/245 (Consistency dahil); Integration 841 — T116 sınıfı + `ModelRuleTests` 61/61 (T116 sınıfı tek başına 47/47), Model sınıfları iki grupta 405/405 ve 313/313, Database+FileSecrets+Web 62/62; yerel zaman aşımı yok; `dotnet restore --locked-mode` çıkış 0; koşu sonrası `git status` temiz. Dal CI `41822520597` (head `2c19c0c`) success.
+
+**Güvenlik:** sır yok; yalnız şema, auth etkisi yok; girdi doğrulama uygulanamaz (uç yok); yeni bağımlılık yok.
+
+**`12` satırları:** kaynak birimleri `06` entity'leri (KP yok); `06 §4.71`'i ya da beş varlığı anan matris satırı yok (`VAL-A740` içerik silme akışının satırıdır, T116'nın değil); `Durum` değişmedi; `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları:** yok.
+
+**Yapım raporu karşılaştırması:** kriter tablosu, KK listesi ve ⚠ kararlar (Hakkımızda bağı da `Cascade`, testte Hakkımızda tek sahip, `ProductImage` kapsam dışı) validator'ın bağımsız okumasıyla tam uyumlu.
 
 ## Altyapı Değişiklikleri
 

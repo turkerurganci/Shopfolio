@@ -106,7 +106,7 @@ Not: Model ad alanının ilk koşusunda iki eski test (`AdminAndAuditTablesTests
 - **Branch:** `task/T111-kalem-kayitlari`
 - **PR:** #369
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `f90d538` — CI `41798998317`, Publish `41798998313` (success)
 
 ## Dış Varsayımlar
 

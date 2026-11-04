@@ -64,7 +64,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T108-oturum-baglanti-deneme-giris`
-- **PR:** *(PR açılınca yazılır)*
+- **PR:** #365
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

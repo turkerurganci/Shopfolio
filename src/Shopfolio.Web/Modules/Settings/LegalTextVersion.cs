@@ -69,6 +69,7 @@ internal sealed class LegalTextVersionConfiguration : IEntityTypeConfiguration<L
         builder.HasKey(l => l.Id);
         builder.Ignore(l => l.IsDraft);
         builder.Property(l => l.Text).HasColumnType("text");
+        builder.Property(l => l.Version).HasDefaultValue(1);
 
         // The number is unique within the type among filled rows; there is at most one draft per type (06 4.56).
         builder.HasIndex(l => new { l.LegalTextType, l.VersionNumber }).IsUnique().HasFilter("version_number IS NOT NULL");

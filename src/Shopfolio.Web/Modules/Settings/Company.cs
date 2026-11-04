@@ -67,6 +67,7 @@ internal sealed class CompanyConfiguration : IEntityTypeConfiguration<Company>
         builder.HasKey(c => c.Id);
         builder.AsSingleRow();
         builder.Property(c => c.Phone).HasMaxLength(10);
+        builder.Property(c => c.Version).HasDefaultValue(1);
         builder.HasOne<Province>().WithMany().HasForeignKey(c => c.ProvinceId).OnDelete(DeleteBehavior.NoAction);
 
         builder.HasRule("phone_ten_digits", "phone ~ '^[0-9]{10}$'");

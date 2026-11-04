@@ -109,6 +109,16 @@ internal sealed class CompanySettingsConfiguration : IEntityTypeConfiguration<Co
         builder.Property(s => s.WhatsAppNumber).HasMaxLength(10);
         builder.HasOne<Province>().WithMany().HasForeignKey(s => s.ReturnProvinceId).OnDelete(DeleteBehavior.NoAction);
 
+        // The defaults of 06 4.2 are the database's own (D-52): the two switches start off, every section version starts at 1.
+        builder.Property(s => s.IsBankTransferEnabled).HasDefaultValue(false);
+        builder.Property(s => s.IsSalesTemporarilyClosed).HasDefaultValue(false);
+        builder.Property(s => s.PaymentMethodsVersion).HasDefaultValue(1);
+        builder.Property(s => s.ShippingFeeVersion).HasDefaultValue(1);
+        builder.Property(s => s.DeliveryProvincesVersion).HasDefaultValue(1);
+        builder.Property(s => s.PeriodsVersion).HasDefaultValue(1);
+        builder.Property(s => s.ProductDefaultsVersion).HasDefaultValue(1);
+        builder.Property(s => s.ReturnAddressVersion).HasDefaultValue(1);
+        builder.Property(s => s.HomepageVersion).HasDefaultValue(1);
 
         builder.HasRule("bank_transfer_iban_required", "NOT is_bank_transfer_enabled OR bank_transfer_iban IS NOT NULL");
         builder.HasRule(

@@ -52,6 +52,9 @@ services:
     env_file:
       - path: ${SHOPFOLIO_SETTINGS_FILE:-/etc/shopfolio/settings.env}
         required: false
+    environment:
+      # The application's domain setting (Site:Domain; 09 3.5 item 2) is the same single value the reverse proxy reads (D-32 (a)).
+      Site__Domain: ${SHOPFOLIO_DOMAIN:?SHOPFOLIO_DOMAIN is required (the installation's domain name)}
     # No environment line for the database connection: the whole connection string (host, database, user and password) is the
     # content of the secret file db_app_connection, and the application reads the setting Database:ConnectionString from it
     # (05 6.x.1; 09 3.5 item 2).

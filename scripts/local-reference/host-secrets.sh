@@ -23,6 +23,8 @@ gen() { openssl rand -hex 24; }
 
 cat >/etc/shopfolio/settings.env <<'SETTINGS'
 SHOPFOLIO_DOMAIN=shopfolio.internal
+Email__SenderAddress=info@shopfolio.internal
+Email__Region=eu-central-1
 BACKUP_S3_ENDPOINT=t09-minio
 BACKUP_S3_REGION=us-east-1
 BACKUP_S3_BUCKET=shopfolio-backup

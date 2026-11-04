@@ -5,6 +5,7 @@ using Npgsql;
 using Shopfolio.Endpoints;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.FileSecrets;
+using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog;
@@ -27,9 +28,12 @@ builder.Services.AddTimeSource();
 var mountedFiles = new SecretFiles(SecretFiles.DefaultDirectory);
 ((IConfigurationBuilder)builder.Configuration).Add(new SecretFileConfigurationSource(mountedFiles));
 builder.Services.AddOptions<DatabaseOptions>()
-    .BindConfiguration(DatabaseOptions.SectionName)
-    .ValidateOnStart();
+    .BindConfiguration(DatabaseOptions.SectionName);
 builder.Services.AddSingleton<IValidateOptions<DatabaseOptions>, DatabaseOptionsValidator>();
+
+// The other settings and the start-up check of all of them, the database connection included (05 8.4.6): a required setting that is
+// missing or malformed stops the application before it answers a request; a conditional one closes its line (09 3.5 item 2).
+builder.Services.AddInstallationSettings();
 builder.Services.AddSingleton(provider => NpgsqlDataSource.Create(provider.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString));
 builder.Services.AddDbContext<AppDbContext>((provider, options) =>
     AppDbContext.Configure(options, provider.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString));

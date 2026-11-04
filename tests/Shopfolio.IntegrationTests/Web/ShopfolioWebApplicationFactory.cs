@@ -3,16 +3,29 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Logging;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.InstallationSettings;
 
 namespace Shopfolio.IntegrationTests.Web;
 
 /// <summary>
 /// Opens the application with the database of the test collection (09 19.1 item 5): the factory gives the application's own
 /// connection setting (<c>Database:ConnectionString</c>) the collection database's connection string, so the application
-/// registers its database context and data source the way it does in production.
+/// registers its database context and data source the way it does in production. The other required settings (09 3.5 item 2, 4.3 item 2)
+/// get made-up test values that belong to no installation; a test replaces one through <c>settings</c>, and an empty value is a missing one.
 /// </summary>
 public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Program>
 {
+    /// <summary>Made-up values of the required settings other than the database connection; 32 bytes of Base64 for the link secret.</summary>
+    public static readonly IReadOnlyDictionary<string, string> RequiredSettings = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        [SiteOptions.DomainKey] = "localhost",
+        [EmailOptions.SenderAddressKey] = "test@example.com",
+        [EmailOptions.RegionKey] = "eu-central-1",
+        [EmailOptions.CredentialKey] = "test-only-made-up-email-credential",
+    };
+
+    private static string MadeUpBase64(int bytes) => Convert.ToBase64String(new byte[bytes]);
+
     private readonly string _connectionString;
     private readonly IReadOnlyDictionary<string, string> _settings;
     private readonly ILoggerProvider? _loggerProvider;
@@ -30,6 +43,13 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting(DatabaseOptions.ConnectionStringKey, _connectionString);
+        foreach (KeyValuePair<string, string> setting in RequiredSettings)
+        {
+            builder.UseSetting(setting.Key, setting.Value);
+        }
+
+        // Built at run time (32 bytes, Base64): the repository's secret guard stops a secret-looking literal next to a secret key.
+        builder.UseSetting(LinkKeyOptions.DerivationSecretKey, MadeUpBase64(32));
         foreach (KeyValuePair<string, string> setting in _settings)
         {
             builder.UseSetting(setting.Key, setting.Value);

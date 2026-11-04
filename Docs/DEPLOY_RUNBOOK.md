@@ -111,6 +111,14 @@
 
 | # | Ayar | Tip | Örnek değer | Ne işe yarar |
 |---|---|---|---|---|
+| 1 | `Site:Domain` (ayar dosyası: `SHOPFOLIO_DOMAIN`; Compose uygulamaya `Site__Domain` olarak verir) | Alan adı (şemasız, bağlantı noktasız) | `shop.example.com` | Sitenin alan adı; ters vekil ve uygulama aynı tek değeri okur (`05 §8.4.3`; D-32 (a)) |
+| 2 | `Email:SenderAddress` (`Email__SenderAddress`) | Yalın e-posta adresi (görünen adsız) | `info@example.com` | E-postaların gönderen adresi; firmanın alan adındadır (`08 §2.2`) |
+| 3 | `Email:Region` (`Email__Region`) | Bölge adı | `eu-central-1` | E-posta gönderim hizmetinin bölgesi; e-posta gönderim kimliğinin (3 değer) sır olmayan parçası |
+| 4 | `Email:Credential` (sır dosyası `email_credential`, §B satır 13) | Boş olmayan metin | — (sır, burada örnek yok) | E-posta gönderim kimliğinin sır parçası; ayar dosyasında bulunmaz |
+| 5 | `Database:ConnectionString` (sır dosyası `db_app_connection`, §B satır 3) | Veritabanı bağlantı dizisi | — (sır) | Uygulama kullanıcısının bağlantısı; `Database:LivenessTimeoutSeconds` isteğe bağlı ayardır (§C) |
+| 6 | `LinkKey:DerivationSecret` (sır dosyası `link_derivation_secret`, §B satır 15) | Base64, çözülünce en az 32 bayt | — (sır) | Hesap bağlantılarının anahtarını türetir (`05 §6.4.4`) |
+
+> **Açılış denetimi (`05 §8.4.6`; `09 §3.5` madde 2):** yukarıdaki altı değerden biri eksik ya da biçimsizse uygulama açılmaz; kayıt satırı eksik ayarı **adıyla** yazar, değerini yazmaz. Ayar dosyasında ürün sabitinin adı (`02 §11.2`) bulunursa açılış yine reddedilir.
 
 ## B. Operasyonel secret'lar (zorunlu)
 
@@ -180,6 +188,26 @@ Veritabanı konteyneri ilk kez, **boş veri dizinleriyle** ve `compose.install.y
 
 | # | Ayar | Varsayılan | Varsayılanla ne olur | Prod'da ne olmalı |
 |---|---|---|---|---|
+| 1 | `Payment:ProviderKeys` (sır dosyası `payment_provider_keys`, §B satır 12) | Yok | Uygulama açılır, **kart hattı kapalıdır**; açılış kaydı kapalı hâli yazar (`05 §8.4.6`) | Kart ödemesi satılacaksa sağlayıcının anahtarları; yalnız havale satılacaksa boş kalabilir |
+| 2 | `Google:ClientId` (`Google__ClientId`) ve `Google:ClientSecret` (sır dosyası `google_client_secret`, §B satır 14) | Yok | İkisinden biri eksikse uygulama açılır, **Google ile giriş hattı kapalıdır**; açılış kaydı eksik anahtarı adıyla yazar | Google ile giriş sunulacaksa ikisi de dolu |
+| 3 | `RateLimit:PageRequestsPerMinute` (`RateLimit__PageRequestsPerMinute`) | `300` | Sayfa ve form istekleri IP başına dakikada 300 | Varsayılan yeterliyse dokunulmaz; sıfır ya da negatif değerle uygulama açılmaz (`09 §15.4` madde 2) |
+| 4 | `RateLimit:FormSubmissionsPerMinute` | `30` | Form gönderimleri (POST) IP başına dakikada 30 | Aynı |
+| 5 | `Logging:Level` | `Information` | Uygulamanın kendi kategorileri bilgi düzeyinde yazar; çatı ve veri erişimi uyarıda kalır (`09 §18.1` madde 4) | Aynı; geçerli değerler Trace, Debug, Information, Warning, Error, Critical |
+| 6 | `Database:LivenessTimeoutSeconds` | `2` | Canlılık ucu veritabanını en çok 2 saniye bekler (`09 §10.7` madde 6) | Aynı; sıfırdan büyük ve istemci komut süresinden (20 sn) kısa olmalı |
+| 7 | `StatusThreshold:DiskUsageFraction` | `0.85` | Disk doluluğu %85'i aşınca durum ucu uyarır (`05 §9.4.3`); yüklemenin kabul denetimi de bu değeri okur | Aynı; 0 ile 1 arasında |
+| 8 | `StatusThreshold:LogShippingStallMinutes` | `10` | İşlem günlüğü 10 dakikadır aktarılamıyorsa uyarır (`05 §9.4.4`) | Aynı |
+| 9 | `StatusThreshold:LogFilesWaitingMax` | `10` | Aktarılmayı bekleyen günlük dosyası 10'dan fazlaysa uyarır (`05 §9.4.4`) | Aynı |
+| 10 | `StatusThreshold:BackupAgeHours` | `26` | Dış depodaki son başarılı gecelik yedek 26 saatten eskiyse uyarır (`05 §9.4.5`) | Aynı |
+| 11 | `StatusThreshold:HeartbeatAgeMinutes` | `5` | Son nabız 5 dakikadan eskiyse uyarır (`05 §9.4.6`) | Aynı |
+| 12 | `StatusThreshold:UnexpectedErrorCount` | `10` | Pencere içinde en az 10 beklenmeyen hata uyarır (`05 §9.4.8`) | Aynı |
+| 13 | `StatusThreshold:UnexpectedErrorWindowMinutes` | `15` | Beklenmeyen hata penceresi 15 dakika (`05 §9.4.8`) | Aynı |
+| 14 | `StatusThreshold:PaymentStartFailureCount` | `5` | Art arda 5 jeton isteği bağlantı hatası uyarır (`05 §9.4.18`) | Aynı |
+| 15 | `StatusThreshold:PaymentStartFailureAgeMinutes` | `15` | Hata dizisinin ilk hatası 15 dakikadan eskiyse uyarır (`05 §9.4.18`) | Aynı |
+| 16 | `StatusThreshold:CertificateDaysLeft` | `14` | Sertifikanın bitişine 14 günden az kalmışsa uyarır (`05 §9.4.9`) | Aynı |
+| 17 | `StatusThreshold:JobQueueAgeMinutes` | `15` | Zamanı gelmiş en eski işlenmemiş iş satırı 15 dakikadan eskiyse uyarır (`05 §9.4.16`) | Aynı |
+| 18 | `StatusThreshold:NightlyJobAgeHours` | `26` | Son başarılı gecelik imha ve temizlik 26 saatten eskiyse uyarır (`05 §9.4.17`) | Aynı |
+
+> Satır 3–18 tasarım değeridir ve varsayılanı kodda durur (`09 §3.5` madde 3); ayar dosyasında değiştirilebilir, uygulamanın yeniden başlatılmasıyla geçerli olur. `tests/Shopfolio.UnitTests/Consistency/SettingLayersConsistencyTests` bu tablonun ayar adlarını ve varsayılanlarını koddakiyle eşit tutar.
 
 ## D. Bileşenler arası konfigürasyon eşleşmesi
 

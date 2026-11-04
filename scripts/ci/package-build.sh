@@ -120,9 +120,17 @@ if [ "$NETWORK" != "host" ]; then
   PUBLISH_ARGS=(-p "127.0.0.1:${HOST_PORT}:8080")
   URL="http://localhost:${HOST_PORT}"
 fi
-# The value is the CI service's connection string: no password, an ephemeral database that exists only in this job.
+# The database value is the CI service's connection string: no password, an ephemeral database that exists only in this job. The other
+# required settings (05 8.4.6; 09 3.5 item 2: without them the application does not open) are made up and belong to no installation;
+# the link secret is 32 made-up bytes in Base64.
 docker run -d --name "$APP_CONTAINER" --network "$NETWORK" "${PUBLISH_ARGS[@]}" \
-  -e "Database__ConnectionString=$SHOPFOLIO_TEST_DATABASE" "shopfolio-app:$TAG" >/dev/null
+  -e "Database__ConnectionString=$SHOPFOLIO_TEST_DATABASE" \
+  -e "Site__Domain=localhost" \
+  -e "Email__SenderAddress=ci@example.com" \
+  -e "Email__Region=eu-central-1" \
+  -e "Email__Credential=ci-only-made-up-email-credential" \
+  -e "LinkKey__DerivationSecret=ZGV2LW9ubHktbWFkZS11cC1saW5rLXNlY3JldC0zMiE=" \
+  "shopfolio-app:$TAG" >/dev/null
 
 deadline=$((SECONDS + LIVENESS_DEADLINE_SECONDS))
 status="000"

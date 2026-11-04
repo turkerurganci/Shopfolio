@@ -1,12 +1,12 @@
 # Development variant (05 8.1.2; 09 4.3 item 2): laid on top of compose.yaml,
 #   docker compose --env-file deploy/release.env --env-file deploy/.env.example -f deploy/compose.yaml -f deploy/compose.dev.yaml up
-# It adds the e-mail capture tool and one environment setting of the application (the made-up development connection string,
-# below), and replaces the application's secrets list; no other image, no other database version, no secret of an installation. No e-mail leaves the
+# It adds the e-mail capture tool and the environment settings of the application that development needs (the made-up development
+# connection string and the made-up values of the other required settings, below), and replaces the application's secrets list; no other image, no other database version, no secret of an installation. No e-mail leaves the
 # machine: the application's development setting selects the gateway that writes to the capture tool's SMTP port (09 4.3
 # item 2); that setting is added by the task that introduces it.
 #
 # Secret files: compose.yaml reads them from SHOPFOLIO_SECRETS_DIR. On a development machine point it at an untracked local
-# directory that holds made-up values (the payment provider's test keys, made-up passwords) and an EMPTY file for the e-mail
+# directory that holds made-up values (the payment provider's test keys, made-up passwords) and made-up content for the e-mail
 # sending credential: the real credential of an installation never reaches a development machine (05 8.1.2).
 # The database connection of the application: this file carries its development value (09 4.3 item 2). The value is made up and
 # is no secret of any installation: the whole connection string with a made-up password, which is also the made-up content of
@@ -23,6 +23,14 @@ services:
       # SHOPFOLIO_DEV_DATABASE (shell or env file) replaces the default when the local database differs; it is a development
       # convenience, not an installation setting, and is not in .env.example.
       Database__ConnectionString: ${SHOPFOLIO_DEV_DATABASE:-Host=database;Database=shopfolio;Username=shopfolio_app;Password=dev-only-made-up-password}
+      # Made-up values of the other required settings that are not secrets (09 4.3 item 2, 3.5 item 2): none belongs to an installation.
+      # The two required secret settings (Email:Credential, LinkKey:DerivationSecret) are NOT here: a secret is never a line of an
+      # environment or a settings file (05 8.4.3). They come from the secret files email_credential and link_derivation_secret of the
+      # development directory (SHOPFOLIO_SECRETS_DIR, above), which hold made-up content: any non-empty text for the e-mail credential
+      # (the development gateway does not use it) and 32 random bytes in Base64 for the link secret.
+      Site__Domain: localhost
+      Email__SenderAddress: dev@example.com
+      Email__Region: eu-central-1
     # Replaces (does not extend) the list of compose.yaml: the same list without db_app_connection.
     secrets:
       !override

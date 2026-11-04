@@ -3,11 +3,11 @@ using Microsoft.Extensions.Configuration;
 namespace Shopfolio.Infrastructure.FileSecrets;
 
 /// <summary>
-/// Configuration source that takes the value of one setting from a secret file (09 3.5 item 2; 05 6.x.1): the value of
-/// <see cref="DatabaseOptions.ConnectionStringKey"/> is the whole content of the connection string file Compose mounted into this
-/// container (<see cref="SecretNames.DatabaseConnectionFiles"/>, first that exists). It is added after every other source, so the
-/// file wins. When no such file is mounted (a development or test setup) the source contributes nothing and the setting comes from
-/// the other sources. The value is never logged.
+/// Configuration source that takes the value of a secret setting from its secret file (09 3.5 item 2; 05 6.x.1): for each entry of
+/// <see cref="SecretNames.Settings"/> the value of the setting is the whole content of the first of its files that is mounted into this
+/// container (the database connection has two files, a container is given at most one). It is added after every other source, so a file
+/// wins. When no file is mounted, or the mounted file is empty (the development machine's e-mail credential, 05 8.1.2), the source
+/// contributes nothing and the setting comes from the other sources. The value is never logged.
 /// </summary>
 internal sealed class SecretFileConfigurationSource : IConfigurationSource
 {
@@ -31,13 +31,16 @@ internal sealed class SecretFileConfigurationSource : IConfigurationSource
 
         public override void Load()
         {
-            foreach (string file in SecretNames.DatabaseConnectionFiles)
+            foreach (SecretSetting setting in SecretNames.Settings)
             {
-                string? value = _secrets.Read(file);
-                if (value is not null)
+                foreach (string file in setting.Files)
                 {
-                    Data[DatabaseOptions.ConnectionStringKey] = value;
-                    return;
+                    string? value = _secrets.Read(file);
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        Data[setting.Key] = value;
+                        break;
+                    }
                 }
             }
         }

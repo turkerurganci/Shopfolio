@@ -162,12 +162,13 @@ while IFS= read -r path; do
       # other arguments are literal-free named values (nullable, maxLength,
       # precision, scale, unicode, fixedLength). Any other quoted string,
       # positional literal, concatenation or second call keeps the normal
-      # rule. .cs only.
+      # rule. The call must close on the same line (open multi-line form is
+      # not exempt: its continuation lines would go unchecked). .cs only.
       case "$path" in
         *.cs)
           v_noq="$(echo "$value" | sed -E 's/([(,][[:space:]]*)type:[[:space:]]*"[^"]*"/\1type: T/g; s/[[:space:]]+$//')"
           EFARG='[[:space:]]*(type|nullable|maxLength|precision|scale|unicode|fixedLength)[[:space:]]*:[[:space:]]*[A-Za-z0-9_.]+[[:space:]]*,?'
-          echo "$v_noq" | grep -qE "^table\\.Column<[A-Za-z0-9_.?]+>\\(($EFARG)*(\\)[,;]?)?\$" && continue
+          echo "$v_noq" | grep -qE "^table\\.Column<[A-Za-z0-9_.?]+>\\(($EFARG)*\\)[,;]?\$" && continue
           ;;
       esac
     fi

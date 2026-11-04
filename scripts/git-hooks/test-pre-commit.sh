@@ -193,11 +193,13 @@ check 1 "ef column comment"          "src/m6.cs"           '    api_key = table.
 check 1 "ef column positional"       "src/m7.cs"           '    Password = table.Column<string>("abc12345xyz");'
 check 1 "ef column defaultValueSql"  "src/m8.cs"           '    token = table.Column<string>(type: "text", defaultValueSql: "'"'"'abc12345xyz'"'"'"),'
 check 1 "ef column open + literal"   "src/m9.cs"           '    password_hash = table.Column<string>(type: "text", defaultValue: "Sup3rS3cretValue!",'
+check 1 "ef column ctor open"        "src/m4.cs"           '    password_hash = table.Column<string>('
+check 1 "ef column open multi-line"  "src/m12.cs"          $'    password_hash = table.Column<string>(\n        type: "text",\n        defaultValue: "Sup3rS3cretValue!"),'
+check 1 "ef column open 2-line"      "src/m13.cs"          $'    password_hash = table.Column<string>(type: "text",\n        defaultValue: "Sup3rS3cretValue!"),'
 
 echo "--- must pass (exit 0) ---"
 check 0 "exc: dotted chain"          "src/u1.cs"           'ApiKey = options.Value.ApiKey;'
 check 0 "exc: ef column ctor"        "src/m3.cs"           '    password_hash = table.Column<string>(type: "text", nullable: true),'
-check 0 "exc: ef column ctor open"   "src/m4.cs"           '    password_hash = table.Column<string>('
 check 0 "exc: ef column timestamp"   "src/m10.cs"          '    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),'
 check 0 "exc: ef column maxLength"   "src/m11.cs"          '    email = table.Column<string>(type: "character varying(320)", maxLength: 320, nullable: false),'
 check 0 "exc: nameof chain"        "src/u2.cs"           'Token = nameof(Foo.Bar);'

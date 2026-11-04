@@ -126,6 +126,12 @@ Yeniden doğrulama, kapsam tam (kriter 1–7, KK1–KK7, `09 §25`, güvenlik); 
 
 **Eskalasyon:** bu ikinci iterasyonun FAIL'idir (`12 §8.5`, `00 §A.3`); yeni doğrulama chat'i açılmaz, `INSTRUCTIONS.md` §3.3 eskalasyonu.
 
+### Düzeltme 2 (2026-11-04)
+
+**Bulgu → değişiklik.** Tur 2 bulgu 1 (ORTA, güvenlik): EF sütun kurucusu istisnası açık biçimi (`password_hash = table.Column<string>(`, parantez aynı satırda kapanmıyor) koşulsuz geçiriyordu; devam satırındaki `defaultValue: "…"` sol tarafı sır anahtarı olmadığından hiç denetlenmiyordu (main'e göre gerileme). `scripts/git-hooks/pre-commit`: istisna yalnız aynı satırda kapanan `table.Column<Tür>(…)` biçimine uygulanır (`\)[,;]?$` zorunlu); argüman kısıtları (yalnız `type: "…"` dizgisi, öteki literal-dizgisiz adlı değerler) aynı kaldı. Açık biçim normal kurala düşer ve yakalanır. `README.md`: "çok satırlı biçimde aynı ilke" cümlesi kaldırıldı, "yalnız aynı satırda kapanan biçim" yazıldı.
+
+**Test.** `test-pre-commit.sh`: `m4` (açık satır) "geçer"den "yakalanır"a döndü; raporun üç satırlık gerçek çok satırlı örneği (`m12`, açık satır + `type: "text",` + `defaultValue: "Sup3rS3cretValue!"),`) ve iki satırlı biçim (`m13`) "yakalanır" olarak eklendi; `m9` (literal açık satırda) korundu. Kapalı tek satırlı "geçer" örnekleri (`m3`, `m10`, `m11`) değişmedi. Depodaki bütün göç dosyalarında (`src/Shopfolio.Web/Infrastructure/Migrations/*.cs`) `grep` ile denetlendi: her `table.Column` satırı tek satırlı ve `)`, `),` ya da `);` ile kapalı (kapalı olmayan satır 0) — yeni bekçi göçleri yanlış pozitifle engellemez. C# değişmedi. Betik testi: 202 → 204 örnek, 204/204 geçti (`m4` döndü, `m12` ve `m13` eklendi); `dotnet format --verify-no-changes` ve `dotnet restore --locked-mode` çıkış 0.
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Var — `CreateAdminInvitationAndAuditLogTables` (üç tablo, imha fonksiyonu, yetki satırları).

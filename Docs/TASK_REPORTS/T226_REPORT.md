@@ -1,6 +1,6 @@
 # T226 — Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-04
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-04
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -64,15 +64,18 @@ Bütün maddeler bu devam turunda yeniden, diff üzerinde denetlendi.
 | Unit (Consistency dahil) | ✓ | `dotnet test tests/Shopfolio.UnitTests` | 520/520 |
 | Integration | ✓ | `dotnet test tests/Shopfolio.IntegrationTests` (PostgreSQL 18, konteyner `shopfolio-t226-pg`) | 978/980 ilk koşuda; iki başarısız (`GalleryLinkTablesTests`, `SchedulerBackupDisposalAndKeyTablesTests` — zaman aşımı, yük altında) tek başlarına 102/102 geçti; T226 sınıfları (`StartupSettingsCheckTests`, `SecretFilesTests`) 41/41 |
 | Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Validator (tur 1) | ✓ | aynı komutlar, PostgreSQL 18 | Build 0/0, format temiz, Unit 520/520, Integration 980/980 (Web 34, FileSecrets 24, Model 893, Database 29; zaman aşımı yok), betik testleri 4 dosya; dal CI 41898811183 bütün işler success |
 
 ## Doğrulama
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-04, head `2381b8b`, dal CI 41898811183 yeşil) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-80: sır bekçisi `-e "ANAHTAR=değer"` biçimini görmez; K2 → D-81: koşullu hat hâlini tüketen task'lar T226'nın türünü anmıyor) |
+
+**Validator kanıtları (kabul kriterleri):** kriter 1–6 ve KK1–KK6 ✓. Derlenmiş uygulamayla gerçek açılış sondası (ortam değişkenleri = Compose `env_file` yolu): tam ayarla açıldı, kart ödemesi ve Google girişi kapalı Warning satırı; `Catalog__CategoryLevelMax` (ürün sabiti adı), eksik `Email__SenderAddress`, kısa `LinkKey`, veritabanı yok ve `RateLimit__PageRequestsPerMinute=word` ile açılmadı, Critical satır anahtar adıyla, hiçbir çıktıda değer yok (KK2, KK4, KK5). Sekiz kasıtlı bozma (ürün sabiti koruması kapalı, hız varsayılanı 301, `.env.example`'a sır ayarı, iletiye değer, hosted service kaydı silindi, sır dosyası listeden çıktı, kart hattı hep açık, `SiteOptions`'a sabit adlı üye) her biri ilgili testi kırmızıya çevirdi, hepsi geri alındı. `05 §9.4.2` eşikleri koddaki 12 varsayılanla birebir; `09` §3.5, §15, §18.1 adları birebir. Sır bekçisi ve `DeploySecretScan` istisnaları değişmedi (KK3).
 
 ## Altyapı Değişiklikleri
 
@@ -85,7 +88,7 @@ Bütün maddeler bu devam turunda yeniden, diff üzerinde denetlendi.
 
 - **Branch:** `task/T226-ayar-katmanlari`
 - **Commit:** `dcf7409` (öncesi `fe23813`)
-- **PR:** PR'da
+- **PR:** #383
 - **CI:** yapım işçisi izlemez
 - **Post-merge run'lar:** *(validator doldurur)*
 

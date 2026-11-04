@@ -1,6 +1,6 @@
 ---
 name: task
-description: "Implementation task'ının yapım chat'ini işletir — başlangıç kapıları, referans dokümanlar, kod, test, PR ve 8 maddelik bitiş kapısı. Kullan: 'TXX yap', 'task TXX', /task TXX. Doğrulama ve merge bu skill'in işi DEĞİLDİR."
+description: "Implementation task'ının yapım chat'ini işletir — başlangıç kapıları, referans dokümanlar, kod, test, PR ve 9 maddelik bitiş kapısı. Kullan: 'TXX yap', 'task TXX', /task TXX. Doğrulama ve merge bu skill'in işi DEĞİLDİR."
 user-invocable: true
 ---
 
@@ -156,9 +156,10 @@ gh run list --branch main --limit 3 --json databaseId,conclusion,status,displayT
 
 ## Bitiş kapısı
 
-Aşağıdaki **sekiz maddenin hepsi ✓** olmadan task "yapım bitti" sayılmaz ve doğrulama chat'ine geçilmez:
+Aşağıdaki **dokuz maddenin hepsi ✓** olmadan task "yapım bitti" sayılmaz ve doğrulama chat'ine geçilmez:
 
 - [ ] **Branch push edildi** — `git push -u origin task/TXX-*` başarılı
+- [ ] **Öz denetim** — 11'deki kabul kriterleri ve doğrulama kontrol listesi kendi diff'inde madde madde denetlendi (`grep -n` + satır aralığı), raporda madde başına ✓ + kanıt (dosya/test adı) tablosu var; devam ya da düzeltme işçisi tablonun bütün maddelerini yeniden denetler, yalnız kalanları değil
 - [ ] **PR açıldı** — PR numarası geri geldi
 - [ ] **PR numarası rapora yazıldı** — "Commit & PR" bölümünde `PR: #NN`
 - [ ] **Rapor + status + memory push edildi**

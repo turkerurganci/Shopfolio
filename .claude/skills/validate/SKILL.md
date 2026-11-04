@@ -10,7 +10,7 @@ user-invocable: true
 > **Tetikleme:** "TXX doğrula", "validate TXX" veya `/validate TXX`.
 > **Parametre:** `hedef` — task numarası
 > **Kural:** Bu skill **asla yapım chat'inde çalıştırılmaz.** Yapan ≠ denetleyen.
-> **Yönetici yardımcı düzeni açıkken (`INSTRUCTIONS.md` §3.3; K-1505):** "ayrı chat" yerine yardımcının açtığı izole doğrulama ajanında (`general-purpose`, `[dogrulama]`, Opus + `high`) koşar; girdisi yalnız yardımcının yazdığı talimat dosyasıdır. Ajan 16. adımda durur — **merge etmez**; verdict'i (Çıktı formatı bloğu) talimattaki rapor dosyasına yazar. 17–18. adımı yardımcı, rapor dosyasında PASS okuduktan ve dal CI'ı yeşilse yapar.
+> **Yönetici yardımcı düzeni açıkken (`INSTRUCTIONS.md` §3.3; K-1505):** "ayrı chat" yerine yardımcının açtığı izole doğrulama ajanında (`general-purpose`; para dışı task `[dogrulama-orta]` Opus + `medium`, para task'ı ve emin olunmayan durum `[dogrulama]` Opus + `high` — `INSTRUCTIONS.md` §3.3) koşar; girdisi yalnız yardımcının yazdığı talimat dosyasıdır. Ajan 16. adımda durur — **merge etmez**; verdict'i (Çıktı formatı bloğu) talimattaki rapor dosyasına yazar. 17–18. adımı yardımcı, rapor dosyasında PASS okuduktan ve dal CI'ı yeşilse yapar.
 
 ---
 
@@ -67,7 +67,7 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 
 - En az bir satır varsa → devam.
 - Hiç satır yoksa → **HARD STOP / BLOCKED (`DEPENDENCY_MISMATCH`).**
-  - Bulgu: *"Repo memory drift — TXX için satır yok. Yapım chat'i memory'i güncellemeden validate'e geçti (task bitiş kapısı madde 8 ihlali)."*
+  - Bulgu: *"Repo memory drift — TXX için satır yok. Yapım chat'i memory'i güncellemeden validate'e geçti (task bitiş kapısı madde 9 ihlali)."*
   - Düzeltme: yapım chat'ine dön → memory güncelle → `chore: memory — TXX yansıt` commit+push (aynı task PR'ına dahil edilebilir veya ayrı chore PR). Sonra validator yeniden başlar.
   - *"Sonra ekleriz"*, *"önemsiz"* yasak.
 
@@ -135,6 +135,7 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 ## Faz 3 — Karşılaştırma ve finalize
 
 13. **Şimdi yapım raporunu oku** — kendi verdict'inle karşılaştır, uyuşmazlıkları belirt.
+    Yapım raporunda öz denetim tablosu (kabul kriteri ve KK başına ✓ + kanıt) yoksa ya da bir maddesi kanıtsızsa bunu uyuşmazlık olarak yaz (task skill Bitiş kapısı).
 
 14. **Raporu finalize et** — doğrulama bölümünü doldur (durum, bulgu sayısı, düzeltme gerekli mi), kabul kriterleri tablosunu validator kanıtlarıyla güncelle.
 

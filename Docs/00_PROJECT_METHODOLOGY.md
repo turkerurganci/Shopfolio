@@ -1,6 +1,6 @@
 # Project Playbook — Metodoloji
 
-**Versiyon: v1.0.13** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-11-02
+**Versiyon: v1.0.14** | **Bağımlılıklar:** Yok (kök doküman) | **Son güncelleme:** 2026-11-04
 
 > Bu doküman bir yazılım projesini **fikirden çalışan MVP'ye** taşıyan yöntemin tamamıdır:
 > doküman üretimi, implementasyon, doğrulama, borç kapatma ve kapanış.
@@ -291,7 +291,7 @@ Task commit'leri `TXX: ...` ile başlar; task'a ait olmayan işler `chore:`/`doc
   Adım  7  Branch aç
   Adım 8-12 Kod + test + build + mini güvenlik + self-check
   Adım 13-16 Commit/push + rapor taslağı + status ⏳ + push
-  Bitiş Kapısı (8 madde) .................... hepsi ✓ olmadan bitmez
+  Bitiş Kapısı (9 madde) .................... hepsi ✓ olmadan bitmez
         │
         ▼
 /validate TXX  (AYRI chat)
@@ -492,16 +492,19 @@ Kaynak kuralın doğduğu vakada sorun kanıt üretememek değil, **varsayımın
 
 ### F.5 Bitiş kapısı (yapım chat'i)
 
-Sekiz maddenin **hepsi ✓** olmadan task "yapım bitti" sayılmaz ve doğrulama chat'ine geçilmez:
+Dokuz maddenin **hepsi ✓** olmadan task "yapım bitti" sayılmaz ve doğrulama chat'ine geçilmez:
 
 1. Branch push edildi
-2. PR açıldı, numara geri geldi
-3. PR numarası task raporuna yazıldı
-4. Rapor + status commit'lendi ve push edildi
-5. CI run **tamamlandı** (`in_progress`/`queued` beklenir — "başladı" yeterli değildir)
-6. CI run sonucu **`success`**
-7. Branch izolasyon check temiz (dalda yalnız kendi TXX'i)
-8. Repo memory'de TXX satırı eklendi/güncellendi
+2. Öz denetim: planın kabul kriterleri ve doğrulama kontrol listesi kendi diff'inde madde madde denetlendi; raporda madde başına ✓ + kanıt var. Devam ya da düzeltme turu bütün maddeleri yeniden denetler, yalnız kalanları değil
+3. PR açıldı, numara geri geldi
+4. PR numarası task raporuna yazıldı
+5. Rapor + status commit'lendi ve push edildi
+6. CI run **tamamlandı** (`in_progress`/`queued` beklenir — "başladı" yeterli değildir)
+7. CI run sonucu **`success`**
+8. Branch izolasyon check temiz (dalda yalnız kendi TXX'i)
+9. Repo memory'de TXX satırı eklendi/güncellendi
+
+> **Vaka (öz denetim):** Bir fazda doğrulama turlarının %40'ı FAIL verdi; çoğu bulgu planın kendi kontrol listesinde yazılıydı. Yapımcı PR'dan önce listeyi kendi diff'inde madde madde denetleyince FAIL oranı %10'a indi.
 
 **Otomatik BLOCKED trigger:** Raporda "PR: Henüz oluşturulmadı", "PR: TBD", "PR: —" veya boş PR alanı görülürse otomatik BLOCKED (`DEPENDENCY_MISMATCH`) — yapım chat'i açık kalır, sonraki task'a geçilmez.
 
@@ -550,7 +553,7 @@ Her ikisi de Git'te tutulur; her commit'te güncellenir.
 
 ### G.4 Memory drift kapısı
 
-Repo memory'nin güncelliği **gözlemlenebilir değildir** — hiçbir kapı kontrol etmezse sessizce geride kalır. Bu yüzden üç yerde kontrol edilir: yapım bitiş kapısı (madde 8), validator Adım 0b, gate check PASS ritüeli.
+Repo memory'nin güncelliği **gözlemlenebilir değildir** — hiçbir kapı kontrol etmezse sessizce geride kalır. Bu yüzden üç yerde kontrol edilir: yapım bitiş kapısı (madde 9), validator Adım 0b, gate check PASS ritüeli.
 
 ---
 
@@ -785,4 +788,4 @@ Prova sonucu `DEPLOY_RUNBOOK.md`'ye yazılır: ne çalıştı, ne kırıldı, ha
 
 ---
 
-*Project Playbook — Metodoloji v1.0.13*
+*Project Playbook — Metodoloji v1.0.14*

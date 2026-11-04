@@ -182,8 +182,7 @@ public sealed class CheckConstraintConsistencyTests
     public void Slugs_ATableDroppedFromTheRowOrTheModel_IsReported()
     {
         string document = DataModelDocument.Load();
-        Match row = Regex.Match(document, @"^| `Variant` | (?<text>İkinci değer.*) | §4.6 |$"| `PriceHistory` | `Price` > 0 |.*
-"\| `Product`, `Category`, `Offering`, `PortfolioItem`, `CustomPage` \|", RegexOptions.Multiline, TimeSpan.FromSeconds(5));
+        Match row = Regex.Match(document, @"\| `Product`, `Category`, `Offering`, `PortfolioItem`, `CustomPage` \|", RegexOptions.Multiline, TimeSpan.FromSeconds(5));
         Assert.True(row.Success);
         string changed = document.Replace(row.Value, "| `Product`, `Category`, `Offering`, `PortfolioItem` |", StringComparison.Ordinal);
 
@@ -225,7 +224,7 @@ public sealed class CheckConstraintConsistencyTests
         {
             if (rows[table] != items)
             {
-                problems.Add(@"^| `Variant` | (?<text>İkinci değer.*) | §4.6 |$"{table}: the document's row states {rows[table]} items and the code list says {items}.");
+                problems.Add($"{table}: the document's row states {rows[table]} items and the code list says {items}.");
             }
         }
 
@@ -253,24 +252,24 @@ public sealed class CheckConstraintConsistencyTests
     private static List<string> EnumProblems(ModelFactsSample model)
     {
         List<string> problems = [];
-        Dictionary<string, CheckFact> sets = model.Checks.Where(DocumentedChecks.IsEnumSet).ToDictionary(c => @"^| `Variant` | (?<text>İkinci değer.*) | §4.6 |$"{c.Table}.{c.Sql.Split(' ')[0].Trim('"')}", StringComparer.Ordinal);
+        Dictionary<string, CheckFact> sets = model.Checks.Where(DocumentedChecks.IsEnumSet).ToDictionary(c => $"{c.Table}.{c.Sql.Split(' ')[0].Trim('"')}", StringComparer.Ordinal);
         HashSet<string> enumColumns = new(StringComparer.Ordinal);
         foreach (PropertyFact property in model.Properties.Where(p => (Nullable.GetUnderlyingType(p.ClrType) ?? p.ClrType).IsEnum))
         {
             Type enumType = Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType;
-            string key = @"^| `Variant` | (?<text>İkinci değer.*) | §4.6 |$"{property.Table}.{DataModelDocument.Snake(property.Name)}";
+            string key = $"{property.Table}.{DataModelDocument.Snake(property.Name)}";
             enumColumns.Add(key);
             if (!sets.TryGetValue(key, out CheckFact? set))
             {
-                problems.Add(@"^| `Variant` | (?<text>İkinci değer.*) | §4.6 |$"{property.Table}.{property.Name}: the enum column has no value set constraint (06 7.3.1).");
+                problems.Add($"{property.Table}.{property.Name}: the enum column has no value set constraint (06 7.3.1).");
                 continue;
             }
 
             string[] values = [.. Regex.Matches(set.Sql, "'([^']*)'", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)).Select(m => m.Groups[1].Value)];
-            problems.AddRange(values.Where(v => !Enum.GetNames(enumType).Contains(v)).Select(v => @"^| `Variant` | (?<text>İkinci değer.*) | §4.6 |$"{set.Name}: the value '{v}' is not a member of {enumType.Name}."));
+            problems.AddRange(values.Where(v => !Enum.GetNames(enumType).Contains(v)).Select(v => $"{set.Name}: the value '{v}' is not a member of {enumType.Name}."));
         }
 
-        problems.AddRange(sets.Keys.Where(k => !enumColumns.Contains(k)).Select(k => @"^| `Variant` | (?<text>İkinci değer.*) | §4.6 |$"{k}: a value set constraint on a column that is not an enum column."));
+        problems.AddRange(sets.Keys.Where(k => !enumColumns.Contains(k)).Select(k => $"{k}: a value set constraint on a column that is not an enum column."));
         return problems;
     }
 

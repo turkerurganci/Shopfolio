@@ -6,6 +6,7 @@ using Shopfolio.Endpoints;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.StartupDatabase;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
@@ -18,6 +19,10 @@ using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Settings;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// Logging: the one configuration point (09 18.1 item 1) and the audit line writer of this process (09 18.1 item 2).
+builder.AddApplicationLogging();
+builder.Services.AddAuditLineWriter();
 
 builder.Services.AddRazorPages();
 

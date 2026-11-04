@@ -19,9 +19,6 @@ internal static partial class LibraryTableConsistency
     /// </summary>
     public static readonly IReadOnlySet<string> NotYetAdded = new HashSet<string>(StringComparer.Ordinal)
     {
-        "Serilog",
-        "Serilog.Sinks.File",
-        "Serilog.AspNetCore",
         "HtmlSanitizer",
         "Magick.NET-Q8-AnyCPU",
         "AWSSDK.SimpleEmailV2",

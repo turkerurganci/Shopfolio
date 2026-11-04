@@ -192,7 +192,7 @@ Veritabanı konteyneri ilk kez, **boş veri dizinleriyle** ve `compose.install.y
 | 2 | `Google:ClientId` (`Google__ClientId`) ve `Google:ClientSecret` (sır dosyası `google_client_secret`, §B satır 14) | Yok | İkisinden biri eksikse uygulama açılır, **Google ile giriş hattı kapalıdır**; açılış kaydı eksik anahtarı adıyla yazar | Google ile giriş sunulacaksa ikisi de dolu |
 | 3 | `RateLimit:PageRequestsPerMinute` (`RateLimit__PageRequestsPerMinute`) | `300` | Sayfa ve form istekleri IP başına dakikada 300 | Varsayılan yeterliyse dokunulmaz; sıfır ya da negatif değerle uygulama açılmaz (`09 §15.4` madde 2) |
 | 4 | `RateLimit:FormSubmissionsPerMinute` | `30` | Form gönderimleri (POST) IP başına dakikada 30 | Aynı |
-| 5 | `Logging:Level` | `Information` | Uygulamanın kendi kategorileri bilgi düzeyinde yazar; çatı ve veri erişimi uyarıda kalır (`09 §18.1` madde 4) | Aynı; geçerli değerler Trace, Debug, Information, Warning, Error, Critical |
+| 5 | `Logging:Level` | `Information` | Uygulamanın kendi kategorileri bilgi düzeyinde yazar; çatı ve veri erişimi uyarıda kalır (`09 §18.1` madde 4) | Aynı; geçerli değerler Verbose, Debug, Information, Warning, Error, Fatal (kayıt kütüphanesinin düzeyleri; `09 §18.2` madde 1) |
 | 6 | `Database:LivenessTimeoutSeconds` | `2` | Canlılık ucu veritabanını en çok 2 saniye bekler (`09 §10.7` madde 6) | Aynı; sıfırdan büyük ve istemci komut süresinden (20 sn) kısa olmalı |
 | 7 | `StatusThreshold:DiskUsageFraction` | `0.85` | Disk doluluğu %85'i aşınca durum ucu uyarır (`05 §9.4.3`); yüklemenin kabul denetimi de bu değeri okur | Aynı; 0 ile 1 arasında |
 | 8 | `StatusThreshold:LogShippingStallMinutes` | `10` | İşlem günlüğü 10 dakikadır aktarılamıyorsa uyarır (`05 §9.4.4`) | Aynı |
@@ -206,8 +206,9 @@ Veritabanı konteyneri ilk kez, **boş veri dizinleriyle** ve `compose.install.y
 | 16 | `StatusThreshold:CertificateDaysLeft` | `14` | Sertifikanın bitişine 14 günden az kalmışsa uyarır (`05 §9.4.9`) | Aynı |
 | 17 | `StatusThreshold:JobQueueAgeMinutes` | `15` | Zamanı gelmiş en eski işlenmemiş iş satırı 15 dakikadan eskiyse uyarır (`05 §9.4.16`) | Aynı |
 | 18 | `StatusThreshold:NightlyJobAgeHours` | `26` | Son başarılı gecelik imha ve temizlik 26 saatten eskiyse uyarır (`05 §9.4.17`) | Aynı |
+| 19 | `Logging:Directory` (`Logging__Directory`) | `/var/log/shopfolio/app` | Uygulama kaydının üç dosyası (`app-`, `audit-`, `command-`; günlük) bu dizine yazılır (`09 §18.1` madde 2); Compose bu yola `app-logs` birimini bağlar ve yedek aracı aynı birimi salt okuma görür | Aynı; Compose'un bağladığı yolla aynı kalmalıdır, yoksa kayıt birimin dışına yazılır |
 
-> Satır 3–18 tasarım değeridir ve varsayılanı kodda durur (`09 §3.5` madde 3); ayar dosyasında değiştirilebilir, uygulamanın yeniden başlatılmasıyla geçerli olur. `tests/Shopfolio.UnitTests/Consistency/SettingLayersConsistencyTests` bu tablonun ayar adlarını ve varsayılanlarını koddakiyle eşit tutar.
+> Satır 3–19 tasarım değeridir ve varsayılanı kodda durur (`09 §3.5` madde 3); ayar dosyasında değiştirilebilir, uygulamanın yeniden başlatılmasıyla geçerli olur. `tests/Shopfolio.UnitTests/Consistency/SettingLayersConsistencyTests` bu tablonun ayar adlarını ve varsayılanlarını koddakiyle eşit tutar.
 
 ## D. Bileşenler arası konfigürasyon eşleşmesi
 

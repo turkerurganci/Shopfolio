@@ -119,26 +119,3 @@ internal sealed class StatusThresholdOptionsValidator : IValidateOptions<StatusT
         }
     }
 }
-
-/// <summary>
-/// The log level of the application's own categories (05 9.1.3, 8.4.5; 09 18.1 item 4): a design value that the settings file may change.
-/// The default is information. The log writers that read it arrive with T230; the directory setting arrives there as well.
-/// </summary>
-internal sealed class LoggingOptions
-{
-    public const string SectionName = "Logging";
-
-    public const string LevelKey = SectionName + ":" + nameof(Level);
-
-    public LogLevel Level { get; set; } = LogLevel.Information;
-}
-
-internal sealed class LoggingOptionsValidator : IValidateOptions<LoggingOptions>
-{
-    public ValidateOptionsResult Validate(string? name, LoggingOptions options)
-    {
-        return Enum.IsDefined(options.Level) && options.Level != LogLevel.None
-            ? ValidateOptionsResult.Success
-            : ValidateOptionsResult.Fail(SettingFailures.Malformed(LoggingOptions.LevelKey, "expected Trace, Debug, Information, Warning, Error or Critical"));
-    }
-}

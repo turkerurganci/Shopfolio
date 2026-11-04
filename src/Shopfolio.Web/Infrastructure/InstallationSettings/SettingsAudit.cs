@@ -2,6 +2,8 @@ using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.Options;
 
+using Shopfolio.Infrastructure.Logging;
+
 namespace Shopfolio.Infrastructure.InstallationSettings;
 
 /// <summary>What the start-up check found: the failures (the application does not open) and the state of the conditional lines.</summary>

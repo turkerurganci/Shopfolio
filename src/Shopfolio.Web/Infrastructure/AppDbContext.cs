@@ -6,6 +6,7 @@ using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Membership;
+using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Settings;
 
 namespace Shopfolio.Infrastructure;
@@ -80,6 +81,22 @@ internal sealed class AppDbContext : DbContext
 
     public DbSet<LoginRecord> LoginRecords => Set<LoginRecord>();
 
+    public DbSet<Cart> Carts => Set<Cart>();
+
+    public DbSet<CartItem> CartItems => Set<CartItem>();
+
+    public DbSet<Order> Orders => Set<Order>();
+
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+
+    public DbSet<TransitionRecord> TransitionRecords => Set<TransitionRecord>();
+
+    public DbSet<InternalNote> InternalNotes => Set<InternalNote>();
+
+    public DbSet<CheckboxAcceptance> CheckboxAcceptances => Set<CheckboxAcceptance>();
+
+    public DbSet<CheckboxAcceptanceOrderItem> CheckboxAcceptanceOrderItems => Set<CheckboxAcceptanceOrderItem>();
+
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).
     /// </summary>
@@ -88,7 +105,13 @@ internal sealed class AppDbContext : DbContext
         return builder
             .UseNpgsql(connectionString)
             .UseSnakeCaseNamingConvention()
-            .AddInterceptors(EmptyKeyGuard.Instance, EmptyTextGuard.Instance, ProtectedRecordsGuard.Instance, CatalogRecordsGuard.Instance, LoginRecordsGuard.Instance);
+            .AddInterceptors(
+                EmptyKeyGuard.Instance,
+                EmptyTextGuard.Instance,
+                ProtectedRecordsGuard.Instance,
+                CatalogRecordsGuard.Instance,
+                LoginRecordsGuard.Instance,
+                OrderingRecordsGuard.Instance);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

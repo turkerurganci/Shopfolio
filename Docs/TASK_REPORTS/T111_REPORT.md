@@ -1,6 +1,6 @@
 # T111 — Kalem kayıtları
 
-**Faz:** F1 | **Durum:** ⏳ Yapım bitti, doğrulama bekliyor | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Doğrulama tur 1 PASS | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -25,6 +25,8 @@
 - `Docs/DEFERRED_BACKLOG.md` (D-67, D-51 eki), `Docs/IMPLEMENTATION_STATUS.md`, `Docs/STATUS_CHANGELOG.md`, `.claude/memory/MEMORY.md`, `Docs/TASK_REPORTS/T110_REPORT.md` (post-merge satırı).
 
 ## Kabul Kriterleri Kontrolü
+
+> **Validator kanıtı (tur 1, head `6cefd1c`):** 8 kriterin ve KK1–KK8'in hepsi ✓ — tek göç `20261104064259_CreateItemRecordTables` sekiz tabloyu kurar, `Down` yok, `GRANT`/`REVOKE`/`Sql(` yok. Para sütunları `numeric(12,2)`, adet `integer`, tarih `date`, an `timestamptz`, telefon `varchar(10)` + `^[0-9]{10}$`, IBAN `text` + `^[A-Z0-9]+$` (`06 §2.5`); varsayılanlar `coupon_share` 0, `defect_claim_status` `Open`, `status_history` `'[]'`. Tutar kısıtları (`quantity>0`, `product_amount>0`, `0<=coupon_share<=product_amount`, `vat>=0`) dört tutarlı tabloda; teslim alma, kapanış ve ayıp talebinde `quantity>0`. İptalin dört kuralı, yapanlı üç kayıtta `Buyer`/`Admin` alt kümesi, `returns.at_most_one_link`, `DefectClaim.order_item_id` tekil, iade adresi dört alan birlikte ve telefon yalnız adresle. FK silme davranışları `06 §7.2` ile, dizinler `06 §7.5` ile birebir (yönetici/IBAN/ayıp talebi `SetNull`, ötekiler `NO ACTION`). `AfterSalesRecordsGuard` altı kalıcı kaydın silinmesini reddeder; `DefectClaim` ve `RefundIban` silinebilir. Yeni sekiz tablo `09 §10.8` madde 3'ün istisna listesinde değil, varsayılan yetkiyle doğru: göçte yetki deyimi yok, `PrivilegeMatrix_OnTheTablesOfTheMigratedDatabase_HasNoDeviation` ve `DatabaseUsersTests` yeşil (59/59).
 
 Öz denetim (PR öncesi): her kriter ve kontrol listesi maddesi diff'te göç satırıyla ve testle tek tek karşılaştırıldı; `06 §4.22`…§4.26, §4.28, §4.30, §4.31'in alan, Varsayılan, Kısıtlar, İndeksler ve Silme davranışı satırları göçe karşı okundu. 26 yabancı anahtarın 26'sı dizinli; varsayılanı olan dört alan (`CouponShare` ×4, `DefectClaimStatus`, `StatusHistory`) veritabanında varsayılanlı.
 
@@ -71,10 +73,26 @@ Not: Model ad alanının ilk koşusunda iki eski test (`AdminAndAuditTablesTests
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-04, head `6cefd1c`, PR #369) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-67, K2 → D-51; ikisi dalda forward edildi) |
+
+### Doğrulama tur 1 — ✓ PASS (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks` (eşdeğer, hook dosyaları daldakiyle birebir); ana dal son 3 run `41794927593`, `41794927676`, `41786270854` success; `MEMORY.md`'de T111 satırı var.
+
+**Kabul kriterleri ve testler:** kapsam tam (8 kriter, KK1–KK8, `09 §25`, güvenlik); hepsi ✓. Yerel: build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` 0; Unit 245/245 (Consistency dahil); Integration 546 (T111 sınıfı 68/68, Model 484/484, öteki 62/62; PostgreSQL 18); yetki: `DatabaseUsersTests` + `AdminAndAuditTablesTests` 59/59 (göçlü veritabanında yetki matrisi sapmasız); `has-pending-model-changes` "No changes"; koşu sonrası `git status` temiz, `restore --locked-mode` 0. Dal CI `41796325905` (head `6cefd1c`) success — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, Gate.
+
+**`09 §25`:** göç genişletmedir (sekiz yeni tablo); `Down`, `suppressTransaction`, `CONCURRENTLY`, `now()` yok; her FK'nin silme davranışı açık; enumlar metin ve izinli değer kısıtlı; yeni kapalı değer yok. §10.8: sekiz tablo istisna listesinde değil, göçte `GRANT`/`REVOKE` yok, uygulama kullanıcısına yeni yetki eklenmedi; kalıcı kayıtların silinmezliği uygulama bekçisinde (`06` veritabanı düzeyinde yetki ayrımı istemiyor).
+
+**Güvenlik:** sır yok (test IBAN'ı bilinen örnek); yalnız şema, auth etkisi yok; girdi doğrulama uygulanamaz (uç yok); yeni bağımlılık yok.
+
+**`12` satırları:** kaynak birimleri `06` entity'leri (KP yok). `06 §4.22`…§4.31'i anan `VAL-D110`, `VAL-D111` ile ilgili `VAL-C107`, `VAL-D095` akış ve imha task'larınındır — BEKLEMEDE kalır, `Durum` değişmedi; `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları:** K1 → D-67 (`DefectClaim.StatusHistory` düz `string` + `jsonb`, `09 §12` m.5 dönüştürücüsü yok; D-57/D-65 kalıbı, hedef T320). K2 → D-51 eki (FK adı `fk_returns_late_delivery_terminations_late_delivery_terminatio` çatıca kırpıldı).
+
+**Yapım raporu karşılaştırması:** kriter tablosu, KK listesi, test sayıları ve ⚠ kararlar uyumlu; uyuşmazlık yok. İki K-notu yapım raporunun ⚠ 1–2'siyle aynıdır.
 
 ## Altyapı Değişiklikleri
 

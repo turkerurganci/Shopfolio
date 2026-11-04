@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-04 — T111 (Kalem kayıtları) yapım bitti, doğrulama bekliyor (dal `task/T111-kalem-kayitlari`; sekiz entity `AfterSales` modülünde tek göçle, `Down` yok; altı kalıcı kaydın silinmesini `AfterSalesRecordsGuard` reddeder; kriter 1–8 ve KK1–KK8 öz denetimde ✓; Unit 245/245, Integration 546 (T111 sınıfı 68/68); D-67 yeni — `DefectClaim.StatusHistory` düz `jsonb`, hedef T320; D-51 eki). Önceki giriş (T110 doğrulama tur 1 PASS) `STATUS_CHANGELOG.md`'ye taşındı.
+**Son güncelleme:** 2026-11-04 — T111 (Kalem kayıtları) bağımsız doğrulama tur 1: ✓ PASS (head `6cefd1c`, PR #369; kapsam tam, 8 kriter ve KK1–KK8 ✓; tutar sütunları `numeric(12,2)` ve tutar kısıtları `06 §2.5`, §4.22–4.25 ile eşit; FK ve dizinler `06 §7.2`, §7.5 ile birebir; Unit 245/245, Integration 546 (T111 sınıfı 68/68); yetki matrisi sapmasız (59/59); dal CI `41796325905` yeşil; bulgu 0; K1 → D-67, K2 → D-51 eki). Merge yardımcıda. Önceki giriş (T111 yapım bitti) `STATUS_CHANGELOG.md`'ye taşındı.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -83,7 +83,7 @@
 | T108 | Oturum, bağlantı, deneme ve giriş kayıtları | ✓ | ✓ PASS (tur 2) | `04113f7` | #365 |
 | T109 | Sepet ve sipariş çekirdeği | ✓ | ✓ PASS (tur 1) | `de1ae6c` | #366 |
 | T110 | Ayırma ve düzeltme geçmişleri | ✓ | ✓ PASS (tur 1) | `a7954b7` | #367 |
-| T111 | Kalem kayıtları | ⏳ | — | — | — |
+| T111 | Kalem kayıtları | ✓ | ✓ PASS (tur 1) | `6cefd1c` | #369 |
 | T112 | Ödeme ve geri ödeme kayıtları | ⬚ | — | — | — |
 | T113 | İade reddi ve IBAN isteği | ⬚ | — | — | — |
 | T114 | İçerik kayıtları ve marka | ⬚ | — | — | — |

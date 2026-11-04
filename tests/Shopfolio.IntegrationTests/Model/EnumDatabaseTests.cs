@@ -186,8 +186,9 @@ public sealed partial class EnumDatabaseTests : IClassFixture<SampleDatabaseFixt
         }
 
         // Five enum columns of the sample entities and the three of the application's own tables (companies.company_type,
-        // company_settings.homepage_layout, legal_text_versions.legal_text_type; T103), six of the catalog core tables (T104) the audit trail's area (T106) and six of the session, link, attempt and sign-in tables (T108). The task that adds an enum column raises this.
-        Assert.Equal(21, compared);
+        // company_settings.homepage_layout, legal_text_versions.legal_text_type; T103), six of the catalog core tables (T104) the audit trail's area (T106) and six of the session, link, attempt and sign-in tables (T108) and twelve of the cart and order core tables (T109: four of the order, two of the
+        // order item, five of the transition record, one of the checkbox acceptance). The task that adds an enum column raises this.
+        Assert.Equal(33, compared);
     }
 
     [Fact]

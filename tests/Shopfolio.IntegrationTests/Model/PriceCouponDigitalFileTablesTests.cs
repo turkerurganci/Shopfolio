@@ -475,10 +475,12 @@ public sealed class PriceCouponDigitalFileTablesTests : IAsyncLifetime
     public async Task EveryLinkToTheCoupons_IsRestrictive()
     {
         // 06 4.13: the incoming links (the order's coupon link, the coupon reservation) are restrictive. They arrive with their own tables
-        // (T109, T110); the rule is held here for every link that exists.
+        // (T109, T110); the rule is held here for every link that exists. The order's link exists since T109, so the set is not empty (D-54).
         List<string> actions = await QueryAsync(
             "SELECT conname || '=' || confdeltype::text FROM pg_constraint WHERE contype = 'f' AND confrelid = 'public.coupons'::regclass");
 
+        Assert.NotEmpty(actions);
+        Assert.Contains("fk_orders_coupons_coupon_id=a", actions);
         Assert.All(actions, a => Assert.EndsWith("=a", a, StringComparison.Ordinal));
     }
 

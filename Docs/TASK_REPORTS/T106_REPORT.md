@@ -178,7 +178,7 @@ Yeniden doğrulama, kapsam tam (kriter 1–7, KK1–KK7, `09 §25`, güvenlik); 
 - **Branch:** `task/T106-yonetici-davet-islem-izi`
 - **PR:** #363
 - **CI:** yapım işçisi izlemez
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `93c164e` (#363) — CI `41767748868` success; Publish `41767748965` ikinci denemede success (F1 gate'inde doğrulandı, 2026-11-04)
 
 ## Dış Varsayımlar
 

@@ -78,7 +78,7 @@
 - **Commit:** `b7a332a`, `1098437`, birleştirme `e1287ee` — T101: Veri modeli temeli
 - **PR:** #358
 - **CI:** dal run `41706961892` (head `f7b33c7`) success
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `f2470d8` (#358) — CI `41710384453` ve Publish `41710384654` success (F1 gate'inde doğrulandı, 2026-11-04)
 
 ## Dış Varsayımlar
 

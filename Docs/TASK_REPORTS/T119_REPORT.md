@@ -117,7 +117,7 @@
 - **Commit:** dal başı PR'da
 - **PR:** #377
 - **CI:** *(yardımcı izler)*
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `07e6121` (#377) — CI `41848143907` ve Publish `41848143892` success (F1 gate'inde doğrulandı, 2026-11-04)
 
 ## Dış Varsayımlar
 

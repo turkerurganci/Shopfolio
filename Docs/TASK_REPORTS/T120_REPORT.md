@@ -121,7 +121,7 @@
 - **Branch:** `task/T120-model-esitlik-denetimleri`
 - **PR:** #378 (başlık "T120: Model eşitlik denetimleri")
 - **CI:** yapım işçisi izlemedi; dal CI `41855256783` (head `e0827c3`) success — validator tur 2
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `c59321d` (#378) — CI `41858025823` ve Publish `41858025821` success (F1 gate'inde doğrulandı, 2026-11-04)
 
 ## Dış Varsayımlar
 

@@ -78,6 +78,7 @@ Kriterler `Docs/11_IMPLEMENTATION_PLAN.md` `#### T102` bloğundadır. Tablo doğ
 - **Commit:** `84f729c` — T102: Enum tanımları, metin dönüşümü, izinli değer kısıtı, kilit dosyaları ve testler
 - **PR:** #359 — "T102: Enum tanımları ve değer dönüşümü"
 - **CI:** dal run `41712894839` (head `8277427`) success
+- **Post-merge run'lar:** squash `597e14a` (#359) — CI `41715894986` ve Publish `41715895065` success (F1 gate'inde doğrulandı, 2026-11-04)
 
 ## Dış Varsayımlar
 

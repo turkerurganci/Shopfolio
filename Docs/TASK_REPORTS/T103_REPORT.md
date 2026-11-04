@@ -100,9 +100,9 @@
 ## Commit & PR
 
 - **Branch:** `task/T103-baslangic-listeleri`
-- **PR:** dönüşte yazılı
+- **PR:** #360
 - **CI:** yapım işçisi izlemez
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `6b5cc83` (#360) — CI `41728889974` ve Publish `41728889871` success (F1 gate'inde doğrulandı, 2026-11-04)
 
 ## Dış Varsayımlar
 

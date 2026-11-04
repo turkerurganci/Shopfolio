@@ -1,6 +1,6 @@
 # T113 — İade reddi ve IBAN isteği
 
-**Faz:** F1 | **Durum:** ⏳ Yapım bitti, doğrulama bekliyor | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Doğrulama tur 1 PASS | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -69,10 +69,34 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-04, head `429ce56`, PR #371) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-68) |
+
+### Doğrulama tur 1 — ✓ PASS (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks` (eşdeğer; altı hook dosyası daldakiyle özetçe birebir); ana dal son 3 run `41805273609`, `41805273814`, `41798998313` success; `MEMORY.md`'de T113 satırı var.
+
+**Kabul kriterleri:** kapsam tam (7 kriter, KK1–KK7, `09 §25`, güvenlik); hepsi ✓. Validator göçün SQL'ini `06 §4.27`, §4.29, §5.6.4, §7.1 (5476–5477), §7.2 (5597–5606), §7.3 (5708–5709) satırlarına karşı elle okudu:
+- Kriter 1, 7: iki tablo tek göçte (`20261104091422_CreateReturnRejectionAndIbanRequestTables`), `Down` yok; sütun türleri ve boşluk `06 §2.5.1` ve alan tablolarıyla birebir (`AdminName` istekte `NOT NULL`, retde boşalabilir); varsayılan yok; göçte `Down`/`suppressTransaction`/`CONCURRENTLY`/`VACUUM`/`ALTER SYSTEM`/`CREATE DATABASE`/`now()`/`CREATE EXTENSION`/`UPDATE`/`DELETE` yok (grep çıkış 1); `has-pending-model-changes` → "No changes".
+- Kriter 2: `ck_return_rejections_quantity_above_zero` (`quantity > 0`); kalem ve beyan FK'leri `NO ACTION`.
+- Kriter 3: `num_nonnulls(fulfilled_at, closed_at) <= 1`; filtreli tekil dizinler `06 §7.1`'in "Filtre" sütunuyla birebir — kalem: `fulfilled_at IS NULL AND closed_at IS NULL`; geri ödeme: `order_item_id IS NULL AND fulfilled_at IS NULL AND closed_at IS NULL` (kalemli isteklerin aynı geri ödemede birden çok açık isteği serbest — `OpenItemRequestsOnTheSameRefund_AreNotUniqueByTheRefund`).
+- Kriter 4: `refund_iban_id IS NULL OR fulfilled_at IS NOT NULL`.
+- Kriter 5: `refund_by_reason` iki yönlü eşitlik `(refund_id IS NOT NULL) = (reason = 'CardRefundFailed' OR (reason = 'TransferFailed' AND order_item_id IS NULL))` — `06 §4.29` Kısıtlar ve §7.3 cümlesinin birebir okunuşu (kalemli `TransferFailed` "öteki sebepler"dedir; yapım ⚠ kararı 1 ile aynı okuma); `itemless_on_refund_failure` kalemsiz satırda sebebi iki başarısızlıkla sınırlar ve bağı ister; `reason` NOT NULL olduğundan iki ifade `NULL` üretmez. Enum kısıtının altı değeri `06 §5.6.4` ile birebir.
+- Kriter 6: FK silme davranışları `06 §7.2` ile birebir (yönetici ve IBAN bağı `SET NULL`; kalem, beyan, geri ödeme `NO ACTION`); `AfterSalesRecordsGuard` `ReturnRejection`'ı silinmez kayıtlara ekledi, `RefundIbanRequest` kapsam dışı (imhanın açık silmesi); modül yeri `05 §3.3.5`/§4.1 tablosu (`AfterSales`) ile uyumlu.
+
+**`09 §25`:** göç genişletmedir; enum metin + izinli değer kısıtı; her FK'nin silme davranışı açık; anahtar `EntityIds.New()`; yeni kapalı değer ve paket yok; yeni tablolar varsayılan yetkide (`Database` ad alanı testleri yeşil); numaralı dizin adları D-55 ekinde.
+
+**Testler (validator, yerel PostgreSQL 18 `shopfolio-t113-val-pg`):** build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` çıkış 0; Unit 245/245 (Consistency dahil); Integration 676 — T113 sınıfı 45/45, Model 614/614, Database+FileSecrets+Web 62/62; `dotnet restore --locked-mode` çıkış 0; koşu sonrası `git status` temiz. Dal CI `41807318144` (head `429ce56`) yeşil, 9 check pass + guard skip.
+
+**Güvenlik:** sır yok (IBAN testte sıfırlardan yer tutucu); yalnız şema, auth etkisi yok; girdi doğrulama uygulanamaz (uç yok); yeni bağımlılık yok.
+
+**`12` satırları:** kaynak birimleri `06` entity'leri (KP yok); `06 §4.27`/§4.29'u anan matris satırı yok (`VAL-A537` `ReturnRejectionNotAllowed` uç task'ının — BEKLEMEDE kalır); `Durum` değişmedi; `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları:** K1 — Model ad alanının yerel koşusunda üç denemenin ikisinde `SampleDatabaseFixture.DisposeAsync` (`EnumDatabaseTests` sınıf temizliği) veritabanını düşürürken Npgsql okuma zaman aşımına uğradı (testlerin kendisi 614/614 geçti; tek başına ve CI'da temiz). T113'ün dokunmadığı test altyapısı; → D-68.
+
+**Yapım raporu karşılaştırması:** kriter tablosu, KK listesi, test sayıları ve ⚠ kararlar (özellikle kalemli `TransferFailed`'de bağın boş olması) validator'ın bağımsız okumasıyla uyumlu; uyuşmazlık yok.
 
 ## Altyapı Değişiklikleri
 

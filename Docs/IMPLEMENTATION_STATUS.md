@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-04 — T113 (İade reddi ve IBAN isteği) yapım bitti, doğrulama bekliyor (dal `task/T113-iade-reddi-iban-istegi`, PR #371; iki entity — `ReturnRejection`, `RefundIbanRequest` — `AfterSales` modülünde tek göçle, `Down` yok; iade reddinin silinmesini `AfterSalesRecordsGuard` reddeder, IBAN isteği imhanın açık silmesine açık; kriter 1–7 ve KK1–KK7 öz denetimde ✓; Unit 245/245, Integration 676 (T113 sınıfı 45/45); D-55 eki (numaralı dizin adları)). Önceki giriş (T112 doğrulama tur 1 PASS) `STATUS_CHANGELOG.md`'ye taşındı.
+**Son güncelleme:** 2026-11-04 — T113 (İade reddi ve IBAN isteği) bağımsız doğrulama tur 1: ✓ PASS (head `429ce56`, PR #371; kapsam tam, 7 kriter ve KK1–KK7 ✓; `refund_by_reason` ve `itemless_on_refund_failure` `06 §4.29`/§7.3 ile birebir, iki filtreli tekil dizinin filtresi `06 §7.1` ile eşit; FK silme davranışları `06 §7.2` ile birebir; iade reddi bekçide silinmez, IBAN isteği imhanın açık silmesine açık; Unit 245/245, Integration 676 (T113 sınıfı 45/45); bekleyen model değişikliği yok; dal CI `41807318144` yeşil; bulgu 0; K1 → D-68 (yerel test altyapısında sınıf veritabanı düşürme zaman aşımı)). Merge yardımcıda. Önceki giriş (T113 yapım bitti) `STATUS_CHANGELOG.md`'ye taşındı.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -85,7 +85,7 @@
 | T110 | Ayırma ve düzeltme geçmişleri | ✓ | ✓ PASS (tur 1) | `a7954b7` | #367 |
 | T111 | Kalem kayıtları | ✓ | ✓ PASS (tur 1) | `6cefd1c` | #369 |
 | T112 | Ödeme ve geri ödeme kayıtları | ✓ | ✓ PASS (tur 1) | `d452256` | #370 |
-| T113 | İade reddi ve IBAN isteği | ⏳ | — | — | #371 |
+| T113 | İade reddi ve IBAN isteği | ✓ | ✓ PASS (tur 1) | `429ce56` | #371 |
 | T114 | İçerik kayıtları ve marka | ⬚ | — | — | — |
 | T115 | Şube, içerik–ürün bağları ve iletişim talebi | ⬚ | — | — | — |
 | T116 | Galeri bağları | ⬚ | — | — | — |

@@ -1,6 +1,6 @@
 # T106 — Yönetici hesabı, davet ve işlem izi
 
-**Faz:** F1 | **Durum:** ✗ Doğrulama tur 2 FAIL — iki iterasyon doldu, eskalasyon (`12 §8.5`) | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Doğrulama tur 3 PASS (eskalasyon sonrası yeniden doğrulama; tur 1–2 FAIL) | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -35,6 +35,8 @@
 | 6 | Yönetici hesabına giden bağlar boşaltılır | ✓ | `RemovingTheSender_EmptiesTheLink_AndKeepsTheName`, `SenderLink_IsAnEmptyingForeignKey_WithItsOwnIndex` (T106'daki tek bağ; öteki bağlar sahibi tabloların task'ında — D-57) |
 | 7 | Göç tek konu, `Down` yok | ✓ | `Migration_HasNoDownMethod`, `MigrationSourceScan` (Unit) |
 
+*Validator kanıtı (tur 3, `d3baaa6`):* kriter 1–7 ve KK1–KK7 ✓ — ayrıntı "Doğrulama tur 3".
+
 *Validator kanıtı (tur 1, `54e45a9`):* kriter 1–7 ve KK1–KK7 ✓ — tablo validator turunda plandaki yedi kritere hizalandı (yapım tablosunun 5. ve 6. satırları plandaki kriterler değildi; içerikleri kriter 1 ve D-48 (a) kanıtıdır). Ayrıntı ve verdict'i belirleyen bulgu (sır bekçisi istisnası): "Doğrulama tur 1".
 
 ## Test Sonuçları
@@ -43,7 +45,7 @@
 |---|---|---|---|
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests -c Release` | 240/240 |
 | Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests -c Release` (gerçek PostgreSQL 18; `--filter-class` ile dört parça) | 276/276 (42 + 101 + 71 + 62) |
-| Bekçi betiği | ✓ | `bash scripts/git-hooks/test-pre-commit.sh` | 195/195 |
+| Bekçi betiği | ✓ | `bash scripts/git-hooks/test-pre-commit.sh` | 208/208 (tur 3; yapımda 195, düzeltme 1'de 202, düzeltme 2'de 208) |
 | Biçim / kilit | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes`; `dotnet restore Shopfolio.slnx --locked-mode` | çıkış 0 / 0 |
 | Derleme | ✓ | `dotnet build Shopfolio.slnx -c Release -warnaserror` | 0 uyarı, 0 hata |
 
@@ -51,10 +53,40 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-04, head `3003f64`); tur 1 ✗ FAIL (head `54e45a9`) |
-| Bulgu sayısı | Tur 2: 1 (ORTA, güvenlik — sır bekçisi istisnasının çok satırlı açık biçimi); tur 1: 1 (aynı istisna, tek satır) |
-| Düzeltme gerekli mi | Evet — tur 2 bulgu 1 (`scripts/git-hooks/pre-commit`, `test-pre-commit.sh`, `README.md`); iki iterasyon doldu → eskalasyon |
-| Bloke-etmeyen not (K) sayısı | Tur 2: 0; tur 1: 2 (K1 bu PR'da kapatıldı; K2 → D-58) |
+| Doğrulama durumu | ✓ PASS — tur 3 (2026-11-04, head `d3baaa6`); tur 2 ✗ FAIL (head `3003f64`); tur 1 ✗ FAIL (head `54e45a9`) |
+| Bulgu sayısı | Tur 3: 0; tur 2: 1 (ORTA, güvenlik — sır bekçisi istisnasının çok satırlı açık biçimi; düzeltme 2'de kapandı); tur 1: 1 (aynı istisna, tek satır; düzeltme 1'de kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 3: 2 (K1 → D-59, K2 → D-60); tur 2: 0; tur 1: 2 (K1 bu PR'da kapatıldı; K2 → D-58) |
+
+### Doğrulama tur 3 — ✓ PASS (2026-11-04)
+
+Eskalasyon sonrası yeniden doğrulama, kapsam tam (kriter 1–7, KK1–KK7, `09 §25`, güvenlik); head `d3baaa6` (PR #363 head'i).
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (mutlak yol, hook dosyaları mevcut — önceki turlarla aynı); ana dal son 3 run `41751877585`, `41751877590`, `41746249953` success; `MEMORY.md` satır 22–24'te T106.
+
+**Kabul kriterleri (validator kanıtı):**
+- **1 ✓** tek göç `CreateAdminInvitationAndAuditLogTables` üç tabloyu kurar; sütun adı, türü ve boşluğu `06 §4.37`, §4.38, §4.63 (+ ortak `Id`, `CreatedAt`) ile birebir okundu, `Details` `jsonb`, varsayılan yok (alan tablolarında "—"); dizinler §4.37/§4.38/§4.63 ve `06 §7.5` (5828–5829) ile aynı; `06 §7.3` (5717, 5738): davetin tek kısıtı, `Admin` ve `AuditLog` kendine özgü kısıtsız (yalnız ortak enum kısıtı `ck_audit_logs_audit_area`); `dotnet ef migrations has-pending-model-changes` "No changes".
+- **2 ✓** `ix_admins_normalized_email` tekil; `SetEmail` `TextNormalizer.NormalizeIdentity` (`09 §9.4` m.1) ile; farklı harf ve Türkçe I/ı ikinci kayıt 23505 (test).
+- **3 ✓** `num_nonnulls(withdrawn_at, invalidated_at, accepted_at) <= 1` kısıtı; filtreli tekil dizin üç an boşken; iki/üç an bileşimleri 23514, tek an kabul, sonuçlanmış davetlerle aynı adrese yeni davet kabul (test).
+- **4 ✓** `REVOKE UPDATE, DELETE … FROM %I` `current_setting('shopfolio.application_user')` ile (`09 §10.8` m.3, m.5); fonksiyon gövdesi `09 §9.2` m.7 kalıbıyla harfiyen aynı; kesim elle doğrulandı (yerel yıl Ly → `created_at < (Ly−10)-01-01 00:00 +03`, satırın yerel yılı ≤ Ly − 11 = Z-30'un on yılı). Testler: uygulama kullanıcısı `UPDATE`/`DELETE`/`TRUNCATE` 42501, `INSERT`/`SELECT` çalışır; `prosecdef` doğru, `proconfig` `search_path=pg_catalog, public`, sahip göç kullanıcısı; `proacl` yalnız sahip + uygulama kullanıcısı (PUBLIC yok), okuyucu çağrısı 42501, yedek kullanıcısı yetkisiz; sınır 2014-12-31T20:59:59Z satırı `as_of` 20:59:59Z'de kalır, 21:00:00Z'de silinir; yüz yıl ileri `as_of` süresi dolmamış satıra dokunmaz; `max_rows` sınırı ve dönen sayı; `max_rows < 1` P0001; rol ayarı yokken göç 42704 ile geri alınır (tablo, fonksiyon, geçmiş satırı yok), ayarla yetki doğru kullanıcıda; göçte `shopfolio_` ve `now()` yok (`MigrationSourceScan` gerçek göçlerde yeşil).
+- **5 ✓** `audit_logs`'tan ve `audit_logs`'a yabancı anahtar yok; yönetici silinince iz satırı ad ve e-postayla aynen kalır (test). **6 ✓** `SenderAdminId` `SetNull` (`confdeltype = n`), kendi dizini; gönderen silinince bağ boş, ad kalır (test); öteki bağlar sahibi tabloların task'ında (`06 §7.2`, D-57). **7 ✓** `Down` yok (yansıma testi + kaynak taraması), göç tek konu.
+- **KK1–KK7 ✓** — `AdminAndAuditTablesTests` 42/42 her maddeyi ihlal adıyla sınar.
+
+**Yerel:** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı, 0 hata; `dotnet format --verify-no-changes` 0; Unit 240/240 (Consistency dahil); Integration 276/276 (PostgreSQL 18, kendi konteyneri; T106 sınıfı 42, `Model` 214 + diğerleri 62); `test-pre-commit.sh` 208/208; `restore --locked-mode` 0; koşu sonrası `git status` temiz. **Dal CI** `41765579435` (head `d3baaa6`) success — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate.
+
+**`09 §25`:** ad uyumu `06` ile birebir; FK silme davranışı açık, kimlik `EntityIds`'ten, `AuditArea` metin + izinli değer kısıtı, işlem kodunda kısıt yok; zaman çağırandan (`now` parametresi); göç genişletme, `Down`/`suppressTransaction`/`CONCURRENTLY`/`now()` yok, `audit_logs`'a yalnız ekleme, kullanıcı adı rol ayarıyla; yeni tablolar yetki matrisinde (`PrivilegeMatrix` yeşil), uygulama kullanıcısına yeni yetki yok; yeni paket yok; kaynak taramasının yeni kuralları ihlal örnekleriyle kırmızı (`AuditTrail.cs`), temiz örnekle yeşil; testler silinmemiş (bekçi betiği 191 → 208, `DatabaseUsersTests` sahte `audit_logs` yerine gerçek tabloyu sınar). Sır bekçisi değişikliği kapsam dışı görünse de göçün commit'i için gerekli ve README'de gerekçeli.
+
+**Güvenlik:** kodda sır yok; yetki/giriş yüzeyi eklenmedi; girdi denetimi veritabanı kısıtlarıyla; yeni bağımlılık yok. **Sır bekçisi istisnası:** tur 1–2 bulguları kapandı — dalın bekçisiyle 14 ek yoklama: aynı satırdaki ikinci atama, satır sonu yorumu, `@"…"`/`$"…"` dizgi, tek tırnak, iç içe çağrı, `.ts` dosyası, `:` ile atama ve `defaultValue:` hepsi yakalanır; meşru `character varying(150)` ve `jsonb` geçer. Kalan dar açık (K2): PostgreSQL tür adı biçimine uyan küçük harfli dizgi (`type: "a3f9c2e1…"`, `type: "text sup3rs3cret…"`), tırnaksız tanımlayıcı ve onaltılık sayı argümanı geçer — gerçekçi bir sır ataması değil (`type:` değer taşımaz, böyle göç uygulanamaz), ama README "Bilinen sınır"ında yazılı değil → D-60.
+
+**`12` satırları:** task'ın kaynak birimleri (`11 §7.1`: `06:§4.37`, §4.38, §4.63, `02:§1.3`, `02:Z-3`) kaynak hücresinde üç satır getirir. `VAL-A838` (KRİTİK, imha fonksiyonunun yetkisi ve katalog kaydı) KK4'e bağlıdır ve beklenen sonucun tamamı testle ve katalog sorgusuyla kanıtlandı → **PASS**. `VAL-A770` (dışa aktarmanın izi) ve `VAL-D121` (PBKDF2 şifre özeti) T106'nın kriterlerine bağlı değildir — dışa aktarma ve şifre özetleyicisi sonraki task'larındır (T380 ailesi; `05 §6.1` → T207…) — `BEKLEMEDE` kaldı. `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**Bulgular:** yok.
+
+**K-notları:**
+- **K1** — İki imha testi süresi dolmamış satırı sabit `2020-06-01` ile, `as_of`'u gerçek saatle kurar; 2031-01-01'den sonra kırmızı olur (kod değil test tarihi eskir) → **D-59** (test-gap).
+- **K2** — Sır bekçisi EF istisnasının kalan dar açıkları (yukarıda) README "Bilinen sınır"ında yok → **D-60** (k-note).
+
+**Yapım raporu karşılaştırması:** kriter sonuçları uyumlu (1–7 ✓). Uyuşmazlık 2: (a) "Yapılan İşler"deki bekçi betiği sayısı 195, güncel 208 (Test Sonuçları satırı tur 3'te düzeldi); (b) önceki turlar `VAL-A838`'i işlem izinin uç/panel task'larına bırakmıştı — satırın beklenen sonucu (imha fonksiyonunun yetkisi ve katalog kaydı) bütünüyle T106'nın KK4'üdür, tur 3'te PASS yazıldı.
 
 ### Doğrulama tur 1 — ✗ FAIL (2026-11-04)
 
@@ -158,6 +190,8 @@ Dış varsayım: yok.
 |---|---|---|---|
 | 1 | `AuditLog.Details` `AuditDetails` tipine ve `PayloadJson` dönüştürücüsüne çevrilecek (sütun değişmez) | D-57 | Tip ve dönüştürücü çatıda henüz yok; panel okumasıyla gelir |
 | 2 | `AuditOperation` etiket testi ve okuma | D-47 (1) | Mesaj kataloğu T380'de |
+| 3 | İki imha testinin sabit 2020 tarihi 2031'de eskir | D-59 | Doğrulama tur 3 K1; davranış doğru, test tarihi |
+| 4 | Sır bekçisi EF istisnasının kalan dar açıkları README "Bilinen sınır"ına | D-60 | Doğrulama tur 3 K2; gerçekçi sır ataması değil |
 
 ## Notlar
 

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-04 — T109 (Sepet ve sipariş çekirdeği) bağımsız doğrulama tur 1: ✓ PASS (head `de1ae6c`, PR #366; kapsam tam, 8 kriter ve KK1–KK8 ✓; ~95 ham SQL yoklaması, tutar sütunları `numeric(12,2)`; Unit 245/245, Integration 450 (T109 sınıfı 65/65); yetki matrisi sapmasız; dal CI `41780080190` yeşil; bulgu 0; K1 → D-65 — `Order.ShippingFeeVatBreakdown` `PayloadJson` dönüştürücüsü bekliyor; `12`'de T109'a bağlı altı satır BEKLEMEDE). Merge yardımcıda. Önceki giriş (T109 yapım) `STATUS_CHANGELOG.md`'ye taşındı.
+**Son güncelleme:** 2026-11-04 — T110 (Ayırma ve düzeltme geçmişleri) bağımsız doğrulama tur 1: ✓ PASS (head `a7954b7`, PR #367; kapsam tam, 7 kriter ve KK1–KK7 ✓; 15 ham SQL yoklaması, `confdeltype` `06 §7.2` ile eşit; Unit 245/245, Integration 478 (T110 sınıfı 28/28); yetki matrisi 8/8; dal CI `41784121098` yeşil; bulgu 0; K1 → D-66 — iki geçmişin public ayarlayıcıları, hedef T375). Merge yardımcıda. Önceki giriş (T110 yapım bitti) `STATUS_CHANGELOG.md`'ye taşındı.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -82,7 +82,7 @@
 | T107 | Müşteri hesabı | ✓ | ✓ PASS (tur 1) | `e765c68` | #364 |
 | T108 | Oturum, bağlantı, deneme ve giriş kayıtları | ✓ | ✓ PASS (tur 2) | `04113f7` | #365 |
 | T109 | Sepet ve sipariş çekirdeği | ✓ | ✓ PASS (tur 1) | `de1ae6c` | #366 |
-| T110 | Ayırma ve düzeltme geçmişleri | ⬚ | — | — | — |
+| T110 | Ayırma ve düzeltme geçmişleri | ✓ | ✓ PASS (tur 1) | `a7954b7` | #367 |
 | T111 | Kalem kayıtları | ⬚ | — | — | — |
 | T112 | Ödeme ve geri ödeme kayıtları | ⬚ | — | — | — |
 | T113 | İade reddi ve IBAN isteği | ⬚ | — | — | — |

@@ -1939,6 +1939,154 @@ namespace Shopfolio.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.Ordering.OrderAddressHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AddressType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("address_type");
+
+                    b.Property<Guid?>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<string>("AdminName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("admin_name");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("NewAddressLine")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("new_address_line");
+
+                    b.Property<string>("NewDistrict")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("new_district");
+
+                    b.Property<string>("NewPhone")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("new_phone");
+
+                    b.Property<Guid>("NewProvinceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("new_province_id");
+
+                    b.Property<string>("NewRecipientName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("new_recipient_name");
+
+                    b.Property<string>("OldAddressLine")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("old_address_line");
+
+                    b.Property<string>("OldDistrict")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("old_district");
+
+                    b.Property<string>("OldPhone")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("old_phone");
+
+                    b.Property<Guid>("OldProvinceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("old_province_id");
+
+                    b.Property<string>("OldRecipientName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("old_recipient_name");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_order_address_histories");
+
+                    b.HasIndex("AdminId")
+                        .HasDatabaseName("ix_order_address_histories_admin_id");
+
+                    b.HasIndex("NewProvinceId")
+                        .HasDatabaseName("ix_order_address_histories_new_province_id");
+
+                    b.HasIndex("OldProvinceId")
+                        .HasDatabaseName("ix_order_address_histories_old_province_id");
+
+                    b.HasIndex("OrderId", "AddressType", "CreatedAt")
+                        .HasDatabaseName("ix_order_address_histories_order_id_address_type_created_at");
+
+                    b.ToTable("order_address_histories", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_order_address_histories_address_type", "\"address_type\" IN ('ShippingAddress', 'BillingAddress')");
+
+                            t.HasCheckConstraint("ck_order_address_histories_new_phone_ten_digits", "new_phone ~ '^[0-9]{10}$'");
+
+                            t.HasCheckConstraint("ck_order_address_histories_old_phone_ten_digits", "old_phone ~ '^[0-9]{10}$'");
+
+                            t.HasCheckConstraint("ck_order_address_histories_phones_by_address_type", "(address_type = 'ShippingAddress' AND old_phone IS NOT NULL AND new_phone IS NOT NULL) OR (address_type = 'BillingAddress' AND old_phone IS NULL AND new_phone IS NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Ordering.OrderEmailHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<string>("AdminName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("admin_name");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("NewEmail")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("new_email");
+
+                    b.Property<string>("OldEmail")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("old_email");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_order_email_histories");
+
+                    b.HasIndex("AdminId")
+                        .HasDatabaseName("ix_order_email_histories_admin_id");
+
+                    b.HasIndex("OrderId", "CreatedAt")
+                        .HasDatabaseName("ix_order_email_histories_order_id_created_at");
+
+                    b.ToTable("order_email_histories", (string)null);
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.Ordering.OrderItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2110,6 +2258,59 @@ namespace Shopfolio.Infrastructure.Migrations
                             t.HasCheckConstraint("ck_order_items_withdrawal_exemption_only_physical", "withdrawal_exemption_reason IS NULL OR product_type = 'Physical'");
 
                             t.HasCheckConstraint("ck_order_items_withdrawal_exemption_reason", "\"withdrawal_exemption_reason\" IN ('MadeToOrder', 'Perishable', 'ExpiryDated', 'HygieneSensitive', 'SealedMedia')");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Ordering.StockReservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("CouponId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("coupon_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid?>("VariantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("variant_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_stock_reservations");
+
+                    b.HasIndex("CouponId")
+                        .HasDatabaseName("ix_stock_reservations_coupon_id");
+
+                    b.HasIndex("OrderId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_stock_reservations_order_id")
+                        .HasFilter("coupon_id IS NOT NULL");
+
+                    b.HasIndex("VariantId")
+                        .HasDatabaseName("ix_stock_reservations_variant_id");
+
+                    b.HasIndex("OrderId", "VariantId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_stock_reservations_order_id_variant_id")
+                        .HasFilter("variant_id IS NOT NULL");
+
+                    b.ToTable("stock_reservations", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_stock_reservations_exactly_one_of_variant_and_coupon", "num_nonnulls(variant_id, coupon_id) = 1");
+
+                            t.HasCheckConstraint("ck_stock_reservations_quantity_above_zero_one_if_coupon", "quantity > 0 AND (coupon_id IS NULL OR quantity = 1)");
                         });
                 });
 
@@ -2968,6 +3169,52 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasConstraintName("fk_orders_provinces_shipping_province_id");
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.Ordering.OrderAddressHistory", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Administration.Admin", null)
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_order_address_histories_admins_admin_id");
+
+                    b.HasOne("Shopfolio.Modules.Settings.Province", null)
+                        .WithMany()
+                        .HasForeignKey("NewProvinceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_order_address_histories_provinces_new_province_id");
+
+                    b.HasOne("Shopfolio.Modules.Settings.Province", null)
+                        .WithMany()
+                        .HasForeignKey("OldProvinceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_order_address_histories_provinces_old_province_id");
+
+                    b.HasOne("Shopfolio.Modules.Ordering.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_order_address_histories_orders_order_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Ordering.OrderEmailHistory", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Administration.Admin", null)
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_order_email_histories_admins_admin_id");
+
+                    b.HasOne("Shopfolio.Modules.Ordering.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_order_email_histories_orders_order_id");
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.Ordering.OrderItem", b =>
                 {
                     b.HasOne("Shopfolio.Modules.Catalog.DigitalFile", null)
@@ -3000,6 +3247,28 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasForeignKey("VariantId")
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_order_items_variants_variant_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Ordering.StockReservation", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Catalog.Coupon", null)
+                        .WithMany()
+                        .HasForeignKey("CouponId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_stock_reservations_coupons_coupon_id");
+
+                    b.HasOne("Shopfolio.Modules.Ordering.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_stock_reservations_orders_order_id");
+
+                    b.HasOne("Shopfolio.Modules.Catalog.Variant", null)
+                        .WithMany()
+                        .HasForeignKey("VariantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_stock_reservations_variants_variant_id");
                 });
 
             modelBuilder.Entity("Shopfolio.Modules.Ordering.TransitionRecord", b =>

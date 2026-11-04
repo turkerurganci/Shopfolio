@@ -8,7 +8,8 @@ namespace Shopfolio.Modules.Ordering;
 /// Refuses the writes the order side never allows (06 4.16, 4.17, 4.19, 4.21; 06 2.2.3, 2.2.5): an order, its item, its transition record and
 /// its checkbox acceptance (with the acceptance's item link) are permanent and never deleted, and a transition record is only appended. The one
 /// change of a transition record is emptying the administrator's link, name and free note (the disposal; the database empties the link when
-/// the administrator is removed). The save is refused before any SQL is sent. A bulk statement (<c>ExecuteDelete</c>, <c>ExecuteUpdate</c>)
+/// the administrator is removed). The e-mail and address histories (06 4.61, 4.62) are only appended too; their one change is emptying the
+/// administrator's link, and the disposal deletes them explicitly. The save is refused before any SQL is sent. A bulk statement (<c>ExecuteDelete</c>, <c>ExecuteUpdate</c>)
 /// does not pass through a save and is not covered here; the database's restrictive links still stop an order's removal.
 /// </summary>
 internal sealed class OrderingRecordsGuard : SaveChangesInterceptor
@@ -57,12 +58,32 @@ internal sealed class OrderingRecordsGuard : SaveChangesInterceptor
                 throw new InvalidOperationException(
                     "A transition record is only appended (06 4.19); its one change is emptying the administrator's link, name and note.");
             }
+
+            if (entry.State == EntityState.Modified && entry.Entity is OrderEmailHistory or OrderAddressHistory && !IsAdminLinkEmptying(entry))
+            {
+                throw new InvalidOperationException(
+                    "An e-mail or address history row is only appended (06 4.61, 4.62; 06 2.2.3); its one change is emptying the administrator's link.");
+            }
         }
     }
 
     private static bool IsPermanent(object entity)
     {
         return entity is Order or OrderItem or TransitionRecord or CheckboxAcceptance or CheckboxAcceptanceOrderItem;
+    }
+
+    // The one change of a history row is the administrator link emptied (the database does it when the administrator is removed; 06 2.2.3, 2.2.5).
+    private static bool IsAdminLinkEmptying(EntityEntry entry)
+    {
+        foreach (PropertyEntry property in entry.Properties)
+        {
+            if (property.IsModified && (property.Metadata.Name != nameof(OrderEmailHistory.AdminId) || property.CurrentValue is not null))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static bool IsErasure(EntityEntry entry)

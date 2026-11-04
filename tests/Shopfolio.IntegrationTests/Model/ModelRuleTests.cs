@@ -35,6 +35,7 @@ public sealed class ModelRuleTests
         "recognized_browser_marks -> customers (CustomerId)",
         "sessions -> admins (AdminId)",
         "sessions -> customers (CustomerId)",
+        "stock_reservations -> variants (VariantId)",
         "variants -> products (ProductId)",
     ];
 

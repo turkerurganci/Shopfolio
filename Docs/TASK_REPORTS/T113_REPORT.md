@@ -110,7 +110,7 @@
 - **Branch:** `task/T113-iade-reddi-iban-istegi`
 - **PR:** #371
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `0476eed` — CI `41809802367`, Publish `41809802191` (success)
 
 ## Dış Varsayımlar
 

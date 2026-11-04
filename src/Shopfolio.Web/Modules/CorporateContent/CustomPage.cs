@@ -1,0 +1,65 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.DataModel;
+using Shopfolio.Modules.Catalog.Contracts;
+
+namespace Shopfolio.Modules.CorporateContent;
+
+/// <summary>
+/// A general page (06 4.51): a title, a text and (in a later task) a gallery, for content that fits no ready-made type; listed in the
+/// footer and, when marked, in the top menu. Legal texts are not general pages. Deleted by its event; its gallery links come in a later
+/// task (T116).
+/// </summary>
+internal sealed class CustomPage
+{
+    public Guid Id { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; }
+
+    /// <summary>The title; the publish gate.</summary>
+    public string Title { get; set; } = string.Empty;
+
+    /// <summary>Cleaned HTML of the closed text format set (06 2.10.1).</summary>
+    public string? Text { get; set; }
+
+    /// <summary>The manual order; not unique (06 4.51).</summary>
+    public int SortOrder { get; set; }
+
+    public bool IsShownInMenu { get; set; }
+
+    public PublishStatus PublishStatus { get; set; } = PublishStatus.Draft;
+
+    /// <summary>The record's part of the page address (06 4.72).</summary>
+    public string Slug { get; set; } = string.Empty;
+
+    /// <summary>The moment the address was fixed: the first publication (06 4.72).</summary>
+    public DateTimeOffset? SlugFixedAt { get; set; }
+
+    public int Version { get; set; } = 1;
+
+    public static CustomPage Create(string title, string slug, int sortOrder, DateTimeOffset now)
+    {
+        return new CustomPage { Id = EntityIds.New(), CreatedAt = now, Title = title, Slug = slug, SortOrder = sortOrder };
+    }
+}
+
+internal sealed class CustomPageConfiguration : IEntityTypeConfiguration<CustomPage>
+{
+    public void Configure(EntityTypeBuilder<CustomPage> builder)
+    {
+        builder.HasKey(c => c.Id);
+        builder.Property(c => c.Title).HasMaxLength(ContentRules.TitleMaxLength);
+        builder.Property(c => c.Text).HasColumnType("text");
+        builder.Property(c => c.IsShownInMenu).HasDefaultValue(false);
+        builder.Property(c => c.PublishStatus).AsContentPublishStatus();
+        builder.Property(c => c.Version).HasDefaultValue(1);
+
+        builder.HasIndex(c => c.Slug).IsUnique();
+        builder.HasIndex(c => new { c.PublishStatus, c.SortOrder });
+        builder.HasIndex(c => new { c.IsShownInMenu, c.SortOrder }).HasFilter("is_shown_in_menu AND publish_status = 'Published'");
+
+        builder.HasRule("slug_format", ContentRules.SlugFormat);
+    }
+}

@@ -19,6 +19,8 @@
 
 > Kısa tut. Tarihsel detay `MEMORY_ARCHIVE.md`'ye taşınır (00 §G.2).
 
+- **T114 (F1) doğrulama tur 1: ✓ PASS — 2026-11-04 (head `c976977`, PR #372; kriter 1–9, KK1–KK9 ✓; Unit 245, Integration 882; bekleyen model değişikliği yok; dal CI 41812838046 yeşil; bulgu 0; K-notu yok). Merge yardımcıda.**
+- **T114 (F1) yapım bitti — 2026-11-04 (dal `task/T114-icerik-kayitlari-marka`, PR #372; doğrulama bekliyor).** Sekiz kayıt (`AboutPage`, `Offering`, `PortfolioItem`, `FaqItem`, `CustomPage`, `Announcement`, `SocialLink`, `Branding`) `CorporateContent` modülünde tek göçle (`Down` yok); üç tek satırlık tablo `((true))` dizinli; yayın durumu iki değerli alt küme; `CorporateContentRecordsGuard` hakkımızda ve markanın silinmesini reddeder. Unit 245, T114 sınıfı 79.
 - **T113 (F1) doğrulama tur 1: ✓ PASS — 2026-11-04 (head `429ce56`, PR #371; kriter 1–7, KK1–KK7 ✓; Unit 245, Integration 676; bekleyen model değişikliği yok; dal CI 41807318144 yeşil; bulgu 0; K1 → D-68 — yerel test altyapısında sınıf DB düşürme zaman aşımı). Merge yardımcıda.**
 - **T113 (F1) yapım bitti — 2026-11-04 (dal `task/T113-iade-reddi-iban-istegi`, PR #371; doğrulama bekliyor).** İki kayıt (`ReturnRejection`, `RefundIbanRequest`) `AfterSales` modülünde tek göçle (`Down` yok); iade reddi `AfterSalesRecordsGuard` kapsamında, IBAN isteği imhada açık silmeyle gider. D-55 eki (iki numaralı dizin adı). Unit 245, Integration 676 (T113 sınıfı 45).
 - **T112 (F1) doğrulama tur 1: ✓ PASS — 2026-11-04 (head `d452256`, PR #370; kriter 1–7, KK1–KK7 ✓; Unit 245, Integration 631; bekleyen model değişikliği yok; dal CI 41802135141 yeşil; bulgu 0; K-notu yok). Merge yardımcıda.**

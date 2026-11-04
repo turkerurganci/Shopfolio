@@ -77,13 +77,13 @@ public sealed class ModelRuleTests
         Assert.All(versions, v => Assert.False(settings.FindProperty(v)!.IsConcurrencyToken, v));
     }
 
-    /// <summary>D-50 c: the foreign-key index rule is held by a test. Every foreign key of an ordinary table starts an index; only the two single-row tables have none.</summary>
+    /// <summary>D-50 c: the foreign-key index rule is held by a test. Every foreign key of an ordinary table starts an index; only the single-row tables with a link (Company, CompanySettings, Branding) have none.</summary>
     [Fact]
     public void ApplicationModel_EveryForeignKeyOfAnOrdinaryTableStartsAnIndex_AndTheSingleRowTablesHaveNone()
     {
         using AppDbContext context = SampleModel.CreateGoodContext();
         IModel model = ModelRules.ModelOf(context);
-        string[] singleRow = ["companies", "company_settings"];
+        string[] singleRow = ["companies", "company_settings", "brandings"];
 
         List<string> unindexed = [];
         foreach (IEntityType entityType in model.GetEntityTypes().Where(IsApplicationEntity).Where(e => !singleRow.Contains(e.GetTableName())))

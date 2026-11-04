@@ -156,6 +156,16 @@ while IFS= read -r path; do
         echo "$v_loose" | grep -qiE "$PLACEHOLDER" && continue
       fi
       echo "$v_strict" | grep -qE "^(nameof\\($CHAIN\\)|default\\($CHAIN\\))\$" && continue
+      # EF migration column constructor (generated code, no value assigned):
+      # the right side is exactly table.Column<Type>(args), args may hold
+      # quoted strings (type: "text") but nothing may follow the closing
+      # parenthesis (no concatenation, no second call). .cs only.
+      case "$path" in
+        *.cs)
+          v_noq="$(echo "$value" | sed -E 's/"[^"]*"//g; s/[[:space:]]+$//')"
+          echo "$v_noq" | grep -qE '^table\.Column<[A-Za-z0-9_.?]+>\(([^()"+]*\)[,;]?)?$' && continue
+          ;;
+      esac
     fi
     # In source code a multi-part right side never counts as a placeholder.
     if [ "${MULTI:-0}" = "0" ]; then

@@ -99,7 +99,9 @@ check 1 "cs escaped quote"           "src/r6.cs"           'var Password = "Pa\"
 check 1 "cs verbatim doubled quote"  "src/r7.cs"           'var Password = @"Pa""ss12345";'
 check 1 "cs plus concatenation"      "src/r8.cs"           'var Password = "abcd" + "efgh";'
 check 1 "py implicit concatenation"  "src/r9.py"           'API_KEY = ("abcd" "efgh")'
-check 1 "cs short literal + ;"       "src/s1.cs"           'var Password = "admin";'
+check 1 "cs ef column + concat"      "src/m1.cs"           '    password_hash = table.Column<string>(type: "text") + "abcd1234efgh";'
+check 1 "cs ef column + literal"     "src/m2.cs"           '    password_hash = "abcd1234efgh" + table.Column<string>(type: "text");'
+check 1 "cs short literal + ;"       "src/s1.cs"          'var Password = "admin";'
 check 1 "cs 5-digit literal + ;"     "src/s2.cs"           'var Password = "12345";'
 check 1 "cs short literal + ,"       "src/s3.cs"           '    Password = "admin",'
 check 1 "cs short literal + comment" "src/s4.cs"           'var Password = "root"; // dev only'
@@ -188,7 +190,9 @@ check 1 "yml dotted chain"           "app/t32.yml"         'password: some.dotte
 
 echo "--- must pass (exit 0) ---"
 check 0 "exc: dotted chain"          "src/u1.cs"           'ApiKey = options.Value.ApiKey;'
-check 0 "exc: nameof chain"          "src/u2.cs"           'Token = nameof(Foo.Bar);'
+check 0 "exc: ef column ctor"        "src/m3.cs"           '    password_hash = table.Column<string>(type: "text", nullable: true),'
+check 0 "exc: ef column ctor open"   "src/m4.cs"           '    password_hash = table.Column<string>('
+check 0 "exc: nameof chain"        "src/u2.cs"           'Token = nameof(Foo.Bar);'
 check 0 "exc: default(Type)"         "src/u3.cs"           'Token = default(CancellationToken);'
 check 0 "exc: default(Ns.Type)"      "src/u4.cs"           'Token = default(System.Threading.CancellationToken);'
 check 0 "exc: null"                  "src/u5.cs"           'Token = null;'

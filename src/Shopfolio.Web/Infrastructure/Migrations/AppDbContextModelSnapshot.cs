@@ -2071,6 +2071,97 @@ namespace Shopfolio.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.Branch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AddressLine")
+                        .HasColumnType("text")
+                        .HasColumnName("address_line");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("District")
+                        .HasColumnType("text")
+                        .HasColumnName("district");
+
+                    b.Property<string>("ImageAltText")
+                        .HasColumnType("text")
+                        .HasColumnName("image_alt_text");
+
+                    b.Property<Guid?>("ImageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("image_id");
+
+                    b.Property<string>("MapUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("map_url");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("phone");
+
+                    b.Property<Guid?>("ProvinceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("province_id");
+
+                    b.Property<string>("PublishStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Draft")
+                        .HasColumnName("publish_status")
+                        .HasAnnotation("Shopfolio:AllowedValues", new[] { "Draft", "Published" });
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
+
+                    b.Property<string>("WorkingHours")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("working_hours");
+
+                    b.HasKey("Id")
+                        .HasName("pk_branches");
+
+                    b.HasIndex("ImageId")
+                        .HasDatabaseName("ix_branches_image_id");
+
+                    b.HasIndex("ProvinceId")
+                        .HasDatabaseName("ix_branches_province_id");
+
+                    b.HasIndex("PublishStatus", "SortOrder")
+                        .HasDatabaseName("ix_branches_publish_status_sort_order");
+
+                    b.ToTable("branches", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_branches_image_alt_text_only_with_image", "image_id IS NOT NULL OR image_alt_text IS NULL");
+
+                            t.HasCheckConstraint("ck_branches_phone_ten_digits", "phone ~ '^[0-9]{10}$'");
+
+                            t.HasCheckConstraint("ck_branches_publish_status", "\"publish_status\" IN ('Draft', 'Published')");
+                        });
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.CorporateContent.Branding", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2116,6 +2207,70 @@ namespace Shopfolio.Infrastructure.Migrations
                     b.ToTable("brandings", null, t =>
                         {
                             t.HasCheckConstraint("ck_brandings_brand_color_format", "brand_color ~ '^#[0-9A-F]{6}$'");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.ContactRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ContactRequestStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Open")
+                        .HasColumnName("contact_request_status");
+
+                    b.Property<string>("ContactTopic")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("contact_topic");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("email");
+
+                    b.Property<DateTimeOffset?>("LastClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_closed_at");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("message");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("phone");
+
+                    b.HasKey("Id")
+                        .HasName("pk_contact_requests");
+
+                    b.HasIndex("ContactRequestStatus", "CreatedAt")
+                        .HasDatabaseName("ix_contact_requests_contact_request_status_created_at");
+
+                    b.ToTable("contact_requests", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_contact_requests_closed_has_last_closed_at", "contact_request_status <> 'Closed' OR last_closed_at IS NOT NULL");
+
+                            t.HasCheckConstraint("ck_contact_requests_contact_request_status", "\"contact_request_status\" IN ('Open', 'Closed')");
+
+                            t.HasCheckConstraint("ck_contact_requests_contact_topic", "\"contact_topic\" IN ('GeneralQuestion', 'AboutOrder', 'AboutProduct', 'PersonalDataRequest', 'Other')");
+
+                            t.HasCheckConstraint("ck_contact_requests_phone_ten_digits", "phone ~ '^[0-9]{10}$'");
                         });
                 });
 
@@ -2327,6 +2482,41 @@ namespace Shopfolio.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.OfferingProduct", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("OfferingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("offering_id");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id")
+                        .HasName("pk_offering_products");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_offering_products_product_id");
+
+                    b.HasIndex("OfferingId", "ProductId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_offering_products_offering_id_product_id");
+
+                    b.ToTable("offering_products", (string)null);
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.CorporateContent.PortfolioItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2406,6 +2596,41 @@ namespace Shopfolio.Infrastructure.Migrations
 
                             t.HasCheckConstraint("ck_portfolio_items_slug_format", "slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'");
                         });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.PortfolioItemProduct", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("PortfolioItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("portfolio_item_id");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id")
+                        .HasName("pk_portfolio_item_products");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_portfolio_item_products_product_id");
+
+                    b.HasIndex("PortfolioItemId", "ProductId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_portfolio_item_products_portfolio_item_id_product_id");
+
+                    b.ToTable("portfolio_item_products", (string)null);
                 });
 
             modelBuilder.Entity("Shopfolio.Modules.CorporateContent.SocialLink", b =>
@@ -4839,6 +5064,21 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasConstraintName("fk_variants_option_values_second_option_value_id");
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.Branch", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Catalog.Image", null)
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_branches_images_image_id");
+
+                    b.HasOne("Shopfolio.Modules.Settings.Province", null)
+                        .WithMany()
+                        .HasForeignKey("ProvinceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_branches_provinces_province_id");
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.CorporateContent.Branding", b =>
                 {
                     b.HasOne("Shopfolio.Modules.Catalog.Image", null)
@@ -4852,6 +5092,40 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasForeignKey("LogoId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("fk_brandings_images_logo_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.OfferingProduct", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.CorporateContent.Offering", null)
+                        .WithMany()
+                        .HasForeignKey("OfferingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_offering_products_offerings_offering_id");
+
+                    b.HasOne("Shopfolio.Modules.Catalog.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_offering_products_products_product_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.PortfolioItemProduct", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.CorporateContent.PortfolioItem", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_portfolio_item_products_portfolio_items_portfolio_item_id");
+
+                    b.HasOne("Shopfolio.Modules.Catalog.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_portfolio_item_products_products_product_id");
                 });
 
             modelBuilder.Entity("Shopfolio.Modules.Membership.AddressBook", b =>

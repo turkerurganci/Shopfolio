@@ -150,6 +150,14 @@ internal sealed class AppDbContext : DbContext
 
     public DbSet<Branding> Brandings => Set<Branding>();
 
+    public DbSet<Branch> Branches => Set<Branch>();
+
+    public DbSet<OfferingProduct> OfferingProducts => Set<OfferingProduct>();
+
+    public DbSet<PortfolioItemProduct> PortfolioItemProducts => Set<PortfolioItemProduct>();
+
+    public DbSet<ContactRequest> ContactRequests => Set<ContactRequest>();
+
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).
     /// </summary>

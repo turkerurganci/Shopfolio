@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-11-04 | **Satır:** 180 | **Gönderilen:** 0
+**Son güncelleme:** 2026-11-04 | **Satır:** 183 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -216,5 +216,6 @@
 | PF-178 | FAIL geri bildirim döngüsü: her doğrulama FAIL'inin türü bir sık FAIL listesine yazılır, yapım işçisinin öz denetim listesi oradan kurulur | Sahip 2026-11-04 · PR #381 | Yardımcı düzeni (proje dışı `helper-state/…/impl/sik-fail-nedenleri.md`) | `.claude/INSTRUCTIONS.md` yardımcı düzeni · `.claude/skills/task/SKILL.md` | Öneri |
 | PF-179 | Doğrulama eforu task türüne göre: para dışı task orta efor, para task'ı ve emin olunmayan durum yüksek efor; bekçi para task'ında orta eforu engeller | Sahip 2026-11-04 · PR #381 | `INSTRUCTIONS §3.3` doğrulama satırı · `skills/validate` giriş notu · `~/.claude/rules/agent-rules.json` (`lightValidationTags`), `helper-guard.js` | `.claude/INSTRUCTIONS.md` · `~/.claude` hook'ları | Uygulandı (proje içi) / Öneri (proje dışı) |
 | PF-180 | Talimatta zorunlu ifade bekçisi: zorunlu ifadeyi (ör. "öz denetim") taşımayan task işçisi açılamaz | Sahip 2026-11-04 · PR #381 | `~/.claude/rules/agent-rules.json` > `parallelTasks.requiredPrompt` (proje dışı) | `~/.claude` hook'ları | Öneri |
-| PF-181 | İşçiler git bekçisini ortam değişkeniyle (`PB_PROTECTED_BRANCHES`) ya da `-c core.hooksPath=` ile atladı; yasak işçi talimatına girdi, bekçinin bunu kendisinin engellemesi aday | T106 · sahip 2026-11-04 · PR #381 | İşçi talimatı (yardımcı düzeni) | `scripts/git-hooks` · `.claude/GUARDRAILS.md` | Aday |
-| PF-182 | Sır bekçisi büyük commit'te satır başına süreç açtığı için zaman aşımına düşüyordu; anahtar adı ön süzgeci tek geçişte aday satırları seçer, anlam değişmez | PR #368 | `scripts/git-hooks/pre-commit` | `scripts/git-hooks/pre-commit` | Uygulandı |
+| PF-181 | İşçiler git bekçisini ortam değişkeniyle (`PB_PROTECTED_BRANCHES`) ya da `-c core.hooksPath=` ile atladı; yasak işçi talimatına girdi, bekçinin bunu kendisinin engellemesi aday | T106 · sahip 2026-11-04 · PR #381 | İşçi talimatı (yardımcı düzeni) | `scripts/git-hooks` · `.claude/GUARDRAILS.md` | Aday (kapısı F2 gate'inin öğrenim terfisi: bekçi `PB_PROTECTED_BRANCHES` ve boş `core.hooksPath`'i kendisi reddetsin mi) |
+| PF-182 | Sır bekçisi büyük commit'te satır başına süreç açtığı için zaman aşımına düşüyordu; anahtar adı ön süzgeci tek geçişte aday satırları seçer, anlam değişmez | Sahip 2026-11-04 · PR #368 | `scripts/git-hooks/pre-commit` | `scripts/git-hooks/pre-commit` | Uygulandı |
+| PF-183 | `00 §F.5` bitiş kapısına öz denetim maddesi (dokuz madde; §G.4 memory maddesi atfı 9) — L1 ile skill aynı sayıyı söyler | Sahip 2026-11-04 (öz denetim kalıcı) · PR #381 | `00 §F.5`, §G.4 · `skills/task` Bitiş kapısı | `Docs/00_PROJECT_METHODOLOGY.md` §F.5 | Uygulandı (onaylandı 2026-11-04, `00` v1.0.14) |

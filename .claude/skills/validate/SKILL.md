@@ -67,7 +67,7 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 
 - En az bir satır varsa → devam.
 - Hiç satır yoksa → **HARD STOP / BLOCKED (`DEPENDENCY_MISMATCH`).**
-  - Bulgu: *"Repo memory drift — TXX için satır yok. Yapım chat'i memory'i güncellemeden validate'e geçti (task bitiş kapısı madde 8 ihlali)."*
+  - Bulgu: *"Repo memory drift — TXX için satır yok. Yapım chat'i memory'i güncellemeden validate'e geçti (task bitiş kapısı madde 9 ihlali)."*
   - Düzeltme: yapım chat'ine dön → memory güncelle → `chore: memory — TXX yansıt` commit+push (aynı task PR'ına dahil edilebilir veya ayrı chore PR). Sonra validator yeniden başlar.
   - *"Sonra ekleriz"*, *"önemsiz"* yasak.
 

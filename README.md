@@ -43,7 +43,7 @@ Bu proje [Project Playbook](https://github.com/turkerurganci/project-playbook) v
 **Çekirdek döngü** — *yapan ≠ denetleyen*, her zaman:
 
 ```
-/task TXX      →  yapım chat'i (8 maddelik bitiş kapısı)
+/task TXX      →  yapım chat'i (9 maddelik bitiş kapısı)
 /validate TXX  →  AYRI chat, rapor görülmeden, kanıtla; merge burada yapılır
 /gate-check FX →  AYRI chat, faz kapanışı + öğrenim terfisi + backlog hijyeni
 ```

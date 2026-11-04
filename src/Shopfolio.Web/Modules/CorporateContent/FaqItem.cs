@@ -9,7 +9,7 @@ namespace Shopfolio.Modules.CorporateContent;
 
 /// <summary>
 /// A frequently asked question (06 4.49): a question and its answer, listed on one page in the order the firm gives. It has no page of its
-/// own, so no page address. Deleted by its event; its gallery links come in a later task (T116).
+/// own, so no page address. Deleted by its event; its gallery links are FaqItemImage.
 /// </summary>
 internal sealed class FaqItem
 {

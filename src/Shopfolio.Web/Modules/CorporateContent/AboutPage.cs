@@ -8,7 +8,7 @@ using Shopfolio.Modules.Catalog.Contracts;
 namespace Shopfolio.Modules.CorporateContent;
 
 /// <summary>
-/// The about page (06 4.46): the one corporate record with a short introduction, a long text and (in a later task) a gallery. It is not
+/// The about page (06 4.46): the one corporate record with a short introduction, a long text and a gallery (AboutPageImage). It is not
 /// there at setup; the row is born at its first save and is at most one (the single-row index of the migration, 06 2.3.2). It is never
 /// deleted, only put back to draft (<see cref="CorporateContentRecordsGuard"/>).
 /// </summary>

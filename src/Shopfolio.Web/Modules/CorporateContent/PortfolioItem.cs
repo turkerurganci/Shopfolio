@@ -9,7 +9,7 @@ namespace Shopfolio.Modules.CorporateContent;
 
 /// <summary>
 /// A reference work (06 4.48): the same fields and rules as the service presentation (<see cref="Offering"/>); the difference is a title
-/// instead of a name. Deleted by its event; its content-product and gallery links come in a later task (T115, T116).
+/// instead of a name. Deleted by its event; its content-product and gallery links are PortfolioItemProduct and PortfolioItemImage.
 /// </summary>
 internal sealed class PortfolioItem
 {

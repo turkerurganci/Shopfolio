@@ -2018,6 +2018,56 @@ namespace Shopfolio.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.AboutPageImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("AboutPageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("about_page_id");
+
+                    b.Property<string>("AltText")
+                        .HasColumnType("text")
+                        .HasColumnName("alt_text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ImageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("image_id");
+
+                    b.Property<bool>("IsMain")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_main");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id")
+                        .HasName("pk_about_page_images");
+
+                    b.HasIndex("AboutPageId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_about_page_images_about_page_id")
+                        .HasFilter("is_main");
+
+                    b.HasIndex("ImageId")
+                        .HasDatabaseName("ix_about_page_images_image_id");
+
+                    b.HasIndex("AboutPageId", "ImageId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_about_page_images_about_page_id_image_id");
+
+                    b.ToTable("about_page_images", (string)null);
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.CorporateContent.Announcement", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2350,6 +2400,56 @@ namespace Shopfolio.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.CustomPageImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AltText")
+                        .HasColumnType("text")
+                        .HasColumnName("alt_text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CustomPageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("custom_page_id");
+
+                    b.Property<Guid>("ImageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("image_id");
+
+                    b.Property<bool>("IsMain")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_main");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id")
+                        .HasName("pk_custom_page_images");
+
+                    b.HasIndex("CustomPageId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_custom_page_images_custom_page_id")
+                        .HasFilter("is_main");
+
+                    b.HasIndex("ImageId")
+                        .HasDatabaseName("ix_custom_page_images_image_id");
+
+                    b.HasIndex("CustomPageId", "ImageId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_custom_page_images_custom_page_id_image_id");
+
+                    b.ToTable("custom_page_images", (string)null);
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.CorporateContent.FaqItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2399,6 +2499,56 @@ namespace Shopfolio.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("ck_faq_items_publish_status", "\"publish_status\" IN ('Draft', 'Published')");
                         });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.FaqItemImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AltText")
+                        .HasColumnType("text")
+                        .HasColumnName("alt_text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("FaqItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("faq_item_id");
+
+                    b.Property<Guid>("ImageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("image_id");
+
+                    b.Property<bool>("IsMain")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_main");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id")
+                        .HasName("pk_faq_item_images");
+
+                    b.HasIndex("FaqItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_faq_item_images_faq_item_id")
+                        .HasFilter("is_main");
+
+                    b.HasIndex("ImageId")
+                        .HasDatabaseName("ix_faq_item_images_image_id");
+
+                    b.HasIndex("FaqItemId", "ImageId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_faq_item_images_faq_item_id_image_id");
+
+                    b.ToTable("faq_item_images", (string)null);
                 });
 
             modelBuilder.Entity("Shopfolio.Modules.CorporateContent.Offering", b =>
@@ -2480,6 +2630,56 @@ namespace Shopfolio.Infrastructure.Migrations
 
                             t.HasCheckConstraint("ck_offerings_slug_format", "slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'");
                         });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.OfferingImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AltText")
+                        .HasColumnType("text")
+                        .HasColumnName("alt_text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ImageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("image_id");
+
+                    b.Property<bool>("IsMain")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_main");
+
+                    b.Property<Guid>("OfferingId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("offering_id");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id")
+                        .HasName("pk_offering_images");
+
+                    b.HasIndex("ImageId")
+                        .HasDatabaseName("ix_offering_images_image_id");
+
+                    b.HasIndex("OfferingId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_offering_images_offering_id")
+                        .HasFilter("is_main");
+
+                    b.HasIndex("OfferingId", "ImageId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_offering_images_offering_id_image_id");
+
+                    b.ToTable("offering_images", (string)null);
                 });
 
             modelBuilder.Entity("Shopfolio.Modules.CorporateContent.OfferingProduct", b =>
@@ -2596,6 +2796,56 @@ namespace Shopfolio.Infrastructure.Migrations
 
                             t.HasCheckConstraint("ck_portfolio_items_slug_format", "slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'");
                         });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.PortfolioItemImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AltText")
+                        .HasColumnType("text")
+                        .HasColumnName("alt_text");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("ImageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("image_id");
+
+                    b.Property<bool>("IsMain")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_main");
+
+                    b.Property<Guid>("PortfolioItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("portfolio_item_id");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.HasKey("Id")
+                        .HasName("pk_portfolio_item_images");
+
+                    b.HasIndex("ImageId")
+                        .HasDatabaseName("ix_portfolio_item_images_image_id");
+
+                    b.HasIndex("PortfolioItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_portfolio_item_images_portfolio_item_id")
+                        .HasFilter("is_main");
+
+                    b.HasIndex("PortfolioItemId", "ImageId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_portfolio_item_images_portfolio_item_id_image_id");
+
+                    b.ToTable("portfolio_item_images", (string)null);
                 });
 
             modelBuilder.Entity("Shopfolio.Modules.CorporateContent.PortfolioItemProduct", b =>
@@ -5064,6 +5314,23 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasConstraintName("fk_variants_option_values_second_option_value_id");
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.AboutPageImage", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.CorporateContent.AboutPage", null)
+                        .WithMany()
+                        .HasForeignKey("AboutPageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_about_page_images_about_pages_about_page_id");
+
+                    b.HasOne("Shopfolio.Modules.Catalog.Image", null)
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_about_page_images_images_image_id");
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.CorporateContent.Branch", b =>
                 {
                     b.HasOne("Shopfolio.Modules.Catalog.Image", null)
@@ -5094,6 +5361,57 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasConstraintName("fk_brandings_images_logo_id");
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.CustomPageImage", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.CorporateContent.CustomPage", null)
+                        .WithMany()
+                        .HasForeignKey("CustomPageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_custom_page_images_custom_pages_custom_page_id");
+
+                    b.HasOne("Shopfolio.Modules.Catalog.Image", null)
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_custom_page_images_images_image_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.FaqItemImage", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.CorporateContent.FaqItem", null)
+                        .WithMany()
+                        .HasForeignKey("FaqItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_faq_item_images_faq_items_faq_item_id");
+
+                    b.HasOne("Shopfolio.Modules.Catalog.Image", null)
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_faq_item_images_images_image_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.OfferingImage", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Catalog.Image", null)
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_offering_images_images_image_id");
+
+                    b.HasOne("Shopfolio.Modules.CorporateContent.Offering", null)
+                        .WithMany()
+                        .HasForeignKey("OfferingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_offering_images_offerings_offering_id");
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.CorporateContent.OfferingProduct", b =>
                 {
                     b.HasOne("Shopfolio.Modules.CorporateContent.Offering", null)
@@ -5109,6 +5427,23 @@ namespace Shopfolio.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_offering_products_products_product_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.PortfolioItemImage", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Catalog.Image", null)
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_portfolio_item_images_images_image_id");
+
+                    b.HasOne("Shopfolio.Modules.CorporateContent.PortfolioItem", null)
+                        .WithMany()
+                        .HasForeignKey("PortfolioItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_portfolio_item_images_portfolio_items_portfolio_item_id");
                 });
 
             modelBuilder.Entity("Shopfolio.Modules.CorporateContent.PortfolioItemProduct", b =>

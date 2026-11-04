@@ -74,7 +74,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T116-galeri-baglari`
-- **PR:** *(açılınca)*
+- **PR:** #374
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -172,4 +172,4 @@ Hâlâ açık ve hedefi geçerli (kod düzeyinde ya da hedef task'ı başlamadı
 **Yardımcıya — sahip yerine karar:** (1) task boyutu eşiği (öneri: değişmez); (2) D-21'in tasarım kararı (bekçi istisnası mı, takma ad kuralı mı); (3) D-70'in önerisi (yasak ad listesi); (4) açık risk envanteri boş, kabul edilecek kalem yok.
 
 ### Faz Tag
-- Tag: `phase/F1-pass`   - Commit: gate PR'ının squash commit'i (merge ve etiket yardımcıda, PASS ritüeli 20. adım)
+- Tag: `phase/F1-pass`   - Commit: gate PR'ının (#379) squash commit'i (merge ve etiket yardımcıda, PASS ritüeli 20. adım)

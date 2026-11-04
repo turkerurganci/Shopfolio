@@ -18,6 +18,8 @@ public sealed class ModelRuleTests
     private static readonly string[] RegisteredCascades =
     [
         "address_books -> customers (CustomerId)",
+        "cart_items -> carts (CartId)",
+        "carts -> customers (CustomerId)",
         "discounts -> products (ProductId)",
         "link_records -> admin_invitations (AdminInvitationId)",
         "link_records -> admins (AdminId)",

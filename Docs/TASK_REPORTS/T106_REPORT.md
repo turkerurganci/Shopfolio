@@ -132,6 +132,8 @@ Yeniden doğrulama, kapsam tam (kriter 1–7, KK1–KK7, `09 §25`, güvenlik); 
 
 **Test.** `test-pre-commit.sh`: `m4` (açık satır) "geçer"den "yakalanır"a döndü; raporun üç satırlık gerçek çok satırlı örneği (`m12`, açık satır + `type: "text",` + `defaultValue: "Sup3rS3cretValue!"),`) ve iki satırlı biçim (`m13`) "yakalanır" olarak eklendi; `m9` (literal açık satırda) korundu. Kapalı tek satırlı "geçer" örnekleri (`m3`, `m10`, `m11`) değişmedi. Depodaki bütün göç dosyalarında (`src/Shopfolio.Web/Infrastructure/Migrations/*.cs`) `grep` ile denetlendi: her `table.Column` satırı tek satırlı ve `)`, `),` ya da `);` ile kapalı (kapalı olmayan satır 0) — yeni bekçi göçleri yanlış pozitifle engellemez. C# değişmedi. Betik testi: 202 → 204 örnek, 204/204 geçti (`m4` döndü, `m12` ve `m13` eklendi); `dotnet format --verify-no-changes` ve `dotnet restore --locked-mode` çıkış 0.
 
+**Ek (tür dizgisi sınırı).** `type: "…"` dizgisi artık her içeriği kabul etmez: PostgreSQL tür adı biçimiyle sınırlandı (küçük harfle başlar; yalnız küçük harf, rakam, boşluk; sonda isteğe bağlı `(rakam, virgül, boşluk)`). `type: "sk_live_9f3a1b2c3d4e"` ve `type: "Sup3rS3cret"` yakalanır (`m14`, `m15`); `type: "timestamp with time zone"` ve `type: "numeric(12,2)"` geçer (`m16`, `m17`). Depodaki göçlerin bütün `type: "…"` değerleri (`bigint`, `boolean`, `character varying(10)`, `character varying(150)`, `date`, `integer`, `jsonb`, `numeric(…)`, `text`, `timestamp with time zone`, `uuid`) yeni biçime uyar (`grep -rhoE` ile denetlendi). README istisna açıklamasına tür biçimi eklendi.
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Var — `CreateAdminInvitationAndAuditLogTables` (üç tablo, imha fonksiyonu, yetki satırları).

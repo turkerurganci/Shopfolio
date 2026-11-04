@@ -3029,6 +3029,378 @@ namespace Shopfolio.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.Payment.InboundNotificationRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal?>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("event_type");
+
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<string>("OrderReference")
+                        .HasColumnType("text")
+                        .HasColumnName("order_reference");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("outcome");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
+
+                    b.Property<string>("ProviderNotificationId")
+                        .HasColumnType("text")
+                        .HasColumnName("provider_notification_id");
+
+                    b.Property<string>("ProviderTransactionId")
+                        .HasColumnType("text")
+                        .HasColumnName("provider_transaction_id");
+
+                    b.Property<Guid?>("RefundRecordId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("refund_record_id");
+
+                    b.Property<string>("UnprocessedReason")
+                        .HasColumnType("text")
+                        .HasColumnName("unprocessed_reason");
+
+                    b.HasKey("Id")
+                        .HasName("pk_inbound_notification_records");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_inbound_notification_records_created_at");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("ix_inbound_notification_records_order_id");
+
+                    b.HasIndex("RefundRecordId")
+                        .HasDatabaseName("ix_inbound_notification_records_refund_record_id");
+
+                    b.HasIndex(new[] { "ProviderNotificationId" }, "UniqueNotificationId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_inbound_notification_records_provider_notification_id")
+                        .HasFilter("provider_notification_id IS NOT NULL");
+
+                    b.HasIndex(new[] { "ProviderTransactionId", "EventType", "Outcome" }, "UniqueNotificationWithoutId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_inbound_notification_records_provider_transaction_id_event_")
+                        .HasFilter("provider_notification_id IS NULL");
+
+                    b.ToTable("inbound_notification_records", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_inbound_notification_records_amount_not_negative", "amount >= 0");
+
+                            t.HasCheckConstraint("ck_inbound_notification_records_notification_or_transaction", "num_nonnulls(provider_notification_id, provider_transaction_id) >= 1");
+
+                            t.HasCheckConstraint("ck_inbound_notification_records_reason_only_when_processed", "unprocessed_reason IS NULL OR processed_at IS NOT NULL");
+
+                            t.HasCheckConstraint("ck_inbound_notification_records_unprocessed_reason", "\"unprocessed_reason\" IN ('AmountMismatch', 'OrderNotFound', 'RefundMarkedFailed', 'UnrecognizedNotification')");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Payment.PaymentRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<string>("ProviderTransactionId")
+                        .HasColumnType("text")
+                        .HasColumnName("provider_transaction_id");
+
+                    b.Property<Guid?>("TransitionRecordId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("transition_record_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_payment_records");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("ix_payment_records_order_id");
+
+                    b.HasIndex("ProviderTransactionId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_payment_records_provider_transaction_id")
+                        .HasFilter("provider_transaction_id IS NOT NULL");
+
+                    b.HasIndex("TransitionRecordId")
+                        .HasDatabaseName("ix_payment_records_transition_record_id");
+
+                    b.ToTable("payment_records", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_payment_records_transaction_or_transition", "num_nonnulls(provider_transaction_id, transition_record_id) >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Payment.Refund", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ActorKind")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("actor_kind")
+                        .HasAnnotation("Shopfolio:AllowedValues", new[] { "System", "Admin" });
+
+                    b.Property<Guid?>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<string>("AdminName")
+                        .HasColumnType("text")
+                        .HasColumnName("admin_name");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<Guid?>("CancellationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cancellation_id");
+
+                    b.Property<decimal?>("CouponShare")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("coupon_share");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("DefectClaimId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("defect_claim_id");
+
+                    b.Property<bool>("IsShippingFeeIncluded")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_shipping_fee_included");
+
+                    b.Property<Guid?>("ItemRemovalId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("item_removal_id");
+
+                    b.Property<Guid?>("LateDeliveryTerminationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("late_delivery_termination_id");
+
+                    b.Property<Guid?>("NotReturnedClosureId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("not_returned_closure_id");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_id");
+
+                    b.Property<Guid?>("OrderItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_item_id");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("payment_method");
+
+                    b.Property<Guid?>("PaymentRecordId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_record_id");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<string>("RefundType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("refund_type");
+
+                    b.Property<Guid?>("ReturnId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("return_id");
+
+                    b.Property<DateTimeOffset?>("SentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("sent_at");
+
+                    b.Property<decimal?>("VatAmount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)")
+                        .HasColumnName("vat_amount");
+
+                    b.Property<DateTimeOffset?>("VoidedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("voided_at");
+
+                    b.Property<Guid?>("WithdrawalId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("withdrawal_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_refunds");
+
+                    b.HasIndex("AdminId")
+                        .HasDatabaseName("ix_refunds_admin_id");
+
+                    b.HasIndex("CancellationId")
+                        .HasDatabaseName("ix_refunds_cancellation_id");
+
+                    b.HasIndex("DefectClaimId")
+                        .HasDatabaseName("ix_refunds_defect_claim_id");
+
+                    b.HasIndex("ItemRemovalId")
+                        .HasDatabaseName("ix_refunds_item_removal_id");
+
+                    b.HasIndex("LateDeliveryTerminationId")
+                        .HasDatabaseName("ix_refunds_late_delivery_termination_id");
+
+                    b.HasIndex("NotReturnedClosureId")
+                        .HasDatabaseName("ix_refunds_not_returned_closure_id");
+
+                    b.HasIndex("OrderId")
+                        .HasDatabaseName("ix_refunds_order_id");
+
+                    b.HasIndex("OrderItemId")
+                        .HasDatabaseName("ix_refunds_order_item_id");
+
+                    b.HasIndex("PaymentRecordId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_refunds_payment_record_id")
+                        .HasFilter("payment_record_id IS NOT NULL");
+
+                    b.HasIndex("ReturnId")
+                        .HasDatabaseName("ix_refunds_return_id");
+
+                    b.HasIndex("WithdrawalId")
+                        .HasDatabaseName("ix_refunds_withdrawal_id");
+
+                    b.HasIndex(new[] { "OrderId" }, "OneShippingFeePerOrder")
+                        .IsUnique()
+                        .HasDatabaseName("ix_refunds_order_id1")
+                        .HasFilter("is_shipping_fee_included AND voided_at IS NULL");
+
+                    b.ToTable("refunds", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_refunds_actor_kind", "\"actor_kind\" IN ('System', 'Admin')");
+
+                            t.HasCheckConstraint("ck_refunds_amount_above_zero", "amount > 0");
+
+                            t.HasCheckConstraint("ck_refunds_coupon_share_not_negative", "coupon_share >= 0");
+
+                            t.HasCheckConstraint("ck_refunds_links_by_type", "CASE refund_type WHEN 'Cancellation' THEN cancellation_id IS NOT NULL AND order_item_id IS NOT NULL AND quantity IS NOT NULL AND num_nonnulls(coupon_share, vat_amount, item_removal_id, late_delivery_termination_id, withdrawal_id, return_id, defect_claim_id, payment_record_id) = 0 WHEN 'ItemRemoval' THEN item_removal_id IS NOT NULL AND order_item_id IS NOT NULL AND quantity IS NOT NULL AND num_nonnulls(coupon_share, vat_amount, cancellation_id, late_delivery_termination_id, withdrawal_id, return_id, defect_claim_id, payment_record_id) = 0 WHEN 'LateDeliveryTermination' THEN late_delivery_termination_id IS NOT NULL AND order_item_id IS NOT NULL AND quantity IS NOT NULL AND num_nonnulls(coupon_share, vat_amount, cancellation_id, item_removal_id, withdrawal_id, return_id, defect_claim_id, payment_record_id) = 0 WHEN 'Withdrawal' THEN withdrawal_id IS NOT NULL AND order_item_id IS NOT NULL AND quantity IS NOT NULL AND num_nonnulls(coupon_share, vat_amount, cancellation_id, item_removal_id, late_delivery_termination_id, defect_claim_id, payment_record_id) = 0 WHEN 'DefectClaimRescission' THEN order_item_id IS NOT NULL AND quantity IS NOT NULL AND coupon_share IS NOT NULL AND vat_amount IS NOT NULL AND num_nonnulls(cancellation_id, item_removal_id, late_delivery_termination_id, withdrawal_id, payment_record_id) = 0 WHEN 'AmountBased' THEN num_nonnulls(quantity, coupon_share, vat_amount, cancellation_id, item_removal_id, late_delivery_termination_id, withdrawal_id, return_id, defect_claim_id, payment_record_id) = 0 WHEN 'LatePayment' THEN payment_record_id IS NOT NULL AND num_nonnulls(order_item_id, quantity, coupon_share, vat_amount, cancellation_id, item_removal_id, late_delivery_termination_id, withdrawal_id, return_id, defect_claim_id) = 0 ELSE false END");
+
+                            t.HasCheckConstraint("ck_refunds_not_returned_closure_only_amount_based", "not_returned_closure_id IS NULL OR refund_type = 'AmountBased'");
+
+                            t.HasCheckConstraint("ck_refunds_not_returned_closure_with_item", "not_returned_closure_id IS NULL OR order_item_id IS NOT NULL");
+
+                            t.HasCheckConstraint("ck_refunds_payment_method", "\"payment_method\" IN ('Card', 'BankTransfer')");
+
+                            t.HasCheckConstraint("ck_refunds_quantity_above_zero", "quantity > 0");
+
+                            t.HasCheckConstraint("ck_refunds_refund_type", "\"refund_type\" IN ('Cancellation', 'ItemRemoval', 'LateDeliveryTermination', 'Withdrawal', 'DefectClaimRescission', 'AmountBased', 'LatePayment')");
+
+                            t.HasCheckConstraint("ck_refunds_sent_or_voided", "num_nonnulls(sent_at, voided_at) <= 1");
+
+                            t.HasCheckConstraint("ck_refunds_shipping_fee_only_on_item_records", "NOT is_shipping_fee_included OR refund_type IN ('Cancellation', 'ItemRemoval', 'LateDeliveryTermination', 'Withdrawal')");
+
+                            t.HasCheckConstraint("ck_refunds_system_without_admin", "actor_kind <> 'System' OR num_nonnulls(admin_id, admin_name) = 0");
+
+                            t.HasCheckConstraint("ck_refunds_vat_amount_not_negative", "vat_amount >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Payment.RefundRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsMarkedFailedByAdmin")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_marked_failed_by_admin");
+
+                    b.Property<DateTimeOffset?>("LateSuccessAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("late_success_at");
+
+                    b.Property<DateTimeOffset?>("OutcomeAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("outcome_at");
+
+                    b.Property<Guid>("RefundId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("refund_id");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Sending")
+                        .HasColumnName("state");
+
+                    b.HasKey("Id")
+                        .HasName("pk_refund_records");
+
+                    b.HasIndex("RefundId")
+                        .HasDatabaseName("ix_refund_records_refund_id");
+
+                    b.HasIndex(new[] { "RefundId" }, "OneOpenRefundRequest")
+                        .IsUnique()
+                        .HasDatabaseName("ix_refund_records_refund_id1")
+                        .HasFilter("state IN ('Sending', 'OutcomePending')");
+
+                    b.HasIndex(new[] { "RefundId" }, "OneSuccessfulRefundRequest")
+                        .IsUnique()
+                        .HasDatabaseName("ix_refund_records_refund_id2")
+                        .HasFilter("state = 'Succeeded'");
+
+                    b.ToTable("refund_records", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_refund_records_admin_mark_is_failed", "NOT is_marked_failed_by_admin OR state = 'Failed'");
+
+                            t.HasCheckConstraint("ck_refund_records_late_success_only_when_marked", "late_success_at IS NULL OR is_marked_failed_by_admin");
+
+                            t.HasCheckConstraint("ck_refund_records_outcome_at_with_outcome", "(state IN ('Succeeded', 'Failed')) = (outcome_at IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_refund_records_state", "\"state\" IN ('Sending', 'OutcomePending', 'Succeeded', 'Failed')");
+                        });
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.Settings.Company", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4093,6 +4465,117 @@ namespace Shopfolio.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_transition_records_orders_order_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Payment.InboundNotificationRecord", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Ordering.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_inbound_notification_records_orders_order_id");
+
+                    b.HasOne("Shopfolio.Modules.Payment.RefundRecord", null)
+                        .WithMany()
+                        .HasForeignKey("RefundRecordId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_inbound_notification_records_refund_records_refund_record_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Payment.PaymentRecord", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Ordering.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_payment_records_orders_order_id");
+
+                    b.HasOne("Shopfolio.Modules.Ordering.TransitionRecord", null)
+                        .WithMany()
+                        .HasForeignKey("TransitionRecordId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_payment_records_transition_records_transition_record_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Payment.Refund", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Administration.Admin", null)
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_refunds_admins_admin_id");
+
+                    b.HasOne("Shopfolio.Modules.AfterSales.Cancellation", null)
+                        .WithMany()
+                        .HasForeignKey("CancellationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_refunds_cancellations_cancellation_id");
+
+                    b.HasOne("Shopfolio.Modules.AfterSales.DefectClaim", null)
+                        .WithMany()
+                        .HasForeignKey("DefectClaimId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_refunds_defect_claims_defect_claim_id");
+
+                    b.HasOne("Shopfolio.Modules.AfterSales.ItemRemoval", null)
+                        .WithMany()
+                        .HasForeignKey("ItemRemovalId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_refunds_item_removals_item_removal_id");
+
+                    b.HasOne("Shopfolio.Modules.AfterSales.LateDeliveryTermination", null)
+                        .WithMany()
+                        .HasForeignKey("LateDeliveryTerminationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_refunds_late_delivery_terminations_late_delivery_terminatio");
+
+                    b.HasOne("Shopfolio.Modules.AfterSales.NotReturnedClosure", null)
+                        .WithMany()
+                        .HasForeignKey("NotReturnedClosureId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_refunds_not_returned_closures_not_returned_closure_id");
+
+                    b.HasOne("Shopfolio.Modules.Ordering.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_refunds_orders_order_id");
+
+                    b.HasOne("Shopfolio.Modules.Ordering.OrderItem", null)
+                        .WithMany()
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_refunds_order_items_order_item_id");
+
+                    b.HasOne("Shopfolio.Modules.Payment.PaymentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("PaymentRecordId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_refunds_payment_records_payment_record_id");
+
+                    b.HasOne("Shopfolio.Modules.AfterSales.Return", null)
+                        .WithMany()
+                        .HasForeignKey("ReturnId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_refunds_returns_return_id");
+
+                    b.HasOne("Shopfolio.Modules.AfterSales.Withdrawal", null)
+                        .WithMany()
+                        .HasForeignKey("WithdrawalId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_refunds_withdrawals_withdrawal_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Payment.RefundRecord", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Payment.Refund", null)
+                        .WithMany()
+                        .HasForeignKey("RefundId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_refund_records_refunds_refund_id");
                 });
 
             modelBuilder.Entity("Shopfolio.Modules.Settings.Company", b =>

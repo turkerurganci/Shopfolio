@@ -129,7 +129,7 @@
 | T227 | Zaman ve para | ✓ | ✓ PASS (tur 1) | 15daf95 | #382 |
 | T228 | Eşzamanlılık denetimi | ⬚ | — | — | — |
 | T229 | Uygulama belleğinde önbellek | ⬚ | — | — | — |
-| T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ⬚ | — | — | — |
+| T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ✓ | bekliyor | — | #386 |
 | T231 | Maskelemenin üç katmanının testleri | ⬚ | — | — | — |
 | T232 | Veri koruma halkası | ⬚ | — | — | — |
 | T233 | Veritabanı oturum süreleri | ✓ | ✓ PASS (tur 2) | 810fe27 | #384 |

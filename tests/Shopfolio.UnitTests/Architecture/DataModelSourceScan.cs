@@ -21,6 +21,8 @@ internal static partial class DataModelSourceScan
 
     public const string NumericConversion = "converts a value to a number (an enum is stored as its code name; 09 10.1 item 3)";
 
+    public const string ModuleTypeNameOutsideHasOne = "writes another module's type name outside a HasOne call (09 10.1 item 1; D-61)";
+
     /// <summary>The file that may make ids.</summary>
     public const string EntityIdsFile = "EntityIds.cs";
 
@@ -36,6 +38,18 @@ internal static partial class DataModelSourceScan
         bool inMigrations = filePath is not null && filePath.Replace('\\', '/').Contains("/Migrations/", StringComparison.Ordinal);
         List<(string Rule, int Line)> findings = [];
         string[] lines = text.ReplaceLineEndings("\n").Split('\n');
+
+        // A module type name is written once, in a constant, and the constant is used only inside a HasOne call (09 10.1 item 1; D-61).
+        HashSet<string> typeNameConstants = new(StringComparer.Ordinal);
+        foreach (string line in lines)
+        {
+            Match declaration = ModuleTypeNameConstant().Match(line);
+            if (declaration.Success)
+            {
+                typeNameConstants.Add(declaration.Groups[1].Value);
+            }
+        }
+
         for (int i = 0; i < lines.Length; i++)
         {
             string line = lines[i];
@@ -43,6 +57,16 @@ internal static partial class DataModelSourceScan
             if (trimmed.StartsWith("//", StringComparison.Ordinal) || trimmed.StartsWith("--", StringComparison.Ordinal))
             {
                 continue;
+            }
+
+            if (!inMigrations && !line.Contains(".HasOne(", StringComparison.Ordinal))
+            {
+                bool literalOutsideConstant = ModuleTypeNameLiteral().IsMatch(line) && !ModuleTypeNameConstant().IsMatch(line);
+                bool constantOutsideHasOne = typeNameConstants.Any(name => !ModuleTypeNameConstant().IsMatch(line) && Regex.IsMatch(line, $@"\b{Regex.Escape(name)}\b"));
+                if (literalOutsideConstant || constantOutsideHasOne)
+                {
+                    findings.Add((ModuleTypeNameOutsideHasOne, i + 1));
+                }
             }
 
             if (fileName != EntityIdsFile && GuidFactoryCall().IsMatch(line))
@@ -93,6 +117,13 @@ internal static partial class DataModelSourceScan
 
     [GeneratedRegex(@"\bHasConversion\s*<\s*(int|short|long|byte|sbyte|ushort|uint|ulong|Int16|Int32|Int64)\s*>|\bEnumToNumberConverter\b")]
     private static partial Regex NumericConversionCall();
+
+    // A full name of a type in another module's own namespace; the Contracts namespace is the open surface and is not matched.
+    [GeneratedRegex("\"Shopfolio\\.Modules\\.(?!\\w+\\.Contracts\\b)\\w+\\.[A-Z]\\w*\"")]
+    private static partial Regex ModuleTypeNameLiteral();
+
+    [GeneratedRegex("\\bconst\\s+string\\s+(\\w+)\\s*=\\s*\"Shopfolio\\.Modules\\.(?!\\w+\\.Contracts\\b)\\w+\\.[A-Z]\\w*\"")]
+    private static partial Regex ModuleTypeNameConstant();
 
     [GeneratedRegex("'[ıİçÇğĞöÖşŞüÜ]'")]
     private static partial Regex TurkishLetterLiteral();

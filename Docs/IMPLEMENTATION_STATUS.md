@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-04 — T107 (Müşteri hesabı) bağımsız doğrulama tur 1: ✓ PASS (head `e765c68`, PR #364; kriter 1–6 ve KK1–KK6 ✓; Unit 240/240, Integration 315/315, betik testleri 4/4; dal CI `41769181335` yeşil; bulgu 0; K-notu yok — modüller arası bağın ad kalıbı D-61'de, gerekçesi yerinde; `12`'de T107'ye bağlı satır yok, `VAL-D121` BEKLEMEDE). Merge yardımcıda. Önceki giriş (T107 yapım) `STATUS_CHANGELOG.md`'ye taşındı.
+**Son güncelleme:** 2026-11-04 — T108 (Oturum, bağlantı, deneme ve giriş kayıtları) yapım bitti, doğrulama bekliyor (dal `task/T108-oturum-baglanti-deneme-giris`): beş entity (`Session`, `RecognizedBrowserMark`, `LinkRecord`, `AttemptRecord`, `LoginRecord`) tek göçle; dört modüller arası bağ D-61 kalıbıyla adla kuruldu ve D-61 kapandı (`09 §10.1` + kaynak taraması). Önceki giriş (T107 doğrulama tur 1) `STATUS_CHANGELOG.md`'ye taşındı.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -80,7 +80,7 @@
 | T105 | Fiyat, kupon ve dijital dosya | ✓ | ✓ PASS (tur 1) | `67e983a` | #362 |
 | T106 | Yönetici hesabı, davet ve işlem izi | ✓ | ✓ PASS (tur 3) | `d3baaa6` | #363 |
 | T107 | Müşteri hesabı | ✓ | ✓ PASS (tur 1) | `e765c68` | #364 |
-| T108 | Oturum, bağlantı, deneme ve giriş kayıtları | ⬚ | — | — | — |
+| T108 | Oturum, bağlantı, deneme ve giriş kayıtları | ⏳ | — | — | — |
 | T109 | Sepet ve sipariş çekirdeği | ⬚ | — | — | — |
 | T110 | Ayırma ve düzeltme geçmişleri | ⬚ | — | — | — |
 | T111 | Kalem kayıtları | ⬚ | — | — | — |

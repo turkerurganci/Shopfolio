@@ -120,9 +120,13 @@ while IFS= read -r path; do
 
   [ "$is_lock" = "1" ] && continue
 
-  while IFS= read -r line; do
-    body="${line#+}"
-    echo "$body" | grep -qiE "$KEY_RE" || continue
+  # Pre-filter in one pass: strip the single leading "+" and keep only lines that
+  # mention a key name. Spawning grep per added line is very slow on Windows
+  # (a 7600-line migration took minutes); the loop below sees only candidates.
+  candidates="$(echo "$added" | sed 's/^+//' | grep -iE "$KEY_RE" || true)"
+  [ -n "$candidates" ] || continue
+
+  while IFS= read -r body; do
     # The key name must sit on the LEFT of the first = or : — that is what an
     # assignment looks like (API_KEY=..., "token": ..., password: ...). Prose
     # that merely mentions the word after a label ("Sorun: ... token ...")
@@ -183,7 +187,7 @@ while IFS= read -r path; do
     [ "${#value}" -lt 8 ] && continue
     add_finding "icerik: $path — sir anahtarina gercek deger atamasi: $(echo "$body" | cut -c1-60)" "anahtar-atamasi:$path"
     break
-  done <<< "$added"
+  done <<< "$candidates"
 done <<< "$STAGED"
 
 [ -n "$FINDINGS" ] || exit 0

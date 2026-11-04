@@ -254,5 +254,11 @@ check 0 "placeholder env value"      "app/config.env"      'API_KEY=<YOUR_KEY_HE
 check 0 "markdown prose"             "docs/a.md"           'Sorun: ek sir (token/link) gerektigi yazilmiyor.'
 check 0 ".env.example"               ".env.example"        'API_KEY=sk_live_9f3a1b2c3d4e'
 
+echo "--- large file (pre-filter) ---"
+# 3200 harmless lines; the pre-filter must still reach a secret at the very end.
+BIG="$(for i in $(seq 1 3200); do printf '    public int Field%s { get; set; }\n' "$i"; done)"
+check 1 "large cs, secret at end"    "src/Big1.cs"         "$BIG"$'\n''var Password = "abc12345xyz";'
+check 0 "large cs, no secret"        "src/Big2.cs"         "$BIG"
+
 echo "--- $PASS passed, $FAIL failed ---"
 [ "$FAIL" -eq 0 ]

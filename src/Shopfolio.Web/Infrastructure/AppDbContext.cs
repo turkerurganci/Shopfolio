@@ -1,7 +1,11 @@
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
+using Shopfolio.Infrastructure.Backup;
 using Shopfolio.Infrastructure.DataModel;
+using Shopfolio.Infrastructure.Disposal;
+using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
@@ -18,9 +22,10 @@ namespace Shopfolio.Infrastructure;
 /// <summary>
 /// The single database context (09 4.1 item 2, 5.2). The entities arrive with the tasks that own them, each with its <c>DbSet</c> property
 /// (09 5.2 item 2) and its entity configuration in the module's folder; the context applies those configurations and does no other work.
-/// A module never opens a context of its own.
+/// A module never opens a context of its own. The context is also the data protection package's key context (06 4.68): the package's own
+/// entity is its key ring table.
 /// </summary>
-internal sealed class AppDbContext : DbContext
+internal sealed class AppDbContext : DbContext, IDataProtectionKeyContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -172,6 +177,22 @@ internal sealed class AppDbContext : DbContext
     public DbSet<DispatchRecord> DispatchRecords => Set<DispatchRecord>();
 
     public DbSet<ChannelStateRecord> ChannelStateRecords => Set<ChannelStateRecord>();
+
+    public DbSet<Job> Jobs => Set<Job>();
+
+    public DbSet<DisposalRecord> DisposalRecords => Set<DisposalRecord>();
+
+    public DbSet<HeartbeatRecord> HeartbeatRecords => Set<HeartbeatRecord>();
+
+    public DbSet<OutageRecord> OutageRecords => Set<OutageRecord>();
+
+    public DbSet<BackupStatusRecord> BackupStatusRecords => Set<BackupStatusRecord>();
+
+    /// <summary>
+    /// The key ring (06 4.68): the data protection package's entity, the one exception to the key and creation time rules. The application's
+    /// code neither writes nor reads it; the framework does (09 5.2 item 4).
+    /// </summary>
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).

@@ -23,6 +23,231 @@ namespace Shopfolio.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("text")
+                        .HasColumnName("friendly_name");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("text")
+                        .HasColumnName("xml");
+
+                    b.HasKey("Id")
+                        .HasName("pk_data_protection_keys");
+
+                    b.ToTable("data_protection_keys", (string)null);
+                });
+
+            modelBuilder.Entity("Shopfolio.Infrastructure.Backup.BackupStatusRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("LastFailedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_failed_at");
+
+                    b.Property<DateTimeOffset?>("LastSucceededAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_succeeded_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_backup_status_records");
+
+                    b.ToTable("backup_status_records", (string)null);
+                });
+
+            modelBuilder.Entity("Shopfolio.Infrastructure.Disposal.DisposalRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int?>("Count")
+                        .HasColumnType("integer")
+                        .HasColumnName("count");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("DisposalRecordType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("disposal_record_type");
+
+                    b.Property<DateOnly?>("RangeEndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("range_end_date");
+
+                    b.Property<DateOnly?>("RangeStartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("range_start_date");
+
+                    b.HasKey("Id")
+                        .HasName("pk_disposal_records");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_disposal_records_created_at");
+
+                    b.ToTable("disposal_records", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_disposal_records_count_and_range_by_type", "CASE WHEN disposal_record_type = 'ServerLogRotation' THEN count IS NULL AND range_start_date IS NOT NULL AND range_end_date IS NOT NULL ELSE count IS NOT NULL AND count > 0 AND range_start_date IS NULL AND range_end_date IS NULL END");
+
+                            t.HasCheckConstraint("ck_disposal_records_disposal_record_type", "\"disposal_record_type\" IN ('Order', 'DispatchRecord', 'ContactRequest', 'LoginRecord', 'AuditLog', 'DisposalRecord', 'InboundNotificationRecord', 'DefectClaim', 'Image', 'DigitalFile', 'LogFile', 'ServerLogRotation', 'OrphanFile', 'Customer', 'Admin', 'PendingRegistration', 'RefundIban', 'PendingEmailChange', 'AttemptRecord', 'Session', 'RecognizedBrowserMark', 'Cart', 'AdminInvitation', 'LinkRecord')");
+
+                            t.HasCheckConstraint("ck_disposal_records_range_end_not_before_start", "range_end_date >= range_start_date");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Infrastructure.Jobs.HeartbeatRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("LastHeartbeatAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_heartbeat_at");
+
+                    b.Property<DateTimeOffset?>("NightlyJobLastAttemptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("nightly_job_last_attempted_at");
+
+                    b.Property<DateTimeOffset?>("NightlyJobLastSucceededAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("nightly_job_last_succeeded_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_heartbeat_records");
+
+                    b.ToTable("heartbeat_records", (string)null);
+                });
+
+            modelBuilder.Entity("Shopfolio.Infrastructure.Jobs.Job", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("AttemptCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("attempt_count");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("JobState")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Pending")
+                        .HasColumnName("job_state");
+
+                    b.Property<string>("JobType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("job_type");
+
+                    b.Property<string>("LastErrorSummary")
+                        .HasColumnType("text")
+                        .HasColumnName("last_error_summary");
+
+                    b.Property<DateTimeOffset?>("NextAttemptAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("next_attempt_at");
+
+                    b.Property<Guid?>("RelatedRecordId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("related_record_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_jobs");
+
+                    b.HasIndex("CompletedAt")
+                        .HasDatabaseName("ix_jobs_completed_at")
+                        .HasFilter("job_state = 'Completed'");
+
+                    b.HasIndex("JobState")
+                        .HasDatabaseName("ix_jobs_job_state")
+                        .HasFilter("job_state = 'Failed'");
+
+                    b.HasIndex("JobState", "NextAttemptAt")
+                        .HasDatabaseName("ix_jobs_job_state_next_attempt_at")
+                        .HasFilter("job_state = 'Pending'");
+
+                    b.HasIndex("JobType", "RelatedRecordId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_jobs_job_type_related_record_id")
+                        .HasFilter("job_state = 'Pending'");
+
+                    NpgsqlIndexBuilderExtensions.AreNullsDistinct(b.HasIndex("JobType", "RelatedRecordId"), false);
+
+                    b.ToTable("jobs", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_jobs_attempt_count_not_negative", "attempt_count >= 0");
+
+                            t.HasCheckConstraint("ck_jobs_completed_at_with_state", "(job_state = 'Completed') = (completed_at IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_jobs_job_state", "\"job_state\" IN ('Pending', 'Completed', 'Failed')");
+
+                            t.HasCheckConstraint("ck_jobs_job_type", "\"job_type\" IN ('CardRefund', 'FinalPaymentQuery', 'ImageDerivative', 'InboundNotificationProcessing', 'RefundOutcomeQuery', 'BounceQuery')");
+
+                            t.HasCheckConstraint("ck_jobs_related_record_by_type", "(job_type = 'BounceQuery') = (related_record_id IS NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Infrastructure.Jobs.OutageRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("EndedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ended_at");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_outage_records");
+
+                    b.ToTable("outage_records", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_outage_records_longer_than_two_minutes", "ended_at - started_at > interval '2 minutes'");
+                        });
+                });
+
             modelBuilder.Entity("Shopfolio.Infrastructure.Security.AttemptRecord", b =>
                 {
                     b.Property<Guid>("Id")

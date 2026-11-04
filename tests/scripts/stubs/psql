@@ -1,14 +1,27 @@
 #!/bin/sh
-# Stub of psql for the restore drill test: a restored copy that is still replaying the archived log. The query is the last
-# argument. `pg_is_in_recovery()` answers 't' for the first STUB_RECOVERY_POLLS calls and 'f' afterwards (STUB_RECOVERY_POLLS
-# empty or very large: never ends). The last committed moment is the base backup's moment while the copy is still in recovery
-# and the archive's last moment after it (the behaviour of a real copy that is read too early).
+# Stub of psql for the script tests. The query is the last argument; each call is recorded as "psql <query>" in STUB_CALLS, and
+# when STUB_ARGS is set all arguments are recorded there too (one line per call). The call fails with exit code STUB_FAIL_CODE
+# (default 2, psql's code for a lost connection) when the query contains STUB_FAIL_ON (a fixed text).
+#
+# For the restore drill test it plays a restored copy that is still replaying the archived log: `pg_is_in_recovery()` answers 't'
+# for the first STUB_RECOVERY_POLLS calls and 'f' afterwards (STUB_RECOVERY_POLLS empty or very large: never ends). The last
+# committed moment is the base backup's moment while the copy is still in recovery and the archive's last moment after it (the
+# behaviour of a real copy that is read too early).
 
 query=""
 for argument in "$@"; do
   query="$argument"
 done
 echo "psql $query" >>"${STUB_CALLS:?STUB_CALLS is required}"
+if [ -n "${STUB_ARGS:-}" ]; then
+  echo "$*" >>"$STUB_ARGS"
+fi
+
+if [ -n "${STUB_FAIL_ON:-}" ]; then
+  case "$query" in
+    *"$STUB_FAIL_ON"*) exit "${STUB_FAIL_CODE:-2}" ;;
+  esac
+fi
 
 counter_file="${STUB_STATE:?STUB_STATE is required}"
 polls=0

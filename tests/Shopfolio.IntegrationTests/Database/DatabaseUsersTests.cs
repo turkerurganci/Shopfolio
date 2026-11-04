@@ -227,24 +227,20 @@ public sealed class DatabaseUsersTests
     public async Task PrivilegeMatrix_OnTheTablesOfTheDatabase_HasNoDeviation()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        string migrator = SchemaOwnerDsn();
         await CreateProbeAsync(ct);
-        // The three tables of 09 10.8 item 3: the audit trail is the real one (T106 made it with the privilege split of its migration);
-        // the other two are made here the way their migrations will make them (T118, 09 10.8 item 3 pattern).
-        await ExecuteAsync(
-            migrator,
-            $"""
-             CREATE TABLE public.{PrivilegeMatrix.DataProtectionKeys} (id integer PRIMARY KEY);
-             REVOKE SELECT ON public.{PrivilegeMatrix.DataProtectionKeys} FROM {Users.Reader};
-             CREATE TABLE public.{PrivilegeMatrix.BackupStatusRecords} (id integer PRIMARY KEY, last_succeeded_at timestamptz, last_failed_at timestamptz, note text);
-             GRANT UPDATE (last_succeeded_at, last_failed_at) ON public.{PrivilegeMatrix.BackupStatusRecords} TO {Users.BackupStatus};
-             """,
-            ct);
+        // The three tables of 09 10.8 item 3 are the real ones, each with the privilege split of the migration that made it: the audit trail
+        // (T106), the key ring and the backup status record (T118). The probe is an ordinary table with the default privileges.
+        List<string> exceptions = await QueryStringsAsync(
+            _collection.Dsn,
+            "SELECT relname FROM pg_class WHERE relnamespace = 'public'::regnamespace AND relname = ANY(@names) ORDER BY 1",
+            ct,
+            ("names", new[] { PrivilegeMatrix.AuditLogs, PrivilegeMatrix.DataProtectionKeys, PrivilegeMatrix.BackupStatusRecords }));
 
         IReadOnlyList<string> deviations = await PrivilegeMatrix.FindDeviationsAsync(_collection.Dsn, Users, ct);
 
+        Assert.Equal([PrivilegeMatrix.AuditLogs, PrivilegeMatrix.BackupStatusRecords, PrivilegeMatrix.DataProtectionKeys], exceptions);
         Assert.Empty(deviations);
-        await ExecuteAsync(migrator, $"DROP TABLE {Probe}, public.{PrivilegeMatrix.DataProtectionKeys}, public.{PrivilegeMatrix.BackupStatusRecords}", ct);
+        await DropProbeAsync(ct);
     }
 
     [Theory]

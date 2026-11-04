@@ -88,7 +88,7 @@ Doğrulama kontrol listesi: KK1–KK7 yukarıdaki testlerle; KK8 (kaynak taramas
 - **Branch:** `task/T109-sepet-siparis-cekirdegi`
 - **PR:** #366
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `521bb61` — CI `41782286493`, Publish `41782286498` (success)
 
 ## Dış Varsayımlar
 

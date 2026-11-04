@@ -102,7 +102,7 @@
 - **Branch:** `task/T108-oturum-baglanti-deneme-giris`
 - **PR:** #365
 - **CI:** dal CI `41775169027` (head `04113f7`) success
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `6c390c2` — CI `41777013441`, Publish `41777013421` (success)
 
 ## Dış Varsayımlar
 

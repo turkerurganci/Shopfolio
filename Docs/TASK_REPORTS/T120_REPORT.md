@@ -1,6 +1,6 @@
 # T120 — Model eşitlik denetimleri
 
-**Faz:** F1 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-04
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -27,7 +27,7 @@
 | 2 | Tekil dizin listesi ve filtreleri modelle eşit | ✓ | `IndexConsistencyTests.UniqueIndexTable_AndTheUniqueIndexesOfTheModel_AreTheSameSet` (filtre atomları dahil) |
 | 3 | FK ve silme davranışı listesi modelle eşit; `RESTRICT` yok | ✓ | `ForeignKeyTable_AndTheForeignKeysOfTheModel_AreTheSameSet`, `ForeignKeyTable_BehaviorCounts_...`, `Model_UsesTheThreeBehaviorsOnly_AndNoRestrict` |
 | 4 | Kontrol kısıtı listesi modelle eşit | ✓ | `CheckConstraintConsistencyTests` (tablo kümesi, kod listesi + madde sayısı, slug, telefon, enum) |
-| 5 | Sorgu dizinleri ve bağların kendi dizinleri modelle eşit | ✓ | `IndexConsistencyTests.QueryIndexTable_AndTheOtherIndexesOfTheModel_AreTheSameSet`, `RelationshipConsistencyTests.ForeignKeyIndexes_ThatTheTablePromises_ExistInTheModel` |
+| 5 | Sorgu dizinleri ve bağların kendi dizinleri modelle eşit | ✓ (validator: ~ Kısmi — model → belge yönünde vaat edilmemiş kendi dizini yakalanmıyor; Doğrulama tur 1, Bulgu 1) | `IndexConsistencyTests.QueryIndexTable_AndTheOtherIndexesOfTheModel_AreTheSameSet`, `RelationshipConsistencyTests.ForeignKeyIndexes_ThatTheTablePromises_ExistInTheModel` |
 | 6 | Saklanan türetilmiş değerler envanterin dört türüyle sınırlı | ✓ | `StoredDerivedValueConsistencyTests.StoredDerivedValues_OfTheModel_AreExactlyTheInventory`, `PanelMarks_OfTheDocument_AreNotStoredByTheModel` |
 | 7 | Göçe dönüşmemiş değişiklik denetimi birim testi değil | ✓ | `TestIsolationScanTests.UnitTests_Sources_ApplyNoMigrationAndLookForNoPendingModelChanges` |
 | 8 | `Consistency` özellikli, Lint'te koşar, Unit'te dışarıda, DB/ağ yok | ✓ | `ConsistencyChecks_Types_CarryTheConsistencyTrait_AndNoOtherTypeDoes`, `Pipeline_RunsTheConsistencyChecksInLintOnly`, `ConsistencyChecks_Sources_ReadNoConnectionStringOrEnvironmentAndOpenNoConnection` |
@@ -62,10 +62,28 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-04) |
+| Bulgu sayısı | 1 (S1, DÜŞÜK) |
+| Düzeltme gerekli mi | Evet — KK5 / kriter 5'in model → belge yönü |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-70; K2 düzeltme turunda bu PR'da) |
+
+### Doğrulama tur 1 — ✗ FAIL (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks`; ana dal son üç run `41848143892`, `41848143907`, `41839444317` success; `.claude/memory/MEMORY.md` satır 23 T120'yi anar. Dal CI'ı: `41852025135` (head `9910ebb`) success.
+
+**Kabul kriterleri:** 1, 2, 3, 4, 6, 7, 8 ✓; **5 ~ Kısmi**. Validator kaynak kodda ihlal üretti (iş bitince `git checkout --` ile geri alındı): `Variant.ProductId` Cascade → NoAction (KK3: diyagram ve 7.2 tablosu denetimleri kırıldı), `Variant.NormalizedSKU` tekil dizini silindi (KK2: 7.1 denetimi kırıldı), `price_above_zero` kısıtı silindi (KK4: kod listesi denetimi kırıldı), `Variant.SoldTotal` alanı eklendi (KK6: 5 test kırıldı). Bağımsız sayım: §6'da 130 diyagram çizgisi, §7.2'de 130 satır (grep).
+
+**Bulgu 1 (S1, DÜŞÜK; kriter 5 / KK5):** bağın kendi dizininin model → belge yönü denetlenmiyor. `IndexConsistencyTests.QueryIndexesOf` (satır 242–246) yabancı anahtar sütunundaki **her** düz, filtresiz tek sütunlu dizini §7.5.1 karşılaştırmasından çıkarır; `DocumentedRelationships.CheckIndexPromises` (satır 83–124) yalnız §7.2.1'in vaat ettiği dizinin varlığını arar, vaat edilmeyen kendi dizininin yokluğunu aramaz. Sınama: `OptionValueConfiguration`'a `builder.HasIndex(v => v.OptionId);` eklendi — §7.2.1 bu bağ için "(`OptionId`, `SortOrder`) dizininin ilk sütunu" der, §7.5.1 "`kendi dizini` yazılı bağ dizinleri dışındakiler" listesidir, §7.6.1 her tablonun yalnız bu dizinleri taşıdığını söyler — Consistency 100/100 geçti. Belgede olmayan bir dizin modelde kaldı; kriter 5'in "eşittir"i bu yönde sağlanmıyor. Düzeltme önerisi: §7.5.1 karşılaştırmasından yalnız §7.2.1'de "kendi dizini" yazılı bağların tek sütunlu düz dizinini çıkarmak (ya da `CheckIndexPromises`'ta "kendi dizini" yazmayan bağ için düz tek sütunlu dizin bulunursa bulgu üretmek) ve bunun ihlal örneğini eklemek.
+
+**Testler (validator):** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` çıkış 0; Consistency 100/100; Unit (Consistency dışı) 241/241; Integration değişmedi, koşulmadı; koşu sonrası `dotnet restore --locked-mode` çıkış 0, `git status` temiz.
+
+**Güvenlik:** sır yok (yer tutucu bağlantı dizesi açılmaz; `AppDbContext.Configure` yalnız `UseNpgsql` seçeneği kurar); auth ve girdi doğrulama etkisi yok (yalnız test); yeni bağımlılık yok.
+
+**`12` satırları:** task'ın kaynak birimleri `06 §2.7`, §6.1–§6.6, §7.1–§7.6 ve `09 §5`, §19 (alt bölüm birimleri; KP yok). `12`'de bu birimleri anan tek satır `VAL-D063` (`06 §2.7.1`; kuponun yüzde/tutar kuralı, kanıtı uç yanıtı + veri kaydı) — kupon task'ının satırıdır, T120'nin değil; `Durum` değişikliği yok.
+
+**K-notları:** K1 — saklanan türetilmiş değer denetimi ada dayalıdır; `06 §2.7.2`'deki bir değer kalıba uymayan adla saklanırsa kırılmaz, testin envanter sözlüğü §2.7.1 hücreleriyle değil satır sayısıyla eşlenir → **D-70**. K2 — `Model_ADerivedValueMovedToTheNotDerivedList_IsReportedWhenItIsGone` `Order.Total` (NotDerived listesinde) için "only in the inventory" iletisini bekler; ileti iki listeyi ayırmıyor (kozmetik) → düzeltme turunda bu PR'da.
+
+**Yapım raporu karşılaştırması:** kriter 5 ve "her denetim iki yönlüdür" iddiası uyuşmuyor (Bulgu 1); öteki kriterler, KK1–KK4, KK6–KK8 ve ⚠ kararlar (ham SQL dizinleri, `o|` işaretinin tekil dizinden türetilmesi) validator kanıtıyla uyumlu.
 
 ## Altyapı Değişiklikleri
 
@@ -89,7 +107,7 @@ Dış varsayım: yok. Denetimler yalnız depodaki `Docs/06_DATA_MODEL.md`, göç
 
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
-| — | Yok | — | — |
+| 1 | Saklanan türetilmiş değer denetiminin ada dayalı kapsamı (validator tur 1 K1) | D-70 | anlamsal tam kapsam mekanik kurulamaz; kalıp genişletmesi sonraki iş |
 
 ## Notlar
 

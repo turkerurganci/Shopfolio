@@ -8,7 +8,7 @@
 
 ## Yapılan İşler
 
-- `Modules/Membership/` altında beş entity ve yapılandırması: `Session` (`06 §4.39`), `RecognizedBrowserMark` (§4.41), `LinkRecord` (§4.42), `AttemptRecord` (§4.43), `LoginRecord` (§4.44). Özellik adları `06` alan tablolarıyla birebir (`ReauthenticatedOperation`, `ReauthenticationTokenHash`, `AdminInvitationId` ...). Hiçbir alanın varsayılanı yok (alan tablolarında "—"); `column_default` testi boş döner.
+- `Infrastructure/Security/` altında (düzeltme 1; ilk yapımda `Modules/Membership/`) beş entity ve yapılandırması: `Session` (`06 §4.39`), `RecognizedBrowserMark` (§4.41), `LinkRecord` (§4.42), `AttemptRecord` (§4.43), `LoginRecord` (§4.44). Özellik adları `06` alan tablolarıyla birebir (`ReauthenticatedOperation`, `ReauthenticationTokenHash`, `AdminInvitationId` ...). Hiçbir alanın varsayılanı yok (alan tablolarında "—"); `column_default` testi boş döner.
 - `Session`: `TokenHash` tekil; `ck_sessions_exactly_one_account`, `ck_sessions_reauthentication_fields_together`, `ck_sessions_admin_without_account_deletion`; `LastActivityAt` dizini; iki bağ `Cascade`. `GrantReauthentication` iznin iki alanını birlikte yazar.
 - `RecognizedBrowserMark`: `MarkHash` tekil; `ck_..._exactly_one_account`; `ExpiresAt` dizini; iki bağ `Cascade`.
 - `LinkRecord`: `TokenHash` tekil; (`LinkType`, `ExpiresAt`) dizini ve `PreviousEmail` dolu satırlarda filtreli `ExpiresAt` dizini; kontrol kısıtları: üç sahipten tam biri, davet bağı yalnız `AdminInvitation` türünde, `EmailVerification` ve `GoogleLinkConfirmation` türlerinde müşteri bağı, `PreviousEmail` yalnız `EmailChangeRevert` türünde, `UsedAt`/`SupersededAt` en çok biri; üç bağ `Cascade` (davetin bağlantı kaydı davetle gider).
@@ -20,7 +20,7 @@
 
 ## Etkilenen Modüller / Dosyalar
 
-- `src/Shopfolio.Web/Modules/Membership/{Session,RecognizedBrowserMark,LinkRecord,AttemptRecord,LoginRecord}.cs`, `Infrastructure/AppDbContext.cs` (beş `DbSet`, `LoginRecordsGuard`), `Infrastructure/Migrations/*` (göç, tasarım dosyası, anlık görüntü).
+- `src/Shopfolio.Web/Infrastructure/Security/{Session,RecognizedBrowserMark,LinkRecord,AttemptRecord,LoginRecord}.cs`, `Infrastructure/AppDbContext.cs` (beş `DbSet`, `LoginRecordsGuard`), `Infrastructure/Migrations/*` (göç, tasarım dosyası, anlık görüntü).
 - `tests/Shopfolio.IntegrationTests/Model/{SessionLinkAttemptLoginTablesTests,ModelRuleTests,EnumDatabaseTests}.cs`; `tests/Shopfolio.UnitTests/Architecture/{DataModelSourceScan,DataModelSourceScanTests}.cs` ve iki ihlal örneği.
 - `Docs/09_CODING_GUIDELINES.md` (§10.1 m.1), `Docs/DEFERRED_BACKLOG.md` (D-61), `Docs/IMPLEMENTATION_STATUS.md`, `Docs/STATUS_CHANGELOG.md`, `.claude/memory/MEMORY.md`.
 
@@ -63,6 +63,16 @@
 **Bulgu 1 (S1, ORTA):** beş varlık ve yapılandırmaları `src/Shopfolio.Web/Modules/Membership/` altında (`Shopfolio.Modules.Membership`); `05 §3.3.11`, `05 §1.2.18`, `11` aday tablosu (T108 Modül = Ortak altyapı), `09 §4.1` m.2 ve `09 §15.4` m.5 bu kayıtları ortak altyapıya (`Infrastructure/`) verir. `09 §6` m.2 gereği ortak altyapı (`AttemptCounter`) modül türüne başvuramaz. Düzeltme: varlıklar + yapılandırma + `LoginRecordsGuard` `Infrastructure/` altına, modül türlerine bağlar adla; göç tasarım dosyası ve anlık görüntü yeniden üretilir (şema aynı); `09 §10.1` m.1 cümlesi "altyapıdan modüle" bağı da kapsar. `09 §25`'te iki soru "hayır" (doküman çelişkisi, `§4.1` düzeni).
 
 **K-notları:** K1 → D-62 (`DataModelSourceScan` `HasOne(` satırında sabitsiz düz dizgiyi yakalamıyor); K2 → D-63 (`06 §7.3` `LinkRecord` satırında `GoogleLinkConfirmation` eksik). `12` matrisinde T108'e bağlı satırların `Durum`'u değişmedi (sonraki task'lara bağlı, BEKLEMEDE).
+
+## Düzeltme 1 (2026-11-04, PR #365)
+
+| Bulgu | Değişiklik | Test |
+|---|---|---|
+| Bulgu 1 (S1, ORTA): beş varlık modül klasöründe | `Session`, `RecognizedBrowserMark`, `LinkRecord`, `AttemptRecord`, `LoginRecord` ve yapılandırmaları + `LoginRecordsGuard` `src/Shopfolio.Web/Infrastructure/Security/`'e, ad alanı `Shopfolio.Infrastructure.Security`'ye taşındı (`05 §3.3.11`, `09 §4.1` m.2, `09 §15.4` m.5). Ortak altyapı modül türüne başvurmadığı için (`09 §6` m.2) `Customer`, `Admin`, `AdminInvitation` bağları `HasOne("<tam ad>", navigationName: null)` + yapılandırmadaki `const string` kalıbına çevrildi; `LoginRecord`'un kullandığı `AccountType` (`Membership.Contracts`'taydı) `Infrastructure/Values/`'a taşındı (kilit dosyası adı da değişti, değerler aynı). `09 §10.1` m.1 "ortak altyapıdan modüle" bağını da kapsar | Release build `-warnaserror` temiz; `dotnet format --verify-no-changes` çıkış 0; Unit 245/245; `ModuleBoundaryTests` yeşil |
+| Göç tasarım dosyası ve anlık görüntü | Yerinde yeniden üretildi (aynı göç kimliği `20261104040730_…`, `Up` gövdesi aynı, `Down` yok). Anlık görüntü yalnız tür adları ve varlık sırası bakımından değişti (satır kümesi, ad değişimi hariç, birebir aynı); tablo, sütun, kısıt ve dizin adları aynı | `dotnet ef migrations has-pending-model-changes` → "No changes"; Integration T108 sınıfı 70/70, Model ad alanı 323/323, öteki 62/62 (PostgreSQL 18, `shopfolio-t108-fix-pg`, silindi) |
+| K1 → D-62 | `DataModelSourceScan` `.HasOne(` satırında da düz dizgiyi yakalar (yalnız sabit adı serbest); kasıtlı ihlal örneği `ViolationSamples/DataModel/ModuleTypeNameInHasOne.cs`; D-62 "✅ Çözüldü → T108". D-63 (doc-drift) açık kalır | `Scan_OnViolationSample_ReportsTheRuleOnItsLine` yeni örnekle (Unit 245/245) |
+
+`dotnet restore Shopfolio.slnx --locked-mode` çıkış 0. Doğrulama tur 2 bekliyor.
 
 ## Altyapı Değişiklikleri
 

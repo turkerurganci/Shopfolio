@@ -49,10 +49,20 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-04, head `e046beb`, PR #365) |
+| Bulgu sayısı | 1 (S1, ORTA — oturum kayıtlarının yeri) |
+| Düzeltme gerekli mi | Evet — beş varlık `Modules/Membership/`'ten `Infrastructure/`'a taşınır (doğrulama raporu Bulgu 1) |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-62, K2 → D-63) |
+
+### Doğrulama tur 1 — ✗ FAIL (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks` (eşdeğer); ana dal son 3 run `41770864743`, `41770864703`, `41767748868` success; `MEMORY.md` satır 22'de T108.
+
+**Kabul kriterleri ve testler:** 8 kriterin hepsi validator kanıtıyla ✓ (göç tek, beş tablo, kısıtlar/dizinler/FK'lar `06` ile birebir, `LoginRecord` yalnız eklenir, `Down` yok). Yerel: build `-warnaserror` 0 uyarı, `dotnet format` temiz, Unit 244/244, Integration 385/385 (T108 sınıfı 70/70, PostgreSQL 18), `has-pending-model-changes` "No changes", kilitli restore temiz. Dal CI `41772781004` success (head `e046beb`).
+
+**Bulgu 1 (S1, ORTA):** beş varlık ve yapılandırmaları `src/Shopfolio.Web/Modules/Membership/` altında (`Shopfolio.Modules.Membership`); `05 §3.3.11`, `05 §1.2.18`, `11` aday tablosu (T108 Modül = Ortak altyapı), `09 §4.1` m.2 ve `09 §15.4` m.5 bu kayıtları ortak altyapıya (`Infrastructure/`) verir. `09 §6` m.2 gereği ortak altyapı (`AttemptCounter`) modül türüne başvuramaz. Düzeltme: varlıklar + yapılandırma + `LoginRecordsGuard` `Infrastructure/` altına, modül türlerine bağlar adla; göç tasarım dosyası ve anlık görüntü yeniden üretilir (şema aynı); `09 §10.1` m.1 cümlesi "altyapıdan modüle" bağı da kapsar. `09 §25`'te iki soru "hayır" (doküman çelişkisi, `§4.1` düzeni).
+
+**K-notları:** K1 → D-62 (`DataModelSourceScan` `HasOne(` satırında sabitsiz düz dizgiyi yakalamıyor); K2 → D-63 (`06 §7.3` `LinkRecord` satırında `GoogleLinkConfirmation` eksik). `12` matrisinde T108'e bağlı satırların `Durum`'u değişmedi (sonraki task'lara bağlı, BEKLEMEDE).
 
 ## Altyapı Değişiklikleri
 

@@ -37,6 +37,13 @@ internal sealed class Session
     /// <summary>The digest of the single-use value the permission is bound to; filled exactly when <see cref="ReauthenticatedOperation"/> is.</summary>
     public string? ReauthenticationTokenHash { get; set; }
 
+    /// <summary>Grants the one-operation permission: both fields are written together (06 4.39).</summary>
+    public void GrantReauthentication(ReauthenticationOperation operation, string digest)
+    {
+        ReauthenticatedOperation = operation;
+        ReauthenticationTokenHash = digest;
+    }
+
     public static Session ForCustomer(Guid customerId, string tokenHash, bool isLongLived, DateTimeOffset now)
     {
         return new Session { Id = EntityIds.New(), CreatedAt = now, CustomerId = customerId, TokenHash = tokenHash, IsLongLived = isLongLived, LastActivityAt = now };

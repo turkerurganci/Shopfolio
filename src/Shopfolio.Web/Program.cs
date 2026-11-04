@@ -5,6 +5,15 @@ using Npgsql;
 using Shopfolio.Endpoints;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.FileSecrets;
+using Shopfolio.Modules.Administration;
+using Shopfolio.Modules.AfterSales;
+using Shopfolio.Modules.Catalog;
+using Shopfolio.Modules.CorporateContent;
+using Shopfolio.Modules.Membership;
+using Shopfolio.Modules.Notifications;
+using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Payment;
+using Shopfolio.Modules.Settings;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +30,17 @@ builder.Services.AddSingleton<IValidateOptions<DatabaseOptions>, DatabaseOptions
 builder.Services.AddSingleton(provider => NpgsqlDataSource.Create(provider.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString));
 builder.Services.AddDbContext<AppDbContext>((provider, options) =>
     AppDbContext.Configure(options, provider.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString));
+
+// One registration call per module (09 6 item 3).
+builder.Services.AddCatalogModule();
+builder.Services.AddOrderingModule();
+builder.Services.AddPaymentModule();
+builder.Services.AddAfterSalesModule();
+builder.Services.AddMembershipModule();
+builder.Services.AddCorporateContentModule();
+builder.Services.AddNotificationsModule();
+builder.Services.AddAdministrationModule();
+builder.Services.AddSettingsModule();
 
 WebApplication app = builder.Build();
 

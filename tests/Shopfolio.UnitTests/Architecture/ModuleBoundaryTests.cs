@@ -4,55 +4,250 @@ using ArchUnitNET.Domain;
 using ArchUnitNET.Fluent;
 using ArchUnitNET.Loader;
 
+using Shopfolio.UnitTests.Support;
+
 using static ArchUnitNET.Fluent.ArchRuleDefinition;
 
 namespace Shopfolio.UnitTests.Architecture;
 
 /// <summary>
-/// Module boundary rule (09 6 item 2 and 4): a module reaches another module only through that module's
-/// <c>Shopfolio.Modules.&lt;Module&gt;.Contracts</c> namespace. The rule is shown to fail on a deliberate violation
-/// sample that lives in its own assembly (09 19.2 item 3).
+/// The architecture rules of 09 6 (T03, T218; 05 3.3, 3.4.1, 3.4.5): a module reaches another module only through that module's
+/// <c>Shopfolio.Modules.&lt;Module&gt;.Contracts</c> namespace (item 2), everything of a module outside <c>Contracts</c> is <c>internal</c>
+/// (item 1), a page or an endpoint touches neither a module's internals nor the database context (item 2), and the common infrastructure
+/// reaches no module type - the one exception is the context class <c>AppDbContext</c>, left out by its name, not by its namespace (item 4).
+/// Each rule is shown to fail on a deliberate violation sample that lives in its own assembly (09 19.2 item 3).
 /// </summary>
 public sealed class ModuleBoundaryTests
 {
     private const string ModulesNamespace = @"Shopfolio\.Modules";
 
+    /// <summary>The module's own namespace tree is allowed to the module; for another module only <c>Contracts</c> is open.</summary>
+    private const string AnyModuleInternals = @"^Shopfolio\.Modules\.[^.]+(\.(?!Contracts(\.|$)).*)?$";
+
+    private const string AnyModuleContracts = @"^Shopfolio\.Modules\.[^.]+\.Contracts(\.|$)";
+
+    private const string AnyModuleType = @"^Shopfolio\.Modules(\.|$)";
+
+    private const string PageAndEndpointTypes = @"^Shopfolio\.(Pages|Endpoints)(\.|$)";
+
+    private const string InfrastructureTypes = @"^Shopfolio\.Infrastructure(\.|$)";
+
+    /// <summary>The one infrastructure class that may reach module types; its nested compiler types go with it.</summary>
+    private const string TheContextClass = @"^Shopfolio\.Infrastructure\.AppDbContext(\+.*)?$";
+
+    private const string EntityFramework = @"^Microsoft\.EntityFrameworkCore(\.|$)";
+
+    private static readonly string[] _theNineModules =
+    [
+        "Administration", "AfterSales", "Catalog", "CorporateContent", "Membership", "Notifications", "Ordering", "Payment", "Settings",
+    ];
+
     private static readonly Regex _moduleNamePattern = new(@"^Shopfolio\.Modules\.([^.]+)", RegexOptions.CultureInvariant);
+
+    private static readonly Lazy<ArchUnitNET.Domain.Architecture> _application =
+        new(() => new ArchLoader().LoadAssemblies(typeof(Program).Assembly).Build());
+
+    private static readonly Lazy<ArchUnitNET.Domain.Architecture> _sample = new(() =>
+    {
+        string samplePath = Path.Combine(AppContext.BaseDirectory, "ModuleBoundaryViolationSample.dll");
+        return new ArchLoader().LoadAssemblies(System.Reflection.Assembly.LoadFrom(samplePath)).Build();
+    });
+
+    // --- Module boundary: another module only through its Contracts (09 6 item 2) ---
 
     [Fact]
     public void ModuleReferences_InApplicationAssembly_OnlyGoThroughContracts()
     {
-        ArchUnitNET.Domain.Architecture architecture = new ArchLoader().LoadAssemblies(typeof(Program).Assembly).Build();
-
-        IReadOnlyList<string> violations = FindViolations(architecture);
-
-        Assert.Empty(violations);
+        Assert.Empty(FindModuleReferenceViolations(_application.Value));
     }
 
     [Fact]
     public void ModuleReferences_InViolationSample_BreakTheRuleOnlyForTheInternalReference()
     {
-        string samplePath = Path.Combine(AppContext.BaseDirectory, "ModuleBoundaryViolationSample.dll");
-        System.Reflection.Assembly sample = System.Reflection.Assembly.LoadFrom(samplePath);
-        ArchUnitNET.Domain.Architecture architecture = new ArchLoader().LoadAssemblies(sample).Build();
+        IReadOnlyList<string> violations = FindModuleReferenceViolations(_sample.Value);
 
-        IReadOnlyList<string> violations = FindViolations(architecture);
+        Assert.Contains(violations, v => v.Contains("ForbiddenCaller", StringComparison.Ordinal) && v.Contains("ProductEntity", StringComparison.Ordinal));
+        Assert.DoesNotContain(violations, v => v.Contains("AllowedCaller", StringComparison.Ordinal));
+    }
 
-        string violation = Assert.Single(violations);
-        Assert.Contains("ForbiddenCaller", violation, StringComparison.Ordinal);
-        Assert.Contains("ProductEntity", violation, StringComparison.Ordinal);
+    [Fact]
+    public void ModuleReferences_InViolationSample_BreakTheRuleThroughTheContextToo()
+    {
+        IReadOnlyList<string> violations = FindModuleReferenceViolations(_sample.Value);
+
+        Assert.Contains(violations, v => v.Contains("ForbiddenContextReader", StringComparison.Ordinal));
     }
 
     [Fact]
     public void ModuleNames_InViolationSample_AreCatalogAndOrdering()
     {
-        string samplePath = Path.Combine(AppContext.BaseDirectory, "ModuleBoundaryViolationSample.dll");
-        System.Reflection.Assembly sample = System.Reflection.Assembly.LoadFrom(samplePath);
-        ArchUnitNET.Domain.Architecture architecture = new ArchLoader().LoadAssemblies(sample).Build();
+        Assert.Equal(["Catalog", "Ordering"], ModuleNames(_sample.Value));
+    }
 
-        IReadOnlyList<string> modules = ModuleNames(architecture);
+    [Fact]
+    public void ModuleNames_InApplicationAssembly_AreTheNineModulesOnly()
+    {
+        Assert.Equal(_theNineModules, ModuleNames(_application.Value));
+    }
 
-        Assert.Equal(["Catalog", "Ordering"], modules);
+    // --- Public surface: everything outside Contracts is internal (09 6 item 1) ---
+
+    [Fact]
+    public void ModuleTypes_OutsideContracts_AreNotPublic()
+    {
+        Assert.Empty(Evaluate(_application.Value, NotPublicOutsideContractsRule()));
+    }
+
+    [Fact]
+    public void ModuleTypes_InViolationSample_ABreakOfTheSurfaceIsReportedForThePublicLeakOnly()
+    {
+        IReadOnlyList<string> violations = Evaluate(_sample.Value, NotPublicOutsideContractsRule());
+
+        string violation = Assert.Single(violations);
+        Assert.Contains("PublicLeak", violation, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ContractsTypes_InApplicationAssembly_DoNotReachModuleInternals()
+    {
+        Assert.Empty(Evaluate(_application.Value, ContractsReachNothingRule()));
+    }
+
+    [Fact]
+    public void ContractsTypes_InViolationSample_ReportTheLeakyContract()
+    {
+        IReadOnlyList<string> violations = Evaluate(_sample.Value, ContractsReachNothingRule());
+
+        string violation = Assert.Single(violations);
+        Assert.Contains("LeakyContract", violation, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EveryModule_InApplicationAssembly_HasAContractsNamespaceWithAnOpenInterface()
+    {
+        ArchUnitNET.Domain.Architecture architecture = _application.Value;
+
+        foreach (string module in _theNineModules)
+        {
+            Assert.Contains(
+                architecture.Interfaces,
+                i => i.FullName == $"Shopfolio.Modules.{module}.Contracts.I{module}Module" && i.Visibility == Visibility.Public);
+        }
+    }
+
+    // --- Pages and endpoints: no module internals, no database context (09 6 item 2; 05 3.3.12) ---
+
+    [Fact]
+    public void PagesAndEndpoints_InApplicationAssembly_TouchNeitherModuleInternalsNorTheContext()
+    {
+        Assert.Empty(Evaluate(_application.Value, PageRule()));
+    }
+
+    [Fact]
+    public void PagesAndEndpoints_InViolationSample_ReportTheContextAndTheInternalTypeButNotTheContractsCall()
+    {
+        IReadOnlyList<string> violations = Evaluate(_sample.Value, PageRule());
+
+        Assert.Contains(violations, v => v.Contains("ForbiddenPage ", StringComparison.Ordinal) && v.Contains("AppDbContext", StringComparison.Ordinal));
+        Assert.Contains(violations, v => v.Contains("ForbiddenPageEntity", StringComparison.Ordinal) && v.Contains("ProductEntity", StringComparison.Ordinal));
+        Assert.DoesNotContain(violations, v => v.Contains("AllowedPage", StringComparison.Ordinal));
+    }
+
+    // --- Common infrastructure: no module type, the one exception is the context class (09 6 item 2, 4) ---
+
+    [Fact]
+    public void Infrastructure_InApplicationAssembly_ReachesNoModuleTypeExceptInTheContext()
+    {
+        Assert.Empty(Evaluate(_application.Value, InfrastructureRule()));
+    }
+
+    [Fact]
+    public void Infrastructure_InViolationSample_ReportsTheForbiddenTypeAndSparesTheContextClass()
+    {
+        IReadOnlyList<string> violations = Evaluate(_sample.Value, InfrastructureRule());
+
+        string violation = Assert.Single(violations);
+        Assert.Contains("ForbiddenInfrastructure", violation, StringComparison.Ordinal);
+        Assert.DoesNotContain("AllowedInfrastructure", violation, StringComparison.Ordinal);
+    }
+
+    // --- Skeleton: nine module folders, no tenant, no operator panel (05 3.3.1; 10 KD-21) ---
+
+    [Fact]
+    public void ModuleFolders_InSource_AreTheNineModulesEachWithContracts()
+    {
+        string modules = Path.Combine(RepositoryRoot.Find(), "src", "Shopfolio.Web", "Modules");
+
+        string[] folders = Directory.GetDirectories(modules).Select(d => Path.GetFileName(d)).Order(StringComparer.Ordinal).ToArray();
+
+        Assert.Equal(_theNineModules, folders);
+        foreach (string folder in folders)
+        {
+            Assert.True(Directory.Exists(Path.Combine(modules, folder, "Contracts")), $"{folder} has no Contracts folder");
+            Assert.NotEmpty(Directory.GetFiles(Path.Combine(modules, folder, "Contracts"), "*.cs"));
+        }
+    }
+
+    [Fact]
+    public void Application_HasNoTenantAndNoOperatorPanel()
+    {
+        Regex forbidden = new("Tenant|Operator", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        List<string> found = [];
+        foreach (System.Type type in typeof(Program).Assembly.GetTypes())
+        {
+            if (type.Namespace is not null && forbidden.IsMatch(type.Namespace) || forbidden.IsMatch(type.Name))
+            {
+                found.Add(type.FullName ?? type.Name);
+            }
+
+            foreach (System.Reflection.PropertyInfo property in type.GetProperties(
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static
+                | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.DeclaredOnly))
+            {
+                if (forbidden.IsMatch(property.Name))
+                {
+                    found.Add($"{type.FullName}.{property.Name}");
+                }
+            }
+        }
+
+        Assert.Empty(found);
+    }
+
+    private static ArchRule<IType> NotPublicOutsideContractsRule()
+    {
+        return Types().That().ResideInNamespaceMatching(AnyModuleInternals)
+            .Should().NotBePublic()
+            .WithoutRequiringPositiveResults();
+    }
+
+    private static ArchRule<IType> ContractsReachNothingRule()
+    {
+        return Types().That().ResideInNamespaceMatching(AnyModuleContracts)
+            .Should().NotDependOnAnyTypesThat().ResideInNamespaceMatching(AnyModuleInternals)
+            .WithoutRequiringPositiveResults();
+    }
+
+    private static ArchRule<IType> PageRule()
+    {
+        return Types().That().ResideInNamespaceMatching(PageAndEndpointTypes)
+            .Should().NotDependOnAnyTypesThat().ResideInNamespaceMatching(AnyModuleInternals)
+            .AndShould().NotDependOnAnyTypesThat().ResideInNamespaceMatching(EntityFramework)
+            .AndShould().NotDependOnAnyTypesThat().HaveFullNameMatching(TheContextClass)
+            .WithoutRequiringPositiveResults();
+    }
+
+    private static ArchRule<IType> InfrastructureRule()
+    {
+        return Types().That().ResideInNamespaceMatching(InfrastructureTypes).And().DoNotHaveFullNameMatching(TheContextClass)
+            .Should().NotDependOnAnyTypesThat().ResideInNamespaceMatching(AnyModuleType)
+            .WithoutRequiringPositiveResults();
+    }
+
+    private static List<string> Evaluate(ArchUnitNET.Domain.Architecture architecture, ArchRule<IType> rule)
+    {
+        return rule.Evaluate(architecture).Where(result => !result.Passed).Select(result => result.Description).ToList();
     }
 
     private static List<string> ModuleNames(ArchUnitNET.Domain.Architecture architecture)
@@ -66,7 +261,7 @@ public sealed class ModuleBoundaryTests
             .ToList();
     }
 
-    private static List<string> FindViolations(ArchUnitNET.Domain.Architecture architecture)
+    private static List<string> FindModuleReferenceViolations(ArchUnitNET.Domain.Architecture architecture)
     {
         List<string> violations = [];
         foreach (string module in ModuleNames(architecture))
@@ -79,13 +274,7 @@ public sealed class ModuleBoundaryTests
                 .Should().NotDependOnAnyTypesThat().ResideInNamespaceMatching(otherModuleInternals)
                 .WithoutRequiringPositiveResults();
 
-            foreach (EvaluationResult result in rule.Evaluate(architecture))
-            {
-                if (!result.Passed)
-                {
-                    violations.Add(result.Description);
-                }
-            }
+            violations.AddRange(Evaluate(architecture, rule));
         }
 
         return violations;

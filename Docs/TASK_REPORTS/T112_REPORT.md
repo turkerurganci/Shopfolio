@@ -1,6 +1,6 @@
 # T112 — Ödeme ve geri ödeme kayıtları
 
-**Faz:** F1 | **Durum:** ⏳ Yapım bitti, doğrulama bekliyor | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Doğrulama tur 1 PASS | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -72,9 +72,26 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-04, head `d452256`, PR #370) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama tur 1 — ✓ PASS (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks` (eşdeğer; hook dosyaları daldakiyle özetçe birebir); ana dal son 3 run `41798998313`, `41798998317`, `41794927676` success; `MEMORY.md`'de T112 satırı var.
+
+**Kabul kriterleri ve testler:** kapsam tam (7 kriter, KK1–KK7, `09 §25`, güvenlik); hepsi ✓. Validator göçün SQL'ini `06 §4.32`…§4.35, §7.1, §7.2, §7.3, §7.5 satırlarına karşı elle okudu: 16 FK'nin silme davranışı (`Refund.DefectClaimId`, `AdminId` `SET NULL`, öteki 14 `NO ACTION`), 6 filtreli tekil dizin ve filtreleri, 4 tutar sütunu `numeric(12,2)`, 3 veritabanı varsayılanı, `ck_refunds_links_by_type`'ın yedi kolu `06 §4.33` tür tablosuyla birebir (`DefectClaimId`, `ReturnId` boşluğu serbest; türün saymadığı bağlar boş). Yerel: build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` 0; Unit 245/245 (Consistency dahil); Integration 631 (T112 sınıfı 85/85, Model 569/569, öteki 62/62; PostgreSQL 18); `dotnet ef migrations has-pending-model-changes` "No changes"; `dotnet restore --locked-mode` 0. Dal CI `41802135141` (head `d452256`) bütün işler success.
+
+**`09 §25`:** göç genişletmedir (dört yeni tablo); `Down`, `suppressTransaction`, `CONCURRENTLY`, `now()`, `UPDATE`/`DELETE` yok; her FK'nin silme davranışı açık; enumlar metin ve izinli değer kısıtlı (`ActorKind` alt kümesi `System`, `Admin`); yeni kapalı değer ve paket yok. §10.8: dört tablo varsayılan yetkide, göçte `GRANT`/`REVOKE` yok; kalıcı üç kaydın silinmezliği `PaymentRecordsGuard`'da, bildirim kaydı imhanın açık silmesine açık.
+
+**Güvenlik:** sır yok; yalnız şema, auth etkisi yok; girdi doğrulama uygulanamaz (uç yok); yeni bağımlılık yok.
+
+**`12` satırları:** kaynak birimleri `06` entity'leri (KP yok); `06 §4.32`…§4.35'i anan satır yok. K-970'i anan `VAL-D081`, `VAL-D082`, `VAL-A707`, `VAL-A822`, `VAL-A823`, `VAL-E047` ödeme/bildirim akışı task'larınındır (T311, T529 vb.) — BEKLEMEDE kalır, `Durum` değişmedi; `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları:** yok. Kırpılmış iki ad (D-51 eki) ve numaralı dizin adları (D-55 eki) yapım dalında forward edilmiş; validator kayıtları doğru buldu.
+
+**Yapım raporu karşılaştırması:** kriter tablosu, KK listesi, test sayıları ve ⚠ kararlar uyumlu; uyuşmazlık yok.
 
 ## Altyapı Değişiklikleri
 

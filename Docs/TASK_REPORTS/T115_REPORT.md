@@ -107,7 +107,7 @@
 - **Branch:** `task/T115-sube-icerik-urun-iletisim`
 - **PR:** #373
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `d2c7c36` — CI `41820820561` ve Publish `41820820591` success
 
 ## Dış Varsayımlar
 

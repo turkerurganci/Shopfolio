@@ -10,7 +10,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// <summary>
 /// A service presentation (06 4.47): a price-less introduction of what the firm does, with its own page. The manual order is not unique
 /// (reordering changes rows); the page address is unique over every row, draft ones included (06 4.72.1). The record is deleted by its
-/// event; its content-product and gallery links, which cascade, come in a later task (T115, T116).
+/// event; its content-product and gallery links, which cascade, are OfferingProduct and OfferingImage.
 /// </summary>
 internal sealed class Offering
 {

@@ -158,6 +158,16 @@ internal sealed class AppDbContext : DbContext
 
     public DbSet<ContactRequest> ContactRequests => Set<ContactRequest>();
 
+    public DbSet<AboutPageImage> AboutPageImages => Set<AboutPageImage>();
+
+    public DbSet<OfferingImage> OfferingImages => Set<OfferingImage>();
+
+    public DbSet<PortfolioItemImage> PortfolioItemImages => Set<PortfolioItemImage>();
+
+    public DbSet<FaqItemImage> FaqItemImages => Set<FaqItemImage>();
+
+    public DbSet<CustomPageImage> CustomPageImages => Set<CustomPageImage>();
+
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).
     /// </summary>

@@ -19,6 +19,8 @@
 
 > Kısa tut. Tarihsel detay `MEMORY_ARCHIVE.md`'ye taşınır (00 §G.2).
 
+- **T116 (F1) doğrulama tur 1: ✓ PASS — 2026-11-04 (head `2c19c0c`, PR #374; kriter 1–6, KK1–KK6 ✓; Unit 245, Integration 841; dal CI 41822520597 yeşil; bulgu 0; K-notu yok). Merge yardımcıda.**
+- **T116 (F1) yapım bitti — 2026-11-04 (dal `task/T116-galeri-baglari`; doğrulama bekliyor).** Beş galeri bağı (`AboutPageImage`, `OfferingImage`, `PortfolioItemImage`, `FaqItemImage`, `CustomPageImage`) `CorporateContent` modülünde tek göçle (`Down` yok); (sahip, görsel) çifti tekil, ana görsel sahip başına en çok bir (filtreli tekil dizin), sıra tekil değil, sahibe basamaklı, görsele kısıtlayıcı.
 - **T115 (F1) doğrulama tur 1: ✓ PASS — 2026-11-04 (head `cbced3e`, PR #373; kriter 1–7, KK1–KK7 ✓; Unit 245, Integration 794; dal CI 41818311284 yeşil; bulgu 0; K-notu yok). Merge yardımcıda.**
 - **T115 (F1) yapım bitti — 2026-11-04 (dal `task/T115-sube-icerik-urun-iletisim`, PR #373; doğrulama bekliyor).** Dört kayıt (`Branch`, `OfferingProduct`, `PortfolioItemProduct`, `ContactRequest`) `CorporateContent` modülünde tek göçle (`Down` yok); telefon on rakam, görselsiz şubede alt metin boş, içerik–ürün çifti tekil ve basamaklı, kapalı talepte son kapanış anı dolu, imha taraması için ifade dizini elle SQL. Unit 245, T115 sınıfı 39.
 - **T114 (F1) doğrulama tur 1: ✓ PASS — 2026-11-04 (head `c976977`, PR #372; kriter 1–9, KK1–KK9 ✓; Unit 245, Integration 882; bekleyen model değişikliği yok; dal CI 41812838046 yeşil; bulgu 0; K-notu yok). Merge yardımcıda.**

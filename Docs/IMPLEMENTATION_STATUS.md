@@ -86,7 +86,7 @@
 | T111 | Kalem kayıtları | ✓ | ✓ PASS (tur 1) | `6cefd1c` | #369 |
 | T112 | Ödeme ve geri ödeme kayıtları | ✓ | ✓ PASS (tur 1) | `d452256` | #370 |
 | T113 | İade reddi ve IBAN isteği | ✓ | ✓ PASS (tur 1) | `429ce56` | #371 |
-| T114 | İçerik kayıtları ve marka | ⏳ | — | — | — |
+| T114 | İçerik kayıtları ve marka | ⏳ | — | — | #372 |
 | T115 | Şube, içerik–ürün bağları ve iletişim talebi | ⬚ | — | — | — |
 | T116 | Galeri bağları | ⬚ | — | — | — |
 | T117 | Gönderim kaydı ve kanal hâli | ⬚ | — | — | — |

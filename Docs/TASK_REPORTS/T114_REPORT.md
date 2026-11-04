@@ -86,7 +86,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T114-icerik-kayitlari-marka`
-- **PR:** #PRNO
+- **PR:** #372
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

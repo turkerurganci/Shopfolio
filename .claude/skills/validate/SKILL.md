@@ -135,6 +135,7 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 ## Faz 3 — Karşılaştırma ve finalize
 
 13. **Şimdi yapım raporunu oku** — kendi verdict'inle karşılaştır, uyuşmazlıkları belirt.
+    Yapım raporunda öz denetim tablosu (kabul kriteri ve KK başına ✓ + kanıt) yoksa ya da bir maddesi kanıtsızsa bunu uyuşmazlık olarak yaz (task skill Bitiş kapısı).
 
 14. **Raporu finalize et** — doğrulama bölümünü doldur (durum, bulgu sayısı, düzeltme gerekli mi), kabul kriterleri tablosunu validator kanıtlarıyla güncelle.
 

@@ -67,7 +67,7 @@ Doğrulama kontrol listesi: KK1 kriter 1; KK2 kriter 2; KK3 kriter 3; KK4 kriter
 ## Commit & PR
 
 - **Branch:** `task/T110-ayirma-duzeltme-gecmisleri`
-- **PR:** PR_NO
+- **PR:** #367
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

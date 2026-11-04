@@ -82,7 +82,7 @@
 | T107 | Müşteri hesabı | ✓ | ✓ PASS (tur 1) | `e765c68` | #364 |
 | T108 | Oturum, bağlantı, deneme ve giriş kayıtları | ✓ | ✓ PASS (tur 2) | `04113f7` | #365 |
 | T109 | Sepet ve sipariş çekirdeği | ✓ | ✓ PASS (tur 1) | `de1ae6c` | #366 |
-| T110 | Ayırma ve düzeltme geçmişleri | ⏳ | — | — | PR_NO |
+| T110 | Ayırma ve düzeltme geçmişleri | ⏳ | — | — | #367 |
 | T111 | Kalem kayıtları | ⬚ | — | — | — |
 | T112 | Ödeme ve geri ödeme kayıtları | ⬚ | — | — | — |
 | T113 | İade reddi ve IBAN isteği | ⬚ | — | — | — |

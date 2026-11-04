@@ -1,6 +1,6 @@
 # T109 — Sepet ve sipariş çekirdeği
 
-**Faz:** F1 | **Durum:** ⏳ Yapım bitti, doğrulama bekliyor | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Doğrulama tur 1 PASS | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -24,6 +24,8 @@
 - `Docs/DEFERRED_BACKLOG.md` (D-54, D-51), `Docs/IMPLEMENTATION_STATUS.md`, `Docs/STATUS_CHANGELOG.md`, `.claude/memory/MEMORY.md`.
 
 ## Kabul Kriterleri Kontrolü
+
+> **Validator kanıtı (tur 1, head `de1ae6c`):** 8 kriterin hepsi ✓ — boş veritabanına (PostgreSQL 18) bütün göçler uygulandı, sekiz tablo var; ~95 ham SQL yoklamasında KK2–KK7'nin her red durumu beklenen `ck_`/`ix_` adıyla reddedildi, izinli durumlar kabul edildi; kalemli siparişin `DELETE`'i `fk_order_items_orders_order_id` ile reddedildi; `pg_constraint.confdeltype` (carts→customers ve cart_items→carts `c`, hesap/yönetici/ürün/varyant bağları `n`, öteki hepsi `a`) `06 §7.2` ile birebir. Tutar sütunları `numeric(12,2)`, oranlar `numeric(5,2)` (`06 §2.5.1`); göç ve yapılandırma `06 §4.15–§4.21`, §7.1–§7.3, §7.5 ile satır satır eşit; enum değerleri `06 §5`, varsayılanlar `06 §4` ile eşit. Tek göç `20261104051528_CreateCartAndOrderCoreTables`, `Down` yok, `GRANT`/`REVOKE` yok (yeni tablolar `09 §10.8` varsayılan yetkisinde; yetki matrisi testleri 8/8 yeşil). Integration 450/450 (T109 sınıfı 65/65), `has-pending-model-changes` "No changes".
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
@@ -53,10 +55,26 @@ Doğrulama kontrol listesi: KK1–KK7 yukarıdaki testlerle; KK8 (kaynak taramas
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | *(validator doldurur)* |
-| Düzeltme gerekli mi | *(validator doldurur)* |
-| Bloke-etmeyen not (K) sayısı | *(validator doldurur)* |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-04, head `de1ae6c`, PR #366) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-65) |
+
+### Doğrulama tur 1 — ✓ PASS (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks` (eşdeğer); ana dal son 3 run `41777013421`, `41777013441`, `41770864743` success; `MEMORY.md` satır 22'de T109.
+
+**Kabul kriterleri ve testler:** kapsam tam (8 kriter, KK1–KK8, `09 §25`, güvenlik); hepsi ✓. Yerel: `restore --locked-mode` 0; Release build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` 0; Unit 245/245 (Consistency dahil); Integration 450 (T109 sınıfı 65/65, Model 388/388, öteki 62/62; PostgreSQL 18); `has-pending-model-changes` "No changes"; `migrations list` son göç tek `20261104051528_CreateCartAndOrderCoreTables`. Dal CI `41780080190` (head `de1ae6c`) success. Varlıklar `Modules/Ordering/` (`09 §4.1`); modüller arası bağlar `const string` + `HasOne` (`09 §10.1` m.1). `ModelRuleTests` basamak listesi (+2) ve `EnumDatabaseTests` (21 → 33, 12 enum sütunu) doğru; D-54 T109 payı kapanışı doğru; D-51'e dört kırpılmış ad eklendi.
+
+**`09 §25`:** cevaplar evet ya da gerekçeli uygulanamaz. §10.8: sekiz tablo `09 §10.8` m.3'ün istisna listesinde değil, göçte `GRANT`/`REVOKE` yok; yetki matrisi (`PrivilegeMatrix`, `public`'teki her tablo) bütün göçlerin uygulandığı veritabanında sapmasız (8/8). §21: dal adı, commit biçimi `T109: …` ve PR base'i kurala uygun; `4f8728c`'nin "ara commit, derlenmedi" notu `INSTRUCTIONS §9` (8)'in istediği ara commit'tir, squash'ta gider; kural ihlali değil.
+
+**Güvenlik:** sır yok (testlerde `digest-placeholder`); yalnız şema, auth etkisi yok; girdi doğrulama uygulanamaz; yeni bağımlılık yok.
+
+**`12` satırları:** `VAL-A643`, `VAL-A651`, `VAL-D087`, `VAL-D110`, `VAL-D111`, `VAL-D114` sonraki task akışlarına bağlı (sepet GET, onay anahtarı, imha, dönülmüş adet, iptal) — BEKLEMEDE kalır, `Durum` değişmedi.
+
+**K-notu:** K1 → D-65 (`Order.ShippingFeeVatBreakdown` düz `string?` + `jsonb`; `09 §12` m.5 değer listesini `PayloadJson` dönüştürücüsüyle ister, dönüştürücü henüz yok — D-57 kalıbı; hedef kargo bölüşümünü ilk yazan task, T348/T349; göç gerekmez).
+
+**Yapım raporu karşılaştırması:** KK tablosu ve test sayıları uyumlu. Tek eksik: ⚠ Karar 7 (`ShippingFeeVatBreakdown`'un ertelenen tipi) backlog'a bağlanmamıştı — D-65 ile bağlandı, Known Limitations'a eklendi.
 
 ## Altyapı Değişiklikleri
 
@@ -92,6 +110,7 @@ Dış varsayım: yok (plan katmanı, kota, dış servis, paket sürümü yok; Po
 |---|---|---|---|
 | 1 | Kupon ayırmasının bağı (`StockReservation.CouponId`) | D-54 (T110 payı) | Tablo T110'da |
 | 2 | Çatının kırptığı adlar | D-51 | `09`/`06` doküman geçişi |
+| 3 | `Order.ShippingFeeVatBreakdown`'un değer listesi tipi ve `PayloadJson` dönüştürücüsü | D-65 | Dönüştürücü henüz yok; kargo bölüşümünü ilk yazan task (T348/T349) |
 
 ## Notlar
 

@@ -23,6 +23,14 @@
 
 > `? Doğrulanamadı` **FAIL değildir** — kanıt eksikliğidir. FAIL'den ayrı tutulur.
 
+### Öz denetim (bitiş kapısı 2)
+
+> PR açılmadan önce planın kabul kriterleri ve doğrulama kontrol listesinin **her** maddesi kendi diff'inde denetlenir. Devam ya da düzeltme turu bütün maddeleri yeniden denetler, yalnız kalanları değil.
+
+| Madde (kabul kriteri / KK) | Sonuç | Kanıt (dosya:satır, test adı) |
+|---|---|---|
+| | ✓ / ✗ | |
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
@@ -74,5 +82,5 @@
 
 - **Working tree (Adım -1):** temiz / N dosya → karar
 - **Ana dal CI startup (Adım 0):** run ID'leri + conclusion
-- **Repo memory (bitiş kapısı 8):** güncellendi
+- **Repo memory (bitiş kapısı 9):** güncellendi
 - **Diğer:**

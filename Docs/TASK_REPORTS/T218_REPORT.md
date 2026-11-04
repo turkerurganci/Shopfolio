@@ -69,10 +69,27 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-04, bağımsız doğrulayıcı; dal head `33d7551`) |
-| Bulgu sayısı | 1 (DÜŞÜK, S1) |
-| Düzeltme gerekli mi | Evet — B1 |
-| Bloke-etmeyen not (K) sayısı | 2 — D-72, D-73'e forward |
+| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-04, bağımsız doğrulayıcı; dal head `a549491`) · tur 1 ✗ FAIL (head `33d7551`) |
+| Bulgu sayısı | Tur 2: 1 (B2 — DÜŞÜK, S1); tur 1'in B1'i kapandı |
+| Düzeltme gerekli mi | Evet — B2 (ikinci iterasyon FAIL: `12 §8.5` sınırı, eskalasyon) |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 0 yeni · tur 1: 2 — D-72, D-73'e forward |
+
+### Doğrulama tur 2 — validator kanıtları
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Dokuz modül klasörü; kiracı/operatör yok | ✓ | 9 klasör, her birinde `Contracts/I<Modül>Module.cs` (`09 §5.1` madde 5 ile birebir); `src/` `tenant` 0, `operator` yalnız `gin_trgm_ops`; kiracı/operatör taraması artık ihlal örneğine de koşar (`TenantAndOperatorScan_InViolationSample_...`: ad alanı, tür, özellik — tam liste) |
+| 2 | Ortak altyapı modül değil | ✓ | `ModuleNames_InApplicationAssembly_AreTheNineModulesOnly`, altyapı kuralı yeşil |
+| 3 | Yalnız `Contracts` açık | ✓ | `Modules/` altında `Contracts` dışı `public` tür 0 (grep); `ModuleTypes_OutsideContracts_AreNotPublic` + `PublicLeak`; `ContractsReachNothingRule` + `LeakyContract`; açık arayüz kuralı örnekli (`Ordering`) |
+| 4 | Başka modül tablosuna erişim yok | ✓ | `ForbiddenCaller`, `ForbiddenContextReader` kırar, `AllowedCaller` sessiz; uygulamada 0 |
+| 5 | Çağrı eşzamanlı, aynı işlemde | ✓ | `ModuleCallTransactionTests` 3/3 gerçek PostgreSQL 18 |
+| 6 | Olay yayını yok | ✓ | `Application_HasNoEventPublisher` + ihlal örneği (3 satır); kuyruk satırı kodu T220 |
+| 7 | Mimari test iç türe ve altyapıdan modül türüne başvuruda kırılır | ✓ | `ForbiddenInfrastructure` tek ihlal; `AppDbContext` adla (`^Shopfolio\.Infrastructure\.AppDbContext(\+.*)?$`) dışarıda |
+| 8 | Sayfa bağlama dokunmaz | ✓ | `PageRule` + `ForbiddenPage`, `ForbiddenPageEntity`; `AllowedPage` sessiz |
+| 9 | `Program.cs` modül başına tek kayıt | ✓ | `Program.cs` dokuz düz çağrı; tarama + ihlal örneği |
+| §25 | Test doğru katmanda; mimari test/tarama dosya yazmaz (`09 §19.2` madde 2) | ✗ | **B2:** `ModuleBoundaryTests.ModuleFolders_InViolationSample_ReportTheMissingTheExtraTheEmptyAndTheContractsLessFolder` (satır 191-220) `Directory.CreateTempSubdirectory` ile klasör açar ve `File.WriteAllText` ile dosya yazar. `09 §19.2` madde 2: davranış sınayan birim testi dosya sistemine dokunmaz; istisna olan mimari test ve kaynak taramaları "repo dosyalarını yalnız okur … dosya yazmaz". Birim test projesinde dosya yazan tek test budur. Düzeltme: örnek klasör ağacı depoda salt okunur durur (ör. `ViolationSamples/ModuleFolders/` altında `.gitkeep`'li `Payment/`, kaynaksız `Catalog/Contracts/`, `Extra/Contracts/…`, `Settings` yok) ve test onu yalnız okur — `ViolationSamples/ModuleSource/` kalıbı gibi. Raporun §25 test satırı "birim testi dosya yazmaz (yalnız okur)" der; düzeltme turunda bu artık doğru değildir |
+
+Testler (validator, yerel, head `a549491`): build `-warnaserror` 0 uyarı · `dotnet format --verify-no-changes` 0 · Unit 369/369 (Consistency dahil) · betik testleri 4/4 · Integration 955/955 (62 + 354 + 277 + 261 + 1; ikinci parça ilk denemede 1 yerel hata verdi, iki yeniden koşuda 354/354 — CI aynı head'de yeşil) · `restore --locked-mode` 0, koşu sonrası `git status` temiz. Dal CI `41875569939` success (head `a549491`). `12` matrisinde T218 satırı yok (kaynak birimleri KD/MK/§; KP yok).
 
 ### Doğrulama tur 1 — validator kanıtları
 

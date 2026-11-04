@@ -190,9 +190,9 @@ public sealed partial class EnumDatabaseTests : IClassFixture<SampleDatabaseFixt
         // order item, five of the transition record, one of the checkbox acceptance) and one of the address history (T110) and five of the item records (T111: the
         // actor kind of the cancellation, the late delivery termination and the withdrawal, the cancellation reason, the defect claim status) and five of the payment
         // records (T112: the refund's type, payment method and actor kind, the refund record's state, the notification's unprocessed reason) and one of the IBAN
-        // request (T113: its reason) and seven of the content records (T114: the publish status of six tables, the social platform) and three of the branch and the contact request (T115: the branch's publish status, the request's topic and status). The task that
+        // request (T113: its reason) and seven of the content records (T114: the publish status of six tables, the social platform) and three of the branch and the contact request (T115: the branch's publish status, the request's topic and status) and four of the dispatch record (T117: its type, state, outcome and related record type). The task that
         // adds an enum column raises this.
-        Assert.Equal(55, compared);
+        Assert.Equal(59, compared);
     }
 
     [Fact]

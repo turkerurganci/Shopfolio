@@ -8,6 +8,7 @@ using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.CorporateContent;
 using Shopfolio.Modules.Membership;
+using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Settings;
@@ -167,6 +168,10 @@ internal sealed class AppDbContext : DbContext
     public DbSet<FaqItemImage> FaqItemImages => Set<FaqItemImage>();
 
     public DbSet<CustomPageImage> CustomPageImages => Set<CustomPageImage>();
+
+    public DbSet<DispatchRecord> DispatchRecords => Set<DispatchRecord>();
+
+    public DbSet<ChannelStateRecord> ChannelStateRecords => Set<ChannelStateRecord>();
 
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).

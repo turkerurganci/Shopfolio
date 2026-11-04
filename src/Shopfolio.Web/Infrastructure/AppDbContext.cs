@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Administration;
+using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Ordering;
@@ -103,6 +104,22 @@ internal sealed class AppDbContext : DbContext
 
     public DbSet<OrderAddressHistory> OrderAddressHistories => Set<OrderAddressHistory>();
 
+    public DbSet<RefundIban> RefundIbans => Set<RefundIban>();
+
+    public DbSet<DefectClaim> DefectClaims => Set<DefectClaim>();
+
+    public DbSet<Cancellation> Cancellations => Set<Cancellation>();
+
+    public DbSet<ItemRemoval> ItemRemovals => Set<ItemRemoval>();
+
+    public DbSet<LateDeliveryTermination> LateDeliveryTerminations => Set<LateDeliveryTermination>();
+
+    public DbSet<Withdrawal> Withdrawals => Set<Withdrawal>();
+
+    public DbSet<Return> Returns => Set<Return>();
+
+    public DbSet<NotReturnedClosure> NotReturnedClosures => Set<NotReturnedClosure>();
+
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).
     /// </summary>
@@ -117,7 +134,8 @@ internal sealed class AppDbContext : DbContext
                 ProtectedRecordsGuard.Instance,
                 CatalogRecordsGuard.Instance,
                 LoginRecordsGuard.Instance,
-                OrderingRecordsGuard.Instance);
+                OrderingRecordsGuard.Instance,
+                AfterSalesRecordsGuard.Instance);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

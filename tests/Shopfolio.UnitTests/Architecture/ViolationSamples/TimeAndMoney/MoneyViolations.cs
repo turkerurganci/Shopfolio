@@ -1,5 +1,6 @@
 // Deliberate violations of the money rules (09 14.1 items 1, 5; 05 7.2.5). Compiled into TimeAndMoneyViolationSample.dll.
 using System;
+using System.Numerics;
 
 namespace Shopfolio.Modules.Sample
 {
@@ -18,6 +19,12 @@ namespace Shopfolio.Modules.Sample
         public static decimal MathTruncate(decimal amount) => Math.Truncate(amount);
 
         public static decimal DecimalFloor(decimal amount) => decimal.Floor(amount);
+
+        public static double DoubleRound(double amount) => double.Round(amount, 2, MidpointRounding.AwayFromZero);
+
+        // A rounding call through generic math names no Math or decimal member; its MidpointRounding argument is what gives it away.
+        public static T GenericRound<T>(T amount)
+            where T : IFloatingPoint<T> => T.Round(amount, 2, MidpointRounding.AwayFromZero);
     }
 
     // A floating point amount in a module: a field, a property, a parameter and a return.

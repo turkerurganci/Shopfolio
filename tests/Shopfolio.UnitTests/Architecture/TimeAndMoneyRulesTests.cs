@@ -16,8 +16,8 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <c>DateTimeOffset.LocalDateTime</c>, a <c>DateTimeOffset</c> made from a <c>DateTime</c>, <c>TimeProvider.GetLocalNow</c>,
 /// <c>TimeProvider.LocalTimeZone</c>).</item>
 /// <item><c>TimeProvider.System</c> is named only by the registration class <c>Infrastructure.TimeSource</c>.</item>
-/// <item><c>Math</c>, <c>MathF</c> and <c>decimal</c> rounding (<c>Round</c>, <c>Floor</c>, <c>Ceiling</c>, <c>Truncate</c>) is called only
-/// in <c>Infrastructure.Money</c>.</item>
+/// <item><c>Math</c>, <c>MathF</c>, <c>decimal</c>, <c>double</c> and <c>float</c> rounding (<c>Round</c>, <c>Floor</c>, <c>Ceiling</c>,
+/// <c>Truncate</c>) and any call that takes a <c>MidpointRounding</c> is made only in <c>Infrastructure.Money</c>.</item>
 /// <item>No module type and not <c>Money</c> depends on <c>double</c> or <c>float</c>.</item>
 /// </list>
 /// The exemptions are classes by their full name (and their compiler-made nested types), not namespaces. Each rule is shown to fail on the
@@ -110,9 +110,20 @@ public sealed partial class TimeAndMoneyRulesTests
     [InlineData("System.Math::Ceiling(System.Decimal)")]
     [InlineData("System.Math::Truncate(System.Decimal)")]
     [InlineData("System.Decimal::Floor(System.Decimal)")]
+    [InlineData("System.Double::Round(System.Double,System.Int32,System.MidpointRounding)")]
     public void Rounding_OnViolationSample_IsCaughtOutsideMoney(string member)
     {
         Assert.Contains(RoundingOutsideMoney(_sample.Value), f => f.Target.EndsWith(" " + member, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Rounding_OnViolationSample_CatchesAnyCallThatTakesMidpointRounding()
+    {
+        // 09 14.1 item 5: MidpointRounding is not used outside Money - a generic math rounding call is caught by its argument type.
+        Assert.Contains(
+            RoundingOutsideMoney(_sample.Value),
+            f => f.Member.StartsWith("GenericRound", StringComparison.Ordinal)
+                && f.Target.Contains("System.MidpointRounding", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -205,7 +216,7 @@ public sealed partial class TimeAndMoneyRulesTests
     [GeneratedRegex(@" System\.TimeProvider::get_System\(\)$")]
     private static partial Regex SystemClockMember();
 
-    [GeneratedRegex(@" System\.(Math|MathF|Decimal)::(Round|Floor|Ceiling|Truncate)\(")]
+    [GeneratedRegex(@" System\.(Math|MathF|Decimal|Double|Single)::(Round|Floor|Ceiling|Truncate)\(|System\.MidpointRounding\b")]
     private static partial Regex RoundingMember();
 
     [GeneratedRegex(@"^Shopfolio\.Modules(\.|$)")]

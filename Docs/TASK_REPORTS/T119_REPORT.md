@@ -1,6 +1,6 @@
 # T119 — Başlangıç verisi göçü ve seed olmayanların sınırı
 
-**Faz:** F1 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -74,10 +74,35 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama chat'i doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-04, head `7bf60e6`, PR #377) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-69; K2 bu PR'da kapandı) |
+
+### Doğrulama tur 1 — ✓ PASS (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks` (ana checkout'un hook'ları; eşdeğer); ana dal son 3 run `41839444317`, `41839444366` (T118 squash) ve `41830794202` (T117) success; `MEMORY.md`'de T119 satırı var (satır 22).
+
+**Kabul kriterleri:** kapsam tam (8 kriter, KK1–KK8, `09 §25`, güvenlik); hepsi ✓. Validator göçleri `dotnet ef migrations script` ile SQL'e çevirip deyimleri `06 §8.1`–§8.4, §4 girişi, §4.1–§4.4, §4.54, §4.56, §4.60, §4.65, §4.67, `02 §11.1`, §3.33.2, `04` 9.14.4 ve `09 §10.1`, §10.6, §25 satırlarına karşı elle okudu:
+- Kriter 1: `InsertStartupData.Up` yalnız `migrationBuilder.Sql`; `src`'de (Migrations dışı) başlangıç kayıtlarına hiçbir okuma ya da yazma yolu yok (`DbSet` tanımları dışında başvuru yok — grep); fabrikalar (`Company.Create` vb.) yalnız testlerden çağrılıyor; `StartupDataSourceScan` fabrika çağrısı, kurucu, `Add` ve elle `INSERT`'i yakalıyor, ihlal örneği 13 satırda kırmızı.
+- Kriter 2: 81 il `01 Adana` … `81 Düzce`, 81 plakanın tamamı resmî sırayla elle karşılaştırıldı (33 Mersin, 46 Kahramanmaraş, 67–81 sonradan kurulan iller dahil); ülke 249 ISO 3166-1 alfa-2 kodu (`AD` … `ZW`, `TR` Türkiye); `ON CONFLICT (code) DO NOTHING` `Code`'un tekil dizinine dayanıyor.
+- Kriter 3: altı tek satır `INSERT (id, created_at) … ON CONFLICT DO NOTHING`; öteki sütunlar veritabanı varsayılanından — `brandings.is_platform_signature_enabled true`, `version 1`; `channel_state_records.consecutive_channel_error_count 0`; anlar boş (`06 §4.54`, §4.60, §4.65, §4.67).
+- Kriter 4 (para hassasiyeti): üretilen SQL `0.00, NULL, NULL, 2, 2, 5, 20.00` → P-1 **0 TL**, P-3 **Boş**, P-4 **Boş**, P-5 **2 iş günü**, P-7 **2 iş günü**, P-8 **5**, P-10 **%20** (`numeric(5,2)` yüzde, `06 §4.2`: 0 ≤ oran < 100) — `02 §11.1` ile birebir; tutarlar `numeric(12,2)`, çitler (P-5 ≤ 10, P-7 1–3, P-8 ≥ 1) içinde. Havale ve geçici kapatma `false`, yedi bölüm sürümü `1` (D-52 göçünün varsayılanı), `ContentFirst`, menü adları `04` 9.14.4 ile aynı. **Mutasyon:** P-10 18,00 yapıldı → `SettingDefaultsConsistencyTests` kırmızı ("Expected 20, Actual 18,00"); geri alındı, yeşil.
+- Kriter 5: 81 teslimat ili ayar satırıyla aynı deyimde (`WITH settings AS (INSERT … RETURNING id) … WHERE EXISTS`) — firmanın çıkardığı il ikinci uygulamada geri gelmiyor.
+- Kriter 6: iki taslak `version_number`, `published_at`, `hosting_location`, `template_version` boş; `WHERE NOT EXISTS` türe göre; metin kapalı biçim setinde (`h3`, `p`, `ul`, `li`, `strong` — `09 §15.3` m.2). İçeriğin hukuki denetimi T366'nın kriteri 2'sidir (`11`).
+- Kriter 7: iki göçte `UPDATE`/`DELETE` yok (üretilen SQL grep); `MigrationSourceScan` izinli tablo listesiyle yeni göçleri de tarıyor; ikinci uygulama testi göçün geçmiş satırını silip göç kullanıcısıyla gerçekten yeniden çalıştırıyor — 11 tablonun sayısı ve iki satırın JSON'u aynı; `Down` yok.
+- Kriter 8: seed olmayanlar göç sınıfının özetinde `06 §8.3.1`, §8.4.1–§8.4.3 ile madde madde aynı; göçlerde `data_protection_keys` ve üretilen iki metnin satırı yok (tarama + boş kurulumda sayım 0).
+- **D-52 kapsamı:** backlog satırının sekiz sütununa ek `is_bank_transfer_enabled`, `is_sales_temporarily_closed` (`false`) ve `legal_text_versions.version` (`1`) — üçü de `06 §4.2`, §4.56'da Varsayılan'ı dolu ve seed onları veritabanından alıyor; T103 tablolarında Varsayılan'ı dolu başka sütun kalmadı. Kapsam genişlemesi gerekçeli, task dışı davranış yok.
+
+**Testler (validator, yerel PostgreSQL 18 `shopfolio-t119-val-pg`):** build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` çıkış 0; Unit 267/267 (Consistency dahil; yeni 22 test ayrıca 22/22); Integration 952 — T119 sınıfları 26/26, Model iki grupta 482/482 ve 408/408, Model dışı 62/62; yerel zaman aşımı yok; `dotnet restore --locked-mode` çıkış 0; koşu sonrası `git status` temiz, konteyner silindi. Dal CI `41843874734` (head `7bf60e6`) success — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E (advisory) yeşil (önceki `41843801361` head `4daacc5` iptal — yeni push). Göç kuru çalıştırmasında sürüm etiketi olmadığından önceki imaj adımı atlanıyor (ilk etiket D-40).
+
+**Güvenlik:** sır yok; auth etkisi yok — yetki deyimi yok, göç yalnız `INSERT` ve `SET DEFAULT`; girdi doğrulama uygulanamaz (uç yok; taslak metin sabit, kapalı biçim setinde); yeni bağımlılık yok.
+
+**`12` satırları:** task'ın kaynak birimleri `06 §8.1`, §8.4 ve `09 §10` (alt bölüm birimleri; KP yok). `12`'de bu birimleri, K-1031'i ya da `09 §10.6`'yı anan satır yok (grep 0); `Durum` değişikliği yok; `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları:** K1 — göçün sabit v7 kimlikleri (`InsertStartupData.Id`) `09 §10.1` m.2'nin "üretim tek yerdedir" kuralında anılmıyor; ihlal değil (yasaklı çağrı yok), belgede kalıp yazılı değil → **D-69**. K2 — rapordaki follow-up 2'nin cümlesi eksikti ("sahibi task'tır"); sahibi T205 (`11 §7.1`) — **bu PR'da düzeltildi**.
+
+**Yapım raporu karşılaştırması:** kriter tablosu, KK listesi, ⚠ kararlar (D-52 kapsamı, ülke listesi, taslaklar, ikinci uygulama) ve dış varsayımlar validator'ın bağımsız okumasıyla uyumlu; test sayıları birebir (Unit 223 + Consistency 44 = 267; Integration 952). Tek fark K2 (eksik cümle).
 
 ## Altyapı Değişiklikleri
 
@@ -109,7 +134,7 @@ Dış servis, plan, kota ya da paket varsayımı yok.
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
 | 1 | Taslak metinlerin yer tutucularının (`{{Alan}}`) gösterimde doldurulması | — (T366'nın işi) | Gösterim T366'nındır; bu task yalnız satırı yazar |
-| 2 | `06 §8.2.1` açılışta tek satırların varlık denetimi (fail-fast) | — | T119'un kriterlerinde yok; açılış denetiminin sahibi task'tır |
+| 2 | `06 §8.2.1` açılışta tek satırların varlık denetimi (fail-fast) | — (T205'in işi) | T119'un kriterlerinde yok; açılış denetiminin sahibi T205'tir (`11 §7.1`: `06:§8.2` → T205) |
 
 ## Notlar
 

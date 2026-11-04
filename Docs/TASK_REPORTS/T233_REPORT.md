@@ -153,7 +153,7 @@ Testler: build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` 0; U
 - **Commit:** *(PR açıklamasında head SHA)*
 - **PR:** #384
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
+- **Post-merge run'lar:** squash `810fe27` (#384) — CI `41917927066` ve Publish `41917927000` success (T205 dalında dolduruldu, 2026-11-05)
 
 ## Dış Varsayımlar
 

@@ -6,6 +6,7 @@ using Shopfolio.Endpoints;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.StartupDatabase;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog;
@@ -41,6 +42,10 @@ static string WebConnectionString(IServiceProvider provider) =>
 
 builder.Services.AddSingleton(provider => NpgsqlDataSource.Create(WebConnectionString(provider)));
 builder.Services.AddDbContext<AppDbContext>((provider, options) => AppDbContext.Configure(options, WebConnectionString(provider)));
+
+// The database side of the start-up check (06 8.2.1): after the settings check above, so it runs second. A missing province or country list
+// or a missing single-row record of the start data stops the application before it answers a request.
+builder.Services.AddStartupDatabaseCheck();
 
 // One registration call per module (09 6 item 3).
 builder.Services.AddCatalogModule();

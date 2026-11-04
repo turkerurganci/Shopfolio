@@ -2,11 +2,14 @@ using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
+using Npgsql;
+
 using Shopfolio.Infrastructure.Backup;
 using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.StartupDatabase;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog;
@@ -21,7 +24,8 @@ namespace Shopfolio.Infrastructure;
 
 /// <summary>
 /// The single database context (09 4.1 item 2, 5.2). The entities arrive with the tasks that own them, each with its <c>DbSet</c> property
-/// (09 5.2 item 2) and its entity configuration in the module's folder; the context applies those configurations and does no other work.
+/// (09 5.2 item 2) and its entity configuration in the module's folder; the context applies those configurations and does no other work
+/// except answering the start-up data check which records exist (<see cref="ReadStartupRecordPresenceAsync"/>).
 /// A module never opens a context of its own. The context is also the data protection package's key context (06 4.68): the package's own
 /// entity is its key ring table.
 /// </summary>
@@ -193,6 +197,40 @@ internal sealed class AppDbContext : DbContext, IDataProtectionKeyContext
     /// code neither writes nor reads it; the framework does (09 5.2 item 4).
     /// </summary>
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
+
+    /// <summary>
+    /// Whether the records the start-up data check looks for exist (T205; 06 8.2.1): the province list and the country list are not empty and the
+    /// six single-row records of the start data exist. It lives on the context because the check is in <c>Infrastructure/</c>, which reaches no
+    /// module type (09 6 item 2). Only existence is asked, never a value (06 8.2.1). A table the half-done migration did not make counts as
+    /// absent; any other database failure goes up.
+    /// </summary>
+    public async Task<IReadOnlyList<StartupRecordPresence>> ReadStartupRecordPresenceAsync(CancellationToken ct)
+    {
+        return
+        [
+            new(nameof(Province), true, await ExistsAsync(Provinces, ct)),
+            new(nameof(Country), true, await ExistsAsync(Countries, ct)),
+            new(nameof(Company), false, await ExistsAsync(Companies, ct)),
+            new(nameof(CompanySettings), false, await ExistsAsync(this.CompanySettings, ct)),
+            new(nameof(Branding), false, await ExistsAsync(Brandings, ct)),
+            new(nameof(ChannelStateRecord), false, await ExistsAsync(ChannelStateRecords, ct)),
+            new(nameof(HeartbeatRecord), false, await ExistsAsync(HeartbeatRecords, ct)),
+            new(nameof(BackupStatusRecord), false, await ExistsAsync(BackupStatusRecords, ct)),
+        ];
+    }
+
+    private static async Task<bool> ExistsAsync<T>(DbSet<T> set, CancellationToken ct)
+        where T : class
+    {
+        try
+        {
+            return await set.AsNoTracking().AnyAsync(ct);
+        }
+        catch (PostgresException exception) when (exception.SqlState == PostgresErrorCodes.UndefinedTable)
+        {
+            return false;
+        }
+    }
 
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).

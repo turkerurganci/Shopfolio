@@ -5,11 +5,9 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Values;
-using Shopfolio.Modules.Membership.Contracts;
 
-namespace Shopfolio.Modules.Membership;
+namespace Shopfolio.Infrastructure.Security;
 
 /// <summary>
 /// The sign-in record (06 4.44): every sign-in attempt, successful or not, customer or administrator, is one row. The row carries values and

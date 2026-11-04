@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 using Shopfolio.Infrastructure.DataModel;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Membership;

@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Infrastructure.Values;
 
-namespace Shopfolio.Modules.Membership;
+namespace Shopfolio.Infrastructure.Security;
 
 /// <summary>
 /// The link record (06 4.42): the technical record of an account link (verification, reset, new address, Google confirmation, revert,
@@ -70,6 +69,7 @@ internal sealed class LinkRecordConfiguration : IEntityTypeConfiguration<LinkRec
     // so the principals are named.
     private const string AdministrationAdminType = "Shopfolio.Modules.Administration.Admin";
     private const string AdministrationAdminInvitationType = "Shopfolio.Modules.Administration.AdminInvitation";
+    private const string MembershipCustomerType = "Shopfolio.Modules.Membership.Customer";
 
     public void Configure(EntityTypeBuilder<LinkRecord> builder)
     {
@@ -78,7 +78,7 @@ internal sealed class LinkRecordConfiguration : IEntityTypeConfiguration<LinkRec
         builder.Property(l => l.PreviousEmail).HasColumnType("text");
 
         // The owner is deleted: the link goes with it (06 7.2; 2.2.5; Z-31).
-        builder.HasOne<Customer>().WithMany().HasForeignKey(l => l.CustomerId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(MembershipCustomerType, navigationName: null).WithMany().HasForeignKey(nameof(LinkRecord.CustomerId)).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(AdministrationAdminType, navigationName: null).WithMany().HasForeignKey(nameof(LinkRecord.AdminId)).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(AdministrationAdminInvitationType, navigationName: null).WithMany().HasForeignKey(nameof(LinkRecord.AdminInvitationId)).OnDelete(DeleteBehavior.Cascade);
 

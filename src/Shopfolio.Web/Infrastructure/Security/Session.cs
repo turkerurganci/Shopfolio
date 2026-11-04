@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Infrastructure.Values;
 
-namespace Shopfolio.Modules.Membership;
+namespace Shopfolio.Infrastructure.Security;
 
 /// <summary>
 /// The server-side session (06 4.39): a signed-in account's state. The cookie carries only the random key; the row keeps its digest, the
@@ -57,8 +56,9 @@ internal sealed class Session
 
 internal sealed class SessionConfiguration : IEntityTypeConfiguration<Session>
 {
-    // The administrator is another module's entity (09 6 item 2; 10.1 item 1): the link is a database foreign key, so the principal is named.
+    // The account owners are module entities and shared infrastructure refers to no module type (09 6 item 2; 10.1 item 1): the links are database foreign keys, so the principals are named.
     private const string AdministrationAdminType = "Shopfolio.Modules.Administration.Admin";
+    private const string MembershipCustomerType = "Shopfolio.Modules.Membership.Customer";
 
     public void Configure(EntityTypeBuilder<Session> builder)
     {
@@ -67,7 +67,7 @@ internal sealed class SessionConfiguration : IEntityTypeConfiguration<Session>
         builder.Property(s => s.ReauthenticationTokenHash).HasColumnType("text");
 
         // The account is deleted: its sessions go with it (06 7.2; 2.2.5; Z-31).
-        builder.HasOne<Customer>().WithMany().HasForeignKey(s => s.CustomerId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(MembershipCustomerType, navigationName: null).WithMany().HasForeignKey(nameof(Session.CustomerId)).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(AdministrationAdminType, navigationName: null).WithMany().HasForeignKey(nameof(Session.AdminId)).OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(s => s.TokenHash).IsUnique();

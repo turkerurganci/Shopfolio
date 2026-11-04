@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Infrastructure.Values;
 
-namespace Shopfolio.Modules.Membership;
+namespace Shopfolio.Infrastructure.Security;
 
 /// <summary>
 /// The attempt record (06 4.43): a technical record of the attempt limits L1-L6 and L9 (L7 and L8 are counted from the orders). Each counted

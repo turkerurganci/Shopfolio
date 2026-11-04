@@ -8,11 +8,11 @@ using Npgsql;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Migrations;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Membership;
-using Shopfolio.Modules.Membership.Contracts;
 
 namespace Shopfolio.IntegrationTests.Model;
 

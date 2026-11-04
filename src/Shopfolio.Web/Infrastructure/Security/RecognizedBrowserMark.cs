@@ -1,10 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
 
-namespace Shopfolio.Modules.Membership;
+namespace Shopfolio.Infrastructure.Security;
 
 /// <summary>
 /// The recognized browser mark (06 4.41): the server-side record of the cookie left on a browser after a successful sign-in. Exactly one of
@@ -40,8 +39,9 @@ internal sealed class RecognizedBrowserMark
 
 internal sealed class RecognizedBrowserMarkConfiguration : IEntityTypeConfiguration<RecognizedBrowserMark>
 {
-    // The administrator is another module's entity (09 6 item 2; 10.1 item 1): the link is a database foreign key, so the principal is named.
+    // The account owners are module entities and shared infrastructure refers to no module type (09 6 item 2; 10.1 item 1): the links are database foreign keys, so the principals are named.
     private const string AdministrationAdminType = "Shopfolio.Modules.Administration.Admin";
+    private const string MembershipCustomerType = "Shopfolio.Modules.Membership.Customer";
 
     public void Configure(EntityTypeBuilder<RecognizedBrowserMark> builder)
     {
@@ -49,7 +49,7 @@ internal sealed class RecognizedBrowserMarkConfiguration : IEntityTypeConfigurat
         builder.Property(m => m.MarkHash).HasColumnType("text");
 
         // The account is deleted: its marks go with it (06 7.2; 2.2.5).
-        builder.HasOne<Customer>().WithMany().HasForeignKey(m => m.CustomerId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(MembershipCustomerType, navigationName: null).WithMany().HasForeignKey(nameof(RecognizedBrowserMark.CustomerId)).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(AdministrationAdminType, navigationName: null).WithMany().HasForeignKey(nameof(RecognizedBrowserMark.AdminId)).OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(m => m.MarkHash).IsUnique();

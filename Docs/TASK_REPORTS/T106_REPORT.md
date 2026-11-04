@@ -1,6 +1,6 @@
 # T106 — Yönetici hesabı, davet ve işlem izi
 
-**Faz:** F1 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✗ Doğrulama tur 2 FAIL — iki iterasyon doldu, eskalasyon (`12 §8.5`) | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -51,10 +51,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-04, head `54e45a9`) |
-| Bulgu sayısı | 1 (ORTA, güvenlik — sır bekçisi istisnası) |
-| Düzeltme gerekli mi | Evet — bulgu 1 (`scripts/git-hooks/pre-commit`, `test-pre-commit.sh`, `README.md`) |
-| Bloke-etmeyen not (K) sayısı | 2 (K1 bu PR'da kapatıldı; K2 → D-58) |
+| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-04, head `3003f64`); tur 1 ✗ FAIL (head `54e45a9`) |
+| Bulgu sayısı | Tur 2: 1 (ORTA, güvenlik — sır bekçisi istisnasının çok satırlı açık biçimi); tur 1: 1 (aynı istisna, tek satır) |
+| Düzeltme gerekli mi | Evet — tur 2 bulgu 1 (`scripts/git-hooks/pre-commit`, `test-pre-commit.sh`, `README.md`); iki iterasyon doldu → eskalasyon |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 0; tur 1: 2 (K1 bu PR'da kapatıldı; K2 → D-58) |
 
 ### Doğrulama tur 1 — ✗ FAIL (2026-11-04)
 
@@ -92,6 +92,39 @@
 **Bulgu → değişiklik.** Tur 1 bulgu 1 (ORTA, güvenlik): sır bekçisinin EF sütun kurucusu istisnası tırnaklı dizgileri silip eşlediği için argümandaki literal de geçiyordu (`defaultValue: "…"`, `comment: "…"`, konumsal `("…")`, `defaultValueSql: "'…'"`). `scripts/git-hooks/pre-commit` istisnası daraltıldı: sağ taraf `table.Column<Tür>(` ile başlar; argümanlarda yalnız `type: "…"` adlı argümanın dizgisi bulunur (önce yalnız o dizgi `type: T` ile değiştirilir), öteki argümanlar yalnız `nullable`, `maxLength`, `precision`, `scale`, `unicode`, `fixedLength` adlı, literal-dizgisiz değerlerdir. Başka herhangi bir tırnaklı dizgi, birleştirme ya da ikinci çağrı varsa istisna uygulanmaz, normal kural işler; kapalı parantezle bitmeyen çok satırlı biçimde aynı ilke. `scripts/git-hooks/README.md` üçüncü istisna açıklaması yeni sınıra göre düzeltildi.
 
 **Test.** `test-pre-commit.sh`: raporun dört örneği ve çok satırlı bir örnek "yakalanır" olarak eklendi (5), iki "geçer" örneği eklendi (`timestamp with time zone`, `maxLength`); mevcut "geçer" örnekleri kaldı. Betik testi: 195 → 202 örnek. T106 göç dosyasındaki 25 `table.Column` satırının hepsi yeni sınıra uyar (yalnız `type: "…"` ve `nullable:`), yani göç yeni bekçiden geçer. C# değişmedi; `dotnet format --verify-no-changes` ve `dotnet restore --locked-mode` çıkış 0.
+
+### Doğrulama tur 2 — ✗ FAIL (2026-11-04)
+
+Yeniden doğrulama, kapsam tam (kriter 1–7, KK1–KK7, `09 §25`, güvenlik); head `3003f64`.
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (mutlak yol, `.git/config`; hook dosyaları mevcut — önceki turlarla aynı); ana dal son 3 run `41751877585`, `41751877590`, `41746249953` success; `MEMORY.md`'de T106 satırları (22, 23).
+
+**Kabul kriterleri (validator kanıtı):**
+- **1 ✓** göç `CreateAdminInvitationAndAuditLogTables` üç tabloyu kurar; sütun adı/türü/boşluğu `06 §4.37`, §4.38, §4.63 (+ ortak `Id`, `CreatedAt`) ile birebir okundu; varsayılan yok; dizinler §4.37/§4.38/§4.63 ve `06 §7.1`/§7.2/§7.5 satırlarıyla aynı; `has-pending-model-changes` "No changes". Testler `Migration_MakesTheThreeTables`, `Columns_…`, `ThreeTables_HaveNoColumnDefault_…`, `Indexes_AreTheDocumentedOnes` yeşil.
+- **2 ✓** `ix_admins_normalized_email` tekil; `NormalizeIdentity` (`09 §9.4` m.1) `SetEmail`'de; farklı harf ve Türkçe I/ı ikinci kayıt 23505 (test).
+- **3 ✓** `ck_admin_invitations_at_most_one_outcome` = `num_nonnulls(…) <= 1`; filtreli tekil dizin üç an boşken; dört "iki/üç an" bileşimi reddedilir, tek an kabul (test).
+- **4 ✓** `REVOKE UPDATE, DELETE … FROM %I` `current_setting('shopfolio.application_user')` ile (`09 §10.8` m.3, m.5); fonksiyon gövdesi `09 §9.2` m.7 kalıbıyla harfiyen aynı (`least(as_of, clock_timestamp())`, `SECURITY DEFINER`, `search_path = pg_catalog, public`, `REVOKE ALL … FROM PUBLIC`, `GRANT EXECUTE … TO %I`); kesim hesabı elle doğrulandı (yerel yıl Ly → `created_at < Ly−10-01-01 00:00 +03`, yani satırın yılı ≤ Ly − 11). Testler: uygulama kullanıcısı `UPDATE`/`DELETE`/`TRUNCATE` 42501, `INSERT`/`SELECT` çalışır; `proacl` yalnız sahip + uygulama kullanıcısı, okuyucu çağrısı 42501, yedek kullanıcısı `has_function_privilege` false; sınır 20:59:59Z'de 0, 21:00:00Z'de 1; yüz yıl ileri `as_of` 2020 satırına dokunmaz; `max_rows` sınırı ve dönen sayı; `max_rows < 1` P0001; rol ayarı yokken göç 42704 ile geri alınır (tablo, fonksiyon, geçmiş satırı yok), ayarla yetki doğru kullanıcıda; `MigrationSourceScan` göçte `shopfolio_` yok.
+- **5 ✓** `audit_logs`'tan ve `audit_logs`'a FK yok; yönetici silinince iz satırı ad/e-postayla aynen kalır (test). **6 ✓** `SenderAdminId` `SetNull` (`confdeltype = n`), kendi dizini; gönderen silinince bağ boş, ad kalır (test); öteki bağlar sahibi tabloların task'ında (D-57 metni). **7 ✓** `Down` yok (yansıma testi + kaynak taraması), tek konu.
+
+**Yerel:** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` 0; Unit 240/240 (Consistency dahil); Integration 276/276 (PostgreSQL 18.6, kendi konteyneri; T106 sınıfı 42 + `Model` 214 + diğerleri 62); `test-pre-commit.sh` 202/202 (süre sınırı yüzünden üç parçada: 77 + 68 + 57); `restore --locked-mode` 0; koşu sonrası `git status` temiz. **Dal CI** `41761822740` (head `3003f64`) success.
+
+**`09 §25`:** ad uyumu birebir; FK silme davranışı açık, kimlik `EntityIds`'ten, `AuditArea` metin + izinli değer kısıtı, işlem kodunda kısıt yok; göç genişletme, `Down`/`now()`/`CONCURRENTLY` yok, `audit_logs`'a yalnız ekleme, kullanıcı adı rol ayarıyla; yetki matrisi (`PrivilegeMatrix`) yeşil; yeni paket yok; `Details` düz `string` (`09 §12` m.5'ten sapma D-57'de, T380), `09 §9.2` m.2 parantezi D-58'de. **Güvenlik 1. soru (repoda sır yok mu / sır bekçisi):** hayır — bulgu 1.
+
+**Güvenlik:** kodda sır yok; yetki/giriş yüzeyi eklenmedi; girdi denetimi veritabanı kısıtlarıyla; yeni bağımlılık yok. **Sır bekçisi istisnası (bulgu 1):** tek satırlık biçimde düzeltme 1 doğru — `defaultValue:`, `comment:`, `defaultValueSql:`, konumsal dizgi, birleştirme ve ikinci atama dalda da yakalanır (dalın ve main'in bekçisiyle aynı düzenekte 13 yoklama). Ancak istisna kapanmamış açık biçimi (`password_hash = table.Column<string>(`) koşulsuz geçirir ve devam satırları ayrıca denetlenmez (`defaultValue: "…"` satırının sol tarafı sır anahtarı değildir). Yoklama — üç satırlık örnek `password_hash = table.Column<string>(` / `type: "text",` / `defaultValue: "Sup3rS3cretValue!"),`: **dalda çıkış 0 (geçer), main'de çıkış 1 (yakalanır)**. README "Kapalı parantezle bitmeyen çok satırlı biçimde aynı ilke geçerlidir" der, düzeltme 1 de "çok satırlı bir örnek" eklendiğini söyler; eklenen `m9` örneği literali açık satırın kendisinde taşır, gerçek çok satırlı biçim sınanmamıştır. Depodaki hiçbir göç açık biçimi kullanmaz (EF sütunu tek satırda üretir), yani açık biçim istisnasının yanlış pozitif kazancı yok, yalnız açığı var.
+
+**`12` satırları:** task'ın KP birimi yok (`11 §7.1`; kaynakları `06`/`02`/`05`/`09` birimleri); `12`'de T106'ya bağlı satır yok (`VAL-D084`, `VAL-A838`, `VAL-A770`, KP-62/63 satırları işlem izinin uç/panel task'larınındır) — `Durum` değişmedi; `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**Bulgular:**
+
+| # | Madde | Severity | Sınıf | Beklenen ↔ gerçekleşen | Karar | Dosya |
+|---|---|---|---|---|---|---|
+| 1 | — (`09 §25` Güvenlik 1. soru; `scripts/git-hooks/README.md` istisna 3) | ORTA | S2 | Beklenen: istisna yalnız değer taşımayan üretilmiş sütun kurucusunu atlar, çok satırlı biçimde de literal yakalanır (README; düzeltme 1). Gerçekleşen: açık biçim `table.Column<string>(` koşulsuz geçer, devam satırındaki `defaultValue: "…"` hiç denetlenmez — main'in yakaladığı çok satırlı sır ataması dalda geçer (sır bekçisinin gerilemesi) | Düzeltme: açık biçim istisnadan çıkarılır (`\)[,;]?` zorunlu; `m4` "geçer" örneği "yakalanır"a döner) ya da açık satırdan sonraki devam satırları kapanış parantezine dek aynı argüman kuralıyla denetlenir; gerçek çok satırlı örnek (literal devam satırında) `test-pre-commit.sh`'e "yakalanır" olarak eklenir; README cümlesi davranışa göre düzelir. İsteğe bağlı sıkılaştırma: `type:` dizgisi SQL tür karakterleriyle (`[a-z0-9 (),]`) sınırlanır — bugün `type: "sk_live_…"` de geçer | `scripts/git-hooks/pre-commit` (satır 159–172), `scripts/git-hooks/test-pre-commit.sh` (`m4`, `m9`), `scripts/git-hooks/README.md` |
+
+**K-notları:** yok.
+
+**Yapım raporu karşılaştırması:** kriter sonuçları uyumlu (1–7 ✓). Uyuşmazlık 1: düzeltme 1 "kapalı parantezle bitmeyen çok satırlı biçimde aynı ilke" ve "çok satırlı bir örnek eklendi" der — eklenen örnek tek satırdır, çok satırlı biçimde literal geçer (bulgu 1). Ayrıca "Yapılan İşler"deki `test-pre-commit.sh` 195/195 sayısı düzeltme 1'den sonra 202'dir.
+
+**Eskalasyon:** bu ikinci iterasyonun FAIL'idir (`12 §8.5`, `00 §A.3`); yeni doğrulama chat'i açılmaz, `INSTRUCTIONS.md` §3.3 eskalasyonu.
 
 ## Altyapı Değişiklikleri
 

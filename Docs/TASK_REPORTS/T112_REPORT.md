@@ -105,7 +105,7 @@
 - **Branch:** `task/T112-odeme-geri-odeme-kayitlari`
 - **PR:** #370
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `3add87b` — CI `41805273814`, Publish `41805273609` (success)
 
 ## Dış Varsayımlar
 

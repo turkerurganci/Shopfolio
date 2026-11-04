@@ -913,6 +913,89 @@ namespace Shopfolio.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.AfterSales.RefundIbanRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<string>("AdminName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("admin_name");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("closed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("FulfilledAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fulfilled_at");
+
+                    b.Property<Guid?>("OrderItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_item_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid?>("RefundIbanId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("refund_iban_id");
+
+                    b.Property<Guid?>("RefundId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("refund_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_refund_iban_requests");
+
+                    b.HasIndex("AdminId")
+                        .HasDatabaseName("ix_refund_iban_requests_admin_id");
+
+                    b.HasIndex("OrderItemId")
+                        .HasDatabaseName("ix_refund_iban_requests_order_item_id");
+
+                    b.HasIndex("RefundIbanId")
+                        .HasDatabaseName("ix_refund_iban_requests_refund_iban_id");
+
+                    b.HasIndex("RefundId")
+                        .HasDatabaseName("ix_refund_iban_requests_refund_id");
+
+                    b.HasIndex(new[] { "OrderItemId" }, "OneOpenIbanRequestPerItem")
+                        .IsUnique()
+                        .HasDatabaseName("ix_refund_iban_requests_order_item_id1")
+                        .HasFilter("fulfilled_at IS NULL AND closed_at IS NULL");
+
+                    b.HasIndex(new[] { "RefundId" }, "OneOpenIbanRequestPerRefund")
+                        .IsUnique()
+                        .HasDatabaseName("ix_refund_iban_requests_refund_id1")
+                        .HasFilter("order_item_id IS NULL AND fulfilled_at IS NULL AND closed_at IS NULL");
+
+                    b.ToTable("refund_iban_requests", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_refund_iban_requests_fulfilled_or_closed", "num_nonnulls(fulfilled_at, closed_at) <= 1");
+
+                            t.HasCheckConstraint("ck_refund_iban_requests_iban_only_when_fulfilled", "refund_iban_id IS NULL OR fulfilled_at IS NOT NULL");
+
+                            t.HasCheckConstraint("ck_refund_iban_requests_itemless_on_refund_failure", "order_item_id IS NOT NULL OR (reason IN ('CardRefundFailed', 'TransferFailed') AND refund_id IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_refund_iban_requests_reason", "\"reason\" IN ('ReturnAfterIbanDeleted', 'TransferFailed', 'CardRefundFailed', 'NoticeWithoutIban', 'CancellationOrRemoval', 'AdminRequest')");
+
+                            t.HasCheckConstraint("ck_refund_iban_requests_refund_by_reason", "(refund_id IS NOT NULL) = (reason = 'CardRefundFailed' OR (reason = 'TransferFailed' AND order_item_id IS NULL))");
+                        });
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.AfterSales.Return", b =>
                 {
                     b.Property<Guid>("Id")
@@ -982,6 +1065,58 @@ namespace Shopfolio.Infrastructure.Migrations
                             t.HasCheckConstraint("ck_returns_at_most_one_link", "num_nonnulls(withdrawal_id, late_delivery_termination_id, defect_claim_id) <= 1");
 
                             t.HasCheckConstraint("ck_returns_quantity_above_zero", "quantity > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.AfterSales.ReturnRejection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<string>("AdminName")
+                        .HasColumnType("text")
+                        .HasColumnName("admin_name");
+
+                    b.Property<DateOnly>("ArrivalDate")
+                        .HasColumnType("date")
+                        .HasColumnName("arrival_date");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("OrderItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("order_item_id");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("WithdrawalId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("withdrawal_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_return_rejections");
+
+                    b.HasIndex("AdminId")
+                        .HasDatabaseName("ix_return_rejections_admin_id");
+
+                    b.HasIndex("OrderItemId")
+                        .HasDatabaseName("ix_return_rejections_order_item_id");
+
+                    b.HasIndex("WithdrawalId")
+                        .HasDatabaseName("ix_return_rejections_withdrawal_id");
+
+                    b.ToTable("return_rejections", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_return_rejections_quantity_above_zero", "quantity > 0");
                         });
                 });
 
@@ -3991,6 +4126,33 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasConstraintName("fk_refund_ibans_orders_order_id");
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.AfterSales.RefundIbanRequest", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Administration.Admin", null)
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_refund_iban_requests_admins_admin_id");
+
+                    b.HasOne("Shopfolio.Modules.Ordering.OrderItem", null)
+                        .WithMany()
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_refund_iban_requests_order_items_order_item_id");
+
+                    b.HasOne("Shopfolio.Modules.AfterSales.RefundIban", null)
+                        .WithMany()
+                        .HasForeignKey("RefundIbanId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_refund_iban_requests_refund_ibans_refund_iban_id");
+
+                    b.HasOne("Shopfolio.Modules.Payment.Refund", null)
+                        .WithMany()
+                        .HasForeignKey("RefundId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_refund_iban_requests_refunds_refund_id");
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.AfterSales.Return", b =>
                 {
                     b.HasOne("Shopfolio.Modules.Administration.Admin", null)
@@ -4023,6 +4185,29 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasForeignKey("WithdrawalId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("fk_returns_withdrawals_withdrawal_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.AfterSales.ReturnRejection", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Administration.Admin", null)
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_return_rejections_admins_admin_id");
+
+                    b.HasOne("Shopfolio.Modules.Ordering.OrderItem", null)
+                        .WithMany()
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_return_rejections_order_items_order_item_id");
+
+                    b.HasOne("Shopfolio.Modules.AfterSales.Withdrawal", null)
+                        .WithMany()
+                        .HasForeignKey("WithdrawalId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_return_rejections_withdrawals_withdrawal_id");
                 });
 
             modelBuilder.Entity("Shopfolio.Modules.AfterSales.Withdrawal", b =>

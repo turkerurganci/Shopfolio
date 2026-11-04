@@ -1,6 +1,6 @@
 # T120 — Model eşitlik denetimleri
 
-**Faz:** F1 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Tamamlandı — doğrulama tur 2 PASS | **Tarih:** 2026-11-04
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -62,10 +62,26 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-04) |
-| Bulgu sayısı | 1 (S1, DÜŞÜK) |
-| Düzeltme gerekli mi | Evet — KK5 / kriter 5'in model → belge yönü |
-| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-70; K2 düzeltme turunda bu PR'da) |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-04); tur 1 ✗ FAIL |
+| Bulgu sayısı | 0 (tur 2); tur 1: 1 (S1, DÜŞÜK) — kapandı |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | tur 2: 0; tur 1: 2 (K1 → D-70; K2 bu PR'da kapandı) |
+
+### Doğrulama tur 2 — ✓ PASS (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks`; ana dal son üç run `41848143892`, `41848143907`, `41839444317` success; `.claude/memory/MEMORY.md` satır 23 T120'yi anar. Dal CI'ı: `41855256783` (head `e0827c3`) success.
+
+**Kabul kriterleri (kapsam tam):** 1–8 ✓. Bağımsız sayım: §6'da 130 diyagram çizgisi, §7.2'de 130 satır (grep). Validator kaynak kodda tek derlemede ihlaller üretti (iş bitince `git checkout -- src` ile geri alındı) ve her biri kendi iletisiyle kırıldı: `Variant.ProductId` Cascade → NoAction (KK1/KK3: diyagram ve 7.2 tablosu), `Variant.NormalizedSKU` tekil dizini silindi ve `StockReservation.OrderId` tekil dizininin filtresi `coupon_id IS NULL` yapıldı (KK2: 7.1, filtre dahil), `price_above_zero` silindi (KK4), `Session.LastActivityAt` dizini ve `OptionValue` (`OptionId`, `SortOrder`) dizini silindi (KK5: 7.5.1 ve 7.2.1 vaadi "the document promises … and the model has no such index"), `Variant.SoldTotal` eklendi (KK6). KK7: `migration-dry-run.sh:89` `has-pending-model-changes`; UnitTests'te göç/bekleyen değişiklik çağrısı yok. KK8: Consistency klasöründeki her test sınıfı `[Trait("Consistency", "true")]`; `ci-commands.env` LINT `--filter-trait`, UNIT `--filter-not-trait`; `ModelFacts` yer tutucu dize, `AppDbContext.Configure` yalnız `UseNpgsql`. `RESTRICT`/`DeleteBehavior.Restrict` kaynakta yok.
+
+**Tur 1 bulgusu ve K2:** Bulgu 1 kapandı — `OptionValueConfiguration`'a `builder.HasIndex(v => v.OptionId);` eklenince `QueryIndexTable_AndTheOtherIndexesOfTheModel_AreTheSameSet` "only in the model: OptionValue (option_id)" ile kırıldı (tur 1'de 100/100 geçiyordu). K2 kapandı — `Problems` envanter ve not-derived listesini ayrı iletiyle bildirir.
+
+**Testler (validator):** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` çıkış 0; Consistency 101/101; Unit (Consistency dışı) 241/241; Integration değişmedi, koşulmadı; koşu sonrası `dotnet restore --locked-mode` çıkış 0, `git status` temiz.
+
+**Güvenlik:** sır yok (yer tutucu bağlantı dizesi açılmaz); auth ve girdi doğrulama etkisi yok (yalnız test); yeni bağımlılık yok.
+
+**`12` satırları:** T120'nin KP birimi yok; `Durum` değişikliği yok; `12_matris_denetle.py --kapsam 1-77` Hata 0.
+
+**Yapım raporu karşılaştırması:** tam uyumlu (kriter 5 ve KK5 artık iki yönlü; düzeltme turu notları validator kanıtıyla uyumlu).
 
 ### Doğrulama tur 1 — ✗ FAIL (2026-11-04)
 
@@ -104,7 +120,7 @@
 
 - **Branch:** `task/T120-model-esitlik-denetimleri`
 - **PR:** #378 (başlık "T120: Model eşitlik denetimleri")
-- **CI:** izlenmedi (yapım işçisi CI beklemez)
+- **CI:** yapım işçisi izlemedi; dal CI `41855256783` (head `e0827c3`) success — validator tur 2
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

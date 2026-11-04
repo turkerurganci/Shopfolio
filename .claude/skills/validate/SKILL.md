@@ -10,7 +10,7 @@ user-invocable: true
 > **Tetikleme:** "TXX doğrula", "validate TXX" veya `/validate TXX`.
 > **Parametre:** `hedef` — task numarası
 > **Kural:** Bu skill **asla yapım chat'inde çalıştırılmaz.** Yapan ≠ denetleyen.
-> **Yönetici yardımcı düzeni açıkken (`INSTRUCTIONS.md` §3.3; K-1505):** "ayrı chat" yerine yardımcının açtığı izole doğrulama ajanında (`general-purpose`, `[dogrulama]`, Opus + `high`) koşar; girdisi yalnız yardımcının yazdığı talimat dosyasıdır. Ajan 16. adımda durur — **merge etmez**; verdict'i (Çıktı formatı bloğu) talimattaki rapor dosyasına yazar. 17–18. adımı yardımcı, rapor dosyasında PASS okuduktan ve dal CI'ı yeşilse yapar.
+> **Yönetici yardımcı düzeni açıkken (`INSTRUCTIONS.md` §3.3; K-1505):** "ayrı chat" yerine yardımcının açtığı izole doğrulama ajanında (`general-purpose`; para dışı task `[dogrulama-orta]` Opus + `medium`, para task'ı ve emin olunmayan durum `[dogrulama]` Opus + `high` — `INSTRUCTIONS.md` §3.3) koşar; girdisi yalnız yardımcının yazdığı talimat dosyasıdır. Ajan 16. adımda durur — **merge etmez**; verdict'i (Çıktı formatı bloğu) talimattaki rapor dosyasına yazar. 17–18. adımı yardımcı, rapor dosyasında PASS okuduktan ve dal CI'ı yeşilse yapar.
 
 ---
 

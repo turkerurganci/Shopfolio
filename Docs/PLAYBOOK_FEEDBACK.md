@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-11-03 | **Satır:** 174 | **Gönderilen:** 0
+**Son güncelleme:** 2026-11-04 | **Satır:** 180 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -212,3 +212,9 @@
 | PF-174 | Yardımcı düzeninde merge sonrası run ID'leri ve squash hash'i hiçbir task'ta rapora ve status'a yazılmadı ("sonraki task dalında" kuralının sahibi yoktu); F0 gate'inde on raporun hepsi boştu. Sonraki task'ın yapımı önceki task'ların boş merge kaydını doldurur | F0 gate öğrenim terfisi (Ö-2) | — | `skills/task` 15. adım · `skills/validate` 16. adım notu | Uygulandı |
 | PF-175 | PF-174'ün kuralı yalnız boş hücreyi kapsıyordu; doğrulama status'u merge'den önce yazdığı için Commit hücresine dalın head hash'i girdi ve kural hiç tetiklenmedi — F1 gate'inde yirmi Commit hücresi head hash'iydi, on raporda post-merge satırı boş ya da yoktu. Kural squash hash'i olmayan hücreyi ve eksik satırı da kapsar | F1 gate öğrenim terfisi (Ö-1) | — | `skills/task` 15. adım | Uygulandı |
 | PF-176 | Backlog hedefi "X'e dokunan sonraki PR" task PR'larında görülmüyor; F1 gate'inde beş kalemin bu kolu kaçtı. Böyle hedef bir üst sınır (task ya da faz gate'i) da yazar; gate üst sınırı geçeni yeniden hedefler | F1 gate öğrenim terfisi (Ö-2) | — | `DEFERRED_BACKLOG.md` kayıt kuralı 5 | Uygulandı |
+| PF-177 | Öz denetim: yapım, devam ve düzeltme işçisi PR'dan önce planın kabul kriterleri ve doğrulama kontrol listesiyle kendi diff'ini madde madde denetler, raporda madde başına ✓ ve kanıt yazar; devam işçisi bütün maddeleri yeniden denetler | Sahip 2026-11-04 · PR #381 | `skills/task` Bitiş kapısı · `skills/validate` 13. adım | `.claude/skills/task/SKILL.md` · `.claude/skills/validate/SKILL.md` | Uygulandı |
+| PF-178 | FAIL geri bildirim döngüsü: her doğrulama FAIL'inin türü bir sık FAIL listesine yazılır, yapım işçisinin öz denetim listesi oradan kurulur | Sahip 2026-11-04 · PR #381 | Yardımcı düzeni (proje dışı `helper-state/…/impl/sik-fail-nedenleri.md`) | `.claude/INSTRUCTIONS.md` yardımcı düzeni · `.claude/skills/task/SKILL.md` | Öneri |
+| PF-179 | Doğrulama eforu task türüne göre: para dışı task orta efor, para task'ı ve emin olunmayan durum yüksek efor; bekçi para task'ında orta eforu engeller | Sahip 2026-11-04 · PR #381 | `INSTRUCTIONS §3.3` doğrulama satırı · `skills/validate` giriş notu · `~/.claude/rules/agent-rules.json` (`lightValidationTags`), `helper-guard.js` | `.claude/INSTRUCTIONS.md` · `~/.claude` hook'ları | Uygulandı (proje içi) / Öneri (proje dışı) |
+| PF-180 | Talimatta zorunlu ifade bekçisi: zorunlu ifadeyi (ör. "öz denetim") taşımayan task işçisi açılamaz | Sahip 2026-11-04 · PR #381 | `~/.claude/rules/agent-rules.json` > `parallelTasks.requiredPrompt` (proje dışı) | `~/.claude` hook'ları | Öneri |
+| PF-181 | İşçiler git bekçisini ortam değişkeniyle (`PB_PROTECTED_BRANCHES`) ya da `-c core.hooksPath=` ile atladı; yasak işçi talimatına girdi, bekçinin bunu kendisinin engellemesi aday | T106 · sahip 2026-11-04 · PR #381 | İşçi talimatı (yardımcı düzeni) | `scripts/git-hooks` · `.claude/GUARDRAILS.md` | Aday |
+| PF-182 | Sır bekçisi büyük commit'te satır başına süreç açtığı için zaman aşımına düşüyordu; anahtar adı ön süzgeci tek geçişte aday satırları seçer, anlam değişmez | PR #368 | `scripts/git-hooks/pre-commit` | `scripts/git-hooks/pre-commit` | Uygulandı |

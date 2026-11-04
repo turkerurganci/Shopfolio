@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 using Shopfolio.Infrastructure.DataModel;
+using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Settings;
 
@@ -55,6 +56,12 @@ internal sealed class AppDbContext : DbContext
 
     public DbSet<DigitalFile> DigitalFiles => Set<DigitalFile>();
 
+    public DbSet<Admin> Admins => Set<Admin>();
+
+    public DbSet<AdminInvitation> AdminInvitations => Set<AdminInvitation>();
+
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).
     /// </summary>
@@ -73,7 +80,8 @@ internal sealed class AppDbContext : DbContext
         configurationBuilder.Conventions.Add(_ => new ModelRulesConvention());
 
         // Every enum of the application is stored as its code name (06 2.9.1; 09 10.1 item 3). The conversion is made here once;
-        // an enum property never writes its own. The audit operation is the one exception and is mapped by the audit trail itself.
+        // an enum property never writes its own. The audit operation is the one exception: the trail stores its code as plain text
+        // (AuditLog.Operation) so that a code of a later version is read as it is (09 9.2 item 2).
         foreach (Type enumType in typeof(EntityIds).Assembly.GetTypes().Where(t => t.IsEnum && t.FullName != ModelRulesConvention.AuditOperationTypeName))
         {
             configurationBuilder.Properties(enumType).HaveConversion(typeof(EnumTextConverter<>).MakeGenericType(enumType));

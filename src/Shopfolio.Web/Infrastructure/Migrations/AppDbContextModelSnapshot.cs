@@ -22,6 +22,164 @@ namespace Shopfolio.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Shopfolio.Modules.Administration.Admin", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("normalized_email");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text")
+                        .HasColumnName("password_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_admins");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique()
+                        .HasDatabaseName("ix_admins_normalized_email");
+
+                    b.ToTable("admins", (string)null);
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Administration.AdminInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("accepted_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("email");
+
+                    b.Property<DateTimeOffset?>("InvalidatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("invalidated_at");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("normalized_email");
+
+                    b.Property<Guid?>("SenderAdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sender_admin_id");
+
+                    b.Property<string>("SenderAdminName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("sender_admin_name");
+
+                    b.Property<DateTimeOffset?>("WithdrawnAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("withdrawn_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_admin_invitations");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique()
+                        .HasDatabaseName("ix_admin_invitations_normalized_email")
+                        .HasFilter("withdrawn_at IS NULL AND invalidated_at IS NULL AND accepted_at IS NULL");
+
+                    b.HasIndex("SenderAdminId")
+                        .HasDatabaseName("ix_admin_invitations_sender_admin_id");
+
+                    b.ToTable("admin_invitations", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_admin_invitations_at_most_one_outcome", "num_nonnulls(withdrawn_at, invalidated_at, accepted_at) <= 1");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Administration.AuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AdminEmail")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("admin_email");
+
+                    b.Property<Guid>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<string>("AdminName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("admin_name");
+
+                    b.Property<string>("AuditArea")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("audit_area");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("details");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("operation");
+
+                    b.Property<Guid?>("TargetRecordId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_record_id");
+
+                    b.Property<string>("TargetRecordType")
+                        .HasColumnType("text")
+                        .HasColumnName("target_record_type");
+
+                    b.HasKey("Id")
+                        .HasName("pk_audit_logs");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_audit_logs_created_at");
+
+                    b.HasIndex("AdminId", "CreatedAt")
+                        .HasDatabaseName("ix_audit_logs_admin_id_created_at");
+
+                    b.ToTable("audit_logs", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_audit_logs_audit_area", "\"audit_area\" IN ('CompanyAndBranding', 'Publication', 'Order', 'AdminAccounts', 'LegalTextVersion', 'Settings', 'Export', 'CustomerDeletion')");
+                        });
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.Catalog.Category", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1171,6 +1329,15 @@ namespace Shopfolio.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("ck_provinces_code_two_digits", "code ~ '^[0-9]{2}$'");
                         });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Administration.AdminInvitation", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Administration.Admin", null)
+                        .WithMany()
+                        .HasForeignKey("SenderAdminId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_admin_invitations_admins_sender_admin_id");
                 });
 
             modelBuilder.Entity("Shopfolio.Modules.Catalog.Category", b =>

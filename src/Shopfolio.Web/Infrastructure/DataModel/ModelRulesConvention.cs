@@ -69,13 +69,14 @@ internal sealed class ModelRulesConvention : IModelFinalizingConvention
         }
     }
 
+    private const string ValueConverterTypeAnnotation = "ValueConverterType";
+
     /// <summary>
     /// The one enum that is written as text without a check constraint: the audit trail cannot be converted by a migration and shows an
     /// unrecognized code as it is (09 10.1 item 3; 9.2 item 2). The type is named, not referenced: shared infrastructure does not refer
-    /// to a module type (09 6 item 2); a test holds the name equal to the type's.
+    /// to a module type (09 6 item 2); a test holds the name equal to the type's. The stored column (<c>AuditLog.Operation</c>) is a text
+    /// property, so no enum property of the model has this type today; the exception stays for an enum property that may map it.
     /// </summary>
-    private const string ValueConverterTypeAnnotation = "ValueConverterType";
-
     internal const string AuditOperationTypeName = "Shopfolio.Modules.Administration.Contracts.AuditOperation";
 
     /// <summary>

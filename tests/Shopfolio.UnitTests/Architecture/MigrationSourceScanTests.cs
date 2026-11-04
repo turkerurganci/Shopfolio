@@ -43,6 +43,16 @@ public sealed class MigrationSourceScanTests
     [InlineData("Privileges.cs", MigrationSourceScan.UnscopedPrivilege, 7)]
     [InlineData("Privileges.cs", MigrationSourceScan.UnscopedPrivilege, 8)]
     [InlineData("Privileges.cs", MigrationSourceScan.PublicPrivilege, 8)]
+    [InlineData("AuditTrail.cs", MigrationSourceScan.AuditLogRowWrite, 7)]
+    [InlineData("AuditTrail.cs", MigrationSourceScan.AuditLogRowWrite, 8)]
+    [InlineData("AuditTrail.cs", MigrationSourceScan.AuditLogStructureChange, 9)]
+    [InlineData("AuditTrail.cs", MigrationSourceScan.AuditLogStructureChange, 10)]
+    [InlineData("AuditTrail.cs", MigrationSourceScan.AuditLogStructureChange, 11)]
+    [InlineData("AuditTrail.cs", MigrationSourceScan.DataWriteOutsideAllowedTables, 14)]
+    [InlineData("AuditTrail.cs", MigrationSourceScan.DataWriteOutsideAllowedTables, 15)]
+    [InlineData("AuditTrail.cs", MigrationSourceScan.DatabaseClock, 16)]
+    [InlineData("AuditTrail.cs", MigrationSourceScan.PublicPrivilege, 17)]
+    [InlineData("AuditTrail.cs", MigrationSourceScan.PublicPrivilege, 18)]
     public void Scan_OnViolationSample_ReportsTheRuleOnItsLine(string sample, string rule, int line)
     {
         IReadOnlyList<(string Rule, int Line)> findings = MigrationSourceScan.Scan(File.ReadAllText(SamplePath(sample)));

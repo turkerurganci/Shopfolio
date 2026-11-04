@@ -156,6 +156,23 @@ while IFS= read -r path; do
         echo "$v_loose" | grep -qiE "$PLACEHOLDER" && continue
       fi
       echo "$v_strict" | grep -qE "^(nameof\\($CHAIN\\)|default\\($CHAIN\\))\$" && continue
+      # EF migration column constructor (generated code, no value assigned):
+      # the right side is exactly table.Column<Type>(args). The only quoted
+      # string allowed is the value of the named argument type: "..." in PostgreSQL type-name form (lowercase letter
+      # first, then lowercase letters, digits, spaces; optional trailing
+      # "(digits, commas, spaces)"; no underscore, uppercase, hyphen); the
+      # other arguments are literal-free named values (nullable, maxLength,
+      # precision, scale, unicode, fixedLength). Any other quoted string,
+      # positional literal, concatenation or second call keeps the normal
+      # rule. The call must close on the same line (open multi-line form is
+      # not exempt: its continuation lines would go unchecked). .cs only.
+      case "$path" in
+        *.cs)
+          v_noq="$(echo "$value" | sed -E 's/([(,][[:space:]]*)type:[[:space:]]*"[a-z][a-z0-9 ]*(\([0-9, ]+\))?"/\1type: T/g; s/[[:space:]]+$//')"
+          EFARG='[[:space:]]*(type|nullable|maxLength|precision|scale|unicode|fixedLength)[[:space:]]*:[[:space:]]*[A-Za-z0-9_.]+[[:space:]]*,?'
+          echo "$v_noq" | grep -qE "^table\\.Column<[A-Za-z0-9_.?]+>\\(($EFARG)*\\)[,;]?\$" && continue
+          ;;
+      esac
     fi
     # In source code a multi-part right side never counts as a placeholder.
     if [ "${MULTI:-0}" = "0" ]; then

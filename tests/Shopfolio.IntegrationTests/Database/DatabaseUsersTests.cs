@@ -229,12 +229,11 @@ public sealed class DatabaseUsersTests
         CancellationToken ct = TestContext.Current.CancellationToken;
         string migrator = SchemaOwnerDsn();
         await CreateProbeAsync(ct);
-        // The three tables of 09 10.8 item 3, made the way their migrations make them (T106, T118, 09 10.8 item 3 pattern).
+        // The three tables of 09 10.8 item 3: the audit trail is the real one (T106 made it with the privilege split of its migration);
+        // the other two are made here the way their migrations will make them (T118, 09 10.8 item 3 pattern).
         await ExecuteAsync(
             migrator,
             $"""
-             CREATE TABLE public.{PrivilegeMatrix.AuditLogs} (id integer PRIMARY KEY);
-             REVOKE UPDATE, DELETE ON public.{PrivilegeMatrix.AuditLogs} FROM {Users.App};
              CREATE TABLE public.{PrivilegeMatrix.DataProtectionKeys} (id integer PRIMARY KEY);
              REVOKE SELECT ON public.{PrivilegeMatrix.DataProtectionKeys} FROM {Users.Reader};
              CREATE TABLE public.{PrivilegeMatrix.BackupStatusRecords} (id integer PRIMARY KEY, last_succeeded_at timestamptz, last_failed_at timestamptz, note text);
@@ -245,7 +244,7 @@ public sealed class DatabaseUsersTests
         IReadOnlyList<string> deviations = await PrivilegeMatrix.FindDeviationsAsync(_collection.Dsn, Users, ct);
 
         Assert.Empty(deviations);
-        await ExecuteAsync(migrator, $"DROP TABLE {Probe}, public.{PrivilegeMatrix.AuditLogs}, public.{PrivilegeMatrix.DataProtectionKeys}, public.{PrivilegeMatrix.BackupStatusRecords}", ct);
+        await ExecuteAsync(migrator, $"DROP TABLE {Probe}, public.{PrivilegeMatrix.DataProtectionKeys}, public.{PrivilegeMatrix.BackupStatusRecords}", ct);
     }
 
     [Theory]

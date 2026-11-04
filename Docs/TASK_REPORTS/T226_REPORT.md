@@ -84,7 +84,7 @@ Bütün maddeler bu devam turunda yeniden, diff üzerinde denetlendi.
 ## Commit & PR
 
 - **Branch:** `task/T226-ayar-katmanlari`
-- **Commit:** PR'da
+- **Commit:** `dcf7409` (öncesi `fe23813`)
 - **PR:** PR'da
 - **CI:** yapım işçisi izlemez
 - **Post-merge run'lar:** *(validator doldurur)*

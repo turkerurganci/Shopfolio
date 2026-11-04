@@ -88,7 +88,7 @@
 
 - **Branch:** `task/T227-zaman-ve-para`
 - **Commit:** `873796c` — T227: Zaman kaynağı, Türkiye saati, iş günü takvimi ve kuruş yuvarlaması; düzeltme ve rapor commit'leri ardından (head SHA PR açıklamasında)
-- **PR:** #PRNO
+- **PR:** #382
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
 

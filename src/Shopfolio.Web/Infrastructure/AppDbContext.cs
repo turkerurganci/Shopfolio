@@ -97,6 +97,12 @@ internal sealed class AppDbContext : DbContext
 
     public DbSet<CheckboxAcceptanceOrderItem> CheckboxAcceptanceOrderItems => Set<CheckboxAcceptanceOrderItem>();
 
+    public DbSet<StockReservation> StockReservations => Set<StockReservation>();
+
+    public DbSet<OrderEmailHistory> OrderEmailHistories => Set<OrderEmailHistory>();
+
+    public DbSet<OrderAddressHistory> OrderAddressHistories => Set<OrderAddressHistory>();
+
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).
     /// </summary>

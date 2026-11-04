@@ -57,12 +57,32 @@ internal sealed class OrderingRecordsGuard : SaveChangesInterceptor
                 throw new InvalidOperationException(
                     "A transition record is only appended (06 4.19); its one change is emptying the administrator's link, name and note.");
             }
+
+            if (entry.State == EntityState.Modified && entry.Entity is OrderEmailHistory or OrderAddressHistory && !IsAdminLinkEmptying(entry))
+            {
+                throw new InvalidOperationException(
+                    "An e-mail or address history row is only appended (06 4.61, 4.62; 06 2.2.3); its one change is emptying the administrator's link.");
+            }
         }
     }
 
     private static bool IsPermanent(object entity)
     {
         return entity is Order or OrderItem or TransitionRecord or CheckboxAcceptance or CheckboxAcceptanceOrderItem;
+    }
+
+    // The one change of a history row is the administrator link emptied (the database does it when the administrator is removed; 06 2.2.3, 2.2.5).
+    private static bool IsAdminLinkEmptying(EntityEntry entry)
+    {
+        foreach (PropertyEntry property in entry.Properties)
+        {
+            if (property.IsModified && (property.Metadata.Name != nameof(OrderEmailHistory.AdminId) || property.CurrentValue is not null))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static bool IsErasure(EntityEntry entry)

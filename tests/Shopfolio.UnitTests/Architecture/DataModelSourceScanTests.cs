@@ -39,6 +39,7 @@ public sealed class DataModelSourceScanTests
     [InlineData("NumericEnumConversion.cs", DataModelSourceScan.NumericConversion)]
     [InlineData("ModuleTypeName.cs", DataModelSourceScan.ModuleTypeNameOutsideHasOne)]
     [InlineData("ModuleTypeNameConstant.cs", DataModelSourceScan.ModuleTypeNameOutsideHasOne)]
+    [InlineData("ModuleTypeNameInHasOne.cs", DataModelSourceScan.ModuleTypeNameOutsideHasOne)]
     public void Scan_OnViolationSample_ReportsTheRuleOnItsLine(string sample, string rule)
     {
         string path = SamplePath(sample);

@@ -21,7 +21,7 @@ internal static partial class DataModelSourceScan
 
     public const string NumericConversion = "converts a value to a number (an enum is stored as its code name; 09 10.1 item 3)";
 
-    public const string ModuleTypeNameOutsideHasOne = "writes another module's type name outside a HasOne call (09 10.1 item 1; D-61)";
+    public const string ModuleTypeNameOutsideHasOne = "writes another module's type name as a plain string or uses its constant outside a HasOne call (09 10.1 item 1; D-61, D-62)";
 
     /// <summary>The file that may make ids.</summary>
     public const string EntityIdsFile = "EntityIds.cs";
@@ -59,10 +59,12 @@ internal static partial class DataModelSourceScan
                 continue;
             }
 
-            if (!inMigrations && !line.Contains(".HasOne(", StringComparison.Ordinal))
+            if (!inMigrations)
             {
+                // A plain string is refused on a HasOne line too; only the constant's name is allowed there (D-62).
+                bool inHasOne = line.Contains(".HasOne(", StringComparison.Ordinal);
                 bool literalOutsideConstant = ModuleTypeNameLiteral().IsMatch(line) && !ModuleTypeNameConstant().IsMatch(line);
-                bool constantOutsideHasOne = typeNameConstants.Any(name => !ModuleTypeNameConstant().IsMatch(line) && Regex.IsMatch(line, $@"\b{Regex.Escape(name)}\b"));
+                bool constantOutsideHasOne = !inHasOne && typeNameConstants.Any(name => !ModuleTypeNameConstant().IsMatch(line) && Regex.IsMatch(line, $@"\b{Regex.Escape(name)}\b"));
                 if (literalOutsideConstant || constantOutsideHasOne)
                 {
                     findings.Add((ModuleTypeNameOutsideHasOne, i + 1));

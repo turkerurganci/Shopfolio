@@ -216,6 +216,18 @@ public sealed class IndexConsistencyTests
     }
 
     [Fact]
+    public void QueryIndexTable_APlainIndexOnALinkTheDocumentDoesNotPromiseAnOwnIndexFor_IsReported()
+    {
+        (IReadOnlyList<IndexFact> facts, _) = DocumentedIndexes.ReadQuery(DataModelDocument.Load());
+        IndexFact[] extra = [.. ModelFacts.Shared.Indexes, new IndexFact("OptionValue", "option_id", false, string.Empty, false, "plain")];
+
+        IReadOnlyList<string> problems = DocumentedIndexes.Compare("06 7.5.1 table", facts, QueryIndexesOf(ModelFacts.Shared.ForeignKeys, extra, DataModelDocument.Load()));
+
+        string problem = Assert.Single(problems);
+        Assert.Contains("only in the model: OptionValue (option_id)", problem, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void QueryIndexTable_AnIndexMissingFromTheModelOrWithAChangedFilter_IsReported()
     {
         (IReadOnlyList<IndexFact> facts, _) = DocumentedIndexes.ReadQuery(DataModelDocument.Load());
@@ -237,11 +249,20 @@ public sealed class IndexConsistencyTests
 
     /// <summary>
     /// The other indexes of the database (<c>06 7.5.1</c>): not unique, and not the plain index a link has on its own column (that one is a
-    /// promise of <c>7.2.1</c>, checked with the links).
+    /// promise of <c>7.2.1</c>, checked with the links). Only the links whose "Dizin" column promises the plain index ("kendi dizini" or "... ve düz dizini") are left out: a plain single-column
+    /// index on any other link is not promised by the document, so it belongs to the <c>7.5.1</c> comparison and breaks it.
     /// </summary>
-    private static IEnumerable<IndexFact> QueryIndexesOf(ModelFacts model)
+    private static IEnumerable<IndexFact> QueryIndexesOf(ModelFacts model) => QueryIndexesOf(model.ForeignKeys, model.Indexes, DataModelDocument.Load());
+
+    private static IEnumerable<IndexFact> QueryIndexesOf(IReadOnlyList<ForeignKeyFact> foreignKeys, IReadOnlyList<IndexFact> indexes, string document)
     {
-        HashSet<string> ownIndexes = [.. model.ForeignKeys.Select(f => $"{f.Table}|{DataModelDocument.Snake(f.Field)}")];
-        return model.Indexes.Where(i => !i.Unique && !(i.Kind == "plain" && i.Filter.Length == 0 && ownIndexes.Contains($"{i.Table}|{i.Columns}")));
+        (_, IReadOnlyDictionary<string, string> indexText) = DocumentedRelationships.ReadTable(document);
+        HashSet<string> ownIndexes =
+        [
+            .. foreignKeys
+                .Where(f => indexText.TryGetValue(f.Key, out string? text) && (text.StartsWith("kendi dizini", StringComparison.Ordinal) || text.EndsWith("düz dizini", StringComparison.Ordinal)))
+                .Select(f => $"{f.Table}|{DataModelDocument.Snake(f.Field)}"),
+        ];
+        return indexes.Where(i => !i.Unique && !(i.Kind == "plain" && i.Filter.Length == 0 && ownIndexes.Contains($"{i.Table}|{i.Columns}")));
     }
 }

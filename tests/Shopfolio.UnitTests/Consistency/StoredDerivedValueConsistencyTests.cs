@@ -104,7 +104,7 @@ public sealed partial class StoredDerivedValueConsistencyTests
         PropertyFact[] without = [.. ModelFacts.Shared.Properties.Where(p => !(p.Table == "Order" && p.Name == "Total"))];
 
         string problem = Assert.Single(Problems(without, DataModelDocument.Load()));
-        Assert.Contains("only in the inventory: Order.Total", problem, StringComparison.Ordinal);
+        Assert.Contains("only in the not-derived list: Order.Total", problem, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -144,7 +144,8 @@ public sealed partial class StoredDerivedValueConsistencyTests
         string[] known = [.. Inventory.Keys, .. NotDerived.Keys];
         List<string> problems = [];
         problems.AddRange(suspects.Except(known, StringComparer.Ordinal).Select(k => $"stored derived values: only in the model: {k}"));
-        problems.AddRange(known.Except(suspects, StringComparer.Ordinal).Select(k => $"stored derived values: only in the inventory: {k}"));
+        problems.AddRange(Inventory.Keys.Except(suspects, StringComparer.Ordinal).Select(k => $"stored derived values: only in the inventory: {k}"));
+        problems.AddRange(NotDerived.Keys.Except(suspects, StringComparer.Ordinal).Select(k => $"stored derived values: only in the not-derived list: {k}"));
         int rows = StoredRows(document).Count;
         if (rows != Inventory.Values.Distinct().Count())
         {

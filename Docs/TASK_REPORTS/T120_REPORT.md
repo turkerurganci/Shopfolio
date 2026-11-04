@@ -27,7 +27,7 @@
 | 2 | Tekil dizin listesi ve filtreleri modelle eşit | ✓ | `IndexConsistencyTests.UniqueIndexTable_AndTheUniqueIndexesOfTheModel_AreTheSameSet` (filtre atomları dahil) |
 | 3 | FK ve silme davranışı listesi modelle eşit; `RESTRICT` yok | ✓ | `ForeignKeyTable_AndTheForeignKeysOfTheModel_AreTheSameSet`, `ForeignKeyTable_BehaviorCounts_...`, `Model_UsesTheThreeBehaviorsOnly_AndNoRestrict` |
 | 4 | Kontrol kısıtı listesi modelle eşit | ✓ | `CheckConstraintConsistencyTests` (tablo kümesi, kod listesi + madde sayısı, slug, telefon, enum) |
-| 5 | Sorgu dizinleri ve bağların kendi dizinleri modelle eşit | ✓ (validator: ~ Kısmi — model → belge yönünde vaat edilmemiş kendi dizini yakalanmıyor; Doğrulama tur 1, Bulgu 1) | `IndexConsistencyTests.QueryIndexTable_AndTheOtherIndexesOfTheModel_AreTheSameSet`, `RelationshipConsistencyTests.ForeignKeyIndexes_ThatTheTablePromises_ExistInTheModel` |
+| 5 | Sorgu dizinleri ve bağların kendi dizinleri modelle eşit | ✓ (tur 1 Bulgu 1 düzeltme turunda kapatıldı; iki yön) | `IndexConsistencyTests.QueryIndexTable_AndTheOtherIndexesOfTheModel_AreTheSameSet`, `RelationshipConsistencyTests.ForeignKeyIndexes_ThatTheTablePromises_ExistInTheModel`, ihlal: `IndexConsistencyTests.QueryIndexTable_APlainIndexOnALinkTheDocumentDoesNotPromiseAnOwnIndexFor_IsReported` |
 | 6 | Saklanan türetilmiş değerler envanterin dört türüyle sınırlı | ✓ | `StoredDerivedValueConsistencyTests.StoredDerivedValues_OfTheModel_AreExactlyTheInventory`, `PanelMarks_OfTheDocument_AreNotStoredByTheModel` |
 | 7 | Göçe dönüşmemiş değişiklik denetimi birim testi değil | ✓ | `TestIsolationScanTests.UnitTests_Sources_ApplyNoMigrationAndLookForNoPendingModelChanges` |
 | 8 | `Consistency` özellikli, Lint'te koşar, Unit'te dışarıda, DB/ağ yok | ✓ | `ConsistencyChecks_Types_CarryTheConsistencyTrait_AndNoOtherTypeDoes`, `Pipeline_RunsTheConsistencyChecksInLintOnly`, `ConsistencyChecks_Sources_ReadNoConnectionStringOrEnvironmentAndOpenNoConnection` |
@@ -40,7 +40,7 @@
 | KK2: tekil dizin satırı silinince kırılır | ✓ | `UniqueIndexTable_ADeletedRow_IsReported`, `UniqueIndexTable_AnExtraRowAndAChangedFilter_AreReported`, `UniqueIndexTable_AFilterChangedInTheModel_IsReported`, `UniqueIndexTable_ASingleRowIndexOrAUniqueIndexMissingInTheModel_IsReported` |
 | KK3: bağın davranışı değişince kırılır | ✓ | `ForeignKeyTable_ABehaviorChangedInTheModel_IsReported`, `..._InTheDocument_IsReported`, `ForeignKeyTable_ADeletedRow_IsReported`, `Diagrams_AChangedMarkOrBehavior_IsReported`, `Behaviors_ARestrictiveForeignKeyOrMigrationText_IsReported` |
 | KK4: kontrol kısıtı eksilince kırılır | ✓ | `CodeList_AConstraintMissingFromTheModel_IsReported`, `CodeList_AConstraintTheListDoesNotKnow_IsReported`, `Tables_ADocumentRowDeleted_OrAModelTableThatLostItsConstraints_IsReported`, `Items_AnItemAddedToOrRemovedFromARow_IsReported`, `Phones_...`, `Slugs_...`, `Enums_...` |
-| KK5: sorgu dizini / bağın kendi dizini eksilince kırılır | ✓ | `QueryIndexTable_ADeletedRow_IsReported`, `QueryIndexTable_AnIndexMissingFromTheModelOrWithAChangedFilter_IsReported`, `ForeignKeyIndexes_ADeletedOwnIndexOrComposite_IsReported` |
+| KK5: sorgu dizini / bağın kendi dizini eksilince kırılır (ve vaatsiz fazlası da kırar) | ✓ | `QueryIndexTable_ADeletedRow_IsReported`, `QueryIndexTable_AnIndexMissingFromTheModelOrWithAChangedFilter_IsReported`, `ForeignKeyIndexes_ADeletedOwnIndexOrComposite_IsReported`, yeni: `QueryIndexTable_APlainIndexOnALinkTheDocumentDoesNotPromiseAnOwnIndexFor_IsReported` (`OptionValue.OptionId` düz dizini → "only in the model: OptionValue (option_id)"); `QueryIndexesOf` artık yalnız 7.2.1 "Dizin" sütunu "kendi dizini" ile başlayan ya da "düz dizini" ile biten bağların düz tek sütunlu dizinini dışlar |
 | KK6: envanterde olmayan saklanan alan kırar | ✓ | `Model_AStoredValueTheInventoryDoesNotName_IsReported` (`Variant.StockCache`), `Model_AnInventoryValueTheModelLost_IsReported`, `Document_AFifthKindInTheInventoryTable_IsReported`, `Marks_APanelMarkStoredAsAProperty_IsReported` |
 | KK7: UnitTests altında göç uygulayan / bekleyen model değişikliği arayan test yok | ✓ | `UnitTests_Sources_ApplyNoMigrationAndLookForNoPendingModelChanges` (tüm `tests/Shopfolio.UnitTests/**/*.cs` taranır, 0 bulgu); ihlal örnekleri: `Scan_AUnitTestThatLooksForModelChangesOrPendingMigrations_IsReported` (4), `Scan_AUnitTestThatAppliesMigrations_IsReported` (2); denetim T04'ün dry-run adımındadır |
 | KK8: `Consistency` özelliği, yalnız Lint, bağlantı dizesi okumaz | ✓ | yansıma: `ConsistencyChecks_Types_CarryTheConsistencyTrait_AndNoOtherTypeDoes` (+ `TraitProblems_...AreReported` ihlali); CI: `Pipeline_RunsTheConsistencyChecksInLintOnly` (`.github/ci-commands.env` `LINT_CMD` `--filter-trait`, `UNIT_TEST_CMD` `--filter-not-trait`; ihlal `Pipeline_AUnitStepWithoutTheExclusion_...`); kaynak: `ConsistencyChecks_Sources_Read...` (+ 4 ihlal örneği); `ModelFacts` yalnız yer tutucu dize taşır, bağlantı açılmaz |
@@ -53,7 +53,7 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit (Consistency) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --filter-trait "Consistency=true"` | 100 geçti, 0 kaldı |
+| Unit (Consistency) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --filter-trait "Consistency=true"` | 101 geçti, 0 kaldı (düzeltme turu sonrası) |
 | Unit (Unit adımı) | ✓ | `... --filter-not-trait "Consistency=true"` | 241 geçti, 0 kaldı |
 | Integration | — | koşulmadı (üretim koduna dokunulmadı) | |
 | Contract | — | yok | |
@@ -84,6 +84,14 @@
 **K-notları:** K1 — saklanan türetilmiş değer denetimi ada dayalıdır; `06 §2.7.2`'deki bir değer kalıba uymayan adla saklanırsa kırılmaz, testin envanter sözlüğü §2.7.1 hücreleriyle değil satır sayısıyla eşlenir → **D-70**. K2 — `Model_ADerivedValueMovedToTheNotDerivedList_IsReportedWhenItIsGone` `Order.Total` (NotDerived listesinde) için "only in the inventory" iletisini bekler; ileti iki listeyi ayırmıyor (kozmetik) → düzeltme turunda bu PR'da.
 
 **Yapım raporu karşılaştırması:** kriter 5 ve "her denetim iki yönlüdür" iddiası uyuşmuyor (Bulgu 1); öteki kriterler, KK1–KK4, KK6–KK8 ve ⚠ kararlar (ham SQL dizinleri, `o|` işaretinin tekil dizinden türetilmesi) validator kanıtıyla uyumlu.
+
+### Düzeltme turu (tur 1 FAIL sonrası)
+
+- **Bulgu 1 kapandı:** `IndexConsistencyTests.QueryIndexesOf` artık dışlamayı 06 §7.2.1'in "Dizin" sütunundan okur (`DocumentedRelationships.ReadTable`): yalnız "kendi dizini" ile başlayan ya da "… ve düz dizini" ile biten bağların düz, filtresiz tek sütunlu dizini §7.5.1 karşılaştırmasının dışındadır; vaatsiz bağa eklenen tek sütunlu dizin "only in the model" olarak kırar. İhlal örneği: `QueryIndexTable_APlainIndexOnALinkTheDocumentDoesNotPromiseAnOwnIndexFor_IsReported` (09 §19.2 m.3).
+- **Yeni belge–model uyuşmazlığı yok.** ⚠ Sıkılaştırma ilk denemede `DigitalFile.ProductId` / `VariantId` düz dizinlerini işaretledi; belge bu iki bağ için "filtreli tekil dizini ve düz dizini" der (düz dizin vaatli), yani model belgeyle uyumlu — dışlama kuralı "düz dizini" ile biten vaatleri de kapsayacak şekilde düzeltildi. Model ve belge değişmedi.
+- **K2 kapandı:** `StoredDerivedValueConsistencyTests.Problems` envanter ve not-derived listesini ayrı iletilerle bildirir ("only in the inventory" / "only in the not-derived list"); `Model_ADerivedValueMovedToTheNotDerivedList_IsReportedWhenItIsGone` "only in the not-derived list: Order.Total" bekler.
+- K1 doğrulayıcı tarafından D-70'e yazıldı; dokunulmadı.
+- Koşular: Consistency 101/101, Unit (Consistency dışı) 241/241, Release `-warnaserror` 0 uyarı, `dotnet format --verify-no-changes` temiz.
 
 ## Altyapı Değişiklikleri
 

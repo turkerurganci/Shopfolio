@@ -92,7 +92,9 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
                 copyDsn,
                 "DROP EXTENSION pg_trgm CASCADE; "
                 + "DROP TABLE product_categories, product_images, variants, option_values, options, categories, images, products CASCADE; "
-                + "DELETE FROM \"__EFMigrationsHistory\" WHERE migration_id LIKE '%CreateCatalogCoreTables'");
+                // The later migrations leave the history too: the bundle stops at the catalog core migration before it reaches them.
+                + "DELETE FROM \"__EFMigrationsHistory\" WHERE migration_id >= "
+                + "(SELECT migration_id FROM \"__EFMigrationsHistory\" WHERE migration_id LIKE '%CreateCatalogCoreTables')");
 
             using MigrationBundle bundle = await MigrationBundle.BuildAsync(Ct);
             InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() => bundle.ApplyAsync(copyDsn, Ct));

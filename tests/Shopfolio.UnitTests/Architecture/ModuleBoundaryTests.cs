@@ -47,11 +47,11 @@ public sealed class ModuleBoundaryTests
     private static readonly Lazy<ArchUnitNET.Domain.Architecture> _application =
         new(() => new ArchLoader().LoadAssemblies(typeof(Program).Assembly).Build());
 
-    private static readonly Lazy<ArchUnitNET.Domain.Architecture> _sample = new(() =>
-    {
-        string samplePath = Path.Combine(AppContext.BaseDirectory, "ModuleBoundaryViolationSample.dll");
-        return new ArchLoader().LoadAssemblies(System.Reflection.Assembly.LoadFrom(samplePath)).Build();
-    });
+    private static readonly Lazy<System.Reflection.Assembly> _sampleAssembly =
+        new(() => System.Reflection.Assembly.LoadFrom(Path.Combine(AppContext.BaseDirectory, "ModuleBoundaryViolationSample.dll")));
+
+    private static readonly Lazy<ArchUnitNET.Domain.Architecture> _sample =
+        new(() => new ArchLoader().LoadAssemblies(_sampleAssembly.Value).Build());
 
     // --- Module boundary: another module only through its Contracts (09 6 item 2) ---
 
@@ -125,14 +125,21 @@ public sealed class ModuleBoundaryTests
     [Fact]
     public void EveryModule_InApplicationAssembly_HasAContractsNamespaceWithAnOpenInterface()
     {
-        ArchUnitNET.Domain.Architecture architecture = _application.Value;
+        Assert.Empty(ModulesWithoutOpenInterface(_application.Value, _theNineModules));
+    }
 
-        foreach (string module in _theNineModules)
-        {
-            Assert.Contains(
-                architecture.Interfaces,
-                i => i.FullName == $"Shopfolio.Modules.{module}.Contracts.I{module}Module" && i.Visibility == Visibility.Public);
-        }
+    [Fact]
+    public void EveryModule_InViolationSample_OnlyOrderingHasNoOpenInterface()
+    {
+        Assert.Equal(["Ordering"], ModulesWithoutOpenInterface(_sample.Value, ["Catalog", "Ordering"]));
+    }
+
+    private static List<string> ModulesWithoutOpenInterface(ArchUnitNET.Domain.Architecture architecture, IEnumerable<string> modules)
+    {
+        return modules
+            .Where(module => !architecture.Interfaces.Any(
+                i => i.FullName == $"Shopfolio.Modules.{module}.Contracts.I{module}Module" && i.Visibility == Visibility.Public))
+            .ToList();
     }
 
     // --- Pages and endpoints: no module internals, no database context (09 6 item 2; 05 3.3.12) ---
@@ -178,23 +185,89 @@ public sealed class ModuleBoundaryTests
     {
         string modules = Path.Combine(RepositoryRoot.Find(), "src", "Shopfolio.Web", "Modules");
 
-        string[] folders = Directory.GetDirectories(modules).Select(d => Path.GetFileName(d)).Order(StringComparer.Ordinal).ToArray();
+        Assert.Empty(FindModuleFolderProblems(modules));
+    }
 
-        Assert.Equal(_theNineModules, folders);
-        foreach (string folder in folders)
+    [Fact]
+    public void ModuleFolders_InViolationSample_ReportTheMissingTheExtraTheEmptyAndTheContractsLessFolder()
+    {
+        string root = Directory.CreateTempSubdirectory("shopfolio-modules-").FullName;
+        try
         {
-            Assert.True(Directory.Exists(Path.Combine(modules, folder, "Contracts")), $"{folder} has no Contracts folder");
-            Assert.NotEmpty(Directory.GetFiles(Path.Combine(modules, folder, "Contracts"), "*.cs"));
+            foreach (string module in _theNineModules.Where(m => m is not "Settings" and not "Payment" and not "Catalog"))
+            {
+                Directory.CreateDirectory(Path.Combine(root, module, "Contracts"));
+                File.WriteAllText(Path.Combine(root, module, "Contracts", $"I{module}Module.cs"), "// sample");
+            }
+
+            Directory.CreateDirectory(Path.Combine(root, "Catalog", "Contracts"));
+            Directory.CreateDirectory(Path.Combine(root, "Payment"));
+            Directory.CreateDirectory(Path.Combine(root, "Extra", "Contracts"));
+            File.WriteAllText(Path.Combine(root, "Extra", "Contracts", "IExtraModule.cs"), "// sample");
+
+            List<string> problems = FindModuleFolderProblems(root);
+
+            Assert.Contains(problems, p => p.Contains("missing Settings", StringComparison.Ordinal));
+            Assert.Contains(problems, p => p.Contains("unexpected Extra", StringComparison.Ordinal));
+            Assert.Contains(problems, p => p.Contains("Catalog has no Contracts source", StringComparison.Ordinal));
+            Assert.Contains(problems, p => p.Contains("Payment has no Contracts folder", StringComparison.Ordinal));
+            Assert.DoesNotContain(problems, p => p.Contains("Ordering", StringComparison.Ordinal));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
         }
     }
 
     [Fact]
     public void Application_HasNoTenantAndNoOperatorPanel()
     {
+        Assert.Empty(FindTenantAndOperatorNames(typeof(Program).Assembly));
+    }
+
+    [Fact]
+    public void TenantAndOperatorScan_InViolationSample_ReportsTheNamespaceTheTypeAndTheProperty()
+    {
+        List<string> found = FindTenantAndOperatorNames(_sampleAssembly.Value);
+
+        Assert.Equal(
+            [
+                "Shopfolio.Accounts.Account.TenantId",
+                "Shopfolio.Accounts.TenantResolver",
+                "Shopfolio.OperatorPanel.Dashboard",
+            ],
+            found.Order(StringComparer.Ordinal).ToList());
+    }
+
+    private static List<string> FindModuleFolderProblems(string modules)
+    {
+        List<string> problems = [];
+        string[] folders = Directory.GetDirectories(modules).Select(d => Path.GetFileName(d)).Order(StringComparer.Ordinal).ToArray();
+
+        problems.AddRange(_theNineModules.Except(folders, StringComparer.Ordinal).Select(m => $"missing {m}"));
+        problems.AddRange(folders.Except(_theNineModules, StringComparer.Ordinal).Select(f => $"unexpected {f}"));
+        foreach (string folder in folders.Intersect(_theNineModules, StringComparer.Ordinal))
+        {
+            string contracts = Path.Combine(modules, folder, "Contracts");
+            if (!Directory.Exists(contracts))
+            {
+                problems.Add($"{folder} has no Contracts folder");
+            }
+            else if (Directory.GetFiles(contracts, "*.cs").Length == 0)
+            {
+                problems.Add($"{folder} has no Contracts source");
+            }
+        }
+
+        return problems;
+    }
+
+    private static List<string> FindTenantAndOperatorNames(System.Reflection.Assembly assembly)
+    {
         Regex forbidden = new("Tenant|Operator", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         List<string> found = [];
-        foreach (System.Type type in typeof(Program).Assembly.GetTypes())
+        foreach (System.Type type in assembly.GetTypes())
         {
             if (type.Namespace is not null && forbidden.IsMatch(type.Namespace) || forbidden.IsMatch(type.Name))
             {
@@ -212,7 +285,7 @@ public sealed class ModuleBoundaryTests
             }
         }
 
-        Assert.Empty(found);
+        return found;
     }
 
     private static ArchRule<IType> NotPublicOutsideContractsRule()

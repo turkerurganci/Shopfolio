@@ -5,7 +5,9 @@
 //   module boundary    - Ordering.ForbiddenCaller (internal type of Catalog), Ordering.ForbiddenContextReader (Catalog's entity through the context)
 //   public surface     - Catalog.PublicLeak (public type outside Contracts), Catalog.Contracts.LeakyContract (Contracts depends on an internal type)
 //   page and endpoint  - Pages.ForbiddenPage (the context), Pages.ForbiddenPageEntity (an internal type of a module)
-//   infrastructure     - Infrastructure.ForbiddenInfrastructure (a module type); Infrastructure.AppDbContext is the one allowed exception
+//   skeleton           - Ordering has no Contracts interface IOrderingModule (Catalog has ICatalogModule)
+//   tenant / operator  - OperatorPanel namespace, Accounts.TenantResolver type, Accounts.Account.TenantId property; Accounts.Account itself is allowed
+//   infrastructure     -Infrastructure.ForbiddenInfrastructure (a module type); Infrastructure.AppDbContext is the one allowed exception
 
 using Microsoft.EntityFrameworkCore;
 
@@ -28,6 +30,11 @@ namespace Shopfolio.Modules.Catalog.Contracts
     public interface ICatalog
     {
         string GetName();
+    }
+
+    // Allowed: Catalog's open interface of the skeleton rule; Ordering has none (violation of the Contracts-per-module rule).
+    public interface ICatalogModule
+    {
     }
 
     // Violation: a Contracts type that reaches the module's internal entity.
@@ -94,6 +101,31 @@ namespace Shopfolio.Infrastructure
         {
             return product.Name;
         }
+    }
+}
+
+namespace Shopfolio.OperatorPanel
+{
+    // Violation: a namespace named after the operator panel (05 3.3.1; 10 KD-21).
+    internal sealed class Dashboard
+    {
+    }
+}
+
+namespace Shopfolio.Accounts
+{
+    // Violation: a type named after a tenant.
+    internal sealed class TenantResolver
+    {
+    }
+
+    // Allowed neighbour: nothing tenant-like or operator-like in its name; one property is a violation.
+    internal sealed class Account
+    {
+        public string Name { get; set; } = string.Empty;
+
+        // Violation: a property named after a tenant.
+        public string TenantId { get; set; } = string.Empty;
     }
 }
 

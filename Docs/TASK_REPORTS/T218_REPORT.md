@@ -60,7 +60,7 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj` | 366 geçti, 0 kaldı (Consistency dahil) |
+| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests` | 369 geçti, 0 kaldı (Consistency dahil; tur 1'de 366, düzeltme turunda +3) |
 | Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj` (yerel `postgres:18`) | 955 geçti, 0 kaldı |
 | Biçim ve derleme | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes`; `dotnet build -c Release -warnaserror` | temiz; 0 uyarı |
 | Contract | — | yok | |
@@ -90,6 +90,42 @@
 | §25 | Test: yeni yasak kural kasıtlı ihlalle kırmızı | ✗ | **B1:** `Application_HasNoTenantAndNoOperatorPanel` bir yasak ad taramasıdır (`Tenant`/`Operator`), kasıtlı ihlal örneğine karşı koşmaz (`09 §19.2` madde 3, `§6` madde 4) |
 
 Testler (validator, yerel): build `-warnaserror` 0 uyarı · `dotnet format --verify-no-changes` 0 · Unit 366/366 (Consistency dahil) · betik testleri 4/4 · Integration 955/955 (sınıf gruplarıyla bölünmüş koşu) · `restore --locked-mode` 0. Dal CI `41871877761` success (head `33d7551`).
+
+## Düzeltme Turu 1 (B1)
+
+**B1 nasıl kapandı:** `Application_HasNoTenantAndNoOperatorPanel` taraması `FindTenantAndOperatorNames(Assembly)` işlevine ayrıldı (regex ve bayraklar aynı, istisna eklenmedi); aynı işlev ihlal örnek derlemesine de koşar. `ViolationSamples/ModuleBoundary/Sample.cs`'e `Shopfolio.OperatorPanel` ad alanı (`Dashboard`), `Shopfolio.Accounts.TenantResolver` türü ve `Account.TenantId` özelliği eklendi (`Account` adı temiz komşu). Test: `TenantAndOperatorScan_InViolationSample_ReportsTheNamespaceTheTypeAndTheProperty` üç bulguyu tam listeyle bekler.
+
+**Bütün kuralların ihlal örneği denetimi (ek örnekler):**
+
+| Kural / tarama | İhlal örneği ve test |
+|---|---|
+| Modül sınırı, yüzey, Contracts, sayfa, altyapı | var (tur 1'den): `Sample.cs`, ilgili `..._InViolationSample_...` testleri |
+| `Program.cs` kaydı, olay yayıncısı | var: `ViolationSamples/ModuleSource/` |
+| Kiracı/operatör adı | YENİ: yukarıda |
+| Her modülde `Contracts` açık arayüzü `I<Modül>Module` | YENİ: `ModulesWithoutOpenInterface` işlevi; örnekte `Ordering`'te arayüz yok (`Catalog.Contracts.ICatalogModule` temiz komşu); test `EveryModule_InViolationSample_OnlyOrderingHasNoOpenInterface` |
+| Dokuz klasör + her `Contracts`'ta kaynak | YENİ: `FindModuleFolderProblems` işlevi; geçici dizinde eksik (`Settings`), fazla (`Extra`), kaynaksız `Contracts` (`Catalog`), `Contracts`'sız (`Payment`) klasör; test `ModuleFolders_InViolationSample_...`, temiz komşu `Ordering` sessiz |
+| Dokuz modül adı | var: `ModuleNames_InViolationSample_AreCatalogAndOrdering` |
+
+K1 ve K2 doğrulayıcının D-72, D-73 kayıtlarıdır; dokunulmadı.
+
+### Öz denetim (düzeltme turu; değişen diff'te, kabul kriteri 1–9 ve KK1–KK9 bütünüyle)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 / KK1 | ✓ | klasör testi artık işlevli + örnekli; kiracı/operatör taraması örnekli; uygulamada 0 bulgu (`Application_HasNoTenantAndNoOperatorPanel` yeşil) |
+| Kriter 2 / KK2 | ✓ | `ModuleNames_...`, altyapı kuralı ve örneği değişmedi, yeşil |
+| Kriter 3 / KK3 | ✓ | yüzey ve Contracts kuralları değişmedi; `ICatalogModule` `Contracts`'ta, `PublicLeak` hâlâ tek ihlal (`Assert.Single` yeşil); `EveryModule` işlevli + örnekli |
+| Kriter 4 / KK4 | ✓ | `ForbiddenCaller`, `ForbiddenContextReader` testleri yeşil; yeni örnek türler modül ad alanında değil, `ModuleNames` örnek testi (`Catalog`, `Ordering`) bozulmadı |
+| Kriter 5 / KK5 | ✓ | `ModuleCallTransactionTests` dokunulmadı; integration kodu değişmedi |
+| Kriter 6 / KK6 | ✓ / T220 | `ModuleSourceScan` dokunulmadı |
+| Kriter 7 / KK7 | ✓ | altyapı kuralı ve istisna adı değişmedi; örnek test `Assert.Single` yeşil (yeni türler `Shopfolio.Infrastructure`'da değil) |
+| Kriter 8 / KK8 | ✓ | sayfa kuralı ve örnekleri değişmedi; yeni örnek ad alanları `Shopfolio.Pages`/`Endpoints` dışında |
+| Kriter 9 / KK9 | ✓ | `Program.cs` dokunulmadı |
+| 09 §25 test (§19.2 m.3) | ✓ | her tarama/mimari kuralının ayrı ihlal örneği var (tablo yukarıda); örnek derlemesi uygulamaya başvurmaz |
+| Sık FAIL nedenleri | ✓ | tarama istisnası genişletilmedi (regex ve ad kalıbı aynı); temiz komşu örnekler (`Account`, `ICatalogModule`, `Ordering` klasörü) sessiz kalmayı sınar; DB default / FK / göç / metin normalleştirme / eşitlik denetimi diff'te yok |
+| Güvenlik | ✓ | yalnız test ve örnek kodu; sır, auth, bağımlılık yok |
+
+Testler (düzeltme sonrası): Unit 369/369 · `dotnet build -c Release -warnaserror` 0 uyarı · `dotnet format --verify-no-changes` 0. Integration kodu ve altyapısı değişmedi; tur 1'deki 955/955 geçerlidir, yeniden koşulmadı.
 
 ## Altyapı Değişiklikleri
 

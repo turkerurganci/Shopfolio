@@ -95,7 +95,7 @@ Not: Model ad alanının tamamı tek koşuda 863 testle koşulunca yerel Docker'
 ## Commit & PR
 
 - **Branch:** `task/T118-zamanlayici-yedek-imha-anahtar`
-- **PR:** #PRNO
+- **PR:** #376
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

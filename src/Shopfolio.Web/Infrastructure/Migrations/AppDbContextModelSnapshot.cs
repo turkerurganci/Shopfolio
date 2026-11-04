@@ -4915,7 +4915,9 @@ namespace Shopfolio.Infrastructure.Migrations
 
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("version");
 
                     b.HasKey("Id")
@@ -4981,7 +4983,9 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasColumnName("default_vat_rate");
 
                     b.Property<int>("DeliveryProvincesVersion")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("delivery_provinces_version");
 
                     b.Property<int>("DownloadAllowance")
@@ -4999,15 +5003,21 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasColumnName("homepage_layout");
 
                     b.Property<int>("HomepageVersion")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("homepage_version");
 
                     b.Property<bool>("IsBankTransferEnabled")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
+                        .HasDefaultValue(false)
                         .HasColumnName("is_bank_transfer_enabled");
 
                     b.Property<bool>("IsSalesTemporarilyClosed")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
+                        .HasDefaultValue(false)
                         .HasColumnName("is_sales_temporarily_closed");
 
                     b.Property<string>("MenuNameAboutPage")
@@ -5046,15 +5056,21 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasColumnName("minimum_order_amount");
 
                     b.Property<int>("PaymentMethodsVersion")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("payment_methods_version");
 
                     b.Property<int>("PeriodsVersion")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("periods_version");
 
                     b.Property<int>("ProductDefaultsVersion")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("product_defaults_version");
 
                     b.Property<string>("ReturnAddressLine")
@@ -5062,7 +5078,9 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasColumnName("return_address_line");
 
                     b.Property<int>("ReturnAddressVersion")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("return_address_version");
 
                     b.Property<string>("ReturnDistrict")
@@ -5088,7 +5106,9 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasColumnName("shipping_fee");
 
                     b.Property<int>("ShippingFeeVersion")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("shipping_fee_version");
 
                     b.Property<string>("WhatsAppNumber")
@@ -5190,7 +5210,9 @@ namespace Shopfolio.Infrastructure.Migrations
 
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasDefaultValue(1)
                         .HasColumnName("version");
 
                     b.Property<int?>("VersionNumber")

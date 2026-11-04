@@ -90,7 +90,7 @@ Bütün maddeler bu devam turunda yeniden, diff üzerinde denetlendi.
 - **Commit:** `dcf7409` (öncesi `fe23813`)
 - **PR:** #383
 - **CI:** yapım işçisi izlemez
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `b8f20ad` (#383) — CI `41903408080` ve Publish `41903408101` success (T233 dalında dolduruldu, 2026-11-04)
 
 ## Dış Varsayımlar
 

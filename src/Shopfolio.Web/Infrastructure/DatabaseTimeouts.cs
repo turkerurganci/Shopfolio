@@ -1,11 +1,27 @@
 namespace Shopfolio.Infrastructure;
 
 /// <summary>
-/// Database session times (09 10.7 item 1). Only the client command time exists so far: the liveness setting is checked
-/// against it (09 10.7 item 6). The server-side times and the maintenance values arrive with the session profiles (T233).
+/// Database session times (09 10.7 item 1). Every value is one row of the 09 3.5 table and has no other place: the connection string
+/// (<see cref="DatabaseConnection"/>), the tests and the liveness check read these constants and never write a number of their own.
+/// The times are not parameters of the inventory of 02 11.2, so they do not live in <c>ProductConstants</c> (09 3.5 item 1).
 /// </summary>
 internal static class DatabaseTimeouts
 {
-    /// <summary>The client command time of the web profile (09 3.5 table); it is the backup of the server-side times.</summary>
+    /// <summary>The server-side time a statement waits for a lock (<c>lock_timeout</c>; 09 3.5 table: 5 seconds).</summary>
+    public static readonly TimeSpan LockTimeout = TimeSpan.FromSeconds(5);
+
+    /// <summary>The server-side time a statement runs, web profile (<c>statement_timeout</c>; 09 3.5 table: 15 seconds).</summary>
+    public static readonly TimeSpan StatementTimeout = TimeSpan.FromSeconds(15);
+
+    /// <summary>The server-side time a statement runs, maintenance profile: the migration service and the commands (09 3.5 table: 10 minutes).</summary>
+    public static readonly TimeSpan MaintenanceStatementTimeout = TimeSpan.FromMinutes(10);
+
+    /// <summary>The server-side time an open transaction may stand idle (<c>idle_in_transaction_session_timeout</c>; 09 3.5 table: 30 seconds).</summary>
+    public static readonly TimeSpan IdleInTransactionTimeout = TimeSpan.FromSeconds(30);
+
+    /// <summary>The client command time of the web profile (09 3.5 table: 20 seconds); it is the backup of the server-side times.</summary>
     public static readonly TimeSpan CommandTimeout = TimeSpan.FromSeconds(20);
+
+    /// <summary>The client command time of the maintenance profile (09 3.5 table: 10 minutes 5 seconds); the server cancels first.</summary>
+    public static readonly TimeSpan MaintenanceCommandTimeout = TimeSpan.FromMinutes(10) + TimeSpan.FromSeconds(5);
 }

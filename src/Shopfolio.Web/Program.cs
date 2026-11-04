@@ -34,9 +34,13 @@ builder.Services.AddSingleton<IValidateOptions<DatabaseOptions>, DatabaseOptions
 // The other settings and the start-up check of all of them, the database connection included (05 8.4.6): a required setting that is
 // missing or malformed stops the application before it answers a request; a conditional one closes its line (09 3.5 item 2).
 builder.Services.AddInstallationSettings();
-builder.Services.AddSingleton(provider => NpgsqlDataSource.Create(provider.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString));
-builder.Services.AddDbContext<AppDbContext>((provider, options) =>
-    AppDbContext.Configure(options, provider.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString));
+// The web host connects with the web session profile (09 10.7 item 2): the session times are written into the connection string once,
+// by DatabaseConnection, for the data source and the context alike.
+static string WebConnectionString(IServiceProvider provider) =>
+    DatabaseConnection.Create(provider.GetRequiredService<IOptions<DatabaseOptions>>().Value.ConnectionString, DatabaseSessionProfile.Web);
+
+builder.Services.AddSingleton(provider => NpgsqlDataSource.Create(WebConnectionString(provider)));
+builder.Services.AddDbContext<AppDbContext>((provider, options) => AppDbContext.Configure(options, WebConnectionString(provider)));
 
 // One registration call per module (09 6 item 3).
 builder.Services.AddCatalogModule();

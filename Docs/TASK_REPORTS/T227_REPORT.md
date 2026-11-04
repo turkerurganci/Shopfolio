@@ -108,7 +108,7 @@ K-notları: **K1** `Money.Round`/`Allocate` eksi işaretli sıfırı (`-0.00m`) 
 - **Commit:** `873796c` — T227: Zaman kaynağı, Türkiye saati, iş günü takvimi ve kuruş yuvarlaması; düzeltme ve rapor commit'leri ardından (head SHA PR açıklamasında)
 - **PR:** #382
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
+- **Post-merge run'lar:** squash `15daf95` (#382) — CI `41893977418` ve Publish `41893977627` success (T233 dalında dolduruldu, 2026-11-04)
 
 ## Dış Varsayımlar
 

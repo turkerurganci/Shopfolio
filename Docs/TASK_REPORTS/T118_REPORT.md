@@ -1,6 +1,6 @@
 # T118 — Zamanlayıcı, yedek, imha ve anahtar kayıtları
 
-**Faz:** F1 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -80,10 +80,36 @@ Not: Model ad alanının tamamı tek koşuda 863 testle koşulunca yerel Docker'
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-04, head `01d6473`, PR #376) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama tur 1 — ✓ PASS (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks` (ana checkout'un hook'ları; eşdeğer); ana dal son 3 run `41830794202` (Publish), `41830794252` (CI) — T117 squash —, `41825046782` (Publish, T116) success; `MEMORY.md`'de T118 satırı var (satır 22).
+
+**Kabul kriterleri:** kapsam tam (8 kriter, KK1–KK8, `09 §25`, güvenlik); hepsi ✓. Validator göçü, beş yapılandırmayı ve bağlamı `06 §4.59`, §4.64–§4.68, §2.2, §2.3.1–§2.3.2, §2.4, §2.9, §4'ün girişi, §5.4.4–§5.4.5, §5.5.3, §7.1–§7.5 ve `09 §10.1`, §10.6, §10.8 satırlarına karşı elle okudu:
+- Kriter 1: altı tablo tek göçte (`20261104124425_CreateSchedulerBackupDisposalAndKeyTables`); sütun, tip ve boşluk alan tablolarıyla birebir (`id`/`created_at` ortak, anahtar halkasında yok); varsayılanlar yalnız `job_state 'Pending'` ve `attempt_count 0` (DB default); dizinler `06 §7.1`, §7.5 satırlarıyla eşit — `jobs` üç filtreli dizin (`Pending` kuyruk, `Failed`, `Completed`), `disposal_records.created_at`, iki tek satır dizini, kesinti ve anahtar halkasında yalnız birincil anahtar; altı tabloda FK yok (`06 §7.2.3`); enum kısıtları `JobType` 6, `JobState` 3, `DisposalRecordType` 24 değerle `06 §5` tablolarıyla birebir.
+- Kriter 2: `(job_type, related_record_id)` tekil dizini `NULLS NOT DISTINCT` ve `job_state = 'Pending'` filtreli; `related_record_by_type` iki yönlü (`BounceQuery` ↔ boş); `completed_at_with_state` iki yönlü; `attempt_count >= 0`.
+- Kriter 3: `AsSingleRow()` + göçte `((true))` tekil dizini (`Company`, `ChannelStateRecord` kalıbı).
+- Kriter 4: `ended_at - started_at > interval '2 minutes'` — tam 120 sn reddediliyor, 120,001 sn kabul.
+- Kriter 5: `CASE` kısıtında `ServerLogRotation` ↔ sayı boş + iki tarih dolu, öteki türler sayı > 0 + tarih boş; `range_end_date >= range_start_date`.
+- Kriter 6: `data_protection_keys.id` `integer` kimlik (`attidentity = d`), `friendly_name`, `xml` `text` boşalabilir, `created_at` yok; model paketin türü (`IDataProtectionKeyContext`), adlar kuraldan.
+- Kriter 7: göç `REVOKE SELECT … FROM %I` (`shopfolio.reader_user`) ve `GRANT UPDATE (last_succeeded_at, last_failed_at) … TO %I` (`shopfolio.backup_status_user`), `format('%I')` ve `current_setting`; test kullanıcıları her koşuda rastgele adlı (`shopfolio_test_r…`), dolayısıyla yetki rol ayarından gelen ada gidiyor. **Mutasyon sınaması (validator):** iki yetki deyimi `PERFORM current_setting(…)` ile değiştirildi → beş test kırmızı (`Reader_ReadingTheKeyRing_…`, `BackupStatusUser_UpdatesTheTwoMoments…`, `Migration_WithoutARoleSettingItReads_…` ×2, `DatabaseUsersTests.PrivilegeMatrix_…`); geri alındı, 72/72 yeşil.
+- Kriter 8: tek göç, `Down` yok; göçte `shopfolio_` sabit adı, `suppressTransaction`, `CONCURRENTLY`, `VACUUM`, `ALTER SYSTEM`, `CREATE DATABASE`, `now()`, `CREATE EXTENSION`, `UPDATE`, `DELETE FROM`, `TO PUBLIC` yok (grep).
+
+**D-39 (a) betiği:** `database-job.sh` iki sabit deyimi (`WHERE`'siz, yalnız iki sütun) yerel soketten (`/var/run/postgresql`), parolasız, `shopfolio_backup_status` olarak `ON_ERROR_STOP=1` ile çalıştırır; kullanıcı adı `pg_hba.conf`/`pg_ident.conf` ve `initdb/10-bootstrap.sh` ile aynı sabittir (kurucu taraf; göç değil); deyimler değişken içermez (enjeksiyon yüzeyi yok); `set -eu` altında `{ … } || backup_code=$?` hatayı yakalar, başarısızlıkta `last_failed_at` yazılıp pgBackRest koduyla çıkılır, başarı yazımı düşerse yerel kopya alınıp psql koduyla çıkılır. Betik testi dört senaryo (21 doğrulama) ve entegrasyon testi deyimlerin yetkiyle geçtiğini sınar. `now()` veritabanı konteynerinin kendi işidir; `09 §7.1` kural 1 uygulama kodunu bağlar.
+
+**Testler (validator, yerel PostgreSQL 18 `shopfolio-t118-val-pg`):** build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` çıkış 0; Unit 245/245 (Consistency dahil); betik testleri 4/4 dosya (`database-job.test.sh` 21 doğrulama); Integration 926 — T118 sınıfı 55/55, Database 29/29, Model iki grupta 137/137 ve 672/672, Web+FileSecrets+kök 33/33; yerel zaman aşımı yok; `dotnet restore --locked-mode` çıkış 0; koşu sonrası `git status` temiz. Dal CI `41835537615` (head `01d6473`) success — Lint, Build, Unit, Integration, Migration dry-run, Paketleme yeşil (önceki `41835495995` head `0798bd3` iptal — yeni push).
+
+**Güvenlik:** sır yok (durum kullanıcısı parolasız `peer`, betik parola taşımaz); auth etkisi — anahtar halkası okuyucuya kapalı, durum kullanıcısı yalnız iki sütunun `UPDATE`'i (`SELECT`, `INSERT`, `DELETE`, başka sütun ve tablo reddediliyor), uygulama kullanıcısına yeni yetki yok; girdi doğrulama uygulanamaz (uç yok); yeni bağımlılık `Microsoft.AspNetCore.DataProtection.EntityFrameworkCore` 10.0.14 — nuspec `license type="expression" MIT` (validator yerel NuGet önbelleğinden okudu), `Directory.Packages.props`'ta sabit, üç kilit dosyasında, `09` kütüphane satırı güncel, CI NuGetAudit (tüm düzey) temiz.
+
+**`12` satırları:** kaynak birimleri `06` entity'leri, `02 §3.34`, §3.34.8, `09 §10`, `10 KP-75`. KP-75 satırları `VAL-D052`…`D055` (KRİTİK) kayıtların saklama süresince kaybolmamasının uçtan uca satırlarıdır — T07'nin ve T327'nin; `VAL-D115` `06 §4.68`'i anar ama indirme bağlantısının satırıdır; `02 §3.34` satırları (`VAL-A337`…`A339`) tarayıcı satırlarıdır. Hiçbiri T118'in kriterlerinden biriyle kapanmaz; `Durum` değişmedi (BEKLEMEDE); `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları:** yok.
+
+**Yapım raporu karşılaştırması:** kriter tablosu, KK listesi, ⚠ kararlar ve dış varsayımlar validator'ın bağımsız okumasıyla tam uyumlu; Integration sayısı (926) ve T118 sınıfı (55) birebir aynı.
 
 ## Altyapı Değişiklikleri
 

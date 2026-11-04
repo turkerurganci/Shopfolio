@@ -64,7 +64,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T106-yonetici-davet-islem-izi`
-- **PR:** dönüşte yazılı
+- **PR:** #363
 - **CI:** yapım işçisi izlemez
 - **Post-merge run'lar:** *(validator doldurur)*
 

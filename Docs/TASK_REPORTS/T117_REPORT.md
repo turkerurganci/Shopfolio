@@ -104,7 +104,7 @@
 - **Branch:** `task/T117-gonderim-kaydi-kanal-hali`
 - **PR:** #375
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `b7bd9b2` — CI `41830794252` ve Publish `41830794202` success
 
 ## Dış Varsayımlar
 

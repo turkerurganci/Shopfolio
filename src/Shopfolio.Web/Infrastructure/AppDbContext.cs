@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 using Shopfolio.Infrastructure.DataModel;
+using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Settings;
 
 namespace Shopfolio.Infrastructure;
@@ -29,6 +30,22 @@ internal sealed class AppDbContext : DbContext
     public DbSet<CompanyDeliveryProvince> CompanyDeliveryProvinces => Set<CompanyDeliveryProvince>();
 
     public DbSet<LegalTextVersion> LegalTextVersions => Set<LegalTextVersion>();
+
+    public DbSet<Product> Products => Set<Product>();
+
+    public DbSet<Variant> Variants => Set<Variant>();
+
+    public DbSet<Option> Options => Set<Option>();
+
+    public DbSet<OptionValue> OptionValues => Set<OptionValue>();
+
+    public DbSet<Category> Categories => Set<Category>();
+
+    public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
+
+    public DbSet<Image> Images => Set<Image>();
+
+    public DbSet<ProductImage> ProductImages => Set<ProductImage>();
 
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).

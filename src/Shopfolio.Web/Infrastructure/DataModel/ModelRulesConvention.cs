@@ -40,6 +40,9 @@ internal sealed class ModelRulesConvention : IModelFinalizingConvention
             ApplyCheckRules(entityType);
             ApplyEnumRules(entityType);
             ApplyForeignKeyIndexRule(entityType);
+
+            // The single-row mark is a declaration like a rule: used above, it is removed so the model snapshot does not carry it (D-50 a).
+            entityType.RemoveAnnotation(ModelBuilderExtensions.SingleRowAnnotation);
         }
     }
 

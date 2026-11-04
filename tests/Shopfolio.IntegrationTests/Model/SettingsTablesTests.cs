@@ -170,6 +170,15 @@ public sealed class SettingsTablesTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task LegalTextVersion_NumberWithoutAPublishedMoment_IsRefused()
+    {
+        LegalTextVersion version = LegalTextVersion.CreateDraft(LegalTextType.PrivacyNotice, "taslak", Now);
+        version.VersionNumber = 1;
+
+        Assert.Equal((CheckViolation, "ck_legal_text_versions_number_and_published_at_together"), await ViolationOfAsync(c => c.LegalTextVersions.Add(version)));
+    }
+
+    [Fact]
     public async Task LegalTextVersion_DraftOfAGeneratedText_IsRefused()
     {
         Assert.Equal(

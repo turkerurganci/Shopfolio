@@ -37,10 +37,10 @@ public sealed class SampleDatabaseFixture : IAsyncLifetime
             script = context.Database.GenerateCreateScript();
         }
 
-        // The template now holds the application's real tables (T103), which the sample script would collide with: start from an empty schema.
+        // The template now holds the application's real tables (T103), which the sample script would collide with: start from an empty schema (pg_trgm lived in it, and the catalog trigram indexes need it).
         await using NpgsqlConnection connection = new(Dsn);
         await connection.OpenAsync(ct);
-        await using NpgsqlCommand reset = new("DROP SCHEMA public CASCADE; CREATE SCHEMA public;", connection);
+        await using NpgsqlCommand reset = new("DROP SCHEMA public CASCADE; CREATE SCHEMA public; CREATE EXTENSION IF NOT EXISTS pg_trgm;", connection);
         await reset.ExecuteNonQueryAsync(ct);
         await using NpgsqlCommand command = new(script, connection);
         await command.ExecuteNonQueryAsync(ct);

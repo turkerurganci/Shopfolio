@@ -463,7 +463,7 @@ public sealed class ItemRecordTablesTests : IAsyncLifetime
         });
 
         List<string> rows = await QueryAsync($"SELECT product_amount::text || ' ' || coupon_share::text || ' ' || vat_amount::text FROM {table}");
-        Assert.Equal(new[] { "0.01 0.00 0.00", "100.00 100.00 0.00", "9999999999.99 1234.56 0.01" }, rows.Order(StringComparer.Ordinal));
+        Assert.Equal(["0.01 0.00 0.00", "100.00 100.00 0.00", "9999999999.99 1234.56 0.01"], rows.Order(StringComparer.Ordinal));
     }
 
     [Theory]

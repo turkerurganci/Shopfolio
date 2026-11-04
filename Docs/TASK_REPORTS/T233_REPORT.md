@@ -1,6 +1,6 @@
 # T233 — Veritabanı oturum süreleri
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-04
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-05
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -70,10 +70,26 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-04, bağımsız doğrulayıcı; dal head `439361d`) |
-| Bulgu sayısı | 1 (DÜŞÜK, S1) |
-| Düzeltme gerekli mi | Evet — B1 |
-| Bloke-etmeyen not (K) sayısı | 4 — K1 D-84'e forward; K2, K3, K4 düzeltme 1'de bu PR'da kapatılır |
+| Doğrulama durumu | ✓ PASS — tur 2 (2026-11-05, bağımsız doğrulayıcı; dal head `cbdfe10`). Tur 1: ✗ FAIL (2026-11-04, head `439361d`) |
+| Bulgu sayısı | Tur 2: 0 · tur 1: 1 (DÜŞÜK, S1; düzeltme 1'de kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 1 — K1 D-85'e forward · tur 1: 4 — K1 D-84'e forward; K2, K3, K4 düzeltme 1'de kapandı |
+
+### Doğrulama tur 2 — validator kanıtları
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Adlı sabitler; değerin tek yeri `09 §3.5` | ✓ | Altı sabit `internal static`, adlar madde 1'le birebir; `DatabaseTimeoutsConsistencyTests` iki tablo satırını ayrıştırıp sabitle karşılaştırır (`StatementTimeout` 16 sn bozması → `WebRowOfTheTable_EqualsTheWebConstants` kırmızı). B1 kapandı: `DatabaseConnectionTests` beklenen diziyi sabitlerden kurar, `Timeouts_AreTheRowsOfTheTable` silindi; `DatabaseSessionTimeoutTests` `pg_settings` milisaniyesini sabitle karşılaştırır, alt sınırlar `sabit − Slack`. Testlerde kalan sayılar yalnız girdi (`statement_timeout=0`, `Command Timeout=1`) ve tolerans (`Slack`). Sabitlerin özet yorumları değeri yineler → K1 (D-85) |
+| 2 | Tek kuruluş noktası | ✓ | `src/`'de `Options`/`CommandTimeout` yazan, `NpgsqlDataSource.Create`/`UseNpgsql` çağıran yerler yalnız `DatabaseConnection`, `Program.cs` (`WebConnectionString` → `Create(…, Web)`), `AppDbContext.Configure` ve bağlantısız tasarım zamanı yer tutucusu. K2 kapandı: `Program.cs`'te veri kaynağı ham diziye çevrilince `DatabaseConnections_OfTheWebHost_CarryTheWebSessionProfile` kırmızı |
+| 3 | İki profil, ayrı dizi, `SET` yok, tarama dar | ✓ | İstisna tek dosya tam yolu (`Applies` testi `Jobs/DatabaseConnection.cs`'i taranır sayar); test projeleri taranmaz; `src/`'e konan `SET statement_timeout = 0` ve `SET LOCAL lock_timeout` → `ApplicationSource_ChangesNoSessionTimeoutOutsideDatabaseConnection` kırmızı; Compose göç dizisi `Maintenance` ile eşitlik testli; iki profilin eşzamanlı oturumu farklı `statement_timeout` |
+| 4 | İstemci süresi kilit ve sorgu sürelerinden uzun; komut başına süre yok | ✓ | Theory her iki profilde kilit < sorgu < istemci; `CommandTimeout` ataması yalnız `DatabaseConnection`. Cümle değişikliği (D-83): `09 §10.7` madde 2–3, madde 7 çelişki taraması ve `11` kriter 4/KK4 aynı ölçüde; boşta işlem süresi komutlar arası bekleme olduğundan istemci komut süresiyle karşılaştırılmaz — gerekçeli ve `§3.5` tablosuyla tutarlı |
+| 5 | Aşım beklenmeyen hâle düşer; yakalanmaz; gövdede dış çağrı yok | ✓ | Gerçek PostgreSQL 18: 55P03, 57014 (istemci süresinden önce), boşta işlemde bağlantı kaybı; `src/`'de `PostgresException`/`SqlState` yok; `src/`'e konan `RunAsync(… http.GetAsync …)` → `ApplicationSource_UsesNoOutsideServiceInsideATransactionBody` kırmızı. Yanıt kolu D-84 (T212) |
+| 6 | Yeniden deneme kapalı | ✓ | `AppDbContext_AsConfigured_HasNoRetryStrategy` + tarama `EnableRetryOnFailure` kuralı |
+| 7 | Npgsql adları sürüme karşı | ✓ | Kilit dosyası Npgsql 10.0.3; adlar derleniyor; sunucuda değerler görünüyor; PR #384 açıklamasında "ad farkı yok" |
+
+Testler (validator, yerel): build `-warnaserror` 0 uyarı · `dotnet format --verify-no-changes` 0 · Unit 543/543 (Consistency dahil) · betik testleri 4/4 · Integration 987/987 (Database 35, Web 35, FileSecrets 24, Model 893 — sınıf gruplarıyla; tek komutluk `Model` koşusunda yerel Npgsql bağlantı/temizlik zaman aşımları (D-68 deseni), aynı sınıflar gruplarla ve tek başına yeşil; dal CI Integration yeşil) · `restore --locked-mode` 0 · `12_matris_denetle.py` hata 0. Dal CI `41913509367` success (head `cbdfe10`). `12`'de T233'e eşlenen satır yok.
+
+**K-notları (tur 2):** K1 → D-85: `DatabaseTimeouts` özet yorumları değeri ("5 seconds" …) yineler; eşitlik denetimi yorumu görmez.
 
 ### Doğrulama tur 1 — validator kanıtları
 

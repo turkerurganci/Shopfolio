@@ -86,7 +86,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T112-odeme-geri-odeme-kayitlari`
-- **PR:** #PRNO
+- **PR:** #370
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

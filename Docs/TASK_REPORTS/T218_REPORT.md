@@ -69,10 +69,27 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-04, bağımsız doğrulayıcı; dal head `33d7551`) |
+| Bulgu sayısı | 1 (DÜŞÜK, S1) |
+| Düzeltme gerekli mi | Evet — B1 |
+| Bloke-etmeyen not (K) sayısı | 2 — D-72, D-73'e forward |
+
+### Doğrulama tur 1 — validator kanıtları
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Dokuz modül klasörü; kiracı/operatör yok | ✓ | 9 klasör (`Administration`…`Settings`), her birinde `Contracts/I<Modül>Module.cs`; kod adları `09 §5.1` madde 5 tablosuyla birebir; `src/` taramasında `tenant` yok, `operator` yalnız göçlerin `gin_trgm_ops` dizin işleci |
+| 2 | Ortak altyapı modül değil | ✓ | `Shopfolio.Infrastructure.*` ayrı ad alanı; `ModuleNames_InApplicationAssembly_AreTheNineModulesOnly`, altyapı kuralı yeşil |
+| 3 | Yalnız `Contracts` açık | ✓ | `Modules/` altında `public` tür yalnız `Contracts/` dizinlerinde (42 tür, grep); `ModuleTypes_OutsideContracts_AreNotPublic` + ihlal `PublicLeak` |
+| 4 | Başka modül tablosuna erişim yok | ✓ | `ForbiddenCaller` (iç tür) ve `ForbiddenContextReader` (`AppDbContext.Products`) örnekte kırar, `AllowedCaller` sessiz; uygulamada 0 ihlal |
+| 5 | Çağrı eşzamanlı, aynı işlemde | ✓ | `ModuleCallTransactionTests` 3/3 gerçek PostgreSQL 18'de (yerel konteyner) |
+| 6 | Olay yayını yok; dış yan etki kuyruk satırı | ✓ | `Application_HasNoEventPublisher` + ihlal örneği; `src/`'deki `SaveChangesInterceptor`'lar yalnız kayıt bekçisi (dağıtım yok); kuyruk satırını yazan ilk kod T220 (K1 → D-72) |
+| 7 | Mimari test iç türe ve altyapıdan modül türüne başvuruda kırılır | ✓ | `ForbiddenInfrastructure` kırar, örnekteki `AppDbContext` adla dışarıda; göç anlık görüntüsü varlığa ad dizgisiyle başvurur (`modelBuilder.Entity("Shopfolio.Modules…")`), `Migrations` istisnası gerekmedi — `09 §6` madde 2'nin koşullu düzeltmesi tetiklenmez |
+| 8 | Sayfa bağlama dokunmaz | ✓ | `PageRule` + ihlal `ForbiddenPage`/`ForbiddenPageEntity`; bugün `Pages/` boş (K2 → D-73) |
+| 9 | `Program.cs` modül başına tek kayıt | ✓ | `Program.cs:35-43` dokuz düz çağrı; tarama + ihlal örneği (zincirli, argümanlı, çift, eksik) |
+| §25 | Test: yeni yasak kural kasıtlı ihlalle kırmızı | ✗ | **B1:** `Application_HasNoTenantAndNoOperatorPanel` bir yasak ad taramasıdır (`Tenant`/`Operator`), kasıtlı ihlal örneğine karşı koşmaz (`09 §19.2` madde 3, `§6` madde 4) |
+
+Testler (validator, yerel): build `-warnaserror` 0 uyarı · `dotnet format --verify-no-changes` 0 · Unit 366/366 (Consistency dahil) · betik testleri 4/4 · Integration 955/955 (sınıf gruplarıyla bölünmüş koşu) · `restore --locked-mode` 0. Dal CI `41871877761` success (head `33d7551`).
 
 ## Altyapı Değişiklikleri
 

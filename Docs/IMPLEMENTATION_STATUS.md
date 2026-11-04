@@ -117,7 +117,7 @@
 | T215 | Hız sınırı, deneme limitleri ve gövde tavanı | ⬚ | — | — | — |
 | T216 | Tarih, sayı ve para biçimi: istek ve gösterim | ⬚ | — | — | — |
 | T217 | Yapılabilir işlemlerin sunucuda üretimi ve POST işleyicisinde yeniden denetim | ⬚ | — | — | — |
-| T218 | Dokuz modülün iskeleti ve Contracts | ⏳ | — | — | #380 |
+| T218 | Dokuz modülün iskeleti ve Contracts | ✓ | ✓ PASS (tur 3) | — | #380 |
 | T219 | Arama motoru verileri kalıbı | ⬚ | — | — | — |
 | T220 | İş kuyruğu çalıştırıcısı | ⬚ | — | — | — |
 | T221 | Zamanlayıcı | ⬚ | — | — | — |

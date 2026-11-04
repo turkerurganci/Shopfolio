@@ -1,6 +1,6 @@
 # T218 — Dokuz modülün iskeleti ve Contracts
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-04
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 3 ✓ PASS; merge yardımcıda) | **Tarih:** 2026-11-04
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -69,10 +69,27 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-04, bağımsız doğrulayıcı; dal head `a549491`) · tur 1 ✗ FAIL (head `33d7551`) |
-| Bulgu sayısı | Tur 2: 1 (B2 — DÜŞÜK, S1); tur 1'in B1'i kapandı |
-| Düzeltme gerekli mi | Evet — B2 (ikinci iterasyon FAIL: `12 §8.5` sınırı, eskalasyon) |
-| Bloke-etmeyen not (K) sayısı | Tur 2: 0 yeni · tur 1: 2 — D-72, D-73'e forward |
+| Doğrulama durumu | ✓ PASS — tur 3 (2026-11-04, bağımsız doğrulayıcı, tam yeniden doğrulama; dal head `b395750`) · tur 2 ✗ FAIL (head `a549491`) · tur 1 ✗ FAIL (head `33d7551`) |
+| Bulgu sayısı | Tur 3: 0 (B1 ve B2 kapandı) · tur 2: 1 (B2) · tur 1: 1 (B1) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 3: 1 — K1 (`Sample.cs` başlık yorumunda boşluk) bu PR'da kapatıldı · tur 2: 0 · tur 1: 2 — D-72, D-73'e forward |
+
+### Doğrulama tur 3 — validator kanıtları
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Dokuz modül klasörü + `Contracts`; kiracı ve operatör paneli yok | ✓ | `src/Shopfolio.Web/Modules/` dokuz klasör (`05 §3.3.1` eşlemesi), her birinde `Contracts/I<Modül>Module.cs`; `ModuleFolders_InSource_...` ve salt okunur örnek ağacına karşı `ModuleFolders_InViolationSample_...` (4 sorun: eksik `Settings`, fazla `Extra`, kaynaksız `Catalog/Contracts`, `Contracts`'sız `Payment`); `src/` grep `tenant\|operator` yalnız `gin_trgm_ops`; ad taraması + örnek (3 ad) |
+| 2 | Ortak altyapı modül değil | ✓ | `Shopfolio.Infrastructure.*` ayrı ad alanı; dokuz modül adı testi; altyapı kuralı yeşil |
+| 3 | Yalnız `Contracts` açık, iç türler `internal` | ✓ | `Modules/` altında `Contracts` dışı `public` tür bildirimi 0 (grep); `AppDbContext` `internal sealed`; mutasyon: `Modules/Ordering`'e `public` tür eklenince `ModuleTypes_OutsideContracts_AreNotPublic` kırmızı |
+| 4 | Başka modül tablosuna erişim yok | ✓ | mutasyon: `Modules/Ordering`'de `AppDbContext.Categories` okuyan tür → `ModuleReferences_InApplicationAssembly_OnlyGoThroughContracts` kırmızı; örnekte `ForbiddenCaller`, `ForbiddenContextReader` |
+| 5 | Çağrı eşzamanlı, çağıranın işleminde | ✓ | `ModuleCallTransactionTests` 3/3 gerçek PostgreSQL 18 |
+| 6 | Olay yayını yok; dış yan etki kuyruk satırı | ✓ | `Application_HasNoEventPublisher` + örnek (satır 3, 5, 6); dış yan etki kodu yok (kuyruk çalıştırıcısı T220) |
+| 7 | İç türe ve altyapıdan modül türüne başvuru kırar (istisna `AppDbContext`) | ✓ | mutasyon: `Infrastructure`'da `AppDbContext.FaqItems` okuyan tür → altyapı kuralı kırmızı; örnekte `ForbiddenInfrastructure` tek ihlal |
+| 8 | Sayfa ve uç bağlama dokunmaz | ✓ | mutasyon: `Endpoints`'te `AppDbContext` alan tür → `PagesAndEndpoints_...` kırmızı; örnekte `ForbiddenPage`, `ForbiddenPageEntity` |
+| 9 | `Program.cs` modül başına tek kayıt | ✓ | dokuz düz `builder.Services.Add<Modül>Module();`; tarama + örnek (zincirli, argümanlı, çift, eksik) |
+| §25 | Test doğru katmanda; tarama dosya yazmaz | ✓ | B2 kapandı: `ModuleBoundaryTests`, `ModuleSourceScan*` dosya yazmaz (grep `Write\|CreateTemp\|Delete` 0) |
+
+Testler: build `-warnaserror` 0/0 · format çıkış 0 · Unit 369/369 · betik testleri 4 dosya · Integration 955/955 (6 parça; bir parçada `AdminAndAuditTablesTests` 1 yerel hata, sınıf tek başına 42/42, CI aynı head'de yeşil) · `restore --locked-mode` 0 · dal CI 41878788386 success (`b395750`). Mutasyonlar geri alındı.
 
 ### Doğrulama tur 2 — validator kanıtları
 

@@ -7,7 +7,7 @@
 //   page and endpoint  - Pages.ForbiddenPage (the context), Pages.ForbiddenPageEntity (an internal type of a module)
 //   skeleton           - Ordering has no Contracts interface IOrderingModule (Catalog has ICatalogModule)
 //   tenant / operator  - OperatorPanel namespace, Accounts.TenantResolver type, Accounts.Account.TenantId property; Accounts.Account itself is allowed
-//   infrastructure     -Infrastructure.ForbiddenInfrastructure (a module type); Infrastructure.AppDbContext is the one allowed exception
+//   infrastructure     - Infrastructure.ForbiddenInfrastructure (a module type); Infrastructure.AppDbContext is the one allowed exception
 
 using Microsoft.EntityFrameworkCore;
 

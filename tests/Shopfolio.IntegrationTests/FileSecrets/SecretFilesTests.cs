@@ -5,6 +5,7 @@ using Npgsql;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.FileSecrets;
+using Shopfolio.Infrastructure.InstallationSettings;
 
 namespace Shopfolio.IntegrationTests.FileSecrets;
 
@@ -121,4 +122,60 @@ public sealed class SecretFilesTests : IDisposable
         Assert.True(result.Failed);
         Assert.DoesNotContain("made-up-never-print", string.Join(' ', result.Failures), StringComparison.Ordinal);
     }
+
+    [Theory]
+    [InlineData(SecretNames.EmailCredential, "Email:Credential")]
+    [InlineData(SecretNames.LinkDerivationSecret, "LinkKey:DerivationSecret")]
+    [InlineData(SecretNames.PaymentProviderKeys, "Payment:ProviderKeys")]
+    [InlineData(SecretNames.GoogleClientSecret, "Google:ClientSecret")]
+    [InlineData(SecretNames.DatabaseAppConnection, "Database:ConnectionString")]
+    public void ConfigurationSource_WithASecretFile_GivesTheWholeFileAsTheValueOfItsSetting(string file, string key)
+    {
+        File.WriteAllText(Path.Combine(_directory, file), "made-up-content-of-" + file + "\n");
+
+        Assert.Equal("made-up-content-of-" + file, Configure()[key]);
+    }
+
+    [Fact]
+    public void ConfigurationSource_WithAnEmptySecretFile_TreatsTheSettingAsMissing()
+    {
+        File.WriteAllText(Path.Combine(_directory, SecretNames.EmailCredential), string.Empty);
+        File.WriteAllText(Path.Combine(_directory, SecretNames.LinkDerivationSecret), "  \n");
+
+        IConfigurationRoot configuration = Configure();
+
+        Assert.Null(configuration[EmailOptions.CredentialKey]);
+        Assert.Null(configuration[LinkKeyOptions.DerivationSecretKey]);
+    }
+
+    [Fact]
+    public void SettingsAudit_WithTheSecretsFromTheirFilesAndTheRestFromTheSettings_Succeeds()
+    {
+        File.WriteAllText(Path.Combine(_directory, SecretNames.DatabaseAppConnection), "Host=database;Database=shopfolio;Username=shopfolio_app;Password=made-up\n");
+        File.WriteAllText(Path.Combine(_directory, SecretNames.EmailCredential), "made-up-mail-credential\n");
+        File.WriteAllText(Path.Combine(_directory, SecretNames.LinkDerivationSecret), Convert.ToBase64String(new byte[32]) + "\n");
+
+        IConfigurationRoot configuration = Configure(RequiredSettingsWithoutSecrets());
+
+        Assert.Empty(SettingsAudit.Run(configuration).Failures);
+    }
+
+    [Fact]
+    public void SettingsAudit_WithoutTheSecretFiles_NamesTheSecretSettingsAsMissing()
+    {
+        IConfigurationRoot configuration = Configure(RequiredSettingsWithoutSecrets());
+
+        IReadOnlyList<string> failures = SettingsAudit.Run(configuration).Failures;
+
+        Assert.Contains(failures, f => f.Contains(EmailOptions.CredentialKey, StringComparison.Ordinal));
+        Assert.Contains(failures, f => f.Contains(LinkKeyOptions.DerivationSecretKey, StringComparison.Ordinal));
+        Assert.Contains(failures, f => f.Contains(DatabaseOptions.ConnectionStringKey, StringComparison.Ordinal));
+    }
+
+    private static Dictionary<string, string?> RequiredSettingsWithoutSecrets() => new()
+    {
+        ["Site:Domain"] = "shop.example.com",
+        ["Email:SenderAddress"] = "info@example.com",
+        ["Email:Region"] = "eu-central-1",
+    };
 }

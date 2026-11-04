@@ -77,7 +77,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T120-model-esitlik-denetimleri`
-- **PR:** bkz. PR açıklaması (başlık "T120: Model eşitlik denetimleri")
+- **PR:** #378 (başlık "T120: Model eşitlik denetimleri")
 - **CI:** izlenmedi (yapım işçisi CI beklemez)
 - **Post-merge run'lar:** *(validator doldurur)*
 

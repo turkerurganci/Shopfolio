@@ -69,6 +69,16 @@ internal sealed class AppDbContext : DbContext
 
     public DbSet<AddressBook> AddressBooks => Set<AddressBook>();
 
+    public DbSet<Session> Sessions => Set<Session>();
+
+    public DbSet<RecognizedBrowserMark> RecognizedBrowserMarks => Set<RecognizedBrowserMark>();
+
+    public DbSet<LinkRecord> LinkRecords => Set<LinkRecord>();
+
+    public DbSet<AttemptRecord> AttemptRecords => Set<AttemptRecord>();
+
+    public DbSet<LoginRecord> LoginRecords => Set<LoginRecord>();
+
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).
     /// </summary>
@@ -77,7 +87,7 @@ internal sealed class AppDbContext : DbContext
         return builder
             .UseNpgsql(connectionString)
             .UseSnakeCaseNamingConvention()
-            .AddInterceptors(EmptyKeyGuard.Instance, EmptyTextGuard.Instance, ProtectedRecordsGuard.Instance, CatalogRecordsGuard.Instance);
+            .AddInterceptors(EmptyKeyGuard.Instance, EmptyTextGuard.Instance, ProtectedRecordsGuard.Instance, CatalogRecordsGuard.Instance, LoginRecordsGuard.Instance);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

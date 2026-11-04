@@ -10,8 +10,8 @@ namespace Shopfolio.Infrastructure.Logging;
 /// The audit line writer and the command line writer (09 18.1 item 2, 5, 6): for each line it opens the day's file in append mode, writes the
 /// whole line in one call, flushes the stream and closes it; every failure — an unwritable directory, a full disk, a locked file — <b>propagates to
 /// the caller</b>. "Written" means handed to the operating system when <see cref="Write"/> returns; the disk's own write cache is out of scope
-/// (09 18.1 item 5). The file name is <c>&lt;prefix&gt;-&lt;yyyyMMdd&gt;.jsonl</c>, the day read from the time source's local time, as the library's
-/// rolling writer names the normal file. Nothing here deletes or limits a file (09 18.1 item 3). The line format is the application's formatter.
+/// (09 18.1 item 5). The file name is <c>&lt;prefix&gt;-&lt;yyyyMMdd&gt;.jsonl</c>, the day in Turkey time (<see cref="TurkeyTime"/>; the library's
+/// rolling writer names the normal file by the server zone, 09 18.1 item 5). Nothing here deletes or limits a file (09 18.1 item 3). The line format is the application's formatter.
 /// </summary>
 internal sealed class AuditLogWriter : IAuditLineWriter
 {
@@ -48,7 +48,7 @@ internal sealed class AuditLogWriter : IAuditLineWriter
         lock (_gate)
         {
             Directory.CreateDirectory(_directory);
-            string path = Path.Combine(_directory, $"{_prefix}-{_time.GetLocalNow().ToString(DayFormat, CultureInfo.InvariantCulture)}.{LoggingSetup.FileExtension}");
+            string path = Path.Combine(_directory, $"{_prefix}-{TurkeyTime.DateOf(_time.GetUtcNow()).ToString(DayFormat, CultureInfo.InvariantCulture)}.{LoggingSetup.FileExtension}");
 
             using FileStream stream = new(path, FileMode.Append, FileAccess.Write, FileShare.Read);
             stream.Write(bytes);

@@ -226,9 +226,6 @@ internal sealed class ApplicationLogFormatter : ITextFormatter
             case decimal number:
                 json.WriteNumberValue(number);
                 break;
-            case DateTime moment:
-                json.WriteStringValue(moment.ToUniversalTime().ToString(TimeFormat, CultureInfo.InvariantCulture));
-                break;
             case DateTimeOffset moment:
                 json.WriteStringValue(moment.UtcDateTime.ToString(TimeFormat, CultureInfo.InvariantCulture));
                 break;

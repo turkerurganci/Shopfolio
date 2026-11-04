@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Npgsql;
 
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 using Serilog.Extensions.Logging;
 
@@ -148,7 +149,9 @@ public sealed partial class ApplicationLogFormatterTests
 
         using (logger.BeginScope(new Dictionary<string, object> { [name] = ValueMarker }))
         {
+#pragma warning disable CA1848 // The test needs the plain extension call; a generated delegate would hide what is under test.
             Microsoft.Extensions.Logging.LoggerExtensions.LogWarning(logger, "{Text}", "inside the scope");
+#pragma warning restore CA1848
         }
 
         LogEvent logEvent = Assert.Single(sink.Events);

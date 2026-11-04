@@ -119,6 +119,29 @@ public sealed class StartupDatabaseCheckTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Start_WithAnEmptyList_WritesTheRefusalToTheApplicationFileAsAJsonObjectWithTheEvent()
+    {
+        await EmptyTableAsync(typeof(Province));
+        await using ShopfolioWebApplicationFactory factory = new(_dsn);
+
+        Assert.ThrowsAny<Exception>(() => factory.CreateClient());
+
+        string file = Assert.Single(Directory.GetFiles(factory.LogDirectory, "app-*.jsonl"));
+        using FileStream stream = new(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using StreamReader reader = new(stream);
+        List<System.Text.Json.JsonElement> lines = [];
+        while (reader.ReadLine() is { } text)
+        {
+            lines.Add(System.Text.Json.JsonDocument.Parse(text).RootElement.Clone());
+        }
+
+        Assert.Contains(
+            lines,
+            l => l.TryGetProperty("event", out System.Text.Json.JsonElement e) && e.GetString() == LogEvents.StartupDatabaseChecked
+                && l.GetProperty("level").GetString() == "Fatal");
+    }
+
+    [Fact]
     public async Task Start_WithARecordMissingAndAnotherRecordHoldingAValue_NeverPrintsTheValue()
     {
         const string ValueMarker = "marker-value-that-must-not-be-printed";

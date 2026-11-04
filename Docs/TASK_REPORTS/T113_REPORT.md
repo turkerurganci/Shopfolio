@@ -84,7 +84,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T113-iade-reddi-iban-istegi`
-- **PR:** #PR
+- **PR:** #371
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

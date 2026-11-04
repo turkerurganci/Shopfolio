@@ -86,7 +86,7 @@ Not: Model ad alanının ilk koşusunda iki eski test (`AdminAndAuditTablesTests
 ## Commit & PR
 
 - **Branch:** `task/T111-kalem-kayitlari`
-- **PR:** #PR_NO
+- **PR:** #369
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -1,6 +1,6 @@
 # T114 — İçerik kayıtları ve marka
 
-**Faz:** F1 | **Durum:** ⏳ Yapım bitti, doğrulama bekliyor | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Doğrulama tur 1 PASS | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -71,10 +71,36 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-04, head `c976977`, PR #372) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama tur 1 — ✓ PASS (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks` (ana checkout'un hook'ları; eşdeğer); ana dal son 3 run `41809802191` (Publish), `41809802367` (CI), `41805273609` success; `MEMORY.md`'de T114 satırı var.
+
+**Kabul kriterleri:** kapsam tam (9 kriter, KK1–KK9, `09 §25`, güvenlik); hepsi ✓. Validator göçü ve yapılandırmaları `06 §4.46`–§4.49, §4.51, §4.52, §4.54, §4.55, §4.72, §2.3.2, §2.9.2, §2.10.1, §5.3.11, §7.1 (5494–5502, 5525), §7.2 (5644–5645), §7.3 (5724–5725, 5736, 5738), §7.4 (5810–5815) satırlarına karşı elle okudu:
+- Kriter 1, 9: sekiz tablo tek göçte (`20261104095121_CreateContentRecordAndBrandingTables`), `Down` yok; sütun türleri, uzunluklar (P-27…P-30: 150/200/400/120), boşluk ve varsayılanlar alan tablolarıyla birebir; göçte `Down`/`suppressTransaction`/`CONCURRENTLY`/`now()`/`UPDATE`/`DELETE` yok; elle SQL `public.` nitelikli; dal CI'ının göç adımı `has-pending-model-changes` yeşil; anlık görüntü diff'i yalnız ekleme.
+- Kriter 2: `ix_about_pages_single_row`, `ix_announcements_single_row`, `ix_brandings_single_row` — `((true))` üzerinde tekil dizin (`Company`/`CompanySettings` kalıbı); silinen duyurunun yerine yeni satır açılabiliyor.
+- Kriter 3: altı tabloda `publish_status IN ('Draft', 'Published')`; `Archived` ve bilinmeyen metin reddediliyor.
+- Kriter 4: `start_date IS NULL OR end_date IS NULL OR end_date >= start_date` (`06 §4.52` "ikisi de doluysa").
+- Kriter 5: `ix_social_links_social_platform` tekil; platform kısıtının altı değeri `06 §5.3.11` ile birebir; üç `slug` dizini filtresiz tekil, biçim `^[a-z0-9]+(-[a-z0-9]+)*$` (`§4.72.4`); taslak satırın adresi dolu sayılıyor, iki türde aynı değer serbest.
+- Kriter 6: `brand_color ~ '^#[0-9A-F]{6}$'`; `#FFF`, küçük harf, `#`siz, boşluklu değerler reddediliyor, NULL serbest.
+- Kriter 7: sıra dizinleri tekil değil; dört tabloda aynı sıralı iki satır kaydediliyor.
+- Kriter 8: beş uzun metin sütunu `text`; `Branding` → `Image` iki bağ `NO ACTION` (proje kalıbı), tek satır olduğu için FK dizini yok (`06 §7.2` "gerekmez"; `ModelRuleTests` listesi buna göre genişledi); içerik kayıtlarında başka FK yok — basamaklama T115/T116'da.
+
+**`09 §25`:** göç genişletmedir; enum metin + izinli değer kısıtı; FK silme davranışı açık; anahtar `EntityIds.New()`; yeni kapalı değer ve paket yok (`SocialPlatform` ve `PublishStatus` kilit dosyaları zaten var); yeni tablolar varsayılan yetkide (`Database` ad alanı testleri yeşil); modül sınırı — `Image`'e yalnız tür adıyla bağ, `PublishStatus` `Catalog.Contracts`'tan. `CorporateContentRecordsGuard` `06 §9.1.4`'ün kalıcı saydığı iki kaydı korur; kapsam dışı ek davranış değil.
+
+**Testler (validator, yerel PostgreSQL 18 `shopfolio-t114-val-pg`):** build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` çıkış 0; Unit 245/245 (Consistency dahil); Integration 882 — T114 sınıfı 79/79, Model 820 (tam koşuda `EnumDatabaseTests` ve `SettingsTablesTests` sınıf temizliği yerel Npgsql zaman aşımına düştü — D-68; ikisi ve `ModelRuleTests` tek başına 13/13, 28/28, 14/14), Database+FileSecrets+Web 62/62; `dotnet restore --locked-mode` çıkış 0; koşu sonrası `git status` temiz. Dal CI `41812838046` (head `c976977`) yeşil — 9 iş success, guard skip.
+
+**Güvenlik:** sır yok; yalnız şema, auth etkisi yok; girdi doğrulama uygulanamaz (uç yok — metin temizleme ve adres denetimi akış task'larında); yeni bağımlılık yok.
+
+**`12` satırları:** kaynak birimleri `06` entity'leri (KP yok); `06 §4.46`…§4.55, §4.72, §2.10'u anan matris satırı yok (`VAL-A526` `AboutPageNotDeletable` uç task'ının — BEKLEMEDE kalır); `Durum` değişmedi; `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları:** yok (yerel sınıf temizliği zaman aşımı D-68'de açık).
+
+**Yapım raporu karşılaştırması:** kriter tablosu, KK listesi ve ⚠ kararlar (filtreli dizin süzgeci, bekçi, `brandings` adı, uzunluklar, boş `slug`'ın reddi) validator'ın bağımsız okumasıyla uyumlu. Tek fark sayım: yapımın yerel tam koşu toplamı (755) validator'ın namespace'lere bölünmüş toplamından (882) farklı; kriteri etkilemez.
 
 ## Altyapı Değişiklikleri
 

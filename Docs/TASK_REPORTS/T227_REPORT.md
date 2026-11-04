@@ -1,6 +1,6 @@
 # T227 — Zaman ve para
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-04
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS; merge yardımcıda) | **Tarih:** 2026-11-04
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -72,10 +72,28 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama chat'i doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-04, bağımsız doğrulayıcı; dal head `cdc6648`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 → D-76, K2 → D-77 |
+
+### Doğrulama tur 1 — validator kanıtları
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Zaman UTC'de saat dilimli damga; sayım ve gösterim Türkiye saatiyle | ✓ | `TurkeyTime.StartOf` ofseti sıfır an döner, `DateOf` yalnız `ToOffset(+03:00)` kullanır (kod okundu); `TurkeyTimeTests` yeşil; mutasyon: `DateOf` → `instant.LocalDateTime` yapılınca +03:00 makinede davranış testleri geçer, yalnız `Application_ReadsTimeOnlyThroughTimeProvider` kırmızı — sunucu dilimine bağlılığı mimari test yakalar; mutasyon: modüle `DateTime` özellik → `Application_DeclaresNoDateTimeFieldPropertyParameterOrReturn` kırmızı |
+| 2 | Tek zaman kaynağı; testte değiştirilir | ✓ | `TimeSource.AddTimeSource` tek tekil kayıt, `Program.cs` çağırır; `src/`'de `TimeProvider.System` yalnız `TimeSource.cs`'te (grep); mutasyon: modülde `TimeProvider.System` ve özellik getter'ında `DateTimeOffset.UtcNow` → `SystemClock_InApplication_IsNamedOnlyByTimeSource` ve `Application_ReadsTimeOnlyThroughTimeProvider` kırmızı (getter da yakalanır) |
+| 3 | Gün süresi ertesi gün başlar, son günün 23:59'unda dolar | ✓ | `EndOfPeriod = StartOf(start + n + 1)`, `09 §7.1` madde 3'ün formülüyle birebir; mutasyon: `EndOfPeriod` bir gün kısaltılınca üç `TurkeyTimeTests` kırmızı (`EndOfPeriod_IsTheNextDaysTurkeyMidnight`, `IsWithinPeriod_LastMinuteAfter2359_IsStillInside`, `PeriodTest_WithFakeClock_MovesTimeWithoutWaiting`); `src/`'de yazılı `23:59` yalnız yorumda (grep) |
+| 4 | İş günü takvimi ürünle gelen dosya; kapsam dışı yılda yalnız hafta sonu | ✓ | `PublicHolidays.txt` gömülü kaynak (`EmbeddedResource`, `LogicalName`); 2026–2027 satırları `02 §4.1.2` ile uyumlu (arife ve 28 Ekim listede yok); mutasyon: Mart tatilleri yok sayılınca `IsBusinessDay_WeekdayHolidayAndWeekend_InACoveredYear` kırmızı |
+| 5 | Para ondalıklı; kayan noktalı tür yok | ✓ | `src/**/*.cs`'de `double`/`float`/`Double`/`Single` 0 (grep); mutasyon: modülde yalnız yöntem gövdesinde `double` yerel değişken → `ModulesAndMoney_InApplication_HaveNoFloatingPointType` kırmızı |
+| 6 | Tek kuruş yuvarlama işlevi: en yakın kuruş, tam yarım yukarı | ✓ | Validator sondası (geçici test, silindi): 0,015 → 0,02; 0,025 → 0,03; 2,675 → 2,68; 0,0049999999 → 0,00; 0,0050000001 → 0,01; 99.999.999,995 → 100.000.000,00; 9.999.999.999,994 → 9.999.999.999,99; `VAL-A793` örneği 9,595 → 9,60; `VAL-A794` örneği 4,995 → 5,00 — hepsi geçti; mutasyon: `Math.Round(x, 2)` (tam yarım çifte) → dört tablo satırı (12,345; 12,365; 0,005; 1.000.000,005) ve `Round_ExactHalf_DoesNotGoToTheEvenDigit` kırmızı; mutasyon: modülde `decimal.Round` → `Rounding_InApplication_IsOnlyInMoney` kırmızı |
+| 7 | Orantılı bölme: parçalar aşağı, kalan en büyük parçaya, toplam tutara eşit | ✓ | Validator sondası: `VAL-A795` örneği 10 TL 50:100:150 → 1,66 + 3,33 + 5,01; 0,01 ve 0,02 TL üç eşit ağırlık → kalanın tamamı ilk parçaya; 1:1,0001:1 → kalan en büyük ağırlığa; 0,1:0,2:0,3 → 0,16 + 0,33 + 0,51; 9.999.999.999,99 TL yedi ve üç ağırlıkta toplam birebir, parçalar iki ondalıklı; ağırlık 1/3 (28 hane) → 33,34 + 33,33 + 33,33; mutasyon: kalan son parçaya yazılınca üç `Allocate` testi kırmızı |
+
+KK1–KK7: KK1 ✓ (gidiş-dönüş testi; yerel +03:00 ve CI UTC'de yeşil; mutasyon kanıtı kriter 1'de) · KK2 ✓ (`PeriodTest_WithFakeClock_MovesTimeWithoutWaiting`, `ManualTimeProvider.Advance`/`SetUtcNow`) · KK3 ✓ (bir tik önce içeride, ertesi gün 00:00 dışarıda; yazılı 23:59 yok) · KK4 ✓ (2030 ve 2031 bütün günleri) · KK5 ✓ · KK6 ✓ · KK7 ✓. `12` satırları: task kaynak birimleriyle (`05` MK-19, §7.2; `09` §7, §14) grep `VAL-A801` ve `VAL-D060`'ı getirir; ikisi indirim, kupon ve duyurunun davranışıdır (T337, T378 k7) ve T227'nin kriterine bağlı değildir — `Durum` `BEKLEMEDE` kalır.
+
+Testler (validator, yerel, head `cdc6648`): build `-warnaserror` 0 uyarı · `dotnet format --verify-no-changes` 0 · Unit 458/458 (Consistency dahil) · `restore --locked-mode` 0 · dal CI 41889663878 success (Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E advisory, Gate). Integration bu task'ta beklenmiyor, koşulmadı. Mutasyonlar ve sonda dosyası geri alındı; `git status` temiz.
+
+K-notları: **K1** `Money.Round`/`Allocate` eksi işaretli sıfırı (`-0.00m`) negatif sayıp istisna atar → D-76 (T336). **K2** `DateTime` imza taraması `DateTime[]`, `List<DateTime>` gibi öğe ve genel argüman türlerini görmez → D-77 (T378).
 
 ## Altyapı Değişiklikleri
 

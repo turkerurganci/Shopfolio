@@ -8,6 +8,7 @@ using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Settings;
 
 namespace Shopfolio.Infrastructure;
@@ -120,6 +121,14 @@ internal sealed class AppDbContext : DbContext
 
     public DbSet<NotReturnedClosure> NotReturnedClosures => Set<NotReturnedClosure>();
 
+    public DbSet<PaymentRecord> PaymentRecords => Set<PaymentRecord>();
+
+    public DbSet<Refund> Refunds => Set<Refund>();
+
+    public DbSet<RefundRecord> RefundRecords => Set<RefundRecord>();
+
+    public DbSet<InboundNotificationRecord> InboundNotificationRecords => Set<InboundNotificationRecord>();
+
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).
     /// </summary>
@@ -135,7 +144,8 @@ internal sealed class AppDbContext : DbContext
                 CatalogRecordsGuard.Instance,
                 LoginRecordsGuard.Instance,
                 OrderingRecordsGuard.Instance,
-                AfterSalesRecordsGuard.Instance);
+                AfterSalesRecordsGuard.Instance,
+                PaymentRecordsGuard.Instance);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

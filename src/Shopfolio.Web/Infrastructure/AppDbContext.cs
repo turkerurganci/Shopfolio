@@ -47,6 +47,14 @@ internal sealed class AppDbContext : DbContext
 
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
 
+    public DbSet<PriceHistory> PriceHistories => Set<PriceHistory>();
+
+    public DbSet<Discount> Discounts => Set<Discount>();
+
+    public DbSet<Coupon> Coupons => Set<Coupon>();
+
+    public DbSet<DigitalFile> DigitalFiles => Set<DigitalFile>();
+
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).
     /// </summary>
@@ -55,7 +63,7 @@ internal sealed class AppDbContext : DbContext
         return builder
             .UseNpgsql(connectionString)
             .UseSnakeCaseNamingConvention()
-            .AddInterceptors(EmptyKeyGuard.Instance, EmptyTextGuard.Instance, ProtectedRecordsGuard.Instance);
+            .AddInterceptors(EmptyKeyGuard.Instance, EmptyTextGuard.Instance, ProtectedRecordsGuard.Instance, CatalogRecordsGuard.Instance);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

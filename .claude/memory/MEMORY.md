@@ -19,6 +19,8 @@
 
 > Kısa tut. Tarihsel detay `MEMORY_ARCHIVE.md`'ye taşınır (00 §G.2).
 
+- **T117 (F1) doğrulama tur 1: ✓ PASS — 2026-11-04 (head `ba81b23`, PR #375; kriter 1–6, KK1–KK6 ✓; Unit 245, Integration 871; dal CI 41827953732 yeşil; bulgu 0; K-notu yok). Merge yardımcıda.**
+- **T117 (F1) yapım bitti — 2026-11-04 (dal `task/T117-gonderim-kaydi-kanal-hali`, PR #375; doğrulama bekliyor).** İki kayıt (`DispatchRecord`, `ChannelStateRecord`) `Notifications` modülünde tek göçle (`Down` yok); sipariş bağı kısıtlayıcı, ilgili kayıt ve ilk e-posta değer; türe göre sipariş ve ilgili kayıt türü kontrol kısıtı (boş tür `IN` listesinden geçmez), `Undelivered`'da gönderim anı dolu da boş da kabul; kanal hâli tek satır (ifade dizini elle SQL), ilk hata anı sayı sıfırsa ve yalnız o zaman boş. Unit 245, Integration 871 (T117 sınıfı 30).
 - **T116 (F1) doğrulama tur 1: ✓ PASS — 2026-11-04 (head `2c19c0c`, PR #374; kriter 1–6, KK1–KK6 ✓; Unit 245, Integration 841; dal CI 41822520597 yeşil; bulgu 0; K-notu yok). Merge yardımcıda.**
 - **T116 (F1) yapım bitti — 2026-11-04 (dal `task/T116-galeri-baglari`; doğrulama bekliyor).** Beş galeri bağı (`AboutPageImage`, `OfferingImage`, `PortfolioItemImage`, `FaqItemImage`, `CustomPageImage`) `CorporateContent` modülünde tek göçle (`Down` yok); (sahip, görsel) çifti tekil, ana görsel sahip başına en çok bir (filtreli tekil dizin), sıra tekil değil, sahibe basamaklı, görsele kısıtlayıcı.
 - **T115 (F1) doğrulama tur 1: ✓ PASS — 2026-11-04 (head `cbced3e`, PR #373; kriter 1–7, KK1–KK7 ✓; Unit 245, Integration 794; dal CI 41818311284 yeşil; bulgu 0; K-notu yok). Merge yardımcıda.**

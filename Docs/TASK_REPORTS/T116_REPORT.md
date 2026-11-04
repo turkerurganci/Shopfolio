@@ -102,7 +102,7 @@
 - **Branch:** `task/T116-galeri-baglari`
 - **PR:** #374
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `7afeaff` — CI `41825046994` ve Publish `41825046782` success
 
 ## Dış Varsayımlar
 

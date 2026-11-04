@@ -88,7 +88,7 @@ Doğrulama kontrol listesi: KK1 kriter 1; KK2 kriter 2; KK3 kriter 3; KK4 kriter
 - **Branch:** `task/T110-ayirma-duzeltme-gecmisleri`
 - **PR:** #367
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `f5b786c` — CI `41786270867`, Publish `41786270854` (success)
 
 ## Dış Varsayımlar
 

@@ -19,6 +19,9 @@ public sealed class ModelRuleTests
     [
         "address_books -> customers (CustomerId)",
         "discounts -> products (ProductId)",
+        "link_records -> admin_invitations (AdminInvitationId)",
+        "link_records -> admins (AdminId)",
+        "link_records -> customers (CustomerId)",
         "option_values -> options (OptionId)",
         "options -> products (ProductId)",
         "pending_email_changes -> admins (AdminId)",
@@ -26,6 +29,10 @@ public sealed class ModelRuleTests
         "price_histories -> variants (VariantId)",
         "product_categories -> products (ProductId)",
         "product_images -> products (ProductId)",
+        "recognized_browser_marks -> admins (AdminId)",
+        "recognized_browser_marks -> customers (CustomerId)",
+        "sessions -> admins (AdminId)",
+        "sessions -> customers (CustomerId)",
         "variants -> products (ProductId)",
     ];
 

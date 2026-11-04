@@ -37,6 +37,9 @@ public sealed class DataModelSourceScanTests
     [InlineData("RestrictDelete.cs", DataModelSourceScan.ForbiddenDeleteBehavior)]
     [InlineData("TurkishLetter.cs", DataModelSourceScan.TurkishLetterConstant)]
     [InlineData("NumericEnumConversion.cs", DataModelSourceScan.NumericConversion)]
+    [InlineData("ModuleTypeName.cs", DataModelSourceScan.ModuleTypeNameOutsideHasOne)]
+    [InlineData("ModuleTypeNameConstant.cs", DataModelSourceScan.ModuleTypeNameOutsideHasOne)]
+    [InlineData("ModuleTypeNameInHasOne.cs", DataModelSourceScan.ModuleTypeNameOutsideHasOne)]
     public void Scan_OnViolationSample_ReportsTheRuleOnItsLine(string sample, string rule)
     {
         string path = SamplePath(sample);
@@ -50,6 +53,34 @@ public sealed class DataModelSourceScanTests
     public void Scan_OnCleanSample_ReportsNothing()
     {
         Assert.Empty(DataModelSourceScan.Scan("Clean.cs", File.ReadAllText(SamplePath("Clean.cs"))));
+    }
+
+    [Fact]
+    public void Scan_ModuleTypeNameInAConstantUsedOnlyInHasOne_IsAllowed()
+    {
+        const string text = """
+            internal sealed class Configuration
+            {
+                private const string AdminType = "Shopfolio.Modules.Administration.Admin";
+
+                public void Configure(object builder)
+                {
+                    builder.HasOne(AdminType, navigationName: null);
+                    var open = "Shopfolio.Modules.Administration.Contracts.AuditOperation";
+                }
+            }
+            """;
+
+        Assert.Empty(DataModelSourceScan.Scan("Configuration.cs", text));
+    }
+
+    [Fact]
+    public void Scan_ModuleTypeNameInAMigrationsFolder_IsAllowed_ButNotElsewhere()
+    {
+        string text = File.ReadAllText(SamplePath("ModuleTypeName.cs"));
+
+        Assert.Empty(DataModelSourceScan.Scan("Snapshot.cs", text, "src/Shopfolio.Web/Infrastructure/Migrations/Snapshot.cs"));
+        Assert.Single(DataModelSourceScan.Scan("Snapshot.cs", text, "src/Shopfolio.Web/Modules/Settings/Snapshot.cs"));
     }
 
     [Fact]

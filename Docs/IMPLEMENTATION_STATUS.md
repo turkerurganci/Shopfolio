@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-04 — T120 (Model eşitlik denetimleri) bağımsız doğrulama tur 2: ✓ PASS (head `e0827c3`, PR #378; kapsam tam, 8 kriter ve KK1–KK8 ✓; tur 1 bulgusu kapandı: §7.2.1'de kendi dizini vaat edilmeyen bağa eklenen tek sütunlu dizin artık §7.5.1 denetimini kırar — kaynak mutasyonuyla sınandı; KK1–KK6 kaynak mutasyonlarıyla (davranış, tekil dizin ve filtresi, kısıt, sorgu ve bağ dizini, saklanan alan) yeniden sınandı; 130 çizgi = 130 satır = 130 FK; Consistency 101/101, Unit 241/241; dal CI `41855256783` yeşil; bulgu 0; K2 bu PR'da kapandı, K1 → D-70). Merge yardımcıda. Önceki giriş (T119 doğrulama tur 1 PASS) `STATUS_CHANGELOG.md`'ye taşındı.
+**Son güncelleme:** 2026-11-04 — F1 (Veri katmanı) gate check: ✓ PASS (main `c59321d`; T101–T120; Consistency 101/101, Unit 241/241, Integration 952/952, betik testleri 4 dosya; Release `-warnaserror` 0/0; yerel referans kurulumda 18 göç ileri ve idempotent, seed sayıları beklenen, canlılık 200; matriste F1'e bağlı 144 satır implement edildi, S3 0; `VAL-A838` PASS; S2 yok). Gate PR'ı bu commit'i taşır; merge ve `phase/F1-pass` etiketi yardımcıda. Önceki giriş (T120 doğrulama tur 2 PASS) `STATUS_CHANGELOG.md`'ye taşındı.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -30,7 +30,7 @@
 | Faz | Ad | Task aralığı | Gate | Tag | Rapor |
 |---|---|---|---|---|---|
 | F0 | Proje iskeleti | `T01`–`T10` (10) | ✓ PASS | `phase/F0-pass` | [GATE_CHECK_F0](CHECKPOINT_REPORTS/GATE_CHECK_F0.md) |
-| F1 | Veri katmanı | `T101`–`T120` (20) | ⬚ | — | |
+| F1 | Veri katmanı | `T101`–`T120` (20) | ✓ PASS | `phase/F1-pass` | [GATE_CHECK_F1](CHECKPOINT_REPORTS/GATE_CHECK_F1.md) |
 | F2 | Çekirdek servisler | `T201`–`T233` (33) | ⬚ | — | |
 | F3 | İş mantığı | `T301`–`T390` (90) | ⬚ | — | |
 | F4 | Entegrasyonlar | `T401`–`T410` (10) | ⬚ | — | |
@@ -73,26 +73,26 @@
 
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
-| T101 | Veri modeli temeli | ✓ | ✓ PASS (tur 1) | `f7b33c7` | #358 |
-| T102 | Enum tanımları ve değer dönüşümü | ✓ | ✓ PASS (tur 1) | `8277427` | #359 |
-| T103 | Başlangıç listeleri, firma ve yasal metin sürümü | ✓ | ✓ PASS (tur 2) | `7c04318` | #360 |
-| T104 | Ürün çekirdeği ve görsel | ✓ | ✓ PASS (tur 3) | `fa4c2a0` | #361 |
-| T105 | Fiyat, kupon ve dijital dosya | ✓ | ✓ PASS (tur 1) | `67e983a` | #362 |
-| T106 | Yönetici hesabı, davet ve işlem izi | ✓ | ✓ PASS (tur 3) | `d3baaa6` | #363 |
-| T107 | Müşteri hesabı | ✓ | ✓ PASS (tur 1) | `e765c68` | #364 |
-| T108 | Oturum, bağlantı, deneme ve giriş kayıtları | ✓ | ✓ PASS (tur 2) | `04113f7` | #365 |
-| T109 | Sepet ve sipariş çekirdeği | ✓ | ✓ PASS (tur 1) | `de1ae6c` | #366 |
-| T110 | Ayırma ve düzeltme geçmişleri | ✓ | ✓ PASS (tur 1) | `a7954b7` | #367 |
-| T111 | Kalem kayıtları | ✓ | ✓ PASS (tur 1) | `6cefd1c` | #369 |
-| T112 | Ödeme ve geri ödeme kayıtları | ✓ | ✓ PASS (tur 1) | `d452256` | #370 |
-| T113 | İade reddi ve IBAN isteği | ✓ | ✓ PASS (tur 1) | `429ce56` | #371 |
-| T114 | İçerik kayıtları ve marka | ✓ | ✓ PASS (tur 1) | `c976977` | #372 |
-| T115 | Şube, içerik–ürün bağları ve iletişim talebi | ✓ | ✓ PASS (tur 1) | `cbced3e` | #373 |
-| T116 | Galeri bağları | ✓ | ✓ PASS (tur 1) | `2c19c0c` | #374 |
-| T117 | Gönderim kaydı ve kanal hâli | ✓ | ✓ PASS (tur 1) | `ba81b23` | #375 |
-| T118 | Zamanlayıcı, yedek, imha ve anahtar kayıtları | ✓ | ✓ PASS (tur 1) | `01d6473` | #376 |
-| T119 | Başlangıç verisi göçü ve seed olmayanların sınırı | ✓ | ✓ PASS (tur 1) | `7bf60e6` | #377 |
-| T120 | Model eşitlik denetimleri | ✓ | ✓ PASS (tur 2) | `e0827c3` | #378 |
+| T101 | Veri modeli temeli | ✓ | ✓ PASS (tur 1) | `f2470d8` | #358 |
+| T102 | Enum tanımları ve değer dönüşümü | ✓ | ✓ PASS (tur 1) | `597e14a` | #359 |
+| T103 | Başlangıç listeleri, firma ve yasal metin sürümü | ✓ | ✓ PASS (tur 2) | `6b5cc83` | #360 |
+| T104 | Ürün çekirdeği ve görsel | ✓ | ✓ PASS (tur 3) | `0c270de` | #361 |
+| T105 | Fiyat, kupon ve dijital dosya | ✓ | ✓ PASS (tur 1) | `7b75bb5` | #362 |
+| T106 | Yönetici hesabı, davet ve işlem izi | ✓ | ✓ PASS (tur 3) | `93c164e` | #363 |
+| T107 | Müşteri hesabı | ✓ | ✓ PASS (tur 1) | `d374bc1` | #364 |
+| T108 | Oturum, bağlantı, deneme ve giriş kayıtları | ✓ | ✓ PASS (tur 2) | `6c390c2` | #365 |
+| T109 | Sepet ve sipariş çekirdeği | ✓ | ✓ PASS (tur 1) | `521bb61` | #366 |
+| T110 | Ayırma ve düzeltme geçmişleri | ✓ | ✓ PASS (tur 1) | `f5b786c` | #367 |
+| T111 | Kalem kayıtları | ✓ | ✓ PASS (tur 1) | `f90d538` | #369 |
+| T112 | Ödeme ve geri ödeme kayıtları | ✓ | ✓ PASS (tur 1) | `3add87b` | #370 |
+| T113 | İade reddi ve IBAN isteği | ✓ | ✓ PASS (tur 1) | `0476eed` | #371 |
+| T114 | İçerik kayıtları ve marka | ✓ | ✓ PASS (tur 1) | `7fa45cf` | #372 |
+| T115 | Şube, içerik–ürün bağları ve iletişim talebi | ✓ | ✓ PASS (tur 1) | `d2c7c36` | #373 |
+| T116 | Galeri bağları | ✓ | ✓ PASS (tur 1) | `7afeaff` | #374 |
+| T117 | Gönderim kaydı ve kanal hâli | ✓ | ✓ PASS (tur 1) | `b7bd9b2` | #375 |
+| T118 | Zamanlayıcı, yedek, imha ve anahtar kayıtları | ✓ | ✓ PASS (tur 1) | `f088c3f` | #376 |
+| T119 | Başlangıç verisi göçü ve seed olmayanların sınırı | ✓ | ✓ PASS (tur 1) | `07e6121` | #377 |
+| T120 | Model eşitlik denetimleri | ✓ | ✓ PASS (tur 2) | `c59321d` | #378 |
 
 ---
 

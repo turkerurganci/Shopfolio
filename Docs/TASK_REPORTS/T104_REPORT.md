@@ -120,6 +120,7 @@ Yeniden doğrulama, kapsam tam (bütün kriterler, KK'lar, `09 §25`, güvenlik)
 - **Branch:** `task/T104-urun-cekirdegi`
 - **PR:** #361
 - **CI:** doğrulayıcı izler
+- **Post-merge run'lar:** squash `0c270de` (#361) — CI `41746250013` ve Publish `41746249953` success (F1 gate'inde doğrulandı, 2026-11-04)
 
 ## Dış Varsayımlar
 

@@ -114,7 +114,7 @@
 - **Branch:** `task/T114-icerik-kayitlari-marka`
 - **PR:** #372
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** squash `7fa45cf` — CI `41815985996` success; Publish `41815986016` failure (kayıt defterine itme: `unknown blob` — altyapı, kod sorunu değil)
+- **Post-merge run'lar:** squash `7fa45cf` — CI `41815985996` success; Publish `41815986016` ilk denemede failure (kayıt defterine itme: `unknown blob` — altyapı, kod sorunu değil), ikinci denemede success (F1 gate'inde doğrulandı)
 
 ## Dış Varsayımlar
 

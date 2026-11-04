@@ -88,6 +88,7 @@
 - **Branch:** `task/T105-fiyat-kupon-dijital`
 - **PR:** #362
 - **CI:** dal CI `41749429553` (head `67e983a`) yeşil — doğrulayıcı tur 1
+- **Post-merge run'lar:** squash `7b75bb5` (#362) — CI `41751877585` ve Publish `41751877590` success (F1 gate'inde doğrulandı, 2026-11-04)
 
 ## Dış Varsayımlar
 

@@ -96,7 +96,7 @@
 - **Branch:** `task/T107-musteri-hesabi`
 - **PR:** #364
 - **CI:** dal CI `41769181335` (head `e765c68`) yeşil — doğrulayıcı tur 1
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `d374bc1` (#364) — CI `41770864703` ve Publish `41770864743` success (F1 gate'inde doğrulandı, 2026-11-04)
 
 ## Dış Varsayımlar
 

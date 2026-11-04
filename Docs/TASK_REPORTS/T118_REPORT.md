@@ -123,7 +123,7 @@ Not: Model ad alanının tamamı tek koşuda 863 testle koşulunca yerel Docker'
 - **Branch:** `task/T118-zamanlayici-yedek-imha-anahtar`
 - **PR:** #376
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `f088c3f` (#376) — CI `41839444366` ve Publish `41839444317` success (F1 gate'inde doğrulandı, 2026-11-04)
 
 ## Dış Varsayımlar
 

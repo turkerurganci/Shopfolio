@@ -5973,117 +5973,117 @@ python -I scripts/doc-scans/11_geri_yon.py . --denetle                       # 7
 
 | Kaynak öğe | Task | Implement edildi | Kanıt |
 |---|---|---|---|
-| 06:§2.1 Şablonun altı dersi ve bu projedeki yeri | T101 | | |
-| 06:§2.2 Silme kategorileri ve bağların silme davranışı | T101 | | |
-| 06:§2.3 Anahtarlar ve dışa görünen kimlikler | T101 | | |
-| 06:§2.4 Adlandırma ve şema | T101 | | |
-| 06:§2.5 Türler ve sayısal ölçek | T101 | | |
-| 06:§2.6 Eşzamanlılık — sürüm değeri ve koşullu güncelleme | T101 | | |
-| 06:§2.7 Denormalizasyon envanteri | T120 | | |
-| 06:§2.8 Metin karşılaştırma, sıralama, oluşturulma anı ve boş değer | T10, T101 | ✓ F0 payı (T10); kalan T101 | T10 KK2: UTF-8, ICU Türkçe sıralama — `DatabaseUsersTests.Database_AfterSetup_IsUtf8WithIcuTurkishCollation…` · T10 #350 |
-| 06:§2.9 Enum'ların biçimi | T102 | | |
-| 06:§2.10 Uzun metnin saklanışı | T101, T114, T339 | | |
-| 06:§4.1 Company | T103 | | |
-| 06:§4.2 CompanySettings | T103 | | |
-| 06:§4.2 CompanyDeliveryProvince | T103 | | |
-| 06:§4.3 Province | T103 | | |
-| 06:§4.4 Country | T103 | | |
-| 06:§4.5 Product | T104 | | |
-| 06:§4.6 Variant | T104 | | |
-| 06:§4.7 Option | T104 | | |
-| 06:§4.8 OptionValue | T104 | | |
-| 06:§4.9 Category | T104 | | |
-| 06:§4.10 ProductCategory | T104 | | |
-| 06:§4.11 PriceHistory | T105 | | |
-| 06:§4.12 Discount | T105 | | |
-| 06:§4.13 Coupon | T105 | | |
-| 06:§4.14 StockReservation | T110 | | |
-| 06:§4.15 Cart | T109 | | |
-| 06:§4.16 CartItem | T109 | | |
-| 06:§4.17 Order | T109 | | |
-| 06:§4.18 OrderItem | T109 | | |
-| 06:§4.19 TransitionRecord | T109 | | |
-| 06:§4.20 InternalNote | T109 | | |
-| 06:§4.21 CheckboxAcceptance | T109 | | |
-| 06:§4.21 CheckboxAcceptanceOrderItem | T109 | | |
-| 06:§4.22 Cancellation | T111 | | |
-| 06:§4.23 ItemRemoval | T111 | | |
-| 06:§4.24 LateDeliveryTermination | T111 | | |
-| 06:§4.25 Withdrawal | T111 | | |
-| 06:§4.26 Return | T111 | | |
-| 06:§4.27 ReturnRejection | T113 | | |
-| 06:§4.28 NotReturnedClosure | T111 | | |
-| 06:§4.29 RefundIbanRequest | T113 | | |
-| 06:§4.30 DefectClaim | T111 | | |
-| 06:§4.31 RefundIban | T111 | | |
-| 06:§4.32 PaymentRecord | T112 | | |
-| 06:§4.33 Refund | T112 | | |
-| 06:§4.34 RefundRecord | T112 | | |
-| 06:§4.35 InboundNotificationRecord | T112 | | |
-| 06:§4.36 Customer | T107 | | |
-| 06:§4.37 Admin | T106 | | |
-| 06:§4.38 AdminInvitation | T106 | | |
-| 06:§4.39 Session | T108 | | |
-| 06:§4.40 PendingEmailChange | T107 | | |
-| 06:§4.41 RecognizedBrowserMark | T108 | | |
-| 06:§4.42 LinkRecord | T108 | | |
-| 06:§4.43 AttemptRecord | T108 | | |
-| 06:§4.44 LoginRecord | T108 | | |
-| 06:§4.45 AddressBook | T107 | | |
-| 06:§4.46 AboutPage | T114 | | |
-| 06:§4.47 Offering | T114 | | |
-| 06:§4.48 PortfolioItem | T114 | | |
-| 06:§4.49 FaqItem | T114 | | |
-| 06:§4.50 Branch | T115 | | |
-| 06:§4.51 CustomPage | T114 | | |
-| 06:§4.52 Announcement | T114 | | |
-| 06:§4.53 OfferingProduct | T115 | | |
-| 06:§4.53 PortfolioItemProduct | T115 | | |
-| 06:§4.54 Branding | T114 | | |
-| 06:§4.55 SocialLink | T114 | | |
-| 06:§4.56 LegalTextVersion | T103 | | |
-| 06:§4.57 ContactRequest | T115 | | |
-| 06:§4.58 DispatchRecord | T117 | | |
-| 06:§4.59 Job | T118 | | |
-| 06:§4.60 ChannelStateRecord | T117 | | |
-| 06:§4.61 OrderEmailHistory | T110 | | |
-| 06:§4.62 OrderAddressHistory | T110 | | |
-| 06:§4.63 AuditLog | T106 | | |
-| 06:§4.64 DisposalRecord | T118 | | |
-| 06:§4.65 HeartbeatRecord | T118 | | |
-| 06:§4.66 OutageRecord | T118 | | |
-| 06:§4.67 BackupStatusRecord | T118 | | |
-| 06:§4.68 DataProtectionKey | T118 | | |
-| 06:§4.69 Image | T104 | | |
-| 06:§4.70 DigitalFile | T105 | | |
-| 06:§4.71 ProductImage | T104 | | |
-| 06:§4.71 AboutPageImage | T116 | | |
-| 06:§4.71 OfferingImage | T116 | | |
-| 06:§4.71 PortfolioItemImage | T116 | | |
-| 06:§4.71 FaqItemImage | T116 | | |
-| 06:§4.71 CustomPageImage | T116 | | |
-| 06:§5.1 Biçim, kaynak ve okunuş | T102 | | |
-| 06:§5.2 Durum setleri ve geçiş kimlikleri | T102 | | |
-| 06:§5.3 Sözlüğün listeleri | T102, T310 | | |
-| 06:§5.4 Teknik kayıtların listeleri | T102 | | |
-| 06:§5.5 Kimlikli ürün listeleri | T102 | | |
-| 06:§5.6 Kayıt düzeyindeki kapalı değerler | T102 | | |
-| 06:§6.1 Okunuş | T120 | | |
-| 06:§6.2 Firma, ayarlar ve katalog | T120 | | |
-| 06:§6.3 Sipariş, kalem kayıtları ve ödeme | T120 | | |
-| 06:§6.4 Hesaplar ve oturum | T120 | | |
-| 06:§6.5 İçerik, yasal metinler ve dosyalar | T120 | | |
-| 06:§6.6 Bağsız sistem kayıtları | T120 | | |
-| 06:§7.1 Tekillikler | T120 | | |
-| 06:§7.2 Yabancı anahtarlar ve silme davranışları | T120 | | |
-| 06:§7.3 Kontrol kısıtları | T120 | | |
-| 06:§7.4 Koşullu güncellemelerin dayandığı kısıtlar | T120 | | |
-| 06:§7.5 Sorgu dizinleri | T120 | | |
-| 06:§7.6 Hacim kabulleri | T120 | | |
-| 06:§8.1 Seed | T119 | | |
+| 06:§2.1 Şablonun altı dersi ve bu projedeki yeri | T101 | ✓ T101 | T101 KK1–KK8: tek bağlam, anahtar, ad, tür, sürüm, karşılaştırma, `created_at`, silme davranışı — `ModelRuleTests`, `DataModelFoundationTests` · T101 #358 |
+| 06:§2.2 Silme kategorileri ve bağların silme davranışı | T101 | ✓ T101 | T101 KK8: her bağ `Cascade`/`SetNull`/`NoAction`, basamaklı küme `06 §2.2.5`'e eşit, `pg_constraint`'te `r` yok — `ModelRuleTests` · T101 #358 |
+| 06:§2.3 Anahtarlar ve dışa görünen kimlikler | T101 | ✓ T101 | T101 KK2: UUID v7 anahtarı uygulama üretir — `DataModelFoundationTests`; tek satır kayıtların sabit ifade dizini T103, T114, T117, T118 · T101 #358 |
+| 06:§2.4 Adlandırma ve şema | T101 | ✓ T101 | T101 KK3: tablo, sütun ve `pk_`/`fk_`/`ix_`/`ck_` adları kuraldan — `ModelRuleTests` · T101 #358 |
+| 06:§2.5 Türler ve sayısal ölçek | T101 | ✓ T101 | T101 KK4: tür eşlemesi tabloyla eşit — `ColumnTypeConsistencyTests`; F1 gate: 31 para sütunu `numeric(12,2)`, kayan nokta yok · T101 #358 |
+| 06:§2.6 Eşzamanlılık — sürüm değeri ve koşullu güncelleme | T101 | ✓ T101 | T101 KK5: eski sürümle güncelleme sıfır satır — `SampleDatabaseTests`; bölüm sürümleri T103 KK3 · T101 #358 |
+| 06:§2.7 Denormalizasyon envanteri | T120 | ✓ T120 | T120 KK6: envanter dışı saklanan alan testi kırar — `StoredDerivedValueConsistencyTests` · T120 #378 |
+| 06:§2.8 Metin karşılaştırma, sıralama, oluşturulma anı ve boş değer | T10, T101 | ✓ T10, T101 | T10 KK2: UTF-8, ICU Türkçe sıralama — `DatabaseUsersTests.Database_AfterSetup_IsUtf8WithIcuTurkishCollation…` · T10 #350; F1: T101 KK6–KK7: tek normalleştirme işlevi, `created_at` her tabloda, boş metin `NULL` — `DataModelFoundationTests`, `ModelRuleTests` · T101 #358 |
+| 06:§2.9 Enum'ların biçimi | T102 | ✓ T102 | T102 KK2–KK3: metin kod adı, izinli değer kısıtı iki yönlü eşit, `audit_logs.operation` kısıtsız — `EnumDatabaseTests` · T102 #359 |
+| 06:§2.10 Uzun metnin saklanışı | T101, T114, T339 | ✓ F1 payı (T101, T114); kalan T339 | T101 KK4: uzun metin `text`; T114 KK8: içerik metinleri `text` — `ContentRecordAndBrandingTablesTests` · T101 #358, T114 #372 |
+| 06:§4.1 Company | T103 | ✓ T103 | T103 KK1: `Company` alan tablosu, kısıtlar ve bağlar tek göçle — `SettingsTablesTests`; T120 eşitlik denetimleri · T103 #360 |
+| 06:§4.2 CompanySettings | T103 | ✓ T103 | T103 KK1: `CompanySettings` alan tablosu, kısıtlar ve bağlar tek göçle — `SettingsTablesTests`; T120 eşitlik denetimleri · T103 #360 |
+| 06:§4.2 CompanyDeliveryProvince | T103 | ✓ T103 | T103 KK1: `CompanyDeliveryProvince` alan tablosu, kısıtlar ve bağlar tek göçle — `SettingsTablesTests`; T120 eşitlik denetimleri · T103 #360 |
+| 06:§4.3 Province | T103 | ✓ T103 | T103 KK1: `Province` alan tablosu, kısıtlar ve bağlar tek göçle — `SettingsTablesTests`; T120 eşitlik denetimleri · T103 #360 |
+| 06:§4.4 Country | T103 | ✓ T103 | T103 KK1: `Country` alan tablosu, kısıtlar ve bağlar tek göçle — `SettingsTablesTests`; T120 eşitlik denetimleri · T103 #360 |
+| 06:§4.5 Product | T104 | ✓ T104 | T104 KK1: `Product` alan tablosu, kısıtlar ve bağlar tek göçle — `CatalogCoreTablesTests`; T120 eşitlik denetimleri · T104 #361 |
+| 06:§4.6 Variant | T104 | ✓ T104 | T104 KK1: `Variant` alan tablosu, kısıtlar ve bağlar tek göçle — `CatalogCoreTablesTests`; T120 eşitlik denetimleri · T104 #361 |
+| 06:§4.7 Option | T104 | ✓ T104 | T104 KK1: `Option` alan tablosu, kısıtlar ve bağlar tek göçle — `CatalogCoreTablesTests`; T120 eşitlik denetimleri · T104 #361 |
+| 06:§4.8 OptionValue | T104 | ✓ T104 | T104 KK1: `OptionValue` alan tablosu, kısıtlar ve bağlar tek göçle — `CatalogCoreTablesTests`; T120 eşitlik denetimleri · T104 #361 |
+| 06:§4.9 Category | T104 | ✓ T104 | T104 KK1: `Category` alan tablosu, kısıtlar ve bağlar tek göçle — `CatalogCoreTablesTests`; T120 eşitlik denetimleri · T104 #361 |
+| 06:§4.10 ProductCategory | T104 | ✓ T104 | T104 KK1: `ProductCategory` alan tablosu, kısıtlar ve bağlar tek göçle — `CatalogCoreTablesTests`; T120 eşitlik denetimleri · T104 #361 |
+| 06:§4.11 PriceHistory | T105 | ✓ T105 | T105 KK1: `PriceHistory` alan tablosu, kısıtlar ve bağlar tek göçle — `PriceCouponDigitalFileTablesTests`; T120 eşitlik denetimleri · T105 #362 |
+| 06:§4.12 Discount | T105 | ✓ T105 | T105 KK1: `Discount` alan tablosu, kısıtlar ve bağlar tek göçle — `PriceCouponDigitalFileTablesTests`; T120 eşitlik denetimleri · T105 #362 |
+| 06:§4.13 Coupon | T105 | ✓ T105 | T105 KK1: `Coupon` alan tablosu, kısıtlar ve bağlar tek göçle — `PriceCouponDigitalFileTablesTests`; T120 eşitlik denetimleri · T105 #362 |
+| 06:§4.14 StockReservation | T110 | ✓ T110 | T110 KK1: `StockReservation` alan tablosu, kısıtlar ve bağlar tek göçle — `StockReservationAndHistoryTablesTests`; T120 eşitlik denetimleri · T110 #367 |
+| 06:§4.15 Cart | T109 | ✓ T109 | T109 KK1: `Cart` alan tablosu, kısıtlar ve bağlar tek göçle — `CartAndOrderCoreTablesTests`; T120 eşitlik denetimleri · T109 #366 |
+| 06:§4.16 CartItem | T109 | ✓ T109 | T109 KK1: `CartItem` alan tablosu, kısıtlar ve bağlar tek göçle — `CartAndOrderCoreTablesTests`; T120 eşitlik denetimleri · T109 #366 |
+| 06:§4.17 Order | T109 | ✓ T109 | T109 KK1: `Order` alan tablosu, kısıtlar ve bağlar tek göçle — `CartAndOrderCoreTablesTests`; T120 eşitlik denetimleri · T109 #366 |
+| 06:§4.18 OrderItem | T109 | ✓ T109 | T109 KK1: `OrderItem` alan tablosu, kısıtlar ve bağlar tek göçle — `CartAndOrderCoreTablesTests`; T120 eşitlik denetimleri · T109 #366 |
+| 06:§4.19 TransitionRecord | T109 | ✓ T109 | T109 KK1: `TransitionRecord` alan tablosu, kısıtlar ve bağlar tek göçle — `CartAndOrderCoreTablesTests`; T120 eşitlik denetimleri · T109 #366 |
+| 06:§4.20 InternalNote | T109 | ✓ T109 | T109 KK1: `InternalNote` alan tablosu, kısıtlar ve bağlar tek göçle — `CartAndOrderCoreTablesTests`; T120 eşitlik denetimleri · T109 #366 |
+| 06:§4.21 CheckboxAcceptance | T109 | ✓ T109 | T109 KK1: `CheckboxAcceptance` alan tablosu, kısıtlar ve bağlar tek göçle — `CartAndOrderCoreTablesTests`; T120 eşitlik denetimleri · T109 #366 |
+| 06:§4.21 CheckboxAcceptanceOrderItem | T109 | ✓ T109 | T109 KK1: `CheckboxAcceptanceOrderItem` alan tablosu, kısıtlar ve bağlar tek göçle — `CartAndOrderCoreTablesTests`; T120 eşitlik denetimleri · T109 #366 |
+| 06:§4.22 Cancellation | T111 | ✓ T111 | T111 KK1: `Cancellation` alan tablosu, kısıtlar ve bağlar tek göçle — `ItemRecordTablesTests`; T120 eşitlik denetimleri · T111 #369 |
+| 06:§4.23 ItemRemoval | T111 | ✓ T111 | T111 KK1: `ItemRemoval` alan tablosu, kısıtlar ve bağlar tek göçle — `ItemRecordTablesTests`; T120 eşitlik denetimleri · T111 #369 |
+| 06:§4.24 LateDeliveryTermination | T111 | ✓ T111 | T111 KK1: `LateDeliveryTermination` alan tablosu, kısıtlar ve bağlar tek göçle — `ItemRecordTablesTests`; T120 eşitlik denetimleri · T111 #369 |
+| 06:§4.25 Withdrawal | T111 | ✓ T111 | T111 KK1: `Withdrawal` alan tablosu, kısıtlar ve bağlar tek göçle — `ItemRecordTablesTests`; T120 eşitlik denetimleri · T111 #369 |
+| 06:§4.26 Return | T111 | ✓ T111 | T111 KK1: `Return` alan tablosu, kısıtlar ve bağlar tek göçle — `ItemRecordTablesTests`; T120 eşitlik denetimleri · T111 #369 |
+| 06:§4.27 ReturnRejection | T113 | ✓ T113 | T113 KK1: `ReturnRejection` alan tablosu, kısıtlar ve bağlar tek göçle — `ReturnRejectionAndIbanRequestTablesTests`; T120 eşitlik denetimleri · T113 #371 |
+| 06:§4.28 NotReturnedClosure | T111 | ✓ T111 | T111 KK1: `NotReturnedClosure` alan tablosu, kısıtlar ve bağlar tek göçle — `ItemRecordTablesTests`; T120 eşitlik denetimleri · T111 #369 |
+| 06:§4.29 RefundIbanRequest | T113 | ✓ T113 | T113 KK1: `RefundIbanRequest` alan tablosu, kısıtlar ve bağlar tek göçle — `ReturnRejectionAndIbanRequestTablesTests`; T120 eşitlik denetimleri · T113 #371 |
+| 06:§4.30 DefectClaim | T111 | ✓ T111 | T111 KK1: `DefectClaim` alan tablosu, kısıtlar ve bağlar tek göçle — `ItemRecordTablesTests`; T120 eşitlik denetimleri · T111 #369 |
+| 06:§4.31 RefundIban | T111 | ✓ T111 | T111 KK1: `RefundIban` alan tablosu, kısıtlar ve bağlar tek göçle — `ItemRecordTablesTests`; T120 eşitlik denetimleri · T111 #369 |
+| 06:§4.32 PaymentRecord | T112 | ✓ T112 | T112 KK1: `PaymentRecord` alan tablosu, kısıtlar ve bağlar tek göçle — `PaymentRecordTablesTests`; T120 eşitlik denetimleri · T112 #370 |
+| 06:§4.33 Refund | T112 | ✓ T112 | T112 KK1: `Refund` alan tablosu, kısıtlar ve bağlar tek göçle — `PaymentRecordTablesTests`; T120 eşitlik denetimleri · T112 #370 |
+| 06:§4.34 RefundRecord | T112 | ✓ T112 | T112 KK1: `RefundRecord` alan tablosu, kısıtlar ve bağlar tek göçle — `PaymentRecordTablesTests`; T120 eşitlik denetimleri · T112 #370 |
+| 06:§4.35 InboundNotificationRecord | T112 | ✓ T112 | T112 KK1: `InboundNotificationRecord` alan tablosu, kısıtlar ve bağlar tek göçle — `PaymentRecordTablesTests`; T120 eşitlik denetimleri · T112 #370 |
+| 06:§4.36 Customer | T107 | ✓ T107 | T107 KK1: `Customer` alan tablosu, kısıtlar ve bağlar tek göçle — `CustomerAccountTablesTests`; T120 eşitlik denetimleri · T107 #364 |
+| 06:§4.37 Admin | T106 | ✓ T106 | T106 KK1: `Admin` alan tablosu, kısıtlar ve bağlar tek göçle — `AdminAndAuditTablesTests`; T120 eşitlik denetimleri · T106 #363 |
+| 06:§4.38 AdminInvitation | T106 | ✓ T106 | T106 KK1: `AdminInvitation` alan tablosu, kısıtlar ve bağlar tek göçle — `AdminAndAuditTablesTests`; T120 eşitlik denetimleri · T106 #363 |
+| 06:§4.39 Session | T108 | ✓ T108 | T108 KK1: `Session` alan tablosu, kısıtlar ve bağlar tek göçle — `SessionLinkAttemptLoginTablesTests`; T120 eşitlik denetimleri · T108 #365 |
+| 06:§4.40 PendingEmailChange | T107 | ✓ T107 | T107 KK1: `PendingEmailChange` alan tablosu, kısıtlar ve bağlar tek göçle — `CustomerAccountTablesTests`; T120 eşitlik denetimleri · T107 #364 |
+| 06:§4.41 RecognizedBrowserMark | T108 | ✓ T108 | T108 KK1: `RecognizedBrowserMark` alan tablosu, kısıtlar ve bağlar tek göçle — `SessionLinkAttemptLoginTablesTests`; T120 eşitlik denetimleri · T108 #365 |
+| 06:§4.42 LinkRecord | T108 | ✓ T108 | T108 KK1: `LinkRecord` alan tablosu, kısıtlar ve bağlar tek göçle — `SessionLinkAttemptLoginTablesTests`; T120 eşitlik denetimleri · T108 #365 |
+| 06:§4.43 AttemptRecord | T108 | ✓ T108 | T108 KK1: `AttemptRecord` alan tablosu, kısıtlar ve bağlar tek göçle — `SessionLinkAttemptLoginTablesTests`; T120 eşitlik denetimleri · T108 #365 |
+| 06:§4.44 LoginRecord | T108 | ✓ T108 | T108 KK1: `LoginRecord` alan tablosu, kısıtlar ve bağlar tek göçle — `SessionLinkAttemptLoginTablesTests`; T120 eşitlik denetimleri · T108 #365 |
+| 06:§4.45 AddressBook | T107 | ✓ T107 | T107 KK1: `AddressBook` alan tablosu, kısıtlar ve bağlar tek göçle — `CustomerAccountTablesTests`; T120 eşitlik denetimleri · T107 #364 |
+| 06:§4.46 AboutPage | T114 | ✓ T114 | T114 KK1: `AboutPage` alan tablosu, kısıtlar ve bağlar tek göçle — `ContentRecordAndBrandingTablesTests`; T120 eşitlik denetimleri · T114 #372 |
+| 06:§4.47 Offering | T114 | ✓ T114 | T114 KK1: `Offering` alan tablosu, kısıtlar ve bağlar tek göçle — `ContentRecordAndBrandingTablesTests`; T120 eşitlik denetimleri · T114 #372 |
+| 06:§4.48 PortfolioItem | T114 | ✓ T114 | T114 KK1: `PortfolioItem` alan tablosu, kısıtlar ve bağlar tek göçle — `ContentRecordAndBrandingTablesTests`; T120 eşitlik denetimleri · T114 #372 |
+| 06:§4.49 FaqItem | T114 | ✓ T114 | T114 KK1: `FaqItem` alan tablosu, kısıtlar ve bağlar tek göçle — `ContentRecordAndBrandingTablesTests`; T120 eşitlik denetimleri · T114 #372 |
+| 06:§4.50 Branch | T115 | ✓ T115 | T115 KK1: `Branch` alan tablosu, kısıtlar ve bağlar tek göçle — `BranchContentLinkAndContactRequestTablesTests`; T120 eşitlik denetimleri · T115 #373 |
+| 06:§4.51 CustomPage | T114 | ✓ T114 | T114 KK1: `CustomPage` alan tablosu, kısıtlar ve bağlar tek göçle — `ContentRecordAndBrandingTablesTests`; T120 eşitlik denetimleri · T114 #372 |
+| 06:§4.52 Announcement | T114 | ✓ T114 | T114 KK1: `Announcement` alan tablosu, kısıtlar ve bağlar tek göçle — `ContentRecordAndBrandingTablesTests`; T120 eşitlik denetimleri · T114 #372 |
+| 06:§4.53 OfferingProduct | T115 | ✓ T115 | T115 KK1: `OfferingProduct` alan tablosu, kısıtlar ve bağlar tek göçle — `BranchContentLinkAndContactRequestTablesTests`; T120 eşitlik denetimleri · T115 #373 |
+| 06:§4.53 PortfolioItemProduct | T115 | ✓ T115 | T115 KK1: `PortfolioItemProduct` alan tablosu, kısıtlar ve bağlar tek göçle — `BranchContentLinkAndContactRequestTablesTests`; T120 eşitlik denetimleri · T115 #373 |
+| 06:§4.54 Branding | T114 | ✓ T114 | T114 KK1: `Branding` alan tablosu, kısıtlar ve bağlar tek göçle — `ContentRecordAndBrandingTablesTests`; T120 eşitlik denetimleri · T114 #372 |
+| 06:§4.55 SocialLink | T114 | ✓ T114 | T114 KK1: `SocialLink` alan tablosu, kısıtlar ve bağlar tek göçle — `ContentRecordAndBrandingTablesTests`; T120 eşitlik denetimleri · T114 #372 |
+| 06:§4.56 LegalTextVersion | T103 | ✓ T103 | T103 KK1: `LegalTextVersion` alan tablosu, kısıtlar ve bağlar tek göçle — `SettingsTablesTests`; T120 eşitlik denetimleri · T103 #360 |
+| 06:§4.57 ContactRequest | T115 | ✓ T115 | T115 KK1: `ContactRequest` alan tablosu, kısıtlar ve bağlar tek göçle — `BranchContentLinkAndContactRequestTablesTests`; T120 eşitlik denetimleri · T115 #373 |
+| 06:§4.58 DispatchRecord | T117 | ✓ T117 | T117 KK1: `DispatchRecord` alan tablosu, kısıtlar ve bağlar tek göçle — `DispatchAndChannelStateTablesTests`; T120 eşitlik denetimleri · T117 #375 |
+| 06:§4.59 Job | T118 | ✓ T118 | T118 KK1: `Job` alan tablosu, kısıtlar ve bağlar tek göçle — `SchedulerBackupDisposalAndKeyTablesTests`; T120 eşitlik denetimleri · T118 #376 |
+| 06:§4.60 ChannelStateRecord | T117 | ✓ T117 | T117 KK1: `ChannelStateRecord` alan tablosu, kısıtlar ve bağlar tek göçle — `DispatchAndChannelStateTablesTests`; T120 eşitlik denetimleri · T117 #375 |
+| 06:§4.61 OrderEmailHistory | T110 | ✓ T110 | T110 KK1: `OrderEmailHistory` alan tablosu, kısıtlar ve bağlar tek göçle — `StockReservationAndHistoryTablesTests`; T120 eşitlik denetimleri · T110 #367 |
+| 06:§4.62 OrderAddressHistory | T110 | ✓ T110 | T110 KK1: `OrderAddressHistory` alan tablosu, kısıtlar ve bağlar tek göçle — `StockReservationAndHistoryTablesTests`; T120 eşitlik denetimleri · T110 #367 |
+| 06:§4.63 AuditLog | T106 | ✓ T106 | T106 KK1: `AuditLog` alan tablosu, kısıtlar ve bağlar tek göçle — `AdminAndAuditTablesTests`; T120 eşitlik denetimleri · T106 #363 |
+| 06:§4.64 DisposalRecord | T118 | ✓ T118 | T118 KK1: `DisposalRecord` alan tablosu, kısıtlar ve bağlar tek göçle — `SchedulerBackupDisposalAndKeyTablesTests`; T120 eşitlik denetimleri · T118 #376 |
+| 06:§4.65 HeartbeatRecord | T118 | ✓ T118 | T118 KK1: `HeartbeatRecord` alan tablosu, kısıtlar ve bağlar tek göçle — `SchedulerBackupDisposalAndKeyTablesTests`; T120 eşitlik denetimleri · T118 #376 |
+| 06:§4.66 OutageRecord | T118 | ✓ T118 | T118 KK1: `OutageRecord` alan tablosu, kısıtlar ve bağlar tek göçle — `SchedulerBackupDisposalAndKeyTablesTests`; T120 eşitlik denetimleri · T118 #376 |
+| 06:§4.67 BackupStatusRecord | T118 | ✓ T118 | T118 KK1: `BackupStatusRecord` alan tablosu, kısıtlar ve bağlar tek göçle — `SchedulerBackupDisposalAndKeyTablesTests`; T120 eşitlik denetimleri · T118 #376 |
+| 06:§4.68 DataProtectionKey | T118 | ✓ T118 | T118 KK1: `DataProtectionKey` alan tablosu, kısıtlar ve bağlar tek göçle — `SchedulerBackupDisposalAndKeyTablesTests`; T120 eşitlik denetimleri · T118 #376 |
+| 06:§4.69 Image | T104 | ✓ T104 | T104 KK1: `Image` alan tablosu, kısıtlar ve bağlar tek göçle — `CatalogCoreTablesTests`; T120 eşitlik denetimleri · T104 #361 |
+| 06:§4.70 DigitalFile | T105 | ✓ T105 | T105 KK1: `DigitalFile` alan tablosu, kısıtlar ve bağlar tek göçle — `PriceCouponDigitalFileTablesTests`; T120 eşitlik denetimleri · T105 #362 |
+| 06:§4.71 ProductImage | T104 | ✓ T104 | T104 KK1: `ProductImage` alan tablosu, kısıtlar ve bağlar tek göçle — `CatalogCoreTablesTests`; T120 eşitlik denetimleri · T104 #361 |
+| 06:§4.71 AboutPageImage | T116 | ✓ T116 | T116 KK1: `AboutPageImage` alan tablosu, kısıtlar ve bağlar tek göçle — `GalleryLinkTablesTests`; T120 eşitlik denetimleri · T116 #374 |
+| 06:§4.71 OfferingImage | T116 | ✓ T116 | T116 KK1: `OfferingImage` alan tablosu, kısıtlar ve bağlar tek göçle — `GalleryLinkTablesTests`; T120 eşitlik denetimleri · T116 #374 |
+| 06:§4.71 PortfolioItemImage | T116 | ✓ T116 | T116 KK1: `PortfolioItemImage` alan tablosu, kısıtlar ve bağlar tek göçle — `GalleryLinkTablesTests`; T120 eşitlik denetimleri · T116 #374 |
+| 06:§4.71 FaqItemImage | T116 | ✓ T116 | T116 KK1: `FaqItemImage` alan tablosu, kısıtlar ve bağlar tek göçle — `GalleryLinkTablesTests`; T120 eşitlik denetimleri · T116 #374 |
+| 06:§4.71 CustomPageImage | T116 | ✓ T116 | T116 KK1: `CustomPageImage` alan tablosu, kısıtlar ve bağlar tek göçle — `GalleryLinkTablesTests`; T120 eşitlik denetimleri · T116 #374 |
+| 06:§5.1 Biçim, kaynak ve okunuş | T102 | ✓ T102 | T102 KK1, KK5–KK6: kod adları birebir, kilit dosyaları iki yönlü — `EnumTableConsistencyTests`, `EnumLockTests` · T102 #359 |
+| 06:§5.2 Durum setleri ve geçiş kimlikleri | T102 | ✓ T102 | T102 KK1, KK3: üye kümesi ve kısıt listesi tabloyla eşit — `EnumTableConsistencyTests`, `EnumDatabaseTests` · T102 #359 |
+| 06:§5.3 Sözlüğün listeleri | T102, T310 | ✓ F1 payı (T102); kalan T310 | T102 KK1, KK3: sözlük listelerinin enum'ları ve kısıtları — `EnumTableConsistencyTests`, `EnumDatabaseTests` · T102 #359 |
+| 06:§5.4 Teknik kayıtların listeleri | T102 | ✓ T102 | T102 KK1, KK3: teknik kayıt listeleri — `EnumTableConsistencyTests`, `EnumDatabaseTests` · T102 #359 |
+| 06:§5.5 Kimlikli ürün listeleri | T102 | ✓ T102 | T102 KK1, KK3: kimlikli ürün listeleri — `EnumTableConsistencyTests`, `EnumDatabaseTests` · T102 #359 |
+| 06:§5.6 Kayıt düzeyindeki kapalı değerler | T102 | ✓ T102 | T102 KK1, KK3: kayıt düzeyindeki kapalı değerler, alt küme kısıtları — `EnumTableConsistencyTests`, `EnumDatabaseTests` · T102 #359 |
+| 06:§6.1 Okunuş | T120 | ✓ T120 | T120 KK1: diyagram okunuşu, 130 çizgi = 130 yabancı anahtar — `RelationshipConsistencyTests` · T120 #378 |
+| 06:§6.2 Firma, ayarlar ve katalog | T120 | ✓ T120 | T120 KK1: alan diyagramının çizgileri modelde — `RelationshipConsistencyTests` · T120 #378 |
+| 06:§6.3 Sipariş, kalem kayıtları ve ödeme | T120 | ✓ T120 | T120 KK1: alan diyagramının çizgileri modelde — `RelationshipConsistencyTests` · T120 #378 |
+| 06:§6.4 Hesaplar ve oturum | T120 | ✓ T120 | T120 KK1: alan diyagramının çizgileri modelde — `RelationshipConsistencyTests` · T120 #378 |
+| 06:§6.5 İçerik, yasal metinler ve dosyalar | T120 | ✓ T120 | T120 KK1: alan diyagramının çizgileri modelde — `RelationshipConsistencyTests` · T120 #378 |
+| 06:§6.6 Bağsız sistem kayıtları | T120 | ✓ T120 | T120 KK1: bağsız kayıtlar bağ taşımaz — `RelationshipConsistencyTests` · T120 #378 |
+| 06:§7.1 Tekillikler | T120 | ✓ T120 | T120 KK2: tekil dizin listesi ve filtreleri modelle eşit — `IndexConsistencyTests` · T120 #378 |
+| 06:§7.2 Yabancı anahtarlar ve silme davranışları | T120 | ✓ T120 | T120 KK3: yabancı anahtar ve silme davranışı listesi eşit, `RESTRICT` yok — `RelationshipConsistencyTests` · T120 #378 |
+| 06:§7.3 Kontrol kısıtları | T120 | ✓ T120 | T120 KK4: kontrol kısıtı listesi eşit — `CheckConstraintConsistencyTests` · T120 #378 |
+| 06:§7.4 Koşullu güncellemelerin dayandığı kısıtlar | T120 | ✓ T120 | T120 KK2, KK4 (tablonun dayandığı kısıt ve dizinler §7.1 ve §7.3 listelerinde); F1 gate: 26 satırın kısıtı ve dizini modelde tek tek bulundu, veritabanı kısıtı olmayan üç koşul uygulamanındır (F3) · T120 #378 |
+| 06:§7.5 Sorgu dizinleri | T120 | ✓ T120 | T120 KK5: sorgu dizinleri ve bağların kendi dizinleri eşit — `IndexConsistencyTests` · T120 #378 |
+| 06:§7.6 Hacim kabulleri | T120 | ✓ T120 | T120 KK2, KK5: dizin seti iki yönlü eşit, yalnız tekillik, bağ ve §7.5 dizinleri — `IndexConsistencyTests` · T120 #378 |
+| 06:§8.1 Seed | T119 | ✓ T119 | T119 KK1–KK7: 81 il, 249 ülke, 81 teslimat ili, altı tek satır, iki taslak, ikinci uygulama değiştirmez — `StartupDataTests`, `SettingDefaultsConsistencyTests` · T119 #377 |
 | 06:§8.2 Fail-fast zorunlu | T205 | | |
 | 06:§8.3 Kuruluma özgü | T303 | | |
-| 06:§8.4 Veritabanında olmayanlar | T119, T310 | | |
+| 06:§8.4 Veritabanında olmayanlar | T119, T310 | ✓ F1 payı (T119); kalan T310 | T119 KK8: seed olmayanlar göçte yok — `StartupDataSourceScanTests` · T119 #377 |
 | 06:§8.5 `DEPLOY_RUNBOOK`'a yansıma | T601 | | |
 | 06:§9.1 Sürelerin başlangıç değerleri | T201 | | |
 | 06:§9.2 Siparişin imha parçası — alan listesi | T301 | | |
@@ -6521,12 +6521,12 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 |---|---|---|---|
 | 02:§1.1 Sözlük kuralı | — | | |
 | 02:§1.2 Terim sözlüğü | — | | |
-| 02:§1.3 Aktörler | T106, T107, T207 | | |
+| 02:§1.3 Aktörler | T106, T107, T207 | ✓ F1 payı (T106, T107); kalan T207 | T106 KK1–KK2 (`Admin`), T107 KK1–KK2 (`Customer`) — `AdminAndAuditTablesTests`, `CustomerAccountTablesTests` · T106 #363, T107 #364 |
 | 02:§2.1 Akış envanteri | T329, T511, T512, T513, T514, T525, T527, T534, T536 | | |
 | 02:§2.2 Uçtan uca ana akış | T329, T509, T510 | | |
 | 02:§2.3 Kurumsal içerik akışı | T358, T360, T361, T534 | | |
 | 02:§3.1 Firma, kurulum ve satış kapısı | T330, T331 | | |
-| 02:§3.1.1 Uygulama kurulum başına tek bir firmaya hizmet eder | T330, T103 | | |
+| 02:§3.1.1 Uygulama kurulum başına tek bir firmaya hizmet eder | T330, T103 | ✓ F1 payı (T103); kalan T330 | T103 KK2: `Company` tek satır, sabit ifadenin tekil dizini — `SettingsTablesTests` · T103 #360 |
 | 02:§3.1.2 Firmanın kimliği panelden yönetilir; altyapısı kurulumdan gelir | T330, T535 | | |
 | 02:§3.1.3 Firma tipi seçilir ve zorunlu kimlik alanları tipe göre değişir | T330, T535 | | |
 | 02:§3.1.4 Yasal kimlik bilgileri sitede sürekli erişilebilir durur | T330, T506, T537 | | |
@@ -6631,12 +6631,12 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:§3.13.17 Giriş, şifre sıfırlama, hesap kaydı ve doğrulama bağlantısının yeniden istenmesi limitlidir | T342, T215, T343 | | |
 | 02:§3.13.18 Kayıtta ve hesapta pazarlama onayı yoktur | T341, T514 | | |
 | 02:§3.13.19 Hesap kaydı ve Google ile ilk giriş veri toplayan girişlerin kapısına bağlıdır | T341, T331 | | |
-| 02:§3.13.20 Her giriş denemesi giriş kaydına yazılır | T341, T108 | | |
+| 02:§3.13.20 Her giriş denemesi giriş kaydına yazılır | T341, T108 | ✓ F1 payı (T108); kalan T341 | T108 KK6: `LoginRecord` yalnız eklenir — `SessionLinkAttemptLoginTablesTests` · T108 #365 |
 | 02:§3.13.21 Hesap bir ad taşır | T341, T517 | | |
 | 02:§3.14 Adres | T344 | | |
 | 02:§3.14.1 Üye müşterinin adres defteri vardır | T344, T509, T518 | | |
 | 02:§3.14.2 Fatura adresi teslimat adresinden ayrı seçilebilir | T344, T509 | | |
-| 02:§3.14.3 Adreste il serbest metin değildir; | T344, T103 | | |
+| 02:§3.14.3 Adreste il serbest metin değildir; | T344, T103 | ✓ F1 payı (T103); kalan T344 | T103 KK4: `Province.Code` tekil iki rakam, il satırı silinmez — `SettingsTablesTests` · T103 #360 |
 | 02:§3.14.4 Siparişin istediği adresler kalemlerin tipine bağlıdır | T344, T509 | | |
 | 02:§3.14.5 Sipariş, adreslerini kendi içine dondurur; | T344, T355, T518 | | |
 | 02:§3.14.6 Adresin alanları | T344, T509, T518 | | |
@@ -6807,7 +6807,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:§3.33.7 Uyuşmazlık bilgisi iki metnin zorunlu parçasıdır | T366 | | |
 | 02:§3.33.8 Ayarlarla çelişen serbest metin firmanın sorumluluğundadır | T366 | | |
 | 02:§3.33.9 Dört metin tamamlanmadan satış açılmaz; | T366, T331 | | |
-| 02:§3.34 Site geneli: cihaz, tarayıcı, erişilebilirlik ve süreklilik | T540, T327, T118 | | |
+| 02:§3.34 Site geneli: cihaz, tarayıcı, erişilebilirlik ve süreklilik | T540, T327, T118 | ✓ F1 payı (T118); kalan T540, T327 | T118 KK3–KK4: `HeartbeatRecord`, `BackupStatusRecord` tek satır, `OutageRecord` süresi — `SchedulerBackupDisposalAndKeyTablesTests` · T118 #376 |
 | 02:§3.34.1 Tek site, duyarlı tasarım | T540 | | |
 | 02:§3.34.2 Vitrin mobil önceliklidir, panel masaüstü önceliklidir; panelde hiçbir işlev mobilde kapatılmaz | T540 | | |
 | 02:§3.34.3 Tarayıcı tabanı son iki büyük sürümdür | T540 | | |
@@ -6815,9 +6815,9 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:§3.34.5 Erişilebilirliğin tabanı Aile ve Sosyal Hizmetler Bakanlığı'nın "Web Siteleri ve Mobil Uygulamaların Erişilebilirliği Kontrol Listesi — A Seviyesi"… | T540, T543 | | |
 | 02:§3.34.6 Sitede ziyaretçi ölçümü yoktur | T540 | | |
 | 02:§3.34.7 Ürün çalışma süresi taahhüdü vermez | T327 | | |
-| 02:§3.34.8 Sipariş tarafında veri kaybı toleransı sıfırdır | T07, T118, T327 | ✓ F0 payı (T07); kalan T118, T327 | T07 KK1: işlem günlüğü ≤ 1 dk, `archive_timeout` 50 sn — `BackupLayoutConsistencyTests.ArchiveSettings_…` · T07 #351 |
+| 02:§3.34.8 Sipariş tarafında veri kaybı toleransı sıfırdır | T07, T118, T327 | ✓ F0 payı (T07), F1 payı (T118); kalan T327 | T07 KK1: işlem günlüğü ≤ 1 dk, `archive_timeout` 50 sn — `BackupLayoutConsistencyTests.ArchiveSettings_…` · T07 #351; F1: T118 KK3, KK7: `BackupStatusRecord` ve durum kullanıcısının iki sütunluk yetkisi — `SchedulerBackupDisposalAndKeyTablesTests` · T118 #376 |
 | 02:§4.1 Sayım kuralları | T324, T325, T337, T338, T350, T353, T360, T378 | | |
-| 02:§4.1.1 Tek saat dilimi Türkiye saatidir | T378, T101, T216 | | |
+| 02:§4.1.1 Tek saat dilimi Türkiye saatidir | T378, T101, T216 | ✓ F1 payı (T101); kalan T378, T216 | T101 KK4: an `timestamptz` — `ColumnTypeConsistencyTests` · T101 #358 |
 | 02:§4.1.2 İş günü pazartesi–cumadır, resmî tatiller hariç | T378, T350, T353 | | |
 | 02:§4.1.3 İki süre iş günüyle, gerisi takvim günüyle sayılır | T378, T324, T325 | | |
 | 02:§4.1.4 Gün olarak belirlenen süre, başlangıç gününün ertesi günü başlar ve son günün 23:59'unda dolar | T378, T337, T338, T360 | | |
@@ -6825,7 +6825,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:§4.2 Süreler | T324, T325, T326, T301, T302, T201 | | |
 | 02:Z-1 E-posta doğrulama bağlantısının ömrü | T324, T341 | | |
 | 02:Z-2 Şifre sıfırlama bağlantısının ömrü | T324, T342, T343 | | |
-| 02:Z-3 Yönetici daveti bağlantısının ömrü | T324, T106, T520 | | |
+| 02:Z-3 Yönetici daveti bağlantısının ömrü | T324, T106, T520 | ✓ F1 payı (T106); kalan T324, T520 | T106 KK1, KK3: `AdminInvitation` kaydı ve sonuç anları — `AdminAndAuditTablesTests` · T106 #363 |
 | 02:Z-4 Kısa oturum — "beni hatırla" işaretsiz | T324, T342 | | |
 | 02:Z-5 Uzun oturum — "beni hatırla" işaretli | T324, T342 | | |
 | 02:Z-6 Sepetin ömrü | T324, T346 | | |
@@ -6856,7 +6856,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:Z-28 Sipariş, ödeme ve fatura verisi; sözleşme ve ön bilgilendirme kayıtları; siparişe donmuş yasal… | T301 | | |
 | 02:Z-41 Ödemesi hiç alınmamış (Başarısız) siparişin kişisel verisi | T301 | | |
 | 02:Z-29 Ayıp talebi kaydı | T302, T374 | | |
-| 02:Z-30 İşlem izi | T302, T106 | | |
+| 02:Z-30 İşlem izi | T302, T106 | ✓ F1 payı (T106); kalan T302 | T106 KK4: `dispose_expired_audit_logs` on yılı dolanı siler, dolmayana dokunmaz — `AdminAndAuditTablesTests` · T106 #363 |
 | 02:Z-31 Hesap verisi — giriş bilgileri, şifre, açık oturumlar, adres defteri | T345 | | |
 | 02:Z-32 Sepet | T345 | | |
 | 02:Z-33 İletişim talebi — KVKK talebi dahil | T302, T365 | | |
@@ -6916,7 +6916,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:§6.6 Katalog yönetimi (akış 5) | T333, T334, T335, T336, T337, T338, T340, T350, T364 | | |
 | 02:§6.7 Sipariş yürütümü (akış 6) | T305, T306, T316, T317, T319, T340, T351, T353, T364, T368, T375 | | |
 | 02:§6.8 Kurumsal içerik (akış 7) | T358, T359, T360, T361, T364, T365 | | |
-| 02:§6.9 Mağaza ayarları (akış 8) | T330, T331, T350, T352, T353, T362, T366, T106, T520 | | |
+| 02:§6.9 Mağaza ayarları (akış 8) | T330, T331, T350, T352, T353, T362, T366, T106, T520 | ✓ F1 payı (T106); kalan T330, T331, T350, T352, T353, T362, T366, T520 | T106 KK1–KK3: yönetici hesabı ve davet tabloları — `AdminAndAuditTablesTests` · T106 #363 |
 | 02:§7.1 Üç yol ve ortak ilkeler | T306, T307, T365, T366, T367, T369, T371, T372, T374, T386 | | |
 | 02:§7.1.1 Müşterinin satın almadan sonra başvurabileceği üç ayrı yol vardır | T367, T371, T374 | | |
 | 02:§7.1.2 Tek akış tüketici akışıdır | T371 | | |
@@ -6974,7 +6974,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:§8.1.4 Ekranlar hesabın varlığını kayıtta, ödeme adımının hatırlatmasında ve hesabın e-posta değişikliğinde ele verir | T341, T342, T376, T516, T509, T517 | | |
 | 02:§8.1.5 Üç işlem oturum açıkken de yeniden doğrulama ister: | T342, T343 | | |
 | 02:§8.1.6 Şifre politikası uzunluk tabanlıdır | T342 | | |
-| 02:§8.1.7 Yönetici tarafı aynı rejimdedir | T342, T106, T520 | | |
+| 02:§8.1.7 Yönetici tarafı aynı rejimdedir | T342, T106, T520 | ✓ F1 payı (T106); kalan T342, T520 | T106 KK1–KK2: `Admin` hesabı kaydı — `AdminAndAuditTablesTests` · T106 #363 |
 | 02:§8.2 Deneme limitleri | T338, T341, T342, T343, T348, T354, T365, T376, T377 | | |
 | 02:L-1 Başarısız giriş denemesi — şifreyle; yeniden doğrulamadaki başarısız şifre denemesi de (§3.13.13;… | T376, T342 | | |
 | 02:L-2 Şifre sıfırlama talebi | T376, T342 | | |
@@ -7007,8 +7007,8 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:§8.4.4 Çerezler yalnız zorunludur ve — ödeme sağlayıcısının çerçevesi dışında — birinci taraftır; onay bandı yoktur | T209, T540 | | |
 | 02:§8.4.5 Saklama süreleri §4'te, imhanın biçimi ve kişisel veri yükümlülükleri §12'dedir | T201, T301, T302 | | |
 | 02:§8.5 Kayıtlar ve veri ihlali | T302, T341 | | |
-| 02:§8.5.1 Ürün ayrı bir ihlal kaydı tutmaz | T341, T302, T106, T201 | | |
-| 02:§8.5.2 İşlem izi on yıllık saklama süresi boyunca değiştirilemez ve silinemez; | T106, T302, T201 | | |
+| 02:§8.5.1 Ürün ayrı bir ihlal kaydı tutmaz | T341, T302, T106, T201 | ✓ F1 payı (T106); kalan T341, T302, T201 | T106 KK1, KK5: tek iz tablosu `audit_logs`, ayrı ihlal tablosu yok — `AdminAndAuditTablesTests` · T106 #363 |
+| 02:§8.5.2 İşlem izi on yıllık saklama süresi boyunca değiştirilemez ve silinemez; | T106, T302, T201 | ✓ F1 payı (T106); kalan T302, T201 | T106 KK4: uygulama kullanıcısında `UPDATE`/`DELETE` yok, imha yalnız fonksiyonla — `AdminAndAuditTablesTests`; `VAL-A838` PASS · T106 #363 |
 | 02:§9.1 Kanal ve ilkeler | T201, T304, T305, T328, T330, T362, T382, T385, T407, T511, T531, T601 | | |
 | 02:§9.1.1 Tek kanal e-postadır | T305, T328 | | |
 | 02:§9.1.2 Hiçbir sipariş ya da talep akışı bir e-postanın ulaşmasına bağlı değildir | T304, T305, T328, T511 | | |
@@ -7060,9 +7060,9 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:§10.2.5 Yönetici hesabının sepeti ve siparişi olmaz | T379, T341, T342, T343 | | |
 | 02:§10.2.6 Kullanılmamış davet geri çekilebilir; bir adres için aynı anda tek geçerli davet vardır | T379, T308, T380, T324, T522 | | |
 | 02:§10.2.7 Panele erişimin kaybında kurtarma ürünün dışındadır ve kurulum tarafının işidir | T379, T303, T601 | | |
-| 02:§10.3 İşlem izi | T106, T201, T341, T345, T375, T379, T380, T381, T384, T522 | | |
+| 02:§10.3 İşlem izi | T106, T201, T341, T345, T375, T379, T380, T381, T384, T522 | ✓ F1 payı (T106); kalan T201, T341, T345, T375, T379, T380, T381, T384, T522 | T106 KK1, KK4–KK5: `AuditLog` tablosu, yetki ve değer olarak yönetici — `AdminAndAuditTablesTests` · T106 #363 |
 | 02:§10.3.1 İz sekiz alanda tutulur | T380, T379, T381, T384, T375, T345, T523, T524 | | |
-| 02:§10.3.2 İz saklama süresi boyunca (§10.3.5) değiştirilemez ve silinemez | T380, T106 | | |
+| 02:§10.3.2 İz saklama süresi boyunca (§10.3.5) değiştirilemez ve silinemez | T380, T106 | ✓ F1 payı (T106); kalan T380 | T106 KK4: iz değiştirilemez, imha fonksiyonu — `AdminAndAuditTablesTests`; `VAL-A838` PASS · T106 #363 |
 | 02:§10.3.3 Sistem olayları ize yazılmaz | T380, T201, T341 | | |
 | 02:§10.3.4 İz panelde düz bir liste olarak görünür; | T380, T522 | | |
 | 02:§10.3.5 İz on yıl saklanır; | T380, T201 | | |
@@ -7109,10 +7109,10 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:P-10 KDV oranı varsayılanı | T381, T336, T525 | | |
 | 02:P-11 Kaldırıldı — duyuru metni firma ayarı değil, kurumsal içerik kaydıdır (§3.27.21); kimlik yeniden kul… | — | | |
 | 02:P-44 İfa süresi — hizmet ürünü | T381, T325, T332, T335, T340, T525 | | |
-| 02:§11.2 Ürün sabitleri | T106, T108, T201, T215, T302, T305, T311, T312, T324, T326, T327, T332, T333, T338, T339, T340, T341, T342, T343, T348, T352, T353, T354, T358, T359, T360, T362, T365, T370, T373, T376, T377, T381, T385, T409, T506, T511, T514, T515, T516, T517, T519, T520, T525, T526, T534, T536, T540, T543 | | |
+| 02:§11.2 Ürün sabitleri | T106, T108, T201, T215, T302, T305, T311, T312, T324, T326, T327, T332, T333, T338, T339, T340, T341, T342, T343, T348, T352, T353, T354, T358, T359, T360, T362, T365, T370, T373, T376, T377, T381, T385, T409, T506, T511, T514, T515, T516, T517, T519, T520, T525, T526, T534, T536, T540, T543 | ✓ F1 payı (T106, T108); kalan Task hücresinin F2–F5 task'ları | T106 KK4 (Z-30 imhada), T108 KK1–KK2 · T106 #363, T108 #365 |
 | 02:P-12 E-posta doğrulama bağlantısının ömrü | T381, T324, T341, T514 | | |
 | 02:P-13 Şifre sıfırlama bağlantısının ömrü — Google girişinin teyit bağlantısı da bu ömrü taşır | T381, T324, T342, T343, T409, T516 | | |
-| 02:P-14 Yönetici daveti bağlantısının ömrü | T381, T106, T324, T520 | | |
+| 02:P-14 Yönetici daveti bağlantısının ömrü | T381, T106, T324, T520 | ✓ F1 payı (T106); kalan T381, T324, T520 | T106 KK1, KK3: `AdminInvitation` kaydı — `AdminAndAuditTablesTests` · T106 #363 |
 | 02:P-47 E-posta değişikliğini geri alma bağlantısının ömrü | T381, T343, T517, T519 | | |
 | 02:P-15 Kısa oturum — "beni hatırla" işaretsiz | T381, T324, T342, T515 | | |
 | 02:P-16 Uzun oturum — "beni hatırla" işaretli | T381, T324, T342, T515 | | |
@@ -7145,7 +7145,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 02:P-40 İletişim talebinin saklama süresi | T381, T302, T365 | | |
 | 02:P-41 Bildirim gönderim kaydının saklama süresi — hesap ve yönetim e-postaları ile firmaya giden bildiriml… | T381, T302 | | |
 | 02:P-43 Malı dönmeyen caymada havale hattı IBAN'ının saklama süresi | T381, T327, T370, T373, T543 | | |
-| 02:P-45 Giriş kaydının ve sistem kayıtlarının saklama süresi | T381, T108, T201, T302, T341 | | |
+| 02:P-45 Giriş kaydının ve sistem kayıtlarının saklama süresi | T381, T108, T201, T302, T341 | ✓ F1 payı (T108); kalan T381, T201, T302, T341 | T108 KK6: `LoginRecord` yalnız eklenir, hesapla silinmez — `SessionLinkAttemptLoginTablesTests` · T108 #365 |
 | 02:P-42 En dar desteklenen ekran genişliği | T381, T540 | | |
 | 02:§11.3 Hacim kabulleri | T383 | | |
 | 02:H-1 Katalog | — | | |
@@ -7192,10 +7192,10 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 |---|---|---|---|
 | 05:MK-01 C# / .NET; tek uygulama, sayfalar sunucuda üretilir | T02 | ✓ T02 | T02 KK2: `Shopfolio.Web` .NET 10 Razor Pages, tek uygulama · T02 #335 |
 | 05:MK-02 ASP.NET Core; .NET 10, yalnız uzun süreli destekli (LTS) sürümler | T02, T06 | ✓ T02, T06 | T02 KK2 (.NET 10, `global.json`); T06 KK1 uygulama imajı .NET 10 taban · T02 #335, T06 #347 |
-| 05:MK-03 Entity Framework Core; şema değişiklikleri onun göçleriyle | T02, T101 | ✓ F0 payı (T02); kalan T101 | T02/T03: EF Core paketi ve varlıksız `AppDbContext`, göç demeti (T03 KK5) · T02 #335 |
+| 05:MK-03 Entity Framework Core; şema değişiklikleri onun göçleriyle | T02, T101 | ✓ T02, T101 | T02/T03: EF Core paketi ve varlıksız `AppDbContext`, göç demeti (T03 KK5) · T02 #335; F1: T101 KK1: tek `AppDbContext` `Infrastructure/` altında; 18 göç, `Down` yok · T101 #358 |
 | 05:MK-04 Razor Pages; bütün sayfalar sunucuda tam HTML, gönder–yönlendir–göster; ayrı JSON API katmanı yok | T02, T206 | ✓ F0 payı (T02); kalan T206 | T02 KK2: Razor Pages, `Pages/` klasörü · T02 #335 |
 | 05:MK-05 Düz JavaScript modülleri ve düz CSS; ön yüz çatısı ve npm hattı yok, JavaScript yalnız iyileştirir | T02, T540, T539 | ✓ F0 payı (T02); kalan T540, T539 | T02 KK6: `wwwroot/` düz JS ve CSS; npm hattı yok · T02 #335 |
-| 05:MK-06 PostgreSQL 18; tek örnek, aynı sunucuda kendi konteynerinde | T05, T06, T101 | ✓ F0 payı (T05, T06); kalan T101 | T05 KK1, T06 KK2: PostgreSQL 18 kendi konteynerinde (özetle sabit taban) · T05 #348, T06 #347 |
+| 05:MK-06 PostgreSQL 18; tek örnek, aynı sunucuda kendi konteynerinde | T05, T06, T101 | ✓ T05, T06, T101 | T05 KK1, T06 KK2: PostgreSQL 18 kendi konteynerinde (özetle sabit taban) · T05 #348, T06 #347; F1: T101 KK6: ICU Türkçe sıralama PostgreSQL 18'de — `SampleDatabaseTests` · T101 #358 |
 | 05:MK-07 Firmanın adına kiralanan sanal sunucu; Linux konteynerleri | T05, T601 | ✓ F0 payı (T05); kalan T601 | T05: Linux konteynerleri Compose ile; T09 yerel referans kurulum (Linux, iç Docker) · T05 #348 |
 | 05:MK-08 Caddy 2 | T05 | ✓ T05 | T05 KK3, KK8: Caddy 2 ters vekil, yalnız 80/443 · T05 #348 |
 | 05:MK-09 Veritabanının yedeği pgBackRest'le, veritabanı konteynerinde; dosyaların ve sistem kayıtlarının yedeği bir… | T06, T07 | ✓ T06, T07 | T06 KK2 pgBackRest veritabanı imajında; T07 KK1–KK6 — `BackupLayoutConsistencyTests` · T06 #347, T07 #351 |
@@ -7208,12 +7208,12 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:MK-16 Vitrin ve panel aynı alan adında; panel ayrı bir yol alanı | T206, T207 | | |
 | 05:MK-17 Uygulamanın çağırdığı üç dış servis bir bağlantı katmanının arkasında; ürün kuralı çekirdekte; dış serviste… | T202, T203 | | |
 | 05:MK-18 Adres addan sunucuda üretilir; arama motoru verileri JSON-LD ve Open Graph ile ilk yanıtta; kapalı sayfalar… | T219, T206 | | |
-| 05:MK-19 Zaman UTC'de tutulur, Türkiye saatiyle sayılır; para ondalıklı sayıyla; yuvarlama tek işlevden | T227, T101 | | |
+| 05:MK-19 Zaman UTC'de tutulur, Türkiye saatiyle sayılır; para ondalıklı sayıyla; yuvarlama tek işlevden | T227, T101 | ✓ F1 payı (T101); kalan T227 | T101 KK4: an `timestamptz`, para `numeric(12,2)` — `ColumnTypeConsistencyTests` · T101 #358 |
 | 05:MK-20 Kayıt varyantı: iyimser eşzamanlılık, sürüm değeri, kilit yok | T228, T208 | | |
 | 05:MK-21 Sipariş varyantı: sürüm ve kısa satır kilidi; kilit sırası bütün işlemlerde aynı | T228, T348 | | |
 | 05:MK-22 Tek gecelik imha işi; süre veriden hesaplanır; imha kaydı ayrı tabloda | T201 | | |
 | 05:MK-23 İmha fiziksel silmedir; siparişte ve ona bağlı kayıtlarda kişisel alanlar boşaltılır | T201, T301, T302 | | |
-| 05:MK-24 İz tablosunda uygulama kullanıcısı yalnız ekler ve okur; süresi dolan satırı veritabanı fonksiyonu siler | T106, T380 | | |
+| 05:MK-24 İz tablosunda uygulama kullanıcısı yalnız ekler ve okur; süresi dolan satırı veritabanı fonksiyonu siler | T106, T380 | ✓ F1 payı (T106); kalan T380 | T106 KK4: iz tablosunda yalnız ekleme ve okuma, imha fonksiyonu — `AdminAndAuditTablesTests`; `VAL-A838` PASS · T106 #363 |
 | 05:MK-25 Sürekli günlük aktarımı | T07, T601 | ✓ F0 payı (T07); kalan T601 | T07 KK1: `archive_timeout` 50 sn — `BackupLayoutConsistencyTests` · T07 #351 |
 | 05:MK-26 Yedeğin kapsamı, yeri, iki anahtarla şifrelenmesi, her kopyada otuz günlük saklaması | T07 | ✓ T07 | T07 KK3, KK5: iki anahtar, ayrı önek, kapsam — `BackupLayoutConsistencyTests`, betik testleri · T07 #351 |
 | 05:MK-27 Kurtarma hedefi aynı gün | T601, T07 | ✓ F0 payı (T07); kalan T601 | T07 KK7: kurtarma provası runbook adımı — `RunbookDrill_HasTheFourChecks…` · T07 #351 |
@@ -7227,7 +7227,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:MK-35 Durum makinesi tek geçiş biriminde; beyaz liste | T315, T319 | | |
 | 05:MK-36 Onay isteği müşterinin gördüğünü taşır; onay tek işlemde, koşullu ayırmayla | T348 | | |
 | 05:MK-37 İç yan etkiler geçişle aynı işlemde, dış yan etkiler veritabanındaki iş kuyruğunda, e-posta gönderim kaydın… | T220, T305 | | |
-| 05:MK-38 Her e-posta gönderim kaydında bir satır olarak doğar; gövde gönderim anında üretilir | T305, T220, T117 | | |
+| 05:MK-38 Her e-posta gönderim kaydında bir satır olarak doğar; gövde gönderim anında üretilir | T305, T220, T117 | ✓ F1 payı (T117); kalan T305, T220 | T117 KK1–KK3: `DispatchRecord` tablosu ve durum kısıtları — `DispatchAndChannelStateTablesTests` · T117 #375 |
 | 05:MK-39 Tek işlenme: onay anahtarı, önce kaydedilen sağlayıcı bildirimi | T311, T348, T402, T403 | | |
 | 05:MK-40 Karta para gönderen istekten önce geri ödeme kaydı; sonucu bilinmeyen istek yeniden gönderilmez, sonuç bekl… | T370, T404, T405 | | |
 | 05:MK-41 Uygulamanın içinde tek zamanlayıcı | T221 | | |
@@ -7237,9 +7237,9 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:MK-45 Oturum sunucuda tutulur; iki hesap türü iki kimlik şeması | T207, T342 | | |
 | 05:MK-46 Şifre çatının özetleyicisiyle; Google ile giriş OpenID Connect'in yetki kodu akışı | T342, T343, T409 | | |
 | 05:MK-47 Yetki sunucuda, varsayılan kapalı, kayıt düzeyinde süzülerek | T207, T323 | | |
-| 05:MK-48 Deneme limitleri veritabanında, deneme kaydıyla; IPv6'da /64 | T215, T108 | | |
+| 05:MK-48 Deneme limitleri veritabanında, deneme kaydıyla; IPv6'da /64 | T215, T108 | ✓ F1 payı (T108); kalan T215 | T108 KK5: `AttemptRecord` ekseni limitin eksenine uyar — `SessionLinkAttemptLoginTablesTests` · T108 #365 |
 | 05:MK-49 Genel istek hızı sınırı uygulamada | T215, T203 | | |
-| 05:MK-50 Anahtarlar kriptografik üreteçle | T222, T108 | | |
+| 05:MK-50 Anahtarlar kriptografik üreteçle | T222, T108 | ✓ F1 payı (T108); kalan T222 | T108 KK2–KK4: belirteç ve işaret özetleri tekil — `SessionLinkAttemptLoginTablesTests` · T108 #365 |
 | 05:MK-51 E-postayla gelen bağlantının açılması işlem yapmaz; işlem ekrandaki düğmeyle | T222, T342 | | |
 | 05:MK-52 Her POST sahteciliğe karşı korumadan geçer | T209 | | |
 | 05:MK-53 Güvenlik başlıkları: içerik güvenlik politikası | T209 | | |
@@ -7279,10 +7279,10 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:§4.1 Durum makinesinin yeri — geçiş birimi | T315, T319 | | |
 | 05:§4.2 Sipariş onayı | T348 | | |
 | 05:§4.3 Yan etkiler ve iş kuyruğu — olay kaybı | T220 | | |
-| 05:§4.4 E-postanın gönderimi ve gönderim kaydı | T117, T220, T305, T375, T385, T204 | | |
+| 05:§4.4 E-postanın gönderimi ve gönderim kaydı | T117, T220, T305, T375, T385, T204 | ✓ F1 payı (T117); kalan T220, T305, T375, T385, T204 | T117 KK1–KK5: gönderim kaydı ve kanal hâli — `DispatchAndChannelStateTablesTests` · T117 #375 |
 | 05:§4.5 Tek işlenme — sipariş onayı, sağlayıcı bildirimi ve son sorgu | T311, T348, T403, T209 | | |
 | 05:§4.6 Karta para gönderen isteğin tek işlenmesi | T370, T404, T405, T529 | | |
-| 05:§4.7 İşlem izi | T380, T106 | | |
+| 05:§4.7 İşlem izi | T380, T106 | ✓ F1 payı (T106); kalan T380 | T106 KK4–KK5 — `AdminAndAuditTablesTests`; `VAL-A838` PASS · T106 #363 |
 | 05:§5.1 Çalıştırıcılar — zamanlayıcı ve iş kuyruğu | T220, T221 | | |
 | 05:§5.2 İşlerin envanteri | T201, T220, T221, T302, T385, T408 | | |
 | 05:§5.3 İşlerin saatleri ve gecenin sırası | T221 | | |
@@ -7297,11 +7297,11 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 05:§6.8 Hassas verinin taşınması ve saklanması | T209, T05, T07 | ✓ F0 payı (T05, T07); kalan T209 | T05 KK8 HSTS; T07 KK5 yedek şifreleme · T05 #348, T07 #351 |
 | 05:§6.9 Kurulum tarafının işlemleri ve bakım erişimi | T303, T387, T389, T601 | | |
 | 05:§6 6.x Secret yönetimi (bu alt bölüm zorunludur) | T08, T222 | ✓ F0 payı (T08); kalan T222 | T08 KK1–KK6 — `SecretLayoutTests`, `SecretRunbookConsistencyTests`, `SecretSourceScanTests` · T08 #349 |
-| 05:§7.1 Veritabanı ve işlem bütünlüğü | T10, T101, T228 | ✓ F0 payı (T10); kalan T101, T228 | T10 KK1–KK8 — `DatabaseUsersTests`, `DatabaseUsersConsistencyTests` · T10 #350 |
+| 05:§7.1 Veritabanı ve işlem bütünlüğü | T10, T101, T228 | ✓ F0 payı (T10), F1 payı (T101); kalan T228 | T10 KK1–KK8 — `DatabaseUsersTests`, `DatabaseUsersConsistencyTests` · T10 #350; F1: T101 KK5, KK8: koşullu güncelleme, silme davranışı — `SampleDatabaseTests`, `ModelRuleTests` · T101 #358 |
 | 05:§7.2 Zamanın ve paranın temsili | T227 | | |
 | 05:§7.3 Eşzamanlılık kontrolü | T228, T208 | | |
 | 05:§7.4 Saklama ve imha | T201, T301, T302 | | |
-| 05:§7.5 İşlem izinin korunması | T106, T380, T201 | | |
+| 05:§7.5 İşlem izinin korunması | T106, T380, T201 | ✓ F1 payı (T106); kalan T380, T201 | T106 KK4: iz yetkisi ve imha fonksiyonu — `AdminAndAuditTablesTests`; `VAL-A838` PASS · T106 #363 |
 | 05:§7.6 Yedekleme ve kurtarma | T07, T232, T601 | ✓ F0 payı (T07); kalan T232, T601 | T07 KK1–KK7 — `BackupLayoutConsistencyTests`, betik testleri (4 dosya) · T07 #351 |
 | 05:§7.7 Dosya depolama ve dijital teslim | T223, T302, T312, T340 | | |
 | 05:§7.8 Önerilen stok kodu | T332 | | |
@@ -7335,21 +7335,21 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 09:§2 Source of truth hiyerarşisi | — | | |
 | 09:§3 Genel kod yazım kuralları | T02, T03, T04, T211, T226, T381 | ✓ F0 payı (T02, T03, T04); kalan T211, T226, T381 | T02 KK3–KK5, KK8; T03; T04 KK3: uyarılar hata, merkezî paket, kilitli geri yükleme · T02 #335, T03 #337, T04 #339 |
 | 09:§4 Proje yapısı ve klasör organizasyonu | T02, T05, T06, T202 | ✓ F0 payı (T02, T05, T06); kalan T202 | T02 KK2, T05 KK6, T06 KK5: proje ve `deploy/` düzeni · T02 #335, T05 #348, T06 #347 |
-| 09:§5 Adlandırma konvansiyonları | T101, T120, T206, T213, T224 | | |
+| 09:§5 Adlandırma konvansiyonları | T101, T120, T206, T213, T224 | ✓ F1 payı (T101, T120); kalan T206, T213, T224 | T101 KK3 (adlandırma kuralı); T120 KK1–KK5 eşitlik denetimleri · T101 #358, T120 #378 |
 | 09:§6 Mimari sınırlar | T03, T218, T223 | ✓ F0 payı (T03); kalan T218, T223 | T03 KK7 — `ModuleBoundaryTests` · T03 #337 |
 | 09:§7 Zaman ve biçim standartları | T211, T216, T227, T378 | | |
 | 09:§8 Hata yönetimi | T205, T212, T213, T214 | | |
-| 09:§9 Domain kuralları | T106, T201, T218, T219, T228, T301, T315, T333, T348, T355, T356, T363, T380 | | |
-| 09:§10 Veri erişimi | T01, T04, T10, T101, T118, T119, T208, T210, T228, T229, T233, T333, T384, T386 | ✓ F0 payı (T01, T04, T10); kalan T101, T118, T119, T208, T210, T228, T229, T233, T333, T384, T386 | T01 KK5 (§10.7), T04 KK5 (§10.6), T10 KK1–KK8 (§10.8) — `DatabaseUsersTests` · T01 #338, T04 #339, T10 #350 |
+| 09:§9 Domain kuralları | T106, T201, T218, T219, T228, T301, T315, T333, T348, T355, T356, T363, T380 | ✓ F1 payı (T106); kalan T201, T218, T219, T228, T301, T315, T333, T348, T355, T356, T363, T380 | T106 KK4 (§9.2 madde 6–8: imha fonksiyonu) — `AdminAndAuditTablesTests` · T106 #363 |
+| 09:§10 Veri erişimi | T01, T04, T10, T101, T118, T119, T208, T210, T228, T229, T233, T333, T384, T386 | ✓ F0 payı (T01, T04, T10), F1 payı (T101, T118, T119); kalan T208, T210, T228, T229, T233, T333, T384, T386 | T01 KK5 (§10.7), T04 KK5 (§10.6), T10 KK1–KK8 (§10.8) — `DatabaseUsersTests` · T01 #338, T04 #339, T10 #350; F1: T101 KK1, KK8; T118 KK7; T119 KK1, KK5 · T101 #358, T118 #376, T119 #377 |
 | 09:§11 Entegrasyon kuralları | T202, T203, T305, T366, T401, T407, T409, T501 | | |
-| 09:§12 Sözleşme ve olay sürümleme | T102, T203, T220, T311, T538 | | |
+| 09:§12 Sözleşme ve olay sürümleme | T102, T203, T220, T311, T538 | ✓ F1 payı (T102); kalan T203, T220, T311, T538 | T102 KK2, KK4–KK5: metin saklama, tek dönüşüm, kilit dosyaları — `EnumConversionTests`, `EnumLockTests` · T102 #359 |
 | 09:§13 Arka plan iş kuralları | T220, T221, T303, T387, T388, T389 | | |
 | 09:§14 Hassas hesaplama kuralları | T227, T336, T337, T338, T349, T369, T370, T401, T402, T403, T405 | | |
 | 09:§15 Güvenlik kuralları | T207, T209, T09, T215, T219, T222, T223, T224, T232, T312, T339, T342, T354, T376, T603 | ✓ F0 payı (T09); kalan T207, T209, T215, T219, T222, T223, T224, T232, T312, T339, T342, T354, T376, T603 | T09 KK7: istemci adresi (§15.1 m8); T05 KK8 (§15.2) · T09 #354 |
 | 09:§16 İstemci tarafı kurallar | T525, T539, T540, T543, T544, T548 | | |
 | 09:§17 Yardımcı servis / sidecar standartları (varsa) | T06, T07, T08, T10 | ✓ T06, T07, T08, T10 | T06 KK2–KK6, T07 KK2–KK5, T08, T10 KK1 — betik testleri, `BackupLayoutConsistencyTests` · T06 #347, T07 #351, T08 #349, T10 #350 |
 | 09:§18 Loglama ve gözlemlenebilirlik | T225, T230, T231, T314, T203, T213 | | |
-| 09:§19 Test kuralları | T03, T04, T120, T202, T329, T538, T546, T547 | ✓ F0 payı (T03, T04); kalan T120, T202, T329, T538, T546, T547 | T03 KK1–KK9, T04 KK2 — Unit 68, Integration 62, `ForbiddenTestPatternScanTests` · T03 #337, T04 #339 |
+| 09:§19 Test kuralları | T03, T04, T120, T202, T329, T538, T546, T547 | ✓ F0 payı (T03, T04), F1 payı (T120); kalan T202, T329, T538, T546, T547 | T03 KK1–KK9, T04 KK2 — Unit 68, Integration 62, `ForbiddenTestPatternScanTests` · T03 #337, T04 #339; F1: T120 KK8: `Consistency` özellikli, yalnız Lint'te — `TestIsolationScanTests` · T120 #378 |
 | 09:§20 Performans kuralları | T210, T220, T223, T229 | | |
 | 09:§21 Git ve CI/CD kuralları | T03, T04, T06, T09, T603 | ✓ F0 payı (T03, T04, T06, T09); kalan T603 | T03, T04, T06, T09 KK3, KK5: CI ve Publish yeşil, `SETUP_COMPLETE=true` · T03 #337, T04 #339, T06 #347, T09 #354 |
 | 09:§22 Refactor kuralları | — | | |
@@ -7435,7 +7435,7 @@ Kaynak (O4b 1/2): `02 §4`–§8 (193: iş kuralı 101 `02:§n.m.k` · kimlikli 
 | 10:KP-72 Deneme limitleri, ödenmemiş sipariş tavanı, giriş kaydı | T215, T341, T376, T377 | | |
 | 10:KP-73 Çerez onayı gerektirmeyen site: yalnız zorunlu çerezler; ödeme çerçevesi dışında hepsi birinci taraf | T224, T366 | | |
 | 10:KP-74 Aydınlatma bağlantısı, günlük imha, imha kaydı | T201, T225, T301, T302, T324, T327, T343, T345, T370, T373, T514, T519, T522, T529, T533 | | |
-| 10:KP-75 Kayıtların saklama süresince kaybolmaması; yedek penceresi | T07, T118, T327 | ✓ F0 payı (T07); kalan T118, T327 | T07 KK1–KK6: sürekli günlük aktarımı ve gecelik yedek · T07 #351 |
+| 10:KP-75 Kayıtların saklama süresince kaybolmaması; yedek penceresi | T07, T118, T327 | ✓ F0 payı (T07), F1 payı (T118); kalan T327 | T07 KK1–KK6: sürekli günlük aktarımı ve gecelik yedek · T07 #351; F1: T118 KK3, KK7: `BackupStatusRecord` ve durum kullanıcısının yetkisi — `SchedulerBackupDisposalAndKeyTablesTests` · T118 #376 |
 | 10:KP-76 Eşzamanlı düzenleme uyarısı; siparişte önce tamamlanan geçerli | T208, T228, T364, T542 | | |
 | 10:KP-77 Salt okunur üye kaydı görünümü ve firma tarafından hesap silme | T345, T380, T533 | | |
 | 10:KD-1 Fatura kesilmez ve saklanmaz; e-Arşiv, e-Fatura ve fatura yükleme yok | T357, T384 | | |

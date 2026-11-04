@@ -1,6 +1,6 @@
 # T115 — Şube, içerik–ürün bağları ve iletişim talebi
 
-**Faz:** F1 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Doğrulama tur 1 PASS | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -66,10 +66,34 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-04, head `cbced3e`, PR #373) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama tur 1 — ✓ PASS (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks` (ana checkout'un hook'ları; eşdeğer); ana dal son 3 run `41815985996` (CI), `41815986016` (Publish), `41809802191` (Publish) success; `MEMORY.md`'de T115 satırı var.
+
+**Kabul kriterleri:** kapsam tam (7 kriter, KK1–KK7, `09 §25`, güvenlik); hepsi ✓. Validator göçü ve yapılandırmaları `06 §4.50`, §4.53, §4.57, §4'ün girişi, §2.2.5, §2.3.1, §2.5.1, §2.6.5, §2.9.2, §7.1 (tekil dizin ve "tekil dizini olmayan" satırları), §7.2 (dört tablonun altı FK satırı), §7.3 (telefon, alt metin, kapanış anı satırları), §7.5 (üç sorgu dizini) satırlarına karşı elle okudu:
+- Kriter 1, 7: dört tablo tek göçte (`20261104104643_CreateBranchContentLinkAndContactRequestTables`), `Down` yok; sütun türleri (`name` `varchar(150)` P-27, `working_hours` `varchar(200)` P-28, metinler `text`, telefon `varchar(10)`), boşluk ve varsayılanlar (`Draft`, `1`, `Open`) alan tablolarıyla birebir; her tabloda `id` + `created_at`, `Version` yalnız şubede; göçte `Down`/`suppressTransaction`/`CONCURRENTLY`/`now()`/`UPDATE`/`DELETE` yok; ifade dizini elle SQL, `public.` nitelikli; dal CI'ının göç adımı yeşil.
+- Kriter 2: iki tabloda `phone ~ '^[0-9]{10}$'`; dokuz hane, on bir hane, `+90`, boşluk, harf ve boş metin reddediliyor; NULL serbest.
+- Kriter 3: `image_id IS NOT NULL OR image_alt_text IS NULL`; `publish_status IN ('Draft', 'Published')`; `(publish_status, sort_order)` dizini tekil değil, aynı sıralı iki şube kaydediliyor; il ve görsel bağı `NO ACTION` — şubeye bağlı görselin ve ilin silinmesi reddediliyor, görsel değişince eskisi silinebiliyor.
+- Kriter 4: `(offering_id, product_id)` ve `(portfolio_item_id, product_id)` tekil; ikinci bağ reddediliyor, bir ürün iki kayda ve iki ürün bir kayda bağlanabiliyor.
+- Kriter 5: dört bağ `ON DELETE CASCADE`; ürün silmede ve içerik kaydı silmede bağ gidiyor, öbür uç kalıyor; `ModelRuleTests` basamaklama listesi dört satırla genişledi (`06 §2.2.5` ile eşit).
+- Kriter 6: `contact_request_status <> 'Closed' OR last_closed_at IS NOT NULL`; enum kısıtları `ContactTopic` (beş değer) ve `ContactRequestStatus` (iki değer) kod listeleriyle birebir.
+
+**`09 §25`:** göç genişletmedir; enum metin + izinli değer kısıtı; FK silme davranışı açık; anahtar `EntityIds.New()`; yeni kapalı değer ve paket yok (`ContactTopic`, `ContactRequestStatus` zaten vardı); yeni tablolar varsayılan yetkide (`Database` ad alanı testleri yeşil); modül sınırı — `Province`, `Image`, `Product`'a yalnız tür adıyla bağ, `PublishStatus` `Catalog.Contracts`'tan. `ContentRecordAndBrandingTablesTests`'teki `TRUNCATE … CASCADE` yalnız yeni bağ tablolarının başvurusunu karşılar, testi gevşetmez.
+
+**Testler (validator, yerel PostgreSQL 18 `shopfolio-t115-val-pg`, `fsync=off`):** build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` çıkış 0; Unit 245/245 (Consistency dahil); Integration 794 — T115 sınıfı + `ModelRuleTests` + `EnumDatabaseTests` + `ContentRecordAndBrandingTablesTests` 145/145, Model sınıfları iki grupta 274/274 ve 313/313, Database+FileSecrets+Web 62/62; yerel zaman aşımı yok; `dotnet restore --locked-mode` çıkış 0; koşu sonrası `git status` temiz. Dal CI `41818311284` (head `cbced3e`) yeşil — 9 iş success, guard skip.
+
+**Güvenlik:** sır yok; yalnız şema, auth etkisi yok; girdi doğrulama uygulanamaz (uç yok — formun tuzak alanı, limiti ve biçim denetimleri akış task'larında); yeni bağımlılık yok.
+
+**`12` satırları:** kaynak birimleri `06` entity'leri (KP yok); `06 §4.50`, §4.53, §4.57'yi ya da dört varlığı anan matris satırı yok; `Durum` değişmedi; `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları:** yok.
+
+**Yapım raporu karşılaştırması:** kriter tablosu, KK listesi ve ⚠ kararlar (boş alt metin = NULL, ifade dizini adı, `ContactRequest`'te sürüm yok, telefon `varchar(10)`, bağ tablolarında `Id`/`CreatedAt`, bekçi yok, `TRUNCATE CASCADE`) validator'ın bağımsız okumasıyla uyumlu. İki fark: yapım raporu ana dal Publish `41815986016`'yı failure diye yazmış, validator'ın kapısında aynı run success; yapımın yerel koşusundaki üç zaman aşımı validator koşusunda görülmedi. Kriteri etkilemez.
 
 ## Altyapı Değişiklikleri
 

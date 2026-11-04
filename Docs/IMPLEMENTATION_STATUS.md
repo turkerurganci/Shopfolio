@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-04 — T115 (Şube, içerik–ürün bağları ve iletişim talebi) yapım bitti, doğrulama bekliyor (dal `task/T115-sube-icerik-urun-iletisim`, PR #373; dört entity — `Branch`, `OfferingProduct`, `PortfolioItemProduct`, `ContactRequest` — `CorporateContent` modülünde tek göçle, `Down` yok; şube ve iletişim talebi telefonu on rakam, görselsiz şubede alt metin boş, içerik–ürün çifti tekil ve içerik kaydıyla ve ürünle basamaklı, kapalı talepte son kapanış anı dolu, talebin imha taraması için ifade dizini; kriter 1–7 ve KK1–KK7 öz denetimde ✓; Unit 245/245, Integration T115 sınıfı 39/39). Önceki giriş (T114 doğrulama tur 1) `STATUS_CHANGELOG.md`'ye taşındı.
+**Son güncelleme:** 2026-11-04 — T115 (Şube, içerik–ürün bağları ve iletişim talebi) bağımsız doğrulama tur 1: ✓ PASS (head `cbced3e`, PR #373; kapsam tam, 7 kriter ve KK1–KK7 ✓; dört tablonun sütun, varsayılan, dizin, FK ve kontrol kısıtları `06 §4.50`, §4.53, §4.57, §7.1–§7.5 ile birebir; telefon `^[0-9]{10}$`, görselsiz şubede alt metin NULL, yayın durumu iki değer, il ve görsel bağı `NO ACTION`, içerik–ürün çifti tekil ve iki uca basamaklı, kapalı talepte kapanış anı dolu, imha taramasının ifade dizini; Unit 245/245, Integration 794 (T115 sınıfı 39/39); dal CI `41818311284` yeşil; bulgu 0; K-notu yok). Merge yardımcıda. Önceki giriş (T115 yapım bitti) `STATUS_CHANGELOG.md`'ye taşındı.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -87,7 +87,7 @@
 | T112 | Ödeme ve geri ödeme kayıtları | ✓ | ✓ PASS (tur 1) | `d452256` | #370 |
 | T113 | İade reddi ve IBAN isteği | ✓ | ✓ PASS (tur 1) | `429ce56` | #371 |
 | T114 | İçerik kayıtları ve marka | ✓ | ✓ PASS (tur 1) | `c976977` | #372 |
-| T115 | Şube, içerik–ürün bağları ve iletişim talebi | ⏳ | — | — | #373 |
+| T115 | Şube, içerik–ürün bağları ve iletişim talebi | ✓ | ✓ PASS (tur 1) | `cbced3e` | #373 |
 | T116 | Galeri bağları | ⬚ | — | — | — |
 | T117 | Gönderim kaydı ve kanal hâli | ⬚ | — | — | — |
 | T118 | Zamanlayıcı, yedek, imha ve anahtar kayıtları | ⬚ | — | — | — |

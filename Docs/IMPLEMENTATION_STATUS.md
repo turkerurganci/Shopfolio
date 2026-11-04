@@ -132,7 +132,7 @@
 | T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ⬚ | — | — | — |
 | T231 | Maskelemenin üç katmanının testleri | ⬚ | — | — | — |
 | T232 | Veri koruma halkası | ⬚ | — | — | — |
-| T233 | Veritabanı oturum süreleri | ⏳ | — | — | #PRNO |
+| T233 | Veritabanı oturum süreleri | ⏳ | — | — | #384 |
 
 ---
 

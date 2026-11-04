@@ -86,7 +86,7 @@
 
 - **Branch:** `task/T233-veritabani-oturum-sureleri`
 - **Commit:** *(PR açıklamasında head SHA)*
-- **PR:** #PRNO
+- **PR:** #384
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
 

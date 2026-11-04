@@ -188,10 +188,18 @@ check 1 "extensionless identifier"   "app/t30"             'Token = options.Valu
 check 1 "config identifier"          "app/t31.config"      'ConnectionString = builder.ConnectionString'
 check 1 "yml dotted chain"           "app/t32.yml"         'password: some.dotted.chain.value'
 
+check 1 "ef column defaultValue"     "src/m5.cs"           '    password_hash = table.Column<string>(type: "text", nullable: false, defaultValue: "Sup3rS3cretValue!"),'
+check 1 "ef column comment"          "src/m6.cs"           '    api_key = table.Column<string>(type: "text", comment: "sk_live_9f3a1b2c3d4e"),'
+check 1 "ef column positional"       "src/m7.cs"           '    Password = table.Column<string>("abc12345xyz");'
+check 1 "ef column defaultValueSql"  "src/m8.cs"           '    token = table.Column<string>(type: "text", defaultValueSql: "'"'"'abc12345xyz'"'"'"),'
+check 1 "ef column open + literal"   "src/m9.cs"           '    password_hash = table.Column<string>(type: "text", defaultValue: "Sup3rS3cretValue!",'
+
 echo "--- must pass (exit 0) ---"
 check 0 "exc: dotted chain"          "src/u1.cs"           'ApiKey = options.Value.ApiKey;'
 check 0 "exc: ef column ctor"        "src/m3.cs"           '    password_hash = table.Column<string>(type: "text", nullable: true),'
 check 0 "exc: ef column ctor open"   "src/m4.cs"           '    password_hash = table.Column<string>('
+check 0 "exc: ef column timestamp"   "src/m10.cs"          '    created_at = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),'
+check 0 "exc: ef column maxLength"   "src/m11.cs"          '    email = table.Column<string>(type: "character varying(320)", maxLength: 320, nullable: false),'
 check 0 "exc: nameof chain"        "src/u2.cs"           'Token = nameof(Foo.Bar);'
 check 0 "exc: default(Type)"         "src/u3.cs"           'Token = default(CancellationToken);'
 check 0 "exc: default(Ns.Type)"      "src/u4.cs"           'Token = default(System.Threading.CancellationToken);'

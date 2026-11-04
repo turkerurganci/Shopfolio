@@ -157,13 +157,17 @@ while IFS= read -r path; do
       fi
       echo "$v_strict" | grep -qE "^(nameof\\($CHAIN\\)|default\\($CHAIN\\))\$" && continue
       # EF migration column constructor (generated code, no value assigned):
-      # the right side is exactly table.Column<Type>(args), args may hold
-      # quoted strings (type: "text") but nothing may follow the closing
-      # parenthesis (no concatenation, no second call). .cs only.
+      # the right side is exactly table.Column<Type>(args). The only quoted
+      # string allowed is the value of the named argument type: "..."; the
+      # other arguments are literal-free named values (nullable, maxLength,
+      # precision, scale, unicode, fixedLength). Any other quoted string,
+      # positional literal, concatenation or second call keeps the normal
+      # rule. .cs only.
       case "$path" in
         *.cs)
-          v_noq="$(echo "$value" | sed -E 's/"[^"]*"//g; s/[[:space:]]+$//')"
-          echo "$v_noq" | grep -qE '^table\.Column<[A-Za-z0-9_.?]+>\(([^()"+]*\)[,;]?)?$' && continue
+          v_noq="$(echo "$value" | sed -E 's/([(,][[:space:]]*)type:[[:space:]]*"[^"]*"/\1type: T/g; s/[[:space:]]+$//')"
+          EFARG='[[:space:]]*(type|nullable|maxLength|precision|scale|unicode|fixedLength)[[:space:]]*:[[:space:]]*[A-Za-z0-9_.]+[[:space:]]*,?'
+          echo "$v_noq" | grep -qE "^table\\.Column<[A-Za-z0-9_.?]+>\\(($EFARG)*(\\)[,;]?)?\$" && continue
           ;;
       esac
     fi

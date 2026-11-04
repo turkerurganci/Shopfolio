@@ -87,6 +87,12 @@
 
 **Yapım raporu karşılaştırması:** kriter sonuçları uyumlu (1–7 ✓). Uyuşmazlık 2: (a) yapım "Birleştirme ve literal yine yakalanır" diyor — kurucu argümanındaki literal için yanlış (bulgu 1); (b) yapımın kriter tablosu plandaki 5. ve 6. kriteri değil başka iki iddiayı numaralıyordu — validator turunda hizalandı.
 
+### Düzeltme 1 (2026-11-04)
+
+**Bulgu → değişiklik.** Tur 1 bulgu 1 (ORTA, güvenlik): sır bekçisinin EF sütun kurucusu istisnası tırnaklı dizgileri silip eşlediği için argümandaki literal de geçiyordu (`defaultValue: "…"`, `comment: "…"`, konumsal `("…")`, `defaultValueSql: "'…'"`). `scripts/git-hooks/pre-commit` istisnası daraltıldı: sağ taraf `table.Column<Tür>(` ile başlar; argümanlarda yalnız `type: "…"` adlı argümanın dizgisi bulunur (önce yalnız o dizgi `type: T` ile değiştirilir), öteki argümanlar yalnız `nullable`, `maxLength`, `precision`, `scale`, `unicode`, `fixedLength` adlı, literal-dizgisiz değerlerdir. Başka herhangi bir tırnaklı dizgi, birleştirme ya da ikinci çağrı varsa istisna uygulanmaz, normal kural işler; kapalı parantezle bitmeyen çok satırlı biçimde aynı ilke. `scripts/git-hooks/README.md` üçüncü istisna açıklaması yeni sınıra göre düzeltildi.
+
+**Test.** `test-pre-commit.sh`: raporun dört örneği ve çok satırlı bir örnek "yakalanır" olarak eklendi (5), iki "geçer" örneği eklendi (`timestamp with time zone`, `maxLength`); mevcut "geçer" örnekleri kaldı. Betik testi: 195 → 202 örnek. T106 göç dosyasındaki 25 `table.Column` satırının hepsi yeni sınıra uyar (yalnız `type: "…"` ve `nullable:`), yani göç yeni bekçiden geçer. C# değişmedi; `dotnet format --verify-no-changes` ve `dotnet restore --locked-mode` çıkış 0.
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Var — `CreateAdminInvitationAndAuditLogTables` (üç tablo, imha fonksiyonu, yetki satırları).

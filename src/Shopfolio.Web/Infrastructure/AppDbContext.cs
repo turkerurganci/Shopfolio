@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Catalog;
+using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Settings;
 
 namespace Shopfolio.Infrastructure;
@@ -61,6 +62,12 @@ internal sealed class AppDbContext : DbContext
     public DbSet<AdminInvitation> AdminInvitations => Set<AdminInvitation>();
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+    public DbSet<Customer> Customers => Set<Customer>();
+
+    public DbSet<PendingEmailChange> PendingEmailChanges => Set<PendingEmailChange>();
+
+    public DbSet<AddressBook> AddressBooks => Set<AddressBook>();
 
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).

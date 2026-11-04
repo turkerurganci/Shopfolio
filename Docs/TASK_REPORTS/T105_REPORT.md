@@ -61,7 +61,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T105-fiyat-kupon-dijital`
-- **PR:** (açılınca yazılır)
+- **PR:** #362
 - **CI:** doğrulayıcı izler
 
 ## Dış Varsayımlar

@@ -77,7 +77,7 @@
 | T102 | Enum tanımları ve değer dönüşümü | ✓ | ✓ PASS (tur 1) | `8277427` | #359 |
 | T103 | Başlangıç listeleri, firma ve yasal metin sürümü | ✓ | ✓ PASS (tur 2) | `7c04318` | #360 |
 | T104 | Ürün çekirdeği ve görsel | ✓ | ✓ PASS (tur 3) | `fa4c2a0` | #361 |
-| T105 | Fiyat, kupon ve dijital dosya | ⏳ | — | — | — |
+| T105 | Fiyat, kupon ve dijital dosya | ⏳ | — | — | #362 |
 | T106 | Yönetici hesabı, davet ve işlem izi | ⬚ | — | — | — |
 | T107 | Müşteri hesabı | ⬚ | — | — | — |
 | T108 | Oturum, bağlantı, deneme ve giriş kayıtları | ⬚ | — | — | — |

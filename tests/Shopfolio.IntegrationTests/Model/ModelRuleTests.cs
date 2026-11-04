@@ -17,9 +17,12 @@ public sealed class ModelRuleTests
     /// <summary>The relationships of the application's own entities that cascade; equal to the cascading line of 06 2.2.5. The task that adds an entity adds its lines.</summary>
     private static readonly string[] RegisteredCascades =
     [
+        "address_books -> customers (CustomerId)",
         "discounts -> products (ProductId)",
         "option_values -> options (OptionId)",
         "options -> products (ProductId)",
+        "pending_email_changes -> admins (AdminId)",
+        "pending_email_changes -> customers (CustomerId)",
         "price_histories -> variants (VariantId)",
         "product_categories -> products (ProductId)",
         "product_images -> products (ProductId)",

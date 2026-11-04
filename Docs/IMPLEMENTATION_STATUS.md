@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-04 — T106 (Yönetici hesabı, davet ve işlem izi) bağımsız doğrulama tur 3 (eskalasyon sonrası): ✓ PASS (head `d3baaa6`, PR #363; kapsam tam; kriter 1–7 ve KK1–KK7 ✓; tur 1–2'nin sır bekçisi bulguları kapandı; Unit 240/240, Integration 276/276, bekçi betiği 208/208; dal CI `41765579435` yeşil; bulgu 0; `VAL-A838` PASS; K1 → D-59 — imha testlerinin sabit 2020 tarihi 2031'de eskir, K2 → D-60 — bekçi istisnasının kalan dar açıkları README'de). Merge yardımcıda. Önceki giriş (T106 yapım ve düzeltmeler) `STATUS_CHANGELOG.md`'ye taşındı.
+**Son güncelleme:** 2026-11-04 — T107 (Müşteri hesabı) bağımsız doğrulama tur 1: ✓ PASS (head `e765c68`, PR #364; kriter 1–6 ve KK1–KK6 ✓; Unit 240/240, Integration 315/315, betik testleri 4/4; dal CI `41769181335` yeşil; bulgu 0; K-notu yok — modüller arası bağın ad kalıbı D-61'de, gerekçesi yerinde; `12`'de T107'ye bağlı satır yok, `VAL-D121` BEKLEMEDE). Merge yardımcıda. Önceki giriş (T107 yapım) `STATUS_CHANGELOG.md`'ye taşındı.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -79,7 +79,7 @@
 | T104 | Ürün çekirdeği ve görsel | ✓ | ✓ PASS (tur 3) | `fa4c2a0` | #361 |
 | T105 | Fiyat, kupon ve dijital dosya | ✓ | ✓ PASS (tur 1) | `67e983a` | #362 |
 | T106 | Yönetici hesabı, davet ve işlem izi | ✓ | ✓ PASS (tur 3) | `d3baaa6` | #363 |
-| T107 | Müşteri hesabı | ⬚ | — | — | — |
+| T107 | Müşteri hesabı | ✓ | ✓ PASS (tur 1) | `e765c68` | #364 |
 | T108 | Oturum, bağlantı, deneme ve giriş kayıtları | ⬚ | — | — | — |
 | T109 | Sepet ve sipariş çekirdeği | ⬚ | — | — | — |
 | T110 | Ayırma ve düzeltme geçmişleri | ⬚ | — | — | — |

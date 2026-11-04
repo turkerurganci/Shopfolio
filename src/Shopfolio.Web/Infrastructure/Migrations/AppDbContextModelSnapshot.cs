@@ -916,6 +916,161 @@ namespace Shopfolio.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.Membership.AddressBook", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AddressLine")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("address_line");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<string>("District")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("district");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("phone");
+
+                    b.Property<Guid>("ProvinceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("province_id");
+
+                    b.Property<string>("RecipientName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("recipient_name");
+
+                    b.HasKey("Id")
+                        .HasName("pk_address_books");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("ix_address_books_customer_id");
+
+                    b.HasIndex("ProvinceId")
+                        .HasDatabaseName("ix_address_books_province_id");
+
+                    b.ToTable("address_books", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_address_books_phone_ten_digits", "phone ~ '^[0-9]{10}$'");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Membership.Customer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("email");
+
+                    b.Property<DateTimeOffset?>("EmailVerifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("email_verified_at");
+
+                    b.Property<DateTimeOffset?>("GoogleLinkedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("google_linked_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("normalized_email");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text")
+                        .HasColumnName("password_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_customers");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique()
+                        .HasDatabaseName("ix_customers_normalized_email");
+
+                    b.ToTable("customers", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_customers_unverified_has_password_and_no_google", "email_verified_at IS NOT NULL OR (password_hash IS NOT NULL AND google_linked_at IS NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Membership.PendingEmailChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<string>("NewEmail")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("new_email");
+
+                    b.Property<string>("NormalizedNewEmail")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("normalized_new_email");
+
+                    b.HasKey("Id")
+                        .HasName("pk_pending_email_changes");
+
+                    b.HasIndex("AdminId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_pending_email_changes_admin_id")
+                        .HasFilter("admin_id IS NOT NULL");
+
+                    b.HasIndex("CustomerId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_pending_email_changes_customer_id")
+                        .HasFilter("customer_id IS NOT NULL");
+
+                    b.ToTable("pending_email_changes", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_pending_email_changes_exactly_one_account", "num_nonnulls(customer_id, admin_id) = 1");
+                        });
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.Settings.Company", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1473,6 +1628,38 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasForeignKey("SecondOptionValueId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("fk_variants_option_values_second_option_value_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Membership.AddressBook", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Membership.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_address_books_customers_customer_id");
+
+                    b.HasOne("Shopfolio.Modules.Settings.Province", null)
+                        .WithMany()
+                        .HasForeignKey("ProvinceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_address_books_provinces_province_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.Membership.PendingEmailChange", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Administration.Admin", null)
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_pending_email_changes_admins_admin_id");
+
+                    b.HasOne("Shopfolio.Modules.Membership.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_pending_email_changes_customers_customer_id");
                 });
 
             modelBuilder.Entity("Shopfolio.Modules.Settings.Company", b =>

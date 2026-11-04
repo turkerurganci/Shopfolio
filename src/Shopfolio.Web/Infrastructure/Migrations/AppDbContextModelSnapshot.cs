@@ -1975,6 +1975,472 @@ namespace Shopfolio.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.AboutPage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("LongText")
+                        .HasColumnType("text")
+                        .HasColumnName("long_text");
+
+                    b.Property<string>("PublishStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Draft")
+                        .HasColumnName("publish_status")
+                        .HasAnnotation("Shopfolio:AllowedValues", new[] { "Draft", "Published" });
+
+                    b.Property<string>("ShortIntroduction")
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("short_introduction");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("pk_about_pages");
+
+                    b.ToTable("about_pages", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_about_pages_publish_status", "\"publish_status\" IN ('Draft', 'Published')");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.Announcement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("end_date");
+
+                    b.Property<string>("LinkUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("link_url");
+
+                    b.Property<string>("PublishStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Draft")
+                        .HasColumnName("publish_status")
+                        .HasAnnotation("Shopfolio:AllowedValues", new[] { "Draft", "Published" });
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("start_date");
+
+                    b.Property<string>("Text")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("text");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("pk_announcements");
+
+                    b.ToTable("announcements", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_announcements_end_not_before_start", "start_date IS NULL OR end_date IS NULL OR end_date >= start_date");
+
+                            t.HasCheckConstraint("ck_announcements_publish_status", "\"publish_status\" IN ('Draft', 'Published')");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.Branding", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("BrandColor")
+                        .HasColumnType("text")
+                        .HasColumnName("brand_color");
+
+                    b.Property<string>("BrandName")
+                        .HasColumnType("text")
+                        .HasColumnName("brand_name");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("FaviconId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("favicon_id");
+
+                    b.Property<bool>("IsPlatformSignatureEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_platform_signature_enabled");
+
+                    b.Property<Guid?>("LogoId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("logo_id");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("pk_brandings");
+
+                    b.ToTable("brandings", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_brandings_brand_color_format", "brand_color ~ '^#[0-9A-F]{6}$'");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.CustomPage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsShownInMenu")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_shown_in_menu");
+
+                    b.Property<string>("PublishStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Draft")
+                        .HasColumnName("publish_status")
+                        .HasAnnotation("Shopfolio:AllowedValues", new[] { "Draft", "Published" });
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("slug");
+
+                    b.Property<DateTimeOffset?>("SlugFixedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("slug_fixed_at");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("Text")
+                        .HasColumnType("text")
+                        .HasColumnName("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("title");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("pk_custom_pages");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("ix_custom_pages_slug");
+
+                    b.HasIndex("IsShownInMenu", "SortOrder")
+                        .HasDatabaseName("ix_custom_pages_is_shown_in_menu_sort_order")
+                        .HasFilter("is_shown_in_menu AND publish_status = 'Published'");
+
+                    b.HasIndex("PublishStatus", "SortOrder")
+                        .HasDatabaseName("ix_custom_pages_publish_status_sort_order");
+
+                    b.ToTable("custom_pages", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_custom_pages_publish_status", "\"publish_status\" IN ('Draft', 'Published')");
+
+                            t.HasCheckConstraint("ck_custom_pages_slug_format", "slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.FaqItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Answer")
+                        .HasColumnType("text")
+                        .HasColumnName("answer");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("PublishStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Draft")
+                        .HasColumnName("publish_status")
+                        .HasAnnotation("Shopfolio:AllowedValues", new[] { "Draft", "Published" });
+
+                    b.Property<string>("Question")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("question");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("pk_faq_items");
+
+                    b.HasIndex("PublishStatus", "SortOrder")
+                        .HasDatabaseName("ix_faq_items_publish_status_sort_order");
+
+                    b.ToTable("faq_items", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_faq_items_publish_status", "\"publish_status\" IN ('Draft', 'Published')");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.Offering", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsShownOnHomepage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_shown_on_homepage");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("PublishStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Draft")
+                        .HasColumnName("publish_status")
+                        .HasAnnotation("Shopfolio:AllowedValues", new[] { "Draft", "Published" });
+
+                    b.Property<string>("ShortDescription")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("short_description");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("slug");
+
+                    b.Property<DateTimeOffset?>("SlugFixedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("slug_fixed_at");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("Text")
+                        .HasColumnType("text")
+                        .HasColumnName("text");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("pk_offerings");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("ix_offerings_slug");
+
+                    b.HasIndex("IsShownOnHomepage", "SortOrder")
+                        .HasDatabaseName("ix_offerings_is_shown_on_homepage_sort_order")
+                        .HasFilter("is_shown_on_homepage AND publish_status = 'Published'");
+
+                    b.HasIndex("PublishStatus", "SortOrder")
+                        .HasDatabaseName("ix_offerings_publish_status_sort_order");
+
+                    b.ToTable("offerings", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_offerings_publish_status", "\"publish_status\" IN ('Draft', 'Published')");
+
+                            t.HasCheckConstraint("ck_offerings_slug_format", "slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.PortfolioItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsShownOnHomepage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_shown_on_homepage");
+
+                    b.Property<string>("PublishStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("Draft")
+                        .HasColumnName("publish_status")
+                        .HasAnnotation("Shopfolio:AllowedValues", new[] { "Draft", "Published" });
+
+                    b.Property<string>("ShortDescription")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("short_description");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("slug");
+
+                    b.Property<DateTimeOffset?>("SlugFixedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("slug_fixed_at");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("Text")
+                        .HasColumnType("text")
+                        .HasColumnName("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("title");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("pk_portfolio_items");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("ix_portfolio_items_slug");
+
+                    b.HasIndex("IsShownOnHomepage", "SortOrder")
+                        .HasDatabaseName("ix_portfolio_items_is_shown_on_homepage_sort_order")
+                        .HasFilter("is_shown_on_homepage AND publish_status = 'Published'");
+
+                    b.HasIndex("PublishStatus", "SortOrder")
+                        .HasDatabaseName("ix_portfolio_items_publish_status_sort_order");
+
+                    b.ToTable("portfolio_items", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_portfolio_items_publish_status", "\"publish_status\" IN ('Draft', 'Published')");
+
+                            t.HasCheckConstraint("ck_portfolio_items_slug_format", "slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.SocialLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("SocialPlatform")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("social_platform");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("url");
+
+                    b.HasKey("Id")
+                        .HasName("pk_social_links");
+
+                    b.HasIndex("SocialPlatform")
+                        .IsUnique()
+                        .HasDatabaseName("ix_social_links_social_platform");
+
+                    b.ToTable("social_links", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_social_links_social_platform", "\"social_platform\" IN ('Instagram', 'Facebook', 'X', 'LinkedIn', 'YouTube', 'TikTok')");
+                        });
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.Membership.AddressBook", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4371,6 +4837,21 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasForeignKey("SecondOptionValueId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("fk_variants_option_values_second_option_value_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Modules.CorporateContent.Branding", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Catalog.Image", null)
+                        .WithMany()
+                        .HasForeignKey("FaviconId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_brandings_images_favicon_id");
+
+                    b.HasOne("Shopfolio.Modules.Catalog.Image", null)
+                        .WithMany()
+                        .HasForeignKey("LogoId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_brandings_images_logo_id");
                 });
 
             modelBuilder.Entity("Shopfolio.Modules.Membership.AddressBook", b =>

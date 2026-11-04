@@ -6,6 +6,7 @@ using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog;
+using Shopfolio.Modules.CorporateContent;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Payment;
@@ -133,6 +134,22 @@ internal sealed class AppDbContext : DbContext
 
     public DbSet<RefundIbanRequest> RefundIbanRequests => Set<RefundIbanRequest>();
 
+    public DbSet<AboutPage> AboutPages => Set<AboutPage>();
+
+    public DbSet<Offering> Offerings => Set<Offering>();
+
+    public DbSet<PortfolioItem> PortfolioItems => Set<PortfolioItem>();
+
+    public DbSet<FaqItem> FaqItems => Set<FaqItem>();
+
+    public DbSet<CustomPage> CustomPages => Set<CustomPage>();
+
+    public DbSet<Announcement> Announcements => Set<Announcement>();
+
+    public DbSet<SocialLink> SocialLinks => Set<SocialLink>();
+
+    public DbSet<Branding> Brandings => Set<Branding>();
+
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).
     /// </summary>
@@ -149,7 +166,8 @@ internal sealed class AppDbContext : DbContext
                 LoginRecordsGuard.Instance,
                 OrderingRecordsGuard.Instance,
                 AfterSalesRecordsGuard.Instance,
-                PaymentRecordsGuard.Instance);
+                PaymentRecordsGuard.Instance,
+                CorporateContentRecordsGuard.Instance);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

@@ -26,6 +26,304 @@ namespace Shopfolio.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Shopfolio.Infrastructure.Security.AttemptRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AttemptAxis")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("attempt_axis");
+
+                    b.Property<string>("AttemptLimit")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("attempt_limit")
+                        .HasAnnotation("Shopfolio:AllowedValues", new[] { "L1", "L2", "L3", "L4", "L5", "L6", "L9" });
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("NormalizedValue")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("normalized_value");
+
+                    b.HasKey("Id")
+                        .HasName("pk_attempt_records");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_attempt_records_created_at");
+
+                    b.HasIndex("AttemptLimit", "AttemptAxis", "NormalizedValue", "CreatedAt")
+                        .HasDatabaseName("ix_attempt_records_attempt_limit_attempt_axis_normalized_value");
+
+                    b.ToTable("attempt_records", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_attempt_records_attempt_axis", "\"attempt_axis\" IN ('Email', 'Ip', 'Cart', 'RecognizedBrowser')");
+
+                            t.HasCheckConstraint("ck_attempt_records_attempt_limit", "\"attempt_limit\" IN ('L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L9')");
+
+                            t.HasCheckConstraint("ck_attempt_records_axis_is_the_limits_axis", "(attempt_limit = 'L4' AND attempt_axis = 'Ip') OR (attempt_limit = 'L6' AND attempt_axis = 'Cart') OR (attempt_limit = 'L1' AND attempt_axis = 'RecognizedBrowser') OR (attempt_limit IN ('L1', 'L2', 'L3', 'L5', 'L9') AND attempt_axis IN ('Email', 'Ip'))");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Infrastructure.Security.LinkRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<Guid?>("AdminInvitationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_invitation_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("LinkType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("link_type");
+
+                    b.Property<string>("PreviousEmail")
+                        .HasColumnType("text")
+                        .HasColumnName("previous_email");
+
+                    b.Property<DateTimeOffset?>("SupersededAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("superseded_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_link_records");
+
+                    b.HasIndex("AdminId")
+                        .HasDatabaseName("ix_link_records_admin_id");
+
+                    b.HasIndex("AdminInvitationId")
+                        .HasDatabaseName("ix_link_records_admin_invitation_id");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("ix_link_records_customer_id");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_link_records_expires_at")
+                        .HasFilter("previous_email IS NOT NULL");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_link_records_token_hash");
+
+                    b.HasIndex("LinkType", "ExpiresAt")
+                        .HasDatabaseName("ix_link_records_link_type_expires_at");
+
+                    b.ToTable("link_records", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_link_records_at_most_one_of_used_and_superseded", "num_nonnulls(used_at, superseded_at) <= 1");
+
+                            t.HasCheckConstraint("ck_link_records_customer_only_types_have_customer", "link_type NOT IN ('EmailVerification', 'GoogleLinkConfirmation') OR customer_id IS NOT NULL");
+
+                            t.HasCheckConstraint("ck_link_records_exactly_one_owner", "num_nonnulls(customer_id, admin_id, admin_invitation_id) = 1");
+
+                            t.HasCheckConstraint("ck_link_records_invitation_link_only_for_invitation_type", "(link_type = 'AdminInvitation') = (admin_invitation_id IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_link_records_link_type", "\"link_type\" IN ('EmailVerification', 'PasswordReset', 'NewEmailVerification', 'EmailChangeRevert', 'AdminInvitation', 'GoogleLinkConfirmation')");
+
+                            t.HasCheckConstraint("ck_link_records_previous_email_only_for_revert_type", "previous_email IS NULL OR link_type = 'EmailChangeRevert'");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Infrastructure.Security.LoginRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("AccountType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("account_type");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<IPAddress>("IpAddress")
+                        .IsRequired()
+                        .HasColumnType("inet")
+                        .HasColumnName("ip_address");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("normalized_email");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("outcome");
+
+                    b.HasKey("Id")
+                        .HasName("pk_login_records");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_login_records_created_at");
+
+                    b.HasIndex("IpAddress")
+                        .HasDatabaseName("ix_login_records_ip_address");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("ix_login_records_normalized_email");
+
+                    b.ToTable("login_records", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_login_records_account_type", "\"account_type\" IN ('Admin', 'Customer')");
+
+                            t.HasCheckConstraint("ck_login_records_outcome", "\"outcome\" IN ('Succeeded', 'Failed')");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Infrastructure.Security.RecognizedBrowserMark", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("MarkHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("mark_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_recognized_browser_marks");
+
+                    b.HasIndex("AdminId")
+                        .HasDatabaseName("ix_recognized_browser_marks_admin_id");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("ix_recognized_browser_marks_customer_id");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_recognized_browser_marks_expires_at");
+
+                    b.HasIndex("MarkHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_recognized_browser_marks_mark_hash");
+
+                    b.ToTable("recognized_browser_marks", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_recognized_browser_marks_exactly_one_account", "num_nonnulls(customer_id, admin_id) = 1");
+                        });
+                });
+
+            modelBuilder.Entity("Shopfolio.Infrastructure.Security.Session", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AdminId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("admin_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<bool>("IsLongLived")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_long_lived");
+
+                    b.Property<DateTimeOffset>("LastActivityAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_activity_at");
+
+                    b.Property<string>("ReauthenticatedOperation")
+                        .HasColumnType("text")
+                        .HasColumnName("reauthenticated_operation");
+
+                    b.Property<string>("ReauthenticationTokenHash")
+                        .HasColumnType("text")
+                        .HasColumnName("reauthentication_token_hash");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sessions");
+
+                    b.HasIndex("AdminId")
+                        .HasDatabaseName("ix_sessions_admin_id");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("ix_sessions_customer_id");
+
+                    b.HasIndex("LastActivityAt")
+                        .HasDatabaseName("ix_sessions_last_activity_at");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sessions_token_hash");
+
+                    b.ToTable("sessions", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_sessions_admin_without_account_deletion", "admin_id IS NULL OR reauthenticated_operation IS DISTINCT FROM 'AccountDeletion'");
+
+                            t.HasCheckConstraint("ck_sessions_exactly_one_account", "num_nonnulls(customer_id, admin_id) = 1");
+
+                            t.HasCheckConstraint("ck_sessions_reauthenticated_operation", "\"reauthenticated_operation\" IN ('PasswordChange', 'EmailChange', 'AccountDeletion')");
+
+                            t.HasCheckConstraint("ck_sessions_reauthentication_fields_together", "(reauthenticated_operation IS NULL) = (reauthentication_token_hash IS NULL)");
+                        });
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.Administration.Admin", b =>
                 {
                     b.Property<Guid>("Id")
@@ -978,51 +1276,6 @@ namespace Shopfolio.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shopfolio.Modules.Membership.AttemptRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("AttemptAxis")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("attempt_axis");
-
-                    b.Property<string>("AttemptLimit")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("attempt_limit")
-                        .HasAnnotation("Shopfolio:AllowedValues", new[] { "L1", "L2", "L3", "L4", "L5", "L6", "L9" });
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("NormalizedValue")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("normalized_value");
-
-                    b.HasKey("Id")
-                        .HasName("pk_attempt_records");
-
-                    b.HasIndex("CreatedAt")
-                        .HasDatabaseName("ix_attempt_records_created_at");
-
-                    b.HasIndex("AttemptLimit", "AttemptAxis", "NormalizedValue", "CreatedAt")
-                        .HasDatabaseName("ix_attempt_records_attempt_limit_attempt_axis_normalized_value");
-
-                    b.ToTable("attempt_records", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_attempt_records_attempt_axis", "\"attempt_axis\" IN ('Email', 'Ip', 'Cart', 'RecognizedBrowser')");
-
-                            t.HasCheckConstraint("ck_attempt_records_attempt_limit", "\"attempt_limit\" IN ('L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L9')");
-
-                            t.HasCheckConstraint("ck_attempt_records_axis_is_the_limits_axis", "(attempt_limit = 'L4' AND attempt_axis = 'Ip') OR (attempt_limit = 'L6' AND attempt_axis = 'Cart') OR (attempt_limit = 'L1' AND attempt_axis = 'RecognizedBrowser') OR (attempt_limit IN ('L1', 'L2', 'L3', 'L5', 'L9') AND attempt_axis IN ('Email', 'Ip'))");
-                        });
-                });
-
             modelBuilder.Entity("Shopfolio.Modules.Membership.Customer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1073,143 +1326,6 @@ namespace Shopfolio.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shopfolio.Modules.Membership.LinkRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid?>("AdminId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("admin_id");
-
-                    b.Property<Guid?>("AdminInvitationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("admin_invitation_id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid?>("CustomerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("customer_id");
-
-                    b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expires_at");
-
-                    b.Property<string>("LinkType")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("link_type");
-
-                    b.Property<string>("PreviousEmail")
-                        .HasColumnType("text")
-                        .HasColumnName("previous_email");
-
-                    b.Property<DateTimeOffset?>("SupersededAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("superseded_at");
-
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("token_hash");
-
-                    b.Property<DateTimeOffset?>("UsedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("used_at");
-
-                    b.HasKey("Id")
-                        .HasName("pk_link_records");
-
-                    b.HasIndex("AdminId")
-                        .HasDatabaseName("ix_link_records_admin_id");
-
-                    b.HasIndex("AdminInvitationId")
-                        .HasDatabaseName("ix_link_records_admin_invitation_id");
-
-                    b.HasIndex("CustomerId")
-                        .HasDatabaseName("ix_link_records_customer_id");
-
-                    b.HasIndex("ExpiresAt")
-                        .HasDatabaseName("ix_link_records_expires_at")
-                        .HasFilter("previous_email IS NOT NULL");
-
-                    b.HasIndex("TokenHash")
-                        .IsUnique()
-                        .HasDatabaseName("ix_link_records_token_hash");
-
-                    b.HasIndex("LinkType", "ExpiresAt")
-                        .HasDatabaseName("ix_link_records_link_type_expires_at");
-
-                    b.ToTable("link_records", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_link_records_at_most_one_of_used_and_superseded", "num_nonnulls(used_at, superseded_at) <= 1");
-
-                            t.HasCheckConstraint("ck_link_records_customer_only_types_have_customer", "link_type NOT IN ('EmailVerification', 'GoogleLinkConfirmation') OR customer_id IS NOT NULL");
-
-                            t.HasCheckConstraint("ck_link_records_exactly_one_owner", "num_nonnulls(customer_id, admin_id, admin_invitation_id) = 1");
-
-                            t.HasCheckConstraint("ck_link_records_invitation_link_only_for_invitation_type", "(link_type = 'AdminInvitation') = (admin_invitation_id IS NOT NULL)");
-
-                            t.HasCheckConstraint("ck_link_records_link_type", "\"link_type\" IN ('EmailVerification', 'PasswordReset', 'NewEmailVerification', 'EmailChangeRevert', 'AdminInvitation', 'GoogleLinkConfirmation')");
-
-                            t.HasCheckConstraint("ck_link_records_previous_email_only_for_revert_type", "previous_email IS NULL OR link_type = 'EmailChangeRevert'");
-                        });
-                });
-
-            modelBuilder.Entity("Shopfolio.Modules.Membership.LoginRecord", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("AccountType")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("account_type");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<IPAddress>("IpAddress")
-                        .IsRequired()
-                        .HasColumnType("inet")
-                        .HasColumnName("ip_address");
-
-                    b.Property<string>("NormalizedEmail")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("normalized_email");
-
-                    b.Property<string>("Outcome")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("outcome");
-
-                    b.HasKey("Id")
-                        .HasName("pk_login_records");
-
-                    b.HasIndex("CreatedAt")
-                        .HasDatabaseName("ix_login_records_created_at");
-
-                    b.HasIndex("IpAddress")
-                        .HasDatabaseName("ix_login_records_ip_address");
-
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("ix_login_records_normalized_email");
-
-                    b.ToTable("login_records", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_login_records_account_type", "\"account_type\" IN ('Admin', 'Customer')");
-
-                            t.HasCheckConstraint("ck_login_records_outcome", "\"outcome\" IN ('Succeeded', 'Failed')");
-                        });
-                });
-
             modelBuilder.Entity("Shopfolio.Modules.Membership.PendingEmailChange", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1254,122 +1370,6 @@ namespace Shopfolio.Infrastructure.Migrations
                     b.ToTable("pending_email_changes", null, t =>
                         {
                             t.HasCheckConstraint("ck_pending_email_changes_exactly_one_account", "num_nonnulls(customer_id, admin_id) = 1");
-                        });
-                });
-
-            modelBuilder.Entity("Shopfolio.Modules.Membership.RecognizedBrowserMark", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid?>("AdminId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("admin_id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid?>("CustomerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("customer_id");
-
-                    b.Property<DateTimeOffset>("ExpiresAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expires_at");
-
-                    b.Property<string>("MarkHash")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("mark_hash");
-
-                    b.HasKey("Id")
-                        .HasName("pk_recognized_browser_marks");
-
-                    b.HasIndex("AdminId")
-                        .HasDatabaseName("ix_recognized_browser_marks_admin_id");
-
-                    b.HasIndex("CustomerId")
-                        .HasDatabaseName("ix_recognized_browser_marks_customer_id");
-
-                    b.HasIndex("ExpiresAt")
-                        .HasDatabaseName("ix_recognized_browser_marks_expires_at");
-
-                    b.HasIndex("MarkHash")
-                        .IsUnique()
-                        .HasDatabaseName("ix_recognized_browser_marks_mark_hash");
-
-                    b.ToTable("recognized_browser_marks", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_recognized_browser_marks_exactly_one_account", "num_nonnulls(customer_id, admin_id) = 1");
-                        });
-                });
-
-            modelBuilder.Entity("Shopfolio.Modules.Membership.Session", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid?>("AdminId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("admin_id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid?>("CustomerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("customer_id");
-
-                    b.Property<bool>("IsLongLived")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_long_lived");
-
-                    b.Property<DateTimeOffset>("LastActivityAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_activity_at");
-
-                    b.Property<string>("ReauthenticatedOperation")
-                        .HasColumnType("text")
-                        .HasColumnName("reauthenticated_operation");
-
-                    b.Property<string>("ReauthenticationTokenHash")
-                        .HasColumnType("text")
-                        .HasColumnName("reauthentication_token_hash");
-
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("token_hash");
-
-                    b.HasKey("Id")
-                        .HasName("pk_sessions");
-
-                    b.HasIndex("AdminId")
-                        .HasDatabaseName("ix_sessions_admin_id");
-
-                    b.HasIndex("CustomerId")
-                        .HasDatabaseName("ix_sessions_customer_id");
-
-                    b.HasIndex("LastActivityAt")
-                        .HasDatabaseName("ix_sessions_last_activity_at");
-
-                    b.HasIndex("TokenHash")
-                        .IsUnique()
-                        .HasDatabaseName("ix_sessions_token_hash");
-
-                    b.ToTable("sessions", null, t =>
-                        {
-                            t.HasCheckConstraint("ck_sessions_admin_without_account_deletion", "admin_id IS NULL OR reauthenticated_operation IS DISTINCT FROM 'AccountDeletion'");
-
-                            t.HasCheckConstraint("ck_sessions_exactly_one_account", "num_nonnulls(customer_id, admin_id) = 1");
-
-                            t.HasCheckConstraint("ck_sessions_reauthenticated_operation", "\"reauthenticated_operation\" IN ('PasswordChange', 'EmailChange', 'AccountDeletion')");
-
-                            t.HasCheckConstraint("ck_sessions_reauthentication_fields_together", "(reauthenticated_operation IS NULL) = (reauthentication_token_hash IS NULL)");
                         });
                 });
 
@@ -1788,6 +1788,57 @@ namespace Shopfolio.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Shopfolio.Infrastructure.Security.LinkRecord", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Administration.Admin", null)
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_link_records_admins_admin_id");
+
+                    b.HasOne("Shopfolio.Modules.Administration.AdminInvitation", null)
+                        .WithMany()
+                        .HasForeignKey("AdminInvitationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_link_records_admin_invitations_admin_invitation_id");
+
+                    b.HasOne("Shopfolio.Modules.Membership.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_link_records_customers_customer_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Infrastructure.Security.RecognizedBrowserMark", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Administration.Admin", null)
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_recognized_browser_marks_admins_admin_id");
+
+                    b.HasOne("Shopfolio.Modules.Membership.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_recognized_browser_marks_customers_customer_id");
+                });
+
+            modelBuilder.Entity("Shopfolio.Infrastructure.Security.Session", b =>
+                {
+                    b.HasOne("Shopfolio.Modules.Administration.Admin", null)
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_sessions_admins_admin_id");
+
+                    b.HasOne("Shopfolio.Modules.Membership.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_sessions_customers_customer_id");
+                });
+
             modelBuilder.Entity("Shopfolio.Modules.Administration.AdminInvitation", b =>
                 {
                     b.HasOne("Shopfolio.Modules.Administration.Admin", null)
@@ -1949,27 +2000,6 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasConstraintName("fk_address_books_provinces_province_id");
                 });
 
-            modelBuilder.Entity("Shopfolio.Modules.Membership.LinkRecord", b =>
-                {
-                    b.HasOne("Shopfolio.Modules.Administration.Admin", null)
-                        .WithMany()
-                        .HasForeignKey("AdminId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_link_records_admins_admin_id");
-
-                    b.HasOne("Shopfolio.Modules.Administration.AdminInvitation", null)
-                        .WithMany()
-                        .HasForeignKey("AdminInvitationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_link_records_admin_invitations_admin_invitation_id");
-
-                    b.HasOne("Shopfolio.Modules.Membership.Customer", null)
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_link_records_customers_customer_id");
-                });
-
             modelBuilder.Entity("Shopfolio.Modules.Membership.PendingEmailChange", b =>
                 {
                     b.HasOne("Shopfolio.Modules.Administration.Admin", null)
@@ -1983,36 +2013,6 @@ namespace Shopfolio.Infrastructure.Migrations
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("fk_pending_email_changes_customers_customer_id");
-                });
-
-            modelBuilder.Entity("Shopfolio.Modules.Membership.RecognizedBrowserMark", b =>
-                {
-                    b.HasOne("Shopfolio.Modules.Administration.Admin", null)
-                        .WithMany()
-                        .HasForeignKey("AdminId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_recognized_browser_marks_admins_admin_id");
-
-                    b.HasOne("Shopfolio.Modules.Membership.Customer", null)
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_recognized_browser_marks_customers_customer_id");
-                });
-
-            modelBuilder.Entity("Shopfolio.Modules.Membership.Session", b =>
-                {
-                    b.HasOne("Shopfolio.Modules.Administration.Admin", null)
-                        .WithMany()
-                        .HasForeignKey("AdminId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_sessions_admins_admin_id");
-
-                    b.HasOne("Shopfolio.Modules.Membership.Customer", null)
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_sessions_customers_customer_id");
                 });
 
             modelBuilder.Entity("Shopfolio.Modules.Settings.Company", b =>

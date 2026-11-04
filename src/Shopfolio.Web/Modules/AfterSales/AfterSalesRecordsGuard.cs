@@ -6,9 +6,9 @@ namespace Shopfolio.Modules.AfterSales;
 
 /// <summary>
 /// Refuses the deletion the after-sales side never allows (06 4.22-4.28; 06 2.2.3): the cancellation, the removal, the late delivery
-/// termination, the withdrawal declaration, the receipt and the not-returned closure are the order's commercial record and are never
-/// deleted. The defect claim (deleted by its retention) and the refund IBAN (deleted by its event) are not covered: they are deleted
-/// explicitly (06 4.30, 4.31). The save is refused before any SQL is sent. A bulk statement (<c>ExecuteDelete</c>) does not pass through a
+/// termination, the withdrawal declaration, the receipt, the return rejection and the not-returned closure are the order's commercial
+/// record and are never deleted. The defect claim (deleted by its retention), the refund IBAN (deleted by its event) and the IBAN request
+/// (deleted by the disposal) are not covered: they are deleted explicitly (06 4.29, 4.30, 4.31). The save is refused before any SQL is sent. A bulk statement (<c>ExecuteDelete</c>) does not pass through a
 /// save and is not covered here; the database's restrictive item link still stops the item's removal.
 /// </summary>
 internal sealed class AfterSalesRecordsGuard : SaveChangesInterceptor
@@ -49,6 +49,6 @@ internal sealed class AfterSalesRecordsGuard : SaveChangesInterceptor
 
     private static bool IsPermanent(object entity)
     {
-        return entity is Cancellation or ItemRemoval or LateDeliveryTermination or Withdrawal or Return or NotReturnedClosure;
+        return entity is Cancellation or ItemRemoval or LateDeliveryTermination or Withdrawal or Return or ReturnRejection or NotReturnedClosure;
     }
 }

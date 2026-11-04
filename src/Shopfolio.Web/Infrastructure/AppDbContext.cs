@@ -129,6 +129,10 @@ internal sealed class AppDbContext : DbContext
 
     public DbSet<InboundNotificationRecord> InboundNotificationRecords => Set<InboundNotificationRecord>();
 
+    public DbSet<ReturnRejection> ReturnRejections => Set<ReturnRejection>();
+
+    public DbSet<RefundIbanRequest> RefundIbanRequests => Set<RefundIbanRequest>();
+
     /// <summary>
     /// The one place where the provider, the naming convention and the save interceptors are set up (09 5.2 item 1; 10.1 item 2).
     /// </summary>

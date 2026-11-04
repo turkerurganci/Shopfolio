@@ -19,6 +19,8 @@
 
 > Kısa tut. Tarihsel detay `MEMORY_ARCHIVE.md`'ye taşınır (00 §G.2).
 
+- **T119 (F1) yapım bitti — 2026-11-04 (dal `task/T119-baslangic-verisi-gocu`, PR #377; doğrulama bekliyor).** D-52 genişletme göçü (`SetSettingsColumnDefaults`, 11 sütun `DEFAULT`) ve başlangıç verisi göçü (`InsertStartupData`: 81 il, 249 ülke, altı tek satır, 81 teslimat ili, iki taslak; yalnız `INSERT`, ikinci uygulama değiştirmez); kaynak taraması ve 02 §11.1 eşitlik denetimi; Integration 952.
+
 - **T118 (F1) doğrulama tur 1: ✓ PASS — 2026-11-04 (head `01d6473`, PR #376; kriter 1–8, KK1–KK8 ✓; yetki ayrımı mutasyonla sınandı; Unit 245, betik 4/4, Integration 926; dal CI 41835537615 yeşil; bulgu 0; K-notu yok). Merge yardımcıda.**
 - **T118 (F1) yapım bitti — 2026-11-04 (dal `task/T118-zamanlayici-yedek-imha-anahtar`, PR #376; doğrulama bekliyor).** Altı kayıt (`Job`, `HeartbeatRecord`, `OutageRecord` `Infrastructure/Jobs`; `DisposalRecord` `Infrastructure/Disposal`; `BackupStatusRecord` `Infrastructure/Backup`; `DataProtectionKey` paketin türü, `AppDbContext : IDataProtectionKeyContext`) tek göçle (`Down` yok); göç anahtar halkasını salt okuma kullanıcısından alır, durum kullanıcısına iki sütunda güncelleme verir (rol ayarından); `database-job.sh` yedek sonucunu durum kaydına yazar (D-39 (a) ✅); yeni paket `Microsoft.AspNetCore.DataProtection.EntityFrameworkCore` 10.0.14 (MIT).
 - **T117 (F1) doğrulama tur 1: ✓ PASS — 2026-11-04 (head `ba81b23`, PR #375; kriter 1–6, KK1–KK6 ✓; Unit 245, Integration 871; dal CI 41827953732 yeşil; bulgu 0; K-notu yok). Merge yardımcıda.**

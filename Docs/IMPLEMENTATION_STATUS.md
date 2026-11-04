@@ -91,7 +91,7 @@
 | T116 | Galeri bağları | ✓ | ✓ PASS (tur 1) | `2c19c0c` | #374 |
 | T117 | Gönderim kaydı ve kanal hâli | ✓ | ✓ PASS (tur 1) | `ba81b23` | #375 |
 | T118 | Zamanlayıcı, yedek, imha ve anahtar kayıtları | ✓ | ✓ PASS (tur 1) | `01d6473` | #376 |
-| T119 | Başlangıç verisi göçü ve seed olmayanların sınırı | ⬚ | — | — | — |
+| T119 | Başlangıç verisi göçü ve seed olmayanların sınırı | ⏳ | — | — | #377 |
 | T120 | Model eşitlik denetimleri | ⬚ | — | — | — |
 
 ---

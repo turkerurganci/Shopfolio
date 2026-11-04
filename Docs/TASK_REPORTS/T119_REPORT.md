@@ -90,7 +90,7 @@
 
 - **Branch:** `task/T119-baslangic-verisi-gocu`
 - **Commit:** dal başı PR'da
-- **PR:** #PR_NO
+- **PR:** #377
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -1,6 +1,6 @@
 # T205 — Açılışta veritabanı fail-fast denetimi
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-05
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -93,10 +93,31 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-05, head `501f37f`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 (K1–K3 → D-86) |
+
+### Doğrulama tur 1 — validator kanıtları (2026-11-05)
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `scripts/git-hooks`; ana dal son üç run success (`41917927000`, `41917927066`, `41903408101`); memory satırı var.
+- **`12` satırları:** task'ın kaynak birimleri `06 §8.2` ve `09 §8` (KP değil); `12` matrisinde `06 §8.2`'yi kaynak alan satır yok, `09 §8.1` satırları (VAL-A424… vb.) T212–T214'ün yanıt katmanınadır — T205'in `Durum` hücresi yok.
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | İl listesi | ✓ | `AppDbContext.ReadStartupRecordPresenceAsync` `nameof(Province)` liste; `Start_WithAnEmptyList_RefusesAndNamesTheList(Province)` yeşil |
+| 2 | Ülke listesi | ✓ | aynı, `(Country)` yeşil |
+| 3 | Altı tek satırlık kayıt | ✓ | altı `nameof` (06 §8.2.1 madde 3 ile birebir); `Start_WithASingleRowRecordMissing_…` 6 satır yeşil; tablosu düşürülen kayıt (`42P01`) de adıyla reddeder |
+| 4 | Açılmaz, adıyla yazar, `ILogger<T>` | ✓ | `StartupDatabaseCheck` `ILogger<StartupDatabaseCheck>` `Critical` + `InvalidOperationException`; dosyaya iniş yok (T230). Bozma: `failures.Count > 100` → 17 testten 11'i kırmızı, geri alındı |
+| 5 | Varlık, değer değil | ✓ | yalnız `AnyAsync`; `…ValueIsEmptyButWhoseRowExists_Opens`, `…NeverPrintsTheValue` (işaretçi iletide ve satırlarda yok) |
+| 6 | Hakkımızda/duyuru/teslimat illeri/taslaklar | ✓ | `Start_WithoutTheAboutPageAnnouncementDeliveryProvincesAndDrafts_Opens` (`CompanyDeliveryProvince`, `LegalTextVersion` boşaltılır) |
+| 7 | Ayar denetiminin kalıbı; ayar zorunluları dışarıda | ✓ | `StartupSettingsCheck` ile aynı kalıp (hosted service, saf işlev, `{Event}: refused. {Failure}` `Critical`, atma); `Program.cs` ayar kaydından sonra; `…SettingMissing_RefusesOnTheSettingAndNeverAsksTheDatabase` |
+
+KK1–KK7 aynı testlerle ✓. `package-build.sh` adım 5: kurucu SQL (`10`…`40`) + göç demeti işe özgü kullanıcılarla, uygulama göç edilmiş veritabanına uygulama kullanıcısıyla; CI log'u "ok: the setup SQL and the migration bundle applied", 7. adım success. Yerel: build `-warnaserror` 0 uyarı, format 0, Unit 548/548 (Consistency dahil), betik testleri 4/4, Integration 1004/1004 (Web 52, Database 35, FileSecrets 24, Model 893; PostgreSQL 18), `restore --locked-mode` 0. Dal CI `41924447176` (head `501f37f`) tüm job'lar success.
+
+**K-notları:** K1 ulaşılamayan veritabanında denetimin atlanması `06 §8.2.1`/`05 §8.4.6`'da yazılı değil (yalnız kod yorumu; compose bağımlılıkları pratikte kapatır) · K2 `05 §9.1.3` "Yazdıkları" listesi veritabanı tarafının satırını anmıyor · K3 `DatabaseAuditTests` `InstallationSettings/` klasöründe — üçü D-86'ya forward.
+
+**Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu kriter ve KK başına kanıtlı. Yapım ⚠ kolay karar 1 (ulaşılamayan veritabanında açılış) K1 olarak belgelendi.
 
 ## Altyapı Değişiklikleri
 

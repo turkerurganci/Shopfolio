@@ -1,6 +1,6 @@
 # T108 — Oturum, bağlantı, deneme ve giriş kayıtları
 
-**Faz:** F1 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-04
+**Faz:** F1 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 ✓ PASS) | **Tarih:** 2026-11-04
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -26,6 +26,8 @@
 
 ## Kabul Kriterleri Kontrolü
 
+> **Validator kanıtı (tur 2, head `04113f7`):** 8 kriterin hepsi ✓ — kod `Infrastructure/Security/` altında okundu; kısıtlar, dizinler ve yedi basamaklı FK `06 §4.39`/`§4.41–4.44` ve `§7.2/7.3/7.5` ile birebir; tek göç `20261104040730_CreateSessionLinkAttemptAndLoginTables`, `Down` yok; modül bağları `HasOne(<const>, navigationName: null)`; `src`'de `LoginRecord` güncelleme yolu yok. Integration T108 sınıfı 70/70 (PostgreSQL 18), `has-pending-model-changes` "No changes".
+
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
 | 1 | Beş entity alan tablolarıyla tek göçle | ✓ | `Migration_MakesTheFiveTables`, `Columns_HaveTheTypesAndNullabilityOfTheFieldTables`, `FiveTables_HaveNoColumnDefault_…`, `Indexes_AreTheDocumentedOnes`, `ForeignKeys_…`, `CheckConstraints_AreTheDocumentedOnes` |
@@ -49,10 +51,24 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-04, head `e046beb`, PR #365) |
-| Bulgu sayısı | 1 (S1, ORTA — oturum kayıtlarının yeri) |
-| Düzeltme gerekli mi | Evet — beş varlık `Modules/Membership/`'ten `Infrastructure/`'a taşınır (doğrulama raporu Bulgu 1) |
-| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-62, K2 → D-63) |
+| Doğrulama durumu | ✓ PASS — tur 2 (2026-11-04, head `04113f7`, PR #365); tur 1 ✗ FAIL (head `e046beb`) |
+| Bulgu sayısı | 0 (tur 2); tur 1'de 1 (S1, ORTA — oturum kayıtlarının yeri; düzeltme 1'de giderildi) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (K1 → D-64); tur 1: 2 (K1 → D-62 kapandı, K2 → D-63) |
+
+### Doğrulama tur 2 — ✓ PASS (2026-11-04)
+
+**Kapılar:** working tree temiz; `core.hooksPath` mutlak yolla `scripts/git-hooks`; ana dal son 3 run `41770864743`, `41770864703`, `41767748868` success; `MEMORY.md` satır 22'de T108.
+
+**Kabul kriterleri ve testler:** kapsam tam (8 kriter, KK, `09 §25`, güvenlik); hepsi ✓. Tur 1 bulgusu (yer) giderildi: beş varlık `Infrastructure/Security/`'te, modül türlerine bağ adla (`const string` + `HasOne`); D-61 ve D-62 kapanışı doğru (kaynak taraması, üç kasıtlı ihlal örneği, `09 §10.1` m.1). Yerel: `restore --locked-mode` 0; Release build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` 0; Unit 245/245 (Consistency dahil); Integration 385 (T108 sınıfı 70/70, Model 323/323, öteki 62/62; PostgreSQL 18); `has-pending-model-changes` "No changes". Dal CI `41775169027` (head `04113f7`) success.
+
+**Güvenlik:** sır yok (testlerde `digest-placeholder`); yalnız şema, auth etkisi yok; girdi doğrulama uygulanamaz; yeni bağımlılık yok.
+
+**`12` satırları:** `VAL-D045`, `VAL-D079`, `VAL-D093`, `VAL-D116`, `VAL-D122` sonraki task akışlarına bağlı (imha, e-posta değişikliği, oturum çerezi) — BEKLEMEDE kalır, `Durum` değişmedi.
+
+**K-notu:** K1 → D-64 (`09 §9.4` m.1 normalleştirilmiş değerin tek yazarı sahibi varlığın yöntemi der; `AttemptRecord` ayarlayıcıları public, `LoginRecord.Create` normalleştirmeyi çağırana bırakır; `09 §15.4` m.5–6 ile gerilim; hedef ilk yazan task).
+
+**Yapım raporu karşılaştırması:** KK tablosu uyumlu; küçük eskime — "Yapılan İşler"de "iki kasıtlı ihlal örneği" (düzeltme 1'den sonra üç), Test Sonuçları'nda Unit 244 (düzeltme 1'den sonra 245; Düzeltme 1 tablosu doğru).
 
 ### Doğrulama tur 1 — ✗ FAIL (2026-11-04)
 
@@ -72,7 +88,7 @@
 | Göç tasarım dosyası ve anlık görüntü | Yerinde yeniden üretildi (aynı göç kimliği `20261104040730_…`, `Up` gövdesi aynı, `Down` yok). Anlık görüntü yalnız tür adları ve varlık sırası bakımından değişti (satır kümesi, ad değişimi hariç, birebir aynı); tablo, sütun, kısıt ve dizin adları aynı | `dotnet ef migrations has-pending-model-changes` → "No changes"; Integration T108 sınıfı 70/70, Model ad alanı 323/323, öteki 62/62 (PostgreSQL 18, `shopfolio-t108-fix-pg`, silindi) |
 | K1 → D-62 | `DataModelSourceScan` `.HasOne(` satırında da düz dizgiyi yakalar (yalnız sabit adı serbest); kasıtlı ihlal örneği `ViolationSamples/DataModel/ModuleTypeNameInHasOne.cs`; D-62 "✅ Çözüldü → T108". D-63 (doc-drift) açık kalır | `Scan_OnViolationSample_ReportsTheRuleOnItsLine` yeni örnekle (Unit 245/245) |
 
-`dotnet restore Shopfolio.slnx --locked-mode` çıkış 0. Doğrulama tur 2 bekliyor.
+`dotnet restore Shopfolio.slnx --locked-mode` çıkış 0. Doğrulama tur 2: ✓ PASS.
 
 ## Altyapı Değişiklikleri
 
@@ -85,7 +101,7 @@
 
 - **Branch:** `task/T108-oturum-baglanti-deneme-giris`
 - **PR:** #365
-- **CI:** *(yardımcı izler)*
+- **CI:** dal CI `41775169027` (head `04113f7`) success
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

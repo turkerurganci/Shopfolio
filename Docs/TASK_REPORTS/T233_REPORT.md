@@ -70,10 +70,30 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-04, bağımsız doğrulayıcı; dal head `439361d`) |
+| Bulgu sayısı | 1 (DÜŞÜK, S1) |
+| Düzeltme gerekli mi | Evet — B1 |
+| Bloke-etmeyen not (K) sayısı | 4 — K1 D-84'e forward; K2, K3, K4 düzeltme 1'de bu PR'da kapatılır |
+
+### Doğrulama tur 1 — validator kanıtları
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Adlı sabitler; değerin tek yeri `09 §3.5` | ~ | Altı sabit adlarıyla `09 §10.7` madde 1'dekiyle birebir, `internal static`; Consistency testi tablo satırını ayrıştırır, sabit değişince kırmızı (`StatementTimeout` 16 sn bozması → `WebRowOfTheTable_EqualsTheWebConstants` kırmızı). **B1:** testler sayıyı kendileri yazar — `DatabaseConnectionTests` `"-c lock_timeout=5000 -c statement_timeout=15000 …"`, `20`, `600000`, `605`, `Timeouts_AreTheRowsOfTheTable` (tablonun ikinci kopyası); `DatabaseSessionTimeoutTests` `"5s"`, `"15s"`, `"10min"`, `"30s"` ve alt sınırlar `4`, `14` sn. Madde 1: "Sayı başka yerde yazılmaz: bağlantı dizisi, test ve canlılık denetimi bu sabitlere başvurur" |
+| 2 | Tek kuruluş noktası | ✓ | `DatabaseConnection.Configure` imzası madde 2'yle birebir; `src/`'de `Options`/`CommandTimeout` yazan başka yer yok (grep); `Program.cs` veri kaynağı ve bağlam `WebConnectionString` → `DatabaseConnection.Create(…, Web)`; tasarım zamanı fabrikası bağlantısız yer tutucu (K2: web ev sahibinin profil bağlantısını koruyan test yok) |
+| 3 | İki profil, ayrı dizi, `SET` yok, tarama dar | ✓ | Tarama istisnası tam yol eşleşmesi (`Jobs/DatabaseConnection.cs` taranır); test projeleri taranmaz (madde 2 "testlerde"); `src/`'e konan `SET statement_timeout = 0` ve Compose'ta `statement_timeout=15000` bozmaları ilgili testleri kırmızıya çevirdi; Integration iki profilin aynı anda açık oturumunda `SHOW` farklı |
+| 4 | İstemci süresi sunucu sürelerinden uzun; komut başına süre yok | ✓ | Kilit < sorgu < istemci her iki profilde (Theory); `CommandTimeout` ataması yalnız `DatabaseConnection`; boşta işlem 30 sn > 20 sn `09`'un kendi çelişkisi (§3.5 tablosu ↔ madde 2 cümlesi), D-83'te kayıtlı (K3) |
+| 5 | Aşım beklenmeyen hâle düşer; yakalanmaz; gövdede dış çağrı yok | ✓ | 55P03 (4–20 sn), 57014 (14–20 sn, istemci süresinden önce), boşta işlemde bağlantı kaybı gerçek PostgreSQL 18'de; `src/`'de `catch` ile `SqlState`/`PostgresException` yok; `src/`'e konan `RunAsync(… http.GetAsync …)` bozması gövde taramasını kırmızıya çevirdi. Yanıt katmanı (`§8.1`) henüz yok → K1 |
+| 6 | Yeniden deneme kapalı | ✓ | `AppDbContext`'e `EnableRetryOnFailure` bozması hem taramayı hem `AppDbContext_AsConfigured_HasNoRetryStrategy`'yi kırmızıya çevirdi |
+| 7 | Npgsql adları sürüme karşı | ✓ | `packages.lock.json` Npgsql çözülen 10.0.3; adlar derleniyor ve `SHOW` sunucuda görüyor; PR açıklamasında "ad farkı yok" |
+
+Testler (validator, yerel): build `-warnaserror` 0 uyarı · `dotnet format --verify-no-changes` 0 · Unit 544/544 (Consistency dahil) · betik testleri 4/4 · Integration 986/986 (ad alanı ve sınıf gruplarıyla bölünmüş; `AdminAndAuditTablesTests`'te bir yerel Npgsql zaman aşımı, sınıf tek başına 42/42) · `restore --locked-mode` 0 · `12_matris_denetle.py` hata 0. Dal CI `41907477152` success (head `439361d`). `12`'de T233'e eşlenen satır yok (kaynak birimi `09 §10.7`, §3.5; KP yok).
+
+**B1 (DÜŞÜK, S1):** testlerdeki sayılar sabitlerden türetilir (ör. `$"-c lock_timeout={(int)DatabaseTimeouts.LockTimeout.TotalMilliseconds} …"`, `SHOW` yerine `current_setting`/`pg_settings` milisaniyesi sabitle karşılaştırılır); `Timeouts_AreTheRowsOfTheTable` kaldırılır (tablo ↔ sabit eşitliği Consistency testindedir).
+
+**K-notları:** K1 → D-84 (yanıt katmanı T212'de). K2: `Program.cs`'te web ev sahibinin `Web` profili yerine ham kurulum dizisi kullanılması (bozma) Unit 544/544 ve Web 34/34'ü yeşil bıraktı — ev sahibinin kurduğu veri kaynağında `statement_timeout`'u sınayan test eklenir. K3: D-83'ün hedefi bu PR'ın kendisiydi (`09 §10.7`'ye dokundu); madde 2 cümlesi düzeltme 1'de daraltılır ve D-83 kapanır. K4: D-26 madde 7'yi "en çok bir `DbTimeout` satırı" diye daralttı ama `Get_WhenTheServerIsUnreachable_Returns503WithinTheLimit` satır sayısını sınamıyor — tek onay eklenir.
+
+**Yapım raporu karşılaştırması:** 2 uyuşmazlık — (1) kriter 1 için "sayı başka yerde yazılmaz" denmiş, kanıt olarak gösterilen `Timeouts_AreTheRowsOfTheTable` kuralın ihlalidir; (2) KK2 kanıtı yalnız grep, korunma testi yok (K2). Yerel Integration'da yapım "29 Test Collection Cleanup Failure" yazdı; validator koşusunda yok (bir test gövdesi zaman aşımı, tek başına yeşil). Öz denetim tablosu var ve her maddesi kanıtlı.
 
 ## Altyapı Değişiklikleri
 

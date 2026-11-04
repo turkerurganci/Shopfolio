@@ -19,6 +19,9 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
 
+// The one time source (09 7.1 item 1; 05 7.2.4).
+builder.Services.AddTimeSource();
+
 // Secrets come from files Compose mounts under /run/secrets, never from the environment (05 6.x.1). The connection string of the
 // database (password included) is the whole content of one such file and is the value of Database:ConnectionString (09 3.5 item 2).
 var mountedFiles = new SecretFiles(SecretFiles.DefaultDirectory);

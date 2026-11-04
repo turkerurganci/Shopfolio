@@ -27,12 +27,29 @@
     <Compile Remove="Architecture/ViolationSamples/**" />
     <None Remove="Architecture/ViolationSamples/**" />
     <ViolationSampleSource Include="Architecture/ViolationSamples/ModuleBoundary/*.cs" />
+    <TimeAndMoneySampleSource Include="Architecture/ViolationSamples/TimeAndMoney/*.cs" />
   </ItemGroup>
 
   <Target Name="BuildViolationSamples" AfterTargets="Build" Inputs="@(ViolationSampleSource)" Outputs="$(OutDir)ModuleBoundaryViolationSample.dll">
     <Csc Sources="@(ViolationSampleSource)"
          References="@(ReferencePathWithRefAssemblies)"
          OutputAssembly="$(OutDir)ModuleBoundaryViolationSample.dll"
+         TargetType="library"
+         NoStandardLib="true"
+         Nullable="enable"
+         EmitDebugInformation="true"
+         DebugType="portable"
+         UseSharedCompilation="false"
+         ToolPath="$(CscToolPath)"
+         ToolExe="$(CscToolExe)"
+         TreatWarningsAsErrors="true" />
+  </Target>
+
+  <!-- The time and money rules' violation sample (09 7.1 item 5, 14.1 item 5): its own assembly as well. -->
+  <Target Name="BuildTimeAndMoneyViolationSample" AfterTargets="Build" Inputs="@(TimeAndMoneySampleSource)" Outputs="$(OutDir)TimeAndMoneyViolationSample.dll">
+    <Csc Sources="@(TimeAndMoneySampleSource)"
+         References="@(ReferencePathWithRefAssemblies)"
+         OutputAssembly="$(OutDir)TimeAndMoneyViolationSample.dll"
          TargetType="library"
          NoStandardLib="true"
          Nullable="enable"

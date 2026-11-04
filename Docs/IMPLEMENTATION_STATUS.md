@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-04 — F1 (Veri katmanı) gate check: ✓ PASS (main `c59321d`; T101–T120; Consistency 101/101, Unit 241/241, Integration 952/952, betik testleri 4 dosya; Release `-warnaserror` 0/0; yerel referans kurulumda 18 göç ileri ve idempotent, seed sayıları beklenen, canlılık 200; matriste F1'e bağlı 144 satır implement edildi, S3 0; `VAL-A838` PASS; S2 yok). Gate PR'ı bu commit'i taşır; merge ve `phase/F1-pass` etiketi yardımcıda. Önceki giriş (T120 doğrulama tur 2 PASS) `STATUS_CHANGELOG.md`'ye taşındı.
+**Son güncelleme:** 2026-11-04 — T227 (Zaman ve para) bağımsız doğrulama tur 1: ✓ PASS (head `cdc6648`, PR #382; kriter 1–7 ve KK1–KK7 ✓; kuruş yuvarlaması ve orantılı bölme sınır değerleriyle yeniden sınandı (0,015 → 0,02, 0,025 → 0,03, 9,595 → 9,60, 4,995 → 5,00; 10 TL 50:100:150 → 1,66 + 3,33 + 5,01; 0,02 TL üç eşit ağırlık → 0,02 + 0 + 0); on kaynak mutasyonu ilgili testleri kırmızıya çevirdi — `TurkeyTime.DateOf`'un sunucu dilimiyle okunması +03:00 makinede yalnız mimari testle yakalandı; Unit 458/458 (Consistency dahil); dal CI 41889663878 yeşil; bulgu 0; K1 → D-76, K2 → D-77). Merge yardımcıda. Önceki giriş (T227 yapım bitti) `STATUS_CHANGELOG.md`'ye taşındı.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -117,7 +117,7 @@
 | T215 | Hız sınırı, deneme limitleri ve gövde tavanı | ⬚ | — | — | — |
 | T216 | Tarih, sayı ve para biçimi: istek ve gösterim | ⬚ | — | — | — |
 | T217 | Yapılabilir işlemlerin sunucuda üretimi ve POST işleyicisinde yeniden denetim | ⬚ | — | — | — |
-| T218 | Dokuz modülün iskeleti ve Contracts | ✓ | ✓ PASS (tur 3) | — | #380 |
+| T218 | Dokuz modülün iskeleti ve Contracts | ✓ | ✓ PASS (tur 3) | `d82b943` | #380 |
 | T219 | Arama motoru verileri kalıbı | ⬚ | — | — | — |
 | T220 | İş kuyruğu çalıştırıcısı | ⬚ | — | — | — |
 | T221 | Zamanlayıcı | ⬚ | — | — | — |
@@ -126,7 +126,7 @@
 | T224 | Çerez politikası | ⬚ | — | — | — |
 | T225 | Sistem kayıtları | ⬚ | — | — | — |
 | T226 | Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi | ⬚ | — | — | — |
-| T227 | Zaman ve para | ⬚ | — | — | — |
+| T227 | Zaman ve para | ✓ | ✓ PASS (tur 1) | — | #382 |
 | T228 | Eşzamanlılık denetimi | ⬚ | — | — | — |
 | T229 | Uygulama belleğinde önbellek | ⬚ | — | — | — |
 | T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ⬚ | — | — | — |

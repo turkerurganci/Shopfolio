@@ -1,0 +1,32 @@
+# Public holidays of the business day calendar (05 7.2.3; 02 4.1.2). The list ships with the product and is renewed with the
+# maintenance releases (05 8.8.2); the company does not edit it. One line is one holiday: the day as yyyy-MM-dd, then its name.
+# Lines are in date order, a day appears once. A year is covered when it has at least one line, so every holiday of a covered year
+# is written; in a year with no line only the weekend is excluded. Half days (the eve of a religious holiday, 28 October) are full
+# business days and are not listed. Religious holiday dates: the Presidency of Religious Affairs (Diyanet) calendar.
+2026-01-01 Yılbaşı
+2026-03-20 Ramazan Bayramı 1. gün
+2026-03-21 Ramazan Bayramı 2. gün
+2026-03-22 Ramazan Bayramı 3. gün
+2026-04-23 Ulusal Egemenlik ve Çocuk Bayramı
+2026-05-01 Emek ve Dayanışma Günü
+2026-05-19 Atatürk'ü Anma, Gençlik ve Spor Bayramı
+2026-05-27 Kurban Bayramı 1. gün
+2026-05-28 Kurban Bayramı 2. gün
+2026-05-29 Kurban Bayramı 3. gün
+2026-05-30 Kurban Bayramı 4. gün
+2026-07-15 Demokrasi ve Millî Birlik Günü
+2026-08-30 Zafer Bayramı
+2026-10-29 Cumhuriyet Bayramı
+2027-01-01 Yılbaşı
+2027-03-09 Ramazan Bayramı 1. gün
+2027-03-10 Ramazan Bayramı 2. gün
+2027-03-11 Ramazan Bayramı 3. gün
+2027-04-23 Ulusal Egemenlik ve Çocuk Bayramı
+2027-05-01 Emek ve Dayanışma Günü
+2027-05-16 Kurban Bayramı 1. gün
+2027-05-17 Kurban Bayramı 2. gün
+2027-05-18 Kurban Bayramı 3. gün
+2027-05-19 Kurban Bayramı 4. gün; Atatürk'ü Anma, Gençlik ve Spor Bayramı
+2027-07-15 Demokrasi ve Millî Birlik Günü
+2027-08-30 Zafer Bayramı
+2027-10-29 Cumhuriyet Bayramı

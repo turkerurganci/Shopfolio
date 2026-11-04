@@ -198,7 +198,7 @@ Testler: `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı · `dotnet format S
 - **Commit:** `T218: Dokuz modülün iskeleti, Contracts ve mimari testler` (head SHA PR açıklamasında ve yardımcıya dönüşte)
 - **PR:** #380
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
+- **Post-merge run'lar:** squash `d82b943` (#380) — CI `41884524385` ve Publish `41884524541` success (T227 dalında dolduruldu, 2026-11-04)
 
 ## Dış Varsayımlar
 

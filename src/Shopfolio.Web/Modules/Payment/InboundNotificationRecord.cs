@@ -105,6 +105,6 @@ internal sealed class InboundNotificationRecordConfiguration : IEntityTypeConfig
 
         builder.HasRule("notification_or_transaction", "num_nonnulls(provider_notification_id, provider_transaction_id) >= 1");
         builder.HasRule("amount_not_negative", "amount >= 0");
-        builder.HasRule("reason_only_when_processed","unprocessed_reason IS NULL OR processed_at IS NOT NULL");
+        builder.HasRule("reason_only_when_processed", "unprocessed_reason IS NULL OR processed_at IS NOT NULL");
     }
 }

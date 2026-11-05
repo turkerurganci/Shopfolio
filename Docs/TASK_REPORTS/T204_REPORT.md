@@ -126,7 +126,7 @@ Derleme: `dotnet build Shopfolio.slnx -c Release -warnaserror` 0 uyarı; `dotnet
 - **Commit:** PR head
 - **PR:** #398
 - **CI:** 42077481379 success (head `548c4db`; doğrulayıcı okudu)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `4628f9c` (#398) — CI 42086512742 success, Publish 42086513414 success (T206 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

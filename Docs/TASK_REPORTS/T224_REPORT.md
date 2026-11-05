@@ -84,6 +84,7 @@
 - **Branch:** `task/T224-cerez-politikasi`
 - **Commit:** PR'ın başlık SHA'sı dönüşte
 - **PR:** #400
+- **Post-merge run'lar:** squash `bcedad3` (#400) — CI 42113408503 success, Publish 42113408500 success (T206 dalında dolduruldu, skill adım 15)
 - **CI:** yapım işçisi izlemez
 
 ## Dış Varsayımlar

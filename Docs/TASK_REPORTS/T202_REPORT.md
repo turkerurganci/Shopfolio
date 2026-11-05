@@ -91,7 +91,7 @@
 - **Commit:** dal ucu PR'da
 - **PR:** #396
 - **CI:** dal CI 42036902091 ✓ success (head `70c3d3f`)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `a5cd5b1` (#396) — CI 42042657330 success, Publish 42042657292 success (T206 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

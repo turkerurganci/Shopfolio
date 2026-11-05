@@ -104,6 +104,7 @@ Testler (validator, yerel, head `2deb469`): build `-warnaserror` 0/0 · `dotnet 
 
 - **Branch:** `task/T220-is-kuyrugu`
 - **PR:** #393
+- **Post-merge run'lar:** squash `6a1ca3a` (#393) — CI 41999269209 success, Publish 41999269502 success (T206 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

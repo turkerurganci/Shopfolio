@@ -71,6 +71,7 @@
 
 - **Branch:** `task/T221-zamanlayici`
 - **PR:** #394
+- **Post-merge run'lar:** squash `f8feec5` (#394) — CI 42021631103 success, Publish 42021631131 success (T206 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

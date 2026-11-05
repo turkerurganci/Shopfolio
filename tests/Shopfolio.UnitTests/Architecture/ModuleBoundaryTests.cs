@@ -28,7 +28,8 @@ public sealed class ModuleBoundaryTests
 
     private const string AnyModuleType = @"^Shopfolio\.Modules(\.|$)";
 
-    private const string PageAndEndpointTypes = @"^Shopfolio\.(Pages|Endpoints)(\.|$)";
+    /// <summary>The page and endpoint namespaces, and the namespace the Razor compiler puts the class of a <c>.cshtml</c> into (D-73).</summary>
+    private const string PageAndEndpointTypes = @"^(Shopfolio\.(Pages|Endpoints)|AspNetCoreGeneratedDocument)(\.|$)";
 
     private const string InfrastructureTypes = @"^Shopfolio\.Infrastructure(\.|$)";
 
@@ -158,6 +159,15 @@ public sealed class ModuleBoundaryTests
         Assert.Contains(violations, v => v.Contains("ForbiddenPage ", StringComparison.Ordinal) && v.Contains("AppDbContext", StringComparison.Ordinal));
         Assert.Contains(violations, v => v.Contains("ForbiddenPageEntity", StringComparison.Ordinal) && v.Contains("ProductEntity", StringComparison.Ordinal));
         Assert.DoesNotContain(violations, v => v.Contains("AllowedPage", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void CompiledViews_InViolationSample_ReportTheContextButNotTheContractsCall()
+    {
+        IReadOnlyList<string> violations = Evaluate(_sample.Value, PageRule());
+
+        Assert.Contains(violations, v => v.Contains("Pages_Forbidden_View", StringComparison.Ordinal) && v.Contains("AppDbContext", StringComparison.Ordinal));
+        Assert.DoesNotContain(violations, v => v.Contains("Pages_Allowed_View", StringComparison.Ordinal));
     }
 
     // --- Common infrastructure: no module type, the one exception is the context class (09 6 item 2, 4) ---

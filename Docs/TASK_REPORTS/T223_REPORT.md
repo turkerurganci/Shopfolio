@@ -1,6 +1,6 @@
 # T223 — Dosya deposu
 
-**Faz:** F2 | **Durum:** ⏳ Yapım bitti, doğrulama bekliyor | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 ✓ PASS) | **Tarih:** 2026-11-05
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -118,11 +118,10 @@ Gate: `dotnet format Shopfolio.slnx --verify-no-changes` çıkış 0; `dotnet bu
 
 | Alan | Sonuç |
 |---|---|
-|---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1) |
-| Bulgu sayısı | 3 (B1 kriter 8 kısmi, B2 modül arayüz metodu işlem açıyor, B3 gömülü yerel kütüphane lisans kanıtı) |
-| Düzeltme gerekli mi | Evet — düzeltme turu |
-| Bloke-etmeyen not (K) sayısı | 4 |
+| Doğrulama durumu | ✓ PASS (tur 2; tur 1 ✗ FAIL) |
+| Bulgu sayısı | 0 (tur 1'in B1–B3'ü ve K1–K4'ü kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 5 — hepsi D-111'e forward |
 
 ## Altyapı Değişiklikleri
 
@@ -255,3 +254,92 @@ T223'ün `10` birimi KP-42; satırları (`VAL-A186`…`VAL-A190`) panel/tarayıc
 
 ### Merge ve Post-merge
 - FAIL: merge yok. Dal `task/T223-dosya-deposu`'da rapor, durum ve hafıza commit'i.
+
+## Doğrulama Sonucu — T223 Dosya deposu — tur 2
+**Tarih:** 2026-11-05   **Branch:** task/T223-dosya-deposu   **Commit:** 6614402 (doğrulanan head)
+
+### Verdict: ✓ PASS
+
+### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş (switch öncesi ve test koşuları sonrası) |
+| Hook kurulumu | ✓ | `git config core.hooksPath` → `C:\projects\Shopfolio\scripts\git-hooks` |
+| Ana dal CI (son 3) | ✓ | 42086512742 success · 42086513414 success · 42068910959 success |
+| Memory drift | ✓ | `.claude/memory/MEMORY.md` satır 22 T223 |
+
+### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Arayüz, disk gerçeklemesi, `InMemoryFileStore` | ✓ | `IFileStore` imzası `09 §6` m.6 ile birebir; `DiskFileStore` (geçici dosya + `File.Move`), `UnitTests/Fakes/InMemoryFileStore.cs`; `grep` `Modules/`, `Endpoints/`, `Pages/` altında `File.`/`Directory.`/`FileStream` yok; `DiskFileStoreTests` yeşil |
+| 2 | Disk adı rastgele/parmak izi; yükleyen adı yol değil | ✓ | `FileKeys` `^…\z` (K3 kapandı), `PathOf` her işlemde `Require`; `AKeyThatDoesNotFitTheImageSection_…` (`../etc/passwd`, `a/b`, `..\secret`, sonda `\n`); `FileKeysTests`; dijital ad yalnız `SafeFileName` ile başlığa girer, yol olmaz |
+| 3 | Tür içerikten; yalnız P-22; tavan P-23 | ✓ | `ImageKinds.Sniff` kütüphaneden önce, codec biçimi sezilenle eşleşmezse `Undecodable`; `AnSvgWithAnImageName_IsUnsupported_AndNeverReachesTheLibrary`, `APngContent_IsReadAsPng_…`; P-23: `AnUploadOfExactlyTheCeiling_IsAccepted_AndOneByteMore_IsRefused…` (K2 kapandı); P-22/P-23 değerleri `02` satır 2072–2073 ile eşit |
+| 4 | Yeniden kodlama, 2560, yön, meta veri, ilk kare, hareketsiz türev | ✓ | `ABigSource_…`, `TheOrientationIsAppliedToThePixels_AndNoMetadataIsLeft` (Exif/XMP/IPTC fikstürde var, çıktıda yok; yön renkle), `AMovingWebP_…AsOneFrame`, `ACmykJpeg_…`, `ADerivative_IsAStillWebP…`; `Orient` matrisleri 8 değer için elle doğrulandı |
+| 5 | Türevler kuyrukta, yükleme beklemez, türevsizde kaynak | ✓ | `AnUpload_…TheRowAndTheJobInOneTransaction` (iş satırı Pending), `TheDerivativeJob_WritesTheNarrowerWidths_AndASecondRun…`, `…MakesNoDerivativeAsWideAsTheSource…`, `…ForADeletedImage…`; `ImageServing.KeyFor` + birim testi |
+| 6 | 10.000 px / 40 MP çözülmeden ret | ✓ | `AHugeSmallFile_IsRefusedFromItsHeader_WithoutDecoding` (kenar ve alan, `DecodeCount` 0); `ImageProcessor.cs:91` başlık kapısı (+ arabellek tavanı 256 MB) `GetPixels`'ten önce |
+| 7 | Çözülemeyen dosya ret | ✓ | `ABrokenFile_IsUndecodable_AndATruncatedOneToo`; `ARejectedUpload_WritesNoFileNoRowAndNoJob` |
+| 8 | Dijitalde tür sınırı yok; ek olarak sunulur; tavan P-26 | ✓ | B1 kapandı: `Infrastructure/Files/DigitalFileDelivery` — `OpenAsync` (`attachment` + `filename*`, `application/octet-stream`, `nosniff`, güvenli ad), `CheckSize` (P-26 aşımı adlı ret `DigitalFileSizeResult.TooLarge`, sınırda kabul); `DigitalFileDeliveryTests` (exe/html/svg/epub içerik, CR LF/tırnak/yol temizliği, ASCII dışı ad) ve `DiskFileStoreTests.ADigitalFileOfAnyContent_IsServedFromTheDisk_…`, `ADigitalFileOverTheCeiling_IsRefusedByName_…`. Uçlar T312/T340 (plan) |
+| 9 | Bağsız ve bir günden eski görsel imhada silinir | ✓ | `TheImageDisposal_DeletesTheUnlinkedOldImages_…` (23 saatlik kalır — K4 kapandı), `AnImageDeletedByTheDisposal_IsNotDeletedWhileALinkNamesIt_…`, `TheDeleteStatement_NamesEveryTableThatHoldsAForeignKeyToTheImageTable` (adlar artık modelden), `TheOrphanFileSweep_WritesTheRecordBeforeItDeletesAFile_…` (her silmede kayıt 1), `…KeepsADerivativeWhoseSourceRowIsThere…` |
+
+### Task Satırları (`12 §7.5`, adım 2a ve 16)
+T223'ün `10` birimi KP-42; satırları (`VAL-A186`…`VAL-A190`) panel/tarayıcı satırlarıdır (T339/T525). `VAL-A465` (`InvalidImage` 422 — uç, T339) ve `VAL-A834` (kayıtsız dosya süpürmesi: görsel bölümü burada ✓ — 23 saatlik ve iki günlük dosya testte —, dijital bölüm T302 — D-102) de T223'ün kriterlerine tam eşlenmez. Hiçbir satırın `Durum`'u değişmedi.
+
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı |
+|---|---|---|---|---|---|
+| VAL-A186…A190 | ORTA/DÜŞÜK/KRİTİK | yok | BEKLEMEDE | BEKLEMEDE (panel uçları T339/T525) | — |
+| VAL-A465 | — | yok | BEKLEMEDE | BEKLEMEDE (uç T339; işlemci payı kriter 3, 6, 7'de ✓) | — |
+| VAL-A834 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (görsel bölümü ✓; dijital bölüm T302) | — |
+
+`python -I -X utf8 scripts/doc-scans/12_matris_denetle.py --kapsam 1-77`: Hata 0.
+
+### Doğrulama Kontrol Listesi
+- [x] KK1 modül dosyaya yalnız arayüzden erişir
+- [x] KK2 disk adı rastgele, yükleyen adı yol değil
+- [x] KK3 SVG reddi, `.jpg` adlı PNG → PNG; P-23 aşımı (davranış testi)
+- [x] KK4 2560, EXIF konumu yok, yön, tek kare
+- [x] KK5 türev kuyrukta, yükleme beklemez, türevsizde kaynak kopya
+- [x] KK6 devasa boyutlu küçük dosya
+- [x] KK7 bozuk dosya
+- [x] KK8 dijital dosya ek olarak gider, tavan aşımı reddedilir
+- [x] KK9 bağsız eski görsel imhada silinir
+- [x] `09 §25` — modül sınırı/işlem sahibi: `ImageUploads` `ITransactionRunner` almaz, `RunAsync` yok (`grep`), `TheUpload_JoinsTheCallersTransaction_…` ve `TheUpload_NeverOpensATransactionOfItsOwn_…` (B2 kapandı); yeni paket kanıtı ve lisans ölçütü (B3 kapandı, aşağıda); arka plan işi işlem dışında çağrılır (`AddJobHandler`), iş kendi kısa `RunAsync`'ini açar; mimari testler ve `ImagingLibraryScan` yeşil
+- [x] Güvenlik taraması (aşağıda)
+
+### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes` | çıkış 0 |
+| Unit (+Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 1288/1288 |
+| Integration (PostgreSQL 18, `shopfolio-t223-val-pg`, `127.0.0.1:55702`; silindi) | ✓ | `--filter-namespace`/`--filter-class`: Jobs 77; Files+Disposal+Logging+FileSecrets+SignedEndpoints+Outages 123; Web 75; Concurrency+Security+Database 79; Model 65 + 401 + 426 (`--max-threads 3`) | 1246/1246, 0 hata. Not: ilk konteynerde (`55641`, `0.0.0.0` bağlama) Docker port yönlendirmesi yanıt vermedi (`pg_isready` "no response"), bağlantı zaman aşımları ortamdandı; `127.0.0.1` bağlamalı yeni konteynerde bütün parçalar ilk koşuda yeşil |
+| Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Restore | ✓ | `dotnet restore Shopfolio.slnx --locked-mode` | çıkış 0; `dotnet list package --vulnerable --include-transitive` üç projede açık yok |
+| Dal CI | ✓ | `gh run list --branch task/T223-dosya-deposu` | 42089604427 success (head 6614402) |
+
+### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz
+- Auth etkisi: Temiz (uç yok)
+- Input validation: Temiz — tür ilk baytlardan, piksel ve arabellek tavanı çözmeden önce, yol yalnız biçimi `\z` ile denetlenmiş anahtardan; dijital dosya adı başlığa girmeden temizlenir (yol, denetim karakteri, tırnak, `;`, vekil), `filename*` ile kodlanır
+- Yeni bağımlılık: `SkiaSharp` 4.154.0, `SkiaSharp.NativeAssets.Linux.NoDependencies` 4.154.0 (+ geçişli Win32, macOS) — MIT; NuGet açığı yok. Gömülü yerel kütüphaneler ikiliyle karşılaştırıldı (linux-x64 `libSkiaSharp.so`, `grep -a -o`): `SkWuffsCodec` 32, `wuffs_gif__decoder` 19, `skcms_` 327, `FreeType` 78, `png_read_info`/`jpeg_read_header`/`WebPDecode`/`WebPEncode` var; `GIFImageReader`, `GIFFrameContext`, `GIFLZWContext`, `MHD_`, `dng_`, `hb_`, `XML_Parse`, `u_strlen`, `ImGui`, `piex`, `sfntly`, `SDL_`, `spirv`, "Mozilla Public", "Lesser General" 0 — tablo satırı doğru. Win32 ikilileri (win-x64/x86/arm64) de aynı: Wuffs var, Mozilla gif/MHD/DNG/piex 0. Elenen adaylarda ölçüt tutarlı: Magick.NET yalnız-LGPL bileşenlerle elendi, çift lisanslı cairo/libraw gerekçe sayılmadı; ImageSharp §3.3 m.5 ile. Eski kütüphane adı yalnız "Elendi" satırlarında, §15.6 girişinde/m.8'de, `ImagingLibraryScan`'da ve tarihsel kayıtlarda kalır; `05`, `CONTEXT`, `DEPLOY_RUNBOOK`, `10`, `11`, `12`'de yok
+
+### Bulgular (`12 §8.2` defect kaydı)
+Yok. Tur 1 bulguları kapandı: B1 (kriter 8 — `DigitalFileDelivery` + testler), B2 (arayüz metodu çağıranın işlemine katılır — iki entegrasyon testi), B3 (ikili okundu; Wuffs Apache-2.0, MPL/⚠ kalktı, cairo ölçütü tutarlı).
+
+### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | Kütüphaneler tablosundaki `SkiaSharp.NativeAssets.Linux.NoDependencies` satırı "Windows ve macOS ikilileri … dağıtılmaz" der; ama Dockerfile `dotnet publish`'i RID'siz koşar ve çıktı `runtimes/` altında win-x64/x86/arm64, osx ve bütün linux varyantlarını taşır (dal `bin/Debug/net10.0/runtimes/` 17 klasör). Lisans sonucu değişmez (Win32 ikilileri de temiz, yukarıda) | DEFERRED_BACKLOG'a forward (D-111) |
+| K2 | "Tek işlem tepe ≈ 212 MB" hesabı yalnız üç piksel arabelleğini sayar; içerik ve `SKData` kopyası (≤ 2 × 10 MB) ve codec iç arabellekleri (progressive JPEG'in katsayı dizileri — bilgim tarihli, piksel başına ≈ 3–6 bayt) sayılmaz. Yapım raporu Dış Varsayım 3 "ölçüldü" der, hesaplanmıştır. Eşzamanlılık 1 yine çoğalmayı önler; tavan ilk yük denemesinde sınanır (`09 §3.5` m.4) | DEFERRED_BACKLOG'a forward (D-111) |
+| K3 | `UploadImageAsync` çağıranın işleminde koşar: görüntü işleme (ve semafor beklemesi) işlem açıkken yapılır. `09 §15.6` m.7'nin sırasında adet denetimi (veritabanı okuması) işlemden önce gelirse işlem işleme süresince boşta kalır (`idle_in_transaction_session_timeout` 30 sn) | DEFERRED_BACKLOG'a forward (D-111; yükleme işleyicisi T339) |
+| K4 | `DigitalFileDelivery` `09 §15.7`'de anılmaz; sınıf yorumu "uçlar başlıklara bir şey eklemez" der, oysa §15.7 m.2–3 `Results.File(…, fileDownloadName, …)`, `Cache-Control: no-store`, `ETag`/`Last-Modified` ister — iki `Content-Disposition` yolu var | DEFERRED_BACKLOG'a forward (D-111; indirme ucu T312) |
+| K5 | Yeni `DisposalTimings.UnlinkedFileMinAgeDays` (1 gün) `09 §3.5` tablosunda yok; T201'in 400 günlük eşiği tabloda satırdır. Değer `05 §7.7.1`'in tasarım değeridir (m.3), m.4'ün kapsamı belirsiz | DEFERRED_BACKLOG'a forward (D-111) |
+
+### Yapım Raporu Karşılaştırması
+- Uyum: 3 küçük uyuşmazlık (verdict'i etkilemez)
+- Dış Varsayım 3 tepe belleği "ölçüldü" der; hesaptır ve codec iç arabelleklerini saymaz (K2).
+- Rapor "Repo memory güncellendi" der; MEMORY satır 22 düzeltme turunu değil tur 1 FAIL'ini anlatıyordu (bu turda güncellendi).
+- Rapordaki "Doğrulama" tablosunda yinelenmiş ayraç satırı vardı (finalize'da düzeltildi).
+- Öz denetim tablosu (düzeltme 2) var ve maddeleri kanıtlı; kriter ve KK kararlarım raporla uyumlu.
+
+### Merge ve Post-merge
+- PASS: merge ve post-merge izleme yardımcının işidir (17–18. adımlar). Dalda rapor, durum, hafıza ve backlog commit'i.

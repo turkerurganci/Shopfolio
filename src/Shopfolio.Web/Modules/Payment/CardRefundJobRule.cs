@@ -23,7 +23,7 @@ internal enum CardRefundStep
 /// The runner delivers a row at least once and retries a failed handler by the default rule; the handler of the card refund therefore decides
 /// from the refund record, which is written before the request goes. The record of this row is one written at or after the row was created
 /// (the firm's retry writes a new row, and the older record of the earlier row is not this row's, 06 4.34). The handler that sends and applies
-/// the result is the PayTR task's (T405) and calls this rule first.
+/// the result is the payment provider task's (T405) and calls this rule first.
 /// </summary>
 internal static class CardRefundJobRule
 {

@@ -31,12 +31,21 @@ internal static class PaymentStartRule
     public static PaymentStartStep Decide(PaymentStartResult answer)
     {
         ArgumentNullException.ThrowIfNull(answer);
-        return answer switch
+        if (answer is PaymentStartResult.Started)
         {
-            PaymentStartResult.Started => PaymentStartStep.OpenPaymentForm,
-            PaymentStartResult.ConnectionFailed => PaymentStartStep.CancelAsUnavailable,
-            PaymentStartResult.SecondTokenRejected _ =>PaymentStartStep.StayOnConfirmation,
-            _ => throw new UnreachableException(),
-        };
+            return PaymentStartStep.OpenPaymentForm;
+        }
+
+        if (answer is PaymentStartResult.ConnectionFailed)
+        {
+            return PaymentStartStep.CancelAsUnavailable;
+        }
+
+        if (answer is PaymentStartResult.SecondTokenRejected)
+        {
+            return PaymentStartStep.StayOnConfirmation;
+        }
+
+        throw new UnreachableException();
     }
 }

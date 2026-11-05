@@ -348,6 +348,7 @@ Parametrenin üç katmanı (`02 §10.1.3`, `05 §8.4`; K-412) kodda üç ayrı e
 | İndirme bağlantısının ömrü 1 saat | Kodda sabit | K-1353, `05 §7.7.4` |
 | Görüntü işleme: kaynak kopyanın en uzun kenarı 2560 piksel; piksel tavanı: en uzun kenar 10.000, alan 40 megapiksel; türev genişlikleri 480, 960, 1600 (kaynaktan küçük olanlar); kaynak kopya kalitesi 90, WebP türev kalitesi 80; eşzamanlı işlem 2; kütüphane belleği 256 MB, disk önbelleği kapalı | Kodda sabit | K-1353, K-1316, `05 §6.6.2`, §7.7.2 |
 | Parçalı yüklemenin parçası 5 MB; başlatma gövdesi 64 KB | Kodda sabit | K-1353, K-1171 (2), `07 §2.8.1` |
+| İmzalı makine ucunun (ödeme sağlayıcısının bildirimi) gövde tavanı 64 KB — gövde okunmadan ve imzadan önce uygulanır, aşan istek 413; imzası tutmayan isteğin seyreltilmiş kayıt satırının penceresi 60 saniye (genel sınırın kayan penceresi) | Kodda sabit (`SignedEndpointLimits`) | K-1169, K-1570, `07 §2.8.1`, §2.8.2, `08 §3.2` (T203) |
 | Disk doluluğu eşiği %85 — durum ucunun disk eşiğidir; yüklemenin kabul denetimi aynı değeri okur (`StatusThresholdOptions.DiskUsageFraction`) | Kurulum ayarı (varsayılanı kodda; §3.5 madde 3) | K-1353, K-1392, `05 §9.4.2`, `§9.4.3`, `§8.4.5`, `§7.7.1` |
 | Yükleme betiğinin ağ hatasında sürdürme denemesi en çok 3; beklemeler 1, 2 ve 4 saniye | Kodda sabit (betikte) | K-1354 |
 

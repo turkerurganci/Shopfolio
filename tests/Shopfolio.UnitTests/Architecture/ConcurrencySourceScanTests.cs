@@ -62,12 +62,10 @@ public sealed class ConcurrencySourceScanTests
 
         IReadOnlyList<(string Rule, int Line)> inOrderLocks = ConcurrencySourceScan.Scan(ConcurrencySourceScan.OrderLocksFile, sample);
         IReadOnlyList<(string Rule, int Line)> inAdvisoryLocks = ConcurrencySourceScan.Scan(ConcurrencySourceScan.AdvisoryLocksFile, sample);
-        IReadOnlyList<(string Rule, int Line)> inSettingsWriter = ConcurrencySourceScan.Scan(ConcurrencySourceScan.SettingsWriterFile, sample);
         IReadOnlyList<(string Rule, int Line)> inStockCounters = ConcurrencySourceScan.Scan(ConcurrencySourceScan.StockCountersFile, sample);
 
         Assert.Equal([ConcurrencySourceScan.CounterWrite], inOrderLocks.Select(f => f.Rule).Distinct());
         Assert.Equal([ConcurrencySourceScan.ShareLockText, ConcurrencySourceScan.CounterWrite], inAdvisoryLocks.Select(f => f.Rule).Distinct());
-        Assert.Equal([ConcurrencySourceScan.ShareLockText, ConcurrencySourceScan.CounterWrite], inSettingsWriter.Select(f => f.Rule).Distinct());
         Assert.Equal([ConcurrencySourceScan.RowLockText, ConcurrencySourceScan.ShareLockText], inStockCounters.Select(f => f.Rule).Distinct());
     }
 

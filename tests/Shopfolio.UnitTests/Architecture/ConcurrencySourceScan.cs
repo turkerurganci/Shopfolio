@@ -5,8 +5,8 @@ namespace Shopfolio.UnitTests.Architecture;
 
 /// <summary>
 /// Source scan of the concurrency code's single places (T228 KK9 and criterion 5; 09 10.2 items 4-6, 9.1 item 5, 10.9 item 2): the advisory lock
-/// and the row lock text (<c>pg_advisory</c>, <c>FOR UPDATE</c>, <c>FOR NO KEY UPDATE</c>) stands only in <c>AdvisoryLocks.cs</c>,
-/// <c>OrderLocks.cs</c> and the settings writer's lock (09 10.3); the shared row lock text (<c>FOR SHARE</c>, <c>FOR KEY SHARE</c>) only in
+/// and the row lock text (<c>pg_advisory</c>, <c>FOR UPDATE</c>, <c>FOR NO KEY UPDATE</c>) stands only in <c>AdvisoryLocks.cs</c> and
+/// <c>OrderLocks.cs</c> (the settings writer's lock of 09 10.3 joins them with that writer's file - no path is allowed before its file exists); the shared row lock text (<c>FOR SHARE</c>, <c>FOR KEY SHARE</c>) only in
 /// <c>OrderLocks.cs</c>; and a counter - the stock or capacity field, the reserved quantity, the coupon's used and reserved rights - is written
 /// by a bulk update (<c>SetProperty</c>) or a raw <c>UPDATE ... SET</c> only in <c>StockCounters.cs</c>. The places are full paths, not file
 /// names: a file of the same name elsewhere is scanned. The scan reads the whole text, so a statement split over lines is found; full-line
@@ -15,7 +15,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// </summary>
 internal static partial class ConcurrencySourceScan
 {
-    public const string RowLockText = "takes an advisory or row lock outside AdvisoryLocks.cs, OrderLocks.cs and the settings writer (09 10.2 items 5, 6)";
+    public const string RowLockText = "takes an advisory or row lock outside AdvisoryLocks.cs and OrderLocks.cs (09 10.2 items 5, 6)";
 
     public const string ShareLockText = "takes a shared row lock outside OrderLocks.cs (09 10.2 item 6, 10.9 item 2)";
 
@@ -24,8 +24,6 @@ internal static partial class ConcurrencySourceScan
     public const string AdvisoryLocksFile = "src/Shopfolio.Web/Infrastructure/AdvisoryLocks.cs";
 
     public const string OrderLocksFile = "src/Shopfolio.Web/Modules/Ordering/OrderLocks.cs";
-
-    public const string SettingsWriterFile = "src/Shopfolio.Web/Modules/Settings/CompanySettingsWriter.cs";
 
     public const string StockCountersFile = "src/Shopfolio.Web/Modules/Catalog/StockCounters.cs";
 
@@ -43,7 +41,7 @@ internal static partial class ConcurrencySourceScan
         string path = relativePath.Replace('\\', '/');
         string clean = BlankCommentLines(text.ReplaceLineEndings("\n"));
         List<(string Rule, int Line)> findings = [];
-        if (path is not (AdvisoryLocksFile or OrderLocksFile or SettingsWriterFile))
+        if (path is not (AdvisoryLocksFile or OrderLocksFile))
         {
             Add(findings, RowLockText, RowLock(), clean);
         }

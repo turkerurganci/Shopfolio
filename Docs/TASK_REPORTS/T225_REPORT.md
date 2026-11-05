@@ -71,10 +71,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-05, head `a8390bc`) |
-| Bulgu sayısı | 2 (1 KRİTİK S1, 1 ORTA S1) |
-| Düzeltme gerekli mi | Evet — erişim kaydında yol/sorgu maskesi ve tarayıcı tanıtımı (aşağıdaki "Doğrulama Sonucu — tur 1") |
-| Bloke-etmeyen not (K) sayısı | 3 (D-90) |
+| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-05, head `bf2ecc8`; tur 1 FAIL, head `a8390bc`) |
+| Bulgu sayısı | Tur 2: 2 (1 KRİTİK S1, 1 DÜŞÜK S1) · tur 1: 2 (1 KRİTİK S1, 1 ORTA S1) |
+| Düzeltme gerekli mi | Evet — erişim kaydında bir çiftten sonra gelen çıplak sorgu belirteçleri maskelenmiyor; satırda `05 §9.1.2` dışı Caddy alanları (aşağıdaki "Doğrulama Sonucu — tur 2"). İki iterasyon doldu: eskalasyon |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (D-91) · tur 1: 3 (D-90) |
 
 ## Düzeltme 1 (doğrulama tur 1 FAIL sonrası, 2026-11-05)
 
@@ -209,3 +209,85 @@ Task'ın KP birimi `10 KP-74`; grep'in getirdiği dokuz satır (`VAL-A368`–`A3
 
 ### Merge ve Post-merge
 - Merge yok (FAIL). Rapor, status (`✗ FAIL (tur 1)`), hafıza, `VAL-A991` `Durum` ve D-90 dala commit'lendi.
+
+## Doğrulama Sonucu — T225 Sistem kayıtları — tur 2
+**Tarih:** 2026-11-05   **Branch:** task/T225-sistem-kayitlari   **Commit:** bf2ecc8 (doğrulanan head)
+
+### Verdict: ✗ FAIL
+
+### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş (switch öncesi ve sonrası) |
+| Hook kurulumu | ✓ | `git config core.hooksPath` → `C:\projects\Shopfolio\scripts\git-hooks` |
+| Ana dal CI (son 3) | ✓ | 41958746129 success · 41958746107 success · 41953520461 success |
+| Memory drift | ✓ | `.claude/memory/MEMORY.md` satır 22 T225 |
+
+### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Üç kaynak, günlük dosyalar; yazanlar; ayarlar runbook'ta, kurulumda denetlenir | ✓ | compose `x-container-log` (json-file 10m×3) her serviste; `access-logs`/`app-logs`/`db-logs`/`backup-logs`; `30-logging.conf` dosyaya yazar, döndürmesi kapalı; Dockerfile `/var/log/postgresql/server` 2750 `logread`; `package-build.sh` adım 6 `show` denetimleri + dizin modu; runbook L.1–L.5 dosyalarla tutarlı; dal CI Paketleme yeşil (41958706379); `SystemLogsDeployConsistencyTests` yeşil. Erişim satırında `user_agent` alanı var (gerçek Caddy sondası: `"user_agent":"ProbeUA/1.0"`) — tur 1 Bulgu 2 kapandı |
+| 2 | İstek kimliğini vekil üretir, `X-Request-Id` ile iletir; uygulama satırları başlık değerini taşır | ✓ | Gerçek `caddy:2.11.7-alpine` + daldaki Caddyfile + başlığı yansıtan arka uç: istemci `X-Request-Id: sahte` gönderdi → arka uca `c4a07c7d-…` gitti, erişim satırında `request_id` ve `uuid` aynı UUID, `sahte` kayıtta yok; `SystemLogsTests` (500/422/401, iki istek) yeşil |
+| 3 | Şifre, anahtar, sır, … e-posta, form gövdesi, çerez hiçbir kayda yazılmaz | ✗ | Anahtarlı yolların hepsi (10 ön ek, büyük harf, `//`) ve çift/tek sorgu biçimleri gerçek Caddy'de maskelendi; `Cookie`, `Authorization`, POST gövdesi kayıtta yok. **Ama** sorguda bir `ad=değer` çiftinden sonra gelen çıplak belirteçler maskelenmiyor: `/arama?a=1&b&ali@x.com` → `"uri":"/arama?a=*&*&ali@x.com"`; `/arama?q=1&a&b&c&d` → `"uri":"/arama?q=*&*&b&*&d"` (gerçek Caddy sondası). E-posta erişim kaydına ham yazıldı. Uygulama kaydı (`PathMasker`) aynı girdiyi tam maskeler; `SystemLogsDeployConsistencyTests`'in örnek listesinde bu biçim yok |
+| 4 | Düzey tasarım değeri; çatı ve veri erişimi uyarıda | ✓ | `SystemLogsTests` düzey testleri yeşil (Integration Logging 142/142) |
+| 5 | P-45 saklama; dosyayı yalnız imha işi siler; sunucu kayıtları kendi döngüsüyle | ✓ | `roll_disabled` (`caddy validate` geçti, adapt çıktısında); runbook L.3 erişim kaydı `rotate 36500` silmesiz, sunucu dosyaları 183 gün; L.4 `MaxRetentionSec=6month`; PG `log_rotation_age/size = 0`; gün dönümü/yeniden başlatma testleri yeşil (süre kenarları D-90 K1/K2'de) |
+| 6 | İmha işi ve imha satırı T201'de, bu task yazmaz | ✓ | `LogFileDeletionSourceScan` + ihlal örneği; `SystemLogsScanTests` yeşil (Unit 764/764) |
+| 7 | Ayrı metrik toplama ve pano yok | ✓ | `MetricsPackageScan` yeşil |
+
+### Task Satırları (`12 §7.5`, adım 2a ve 16)
+`10 KP-74` grep'i dokuz satır getirir (`VAL-A368`–`A370`, `VAL-D046`–`D051`); T225'in kabul kriterlerine eşlenmez (imha T201'in) — `Durum` değişmedi. `05 §9.1.5` kaynağını ana alan `VAL-A991`'in ters vekil yarısı bu task'ındır.
+
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı |
+|---|---|---|---|---|---|
+| VAL-A991 | KRİTİK | yok | FAIL | FAIL | — |
+
+`12_matris_denetle.py --kapsam 1-77`: Hata 0.
+
+### Doğrulama Kontrol Listesi
+- [x] KK1 uygulama kaydı ayrı birim ve dizinde; vekil/sunucu kayıtları runbook L.5'te
+- [x] KK2 aynı istek aynı kimlik; 500/422/401 satırları; `requestId` başlık değeri
+- [x] KK3 örnek uygulama satırlarında yasaklı alan yok (erişim kaydı için bkz. kriter 3)
+- [x] KK4 düzey ayarı yalnız uygulama kategorisini değiştirir
+- [x] KK5 gün dönümü ve yeniden başlatmada dosya kalır
+- [x] KK6 kayıt klasöründe silen kod ve imha satırı yok
+- [x] KK7 metrik paketi yok
+- [ ] `09 §25` satır 2386 "kayıtta sır ve kişisel veri yok" — erişim kaydı çıplak sorgu belirtecindeki e-postayı taşıyor
+- [ ] Güvenlik taraması — bkz. Bulgu 1
+
+### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes` | çıkış 0 |
+| Unit (+Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 764/764 |
+| Betik | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration | ✓ | PostgreSQL 18 (`shopfolio-t225-val2-pg`, 127.0.0.1:56372), `--filter-namespace` Logging+Web+Database+FileSecrets / Model | 142 + 893 = 1035, hepsi yeşil |
+| Caddy (gerçek imaj) | ✗ | `caddy validate` + `caddy adapt` + çalışan Caddy sondası (`shopfolio-t225-val2-*`, iki tur, 17 istek) | geçerli; dört süzgeç `multi_regexp` olarak sırayla; istek kimliği ve `user_agent` doğru; anahtarlı yollar ve çiftler maskeli; çift sonrası çıplak belirteç ve `%`-kodlu ön ek ham |
+| Sonrası | ✓ | `git status`; `dotnet restore Shopfolio.slnx --locked-mode` | temiz; çıkış 0; konteynerler ve ağ adıyla silindi |
+| Dal CI | ✓ | `gh run list --branch task/T225-sistem-kayitlari` | 41958706379 success (head bf2ecc8) |
+
+### Güvenlik Kontrolü
+- Secret sızıntısı: **Bulgu** — erişim kaydı, sorguda bir çiftten sonra gelen çıplak belirteçleri ham yazıyor (e-posta dahil; Bulgu 1). Bağlantı anahtarları normal biçimde maskeli. Repoda/imajda yeni sır yok.
+- Auth etkisi: Temiz — istemcinin `X-Request-Id`'si değiştirilir (sondayla kanıtlı); `trusted_proxies` yok.
+- Input validation: Temiz.
+- Yeni bağımlılık: Yok.
+
+### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| 1 | VAL-A991 (kriter 3) | KRİTİK | S1 | Beklenen (`05 §9.1.5`; runbook L.2 "`=` içermeyen çıplak belirteç de `*` olur"; `PathMasker` ile aynı kural): sorgunun her değeri `*`. Gerçekleşen: süzgeç 3–4'ün "iki geçiş" hilesi yalnız baştan çıplak dizide çalışır; önce bir `ad=değer` çifti varsa 2. süzgecin yazdığı `*` 4. süzgeçte belirteç sayılıp `&`'leri tüketir ve hizayı kaydırır — `?a=1&b&ali@x.com` → `?a=*&*&ali@x.com`, `?q=1&a&b&c&d` → `?q=*&*&b&*&d` (gerçek Caddy). Tutarlılık testi bu biçimi örneklemediği için eşdeğerlik iddiası sınanmamış | `09 §25` satır 2386; D-33 "maske kapandı" ibaresi | bu PR'da düzeltilmeli: RE2'de ileri bakış yok — örneğin önce `&` → `&&` (ve `?` → `?&` benzeri), sonra `([?&])[^=&]+(&|$)`, sonra `&&` → `&`; ya da çift ve belirteci tek düzenle ele alan başka bir dizilim. Test örneklerine en az `?a=1&b&c`, `?a=1&b&c&d&e`, `?a&b=1&c&d` eklenir (`PathMasker.Mask` ile eşitlik) ve sonda gerçek Caddy ile sınanır | `deploy/caddy/Caddyfile` · `tests/Shopfolio.UnitTests/Consistency/SystemLogsDeployConsistencyTests.cs` · `Docs/DEFERRED_BACKLOG.md` D-33 |
+| 2 | VAL-A991 (`05 §9.1.2`, §9.1.5 "yalnız 9.1.2'nin alanları yazılır") | DÜŞÜK | S1 | Beklenen: erişim satırı yalnız zaman, IP, yöntem, yol, yanıt kodu, boyut, süre, tarayıcı tanıtımı ve istek kimliğini taşır. Gerçekleşen (sonda satırı): Caddy'nin varsayılan alanları da yazılıyor — `request.remote_port`, `request.proto`, `request.host`, `bytes_read`, `user_id`, ayrıca `uuid` (`request_id`'nin ikinci kopyası). Kişisel veri değiller; satır belgenin kapalı listesini aşıyor ve runbook L.5 madde 3 bunu anmıyor | — | bu PR'da: `format filter`'a bu alanlar için `delete` satırları (zarf alanları `ts`, `level`, `logger`, `msg` için runbook L.2'de tek cümlelik gerekçe) ya da runbook/`05` uyumlu açık istisna listesi; tutarlılık testi silinen alanları sınar | `deploy/caddy/Caddyfile` · `Docs/DEPLOY_RUNBOOK.md` L.2/L.5 |
+
+### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | Yüzde kodlu ön ek (`/sipar%69s/erisim/ENCKEY/teyit`) Caddy'de ham kalır (sonda: `"uri":"/sipar%69s/erisim/ENCKEY/teyit"`); ASP.NET Core yolu çözdüğü için uygulama bunu `/siparis/erisim/…` olarak yönlendirir ve `PathMasker` maskeler. Meşru bağlantılar kodlanmış gelmez; yalnız elle kurulmuş istek. D-89 K3'ün `%2F` notundan farklı (orada yönlendirici eşlemez) | DEFERRED_BACKLOG'a forward (D-91) |
+
+### Yapım Raporu Karşılaştırması
+- Uyum: 2 uyuşmazlık
+- Kriter 3 / KK3 yapımda ✓; öz denetim "çıplak belirteç" sınandı der, ama örnekler yalnız baştan çıplak dizileri (`?a&b&c&d`, `…?bare`) ve tek çıplak belirteçli `?x=1&bare&y=`'yi kapsıyor; çift + iki ve daha çok çıplak belirteç biçimi sızıyor (Bulgu 1). Rapor "(3) çıplak belirteç `*` (iki geçiş)" kuralını genel doğru sayıyor.
+- "`05 §9.1.2` alan listesi belgeyle birebir" satırı ✓, kanıtı yalnız eklenen iki alan; Caddy'nin varsayılan alanları sınanmamış (Bulgu 2).
+- Öz denetim tablosu var, maddeleri kanıtlı. Tur 1 Bulgu 2 (`User-Agent`) ve Bulgu 1'in anahtarlı yol kısmı gerçekten kapandı.
+
+### Merge ve Post-merge
+- Merge yok (FAIL, tur 2 — `12 §8.5` iki iterasyon sınırı: eskalasyon, `INSTRUCTIONS.md` §3.3). Rapor, status (`✗ FAIL (tur 2)`), hafıza ve D-91 dala commit'lendi; `VAL-A991` `Durum` FAIL kaldı.

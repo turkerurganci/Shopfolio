@@ -74,7 +74,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T220-is-kuyrugu`
-- **PR:** #PRNO
+- **PR:** #393
 
 ## Dış Varsayımlar
 

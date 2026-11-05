@@ -119,7 +119,7 @@
 | T217 | Yapılabilir işlemlerin sunucuda üretimi ve POST işleyicisinde yeniden denetim | ⬚ | — | — | — |
 | T218 | Dokuz modülün iskeleti ve Contracts | ✓ | ✓ PASS (tur 3) | `d82b943` | #380 |
 | T219 | Arama motoru verileri kalıbı | ⬚ | — | — | — |
-| T220 | İş kuyruğu çalıştırıcısı | ✓ | — | — | #PRNO |
+| T220 | İş kuyruğu çalıştırıcısı | ✓ | — | — | #393 |
 | T221 | Zamanlayıcı | ⬚ | — | — | — |
 | T222 | Anahtarlar ve tek kullanımlık bağlantılar | ✓ | ✓ PASS (tur 1) | — | #392 |
 | T223 | Dosya deposu | ⬚ | — | — | — |

@@ -1,6 +1,6 @@
 # T224 — Çerez politikası
 
-**Faz:** F2 | **Durum:** ⏳ Yapım tamamlandı, doğrulama bekliyor | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-05
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -69,8 +69,8 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-05, head `4737a61`) |
+| Bulgu sayısı | 2 (B1, B2 — DÜŞÜK, S1); K-notu 3; düzeltme gerekli: evet |
 
 ## Altyapı Değişiklikleri
 
@@ -106,3 +106,95 @@
 - **⚠ 2:** Yayın sorusu `ICookiePolicyPublication` arayüzüyle altyapıdan sorulur; ortak altyapı modül türüne başvurmaz (`09 §6` m.2), `Settings` yanıtlar.
 - **⚠ 3:** Form güvenliği çerezi `SecurePolicy=Always`; `ForwardedHeaders` gelene kadar üretimde ters vekil arkasında HTTP görünürse `GetAndStoreTokens` atar (D-112 → T215).
 - **⚠ 4:** Ödeme onayında silme çağrı yeri T509'dadır; T224 yalnız tek silme yolunu ve testini verir.
+
+---
+
+## Doğrulama Sonucu — T224 Çerez politikası — tur 1
+**Tarih:** 2026-11-05   **Branch:** task/T224-cerez-politikasi   **Commit:** 4737a61 (incelenen head; rapor commit'i bunun üstündedir)
+
+### Verdict: ✗ FAIL
+
+İki kriter `~ Kısmi`: tarama istisnalarından biri belgelenenden geniş (KK9), çerez yazımının tek-yer taraması ham `Set-Cookie` başlığını görmüyor (KK3). Kalan yedi kriter, testler, CI ve güvenlik temiz. Düzeltmeler küçük ve yalnız test projesindedir.
+
+### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş (başta ve test koşularından sonra) |
+| Hook kurulumu | ✓ | `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana çalışma kopyasının aynı bekçisi; worktree) |
+| Ana dal CI (son 3) | ✓ | 42097339118 success, 42097338902 success (T223 #399), 42086513414 success (T204 #398) |
+| Memory drift | ✓ | `.claude/memory/MEMORY.md:22` T224 satırı |
+
+### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Secure, HttpOnly, SameSite=Lax | ✓ | `CookieDefaults.Apply` (Always, HttpOnly, Lax); entegrasyon `AllCookies_AfterThePublication_…` gerçek `Set-Cookie` başlıklarında yedi adın hepsi + parçalar `Violations` boş |
+| 2 | `__Host-` önekli, koşullar tek yazım yerinde | ✓ | `Path="/"`, `Domain=null` yalnız `CookieDefaults`; bütün yazım/silme `BrowserCookies` → `CookieDefaults.Create(...).Build(ctx)` → `ChunkingCookieManager`; form güvenliği çerezi `CookieSetup` içinde `CookieDefaults.Apply(options.Cookie)`; gerçek başlıkta `Path=/`, Domain yok |
+| 3 | Envanter kapalı (yedi çerez) | ~ | Ad listesi ✓ (`CookieNames.All` 7 ad; `CookieNamesConsistencyTests` `09 §5.3` m.5 ile iki yönlü eşit; listede olmayan ad `Create`/`Write`/`Read`/`Delete`'te atar). Eksik: KK3 "envanter dışı çerez adı testi kırar" ham başlık yolunda tutmuyor — bkz. B2 |
+| 4 | Misafir sepeti 400 gün, her ziyarette yenilenir | ✓ | `GuestCartLifetime` = `DisposalTimings.GuestCartIdleDays` (400); entegrasyon testi iki ziyarette `Max-Age` 400 gün ve yeniden yazım. Çağıran sepet modülü sonraki task'ta (altyapı payı) |
+| 5 | Ödeme çerezi oturumluk, şifreli ve imzalı; onayda silinir | ✓ | `DataProtectionPurposes.CheckoutCookie` ile `Protect`; `Max-Age`/`Expires` yok; değerde e-posta yok; değiştirilmiş değer `invalid`; `DeleteCheckout` parçalar dahil siler (iki entegrasyon testi). Onaydaki çağrı T509, boşalma T508 (kriter metni) |
+| 6 | Politika yayına alınana kadar `Set-Cookie` yok | ✓ | `CookieHeaderFilterMiddleware` `OnStarting`'de `Set-Cookie`'yi siler, ardışık düzenin en dışında (`Program.cs`, `UseRouting` öncesi); entegrasyon: yayın öncesi, yalnız taslak varken başlık yok; yayından sonraki ilk istekte açılır ve açık kalır |
+| 7 | Süzgeç yalnız vitrine | ✓ | `AppliesTo`: `/panel` ve `/sistem` dışarıda (makine uçları vitrin değil — `07 §2.1.9`); panel yanıtında yedi çerez süzülmeden geliyor (entegrasyon) |
+| 8 | Akış çerezinin yolu kök | ✓ | `ExternalLoginFlowCookie_…`: `Path=/`, `Max-Age` 600 (`09 §3.5` tablosu 10 dk), Lax; okunduğu yanıtta silinir |
+| 9 | Analitik/piksel/reklam/onay bandı/gömme yok; tek istisna ödeme çerçevesi; taslakta yer tutucu | ~ | Kaynak ve paket taraması temiz, ayrı ihlal örnekleri kırmızı, taslakta yer tutucu ve yedi madde var ✓. Eksik: çerçeve istisnası `object`, `embed`, `frameset` ve `createElement('object'/'embed')`'i de serbest bırakıyor — bkz. B1 |
+
+### Task Satırları (`12 §7.5`, adım 2a ve 16)
+T224'ün `10` birimi KP-73; satırları `VAL-A363`…`VAL-A367` vitrin/ödeme akışının tarayıcı gözlemidir (sepet, ödeme, sipariş sonraki fazlarda). KD-15/19/41/55'in `12` satırı yok. Çerez kuralına dokunan `VAL-A926`, `A927`, `A932`, `A934`, `A937`, `A938`, `A940` uçtan uca akış ister (giriş, sepet, ödeme, Google) — T224'ün altyapı payı kriterlerde sınandı, satırlar akışın task'larında kapanır. FAIL turu: hiçbir `Durum` değişmedi.
+
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı |
+|---|---|---|---|---|---|
+| VAL-A363…A367 | ORTA/KRİTİK | yok/mock | BEKLEMEDE | BEKLEMEDE (akış task'ları) | — |
+
+`python -I -X utf8 scripts/doc-scans/12_matris_denetle.py --kapsam 1-77`: Hata 0.
+
+### Doğrulama Kontrol Listesi
+- [x] KK1 her çerezde üç nitelik
+- [x] KK2 `__Host-` adı; gerçek başlıkta `Path=/`, Domain yok
+- [ ] KK3 envanter dışı çerez adı testi kırar — ham `Set-Cookie` başlığıyla yazılan ad hiçbir testi kırmıyor (B2)
+- [x] KK4 sepet çerezi ömrü ve yenilenmesi
+- [x] KK5 ödeme çerezi şifreli; onayda silinir (silme yolu + testi; çağrı T509)
+- [x] KK6 yayında değilken `Set-Cookie` yok
+- [x] KK7 panel yanıtı süzülmez
+- [x] KK8 akış çerezi yolu `/`
+- [ ] KK9 "yalnız ödeme çerçevesi istisna" — istisna çerçeve dışındaki gömme öğelerini de kapsıyor (B1)
+- [x] `09 §25` ilgili satırlar (adlar `09 §5.3` m.5'ten; 10 dk §3.5 tablosunda; CONTEXT güncel; yeni paket yok; mimari kural için tarama + ihlal örneği; eşitlik denetimi `Consistency` trait'inde)
+- [x] Güvenlik taraması
+
+### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes` | çıkış 0 |
+| Unit (+Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 1330/1330 |
+| Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration | ✓ | `--filter-namespace` parçaları, PostgreSQL 18 (`shopfolio-t224-val-pg`, 127.0.0.1:55571, sonra silindi) | Web 86, Security 18, Concurrency 26, Jobs 77, Database 35, Disposal+FileSecrets+Files+Logging+Outages+SignedEndpoints 123, Model (iki parça, `--max-threads 3`) 499 + 394 — toplam 1258, 0 kaldı |
+| Restore | ✓ | `dotnet restore Shopfolio.slnx --locked-mode` | çıkış 0; koşu sonrası `git status` temiz |
+| Dal CI | ✓ | `gh run list --branch task/T224-cerez-politikasi` | 42102317150 success (head `4737a61`) |
+
+### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz
+- Auth etkisi: Temiz (oturum işleyicisi yok; yalnız çerez yazıcısı)
+- Input validation: Temiz (çerez okuma veri koruma ile; bozuk değer `invalid`)
+- Yeni bağımlılık: Yok
+
+### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| B1 | KK9 / kriter 9 (`10` KD-41, KD-55; `02 §12.2.5`) | DÜŞÜK | S1 | Beklenen: ödeme sayfasında yalnız çerçeve öğesi serbest ("tek istisna ödeme sağlayıcısının çerçevesi"; sınıfın kendi belgesi "the frame element alone is allowed there"; yapım raporu "yalnız çerçeve öğesi genişliğinde"). Gerçekleşen: `EmbedElement()` tek regex'tir (`iframe|frame|frameset|object|embed` ve `createElement('iframe'/'object'/'embed')`) ve `PaymentFramePages`'teki sayfada bütünüyle atlanır; test bunu sabitler (`Scan_OnAPaymentFramePage_…`: satır 10'daki `<object>` sayfada bulgu değil). Düzeltme: `iframe` öğesini (ve `createElement('iframe')`) ayrı regex'e ayır, istisna yalnız ona; `frame`, `frameset`, `object`, `embed` her sayfada bulgu; test satır 10'un ödeme sayfasında da bulgu olduğunu doğrular | KK9 | düzeltme turunda | `tests/Shopfolio.UnitTests/Architecture/ThirdPartyContentScan.cs`, `ThirdPartyContentScanTests.cs` |
+| B2 | KK3 / kriter 3 (`09 §15.1` m.6, §5.3 m.5) | DÜŞÜK | S1 | Beklenen: envanter dışı çerez adı testi kırar; çerez yazımı tek yerdedir. Gerçekleşen: `CookieSourceScan` kural 1 yalnız `Cookies.Append/Delete(`, `AppendResponseCookie(`, `DeleteCookie(`'i arar; `context.Response.Headers.Append("Set-Cookie", "_ga=1")`, `Headers.SetCookie = …`, `Headers[HeaderNames.SetCookie] = …` hiçbir kurala takılmaz ve entegrasyon testi yalnız sonda uçlarını okur — envanter dışı ad bu yolla yeşil kalır. Düzeltme: ham `Set-Cookie` başlığına erişimi (`"Set-Cookie"`, `HeaderNames.SetCookie`, `.SetCookie`) yeni kurala bağla; tek izinli dosya silme yapan `CookieHeaderFilterMiddleware.cs`; ihlal örneğine bir satır ve izinli dosya testine durum ekle | KK3, KK2 (tek yazım yeri) | düzeltme turunda | `tests/Shopfolio.UnitTests/Architecture/CookieSourceScan.cs`, `CookieSourceScanTests.cs`, `ViolationSamples/Cookies/CookieMisuse.cs` |
+
+### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | `CookiePolicyGate.IsOpenAsync` yayından önce her vitrin isteğinde veritabanını okur ve süzgeç ardışık düzenin en dışında, `09 §8.1`'in yakalama katmanının (T212) da dışındadır: veritabanı kapalıyken vitrin isteği yakalanmamış istisnayla boş 500 döner, hata sayfası ve kayıt olmaz. Öneri: sorgu hatasında kapıyı kapalı say (başlığı sil) ve isteği sürdür; birim testiyle sına | düzeltme turunda (aynı PR) |
+| K2 | `ThirdPartyContentScan` ödeme sayfasındaki çerçevenin kaynağını sınamaz (istisna her kaynaktan `iframe`'e açık); çalışma anında `frame-src` CSP'si yalnız PayTR'ye izin verir (`09 §15.2` m.4, sonraki task) | B1 düzeltmesiyle birlikte `iframe` kaynağı `https://www.paytr.com` ya da kaynaksız olarak daraltılabilir; düzeltme turunda karar verilir, değilse CSP task'ına not |
+| K3 | D-112 (ters vekil başlıkları → T215): gerekçe doğru (form güvenliği çerezi `SecurePolicy=Always`; `ForwardedHeaders` `src/`'de yok — `09 §15.1` m.8), hedef uygun (T215 ilk IP/ters vekil tüketicisi, T224'ten sonra sırada) | kabul — DEFERRED_BACKLOG'da |
+
+### Yapım Raporu Karşılaştırması
+- Uyum: 2 uyuşmazlık
+- Öz denetim tablosu var, her madde kanıtlı.
+- KK9 öz denetimi "istisna tek sayfa ve yalnız çerçeve öğesi genişliğinde" der; kod ve test `object`/`embed`/`frameset`'i de serbest bırakır (B1).
+- KK3 öz denetimi ✓; ham başlık yolu taranmıyor (B2).
+- Rapor Integration'da `Model` ad alanını koşmadığını yazar; doğrulamada koşuldu, 893 test yeşil.
+
+### Merge ve Post-merge
+- FAIL: merge yok. Rapor + durum + hafıza dala yazıldı (16. adım).

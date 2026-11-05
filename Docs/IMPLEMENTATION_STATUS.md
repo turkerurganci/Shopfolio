@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-05 — T202 (Dış servislerin bağlantı katmanı) bağımsız doğrulama tur 1: ✓ PASS (head `70c3d3f`, PR #396; kriter 1–9 ve KK1–KK9 ✓; 15/30 sn sahte saatle, tek çağrı, yeniden denemesiz istemci zinciri; kart iadesinde aşım/kopma `Unknown`, başlatmada bağlantı, e-postada kanal hatası; hata satırında yalnız iş, tür, neden; Mailpit'e elle gönderim görüldü; `VAL-E054`/`E055`/`E057`/`E058`/`E059` PASS, `VAL-E056`/`E064` sahip task'larda — `BEKLEMEDE`; Unit 1126, Integration 1196 yerelde yeşil; dal CI 42036902091 yeşil; bulgu 0; K1 → D-105, K2 → D-106). Önceki giriş (T202 yapım bitti) `STATUS_CHANGELOG.md`'ye taşındı.
+**Son güncelleme:** 2026-11-05 — T203 (İmzalı makine ucu altyapısı) yapım bitti, PR #PRNO açıldı, doğrulama bekliyor (dal `task/T203-imzali-makine-ucu`; ortak ardışık düzen `Infrastructure/SignedEndpoints/` — 64 KB tavan okumadan ve imzadan önce 413, imza ucun `Verify`ı ile 400 gövdesiz + seyreltilmiş güvenlik satırı, kayıt ve iş satırı tek işlemde, "alındı" kesinleşmeden sonra, veritabanı hatası 500; sabit zamanlı `SignatureComparison.Matches` ve kaynak taraması; gerçek uç T311, PayTR imzası T402).
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -102,7 +102,7 @@
 |---|---|---|---|---|---|
 | T201 | İmha düzenleyicisi, süre ayarları ve gecelik temizlik | ✓ | ✓ PASS (tur 1) | — | #395 |
 | T202 | Dış servislerin bağlantı katmanı: ortak yüz, hata sınıfı, zaman aşımı, sahteler | ✓ | ✓ PASS (tur 1) | — | #396 |
-| T203 | İmzalı makine ucu altyapısı: imza denetimi, gövde tavanı | ⬚ | — | — | — |
+| T203 | İmzalı makine ucu altyapısı: imza denetimi, gövde tavanı | ⏳ | — | — | #PRNO |
 | T204 | Dış servis çökmesi davranışı ve sahtelerle sınama | ⬚ | — | — | — |
 | T205 | Açılışta veritabanı fail-fast denetimi | ✓ | ✓ PASS (tur 1) | a36010b | #385 |
 | T206 | Adres yapısı, önekler ve sayfa–form işleyici kalıbı | ⬚ | — | — | — |

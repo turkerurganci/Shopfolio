@@ -254,7 +254,8 @@ public sealed class DisposalTests : IAsyncLifetime
         List<Guid> left = await _harness.ReadAsync(db => db.AdminInvitations.Select(i => i.Id).ToListAsync(Ct));
         Assert.Equal([pending], left);
         Assert.Equal(1L, await CountAsync(db => db.LinkRecords.LongCountAsync(Ct)));
-        Assert.Equal(2, (await RecordsAsync()).Single(r => r.DisposalRecordType == DisposalRecordType.AdminInvitation).Count);    }
+        Assert.Equal(2, (await RecordsAsync()).Single(r => r.DisposalRecordType == DisposalRecordType.AdminInvitation).Count);
+    }
 
     [Fact]
     public async Task ARevertLinksAddress_IsEmptiedWhenItsLifeIsOver_AndTheRowStays_AndAnotherLinkRowIsUntouched()

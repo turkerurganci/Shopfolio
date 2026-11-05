@@ -31,8 +31,9 @@ internal static class DisposalRegistration
         services.AddDisposalPart<AttemptRecordDisposalPart>();
         services.AddDisposalPart<SessionDisposalPart>();
         services.AddDisposalPart<RecognizedBrowserMarkDisposalPart>();
-        services.AddDisposalPart<GuestCartDisposalPart>();
-        services.AddDisposalPart<AdminInvitationDisposalPart>();
+
+        // The guest cart's and the administrator invitation's parts belong to their modules (09 6 item 2): AddOrderingModule and
+        // AddAdministrationModule register them with AddDisposalPart.
         services.AddDisposalPart<RevertLinkAddressDisposalPart>();
         return services;
     }

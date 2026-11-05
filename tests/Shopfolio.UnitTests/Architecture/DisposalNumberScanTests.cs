@@ -27,6 +27,8 @@ public sealed class DisposalNumberScanTests
 
         Assert.Contains(scanned, f => f.EndsWith("TemporaryRecordParts.cs", StringComparison.Ordinal));
         Assert.Contains(scanned, f => f.EndsWith("LogFileDisposalPart.cs", StringComparison.Ordinal));
+        Assert.Contains(scanned, f => f.EndsWith("GuestCartDisposalPart.cs", StringComparison.Ordinal));
+        Assert.Contains(scanned, f => f.EndsWith("AdminInvitationDisposalPart.cs", StringComparison.Ordinal));
         Assert.DoesNotContain(scanned, f => f.EndsWith("DisposalTimings.cs", StringComparison.Ordinal));
         Assert.Empty(findings);
     }

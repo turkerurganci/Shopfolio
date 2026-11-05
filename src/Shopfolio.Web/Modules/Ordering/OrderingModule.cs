@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Modules.Ordering.Contracts;
 
@@ -18,6 +19,7 @@ internal static class OrderingModuleRegistration
         services.AddScoped<OrderLocks>();
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
+        services.AddDisposalPart<GuestCartDisposalPart>();
         return services;
     }
 }

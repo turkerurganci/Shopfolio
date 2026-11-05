@@ -8,6 +8,8 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.Modules.Administration;
+using Shopfolio.Modules.Ordering;
 using Shopfolio.UnitTests.Fakes;
 
 namespace Shopfolio.IntegrationTests.Disposal;
@@ -46,6 +48,8 @@ internal sealed class DisposalHarness : IAsyncDisposable
         services.AddSingleton<NightlyJobRunner>();
         services.AddSingleton<INightlyStep, JobQueueCleanupStep>();
         services.AddDisposal(directories);
+        services.AddDisposalPart<GuestCartDisposalPart>();
+        services.AddDisposalPart<AdminInvitationDisposalPart>();
         _provider = services.BuildServiceProvider();
     }
 

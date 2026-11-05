@@ -2,8 +2,6 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
-using Shopfolio.Modules.Administration;
-using Shopfolio.Modules.Ordering;
 
 namespace Shopfolio.Infrastructure.Disposal;
 
@@ -85,55 +83,6 @@ internal sealed class RecognizedBrowserMarkDisposalPart : IDisposalPart
                 IQueryable<RecognizedBrowserMark> expired = db.RecognizedBrowserMarks.Where(m => m.ExpiresAt < now);
                 List<Guid> ids = await expired.OrderBy(m => m.ExpiresAt).Select(m => m.Id).Take(max).ToListAsync(cancel);
                 return await expired.Where(m => ids.Contains(m.Id)).ExecuteDeleteAsync(cancel);
-            },
-            ct);
-    }
-}
-
-/// <summary>The guest carts nobody opened for 400 days (06 9.4.3; Z-6; 05 6.7.8); the cart's items go with it. A member's cart lives with the account and is never judged here.</summary>
-internal sealed class GuestCartDisposalPart : IDisposalPart
-{
-    public string Name => "GuestCarts";
-
-    public Task RunAsync(DisposalRun run, CancellationToken ct)
-    {
-        ArgumentNullException.ThrowIfNull(run);
-        DateTimeOffset cutoff = run.Now - TimeSpan.FromDays(DisposalTimings.GuestCartIdleDays);
-        return run.ChunksAsync(
-            DisposalRecordType.Cart,
-            async (db, max, cancel) =>
-            {
-                IQueryable<Cart> expired = db.Carts.Where(c => c.GuestCartKeyHash != null && c.LastAccessedAt < cutoff);
-                List<Guid> ids = await expired.OrderBy(c => c.LastAccessedAt).Select(c => c.Id).Take(max).ToListAsync(cancel);
-                return await expired.Where(c => ids.Contains(c.Id)).ExecuteDeleteAsync(cancel);
-            },
-            ct);
-    }
-}
-
-/// <summary>
-/// The administrator invitations that were accepted, withdrawn, invalidated or whose link ran out (06 9.4.3; Z-3): the invitation's link record
-/// goes with it by the foreign key. The invitation's life is its link record's expiry, so it is read from there and not repeated on the invitation.
-/// </summary>
-internal sealed class AdminInvitationDisposalPart : IDisposalPart
-{
-    public string Name => "AdminInvitations";
-
-    public Task RunAsync(DisposalRun run, CancellationToken ct)
-    {
-        ArgumentNullException.ThrowIfNull(run);
-        DateTimeOffset now = run.Now;
-        return run.ChunksAsync(
-            DisposalRecordType.AdminInvitation,
-            async (db, max, cancel) =>
-            {
-                IQueryable<AdminInvitation> expired = db.AdminInvitations.Where(
-                    i => i.AcceptedAt != null
-                        || i.WithdrawnAt != null
-                        || i.InvalidatedAt != null
-                        || db.LinkRecords.Any(l => l.AdminInvitationId == i.Id && l.ExpiresAt < now));
-                List<Guid> ids = await expired.OrderBy(i => i.CreatedAt).Select(i => i.Id).Take(max).ToListAsync(cancel);
-                return await expired.Where(i => ids.Contains(i.Id)).ExecuteDeleteAsync(cancel);
             },
             ct);
     }

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Modules.Administration.Contracts;
 
 namespace Shopfolio.Modules.Administration;
@@ -15,6 +16,7 @@ internal static class AdministrationModuleRegistration
     public static IServiceCollection AddAdministrationModule(this IServiceCollection services)
     {
         services.AddScoped<IAdministrationModule, AdministrationModule>();
+        services.AddDisposalPart<AdminInvitationDisposalPart>();
         return services;
     }
 }

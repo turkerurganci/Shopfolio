@@ -17,7 +17,7 @@
 - **Sürüm bekçileri (SaveChanges interceptor):** `Catalog/ProductVersionGuard` (ürünün form kayıtları ürün sürümünü artırmadan kaydedilemez; stok/ayrılmış/kupon sayaçları hiçbir `SaveChanges`'te yazılamaz), `Ordering/OrderVersionGuard` (sipariş kilidi altındaki her sipariş tarafı yazımı sürümü bir artırmalı; artırmayan kapalı liste `06 §2.6.4`). Ortak taban `Infrastructure/DataModel/VersionScope`; muaf kayıtlar `IOrderVersionExempt` işaretini taşır (6 kayıt: `InternalNote`, `DispatchRecord`, `TransitionRecord`, `AuditLog`, `Job`, `InboundNotificationRecord`).
 - **Sürüm ayarlayıcıları:** kurumsal içeriğin 8 varlığı ve `LegalTextVersion` için `Version { get; private set; }` + `BumpVersion()` (`09 §10.2` madde 1, madde 6 testi).
 - **Kaynak taramaları:** `ConcurrencySourceScan` (kilit metni yalnız `AdvisoryLocks.cs`/`OrderLocks.cs`'te, `FOR SHARE` yalnız `OrderLocks.cs`'te, sayaç yazımı yalnız `StockCounters.cs`'te; izinli yerler tam yol ve yalnız var olan dosya) + ihlal örneği `ViolationSamples/Concurrency/LockAndCounterWrites.cs`; `TransactionBodySourceScan.WorkNotALambda` (D-82: `RunAsync`'e yöntem grubu/temsilci değişkeni verilmesi bulgu) + ihlal örneği satır 25, 27.
-- **Dokümanlar:** `09 §10.2` madde 5 (kilit sırasını `LockSequence` tutar) ve madde 6 (sayaç taraması, izinli yer kuralı), `09 §10.7` madde 5 (bütün `src/`, lambda kuralı), `09 §25` eşzamanlılık sorusu; `CONTEXT.md` klasör haritası; `DEFERRED_BACKLOG` D-82 ✅, D-91 açıldı, aktif kalem sayacı 52'ye düzeltildi (main'de 52 satır varken başlık 51 diyordu).
+- **Dokümanlar:** `09 §10.2` madde 5 (kilit sırasını `LockSequence` tutar) ve madde 6 (sayaç taraması, izinli yer kuralı), `09 §10.7` madde 5 (bütün `src/`, lambda kuralı), `09 §25` eşzamanlılık sorusu; `CONTEXT.md` klasör haritası; `DEFERRED_BACKLOG` D-82 ✅, D-94 açıldı, aktif kalem sayacı origin/main birleşiminden sonra gerçek satır sayımıyla 55.
 - **Bu turun düzeltmeleri (2. devam):** yasak test kalıbı taraması üç bekleme testini iddiasız buluyordu (iddia yardımcıdaydı) → iddialar test gövdesine alındı; taramada var olmayan izinli yol (`CompanySettingsWriter.cs`) kaldırıldı; `TransactionRunner`'ın türsüz `catch`'i `finally`'ye çevrildi; eklenen koddaki null-forgiving `!` kullanımları kaldırıldı (`VersionScope.NameOf`, `OfType<Guid>`, `GetValueOrDefault`).
 
 ## Etkilenen Modüller / Dosyalar
@@ -123,7 +123,7 @@ Başka dış varsayım yok.
 
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
-| 1 | İndirme sayacı taramada yok; ayarın satır kilidinin yolu taramaya yazıcısıyla girecek | D-91 | Yazıcılar henüz yok (T340; `CompanySettings` yazıcısı); var olmayan dosya izinli yol olamaz |
+| 1 | İndirme sayacı taramada yok; ayarın satır kilidinin yolu taramaya yazıcısıyla girecek | D-94 | Yazıcılar henüz yok (T340; `CompanySettings` yazıcısı); var olmayan dosya izinli yol olamaz |
 
 ## Notlar
 
@@ -136,12 +136,12 @@ Başka dış varsayım yok.
   1. ⚠ `ITransactionRunner` bu task'ta kuruldu (kriter 9 ve kilitlerin işlem kapsamı onu gerektiriyor; `09 §9.1` madde 3 kalıbı, K-1335).
   2. ⚠ `ErrorCode` henüz yok (T213): stok yazımının sonucu `StockQuantityWriteResult` (`Written`, `ShownValueChanged`, `BelowReserved`); kayıt çakışması testte `DbUpdateConcurrencyException` olarak sınandı — `RecordVersionConflict`/`DisplayedValueConflict` eşlemesi T213'ün işi.
   3. ⚠ `FOR SHARE` (`09 §10.9`, iç not kilidi) kapsam dışı; tarama `FOR SHARE`'i `09 §10.2` madde 6 gereği yalnız `OrderLocks.cs`'te (var olan dosya) kabul eder.
-  4. ⚠ `CompanySettings` kilidi `LockKind`'da yok ve tarama ayar yazıcısının yolunu izinli saymaz (önceki işçi `CompanySettingsWriter.cs`'i, dosya yokken izinli yol yazmıştı — bu turda kaldırıldı; sık FAIL "var olmayan izinli yol"); yazıcıyı kuran task ekler (D-91 (2)).
+  4. ⚠ `CompanySettings` kilidi `LockKind`'da yok ve tarama ayar yazıcısının yolunu izinli saymaz (önceki işçi `CompanySettingsWriter.cs`'i, dosya yokken izinli yol yazmıştı — bu turda kaldırıldı; sık FAIL "var olmayan izinli yol"); yazıcıyı kuran task ekler (D-94 (2)).
   5. ⚠ Sipariş muafiyeti dizgi listesi yerine işaret arayüzü `IOrderVersionExempt` (D-61: modül başka modülün türünü dizgiyle anmaz).
   6. ⚠ Kurumsal içerik ve `LegalTextVersion` ayarlayıcıları `private` + `BumpVersion()` — kapsam gerekçesi `09 §10.2` madde 6'nın "sürüm ayarlayıcıları `private`" testi.
-  7. ⚠ `DownloadCount` taramanın sayaç listesinde yok (yazıcısı `Ordering`'in indirme task'ı, T340) → D-91 (1).
+  7. ⚠ `DownloadCount` taramanın sayaç listesinde yok (yazıcısı `Ordering`'in indirme task'ı, T340) → D-94 (1).
   8. ⚠ `OrderVersionGuard` yalnız sipariş kilidi tutulan işlemde bakar (kilitsiz kayıt — tohum, kaydın kendi koşullu güncellemesi — bakılmaz; her sipariş işlemi kilidi alır, `05 §7.3.2`).
   9. ⚠ `09 §10.2` madde 5 değişti: önceki metin "bu sınıf onu zorlamaz, test sınar" diyordu; KK7'yi kod yolunda yakalamanın tek yolu çalışma anı denetimi (kaynak taraması çağrılar arası sırayı göremez) → `LockSequence` sırayı tutar, ters istek deyimden önce istisnadır. `09 §25` eşzamanlılık sorusu aynı PR'da güncellendi.
   10. ⚠ Kriter 4 ve 8'in "müşterinin işlemi", "sistemin geçişi" ve "sipariş onayı" gerçek işlemleri sonraki task'larda; bu task kalıbı ve bekçileri kurar, testler `09 §10.2` madde 3'ün kalıbıyla yazılmış vekil işlemlerle (`AdministratorOperationAsync`, `CustomerItemCancellationAsync`) koşar.
   11. ⚠ `TransactionRunner` geri almayı `finally`'de yapar (türsüz `catch { …; throw; }` `09 §8.1` madde 6'ya aykırıydı); kesinleştirme `finally`'de değil (`09 §8.1` madde 5).
-  12. ⚠ `DEFERRED_BACKLOG` başlık sayacı 51 → 52 (main'de zaten 52 aktif satır vardı; D-82 kapandı, D-91 açıldı).
+  12. ⚠ `DEFERRED_BACKLOG` başlık sayacı 51 → 55 (origin/main birleşiminden sonra gerçek aktif satır sayımı; D-82 kapandı, D-94 açıldı; T225 D-91–D-93).

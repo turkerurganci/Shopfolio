@@ -403,6 +403,34 @@ public sealed class DisposalTests : IAsyncLifetime
         Assert.Empty(await CountedRecordsAsync());
     }
 
+    // ---- KK4, KK6: physical deletion, and a record of type and number only ----
+
+    [Fact]
+    public async Task NoTableHasADeletedMarkColumn_AndTheDisposalRecordHoldsOnlyTypeNumberAndDates()
+    {
+        await using NpgsqlConnection connection = new(_collection.Dsn);
+        await connection.OpenAsync(Ct);
+        await using NpgsqlCommand marks = new(
+            "SELECT count(*) FROM information_schema.columns WHERE table_schema = 'public' AND column_name IN ('is_deleted', 'deleted_at', 'deleted')",
+            connection);
+        await using NpgsqlCommand columns = new(
+            "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'disposal_records' ORDER BY column_name",
+            connection);
+
+        long markColumns = (long)(await marks.ExecuteScalarAsync(Ct))!;
+        List<string> names = [];
+        await using (NpgsqlDataReader reader = await columns.ExecuteReaderAsync(Ct))
+        {
+            while (await reader.ReadAsync(Ct))
+            {
+                names.Add(reader.GetString(0));
+            }
+        }
+
+        Assert.Equal(0L, markColumns);
+        Assert.Equal(["count", "created_at", "disposal_record_type", "id", "range_end_date", "range_start_date"], names);
+    }
+
     // ---- Helpers ----
 
     private async Task<long> CountAsync(Func<AppDbContext, Task<long>> count) => await _harness.ReadAsync(count);

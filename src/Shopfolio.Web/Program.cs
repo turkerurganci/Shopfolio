@@ -57,6 +57,9 @@ builder.Services.AddDbContext<AppDbContext>((provider, options) => AppDbContext.
 // The data protection ring: keys in the database, in clear, framework default lifetime (09 15.5 item 1). After the context it persists to.
 DataProtectionSetup.Add(builder.Services);
 
+// The cookie rules (09 15.1 item 6; 05 6.7): the anti-forgery cookie, the one cookie writer and the gate of the storefront's cookie headers.
+builder.Services.AddCookieRules();
+
 // The database side of the start-up check (06 8.2.1): after the settings check above, so it runs second. A missing province or country list
 // or a missing single-row record of the start data stops the application before it answers a request.
 builder.Services.AddStartupDatabaseCheck();
@@ -100,6 +103,10 @@ builder.Services.AddScheduler();
 builder.Services.AddDisposal(builder.Configuration);
 
 WebApplication app = builder.Build();
+
+// The storefront writes no cookie until the cookie policy is published (05 6.7.10): outside every middleware that can write a cookie. The forwarded
+// headers and the security headers (09 15.1 item 8, 15.2 item 3) come before it when their tasks add them.
+app.UseCookieHeaderFilter();
 
 app.UseRouting();
 

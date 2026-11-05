@@ -80,7 +80,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T201-imha-duzenleyicisi`
-- **PR:** #PRNO
+- **PR:** 395
 - **CI:** doğrulama başlatılırken izlenir
 
 ## Dış Varsayımlar

@@ -383,7 +383,11 @@ public sealed class ConcurrencyTests : IAsyncLifetime
     {
         (Order order, _) = await SeedOrderAsync();
 
-        await AssertSecondWaitsForTheFirstAsync((services, token) => services.GetRequiredService<OrderLocks>().LockAsync([order.Id], token));
+        (bool waitedWhileHeld, bool gotItAfterRelease) = await SecondWaitsForTheFirstAsync((services, token) =>
+            services.GetRequiredService<OrderLocks>().LockAsync([order.Id], token));
+
+        Assert.True(waitedWhileHeld);
+        Assert.True(gotItAfterRelease);
     }
 
     [Fact]
@@ -604,15 +608,21 @@ public sealed class ConcurrencyTests : IAsyncLifetime
     {
         Guid cartId = EntityIds.New();
 
-        await AssertSecondWaitsForTheFirstAsync((services, token) =>
+        (bool waitedWhileHeld, bool gotItAfterRelease) = await SecondWaitsForTheFirstAsync((services, token) =>
             services.GetRequiredService<AdvisoryLocks>().LockAsync(AdvisoryLockScope.Cart, cartId, token));
+
+        Assert.True(waitedWhileHeld);
+        Assert.True(gotItAfterRelease);
     }
 
     [Fact]
     public async Task CategoryTreeLock_TheSecondTransactionWaitsForTheFirst()
     {
-        await AssertSecondWaitsForTheFirstAsync((services, token) =>
+        (bool waitedWhileHeld, bool gotItAfterRelease) = await SecondWaitsForTheFirstAsync((services, token) =>
             services.GetRequiredService<AdvisoryLocks>().LockAsync(AdvisoryLockScope.CategoryTree, null, token));
+
+        Assert.True(waitedWhileHeld);
+        Assert.True(gotItAfterRelease);
     }
 
     [Fact]
@@ -681,7 +691,8 @@ public sealed class ConcurrencyTests : IAsyncLifetime
 
     private static StockClaim Claim(Guid variantId, int quantity) => new([new VariantQuantity(variantId, quantity)], null);
 
-    private async Task AssertSecondWaitsForTheFirstAsync(Func<IServiceProvider, CancellationToken, Task> takeLock)
+    /// <summary>Takes the lock in two transactions; returns whether the second waited while the first held it and got it once the first committed.</summary>
+    private async Task<(bool WaitedWhileHeld, bool GotItAfterRelease)> SecondWaitsForTheFirstAsync(Func<IServiceProvider, CancellationToken, Task> takeLock)
     {
         await using ServiceProvider provider = BuildProvider();
         await using AsyncServiceScope first = provider.CreateAsyncScope();
@@ -696,11 +707,12 @@ public sealed class ConcurrencyTests : IAsyncLifetime
         Task waiting = takeLock(second.ServiceProvider, Ct);
         await WaitUntilBlockedAsync(pid);
 
-        Assert.False(waiting.IsCompleted);
+        bool waitedWhileHeld = !waiting.IsCompleted;
         await firstTransaction.CommitAsync(Ct);
         await waiting.WaitAsync(TimeSpan.FromSeconds(30), Ct);
-        Assert.True(waiting.IsCompletedSuccessfully);
+        bool gotItAfterRelease = waiting.IsCompletedSuccessfully;
         await secondTransaction.CommitAsync(Ct);
+        return (waitedWhileHeld, gotItAfterRelease);
     }
 
     private static async Task<int> BackendPidAsync(AppDbContext context)

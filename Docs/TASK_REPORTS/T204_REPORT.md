@@ -1,6 +1,6 @@
 # T204 — Dış servis çökmesi davranışı ve sahtelerle sınama
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-05
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -106,10 +106,10 @@ Derleme: `dotnet build Shopfolio.slnx -c Release -warnaserror` 0 uyarı; `dotnet
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-05, head `548c4db`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (K1, K2 → D-110) |
 
 **VAL satırları (öneri):** `VAL-E064` PASS önerisi (deneme anları, "ulaşmadı", toplu gönderim yok — Integration). `VAL-E056` kısmi: kural ve sipariş satırının değişmemesi burada; gerçek son sorgu işleyicisi T403. `VAL-E063` kısmi: süre bağımsızlığı (tarama, son sorgu) burada; sipariş/ödeme geçişlerinin e-posta kesintisinde sürmesi T305 ve geçiş task'larında. `VAL-E065` kısmi: kural burada; ekranlar T343/T409 (kodların listeye bağlanması D-109).
 
@@ -125,7 +125,7 @@ Derleme: `dotnet build Shopfolio.slnx -c Release -warnaserror` 0 uyarı; `dotnet
 - **Branch:** `task/T204-dis-servis-cokmesi`
 - **Commit:** PR head
 - **PR:** #398
-- **CI:** *(izlenmedi — yönetici izler)*
+- **CI:** 42077481379 success (head `548c4db`; doğrulayıcı okudu)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar
@@ -148,3 +148,101 @@ Bu task'ta dış varsayım yok (dış servis çağrısı yok; sahteler süreç i
 - **Ana dal CI startup (Adım 0):** CI 42068910959 success, 42068911080 success (T203 #397)
 - **Repo memory (bitiş kapısı 9):** güncellendi
 - **Diğer:** üç yapım işçisiyle yapıldı (devir notları 1–2). Test veritabanı konteyneri `shopfolio-t204-pg` iş bitince silindi.
+
+## Doğrulama Sonucu — T204 Dış servis çökmesi davranışı — tur 1
+**Tarih:** 2026-11-05   **Branch:** task/T204-dis-servis-cokmesi   **Commit:** 548c4db (PR #398)
+
+### Verdict: ✓ PASS
+
+### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş (dala geçişten sonra ve koşulardan sonra) |
+| Hook kurulumu | ✓ | `git config core.hooksPath` → `C:\projects\Shopfolio\scripts\git-hooks` (ana deponun bekçisi; daldaki kopya değil) |
+| Ana dal CI (son 3) | ✓ | 42068910959 success, 42068911080 success (T203 #397), 42042657292 success (T202 #396) |
+| Memory drift | ✓ | `grep -nE "\bT204\b" .claude/memory/MEMORY.md` → satır 22 |
+
+### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Sahte zaman aşımı, bağlantı hatası, beklenmeyen yanıt üretir; gerçek servise çağrı yok (`09 §19.1`) | ✓ | `Fakes/FakeFailures.cs` üç tür → ailenin `FromFailure`'ı (çalıştırıcının neden kodlarıyla); üç sahtede `Outage`; `GatewayFakesTests` 4 yeni test (×3 tür) yeşil; sahteler ağ türü anmaz (`IntegrationSourceScan` kural 5); Google'da `Unrecognized` → `Failed`, ötekiler `Unavailable` (`08 §3.1` "tabloda olmayan yanıt Google'da başarısızdır") |
+| 2 | Başlatmada bağlantı hatası ve 15 sn zaman aşımı "bağlantı hatası", ikinci jeton reddi ayrı sonuç (`08 §3.1`, §2.1.8, §3.3) | ✓ | `PaymentStartRule.Decide`: `ConnectionFailed` → `CancelAsUnavailable`, `SecondTokenRejected` → `StayOnConfirmation`; `PaymentStartResult.FromFailure` her türü `ConnectionFailed` yapar; `IntegrationOperations`: `PaymentStart` → `UserWaiting` (15 sn, T202); `OutageRulesTests` (PaymentStart ×5) yeşil |
+| 3 | Son sorgu yanıtsızlığı "sonucu bilinmeyen"; katman siparişe dokunmaz (`08 §3.1` k3–4) | ✓ | `FinalPaymentQueryRule`: `NoResponse` → `AskAgain` → `RescheduleAfter(FinalPaymentQueryInterval)`; Integration `FinalPaymentQueryOutageTests` (×3 tür, gerçek PG 18 + gerçek çalıştırıcı): 4 turda sipariş satırı `row_to_json` ile aynı, `Placed`+`Pending`, `Version` 1, iş satırı `Pending`, `AttemptCount` 0, sonraki an +5 dk |
+| 4 | Alıcı/kanal hatası ayrı; ikisi de ilk denemeden 5/30/120 dk; kanal hâli: kanal hatası sayar, başarı sıfırlar, alıcı hatası dokunmaz (`08 §3.3`, §2.2.2; `05 §4.4.3`, §10.2.3) | ✓ | `DispatchRetrySchedule` (anlar ilk denemeden, geç başlayan deneme kaydırmaz; sabitler `ProductConstants` P-38); `DispatchAttempts` (çağrı işlem dışında, satır + kanal hâli tek işlemde, sayaç veritabanında `+1`); Unit `DispatchRetryScheduleTests` 8 test; Integration `EmailOutageTests` 3 test (×3 tür) — anlar, sayaç 1→4 ve ilk hata anı sabit, alıcı hatasında sayaç 2'de kalır, başarıda 0 + `LastSucceededAt`; Consistency `DispatchRetryConstants_AreTheP38Row` + kırmızı sınaması |
+| 5 | Daha uzun kesintide "ulaşmadı"; toplu yeniden gönderim yok (`08 §3.3`) | ✓ | `Apply`: üçüncü yeniden denemenin hatasında `NextAttemptAt` boş + `Undelivered` (`06 §4.58` kısıtı: Queued dışında `NextAttemptAt` boş); "kuyrukta" olmayan satır sonuç almaz; Integration'da 4. denemeden sonra `Undelivered`, sonraki yazım `Applied=false`, satır sayısı 2 |
+| 6 | Yanıtsız Google: giriş ve kayıt `SocialLoginFailed`, yeniden doğrulama `SocialReauthenticationUnavailable`; yeniden deneme yok (`08 §2.3`, §3.1) | ✓ | `GoogleIdentityFailureRule` (`08 §2.3` hata tablosunun "Google'a ulaşılamadı" satırı ile birebir; başarısız doğrulamada yeniden doğrulama `SocialReauthenticationFailed`); `OutageRulesTests.Google_*` (iki akış, akış başına tek çağrı); Consistency: kodlar `07 §6.3`'te, `08` satırı kodları anar |
+| 7 | Hiçbir süre e-postaya ya da Google'a bağlı değil; ödeme süresi işler, son sorgu yanıtsızsa iptal ertelenir; kesinti süreyi durdurmaz (`08 §3.3`) | ✓ | `OutageIndependenceSourceScan` (e-posta ağ geçidi yalnız `Modules/Notifications/` + bağlantı katmanında, Google yalnız `Modules/Membership/` + katmanda; `.cs` + `.cshtml`) — gerçek ağaç temiz, ihlal örneği 6 bulgu, önek kaçağı testli; Integration son sorgu: sahte saat `PaymentWindowEndsAt`'i geçer, sipariş iptal edilmez, `PaymentWindowEndsAt` değişmez |
+| 8 | Ürün kesinti için müşteriye bildirim üretmez (`08 §3.3`) | ✓ | `EmailOutageTests.ChannelOutage_*`: `dispatch_records` 2 satırda kalır, öteki gönderilmiş satır `row_to_json` ile aynı; `FinalPaymentQueryOutageTests`: `dispatch_records` 0 |
+
+### Task Satırları (`12 §7.5`, adım 2a ve 16)
+T204'ün `10 KP` birimi yok; `11 §7.1` kaynağı `08 §3.3`. Satırlar `12`'de kaynağı `08 §3.3` olanlardan grep'le bulundu. Hiçbir satırın `Durum`'u değişmedi.
+
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-E056 | KRİTİK | mock | BEKLEMEDE | BEKLEMEDE (T204 payı ✓: kural, siparişe dokunmama, 5 dk yeniden zamanlama — test-yerel işleyiciyle; gerçek `FinalPaymentQuery` işleyicisi T403, D-97) | — |
+| VAL-E060 | KRİTİK | mock | BEKLEMEDE | BEKLEMEDE (T204 payı ✓: `PaymentStartRule`; iptal, L-7, sepet T404) | — |
+| VAL-E061 | ORTA | mock | BEKLEMEDE | BEKLEMEDE (iki dakikalık hâl ve 422 T404/UC-22) | — |
+| VAL-E062 | ORTA | mock | BEKLEMEDE | BEKLEMEDE (havaleyle satış — sayfa task'ları) | — |
+| VAL-E063 | ORTA | mock | BEKLEMEDE | BEKLEMEDE (süre bağımsızlığı taraması ✓; sipariş/ödeme/durum geçişleri henüz yok) | — |
+| VAL-E064 | ORTA | mock | BEKLEMEDE | BEKLEMEDE (T204 payı ✓: anlar, "ulaşmadı", toplu gönderim yok; satırları anında alan gönderici T385/T305/T407, D-97, D-99) | — |
+| VAL-E065 | ORTA | mock | BEKLEMEDE | BEKLEMEDE (kural ✓; ekranlar T343/T409, kodlar D-109) | — |
+| VAL-E066 | DÜŞÜK | yok | BEKLEMEDE | BEKLEMEDE (kargo takibi, T204 dışı) | — |
+
+### Doğrulama Kontrol Listesi
+- [x] KK1: sahteler üç hata türünü üretir — `GatewayFakesTests` (tek çağrı + kalıcı kesinti, kuyruk korunur, bildirim doğrulaması etkilenmez)
+- [x] KK2: iki ödeme sonucu ayrı sınıfta; başlatmada zaman aşımı "bağlantı hatası" (`ConnectionFailed("timeout")`)
+- [x] KK3: yanıtsız sorguda sipariş satırı değişmez (gerçek PG, bayt bayt)
+- [x] KK4: deneme anları ilk denemeden 5/30/120 dk; alıcı hatasında da; kanal hâli kanal hatasında artar, başarıda sıfırlanır, alıcı hatasında değişmez
+- [x] KK5: son denemeden sonra "ulaşmadı"
+- [x] KK6: yanıtsız sahte Google'da giriş `SocialLoginFailed`, yeniden doğrulama `SocialReauthenticationUnavailable`
+- [x] KK7: sahte kesintide süre ilerler (sahte saat ödeme süresinin sonunu geçer; tarama)
+- [x] KK8: kesinti için müşteriye e-posta satırı yok; öteki satır etkilenmez
+- [x] `09 §25` ilgili satırlar — evet (K1 dışında); uygulanamaz alanlar: göç, sayfa, yetki, para, yeni paket
+- [x] Güvenlik taraması — temiz
+
+### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes` | çıkış 0 |
+| Unit (+Consistency) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | 1228/1228 |
+| Unit (yeni sınıflar) | ✓ | `--filter-class` Outage*/DispatchRetrySchedule*/GatewayFakes* | 54/54 |
+| Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration — Outages (yeni) | ✓ | `--filter-namespace "*Outages*"` | 8/8 |
+| Integration — Jobs | ✓ | sınıf filtreleriyle üç parça | 46 + 16 + 15 = 77/77 |
+| Integration — Web | ✓ | `--filter-namespace "*.Web"` | 74/75 birlikte; düşen `StartupDatabaseCheckTests.Start_WithTheTableOfARecordMissing_*` sınıf tek başına 18/18 |
+| Integration — Concurrency + Security | ✓ | namespace filtresi | 44/44 |
+| Integration — Database + Disposal + FileSecrets + Logging + SignedEndpoints | ✓ | namespace filtresi | 116/117 birlikte; düşen `DatabaseUsersTests.FourUsers_*` sınıf tek başına 17/17 |
+| Integration — Model 1/2 | ✓ | `*.Model.A*…M*` | ilk koşuda koleksiyon fikstürü kuruluşu düştü (0 ms), yeniden koşu 499/499 |
+| Integration — Model 2/2 | ✓ | `*.Model.P*`, `R*`, `S*` | 393/394 birlikte; düşen `SchedulerBackupDisposalAndKeyTablesTests` sınıf tek başına 55/55 |
+| Dal CI | ✓ | `gh run list --branch task/T204-dis-servis-cokmesi` | 42077481379 success (head 548c4db; Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, Gate yeşil) |
+| Temizlik | ✓ | `docker rm -f shopfolio-t204-val-pg`; `git status`; `dotnet restore --locked-mode` | temiz; restore 0 |
+
+Yerel düşmeler T204'ün dokunmadığı sınıflarda, yalnız çok koleksiyonlu yük altında (Windows'ta Docker, ~15–20 sn süre aşımı) görüldü; her biri tek başına yeşil, dal CI'ında Integration yeşil. T204 bulgusu değildir.
+
+### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz (sır, anahtar, bağlantı dizesi eklenmedi; testlerde yer tutucu değerler)
+- Auth etkisi: Temiz (yeni uç, sayfa ya da yetki yok; Google kuralı yalnız kod döndürür)
+- Input validation: Temiz (yeni girdi yüzeyi yok)
+- Yeni bağımlılık: Yok (`*.csproj`, `packages.lock.json`, `*.props` değişmedi)
+
+### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| — | — | — | — | Bulgu yok | — | — | — |
+
+### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | `PaymentStartRule.Decide` sonuç ailesini `if … is` zinciriyle ele alıyor; `09 §11.1` m.2 "çağıran `switch` ifadesiyle her sınıfı ayrı kolda ele alır, son kol `_ => throw new UnreachableException()`" der. Davranış aynı (her sınıf ayrı dal, son satır `UnreachableException`, her sınıfın testi var). Commit 1549271 biçim düzeltmesinde `switch`'i zincire çevirdi; `switch` biçimi (`SecondTokenRejected =>` boşluklu) `dotnet format --verify-no-changes` ve `-warnaserror` derlemeden geçiyor (doğrulayıcı geçici olarak sınadı, geri aldı). | DEFERRED_BACKLOG'a forward — D-110 (T404) |
+| K2 | `DispatchRetryScheduleTests.cs:12` yorumu var olmayan `DispatchRetryConsistencyTests`'i anıyor; eşitlik denetimi `OutageConsistencyTests.DispatchRetryConstants_AreTheP38Row`'dadır. | DEFERRED_BACKLOG'a forward — D-110 (T385) |
+
+### Yapım Raporu Karşılaştırması
+- Uyum: 1 uyuşmazlık
+- Kabul kriterleri 1–8 ve KK1–KK8: tam uyumlu; öz denetim tablosu her madde için dosya:satır ve test adı taşıyor.
+- Uyuşmazlık 1: yapım raporu `VAL-E064` için PASS önerdi; doğrulayıcı `BEKLEMEDE` bıraktı — satırın beklenen sonucu "üç deneme bu aralıklarla yapılır" ürünün satırları anında alıp gönderen göndericisini ister (T385/T305/T407; D-97, D-99); T204 anları yazan kuralı ve tek denemenin yazımını kurdu, testler denemeleri elle sürüyor. `VAL-E056`, `E063`, `E065` için raporun "kısmi" değerlendirmesiyle uyumlu (BEKLEMEDE).
+- Yapım raporu `09 §25`'in §11 sorusuna (dış servis çağrısı sonuç sınıfıyla) "evet" yazdı; doğru, ama K1 o cevabı `09 §11.1` m.2'nin `switch` biçimi açısından sınırlar (bloke etmez).
+
+### Merge ve Post-merge
+- Squash: yardımcı yapar (doğrulama ajanı 16. adımda durur)
+- Post-merge run'lar: yardımcı doldurur

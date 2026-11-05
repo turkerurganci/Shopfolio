@@ -65,6 +65,54 @@ public sealed partial class SystemLogsDeployConsistencyTests
         Assert.Equal(["request_id", "user_agent"], appended);
     }
 
+    // --- The fields of the access line: the closed list of 05 9.1.2 (criterion 3; 05 9.1.5 "only the fields of 9.1.2 are written") ---
+
+    // What 05 9.1.2 names, as the fields of Caddy's json line: time, IP, method, path, status, size, duration (these seven are Caddy's own
+    // fields), the browser identification and the request id (both appended in the Caddyfile) — and the three envelope fields of the format.
+    private static readonly string[] AccessLineFields =
+    [
+        "ts", "request>remote_ip", "request>method", "request>uri", "status", "size", "duration", "user_agent", "request_id",
+        "level", "logger", "msg",
+    ];
+
+    // Every field Caddy 2.11 writes in an access line before any filter (read from the line of the real image); a Caddy upgrade that adds a field
+    // shows up in the installation check (runbook L.5 item 3), not here.
+    private static readonly string[] CaddyDefaultFields =
+    [
+        "ts", "level", "logger", "msg",
+        "request>remote_ip", "request>remote_port", "request>client_ip", "request>proto", "request>method", "request>host", "request>uri",
+        "request>headers", "request>tls", "bytes_read", "user_id", "duration", "size", "status", "resp_headers", "uuid",
+    ];
+
+    [Fact]
+    public void Caddyfile_RemovesEveryDefaultFieldThatIsNotInTheClosedListOf0512_AndNoneOfTheOthers()
+    {
+        string caddyfile = Read("deploy", "caddy", "Caddyfile");
+
+        string[] deleted = [.. FieldDelete().Matches(caddyfile).Select(m => m.Groups["field"].Value).Order(StringComparer.Ordinal)];
+        string[] expected = [.. CaddyDefaultFields.Except(AccessLineFields, StringComparer.Ordinal).Order(StringComparer.Ordinal)];
+
+        Assert.Equal(expected, deleted);
+    }
+
+    [Fact]
+    public void Runbook_NamesEveryFieldOfTheAccessLineAndEveryFieldTheCaddyfileRemoves()
+    {
+        string section = RunbookSystemLogs();
+        string caddyfile = Read("deploy", "caddy", "Caddyfile");
+        string[] removed = [.. FieldDelete().Matches(caddyfile).Select(m => m.Groups["field"].Value)];
+
+        // A name is the last part of the field's path (request>remote_port is remote_port).
+        // The runbook writes a field by its name or by its whole path, in code quotes.
+        foreach (string path in AccessLineFields.Concat(removed))
+        {
+            string name = path[(path.LastIndexOf('>') + 1)..];
+            Assert.True(
+                section.Contains($"`{name}`", StringComparison.Ordinal) || section.Contains($"`{path}`", StringComparison.Ordinal),
+                $"The runbook does not name the field {path}.");
+        }
+    }
+
     // --- The masking of the address in the access line (criterion 3; 05 9.1.5, 6.4.8; 09 18.2 item 2b; K-1162 (1)) ---
 
     [Fact]
@@ -95,6 +143,27 @@ public sealed partial class SystemLogsDeployConsistencyTests
             "/arama?x=1&bare&y=",
             "/arama?a=b?c=d",
             "/arama?a=1=2",
+            // Mixed shapes: bare tokens after, between and before pairs, empty values and empty pieces (the first RE2 version lost the
+            // alignment after a pair: '?a=1&b&ali@x.com' left the address in the line).
+            "/arama?a=1&b&c",
+            "/arama?a=1&b&c&d&e",
+            "/arama?a&b=1&c&d",
+            "/arama?a=1&b&ali@x.com",
+            "/arama?q=1&a&b&c&d",
+            "/arama?a=",
+            "/arama?a=&b=&c",
+            "/arama?a=1&",
+            "/arama?&",
+            "/arama?&&",
+            "/arama?&&&&x",
+            "/arama?a&&b",
+            "/arama?=v",
+            "/arama?=",
+            "/arama?a&b?c",
+            "/arama??a",
+            "/arama?a=b?c=d&e&f=g",
+            "/arama?ali%40x.com&b=1",
+            "/arama?",
             "/arama",
             "/siparis/erisim",
             "/siparis/erisim/",
@@ -120,6 +189,23 @@ public sealed partial class SystemLogsDeployConsistencyTests
 
             Assert.Equal(PathMasker.Mask(sample), viaProxy);
         }
+    }
+
+    [Fact]
+    public void Caddyfile_UriFilters_ReadAnAmpersandInThePathAsASeparator_SoTheyMaskMoreThanPathMaskerNeverLess()
+    {
+        // The one known difference (runbook L.2): RE2 cannot tell the '&' of a path from the '&' of the query, so the proxy masks the part
+        // after a literal '&' in the path as if it were a query piece. The application's mask leaves the path alone. The difference is on
+        // the safe side: the proxy's line never holds more than the application's.
+        List<(string Pattern, string Replacement)> filters = UriFilters(Read("deploy", "caddy", "Caddyfile"));
+        string viaProxy = "/gorsel/a&b/c";
+        foreach ((string pattern, string replacement) in filters)
+        {
+            viaProxy = Regex.Replace(viaProxy, pattern, replacement, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
+        }
+
+        Assert.Equal("/gorsel/a&*", viaProxy);
+        Assert.Equal("/gorsel/a&b/c", PathMasker.Mask("/gorsel/a&b/c"));
     }
 
     // --- Nothing deletes a log file but the disposal job (criterion 5) ---
@@ -300,11 +386,17 @@ public sealed partial class SystemLogsDeployConsistencyTests
     // The request>uri filters of the access log in the order they run; the replacement keeps the Go placeholders ${1} which .NET reads the same way.
     private static List<(string Pattern, string Replacement)> UriFilters(string caddyfile) =>
     [
-        .. UriFilter().Matches(caddyfile).Select(m => (m.Groups["pattern"].Value, m.Groups["replacement"].Value)),
+        .. UriFilter().Matches(caddyfile).Select(m => (Unquote(m.Groups["pattern"].Value), Unquote(m.Groups["replacement"].Value))),
     ];
 
-    [GeneratedRegex(@"^\s*request>uri\s+regexp\s+(?<pattern>\S+)\s+(?<replacement>\S+)\s*$", RegexOptions.Multiline | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static string Unquote(string token) => token.Length >= 2 && token[0] == '"' && token[^1] == '"' ? token[1..^1] : token;
+
+    // A token is a word or a quoted string (a pattern or a replacement that holds a space, or is empty, is quoted).
+    [GeneratedRegex(@"^\s*request>uri\s+regexp\s+(?<pattern>""[^""]*""|\S+)\s+(?<replacement>""[^""]*""|\S+)\s*$", RegexOptions.Multiline | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex UriFilter();
+
+    [GeneratedRegex(@"^\s*(?<field>\S+)\s+delete\s*$", RegexOptions.Multiline | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex FieldDelete();
 
     [GeneratedRegex(@"\(\?:(?<alternatives>[^()]+)\)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex KeyedAlternation();

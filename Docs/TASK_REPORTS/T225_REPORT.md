@@ -1,6 +1,6 @@
 # T225 — Sistem kayıtları
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 FAIL) | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ⏳ Devam ediyor (doğrulama tur 2 FAIL; düzeltme 2 yapıldı, tur 3 bekliyor) | **Tarih:** 2026-11-05
 
 > Taslağı yapım chat'i doldurdu; doğrulama chat'i finalize eder.
 
@@ -26,7 +26,7 @@
 |---|---|---|---|
 | 1 | Üç kaynak, günlük dosyalar; erişim kaydını vekil, sunucu kayıtlarını OS/konteyner çalıştırıcısı/veritabanı/yedek aracı yazar; ayarlar runbook'ta, kurulumda denetlenir | ✓ | `SystemLogsDeployConsistencyTests.AccessLog_TheApplicationLogAndTheDatabaseLog_AreInThreeDifferentVolumesAndDirectories`, `EveryComposeService_TakesTheSmallContainerOutputRotation`, `DatabaseImage_WritesItsLogToAFileWithoutParametersAndWithoutDetail`; runbook §L ve L.5 |
 | 2 | İstek kimliğini vekil üretir, `X-Request-Id` ile iletir; uygulama satırları başlıktaki değeri taşır | ✓ | `Caddyfile_HandsTheRequestIdToTheApplicationInTheHeaderTheApplicationReads`, `Caddyfile_WritesTheSameValueInItsAccessLineAndHandsItOn`; `SystemLogsTests.ErrorRequest_…`, `RejectedRequest_…`, `UnauthorizedRequest_…` |
-| 3 | Yasaklı değerler hiçbir kayda yazılmaz | ✓ (düzeltme 1) | `SystemLogsTests.SampleLines_ContainNoFormBodyCookieAddressEmailOrPassword`; Caddyfile `request>uri` satır 48, 50, 53, 54 (anahtar bölümü `{key}`, sorgu değerleri `*`); `Caddyfile_UriFilters_GiveWhatPathMaskerGivesForEveryKeyedPathAndQueryShape`, `Caddyfile_MasksTheKeyedPathsOfPathMasker_AndNoOthers`; `30-logging.conf` (terse, parametre 0); `package-build.sh` adım 6 parola denetimi |
+| 3 | Yasaklı değerler hiçbir kayda yazılmaz | ✓ (düzeltme 1 ve 2) | `SystemLogsTests.SampleLines_ContainNoFormBodyCookieAddressEmailOrPassword`; Caddyfile `request>uri` satır 60 (anahtar bölümü `{key}`), 64, 66, 68, 70, 72 (sorgu parça parça: değer `*`, çıplak belirteç ve boş parça `*`); `Caddyfile_UriFilters_GiveWhatPathMaskerGivesForEveryKeyedPathAndQueryShape` (32 sabit örnek + anahtarlı her yol için 6 biçim), `Caddyfile_MasksTheKeyedPathsOfPathMasker_AndNoOthers`; `30-logging.conf` (terse, parametre 0); `package-build.sh` adım 6 parola denetimi |
 | 4 | Düzey tasarım değeri; çatı ve veri erişimi uyarıda | ✓ | `SystemLogsTests.LevelSetting_ChangesTheApplicationCategoryAndNeverTheFrameworkOrDataAccessCategory` (6 düzey) |
 | 5 | Dosyayı yalnız imha işi siler; sunucu kayıtları P-45'e ayarlı kendi döngüsüyle | ✓ | `Caddyfile_HasItsOwnRollingOff_…`, `DatabaseImage_LeavesRotationAndDeletionToTheOperatingSystem`, `Runbook_KeepsTheAccessLogForTheDisposalJobAndDeletesTheServersLogsAfterSixMonths`; `NormalWriter_WhenItStartsANewDaysFile_…`, `Restart_KeepsEveryFileOfTheDirectory_…` |
 | 6 | İmha işi ve imha satırı T201'de; bu task yazmaz | ✓ | `SystemLogsScanTests.LoggingFolder_DeletesNoLogFileAndWritesNoDisposalRecord` |
@@ -41,16 +41,21 @@
 | Kriter 1–7 | ✓ | yukarıdaki tablo |
 | KK1 uygulama kaydı erişim ve sunucu kayıtlarından ayrı günlük dosyada | ✓ | `AccessLog_TheApplicationLogAndTheDatabaseLog_AreInThreeDifferentVolumesAndDirectories`; vekil ve sunucu kayıtları kurulumda: runbook L.5 |
 | KK2 aynı istek aynı kimlik; 500/422/401 istek alanlarıyla satır; `requestId` gelen değer | ✓ | `ErrorRequest_…`, `RejectedRequest_…`, `UnauthorizedRequest_…`, `TwoRequests_KeepTheirOwnIds_…` (başlık değeri beklenen değer) |
-| KK3 örnek satırlarda yasaklı alan yok (uygulama kaydı ve vekil erişim kaydı) | ✓ | `SampleLines_ContainNoFormBodyCookieAddressEmailOrPassword`; vekil: Caddyfile:48-54 + `Caddyfile_UriFilters_…` (her anahtarlı yol, `//`, çıplak belirteç, büyük harf); gerçek `caddy:2.11.7-alpine` sondası: `/siparis/erisim/GIZLI123/teyit?search=gizli&email=a@b.com` → `/siparis/erisim/{key}/teyit?search=*&email=*`, `Cookie` başlığı satırda yok |
+| KK3 örnek satırlarda yasaklı alan yok (uygulama kaydı ve vekil erişim kaydı) | ✓ | `SampleLines_ContainNoFormBodyCookieAddressEmailOrPassword`; vekil: Caddyfile:60-72 + `Caddyfile_UriFilters_…` (her anahtarlı yol, `//`, büyük harf; karışık sorgu: `?a=1&b&c`, `?a=1&b&c&d&e`, `?a&b=1&c&d`, `?a=1&b&ali@x.com`, boş değer, sonda `&`, `?`, `?&`, `?&&`, `?=v`, `?a&b?c`, `?ali%40x.com&b=1`); gerçek `caddy:2.11.7-alpine` (düzeltme 2, 24 sorgu isteği): `/arama?a=1&b&ali@x.com` → `/arama?a=*&*&*`, tüm sorgu çıktıları `PathMasker.Mask` ile eşit; eski sonda: gerçek `caddy:2.11.7-alpine` sondası: `/siparis/erisim/GIZLI123/teyit?search=gizli&email=a@b.com` → `/siparis/erisim/{key}/teyit?search=*&email=*`, `Cookie` başlığı satırda yok |
 | KK4 düzey ayarı uygulamayı değiştirir, çatıyı/veri erişimini değiştirmez | ✓ | `LevelSetting_…` |
 | KK5 gün dönümü ve yeniden başlatmada dosyalar kalır | ✓ | `NormalWriter_WhenItStartsANewDaysFile_KeepsTheFilesOfTheEarlierDays_…`, `AuditAndCommandWriters_AtTheTurnOfTheTurkeyDay_KeepTheOldFile`, `Restart_KeepsEveryFileOfTheDirectory_…` |
 | KK6 blokta dosya silen kod ve imha satırı yok | ✓ | `LogFileDeletionSourceScan` (silme, ezme, açık kütüphane sınırı, imha satırı); ihlal örneği `ViolationSamples/Logging/LogFileDeletion.cs` her biçimi kırmızı yapar |
 | KK7 metrik paketi yok | ✓ | `MetricsPackageScan` (paket bildirimleri, kilit dosyası, compose ve Dockerfile'lar); her yasaklı ad için örnek satır testi |
-| `09 §25` ilgili satır (repoda/imajda/kayıtta sır ve kişisel veri yok) | ✓ | KK3 testi; Caddyfile:48-54 (vekil kaydı maskeli); `30-logging.conf`; `package-build.sh` adım 6 |
-| Güvenlik taraması | ✓ | istemci başlığı değiştirilir (`header_up` öneksiz); vekil kaydı yol anahtarını ve sorgu değerlerini yazmaz (Caddyfile:48-54), başlıklardan yalnız `User-Agent` (satır 27); veritabanı kaydı parametresiz ve ayrıntısız; yeni sır, uç nokta, `src/` kodu yok |
-| `05 §9.1.2` alan listesi belgeyle birebir (erişim kaydı tarayıcı tanıtımı) | ✓ | Caddyfile:27 `log_append user_agent {http.request.header.User-Agent}`; `Caddyfile_WritesTheBrowserIdentificationAsItsOwnFieldAndNoOtherHeader` yalnız `request_id` ve `user_agent` eklendiğini sınar; runbook L.2 (satır 473), L.5 madde 3 |
-| `DEFERRED_BACKLOG` `grep -n "T225"`: hedefi bu task olan kayıtlar | ✓ | D-33 (satır 88): maske, `User-Agent`, istek kimliği, günlük düzen kapandı; KALAN yalnız dışa aktarma `response_header_timeout` → T384, hedef sütunu T384; D-89 K3 (satır 144) ✅ çözüldü, hedef sütunundan T225 çıkarıldı; D-91 (satır 145) K-notları, dokunulmadı |
-| Öteki yerler: aynı olguyu anan runbook, 09, STATUS, MEMORY | ✓ | `DEPLOY_RUNBOOK` satır 31 (K-915 özeti), L.2 (473-474), L.5 madde 3; `09 §18.2` madde 2b (satır 1979) ve madde 7 (1992); `IMPLEMENTATION_STATUS` T225 satırı; `MEMORY.md` satır 22 |
+| `09 §25` ilgili satır (repoda/imajda/kayıtta sır ve kişisel veri yok) | ✓ | KK3 testi; Caddyfile:60-72 (vekil kaydı: anahtar, değer ve çıplak belirteç maskeli, karışık örneklerle sınandı); `30-logging.conf`; `package-build.sh` adım 6 |
+| Güvenlik taraması | ✓ | istemci başlığı değiştirilir (`header_up` öneksiz); vekil kaydı yol anahtarını ve her sorgu parçasının değerini yazmaz (Caddyfile:60-72), başlıklardan yalnız `User-Agent` (satır 27); satırda `05 §9.1.2` dışı alan yok (Caddyfile:40-54); `trusted_proxies` yok; veritabanı kaydı parametresiz ve ayrıntısız; yeni sır, uç nokta, `src/` kodu yok |
+| `05 §9.1.2` alan listesi belgeyle birebir (erişim kaydı tarayıcı tanıtımı) | ✓ (düzeltme 2) | Caddyfile:27 `log_append user_agent …`; Caddyfile:40-54 `delete`: `request>headers`, `resp_headers`, `request>tls`, `request>remote_port`, `request>client_ip`, `request>proto`, `request>host`, `bytes_read`, `user_id`, `uuid`; kalan satır (gerçek Caddy sondası): `level, ts, logger, msg, request{remote_ip, method, uri}, duration, size, status, user_agent, request_id` = `05 §9.1.2` (zaman, IP, yöntem, yol, yanıt kodu, boyut, süre, tarayıcı tanıtımı, istek kimliği) + üç zarf alanı; zarf alanlarının gerekçesi runbook L.2 (satır 474); testler: `Caddyfile_RemovesEveryDefaultFieldThatIsNotInTheClosedListOf0512_AndNoneOfTheOthers` (atılanlar = Caddy varsayılanları − 9.1.2 listesi), `Runbook_NamesEveryFieldOfTheAccessLineAndEveryFieldTheCaddyfileRemoves`; runbook L.2 (474), L.5 madde 3 (528) |
+| `DEFERRED_BACKLOG` `grep -n "T225"`: hedefi bu task olan kayıtlar | ✓ | `grep -n "T225"`: D-33 (satır 88): maske (her sorgu parçası dahil), `User-Agent`, `05 §9.1.2` alan listesi, istek kimliği, günlük düzen kapandı; KALAN yalnız dışa aktarma `response_header_timeout` → hedef sütunu "dışa aktarma (T384); kurulum denemesi T603" (T225 ve T230 çıkarıldı); D-89 K3 (satır 144) ✅ çözüldü (gövdede); D-91 (satır 146) ve D-92 (satır 147) bu task'ın doğrulama K-notları (T232 D-90'ı aldığı için yeniden numaralandı), D-92 hedefi "T225 düzeltmesinden sonra Caddyfile'a dokunan ilk PR" |
+| Öteki yerler: aynı olguyu anan runbook, 09, STATUS, MEMORY | ✓ | `DEPLOY_RUNBOOK` satır 31 (K-915 özeti: atılan alanlar), L.2 (473-475: alan listesi, altı süzgeç, bilinen fark), L.5 madde 3 (528); `09 §18.2` madde 2b (satır 1979, yeni iddia yok: kural aynı) ve madde 7 (1992: yeni test adları); `IMPLEMENTATION_STATUS` T225 satırı (127); `MEMORY.md` satır 22; eski "dört süzgeç / iki geçiş" anlatımı runbook ve 09'da kalmadı; yalnız MEMORY ve bu raporun tur geçmişi anlatılarında (tarihsel) geçer |
+| Sık FAIL: maske eşdeğerliği karışık örneklerle sınanmadı | ✓ | `Caddyfile_UriFilters_…` 32 sabit örnek (çift sonrası çıplak, art arda çıplak, çıplak sonra çift, boş değer/parça, sonda `&`, `?`, `?&`, `?&&`, `?=v`, `?` içeren çıplak) + 60 anahtarlı yol biçimi; her biri Caddyfile süzgeçlerinin çıktısı = `PathMasker.Mask`; gerçek Caddy ile aynı kümenin sorgu bölümü eşit |
+| Sık FAIL: alan listesi belgeyle birebir | ✓ | satır üstte: Caddy varsayılanları − `05 §9.1.2` = atılanlar (test) |
+| Sık FAIL: aynı şeyi anan öteki yerler | ✓ | runbook (31, 474, 475, 528), `09 §18.2` madde 7, STATUS (127), MEMORY (22), D-33/D-92 hedefleri, bu rapor güncellendi |
+| Sık FAIL: tarama istisnası geniş | ✓ | süzgeçte istisna yok; tek bilinen fark (yolda düz `&` fazla maskelenir) güvenli yönde, `Caddyfile_UriFilters_ReadAnAmpersandInThePathAsASeparator_…` ile sabit, runbook L.2'de yazılı |
+| Sık FAIL: test beklenen değeri kaynaktan türetmiyor | ✓ | beklenen çıktı `PathMasker.Mask`'ten; atılan alanlar `CaddyDefaultFields` − `AccessLineFields` kümesinden; runbook adları Caddyfile'daki `delete` satırlarından okunur |
 | Sık FAIL: tarama/süzgeç istisnası geniş değil | ✓ | boş bölüm ve ön ek yalnız kapalı liste için; `/siparis/erisim-x/…`, `/panel/…` (listede olmayan), `/gorsel/…` örnekleri değişmeden geçer (`Caddyfile_UriFilters_…` örnek listesi) |
 | Sık FAIL: test beklenen değeri kaynaktan türetiyor | ✓ | anahtarlı yol listesi `PathMasker.KeyedPrefixes`'ten, beklenen çıktı `PathMasker.Mask`'ten; süzgeçler Caddyfile'dan okunur, elle yazılmış ikinci liste yok |
 | Sık FAIL (1) beklenen değer sabitten | ✓ | testler başlık değerini ve `LoggingOptions`/Compose/Dockerfile değerlerini dosyadan okur; düzey testi `LogEventLevel` değerlerinden |
@@ -63,18 +68,19 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 764/764 (düzeltme 1 sonrası; yapımda 680 Consistency dışı) |
-| Integration | ✓ | PostgreSQL 18 (Docker, `shopfolio-t225-pg`), ad alanına göre: Logging, Database+FileSecrets+Model, Web | 29 + 952 + 54 = 1035, hepsi yeşil |
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | 849/849 (düzeltme 2 sonrası, T232 birleşik; düzeltme 1'de 764) |
+| Integration | ✓ | PostgreSQL 18 (Docker, `shopfolio-t225-fix2-pg`), ad alanına göre: Logging, Web | 30 + 64, hepsi yeşil (düzeltme 2; yapımda Logging 29, Database+FileSecrets+Model 952, Web 54) |
+| Caddy (gerçek imaj) | ✓ | `caddy validate` + çalışan `caddy:2.11.7-alpine` sondası (27 istek) | geçerli; sorgu çıktıları `PathMasker` ile eşit; alan listesi `05 §9.1.2` |
 | Diğer | ✓ | `dotnet build Shopfolio.slnx -warnaserror`; `dotnet format --verify-no-changes`; `tests/scripts/run-script-tests.sh`; tam `scripts/ci/package-build.sh` (yerel) | 0 uyarı; temiz; 4 betik dosyası; "Package build: all checks passed." |
 
 ## Doğrulama
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-05, head `bf2ecc8`; tur 1 FAIL, head `a8390bc`) |
+| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-05, head `bf2ecc8`; tur 1 FAIL, head `a8390bc`); düzeltme 2 yapıldı, tur 3 bekliyor |
 | Bulgu sayısı | Tur 2: 2 (1 KRİTİK S1, 1 DÜŞÜK S1) · tur 1: 2 (1 KRİTİK S1, 1 ORTA S1) |
 | Düzeltme gerekli mi | Evet — erişim kaydında bir çiftten sonra gelen çıplak sorgu belirteçleri maskelenmiyor; satırda `05 §9.1.2` dışı Caddy alanları (aşağıdaki "Doğrulama Sonucu — tur 2"). İki iterasyon doldu: eskalasyon |
-| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (D-92) · tur 1: 3 (D-91) |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (D-92) · tur 1: 3 (D-91); T232 D-90'ı aldığı için bu task'ın kayıtları birleştirmede D-91 ve D-92 oldu |
 
 ## Düzeltme 1 (doğrulama tur 1 FAIL sonrası, 2026-11-05)
 
@@ -83,6 +89,17 @@
 - **Testler (`SystemLogsDeployConsistencyTests`, +3):** `Caddyfile_MasksTheKeyedPathsOfPathMasker_AndNoOthers` (liste eşitliği), `Caddyfile_UriFilters_GiveWhatPathMaskerGivesForEveryKeyedPathAndQueryShape` (süzgeçler Caddyfile'dan okunur, çıktı `PathMasker.Mask` ile karşılaştırılır), `Caddyfile_WritesTheBrowserIdentificationAsItsOwnFieldAndNoOtherHeader`.
 - **Belgeler:** `DEPLOY_RUNBOOK` K-915 özeti, L.2, L.5 madde 3; `09 §18.2` madde 2b ve 7; `DEFERRED_BACKLOG` D-33 (kısmen çözüldü, kalan T384) ve D-89 K3 (çözüldü); `IMPLEMENTATION_STATUS`; `MEMORY.md`.
 - **Sınama:** build `-warnaserror` 0/0; `dotnet format --verify-no-changes` temiz; Unit 764/764; Integration Logging 29, Web 54 yeşil (PostgreSQL 18, `shopfolio-t225-fix-pg`, silindi); `run-script-tests.sh` 4 dosya geçti.
+
+## Düzeltme 2 (doğrulama tur 2 FAIL sonrası, 2026-11-05)
+
+- **B1 (KRİTİK) kapandı:** eski "iki geçiş" hilesi bir `ad=değer` çiftinden sonra hizayı kaydırıyordu (2. süzgecin yazdığı `*`, 4. süzgeçte belirteç sayılıp `&`'leri tüketiyordu). Sorgu artık parça parça işlenir; RE2'de ileri bakış olmadığı için her parça kendi baş işaretini taşır ve eşleşme parçanın arkasındaki `&`'yi yutsa bile sonrakinin başı yerinde kalır. Altı `regexp` süzgeci (Caddyfile:60-72): (1) anahtar bölümü `{key}`; (2) `&` → `& ` (boşluk: istek adresinde bulunamaz); (3) boş olmayan sorgunun ilk `?`'inden sonra ilk parçanın baş işareti; (4) `=` içeren parçanın değeri `*`; (5) `=` içermeyen çıplak belirteç ve boş parça `*`; (6) baş işaretleri kalkar. Raporun önerdiği `&` → `&&` dizilimi yerine baş işareti kullanıldı, çünkü boş parçada (`?a=1&`, `a&&b`) `&&` dizilimi sahte eşleşme veriyordu.
+- **B2 (DÜŞÜK) kapandı:** `format filter`'a `delete`: `request>remote_port`, `request>client_ip` (`remote_ip` ile aynı adres), `request>proto`, `request>host`, `bytes_read`, `user_id`, `uuid`. Satır `05 §9.1.2` listesi + üç zarf alanı (`level`, `logger`, `msg`); gerekçe runbook L.2'de tek cümle. Runbook L.5 madde 3 kalan alanları ve atılanları sayar.
+- **Testler (`SystemLogsDeployConsistencyTests`, +3):** `Caddyfile_UriFilters_GiveWhatPathMaskerGivesForEveryKeyedPathAndQueryShape` örnek kümesi 13'ten 32'ye çıktı (verilen `?a=1&b&c`, `?a=1&b&c&d&e`, `?a&b=1&c&d`, `?a=1&b&ali@x.com`, boş değer, sonda `&` ve ek kenarlar) + anahtarlı yollar için 60; `Caddyfile_RemovesEveryDefaultFieldThatIsNotInTheClosedListOf0512_AndNoneOfTheOthers`; `Runbook_NamesEveryFieldOfTheAccessLineAndEveryFieldTheCaddyfileRemoves`; `Caddyfile_UriFilters_ReadAnAmpersandInThePathAsASeparator_…` (bilinen fark sabitlendi). Süzgeç ayrıştırıcısı tırnaklı belirteç okur.
+- **Gerçek `caddy:2.11.7-alpine`:** `caddy validate` "Valid configuration"; 27 istek (24 sorgu biçimi + 3 anahtarlı yol + yolda `&`); sorgu çıktılarının hepsi `PathMasker`'ın kuralıyla eşit; `/arama?a=1&b&ali@x.com` → `/arama?a=*&*&*`, `?q=1&a&b&c&d` → `?q=*&*&*&*&*`; satırın alanları: `level, ts, logger, msg, request{remote_ip, method, uri}, duration, size, status, user_agent, request_id`.
+- **Bilinen tek fark:** yolda düz `&` (`/gorsel/a&b/c`) vekilde `/gorsel/a&*` olur (fazla maskeleme, güvenli yön); `PathMasker` yolu bırakır. RE2 yolun `&`'i ile sorgunun `&`'ini ayıramaz. Runbook L.2'de yazılı, testle sabit.
+- **Birleştirme:** `origin/main` (T232) birleştirildi; `DEFERRED_BACKLOG` ve `MEMORY.md` çakışmasında iki taraf korundu. T232 D-90'ı aldığı için bu task'ın kayıtları D-91 (tur 1 K1–K3) ve D-92 (tur 2 K1) oldu. D-33 hedef sütunundan T225 çıkarıldı.
+- **Belgeler:** `DEPLOY_RUNBOOK` K-915 özeti, L.2, L.5 madde 3; `09 §18.2` madde 7 (yeni test adları); `DEFERRED_BACKLOG` D-33, D-91, D-92; `IMPLEMENTATION_STATUS` T225 satırı; `MEMORY.md`.
+- **Sınama:** build `-warnaserror` 0/0; `dotnet format --verify-no-changes` temiz; Unit 849/849; Integration Logging 30, Web 64 yeşil (PostgreSQL 18, `shopfolio-t225-fix2-pg`, silindi); `run-script-tests.sh` 4 dosya geçti.
 
 ## Altyapı Değişiklikleri
 
@@ -114,7 +131,7 @@
 | 2 | `LogFileDeletionSourceScan` yalnız `Infrastructure/Logging/`; T201 imha işi başka klasörde | T201 | imha işi o task'ta |
 | 3 | `logrotate`/Caddy uuid davranışının gerçek sunucuda sınanması | T603 | sunucu gerekir |
 | 4 | Dışa aktarma yollarının `response_header_timeout` bloğu | D-33 | dışa aktarma ucu T384'te |
-| 5 | Süzgeç `&` içeren yol bölümünü de (`/a&b`) sorgu belirteci sayıp `*` yapar (fazla maskeleme, güvenli yön); `%2F` kodlu ayırıcı iki katmanda da maskelenmez | D-89 | bugün anahtarlı yolda `&` yok; `%2F` DÜŞÜK |
+| 5 | Süzgeç yolun düz `&`'inden sonrasını sorgu parçası sayıp `*` yapar (`/gorsel/a&b/c` → `/gorsel/a&*`; fazla maskeleme, güvenli yön; runbook L.2, testle sabit); `%2F` kodlu ayırıcı iki katmanda da maskelenmez | D-89 | bugün yolda `&` yok; `%2F` DÜŞÜK |
 
 ## Notlar
 

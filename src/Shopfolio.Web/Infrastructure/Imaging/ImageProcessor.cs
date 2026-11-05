@@ -67,10 +67,15 @@ internal sealed class ImageProcessor : IDisposable
         DecoderOptions options = Options();
         try
         {
-            ImageInfo info;
+            ImageInfo? info;
             using (MemoryStream header = new(content, writable: false))
             {
                 info = decoder.Identify(options, header);
+            }
+
+            if (info is null)
+            {
+                return ImageProcessing.Rejected(ImageRejection.Undecodable);
             }
 
             if (info.Width > ImagingLimits.MaxEdge || info.Height > ImagingLimits.MaxEdge || (long)info.Width * info.Height > ImagingLimits.MaxPixels)
@@ -90,8 +95,11 @@ internal sealed class ImageProcessor : IDisposable
             Strip(image);
             return ImageProcessing.Accepted(Encode(image, kind.Value), kind.Value, image.Width, image.Height);
         }
+        // The library throws a NullReferenceException from its header reader on some corrupt headers (found by the broken-file test, ImageSharp 4.1.3):
+        // for an upload that is a file that cannot be decoded, not an unexpected failure of the application.
         catch (Exception exception) when (exception is ImageFormatException or InvalidImageContentException or UnknownImageFormatException
-            or InvalidMemoryOperationException or NotSupportedException or EndOfStreamException or IOException)
+            or InvalidMemoryOperationException or NotSupportedException or EndOfStreamException or IOException
+            or NullReferenceException)
         {
             return ImageProcessing.Rejected(ImageRejection.Undecodable);
         }

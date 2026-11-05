@@ -108,10 +108,10 @@ Derleme: `dotnet build Shopfolio.slnx -c Release -warnaserror` 0 uyarı; `dotnet
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-05, head `d5c004a`) |
-| Bulgu sayısı | 2 (B1, B2 — ikisi de ORTA, S1) |
-| Düzeltme gerekli mi | Evet — B1 ve B2 bu PR'da |
-| Bloke-etmeyen not (K) sayısı | 2 (K1, K2 — düzeltme turunda) |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-05, head `af2e64f`); tur 1 ✗ FAIL (head `d5c004a`) |
+| Bulgu sayısı | Tur 2: 0 · tur 1: 2 (B1, B2 — ikisi de ORTA, S1; düzeltme 1'de kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 2 (K1 → D-108'e eklendi, K2 → D-107 kapsar) · tur 1: 2 (düzeltme 1'de kapandı) |
 
 ## Altyapı Değişiklikleri
 
@@ -257,3 +257,100 @@ Derleme: `dotnet build Shopfolio.slnx -c Release -warnaserror` 0 uyarı; `dotnet
 | K2 | Öz denetimin `09 §25` satırı madde madde değil | Öz denetim tablosu bütünüyle yeniden denetlendi; `09 §25`'in her sorusu ayrı satırda cevap + kanıtla | Yukarıda "`09 §25` madde madde" |
 
 **Testler (düzeltme 1 head'i):** build `-warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` çıkış 0; Unit 1176/1176; Integration (PostgreSQL 18 konteyneri `shopfolio-t203-fix1-pg`, sonra silindi) SignedEndpoints 10/10, Logging 30/30, Web 75/75.
+
+---
+
+## Doğrulama Sonucu — T203 İmzalı makine ucu altyapısı — tur 2
+**Tarih:** 2026-11-05   **Branch:** task/T203-imzali-makine-ucu   **Commit:** af2e64f (doğrulanan head)
+
+### Verdict: ✓ PASS
+
+### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş (switch öncesi, test koşularından ve geçici sınama dosyası silindikten sonra) |
+| Hook kurulumu | ✓ | `git config core.hooksPath` → `C:\projects\Shopfolio\scripts\git-hooks` |
+| Ana dal CI (son 3) | ✓ | 42042657292 success · 42042657330 success · 42031439167 success |
+| Memory drift | ✓ | `.claude/memory/MEMORY.md` satır 22 T203 |
+| Dal tabanı | ✓ | `origin/main` (a5cd5b1) dalın atası |
+
+### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | İmza bağlantı katmanında, işleyiciden ve kuyruktan önce | ✓ | `SignedEndpointHandler.HandleAsync`: tavan → form → `Verify` → `RunAsync`; Unit `ValidSignature_IsVerifiedFirst_...` (`Verify, Begin, RecordAsync, Commit`); Integration `BrokenOrEmptySignature_*` ×2, `MissingSignature_*`: `jobs` 0 |
+| 2 | Sabit zamanlı karşılaştırma | ✓ | `Integrations/SignatureComparison.Matches` → `CryptographicOperations.FixedTimeEquals`; `SignatureComparisonTests` (6), `SignatureComparisonSourceScanTests` (gerçek ağaç temiz, ihlal örneği kırmızı) |
+| 3 | İmzasız/tutmayan istek kaydedilmez, işlenmez, 400 gövdesiz | ✓ | Unit + Integration (PostgreSQL 18) `BrokenOrEmptySignature_*`, `MissingSignature_*`: 400, boş gövde, kayıt 0, iş satırı 0; gerçek Kestrel geçici sınamasında da 400, gövde 0 bayt |
+| 4 | Reddedilen istek seyreltilmiş güvenlik olayı | ✓ | B1 kapandı: `SignatureFailureLog.Record` sayıyı yalnız kendi adresinin pencere sonrası ilk satırına yazar (`counted = window?.Counted`), `Sweep` satır yazmaz, yalnız sayısız bitmiş pencereyi düşürür. Unit `LaterFailuresWithinTheWindow_...` (59 sn'de satır yok, 60 sn'de satır sayı 4), `AnEndedWindowWithACount_WritesNoLineAtAnotherAddressesRequest_...` (B'nin satırı 0, ek satır yok, A dönünce 1), `ManyAddresses_EachCountIsWrittenOnlyOnItsOwnAddressesLine` (ters sırada dönüş 1/2/3), `TheSweepingAddress_...`, `Line_CarriesNoAddress`; satır her zaman o isteğin içinde yazılır, `requestId` kendi isteğinin. `05 §4.5.2`, `07 §4.30.1`, `09 §18.2` m.3 ve `VAL-E045` beklenen sonucuyla birebir |
+| 5 | Önce kayıt, kesinleşince "alındı" | ✓ | Integration `ValidSignature_IsRecordedWithItsJobRow_AndReceivedOnlyAfterTheCommit` (kesinleşme anında dışarıdan 0 satır; sonra 1 kayıt + 1 iş satırı); 200 + gövde `RunAsync` döndükten sonra |
+| 6 | Tekrar kaydedilmez, işlenmez, "alındı" | ✓ | Unit + Integration `SameNoticeAgain_*`: aynı durum ve gövde, tek kayıt, tek iş satırı (`ON CONFLICT DO NOTHING`) |
+| 7 | Kaydedilemeyen bildirim "alındı" almaz, 500 | ✓ | B2 kapandı: ardışık düzen veritabanı hatasını yakalamaz (`09 §8.1` m.3, m.6–7). Unit `DatabaseErrorOnTheWrite_/OnTheCommit_IsNotCaught_...` (istisna çıkar, yanıt başlamamış, gövde/tür/satır yok); Integration `DatabaseErrorOnTheCommit_LeavesTheEndpointForTheCatchingLayer_...`, `RecordThatBreaksARule_...` (`23514`): kayıt 0, iş satırı 0. 500'ün kendisi: dalın testleri TestServer'da istisnanın çıktığını gösterir; doğrulayıcı gerçek Kestrel'de (Production ortamı, `MapSignedEndpoint` + kayıtta `NpgsqlException` atan uç; geçici dosya, koşudan sonra silindi) **500 ve 0 bayt gövde** gördü. Katmanın satırı ve sayacı D-107 → T212 |
+| 8 | Gelen kayıt kişisel alan taşımaz | ✓ | `InboundRecordFieldsTests` (3; ihlal örneği `PayerCard` kırmızı); ret satırında gövde/imza/IP yok; ardışık düzen artık hata satırı yazmaz, sunucunun yakalanmayan istisna satırı da biçimleyicinin `ExceptionMasker`'ından geçer |
+| 9 | 64 KB tavan okumadan ve imzadan önce, 413; sahtecilik dışı; 429 T215 | ✓ | `ReadBodyWithinLimitAsync` (bildirilen uzunluk > tavan → okumadan null; bildirilmeyende tavan + 1 bayt); Unit `DeclaredLengthAboveTheLimit_...` (okunamayan akış), `UndeclaredBodyAboveTheLimit_...`, `BodyExactlyAtTheLimit_...` ×2; Integration `BodyAboveTheLimit_Gets413...`; `MapPost` + `DisableAntiforgery()`: Unit `MappedEndpoint_IsPostOnly_...`, Integration `TokenlessPost_...`, `OtherMethodThanPost_...`; sabitler `09 §3.5` satırında, `SignedEndpointLimitsConsistencyTests`; 429 T215 m.4 |
+
+### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-E045 | KRİTİK | mock | FAIL | PASS | — |
+| VAL-E046 | KRİTİK | mock | PASS | PASS | — |
+| VAL-E047 | KRİTİK | mock | PASS | PASS | — |
+| VAL-E050 | KRİTİK | mock | BEKLEMEDE | BEKLEMEDE (500 ve "OK yok" ✓; `Uygulama kaydı` kanıtı T212'nin katmanında — D-107; "son sorgu bulur" ödeme süresinin son sorgusunun task'ında) | — |
+| VAL-E051 | KRİTİK | mock | PASS | PASS | — |
+| VAL-E052 | ORTA | mock | PASS | PASS | — |
+| VAL-E036, E048, E049, E053, D082, A585 | — | — | BEKLEMEDE | BEKLEMEDE (T203'ün kriteri değil: sandbox T402/T311; işaretli kayıt T311; hız sınırı T215 m.4; bildirimin tekilliği T311; ödeme oturumu) | — |
+
+`python -I -X utf8 scripts/doc-scans/12_matris_denetle.py --kapsam 1-77` → Hata: 0.
+
+### Doğrulama Kontrol Listesi
+- [x] KK1: imza işleyiciden önce; bozuk/eksik imzada iş satırı yok
+- [x] KK2: sabit zamanlı işlev
+- [x] KK3: bozuk imzada 400, gövde boş, satır yok
+- [x] KK4: güvenlik olayı satırı seyreltilmiş; sayı yalnız kendi adresinin satırında (B1 kapandı)
+- [x] KK5: kesinleşmeden sonra yanıt
+- [x] KK6: tekrarda ikinci satır yok, yanıt aynı
+- [x] KK7: veritabanı hatasında 500 (gerçek Kestrel'de görüldü; ardışık düzen yakalamaz — B2 kapandı)
+- [x] KK8: kayıtta kişisel alan yok
+- [x] KK9: 64 KB üstü imzadan önce 413; sahtecilik denetimi uygulanmaz; 429 T215 KK4'te
+- [x] `09 §25`: geniş/yutan `catch` yok (kalan üçü belirli tür: 413 süzgeçli `BadHttpRequestException`, `InvalidDataException`, `IOException` → bilinen 400/413); kod `05 §4.5.2`, `07 §4.30.1`, `09 §8.1` ile çelişmiyor; yeni sabit `§3.5`'te; klasör `CONTEXT.md`'de; zaman `TimeProvider`'dan; yeni paket ve göç yok; kayıtta sır/kişisel veri yok; koruma dışı uç gerekçeli (`07 §2.5.5`, liste T209 m.6); seyreltme durumu önbellek değil (`05 §11.2.9` bellek sayaçları)
+- [x] Güvenlik taraması (aşağıda)
+- [x] Tur 1 bulguları: B1, B2 kapandı; K1 → D-108 (gerekçe denetlendi, aşağıda K1), K2 → öz denetim `09 §25` madde madde
+- [x] Yeni sapma yok: `05 §4.5.2`, `07 §4.30.1`, `09 §8.1` m.3/m.6–7, `09 §11.1` m.5 ve §18.2 m.3 eklemeleri `05`/`07`'yi yineler, kural koymaz; D-107 (T212 m.6–7: makine ucu 500, `[MachineEndpoint]` karşılığı uç metaverisi) ve D-108 (T215, bellekteki sayaçlar) sahibi doğru; D-107/D-108 numarası main'in son D-106'sından sonra; ertelenen T311 (gerçek uç), T402 (PayTR imzası, plan m.1–2), T209 (koruma dışı liste, m.6), T215 (429, m.4) planda yazılı
+
+### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes` | çıkış 0 |
+| Unit (+Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 1176/1176 |
+| Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration (PostgreSQL 18, `shopfolio-t203-val-pg`, port 55371) | ✓ | `--filter-namespace` / `--filter-class`: SignedEndpoints 10, Jobs 77, Web 75, Concurrency 26, Security 18, Database 35, Model 499 + 394, Logging + Disposal + FileSecrets 72 | 1206/1206, 0 hata |
+| Gerçek Kestrel geçici sınaması | ✓ | geçici `ZzValidatorKestrelScratch` (Production, 127.0.0.1:55372; koşudan sonra silindi) | kayıtta `NpgsqlException` → 500, gövde 0 bayt; bozuk imza → 400, gövde 0 bayt |
+| Restore | ✓ | `dotnet restore Shopfolio.slnx --locked-mode` | çıkış 0; `git status` temiz; konteyner adıyla silindi |
+| Dal CI | ✓ | `gh run list --branch task/T203-imzali-makine-ucu` | 42056504243 success (head af2e64f, deneme 2; ilk denemede Paketleme restic 504) |
+
+### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz (testlerdeki HMAC anahtarı yer tutucu metin; kayıt satırlarında gövde/imza/anahtar/IP yok; diff taramasında sır yok)
+- Auth etkisi: Temiz (uç kimliksiz ve sahtecilik korumasının dışında — `07 §4.30.1`, §2.5.5; tek güvence imza; yalnız POST)
+- Input validation: Temiz (tavan okumadan önce; form değilse, alan iki kez ya da dosya varsa 400; çatının form sınırları aşılırsa 400)
+- Yeni bağımlılık: Yok
+- Seyreltme belleği: sınırsız değil — K1 (DÜŞÜK, D-108'e forward)
+
+### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| — | — | — | — | Bulgu yok | — | — | — |
+
+### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | Seyreltme belleği sınırlı kalmıyor: sayısı olan bitmiş pencere adres dönene kadar kalır, dönmeyen adres yeniden başlatmaya kadar bellekte durur. Bu, hız sınırının pencereyle düşen sayaçlarından farklıdır (rapor ve D-108 "hız sınırı sayaçlarıyla aynı nitelik" ve "taşkın" diyor). /64 değiştiren saldırgan adres başına iki istekle bir kayıt bırakabilir. D-108'in gerekçesi doğru: her tavan ya sayıyı düşürür ya seyreltmeyi bırakır, ikisi de `05 §4.5.2`/`07 §4.30.1`'den ayrılır ve karar kaydı ister; belgeler bellek tavanı koymuyor, bu yüzden sapma değil | DEFERRED_BACKLOG'a forward: D-108'in açıklamasına bu fark eklendi (T215) |
+| K2 | Kriter 7'nin 500'ü bugün katmandan değil sunucudan (Kestrel) gelir; dalın testleri 500'ü değil istisnanın çıktığını sınar. Doğrulayıcı gerçek Kestrel'de 500 ve boş gövdeyi gördü. Geliştirme ortamında çatının geliştirici hata sayfası gövde yazabilir, üretimde yazmaz | DEFERRED_BACKLOG'a forward: D-107 zaten kapsar (T212 katmanı makine ucu olarak tanır ve 500 + satır + sayaç entegrasyon testi ekler); yeni kayıt gerekmez |
+
+### Yapım Raporu Karşılaştırması
+- Uyum: 1 küçük uyuşmazlık
+- Düzeltme 1, K1 ve D-108: belleği "hız sınırı sayaçlarıyla aynı nitelik" diye anıyor; sayılı pencere süreyle düşmediği için aynı değil (K1). Verdict'i etkilemez.
+- Öz denetim tablosu var, her maddesi kanıtlı; `09 §25` artık madde madde (tur 1 K2 kapandı).
+- Öteki 9 kriter, KK'lar ve B1/B2 kapanışı bağımsız doğrulamayla aynı sonuçta.
+
+### Merge ve Post-merge
+- Squash: — (yardımcının işi, 17–18. adım)
+- Post-merge run'lar: —

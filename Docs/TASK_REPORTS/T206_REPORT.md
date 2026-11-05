@@ -91,8 +91,8 @@ Her madde `git diff origin/main...HEAD` üzerinde yeniden denetlendi (test adlar
 ## Commit & PR
 
 - **Branch:** `task/T206-adres-sayfa-form-kalibi`
-- **Commit:** *(PR açılınca son SHA yazılır)*
-- **PR:** #PRNO
+- **Commit:** `762ce86` — Durum, hafıza ve rapor kayıtları, test adları (PR başı: son commit)
+- **PR:** #401
 - **CI:** *(yapım chat'i izlemez)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

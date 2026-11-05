@@ -105,7 +105,7 @@
 | T203 | İmzalı makine ucu altyapısı: imza denetimi, gövde tavanı | ✓ | ✓ PASS (tur 2; tur 1 ✗ FAIL) | `aee8538` | #397 |
 | T204 | Dış servis çökmesi davranışı ve sahtelerle sınama | ✓ | ✓ PASS (tur 1) | `4628f9c` | #398 |
 | T205 | Açılışta veritabanı fail-fast denetimi | ✓ | ✓ PASS (tur 1) | a36010b | #385 |
-| T206 | Adres yapısı, önekler ve sayfa–form işleyici kalıbı | ⏳ Devam ediyor | — | — | #PRNO |
+| T206 | Adres yapısı, önekler ve sayfa–form işleyici kalıbı | ⏳ Devam ediyor | — | — | #401 |
 | T207 | Kimlik şemaları ve erişim reddi | ⬚ | — | — | — |
 | T208 | Sürümün ve gösterilen değerin formda taşınması, koşullu güncelleme | ⬚ | — | — | — |
 | T209 | Tek kullanımlık değerler, tekrar gönderim, sahteciliğe karşı koruma ve güvenlik başlıkları | ⬚ | — | — | — |

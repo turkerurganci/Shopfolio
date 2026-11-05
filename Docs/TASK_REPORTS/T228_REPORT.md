@@ -1,6 +1,6 @@
 # T228 — Eşzamanlılık denetimi
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✓ Doğrulama tur 1 PASS | **Tarih:** 2026-11-05
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -90,10 +90,36 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama chat'i doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-05, bağımsız doğrulayıcı; dal head `c67a1e2`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 → `DEFERRED_BACKLOG` D-95; K2 bu PR'da kapandı (aşağıda) |
+
+### Doğrulama tur 1 — validator kanıtları
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Sürüm; yazma yalnız sürüm aynıysa ve artırır; tek koşullu güncelleme | ✓ | `ModelRulesConvention` her `int Version`'ı belirteç yapar; `RecordSave_IsOneConditionalUpdate_…_KK1` kaydı kaydeden tek komutun `UPDATE products SET … WHERE … version = @…` olduğunu ve ikinci aynı sürümlü kaydın `DbUpdateConcurrencyException` aldığını gösterir; `RecordUpdate_WithAStaleVersion_AffectsNoRow_KK1` 0 satır; `BumpVersion_OnEveryRecordWithOneVersion_RaisesItByOne` modeldeki her tek sürümlü kayıtta |
+| 2 | Kayıt varyantında kilit yok; ürün sürümü varyantları kapsar; stok/kontenjan alanı ve ayırma, kesin düşme, dönüş artırmaz | ✓ | `RecordSave_TakesNoLock_…` (açık işlemin yüklediği kayda başka kayıt 10 sn içinde yazar); `ProductVersionGuard` form kayıtları (`06 §2.6.2` ile eşit) artışsız kaydı reddeder, `StockQuantity`/`ReservedQuantity`/`UsedCount`/`ReservedCount` hiçbir `SaveChanges`'te yazılamaz; `ReserveCommitReturnAndThePanelsStockWrite_DoNotRaise…` ürün ve kupon sürümü 1 kalır |
+| 3 | Sipariş sürümü bütün sipariş tarafında artar; artırmayanlar kapalı liste | ✓ | `OrderVersionGuard` kapsamı = sipariş satırına yabancı anahtar zinciriyle bağlı her kayıt eksi `IOrderVersionExempt` (6 kayıt = `06 §2.6.4` "Artırmayanlar") eksi `DownloadCount`, `DigitalFileId`, `CustomerId` ve silmede boşalan `ProductId`/`VariantId`; `VersionRulesTests` kapsamı 19 kayıtlık sipariş tarafı listesine, muafları belgenin listesine iki yönlü eşitler; KK3 entegrasyon testleri. Bekçinin bakmadığı yollar K1 |
+| 4 | Satır kilidi; eski sürümlü yönetici işlemi uygulanmaz; müşteri/sistem o anki hâle; gösterilen açık adet | ✓ | `OrderLocks` `SELECT … WHERE id = ANY(…) ORDER BY id FOR UPDATE` (kimlik sırası, `LockRows` sıralamanın üstünde); `OrderLock_TheSecondOrderOperationWaitsForTheFirst_KK4` beklemeyi `pg_stat_activity` `wait_event_type = 'Lock'` ile gözler; `AdministratorOperation_…` kilidi bekleyen eski sürümlü işlem reddedilir, sürüm 2 ve ilk yazım kalır; `ShownOpenQuantities.Match` tek kalem farkında bütün isteği reddeder (5 birim testi + entegrasyon vekili). Gerçek müşteri/sistem işlemleri sonraki task'larda (yapım ⚠ 10) |
+| 5 | Ayırma koşullu güncelleme | ✓ | `StockCounters.WriteVariantAsync` `Reserve`: koşul `StockQuantity == null \|\| StockQuantity - ReservedQuantity >= adet` ve artış aynı `ExecuteUpdate`'te; kupon `UsedCount + ReservedCount < TotalUsageLimit` (`int`, boş değil); `LastUnit_TwoConcurrentReservations_OnlyOneGetsIt_KK5` ikinci işlem birincinin kilidini bekler ve kesinleşince 0 satır alır; yetmeyen ayırma ve kuponun son hakkı tek işlemde geri alınır |
+| 6 | Panel yazımı ayrılmış adedin altına inmez | ✓ | `SaveStockQuantityAsync` koşulu gösterilen değer + `newValue >= ReservedQuantity` tek deyimde; 0 satırda neden aynı işlemde okunur; `PanelStockWrite_…_KK6` iki ayrı ret ve ayrılmış adede eşit değer yazılır |
+| 7 | Kilit sırası: siparişler, varyantlar, kupon | ✓ | `LockSequence.Check` son alınan kilide göre: tür azalırsa ya da aynı türde anahtar küçülürse, sepet başta değilse, `CategoryTree`/`AdminSet` başka kilitle birleşirse istisna, SQL'den önce; değişmez artan sıra olduğu için sona bakmak yeter; `CompareKeys` küçük harfli metin sırası = PostgreSQL `uuid` sırası (`PostgresUuidOrder_…`, 66 anahtar); beş ters yol `ReversedLockOrder_…_KK7`'de yakalanır, sayaçlar değişmez |
+| 8 | Onay: önce sepet danışma kilidi, ayırmadan önce önceki siparişin satır kilidi | ✓ | Sepet kilidi yalnız işlemin ilk kilidi olabilir (`Check_CartAfterAnyOtherLockOrASecondCart_Throws`); onay sırası sepet → önceki sipariş → önce serbest bırakma sonra ayırma (`CounterMove` sırası) izinli ve sayaçlar doğru (`ConfirmationOrder_…_KK8`); `SameCart_TheSecondConfirmationWaitsForTheFirst_KK8`. Onay işleminin kendisi T348'de |
+| 9 | Dış çağrı veritabanı kilidinin içinde beklenmez | ✓ | Kilitler işlem kapsamlı (`pg_advisory_xact_lock`, `FOR UPDATE`) ve işlem yalnız `TransactionRunner`'da açılır (`src/`'de tek `BeginTransactionAsync`); `TransactionBodySourceScan` bütün `src/`'de `RunAsync` gövdesinde `HttpClient`/`I…Gateway` arar, yöntem grubu ya da temsilci değişkeni bulgudur (D-82); ihlal örneği satır 5, 10, 15, 25, 27 kırmızı |
+
+**Sürüm bekçisinin atlanabildiği yollar (talimatın ayrıca istediği sınama):** ters sıralı kilit, kilit altında dış çağrı, kayıp güncelleme ve çifte ayırma için bugünkü kodda açık yol bulunmadı. Bekçilerin bakmadığı üç yol K1'dir: (a) kilitli bir sipariş varken başka siparişin sürümü artırılarak kilitsiz yazılması geçer (`OrderVersionGuard.cs:89` sürüm denetimi `:94` kilit denetiminden önce); (b) kökü yüklenmemiş alt kayıt tek kilitli siparişin sayılır; (c) ürünü izlenmeyen kayıtta varyant yazımına ve sipariş tarafında toplu yazıma bakılmaz. Hepsi bugün `src/`'de örneksiz; ilk gerçek yazımı kuran task'a (T208, T348) D-95 olarak iletildi.
+
+**`09` değişikliği (`§10.2` madde 5, 6; `§10.7` madde 5; `§25`):** gerekçeli ve belgelerle çelişmiyor — `05 §7.3.5` sırayı bozan yolda veritabanının ölü kilidi bulup işlemi geri almasını anlatır; çalışma anı denetimi aynı sonucu (geri alma) kilitlenmeden önce verir ve KK7'nin "testte yakalanır" ölçüsünü karşılar. Madde 6'nın Test listesi kodla ve testlerle eşleşiyor.
+
+**Task satırları (`12 §7.5`):** KP-76 satırları `VAL-A371`, `VAL-A372`, `VAL-C076`, `VAL-C077`, `VAL-C078` uç ve tarayıcı düzeyindedir (form, panel, müşteri ve sistem işlemleri T208, T364, T542 ve sipariş task'larında); bu task'ın kalıbı ve testleri onları kapatmaz — `Durum` `BEKLEMEDE` kaldı. `12_matris_denetle.py --kapsam 1-77`: Hata 0.
+
+**K-notları:** (K1) yukarıdaki üç yol → D-95. (K2) Yapım raporunun Test Sonuçları sayıları `origin/main` (T225) birleştirmesinden önceki koşudandır (Unit 859, Integration 1056); birleştirme sonrası sayılar aşağıdaki validator satırıdır — bu PR'da kapandı.
+
+Testler (validator, yerel, head `c67a1e2`): build `-warnaserror` 0/0 · `dotnet format --verify-no-changes` 0 · Unit 897/897 (Consistency dahil; CI: Unit 760 + Lint tutarlılık 137) · betik testleri 4/4 · Integration 1072/1072 (Concurrency 26, Database 35, Model 482 + 410 + 1, FileSecrets+Logging+Web 118; PostgreSQL 18 `shopfolio-t228-val-pg`, silindi) · `dotnet restore --locked-mode` 0, `git status` temiz · dal CI 41969947908 `success` (dokuz iş; Integration 1072) · ana dal son 3 run 41969409700, 41969409791, 41960563145 `success`.
+
+**Yapım raporu karşılaştırması:** kriter ve öz denetim tabloları her kriter ve KK için kanıtlı; verdict uyumlu. Uyuşmazlık: (1) Test Sonuçları sayıları birleştirme öncesi (K2); (2) ⚠ 8 bekçinin kilitsiz kayda bakmadığını yazar, ama kilitli sipariş varken sürümü artırılmış başka siparişin kilitsiz yazımının da geçtiğini (K1 (a)) ve kökü bilinmeyen alt kaydın kilitli siparişe sayıldığını (K1 (b)) yazmaz.
 
 ## Altyapı Değişiklikleri
 
@@ -124,6 +150,7 @@ Başka dış varsayım yok.
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
 | 1 | İndirme sayacı taramada yok; ayarın satır kilidinin yolu taramaya yazıcısıyla girecek | D-94 | Yazıcılar henüz yok (T340; `CompanySettings` yazıcısı); var olmayan dosya izinli yol olamaz |
+| 2 | Sürüm bekçilerinin bakmadığı üç yol (validator K1) | D-95 | Sipariş tarafına ve ürün formuna gerçek yazım henüz yok (T208, T348) |
 
 ## Notlar
 

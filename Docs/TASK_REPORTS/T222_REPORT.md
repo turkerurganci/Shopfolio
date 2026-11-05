@@ -120,7 +120,7 @@ Testler (validator, yerel, head `fcd3009`): build `-warnaserror` 0/0 · `dotnet 
 - **PR:** #392
 - **Commit:** son commit PR başlığında (`T222: Anahtarlar ve tek kullanımlık bağlantılar`) ve dal başında
 - **CI:** dal CI 41977809448 success (head `fcd3009`)
-- **Post-merge run'lar:** *(merge'ü yardımcı yapar; run ID'leri sonraki task dalında ya da chore PR'ında eklenir)*
+- **Post-merge run'lar:** squash `11fcfb3` (#392) — CI 41981392945 success, Publish 41981392743 success (T206 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

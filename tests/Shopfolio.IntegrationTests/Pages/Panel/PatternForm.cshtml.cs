@@ -29,22 +29,24 @@ public sealed class PatternFormModel : PageModel
 
     public IReadOnlyList<string> Records => _store.Snapshot();
 
-    public IActionResult OnPostAdd()
+    // The handlers are named On<Method><Name>Async (09 5.3 item 1).
+    public Task<IActionResult> OnPostAddAsync()
     {
         if (!ModelState.IsValid)
         {
-            return FormResults.Redisplay(this);
+            return Task.FromResult(FormResults.Redisplay(this));
         }
 
         _store.Add(Input.Name);
-        return FormResults.SeeOther("/panel/ornek-form");
+        return Task.FromResult(FormResults.SeeOther("/panel/ornek-form"));
     }
 
 #pragma warning disable CA1822 // A page handler is an instance method the framework finds by its name; a static method is not a handler.
-    public IActionResult OnPostRefuse() => FormResults.SeeOther("/panel/ornek-form?notice=refused");
+    public Task<IActionResult> OnPostRefuseAsync() => Task.FromResult(FormResults.SeeOther("/panel/ornek-form?notice=refused"));
 #pragma warning restore CA1822
 
-    public IActionResult OnPostExport() => new CsvFileResult("ornek-liste.csv", Encoding.UTF8.GetBytes(string.Join('\n', _store.Snapshot())));
+    public Task<IActionResult> OnPostExportAsync() =>
+        Task.FromResult<IActionResult>(new CsvFileResult("ornek-liste.csv", Encoding.UTF8.GetBytes(string.Join('\n', _store.Snapshot()))));
 }
 
 /// <summary>The input model of the <c>Add</c> handler (09 5.3 item 2: the handler's name and the type of its input).</summary>

@@ -136,7 +136,7 @@ Gate: `dotnet format Shopfolio.slnx --verify-no-changes` çıkış 0; `dotnet bu
 - **Commit:** PR'ın başlık SHA'sı dönüşte
 - **PR:** #399
 - **CI:** yapım işçisi izlemez
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `5cc7896` (#399) — CI 42097338902 success, Publish 42097339118 success (T206 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

@@ -121,6 +121,7 @@ Testler (validator, yerel, head `bed034e`): build `-warnaserror` 0/0 · `dotnet 
 
 - **Branch:** `task/T201-imha-duzenleyicisi`
 - **PR:** 395
+- **Post-merge run'lar:** squash `cafdf86` (#395) — CI 42031439198 success, Publish 42031439167 success (T206 dalında dolduruldu, skill adım 15)
 - **CI:** doğrulama başlatılırken izlenir
 
 ## Dış Varsayımlar

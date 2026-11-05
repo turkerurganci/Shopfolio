@@ -44,6 +44,9 @@ internal static class JobClaim
     public static async Task<Job?> LockAsync(AppDbContext db, Guid id, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(db);
+
+        // The context of the scope may still track the row from the taking step; the row is read again so that its present state is seen.
+        db.ChangeTracker.Clear();
         List<Job> rows = await db.Jobs
             .FromSql($"SELECT * FROM jobs WHERE id = {id} FOR UPDATE")
             .AsTracking()

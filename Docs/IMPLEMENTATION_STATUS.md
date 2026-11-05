@@ -120,7 +120,7 @@
 | T218 | Dokuz modülün iskeleti ve Contracts | ✓ | ✓ PASS (tur 3) | `d82b943` | #380 |
 | T219 | Arama motoru verileri kalıbı | ⬚ | — | — | — |
 | T220 | İş kuyruğu çalıştırıcısı | ✓ | ✓ PASS (tur 1) | — | #393 |
-| T221 | Zamanlayıcı | ⏳ | ✗ FAIL (tur 1) | — | #394 |
+| T221 | Zamanlayıcı | ⏳ | ✗ FAIL (tur 2) | — | #394 |
 | T222 | Anahtarlar ve tek kullanımlık bağlantılar | ✓ | ✓ PASS (tur 1) | — | #392 |
 | T223 | Dosya deposu | ⬚ | — | — | — |
 | T224 | Çerez politikası | ⬚ | — | — | — |

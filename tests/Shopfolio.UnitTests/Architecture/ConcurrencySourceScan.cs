@@ -6,7 +6,8 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <summary>
 /// Source scan of the concurrency code's single places (T228 KK9 and criterion 5; 09 10.2 items 4-6, 9.1 item 5, 10.9 item 2): the advisory lock
 /// and the row lock text (<c>pg_advisory</c>, <c>FOR UPDATE</c>, <c>FOR NO KEY UPDATE</c>) stands only in <c>AdvisoryLocks.cs</c> and
-/// <c>OrderLocks.cs</c> (the settings writer's lock of 09 10.3 joins them with that writer's file - no path is allowed before its file exists); the shared row lock text (<c>FOR SHARE</c>, <c>FOR KEY SHARE</c>) only in
+/// <c>OrderLocks.cs</c> (the settings writer's lock of 09 10.3 joins them with that writer's file - no path is allowed before its file exists); the one more place is the job queue's
+/// <c>JobClaim.cs</c>, and only for the plain <c>FOR UPDATE</c> text (the row lock of taking a row, T220; no advisory text, no <c>NO KEY</c> form there); the shared row lock text (<c>FOR SHARE</c>, <c>FOR KEY SHARE</c>) only in
 /// <c>OrderLocks.cs</c>; and a counter - the stock or capacity field, the reserved quantity, the coupon's used and reserved rights - is written
 /// by a bulk update (<c>SetProperty</c>) or a raw <c>UPDATE ... SET</c> only in <c>StockCounters.cs</c>. The places are full paths, not file
 /// names: a file of the same name elsewhere is scanned. The scan reads the whole text, so a statement split over lines is found; full-line
@@ -23,7 +24,9 @@ internal static partial class ConcurrencySourceScan
 
     public const string AdvisoryLocksFile = "src/Shopfolio.Web/Infrastructure/AdvisoryLocks.cs";
 
-    public const string OrderLocksFile = "src/Shopfolio.Web/Modules/Ordering/OrderLocks.cs";
+    public const string JobClaimFile = "src/Shopfolio.Web/Infrastructure/Jobs/JobClaim.cs";
+
+    public const string OrderLocksFile ="src/Shopfolio.Web/Modules/Ordering/OrderLocks.cs";
 
     public const string StockCountersFile = "src/Shopfolio.Web/Modules/Catalog/StockCounters.cs";
 
@@ -43,7 +46,13 @@ internal static partial class ConcurrencySourceScan
         List<(string Rule, int Line)> findings = [];
         if (path is not (AdvisoryLocksFile or OrderLocksFile))
         {
-            Add(findings, RowLockText, RowLock(), clean);
+            Add(findings, RowLockText, AdvisoryText(), clean);
+            Add(findings, RowLockText, WeakRowLockText(), clean);
+            if (path != JobClaimFile)
+            {
+                // The job queue's taking file is the one place with the plain row lock text, and only that text (T220; 09 13.1 item 3).
+                Add(findings, RowLockText, PlainRowLockText(), clean);
+            }
         }
 
         if (path != OrderLocksFile)
@@ -123,8 +132,14 @@ internal static partial class ConcurrencySourceScan
         return builder.ToString(0, builder.Length - 1);
     }
 
-    [GeneratedRegex(@"\bpg_advisory\w*|\bFOR\s+(?:NO\s+KEY\s+)?UPDATE\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
-    private static partial Regex RowLock();
+    [GeneratedRegex(@"\bpg_advisory\w*", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex AdvisoryText();
+
+    [GeneratedRegex(@"\bFOR\s+NO\s+KEY\s+UPDATE\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex WeakRowLockText();
+
+    [GeneratedRegex(@"\bFOR\s+UPDATE\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex PlainRowLockText();
 
     [GeneratedRegex(@"\bFOR\s+(?:KEY\s+)?SHARE\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ShareLock();

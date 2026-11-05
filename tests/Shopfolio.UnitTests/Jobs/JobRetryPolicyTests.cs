@@ -71,14 +71,17 @@ public sealed class JobRetryPolicyTests
     {
         foreach (JobType jobType in Enum.GetValues<JobType>())
         {
-            Assert.NotNull(JobRetryPolicy.AfterFailure(jobType, 0, Now));
+            JobFailureDecision decision = JobRetryPolicy.AfterFailure(jobType, 0, Now);
+
+            Assert.IsType<JobFailureDecision.RetryAt>(decision);
         }
     }
 
     [Fact]
-    public void RescheduleAfter_NeedsAPositiveDelay_AndIsNotAFailure()
+    public void RescheduleAfter_RefusesANegativeDelay_AllowsZero_AndIsNotAFailure()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => JobOutcome.RescheduleAfter(TimeSpan.Zero));
+        Assert.Throws<ArgumentOutOfRangeException>(() => JobOutcome.RescheduleAfter(TimeSpan.FromTicks(-1)));
+        Assert.Equal(TimeSpan.Zero, Assert.IsType<JobOutcome.RescheduledOutcome>(JobOutcome.RescheduleAfter(TimeSpan.Zero)).Delay);
         JobOutcome.RescheduledOutcome later = Assert.IsType<JobOutcome.RescheduledOutcome>(JobOutcome.RescheduleAfter(JobTimings.FinalPaymentQueryInterval));
         Assert.Equal(JobTimings.FinalPaymentQueryInterval, later.Delay);
         Assert.IsType<JobOutcome.DoneOutcome>(JobOutcome.Completed);

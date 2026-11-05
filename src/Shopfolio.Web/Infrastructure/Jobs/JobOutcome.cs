@@ -17,9 +17,9 @@ internal abstract record JobOutcome
     /// <summary>The row is not done and no error happened: it stays pending and is taken again after <paramref name="delay"/>; the attempt count is not raised.</summary>
     public static JobOutcome RescheduleAfter(TimeSpan delay)
     {
-        if (delay <= TimeSpan.Zero)
+        if (delay < TimeSpan.Zero)
         {
-            throw new ArgumentOutOfRangeException(nameof(delay), delay, "A rescheduled row waits for a positive time.");
+            throw new ArgumentOutOfRangeException(nameof(delay), delay, "A rescheduled row does not wait for a negative time (zero is allowed: 09 13.3 item 2).");
         }
 
         return new RescheduledOutcome(delay);

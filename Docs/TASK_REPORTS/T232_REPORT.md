@@ -81,7 +81,7 @@
 
 - **Branch:** `task/T232-veri-koruma-halkasi`
 - **Commit:** *(PR açıklamasında head SHA)*
-- **PR:** *(aşağıda)*
+- **PR:** #388
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(merge sonrası doğrulayıcı doldurur)*
 

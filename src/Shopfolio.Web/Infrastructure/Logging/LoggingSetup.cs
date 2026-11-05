@@ -1,5 +1,6 @@
 using Serilog;
 using Serilog.Core;
+using Serilog.Events;
 
 namespace Shopfolio.Infrastructure.Logging;
 
@@ -19,6 +20,18 @@ internal static class LoggingSetup
 {
     /// <summary>The own namespace of the application: the level setting reaches this namespace only.</summary>
     public const string ApplicationNamespace = "Shopfolio";
+
+    /// <summary>
+    /// The data access layer's connection-failure category. Its error line puts the server address and the database name into the message, and the
+    /// formatter cannot take them out of the text (09 18.1 item 4); the failure itself reaches the caller as an exception and is written masked.
+    /// </summary>
+    public const string DataAccessConnectionCategory = "Microsoft.EntityFrameworkCore.Database.Connection";
+
+    /// <summary>
+    /// The data access layer's query-failure category. Its error line puts the whole text of the exception (server address and database name
+    /// included) into the message (09 18.1 item 4).
+    /// </summary>
+    public const string DataAccessQueryCategory = "Microsoft.EntityFrameworkCore.Query";
 
     public const string FileExtension = "jsonl";
 
@@ -77,6 +90,8 @@ internal static class LoggingSetup
         return configuration
             .MinimumLevel.Warning()
             .MinimumLevel.Override(ApplicationNamespace, options.Level)
+            .MinimumLevel.Override(DataAccessConnectionCategory, LogEventLevel.Fatal)
+            .MinimumLevel.Override(DataAccessQueryCategory, LogEventLevel.Fatal)
             .Enrich.With(requestEnricher)
             .WriteTo.File(
                 new ApplicationLogFormatter(),

@@ -117,6 +117,7 @@ public sealed class AccountSignOutModel(AccessWriteLog log) : AccessSamplePage(l
 
 /// <summary>A panel page for a record that does not exist: every request gets the one 404 (07 2.3.3), and a POST writes nothing.</summary>
 [IgnoreAntiforgeryToken]
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822", Justification = "Razor Pages ignores static handler methods.")]
 public sealed class PanelRecordModel : PageModel
 {
     public IActionResult OnGet(Guid id) => AccessDenial.NotFound();

@@ -330,7 +330,7 @@ public sealed class SessionAccessTests
     [InlineData("%2F%2Fevil.example")]
     [InlineData("javascript:alert(1)")]
     [InlineData("evil")]
-    [InlineData("/%09/evil.example")]
+    [InlineData("/\t/evil.example")]
     [InlineData("")]
     public async Task TheSignInPage_IgnoresAReturnAddressThatIsNotASitePath_AndGoesToTheAreasHomePage(string returnUrl)
     {
@@ -621,7 +621,7 @@ public sealed class SessionAccessTests
         }
 
         Assert.Empty(unguarded);
-        Assert.NotEmpty(endpoints.Where(e => e.Metadata.GetMetadata<IAuthorizeData>() is not null));
+        Assert.Contains(endpoints, e => e.Metadata.GetMetadata<IAuthorizeData>() is not null);
         Assert.Equal(
             ["/hesap/silindi", "/panel/giris", "/panel/sifre-sifirlama", "/panel/sifre-sifirlama/{}"],
             open.Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray());

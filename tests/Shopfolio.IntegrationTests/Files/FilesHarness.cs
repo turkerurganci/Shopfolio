@@ -90,7 +90,14 @@ internal sealed class FilesHarness : IAsyncDisposable
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
     }
 
+    /// <summary>The upload as an entry point makes it: the module joins the transaction the runner opens.</summary>
     public Task<ImageUploadResult> UploadAsync(byte[] content) =>
+        InScopeAsync(services => services.GetRequiredService<ITransactionRunner>().RunAsync(
+            cancel => services.GetRequiredService<ImageUploads>().UploadAsync(content, cancel),
+            TestContext.Current.CancellationToken));
+
+    /// <summary>The upload with no transaction open: the job row refuses to be written alone.</summary>
+    public Task<ImageUploadResult> UploadWithoutTransactionAsync(byte[] content) =>
         InScopeAsync(services => services.GetRequiredService<ImageUploads>().UploadAsync(content, TestContext.Current.CancellationToken));
 
     public Task<JobOutcome> RunDerivativeJobAsync(Guid imageId) =>

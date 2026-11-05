@@ -32,13 +32,24 @@ internal sealed class ImageDisposalPart : IDisposalPart
     {
         ArgumentNullException.ThrowIfNull(db);
         IEntityType image = db.Model.FindEntityType(typeof(Image)) ?? throw new InvalidOperationException("The image entity is not in the model.");
-        string table = Quote(image.GetTableName()!);
+        StoreObjectIdentifier imageTable = StoreObjectIdentifier.Create(image, StoreObjectType.Table)
+            ?? throw new InvalidOperationException("The image entity is not mapped to a table.");
+        string table = Quote(imageTable.Name);
+        string id = Quote(ColumnOf(image, nameof(Image.Id), imageTable));
+        string createdAt = Quote(ColumnOf(image, nameof(Image.CreatedAt), imageTable));
         string notLinked = string.Join(
             " AND ",
             image.GetReferencingForeignKeys().Select(fk =>
-                $"NOT EXISTS (SELECT 1 FROM {Quote(fk.DeclaringEntityType.GetTableName()!)} l WHERE l.{Quote(fk.Properties[0].GetColumnName())} = i.id)"));
-        return $"DELETE FROM {table} WHERE id IN (SELECT i.id FROM {table} i WHERE i.created_at < {{0}} AND {notLinked} ORDER BY i.created_at, i.id LIMIT {{1}})";
+            {
+                StoreObjectIdentifier linkTable = StoreObjectIdentifier.Create(fk.DeclaringEntityType, StoreObjectType.Table)
+                    ?? throw new InvalidOperationException("A table that links to the image table has no store object.");
+                return $"NOT EXISTS (SELECT 1 FROM {Quote(linkTable.Name)} l WHERE l.{Quote(fk.Properties[0].GetColumnName(linkTable)!)} = i.{id})";
+            }));
+        return $"DELETE FROM {table} WHERE {id} IN (SELECT i.{id} FROM {table} i WHERE i.{createdAt} < {{0}} AND {notLinked} ORDER BY i.{createdAt}, i.{id} LIMIT {{1}})";
     }
+
+    private static string ColumnOf(IEntityType entity, string property, StoreObjectIdentifier table) =>
+        entity.FindProperty(property)?.GetColumnName(table) ?? throw new InvalidOperationException($"The image entity has no column for {property}.");
 
     private static string Quote(string name) => "\"" + name.Replace("\"", "\"\"", StringComparison.Ordinal) + "\"";
 }

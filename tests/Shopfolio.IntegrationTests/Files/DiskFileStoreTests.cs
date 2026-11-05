@@ -1,3 +1,4 @@
+using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Files;
 using Shopfolio.UnitTests.Fakes;
 
@@ -74,6 +75,8 @@ public sealed class DiskFileStoreTests : IDisposable
     [InlineData("ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789")]
     [InlineData("aaaa")]
     [InlineData(".tmp-abc")]
+    [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n")]
+    [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-480\n")]
     public async Task AKeyThatDoesNotFitTheImageSection_IsRefused_ByEveryOperation_BeforeAPathIsMade(string key)
     {
         await Assert.ThrowsAsync<ArgumentException>(() => WriteAsync(FileArea.Image, key, [1]));
@@ -89,6 +92,7 @@ public sealed class DiskFileStoreTests : IDisposable
     {
         string digital = new('b', 32);
 
+        await Assert.ThrowsAsync<ArgumentException>(() => WriteAsync(FileArea.DigitalFile, digital + "\n", [1]));
         await Assert.ThrowsAsync<ArgumentException>(() => WriteAsync(FileArea.Image, digital, [1]));
         await Assert.ThrowsAsync<ArgumentException>(() => WriteAsync(FileArea.DigitalFile, Fingerprint, [1]));
         await WriteAsync(FileArea.DigitalFile, digital, [1]);
@@ -151,6 +155,51 @@ public sealed class DiskFileStoreTests : IDisposable
         }
 
         Assert.Empty(listed);
+    }
+
+    // ---- KK8: the digital product file goes out as an attachment; the ceiling P-26 is refused ----
+
+    [Fact]
+    public async Task ADigitalFileOfAnyContent_IsServedFromTheDisk_AsAnAttachmentOfAGeneralBinaryType()
+    {
+        string key = new('d', 32);
+        byte[] html = "<html><script>alert(1)</script></html>"u8.ToArray();
+        await WriteAsync(FileArea.DigitalFile, key, html);
+
+        await using DigitalFileDownload? download = await DigitalFileDelivery.OpenAsync(_store, key, "..\\..\\evil \"page\".html", Ct);
+
+        Assert.NotNull(download);
+        Assert.Equal("application/octet-stream", DigitalFileDelivery.ContentType);
+        Assert.Equal("nosniff", DigitalFileDelivery.NoSniff);
+        Assert.StartsWith("attachment; filename=\"evil page.html\"", download.ContentDisposition, StringComparison.Ordinal);
+        Assert.Equal(html.Length, download.Length);
+        using MemoryStream copy = new();
+        await download.Content.CopyToAsync(copy, Ct);
+        Assert.Equal(html, copy.ToArray());
+        Assert.Null(await DigitalFileDelivery.OpenAsync(_store, new string('e', 32), "x.zip", Ct));
+    }
+
+    [Fact]
+    public async Task ADigitalFileOverTheCeiling_IsRefusedByName_AndOneOfExactlyTheCeilingIsNot()
+    {
+        string atCeiling = new('1', 32);
+        string overCeiling = new('2', 32);
+        Directory.CreateDirectory(Path.Combine(_root, "digital"));
+        await using (FileStream file = new(Path.Combine(_root, "digital", atCeiling), FileMode.CreateNew))
+        {
+            file.SetLength(ProductConstants.DigitalFileMaxBytes);
+        }
+
+        await using (FileStream file = new(Path.Combine(_root, "digital", overCeiling), FileMode.CreateNew))
+        {
+            file.SetLength(ProductConstants.DigitalFileMaxBytes + 1);
+        }
+
+        long atSize = await _store.GetSizeAsync(FileArea.DigitalFile, atCeiling, Ct);
+        long overSize = await _store.GetSizeAsync(FileArea.DigitalFile, overCeiling, Ct);
+
+        Assert.False(DigitalFileDelivery.CheckSize(atSize).IsRejected);
+        Assert.Same(DigitalFileSizeResult.TooLarge, DigitalFileDelivery.CheckSize(overSize));
     }
 
     private Task WriteAsync(FileArea area, string key, byte[] content)

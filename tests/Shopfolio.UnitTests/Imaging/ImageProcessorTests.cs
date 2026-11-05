@@ -160,6 +160,25 @@ public sealed class ImageProcessorTests
     }
 
     [Fact]
+    public async Task TheUploadsAndTheDerivativeRenders_ShareOneGate_SoOnlyOneRunsAtATime()
+    {
+        using ImageProcessor processor = new();
+        byte[] big = ImageFixtures.Png(2400, 1800);
+        ImageProcessing source = await processor.ProcessUploadAsync(big, Ct);
+        List<Task> work = [];
+        for (int i = 0; i < 4; i++)
+        {
+            work.Add(Task.Run(() => processor.ProcessUploadAsync(big, Ct), Ct));
+            work.Add(Task.Run(() => processor.RenderDerivativeAsync(source.SourceCopy, 960, Ct), Ct));
+        }
+
+        await Task.WhenAll(work);
+
+        Assert.Equal(1, ImagingLimits.MaxConcurrent);
+        Assert.Equal(1, processor.PeakConcurrency);
+    }
+
+    [Fact]
     public void DerivativeWidths_AreOnlyThoseSmallerThanTheSource()
     {
         Assert.Equal(ImagingLimits.DerivativeWidths, Shopfolio.Modules.Catalog.ImageServing.DerivativeWidthsFor(ImagingLimits.SourceMaxEdge));

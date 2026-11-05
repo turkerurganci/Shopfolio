@@ -9,10 +9,10 @@ namespace Shopfolio.Infrastructure.Files;
 /// </summary>
 internal static partial class FileKeys
 {
-    [GeneratedRegex("^[0-9a-f]{64}(-[1-9][0-9]{0,4})?$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    [GeneratedRegex("^[0-9a-f]{64}(-[1-9][0-9]{0,4})?\\z", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex ImageKeyShape();
 
-    [GeneratedRegex("^[0-9a-f]{32}$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    [GeneratedRegex("^[0-9a-f]{32}\\z", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex DigitalFileKeyShape();
 
     public static bool IsValid(FileArea area, string? key)

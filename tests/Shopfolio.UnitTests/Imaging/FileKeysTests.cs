@@ -25,6 +25,7 @@ public sealed class FileKeysTests
     [InlineData("report.pdf")]
     [InlineData("0123456789ABCDEF0123456789ABCDEF")]
     [InlineData("0123456789abcdef0123456789abcde")]
+    [InlineData("0123456789abcdef0123456789abcdef\n")]
     public void AKeyOfAnotherShape_IsRefusedForTheDigitalSection(string key)
     {
         Assert.False(FileKeys.IsValid(FileArea.DigitalFile, key));
@@ -35,6 +36,8 @@ public sealed class FileKeysTests
     [InlineData("../")]
     [InlineData("-0")]
     [InlineData("-480x")]
+    [InlineData("\n")]
+    [InlineData("-480\n")]
     public void AKeyOfAnotherShape_IsRefusedForTheImageSection(string suffix)
     {
         Assert.False(FileKeys.IsValid(FileArea.Image, Fingerprint + suffix));

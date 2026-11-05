@@ -4,7 +4,7 @@ namespace Shopfolio.Infrastructure.Imaging;
 
 /// <summary>
 /// The one place that touches the image library (09 15.6 item 1; the library is SkiaSharp, the table's decision K-1575 - the first candidate's
-/// native libraries carry copyleft licenses, 09 3.3 item 4). The order is fixed and each step needs the one before it: the type from the first
+/// native libraries are LGPL, which 09 3.3 item 4 refuses). The order is fixed and each step needs the one before it: the type from the first
 /// bytes, the size from the header (before any decoding), the decode of the first frame into sRGB, the shrink, the orientation applied to the (shrunk) pixels, the
 /// source copy encoded without any metadata. The request's source copy and the queue's derivatives share one limit on concurrent operations.
 /// </summary>
@@ -12,9 +12,14 @@ internal sealed class ImageProcessor : IDisposable
 {
     private readonly SemaphoreSlim _gate = new(ImagingLimits.MaxConcurrent, ImagingLimits.MaxConcurrent);
     private int _decodeCount;
+    private int _active;
+    private int _peak;
 
     /// <summary>How many times the library decoded pixels; the header read does not count (the test of 05 6.6.2 reads it).</summary>
     public int DecodeCount => Volatile.Read(ref _decodeCount);
+
+    /// <summary>The most operations that ever ran at the same time inside the gate (the test of the concurrency limit reads it).</summary>
+    public int PeakConcurrency => Volatile.Read(ref _peak);
 
     public void Dispose() => _gate.Dispose();
 
@@ -24,10 +29,12 @@ internal sealed class ImageProcessor : IDisposable
         await _gate.WaitAsync(ct);
         try
         {
+            EnterWork();
             return ProcessUpload(content);
         }
         finally
         {
+            LeaveWork();
             _gate.Release();
         }
     }
@@ -38,13 +45,30 @@ internal sealed class ImageProcessor : IDisposable
         await _gate.WaitAsync(ct);
         try
         {
+            EnterWork();
             return RenderDerivative(sourceCopy, width);
         }
         finally
         {
+            LeaveWork();
             _gate.Release();
         }
     }
+
+    private void EnterWork()
+    {
+        int now = Interlocked.Increment(ref _active);
+        int seen;
+        while (now > (seen = Volatile.Read(ref _peak)))
+        {
+            if (Interlocked.CompareExchange(ref _peak, now, seen) == seen)
+            {
+                break;
+            }
+        }
+    }
+
+    private void LeaveWork() => Interlocked.Decrement(ref _active);
 
     private ImageProcessing ProcessUpload(byte[] content)
     {

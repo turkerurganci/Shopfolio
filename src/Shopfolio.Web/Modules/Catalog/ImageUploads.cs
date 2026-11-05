@@ -11,24 +11,22 @@ namespace Shopfolio.Modules.Catalog;
 
 /// <summary>
 /// An image upload (09 15.6 items 5, 7; 05 7.7.2): the size ceiling, the processing, the source copy written to the file store under the
-/// content's SHA-256 fingerprint, then - in one transaction - the unlinked <see cref="Image"/> row and the derivative job. The file comes
-/// before the row, so a failure in between leaves only a file the disposal sweep removes (05 7.7.1). The same content uploaded twice rewrites
-/// the same file and gets its own row.
+/// content's SHA-256 fingerprint, then - in the caller's transaction, which the method joins and never opens - the unlinked
+/// <see cref="Image"/> row and the derivative job. The file comes before the row, so a failure in between leaves only a file the disposal
+/// sweep removes (05 7.7.1). The same content uploaded twice rewrites the same file and gets its own row.
 /// </summary>
 internal sealed class ImageUploads
 {
     private readonly ImageProcessor _processor;
     private readonly IFileStore _files;
-    private readonly ITransactionRunner _runner;
     private readonly IJobQueue _jobs;
     private readonly AppDbContext _db;
     private readonly TimeProvider _time;
 
-    public ImageUploads(ImageProcessor processor, IFileStore files, ITransactionRunner runner, IJobQueue jobs, AppDbContext db, TimeProvider time)
+    public ImageUploads(ImageProcessor processor, IFileStore files, IJobQueue jobs, AppDbContext db, TimeProvider time)
     {
         _processor = processor;
         _files = files;
-        _runner = runner;
         _jobs = jobs;
         _db = db;
         _time = time;
@@ -65,14 +63,10 @@ internal sealed class ImageUploads
             ImageKind.Png => ImageFormat.Png,
             _ => ImageFormat.WebP,
         };
+        // The row and the job join the caller's transaction (09 9.1 item 3, 6 item 3): the entry point opens it and saves the tracked row at its end.
         Image image = Image.Create(key, format, processing.Width, processing.Height, _time.GetUtcNow());
-        return await _runner.RunAsync(
-            async cancel =>
-            {
-                _db.Images.Add(image);
-                await _jobs.EnqueueAsync(JobType.ImageDerivative, image.Id, notBefore: null, cancel);
-                return ImageUploadResult.Uploaded(image.Id);
-            },
-            ct);
+        _db.Images.Add(image);
+        await _jobs.EnqueueAsync(JobType.ImageDerivative, image.Id, notBefore: null, ct);
+        return ImageUploadResult.Uploaded(image.Id);
     }
 }

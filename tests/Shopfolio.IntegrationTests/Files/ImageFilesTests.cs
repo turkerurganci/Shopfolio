@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
 
@@ -109,6 +110,68 @@ public sealed class ImageFilesTests : IAsyncLifetime
         Assert.Equal(0L, await _disk.ReadAsync(db => db.Jobs.LongCountAsync(Ct)));
     }
 
+    [Fact]
+    public async Task AnUploadOfExactlyTheCeiling_IsAccepted_AndOneByteMore_IsRefusedBeforeAnythingIsRead()
+    {
+        byte[] image = ImageFixtures.Png(300, 200);
+        byte[] atCeiling = new byte[ProductConstants.ImageMaxBytes];
+        image.CopyTo(atCeiling, 0);
+        byte[] overCeiling = new byte[ProductConstants.ImageMaxBytes + 1];
+        image.CopyTo(overCeiling, 0);
+
+        ImageUploadResult over = await _disk.UploadAsync(overCeiling);
+        ImageUploadResult at = await _disk.UploadAsync(atCeiling);
+
+        Assert.Same(ImageUploadResult.TooLarge, over);
+        Assert.Equal("TooLarge", over.Reason);
+        Assert.NotNull(at.ImageId);
+        Assert.Equal(1L, await _disk.ReadAsync(db => db.Images.LongCountAsync(Ct)));
+        Assert.Single(await ListKeysAsync(_disk.Files, TimeSpan.Zero));
+    }
+
+    // ---- 09 9.1 item 3: the module joins the caller's transaction ----
+
+    [Fact]
+    public async Task TheUpload_JoinsTheCallersTransaction_SoTheCallersOwnWorkAndTheUploadCommitOrRollBackTogether()
+    {
+        Guid kept = Guid.Empty;
+        ImageUploadResult committed = await _disk.InScopeAsync(services => services.GetRequiredService<ITransactionRunner>().RunAsync(
+            async cancel =>
+            {
+                ImageUploadResult first = await services.GetRequiredService<ImageUploads>().UploadAsync(ImageFixtures.Png(120, 80), cancel);
+                ImageUploadResult second = await services.GetRequiredService<ImageUploads>().UploadAsync(ImageFixtures.Jpeg(120, 80), cancel);
+                kept = second.ImageId!.Value;
+                Assert.NotNull(services.GetRequiredService<AppDbContext>().Database.CurrentTransaction);
+                return first;
+            },
+            Ct));
+        Assert.NotNull(committed.ImageId);
+        Assert.Equal(2L, await _disk.ReadAsync(db => db.Images.LongCountAsync(Ct)));
+        Assert.Equal(2L, await _disk.ReadAsync(db => db.Jobs.LongCountAsync(Ct)));
+
+        // A refusal by the caller after the upload rolls the upload's row and job back with it; only the file is left (the sweep removes it).
+        ImageUploadResult refused = await _disk.InScopeAsync(services => services.GetRequiredService<ITransactionRunner>().RunAsync(
+            async cancel =>
+            {
+                await services.GetRequiredService<ImageUploads>().UploadAsync(ImageFixtures.Png(90, 60), cancel);
+                return ImageUploadResult.Undecodable;
+            },
+            Ct));
+        Assert.True(refused.IsRejected);
+        Assert.Equal(2L, await _disk.ReadAsync(db => db.Images.LongCountAsync(Ct)));
+        Assert.Equal(2L, await _disk.ReadAsync(db => db.Jobs.LongCountAsync(Ct)));
+        Assert.NotEqual(Guid.Empty, kept);
+    }
+
+    [Fact]
+    public async Task TheUpload_NeverOpensATransactionOfItsOwn_AndWithoutOneTheJobRowRefusesToBeWritten()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _disk.UploadWithoutTransactionAsync(ImageFixtures.Png(120, 80)));
+
+        Assert.Equal(0L, await _disk.ReadAsync(db => db.Images.LongCountAsync(Ct)));
+        Assert.Equal(0L, await _disk.ReadAsync(db => db.Jobs.LongCountAsync(Ct)));
+    }
+
     // ---- KK6: the derivative job ----
 
     [Fact]
@@ -171,7 +234,7 @@ public sealed class ImageFilesTests : IAsyncLifetime
     {
         DateTimeOffset old = _disk.Now.AddDays(-2);
         Image unlinkedOld = Image.Create(Key('1'), ImageFormat.Jpeg, 10, 10, old);
-        Image unlinkedYoung = Image.Create(Key('2'), ImageFormat.Jpeg, 10, 10, _disk.Now.AddHours(-1));
+        Image unlinkedYoung = Image.Create(Key('2'), ImageFormat.Jpeg, 10, 10, _disk.Now.AddHours(-23));
         Image gallery = Image.Create(Key('3'), ImageFormat.Jpeg, 10, 10, old);
         Image variantImage = Image.Create(Key('4'), ImageFormat.Jpeg, 10, 10, old);
         Image logo = Image.Create(Key('5'), ImageFormat.Jpeg, 10, 10, old);
@@ -273,7 +336,7 @@ public sealed class ImageFilesTests : IAsyncLifetime
             memory.Seed(FileArea.Image, derivativeOfNamed, [2], old);
             memory.Seed(FileArea.Image, orphan, [3], old);
             memory.Seed(FileArea.Image, derivativeOfOrphan, [4], old);
-            memory.Seed(FileArea.Image, youngOrphan, [5], fake.Now.AddHours(-1));
+            memory.Seed(FileArea.Image, youngOrphan, [5], fake.Now.AddHours(-23));
             await fake.SeedAsync(db => db.Images.Add(Image.Create(named, ImageFormat.Jpeg, 2000, 1000, old)));
 
             await fake.RunDisposalAsync<OrphanImageFilePart>();

@@ -30,7 +30,10 @@ internal sealed class Branding
 
     public bool IsPlatformSignatureEnabled { get; set; } = true;
 
-    public int Version { get; set; } = 1;
+    public int Version { get; private set; } = 1;
+
+    /// <summary>Raises the version by one; every save of the record calls it (06 2.6.1; 09 10.2 item 1).</summary>
+    public void BumpVersion() => Version++;
 
     public static Branding Create(DateTimeOffset now)
     {

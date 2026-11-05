@@ -12,7 +12,7 @@ namespace Shopfolio.Infrastructure.Jobs;
 /// bounce query are rows too. The row carries no personal data: it points at its record by id — a value, not a link (06 2.2.6), whose kind is
 /// read from the job type. Only the bounce query has no related record. Taking a row is the database's row lock; there is no lock column.
 /// </summary>
-internal sealed class Job
+internal sealed class Job : IOrderVersionExempt
 {
     public Guid Id { get; set; }
 

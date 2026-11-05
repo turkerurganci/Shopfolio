@@ -247,8 +247,10 @@ internal sealed class AppDbContext : DbContext, IDataProtectionKeyContext
                 EmptyTextGuard.Instance,
                 ProtectedRecordsGuard.Instance,
                 CatalogRecordsGuard.Instance,
+                ProductVersionGuard.Instance,
                 LoginRecordsGuard.Instance,
                 OrderingRecordsGuard.Instance,
+                OrderVersionGuard.Instance,
                 AfterSalesRecordsGuard.Instance,
                 PaymentRecordsGuard.Instance,
                 CorporateContentRecordsGuard.Instance);

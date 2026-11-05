@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-05 — T225 (Sistem kayıtları) bağımsız doğrulama tur 3: ✓ PASS (head `820fd66`, PR #389; kriter 1–7 ve KK1–KK7 ✓; tur 2 B1 kapandı — erişim kaydı sorguyu parça parça maskeler, çift sonrası çıplak belirteç dahil (gerçek `caddy:2.11.7-alpine` sondası, 24 istek); B2 kapandı — satır yalnız `05 §9.1.2` alanları ve zarf; `VAL-A991` PASS; CI 41962307990 yeşil; Unit 849/849, Integration 1046/1046; bulgu 0; K1 → D-93). Önceki giriş (T232 doğrulama tur 2) `STATUS_CHANGELOG.md`'ye taşındı.
+**Son güncelleme:** 2026-11-05 — T228 (Eşzamanlılık denetimi) bağımsız doğrulama tur 1: ✓ PASS (head `c67a1e2`, PR #391; kriter 1–9 ve KK1–KK9 ✓; tek işlem sınırı `ITransactionRunner`, kilit sırasını çalışma anında tutan `LockSequence`, sayaçların tek yazıcısı `StockCounters`, ürün ve sipariş sürüm bekçileri; KP-76 satırları uç düzeyinde, `BEKLEMEDE`; CI 41969947908 yeşil; Unit 897/897, Integration 1072/1072; bulgu 0; K1 → D-95, K2 raporda kapandı). Önceki giriş (T225 doğrulama tur 3) `STATUS_CHANGELOG.md`'ye taşındı.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -104,7 +104,7 @@
 | T202 | Dış servislerin bağlantı katmanı: ortak yüz, hata sınıfı, zaman aşımı, sahteler | ⬚ | — | — | — |
 | T203 | İmzalı makine ucu altyapısı: imza denetimi, gövde tavanı | ⬚ | — | — | — |
 | T204 | Dış servis çökmesi davranışı ve sahtelerle sınama | ⬚ | — | — | — |
-| T205 | Açılışta veritabanı fail-fast denetimi | ✓ | ✓ PASS (tur 1) | — | #385 |
+| T205 | Açılışta veritabanı fail-fast denetimi | ✓ | ✓ PASS (tur 1) | a36010b | #385 |
 | T206 | Adres yapısı, önekler ve sayfa–form işleyici kalıbı | ⬚ | — | — | — |
 | T207 | Kimlik şemaları ve erişim reddi | ⬚ | — | — | — |
 | T208 | Sürümün ve gösterilen değerin formda taşınması, koşullu güncelleme | ⬚ | — | — | — |
@@ -124,14 +124,14 @@
 | T222 | Anahtarlar ve tek kullanımlık bağlantılar | ⬚ | — | — | — |
 | T223 | Dosya deposu | ⬚ | — | — | — |
 | T224 | Çerez politikası | ⬚ | — | — | — |
-| T225 | Sistem kayıtları | ✓ | ✓ PASS (tur 3) | — | #389 |
+| T225 | Sistem kayıtları | ✓ | ✓ PASS (tur 3) | b8c180f | #389 |
 | T226 | Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi | ✓ | ✓ PASS (tur 1) | b8f20ad | #383 |
 | T227 | Zaman ve para | ✓ | ✓ PASS (tur 1) | 15daf95 | #382 |
-| T228 | Eşzamanlılık denetimi | ⬚ | — | — | — |
+| T228 | Eşzamanlılık denetimi | ✓ | ✓ PASS (tur 1) | — | #391 |
 | T229 | Uygulama belleğinde önbellek | ⬚ | — | — | — |
-| T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ✓ | ✓ PASS (tur 2) | — | #386 |
-| T231 | Maskelemenin üç katmanının testleri | ✓ | ✓ PASS (tur 1) | — | #387 |
-| T232 | Veri koruma halkası | ✓ | ✓ PASS (tur 2) | — | #388 |
+| T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ✓ | ✓ PASS (tur 2) | a2da89f | #386 |
+| T231 | Maskelemenin üç katmanının testleri | ✓ | ✓ PASS (tur 1) | dac48c8 | #387 |
+| T232 | Veri koruma halkası | ✓ | ✓ PASS (tur 2) | daace97 | #388 |
 | T233 | Veritabanı oturum süreleri | ✓ | ✓ PASS (tur 2) | 810fe27 | #384 |
 
 ---

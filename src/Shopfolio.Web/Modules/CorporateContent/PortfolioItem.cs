@@ -38,7 +38,10 @@ internal sealed class PortfolioItem
     /// <summary>The moment the address was fixed: the first publication (06 4.72).</summary>
     public DateTimeOffset? SlugFixedAt { get; set; }
 
-    public int Version { get; set; } = 1;
+    public int Version { get; private set; } = 1;
+
+    /// <summary>Raises the version by one; every save of the record calls it (06 2.6.1; 09 10.2 item 1).</summary>
+    public void BumpVersion() => Version++;
 
     public static PortfolioItem Create(string title, string slug, int sortOrder, DateTimeOffset now)
     {

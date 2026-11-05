@@ -1,5 +1,8 @@
+using Microsoft.EntityFrameworkCore.Diagnostics;
+
 using Serilog;
 using Serilog.Core;
+using Serilog.Events;
 
 namespace Shopfolio.Infrastructure.Logging;
 
@@ -19,6 +22,23 @@ internal static class LoggingSetup
 {
     /// <summary>The own namespace of the application: the level setting reaches this namespace only.</summary>
     public const string ApplicationNamespace = "Shopfolio";
+
+    /// <summary>The data access layer's connection category. It stays at warning like every data access category (05 9.1.6).</summary>
+    public const string DataAccessConnectionCategory = "Microsoft.EntityFrameworkCore.Database.Connection";
+
+    /// <summary>The data access layer's query category. It stays at warning: its query warnings (a collection <c>Include</c> without a split, a row limit without an order) are written (05 9.1.6).</summary>
+    public const string DataAccessQueryCategory = "Microsoft.EntityFrameworkCore.Query";
+
+    /// <summary>
+    /// The two data access error events that are not written (09 18.1 item 4): the connection failure and the query iteration failure. Their lines
+    /// put the server address, the database name and the whole text of the exception into the message, and the formatter cannot take them out of
+    /// the text; the failure itself reaches the caller as an exception and is written masked. Each pair is a category and the library's own event id.
+    /// </summary>
+    public static IReadOnlyList<(string Category, int EventId)> SuppressedDataAccessFailures { get; } =
+    [
+        (DataAccessConnectionCategory, RelationalEventId.ConnectionError.Id),
+        (DataAccessQueryCategory, CoreEventId.QueryIterationFailed.Id),
+    ];
 
     public const string FileExtension = "jsonl";
 
@@ -77,6 +97,7 @@ internal static class LoggingSetup
         return configuration
             .MinimumLevel.Warning()
             .MinimumLevel.Override(ApplicationNamespace, options.Level)
+            .Filter.ByExcluding(IsSuppressedDataAccessFailure)
             .Enrich.With(requestEnricher)
             .WriteTo.File(
                 new ApplicationLogFormatter(),
@@ -84,6 +105,33 @@ internal static class LoggingSetup
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: null,
                 fileSizeLimitBytes: null);
+    }
+
+    private static bool IsSuppressedDataAccessFailure(LogEvent logEvent)
+    {
+        if (!logEvent.Properties.TryGetValue(Constants.SourceContextPropertyName, out LogEventPropertyValue? source)
+            || source is not ScalarValue { Value: string category }
+            || !logEvent.Properties.TryGetValue("EventId", out LogEventPropertyValue? eventId)
+            || eventId is not StructureValue structure)
+        {
+            return false;
+        }
+
+        foreach (LogEventProperty property in structure.Properties)
+        {
+            if (property.Name == "Id" && property.Value is ScalarValue { Value: int id })
+            {
+                foreach ((string suppressedCategory, int suppressedId) in SuppressedDataAccessFailures)
+                {
+                    if (category == suppressedCategory && id == suppressedId)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

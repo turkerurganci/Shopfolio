@@ -49,7 +49,7 @@
 | `09 §25` ilgili satır (repoda/imajda/kayıtta sır ve kişisel veri yok) | ✓ | KK3 testi; Caddyfile:48-54 (vekil kaydı maskeli); `30-logging.conf`; `package-build.sh` adım 6 |
 | Güvenlik taraması | ✓ | istemci başlığı değiştirilir (`header_up` öneksiz); vekil kaydı yol anahtarını ve sorgu değerlerini yazmaz (Caddyfile:48-54), başlıklardan yalnız `User-Agent` (satır 27); veritabanı kaydı parametresiz ve ayrıntısız; yeni sır, uç nokta, `src/` kodu yok |
 | `05 §9.1.2` alan listesi belgeyle birebir (erişim kaydı tarayıcı tanıtımı) | ✓ | Caddyfile:27 `log_append user_agent {http.request.header.User-Agent}`; `Caddyfile_WritesTheBrowserIdentificationAsItsOwnFieldAndNoOtherHeader` yalnız `request_id` ve `user_agent` eklendiğini sınar; runbook L.2 (satır 473), L.5 madde 3 |
-| `DEFERRED_BACKLOG` `grep -n "T225"`: hedefi bu task olan kayıtlar | ✓ | D-33 (satır 88): maske, `User-Agent`, istek kimliği, günlük düzen kapandı; KALAN yalnız dışa aktarma `response_header_timeout` → T384, hedef sütunu T384; D-89 K3 (satır 144) ✅ çözüldü, hedef sütunundan T225 çıkarıldı; D-90 (satır 145) K-notları, dokunulmadı |
+| `DEFERRED_BACKLOG` `grep -n "T225"`: hedefi bu task olan kayıtlar | ✓ | D-33 (satır 88): maske, `User-Agent`, istek kimliği, günlük düzen kapandı; KALAN yalnız dışa aktarma `response_header_timeout` → T384, hedef sütunu T384; D-89 K3 (satır 144) ✅ çözüldü, hedef sütunundan T225 çıkarıldı; D-91 (satır 145) K-notları, dokunulmadı |
 | Öteki yerler: aynı olguyu anan runbook, 09, STATUS, MEMORY | ✓ | `DEPLOY_RUNBOOK` satır 31 (K-915 özeti), L.2 (473-474), L.5 madde 3; `09 §18.2` madde 2b (satır 1979) ve madde 7 (1992); `IMPLEMENTATION_STATUS` T225 satırı; `MEMORY.md` satır 22 |
 | Sık FAIL: tarama/süzgeç istisnası geniş değil | ✓ | boş bölüm ve ön ek yalnız kapalı liste için; `/siparis/erisim-x/…`, `/panel/…` (listede olmayan), `/gorsel/…` örnekleri değişmeden geçer (`Caddyfile_UriFilters_…` örnek listesi) |
 | Sık FAIL: test beklenen değeri kaynaktan türetiyor | ✓ | anahtarlı yol listesi `PathMasker.KeyedPrefixes`'ten, beklenen çıktı `PathMasker.Mask`'ten; süzgeçler Caddyfile'dan okunur, elle yazılmış ikinci liste yok |
@@ -74,7 +74,7 @@
 | Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-05, head `bf2ecc8`; tur 1 FAIL, head `a8390bc`) |
 | Bulgu sayısı | Tur 2: 2 (1 KRİTİK S1, 1 DÜŞÜK S1) · tur 1: 2 (1 KRİTİK S1, 1 ORTA S1) |
 | Düzeltme gerekli mi | Evet — erişim kaydında bir çiftten sonra gelen çıplak sorgu belirteçleri maskelenmiyor; satırda `05 §9.1.2` dışı Caddy alanları (aşağıdaki "Doğrulama Sonucu — tur 2"). İki iterasyon doldu: eskalasyon |
-| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (D-91) · tur 1: 3 (D-90) |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (D-92) · tur 1: 3 (D-91) |
 
 ## Düzeltme 1 (doğrulama tur 1 FAIL sonrası, 2026-11-05)
 
@@ -195,20 +195,20 @@ Task'ın KP birimi `10 KP-74`; grep'in getirdiği dokuz satır (`VAL-A368`–`A3
 ### Bloke-etmeyen Notlar (K-notları)
 | # | Not | Karar |
 |---|---|---|
-| K1 | Döndürülmüş erişim kaydının adındaki gün (`dateext`) döndürme günüdür, içerik bir önceki günündür; imha bir gün geç siler | DEFERRED_BACKLOG'a forward (D-90 K1) |
-| K2 | Sunucu kayıtları 183 gün / journald `6month` (≈182,6 gün) — 184 günlük takvim penceresinde süre dolmadan bir iki gün erken silme | DEFERRED_BACKLOG'a forward (D-90 K2) |
-| K3 | `log_min_error_statement` varsayılanı `STATEMENT:` metnini yazar; değeri metne gömülü cümlede değer sızabilir (yapım raporu kararsız bırakmıştı) | DEFERRED_BACKLOG'a forward (D-90 K3) |
+| K1 | Döndürülmüş erişim kaydının adındaki gün (`dateext`) döndürme günüdür, içerik bir önceki günündür; imha bir gün geç siler | DEFERRED_BACKLOG'a forward (D-91 K1) |
+| K2 | Sunucu kayıtları 183 gün / journald `6month` (≈182,6 gün) — 184 günlük takvim penceresinde süre dolmadan bir iki gün erken silme | DEFERRED_BACKLOG'a forward (D-91 K2) |
+| K3 | `log_min_error_statement` varsayılanı `STATEMENT:` metnini yazar; değeri metne gömülü cümlede değer sızabilir (yapım raporu kararsız bırakmıştı) | DEFERRED_BACKLOG'a forward (D-91 K3) |
 
 ### Yapım Raporu Karşılaştırması
 - Uyum: 3 uyuşmazlık
 - Kriter 3 ve `09 §25` satırı yapımda ✓; kanıtı yalnız uygulama kaydı, başlık silme ve veritabanıdır — erişim kaydının yol/sorgu maskesi hiç anılmıyor, oysa runbook L.5 madde 3 onu bekliyor (Bulgu 1). Öz denetim tablosu var ve maddeleri kanıtlı, ama bu kanıt kriteri karşılamıyor.
 - D-33 ve D-89 K3 (T225 hedefli) "Known Limitations"ta da yok (Bulgu 1, 2).
-- "Notlar"daki `log_min_error_statement` "gerekirse D- kaydı" — üçüncü seçenek; D-90 K3'e forward edildi.
+- "Notlar"daki `log_min_error_statement` "gerekirse D- kaydı" — üçüncü seçenek; D-91 K3'e forward edildi.
 - Dış varsayım 1 "davranış gerçek sunucuda T603": validator davranışı yerel Caddy 2.11.7'de sınadı — istek kimliği doğru.
 - Unit sayısı 680 (yapım) ↔ 761 (validator, Consistency dahil) — kapsam farkı, uyuşmazlık değil.
 
 ### Merge ve Post-merge
-- Merge yok (FAIL). Rapor, status (`✗ FAIL (tur 1)`), hafıza, `VAL-A991` `Durum` ve D-90 dala commit'lendi.
+- Merge yok (FAIL). Rapor, status (`✗ FAIL (tur 1)`), hafıza, `VAL-A991` `Durum` ve D-91 dala commit'lendi.
 
 ## Doğrulama Sonucu — T225 Sistem kayıtları — tur 2
 **Tarih:** 2026-11-05   **Branch:** task/T225-sistem-kayitlari   **Commit:** bf2ecc8 (doğrulanan head)
@@ -230,7 +230,7 @@ Task'ın KP birimi `10 KP-74`; grep'in getirdiği dokuz satır (`VAL-A368`–`A3
 | 2 | İstek kimliğini vekil üretir, `X-Request-Id` ile iletir; uygulama satırları başlık değerini taşır | ✓ | Gerçek `caddy:2.11.7-alpine` + daldaki Caddyfile + başlığı yansıtan arka uç: istemci `X-Request-Id: sahte` gönderdi → arka uca `c4a07c7d-…` gitti, erişim satırında `request_id` ve `uuid` aynı UUID, `sahte` kayıtta yok; `SystemLogsTests` (500/422/401, iki istek) yeşil |
 | 3 | Şifre, anahtar, sır, … e-posta, form gövdesi, çerez hiçbir kayda yazılmaz | ✗ | Anahtarlı yolların hepsi (10 ön ek, büyük harf, `//`) ve çift/tek sorgu biçimleri gerçek Caddy'de maskelendi; `Cookie`, `Authorization`, POST gövdesi kayıtta yok. **Ama** sorguda bir `ad=değer` çiftinden sonra gelen çıplak belirteçler maskelenmiyor: `/arama?a=1&b&ali@x.com` → `"uri":"/arama?a=*&*&ali@x.com"`; `/arama?q=1&a&b&c&d` → `"uri":"/arama?q=*&*&b&*&d"` (gerçek Caddy sondası). E-posta erişim kaydına ham yazıldı. Uygulama kaydı (`PathMasker`) aynı girdiyi tam maskeler; `SystemLogsDeployConsistencyTests`'in örnek listesinde bu biçim yok |
 | 4 | Düzey tasarım değeri; çatı ve veri erişimi uyarıda | ✓ | `SystemLogsTests` düzey testleri yeşil (Integration Logging 142/142) |
-| 5 | P-45 saklama; dosyayı yalnız imha işi siler; sunucu kayıtları kendi döngüsüyle | ✓ | `roll_disabled` (`caddy validate` geçti, adapt çıktısında); runbook L.3 erişim kaydı `rotate 36500` silmesiz, sunucu dosyaları 183 gün; L.4 `MaxRetentionSec=6month`; PG `log_rotation_age/size = 0`; gün dönümü/yeniden başlatma testleri yeşil (süre kenarları D-90 K1/K2'de) |
+| 5 | P-45 saklama; dosyayı yalnız imha işi siler; sunucu kayıtları kendi döngüsüyle | ✓ | `roll_disabled` (`caddy validate` geçti, adapt çıktısında); runbook L.3 erişim kaydı `rotate 36500` silmesiz, sunucu dosyaları 183 gün; L.4 `MaxRetentionSec=6month`; PG `log_rotation_age/size = 0`; gün dönümü/yeniden başlatma testleri yeşil (süre kenarları D-91 K1/K2'de) |
 | 6 | İmha işi ve imha satırı T201'de, bu task yazmaz | ✓ | `LogFileDeletionSourceScan` + ihlal örneği; `SystemLogsScanTests` yeşil (Unit 764/764) |
 | 7 | Ayrı metrik toplama ve pano yok | ✓ | `MetricsPackageScan` yeşil |
 
@@ -281,7 +281,7 @@ Task'ın KP birimi `10 KP-74`; grep'in getirdiği dokuz satır (`VAL-A368`–`A3
 ### Bloke-etmeyen Notlar (K-notları)
 | # | Not | Karar |
 |---|---|---|
-| K1 | Yüzde kodlu ön ek (`/sipar%69s/erisim/ENCKEY/teyit`) Caddy'de ham kalır (sonda: `"uri":"/sipar%69s/erisim/ENCKEY/teyit"`); ASP.NET Core yolu çözdüğü için uygulama bunu `/siparis/erisim/…` olarak yönlendirir ve `PathMasker` maskeler. Meşru bağlantılar kodlanmış gelmez; yalnız elle kurulmuş istek. D-89 K3'ün `%2F` notundan farklı (orada yönlendirici eşlemez) | DEFERRED_BACKLOG'a forward (D-91) |
+| K1 | Yüzde kodlu ön ek (`/sipar%69s/erisim/ENCKEY/teyit`) Caddy'de ham kalır (sonda: `"uri":"/sipar%69s/erisim/ENCKEY/teyit"`); ASP.NET Core yolu çözdüğü için uygulama bunu `/siparis/erisim/…` olarak yönlendirir ve `PathMasker` maskeler. Meşru bağlantılar kodlanmış gelmez; yalnız elle kurulmuş istek. D-89 K3'ün `%2F` notundan farklı (orada yönlendirici eşlemez) | DEFERRED_BACKLOG'a forward (D-92) |
 
 ### Yapım Raporu Karşılaştırması
 - Uyum: 2 uyuşmazlık
@@ -290,4 +290,4 @@ Task'ın KP birimi `10 KP-74`; grep'in getirdiği dokuz satır (`VAL-A368`–`A3
 - Öz denetim tablosu var, maddeleri kanıtlı. Tur 1 Bulgu 2 (`User-Agent`) ve Bulgu 1'in anahtarlı yol kısmı gerçekten kapandı.
 
 ### Merge ve Post-merge
-- Merge yok (FAIL, tur 2 — `12 §8.5` iki iterasyon sınırı: eskalasyon, `INSTRUCTIONS.md` §3.3). Rapor, status (`✗ FAIL (tur 2)`), hafıza ve D-91 dala commit'lendi; `VAL-A991` `Durum` FAIL kaldı.
+- Merge yok (FAIL, tur 2 — `12 §8.5` iki iterasyon sınırı: eskalasyon, `INSTRUCTIONS.md` §3.3). Rapor, status (`✗ FAIL (tur 2)`), hafıza ve D-92 dala commit'lendi; `VAL-A991` `Durum` FAIL kaldı.

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-05 — T202 (Dış servislerin bağlantı katmanı) yapım bitti, PR #PRNO açıldı, doğrulama bekliyor (dal `task/T202-dis-servis-katmani`; üç arayüz ve sekiz sonuç ailesi `Infrastructure/Integrations/`'ta, ortak çağrı yüzü `ExternalCallRunner` — TimeProvider'lı süre, tek çağrı, `ExternalCallFailed` kaydı; adlandırılmış HTTP istemcileri yeniden denemesiz; geliştirmede `SmtpCaptureEmailGateway` → Mailpit, ayar `compose.dev.yaml`; sahteler `UnitTests/Fakes/`; Unit 1126 yeşil; D-101 kapandı). Önceki giriş (T201 doğrulama tur 1 PASS) `STATUS_CHANGELOG.md`'ye taşındı.
+**Son güncelleme:** 2026-11-05 — T202 (Dış servislerin bağlantı katmanı) yapım bitti, PR #396 açıldı, doğrulama bekliyor (dal `task/T202-dis-servis-katmani`; üç arayüz ve sekiz sonuç ailesi `Infrastructure/Integrations/`'ta, ortak çağrı yüzü `ExternalCallRunner` — TimeProvider'lı süre, tek çağrı, `ExternalCallFailed` kaydı; adlandırılmış HTTP istemcileri yeniden denemesiz; geliştirmede `SmtpCaptureEmailGateway` → Mailpit, ayar `compose.dev.yaml`; sahteler `UnitTests/Fakes/`; Unit 1126 yeşil; D-101 kapandı). Önceki giriş (T201 doğrulama tur 1 PASS) `STATUS_CHANGELOG.md`'ye taşındı.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -101,7 +101,7 @@
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
 | T201 | İmha düzenleyicisi, süre ayarları ve gecelik temizlik | ✓ | ✓ PASS (tur 1) | — | #395 |
-| T202 | Dış servislerin bağlantı katmanı: ortak yüz, hata sınıfı, zaman aşımı, sahteler | ⏳ | — | — | #PRNO |
+| T202 | Dış servislerin bağlantı katmanı: ortak yüz, hata sınıfı, zaman aşımı, sahteler | ⏳ | — | — | #396 |
 | T203 | İmzalı makine ucu altyapısı: imza denetimi, gövde tavanı | ⬚ | — | — | — |
 | T204 | Dış servis çökmesi davranışı ve sahtelerle sınama | ⬚ | — | — | — |
 | T205 | Açılışta veritabanı fail-fast denetimi | ✓ | ✓ PASS (tur 1) | a36010b | #385 |

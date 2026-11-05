@@ -89,7 +89,7 @@
 
 - **Branch:** `task/T202-dis-servis-katmani`
 - **Commit:** dal ucu PR'da
-- **PR:** #PRNO
+- **PR:** #396
 - **CI:** *(PR'da)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

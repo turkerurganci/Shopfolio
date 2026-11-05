@@ -60,6 +60,9 @@ builder.Services.AddStartupDatabaseCheck();
 builder.Services.AddScoped<ITransactionRunner, TransactionRunner>();
 builder.Services.AddScoped<AdvisoryLocks>();
 
+// The link layer (09 15.1 items 3 and 4): the key derivation and the reading and consuming of link records.
+builder.Services.AddLinkRecords();
+
 // One registration call per module (09 6 item 3).
 builder.Services.AddCatalogModule();
 builder.Services.AddOrderingModule();

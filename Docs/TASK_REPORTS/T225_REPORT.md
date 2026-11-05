@@ -112,7 +112,7 @@
 
 - **Branch:** `task/T225-sistem-kayitlari`
 - **Commit / PR / CI:** PR başlığında (`T225: Sistem kayıtları`); CI yapım işçisince beklenmez
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `b8c180f` (#389) — CI 41969409791 success, Publish 41969409700 success (T222 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

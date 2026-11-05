@@ -39,6 +39,40 @@ internal sealed class LinkRecord
     /// <summary>The previous address of an email change revert link, as entered; empty in every other type.</summary>
     public string? PreviousEmail { get; set; }
 
+    // The digest follows from the id (09 15.1 item 4), so it is written after the id is made.
+    private void UseDerivedDigest(LinkKeys keys)
+    {
+        string digest = keys.DigestFor(Id);
+        TokenHash = digest;
+    }
+
+    /// <summary>
+    /// A link record for a customer whose digest is the derived key's digest (09 15.1 item 4; 05 6.4.4): the id is made first and the digest
+    /// follows from it, so the record never holds the key and the e-mail body can derive the key again from the id alone.
+    /// </summary>
+    public static LinkRecord ForCustomer(LinkKeys keys, LinkType linkType, Guid customerId, DateTimeOffset expiresAt, DateTimeOffset now)
+    {
+        LinkRecord record = ForCustomer(linkType, customerId, string.Empty, expiresAt, now);
+        record.UseDerivedDigest(keys);
+        return record;
+    }
+
+    /// <summary>The administrator's counterpart of <see cref="ForCustomer(LinkKeys, LinkType, Guid, DateTimeOffset, DateTimeOffset)"/>.</summary>
+    public static LinkRecord ForAdmin(LinkKeys keys, LinkType linkType, Guid adminId, DateTimeOffset expiresAt, DateTimeOffset now)
+    {
+        LinkRecord record = ForAdmin(linkType, adminId, string.Empty, expiresAt, now);
+        record.UseDerivedDigest(keys);
+        return record;
+    }
+
+    /// <summary>The invitation's counterpart of <see cref="ForCustomer(LinkKeys, LinkType, Guid, DateTimeOffset, DateTimeOffset)"/>.</summary>
+    public static LinkRecord ForInvitation(LinkKeys keys, Guid adminInvitationId, DateTimeOffset expiresAt, DateTimeOffset now)
+    {
+        LinkRecord record = ForInvitation(adminInvitationId, string.Empty, expiresAt, now);
+        record.UseDerivedDigest(keys);
+        return record;
+    }
+
     public static LinkRecord ForCustomer(LinkType linkType, Guid customerId, string tokenHash, DateTimeOffset expiresAt, DateTimeOffset now)
     {
         return new LinkRecord { Id = EntityIds.New(), CreatedAt = now, LinkType = linkType, CustomerId = customerId, TokenHash = tokenHash, ExpiresAt = expiresAt };

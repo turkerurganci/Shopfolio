@@ -15,6 +15,12 @@ internal static class NotificationsModuleRegistration
     public static IServiceCollection AddNotificationsModule(this IServiceCollection services)
     {
         services.AddScoped<INotificationsModule, NotificationsModule>();
+
+        // The start-up rewrite of the pending revert links' digests (05 6.x.20): hosted services start in registration order, so it is added
+        // here, after the start-up checks, and the job queue and the e-mail sending are registered after it.
+        services.AddScoped<RevertLinkDigestRewrite>();
+        services.AddSingleton<RevertLinkDigestRewriteStartup>();
+        services.AddHostedService(provider => provider.GetRequiredService<RevertLinkDigestRewriteStartup>());
         return services;
     }
 }

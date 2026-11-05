@@ -264,7 +264,13 @@ expect "read-only user over the network" shopfolio_reader \
   "$(docker exec -e PGPASSWORD="$(cat "$SETUP_FILES_DIR/db_setup_reader_password")" "$DB_CONTAINER" psql -h 127.0.0.1 -U shopfolio_reader -d shopfolio -Atc 'select current_user')"
 # No password reached the server's log (05 6.x.16). The server logs every statement (log_statement=all, set above), so the log
 # shows what the setup script sent: only SCRAM-SHA-256 verifiers, made in the client, three of them (one per password).
-DB_LOG="$(docker logs "$DB_CONTAINER" 2>&1)"
+# The final server writes its log to a file of the log volume, not to the container output (05 9.1.4; postgresql.conf.d/30-logging.conf): the
+# output of the container (the first start's temporary server) and the daily file are read together.
+expect "log_error_verbosity" terse "$(db_query 'show log_error_verbosity')"
+expect "log_parameter_max_length_on_error" 0 "$(db_query 'show log_parameter_max_length_on_error')"
+expect "logging_collector" on "$(db_query 'show logging_collector')"
+DB_LOG="$(docker logs "$DB_CONTAINER" 2>&1; docker exec "$DB_CONTAINER" sh -c 'cat /var/log/postgresql/server/postgresql.log' 2>&1)"
+[ "$(docker exec "$DB_CONTAINER" stat -c '%a %G' /var/log/postgresql/server)" = "2750 logread" ] || fail "the database log directory is not 2750 and group logread"
 for name in db_superuser_password db_setup_migrator_password db_setup_app_password db_setup_reader_password; do
   if printf '%s\n' "$DB_LOG" | grep -qF -- "$(cat "$SETUP_FILES_DIR/$name")"; then
     fail "the value of $name is in the database container's log"

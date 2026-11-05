@@ -101,6 +101,7 @@
 | Gerçek konfigürasyonla boot provası | §I ⚠ |
 | Yedek ayarları, kova kuralı, anahtar yetkisi ve kurtarma provası | §J |
 | Yerel referans kuruluma ilk iniş (T09): sunucu, güvenlik duvarı, canlılık, denemeler, prova kaydı; gerçek sunucu T603 | §K |
+| Sistem kayıtları: yerleri, günlük bölme, saklama, istek kimliği, kurulumda denetim | §L |
 
 ---
 
@@ -444,3 +445,86 @@ Kural uygulanınca zincir `SHOPFOLIO-EGRESS`'e iki çıkış ağından (172.30.2
 | D-36 (b) | ✅ T09 (`.env.example` kilidi artık `DeploySecretScanTests`'te; D-01 notu kısaltıldı) |
 | D-37 (b) | ✅ (CI'da kapandı); (a) ilk göçe bağlı |
 | D-39 | (b), (c) ✅ T09 yerelde; gerçek sunucu gözlemi D-40; (a), (e), (f) T09'a bağlı değil |
+
+---
+
+## L. Sistem kayıtları — yerleri, döngüleri, istek kimliği ve kurulumda denetim (T225; `05 §9.1`, §9.2; `09 §18`)
+
+Sistem kayıtları üç kaynaktır, sunucunun diskinde günlük dosyalarda durur ve yazıldığı andan **altı ay** (P-45) saklanır. **Kayıt dosyalarını** (erişim kaydı, uygulama kaydı) yalnız gecelik imha işi siler (T201); ne uygulama, ne ters vekil, ne işletim sisteminin döndürme aracı siler. **Sunucunun kayıtlarını** kendi döngüleri altı ayda siler. Ayrı bir metrik toplama ve pano yoktur (`05 §9.1.7`).
+
+### L.1 Kaynaklar, yerler, silen
+
+| # | Kaynak | Yazan | Yer (konteyner içi → birim) | Günlük bölme | Silen |
+|---|---|---|---|---|---|
+| 1 | Erişim kaydı | Caddy | `/var/log/caddy/access.log` → `access-logs` | işletim sisteminin döndürme aracı (L.3), silmeden | imha işi (T201) |
+| 2 | Uygulama kaydı | Uygulama | `Logging:Directory` (`/var/log/shopfolio/app`) → `app-logs`: `app-`, `audit-`, `command-` + `yyyyMMdd.jsonl` | uygulamanın kendisi (günlük dosya) | imha işi (T201) |
+| 3 | İşletim sisteminin günlüğü (SSH oturumları, konteyner çalıştırıcısının kaydı dahil) | systemd-journald | sunucuda `/var/log/journal` | journald | journald, altı ay (L.4) |
+| 4 | Veritabanının kaydı | PostgreSQL | `/var/log/postgresql/server/postgresql.log` → `db-logs` | işletim sisteminin döndürme aracı | döndürme aracı, altı ay (L.3) |
+| 5 | pgBackRest kaydı | pgBackRest | `/var/log/postgresql/pgbackrest/*.log` → `db-logs` | işletim sisteminin döndürme aracı | döndürme aracı, altı ay (L.3) |
+| 6 | Yedek aracının kaydı | Betikler | `/var/log/backup` → `backup-logs` | işletim sisteminin döndürme aracı | döndürme aracı, altı ay (L.3) |
+| 7 | Konteynerin kendi çıktısı | Konteyner çalıştırıcısı | `json-file`, üç dosya, her biri 10 MB (`deploy/compose.yaml` `x-container-log`) | çalıştırıcı | çalıştırıcı (yalnız açılış ve çökme iletisi; kişisel veri taşımaz) |
+
+Uygulama ile ters vekil kayıtları ayrı dosya ve ayrı birimdedir (1 ve 2); sunucunun kayıtları (3–6) onlardan ayrıdır. Dört birim de gecelik dosya yedeğine salt okuma bağlanır (`§J`).
+
+### L.2 İstek kimliği (`05 §9.1.5`; K-1354; `09 §18.2` madde 1)
+
+- Ters vekil her isteğe bir kimlik üretir: `deploy/caddy/Caddyfile` içinde `header_up X-Request-Id {http.request.uuid}` uygulamaya iletir (istemcinin gönderdiği aynı adlı başlığın yerine yazılır, ona güvenilmez) ve `log_append request_id {http.request.uuid}` aynı değeri erişim kaydı satırının `request_id` alanına yazar.
+- Uygulamanın kayıt satırları `requestId` alanında başlığın değerini taşır (`RequestLogEnricher`).
+- Erişim kaydında istek ve yanıt başlıkları yazılmaz (`request>headers`, `resp_headers`, `request>tls` silinir); kimlik başlıktan değil `log_append` alanından gelir.
+
+### L.3 Ters vekilin kaydı ve günlük bölme, sunucunun dosya kayıtlarının silinmesi
+
+Caddy'nin kendi döndürmesi kapalıdır (`roll_disabled`): boyut ve dosya sayısı sınırları kayıt dosyası silerdi. Günlük bölmeyi sunucudaki `logrotate` yapar. **Bilgim tarihli — kurulumda denetlenir (L.5 madde 5).** `/etc/logrotate.d/shopfolio` (birim yolları `docker volume inspect shopfolio_<birim> --format '{{.Mountpoint}}'` ile alınır):
+
+```
+# Erişim kaydı: günlük bölünür, HİÇBİR dosya silinmez (kayıt dosyasını yalnız imha işi siler). rotate değeri bilerek çok büyüktür.
+<access-logs>/access.log {
+    daily
+    rotate 36500
+    dateext
+    dateformat -%Y%m%d
+    copytruncate
+    missingok
+    notifempty
+    nocompress
+}
+
+# Sunucunun dosya kayıtları: günlük bölünür ve altı ay (183 gün) sonra silinir.
+<db-logs>/server/postgresql.log <db-logs>/pgbackrest/*.log <backup-logs>/*.log {
+    daily
+    rotate 183
+    maxage 183
+    dateext
+    dateformat -%Y%m%d
+    copytruncate
+    missingok
+    notifempty
+    nocompress
+}
+```
+
+`copytruncate` Caddy'nin, veritabanının ve betiklerin dosyayı ekleme kipinde açık tutmasına dayanır. Döndürülmüş ad `access.log-yyyyMMdd` biçimindedir; imha işi (T201) günü bu addan okur. Uygulama kaydı (2) bu dosyada yoktur: günlük dosyayı uygulamanın kendisi açar ve kapatır.
+
+### L.4 İşletim sisteminin günlüğü ve konteyner çalıştırıcısının kaydı
+
+`/etc/systemd/journald.conf.d/shopfolio.conf`:
+
+```
+[Journal]
+Storage=persistent
+MaxRetentionSec=6month
+SystemMaxUse=2G
+SystemMaxFileSize=128M
+```
+
+Konteyner çalıştırıcısının kaydı (`docker.service`) bu günlüğe girer; ayrı bir döngü gerekmez. Altı aylık günlük birkaç yüz MB tutar (`05 §9.2.2`); `SystemMaxUse` altı ayı karşılamalıdır, yoksa journald süresi dolmadan siler — kurulumda `journalctl --disk-usage` ile ölçülür.
+
+### L.5 Kurulumda denetim (bilgim tarihli ayarlar burada doğrulanır)
+
+1. **Konteyner çıktısı:** `$COMPOSE ps -q | xargs docker inspect --format '{{.Name}} {{.HostConfig.LogConfig.Type}} {{.HostConfig.LogConfig.Config}}'` her satırda `json-file` ve `max-size:10m max-file:3` gösterir.
+2. **Veritabanı:** `$COMPOSE exec database psql -U postgres -d shopfolio -Atc "show log_error_verbosity"` `terse`; `show log_parameter_max_length_on_error` `0`; `show logging_collector` `on`. `/var/log/postgresql/server` dizini `2750` ve `logread` grubundadır; **bu değişiklikten önce açılmış bir `db-logs` biriminde** bir kez: `$COMPOSE exec -u root database sh -c 'mkdir -p /var/log/postgresql/server && chown postgres:logread /var/log/postgresql/server && chmod 2750 /var/log/postgresql/server'`, sonra veritabanı konteyneri yeniden başlatılır (yeni birimde gerekmez).
+3. **Ters vekil, istek kimliği:** `curl -sk -H 'X-Request-Id: sahte' https://<alan>/ -o /dev/null`; erişim kaydının son satırında `request_id` bir UUID'dir (`sahte` değil). Bir bağlantı sayfası (`/siparis/erisim/<anahtar>`) ve bir arama (`/arama?search=...`) istenir; kayıtta yol `/siparis/erisim/{key}` ve sorgu değeri `*` olarak yazılır, hiçbir başlık yazılmaz.
+4. **İki kayıt aynı kimlikte:** reddedilen bir istek (örneğin hız sınırı ya da geçersiz form) yapılır; uygulama kaydındaki satırın `requestId` değeri erişim kaydındaki `request_id` ile aynıdır.
+5. **Döndürme:** `logrotate -d /etc/logrotate.d/shopfolio` hata vermez; bir kez `logrotate -f` koşulduktan sonra `access.log-yyyyMMdd` oluşur ve **hiçbir dosya silinmemiştir**; Caddy yeni satırı `access.log`'a yazmaya devam eder.
+6. **Günlük:** `systemd-analyze cat-config systemd/journald.conf` çıktısında `MaxRetentionSec=6month`; `journalctl --disk-usage` `SystemMaxUse` altındadır.
+7. **Kayıtta kişisel veri yok:** uygulama kaydının son satırlarında e-posta, adres, telefon, form gövdesi ya da çerez değeri bulunmaz (`grep -E '@|cookie' <app-logs>/app-*.jsonl` boş döner).

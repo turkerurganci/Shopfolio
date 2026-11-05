@@ -61,6 +61,11 @@ RUN mkdir -p /var/log/postgresql/pgbackrest && chown -R postgres:postgres /var/l
 RUN groupadd --gid 10002 logread \
     && chgrp logread /var/log/postgresql/pgbackrest \
     && chmod 2750 /var/log/postgresql/pgbackrest
+# The database server's own log directory (postgresql.conf.d/30-logging.conf; 05 9.1.4): the same group and setgid bit, so the files
+# the server writes (0640) are readable by the backup tool for the nightly file backup and nothing else of the volume is.
+RUN mkdir -p /var/log/postgresql/server \
+    && chown postgres:logread /var/log/postgresql/server \
+    && chmod 2750 /var/log/postgresql/server
 
 # No secret enters the image: passwords and backup keys arrive as mounted files at run time (09 17 item 2). The entrypoint
 # wraps the official one: it turns the two backup key files into pgBackRest's environment, starts the scheduler and runs the

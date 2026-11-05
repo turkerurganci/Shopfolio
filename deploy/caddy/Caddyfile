@@ -17,13 +17,19 @@
 }
 
 {$SITE_DOMAIN} {
+	# The request id (05 9.1.3, 9.1.5; 09 18.2 item 1): the proxy makes one for every request, hands it to the application in the
+	# X-Request-Id header and writes the same value in its own access line (the field request_id below). A header the client sent under
+	# that name is replaced, never passed on (header_up without a prefix sets the header). The application's lines carry the header's value.
+	log_append request_id {http.request.uuid}
+
 	# The access log (05 9.1.2) goes to its own file in its own volume. Request and response headers are not written (05 9.1.5).
 	log {
 		output file /var/log/caddy/access.log {
 			# Caddy's default is 0600 (root only); the file backup tool (uid 10001) reads this volume read-only (found at T09).
 			mode 0644
-			roll_size 50MiB
-			roll_keep 40
+			# Caddy's own rolling is off (05 9.2.2): its size and file-count limits would delete log files, and only the disposal job
+			# deletes a log file. The operating system's rotation tool splits the file by day without deleting (DEPLOY_RUNBOOK section L).
+			roll_disabled
 		}
 		format filter {
 			wrap json
@@ -45,6 +51,8 @@
 	}
 
 	handle {
-		reverse_proxy app:8080
+		reverse_proxy app:8080 {
+			header_up X-Request-Id {http.request.uuid}
+		}
 	}
 }

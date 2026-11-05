@@ -18,11 +18,21 @@
 
 name: shopfolio
 
+# The container runtime's log of a container's own output (05 9.1.1, 9.2.3): start and crash messages only, a small rotation of its own
+# (three files of ten megabytes). The logs of the application, the proxy, the database and the backup tool go to files in their volumes
+# (05 9.1.4); this output carries no personal data. Every service takes this block.
+x-container-log: &container-log
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   proxy:
     # Official Caddy 2 image, pinned by tag and digest (05 8.2.3). Renewed in the monthly maintenance release (05 8.8.2).
     image: caddy:2.11.7-alpine@sha256:e70b164da81ef698b3ad19af799ea6086ce6d9e48ed4079eb9fe26f6fbf14ee5
     restart: unless-stopped
+    logging: *container-log
     security_opt:
       - no-new-privileges:true
     environment:
@@ -47,6 +57,7 @@ services:
   app:
     image: ${SHOPFOLIO_APP_IMAGE:?SHOPFOLIO_APP_IMAGE is required (deploy/release.env)}
     restart: unless-stopped
+    logging: *container-log
     security_opt:
       - no-new-privileges:true
     env_file:
@@ -90,6 +101,7 @@ services:
   database:
     image: ${SHOPFOLIO_DATABASE_IMAGE:?SHOPFOLIO_DATABASE_IMAGE is required (deploy/release.env)}
     restart: unless-stopped
+    logging: *container-log
     security_opt:
       - no-new-privileges:true
     environment:
@@ -126,6 +138,7 @@ services:
   backup:
     image: ${SHOPFOLIO_BACKUP_IMAGE:?SHOPFOLIO_BACKUP_IMAGE is required (deploy/release.env)}
     restart: unless-stopped
+    logging: *container-log
     security_opt:
       - no-new-privileges:true
     # The scheduler is the image's entrypoint and needs a job: the nightly file backup (09 17 item 3; D-34 (a)). Without it the
@@ -173,6 +186,7 @@ services:
     # profile's times in the same form DatabaseConnection.Configure writes them; a consistency test keeps the two equal.
     image: ${SHOPFOLIO_APP_IMAGE:?SHOPFOLIO_APP_IMAGE is required (deploy/release.env)}
     restart: "no"
+    logging: *container-log
     security_opt:
       - no-new-privileges:true
     entrypoint:
@@ -196,6 +210,7 @@ services:
     image: ${SHOPFOLIO_APP_IMAGE:?SHOPFOLIO_APP_IMAGE is required (deploy/release.env)}
     profiles: ["tools"]
     restart: "no"
+    logging: *container-log
     security_opt:
       - no-new-privileges:true
     secrets:
@@ -212,6 +227,7 @@ services:
     image: ${SHOPFOLIO_APP_IMAGE:?SHOPFOLIO_APP_IMAGE is required (deploy/release.env)}
     profiles: ["tools"]
     restart: "no"
+    logging: *container-log
     security_opt:
       - no-new-privileges:true
     secrets:

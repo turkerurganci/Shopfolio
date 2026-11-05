@@ -1,6 +1,6 @@
 # T224 — Çerez politikası
 
-**Faz:** F2 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✓ Doğrulama tur 2 PASS (tur 1 ✗ FAIL) | **Tarih:** 2026-11-06
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -69,8 +69,8 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-05, head `4737a61`) |
-| Bulgu sayısı | 2 (B1, B2 — DÜŞÜK, S1); K-notu 3; düzeltme gerekli: evet |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-06, head `b684a29`); tur 1 ✗ FAIL (2026-11-05, head `4737a61`) |
+| Bulgu sayısı | Tur 2: 0; K-notu 4 (K1 → D-113 notu, K2 → D-114, K3 → D-115, K4 D-112 kabul); düzeltme gerekli: hayır. Tur 1: 2 (B1, B2 — DÜŞÜK, S1), kapandı |
 
 ## Altyapı Değişiklikleri
 
@@ -231,3 +231,95 @@ Dal `origin/main` ile güncel (merge gerekmedi). Dört bulgu, yalnız test proje
 | Sık FAIL: kabul kriteri kısmen | ✓ | Dokuz kriter ✓; `~` yok |
 
 Testler: Unit 1347/1347; Integration `Web` ad alanı 86/86 (PostgreSQL 18, `shopfolio-t224-pg`, 127.0.0.1:55581, bitince silindi); `dotnet format --verify-no-changes` çıkış 0; `dotnet build -warnaserror` temiz.
+
+## Doğrulama Sonucu — T224 Çerez politikası — tur 2
+**Tarih:** 2026-11-06   **Branch:** task/T224-cerez-politikasi   **Commit:** b684a29 (incelenen head; rapor commit'i bunun üstündedir)
+
+### Verdict: ✓ PASS
+
+Dokuz kriterin hepsi ✓. Tur 1'in iki bulgusu (B1, B2) ve iki notu (K1, K2) kapandı. Testler, CI ve güvenlik temiz. Üç bloke-etmeyen not backlog'a gitti (D-113 notu, D-114, D-115).
+
+### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş (başta ve test koşularından sonra) |
+| Hook kurulumu | ✓ | `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` |
+| Ana dal CI (son 3) | ✓ | 42097338902 success, 42097339118 success (T223 #399), 42086513414 success (T204 #398) |
+| Memory drift | ✓ | `.claude/memory/MEMORY.md:22` T224 satırı |
+
+### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Secure, HttpOnly, SameSite=Lax | ✓ | `CookieDefaults.Apply` (Always, HttpOnly, Lax, `IsEssential`); entegrasyon `AllCookies_AfterThePublication_…`: gerçek `Set-Cookie` başlıklarında yedi ad + parçalar, `Violations` boş; `Violations_OnACookieOutsideTheInventory…` denetimin kırmızısını gösterir |
+| 2 | `__Host-` önekli, koşullar tek yazım yerinde | ✓ | `Path="/"`, `Domain=null` yalnız `CookieDefaults`; yazım/okuma/silme yalnız `BrowserCookies` → `CookieDefaults.Create(...).Build(ctx)` → `ChunkingCookieManager`; form güvenliği çerezi `CookieSetup` içinde `CookieDefaults.Apply`; `CookieSourceScan` kural 1–3 kaynakta boş, ihlal örneğinde kırmızı |
+| 3 | Envanter kapalı (yedi çerez) | ✓ | `CookieNames.All` 7 ad; `CookieNamesConsistencyTests` (`Consistency` trait) `09 §5.3` m.5 ile iki yönlü eşit; listede olmayan ad `Create`/`Write`/`Read`/`Delete`'te atar. B2 kapandı: kural 5 ham `Set-Cookie` başlığını (dizgi, `HeaderNames.SetCookie`, `Headers.SetCookie`, dizinleyici, `Append`/`Add`) yalnız `CookieHeaderFilterMiddleware.cs`'de serbest bırakır; `CookieMisuse.cs` satır 13–15 (`_ga`) kırmızı; beş biçim izinli dosya dışında ve `BrowserCookies.cs`'de de bulgu |
+| 4 | Misafir sepeti 400 gün, her ziyarette yenilenir | ✓ | `GuestCartLifetime` = `DisposalTimings.GuestCartIdleDays`; entegrasyon iki ziyarette `Max-Age` 400 gün ve yeniden yazım. Çağıran sepet modülü sonraki task'ta |
+| 5 | Ödeme çerezi oturumluk, şifreli, imzalı; onayda silinir | ✓ | `DataProtectionPurposes.CheckoutCookie` ile `Protect`; `Max-Age`/`Expires` yok; düz metin okunmuyor; bozuk değer `invalid`; `DeleteCheckout` parçalar dahil siler (iki entegrasyon testi). Onaydaki çağrı T509, boşalma T508 (kriter metni) |
+| 6 | Politika yayına alınana kadar `Set-Cookie` yok | ✓ | Süzgeç ardışık düzenin en dışında (`Program.cs`, `UseRouting` öncesi); çıkarma geri çağrısı artık soru sorulmadan önce kayıtlı, yalnız "yayında" cevabıyla kapanır; soru düşerse dışarıdaki katmanın hata sayfası da çerezsiz (`HeaderFilter_WhenThePublicationQueryFails_…`); entegrasyon: yayın öncesi ve yalnız taslakta başlık yok, yayından sonraki ilk istekte açılır ve açık kalır |
+| 7 | Süzgeç yalnız vitrine | ✓ | `AppliesTo`: `/panel` ve `/sistem` dışarıda; panel yanıtında çerezler süzülmeden geliyor (birim + entegrasyon) |
+| 8 | Akış çerezinin yolu kök | ✓ | `ExternalLoginFlowCookie_…`: `Path=/`, `Max-Age` 600, Lax; okunduğu yanıtta silinir |
+| 9 | Analitik/piksel/reklam/onay bandı/gömme yok; tek istisna ödeme çerçevesi; taslakta yer tutucu | ✓ | B1 kapandı: istisna yalnız `iframe` (ve `createElement('iframe')`) ve yalnız `PaymentFramePages`'teki sayfada (liste boş ve kapalı); `frame`, `frameset`, `object`, `embed` her sayfada bulgu (`Page.html` 10–13, altı biçimli teori). K2 kapandı: ödeme sayfasında `iframe` adresi yalnız site yolu ya da `https://www.paytr.com/` altı; `paytr.com.example.net`, `paytr.com@…`, `//…`, `data:`, `srcdoc` bulgu. Kaynak ve paket taraması boş; taslakta yer tutucu ve yedi madde |
+
+### Task Satırları (`12 §7.5`, adım 2a ve 16)
+T224'ün `10` birimi KP-73; satırları `VAL-A363`…`VAL-A367` vitrinden ödemeye tarayıcı gözlemidir (sepet, ödeme, sipariş sonraki fazlarda). KD-15/19/41/55'in `12` satırı yok. T224 altyapı payını kriterlerde kanıtladı; satırlar akış task'larında kapanır, `Durum` değişmedi.
+
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı |
+|---|---|---|---|---|---|
+| VAL-A363…A367 | ORTA/KRİTİK | yok | BEKLEMEDE | BEKLEMEDE (akış task'ları) | — |
+
+`python -I -X utf8 scripts/doc-scans/12_matris_denetle.py --kapsam 1-77`: Hata 0.
+
+### Doğrulama Kontrol Listesi
+- [x] KK1 her çerezde üç nitelik
+- [x] KK2 `__Host-` adı; gerçek başlıkta `Path=/`, Domain yok
+- [x] KK3 envanter dışı çerez adı testi kırar (eşitlik + `Create` istisnası + ham başlık kuralı 5)
+- [x] KK4 sepet çerezi ömrü ve yenilenmesi
+- [x] KK5 ödeme çerezi şifreli; onayda silinir (silme yolu + test; çağrı T509)
+- [x] KK6 yayında değilken `Set-Cookie` yok (soru düştüğünde de)
+- [x] KK7 panel yanıtı süzülmez
+- [x] KK8 akış çerezi yolu `/`
+- [x] KK9 analitik, izleme, reklam, onay bandı, gömme yok; yalnız ödeme çerçevesi (`iframe`, adresli) istisna; taslakta yer tutucu
+- [x] `09 §25` ilgili satırlar: adlar `09 §5.3` m.5'ten; 10 dk `§3.5`'te; `CONTEXT.md` güncel; yeni paket yok; iki tarama da ayrı ihlal örneğiyle kırmızı (`§19.2` m.3), dosya yazmıyor; eşitlik `Consistency` trait'inde (`§21.4` m.1); geniş `catch` yok (`§8.1` m.6)
+- [x] Güvenlik taraması
+
+### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes` | çıkış 0 |
+| Unit (+Consistency) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | 1347/1347 |
+| Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration | ✓ | `--filter-namespace` parçaları, PostgreSQL 18 (`shopfolio-t224-val-pg`, 127.0.0.1:55571, sonra silindi) | Web 86, Security+Concurrency 44, Jobs+Database 112, Disposal+FileSecrets+Files+Logging+Outages+SignedEndpoints 123, Model (`--max-threads 3`) 893 — toplam 1258, 0 kaldı |
+| Kararsız test incelemesi | ✓ | `--filter-class …Web.LivenessEndpointTests` ×8 | 8/8 yeşil (9/9 test); bkz. K3 |
+| Restore | ✓ | `dotnet restore Shopfolio.slnx --locked-mode` | çıkış 0; koşu sonrası `git status` temiz |
+| Dal CI | ✓ | `gh run list --branch task/T224-cerez-politikasi` | 42107824627 success (head `b684a29`); 42106192635 failure (head `42de733`, yalnız doküman — K3) |
+
+### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz
+- Auth etkisi: Temiz (oturum işleyicisi yok; yalnız çerez yazıcısı ve süzgeç)
+- Input validation: Temiz (korumalı çerezler veri korumayla okunur; bozuk değer `invalid`)
+- Yeni bağımlılık: Yok
+
+### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| — | — | — | — | Bulgu yok | — | — | — |
+
+Tur 1 bulguları: B1 (KK9, çerçeve istisnası geniş) ve B2 (KK3, ham `Set-Cookie`) kapandı — kanıt kriter 3 ve 9 satırlarında.
+
+### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | D-113'ün düzeltmesi (yakalama katmanı süzgeçten ÖNCE kaydedilir) ve `Program.cs` yorumu `09 §15.1` m.6'nın cümlesiyle çelişir: süzgeç "§8.1'in yakalama katmanı dahil" bütün çerez yazabilen ara katmanların dışındadır. Bugünkü kod uyumlu (süzgeç en dışta; yakalama katmanı yok). Çıkarma önceden kayıtlı olduğu için iki sırada da hata sayfasının çerezi silinir, ama dıştaki katman `OnStarting`'de çerez yazarsa kalır | DEFERRED_BACKLOG'a forward — D-113'e tur 2 notu: T212 ya `09`'a uyar ya `09 §15.1` m.6'yı karar kaydıyla günceller ve testle gösterir |
+| K2 | `ThirdPartyContentScan.OtherEmbedElement` `.cs` dosyalarında C# genel tür argümanını bulgu sayar: `09 §15.1` m.5'in `PasswordHasher<object>`'i taramayı kırar. Ayrıca `CookieSourceScan` kural 5'in izni `CookieHeaderFilterMiddleware.cs`'de bütün başlık erişimine açık (yalnız `Remove` gerekir) | DEFERRED_BACKLOG'a forward — D-114 → T342 (en geç) |
+| K3 | `LivenessEndpointTests.Start_WithoutConnectionString_…` kararsız: yalnız doküman değiştiren `42de733`'ün koşusunda (42106192635) `ObjectDisposedException` ile kırıldı; aynı kod önce ve sonra CI'da yeşil, yerelde 8/8 yeşil. T224 açılış denetimine ve barındırılan hizmetlere dokunmaz; olası neden açılış başarısızken iş kuyruğu çalıştırıcılı fabrikanın kapanan sağlayıcıya erişmesi | DEFERRED_BACKLOG'a forward — D-115 → T212 |
+| K4 | D-112 (ters vekil başlıkları → T215) tur 1'de kabul edildi; değişmedi | kabul — DEFERRED_BACKLOG'da |
+
+### Yapım Raporu Karşılaştırması
+- Uyum: 1 uyuşmazlık
+- Öz denetim tablosu (düzeltme 1) var, her madde kanıtlı; B1, B2, K1, K2 anlatımı kodla aynı.
+- K1 düzeltmesi "yakalama katmanı süzgeçten önce kaydedilir" der ve bunu `09 §15.1` m.6 ile karşılaştırmaz (K1 notu).
+- Rapor Integration'da yalnız `Web` ad alanını koşmuş; doğrulamada bütün ad alanları koşuldu, 1258 yeşil.
+
+### Merge ve Post-merge
+- Merge yok (yönetici düzeni: 17–18. adım yardımcının işi). Rapor + durum + hafıza + backlog dala yazıldı (16. adım).

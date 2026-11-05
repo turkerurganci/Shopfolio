@@ -117,32 +117,66 @@ public sealed class SignatureFailureLogTests : IDisposable
     }
 
     [Fact]
-    public void AnEndedWindowWithACount_IsWrittenAtTheNextSweep_WithItsLastReason_AndDropped()
+    public void AnEndedWindowWithACount_WritesNoLineAtAnotherAddressesRequest_AndItsAddressesNextLineCarriesTheCount()
     {
-        _harness.Failures.Record(First, SignatureFailureReason.SignatureInvalid);
-        _harness.Failures.Record(First, SignatureFailureReason.BodyUnreadable);
+        // A fails twice; B fails after A's window: B's line carries none of A's count, and no line of A's is written at B's request.
+        Assert.True(_harness.Failures.Record(First, SignatureFailureReason.SignatureInvalid));
+        Assert.False(_harness.Failures.Record(First, SignatureFailureReason.SignatureInvalid));
         _harness.Time.Advance(SignedEndpointLimits.FailureLogWindow);
 
-        _harness.Failures.Record(Second, SignatureFailureReason.SignatureInvalid);
+        Assert.True(_harness.Failures.Record(Second, SignatureFailureReason.SignatureInvalid));
+
+        Assert.Equal(2, _harness.Lines.Count);
+        Assert.Equal(0, Line(1).GetProperty("suppressedCount").GetInt32());
+
+        // A comes back: its first line after the window carries its count.
+        _harness.Time.Advance(Tick);
+        Assert.True(_harness.Failures.Record(First, SignatureFailureReason.BodyUnreadable));
 
         Assert.Equal(3, _harness.Lines.Count);
-        Assert.Equal(1, Line(1).GetProperty("suppressedCount").GetInt32());
-        Assert.Equal(nameof(SignatureFailureReason.BodyUnreadable), Line(1).GetProperty("reason").GetString());
-        Assert.Equal(0, Line(2).GetProperty("suppressedCount").GetInt32());
-        Assert.Equal(1, _harness.Failures.TrackedAddressCount);
-
-        Assert.True(_harness.Failures.Record(First, SignatureFailureReason.SignatureInvalid));
-        Assert.Equal(0, Line(3).GetProperty("suppressedCount").GetInt32());
+        Assert.Equal(1, Line(2).GetProperty("suppressedCount").GetInt32());
+        Assert.Equal(nameof(SignatureFailureReason.BodyUnreadable), Line(2).GetProperty("reason").GetString());
     }
 
     [Fact]
-    public void EndedWindows_AreDroppedAtTheSweep_SoTheMemoryHoldsOnlyTheLastWindowsAddresses()
+    public void ManyAddresses_EachCountIsWrittenOnlyOnItsOwnAddressesLine()
+    {
+        IPAddress third = IPAddress.Parse("2001:db8:7:8::1");
+        IPAddress[] addresses = [First, Second, third];
+        for (int i = 0; i < addresses.Length; i++)
+        {
+            Assert.True(_harness.Failures.Record(addresses[i], SignatureFailureReason.SignatureInvalid));
+            for (int j = 0; j <= i; j++)
+            {
+                Assert.False(_harness.Failures.Record(addresses[i], SignatureFailureReason.SignatureInvalid));
+            }
+        }
+
+        _harness.Time.Advance(SignedEndpointLimits.FailureLogWindow * 3);
+        Assert.Equal(addresses.Length, _harness.Lines.Count);
+
+        // Back in the reverse order, after several windows: each first line carries its own count (1, 2, 3), whichever comes first.
+        for (int i = addresses.Length - 1; i >= 0; i--)
+        {
+            Assert.True(_harness.Failures.Record(addresses[i], SignatureFailureReason.SignatureInvalid));
+            Assert.Equal(i + 1, Line(_harness.Lines.Count - 1).GetProperty("suppressedCount").GetInt32());
+            _harness.Time.Advance(SignedEndpointLimits.FailureLogWindow);
+        }
+
+        Assert.Equal(addresses.Length * 2, _harness.Lines.Count);
+    }
+
+    [Fact]
+    public void EndedWindowsWithoutACount_AreDroppedAtTheSweep_AndThoseWithACountStayUntilTheirAddressComesBack()
     {
         for (int i = 1; i <= 50; i++)
         {
             IPAddress address = IPAddress.Parse("203.0.113." + i.ToString(System.Globalization.CultureInfo.InvariantCulture));
             _harness.Failures.Record(address, SignatureFailureReason.SignatureInvalid);
-            _harness.Failures.Record(address, SignatureFailureReason.SignatureInvalid);
+            if (i <= 10)
+            {
+                _harness.Failures.Record(address, SignatureFailureReason.SignatureInvalid);
+            }
         }
 
         Assert.Equal(50, _harness.Failures.TrackedAddressCount);
@@ -150,8 +184,11 @@ public sealed class SignatureFailureLogTests : IDisposable
 
         _harness.Failures.Record(First, SignatureFailureReason.SignatureInvalid);
 
-        Assert.Equal(1, _harness.Failures.TrackedAddressCount);
-        Assert.Equal(50 + 50 + 1, _harness.Lines.Count);
+        Assert.Equal(10 + 1, _harness.Failures.TrackedAddressCount);
+        Assert.Equal(50 + 1, _harness.Lines.Count);
+
+        _harness.Failures.Record(IPAddress.Parse("203.0.113.1"), SignatureFailureReason.SignatureInvalid);
+        Assert.Equal(1, Line(_harness.Lines.Count - 1).GetProperty("suppressedCount").GetInt32());
     }
 
     [Fact]

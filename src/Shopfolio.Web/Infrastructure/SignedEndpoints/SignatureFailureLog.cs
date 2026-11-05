@@ -11,9 +11,10 @@ namespace Shopfolio.Infrastructure.SignedEndpoints;
 /// address write no line until <see cref="SignedEndpointLimits.FailureLogWindow"/> has passed since that line, and are only counted; the count is
 /// a field of the address's first line after the window. The address is the axis of the general rate limit - an IPv4 address, an IPv6 /64
 /// (07 2.8.2) - and is not written: the line's request id joins it to the access log, which has the address (05 9.1.2). The line carries the
-/// reason and the count only - no body, no field, no signature, no key. The windows are kept in memory, as the rate limit's counters are
-/// (05 11.2.9), and every ended window is dropped at the next sweep, so the memory does not grow with the addresses seen; an ended window with
-/// a count writes that count as its address's line at the sweep, when the address has not come back by then.
+/// reason and the count only - no body, no field, no signature, no key. The count is written only on its own address's line, never on the line
+/// of another address's request (that line carries the other request's id). The windows are kept in memory, as the rate limit's counters are,
+/// and are lost at a restart (05 11.2.9). An ended window without a count is dropped at the next sweep, as nothing is lost with it; an ended
+/// window with a count stays until its address comes back and its line carries the count.
 /// </summary>
 internal sealed partial class SignatureFailureLog
 {
@@ -71,61 +72,40 @@ internal sealed partial class SignatureFailureLog
         string key = AddressKey(address);
         DateTimeOffset now = _time.GetUtcNow();
         int counted;
-        List<Window> ended;
         lock (_gate)
         {
-            ended = Sweep(now, key);
+            Sweep(now);
             if (_windows.TryGetValue(key, out Window? window) && now - window.OpenedAt < SignedEndpointLimits.FailureLogWindow)
             {
-                window.Count(reason);
-                counted = -1;
+                window.Count();
+                return false;
             }
-            else
-            {
-                counted = window?.Counted ?? 0;
-                _windows[key] = new Window(now);
-            }
-        }
 
-        foreach (Window flushed in ended)
-        {
-            LogSampled(_logger, LogEvents.SignatureFailureSampled, flushed.LastReason, flushed.Counted);
-        }
-
-        if (counted < 0)
-        {
-            return false;
+            counted = window?.Counted ?? 0;
+            _windows[key] = new Window(now);
         }
 
         LogSampled(_logger, LogEvents.SignatureFailureSampled, reason, counted);
         return true;
     }
 
-    // Once a window long: drops every window that ended, so the memory holds only the addresses of the last windows. An ended window with a
-    // count is not lost: it is returned, and its count is written as the address's first line after the window - with the reason of its last
-    // counted request. The current request's own address is left to the caller, whose new line carries the count.
-    private List<Window> Sweep(DateTimeOffset now, string currentKey)
+    // Once a window long: drops every ended window without a count - its address's next line would carry a count of zero, as with no window.
+    // An ended window with a count is kept: the count is a field of its address's first line after the window and of no other line.
+    private void Sweep(DateTimeOffset now)
     {
-        List<Window> ended = [];
         if (now - _lastSweep < SignedEndpointLimits.FailureLogWindow)
         {
-            return ended;
+            return;
         }
 
         _lastSweep = now;
         foreach (KeyValuePair<string, Window> entry in _windows.ToArray())
         {
-            if (!string.Equals(entry.Key, currentKey, StringComparison.Ordinal) && now - entry.Value.OpenedAt >= SignedEndpointLimits.FailureLogWindow)
+            if (entry.Value.Counted == 0 && now - entry.Value.OpenedAt >= SignedEndpointLimits.FailureLogWindow)
             {
                 _windows.Remove(entry.Key);
-                if (entry.Value.Counted > 0)
-                {
-                    ended.Add(entry.Value);
-                }
             }
         }
-
-        return ended;
     }
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "{Event} {Reason} {SuppressedCount}")]
@@ -142,12 +122,6 @@ internal sealed partial class SignatureFailureLog
 
         public int Counted { get; private set; }
 
-        public SignatureFailureReason LastReason { get; private set; }
-
-        public void Count(SignatureFailureReason reason)
-        {
-            Counted++;
-            LastReason = reason;
-        }
+        public void Count() => Counted++;
     }
 }

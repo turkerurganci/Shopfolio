@@ -1,6 +1,6 @@
 # T203 — İmzalı makine ucu altyapısı: imza denetimi, gövde tavanı
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 FAIL) | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 FAIL → düzeltme 1 push edildi, tur 2 bekliyor) | **Tarih:** 2026-11-05
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -9,21 +9,21 @@
 
 ## Yapılan İşler
 
-- **Ortak ardışık düzen** `Infrastructure/SignedEndpoints/SignedEndpointHandler`: (1) gövde tavanı — bildirilen uzunluk tavanı aşıyorsa gövde okunmadan 413; uzunluk yoksa en çok tavan+1 bayt okunur, sunucunun gövde sınırı da tavana çekilir; (2) form okunur (okunamayan, iki kez verilen alan, dosya → imza tutmuyor sayılır) ve ucun `Verify`'ı imzayı denetler — tutmazsa 400 gövdesiz, seyreltilmiş güvenlik satırı, kayıt ve iş satırı yok; (3) kayıt ile iş satırı `ITransactionRunner` işleminde, "alındı" (200 + ucun kendi gövdesi) işlem kesinleştikten sonra; tekrar `AlreadyRecorded` → aynı yanıt; (4) yazımda ya da kesinleşmede veritabanı hatası (`DbUpdateException`, `DbException`) → `UnexpectedError` satırı, gövdesiz 500.
+- **Ortak ardışık düzen** `Infrastructure/SignedEndpoints/SignedEndpointHandler`: (1) gövde tavanı — bildirilen uzunluk tavanı aşıyorsa gövde okunmadan 413; uzunluk yoksa en çok tavan+1 bayt okunur, sunucunun gövde sınırı da tavana çekilir; (2) form okunur (okunamayan, iki kez verilen alan, dosya → imza tutmuyor sayılır) ve ucun `Verify`'ı imzayı denetler — tutmazsa 400 gövdesiz, seyreltilmiş güvenlik satırı, kayıt ve iş satırı yok; (3) kayıt ile iş satırı `ITransactionRunner` işleminde, "alındı" (200 + ucun kendi gövdesi) işlem kesinleştikten sonra; tekrar `AlreadyRecorded` → aynı yanıt; (4) yazımda ya da kesinleşmede veritabanı hatası yakalanmaz — uçtan tek yakalama katmanına çıkar, katmanın "Makine ucu" satırı gövdesiz 500 verir (`09 §8.1`; katman T212, D-107); yanıta hiçbir şey yazılmamıştır (düzeltme 1, B2).
 - **Uç arayüzü** `ISignedEndpoint<TNotice>`: `Acknowledgement`, `Verify(formFields)`, `RecordAsync` (açık işleme yazar, kaydetmez; tekrar için `INSERT ... ON CONFLICT DO NOTHING`). Sonuç `InboundRecordOutcome` (`Recorded`, `AlreadyRecorded`).
 - **Sabit zamanlı karşılaştırma** `Infrastructure/Integrations/SignatureComparison.Matches` (`CryptographicOperations.FixedTimeEquals`, UTF-8 bayt); boş/eksik imza asla tutmaz.
-- **Seyreltilmiş satır** `SignatureFailureLog`: adres ekseni genel sınırınki (IPv4, IPv6 /64); ilk istek bir `SignatureFailureSampled` satırı (`reason`, `suppressedCount`), 60 sn içindekiler yalnız sayılır, sayı pencere sonrasındaki ilk satırdadır; IP satıra yazılmaz. Süpürme her bitmiş pencereyi bellekten düşürür; sayısı olan bitmiş pencere o anda kendi satırını yazar (bellek gördüğü adreslerle büyümez, sayı kaybolmaz).
+- **Seyreltilmiş satır** `SignatureFailureLog`: adres ekseni genel sınırınki (IPv4, IPv6 /64); ilk istek bir `SignatureFailureSampled` satırı (`reason`, `suppressedCount`), 60 sn içindekiler yalnız sayılır, sayı pencere sonrasındaki ilk satırdadır; IP satıra yazılmaz. Sayı yalnız o adresin pencere sonrasındaki ilk satırına yazılır, başka adresin isteğinin satırına hiç yazılmaz; süpürme yalnız sayısız bitmiş pencereyi düşürür, sayılı pencere adres dönene kadar bellekte kalır (düzeltme 1, B1; bellek tavanı D-108).
 - **Sabitler** `SignedEndpointLimits`: `BodyMaxBytes = 64 × 1024`, `FailureLogWindow = 60 sn`; `09 §3.5` tablosuna satır.
 - **Bağlama** `AddSignedEndpoints()` (`Program.cs`) ve `MapSignedEndpoint<TEndpoint,TNotice>(path)`: yalnız POST, `DisableAntiforgery()`. Gerçek bildirim ucu T311'de, PayTR imza hesabı T402'de bağlanır.
 - **Kaynak taraması** `UnitTests/Architecture/SignatureComparisonSourceScan` + kasıtlı ihlal örneği `ViolationSamples/SignatureComparison/EarlyExitComparisons.cs` (11 ihlal biçimi; sabit zamanlı çağrı ve yorumlar bulgu değil).
-- **Belgeler:** `09 §3.5` satırı, `§11.1` m.5 (ortak düzen, karşılaştırma, tarama), `§15.2` m.2 (makine ucunda `DisableAntiforgery()`), `§18.2` m.3 (alanlar, süpürme); `CONTEXT.md` klasör haritası.
+- **Belgeler:** `09 §3.5` satırı, `§11.1` m.5 (ortak düzen, karşılaştırma, tarama), `§15.2` m.2 (makine ucunda `DisableAntiforgery()`), `§18.2` m.3 (alanlar; sayı yalnız o IP'nin satırında); `CONTEXT.md` klasör haritası; `DEFERRED_BACKLOG` D-107, D-108.
 
 ## Etkilenen Modüller / Dosyalar
 
 - `src/Shopfolio.Web/Infrastructure/SignedEndpoints/` (6 dosya), `Infrastructure/Integrations/SignatureComparison.cs`, `Program.cs`
 - `tests/Shopfolio.UnitTests/SignedEndpoints/` (4), `Integrations/SignatureComparisonTests.cs`, `Architecture/SignatureComparisonSourceScan*.cs` + ihlal örneği, `Consistency/SignedEndpointLimitsConsistencyTests.cs`
 - `tests/Shopfolio.IntegrationTests/SignedEndpoints/SignedEndpointDatabaseTests.cs`
-- `Docs/09_CODING_GUIDELINES.md`, `.claude/CONTEXT.md`, `Docs/IMPLEMENTATION_STATUS.md`, `.claude/memory/MEMORY.md`
+- `Docs/09_CODING_GUIDELINES.md`, `.claude/CONTEXT.md`, `Docs/IMPLEMENTATION_STATUS.md`, `.claude/memory/MEMORY.md`, `Docs/DEFERRED_BACKLOG.md`
 
 ## Kabul Kriterleri Kontrolü
 
@@ -32,29 +32,66 @@
 | 1 | İmza işleyiciden ve kuyruktan önce | ✓ | `SignedEndpointHandler.HandleAsync` sırası; `ValidSignature_IsVerifiedFirst_...` (`Verify, Begin, RecordAsync, Commit`); Integration `BrokenOrEmptySignature_...`/`MissingSignature_...` iş satırı 0 |
 | 2 | Sabit zamanlı karşılaştırma | ✓ | `SignatureComparison.Matches` (`FixedTimeEquals`); `SignatureComparisonTests`; `SignatureComparisonSourceScanTests` (gerçek ağaç temiz + ihlal örneği 11 satır) |
 | 3 | Tutmayan/imzasız → kayıt yok, işlenmez, 400 gövdesiz | ✓ | `BrokenOrEmptySignature_Gets400...`, `MissingSignature_Gets400...` (Unit + Integration: satır yok, iş satırı yok) |
-| 4 | Seyreltilmiş güvenlik olayı | ✓ | `SignatureFailureLogTests` (sahte saat, pencere `FailureLogWindow`'dan); `RejectedRequest_WritesOneThinnedSecurityLine_...` (gövde/imza/IP yok) |
+| 4 | Seyreltilmiş güvenlik olayı | ✓ | `SignatureFailureLogTests` (sahte saat, pencere `FailureLogWindow`'dan); çok adresli `AnEndedWindowWithACount_WritesNoLineAtAnotherAddressesRequest_AndItsAddressesNextLineCarriesTheCount`, `ManyAddresses_EachCountIsWrittenOnlyOnItsOwnAddressesLine`; `RejectedRequest_WritesOneThinnedSecurityLine_...` (gövde/imza/IP yok) |
 | 5 | Önce kayıt, kesinleşince "alındı" | ✓ | Unit sıra testi; Integration `ValidSignature_IsRecordedWithItsJobRow_AndReceivedOnlyAfterTheCommit` (kesinleşme anında dışarıdan 0 satır, yanıttan sonra 1 kayıt + 1 `InboundNotificationProcessing` iş satırı) |
 | 6 | Tekrar kaydedilmez, işlenmez, "alındı" | ✓ | `SameNoticeAgain_...` (Unit + Integration: aynı durum ve gövde, tek kayıt, tek iş satırı) |
-| 7 | Kaydedilemeyen → 500 | ✓ | Unit `DatabaseErrorOnTheWrite_/OnTheCommit_Gets500...`; Integration `DatabaseErrorOnTheCommit_Gets500...` (kesinleşmede `NpgsqlException`), `RecordThatBreaksARule_Gets500...` (`amount_not_negative`) — satır yok |
+| 7 | Kaydedilemeyen → 500 | ✓ | "Alındı" yok, hata tek yakalama katmanına çıkar (500'ü katmanın makine ucu satırı yazar — `09 §8.1`; T212, D-107): Unit `DatabaseErrorOnTheWrite_/OnTheCommit_IsNotCaught_AndNothingIsWrittenToTheResponse` (istisna çıkar, yanıt başlamamış, gövde/tür/satır yok); Integration `DatabaseErrorOnTheCommit_LeavesTheEndpointForTheCatchingLayer_...` (kesinleşmede `NpgsqlException`), `RecordThatBreaksARule_LeavesTheEndpointForTheCatchingLayer_...` (`amount_not_negative`, SQLSTATE 23514) — kayıt ve iş satırı yok |
 | 8 | Gelen kayıt kişisel alan taşımaz | ✓ | `InboundRecordFieldsTests` (alan → tür eşlemesi `05 §4.5.2`; kayıt ve `PaymentNotice` alan adları biçimleyicinin yasak listesinde değil; ihlal örneği `PayerCard`) |
 | 9 | 64 KB tavan okumadan ve imzadan önce, 413; sahtecilik dışı | ✓ | `DeclaredLengthAboveTheLimit_Gets413WithoutReadingTheBody_...` (okunamayan akış), `UndeclaredBodyAboveTheLimit_...`, `BodyExactlyAtTheLimit_...`; Integration `BodyAboveTheLimit_Gets413...`; `MappedEndpoint_IsPostOnly_AndOutsideTheForgeryProtection`; Integration `TokenlessPost_IsHandledBySignedEndpoint_WhileTheProtectedFormOfTheSameAppIsRefused`; 429 T215 |
 
-### Öz denetim (bitiş kapısı 2)
+### Öz denetim (bitiş kapısı 2) — düzeltme 1'de bütünüyle yeniden denetlendi
+
+Kaynak: `11` satır 931–951 (T203 kabul kriterleri ve kontrol listesi), `12` VAL-E045–E052, `09 §25` (satır 2324–2426); son diff `origin/main...HEAD`. SEH = `src/Shopfolio.Web/Infrastructure/SignedEndpoints/SignedEndpointHandler.cs`, SFL = aynı klasörde `SignatureFailureLog.cs`.
 
 | Madde (kabul kriteri / KK) | Sonuç | Kanıt (dosya:satır, test adı) |
 |---|---|---|
-| KK1 imza işleyiciden önce; bozuk/eksik imzada iş satırı yok | ✓ | `SignedEndpointHandler.cs` `HandleAsync` (Verify → RunAsync); Integration `AssertEmptyAndNothingRecordedAsync` (`jobs` 0) |
-| KK2 sabit zamanlı işlev | ✓ | `SignatureComparison.cs`; tarama yalnız bu dosyayı dışlar (`Applies_ToTheTwoFolders_ExceptTheComparisonFileItself`), ihlal örneği ayrı |
-| KK3 bozuk imza 400, gövde boş, satır yok | ✓ | `BrokenOrEmptySignature_*` (Unit, Integration) |
-| KK4 güvenlik satırı seyreltilmiş | ✓ | `SignatureFailureLogTests.*`; satırda yalnız `event`, `reason`, `suppressedCount` |
-| KK5 kesinleşmeden sonra yanıt | ✓ | `ValidSignature_IsRecordedWithItsJobRow_AndReceivedOnlyAfterTheCommit` (`CommitStep` kesinleşme anında ayrı bağlantıdan sayar) |
-| KK6 tekrar: ikinci satır yok, yanıt aynı | ✓ | `SameNoticeAgain_IsReceivedWithTheSameAnswer_AndWritesNoSecondRecordOrJobRow` |
-| KK7 veritabanı hatasında 500 | ✓ | `DatabaseErrorOnTheCommit_Gets500...`, `RecordThatBreaksARule_Gets500...` |
-| KK8 kayıtta kişisel alan yok | ✓ | `InboundRecordFieldsTests` (3 test) |
-| KK9 64 KB üstü imzadan önce 413; sahtecilik denetimi yok; 429 T215 | ✓ | 413 testleri (`SignedEndpointLimits.BodyMaxBytes`'tan türetilir), `MappedEndpoint_*`, `TokenlessPost_*` |
-| `09 §25` ilgili satırlar | ✓ | PR açıklaması |
-| Güvenlik taraması | ✓ | Kayıt satırında gövde/imza/anahtar/IP yok (testler `DoesNotContain`); 500 satırında yalnız istisna türü (biçimleyici ileti yazmaz); tavan okumadan önce; tarama istisnası tek dosya |
-| Sık FAIL listesi | ✓ | Sabitler `09 §3.5`'te; testler sabitten türetir; sahte saat (`ManualTimeProvider`); Integration kendi koleksiyonu (`SignedEndpoint`), yalnız kendi veritabanında `TRUNCATE`; ihlal örneği ayrı dosya; 09/CONTEXT/STATUS/MEMORY güncel |
+| KK1 imza işleyiciden önce; bozuk/eksik imzada iş satırı yok | ✓ | SEH:40–59 (tavan → form → `Verify` → `RunAsync`); Unit `ValidSignature_IsVerifiedFirst_...` (`SignedEndpointHandlerTests.cs:26`); Integration `BrokenOrEmptySignature_*` (:234), `MissingSignature_*` (:244) — `jobs` 0 |
+| KK2 sabit zamanlı işlev | ✓ | `Integrations/SignatureComparison.cs` (`FixedTimeEquals`); `SignatureComparisonSourceScanTests` (gerçek ağaç temiz + ihlal örneği 11 satır) |
+| KK3 bozuk imza 400, gövde boş, satır yok | ✓ | SEH:50–54; `BrokenOrEmptySignature_*` (Unit :52, Integration :234) |
+| KK4 güvenlik satırı seyreltilmiş (sayı yalnız o IP'nin satırında) | ✓ | SFL:70–89 (sayı yalnız `key`'in yeni satırına), SFL:94–108 (süpürme yalnız sayısız pencereyi düşürür, satır yazmaz); `SignatureFailureLogTests.cs:120` (A düşer, B pencere sonrası düşer → B'nin satırı 0, ek satır yok; A döner → A'nın satırı 1), :142 (üç adres, ters sırada dönüş, her biri kendi sayısı), :170 (sayısız 40 pencere düşer, sayılı 10 kalır); satır alanları yalnız `event`, `reason`, `suppressedCount` (:25, :107) |
+| KK5 kesinleşmeden sonra yanıt | ✓ | SEH:59–63 (`RunAsync` döndükten sonra 200 + gövde); Integration `ValidSignature_IsRecordedWithItsJobRow_AndReceivedOnlyAfterTheCommit` (:198) |
+| KK6 tekrar: ikinci satır yok, yanıt aynı | ✓ | Unit `SameNoticeAgain_*` (:38); Integration `SameNoticeAgain_*` (:218) |
+| KK7 veritabanı hatasında 500 | ✓ | SEH:57–59 yakalamaz; hata tek yakalama katmanına çıkar, 500'ü katmanın "Makine ucu" satırı üretir (`09 §8.1` m.3; T212 m.6; D-107). Unit :116, :128 (istisna çıkar, `HasStarted` false, gövde/tür/satır yok → katman 500 yazabilir); Integration :271, :283 (kayıt ve iş satırı yok, ardışık düzenin `UnexpectedError` satırı yok) |
+| KK8 kayıtta kişisel alan yok | ✓ | `InboundRecordFieldsTests.cs:39`, :47, :58 |
+| KK9 64 KB üstü imzadan önce 413; sahtecilik denetimi yok; 429 T215 | ✓ | SEH:41–46, :71–99; Unit :149, :164, :180; Integration :255, :294, :305; `MappedEndpoint_*` (:193); 429 T215 m.4 |
+| Güvenlik taraması | ✓ | Ret satırında gövde/imza/IP yok (`RejectedRequest_*` :98, `Line_CarriesNoAddress` :107); ardışık düzen artık hata satırı yazmaz (istisna iletisi katmanın maskelemesinden geçecek, `09 §8.1` m.7); tavan okumadan önce; tarama istisnası tek dosya |
+| Sık FAIL listesi | ✓ | Kural değişince öteki yerler: `09 §18.2` m.3, `§11.1` m.5, `CONTEXT.md` SignedEndpoints satırı, rapor; karar kaydısız belge değişikliği yok (09'un yeni cümleleri `05 §4.5.2`/`07 §4.30.1`/`09 §8.1`'i yineler, yeni kural koymaz); yeni sabit yok (`09 §3.5` değişmedi; bellek tavanı D-108); geçici çözüm backlog'lu (D-107); testler `ManualTimeProvider` ile, gerçek saat yok |
+
+**`09 §25` madde madde** (dokunulmayan alan "uygulanamaz" + gerekçe):
+
+| Soru (kısaltılmış) | Cevap | Kanıt |
+|---|---|---|
+| Çekirdek ve Kaynak dokümanlar okunmuş mu | evet | `08 §3.2`, `05 §4.5.2`, §9.1.3, §11.2.9, `07 §4.30.1`, §2.8.2, `09 §3.5`, §8.1, §11.1, §15.2, §18.2 — bu raporda ve PR açıklamasında anılır |
+| Yeni ad sözlükten/06/07'den birebir mi | evet | `SignatureFailureSampled`, `reason`, `suppressedCount` `09 §18.2` m.3'te; tablo adları `inbound_notification_records`, `jobs` `06`'dan |
+| Kod hiçbir doküman cümlesiyle çelişmiyor mu | evet | B1: sayı o IP'nin ilk satırında (`05 §4.5.2` "o IP'nin yazılan ilk satırının alanı") — SFL:84–88; B2: geniş/yutan yakalama yok — SEH:57–59 |
+| Diff yalnız görevin istediğini mi içeriyor | evet | düzeltme 1 diff'i: SFL, SEH, dört test dosyası, 09 iki cümle, CONTEXT bir hücre, backlog iki satır, rapor/status |
+| "Bilgim tarihli" olgular doğrulanmış mı | evet | Dış varsayımlar tablosu 1–2; TestServer'ın yakalanmayan istisnayı istemciye taşıdığı Integration :271, :283'te görüldü |
+| Yeni ayar/süre/tavan §3.5'te mi; `.env.example` | evet | iki sabit (`BodyMaxBytes`, `FailureLogWindow`) `09` satır 351'de, `SignedEndpointLimitsConsistencyTests`; düzeltme 1'de yeni sabit yok; ortam değişkeni yok, `.env.example` değişmedi |
+| Dosya düzeni §4.1; `CONTEXT.md` güncel | evet | `Infrastructure/SignedEndpoints/`; `CONTEXT.md` satır 105 |
+| Modül sınırları; mimari testler yeşil | evet | ortak altyapı modül türüne başvurmaz; Unit 1176/1176 (mimari testler dahil) |
+| Aynı işi yapan tek işlev çağrılmış mı | evet | `ITransactionRunner`, `IJobQueue`, `LogEvents`, `SignatureComparison` tek yer |
+| C# standartları, derleme ayarları | evet | `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` 0; bastırma yok |
+| Zaman yalnız `TimeProvider`'dan | evet | SFL:31, :73 (`_time.GetUtcNow()`); `DateTime.` yok (grep) |
+| Yeni paket | uygulanamaz | `git diff --stat origin/main` `*.props`, `packages.lock.json`, `*.csproj` boş |
+| Dış servis çağrısı; imza işleyiciden önce | evet | SEH:49 `Verify` kayıttan önce; sağlayıcı çağrısı yok |
+| İstisna yalnız beklenmeyen hâlde; geniş `catch` altı yerin dışında yok | evet | SEH'de kalan üç `catch` belirli türdür ve bilinen reddi üretir (SEH:93 413 `BadHttpRequestException` süzgeci yalnız 413; :118 `InvalidDataException`, :122 `IOException` → okunamayan form, 400); veritabanı hatası yakalanmaz (B2) |
+| Ön yüz kodu | uygulanamaz | sayfa/görünüm yok |
+| Durum geçişi, işlem izi, eşzamanlılık, arka plan işi, para | uygulanamaz | geçiş, `AuditOperation`, kilit, yeni iş türü, para hesabı yok; iş satırı testte `IJobQueue.EnqueueAsync` ile aynı işlemde |
+| Veri ve göç (FK, sayfalı liste, önbellek, göç, kullanıcı, değer) | uygulanamaz | göç, tablo, enum, kullanıcı, yük biçimi yok |
+| Kayıtta sır ve kişisel veri yok | evet | ret satırı alanları yalnız `reason`, `suppressedCount`; IP yok (:107); testteki anahtar yer tutucu |
+| Yeni POST sahtecilik korumasından geçiyor mu; dışlama gerekçeli | evet | `DisableAntiforgery()` yalnız `MapSignedEndpoint`'te, gerekçe `07 §2.5.5`, `09 §15.2` m.2; liste ve mimari testi T209 |
+| Yetkilendirme sunucu tarafında | uygulanamaz | kimliksiz makine ucu, tek güvence imza |
+| Yeni giriş yüzeyi hız sınırı kapsamında | evet | form gönderimi sınırı ve 429 T215 m.4'te planlı (`11` satır 939) |
+| `SecretKey`, HTML temizleyici, yükleme, e-posta kaçışı, korumalı değer | uygulanamaz | bu alanlara dokunulmadı |
+| Değişen kuralın Test maddesi karşılanmış mı | evet | `09 §18.2` m.3 → `SignatureFailureLogTests` :120, :142, :170; `09 §8.1` m.6 → Unit :116, :128 |
+| Davranışı kilitleyen test; test silinmemiş/zayıflatılmamış | evet | sapmayı sabitleyen `AnEndedWindowWithACount_IsWrittenAtTheNextSweep_*` belgeye göre değiştirildi (:120); 500 testleri istisnanın çıktığını ve hiçbir şey yazılmadığını sınar |
+| Doğru katman, sahteler `Fakes/`'ten, gerçek saat yok | evet | veritabanı davranışı gerçek PostgreSQL 18'de; `ManualTimeProvider` (`UnitTests/Fakes`) |
+| Yeni yasak için tarama + ihlal örneği | evet | `SignatureComparisonSourceScan` + `EarlyExitComparisons.cs`; düzeltme 1'de yeni yasak yok |
+| Eşitlik denetimleri | uygulanamaz | kütüphane tablosu, envanter, geçiş listesi değişmedi |
+| Performans (sayfalı küme, döngüde sorgu, `.Result`) | evet | sorgu yok; `.Result`/`.Wait()` yok; süpürme pencere başına bir kez (SFL:96) |
+| PR tek amaçlı; commit/PR kurala uygun | evet | commit `T203: düzeltme 1 — ...`; dal izolasyonu yalnız T203 |
+| CI yeşil mi | — | CI'ı yönetici izler (işçi beklemez) |
+| Yama sürümü göç, refactor | uygulanamaz | göç ve davranışsız refactor yok |
 
 ## Test Sonuçları
 
@@ -106,13 +143,15 @@ Derleme: `dotnet build Shopfolio.slnx -c Release -warnaserror` 0 uyarı; `dotnet
 | 2 | PayTR imza hesabı | — (planlı: T402) | sağlayıcı uygulaması |
 | 3 | Koruma dışı uçlar listesi `AntiforgeryExemptions` ve mimari testi | — (planlı: T209 m.6, KK6) | sahtecilik korumasının task'ı |
 | 4 | Bozuk imzanın form gönderimi sınırına sayılması, 429 | — (planlı: T215 m.4) | hız sınırının task'ı |
+| 5 | İmzalı ucun beklenmeyen hatası tek yakalama katmanının "Makine ucu" satırına bağlanır (işaret, `UnexpectedOperationError` satırı, 500 sayacı, entegrasyon testi) | D-107 (T212) | katman T212'nin |
+| 6 | Seyreltme belleğinin tavanı (taşma hâli belge kararı ister) | D-108 (T215) | tavan `05`/`07`'den ayrılır; hız sınırı sayaçlarıyla birlikte karara bağlanır |
 
 ## Notlar
 
 - **Working tree (Adım -1):** temiz
 - **Ana dal CI startup (Adım 0):** CI 42042657330 success, Publish 42042657292 success (T202 #396)
 - **Repo memory (bitiş kapısı 9):** güncellendi
-- **Diğer:** iki yapım işçisiyle yapıldı (devir notu 1); 500 ayrımı T212'nin yakalama katmanı gelene kadar işleyicide.
+- **Diğer:** iki yapım işçisiyle yapıldı (devir notu 1); düzeltme 1'den sonra 500 ardışık düzende üretilmez — hata tek yakalama katmanına çıkar (T212, D-107).
 
 ---
 
@@ -205,3 +244,16 @@ Derleme: `dotnet build Shopfolio.slnx -c Release -warnaserror` 0 uyarı; `dotnet
 ### Merge ve Post-merge
 - Squash: — (FAIL; merge yok)
 - Post-merge run'lar: —
+
+---
+
+## Düzeltme 1 — tur 1 bulgularının kapanışı (2026-11-05)
+
+| # | Bulgu | Kapanış | Kanıt |
+|---|---|---|---|
+| B1 | Süpürme, bitmiş pencerenin sayısını başka adresin isteğinde yazıyor | Davranış `05 §4.5.2` / `07 §4.30.1`'e uyduruldu: sayı yalnız o IP'nin pencere sonrasındaki ilk satırının alanıdır. Süpürme artık satır yazmaz; yalnız sayısız bitmiş pencereyi düşürür (onunla bir şey kaybolmaz — adresin sonraki satırı zaten 0 taşır), sayılı pencere adres dönene kadar kalır. Pencerenin son nedeni (`LastReason`) gereksizleşti, silindi. `09 §18.2` m.3'teki aykırı cümle ("IP dönmezse sayı bir sonraki süpürmede kendi satırıyla yazılır") belgeye uyan cümleyle değişti; karar kaydı gerekmez, yeni kural konmadı | `SignatureFailureLog.cs` `Record`, `Sweep`; sapmayı sabitleyen test belgeye göre değişti → `AnEndedWindowWithACount_WritesNoLineAtAnotherAddressesRequest_AndItsAddressesNextLineCarriesTheCount` (A düşer, B pencere sonrası düşer → B'nin satırı 0, A'nın satırı yazılmaz; A döner → A'nın satırı 1); yeni `ManyAddresses_EachCountIsWrittenOnlyOnItsOwnAddressesLine`; `EndedWindows_AreDroppedAtTheSweep_*` → `EndedWindowsWithoutACount_AreDroppedAtTheSweep_AndThoseWithACountStayUntilTheirAddressComesBack` |
+| B2 | İşleyici veritabanı hatasını yakalayıp kendi 500'ünü yazıyor | `DbUpdateException` / `DbException` yakalaması ve ardışık düzenin `UnexpectedError` satırı silindi; hata uçtan çıkar, yanıt başlamamıştır (`09 §8.1` m.3, m.6–7). Katman yokken Kestrel gövdesiz 500 verir; katmanın makine ucu satırı, kaydı ve sayacı T212'nin payıdır → **D-107** (hedef T212). `09 §11.1` m.5 ve `CONTEXT.md` aynı cümleyle güncel | Unit `DatabaseErrorOnTheWrite_IsNotCaught_*`, `DatabaseErrorOnTheCommit_IsNotCaught_*` (istisna çıkar, `HasStarted` false, gövde/tür/satır yok); Integration `DatabaseErrorOnTheCommit_LeavesTheEndpointForTheCatchingLayer_*`, `RecordThatBreaksARule_LeavesTheEndpointForTheCatchingLayer_*` (istisna istemciye çıkar; kayıt 0, iş satırı 0; `UnexpectedError` satırı yok) |
+| K1 | Seyreltme belleğinin tavanı | **Karar: tavan konmadı.** Her tavan taşma hâlinde ya sayıyı düşürür ya da seyreltmeyi bırakır; ikisi de `05`/`07`'den ayrılır ve karar kaydı ister. Bellek: son pencerede düşen adresler + sayısı bekleyen (60 sn'de en az iki kez düşüp dönmeyen) adresler; yeniden başlatmada sıfırlanır (`05 §11.2.9`, hız sınırı sayaçlarıyla aynı nitelik). Tavan sorusu **D-108**'de (hedef T215): genel sınırın bellek sayaçlarıyla aynı eksende karara bağlanır; gerekirse önce `05 §4.5.2`'ye taşma hâli, `09 §3.5`'e sabit, testi | `SignatureFailureLog.cs` `Sweep`; `EndedWindowsWithoutACount_*` (50 adres → 10 sayılı + 1 kalır) |
+| K2 | Öz denetimin `09 §25` satırı madde madde değil | Öz denetim tablosu bütünüyle yeniden denetlendi; `09 §25`'in her sorusu ayrı satırda cevap + kanıtla | Yukarıda "`09 §25` madde madde" |
+
+**Testler (düzeltme 1 head'i):** build `-warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` çıkış 0; Unit 1176/1176; Integration (PostgreSQL 18 konteyneri `shopfolio-t203-fix1-pg`, sonra silindi) SignedEndpoints 10/10, Logging 30/30, Web 75/75.

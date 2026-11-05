@@ -135,7 +135,7 @@ internal sealed class SignedEndpointHarness : IDisposable
         _root = new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.Sink(Sink).CreateLogger();
         _factory = new SerilogLoggerFactory(_root);
         Failures = new SignatureFailureLog(Time, new Microsoft.Extensions.Logging.Logger<SignatureFailureLog>(_factory));
-        Handler = new SignedEndpointHandler(Failures, new Microsoft.Extensions.Logging.Logger<SignedEndpointHandler>(_factory));
+        Handler = new SignedEndpointHandler(Failures);
         Transactions = new TestTransactionRunner(Endpoint.Calls);
     }
 

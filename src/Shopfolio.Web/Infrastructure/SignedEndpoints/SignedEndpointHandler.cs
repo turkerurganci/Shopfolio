@@ -1,10 +1,6 @@
-using System.Data.Common;
 using System.Text;
 
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.EntityFrameworkCore;
-
-using Shopfolio.Infrastructure.Logging;
 
 namespace Shopfolio.Infrastructure.SignedEndpoints;
 
@@ -18,21 +14,20 @@ namespace Shopfolio.Infrastructure.SignedEndpoints;
 /// body and a thinned security line (<see cref="SignatureFailureLog"/>);
 /// (3) the record of the verified notice with its job row in one transaction, and "received" (200 and the service's own body) only after that
 /// transaction has committed; the same notice again is "received" and writes nothing;
-/// (4) a notice that cannot be recorded - a database error on the write or on the commit - is never "received": 500 with an empty body.
+/// (4) a notice that cannot be recorded - a database error on the write or on the commit - is never "received": the pipeline does not catch
+/// the error, it goes to the single catching layer (09 8.1), whose machine endpoint row answers 500 with an empty body and writes the line.
 /// The endpoint is outside the protection against cross-site forgery (07 2.5.5): it carries no form token and is mapped without the check.
 /// Counting a failed signature towards the form submission limit and its 429 belong to the rate limit (T215).
 /// </summary>
-internal sealed partial class SignedEndpointHandler
+internal sealed class SignedEndpointHandler
 {
     private const string AcknowledgementContentType = "text/plain; charset=utf-8";
 
     private readonly SignatureFailureLog _failures;
-    private readonly ILogger<SignedEndpointHandler> _logger;
 
-    public SignedEndpointHandler(SignatureFailureLog failures, ILogger<SignedEndpointHandler> logger)
+    public SignedEndpointHandler(SignatureFailureLog failures)
     {
         _failures = failures;
-        _logger = logger;
     }
 
     public async Task HandleAsync<TNotice>(HttpContext context, ISignedEndpoint<TNotice> endpoint, ITransactionRunner transactions)
@@ -59,20 +54,9 @@ internal sealed partial class SignedEndpointHandler
             return;
         }
 
-        try
-        {
-            await transactions.RunAsync(work => endpoint.RecordAsync(notice, work), ct);
-        }
-        catch (DbUpdateException exception)
-        {
-            NotRecorded(context, exception);
-            return;
-        }
-        catch (DbException exception)
-        {
-            NotRecorded(context, exception);
-            return;
-        }
+        // Not caught: a database error on the write or on the commit is an unexpected error and goes to the single catching layer (09 8.1
+        // items 3, 6, 7), whose machine endpoint row answers 500 with an empty body; nothing has been written to the response by then.
+        await transactions.RunAsync(work => endpoint.RecordAsync(notice, work), ct);
 
         context.Response.StatusCode = StatusCodes.Status200OK;
         context.Response.ContentType = AcknowledgementContentType;
@@ -147,13 +131,4 @@ internal sealed partial class SignedEndpointHandler
 
         return form.ToDictionary(field => field.Key, field => field.Value.ToString(), StringComparer.Ordinal);
     }
-
-    private void NotRecorded(HttpContext context, Exception exception)
-    {
-        LogNotRecorded(_logger, exception, LogEvents.UnexpectedError);
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-    }
-
-    [LoggerMessage(Level = LogLevel.Error, Message = "{Event}")]
-    private static partial void LogNotRecorded(ILogger logger, Exception exception, string @event);
 }

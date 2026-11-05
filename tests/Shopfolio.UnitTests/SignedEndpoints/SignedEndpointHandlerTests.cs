@@ -110,31 +110,39 @@ public sealed class SignedEndpointHandlerTests : IDisposable
         Assert.DoesNotContain("192.0.2.10", line, StringComparison.Ordinal);
     }
 
+    // 09 8.1 items 3, 6, 7: the pipeline does not catch a database error - it goes to the single catching layer (T212), which answers 500 and
+    // writes the line. The response is left untouched: no status, no body, no "received", no line of the pipeline's own.
     [Fact]
-    public async Task DatabaseErrorOnTheWrite_Gets500WithAnEmptyBody_NeverReceived()
+    public async Task DatabaseErrorOnTheWrite_IsNotCaught_AndNothingIsWrittenToTheResponse()
     {
         _harness.Endpoint.RecordFailure = new TestDatabaseException();
+        DefaultHttpContext context = SignedEndpointHarness.Request(TestSignedEndpoint.Body());
 
-        (int status, string body, _) = await _harness.SendAsync(SignedEndpointHarness.Request(TestSignedEndpoint.Body()));
+        await Assert.ThrowsAsync<TestDatabaseException>(() => _harness.Handler.HandleAsync(context, _harness.Endpoint, _harness.Transactions));
 
-        Assert.Equal(StatusCodes.Status500InternalServerError, status);
-        Assert.Empty(body);
+        AssertResponseUntouched(context);
+        Assert.Equal(["Verify", "Begin", "RecordAsync"], _harness.Endpoint.Calls);
     }
 
     [Fact]
-    public async Task DatabaseErrorOnTheCommit_Gets500WithAnEmptyBody_NeverReceived()
+    public async Task DatabaseErrorOnTheCommit_IsNotCaught_AndNothingIsWrittenToTheResponse()
     {
         _harness.Transactions.FailCommit = true;
+        DefaultHttpContext context = SignedEndpointHarness.Request(TestSignedEndpoint.Body());
 
-        (int status, string body, _) = await _harness.SendAsync(SignedEndpointHarness.Request(TestSignedEndpoint.Body()));
+        await Assert.ThrowsAsync<TestDatabaseException>(() => _harness.Handler.HandleAsync(context, _harness.Endpoint, _harness.Transactions));
 
-        Assert.Equal(StatusCodes.Status500InternalServerError, status);
-        Assert.Empty(body);
+        AssertResponseUntouched(context);
         Assert.Equal(["Verify", "Begin", "RecordAsync", "CommitFailed"], _harness.Endpoint.Calls);
-        JsonElement line = Line(0);
-        Assert.Equal(LogEvents.UnexpectedError, line.GetProperty("event").GetString());
-        Assert.Equal(typeof(TestDatabaseException).FullName, line.GetProperty("exceptionType").GetString());
-        Assert.DoesNotContain("order-1", _harness.Lines[0], StringComparison.Ordinal);
+    }
+
+    private void AssertResponseUntouched(DefaultHttpContext context)
+    {
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+        Assert.False(context.Response.HasStarted);
+        Assert.Equal(0, context.Response.Body.Length);
+        Assert.Null(context.Response.ContentType);
+        Assert.Empty(_harness.Lines);
     }
 
     [Fact]

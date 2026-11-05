@@ -31,6 +31,13 @@ public sealed class EmailOutageTests : IAsyncLifetime
 {
     private static readonly DateTimeOffset Start = new(2026, 11, 5, 10, 0, 0, TimeSpan.Zero);
 
+    // The moments of the three retries from the first attempt (P-38); the numbers live in ProductConstants only.
+    private static readonly DateTimeOffset FirstRetry = Start + DispatchRetrySchedule.RetriesFromFirstAttempt[0];
+
+    private static readonly DateTimeOffset SecondRetry = Start + DispatchRetrySchedule.RetriesFromFirstAttempt[1];
+
+    private static readonly DateTimeOffset ThirdRetry = Start + DispatchRetrySchedule.RetriesFromFirstAttempt[2];
+
     private static readonly EmailMessage Message = new("ali@example.com", "Örnek Mağaza", null, "Konu", "<p>metin</p>", "metin");
 
     private readonly CollectionDatabaseFixture _collection;
@@ -66,21 +73,21 @@ public sealed class EmailOutageTests : IAsyncLifetime
         DispatchAttemptResult first = await AttemptAsync(time, gateway, row);
 
         Assert.Equal(new DispatchAttemptResult(true, DispatchOutcome.ChannelError), first);
-        await AssertRowAsync(row, DispatchState.Queued, 1, Start.AddMinutes(5));
+        await AssertRowAsync(row, DispatchState.Queued, 1, FirstRetry);
         await AssertChannelAsync(1, Start, null);
 
         // The second attempt starts two minutes late: the later moments still count from the first attempt.
-        time.SetUtcNow(Start.AddMinutes(7));
+        time.SetUtcNow(FirstRetry.AddMinutes(2));
         await AttemptAsync(time, gateway, row);
-        await AssertRowAsync(row, DispatchState.Queued, 2, Start.AddMinutes(30));
+        await AssertRowAsync(row, DispatchState.Queued, 2, SecondRetry);
         await AssertChannelAsync(2, Start, null);
 
-        time.SetUtcNow(Start.AddMinutes(30));
+        time.SetUtcNow(SecondRetry);
         await AttemptAsync(time, gateway, row);
-        await AssertRowAsync(row, DispatchState.Queued, 3, Start.AddMinutes(120));
+        await AssertRowAsync(row, DispatchState.Queued, 3, ThirdRetry);
         await AssertChannelAsync(3, Start, null);
 
-        time.SetUtcNow(Start.AddMinutes(120));
+        time.SetUtcNow(ThirdRetry);
         DispatchAttemptResult last = await AttemptAsync(time, gateway, row);
 
         Assert.Equal(new DispatchAttemptResult(true, DispatchOutcome.ChannelError), last);
@@ -116,15 +123,15 @@ public sealed class EmailOutageTests : IAsyncLifetime
         DispatchAttemptResult first = await AttemptAsync(time, gateway, row);
 
         Assert.Equal(new DispatchAttemptResult(true, DispatchOutcome.RecipientError), first);
-        await AssertRowAsync(row, DispatchState.Queued, 1, Start.AddMinutes(5));
-        foreach ((int minutes, int attempts, DateTimeOffset? next) in new (int, int, DateTimeOffset?)[]
+        await AssertRowAsync(row, DispatchState.Queued, 1, FirstRetry);
+        foreach ((DateTimeOffset at, int attempts, DateTimeOffset? next) in new (DateTimeOffset, int, DateTimeOffset?)[]
         {
-            (5, 2, Start.AddMinutes(30)),
-            (30, 3, Start.AddMinutes(120)),
-            (120, 4, null),
+            (FirstRetry, 2, SecondRetry),
+            (SecondRetry, 3, ThirdRetry),
+            (ThirdRetry, 4, null),
         })
         {
-            time.SetUtcNow(Start.AddMinutes(minutes));
+            time.SetUtcNow(at);
             await AttemptAsync(time, gateway, row);
             await AssertRowAsync(row, next is null ? DispatchState.Undelivered : DispatchState.Queued, attempts, next);
             await AssertChannelAsync(2, firstError, null);
@@ -146,13 +153,13 @@ public sealed class EmailOutageTests : IAsyncLifetime
         await AssertChannelAsync(1, Start, null);
 
         gateway.Outage = null;
-        time.SetUtcNow(Start.AddMinutes(5));
+        time.SetUtcNow(FirstRetry);
         DispatchAttemptResult sent = await AttemptAsync(time, gateway, row);
 
         Assert.Equal(new DispatchAttemptResult(true, DispatchOutcome.Sent), sent);
         await AssertRowAsync(row, DispatchState.Sent, 2, null);
-        Assert.Equal(Start.AddMinutes(5), await SentAtAsync(row));
-        await AssertChannelAsync(0, null, Start.AddMinutes(5));
+        Assert.Equal(FirstRetry, await SentAtAsync(row));
+        await AssertChannelAsync(0, null, FirstRetry);
     }
 
     private async Task<DispatchAttemptResult> AttemptAsync(ManualTimeProvider time, FakeEmailGateway gateway, Guid row)

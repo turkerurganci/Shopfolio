@@ -92,8 +92,8 @@ Her madde `git diff origin/main...HEAD` üzerinde yeniden denetlendi; testler bu
 ## Commit & PR
 
 - **Branch:** `task/T207-kimlik-semalari-erisim-reddi`
-- **Commit:** PR başı (PR numarası commit'inden önceki yapım commit'i)
-- **PR:** #— (açılışta yazılır)
+- **Commit:** `ff848b9` — yapım; ardından PR numarası commit'i geldi
+- **PR:** #403
 - **CI:** dal CI'ı yapım chat'inde izlenmez
 - **Post-merge run'lar:** *(validator doldurur)*
 

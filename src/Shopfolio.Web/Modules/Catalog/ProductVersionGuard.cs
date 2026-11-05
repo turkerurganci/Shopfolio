@@ -21,12 +21,12 @@ internal sealed class ProductVersionGuard : SaveChangesInterceptor
     /// <summary>The records saved with the product form (06 2.6.2).</summary>
     public static readonly IReadOnlyList<string> FormRecords =
     [
-        typeof(Variant).FullName!,
-        typeof(Option).FullName!,
-        typeof(OptionValue).FullName!,
-        typeof(ProductCategory).FullName!,
-        typeof(ProductImage).FullName!,
-        typeof(Discount).FullName!,
+        VersionScope.NameOf(typeof(Variant)),
+        VersionScope.NameOf(typeof(Option)),
+        VersionScope.NameOf(typeof(OptionValue)),
+        VersionScope.NameOf(typeof(ProductCategory)),
+        VersionScope.NameOf(typeof(ProductImage)),
+        VersionScope.NameOf(typeof(Discount)),
     ];
 
     /// <summary>The fields written only by a conditional update (06 2.6.5): never by a save.</summary>
@@ -40,7 +40,7 @@ internal sealed class ProductVersionGuard : SaveChangesInterceptor
 
     public static ProductVersionGuard Instance { get; } = new();
 
-    public static VersionScope Scope { get; } = new(typeof(Product).FullName!, FormRecords, null, [], []);
+    public static VersionScope Scope { get; } = new(VersionScope.NameOf(typeof(Product)), FormRecords, null, [], []);
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {

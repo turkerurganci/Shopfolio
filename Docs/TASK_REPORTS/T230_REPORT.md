@@ -129,7 +129,7 @@ Testler (validator, yerel): build `-warnaserror` 0 uyarı · `dotnet format --ve
 
 - **Branch:** `task/T230-kayit-yazicilari-bicimleyici`
 - **Commit / PR / CI:** PR başlığında (`T230: Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi`); CI yapım işçisince beklenmez
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `a2da89f` — CI 41946974061 success, Publish 41946974227 success (T228 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

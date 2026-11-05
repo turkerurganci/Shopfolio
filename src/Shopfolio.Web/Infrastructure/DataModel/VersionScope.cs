@@ -33,6 +33,13 @@ internal sealed class VersionScope
 
     public string RootType { get; }
 
+    /// <summary>The name a scope uses for a record type: its full name (a type without one - a generic parameter - cannot be a record).</summary>
+    public static string NameOf(Type type)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+        return type.FullName ?? throw new ArgumentException($"The type '{type.Name}' has no full name and cannot be a record.", nameof(type));
+    }
+
     /// <summary>The records under the root, by name; empty means every record linked to the root by a chain of foreign keys.</summary>
     public IReadOnlyCollection<string>? MemberTypes { get; }
 
@@ -166,7 +173,7 @@ internal sealed class VersionScope
 
     private bool OnlyFreeFields(EntityEntry entry, bool isRoot)
     {
-        string type = entry.Metadata.ClrType.FullName!;
+        string type = NameOf(entry.Metadata.ClrType);
         foreach (PropertyEntry property in entry.Properties.Where(p => p.IsModified))
         {
             string name = property.Metadata.Name;

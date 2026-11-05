@@ -88,7 +88,7 @@ Kabul kriterleri tablosundaki yapım kanıtları validator tarafından yeniden k
 - **Commit:** yapım commit'i
 - **PR:** #387
 - **CI:** yöneticide
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `dac48c8` — CI 41953520461 success, Publish 41953520476 success (T228 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

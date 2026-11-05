@@ -104,7 +104,7 @@
 | T202 | Dış servislerin bağlantı katmanı: ortak yüz, hata sınıfı, zaman aşımı, sahteler | ⬚ | — | — | — |
 | T203 | İmzalı makine ucu altyapısı: imza denetimi, gövde tavanı | ⬚ | — | — | — |
 | T204 | Dış servis çökmesi davranışı ve sahtelerle sınama | ⬚ | — | — | — |
-| T205 | Açılışta veritabanı fail-fast denetimi | ✓ | ✓ PASS (tur 1) | — | #385 |
+| T205 | Açılışta veritabanı fail-fast denetimi | ✓ | ✓ PASS (tur 1) | a36010b | #385 |
 | T206 | Adres yapısı, önekler ve sayfa–form işleyici kalıbı | ⬚ | — | — | — |
 | T207 | Kimlik şemaları ve erişim reddi | ⬚ | — | — | — |
 | T208 | Sürümün ve gösterilen değerin formda taşınması, koşullu güncelleme | ⬚ | — | — | — |
@@ -127,11 +127,11 @@
 | T225 | Sistem kayıtları | ⬚ | — | — | — |
 | T226 | Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi | ✓ | ✓ PASS (tur 1) | b8f20ad | #383 |
 | T227 | Zaman ve para | ✓ | ✓ PASS (tur 1) | 15daf95 | #382 |
-| T228 | Eşzamanlılık denetimi | ⬚ | — | — | — |
+| T228 | Eşzamanlılık denetimi | ⏳ | — | — | — |
 | T229 | Uygulama belleğinde önbellek | ⬚ | — | — | — |
-| T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ✓ | ✓ PASS (tur 2) | — | #386 |
-| T231 | Maskelemenin üç katmanının testleri | ✓ | ✓ PASS (tur 1) | — | #387 |
-| T232 | Veri koruma halkası | ✓ | ✓ PASS (tur 2) | — | #388 |
+| T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ✓ | ✓ PASS (tur 2) | a2da89f | #386 |
+| T231 | Maskelemenin üç katmanının testleri | ✓ | ✓ PASS (tur 1) | dac48c8 | #387 |
+| T232 | Veri koruma halkası | ✓ | ✓ PASS (tur 2) | daace97 | #388 |
 | T233 | Veritabanı oturum süreleri | ✓ | ✓ PASS (tur 2) | 810fe27 | #384 |
 
 ---

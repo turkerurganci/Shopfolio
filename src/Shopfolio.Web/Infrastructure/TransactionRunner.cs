@@ -28,28 +28,29 @@ internal sealed class TransactionRunner : ITransactionRunner
         }
 
         await using IDbContextTransaction transaction = await _db.Database.BeginTransactionAsync(ct);
-        T result;
+        bool committed = false;
         try
         {
-            result = await work(ct);
+            T result = await work(ct);
             if (!result.IsRejected)
             {
                 await _db.SaveChangesAsync(ct);
                 await transaction.CommitAsync(ct);
-                return result;
+                committed = true;
+            }
+
+            return result;
+        }
+        finally
+        {
+            // A refusal or an exception: the statements already sent are undone with the transaction and the tracked changes are dropped, so
+            // a later save of the same scope cannot write them (05 3.4.2: a transition happens wholly or not at all). The exception goes on
+            // up unchanged: there is no catch here (09 8.1 item 6).
+            if (!committed)
+            {
+                await transaction.RollbackAsync(CancellationToken.None);
+                _db.ChangeTracker.Clear();
             }
         }
-        catch
-        {
-            await transaction.RollbackAsync(CancellationToken.None);
-            _db.ChangeTracker.Clear();
-            throw;
-        }
-
-        // A refusal: the statements already sent are undone with the transaction and the tracked changes are dropped, so a later save of
-        // the same scope cannot write them (05 3.4.2: a transition happens wholly or not at all).
-        await transaction.RollbackAsync(CancellationToken.None);
-        _db.ChangeTracker.Clear();
-        return result;
     }
 }

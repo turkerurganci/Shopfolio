@@ -114,7 +114,7 @@ public sealed class VersionRulesTests
         IModel model = Model();
         IEnumerable<(string Type, string Field)> named = OrderVersionGuard.NonRaisingFields
             .Concat(OrderVersionGuard.EmptiedLinks)
-            .Concat(ProductVersionGuard.ConditionalFields.Select(f => (f.Type.FullName!, f.Field)));
+            .Concat(ProductVersionGuard.ConditionalFields.Select(f => (VersionScope.NameOf(f.Type), f.Field)));
 
         foreach ((string type, string field) in named)
         {
@@ -122,13 +122,13 @@ public sealed class VersionRulesTests
             Assert.True(entity.FindProperty(field) is not null, $"{type}.{field} is not in the model.");
         }
 
-        Assert.Equal(ProductVersionGuard.FormRecords.Order(StringComparer.Ordinal), ProductVersionGuard.Scope.Members(model).Select(t => t.ClrType.FullName!).Order(StringComparer.Ordinal));
+        Assert.Equal(ProductVersionGuard.FormRecords.Order(StringComparer.Ordinal), ProductVersionGuard.Scope.Members(model).Select(t => VersionScope.NameOf(t.ClrType)).Order(StringComparer.Ordinal));
     }
 
     [Fact]
     public void VersionScope_WithANameTheModelDoesNotHave_Throws()
     {
-        VersionScope wrongMember = new(typeof(Product).FullName!, ["Shopfolio.Missing"], null, [], []);
+        VersionScope wrongMember = new(VersionScope.NameOf(typeof(Product)), ["Shopfolio.Missing"], null, [], []);
         VersionScope wrongRoot = new("Shopfolio.Missing", null, null, [], []);
 
         Assert.Throws<InvalidOperationException>(() => wrongMember.Members(Model()));
@@ -137,7 +137,7 @@ public sealed class VersionRulesTests
 
     private static string[] Names(IEnumerable<Type> types)
     {
-        return [.. types.Select(t => t.FullName!).Order(StringComparer.Ordinal)];
+        return [.. types.Select(VersionScope.NameOf).Order(StringComparer.Ordinal)];
     }
 
     private static IModel Model()

@@ -85,7 +85,7 @@ internal static class LockSequence
             return [];
         }
 
-        return state.Taken.Where(t => t.Kind == LockKind.Order && t.Key is not null).Select(t => t.Key!.Value).Distinct().ToList();
+        return state.Taken.Where(t => t.Kind == LockKind.Order).Select(t => t.Key).OfType<Guid>().Distinct().ToList();
     }
 
     private static bool IsSeparate(LockKind kind)

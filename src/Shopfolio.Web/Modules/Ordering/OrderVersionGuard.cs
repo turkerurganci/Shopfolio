@@ -26,9 +26,9 @@ internal sealed class OrderVersionGuard : SaveChangesInterceptor
     /// </summary>
     public static readonly IReadOnlyList<(string Type, string Field)> NonRaisingFields =
     [
-        (typeof(OrderItem).FullName!, nameof(OrderItem.DownloadCount)),
-        (typeof(OrderItem).FullName!, nameof(OrderItem.DigitalFileId)),
-        (typeof(Order).FullName!, nameof(Order.CustomerId)),
+        (VersionScope.NameOf(typeof(OrderItem)), nameof(OrderItem.DownloadCount)),
+        (VersionScope.NameOf(typeof(OrderItem)), nameof(OrderItem.DigitalFileId)),
+        (VersionScope.NameOf(typeof(Order)), nameof(Order.CustomerId)),
     ];
 
     /// <summary>
@@ -37,8 +37,8 @@ internal sealed class OrderVersionGuard : SaveChangesInterceptor
     /// </summary>
     public static readonly IReadOnlyList<(string Type, string Field)> EmptiedLinks =
     [
-        (typeof(OrderItem).FullName!, nameof(OrderItem.ProductId)),
-        (typeof(OrderItem).FullName!, nameof(OrderItem.VariantId)),
+        (VersionScope.NameOf(typeof(OrderItem)), nameof(OrderItem.ProductId)),
+        (VersionScope.NameOf(typeof(OrderItem)), nameof(OrderItem.VariantId)),
     ];
 
     public static OrderVersionGuard Instance { get; } = new();
@@ -48,7 +48,7 @@ internal sealed class OrderVersionGuard : SaveChangesInterceptor
     /// internal note (its own conditional update), the dispatch record and its outcome, the transition record (written in a transition, which raises it), the audit trail,
     /// the job row and the inbound notification record (its handling raises the version if it applies a payment).
     /// </summary>
-    public static VersionScope Scope { get; } = new(typeof(Order).FullName!, null, typeof(IOrderVersionExempt), NonRaisingFields, EmptiedLinks);
+    public static VersionScope Scope { get; } = new(VersionScope.NameOf(typeof(Order)), null, typeof(IOrderVersionExempt), NonRaisingFields, EmptiedLinks);
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {

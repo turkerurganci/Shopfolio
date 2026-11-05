@@ -56,7 +56,7 @@ internal sealed class StockCounters
 
         List<(Guid CouponId, CounterMove Move)> couponSteps = [.. parts
             .Where(p => p.Claim.CouponId is not null)
-            .Select(p => (CouponId: p.Claim.CouponId!.Value, p.Move))
+            .Select(p => (CouponId: p.Claim.CouponId.GetValueOrDefault(), p.Move))
             .OrderBy(s => s.CouponId, byId)
             .ThenBy(s => s.Move)];
         foreach ((Guid couponId, CounterMove move) in couponSteps)

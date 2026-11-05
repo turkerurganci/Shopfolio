@@ -155,7 +155,7 @@ Dal `origin/main` ile birleştirildi (çakışma: hafıza ve `IMPLEMENTATION_STA
 - **Commit:** *(PR açıklamasında head SHA)*
 - **PR:** #388
 - **CI:** yardımcı izler
-- **Post-merge run'lar:** *(merge sonrası doğrulayıcı doldurur)*
+- **Post-merge run'lar:** squash `daace97` — CI 41960563145 success, Publish 41960563164 success (T228 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

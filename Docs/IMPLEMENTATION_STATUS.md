@@ -110,7 +110,7 @@
 | T208 | Sürümün ve gösterilen değerin formda taşınması, koşullu güncelleme | ⬚ | — | — | — |
 | T209 | Tek kullanımlık değerler, tekrar gönderim, sahteciliğe karşı koruma ve güvenlik başlıkları | ⬚ | — | — | — |
 | T210 | Liste kalıbı | ⬚ | — | — | — |
-| T211 | Model bağlama kalıbı | ⏳ | — | — | PR_NO |
+| T211 | Model bağlama kalıbı | ⏳ | — | — | 402 |
 | T212 | Hata gösterimi ve HTTP durumları | ⬚ | — | — | — |
 | T213 | Hata kodu kayıt defteri | ⬚ | — | — | — |
 | T214 | Kısa süreli bildirim kodları | ⬚ | — | — | — |

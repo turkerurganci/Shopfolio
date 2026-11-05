@@ -78,7 +78,7 @@
 
 - **Branch:** `task/T211-model-baglama-kalibi`
 - **Commit:** son commit PR gövdesinde ve dönüşte
-- **PR:** #PR_NO
+- **PR:** #402
 - **CI:** yapım işçisi izlemez (yönetici yardımcı düzeni)
 - **Post-merge run'lar:** *(validator doldurur)*
 

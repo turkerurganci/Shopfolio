@@ -124,7 +124,7 @@
 | T222 | Anahtarlar ve tek kullanımlık bağlantılar | ⬚ | — | — | — |
 | T223 | Dosya deposu | ⬚ | — | — | — |
 | T224 | Çerez politikası | ⬚ | — | — | — |
-| T225 | Sistem kayıtları | ⬚ | — | — | — |
+| T225 | Sistem kayıtları | ⏳ Devam ediyor | — | — | — |
 | T226 | Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi | ✓ | ✓ PASS (tur 1) | b8f20ad | #383 |
 | T227 | Zaman ve para | ✓ | ✓ PASS (tur 1) | 15daf95 | #382 |
 | T228 | Eşzamanlılık denetimi | ⬚ | — | — | — |

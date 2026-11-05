@@ -130,7 +130,7 @@
 | T228 | Eşzamanlılık denetimi | ⬚ | — | — | — |
 | T229 | Uygulama belleğinde önbellek | ⬚ | — | — | — |
 | T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ✓ | ✓ PASS (tur 2) | — | #386 |
-| T231 | Maskelemenin üç katmanının testleri | ⬚ | — | — | — |
+| T231 | Maskelemenin üç katmanının testleri | ⏳ | — | — | PR_NO |
 | T232 | Veri koruma halkası | ⬚ | — | — | — |
 | T233 | Veritabanı oturum süreleri | ✓ | ✓ PASS (tur 2) | 810fe27 | #384 |
 

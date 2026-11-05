@@ -58,13 +58,22 @@ internal static class PathMasker
     {
         string[] segments = path.Split('/');
 
-        // A path starts with '/', so segment 0 is empty and the first real segment is segment 1.
+        // Empty segments (the one before the first '/', and those of '//') are skipped: a path with an empty segment in front of the prefix
+        // (//siparis/erisim/ABC123) would otherwise not match and its key would reach the line.
+        List<int> filled = [];
+        for (int i = 0; i < segments.Length; i++)
+        {
+            if (segments[i].Length > 0)
+            {
+                filled.Add(i);
+            }
+        }
+
         foreach (IReadOnlyList<string> prefix in KeyedPrefixes)
         {
-            int keyIndex = prefix.Count + 1;
-            if (segments.Length > keyIndex && segments[keyIndex].Length > 0 && StartsWithPrefix(segments, prefix))
+            if (filled.Count > prefix.Count && StartsWithPrefix(segments, filled, prefix))
             {
-                segments[keyIndex] = KeyPlaceholder;
+                segments[filled[prefix.Count]] = KeyPlaceholder;
                 break;
             }
         }
@@ -72,17 +81,17 @@ internal static class PathMasker
         return string.Join('/', segments);
     }
 
-    private static bool StartsWithPrefix(string[] segments, IReadOnlyList<string> prefix)
+    private static bool StartsWithPrefix(string[] segments, List<int> filled, IReadOnlyList<string> prefix)
     {
         for (int i = 0; i < prefix.Count; i++)
         {
-            if (!string.Equals(segments[i + 1], prefix[i], StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(segments[filled[i]], prefix[i], StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
         }
 
-        return segments[0].Length == 0;
+        return true;
     }
 
     // Every pair keeps its name and loses its value; a token without '=' is a value too (a bare token can be an address), so it is replaced whole.

@@ -105,7 +105,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T228-eszamanlilik-denetimi`
-- **Commit:** `7045b9c` — T228: Çalıştırıcıda türsüz catch yok (finally ile geri alma), null-forgiving yerine VersionScope.NameOf; STATUS, MEMORY, önceki task'ların merge kaydı
+- **Commit:** `1685a7b` — origin/main (T225) birleştirmesi; T228 backlog kaydı D-91 → D-94 (son kod commit'i `7045b9c`; bu satırı düzelten rapor commit'i ayrı)
 - **PR:** #391
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Security;
@@ -168,18 +169,35 @@ public sealed class CookieRulesTests
     private static async Task<string> SetCookieAfterAsync(CookiePolicyGate gate, ICookiePolicyPublication publication, string path)
     {
         var context = new DefaultHttpContext();
+        context.Features.Set<IHttpResponseFeature>(new CallbackResponseFeature());
         context.Request.Path = path;
         var middleware = new CookieHeaderFilterMiddleware(
             ctx =>
             {
                 ctx.Response.Cookies.Append(CookieNames.Cart, "x");
-                return ctx.Response.StartAsync();
+                return ((CallbackResponseFeature)ctx.Features.Get<IHttpResponseFeature>()!).RunAsync();
             },
             gate);
 
         await middleware.InvokeAsync(context, publication);
 
         return context.Response.Headers.SetCookie.ToString();
+    }
+
+    /// <summary>The default response feature of a bare context never runs its OnStarting callbacks; this one runs them, last registered first, as the server does.</summary>
+    private sealed class CallbackResponseFeature : HttpResponseFeature
+    {
+        private readonly List<(Func<object, Task> Callback, object State)> _callbacks = [];
+
+        public override void OnStarting(Func<object, Task> callback, object state) => _callbacks.Add((callback, state));
+
+        public async Task RunAsync()
+        {
+            for (int i = _callbacks.Count - 1; i >= 0; i--)
+            {
+                await _callbacks[i].Callback(_callbacks[i].State);
+            }
+        }
     }
 
     private sealed class CountingPublication : ICookiePolicyPublication

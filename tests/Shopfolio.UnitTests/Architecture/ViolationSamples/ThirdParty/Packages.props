@@ -1,0 +1,7 @@
+<Project>
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="1.0.0" />
+    <PackageVersion Include="Serilog" Version="1.0.0" />
+    <PackageVersion Include="Mixpanel" Version="1.0.0" />
+  </ItemGroup>
+</Project>

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Notifications.Contracts;
@@ -130,12 +131,30 @@ internal sealed class RevertLinkDigestRewrite
 }
 
 /// <summary>
+/// The job queue's start gate for the rewrite (09 15.1 item 4; D-96 K1): the queue takes no row - and so no e-mail is sent with a link digest
+/// written under an older secret - until the step has run in this process. A gate that finds the step not run runs it, so a database that was
+/// out of reach at the start does not leave the queue open without the step, nor shut for good.
+/// </summary>
+internal sealed class RevertLinkDigestRewriteGate : IJobStartGate
+{
+    private readonly RevertLinkDigestRewriteStartup _startup;
+
+    public RevertLinkDigestRewriteGate(RevertLinkDigestRewriteStartup startup)
+    {
+        _startup = startup;
+    }
+
+    public Task<bool> IsOpenAsync(CancellationToken ct) => _startup.EnsureRunAsync(ct);
+}
+
+/// <summary>
 /// Runs <see cref="RevertLinkDigestRewrite"/> at every start (05 6.x.20): it is registered after the start-up checks and before every service
 /// that starts the job queue or the e-mail sending, because hosted services start in the order they are registered (a test keeps the order). A
 /// database that cannot be reached is not an error here: the start-up database check has already written its warning and the liveness
-/// endpoint answers 503; <see cref="HasRun"/> stays false so a sender can tell the step did not happen.
+/// endpoint answers 503; <see cref="HasRun"/> stays false, and the job queue does not take a row until it is true: the queue asks for the step
+/// through <see cref="RevertLinkDigestRewriteGate"/>, which runs it once when the database comes back (D-96).
 /// </summary>
-internal sealed class RevertLinkDigestRewriteStartup : IHostedService
+internal sealed class RevertLinkDigestRewriteStartup : IHostedService, IDisposable
 {
     private readonly NpgsqlDataSource _dataSource;
     private readonly IServiceScopeFactory _scopeFactory;
@@ -146,22 +165,56 @@ internal sealed class RevertLinkDigestRewriteStartup : IHostedService
         _scopeFactory = scopeFactory;
     }
 
+    private readonly SemaphoreSlim _once = new(1, 1);
+    private volatile bool _hasRun;
+
     /// <summary>True once the rewrite has run in this process.</summary>
-    public bool HasRun { get; private set; }
+    public bool HasRun => _hasRun;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (!await CanConnectAsync(cancellationToken))
+        await EnsureRunAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Runs the rewrite if it has not run yet and the database can be reached; returns whether it has run. The job queue asks this before it
+    /// takes any row (<see cref="RevertLinkDigestRewriteGate"/>; 09 15.1 item 4; D-96): a start at which the database was out of reach left
+    /// <see cref="HasRun"/> false, and the step runs once, here, when the database comes back. Callers are serialized, so the step runs at most once.
+    /// </summary>
+    public async Task<bool> EnsureRunAsync(CancellationToken cancellationToken)
+    {
+        if (_hasRun)
         {
-            return;
+            return true;
         }
 
-        await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
-        await scope.ServiceProvider.GetRequiredService<RevertLinkDigestRewrite>().RewriteAsync(cancellationToken);
-        HasRun = true;
+        await _once.WaitAsync(cancellationToken);
+        try
+        {
+            if (_hasRun)
+            {
+                return true;
+            }
+
+            if (!await CanConnectAsync(cancellationToken))
+            {
+                return false;
+            }
+
+            await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
+            await scope.ServiceProvider.GetRequiredService<RevertLinkDigestRewrite>().RewriteAsync(cancellationToken);
+            _hasRun = true;
+            return true;
+        }
+        finally
+        {
+            _once.Release();
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    public void Dispose() => _once.Dispose();
 
     private async Task<bool> CanConnectAsync(CancellationToken ct)
     {

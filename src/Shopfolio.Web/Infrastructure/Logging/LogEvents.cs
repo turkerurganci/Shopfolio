@@ -29,6 +29,9 @@ internal static class LogEvents
     /// <summary>A background job finished (05 9.1.3).</summary>
     public const string JobFinished = "JobFinished";
 
+    /// <summary>The runner found pending rows of a job type it has no handler for and left them alone; written once at the runner's start (09 13.1 item 3).</summary>
+    public const string JobTypeUnknown = "JobTypeUnknown";
+
     /// <summary>An instant deletion was committed; written by the audit writer, with the kind and the internal id of the record (09 18.2 item 5).</summary>
     public const string InstantDeletion = "InstantDeletion";
 

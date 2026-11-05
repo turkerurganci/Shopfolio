@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore.Storage;
 
+using Shopfolio.Infrastructure.Jobs;
+
 namespace Shopfolio.Infrastructure;
 
 /// <summary>
@@ -11,10 +13,14 @@ namespace Shopfolio.Infrastructure;
 internal sealed class TransactionRunner : ITransactionRunner
 {
     private readonly AppDbContext _db;
+    private readonly JobEnqueueTracker _jobs;
+    private readonly IJobSignal _signal;
 
-    public TransactionRunner(AppDbContext db)
+    public TransactionRunner(AppDbContext db, JobEnqueueTracker jobs, IJobSignal signal)
     {
         _db = db;
+        _jobs = jobs;
+        _signal = signal;
     }
 
     public async Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, CancellationToken ct)
@@ -28,6 +34,7 @@ internal sealed class TransactionRunner : ITransactionRunner
         }
 
         await using IDbContextTransaction transaction = await _db.Database.BeginTransactionAsync(ct);
+        _jobs.Clear();
         bool committed = false;
         try
         {
@@ -37,12 +44,20 @@ internal sealed class TransactionRunner : ITransactionRunner
                 await _db.SaveChangesAsync(ct);
                 await transaction.CommitAsync(ct);
                 committed = true;
+
+                // The job runner is woken after the commit and only when this transaction wrote a job row (09 13.1 item 2): a rolled back
+                // transaction wakes nobody, and the row is not there to find.
+                if (_jobs.IsMarked)
+                {
+                    _signal.Notify();
+                }
             }
 
             return result;
         }
         finally
         {
+            _jobs.Clear();
             // A refusal or an exception: the statements already sent are undone with the transaction and the tracked changes are dropped, so
             // a later save of the same scope cannot write them (05 3.4.2: a transition happens wholly or not at all). The exception goes on
             // up unchanged: there is no catch here (09 8.1 item 6).

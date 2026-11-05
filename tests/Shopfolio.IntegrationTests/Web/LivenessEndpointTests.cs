@@ -100,7 +100,7 @@ public sealed partial class LivenessEndpointTests
         DsnBuilder singleConnection = new(_database.Dsn) { MaxPoolSize = 1, Pooling = true };
         CollectingLoggerProvider logs = new();
         Dictionary<string, string> settings = new() { [DatabaseOptions.LivenessTimeoutKey] = "1" };
-        await using ShopfolioWebApplicationFactory factory = new(singleConnection.ConnectionString, settings, logs);
+        await using ShopfolioWebApplicationFactory factory = new(singleConnection.ConnectionString, settings, logs, withJobRunner: false);
         using HttpClient client = factory.CreateClient();
         NpgsqlDataSource dataSource = factory.Services.GetRequiredService<NpgsqlDataSource>();
         await using NpgsqlConnection held = await dataSource.OpenConnectionAsync(ct);
@@ -186,7 +186,7 @@ public sealed partial class LivenessEndpointTests
         // Limit 1 s; the margin allows for a slow CI host. The connection string's own Timeout (15 s) must not decide.
         CollectingLoggerProvider logs = new();
         Dictionary<string, string> settings = new() { [DatabaseOptions.LivenessTimeoutKey] = "1" };
-        await using ShopfolioWebApplicationFactory factory = new(connectionString, settings, logs);
+        await using ShopfolioWebApplicationFactory factory = new(connectionString, settings, logs, withJobRunner: false);
         using HttpClient client = factory.CreateClient();
         if (warmPool)
         {

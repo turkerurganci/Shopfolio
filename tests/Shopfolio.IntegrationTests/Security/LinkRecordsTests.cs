@@ -7,6 +7,7 @@ using Npgsql;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
@@ -252,7 +253,7 @@ public sealed class LinkRecordsTests : IAsyncLifetime
         await SaveAsync(c => c.LinkRecords.Add(link));
         await using AppDbContext db = NewContext();
 
-        ConsumeResult result = await new TransactionRunner(db).RunAsync(
+        ConsumeResult result = await new TransactionRunner(db, new JobEnqueueTracker(), new JobSignal()).RunAsync(
             async cancel => new ConsumeResult(await new LinkRecords(db, _time).TryConsumeAsync(link.Id, cancel), Rejected: true),
             Ct);
 

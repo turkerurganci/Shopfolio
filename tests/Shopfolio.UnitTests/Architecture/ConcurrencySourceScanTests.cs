@@ -30,6 +30,7 @@ public sealed class ConcurrencySourceScanTests
         }
 
         Assert.Contains(ConcurrencySourceScan.AdvisoryLocksFile, scanned);
+        Assert.Contains(ConcurrencySourceScan.JobClaimFile, scanned);
         Assert.Contains(ConcurrencySourceScan.OrderLocksFile, scanned);
         Assert.Contains(ConcurrencySourceScan.StockCountersFile, scanned);
         Assert.Empty(findings);
@@ -67,6 +68,27 @@ public sealed class ConcurrencySourceScanTests
         Assert.Equal([ConcurrencySourceScan.CounterWrite], inOrderLocks.Select(f => f.Rule).Distinct());
         Assert.Equal([ConcurrencySourceScan.ShareLockText, ConcurrencySourceScan.CounterWrite], inAdvisoryLocks.Select(f => f.Rule).Distinct());
         Assert.Equal([ConcurrencySourceScan.RowLockText, ConcurrencySourceScan.ShareLockText], inStockCounters.Select(f => f.Rule).Distinct());
+    }
+
+    [Fact]
+    public void Scan_InTheJobClaimFile_AllowsOnlyThePlainRowLockText()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = ConcurrencySourceScan.Scan(ConcurrencySourceScan.JobClaimFile, ReadSample());
+
+        // Line 5 is the advisory lock, line 6 the plain row lock (allowed here), line 7 the weaker form (not allowed), lines 8-9 the shared locks.
+        Assert.Contains((ConcurrencySourceScan.RowLockText, 5), findings);
+        Assert.DoesNotContain((ConcurrencySourceScan.RowLockText, 6), findings);
+        Assert.Contains((ConcurrencySourceScan.RowLockText, 7), findings);
+        Assert.Contains((ConcurrencySourceScan.ShareLockText, 8), findings);
+        Assert.Contains((ConcurrencySourceScan.CounterWrite, 10), findings);
+    }
+
+    [Fact]
+    public void Scan_AFileOfTheSameNameAsJobClaimElsewhere_IsNotAnAllowedPlace()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = ConcurrencySourceScan.Scan("src/Shopfolio.Web/Modules/Payment/JobClaim.cs", ReadSample());
+
+        Assert.Contains((ConcurrencySourceScan.RowLockText, 6), findings);
     }
 
     [Fact]

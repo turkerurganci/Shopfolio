@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 using Serilog.Core;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
 
 namespace Shopfolio.IntegrationTests.Web;
@@ -33,15 +35,18 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
     private readonly string _connectionString;
     private readonly IReadOnlyDictionary<string, string> _settings;
     private readonly ILoggerProvider? _loggerProvider;
+    private readonly bool _withJobRunner;
 
     public ShopfolioWebApplicationFactory(
         string connectionString,
         IReadOnlyDictionary<string, string>? settings = null,
-        ILoggerProvider? loggerProvider = null)
+        ILoggerProvider? loggerProvider = null,
+        bool withJobRunner = true)
     {
         _connectionString = connectionString;
         _settings = settings ?? new Dictionary<string, string>();
         _loggerProvider = loggerProvider;
+        _withJobRunner = withJobRunner;
         LogDirectory = Path.Combine(Path.GetTempPath(), "shopfolio-test-logs-" + Guid.NewGuid().ToString("N"));
     }
 
@@ -81,6 +86,16 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
         foreach (KeyValuePair<string, string> setting in _settings)
         {
             builder.UseSetting(setting.Key, setting.Value);
+        }
+
+        if (!_withJobRunner)
+        {
+            // A test that counts the pooled connections (a pool of one) cannot share it with the runner's session lock connection.
+            builder.ConfigureServices(services =>
+            {
+                ServiceDescriptor runner = services.Single(d => d.ServiceType == typeof(IHostedService) && d.ImplementationType == typeof(JobRunnerService));
+                services.Remove(runner);
+            });
         }
 
         if (_loggerProvider is not null)

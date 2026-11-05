@@ -7,6 +7,7 @@ using Npgsql;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
@@ -179,7 +180,7 @@ public sealed class RevertLinkDigestRewriteTests : IAsyncLifetime
         RevertLinkDigestRewriteResult result;
         await using (AppDbContext db = NewContext())
         {
-            runner = new CountingRunner(new TransactionRunner(db));
+            runner = new CountingRunner(new TransactionRunner(db, new JobEnqueueTracker(), new JobSignal()));
             result = await new RevertLinkDigestRewrite(db, runner, _newKeys).RewriteAsync(Ct);
         }
 
@@ -237,7 +238,7 @@ public sealed class RevertLinkDigestRewriteTests : IAsyncLifetime
     private async Task<RevertLinkDigestRewriteResult> RunAsync(LinkKeys keys)
     {
         await using AppDbContext db = NewContext();
-        return await new RevertLinkDigestRewrite(db, new TransactionRunner(db), keys).RewriteAsync(Ct);
+        return await new RevertLinkDigestRewrite(db, new TransactionRunner(db, new JobEnqueueTracker(), new JobSignal()), keys).RewriteAsync(Ct);
     }
 
     private async Task<LinkReading> ReadAsync(string key)

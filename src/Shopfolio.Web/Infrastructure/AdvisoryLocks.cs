@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
+using Npgsql;
+
 namespace Shopfolio.Infrastructure;
 
 /// <summary>
@@ -35,6 +37,40 @@ internal sealed class AdvisoryLocks
         await _db.Database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock(hashtextextended({name}, 0))", ct);
     }
 
+    /// <summary>
+    /// The single-run lock of a background worker (09 13.1 item 7; 05 5.1.3): <c>pg_try_advisory_lock</c>, session scoped, on a connection of its
+    /// own that the holder keeps for as long as it works. A worker waits outside any transaction, so the transaction scoped lock would fall at
+    /// once. Returns the holder, or <c>null</c> when another instance holds the lock. The key is the same 64-bit hash of the name as above. The
+    /// lock falls when the holder is disposed, and when the connection breaks (the process died).
+    /// </summary>
+    public static async Task<SessionAdvisoryLock?> TryHoldAsync(NpgsqlDataSource dataSource, string workName, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(dataSource);
+        ArgumentException.ThrowIfNullOrWhiteSpace(workName);
+        NpgsqlConnection connection = await dataSource.OpenConnectionAsync(ct);
+        bool handedOver = false;
+        try
+        {
+            await using NpgsqlCommand command = new("SELECT pg_try_advisory_lock(hashtextextended($1, 0))", connection);
+            command.Parameters.Add(new NpgsqlParameter { Value = workName });
+            bool held = (bool)(await command.ExecuteScalarAsync(ct))!;
+            if (!held)
+            {
+                return null;
+            }
+
+            handedOver = true;
+            return new SessionAdvisoryLock(connection, workName);
+        }
+        finally
+        {
+            if (!handedOver)
+            {
+                await connection.DisposeAsync();
+            }
+        }
+    }
+
     private static LockKind KindOf(AdvisoryLockScope scope)
     {
         return scope switch
@@ -44,5 +80,52 @@ internal sealed class AdvisoryLocks
             AdvisoryLockScope.AdminSet => LockKind.AdminSet,
             _ => throw new ArgumentOutOfRangeException(nameof(scope)),
         };
+    }
+}
+
+/// <summary>
+/// The holder of a session scoped single-run lock (09 13.1 item 7). It owns the connection the lock lives on; no transaction is ever opened on
+/// it, so the idle-in-transaction time does not cut it. <see cref="EnsureAliveAsync"/> is asked once per loop round: a broken connection means
+/// the lock is gone, and the exception ends the service (the process stops and the container restarts; 05 4.3.2). Disposing releases the lock
+/// by hand first, because the pool keeps the physical connection and would keep the lock with it.
+/// </summary>
+internal sealed class SessionAdvisoryLock : IAsyncDisposable
+{
+    private readonly NpgsqlConnection _connection;
+    private readonly string _workName;
+
+    internal SessionAdvisoryLock(NpgsqlConnection connection, string workName)
+    {
+        _connection = connection;
+        _workName = workName;
+    }
+
+    /// <summary>Sends <c>SELECT 1</c> on the lock's connection; a failure is thrown, not hidden.</summary>
+    public async Task EnsureAliveAsync(CancellationToken ct)
+    {
+        await using NpgsqlCommand command = new("SELECT 1", _connection);
+        await command.ExecuteScalarAsync(ct);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await using NpgsqlCommand command = new("SELECT pg_advisory_unlock(hashtextextended($1, 0))", _connection);
+            command.Parameters.Add(new NpgsqlParameter { Value = _workName });
+            await command.ExecuteScalarAsync(CancellationToken.None);
+        }
+        catch (NpgsqlException)
+        {
+            // A connection that broke has already lost the lock with its session: there is nothing left to release, and disposing must not throw.
+        }
+        catch (InvalidOperationException)
+        {
+            // A connection that broke has already lost the lock with its session: there is nothing left to release, and disposing must not throw.
+        }
+        finally
+        {
+            await _connection.DisposeAsync();
+        }
     }
 }

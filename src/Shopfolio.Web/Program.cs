@@ -14,6 +14,7 @@ using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.SignedEndpoints;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.StartupDatabase;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
@@ -32,7 +33,8 @@ builder.AddApplicationLogging();
 builder.Services.AddAuditLineWriter();
 
 // The address rules (07 2.1): every page template is checked against the closed list of first path segments when the routes are built.
-builder.Services.AddRazorPages().AddAddressRules();
+// The input validation pattern (09 3.4): the rule attributes with their codes, the trimming binder, the one page filter and the catalog messages.
+builder.Services.AddRazorPages().AddAddressRules().AddFieldValidation();
 
 // The one time source (09 7.1 item 1; 05 7.2.4).
 builder.Services.AddTimeSource();

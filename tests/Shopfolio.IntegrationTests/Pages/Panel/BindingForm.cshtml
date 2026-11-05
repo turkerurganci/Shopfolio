@@ -10,6 +10,10 @@
 {
     <li class="return">@item.OrderItemId|@item.Quantity</li>
 }
+@foreach (var contact in Model.Contacts)
+{
+    <li class="contact">[@contact.Email]|[@contact.Phone]|[@contact.Password]|[@contact.Remark]|@contact.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)</li>
+}
 </ul>
 <p class="search-result">@Model.SearchResult</p>
 @foreach (var entry in ViewData.ModelState)
@@ -20,7 +24,9 @@
     }
 }
 <form method="post" asp-page-handler="SaveNote">
-    <input name="Name" required maxlength="20" />
+    <input name="Name" required maxlength="@Shopfolio.IntegrationTests.Pages.Panel.BindingLimits.NameMaxLength" />
     <input type="hidden" name="Reason" value="Damaged" />
+    <input asp-for="Preview.Name" />
+    <input asp-for="PreviewRow.Quantity" />
     <button type="submit">Kaydet</button>
 </form>

@@ -5,12 +5,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure.Binding;
+using Shopfolio.Infrastructure.Validation;
 
 namespace Shopfolio.Pages.Samples
 {
@@ -48,6 +50,8 @@ namespace Shopfolio.Pages.Samples
 
     public sealed class AddNoteInput : IFormInput
     {
+        [FieldRequired]
+        [TextTooLong(150)]
         public string Name { get; set; } = string.Empty;
 
         public int Quantity { get; set; }
@@ -87,6 +91,7 @@ namespace Shopfolio.Pages.Samples
 
     public sealed class StartUploadRequest : IMachineRequest
     {
+        [Required]
         public string FileName { get; set; } = string.Empty;
 
         public long SizeBytes { get; set; }
@@ -165,6 +170,33 @@ namespace Shopfolio.Pages.Samples
 
         [SpecAssignedName]
         public decimal Price { get; set; }
+    }
+
+    // BuiltInRule: the framework's validation attributes on an input model, on a query model and inside a row. A machine request (StartUploadRequest) may carry one.
+    public sealed class BuiltInRuleInput : IFormInput
+    {
+        [Required]
+        [StringLength(10)]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public sealed class BuiltInRuleQuery : IQueryModel
+    {
+        [SpecAssignedName]
+        [EmailAddress]
+        public string Search { get; set; } = string.Empty;
+    }
+
+    public sealed class BuiltInRuleRowsInput : IFormInput
+    {
+        [SpecAssignedName]
+        public List<BuiltInRuleRow> Items { get; set; } = [];
+    }
+
+    public sealed class BuiltInRuleRow
+    {
+        [Range(1, 5)]
+        public int Quantity { get; set; }
     }
 
     // EntityBound: a handler parameter, a collection parameter and a bound property.

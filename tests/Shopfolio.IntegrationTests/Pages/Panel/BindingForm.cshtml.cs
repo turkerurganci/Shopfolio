@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Forms;
+using Shopfolio.Infrastructure.Validation;
 
 namespace Shopfolio.IntegrationTests.Pages.Panel;
 
@@ -28,6 +29,36 @@ public sealed class BindingFormModel : PageModel
     public IReadOnlyList<ReturnRecord> Returns => _store.Returns();
 
     public string SearchResult { get; private set; } = string.Empty;
+
+    public IReadOnlyList<ContactRecord> Contacts => _store.Contacts();
+
+    /// <summary>Read-only models the template renders with the tag helper, to see what the framework writes into the HTML (09 3.4 item 6).</summary>
+    public SaveNoteInput Preview { get; } = new();
+
+    public ReturnRow PreviewRow { get; } = new();
+
+    public IActionResult OnGetFind(NoteQuery query)
+    {
+        SearchResult = query.Search;
+        return Page();
+    }
+
+    public Task<IActionResult> OnPostContactAsync(ContactInput input)
+    {
+        // A rule the handler decides itself (09 3.4 item 2): the address is taken. The code goes through the same filter after the handler returns.
+        if (input.Email == "taken@example.com")
+        {
+            ModelState.AddFieldError(nameof(ContactInput.Email), FieldCodes.InvalidEmail);
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return Task.FromResult(FormResults.Redisplay(this));
+        }
+
+        _store.AddContact(new ContactRecord(input.Email, input.Phone, input.Password, input.Remark, input.Amount, input.Nickname));
+        return Task.FromResult(FormResults.SeeOther("/panel/model-baglama"));
+    }
 
     public Task<IActionResult> OnPostSaveNoteAsync(SaveNoteInput input)
     {
@@ -70,34 +101,89 @@ public sealed class BindingFormModel : PageModel
     }
 }
 
+/// <summary>The limits of the sample page's fields; a number is written once, here, and the rule attributes and the HTML attributes read it (09 3.4 items 1 and 6).</summary>
+public static class BindingLimits
+{
+    public const int NameMaxLength = 20;
+
+    public const int QuantityMax = 1000;
+
+    public const int SearchMaxLength = 10;
+}
+
 /// <summary>The input model of <c>SaveNote</c> (07 5.1.5: the handler's name and the kind); <c>SearchNotes</c> sends the same form.</summary>
 public sealed class SaveNoteInput : IFormInput
 {
-    [Required]
-    [StringLength(20)]
+    [Display(Name = "Ad")]
+    [FieldRequired]
+    [TextTooLong(BindingLimits.NameMaxLength)]
     public string Name { get; set; } = string.Empty;
 
-    [Required]
-    [AllowedValues("Damaged", "Wrong")]
+    [Display(Name = "Sebep")]
+    [FieldRequired]
+    [InvalidListValue("Damaged", "Wrong")]
     public string Reason { get; set; } = string.Empty;
 }
 
 /// <summary>The input model of <c>ReturnItems</c>: a list of rows, one row per item.</summary>
 public sealed class ReturnItemsInput : IFormInput
 {
-    [Required]
-    [MinLength(1)]
+    [Display(Name = "Kalemler")]
+    [FieldRequired]
     public List<ReturnRow> Items { get; set; } = [];
 }
 
 /// <summary>A row of <c>Items</c>: the item and the quantity (the names of 06's order item).</summary>
 public sealed class ReturnRow
 {
+    [Display(Name = "Kalem")]
     public Guid OrderItemId { get; set; }
 
-    [Range(1, 1000)]
+    [Display(Name = "Adet")]
+    [InvalidQuantity(BindingLimits.QuantityMax)]
     public int Quantity { get; set; }
 }
+
+/// <summary>The input model of <c>Contact</c>: the rule kinds the sample page shows together - required, e-mail, phone, amount, password, a field kept as typed.</summary>
+public sealed class ContactInput : IFormInput
+{
+    [Display(Name = "E-posta")]
+    [FieldRequired]
+    [InvalidEmail]
+    public string Email { get; set; } = string.Empty;
+
+    [Display(Name = "Telefon")]
+    [InvalidPhone]
+    public string Phone { get; set; } = string.Empty;
+
+    [Display(Name = "Şifre")]
+    [DataType(DataType.Password)]
+    [FieldRequired]
+    public string Password { get; set; } = string.Empty;
+
+    [Display(Name = "Not")]
+    [NotTrimmed]
+    public string Remark { get; set; } = string.Empty;
+
+    [Display(Name = "Tutar")]
+    [InvalidAmount(AllowZero = true, Max = 1000)]
+    public decimal Amount { get; set; }
+
+    /// <summary>A non-nullable text with no rule and no initial value: absent from the request it stays null and is not an error (the framework's implicit "required" is off).</summary>
+    [Display(Name = "Takma ad")]
+    public string Nickname { get; set; } = null!;
+}
+
+/// <summary>The query model of the <c>Find</c> GET handler: a rejected query on a GET shows the message and keeps status 200 (07 2.6.6).</summary>
+public sealed class NoteQuery : IQueryModel
+{
+    [Display(Name = "Arama")]
+    [TextTooLong(BindingLimits.SearchMaxLength)]
+    public string Search { get; set; } = string.Empty;
+}
+
+/// <summary>The contact as the sample page stores it, the values as the binder gave them.</summary>
+public sealed record ContactRecord(string Email, string Phone, string Password, string Remark, decimal Amount, string? Nickname);
 
 /// <summary>A note as the server writes it, with the price the server fixed.</summary>
 public sealed record NoteRecord(string Name, string Reason, decimal Price);
@@ -113,6 +199,7 @@ public sealed class BindingRecordStore
 
     private readonly List<NoteRecord> _notes = [];
     private readonly List<ReturnRecord> _returns = [];
+    private readonly List<ContactRecord> _contacts = [];
     private readonly Lock _gate = new();
 
     public IReadOnlyList<NoteRecord> Notes()
@@ -136,6 +223,22 @@ public sealed class BindingRecordStore
         lock (_gate)
         {
             _notes.Add(note);
+        }
+    }
+
+    public IReadOnlyList<ContactRecord> Contacts()
+    {
+        lock (_gate)
+        {
+            return [.. _contacts];
+        }
+    }
+
+    public void AddContact(ContactRecord record)
+    {
+        lock (_gate)
+        {
+            _contacts.Add(record);
         }
     }
 

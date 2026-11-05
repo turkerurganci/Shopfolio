@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
+using Shopfolio.Infrastructure.Validation;
+
 namespace Shopfolio.Infrastructure.Binding;
 
 /// <summary>
@@ -13,7 +15,7 @@ internal static class ItemRows
     /// The code the invalid item selection carries (07 6.2.2: a value outside the closed set the form offered; the rows the order has are that set).
     /// The code is the error message of the field; the page filter turns it into the text (09 3.4 item 3) and it is never shown or sent as a code.
     /// </summary>
-    public const string InvalidSelectionCode = "InvalidListValue";
+    public const string InvalidSelectionCode = FieldCodes.InvalidListValue;
 
     /// <summary>
     /// Adds the field error when two rows carry the same item key. Returns <see langword="true"/> when every key appears once (an empty list included;
@@ -31,7 +33,7 @@ internal static class ItemRows
         {
             if (!seen.Add(key))
             {
-                modelState.AddModelError(listField, InvalidSelectionCode);
+                modelState.AddFieldError(listField, InvalidSelectionCode);
                 return false;
             }
         }

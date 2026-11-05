@@ -54,6 +54,12 @@ public sealed class ModelBindingRuleTests
             "EntityBound:BindsEntityPage.OnPostChangeAllAsync(items):SampleOrderItem",
             "UnmarkedBound:BindsPlainClassPage.OnPostSaveAsync(dto):PlainDto",
 
+            // The framework's validation attributes on input and query models, at any depth (09 3.4 item 1); a machine request may carry one.
+            "BuiltInRule:BuiltInRuleInput.Name:RequiredAttribute",
+            "BuiltInRule:BuiltInRuleInput.Name:StringLengthAttribute",
+            "BuiltInRule:BuiltInRuleQuery.Search:EmailAddressAttribute",
+            "BuiltInRule:BuiltInRuleRowsInput.Items.Quantity:RangeAttribute",
+
             // Field names (KK6).
             "FieldName:WrongFieldNamesInput.Cost",
             "SpecNameShadows06:WrongFieldNamesInput.Price",

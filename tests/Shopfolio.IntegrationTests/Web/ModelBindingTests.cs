@@ -142,7 +142,8 @@ public sealed class ModelBindingTests
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
         Assert.Null(response.Headers.Location);
-        Assert.Contains("data-field=\"Items\">InvalidListValue</span>", body, StringComparison.Ordinal);
+        Assert.Contains("data-field=\"Items\">Kalemler için geçerli bir seçim yapılmalıdır.</span>", WebUtility.HtmlDecode(body), StringComparison.Ordinal);
+        Assert.DoesNotContain("InvalidListValue", body, StringComparison.Ordinal);
         Assert.Empty(store.Returns());
     }
 

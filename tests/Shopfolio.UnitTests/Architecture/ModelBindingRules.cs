@@ -1,4 +1,5 @@
 using System.Collections;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Binding;
+using Shopfolio.Infrastructure.Validation;
 
 namespace Shopfolio.UnitTests.Architecture;
 
@@ -19,6 +21,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <item><c>EntityIsModel</c> - an entity of 06 is no model; <c>EntityInModel</c> - no model field, at any depth, is an entity (07 5.1.3).</item>
 /// <item><c>EntityBound</c> and <c>UnmarkedBound</c> - what a handler parameter or a bound property of a page holds is a simple value or a marked model; an entity is never bound (07 5.1.3).</item>
 /// <item><c>InputName</c> - a bound form input is named after one of the page's POST handlers, or the same name with the <c>Admin</c> prefix (07 5.1.5; 09 5.3 item 2).</item>
+/// <item><c>BuiltInRule</c> - a field of an input or query model (at any depth) carries a validation attribute that is not one of the project's <see cref="FieldRuleAttribute"/>s (09 3.4 item 1).</item>
 /// <item><c>FieldName</c> and <c>SpecNameShadows06</c> - a model field has the name of a 06 entity's property (or an <c>…Id</c> of an entity), or carries <see cref="SpecAssignedNameAttribute"/> and then has no 06 counterpart (07 5.1.2).</item>
 /// </list>
 /// The rules run over the application assembly and are shown to fail on the deliberate samples (09 19.2 item 3).
@@ -71,7 +74,7 @@ internal static class ModelBindingRules
                     violations.Add($"EntityIsModel:{type.Name}");
                 }
 
-                WalkModel(type, type.Name, [], violations, entities, entityPropertyNames, entityNames);
+                WalkModel(type, type.Name, [], violations, entities, entityPropertyNames, entityNames, CarriesFieldRules(type));
             }
         }
 
@@ -146,7 +149,8 @@ internal static class ModelBindingRules
         List<string> violations,
         IReadOnlySet<Type> entities,
         HashSet<string> entityPropertyNames,
-        HashSet<string> entityNames)
+        HashSet<string> entityNames,
+        bool fieldRules)
     {
         if (!visited.Add(model))
         {
@@ -158,6 +162,16 @@ internal static class ModelBindingRules
             string where = $"{path}.{property.Name}";
             bool assigned = property.IsDefined(typeof(SpecAssignedNameAttribute), inherit: false);
             bool known = entityPropertyNames.Contains(property.Name) || EntityKey(property.Name, entityNames);
+
+            // 09 3.4 item 1: a field of an input or query model carries only the project's rule attributes - the framework's Required, StringLength,
+            // EmailAddress, Range and the like have no code of 07 6.2.2.
+            if (fieldRules)
+            {
+                foreach (ValidationAttribute attribute in property.GetCustomAttributes<ValidationAttribute>(inherit: true).Where(a => a is not FieldRuleAttribute))
+                {
+                    violations.Add($"BuiltInRule:{where}:{attribute.GetType().Name}");
+                }
+            }
 
             if (assigned && known)
             {
@@ -176,11 +190,15 @@ internal static class ModelBindingRules
                 }
                 else if (!IsSimple(leaf) && leaf.IsClass)
                 {
-                    WalkModel(leaf, where, visited, violations, entities, entityPropertyNames, entityNames);
+                    WalkModel(leaf, where, visited, violations, entities, entityPropertyNames, entityNames, fieldRules);
                 }
             }
         }
     }
+
+    // Form inputs and query models are validated by the project's rule attributes; machine requests are checked by 08's own rules.
+    private static bool CarriesFieldRules(Type model) =>
+        typeof(IFormInput).IsAssignableFrom(model) || typeof(IQueryModel).IsAssignableFrom(model);
 
     // 07 5.1.2: the inner key of a record is the record's name and Id (CartItemId, AddressBookId).
     private static bool EntityKey(string name, HashSet<string> entityNames) =>

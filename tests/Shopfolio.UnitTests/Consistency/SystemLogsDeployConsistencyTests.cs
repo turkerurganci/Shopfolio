@@ -1,6 +1,11 @@
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
+using Microsoft.Extensions.Options;
+
+using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Logging;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.UnitTests.Support;
 
 namespace Shopfolio.UnitTests.Consistency;
@@ -188,6 +193,51 @@ public sealed partial class SystemLogsDeployConsistencyTests
             }
 
             Assert.Equal(PathMasker.Mask(sample), viaProxy);
+        }
+    }
+
+    [Fact]
+    public void KeyedPaths_CarryingRealKeys_AreMaskedTheSameByTheProxyAndTheApplication_AndNoLineHoldsTheKey()
+    {
+        // T222 KK7 (05 6.4.8): the keys here are the ones the application makes - derived link keys and plain keys, Base64Url text with '-'
+        // and '_' in it - and they ride in the key segment of every keyed path and, in a second shape, in a query value as well.
+        List<(string Pattern, string Replacement)> filters = UriFilters(Read("deploy", "caddy", "Caddyfile"));
+        LinkKeys derivation = new(Options.Create(new LinkKeyOptions { DerivationSecret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(LinkKeyOptions.DerivationSecretMinBytes)) }));
+        List<string> keys =
+        [
+            .. Enumerable.Range(0, 12).Select(_ => derivation.Derive(Guid.CreateVersion7())),
+            .. Enumerable.Range(0, 12).Select(_ => SecretKey.Create()),
+            "-lead-and_trail_-",
+            "_",
+            "a-b_c-d_e",
+        ];
+
+        foreach (string keyedPath in PathMasker.KeyedPaths)
+        {
+            foreach (string key in keys)
+            {
+                string path = keyedPath.Replace(PathMasker.KeyPlaceholder, key, StringComparison.Ordinal);
+                string[] samples =
+                [
+                    path,
+                    path + "/teyit?email=a@b.com&token=" + key,
+                    path.Replace("/", "//", StringComparison.Ordinal) + "?bare&k=" + key,
+                    path.ToUpperInvariant().Replace(key.ToUpperInvariant(), key, StringComparison.Ordinal) + "?x=1&" + key,
+                ];
+                foreach (string sample in samples)
+                {
+                    string viaProxy = sample;
+                    foreach ((string pattern, string replacement) in filters)
+                    {
+                        viaProxy = Regex.Replace(viaProxy, pattern, replacement, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
+                    }
+
+                    string viaApplication = PathMasker.Mask(sample);
+                    Assert.Equal(viaApplication, viaProxy);
+                    Assert.DoesNotContain(key, viaProxy, StringComparison.Ordinal);
+                    Assert.DoesNotContain(key, viaApplication, StringComparison.Ordinal);
+                }
+            }
         }
     }
 

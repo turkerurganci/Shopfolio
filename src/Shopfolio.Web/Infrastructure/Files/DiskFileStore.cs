@@ -91,7 +91,15 @@ internal sealed class DiskFileStore : IFileStore
 
     public Task DeleteAsync(FileArea area, string key, CancellationToken ct)
     {
-        File.Delete(PathOf(area, key));
+        try
+        {
+            File.Delete(PathOf(area, key));
+        }
+        catch (DirectoryNotFoundException)
+        {
+            // The section's directory is made by the first write: before it there is no file, which is not an error (IFileStore.DeleteAsync).
+        }
+
         return Task.CompletedTask;
     }
 

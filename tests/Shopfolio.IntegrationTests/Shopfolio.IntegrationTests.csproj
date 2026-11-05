@@ -28,6 +28,9 @@
     <!-- The sample entities of the model rule tests and the storage type table are shared the same way (T101). -->
     <Compile Include="..\Shopfolio.UnitTests\Samples\**\*.cs" LinkBase="Samples" />
     <Compile Include="..\Shopfolio.UnitTests\Consistency\ColumnTypeTable.cs" LinkBase="Consistency" />
+    <!-- The test images and the image reader of the image tests are shared the same way (T223); the fixture files are read from the repository. -->
+    <Compile Include="..\Shopfolio.UnitTests\Imaging\ImageFixtures.cs" LinkBase="Imaging" />
+    <Compile Include="..\Shopfolio.UnitTests\Imaging\ImageInspection.cs" LinkBase="Imaging" />
   </ItemGroup>
 
 </Project>

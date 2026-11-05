@@ -23,7 +23,7 @@ internal static class ImagingLimits
     public const int DerivativeQuality = 80;
 
     /// <summary>Operations at the same time; the request's source copy and the queue's derivatives share the limit (09 15.6 item 4).</summary>
-    public const int MaxConcurrent = 2;
+    public const int MaxConcurrent = 1;
 
     /// <summary>The library's memory: the ceiling of the one pixel buffer a decode allocates (the library has no allocator limit of its own).</summary>
     public const int MemoryLimitMegabytes = 256;

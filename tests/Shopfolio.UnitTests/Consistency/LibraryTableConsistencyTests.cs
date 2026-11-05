@@ -13,6 +13,7 @@ public sealed class LibraryTableConsistencyTests
         | `Alpha` | a | MIT |
         | `Beta` (Ganss) | b | MIT |
         | `Gamma` 3.1.x | **Yedek aday** — g | MIT |
+        | `Omega` 2.0 | **Elendi** — o | LGPL |
         | Mailpit | tool | MIT |
 
         **Kütüphanesiz kararlar**: `Delta` yok
@@ -21,7 +22,7 @@ public sealed class LibraryTableConsistencyTests
     private static readonly IReadOnlySet<string> NoPending = new HashSet<string>(StringComparer.Ordinal);
 
     [Fact]
-    public void ReadTablePackages_SampleTable_SkipsFallbackAndUnbackticked()
+    public void ReadTablePackages_SampleTable_SkipsFallbackRejectedAndUnbackticked()
     {
         IReadOnlyList<string> packages = LibraryTableConsistency.ReadTablePackages(SampleTable);
 

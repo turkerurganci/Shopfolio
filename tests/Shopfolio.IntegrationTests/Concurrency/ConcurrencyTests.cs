@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Files;
+using Shopfolio.Infrastructure.Imaging;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
@@ -845,6 +847,12 @@ public sealed class ConcurrencyTests : IAsyncLifetime
         services.AddSingleton<IJobSignal, JobSignal>();
         services.AddScoped<ITransactionRunner, TransactionRunner>();
         services.AddScoped<AdvisoryLocks>();
+
+        // What the Catalog module's image upload stands on (the application registers them in Program.cs; the stock tests never upload).
+        services.AddSingleton(TimeProvider.System);
+        services.AddScoped<IJobQueue, JobQueue>();
+        services.AddFileStore();
+        services.AddSingleton<ImageProcessor>();
         services.AddCatalogModule();
         services.AddOrderingModule();
         return services.BuildServiceProvider();

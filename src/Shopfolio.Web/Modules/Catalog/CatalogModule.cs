@@ -1,5 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.Infrastructure.Disposal;
+using Shopfolio.Infrastructure.Jobs;
+using Shopfolio.Infrastructure.Values;
+
 using Shopfolio.Modules.Catalog.Contracts;
 
 namespace Shopfolio.Modules.Catalog;
@@ -8,10 +12,12 @@ namespace Shopfolio.Modules.Catalog;
 internal sealed class CatalogModule : ICatalogModule
 {
     private readonly StockCounters _counters;
+    private readonly ImageUploads _imageUploads;
 
-    public CatalogModule(StockCounters counters)
+    public CatalogModule(StockCounters counters, ImageUploads imageUploads)
     {
         _counters = counters;
+        _imageUploads = imageUploads;
     }
 
     public Task<bool> ReserveAsync(StockClaim claim, StockClaim? releasedFirst, CancellationToken ct)
@@ -22,6 +28,8 @@ internal sealed class CatalogModule : ICatalogModule
             : [(releasedFirst, CounterMove.Release), (claim, CounterMove.Reserve)];
         return _counters.ApplyAsync(parts, ct);
     }
+
+    public Task<ImageUploadResult> UploadImageAsync(byte[] content, CancellationToken ct) => _imageUploads.UploadAsync(content, ct);
 
     public Task ReleaseAsync(StockClaim claim, CancellationToken ct) => ApplyAsync(claim, CounterMove.Release, ct);
 
@@ -47,6 +55,12 @@ internal static class CatalogModuleRegistration
     public static IServiceCollection AddCatalogModule(this IServiceCollection services)
     {
         services.AddScoped<StockCounters>();
+        services.AddScoped<ImageUploads>();
+
+        // The image derivative job (D-97) and the image disposal (D-102): the rows first, the files they leave behind after (06 9.3.4).
+        services.AddJobHandler<ImageDerivativeJobHandler>(JobType.ImageDerivative);
+        services.AddDisposalPart<ImageDisposalPart>();
+        services.AddDisposalPart<OrphanImageFilePart>();
         services.AddScoped<ICatalogModule, CatalogModule>();
         return services;
     }

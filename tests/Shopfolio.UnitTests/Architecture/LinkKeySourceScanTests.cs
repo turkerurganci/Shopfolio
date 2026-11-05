@@ -96,6 +96,18 @@ public sealed class LinkKeySourceScanTests
     }
 
     [Fact]
+    public void Scan_TheGeneratorExceptionIsOneFile_ItsNeighbourNamingTheSameDigestIsReported()
+    {
+        const string digest = "string Key(byte[] content) => Convert.ToHexStringLower(SHA256.HashData(content));";
+
+        Assert.Equal(["src/Shopfolio.Web/Modules/Catalog/ImageUploads.cs"], LinkKeySourceScan.GeneratorExceptions);
+        Assert.Empty(LinkKeySourceScan.Scan("src/Shopfolio.Web/Modules/Catalog/ImageUploads.cs", digest));
+        Assert.Equal(
+            [(LinkKeySourceScan.GeneratorOutsideSecurity, 1)],
+            LinkKeySourceScan.Scan("src/Shopfolio.Web/Modules/Catalog/ImageServing.cs", digest));
+    }
+
+    [Fact]
     public void Scan_InNotifications_AllowsTheDerivation_ButNotTheGeneratorNorAnUnpostedConsume()
     {
         IReadOnlyList<(string Rule, int Line)> findings = LinkKeySourceScan.Scan(LinkKeySourceScan.DeriveFolder + "Body.cs", Sample());

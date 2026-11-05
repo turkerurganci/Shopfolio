@@ -61,6 +61,11 @@ public sealed partial class ApplicationLogFormatterTests
     [InlineData(LogEventLevel.Information)]
     [InlineData(LogEventLevel.Warning)]
     [InlineData(LogEventLevel.Error)]
+    // 09 18.2 item 1 lists the three levels of the usual lines. The setting accepts all six (LoggingOptionsValidator) and the start-up refusal
+    // is Fatal, so the formatter writes the name of any level as it is; mapping one onto the three would hide a refusal.
+    [InlineData(LogEventLevel.Fatal)]
+    [InlineData(LogEventLevel.Debug)]
+    [InlineData(LogEventLevel.Verbose)]
     public void Format_Level_IsTheLevelName(LogEventLevel level)
     {
         LogEvent logEvent = LogCapture.One(logger => logger.Write(level, "text"));

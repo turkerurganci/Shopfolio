@@ -53,6 +53,29 @@ public sealed class LoggingSourceScanTests
         Assert.Equal([(LoggingSourceScan.EventNameNotFromTheList, 9), (LoggingSourceScan.EventNameNotFromTheList, 10)], findings);
     }
 
+    [Fact]
+    public void ApplicationSource_EveryGeneralEventForm_NamesAConstantOfTheClosedList()
+    {
+        (List<string> scanned, List<string> findings) = ScanSource(_ => true, LoggingSourceScan.ScanGeneralEventForms);
+
+        Assert.NotEmpty(scanned);
+        Assert.Empty(findings);
+    }
+
+    [Fact]
+    public void ScanGeneralEventForms_OnViolationSample_ReportsTheVariableTheLiteralAndTheMethodWithoutAnEventParameter()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = LoggingSourceScan.ScanGeneralEventForms(Sample("GeneralEventForms.cs"));
+
+        Assert.Equal(
+            [
+                (LoggingSourceScan.EventNameNotFromTheList, 14),
+                (LoggingSourceScan.EventNameNotFromTheList, 8),
+                (LoggingSourceScan.EventNameNotFromTheList, 9),
+            ],
+            findings);
+    }
+
     private static string Sample(string name) =>
         File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "tests", "Shopfolio.UnitTests", "Architecture", "ViolationSamples", "Logging", name));
 

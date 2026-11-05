@@ -4,6 +4,8 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -52,6 +54,12 @@ public sealed partial class LoggingFilesTests
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "{Event}: test line.")]
     private static partial void LogWarningLine(ILogger logger, string @event);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "{Event}: {Email} {Address}")]
+    private static partial void LogErrorWithPersonalData(ILogger logger, Exception exception, string @event, string email, string address);
+
+    [LoggerMessage(Level = LogLevel.Critical, Message = "{Event}: {Email}")]
+    private static partial void LogCriticalWithPersonalData(ILogger logger, string @event, string email);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "{Event}: test line.")]
     private static partial void LogInformationLine(ILogger logger, string @event);
@@ -267,7 +275,86 @@ public sealed partial class LoggingFilesTests
         Assert.All(lines, l => Assert.Equal(JsonValueKind.Object, l.ValueKind));
     }
 
+    // --- 05 9.2.3: the container's own output carries no personal data; the host's lines do not go on to the framework's providers ---
+
+    [Fact]
+    public async Task ErrorLine_WithAnEmailAndAnAddress_ReachesNoProviderOfTheHostAndNoPersonalDataTheFile()
+    {
+        const string email = "secret.person@example.com";
+        const string address = "Street 5 Flat 3";
+        await using ShopfolioWebApplicationFactory baseFactory = new(_database.Dsn);
+        CollectingLoggerProvider spy = new();
+        await using WebApplicationFactory<Program> factory = baseFactory.WithWebHostBuilder(
+            builder => builder.ConfigureLogging(logging => logging.AddProvider(spy)));
+        using HttpClient client = factory.CreateClient();
+        ILogger logger = factory.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Shopfolio.Test");
+
+        LogErrorWithPersonalData(logger, new InvalidOperationException($"{email} {address}"), LogEvents.UnexpectedError, email, address);
+        LogCriticalWithPersonalData(logger, LogEvents.UnexpectedError, email);
+
+        // Nothing reached the provider the host has (the console, debug, event source and event log providers are registered the same way).
+        Assert.Empty(spy.Lines);
+        Assert.NotEmpty(factory.Services.GetServices<ILoggerProvider>());
+        string fileText = string.Concat(Directory.GetFiles(baseFactory.LogDirectory, "app-*.jsonl").Select(path => ReadAllShared(path)));
+        Assert.Contains(LogEvents.UnexpectedError, fileText, StringComparison.Ordinal);
+        Assert.DoesNotContain(email, fileText, StringComparison.Ordinal);
+        Assert.DoesNotContain(address, fileText, StringComparison.Ordinal);
+    }
+
+    // --- K1 (D-87): the audit writer reads the clock once, so the file's day and the line's time come from the same instant ---
+
+    [Fact]
+    public void AuditWriter_AtTheTurkeyMidnight_PutsTheLineInTheFileOfTheDayOfItsOwnTime()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "shopfolio-test-logs-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            // 20:59:59.999 UTC is the 5th in Turkey; the second reading of a clock that moves would be the 6th.
+            DateTimeOffset first = new(2026, 11, 5, 20, 59, 59, 999, TimeSpan.Zero);
+            ReadCountingTimeProvider time = new(first, first.AddMilliseconds(2));
+            IAuditLineWriter writer = LoggingSetup.CreateAuditLineWriter(new LoggingOptions { Directory = directory }, AuditFile.Audit, time);
+
+            writer.Write(AuditLine.InstantDeletion("Draft", Guid.NewGuid()));
+
+            Assert.Equal(1, time.Reads);
+            string path = Assert.Single(Directory.GetFiles(directory));
+            Assert.Equal("audit-20261105.jsonl", Path.GetFileName(path));
+            Assert.Equal(
+                first.UtcDateTime.ToString(ApplicationLogFormatter.TimeFormat, CultureInfo.InvariantCulture),
+                Assert.Single(ReadLines(path)).GetProperty("time").GetString());
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
     // --- Helpers ---
+
+    private static string ReadAllShared(string path)
+    {
+        using FileStream stream = new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using StreamReader reader = new(stream);
+        return reader.ReadToEnd();
+    }
+
+    // A clock that moves on every reading: the first reading is the one the writer must use for both the file name and the line.
+    private sealed class ReadCountingTimeProvider : TimeProvider
+    {
+        private readonly DateTimeOffset _first;
+        private readonly DateTimeOffset _later;
+        private int _reads;
+
+        public ReadCountingTimeProvider(DateTimeOffset first, DateTimeOffset later)
+        {
+            _first = first;
+            _later = later;
+        }
+
+        public int Reads => _reads;
+
+        public override DateTimeOffset GetUtcNow() => Interlocked.Increment(ref _reads) == 1 ? _first : _later;
+    }
 
     private static void CreateOldFiles(string directory, string prefix, int count)
     {

@@ -151,6 +151,38 @@ Testler (validator, yerel): build `-warnaserror` 0 uyarı · `dotnet format --ve
 | Sık FAIL (4) ihlal örneği; birim testi dosyaya yazmaz | ✓ | yeni test Integration'da, dosya yazmaz (sağlayıcı bellekte) |
 | Sık FAIL (5) DB varsayılanı/FK | ✓ | tablo/FK yok |
 
+## Düzeltme turu 2 (doğrulama tur 1 FAIL: B1 ve K1–K4)
+
+**B1 (ORTA, güvenlik; `05 §9.2.3`, §9.1.5, `09 §18.2` madde 2c):** `UseSerilog(..., writeToProviders: false)`. Satırlar çatının sağlayıcılarına (konsol, hata ayıklama, EventSource, EventLog) hiç gitmez; konteyner çıktısına uygulama satırı inmez, tek çıktı üç dosyadır (`05 §9.2.3` açılış/çökme iletilerine izin verir, zorunlu kılmaz). Testlerin yakalaması sağlayıcıya iletmeye dayanıyordu: `ShopfolioWebApplicationFactory` artık sağlayıcıyı sunucuya eklemez, `ProviderLogEventSink` (`ILogEventSink`) kaydeder; `LoggingSetup` servislerdeki sink'leri `ReadFrom.Services` ile okur (üretimde kayıtlı sink yok). `CollectingLoggerProvider`, `LivenessEndpointTests`, `StartupDatabaseCheckTests`, `StartupSettingsCheckTests` onayları değişmedi (`Single(DbTimeout)`, `≤ 1 DbTimeout`, `TwoHostsInOneProcess_...` duruyor). Yeni test: `LoggingFilesTests.ErrorLine_WithAnEmailAndAnAddress_ReachesNoProviderOfTheHostAndNoPersonalDataTheFile` (e-posta ve adresli `Error`/`Critical` satırı sunucuya eklenen sağlayıcıya inmez, dosyada da değer yok).
+
+**K1:** `AuditLogWriter.Write` saati bir kez okur; test `AuditWriter_AtTheTurkeyMidnight_PutsTheLineInTheFileOfTheDayOfItsOwnTime` (okuma sayısı 1, dosya `audit-20261105`, `time` ilk okumadan).
+**K2:** `level` alanı kütüphanenin düzey adını olduğu gibi yazar; ayar altı düzeyi kabul eder (`LoggingOptionsValidator`) ve açılış reddi `Fatal`'dır, eşleme reddi gizlerdi. `09 §18.2` madde 1 tablosu olağan üç satırı sayar; belge değişmedi, kural gevşemedi. Test teorisi Fatal/Debug/Verbose'u da kapsar.
+**K3:** `LoggingSourceScan.ScanGeneralEventForms`: `{Event}` içeren `[LoggerMessage]` yönteminde `string @event` parametresi yoksa ve `logger.LogX("{Event}…", metin)` çağrısının ilk argümanı `LogEvents.` sabiti değilse bulgu. İhlal örneği `ViolationSamples/Logging/GeneralEventForms.cs` (satır 8, 9, 14); kaynak taraması `ApplicationSource_EveryGeneralEventForm_NamesAConstantOfTheClosedList`.
+**K4:** `AuditLogWriter` özet yorumunda "09 18.1 item 2". D-87 ✅ (PR #386).
+
+**Testler:** Unit 648/648; Integration (PostgreSQL 18, `shopfolio-t230-fix2-pg`, silindi): Logging 13, Web 54, Database 35, FileSecrets 24, Model 893. `dotnet build Shopfolio.slnx -warnaserror` ve `dotnet format --verify-no-changes` temiz.
+
+### Öz denetim tablosu (düzeltme turu 2, `git diff origin/main...HEAD`)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1–9 | ✓ | yukarıdaki tablo; düzeltme kriterlerin testlerini değiştirmedi. 1: `LoggingSourceScanTests` (Serilog adı yalnız `Infrastructure/Logging/`; test projesi `src` dışı). 4: `Format_Level_IsTheLevelName` genişledi, düzey testleri yeşil |
+| KK1 yapılandırma tek yerde | ✓ | `grep -n Serilog` `src` altında yalnız `Infrastructure/Logging/` (+ csproj paket satırları) |
+| KK2 üç dosya ayrı | ✓ | `Writers_WriteThreeSeparateFilesNamedByPrefixAndDay` yeşil |
+| KK3 otuz ikinci dosya | ✓ | `Writers_WithMoreFilesThanTheLibraryDefaultKeeps_DeleteNoFile` yeşil |
+| KK4 düzey | ✓ | `NormalWriter_...`, `Writers_WithTheLevelSettingAtError_...` yeşil |
+| KK5 yazılamayan dizin | ✓ | `UnwritableDirectory_...` yeşil |
+| KK6 camelCase, KK8 `fields`, KK9 alan değeri yok | ✓ | biçimleyici ve `AuditLine` testleri yeşil (Unit 648) |
+| KK7 olay adı | ✓ | iki tarama (`@event` parametreli ve genel biçim) + biçimleyici; her ikisinin ihlal örneği kırmızı |
+| `09 §25` satırları | ✓ | belge değişmedi; kütüphane tablosu aynı (`LibraryTableConsistency` yeşil) |
+| Güvenlik taraması | ✓ | B1 kapandı: sağlayıcıya iletme kapalı, konsol çıktısı yok (test); dosya satırı değeri yazmaz; yeni sır/uç nokta yok; `ReadFrom.Services` yalnız kodun kaydettiği sink'i okur (üretimde yok) |
+| Sık FAIL (1) maskelemesiz ikinci çıktı | ✓ | satır yalnız dosyaya gider; sağlayıcı yolu kapalı ve testli |
+| Sık FAIL (1b) beklenen değer sabitten | ✓ | olay adı `LogEvents.UnexpectedError`; saat testinde dosya adı sabit tarih girdisinden, `time` beklentisi `ApplicationLogFormatter.TimeFormat` ve girdi anından; e-posta/adres değerleri test içinde tek yerde sabit |
+| Sık FAIL (2) öteki yerler | ✓ | `writeToProviders`/konsol sağlayıcısı geçen belge yok (grep `Docs/09*`, `DEPLOY_RUNBOOK`); kural değişmedi |
+| Sık FAIL (3) tarama istisnası geniş değil | ✓ | `AppliesToLibraryRule` aynı; yeni tarama tüm `src`'yi tarar, istisnasız |
+| Sık FAIL (4) ihlal örneği; birim testi dosyaya yazmaz | ✓ | `GeneralEventForms.cs`; K1 ve B1 testleri dosya yazdığı için Integration'da |
+| Sık FAIL (5) DB varsayılanı/FK | ✓ | tablo/FK yok |
+
 ## Notlar
 
 - **⚠ (öneriyle karar):** (1) Denetim/komut dosya günü Türkiye gününe göre, normal dosya kütüphanenin yerel gününe göre; sunucu saat dilimi Türkiye değilse gün sınırı kayar (`09 §18.1` madde 2'ye yazıldı; saat dilimini Türkiye'ye sabitlemek kurulum kararıdır). (2) `LoggingOptions.Level` türü `LogEventLevel`; runbook geçerli değerler Verbose..Fatal. (3) `Logging:Directory` runbook C bölümüne 19. satır. (4) `LoggingOptions` `TunableDesignValues.cs`'ten `Infrastructure/Logging/`'a taşındı. (5) Hesap claim adları (yukarıda).

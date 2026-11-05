@@ -62,6 +62,37 @@ internal static partial class LoggingSourceScan
         return findings;
     }
 
+    /// <summary>
+    /// The general forms of an event name that the first scan cannot see (K3): a <c>[LoggerMessage]</c> whose message names <c>{Event}</c> but whose
+    /// method has no <c>string @event</c> parameter (the name would come in under another parameter, so a text could become the event), and a direct
+    /// call <c>logger.LogX("{Event}…", text)</c>, whose first argument after the template must be a constant of <c>LogEvents</c>.
+    /// </summary>
+    public static IReadOnlyList<(string Rule, int Line)> ScanGeneralEventForms(string text)
+    {
+        string normalized = text.ReplaceLineEndings("\n");
+        List<(string Rule, int Line)> findings = [];
+
+        foreach (Match declaration in EventMessageDeclaration().Matches(normalized))
+        {
+            if (!EventParameter().IsMatch(declaration.Groups["params"].Value))
+            {
+                findings.Add((EventNameNotFromTheList, LineOf(normalized, declaration.Index)));
+            }
+        }
+
+        foreach (Match call in DirectEventCall().Matches(normalized))
+        {
+            if (!call.Groups["event"].Value.StartsWith("LogEvents.", StringComparison.Ordinal))
+            {
+                findings.Add((EventNameNotFromTheList, LineOf(normalized, call.Index)));
+            }
+        }
+
+        return findings;
+    }
+
+    private static int LineOf(string text, int index) => text.AsSpan(0, index).Count('\n') + 1;
+
     private static string StripComment(string line)
     {
         int comment = line.IndexOf("//", StringComparison.Ordinal);
@@ -74,6 +105,17 @@ internal static partial class LoggingSourceScan
     // static partial void LogFailure(ILogger logger, string @event, ...)
     [GeneratedRegex(@"static\s+partial\s+void\s+(?<name>\w+)\s*\(\s*ILogger\s+\w+\s*,\s*string\s+@event\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex EventMethodDeclaration();
+
+    // [LoggerMessage(Level = ..., Message = "{Event}: ...")] static partial void LogX(ILogger logger, string text)
+    [GeneratedRegex(@"\[LoggerMessage\([^\]]*Message\s*=\s*""[^""]*\{Event\}[^""]*""[^\]]*\]\s*(?:\w+\s+)*?partial\s+void\s+\w+\s*\((?<params>[^)]*)\)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex EventMessageDeclaration();
+
+    [GeneratedRegex(@"\bstring\s+@event\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex EventParameter();
+
+    // _logger.LogWarning("{Event}: ...", text)
+    [GeneratedRegex(@"\.Log\w*\(\s*""[^""]*\{Event\}[^""]*""\s*,\s*(?<event>[^,)]+?)\s*[,)]", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex DirectEventCall();
 
     // LogFailure(_logger, LogEvents.StartupSettingsChecked, failure)
     [GeneratedRegex(@"\b(?<name>\w+)\s*\(\s*[\w.]+\s*,\s*(?<event>[^,)]+?)\s*[,)]", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

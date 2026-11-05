@@ -31,8 +31,9 @@ internal static class LoggingSetup
     public static string Prefix(AuditFile file) => file == AuditFile.Audit ? "audit" : "command";
 
     /// <summary>
-    /// Hooks the application's logging into the host (09 18.1 item 1). The framework's logger factory is replaced by the library's; the providers
-    /// the host has besides stay (the console), so nothing the host writes goes missing.
+    /// Hooks the application's logging into the host (09 18.1 item 1). The framework's logger factory is replaced by the library's and the lines
+    /// are not forwarded to the host's other providers: the container's own output stays free of personal data (05 9.2.3). The sinks that code
+    /// registers in the services (a test's collecting sink) are added to the logger; production registers none.
     /// </summary>
     public static WebApplicationBuilder AddApplicationLogging(this WebApplicationBuilder builder)
     {
@@ -41,11 +42,13 @@ internal static class LoggingSetup
         // logs through that static one, so a second host in the same process (a parallel test host) takes over the first host's lines and providers.
         builder.Host.UseSerilog(
             (_, services, configuration) => Configure(
-                configuration,
+                configuration.ReadFrom.Services(services),
                 LoggingOptions.FromConfiguration(services.GetRequiredService<IConfiguration>()),
                 new RequestLogEnricher(services.GetRequiredService<IHttpContextAccessor>())),
             preserveStaticLogger: true,
-            writeToProviders: true);
+            // Nothing goes on to the framework's providers (console, debug, event source, event log): they write the exception's message and every
+            // property unmasked, and the container's output carries no personal data (05 9.2.3; 05 9.1.5; 09 18.2 item 2c). The only output is the file.
+            writeToProviders: false);
         return builder;
     }
 

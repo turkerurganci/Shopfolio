@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
+using Serilog.Core;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.InstallationSettings;
@@ -82,7 +85,8 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
 
         if (_loggerProvider is not null)
         {
-            builder.ConfigureLogging(logging => logging.AddProvider(_loggerProvider));
+            // Not a provider of the host: the host does not forward its lines to the framework's providers (05 9.2.3); the sink is read by the logging setup.
+            builder.ConfigureServices(services => services.AddSingleton<ILogEventSink>(new ProviderLogEventSink(_loggerProvider)));
         }
     }
 }

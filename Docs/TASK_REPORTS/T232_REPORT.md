@@ -1,6 +1,6 @@
 # T232 — Veri koruma halkası
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-05
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -69,6 +69,38 @@
 | Integration | ✓ | PostgreSQL 18, konteyner `shopfolio-t232-pg` (127.0.0.1:55632; 55370–55569 Windows'ta ayrılmış); `Web` 64/64 (yeni 10), `Logging`+`FileSecrets`+`Database` 72/72, `Model` 893/893 | toplam 1029/1029 |
 | Biçim ve derleme | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes`; her iki test projesi derlemesi (analizör hataları dahil) | çıkış 0, 0 uyarı |
 | Contract | — | yok | |
+
+## Doğrulama
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-05, bağımsız doğrulayıcı; dal head `5a8e97e`) |
+| Bulgu sayısı | 2 — B1 ORTA S1, B2 DÜŞÜK S1 |
+| Düzeltme gerekli mi | Evet (B1, B2) |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama tur 1 — validator kanıtları
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Halka tek kurulum; sabit ad; şifresiz; şifreleyici yok; varsayılan ömür | ✓ | `src/`'de `AddDataProtection` yalnız `DataProtectionSetup.cs`, `ProtectKeysWith`/`SetDefaultKeyLifetime`/`GetDataProtector` yok (validator grep); `Add_FixesTheApplicationName` `ApplicationDiscriminator` = `Shopfolio` (yoldan bağımsız); `XmlEncryptor` null, `NewKeyLifetime` çatı varsayılanı; entegrasyon: anahtar `data_protection_keys` satırı, `<masterKey>` var, `encryptedSecret` yok; ikinci fabrika (ayrı DI konteyneri, aynı veritabanı) altı amacın değerini çözer, tek anahtar satırı |
+| 2 | Amaçlar tek yerde; altı amaç kapalı liste | ✓ | `DataProtectionPurposes` altı `const`, biçim `Shopfolio.<Kullanım>.v1`; yansımayla sabitler = `All`; `09 §15.5` tablosu ↔ kod iki yönlü eşit |
+| 3 | `CreateProtector` yalnız sabitlerle; dizge başka yerde yok | ~ | Bugünkü kod uyar (altı çağrı, hepsi tek sabit). Tarama kuralı tam değil: B2 |
+| 4 | Çözme istisna fırlatmaz | ✓ | `catch (CryptographicException)` → `Invalid`; null/boş/bozuk/kırpılmış/değiştirilmiş testleri; listede olmayan amaç `ArgumentException` (programlama hatası, değer hatası değil) |
+| 5 | Boş, bozuk, başka amaçlı, anahtarı olmayan → `Invalid` | ✓ | Birim (ayrı halka) + entegrasyon (anahtar satırları silinip yeni örnek açılınca eski değer `Invalid`, yeni değer `Valid`) |
+| 6 | 6×5 çapraz red | ✓ | `CrossPairs` `All`'dan kurulur, 30 kayıt; `n·(n−1)` denetimi |
+| 7 | Sonek artınca eski değer reddedilir | ✓ | v2 koruyucu v1 değerini reddeder; v1 okuyucu v2 değerini `Invalid` sayar |
+| 8 | Halka yedek kapsamında | ✓ | Tablo uygulama veritabanının göçünde; pgBackRest yapılandırması ve betiklerde veritabanı/tablo süzgeci yok (tam küme) |
+
+**Task satırları (`12 §7.5`):** task'ın kaynakları `05 §7.6` ve `09 §15`'tir (KP değil); KP grep'i satır getirmez. İlgili satır `VAL-A589` (çapraz amaç; KK6 ile örtüşür) çağıranın davranışını da ister ("çağıran değeri hiç gelmemiş sayar") — çağıranlar sonraki task'ların; `Durum` hücresine dokunulmadı (`BEKLEMEDE`).
+
+**B1 (ORTA, S1):** `LoggingSetup` iki veri erişim kategorisini (`Microsoft.EntityFrameworkCore.Database.Connection`, `Microsoft.EntityFrameworkCore.Query`) `Fatal`'a çeker ve bu dal `09 §18.1` madde 4'e "iki kategori hiç yazılmaz" cümlesini ekler. (a) **Çelişki:** `05 §9.1.6` "çatının ve veri erişim katmanının kendi kayıt kategorileri uyarı düzeyindedir" der; `09`'un yeni cümlesi buna aykırıdır ve karar kaydı yoktur (`09 §24` madde 2, 8: çelişkiyi ajan seçerek çözmez). (b) **Kapsam dar değil:** gerekçe yalnız iki hata satırıdır (bağlantı hatası, sorgu yineleme hatası), ama `Query` kategorisi EF'in sorgu uyarılarını da taşır (ör. çoklu koleksiyon `Include`, `OrderBy`'sız satır sınırı) — bunlar da artık hiç yazılmaz. Hatanın kendisi gizlenmiyor: istisna çağırana gider, `KeyRingProvider` satırı maskeli yazılır (`Start_WithADatabaseThatCannotBeReached_...` yeşil). (c) `09` cümlesindeki "biçimleyici ileti metnini ayıklayamaz" gerekçesi kısmen eksik: yapım raporu ⚠ (a) sunucu/veritabanının ayrı özellik olarak da geldiğini yazar. Düzeltme yönü: yalnız iki hata olayını olay kimliğiyle kapatan dar süzgeç (kategori uyarıda kalır) ya da biçimleyici yolu; hangisi seçilirse `05 §9.1.6` ile ilişkisi karar kaydına bağlanır ve `09` cümlesi buna göre yazılır; dar süzgeç için test (hata satırı yazılmaz, aynı kategorinin uyarısı yazılır).
+
+**B2 (DÜŞÜK, S1, güvenlik):** `09 §15.5` madde 2 "`CreateProtector` yalnız `DataProtectionPurposes`'ın sabitleriyle çağrılır (kaynak taraması: dizge sabiti başka yerde yazılmaz)". `DataProtectionSourceScan` ilk argüman sabitse gerisine bakmaz: `CreateProtector(DataProtectionPurposes.CheckoutCookie, "extra")` bulgu değildir ve ihlal örneğinin 12. satırı bunu **kabul edilen** biçim olarak sabitler (`Scan_OnViolationSample_...` beklenen listesinde satır 12 yok). Ayrıca çatının `GetDataProtector(IServiceProvider, string)` uzantısı taranmaz — listesiz amaçla koruyucu kurmanın ikinci yolu. Bugünkü kodda ikisi de yok. Düzeltme yönü: tarama tek argümanlı sabit çağrıyı kabul etsin (alt amaç dizgesi bulgu), `GetDataProtector(` bulgu olsun; ihlal örneğinde ikisi kırmızı.
+
+Testler (validator, yerel): build `-warnaserror` 0 uyarı · `dotnet format --verify-no-changes` 0 · Unit 730/730 (T232 sınıfları 82/82) · betik testleri 4/4 · Integration 1029/1029 (Web 64, Database+Logging+FileSecrets 72, Model 893; PostgreSQL 18 `shopfolio-t232-val-pg`, silindi) · `dotnet restore --locked-mode` 0, `git status` temiz · dal CI 41949769170 `success` (head `5a8e97e`) · ana dal son 3 run success (41946974227, 41946974061, 41928364198).
+
+**Yapım raporu karşılaştırması:** kriter ve öz denetim tabloları kanıtlı. İki uyuşmazlık: KK3 ve "Sık FAIL (3)" satırları ✓ der, taramanın alt amaç dizgesini kabul ettiğini görmez (B2); "`09 §25` — diff kapsamı" ve ⚠ (a) kategori kapatmasını kurala uygun sayar, `05 §9.1.6` ile çelişkiyi görmez (B1).
 
 ## Altyapı Değişiklikleri
 

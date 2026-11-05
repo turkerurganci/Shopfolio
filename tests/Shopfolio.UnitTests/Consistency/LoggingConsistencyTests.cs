@@ -39,6 +39,36 @@ public sealed partial class LoggingConsistencyTests
     }
 
     [Fact]
+    public void ForbiddenPropertyNames_EqualTheNamesOfTheGuidelines()
+    {
+        string item = Item("2. **Maskeleme kodda uygulanır**");
+        int start = item.IndexOf("kişisel veri alan adları yok", StringComparison.Ordinal);
+        Assert.True(start >= 0, "The list of personal data names was not found in 09 18.2 item 2a.");
+        string list = item[start..item.IndexOf(')', start)];
+
+        string[] documented = [.. BacktickedWords().Matches(list).Select(m => m.Groups[1].Value)];
+
+        Assert.NotEmpty(documented);
+        Assert.Equal(documented, ApplicationLogFormatter.ForbiddenPropertyNames);
+    }
+
+    [Fact]
+    public void CommonLogFields_EqualTheFirstColumnOfTheFieldTable()
+    {
+        string guidelines = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "Docs", "09_CODING_GUIDELINES.md")).ReplaceLineEndings("\n");
+        string section = guidelines[guidelines.IndexOf("### 18.2 ", StringComparison.Ordinal)..];
+        string[] rows = [.. section.Split('\n').TakeWhile(line => !line.StartsWith("2. **Maskeleme", StringComparison.Ordinal)).Where(line => line.TrimStart().StartsWith("| `", StringComparison.Ordinal))];
+
+        string[] documented = [.. rows.SelectMany(row => BacktickedNames().Matches(row.Split('|')[1]).Select(m => m.Groups[1].Value))];
+
+        Assert.NotEmpty(documented);
+        // The table's first column names every field but the array of the field rejection, which its description column names.
+        Assert.Equal(
+            documented.Append(CommonLogFields.FieldsArray).Order(StringComparer.Ordinal),
+            CommonLogFields.All.Select(field => field.Name).Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
     public void DefaultLogDirectory_IsTheComposeVolumeOfTheApplicationAndTheImageDirectory()
     {
         string compose = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "deploy", "compose.yaml"));
@@ -62,6 +92,9 @@ public sealed partial class LoggingConsistencyTests
 
     [GeneratedRegex("`([A-Z][A-Za-z]+)`", RegexOptions.CultureInvariant)]
     private static partial Regex BacktickedWords();
+
+    [GeneratedRegex("`([a-z][A-Za-z]+)`", RegexOptions.CultureInvariant)]
+    private static partial Regex BacktickedNames();
 
     [GeneratedRegex("`(/[^`]+)`", RegexOptions.CultureInvariant)]
     private static partial Regex BacktickedPaths();

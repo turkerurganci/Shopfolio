@@ -173,6 +173,32 @@ public sealed partial class LoggingFilesTests
         Assert.DoesNotContain(lines, l => Category(l).StartsWith("Microsoft.", StringComparison.Ordinal) && Level(l) is "Information" or "Debug" or "Trace" or "Verbose");
     }
 
+    // The two data access failure events are not written; the other lines of the same categories stay at warning (05 9.1.6; 09 18.1 item 4).
+    [Fact]
+    public async Task NormalWriter_DoesNotWriteTheTwoDataAccessFailureEvents_ButWritesAWarningOfTheSameCategory()
+    {
+        await using ShopfolioWebApplicationFactory factory = new(_database.Dsn);
+        using HttpClient client = factory.CreateClient();
+        using HttpResponseMessage response = await client.GetAsync(new Uri(LivenessEndpoint.Path, UriKind.Relative), Ct);
+        ILoggerFactory loggers = factory.Services.GetRequiredService<ILoggerFactory>();
+        const int OtherEventId = 1;
+
+        foreach ((string category, int eventId) in LoggingSetup.SuppressedDataAccessFailures)
+        {
+            ILogger logger = Named(loggers, category);
+            logger.Log(LogLevel.Error, new EventId(eventId), "failure", null, static (state, _) => state);
+            logger.Log(LogLevel.Warning, new EventId(OtherEventId), "warning", null, static (state, _) => state);
+        }
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        List<JsonElement> lines = ReadLines(Assert.Single(Directory.GetFiles(factory.LogDirectory, "app-*.jsonl")));
+        foreach ((string category, _) in LoggingSetup.SuppressedDataAccessFailures)
+        {
+            Assert.DoesNotContain(lines, l => Category(l) == category && Level(l) == "Error");
+            Assert.Contains(lines, l => Category(l) == category && Level(l) == "Warning");
+        }
+    }
+
     [Fact]
     public async Task Writers_WithTheLevelSettingAtError_StillWriteTheAuditLineAndTheCommandLine()
     {

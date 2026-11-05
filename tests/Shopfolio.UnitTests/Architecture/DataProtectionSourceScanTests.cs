@@ -62,7 +62,9 @@ public sealed class DataProtectionSourceScanTests
                 (DataProtectionSourceScan.PurposeLiteral, 6),
                 (DataProtectionSourceScan.ProtectorPurpose, 7),
                 (DataProtectionSourceScan.ProtectorPurpose, 8),
+                (DataProtectionSourceScan.ProtectorPurpose, 12),
                 (DataProtectionSourceScan.PurposeLiteral, 13),
+                (DataProtectionSourceScan.ExtensionProtector, 15),
             ],
             findings);
     }

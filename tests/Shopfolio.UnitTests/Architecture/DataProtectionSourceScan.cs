@@ -4,7 +4,7 @@ namespace Shopfolio.UnitTests.Architecture;
 
 /// <summary>
 /// Source scan of the data protection rules (T232; 09 15.5 items 1 and 2): the ring is set up in one file, nothing sets a key encryptor or a key
-/// lifetime, every <c>CreateProtector</c> call takes a constant of <c>DataProtectionPurposes</c>, and a purpose string is written nowhere but in that
+/// lifetime, every <c>CreateProtector</c> call takes exactly one constant of <c>DataProtectionPurposes</c> (no sub-purpose argument), <c>GetDataProtector</c> is not called, and a purpose string is written nowhere but in that
 /// class. Two files are allowed, each for one rule only: <see cref="SetupFile"/> may call <c>AddDataProtection</c> and <see cref="PurposesFile"/>
 /// may hold purpose literals. The scan reads the whole text, so a call split over several lines is found; full-line comments are blanked first and
 /// keep their line. The test projects are not scanned.
@@ -15,6 +15,7 @@ internal static partial class DataProtectionSourceScan
     public const string KeyLifetime = "sets the key lifetime (SetDefaultKeyLifetime; the framework default stands, 09 15.5 item 1)";
     public const string SecondSetup = "sets up data protection outside DataProtectionSetup (AddDataProtection; the setup is one place, 09 15.5 item 1)";
     public const string ProtectorPurpose = "calls CreateProtector with something other than a DataProtectionPurposes constant (09 15.5 item 2)";
+    public const string ExtensionProtector = "calls GetDataProtector (the extension takes the purpose strings itself; the only call is CreateProtector with one DataProtectionPurposes constant, 09 15.5 item 2)";
     public const string PurposeLiteral = "writes a purpose string outside DataProtectionPurposes (09 15.5 item 2)";
 
     /// <summary>The one file that may set up the ring.</summary>
@@ -36,6 +37,7 @@ internal static partial class DataProtectionSourceScan
         }
 
         Add(findings, ProtectorPurpose, ProtectorWithOtherArgument(), clean);
+        Add(findings, ExtensionProtector, GetDataProtectorCall(), clean);
         if (!string.Equals(path, PurposesFile, StringComparison.Ordinal))
         {
             Add(findings, PurposeLiteral, PurposeString(), clean);
@@ -79,9 +81,13 @@ internal static partial class DataProtectionSourceScan
     [GeneratedRegex(@"\bAddDataProtection\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex AddDataProtectionCall();
 
-    // A CreateProtector call whose first argument is not exactly DataProtectionPurposes.<Name> followed by the comma or the closing parenthesis.
-    [GeneratedRegex(@"\bCreateProtector\s*\((?!\s*DataProtectionPurposes\s*\.\s*\w+\s*[,)])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    // A CreateProtector call whose argument list is not exactly one DataProtectionPurposes.<Name> (a sub-purpose argument after it is a finding).
+    [GeneratedRegex(@"\bCreateProtector\s*\((?!\s*DataProtectionPurposes\s*\.\s*\w+\s*\))", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ProtectorWithOtherArgument();
+
+    // The extension method takes the purpose string itself, so the call is a finding whatever its argument is.
+    [GeneratedRegex(@"\bGetDataProtector\s*[(<]", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex GetDataProtectorCall();
 
     // The shape of a purpose string: a string literal "Shopfolio.<Use>.v<number>".
     [GeneratedRegex(@"""Shopfolio\.\w+\.v\d+""", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

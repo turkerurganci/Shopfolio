@@ -12,4 +12,5 @@ internal static class RingMisuse
     public static IDataProtector Chained(IDataProtectionProvider p) => p.CreateProtector(DataProtectionPurposes.CheckoutCookie, "extra");
     public const string Purpose = "Shopfolio.Invented.v2";
     public const string NotAPurpose = "Shopfolio.Infrastructure.PublicHolidays.txt";
+    public static IDataProtector Extension(IServiceProvider p) => p.GetDataProtector(DataProtectionPurposes.DownloadLink);
 }

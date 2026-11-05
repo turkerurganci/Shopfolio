@@ -311,3 +311,99 @@ T221'in `10 KP` birimi yok (`11 §7.1` satırı 7589: `05` MK-41…44, §5.1–�
 
 ### Merge ve Post-merge
 - FAIL: merge yok. Dalda rapor, durum, hafıza ve `VAL-C111` (FAIL → PASS) commit'i push edildi.
+
+## Doğrulama Sonucu — T221 Zamanlayıcı — tur 3
+**Tarih:** 2026-11-05   **Branch:** task/T221-zamanlayici   **Commit:** f277e08 (doğrulanan head)
+
+### Verdict: ✓ PASS
+
+### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş (switch öncesi ve sonrası; koşular sonrası da boş) |
+| Hook kurulumu | ✓ | `git config core.hooksPath` → `C:\projects\Shopfolio\scripts\git-hooks` |
+| Ana dal CI (son 3) | ✓ | 41999269209 success · 41999269502 success · 41981392743 success (dalın tabanı `6a1ca3a` = `origin/main`) |
+| Memory drift | ✓ | `.claude/memory/MEMORY.md` satır 22 T221 |
+
+### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Tek zamanlayıcı; dakikada bir tarama; gecelik iş son 03:00'ten eskiyse, başarısızsa en erken 1 saat sonra | ✓ | Tek `AddHostedService<SchedulerService>` (`SchedulerRegistration.cs`; `Program.cs` `AddJobQueue` → `AddScheduler`); `JobSourceScan.ServiceFiles` iki dosya; `NightlyJobSchedule.IsDue` `09 §13.1` m.9 kalıbıyla birebir (deneme anı iş başında yazılır); `Application_HasOneSchedulerService_StartedAfterTheJobRunner`, `Service_ScansOncePerScanInterval`, `RunIfDue_AFailedRun_…`, `Scan_JustBeforeTheHour_…`, `NightlyJobScheduleTests` (02:59/03:00, 59/60 dk) yeşil |
+| 2 | Nabız ayrı döngüde, 30 sn, yalnız istek başarılıysa; > 2 dk boşluk kesinti, kısası değil | ✓ | `SchedulerService` iki döngü + `Task.WhenAny`; `HeartbeatPulse` yalnız 200'de `OutageRecovery.ApplyAsync`; `HttpRequestException` ve sınır aşımı `false`; sınır artık `new CancellationTokenSource(UserWaiting, _time)`; `IsOutage` `>` eşik; `Beat_NotAnsweredWith200_…` (503/502/404), `Beat_ARefusedConnection_…`, `Beat_NoAnswerWithinTheUserWaitingLimit_…` (sahte saat: sınırdan 1 tick önce bekliyor, sınırda `false`), `Service_AFailedBeat_DoesNotEndTheLoop_…`, `Beat_AGapOfTheThreshold_IsNoOutage_…`, `Service_ASlowScan_…` yeşil |
+| 3 | Zamanı gelen kayıt kendi geçişiyle, sipariş kilidi altında | ✓ | `ScheduledOrderTransition.ProcessAsync`: işlem → `OrderLocks.LockAsync` → yeniden okuma → `IsDue` → `Apply` → `BumpVersion` (`09 §10.2` m.3, §9.1 m.4); `OrderSource_TakesTheOrderRowLock_…` (ikinci bağlantının kilidi reddedilir), `OrderSource_AnOrderThatStoppedBeingDueBeforeItsLock_IsNotChanged` yeşil |
+| 4 | Oturum kapsamlı kilit; aynı iş aynı anda iki kez çalışmaz | ✓ | `AdvisoryLocks.TryHoldAsync` `Scheduler` ve `NightlyJob`; her turda ve her gecelik adımdan önce `EnsureAliveAsync`; kilit yoksa tarama aralığı (m.7). `Service_TwoInstances_ScanOnce_…` ve `RunIfDue_WhileOneInstanceRuns_…` `Jobs` ad alanının paralel koleksiyonlu dört koşusunda yeşil (tur 2'nin B1'i kapandı) |
+| 5 | İşin zamanı kendi kaydında; takvim tablosu yok | ✓ | `IDueRecordSource.FindDueAsync` kaydın alanından; gecelik anlar `HeartbeatRecord`'da; dalda göç yok; `OrderSource_TheTimeIsTheOrdersOwnField_…`, `Scan_AMissedNight_…NotACalendar` yeşil; `06 §9.1.3` ile uyumlu |
+| 6 | Hatırlatma son iş gününün 08:00'i, gecelik 03:00 (Türkiye); yanıtsız son sorgu 5 dk'da bir | ✓ | `TransferSchedule.ReminderAt` (son günün 08:00'i; UTC 05:00 — `ReminderAt_InUtc_IsThreeHoursBeforeTheTurkeyClock`), `NightlyJobSchedule.LatestDueMoment` (UTC 00:00 — `NightlyHour_InUtc_IsThreeHoursEarlier`); 5 dk `JobTimings.FinalPaymentQueryInterval` (T220); `SchedulerTimingsConsistencyTests` ↔ `09 §3.5` satır 341–342 |
+| 7 | Dönüşte ilk nabız + kesinti kaydı + taşıma tek işlem; iptal ertelenir, kaçırılmış hatırlatma düşer, yenisi gitmez; 03:00 kesintisinde gecelik iş sonda bir kez; bayat nabızda havale iptali işlenmez | ✓ | `OutageRecovery.ApplyAsync` tek `RunAsync` (koşullu nabız → kesinti kaydı → `IOutageEffect`); `Beat_WhenThePutOffFails_…` (tetikleyiciyle düşen yazımda üçünden hiçbiri yok); `TransferWindowDeferral`: kilit → yeniden okuma → ilk iş gününün sonu + `PaymentReminderAt = null` + sürüm (`Beat_ReturnFromAnOutage_…`, `Beat_AnOrderThatIsPaidOrCancelled_…`); gecelik iş bütün kayıtlardan sonra ve bir kez (`Scan_AfterALongOutage_…` 1204 kayıt; `Scan_AfterAnOutageThatCoveredTheNightlyHour_…`); bayat nabız `Scan_ASourceThatWaitsForAFreshHeartbeat_…`, `…GoingOldBetweenTheLookAndTheRecord…`, `Scan_WithNoHeartbeatAtAll_…`. Not: yeniden başlamada ilk uyanış ilk nabızdan önce gelirse gecelik iş, bekleyen iptal kaynağından önce koşar; ama penceresi kesintide dolan siparişler ilk nabızla ertelendiği için kaçırılmış iptal kalmaz — beklemeyen kayıtlar gecelik işten önce işlenir (`05 §5.4.3` ile çelişmez; hatırlatma payı D-100) |
+| 8 | Süreler dondurulmaz; kaçırılan işler sırayla | ✓ | Uyanış tüm kaynakları tavansız okur (`DueBatchLimit` yok), `DueAt` → kaynak sırası → kimlik ile tek sırada işler; `Scan_PutsTheRecordsOfAllSourcesInOrderOfTheirMoments_…`, `Scan_AfterALongOutage_…` (kaynaklar arası araya giren anlar) yeşil |
+| 9 | Saat tek kaynaktan | ✓ | Dalın `src/` dosyalarında `DateTime(Offset).(Utc)Now`/`now()`/`Stopwatch` yok (grep boş); `TimeAndMoneyRulesTests` yeşil |
+
+**Tur 2 kapanışları:** B1 ✓ (`JobRunnerTests.cs:297` süzgecine `AND database = (SELECT oid FROM pg_database WHERE datname = current_database())`; `tests/`'te tek `pg_terminate_backend`; her koleksiyon kendi veritabanında (`CollectionDatabaseFixture`); `Jobs` ad alanı 3 ayrı koşuda 77/77 ve `Jobs+Concurrency+Security` birlikte 121/121) · K1 ✓ (`.claude/CONTEXT.md` `deploy/` satırı ve `09 §4.3` ağacı "veritabanı arşivi kapalı"; `docker compose … config` `database.command` = imaj `CMD` + `archive_mode=off`; runbook/README'de `compose.dev` anan başka satır yok) · K2 ✓ (sınır `TimeProvider`'a bağlı; test sahte saatle; `09 §11.2` m.4 istisnayı anar; `Stopwatch` yok). Tur 1 kapanışları (tavan yok, m.6/m.7 cümleleri, D-39 başlığı) yerinde.
+
+**Backlog kapanışları gerçek:** D-98 (`ConcurrencySourceScan` deseni `\bpg_(?:try_)?advisory\w*`, ihlal örneği `LockAndCounterWrites.cs`); D-97 gecelik temizlik (`JobQueueCleanupStep` kayıtlı, `JobQueueCleanupStep_DeletesTheCompletedRows_…`); D-39 (f) (yukarıda); D-99 açık ve kayıt noktalarını doğru sayar.
+
+### Task Satırları (`12 §7.5`, adım 2a ve 16)
+T221'in `10 KP` birimi yok (`11 §7.1` satırı 5779: `05 §5.1`–§5.4, MK-41/43/44); satırlar `12`'de nabız/kesinti/gecelik iş kayıtlarından grep'le bulundu. `VAL-C109` (1 dk boşlukta iptal — iptal kaynağı T327), `VAL-A826` (gerçek havale iptali kaynağı, T327), `VAL-C110` (iptal + kart son sorgusu, T327/T403), `VAL-A827` (tek işlem payı burada kanıtlı; "ilk iki dakikadaki son an ertelenmez" iptal kaynağını ister, T327) `BEKLEMEDE` kalır. `VAL-A830` T220'nin satırıdır.
+
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-C111 | KRİTİK | yok | PASS | PASS (yeniden doğrulandı, hücre değişmedi) | — |
+
+`python -I -X utf8 scripts/doc-scans/12_matris_denetle.py --kapsam 1-77`: Hata 0.
+
+### Doğrulama Kontrol Listesi
+- [x] KK1 sahte saatle tarama aralık başına bir kez; başarısız gecelik iş 1 saat dolmadan yinelenmez
+- [x] KK2 yavaş tarama nabzı geciktirmez; 200 dışı, bağlantı reddi ve sınır aşımında nabız yok, döngü sürer; ≤ 2 dk boşluk kesinti açmaz
+- [x] KK3 kaynak sipariş kilidi altında koşar
+- [x] KK4 iki örnek taramayı ve gecelik işi bir kez çalıştırır (paralel koleksiyonlarla kararlı)
+- [x] KK5 iş zamanı kayıt alanından
+- [x] KK6 08:00 ve 03:00 Türkiye anları; son sorgu 5 dk
+- [x] KK7 tek işlem, hatırlatma düşer, bayat nabızda iptal yok, 03:00 kesintisinde gecelik iş sonda bir kez
+- [x] KK8 kaçırılan işler sırayla (tavansız, kaynaklar arası)
+- [x] KK9 sistem saati doğrudan okunmaz
+- [x] `09 §25` — süre/tavan §3.5'te (yeni satır 342; tavan yok); kod doküman cümleleriyle çelişmiyor; yeni dosyalar `CONTEXT.md`'de; geniş `catch` yalnız §8.1 m.6 yerlerinde (`SchedulerScan.cs`, `NightlyJobRunner.cs`; `JobSourceScan` tam yol + ihlal örnekleri); işlemde ağ çağrısı yok (nabız isteği işlem dışında); `OrderLocks` üzerinden `LockSequence`; `RunAsync` lambda; test gerçek PostgreSQL'de, koleksiyonlar yalıtık, gerçek saate bağlı sınır yok (`Task.Delay(200)` yalnız "ikinci tarama olmadı" beklemesi); mimari taramalar yeşil; tek amaçlı PR, CI yeşil
+- [x] Güvenlik taraması (aşağıda)
+
+**Hata hâllerinin uygulamaya etkisi (`09 §13.1` m.1, m.6–m.9 karşısında):** nabız isteğinin başarısızlığı (200 dışı, `HttpRequestException`, 15 sn sınır — artık sahte saatle sınanır) yazmaz, döngü sürer (`Service_AFailedBeat_…`) ✓; veritabanı düşükken canlılık ucu 503 verdiği için nabız yazmayı denemez, istisna doğmaz; nabzın veritabanı yazımı ya da bir kesinti etkisi istisna atarsa (ör. erteleme yazımı reddi, kilit süresi aşımı) nabız döngüsü biter, `ExecuteAsync` istisnayı fırlatır, ev sahibi durur, konteyner yeniden başlar (m.1 — belgeyle uyumlu; işlem bütünüyle geri alınır, yarım dönüş kalmaz — `Beat_WhenThePutOffFails_…`); bir kaydın hatası kaydedilir, tarama sürer (m.6) ✓; gecelik adımın hatası (adımlar arası `EnsureAliveAsync` dahil) yakalanır, başarı yazılmaz, tarama sürer, 1 saat sonra yeniden (m.9) ✓; zamanlayıcı kilit bağlantısı koparsa `EnsureAliveAsync` istisnası hizmeti bitirir (m.7) ✓; deneme/başarı anının yazımı, tazelik okuması, kaynak sorgusu ya da kilit bağlantısının açılması düşerse ev sahibi durur (m.1; T220 çalıştırıcısıyla aynı kalıp). Nabız döngüsü tarama ve gecelik işten bağımsızdır (ayrı görev, `Service_ASlowScan_…`); tarama nabzı beklemez (iptal dışı kaynaklar bayat nabızda da işler).
+
+### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes` | çıkış 0 |
+| Unit (+Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 996/996 |
+| Betik | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti, çıkış 0 |
+| Integration — Jobs ×3 | ✓ | `--filter-namespace Shopfolio.IntegrationTests.Jobs` (PostgreSQL 18, `shopfolio-t221-val-pg`, port 55470; iki koleksiyon paralel) | 77/77 · 77/77 · 77/77 |
+| Integration — Jobs+Concurrency+Security | ✓ | üç `--filter-namespace` birlikte | 121/121 |
+| Integration — Web | ✓ | `--filter-namespace …Web` | 72/72 |
+| Integration — Concurrency+Security | ✓ | iki `--filter-namespace` | 44/44 |
+| Integration — Database+FileSecrets+Logging | ✓ | üç `--filter-namespace` | 89/89 |
+| Integration — Model 1 | ✓ | `--filter-class …Model.{A,B,C,D,E,G,I}*` | 482/482 |
+| Integration — Model 2 | ✓ | `--filter-class …Model.{M,P,R,S}*` | 411/411 (toplam 1175, 0 kırmızı) |
+| Restore | ✓ | `dotnet restore Shopfolio.slnx --locked-mode` | çıkış 0; `git status` temiz; konteyner adıyla silindi |
+| Dal CI | ✓ | `gh run list --branch task/T221-zamanlayici` | 42017091348 success (head `f277e08`; Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate success) |
+| Compose | ✓ | `docker compose --env-file deploy/release.env --env-file deploy/.env.example -f deploy/compose.yaml -f deploy/compose.dev.yaml config` | `database.command` = `postgres -c config_file=/etc/postgresql/postgresql.conf -c archive_mode=off` |
+
+### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz — yeni sır, ayar ya da kayıt alanı yok; kayıt satırları kaynak adı ve iç kayıt kimliği taşır, istisna `LoggerMessage` istisna parametresinde.
+- Auth etkisi: Temiz — yeni uç yok; nabız yalnız genel canlılık ucuna kimliksiz `GET` atar.
+- Input validation: Temiz — dış girdi yok; nabız yalnız durum kodunu okur.
+- Yeni bağımlılık: Yok (`packages.lock.json`/`.csproj` değişmedi; `--locked-mode` geçti).
+
+### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| — | — | — | — | Bulgu yok | — | — | — |
+
+### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | `ExternalCallTimeouts` sınıf yorumu "A call's limit is given to its own cancellation source with `CancelAfter`" der; düzeltme turu 2'den beri nabız isteği sınırı `new CancellationTokenSource(süre, TimeProvider)` ile kurar ve `09 §11.2` m.4 bu istisnayı anar — yorum istisnayı anmıyor (davranış doğru, yalnız yorum eksik) | `DEFERRED_BACKLOG` D-101'e forward (`ExternalCallTimeouts`'a dokunan ilk dış çağrı task'ı) |
+
+### Yapım Raporu Karşılaştırması
+- Uyum: 1 küçük uyuşmazlık
+- "Düzeltme turu 2 — Testler" satırı "Web 67/67" yazar; bu doğrulamada `Web` ad alanı 72/72 (sayım farkı; kırmızı yok).
+- Öz denetim tablosu vardır, her maddesi kanıtlıdır; tur 2 uyuşmazlığı (Jobs kararsızlığı) kapandı. Kriter ve KK verdict'leri bu doğrulamayla aynı.
+
+### Merge ve Post-merge
+- PASS: merge yardımcının işidir (adım 17–18). Dalda rapor, durum, hafıza ve D-101 commit'i push edildi.

@@ -2357,7 +2357,7 @@ Bu liste her kod tesliminde — yapım PR'ında ve bağımsız doğrulamada — 
 | Geçişte işlem sırası sabit mi; iç yan etki aynı işlemde, dış yan etki aynı işlemde yazılan `Job` satırı mı; olay yayını eklenmemiş, ret işlemi geri alıyor mu? | §9.1 |
 | Yeni işlem `AuditOperation` kod listesinde ve işlem izi aynı işlemde mi; `Details` kişisel veri taşımıyor mu? | §9.2 |
 | Eşzamanlılık doğru mu — sürüm sütunu, koşullu güncelleme, danışma kilidi, bölüm sürümü ve iç notun kilidi yerinde mi; yeni kilit alan yer kilidi `LockSequence`'e bildiriyor, işin gövdesi `RunAsync` çağrısında lambda mı? | §10.2 madde 5; §10.3; §10.7 madde 5; §10.9 |
-| Arka plan işi ve yönetim komutu kalıba uyuyor mu (iş türü kayıtlı ve işleyicisi sahip task'ta kayıtlı, yeniden deneme saf işlevde, satır alma ve kilitleme yalnız `JobClaim.cs`'te, işleyici işlem dışında çağrılıyor, komut tabloyla birebir)? | §13 |
+| Arka plan işi ve yönetim komutu kalıba uyuyor mu (iş türü kayıtlı ve işleyicisi sahip task'ta kayıtlı, yeniden deneme saf işlevde, satır alma ve kilitleme yalnız `JobClaim.cs`'te, işleyici işlem dışında çağrılıyor, komut tabloyla birebir; zamanlayıcıda zamanı gelen kaydın kaynağı `AddDueRecordSource` ile kayıtlı, zaman kaydın kendi alanında ve saat `TimeProvider`'dan, sipariş kaydı `ScheduledOrderTransition` tabanından türüyor, kesinti etkisi `AddOutageEffect` ile ve gecelik adım `AddNightlyStep` ile kayıtlı)? | §13 |
 | Para hesabı yalnız `Infrastructure/Money` ve `PaymentAmounts` işlevlerinden mi? | §14 |
 
 **Veri ve göç**

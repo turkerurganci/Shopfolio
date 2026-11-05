@@ -84,6 +84,35 @@ public sealed class JobSourceScanTests
     }
 
     [Fact]
+    public void Scan_InTheSchedulersFiles_LeavesOutOnlyTheirOwnRule()
+    {
+        string service = JobSourceScan.ServiceFiles.Single(f => f.EndsWith("SchedulerService.cs", StringComparison.Ordinal));
+        IReadOnlyList<string> catchFiles = [.. JobSourceScan.BroadCatchFiles.Where(f => f.EndsWith("SchedulerScan.cs", StringComparison.Ordinal) || f.EndsWith("NightlyJobRunner.cs", StringComparison.Ordinal))];
+
+        Assert.Equal(2, catchFiles.Count);
+        Assert.DoesNotContain(JobSourceScan.Scan(service, ReadSample()), f => f.Rule == JobSourceScan.ServiceText);
+        Assert.Contains(JobSourceScan.Scan(service, ReadSample()), f => f.Rule == JobSourceScan.BroadCatchText);
+        foreach (string file in catchFiles)
+        {
+            IReadOnlyList<(string Rule, int Line)> findings = JobSourceScan.Scan(file, ReadSample());
+            Assert.DoesNotContain(findings, f => f.Rule == JobSourceScan.BroadCatchText);
+            Assert.Contains(findings, f => f.Rule == JobSourceScan.ServiceText);
+        }
+    }
+
+    [Fact]
+    public void Scan_AFileOfTheSchedulersNamesElsewhere_IsNotAnAllowedPlace()
+    {
+        IReadOnlyList<(string Rule, int Line)> service = JobSourceScan.Scan("src/Shopfolio.Web/Modules/Ordering/SchedulerService.cs", ReadSample());
+        IReadOnlyList<(string Rule, int Line)> scan = JobSourceScan.Scan("src/Shopfolio.Web/Modules/Ordering/SchedulerScan.cs", ReadSample());
+        IReadOnlyList<(string Rule, int Line)> nightly = JobSourceScan.Scan("src/Shopfolio.Web/Infrastructure/NightlyJobRunner.cs", ReadSample());
+
+        Assert.Contains(service, f => f.Rule == JobSourceScan.ServiceText);
+        Assert.Contains(scan, f => f.Rule == JobSourceScan.BroadCatchText);
+        Assert.Contains(nightly, f => f.Rule == JobSourceScan.BroadCatchText);
+    }
+
+    [Fact]
     public void Scan_InTheContextFile_LeavesOutOnlyTheJobTableRule()
     {
         IReadOnlyList<(string Rule, int Line)> findings = JobSourceScan.Scan(JobSourceScan.ContextFile, ReadSample());

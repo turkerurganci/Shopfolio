@@ -36,13 +36,16 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
     private readonly IReadOnlyDictionary<string, string> _settings;
     private readonly ILoggerProvider? _loggerProvider;
     private readonly bool _withJobRunner;
+    private readonly bool _withScheduler;
 
     public ShopfolioWebApplicationFactory(
         string connectionString,
         IReadOnlyDictionary<string, string>? settings = null,
         ILoggerProvider? loggerProvider = null,
-        bool withJobRunner = true)
+        bool withJobRunner = true,
+        bool withScheduler = false)
     {
+        _withScheduler = withScheduler;
         _connectionString = connectionString;
         _settings = settings ?? new Dictionary<string, string>();
         _loggerProvider = loggerProvider;
@@ -95,6 +98,16 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
             {
                 ServiceDescriptor runner = services.Single(d => d.ServiceType == typeof(IHostedService) && d.ImplementationType == typeof(JobRunnerService));
                 services.Remove(runner);
+            });
+        }
+
+        if (!_withScheduler)
+        {
+            // The scheduler beats against the site's public address, which a test host does not have; a test about the scheduler asks for it.
+            builder.ConfigureServices(services =>
+            {
+                ServiceDescriptor scheduler = services.Single(d => d.ServiceType == typeof(IHostedService) && d.ImplementationType == typeof(SchedulerService));
+                services.Remove(scheduler);
             });
         }
 

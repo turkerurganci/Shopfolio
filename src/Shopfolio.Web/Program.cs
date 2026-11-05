@@ -7,6 +7,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
@@ -64,6 +65,10 @@ builder.Services.AddScoped<AdvisoryLocks>();
 
 // The link layer (09 15.1 items 3 and 4): the key derivation and the reading and consuming of link records.
 builder.Services.AddLinkRecords();
+
+// The link layer of the outside services (09 11.1, 11.2): the common call runner, the named HTTP clients without retry and, in development,
+// the e-mail gateway that writes to the capture tool (09 4.3 item 2). Modules take only the gateway interfaces.
+builder.Services.AddIntegrations(builder.Configuration);
 
 // One registration call per module (09 6 item 3).
 builder.Services.AddCatalogModule();

@@ -47,6 +47,9 @@ internal static class LogEvents
     /// <summary>The liveness probe's database check ran out of time (09 10.7 item 6).</summary>
     public const string DbTimeout = "DbTimeout";
 
+    /// <summary>A call of the outside services' link layer ended without a classified answer; the line carries the job, the kind and the reason code only (08 3.1 rule 5).</summary>
+    public const string ExternalCallFailed = "ExternalCallFailed";
+
     /// <summary>Every event name of the list, read from the constants above so the list and its members cannot drift apart.</summary>
     public static IReadOnlyList<string> All { get; } = typeof(LogEvents)
         .GetFields(BindingFlags.Public | BindingFlags.Static)

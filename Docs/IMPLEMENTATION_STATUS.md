@@ -122,7 +122,7 @@
 | T220 | İş kuyruğu çalıştırıcısı | ✓ | ✓ PASS (tur 1) | — | #393 |
 | T221 | Zamanlayıcı | ✓ | ✓ PASS (tur 3) | — | #394 |
 | T222 | Anahtarlar ve tek kullanımlık bağlantılar | ✓ | ✓ PASS (tur 1) | — | #392 |
-| T223 | Dosya deposu | ⬚ | — | — | — |
+| T223 | Dosya deposu | ⏳ | — | — | PR açıldı (yapım bitti) |
 | T224 | Çerez politikası | ⬚ | — | — | — |
 | T225 | Sistem kayıtları | ✓ | ✓ PASS (tur 3) | b8c180f | #389 |
 | T226 | Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi | ✓ | ✓ PASS (tur 1) | b8f20ad | #383 |

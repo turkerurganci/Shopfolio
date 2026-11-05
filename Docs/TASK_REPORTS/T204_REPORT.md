@@ -124,7 +124,7 @@ Derleme: `dotnet build Shopfolio.slnx -c Release -warnaserror` 0 uyarı; `dotnet
 
 - **Branch:** `task/T204-dis-servis-cokmesi`
 - **Commit:** PR head
-- **PR:** #PRNO
+- **PR:** #398
 - **CI:** *(izlenmedi — yönetici izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -84,7 +84,7 @@
 
 - **Branch:** `task/T231-maskeleme-testleri`
 - **Commit:** yapım commit'i
-- **PR:** #PR_NO
+- **PR:** #387
 - **CI:** yöneticide
 - **Post-merge run'lar:** *(validator doldurur)*
 

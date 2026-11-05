@@ -70,7 +70,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T221-zamanlayici`
-- **PR:** #PR
+- **PR:** #394
 
 ## Dış Varsayımlar
 

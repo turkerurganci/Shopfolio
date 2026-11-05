@@ -39,18 +39,18 @@ internal sealed class ImageUploads
         ArgumentNullException.ThrowIfNull(content);
         if (content.LongLength > ProductConstants.ImageMaxBytes)
         {
-            return ImageUploadResult.Refused(ImageUploadRefusal.TooLarge);
+            return ImageUploadResult.TooLarge;
         }
 
         ImageProcessing processing = await _processor.ProcessUploadAsync(content, ct);
         if (processing.Rejection is { } rejection)
         {
-            return ImageUploadResult.Refused(rejection switch
+            return rejection switch
             {
-                ImageRejection.UnsupportedType => ImageUploadRefusal.UnsupportedType,
-                ImageRejection.OverPixelLimit => ImageUploadRefusal.OverPixelLimit,
-                _ => ImageUploadRefusal.Undecodable,
-            });
+                ImageRejection.UnsupportedType => ImageUploadResult.UnsupportedType,
+                ImageRejection.OverPixelLimit => ImageUploadResult.OverPixelLimit,
+                _ => ImageUploadResult.Undecodable,
+            };
         }
 
         string key = Convert.ToHexStringLower(SHA256.HashData(processing.SourceCopy));
@@ -59,7 +59,13 @@ internal sealed class ImageUploads
             await _files.WriteAsync(FileArea.Image, key, source, ct);
         }
 
-        Image image = Image.Create(key, processing.ImageFormat, processing.Width, processing.Height, _time.GetUtcNow());
+        ImageFormat format = processing.Kind switch
+        {
+            ImageKind.Jpeg => ImageFormat.Jpeg,
+            ImageKind.Png => ImageFormat.Png,
+            _ => ImageFormat.WebP,
+        };
+        Image image = Image.Create(key, format, processing.Width, processing.Height, _time.GetUtcNow());
         return await _runner.RunAsync(
             async cancel =>
             {

@@ -12,6 +12,9 @@ internal static partial class LibraryTableConsistency
     private const string SectionHeading = "### Kütüphaneler";
     private const string FallbackMarker = "Yedek aday";
 
+    /// <summary>A row kept for the record of a candidate that was weighed and not taken (09 3.3 item 4, 5): not a package of the props file.</summary>
+    private const string RejectedMarker = "**Elendi**";
+
     /// <summary>
     /// Packages the table lists ahead of time that no task has added to the props file yet. A task that adds one removes it
     /// from this list in the same PR; any other table row without a package is a failure (T03 decision: the table is
@@ -20,7 +23,6 @@ internal static partial class LibraryTableConsistency
     public static readonly IReadOnlySet<string> NotYetAdded = new HashSet<string>(StringComparer.Ordinal)
     {
         "HtmlSanitizer",
-        "Magick.NET-Q8-AnyCPU",
         "AWSSDK.SimpleEmailV2",
         "Microsoft.IdentityModel.Protocols.OpenIdConnect",
         "Microsoft.IdentityModel.JsonWebTokens",
@@ -71,7 +73,7 @@ internal static partial class LibraryTableConsistency
 
     /// <summary>
     /// Reads the backticked package name of the first cell of every table row. Rows without backticks in the first cell
-    /// (tools that are not NuGet packages) and the fallback candidate row are not read.
+    /// (tools that are not NuGet packages) and the fallback and rejected candidate rows are not read.
     /// </summary>
     public static IReadOnlyList<string> ReadTablePackages(string markdown)
     {
@@ -97,7 +99,7 @@ internal static partial class LibraryTableConsistency
             }
 
             string[] cells = line.Split('|');
-            if (cells.Length < 3 || cells[2].Contains(FallbackMarker, StringComparison.Ordinal))
+            if (cells.Length < 3 || (cells[2].Contains(FallbackMarker, StringComparison.Ordinal) || cells[2].Contains(RejectedMarker, StringComparison.Ordinal)))
             {
                 continue;
             }

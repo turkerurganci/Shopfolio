@@ -1,6 +1,3 @@
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Memory;
-
 namespace Shopfolio.Infrastructure.Imaging;
 
 /// <summary>
@@ -28,15 +25,9 @@ internal static class ImagingLimits
     /// <summary>Operations at the same time; the request's source copy and the queue's derivatives share the limit (09 15.6 item 4).</summary>
     public const int MaxConcurrent = 2;
 
+    /// <summary>The library's memory: the ceiling of the one pixel buffer a decode allocates (the library has no allocator limit of its own).</summary>
     public const int MemoryLimitMegabytes = 256;
 
-    /// <summary>The library's configuration: the allocator's total limit is the memory ceiling, so an image that would not fit fails instead of growing.</summary>
-    public static Configuration Configuration { get; } = BuildConfiguration();
-
-    private static Configuration BuildConfiguration()
-    {
-        Configuration configuration = Configuration.Default.Clone();
-        configuration.MemoryAllocator = MemoryAllocator.Create(new MemoryAllocatorOptions { AllocationLimitMegabytes = MemoryLimitMegabytes });
-        return configuration;
-    }
+    /// <summary>Bytes of one decoded pixel (RGBA, 8 bits per channel).</summary>
+    public const int BytesPerPixel = 4;
 }

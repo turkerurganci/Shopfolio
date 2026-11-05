@@ -1,5 +1,3 @@
-using Shopfolio.Modules.Catalog.Contracts;
-
 namespace Shopfolio.Infrastructure.Imaging;
 
 /// <summary>
@@ -12,22 +10,22 @@ internal static class ImageKinds
 
     private static ReadOnlySpan<byte> PngMagic => [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 
-    public static ImageFormat? Sniff(ReadOnlySpan<byte> content)
+    public static ImageKind? Sniff(ReadOnlySpan<byte> content)
     {
         if (content.StartsWith(JpegMagic))
         {
-            return ImageFormat.Jpeg;
+            return ImageKind.Jpeg;
         }
 
         if (content.StartsWith(PngMagic))
         {
-            return ImageFormat.Png;
+            return ImageKind.Png;
         }
 
         // RIFF, four size bytes, WEBP.
         if (content.Length >= 12 && content[..4].SequenceEqual("RIFF"u8) && content.Slice(8, 4).SequenceEqual("WEBP"u8))
         {
-            return ImageFormat.WebP;
+            return ImageKind.WebP;
         }
 
         return null;

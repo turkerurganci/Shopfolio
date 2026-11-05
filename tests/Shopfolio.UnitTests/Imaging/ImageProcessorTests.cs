@@ -2,14 +2,13 @@ using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.Imaging;
 using Shopfolio.Modules.Catalog.Contracts;
 
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
+using SkiaSharp;
 
 namespace Shopfolio.UnitTests.Imaging;
 
 /// <summary>
 /// The image gates (T223 criteria 3, 4, 6, 7; 05 6.6.1, 6.6.2, 7.7.2; 09 15.6 test): one image per gate, made in memory. The library is the
-/// table's fallback (ImageSharp); the contract of <see cref="ImageProcessor"/> and these tests are the same for either library (09 15.6 item 8).
+/// table's SkiaSharp (K-1575); the contract of <see cref="ImageProcessor"/> and these tests do not name it except to read an image back.
 /// </summary>
 public sealed class ImageProcessorTests
 {
@@ -34,16 +33,16 @@ public sealed class ImageProcessorTests
         ImageProcessing result = await processor.ProcessUploadAsync(ImageFixtures.Png(40, 20), Ct);
 
         Assert.False(result.IsRejected);
-        Assert.Equal(ImageFormat.Png, result.ImageFormat);
-        Assert.Equal(ImageFormat.Png, ImageKinds.Sniff(result.SourceCopy));
+        Assert.Equal(ImageKind.Png, result.Kind);
+        Assert.Equal(ImageKind.Png, ImageKinds.Sniff(result.SourceCopy));
     }
 
     [Fact]
     public async Task AHugeSmallFile_IsRefusedFromItsHeader_WithoutDecoding()
     {
         using ImageProcessor processor = new();
-        byte[] tooLongEdge = ImageFixtures.HugePngHeader(ImagingLimits.MaxEdge + 1, 10);
-        byte[] tooManyPixels = ImageFixtures.HugePngHeader(ImagingLimits.MaxEdge, (int)(ImagingLimits.MaxPixels / ImagingLimits.MaxEdge) + 1);
+        byte[] tooLongEdge = ImageFixtures.HugePng(ImagingLimits.MaxEdge + 1, 10);
+        byte[] tooManyPixels = ImageFixtures.HugePng(ImagingLimits.MaxEdge, (int)(ImagingLimits.MaxPixels / ImagingLimits.MaxEdge) + 1);
 
         ImageProcessing edge = await processor.ProcessUploadAsync(tooLongEdge, Ct);
         ImageProcessing area = await processor.ProcessUploadAsync(tooManyPixels, Ct);
@@ -82,16 +81,22 @@ public sealed class ImageProcessorTests
     {
         using ImageProcessor processor = new();
 
-        ImageProcessing result = await processor.ProcessUploadAsync(ImageFixtures.SidewaysJpegWithLocation(80, 40), Ct);
+        byte[] sideways = ImageFixtures.SidewaysJpegWithMetadata();
 
+        ImageProcessing result = await processor.ProcessUploadAsync(sideways, Ct);
+
+        // The fixture carries what the gate must drop: EXIF with a place and a camera, XMP, IPTC.
+        Assert.All(["Exif", "http://ns.adobe.com/xap", "Photoshop 3.0", "camera-app-secret", "secret-person", "secret-caption"], marker => Assert.True(ImageInspection.Contains(sideways, marker), marker));
         Assert.False(result.IsRejected);
         Assert.Equal((40, 80), (result.Width, result.Height));
-        ImageInfo info = await Image.IdentifyAsync(new MemoryStream(result.SourceCopy), Ct);
-        Assert.Equal((40, 80), (info.Width, info.Height));
-        Assert.Null(info.Metadata.ExifProfile);
-        Assert.Null(info.Metadata.XmpProfile);
-        Assert.Null(info.Metadata.IptcProfile);
-        Assert.Null(info.Metadata.IccProfile);
+        Assert.Equal((40, 80, 1), ImageInspection.Read(result.SourceCopy));
+        Assert.Empty(ImageInspection.MarkersIn(result.SourceCopy));
+        Assert.False(ImageInspection.Contains(result.SourceCopy, "secret"));
+        // Orientation 6 turns the stored left edge (red) into the top edge.
+        SKColor top = ImageInspection.PixelAt(result.SourceCopy, 20, 5);
+        SKColor bottom = ImageInspection.PixelAt(result.SourceCopy, 20, 75);
+        Assert.True(top.Red > 200 && top.Blue < 80, $"top was {top}");
+        Assert.True(bottom.Blue > 100 && bottom.Red < 100, $"bottom was {bottom}");
     }
 
     [Fact]
@@ -99,13 +104,16 @@ public sealed class ImageProcessorTests
     {
         using ImageProcessor processor = new();
 
-        ImageProcessing result = await processor.ProcessUploadAsync(ImageFixtures.AnimatedWebP(48, 32), Ct);
+        byte[] moving = ImageFixtures.AnimatedWebP();
 
+        ImageProcessing result = await processor.ProcessUploadAsync(moving, Ct);
+
+        Assert.Equal(2, ImageInspection.Read(moving).FrameCount);
         Assert.False(result.IsRejected);
-        Assert.Equal(ImageFormat.WebP, result.ImageFormat);
-        ImageInfo info = await Image.IdentifyAsync(new MemoryStream(result.SourceCopy), Ct);
-        using Image decoded = Image.Load(result.SourceCopy);
-        Assert.Single(decoded.Frames);
+        Assert.Equal(ImageKind.WebP, result.Kind);
+        Assert.Equal((48, 32, 1), ImageInspection.Read(result.SourceCopy));
+        SKColor pixel = ImageInspection.PixelAt(result.SourceCopy, 10, 10);
+        Assert.True(pixel.Red > 150 && pixel.Blue < 100, $"the first frame is red, the pixel was {pixel}");
     }
 
     [Fact]
@@ -113,11 +121,29 @@ public sealed class ImageProcessorTests
     {
         using ImageProcessor processor = new();
 
-        ImageProcessing result = await processor.ProcessUploadAsync(ImageFixtures.CmykJpeg(64, 64), Ct);
+        ImageProcessing result = await processor.ProcessUploadAsync(ImageFixtures.CmykJpeg(), Ct);
 
         Assert.False(result.IsRejected);
-        using Image<Rgba32> decoded = Image.Load<Rgba32>(result.SourceCopy);
-        Assert.Equal((64, 64), (decoded.Width, decoded.Height));
+        Assert.Equal((64, 64, 1), ImageInspection.Read(result.SourceCopy));
+        Assert.Empty(ImageInspection.MarkersIn(result.SourceCopy));
+        // The fixture is orange: red high, blue low, in plain RGB.
+        SKColor pixel = ImageInspection.PixelAt(result.SourceCopy, 32, 32);
+        Assert.True(pixel.Red > 200 && pixel.Blue < 90, $"the pixel was {pixel}");
+    }
+
+    [Fact]
+    public async Task APlainImage_KeepsItsColour_AndCarriesNoColourProfile()
+    {
+        using ImageProcessor processor = new();
+
+        ImageProcessing jpeg = await processor.ProcessUploadAsync(ImageFixtures.Jpeg(64, 64), Ct);
+        ImageProcessing png = await processor.ProcessUploadAsync(ImageFixtures.Png(64, 64), Ct);
+
+        Assert.Empty(ImageInspection.MarkersIn(jpeg.SourceCopy));
+        Assert.Empty(ImageInspection.MarkersIn(png.SourceCopy));
+        SKColor steel = ImageInspection.PixelAt(jpeg.SourceCopy, 32, 32);
+        Assert.True(Math.Abs(steel.Red - SKColors.SteelBlue.Red) < 6 && Math.Abs(steel.Blue - SKColors.SteelBlue.Blue) < 6, $"the pixel was {steel}");
+        Assert.Equal(SKColors.SeaGreen, ImageInspection.PixelAt(png.SourceCopy, 32, 32));
     }
 
     [Fact]
@@ -128,12 +154,9 @@ public sealed class ImageProcessorTests
 
         byte[] derivative = await processor.RenderDerivativeAsync(source.SourceCopy, 480, Ct);
 
-        Assert.Equal(ImageFormat.WebP, ImageKinds.Sniff(derivative));
-        ImageInfo info = await Image.IdentifyAsync(new MemoryStream(derivative), Ct);
-        Assert.Equal((480, 240), (info.Width, info.Height));
-        using Image decodedDerivative = Image.Load(derivative);
-        Assert.Single(decodedDerivative.Frames);
-        Assert.Null(info.Metadata.ExifProfile);
+        Assert.Equal(ImageKind.WebP, ImageKinds.Sniff(derivative));
+        Assert.Equal((480, 240, 1), ImageInspection.Read(derivative));
+        Assert.Empty(ImageInspection.MarkersIn(derivative));
     }
 
     [Fact]

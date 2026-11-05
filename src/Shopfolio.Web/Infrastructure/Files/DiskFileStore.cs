@@ -43,7 +43,7 @@ internal sealed class DiskFileStore : IFileStore
         ArgumentNullException.ThrowIfNull(content);
         string target = PathOf(area, key);
         Directory.CreateDirectory(_directories.Of(area));
-        string temporary = Path.Combine(_directories.Of(area), TemporaryPrefix + Guid.NewGuid().ToString("N"));
+        string temporary = Path.Combine(_directories.Of(area), TemporaryPrefix + Path.GetRandomFileName());
         try
         {
             await using (FileStream file = new(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None, bufferSize: 81920, useAsync: true))

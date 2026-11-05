@@ -22,7 +22,11 @@
 	# that name is replaced, never passed on (header_up without a prefix sets the header). The application's lines carry the header's value.
 	log_append request_id {http.request.uuid}
 
-	# The access log (05 9.1.2) goes to its own file in its own volume. Request and response headers are not written (05 9.1.5).
+	# The browser's identification is the one request header the access line carries (05 9.1.2): written as its own field here, because
+	# the delete below removes every header from the line, this one too. No other header is written (05 9.1.5).
+	log_append user_agent {http.request.header.User-Agent}
+
+	# The access log (05 9.1.2) goes to its own file in its own volume. Only the browser identification is written of the headers (user_agent above), the rest is not (05 9.1.5).
 	log {
 		output file /var/log/caddy/access.log {
 			# Caddy's default is 0600 (root only); the file backup tool (uid 10001) reads this volume read-only (found at T09).
@@ -36,6 +40,18 @@
 			request>headers delete
 			resp_headers delete
 			request>tls delete
+
+				# The masking of the address (05 9.1.5, 6.4.8; 09 18.2 item 2b; DEPLOY_RUNBOOK K-1162 (1)): the filters run in this order on the
+				# request>uri field. The same rules as PathMasker in the application (the keyed paths are the same closed list; a test compares them).
+				# 1. The segment after a keyed prefix becomes {key}; empty segments (//) are skipped, as PathMasker does; the prefix is matched
+				#    without regard to case.
+				request>uri regexp (?i)^(/*(?:siparis/+erisim|odeme/+donus|indir|dogrulama|sifre-sifirlama|geri-al|panel/+sifre-sifirlama|panel/+davet|panel/+dogrulama|panel/+geri-al)/+)[^/?]+ ${1}{key}
+				# 2. Every query pair keeps its name and loses its value.
+				request>uri regexp ([?&][^=&]*=)[^&]* ${1}*
+				# 3. A query token without '=' is a value too (a bare token can be an address). A match uses up the '&' after it, so two passes
+				#    (the second starts at '&') mask every token of a row of bare tokens.
+				request>uri regexp ([?&])[^=&]+(&|$) ${1}*${2}
+				request>uri regexp (&)[^=&]+(&|$) ${1}*${2}
 		}
 	}
 

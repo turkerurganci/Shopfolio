@@ -51,6 +51,77 @@ public sealed partial class SystemLogsDeployConsistencyTests
         Assert.Contains("resp_headers delete", caddyfile, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Caddyfile_WritesTheBrowserIdentificationAsItsOwnFieldAndNoOtherHeader()
+    {
+        string caddyfile = Read("deploy", "caddy", "Caddyfile");
+
+        // The delete removes every request header from the line (05 9.1.5); the one field 05 9.1.2 names is appended on its own.
+        Match written = UserAgentAppend().Match(caddyfile);
+
+        Assert.True(written.Success, "The Caddyfile does not append the browser identification to the access line.");
+        Assert.Equal("{http.request.header.User-Agent}", written.Groups["value"].Value);
+        string[] appended = [.. LogAppendFields().Matches(caddyfile).Select(m => m.Groups["name"].Value).Order(StringComparer.Ordinal)];
+        Assert.Equal(["request_id", "user_agent"], appended);
+    }
+
+    // --- The masking of the address in the access line (criterion 3; 05 9.1.5, 6.4.8; 09 18.2 item 2b; K-1162 (1)) ---
+
+    [Fact]
+    public void Caddyfile_MasksTheKeyedPathsOfPathMasker_AndNoOthers()
+    {
+        string caddyfile = Read("deploy", "caddy", "Caddyfile");
+        string pathFilter = UriFilters(caddyfile).First().Pattern;
+
+        Match alternation = KeyedAlternation().Match(pathFilter);
+        Assert.True(alternation.Success, "The first request>uri filter is not the keyed path filter.");
+
+        // The proxy's list is read from the Caddyfile, the application's list from PathMasker; each prefix segment is joined by '/+' (empty segments are skipped).
+        string[] proxyPrefixes = [.. alternation.Groups["alternatives"].Value.Split('|').Select(alternative => alternative.Replace("/+", "/", StringComparison.Ordinal))];
+        string[] applicationPrefixes = [.. PathMasker.KeyedPrefixes.Select(prefix => string.Join('/', prefix))];
+
+        Assert.Equal(applicationPrefixes.Order(StringComparer.Ordinal), proxyPrefixes.Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public void Caddyfile_UriFilters_GiveWhatPathMaskerGivesForEveryKeyedPathAndQueryShape()
+    {
+        List<(string Pattern, string Replacement)> filters = UriFilters(Read("deploy", "caddy", "Caddyfile"));
+
+        List<string> samples =
+        [
+            "/arama?search=gizlisozcuk&email=a@b.com",
+            "/arama?a&b&c&d",
+            "/arama?x=1&bare&y=",
+            "/arama?a=b?c=d",
+            "/arama?a=1=2",
+            "/arama",
+            "/siparis/erisim",
+            "/siparis/erisim/",
+            "/indir/?x=1",
+            "/siparis/erisim-x/ABC",
+            "/odeme/donus-x/ABC",
+            "/panel/ABC",
+            "/gorsel/abc/def.webp",
+        ];
+        foreach (string keyed in PathMasker.KeyedPaths)
+        {
+            string path = keyed.Replace(PathMasker.KeyPlaceholder, "SECRET123", StringComparison.Ordinal);
+            samples.AddRange([path, path + "/teyit?email=a@b.com&token=SECRET9", "/" + path, path.ToUpperInvariant(), path.Replace("/", "//", StringComparison.Ordinal), path.Replace("SECRET123", "/SECRET123", StringComparison.Ordinal) + "?bare"]);
+        }
+
+        foreach (string sample in samples)
+        {
+            string viaProxy = sample;
+            foreach ((string pattern, string replacement) in filters)
+            {
+                viaProxy = Regex.Replace(viaProxy, pattern, replacement, RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
+            }
+
+            Assert.Equal(PathMasker.Mask(sample), viaProxy);
+        }
+    }
+
     // --- Nothing deletes a log file but the disposal job (criterion 5) ---
 
     [Fact]
@@ -225,6 +296,24 @@ public sealed partial class SystemLogsDeployConsistencyTests
 
     [GeneratedRegex(@"^\s*log_append\s+request_id\s+(?<value>\{[^}]+\})\s*$", RegexOptions.Multiline | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex LogAppend();
+
+    // The request>uri filters of the access log in the order they run; the replacement keeps the Go placeholders ${1} which .NET reads the same way.
+    private static List<(string Pattern, string Replacement)> UriFilters(string caddyfile) =>
+    [
+        .. UriFilter().Matches(caddyfile).Select(m => (m.Groups["pattern"].Value, m.Groups["replacement"].Value)),
+    ];
+
+    [GeneratedRegex(@"^\s*request>uri\s+regexp\s+(?<pattern>\S+)\s+(?<replacement>\S+)\s*$", RegexOptions.Multiline | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex UriFilter();
+
+    [GeneratedRegex(@"\(\?:(?<alternatives>[^()]+)\)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex KeyedAlternation();
+
+    [GeneratedRegex(@"^\s*log_append\s+user_agent\s+(?<value>\{[^}]+\})\s*$", RegexOptions.Multiline | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex UserAgentAppend();
+
+    [GeneratedRegex(@"^\s*log_append\s+(?<name>\S+)\s", RegexOptions.Multiline | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex LogAppendFields();
 
     [GeneratedRegex(@"^\s*roll_disabled\s*$", RegexOptions.Multiline | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex RollDisabled();

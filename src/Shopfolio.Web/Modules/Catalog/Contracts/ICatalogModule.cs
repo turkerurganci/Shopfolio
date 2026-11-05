@@ -37,4 +37,10 @@ public interface ICatalogModule
     /// change; the field is outside the product form's version (K-980).
     /// </summary>
     Task<StockQuantityWriteResult> SaveStockQuantityAsync(Guid variantId, int? shownValue, int? newValue, CancellationToken ct);
+
+    /// <summary>
+    /// An image upload (09 15.6 items 5, 7; 05 7.7.2): the size ceiling (P-23), the type from the content, the pixel ceiling, the re-encoded source
+    /// copy in the file store and - in one transaction - the unlinked image row and its derivative job. The refusal is a result, not an exception.
+    /// </summary>
+    Task<ImageUploadResult> UploadImageAsync(byte[] content, CancellationToken ct);
 }

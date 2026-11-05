@@ -6,6 +6,7 @@ using Shopfolio.Endpoints;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.FileSecrets;
+using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Jobs;
@@ -76,6 +77,9 @@ builder.Services.AddIntegrations(builder.Configuration);
 builder.Services.AddSignedEndpoints();
 
 // One registration call per module (09 6 item 3).
+// The file store and the image processor are the infrastructure the Catalog module's files stand on (09 6 item 6, 15.6).
+builder.Services.AddFileStore();
+builder.Services.AddSingleton<Shopfolio.Infrastructure.Imaging.ImageProcessor>();
 builder.Services.AddCatalogModule();
 builder.Services.AddOrderingModule();
 builder.Services.AddPaymentModule();

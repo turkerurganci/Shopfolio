@@ -12,4 +12,7 @@ internal static class DisposalTimings
 
     /// <summary>An unopened guest cart on the server goes after this many days: the cookie's life, 400 days (05 6.7.8, 11.1.32; 06 9.1 Z-6).</summary>
     public const int GuestCartIdleDays = 400;
+
+    /// <summary>A file or an unlinked image goes only when it is at least this many days old: a file just written may not have its row yet (05 7.7.1, 7.7.2; K-980).</summary>
+    public const int UnlinkedFileMinAgeDays = 1;
 }

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Modules.Ordering.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
@@ -15,6 +16,7 @@ internal static class OrderingModuleRegistration
     public static IServiceCollection AddOrderingModule(this IServiceCollection services)
     {
         services.AddScoped<OrderLocks>();
+        services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
         return services;
     }

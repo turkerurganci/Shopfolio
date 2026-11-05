@@ -78,6 +78,7 @@ builder.Services.AddSettingsModule();
 // The job queue and its one runner service (09 13.1): after the modules, so the runner starts after the start-up checks and the start-up rewrite
 // of the pending revert links' digests, and after the handlers the modules register (05 4.3.2, 6.x.20).
 builder.Services.AddJobQueue();
+builder.Services.AddScheduler();
 
 WebApplication app = builder.Build();
 

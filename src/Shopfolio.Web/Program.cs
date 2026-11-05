@@ -32,7 +32,10 @@ builder.AddApplicationLogging();
 builder.Services.AddAuditLineWriter();
 
 // The address rules (07 2.1): every page template is checked against the closed list of first path segments when the routes are built.
-builder.Services.AddRazorPages().AddAddressRules();
+builder.Services.AddRazorPages().AddAddressRules().AddSessionAccess();
+
+// The two identity schemes, their policies and the closed doors (07 2.3.1; 09 15.1 item 2): the panel and the account folders are closed by folder path.
+builder.Services.AddSessionAuthentication();
 
 // The one time source (09 7.1 item 1; 05 7.2.4).
 builder.Services.AddTimeSource();
@@ -112,6 +115,10 @@ WebApplication app = builder.Build();
 app.UseCookieHeaderFilter();
 
 app.UseRouting();
+
+// The session schemes read the cookie and the closed doors answer a request without a session (07 2.3.2); after the routing, which finds the endpoint metadata.
+app.UseAuthentication();
+app.UseAuthorization();
 
 // The static files are served under /statik (07 2.1.2, 3.1.6) with a fingerprint in the file name: a changed file gets a new address (07 2.10.3; 05 3.8.1).
 app.MapGroup(AddressRules.StaticArea).MapStaticAssets();

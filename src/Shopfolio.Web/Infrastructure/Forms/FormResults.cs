@@ -41,12 +41,8 @@ internal static class FormResults
         return result;
     }
 
-    internal static bool IsLocalPath(string path) =>
-        path.Length > 0
-        && path[0] == '/'
-        && (path.Length == 1 || (path[1] != '/' && path[1] != '\\'))
-        && !path.Contains('\n', StringComparison.Ordinal)
-        && !path.Contains('\r', StringComparison.Ordinal);
+    // The one rule of the site's own path (05 6.5.6; D-118): the control characters - the tab too - are refused as well as the network and backslash forms.
+    internal static bool IsLocalPath(string path) => Security.ReturnPath.IsLocalPath(path);
 
     private sealed class SeeOtherResult : IActionResult
     {

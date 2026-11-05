@@ -253,7 +253,11 @@ public abstract class JobQueueTestBase : IAsyncLifetime
         await ExecuteAsync("TRUNCATE jobs, job_test_effects, refund_records, dispatch_records, link_records, sessions, customers, admins CASCADE");
     }
 
-    public virtual ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public virtual ValueTask DisposeAsync()
+    {
+        GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
+    }
 
     internal JobQueueHarness NewHarness(
         IReadOnlyCollection<JobType> handled,
@@ -282,7 +286,7 @@ public abstract class JobQueueTestBase : IAsyncLifetime
 
     protected Task<long> EffectCountAsync() => ScalarAsync<long>("SELECT count(*) FROM job_test_effects");
 
-    protected AppDbContext NewContext()
+    internal AppDbContext NewContext()
     {
         DbContextOptionsBuilder<AppDbContext> builder = new();
         AppDbContext.Configure(builder, Collection.Dsn);
@@ -290,7 +294,7 @@ public abstract class JobQueueTestBase : IAsyncLifetime
     }
 
     /// <summary>Writes the idempotent effect of a row inside the open transaction of the given scope: one row per job, however many times it is written.</summary>
-    protected static Task<int> WriteEffectAsync(AppDbContext db, Guid jobId, CancellationToken ct)
+    internal static Task<int> WriteEffectAsync(AppDbContext db, Guid jobId, CancellationToken ct)
     {
         return db.Database.ExecuteSqlAsync($"INSERT INTO job_test_effects (job_id) VALUES ({jobId}) ON CONFLICT DO NOTHING", ct);
     }

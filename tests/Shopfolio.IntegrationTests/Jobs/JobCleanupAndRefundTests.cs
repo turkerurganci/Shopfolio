@@ -1,3 +1,5 @@
+using System.Net;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -5,8 +7,13 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Model;
+using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Payment.Contracts;
+using Shopfolio.Modules.Settings;
+using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.IntegrationTests.Jobs;
 
@@ -27,16 +34,72 @@ public sealed class JobCleanupAndRefundTests : JobQueueTestBase
     public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
-
-        // The refund records of these tests point at refund ids that have no refund row: the rule reads the records only (a test-local shortcut).
-        await ExecuteAsync("ALTER TABLE refund_records DISABLE TRIGGER ALL");
+        await ExecuteAsync("TRUNCATE refund_records, refunds, payment_records, orders CASCADE");
     }
 
     public override async ValueTask DisposeAsync()
     {
-        await ExecuteAsync("TRUNCATE refund_records");
-        await ExecuteAsync("ALTER TABLE refund_records ENABLE TRIGGER ALL");
+        await ExecuteAsync("TRUNCATE refund_records, refunds, payment_records, orders CASCADE");
         await base.DisposeAsync();
+    }
+
+    // A real refund row (a late payment refund of a real order and its payment record), so the refund records have the rows they point at.
+    private async Task<Guid> SeedRefundAsync()
+    {
+        DateTimeOffset now = JobQueueHarness.Start;
+        await using AppDbContext db = NewContext();
+        Province? province = await db.Provinces.SingleOrDefaultAsync(p => p.Code == "06", Ct);
+        if (province is null)
+        {
+            province = Province.Create("06", "Ankara", now);
+            db.Provinces.Add(province);
+        }
+
+        Guid VersionOf(LegalTextType type, bool hosting)
+        {
+            LegalTextVersion? existing = db.LegalTextVersions.SingleOrDefault(v => v.LegalTextType == type);
+            if (existing is not null)
+            {
+                return existing.Id;
+            }
+
+            LegalTextVersion created = LegalTextVersion.CreatePublished(type, 1, now, "metin", now);
+            db.LegalTextVersions.Add(created);
+            return (hosting ? created.WithHosting() : created).Id;
+        }
+
+        Guid form = VersionOf(LegalTextType.PreInformationForm, false);
+        Guid contract = VersionOf(LegalTextType.DistanceSalesContract, false);
+        Guid notice = VersionOf(LegalTextType.PrivacyNotice, true);
+        await db.SaveChangesAsync(Ct);
+
+        Order order = Order.Create("2026-000001", "access-placeholder-1", "confirm-placeholder-1", PaymentMethod.Card, true, "Ali@Example.com", 120m, 0m, now.AddHours(1), now);
+        order.IpAddress = IPAddress.Parse("203.0.113.5");
+        order.CartId = EntityIds.New();
+        order.BillingRecipientName = "Ali Veli";
+        order.BillingProvinceId = province.Id;
+        order.BillingDistrict = "Çankaya";
+        order.BillingAddressLine = "Atatürk Bulvarı 1";
+        order.CompanyType = CompanyType.Tradesman;
+        order.CompanyLegalName = "Örnek Ticaret";
+        order.CompanyTaxIdNumber = "1234567890";
+        order.CompanyProvinceId = province.Id;
+        order.CompanyDistrict = "Çankaya";
+        order.CompanyAddressLine = "Kızılay 2";
+        order.CompanyPhone = "3121234567";
+        order.CompanyEmail = "firma@example.com";
+        order.CompanyKepAddress = "firma@hs01.kep.tr";
+        order.PreInformationFormVersionId = form;
+        order.DistanceSalesContractVersionId = contract;
+        order.PrivacyNoticeVersionId = notice;
+        order.FreezeDocuments("ön bilgilendirme", "mesafeli satış");
+        db.Orders.Add(order);
+        PaymentRecord payment = PaymentRecord.ForCardPayment(order.Id, "tx-t220", null, now);
+        db.PaymentRecords.Add(payment);
+        Refund refund = Refund.ForLatePayment(order.Id, payment.Id, 120m, now);
+        db.Refunds.Add(refund);
+        await db.SaveChangesAsync(Ct);
+        return refund.Id;
     }
 
     // ---- KK6: the clean-up deletes the completed rows and nothing else ----
@@ -91,7 +154,7 @@ public sealed class JobCleanupAndRefundTests : JobQueueTestBase
     [Fact]
     public async Task ReadLatestState_IsTheLatestRecordOfTheRefundWrittenAtOrAfterTheRow_AndNullWhenThereIsNone()
     {
-        Guid refund = Guid.NewGuid();
+        Guid refund = await SeedRefundAsync();
         DateTimeOffset jobCreated = JobQueueHarness.Start;
         await using AppDbContext db = NewContext();
         Assert.Null(await CardRefundJobRule.ReadLatestStateAsync(db, refund, jobCreated, Ct));
@@ -115,7 +178,7 @@ public sealed class JobCleanupAndRefundTests : JobQueueTestBase
     {
         await using JobQueueHarness harness = NewHarness([JobType.CardRefund]);
         RefundStandIn standIn = new(harness);
-        Guid refund = Guid.NewGuid();
+        Guid refund = await SeedRefundAsync();
         await harness.EnqueueAsync(JobType.CardRefund, refund);
 
         Assert.True(await harness.RunOneAsync(Ct));
@@ -131,7 +194,7 @@ public sealed class JobCleanupAndRefundTests : JobQueueTestBase
     {
         await using JobQueueHarness harness = NewHarness([JobType.CardRefund]);
         RefundStandIn standIn = new(harness) { DieAfterSend = true };
-        Guid refund = Guid.NewGuid();
+        Guid refund = await SeedRefundAsync();
         await harness.EnqueueAsync(JobType.CardRefund, refund);
 
         // The first round writes the record, sends, and the process fails before it could write the result: the default rule retries the row.
@@ -157,7 +220,7 @@ public sealed class JobCleanupAndRefundTests : JobQueueTestBase
     {
         await using JobQueueHarness harness = NewHarness([JobType.CardRefund]);
         RefundStandIn standIn = new(harness);
-        Guid refund = Guid.NewGuid();
+        Guid refund = await SeedRefundAsync();
         await harness.EnqueueAsync(JobType.CardRefund, refund);
         await AddRecordAsync(refund, RefundRecordState.Succeeded, JobQueueHarness.Start);
 
@@ -173,7 +236,7 @@ public sealed class JobCleanupAndRefundTests : JobQueueTestBase
     {
         await using JobQueueHarness harness = NewHarness([JobType.CardRefund]);
         RefundStandIn standIn = new(harness) { FailBeforeRecord = true };
-        Guid refund = Guid.NewGuid();
+        Guid refund = await SeedRefundAsync();
         await harness.EnqueueAsync(JobType.CardRefund, refund);
 
         Assert.True(await harness.RunOneAsync(Ct));
@@ -289,7 +352,7 @@ public sealed class JobCleanupAndRefundTests : JobQueueTestBase
             }
         }
 
-        private static Task WriteResultAsync(AppDbContext db, ITransactionRunner runner, Guid refundId, TimeProvider time, CancellationToken ct)
+        private static Task<StepResult> WriteResultAsync(AppDbContext db, ITransactionRunner runner, Guid refundId, TimeProvider time, CancellationToken ct)
         {
             return runner.RunAsync(
                 async cancel =>

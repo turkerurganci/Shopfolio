@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Administration;
@@ -840,6 +841,8 @@ public sealed class ConcurrencyTests : IAsyncLifetime
     {
         ServiceCollection services = new();
         services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn));
+        services.AddScoped<JobEnqueueTracker>();
+        services.AddSingleton<IJobSignal, JobSignal>();
         services.AddScoped<ITransactionRunner, TransactionRunner>();
         services.AddScoped<AdvisoryLocks>();
         services.AddCatalogModule();

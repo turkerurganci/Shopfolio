@@ -119,6 +119,10 @@ internal sealed class SessionAdvisoryLock : IAsyncDisposable
         {
             // A connection that broke has already lost the lock with its session: there is nothing left to release, and disposing must not throw.
         }
+        catch (InvalidOperationException)
+        {
+            // A connection that broke has already lost the lock with its session: there is nothing left to release, and disposing must not throw.
+        }
         finally
         {
             await _connection.DisposeAsync();

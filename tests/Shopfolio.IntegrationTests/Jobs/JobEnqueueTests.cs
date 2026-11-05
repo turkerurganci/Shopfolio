@@ -5,6 +5,7 @@ using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Membership;
+using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Notifications.Contracts;
 
 namespace Shopfolio.IntegrationTests.Jobs;

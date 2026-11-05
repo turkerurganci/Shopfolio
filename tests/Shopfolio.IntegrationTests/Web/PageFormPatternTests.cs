@@ -138,7 +138,7 @@ public sealed partial class PageFormPatternTests
     }
 
     [Fact]
-    public async Task Post_WithAnUnknownHandler_IsNotAnswered200AndWritesNothing()
+    public async Task Post_WithAnUnknownHandler_Is400AndWritesNothing()
     {
         await using WebApplicationFactory<Program> factory = Open(out PatternRecordStore store);
         using HttpClient client = ClientOf(factory);
@@ -150,7 +150,7 @@ public sealed partial class PageFormPatternTests
     }
 
     [Fact]
-    public async Task Post_WithoutAHandler_WritesNothing_AndIsTheFrameworksAnswer()
+    public async Task Post_WithoutAHandler_Is400AndWritesNothing()
     {
         await using WebApplicationFactory<Program> factory = Open(out PatternRecordStore store);
         using HttpClient client = ClientOf(factory);

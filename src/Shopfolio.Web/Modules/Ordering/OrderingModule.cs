@@ -14,6 +14,7 @@ internal static class OrderingModuleRegistration
 {
     public static IServiceCollection AddOrderingModule(this IServiceCollection services)
     {
+        services.AddScoped<OrderLocks>();
         services.AddScoped<IOrderingModule, OrderingModule>();
         return services;
     }

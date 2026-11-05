@@ -56,6 +56,10 @@ DataProtectionSetup.Add(builder.Services);
 // or a missing single-row record of the start data stops the application before it answers a request.
 builder.Services.AddStartupDatabaseCheck();
 
+// The transaction runner and the advisory lock (09 9.1 item 3, 10.2 item 5): scoped, with the scope's one context.
+builder.Services.AddScoped<ITransactionRunner, TransactionRunner>();
+builder.Services.AddScoped<AdvisoryLocks>();
+
 // One registration call per module (09 6 item 3).
 builder.Services.AddCatalogModule();
 builder.Services.AddOrderingModule();

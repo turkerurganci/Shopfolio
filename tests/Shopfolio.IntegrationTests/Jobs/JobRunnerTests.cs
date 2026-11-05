@@ -294,7 +294,7 @@ public sealed class JobRunnerTests : JobQueueTestBase
         Assert.NotNull(first);
         await first.EnsureAliveAsync(Ct);
 
-        await ExecuteAsync("SELECT pg_terminate_backend(pid) FROM pg_locks WHERE locktype = 'advisory' AND granted");
+        await ExecuteAsync("SELECT pg_terminate_backend(pid) FROM pg_locks WHERE locktype = 'advisory' AND granted AND database = (SELECT oid FROM pg_database WHERE datname = current_database())");
 
         await Assert.ThrowsAnyAsync<Exception>(() => first.EnsureAliveAsync(Ct));
         await first.DisposeAsync();

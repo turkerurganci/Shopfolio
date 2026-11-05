@@ -201,6 +201,21 @@ Doğrulama tur 1 FAIL (B1) ve K1, K2, K4 için. K3 D-100'e gitti, dokunulmadı.
 
 **Testler:** `dotnet format --verify-no-changes` temiz; `dotnet build -warnaserror` 0 uyarı; Unit 996/996; Integration Jobs 77/77, Web 72/72; betik testleri 4 dosya geçti.
 
+## Düzeltme turu 2
+
+Doğrulama tur 2 FAIL (B1) ve K1, K2 için.
+
+- **B1 — kilit kopması testi yalnız kendi veritabanını vurur.** `JobRunnerTests.SingleRunLock_WhenItsConnectionDies_…` `pg_terminate_backend` filtresine `database = (SELECT oid FROM pg_database WHERE datname = current_database())` eklendi (`ExecuteAsync` koleksiyonun kendi veritabanına bağlanır; başka koleksiyonun oturumu ölmez). `grep -rn "pg_terminate_backend\|pg_cancel_backend" tests/` tek satır verir. `Jobs` ad alanı üç ayrı koşuda 77/77.
+- **K1 — `compose.dev.yaml` tanımı.** `.claude/CONTEXT.md` `deploy/` satırı ve `09 §4.3` ağacı "veritabanı arşivi kapalı" der; `grep -rn "compose.dev" Docs README.md .claude/CONTEXT.md` öteki yerleri (`09 §4.3` m.2 ve §17 m.7, `11` T05/T08 satırları, T05/T08 raporları, D-34) taradı: hepsi e-posta yakalayıcı ya da ayar anlatır, arşivi anmaz, değişmedi.
+- **K2 — nabız sınırı `TimeProvider`'a bağlandı.** `HeartbeatPulse` sınırı `new CancellationTokenSource(ExternalCallTimeouts.UserWaiting, _time)` ile kurar (bağlanan token çağıranın iptaliyle birleştirilir). `Beat_NoAnswerWithinTheUserWaitingLimit_WritesNothing` saati `UserWaiting - 1 tick` ilerletir (hâlâ bekler), sonra 1 tick (biter, `false`); gerçek bekleme ve `Stopwatch` yok. `09 §11.2` m.4 bu istisnayı anar.
+- **Test kararlılığı (yan etki).** Sınır sahte saatte timer olduğundan `WaitForTimersAsync` uçuştaki isteğin zamanlayıcısını döngünün beklemesi sanabilirdi. Harness nabız saatini `CountingTimeProvider` (aynı sahte saat, ayrı sayaç) ile verir; `WaitForTimersAsync` bu sayacı düşer, `WaitForPulseLimitAsync` sınır timer'ını bekler. `Service_ASlowScan_…` ikinci nabzın yazımını `EventuallyAsync` ile bekler (önceden istek sayısından hemen sonra okurdu).
+
+**⚠ Kararlar:** (1) K2 için emsal yerine bağlama seçildi (`HeartbeatPulse` zaten `TimeProvider` taşıyordu; üretim davranışı aynı). (2) `09 §11.2` m.4 bir cümle genişletildi (kuralın istisnası kodla eşit).
+
+**Öz denetim (`git diff origin/main...HEAD`):** kriter 1–9 ve KK1–KK9 yeniden denetlendi, tablolar geçerli; KK4 ve `§25` test/izolasyon satırı artık ✓. `grep -rn "Stopwatch" src tests/Shopfolio.IntegrationTests/Jobs` boş. Sık FAIL nedenleri: koleksiyon yalıtımı (sunucu geneli etki kalktı), gerçek saate bağlı test (kalktı), eşlik eden yerler (CONTEXT, `09 §4.3`, `09 §11.2`) güncel, beklenen süre sabitten (`ExternalCallTimeouts.UserWaiting`), belgede olmayan sabit yok.
+
+**Testler:** `dotnet format --verify-no-changes` temiz; `dotnet build -warnaserror` 0/0; Unit 996/996; Integration Jobs 77/77 ×3 (ayrı koşular), Web 67/67, Concurrency 26/26; betik testleri 4 dosya geçti.
+
 ## Doğrulama Sonucu — T221 Zamanlayıcı — tur 2
 **Tarih:** 2026-11-05   **Branch:** task/T221-zamanlayici   **Commit:** c551f74 (doğrulanan head)
 

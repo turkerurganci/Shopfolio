@@ -129,6 +129,62 @@ internal sealed class ScriptedStep : INightlyStep
     }
 }
 
+/// <summary>A view of a fake clock that counts the timers made through it and not yet disposed; the time and the timers are the inner clock's.</summary>
+internal sealed class CountingTimeProvider : TimeProvider
+{
+    private readonly TimeProvider _inner;
+    private int _openTimers;
+
+    public CountingTimeProvider(TimeProvider inner) => _inner = inner;
+
+    public int OpenTimers => Volatile.Read(ref _openTimers);
+
+    public override DateTimeOffset GetUtcNow() => _inner.GetUtcNow();
+
+    public override long GetTimestamp() => _inner.GetTimestamp();
+
+    public override long TimestampFrequency => _inner.TimestampFrequency;
+
+    public override TimeZoneInfo LocalTimeZone => _inner.LocalTimeZone;
+
+    public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+    {
+        Interlocked.Increment(ref _openTimers);
+        return new CountedTimer(_inner.CreateTimer(callback, state, dueTime, period), this);
+    }
+
+    private sealed class CountedTimer : ITimer
+    {
+        private readonly ITimer _timer;
+        private readonly CountingTimeProvider _owner;
+        private int _disposed;
+
+        public CountedTimer(ITimer timer, CountingTimeProvider owner)
+        {
+            _timer = timer;
+            _owner = owner;
+        }
+
+        public bool Change(TimeSpan dueTime, TimeSpan period) => _timer.Change(dueTime, period);
+
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) == 0)
+            {
+                Interlocked.Decrement(ref _owner._openTimers);
+            }
+
+            _timer.Dispose();
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            Dispose();
+            return ValueTask.CompletedTask;
+        }
+    }
+}
+
 /// <summary>The answers of the site's liveness endpoint, set by the test; every request is counted.</summary>
 internal sealed class FakeLivenessHandler : HttpMessageHandler
 {
@@ -226,6 +282,7 @@ internal sealed class SchedulerHarness : IAsyncDisposable
     public static readonly DateTimeOffset Start = new(2026, 11, 5, 9, 0, 0, TimeSpan.Zero);
 
     private readonly ServiceProvider _provider;
+    private CountingTimeProvider? _pulseClock;
 
     public SchedulerHarness(string dsn, IEnumerable<IDueRecordSource>? sources = null, IEnumerable<INightlyStep>? steps = null)
     {
@@ -244,7 +301,7 @@ internal sealed class SchedulerHarness : IAsyncDisposable
         services.AddLogging(builder => builder.AddProvider(Logs));
         services.AddHttpClient(HeartbeatPulse.ClientName, client => client.BaseAddress = new Uri("https://localhost/"))
             .ConfigurePrimaryHttpMessageHandler(() => Liveness);
-        services.AddSingleton<HeartbeatPulse>();
+        services.AddSingleton(sp => new HeartbeatPulse(sp.GetRequiredService<IHttpClientFactory>(), sp.GetRequiredService<IServiceScopeFactory>(), PulseClock));
         services.AddSingleton<SchedulerScan>();
         services.AddSingleton<NightlyJobRunner>();
         services.AddSingleton<INightlyStep, JobQueueCleanupStep>();
@@ -266,6 +323,12 @@ internal sealed class SchedulerHarness : IAsyncDisposable
     public NpgsqlDataSource DataSource { get; }
 
     public ManualTimeProvider Time { get; } = new(Start);
+
+    /// <summary>
+    /// The clock of the heartbeat request: the same fake clock, but its timers (the request's limit) are counted apart, so that a request
+    /// still in flight is not mistaken for the loop's wait.
+    /// </summary>
+    public CountingTimeProvider PulseClock => _pulseClock ??= new CountingTimeProvider(Time);
 
     public FakeLivenessHandler Liveness { get; } = new();
 
@@ -311,9 +374,13 @@ internal sealed class SchedulerHarness : IAsyncDisposable
         return await scope.ServiceProvider.GetRequiredService<AppDbContext>().Orders.AsNoTracking().SingleAsync(o => o.Id == id, TestContext.Current.CancellationToken);
     }
 
-    /// <summary>Waits until the code under test is waiting on the fake clock for at least <paramref name="count"/> timers.</summary>
+    /// <summary>Waits until the code under test is waiting on the fake clock for at least <paramref name="count"/> timers (the heartbeat request's limit not counted).</summary>
     public Task WaitForTimersAsync(int count) =>
-        JobQueueHarness.EventuallyAsync(() => Task.FromResult(Time.ActiveTimerCount >= count), $"{count} waits on the fake clock");
+        JobQueueHarness.EventuallyAsync(() => Task.FromResult(Time.ActiveTimerCount - PulseClock.OpenTimers >= count), $"{count} waits on the fake clock");
+
+    /// <summary>Waits until the heartbeat request has its limit timer on the fake clock.</summary>
+    public Task WaitForPulseLimitAsync() =>
+        JobQueueHarness.EventuallyAsync(() => Task.FromResult(PulseClock.OpenTimers >= 1), "the heartbeat request waits for its limit on the fake clock");
 
     public async ValueTask DisposeAsync()
     {

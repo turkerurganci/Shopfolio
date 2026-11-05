@@ -43,11 +43,11 @@ internal sealed class HeartbeatPulse
     private async Task<bool> LivenessAnswersAsync(CancellationToken ct)
     {
         using HttpClient client = _clients.CreateClient(ClientName);
-        using var limit = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        limit.CancelAfter(ExternalCallTimeouts.UserWaiting);
+        using var limit = new CancellationTokenSource(ExternalCallTimeouts.UserWaiting, _time);
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(limit.Token, ct);
         try
         {
-            using HttpResponseMessage response = await client.GetAsync(LivenessEndpoint.Path, limit.Token);
+            using HttpResponseMessage response = await client.GetAsync(LivenessEndpoint.Path, linked.Token);
             return response.StatusCode == HttpStatusCode.OK;
         }
         catch (HttpRequestException)

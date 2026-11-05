@@ -74,13 +74,16 @@ public sealed class SchedulerHeartbeatTests : SchedulerTestBase
         await harness.SetHeartbeatAsync(Now - SchedulerTimings.HeartbeatInterval, null);
         harness.Liveness.Hang = true;
 
-        // The limit is a real timer (CancelAfter), not the fake clock: the beat ends by itself after the limit.
-        System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
-        bool beat = await harness.Pulse.BeatAsync(Ct);
-        watch.Stop();
+        // The limit runs on the fake clock: the beat waits, one tick short of the limit it is still waiting, at the limit it ends by itself.
+        Task<bool> beatTask = harness.Pulse.BeatAsync(Ct);
+        await harness.WaitForPulseLimitAsync();
+        harness.Time.Advance(ExternalCallTimeouts.UserWaiting - TimeSpan.FromTicks(1));
+        Assert.False(beatTask.IsCompleted);
+
+        harness.Time.Advance(TimeSpan.FromTicks(1));
+        bool beat = await beatTask;
 
         Assert.False(beat);
-        Assert.True(watch.Elapsed >= ExternalCallTimeouts.UserWaiting - TimeSpan.FromSeconds(1), $"the beat ended after {watch.Elapsed}, before the limit");
         Assert.Equal(1, harness.Liveness.Requests);
         Assert.Equal(Now - SchedulerTimings.HeartbeatInterval, (await harness.HeartbeatAsync()).LastHeartbeatAt);
         Assert.Empty(await harness.OutagesAsync());
@@ -253,8 +256,10 @@ public sealed class SchedulerHeartbeatTests : SchedulerTestBase
             harness.Time.Advance(SchedulerTimings.HeartbeatInterval);
             await JobQueueHarness.EventuallyAsync(() => Task.FromResult(harness.Liveness.Requests >= 2), "the second beat is sent while the scan is stuck");
 
+            await JobQueueHarness.EventuallyAsync(
+                async () => (await harness.HeartbeatAsync()).LastHeartbeatAt == harness.Time.GetUtcNow(),
+                "the second beat wrote the heartbeat while the scan is stuck");
             Assert.Equal(1, slow.FindCalls);
-            Assert.Equal(harness.Time.GetUtcNow(), (await harness.HeartbeatAsync()).LastHeartbeatAt);
         }
         finally
         {

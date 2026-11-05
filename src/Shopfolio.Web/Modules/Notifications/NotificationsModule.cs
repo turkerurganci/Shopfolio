@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.Infrastructure.Jobs;
+
 using Shopfolio.Modules.Notifications.Contracts;
 
 namespace Shopfolio.Modules.Notifications;
@@ -21,6 +23,9 @@ internal static class NotificationsModuleRegistration
         services.AddScoped<RevertLinkDigestRewrite>();
         services.AddSingleton<RevertLinkDigestRewriteStartup>();
         services.AddHostedService(provider => provider.GetRequiredService<RevertLinkDigestRewriteStartup>());
+
+        // The job queue takes no row before the step has run (D-96 K1; 09 15.1 item 4).
+        services.AddJobStartGate<RevertLinkDigestRewriteGate>();
         return services;
     }
 }

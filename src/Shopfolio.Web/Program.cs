@@ -6,6 +6,7 @@ using Shopfolio.Endpoints;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.StartupDatabase;
@@ -73,6 +74,10 @@ builder.Services.AddCorporateContentModule();
 builder.Services.AddNotificationsModule();
 builder.Services.AddAdministrationModule();
 builder.Services.AddSettingsModule();
+
+// The job queue and its one runner service (09 13.1): after the modules, so the runner starts after the start-up checks and the start-up rewrite
+// of the pending revert links' digests, and after the handlers the modules register (05 4.3.2, 6.x.20).
+builder.Services.AddJobQueue();
 
 WebApplication app = builder.Build();
 

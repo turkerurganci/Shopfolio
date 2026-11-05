@@ -87,7 +87,7 @@
 
 - **Branch:** `task/T223-dosya-deposu`
 - **Commit:** PR'ın başlık SHA'sı dönüşte
-- **PR:** açıklamada
+- **PR:** #399
 - **CI:** yapım işçisi izlemez
 - **Post-merge run'lar:** *(validator doldurur)*
 

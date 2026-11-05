@@ -46,8 +46,22 @@ public sealed class InboundRecordFieldsTests
     [InlineData(typeof(PaymentNotice))]
     public void NoFieldOfTheRecordOrTheVerifiedNotice_IsNamedLikePersonalData(Type type)
     {
-        Assert.All(FieldsOf(type), name => Assert.DoesNotContain(
+        // A yes/no mark cannot carry personal data, whatever its name (PaymentNotice.PaidByCard is the payment method, not a card number);
+        // every other field named like personal data fails.
+        IEnumerable<PropertyInfo> valued = type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(p => p.PropertyType != typeof(bool));
+        Assert.All(valued, property => Assert.DoesNotContain(
             ApplicationLogFormatter.ForbiddenPropertyNames,
-            forbidden => name.EndsWith(forbidden, StringComparison.OrdinalIgnoreCase)));
+            forbidden => property.Name.EndsWith(forbidden, StringComparison.OrdinalIgnoreCase)));
     }
+
+    [Fact]
+    public void NameCheck_CatchesAValuedFieldNamedLikePersonalData()
+    {
+        Assert.Contains(
+            ApplicationLogFormatter.ForbiddenPropertyNames,
+            forbidden => nameof(ViolationSample.PayerCard).EndsWith(forbidden, StringComparison.OrdinalIgnoreCase));
+        Assert.NotEqual(typeof(bool), typeof(ViolationSample).GetProperty(nameof(ViolationSample.PayerCard))!.PropertyType);
+    }
+
+    private sealed record ViolationSample(string PayerCard);
 }

@@ -3,6 +3,8 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
+using Microsoft.AspNetCore.Http;
+
 using Serilog;
 using Serilog.Core;
 using Serilog.Extensions.Logging;

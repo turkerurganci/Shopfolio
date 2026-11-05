@@ -117,17 +117,54 @@ public sealed class SignatureFailureLogTests : IDisposable
     }
 
     [Fact]
-    public void AnEndedWindowWithACount_KeepsTheCountForTheAddressNextLine_AfterOtherAddressesSweep()
+    public void AnEndedWindowWithACount_IsWrittenAtTheNextSweep_WithItsLastReason_AndDropped()
+    {
+        _harness.Failures.Record(First, SignatureFailureReason.SignatureInvalid);
+        _harness.Failures.Record(First, SignatureFailureReason.BodyUnreadable);
+        _harness.Time.Advance(SignedEndpointLimits.FailureLogWindow);
+
+        _harness.Failures.Record(Second, SignatureFailureReason.SignatureInvalid);
+
+        Assert.Equal(3, _harness.Lines.Count);
+        Assert.Equal(1, Line(1).GetProperty("suppressedCount").GetInt32());
+        Assert.Equal(nameof(SignatureFailureReason.BodyUnreadable), Line(1).GetProperty("reason").GetString());
+        Assert.Equal(0, Line(2).GetProperty("suppressedCount").GetInt32());
+        Assert.Equal(1, _harness.Failures.TrackedAddressCount);
+
+        Assert.True(_harness.Failures.Record(First, SignatureFailureReason.SignatureInvalid));
+        Assert.Equal(0, Line(3).GetProperty("suppressedCount").GetInt32());
+    }
+
+    [Fact]
+    public void EndedWindows_AreDroppedAtTheSweep_SoTheMemoryHoldsOnlyTheLastWindowsAddresses()
+    {
+        for (int i = 1; i <= 50; i++)
+        {
+            IPAddress address = IPAddress.Parse("203.0.113." + i.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            _harness.Failures.Record(address, SignatureFailureReason.SignatureInvalid);
+            _harness.Failures.Record(address, SignatureFailureReason.SignatureInvalid);
+        }
+
+        Assert.Equal(50, _harness.Failures.TrackedAddressCount);
+        _harness.Time.Advance(SignedEndpointLimits.FailureLogWindow);
+
+        _harness.Failures.Record(First, SignatureFailureReason.SignatureInvalid);
+
+        Assert.Equal(1, _harness.Failures.TrackedAddressCount);
+        Assert.Equal(50 + 50 + 1, _harness.Lines.Count);
+    }
+
+    [Fact]
+    public void TheSweepingAddress_WritesOneLineWithItsOwnCount_NotASecondFlushedLine()
     {
         _harness.Failures.Record(First, SignatureFailureReason.SignatureInvalid);
         _harness.Failures.Record(First, SignatureFailureReason.SignatureInvalid);
-        _harness.Time.Advance(SignedEndpointLimits.FailureLogWindow * 3);
-        _harness.Failures.Record(Second, SignatureFailureReason.SignatureInvalid);
-        _harness.Time.Advance(SignedEndpointLimits.FailureLogWindow * 3);
-        _harness.Failures.Record(Second, SignatureFailureReason.SignatureInvalid);
+        _harness.Time.Advance(SignedEndpointLimits.FailureLogWindow);
 
         Assert.True(_harness.Failures.Record(First, SignatureFailureReason.SignatureInvalid));
-        Assert.Equal(1, Line(_harness.Lines.Count - 1).GetProperty("suppressedCount").GetInt32());
+
+        Assert.Equal(2, _harness.Lines.Count);
+        Assert.Equal(1, Line(1).GetProperty("suppressedCount").GetInt32());
     }
 
     private JsonElement Line(int index) => JsonDocument.Parse(_harness.Lines[index]).RootElement;

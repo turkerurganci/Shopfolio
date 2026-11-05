@@ -27,6 +27,10 @@ internal static class EarlyExitComparisons
             == receivedHash;
     }
 
+    public static bool Inside(string received, string signature) => received.Contains(signature, StringComparison.Ordinal);
+
+    public static bool Position(string received, string digest) => received.IndexOf(digest, StringComparison.Ordinal) == 0;
+
     public static bool FixedTime(string computedHash, string receivedHash) => SignatureComparison.Matches(computedHash, receivedHash);
 
     public static bool Missing(string? receivedHash) => receivedHash is null;

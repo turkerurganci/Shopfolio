@@ -7,7 +7,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// the signed endpoints' pipeline - where a signature is checked - a statement that names a signature (<c>hash</c>, <c>signature</c>,
 /// <c>hmac</c>, <c>digest</c>, in any case and as part of a name) compares nothing with an operator or a method that can stop early: <c>==</c>,
 /// <c>!=</c>, <c>Equals(</c>, <c>SequenceEqual(</c>, <c>Compare(</c>, <c>CompareOrdinal(</c>, <c>CompareTo(</c>, <c>StartsWith(</c>,
-/// <c>EndsWith(</c> or a constant pattern (<c>is "..."</c>). The one fixed-time comparison is <c>SignatureComparison.Matches</c>, and its own file
+/// <c>EndsWith(</c>, <c>Contains(</c>, <c>IndexOf(</c> or a constant pattern (<c>is "..."</c>). The one fixed-time comparison is <c>SignatureComparison.Matches</c>, and its own file
 /// is the scan's only exception: it is the file that calls <c>CryptographicOperations.FixedTimeEquals</c>. A statement runs from the end of the
 /// previous one (<c>;</c>, <c>{</c>, <c>}</c>) to its own end, so a comparison written over several lines is one statement; full-line
 /// comments are blanked first and keep their line. The scan reads text and writes nothing.
@@ -76,7 +76,7 @@ internal static partial class SignatureComparisonSourceScan
     private static partial Regex SignatureName();
 
     [GeneratedRegex(
-        @"==|!=|\bEquals\s*\(|\bSequenceEqual\s*\(|\bCompare\s*\(|\bCompareOrdinal\s*\(|\bCompareTo\s*\(|\bStartsWith\s*\(|\bEndsWith\s*\(|\bis\s+(?:not\s+)?""",
+        @"==|!=|\bEquals\s*\(|\bSequenceEqual\s*\(|\bCompare\s*\(|\bCompareOrdinal\s*\(|\bCompareTo\s*\(|\bStartsWith\s*\(|\bEndsWith\s*\(|\bContains\s*\(|\bIndexOf\s*\(|\bis\s+(?:not\s+)?""",
         RegexOptions.CultureInvariant,
         matchTimeoutMilliseconds: 5000)]
     private static partial Regex EarlyExit();

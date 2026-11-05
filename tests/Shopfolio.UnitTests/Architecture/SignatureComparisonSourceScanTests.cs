@@ -50,7 +50,7 @@ public sealed class SignatureComparisonSourceScanTests
         IReadOnlyList<(string Rule, int Line)> findings = SignatureComparisonSourceScan.Scan(sample);
 
         Assert.All(findings, f => Assert.Equal(SignatureComparisonSourceScan.EarlyExitComparison, f.Rule));
-        Assert.Equal([8, 10, 12, 14, 16, 18, 20, 22, 26], findings.Select(f => f.Line));
+        Assert.Equal([8, 10, 12, 14, 16, 18, 20, 22, 26, 30, 32], findings.Select(f => f.Line));
     }
 
     [Theory]

@@ -3,6 +3,7 @@ using System.Text.Json;
 
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 using Shopfolio.Infrastructure.Logging;
@@ -132,7 +133,7 @@ public sealed class SignedEndpointHandlerTests : IDisposable
         Assert.Equal(["Verify", "Begin", "RecordAsync", "CommitFailed"], _harness.Endpoint.Calls);
         JsonElement line = Line(0);
         Assert.Equal(LogEvents.UnexpectedError, line.GetProperty("event").GetString());
-        Assert.Equal(nameof(TestDatabaseException), line.GetProperty("exceptionType").GetString());
+        Assert.Equal(typeof(TestDatabaseException).FullName, line.GetProperty("exceptionType").GetString());
         Assert.DoesNotContain("order-1", _harness.Lines[0], StringComparison.Ordinal);
     }
 
@@ -184,7 +185,6 @@ public sealed class SignedEndpointHandlerTests : IDisposable
     public void MappedEndpoint_IsPostOnly_AndOutsideTheForgeryProtection()
     {
         WebApplicationBuilder builder = WebApplication.CreateSlimBuilder();
-        builder.Services.AddRouting();
         using WebApplication app = builder.Build();
 
         IEndpointConventionBuilder mapped = app.MapSignedEndpoint<TestSignedEndpoint, TestNotice>("/test/signed");

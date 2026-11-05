@@ -4,6 +4,7 @@ using Npgsql;
 
 using Shopfolio.Endpoints;
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
@@ -79,6 +80,10 @@ builder.Services.AddSettingsModule();
 // of the pending revert links' digests, and after the handlers the modules register (05 4.3.2, 6.x.20).
 builder.Services.AddJobQueue();
 builder.Services.AddScheduler();
+
+// The disposal and the clean-up of the temporary records are steps of the scheduler's nightly job (05 5.2.8, 5.2.9): after the scheduler, so the
+// queue's clean-up runs before them. There is no second timer or service.
+builder.Services.AddDisposal(builder.Configuration);
 
 WebApplication app = builder.Build();
 

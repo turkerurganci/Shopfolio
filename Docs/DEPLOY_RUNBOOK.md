@@ -505,7 +505,7 @@ Caddy'nin kendi döndürmesi kapalıdır (`roll_disabled`): boyut ve dosya sayı
 }
 ```
 
-`copytruncate` Caddy'nin, veritabanının ve betiklerin dosyayı ekleme kipinde açık tutmasına dayanır. Döndürülmüş ad `access.log-yyyyMMdd` biçimindedir; imha işi (T201) günü bu addan okur. Uygulama kaydı (2) bu dosyada yoktur: günlük dosyayı uygulamanın kendisi açar ve kapatır.
+`copytruncate` Caddy'nin, veritabanının ve betiklerin dosyayı ekleme kipinde açık tutmasına dayanır. Döndürülmüş ad `access.log-yyyyMMdd` biçimindedir; imha işi (T201) dosyanın günü adından okumaz, son yazım anından okur (döndürülmüş dosya bir önceki günün satırlarını taşır; D-91 K1). Uygulama kaydı (2) bu dosyada yoktur: günlük dosyayı uygulamanın kendisi açar ve kapatır.
 
 ### L.4 İşletim sisteminin günlüğü ve konteyner çalıştırıcısının kaydı
 

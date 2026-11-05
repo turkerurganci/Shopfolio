@@ -476,8 +476,8 @@ public sealed class AdminAndAuditTablesTests : IAsyncLifetime
     [Fact]
     public async Task DisposalFunction_DoesNotTouchARowWhoseRetentionIsNotOver()
     {
-        // A row of 2020 and one of last year are inside the ten years of the real clock; a row of 2010 is outside them.
-        await SeedExpiredRowsAsync(1, new DateTimeOffset(2020, 6, 1, 0, 0, 0, TimeSpan.Zero));
+        // A row of five years ago and one of last year are inside the ten years of the real clock; a row of 2010 is outside them.
+        await SeedExpiredRowsAsync(1, DateTimeOffset.UtcNow.AddYears(-5));
         await SeedExpiredRowsAsync(1, DateTimeOffset.UtcNow.AddYears(-1));
         await SeedExpiredRowsAsync(1, new DateTimeOffset(2010, 6, 1, 0, 0, 0, TimeSpan.Zero));
 
@@ -492,7 +492,7 @@ public sealed class AdminAndAuditTablesTests : IAsyncLifetime
     public async Task DisposalFunction_WithAMomentInTheFuture_CannotDeleteARowWhoseRetentionIsNotOver()
     {
         // The given moment is capped by the database clock: a hundred years ahead removes what is expired today and nothing more.
-        await SeedExpiredRowsAsync(1, new DateTimeOffset(2020, 6, 1, 0, 0, 0, TimeSpan.Zero));
+        await SeedExpiredRowsAsync(1, DateTimeOffset.UtcNow.AddYears(-5));
         await SeedExpiredRowsAsync(1, DateTimeOffset.UtcNow.AddMonths(-1));
         await SeedExpiredRowsAsync(1, new DateTimeOffset(2010, 6, 1, 0, 0, 0, TimeSpan.Zero));
 

@@ -1,6 +1,6 @@
 # T222 — Anahtarlar ve tek kullanımlık bağlantılar
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✓ Doğrulama tur 1 PASS | **Tarih:** 2026-11-05
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -77,10 +77,35 @@ Devam işçisi önceki işçinin yaptıklarını dahil bütün maddeleri diff'te
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-05, bağımsız doğrulayıcı; dal head `fcd3009`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1, K2 → `DEFERRED_BACKLOG` D-96 |
+
+### Doğrulama tur 1 — validator kanıtları
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Bütün anahtarlar OS kriptografik üreteciyle (KK1) | ✓ | `SecretKey.Create` = `Base64Url(RandomNumberGenerator.GetBytes(32))` (256 bit); türetme sırrı kurulumda üreteçle (`DEPLOY_RUNBOOK §B` satır 15, T08). `LinkKeySourceScan`: `RandomNumberGenerator`/`SHA256`/`HMACSHA256` yalnız `Infrastructure/Security/` ve `Modules/Membership/`'te; bu iki klasörde `new Random(`, `Random.Shared`, `Guid.NewGuid(`, `Guid.CreateVersion7(` bulgu; istisna listesi boş; ihlal örneği `KeyMisuse.cs` her kuralı ayrı satırla tetikler |
+| 2 | Bağlantı anahtarı kimlikten HMAC ile türetilir (KK2) | ✓ | `LinkKeys.Derive` = `Base64Url(HMACSHA256.HashData(secret, UTF8(id.ToString("N"))))` (`09 §15.1` m.4 ile birebir); sır ilk kullanımda okunur (açılış denetiminden önce atmaz). `LinkKeysTests`: aynı kimlik+sır başka örnekten aynı anahtar, başka sır/başka kimlik başka anahtar, değer elle hesaplanan HMAC'e eşit |
+| 3 | Veritabanında yalnız özet, bağlantı kaydında; sipariş erişim anahtarı siparişte (KK3) | ✓ | `LinkRecord.For…(LinkKeys, …)` kimliği önce üretir, `TokenHash = DigestFor(Id)`; `DigestFor` anahtarı döndürmez. `Record_HoldsTheDigestOfTheDerivedKey_AndNoColumnHoldsTheKey` satırın `to_jsonb`'si ve bütün veritabanı metninde ham anahtar yok; üç sahip için ayrı özet. Sipariş erişim anahtarı şeması önceki task'ta, değişmedi |
+| 4 | Hâl bağlantı kaydından: beş sonuç (KK4) | ✓ | `LinkReading.Missing` + `LinkState` 4 değeri; `StateOf` öncelik kullanılmış > yenisi geçmiş > ömrü dolmuş (`ExpiresAt` ≤ şimdi) > geçerli. `Read_GivesFiveDifferentResults_…` (gerçek PG), `StateOf_TheFiveOutcomes…_AreAllDifferent`, `StateOf_TheLifetimeEndsAtItsMoment` |
+| 5 | GET hiçbir kaydı değiştirmez; işlem POST'ta (KK5) | ✓ | `ReadAsync` `AsNoTracking().SingleOrDefaultAsync`, yazma yok, sırrı okumaz. `Read_OfEveryState_…` her hâlde okumadan sonra `ChangeTracker` boş ve `link_records`, `customers`, `admins`, `sessions`, `orders`, `dispatch_records` satırları `xmin` dahil aynı; ardından tüketim görüntüyü değiştirir. `LinkKeySourceScan` `ConsumeOutsidePost`: `TryConsumeAsync` yalnız `OnPost…` gövdesinde (yerel işlev ve çok satırlı çağrı dahil). Sayfa yok — sayfa düzeyi (`VAL-A616`, `A677`) T342 ve hesap task'larında |
+| 6 | Tüketim tek koşullu güncelleme; satır yoksa işlem yok (KK6) | ✓ | `TryConsumeAsync` tek `ExecuteUpdateAsync`, koşul `UsedAt == null && SupersededAt == null && ExpiresAt > now`, sonuç `changed == 1`; çağıranın işlemine katılır (`…_InsideTheTransactionRunner_JoinsTheCallersTransaction_…`). İkinci tüketim, ömrü dolmuş, kullanılmış, yenisi geçmiş, ömrü şimdiye çekilmiş ve kaydı olmayan bağlantı 0 satır (görüntü aynı); eşzamanlı iki istek 15 turda her seferinde tam biri başarılı (`Barrier`, gerçek PG 18) |
+| 7 | Anahtarlı yol sistem kayıtlarında maskeli (KK7) | ✓ | `KeyedPaths_CarryingRealKeys_…`: `PathMasker.KeyedPaths` her yolu için gerçek türetilmiş ve üretilmiş anahtarlar (`-`/`_` içerenler dahil) yol, sorgu, çift eğik çizgi ve büyük harf biçimlerinde; Caddyfile süzgeçleri ile `PathMasker.Mask` aynı çıktıyı verir ve hiçbirinde anahtar kalmaz. Maskeleme katmanı T225/T231'de (`VAL-A991` PASS) |
+| 8 | Açılışta kuyruk ve e-postadan önce "gönderilecek" geri alma bildiriminin özeti o anki sırla (KK8) | ✓ | `RevertLinkDigestRewrite` `Queued` `EmailChangeNotice` satırlarının `EventValues`'ındaki `LinkRecordId`'leri okur, yalnız `EmailChangeRevert` bağlantısını `DigestFor` ile yazar, aynıysa yazmaz; tek `ITransactionRunner` işlemi, iş lambda (`09 §10.7`). `RevertLinkDigestRewriteStartup` `NotificationsModule`'de, `Program.cs`'te iki açılış denetiminden sonra kayıtlı; uygulamanın öteki bütün barındırılan hizmetleri ondan sonra (`Start_RegistersTheRewrite…`). `Start_WithANewSecret_…`: yeni sırla açılan uygulamada en sona kayıtlı sonda hizmeti ilk çağrısında yeni özeti görür, gönderilmiş bildirimin özeti eski; `RevertLinkDigestRewriteTests` gönderilmiş, öteki tür, öteki bağlantı türü, bozuk girdi ve aynı sırda satır sürümü oynamaz; yönetici hesabı da yazılır |
+
+**Güvenlik sınaması (talimatın ayrıca istediği):** (a) üreteç: bütün anahtar yolları `RandomNumberGenerator`'dan; zayıf kaynak taramayla kapalı. (b) ham anahtar sızıntısı: yeni kodda kayıt satırı yok; `SecretKey.Hash` boş anahtarda yalnız parametre adıyla atar; `LinkKeys` sır çözme hatası değeri taşımaz; açılış adımı Npgsql istisnasını yazmaz; veritabanında yalnız özet (KK3 testi bütün veritabanı metnini tarar). (c) HMAC: girdi kimliğin `N` biçimi UTF-8, anahtar sırrın Base64 çözümü; testteki elle hesap eşit. (d) yarış: tek koşullu güncelleme, eşzamanlı testte tek başarı. (e) GET yan etkisizliği: salt okuma + `xmin` görüntüsü. (f) açılış sırası: kayıt sırası testi + sonda hizmeti. Açık yol bulunmadı; iki kenar K1–K2'dir.
+
+**`09` değişikliği (`§15.1` m.4 ve Test paragrafı):** kodla birebir ve `05 §6.4`, §6.x.20 ile çelişmiyor — `DigestFor`, `ReadAsync`/`TryConsumeAsync`/`SupersedeEarlierAsync`, `EventValues` girdisi ve açılış adımının kaydı ekleniyor; önceki kurallar daraltılmadı.
+
+**Task satırları (`12 §7.5`):** task'ın kaynakları `05 §6.4`, §6.x ve `09 §15`'tir (KP değil); KP grep'i satır getirmez. İlgili satırlar `VAL-A616` (POST'ta tek koşullu tüketim) ve `VAL-A677` (tutmayan tüketim hâli gösterir) uç düzeyindedir ve sayfaları ister (T342, hesap task'ları) — `Durum` `BEKLEMEDE` kaldı; `VAL-A991` T225'te PASS, değişmedi. `12_matris_denetle.py --kapsam 1-77`: Hata 0.
+
+**K-notları:** (K1) Açılışta veritabanına ulaşılamazsa adım atlanır ve `HasRun` yanlış kalır; kuyruğun bu bekçiye bakması yalnız `09 §15.1` m.4'te yazılı, T220 bloğu `09 §15`'i anmıyor → D-96. (K2) `SupersedeEarlierAsync` iki sahip boşken (davet türü) bütün öteki davet bağlantılarını geçersiz kılar; `05 §6.4.6`'da davette yenileme ömrü çekmektir → D-96. İkisinin de bugün çağıranı yok.
+
+Testler (validator, yerel, head `fcd3009`): build `-warnaserror` 0/0 · `dotnet format --verify-no-changes` 0 · Unit 932/932 (Consistency dahil) · betik testleri 4/4 · Integration 1093/1093 (Security 18, Web 67 — `LivenessEndpointTests` dahil yeşil, Database+Concurrency+FileSecrets+Logging+kök 115, Model 482 + 411; PG 18 konteyner `shopfolio-t222-val-pg`) · koşu sonrası `git status` temiz, `dotnet restore --locked-mode` 0 · dal CI 41977809448 success (head `fcd3009`) · ana dal son 3 run 41973187361, 41973187267, 41969409700 success.
+
+**Yapım raporu karşılaştırması:** kriter ve öz denetim tabloları her kriter ve KK için kanıtlı; verdict uyumlu. Uyuşmazlık yok. ⚠ 7'deki yerel `Liveness…` düşüşü validator koşusunda görülmedi (Web 67/67). ⚠ 3 (`HasRun`) K1 olarak backlog'a bağlandı.
 
 ## Altyapı Değişiklikleri
 
@@ -94,8 +119,8 @@ Devam işçisi önceki işçinin yaptıklarını dahil bütün maddeleri diff'te
 - **Branch:** `task/T222-anahtarlar-baglantilar`
 - **PR:** #392
 - **Commit:** son commit PR başlığında (`T222: Anahtarlar ve tek kullanımlık bağlantılar`) ve dal başında
-- **CI:** *(yardımcı izler)*
-- **Post-merge run'lar:** *(validator doldurur)*
+- **CI:** dal CI 41977809448 success (head `fcd3009`)
+- **Post-merge run'lar:** *(merge'ü yardımcı yapar; run ID'leri sonraki task dalında ya da chore PR'ında eklenir)*
 
 ## Dış Varsayımlar
 

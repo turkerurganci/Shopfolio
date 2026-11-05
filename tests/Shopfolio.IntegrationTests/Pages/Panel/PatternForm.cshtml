@@ -1,0 +1,15 @@
+@page "/panel/ornek-form"
+@model Shopfolio.IntegrationTests.Pages.Panel.PatternFormModel
+<h1>Ornek form</h1>
+<ul>
+@foreach (string record in Model.Records)
+{
+    <li class="record">@record</li>
+}
+</ul>
+<form method="post" asp-page-handler="Add">
+    <input name="Input.Name" value="@Model.Input.Name" />
+    <span class="error">@Html.ValidationMessageFor(m => m.Input.Name)</span>
+    <button type="submit">Ekle</button>
+</form>
+<form method="post" asp-page-handler="Export"><button type="submit">Disa aktar</button></form>

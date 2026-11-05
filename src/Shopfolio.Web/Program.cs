@@ -11,6 +11,7 @@ using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
+using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.SignedEndpoints;
 using Shopfolio.Infrastructure.StartupDatabase;
@@ -30,7 +31,8 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.AddApplicationLogging();
 builder.Services.AddAuditLineWriter();
 
-builder.Services.AddRazorPages();
+// The address rules (07 2.1): every page template is checked against the closed list of first path segments when the routes are built.
+builder.Services.AddRazorPages().AddAddressRules();
 
 // The one time source (09 7.1 item 1; 05 7.2.4).
 builder.Services.AddTimeSource();
@@ -111,7 +113,8 @@ app.UseCookieHeaderFilter();
 
 app.UseRouting();
 
-app.MapStaticAssets();
+// The static files are served under /statik (07 2.1.2, 3.1.6) with a fingerprint in the file name: a changed file gets a new address (07 2.10.3; 05 3.8.1).
+app.MapGroup(AddressRules.StaticArea).MapStaticAssets();
 app.MapRazorPages()
     .WithStaticAssets();
 app.MapLivenessEndpoint();

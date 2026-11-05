@@ -106,7 +106,7 @@
 
 - **Branch:** `task/T228-eszamanlilik-denetimi`
 - **Commit:** `7045b9c` — T228: Çalıştırıcıda türsüz catch yok (finally ile geri alma), null-forgiving yerine VersionScope.NameOf; STATUS, MEMORY, önceki task'ların merge kaydı
-- **PR:** #PRNO
+- **PR:** #391
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 

@@ -1,6 +1,6 @@
 # T202 — Dış servislerin bağlantı katmanı: ortak yüz, hata sınıfı, zaman aşımı, sahteler
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✓ Doğrulama tur 1 PASS | **Tarih:** 2026-11-05
 
 > Taslağı yapım chat'i doldurdu; doğrulama chat'i finalize eder.
 
@@ -73,10 +73,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-05, head `70c3d3f`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-105, K2 → D-106) |
 
 ## Altyapı Değişiklikleri
 
@@ -90,7 +90,7 @@
 - **Branch:** `task/T202-dis-servis-katmani`
 - **Commit:** dal ucu PR'da
 - **PR:** #396
-- **CI:** *(PR'da)*
+- **CI:** dal CI 42036902091 ✓ success (head `70c3d3f`)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar
@@ -113,3 +113,104 @@
 - **Ana dal CI startup (Adım 0):** main son run'lar success (CI 42031439198, Publish 42031439167)
 - **Repo memory (bitiş kapısı 9):** güncellendi
 - **Diğer:** Tam Integration koşusu yerelde 170 sn sınırına sığmadı; CI'da koşar.
+
+---
+
+## Doğrulama Sonucu — T202 Dış servislerin bağlantı katmanı — tur 1
+**Tarih:** 2026-11-05   **Branch:** task/T202-dis-servis-katmani   **Commit:** 70c3d3f
+
+### Verdict: ✓ PASS
+
+### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş (dal `origin/task/T202-dis-servis-katmani` = `70c3d3f`) |
+| Hook kurulumu | ✓ | `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (worktree'de ana deponun `scripts/git-hooks`'u, mutlak yol) |
+| Ana dal CI (son 3) | ✓ | 42031439167 success, 42031439198 success (T201 #395), 42021631131 success (T221 #394) |
+| Memory drift | ✓ | `.claude/memory/MEMORY.md` satır 22 (T202) |
+
+### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Üç servis tek katmanın arkasında; modül ürün işini çağırır | ✓ | `Infrastructure/Integrations/` `IPaymentGateway` (5 iş), `IEmailGateway` (2), `IGoogleIdentityGateway` (1) — `09 §11.1` m.1 ile birebir; `Program.cs` `AddIntegrations`; tarama kural 2 (modül/sayfa/uçta HTTP/SMTP istemci tipi yok) yeşil |
+| 2 | Adlarda sağlayıcı yok; ödemede tek uygulama | ✓ | `grep -rniE "paytr\|\bses\b\|amazon\|aws" src` → yalnız `packages.lock.json`'da rastlantı özet; tarama kural 1 yeşil ve ihlal örneğiyle kırmızı; `PaymentGatewayImplementationTests` (≤1 `IPaymentGateway`, ikinci örnekle 2 sayar); `PaymentNotice`/`CardRefund`'da "hangi sağlayıcı" alanı yok (KD-64). Dar/geniş sınama → K1 |
+| 3 | 15/30 sn; katman yeniden denemez, devre kesici yok | ✓ | `IntegrationOperations.KindOf` (başlatma, kimlik → 15; öteki 5 iş → 30); `IntegrationTimeoutsConsistencyTests` `08 §3.1` sütununu okur; `ExternalCallRunnerTests.*ThatHangs_*` sahte saatle bir tık eksikte bekler, sınırda biter, istek sayısı 1; `ExternalCallRunner` tek `await call(...)`, döngü/Polly yok |
+| 4 | İstemci kitaplığının yeniden denemesi kapalı | ✓ | `IntegrationHttpClientsTests`: zincir yalnız `LifetimeTrackingHttpMessageHandler` → `SocketsHttpHandler` (yönlendirme/çerez kapalı, `RemoveAllLoggers`), `Timeout` sonsuz, reddedilen bağlantı 1 istek; tarama kural 4 (`Polly`, `Add*ResilienceHandler`, `MaxErrorRetry > 0`); SMTP istemcisinde yeniden deneme yok; SES SDK'sı bu task'ta yok (T407) |
+| 5 | Aşım/yanıtsızlık "bilinmeyen"; başlatmada bağlantı, e-postada kanal hatası | ✓ | `FromFailure`: `RefundRequestResult.Unknown` (yeniden gönderilmez), `PaymentQueryResult.NoResponse`, `RefundQueryResult.NoResult`, `PaymentStartResult.ConnectionFailed`, `EmailSendResult.ChannelError`; `ResultFamilyTests` (aile × 3 tür), runner aşım testleri 5 iş için, `SmtpCaptureEmailGatewayTests.SendAsync_ToolThatHangs_*` |
+| 6 | Bağlantı ≠ ödeme hatası, alıcı ≠ kanal hatası; ürün sonucu çekirdekte | ✓ | `PaymentStartResult` `ConnectionFailed`/`SecondTokenRejected` ayrı, ödeme hatası bildirim sonucudur (`08 §2.1.8`); `EmailSendResult` `RecipientError`/`ChannelError`; SMTP 450/550–553 alıcı, öteki kanal (`SmtpCaptureEmailGatewayTests`); arayüzler modül türü almaz, iptal/"kullanılamıyor" yok |
+| 7 | Okunmayan alan kayda girmez; hata kaydında yalnız neden | ✓ | `ExternalCallRunner.LogFailed`: olay, iş, tür, neden kodu — istisna nesnesi verilmez; `FailureLine_*` testi istek alanı, anahtar (`Authorization`), okunmayan yanıt alanı (`masked_pan`), adres ve istisna metninin satırda olmadığını, `exceptionType`/`stackTrace` alanı olmadığını sınar; `HttpRequestException` mesajı değil `HttpRequestError` adı yazılır; SMTP yanıt metni değil kod |
+| 8 | Tabloda olmayan yanıt: ödeme bağlantı, e-posta kanal, Google başarısız; kayda yazılır | ✓ | `ExternalCallRunner.Failed` satır yazar + `FromFailure`; `Failed_AnAnswerNotInTheTable_*` (3 servis, 3 satır); `GoogleIdentityResult.FromFailure` Unrecognized → `Failed`, aşım/bağlanamama → `Unavailable` (`09 §11.3` m.4) |
+| 9 | Sahteler `UnitTests/Fakes/`; geliştirmede e-posta Mailpit'e, ayar `compose.dev.yaml`'da | ✓ | `Fake{Payment,Email,GoogleIdentity}Gateway.cs` (durumlu, sıralı çağrı, ağ türü yok — tarama kural 5); `compose.dev.yaml` `EmailCapture__Host: mailpit`, `EmailCapture__Port: "1025"`; `.env.example`'da yok — `09 §4.3` m.2 (kurulum ayarı değil; ⚠ 4 gerekçesi tutarlı); **elle deneme:** `shopfolio-t202-val-mailpit` (v1.33.0), gerçek `SmtpTransport` + `SmtpCaptureEmailGateway` → `Sent`; Mailpit API `total: 1`, From "Örnek Mağaza <dev@example.com>", ReplyTo, UTF-8 konu, Text + HTML parçaları (geçici sınayıcı silindi) |
+
+### Task Satırları (`12 §7.5`, adım 2a ve 16)
+T202'nin `10 KP` birimi yok (`11 §7.1`: `08 §3.1` yalnız T202'nin); satırlar `12`'de kaynağı `08 §3.1` olanlardan grep'le bulundu. `VAL-E056` (yanıtsız son sorgu siparişi iptal etmez, beş dakikalık sorgu — sipariş ve iş kuyruğu; `08 §3.3` T204/T403) ve `VAL-E064` (gönderim kaydının 5 dk/30 dk/2 sa denemeleri — `08 §3.3` T204, gönderim kaydı) T202'nin kriterlerine tam eşlenmez → `BEKLEMEDE` kalır.
+
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-E054 | ORTA | mock | BEKLEMEDE | PASS (kriter 3) | — |
+| VAL-E055 | ORTA | mock | BEKLEMEDE | PASS (kriter 3, 4) | — |
+| VAL-E057 | KRİTİK | mock | BEKLEMEDE | PASS (kriter 7) | — |
+| VAL-E058 | KRİTİK | mock | BEKLEMEDE | PASS (kriter 7; sonuç tiplerinde okunmayan alana yer yok) | — |
+| VAL-E059 | ORTA | mock | BEKLEMEDE | PASS (kriter 8) | — |
+| VAL-E056 | KRİTİK | mock | BEKLEMEDE | BEKLEMEDE (T204/T403) | — |
+| VAL-E064 | ORTA | mock | BEKLEMEDE | BEKLEMEDE (T204, gönderim kaydı) | — |
+
+`python -I -X utf8 scripts/doc-scans/12_matris_denetle.py --kapsam 1-77` → satır 1503, kimlik tekil 1503, Hata: 0.
+
+### Doğrulama Kontrol Listesi
+- [x] KK1: modül kodu sağlayıcı türüne başvurmaz (tarama kural 1–2; modüllerde katman türü yok)
+- [x] KK2: arayüz, sonuç tipi, uç, alan, değer adında sağlayıcı adı yok; ödemede tek uygulama
+- [x] KK3: iki süre sınıfı sahte gecikmeyle (`ManualTimeProvider` + `ScriptedHandler.Hang`)
+- [x] KK4: istemci yeniden deneme ayarı kapalı
+- [x] KK5: aşım iade ve sorguda bilinmeyen/sonuç yok, başlatmada bağlantı, e-postada kanal hatası
+- [x] KK6: bağlantı ve alıcı hataları ayrı sonuç
+- [x] KK7: kayıtta istek alanı, anahtar, okunmayan yanıt alanı yok
+- [x] KK8: tanınmayan yanıt sınıf tablosuna göre
+- [x] KK9: sahteler ağa çıkmaz; elle denemede Mailpit'te ileti görüldü
+- [x] `09 §25` ilgili satırlar: yeni ad sözlükle/`09 §11.1` tablosuyla birebir; diff kapsamda (`CardRefundJobRule` yorumu tarama kural 1 için); yeni ayar §3.5 tablosunda değil — kurulum ayarı değil (`09 §4.3` m.2), `.env.example` doğru biçimde değişmedi; `CONTEXT.md` §3 güncel; zaman `TimeProvider`'dan; yeni paket yok; dış çağrı katman arayüzünde sonuç sınıfıyla; yeni tarama ihlal örneğiyle kırmızı; `LogEvents` listesi ile `09 §18` m.3 eşit (Unit yeşil)
+- [x] Güvenlik taraması (aşağıda)
+- [x] D-101: `09 §11.1` m.4 ve `ExternalCallTimeouts` yorumu `new CancellationTokenSource(süre, TimeProvider)` der; `src`'de `CancelAfter` yok; runner ve `HeartbeatPulse` aynı biçim
+
+### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes` | çıkış 0 |
+| Unit (+Consistency) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests` | 1126/1126 |
+| Betik | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration Web | ✓ | `--filter-namespace …Web` | 75/75 (EmailCaptureRegistrationTests dahil) |
+| Integration Jobs | ✓ | `--filter-namespace …Jobs` | 77/77 |
+| Integration Concurrency + Security | ✓ | iki namespace | 26 + 18 = 44/44 |
+| Integration Database + Disposal + FileSecrets + Logging | ✓ | dört namespace | 107/107 |
+| Integration Model (A–I) | ✓ | `--filter-class …Model.A*…I*` | 482/482 (ilk iki koşuda yük altında `CatalogCoreTablesTests.Migration_WhenPgTrgmIsNotInstalled_*` göç demeti derlemesi düştü; tek başına 60/60 ve üçüncü koşuda 482/482 — T202 dışı, dal CI'ında yeşil) |
+| Integration Model (M–S) | ✓ | `--filter-class …Model.M*,P*,R*,S*` | 411/411 |
+| Integration toplam | ✓ | PostgreSQL 18 (`shopfolio-t202-val-pg`) | 1196 |
+| Dal CI | ✓ | `gh run list --branch task/T202-dis-servis-katmani` | 42036902091 success (head `70c3d3f`); 42036861038 cancelled (önceki head) |
+
+### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz (diff'te anahtar/parola yok; test işaretleri yer tutucu; `compose.dev.yaml` uydurma değerler)
+- Auth etkisi: Temiz (yeni uç yok)
+- Input validation: Temiz (`EmailCapture` host varken port 1–65535 zorunlu, açılış durur; alıcı adresi `TryCreate`)
+- Yeni bağımlılık: Yok (`System.Net.Mail`, `IHttpClientFactory` çatıyla)
+- Not: geliştirme ağ geçidi ortam adına değil `EmailCapture:Host` ayarına bağlıdır — `09 §4.3` m.2 böyle yazar; ayar yalnız `compose.dev.yaml`'dadır.
+
+### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| — | — | — | — | Bulgu yok | — | — | — |
+
+### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | Sağlayıcı adı taraması — dar: `sesClient`/`_sesClient`, `AWSSDK`, `CARDPAYTR` yakalanmaz; `.razor` ve `.js` taranmaz. Geniş: `// the customer may pay transfer fees` bulgu sayılır (güvenli yön). Bugünkü kodda kaçan ad yok (geçici sınamayla gösterildi, silindi). | DEFERRED_BACKLOG'a forward → D-105 (T401) |
+| K2 | `SmtpCaptureEmailGateway.Compose` biçimsiz yanıt adresinde `FormatException` sızdırır (`09 §11.1` m.2); yalnız geliştirme ağ geçidi, adres firmanın doğrulanmış ayarı. | DEFERRED_BACKLOG'a forward → D-106 (T407) |
+
+### Yapım Raporu Karşılaştırması
+- Uyum: Tam uyumlu (kriter 1–9 ve KK1–KK9 aynı sonuç); öz denetim tablosu var, her maddede kanıt yazılı.
+- Fark 1: yapım raporu tam Integration koşusunu yerelde yapmadı ("tamamı CI'da"); doğrulayıcı 1196 testi yerelde filtreyle böldü, yeşil.
+- Fark 2: yapım raporu tarama darlığını "dar istisna" yönünden denetledi; desen boşlukları (K1) ve geliştirme ağ geçidindeki istisna sızıntısı (K2) raporda yok.
+- Fark 3: yapım raporu `12` satırlarını anmıyor; doğrulayıcı `VAL-E054`/`E055`/`E057`/`E058`/`E059`'u PASS yaptı, `E056`/`E064` BEKLEMEDE.
+
+### Merge ve Post-merge
+- Squash: yardımcının işi (17. adım) — bu ajan merge etmedi
+- Post-merge run'lar: yardımcının işi (18. adım)

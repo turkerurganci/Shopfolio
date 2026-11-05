@@ -342,6 +342,8 @@ Parametrenin üç katmanı (`02 §10.1.3`, `05 §8.4`; K-412) kodda üç ayrı e
 | Havale hatırlatması 08:00 (Türkiye saati); kesinti eşiği ve son nabız tazeliği 2 dakika | Kodda sabit | `05 §5.3.1`, §5.4.1, §5.4.3 |
 | İş satırının varsayılan yeniden denemesi 1, 5, 15, 60 ve 240 dakika (en çok beş kez); yanıtsız son sorgu 5 dakika; geri dönen adres sorgusu 15 dakika | Kodda sabit | K-1111, K-1132, K-1241, `05 §4.3.4` |
 | Büyük veri dönüşümünün parçası: en çok 500 satır, her parça kendi işleminde | Kodda sabit | K-1350 |
+| İmha ve gecelik temizliğin parçası: en çok 500 satır (dosya silen parçada 500 dosya), her parça kendi işleminde | Kodda sabit | `05 §7.4.1`, K-1350'nin kalıbı (T201) |
+| Sunucudaki misafir sepetinin silinme eşiği: 400 gün (çerezin ömrü) | Kodda sabit | `05 §6.7.8`, §11.1.32 (T201) |
 | Genel hız sınırı: sayfa ve form istekleri dakikada 300, form gönderimleri (POST) dakikada 30 (IP başına); pencere 60 saniye, 6 dilim | Kurulum ayarı (iki sayı); pencere ve dilim kodda sabit | K-1353, `05 §6.3.5`, `07 §2.8.2` |
 | İndirme bağlantısının ömrü 1 saat | Kodda sabit | K-1353, `05 §7.7.4` |
 | Görüntü işleme: kaynak kopyanın en uzun kenarı 2560 piksel; piksel tavanı: en uzun kenar 10.000, alan 40 megapiksel; türev genişlikleri 480, 960, 1600 (kaynaktan küçük olanlar); kaynak kopya kalitesi 90, WebP türev kalitesi 80; eşzamanlı işlem 2; kütüphane belleği 256 MB, disk önbelleği kapalı | Kodda sabit | K-1353, K-1316, `05 §6.6.2`, §7.7.2 |

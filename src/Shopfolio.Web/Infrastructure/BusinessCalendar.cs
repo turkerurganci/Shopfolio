@@ -40,6 +40,18 @@ internal sealed class BusinessCalendar
 
     public bool IsBusinessDay(DateOnly day) => day.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday) && !_holidays.Contains(day);
 
+    /// <summary>The first business day after <paramref name="day"/>; the day itself is never the answer.</summary>
+    public DateOnly NextBusinessDay(DateOnly day)
+    {
+        DateOnly next = day.AddDays(1);
+        while (!IsBusinessDay(next))
+        {
+            next = next.AddDays(1);
+        }
+
+        return next;
+    }
+
     /// <summary>
     /// Reads a holiday list: one holiday a line as <c>yyyy-MM-dd</c> and its name; <c>#</c> lines and blank lines are skipped. A day that
     /// cannot be read, a day written twice and a day out of date order are format errors that name the line.

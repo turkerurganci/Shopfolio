@@ -5,10 +5,10 @@ namespace Shopfolio.UnitTests.Architecture;
 
 /// <summary>
 /// Source scan of the background work's single places (T220; 09 13.1 items 1 and 10, 8.1 item 6): a type that derives from
-/// <c>BackgroundService</c> stands only in the service files of <c>Infrastructure/Jobs/</c> (now <c>JobRunnerService.cs</c>; T221 adds its
-/// scheduler's file here); <c>BackgroundServiceExceptionBehavior.Ignore</c> stands nowhere; <c>Task.Run(</c> and a new thread stand only under
+/// <c>BackgroundService</c> stands only in the service files of <c>Infrastructure/Jobs/</c> (<c>JobRunnerService.cs</c> and, since T221,
+/// <c>SchedulerService.cs</c>); <c>BackgroundServiceExceptionBehavior.Ignore</c> stands nowhere; <c>Task.Run(</c> and a new thread stand only under
 /// <c>Infrastructure/Jobs/</c>; a broad catch (<c>catch (Exception</c>, filtered or not, and a typeless <c>catch</c>) stands only in the files of
-/// the places that 09 8.1 item 6 names and that exist (the job queue's row loop and the liveness probe); and the job table's set, the
+/// the places that 09 8.1 item 6 names and that exist (the job queue's row loop, the scheduler's record loop, the nightly job's wrapper and the liveness probe); and the job table's set, the
 /// <c>Jobs</c> member of the context, a new <c>Job</c> and <c>Job.Enqueue</c> stand only under <c>Infrastructure/Jobs/</c> and in
 /// <c>AppDbContext.cs</c>, which maps the table. The places are full paths, not file names: a file of the same name elsewhere is scanned.
 /// The scan reads the whole text; full-line comments are blanked first and keep their line.
@@ -29,13 +29,19 @@ internal static partial class JobSourceScan
 
     public const string ContextFile = "src/Shopfolio.Web/Infrastructure/AppDbContext.cs";
 
-    /// <summary>The files that may derive from <c>BackgroundService</c>: the runner's now, the scheduler's with T221.</summary>
-    public static readonly IReadOnlyList<string> ServiceFiles = ["src/Shopfolio.Web/Infrastructure/Jobs/JobRunnerService.cs"];
+    /// <summary>The files that may derive from <c>BackgroundService</c>: the job runner's and the scheduler's.</summary>
+    public static readonly IReadOnlyList<string> ServiceFiles =
+    [
+        "src/Shopfolio.Web/Infrastructure/Jobs/JobRunnerService.cs",
+        "src/Shopfolio.Web/Infrastructure/Jobs/SchedulerService.cs",
+    ];
 
-    /// <summary>The files of 09 8.1 item 6's places that exist: the job queue's row loop and the liveness probe's database check.</summary>
+    /// <summary>The files of 09 8.1 item 6's places that exist: the job queue's row loop, the scheduler's record loop and the nightly job's wrapper, and the liveness probe's database check.</summary>
     public static readonly IReadOnlyList<string> BroadCatchFiles =
     [
         "src/Shopfolio.Web/Infrastructure/Jobs/JobRunnerService.cs",
+        "src/Shopfolio.Web/Infrastructure/Jobs/SchedulerScan.cs",
+        "src/Shopfolio.Web/Infrastructure/Jobs/NightlyJobRunner.cs",
         "src/Shopfolio.Web/Infrastructure/LivenessProbe.cs",
     ];
 

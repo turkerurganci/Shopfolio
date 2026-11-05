@@ -39,6 +39,18 @@ services:
       - google_client_secret
       - link_derivation_secret
 
+  database:
+    # The image's own command (deploy/images/database/Dockerfile CMD) plus the archive switched off: a development machine has no backup
+    # repository, and the made-up one in .env.example would take an archive-push every minute that fails, so the log files would pile up in
+    # pg_wal - and the scheduler's heartbeat (05 5.4.1) writes every thirty seconds. The restore drill and the backup jobs are not run in development.
+    command:
+      !override
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+      - -c
+      - archive_mode=off
+
   proxy:
     environment:
       # A local name: Caddy then serves it with its own local certificate authority instead of asking Let's Encrypt.

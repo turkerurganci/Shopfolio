@@ -19,4 +19,5 @@ internal sealed class LockAndCounterWrites(AppDbContext db)
     // Not findings: a comment that says SELECT ... FOR UPDATE, a counter read in the value argument, another column written raw.
     public Task ReadsTheCounter(CancellationToken ct) => db.Variants.ExecuteUpdateAsync(s => s.SetProperty(v => v.Sku, v => v.ReservedQuantity.ToString()), ct);
     public Task OtherColumn(CancellationToken ct) => db.Database.ExecuteSqlAsync($"UPDATE variants SET sku = 'x' WHERE id = {Guid.Empty}", ct);
+    public Task TryAdvisoryLock(CancellationToken ct) => db.Database.ExecuteSqlAsync($"SELECT pg_try_advisory_lock(1)", ct);
 }

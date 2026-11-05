@@ -52,6 +52,7 @@ public sealed class ConcurrencySourceScanTests
                 (ConcurrencySourceScan.CounterWrite, 12),
                 (ConcurrencySourceScan.CounterWrite, 16),
                 (ConcurrencySourceScan.CounterWrite, 17),
+                (ConcurrencySourceScan.RowLockText, 22),
             ],
             findings);
     }

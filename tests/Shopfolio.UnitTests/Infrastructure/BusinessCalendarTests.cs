@@ -82,6 +82,18 @@ public sealed class BusinessCalendarTests
     }
 
     [Fact]
+    public void NextBusinessDay_SkipsTheWeekendAndAHoliday_AndNeverReturnsTheDayItself()
+    {
+        BusinessCalendar calendar = BusinessCalendar.Parse("2028-04-24 Holiday on a Monday");
+        DateOnly friday = new(2028, 4, 21);
+
+        Assert.Equal(new DateOnly(2028, 4, 25), calendar.NextBusinessDay(friday));
+        Assert.Equal(new DateOnly(2028, 4, 21), calendar.NextBusinessDay(new DateOnly(2028, 4, 20)));
+        Assert.NotEqual(friday, calendar.NextBusinessDay(friday));
+        Assert.Equal(new DateOnly(2028, 4, 25), calendar.NextBusinessDay(new DateOnly(2028, 4, 23)));
+    }
+
+    [Fact]
     public void Parse_SkipsCommentsAndBlankLinesAndReadsTheDays()
     {
         BusinessCalendar calendar = BusinessCalendar.Parse("# list\n\n2028-01-01 Yılbaşı\r\n2028-04-23 Ulusal Egemenlik ve Çocuk Bayramı\n");

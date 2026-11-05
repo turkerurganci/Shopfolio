@@ -1,6 +1,6 @@
 # T225 — Sistem kayıtları
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 FAIL) | **Tarih:** 2026-11-05
 
 > Taslağı yapım chat'i doldurdu; doğrulama chat'i finalize eder.
 
@@ -66,10 +66,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulayıcı doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-05, head `a8390bc`) |
+| Bulgu sayısı | 2 (1 KRİTİK S1, 1 ORTA S1) |
+| Düzeltme gerekli mi | Evet — erişim kaydında yol/sorgu maskesi ve tarayıcı tanıtımı (aşağıdaki "Doğrulama Sonucu — tur 1") |
+| Bloke-etmeyen not (K) sayısı | 3 (D-90) |
 
 ## Altyapı Değişiklikleri
 
@@ -107,3 +107,90 @@
 - **`log_min_error_statement`** varsayılan: `STATEMENT:` satırı kayda girebilir (EF parametreli, değer sızmaz); gerekirse D- kaydı.
 - **Yerel paketleme sınaması:** Git Bash'te `mktemp` dizini Docker'a bağlanamadığı için betik `TMPDIR` Windows yoluna alınarak koşuldu (betik değişmedi).
 - **Repo memory (bitiş kapısı 9):** güncellendi
+
+---
+
+## Doğrulama Sonucu — T225 Sistem kayıtları — tur 1
+**Tarih:** 2026-11-05   **Branch:** task/T225-sistem-kayitlari   **Commit:** a8390bc (doğrulanan head)
+
+### Verdict: ✗ FAIL
+
+### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş (switch sonrası da) |
+| Hook kurulumu | ✓ | `git config core.hooksPath` → `C:\projects\Shopfolio\scripts\git-hooks` (ana depo kopyası, worktree ortak) |
+| Ana dal CI (son 3) | ✓ | 41953520461 success · 41953520476 success · 41946974061 success |
+| Memory drift | ✓ | `.claude/memory/MEMORY.md` satır 22 T225 |
+
+### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Üç kaynak, günlük dosyalar; yazanlar; ayarlar runbook'ta, kurulumda denetlenir | ✓ | compose: `access-logs`, `app-logs`, `db-logs`, `backup-logs` ayrı birim; `30-logging.conf` dosyaya yazar (`logging_collector=on`), CI Paketleme adımı `show` denetimleriyle yeşil (run 41953918692); runbook §L.1–L.5; `SystemLogsDeployConsistencyTests` yeşil |
+| 2 | İstek kimliğini vekil üretir, `X-Request-Id` ile iletir; uygulama satırları başlık değerini taşır | ✓ | Validator sondası (gerçek `caddy:2.11.7-alpine`, daldaki Caddyfile, başlığı yansıtan sahte arka uç): istemci `X-Request-Id: sahte` gönderdi → arka uca `e9626c27-…` iletildi, erişim satırında `request_id` aynı UUID; uygulama tarafı `SystemLogsTests` (500/422/401, iki istek) yeşil; `RequestLogEnricher` UUID biçimini kabul eder |
+| 3 | Şifre, anahtar, sır, … e-posta, form gövdesi, çerez hiçbir kayda yazılmaz | ✗ | Aynı sonda: `GET /siparis/erisim/GIZLIANAHTAR123/teyit?search=gizlisozcuk&email=a@b.com` erişim kaydına `"uri":"/siparis/erisim/GIZLIANAHTAR123/teyit?search=gizlisozcuk&email=a@b.com"` olarak yazıldı; `/dogrulama/TOKENXYZ` da ham. Caddyfile `format filter`'da `request>uri` için maske yok. Uygulama kaydı ve veritabanı kaydı tarafı temiz (`SampleLines_…` yeşil; `terse`, parametre 0) |
+| 4 | Düzey tasarım değeri; çatı ve veri erişimi uyarıda | ✓ | `LevelSetting_…` (6 düzey) yeşil |
+| 5 | P-45 saklama; dosyayı yalnız imha işi siler; sunucu kayıtları kendi döngüsüyle | ✓ | `roll_disabled` (Caddy `validate` geçti); logrotate erişim kaydında silmesiz (`rotate 36500`, `maxage` yok), sunucu kayıtlarında 183 gün; `journald MaxRetentionSec=6month`; `NormalWriter_…`, `AuditAndCommandWriters_…`, `Restart_…` yeşil (gün sınırı kenarı K2) |
+| 6 | İmha işi ve imha satırı T201'de, bu task yazmaz | ✓ | `LogFileDeletionSourceScan` + ihlal örneği; `SystemLogsScanTests` yeşil |
+| 7 | Ayrı metrik toplama ve pano yok | ✓ | `MetricsPackageScan` yeşil; `src/` altında `Metrics`/OpenTelemetry yok (grep) |
+
+### Task Satırları (`12 §7.5`, adım 2a ve 16)
+Task'ın KP birimi `10 KP-74`; grep'in getirdiği dokuz satır (`VAL-A368`–`A370` aydınlatma, `VAL-D046`–`D051` imha) T225'in kabul kriterlerine eşlenmez (kriter 6 imhayı T201'e bırakır) — `Durum` değişmedi. Task'ın `05 §9.1.5` kaynağını ana alan uçtan uca satır `VAL-A991`'in ters vekil yarısı bu task'ındır (T230/T231 raporları onu T225'e bıraktı).
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı |
+|---|---|---|---|---|---|
+| VAL-A991 | KRİTİK | yok | BEKLEMEDE | FAIL | — |
+
+`12_matris_denetle.py --kapsam 1-77`: Hata 0.
+
+### Doğrulama Kontrol Listesi
+- [x] KK1 uygulama kaydı ayrı birim ve dizinde; vekil/sunucu kayıtları runbook L.5'te
+- [x] KK2 aynı istek aynı kimlik; 500/422/401 satırları; `requestId` başlık değeri
+- [x] KK3 örnek uygulama satırlarında yasaklı alan yok (erişim kaydı için bkz. kriter 3)
+- [x] KK4 düzey ayarı yalnız uygulama kategorisini değiştirir
+- [x] KK5 gün dönümü ve yeniden başlatmada dosya kalır
+- [x] KK6 kayıt klasöründe silen kod ve imha satırı yok
+- [x] KK7 metrik paketi yok
+- [ ] `09 §25` "kayıtta sır ve kişisel veri yok" — erişim kaydı anahtar ve sorgu değeri taşıyor
+- [ ] Güvenlik taraması — bkz. Bulgu 1
+
+### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes` | çıkış 0 |
+| Unit (+Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 761/761 |
+| Betik | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration | ✓ | PostgreSQL 18 (`shopfolio-t225-val-pg`, 127.0.0.1:56371 — 55370–55569 Windows'ta dışlanmış aralık, bağlanamadı), `--filter-namespace` Logging+Web+Database+FileSecrets / Model | 142 + 893 = 1035, hepsi yeşil |
+| Caddy | ✓/✗ | `caddy validate` + çalışan Caddy sondası (`shopfolio-t225-val-*`) | geçerli yapılandırma; istek kimliği doğru; yol/sorgu maskesiz |
+| Sonrası | ✓ | `git status`; `dotnet restore Shopfolio.slnx --locked-mode` | temiz; çıkış 0; konteynerler ve ağ adıyla silindi |
+| Dal CI | ✓ | `gh run list --branch task/T225-sistem-kayitlari` | 41953918692 success (head a8390bc), 10 iş yeşil |
+
+### Güvenlik Kontrolü
+- Secret sızıntısı: **Bulgu** — erişim kaydı bağlantı anahtarını (sipariş erişim, doğrulama, şifre sıfırlama, davet, geri alma, indirme imzası) ve sorgu değerlerini ham yazıyor (Bulgu 1). Repoda/imajda yeni sır yok.
+- Auth etkisi: Temiz — istemcinin `X-Request-Id`'si değiştirilir (sondayla kanıtlı); uygulama portu yayımlanmıyor.
+- Input validation: Temiz — `RequestLogEnricher` başlığı uzunluk ve karakterle süzer.
+- Yeni bağımlılık: Yok.
+
+### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| 1 | VAL-A991 (kriter 3) | KRİTİK | S1 | Beklenen (`05 §9.1.5`, §6.4.8; runbook K-1162 (1)): erişim kaydı yolun anahtar bölümünü `{key}`, sorgu değerlerini `*` yazar; boş bölüm atlanır (D-89 K3). Gerçekleşen: Caddyfile'da maske yok, `request>uri` ham (sonda kanıtı yukarıda). Runbook L.5 madde 3 maskeli çıktıyı bekliyor — kurulum denetimi düşer; `SystemLogsDeployConsistencyTests` maskeyi sınamıyor. D-33 (maskeleme kısmı) ve D-89 K3 T225'i hedef gösteriyor, dal ikisini de ne kapatıyor ne yeniden ileri atıyor | `09 §25` sır/kişisel veri satırı; D-33, D-89 K3 | bu PR'da düzeltilmeli: `format filter`'a `request>uri` için anahtarlı yol listesinin (K-1162 (1), `09 §18.2` madde 2b ile aynı) ve sorgu değerlerinin maskesi (`regexp`/`query` filtresi), boş bölüm dahil; maskeyi Caddyfile'dan sınayan tutarlılık testi (anahtar listesi `PathMasker`'ınkiyle eşit); D-33/D-89 kayıtlarının güncellenmesi | `deploy/caddy/Caddyfile` · `tests/.../SystemLogsDeployConsistencyTests.cs` · `Docs/DEFERRED_BACKLOG.md` |
+| 2 | — (kriter 1; `05 §9.1.2`) | ORTA | S1 | Beklenen: erişim kaydı satırı tarayıcı tanıtımını taşır (`05 §9.1.2`; D-33). Gerçekleşen: `request>headers delete` `User-Agent`'ı da siler (sondada satırda yok); runbook L.5 "hiçbir başlık yazılmaz" der | D-33 | bu PR'da: `log_append user_agent {http.request.header.User-Agent}` gibi tek alan; runbook L.2/L.5 ve tutarlılık testi | `deploy/caddy/Caddyfile` · `Docs/DEPLOY_RUNBOOK.md` §L |
+
+### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | Döndürülmüş erişim kaydının adındaki gün (`dateext`) döndürme günüdür, içerik bir önceki günündür; imha bir gün geç siler | DEFERRED_BACKLOG'a forward (D-90 K1) |
+| K2 | Sunucu kayıtları 183 gün / journald `6month` (≈182,6 gün) — 184 günlük takvim penceresinde süre dolmadan bir iki gün erken silme | DEFERRED_BACKLOG'a forward (D-90 K2) |
+| K3 | `log_min_error_statement` varsayılanı `STATEMENT:` metnini yazar; değeri metne gömülü cümlede değer sızabilir (yapım raporu kararsız bırakmıştı) | DEFERRED_BACKLOG'a forward (D-90 K3) |
+
+### Yapım Raporu Karşılaştırması
+- Uyum: 3 uyuşmazlık
+- Kriter 3 ve `09 §25` satırı yapımda ✓; kanıtı yalnız uygulama kaydı, başlık silme ve veritabanıdır — erişim kaydının yol/sorgu maskesi hiç anılmıyor, oysa runbook L.5 madde 3 onu bekliyor (Bulgu 1). Öz denetim tablosu var ve maddeleri kanıtlı, ama bu kanıt kriteri karşılamıyor.
+- D-33 ve D-89 K3 (T225 hedefli) "Known Limitations"ta da yok (Bulgu 1, 2).
+- "Notlar"daki `log_min_error_statement` "gerekirse D- kaydı" — üçüncü seçenek; D-90 K3'e forward edildi.
+- Dış varsayım 1 "davranış gerçek sunucuda T603": validator davranışı yerel Caddy 2.11.7'de sınadı — istek kimliği doğru.
+- Unit sayısı 680 (yapım) ↔ 761 (validator, Consistency dahil) — kapsam farkı, uyuşmazlık değil.
+
+### Merge ve Post-merge
+- Merge yok (FAIL). Rapor, status (`✗ FAIL (tur 1)`), hafıza, `VAL-A991` `Durum` ve D-90 dala commit'lendi.

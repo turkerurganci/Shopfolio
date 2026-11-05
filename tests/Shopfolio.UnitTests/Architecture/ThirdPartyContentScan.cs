@@ -9,14 +9,16 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <see cref="Scan"/> reads a page, a script, a style sheet or a code file and finds (1) an analytics, pixel or advertising name, (2) a consent banner name,
 /// (3) an embedded frame, object or embed element, or a map, video or social embed address, (4) a script, style sheet, image, source or font taken from
 /// another origin; <see cref="ScanPackages"/> reads a package file (props, project, lock) and finds an analytics, advertising or tag package.
-/// The frame is the only allowed exception and only on a page of <see cref="PaymentFramePages"/>, a closed list that is empty until the payment page
-/// task adds its page; the frame element alone is allowed there, the other rules hold on it. Full-line comments of code files are blanked first and keep their line.
+/// The inline frame (iframe) is the only allowed exception and only on a page of <see cref="PaymentFramePages"/>, a closed list that is empty until the
+/// payment page task adds its page; there its address must be a path of the site or under https://www.paytr.com/ (<see cref="FrameSource"/>). A frame
+/// (frame, frameset), object or embed element is a finding on every page, and the other rules hold on the payment page too. Full-line comments of code files are blanked first and keep their line.
 /// </summary>
 internal static partial class ThirdPartyContentScan
 {
     public const string TrackingName = "names an analytics, tracking pixel or advertising tag (02 12.2.5; KD-19: no visitor analytics, no third-party cookie, no tracking pixel, no advertising tag)";
     public const string ConsentBannerName = "names a cookie consent banner (02 12.2.5: the cookies are strictly necessary and need no consent, so there is no banner)";
     public const string EmbeddedContent = "embeds a frame, object, map, video or social feed (KD-41, KD-55: no embedded content; the payment provider's frame on a PaymentFramePages page is the only exception)";
+    public const string FrameSource = "gives a payment frame an address other than the site's own paths or https://www.paytr.com/ (05 6.5.4: frame-src is 'self' and the provider's origin), or a srcdoc";
     public const string ExternalResource = "loads a script, style sheet, image, source or font from another origin (02 12.2.5: no third-party content)";
     public const string TrackingPackage = "references an analytics, advertising or tag package (02 12.2.5; KD-19)";
 
@@ -37,9 +39,14 @@ internal static partial class ThirdPartyContentScan
         Add(findings, TrackingName, Tracking(), clean);
         Add(findings, ConsentBannerName, Banner(), clean);
         Add(findings, EmbeddedContent, EmbedAddress(), clean);
-        if (!framePages.Contains(path, StringComparer.Ordinal))
+        Add(findings, EmbeddedContent, OtherEmbedElement(), clean);
+        if (framePages.Contains(path, StringComparer.Ordinal))
         {
-            Add(findings, EmbeddedContent, EmbedElement(), clean);
+            Add(findings, FrameSource, ForeignFrameSource(), clean);
+        }
+        else
+        {
+            Add(findings, EmbeddedContent, FrameElement(), clean);
         }
 
         Add(findings, ExternalResource, ForeignResource(), clean);
@@ -96,9 +103,21 @@ internal static partial class ThirdPartyContentScan
         matchTimeoutMilliseconds: 5000)]
     private static partial Regex EmbedAddress();
 
-    // The elements that embed another document: frame, object, embed (a frame element alone is allowed on a payment frame page).
-    [GeneratedRegex(@"<\s*(?:iframe|frame|frameset|object|embed)\b|createElement\s*\(\s*['""](?:iframe|object|embed)['""]", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 5000)]
-    private static partial Regex EmbedElement();
+    // The inline frame element: the one element that is allowed, and only on a payment frame page.
+    [GeneratedRegex(@"<\s*iframe\b|createElement\s*\(\s*['""]iframe['""]", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex FrameElement();
+
+    // The other elements that embed another document: frame, frameset, object, embed - a finding on every page, the payment frame pages included.
+    [GeneratedRegex(@"<\s*(?:frame|frameset|object|embed)\b|createElement\s*\(\s*['""](?:frame|frameset|object|embed)['""]", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex OtherEmbedElement();
+
+    // On a payment frame page the frame takes its address from the provider's origin or from the site itself (05 6.5.4: frame-src is 'self' and https://www.paytr.com):
+    // a src that is neither a path of the site nor an address under https://www.paytr.com/, and a srcdoc, are findings.
+    [GeneratedRegex(
+        @"<\s*iframe\b[^>]*?\bsrc\s*=\s*(?>[""']?\s*)(?!https://www\.paytr\.com/|/(?!/))|<\s*iframe\b[^>]*?\bsrcdoc\s*=",
+        RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline,
+        matchTimeoutMilliseconds: 5000)]
+    private static partial Regex ForeignFrameSource();
 
     // src= or href= of an element that loads a resource (script, link, img, source, video, audio, track) and url(...) or @import in a style, taking an
     // absolute or protocol-relative address. An anchor's href is a link and not a resource, so it is not matched.

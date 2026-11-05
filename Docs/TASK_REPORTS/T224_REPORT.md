@@ -198,3 +198,36 @@ T224'ün `10` birimi KP-73; satırları `VAL-A363`…`VAL-A367` vitrin/ödeme ak
 
 ### Merge ve Post-merge
 - FAIL: merge yok. Rapor + durum + hafıza dala yazıldı (16. adım).
+
+## Düzeltme 1 — doğrulama tur 1
+
+Dal `origin/main` ile güncel (merge gerekmedi). Dört bulgu, yalnız test projesi ve süzgeç ara katmanı:
+
+- **B1 (KK9):** `ThirdPartyContentScan` çerçeve öğesini ikiye ayırdı. Yalnız `iframe` (ve `createElement('iframe')`) ödeme çerçevesi sayfasında serbest; `frame`, `frameset`, `object`, `embed` ve `createElement('frame'/'frameset'/'object'/'embed')` her sayfada bulgu. Ayrı ihlal örnekleri: `Page.html` satır 10–13; `Scan_OnAPaymentFramePage_StillFindsAnObjectEmbedFrameOrFramesetElement` (altı biçim, ödeme sayfasında ve başka sayfada).
+- **B2 (KK3):** `CookieSourceScan` beşinci kural: `Set-Cookie` / `SetCookie` (dizgi, `HeaderNames.SetCookie`, `Headers.SetCookie`, `Headers["Set-Cookie"]`, `Append`/`Add`) yalnız `CookieHeaderFilterMiddleware.cs`'de (başlığı yalnız siler). Ayrı ihlal örneği `CookieMisuse.cs` satır 13–15 (`_ga` adı listede olmadığı için testi kırar); `Scan_OfARawSetCookieHeaderWithANameOutsideTheList_…` beş biçim ve izinli dosya.
+- **K1:** 09 §8.1 m.6 geniş `catch`'i altı yere sınırlar, süzgeç bunlardan biri değildir; bu yüzden süzgeç istisnayı yutmaz. Yakalama katmanı (m.2b) T212'dedir ve henüz yok: yayın sorusu düşerse istisna o katmana gider, süzgeç dışında kalan çıplak 500 yerine hata sayfası + kayıt T212 ile gelir. Düzeltme: çıkarma geri çağrısı soru sorulmadan ÖNCE kayıtlı ve yalnız "yayında" cevabıyla kapanır (hata sayfası da `Set-Cookie` taşımaz); `HeaderFilter_WhenThePublicationQueryFails_…` birim testi; `Program.cs` yorumu: yakalama katmanı süzgeçten önce kaydedilir; kalan iş **D-113 → T212** (entegrasyon testiyle hata sayfası + kayıt).
+- **K2:** Ödeme sayfasında `iframe` adresi yalnız sitenin kendi yolu (`/x`) ya da `https://www.paytr.com/` altı olabilir (05 §6.5.4 `frame-src`); öteki adres, `//` , `paytr.com.evil`, `paytr.com@evil`, `data:` ve `srcdoc` `FrameSource` bulgusudur (`Scan_OnAPaymentFramePage_ChecksTheFrameAddress`, dokuz durum; `Page.html` satır 15).
+
+### Öz denetim (düzeltme 1; bütün kriterler ve kontrol listesi yeniden)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| 1 Secure/HttpOnly/Lax | ✓ | `Create_ForEachName_GivesSecureHttpOnlyLaxRootPathAndNoDomain_EvenOverPlainHttp`; entegrasyon `AllCookies_AfterThePublication_CarryTheThreeAttributes…` (Web 86 yeşil) |
+| 2 `__Host-`, koşullar tek yerde | ✓ | `Apply_OnABuilderTheFrameworkOwns_…`; `CookieSourceScan` kural 1–3 ve `ApplicationSource_WritesCookiesInBrowserCookiesAndNamesThemInCookieNamesOnly` boş |
+| 3 Envanter kapalı | ✓ | `CookieNames.All` 7 + `CookieNamesConsistencyTests`; ham başlık yolu artık kural 5 ile kapalı (B2 testleri) |
+| 4 Sepet 400 gün, yenilenir | ✓ | `GuestCartCookie_Lives400DaysAndIsWrittenAgainAtEveryVisit` (değişmedi, yeşil) |
+| 5 Ödeme çerezi oturumluk, şifreli, silinir | ✓ | `CheckoutCookie_IsEncryptedLastsTheSession…` (Web yeşil) |
+| 6 Yayına kadar `Set-Cookie` yok | ✓ | `StorefrontResponse_BeforeThePublication_CarriesNoSetCookie…`; ara katman değişti, birim `HeaderFilter_BeforeThePublication_…` ve yeni K1 testi yeşil |
+| 7 Yalnız vitrin | ✓ | `HeaderFilter_AppliesToTheStorefrontOnly`; panel entegrasyon testi |
+| 8 Akış çerezi yolu `/` | ✓ | `ExternalLoginFlowCookie_HasTheRootPathLastsTenMinutesAndIsUsedOnce` |
+| 9 Üçüncü taraf içerik yok; tek istisna ödeme çerçevesi | ✓ | B1 + K2 testleri; `ApplicationSource_HasNoAnalytics…` ve `PackageFiles_…` boş; `PaymentFramePages_IsClosedAndEmpty…`; taslak yer tutucu testi |
+| KK1–KK8 | ✓ | Yukarıdaki satırlar |
+| KK9 yalnız ödeme çerçevesi | ✓ | `object`/`embed`/`frameset`/`frame` her yerde bulgu (ayrı örnek) |
+| `09 §25` satırları | ✓ | Mimari kural için tarama + ayrı ihlal örneği (`§19.2` m.3); tarama dosya yazmaz; eşitlik `Consistency` trait'inde; yeni paket yok |
+| Güvenlik taraması | ✓ | Yeni bağımlılık yok; çerez değerinde açık metin yok |
+| Sık FAIL: istisna geniş | ✓ | B1/K2: `iframe` + adres, tek sayfa |
+| Sık FAIL: tarama çağrı biçimi kaçırıyor | ✓ | B2: beş ham başlık biçimi |
+| Sık FAIL: geçici çözüm backlog'suz | ✓ | K1 → D-113 (T212) |
+| Sık FAIL: kabul kriteri kısmen | ✓ | Dokuz kriter ✓; `~` yok |
+
+Testler: Unit 1347/1347; Integration `Web` ad alanı 86/86 (PostgreSQL 18, `shopfolio-t224-pg`, 127.0.0.1:55581, bitince silindi); `dotnet format --verify-no-changes` çıkış 0; `dotnet build -warnaserror` temiz.

@@ -39,17 +39,37 @@ internal sealed class CookieHeaderFilterMiddleware
     public async Task InvokeAsync(HttpContext context, ICookiePolicyPublication publication)
     {
         ArgumentNullException.ThrowIfNull(context);
-        if (AppliesTo(context.Request.Path) && !await _gate.IsOpenAsync(publication, context.RequestAborted))
+        if (!AppliesTo(context.Request.Path))
         {
-            context.Response.OnStarting(RemoveCookieHeaders, context.Response);
+            await _next(context);
+            return;
         }
+
+        // The removal is registered before the question is asked and is lifted only by a yes. A failing question is not caught here (09 8.1 item 6: the
+        // catch layer is the one place): it reaches the catch layer registered outside this middleware (T212, 09 8.1 item 2), and the error page that layer
+        // writes passes through the removal like every other storefront response.
+        var removal = new Removal(context.Response);
+        context.Response.OnStarting(RemoveCookieHeaders, removal);
+        removal.Active = !await _gate.IsOpenAsync(publication, context.RequestAborted);
 
         await _next(context);
     }
 
     private static Task RemoveCookieHeaders(object state)
     {
-        ((HttpResponse)state).Headers.Remove(HeaderNames.SetCookie);
+        var removal = (Removal)state;
+        if (removal.Active)
+        {
+            removal.Response.Headers.Remove(HeaderNames.SetCookie);
+        }
+
         return Task.CompletedTask;
+    }
+
+    private sealed class Removal(HttpResponse response)
+    {
+        public HttpResponse Response { get; } = response;
+
+        public bool Active { get; set; } = true;
     }
 }

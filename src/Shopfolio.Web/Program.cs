@@ -105,7 +105,8 @@ builder.Services.AddDisposal(builder.Configuration);
 WebApplication app = builder.Build();
 
 // The storefront writes no cookie until the cookie policy is published (05 6.7.10): outside every middleware that can write a cookie. The forwarded
-// headers and the security headers (09 15.1 item 8, 15.2 item 3) come before it when their tasks add them.
+// headers and the security headers (09 15.1 item 8, 15.2 item 3) come before it when their tasks add them. The catch layer (09 8.1 item 2b, T212) is
+// registered before it too, so that a failing publication question is an error page and a record and not a bare 500 (D-113).
 app.UseCookieHeaderFilter();
 
 app.UseRouting();

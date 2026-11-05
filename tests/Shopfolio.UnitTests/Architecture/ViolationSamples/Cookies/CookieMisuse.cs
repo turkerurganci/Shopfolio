@@ -10,4 +10,7 @@ internal static class CookieMisuse
     public static void Delete(HttpContext context, ICookieManager manager) => manager.DeleteCookie(context, "a", new CookieOptions());
     public static string Constant => CookieNames.Cart;
     public static string Request(HttpContext context) => context.Request.Cookies["a"] ?? string.Empty;
+    public static void RawAppend(HttpContext context) => context.Response.Headers.Append("Set-Cookie", "_ga=1");
+    public static void RawProperty(HttpContext context) => context.Response.Headers.SetCookie = "_ga=1";
+    public static void RawIndexer(HttpContext context) => context.Response.Headers[HeaderNames.SetCookie] = "_ga=1";
 }

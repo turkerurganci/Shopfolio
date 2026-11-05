@@ -87,8 +87,47 @@ public sealed class ThirdPartyContentScanTests
                 (ThirdPartyContentScan.EmbeddedContent, 7),
                 (ThirdPartyContentScan.EmbeddedContent, 8),
                 (ThirdPartyContentScan.EmbeddedContent, 10),
+                (ThirdPartyContentScan.EmbeddedContent, 11),
+                (ThirdPartyContentScan.EmbeddedContent, 12),
+                (ThirdPartyContentScan.EmbeddedContent, 13),
+                (ThirdPartyContentScan.EmbeddedContent, 14),
+                (ThirdPartyContentScan.EmbeddedContent, 15),
             ],
             findings);
+    }
+
+    [Theory]
+    [InlineData("<object data=\"x\"></object>")]
+    [InlineData("<embed src=\"x\">")]
+    [InlineData("<frameset rows=\"100%\"></frameset>")]
+    [InlineData("<frame src=\"x\">")]
+    [InlineData("el = document.createElement('object');")]
+    [InlineData("el = document.createElement('embed');")]
+    public void Scan_OnAPaymentFramePage_StillFindsAnObjectEmbedFrameOrFramesetElement(string text)
+    {
+        const string page = "src/Shopfolio.Web/Pages/Payment.cshtml";
+
+        Assert.Equal([(ThirdPartyContentScan.EmbeddedContent, 1)], ThirdPartyContentScan.Scan(page, text, [page]));
+        Assert.Equal([(ThirdPartyContentScan.EmbeddedContent, 1)], ThirdPartyContentScan.Scan("src/Shopfolio.Web/Pages/Other.cshtml", text, [page]));
+    }
+
+    [Theory]
+    [InlineData("<iframe src=\"https://www.paytr.com/odeme/guvenli/tok\"></iframe>", false)]
+    [InlineData("<iframe src=\"/odeme/gecis\"></iframe>", false)]
+    [InlineData("<iframe title=\"x\" src='https://www.paytr.com/x'></iframe>", false)]
+    [InlineData("<iframe src=\"https://www.paytr.com.example.net/odeme\"></iframe>", true)]
+    [InlineData("<iframe src=\"https://www.paytr.com@example.net/odeme\"></iframe>", true)]
+    [InlineData("<iframe src=\"https://example.net/odeme\"></iframe>", true)]
+    [InlineData("<iframe src=\"//example.net/odeme\"></iframe>", true)]
+    [InlineData("<iframe srcdoc=\"&lt;p&gt;\"></iframe>", true)]
+    [InlineData("<iframe src=\"data:text/html,x\"></iframe>", true)]
+    public void Scan_OnAPaymentFramePage_ChecksTheFrameAddress(string text, bool finding)
+    {
+        const string page = "src/Shopfolio.Web/Pages/Payment.cshtml";
+
+        IReadOnlyList<(string Rule, int Line)> findings = ThirdPartyContentScan.Scan(page, text, [page]);
+
+        Assert.Equal(finding ? [(ThirdPartyContentScan.FrameSource, 1)] : [], findings);
     }
 
     [Fact]
@@ -100,9 +139,18 @@ public sealed class ThirdPartyContentScanTests
         IReadOnlyList<(string Rule, int Line)> onPage = ThirdPartyContentScan.Scan(page, sample, [page]);
         IReadOnlyList<(string Rule, int Line)> elsewhere = ThirdPartyContentScan.Scan("src/Shopfolio.Web/Pages/Other.cshtml", sample, [page]);
 
-        // The title-only frame (line 8) and the object (line 10) are no finding on the page; the frame with a video address (line 7) stays one (an embedded video).
-        Assert.DoesNotContain(onPage, f => f.Line is 8 or 10);
+        // The frames of lines 8 (no address) and 14 (the provider's address) are no finding on the page; object, embed and frameset (lines 10 to 13) are, and so
+        // are the frame with a video address (line 7: an embedded video and a foreign address) and the look-alike provider address (line 15).
+        Assert.DoesNotContain(onPage, f => f.Line is 8 or 14);
         Assert.Contains((ThirdPartyContentScan.EmbeddedContent, 7), onPage);
+        Assert.Contains((ThirdPartyContentScan.FrameSource, 7), onPage);
+        Assert.Contains((ThirdPartyContentScan.FrameSource, 15), onPage);
+        Assert.DoesNotContain((ThirdPartyContentScan.EmbeddedContent, 15), onPage);
+        foreach (int line in new[] { 10, 11, 12, 13 })
+        {
+            Assert.Contains((ThirdPartyContentScan.EmbeddedContent, line), onPage);
+        }
+
         Assert.Contains((ThirdPartyContentScan.TrackingName, 2), onPage);
         Assert.Contains((ThirdPartyContentScan.ExternalResource, 4), onPage);
         Assert.Contains((ThirdPartyContentScan.EmbeddedContent, 8), elsewhere);

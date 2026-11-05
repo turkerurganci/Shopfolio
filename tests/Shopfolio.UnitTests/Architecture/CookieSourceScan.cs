@@ -3,7 +3,8 @@ using System.Text.RegularExpressions;
 namespace Shopfolio.UnitTests.Architecture;
 
 /// <summary>
-/// Source scan of the cookie rules (T224 KK3; 09 15.1 item 6; 09 5.3 item 5; 05 6.7.10; 09 19.2 item 3). Four rules over the application source:
+/// Source scan of the cookie rules (T224 KK3; 09 15.1 item 6; 09 5.3 item 5; 05 6.7.10; 09 19.2 item 3). Five rules over the application source
+/// (rule 5: the <c>Set-Cookie</c> header is named, in a string or as <c>HeaderNames.SetCookie</c> or <c>Headers.SetCookie</c>, only in <see cref="HeaderFilterFile"/>, which removes it):
 /// (1) a cookie is appended to a response, or deleted from one, only in <see cref="BrowserCookiesFile"/>; (2) <c>CookieOptions</c>, <c>CookieBuilder</c> and
 /// <c>SameSiteMode</c> are created or named only in <see cref="DefaultsFile"/> - the attributes of a cookie are written in one place; (3) the <c>__Host-</c> prefix is
 /// written in a string only in <see cref="NamesFile"/> - a cookie name is a constant of that class; (4) the framework's consent banner support
@@ -15,6 +16,7 @@ internal static partial class CookieSourceScan
 {
     public const string ResponseCookieWrite = "appends or deletes a response cookie outside BrowserCookies (09 15.1 item 6: the one place a cookie is written)";
     public const string CookieAttributes = "creates CookieOptions or CookieBuilder, or names SameSiteMode, outside CookieDefaults (09 15.1 item 6: the attributes are written in one place)";
+    public const string RawSetCookieHeader = "names the Set-Cookie response header outside CookieHeaderFilterMiddleware (09 15.1 item 6, 09 5.3 item 5: a cookie is written only through BrowserCookies, so a name outside the closed list cannot be set with a raw header)";
     public const string HostPrefixLiteral = "writes the __Host- prefix in a string outside CookieNames (09 5.3 item 5: a cookie name is a constant of the closed list)";
     public const string ConsentBanner = "uses the framework's consent banner support (02 12.2.5: the storefront has no cookie consent banner)";
 
@@ -23,6 +25,9 @@ internal static partial class CookieSourceScan
 
     /// <summary>The one file that may name the cookie option types and the same-site modes.</summary>
     public const string DefaultsFile = "src/Shopfolio.Web/Infrastructure/Security/CookieDefaults.cs";
+
+    /// <summary>The one file that may name the <c>Set-Cookie</c> response header (it only removes it, until the policy is published).</summary>
+    public const string HeaderFilterFile = "src/Shopfolio.Web/Infrastructure/Security/CookieHeaderFilterMiddleware.cs";
 
     /// <summary>The one file that may write the prefix in a string.</summary>
     public const string NamesFile = "src/Shopfolio.Web/Infrastructure/Security/CookieNames.cs";
@@ -45,6 +50,11 @@ internal static partial class CookieSourceScan
         if (!string.Equals(path, NamesFile, StringComparison.Ordinal))
         {
             Add(findings, HostPrefixLiteral, PrefixInString(), clean);
+        }
+
+        if (!string.Equals(path, HeaderFilterFile, StringComparison.Ordinal))
+        {
+            Add(findings, RawSetCookieHeader, SetCookieHeader(), clean);
         }
 
         Add(findings, ConsentBanner, ConsentSupport(), clean);
@@ -87,6 +97,10 @@ internal static partial class CookieSourceScan
     // The prefix inside a string literal (ordinary, verbatim or raw): a quote, then anything without a quote or a line end, then the prefix.
     [GeneratedRegex(@"""[^""\n]*__Host-", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex PrefixInString();
+
+    // The Set-Cookie response header named in any form: the string "Set-Cookie", HeaderNames.SetCookie, Headers.SetCookie, Headers["Set-Cookie"], Append("Set-Cookie", ...).
+    [GeneratedRegex(@"Set-Cookie|\bSetCookie\b", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex SetCookieHeader();
 
     [GeneratedRegex(@"\b(?:CheckConsentNeeded|UseCookiePolicy|CookiePolicyOptions|ConsentCookie)\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ConsentSupport();

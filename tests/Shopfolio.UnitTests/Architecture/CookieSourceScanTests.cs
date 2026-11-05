@@ -34,6 +34,7 @@ public sealed class CookieSourceScanTests
         Assert.Contains(CookieSourceScan.BrowserCookiesFile, scanned);
         Assert.Contains(CookieSourceScan.DefaultsFile, scanned);
         Assert.Contains(CookieSourceScan.NamesFile, scanned);
+        Assert.Contains(CookieSourceScan.HeaderFilterFile, scanned);
         Assert.Empty(findings);
     }
 
@@ -54,6 +55,9 @@ public sealed class CookieSourceScanTests
                 (CookieSourceScan.ConsentBanner, 9),
                 (CookieSourceScan.ResponseCookieWrite, 10),
                 (CookieSourceScan.CookieAttributes, 10),
+                (CookieSourceScan.RawSetCookieHeader, 13),
+                (CookieSourceScan.RawSetCookieHeader, 14),
+                (CookieSourceScan.RawSetCookieHeader, 15),
             ],
             findings);
     }
@@ -75,6 +79,26 @@ public sealed class CookieSourceScanTests
     }
 
     [Fact]
+    public void Scan_OfARawSetCookieHeaderWithANameOutsideTheList_IsAFindingEverywhereButInTheHeaderFilter()
+    {
+        string[] writes =
+        [
+            "context.Response.Headers.Append(\"Set-Cookie\", \"_ga=1\");",
+            "context.Response.Headers.SetCookie = \"_ga=1\";",
+            "context.Response.Headers[HeaderNames.SetCookie] = \"_ga=1\";",
+            "context.Response.Headers[\"set-cookie\"] = \"_ga=1\";",
+            "context.Response.Headers.Add(\"Set-Cookie\", new StringValues(\"_ga=1\"));",
+        ];
+
+        foreach (string write in writes)
+        {
+            Assert.Equal([(CookieSourceScan.RawSetCookieHeader, 1)], CookieSourceScan.Scan("src/Shopfolio.Web/Modules/Cart/Misuse.cs", write));
+            Assert.Equal([(CookieSourceScan.RawSetCookieHeader, 1)], CookieSourceScan.Scan(CookieSourceScan.BrowserCookiesFile, write));
+            Assert.Empty(CookieSourceScan.Scan(CookieSourceScan.HeaderFilterFile, write));
+        }
+    }
+
+    [Fact]
     public void AllowedFiles_Exist()
     {
         string root = RepositoryRoot.Find();
@@ -82,5 +106,6 @@ public sealed class CookieSourceScanTests
         Assert.True(File.Exists(Path.Combine(root, CookieSourceScan.BrowserCookiesFile)));
         Assert.True(File.Exists(Path.Combine(root, CookieSourceScan.DefaultsFile)));
         Assert.True(File.Exists(Path.Combine(root, CookieSourceScan.NamesFile)));
+        Assert.True(File.Exists(Path.Combine(root, CookieSourceScan.HeaderFilterFile)));
     }
 }

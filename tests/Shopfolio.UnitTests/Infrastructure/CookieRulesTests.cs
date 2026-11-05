@@ -166,6 +166,33 @@ public sealed class CookieRulesTests
         Assert.Contains("__Host-cart=x", opened, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task HeaderFilter_WhenThePublicationQueryFails_LetsTheCatchLayerOutsideItHandleItAndStripsTheCookiesOfTheErrorPage()
+    {
+        var context = new DefaultHttpContext();
+        context.Features.Set<IHttpResponseFeature>(new CallbackResponseFeature());
+        context.Request.Path = "/sepet";
+        var filter = new CookieHeaderFilterMiddleware(_ => throw new InvalidOperationException("the filter let a request through"), new CookiePolicyGate());
+        Exception? reachedTheCatchLayer = null;
+
+        // Stands in for the single catch layer (09 8.1 item 2b) registered outside the filter: it records the exception and writes an error page that sets a cookie.
+        try
+        {
+            await filter.InvokeAsync(context, new FailingPublication());
+        }
+        catch (Exception exception)
+        {
+            reachedTheCatchLayer = exception;
+            context.Response.StatusCode = 500;
+            context.Response.Cookies.Append(CookieNames.Cart, "x");
+            await ((CallbackResponseFeature)context.Features.Get<IHttpResponseFeature>()!).RunAsync();
+        }
+
+        Assert.IsType<TimeoutException>(reachedTheCatchLayer);
+        Assert.Equal(500, context.Response.StatusCode);
+        Assert.Equal(string.Empty, context.Response.Headers.SetCookie.ToString());
+    }
+
     private static async Task<string> SetCookieAfterAsync(CookiePolicyGate gate, ICookiePolicyPublication publication, string path)
     {
         var context = new DefaultHttpContext();
@@ -198,6 +225,11 @@ public sealed class CookieRulesTests
                 await _callbacks[i].Callback(_callbacks[i].State);
             }
         }
+    }
+
+    private sealed class FailingPublication : ICookiePolicyPublication
+    {
+        public Task<bool> IsPublishedAsync(CancellationToken cancellationToken) => throw new TimeoutException("the database is down");
     }
 
     private sealed class CountingPublication : ICookiePolicyPublication

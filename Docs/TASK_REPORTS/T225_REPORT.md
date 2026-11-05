@@ -77,10 +77,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-05, head `bf2ecc8`; tur 1 FAIL, head `a8390bc`); düzeltme 2 yapıldı, tur 3 bekliyor |
-| Bulgu sayısı | Tur 2: 2 (1 KRİTİK S1, 1 DÜŞÜK S1) · tur 1: 2 (1 KRİTİK S1, 1 ORTA S1) |
-| Düzeltme gerekli mi | Evet — erişim kaydında bir çiftten sonra gelen çıplak sorgu belirteçleri maskelenmiyor; satırda `05 §9.1.2` dışı Caddy alanları (aşağıdaki "Doğrulama Sonucu — tur 2"). İki iterasyon doldu: eskalasyon |
-| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (D-92) · tur 1: 3 (D-91); T232 D-90'ı aldığı için bu task'ın kayıtları birleştirmede D-91 ve D-92 oldu |
+| Doğrulama durumu | ✓ PASS (tur 3, 2026-11-05, head `820fd66`); tur 2 FAIL (head `bf2ecc8`), tur 1 FAIL (head `a8390bc`) |
+| Bulgu sayısı | Tur 3: 0 · tur 2: 2 (1 KRİTİK S1, 1 DÜŞÜK S1) · tur 1: 2 (1 KRİTİK S1, 1 ORTA S1) |
+| Düzeltme gerekli mi | Hayır — tur 2'nin iki bulgusu kapandı (aşağıdaki "Doğrulama Sonucu — tur 3") |
+| Bloke-etmeyen not (K) sayısı | Tur 3: 1 (D-93) · tur 2: 1 (D-92) · tur 1: 3 (D-91); T232 D-90'ı aldığı için bu task'ın kayıtları birleştirmede D-91 ve D-92 oldu |
 
 ## Düzeltme 1 (doğrulama tur 1 FAIL sonrası, 2026-11-05)
 
@@ -308,3 +308,85 @@ Task'ın KP birimi `10 KP-74`; grep'in getirdiği dokuz satır (`VAL-A368`–`A3
 
 ### Merge ve Post-merge
 - Merge yok (FAIL, tur 2 — `12 §8.5` iki iterasyon sınırı: eskalasyon, `INSTRUCTIONS.md` §3.3). Rapor, status (`✗ FAIL (tur 2)`), hafıza ve D-92 dala commit'lendi; `VAL-A991` `Durum` FAIL kaldı.
+
+## Doğrulama Sonucu — T225 Sistem kayıtları — tur 3
+**Tarih:** 2026-11-05   **Branch:** task/T225-sistem-kayitlari   **Commit:** 820fd66 (doğrulanan head)
+
+### Verdict: ✓ PASS
+
+### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş (switch öncesi ve sonrası) |
+| Hook kurulumu | ✓ | `git config core.hooksPath` → `C:\projects\Shopfolio\scripts\git-hooks` |
+| Ana dal CI (son 3) | ✓ | 41960563145 success · 41960563164 success · 41958746129 success |
+| Memory drift | ✓ | `.claude/memory/MEMORY.md` satır 22 T225 |
+
+### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Üç kaynak, günlük dosyalar; yazanlar; ayarlar runbook'ta, kurulumda denetlenir | ✓ | compose `x-container-log` (json-file 10m×3) bütün servislerde; `access-logs`/`app-logs`/`db-logs`/`backup-logs` ayrı; `30-logging.conf` dosyaya yazar, kendi döndürmesi kapalı; Dockerfile `/var/log/postgresql/server` 2750 `logread`; `package-build.sh` adım 6 `show` denetimleri + dizin modu; runbook L.1–L.5 dosyalarla tutarlı (`SystemLogsDeployConsistencyTests` yeşil); dal CI Paketleme dahil yeşil (41962307990) |
+| 2 | İstek kimliğini vekil üretir, `X-Request-Id` ile iletir; uygulama satırları başlık değerini taşır | ✓ | Gerçek `caddy:2.11.7-alpine` + daldaki Caddyfile + başlığı yansıtan arka uç: istemci `X-Request-Id: sahte` gönderdi → arka uç `rid=acc7cba0-cafe-4515-ad86-bcf08f7ec33f` gördü, erişim satırında `request_id` aynı değer, `sahte` kayıtta yok; `SystemLogsTests` (500/422/401, iki istek, geçersiz başlık) yeşil |
+| 3 | Şifre, anahtar, sır, … e-posta, form gövdesi, çerez hiçbir kayda yazılmaz | ✓ | Gerçek Caddy sondası, 24 istek: `?a=1&b&ali@x.com` → `?a=*&*&*`; `?q=1&a&b&c&d` → `?q=*&*&*&*&*`; `?a&b=1&c&d` → `?*&b=*&*&*`; `?a=1&b=2&ali@x.com&c=3&veli@y.com` → `?a=*&b=*&*&c=*&*`; `?&&&&ali@x.com`, `??ali@x.com`, `?x;ali@x.com&y=2`, `?=v&ali@x.com` hepsi maskeli; anahtarlı yollar (küçük/büyük harf, `//`, sorgulu) `{key}`; `Cookie`, `Authorization`, POST gövdesi (e-posta, şifre) kayıtta yok; sızıntı taraması yalnız iki elle kurulmuş biçimi buldu (kodlu ön ek D-92, mutlak biçimli hedef K1 → D-93). Uygulama kaydı: `SampleLines_ContainNoFormBodyCookieAddressEmailOrPassword` yeşil. Tutarlılık testi 32 karışık örnek + 60 anahtarlı yol biçimiyle süzgeç çıktısını `PathMasker.Mask` ile karşılaştırır |
+| 4 | Düzey tasarım değeri; çatı ve veri erişimi uyarıda | ✓ | `LevelSetting_ChangesTheApplicationCategoryAndNeverTheFrameworkOrDataAccessCategory` (her düzey) yeşil |
+| 5 | P-45 saklama; dosyayı yalnız imha işi siler; sunucu kayıtları kendi döngüsüyle | ✓ | `caddy adapt` → `"roll":false`, mod `0644`; runbook L.3 erişim kaydı `rotate 36500` silmesiz, sunucu dosyaları `rotate/maxage 183`; L.4 `MaxRetentionSec=6month`; PG `log_rotation_age/size = 0`; gün dönümü/yeniden başlatma testleri yeşil (süre kenarları D-91 K1/K2) |
+| 6 | İmha işi ve imha satırı T201'de, bu task yazmaz | ✓ | `LogFileDeletionSourceScan` + ihlal örneği; `SystemLogsScanTests` yeşil |
+| 7 | Ayrı metrik toplama ve pano yok | ✓ | `MetricsPackageScan` (paket bildirimleri, kilit dosyası, compose, Dockerfile'lar) yeşil; bağımlılık değişikliği yok |
+
+### Task Satırları (`12 §7.5`, adım 2a ve 16)
+`10 KP-74` grep'i dokuz satır getirir (`VAL-A368`–`A370`, `VAL-D046`–`D051`); imha ve aydınlatma satırlarıdır, T225'in kriterlerine eşlenmez — `Durum` değişmedi. `05 §9.1.5` kaynaklı `VAL-A991`'in ters vekil yarısı bu task'ındır; ön koşulundaki sayfalar (anahtarlı yollar, aramalı sorgu) gerçek Caddy'de maskeli, satır yalnız `05 §9.1.2` alanları ve başlıksız; uygulama yarısı `PathMasker`/`RequestLogEnricher` testleriyle yeşil.
+
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı |
+|---|---|---|---|---|---|
+| VAL-A991 | KRİTİK | yok | FAIL | PASS | — |
+
+`12_matris_denetle.py --kapsam 1-77`: Hata 0.
+
+### Doğrulama Kontrol Listesi
+- [x] KK1 uygulama kaydı ayrı birim ve dizinde; vekil/sunucu kayıtları runbook L.5'te
+- [x] KK2 aynı istek aynı kimlik; 500/422/401 satırları; `requestId` başlık değeri
+- [x] KK3 örnek satırlarda yasaklı alan yok (uygulama kaydı testle, erişim kaydı gerçek Caddy ile)
+- [x] KK4 düzey ayarı yalnız uygulama kategorisini değiştirir
+- [x] KK5 gün dönümü ve yeniden başlatmada dosya kalır
+- [x] KK6 kayıt klasöründe silen kod ve imha satırı yok
+- [x] KK7 metrik paketi yok
+- [x] `09 §25` "repoda, imajda ve kayıtta sır ve kişisel veri yok" — yeni sır yok (yalnız test sabitleri); erişim kaydı maskeli
+- [x] `09 §25` "yeni yasak için kaynak taraması ve ihlal örneği" — `LogFileDeletion.cs` ihlal örneği, `MetricsPackageScan` örnek satırları
+- [x] Güvenlik taraması — bkz. Güvenlik Kontrolü
+- [x] Tur 1 B1/B2 ve tur 2 B1/B2 kapandı (gerçek Caddy ile)
+
+### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes` | çıkış 0 |
+| Unit (+Consistency) | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 849/849 |
+| Betik | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration | ✓ | PostgreSQL 18 (`shopfolio-t225-val3-pg`, 127.0.0.1:56382), `--filter-namespace` Logging+Web+Database+FileSecrets / Model | 153 + 893 = 1046, hepsi yeşil |
+| Caddy (gerçek imaj) | ✓ | `caddy validate`, `caddy adapt`, çalışan Caddy + yansıtan arka uç (`shopfolio-t225-val3-*`, 26 istek) | geçerli; `roll:false`; istek kimliği değiştirilir ve iletilir; satır alanları `level, ts, logger, msg, request{remote_ip, method, uri}, duration, size, status, user_agent, request_id`; bütün sorgu biçimleri maskeli |
+| Sonrası | ✓ | `git status`; `dotnet restore Shopfolio.slnx --locked-mode` | temiz; çıkış 0; konteynerler ve ağ adıyla silindi |
+| Dal CI | ✓ | `gh run list --branch task/T225-sistem-kayitlari` | 41962307990 success (head 820fd66) |
+
+### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz — diff'te yalnız test sabitleri; erişim kaydı anahtarı, sorgu değerlerini, çıplak belirteçleri, başlıkları, çerezi ve gövdeyi yazmıyor (gerçek Caddy). Elle kurulmuş iki biçim (kodlu ön ek D-92, mutlak biçimli hedef D-93) DÜŞÜK K-notu.
+- Auth etkisi: Temiz — istemcinin `X-Request-Id`'si değiştirilir (sondayla kanıtlı); `trusted_proxies` yok; `admin off`.
+- Input validation: Temiz — `src/` değişmedi.
+- Yeni bağımlılık: Yok.
+
+### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| — | — | — | — | Bulgu yok | — | — | — |
+
+### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | Mutlak biçimli istek hedefi (`GET http://<alan>/siparis/erisim/ABSKEY7?e=ali@x.com HTTP/1.1`) erişim kaydına `"uri":"http://127.0.0.1:56390/siparis/erisim/ABSKEY7?e=*"` olarak girer: süzgeç 1 `^/*` ile başlayan yolu beklediği için anahtar ham kalır (sorgu maskeli). Tarayıcı göndermez, yalnız elle kurulmuş istek; uygulama yolu `PathMasker` ile maskeler. D-92 ile aynı sınıf (DÜŞÜK). Runbook L.2'nin "bilinen tek fark" ibaresi D-92 ve bunu saymıyor | DEFERRED_BACKLOG'a forward (D-93) |
+
+### Yapım Raporu Karşılaştırması
+- Uyum: Tam uyumlu (1 küçük not)
+- Kriter 1–7 ve KK1–KK7 yapımda ✓; bağımsız sonuçlarla aynı. Öz denetim tablosu var, maddeleri kanıtlı (dosya:satır, test adları, gerçek Caddy sondası).
+- Not: öz denetimin "Sık FAIL: tarama istisnası geniş" satırı yolda düz `&`'i "tek bilinen fark" sayar; D-92 (kodlu ön ek) zaten açıktı, mutlak biçimli hedef (D-93) sınanmamış. Verdict'i etkilemez.
+
+### Merge ve Post-merge
+- Merge doğrulayıcının işi değil (yönetici yardımcı düzeni: 17–18. adımlar yardımcıda). Rapor, status (`✓ PASS (tur 3)`), hafıza, `VAL-A991` → PASS ve D-93 dala commit'lendi.

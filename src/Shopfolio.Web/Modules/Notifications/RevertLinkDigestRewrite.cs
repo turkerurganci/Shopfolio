@@ -93,39 +93,40 @@ internal sealed class RevertLinkDigestRewrite
         _keys = keys;
     }
 
-    public Task<RevertLinkDigestRewriteResult> RunAsync(CancellationToken ct) => _runner.RunAsync(RewriteAsync, ct);
-
-    private async Task<RevertLinkDigestRewriteResult> RewriteAsync(CancellationToken ct)
-    {
-        List<string?> values = await _db.DispatchRecords
-            .Where(d => d.DispatchType == DispatchType.EmailChangeNotice && d.DispatchState == DispatchState.Queued)
-            .Select(d => d.EventValues)
-            .ToListAsync(ct);
-
-        List<Guid> linkIds = [.. values.Select(LinkEventValues.ReadLinkRecordId).OfType<Guid>().Distinct()];
-        if (linkIds.Count == 0)
+    /// <summary>Writes the digests in one transaction; the work is a lambda written at the call (09 10.7 item 5; D-82).</summary>
+    public Task<RevertLinkDigestRewriteResult> RewriteAsync(CancellationToken ct) => _runner.RunAsync(
+        async cancel =>
         {
-            return new RevertLinkDigestRewriteResult(0);
-        }
+            List<string?> values = await _db.DispatchRecords
+                .Where(d => d.DispatchType == DispatchType.EmailChangeNotice && d.DispatchState == DispatchState.Queued)
+                .Select(d => d.EventValues)
+                .ToListAsync(cancel);
 
-        // Only a revert link is rewritten, whatever else the value list names.
-        List<LinkRecord> links = await _db.LinkRecords
-            .Where(l => linkIds.Contains(l.Id) && l.LinkType == LinkType.EmailChangeRevert)
-            .ToListAsync(ct);
-
-        int rewritten = 0;
-        foreach (LinkRecord link in links)
-        {
-            string digest = _keys.DigestFor(link.Id);
-            if (!string.Equals(link.TokenHash, digest, StringComparison.Ordinal))
+            List<Guid> linkIds = [.. values.Select(LinkEventValues.ReadLinkRecordId).OfType<Guid>().Distinct()];
+            if (linkIds.Count == 0)
             {
-                link.TokenHash = digest;
-                rewritten++;
+                return new RevertLinkDigestRewriteResult(0);
             }
-        }
 
-        return new RevertLinkDigestRewriteResult(rewritten);
-    }
+            // Only a revert link is rewritten, whatever else the value list names.
+            List<LinkRecord> links = await _db.LinkRecords
+                .Where(l => linkIds.Contains(l.Id) && l.LinkType == LinkType.EmailChangeRevert)
+                .ToListAsync(cancel);
+
+            int rewritten = 0;
+            foreach (LinkRecord link in links)
+            {
+                string digest = _keys.DigestFor(link.Id);
+                if (!string.Equals(link.TokenHash, digest, StringComparison.Ordinal))
+                {
+                    link.TokenHash = digest;
+                    rewritten++;
+                }
+            }
+
+            return new RevertLinkDigestRewriteResult(rewritten);
+        },
+        ct);
 }
 
 /// <summary>
@@ -156,7 +157,7 @@ internal sealed class RevertLinkDigestRewriteStartup : IHostedService
         }
 
         await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
-        await scope.ServiceProvider.GetRequiredService<RevertLinkDigestRewrite>().RunAsync(cancellationToken);
+        await scope.ServiceProvider.GetRequiredService<RevertLinkDigestRewrite>().RewriteAsync(cancellationToken);
         HasRun = true;
     }
 

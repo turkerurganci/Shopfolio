@@ -134,7 +134,7 @@ Testler (validator, yerel, head `c67a1e2`): build `-warnaserror` 0/0 · `dotnet 
 - **Commit:** `1685a7b` — origin/main (T225) birleştirmesi; T228 backlog kaydı D-91 → D-94 (son kod commit'i `7045b9c`; bu satırı düzelten rapor commit'i ayrı)
 - **PR:** #391
 - **CI:** *(yardımcı izler)*
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
+- **Post-merge run'lar:** squash `36b586f` (#391) — CI 41973187267 success, Publish 41973187361 success (T222 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

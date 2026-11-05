@@ -29,12 +29,6 @@ internal static class SchedulerTimings
     /// <summary>The hour of the bank transfer reminder on the last business day of the payment window (Turkey time): 08:00 (05 5.3.1; MK-43).</summary>
     public const int TransferReminderHour = 8;
 
-    /// <summary>
-    /// The most records one source hands the scheduler in one wake-up. A safety bound for a long outage; what is left is found at the next
-    /// wake-up, still in order of time (design value, 09 13.1 item 6).
-    /// </summary>
-    public const int DueBatchLimit = 500;
-
     /// <summary>The name of the scheduler's single-run lock (09 13.1 item 7).</summary>
     public const string SchedulerLockName = "Scheduler";
 

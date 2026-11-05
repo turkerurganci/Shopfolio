@@ -47,7 +47,7 @@ internal sealed partial class SchedulerScan
             }
 
             await using AsyncServiceScope scope = _scopes.CreateAsyncScope();
-            IReadOnlyList<DueRecord> found = await source.FindDueAsync(scope.ServiceProvider, now, SchedulerTimings.DueBatchLimit, ct);
+            IReadOnlyList<DueRecord> found = await source.FindDueAsync(scope.ServiceProvider, now, ct);
             due.AddRange(found.Select(record => (order, source, record)));
         }
 

@@ -87,6 +87,54 @@ public sealed class SchedulerScanTests : SchedulerTestBase
     }
 
     [Fact]
+    public async Task Scan_AfterALongOutage_HandsEveryMissedRecordInOneOrder_AndTheNightlyJobRunsAfterTheLastOne()
+    {
+        // No bound is put on what one wake-up finds (09 13.1 item 6): a source with far more missed records than any page size is read whole.
+        const int Missed = 1200;
+        ScriptedSource many = new("Many");
+        ScriptedSource few = new("Few");
+        ScriptedStep step = new();
+        DateTimeOffset start = Now - TimeSpan.FromDays(1);
+        List<(DateTimeOffset At, Guid Id)> expected = [];
+        for (int i = 0; i < Missed; i++)
+        {
+            (DateTimeOffset At, Guid Id) record = (start + TimeSpan.FromSeconds(i * 2), Guid.NewGuid());
+            many.Add(record.Id, record.At);
+            expected.Add(record);
+        }
+
+        // Records of the other source fall before, among and after the first source's records.
+        foreach (int second in new[] { -1, 3, Missed + 7, (Missed * 2) + 5 })
+        {
+            (DateTimeOffset At, Guid Id) record = (start + TimeSpan.FromSeconds(second), Guid.NewGuid());
+            few.Add(record.Id, record.At);
+            expected.Add(record);
+        }
+
+        List<Guid> order = [];
+        int processedWhenTheNightlyRan = -1;
+        many.OnProcess = id =>
+        {
+            order.Add(id);
+            return Task.CompletedTask;
+        };
+        few.OnProcess = many.OnProcess;
+        step.Script = () =>
+        {
+            processedWhenTheNightlyRan = order.Count;
+            return Task.CompletedTask;
+        };
+        await using SchedulerHarness harness = NewHarness([many, few], [step]);
+        await harness.SetHeartbeatAsync(Now, NightlyJobSchedule.LatestDueMoment(Now) - TimeSpan.FromDays(1));
+
+        await harness.Scan.RunAsync(Ct);
+
+        Assert.Equal(expected.OrderBy(r => r.At).Select(r => r.Id), order);
+        Assert.Equal(expected.Count, processedWhenTheNightlyRan);
+        Assert.Equal(1, step.Runs);
+    }
+
+    [Fact]
     public async Task Scan_ASourceThatWaitsForAFreshHeartbeat_IsHeldBackWhileTheLastBeatIsOld_AndRunsWhenItIsFresh()
     {
         ScriptedSource waiting = new("Cancellation", waitsForFreshHeartbeat: true);
@@ -194,7 +242,7 @@ public sealed class SchedulerScanTests : SchedulerTestBase
         TestOrderSource source = new();
         await using SchedulerHarness harness = NewHarness([source]);
         await using AsyncServiceScope scope = harness.Services.CreateAsyncScope();
-        IReadOnlyList<DueRecord> found = await source.FindDueAsync(scope.ServiceProvider, Now, SchedulerTimings.DueBatchLimit, Ct);
+        IReadOnlyList<DueRecord> found = await source.FindDueAsync(scope.ServiceProvider, Now, Ct);
 
         // Between the look and the processing another actor handles the order (the field is filled).
         await ExecuteAsync($"UPDATE orders SET payment_reminder_at = now() WHERE id = '{order.Id}'");

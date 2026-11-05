@@ -18,7 +18,7 @@ internal abstract class ScheduledOrderTransition : IDueRecordSource
 
     public abstract bool WaitsForFreshHeartbeat { get; }
 
-    public abstract Task<IReadOnlyList<DueRecord>> FindDueAsync(IServiceProvider services, DateTimeOffset now, int limit, CancellationToken ct);
+    public abstract Task<IReadOnlyList<DueRecord>> FindDueAsync(IServiceProvider services, DateTimeOffset now, CancellationToken ct);
 
     /// <summary>Whether the order, as it is now, is still due at <paramref name="now"/>.</summary>
     protected abstract bool IsDue(Order order, DateTimeOffset now);

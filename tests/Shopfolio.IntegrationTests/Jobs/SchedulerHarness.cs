@@ -74,7 +74,7 @@ internal sealed class ScriptedSource : IDueRecordSource
         }
     }
 
-    public async Task<IReadOnlyList<DueRecord>> FindDueAsync(IServiceProvider services, DateTimeOffset now, int limit, CancellationToken ct)
+    public async Task<IReadOnlyList<DueRecord>> FindDueAsync(IServiceProvider services, DateTimeOffset now, CancellationToken ct)
     {
         Interlocked.Increment(ref _findCalls);
         if (BlockFind is { } block)
@@ -84,7 +84,7 @@ internal sealed class ScriptedSource : IDueRecordSource
 
         lock (_gate)
         {
-            return [.. _due.Where(d => d.DueAt <= now).OrderBy(d => d.DueAt).Take(limit)];
+            return [.. _due.Where(d => d.DueAt <= now).OrderBy(d => d.DueAt)];
         }
     }
 
@@ -136,12 +136,28 @@ internal sealed class FakeLivenessHandler : HttpMessageHandler
 
     public volatile HttpStatusCode Status = HttpStatusCode.ServiceUnavailable;
 
+    /// <summary>When true the request fails the way a refused connection does (<see cref="HttpRequestException"/>).</summary>
+    public volatile bool Refuse;
+
+    /// <summary>When true the request never answers; only the caller's limit ends it.</summary>
+    public volatile bool Hang;
+
     public int Requests => Volatile.Read(ref _requests);
 
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         Interlocked.Increment(ref _requests);
-        return Task.FromResult(new HttpResponseMessage(Status));
+        if (Refuse)
+        {
+            throw new HttpRequestException("the connection was refused");
+        }
+
+        if (Hang)
+        {
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+        }
+
+        return new HttpResponseMessage(Status);
     }
 }
 
@@ -163,13 +179,12 @@ internal sealed class TestOrderSource : ScheduledOrderTransition
 
     public bool? SecondLockRefused => _secondLockRefused;
 
-    public override async Task<IReadOnlyList<DueRecord>> FindDueAsync(IServiceProvider services, DateTimeOffset now, int limit, CancellationToken ct)
+    public override async Task<IReadOnlyList<DueRecord>> FindDueAsync(IServiceProvider services, DateTimeOffset now, CancellationToken ct)
     {
         AppDbContext db = services.GetRequiredService<AppDbContext>();
         return await db.Orders.AsNoTracking()
             .Where(o => o.PaymentReminderAt == null && o.PaymentWindowEndsAt <= now)
             .OrderBy(o => o.PaymentWindowEndsAt)
-            .Take(limit)
             .Select(o => new DueRecord(o.Id, o.PaymentWindowEndsAt))
             .ToListAsync(ct);
     }

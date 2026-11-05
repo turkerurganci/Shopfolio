@@ -23,10 +23,10 @@ internal interface IDueRecordSource
     bool WaitsForFreshHeartbeat { get; }
 
     /// <summary>
-    /// The records whose moment is at or before <paramref name="now"/>, earliest first, at most <paramref name="limit"/>. It reads in the given
+    /// The records whose moment is at or before <paramref name="now"/>, earliest first, all of them (no bound, 09 13.1 item 6). It reads in the given
     /// scope and writes nothing.
     /// </summary>
-    Task<IReadOnlyList<DueRecord>> FindDueAsync(IServiceProvider services, DateTimeOffset now, int limit, CancellationToken ct);
+    Task<IReadOnlyList<DueRecord>> FindDueAsync(IServiceProvider services, DateTimeOffset now, CancellationToken ct);
 
     /// <summary>
     /// Processes one record in the given scope, in a transaction of its own that the source opens through <see cref="ITransactionRunner"/>.

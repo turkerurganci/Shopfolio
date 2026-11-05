@@ -53,6 +53,69 @@ public sealed class SchedulerHeartbeatTests : SchedulerTestBase
     }
 
     [Fact]
+    public async Task Beat_ARefusedConnection_WritesNothing()
+    {
+        await using SchedulerHarness harness = NewHarness();
+        await harness.SetHeartbeatAsync(Now - SchedulerTimings.HeartbeatInterval, null);
+        harness.Liveness.Refuse = true;
+
+        bool beat = await harness.Pulse.BeatAsync(Ct);
+
+        Assert.False(beat);
+        Assert.Equal(1, harness.Liveness.Requests);
+        Assert.Equal(Now - SchedulerTimings.HeartbeatInterval, (await harness.HeartbeatAsync()).LastHeartbeatAt);
+        Assert.Empty(await harness.OutagesAsync());
+    }
+
+    [Fact]
+    public async Task Beat_NoAnswerWithinTheUserWaitingLimit_WritesNothing()
+    {
+        await using SchedulerHarness harness = NewHarness();
+        await harness.SetHeartbeatAsync(Now - SchedulerTimings.HeartbeatInterval, null);
+        harness.Liveness.Hang = true;
+
+        // The limit is a real timer (CancelAfter), not the fake clock: the beat ends by itself after the limit.
+        System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
+        bool beat = await harness.Pulse.BeatAsync(Ct);
+        watch.Stop();
+
+        Assert.False(beat);
+        Assert.True(watch.Elapsed >= ExternalCallTimeouts.UserWaiting - TimeSpan.FromSeconds(1), $"the beat ended after {watch.Elapsed}, before the limit");
+        Assert.Equal(1, harness.Liveness.Requests);
+        Assert.Equal(Now - SchedulerTimings.HeartbeatInterval, (await harness.HeartbeatAsync()).LastHeartbeatAt);
+        Assert.Empty(await harness.OutagesAsync());
+    }
+
+    [Fact]
+    public async Task Service_AFailedBeat_DoesNotEndTheLoop_TheNextBeatWrites()
+    {
+        await using SchedulerHarness harness = NewHarness();
+        await harness.SetHeartbeatAsync(Now, Now);
+        harness.Liveness.Refuse = true;
+        SchedulerService service = harness.NewService();
+
+        await service.StartAsync(Ct);
+        try
+        {
+            await JobQueueHarness.EventuallyAsync(() => Task.FromResult(harness.Liveness.Requests >= 1), "the first beat is sent and refused");
+            await harness.WaitForTimersAsync(1);
+            Assert.Equal(Now, (await harness.HeartbeatAsync()).LastHeartbeatAt);
+
+            harness.Liveness.Refuse = false;
+            harness.Liveness.Status = HttpStatusCode.OK;
+            harness.Time.Advance(SchedulerTimings.HeartbeatInterval);
+
+            await JobQueueHarness.EventuallyAsync(
+                async () => (await harness.HeartbeatAsync()).LastHeartbeatAt == harness.Time.GetUtcNow(),
+                "the loop went on and the next beat wrote the heartbeat");
+        }
+        finally
+        {
+            await service.StopAsync(CancellationToken.None);
+        }
+    }
+
+    [Fact]
     public async Task Beat_AGapOfTheThreshold_IsNoOutage_AndALongerGapIsRecordedWithTheFirstBeat()
     {
         await using SchedulerHarness harness = NewHarness();

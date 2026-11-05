@@ -8,7 +8,7 @@
 
 ## Yapılan İşler
 
-- `Infrastructure/Jobs/`: `SchedulerService` (uygulamada tek `BackgroundService`; iki ayrı döngü: dakikalık tarama ve otuz saniyelik nabız; tek zamanlayıcı oturum kilidi), `SchedulerScan` (kaynaklar arası zamanı gelen kayıtları zaman, kaynak sırası, kimlik sırasıyla işler; tur başına kaynak başına en çok 500), `NightlyJobRunner` (son başarı son 03:00'ten eskiyse başlar; başarısızsa bir saat sonra yinelenir; gecelik iş kilidi), `HeartbeatPulse` (canlılık isteği 200 ise nabız yazılır), `OutageRecovery` (iki dakikayı aşan boşluk kesinti kaydıdır; kesinti kaydı, ilk nabız ve son anların taşınması tek işlemde), `NightlyJobSchedule`, `TransferSchedule` (08:00 hatırlatma, beş dakikalık yanıtsız sorgu), `SchedulerTimings`, `SchedulerContracts`, `SchedulerRegistration`, `JobQueueCleanupStep`.
+- `Infrastructure/Jobs/`: `SchedulerService` (uygulamada tek `BackgroundService`; iki ayrı döngü: dakikalık tarama ve otuz saniyelik nabız; tek zamanlayıcı oturum kilidi), `SchedulerScan` (kaynaklar arası zamanı gelen kayıtları zaman, kaynak sırası, kimlik sırasıyla işler; tavansız: bir uyanışın bulduğu bütün kayıtlar tek sırada, sonra gecelik iş), `NightlyJobRunner` (son başarı son 03:00'ten eskiyse başlar; başarısızsa bir saat sonra yinelenir; gecelik iş kilidi), `HeartbeatPulse` (canlılık isteği 200 ise nabız yazılır), `OutageRecovery` (iki dakikayı aşan boşluk kesinti kaydıdır; kesinti kaydı, ilk nabız ve son anların taşınması tek işlemde), `NightlyJobSchedule`, `TransferSchedule` (08:00 hatırlatma, beş dakikalık yanıtsız sorgu), `SchedulerTimings`, `SchedulerContracts`, `SchedulerRegistration`, `JobQueueCleanupStep`.
 - `Infrastructure/ExternalCallTimeouts.cs` (iki sabit; `09 §3.5` yeni satır), `BusinessCalendar.NextBusinessDay`.
 - `Modules/Ordering/`: `ScheduledOrderTransition` (zamanı gelen siparişi kendi geçişiyle, sipariş kilidi altında işleyen taban), `TransferWindowDeferral` (kesinti etkisi: pencere süresi dolan havale siparişinin iptalini erteler, kaçırılmış hatırlatmasını düşürür).
 - `Program.cs` `AddScheduler`; test fabrikasında `withScheduler=false` varsayılan.
@@ -39,15 +39,15 @@
 | Madde | Sonuç | Kanıt |
 |---|---|---|
 | KK1 sahte saatle dakika taraması bir kez; başarısız gecelik iş bir saat dolmadan yinelenmez | ✓ | `Service_ScansOncePerScanInterval`; `RunIfDue_AFailedRun_…`; `Scan_JustBeforeTheHour_DoesNotRunTheNight_AndAtTheHourRunsIt` |
-| KK2 yavaş iş nabzı geciktirmez; başarısız istekte nabız yok; kısa boşluk kesinti açmaz | ✓ | `Service_ASlowScan_…`; `Beat_NotAnsweredWith200_WritesNothing`; `Beat_AGapOfTheThreshold_IsNoOutage_…` |
+| KK2 yavaş iş nabzı geciktirmez; başarısız istekte (200 dışı, bağlantı reddi, zaman aşımı) nabız yok ve döngü sürer; kısa boşluk kesinti açmaz | ✓ | `Service_ASlowScan_…`; `Beat_NotAnsweredWith200_WritesNothing`, `Beat_ARefusedConnection_WritesNothing`, `Beat_NoAnswerWithinTheUserWaitingLimit_WritesNothing`, `Service_AFailedBeat_DoesNotEndTheLoop_TheNextBeatWrites`; `Beat_AGapOfTheThreshold_IsNoOutage_…` |
 | KK3 iş siparişin kilidi altında | ✓ | `OrderSource_TakesTheOrderRowLock_…` |
 | KK4 iki örnek aynı işi aynı anda çalıştırmaz | ✓ | `Service_TwoInstances_ScanOnce_…`; `RunIfDue_WhileOneInstanceRuns_…` |
 | KK5 iş zamanı kayıt alanından | ✓ | `OrderSource_TheTimeIsTheOrdersOwnField_…` |
 | KK6 08:00 ve 03:00 Türkiye anları; yanıtsız sorgu beş dakikada | ✓ | `TransferScheduleTests`, `NightlyJobScheduleTests`, `SchedulerTimingsConsistencyTests` |
-| KK7 kesinti kaydı + ilk nabız tek işlemde; taşınana hatırlatma gitmez; bayat nabızda iptal işlenmez; 03:00 kesintisinde gecelik iş bir kez | ✓ | madde 7 testleri |
-| KK8 kaçırılan işler sırayla | ✓ | `Scan_PutsTheRecordsOfAllSourcesInOrderOfTheirMoments_…` |
+| KK7 kesinti kaydı + ilk nabız tek işlemde; taşınana hatırlatma gitmez; bayat nabızda iptal işlenmez; 03:00 kesintisinde gecelik iş bir kez ve sonda | ✓ | madde 7 testleri; `Scan_AfterALongOutage_…` (gecelik iş bütün kayıtlardan sonra) |
+| KK8 kaçırılan işler sırayla (tavansız, kaynaklar arası tek sıra; gecelik iş sonda) | ✓ | `Scan_PutsTheRecordsOfAllSourcesInOrderOfTheirMoments_…`; `Scan_AfterALongOutage_HandsEveryMissedRecordInOneOrder_AndTheNightlyJobRunsAfterTheLastOne` (1200 + 4 kayıt) |
 | KK9 kodda sistem saati doğrudan okunmaz | ✓ | `TimeAndMoneyRulesTests` |
-| `09 §25` ilgili satırlar | ✓ | `§25` arka plan satırı, `§3.5` yeni satır (dış çağrı süresi ve zamanlayıcı süreleri), `§13.1` m.10 koda eşit; `CONTEXT.md` |
+| `09 §25` ilgili satırlar (düzeltme 1: tavan kalktı, yeni tavan/sabit yok; m.6 ve m.7 metni kodla eşit) | ✓ | `§25` arka plan satırı, `§3.5` yeni satır (dış çağrı süresi ve zamanlayıcı süreleri), `§13.1` m.10 koda eşit; `CONTEXT.md` |
 | Güvenlik taraması | ✓ | zamanlayıcı kayıtlarında ham hata iletisi yok (özet: tür adı); `JobSourceScan` zamanlayıcı dosyaları tam yol, kendi kuralıyla sınırlı, ayrı ihlal örnekleri (`JobSourceScanTests`); `ConcurrencySourceScan` `pg_try_advisory_*` ihlal örneği; sır yok |
 | Sık FAIL nedenleri | ✓ | tarama istisnaları tam yol ve dar; her yeni tarama kuralının ayrı ihlal örneği var; beklenen süreler `SchedulerTimings`'ten (`SchedulerTimingsConsistencyTests` ↔ `09 §3.5`); birim testi dosya yazmaz; kural değişimi `09`, `CONTEXT.md`, backlog, `compose.dev.yaml` (D-39 (f)) ve STATUS/MEMORY'de eşitlendi; hedefi T221 olan backlog satırları (D-98, D-97, D-39 (f)) kapatıldı/yeniden yazıldı |
 
@@ -56,7 +56,7 @@
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Unit | ✓ | `dotnet run --project tests/Shopfolio.UnitTests` | 996 geçti |
-| Integration | ✓ (parça parça) | `dotnet run --project tests/Shopfolio.IntegrationTests -- -namespace …` | Jobs 73, Web 72, Concurrency+Security+Logging+FileSecrets 98, Database+AutoGenerated 35, Model 893 — hepsi geçti |
+| Integration | ✓ (parça parça) | `dotnet run --project tests/Shopfolio.IntegrationTests -- -namespace …` | Jobs 77, Web 72, Concurrency+Security+Logging+FileSecrets 98, Database+AutoGenerated 35, Model 893 — hepsi geçti |
 | Betik | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
 | Lint | ✓ | `dotnet build -warnaserror`, `dotnet format --verify-no-changes`, `dotnet restore --locked-mode` | temiz |
 
@@ -85,7 +85,7 @@ Dış varsayım: yok (PostgreSQL yerel konteyneri; ağ çağrısı yok).
 
 ## Notlar
 
-- **⚠ Kararlar:** (1) Dönüş gününden sonraki ilk iş günü sayılır, pencere sonu o günün sonu. (2) Son nabız bayatken yalnız taze nabız bekleyen kaynaklar durur; hiç nabız yoksa da bayat. (3) Kaynaklar arası kayıtlar zaman, kaynak sırası, kimlik sırasıyla; tur başına kaynak başına en çok 500. (4) `ExternalCallTimeouts` bu task'ta oluşturuldu. (5) Nabız hatası hizmeti durdurur. (6) D-39 (f) bu task'ta uygulandı. (7) Gecelik iş hatası yutulur ve loglanır, bir saat sonra yeniden denenir; üçüncü geniş `catch` yeri `SchedulerScan` + `NightlyJobRunner` dosyalarıdır.
+- **⚠ Kararlar:** (1) Dönüş gününden sonraki ilk iş günü sayılır, pencere sonu o günün sonu. (2) Son nabız bayatken yalnız taze nabız bekleyen kaynaklar durur; hiç nabız yoksa da bayat. (3) Kaynaklar arası kayıtlar zaman, kaynak sırası, kimlik sırasıyla; tavan yok (düzeltme turu 1: bkz. aşağıda). (4) `ExternalCallTimeouts` bu task'ta oluşturuldu. (5) Nabız hatası hizmeti durdurur. (6) D-39 (f) bu task'ta uygulandı. (7) Gecelik iş hatası yutulur ve loglanır, bir saat sonra yeniden denenir; üçüncü geniş `catch` yeri `SchedulerScan` + `NightlyJobRunner` dosyalarıdır.
 - **Ana dal CI startup (Adım 0):** kontrol edilmedi (yardımcının işi).
 - **Repo memory (bitiş kapısı 9):** güncellendi.
 
@@ -185,3 +185,18 @@ T221'in `10 KP` birimi yok (`11 §7.1` satırı: `05` MK-41…44, §5.1–§5.4,
 
 ### Merge ve Post-merge
 - FAIL: merge yok. Dal `task/T221-zamanlayici`'da rapor, durum, hafıza, matris ve D-100 commit'i duruyor.
+
+## Düzeltme turu 1
+
+Doğrulama tur 1 FAIL (B1) ve K1, K2, K4 için. K3 D-100'e gitti, dokunulmadı.
+
+- **B1 — tavan kaldırıldı.** `SchedulerTimings.DueBatchLimit` ve `FindDueAsync`'in `limit` parametresi silindi (`SchedulerContracts`, `ScheduledOrderTransition`, `SchedulerScan`, test kaynakları). Bir uyanış bütün kaynakların zamanı gelmiş kayıtlarının hepsini alır, tek sırada (zaman, kaynak sırası, kimlik) işler, gecelik iş sonda sorulur. `09 §13.1` m.6'ya bu cümle eklendi; yeni sabit olmadığı için `§3.5`'e satır gerekmedi. Yanlış atıflı yorum silindi. Yeni test: `Scan_AfterALongOutage_HandsEveryMissedRecordInOneOrder_AndTheNightlyJobRunsAfterTheLastOne` (iki kaynak, 1200 + 4 kayıt, sıra kayıtların zamanlarından türetilir; gecelik adım çalıştığı an işlenen sayı toplam kayıt sayısına eşit).
+- **K1 — madde kodla eşitlendi (belge değişti).** `09 §13.1` m.7: çalıştırıcı kilidi alamazsa beş saniye, zamanlayıcı kendi tarama aralığıyla (§3.5; bir dakika) yeniden dener. Kod değişmedi: zamanlayıcının tek işi dakikalık tarama olduğundan beş saniyelik yoklama kazanç getirmez, yeni sabit ve `§3.5` satırı da gerektirmez.
+- **K2 — testler eklendi.** `FakeLivenessHandler`'a `Refuse` ve `Hang` kipleri; `Beat_ARefusedConnection_WritesNothing`, `Beat_NoAnswerWithinTheUserWaitingLimit_WritesNothing` (gerçek 15 sn sınır; kayıt yok), `Service_AFailedBeat_DoesNotEndTheLoop_TheNextBeatWrites` (döngü sürer, sonraki nabız yazar).
+- **K4 — D-39 başlık cümlesi** "(e) açık, hedef güncellendi; (f) ✅ T221 (2026-11-05)" oldu.
+
+**⚠ Kararlar (düzeltme):** (1) Tavan kaldırıldı, tavan korunmadı: `09 §13.1` m.6 "zamanı gelmiş kayıtları sorar" der, tavan anmaz; sıra ve "gecelik iş sonda" kuralı tavansız kendiliğinden tutar. Bellek yükü kayıt başına kimlik ve an olduğundan uzun kesintide bile küçüktür. (2) K1'de belge değiştirildi, kod değil.
+
+**Öz denetim (düzeltilmiş diff, `git diff origin/main...HEAD`):** kriter 1–9 ve KK1–KK9 yeniden denetlendi; yukarıdaki tablolar güncellendi (KK2, KK7, KK8, `§25`). `grep -rn "DueBatchLimit\|Take(limit)\|int limit" src tests` boş. Sık FAIL nedenleri: belgede olmayan sabit kalmadı; eşlik eden yerler (rapor satırı 11 ve 88, D-39, `09` m.6 ve m.7) güncel; yeni sabit olmadığı için sabitten türetme gerekmedi, beklenen sıra kayıt zamanlarından türetilir; yeni tarama istisnası yok; backlog: D-39 (f) başlığı düzeldi, D-100 değişmedi.
+
+**Testler:** `dotnet format --verify-no-changes` temiz; `dotnet build -warnaserror` 0 uyarı; Unit 996/996; Integration Jobs 77/77, Web 72/72; betik testleri 4 dosya geçti.

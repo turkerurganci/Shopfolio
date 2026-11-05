@@ -1,6 +1,6 @@
 # T232 — Veri koruma halkası
 
-**Faz:** F2 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✓ Doğrulama tur 2 PASS | **Tarih:** 2026-11-05
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -77,10 +77,33 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-05, bağımsız doğrulayıcı; dal head `5a8e97e`) |
-| Bulgu sayısı | 2 — B1 ORTA S1, B2 DÜŞÜK S1 |
-| Düzeltme gerekli mi | Evet (B1, B2) |
-| Bloke-etmeyen not (K) sayısı | 0 |
+| Doğrulama durumu | ✓ PASS — tur 2 (2026-11-05, bağımsız doğrulayıcı; dal head `c8e798b`). Tur 1: ✗ FAIL (head `5a8e97e`) |
+| Bulgu sayısı | 0 (tur 1'in B1 ve B2'si kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 4 — K1–K4 → `DEFERRED_BACKLOG` D-90 |
+
+### Doğrulama tur 2 — validator kanıtları
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Halka tek kurulum; sabit ad; şifresiz; şifreleyici yok; varsayılan ömür | ✓ | `DataProtectionSetup.Add` = `AddDataProtection().SetApplicationName("Shopfolio").PersistKeysToDbContext<AppDbContext>()`, `Program.cs` tek çağrı; tarama `src/`'de bulgu 0; `Add_FixesTheApplicationName`, `Add_KeepsTheKeysInTheDatabaseInClearWithTheDefaultLifetime`; entegrasyon `Start_WritesTheKeyAsARowOfTheKeyTable_InClear` (`<masterKey>` var, `encryptedSecret` yok), `SecondInstance_OnTheSameDatabase_...` (altı amaç, ayrı fabrika, tek anahtar satırı), `TwoInstancesRunningTogether_ShareOneRing` |
+| 2 | Amaçlar tek yerde; altı amaç kapalı liste | ✓ | Altı `const` `Shopfolio.<Kullanım>.v1`, `All` = sabitler; `PurposeTableOf09_EqualsTheClosedListOfTheCode_InBothDirections` |
+| 3 | `CreateProtector` yalnız sabitlerle; dizge başka yerde yok | ✓ | Tur 1 B2 kapandı: `ProtectorWithOtherArgument` yalnız `CreateProtector(DataProtectionPurposes.<Ad>)` biçimini kabul eder (lookahead `\s*\)`); `GetDataProtector(`/`<` her biçimde bulgu; `RingMisuse.cs` satır 12 (alt amaç) ve 15 (`GetDataProtector`) beklenen listede ve test yeşil; `src/`'de altı çağrı, hepsi tek sabit; `09 §15.5` madde 2 cümlesi taramayla eşit |
+| 4 | Çözme istisna fırlatmaz | ✓ | Yalnız `CryptographicException` → `Invalid`; null/boş/boşluk/bozuk/kırpılmış/değiştirilmiş testleri (altı amaç) |
+| 5 | Boş, bozuk, başka amaçlı, anahtarı olmayan → `Invalid` | ✓ | Birim (ayrı halka) + entegrasyon `Value_WhoseKeyIsNoLongerInTheRing_IsInvalid` |
+| 6 | 6×5 çapraz red | ✓ | `Unprotect_UnderAnotherPurpose_IsInvalid` (`All`'dan 30 çift) + `CrossPairs_...` (`n·(n−1)`) |
+| 7 | Sonek artınca eski değer reddedilir | ✓ | `ChangedSuffix_...` (iki yönde) |
+| 8 | Halka yedek kapsamında | ✓ | `DatabaseBackup_IsOfTheWholeClusterWithNoTableOrDatabaseFilter`, `KeyRingTable_IsInTheMigrationOfTheApplicationDatabase` |
+
+**Tur 1 B1 kapanışı:** `LoggingSetup`'ta kategori geçersiz kılması yok (`grep -n Fatal` `Infrastructure/Logging/`'te yalnız düzey ayarı iletisi); `Filter.ByExcluding(IsSuppressedDataAccessFailure)` yalnız (kategori, EF olay kimliği) çiftleri `RelationalEventId.ConnectionError` ve `CoreEventId.QueryIterationFailed` eşleşince dışlar — iki kategori uyarıda kalır, `05 §9.1.6` ile uyumlu (düzey değişmez). EF şablonları paket DLL'inde doğrulandı: bağlantı hatası `…database '{database}' on server '{server}'`, sorgu yineleme hatası `…{newline}{error}` — gerekçe doğru. Hata gizlenmez: istisna çağırana gider, `KeyRingProvider` satırı maskeli yazılır (gerçek EF olaylarıyla `Start_WithADatabaseThatCannotBeReached_...`: dosyada `KeyRingProvider` var, sunucu adresi ve veritabanı adı yok). `NormalWriter_DoesNotWriteTheTwoDataAccessFailureEvents_ButWritesAWarningOfTheSameCategory` yeşil. Karar T232-K1 bu raporda (yardımcı, sahip yerine); `09 §18.1` madde 4 eşitlendi.
+
+**Task satırları (`12 §7.5`):** KP kaynağı yok; `VAL-A589` (ilgili, çağıran davranışı sonraki task'ların) `BEKLEMEDE` kaldı. `12_matris_denetle.py --kapsam 1-77`: Hata 0.
+
+**K-notları → D-90:** (K1) `DataProtectionProvider.Create` ikinci halka yolu taranmıyor; (K2) süzgeç testi aynı kategoride başka kimlikli hata satırının yazıldığını sınamıyor; (K3) `CoreEventId.SaveChangesFailed` da istisna metnini iletiye koyar (anahtar yazımında dar yarış); (K4) `09 §18.1` kod örneği ve madde 8 Test listesi süzgeci anmıyor.
+
+Testler (validator, yerel, head `c8e798b`): build `-warnaserror` 0/0 · `dotnet format --verify-no-changes` 0 · Unit 811/811 · betik testleri 4/4 · Integration 1030/1030 (Web 64, Logging 14, Database 35, FileSecrets 24, Model 893; PostgreSQL 18 `shopfolio-t232-val2-pg`, silindi) · `dotnet restore --locked-mode` 0, `git status` temiz · dal CI 41954716044 `success` · ana dal son 3 run success (41953520461, 41953520476, 41946974061).
+
+**Yapım raporu karşılaştırması (tur 2):** kriter ve öz denetim tabloları kanıtlı; kararla uyumlu. Bir uyuşmazlık: Notlar ⚠ (a) düzeltme öncesi `Fatal` çözümünü anlatıyor (aşağıda işaretlendi; geçerli olan "Düzeltme 1" ve T232-K1).
 
 ### Doğrulama tur 1 — validator kanıtları
 
@@ -148,6 +171,7 @@ Dal `origin/main` ile birleştirildi (çakışma: hafıza ve `IMPLEMENTATION_STA
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
 | 1 | `DownloadLinks` ve bekleyen kayıt/davet değer sınıfları (`09 §15.5` madde 4–5) | — | T232 kabul kriterlerinde yok; ilgili uç task'larına ait |
+| 2 | Doğrulama tur 2 K1–K4 (ikinci halka yolu taraması, süzgeç testinin kimlik ayrımı, `SaveChangesFailed`, `09 §18.1` örnek/Test maddesi) | D-90 | Bloke etmeyen; bugün `src/`'de örneği yok |
 
 ## Notlar
 
@@ -156,7 +180,7 @@ Dal `origin/main` ile birleştirildi (çakışma: hafıza ve `IMPLEMENTATION_STA
 - **Repo memory (bitiş kapısı 9):** güncellendi.
 - **Port:** 55460–55469 Windows'ta ayrılmış aralıkta (55370–55569); 55632 kullanıldı.
 - **⚠ Kararlar (sahibe sorulmadan, kurala en uygun seçenekle):**
-  - (a) Halka açılışta anahtarları EF ile okuyunca erişilemeyen veritabanında mevcut iki açılış testi (`Start_WithADatabaseThatCannotBeReached_...`, `Get_WhenTheServerIsUnreachable_...`) kırıldı: EF'in `Database.Connection` ve `Query` hata satırları sunucu adresini/veritabanı adını/istisna metnini ileti içinde yazar. Seçenek: iki kategoriyi `LoggingSetup`'ta `Fatal`'a çekmek (hata çağıranda istisna, maskeli yazılır) + `09 §18.1` madde 4'e cümle. Alternatif (biçimleyiciye `Server`/`Database`/`Error` özellik adlarını yasaklamak) `09 §18.2` madde 2a'nın kişisel veri listesini değiştirirdi. Sahip isterse kategori yerine biçimleyici yolu seçilebilir.
+  - (a) *(Düzeltme 1 ile değişti — geçerli çözüm "Düzeltme 1" ve T232-K1: kategoriler uyarıda, iki olay kimlikle süzülür; aşağısı tur 1 öncesi kayıttır.)* Halka açılışta anahtarları EF ile okuyunca erişilemeyen veritabanında mevcut iki açılış testi (`Start_WithADatabaseThatCannotBeReached_...`, `Get_WhenTheServerIsUnreachable_...`) kırıldı: EF'in `Database.Connection` ve `Query` hata satırları sunucu adresini/veritabanı adını/istisna metnini ileti içinde yazar. Seçenek: iki kategoriyi `LoggingSetup`'ta `Fatal`'a çekmek (hata çağıranda istisna, maskeli yazılır) + `09 §18.1` madde 4'e cümle. Alternatif (biçimleyiciye `Server`/`Database`/`Error` özellik adlarını yasaklamak) `09 §18.2` madde 2a'nın kişisel veri listesini değiştirirdi. Sahip isterse kategori yerine biçimleyici yolu seçilebilir.
   - (b) `ProtectedValues` örnek (sınıf değil) ve `IDataProtectionProvider` alır, `DataProtectionSetup.Add` tekil olarak kaydeder; `09 §15.5` madde 3 imzası `Unprotect(string purpose, string? value)` korundu, `Protect(purpose, payload)` amaçlı eklendi (amaç parametresi madde 3'ün "değer yazan taraf `Protect(string)`" cümlesinin kapalı liste ile uyumlu biçimi).
   - (c) Listede olmayan amaç `Invalid` değil `ArgumentException` (programlama hatası; değer hatası değil).
   - (d) KK8 yedek kapsamı birim düzeyinde (yapılandırma ve göç okuması) sınandı; gerçek pgBackRest geri yükleme provası T07'nin işidir.

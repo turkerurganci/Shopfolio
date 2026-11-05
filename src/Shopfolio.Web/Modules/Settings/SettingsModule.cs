@@ -15,6 +15,7 @@ internal static class SettingsModuleRegistration
     public static IServiceCollection AddSettingsModule(this IServiceCollection services)
     {
         services.AddScoped<ISettingsModule, SettingsModule>();
+        services.AddScoped<Shopfolio.Infrastructure.Security.ICookiePolicyPublication, CookiePolicyPublication>();
         return services;
     }
 }

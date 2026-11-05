@@ -1,0 +1,19 @@
+@page "/panel/ornek"
+@* Deliberate violation sample of the page source scan (07 2.2.1; 09 6 item 2; D-73). The scan reads this file as text; it is not compiled. *@
+@* Line numbers are part of the test. A Razor comment that says @inject AppDbContext or <form method="post"> is not a finding. *@
+<!-- <form method="post"> in an HTML comment is not a finding either -->
+@using Shopfolio.Modules.Catalog.Contracts
+@using Shopfolio.Modules.Catalog
+@using Microsoft.EntityFrameworkCore
+@inject Shopfolio.Infrastructure.AppDbContext Context
+<form method="post" asp-page-handler="Add"><button type="submit">Add</button></form>
+<form method="post" action="/panel/ornek?handler=Remove"><button type="submit">Remove</button></form>
+<form method="get"><button type="submit">Search</button></form>
+<form method="post"><button type="submit">Unnamed</button></form>
+<FORM
+    ID="split"
+    Method='POST'
+    class="x">
+    <button type="submit">Split over lines</button>
+</FORM>
+<form method="post" asp-page-handler=""><button type="submit">Empty name</button></form>

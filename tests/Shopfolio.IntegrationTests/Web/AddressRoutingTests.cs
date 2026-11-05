@@ -135,6 +135,7 @@ public sealed class AddressRoutingTests : IAsyncLifetime
     [InlineData("/siparis/26-7K4M9P")]
     [InlineData("/siparis/2026-")]
     [InlineData("/siparis/2026-7K4 M9P")]
+    [InlineData("/siparis/2026-7K4M9P%0A")]
     [InlineData("/siparis")]
     public async Task MemberRoot_OnAnythingThatIsNotAnOrderNumber_Is404_AndErisimIsNeverANumber(string path)
     {
@@ -169,6 +170,7 @@ public sealed class AddressRoutingTests : IAsyncLifetime
     [InlineData("/siparis/erisim/abc=")]
     [InlineData("/siparis/erisim/ab%20c")]
     [InlineData("/siparis/erisim/ab+c")]
+    [InlineData("/siparis/erisim/abc%0A")]
     public async Task AccessRoot_OnACharacterThatIsNotBase64Url_Is404(string path)
     {
         (HttpStatusCode status, _, _) = await GetAsync(path);

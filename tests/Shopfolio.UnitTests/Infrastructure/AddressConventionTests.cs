@@ -27,10 +27,10 @@ public sealed class AddressConventionTests
     [Fact]
     public void Apply_OnAPageWithAClosedListTemplate_Passes()
     {
-        new AddressConvention().Apply(Model("/Storefront/Cart", "sepet"));
-        new AddressConvention().Apply(Model("/Storefront/Product", "urun/{slug}"));
-        new AddressConvention().Apply(Model("/Storefront/Home", string.Empty));
-        new AddressConvention().Apply(Model("/Panel/Orders/Index", "panel/siparisler"));
+        Assert.Null(Record.Exception(() => new AddressConvention().Apply(Model("/Storefront/Cart", "sepet"))));
+        Assert.Null(Record.Exception(() => new AddressConvention().Apply(Model("/Storefront/Product", "urun/{slug}"))));
+        Assert.Null(Record.Exception(() => new AddressConvention().Apply(Model("/Storefront/Home", string.Empty))));
+        Assert.Null(Record.Exception(() => new AddressConvention().Apply(Model("/Panel/Orders/Index", "panel/siparisler"))));
     }
 
     [Fact]

@@ -111,6 +111,6 @@ internal static partial class AddressRules
         return slugFromPath.ToLowerInvariant();
     }
 
-    [GeneratedRegex(@"^[a-z0-9]+(?:-[a-z0-9]+)*$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    [GeneratedRegex(@"\A[a-z0-9]+(?:-[a-z0-9]+)*\z", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex SegmentPattern();
 }

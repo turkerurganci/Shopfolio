@@ -109,7 +109,7 @@ internal static class AddressTemplates
         bool slugOnly = segments.Count == 2
             && segments[1].Parts.Count == 1
             && segments[1].Parts[0] is RoutePatternParameterPart { IsOptional: false, IsCatchAll: false } parameter
-            && string.Equals(parameter.Name, SlugParameter,StringComparison.OrdinalIgnoreCase);
+            && string.Equals(parameter.Name, SlugParameter, StringComparison.OrdinalIgnoreCase);
         if (!slugOnly)
         {
             problems.Add($"a record address is exactly /{{prefix}}/{{{SlugParameter}}} (07 2.1)");

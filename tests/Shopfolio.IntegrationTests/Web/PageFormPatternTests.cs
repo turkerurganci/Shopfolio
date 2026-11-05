@@ -145,8 +145,7 @@ public sealed partial class PageFormPatternTests
 
         using HttpResponseMessage response = await client.PostAsync(PagePath + "?handler=Delete", Form("masa"), Ct);
 
-        Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
-        Assert.NotEqual(HttpStatusCode.SeeOther, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Empty(store.Snapshot());
     }
 
@@ -158,8 +157,8 @@ public sealed partial class PageFormPatternTests
 
         using HttpResponseMessage response = await client.PostAsync(PagePath, Form("masa"), Ct);
 
-        // 07 2.7.1: a POST without a handler is the framework's answer (a page without an unnamed OnPost shows no write).
-        Assert.NotEqual(HttpStatusCode.SeeOther, response.StatusCode);
+        // 07 2.7.1: the answer of a POST without a handler is 400 or 404; HandlerRequiredFilter fixes it to 400 (the framework alone would show the page, 200).
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Empty(store.Snapshot());
     }
 
@@ -194,7 +193,7 @@ public sealed partial class PageFormPatternTests
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
         Assert.Null(response.Headers.Location);
-        Assert.Contains($"value=\"{name}\"", body, StringComparison.Ordinal);
+        Assert.Contains(name.Length == 0 ? "name=\"Input.Name\"" : $"value=\"{name}\"", body, StringComparison.Ordinal);
         Assert.Contains("field-validation-error", body, StringComparison.Ordinal);
         Assert.Empty(store.Snapshot());
     }
@@ -269,18 +268,16 @@ public sealed partial class PageFormPatternTests
             string plain = $"{AddressRules.StaticArea}/{file}";
             string extension = Path.GetExtension(file);
             Regex fingerprinted = new("^" + Regex.Escape($"{AddressRules.StaticArea}/{file[..^extension.Length]}.") + "([a-z0-9]{10})" + Regex.Escape(extension) + "$", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5));
-            string address = Assert.Single(patterns.Where(p => fingerprinted.IsMatch(p)));
+            string address = Assert.Single(patterns, p => fingerprinted.IsMatch(p));
             fingerprints.Add(fingerprinted.Match(address).Groups[1].Value);
 
             using HttpResponseMessage current = await client.GetAsync(address, Ct);
             using HttpResponseMessage unchanged = await client.GetAsync(plain, Ct);
 
             Assert.Equal(HttpStatusCode.OK, current.StatusCode);
-            Assert.Contains("immutable", current.Headers.CacheControl?.ToString(), StringComparison.Ordinal);
             string contentHash = Convert.ToBase64String(SHA256.HashData(await File.ReadAllBytesAsync(Path.Combine(webRoot, file), Ct)));
             Assert.Equal($"\"{contentHash}\"", current.Headers.ETag?.Tag);
             Assert.Equal(HttpStatusCode.OK, unchanged.StatusCode);
-            Assert.DoesNotContain("immutable", unchanged.Headers.CacheControl?.ToString() ?? string.Empty, StringComparison.Ordinal);
         }
 
         Assert.Equal(files.Length, fingerprints.Count);

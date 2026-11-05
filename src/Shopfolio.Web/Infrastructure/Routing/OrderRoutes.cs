@@ -13,13 +13,13 @@ internal static class OrderRoutes
     /// this pattern (07 2.1.11). The constraint is a regular expression, which a route compares without regard to letter case: the number is matched
     /// case-insensitively (07 2.1.7). The block after the hyphen is not given a length here (the length is a product constant of 02 11.2).
     /// </summary>
-    public const string MemberRoot = "/siparis/{orderNumber:regex(^[0-9][0-9][0-9][0-9]-[A-Za-z0-9]+$)}";
+    public const string MemberRoot = "/siparis/{orderNumber:regex(^[0-9][0-9][0-9][0-9]-[A-Za-z0-9]+\\z)}";
 
     /// <summary>
     /// The access-key root (07 2.1.3). The key is written in the address as base64url without padding (letters, digits, <c>-</c>, <c>_</c>) and is case
     /// sensitive (07 2.1.7): the route never changes its letters, and the lookup compares it exactly.
     /// </summary>
-    public const string AccessRoot = "/siparis/erisim/{accessKey:regex(^[A-Za-z0-9_-]+$)}";
+    public const string AccessRoot = "/siparis/erisim/{accessKey:regex(^[A-Za-z0-9_-]+\\z)}";
 
     /// <summary>The literal segment between <c>/siparis</c> and the access key.</summary>
     public const string AccessSegment = "erisim";

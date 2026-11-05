@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.Mvc;
+
+using Shopfolio.Infrastructure.Forms;
+
 namespace Shopfolio.Infrastructure.Routing;
 
 /// <summary>
@@ -11,6 +15,7 @@ internal static class AddressSetup
     public static IMvcBuilder AddAddressRules(this IMvcBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        builder.Services.Configure<MvcOptions>(options => options.Filters.Add(new HandlerRequiredFilter()));
         return builder.AddRazorPagesOptions(options => options.Conventions.Add(new AddressConvention()));
     }
 }

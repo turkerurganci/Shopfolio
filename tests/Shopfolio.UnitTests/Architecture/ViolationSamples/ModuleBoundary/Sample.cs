@@ -4,7 +4,7 @@
 // Every rule has its own violation here and the allowed neighbours that must stay quiet:
 //   module boundary    - Ordering.ForbiddenCaller (internal type of Catalog), Ordering.ForbiddenContextReader (Catalog's entity through the context)
 //   public surface     - Catalog.PublicLeak (public type outside Contracts), Catalog.Contracts.LeakyContract (Contracts depends on an internal type)
-//   page and endpoint  - Pages.ForbiddenPage (the context), Pages.ForbiddenPageEntity (an internal type of a module)
+//   page and endpoint  - Pages.ForbiddenPage (the context), Pages.ForbiddenPageEntity (an internal type of a module), AspNetCoreGeneratedDocument.Pages_Forbidden_View (the compiled .cshtml; D-73)
 //   skeleton           - Ordering has no Contracts interface IOrderingModule (Catalog has ICatalogModule)
 //   tenant / operator  - OperatorPanel namespace, Accounts.TenantResolver type, Accounts.Account.TenantId property; Accounts.Account itself is allowed
 //   infrastructure     - Infrastructure.ForbiddenInfrastructure (a module type); Infrastructure.AppDbContext is the one allowed exception
@@ -155,6 +155,27 @@ namespace Shopfolio.Pages
         internal string Read(Modules.Catalog.ProductEntity product)
         {
             return product.Name;
+        }
+    }
+}
+
+namespace AspNetCoreGeneratedDocument
+{
+    // Allowed: the compiled class of a view calls a module's open surface (T206, D-73).
+    internal sealed class Pages_Allowed_View
+    {
+        internal string Read(Shopfolio.Modules.Catalog.Contracts.ICatalog catalog)
+        {
+            return catalog.GetName();
+        }
+    }
+
+    // Violation: the compiled class of a view (a .cshtml with @inject AppDbContext) touches the database context (T206, D-73).
+    internal sealed class Pages_Forbidden_View
+    {
+        internal int Count(Shopfolio.Infrastructure.AppDbContext context)
+        {
+            return context.Products.Local.Count;
         }
     }
 }

@@ -121,7 +121,7 @@
 | T219 | Arama motoru verileri kalıbı | ⬚ | — | — | — |
 | T220 | İş kuyruğu çalıştırıcısı | ⬚ | — | — | — |
 | T221 | Zamanlayıcı | ⬚ | — | — | — |
-| T222 | Anahtarlar ve tek kullanımlık bağlantılar | ⏳ | — | — | PR açıldığında |
+| T222 | Anahtarlar ve tek kullanımlık bağlantılar | ⏳ | — | — | #392 |
 | T223 | Dosya deposu | ⬚ | — | — | — |
 | T224 | Çerez politikası | ⬚ | — | — | — |
 | T225 | Sistem kayıtları | ✓ | ✓ PASS (tur 3) | b8c180f | #389 |

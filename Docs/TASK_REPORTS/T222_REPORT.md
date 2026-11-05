@@ -92,7 +92,9 @@ Devam işçisi önceki işçinin yaptıklarını dahil bütün maddeleri diff'te
 ## Commit & PR
 
 - **Branch:** `task/T222-anahtarlar-baglantilar`
-- **Commit / PR / CI:** PR başlığında (`T222: Anahtarlar ve tek kullanımlık bağlantılar`); CI yapım işçisince beklenmez
+- **PR:** #392
+- **Commit:** son commit PR başlığında (`T222: Anahtarlar ve tek kullanımlık bağlantılar`) ve dal başında
+- **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

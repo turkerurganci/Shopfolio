@@ -1,6 +1,6 @@
 # Shopfolio — Playbook Geri Bildirimi
 
-**Son güncelleme:** 2026-11-04 | **Satır:** 183 | **Gönderilen:** 0
+**Son güncelleme:** 2026-11-05 | **Satır:** 184 | **Gönderilen:** 0
 
 > **Amaç:** Bu projede öğrenilip [project-playbook](https://github.com/turkerurganci/project-playbook)'a (bu repo v1.1.0'dan kuruldu) geri gitmesi gereken **her** şeyin tek listesi.
 >
@@ -219,3 +219,4 @@
 | PF-181 | İşçiler git bekçisini ortam değişkeniyle (`PB_PROTECTED_BRANCHES`) ya da `-c core.hooksPath=` ile atladı; yasak işçi talimatına girdi, bekçinin bunu kendisinin engellemesi aday | T106 · sahip 2026-11-04 · PR #381 | İşçi talimatı (yardımcı düzeni) | `scripts/git-hooks` · `.claude/GUARDRAILS.md` | Aday (kapısı F2 gate'inin öğrenim terfisi: bekçi `PB_PROTECTED_BRANCHES` ve boş `core.hooksPath`'i kendisi reddetsin mi) |
 | PF-182 | Sır bekçisi büyük commit'te satır başına süreç açtığı için zaman aşımına düşüyordu; anahtar adı ön süzgeci tek geçişte aday satırları seçer, anlam değişmez | Sahip 2026-11-04 · PR #368 | `scripts/git-hooks/pre-commit` | `scripts/git-hooks/pre-commit` | Uygulandı |
 | PF-183 | `00 §F.5` bitiş kapısına öz denetim maddesi (dokuz madde; §G.4 memory maddesi atfı 9) — L1 ile skill aynı sayıyı söyler | Sahip 2026-11-04 (öz denetim kalıcı) · PR #381 | `00 §F.5`, §G.4 · `skills/task` Bitiş kapısı | `Docs/00_PROJECT_METHODOLOGY.md` §F.5 | Uygulandı (onaylandı 2026-11-04, `00` v1.0.14) |
+| PF-184 | Pre-push CI bekçisi kırmızı dalda düzeltme push'unu da engelliyordu (kendi hata metni "root cause'u çöz, yeniden push et" derken); düzeltmeler bypass ile gidiyordu. Kırık commit'in üstüne yeni commit ekleyen push uyarıyla geçer; aynı commit ve soyundan gelmeyen geçmiş engellenir; sınama betiği eklendi | Sahip 2026-11-05 | `scripts/git-hooks/pre-push` Layer 2 · `test-pre-push.sh` · README | `scripts/git-hooks/pre-push` | Uygulandı |

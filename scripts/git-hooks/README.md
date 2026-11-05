@@ -11,7 +11,7 @@ Bu hook'lar **iyi niyete bağlı olmayan** savunma katmanıdır. Disiplin kurall
 |---|---|
 | `pre-commit` | **Sır guard'ı.** Staged içerikte sır dosyası yolu, private key bloğu veya bilinen sır anahtarına gerçek değer ataması varsa **commit'i** bloklar |
 | `commit-msg` | `task/TXX-*` dalında yapılan her commit'in subject'i kendi TXX'inden farklı bir TXX referansı içeriyorsa **commit'i** bloklar (bundled-PR'ın birincil savunması) |
-| `pre-push` | Üç katman: **(1)** korunan dallara direct push · **(2)** push edilen dalın son CI run'ı başarısızsa · **(3)** dalda yabancı TXX commit'i varsa — push'u bloklar |
+| `pre-push` | Üç katman: **(1)** korunan dallara direct push · **(2)** push edilen dalın son CI run'ı başarısızsa (kırık commit'in üstüne düzeltme commit'i ekleyen push uyarıyla geçer) · **(3)** dalda yabancı TXX commit'i varsa — push'u bloklar |
 
 > **Sır guard'ı bilinçli olarak jeneriktir.** Domain'e veya sağlayıcıya özgü kalıp içermez — o kalıplar `hooks.config`'e yazılır, hook gövdesine değil. Aşırı hevesli bir tarayıcı yanlış pozitif üretir, yanlış pozitif bypass alışkanlığı doğurur ve guard fiilen ölür.
 >
@@ -82,7 +82,8 @@ PB_SECRET_KEYS='(WEBHOOK_SECRET|DSN)'  # ek sır anahtar adları (regex)
 | `git push origin main` | ✗ BLOCKED (Layer 1) |
 | `PB_ALLOW_DIRECT_PUSH=1 git push origin main` | ⚠ WARN + PASS, BYPASS_LOG kaydı |
 | `git push origin task/T21-x` (CI yok / son CI success, temiz commit'ler) | ✓ PASS |
-| `git push origin task/T21-x` (son CI failure) | ✗ BLOCKED (Layer 2) |
+| `git push origin task/T21-x` (son CI failure; aynı commit ya da kırık commit'in soyundan gelmeyen geçmiş) | ✗ BLOCKED (Layer 2) |
+| `git push origin task/T21-x` (son CI failure; kırık commit'in üstüne yeni commit — düzeltme) | ⚠ WARN + PASS (CI yeniden koşar; sınama: `bash scripts/git-hooks/test-pre-push.sh`) |
 | `git push origin task/T21-x` (dalda bir `T17:` commit'i var) | ✗ BLOCKED (Layer 3) |
 | `git commit -m "T17: fix"` — `task/T21-x` üzerinde | ✗ BLOCKED (commit-msg) |
 | `git commit -m "T21: add entity"` — `task/T21-x` üzerinde | ✓ PASS |

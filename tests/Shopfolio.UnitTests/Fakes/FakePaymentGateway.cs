@@ -6,7 +6,8 @@ namespace Shopfolio.UnitTests.Fakes;
 /// Hand-written stateful fake of <see cref="IPaymentGateway"/> (09 19.1 items 3 and 6, 11.1 item 8). It never leaves the process: each job
 /// returns the next queued result of its family, or the job's default when none is queued, and every call is kept in order with its argument.
 /// A test queues any class of a family - the classes a timeout, a broken connection or an unlisted answer become included - so a module test
-/// runs one case per class.
+/// runs one case per class. A single failed call is queued as its class (<see cref="FakeFailures.ResultOf{TResult}"/>); a lasting outage is
+/// <see cref="Outage"/> (T204 criterion 1).
 /// </summary>
 internal sealed class FakePaymentGateway : IPaymentGateway
 {
@@ -27,6 +28,12 @@ internal sealed class FakePaymentGateway : IPaymentGateway
     public RefundQueryResult DefaultRefundQuery { get; set; } = new RefundQueryResult.NoResult();
 
     public NotificationVerification DefaultVerification { get; set; } = new NotificationVerification.SignatureInvalid();
+
+    /// <summary>
+    /// The provider is down while set: every call answers its family's class of this failure, the queues are left as they are and the call is
+    /// still kept. The notification's verification is a local computation, not a call (08 3.1 table), and is not affected.
+    /// </summary>
+    public ExternalCallFailureKind? Outage { get; set; }
 
     /// <summary>The calls in the order they were made.</summary>
     public IReadOnlyList<FakeCall> Calls
@@ -53,30 +60,46 @@ internal sealed class FakePaymentGateway : IPaymentGateway
     public Task<PaymentStartResult> StartAsync(PaymentStartRequest request, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        return Task.FromResult(Next(nameof(StartAsync), request, _starts, DefaultStart));
+        return Task.FromResult(NextCall(nameof(StartAsync), request, _starts, DefaultStart));
     }
 
     public Task<PaymentQueryResult> QueryPaymentAsync(string orderNumber, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        return Task.FromResult(Next(nameof(QueryPaymentAsync), orderNumber, _queries, DefaultQuery));
+        return Task.FromResult(NextCall(nameof(QueryPaymentAsync), orderNumber, _queries, DefaultQuery));
     }
 
     public Task<RefundRequestResult> RequestRefundAsync(CardRefund refund, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        return Task.FromResult(Next(nameof(RequestRefundAsync), refund, _refunds, DefaultRefund));
+        return Task.FromResult(NextCall(nameof(RequestRefundAsync), refund, _refunds, DefaultRefund));
     }
 
     public Task<RefundQueryResult> QueryRefundAsync(CardRefund refund, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        return Task.FromResult(Next(nameof(QueryRefundAsync), refund, _refundQueries, DefaultRefundQuery));
+        return Task.FromResult(NextCall(nameof(QueryRefundAsync), refund, _refundQueries, DefaultRefundQuery));
     }
 
     public NotificationVerification VerifyNotification(IReadOnlyDictionary<string, string> formFields)
     {
         return Next(nameof(VerifyNotification), formFields, _verifications, DefaultVerification);
+    }
+
+    // A call to the provider: during an outage it answers the failure's class; otherwise the queue, then the default.
+    private T NextCall<T>(string job, object argument, Queue<T> queue, T fallback)
+        where T : IExternalCallResult<T>
+    {
+        lock (_gate)
+        {
+            if (Outage is { } kind)
+            {
+                _calls.Add(new FakeCall(job, argument));
+                return FakeFailures.ResultOf<T>(kind);
+            }
+
+            return Next(job, argument, queue, fallback);
+        }
     }
 
     private void Enqueue<T>(Queue<T> queue, T[] results)

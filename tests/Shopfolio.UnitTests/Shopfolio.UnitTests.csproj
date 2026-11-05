@@ -33,6 +33,7 @@
     <None Remove="Architecture/ViolationSamples/**" />
     <ViolationSampleSource Include="Architecture/ViolationSamples/ModuleBoundary/*.cs" />
     <TimeAndMoneySampleSource Include="Architecture/ViolationSamples/TimeAndMoney/*.cs" />
+    <ModelBindingSampleSource Include="Architecture/ViolationSamples/ModelBinding/*.cs" />
   </ItemGroup>
 
   <Target Name="BuildViolationSamples" AfterTargets="Build" Inputs="@(ViolationSampleSource)" Outputs="$(OutDir)ModuleBoundaryViolationSample.dll">
@@ -55,6 +56,22 @@
     <Csc Sources="@(TimeAndMoneySampleSource)"
          References="@(ReferencePathWithRefAssemblies)"
          OutputAssembly="$(OutDir)TimeAndMoneyViolationSample.dll"
+         TargetType="library"
+         NoStandardLib="true"
+         Nullable="enable"
+         EmitDebugInformation="true"
+         DebugType="portable"
+         UseSharedCompilation="false"
+         ToolPath="$(CscToolPath)"
+         ToolExe="$(CscToolExe)"
+         TreatWarningsAsErrors="true" />
+  </Target>
+
+  <!-- The model binding rules' violation sample (07 5.1; 09 19.2 item 3): its own assembly as well. -->
+  <Target Name="BuildModelBindingViolationSample" AfterTargets="Build" Inputs="@(ModelBindingSampleSource)" Outputs="$(OutDir)ModelBindingViolationSample.dll">
+    <Csc Sources="@(ModelBindingSampleSource)"
+         References="@(ReferencePathWithRefAssemblies)"
+         OutputAssembly="$(OutDir)ModelBindingViolationSample.dll"
          TargetType="library"
          NoStandardLib="true"
          Nullable="enable"

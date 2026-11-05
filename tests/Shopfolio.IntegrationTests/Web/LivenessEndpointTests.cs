@@ -17,7 +17,7 @@ namespace Shopfolio.IntegrationTests.Web;
 
 /// <summary>UC-81, the liveness endpoint (07 4.33.1; 09 10.7 item 6, 19.2 item 4).</summary>
 [Collection(DatabaseInfrastructureDefinition.Name)]
-public sealed class LivenessEndpointTests
+public sealed partial class LivenessEndpointTests
 {
     private static readonly Uri _livenessUri = new(LivenessEndpoint.Path, UriKind.Relative);
 
@@ -151,6 +151,31 @@ public sealed class LivenessEndpointTests
         // 09 10.7 item 7: an unreachable server writes at most one DbTimeout line (a fast refusal is a failure, not a timeout, and writes none).
         Assert.True(logs.Lines.Count(l => l.Contains("DbTimeout", StringComparison.Ordinal)) <= 1);
     }
+
+    [Fact]
+    public async Task TwoHostsInOneProcess_EachKeepTheirOwnLogProviders()
+    {
+        // T230: the logging library must not take the static logger over; a second host would then receive the first host's lines (CI Integration, run 41932434322).
+        CollectingLoggerProvider firstLogs = new();
+        CollectingLoggerProvider secondLogs = new();
+        await using ShopfolioWebApplicationFactory first = new(_database.Dsn, loggerProvider: firstLogs);
+        await using ShopfolioWebApplicationFactory second = new(_database.Dsn, loggerProvider: secondLogs);
+        using HttpClient firstClient = first.CreateClient();
+        using HttpClient secondClient = second.CreateClient();
+        ILogger firstLogger = first.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Shopfolio.Test.First");
+        ILogger secondLogger = second.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Shopfolio.Test.Second");
+
+        LogTestLine(firstLogger, "first-only-line");
+        LogTestLine(secondLogger, "second-only-line");
+
+        Assert.Contains(firstLogs.Lines, l => l.Contains("first-only-line", StringComparison.Ordinal));
+        Assert.DoesNotContain(firstLogs.Lines, l => l.Contains("second-only-line", StringComparison.Ordinal));
+        Assert.Contains(secondLogs.Lines, l => l.Contains("second-only-line", StringComparison.Ordinal));
+        Assert.DoesNotContain(secondLogs.Lines, l => l.Contains("first-only-line", StringComparison.Ordinal));
+    }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "{Event}: test line.")]
+    private static partial void LogTestLine(ILogger logger, string @event);
 
     private static string UpstreamHost(DsnBuilder dsn) =>
         dsn.Host ?? throw new InvalidOperationException("The test database connection string has no host.");

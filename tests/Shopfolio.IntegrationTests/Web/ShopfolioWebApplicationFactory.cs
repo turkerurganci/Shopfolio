@@ -1,9 +1,13 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
+using Serilog.Core;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Logging;
 
 namespace Shopfolio.IntegrationTests.Web;
 
@@ -38,11 +42,35 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
         _connectionString = connectionString;
         _settings = settings ?? new Dictionary<string, string>();
         _loggerProvider = loggerProvider;
+        LogDirectory = Path.Combine(Path.GetTempPath(), "shopfolio-test-logs-" + Guid.NewGuid().ToString("N"));
+    }
+
+    /// <summary>
+    /// The directory the application's log files go to (<c>Logging:Directory</c>, 09 18.1 item 2): one made-up directory per factory, so a test host
+    /// never writes to the production default and a test can read the files. A test replaces it through <c>settings</c>.
+    /// </summary>
+    public string LogDirectory { get; }
+
+    public override async ValueTask DisposeAsync()
+    {
+        await base.DisposeAsync();
+        try
+        {
+            if (Directory.Exists(LogDirectory))
+            {
+                Directory.Delete(LogDirectory, recursive: true);
+            }
+        }
+        catch (IOException)
+        {
+            // A temporary directory that cannot be removed is left to the operating system.
+        }
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting(DatabaseOptions.ConnectionStringKey, _connectionString);
+        builder.UseSetting(LoggingOptions.DirectoryKey, LogDirectory);
         foreach (KeyValuePair<string, string> setting in RequiredSettings)
         {
             builder.UseSetting(setting.Key, setting.Value);
@@ -57,7 +85,8 @@ public sealed class ShopfolioWebApplicationFactory : WebApplicationFactory<Progr
 
         if (_loggerProvider is not null)
         {
-            builder.ConfigureLogging(logging => logging.AddProvider(_loggerProvider));
+            // Not a provider of the host: the host does not forward its lines to the framework's providers (05 9.2.3); the sink is read by the logging setup.
+            builder.ConfigureServices(services => services.AddSingleton<ILogEventSink>(new ProviderLogEventSink(_loggerProvider)));
         }
     }
 }

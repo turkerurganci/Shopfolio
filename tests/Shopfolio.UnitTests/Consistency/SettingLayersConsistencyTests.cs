@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Logging;
 using Shopfolio.UnitTests.Support;
 
 namespace Shopfolio.UnitTests.Consistency;

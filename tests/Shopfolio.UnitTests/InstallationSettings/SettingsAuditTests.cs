@@ -1,10 +1,12 @@
 using System.Reflection;
 
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+
+using Serilog.Events;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Logging;
 
 namespace Shopfolio.UnitTests.InstallationSettings;
 
@@ -109,7 +111,8 @@ public sealed class SettingsAuditTests
         Assert.Equal(300, rate.PageRequestsPerMinute);
         Assert.Equal(30, rate.FormSubmissionsPerMinute);
         Assert.Equal(0.85, status.DiskUsageFraction);
-        Assert.Equal(LogLevel.Information, logging.Level);
+        Assert.Equal(LogEventLevel.Information, logging.Level);
+        Assert.Equal(LoggingOptions.DefaultDirectory, logging.Directory);
         Assert.Empty(SettingsAudit.Run(Configuration(Valid())).Failures);
     }
 
@@ -132,6 +135,8 @@ public sealed class SettingsAuditTests
     [InlineData("StatusThreshold:HeartbeatAgeMinutes", "0")]
     [InlineData("StatusThreshold:NightlyJobAgeHours", "-5")]
     [InlineData("Logging:Level", "None")]
+    [InlineData("Logging:Level", "Critical")]
+    [InlineData("Logging:Directory", " ")]
     [InlineData("Logging:Level", "Loud")]
     [InlineData("RateLimit:PageRequestsPerMinute", MadeUpMarker)]
     [InlineData("StatusThreshold:BackupAgeHours", MadeUpMarker)]

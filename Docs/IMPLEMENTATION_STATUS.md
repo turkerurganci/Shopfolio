@@ -102,7 +102,7 @@
 |---|---|---|---|---|---|
 | T201 | İmha düzenleyicisi, süre ayarları ve gecelik temizlik | ✓ | ✓ PASS (tur 1) | — | #395 |
 | T202 | Dış servislerin bağlantı katmanı: ortak yüz, hata sınıfı, zaman aşımı, sahteler | ✓ | ✓ PASS (tur 1) | — | #396 |
-| T203 | İmzalı makine ucu altyapısı: imza denetimi, gövde tavanı | ⏳ | — | — | #397 |
+| T203 | İmzalı makine ucu altyapısı: imza denetimi, gövde tavanı | ⏳ | ✗ FAIL (tur 1) | — | #397 |
 | T204 | Dış servis çökmesi davranışı ve sahtelerle sınama | ⬚ | — | — | — |
 | T205 | Açılışta veritabanı fail-fast denetimi | ✓ | ✓ PASS (tur 1) | a36010b | #385 |
 | T206 | Adres yapısı, önekler ve sayfa–form işleyici kalıbı | ⬚ | — | — | — |

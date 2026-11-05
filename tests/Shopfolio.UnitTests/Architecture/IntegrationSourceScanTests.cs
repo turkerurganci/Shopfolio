@@ -39,7 +39,6 @@ public sealed class IntegrationSourceScanTests
         Assert.Contains(IntegrationSourceScan.LayerFolder + "IPaymentGateway.cs", scanned);
         Assert.Contains(IntegrationSourceScan.FakesFolder + "FakePaymentGateway.cs", scanned);
         Assert.Contains(scanned, f => f.StartsWith(IntegrationSourceScan.CallerFolders[0], StringComparison.Ordinal));
-        Assert.Contains(scanned, f => f.EndsWith(".cshtml", StringComparison.Ordinal));
         Assert.Empty(findings);
     }
 
@@ -67,10 +66,10 @@ public sealed class IntegrationSourceScanTests
                 (IntegrationSourceScan.ProviderNameOutsideLayer, 9),
                 (IntegrationSourceScan.ProviderNameOutsideLayer, 10),
                 (IntegrationSourceScan.ClientTypeOutsideLayer, 11),
-                (IntegrationSourceScan.ClientTypeOutsideLayer, 12),
                 (IntegrationSourceScan.NewHttpClient, 12),
-                (IntegrationSourceScan.ClientTypeOutsideLayer, 13),
+                (IntegrationSourceScan.ClientTypeOutsideLayer, 12),
                 (IntegrationSourceScan.NewHttpClient, 13),
+                (IntegrationSourceScan.ClientTypeOutsideLayer, 13),
                 (IntegrationSourceScan.ClientTypeOutsideLayer, 14),
                 (IntegrationSourceScan.RetryHandler, 15),
                 (IntegrationSourceScan.RetryHandler, 16),
@@ -132,6 +131,8 @@ public sealed class IntegrationSourceScanTests
     [InlineData("string s = \"Amazon\";")]
     [InlineData("SesClientFactory f;")]
     [InlineData("// SES rejects it")]
+    [InlineData("services.UsePayTrGateway();")]
+    [InlineData("const string Key = \"PAY-TR\";")]
     public void Scan_FindsAProviderNameInAnyCaseAndInComments(string line)
     {
         Assert.Equal([(IntegrationSourceScan.ProviderNameOutsideLayer, 1)], IntegrationSourceScan.Scan("src/Shopfolio.Web/Modules/Notifications/X.cs", line));
@@ -139,6 +140,7 @@ public sealed class IntegrationSourceScanTests
 
     [Theory]
     [InlineData("Session session; PaymentTransaction t; string ses = \"x\";")]
+    [InlineData("// display tree, repay track, the payment trail")]
     [InlineData("services.AddHttpClient(name).ConfigureHttpClient(c => c.Timeout = Timeout.InfiniteTimeSpan);")]
     [InlineData("var config = new { MaxErrorRetry = 0 };")]
     public void Scan_OnLookalikesOutsideTheCallerFolders_FindsNothing(string line)

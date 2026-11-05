@@ -102,8 +102,9 @@ internal static partial class IntegrationSourceScan
         return string.Join('\n', lines);
     }
 
-    // The payment provider in any case, the e-mail service's short name as a word or a type prefix, the cloud's name and the service's long name.
-    [GeneratedRegex(@"(?i:pay\s*tr)|\bSES\b|\bSes(?:\b|[A-Z])|(?i:\bamazon)|\bAWS\b|\bAws[A-Z]|(?i:simple\s*email)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    // The payment provider in any case where a word or a camel-case part begins (not "display tree"), the e-mail service's short name as a
+    // word or a type prefix, the cloud's name and the service's long name.
+    [GeneratedRegex(@"(?:(?<![A-Za-z])(?i:p)|(?<=[a-z])P)(?i:ay[\s_-]?tr)|\bSES\b|\bSes(?:\b|[A-Z])|(?i:\bamazon)|\bAWS\b|\bAws[A-Z]|(?i:simple\s*email)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ProviderNames();
 
     [GeneratedRegex(@"\b(?:HttpClient|IHttpClientFactory|HttpMessageHandler|SocketsHttpHandler|HttpClientHandler|SmtpClient)\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

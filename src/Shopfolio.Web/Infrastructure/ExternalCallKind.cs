@@ -1,7 +1,7 @@
 namespace Shopfolio.Infrastructure;
 
 /// <summary>The two kinds of a call that leaves the application, by who waits for it (05 10.1.1; 08 3.1 rule 2).</summary>
-internal enum ExternalCallKind
+public enum ExternalCallKind
 {
     /// <summary>A user waits for the answer: the start of a payment, the end of a Google sign-in.</summary>
     UserWaiting,

@@ -45,6 +45,15 @@ internal sealed class SmtpCaptureEmailGateway : IEmailGateway
     /// <summary>The reason code of an SMTP reply: its number, never the reply's text (which may repeat the address).</summary>
     public static string ReasonOf(SmtpStatusCode status) => "smtp:" + (int)status;
 
+    /// <summary>
+    /// The class of an SMTP failure that is not a refusal of the recipient: the client's own failure without a reply (no connection, the
+    /// connection broke off) is an unreachable tool, any other reply is an answer the gateway does not list. Both are channel errors.
+    /// </summary>
+    public static ExternalCallFailure FailureOf(SmtpStatusCode status) =>
+        status == SmtpStatusCode.GeneralFailure
+            ? ExternalCallFailure.Unreachable(ReasonOf(status))
+            : ExternalCallFailure.Unrecognized(ReasonOf(status));
+
     public Task<EmailSendResult> SendAsync(EmailMessage message, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(message);
@@ -72,7 +81,7 @@ internal sealed class SmtpCaptureEmailGateway : IEmailGateway
                 {
                     // A client that gave up because the limit passed is the runner's timeout, not an SMTP reply.
                     token.ThrowIfCancellationRequested();
-                    return _runner.Failed<EmailSendResult>(IntegrationOperation.EmailSend, ExternalCallFailure.Unreachable(ReasonOf(exception.StatusCode)));
+                    return _runner.Failed<EmailSendResult>(IntegrationOperation.EmailSend, FailureOf(exception.StatusCode));
                 }
             },
             ct);

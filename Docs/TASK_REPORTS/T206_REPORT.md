@@ -1,6 +1,6 @@
 # T206 — Adres yapısı, önekler ve sayfa–form işleyici kalıbı
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım tamamlandı, doğrulama bekliyor) | **Tarih:** 2026-11-06
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-06
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -19,7 +19,7 @@
 ## Etkilenen Modüller / Dosyalar
 
 - `src/Shopfolio.Web/Infrastructure/Routing/` (AddressRules, AddressTemplates, OrderRoutes, AddressConvention, AddressSetup), `Infrastructure/Forms/` (FormResults, CsvFileResult, HandlerRequiredFilter), `Program.cs` (`AddAddressRules`, `/statik` grubu).
-- Örnek sayfa: `src/Shopfolio.Web/Pages/Panel/PatternForm.cshtml(.cs)`, `_ViewImports.cshtml`.
+- Örnek sayfa: `tests/Shopfolio.IntegrationTests/Pages/Panel/PatternForm.cshtml(.cs)`, `_ViewImports.cshtml` (yalnız test sunucusunun uygulama parçası; doğrulama tur 1 düzeltmesi — yapım taslağı yolu `src/Shopfolio.Web/Pages/` yazıyordu).
 - Testler: `tests/Shopfolio.UnitTests/{Infrastructure,Consistency,Architecture}`, `tests/Shopfolio.IntegrationTests/Web/{AddressRoutingTests,PageFormPatternTests}.cs`.
 
 ## Kabul Kriterleri Kontrolü
@@ -76,10 +76,24 @@ Her madde `git diff origin/main...HEAD` üzerinde yeniden denetlendi (test adlar
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama chat'i doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-06, head `686f019`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 — K1 → D-117 (T212), K2 → D-118 (T207), K3 bu PR'da kapatıldı (D-73 kalın yazım, D-116 dosya adı ve "dosya adında parmak izi" iddiası, bu rapordaki örnek sayfa yolu) |
+
+### Doğrulayıcının kanıtları (tur 1)
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Yol bölümü kuralı, `/{önek}/{Slug}` | ✓ | `AddressRules.SegmentPattern` `\A[a-z0-9]+(?:-[a-z0-9]+)*\z`; `AddressTemplates.CheckRecordAddress`; Unit + `AddressRoutingTests` yerelde yeşil |
+| 2 | Beş önek, dil öneki yok, kapalı ilk bölüm | ✓ | `ClosedFirstSegments` `07 §2.1.2` ile satır satır okundu (5 + 12 + 7 + siparis + panel + 4 + 2); `AddressListConsistencyTests` iki yönlü; `AddressConvention` açılışta; `Get_OnAFirstSegmentOutsideTheList_Is404` (`/css/base.css`, `/tr/sepet` dahil) |
+| 3 | İki sipariş kökü | ✓ | `OrderRoutes.MemberRoot` (yılla başlar) / `AccessRoot` (base64url, `\z`); `/siparis/erisim` 404, ekranlar kendi kökünde |
+| 4 | `/panel`; vitrinde iç anahtar yok | ✓ | `CheckNoInternalKey` (`id`, `…Id`, `guid`/`int`/`long`) panel dışında; `EveryMappedEndpoint_*` gerçek uygulamanın bütün uçlarına uygular |
+| 5 | Harf/eğik çizgi duyarsız, yönlendirme yok; anahtar duyarlı | ✓ | `LowercaseUrls` kapalı; `Path_WithAnotherLetterCase*`, `AccessRoot_KeepsTheLettersOfTheKeyAsTyped`, `GeneratedPath_*` |
+| 6 | Adlandırılmış işleyici, `handler` | ✓ | `PageHandlerRuleTests` (ihlal örneği 5 ihlal), `PageSourceScan` işleyicisiz `post` formu; sonda: süzgeçsiz çatı işleyicisiz POST'a 200 verir, süzgeçle 400 |
+| 7 | 303 / 422 / CSV 200 / ret 303 | ✓ | `FormResults.SeeOther` 303, `Redisplay` 422, `CsvFileResult` 200 + `attachment` + `no-store`; ilgili 5 entegrasyon testi |
+| 8 | GET kayıt değiştirmez | ✓ | `Get_ChangesNoRecord_*` (`?handler=Add&Input.Name=…` dahil) |
+| 9 | Statik dosya yeni adres; API ve sürüm yok | ✓ | `MapGroup("/statik").MapStaticAssets()`; parmak izli adres + ETag içerik SHA-256'sı; `PageSourceScan` API/sürüm, `Application_HasNoControllerType` |
 
 ## Altyapı Değişiklikleri
 
@@ -91,9 +105,9 @@ Her madde `git diff origin/main...HEAD` üzerinde yeniden denetlendi (test adlar
 ## Commit & PR
 
 - **Branch:** `task/T206-adres-sayfa-form-kalibi`
-- **Commit:** `762ce86` — Durum, hafıza ve rapor kayıtları, test adları (PR başı: son commit)
+- **Commit:** `686f019` — doğrulanan PR başı (yapım taslağı `762ce86` yazıyordu; sonra PR numarası commit'i geldi)
 - **PR:** #401
-- **CI:** *(yapım chat'i izlemez)*
+- **CI:** dal CI 42123791130 (head `686f019`) success — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

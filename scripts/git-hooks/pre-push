@@ -3,6 +3,7 @@
 #
 # Layer 1: direct push to a protected branch          -> BLOCK
 # Layer 2: pushed branch's last CI run failed         -> BLOCK
+#          (fix push = new commits on top of the failed commit -> WARN + PASS)
 # Layer 3: task/TXX-* branch carries a foreign TXX    -> BLOCK  (bundled-PR guard)
 #
 # Bypass (think twice; every bypass is logged automatically):
@@ -48,24 +49,35 @@ log_bypass() {
 }
 
 check_ci_status() {
-  # $1 = branch name. Echoes: success | failure | none | skip
-  local branch="$1" result conclusion status
+  # $1 = branch name, $2 = sha being pushed.
+  # Echoes: success | failure | failure-fix | none | skip
+  # failure-fix: the failed run's commit is a strict ancestor of the pushed sha, i.e. the push
+  # adds commits on top of the broken commit — the fix the error message asks for.
+  local branch="$1" pushing="$2" result conclusion status head_sha
 
   command -v gh >/dev/null 2>&1 || { echo "skip"; return 0; }
   gh auth status >/dev/null 2>&1 || { echo "skip"; return 0; }
 
-  result="$(gh run list --branch "$branch" --limit 1 --json conclusion,status 2>/dev/null || echo '[]')"
+  result="$(gh run list --branch "$branch" --limit 1 --json conclusion,status,headSha 2>/dev/null || echo '[]')"
   if [ "$result" = "[]" ] || [ -z "$result" ]; then echo "none"; return 0; fi
 
   # Parse without a jq dependency.
   conclusion="$(echo "$result" | grep -o '"conclusion":"[^"]*"' | head -1 | cut -d'"' -f4)"
   status="$(echo "$result" | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)"
+  head_sha="$(echo "$result" | grep -o '"headSha":"[^"]*"' | head -1 | cut -d'"' -f4)"
 
   [ "$status" = "completed" ] || { echo "none"; return 0; }
 
   case "$conclusion" in
     success)                                                    echo "success" ;;
-    failure|cancelled|timed_out|action_required|startup_failure) echo "failure" ;;
+    failure|cancelled|timed_out|action_required|startup_failure)
+      if [ -n "$head_sha" ] && [ -n "$pushing" ] && [ "$head_sha" != "$pushing" ] &&
+         git merge-base --is-ancestor "$head_sha" "$pushing" 2>/dev/null; then
+        echo "failure-fix"
+      else
+        echo "failure"
+      fi
+      ;;
     *)                                                          echo "none" ;;
   esac
 }
@@ -108,9 +120,12 @@ EOF
   done
 
   # --- Layer 2: CI guard ----------------------------------------------------
-  ci_result="$(check_ci_status "$pushing_branch")"
+  ci_result="$(check_ci_status "$pushing_branch" "$pushing_oid")"
   case "$ci_result" in
     success|none) : ;;
+    failure-fix)
+      echo "WARN: '$pushing_branch' son CI run'i kirmizi; push kirik commit'in ustune yeni commit ekliyor (duzeltme) — izin verildi, CI yeniden kosacak." >&2
+      ;;
     skip)
       echo "WARN: gh CLI yok veya auth yok — CI guard atlandi (dal: $pushing_branch)." >&2
       ;;

@@ -37,11 +37,14 @@ internal static class LoggingSetup
     public static WebApplicationBuilder AddApplicationLogging(this WebApplicationBuilder builder)
     {
         builder.Services.AddHttpContextAccessor();
+        // preserveStaticLogger: each host keeps its own logger. Without it the library writes its logger to the static Log.Logger and the factory
+        // logs through that static one, so a second host in the same process (a parallel test host) takes over the first host's lines and providers.
         builder.Host.UseSerilog(
             (_, services, configuration) => Configure(
                 configuration,
                 LoggingOptions.FromConfiguration(services.GetRequiredService<IConfiguration>()),
                 new RequestLogEnricher(services.GetRequiredService<IHttpContextAccessor>())),
+            preserveStaticLogger: true,
             writeToProviders: true);
         return builder;
     }

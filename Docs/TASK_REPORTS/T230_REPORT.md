@@ -60,7 +60,7 @@
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests -c Release --no-build` | 643/643 |
-| Integration | ✓ | gerçek PostgreSQL 18 (Docker), `Web` ad alanı ve geri kalanı ayrı koşuldu | 1016 test, hepsi yeşil (`SchedulerBackupDisposalAndKeyTablesTests` iki göç testi yük altında 18–25 sn sürüp bir kez kırıldı, tek başına koşunca 55/55 yeşil; bu task'ın kodu değil) |
+| Integration | ✓ | gerçek PostgreSQL 18 (Docker), `Web` ad alanı ve geri kalanı ayrı koşuldu (düzeltme turu 1 sonrası yeniden: 1017 test) | 1017 test, hepsi yeşil (`SchedulerBackupDisposalAndKeyTablesTests` iki göç testi yük altında 18–25 sn sürüp bir kez kırıldı, tek başına koşunca 55/55 yeşil; bu task'ın kodu değil) |
 | Diğer | ✓ | `dotnet build Shopfolio.slnx -warnaserror`, `dotnet format --verify-no-changes`, `dotnet restore --locked-mode`, `tests/scripts/run-script-tests.sh` | hepsi 0 / 4 betik dosyası geçti |
 
 ## Doğrulama
@@ -102,6 +102,30 @@
 | 1 | Maskelemenin üç katmanının testleri | T231 | planda ayrı task |
 | 2 | Red satırını yazan çağrı ve kod bağı | T213 | planda ayrı task |
 | 3 | Hesap claim adları (`shopfolio:account-type`, `shopfolio:account-id`) bu task'ın seçimi; oturum açma task'ı bağlar | — | oturum açma henüz yok |
+
+## Düzeltme turu 1 (CI Integration)
+
+**Belirti:** CI "4. Integration test" (run 41932434322) kırmızı: `LivenessEndpointTests.Get_WhenTheCommandIsSlow_...` ve `Get_WhenTheConnectionOpenIsSlow_...` içinde `Assert.Single` "DbTimeout satırı yok". Yerelde (Windows, tek sınıf) yeşildi.
+
+**Kök neden:** `UseSerilog(..., writeToProviders: true)` `preserveStaticLogger` verilmeyince oluşan kaydediciyi statik `Log.Logger`'a yazar ve `ILoggerFactory` o statik kaydediciyle çalışır. Tam Integration koşusunda birden çok test sunucusu aynı işlemde paralel açılır; sonra açılan sunucu ilk sunucunun satırlarını ve sağlayıcılarını (`CollectingLoggerProvider`) devralır, ilk sunucunun `DbTimeout` satırı yanlış sağlayıcıya gider. Linux konteynerinde tam koşuda yeniden üretildi (4 test kırıldı: biri Liveness aynı `Assert.Single` hatasıyla, üçü `StartupDatabaseCheckTests` yavaş bağlantı beklemesiyle; düzeltmeden sonra aynı koşuda Liveness yeşil); tek sınıf koşusu yeşil kaldığı için yerelde görünmedi. Üretimde tek sunucu vardır; ama statik kaydediciye bağlı kalmak yanlış.
+
+**Düzeltme:** `LoggingSetup.AddApplicationLogging` içinde `preserveStaticLogger: true` (her sunucu kendi kaydedicisini tutar). Test gevşetilmedi; `Single(... DbTimeout)` ve T233'ün `≤ 1 DbTimeout` onayı aynen duruyor. Regresyon testi: `LivenessEndpointTests.TwoHostsInOneProcess_EachKeepTheirOwnLogProviders` (düzeltme olmadan kırılır, düzeltmeyle geçer).
+
+**Doğrulama:** düzeltmeyle Linux konteynerinde tam koşuda Liveness testleri yeşil; Windows'ta Integration ad alanlarına bölünerek koşuldu (Web 54, Database 35, Model 893, Logging 11, FileSecrets 24); Unit 643/643; `dotnet build Shopfolio.slnx -warnaserror` ve `dotnet format --verify-no-changes` temiz. Model'de yük altında iki test (15–38 sn, bağlantı bekleme) bir kez kırıldı, tek başına yeşil; bu dalın kodu değil.
+
+### Öz denetim tablosu (düzeltme turu sonrası, `git diff origin/main...HEAD`)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1–9 | ✓ | yukarıdaki tablo; düzeltme yalnız `LoggingSetup.cs` içinde tek argüman ve bir test ekledi, kriterlerin testlerine dokunmadı |
+| KK1–KK9 | ✓ | tablo değişmedi; `LoggingSourceScanTests` yeşil (Serilog yalnız `Infrastructure/Logging/`) |
+| `09 §25` satırları | ✓ | belge değişikliği gerekmedi; `writeToProviders`/`preserveStaticLogger` hiçbir belgede geçmiyor (grep) |
+| Güvenlik taraması | ✓ | yeni sır, uç nokta, kişisel veri yok; yeni kod yalnız kaydedici seçeneği ve test |
+| Sık FAIL (1) beklenen değer sabitten | ✓ | yeni test sabit satır adlarını yalnız kendi içinde eşler; sayı yok |
+| Sık FAIL (2) öteki yerler | ✓ | aynı kuralı anan yer yok (grep) |
+| Sık FAIL (3) istisna geniş değil | ✓ | tarama istisnası değişmedi |
+| Sık FAIL (4) ihlal örneği; birim testi dosyaya yazmaz | ✓ | yeni test Integration'da, dosya yazmaz (sağlayıcı bellekte) |
+| Sık FAIL (5) DB varsayılanı/FK | ✓ | tablo/FK yok |
 
 ## Notlar
 

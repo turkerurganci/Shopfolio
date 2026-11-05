@@ -28,7 +28,10 @@ internal sealed class FaqItem
 
     public PublishStatus PublishStatus { get; set; } = PublishStatus.Draft;
 
-    public int Version { get; set; } = 1;
+    public int Version { get; private set; } = 1;
+
+    /// <summary>Raises the version by one; every save of the record calls it (06 2.6.1; 09 10.2 item 1).</summary>
+    public void BumpVersion() => Version++;
 
     public static FaqItem Create(string question, int sortOrder, DateTimeOffset now)
     {

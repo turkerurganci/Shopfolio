@@ -63,7 +63,7 @@ public sealed class DatabaseSessionSourceScanTests
     }
 
     [Fact]
-    public void TransactionBodyScan_OnViolationSample_ReportsEachOutsideUseInsideTheBodyAndNotTheOnesOutsideIt()
+    public void TransactionBodyScan_OnViolationSample_ReportsEachOutsideUseInsideTheBodyAndEachWorkNotALambda_AndNotTheOnesOutsideIt()
     {
         string sample = ReadSample("TransactionBody", "OutsideCallInTransaction.cs");
 
@@ -74,8 +74,20 @@ public sealed class DatabaseSessionSourceScanTests
                 (TransactionBodySourceScan.OutsideCallInTransaction, 5),
                 (TransactionBodySourceScan.OutsideCallInTransaction, 10),
                 (TransactionBodySourceScan.OutsideCallInTransaction, 15),
+                (TransactionBodySourceScan.WorkNotALambda, 25),
+                (TransactionBodySourceScan.WorkNotALambda, 27),
             ],
             findings);
+    }
+
+    [Fact]
+    public void TransactionBodyScan_ReadsTheRealRunnersCalls_AndNotItsDeclarations()
+    {
+        string declarations = "interface ITransactionRunner { Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, CancellationToken ct); }";
+        string lambda = "class C(ITransactionRunner runner) { Task M(CancellationToken ct) => runner.RunAsync(async token => await Work(token), ct); }";
+
+        Assert.Empty(TransactionBodySourceScan.Scan(declarations));
+        Assert.Empty(TransactionBodySourceScan.Scan(lambda));
     }
 
     [Fact]

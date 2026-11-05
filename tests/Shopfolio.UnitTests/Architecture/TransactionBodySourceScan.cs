@@ -8,12 +8,15 @@ namespace Shopfolio.UnitTests.Architecture;
 /// outside service, so the work handed to <c>ITransactionRunner.RunAsync</c> never uses an <c>HttpClient</c> or an outside service interface
 /// (<c>IPaymentGateway</c>, <c>IEmailGateway</c>, <c>IGoogleIdentityGateway</c> and any other <c>I...Gateway</c>). A file is looked at when it
 /// names <c>ITransactionRunner</c>; the arguments of each <c>RunAsync(...)</c> call are the body, and a body is a finding when it names one of
-/// those types or a field, parameter or variable the file declares with one of them. A body that is only a method group is not followed.
-/// Full-line comments are blanked first and keep their line.
+/// those types or a field, parameter or variable the file declares with one of them. The work is always a lambda written at the call (T228; D-82):
+/// a method group or a delegate variable as the first argument of a <c>.RunAsync(</c> call is itself a finding, because its body would not
+/// be read. Full-line comments are blanked first and keep their line.
 /// </summary>
 internal static partial class TransactionBodySourceScan
 {
     public const string OutsideCallInTransaction = "uses an HttpClient or an outside service interface inside the work of ITransactionRunner.RunAsync (the outside call belongs outside the transaction)";
+
+    public const string WorkNotALambda = "hands ITransactionRunner.RunAsync a method group or a delegate variable; the work is a lambda written at the call so that its body is scanned (D-82)";
 
     /// <summary>The scan applies to every application source file; the runner's own file holds no outside call to find.</summary>
     public static bool Applies(string relativePath)
@@ -51,8 +54,17 @@ internal static partial class TransactionBodySourceScan
             {
                 findings.Add((OutsideCallInTransaction, clean.AsSpan(0, hitIndex).Count('\n') + 1));
             }
+
+            // A member call (".RunAsync(") whose first argument is not a lambda: the declarations of RunAsync are not calls.
+            bool isMemberCall = clean.AsSpan(0, call.Index).TrimEnd().EndsWith(".", StringComparison.Ordinal);
+            string arguments = clean[(open + 1)..close];
+            if (isMemberCall && arguments.Trim().Length > 0 && !LambdaStart().IsMatch(arguments))
+            {
+                findings.Add((WorkNotALambda, clean.AsSpan(0, call.Index).Count('\n') + 1));
+            }
         }
 
+        findings.Sort((a, b) => a.Line.CompareTo(b.Line));
         return findings;
     }
 
@@ -92,6 +104,9 @@ internal static partial class TransactionBodySourceScan
 
     [GeneratedRegex(@"\bRunAsync\s*(?:<[^()]*?>)?\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex RunAsyncCall();
+
+    [GeneratedRegex(@"^\s*(?:static\s+)?(?:async\s+)?(?:\([^()]*\)|\w+)\s*=>", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex LambdaStart();
 
     [GeneratedRegex(@"\b(?:HttpClient|IHttpClientFactory|I\w*Gateway)\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex OutsideType();

@@ -35,30 +35,44 @@ internal static class LockSequence
             state.Taken.Clear();
         }
 
-        if (state.Taken.Count > 0)
+        Check(state.Taken, kind, key);
+        state.Taken.Add((kind, key));
+    }
+
+    /// <summary>
+    /// The rule alone, without a context: throws when <paramref name="kind"/> with <paramref name="key"/> may not follow the locks already
+    /// <paramref name="taken"/> in the same transaction. The same lock asked again right after itself is allowed.
+    /// </summary>
+    public static void Check(IReadOnlyList<(LockKind Kind, Guid? Key)> taken, LockKind kind, Guid? key)
+    {
+        ArgumentNullException.ThrowIfNull(taken);
+        if (taken.Count == 0)
         {
-            (LockKind lastKind, Guid? lastKey) = state.Taken[^1];
-            if (IsSeparate(kind) || state.Taken.Any(t => IsSeparate(t.Kind)))
+            return;
+        }
+
+        (LockKind lastKind, Guid? lastKey) = taken[^1];
+        if (IsSeparate(kind) || taken.Any(t => IsSeparate(t.Kind)))
+        {
+            if (!(lastKind == kind && lastKey == key && taken.Count == 1))
             {
-                if (!(lastKind == kind && lastKey == key && state.Taken.Count == 1))
-                {
-                    throw new InvalidOperationException(
-                        $"The {kind} lock is asked after the {lastKind} lock: the category tree's and the administrator set's locks are taken alone (05 7.3.5).");
-                }
+                throw new InvalidOperationException(
+                    $"The {kind} lock is asked after the {lastKind} lock: the category tree's and the administrator set's locks are taken alone (05 7.3.5).");
             }
-            else if (kind == LockKind.Cart)
+        }
+        else if (kind == LockKind.Cart)
+        {
+            if (!(lastKind == LockKind.Cart && lastKey == key && taken.Count == 1))
             {
                 throw new InvalidOperationException(
                     $"The cart lock is asked after the {lastKind} lock: the cart's advisory lock is the first lock of the confirmation (05 4.2.2, 7.3.5).");
             }
-            else if (kind < lastKind || (kind == lastKind && key is Guid k && lastKey is Guid l && CompareKeys(k, l) < 0))
-            {
-                throw new InvalidOperationException(
-                    $"The {kind} lock {key} is asked after the {lastKind} lock {lastKey}: locks are taken as cart, orders by id, variants by id, coupon last (05 7.3.5).");
-            }
         }
-
-        state.Taken.Add((kind, key));
+        else if (kind < lastKind || (kind == lastKind && key is Guid k && lastKey is Guid l && CompareKeys(k, l) < 0))
+        {
+            throw new InvalidOperationException(
+                $"The {kind} lock {key} is asked after the {lastKind} lock {lastKey}: locks are taken as cart, orders by id, variants by id, coupon last (05 7.3.5).");
+        }
     }
 
     /// <summary>The orders whose row lock the context's open transaction holds; empty without a transaction.</summary>

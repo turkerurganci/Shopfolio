@@ -14,7 +14,7 @@ namespace Shopfolio.Modules.Ordering;
 /// only there. The row is only appended (<see cref="OrderingRecordsGuard"/>): the one change is the disposal emptying the administrator's link,
 /// name and note (<see cref="ErasePersonalData"/>), and the database emptying the link when the administrator is removed.
 /// </summary>
-internal sealed class TransitionRecord
+internal sealed class TransitionRecord : IOrderVersionExempt
 {
     public Guid Id { get; private set; }
 

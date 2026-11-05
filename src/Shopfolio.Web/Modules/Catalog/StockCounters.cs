@@ -40,10 +40,10 @@ internal sealed class StockCounters
         }
 
         Comparer<Guid> byId = Comparer<Guid>.Create(LockSequence.CompareKeys);
-        var variantSteps = parts
+        List<(Guid VariantId, CounterMove Move, int Quantity)> variantSteps = [.. parts
             .SelectMany(p => p.Claim.Variants.Select(v => (v.VariantId, p.Move, v.Quantity)))
             .OrderBy(s => s.VariantId, byId)
-            .ThenBy(s => s.Move);
+            .ThenBy(s => s.Move)];
         foreach ((Guid variantId, CounterMove move, int quantity) in variantSteps)
         {
             LockSequence.Enter(_db, LockKind.Variant, variantId);
@@ -54,11 +54,11 @@ internal sealed class StockCounters
             }
         }
 
-        var couponSteps = parts
+        List<(Guid CouponId, CounterMove Move)> couponSteps = [.. parts
             .Where(p => p.Claim.CouponId is not null)
             .Select(p => (CouponId: p.Claim.CouponId!.Value, p.Move))
             .OrderBy(s => s.CouponId, byId)
-            .ThenBy(s => s.Move);
+            .ThenBy(s => s.Move)];
         foreach ((Guid couponId, CounterMove move) in couponSteps)
         {
             LockSequence.Enter(_db, LockKind.Coupon, couponId);

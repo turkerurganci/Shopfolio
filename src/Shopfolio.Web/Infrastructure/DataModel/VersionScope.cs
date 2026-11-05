@@ -20,13 +20,13 @@ internal sealed class VersionScope
     public VersionScope(
         string rootType,
         IReadOnlyCollection<string>? memberTypes,
-        IReadOnlyCollection<string> exemptTypes,
+        Type? exemptMark,
         IReadOnlyCollection<(string Type, string Field)> exemptFields,
         IReadOnlyCollection<(string Type, string Field)> emptiedFields)
     {
         RootType = rootType;
         MemberTypes = memberTypes;
-        ExemptTypes = exemptTypes;
+        ExemptMark = exemptMark;
         ExemptFields = exemptFields;
         EmptiedFields = emptiedFields;
     }
@@ -36,8 +36,18 @@ internal sealed class VersionScope
     /// <summary>The records under the root, by name; empty means every record linked to the root by a chain of foreign keys.</summary>
     public IReadOnlyCollection<string>? MemberTypes { get; }
 
-    /// <summary>The records whose writing never raises the version; they are not members and do not carry the chain further.</summary>
-    public IReadOnlyCollection<string> ExemptTypes { get; }
+    /// <summary>
+    /// The mark (an interface) of the records whose writing never raises the version; they are not members and do not carry the chain further.
+    /// A mark, not a list of names, so that a module's guard never names another module's type (09 6 item 2, 10.1 item 1).
+    /// </summary>
+    public Type? ExemptMark { get; }
+
+    /// <summary>The record types of the model that carry <see cref="ExemptMark"/>.</summary>
+    public IReadOnlyList<IEntityType> ExemptTypes(IModel model)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        return ExemptMark is null ? [] : [.. model.GetEntityTypes().Where(t => ExemptMark.IsAssignableFrom(t.ClrType))];
+    }
 
     /// <summary>Fields whose change alone does not raise the version.</summary>
     public IReadOnlyCollection<(string Type, string Field)> ExemptFields { get; }
@@ -207,7 +217,7 @@ internal sealed class VersionScope
     private HashSet<IEntityType> BuildMembers(IModel model)
     {
         IEntityType root = Root(model);
-        HashSet<IEntityType> exempt = [.. ExemptTypes.Select(name => model.FindEntityType(name)).OfType<IEntityType>()];
+        HashSet<IEntityType> exempt = [.. ExemptTypes(model)];
         if (MemberTypes is not null)
         {
             return [.. MemberTypes.Select(name => model.FindEntityType(name) ?? throw new InvalidOperationException($"The version member '{name}' is not in the model."))];

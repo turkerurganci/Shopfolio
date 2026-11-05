@@ -40,7 +40,7 @@ internal sealed class ProductVersionGuard : SaveChangesInterceptor
 
     public static ProductVersionGuard Instance { get; } = new();
 
-    public static VersionScope Scope { get; } = new(typeof(Product).FullName!, FormRecords, [], [], []);
+    public static VersionScope Scope { get; } = new(typeof(Product).FullName!, FormRecords, null, [], []);
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {

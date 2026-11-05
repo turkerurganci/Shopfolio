@@ -37,6 +37,9 @@ internal sealed class LegalTextVersion
 
     public int Version { get; private set; } = 1;
 
+    /// <summary>Raises the version by one; every save of the text calls it (06 2.6.2; 09 10.2 item 1).</summary>
+    public void BumpVersion() => Version++;
+
     public bool IsDraft => PublishedAt is null;
 
     public static LegalTextVersion CreateDraft(LegalTextType type, string text, DateTimeOffset now)

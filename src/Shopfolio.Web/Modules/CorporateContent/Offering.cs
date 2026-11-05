@@ -39,7 +39,10 @@ internal sealed class Offering
     /// <summary>The moment the address was fixed: the first publication; once filled the address never changes (06 4.72).</summary>
     public DateTimeOffset? SlugFixedAt { get; set; }
 
-    public int Version { get; set; } = 1;
+    public int Version { get; private set; } = 1;
+
+    /// <summary>Raises the version by one; every save of the record calls it (06 2.6.1; 09 10.2 item 1).</summary>
+    public void BumpVersion() => Version++;
 
     public static Offering Create(string name, string slug, int sortOrder, DateTimeOffset now)
     {

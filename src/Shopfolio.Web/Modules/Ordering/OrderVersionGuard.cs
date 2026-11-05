@@ -12,28 +12,13 @@ namespace Shopfolio.Modules.Ordering;
 /// payment record, the refund and the refund record's state, the customer's input bound to the order (the refund IBAN), the correction
 /// histories and the reservations - every record linked to the order by a chain of foreign keys. A save made under an order's row lock
 /// (<see cref="OrderLocks"/>) that writes any of them without raising that order's version by one is refused before any SQL is sent. The writes
-/// that do not raise it are the closed list of 06 2.6.4: <see cref="NonRaisingRecords"/> and <see cref="NonRaisingFields"/>, plus the links the
+/// that do not raise it are the closed list of 06 2.6.4: the records marked <see cref="IOrderVersionExempt"/> and <see cref="NonRaisingFields"/>, plus the links the
 /// database empties when a product or a variant is deleted (<see cref="EmptiedLinks"/>). A new order needs no raise. A save without an order
 /// lock (a record's own conditional update, a test's seed) is not looked at here; every order operation takes the lock (05 7.3.2). It does only
 /// this check: events and cache invalidation are not attached to it.
 /// </summary>
 internal sealed class OrderVersionGuard : SaveChangesInterceptor
 {
-    /// <summary>
-    /// Records whose writing never raises the order's version (06 2.6.4; 4.17 "Sürüm"): the internal note (its own conditional update), the
-    /// dispatch record and its outcome, the transition record (written in a transition, which raises it), the audit trail, the job row and the
-    /// inbound notification record (its handling raises the version if it applies a payment).
-    /// </summary>
-    public static readonly IReadOnlyList<string> NonRaisingRecords =
-    [
-        typeof(InternalNote).FullName!,
-        "Shopfolio.Modules.Notifications.DispatchRecord",
-        typeof(TransitionRecord).FullName!,
-        "Shopfolio.Modules.Administration.AuditLog",
-        "Shopfolio.Infrastructure.Jobs.Job",
-        "Shopfolio.Modules.Payment.InboundNotificationRecord",
-    ];
-
     /// <summary>
     /// Fields whose system write does not raise the order's version (06 2.6.4): the customer's download counter (its conditional update), the
     /// item's file link written when a file is removed or bound to a plane, and the order's account link written when the account is deleted or
@@ -58,7 +43,12 @@ internal sealed class OrderVersionGuard : SaveChangesInterceptor
 
     public static OrderVersionGuard Instance { get; } = new();
 
-    public static VersionScope Scope { get; } = new(typeof(Order).FullName!, null, NonRaisingRecords, NonRaisingFields, EmptiedLinks);
+    /// <summary>
+    /// The records whose writing never raises the order's version carry <see cref="IOrderVersionExempt"/> (06 2.6.4; 4.17 "Sürüm"): the
+    /// internal note (its own conditional update), the dispatch record and its outcome, the transition record (written in a transition, which raises it), the audit trail,
+    /// the job row and the inbound notification record (its handling raises the version if it applies a payment).
+    /// </summary>
+    public static VersionScope Scope { get; } = new(typeof(Order).FullName!, null, typeof(IOrderVersionExempt), NonRaisingFields, EmptiedLinks);
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {

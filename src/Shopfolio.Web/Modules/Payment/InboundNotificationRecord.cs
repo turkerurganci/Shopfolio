@@ -14,7 +14,7 @@ namespace Shopfolio.Modules.Payment;
 /// type and outcome. The record is deleted by its retention (the disposal's explicit deletion; 06 9.3); the order and refund record links
 /// are restrictive (06 7.2).
 /// </summary>
-internal sealed class InboundNotificationRecord
+internal sealed class InboundNotificationRecord : IOrderVersionExempt
 {
     public Guid Id { get; set; }
 

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.DataModel;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -10,7 +11,7 @@ namespace Shopfolio.Modules.Ordering;
 /// index); an emptied note deletes the row. The note does not raise the order's version: it is written by its own conditional update
 /// (09 10.9). The disposal deletes it with an explicit delete; the order link is restrictive, the administrator link is emptied.
 /// </summary>
-internal sealed class InternalNote
+internal sealed class InternalNote : IOrderVersionExempt
 {
     public Guid Id { get; set; }
 

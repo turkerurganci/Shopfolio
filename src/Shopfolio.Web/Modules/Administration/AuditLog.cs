@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Modules.Administration.Contracts;
 
 namespace Shopfolio.Modules.Administration;
@@ -20,7 +21,7 @@ namespace Shopfolio.Modules.Administration;
 /// turns a code into its text and into its area.
 /// </para>
 /// </summary>
-internal sealed class AuditLog
+internal sealed class AuditLog : IOrderVersionExempt
 {
     public Guid Id { get; private set; }
 

@@ -15,7 +15,7 @@ namespace Shopfolio.Modules.Notifications;
 /// restrictive: an order with a dispatch record cannot be deleted (06 2.2.5). The deletion by time and the emptying of the recipient and the
 /// event values are the disposal's (06 4.58).
 /// </summary>
-internal sealed class DispatchRecord
+internal sealed class DispatchRecord : IOrderVersionExempt
 {
     public Guid Id { get; set; }
 

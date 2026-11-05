@@ -58,6 +58,8 @@
 | Sık FAIL: hedefi bu task olan backlog kapatılmadı | ✓ | D-97 (görsel türevi payı), D-102 (görsel parçaları), D-32 (a) dosya yolları kapandı; DigitalFile parçaları T302'de |
 | Sık FAIL: belgede olmayan sabit / test sabiti kopyalıyor | ✓ | Sabitler `09 §3.5` satırında yazılı; testler genişlikleri `ImageServing`/`ImagingLimits`'ten türetir; P-23/P-26 eşitlik testi |
 | Sık FAIL: test gerçek saate bağlı / koleksiyon yalıtımı | ✓ | `ManualTimeProvider`; kendi koleksiyonu `Files` ve `CollectionDatabaseFixture` |
+| Düzeltme 1 sonrası: kriter kanıtları hâlâ geçerli | ✓ | Kriter 1–9'daki test adları ve `IFileStore` kullanımı (`ImageUploads`, `ImageDerivativeJobHandler`, `OrphanImageFilePart` → `ImageDisposalParts.cs`) `grep -n` ile yeniden bulundu; düzeltme yalnız `using` sırası ve `var` → açık tür |
+| Sık FAIL benzeri: biçim denetimi yerelde koşulmadı | ✓ | `dotnet format Shopfolio.slnx --verify-no-changes` PR öncesi kapıya eklendi (aşağıda) |
 
 ## Test Sonuçları
 
@@ -66,6 +68,10 @@
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj` | 1214 geçti, 0 kaldı |
 | Integration | ✓ | aynı proje, `--filter-namespace` parçaları (Model `--max-threads 3`) | 1232 geçti (Model 893; Disposal+Jobs+Concurrency+Files 147; öteki 192); Jobs'ta bir koşuda tek bir geçici hata, yeniden koşuda yok |
 | Contract | — | — | Bu task'ta sözleşme testi yok |
+
+## Düzeltme 1 — CI lint
+
+CI "1. Lint" (`dotnet format --verify-no-changes`) kırmızıydı: `Program.cs` ve `FilesHarness.cs` using sırası, `InMemoryFileStore.cs` iki yerde `var` (IDE0008). `dotnet format Shopfolio.slnx` ile düzeltildi; davranış değişikliği yok. Yerelde yakalanmadı çünkü yapımda yalnız build ve test koşulmuştu, `dotnet format --verify-no-changes` koşulmamıştı. Sonuç: `--verify-no-changes` çıkış 0, `-warnaserror` derleme temiz.
 
 ## Doğrulama
 

@@ -53,7 +53,7 @@ internal sealed class InMemoryFileStore : IFileStore
         Calls.Add($"Append:{area}:{key}");
         using MemoryStream copy = new();
         await content.CopyToAsync(copy, ct);
-        byte[] before = _files.TryGetValue((area, key), out var existing) ? existing.Content : [];
+        byte[] before = _files.TryGetValue((area, key), out (byte[] Content, DateTimeOffset WrittenAt) existing) ? existing.Content : [];
         _files[(area, key)] = ([.. before, .. copy.ToArray()], _time.GetUtcNow());
     }
 
@@ -72,7 +72,7 @@ internal sealed class InMemoryFileStore : IFileStore
     public Task<long> GetSizeAsync(FileArea area, string key, CancellationToken ct)
     {
         FileKeys.Require(area, key);
-        return Task.FromResult(_files.TryGetValue((area, key), out var file) ? (long)file.Content.Length : 0L);
+        return Task.FromResult(_files.TryGetValue((area, key), out (byte[] Content, DateTimeOffset WrittenAt) file) ? (long)file.Content.Length : 0L);
     }
 
     public Task DeleteAsync(FileArea area, string key, CancellationToken ct)

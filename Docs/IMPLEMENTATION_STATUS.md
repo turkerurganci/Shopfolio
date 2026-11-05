@@ -123,7 +123,7 @@
 | T221 | Zamanlayıcı | ✓ | ✓ PASS (tur 3) | — | #394 |
 | T222 | Anahtarlar ve tek kullanımlık bağlantılar | ✓ | ✓ PASS (tur 1) | — | #392 |
 | T223 | Dosya deposu | ✓ | ✓ PASS (tur 2; tur 1 ✗ FAIL) | — | #399 |
-| T224 | Çerez politikası | ⏳ | — | — | PR açıldı |
+| T224 | Çerez politikası | ⏳ | — | — | #400 |
 | T225 | Sistem kayıtları | ✓ | ✓ PASS (tur 3) | b8c180f | #389 |
 | T226 | Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi | ✓ | ✓ PASS (tur 1) | b8f20ad | #383 |
 | T227 | Zaman ve para | ✓ | ✓ PASS (tur 1) | 15daf95 | #382 |

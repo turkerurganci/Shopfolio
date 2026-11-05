@@ -83,7 +83,7 @@
 
 - **Branch:** `task/T224-cerez-politikasi`
 - **Commit:** PR'ın başlık SHA'sı dönüşte
-- **PR:** dönüşte
+- **PR:** #400
 - **CI:** yapım işçisi izlemez
 
 ## Dış Varsayımlar

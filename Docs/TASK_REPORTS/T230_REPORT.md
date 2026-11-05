@@ -1,6 +1,6 @@
 # T230 — Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi
 
-**Faz:** F2 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✓ Doğrulama tur 2 PASS (merge bekliyor) | **Tarih:** 2026-11-05
 
 > Taslağı yapım chat'i doldurdu; doğrulama chat'i finalize eder.
 
@@ -67,10 +67,32 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-05, bağımsız doğrulayıcı; dal head `a4a7d8a`) |
-| Bulgu sayısı | 1 (ORTA, S1, güvenlik) |
-| Düzeltme gerekli mi | Evet — B1 |
-| Bloke-etmeyen not (K) sayısı | 4 — K1–K4 D-87'ye forward (düzeltme turunda kapanabilir) |
+| Doğrulama durumu | ✓ PASS — tur 2 (2026-11-05, bağımsız doğrulayıcı; dal head `9938934`). Tur 1: ✗ FAIL (head `a4a7d8a`) |
+| Bulgu sayısı | Tur 2: 0 (tur 1 B1 kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 2 — K1–K2 D-88'e forward. Tur 1: 4 — D-87 ✅ |
+
+### Doğrulama tur 2 — validator kanıtları
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Serilog; tek yapılandırma noktası `LoggingSetup` | ✓ | `src/`'de `Serilog` adı yalnız `Infrastructure/Logging/`; `Program.cs` yalnız `AddApplicationLogging()` + `AddAuditLineWriter()`; `ReadFrom.Configuration` yok, `src/`'de kayıtlı `ILogEventSink`/zenginleştirici yok; `LoggingSourceScanTests` yeşil, ihlal örnekleri kırmızı |
+| 2 | Üç yazıcı üç dosya; gün adı | ✓ | `Writers_WriteThreeSeparateFilesNamedByPrefixAndDay` (yerel, gerçek dosya); `AuditLogWriter` günü `TurkeyTime.DateOf(now)` |
+| 3 | Sınır kapalı; yalnız imha siler; bilgim tarihli adlar pakete karşı | ✓ | `retainedFileCountLimit: null`, `fileSizeLimitBytes: null`; **bozma sınaması:** `retainedFileCountLimit: 31` yapılınca `Writers_WithMoreFilesThanTheLibraryDefaultKeeps_DeleteNoFile` kırmızı (beklenen 41, gerçek 31), geri alındı; `Serilog.Sinks.File` 7.0.0 XML belgesi: `AuditTo.File`'ın dört aşırı yüklemesinde `rollingInterval`/`retainedFileCountLimit`/`fileSizeLimitBytes` yok — `09 §18.1` madde 2, 3, 5 değişikliği olguyu yazar, madde 5'in önceden izinli yedek yolunu seçer; kural gevşemedi |
+| 4 | Düzey çatıyı ve veri erişimini indirmez; denetim düzeyden bağımsız | ✓ | `MinimumLevel.Warning()` + `Override("Shopfolio", …)`; Debug/Information ve Error testleri yeşil |
+| 5 | `IAuditLineWriter`; hata çağırana; normal yazıcı istek düşürmez; `AuditLogWriter` | ✓ | `AuditLogWriter.Write` yakalamaz (aç, yaz, boşalt, kapat); yazılamayan dizinde iki yazıcı da `IOException`, canlılık 200; saat bir kez okunur (D-87 K1 testi); PR #386 açıklamasında bilgim tarihli adlar ve seçilen yazıcı (KK5) |
+| 6 | Tek JSON, camelCase, biçimleyici, zenginleştirici, maskeleyiciler | ✓ | Biçimleyici/zenginleştirici/yol testleri; **tur 1 B1 kapandı:** `writeToProviders: false`; **bozma sınaması:** `true` yapılınca `ErrorLine_WithAnEmailAndAnAddress_ReachesNoProviderOfTheHostAndNoPersonalDataTheFile` kırmızı (sağlayıcı satır aldı), geri alındı — konteyner çıktısına uygulama satırı inmez (`05 §9.2.3`). Gölgeleme boşluğu K1 (D-88) |
+| 7 | Kapalı `LogEvents` | ✓ | Liste `09 §18.2` madde 3 ile eşit; biçimleyici bilinmeyen adı ne alana ne iletiye yazar; iki tarama (`@event` parametreli ve genel biçim) + ihlal örnekleri |
+| 8 | Red satırı biçimi | ✓ | `Format_FieldValidationRejection_IsOneLineWithAFieldsArray`, `Format_OtherRejection_HasASingleCode` |
+| 9 | Silme ve komut satırı iç kimlikle | ✓ | Fabrikalar yalnız `(string, Guid)`; satır alanları birebir (`time, level, category, event, kind/command, recordId/accountId, message`) |
+
+**Task satırları (`12 §7.5`):** tur 1 ile aynı — T230'un `Durum` hücresi yok (`VAL-A991` T225/T231'in uçtan uca satırı); `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları (tur 2) → D-88:** K1 çağıranın `{Path}` (ya da öteki istek alanı adlı) özelliği zenginleştiricinin maskeli `path`'inin yanına ikinci, maskesiz `path` yazar (validator sondası; bugün `src/`'de böyle şablon yok) — T231. K2 `09 §18.2` madde 1 `level` satırı `Fatal`'ı saymaz; runbook C satır 5'in atfı bu maddeye.
+
+Testler (validator, yerel): build `-warnaserror` 0 uyarı · `dotnet format --verify-no-changes` 0 · Unit 648/648 · betik testleri 4/4 · Integration 1018/1018 (Logging 13, Web 54, Database 35, FileSecrets 24, Model 482 + 410; PostgreSQL 18 `shopfolio-t230-val-pg`, silindi) · `dotnet restore --locked-mode` 0, `git status` temiz · dal CI 41943697506 `success` (head `9938934`).
+
+**Yapım raporu karşılaştırması (tur 2):** kriter ve öz denetim tabloları kanıtlı, sonuçlar benimkiyle aynı. Küçük uyuşmazlıklar: "Açılan/kapanan D-kaydı: yok" satırı D-87'nin bu turda kapandığını yazmaz; Model sayısı 893 yazılmış, validator koşusunda 892 (482 + 410). Öz denetimin güvenlik satırı gölgeleme boşluğunu (K1) görmez; bugün tetikleyen çağrı olmadığı için bulgu değil.
 
 ### Doğrulama tur 1 — validator kanıtları
 

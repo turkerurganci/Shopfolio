@@ -5,7 +5,8 @@ namespace Shopfolio.UnitTests.Fakes;
 /// <summary>
 /// Hand-written stateful fake of <see cref="IEmailGateway"/> (09 19.1 items 3 and 6, 11.1 item 8). It never leaves the process: each job
 /// returns the next queued result of its family, or the job's default when none is queued, and keeps every call in order. The messages it was
-/// given are kept, so a test reads what would have been sent.
+/// given are kept, so a test reads what would have been sent. A single failed call is queued as its class
+/// (<see cref="FakeFailures.ResultOf{TResult}"/>); a lasting outage is <see cref="Outage"/> (T204 criterion 1).
 /// </summary>
 internal sealed class FakeEmailGateway : IEmailGateway
 {
@@ -17,6 +18,9 @@ internal sealed class FakeEmailGateway : IEmailGateway
     public EmailSendResult DefaultSend { get; set; } = new EmailSendResult.Sent();
 
     public BounceQueryResult DefaultBounceQuery { get; set; } = new BounceQueryResult.List([]);
+
+    /// <summary>The service is down while set: both jobs answer their family's class of this failure, the queues are left and the call is kept.</summary>
+    public ExternalCallFailureKind? Outage { get; set; }
 
     /// <summary>The calls in the order they were made.</summary>
     public IReadOnlyList<FakeCall> Calls
@@ -61,6 +65,11 @@ internal sealed class FakeEmailGateway : IEmailGateway
         lock (_gate)
         {
             _calls.Add(new FakeCall(nameof(SendAsync), message));
+            if (Outage is { } kind)
+            {
+                return Task.FromResult(FakeFailures.ResultOf<EmailSendResult>(kind));
+            }
+
             return Task.FromResult(_sends.Count > 0 ? _sends.Dequeue() : DefaultSend);
         }
     }
@@ -71,6 +80,11 @@ internal sealed class FakeEmailGateway : IEmailGateway
         lock (_gate)
         {
             _calls.Add(new FakeCall(nameof(QueryBouncesAsync), since));
+            if (Outage is { } kind)
+            {
+                return Task.FromResult(FakeFailures.ResultOf<BounceQueryResult>(kind));
+            }
+
             return Task.FromResult(_bounceQueries.Count > 0 ? _bounceQueries.Dequeue() : DefaultBounceQuery);
         }
     }

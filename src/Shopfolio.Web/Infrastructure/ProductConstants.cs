@@ -36,6 +36,15 @@ internal static class ProductConstants
     /// <summary>P-36 — window of the invalid coupon code limit L6, in minutes (Z-27).</summary>
     public const int InvalidCouponAttemptWindowMinutes = 15;
 
+    /// <summary>P-38 — first retry of an e-mail that could not be sent, in minutes from the first attempt (Z-26; <c>DispatchRecord.NextAttemptAt</c>).</summary>
+    public const int DispatchFirstRetryMinutes = 5;
+
+    /// <summary>P-38 — second retry of an e-mail that could not be sent, in minutes from the first attempt (Z-26; <c>DispatchRecord.NextAttemptAt</c>).</summary>
+    public const int DispatchSecondRetryMinutes = 30;
+
+    /// <summary>P-38 — third and last retry of an e-mail that could not be sent, in minutes from the first attempt (2 hours; Z-26; <c>DispatchRecord.NextAttemptAt</c>).</summary>
+    public const int DispatchThirdRetryMinutes = 120;
+
     /// <summary>P-45 — retention of the sign-in record and of the system logs, in calendar months from the moment the record is made (Z-40).</summary>
     public const int SystemLogRetentionMonths = 6;
 

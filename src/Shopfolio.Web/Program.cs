@@ -11,6 +11,7 @@ using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.SignedEndpoints;
 using Shopfolio.Infrastructure.StartupDatabase;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
@@ -69,6 +70,10 @@ builder.Services.AddLinkRecords();
 // The link layer of the outside services (09 11.1, 11.2): the common call runner, the named HTTP clients without retry and, in development,
 // the e-mail gateway that writes to the capture tool (09 4.3 item 2). Modules take only the gateway interfaces.
 builder.Services.AddIntegrations(builder.Configuration);
+
+// The common pipeline of the signed machine endpoints (08 3.2; 09 11.1 item 5): body limit, signature, record, "received". The endpoint itself
+// is mapped by the task that builds it, with MapSignedEndpoint.
+builder.Services.AddSignedEndpoints();
 
 // One registration call per module (09 6 item 3).
 builder.Services.AddCatalogModule();

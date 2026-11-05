@@ -1,6 +1,6 @@
 # T230 — Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi
 
-**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama bekliyor) | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-05
 
 > Taslağı yapım chat'i doldurdu; doğrulama chat'i finalize eder.
 
@@ -67,10 +67,34 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-05, bağımsız doğrulayıcı; dal head `a4a7d8a`) |
+| Bulgu sayısı | 1 (ORTA, S1, güvenlik) |
+| Düzeltme gerekli mi | Evet — B1 |
+| Bloke-etmeyen not (K) sayısı | 4 — K1–K4 D-87'ye forward (düzeltme turunda kapanabilir) |
+
+### Doğrulama tur 1 — validator kanıtları
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Serilog; tek yapılandırma noktası `LoggingSetup` | ✓ | `src/`'de `Serilog` adı yalnız `Infrastructure/Logging/`'de; `Program.cs` yalnız `AddApplicationLogging()` ve `AddAuditLineWriter()`'ı çağırır; `LoggingSourceScanTests` yeşil, ihlal örneği kırmızı |
+| 2 | Üç yazıcı, üç dosya; gün adı | ✓ | `Writers_WriteThreeSeparateFilesNamedByPrefixAndDay` (yerel, gerçek dosya): `app-`, `audit-`, `command-<yyyyMMdd>.jsonl` |
+| 3 | Sınır kapalı; yalnız imha siler; bilgim tarihli ad pakete karşı | ✓ | `WriteTo.File(..., retainedFileCountLimit: null, fileSizeLimitBytes: null)`; 40 eski dosyada hiçbiri silinmez + kontrol grubu; `Serilog.Sinks.File` 7.0.0 XML belgesinde `AuditTo.File` aşırı yüklemeleri yalnız yol/düzey/kodlama/kanca alır — `rollingInterval` yok (doc değişikliği doğru) |
+| 4 | Düzey çatıyı ve veri erişimini indirmez; denetim düzeyden bağımsız | ✓ | `MinimumLevel.Warning()` + yalnız `Shopfolio` override; testler Debug/Information ve Error ile yeşil |
+| 5 | `IAuditLineWriter`; hata çağırana; normal yazıcı istek düşürmez; `AuditLogWriter` | ✓ | `AuditLogWriter.Write` yakalama yapmaz (aç, yaz, `Flush`, kapat); yazılamayan dizinde `IOException`, canlılık 200 |
+| 6 | Tek JSON, camelCase, biçimleyici, zenginleştirici, maskeleyiciler kurulu | ✓ | Dosya satırı için karşılandı (biçimleyici ve zenginleştirici testleri). Konsol kanalı ayrı bulgu (B1) |
+| 7 | Kapalı `LogEvents` | ✓ | Liste `09 §18.2` madde 3 ile eşit (`LoggingConsistencyTests`); biçimleyici bilinmeyen adı yazmaz; tarama kapsamı K3 |
+| 8 | Red satırı biçimi | ✓ | `Format_FieldValidationRejection_IsOneLineWithAFieldsArray`, `Format_OtherRejection_HasASingleCode` |
+| 9 | Silme ve komut satırı iç kimlikle | ✓ | `AuditLine` fabrikaları yalnız `(string, Guid)` alır; satırın alanları birebir sınanmış |
+
+**Task satırları (`12 §7.5`):** task'ın kaynakları `05 §9.1`, `09 §18` ve devir kararlarıdır (KP değil); matriste bu kaynağı ana kaynak alan tek satır `VAL-A991` uçtan uca maskelemedir (ters vekil + uygulama kaydı; T225/T231) — T230'un `Durum` hücresi yok (T205 emsali).
+
+**B1 (ORTA, S1, güvenlik):** `LoggingSetup.AddApplicationLogging` `UseSerilog(..., writeToProviders: true)` ile her Serilog olayını çatının kayıtlı sağlayıcılarına da iletir; `WebApplication.CreateBuilder`'ın sağlayıcıları kalır (yorum: "the providers the host has besides stay (the console)"). Validator sondası (geçici test, silindi): sunucuda `ConsoleLoggerProvider`, `DebugLoggerProvider`, `EventSourceLoggerProvider`, `EventLogLoggerProvider` kayıtlı; `Error` düzeyinde iletisi `secret a@b.com Street 5` olan istisna sağlayıcıya istisna nesnesiyle olduğu gibi ulaşır — konsol biçimleyicisi `Exception.ToString()`'i (ileti dahil) ve şablonun bütün özelliklerini (biçimleyicinin dışarıda bıraktığı kişisel veri adlı özellikler dahil) yazar. Konsol konteynerin çıktısıdır: `05 §9.2.3` "konteynerin kendi çıktısı yalnız açılış ve çökme iletileri için … tutulur ve kişisel veri taşımaz", `05 §9.1.5` "hiçbir sistem kaydına, hiçbir seviyede". `09 §18.2` madde 2c'nin (iletiyi hiç yazmama) ve (c) katmanının dosya dışında bir yan yolu açık kalır. Düzeltme yönü: üretim sunucusunda sağlayıcılara iletmeyi kapat (`writeToProviders: false` ya da çatı sağlayıcılarını temizle); testlerin bellek sağlayıcısı (`CollectingLoggerProvider`) ayrı bir yoldan (ör. test sunucusunda Serilog'a ek yazıcı ya da dosyayı okuma) beslenir; konteyner çıktısına yalnız açılış/çökme kalır; bir test konsol sağlayıcısının olay almadığını sınar.
+
+**K-notları:** K1–K4 → D-87 (saat iki kez okunuyor; `Fatal` düzey adı `09 §18.2` tablosunda yok; olay adı taraması yalnız `[LoggerMessage]`; yorumda madde numarası). D-86 (K2) T230'u seçeneklerden biri sayar; bu dal `05 §9.1.3`'e dokunmadı, kayıt açık kalır.
+
+Testler (validator, yerel): build `-warnaserror` 0 uyarı · `dotnet format --verify-no-changes` 0 · Unit 643/643 (Consistency dahil) · betik testleri 4/4 · Integration 1016/1016 (Logging 11, Web 54, Database 35, FileSecrets 24, Model 482 + 410; gerçek PostgreSQL 18) · `dotnet restore --locked-mode` 0 · dal CI run 41939833278 `success` (head `a4a7d8a`).
+
+**Yapım raporu karşılaştırması:** kriter tablosu ve öz denetim tablosu kanıtlı, uyumlu; tek uyuşmazlık güvenlik taraması satırı ("satırda istisna iletisi … yok") — yalnız dosya satırına bakıyor, `writeToProviders: true`'nun konsol kanalını görmüyor (B1).
 
 ## Altyapı Değişiklikleri
 

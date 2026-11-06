@@ -1,6 +1,6 @@
 # T214 — Kısa süreli bildirim kodları
 
-**Faz:** F2 | **Durum:** ⏳ Yapım bitti, doğrulama bekliyor | **Tarih:** 2026-11-06
+**Faz:** F2 | **Durum:** ✓ Doğrulama tur 1 PASS | **Tarih:** 2026-11-06
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -74,10 +74,18 @@ Sık FAIL nedenleri (`sik-fail-nedenleri.md`) denetimi:
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — (doğrulama bekliyor) |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-06, head `479c891`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 — K1 → D-146 (yeni) |
+
+**Validator kanıtı (tur 1, 2026-11-06, `479c891`; dal CI'ı run 42201202210 success):** kapılar: working tree temiz, `core.hooksPath` `scripts/git-hooks` (ana deponun mutlak yolu); ana dal son üç run (42195116854, 42195116675, 42182118563) success; hafızada T214 satırı var. Kriter 1–6 ve KK1–KK6 ✓ — kod okundu, testler doğrulama anında yeniden koşuldu: `dotnet build -warnaserror` 0/0, `dotnet format --verify-no-changes` çıkış 0, Unit 2307/2307, betik testleri 4/4, Integration 1599/1599 (PostgreSQL 18; Web 427, Security+Concurrency+Pages+küçük gruplar 168, Jobs+Database+kök 112, Model 482 + 410), sonrası `git status` temiz ve `dotnet restore --locked-mode` çıkış 0. Bağımsız sondalar: (1) `07 §6.3`'ün üç tablosu testten ayrı `awk`/`grep` ile ayrıştırıldı — 25 kod, yinelenen yok; kilit dosyasıyla `diff` boş. (2) `QuantityExceedsOpen`'ın iki enumda bulunması belgeyle uyumlu: `07 §6.2.7` satırı "müşterinin işlemlerinde 303 ve aynı kod `notice`'te (§6.3.3)" der. (3) Okuma `ListFilters` ile aynı ölçüdedir (tam ad, sayı ve harf farkı yok sayılır); `07 §2.6.6` geçersiz değeri yok sayar. (4) D-121'in 303'ü `07 §2.3.2` ve §6.3.2 (`SessionExpired` → UC-54, UC-84) ile uyumlu; GET 302 ve çıkış değişmez. (5) Daldaki `09 §5.3` m.6 / §8.2 m.1 eklemeleri yalnız kodun yerini ve tek yazıcıyı adlandırır, `07`'nin davranışını değiştirmez — karar kaydı gerekmez. (6) Backlog: D-121 kapanışı testle kanıtlı; D-47 (2) kilit testiyle kanıtlı, (1) açık kalır; D-109'un T214 payı kanıtlı (`GoogleIdentityFailure` kodda yok), kalan T343/T409'a yeniden hedeflendi — gerekçe: sayfalar o task'larda doğar.
+
+**Task satırları (`12 §7.5`):** T214 KP eşlemesi taşımaz (`11 §7.1`: `07 §6.3`); satırlar kaynak bölümle grep'lendi (`VAL-A553`…`VAL-A577`, `VAL-A669`, `VAL-A670`, `VAL-A675`, `VAL-A679`, D-121'in `VAL-A607`'si). Her biri bir kodun ya da kuralın uçtaki ve ekrandaki davranışıdır (sepet, kayıt, giriş ekranı gibi uç task'larının ekranı); kod listesi ve tek yazıcı o davranışı tek başına üretmez — `Durum` değişmedi, hepsi `BEKLEMEDE`.
+
+**K-notları:** K1 → D-146: `NoticeParameterSourceScan` yalnız tırnaklı adı ve adres literallerini arar; sayfa işleyicisinin `notice` adlı parametresi, `SupportsGet` özelliği ve yazıcı dışında `NoticeParameter.ParameterName` ile okuma bulgu olmaz (bugün örneği yok).
+
+**Yapım raporu karşılaştırması:** verdict uyumlu; öz denetim tablosu var ve her maddesi kanıtlı. Fark 1: yapım Integration'ı 1600 diye yazar; doğrulayıcının bölünmüş tam koşusu 1599 test saydı (hepsi geçti, atlanan yok) — sayım farkı, kırılma değil. Fark 2: yapımın "kaynak taraması" kanıtı tırnaksız bağlamayı kapsamaz (K1). Fark 3: Known Limitations 2'nin (giriş ekranının mesajı) izi kapanmış D-121'in notundadır; açık iz `12` VAL-A607 (KRİTİK, `BEKLEMEDE`) ve `11` T546 kriter 4'tür.
 
 ## Altyapı Değişiklikleri
 

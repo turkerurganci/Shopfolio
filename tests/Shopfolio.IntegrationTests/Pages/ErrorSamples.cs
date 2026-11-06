@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
@@ -42,7 +43,7 @@ public class ErrorSampleModel : PageModel, IOutcomeTarget
                 break;
             case "timeout":
                 // The session time out of the database (09 10.7): a statement that runs past its time is cancelled by the server with 57014.
-                await using (var transaction = await db.Database.BeginTransactionAsync(ct))
+                await using (IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(ct))
                 {
                     await db.Database.ExecuteSqlRawAsync("SET LOCAL statement_timeout = '200ms'", ct);
                     await db.Database.ExecuteSqlRawAsync("SELECT pg_sleep(5)", ct);

@@ -69,6 +69,8 @@ Kriter 1–9 ve KK1–KK9 bu turda baştan, kendi diff'inde yeniden denetlendi (
 | Sık FAIL 4: geçici çözüm backlog'suz | ✓ | D-135…D-139 |
 | Sık FAIL 5: kabul kriteri kısmen | ✓ | 1–9 karşılandı; 5. ve 6. kriterin başka task'a ait payları plan metninde zaten T215/T203/T314'te |
 
+CI düzeltmesi: Lint `dotnet format --verify-no-changes` iki hata verdi (`Program.cs` using sırası, `ErrorSamples.cs` IDE0008); yalnız biçim değişti (using sırası, `var` yerine `IDbContextTransaction`), davranış aynı. Yerelde `restore --locked-mode`, `format --verify-no-changes` ve Consistency testleri (173/173) çıkış 0; `build -warnaserror` 0 uyarı; Unit 2221/2221. Yukarıdaki kanıt adları grep ile teyit edildi.
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |

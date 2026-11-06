@@ -3,9 +3,9 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 
 using Shopfolio.Endpoints;
-using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.InstallationSettings;

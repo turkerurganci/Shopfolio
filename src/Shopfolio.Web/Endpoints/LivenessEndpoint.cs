@@ -17,7 +17,7 @@ internal static class LivenessEndpoint
 
     public static IEndpointRouteBuilder MapLivenessEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet(Path, HandleAsync);
+        endpoints.MapGet(Path, HandleAsync).WithMetadata(Shopfolio.Infrastructure.Errors.MachineEndpointMetadata.Instance);
         return endpoints;
     }
 

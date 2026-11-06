@@ -501,15 +501,15 @@ public sealed partial class VersionedFormPageTests
             $"/panel/surumlu-siparis/{order.Id}?handler=CustomerCancel",
             Form(("Customer.ItemId", item.Id.ToString()), ("Customer.OriginalOpenQuantity", "7")),
             Ct);
-        string html = await stale.Content.ReadAsStringAsync(Ct);
         int afterStale = await CancellationCountAsync(item.Id);
         using HttpResponseMessage good = await client.PostAsync(
             $"/panel/surumlu-siparis/{order.Id}?handler=CustomerCancel",
             Form(("Customer.ItemId", item.Id.ToString()), ("Customer.OriginalOpenQuantity", "1")),
             Ct);
 
-        Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
-        Assert.Contains(ConflictControls.OrderMessage, DecodedBody(html), StringComparison.Ordinal);
+        // D-130 (07 2.4.3, 2.7.1; VAL-A582, VAL-A689): the customer's shown open quantity that no longer holds is a 303 to the order with the reason, not a 409.
+        Assert.Equal(HttpStatusCode.SeeOther, stale.StatusCode);
+        Assert.Equal($"/panel/surumlu-siparis/{order.Id}?notice=QuantityExceedsOpen", stale.Headers.Location?.OriginalString);
         Assert.Equal(0, afterStale);
         Assert.Equal(HttpStatusCode.SeeOther, good.StatusCode);
         Assert.Equal(1, await CancellationCountAsync(item.Id));

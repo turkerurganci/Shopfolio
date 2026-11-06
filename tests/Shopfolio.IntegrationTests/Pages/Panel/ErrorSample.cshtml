@@ -1,0 +1,20 @@
+@page "/panel/hata-ornegi"
+@model Shopfolio.IntegrationTests.Pages.PanelErrorSampleModel
+@{
+    if (Model.RenderFails)
+    {
+        throw new InvalidOperationException("t212 failure while the page is drawn");
+    }
+}
+<h1>Panel hata ornegi</h1>
+@foreach (var entry in ViewData.ModelState)
+{
+    foreach (var error in entry.Value!.Errors)
+    {
+        <p class="persistent">@error.ErrorMessage</p>
+    }
+}
+<form method="post" asp-antiforgery="true" action="/panel/hata-ornegi?handler=Save">
+    <input name="Input.Name" value="@Model.Input.Name" />
+    <button type="submit">Kaydet</button>
+</form>

@@ -91,6 +91,12 @@ public sealed class VersionedOrderModel : PageModel
                 return SampleOutcome.Done;
             },
             ct);
+        if (outcome.IsRejected)
+        {
+            // 07 2.4.3, 2.7.1 (D-130): the customer's item operation that the shown open quantity no longer fits is not a conflict - nothing is applied, 303 to the order with the reason, the page shows the current state.
+            return FormResults.SeeOther("/panel/surumlu-siparis/" + id + "?notice=QuantityExceedsOpen");
+        }
+
         return await AnswerAsync(outcome, id, ct);
     }
 

@@ -33,6 +33,7 @@ internal static class SignedEndpointRegistration
                 context,
                 context.RequestServices.GetRequiredService<TEndpoint>(),
                 context.RequestServices.GetRequiredService<ITransactionRunner>()))
-            .DisableAntiforgery();
+            .DisableAntiforgery()
+            .WithMetadata(Errors.MachineEndpointMetadata.Instance);
     }
 }

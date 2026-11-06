@@ -73,6 +73,18 @@ internal static class FormResults
         return result;
     }
 
+    /// <summary>
+    /// The page again after an unexpected error in a POST, status 500 (05 10.3.3; 09 8.1 item 3): the sent values and a lasting message at the level
+    /// of the action. Only the single catching layer returns it; a handler never does (09 8.1 item 1).
+    /// </summary>
+    internal static IActionResult UnexpectedFailure(PageModel page)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        PageResult result = page.Page();
+        result.StatusCode = StatusCodes.Status500InternalServerError;
+        return result;
+    }
+
     // The one rule of the site's own path (05 6.5.6; D-118): the control characters - the tab too - are refused as well as the network and backslash forms.
     internal static bool IsLocalPath(string path) => Security.ReturnPath.IsLocalPath(path);
 

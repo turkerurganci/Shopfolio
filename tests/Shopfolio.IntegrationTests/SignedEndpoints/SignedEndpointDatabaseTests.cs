@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
@@ -169,8 +170,11 @@ public sealed class SignedEndpointDatabaseTests : IAsyncLifetime
         builder.Services.AddScoped<DatabaseTestEndpoint>();
         builder.Services.AddAntiforgery();
         builder.Services.AddSignedEndpoints();
+        builder.Services.AddSingleton<UnexpectedErrorCounter>();
+        builder.Services.AddSingleton<UnexpectedErrorLayer>();
 
         _app = builder.Build();
+        _app.UseUnexpectedErrorLayer();
         _app.UseAntiforgery();
         _app.MapSignedEndpoint<DatabaseTestEndpoint, DatabaseTestNotice>(SignedPath);
 
@@ -265,29 +269,38 @@ public sealed class SignedEndpointDatabaseTests : IAsyncLifetime
     }
 
     // A notice that cannot be recorded is never "received" (05 4.5.2; 07 4.30.1): the pipeline does not catch the database error, it leaves the
-    // endpoint for the single catching layer (09 8.1 items 3, 6, 7; T212), whose machine endpoint row answers 500 with an empty body. Until that
-    // layer exists the test server hands the error to the client; nothing was recorded, no job row opened, and the pipeline wrote no line.
+    // endpoint for the single catching layer (09 8.1 items 3, 6, 7; T212, D-107), whose machine endpoint row answers 500 with an empty body, writes
+    // the error line (state MachineEndpoint, code UnexpectedOperationError) and feeds the counter of the status endpoint. The endpoint is a machine
+    // endpoint by the metadata MapSignedEndpoint writes, not by its path; nothing was recorded and no job row was opened.
     [Fact]
     public async Task DatabaseErrorOnTheCommit_LeavesTheEndpointForTheCatchingLayer_AndNothingIsRecorded()
     {
         _commit.BeforeCommit = _ => throw new NpgsqlException("test commit failure");
+        int before = _app!.Services.GetRequiredService<UnexpectedErrorCounter>().CountWithin(TimeSpan.FromMinutes(15));
 
-        await Assert.ThrowsAsync<NpgsqlException>(() => PostAsync(DatabaseTestEndpoint.Body()));
+        using HttpResponseMessage response = await PostAsync(DatabaseTestEndpoint.Body());
 
         _commit.BeforeCommit = null;
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(string.Empty, await response.Content.ReadAsStringAsync(Ct));
         await AssertNothingRecordedAsync();
-        Assert.DoesNotContain(_logs.Lines, line => line.Contains(LogEvents.UnexpectedError, StringComparison.Ordinal));
+        Assert.Contains(_logs.Lines, line => line.Contains(LogEvents.UnexpectedError, StringComparison.Ordinal)
+            && line.Contains(UnexpectedErrorCodes.UnexpectedOperationError, StringComparison.Ordinal)
+            && line.Contains(nameof(ErrorState.MachineEndpoint), StringComparison.Ordinal));
+        Assert.Equal(before + 1, _app.Services.GetRequiredService<UnexpectedErrorCounter>().CountWithin(TimeSpan.FromMinutes(15)));
     }
 
     [Fact]
     public async Task RecordThatBreaksARule_LeavesTheEndpointForTheCatchingLayer_AndNothingIsRecorded()
     {
         // The record's amount must not be negative (06 4.35, amount_not_negative): the insert fails in the database.
-        PostgresException error = await Assert.ThrowsAsync<PostgresException>(() => PostAsync(DatabaseTestEndpoint.Body(amount: "-1.00")));
+        using HttpResponseMessage response = await PostAsync(DatabaseTestEndpoint.Body(amount: "-1.00"));
 
-        Assert.Equal(PostgresErrorCodes.CheckViolation, error.SqlState);
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(string.Empty, await response.Content.ReadAsStringAsync(Ct));
         await AssertNothingRecordedAsync();
-        Assert.DoesNotContain(_logs.Lines, line => line.Contains(LogEvents.UnexpectedError, StringComparison.Ordinal));
+        Assert.Contains(_logs.Lines, line => line.Contains(LogEvents.UnexpectedError, StringComparison.Ordinal)
+            && line.Contains(nameof(ErrorState.MachineEndpoint), StringComparison.Ordinal));
     }
 
     [Fact]

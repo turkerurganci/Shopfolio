@@ -388,6 +388,10 @@ dotnet_naming_style.camelcase.capitalization = camel_case
 # Project rule (09 section 3.1 item 4): var only when the right-hand type is apparent.
 dotnet_diagnostic.IDE0008.severity = error
 
+# Project rule (09 section 8.1 item 6): the wide catch lives in six places only; every other place fails the build, and a suppression carries its reason.
+# The analysis level alone did not turn the rule on (D-25; shown by removing the suppression in LivenessProbe, T01 validation round 4).
+dotnet_diagnostic.CA1031.severity = error
+
 # Test methods are named Method_Condition_Expected (09 section 19.2 item 7), which CA1707 rejects.
 # Narrowest scope: the test projects only (09 section 3.1 item 5).
 [tests/**.cs]

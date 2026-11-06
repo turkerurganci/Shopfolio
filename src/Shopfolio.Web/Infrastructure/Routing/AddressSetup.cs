@@ -15,7 +15,7 @@ internal static class AddressSetup
     public static IMvcBuilder AddAddressRules(this IMvcBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        builder.Services.Configure<MvcOptions>(options => options.Filters.Add(new HandlerRequiredFilter()));
+        builder.Services.Configure<MvcOptions>(options => options.Filters.Add<HandlerRequiredFilter>(HandlerRequiredFilter.FilterOrder));
         return builder.AddRazorPagesOptions(options => options.Conventions.Add(new AddressConvention()));
     }
 }

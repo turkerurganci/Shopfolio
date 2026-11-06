@@ -81,8 +81,8 @@ Sık FAIL nedenleri taraması: (1) istisna darlığı: `RequestOriginSourceScanT
 ## Commit & PR
 
 - **Branch:** `task/T215-hiz-siniri-deneme-govde`
-- **Commit:** son baş (PR sayfasında)
-- **PR:** *(açılınca)*
+- **Commit:** dalın başı (PR sayfasında)
+- **PR:** #409
 - **CI:** *(yapım işçisi izlemez)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
 

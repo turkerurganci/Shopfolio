@@ -1,0 +1,20 @@
+@page "/odeme/hata-ornegi"
+@model Shopfolio.IntegrationTests.Pages.ErrorSampleModel
+@{
+    if (Model.RenderFails)
+    {
+        throw new InvalidOperationException("t212 failure while the page is drawn");
+    }
+}
+<h1>Hata ornegi</h1>
+@foreach (var entry in ViewData.ModelState)
+{
+    foreach (var error in entry.Value!.Errors)
+    {
+        <p class="persistent">@error.ErrorMessage</p>
+    }
+}
+<form method="post" asp-antiforgery="true" action="/odeme/hata-ornegi?handler=Save">
+    <input name="Input.Name" value="@Model.Input.Name" />
+    <button type="submit">Kaydet</button>
+</form>

@@ -138,6 +138,23 @@ public sealed class JobSourceScanTests
         Assert.Contains(nearFolder, f => f.Rule == JobSourceScan.JobTableText);
     }
 
+    [Fact]
+    public void Scan_InTheCatchingLayersFiles_LeavesOutOnlyTheBroadCatchRule_AndAFileOfTheSameNameElsewhereIsNotAPlace()
+    {
+        IReadOnlyList<string> layerFiles = [.. JobSourceScan.BroadCatchFiles.Where(f => f.Contains("/Infrastructure/Errors/", StringComparison.Ordinal))];
+
+        Assert.Equal(2, layerFiles.Count);
+        foreach (string file in layerFiles)
+        {
+            IReadOnlyList<(string Rule, int Line)> inPlace = JobSourceScan.Scan(file, ReadSample());
+            Assert.DoesNotContain(inPlace, f => f.Rule == JobSourceScan.BroadCatchText);
+            Assert.Contains(inPlace, f => f.Rule == JobSourceScan.ServiceText);
+
+            string elsewhere = "src/Shopfolio.Web/Modules/Ordering/" + Path.GetFileName(file);
+            Assert.Contains(JobSourceScan.Scan(elsewhere, ReadSample()), f => f.Rule == JobSourceScan.BroadCatchText);
+        }
+    }
+
     private static string ReadSample()
     {
         return File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "tests", "Shopfolio.UnitTests", "Architecture", "ViolationSamples", "Jobs", "BackgroundWorkViolations.cs"));

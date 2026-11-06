@@ -38,6 +38,23 @@ internal static class FormResults
         return new SeeOtherResult(localPath);
     }
 
+    /// <summary>
+    /// The same 303 written straight on a response, for the catching layer's middleware that has no action to return (09 8.1 item 2b). The path goes
+    /// through the same check as <see cref="SeeOther"/>: the redirect is written in this file and in the access denial only (05 6.5.6).
+    /// </summary>
+    public static void WriteSeeOther(HttpResponse response, string localPath)
+    {
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentNullException.ThrowIfNull(localPath);
+        if (!IsLocalPath(localPath))
+        {
+            throw new ArgumentException("The target of a redirect is a path of this site that starts with one slash (05 6.5.6).", nameof(localPath));
+        }
+
+        response.StatusCode = SeeOtherStatus;
+        response.Headers.Location = localPath;
+    }
+
     /// <summary>The page again with the values that were sent, status 422 (07 2.2.2, 2.7.1): the handler's model state carries the messages.</summary>
     public static IActionResult Redisplay(PageModel page)
     {
@@ -70,6 +87,18 @@ internal static class FormResults
         ArgumentNullException.ThrowIfNull(page);
         PageResult result = page.Page();
         result.StatusCode = ConflictStatus;
+        return result;
+    }
+
+    /// <summary>
+    /// The page again after an unexpected error in a POST, status 500 (05 10.3.3; 09 8.1 item 3): the sent values and a lasting message at the level
+    /// of the action. Only the single catching layer returns it; a handler never does (09 8.1 item 1).
+    /// </summary>
+    internal static IActionResult UnexpectedFailure(PageModel page)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        PageResult result = page.Page();
+        result.StatusCode = StatusCodes.Status500InternalServerError;
         return result;
     }
 

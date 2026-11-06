@@ -258,7 +258,9 @@ public sealed partial class LivenessEndpointTests
     [Fact]
     public void Start_WithoutConnectionString_StopsTheApplicationAndNamesTheSetting()
     {
-        using ShopfolioWebApplicationFactory factory = new(string.Empty);
+        // D-115: the startup check is the only thing under test. With the job runner running, a failed start let it touch the disposed provider and an
+        // ObjectDisposedException could surface in place of the first failure; the host is opened without the runner, and the whole chain of exceptions is searched.
+        using ShopfolioWebApplicationFactory factory = new(string.Empty, withJobRunner: false);
 
         Exception failure = Assert.ThrowsAny<Exception>(() => factory.CreateClient());
 

@@ -180,6 +180,7 @@ public sealed class CookieRulesTests
         {
             await filter.InvokeAsync(context, new FailingPublication());
         }
+#pragma warning disable CA1031 // Test stand-in for the single catch layer (09 8.1 item 2b); it keeps the exception for the assertion.
         catch (Exception exception)
         {
             reachedTheCatchLayer = exception;
@@ -187,6 +188,7 @@ public sealed class CookieRulesTests
             context.Response.Cookies.Append(CookieNames.Cart, "x");
             await ((CallbackResponseFeature)context.Features.Get<IHttpResponseFeature>()!).RunAsync();
         }
+#pragma warning restore CA1031
 
         Assert.IsType<TimeoutException>(reachedTheCatchLayer);
         Assert.Equal(500, context.Response.StatusCode);

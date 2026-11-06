@@ -12,7 +12,7 @@ namespace Shopfolio.Infrastructure.Security;
 /// <summary>
 /// The single-use value of a reauthentication (07 2.5.2; 05 6.1.5; K-971). A successful reauthentication writes a permission for the one operation it
 /// was started for into the session row and binds it to a value that is put into the hidden field <see cref="FieldName"/> of the operation's form
-/// (<see cref="Hidden"/>); the row keeps only the value's digest (06 4.39). The form's POST consumes the value with <see cref="TryConsumeAsync"/>:
+/// (<see cref="Hidden"/>); the row keeps only the value's digest (06 4.39). The form's POST consumes the value with <see cref="TryRedeemAsync"/>:
 /// one conditional update that takes the permission only while the session still stands and the operation and the value are the same, in the
 /// caller's own transaction, at the point where the operation is applied - a validation error or an unticked confirmation does not consume it. No row
 /// updated means no operation: a second submission finds the value consumed and the form asks for the reauthentication again (KK3), and an operation
@@ -51,7 +51,7 @@ internal sealed class ReauthenticationValues
     /// Consumes the permission with one conditional update: only while the session exists, holds the permission for <paramref name="operation"/> and
     /// its digest is the digest of <paramref name="value"/>. True means this call took it and the operation may run; false means it must not.
     /// </summary>
-    public async Task<bool> TryConsumeAsync(Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct)
+    public async Task<bool> TryRedeemAsync(Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(value))
         {

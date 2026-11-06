@@ -12,9 +12,8 @@ namespace Shopfolio.IntegrationTests.Pages.Panel;
 /// <summary>
 /// The test-only sample page of the model binding pattern (T211; 07 5.1): each handler binds its own input model by a parameter, two handlers of one form
 /// bind the same model (<c>SaveNote</c> and <c>SearchNotes</c> take <see cref="SaveNoteInput"/>), the model has no field for the price the server writes,
-/// and the <c>Items</c> list of <see cref="ReturnItemsInput"/> is one row per item. The page lives in the test host only; the anti-forgery check is T209's.
+/// and the <c>Items</c> list of <see cref="ReturnItemsInput"/> is one row per item. The page lives in the test host only; the test clients carry the forgery token (T209; ForgeryTokenHandler).
 /// </summary>
-[IgnoreAntiforgeryToken]
 public sealed class BindingFormModel : PageModel
 {
     private readonly BindingRecordStore _store;

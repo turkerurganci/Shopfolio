@@ -1,3 +1,5 @@
+using Microsoft.Net.Http.Headers;
+
 namespace Shopfolio.Infrastructure.Security;
 
 /// <summary>
@@ -34,6 +36,14 @@ internal sealed class SecurityHeadersMiddleware
             ? SecurityHeaders.ReferrerPolicyDefault
             : SecurityHeaders.ReferrerPolicyKeyedPage;
         headers["Permissions-Policy"] = SecurityHeaders.PermissionsPolicy;
+
+        // Every 404 is the one answer of a denied or missing record (07 2.3.3): the panel and the account folders write no-store on all their answers, so the
+        // other 404s - the order pages, a route that matches nothing - carry it too, and no header says which of them a request reached.
+        if (context.Response.StatusCode == StatusCodes.Status404NotFound && !headers.ContainsKey(HeaderNames.CacheControl))
+        {
+            headers.CacheControl = SecurityHeaders.NoStore;
+        }
+
         return Task.CompletedTask;
     }
 }

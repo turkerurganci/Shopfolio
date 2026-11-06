@@ -71,20 +71,20 @@ internal sealed class ForgeryProtectionFilter : IAsyncPageFilter, IOrderedFilter
     }
 
     /// <summary>
-    /// Whether the check is in force for this page: the policy of the highest order decides, the way the framework's own check does it, so the marker of
-    /// <see cref="ForgeryProtectionPolicy"/> (order 100) is in force unless the page carries a policy of a higher order - the framework's ignore attribute
-    /// (order 1000). A page with that attribute is the exception a source scan keeps out of the application.
+    /// Whether the check is in force for this page: whenever the marker <see cref="ForgeryProtectionPolicy"/> is registered, and the page cannot take
+    /// it back. The marker's order (1001) is above the framework's ignore attribute (1000), so even a page that carried that attribute is checked
+    /// here (fail closed: a forgotten or foreign mark never opens a page, 05 6.5.5); a source scan keeps the attribute out of the application besides.
     /// </summary>
     internal static bool IsInForce(IList<IFilterMetadata> filters)
     {
-        // The marker is the last policy (order 1001, above the framework's 1000), so the framework's own check stands aside; the ignore attribute is honoured here.
-        return filters.OfType<ForgeryProtectionPolicy>().Any() && !filters.OfType<IIgnoreAntiforgeryToken>().Any();
+        return filters.OfType<ForgeryProtectionPolicy>().Any();
     }
 }
 
 /// <summary>
-/// The policy marker that makes the framework's own page check stand aside (see <see cref="ForgeryProtectionFilter"/>). Order 100: above the framework's
-/// automatic check (0) and below the ignore attribute (1000), which still switches the protection off for the page that carries it.
+/// The policy marker that makes the framework's own page check stand aside (see <see cref="ForgeryProtectionFilter"/>). Order 1001: above the framework's
+/// automatic check and the ignore attribute (both 1000), and the last policy wins, so the framework's check stands aside and the ignore attribute
+/// cannot switch the protection off.
 /// </summary>
 internal sealed class ForgeryProtectionPolicy : IAntiforgeryPolicy, IOrderedFilter
 {

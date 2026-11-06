@@ -25,9 +25,9 @@ public sealed class FormSecurityTests
     }
 
     [Fact]
-    public void Protection_IsOffOnAPageThatCarriesTheIgnoreAttribute_TheOneExceptionTheSourceScanKeepsOutOfTheApplication()
+    public void Protection_StaysInForceOnAPageThatCarriesTheIgnoreAttribute_FailClosed()
     {
-        Assert.False(ForgeryProtectionFilter.IsInForce([new ForgeryProtectionPolicy(), new AutoValidateAntiforgeryTokenAttribute(), new IgnoreAntiforgeryTokenAttribute()]));
+        Assert.True(ForgeryProtectionFilter.IsInForce([new ForgeryProtectionPolicy(), new AutoValidateAntiforgeryTokenAttribute(), new IgnoreAntiforgeryTokenAttribute()]));
     }
 
     [Fact]
@@ -38,11 +38,11 @@ public sealed class FormSecurityTests
     }
 
     [Fact]
-    public void TheFilter_RunsBeforeTheFieldValidation_AndTheMarkAboveTheFrameworksCheckButBelowTheIgnoreAttribute()
+    public void TheFilter_RunsBeforeTheFieldValidation_AndTheMarkIsTheLastPolicySoTheFrameworksCheckStandsAside()
     {
         Assert.True(ForgeryProtectionFilter.FilterOrder < 0);
         Assert.True(ForgeryProtectionPolicy.PolicyOrder > new AutoValidateAntiforgeryTokenAttribute().Order);
-        Assert.True(ForgeryProtectionPolicy.PolicyOrder < new IgnoreAntiforgeryTokenAttribute().Order);
+        Assert.True(ForgeryProtectionPolicy.PolicyOrder > new IgnoreAntiforgeryTokenAttribute().Order);
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public sealed class FormSecurityTests
 
         Assert.NotEqual(first, second);
         Assert.Equal("ConfirmationKey", ConfirmationKeys.FieldName);
-        Assert.Equal($"<input type=\"hidden\" name=\"ConfirmationKey\" value=\"{first}\" />", ConfirmationKeys.Render(ConfirmationKeys.Hidden(first)));
+        Assert.Equal($"<input name=\"ConfirmationKey\" type=\"hidden\" value=\"{first}\" />", ConfirmationKeys.Render(ConfirmationKeys.Hidden(first)));
         Assert.Equal("/siparis/2026-ABC123/teyit", ConfirmationKeys.MemberConfirmationPath("2026-ABC123"));
         Assert.Equal("/siparis/erisim/Ab-_9/teyit", ConfirmationKeys.AccessConfirmationPath("Ab-_9"));
         Assert.True(FormResults.IsLocalPath(ConfirmationKeys.MemberConfirmationPath("2026-ABC123")));
@@ -144,10 +144,10 @@ public sealed class FormSecurityTests
     {
         Assert.Equal("ReauthenticationToken", ReauthenticationValues.FieldName);
         Assert.Equal(
-            "<input type=\"hidden\" name=\"ReauthenticationToken\" value=\"v1\" />",
+            "<input name=\"ReauthenticationToken\" type=\"hidden\" value=\"v1\" />",
             ReauthenticationValues.Render(ReauthenticationValues.Hidden("v1")));
         Assert.Equal(
-            "<input type=\"hidden\" name=\"Input.ReauthenticationToken\" value=\"v&gt;1\" />",
+            "<input name=\"Input.ReauthenticationToken\" type=\"hidden\" value=\"v&gt;1\" />",
             ReauthenticationValues.Render(ReauthenticationValues.Hidden("v>1", "Input")));
         Assert.Equal(3, Enum.GetValues<ReauthenticationOperation>().Length);
     }

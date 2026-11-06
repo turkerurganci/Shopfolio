@@ -53,7 +53,7 @@ public sealed class FieldValidationTests
                     s.Configure<MvcViewOptions>(o => o.HtmlHelperOptions.ClientValidationEnabled = true);
                 }
             }));
-            Client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, HandleCookies = false, BaseAddress = new Uri("https://localhost") });
+            Client = ForgeryTokenHandler.CreateClient(_factory);
             // The sample page is a panel page (T207: the panel is closed by default), so the client carries the cookie of a panel session.
             string adminKey = TestSessions.AdminAsync(dsn).GetAwaiter().GetResult().Key;
             Client.DefaultRequestHeaders.Add("Cookie", $"{CookieNames.AdminSession}={adminKey}");

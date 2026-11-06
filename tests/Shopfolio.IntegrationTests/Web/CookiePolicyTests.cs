@@ -54,7 +54,7 @@ public sealed class CookiePolicyTests : IAsyncLifetime
         factory.WithWebHostBuilder(b => b.ConfigureServices(s => s.AddSingleton<IStartupFilter, CookieProbeStartupFilter>()));
 
     private static HttpClient ClientOf(WebApplicationFactory<Program> factory) =>
-        factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false, AllowAutoRedirect = false, BaseAddress = new Uri("https://localhost") });
+        ForgeryTokenHandler.CreateClient(factory);
 
     private static async Task<HttpResponseMessage> GetAsync(HttpClient client, string path, string? cookieHeader = null)
     {

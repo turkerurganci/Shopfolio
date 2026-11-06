@@ -51,37 +51,31 @@ public abstract class AccessSamplePage : PageModel
     }
 }
 
-[IgnoreAntiforgeryToken]
 public sealed class PanelOrdersModel(AccessWriteLog log) : AccessSamplePage(log)
 {
     protected override string Label => "panel-orders";
 }
 
-[IgnoreAntiforgeryToken]
 public sealed class PanelResetModel(AccessWriteLog log) : AccessSamplePage(log)
 {
     protected override string Label => "panel-reset";
 }
 
-[IgnoreAntiforgeryToken]
 public sealed class AccountHomeModel(AccessWriteLog log) : AccessSamplePage(log)
 {
     protected override string Label => "account-home";
 }
 
-[IgnoreAntiforgeryToken]
 public sealed class AccountAddressesModel(AccessWriteLog log) : AccessSamplePage(log)
 {
     protected override string Label => "account-addresses";
 }
 
-[IgnoreAntiforgeryToken]
 public sealed class AccountDeletedModel(AccessWriteLog log) : AccessSamplePage(log)
 {
     protected override string Label => "account-deleted";
 }
 
-[IgnoreAntiforgeryToken]
 public sealed class ProductSampleModel(AccessWriteLog log) : AccessSamplePage(log)
 {
     protected override string Label => "product";
@@ -100,7 +94,6 @@ public sealed class PanelSignInSampleModel : PageModel
 }
 
 /// <summary>A sign-out page of the panel (UC-109): it writes in <c>Save</c> only when a session reached it; the challenge sends a request without one to the sign-out's redirect.</summary>
-[IgnoreAntiforgeryToken]
 [SignOutPage]
 public sealed class PanelSignOutModel(AccessWriteLog log) : AccessSamplePage(log)
 {
@@ -108,7 +101,6 @@ public sealed class PanelSignOutModel(AccessWriteLog log) : AccessSamplePage(log
 }
 
 /// <summary>A sign-out page of the account folder, to try the storefront's sign-out redirect (UC-77).</summary>
-[IgnoreAntiforgeryToken]
 [SignOutPage]
 public sealed class AccountSignOutModel(AccessWriteLog log) : AccessSamplePage(log)
 {
@@ -116,7 +108,6 @@ public sealed class AccountSignOutModel(AccessWriteLog log) : AccessSamplePage(l
 }
 
 /// <summary>A panel page for a record that does not exist: every request gets the one 404 (07 2.3.3), and a POST writes nothing.</summary>
-[IgnoreAntiforgeryToken]
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822", Justification = "Razor Pages ignores static handler methods.")]
 public sealed class PanelRecordModel : PageModel
 {
@@ -126,7 +117,7 @@ public sealed class PanelRecordModel : PageModel
 }
 
 /// <summary>The member root of the order page (07 2.1.3, 2.3.3): the order of the signed-in customer, else the 404 of every denied access.</summary>
-[IgnoreAntiforgeryToken]
+[NoStore]
 public sealed class MemberOrderModel(IOrderingModule ordering, AccessWriteLog log) : PageModel
 {
     public async Task<IActionResult> OnGetAsync(string orderNumber, CancellationToken ct)
@@ -155,7 +146,8 @@ public sealed class MemberOrderModel(IOrderingModule ordering, AccessWriteLog lo
 }
 
 /// <summary>The access-key root of the order page (07 2.1.3, 2.3.4): the order that holds the key, else the 404 of every denied access.</summary>
-[IgnoreAntiforgeryToken]
+[KeyedLinkPage]
+[NoStore]
 public sealed class AccessOrderModel(IOrderingModule ordering, AccessWriteLog log) : PageModel
 {
     public async Task<IActionResult> OnGetAsync(string accessKey, CancellationToken ct)

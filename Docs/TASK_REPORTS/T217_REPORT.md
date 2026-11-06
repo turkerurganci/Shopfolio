@@ -72,10 +72,18 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-06, head `3cb1380`) |
-| Bulgu sayısı | 1 (B1 ORTA, S1) |
-| Düzeltme gerekli mi | Evet — B1 |
-| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-154, K2 bu PR'da kapatıldı) |
+| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-06, head `134c45c`); tur 1 ✗ FAIL (head `3cb1380`) |
+| Bulgu sayısı | Tur 2: 1 (B1-r2 ORTA, S1); tur 1'in B1'i kapandı |
+| Düzeltme gerekli mi | Evet — B1-r2 (ikinci iterasyon: düzeltmesi de FAIL verirse eskalasyon, `INSTRUCTIONS §3.3`) |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (K1 → D-155); tur 1: 2 (K1 → D-154, K2 kapatıldı) |
+
+### Doğrulama tur 2 — ✗ FAIL
+
+**B1 (tur 1) kapandı:** `OperationRunner` ortak altyapıda ve hiçbir `Shopfolio.Modules.*` türüne başvurmuyor; kilit `IOrderingModule.LockOrderAsync` (`Contracts`); `Shopfolio.Pages.Panel.OperationPatternPage` sayfa kuralı (`PageRule`) altında 0 ihlal ve gerçekten `OperationRunner`, `IOrderingModule`, `IOperationRule` kullanıyor (`ModuleBoundaryTests`, Unit 2636 yeşil).
+
+**B1-r2 (ORTA, S1; kriter 7, 8; KK8; `09 §25` "kod/doküman hiçbir üst doküman cümlesiyle çelişmiyor mu"):** düzeltme, B1'i ürün kuralını sayfa katmanına taşıyarak kapatıyor ve bunu `09 §8.3` madde 1'e bağlayıcı kural olarak yazıyor: "**Ürün kuralı sayfa katmanında yazılır; modül iç türü olmaz** … `IOperationRule<TContext>`'i sayfanın katmanında (`Pages/` altında, işlemin ekranının yanında) gerçekler … Kuralın hangi dosyada durduğu o ekran task'ının kabul kriteridir". Bu, üst belgelerle çelişir: `05 §3.3.1` ve §3.3.5 (modüller `02`'nin kural gruplarından türer; iptal, cayma ve iade kuralları "İptal, cayma ve iade" modülünündür), §3.3.12 (vitrin ve panel modül değildir; sayfa modülün arayüzünü çağırır), §3.3.13 (modülleri sunum/iş/veri katmanlarına ayırmak elenmiştir: "bir kuralın değişikliği her katmanı dolaşır, `02`'nin kural grupları kodda görünmez olur"); `07 §8.1.1` ("sayfa kuralı yeniden yazmaz, uygular"); `11` T323 (F3, Sepet ve sipariş modülü: "`03 §1.11`'in 41 işlemi tek bir 'yapılabilir işlemler' kararında yaşar … ekran ve uç aynı kararı kullanır"). D-153'ün "ilk T367" hedefi de F3 modül task'ıdır (sayfaları F5'te) — `09 §8.3` m.1'e göre kuralını yazacak sayfa katmanı yoktur. Ayrıca kural sayfadayken modülün `apply` `Contracts` yöntemi kuralsız yazar; modül kendi değişmezini korumaz. Karar kaydı yok; tur 1'in beklenen düzeltmesi ("kural ve kapılı sipariş işlemi `Ordering.Contracts` yüzeyinden") ise (a) seçeneği olarak gerekçeyle reddedilmiş (rapor "Seçilen yol"), ama ret üst belge değişikliği doğuruyor. Beklenen: ürün kuralı modülde kalır ve sayfaya `Contracts` yüzeyiyle ulaşır (ör. GET için `Contracts` okuma yöntemi açıklığı ve sunucu değerlerini döner; POST'ta modülün yazma yöntemi aynı kuralı kilit altında yeniden işletir ya da kural `Contracts`'tan açılır), `09 §8.3` m.1/m.3 buna göre yazılır; ya da sayfa katmanı yolu isteniyorsa proje sahibinin kararıyla K kaydı açılır ve `05 §3.3`, `11` T323/T367 hizalanır (L2 tek başına üst belgeyi değiştiremez).
+
+**Kriterler:** 1, 2, 4, 5, 6 ✓; 3 ✓ (kilit → sürüm → yükle → kural → yaz sırası `OperationRunner`'da; ret işlemi geri alır); 7 ✗ (örnek kurallar `03 §1.11.2`/§1.11.5 aralığını doğru uygular, ama kalıbın kuralın yerine dair bağlayıcı cümlesi üst belgeyle çelişir); 8 ✗ (GET ve POST aynı örneği çağırıyor — KK8 testi yeşil — ama "kural tek yerde" sayfa katmanında tanımlandığı için T323'ün tek kararıyla çelişir). KK1–KK7 ✓. **Doğrulayıcı sondası (geçici, silindi):** altı ret (müşteri kapalı 303, panel kapalı 422, eski sürüm 409, adet aşımı 303 ve 422, kapalı cayma 303) sonrası veritabanının **bütün tablolarının** içerik özeti değişmedi; ardından açık iptal yalnız `public.orders` ve `public.cancellations`'ı değiştirdi. Aynı sonda: `Input.Quantity=0` ve adetsiz POST 500 → K1 (D-155). **Test:** Release dışı Debug `-warnaserror` 0/0; `dotnet format --verify-no-changes` temiz; Unit 2636/2636; betik testleri 4/4; Integration 1695/1695 (parçalı, 0 atlanan; CI 42244744446 `total: 1695`, 0 atlanan; 1682 + 13 `OperationPatternTests` = 1695, keşfedilmeyen yok). Dal CI 42244744446 yeşil. `12` `Durum` değişmedi (T217'nin KP'si yok; `07 §8.1`'i anan VAL-A578, A716, B097, B117 BEKLEMEDE, ekran task'larının). Rapor: `helper-state/.../T217/dogrulama-raporu-r2.md`.
 
 ### Doğrulama tur 1 — ✗ FAIL
 

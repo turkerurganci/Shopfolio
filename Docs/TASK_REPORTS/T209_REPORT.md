@@ -1,6 +1,6 @@
 # T209 — Tek kullanımlık değerler, tekrar gönderim, sahteciliğe karşı koruma ve güvenlik başlıkları
 
-**Faz:** F2 | **Durum:** ✓ Tamamlandı (yapım; doğrulama bekliyor) | **Tarih:** 2026-11-06
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 ✓ PASS) | **Tarih:** 2026-11-06
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -78,10 +78,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | (doğrulayıcı doldurur) |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-06, head `449f94e`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 4 — K1 → D-132 (T213), K2 → D-133 (T342), K3 ve K4 bu PR'da kapandı |
+
+**Validator kanıtı (tur 1, 2026-11-06, `449f94e`; dal CI'ı run 42159301722 success):** kapılar: working tree temiz, `core.hooksPath` `scripts/git-hooks`; ana dal son üç run (42153788582, 42153788573, 42149223898) success; hafızada T209 satırı var. Kriter 1–9 ve KK1–KK9 ✓ — kod okundu (`ForgeryProtectionFilter`/`Policy` sırası 1001 > çatının 1000'i: çatının süzgeci en yakın ilke olmadığından çekilir, `IgnoreAntiforgeryToken` korumayı kapatamaz; `SecurityHeadersMiddleware` `OnStarting` ile en son yazar; `ReauthenticationValues.TryRedeemAsync` tek koşullu güncelleme, yalnız özet; `ConfirmationKeys` teyit yolları `07 §2.1.3` ile aynı) ve yerel testler koşuldu: derleme `-warnaserror` 0 uyarı, `dotnet format --verify-no-changes` temiz, Unit 2035/2035, betik testleri 4 dosya, Integration 1446/1446 (gerçek PostgreSQL 18, `shopfolio-t209-val-pg`, ad alanı parçaları: Web 274, Pages+Security+SignedEndpoints 28, Pages+Concurrency+Outages+Logging+FileSecrets 88, Jobs+Files+Disposal 128, Database+kök 35, Model 499+394); koşu sonrası `git status` temiz, `dotnet restore --locked-mode` 0. Taramalar dar: başlık muafiyeti üç başlık dosyası, `DisableAntiforgery`/yazan uç muafiyeti yalnız `SignedEndpointRegistration.cs`, imzalı uç yolu `AntiforgeryExemptions` üyesi olmalı; her kural ayrı ihlal örnekli. `VAL-A982` PASS: uygulama yanı `SecurityHeadersTests…KK7_KK9` ve `…ReverseProxy…KK9`, ters vekil yanı T05 ve T09 kurulum kanıtı (`installation-checks.sh redirect-hsts` 3 ok; Caddyfile'ın HSTS ve yönlendirme satırları o günden beri değişmedi). `09 §15.2` m.1, m.2, m.5 değişikliği davranışı `05 §6.5`, `07 §2.5`, `02 §8.3`'ten ayırmaz (mekanizmanın gerçeğe hizalanması; 404'e `no-store` `07 §2.3.3`'ün "aynı 404"ünün başlık karşılığı, `05 §6.5.4`'ün önbelleklenebilir saydığı içerik sayfası değil); T208'in emsaliyle karar kaydı gerekmez. K-notları: K1 sahtecilik reddi red satırı yazmıyor → D-132; K2 yeniden doğrulama değerinin oturum yazımı `ISessionService` dışında → D-133; K3 `09 §15.2` m.2 yazım hatası ("yoludur") bu PR'da düzeltildi; K4 404 `no-store` ve `09` hizalaması değerlendirildi, işlem gerekmez.
 
 ## Altyapı Değişiklikleri
 
@@ -94,8 +96,8 @@
 
 - **Branch:** `task/T209-tek-kullanimlik-sahtecilik-basliklar`
 - **Commit:** son commit PR'ın başıdır
-- **PR:** (PR gövdesinde)
-- **CI:** yapım işçisi izlemez (yönetici yardımcı düzeni)
+- **PR:** #405
+- **CI:** dal run 42159301722 success (validator, 2026-11-06)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
 
 ## Dış Varsayımlar

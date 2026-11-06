@@ -165,14 +165,14 @@ public sealed class EmailOutageTests : IAsyncLifetime
     private async Task<DispatchAttemptResult> AttemptAsync(ManualTimeProvider time, FakeEmailGateway gateway, Guid row)
     {
         await using AppDbContext db = NewContext();
-        DispatchAttempts attempts = new(db, new TransactionRunner(db, new JobEnqueueTracker(), new JobSignal()), gateway, time);
+        DispatchAttempts attempts = new(db, new TransactionRunner(db, new JobEnqueueTracker(), new JobSignal(), new CacheInvalidations(db), new AppCache()), gateway, time);
         return await attempts.SendAsync(row, Message, Ct);
     }
 
     private async Task<DispatchAttemptResult> RecordAsync(ManualTimeProvider time, Guid row, EmailSendResult result, DateTimeOffset startedAt)
     {
         await using AppDbContext db = NewContext();
-        DispatchAttempts attempts = new(db, new TransactionRunner(db, new JobEnqueueTracker(), new JobSignal()), new FakeEmailGateway(), time);
+        DispatchAttempts attempts = new(db, new TransactionRunner(db, new JobEnqueueTracker(), new JobSignal(), new CacheInvalidations(db), new AppCache()), new FakeEmailGateway(), time);
         return await attempts.RecordAsync(row, result, startedAt, Ct);
     }
 

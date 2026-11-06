@@ -1,0 +1,7 @@
+@page "/ornek"
+@attribute [OutputCache(Duration = 60)]
+@attribute [ResponseCache(Duration = 60)]
+<cache expires-after="@TimeSpan.FromMinutes(5)">@Model.Price</cache>
+<distributed-cache name="menu">menu</distributed-cache>
+@* <cache> in a Razor comment is not a finding *@
+<p>@Model.Price</p>

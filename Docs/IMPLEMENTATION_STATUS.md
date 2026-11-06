@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T219 (Arama motoru verileri kalıbı) doğrulama tur 1 ✓ PASS (head `f4e4505`, PR #413; kriter 1–8, KK1–KK8 ve `09 §25` ✓; Unit 2773, Integration 1715 (dal CI 42287139738 yeşil); `12` `Durum` değişmedi — KP-37'nin 38 satırı `BEKLEMEDE`; K1 → D-157 (Integration'ın göç paketi her koşuda yeniden kuruluyor)). Merge commit'i sonraki task dalında yazılır. Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T229 (Uygulama belleğinde önbellek) doğrulama tur 1 ✓ PASS (head `6d25c8d`, PR #414; kriter 1–7, KK1–KK7 ve `09 §25` ✓; Unit 2826, Integration 1729 (yerelde dokuz parça; dal CI 42300942345 yeşil); `12` `Durum` değişmedi — ilgili `VAL-A835` `BEKLEMEDE`; K1 → D-158 (`09 §20` m.9'un yorumu yalnız testte, taramanın darlığı)). Merge commit'i sonraki task dalında yazılır. Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -118,7 +118,7 @@
 | T216 | Tarih, sayı ve para biçimi: istek ve gösterim | ✓ | ✓ PASS (tur 1) | `9ab9bec` | #411 |
 | T217 | Yapılabilir işlemlerin sunucuda üretimi ve POST işleyicisinde yeniden denetim | ✓ | ✓ PASS (tur 3; tur 1–2 ✗ FAIL) | `d2b5379` | #412 |
 | T218 | Dokuz modülün iskeleti ve Contracts | ✓ | ✓ PASS (tur 3) | `d82b943` | #380 |
-| T219 | Arama motoru verileri kalıbı | ✓ | ✓ PASS (tur 1) | — | #413 |
+| T219 | Arama motoru verileri kalıbı | ✓ | ✓ PASS (tur 1) | `4ce191c` | #413 |
 | T220 | İş kuyruğu çalıştırıcısı | ✓ | ✓ PASS (tur 1) | `6a1ca3a` | #393 |
 | T221 | Zamanlayıcı | ✓ | ✓ PASS (tur 3) | `f8feec5` | #394 |
 | T222 | Anahtarlar ve tek kullanımlık bağlantılar | ✓ | ✓ PASS (tur 1) | `11fcfb3` | #392 |
@@ -128,7 +128,7 @@
 | T226 | Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi | ✓ | ✓ PASS (tur 1) | b8f20ad | #383 |
 | T227 | Zaman ve para | ✓ | ✓ PASS (tur 1) | 15daf95 | #382 |
 | T228 | Eşzamanlılık denetimi | ✓ | ✓ PASS (tur 1) | `36b586f` | #391 |
-| T229 | Uygulama belleğinde önbellek | ⬚ | — | — | — |
+| T229 | Uygulama belleğinde önbellek | ✓ | ✓ PASS (tur 1) | — | #414 |
 | T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ✓ | ✓ PASS (tur 2) | a2da89f | #386 |
 | T231 | Maskelemenin üç katmanının testleri | ✓ | ✓ PASS (tur 1) | dac48c8 | #387 |
 | T232 | Veri koruma halkası | ✓ | ✓ PASS (tur 2) | daace97 | #388 |

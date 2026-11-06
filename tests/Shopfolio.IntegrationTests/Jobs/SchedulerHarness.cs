@@ -293,6 +293,7 @@ internal sealed class SchedulerHarness : IAsyncDisposable
         services.AddSingleton(DataSource);
         services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, dsn));
         services.AddScoped<ITransactionRunner, TransactionRunner>();
+        services.AddAppCache();
         services.AddScoped<JobEnqueueTracker>();
         services.AddScoped<IJobQueue, JobQueue>();
         services.AddSingleton<IJobSignal, JobSignal>();

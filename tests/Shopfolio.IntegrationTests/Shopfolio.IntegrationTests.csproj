@@ -37,6 +37,8 @@
     <!-- The test images and the image reader of the image tests are shared the same way (T223); the fixture files are read from the repository. -->
     <Compile Include="..\Shopfolio.UnitTests\Imaging\ImageFixtures.cs" LinkBase="Imaging" />
     <Compile Include="..\Shopfolio.UnitTests\Imaging\ImageInspection.cs" LinkBase="Imaging" />
+    <!-- The in-memory cache pattern (T229): the module reads and the storefront page model the architecture test reads, run here on a real PostgreSQL. -->
+    <Compile Include="..\Shopfolio.UnitTests\Architecture\CachePattern.cs" LinkBase="Architecture" />
   </ItemGroup>
 
 </Project>

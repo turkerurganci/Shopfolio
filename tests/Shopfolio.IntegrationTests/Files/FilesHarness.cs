@@ -46,6 +46,7 @@ internal sealed class FilesHarness : IAsyncDisposable
         services.AddSingleton<ImageProcessor>();
         services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, dsn));
         services.AddScoped<ITransactionRunner, TransactionRunner>();
+        services.AddAppCache();
         services.AddScoped<JobEnqueueTracker>();
         services.AddSingleton<IJobSignal, JobSignal>();
         services.AddScoped<IJobQueue, JobQueue>();

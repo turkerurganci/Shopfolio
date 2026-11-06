@@ -162,6 +162,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         services.AddScoped<JobEnqueueTracker>();
         services.AddSingleton<IJobSignal, JobSignal>();
         services.AddScoped<ITransactionRunner, TransactionRunner>();
+        services.AddAppCache();
         return services.BuildServiceProvider();
     }
 

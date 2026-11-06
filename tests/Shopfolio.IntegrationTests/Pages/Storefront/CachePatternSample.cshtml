@@ -1,0 +1,12 @@
+@page "/odeme/onbellek-ornegi/{slug}"
+@using Shopfolio.Infrastructure
+@model Shopfolio.Pages.Storefront.CachePatternPage
+@* The test-only page of the in-memory cache pattern (T229): the price from the database, the shipping fee from the cache, the announcement's visibility now. *@
+<h1 class="product-name">@Model.Product!.Name</h1>
+<p class="price">@DisplayFormat.Amount(Model.Product.Price)</p>
+<p class="shipping-fee">@DisplayFormat.Amount(Model.Shipping!.ShippingFee)</p>
+@if (Model.Announcement is not null)
+{
+    <p class="announcement">@Model.Announcement.Text</p>
+}
+<p class="render">@System.Guid.NewGuid()</p>

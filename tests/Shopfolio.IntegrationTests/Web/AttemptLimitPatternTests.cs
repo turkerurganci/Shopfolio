@@ -73,6 +73,7 @@ public sealed class AttemptLimitPatternTests
         Assert.Contains(NeutralMessages.LimitExceeded, body, StringComparison.Ordinal);
         Assert.Null(blocked.Headers.RetryAfter);
         Assert.False(blocked.Headers.Contains("Retry-After"));
+        ErrorCodeLeakCheck.AssertNone(blocked, body); // D-143: the attempt limit's 429 names no code (09 8.2 item 5)
         Assert.DoesNotContain(threshold.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ", NeutralMessages.LimitExceeded, StringComparison.Ordinal);
     }
 

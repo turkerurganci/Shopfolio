@@ -172,6 +172,7 @@ internal sealed class RequestBodyLimitMiddleware
         HttpResponse response = context.Response;
         response.StatusCode = StatusCodes.Status413PayloadTooLarge;
         response.Headers.CacheControl = "no-store";
+        context.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.PayloadTooLarge);
         bool machine = endpoint?.Metadata.GetMetadata<MachineEndpointMetadata>() is not null || RateLimitScope.IsMachineEndpoint(context);
         if (machine)
         {

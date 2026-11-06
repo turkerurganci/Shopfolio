@@ -34,7 +34,7 @@ public sealed class UnexpectedErrorLayerTests
     [InlineData("OutcomeUncertain", "OutcomeUncertain")]
     public void TheCodeOfEachState_IsTheOneTheTableRecords(string state, string expected)
     {
-        Assert.Equal(expected, UnexpectedErrorCodes.For(Enum.Parse<ErrorState>(state)));
+        Assert.Equal(expected, ErrorClassifier.CodeOf(Enum.Parse<ErrorState>(state)).ToString());
     }
 
     [Fact]

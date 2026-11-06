@@ -2,6 +2,7 @@ using System.Text;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Errors;
@@ -24,7 +25,7 @@ public sealed class RequestBodyLimitMiddlewareTests
 
         public int NextReadBytes { get; set; }
 
-        public DefaultHttpContext Context { get; init; } = new();
+        public DefaultHttpContext Context { get; init; } = NewContext();
 
         public MemoryStream Response { get; } = new();
 
@@ -45,11 +46,14 @@ public sealed class RequestBodyLimitMiddlewareTests
         public string Html => Encoding.UTF8.GetString(Response.ToArray());
     }
 
+    // The refusal writes its line through the rejection log, which the application registers (09 8.2 item 3).
+    private static DefaultHttpContext NewContext() => new() { RequestServices = new ServiceCollection().AddLogging().AddSingleton<RejectionLog>().BuildServiceProvider() };
+
     private static RequestBodyClass? Class(string? name) => name is null ? null : Enum.Parse<RequestBodyClass>(name);
 
     private static Run Make(string method, RequestBodyClass? bodyClass, long? declaredLength, int actualBytes, bool machine = false, string path = "/panel/urun")
     {
-        DefaultHttpContext context = new();
+        DefaultHttpContext context = NewContext();
         context.Request.Method = method;
         context.Request.Path = path;
         context.Request.Body = new MemoryStream(new byte[actualBytes]);

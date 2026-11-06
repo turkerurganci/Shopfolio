@@ -2,10 +2,11 @@ using System.Net;
 using System.Threading.RateLimiting;
 
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.InstallationSettings;
-using Shopfolio.Infrastructure.Logging;
 
 namespace Shopfolio.Infrastructure.Security;
 
@@ -111,6 +112,7 @@ internal static class RequestRateLimiting
     public static IServiceCollection AddRequestRateLimiting(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<RejectionLog>();
         services.AddRateLimiter(_ => { });
         services.AddOptions<RateLimiterOptions>()
             .Configure<IOptions<RateLimitOptions>, TimeProvider>((options, settings, time) => Configure(options, settings.Value, time));
@@ -151,8 +153,7 @@ internal static class RequestRateLimiting
         response.Headers.CacheControl = "no-store";
 
         // 429 is no unexpected error (09 8.1): the line is the rate limit's own and the error counter does not see it (05 9.4.8).
-        ILogger logger = context.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(RequestRateLimiting).FullName!);
-        RateLimitLog.Exceeded(logger, LogEvents.RateLimitExceeded);
+        context.RequestServices.GetRequiredService<RejectionLog>().RateLimited();
 
         // A machine endpoint answers with no body; so does a request that has no page to show (07 2.8.4).
         if (RateLimitScope.IsMachineEndpoint(context))
@@ -167,10 +168,4 @@ internal static class RequestRateLimiting
             "<h1>Çok fazla deneme</h1><p>" + message + "</p><p><a href=\"/\">Ana sayfaya dön</a></p></main></body></html>",
             cancellationToken);
     }
-}
-
-internal static partial class RateLimitLog
-{
-    [LoggerMessage(Level = LogLevel.Warning, Message = "{Event}")]
-    public static partial void Exceeded(ILogger logger, string @event);
 }

@@ -20,26 +20,6 @@ internal enum ErrorState
     MachineEndpoint,
 }
 
-/// <summary>
-/// The closed codes the layer records (07 6.2, 6.4.2). They are text for now: the error code registry (T213) takes them over as members of
-/// <c>ErrorCode</c> and these constants are removed then (D-136).
-/// </summary>
-internal static class UnexpectedErrorCodes
-{
-    public const string UnexpectedPageError = "UnexpectedPageError";
-
-    public const string UnexpectedOperationError = "UnexpectedOperationError";
-
-    public const string OutcomeUncertain = "OutcomeUncertain";
-
-    public static string For(ErrorState state) => state switch
-    {
-        ErrorState.PageLevel => UnexpectedPageError,
-        ErrorState.OutcomeUncertain => OutcomeUncertain,
-        _ => UnexpectedOperationError,
-    };
-}
-
 /// <summary>The table of 09 8.1 item 3 as one pure function: the request method, whether the endpoint is a machine endpoint and whether the operation is marked.</summary>
 internal static class ErrorClassifier
 {
@@ -58,6 +38,14 @@ internal static class ErrorClassifier
 
         return markedOperation ? ErrorState.OutcomeUncertain : ErrorState.OperationLevel;
     }
+
+    /// <summary>The code the line of a state records (the "recorded code" column of 09 8.1 item 3; 07 6.2.1, 6.4.2): the machine endpoint records the operation-level code.</summary>
+    public static ErrorCode CodeOf(ErrorState state) => state switch
+    {
+        ErrorState.PageLevel => ErrorCode.UnexpectedPageError,
+        ErrorState.OutcomeUncertain => ErrorCode.OutcomeUncertain,
+        _ => ErrorCode.UnexpectedOperationError,
+    };
 }
 
 /// <summary>

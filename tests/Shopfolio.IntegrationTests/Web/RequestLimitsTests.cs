@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.Json;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.SignedEndpoints;
 using Shopfolio.IntegrationTests.Database;
@@ -46,7 +48,7 @@ public sealed class RequestLimitsTests
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-    private WebApplicationFactory<Program> Open(ManualTimeProvider time, int pages = 1000, int forms = 1000, EndpointCalls? calls = null)
+    private WebApplicationFactory<Program> Open(ManualTimeProvider time, int pages = 1000, int forms = 1000, EndpointCalls? calls = null, List<string>? logDirectory = null)
     {
         EndpointCalls seen = calls ?? new EndpointCalls();
         ShopfolioWebApplicationFactory factory = new(
@@ -56,6 +58,7 @@ public sealed class RequestLimitsTests
                 [RateLimitOptions.PageRequestsPerMinuteKey] = pages.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 [RateLimitOptions.FormSubmissionsPerMinuteKey] = forms.ToString(System.Globalization.CultureInfo.InvariantCulture),
             });
+        logDirectory?.Add(factory.LogDirectory);
         return factory.WithWebHostBuilder(b => b.ConfigureServices(s =>
         {
             s.AddSingleton<TimeProvider>(time);
@@ -300,6 +303,121 @@ public sealed class RequestLimitsTests
 
         using HttpResponseMessage form = await SendAsync(client, HttpMethod.Post, GeneralPath, new StringContent("x"));
         Assert.Equal(HttpStatusCode.OK, form.StatusCode);
+    }
+
+    // --- D-143, 09 8.2 items 3, 4 and 5: the refusals name no code and write their one line with it ---
+
+    [Fact]
+    public async Task The429_OfAPageAFormAndAMachineEndpoint_NamesNoErrorCode_InTheBodyTheHeadersOrTheContentHeaders()
+    {
+        await using WebApplicationFactory<Program> factory = Open(Clock(), pages: 1, forms: 1);
+        using HttpClient client = ClientOf(factory);
+        using HttpResponseMessage pageOk = await SendAsync(client, HttpMethod.Get, "/urunler", peer: "198.51.100.40");
+        using HttpResponseMessage machineOk = await SendAsync(client, HttpMethod.Get, "/sistem/canlilik", peer: "198.51.100.41");
+        using HttpResponseMessage formOk = await SendAsync(client, HttpMethod.Post, GeneralPath, new StringContent("x"), peer: "198.51.100.42");
+        Assert.NotEqual(HttpStatusCode.TooManyRequests, pageOk.StatusCode);
+        Assert.NotEqual(HttpStatusCode.TooManyRequests, machineOk.StatusCode);
+        Assert.NotEqual(HttpStatusCode.TooManyRequests, formOk.StatusCode);
+
+        using HttpResponseMessage page = await SendAsync(client, HttpMethod.Get, "/urunler", peer: "198.51.100.40");
+        using HttpResponseMessage machine = await SendAsync(client, HttpMethod.Get, "/sistem/canlilik", peer: "198.51.100.41");
+        using HttpResponseMessage form = await SendAsync(client, HttpMethod.Post, GeneralPath, new StringContent("x"), peer: "198.51.100.42");
+
+        foreach (HttpResponseMessage refused in new[] { page, machine, form })
+        {
+            Assert.Equal(HttpStatusCode.TooManyRequests, refused.StatusCode);
+            ErrorCodeLeakCheck.AssertNone(refused, await refused.Content.ReadAsStringAsync(Ct));
+        }
+
+        // The page answer has a content type header of its own: the scan reads it (response.Content.Headers).
+        Assert.Contains("Content-Type: text/html", ErrorCodeLeakCheck.HeaderText(page), StringComparison.Ordinal);
+        Assert.NotEmpty(await page.Content.ReadAsStringAsync(Ct));
+    }
+
+    [Fact]
+    public async Task The413_OfAPageAndAMachineEndpoint_NamesNoErrorCode_InTheBodyTheHeadersOrTheContentHeaders()
+    {
+        await using WebApplicationFactory<Program> factory = Open(Clock());
+        using HttpClient client = ClientOf(factory);
+
+        using HttpResponseMessage page = await SendAsync(client, HttpMethod.Post, GeneralPath, Bytes(64 * Kilobyte + 1));
+        using HttpResponseMessage machine = await SendAsync(client, HttpMethod.Post, MachinePath, Bytes(64 * Kilobyte + 1));
+
+        foreach (HttpResponseMessage refused in new[] { page, machine })
+        {
+            Assert.Equal(HttpStatusCode.RequestEntityTooLarge, refused.StatusCode);
+            ErrorCodeLeakCheck.AssertNone(refused, await refused.Content.ReadAsStringAsync(Ct));
+        }
+    }
+
+    [Fact]
+    public void TheLeakCheck_FindsACodeNameInAContentHeader_AndInTheBody()
+    {
+        using HttpResponseMessage inContentHeader = new(HttpStatusCode.TooManyRequests) { Content = new StringContent("x") };
+        inContentHeader.Content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment") { FileName = nameof(Shopfolio.Infrastructure.Errors.ErrorCode.RateLimitExceeded) };
+        using HttpResponseMessage inResponseHeader = new(HttpStatusCode.TooManyRequests) { Content = new StringContent("x") };
+        inResponseHeader.Headers.Add("X-Test", nameof(Shopfolio.Infrastructure.Errors.ErrorCode.PayloadTooLarge));
+        using HttpResponseMessage clean = new(HttpStatusCode.TooManyRequests) { Content = new StringContent("x") };
+
+        Assert.ThrowsAny<Xunit.Sdk.XunitException>(() => ErrorCodeLeakCheck.AssertNone(inContentHeader, "x"));
+        Assert.ThrowsAny<Xunit.Sdk.XunitException>(() => ErrorCodeLeakCheck.AssertNone(inResponseHeader, "x"));
+        Assert.ThrowsAny<Xunit.Sdk.XunitException>(() => ErrorCodeLeakCheck.AssertNone(clean, "RateLimitExceeded"));
+        ErrorCodeLeakCheck.AssertNone(clean, "x");
+    }
+
+    [Fact]
+    public async Task EachRefusal_WritesOneRejectionLineWithItsCode_Through_TheRejectionLog()
+    {
+        List<string> logs = [];
+        await using WebApplicationFactory<Program> factory = Open(Clock(), pages: 1, logDirectory: logs);
+        using HttpClient client = ClientOf(factory);
+        string limitedId = "t215-" + Guid.NewGuid().ToString("N");
+        string largeId = "t215-" + Guid.NewGuid().ToString("N");
+
+        using HttpResponseMessage first = await SendAsync(client, HttpMethod.Get, "/urunler", forwardedFor: null, peer: "198.51.100.50");
+        using HttpResponseMessage limited = await SendWithIdAsync(client, HttpMethod.Get, "/urunler", limitedId, "198.51.100.50");
+        using HttpResponseMessage large = await SendWithIdAsync(client, HttpMethod.Post, MachinePath, largeId, "198.51.100.51", Bytes(64 * Kilobyte + 1));
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, limited.StatusCode);
+        Assert.Equal(HttpStatusCode.RequestEntityTooLarge, large.StatusCode);
+        JsonElement limitedLine = Assert.Single(LinesOf(logs[0], limitedId));
+        JsonElement largeLine = Assert.Single(LinesOf(logs[0], largeId));
+        Assert.Equal(LogEvents.RateLimitExceeded, limitedLine.GetProperty("event").GetString());
+        Assert.Equal(nameof(Shopfolio.Infrastructure.Errors.ErrorCode.RateLimitExceeded), limitedLine.GetProperty("code").GetString());
+        Assert.Equal(LogEvents.ValidationRejected, largeLine.GetProperty("event").GetString());
+        Assert.Equal(nameof(Shopfolio.Infrastructure.Errors.ErrorCode.PayloadTooLarge), largeLine.GetProperty("code").GetString());
+        Assert.False(limitedLine.TryGetProperty("fields", out _));
+        Assert.False(largeLine.TryGetProperty("fields", out _));
+        Assert.Equal(typeof(Shopfolio.Infrastructure.Errors.RejectionLog).FullName, limitedLine.GetProperty("category").GetString());
+    }
+
+    private static async Task<HttpResponseMessage> SendWithIdAsync(HttpClient client, HttpMethod method, string path, string requestId, string peer, HttpContent? content = null)
+    {
+        using HttpRequestMessage request = new(method, path) { Content = content };
+        request.Headers.Add(PeerHeader, peer);
+        request.Headers.Add("X-Request-Id", requestId);
+        return await client.SendAsync(request, Ct);
+    }
+
+    // The lines of one request in the application log file (the writer keeps its file open, so the reader allows its access).
+    private static List<JsonElement> LinesOf(string logDirectory, string requestId)
+    {
+        List<JsonElement> lines = [];
+        foreach (string path in Directory.GetFiles(logDirectory, "app-*.jsonl"))
+        {
+            using FileStream stream = new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using StreamReader reader = new(stream);
+            while (reader.ReadLine() is { } text)
+            {
+                JsonElement line = JsonDocument.Parse(text).RootElement.Clone();
+                if (line.TryGetProperty("requestId", out JsonElement id) && id.GetString() == requestId)
+                {
+                    lines.Add(line);
+                }
+            }
+        }
+
+        return lines;
     }
 
     // --- KK4: the notification endpoint ---

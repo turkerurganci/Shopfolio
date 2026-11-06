@@ -266,6 +266,8 @@ public sealed class SignedEndpointDatabaseTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
         await AssertEmptyAndNothingRecordedAsync(response);
+        // T213 KK6: the 413 carries no code in its headers either (the body is empty, asserted above).
+        ErrorCodeLeakCheck.AssertNone(response, await response.Content.ReadAsStringAsync(Ct));
     }
 
     // A notice that cannot be recorded is never "received" (05 4.5.2; 07 4.30.1): the pipeline does not catch the database error, it leaves the
@@ -285,7 +287,7 @@ public sealed class SignedEndpointDatabaseTests : IAsyncLifetime
         Assert.Equal(string.Empty, await response.Content.ReadAsStringAsync(Ct));
         await AssertNothingRecordedAsync();
         Assert.Contains(_logs.Lines, line => line.Contains(LogEvents.UnexpectedError, StringComparison.Ordinal)
-            && line.Contains(UnexpectedErrorCodes.UnexpectedOperationError, StringComparison.Ordinal)
+            && line.Contains(nameof(ErrorCode.UnexpectedOperationError), StringComparison.Ordinal)
             && line.Contains(nameof(ErrorState.MachineEndpoint), StringComparison.Ordinal));
         Assert.Equal(before + 1, _app.Services.GetRequiredService<UnexpectedErrorCounter>().CountWithin(TimeSpan.FromMinutes(15)));
     }
@@ -314,7 +316,7 @@ public sealed class SignedEndpointDatabaseTests : IAsyncLifetime
         Assert.Equal(string.Empty, await response.Content.ReadAsStringAsync(Ct));
         await AssertNothingRecordedAsync();
         Assert.Contains(_logs.Lines, line => line.Contains(LogEvents.UnexpectedError, StringComparison.Ordinal)
-            && line.Contains(UnexpectedErrorCodes.UnexpectedOperationError, StringComparison.Ordinal)
+            && line.Contains(nameof(ErrorCode.UnexpectedOperationError), StringComparison.Ordinal)
             && line.Contains(nameof(ErrorState.MachineEndpoint), StringComparison.Ordinal));
         Assert.Equal(before + 1, _app.Services.GetRequiredService<UnexpectedErrorCounter>().CountWithin(TimeSpan.FromMinutes(15)));
     }

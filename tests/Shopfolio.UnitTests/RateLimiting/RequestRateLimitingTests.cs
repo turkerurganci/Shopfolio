@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.UnitTests.Fakes;
@@ -32,6 +33,7 @@ public sealed class RequestRateLimitingTests : IDisposable
         RequestRateLimiting.Configure(_options, _settings, _time);
         _services = new ServiceCollection()
             .AddLogging()
+            .AddSingleton<RejectionLog>()
             .AddSingleton<IOptions<RateLimiterOptions>>(Options.Create(_options))
             .BuildServiceProvider();
     }

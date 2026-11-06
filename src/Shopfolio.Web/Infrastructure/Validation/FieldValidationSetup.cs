@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
+using Shopfolio.Infrastructure.Errors;
 
 namespace Shopfolio.Infrastructure.Validation;
 
@@ -16,6 +19,7 @@ internal static class FieldValidationSetup
     public static IMvcBuilder AddFieldValidation(this IMvcBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        builder.Services.TryAddSingleton<RejectionLog>();
         builder.Services.Configure<MvcOptions>(options =>
         {
             options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;

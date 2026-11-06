@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
@@ -258,6 +259,12 @@ public sealed partial class SecurityHeadersTests
         Assert.Equal(HttpStatusCode.NotFound, unknownKey.StatusCode);
         Assert.Equal("no-store", Header(unrouted, "Cache-Control"));
         Assert.Equal("no-store", Header(unknownKey, "Cache-Control"));
+
+        // T213 KK6: the missing answer carries no code, in the body or in a header (07 2.7.3).
+        foreach (HttpResponseMessage answer in new[] { unrouted, unknownKey })
+        {
+            ErrorCodeLeakCheck.AssertNone(answer, await answer.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        }
     }
 }
 

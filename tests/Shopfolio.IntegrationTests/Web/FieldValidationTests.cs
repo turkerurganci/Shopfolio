@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
@@ -134,7 +135,7 @@ public sealed class FieldValidationTests
         Assert.Contains("data-field=\"Phone\">Telefon geçerli bir telefon numarası olmalıdır.</span>", a.Body, StringComparison.Ordinal);
         Assert.Contains("data-field=\"Password\">Şifre boş olamaz.</span>", a.Body, StringComparison.Ordinal);
         Assert.Contains("data-field=\"Amount\">Tutar geçerli bir tutar olmalıdır; en çok iki ondalık yazılabilir.</span>", a.Body, StringComparison.Ordinal);
-        foreach (string code in FieldCodes.All)
+        foreach (string code in Enum.GetNames<ErrorCode>())
         {
             Assert.DoesNotContain(code, a.Body, StringComparison.Ordinal);
             Assert.DoesNotContain(code, a.Headers, StringComparison.Ordinal);

@@ -142,8 +142,7 @@ internal static class UnexpectedErrorAnswer
                 case ErrorState.MachineEndpoint:
                     return;
                 case ErrorState.OutcomeUncertain:
-                    response.StatusCode = FormResults.SeeOtherStatus;
-                    response.Headers.Location = resolution.Target ?? "/";
+                    FormResults.WriteSeeOther(response, resolution.Target ?? "/");
                     return;
                 default:
                     await WritePageAsync(context, resolution.State);

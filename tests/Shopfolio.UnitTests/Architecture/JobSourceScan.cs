@@ -8,7 +8,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <c>BackgroundService</c> stands only in the service files of <c>Infrastructure/Jobs/</c> (<c>JobRunnerService.cs</c> and, since T221,
 /// <c>SchedulerService.cs</c>); <c>BackgroundServiceExceptionBehavior.Ignore</c> stands nowhere; <c>Task.Run(</c> and a new thread stand only under
 /// <c>Infrastructure/Jobs/</c>; a broad catch (<c>catch (Exception</c>, filtered or not, and a typeless <c>catch</c>) stands only in the files of
-/// the places that 09 8.1 item 6 names and that exist (the job queue's row loop, the scheduler's record loop, the nightly job's wrapper and the liveness probe); and the job table's set, the
+/// the places that 09 8.1 item 6 names and that exist (the job queue's row loop, the scheduler's record loop, the nightly job's wrapper, the liveness probe and the single catching layer's two files); and the job table's set, the
 /// <c>Jobs</c> member of the context, a new <c>Job</c> and <c>Job.Enqueue</c> stand only under <c>Infrastructure/Jobs/</c> and in
 /// <c>AppDbContext.cs</c>, which maps the table. The places are full paths, not file names: a file of the same name elsewhere is scanned.
 /// The scan reads the whole text; full-line comments are blanked first and keep their line.
@@ -36,13 +36,15 @@ internal static partial class JobSourceScan
         "src/Shopfolio.Web/Infrastructure/Jobs/SchedulerService.cs",
     ];
 
-    /// <summary>The files of 09 8.1 item 6's places that exist: the job queue's row loop, the scheduler's record loop and the nightly job's wrapper, and the liveness probe's database check.</summary>
+    /// <summary>The files of 09 8.1 item 6's places that exist: the job queue's row loop, the scheduler's record loop and the nightly job's wrapper, the liveness probe's database check, and the single catching layer (T212: the layer writing the answer and the middleware that calls it).</summary>
     public static readonly IReadOnlyList<string> BroadCatchFiles =
     [
         "src/Shopfolio.Web/Infrastructure/Jobs/JobRunnerService.cs",
         "src/Shopfolio.Web/Infrastructure/Jobs/SchedulerScan.cs",
         "src/Shopfolio.Web/Infrastructure/Jobs/NightlyJobRunner.cs",
         "src/Shopfolio.Web/Infrastructure/LivenessProbe.cs",
+        "src/Shopfolio.Web/Infrastructure/Errors/UnexpectedErrorLayer.cs",
+        "src/Shopfolio.Web/Infrastructure/Errors/UnexpectedErrorSetup.cs",
     ];
 
     public static bool Applies(string relativePath)

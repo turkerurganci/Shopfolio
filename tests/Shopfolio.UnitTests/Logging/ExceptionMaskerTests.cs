@@ -161,9 +161,11 @@ public sealed class ExceptionMaskerTests
         {
             throw exception;
         }
+#pragma warning disable CA1031 // Test helper: it only captures a thrown exception to get a real stack trace; nothing is swallowed (09 8.1 item 6).
         catch (Exception caught)
         {
             return caught;
         }
+#pragma warning restore CA1031
     }
 }

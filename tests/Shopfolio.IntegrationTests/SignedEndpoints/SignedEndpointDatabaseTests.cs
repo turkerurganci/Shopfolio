@@ -290,6 +290,35 @@ public sealed class SignedEndpointDatabaseTests : IAsyncLifetime
         Assert.Equal(before + 1, _app.Services.GetRequiredService<UnexpectedErrorCounter>().CountWithin(TimeSpan.FromMinutes(15)));
     }
 
+    // D-84: the statement time-out is the server's own error (SQLSTATE 57014), made here by a real statement that runs past a short limit on a separate
+    // connection while the commit is waiting - not a thrown stand-in. It leaves the endpoint as it is and the machine endpoint row answers 500 without a body.
+    [Fact]
+    public async Task StatementTimeOutOnTheCommit_Is500WithoutABody_TheMachineEndpointLine_AndTheCounter_D84()
+    {
+        PostgresException? raised = null;
+        _commit.BeforeCommit = async ct =>
+        {
+            await using NpgsqlConnection other = new(_collection.Dsn);
+            await other.OpenAsync(ct);
+            await using NpgsqlCommand command = new("SET statement_timeout = '100ms'; SELECT pg_sleep(5)", other);
+            raised = await Assert.ThrowsAsync<PostgresException>(() => command.ExecuteNonQueryAsync(ct));
+            throw raised;
+        };
+        int before = _app!.Services.GetRequiredService<UnexpectedErrorCounter>().CountWithin(TimeSpan.FromMinutes(15));
+
+        using HttpResponseMessage response = await PostAsync(DatabaseTestEndpoint.Body());
+
+        _commit.BeforeCommit = null;
+        Assert.Equal(PostgresErrorCodes.QueryCanceled, raised?.SqlState);
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(string.Empty, await response.Content.ReadAsStringAsync(Ct));
+        await AssertNothingRecordedAsync();
+        Assert.Contains(_logs.Lines, line => line.Contains(LogEvents.UnexpectedError, StringComparison.Ordinal)
+            && line.Contains(UnexpectedErrorCodes.UnexpectedOperationError, StringComparison.Ordinal)
+            && line.Contains(nameof(ErrorState.MachineEndpoint), StringComparison.Ordinal));
+        Assert.Equal(before + 1, _app.Services.GetRequiredService<UnexpectedErrorCounter>().CountWithin(TimeSpan.FromMinutes(15)));
+    }
+
     [Fact]
     public async Task RecordThatBreaksARule_LeavesTheEndpointForTheCatchingLayer_AndNothingIsRecorded()
     {

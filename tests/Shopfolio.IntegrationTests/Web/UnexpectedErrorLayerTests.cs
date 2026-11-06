@@ -93,7 +93,7 @@ public sealed class UnexpectedErrorLayerTests
 
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         string body = await response.Content.ReadAsStringAsync(Ct);
-        Assert.Contains("Sayfa şu anda açılamadı", body, StringComparison.Ordinal);
+        Assert.Contains("Sayfa şu anda açılamadı", System.Net.WebUtility.HtmlDecode(body), StringComparison.Ordinal);
         AssertNoCode(response, body);
         Assert.False(response.Headers.Contains("Set-Cookie"));
         Assert.True(response.Headers.Contains("X-Content-Type-Options"));
@@ -103,7 +103,7 @@ public sealed class UnexpectedErrorLayerTests
         Assert.Equal(nameof(ErrorState.PageLevel), line.GetProperty("state").GetString());
         Assert.Equal("GET", line.GetProperty("method").GetString());
         Assert.Equal(typeof(InvalidOperationException).FullName, line.GetProperty("exceptionType").GetString());
-        Assert.DoesNotContain("t212 failure", File.ReadAllText(Directory.GetFiles(baseFactory.LogDirectory, "app-*.jsonl")[0], System.Text.Encoding.UTF8), StringComparison.Ordinal);
+        Assert.DoesNotContain("t212 failure", ReadLog(baseFactory), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -160,7 +160,7 @@ public sealed class UnexpectedErrorLayerTests
         JsonElement line = Assert.Single(ErrorLines(baseFactory));
         Assert.Equal(UnexpectedErrorCodes.UnexpectedOperationError, line.GetProperty("code").GetString());
         Assert.Equal("POST", line.GetProperty("method").GetString());
-        Assert.DoesNotContain("kept-value", File.ReadAllText(Directory.GetFiles(baseFactory.LogDirectory, "app-*.jsonl")[0], System.Text.Encoding.UTF8), StringComparison.Ordinal);
+        Assert.DoesNotContain("kept-value", ReadLog(baseFactory), StringComparison.Ordinal);
     }
 
     // --- Uncertain outcome: a marked operation answers 303 wherever it fails (05 10.3.4; 09 8.1 item 4) ---
@@ -265,7 +265,7 @@ public sealed class UnexpectedErrorLayerTests
         Assert.Equal(expected, response.StatusCode);
         if (expected == HttpStatusCode.MethodNotAllowed)
         {
-            Assert.Contains("GET", response.Content.Headers.Allow.Concat(response.Headers.GetValues("Allow")).SelectMany(v => v.Split(", ")), StringComparer.Ordinal);
+            Assert.Contains("GET", response.Content.Headers.Allow, StringComparer.Ordinal);
         }
 
         Assert.Empty(ErrorLines(baseFactory));
@@ -281,6 +281,20 @@ public sealed class UnexpectedErrorLayerTests
             Assert.DoesNotContain(code, body, StringComparison.Ordinal);
             Assert.DoesNotContain(code, headers, StringComparison.Ordinal);
         }
+    }
+
+    // The whole application log as text; the writer keeps its file open, so the reader allows its access.
+    private static string ReadLog(ShopfolioWebApplicationFactory factory)
+    {
+        System.Text.StringBuilder text = new();
+        foreach (string path in Directory.GetFiles(factory.LogDirectory, "app-*.jsonl"))
+        {
+            using FileStream stream = new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using StreamReader reader = new(stream);
+            text.Append(reader.ReadToEnd());
+        }
+
+        return text.ToString();
     }
 
     // The error lines of the application log (event UnexpectedError): the writer keeps its file open, so the reader allows its access.

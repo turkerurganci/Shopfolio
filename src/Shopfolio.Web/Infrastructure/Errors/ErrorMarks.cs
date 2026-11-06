@@ -88,7 +88,7 @@ internal sealed class OutcomeUncertainAttribute : Attribute
         Operation = operation;
     }
 
-    /// <summary>The name of the operation as the log line writes it (<c>operation</c>, 05 10.3.6).</summary>
+    /// <summary>The use case of the operation in 07 6.4.2 (for example <c>UC-27</c>); the log line writes it as <c>operation</c> (05 10.3.6).</summary>
     public string Operation { get; }
 }
 

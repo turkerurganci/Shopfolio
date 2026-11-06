@@ -38,6 +38,23 @@ internal static class FormResults
         return new SeeOtherResult(localPath);
     }
 
+    /// <summary>
+    /// The same 303 written straight on a response, for the catching layer's middleware that has no action to return (09 8.1 item 2b). The path goes
+    /// through the same check as <see cref="SeeOther"/>: the redirect is written in this file and in the access denial only (05 6.5.6).
+    /// </summary>
+    public static void WriteSeeOther(HttpResponse response, string localPath)
+    {
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentNullException.ThrowIfNull(localPath);
+        if (!IsLocalPath(localPath))
+        {
+            throw new ArgumentException("The target of a redirect is a path of this site that starts with one slash (05 6.5.6).", nameof(localPath));
+        }
+
+        response.StatusCode = SeeOtherStatus;
+        response.Headers.Location = localPath;
+    }
+
     /// <summary>The page again with the values that were sent, status 422 (07 2.2.2, 2.7.1): the handler's model state carries the messages.</summary>
     public static IActionResult Redisplay(PageModel page)
     {

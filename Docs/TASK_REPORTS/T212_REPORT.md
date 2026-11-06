@@ -1,6 +1,6 @@
 # T212 — Hata gösterimi ve HTTP durumları
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım tamamlandı, doğrulama bekliyor) | **Tarih:** 2026-11-06
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 ✓ PASS) | **Tarih:** 2026-11-06
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -83,10 +83,31 @@ CI düzeltmesi: Lint `dotnet format --verify-no-changes` iki hata verdi (`Progra
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | BEKLEMEDE |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-06, head `ec13690`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 — K1 → D-138 notu, K2 → D-135 hedefi düzeltildi, K3 → D-140 (T213) |
+
+**Validator kanıtı (tur 1, 2026-11-06, `ec13690`; dal CI'ı run 42172712753 success):** kapılar: working tree temiz, `core.hooksPath` `scripts/git-hooks`; ana dal son üç run (42169337584, 42169337501, 42162567568) success; hafızada T212 satırı var. Kriter 1–9 ve KK1–KK9 ✓ — kod okundu, testler doğrulama anında yeniden koşuldu: `dotnet build -warnaserror` 0/0, `dotnet format --verify-no-changes` temiz, `LivenessProbe`'un CA1031 bastırması geçici kaldırılınca `error CA1031` (geri alındı), Unit 2221/2221, betik testleri 4/4, Integration (PostgreSQL 18, yedi parçaya bölünerek) 1536/1536, kırmızı yok. Tek yakalama katmanı: sayfa süzgeci (Order -300, en dış) + ara katman (`UseCookieHeaderFilter`'dan sonra, `UseRouting`'den önce; güvenlik başlıkları `OnStarting` ile hata yanıtına da yazılır). Katman dışında kalan tek yol yayın öncesi vitrinde çerez süzgecinin veritabanı sorusu düşerse çatının çıplak 500'üdür (D-113 seçenek 1, D-138 izliyor — K1). Doğrulayıcı geçici testle (11/11 yeşil, silindi) 422 `Upload`/`Rule` gövde ve başlığında red kodunun olmadığını, 405/400'de `Location` olmadığını, PUT/DELETE/PATCH'in vitrin ve panelde 405, bilinmeyen handler'ın 400 olduğunu gösterdi. Güvenlik temiz (sır yok, 303 hedefi `IsLocalPath`, hata sayfası yolu HtmlEncode, istisna iletisi kayda yazılmıyor, yeni bağımlılık yok).
+
+**Task satırları (`12 §7.5`):** T212 KP eşlemesi taşımaz (Ortak altyapı); satırlar kaynak bölümle (`07 §2.7`, §6.4, `09 §8.1`, `05 §10.3`) grep'lendi.
+
+| Satır | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` |
+|---|---|---|---|---|
+| VAL-A424 | ORTA | yok | BEKLEMEDE | PASS (GET'lik sayfaya POST 405 + Allow) |
+| VAL-A425 | ORTA | yok | BEKLEMEDE | PASS (PUT/DELETE/PATCH vitrin ve panel 405) |
+| VAL-A429 | ORTA | yok | BEKLEMEDE | PASS (bilinmeyen handler 400) |
+| VAL-A430 | ORTA | yok | BEKLEMEDE | PASS (çok işleyicili sayfada handler'sız POST 400) |
+| VAL-A433 | ORTA | yok | BEKLEMEDE | PASS (sabitlenen değer 400) |
+| VAL-A431 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (sipariş onayı sayfası) |
+| VAL-A432 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (T312, T314) |
+| VAL-A596 | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE (sipariş onayı task'ı) |
+| VAL-A959–A963 | — | yok | BEKLEMEDE | BEKLEMEDE (T215, D-135) |
+| VAL-A582, A689 | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE (T512/T513/T535) |
+
+**K-notları:** K1 → D-138'e not: `09 §15.1` m.6'daki "Karar (D-113, T212)" `05 §10.3.6`/§9.4.8 davranışına istisnadır; boşluk kapanmazsa istisna `05 §10.3.6`'ya da yazılır, F2 gate hedefi yeniden kurar. K2 → D-135 hedefi "T537 + T540; en geç F5 gate" olarak düzeltildi (eski F2 üst sınırı çelişikti). K3 → D-140: katmanın hata yanıtlarındaki `no-store` düz metinle yazılır, `09 §15.2` m.5'te anılmaz ve süzgeç yolundaki işlem düzeyi 500 bu başlığı taşımaz (hedef T213).
+
+**Yapım raporu karşılaştırması:** verdict uyumlu; fark 1: öz denetim `12` satırlarını anmıyor (doğrulayıcı beşini PASS yaptı); fark 2: "AssertNoCode her hâlde (500, 422, 303, 405)" — 405/400 testi `AssertNoCode` çağırmaz, `AssertNoCode` 422'nin red kodlarını aramaz (doğrulayıcı geçici testle gösterdi); fark 3: yapım Database ve Model ad alanlarını yerelde koşmadı, doğrulayıcı koştu, yeşil; fark 4: D-135/D-138 hedef–üst sınır çelişkisi (K1, K2) anılmamış. Öz denetim tablosu her madde için kanıt taşıyor.
 
 ## Altyapı Değişiklikleri
 
@@ -98,9 +119,9 @@ CI düzeltmesi: Lint `dotnet format --verify-no-changes` iki hata verdi (`Progra
 ## Commit & PR
 
 - **Branch:** `task/T212-hata-gosterimi-http`
-- **Commit:** dalın son commit'i (PR #407 head; SHA yapım işçisinin dönüşünde)
+- **Commit:** `ec13690` (PR #407 head, doğrulama tur 1)
 - **PR:** #407
-- **CI:** yapım işçisi izlemez (yardımcı yürütür)
+- **CI:** dal run 42172712753 success (validator, 2026-11-06)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
 
 ## Dış Varsayımlar

@@ -52,6 +52,7 @@ internal static class OrderingModuleRegistration
     public static IServiceCollection AddOrderingModule(this IServiceCollection services)
     {
         services.AddScoped<OrderLocks>();
+        services.AddScoped<GatedOrderOperation>();
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddDisposalPart<GuestCartDisposalPart>();

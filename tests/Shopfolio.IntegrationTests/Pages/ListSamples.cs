@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Binding;
@@ -113,10 +114,13 @@ public static class SampleProductLists
         }
 
         // The newest first, the inner key last and descending (07 2.6.5; 09 10.5 item 1).
-        return await products.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
-            .Select(p => new ProductRow(p.Id, p.Name))
+        PagedList<Product> page = await products.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
             .ToPageAsync(query.RequestedPage(), PageSizes.StorefrontProducts, ct);
+        return Rows(page);
     }
+
+    private static PagedList<ProductRow> Rows(PagedList<Product> page) =>
+        new([.. page.Items.Select(p => new ProductRow(p.Id, p.Name))], page.PageNumber, page.PageSize, page.TotalCount, page.PageCount);
 
     internal static async Task<PagedList<ProductRow>> PanelAsync(AppDbContext db, AdminProductQuery query, CancellationToken ct)
     {
@@ -131,9 +135,9 @@ public static class SampleProductLists
             products = products.Where(p => p.PublishStatus == status);
         }
 
-        return await products.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
-            .Select(p => new ProductRow(p.Id, p.Name))
+        PagedList<Product> page = await products.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
             .ToPageAsync(query.RequestedPage(), PageSizes.Panel, ct);
+        return Rows(page);
     }
 }
 
@@ -143,13 +147,6 @@ public sealed record ProductRow(Guid Id, string Name);
 /// <summary>The common part of the storefront list samples: the result, the closed mark the list pattern sets, and whether the search field is asked for.</summary>
 public abstract class StorefrontListSample : PageModel, IListPage
 {
-    private readonly AppDbContext _db;
-
-    protected StorefrontListSample(AppDbContext db)
-    {
-        _db = db;
-    }
-
     public abstract bool IsSearchPage { get; }
 
     public bool ClosedToSearchEngines { get; set; }
@@ -160,23 +157,24 @@ public abstract class StorefrontListSample : PageModel, IListPage
 
     public async Task<IActionResult> OnGetAsync(ProductQuery query, CancellationToken ct)
     {
-        Result = await SampleProductLists.StorefrontAsync(_db, query, IsSearchPage, ct);
+        AppDbContext db = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+        Result = await SampleProductLists.StorefrontAsync(db, query, IsSearchPage, ct);
         return Page();
     }
 }
 
-public sealed class CategoryListSampleModel(AppDbContext db) : StorefrontListSample(db)
+public sealed class CategoryListSampleModel : StorefrontListSample
 {
     public override bool IsSearchPage => false;
 }
 
-public sealed class SearchListSampleModel(AppDbContext db) : StorefrontListSample(db)
+public sealed class SearchListSampleModel : StorefrontListSample
 {
     public override bool IsSearchPage => true;
 }
 
 /// <summary>The sample panel list: the rows link to the record with the list's address in <c>returnUrl</c> (07 2.6.8).</summary>
-public sealed class PanelProductListSampleModel(AppDbContext db) : PageModel
+public sealed class PanelProductListSampleModel : PageModel
 {
     internal PagedList<ProductRow> Result { get; private set; } = new([], 1, PageSizes.Panel, 0, 1);
 
@@ -184,6 +182,7 @@ public sealed class PanelProductListSampleModel(AppDbContext db) : PageModel
 
     public async Task<IActionResult> OnGetAsync(AdminProductQuery query, CancellationToken ct)
     {
+        AppDbContext db = HttpContext.RequestServices.GetRequiredService<AppDbContext>();
         Result = await SampleProductLists.PanelAsync(db, query, ct);
         ListAddress = Shopfolio.Infrastructure.Lists.ListAddress.Of(SampleProductLists.PanelListRoot, query, Result.PageNumber);
         return Page();
@@ -206,7 +205,9 @@ public sealed class PanelProductRecordSampleModel : PageModel
         return Page();
     }
 
+#pragma warning disable CA1822 // A page handler is an instance member by the framework's convention.
     public IActionResult OnPostSaveProductRecord(Guid id, SaveProductRecordInput input)
+#pragma warning restore CA1822
     {
         return FormResults.SeeOther(ListReturn.Target(input.ReturnUrl, SampleProductLists.PanelListRoot));
     }

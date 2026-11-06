@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc;
+
 using Shopfolio.Infrastructure.Binding;
 
 namespace Shopfolio.Infrastructure.Lists;
@@ -11,7 +13,12 @@ namespace Shopfolio.Infrastructure.Lists;
 public abstract class PagedQuery : IQueryModel
 {
     /// <summary>The page asked for, as text: <see cref="PageNumber.Parse"/> reads it (09 10.5 item 3). An <c>int</c> field could not carry a value past the range, which is the last page.</summary>
+    /// <remarks>
+    /// <c>page</c> is also the key under which Razor Pages keeps the page's own path in the route values, and the route value is read before the query string:
+    /// a field bound from every source would see the page's path, never the number. The field is therefore bound from the query string only.
+    /// </remarks>
     [SpecAssignedName]
+    [FromQuery(Name = "page")]
     public string? Page { get; init; }
 
     /// <summary>The page asked for as a number; the paging helper clamps it to the last page.</summary>

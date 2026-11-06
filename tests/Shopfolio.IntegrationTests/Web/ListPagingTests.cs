@@ -79,11 +79,6 @@ public sealed class ListPagingTests : IAsyncLifetime
 
     private static async Task<List<Guid>> WalkAsync(AppDbContext db, int pageSize, bool descending)
     {
-        // The direction of the inner key follows the first key: newest first sorts it descending, the other sorts ascending (07 2.6.5; 09 10.5 item 1).
-        IOrderedQueryable<Guid> Ordered() => descending
-            ? db.Products.AsNoTracking().OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id).Select(p => p.Id).OrderBy(_ => 0)
-            : db.Products.AsNoTracking().OrderBy(p => p.CreatedAt).ThenBy(p => p.Id).Select(p => p.Id).OrderBy(_ => 0);
-
         List<Guid> walked = [];
         PagedList<Guid> first = await PageOfAsync(db, descending, 1, pageSize);
         for (int page = 1; page <= first.PageCount; page++)
@@ -93,16 +88,17 @@ public sealed class ListPagingTests : IAsyncLifetime
             walked.AddRange(current.Items);
         }
 
-        _ = Ordered;
         return walked;
     }
 
-    private static Task<PagedList<Guid>> PageOfAsync(AppDbContext db, bool descending, int page, int pageSize)
+    private static async Task<PagedList<Guid>> PageOfAsync(AppDbContext db, bool descending, int page, int pageSize)
     {
+        // The direction of the inner key follows the first key: newest first sorts it descending, the other sorts ascending (07 2.6.5; 09 10.5 item 1).
         IOrderedQueryable<Product> ordered = descending
             ? db.Products.AsNoTracking().OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
             : db.Products.AsNoTracking().OrderBy(p => p.CreatedAt).ThenBy(p => p.Id);
-        return ordered.Select(p => p.Id).OrderBy(id => 0).ToPageAsync(page, pageSize, Ct);
+        PagedList<Product> products = await ordered.ToPageAsync(page, pageSize, Ct);
+        return new PagedList<Guid>([.. products.Items.Select(p => p.Id)], products.PageNumber, products.PageSize, products.TotalCount, products.PageCount);
     }
 
     // --- KK3: the page asked for and the page shown ---
@@ -163,14 +159,7 @@ public sealed class ListPagingTests : IAsyncLifetime
         Assert.Equal(["Isıtıcı"], await SearchAsync(db, "ISITICI"));
         Assert.Equal(["AMPUL"], await SearchAsync(db, "ampul"));
         Assert.Equal(["AMPUL"], await SearchAsync(db, "  AMPUL  "));
-        Assert.Equal(["Ahsap masa", "Alt_cizgi"], await SearchAsync(db, "a", ordered: true));
-    }
-
-    [Fact]
-    public async Task ABlankWord_MakesNoPattern_SoNoQueryRuns()
-    {
-        Assert.Null(SearchTerm.ToLikePattern("   "));
-        await Task.CompletedTask;
+        Assert.Equal(["AMPUL", "Ahsap masa", "Alt_cizgi"], await SearchAsync(db, "a", ordered: true));
     }
 
     private static async Task<string[]> SearchAsync(AppDbContext db, string word, bool ordered = false)

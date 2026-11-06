@@ -101,7 +101,7 @@
 - **Commit:** `ee350ea` — T216: 09 notu, backlog, rapor, durum ve hafiza (kod son commit'i `f720557`; bu satırı taşıyan commit dalın başıdır)
 - **PR:** #411
 - **CI:** dal CI 42224854554 success (head `05fd381`)
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
+- **Post-merge run'lar:** main merge commit `9ab9bec` (PR #411); run kimlikleri validator kaydında (T217 yapımında status Commit hücresi ve bu satır dolduruldu).
 
 ## Dış Varsayımlar
 

@@ -19,7 +19,7 @@ namespace Shopfolio.Modules.Ordering;
 /// the payment method's IBAN and the carrier fields. The status fields are written only by the transition unit (09 9.1 item 4); the
 /// normalized email only with the email (09 9.4 item 1); the two document copies once (09 9.3 item 1).
 /// </summary>
-internal sealed class Order
+internal sealed class Order : IVersionedRecord
 {
     public Guid Id { get; set; }
 

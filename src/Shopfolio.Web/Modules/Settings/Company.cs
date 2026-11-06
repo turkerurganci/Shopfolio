@@ -12,7 +12,7 @@ namespace Shopfolio.Modules.Settings;
 /// not chosen) and is never deleted. The fields a company type requires are rules of the application, not of the database: the row
 /// cannot carry a database requirement because it starts empty.
 /// </summary>
-internal sealed class Company
+internal sealed class Company : IVersionedRecord
 {
     public Guid Id { get; set; }
 

@@ -1,0 +1,9 @@
+@page "/panel/surumlu-urun/{id:guid}"
+@using Shopfolio.Infrastructure.Forms
+@model Shopfolio.IntegrationTests.Pages.Panel.VersionedProductModel
+<h1>Surumlu urun</h1>
+<form method="post" action="/panel/surumlu-urun/@Model.RecordId?handler=Save">
+    @VersionFields.Version(Model.Input.Version, "Input")
+    <input name="Input.Description" value="@Model.Input.Description" />
+    @ConflictControls.RecordSaveControl(Model.Conflicted, "/panel/surumlu-urun/" + Model.RecordId)
+</form>

@@ -13,7 +13,7 @@ namespace Shopfolio.Modules.Catalog;
 /// unit, the product-level periods and limit and the withdrawal exemption live here; stock, price and net quantity live on the variant.
 /// Deleting a product is physical and cascades to its variants, options, category links, image links (and, in later tasks, its discount).
 /// </summary>
-internal sealed class Product
+internal sealed class Product : IVersionedRecord
 {
     public Guid Id { get; set; }
 

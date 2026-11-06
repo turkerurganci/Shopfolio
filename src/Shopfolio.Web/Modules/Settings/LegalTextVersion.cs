@@ -13,7 +13,7 @@ namespace Shopfolio.Modules.Settings;
 /// notice and the cookie policy) that has no publish time is the draft, at most one per type; it stays in place after a publication and is the row
 /// of the next edit. The two generated texts have no draft: their versions are written when the settings that feed them change.
 /// </summary>
-internal sealed class LegalTextVersion
+internal sealed class LegalTextVersion : IVersionedRecord
 {
     public Guid Id { get; set; }
 

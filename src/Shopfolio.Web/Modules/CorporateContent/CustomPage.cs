@@ -11,7 +11,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// A general page (06 4.51): a title, a text and a gallery (CustomPageImage), for content that fits no ready-made type; listed in the
 /// footer and, when marked, in the top menu. Legal texts are not general pages. Deleted by its event; its gallery links go with it.
 /// </summary>
-internal sealed class CustomPage
+internal sealed class CustomPage : IVersionedRecord
 {
     public Guid Id { get; set; }
 

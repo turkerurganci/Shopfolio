@@ -1,0 +1,20 @@
+@page "/panel/surumlu-siparis/{id:guid}"
+@using Shopfolio.Infrastructure.Forms
+@model Shopfolio.IntegrationTests.Pages.Panel.VersionedOrderModel
+<h1>Surumlu siparis</h1>
+@if (Model.Refused)
+{
+    @ConflictControls.OrderNotice(ConflictControls.OrderMessage)
+}
+<p class="district">@Model.District</p>
+<p class="open">@Model.OpenQuantity</p>
+<form id="admin" method="post" action="/panel/surumlu-siparis/@Model.RecordId?handler=AdminSave">
+    @VersionFields.Version(Model.Input.Version, "Input")
+    <input name="Input.District" value="@Model.Input.District" />
+    <button type="submit">Uygula</button>
+</form>
+<form id="customer" method="post" action="/panel/surumlu-siparis/@Model.RecordId?handler=CustomerCancel">
+    <input type="hidden" name="Customer.ItemId" value="@Model.ItemId" />
+    @VersionFields.Original("OpenQuantity", Model.OpenQuantity, "Customer")
+    <button type="submit">Iptal et</button>
+</form>

@@ -7,7 +7,7 @@ namespace Shopfolio.Infrastructure.Forms;
 /// The results of a page's POST handler (07 2.2.2, 2.7.1): a successful writing POST is a 303 to a GET, and a POST that writes nothing shows the page
 /// again with the values that were sent, with the status 422 for a validation error or a named business-rule refusal. The framework's own
 /// <c>RedirectToPage</c> answers 302 and <c>Page()</c> answers 200, which is why a handler returns one of these instead (07 2.7.4: a validation
-/// error is not a 200). The conflict (409), the limit (429) and the other statuses of 07 2.7.1 are the results of the tasks that own them.
+/// error is not a 200). The conflict (409; T208) is the result of a write refused because the version or the shown value changed; the limit (429) and the other statuses of 07 2.7.1 are the results of the tasks that own them.
 /// </summary>
 internal static class FormResults
 {
@@ -16,6 +16,9 @@ internal static class FormResults
 
     /// <summary>The status of a validation error and of a named business-rule refusal (07 2.7.1).</summary>
     public const int UnprocessableStatus = StatusCodes.Status422UnprocessableEntity;
+
+    /// <summary>The status of a write refused because the record, the order or the shown value changed (07 2.4.5, 2.4.6, 2.7.1).</summary>
+    public const int ConflictStatus = StatusCodes.Status409Conflict;
 
     /// <summary>
     /// 303 to a path of this site (07 2.2.2). The path is the site's own - it starts with one slash and is not a scheme-relative or backslash form -
@@ -38,6 +41,20 @@ internal static class FormResults
         ArgumentNullException.ThrowIfNull(page);
         PageResult result = page.Page();
         result.StatusCode = UnprocessableStatus;
+        return result;
+    }
+
+    /// <summary>
+    /// The page again after a write that was refused because what the user saw is no longer what is there, status 409 (07 2.4.5, 2.4.6): nothing was
+    /// written. A record variant shows the values the user sent, with the record's current version in the form and "Yine de kaydet" as its one button
+    /// (<see cref="ConflictControls.RecordSaveControl"/>); an order variant shows the order as it is now, with no way to overwrite. The handler sets the
+    /// version it wants the form to carry in the model, and the form writes it with <see cref="VersionFields"/> - never from the posted model state.
+    /// </summary>
+    public static IActionResult Conflict(PageModel page)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        PageResult result = page.Page();
+        result.StatusCode = ConflictStatus;
         return result;
     }
 

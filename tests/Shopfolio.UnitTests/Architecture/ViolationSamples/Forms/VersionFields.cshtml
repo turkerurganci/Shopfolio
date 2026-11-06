@@ -1,0 +1,22 @@
+@page "/panel/ornek"
+@* Deliberate violation sample of the form version scan (07 2.4.5, 2.4.7). The scan reads this file as text; it is not compiled. *@
+@* Line numbers are part of the test. A Razor comment that says asp-route-version or <form method="get"> with name="Version" is not a finding. *@
+<!-- <input asp-for="Input.Version"> in an HTML comment is not a finding either -->
+<a asp-page="/Panel/Record" asp-route-id="@Model.Id" asp-route-version="@Model.Version">Open</a>
+<a asp-page="/Panel/Record" asp-route-id="@Model.Id" asp-route-originalStockQuantity="@Model.Stock">Open</a>
+<a href="/panel/kayit?Version=@Model.Version">Open</a>
+<form method="post" asp-page-handler="Save">
+    <input type="hidden" asp-for="Input.Version" />
+    @Html.HiddenFor(m => m.Input.OriginalStockQuantity)
+    @VersionFields.Version(Model.Current)
+    <input type="hidden" name="OriginalStockQuantity" value="@Model.Stock" />
+    <button type="submit">Save</button>
+</form>
+<form method="get">
+    <input name="search" />
+    <input type="hidden" name="Version" value="@Model.Version" />
+</form>
+<form action="/panel/ara">
+    @VersionFields.Original("Text", Model.Text)
+</form>
+<form method="get"><input name="search" /></form>

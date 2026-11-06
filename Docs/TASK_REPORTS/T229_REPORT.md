@@ -1,6 +1,6 @@
 # T229 — Uygulama belleğinde önbellek
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-07
+**Faz:** F2 | **Durum:** ✓ Doğrulama tur 1 PASS (merge bekliyor) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -80,10 +80,39 @@ Derleme: `dotnet build Shopfolio.slnx -c Release -warnaserror` 0 uyarı; `dotnet
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama chat'i doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-07, head `6d25c8d`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-158) |
+
+### Doğrulama tur 1 — ✓ PASS
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` ana deponun `scripts/git-hooks`'u; main son üç tamamlanmış run 42294762521, 42294762382, 42276704951 `success`; hafızada T229 satırı var.
+
+**Kriterler 1–7 ✓, KK1–KK7 ✓, `09 §25` ✓.** Kanıtlar (doğrulayıcı):
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 / KK1 | ✓ | `AppCache` tekil (`AddSingleton`), yerleşik `Lock`, kitaplık yok; `Directory.Packages.props`, Web csproj, kilit dosyası, compose, Dockerfile'lar ve Caddyfile'da önbellek sunucusu/istemcisi yok (grep + `DependenciesAndDeploymentFiles_…`); Caddy yalnız `/gorsel/*` görsellerine tarayıcı başlığı yazar, ara önbellek tutmaz. Uygulama derlemesi çatının önbellek ad alanlarına bağlı değil (derlenen kural; `src`'de `IMemoryCache`/`OutputCache`/`ResponseCach` yok) |
+| Kriter 2 / KK2 | ✓ | `CacheArea` = `Menu`, `CategoryTree`, `Settings`, `HomepageBlocks`, `Sitemap` (`09 §10.4` m.1 sırası); parametreli anahtar yok. İkinci okuma veritabanına gitmez: komut yakalayıcıyla ayar 1 sorgu, fiyat iki okumada 2 sorgu (`TheSecondReadOfTheSettingsArea_…`). `src`'de alanı okuyan ya da besleyen kayıt yazan kod henüz yok (grep: `AppCache`/`CacheInvalidations` yalnız `Infrastructure` + `Program.cs`); okuyucular T313 m.9, T361, T537'de |
+| Kriter 3 / KK3 | ✓ | `TransactionRunner`: işlem başında küme boşaltılır; `CommitAsync` → sonra `Invalidate`; ret/iş istisnasında küme unutulur; `CacheInvalidations.Add` açık işlem yoksa reddeder. Testler: kayıt sonrası yeni değer ve kuşak +1; ret ve istisna kuşağı oynatmaz, kapsamın sonraki işi eski alanı atmaz; yazım–kesinleşme arası okuma eski satırı doldurur, kesinleşme atar (`AReadBetweenTheWriteAndTheCommit_…`); yanlış sıra bayat bırakır (`TheWrongOrder_…`); kaynak sırası `TheRunner_IsWhereTheAreasAreDropped_AfterTheCommit` |
+| Kriter 4 / KK4 | ✓ | Kuşak yükten önce, karşılaştırma + yazma yuva kilidi altında, kilitte `await` yok. Gerçek eşzamanlılık: birimde ≥4 okuyucu × 3000 kayıt; tümleşikte gerçek PostgreSQL işlemleriyle 4 okuyucu + 20 kayıt (`ParallelReadersAndSavesThroughTheRunner_…`, okuyucunun gördüğü değer son kesinleşenin altına inmez) ve bekletilen eski okuma (`AReadThatLoadedTheOldRowBeforeTheCommit_…`). **Mutasyon denemesi:** kuşak karşılaştırması kaldırıldığında birim sınıfı kırmızı — belirlenimci test 3/3, paralel test 2/3 koşuda (değişiklik geri alındı, tekrar 15/15 yeşil) |
+| Kriter 5 / KK5 | ✓ | Önbellek duyuruyu aralığıyla taşır; görünürlük her çağrıda `TimeProvider`'dan; `ADatedAnnouncementInTheCache_…` Türkiye saatiyle sınırın ±1 sn'sinde görünür/gizlenir, tek yükleme, kuşak 0 |
+| Kriter 6 / KK6 (para) | ✓ | Kendim sınadım: ücret 80 ve kapı kapalı doğrudan SQL ile yazılınca gösterim önbelleği 50'yi tutmaya devam eder (testte aynı kapsamda `GetForDisplayAsync` 50), onayın işlemi aynı anda 80 ve `IsSalesTemporarilyClosed=true` okur; işlem dışındaki onay okuması reddedilir; fiyat (120) sayfada anında — TestServer ve gerçek Kestrel. Tutarı etkileyen başka okuma yolu kaynakta yok: `src`'de `AppCache`'i kullanan kod yok, `CompanySettings` yalnız `AppDbContext`'te tanımlı (gerçek onay işlemi ileriki task'ların, onlar `09 §10` → §10.4 m.5'i okur); fiyat yolu `AppCache`/`CacheArea`'ya bağlı değil (`ModuleBoundaryTests.CachePattern_…`) |
+| Kriter 7 / KK7 | ✓ | Sayfa iki istekte farklı `render` değeri; `IOutputCacheStore` ve `ResponseCachingOptions` kayıtlı değil, `Age` yok, `Cache-Control: public` yok; kaynak ve derlenen kural ihlal örnekleriyle kırmızı |
+| Sonucu bilinmeyen kesinleştirme (⚠ K1) | ✓ | `commitSent && !committed` hâlinde alanlar `finally`'de geri almadan önce atılır; atma hep kesinleştirme denemesinden sonradır, kesinleşmeden önce atma yolu yok. `09 §10.4` m.3'e eklenen cümle `05 §7.10.1`'den ayrılmaz: 05 "kesinleştikten sonra hemen geçersiz kılınır" der ve fazladan atmayı yasaklamaz; sunucu kesinleştirip bağlantı düştüğünde unutmak 05'i bozardı (değer süre sonu olmadan bayat kalırdı). 05'in bıraktığı kalıp `09`'undur (§7.10.1 son cümle) — karar kaydı gerekmez. Test `ACommitThatThrows_…` yalnız o bağlantıyı `pg_terminate_backend` ile keser |
+| `09 §6` modül sınırı | ✓ | `CachePattern.cs` gerçek ad alanlarında (`Shopfolio.Modules.Settings`/`.Contracts`, `CorporateContent`, `Catalog`, `Shopfolio.Pages.Storefront`); `ModuleBoundaryTests` sayfa, Contracts, internal ve başvuru kurallarını bu türlerle koşar; sayfa yalnız `Contracts` arayüzlerine bağlı |
+| Taramalar ve ihlal örnekleri | ✓ | Metin taraması (tür yerleri, `Invalidate`/`TakePendingAreas` yalnız koşucuda — çağrı, koşullu çağrı, yöntem grubu, `nameof`, yansıma dizgesi —, başka önbellek, sayfa çıktısı), bağımlılık taraması (19 ad), derlenen kural (takma ad dahil) ve statik koleksiyon kuralı (yedi biçim) ayrı ihlal örnekleriyle kırmızı; yerler tam yol. Darlık ve belge dayanağı K1'de |
+| `09 §3.5`, bellek | ✓ | `src`'ye süre, tavan ya da ayar sabiti girmedi (süre sonu yok, ısıtma yok — §10.4 m.2). Bellek beş sabit yuvayla sınırlı; parametreli anahtar olmadığından büyümez, değerin boyu kaydın kendisidir (`09 §20` m.1 kodda hacim tavanı istemez) |
+| Güvenlik | ✓ | sır yok; yeni paket yok (kilit dosyası değişmedi); yetki ve girdi yüzeyi değişmedi; örnek sayfa yalnız test projesinde |
+
+**Testler (doğrulayıcı, yerel):** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` üç projede temiz; Unit 2826/2826 (Consistency 207 + diğer 2619); betik testleri 4/4; Integration 1729/1729 dokuz parçada (Concurrency+Database+Disposal 79, FileSecrets+Files+Jobs 134, Logging+Outages+SignedEndpoints+Security 81, Web üç parça 229+161+152, Model üç parça `--max-threads 3` 324+307+262; PostgreSQL 18 konteyneri, her parça ≤ 147 sn). Dal CI: run 42300942345 (head `6d25c8d`) bütün işler yeşil. Koşu sonrası `git status` temiz, `dotnet restore --locked-mode` çıkış 0.
+
+**Task satırları (`12 §7.5`):** `11 §7.1`'de T229'un kaynak birimleri `05` MK-34, §7.10 ve `09` §10, §20'dir (`10 KP` birimi yok); bu birimlerin grep'i `12`'de satır getirmez. Konuyla ilgili tek satır `VAL-A835`'tir (kaynağı K-980 (5) · 05 §7.3): ön koşulu "tarihi geçen indirim", kanıt türü "Uç yanıtı" — indirim ve sayfa task'larının ucu; T229 yalnız kalıbı ve kuşak/kesinleşme testlerini kurar → `BEKLEMEDE` kalır (T223 emsali). Matris betiği hata 0.
+
+**K1 → D-158:** `09 §20` m.9'un yorumu (`Lazy<BusinessCalendar>` istisnası, kuraldan önceki sekiz statik tablo, `ConcurrentDictionary` ve `Lazy<`'in her konumda yasağı) yalnız test kodunda yazılı; tarama koleksiyon olmayan statik değer tutmayı (çalışırken atanan statik kayıt, yeniden atanan değişmez sözlük) yakalamaz.
+
+**Yapım raporu karşılaştırması:** uyumlu; öz denetim tablosu her kriter ve KK için kanıtlı. Tek fark: ⚠ K3'ün "hepsi başlatıcıda sabitlerden bir kez doldurulur" cümlesi tam değil — `FieldMessageCatalog` bir satırı statik yapıcıda ekler, `ProductConstantNameGuard` adları yansımayla okur (ikisi de bir kez ve kayıttan bağımsız; D-158'de).
 
 ## Altyapı Değişiklikleri
 

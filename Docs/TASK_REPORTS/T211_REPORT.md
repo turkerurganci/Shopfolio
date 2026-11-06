@@ -77,10 +77,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-06, head `8e99ab6`) |
+| Bulgu sayısı | 2 — B1 ORTA S1: şifrenin kırpılmama işareti `[DataType(DataType.Password)]` `ModelBindingRules`'un `BuiltInRule` ihlalidir (`DataTypeAttribute` bir `ValidationAttribute`; doğrulayıcı sondası `BuiltInRule:…Password:DataTypeAttribute`), `09 §3.4` m.1 ile m.5 gerçek bir şifre modelinde birlikte sağlanamaz — örnek sayfa test derlemesinde olduğu için kural görmüyor. B2 DÜŞÜK S1: `FieldRuleSourceScan` sayı taraması `[FieldRequired, TextTooLong(150)]`, `[TextTooLongAttribute(150)]`, `[TextTooLong(max: 150)]` yazımlarını kaçırır |
+| Düzeltme gerekli mi | Evet — B1 (dar istisna: tam türü `DataTypeAttribute` ve `DataType.Password`; ya da projenin şifre işareti; ihlal örneğine sessiz komşu + kırmızı kalan `EmailAddress`) ve B2 (desen genişler, `NumberOnRule.cs`'e üç satır) bu PR'da, tur 2 |
+| Bloke-etmeyen not (K) sayısı | 3 — K1 → D-123 (örnek sayfada `Max = 1000`; `data-val` deseni `data-value`'yu yakalar), K2 → D-124 (tutar/yüzde mesajı sınırı göstermiyor; T216), K3 → D-125 (`IsSimple` `DateTimeOffset`'i geçirir, `IFormFile` reddedilir; T216, T312) |
+
+Doğrulayıcı kanıtları (tur 1): build `-warnaserror` 0/0, format temiz, Unit 1757/1757, betik testleri 4 dosya, Integration 1392/1392 (PostgreSQL 18, filtreli parçalar; `--list-tests` 1392), `restore --locked-mode` 0, dal CI 42139962380 success. Kriter 1–8 ve KK1–KK8 ✓; `09 §3.4` m.1 ve m.5 ~ (B1). Ayrıca "Dış Varsayımlar" #3 `[AllowedValues]`/`[Required]` der; kod projenin niteliklerini kullanır — düzeltme turunda güncellenmeli.
 
 ## Altyapı Değişiklikleri
 

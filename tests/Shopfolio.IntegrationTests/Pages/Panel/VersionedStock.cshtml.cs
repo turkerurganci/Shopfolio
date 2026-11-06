@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
@@ -18,7 +19,6 @@ namespace Shopfolio.IntegrationTests.Pages.Panel;
 [IgnoreAntiforgeryToken]
 public sealed class VersionedStockModel : PageModel
 {
-    [BindProperty]
     public VersionedStockInput Input { get; set; } = new();
 
     public Guid RecordId { get; private set; }
@@ -37,8 +37,9 @@ public sealed class VersionedStockModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostSaveAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> OnPostSaveAsync(Guid id, VersionedStockInput input, CancellationToken ct)
     {
+        Input = input;
         IServiceProvider services = HttpContext.RequestServices;
         RecordId = id;
         int? current = await ReadStockAsync(id, ct);
@@ -96,7 +97,7 @@ public sealed class VersionedStockModel : PageModel
 }
 
 /// <summary>The input of the sample stock form.</summary>
-public sealed class VersionedStockInput
+public sealed class VersionedStockInput : IFormInput
 {
     public string? OriginalStockQuantity { get; set; }
 

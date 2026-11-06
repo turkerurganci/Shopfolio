@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Modules.Catalog;
 
@@ -17,7 +18,6 @@ namespace Shopfolio.IntegrationTests.Pages.Panel;
 [IgnoreAntiforgeryToken]
 public sealed class VersionedProductModel : PageModel
 {
-    [BindProperty]
     public VersionedProductInput Input { get; set; } = new();
 
     public Guid RecordId { get; private set; }
@@ -38,8 +38,9 @@ public sealed class VersionedProductModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostSaveAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> OnPostSaveAsync(Guid id, VersionedProductInput input, CancellationToken ct)
     {
+        Input = input;
         IServiceProvider services = HttpContext.RequestServices;
         AppDbContext db = services.GetRequiredService<AppDbContext>();
         RecordId = id;
@@ -64,7 +65,7 @@ public sealed class VersionedProductModel : PageModel
 }
 
 /// <summary>The input of the sample product form: the version the form was opened with and the field that is written.</summary>
-public sealed class VersionedProductInput
+public sealed class VersionedProductInput : IFormInput
 {
     public int Version { get; set; }
 

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Binding;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Ordering;
@@ -20,10 +21,8 @@ public sealed class VersionedOrderModel : PageModel
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 5, 9, 0, 0, TimeSpan.Zero);
 
-    [BindProperty]
     public VersionedOrderInput Input { get; set; } = new();
 
-    [BindProperty]
     public VersionedCustomerInput Customer { get; set; } = new();
 
     public Guid RecordId { get; private set; }
@@ -43,8 +42,9 @@ public sealed class VersionedOrderModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAdminSaveAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> OnPostAdminSaveAsync(Guid id, VersionedOrderInput input, CancellationToken ct)
     {
+        Input = input;
         IServiceProvider services = HttpContext.RequestServices;
         AppDbContext db = services.GetRequiredService<AppDbContext>();
         RecordId = id;
@@ -67,8 +67,9 @@ public sealed class VersionedOrderModel : PageModel
         return await AnswerAsync(outcome, id, ct);
     }
 
-    public async Task<IActionResult> OnPostCustomerCancelAsync(Guid id, CancellationToken ct)
+    public async Task<IActionResult> OnPostCustomerCancelAsync(Guid id, VersionedCustomerInput customer, CancellationToken ct)
     {
+        Customer = customer;
         IServiceProvider services = HttpContext.RequestServices;
         AppDbContext db = services.GetRequiredService<AppDbContext>();
         RecordId = id;
@@ -121,7 +122,7 @@ public sealed class VersionedOrderModel : PageModel
 }
 
 /// <summary>The administrator's form of the sample order page.</summary>
-public sealed class VersionedOrderInput
+public sealed class VersionedOrderInput : IFormInput
 {
     public int Version { get; set; }
 
@@ -129,7 +130,7 @@ public sealed class VersionedOrderInput
 }
 
 /// <summary>The customer's item cancellation of the sample order page: no version, the shown open quantity only.</summary>
-public sealed class VersionedCustomerInput
+public sealed class VersionedCustomerInput : IFormInput
 {
     public Guid ItemId { get; set; }
 

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-06 — T208 (Sürümün ve gösterilen değerin formda taşınması, koşullu güncelleme) yapım tamamlandı, doğrulama bekliyor (kriter 1–9 ve KK1–KK9 öz denetimde ✓; Unit 1802, Integration 1381 yerelde gerçek PostgreSQL 18’de yeşil; D-95 (c) kapandı, (a)(b) T348; ⚠ hata kodları T213’te, öteki değerlerin yanıtı T212 madde 4).
+**Son güncelleme:** 2026-11-06 — T208 (Sürümün ve gösterilen değerin formda taşınması, koşullu güncelleme) yapım tamamlandı, doğrulama bekliyor (kriter 1–9 ve KK1–KK9 öz denetimde ✓; Unit 1931, Integration 1413 yerelde gerçek PostgreSQL 18’de yeşil; main ile birleştirildi (T211); D-95 (c) kapandı, (a)(b) T348; ⚠ hata kodları T213’te, öteki değerlerin yanıtı T212 madde 4). Önceki kayıt `STATUS_CHANGELOG.md`’de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -110,7 +110,7 @@
 | T208 | Sürümün ve gösterilen değerin formda taşınması, koşullu güncelleme | ⏳ | — | — | — |
 | T209 | Tek kullanımlık değerler, tekrar gönderim, sahteciliğe karşı koruma ve güvenlik başlıkları | ⬚ | — | — | — |
 | T210 | Liste kalıbı | ⬚ | — | — | — |
-| T211 | Model bağlama kalıbı | ⬚ | — | — | — |
+| T211 | Model bağlama kalıbı | ✓ | ✓ PASS (tur 2; tur 1 ✗ FAIL) | — | #402 |
 | T212 | Hata gösterimi ve HTTP durumları | ⬚ | — | — | — |
 | T213 | Hata kodu kayıt defteri | ⬚ | — | — | — |
 | T214 | Kısa süreli bildirim kodları | ⬚ | — | — | — |

@@ -24,20 +24,20 @@ public sealed class PatternFormModel : PageModel
         _store = store;
     }
 
-    [BindProperty]
-    public PatternInput Input { get; set; } = new();
+    // No bound property: the input belongs to the Add handler only and arrives as its parameter. A bound property would be bound and refused (422)
+    // for Refuse and Export too, which send no form. The page shows the sent values again from the model state.
 
     public IReadOnlyList<string> Records => _store.Snapshot();
 
     // The handlers are named On<Method><Name>Async (09 5.3 item 1).
-    public Task<IActionResult> OnPostAddAsync()
+    public Task<IActionResult> OnPostAddAsync(PatternInput input)
     {
         if (!ModelState.IsValid)
         {
             return Task.FromResult(FormResults.Redisplay(this));
         }
 
-        _store.Add(Input.Name);
+        _store.Add(input.Name);
         return Task.FromResult(FormResults.SeeOther("/panel/ornek-form"));
     }
 

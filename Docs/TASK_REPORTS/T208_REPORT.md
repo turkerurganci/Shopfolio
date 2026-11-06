@@ -42,7 +42,7 @@
 
 ### Öz denetim (bitiş kapısı 2)
 
-`git diff origin/main...HEAD` üzerinde madde madde denetlendi (origin/main `3226fcd`, çakışma yok); testler bu turda koşuldu.
+`git diff origin/main...HEAD` üzerinde madde madde denetlendi (origin/main `da20c4e`, T211 (#402) ile birleştirildi; çakışmalar belge dosyalarındaydı, kod çakışması yok); T211’in kuralları örnek sayfalara uygulandı (aşağıda “Sık FAIL 5”); testler bu turda koşuldu.
 
 | Madde (kabul kriteri / KK) | Sonuç | Kanıt (dosya, test adı) |
 |---|---|---|
@@ -65,13 +65,14 @@
 | Sık FAIL 3: aynı sayı/etiketi anan yerler | ✓ | Sürüm taşıyan 13 varlık: `TheRecordsOfTheEditFormsAndTheOrder_AreVersionedRecords` modeldeki `Version` özelliğiyle eşler; tarama kümeleri `ScansSetsAndTables_AreTheOnesTheTwoVersionGuardsCover` ile bekçilerin kümesine bağlı; `CONTEXT.md`, `09 §10.2`, §25, status, memory, T207 kaydı güncellendi |
 | Sık FAIL 4: hedefi bu task olan backlog kaydı | ✓ | `grep -n T208 Docs/DEFERRED_BACKLOG.md`: yalnız D-95; (c) kapandı (satırda işaretli, hedef sütunu "~~T208 (c)~~ kapandı; T348 (a, b)"), (a)(b) T348'e kalır |
 | Sık FAIL 5: iki kural birbirini kilitliyor | ✓ | `TheSamplePagesOfTheVersionedForms_PassTheFormVersionScanAndThePageScan`: gerçek sayfa biçiminde (post form + işleyici adı + `VersionFields`) örnek sayfalar hem `PageSourceScan` hem `FormVersionSourceScan`'dan geçer; `VersionFields.cs` kendisi taranır ve temizdir. `asp-for` yasağı ile "model durumu gönderileni geri basar" çelişmez: yardımcı değeri açıkça yazar |
+| T211 uyumu (main ile birleştirme) | ✓ | Main’deki T211 (#402) birleştirildi. Çakışma yalnız `CONTEXT.md`, `MEMORY.md`, `IMPLEMENTATION_STATUS.md`, `STATUS_CHANGELOG.md`’deydi (iki taraf korundu); `DEFERRED_BACKLOG.md` kendiliğinden birleşti (D-95 (c) ✅, D-123–D-128 duruyor, aktif kalem 71). Üç örnek sayfa (`VersionedOrder/Product/Stock`) T211 kalıbına getirildi: girdi modelleri `IFormInput`, işleyici girdisi bağlı özellik değil işleyici parametresi (bağlı özellik her işleyicide bağlanır ve doğrulanır — `CONTEXT.md` notu); görüntüleme için `Input`/`Customer` özellikleri bağlanmaz, işleyici başında atanır. Süzgeç işleyiciden önce 422 verir, ama bu modellerde doğrulama niteliği yok; 409 akışı (`VersionedFormPageTests`) değişmeden geçti. Kural ya da test gevşetilmedi. Sınama: Unit 1931, Integration 1413 |
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ 1802 / 1802 | `dotnet test tests/Shopfolio.UnitTests` | önce 1628 (T207); +174 (VersionFields, ShownValue, ConflictControls, FormVersionSourceScan, VersionedSideBulkWriteScan, FormResults.Conflict) |
-| Integration | ✓ 1381 / 1381 | `dotnet test tests/Shopfolio.IntegrationTests --no-build --filter-namespace …` (parça parça: Web 209, Model 893, Concurrency+Security+Files+Jobs 154, öteki 125) | önce 1360; +21 (`VersionedFormPageTests`), gerçek PostgreSQL 18 |
+| Unit | ✓ 1931 / 1931 | `dotnet test tests/Shopfolio.UnitTests` | önce 1757 (T211); +174 (VersionFields, ShownValue, ConflictControls, FormVersionSourceScan, VersionedSideBulkWriteScan, FormResults.Conflict) |
+| Integration | ✓ 1413 / 1413 | `dotnet test tests/Shopfolio.IntegrationTests --no-build --filter-namespace …` (parça parça: Web 241, Model 893, Concurrency+Security+Jobs 121, öteki 158) | önce 1392 (T211); +21 (`VersionedFormPageTests`), gerçek PostgreSQL 18 |
 | Contract | — | — | Bu task'ta sözleşme testi yok |
 | Derleme / biçim | ✓ | `dotnet build -warnaserror --no-incremental`; `dotnet format --verify-no-changes` | 0 uyarı, 0 hata; biçim çıkışı 0 |
 

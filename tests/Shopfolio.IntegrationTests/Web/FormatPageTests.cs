@@ -196,6 +196,10 @@ public sealed partial class FormatPageTests
         Assert.Equal(expected, ValuesOf(storefrontEn.Body));
         Assert.Equal(expected, ValuesOf(panel.Body));
         Assert.Equal(expected, ValuesOf(panelEn.Body));
+
+        // The English request really ran on an English thread: the sameness above is the formats' doing, not an unchanged culture.
+        Assert.Contains("<p class=\"thread-culture\">en-US</p>", storefrontEn.Body, StringComparison.Ordinal);
+        Assert.Contains("<p class=\"thread-culture\">en-US</p>", panelEn.Body, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -260,6 +264,8 @@ public sealed partial class FormatPageTests
     [InlineData("+5", false)]
     [InlineData("12,345", false)]
     [InlineData("100000,01", false)]
+    [InlineData("12,00000000000000000000000000001", false)]
+    [InlineData("1,99999999999999999999999999999", true)]
     public async Task Post_WithAnAmountInAnotherFormat_Is422WithTheAmountMessage_AndNothingIsSaved(string price, bool kestrel)
     {
         await using Host host = new(_database.Dsn, kestrel);

@@ -51,6 +51,38 @@ public sealed class RequestFormatTests
         Assert.Equal(decimal.Parse(expected, CultureInfo.InvariantCulture), result);
     }
 
+    /// <summary>
+    /// A text with more digits than a <see cref="decimal"/> holds would be rounded by the framework's parser - "12,000...0001" would become 12 and pass the
+    /// rule of two decimals, "0,000...0001" would become 0. Such a text is not read: the value is never made larger or smaller (07 2.9.4).
+    /// </summary>
+    [Theory]
+    [InlineData("12,00000000000000000000000000001")]
+    [InlineData("1,99999999999999999999999999999")]
+    [InlineData("0,00000000000000000000000000000001")]
+    [InlineData("99999999999999999999999999999")]
+    [InlineData("999999999999999999999999999999")]
+    [InlineData("7922816251426433759354395033,51")]
+    public void TryParseDecimal_ATextBeyondThePrecisionOfADecimal_IsNotRead_NothingIsRounded(string value)
+    {
+        Assert.False(RequestFormat.TryParseDecimal(value, out decimal result));
+        Assert.Equal(0m, result);
+    }
+
+    /// <summary>Zeros that change nothing are not a loss: leading zeros and trailing decimal zeros, however many, still read the typed value.</summary>
+    [Theory]
+    [InlineData("012,50", "12.5")]
+    [InlineData("0000000000000000000000000000000012,5", "12.5")]
+    [InlineData("12,500000000000000000000000000000000", "12.5")]
+    [InlineData("0,000", "0")]
+    [InlineData("000", "0")]
+    [InlineData("9999999999,99", "9999999999.99")]
+    [InlineData("0,0000000000000000000000000001", "0.0000000000000000000000000001")]
+    public void TryParseDecimal_ZerosThatChangeNothing_ReadTheTypedValue(string value, string expected)
+    {
+        Assert.True(RequestFormat.TryParseDecimal(value, out decimal result));
+        Assert.Equal(decimal.Parse(expected, CultureInfo.InvariantCulture), result);
+    }
+
     [Theory]
     [InlineData("en-US")]
     [InlineData("de-DE")]

@@ -24,12 +24,39 @@ internal static class RequestFormat
 
     /// <summary>
     /// An amount: digits and at most one comma, nothing else - no thousands separator, sign, blank, exponent or currency (07 2.9.4; 09 7.2 item 3). In
-    /// <c>tr-TR</c> the point is the group separator; the style does not accept it, so <c>12.50</c> is not read and never becomes 1250.
+    /// <c>tr-TR</c> the point is the group separator; the style does not accept it, so <c>12.50</c> is not read and never becomes 1250. A text with more
+    /// digits than a <see cref="decimal"/> holds is not read either: the framework's parser would round it ("1,999...9" would become 2, "12,000...01" would
+    /// become 12 and pass the rule of two decimals), so the parsed value must write back as the typed number, up to the zeros that change nothing.
     /// </summary>
     public static bool TryParseDecimal(string? value, out decimal result)
     {
         result = 0m;
-        return !string.IsNullOrEmpty(value) && decimal.TryParse(value, NumberStyles.AllowDecimalPoint, Culture, out result);
+        if (string.IsNullOrEmpty(value) || !decimal.TryParse(value, NumberStyles.AllowDecimalPoint, Culture, out decimal parsed)
+            || !string.Equals(WithoutIdleZeros(value), FormatDecimal(parsed), StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        result = parsed;
+        return true;
+    }
+
+    /// <summary>
+    /// A number the decimal style has read - digits and at most one comma - without the zeros that change nothing: the leading zeros of the whole part, the
+    /// trailing zeros of the fraction and a comma with no digit after it. It is the form <see cref="FormatDecimal"/> writes.
+    /// </summary>
+    private static string WithoutIdleZeros(string number)
+    {
+        string separator = Culture.NumberFormat.NumberDecimalSeparator;
+        int comma = number.IndexOf(separator, StringComparison.Ordinal);
+        string whole = (comma < 0 ? number : number[..comma]).TrimStart('0');
+        string fraction = comma < 0 ? string.Empty : number[(comma + separator.Length)..].TrimEnd('0');
+        if (whole.Length == 0)
+        {
+            whole = "0";
+        }
+
+        return fraction.Length == 0 ? whole : whole + separator + fraction;
     }
 
     /// <summary>A date in the one format <c>yyyy-AA-GG</c> (07 2.9.3; 09 7.2 item 2); the format is fixed, so the culture is the invariant one.</summary>

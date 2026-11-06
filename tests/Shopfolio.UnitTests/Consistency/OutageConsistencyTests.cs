@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Modules.Membership;
 using Shopfolio.UnitTests.Support;
 
@@ -62,6 +63,19 @@ public sealed partial class OutageConsistencyTests
         Assert.NotEqual(P38Row(), changed);
     }
 
+    // Every code the rule can answer with: both flows against both kinds of failure (T214 / D-109: the rule answers with the NoticeCode itself).
+    private static readonly string[] GoogleFailureCodes =
+    [
+        .. Enum.GetValues<GoogleIdentityFlow>()
+            .SelectMany(flow => new Shopfolio.Infrastructure.Integrations.GoogleIdentityResult[]
+            {
+                new Shopfolio.Infrastructure.Integrations.GoogleIdentityResult.Failed("x"),
+                new Shopfolio.Infrastructure.Integrations.GoogleIdentityResult.Unavailable("x"),
+            }.Select(answer => GoogleIdentityFailureRule.FailureOf(flow, answer)))
+            .Select(code => code!.Value.ToString())
+            .Distinct(),
+    ];
+
     [Fact]
     public void GoogleFailureCodes_AreNoticeCodesOf07()
     {
@@ -73,7 +87,7 @@ public sealed partial class OutageConsistencyTests
         HashSet<string> noticeCodes = [.. lines[start..(end < 0 ? lines.Length : end)].Select(line => NoticeRow().Match(line)).Where(m => m.Success).Select(m => m.Groups[1].Value)];
 
         Assert.Contains("SocialLoginFailed", noticeCodes);
-        Assert.All(Enum.GetNames<GoogleIdentityFailure>(), name => Assert.Contains(name, noticeCodes));
+        Assert.All(GoogleFailureCodes, name => Assert.Contains(name, noticeCodes));
     }
 
     [Fact]
@@ -81,8 +95,8 @@ public sealed partial class OutageConsistencyTests
     {
         string row = Lines("08_INTEGRATION_SPEC.md").Single(line => line.StartsWith("| Google'a ulaşılamadı", StringComparison.Ordinal));
 
-        Assert.Contains($"`{nameof(GoogleIdentityFailure.SocialLoginFailed)}`", row, StringComparison.Ordinal);
-        Assert.Contains($"`{nameof(GoogleIdentityFailure.SocialReauthenticationUnavailable)}`", row, StringComparison.Ordinal);
+        Assert.Contains($"`{nameof(NoticeCode.SocialLoginFailed)}`", row, StringComparison.Ordinal);
+        Assert.Contains($"`{nameof(NoticeCode.SocialReauthenticationUnavailable)}`", row, StringComparison.Ordinal);
     }
 
     [GeneratedRegex(@"\*\*(\d+) (dakika|saat)\*\*", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

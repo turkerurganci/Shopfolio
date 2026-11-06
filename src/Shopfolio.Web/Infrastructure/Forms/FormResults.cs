@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
+using Shopfolio.Infrastructure.Notices;
+
 namespace Shopfolio.Infrastructure.Forms;
 
 /// <summary>
@@ -40,6 +42,13 @@ internal static class FormResults
 
         return new SeeOtherResult(localPath);
     }
+
+    /// <summary>
+    /// 303 to a path of this site with a notice code in the <c>notice</c> parameter (07 2.2.3, 6.3): the short-lived notice of a successful write, the
+    /// result state of a form or the reason of a return. The code is a member of the closed list and the address is the only place it travels - no cookie
+    /// and no record on the server (<see cref="NoticeParameter.Address"/>).
+    /// </summary>
+    public static IActionResult SeeOther(string localPath, NoticeCode notice) => SeeOther(NoticeParameter.Address(localPath, notice));
 
     /// <summary>
     /// The same 303 written straight on a response, for the catching layer's middleware that has no action to return (09 8.1 item 2b). The path goes

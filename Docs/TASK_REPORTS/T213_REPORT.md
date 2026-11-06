@@ -102,7 +102,7 @@ Bütün maddeler bu diff'te yeniden denetlendi (kriter listesi `11` satır 1179�
 - **Commit:** `08c2602` — T213: Rapor, durum, hafiza, backlog, 09 hizalamasi, D-90 taramasi ve kod sizma testleri
 - **PR:** #408
 - **CI:** yardımcı yürütür
-- **Post-merge run'lar:** squash `11a2c7d` (#408) — CI 42195116854 success, Publish 42195116675 success (T215 dalında dolduruldu, skill adım 15)
+- **Post-merge run'lar:** squash `11a2c7d` (#408) — CI 42195116854 success, Publish 42195116675 success (T214 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

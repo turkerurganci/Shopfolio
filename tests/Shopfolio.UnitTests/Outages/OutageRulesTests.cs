@@ -1,5 +1,6 @@
 using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Jobs;
+using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Payment;
 using Shopfolio.UnitTests.Fakes;
@@ -87,10 +88,10 @@ public sealed class OutageRulesTests
 
         Assert.Null(GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.SignInOrRegistration, success));
         Assert.Null(GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.Reauthentication, success));
-        Assert.Equal(GoogleIdentityFailure.SocialLoginFailed, GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.SignInOrRegistration, unavailable));
-        Assert.Equal(GoogleIdentityFailure.SocialReauthenticationUnavailable, GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.Reauthentication, unavailable));
-        Assert.Equal(GoogleIdentityFailure.SocialLoginFailed, GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.SignInOrRegistration, failed));
-        Assert.Equal(GoogleIdentityFailure.SocialReauthenticationFailed, GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.Reauthentication, failed));
+        Assert.Equal(NoticeCode.SocialLoginFailed, GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.SignInOrRegistration, unavailable));
+        Assert.Equal(NoticeCode.SocialReauthenticationUnavailable, GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.Reauthentication, unavailable));
+        Assert.Equal(NoticeCode.SocialLoginFailed, GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.SignInOrRegistration, failed));
+        Assert.Equal(NoticeCode.SocialReauthenticationFailed, GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.Reauthentication, failed));
     }
 
     [Theory]
@@ -101,11 +102,11 @@ public sealed class OutageRulesTests
         FakeGoogleIdentityGateway fake = new() { Outage = kind };
         IdentityCodeExchange exchange = new("code", "verifier");
 
-        GoogleIdentityFailure? signIn = GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.SignInOrRegistration, await fake.VerifyIdentityAsync(exchange, Ct));
-        GoogleIdentityFailure? reauthentication = GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.Reauthentication, await fake.VerifyIdentityAsync(exchange, Ct));
+        NoticeCode? signIn = GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.SignInOrRegistration, await fake.VerifyIdentityAsync(exchange, Ct));
+        NoticeCode? reauthentication = GoogleIdentityFailureRule.FailureOf(GoogleIdentityFlow.Reauthentication, await fake.VerifyIdentityAsync(exchange, Ct));
 
-        Assert.Equal(GoogleIdentityFailure.SocialLoginFailed, signIn);
-        Assert.Equal(GoogleIdentityFailure.SocialReauthenticationUnavailable, reauthentication);
+        Assert.Equal(NoticeCode.SocialLoginFailed, signIn);
+        Assert.Equal(NoticeCode.SocialReauthenticationUnavailable, reauthentication);
         Assert.Equal(2, fake.Calls.Count);
     }
 

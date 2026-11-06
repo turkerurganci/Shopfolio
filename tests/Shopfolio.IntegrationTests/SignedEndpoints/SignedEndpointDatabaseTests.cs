@@ -164,6 +164,7 @@ public sealed class SignedEndpointDatabaseTests : IAsyncLifetime
         builder.Services.AddSingleton<TimeProvider>(new ManualTimeProvider(new DateTimeOffset(2026, 11, 5, 9, 0, 0, TimeSpan.Zero)));
         builder.Services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn).AddInterceptors(_commit));
         builder.Services.AddScoped<ITransactionRunner, TransactionRunner>();
+        builder.Services.AddAppCache();
         builder.Services.AddScoped<JobEnqueueTracker>();
         builder.Services.AddScoped<IJobQueue, JobQueue>();
         builder.Services.AddSingleton<IJobSignal, JobSignal>();

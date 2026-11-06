@@ -58,6 +58,7 @@ public sealed class AttemptCounterTests : IAsyncLifetime
         services.AddSingleton(_dataSource);
         services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn));
         services.AddScoped<ITransactionRunner, TransactionRunner>();
+        services.AddAppCache();
         services.AddScoped<JobEnqueueTracker>();
         services.AddSingleton<IJobSignal, JobSignal>();
         services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.None));

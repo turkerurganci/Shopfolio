@@ -34,6 +34,7 @@
     <ViolationSampleSource Include="Architecture/ViolationSamples/ModuleBoundary/*.cs" />
     <TimeAndMoneySampleSource Include="Architecture/ViolationSamples/TimeAndMoney/*.cs" />
     <ModelBindingSampleSource Include="Architecture/ViolationSamples/ModelBinding/*.cs" />
+    <CacheSampleSource Include="Architecture/ViolationSamples/CacheCode/*.cs" />
   </ItemGroup>
 
   <Target Name="BuildViolationSamples" AfterTargets="Build" Inputs="@(ViolationSampleSource)" Outputs="$(OutDir)ModuleBoundaryViolationSample.dll">
@@ -72,6 +73,22 @@
     <Csc Sources="@(ModelBindingSampleSource)"
          References="@(ReferencePathWithRefAssemblies)"
          OutputAssembly="$(OutDir)ModelBindingViolationSample.dll"
+         TargetType="library"
+         NoStandardLib="true"
+         Nullable="enable"
+         EmitDebugInformation="true"
+         DebugType="portable"
+         UseSharedCompilation="false"
+         ToolPath="$(CscToolPath)"
+         ToolExe="$(CscToolExe)"
+         TreatWarningsAsErrors="true" />
+  </Target>
+
+  <!-- The compiled cache rule's violation sample (09 10.4 item 2, 20 item 9; T229): its own assembly as well. -->
+  <Target Name="BuildCacheViolationSample" AfterTargets="Build" Inputs="@(CacheSampleSource)" Outputs="$(OutDir)CacheViolationSample.dll">
+    <Csc Sources="@(CacheSampleSource)"
+         References="@(ReferencePathWithRefAssemblies)"
+         OutputAssembly="$(OutDir)CacheViolationSample.dll"
          TargetType="library"
          NoStandardLib="true"
          Nullable="enable"

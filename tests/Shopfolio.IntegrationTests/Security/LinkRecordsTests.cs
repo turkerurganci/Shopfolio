@@ -253,7 +253,7 @@ public sealed class LinkRecordsTests : IAsyncLifetime
         await SaveAsync(c => c.LinkRecords.Add(link));
         await using AppDbContext db = NewContext();
 
-        ConsumeResult result = await new TransactionRunner(db, new JobEnqueueTracker(), new JobSignal()).RunAsync(
+        ConsumeResult result = await new TransactionRunner(db, new JobEnqueueTracker(), new JobSignal(), new CacheInvalidations(db), new AppCache()).RunAsync(
             async cancel => new ConsumeResult(await new LinkRecords(db, _time).TryConsumeAsync(link.Id, cancel), Rejected: true),
             Ct);
 

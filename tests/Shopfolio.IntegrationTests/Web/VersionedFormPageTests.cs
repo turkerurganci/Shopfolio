@@ -573,6 +573,7 @@ public sealed partial class VersionedFormPageTests
         ServiceCollection services = new();
         services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _database.Dsn));
         services.AddScoped<ITransactionRunner, TransactionRunner>();
+        services.AddAppCache();
         services.AddScoped<AdvisoryLocks>();
         services.AddSingleton<Shopfolio.Infrastructure.Jobs.IJobSignal, Shopfolio.Infrastructure.Jobs.JobSignal>();
         services.AddScoped<Shopfolio.Infrastructure.Jobs.JobEnqueueTracker>();

@@ -10,7 +10,8 @@ internal interface ITransactionRunner
     /// <summary>
     /// Runs <paramref name="work"/> in one transaction. A result that is not refused is saved and committed; a refused result rolls everything
     /// back - the tracked changes and the statements already sent (<c>ExecuteUpdateAsync</c> included) - and is returned as it is; an exception
-    /// rolls back and is thrown again. A call inside a running transaction is a programming error.
+    /// rolls back and is thrown again. A call inside a running transaction is a programming error. The cache areas the work named in
+    /// <see cref="CacheInvalidations"/> are dropped after the commit and only then (09 10.4 item 3).
     /// </summary>
     Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, CancellationToken ct)
         where T : IOperationResult;

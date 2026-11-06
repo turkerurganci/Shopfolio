@@ -846,6 +846,7 @@ public sealed class ConcurrencyTests : IAsyncLifetime
         services.AddScoped<JobEnqueueTracker>();
         services.AddSingleton<IJobSignal, JobSignal>();
         services.AddScoped<ITransactionRunner, TransactionRunner>();
+        services.AddAppCache();
         services.AddScoped<AdvisoryLocks>();
 
         // What the Catalog module's image upload stands on (the application registers them in Program.cs; the stock tests never upload).

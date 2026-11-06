@@ -42,6 +42,7 @@ internal sealed class DisposalHarness : IAsyncDisposable
         services.AddSingleton(DataSource);
         services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, dsn));
         services.AddScoped<ITransactionRunner, TransactionRunner>();
+        services.AddAppCache();
         services.AddScoped<JobEnqueueTracker>();
         services.AddSingleton<IJobSignal, JobSignal>();
         services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.None));

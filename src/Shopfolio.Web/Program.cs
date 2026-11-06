@@ -82,6 +82,9 @@ builder.Services.AddRequestRateLimiting();
 // or a missing single-row record of the start data stops the application before it answers a request.
 builder.Services.AddStartupDatabaseCheck();
 
+// The in-memory cache (09 10.4; 05 7.10.1; MK-34): the one cache of the process and the scope's areas to drop after the commit.
+builder.Services.AddAppCache();
+
 // The transaction runner and the advisory lock (09 9.1 item 3, 10.2 item 5): scoped, with the scope's one context.
 builder.Services.AddScoped<ITransactionRunner, TransactionRunner>();
 builder.Services.AddScoped<AdvisoryLocks>();

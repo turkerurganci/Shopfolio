@@ -212,6 +212,44 @@ public sealed class ModuleBoundaryTests
         Assert.DoesNotContain(used, name => name.Contains("AppDbContext", StringComparison.Ordinal));
     }
 
+    // The in-memory cache pattern as the application's modules and a page of the application's namespace use it (T229; 09 10.4 items 1 to 5, 6 items 2 and 7):
+    // CachePatternPage (CachePattern.cs) lives in Shopfolio.Pages.Storefront and the module reads in Shopfolio.Modules.<Module>, so the page rule, the module rule and
+    // the internal-only rule read them. The cache is reached inside the module; the page never names it.
+    [Fact]
+    public void CachePattern_UnderTheModuleRules_IsClean_AndOnlyTheModuleReachesTheCache()
+    {
+        Assert.Empty(Evaluate(_withPatternPage.Value, PageRule()));
+        Assert.Empty(Evaluate(_withPatternPage.Value, ContractsReachNothingRule()));
+        Assert.Empty(Evaluate(_withPatternPage.Value, NotPublicOutsideContractsRule()));
+        Assert.Empty(FindModuleReferenceViolations(_withPatternPage.Value));
+
+        IType page = _withPatternPage.Value.Types.Single(t => t.FullName == "Shopfolio.Pages.Storefront.CachePatternPage");
+        List<string> pageUses = page.Dependencies.Select(d => d.Target.FullName).ToList();
+        Assert.Contains("Shopfolio.Modules.Settings.Contracts.IPatternShopSettings", pageUses);
+        Assert.Contains("Shopfolio.Modules.Catalog.Contracts.IPatternPriceSource", pageUses);
+        Assert.Contains("Shopfolio.Modules.CorporateContent.Contracts.IPatternAnnouncementSource", pageUses);
+        Assert.DoesNotContain(pageUses, name => name.StartsWith("Shopfolio.Infrastructure.", StringComparison.Ordinal));
+        Assert.DoesNotContain(pageUses, name => name.StartsWith("Shopfolio.Modules.", StringComparison.Ordinal) && !name.Contains(".Contracts.", StringComparison.Ordinal));
+
+        IType settings = _withPatternPage.Value.Types.Single(t => t.FullName == "Shopfolio.Modules.Settings.PatternShopSettings");
+        List<string> settingsUses = settings.Dependencies.Select(d => d.Target.FullName).ToList();
+        Assert.Contains("Shopfolio.Infrastructure.AppCache", settingsUses);
+        Assert.Contains("Shopfolio.Infrastructure.CacheInvalidations", settingsUses);
+
+        // The price path has no cache (05 7.10.1): the Catalog read names neither the cache nor an area.
+        IType price = _withPatternPage.Value.Types.Single(t => t.FullName == "Shopfolio.Modules.Catalog.PatternPriceSource");
+        Assert.DoesNotContain(price.Dependencies, d => d.Target.FullName is "Shopfolio.Infrastructure.AppCache" or "Shopfolio.Infrastructure.CacheArea");
+    }
+
+    [Fact]
+    public void TheCache_InApplicationAssembly_IsCommonInfrastructureThatReachesNoModuleType()
+    {
+        IType[] cache = [.. _application.Value.Types.Where(t => t.FullName is "Shopfolio.Infrastructure.AppCache" or "Shopfolio.Infrastructure.CacheArea" or "Shopfolio.Infrastructure.CacheInvalidations")];
+
+        Assert.Equal(3, cache.Length);
+        Assert.All(cache, t => Assert.DoesNotContain(t.Dependencies, d => d.Target.FullName.StartsWith("Shopfolio.Modules.", StringComparison.Ordinal)));
+    }
+
     [Fact]
     public void SearchEngineDataPattern_InApplicationAssembly_IsCommonInfrastructureThatReachesNoModuleType()
     {

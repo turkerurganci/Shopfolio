@@ -16,7 +16,7 @@ namespace Shopfolio.UnitTests.Consistency;
 [Trait("Consistency", "true")]
 public sealed partial class OutcomeUncertainConsistencyTests
 {
-    /// <summary>The use cases of 07 6.4.2 whose handler is not written yet (D-135: the list is empty when the last marked page is built).</summary>
+    /// <summary>The use cases of 07 6.4.2 whose handler is not written yet (D-137: the list is empty when the last marked page is built).</summary>
     private static readonly string[] NotMarkedYet =
     [
         "UC-27", "UC-39", "UC-40", "UC-41", "UC-43", "UC-68", "UC-53", "UC-76", "UC-186", "UC-187",

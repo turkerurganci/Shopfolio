@@ -80,6 +80,46 @@ public sealed class UnexpectedErrorLayerTests
     }
 
     [Fact]
+    public async Task Write_WhenTheErrorPageCannotBeWritten_FallsBackToThePlainest500_AndThrowsNothing()
+    {
+        DefaultHttpContext context = new();
+        context.Request.Method = "GET";
+        context.Response.Body = new RefusingStream();
+
+        await UnexpectedErrorAnswer.WriteAsync(context, new ErrorResolution(ErrorState.PageLevel, null));
+
+        Assert.Equal(500, context.Response.StatusCode);
+        Assert.Empty(context.Response.Headers);
+    }
+
+    [Fact]
+    public async Task Write_WhenTheAnswerHasStarted_OrTheClientIsGone_ChangesNothing()
+    {
+        DefaultHttpContext gone = new();
+        gone.Response.StatusCode = 200;
+
+        await UnexpectedErrorAnswer.WriteAsync(gone, new ErrorResolution(ErrorState.PageLevel, null, ClientGone: true));
+
+        Assert.Equal(200, gone.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Write_OfTheMachineEndpoint_Is500WithoutABody_AndOfAnUncertainOutcome_Is303ToTheTarget()
+    {
+        DefaultHttpContext machine = new();
+        machine.Response.Body = new MemoryStream();
+        await UnexpectedErrorAnswer.WriteAsync(machine, new ErrorResolution(ErrorState.MachineEndpoint, null));
+
+        DefaultHttpContext uncertain = new();
+        await UnexpectedErrorAnswer.WriteAsync(uncertain, new ErrorResolution(ErrorState.OutcomeUncertain, "/hesap/siparisler"));
+
+        Assert.Equal(500, machine.Response.StatusCode);
+        Assert.Equal(0, machine.Response.Body.Length);
+        Assert.Equal(303, uncertain.Response.StatusCode);
+        Assert.Equal("/hesap/siparisler", uncertain.Response.Headers.Location.ToString());
+    }
+
+    [Fact]
     public void Counter_CountsOnlyTheEntriesInsideTheWindow_AndForgetsTheOldOnes()
     {
         MovingTime time = new();
@@ -106,6 +146,15 @@ public sealed class UnexpectedErrorLayerTests
         context.Request.Path = "/own";
         context.Items[OperationMark.ItemKey] = mark;
         return layer.Resolve(context, new InvalidOperationException("t212"));
+    }
+
+    private sealed class RefusingStream : MemoryStream
+    {
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+            => throw new IOException("the page cannot be written");
+
+        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            => throw new IOException("the page cannot be written");
     }
 
     private sealed class Target : IOutcomeTarget

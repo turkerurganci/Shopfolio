@@ -22,7 +22,7 @@ internal enum ErrorState
 
 /// <summary>
 /// The closed codes the layer records (07 6.2, 6.4.2). They are text for now: the error code registry (T213) takes them over as members of
-/// <c>ErrorCode</c> and these constants are removed then (D-143).
+/// <c>ErrorCode</c> and these constants are removed then (D-136).
 /// </summary>
 internal static class UnexpectedErrorCodes
 {

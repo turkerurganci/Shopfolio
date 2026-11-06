@@ -100,7 +100,7 @@ internal sealed partial class UnexpectedErrorLayer
 
 /// <summary>
 /// The answer of a state, written for the requests the layer's middleware catches (09 8.1 item 2b) and for the page filter's page-level error. The
-/// markup is the plainest error page: the storefront's and the panel's frames come with their layouts (D-142). Nothing here writes a cookie
+/// markup is the plainest error page: the storefront's and the panel's frames come with their layouts (D-135). Nothing here writes a cookie
 /// (09 15.1 item 6) and nothing carries a code, an id or a technical detail (07 2.7.3). If the page itself cannot be written the answer is the
 /// framework's plainest 500 (05 10.3.6).
 /// </summary>

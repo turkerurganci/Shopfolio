@@ -14,7 +14,6 @@ namespace Shopfolio.IntegrationTests.Pages.Panel;
 /// is shown again with the sent values and the status 422. <c>Refuse</c> writes nothing and names its reason by a redirect (303). <c>Export</c> is the
 /// one writing POST that does not redirect: 200 and a CSV. The page lives in the test host only; the anti-forgery check is the task of T209.
 /// </summary>
-[IgnoreAntiforgeryToken]
 public sealed class PatternFormModel : PageModel
 {
     private readonly PatternRecordStore _store;

@@ -6,7 +6,8 @@ namespace Shopfolio.UnitTests.Architecture;
 
 /// <summary>
 /// The model binding rules (T211 criteria 1, 2, 4, 6; KK1, KK4, KK6; 07 5.1.1-5.1.5; 09 5.3 items 1-2): the three model kinds carry their name pattern,
-/// a form is named after its main handler, no handler or model touches an entity of 06, and a field has the name 06 gives or the one 07 gives.
+/// a form is named after its main handler, no handler or model touches an entity of 06, a field has the name 06 gives or the one 07 gives, and a model
+/// property carries none of the framework's built-in validation attributes (09 3.4 item 1, the <c>BuiltInRule</c>).
 /// The rules run over the application assembly and fail on the deliberate samples (09 19.2 item 3) - every rule has its own violation and the quiet
 /// neighbours stay quiet.
 /// </summary>

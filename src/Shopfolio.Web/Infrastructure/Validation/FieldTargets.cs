@@ -1,8 +1,10 @@
 using System.Reflection;
 
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 
 namespace Shopfolio.Infrastructure.Validation;
 
@@ -24,13 +26,13 @@ internal sealed class FieldTargets
         _provider = provider;
         if (context.HandlerMethod is { } handler)
         {
-            foreach (var parameter in handler.Parameters)
+            foreach (HandlerParameterDescriptor parameter in handler.Parameters)
             {
                 _roots.Add((parameter.Name, parameter.ParameterType));
             }
         }
 
-        foreach (var property in context.ActionDescriptor.BoundProperties)
+        foreach (ParameterDescriptor property in context.ActionDescriptor.BoundProperties)
         {
             _roots.Add((property.Name, property.ParameterType));
         }

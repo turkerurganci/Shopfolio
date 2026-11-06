@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
-using Shopfolio.Infrastructure.Logging;
 
 namespace Shopfolio.Infrastructure.Validation;
 
@@ -12,21 +12,21 @@ internal sealed record FieldRejection(string Field, string Code);
 
 /// <summary>
 /// The one page filter of the field validation (09 3.4 item 3; 07 2.7.1, 6.1.3). After the model is bound and validated and before the handler runs,
-/// when the model state holds errors it (a) writes one application log line with every rejected field's name and code, (b) replaces each rule's code
+/// when the model state holds errors it (a) writes one application log line with every rejected field's name and code (<see cref="RejectionLog"/>),(b) replaces each rule's code
 /// with the message of the catalog, made from the code and the field's label, and (c) for a request that writes, answers 422 and shows the form again
 /// without running the handler. Every error of the request is handled together (04 7.3.5). A rule the handler adds after the database answered goes
 /// through the same translation after the handler returns (09 3.4 item 2). The code is never written to the page or the response (07 2.7.3): the model
 /// state holds the catalog text from here on.
 /// </summary>
-internal sealed partial class ValidationPageFilter : IAsyncPageFilter
+internal sealed class ValidationPageFilter : IAsyncPageFilter
 {
     private readonly IModelMetadataProvider _metadata;
-    private readonly ILogger<ValidationPageFilter> _logger;
+    private readonly RejectionLog _rejections;
 
-    public ValidationPageFilter(IModelMetadataProvider metadata, ILogger<ValidationPageFilter> logger)
+    public ValidationPageFilter(IModelMetadataProvider metadata, RejectionLog rejections)
     {
         _metadata = metadata;
-        _logger = logger;
+        _rejections = rejections;
     }
 
     public Task OnPageHandlerSelectionAsync(PageHandlerSelectedContext context) => Task.CompletedTask;
@@ -92,12 +92,9 @@ internal sealed partial class ValidationPageFilter : IAsyncPageFilter
 
         if (rejected.Count > 0 && logRejection)
         {
-            LogRejected(_logger, LogEvents.ValidationRejected, rejected);
+            _rejections.FieldsRejected(rejected);
         }
 
         return rejected.Count > 0;
     }
-
-    [LoggerMessage(Level = LogLevel.Warning, Message = "{Event} {@Fields}")]
-    private static partial void LogRejected(ILogger logger, string @event, IReadOnlyList<FieldRejection> fields);
 }

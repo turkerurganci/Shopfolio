@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 using Microsoft.AspNetCore.Builder;
@@ -9,6 +10,8 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 
+using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.SignedEndpoints;
 using Shopfolio.IntegrationTests.Database;
@@ -30,6 +33,7 @@ public sealed partial class ForgeryProtectionTests
 
     private readonly CollectionDatabaseFixture _database;
     private readonly string _adminKey;
+    private ShopfolioWebApplicationFactory? _root;
 
     public ForgeryProtectionTests(CollectionDatabaseFixture database)
     {
@@ -47,6 +51,7 @@ public sealed partial class ForgeryProtectionTests
         PatternRecordStore records = new();
         store = records;
         ShopfolioWebApplicationFactory factory = new(_database.Dsn);
+        _root = factory;
         return factory.WithWebHostBuilder(b => b.ConfigureServices(s =>
         {
             s.AddSingleton(records);
@@ -56,6 +61,27 @@ public sealed partial class ForgeryProtectionTests
                 s.AddSingleton<IStartupFilter, UploadEndpointStartupFilter>();
             }
         }));
+    }
+
+    // The lines of one request in the application log file of the opened application (the same reading as the field validation tests').
+    private List<JsonElement> LinesOf(string requestId)
+    {
+        List<JsonElement> lines = [];
+        foreach (string path in Directory.GetFiles(_root!.LogDirectory, "app-*.jsonl"))
+        {
+            using FileStream stream = new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using StreamReader reader = new(stream);
+            while (reader.ReadLine() is { } text)
+            {
+                JsonElement line = JsonDocument.Parse(text).RootElement.Clone();
+                if (line.TryGetProperty("requestId", out JsonElement id) && id.GetString() == requestId)
+                {
+                    lines.Add(line);
+                }
+            }
+        }
+
+        return lines;
     }
 
     private string AdminCookie => $"{CookieNames.AdminSession}={_adminKey}";
@@ -104,6 +130,51 @@ public sealed partial class ForgeryProtectionTests
         Assert.Contains(ForgeryProtectionFilter.Message, body, StringComparison.Ordinal);
         Assert.Matches(FormToken(), body);
         Assert.Contains(response.Headers.GetValues(HeaderNames.SetCookie), c => c.StartsWith(CookieNames.Antiforgery + "=", StringComparison.Ordinal));
+    }
+
+    // --- criterion 8; KK6, KK8 (T213): one rejection line with the code, and no code in the answer ---
+
+    [Fact]
+    public async Task Post_WithoutAToken_WritesOneRejectionLineWithTheCode_NoFieldsNoValue_AndNoCodeNameInTheAnswer_KK6_KK8()
+    {
+        await using WebApplicationFactory<Program> factory = Open(out PatternRecordStore store);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string requestId = "t213-" + Guid.NewGuid().ToString("N");
+
+        using HttpResponseMessage response = await PostAddAsync(client, "yazilan-ad", r =>
+        {
+            r.Headers.Add(ForgeryTokenHandler.SkipHeader, "1");
+            r.Headers.Add("X-Request-Id", requestId);
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Empty(store.Snapshot());
+        JsonElement line = Assert.Single(LinesOf(requestId), l => l.TryGetProperty("event", out JsonElement e) && e.GetString() == LogEvents.ValidationRejected);
+        Assert.DoesNotContain(LinesOf(requestId), l => l.TryGetProperty("code", out _) && l.GetProperty("category").GetString() != typeof(RejectionLog).FullName);
+        Assert.Equal(LogEvents.ValidationRejected, line.GetProperty("event").GetString());
+        Assert.Equal(nameof(ErrorCode.AntiforgeryValidationFailed), line.GetProperty("code").GetString());
+        Assert.False(line.TryGetProperty("fields", out _));
+        Assert.DoesNotContain("yazilan-ad", line.GetRawText(), StringComparison.Ordinal);
+
+        string answer = await response.Content.ReadAsStringAsync(Ct) + string.Join('\n', response.Headers.Select(h => h.Key + ": " + string.Join(',', h.Value)));
+        foreach (string name in Enum.GetNames<ErrorCode>())
+        {
+            Assert.DoesNotContain(name, answer, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public async Task Post_WithAValidToken_WritesNoRejectionLine_KK8()
+    {
+        await using WebApplicationFactory<Program> factory = Open(out PatternRecordStore store);
+        using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
+        string requestId = "t213-" + Guid.NewGuid().ToString("N");
+
+        using HttpResponseMessage response = await PostAddAsync(client, "ad", r => r.Headers.Add("X-Request-Id", requestId));
+
+        Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
+        Assert.Equal(["ad"], store.Snapshot());
+        Assert.DoesNotContain(LinesOf(requestId), l => l.TryGetProperty("code", out _) || l.TryGetProperty("fields", out _));
     }
 
     [Fact]

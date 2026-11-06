@@ -188,13 +188,16 @@ public sealed partial class LoggingFilesTests
             ILogger logger = Named(loggers, category);
             logger.Log(LogLevel.Error, new EventId(eventId), "failure", null, static (state, _) => state);
             logger.Log(LogLevel.Warning, new EventId(OtherEventId), "warning", null, static (state, _) => state);
+            // D-90 K2: an error line of the same category with another event id is written (the filter is category + event id, not category + level).
+            logger.Log(LogLevel.Error, new EventId(OtherEventId), "other-error", null, static (state, _) => state);
         }
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         List<JsonElement> lines = ReadLines(Assert.Single(Directory.GetFiles(factory.LogDirectory, "app-*.jsonl")));
         foreach ((string category, _) in LoggingSetup.SuppressedDataAccessFailures)
         {
-            Assert.DoesNotContain(lines, l => Category(l) == category && Level(l) == "Error");
+            Assert.DoesNotContain(lines, l => Category(l) == category && Level(l) == "Error" && l.GetProperty("message").GetString()!.Contains("failure", StringComparison.Ordinal));
+            Assert.Contains(lines, l => Category(l) == category && Level(l) == "Error" && l.GetProperty("message").GetString()!.Contains("other-error", StringComparison.Ordinal));
             Assert.Contains(lines, l => Category(l) == category && Level(l) == "Warning");
         }
     }

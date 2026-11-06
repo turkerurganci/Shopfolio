@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
+using Shopfolio.Infrastructure.Errors;
 
 namespace Shopfolio.Infrastructure.Security;
 
@@ -14,6 +17,7 @@ internal static class ForgerySetup
     {
         ArgumentNullException.ThrowIfNull(builder);
         builder.Services.AddScoped<ReauthenticationValues>();
+        builder.Services.TryAddSingleton<RejectionLog>();
         builder.Services.Configure<MvcOptions>(options =>
         {
             options.Filters.Add(new ForgeryProtectionPolicy());

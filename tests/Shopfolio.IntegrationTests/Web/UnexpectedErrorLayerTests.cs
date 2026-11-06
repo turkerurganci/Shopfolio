@@ -26,7 +26,7 @@ public sealed class UnexpectedErrorLayerTests
 
     private const string PanelPath = "/panel/hata-ornegi";
 
-    private static readonly string[] _closedCodes = [UnexpectedErrorCodes.UnexpectedPageError, UnexpectedErrorCodes.UnexpectedOperationError, UnexpectedErrorCodes.OutcomeUncertain];
+    private static readonly string[] _closedCodes = [.. Enum.GetNames<ErrorCode>()];
 
     private readonly CollectionDatabaseFixture _database;
 
@@ -97,9 +97,10 @@ public sealed class UnexpectedErrorLayerTests
         AssertNoCode(response, body);
         Assert.False(response.Headers.Contains("Set-Cookie"));
         Assert.True(response.Headers.Contains("X-Content-Type-Options"));
+        Assert.Equal(SecurityHeaders.NoStore, response.Headers.CacheControl?.ToString()); // D-140: the layer's own 500, same header as the filter path's
         Assert.Equal(before + 1, counter.CountWithin(TimeSpan.FromMinutes(15)));
         JsonElement line = Assert.Single(ErrorLines(baseFactory));
-        Assert.Equal(UnexpectedErrorCodes.UnexpectedPageError, line.GetProperty("code").GetString());
+        Assert.Equal(nameof(ErrorCode.UnexpectedPageError), line.GetProperty("code").GetString());
         Assert.Equal(nameof(ErrorState.PageLevel), line.GetProperty("state").GetString());
         Assert.Equal("GET", line.GetProperty("method").GetString());
         Assert.Equal(typeof(InvalidOperationException).FullName, line.GetProperty("exceptionType").GetString());
@@ -118,7 +119,7 @@ public sealed class UnexpectedErrorLayerTests
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         AssertNoCode(response, await response.Content.ReadAsStringAsync(Ct));
         JsonElement line = Assert.Single(ErrorLines(baseFactory));
-        Assert.Equal(UnexpectedErrorCodes.UnexpectedPageError, line.GetProperty("code").GetString());
+        Assert.Equal(nameof(ErrorCode.UnexpectedPageError), line.GetProperty("code").GetString());
     }
 
     [Fact]
@@ -133,7 +134,7 @@ public sealed class UnexpectedErrorLayerTests
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
         JsonElement line = Assert.Single(ErrorLines(baseFactory));
         Assert.Equal(PostgresErrorCodes.QueryCanceled, line.GetProperty("sqlState").GetString());
-        Assert.Equal(UnexpectedErrorCodes.UnexpectedPageError, line.GetProperty("code").GetString());
+        Assert.Equal(nameof(ErrorCode.UnexpectedPageError), line.GetProperty("code").GetString());
     }
 
     // --- Operation level: a POST (05 10.3.3) ---
@@ -156,9 +157,12 @@ public sealed class UnexpectedErrorLayerTests
         Assert.Contains("kept-value", body, StringComparison.Ordinal);
         Assert.Contains(panel ? "kurulumu yapan kişiye" : "İletişim sayfasından", System.Net.WebUtility.HtmlDecode(body), StringComparison.Ordinal);
         AssertNoCode(response, body);
+
+        // D-140: the page again of the filter path carries the header set of the layer's own 500 (09 15.2 item 5) - the value of the rule, not the token's pair.
+        Assert.Equal(SecurityHeaders.NoStore, response.Headers.CacheControl?.ToString());
         Assert.False(await TableExistsAsync(ErrorSampleModel.RolledBackTable));
         JsonElement line = Assert.Single(ErrorLines(baseFactory));
-        Assert.Equal(UnexpectedErrorCodes.UnexpectedOperationError, line.GetProperty("code").GetString());
+        Assert.Equal(nameof(ErrorCode.UnexpectedOperationError), line.GetProperty("code").GetString());
         Assert.Equal("POST", line.GetProperty("method").GetString());
         Assert.DoesNotContain("kept-value", ReadLog(baseFactory), StringComparison.Ordinal);
     }
@@ -185,7 +189,7 @@ public sealed class UnexpectedErrorLayerTests
         Assert.Equal(committed, await TableExistsAsync(ErrorSampleModel.CommittedTable));
         Assert.False(await TableExistsAsync(ErrorSampleModel.RolledBackTable));
         JsonElement line = Assert.Single(ErrorLines(baseFactory));
-        Assert.Equal(UnexpectedErrorCodes.OutcomeUncertain, line.GetProperty("code").GetString());
+        Assert.Equal(nameof(ErrorCode.OutcomeUncertain), line.GetProperty("code").GetString());
         Assert.Equal("SampleConfirm", line.GetProperty("operation").GetString());
     }
 

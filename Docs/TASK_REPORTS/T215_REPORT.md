@@ -70,10 +70,16 @@ Sık FAIL nedenleri taraması: (1) istisna darlığı: `RequestOriginSourceScanT
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-06, head `ea3cdc7`) |
+| Bulgu sayısı | 1 (B1 ORTA, S1) |
+| Düzeltme gerekli mi | Evet — B1 |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-144, K2 → D-145) |
+
+### Doğrulama tur 1 — ✗ FAIL
+
+**B1 (ORTA, S1; kriter 1, 2; KK1, KK2):** uzunluğu bildirilmeyen (`Transfer-Encoding: chunked`) gövdede `RequestBodyLimitMiddleware` sunucunun tavanını `limit`'e kurup okumaya başlar; gerçek Kestrel tavana varınca `BadHttpRequestException` (StatusCode 413) atar, ara katman yakalamaz, istisna yakalama katmanına düşer: yanıt 500 ve "Yazdıklarınız duruyor" mesajlı beklenmeyen hata sayfası, `UnexpectedError` satırı, hata sayacı artar. Tavanın altındaki gövde de reddedilir. Kanıt: uygulamanın ardışık düzeniyle `WebApplicationFactory.UseKestrel()` üzerinde geçici test (geri alındı): 1000 → 200; 65535, 65536, 65537, 204800 → 500; Content-Length'li 65537 → 413. TestServer sunucu tavanını uygulamadığı için `ABodyWithNoDeclaredLength_IsMeasuredAsItIsRead_AndRefusedPastTheCeiling` geçer. `Caddyfile`'da gövde tavanı yoktur; chunked gövde uygulamaya ulaşır. Düzeltme yönü: T203'ün `SignedEndpointHandler` kalıbı (`BadHttpRequestException` 413 → `RefuseAsync`) ya da tamponlama yolunda sunucu tavanını ayrı kurmak; tavanın tam sınırı ve üstü gerçek Kestrel testiyle sınanır.
+
+Kriter 3–8 ve KK3–KK8 ✓. Unit 2375, Integration 1582 geçti; dal CI 42198823274 yeşil. K1: ters vekilde uç başına gövde tavanı yok → D-144. K2: `FormResults.AttemptLimitExceeded` red satırı yazmaz → D-145 (T376). `12` satırlarının `Durum`'u değişmedi (KP-72 satırları limit task'larının). Ayrıntı: doğrulama raporu (yardımcı durum dizini, `dogrulama-raporu-r1.md`).
 
 ## Altyapı Değişiklikleri
 

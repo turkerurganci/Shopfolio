@@ -11,6 +11,8 @@ namespace Shopfolio.UnitTests.Notices;
 /// </summary>
 public sealed class NoticeParameterTests
 {
+    private const string N = NoticeParameter.ParameterName;
+
     private static DefaultHttpContext Request(string query)
     {
         DefaultHttpContext context = new();
@@ -23,7 +25,7 @@ public sealed class NoticeParameterTests
     {
         foreach (NoticeCode code in Enum.GetValues<NoticeCode>())
         {
-            HttpRequest request = Request($"?notice={code}").Request;
+            HttpRequest request = Request($"?{NoticeParameter.ParameterName}={code}").Request;
 
             foreach (NoticeKind kind in Enum.GetValues<NoticeKind>())
             {
@@ -53,7 +55,7 @@ public sealed class NoticeParameterTests
     [InlineData("FieldRequired")]
     public void AValueOutsideTheClosedList_IsIgnored_ForEveryList_KK1_KK2(string value)
     {
-        HttpRequest request = Request("?notice=" + value).Request;
+        HttpRequest request = Request("?" + NoticeParameter.ParameterName + "=" + value).Request;
 
         Assert.All(Enum.GetValues<NoticeKind>(), kind => Assert.Null(NoticeParameter.Read(request, kind)));
     }
@@ -61,12 +63,12 @@ public sealed class NoticeParameterTests
     [Fact]
     public void ARepeatedOrAbsentParameter_IsIgnored()
     {
-        Assert.Null(NoticeParameter.Read(Request("?notice=Saved&notice=Saved").Request, NoticeKind.ShortLived));
-        Assert.Null(NoticeParameter.Read(Request("?notice=Saved&notice=CartItemAdded").Request, NoticeKind.ShortLived));
+        Assert.Null(NoticeParameter.Read(Request($"?{N}={NoticeCode.Saved}&{N}={NoticeCode.Saved}").Request, NoticeKind.ShortLived));
+        Assert.Null(NoticeParameter.Read(Request($"?{N}={NoticeCode.Saved}&{N}={NoticeCode.CartItemAdded}").Request, NoticeKind.ShortLived));
         Assert.Null(NoticeParameter.Read(Request("?page=2").Request, NoticeKind.ShortLived));
         Assert.Null(NoticeParameter.Read(Request(string.Empty).Request, NoticeKind.ShortLived));
         // The framework reads a query key without regard to its letter case (07 2.6.1): the parameter name is read the way every other name is.
-        Assert.Equal(NoticeCode.Saved, NoticeParameter.Read(Request("?Notice=Saved").Request, NoticeKind.ShortLived));
+        Assert.Equal(NoticeCode.Saved, NoticeParameter.Read(Request($"?{char.ToUpperInvariant(N[0])}{N[1..]}={NoticeCode.Saved}").Request, NoticeKind.ShortLived));
     }
 
     [Fact]
@@ -76,16 +78,18 @@ public sealed class NoticeParameterTests
     }
 
     [Theory]
-    [InlineData("/sepet", "/sepet?notice=")]
-    [InlineData("/sepet?page=2", "/sepet?page=2&notice=")]
-    [InlineData("/panel/siparisler?search=a%20b&page=2", "/panel/siparisler?search=a%20b&page=2&notice=")]
-    [InlineData("/sepet?", "/sepet?notice=")]
-    [InlineData("/sepet?x=1&", "/sepet?x=1&notice=")]
-    public void TheAddress_CarriesTheCodeAfterTheOwnQuery_AndNothingElse_KK2(string path, string expectedPrefix)
+    [InlineData("/sepet", "/sepet?")]
+    [InlineData("/sepet?page=2", "/sepet?page=2&")]
+    [InlineData("/panel/siparisler?search=a%20b&page=2", "/panel/siparisler?search=a%20b&page=2&")]
+    [InlineData("/sepet?", "/sepet?")]
+    [InlineData("/sepet?x=1&", "/sepet?x=1&")]
+    public void TheAddress_CarriesTheCodeAfterTheOwnQuery_AndNothingElse_KK2(string path, string expectedBase)
     {
         foreach (NoticeCode code in Enum.GetValues<NoticeCode>())
         {
             string address = NoticeParameter.Address(path, code);
+
+            string expectedPrefix = expectedBase + N + "=";
 
             Assert.Equal(expectedPrefix + code, address);
             Assert.Matches("^[A-Za-z]+$", address[expectedPrefix.Length..]);
@@ -134,7 +138,7 @@ public sealed class NoticeParameterTests
         await FormResults.SeeOther("/sepet?page=2", NoticeCode.CartItemAdded).ExecuteResultAsync(new Microsoft.AspNetCore.Mvc.ActionContext { HttpContext = context });
 
         Assert.Equal(StatusCodes.Status303SeeOther, context.Response.StatusCode);
-        Assert.Equal("/sepet?page=2&notice=CartItemAdded", context.Response.Headers.Location.ToString());
+        Assert.Equal($"/sepet?page=2&{N}={NoticeCode.CartItemAdded}", context.Response.Headers.Location.ToString());
         Assert.False(context.Response.Headers.ContainsKey("Set-Cookie"));
         Assert.Equal(["Location"], context.Response.Headers.Keys);
     }

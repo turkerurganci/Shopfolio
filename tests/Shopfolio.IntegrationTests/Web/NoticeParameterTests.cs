@@ -48,7 +48,7 @@ public sealed class NoticeParameterTests
         using HttpResponseMessage response = await PostAsync(client, code.ToString());
 
         Assert.Equal(HttpStatusCode.SeeOther, response.StatusCode);
-        Assert.Equal($"{NoticeSampleModel.Path}?page=2&notice={code}", response.Headers.Location?.OriginalString);
+        Assert.Equal($"{NoticeSampleModel.Path}?page=2&{NoticeParameter.ParameterName}={code}", response.Headers.Location?.OriginalString);
         Assert.False(response.Headers.Contains("Set-Cookie"));
     }
 
@@ -59,7 +59,7 @@ public sealed class NoticeParameterTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
 
-        using HttpResponseMessage response = await GetAsync(client, $"?notice={code}");
+        using HttpResponseMessage response = await GetAsync(client, $"?{NoticeParameter.ParameterName}={code}");
         string html = await response.Content.ReadAsStringAsync(Ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -95,7 +95,7 @@ public sealed class NoticeParameterTests
         await using WebApplicationFactory<Program> factory = Open();
         using HttpClient client = ForgeryTokenHandler.CreateClient(factory);
 
-        using HttpResponseMessage response = await GetAsync(client, $"?notice={value}");
+        using HttpResponseMessage response = await GetAsync(client, $"?{NoticeParameter.ParameterName}={value}");
         string html = await response.Content.ReadAsStringAsync(Ct);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

@@ -236,9 +236,9 @@ public sealed class SessionAccessTests
         using HttpResponseMessage account = await PostAsync(client, "/hesap/adresler?handler=Save&page=2");
 
         Assert.Equal(HttpStatusCode.SeeOther, panel.StatusCode);
-        Assert.Equal($"/panel/giris?returnUrl={Escaped("/panel/siparisler")}&notice={NoticeCode.SessionExpired}", panel.Headers.Location?.OriginalString);
+        Assert.Equal($"/panel/giris?returnUrl={Escaped("/panel/siparisler")}&{NoticeParameter.ParameterName}={NoticeCode.SessionExpired}", panel.Headers.Location?.OriginalString);
         Assert.Equal(HttpStatusCode.SeeOther, account.StatusCode);
-        Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler?page=2")}&notice={NoticeCode.SessionExpired}", account.Headers.Location?.OriginalString);
+        Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler?page=2")}&{NoticeParameter.ParameterName}={NoticeCode.SessionExpired}", account.Headers.Location?.OriginalString);
         Assert.Empty(log.Snapshot());
     }
 
@@ -258,10 +258,10 @@ public sealed class SessionAccessTests
         using HttpResponseMessage get = await GetAsync(client, "/hesap/adresler", CustomerCookie(customerKey));
         using HttpResponseMessage signOut = await PostAsync(client, "/panel/cikis?handler=Save");
 
-        Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler")}&notice={NoticeCode.SessionExpired}", ended.Headers.Location?.OriginalString);
+        Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler")}&{NoticeParameter.ParameterName}={NoticeCode.SessionExpired}", ended.Headers.Location?.OriginalString);
         Assert.Equal(HttpStatusCode.Found, get.StatusCode);
         Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler")}", get.Headers.Location?.OriginalString);
-        Assert.DoesNotContain("notice", signOut.Headers.Location?.OriginalString, StringComparison.Ordinal);
+        Assert.DoesNotContain(NoticeParameter.ParameterName, signOut.Headers.Location?.OriginalString, StringComparison.Ordinal);
         Assert.Equal(NoticeKind.Result, NoticeKinds.Of(NoticeCode.SessionExpired));
     }
 

@@ -1,6 +1,6 @@
 # T207 — Kimlik şemaları ve erişim reddi
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım tamamlandı, doğrulama bekliyor) | **Tarih:** 2026-11-06
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-06
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -77,10 +77,20 @@ Her madde `git diff origin/main...HEAD` üzerinde yeniden denetlendi; testler bu
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-06, head `cade300`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 — K1 → D-120 (iki mekanizma cümlesi: `AllowAnonymousToPage` ve `IUrlHelper.IsLocalUrl`; davranış aynı; F2 kapısına kadar karar kaydı), K2 → D-121 (oturumu kapanmış POST'un 303'ü `notice=SessionExpired` taşımıyor; T214), K3 → D-122 (örnek üye kökü oturumsuz 404, `07` UC-33 302 ister; VAL-A609 gerilimi; T511) |
+
+### Doğrulayıcının kanıtları (tur 1)
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana checkout'un bekçileri, dal kopyası değil); ana dal son 3 run 42128519903, 42128519929, 42113408503 success; `grep T207 .claude/memory/MEMORY.md` satır 22.
+- **Dal CI:** 42133128685 (head `cade300`) success — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate.
+- **Yerel:** `dotnet build -warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` çıkış 0; Unit (+Consistency) 1628/1628; betik testleri 4 dosya; Integration 1360/1360 gerçek PostgreSQL 18'de (127.0.0.1) parça parça — `SessionAccessTests` 35, öteki Web 153, Security+Disposal+FileSecrets+Files+Logging+Outages+SignedEndpoints 141, Concurrency 26, Jobs 77, Database 35, Model 483 + 372 + 38; koşu sonrası `git status` temiz, `dotnet restore --locked-mode` çıkış 0.
+- **Kod okuması:** iki şema `AddScheme` ile, varsayılan `Customer`; politikalar şemasını taşır ve `RequireAuthenticatedUser`; `AuthorizeFolder` klasör yoluyla; `AccessConvention` klasör–adres uyumsuzluğunda açılışı durdurur, açık işaret yalnız listedeki seçiciye; bağı şemayla uyuşmayan oturum (müşteri şemasında `AdminId` dolu ya da tersi) sonuçsuz; challenge 401 yazmaz; `returnUrl` yerel yol değilse eklenmez; çıkış sayfası `SignOutPageAttribute` ile 303 → `/panel/giris` ya da `ReturnPath.AfterSignOut`; `AccessDenial.NotFound()` 404, 403 hiçbir yolda yok (politikalar yalnız kimlik ister).
+- **D-118:** `ReturnPath.IsLocalPath` U+0000–U+001F ve U+007F'i reddeder, `FormResults.IsLocalPath` ona devreder; `ReturnPathTests` (`/\t/`, `/\n/`, `/\r/`, U+0001, U+007F, U+0000) ve `FormResultsTests` (+4 satır) yeşil; uç testinde `%2F%09%2Fdis.example` ana sayfaya düşer. Kapandı.
+- **Yönlendirme taraması:** istisna tam yolla iki dosya (`FormResults.cs`, `SessionAuthenticationHandler.cs`), klasör ya da kalıp değil; yakın adlı ve iç içe yol istisna değil (test); ihlal örneği `ViolationSamples/Redirects/RedirectMisuse.cs` 13 bulgu, çok satırlı çağrı dahil; yalnız tam satır yorumu atlanır.
+- **Mekanizma sapması (talimatın sorusu):** açık sayfa listesinin adres şablonuyla uygulanması davranışça eşit (öteki her sayfa kapalı, liste `07 §2.3.1` ile iki yönlü eşit, uç testi her ucu sayar) ve sayfa adı uydurmamak için gerekçelidir; belgede ad geçen cümle koddan ayrıldığı için karar kaydı gerekir — doğrulamayı bloklamaz (D-116 emsali), D-120'ye ileri atıldı. Aynı kayda `09 §15.2` m.6 / `05 §6.5.6`'nın "çatının `IsLocalUrl`'ü" cümlesi eklendi (kod eşdeğer, `~/`'yi ayrıca reddeder).
 
 ## Altyapı Değişiklikleri
 
@@ -94,8 +104,8 @@ Her madde `git diff origin/main...HEAD` üzerinde yeniden denetlendi; testler bu
 - **Branch:** `task/T207-kimlik-semalari-erisim-reddi`
 - **Commit:** `ff848b9` — yapım; ardından PR numarası commit'i geldi
 - **PR:** #403
-- **CI:** dal CI'ı yapım chat'inde izlenmez
-- **Post-merge run'lar:** *(validator doldurur)*
+- **CI:** dal CI 42133128685 (head `cade300`) success — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate
+- **Post-merge run'lar:** *(merge'den sonra; sonraki task dalında doldurulur)*
 
 ## Dış Varsayımlar
 

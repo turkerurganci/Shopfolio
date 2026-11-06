@@ -267,8 +267,7 @@ public sealed class SignedEndpointDatabaseTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
         await AssertEmptyAndNothingRecordedAsync(response);
         // T213 KK6: the 413 carries no code in its headers either (the body is empty, asserted above).
-        string headers = string.Join('\n', response.Headers.Select(h => h.Key + ": " + string.Join(',', h.Value)));
-        Assert.All(Enum.GetNames<ErrorCode>(), name => Assert.DoesNotContain(name, headers, StringComparison.Ordinal));
+        ErrorCodeLeakCheck.AssertNone(response, await response.Content.ReadAsStringAsync(Ct));
     }
 
     // A notice that cannot be recorded is never "received" (05 4.5.2; 07 4.30.1): the pipeline does not catch the database error, it leaves the

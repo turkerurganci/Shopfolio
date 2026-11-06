@@ -508,7 +508,7 @@ public sealed class SessionLinkAttemptLoginTablesTests : IAsyncLifetime
     [InlineData(AttemptLimit.L9, AttemptAxis.Ip)]
     public async Task Attempt_OnTheLimitsAxis_IsAccepted(AttemptLimit limit, AttemptAxis axis)
     {
-        await SaveAsync(c => c.AttemptRecords.Add(AttemptRecord.Create(limit, axis, "value", Now)));
+        await SaveAsync(c => c.AttemptRecords.Add(AttemptRecord.Create(limit, new AttemptSubject(axis, "value"), Now)));
 
         Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM attempt_records"));
     }
@@ -530,7 +530,7 @@ public sealed class SessionLinkAttemptLoginTablesTests : IAsyncLifetime
     [InlineData(AttemptLimit.L9, AttemptAxis.RecognizedBrowser)]
     public async Task Attempt_OffTheLimitsAxis_IsRefused(AttemptLimit limit, AttemptAxis axis)
     {
-        AttemptRecord attempt = AttemptRecord.Create(limit, axis, "value", Now);
+        AttemptRecord attempt = AttemptRecord.Create(limit, new AttemptSubject(axis, "value"), Now);
 
         Assert.Equal((CheckViolation, "ck_attempt_records_axis_is_the_limits_axis"), await ViolationOfAsync(c => c.AttemptRecords.Add(attempt)));
     }
@@ -541,7 +541,7 @@ public sealed class SessionLinkAttemptLoginTablesTests : IAsyncLifetime
     public async Task Attempt_OfALimitCountedFromTheOrders_IsRefused(AttemptLimit limit)
     {
         // L7 and L8 are counted from the orders and never written here (06 4.43).
-        AttemptRecord attempt = AttemptRecord.Create(limit, AttemptAxis.Ip, "value", Now);
+        AttemptRecord attempt = AttemptRecord.Create(limit, new AttemptSubject(AttemptAxis.Ip, "value"), Now);
 
         Assert.Equal((CheckViolation, "ck_attempt_records_attempt_limit"), await ViolationOfAsync(c => c.AttemptRecords.Add(attempt)));
     }
@@ -600,7 +600,7 @@ public sealed class SessionLinkAttemptLoginTablesTests : IAsyncLifetime
             c.RecognizedBrowserMarks.Add(RecognizedBrowserMark.ForAdmin(admin.Id, Digest("m2"), Now.AddDays(30), Now));
             c.LinkRecords.Add(LinkRecord.ForCustomer(LinkType.PasswordReset, customer.Id, Digest("l1"), Now.AddHours(1), Now));
             c.LinkRecords.Add(LinkRecord.ForAdmin(LinkType.PasswordReset, admin.Id, Digest("l2"), Now.AddHours(1), Now));
-            c.AttemptRecords.Add(AttemptRecord.Create(AttemptLimit.L1, AttemptAxis.Email, customer.NormalizedEmail, Now));
+            c.AttemptRecords.Add(AttemptRecord.Create(AttemptLimit.L1, AttemptSubject.Email(customer.NormalizedEmail), Now));
             c.LoginRecords.Add(LoginRecord.Create(IPAddress.Parse("203.0.113.5"), AccountType.Customer, customer.NormalizedEmail, LoginOutcome.Succeeded, Now));
         });
 
@@ -628,7 +628,7 @@ public sealed class SessionLinkAttemptLoginTablesTests : IAsyncLifetime
             c.RecognizedBrowserMarks.Add(RecognizedBrowserMark.ForAdmin(admin.Id, Digest("m2"), Now.AddDays(30), Now));
             c.LinkRecords.Add(LinkRecord.ForCustomer(LinkType.PasswordReset, customer.Id, Digest("l1"), Now.AddHours(1), Now));
             c.LinkRecords.Add(LinkRecord.ForAdmin(LinkType.PasswordReset, admin.Id, Digest("l2"), Now.AddHours(1), Now));
-            c.AttemptRecords.Add(AttemptRecord.Create(AttemptLimit.L1, AttemptAxis.Email, admin.NormalizedEmail, Now));
+            c.AttemptRecords.Add(AttemptRecord.Create(AttemptLimit.L1, AttemptSubject.Email(admin.NormalizedEmail), Now));
             c.LoginRecords.Add(LoginRecord.Create(IPAddress.Parse("203.0.113.6"), AccountType.Admin, admin.NormalizedEmail, LoginOutcome.Failed, Now));
         });
 

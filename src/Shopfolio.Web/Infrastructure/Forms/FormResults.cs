@@ -9,7 +9,7 @@ namespace Shopfolio.Infrastructure.Forms;
 /// The results of a page's POST handler (07 2.2.2, 2.7.1): a successful writing POST is a 303 to a GET, and a POST that writes nothing shows the page
 /// again with the values that were sent, with the status 422 for a validation error or a named business-rule refusal. The framework's own
 /// <c>RedirectToPage</c> answers 302 and <c>Page()</c> answers 200, which is why a handler returns one of these instead (07 2.7.4: a validation
-/// error is not a 200). The conflict (409; T208) is the result of a write refused because the version or the shown value changed; the limit (429) and the other statuses of 07 2.7.1 are the results of the tasks that own them.
+/// error is not a 200). The conflict (409; T208) is the result of a write refused because the version or the shown value changed; the attempt limit (429; T215) is <see cref="AttemptLimitExceeded"/>, and the other statuses of 07 2.7.1 are the results of the tasks that own them.
 /// </summary>
 internal static class FormResults
 {
@@ -24,6 +24,9 @@ internal static class FormResults
 
     /// <summary>The status of a POST whose anti-forgery value is missing or does not match (07 2.5.4, 2.7.1, 6.2.1): nothing was written.</summary>
     public const int ForgeryRefusedStatus = StatusCodes.Status400BadRequest;
+
+    /// <summary>The status of a POST an attempt limit refused (07 2.8.5, 2.7.1): nothing was done.</summary>
+    public const int TooManyRequestsStatus = StatusCodes.Status429TooManyRequests;
 
     /// <summary>
     /// 303 to a path of this site (07 2.2.2). The path is the site's own - it starts with one slash and is not a scheme-relative or backslash form -
@@ -70,6 +73,21 @@ internal static class FormResults
         ArgumentNullException.ThrowIfNull(page);
         PageResult result = page.Page();
         result.StatusCode = UnprocessableStatus;
+        return result;
+    }
+
+    /// <summary>
+    /// The page again after an attempt limit (L-1 to L-9) refused the POST, status 429 (07 2.8.5; 09 15.4 item 5): the sent values stay in the form and
+    /// the neutral message (<see cref="Security.NeutralMessages.LimitExceeded"/>, 02 6.1.5) is added to the model state at the level of the action - the
+    /// page shows it beside the blocked button. The message names neither the remaining attempts, the length of the block nor the axis, and no
+    /// <c>Retry-After</c> is written. The general rate limit's 429 is another answer: it never reaches the handler (09 15.4 item 4).
+    /// </summary>
+    public static IActionResult AttemptLimitExceeded(PageModel page)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        page.ModelState.AddModelError(string.Empty, Security.NeutralMessages.LimitExceeded);
+        PageResult result = page.Page();
+        result.StatusCode = TooManyRequestsStatus;
         return result;
     }
 

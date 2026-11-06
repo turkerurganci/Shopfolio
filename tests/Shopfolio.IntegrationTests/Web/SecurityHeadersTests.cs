@@ -263,12 +263,7 @@ public sealed partial class SecurityHeadersTests
         // T213 KK6: the missing answer carries no code, in the body or in a header (07 2.7.3).
         foreach (HttpResponseMessage answer in new[] { unrouted, unknownKey })
         {
-            string text = await answer.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)
-                + string.Join('\n', answer.Headers.Select(h => h.Key + ": " + string.Join(',', h.Value)));
-            foreach (string name in Enum.GetNames<ErrorCode>())
-            {
-                Assert.DoesNotContain(name, text, StringComparison.Ordinal);
-            }
+            ErrorCodeLeakCheck.AssertNone(answer, await answer.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
         }
     }
 }

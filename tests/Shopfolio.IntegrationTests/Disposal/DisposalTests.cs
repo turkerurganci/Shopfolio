@@ -467,7 +467,7 @@ public sealed class DisposalTests : IAsyncLifetime
     }
 
     private static AttemptRecord Attempt(AttemptLimit limit, string value, DateTimeOffset at) =>
-        AttemptRecord.Create(limit, limit == AttemptLimit.L4 ? AttemptAxis.Ip : limit == AttemptLimit.L6 ? AttemptAxis.Cart : AttemptAxis.Email, value, at);
+        AttemptRecord.Create(limit, new AttemptSubject(limit == AttemptLimit.L4 ? AttemptAxis.Ip : limit == AttemptLimit.L6 ? AttemptAxis.Cart : AttemptAxis.Email, value), at);
 
     private static Session NewSession(string tokenHash, Guid customerId, bool isLongLived, DateTimeOffset lastActivityAt)
     {

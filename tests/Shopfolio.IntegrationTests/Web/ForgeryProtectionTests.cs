@@ -156,11 +156,7 @@ public sealed partial class ForgeryProtectionTests
         Assert.False(line.TryGetProperty("fields", out _));
         Assert.DoesNotContain("yazilan-ad", line.GetRawText(), StringComparison.Ordinal);
 
-        string answer = await response.Content.ReadAsStringAsync(Ct) + string.Join('\n', response.Headers.Select(h => h.Key + ": " + string.Join(',', h.Value)));
-        foreach (string name in Enum.GetNames<ErrorCode>())
-        {
-            Assert.DoesNotContain(name, answer, StringComparison.Ordinal);
-        }
+        ErrorCodeLeakCheck.AssertNone(response, await response.Content.ReadAsStringAsync(Ct));
     }
 
     [Fact]

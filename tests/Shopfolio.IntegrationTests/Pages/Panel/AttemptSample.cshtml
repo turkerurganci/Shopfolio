@@ -1,0 +1,8 @@
+@page "/panel/deneme-ornek"
+@model Shopfolio.IntegrationTests.Pages.Panel.AttemptSampleModel
+<h1>Deneme ornek</h1>
+<form method="post" asp-page-handler="Send">
+    <input name="Input.Message" value="@ViewData.ModelState["Input.Message"]?.AttemptedValue" />
+    <button type="submit">Gonder</button>
+    <div class="summary" asp-validation-summary="ModelOnly"></div>
+</form>

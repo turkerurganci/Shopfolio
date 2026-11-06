@@ -1,7 +1,7 @@
 using System.Net;
-using System.Net.Sockets;
 
 using Shopfolio.Infrastructure.Logging;
+using Shopfolio.Infrastructure.Security;
 
 namespace Shopfolio.Infrastructure.SignedEndpoints;
 
@@ -31,29 +31,6 @@ internal sealed partial class SignatureFailureLog
         _lastSweep = time.GetUtcNow();
     }
 
-    /// <summary>The key of the address on the rate limit's axis: the IPv4 address (an IPv4-mapped IPv6 address included), or the IPv6 /64.</summary>
-    public static string AddressKey(IPAddress? address)
-    {
-        if (address is null)
-        {
-            return "unknown";
-        }
-
-        if (address.IsIPv4MappedToIPv6)
-        {
-            address = address.MapToIPv4();
-        }
-
-        if (address.AddressFamily != AddressFamily.InterNetworkV6)
-        {
-            return address.ToString();
-        }
-
-        byte[] bytes = address.GetAddressBytes();
-        Array.Clear(bytes, 8, 8);
-        return new IPAddress(bytes) + "/64";
-    }
-
     /// <summary>How many addresses have a window in memory.</summary>
     public int TrackedAddressCount
     {
@@ -69,7 +46,7 @@ internal sealed partial class SignatureFailureLog
     /// <summary>Counts a failed request of <paramref name="address"/> and writes the line when its window allows; true when a line was written.</summary>
     public bool Record(IPAddress? address, SignatureFailureReason reason)
     {
-        string key = AddressKey(address);
+        string key = ClientAddress.Axis(address);
         DateTimeOffset now = _time.GetUtcNow();
         int counted;
         lock (_gate)

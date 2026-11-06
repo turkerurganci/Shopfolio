@@ -69,6 +69,10 @@ DataProtectionSetup.Add(builder.Services);
 // The cookie rules (09 15.1 item 6; 05 6.7): the anti-forgery cookie, the one cookie writer and the gate of the storefront's cookie headers.
 builder.Services.AddCookieRules();
 
+// The reverse proxy's forwarded headers (09 15.1 item 8) and the general rate limit that counts on the address they give (09 15.4).
+builder.Services.AddForwardedHeadersRules();
+builder.Services.AddRequestRateLimiting();
+
 // The database side of the start-up check (06 8.2.1): after the settings check above, so it runs second. A missing province or country list
 // or a missing single-row record of the start data stops the application before it answers a request.
 builder.Services.AddStartupDatabaseCheck();
@@ -76,6 +80,9 @@ builder.Services.AddStartupDatabaseCheck();
 // The transaction runner and the advisory lock (09 9.1 item 3, 10.2 item 5): scoped, with the scope's one context.
 builder.Services.AddScoped<ITransactionRunner, TransactionRunner>();
 builder.Services.AddScoped<AdvisoryLocks>();
+
+// The counter of the attempt limits L-1 to L-6 and L-9 (09 15.4 items 5 and 6): the one writer of the attempt record.
+builder.Services.AddScoped<AttemptCounter>();
 
 // The link layer (09 15.1 items 3 and 4): the key derivation and the reading and consuming of link records.
 builder.Services.AddLinkRecords();
@@ -113,9 +120,16 @@ builder.Services.AddDisposal(builder.Configuration);
 
 WebApplication app = builder.Build();
 
-// The security headers (09 15.2 item 3) are the first middleware: every response carries them, the error response and the machine endpoint included.
-// The forwarded headers (09 15.1 item 8) come before them when their task adds them (D-112).
+// The forwarded headers (09 15.1 item 8) are the first middleware: the client address and the scheme come from the reverse proxy and from nobody else,
+// before anything reads them (D-112).
+app.UseForwardedHeadersRules();
+
+// The security headers (09 15.2 item 3) come right after: every response carries them, the error response, the machine endpoint and the 429 included.
 app.UseSecurityHeaders();
+
+// The general rate limit (09 15.4 item 1): after the forwarded headers and the security headers, before the endpoints are mapped. A refused request
+// never reaches the handler.
+app.UseRequestRateLimiting();
 
 // The storefront writes no cookie until the cookie policy is published (05 6.7.10): outside every middleware that can write a cookie, the catch layer
 // included (09 15.1 item 6). The catch layer (09 8.1 item 2b) writes no cookie and is registered right after it; a failing publication question
@@ -126,6 +140,10 @@ app.UseCookieHeaderFilter();
 app.UseUnexpectedErrorLayer();
 
 app.UseRouting();
+
+// The body ceiling of the endpoint's class (07 2.8.1): after the routing, which finds the class, and before the authentication, the anti-forgery
+// check and the handler, so a refused body is never read.
+app.UseRequestBodyLimits();
 
 // The session schemes read the cookie and the closed doors answer a request without a session (07 2.3.2); after the routing, which finds the endpoint metadata.
 app.UseAuthentication();

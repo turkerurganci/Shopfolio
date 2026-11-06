@@ -15,6 +15,18 @@
 
 ---
 
+## 2026-11-06 — T215 yapım tamamlandı, doğrulama bekliyor
+
+2026-11-06 — T215 (Hız sınırı, deneme limitleri ve gövde tavanı) yapım tamamlandı, doğrulama bekliyor (dal `task/T215-hiz-siniri-deneme-govde`; kriter 1–8 ve KK1–KK8 öz denetimde ✓; Unit 2438, Integration 1649; `origin/main` (T214) birleştirildi; D-103, D-112 ve D-143 ✅, D-64 `AttemptRecord` yarısı ✅ (`LoginRecord` yarısı T341'e), D-108 tavan konmadı → F2 gate, D-135'e 429/413 yalın sayfa notu).
+
+---
+
+## 2026-11-06 — T214 doğrulama tur 1 PASS
+
+2026-11-06 — T214 (Kısa süreli bildirim kodları) doğrulama tur 1 ✓ PASS (head `479c891`, PR #410; kriter 1–6, KK1–KK6 ve `09 §25` ✓; Unit 2307, Integration 1599; dal CI 42201202210 yeşil; bulgu 0; `12` satırlarında `Durum` değişmedi — `07 §6.3` ve VAL-A607 satırları uç ve giriş ekranı task'larının; K1 → D-146 (`notice` kaynak taramasının tırnaksız bağlama boşluğu)). Önceki kayıt aşağıda.
+
+---
+
 ## 2026-11-06 — T214 yapım tamamlandı, doğrulama bekliyor
 
 2026-11-06 — T214 (Kısa süreli bildirim kodları) yapım tamamlandı, doğrulama bekliyor (dal `task/T214-bildirim-kodlari`; kriter 1–6 ve KK1–KK6 öz denetimde ✓; Unit 2307, Integration 1600; D-47 (2) ve D-121 ✅, D-109 T214 payı ✅ — kalan T343/T409). Önceki kayıt `STATUS_CHANGELOG.md`'de.
@@ -33,7 +45,7 @@
 
 ---
 
-## 2026-11-06 — T212 doğrulama tur 1 PASS
+## 2026-11-06 — T212 doğrulama tur 1 PASS (merge #407)
 
 2026-11-06 — T212 (Hata gösterimi ve HTTP durumları) doğrulama tur 1 ✓ PASS (head `ec13690`, PR #407; kriter 1–9, KK1–KK9 ve `09 §25` ✓; Unit 2221, Integration 1536; dal CI 42172712753 yeşil; bulgu 0; `VAL-A424`, `A425`, `A429`, `A430`, `A433` PASS; K-notları: K1 → D-138'e not (`09 §15.1` m.6 istisnası, F2 gate), K2 → D-135 hedefi T537 + T540, en geç F5 gate, K3 → D-140 (katmanın `no-store` başlığı, T213)). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 

@@ -440,7 +440,7 @@ Kural uygulanınca zincir `SHOPFOLIO-EGRESS`'e iki çıkış ağından (172.30.2
 | D-01 | ✅ T09 (kalan: D-40) |
 | D-29 (a), (b) | ✅ T09 (`CI_CD_SETUP.md` §3.1 hazırlıkta; `SETUP.md` §6 kapanışta) |
 | D-30 (a) | Karar: yerel kurulumda denetlenen kimlik, yerel derlemenin yapılandırma özetidir; ana dal imajının yeniden etiketlenmesi (`imagetools create`) ilk etikette T603'e kaldı (D-40 (a) notu) |
-| D-31 (a)–(g) | (a), (b), (c), (d), (e), (g) ✅ T09; (d)'nin uygulama kaydı yanı T215; (f) `release.env` yer tutucuları T603 (D-40) |
+| D-31 (a)–(g) | (a), (b), (c), (d), (e), (g) ✅ T09; (d)'nin uygulama kaydı yanı ✅ T215; (f) `release.env` yer tutucuları T603 (D-40) |
 | D-34 (c), (d) | hazırlıkta kapandı; koşumu §K.3 |
 | D-36 (b) | ✅ T09 (`.env.example` kilidi artık `DeploySecretScanTests`'te; D-01 notu kısaltıldı) |
 | D-37 (b) | ✅ (CI'da kapandı); (a) ilk göçe bağlı |

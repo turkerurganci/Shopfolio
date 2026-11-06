@@ -31,6 +31,15 @@ internal sealed partial class RejectionLog
         LogRejected(_logger, LogEvents.ValidationRejected, code.ToString());
     }
 
+    /// <summary>
+    /// The line of the general rate limit's refusal (429; 09 18.2 item 3): the event is the rate limit's own and the line carries the code
+    /// <see cref="ErrorCode.RateLimitExceeded"/>; it is no unexpected error and the error counter does not see it (05 9.4.8).
+    /// </summary>
+    public void RateLimited()
+    {
+        LogRejected(_logger, LogEvents.RateLimitExceeded, nameof(ErrorCode.RateLimitExceeded));
+    }
+
     /// <summary>The line of a field validation: one line for the request with every rejected field's name and code (04 7.3.5; 09 18.2 item 4).</summary>
     public void FieldsRejected(IReadOnlyList<FieldRejection> fields)
     {

@@ -14,21 +14,24 @@ namespace Shopfolio.Infrastructure.Security;
 /// </summary>
 internal sealed class AttemptRecord
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; private set; }
 
     /// <summary>The attempt's moment: the row's creation moment (06 2.8.4).</summary>
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; private set; }
 
-    public AttemptLimit AttemptLimit { get; set; }
+    public AttemptLimit AttemptLimit { get; private set; }
 
-    public AttemptAxis AttemptAxis { get; set; }
+    public AttemptAxis AttemptAxis { get; private set; }
 
-    /// <summary>The axis value: a normalized email, an IP text (IPv6 as its /64 prefix), a cart id or a recognized browser mark id.</summary>
-    public string NormalizedValue { get; set; } = string.Empty;
+    /// <summary>
+    /// The axis value: a normalized email, an IP text (IPv6 as its /64 prefix), a cart id or a recognized browser mark id. Every setter is private
+    /// and the value comes from an <see cref="AttemptSubject"/>, which makes it (09 9.4 item 1, 15.4 items 5 and 6; D-64).
+    /// </summary>
+    public string NormalizedValue { get; private set; } = string.Empty;
 
-    public static AttemptRecord Create(AttemptLimit attemptLimit, AttemptAxis attemptAxis, string normalizedValue, DateTimeOffset now)
+    public static AttemptRecord Create(AttemptLimit attemptLimit, AttemptSubject subject, DateTimeOffset now)
     {
-        return new AttemptRecord { Id = EntityIds.New(), CreatedAt = now, AttemptLimit = attemptLimit, AttemptAxis = attemptAxis, NormalizedValue = normalizedValue };
+        return new AttemptRecord { Id = EntityIds.New(), CreatedAt = now, AttemptLimit = attemptLimit, AttemptAxis = subject.Axis, NormalizedValue = subject.Value };
     }
 }
 

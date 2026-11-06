@@ -13,6 +13,7 @@ using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Lists;
 using Shopfolio.Infrastructure.Logging;
+using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.SignedEndpoints;
@@ -80,6 +81,9 @@ builder.Services.AddStartupDatabaseCheck();
 // The transaction runner and the advisory lock (09 9.1 item 3, 10.2 item 5): scoped, with the scope's one context.
 builder.Services.AddScoped<ITransactionRunner, TransactionRunner>();
 builder.Services.AddScoped<AdvisoryLocks>();
+
+// The POST handler's one sequence for an operation (07 8.1.2; 09 8.3 item 3): a page owns it, so it is common infrastructure and reaches no module type.
+builder.Services.AddScoped<OperationRunner>();
 
 // The counter of the attempt limits L-1 to L-6 and L-9 (09 15.4 items 5 and 6): the one writer of the attempt record.
 builder.Services.AddScoped<AttemptCounter>();

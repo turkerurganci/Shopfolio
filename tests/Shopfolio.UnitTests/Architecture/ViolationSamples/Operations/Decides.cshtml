@@ -1,0 +1,10 @@
+@* Deliberate violation sample of the operation source scan (07 8.1.1). OrderStatus in this comment is not a finding. Line numbers are part of the test. *@
+@model Shopfolio.Pages.OrderModel
+@if (Model.Order.OrderStatus == Shopfolio.Modules.Ordering.Contracts.OrderStatus.Preparing)
+{
+    <button>Iptal</button>
+}
+@{ DateOnly last = TurkeyTime.LastDayOfPeriod(Model.Delivered, 14); }
+<p>@Model.Cancel.MaxQuantity</p>
+<p>@Model.Created.AddDays(14)</p>
+<p>@DateOnly.FromDateTime(DateTime.Now)</p>

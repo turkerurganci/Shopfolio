@@ -1,0 +1,40 @@
+@page "/panel/islem-ornegi/{id:guid}"
+@using Shopfolio.Infrastructure
+@using Shopfolio.Infrastructure.Forms
+@model Shopfolio.IntegrationTests.Pages.Panel.OperationSampleModel
+<h1>Islem ornegi</h1>
+@foreach (string message in ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage))
+{
+    <p class="refusal">@message</p>
+}
+@if (Model.Cancel.IsOpen)
+{
+    <section id="cancel" class="operation">
+        <p class="open-quantity">@Model.Cancel.OpenQuantity</p>
+        <p class="max-quantity">@Model.Cancel.MaxQuantity</p>
+        <form id="customer-cancel" method="post" asp-antiforgery="true" action="/panel/islem-ornegi/@Model.RecordId?handler=CustomerCancel">
+            <input type="number" name="Input.Quantity" value="@Model.Cancel.DefaultQuantity" max="@Model.Cancel.MaxQuantity" />
+            <button type="submit">Iptal et</button>
+        </form>
+        <form id="admin-cancel" method="post" asp-antiforgery="true" action="/panel/islem-ornegi/@Model.RecordId?handler=AdminCancel">
+            @VersionFields.Version(Model.Version, "Input")
+            <input type="number" name="Input.Quantity" value="@Model.Cancel.DefaultQuantity" max="@Model.Cancel.MaxQuantity" />
+            <button type="submit">Firma iptali</button>
+        </form>
+    </section>
+}
+@if (Model.Withdraw.IsOpen)
+{
+    <section id="withdraw" class="operation">
+        <p class="open-quantity">@Model.Withdraw.OpenQuantity</p>
+        <p class="max-quantity">@Model.Withdraw.MaxQuantity</p>
+        @if (Model.Withdraw.LastDay is DateOnly lastDay)
+        {
+            <p class="last-day">@DisplayFormat.Date(lastDay)</p>
+        }
+        <form id="customer-withdraw" method="post" asp-antiforgery="true" action="/panel/islem-ornegi/@Model.RecordId?handler=CustomerWithdraw">
+            <input type="number" name="Input.Quantity" value="@Model.Withdraw.DefaultQuantity" max="@Model.Withdraw.MaxQuantity" />
+            <button type="submit">Cayma</button>
+        </form>
+    </section>
+}

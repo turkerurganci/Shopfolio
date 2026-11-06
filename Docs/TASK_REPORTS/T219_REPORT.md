@@ -68,8 +68,9 @@ Bütün maddeler bu turda kendi diff'imde yeniden denetlendi.
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | UNIT_RESULT | `dotnet test --project tests/Shopfolio.UnitTests -c Release --no-build` | UNIT_SUMMARY |
-| Integration | INT_RESULT | `dotnet test --project tests/Shopfolio.IntegrationTests -c Release --no-build --filter-namespace …` (ad alanı parçaları ayrı, PostgreSQL 18 konteyneri) | INT_SUMMARY |
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests -c Release --no-build` | total 2773, failed 0 (T219 öncesi 2640; yeni testler SlugTests, SearchTextTests, SearchEngineDataTests, SearchEngineSourceScanTests, ModuleBoundaryTests +2) |
+| Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests -c Release --no-build --filter-class/--filter-namespace …` (parçalı koşu, gerçek PostgreSQL 18 konteyneri; 1715 test keşfedildi, hepsi koştu) | total 1715, failed 0 (T219 öncesi 1695; yeni 20: `Web/SearchEngineDataTests`). Parçalar: Web 528, Security 32, Pages/Concurrency/Disposal/FileSecrets/Logging/Outages/SignedEndpoints 117, Jobs/Files/Database 145, Model 893 |
+| Build | ✓ | `dotnet build -c Release -warnaserror` | 0 uyarı, 0 hata |
 | Contract | — | — | bu task'ta yok |
 
 ## Doğrulama

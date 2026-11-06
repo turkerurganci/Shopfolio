@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.UnitTests.Samples;
 using Shopfolio.UnitTests.Support;
@@ -92,6 +93,17 @@ public sealed class EnumLockTests
     }
 
     [Fact]
+    public void TheNoticeCodeList_HasALockFile_EqualToItsMembersBothWays_KK5()
+    {
+        string root = RepositoryRoot.Find();
+        string file = EnumLock.FilePath(root, typeof(NoticeCode));
+
+        Assert.Contains(typeof(NoticeCode), StoredEnums());
+        Assert.True(File.Exists(file), "The lock file of NoticeCode is missing.");
+        Assert.Empty(EnumLock.Compare(EnumLock.ReadNames(File.ReadAllText(file)), Enum.GetNames<NoticeCode>()));
+    }
+
+    [Fact]
     public void Compare_WhenAMemberIsAddedAndTheFileIsNotUpdated_Fails()
     {
         IReadOnlyList<string> findings = EnumLock.Compare(["Placed", "Preparing"], ["Placed", "Preparing", "Shipped"]);
@@ -125,9 +137,9 @@ public sealed class EnumLockTests
 
     /// <summary>
     /// The enums that are no stored value but whose names are a contract all the same, added to the set by name (D-47 item 2): <c>ErrorCode</c> - the log
-    /// and every comparison carry its names, and a code once given does not change (07 6.1.1; 09 8.2 item 1, 12 item 3). <c>NoticeCode</c> joins in T214.
+    /// and every comparison carry its names, and a code once given does not change (07 6.1.1; 09 8.2 item 1, 12 item 3). <c>NoticeCode</c> - the closed list of the <c>notice</c> parameter, whose names travel in the address (07 6.3; T214 criterion 5).
     /// </summary>
-    private static readonly Type[] NamedEnums = [typeof(ErrorCode)];
+    private static readonly Type[] NamedEnums = [typeof(ErrorCode), typeof(NoticeCode)];
 
     private static IEnumerable<Type> ModelEnums(DbContext context)
     {

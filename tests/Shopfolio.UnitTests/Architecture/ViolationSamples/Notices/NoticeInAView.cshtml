@@ -1,0 +1,5 @@
+@* Deliberate violation sample of the notice parameter scan (07 2.2.3): a view that builds the parameter itself. Read as text; not compiled. Line numbers are part of the test. *@
+<a asp-page="/Cart" asp-route-notice="Saved">Sepet</a>
+<a href="/sepet?page=2&amp;notice=Saved">Sepet</a>
+<a asp-page="/Cart" asp-route-Notice='Saved'>Sepet</a>
+<p class="conflict-notice">near name, no finding</p>

@@ -113,7 +113,7 @@
 | T211 | Model bağlama kalıbı | ✓ | ✓ PASS (tur 2; tur 1 ✗ FAIL) | `da20c4e` | #402 |
 | T212 | Hata gösterimi ve HTTP durumları | ✓ | ✓ PASS (tur 1) | `4694519` | #407 |
 | T213 | Hata kodu kayıt defteri | ✓ | ✓ PASS (tur 1) | `11a2c7d` | #408 |
-| T214 | Kısa süreli bildirim kodları | ✓ | — | `PENDING` | PR_NO |
+| T214 | Kısa süreli bildirim kodları | ✓ | — | — | #410 |
 | T215 | Hız sınırı, deneme limitleri ve gövde tavanı | ⬚ | — | — | — |
 | T216 | Tarih, sayı ve para biçimi: istek ve gösterim | ⬚ | — | — | — |
 | T217 | Yapılabilir işlemlerin sunucuda üretimi ve POST işleyicisinde yeniden denetim | ⬚ | — | — | — |

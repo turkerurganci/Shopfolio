@@ -89,8 +89,8 @@ Sık FAIL nedenleri (`sik-fail-nedenleri.md`) denetimi:
 ## Commit & PR
 
 - **Branch:** `task/T214-bildirim-kodlari`
-- **Commit:** SON_COMMIT
-- **PR:** PR_NO
+- **Commit:** 6c761d5
+- **PR:** #410
 - **CI:** — (yapım işçisi izlemez)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
 

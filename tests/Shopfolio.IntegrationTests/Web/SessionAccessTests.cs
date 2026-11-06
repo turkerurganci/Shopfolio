@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Notices;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages;
@@ -235,10 +236,33 @@ public sealed class SessionAccessTests
         using HttpResponseMessage account = await PostAsync(client, "/hesap/adresler?handler=Save&page=2");
 
         Assert.Equal(HttpStatusCode.SeeOther, panel.StatusCode);
-        Assert.Equal($"/panel/giris?returnUrl={Escaped("/panel/siparisler")}", panel.Headers.Location?.OriginalString);
+        Assert.Equal($"/panel/giris?returnUrl={Escaped("/panel/siparisler")}&notice={NoticeCode.SessionExpired}", panel.Headers.Location?.OriginalString);
         Assert.Equal(HttpStatusCode.SeeOther, account.StatusCode);
-        Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler?page=2")}", account.Headers.Location?.OriginalString);
+        Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler?page=2")}&notice={NoticeCode.SessionExpired}", account.Headers.Location?.OriginalString);
         Assert.Empty(log.Snapshot());
+    }
+
+    // D-121 (07 2.3.2, 6.3.2): the 303 of a POST whose session ended says so with SessionExpired; the 302 of a GET and the sign-out do not.
+    [Fact]
+    public async Task OnlyAPostsRedirectToTheSignInPage_CarriesTheSessionExpiredNotice_D121()
+    {
+        (string customerKey, Guid customerId) = await TestSessions.CustomerAsync(_database.Dsn);
+        await using WebApplicationFactory<Program> factory = Open(out _);
+        using HttpClient client = ClientOf(factory);
+        await using (AppDbContext db = NewContext())
+        {
+            await db.Sessions.Where(s => s.CustomerId == customerId).ExecuteDeleteAsync(Ct);
+        }
+
+        using HttpResponseMessage ended = await PostAsync(client, "/hesap/adresler?handler=Save", CustomerCookie(customerKey));
+        using HttpResponseMessage get = await GetAsync(client, "/hesap/adresler", CustomerCookie(customerKey));
+        using HttpResponseMessage signOut = await PostAsync(client, "/panel/cikis?handler=Save");
+
+        Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler")}&notice={NoticeCode.SessionExpired}", ended.Headers.Location?.OriginalString);
+        Assert.Equal(HttpStatusCode.Found, get.StatusCode);
+        Assert.Equal($"/giris?returnUrl={Escaped("/hesap/adresler")}", get.Headers.Location?.OriginalString);
+        Assert.DoesNotContain("notice", signOut.Headers.Location?.OriginalString, StringComparison.Ordinal);
+        Assert.Equal(NoticeKind.Result, NoticeKinds.Of(NoticeCode.SessionExpired));
     }
 
     [Fact]

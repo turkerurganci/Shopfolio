@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
+using Shopfolio.Infrastructure.Notices;
+
 namespace Shopfolio.Infrastructure.Security;
 
 /// <summary>The settings of one session scheme (09 15.1 item 2): the cookie it reads, the sign-in page it sends a session-less request to and the area it belongs to.</summary>
@@ -129,7 +131,14 @@ internal sealed class SessionAuthenticationHandler : AuthenticationHandler<Sessi
         string location = ReturnPath.IsLocalPath(address)
             ? $"{Options.SignInPath}?{ReturnPath.ParameterName}={Uri.EscapeDataString(address)}"
             : Options.SignInPath;
-        Redirect(isRead ? StatusCodes.Status302Found : StatusCodes.Status303SeeOther, location);
+        if (!isRead)
+        {
+            // A POST of a session that ended says so on the sign-in page: the changes were not saved (07 2.3.2, 6.3.2 SessionExpired; D-121). The GET does not.
+            Redirect(StatusCodes.Status303SeeOther, NoticeParameter.Address(location, NoticeCode.SessionExpired));
+            return;
+        }
+
+        Redirect(StatusCodes.Status302Found, location);
     }
 
     private async Task<string?> RequestedReturnUrlAsync()

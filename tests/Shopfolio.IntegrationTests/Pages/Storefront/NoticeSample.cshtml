@@ -1,0 +1,15 @@
+@page "/odeme/bildirim-ornegi"
+@model Shopfolio.IntegrationTests.Pages.NoticeSampleModel
+<h1>Bildirim ornegi</h1>
+@if (Model.ShortLivedText is not null)
+{
+    <p class="short-lived">@Model.ShortLivedText</p>
+}
+@if (Model.ResultText is not null)
+{
+    <p class="result">@Model.ResultText</p>
+}
+@if (Model.ReasonText is not null)
+{
+    <p class="reason">@Model.ReasonText</p>
+}

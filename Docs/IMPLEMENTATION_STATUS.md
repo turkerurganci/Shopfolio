@@ -115,7 +115,7 @@
 | T213 | Hata kodu kayıt defteri | ✓ | ✓ PASS (tur 1) | `11a2c7d` | #408 |
 | T214 | Kısa süreli bildirim kodları | ✓ | ✓ PASS (tur 1) | `9a56f83` | #410 |
 | T215 | Hız sınırı, deneme limitleri ve gövde tavanı | ✓ | ✓ PASS (tur 2) | `5ebe163` | #409 |
-| T216 | Tarih, sayı ve para biçimi: istek ve gösterim | ⏳ | — | — | — |
+| T216 | Tarih, sayı ve para biçimi: istek ve gösterim | ⏳ | — | — | #411 |
 | T217 | Yapılabilir işlemlerin sunucuda üretimi ve POST işleyicisinde yeniden denetim | ⬚ | — | — | — |
 | T218 | Dokuz modülün iskeleti ve Contracts | ✓ | ✓ PASS (tur 3) | `d82b943` | #380 |
 | T219 | Arama motoru verileri kalıbı | ⬚ | — | — | — |

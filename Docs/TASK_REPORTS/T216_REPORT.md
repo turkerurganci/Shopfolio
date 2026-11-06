@@ -96,8 +96,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T216-tarih-sayi-para-bicimi`
-- **Commit:** *(PR açıldıktan sonra son commit)*
-- **PR:** *(açılıyor)*
+- **Commit:** `ee350ea` — T216: 09 notu, backlog, rapor, durum ve hafiza (kod son commit'i `f720557`; bu satırı taşıyan commit dalın başıdır)
+- **PR:** #411
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
 

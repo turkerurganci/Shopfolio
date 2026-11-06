@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-06 — T215 (Hız sınırı, deneme limitleri ve gövde tavanı) yapım tamamlandı, doğrulama bekliyor (dal `task/T215-hiz-siniri-deneme-govde`; kriter 1–8 ve KK1–KK8 öz denetimde ✓; Unit 2375, Integration 1582; `origin/main` (T214) birleştirildi; D-103, D-112 ve D-143 ✅, D-64 `AttemptRecord` yarısı ✅ (`LoginRecord` yarısı T341'e), D-108 tavan konmadı → F2 gate, D-135'e 429/413 yalın sayfa notu). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-06 — T215 (Hız sınırı, deneme limitleri ve gövde tavanı) yapım tamamlandı, doğrulama bekliyor (dal `task/T215-hiz-siniri-deneme-govde`; kriter 1–8 ve KK1–KK8 öz denetimde ✓; Unit 2438, Integration 1649; `origin/main` (T214) birleştirildi; D-103, D-112 ve D-143 ✅, D-64 `AttemptRecord` yarısı ✅ (`LoginRecord` yarısı T341'e), D-108 tavan konmadı → F2 gate, D-135'e 429/413 yalın sayfa notu). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.

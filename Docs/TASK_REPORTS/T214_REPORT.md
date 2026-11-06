@@ -100,7 +100,7 @@ Sık FAIL nedenleri (`sik-fail-nedenleri.md`) denetimi:
 - **Commit:** 6c761d5
 - **PR:** #410
 - **CI:** — (yapım işçisi izlemez)
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
+- **Post-merge run'lar:** squash `9a56f83` (#410) — CI 42207595893 success, Publish 42207595875 success (T215 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

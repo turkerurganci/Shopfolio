@@ -95,10 +95,10 @@
 ## Commit & PR
 
 - **Branch:** `task/T209-tek-kullanimlik-sahtecilik-basliklar`
-- **Commit:** son commit PR'ın başıdır
+- **Commit:** squash `088168e` (#405)
 - **PR:** #405
 - **CI:** dal run 42159301722 success (validator, 2026-11-06)
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
+- **Post-merge run'lar:** squash `088168e` (#405) — CI 42162567538 success, Publish 42162567568 success (T210 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

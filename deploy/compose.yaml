@@ -240,8 +240,9 @@ services:
 
 networks:
   # Proxy and application. Not internal: the proxy publishes the ports and obtains the certificate, and the application reaches
-  # the payment provider, the e-mail service and Google over encrypted connections (05 3.2.1). The subnets are fixed: the IPv4 one
-  # is the proxy's trust network in the application (ReverseProxyTrust.TrustedNetwork, 09 15.1 item 8); the test that keeps the two equal is added by the task that adds the setting (T215).
+  # the payment provider, the e-mail service and Google over encrypted connections (05 3.2.1). The subnets are fixed: the two of them
+  # are the proxy's trust networks in the application (ReverseProxyTrust.TrustedNetworks, 09 15.1 item 8); a test keeps the two equal
+  # (ReverseProxyTrustConsistencyTests, T215), so a subnet is changed here and in ReverseProxyTrust together.
   # IPv6 is on so that the proxy sees an IPv6 visitor's own address (05 6.3.3; checked at installation with
   # deploy/firewall/installation-checks.sh client-address).
   edge:

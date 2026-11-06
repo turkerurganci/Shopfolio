@@ -142,4 +142,21 @@ public sealed class MoneyTests
             }
         }
     }
+
+    // T216 (07 2.9.4; 06 2.5.1; K-1214): the limit of an amount field is the limit of numeric(12,2) - 9.999.999.999,99 TL - read from the money type.
+    [Fact]
+    public void MaxAmount_IsTheLargestValueOfTheMoneyType()
+    {
+        Assert.Equal((12, 2), Shopfolio.Infrastructure.DataModel.ModelBuilderExtensions.MoneyType);
+        Assert.Equal(9999999999.99m, Money.MaxAmount);
+        Assert.Equal(12, Money.MaxAmount.ToString(System.Globalization.CultureInfo.InvariantCulture).Count(char.IsAsciiDigit));
+    }
+
+    // 04 7.3.2.9: a rate is under one hundred with at most two decimals (the scale of numeric(5,2)).
+    [Fact]
+    public void MaxPercentage_IsOneHundredLessOneStepOfThePercentType()
+    {
+        Assert.Equal(2, Shopfolio.Infrastructure.DataModel.ModelBuilderExtensions.PercentType.Scale);
+        Assert.Equal(99.99m, Money.MaxPercentage);
+    }
 }

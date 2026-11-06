@@ -1,0 +1,23 @@
+@page "/panel/bicim-ornegi"
+@model Shopfolio.IntegrationTests.Pages.PanelFormatSampleModel
+@using Shopfolio.Infrastructure
+@using V = Shopfolio.IntegrationTests.Pages.FormatSampleValues
+<h1>Bicim ornegi</h1>
+<ul>
+    <li class="v" data-name="date">@DisplayFormat.Date(V.Day)</li>
+    <li class="v" data-name="range">@DisplayFormat.DateRange(V.Day, V.RangeEnd)</li>
+    <li class="v" data-name="time">@DisplayFormat.Time(V.Instant)</li>
+    <li class="v" data-name="date-time">@DisplayFormat.DateAndTime(V.Instant)</li>
+    <li class="v" data-name="before-midnight">@DisplayFormat.DateAndTime(V.BeforeMidnight)</li>
+    <li class="v" data-name="at-midnight">@DisplayFormat.DateAndTime(V.AtMidnight)</li>
+    <li class="v" data-name="count">@DisplayFormat.Number(V.Count)</li>
+    <li class="v" data-name="fraction">@DisplayFormat.Number(V.Fraction)</li>
+    <li class="v" data-name="rate">@DisplayFormat.Percent(V.Rate)</li>
+    <li class="v" data-name="amount">@DisplayFormat.Amount(V.AmountWithKurus)</li>
+    <li class="v" data-name="whole-amount">@DisplayFormat.Amount(V.WholeAmount)</li>
+    <li class="v" data-name="deduction">@DisplayFormat.Amount(V.Deduction)</li>
+    <li class="v" data-name="days">@DisplayFormat.Days(V.Days)</li>
+    <li class="v" data-name="business-days">@DisplayFormat.BusinessDays(V.BusinessDays)</li>
+    <li class="v" data-name="phone">@DisplayFormat.Phone(V.Phone)</li>
+    <li class="v" data-name="iban">@DisplayFormat.Iban(V.Iban)</li>
+</ul>

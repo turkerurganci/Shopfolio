@@ -27,6 +27,7 @@ public static class DisplayFormat
     private const string BusinessDaysUnit = "iş günü";
     private const int IbanGroup = 4;
     private const int PhoneDigits = 10;
+    private const decimal KurusPerLira = 100m;
 
     private static CultureInfo Culture => RequestFormat.Culture;
 
@@ -61,13 +62,13 @@ public static class DisplayFormat
     /// </summary>
     public static string Amount(decimal amount)
     {
-        decimal whole = decimal.Truncate(amount);
-        if (decimal.Round(amount, 2) != amount)
+        // No rounding here (09 14.1: rounding lives in Money only): a value is checked, never changed.
+        if (amount * KurusPerLira % 1 != 0)
         {
             throw new ArgumentOutOfRangeException(nameof(amount), amount, "An amount has at most two decimals.");
         }
 
-        return amount.ToString(amount == whole ? WholeFormat : KurusFormat, Culture) + " " + Currency;
+        return amount.ToString(amount % 1 == 0 ? WholeFormat : KurusFormat, Culture) + " " + Currency;
     }
 
     /// <summary>A period in days (04 8.2.5): "3 gün".</summary>

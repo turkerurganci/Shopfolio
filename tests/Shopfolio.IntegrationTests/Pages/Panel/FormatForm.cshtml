@@ -1,0 +1,15 @@
+@page "/panel/bicim-formu"
+@model Shopfolio.IntegrationTests.Pages.FormatFormModel
+<h1>Bicim formu</h1>
+<p class="applied">@Model.Applied</p>
+@foreach (var entry in ViewData.ModelState)
+{
+    foreach (var error in entry.Value!.Errors)
+    {
+        <span class="error" data-field="@entry.Key">@error.ErrorMessage</span>
+    }
+}
+<form method="post" asp-page-handler="SavePrice">
+    <input name="Price" value="@(ViewData.ModelState.TryGetValue("Price", out var price) ? price!.AttemptedValue : string.Empty)" />
+    <button type="submit">Kaydet</button>
+</form>

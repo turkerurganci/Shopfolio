@@ -72,6 +72,33 @@ public sealed partial class FieldMessageCatalogTests
     }
 
     [Fact]
+    public void Build_AmountAndPercentageMessages_NameTheLimit_InTheDisplayFormatTheRuleGives()
+    {
+        // D-124; 04 7.3.1: the value of the limit is the parameter and appears in the message (07 6.2.2: the money type's limit, K-1214).
+        string amountLimit = new InvalidAmountAttribute().ParameterText!;
+        string percentageLimit = new InvalidPercentageAttribute().ParameterText!;
+
+        Assert.Equal(
+            $"Fiyat geçerli bir tutar olmalıdır; en çok iki ondalık yazılabilir ve en çok {amountLimit} olabilir.",
+            FieldMessageCatalog.Build(FieldCodes.InvalidAmount, "Fiyat", amountLimit));
+        Assert.Equal(
+            $"İndirim oranı geçerli bir yüzde olmalıdır; en çok iki ondalık yazılabilir ve en çok {percentageLimit} olabilir.",
+            FieldMessageCatalog.Build(FieldCodes.InvalidPercentage, "İndirim oranı", percentageLimit));
+        Assert.True(FieldMessageCatalog.NeedsParameter(FieldCodes.InvalidAmount));
+        Assert.True(FieldMessageCatalog.NeedsParameter(FieldCodes.InvalidPercentage));
+    }
+
+    [Fact]
+    public void Encode_ALimitOfAThousandOrMore_IsWrittenWithTheThousandsSeparator()
+    {
+        // 04 8.2.3: the message is a display text - "1.000", not "1000".
+        Assert.Equal("InvalidQuantity:1.000", FieldError.Encode(FieldCodes.InvalidQuantity, 1000));
+        Assert.True(FieldError.TryParse("InvalidAmount:9.999.999.999,99 TL", out string code, out string? parameter));
+        Assert.Equal(FieldCodes.InvalidAmount, code);
+        Assert.Equal("9.999.999.999,99 TL", parameter);
+    }
+
+    [Fact]
     public void Build_WithoutTheLimitTheMessageNames_OrForAnUnknownCode_Throws()
     {
         Assert.Throws<ArgumentException>(() => FieldMessageCatalog.Build(FieldCodes.TextTooLong, "Ad", null));

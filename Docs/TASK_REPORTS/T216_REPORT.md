@@ -1,6 +1,6 @@
 # T216 — Tarih, sayı ve para biçimi: istek ve gösterim
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-06
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-06
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -81,10 +81,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-06; head `05fd381`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 — K1 → D-150 (tam sayı ayrıştırıcısı sondaki `\0`'ı yok sayar; değer değişmez), K2 → D-151 (IBAN/telefon sıkıştırması bölünmez boşluğu ve sekmeyi atmaz; değer reddedilir, yanlış okunmaz), K3 → D-152 (öteki tam sayı türleri ve `TimeSpan` bağlayıcının ve model kuralının dışında; bugün böyle alan yok) |
+
+**Validator kanıtları (kabul kriterleri 1–8, KK1–KK8):** kriter 1–8 ve KK1–KK8 bağımsız olarak ✓. Ana dal CI son üç run 42217406517, 42217406499, 42207595875 success; dal CI 42224854554 success (head `05fd381`). Yerel: `dotnet build -warnaserror` 0/0, `dotnet format --verify-no-changes` 0, Unit (+Consistency) 2569/2569, betik testleri 4/4, Integration gerçek PostgreSQL 18'de parçalı koşu 1682/1682 (Web 215 + 280, Pages+Security+Concurrency 58, Jobs 77, Database 35, Model 482 + 411, kalan ad alanları 124; `FormatPageTests` 33/33 gerçek Kestrel varyantlarıyla); `dotnet restore --locked-mode` 0. Tutar ayrıştırmasının geçici sondası (geri alındı): tam genişlikli (`１２`), Arapça-Hint (`١٢,٥`), Farsça (`۱۲`) rakamlar, iç/dış bölünmez boşluk, U+202F, U+200B, U+FEFF, `0x10`, `12\0`, `,`, `,,`, `12,,`, `1_000`, `12,5e1`, `Infinity`, `NaN`, `∞`, Arapça ondalık ayırıcı, `-0`, `5-`, `(0)`, U+2212, `.5`, `5.`, `12%`, `TL12` okunmaz; `0012,50` → 12,5, `0,10` → 0,1, `decimal.MaxValue` ve 28 ondalıklı metin birebir okunur; `79228162514264337593543950336`, `12345678901234567890123456789,5`, `0,0000…05` (hassasiyet dışı) okunmaz — değer hiçbir girdide büyümez, küçülmez ya da yuvarlanmaz. Gösterim sondası: `-0,50 TL`, `9.999.999.999,99 TL`, `%99,99`, 31 Aralık 20:59:59.999Z → "31 Aralık 2026", 21:00Z → "1 Ocak 2027". Backlog: D-124 ✅, D-123 (a), D-125 ve D-127 T216 payları kanıtlı (`BindingLimits.AmountMax`, `TimeBound` + ihlal örnekleri, `InvalidDateAttribute`); D-149 forward; "Aktif kalem" satır sayımıyla doğru (⚪ 87 + 🟡 2 = 89; doğrulamanın üç kaydıyla 92). `12`: T216'nın KP kaynak birimi yok (`07 §2.9` (1)); `Durum` değişmedi.
 
 ## Altyapı Değişiklikleri
 
@@ -98,7 +100,7 @@
 - **Branch:** `task/T216-tarih-sayi-para-bicimi`
 - **Commit:** `ee350ea` — T216: 09 notu, backlog, rapor, durum ve hafiza (kod son commit'i `f720557`; bu satırı taşıyan commit dalın başıdır)
 - **PR:** #411
-- **CI:** *(yardımcı izler)*
+- **CI:** dal CI 42224854554 success (head `05fd381`)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
 
 ## Dış Varsayımlar

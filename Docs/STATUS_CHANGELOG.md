@@ -15,6 +15,12 @@
 
 ---
 
+## 2026-11-06 — T216 yapım tamamlandı, doğrulama bekliyor
+
+2026-11-06 — T216 (Tarih, sayı ve para biçimi: istek ve gösterim) yapım tamamlandı, doğrulama bekliyor (dal `task/T216-tarih-sayi-para-bicimi`; kriter 1–8 ve KK1–KK8 öz denetimde ✓; Unit 2569, Integration 1682; tek bağlayıcı `RequestValueBinder` (decimal/DateOnly/int/long), hassasiyeti aşan tutar metni okunmaz; D-124 ✅, D-123 (a), D-125 ve D-127 T216 payları ✅, yeni D-149 (`MachineJson` → T312)).
+
+---
+
 ## 2026-11-06 — T215 doğrulama tur 2 PASS
 
 2026-11-06 — T215 (Hız sınırı, deneme limitleri ve gövde tavanı) doğrulama tur 2 ✓ PASS (head `1ba392d`, PR #409; kriter 1–8, KK1–KK8 ve `09 §25` ✓; tur 1 B1 kapandı — gerçek Kestrel'de chunked gövde tavana kadar kabul, tavan+1 413, bildirim ucunda gövdesiz 413; Unit 2438, Integration 1649; dal CI 42211263821 yeşil; bulgu 0; `12` satırlarında `Durum` değişmedi — KP-72 satırları limit task'larının; K1 → D-147 (chunked okumada istemcinin vazgeçmesi ve bozuk çerçeve beklenmeyen hata sayılır), K2 → D-148 (büyük sınıfın chunked gövdesi kimlik doğrulamasından önce bellekte)).

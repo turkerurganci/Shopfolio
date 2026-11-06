@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-06 — T216 (Tarih, sayı ve para biçimi: istek ve gösterim) yapım tamamlandı, doğrulama bekliyor (dal `task/T216-tarih-sayi-para-bicimi`; kriter 1–8 ve KK1–KK8 öz denetimde ✓; Unit 2569, Integration 1682; tek bağlayıcı `RequestValueBinder` (decimal/DateOnly/int/long), hassasiyeti aşan tutar metni okunmaz; D-124 ✅, D-123 (a), D-125 ve D-127 T216 payları ✅, yeni D-149 (`MachineJson` → T312)). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-06 — T216 (Tarih, sayı ve para biçimi: istek ve gösterim) doğrulama tur 1 ✓ PASS (head `05fd381`, PR #411; kriter 1–8, KK1–KK8 ve `09 §25` ✓; tutar ayrıştırması Unicode rakam, görünmez boşluk, `0x10`, işaret, üs ve hassasiyet dışı metinle yoklandı — değer hiçbir girdide değişmez; Unit 2569, Integration 1682; dal CI 42224854554 yeşil; bulgu 0; `12` `Durum` değişmedi (KP kaynak birimi yok); K1 → D-150 (tam sayıda sondaki `\0`), K2 → D-151 (IBAN/telefonda bölünmez boşluk), K3 → D-152 (öteki tam sayı türleri ve `TimeSpan`)). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -115,7 +115,7 @@
 | T213 | Hata kodu kayıt defteri | ✓ | ✓ PASS (tur 1) | `11a2c7d` | #408 |
 | T214 | Kısa süreli bildirim kodları | ✓ | ✓ PASS (tur 1) | `9a56f83` | #410 |
 | T215 | Hız sınırı, deneme limitleri ve gövde tavanı | ✓ | ✓ PASS (tur 2) | `5ebe163` | #409 |
-| T216 | Tarih, sayı ve para biçimi: istek ve gösterim | ⏳ | — | — | #411 |
+| T216 | Tarih, sayı ve para biçimi: istek ve gösterim | ✓ | ✓ PASS (tur 1) | — | #411 |
 | T217 | Yapılabilir işlemlerin sunucuda üretimi ve POST işleyicisinde yeniden denetim | ⬚ | — | — | — |
 | T218 | Dokuz modülün iskeleti ve Contracts | ✓ | ✓ PASS (tur 3) | `d82b943` | #380 |
 | T219 | Arama motoru verileri kalıbı | ⬚ | — | — | — |

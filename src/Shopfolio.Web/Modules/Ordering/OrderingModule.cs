@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
-using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -15,24 +14,9 @@ internal sealed class OrderingModule : IOrderingModule
 {
     private readonly AppDbContext _db;
 
-    private readonly OrderLocks _locks;
-
-    public OrderingModule(AppDbContext db, OrderLocks locks)
+    public OrderingModule(AppDbContext db)
     {
         _db = db;
-        _locks = locks;
-    }
-
-    public async Task<bool> LockOrderAsync(Guid orderId, int? shownVersion, CancellationToken ct)
-    {
-        await _locks.LockAsync([orderId], ct);
-        if (shownVersion is not int shown)
-        {
-            return true;
-        }
-
-        Order order = await _db.Orders.AsNoTracking().SingleAsync(o => o.Id == orderId, ct);
-        return ShownVersion.Matches(order, shown);
     }
 
     public async Task<Guid?> FindMemberOrderAsync(string orderNumber, Guid customerId, CancellationToken ct)

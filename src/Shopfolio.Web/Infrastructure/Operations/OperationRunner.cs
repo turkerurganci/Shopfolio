@@ -2,9 +2,10 @@ namespace Shopfolio.Infrastructure.Operations;
 
 /// <summary>
 /// The result of a gated operation (07 8.1.2, 8.1.3): applied, refused because the record's version is no longer the one the screen showed, or refused by the
-/// operation's rule. A refusal is a return value; the transaction is rolled back and nothing was written.
+/// operation's rule. A refusal is a return value; the transaction is rolled back and nothing was written. It is the value the module's <c>Contracts</c> write
+/// method returns to the page, so it is public (09 6 item 1); the page reads <see cref="IsRejected"/>, <see cref="VersionChanged"/> and <see cref="Verdict"/>.
 /// </summary>
-internal sealed class GatedOperationResult : IOperationResult
+public sealed class GatedOperationResult : IOperationResult
 {
     private GatedOperationResult(bool versionChanged, OperationVerdict verdict)
     {
@@ -26,12 +27,10 @@ internal sealed class GatedOperationResult : IOperationResult
 }
 
 /// <summary>
-/// The one sequence of a POST handler that applies an operation (07 8.1.2; 05 7.3.2; 09 8.3 item 3), written in the common infrastructure so a page may own it without
-/// reaching a module's internals (09 6 item 2). The page - the entry point - opens the transaction here (09 9.1 item 3); inside it, in this order: the record's row lock and,
-/// for the administrator's operation, the comparison of the version the form carried (<paramref name="lockRecord"/> - the module's open method, e.g.
-/// <c>IOrderingModule.LockOrderAsync</c>), the load of the state the rule reads (<paramref name="load"/> - module open methods), the rule's re-check through
-/// <see cref="OperationGate"/>, and only then the write (<paramref name="apply"/> - module open methods). A refusal returns before the write and rolls the transaction
-/// back, so the record, its items and its version are as they were. The rule is the instance the page's GET asked, so the button and the check cannot disagree (07 8.1.5).
+/// The page's half of an operation's POST (07 8.1.2; 05 7.3.2; 09 8.3 item 3): the page - the entry point - opens the transaction here (09 9.1 item 3) and, inside it,
+/// calls the module's <c>Contracts</c> write method, which runs the rule (<see cref="OperationGate.ExecuteAsync{TContext}"/>). The runner knows no rule and no module type:
+/// the product rule lives in the module and the page reaches it only through that method. A refusal the method returns rolls the transaction back, so the record, its
+/// items and its version are as they were. The method opens no transaction of its own (09 6 item 3).
 /// </summary>
 internal sealed class OperationRunner
 {
@@ -42,40 +41,10 @@ internal sealed class OperationRunner
         _transactions = transactions;
     }
 
-    /// <summary>
-    /// Runs the operation. <paramref name="lockRecord"/> takes the row lock and answers whether the version the form carried (none for the customer's operation) still
-    /// matches; <paramref name="requestedQuantity"/> is the quantity the request names, or <see langword="null"/> for an operation that has none.
-    /// </summary>
-    public async Task<GatedOperationResult> RunAsync<TContext>(
-        Func<CancellationToken, Task<bool>> lockRecord,
-        Func<CancellationToken, Task<TContext>> load,
-        IOperationRule<TContext> rule,
-        int? requestedQuantity,
-        Func<TContext, OperationAvailability, CancellationToken, Task> apply,
-        CancellationToken ct)
+    /// <summary>Runs the module's write method <paramref name="operation"/> in one transaction; a rejected result rolls it back.</summary>
+    public async Task<GatedOperationResult> RunAsync(Func<CancellationToken, Task<GatedOperationResult>> operation, CancellationToken ct)
     {
-        ArgumentNullException.ThrowIfNull(lockRecord);
-        ArgumentNullException.ThrowIfNull(load);
-        ArgumentNullException.ThrowIfNull(rule);
-        ArgumentNullException.ThrowIfNull(apply);
-        return await _transactions.RunAsync(
-            async token =>
-            {
-                if (!await lockRecord(token))
-                {
-                    return GatedOperationResult.Conflict;
-                }
-
-                TContext context = await load(token);
-                OperationVerdict verdict = OperationGate.Decide(rule, context, requestedQuantity);
-                if (!verdict.IsAllowed)
-                {
-                    return GatedOperationResult.Decided(verdict);
-                }
-
-                await apply(context, verdict.Availability, token);
-                return GatedOperationResult.Decided(verdict);
-            },
-            ct);
+        ArgumentNullException.ThrowIfNull(operation);
+        return await _transactions.RunAsync(token => operation(token), ct);
     }
 }

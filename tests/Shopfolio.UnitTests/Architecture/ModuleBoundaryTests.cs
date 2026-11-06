@@ -170,21 +170,28 @@ public sealed class ModuleBoundaryTests
         Assert.DoesNotContain(violations, v => v.Contains("Pages_Allowed_View", StringComparison.Ordinal));
     }
 
-    // The available-operations pattern as a page of the application's namespace uses it (T217 r1 B1; 09 8.3 item 3): OperationPatternPage (OperationPagePattern.cs) lives in
-    // Shopfolio.Pages.Panel, so the page rule reads it - the runner is common infrastructure, the lock is IOrderingModule.LockOrderAsync (Contracts).
+    // The available-operations pattern as a page of the application's namespace uses it (T217 r1 B1, r2 B1-r2; 09 8.3 items 1 and 3): OperationPatternPage
+    // (OperationPagePattern.cs) lives in Shopfolio.Pages.Panel, so the page rule reads it - the runner is common infrastructure, the rule is the module's and the page reaches
+    // it only through the module's Contracts interface (IPatternOrderOperations: the read for the GET, the write for the POST).
     private static readonly Lazy<ArchUnitNET.Domain.Architecture> _withPatternPage =
-        new(() => new ArchLoader().LoadAssemblies(typeof(Program).Assembly, typeof(Shopfolio.Pages.Panel.IPatternOperations).Assembly).Build());
+        new(() => new ArchLoader().LoadAssemblies(typeof(Program).Assembly, typeof(Shopfolio.Modules.Ordering.Contracts.IPatternOrderOperations).Assembly).Build());
 
     [Fact]
-    public void OperationPatternPage_UnderThePageRule_IsCleanAndReallyUsesTheRunnerAndTheContractsLock()
+    public void OperationPatternPage_UnderThePageRule_IsCleanAndReachesTheRuleOnlyThroughTheContractsInterface()
     {
         Assert.Empty(Evaluate(_withPatternPage.Value, PageRule()));
+        Assert.Empty(Evaluate(_withPatternPage.Value, ContractsReachNothingRule()));
 
         IType page = _withPatternPage.Value.Types.Single(t => t.FullName == "Shopfolio.Pages.Panel.OperationPatternPage");
         List<string> used = page.Dependencies.Select(d => d.Target.FullName).ToList();
         Assert.Contains("Shopfolio.Infrastructure.Operations.OperationRunner", used);
-        Assert.Contains("Shopfolio.Modules.Ordering.Contracts.IOrderingModule", used);
-        Assert.Contains("Shopfolio.Infrastructure.Operations.IOperationRule`1", used);
+        Assert.Contains("Shopfolio.Modules.Ordering.Contracts.IPatternOrderOperations", used);
+
+        // The page writes and applies no rule: it names no rule type and no gate, and no module type except the Contracts namespace (the module is the rule's one place).
+        Assert.DoesNotContain("Shopfolio.Infrastructure.Operations.IOperationRule`1", used);
+        Assert.DoesNotContain("Shopfolio.Infrastructure.Operations.OperationGate", used);
+        Assert.DoesNotContain(used, name => name.StartsWith("Shopfolio.Modules.", StringComparison.Ordinal)
+            && !name.StartsWith("Shopfolio.Modules.Ordering.Contracts.", StringComparison.Ordinal));
     }
 
     [Fact]

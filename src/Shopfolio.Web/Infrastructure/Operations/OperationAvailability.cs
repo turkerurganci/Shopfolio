@@ -7,7 +7,7 @@ namespace Shopfolio.Infrastructure.Operations;
 /// which both the page's GET and the POST handler call (07 8.1.2). <c>default</c> is the closed operation. An operation that has no quantity (an
 /// administrator's operation on the order, a cancellation of the whole order) is open with <see cref="Open"/> and carries 0 for the three quantities.
 /// </summary>
-internal readonly record struct OperationAvailability
+public readonly record struct OperationAvailability
 {
     private OperationAvailability(bool isOpen, int openQuantity, int defaultQuantity, int maxQuantity, DateOnly? lastDay)
     {

@@ -1,7 +1,7 @@
 namespace Shopfolio.Infrastructure.Operations;
 
 /// <summary>The outcome of the POST handler's check of an operation (07 8.1.2, 8.1.3).</summary>
-internal enum OperationDecision
+public enum OperationDecision
 {
     /// <summary>The operation is open and the request fits: it is applied.</summary>
     Allowed,

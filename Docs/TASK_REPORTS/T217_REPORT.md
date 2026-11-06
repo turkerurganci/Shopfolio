@@ -12,14 +12,14 @@
 - **İşlemin tek kuralı (`Infrastructure/Operations/`):** `IOperationRule<TContext>` (kayıt durumundan `OperationAvailability` üretir; saat, veritabanı, istek okumaz), `OperationAvailability` (açık mı, açık adet, varsayılan, üst sınır, son gün), `OperationDecision` + `OperationGate.Decide` (saf kapı: `Closed`, `QuantityExceedsOpen`; adet üst sınırı aşarsa bütünüyle red).
 - **Ret cevabı (`OperationRefusals`):** müşteri sınıfı 303 + `OperationClosed`/`QuantityExceedsOpen` bildirimi; öteki sınıf 422 (`OperationNotAvailable`/`QuantityExceedsOpen`, eylem düzeyinde mesaj); her redde `RejectionLog` satırı (müşterinin "kapalı"sı satırda `OperationNotAvailable`).
 - **İşaret ve tarama:** `GatedOperationAttribute` + `OperationSourceScan` (işaretli işleyici kapıya ulaşmalı; işaret GET'te kırmızı; görünüm ve betik durum adı/tarih hesabı taşımaz) + ayrı ihlal örnekleri `ViolationSamples/Operations/`.
-- **İşlem sırası (`Infrastructure/Operations/OperationRunner`; düzeltme 1):** `ITransactionRunner` → satır kilidi ve (panelde) sürüm (`IOrderingModule.LockOrderAsync`, Contracts) → durum yükleme → kural → yazım; ret dönüş değeridir ve işlem geri alınır. İlk yazımda `Modules/Ordering/GatedOrderOperation` idi; sayfa `Contracts` dışı türe başvuramayacağından taşındı.
-- **Örnek sayfa (yalnız test sunucusu):** `Pages/OperationSamples.cs` (`SampleCancelRule` 03 §1.11.2, `SampleWithdrawRule` 03 §1.11.5), `Pages/Panel/OperationSample.cshtml(.cs)`.
+- **İşlem sırası (düzeltme 2 hâli):** kural MODÜLDE yaşar, sayfaya yalnız `Contracts` yüzeyiyle ulaşır. Sayfa işlemi `OperationRunner.RunAsync` (ortak altyapı; `ITransactionRunner` sarmalayıcısı) ile açar ve modülün `Contracts` yazma yöntemini içinde çağırır; yöntem işlem açmaz ve sırayı `OperationGate.ExecuteAsync`'e verir: satır kilidi ve (panelde) sürüm → durum yükleme → modülün kural örneği (`OperationGate.Decide`) → yalnız `Allowed` ise yazım; ret `GatedOperationResult` dönüş değeridir ve işlem geri alınır. GET'te modülün `Contracts` okuma yöntemi aynı kural örneğinden `OperationAvailability` verir. `OperationAvailability`, `OperationVerdict`, `OperationDecision`, `GatedOperationResult` `public` değerlerdir (Contracts yöntemlerinin türleri). Tarihçe: ilk yazım `Modules/Ordering/GatedOrderOperation`, düzeltme 1 ürün kuralını sayfa katmanına koymuştu (B1-r2: 05/07/11 ile çelişti); ikisi de kaldırıldı.
+- **Örnek modül ve sayfa (yalnız test derlemeleri):** `Pages/OperationSamples.cs` modül biçiminde: `ISampleOrderOperations` + `SampleOrderOperationsView` (Ordering `Contracts` ad alanı), `SampleOrderOperations` (Ordering ad alanı; `OrderLocks`, kural, yükleme, yazım) ve `SampleCancelRule` 03 §1.11.2, `SampleWithdrawRule` 03 §1.11.5; `Pages/Panel/OperationSample.cshtml(.cs)` yalnız arayüzü ve `OperationRunner`'ı kullanır, kural bilmez.
 - **Devam turunda:** birim testleri derlendi ve geçti (erişilebilirlik: test sınıfı public, kapı testinin satır verisi `bool`; tarama test verisi `MemberData` — `ForbiddenTestPatternScan` satır içi `) {` kalıbını test gövdesi sanıyordu); tam Unit, tam Integration, Release `-warnaserror`, `dotnet format` koşuldu.
 - **Doküman:** `09 §8.3` (yeni), `§8` girişi, içindekiler satırı, `§8.2` m.3 yardımcı cümlesi, `§25` satırı; `CONTEXT.md`, `IMPLEMENTATION_STATUS.md`, `STATUS_CHANGELOG.md`, `MEMORY.md`, `DEFERRED_BACKLOG.md` (D-153), T216 kayıtları.
 
 ## Etkilenen Modüller / Dosyalar
 
-- `src/Shopfolio.Web/Infrastructure/Operations/` (7 yeni dosya), `src/Shopfolio.Web/Modules/Ordering/{OrderingModule.cs, Contracts/IOrderingModule.cs}; (düzeltme 1: `Infrastructure/Operations/OperationRunner.cs`, `Program.cs` kaydı, `GatedOrderOperation.cs` silindi)`
+- `src/Shopfolio.Web/Infrastructure/Operations/` (7 yeni dosya; düzeltme 2: `OperationGate.cs` `ExecuteAsync`, `OperationRunner.cs`, `OperationAvailability.cs`/`OperationDecision.cs` `public`), `Program.cs` kaydı. `Modules/Ordering/{OrderingModule.cs, Contracts/IOrderingModule.cs}` main ile aynı (düzeltme 2: `LockOrderAsync` kaldırıldı; üretim modülüne işlem yöntemi eklenmedi)
 - `tests/Shopfolio.UnitTests/`: `Infrastructure/OperationGateTests.cs`, `Architecture/{OperationSourceScan.cs, OperationSourceScanTests.cs}`, `Architecture/ViolationSamples/Operations/{GatedHandlers.cs, Decides.cshtml, decides.js}`
 - `tests/Shopfolio.IntegrationTests/`: `Pages/OperationSamples.cs`, `Pages/Panel/OperationSample.cshtml(.cs)`, `Web/OperationPatternTests.cs`
 - `Docs/09_CODING_GUIDELINES.md`, `Docs/DEFERRED_BACKLOG.md`, `Docs/IMPLEMENTATION_STATUS.md`, `Docs/STATUS_CHANGELOG.md`, `Docs/TASK_REPORTS/T216_REPORT.md` (post-merge satırı), `.claude/CONTEXT.md`, `.claude/memory/MEMORY.md`
@@ -30,12 +30,12 @@
 |---|---|---|---|
 | 1 | GET işlemleri sunucu kararından üretir; düğme yanıtın içinde | ✓ | `OperationPatternTests.Get_AnOrderBeingPrepared_ShowsTheCancelFormOnly…_KK1_KK6`, `Get_AClosedCancel_HasNoCancelButton_KK1` |
 | 2 | Tarayıcı durumdan işlem türetmez | ✓ | `OperationSourceScan` `ViewDecides`/`ScriptDecides`; `OperationSourceScanTests.ScanClient_*`, `TheSamplePage_MarksItsPostHandlers_…AndItsViewDecidesNothing` |
-| 3 | Her POST aynı kuralı yeniden denetler; satır kilidi altında, o anki hâle karşı | ✓ | `OperationRunner.RunAsync` (kilit+sürüm → yükle → kapı → yaz); düzeltme 1: `ModuleBoundaryTests.OperationPatternPage_UnderThePageRule_…` (sayfa ad alanında kalıp temiz); `Post_AnOpenOperation_IsAppliedUnderTheLock…_KK3`; tarama `GatedWithoutCheck` |
+| 3 | Her POST aynı kuralı yeniden denetler; satır kilidi altında, o anki hâle karşı | ✓ | `OperationGate.ExecuteAsync` (kilit+sürüm → yükle → kural → yaz; modülün `Contracts` yazma yöntemi çağırır, `OperationRunner` işlemi açar); `OperationGateTests.TheSequence_*`; `ModuleBoundaryTests.OperationPatternPage_UnderThePageRule_…` (sayfa ad alanında kalıp temiz); `Post_AnOpenOperation_IsAppliedUnderTheLock…_KK3`; tarama `GatedWithoutCheck` |
 | 4 | Gizleme/etkisiz gösterme denetimin yerine geçmez | ✓ | `Post_ByHandForAClosedOperation_WhoseButtonWasNeverShown_IsNotApplied…_KK3_KK4_KK5` |
 | 5 | Açık değilse uygulanmaz, hiçbir şey yazılmaz; yanıt sınıfa göre | ✓ | müşteri 303: `Post_ByHand…`/`Post_AQuantityAbove…`; panel 422/409: `Post_ThePanelsOperation_WithTheVersionEqual…Is422…409`; `OperationGateTests`; `09 §8.3` m.4 |
 | 6 | Sunucunun türettiği değerler sayfada (açık adet, varsayılan, üst sınır, son gün) | ✓ | `Get_AnOrderBeingPrepared…` (`max=`/`value=`), `Get_TheWithdrawalOnItsLastDay…_KK6_KK7` |
 | 7 | Açık aralık 03 §1.11'in aralığıdır | ✓ (örnek kuralla) | `SampleCancelRule` 1.11.2, `SampleWithdrawRule` 1.11.5; son gün açık/ertesi gün kapalı testi. ⚠ ürünün gerçek kuralları F3–F5'te (`09 §8.3` yazımın kararı 1; D-153) |
-| 8 | Kural tek yerde; GET ve POST aynı işlevi çağırır | ✓ | `TheGetAndThePost_CallTheSameRuleInstance_KK8`; `IOperationRule` tek arayüz |
+| 8 | Kural tek yerde; GET ve POST aynı işlevi çağırır | ✓ | kural modülde (örnekte `SampleOrderOperations`, `SampleRules`); okuma ve yazma yöntemi aynı örneği çağırır: `TheGetAndThePost_CallTheSameRuleInstance_KK8`; sayfa kural türüne başvurmaz: `ModuleBoundaryTests.OperationPatternPage_…ThroughTheContractsInterface` |
 
 ### Öz denetim (bitiş kapısı 2)
 
@@ -45,7 +45,7 @@
 | KK2 betik karar vermez | ✓ | `OperationSourceScanTests.ScanClient_OfAScriptThatDecides_IsAFinding` + `ViolationSamples/Operations/decides.js`; sayfa temiz testi |
 | KK3 elle gönderilen kapalı POST uygulanmaz | ✓ | `Post_ByHand…_KK3_KK4_KK5` |
 | KK4 gizli düğmenin POST'u da reddedilir | ✓ | aynı test (düğme hiç gösterilmemiş sipariş) |
-| KK5 reddedilen işlemde veritabanı değişmez | ✓ | `Post_ByHand…`, `Post_AQuantityAbove…`, `Post_ThePanelsOperation_…_AndWritesNothing_KK5` (sipariş sürümü dahil); ret `RunAsync` içinde dönüş değeridir, işlem geri alınır (`GatedOrderOperation`) |
+| KK5 reddedilen işlemde veritabanı değişmez | ✓ | `Post_ByHand…`, `Post_AQuantityAbove…`, `Post_ThePanelsOperation_…_AndWritesNothing_KK5` (sipariş sürümü dahil); ret modülün yazma yönteminin dönüş değeridir, `OperationRunner`'ın işlemi geri alınır |
 | KK6 açık adet ve üst sınır sunucudan | ✓ | `Get_AnOrderBeingPrepared…_KK1_KK6` (beklenen değer siparişin kalem adedinden türetilir) |
 | KK7 aralığın son günü sınırda | ✓ | `Get_TheWithdrawalOnItsLastDay…_KK6_KK7`, `Post_TheWithdrawalOnTheLastDayIsApplied…_KK7` |
 | KK8 GET ve POST aynı kural | ✓ | `TheGetAndThePost_CallTheSameRuleInstance_KK8` |
@@ -55,7 +55,9 @@
 | Sık FAIL 2 — tarama çağrı biçimi kaçırır | ✓ | işaret: `[GatedOperation]`, `…Attribute`, ad alanı nitelikli, listede başka nitelikle, `()` ile, çok satırlı imza; kapı: boşluklu `OperationGate . Decide`, nitelikli, `=>` gövde, `GatedOrderOperation` (`…InEverySpellingOfTheMark`, `…ReachesTheGate…IsClean`) |
 | Sık FAIL 3 — sayı/etiket çoğaltma | ✓ | `09 §8` giriş cümlesi, içindekiler satırı (`§8.3`), `§8.2` m.3 yardımcı cümlesi, `§25`, `CONTEXT`, backlog sayacı (92 → 93), status ve changelog güncellendi |
 | Sık FAIL 4 — test beklentisi elle yazılı | ✓ | statü/üye listeleri `Enum.GetNames`'ten; bildirim adresi `NoticeCode`'dan; adet beklentisi kalem adedinden. `OperationGateTests` küçük tam sayı kural girdileridir (kuralın kendi değeri) |
-| Sık FAIL 5 — modül arayüz yöntemi kendi işlemini açıyor | ✓ | `RunAsync`'i yalnız `OperationRunner` açar ve o giriş noktasının (sayfa işleyicisi) yardımcısıdır, `Contracts` metodu değil (`09 §9.1` m.3); `09 §8.3` m.3 yazar |
+| Sık FAIL 5 — modül arayüz yöntemi kendi işlemini açıyor | ✓ | işlemi yalnız `OperationRunner` açar (sayfa işleyicisinin yardımcısı); `Contracts` yöntemi ve `OperationGate.ExecuteAsync` işlem açmaz (`09 §9.1` m.3); `09 §8.3` m.3 yazar |
+
+> Bu tablo düzeltme 1 hâlidir; güncel (düzeltme 2) bütün maddeler aşağıda "Öz denetim (düzeltme 2)" tablosundadır.
 
 > `? Doğrulanamadı` **FAIL değildir**; bu turda doğrulanamayan madde yok. Kestrel notu: kapı sayfa mantığıdır, sunucu sınırı (gövde/üst bilgi) değildir; bu yüzden TestServer yeterlidir.
 
@@ -63,8 +65,9 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests -c Release` (Consistency ayrı) | düzeltme 1 sonrası 2636, başarısız 0 (öncesi 2634) (yeni: `OperationGateTests`, `OperationSourceScanTests` — 65 test satırı) |
-| Integration | ✓ | `dotnet test tests/Shopfolio.IntegrationTests -c Release` (Postgres 18 konteyneri) | 1695, başarısız 0, atlanan 0 — validator düzeltmesi: yapım 1595 yazmıştı; CI 42236914259 `total: 1695` ve doğrulayıcının parça koşuları 508 + 182 + 112 + 482 + 411 = 1695 = T216'nın 1682'si + 13 (yeni: `OperationPatternTests` 13) |
+| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | düzeltme 2 sonrası **2640**, başarısız 0 (düzeltme 1: 2636; +4 `OperationGateTests.TheSequence_*`) |
+| Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests --no-build` filtreli parçalar (Postgres 18, `shopfolio-t217-fix2-pg`, 127.0.0.1:55702; koşu sonrası silindi) | **1695**, başarısız 0, atlanan 0: Concurrency+Database 61, Security 32, Disposal+FileSecrets+Outages+Files+Logging+SignedEndpoints 124, Jobs 77, Web 508 (186 + 157 + 152 + `OperationPatternTests` 13), Model 893; `--list-tests` 1695 (T216 1682 + 13) |
+| Derleme/biçim (düzeltme 2) | ✓ | `dotnet build Shopfolio.slnx -warnaserror`; `dotnet format Shopfolio.slnx --verify-no-changes` | 0 uyarı, 0 hata; değişiklik yok |
 | Contract | — | — | bu task'ta yok |
 | Derleme/biçim | ✓ | `dotnet build -c Release -warnaserror`; `dotnet format --verify-no-changes` | 0 uyarı, değişiklik yok |
 
@@ -92,6 +95,8 @@
 Kriter 1, 2, 4–7 ve KK1, KK2, KK4–KK7 ✓ (kriter 7 örnek kuralla; gerçek kurallar D-153). Doğrulayıcı ayrıca sınadı: üç reddedilen POST (müşteri 303, panel 422, panel 409) sonrası **bütün tabloların** içerik özeti değişmedi; Türkiye gece yarısı sınırında (20:59:59Z açık, 21:00:00Z kapalı) son gün doğru davranıyor (geçici sondalar, silindi). Unit 2634, Integration 1695 geçti, 0 atlanan; dal CI 42236914259 yeşil. K1: tarama darlıkları → D-154. K2: Integration sayısı 1595 → 1695 (rapor, durum, hafıza) bu PR'da düzeltildi. `12` satırlarının `Durum`'u değişmedi (T217'nin KP'si yok; `07 §8.1`'i anan VAL-A578, VAL-A716, VAL-B097, VAL-B117 ekran task'larınındır).
 
 ## Düzeltme 1 (doğrulama tur 1 sonrası)
+
+> Tarihçe. Bu bölümün "kural sayfa katmanındadır" ve `IOrderingModule.LockOrderAsync` kararı tur 2'de B1-r2 ile reddedildi; güncel hâl "Düzeltme 2"dedir.
 
 **B1 çözümü.** Kalıbın sayfaya açılan yüzü `09 §6` ile uyumlu hâle getirildi:
 
@@ -139,6 +144,50 @@ Kriter 1, 2, 4–7 ve KK1, KK2, KK4–KK7 ✓ (kriter 7 örnek kuralla; gerçek 
 | Sık FAIL 5 modül arayüz yöntemi kendi işlemini açıyor | ✓ | `LockOrderAsync` işlem açmaz, çağıranın işleminde çalışır (`OrderLocks` işlem yoksa istisna atar); işlemi `OperationRunner` sayfa adına açar |
 | Sık FAIL 6 (tur 1) kalıp yalnız testteki örnek sayfada | ✓ | `Shopfolio.Pages.Panel.OperationPatternPage` sayfa kuralı altında temiz; örnek test sayfası da artık `AppDbContext`/varlık kullanmaz |
 
+## Düzeltme 2 (doğrulama tur 2 sonrası; B1-r2)
+
+**B1-r2 çözümü (sahip kararı: kural modülde yaşar, sayfaya yalnız `Contracts` yüzeyiyle ulaşır).**
+
+- **Kural ve sıra modülde.** `OperationGate.ExecuteAsync` (ortak altyapı, işlem açmaz) modülün yazma yönteminin sırasıdır: `lockRecord` (satır kilidi + panelde sürüm karşılaştırması; uymazsa çakışma, hiçbir şey okunmaz/yazılmaz) → `load` (kilitten sonra) → modülün kural örneği `OperationGate.Decide` → yalnız `Allowed` ise `apply`. Sonuç `GatedOperationResult`.
+- **Sayfa kural yazmaz, uygulamaz.** GET: modülün `Contracts` okuma yöntemi açıklığı ve sunucu değerlerini (açık adet, varsayılan, üst sınır, son gün) `OperationAvailability` olarak verir. POST: sayfa işlemi `OperationRunner.RunAsync` ile açar (ince `ITransactionRunner` sarmalayıcısı; kural bilmez) ve içinde modülün `Contracts` yazma yöntemini çağırır; ret geri alınır, hiçbir şey yazılmaz. Modül yöntemi kendi işlemini açmaz (`09 §6` m.3, §9.1 m.3).
+- **Public değerler.** `OperationAvailability`, `OperationVerdict`, `OperationDecision`, `GatedOperationResult` `public` (Contracts yöntemlerinin türleri, `09 §6` m.1); `IOperationRule` modülün `internal` türü olarak kalır.
+- **`IOrderingModule.LockOrderAsync` ve `OrderingModule` kurucu değişikliği geri alındı** (dosyalar main ile aynı); üretim modülüne bu task'ta işlem yöntemi eklenmez, gerçek işlemleri modül task'ları (ilki T367) yazar.
+- **Örnek ve mimari test hizalandı.** `Pages/OperationSamples.cs`: modül biçiminde `ISampleOrderOperations` (Ordering `Contracts` ad alanı) + `SampleOrderOperations` (Ordering ad alanı; `OrderLocks`, kural, yükleme, yazım). `OperationSample.cshtml.cs`: yalnız arayüz + `OperationRunner`. `OperationPagePattern.cs`: `OperationPatternPage` yalnız `IPatternOrderOperations` (Contracts) + `OperationRunner` kullanır. `ModuleBoundaryTests.OperationPatternPage_UnderThePageRule_IsCleanAndReachesTheRuleOnlyThroughTheContractsInterface`: sayfa kuralı + Contracts kuralı temiz; sayfa `OperationRunner` ve `IPatternOrderOperations`'a bağlı, `IOperationRule`'a, `OperationGate`'e ve `Ordering.Contracts` dışındaki modül türüne bağlı değil. Yeni birim testleri `OperationGateTests.TheSequence_*` (sıra, kapalı → yazım yok, adet aşımı → yazım yok, sürüm çakışması → yükleme/kural yok).
+- **Belge.** `09 §8.3` m.1 (kural modülde; 41 işlem T323'te tek kararda), m.3 (sayfa işlemi açar, modül işletir), m.6 (test ve mimari kanıt), yazımın kararı (1) ve (5) yeniden yazıldı; `§25` satırı; `CONTEXT.md`; D-153 metni; status ve hafıza. **`05 §3.3.1/§3.3.5/§3.3.12/§3.3.13`, `07 §8.1.1/§8.1.5` ve `11` T323/T367'den ayrılan cümle kalmadı; karar kaydı gerekmedi.**
+- **Üst belge karşılaştırması.** `05 §3.3.1` (satır 379: her modül kendi kural grubunun/verisinin sahibi) ↔ `09 §8.3` m.1 (kural modülde); `05 §3.3.12` (satır 395: sayfa modül arayüzünü çağırır, veriye dokunmaz) ↔ m.1/m.3 (sayfa `Contracts`'tan ulaşır); `05 §3.3.13` (satır 397: teknik katman ayrımı elenmiş) ↔ kural sayfa katmanında değil; `07 §8.1.1` (satır 5405: sayfa kuralı yeniden yazmaz, uygular) ↔ sayfa kural yazmaz/uygulamaz, çağırır; `07 §8.1.2/§8.1.5` (kural iki yerde yazılmaz) ↔ okuma ve yazma yöntemi aynı örnek; `11` T323 kriter 1–2 (satır 2274–2275: 41 işlem tek kararda, ekran ve uç aynı karar) ↔ m.1; T367 (D-153) kuralını kendi modülünde yazar.
+
+**Test (düzeltme 2).** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı/0 hata; `dotnet format Shopfolio.slnx --verify-no-changes` değişiklik yok; Unit **2640 / 2640**; Integration **1695 / 1695** (gerçek PostgreSQL 18; `--list-tests` 1695): Concurrency+Database 61, Security 32, Disposal+FileSecrets+Outages+Files+Logging+SignedEndpoints 124, Jobs 77, Web 508 (186 + 157 + 152 + `OperationPatternTests` 13), Model 893; başarısız 0, atlanan 0.
+
+### Öz denetim (düzeltme 2; bütün maddeler yeniden, kendi diff'inde)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 GET sunucu kararından üretir | ✓ | `OperationSample.cshtml` `@if (Model.Cancel.IsOpen)`; `Get_AnOrderBeingPrepared…_KK1_KK6`, `Get_AClosedCancel_HasNoCancelButton_KK1`; `ISampleOrderOperations.ReadAsync` açıklığı modülün kuralından verir (`OperationSamples.cs` `ReadAsync`) |
+| Kriter 2 tarayıcı durumdan işlem türetmez | ✓ | `OperationSourceScanTests` (örnek sayfa/görünüm temiz, `Decides.cshtml`/`decides.js` kırmızı); sayfada betik yok |
+| Kriter 3 POST aynı kuralı kilit altında, o anki hâle karşı yeniden denetler | ✓ | `SampleOrderOperations.RunAsync` → `OperationGate.ExecuteAsync(LockAsync → LoadAsync → kural → WriteAsync)`; `OperationGateTests.TheSequence_RunsLockLoadRuleWriteInThatOrder…`; `Post_AnOpenOperation_IsAppliedUnderTheLock…_KK3`; sayfa `OperationRunner`'a ulaşır (`GatedWithoutCheck` taraması geçti) |
+| Kriter 4 gizleme denetimin yerine geçmez | ✓ | `Post_ByHandForAClosedOperation_WhoseButtonWasNeverShown…_KK3_KK4_KK5` |
+| Kriter 5 kapalıysa hiçbir şey yazılmaz; yanıt sınıfa göre | ✓ | `TheSequence_AClosedOperation_WritesNothing…`, `TheSequence_AQuantityAboveTheUpperLimit_WritesNothing…`; `Post_ByHand…`, `Post_AQuantityAbove…`, `Post_ThePanelsOperation_…_KK5` (sipariş sürümü dahil); 303/422/409 `OperationRefusals` |
+| Kriter 6 sunucu değerleri sayfada | ✓ | `Get_…_KK1_KK6` (`max=`/`value=`/`open-quantity`), `Get_TheWithdrawalOnItsLastDay…_KK6_KK7` |
+| Kriter 7 açık aralık `03 §1.11` aralığı | ✓ (örnek kuralla; D-153) | `SampleCancelRule` 1.11.2, `SampleWithdrawRule` 1.11.5; son gün açık/ertesi gün kapalı testleri |
+| Kriter 8 kural tek yerde; GET ve POST aynı işlev | ✓ | kural modülde (`SampleRules` → `SampleOrderOperations`); `TheGetAndThePost_CallTheSameRuleInstance_KK8` (GET 1 + POST 1 çağrı, aynı örnek); sayfa kural türüne başvurmaz: `ModuleBoundaryTests.OperationPatternPage_…ThroughTheContractsInterface` |
+| KK1 kapalı işlemin düğmesi yok | ✓ | `Get_AClosedCancel_HasNoCancelButton_KK1` |
+| KK2 betik karar vermez | ✓ | `ScanClient_OfAScriptThatDecides_IsAFinding` + `ViolationSamples/Operations/decides.js` |
+| KK3 elle gönderilen kapalı POST uygulanmaz | ✓ | `Post_ByHand…_KK3_KK4_KK5` |
+| KK4 gizli düğmenin POST'u reddedilir | ✓ | aynı test |
+| KK5 reddedilen işlemde veritabanı değişmez | ✓ | `Post_ByHand…`, `Post_AQuantityAbove…`, `Post_ThePanelsOperation_…_KK5`; `OperationRunner` ret sonucunda işlemi geri alır (`TransactionRunner` rollback + `ChangeTracker.Clear`) |
+| KK6 açık adet ve üst sınır sunucudan | ✓ | `Get_AnOrderBeingPrepared…_KK1_KK6` |
+| KK7 son gün sınırda | ✓ | `Get_TheWithdrawalOnItsLastDay…_KK6_KK7`, `Post_TheWithdrawalOnTheLastDayIsApplied…_KK7` |
+| KK8 GET ve POST aynı kural işlevi | ✓ | `TheGetAndThePost_CallTheSameRuleInstance_KK8` |
+| `09 §25` "kod/doküman üst dokümanla çelişmiyor mu" | ✓ | `grep -n` ile karşılaştırıldı: `09 §8.3` m.1 (satır 702), m.3 (704), m.6 (707), (5) (709) ↔ `05 §3.3.1` (379), §3.3.5 (386), §3.3.12 (395), §3.3.13 (397); `07 §8.1.1` (5405), §8.1.2 (5407), §8.1.5 (5413); `11` T323 (2270–2275), T217 kriter 8 (1271–1281). Üst belgeden ayrılan cümle yok; `§25` satırı (2378) modül-kural biçimini sorar |
+| `09 §6` modül sınırı (sayfadan `Contracts` dışı tür yok) | ✓ | `ModuleBoundaryTests` yeşil: gerçek `Shopfolio.Pages` ad alanındaki `OperationPatternPage` `PageRule` ve `ContractsReachNothingRule` altında temiz; `Ordering.Contracts` dışı modül türüne bağlı değil |
+| `09 §6` m.3 / §9.1 m.3 modül yöntemi kendi işlemini açmaz | ✓ | `ISampleOrderOperations` yöntemleri ve `OperationGate.ExecuteAsync` işlem açmaz; işlemi yalnız `OperationRunner` (sayfa adına) açar; `OrderLocks` işlem dışında hata atar |
+| Güvenlik taraması | ✓ | karar sunucuda ve modülde; istemci değeri (`Input.*`) yalnız adet/sürüm, kapı üst sınırla karşılaştırır; yeni sır/bağımlılık yok; yeni `public` türler yalnız değerdir |
+| Sık FAIL — bekçi/tarama istisnası geniş | ✓ | tarama kodu değişmedi; yeni mimari doğrulamalar yalnız `Shopfolio.Modules.` öneki ve `Ordering.Contracts.` istisnasını arar (dar: tek ad alanı) |
+| Sık FAIL — tarama çağrı biçimini kaçırıyor | ✓ | işaret ve kapı biçimleri testleri geçti; sayfa artık kapıya `OperationRunner` üzerinden ulaşır ve tarama `OperationRunner` adını zaten kapı sayar (`OnPostAfterRunner` darlığı D-154'te) |
+| Sık FAIL — belge kuralını değiştiren 09 metni karar kaydısız | ✓ | yukarıdaki üst belge karşılaştırması; 05/07/11 değişmedi, 09 onlara hizalandı (bu FAIL türünün sebebi kaldırıldı) |
+| Sık FAIL — DB varsayılanı eksik | ✓ (yok) | bu task'ta şema/göç/varsayılan sütun yok |
+| Sık FAIL — kural değişince aynı sayıyı/etiketi anan yerler | ✓ | `grep` ile tarandı: `LockOrderAsync` yalnız tarihçe anlatan satırlarda (`09` yazımın kararı (5), status, hafıza, bu rapor); `CONTEXT.md`, D-153, `§25`, status (Unit 2640), hafıza güncellendi; Integration 1695 değişmedi |
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok
@@ -174,5 +223,5 @@ Bu task'ın hedefi olan başka backlog kaydı yoktur (`grep -n T217 Docs/DEFERRE
 - **Ana dal CI startup (Adım 0):** devam işçisi CI izlemez (yönetici izler).
 - **Önceki task kaydı:** T216 status Commit hücresi (`9ab9bec`) ve `T216_REPORT` post-merge satırı dolduruldu (skill adım 15); eski durum girişi `STATUS_CHANGELOG.md`'ye taşındı.
 - **Repo memory (bitiş kapısı 9):** güncellendi
-- **⚠ Kararlar:** (1) gerçek ekran kuralları F3–F5'te, T217'de örnek kural; (2) müşterinin "kapalı"sı bildirimde `OperationClosed`, kayıt satırında `OperationNotAvailable`; yeni kod yok.
+- **⚠ Kararlar:** (1) gerçek ekran kuralları F3–F5'te, T217'de örnek kural; (2) müşterinin "kapalı"sı bildirimde `OperationClosed`, kayıt satırında `OperationNotAvailable`; yeni kod yok; (3) düzeltme 2: kural modülde, sayfaya yalnız `Contracts` okuma/yazma yöntemiyle ulaşır (sahip kararı); `09 §8.3` 05/07/11'e hizalı, karar kaydı yok.
 - **Diğer:** Integration toplamı (1595; validator: doğrusu 1695 — CI ve parça koşuları) tek tam koşudur; T216 raporundaki 1682 parça koşularıyla toplanmıştı; sayım yöntemi farklı olduğundan doğrudan karşılaştırılmadı (bu koşuda 0 başarısız, 0 atlanan).

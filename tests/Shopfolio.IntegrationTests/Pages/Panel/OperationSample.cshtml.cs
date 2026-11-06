@@ -10,11 +10,12 @@ using Shopfolio.Modules.Ordering.Contracts;
 namespace Shopfolio.IntegrationTests.Pages.Panel;
 
 /// <summary>
-/// The test-only sample of the available-operations pattern (T217; 07 8.1; 09 8.3). The GET asks the two rules and draws a form only for an open operation,
-/// writing the open quantity, the default, the upper limit and the last day as text; the three POST handlers re-check the same rule instances through
-/// <see cref="OperationRunner"/>, which takes the order lock through <see cref="IOrderingModule"/>. The page reaches no module internals and no database context
-/// (09 6 item 2): the load and the write sit behind <c>SampleOrderOperations</c>, the stand-in of the module's open methods, and
-/// <c>ModuleBoundaryTests</c> shows the same shape, as a page of the <c>Shopfolio.Pages</c> namespace, clean under the page rule. The customer's two operations answer a refusal with 303 and the
+/// The test-only sample of the available-operations pattern (T217; 07 8.1; 09 8.3). The rule lives in the module, not here: the GET asks the module's <c>Contracts</c>
+/// read method (<see cref="ISampleOrderOperations"/>) for the availability and draws a form only for an open operation, writing the open quantity, the default, the upper
+/// limit and the last day as text; the three POST handlers open the transaction through <see cref="OperationRunner"/> and call the module's <c>Contracts</c> write method,
+/// which under the order's row lock runs the same rule instance (lock, version, load, rule, write) and applies only when it allows. The page writes and applies no rule
+/// and reaches no module internals and no database context (09 6 item 2); <c>ModuleBoundaryTests</c> shows the same shape, as a page of the <c>Shopfolio.Pages</c>
+/// namespace, clean under the page rule. The customer's two operations answer a refusal with 303 and the
 /// reason; the panel's operation answers a changed version with 409 and a closed operation with 422. The page has no script and decides nothing from what the browser sent.
 /// </summary>
 public sealed class OperationSampleModel : PageModel
@@ -44,24 +45,24 @@ public sealed class OperationSampleModel : PageModel
     [GatedOperation]
     public async Task<IActionResult> OnPostCustomerCancelAsync(Guid id, CancelInput input, CancellationToken ct)
     {
-        SampleRules rules = HttpContext.RequestServices.GetRequiredService<SampleRules>();
-        GatedOperationResult result = await RunAsync(id, null, rules.Cancel, input.Quantity, ct);
+        ISampleOrderOperations operations = HttpContext.RequestServices.GetRequiredService<ISampleOrderOperations>();
+        GatedOperationResult result = await RunAsync(stepCt => operations.CancelAsync(id, null, input.Quantity, stepCt), ct);
         return AnswerCustomer(id, result);
     }
 
     [GatedOperation]
     public async Task<IActionResult> OnPostCustomerWithdrawAsync(Guid id, CancelInput input, CancellationToken ct)
     {
-        SampleRules rules = HttpContext.RequestServices.GetRequiredService<SampleRules>();
-        GatedOperationResult result = await RunAsync(id, null, rules.Withdraw, input.Quantity, ct);
+        ISampleOrderOperations operations = HttpContext.RequestServices.GetRequiredService<ISampleOrderOperations>();
+        GatedOperationResult result = await RunAsync(stepCt => operations.WithdrawAsync(id, null, input.Quantity, stepCt), ct);
         return AnswerCustomer(id, result);
     }
 
     [GatedOperation]
     public async Task<IActionResult> OnPostAdminCancelAsync(Guid id, AdminInput input, CancellationToken ct)
     {
-        SampleRules rules = HttpContext.RequestServices.GetRequiredService<SampleRules>();
-        GatedOperationResult result = await RunAsync(id, input.Version, rules.Cancel, input.Quantity, ct);
+        ISampleOrderOperations operations = HttpContext.RequestServices.GetRequiredService<ISampleOrderOperations>();
+        GatedOperationResult result = await RunAsync(stepCt => operations.CancelAsync(id, input.Version, input.Quantity, stepCt), ct);
         if (!result.IsRejected)
         {
             return FormResults.SeeOther("/panel/islem-ornegi/" + id);
@@ -73,19 +74,9 @@ public sealed class OperationSampleModel : PageModel
             : OperationRefusals.Redisplay(this, result.Verdict, AdminClosedMessage);
     }
 
-    private async Task<GatedOperationResult> RunAsync(Guid id, int? shownVersion, IOperationRule<SampleItemState> rule, int quantity, CancellationToken ct)
-    {
-        IServiceProvider services = HttpContext.RequestServices;
-        IOrderingModule ordering = services.GetRequiredService<IOrderingModule>();
-        SampleOrderOperations operations = services.GetRequiredService<SampleOrderOperations>();
-        return await services.GetRequiredService<OperationRunner>().RunAsync(
-            stepCt => ordering.LockOrderAsync(id, shownVersion, stepCt),
-            async stepCt => (await operations.ReadAsync(id, stepCt)).State,
-            rule,
-            quantity,
-            (state, availability, stepCt) => operations.CancelAsync(id, quantity, stepCt),
-            ct);
-    }
+    // The page opens the transaction (09 9.1 item 3) and calls the module's Contracts write method inside it; the module runs the rule.
+    private Task<GatedOperationResult> RunAsync(Func<CancellationToken, Task<GatedOperationResult>> operation, CancellationToken ct) =>
+        HttpContext.RequestServices.GetRequiredService<OperationRunner>().RunAsync(operation, ct);
 
     private IActionResult AnswerCustomer(Guid id, GatedOperationResult result)
     {
@@ -97,14 +88,12 @@ public sealed class OperationSampleModel : PageModel
 
     private async Task LoadAsync(Guid id, CancellationToken ct)
     {
-        IServiceProvider services = HttpContext.RequestServices;
-        SampleRules rules = services.GetRequiredService<SampleRules>();
-        SampleOrderView view = await services.GetRequiredService<SampleOrderOperations>().ReadAsync(id, ct);
+        SampleOrderOperationsView view = await HttpContext.RequestServices.GetRequiredService<ISampleOrderOperations>().ReadAsync(id, ct);
         RecordId = id;
         ItemId = view.ItemId;
         Version = view.Version;
-        Cancel = rules.Cancel.Evaluate(view.State);
-        Withdraw = rules.Withdraw.Evaluate(view.State);
+        Cancel = view.Cancel;
+        Withdraw = view.Withdraw;
     }
 }
 

@@ -144,6 +144,83 @@ public sealed class OperationGateTests
         Assert.Equal(["the state"], rule.Contexts);
     }
 
+    // ---- the module's sequence (09 8.3 item 3): lock, version, load, the rule, write ----
+
+    [Fact]
+    public async Task TheSequence_RunsLockLoadRuleWriteInThatOrder_AndWritesOnlyForAnAllowedVerdict_KK3_KK8()
+    {
+        List<string> steps = [];
+        FixedRule rule = new(OperationAvailability.OpenForQuantity(3, 3, 3));
+
+        GatedOperationResult result = await OperationGate.ExecuteAsync(
+            _ => { steps.Add("lock"); return Task.FromResult(true); },
+            _ => { steps.Add("load"); return Task.FromResult("state"); },
+            rule,
+            2,
+            (_, availability, _) => { steps.Add("write" + availability.MaxQuantity); return Task.CompletedTask; },
+            CancellationToken.None);
+
+        Assert.Equal(["lock", "load", "write3"], steps);
+        Assert.False(result.IsRejected);
+        Assert.Equal(["state"], rule.Contexts);
+    }
+
+    [Fact]
+    public async Task TheSequence_AClosedOperation_WritesNothing_AndIsRejectedWithTheClosedVerdict_KK3_KK4_KK5()
+    {
+        int written = 0;
+
+        GatedOperationResult result = await OperationGate.ExecuteAsync(
+            _ => Task.FromResult(true),
+            _ => Task.FromResult("state"),
+            new FixedRule(OperationAvailability.Closed),
+            1,
+            (_, _, _) => { written++; return Task.CompletedTask; },
+            CancellationToken.None);
+
+        Assert.Equal(0, written);
+        Assert.True(result.IsRejected);
+        Assert.False(result.VersionChanged);
+        Assert.Equal(OperationDecision.Closed, result.Verdict.Decision);
+    }
+
+    [Fact]
+    public async Task TheSequence_AQuantityAboveTheUpperLimit_WritesNothing_AndIsRefusedWhole()
+    {
+        int written = 0;
+
+        GatedOperationResult result = await OperationGate.ExecuteAsync(
+            _ => Task.FromResult(true),
+            _ => Task.FromResult("state"),
+            new FixedRule(OperationAvailability.OpenForQuantity(3, 3, 3)),
+            4,
+            (_, _, _) => { written++; return Task.CompletedTask; },
+            CancellationToken.None);
+
+        Assert.Equal(0, written);
+        Assert.Equal(OperationDecision.QuantityExceedsOpen, result.Verdict.Decision);
+    }
+
+    [Fact]
+    public async Task TheSequence_AChangedVersion_IsTheConflict_AndNeitherLoadsNorAsksTheRuleNorWrites()
+    {
+        List<string> steps = [];
+        FixedRule rule = new(OperationAvailability.Open());
+
+        GatedOperationResult result = await OperationGate.ExecuteAsync(
+            _ => { steps.Add("lock"); return Task.FromResult(false); },
+            _ => { steps.Add("load"); return Task.FromResult("state"); },
+            rule,
+            null,
+            (_, _, _) => { steps.Add("write"); return Task.CompletedTask; },
+            CancellationToken.None);
+
+        Assert.Equal(["lock"], steps);
+        Assert.Empty(rule.Contexts);
+        Assert.True(result.IsRejected);
+        Assert.True(result.VersionChanged);
+    }
+
     [Fact]
     public void EveryRefusedDecision_HasAnErrorCodeAndANoticeCode_AndTheAllowedOneHasNone()
     {

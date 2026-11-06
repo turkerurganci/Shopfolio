@@ -104,6 +104,19 @@ public sealed class DataModelFoundationTests
         Assert.Equal(TextNormalizer.Simplify("ÇELİK Kupa"), TextNormalizer.Simplify("celik kupa"));
     }
 
+    // T216 KK7 (07 2.9.5; 04 8.2.10; K-1016): an e-mail, a coupon code and a stock code compare without the Turkish casing rule - the four I's are one letter.
+    [Theory]
+    [InlineData("IŞIL@ORNEK.COM", "ışıl@ornek.com", "işil@ornek.com")]
+    [InlineData("İsil@Ornek.com", "isıl@ornek.com", "isil@ornek.com")]
+    [InlineData("KIŞ-İNDİRİM", "kış-indirim", "kiş-indirim")]
+    [InlineData("KIŞ-İNDİRİM", "Kiş-Indırım", "kiş-indirim")]
+    [InlineData("TISORT-I-01", "tİsort-ı-01", "tisort-i-01")]
+    public void NormalizeIdentity_EmailCouponAndStockCodes_WithAnyOfTheFourIs_AreTheSameIdentity(string left, string right, string expected)
+    {
+        Assert.Equal(expected, TextNormalizer.NormalizeIdentity(left));
+        Assert.Equal(expected, TextNormalizer.NormalizeIdentity(right));
+    }
+
     [Fact]
     public void NormalizeIdentity_TheFourIs_ReachTheSameForm()
     {

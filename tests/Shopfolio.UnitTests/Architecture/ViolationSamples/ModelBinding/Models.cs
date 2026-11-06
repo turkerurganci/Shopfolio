@@ -60,6 +60,18 @@ namespace Shopfolio.Pages.Samples
 
         [SpecAssignedName]
         public string Website { get; set; } = string.Empty;
+
+        // A decimal with its amount or percentage rule and a day are the formats of 07 2.9 (T216): no DecimalWithoutRule, no TimeBound.
+        [InvalidAmount]
+        public decimal Price { get; set; }
+
+        [SpecAssignedName]
+        [InvalidPercentage]
+        public decimal? Rate { get; set; }
+
+        [SpecAssignedName]
+        [InvalidDate]
+        public DateOnly? ShipOn { get; set; }
     }
 
     public sealed class AdminAddNoteInput : IFormInput
@@ -130,6 +142,9 @@ namespace Shopfolio.Pages.Samples
         public Task<IActionResult> OnPostReturnItemsAsync(ReturnItemsInput input) => Task.FromResult<IActionResult>(Page());
 
         public Task<IActionResult> OnPostRemoveNoteAsync(Guid id) => Task.FromResult<IActionResult>(Page());
+
+        // A decimal parameter with its rule and a day parameter (T216).
+        public Task<IActionResult> OnPostPriceNoteAsync([InvalidAmount] decimal price, DateOnly day) => Task.FromResult<IActionResult>(Page());
     }
 
     public sealed class CleanAdminNotesPage : PageModel
@@ -179,10 +194,100 @@ namespace Shopfolio.Pages.Samples
     // FieldName: Cost has no 06 counterpart and no mark. SpecNameShadows06: Price is the name of a 06 field, so it needs no mark.
     public sealed class WrongFieldNamesInput : IFormInput
     {
+        [InvalidAmount]
         public decimal Cost { get; set; }
 
         [SpecAssignedName]
+        [InvalidAmount]
         public decimal Price { get; set; }
+    }
+
+    // TimeBound: a request carries no time (07 2.9.2; 09 7.2 item 2) - an instant, a time of day and a DateTime, in a form, in a query row and on a page.
+    public sealed class TimedInput : IFormInput
+    {
+        [SpecAssignedName]
+        public DateTimeOffset StartsAt { get; set; }
+
+        [SpecAssignedName]
+        public TimeOnly? OpensAt { get; set; }
+
+        [SpecAssignedName]
+        public List<TimedRow> Rows { get; set; } = [];
+    }
+
+    public sealed class TimedRow
+    {
+        [SpecAssignedName]
+        public DateTime[] Days { get; set; } = [];
+    }
+
+    // FloatBound: an amount or a decimal number is a decimal (09 7.2 item 3) - a double and a float? in a query model.
+    public sealed class FloatQuery : IQueryModel
+    {
+        [SpecAssignedName]
+        public double Rate { get; set; }
+
+        [SpecAssignedName]
+        public float? Weight { get; set; }
+    }
+
+    // DecimalWithoutRule: a decimal without its amount or percentage rule - none at all, inside a row, and a rule that owns the conversion failure but
+    // checks no precision (the date rule).
+    public sealed class UnruledAmountInput : IFormInput
+    {
+        [SpecAssignedName]
+        public decimal Deposit { get; set; }
+
+        [SpecAssignedName]
+        [InvalidDate]
+        public decimal Portion { get; set; }
+
+        [SpecAssignedName]
+        public List<UnruledRow> Rows { get; set; } = [];
+    }
+
+    public sealed class UnruledRow
+    {
+        [SpecAssignedName]
+        public decimal? Fee { get; set; }
+    }
+
+    // TimeBound, FloatBound and DecimalWithoutRule on a page's handler parameters and bound property.
+    public sealed class TimedPage : PageModel
+    {
+        [BindProperty]
+        public DateTimeOffset? Stamp { get; set; }
+
+        public IActionResult OnGet(DateTime day) => Page();
+
+        public IActionResult OnGetRate(double rate) => Page();
+
+        public Task<IActionResult> OnPostSaveAsync(decimal price) => Task.FromResult<IActionResult>(Page());
+    }
+
+    // MachineDate: a machine body carries no date (07 2.9.6) - an instant in a response and a day in a request.
+    public sealed class StampedResponse : IMachineResponse
+    {
+        public Guid Id { get; set; }
+
+        [SpecAssignedName]
+        public DateTimeOffset CreatedAt { get; set; }
+    }
+
+    public sealed class DatedUploadRequest : IMachineRequest
+    {
+        [SpecAssignedName]
+        public DateOnly ExpiresOn { get; set; }
+    }
+
+    // ByteCountNotNumber: a machine body's byte count is a JSON number (07 2.9.6) - neither a text nor a floating point value.
+    public sealed class TextBytesResponse : IMachineResponse
+    {
+        [SpecAssignedName]
+        public string ReceivedBytes { get; set; } = string.Empty;
+
+        [SpecAssignedName]
+        public double? TotalBytes { get; set; }
     }
 
     // BuiltInRule: the framework's validation attributes on an input model, on a query model and inside a row. A machine request (StartUploadRequest) may carry one.

@@ -120,7 +120,7 @@ Kriter 3–8 ve KK3–KK8 ✓. Unit 2375, Integration 1582 geçti; dal CI 421988
 - **Commit:** dalın başı (PR sayfasında)
 - **PR:** #409
 - **CI:** *(yapım işçisi izlemez)*
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
+- **Post-merge run'lar:** squash `5ebe163` (#409) — CI 42217406499 success, Publish 42217406517 success (T216 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

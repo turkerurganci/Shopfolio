@@ -7,7 +7,9 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <summary>
 /// The model binding rules (T211 criteria 1, 2, 4, 6; KK1, KK4, KK6; 07 5.1.1-5.1.5; 09 5.3 items 1-2): the three model kinds carry their name pattern,
 /// a form is named after its main handler, no handler or model touches an entity of 06, a field has the name 06 gives or the one 07 gives, and a model
-/// property carries none of the framework's built-in validation attributes (09 3.4 item 1, the <c>BuiltInRule</c>).
+/// property carries none of the framework's built-in validation attributes (09 3.4 item 1, the <c>BuiltInRule</c>). The value formats of 07 2.9 (T216):
+/// a form, a query and a page bind no time, no floating point number and no decimal without its amount or percentage rule, and a machine body carries no
+/// date and its byte counts are integers.
 /// The rules run over the application assembly and fail on the deliberate samples (09 19.2 item 3) - every rule has its own violation and the quiet
 /// neighbours stay quiet.
 /// </summary>
@@ -65,6 +67,27 @@ public sealed class ModelBindingRuleTests
             // Field names (KK6).
             "FieldName:WrongFieldNamesInput.Cost",
             "SpecNameShadows06:WrongFieldNamesInput.Price",
+
+            // The value formats of 07 2.9 (T216; 09 7.2 items 2-3): no time, no floating point number, no decimal without its rule - in a model, a
+            // row and a page's signature.
+            "TimeBound:TimedInput.StartsAt:DateTimeOffset",
+            "TimeBound:TimedInput.OpensAt:TimeOnly",
+            "TimeBound:TimedInput.Rows.Days:DateTime",
+            "FloatBound:FloatQuery.Rate:Double",
+            "FloatBound:FloatQuery.Weight:Single",
+            "DecimalWithoutRule:UnruledAmountInput.Deposit:Decimal",
+            "DecimalWithoutRule:UnruledAmountInput.Portion:Decimal",
+            "DecimalWithoutRule:UnruledAmountInput.Rows.Fee:Decimal",
+            "TimeBound:TimedPage.Stamp:DateTimeOffset",
+            "TimeBound:TimedPage.OnGet(day):DateTime",
+            "FloatBound:TimedPage.OnGetRate(rate):Double",
+            "DecimalWithoutRule:TimedPage.OnPostSaveAsync(price):Decimal",
+
+            // A machine body carries no date and its byte counts are integers (07 2.9.6; T216).
+            "MachineDate:StampedResponse.CreatedAt:DateTimeOffset",
+            "MachineDate:DatedUploadRequest.ExpiresOn:DateOnly",
+            "ByteCountNotNumber:TextBytesResponse.ReceivedBytes:String",
+            "ByteCountNotNumber:TextBytesResponse.TotalBytes:Double",
         ];
 
         Assert.Equal(expected.Order(StringComparer.Ordinal), violations.Order(StringComparer.Ordinal));

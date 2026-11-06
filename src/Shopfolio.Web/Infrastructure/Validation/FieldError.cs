@@ -33,7 +33,7 @@ public static class FieldError
         return parameter is null ? code : code + Separator + parameter;
     }
 
-    public static string Encode(string code, long parameter) => Encode(code, parameter.ToString(CultureInfo.InvariantCulture));
+    public static string Encode(string code, long parameter) => Encode(code, DisplayFormat.Number(parameter));
 
     /// <summary>Reads the code and the parameter of a rule's message; <see langword="false"/> when the message is not one.</summary>
     internal static bool TryParse(string? message, out string code, out string? parameter)

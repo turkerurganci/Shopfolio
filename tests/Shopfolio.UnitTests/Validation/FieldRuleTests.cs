@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
+using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Validation;
 
 namespace Shopfolio.UnitTests.Validation;
@@ -142,7 +143,7 @@ public sealed class FieldRuleTests
         }
         else
         {
-            Assert.Equal("InvalidAmount", MessageOf(rule, amount));
+            Assert.Equal("InvalidAmount:" + DisplayFormat.Amount(99999.99m), MessageOf(rule, amount));
         }
     }
 
@@ -152,7 +153,41 @@ public sealed class FieldRuleTests
         InvalidAmountAttribute rule = new() { AllowZero = true };
 
         Assert.Null(MessageOf(rule, 0m));
-        Assert.Equal("InvalidAmount", MessageOf(rule, -0.01m));
+        Assert.Equal("InvalidAmount:" + DisplayFormat.Amount(Money.MaxAmount), MessageOf(rule, -0.01m));
+        Assert.True(rule.OwnsConversionFailure);
+    }
+
+    [Fact]
+    public void InvalidAmount_Limit_IsTheMoneyTypesLimit_UnlessALowerMaxIsGiven_AndTheMessageNamesItAsAnAmount()
+    {
+        InvalidAmountAttribute open = new();
+        InvalidAmountAttribute lower = new() { Max = 1000 };
+
+        // 04 7.3.2.8, K-1214: the upper limit of an amount field is the limit of numeric(12,2); a value above it is the field's message, not a rounding.
+        Assert.Equal(Money.MaxAmount, open.Limit);
+        Assert.Null(MessageOf(open, Money.MaxAmount));
+        Assert.Equal("InvalidAmount:" + DisplayFormat.Amount(Money.MaxAmount), MessageOf(open, Money.MaxAmount + 0.01m));
+        Assert.Equal("9.999.999.999,99 TL", open.ParameterText);
+        Assert.Equal(1000m, lower.Limit);
+        Assert.Equal("1.000 TL", lower.ParameterText);
+        Assert.Equal(Money.MaxAmount, new InvalidAmountAttribute { Max = double.MaxValue }.Limit);
+    }
+
+    [Fact]
+    public void InvalidPercentage_MessageNamesTheLargestRate_InTheDisplayFormatOfAPercentage()
+    {
+        Assert.Equal("%99,99", new InvalidPercentageAttribute().ParameterText);
+        Assert.Null(MessageOf(new InvalidPercentageAttribute(), Money.MaxPercentage));
+    }
+
+    [Fact]
+    public void InvalidDate_PassesADayAndAnEmptyValue_AndOwnsTheConversionFailure()
+    {
+        InvalidDateAttribute rule = new();
+
+        Assert.Null(MessageOf(rule, new DateOnly(2026, 10, 4)));
+        Assert.Null(MessageOf(rule, null));
+        Assert.Equal("InvalidDate", MessageOf(rule, "2026-10-04"));
         Assert.True(rule.OwnsConversionFailure);
     }
 
@@ -176,7 +211,7 @@ public sealed class FieldRuleTests
         }
         else
         {
-            Assert.Equal("InvalidPercentage", MessageOf(rule, rate));
+            Assert.Equal("InvalidPercentage:" + DisplayFormat.Percent(Money.MaxPercentage), MessageOf(rule, rate));
         }
     }
 
@@ -196,7 +231,7 @@ public sealed class FieldRuleTests
         }
         else
         {
-            Assert.Equal("InvalidQuantity:1000", MessageOf(rule, value));
+            Assert.Equal("InvalidQuantity:" + DisplayFormat.Number(1000), MessageOf(rule, value));
         }
     }
 
@@ -299,7 +334,7 @@ public sealed class FieldRuleTests
         [
             new FieldRequiredAttribute(), new InvalidEmailAttribute(), new InvalidPhoneAttribute(), new InvalidIbanAttribute(), new InvalidAmountAttribute(),
             new InvalidPercentageAttribute(), new InvalidQuantityAttribute(5), new InvalidUrlAttribute(), new TextTooLongAttribute(5),
-            new InvalidListValueAttribute("A"), new InvalidColorAttribute(), new CheckboxNotAcceptedAttribute(),
+            new InvalidListValueAttribute("A"), new InvalidColorAttribute(), new CheckboxNotAcceptedAttribute(), new InvalidDateAttribute(),
         ];
 
         foreach (FieldRuleAttribute rule in rules)

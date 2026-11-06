@@ -134,7 +134,9 @@ public sealed class FieldValidationTests
         Assert.Contains("data-field=\"Email\">E-posta geçerli bir e-posta adresi olmalıdır.</span>", a.Body, StringComparison.Ordinal);
         Assert.Contains("data-field=\"Phone\">Telefon geçerli bir telefon numarası olmalıdır.</span>", a.Body, StringComparison.Ordinal);
         Assert.Contains("data-field=\"Password\">Şifre boş olamaz.</span>", a.Body, StringComparison.Ordinal);
-        Assert.Contains("data-field=\"Amount\">Tutar geçerli bir tutar olmalıdır; en çok iki ondalık yazılabilir.</span>", a.Body, StringComparison.Ordinal);
+        string amountMessage = FieldMessageCatalog.Build(
+            FieldCodes.InvalidAmount, "Tutar", new InvalidAmountAttribute { Max = BindingLimits.AmountMax }.ParameterText);
+        Assert.Contains($"data-field=\"Amount\">{amountMessage}</span>", a.Body, StringComparison.Ordinal);
         foreach (string code in Enum.GetNames<ErrorCode>())
         {
             Assert.DoesNotContain(code, a.Body, StringComparison.Ordinal);
@@ -157,7 +159,9 @@ public sealed class FieldValidationTests
             host, "ReturnItems", Form(("Items[0].OrderItemId", item.ToString()), ("Items[0].Quantity", quantity)));
 
         Assert.Equal(HttpStatusCode.UnprocessableEntity, a.Status);
-        Assert.Contains("data-field=\"Items[0].Quantity\">Adet 1 ile 1000 arasında bir tam sayı olmalıdır.</span>", a.Body, StringComparison.Ordinal);
+        string quantityMessage = FieldMessageCatalog.Build(
+            FieldCodes.InvalidQuantity, "Adet", new InvalidQuantityAttribute(BindingLimits.QuantityMax).ParameterText);
+        Assert.Contains($"data-field=\"Items[0].Quantity\">{quantityMessage}</span>", a.Body, StringComparison.Ordinal);
         Assert.Empty(host.Store.Returns());
     }
 

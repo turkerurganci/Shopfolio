@@ -68,10 +68,8 @@ public sealed class InvalidPhoneAttribute : FieldRuleAttribute
             return false;
         }
 
-        string compact = new([.. text.Where(c => c is not (' ' or '-' or '(' or ')'))]);
-        string digits = compact.StartsWith("+90", StringComparison.Ordinal) ? compact[3..]
-            : compact.StartsWith('0') ? compact[1..]
-            : compact;
+        // The same compaction as the stored form (07 2.9.5): "0532 123 45 67" and "5321234567" are one number.
+        string digits = RequestFormat.CompactPhone(text);
         return digits.Length == DigitCount && digits[0] != '0' && digits.All(char.IsAsciiDigit);
     }
 }
@@ -96,8 +94,9 @@ public sealed class InvalidIbanAttribute : FieldRuleAttribute
             return false;
         }
 
-        string iban = new([.. text.Where(c => c != ' ')]);
-        if (iban.Length != Length || !iban.StartsWith("TR", StringComparison.OrdinalIgnoreCase) || !iban[2..].All(char.IsAsciiDigit))
+        // The same compaction as the stored form (07 2.9.5): the blanks are ignored and the letters are upper case.
+        string iban = RequestFormat.CompactIban(text);
+        if (iban.Length != Length || !iban.StartsWith("TR", StringComparison.Ordinal) || !iban[2..].All(char.IsAsciiDigit))
         {
             return false;
         }
@@ -115,18 +114,24 @@ public sealed class InvalidIbanAttribute : FieldRuleAttribute
 }
 
 /// <summary>
-/// An amount (04 7.3.2.8): not negative, at most two decimals, not above <see cref="Max"/> (the limit of the money type, 06 2.5), and above zero unless
-/// <see cref="AllowZero"/>. A text that is no number is this rule's failure too.
+/// An amount (04 7.3.2.8): not negative, at most two decimals, not above <see cref="Limit"/> - the limit of the money type (06 2.5.1; K-1214), or a
+/// lower <see cref="Max"/> - and above zero unless <see cref="AllowZero"/>. A text that is no amount (07 2.9.4) is this rule's failure too. The message
+/// names the limit in the display format of an amount (04 7.3.1, 8.2.4): "en çok 9.999.999.999,99 TL".
 /// </summary>
 public sealed class InvalidAmountAttribute : FieldRuleAttribute
 {
-    /// <summary>The largest amount; set from the money type's limit.</summary>
+    /// <summary>A lower limit than the money type's; a larger value is the money type's limit (an amount never exceeds what the column holds).</summary>
     public double Max { get; init; } = double.MaxValue;
 
     /// <summary>Settings amounts may be zero; a price may not (04 7.3.2.8).</summary>
     public bool AllowZero { get; init; }
 
+    /// <summary>The largest amount the field takes: <see cref="Max"/>, at most <see cref="Money.MaxAmount"/>.</summary>
+    public decimal Limit => Max >= (double)Money.MaxAmount ? Money.MaxAmount : (decimal)Max;
+
     public override string Code => FieldCodes.InvalidAmount;
+
+    public override string? ParameterText => DisplayFormat.Amount(Limit);
 
     public override bool OwnsConversionFailure => true;
 
@@ -138,11 +143,14 @@ public sealed class InvalidAmountAttribute : FieldRuleAttribute
         }
 
         decimal amount = Convert.ToDecimal(value, CultureInfo.InvariantCulture);
-        return (amount > 0 || (AllowZero && amount == 0)) && HasAtMostTwoDecimals(amount) && amount <= (Max >= (double)decimal.MaxValue ? decimal.MaxValue : (decimal)Max);
+        return (amount > 0 || (AllowZero && amount == 0)) && HasAtMostTwoDecimals(amount) && amount <= Limit;
     }
 }
 
-/// <summary>A percentage (04 7.3.2.9): at most two decimals, from zero (or above it unless <see cref="AllowZero"/>) up to but not including one hundred.</summary>
+/// <summary>
+/// A percentage (04 7.3.2.9): at most two decimals, from zero (or above it unless <see cref="AllowZero"/>) up to but not including one hundred. A text
+/// that is no number (07 2.9.4) is this rule's failure too. The message names the largest value in the display format of a percentage: "en çok %99,99".
+/// </summary>
 public sealed class InvalidPercentageAttribute : FieldRuleAttribute
 {
     private const decimal Hundred = 100m;
@@ -151,6 +159,8 @@ public sealed class InvalidPercentageAttribute : FieldRuleAttribute
     public bool AllowZero { get; init; }
 
     public override string Code => FieldCodes.InvalidPercentage;
+
+    public override string? ParameterText => DisplayFormat.Percent(Money.MaxPercentage);
 
     public override bool OwnsConversionFailure => true;
 
@@ -179,7 +189,7 @@ public sealed class InvalidQuantityAttribute : FieldRuleAttribute
 
     public override string Code => FieldCodes.InvalidQuantity;
 
-    public override string? ParameterText => _max.ToString(CultureInfo.InvariantCulture);
+    public override string? ParameterText => DisplayFormat.Number(_max);
 
     public override bool OwnsConversionFailure => true;
 
@@ -199,6 +209,21 @@ public sealed class InvalidQuantityAttribute : FieldRuleAttribute
         long quantity = Convert.ToInt64(value, CultureInfo.InvariantCulture);
         return quantity >= 1 && quantity <= _max;
     }
+}
+
+/// <summary>
+/// A date field (04 7.3.2.12; 07 2.9.3): a value that is not a day in the one format <c>yyyy-AA-GG</c> is this rule's failure - the date binder reports
+/// it with this code (09 7.2 item 2). A date field without the attribute gets the same code. The limits a single field adds - a future date in a report
+/// filter, a lower limit - belong to the task that builds the field and are added here as properties; the order of two dates is the model's
+/// <c>InvalidDateRange</c> (09 3.4 item 2).
+/// </summary>
+public sealed class InvalidDateAttribute : FieldRuleAttribute
+{
+    public override string Code => FieldCodes.InvalidDate;
+
+    public override bool OwnsConversionFailure => true;
+
+    protected override bool Accepts(object? value) => value is null or DateOnly;
 }
 
 /// <summary>A link (04 7.3.2.13): a full address that starts with "http://" or "https://".</summary>
@@ -235,7 +260,7 @@ public sealed class TextTooLongAttribute : FieldRuleAttribute
 
     public override string Code => FieldCodes.TextTooLong;
 
-    public override string? ParameterText => _max.ToString(CultureInfo.InvariantCulture);
+    public override string? ParameterText => DisplayFormat.Number(_max);
 
     protected override bool Accepts(object? value) =>
         value is not string text || text.EnumerateRunes().Count() <= _max;

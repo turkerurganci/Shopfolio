@@ -9,6 +9,18 @@ namespace Shopfolio.Infrastructure;
 public static class Money
 {
     /// <summary>
+    /// The largest amount the money type holds (06 2.5.1: <c>numeric(12,2)</c>, at most 9.999.999.999,99 TL), derived from the type's precision and scale.
+    /// It is the upper limit of every amount field (04 7.3.2.8; 07 2.9.4; K-1214): a larger value is a field message, never a value the database rounds.
+    /// </summary>
+    public static readonly decimal MaxAmount = Limit(DataModel.ModelBuilderExtensions.MoneyType);
+
+    /// <summary>
+    /// The largest percentage a rate field takes (04 7.3.2.9; 06 2.5.1): under one hundred, at most two decimals (the scale of the percent type) -
+    /// one hundred less one step, 99,99.
+    /// </summary>
+    public static readonly decimal MaxPercentage = 100m - Step(DataModel.ModelBuilderExtensions.PercentType.Scale);
+
+    /// <summary>
     /// One amount to the nearest kuruş, an exact half kuruş up (12,345 to 12,35; 0,005 to 0,01; 0,004 to 0,00). Amounts are never
     /// negative where the product rounds them (02 3.8.3), so a negative input is a programming error and throws (09 14.1 item 1).
     /// </summary>
@@ -64,5 +76,29 @@ public static class Money
 
         parts[largest] += total - allocated;
         return parts;
+    }
+
+    // One step of a scale: 10^-scale (two decimals: 0,01).
+    private static decimal Step(int scale)
+    {
+        decimal step = 1m;
+        for (int i = 0; i < scale; i++)
+        {
+            step /= 10m;
+        }
+
+        return step;
+    }
+
+    // The largest value of numeric(precision, scale): precision - scale nines before the separator and scale nines after it.
+    private static decimal Limit((int Precision, int Scale) type)
+    {
+        decimal whole = 1m;
+        for (int i = 0; i < type.Precision - type.Scale; i++)
+        {
+            whole *= 10m;
+        }
+
+        return whole - Step(type.Scale);
     }
 }

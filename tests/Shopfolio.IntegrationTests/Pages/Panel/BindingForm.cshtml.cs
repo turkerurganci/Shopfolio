@@ -108,6 +108,9 @@ public static class BindingLimits
     public const int QuantityMax = 1000;
 
     public const int SearchMaxLength = 10;
+
+    /// <summary>The upper limit of <c>Amount</c>; an attribute argument cannot be a decimal, so the limit is a double that the rule turns into money (09 7.2 item 3).</summary>
+    public const double AmountMax = 1000;
 }
 
 /// <summary>The input model of <c>SaveNote</c> (07 5.1.5: the handler's name and the kind); <c>SearchNotes</c> sends the same form.</summary>
@@ -165,7 +168,7 @@ public sealed class ContactInput : IFormInput
     public string Remark { get; set; } = string.Empty;
 
     [Display(Name = "Tutar")]
-    [InvalidAmount(AllowZero = true, Max = 1000)]
+    [InvalidAmount(AllowZero = true, Max = BindingLimits.AmountMax)]
     public decimal Amount { get; set; }
 
     /// <summary>A non-nullable text with no rule and no initial value: absent from the request it stays null and is not an error (the framework's implicit "required" is off).</summary>

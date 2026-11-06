@@ -75,10 +75,16 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 2 (2026-11-06, head `134c45c`); tur 1 ✗ FAIL (head `3cb1380`) |
-| Bulgu sayısı | Tur 2: 1 (B1-r2 ORTA, S1); tur 1'in B1'i kapandı |
-| Düzeltme gerekli mi | Evet — B1-r2 (ikinci iterasyon: düzeltmesi de FAIL verirse eskalasyon, `INSTRUCTIONS §3.3`) |
-| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (K1 → D-155); tur 1: 2 (K1 → D-154, K2 kapatıldı) |
+| Doğrulama durumu | ✓ PASS — tur 3 (2026-11-06, head `e6cfe5a`); tur 2 ✗ FAIL (head `134c45c`); tur 1 ✗ FAIL (head `3cb1380`) |
+| Bulgu sayısı | Tur 3: 0; tur 2'nin B1-r2'si ve tur 1'in B1'i kapandı |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 3: 1 (K1 → D-156); tur 2: 1 (K1 → D-155); tur 1: 2 (K1 → D-154, K2 kapatıldı) |
+
+### Doğrulama tur 3 — ✓ PASS
+
+**Tam yeniden doğrulama** (bütün kriterler ve KK baştan). **B1-r2 kapandı:** `09 §8.3` m.1 artık "ürün kuralı modülde yazılır ve yaşar; sayfaya yalnız `Contracts` yüzeyiyle ulaşılır" der; `05 §3.3.1`/§3.3.12, `07 §8.1.1`/§8.1.2/§8.1.5 ve `11` T323 (modül: Sepet ve sipariş, `11 §7.1` satırı) ile çelişen cümle yok; yeni metin üst belgeyi değiştirmediği için karar kaydı gerekmez. Örnek sayfa (`OperationSample.cshtml.cs`) yalnız `ISampleOrderOperations` (Ordering `Contracts`), `OperationRunner`, `OperationRefusals` ve değer türlerini kullanır; kural ve kilit → sürüm → yükle → kural → yaz sırası örnek modülde (`SampleOrderOperations` → `OperationGate.ExecuteAsync`). `Shopfolio.Pages.Panel.OperationPatternPage` `PageRule` ve `ContractsReachNothingRule` altında temiz; `OperationRunner` modül türüne başvurmaz. **B1 (tur 1)** kapalı kaldı.
+
+**Kriterler 1–8 ✓, KK1–KK8 ✓, `09 §25` ✓.** Kriter 7 örnek kurallarla (1.11.2, 1.11.5) karşılandı: T217'nin kaynağı `07 §8.1` (ortak altyapı); 41 işlemin gerçek kararı `11` T323'tedir, ekran kuralları D-153. **Doğrulayıcı sondası (geçici, silindi):** altı ret (müşteri kapalı 303 `OperationClosed`, panel kapalı 422, eski sürüm 409, müşteri adet aşımı 303 `QuantityExceedsOpen`, panel adet aşımı 422, kargodaki siparişte adet aşan cayma 303) sonrası veritabanının **bütün tablolarının** satır sayısı ve içerik özeti değişmedi. Türkiye gece yarısı: 2026-11-05 21:30Z (TR 06.11 00:30) anında son günü 05.11 olan cayma kapalı, son günü 06.11 olan açık ve "6 Kasım 2026" yazılı (UTC tarihi kullanılsaydı ilki açık olurdu). `Input.Quantity=0` ve adetsiz POST hâlâ 500 (D-155, açık). **Test:** `dotnet build Shopfolio.slnx -warnaserror` 0/0; `dotnet format --verify-no-changes` temiz; Unit 2640/2640; betik testleri 4/4; Integration 1695/1695, 0 atlanan (parçalı, PostgreSQL 18; 1682 + 13 `OperationPatternTests` = 1695 — yapımın "1595"i yazım hatası, keşfedilmeyen test yok). Dal CI 42267704705 yeşil; ana dal son 3 run yeşil. `12` `Durum` değişmedi (T217'nin KP'si yok). **K1 → D-156:** `09 §8.3` m.1 iptal–cayma için iki modülü birlikte anar (kural grubu sahibi İptal–cayma–iade, T323 kararı Sepet ve sipariş) ve örnek modül İptal–cayma–iade'nin varlığını bağlam üzerinden yazar. Rapor: `helper-state/.../T217/dogrulama-raporu-r3.md`.
 
 ### Doğrulama tur 2 — ✗ FAIL
 

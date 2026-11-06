@@ -15,6 +15,12 @@
 
 ---
 
+## 2026-11-06 — T217 düzeltme 2, doğrulama bekliyor
+
+**Son güncelleme:** 2026-11-06 — T217 (Yapılabilir işlemlerin sunucuda üretimi ve POST işleyicisinde yeniden denetim) yapım tamamlandı, doğrulama bekliyor (dal `task/T217-yapilabilir-islemler`, PR #412; kriter 1–8 ve KK1–KK8 öz denetimde ✓; Unit 2640, Integration 1695 (doğrulama tur 1: ✗ FAIL, B1; düzeltme 1: çalıştırıcı ortak altyapıya; doğrulama tur 2: ✗ FAIL, B1-r2 — `09 §8.3` m.1 ürün kuralını sayfa katmanına koyuyordu, `05 §3.3` ve T323 ile çelişti; yeni D-155; düzeltme 2 yapıldı: kural modülde yaşar, sayfa yalnız `Contracts` okuma/yazma yöntemini çağırır, sıra `OperationGate.ExecuteAsync`'te, `09 §8.3` m.1/m.3/m.6/(5) buna göre — 05/07/11 ile aynı, karar kaydı gerekmedi); `09 §8.3` + `§25` satırı; kalıp `IOperationRule`/`OperationGate`/`OperationRunner`/`OperationRefusals` + `[GatedOperation]` kaynak taraması; gerçek ekran kuralları F3–F5'te; yeni D-153 → T367; T216 Commit hücresi `9ab9bec` dolduruldu). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
+---
+
 ## 2026-11-06 — T216 doğrulama tur 1 PASS
 
 **Son güncelleme:** 2026-11-06 — T216 (Tarih, sayı ve para biçimi: istek ve gösterim) doğrulama tur 1 ✓ PASS (head `05fd381`, PR #411; kriter 1–8, KK1–KK8 ve `09 §25` ✓; tutar ayrıştırması Unicode rakam, görünmez boşluk, `0x10`, işaret, üs ve hassasiyet dışı metinle yoklandı — değer hiçbir girdide değişmez; Unit 2569, Integration 1682; dal CI 42224854554 yeşil; bulgu 0; `12` `Durum` değişmedi (KP kaynak birimi yok); K1 → D-150 (tam sayıda sondaki `\0`), K2 → D-151 (IBAN/telefonda bölünmez boşluk), K3 → D-152 (öteki tam sayı türleri ve `TimeSpan`)). Önceki kayıt `STATUS_CHANGELOG.md`'de.

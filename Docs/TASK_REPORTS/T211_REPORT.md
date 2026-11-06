@@ -105,11 +105,11 @@ Doğrulayıcı kanıtları (tur 1): build `-warnaserror` 0/0, format temiz, Unit
 ## Commit & PR
 
 - **Branch:** `task/T211-model-baglama-kalibi`
-- **Commit:** son commit PR gövdesinde ve dönüşte
+- **Commit:** squash `da20c4e` (#402)
 - **main ile birleştirme (T207 #403 sonrası):** `origin/main` dala merge edildi. Çakışmalar: `Program.cs` (`AddSessionAccess` + `AddFieldValidation` ve `AddSessionAuthentication` birlikte), `DEFERRED_BACKLOG.md` (D-118 ✅ ve D-120–D-122 main'den, D-119 ✅ daldan; aktif kalem 65), `IMPLEMENTATION_STATUS.md`, `STATUS_CHANGELOG.md`, `MEMORY.md`, `T206_REPORT.md`. T207 panel klasörünü varsayılan kapattığı için `ModelBindingTests` ve `FieldValidationTests` yönetici oturumu çerezi (`TestSessions.AdminAsync`) taşır; erişim kuralı gevşetilmedi.
 - **PR:** #402
 - **CI:** yapım işçisi izlemez (yönetici yardımcı düzeni)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `da20c4e` (#402) — CI 42149223864 success, Publish 42149223898 success (T209 dalında dolduruldu, skill adım 15)
 
 ### Doğrulama tur 1 düzeltmeleri
 

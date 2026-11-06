@@ -18,9 +18,8 @@ internal static class SignedEndpointRegistration
     /// <summary>
     /// Maps <paramref name="path"/> as a signed machine endpoint: POST only, handled by the common pipeline with the request scope's
     /// <typeparamref name="TEndpoint"/> and transaction runner, and outside the protection against cross-site forgery (07 2.5.5; 05 6.5.1):
-    /// a machine endpoint is no page, so the page attribute <c>IgnoreAntiforgeryToken</c> of 09 15.2 item 2 is its endpoint form here,
-    /// <c>DisableAntiforgery</c>, whose <see cref="Microsoft.AspNetCore.Antiforgery.IAntiforgeryMetadata"/> - the metadata that item's
-    /// architecture test reads - needs no token. The path is a member of <see cref="Security.AntiforgeryExemptions"/>, the closed list of such endpoints (a source scan
+    /// a machine endpoint is no page, so it leaves the protection with <c>DisableAntiforgery</c> (09 15.2 item 2); pages have no way out.
+    /// The path is a member of <see cref="Security.AntiforgeryExemptions"/>, the closed list of such endpoints (a source scan
     /// checks the argument), and this is the one place in the application that switches the protection off.
     /// </summary>
     public static IEndpointConventionBuilder MapSignedEndpoint<TEndpoint, TNotice>(this IEndpointRouteBuilder endpoints, string path)

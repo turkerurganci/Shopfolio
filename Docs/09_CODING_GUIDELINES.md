@@ -2398,6 +2398,7 @@ Bu liste her kod tesliminde — yapım PR'ında ve bağımsız doğrulamada — 
 |---|---|
 | Repoda, imajda ve kayıtta sır ve kişisel veri yok mu (kayda iç kimlik yazılıyor, kayıt şablonunda kişisel veri alan adı yok mu)? | §4.3 madde 3; §17 madde 2; §18.2 madde 2 |
 | Yeni POST sahtecilik korumasından geçiyor mu; koruma dışı uçlar listesi gerekçesiz genişlememiş mi? | §15.2 |
+| Kişisel veri, oturum, sepet ya da erişim anahtarı taşıyan yeni sayfa `NoStoreAttribute` taşıyor mu; yeni yanıt başlığı yalnız `SecurityHeaders` dosyalarında mı yazılıyor; satır içi betik, stil niteliği ve nonce'suz stil bloğu yok mu? | §15.2 madde 4, 5 |
 | Yetkilendirme sunucu tarafında mı denetleniyor? | `.claude/GUARDRAILS.md` §8 |
 | Yeni giriş ya da deneme yüzeyi hız sınırı ve deneme sınırı kapsamında mı? | §15.4 |
 | Anahtar ve işaret `SecretKey`'den mi üretiliyor (`Random`, `Guid` kullanılmıyor mu)? | §15.1 |

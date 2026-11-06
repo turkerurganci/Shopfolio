@@ -108,10 +108,10 @@
 ## Commit & PR
 
 - **Branch:** `task/T208-surum-gosterilen-deger`
-- **Commit:** son commit PR'ın başıdır (aşağıdaki PR numarasıyla birlikte)
+- **Commit:** squash `aeab023` (#404)
 - **PR:** #404
 - **CI:** dal CI 42150380946 (head `3247026`) success — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
+- **Post-merge run'lar:** squash `aeab023` (#404) — CI 42153788573 success, Publish 42153788582 success (T209 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

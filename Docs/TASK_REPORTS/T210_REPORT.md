@@ -1,6 +1,6 @@
 # T210 — Liste kalıbı
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım tamamlandı, doğrulama bekliyor) | **Tarih:** 2026-11-06
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 ✓ PASS) | **Tarih:** 2026-11-06
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -75,10 +75,24 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-06, head `5476b9f`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 — K1 → D-134 (T333), K2 ve K3 bu PR'da kapandı (değerlendirme, değişiklik yok) |
+
+**Validator kanıtı (tur 1, 2026-11-06, `5476b9f`; dal CI'ı run 42165996784 success):** kapılar: working tree temiz, `core.hooksPath` `scripts/git-hooks`; ana dal son üç run (42162567568, 42162567538, 42153788582) success; hafızada T210 satırı var. Kriter 1–9 ve KK1–KK9 ✓ — kod okundu, testler doğrulama anında yeniden koşuldu: `dotnet build -warnaserror` 0/0, `dotnet format --verify-no-changes` temiz, Unit 2197/2197, betik testleri 4/4, Integration (PostgreSQL 18, ad alanlarına bölünerek) Web 338, Security 18, Concurrency 26, Jobs 77, Database 35, Model 482 + 411, kalan 123 — toplam 1510, kırmızı yok; `dotnet restore --locked-mode` çıkış 0. Kriter kanıtları yapım tablosundaki testlerle aynıdır; doğrulayıcı ayrıca `PageNumber.Parse` taşma yolunu, `Paging`'in `checked` çarpımını, `ListIndexingFilter`'ın yalnız işaret yazdığını, örnek kaydın GET ve POST'unun `ListReturn.Target`'ı ayrı ayrı çağırdığını ve `ReturnPath.ResolveOr`'un geri dönüş değerini de denetlediğini kodda okudu. Güvenlik temiz (sır yok, yeni uç ve bağımlılık yok, `returnUrl` tek yerel yol denetiminden, `LIKE` deseni parametreli ve kaçışlı).
+
+**Task satırları (`12 §7.5`):** `KP-3` grep'i `VAL-A006`, `VAL-A007`, `VAL-A008`'i getirir (`11 §7.1`: KP-3 → T210, T333, T503). Beklenen sonuçları gerçek vitrin listesinin uç yanıtıdır; T210 yalnız kalıbı ve test ana bilgisayarındaki örnek sayfaları kurar → üçü `BEKLEMEDE` kalır (T333/T503). `KD-32` satırı yok.
+
+| Satır | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` |
+|---|---|---|---|---|
+| VAL-A006 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (T333/T503) |
+| VAL-A007 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (T333/T503) |
+| VAL-A008 | DÜŞÜK | yok | BEKLEMEDE | BEKLEMEDE (T333/T503) |
+
+**K-notları:** K1 → D-134: örnek vitrin listesinin fiyat süzgeci alt ve üst sınırı iki ayrı `Variants.Any` ile uygular (varyantları 5 ve 100 olan ürün 50–60 aralığına girer), stok süzgeci sınırsız stoğu saymaz, liste projeksiyonsuz okur (`09 §20` m.3); kalıbı etkilemez, gerçek listeyi kuran T333 kopyalamaz. K2: `09 §10.5` m.3 eki yalnız bağlama kaynağını yazar, `07`/`05`/`02`/`04` davranışını değiştirmez — karar kaydı gerekmez; ⚠ 2 ve ⚠ 3 belgeyle uyumlu. K3: D-127'nin T210 payının kapanışı doğrulandı.
+
+**Yapım raporu karşılaştırması:** tam uyumlu; fark 1: yapım raporu `12` satırlarını anmıyor (doğrulayıcı üçünü BEKLEMEDE bıraktı); fark 2: yapım Integration'da yalnız Web ad alanını yerelde koştu, doğrulayıcı bütün ad alanlarını koştu. Öz denetim tablosu var, her maddesi kanıtlı.
 
 ## Altyapı Değişiklikleri
 
@@ -92,7 +106,7 @@
 - **Branch:** `task/T210-liste-kalibi`
 - **Commit:** son commit PR'ın başıdır
 - **PR:** #406
-- **CI:** *(yapım işçisi izlemez; yönetici izler)*
+- **CI:** dal run 42165996784 success (validator, 2026-11-06)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
 
 ## Dış Varsayımlar

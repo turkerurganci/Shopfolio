@@ -11,7 +11,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// A reference work (06 4.48): the same fields and rules as the service presentation (<see cref="Offering"/>); the difference is a title
 /// instead of a name. Deleted by its event; its content-product and gallery links are PortfolioItemProduct and PortfolioItemImage.
 /// </summary>
-internal sealed class PortfolioItem
+internal sealed class PortfolioItem : IVersionedRecord
 {
     public Guid Id { get; set; }
 

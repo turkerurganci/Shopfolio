@@ -74,6 +74,16 @@ public sealed class FormResultsTests
     }
 
     [Fact]
+    public void Conflict_IsThePageWithStatus409_AndNotTheRedisplayOfAValidationError()
+    {
+        PageResult result = Assert.IsType<PageResult>(FormResults.Conflict(new BarePage()));
+
+        Assert.Equal(409, result.StatusCode);
+        Assert.Equal(StatusCodes.Status409Conflict, FormResults.ConflictStatus);
+        Assert.NotEqual(FormResults.UnprocessableStatus, result.StatusCode);
+    }
+
+    [Fact]
     public async Task CsvFileResult_Answers200WithTheFileAsAnAttachmentThatIsNotStoredOrIndexed()
     {
         ActionContext context = Context();

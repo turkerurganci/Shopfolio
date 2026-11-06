@@ -13,7 +13,7 @@ namespace Shopfolio.Modules.Catalog;
 /// That used and reserved rights together do not exceed the total is a condition of the conditional updates, not a database constraint
 /// (06 4.13; K-1042 (2)).
 /// </summary>
-internal sealed class Coupon
+internal sealed class Coupon : IVersionedRecord
 {
     public Guid Id { get; set; }
 

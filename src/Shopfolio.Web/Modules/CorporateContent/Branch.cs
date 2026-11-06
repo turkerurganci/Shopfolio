@@ -12,7 +12,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// point. It has one image, whose link is the record's column and whose alternative text sits beside it. Deleted by its event; the links to
 /// the province and to the image are restrictive, so a replaced or deleted branch leaves its image unlinked and the disposal deletes it.
 /// </summary>
-internal sealed class Branch
+internal sealed class Branch : IVersionedRecord
 {
     public Guid Id { get; set; }
 

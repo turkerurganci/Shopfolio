@@ -12,7 +12,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// there at setup; the row is born at its first save and is at most one (the single-row index of the migration, 06 2.3.2). It is never
 /// deleted, only put back to draft (<see cref="CorporateContentRecordsGuard"/>).
 /// </summary>
-internal sealed class AboutPage
+internal sealed class AboutPage : IVersionedRecord
 {
     public Guid Id { get; set; }
 

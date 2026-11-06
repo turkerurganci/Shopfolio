@@ -13,7 +13,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// one (the single-row index of the migration, 06 2.3.2). It may be deleted, and a new row may then be opened. The visibility inside the
 /// date range is read from the status and the dates, never stored.
 /// </summary>
-internal sealed class Announcement
+internal sealed class Announcement : IVersionedRecord
 {
     public Guid Id { get; set; }
 

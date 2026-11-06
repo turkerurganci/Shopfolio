@@ -12,7 +12,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// are restrictive: a replaced image is left unlinked and the disposal deletes it. The table has one row, so it carries no foreign-key
 /// index (06 7.5.2).
 /// </summary>
-internal sealed class Branding
+internal sealed class Branding : IVersionedRecord
 {
     public Guid Id { get; set; }
 

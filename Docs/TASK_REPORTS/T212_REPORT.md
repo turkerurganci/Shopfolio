@@ -122,7 +122,7 @@ CI düzeltmesi: Lint `dotnet format --verify-no-changes` iki hata verdi (`Progra
 - **Commit:** `ec13690` (PR #407 head, doğrulama tur 1)
 - **PR:** #407
 - **CI:** dal run 42172712753 success (validator, 2026-11-06)
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
+- **Post-merge run'lar:** squash `4694519` (#407) — CI 42182118653 success, Publish 42182118563 success (T215 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

@@ -1,6 +1,6 @@
 # T211 — Model bağlama kalıbı
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım tamamlandı, doğrulama bekliyor) | **Tarih:** 2026-11-06
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS; merge ve post-merge yardımcıda) | **Tarih:** 2026-11-06
 
 > Taslağı yapım işçisi doldurdu; doğrulama chat'i finalize eder.
 
@@ -74,6 +74,17 @@
 | Contract | — | — | Bu task'ta yok |
 
 ## Doğrulama
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✓ PASS — tur 2 (2026-11-06, head `50622d5`) · tur 1 ✗ FAIL (head `8e99ab6`, aşağıda) |
+| Bulgu sayısı (tur 2) | 0 — tur 1'in B1'i (projenin `[PasswordField]` işareti; `[DataType(DataType.Password)]` ihlal örneğinde `BuiltInRule` kalır, `SignInInput` sessiz komşu) ve B2'si (desen listede ikinci, `Attribute` sonekli, adlı bağımsız değişkenli yazımı yakalar; 5 ihlal + 3 sessiz komşu) kapandı |
+| Düzeltme gerekli mi (tur 2) | Hayır |
+| Bloke-etmeyen not (K) sayısı (tur 2) | 3 — K1 → D-126 (`TrimmingBinderProvider` bağlama kaynağına bakmaz; `[FromHeader]`/`[FromBody] string` sessizce bağlanmaz; `CONTEXT.md` `PasswordFieldAttribute`'u anmıyor), K2 → D-127 (`07 §6.2.2`'nin 9 kodunun nitelik sınıfı yok; alanı kuran task'lar), K3 → D-128 (yerel Web koşusunda bir kez kimliği alınamayan tek kırmızı; iki tekrar ve CI yeşil). D-123 açık kalır (hedefi en geç F2 gate) |
+
+Doğrulayıcı kanıtları (tur 2): build `-warnaserror` 0/0, format temiz, Unit 1757/1757, betik testleri 4 dosya, Integration 1392/1392 (PostgreSQL 18 `shopfolio-t211-val-pg`, 127.0.0.1; Web 220 · Security/Concurrency/Jobs/Logging/SignedEndpoints 161 · Database/Disposal/FileSecrets/Files/Outages 118 · Model üç parça `--max-threads 3` 483 + 372 + 38), `restore --locked-mode` 0, koşu sonrası `git status` temiz, dal CI 42143462814 success (head `50622d5`), ana dal son üç run success. Kriter 1–8, KK1–KK8, `09 §25` ilgili satırlar ve `09 §3.4` m.1–7 ✓. Rapor: `helper-state/shopfolio/impl/T211/dogrulama-raporu-r2.md`.
+
+**Tur 1 kaydı:**
 
 | Alan | Sonuç |
 |---|---|

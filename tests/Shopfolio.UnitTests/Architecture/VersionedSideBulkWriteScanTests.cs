@@ -59,6 +59,20 @@ public sealed class VersionedSideBulkWriteScanTests
     }
 
     [Fact]
+    public void AllowedPlaces_ExceptTheCountersFile_NameNoSetAndNoTableOfTheTwoSides()
+    {
+        string root = RepositoryRoot.Find();
+
+        foreach (string place in VersionedSideBulkWriteScan.AllowedPlaces.Where(p => !p.EndsWith("/StockCounters.cs", StringComparison.Ordinal)))
+        {
+            // The same text under a path that is no allowed place: a closed place must not hide a write of a side's record.
+            IReadOnlyList<(string Rule, int Line)> findings = VersionedSideBulkWriteScan.Scan(OtherModule, File.ReadAllText(Path.Combine(root, place)));
+
+            Assert.True(findings.Count == 0, $"{place} writes a record of the order side or of the product form: {string.Join(", ", findings)}");
+        }
+    }
+
+    [Fact]
     public void Scan_OnTheViolationSample_OutsideTheSideModules_ReportsTheNamedSetsAndTheRawStatementsOnly()
     {
         string sample = ReadSample();

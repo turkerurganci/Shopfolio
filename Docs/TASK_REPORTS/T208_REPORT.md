@@ -60,7 +60,7 @@
 | `09 §25`: `CONTEXT.md` aynı PR'da | ✓ | `.claude/CONTEXT.md` Forms satırı |
 | `12` ilgili kontrol listesi (VAL-A610, VAL-A611, VAL-A744) | ✓ (kısmen sonraki task'lar) | A610/A611 → KK4/KK5 (örnek sayfada); ekranlı VAL kaydı ürün/sipariş ekranlarında (T348 ve sonrası). `12`'de T208 satırı yok |
 | Güvenlik taraması | ✓ | Sürüm/değer yalnız gövde alanı (adres, başlık yok); "Güncel hâli aç" bağlantısı `FormResults.IsLocalPath` ile yalnız site yolu (`RecordSaveControl_ToAnythingButASitePath_Throws`); alan değerleri `TagBuilder` ile kodlanır (`Original_EncodesTheShownText`); yeni dış bağımlılık yok |
-| Sık FAIL 1: bekçi/tarama istisnası geniş | ✓ | `VersionedSideBulkWriteScan` istisnası tam yolla dört dosya (`StockCounters`, `GuestCartDisposalPart`, `ImageDerivativeJobHandler`, `ImageDisposalParts`); `AllowedPlaces_AreFilesThatExist`, `Scan_InAnAllowedPlace_IsQuiet_AndAFileOfTheSameNameElsewhereIsNotAnAllowedPlace`. `FormVersionSourceScan`'in istisnası yok |
+| Sık FAIL 1: bekçi/tarama istisnası geniş | ✓ | `VersionedSideBulkWriteScan` istisnası tam yolla dört dosya (`StockCounters`, `GuestCartDisposalPart`, `ImageDerivativeJobHandler`, `ImageDisposalParts`); `AllowedPlaces_AreFilesThatExist`, `AllowedPlaces_ExceptTheCountersFile_NameNoSetAndNoTableOfTheTwoSides` (izinli dosyalar başka yol altında taranınca temiz; `ImageDisposalParts` yalnız `images` tablosunu yazar), `Scan_InAnAllowedPlace_IsQuiet_AndAFileOfTheSameNameElsewhereIsNotAnAllowedPlace`. `FormVersionSourceScan`'in istisnası yok |
 | Sık FAIL 2: tarama çağrı biçimini kaçırıyor | ✓ | Toplu yazım: `ExecuteUpdate/Delete(Async)`, `CurrentStateWrite.ApplyAsync`, değişkenden geçen çağrı (yan modülde), ham `UPDATE/DELETE FROM/INSERT INTO` (tırnaklı, şemalı, `\"` kaçışlı, çok satırlı, `CommandText`/değişken dahil); sürüm taraması: `asp-route-*`, sorgu çifti, yol parametresi, çok satırlı çağrı, `HeaderNames`, `EntityTagHeaderValue`, `Headers[...]` — her biçim ayrı örnek satırda (`Scan_Of...IsAFinding(string)` kuramları ve örnek dosyalar). Bu turda iki boşluk kapatıldı: kaçışlı tırnaklı tablo adı ve komut nesnesi metni |
 | Sık FAIL 3: aynı sayı/etiketi anan yerler | ✓ | Sürüm taşıyan 13 varlık: `TheRecordsOfTheEditFormsAndTheOrder_AreVersionedRecords` modeldeki `Version` özelliğiyle eşler; tarama kümeleri `ScansSetsAndTables_AreTheOnesTheTwoVersionGuardsCover` ile bekçilerin kümesine bağlı; `CONTEXT.md`, `09 §10.2`, §25, status, memory, T207 kaydı güncellendi |
 | Sık FAIL 4: hedefi bu task olan backlog kaydı | ✓ | `grep -n T208 Docs/DEFERRED_BACKLOG.md`: yalnız D-95; (c) kapandı (satırda işaretli, hedef sütunu "~~T208 (c)~~ kapandı; T348 (a, b)"), (a)(b) T348'e kalır |
@@ -70,7 +70,7 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ 1801 / 1801 | `dotnet test tests/Shopfolio.UnitTests` | önce 1628 (T207); +173 (VersionFields, ShownValue, ConflictControls, FormVersionSourceScan, VersionedSideBulkWriteScan, FormResults.Conflict) |
+| Unit | ✓ 1802 / 1802 | `dotnet test tests/Shopfolio.UnitTests` | önce 1628 (T207); +174 (VersionFields, ShownValue, ConflictControls, FormVersionSourceScan, VersionedSideBulkWriteScan, FormResults.Conflict) |
 | Integration | ✓ 1381 / 1381 | `dotnet test tests/Shopfolio.IntegrationTests --no-build --filter-namespace …` (parça parça: Web 209, Model 893, Concurrency+Security+Files+Jobs 154, öteki 125) | önce 1360; +21 (`VersionedFormPageTests`), gerçek PostgreSQL 18 |
 | Contract | — | — | Bu task'ta sözleşme testi yok |
 | Derleme / biçim | ✓ | `dotnet build -warnaserror --no-incremental`; `dotnet format --verify-no-changes` | 0 uyarı, 0 hata; biçim çıkışı 0 |
@@ -95,7 +95,7 @@
 
 - **Branch:** `task/T208-surum-gosterilen-deger`
 - **Commit:** son commit PR'ın başıdır (aşağıdaki PR numarasıyla birlikte)
-- **PR:** #NN (PR açılınca doldurulur)
+- **PR:** #404
 - **CI:** yapım işçisi izlemez; dal CI'ı yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
 

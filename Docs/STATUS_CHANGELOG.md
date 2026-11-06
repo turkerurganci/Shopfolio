@@ -15,6 +15,12 @@
 
 ---
 
+## 2026-11-06 — T219 yapım tamamlandı, doğrulama bekliyor
+
+**Son güncelleme:** 2026-11-06 — T219 (Arama motoru verileri kalıbı) yapım tamamlandı, doğrulama bekliyor (dal `task/T219-arama-motoru-verileri`, PR #413; kriter 1–8, KK1–KK8 ve `09 §25` öz denetim tablosu raporda; Unit 2773, Integration 1715; yeni tablo/göç yok; backlog'da hedefi T219 olan kayıt yok). T217 Commit hücresi `d2b5379` ve raporunun Post-merge satırı dolduruldu. Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
+---
+
 ## 2026-11-06 — T217 doğrulama tur 3 PASS
 
 **Son güncelleme:** 2026-11-06 — T217 (Yapılabilir işlemlerin sunucuda üretimi ve POST işleyicisinde yeniden denetim) doğrulama tur 3 ✓ PASS (head `e6cfe5a`, PR #412; tam yeniden doğrulama: kriter 1–8, KK1–KK8 ve `09 §25` ✓; B1-r2 kapandı — kural modülde, sayfa yalnız `Contracts` okuma/yazma yöntemini çağırır, `09 §8.3` 05/07/11 ile çelişmiyor; ret sonrası bütün tablolar değişmedi, Türkiye gece yarısı sınırı doğru (doğrulayıcı sondası); Unit 2640, Integration 1695; dal CI 42267704705 yeşil; bulgu 0; `12` `Durum` değişmedi (KP kaynak birimi yok); K1 → D-156 (iptal–cayma kuralının ve yazımının modülü; örnek modül başka modülün varlığını yazar)).

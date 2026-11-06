@@ -1,6 +1,6 @@
 # T219 — Arama motoru verileri kalıbı
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-06
+**Faz:** F2 | **Durum:** ✓ Doğrulama tur 1 PASS (merge bekliyor) | **Tarih:** 2026-11-06
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -77,10 +77,40 @@ Bütün maddeler bu turda kendi diff'imde yeniden denetlendi.
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | (doğrulama chat'i doldurur) |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-06, head `f4e4505`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-157) |
+
+### Doğrulama tur 1 — ✓ PASS
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` ana deponun `scripts/git-hooks`'u; main son üç run 42276704951, 42276704953, 42230581953 `success`; hafızada T219 satırı var.
+
+**Kriterler 1–8 ✓, KK1–KK8 ✓, `09 §25` ✓.** Kanıtlar (doğrulayıcı):
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 / KK1 | ✓ | `Slug.From` = `Simplify` → `[^a-z0-9]+` tek tire → boşsa kök (`02 §3.30.2`, K-1070); `FirstFree` 2'den; `ForSaveAsync` `fixedAt` doluysa tabloyu okumaz, adresi korur. `SlugTests` ("Çiçekli Şal" → `cicekli-sal`); eşzamanlılık: `TwoRecordsMadeWithTheSameNameAtTheSameTime_GetCelikKapiAndCelikKapi2` (engel ile iki işlem aynı tabanı okur, kaybeden `ix_products_slug` `23505` ile geri alınır, yeniden denemede `celik-kapi-2`; 3 deneme), başka dizindeki `23505` yeniden denenmez, kalıcı çakışma 3 denemeden sonra fırlar ve `ChangeTracker` boş kalır. Yeniden deneme `RunAsync`'in geri alma + `ChangeTracker.Clear()` yolunu kullanır; yeni aşırı yükleme `TransactionBody` taramasının kapsamında (ihlal örneği satır 36, 38) |
+| Kriter 2 / KK2 | ✓ | `Simplify`'ın uygulamadaki çağıranları yalnız `SearchTerm.cs`, `Slug.cs`, `Product.cs` (grep); stok kodu önerisi `Slug.From`'un çıktısından başlar; `TheCommonFolding_IsTheSameResult…` dört kullanımı aynı sonuçla sınar; katlama/adres deseni başka dosyada kırmızı (ihlal örneği) |
+| Kriter 3 / KK3 | ✓ | `SearchEngineData.Head` başlık ve açıklamayı sunucu HTML'ine yazar; `RecordPage_TheFirstHtml…` (TestServer + Kestrel) |
+| Kriter 4 / KK4 | ✓ | `Product` (fiyat `offers.price`, `TRY`, `InStock`/`OutOfStock` kayıttan), `Organization`, `BreadcrumbList`, `FAQPage`; `@context` `https://schema.org`; `RecordPage_ThePriceAndTheStockStatusFollowTheRecord…` (fiyat/stok değişince JSON-LD izler). XSS: `JavaScriptEncoder.Create` `<`, `>`, `&`, `'`, `+`'yı her zaman kaçırır; `AValueThatHoldsAScriptEnd_CannotLeave…`, `Head_AValueWithQuotesAndTags…` |
+| Kriter 5 / KK5 | ✓ | `og:image` = ana görsel ?? logo; `RecordPage_WithoutAMainImage_TheOpenGraphImageIsTheLogo` (TestServer + Kestrel), logosuz hâlde `og:image` yok |
+| Kriter 6 / KK6 | ✓ | değerler çağıranın verdiği kayıttan; `SearchEngineSourceScan` (SEO alan adı, `Slug` form alanı) + ihlal örnekleri; `PanelPages_HaveNoSearchEngineFieldAndNoAddressField` |
+| Kriter 7 / KK7 | ✓ | `sitemap.xml`/`robots.txt` adı yalnız `AddressRules.cs`'te (tarama); `SitemapAndRobotsTxt_HaveNoEndpointInThisTask` (uç listesi + 404) |
+| Kriter 8 / KK8 | ✓ | HTML'de `<meta name="robots" content="noindex">` (kapalı sayfada başka arama motoru etiketi yok); HTML olmayan kapalı yanıtta ara katman `OnStarting`'de başlığı **atar** (ekleme değil) → CSV dahil tek değer; `ClosedPages_…` (panel, `?minPrice=1`, arama; `page=2` açık), `ClosedAnswersThatAreNotHtml_…` (yönlendirme, CSV, panel 404). Kapalı ilk parçalar `07 §4.32.2` ve `02 §3.30.6` ile uyumlu (sepet, ödeme, sipariş takibi, `siparis` kökü — `{kök}/teyit` dahil —, hesap sayfaları, panel, arama, indirme); taslak/arşiv/süzgeç sayfanın işaretiyle |
+| `09 §6` modül sınırı | ✓ | `SearchDataPagePattern.cs` gerçek `Shopfolio.Pages.Storefront` ad alanında; `ModuleBoundaryTests` iki yeni test (sayfa kuralı temiz, yalnız `Catalog.Contracts`; kalıp hiçbir modül türüne bağlı değil) |
+| Mutlak adres | ✓ | `SiteAddress` = `https://` + `SiteOptions.Domain` (alan adı açılışta yalnız ana bilgisayar adı olarak doğrulanır); istek `Host`'u kullanılmaz (`09 §11.4` m.2 ile uyumlu) |
+| Tarama istisnaları dar | ✓ | robots istisnası tek dosya (`CsvFileResult.cs`, gerekçeli); katlama `TextNormalizer.cs`, adres deseni `Slug.cs`, protokol adları `AddressRules.cs` — her biri tek dosya; `TheRobotsException_IsNotAFolder…` |
+| Belge uyumu | ✓ | `09 §9.4` m.6 ve `§25` satırı `05 §3.7.2`/§3.7.4, `02 §3.30.5`/§3.30.6, `07 §4.32.2` ile karşılaştırıldı; üst belgeden ayrılan cümle yok (kategori açıklaması kategori adı + marka adı taşır; başlık `ad – marka`; açıklama P-28 sınırında sözcükten kesilir) — karar kaydı gerekmez. Yeniden deneme sabiti (3) `09 §3.5` tablosunda zaten var (K-1336). `ContentRules.ShortDescriptionMaxLength` → `ProductConstants.ShortTextMaxLength` (P-28, 200) `09 §3.5` m.1'in "aynı P satırına tek sabit" kuralına uyar; `src`'de 200'ün başka kopyası yok |
+| Güvenlik | ✓ | sır yok; yeni paket yok (csproj değişmedi); yetki değişmedi (kapalı kararı yalnız başlık/meta yazar); girdi: kayıt değerleri JSON ve HTML kodlamasıyla çıkar, `sameAs` yalnız http(s) |
+
+**Testler (doğrulayıcı, yerel):** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` temiz; Unit 2773/2773; betik testleri 4/4; Integration yerelde yalnız `ClosedAnswersThatAreNotHtml_…` (TestServer + Kestrel) 2/2 — her Integration koşusu göç paketini yeniden kurar (yerelde 2 dk 32 sn) ve 170 sn sınırına sığmadı (K1). Integration'ın tamamı dal CI'ında: run 42287139738 (head `f4e4505`), "4. Integration test" 1715/1715 (PostgreSQL 18), bütün işler yeşil. Koşu sonrası `git status` temiz, `dotnet restore --locked-mode` çıkış 0 (göç paketinin kurulumu `packages.lock.json`'a `win-x64` bölümü ekliyordu; geri alındı).
+
+**Task satırları (`12 §7.5`):** `KP-37` grep'i 38 satır getirir (VAL-A373…A407, VAL-D056…D058; `11 §7.1`: KP-37 → T219, T313, T363). Beklenen sonuçları gerçek ürün/kategori/içerik sayfasının, panel formunun, site haritası ve `robots.txt` ucunun uç yanıtıdır; T219 yalnız kalıbı ve test ana bilgisayarındaki örnek sayfaları kurar → hepsi `BEKLEMEDE` kalır (T210 emsali). `KD-48`, `MK-18` satırı yok. Matris betiği hata 0.
+
+**K1 → D-157:** Integration test derlemesi her koşuda göç paketini `dotnet ef migrations bundle` ile yeniden kurar; yerelde tek koşu bu yüzden 170 sn'yi aşar ve doğrulayıcı Integration'ı parçalayarak koşamaz.
+
+**Yapım raporu karşılaştırması:** uyumlu; öz denetim tablosu her kriter ve KK için kanıtlı. Tek fark: yapım raporu Integration'ı yerelde parçalı koşmuş (1715); doğrulayıcı ortamında koşu süresi yüzünden CI sonucuna dayanıldı.
 
 ## Altyapı Değişiklikleri
 

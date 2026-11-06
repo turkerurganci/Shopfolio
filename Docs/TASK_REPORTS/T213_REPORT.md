@@ -91,8 +91,8 @@ Bütün maddeler bu diff'te yeniden denetlendi (kriter listesi `11` satır 1179�
 ## Commit & PR
 
 - **Branch:** `task/T213-hata-kodu-kayit-defteri`
-- **Commit:** son commit PR başlığında (yapım işçisi dönüşünde bildirilir)
-- **PR:** bkz. PR başlığı (`T213: Hata kodu kayıt defteri`)
+- **Commit:** `08c2602` — T213: Rapor, durum, hafiza, backlog, 09 hizalamasi, D-90 taramasi ve kod sizma testleri
+- **PR:** #408
 - **CI:** yardımcı yürütür
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
 

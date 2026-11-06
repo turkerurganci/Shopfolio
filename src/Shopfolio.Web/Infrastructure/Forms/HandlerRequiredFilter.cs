@@ -29,6 +29,6 @@ internal sealed class HandlerRequiredFilter : IAsyncPageFilter
         return next();
     }
 
-    private static bool IsWritingMethod(string method) =>
+    internal static bool IsWritingMethod(string method) =>
         HttpMethods.IsPost(method) || HttpMethods.IsPut(method) || HttpMethods.IsPatch(method) || HttpMethods.IsDelete(method);
 }

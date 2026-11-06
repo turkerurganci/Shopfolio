@@ -1,0 +1,32 @@
+@page "/panel/model-baglama"
+@model Shopfolio.IntegrationTests.Pages.Panel.BindingFormModel
+<h1>Model baglama</h1>
+<ul>
+@foreach (var note in Model.Notes)
+{
+    <li class="note">@note.Name|@note.Reason|@note.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)</li>
+}
+@foreach (var item in Model.Returns)
+{
+    <li class="return">@item.OrderItemId|@item.Quantity</li>
+}
+@foreach (var contact in Model.Contacts)
+{
+    <li class="contact">[@contact.Email]|[@contact.Phone]|[@contact.Password]|[@contact.Remark]|@contact.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)</li>
+}
+</ul>
+<p class="search-result">@Model.SearchResult</p>
+@foreach (var entry in ViewData.ModelState)
+{
+    foreach (var error in entry.Value!.Errors)
+    {
+        <span class="error" data-field="@entry.Key">@error.ErrorMessage</span>
+    }
+}
+<form method="post" asp-page-handler="SaveNote">
+    <input name="Name" required maxlength="@Shopfolio.IntegrationTests.Pages.Panel.BindingLimits.NameMaxLength" />
+    <input type="hidden" name="Reason" value="Damaged" />
+    <input asp-for="Preview.Name" />
+    <input asp-for="PreviewRow.Quantity" />
+    <button type="submit">Kaydet</button>
+</form>

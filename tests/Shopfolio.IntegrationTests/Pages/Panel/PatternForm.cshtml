@@ -8,8 +8,8 @@
 }
 </ul>
 <form method="post" asp-page-handler="Add">
-    <input name="Input.Name" value="@Model.Input.Name" />
-    <span class="error">@Html.ValidationMessageFor(m => m.Input.Name)</span>
+    <input name="Input.Name" value="@ViewData.ModelState["Input.Name"]?.AttemptedValue" />
+    <span class="error">@Html.ValidationMessage("Input.Name")</span>
     <button type="submit">Ekle</button>
 </form>
 <form method="post" asp-page-handler="Export"><button type="submit">Disa aktar</button></form>

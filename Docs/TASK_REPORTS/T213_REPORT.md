@@ -1,6 +1,6 @@
 # T213 — Hata kodu kayıt defteri
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım tamamlandı, doğrulama bekliyor) | **Tarih:** 2026-11-06
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 ✓ PASS) | **Tarih:** 2026-11-06
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -76,10 +76,18 @@ Bütün maddeler bu diff'te yeniden denetlendi (kriter listesi `11` satır 1179�
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-06, head `a8f172b`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 — K1 → D-142 (yeni), K2 → D-143 (yeni), K3 → D-89'a not |
+
+**Validator kanıtı (tur 1, 2026-11-06, `a8f172b`; dal CI'ı run 42187650016 success):** kapılar: working tree temiz, `core.hooksPath` `scripts/git-hooks` (ana deponun mutlak yolu); ana dal son üç run (42182118563, 42182118653, 42169337584) success; hafızada T213 satırı var. Kriter 1–8 ve KK1–KK8 ✓ — kod okundu, testler doğrulama anında yeniden koşuldu: `dotnet build -warnaserror` 0/0, `dotnet format --verify-no-changes` çıkış 0, Unit 2247/2247 (T213 sınıfları — `ErrorCodeConsistencyTests`, `RejectionLineSourceScanTests`, `EnumLockTests` — 33/33 ayrıca), betik testleri 4/4, Integration 1537/1537 (PostgreSQL 18, ad alanlarına bölünmüş beş koşu: Web 365, Security+küçük gruplar 168, Jobs+Database 112, Model 496 + 396), sonrası `git status` temiz ve `dotnet restore --locked-mode` çıkış 0. Bağımsız sondalar: (1) `07 §6.2.1`–`6.2.9` tabloları belgeden ayrı bir `grep`/`sed` ile ayrıştırıldı — 132 tablo satırı = 9 başlık + 9 ayraç + 114 kod satırı, kalıba uymayan satır yok, yinelenen kod yok; 114 kod + `OutcomeUncertain` = enum'un 115 üyesi, kilit dosyası enum ile birebir; `ErrorStatuses`'in 114 satırı belgenin HTTP sütunuyla (`422 · 303`, `409 · 303` dahil, sıra korunarak) birebir — testin beklenen değeri sabit değil belgeden okunur. (2) `07 §6.1.5`'in betiği belgedeki hâliyle `bash`'te koşuldu: çıktı boş (temiz). (3) `src/`'de kod adlarının tırnaklı yazımı arandı: yalnız `LogEvents.RateLimitExceeded` (olay adı, `09 §18.2` m.3) — ikinci kayıt defteri yok. (4) Red satırı yazıcısı: `RejectionLog` tek; çağıranlar `ValidationPageFilter`, `ForgeryProtectionFilter`; katman `{Code}`'u kendi satırında yazar; tarama istisnası tam yol ve kural başına. Daldaki belge değişiklikleri (`09 §8.2` m.1/m.3, §15.2 m.5, §15.5 m.1, §18.1 m.4/m.8, §18.2 m.4) kodun yerini ve backlog düzeltmelerini yazar; `05`/`07`/`02`'den ayrılan davranış yok, karar kaydı gerekmez (500 yanıtında `no-store` `05 §6.5.4`'ün gönderilen değerleri taşıyan yanıt kuralının uygulamasıdır). Backlog: D-132, D-136, D-140 kapanışları kodda ve testte doğrulandı; D-47 (2) `ErrorCode` payı `EnumLockTests`'te; D-90 K1 (`SecondRing`, `RingMisuse.cs` 16–18), K2 (`LoggingFilesTests` farklı kimlikli `Error` satırı), K4 (`09 §18.1`) doğrulandı, K3'ün karar kaydı gerekçesi yerinde; D-89'un yeniden hedefi (`Infrastructure/Logging/`'e dokunan sonraki task / F2 gate) gerekçeli; D-141 yeni.
+
+**Task satırları (`12 §7.5`):** T213 KP eşlemesi taşımaz (`11 §7.1`: `07 §6.2`); satırlar kaynak bölümle grep'lendi (`07 §6.2`: 119 satır, `VAL-A434`…`VAL-A552`). Her biri tek bir kodun uçtaki davranışıdır (ön koşulu sepet, ödeme, panel, makine ucu gibi uç task'larının ekranı); kayıt defteri o davranışı üretmez — `Durum` değişmedi, hepsi `BEKLEMEDE` (uç task'ları). `07 §6.1`, `09 §8.2`, `§18.2` m.4 kaynaklı ayrı satır yok.
+
+**K-notları:** K1 → D-142: `Result`/`Result<T>` (`09 §8.2` m.2) yazılmadı ve "Yazımın kararı (T213)" notu dışında sahibi yoktu — backlog'a bağlandı (F3); kozmetik iki madde (`ErrorStatuses`'te `StatusCodes.Status303SeeOther` ile düz sayı karışımı, `ValidationPageFilter` yorumunda boşluk) aynı kayıtta. K2 → D-143: 429 hâlinin kod sızma testi yok (T215'in kriterlerinde yazılı değil) ve dört test içerik başlıklarını (`response.Content.Headers`) taramıyor. K3 → D-89'a not: `RejectionLineSourceScan` yalnız `*.cs`'i ve yalnız `Code`/`Fields` adlı özelliği arar (`{ErrorCode}` adlı özellik ya da `.cshtml` kaçar; bugün örneği yok).
+
+**Yapım raporu karşılaştırması:** verdict uyumlu; öz denetim tablosu var ve her maddesi kanıtlı. Fark 1: Known Limitations 1 (`Result`) ve 7 (429) backlog kimliksizdi — doğrulayıcı D-142 ve D-143'ü açtı; 7. maddenin "T215 kendi testinde yineler" dayanağı `11` T215'te yazılı değil. Fark 2: yapım Integration'ı 1538 diye yazar; doğrulayıcının ad alanlarına bölünmüş tam koşusu 1537 test saydı (hepsi geçti, atlanan yok) — sayım farkı, kırılma değil. Fark 3: yapım entegrasyonu etkilenen sınıflarla koştu; doğrulayıcı bütün ad alanlarını koştu.
 
 ## Altyapı Değişiklikleri
 
@@ -106,13 +114,13 @@ Bütün maddeler bu diff'te yeniden denetlendi (kriter listesi `11` satır 1179�
 
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
-| 1 | `Result` / `Result<T>` (`09 §8.2` m.2) yazılmadı | — | T213 kriterlerinde yok, tüketicisi yok; `09 §8.2` m.2 sonrası "Yazımın kararı (T213)" notu; reddi döndüren ilk modül arayüzü task'ı yazar |
+| 1 | `Result` / `Result<T>` (`09 §8.2` m.2) yazılmadı | D-142 (doğrulayıcı açtı) | T213 kriterlerinde yok, tüketicisi yok; `09 §8.2` m.2 sonrası "Yazımın kararı (T213)" notu; reddi döndüren ilk modül arayüzü task'ı yazar |
 | 2 | D-47 (2): `ErrorCode` ✅; `NoticeCode` | D-47 | T214 kriter 5 |
 | 3 | D-132 ✅; ek gözlem (reddin kullanıcı metni belgede yok) | D-141 (yeni) | Mesaj kataloğu alan dışı kodlara genişleyince |
 | 4 | D-136 ✅, D-140 ✅ | D-136, D-140 | Bu task'ta kapandı |
 | 5 | D-90 K1, K2, K4 ✅; K3 (üçüncü EF olayı) | D-90 | Karar kaydı gerekir; F2 gate |
 | 6 | D-89 K1 (şablon taramasının dizge farkındalığı / Roslyn), K2 (istisna şablon bağımsız değişkeni) | D-89 | K2 biçimleyicide çözülemez (Serilog bağımsız değişkeni biçimleyiciye varmadan dizgeye çevirir; denendi, geri alındı); K1 ile birlikte `Infrastructure/Logging/`'e dokunan sonraki task ya da F2 gate |
-| 7 | KK6.nın 429 hâli | — | 429 hız sınırı T215'tedir, uç henüz yok; T215 kendi testinde `Enum.GetNames<ErrorCode>()` taramasını yineler |
+| 7 | KK6.nın 429 hâli | D-143 (doğrulayıcı açtı) | 429 hız sınırı T215'tedir, uç henüz yok; T215 kendi testinde `Enum.GetNames<ErrorCode>()` taramasını yineler |
 
 ## Notlar
 

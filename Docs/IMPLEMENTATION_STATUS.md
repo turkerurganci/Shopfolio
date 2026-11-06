@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-06 — T213 (Hata kodu kayıt defteri) yapım tamamlandı, doğrulama bekliyor (dal `task/T213-hata-kodu-kayit-defteri`; kriter 1–8 ve KK1–KK8 öz denetimde ✓; Unit 2247, Integration 1538; `ErrorCode` 115 üye + `ErrorStatuses` + tek `RejectionLog`; D-47 (2) `ErrorCode` payı, D-132, D-136, D-140 ✅; D-90 K1/K2/K4 ✅; D-89 ve D-90 K3 gerekçeyle yeniden hedeflendi; D-141 açıldı). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-06 — T213 (Hata kodu kayıt defteri) doğrulama tur 1 ✓ PASS (head `a8f172b`, PR #408; kriter 1–8, KK1–KK8 ve `09 §25` ✓; Unit 2247, Integration 1537; dal CI 42187650016 yeşil; bulgu 0; `12` satırlarında `Durum` değişmedi — `07 §6.2`'nin 119 satırı uç task'larının; K-notları: K1 → D-142 (`Result`/`Result<T>`, F3), K2 → D-143 (429 ve içerik başlıklarının kod sızma taraması, T215), K3 → D-89'a not (red satırı taramasının darlığı)). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -112,7 +112,7 @@
 | T210 | Liste kalıbı | ✓ | ✓ PASS (tur 1) | `539d9cd` | #406 |
 | T211 | Model bağlama kalıbı | ✓ | ✓ PASS (tur 2; tur 1 ✗ FAIL) | `da20c4e` | #402 |
 | T212 | Hata gösterimi ve HTTP durumları | ✓ | ✓ PASS (tur 1) | `4694519` | #407 |
-| T213 | Hata kodu kayıt defteri | ⏳ Devam ediyor | — | — | — |
+| T213 | Hata kodu kayıt defteri | ✓ | ✓ PASS (tur 1) | — | #408 |
 | T214 | Kısa süreli bildirim kodları | ⬚ | — | — | — |
 | T215 | Hız sınırı, deneme limitleri ve gövde tavanı | ⬚ | — | — | — |
 | T216 | Tarih, sayı ve para biçimi: istek ve gösterim | ⬚ | — | — | — |

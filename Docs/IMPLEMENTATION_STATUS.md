@@ -118,7 +118,7 @@
 | T216 | Tarih, sayı ve para biçimi: istek ve gösterim | ✓ | ✓ PASS (tur 1) | `9ab9bec` | #411 |
 | T217 | Yapılabilir işlemlerin sunucuda üretimi ve POST işleyicisinde yeniden denetim | ✓ | ✓ PASS (tur 3; tur 1–2 ✗ FAIL) | `d2b5379` | #412 |
 | T218 | Dokuz modülün iskeleti ve Contracts | ✓ | ✓ PASS (tur 3) | `d82b943` | #380 |
-| T219 | Arama motoru verileri kalıbı | ✓ | ✓ PASS (tur 1) | — | #413 |
+| T219 | Arama motoru verileri kalıbı | ✓ | ✓ PASS (tur 1) | `4ce191c` | #413 |
 | T220 | İş kuyruğu çalıştırıcısı | ✓ | ✓ PASS (tur 1) | `6a1ca3a` | #393 |
 | T221 | Zamanlayıcı | ✓ | ✓ PASS (tur 3) | `f8feec5` | #394 |
 | T222 | Anahtarlar ve tek kullanımlık bağlantılar | ✓ | ✓ PASS (tur 1) | `11fcfb3` | #392 |
@@ -128,7 +128,7 @@
 | T226 | Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi | ✓ | ✓ PASS (tur 1) | b8f20ad | #383 |
 | T227 | Zaman ve para | ✓ | ✓ PASS (tur 1) | 15daf95 | #382 |
 | T228 | Eşzamanlılık denetimi | ✓ | ✓ PASS (tur 1) | `36b586f` | #391 |
-| T229 | Uygulama belleğinde önbellek | ⬚ | — | — | — |
+| T229 | Uygulama belleğinde önbellek | ⏳ | — | — | — |
 | T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ✓ | ✓ PASS (tur 2) | a2da89f | #386 |
 | T231 | Maskelemenin üç katmanının testleri | ✓ | ✓ PASS (tur 1) | dac48c8 | #387 |
 | T232 | Veri koruma halkası | ✓ | ✓ PASS (tur 2) | daace97 | #388 |

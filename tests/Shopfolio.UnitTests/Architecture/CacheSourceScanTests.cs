@@ -45,7 +45,8 @@ public sealed class CacheSourceScanTests
             Assert.Contains(place, scanned);
         }
 
-        Assert.Contains(scanned, f => f.EndsWith(".cshtml", StringComparison.Ordinal));
+        // No Razor page stands in src/ yet; the Razor sample below shows that a .cshtml file is scanned once one does.
+        Assert.True(CacheSourceScan.Applies("src/Shopfolio.Web/Pages/Storefront/Index.cshtml"));
         Assert.Empty(findings);
     }
 
@@ -91,10 +92,33 @@ public sealed class CacheSourceScanTests
         Assert.Empty(Evaluate(_application.Value, CompiledCacheRule()));
     }
 
+    // 09 20 item 9: "a static dictionary" - a static field whose declared type is a mutable collection can gather values at run time, so it is a
+    // cache with no invalidation rule. A new static lookup table is declared read-only (IReadOnlyDictionary, FrozenDictionary, FrozenSet). The fields
+    // that stand before this rule are named one by one, each a full name: the lookup tables are filled once from constants in their initializer and
+    // never written after, and LockSequence's table holds the lock state of a live context, not a value read from the database. A field that is not
+    // in this list goes red, and so does a listed one that is gone (the list does not outlive its field).
+    private static readonly string[] StaticCollectionsBeforeTheRule =
+    [
+        "Shopfolio.Infrastructure.InstallationSettings.ProductConstantNameGuard._names",
+        "Shopfolio.Infrastructure.LockSequence.States",
+        "Shopfolio.Infrastructure.Routing.AddressRules._closed",
+        "Shopfolio.Infrastructure.SearchEngine.SearchEngineClosure._closed",
+        "Shopfolio.Infrastructure.Security.AttemptLimits._rules",
+        "Shopfolio.Infrastructure.Validation.FieldMessageCatalog._patterns",
+        "Shopfolio.Modules.Administration.Contracts.AuditOperationText.ByName",
+        "Shopfolio.Modules.Ordering.OrderingRecordsGuard.ErasableTransitionFields",
+    ];
+
+    [Fact]
+    public void ApplicationTypes_HaveNoStaticFieldOfAMutableCollection_ButTheNamedLookupTables()
+    {
+        Assert.Equal(StaticCollectionsBeforeTheRule.Order(StringComparer.Ordinal), StaticMutableCollectionFields(typeof(Program).Assembly));
+    }
+
     [Fact]
     public void TheCacheTypes_AreDeclaredOnceEach_InTheInfrastructureNamespace()
     {
-        Type[] types = [.. typeof(Program).Assembly.GetTypes().Where(t => t.Name is "AppCache" or "CacheArea" or "CacheInvalidations")];
+        System.Type[] types = [.. typeof(Program).Assembly.GetTypes().Where(t => t.Name is "AppCache" or "CacheArea" or "CacheInvalidations")];
 
         Assert.Equal(["AppCache", "CacheArea", "CacheInvalidations"], types.Select(t => t.Name).Order(StringComparer.Ordinal));
         Assert.All(types, t => Assert.Equal("Shopfolio.Infrastructure", t.Namespace));
@@ -172,7 +196,7 @@ public sealed class CacheSourceScanTests
             IReadOnlyList<(string Rule, int Line)> findings = CacheSourceScan.Scan(file, sample);
 
             List<int> declarations = [.. findings.Where(f => f.Rule == CacheSourceScan.DefinitionText).Select(f => f.Line)];
-            Assert.Equal(new[] { 3, 4, 5 }.Where(line => line != sampleLine[name]), declarations);
+            Assert.Equal(SampleDeclarationLines.Where(line => line != sampleLine[name]), declarations);
             Assert.Contains(findings, f => f.Rule == CacheSourceScan.OtherCacheText);
             Assert.Contains(findings, f => f.Rule == CacheSourceScan.PageOutputText);
         }
@@ -266,6 +290,55 @@ public sealed class CacheSourceScanTests
         Assert.Contains(violations, v => v.Contains("ForbiddenResponseCachedPage", StringComparison.Ordinal));
         Assert.DoesNotContain(violations, v => v.Contains("AllowedPlainType", StringComparison.Ordinal));
     }
+
+    [Fact]
+    public void StaticFieldRule_OnTheViolationSample_ReportsEachMutableCollection_AndNotTheReadOnlyTableOrTheInstanceField()
+    {
+        List<string> fields = StaticMutableCollectionFields(System.Reflection.Assembly.LoadFrom(Path.Combine(AppContext.BaseDirectory, "CacheViolationSample.dll")));
+
+        Assert.Equal(
+            [
+                "Shopfolio.Modules.Catalog.ForbiddenStaticCaches.Values",
+                "Shopfolio.Modules.Catalog.ForbiddenStaticCaches._bag",
+                "Shopfolio.Modules.Catalog.ForbiddenStaticCaches._byKey",
+                "Shopfolio.Modules.Catalog.ForbiddenStaticCaches._hashtable",
+                "Shopfolio.Modules.Catalog.ForbiddenStaticCaches._list",
+                "Shopfolio.Modules.Catalog.ForbiddenStaticCaches._set",
+                "Shopfolio.Modules.Catalog.ForbiddenStaticCaches._weak",
+            ],
+            fields);
+    }
+
+    private static readonly System.Type[] MutableCollections =
+    [
+        typeof(Dictionary<,>), typeof(SortedDictionary<,>), typeof(SortedList<,>), typeof(System.Collections.Concurrent.ConcurrentDictionary<,>),
+        typeof(System.Collections.Hashtable), typeof(HashSet<>), typeof(SortedSet<>), typeof(List<>), typeof(System.Collections.Concurrent.ConcurrentBag<>),
+        typeof(System.Collections.Concurrent.ConcurrentQueue<>), typeof(System.Collections.Concurrent.ConcurrentStack<>),
+        typeof(System.Runtime.CompilerServices.ConditionalWeakTable<,>), typeof(IDictionary<,>), typeof(ICollection<>), typeof(IList<>), typeof(ISet<>),
+    ];
+
+    /// <summary>Every static field of the assembly whose declared type is a mutable collection, as <c>Type.Field</c>, in ordinal order.</summary>
+    private static List<string> StaticMutableCollectionFields(System.Reflection.Assembly assembly)
+    {
+        const System.Reflection.BindingFlags Statics = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public
+            | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.DeclaredOnly;
+        return
+        [
+            .. assembly.GetTypes()
+                .SelectMany(t => t.GetFields(Statics).Select(f => (Type: t, Field: f)))
+                .Where(x => !x.Field.IsLiteral && IsMutableCollection(x.Field.FieldType))
+                .Select(x => $"{x.Type.FullName}.{x.Field.Name}")
+                .Order(StringComparer.Ordinal),
+        ];
+    }
+
+    private static bool IsMutableCollection(System.Type type)
+    {
+        System.Type definition = type.IsGenericType ? type.GetGenericTypeDefinition() : type;
+        return MutableCollections.Contains(definition);
+    }
+
+    private static readonly int[] SampleDeclarationLines = [3, 4, 5];
 
     private const string ForbiddenCacheTypes =
         @"^(Microsoft\.Extensions\.Caching|Microsoft\.AspNetCore\.OutputCaching|Microsoft\.AspNetCore\.ResponseCaching|System\.Runtime\.Caching)\."

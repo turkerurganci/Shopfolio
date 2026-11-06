@@ -12,8 +12,8 @@ namespace Shopfolio.Infrastructure;
 /// three ways: commit after a result that is not refused, roll back after a refused result, roll back and throw again after an exception.
 /// There is no commit in a <c>finally</c> (09 8.1 item 5) and no retry (09 10.7 item 4), except the one overload that names unique indexes and runs the whole work again at most <see cref="UniqueConflictAttempts"/> times (09 9.4 item 3). The locks the work takes (<see cref="AdvisoryLocks"/>,
 /// the order row lock, the counters' conditional updates) are transaction scoped and fall with the transaction. It is the one place that drops a
-/// cache area (09 10.4 item 3): the areas the work named in <see cref="CacheInvalidations"/> are invalidated after the commit, never before it and
-/// never after a rollback.
+/// cache area (09 10.4 item 3): the areas the work named in <see cref="CacheInvalidations"/> are invalidated after the commit, never before it; a
+/// refusal or an exception in the work forgets them, and a commit that threw (its outcome unknown) drops them, which is harmless.
 /// </summary>
 internal sealed class TransactionRunner : ITransactionRunner
 {
@@ -91,12 +91,14 @@ internal sealed class TransactionRunner : ITransactionRunner
         _jobs.Clear();
         _invalidations.TakePendingAreas();
         bool committed = false;
+        bool commitSent = false;
         try
         {
             T result = await work(ct);
             if (!result.IsRejected)
             {
                 await _db.SaveChangesAsync(ct);
+                commitSent = true;
                 await transaction.CommitAsync(ct);
                 committed = true;
 
@@ -121,8 +123,18 @@ internal sealed class TransactionRunner : ITransactionRunner
         {
             _jobs.Clear();
 
-            // A refusal or an exception forgets the areas: the old row stands, so the cached value is still right.
-            _invalidations.TakePendingAreas();
+            // A refusal or an exception forgets the areas: the old row stands, so the cached value is still right. A commit that threw has an
+            // unknown outcome (the server may have committed before the connection fell), so its areas are dropped: a drop only makes the next
+            // read load again, while a kept value could stay stale until a restart, the cache having no expiry (09 10.4 items 2, 3).
+            IReadOnlyList<CacheArea> forgotten = _invalidations.TakePendingAreas();
+            if (commitSent && !committed)
+            {
+                foreach (CacheArea area in forgotten)
+                {
+                    _cache.Invalidate(area);
+                }
+            }
+
             // A refusal or an exception: the statements already sent are undone with the transaction and the tracked changes are dropped, so
             // a later save of the same scope cannot write them (05 3.4.2: a transition happens wholly or not at all). The exception goes on
             // up unchanged: there is no catch here (09 8.1 item 6).

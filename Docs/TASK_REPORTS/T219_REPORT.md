@@ -125,7 +125,7 @@ Bütün maddeler bu turda kendi diff'imde yeniden denetlendi.
 - **Commit:** bkz. PR (son commit dal başı)
 - **PR:** #413
 - **CI:** yapım chat'i beklemedi (yönetici düzeni); yönetici izler
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
+- **Post-merge run'lar:** main merge commit `4ce191c` (PR #413); main run'ları CI 42294762382 ve Publish 42294762521 yeşil (T229 yapımında status Commit hücresi ve bu satır dolduruldu).
 
 ## Dış Varsayımlar
 

@@ -69,17 +69,14 @@ namespace Shopfolio.Modules.Settings
         /// <summary>The shipping fee section's save in the shape of 09 10.3 item 2 (the real one is CompanySettingsWriter's): the area is named, not dropped.</summary>
         public async Task<bool> SaveShippingFeeAsync(decimal shippingFee, int shippingFeeVersion, CancellationToken ct)
         {
+            // The runner drops the area after the commit (09 10.4 item 3); a raw statement names it the same way, there is no SaveChanges hook. It is
+            // named before the statement: outside a transaction the call is refused before anything is written, and a statement that writes nothing
+            // only costs one harmless drop (a refused result forgets it).
+            invalidations.Add(CacheArea.Settings);
             int written = await db.CompanySettings
                 .Where(s => s.ShippingFeeVersion == shippingFeeVersion)
                 .ExecuteUpdateAsync(s => s.SetProperty(x => x.ShippingFee, shippingFee).SetProperty(x => x.ShippingFeeVersion, x => x.ShippingFeeVersion + 1), ct);
-            if (written == 0)
-            {
-                return false;
-            }
-
-            // The runner drops the area after the commit (09 10.4 item 3); a raw statement names it the same way, there is no SaveChanges hook.
-            invalidations.Add(CacheArea.Settings);
-            return true;
+            return written > 0;
         }
     }
 }

@@ -9,12 +9,44 @@ namespace Shopfolio.Modules.Catalog
     {
         private readonly Microsoft.Extensions.Caching.Memory.IMemoryCache? _cache = null;
 
-        public object? Read(object key) => _cache?.Get(key);
+        public bool Read(object key) => _cache is not null && _cache.TryGetValue(key, out _);
     }
 
     internal sealed class ForbiddenAliasedCacheUser
     {
         public MC.IDistributedCache? Cache { get; set; }
+    }
+
+    // 09 20 item 9: a static field of a mutable collection can gather values at run time - a cache with no invalidation rule. The read-only table,
+    // the constant and the instance field are allowed.
+    internal static class ForbiddenStaticCaches
+    {
+        public static System.Collections.Generic.IDictionary<string, object> Values = new System.Collections.Generic.Dictionary<string, object>();
+
+        private static readonly System.Collections.Generic.Dictionary<string, object> _byKey = new();
+
+        private static readonly System.Collections.Concurrent.ConcurrentBag<object> _bag = new();
+
+        private static readonly System.Collections.Hashtable _hashtable = new();
+
+        private static readonly System.Collections.Generic.List<object> _list = new();
+
+        private static readonly System.Collections.Generic.HashSet<string> _set = new();
+
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<object, object> _weak = new();
+
+        private static readonly System.Collections.Generic.IReadOnlyDictionary<string, int> _table = new System.Collections.Generic.Dictionary<string, int> { ["a"] = 1 };
+
+        private const string Constant = "a";
+
+        public static int Count => _byKey.Count + _bag.Count + _hashtable.Count + _list.Count + _set.Count + _table.Count + Constant.Length + (_weak.TryGetValue(Constant, out _) ? 1 : 0);
+    }
+
+    internal sealed class AllowedInstanceCollection
+    {
+        private readonly System.Collections.Generic.Dictionary<string, object> _values = new();
+
+        public int Count => _values.Count;
     }
 }
 

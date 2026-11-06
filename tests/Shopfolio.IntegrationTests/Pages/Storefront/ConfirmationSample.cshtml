@@ -1,0 +1,8 @@
+@page "/odeme/ornek-onay"
+@using Shopfolio.Infrastructure.Forms
+@model Shopfolio.IntegrationTests.Pages.ConfirmationSampleModel
+<h1>Odeme adimi</h1>
+<form method="post" asp-page-handler="Pay">
+    @ConfirmationKeys.Hidden(Model.Key)
+    <button type="submit">Ode</button>
+</form>

@@ -15,7 +15,6 @@ namespace Shopfolio.IntegrationTests.Pages.Panel;
 /// record has into a hidden field; the POST is the one <see cref="RecordSave"/> sequence inside the transaction runner. A refused save is shown again
 /// with 409, the values that were sent, the record's current version in the form and "Yine de kaydet" as the one button.
 /// </summary>
-[IgnoreAntiforgeryToken]
 public sealed class VersionedProductModel : PageModel
 {
     public VersionedProductInput Input { get; set; } = new();

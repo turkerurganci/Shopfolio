@@ -1,6 +1,7 @@
 @page "/panel/ornek-form"
 @model Shopfolio.IntegrationTests.Pages.Panel.PatternFormModel
 <h1>Ornek form</h1>
+<div class="summary" asp-validation-summary="ModelOnly"></div>
 <ul>
 @foreach (string record in Model.Records)
 {

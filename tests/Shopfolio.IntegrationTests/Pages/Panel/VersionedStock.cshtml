@@ -4,7 +4,7 @@
 <h1>Surumlu stok</h1>
 <p class="step">@Model.Step</p>
 <p class="current">@(Model.CurrentStock?.ToString() ?? "sinirsiz")</p>
-<form method="post" action="/panel/surumlu-stok/@Model.RecordId?handler=Save">
+<form method="post" asp-antiforgery="true" action="/panel/surumlu-stok/@Model.RecordId?handler=Save">
     @VersionFields.Original("StockQuantity", Model.Input.OriginalStockQuantity, "Input")
     <input name="Input.StockQuantity" value="@Model.Input.StockQuantity" />
     @if (Model.Step == "confirm")

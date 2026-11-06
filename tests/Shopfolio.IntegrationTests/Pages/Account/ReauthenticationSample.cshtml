@@ -1,0 +1,9 @@
+@page "/hesap/ornek-yeniden-dogrulama"
+@using Shopfolio.Infrastructure.Security
+@model Shopfolio.IntegrationTests.Pages.ReauthenticationSampleModel
+<h1>Yeniden dogrulama</h1>
+<form method="post" asp-page-handler="Apply">
+    @ReauthenticationValues.Hidden(ViewData.ModelState["Input.ReauthenticationToken"]?.AttemptedValue ?? Model.Value, "Input")
+    <input name="Input.Note" value="@ViewData.ModelState["Input.Note"]?.AttemptedValue" />
+    <button type="submit">Uygula</button>
+</form>

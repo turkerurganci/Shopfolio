@@ -73,7 +73,7 @@ public sealed partial class VersionedFormPageTests
 
     private HttpClient ClientOf(WebApplicationFactory<Program> factory)
     {
-        HttpClient client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, HandleCookies = false, BaseAddress = new Uri("https://localhost") });
+        HttpClient client = ForgeryTokenHandler.CreateClient(factory);
         client.DefaultRequestHeaders.Add("Cookie", $"{CookieNames.AdminSession}={_adminKey}");
         return client;
     }

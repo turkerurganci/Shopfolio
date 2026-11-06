@@ -18,6 +18,8 @@ internal static class CookieSetup
             CookieDefaults.Apply(options.Cookie);
             options.Cookie.Name = CookieNames.Antiforgery;
             options.HeaderName = AntiforgeryHeaderName;
+            // The framework would add X-Frame-Options to every response that carries a token; framing is the content security policy's alone (09 15.2 item 4).
+            options.SuppressXFrameOptionsHeader = true;
         });
         services.AddSingleton<BrowserCookies>();
         services.AddSingleton<CookiePolicyGate>();

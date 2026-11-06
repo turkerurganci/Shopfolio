@@ -34,7 +34,7 @@ builder.Services.AddAuditLineWriter();
 
 // The address rules (07 2.1): every page template is checked against the closed list of first path segments when the routes are built.
 // The input validation pattern (09 3.4): the rule attributes with their codes, the trimming binder, the one page filter and the catalog messages.
-builder.Services.AddRazorPages().AddAddressRules().AddSessionAccess().AddFieldValidation();
+builder.Services.AddRazorPages().AddAddressRules().AddSessionAccess().AddFieldValidation().AddFormSecurity();
 
 // The two identity schemes, their policies and the closed doors (07 2.3.1; 09 15.1 item 2): the panel and the account folders are closed by folder path.
 builder.Services.AddSessionAuthentication();
@@ -111,9 +111,12 @@ builder.Services.AddDisposal(builder.Configuration);
 
 WebApplication app = builder.Build();
 
-// The storefront writes no cookie until the cookie policy is published (05 6.7.10): outside every middleware that can write a cookie. The forwarded
-// headers and the security headers (09 15.1 item 8, 15.2 item 3) come before it when their tasks add them. The catch layer (09 8.1 item 2b, T212) is
-// registered before it too, so that a failing publication question is an error page and a record and not a bare 500 (D-113).
+// The security headers (09 15.2 item 3) are the first middleware: every response carries them, the error response and the machine endpoint included.
+// The forwarded headers (09 15.1 item 8) come before them when their task adds them (D-112).
+app.UseSecurityHeaders();
+
+// The storefront writes no cookie until the cookie policy is published (05 6.7.10): outside every middleware that can write a cookie. The catch layer
+// (09 8.1 item 2b, T212) is registered before it too, so that a failing publication question is an error page and a record and not a bare 500 (D-113).
 app.UseCookieHeaderFilter();
 
 app.UseRouting();

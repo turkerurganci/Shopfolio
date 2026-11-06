@@ -16,7 +16,6 @@ namespace Shopfolio.IntegrationTests.Pages.Panel;
 /// compares it after the row lock and the load; the customer's item cancellation carries no version, only the open quantity the screen showed. A refusal
 /// of either shows the order as it is, with 409 and a message only - there is no way to overwrite.
 /// </summary>
-[IgnoreAntiforgeryToken]
 public sealed class VersionedOrderModel : PageModel
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 5, 9, 0, 0, TimeSpan.Zero);

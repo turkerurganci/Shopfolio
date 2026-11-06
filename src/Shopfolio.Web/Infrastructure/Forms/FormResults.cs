@@ -20,6 +20,9 @@ internal static class FormResults
     /// <summary>The status of a write refused because the record, the order or the shown value changed (07 2.4.5, 2.4.6, 2.7.1).</summary>
     public const int ConflictStatus = StatusCodes.Status409Conflict;
 
+    /// <summary>The status of a POST whose anti-forgery value is missing or does not match (07 2.5.4, 2.7.1, 6.2.1): nothing was written.</summary>
+    public const int ForgeryRefusedStatus = StatusCodes.Status400BadRequest;
+
     /// <summary>
     /// 303 to a path of this site (07 2.2.2). The path is the site's own - it starts with one slash and is not a scheme-relative or backslash form -
     /// so a handler cannot send the browser to another site by a value that came from the request.
@@ -41,6 +44,18 @@ internal static class FormResults
         ArgumentNullException.ThrowIfNull(page);
         PageResult result = page.Page();
         result.StatusCode = UnprocessableStatus;
+        return result;
+    }
+
+    /// <summary>
+    /// The page again after a POST whose anti-forgery value failed, status 400 (07 2.5.4): the sent values and a message at the level of the action;
+    /// the form tag writes a new value. The handler did not run (<see cref="Security.ForgeryProtectionFilter"/>).
+    /// </summary>
+    public static IActionResult ForgeryRefused(PageModel page)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+        PageResult result = page.Page();
+        result.StatusCode = ForgeryRefusedStatus;
         return result;
     }
 

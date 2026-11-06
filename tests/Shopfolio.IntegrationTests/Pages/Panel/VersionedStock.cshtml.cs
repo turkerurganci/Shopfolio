@@ -16,7 +16,6 @@ namespace Shopfolio.IntegrationTests.Pages.Panel;
 /// value the screen showed in <c>OriginalStockQuantity</c>. Lowering the stock needs a confirmation step; the comparison is made on the first send
 /// too (before the confirmation window), and the last step carries the first form's value, never the page's current one (K-1212 (1)).
 /// </summary>
-[IgnoreAntiforgeryToken]
 public sealed class VersionedStockModel : PageModel
 {
     public VersionedStockInput Input { get; set; } = new();

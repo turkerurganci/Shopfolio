@@ -58,7 +58,7 @@ public sealed class SessionAccessTests
     }
 
     private static HttpClient ClientOf(WebApplicationFactory<Program> factory) =>
-        factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, HandleCookies = false, BaseAddress = new Uri("https://localhost") });
+        ForgeryTokenHandler.CreateClient(factory);
 
     private static async Task<HttpResponseMessage> SendAsync(HttpClient client, HttpMethod method, string path, string? cookie = null, HttpContent? content = null)
     {

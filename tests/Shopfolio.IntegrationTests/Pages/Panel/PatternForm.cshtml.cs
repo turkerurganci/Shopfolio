@@ -12,9 +12,8 @@ namespace Shopfolio.IntegrationTests.Pages.Panel;
 /// The test-only sample page of the page-form pattern (T206; 07 2.2): one screen is one page, its GET shows the screen and changes nothing, and every
 /// POST is a named handler that comes with the <c>handler</c> query parameter. <c>Add</c> writes: a valid form ends in 303 to the GET, an invalid one
 /// is shown again with the sent values and the status 422. <c>Refuse</c> writes nothing and names its reason by a redirect (303). <c>Export</c> is the
-/// one writing POST that does not redirect: 200 and a CSV. The page lives in the test host only; the anti-forgery check is the task of T209.
+/// one writing POST that does not redirect: 200 and a CSV. The page lives in the test host only; the test clients carry the forgery token (T209; ForgeryTokenHandler).
 /// </summary>
-[IgnoreAntiforgeryToken]
 public sealed class PatternFormModel : PageModel
 {
     private readonly PatternRecordStore _store;

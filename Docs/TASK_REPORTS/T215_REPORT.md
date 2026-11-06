@@ -76,10 +76,14 @@ Sık FAIL nedenleri taraması: (1) istisna darlığı: `RequestOriginSourceScanT
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-06, head `ea3cdc7`); Düzeltme 1 yapıldı, tur 2 bekliyor |
-| Bulgu sayısı | 1 (B1 ORTA, S1) |
-| Düzeltme gerekli mi | Evet — B1 |
-| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-144, K2 → D-145) |
+| Doğrulama durumu | ✓ PASS — tur 2 (2026-11-06, head `1ba392d`); tur 1 ✗ FAIL (head `ea3cdc7`) |
+| Bulgu sayısı | Tur 2: 0 (tur 1 B1 kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 2 (K1 → D-147, K2 → D-148); tur 1: 2 (K1 → D-144, K2 → D-145) |
+
+### Doğrulama tur 2 — ✓ PASS
+
+Kapsam tam: kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması baştan denetlendi. **B1 kapandı:** doğrulayıcının kendi geçici gerçek Kestrel denemesinde (`UseKestrel()`, geri alındı) 1 baytlık chunk'larla 65536 bayt → 200, 65537 → 413 yalın sayfa; bildirim ucunda chunked 1000 bayt → 400 (imza), 65537 ve 204800 → gövdesiz 413; yapımın `OnARealServer_…` testleri de geçti. Düzeltmenin yan etkisi yok: Content-Length'li gövdede sunucu tavanı sınıf tavanı kalır; chunked gövdede okunan bellek sınıf tavanıyla sınırlı; bildirim ucu tamponlanmış gövdeyi okur; düz HTTP'de h2c sunulmadığı için (`HTTP_1_1_REQUIRED`) uzunluksuz HTTP/2 gövdesi ara katmanı atlayamaz; IPv4-eşlemeli vekil adresi (`::ffff:172.30.1.x`) güvenilir, eşlemeli dış adres güvenilmez (geçici birim denemesi). T214 birleştirmesi `NoticeCode`/`NoticeParameter` düzenini bozmadı (`FormResults.SeeOther(string, NoticeCode)` ve `VersionedFormPageTests` T214 hâlinde; `NoticeParameterTests` geçti). Unit 2438, Integration 1649 (gerçek PostgreSQL 18, parçalı), betik testleri 4/4, kilitli restore 0; dal CI 42211263821 yeşil. K1 → D-147: chunked okumada istemcinin bağlantıyı sıfırlaması ve bozuk chunk çerçevesi 500 + `UnexpectedError` (eşleşmeyen yolda da) — ters vekil üzerinden etkisi düşük. K2 → D-148: büyük sınıfın chunked gövdesi kimlik doğrulamasından önce belleğe alınır (bugün o sınıfta uç yok; T312, T525). `12` satırlarının `Durum`'u değişmedi (KP-72 satırları limit task'larının). Ayrıntı: doğrulama raporu (yardımcı durum dizini, `dogrulama-raporu-r2.md`).
 
 ### Doğrulama tur 1 — ✗ FAIL
 

@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using Shopfolio.Infrastructure.Logging;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages.Panel;
@@ -53,6 +54,9 @@ public sealed class FieldValidationTests
                 }
             }));
             Client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, HandleCookies = false, BaseAddress = new Uri("https://localhost") });
+            // The sample page is a panel page (T207: the panel is closed by default), so the client carries the cookie of a panel session.
+            string adminKey = TestSessions.AdminAsync(dsn).GetAwaiter().GetResult().Key;
+            Client.DefaultRequestHeaders.Add("Cookie", $"{CookieNames.AdminSession}={adminKey}");
         }
 
         public BindingRecordStore Store { get; }

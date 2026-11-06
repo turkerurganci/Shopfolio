@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure.Binding;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Pages.Panel;
 
@@ -26,9 +27,12 @@ public sealed class ModelBindingTests
 
     private readonly CollectionDatabaseFixture _database;
 
+    private readonly string _adminKey;
+
     public ModelBindingTests(CollectionDatabaseFixture database)
     {
         _database = database;
+        _adminKey = TestSessions.AdminAsync(database.Dsn).GetAwaiter().GetResult().Key;
     }
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
@@ -45,8 +49,13 @@ public sealed class ModelBindingTests
         }));
     }
 
-    private static HttpClient ClientOf(WebApplicationFactory<Program> factory) =>
-        factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, HandleCookies = false, BaseAddress = new Uri("https://localhost") });
+    // The sample page is a panel page (T207: the panel is closed by default), so the client carries the cookie of a panel session.
+    private HttpClient ClientOf(WebApplicationFactory<Program> factory)
+    {
+        HttpClient client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, HandleCookies = false, BaseAddress = new Uri("https://localhost") });
+        client.DefaultRequestHeaders.Add("Cookie", $"{CookieNames.AdminSession}={_adminKey}");
+        return client;
+    }
 
     private static FormUrlEncodedContent Form(params (string Name, string Value)[] fields) =>
         new(fields.Select(f => new KeyValuePair<string, string>(f.Name, f.Value)));

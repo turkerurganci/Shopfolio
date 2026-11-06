@@ -68,8 +68,8 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ 1644 geçti | `dotnet test --project tests/Shopfolio.UnitTests` | önce 1515; +129 (ModelBindingRuleTests, ItemRowsTests, FieldRuleTests, FieldMessageCatalogTests, FieldRuleSourceScanTests) |
-| Integration | ✓ 1357 geçti (Web ad alanı 185 + öteki ad alanları 1172) | `dotnet test --project tests/Shopfolio.IntegrationTests --filter-namespace Shopfolio.IntegrationTests.Web` ve `--filter-not-namespace` aynı (PostgreSQL 18, 127.0.0.1) | Web: önce 153; +ModelBindingTests 16, FieldValidationTests 16; `PageFormPatternTests` 27 (hepsi geçti) |
+| Unit | ✓ 1757 geçti | `dotnet test --project tests/Shopfolio.UnitTests` | main (T207 sonrası) 1628; +129 (ModelBindingRuleTests, ItemRowsTests, FieldRuleTests, FieldMessageCatalogTests, FieldRuleSourceScanTests) |
+| Integration | ✓ 1392 geçti (Web ad alanı 220 + öteki ad alanları 1172) | `dotnet test --project tests/Shopfolio.IntegrationTests --filter-namespace Shopfolio.IntegrationTests.Web` ve `--filter-not-namespace` aynı (PostgreSQL 18, 127.0.0.1) | Web: main (T207 sonrası) 188;  +ModelBindingTests 16, FieldValidationTests 16; `PageFormPatternTests` 27 (hepsi geçti) |
 | Derleme/biçim | ✓ | `dotnet build -warnaserror`; `dotnet format --verify-no-changes` | 0 uyarı, 0 hata, biçim temiz |
 | Contract | — | — | Bu task'ta yok |
 
@@ -93,6 +93,7 @@
 
 - **Branch:** `task/T211-model-baglama-kalibi`
 - **Commit:** son commit PR gövdesinde ve dönüşte
+- **main ile birleştirme (T207 #403 sonrası):** `origin/main` dala merge edildi. Çakışmalar: `Program.cs` (`AddSessionAccess` + `AddFieldValidation` ve `AddSessionAuthentication` birlikte), `DEFERRED_BACKLOG.md` (D-118 ✅ ve D-120–D-122 main'den, D-119 ✅ daldan; aktif kalem 65), `IMPLEMENTATION_STATUS.md`, `STATUS_CHANGELOG.md`, `MEMORY.md`, `T206_REPORT.md`. T207 panel klasörünü varsayılan kapattığı için `ModelBindingTests` ve `FieldValidationTests` yönetici oturumu çerezi (`TestSessions.AdminAsync`) taşır; erişim kuralı gevşetilmedi.
 - **PR:** #402
 - **CI:** yapım işçisi izlemez (yönetici yardımcı düzeni)
 - **Post-merge run'lar:** *(validator doldurur)*

@@ -108,7 +108,7 @@ Her madde `git diff origin/main...HEAD` üzerinde yeniden denetlendi (test adlar
 - **Commit:** `686f019` — doğrulanan PR başı (yapım taslağı `762ce86` yazıyordu; sonra PR numarası commit'i geldi)
 - **PR:** #401
 - **CI:** dal CI 42123791130 (head `686f019`) success — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate
-- **Post-merge run'lar:** squash `494a34c` (#401) — CI 42128519929 success, Publish 42128519903 success (T211 dalında dolduruldu, skill adım 15)
+- **Post-merge run'lar:** squash `494a34c` (#401) — CI 42128519929 success, Publish 42128519903 success (T207 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

@@ -49,6 +49,10 @@ public sealed class FormResultsTests
     [InlineData("https://example.com/sepet")]
     [InlineData("/sepet\r\nSet-Cookie: x=1")]
     [InlineData("/sepet\nX: y")]
+    [InlineData("/\t/evil.example")]
+    [InlineData("/\u0001x")]
+    [InlineData("/\u007Fx")]
+    [InlineData("/a\tb")]
     public void SeeOther_OnAnythingButASitePath_Throws(string target)
     {
         Assert.Throws<ArgumentException>(() => FormResults.SeeOther(target));

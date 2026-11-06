@@ -151,6 +151,9 @@ public abstract class StorefrontListSample : PageModel, IListPage
 
     public bool ClosedToSearchEngines { get; set; }
 
+    /// <summary>The head of the page through the search engine data pattern (T219 KK8): the list pattern only set the mark above; the tag is written here.</summary>
+    internal Microsoft.AspNetCore.Html.IHtmlContent Head => SampleSearchHead.Of(HttpContext, "Ürünler", ClosedToSearchEngines);
+
     internal PagedList<ProductRow>? Result { get; private set; }
 
     public bool NoResultList => Result is null;
@@ -179,6 +182,9 @@ public sealed class PanelProductListSampleModel : PageModel
     internal PagedList<ProductRow> Result { get; private set; } = new([], 1, PageSizes.Panel, 0, 1);
 
     public string ListAddress { get; private set; } = SampleProductLists.PanelListRoot;
+
+    /// <summary>A panel page's head: the panel is closed by its address (T219 KK8; 05 3.7.4).</summary>
+    internal Microsoft.AspNetCore.Html.IHtmlContent Head => SampleSearchHead.Of(HttpContext, "Ürün listesi", closed: false);
 
     public async Task<IActionResult> OnGetAsync(AdminProductQuery query, CancellationToken ct)
     {

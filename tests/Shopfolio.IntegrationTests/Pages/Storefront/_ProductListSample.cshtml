@@ -1,4 +1,5 @@
 @model Shopfolio.IntegrationTests.Pages.StorefrontListSample
+@Model.Head
 <p class="closed">@(Model.ClosedToSearchEngines ? "closed" : "open")</p>
 <form method="get" class="search-field"><input name="search" /></form>
 @foreach (var entry in ViewData.ModelState)

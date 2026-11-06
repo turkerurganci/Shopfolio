@@ -273,6 +273,7 @@ public sealed partial class OperationPatternTests
         {
             s.AddSingleton(clock);
             s.AddSingleton(rules);
+            s.AddScoped<SampleOrderOperations>();
             s.AddRazorPages().AddApplicationPart(typeof(OperationSampleModel).Assembly);
         }));
     }

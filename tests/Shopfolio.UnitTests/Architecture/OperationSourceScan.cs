@@ -9,7 +9,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <list type="number">
 /// <item>A POST handler marked <c>[GatedOperation]</c> (any spelling: <c>GatedOperation</c>, <c>GatedOperationAttribute</c>, a qualified name, among other attributes in one list or in a list of its own, with
 /// arguments) must reach the gate: its body, or the body of a method of the same file that the body calls (followed to a depth of four), calls <c>OperationGate.Decide</c> or runs a
-/// <c>GatedOrderOperation</c>. A mark on a method that is not an <c>OnPost</c> handler is refused too - a GET does not apply an operation.</item>
+/// <c>OperationRunner</c>. A mark on a method that is not an <c>OnPost</c> handler is refused too - a GET does not apply an operation.</item>
 /// <item>A view or a script decides no operation: a view names no status type, no status member of the closed lists the caller hands in, and does no date arithmetic
 /// (<c>TurkeyTime</c>, <c>AddDays</c>, <c>DateTime</c>, <c>TimeProvider</c>); a script names no status member and reads no clock (<c>Date</c>, <c>Date.now</c>, <c>getTime</c>). The values
 /// the page needs come from the server's availability (07 8.1.4).</item>
@@ -18,7 +18,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// </summary>
 internal static partial class OperationSourceScan
 {
-    public const string GatedWithoutCheck = "has a [GatedOperation] handler that never reaches OperationGate.Decide or GatedOrderOperation (07 8.1.2: the POST re-checks the rule)";
+    public const string GatedWithoutCheck = "has a [GatedOperation] handler that never reaches OperationGate.Decide or OperationRunner (07 8.1.2: the POST re-checks the rule)";
     public const string GatedNotAPostHandler = "marks a method that is not an OnPost handler with [GatedOperation] (07 8.1.2)";
     public const string ViewDecides = "a view names a status or does date arithmetic (07 8.1.1: the browser and the view derive no operation; the server's availability decides)";
     public const string ScriptDecides = "a script names a status or reads the clock (07 8.1.1, 8.1.4: the script decides no operation and derives no last day)";
@@ -340,7 +340,7 @@ internal static partial class OperationSourceScan
     [GeneratedRegex(@"(?<![\w])(?<name>[A-Za-z_]\w*)\s*(?:<[^>(]*>)?\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex Call();
 
-    // The gate: OperationGate.Decide(...) (also qualified), or a GatedOrderOperation used (a field, a parameter or a resolved service of that type) and run.
-    [GeneratedRegex(@"\bOperationGate\s*\.\s*Decide\b|\bGatedOrderOperation\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    // The gate: OperationGate.Decide(...) (also qualified), or a OperationRunner used (a field, a parameter or a resolved service of that type) and run.
+    [GeneratedRegex(@"\bOperationGate\s*\.\s*Decide\b|\bOperationRunner\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex Gate();
 }

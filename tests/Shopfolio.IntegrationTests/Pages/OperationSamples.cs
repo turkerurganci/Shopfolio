@@ -1,6 +1,10 @@
+using Microsoft.EntityFrameworkCore;
+
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Operations;
+using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 
 namespace Shopfolio.IntegrationTests.Pages;
@@ -65,4 +69,40 @@ internal sealed class SampleWithdrawRule : IOperationRule<SampleItemState>
 internal sealed record SampleRules(IOperationRule<SampleItemState> Cancel, IOperationRule<SampleItemState> Withdraw)
 {
     public static SampleRules Default() => new(new SampleCancelRule(), new SampleWithdrawRule());
+}
+
+/// <summary>What the sample page's GET shows: the state the rules read, the order's version and the item's id.</summary>
+internal sealed record SampleOrderView(SampleItemState State, int Version, Guid ItemId);
+
+/// <summary>
+/// The stand-in of the module's open methods the sample page calls for the load and the write (09 8.3 item 3). A real screen calls methods of the module's
+/// <c>Contracts</c> interface here (<c>IOrderingModule</c> and <c>IAfterSalesModule</c>, joining the page's transaction); the sample has no such method yet, so the
+/// test assembly keeps the context and the entities behind this class and the page itself touches neither (09 6 item 2).
+/// </summary>
+internal sealed class SampleOrderOperations(AppDbContext db, TimeProvider time)
+{
+    private static readonly DateTimeOffset Now = new(2026, 11, 5, 9, 0, 0, TimeSpan.Zero);
+
+    public async Task<SampleOrderView> ReadAsync(Guid orderId, CancellationToken ct)
+    {
+        Order order = await db.Orders.AsNoTracking().SingleAsync(o => o.Id == orderId, ct);
+        OrderItem item = await db.OrderItems.AsNoTracking().SingleAsync(i => i.OrderId == orderId, ct);
+        int closed = await db.Cancellations.AsNoTracking().Where(c => c.OrderItemId == item.Id).SumAsync(c => c.Quantity, ct);
+        SampleItemState state = new(
+            order.OrderStatus,
+            order.PaymentStatus,
+            item.ProductType,
+            item.DeliveryDate,
+            item.Quantity - closed,
+            TurkeyTime.DateOf(time.GetUtcNow()));
+        return new SampleOrderView(state, order.Version, item.Id);
+    }
+
+    public async Task CancelAsync(Guid orderId, int quantity, CancellationToken ct)
+    {
+        Order order = await db.Orders.SingleAsync(o => o.Id == orderId, ct);
+        OrderItem item = await db.OrderItems.SingleAsync(i => i.OrderId == orderId, ct);
+        db.Cancellations.Add(Cancellation.ByBuyer(item.Id, quantity, new ItemAmounts(100m, 10m, 15m), null, Now));
+        order.BumpVersion();
+    }
 }

@@ -170,6 +170,33 @@ public sealed class ModuleBoundaryTests
         Assert.DoesNotContain(violations, v => v.Contains("Pages_Allowed_View", StringComparison.Ordinal));
     }
 
+    // The available-operations pattern as a page of the application's namespace uses it (T217 r1 B1; 09 8.3 item 3): OperationPatternPage (OperationPagePattern.cs) lives in
+    // Shopfolio.Pages.Panel, so the page rule reads it - the runner is common infrastructure, the lock is IOrderingModule.LockOrderAsync (Contracts).
+    private static readonly Lazy<ArchUnitNET.Domain.Architecture> _withPatternPage =
+        new(() => new ArchLoader().LoadAssemblies(typeof(Program).Assembly, typeof(Shopfolio.Pages.Panel.IPatternOperations).Assembly).Build());
+
+    [Fact]
+    public void OperationPatternPage_UnderThePageRule_IsCleanAndReallyUsesTheRunnerAndTheContractsLock()
+    {
+        Assert.Empty(Evaluate(_withPatternPage.Value, PageRule()));
+
+        IType page = _withPatternPage.Value.Types.Single(t => t.FullName == "Shopfolio.Pages.Panel.OperationPatternPage");
+        List<string> used = page.Dependencies.Select(d => d.Target.FullName).ToList();
+        Assert.Contains("Shopfolio.Infrastructure.Operations.OperationRunner", used);
+        Assert.Contains("Shopfolio.Modules.Ordering.Contracts.IOrderingModule", used);
+        Assert.Contains("Shopfolio.Infrastructure.Operations.IOperationRule`1", used);
+    }
+
+    [Fact]
+    public void OperationRunnerAndTheGate_InApplicationAssembly_AreCommonInfrastructureThatReachNoModuleType()
+    {
+        IType runner = _application.Value.Types.Single(t => t.FullName == "Shopfolio.Infrastructure.Operations.OperationRunner");
+
+        Assert.DoesNotContain(runner.Dependencies, d => d.Target.FullName.StartsWith("Shopfolio.Modules.", StringComparison.Ordinal));
+        Assert.Contains(_application.Value.Types, t => t.FullName == "Shopfolio.Infrastructure.Operations.OperationGate");
+        Assert.DoesNotContain(_application.Value.Types, t => t.FullName == "Shopfolio.Modules.Ordering.GatedOrderOperation");
+    }
+
     // --- Common infrastructure: no module type, the one exception is the context class (09 6 item 2, 4) ---
 
     [Fact]

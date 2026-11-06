@@ -7,7 +7,7 @@ internal sealed class GatedMisuse : PageModel
     {
         await Task.Delay(1);
         // OperationGate.Decide(rule, context, 1) in a comment reaches nothing
-        string text = "GatedOrderOperation OperationGate.Decide";
+        string text = "OperationRunner OperationGate.Decide";
         return Page();
     }
 
@@ -22,7 +22,7 @@ internal sealed class GatedMisuse : PageModel
     [Operations.GatedOperation()]
     public IActionResult OnGet(Guid id)
     {
-        GatedOrderOperation run = null;
+        OperationRunner run = null;
         return Page();
     }
 
@@ -45,7 +45,7 @@ internal sealed class GatedMisuse : PageModel
     [GatedOperation(Reason = "x")]
     public IActionResult OnPostAfterRunner(Guid id)
     {
-        GatedOrderOperation operation = services.GetRequiredService<GatedOrderOperation>();
+        OperationRunner operation = services.GetRequiredService<OperationRunner>();
         return Page();
     }
 }

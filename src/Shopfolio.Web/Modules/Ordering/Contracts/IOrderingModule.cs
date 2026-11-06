@@ -19,4 +19,12 @@ public interface IOrderingModule
     /// emptied or empty key. The key is case sensitive (07 2.1.7). The order is a guest's or a member's: the address opens for a member too (02 3.22.3).
     /// </summary>
     Task<Guid?> FindOrderByAccessKeyAsync(string accessKey, CancellationToken ct);
+
+    /// <summary>
+    /// The first step of every order operation inside the caller's transaction (09 8.3 item 3; 09 9.1 item 5; 05 7.3.2): takes the order's row lock, held for the rest of
+    /// the transaction, and answers whether the order is still at <paramref name="shownVersion"/>, the version the administrator's form carried. The customer's operation
+    /// carries no version (<see langword="null"/>) and always matches. <see langword="false"/> is the version conflict: the caller applies nothing (07 2.4.6). The method opens no
+    /// transaction; called outside one it is a programming error. The state the rule reads is loaded after this call, never before it.
+    /// </summary>
+    Task<bool> LockOrderAsync(Guid orderId, int? shownVersion, CancellationToken ct);
 }

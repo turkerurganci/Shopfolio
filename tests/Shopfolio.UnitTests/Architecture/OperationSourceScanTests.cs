@@ -31,16 +31,16 @@ public sealed class OperationSourceScanTests
         "[GatedOperation] public IActionResult OnPostA() { OperationGate.Decide(r, c, 1); return Page(); }",
         "[GatedOperation] public IActionResult OnPostA() { OperationGate . Decide(r, c, 1); return Page(); }",
         "[GatedOperation] public IActionResult OnPostA() => Infrastructure.Operations.OperationGate.Decide(r, c, 1).IsAllowed ? Page() : Page();",
-        "[GatedOperation] public async Task<IActionResult> OnPostA() { var o = Services.GetRequiredService<GatedOrderOperation>(); await o.RunAsync(); return Page(); }",
+        "[GatedOperation] public async Task<IActionResult> OnPostA() { var o = Services.GetRequiredService<OperationRunner>(); await o.RunAsync(); return Page(); }",
         "[GatedOperation] public IActionResult OnPostA() { return Go(); } private IActionResult Go() { return Next(); } private IActionResult Next() { OperationGate.Decide(r, c, 1); return Page(); }",
     ];
 
     public static TheoryData<string> ScanHandlers_OfACheckThatIsOnlyInACommentAStringOrTooFarAway_IsAFindingRows =>
     [
         "[GatedOperation] public IActionResult OnPostA() { return Go(); } private IActionResult Go() { // OperationGate.Decide\n return Page(); }",
-        "[GatedOperation] public IActionResult OnPostA() { /* GatedOrderOperation */ return Page(); }",
+        "[GatedOperation] public IActionResult OnPostA() { /* OperationRunner */ return Page(); }",
         "[GatedOperation] public IActionResult OnPostA() { string s = \"OperationGate.Decide\"; return Page(); }",
-        "[GatedOperation] public IActionResult OnPostA() { string s = @\"GatedOrderOperation\"; return Page(); }",
+        "[GatedOperation] public IActionResult OnPostA() { string s = @\"OperationRunner\"; return Page(); }",
         "[GatedOperation] public IActionResult OnPostA() { return Go(); } private IActionResult Go() { return A(); } private IActionResult A() { return B(); } private IActionResult B() { return C(); } private IActionResult C() { return D(); } private IActionResult D() { OperationGate.Decide(r, c, 1); return Page(); }",
     ];
 

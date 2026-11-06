@@ -12,7 +12,7 @@ internal readonly record struct OperationVerdict(OperationDecision Decision, Ope
 /// against the state it read under the row lock, and applies the operation only when the verdict is <see cref="OperationDecision.Allowed"/>. A hidden
 /// or disabled button does not enter: a request that arrives for a closed operation - written by hand, from an old tab, for a button that was never shown
 /// - gets the same verdict as one the screen offered. The gate reads no clock and no database, so it is the pure half of the check; the row lock and the
-/// load belong to the order operation that calls it (<c>GatedOrderOperation</c>).
+/// load belong to the sequence that calls it (<c>OperationRunner</c>, with the module's <c>Contracts</c> methods).
 /// </summary>
 internal static class OperationGate
 {

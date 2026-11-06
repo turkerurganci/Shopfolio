@@ -2,6 +2,8 @@ using System.Text;
 
 using Microsoft.AspNetCore.Http.Features;
 
+using Shopfolio.Infrastructure.Security;
+
 namespace Shopfolio.Infrastructure.SignedEndpoints;
 
 /// <summary>
@@ -17,7 +19,8 @@ namespace Shopfolio.Infrastructure.SignedEndpoints;
 /// (4) a notice that cannot be recorded - a database error on the write or on the commit - is never "received": the pipeline does not catch
 /// the error, it goes to the single catching layer (09 8.1), whose machine endpoint row answers 500 with an empty body and writes the line.
 /// The endpoint is outside the protection against cross-site forgery (07 2.5.5): it carries no form token and is mapped without the check.
-/// Counting a failed signature towards the form submission limit and its 429 belong to the rate limit (T215).
+/// A failed signature also counts towards the form submission limit of the client's address (<see cref="RateLimitScope.CountSignatureFailure"/>;
+/// 07 2.8.3, K-941); the 429 of that limit is the rate limit's answer to the same address's later requests.
 /// </summary>
 internal sealed class SignedEndpointHandler
 {
@@ -49,7 +52,8 @@ internal sealed class SignedEndpointHandler
         TNotice? notice = fields is null ? null : endpoint.Verify(fields);
         if (notice is null)
         {
-            _failures.Record(context.Connection.RemoteIpAddress, fields is null ? SignatureFailureReason.BodyUnreadable : SignatureFailureReason.SignatureInvalid);
+            _failures.Record(ClientAddress.Of(context), fields is null ? SignatureFailureReason.BodyUnreadable : SignatureFailureReason.SignatureInvalid);
+            RateLimitScope.CountSignatureFailure(context);
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
             return;
         }

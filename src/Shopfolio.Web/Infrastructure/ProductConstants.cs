@@ -36,6 +36,51 @@ internal static class ProductConstants
     /// <summary>P-36 — window of the invalid coupon code limit L6, in minutes (Z-27).</summary>
     public const int InvalidCouponAttemptWindowMinutes = 15;
 
+    /// <summary>P-31 — failed sign-in attempts the e-mail axis allows in the window; the recognized browser's counter per account and browser carries the same number (02 8.2.6).</summary>
+    public const int SignInAttemptsPerEmail = 5;
+
+    /// <summary>P-31 — failed sign-in attempts the IP axis allows in the window.</summary>
+    public const int SignInAttemptsPerIp = 20;
+
+    /// <summary>P-32 — password reset requests the e-mail axis allows in the window.</summary>
+    public const int PasswordResetAttemptsPerEmail = 3;
+
+    /// <summary>P-32 — password reset requests the IP axis allows in the window.</summary>
+    public const int PasswordResetAttemptsPerIp = 10;
+
+    /// <summary>P-33 — account registrations the e-mail axis allows in the window.</summary>
+    public const int RegistrationAttemptsPerEmail = 3;
+
+    /// <summary>P-33 — account registrations the IP axis allows in the window.</summary>
+    public const int RegistrationAttemptsPerIp = 5;
+
+    /// <summary>P-34 — contact form submissions the IP axis allows in the window.</summary>
+    public const int ContactFormAttemptsPerIp = 5;
+
+    /// <summary>P-35 — failed guest order lookups the e-mail axis allows in the window.</summary>
+    public const int GuestOrderLookupAttemptsPerEmail = 5;
+
+    /// <summary>P-35 — failed guest order lookups the IP axis allows in the window.</summary>
+    public const int GuestOrderLookupAttemptsPerIp = 10;
+
+    /// <summary>P-36 — invalid coupon code attempts the cart axis allows in the window.</summary>
+    public const int InvalidCouponAttemptsPerCart = 5;
+
+    /// <summary>P-37 — unpaid orders cancelled on their own that one e-mail (a signed-in member's orders only) or one IP may have in the window (L7; counted from the orders).</summary>
+    public const int UnpaidOrderCancellationsMax = 5;
+
+    /// <summary>P-37 — window of L7, in hours.</summary>
+    public const int UnpaidOrderCancellationWindowHours = 24;
+
+    /// <summary>P-46 — open unpaid orders that one e-mail (a signed-in member's orders only) or one IP may have at the same time (L8; no window; counted from the orders).</summary>
+    public const int OpenUnpaidOrdersMax = 3;
+
+    /// <summary>P-49 — verification link requests the e-mail axis allows in the window (the values of L-2).</summary>
+    public const int VerificationResendAttemptsPerEmail = 3;
+
+    /// <summary>P-49 — verification link requests the IP axis allows in the window.</summary>
+    public const int VerificationResendAttemptsPerIp = 10;
+
     /// <summary>P-38 — first retry of an e-mail that could not be sent, in minutes from the first attempt (Z-26; <c>DispatchRecord.NextAttemptAt</c>).</summary>
     public const int DispatchFirstRetryMinutes = 5;
 

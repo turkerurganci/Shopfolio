@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 
 using Shopfolio.Infrastructure.Logging;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.SignedEndpoints;
 
 namespace Shopfolio.UnitTests.SignedEndpoints;
@@ -92,8 +93,8 @@ public sealed class SignatureFailureLogTests : IDisposable
         Assert.True(_harness.Failures.Record(First, SignatureFailureReason.SignatureInvalid));
         Assert.False(_harness.Failures.Record(First.MapToIPv6(), SignatureFailureReason.SignatureInvalid));
         Assert.Equal(
-            SignatureFailureLog.AddressKey(IPAddress.Parse("2001:db8:1:2::1")),
-            SignatureFailureLog.AddressKey(IPAddress.Parse("2001:db8:1:2:abcd::")));
+            ClientAddress.Axis(IPAddress.Parse("2001:db8:1:2::1")),
+            ClientAddress.Axis(IPAddress.Parse("2001:db8:1:2:abcd::")));
     }
 
     [Fact]

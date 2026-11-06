@@ -157,7 +157,7 @@ public sealed class ContactInput : IFormInput
     public string Phone { get; set; } = string.Empty;
 
     [Display(Name = "Şifre")]
-    [DataType(DataType.Password)]
+    [PasswordField]
     [FieldRequired]
     public string Password { get; set; } = string.Empty;
 

@@ -60,6 +60,7 @@ public sealed class ModelBindingRuleTests
             "BuiltInRule:BuiltInRuleInput.Name:StringLengthAttribute",
             "BuiltInRule:BuiltInRuleQuery.Search:EmailAddressAttribute",
             "BuiltInRule:BuiltInRuleRowsInput.Items.Quantity:RangeAttribute",
+            "BuiltInRule:DataTypePasswordInput.Password:DataTypeAttribute",
 
             // Field names (KK6).
             "FieldName:WrongFieldNamesInput.Cost",
@@ -77,7 +78,7 @@ public sealed class ModelBindingRuleTests
 
         string[] quiet =
         [
-            "AddNoteInput", "AdminAddNoteInput", "ReturnItemsInput", "ReturnRow", "NoteQuery", "StartUploadRequest", "UploadStatusResponse",
+            "AddNoteInput", "AdminAddNoteInput", "SignInInput", "ReturnItemsInput", "ReturnRow", "NoteQuery", "StartUploadRequest", "UploadStatusResponse",
             "CleanNotesPage", "CleanAdminNotesPage",
         ];
         foreach (string name in quiet)

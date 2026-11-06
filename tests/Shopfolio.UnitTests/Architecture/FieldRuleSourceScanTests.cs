@@ -49,9 +49,14 @@ public sealed class FieldRuleSourceScanTests
                 (FieldRuleSourceScan.NumberOnLimitRule, 5),
                 (FieldRuleSourceScan.NumberOnLimitRule, 11),
                 (FieldRuleSourceScan.NumberOnLimitRule, 14),
-                (FieldRuleSourceScan.ClientValidationOn, 22),
-                (FieldRuleSourceScan.ClientValidationOn, 30),
-                (FieldRuleSourceScan.ClientValidationOn, 31),
+                (FieldRuleSourceScan.NumberOnLimitRule, 20),
+                (FieldRuleSourceScan.NumberOnLimitRule, 23),
+                (FieldRuleSourceScan.NumberOnLimitRule, 26),
+                (FieldRuleSourceScan.NumberOnLimitRule, 29),
+                (FieldRuleSourceScan.NumberOnLimitRule, 32),
+                (FieldRuleSourceScan.ClientValidationOn, 46),
+                (FieldRuleSourceScan.ClientValidationOn, 54),
+                (FieldRuleSourceScan.ClientValidationOn, 55),
             ],
             findings);
     }

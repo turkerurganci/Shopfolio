@@ -17,6 +17,30 @@ public sealed class Sample
     [InvalidAmount(Max = ProductConstants.AmountMax)]
     public decimal Price { get; set; }
 
+    [FieldRequired, TextTooLong(150)]
+    public string SecondInList { get; set; } = string.Empty;
+
+    [TextTooLongAttribute(150)]
+    public string LongName { get; set; } = string.Empty;
+
+    [TextTooLong(max: 150)]
+    public string Named { get; set; } = string.Empty;
+
+    [InvalidAmountAttribute(AllowZero = true, Max = 5)]
+    public decimal LongAmount { get; set; }
+
+    [FieldRequired, InvalidQuantity(max: 5)]
+    public int SecondQuantity { get; set; }
+
+    [FieldRequired, TextTooLong(ProductConstants.ProductNameMaxLength)]
+    public string QuietSecondInList { get; set; } = string.Empty;
+
+    [TextTooLongAttribute(max: ProductConstants.ProductNameMaxLength)]
+    public string QuietNamed { get; set; } = string.Empty;
+
+    [FieldRequired, InvalidQuantity(ProductConstants.QuantityMax)]
+    public int QuietQuantity { get; set; }
+
     public void Setup(HtmlHelperOptions options)
     {
         options.ClientValidationEnabled = true;

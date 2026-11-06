@@ -40,8 +40,9 @@ internal static partial class FieldRuleSourceScan
         return findings;
     }
 
-    // [TextTooLong(150)], [InvalidQuantity(1000)], [InvalidAmount(Max = 99999)].
-    [GeneratedRegex(@"\[\s*(TextTooLong|InvalidQuantity)\s*\(\s*\d|\[\s*InvalidAmount\s*\([^\]]*Max\s*=\s*\d")]
+    // [TextTooLong(150)], [InvalidQuantity(1000)], [InvalidAmount(Max = 99999)] - also second in a list ([FieldRequired, TextTooLong(150)]), with the
+    // Attribute suffix (TextTooLongAttribute(150)) and with a named argument (TextTooLong(max: 150)).
+    [GeneratedRegex(@"\b(TextTooLong|InvalidQuantity)(Attribute)?\s*\(\s*(\w+\s*:\s*)?\d|\bInvalidAmount(Attribute)?\s*\([^)\]]*Max\s*=\s*\d")]
     private static partial Regex NumberOnLimit();
 
     // The framework's own output: data-val attributes, the switch turned on, the validation scripts.

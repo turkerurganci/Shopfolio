@@ -5,8 +5,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace Shopfolio.Infrastructure.Validation;
 
 /// <summary>
-/// Marks a text field that is not trimmed (09 3.4 item 5): a value whose spaces mean something. A password field is never trimmed either; it is
-/// recognised by <c>[DataType(DataType.Password)]</c>.
+/// Marks a text field that is not trimmed (09 3.4 item 5): a value whose spaces mean something.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = false)]
 public sealed class NotTrimmedAttribute : Attribute
@@ -14,9 +13,19 @@ public sealed class NotTrimmedAttribute : Attribute
 }
 
 /// <summary>
+/// Marks a password field (09 3.4 item 5): it is never trimmed. It is the project's own marker and no <see cref="System.ComponentModel.DataAnnotations.ValidationAttribute"/>,
+/// so a model that carries it still carries only the project's rule attributes (09 3.4 item 1); <c>[DataType(DataType.Password)]</c> is a framework
+/// validation attribute and is not the way to mark one.
+/// </summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = false)]
+public sealed class PasswordFieldAttribute : Attribute
+{
+}
+
+/// <summary>
 /// The model binder of a text (09 3.4 item 5; 04 7.3.1): the leading and trailing white space is dropped while the value is bound, and a value of
 /// white space only becomes the empty string - not <see langword="null"/> - so a required field answers <c>FieldRequired</c>. What the user typed
-/// stays in the model state for the form to show again. A password field and a field marked <see cref="NotTrimmedAttribute"/> are bound as they came.
+/// stays in the model state for the form to show again. A field marked <see cref="PasswordFieldAttribute"/> or <see cref="NotTrimmedAttribute"/> is bound as they came.
 /// </summary>
 internal sealed class TrimmingBinder : IModelBinder
 {
@@ -59,14 +68,11 @@ internal sealed class TrimmingBinderProvider : IModelBinderProvider
 
     private static bool IsKeptAsTyped(ModelMetadata metadata)
     {
-        if (string.Equals(metadata.DataTypeName, "Password", StringComparison.Ordinal))
-        {
-            return true;
-        }
-
         if (metadata.ContainerType is { } container && metadata.PropertyName is { } name)
         {
-            return container.GetProperty(name, BindingFlags.Instance | BindingFlags.Public)?.IsDefined(typeof(NotTrimmedAttribute), inherit: true) == true;
+            PropertyInfo? property = container.GetProperty(name, BindingFlags.Instance | BindingFlags.Public);
+            return property is not null
+                && (property.IsDefined(typeof(NotTrimmedAttribute), inherit: true) || property.IsDefined(typeof(PasswordFieldAttribute), inherit: true));
         }
 
         return false;

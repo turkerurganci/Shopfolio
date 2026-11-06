@@ -67,6 +67,19 @@ namespace Shopfolio.Pages.Samples
         public string Name { get; set; } = string.Empty;
     }
 
+    // A password field and a field kept as typed carry the project's own markers (not validation attributes): no BuiltInRule (09 3.4 items 1 and 5).
+    public sealed class SignInInput : IFormInput
+    {
+        [SpecAssignedName]
+        [FieldRequired]
+        [PasswordField]
+        public string Password { get; set; } = string.Empty;
+
+        [SpecAssignedName]
+        [NotTrimmed]
+        public string Passphrase { get; set; } = string.Empty;
+    }
+
     public sealed class ReturnItemsInput : IFormInput
     {
         [SpecAssignedName]
@@ -197,6 +210,14 @@ namespace Shopfolio.Pages.Samples
     {
         [Range(1, 5)]
         public int Quantity { get; set; }
+    }
+
+    // BuiltInRule: [DataType] is the framework's validation attribute too - also the password type is no way to mark a password field.
+    public sealed class DataTypePasswordInput : IFormInput
+    {
+        [SpecAssignedName]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = string.Empty;
     }
 
     // EntityBound: a handler parameter, a collection parameter and a bound property.

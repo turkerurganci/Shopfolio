@@ -96,8 +96,8 @@ Kriter 1–9 ve KK1–KK9 bu turda baştan, kendi diff'inde yeniden denetlendi (
 ## Commit & PR
 
 - **Branch:** `task/T212-hata-gosterimi-http`
-- **Commit:** PR_HEAD
-- **PR:** #PR_NO
+- **Commit:** dalın son commit'i (PR #407 head; SHA yapım işçisinin dönüşünde)
+- **PR:** #407
 - **CI:** yapım işçisi izlemez (yardımcı yürütür)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
 

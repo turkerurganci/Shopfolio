@@ -15,6 +15,7 @@ using Shopfolio.Infrastructure.Lists;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Routing;
+using Shopfolio.Infrastructure.SearchEngine;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.SignedEndpoints;
 using Shopfolio.Infrastructure.StartupDatabase;
@@ -41,6 +42,9 @@ builder.Services.AddRazorPages().AddAddressRules().AddSessionAccess().AddFieldVa
 
 // The two identity schemes, their policies and the closed doors (07 2.3.1; 09 15.1 item 2): the panel and the account folders are closed by folder path.
 builder.Services.AddSessionAuthentication();
+
+// The search engine data of the pages (05 3.7.2): structured data, preview tags and the closing tag, made from the record's values.
+builder.Services.AddSearchEngineData();
 
 // The one time source (09 7.1 item 1; 05 7.2.4).
 builder.Services.AddTimeSource();
@@ -130,6 +134,10 @@ app.UseForwardedHeadersRules();
 
 // The security headers (09 15.2 item 3) come right after: every response carries them, the error response, the machine endpoint and the 429 included.
 app.UseSecurityHeaders();
+
+// The closed pages' header (05 3.7.4): a closed answer that is not HTML carries X-Robots-Tag: noindex, whoever answers; an HTML answer is closed by the
+// robots meta tag the page head writes. The address decides, so it comes before the routing.
+app.UseSearchEngineClosure();
 
 // The general rate limit (09 15.4 item 1): after the forwarded headers and the security headers, before the endpoints are mapped. A refused request
 // never reaches the handler.

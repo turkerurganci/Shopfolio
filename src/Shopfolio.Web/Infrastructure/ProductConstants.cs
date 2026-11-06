@@ -99,6 +99,12 @@ internal static class ProductConstants
     /// <summary>P-27 — character ceiling of a product name (and of a name or title in the corporate content).</summary>
     public const int ProductNameMaxLength = 150;
 
+    /// <summary>
+    /// P-28 — character ceiling of a short description, an FAQ question and a branch's working hours; the page description of the search engines is cut at
+    /// the same ceiling (02 3.30.5).
+    /// </summary>
+    public const int ShortTextMaxLength = 200;
+
     /// <summary>P-23 — size ceiling of one image file, in bytes: 10 MB (05 6.6.1).</summary>
     public const long ImageMaxBytes = 10L * 1024 * 1024;
 

@@ -1,4 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+
+using Npgsql;
 
 using Shopfolio.Infrastructure.Jobs;
 
@@ -21,6 +24,51 @@ internal sealed class TransactionRunner : ITransactionRunner
         _db = db;
         _jobs = jobs;
         _signal = signal;
+    }
+
+    /// <summary>The attempts of a work that fails on a unique index it may retry, the first included (09 3.5 item 4; K-1336): a code constant, not a setting.</summary>
+    public const int UniqueConflictAttempts = 3;
+
+    private const string UniqueViolation = "23505";
+
+    public async Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, IReadOnlyCollection<string> retryOnUniqueIndexes, CancellationToken ct)
+        where T : IOperationResult
+    {
+        ArgumentNullException.ThrowIfNull(work);
+        ArgumentNullException.ThrowIfNull(retryOnUniqueIndexes);
+        if (retryOnUniqueIndexes.Count == 0)
+        {
+            throw new ArgumentException("There is no unique index to retry on: use the call without the list.", nameof(retryOnUniqueIndexes));
+        }
+
+        for (int attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return await RunAsync(work, ct);
+            }
+            catch (DbUpdateException ex) when (attempt < UniqueConflictAttempts && IsRetryableUniqueViolation(ex, retryOnUniqueIndexes))
+            {
+                // RunAsync has rolled the failed attempt back and dropped the tracked entities; the next attempt reads everything again.
+            }
+            catch (PostgresException ex) when (attempt < UniqueConflictAttempts && IsRetryableUniqueViolation(ex, retryOnUniqueIndexes))
+            {
+                // The same for a statement sent outside the change tracker (ExecuteUpdateAsync, a raw statement).
+            }
+        }
+    }
+
+    private static bool IsRetryableUniqueViolation(Exception exception, IReadOnlyCollection<string> indexes)
+    {
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is PostgresException { SqlState: UniqueViolation } violation)
+            {
+                return violation.ConstraintName is { } name && indexes.Contains(name, StringComparer.Ordinal);
+            }
+        }
+
+        return false;
     }
 
     public async Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, CancellationToken ct)

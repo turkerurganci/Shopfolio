@@ -205,6 +205,13 @@ public sealed class RevertLinkDigestRewriteTests : IAsyncLifetime
 
         public int Calls { get; private set; }
 
+        public Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, IReadOnlyCollection<string> retryOnUniqueIndexes, CancellationToken ct)
+            where T : IOperationResult
+        {
+            Calls++;
+            return _inner.RunAsync(work, retryOnUniqueIndexes, ct);
+        }
+
         public Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, CancellationToken ct)
             where T : IOperationResult
         {

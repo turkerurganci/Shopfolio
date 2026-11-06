@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
+using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Modules.Catalog.Contracts;
 
@@ -17,7 +18,7 @@ internal static class ContentRules
     public const int TitleMaxLength = 150;
 
     /// <summary>A short description or a question (06 11.2 P-28).</summary>
-    public const int ShortDescriptionMaxLength = 200;
+    public const int ShortDescriptionMaxLength = ProductConstants.ShortTextMaxLength;
 
     /// <summary>The short introduction of the about page (06 11.2 P-29).</summary>
     public const int ShortIntroductionMaxLength = 400;

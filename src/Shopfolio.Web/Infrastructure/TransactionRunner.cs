@@ -1,4 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+
+using Npgsql;
 
 using Shopfolio.Infrastructure.Jobs;
 
@@ -7,7 +10,7 @@ namespace Shopfolio.Infrastructure;
 /// <summary>
 /// The one transaction runner (09 9.1 item 3). It takes the scope's context from its constructor, opens the transaction, and ends it in one of
 /// three ways: commit after a result that is not refused, roll back after a refused result, roll back and throw again after an exception.
-/// There is no commit in a <c>finally</c> (09 8.1 item 5) and no retry (09 10.7 item 4). The locks the work takes (<see cref="AdvisoryLocks"/>,
+/// There is no commit in a <c>finally</c> (09 8.1 item 5) and no retry (09 10.7 item 4), except the one overload that names unique indexes and runs the whole work again at most <see cref="UniqueConflictAttempts"/> times (09 9.4 item 3). The locks the work takes (<see cref="AdvisoryLocks"/>,
 /// the order row lock, the counters' conditional updates) are transaction scoped and fall with the transaction.
 /// </summary>
 internal sealed class TransactionRunner : ITransactionRunner
@@ -21,6 +24,51 @@ internal sealed class TransactionRunner : ITransactionRunner
         _db = db;
         _jobs = jobs;
         _signal = signal;
+    }
+
+    /// <summary>The attempts of a work that fails on a unique index it may retry, the first included (09 3.5 item 4; K-1336): a code constant, not a setting.</summary>
+    public const int UniqueConflictAttempts = 3;
+
+    private const string UniqueViolation = "23505";
+
+    public async Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, IReadOnlyCollection<string> retryOnUniqueIndexes, CancellationToken ct)
+        where T : IOperationResult
+    {
+        ArgumentNullException.ThrowIfNull(work);
+        ArgumentNullException.ThrowIfNull(retryOnUniqueIndexes);
+        if (retryOnUniqueIndexes.Count == 0)
+        {
+            throw new ArgumentException("There is no unique index to retry on: use the call without the list.", nameof(retryOnUniqueIndexes));
+        }
+
+        for (int attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return await RunAsync(work, ct);
+            }
+            catch (DbUpdateException ex) when (attempt < UniqueConflictAttempts && IsRetryableUniqueViolation(ex, retryOnUniqueIndexes))
+            {
+                // RunAsync has rolled the failed attempt back and dropped the tracked entities; the next attempt reads everything again.
+            }
+            catch (PostgresException ex) when (attempt < UniqueConflictAttempts && IsRetryableUniqueViolation(ex, retryOnUniqueIndexes))
+            {
+                // The same for a statement sent outside the change tracker (ExecuteUpdateAsync, a raw statement).
+            }
+        }
+    }
+
+    private static bool IsRetryableUniqueViolation(Exception exception, IReadOnlyCollection<string> indexes)
+    {
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is PostgresException { SqlState: UniqueViolation } violation)
+            {
+                return violation.ConstraintName is { } name && indexes.Contains(name, StringComparer.Ordinal);
+            }
+        }
+
+        return false;
     }
 
     public async Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, CancellationToken ct)

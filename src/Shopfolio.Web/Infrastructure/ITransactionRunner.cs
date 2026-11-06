@@ -14,4 +14,15 @@ internal interface ITransactionRunner
     /// </summary>
     Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, CancellationToken ct)
         where T : IOperationResult;
+
+    /// <summary>
+    /// <see cref="RunAsync{T}(Func{CancellationToken, Task{T}}, CancellationToken)"/> that runs the whole work again when it fails on a unique index that
+    /// <paramref name="retryOnUniqueIndexes"/> names (09 9.4 item 3; 06 4.72.3): two records that made the same page address at the same time, the second
+    /// stopped by the unique index. A violation (SQLSTATE <c>23505</c>) of any other index is an unexpected error and is thrown at once. At most
+    /// <see cref="TransactionRunner.UniqueConflictAttempts"/> attempts, the first included; the last failure is thrown. Before each new attempt the failed one
+    /// is rolled back and the tracked entities are dropped, so the <paramref name="work"/> reads everything again inside itself and holds nothing an earlier
+    /// attempt read.
+    /// </summary>
+    Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, IReadOnlyCollection<string> retryOnUniqueIndexes, CancellationToken ct)
+        where T : IOperationResult;
 }

@@ -94,6 +94,12 @@ internal sealed class TestTransactionRunner : ITransactionRunner
 
     public bool FailCommit { get; set; }
 
+    public Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, IReadOnlyCollection<string> retryOnUniqueIndexes, CancellationToken ct)
+        where T : IOperationResult
+    {
+        return RunAsync(work, ct);
+    }
+
     public async Task<T> RunAsync<T>(Func<CancellationToken, Task<T>> work, CancellationToken ct)
         where T : IOperationResult
     {

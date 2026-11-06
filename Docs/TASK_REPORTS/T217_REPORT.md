@@ -207,7 +207,7 @@ Kriter 1, 2, 4–7 ve KK1, KK2, KK4–KK7 ✓ (kriter 7 örnek kuralla; gerçek 
 - **Commit:** son commit PR başlığında; kod son commit'i dalın ucudur
 - **PR:** #412
 - **CI:** (yapım işçisi izlemez; yönetici izler)
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
+- **Post-merge run'lar:** main merge commit `d2b5379` (PR #412); main run'ları CI 42276704951 ve Publish 42276704953 yeşil (T219 yapımında status Commit hücresi ve bu satır dolduruldu).
 
 ## Dış Varsayımlar
 

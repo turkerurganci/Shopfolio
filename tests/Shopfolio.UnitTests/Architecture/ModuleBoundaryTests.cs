@@ -194,6 +194,34 @@ public sealed class ModuleBoundaryTests
             && !name.StartsWith("Shopfolio.Modules.Ordering.Contracts.", StringComparison.Ordinal));
     }
 
+    // The search engine data pattern as a page of the application's namespace uses it (T219; 09 6 items 2 and 7): SearchDataPatternPage (SearchDataPagePattern.cs) lives in
+    // Shopfolio.Pages.Storefront, so the page rule reads it - the pattern is common infrastructure and the record's values come through the module's Contracts interface.
+    [Fact]
+    public void SearchDataPatternPage_UnderThePageRule_IsCleanAndTakesTheRecordsValuesOnlyThroughTheContractsInterface()
+    {
+        Assert.Empty(Evaluate(_withPatternPage.Value, PageRule()));
+        Assert.Empty(Evaluate(_withPatternPage.Value, ContractsReachNothingRule()));
+
+        IType page = _withPatternPage.Value.Types.Single(t => t.FullName == "Shopfolio.Pages.Storefront.SearchDataPatternPage");
+        List<string> used = page.Dependencies.Select(d => d.Target.FullName).ToList();
+        Assert.Contains("Shopfolio.Infrastructure.SearchEngine.SearchEngineData", used);
+        Assert.Contains("Shopfolio.Infrastructure.SearchEngine.PageSearchData", used);
+        Assert.Contains("Shopfolio.Modules.Catalog.Contracts.IPatternProductSearchSource", used);
+        Assert.DoesNotContain(used, name => name.StartsWith("Shopfolio.Modules.", StringComparison.Ordinal)
+            && !name.StartsWith("Shopfolio.Modules.Catalog.Contracts.", StringComparison.Ordinal));
+        Assert.DoesNotContain(used, name => name.Contains("AppDbContext", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void SearchEngineDataPattern_InApplicationAssembly_IsCommonInfrastructureThatReachesNoModuleType()
+    {
+        IType[] pattern = [.. _application.Value.Types.Where(t => (t.FullName ?? string.Empty).StartsWith("Shopfolio.Infrastructure.SearchEngine.", StringComparison.Ordinal))];
+
+        Assert.Contains(pattern, t => t.FullName == "Shopfolio.Infrastructure.SearchEngine.SearchEngineData");
+        Assert.Contains(pattern, t => t.FullName == "Shopfolio.Infrastructure.SearchEngine.SearchEngineClosureMiddleware");
+        Assert.All(pattern, t => Assert.DoesNotContain(t.Dependencies, d => d.Target.FullName.StartsWith("Shopfolio.Modules.", StringComparison.Ordinal)));
+    }
+
     [Fact]
     public void OperationRunnerAndTheGate_InApplicationAssembly_AreCommonInfrastructureThatReachNoModuleType()
     {

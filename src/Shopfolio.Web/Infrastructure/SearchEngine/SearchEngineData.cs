@@ -157,7 +157,7 @@ internal sealed class SearchEngineData
     }
 
     /// <summary>The FAQ block: every question with its accepted answer in plain text. <see langword="null"/> when the page has no question.</summary>
-    public JsonLdBlock? Faq(IReadOnlyList<FaqEntry> entries)
+    public static JsonLdBlock? Faq(IReadOnlyList<FaqEntry> entries)
     {
         ArgumentNullException.ThrowIfNull(entries);
         if (entries.Count == 0)

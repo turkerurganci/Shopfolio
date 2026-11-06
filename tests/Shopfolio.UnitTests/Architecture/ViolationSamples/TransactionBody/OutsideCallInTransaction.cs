@@ -31,4 +31,11 @@ internal sealed class OutsideCallInTransaction(ITransactionRunner runner, IPayme
     public Task HandsAStaticLambda(CancellationToken ct) => runner.RunAsync(static (token) => Task.FromResult(true), ct);
 
     private Task<bool> PayInside(CancellationToken token) => gateway.StartAsync(token);
+
+    // T219: the retry overload (09 9.4 item 3) is a RunAsync call too: its work is scanned in the same way.
+    public Task RetryOverloadUsesTheGateway(CancellationToken ct) => runner.RunAsync(async step => await gateway.StartAsync(step), ["ix_products_slug"], ct);
+
+    public Task RetryOverloadHandsAMethodGroup(CancellationToken ct) => runner.RunAsync(PayInside, ["ix_products_slug"], ct);
+
+    public Task RetryOverloadWithTheOutsideCallOutside(CancellationToken ct) => runner.RunAsync(async token => await Task.FromResult(1), ["ix_products_slug"], ct);
 }

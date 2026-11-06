@@ -76,6 +76,8 @@ public sealed class DatabaseSessionSourceScanTests
                 (TransactionBodySourceScan.OutsideCallInTransaction, 15),
                 (TransactionBodySourceScan.WorkNotALambda, 25),
                 (TransactionBodySourceScan.WorkNotALambda, 27),
+                (TransactionBodySourceScan.OutsideCallInTransaction, 36),
+                (TransactionBodySourceScan.WorkNotALambda, 38),
             ],
             findings);
     }

@@ -14,6 +14,7 @@ internal static partial class DataProtectionSourceScan
     public const string KeyEncryptor = "sets a key encryptor (ProtectKeysWith...; the ring stays in clear in the database, 09 15.5 item 1)";
     public const string KeyLifetime = "sets the key lifetime (SetDefaultKeyLifetime; the framework default stands, 09 15.5 item 1)";
     public const string SecondSetup = "sets up data protection outside DataProtectionSetup (AddDataProtection; the setup is one place, 09 15.5 item 1)";
+    public const string SecondRing = "builds a second ring (DataProtectionProvider.Create or EphemeralDataProtectionProvider; the ring is the one DataProtectionSetup sets up, 09 15.5 item 1; D-90 K1)";
     public const string ProtectorPurpose = "calls CreateProtector with something other than a DataProtectionPurposes constant (09 15.5 item 2)";
     public const string ExtensionProtector = "calls GetDataProtector (the extension takes the purpose strings itself; the only call is CreateProtector with one DataProtectionPurposes constant, 09 15.5 item 2)";
     public const string PurposeLiteral = "writes a purpose string outside DataProtectionPurposes (09 15.5 item 2)";
@@ -36,6 +37,7 @@ internal static partial class DataProtectionSourceScan
             Add(findings, SecondSetup, AddDataProtectionCall(), clean);
         }
 
+        Add(findings, SecondRing, SecondRingCall(), clean);
         Add(findings, ProtectorPurpose, ProtectorWithOtherArgument(), clean);
         Add(findings, ExtensionProtector, GetDataProtectorCall(), clean);
         if (!string.Equals(path, PurposesFile, StringComparison.Ordinal))
@@ -80,6 +82,10 @@ internal static partial class DataProtectionSourceScan
 
     [GeneratedRegex(@"\bAddDataProtection\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex AddDataProtectionCall();
+
+    // The shared framework's other ways to build a ring: the static factory (also with a namespace or global:: prefix, an added argument or a split line) and the in-memory provider.
+    [GeneratedRegex(@"\bDataProtectionProvider\s*\.\s*Create\b|\bEphemeralDataProtectionProvider\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex SecondRingCall();
 
     // A CreateProtector call whose argument list is not exactly one DataProtectionPurposes.<Name> (a sub-purpose argument after it is a finding).
     [GeneratedRegex(@"\bCreateProtector\s*\((?!\s*DataProtectionPurposes\s*\.\s*\w+\s*\))", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

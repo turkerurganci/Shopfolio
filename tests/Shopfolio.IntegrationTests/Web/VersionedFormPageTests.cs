@@ -166,6 +166,9 @@ public sealed partial class VersionedFormPageTests
         string html = await response.Content.ReadAsStringAsync(Ct);
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        // T213 KK6: the 409 answer names no code, in the page or in a header (07 2.7.3).
+        string answer = html + string.Join('\n', response.Headers.Select(h => h.Key + ": " + string.Join(',', h.Value)));
+        Assert.All(Enum.GetNames<Shopfolio.Infrastructure.Errors.ErrorCode>(), name => Assert.DoesNotContain(name, answer, StringComparison.Ordinal));
         Product current = await ReadProductAsync(product.Id);
         Assert.Equal("baskasinin", current.Description);
         Assert.Equal(product.Version + 1, current.Version);

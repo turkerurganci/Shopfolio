@@ -13,4 +13,8 @@ internal static class RingMisuse
     public const string Purpose = "Shopfolio.Invented.v2";
     public const string NotAPurpose = "Shopfolio.Infrastructure.PublicHolidays.txt";
     public static IDataProtector Extension(IServiceProvider p) => p.GetDataProtector(DataProtectionPurposes.DownloadLink);
+    public static IDataProtectionProvider Second() => DataProtectionProvider.Create(new DirectoryInfo("keys"));
+    public static IDataProtectionProvider Memory() => new EphemeralDataProtectionProvider();
+    public static IDataProtectionProvider Split() => Microsoft.AspNetCore.DataProtection.DataProtectionProvider
+        .Create("app");
 }

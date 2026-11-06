@@ -97,6 +97,7 @@ public sealed class UnexpectedErrorLayerTests
         AssertNoCode(response, body);
         Assert.False(response.Headers.Contains("Set-Cookie"));
         Assert.True(response.Headers.Contains("X-Content-Type-Options"));
+        Assert.Equal(SecurityHeaders.NoStore, response.Headers.CacheControl?.ToString()); // D-140: the layer's own 500, same header as the filter path's
         Assert.Equal(before + 1, counter.CountWithin(TimeSpan.FromMinutes(15)));
         JsonElement line = Assert.Single(ErrorLines(baseFactory));
         Assert.Equal(nameof(ErrorCode.UnexpectedPageError), line.GetProperty("code").GetString());

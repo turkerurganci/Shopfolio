@@ -29,14 +29,20 @@ internal static class ReturnPath
     public const string ParameterName = "returnUrl";
 
     /// <summary>The path the sign-in or the reauthentication returns to: the value when it is the site's own path, else the area's home page.</summary>
-    public static string Resolve(string? value, ReturnArea area)
+    public static string Resolve(string? value, ReturnArea area) => ResolveOr(value, HomeOf(area));
+
+    /// <summary>
+    /// The path the return goes to: the value when it is the site's own path, else <paramref name="fallback"/> - the area's home page after a sign-in, the list's
+    /// root on the way back from a record of the panel (07 2.6.8; <c>ListReturn</c>). The fallback is itself a path of this site.
+    /// </summary>
+    public static string ResolveOr(string? value, string fallback)
     {
-        if (value is not null && IsLocalPath(value))
+        if (!IsLocalPath(fallback))
         {
-            return value;
+            throw new ArgumentException("The fallback of a return is a path of this site (05 6.5.6).", nameof(fallback));
         }
 
-        return HomeOf(area);
+        return value is not null && IsLocalPath(value) ? value : fallback;
     }
 
     /// <summary>The home page of an area.</summary>

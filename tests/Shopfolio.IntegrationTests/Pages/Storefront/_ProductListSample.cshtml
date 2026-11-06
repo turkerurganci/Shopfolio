@@ -1,0 +1,26 @@
+@model Shopfolio.IntegrationTests.Pages.StorefrontListSample
+<p class="closed">@(Model.ClosedToSearchEngines ? "closed" : "open")</p>
+<form method="get" class="search-field"><input name="search" /></form>
+@foreach (var entry in ViewData.ModelState)
+{
+    foreach (var error in entry.Value!.Errors)
+    {
+        <span class="error" data-field="@entry.Key">@error.ErrorMessage</span>
+    }
+}
+@if (Model.NoResultList)
+{
+    <p class="no-result-list">no list</p>
+}
+else
+{
+    <p class="shown-page">@Model.Result!.PageNumber</p>
+    <p class="page-count">@Model.Result.PageCount</p>
+    <p class="total">@Model.Result.TotalCount</p>
+    <ul>
+    @foreach (var item in Model.Result.Items)
+    {
+        <li class="item">@item.Name</li>
+    }
+    </ul>
+}

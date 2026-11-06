@@ -1,0 +1,7 @@
+@page "/panel/urun-kaydi/{id:guid}"
+@model Shopfolio.IntegrationTests.Pages.PanelProductRecordSampleModel
+<a class="back-to-list" href="@Model.BackToList">Listeye dön</a>
+<form method="post" asp-page-handler="SaveProductRecord">
+    <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrlField" />
+    <button type="submit">Kaydet</button>
+</form>

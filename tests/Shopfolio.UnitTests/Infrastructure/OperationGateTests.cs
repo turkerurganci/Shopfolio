@@ -81,14 +81,15 @@ public sealed class OperationGateTests
     }
 
     [Theory]
-    [InlineData(1, OperationDecision.Allowed)]
-    [InlineData(2, OperationDecision.Allowed)]
-    [InlineData(3, OperationDecision.Allowed)]
-    [InlineData(4, OperationDecision.QuantityExceedsOpen)]
-    [InlineData(1000000, OperationDecision.QuantityExceedsOpen)]
-    [InlineData(int.MaxValue, OperationDecision.QuantityExceedsOpen)]
-    public void TheGate_AQuantityUpToTheUpperLimitIsAllowed_AboveItIsRefusedWhole_KK3(int requested, OperationDecision expected)
+    [InlineData(1, true)]
+    [InlineData(2, true)]
+    [InlineData(3, true)]
+    [InlineData(4, false)]
+    [InlineData(1000000, false)]
+    [InlineData(int.MaxValue, false)]
+    public void TheGate_AQuantityUpToTheUpperLimitIsAllowed_AboveItIsRefusedWhole_KK3(int requested, bool allowed)
     {
+        OperationDecision expected = allowed ? OperationDecision.Allowed : OperationDecision.QuantityExceedsOpen;
         FixedRule rule = new(OperationAvailability.OpenForQuantity(3, 3, 3));
 
         OperationVerdict verdict = OperationGate.Decide(rule, "state", requested);

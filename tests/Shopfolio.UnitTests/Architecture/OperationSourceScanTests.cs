@@ -14,6 +14,65 @@ public sealed class OperationSourceScanTests
 
     private static readonly string[] _statusMembers = [.. Enum.GetNames<OrderStatus>(), .. Enum.GetNames<PaymentStatus>()];
 
+    public static TheoryData<string> ScanHandlers_OfAMarkedHandlerWithoutTheGate_IsAFinding_InEverySpellingOfTheMarkRows =>
+    [
+        "[GatedOperation] public IActionResult OnPostA() { return Page(); }",
+        "[GatedOperationAttribute] public IActionResult OnPostA() { return Page(); }",
+        "[Shopfolio.Infrastructure.Operations.GatedOperation] public IActionResult OnPostA() { return Page(); }",
+        "[HttpPost, GatedOperation] public IActionResult OnPostA() { return Page(); }",
+        "[GatedOperation, HttpPost] public IActionResult OnPostA() { return Page(); }",
+        "[GatedOperation()] [HttpPost] public IActionResult OnPostA() { return Page(); }",
+        "[GatedOperation]\n    public async Task<IActionResult> OnPostA(Guid id,\n        Input input) { return Page(); }",
+        "[GatedOperation] public IActionResult OnPostA() => Page();",
+    ];
+
+    public static TheoryData<string> ScanHandlers_OfAMarkedHandlerThatReachesTheGate_DirectlyOrThroughMethodsOfTheFile_IsCleanRows =>
+    [
+        "[GatedOperation] public IActionResult OnPostA() { OperationGate.Decide(r, c, 1); return Page(); }",
+        "[GatedOperation] public IActionResult OnPostA() { OperationGate . Decide(r, c, 1); return Page(); }",
+        "[GatedOperation] public IActionResult OnPostA() => Infrastructure.Operations.OperationGate.Decide(r, c, 1).IsAllowed ? Page() : Page();",
+        "[GatedOperation] public async Task<IActionResult> OnPostA() { var o = Services.GetRequiredService<GatedOrderOperation>(); await o.RunAsync(); return Page(); }",
+        "[GatedOperation] public IActionResult OnPostA() { return Go(); } private IActionResult Go() { return Next(); } private IActionResult Next() { OperationGate.Decide(r, c, 1); return Page(); }",
+    ];
+
+    public static TheoryData<string> ScanHandlers_OfACheckThatIsOnlyInACommentAStringOrTooFarAway_IsAFindingRows =>
+    [
+        "[GatedOperation] public IActionResult OnPostA() { return Go(); } private IActionResult Go() { // OperationGate.Decide\n return Page(); }",
+        "[GatedOperation] public IActionResult OnPostA() { /* GatedOrderOperation */ return Page(); }",
+        "[GatedOperation] public IActionResult OnPostA() { string s = \"OperationGate.Decide\"; return Page(); }",
+        "[GatedOperation] public IActionResult OnPostA() { string s = @\"GatedOrderOperation\"; return Page(); }",
+        "[GatedOperation] public IActionResult OnPostA() { return Go(); } private IActionResult Go() { return A(); } private IActionResult A() { return B(); } private IActionResult B() { return C(); } private IActionResult C() { return D(); } private IActionResult D() { OperationGate.Decide(r, c, 1); return Page(); }",
+    ];
+
+    public static TheoryData<string> ScanClient_OfAViewThatDecides_IsAFindingRows =>
+    [
+        "<p>@(Model.Order.OrderStatus)</p>",
+        "@if (x == PaymentStatus.Paid) { }",
+        "@{ var d = TurkeyTime.DateOf(Model.At); }",
+        "<p>@Model.At.AddDays(3)</p>",
+        "<p>@TimeProvider.System.GetUtcNow()</p>",
+        "@{ var t = DateTimeOffset.UtcNow; }",
+    ];
+
+    public static TheoryData<string> ScanClient_OfAViewThatOnlyShowsTheServersValues_IsCleanRows =>
+    [
+        "<p>@Model.Cancel.MaxQuantity</p>",
+        "<p>@DisplayFormat.Date(lastDay)</p>",
+        "@* OrderStatus *@",
+        "<!-- AddDays -->",
+        "<p>@Model.OrderStatusText</p>",
+    ];
+
+    public static TheoryData<string> ScanClient_OfAScriptThatDecides_IsAFindingRows =>
+    [
+        "if (row.status === 'Delivered') {}",
+        "const s = \"Shipped\";",
+        "const p = PartiallyRefunded;",
+        "const d = new Date();",
+        "const t = performance.now(); const x = d.getTime();",
+        "const y = d.getFullYear();",
+    ];
+
     [Fact]
     public void ApplicationSource_EveryGatedHandlerReachesTheGate()
     {
@@ -63,7 +122,7 @@ public sealed class OperationSourceScanTests
         string handlers = File.ReadAllText(Path.Combine(root, folder, "OperationSample.cshtml.cs"));
         string view = File.ReadAllText(Path.Combine(root, folder, "OperationSample.cshtml"));
 
-        Assert.Equal(3, System.Text.RegularExpressions.Regex.Matches(handlers, @"\[GatedOperation\]").Count);
+        Assert.Equal(3, System.Text.RegularExpressions.Regex.Count(handlers, @"\[GatedOperation\]"));
         Assert.Empty(OperationSourceScan.ScanHandlers(handlers));
         Assert.Empty(OperationSourceScan.ScanClient("OperationSample.cshtml", view, _statusTypes, _statusMembers));
     }
@@ -112,71 +171,42 @@ public sealed class OperationSourceScanTests
     }
 
     [Theory]
-    [InlineData("[GatedOperation] public IActionResult OnPostA() { return Page(); }")]
-    [InlineData("[GatedOperationAttribute] public IActionResult OnPostA() { return Page(); }")]
-    [InlineData("[Shopfolio.Infrastructure.Operations.GatedOperation] public IActionResult OnPostA() { return Page(); }")]
-    [InlineData("[HttpPost, GatedOperation] public IActionResult OnPostA() { return Page(); }")]
-    [InlineData("[GatedOperation, HttpPost] public IActionResult OnPostA() { return Page(); }")]
-    [InlineData("[GatedOperation()] [HttpPost] public IActionResult OnPostA() { return Page(); }")]
-    [InlineData("[GatedOperation]\n    public async Task<IActionResult> OnPostA(Guid id,\n        Input input) { return Page(); }")]
-    [InlineData("[GatedOperation] public IActionResult OnPostA() => Page();")]
+    [MemberData(nameof(ScanHandlers_OfAMarkedHandlerWithoutTheGate_IsAFinding_InEverySpellingOfTheMarkRows))]
     public void ScanHandlers_OfAMarkedHandlerWithoutTheGate_IsAFinding_InEverySpellingOfTheMark(string source)
     {
         Assert.Equal([(OperationSourceScan.GatedWithoutCheck, 1)], OperationSourceScan.ScanHandlers(source));
     }
 
     [Theory]
-    [InlineData("[GatedOperation] public IActionResult OnPostA() { OperationGate.Decide(r, c, 1); return Page(); }")]
-    [InlineData("[GatedOperation] public IActionResult OnPostA() { OperationGate . Decide(r, c, 1); return Page(); }")]
-    [InlineData("[GatedOperation] public IActionResult OnPostA() => Infrastructure.Operations.OperationGate.Decide(r, c, 1).IsAllowed ? Page() : Page();")]
-    [InlineData("[GatedOperation] public async Task<IActionResult> OnPostA() { var o = Services.GetRequiredService<GatedOrderOperation>(); await o.RunAsync(); return Page(); }")]
-    [InlineData("[GatedOperation] public IActionResult OnPostA() { return Go(); } private IActionResult Go() { return Next(); } private IActionResult Next() { OperationGate.Decide(r, c, 1); return Page(); }")]
+    [MemberData(nameof(ScanHandlers_OfAMarkedHandlerThatReachesTheGate_DirectlyOrThroughMethodsOfTheFile_IsCleanRows))]
     public void ScanHandlers_OfAMarkedHandlerThatReachesTheGate_DirectlyOrThroughMethodsOfTheFile_IsClean(string source)
     {
         Assert.Empty(OperationSourceScan.ScanHandlers(source));
     }
 
     [Theory]
-    [InlineData("[GatedOperation] public IActionResult OnPostA() { return Go(); } private IActionResult Go() { // OperationGate.Decide\n return Page(); }")]
-    [InlineData("[GatedOperation] public IActionResult OnPostA() { /* GatedOrderOperation */ return Page(); }")]
-    [InlineData("[GatedOperation] public IActionResult OnPostA() { string s = \"OperationGate.Decide\"; return Page(); }")]
-    [InlineData("[GatedOperation] public IActionResult OnPostA() { string s = @\"GatedOrderOperation\"; return Page(); }")]
-    [InlineData("[GatedOperation] public IActionResult OnPostA() { return Go(); } private IActionResult Go() { return A(); } private IActionResult A() { return B(); } private IActionResult B() { return C(); } private IActionResult C() { return D(); } private IActionResult D() { OperationGate.Decide(r, c, 1); return Page(); }")]
+    [MemberData(nameof(ScanHandlers_OfACheckThatIsOnlyInACommentAStringOrTooFarAway_IsAFindingRows))]
     public void ScanHandlers_OfACheckThatIsOnlyInACommentAStringOrTooFarAway_IsAFinding(string source)
     {
         Assert.Equal([(OperationSourceScan.GatedWithoutCheck, 1)], OperationSourceScan.ScanHandlers(source));
     }
 
     [Theory]
-    [InlineData("<p>@(Model.Order.OrderStatus)</p>")]
-    [InlineData("@if (x == PaymentStatus.Paid) { }")]
-    [InlineData("@{ var d = TurkeyTime.DateOf(Model.At); }")]
-    [InlineData("<p>@Model.At.AddDays(3)</p>")]
-    [InlineData("<p>@TimeProvider.System.GetUtcNow()</p>")]
-    [InlineData("@{ var t = DateTimeOffset.UtcNow; }")]
+    [MemberData(nameof(ScanClient_OfAViewThatDecides_IsAFindingRows))]
     public void ScanClient_OfAViewThatDecides_IsAFinding(string line)
     {
         Assert.Equal([(OperationSourceScan.ViewDecides, 1)], OperationSourceScan.ScanClient("src/Shopfolio.Web/Pages/A.cshtml", line, _statusTypes, _statusMembers));
     }
 
     [Theory]
-    [InlineData("<p>@Model.Cancel.MaxQuantity</p>")]
-    [InlineData("<p>@DisplayFormat.Date(lastDay)</p>")]
-    [InlineData("@* OrderStatus *@")]
-    [InlineData("<!-- AddDays -->")]
-    [InlineData("<p>@Model.OrderStatusText</p>")]
+    [MemberData(nameof(ScanClient_OfAViewThatOnlyShowsTheServersValues_IsCleanRows))]
     public void ScanClient_OfAViewThatOnlyShowsTheServersValues_IsClean(string line)
     {
         Assert.Empty(OperationSourceScan.ScanClient("src/Shopfolio.Web/Pages/A.cshtml", line, _statusTypes, _statusMembers));
     }
 
     [Theory]
-    [InlineData("if (row.status === 'Delivered') {}")]
-    [InlineData("const s = \"Shipped\";")]
-    [InlineData("const p = PartiallyRefunded;")]
-    [InlineData("const d = new Date();")]
-    [InlineData("const t = performance.now(); const x = d.getTime();")]
-    [InlineData("const y = d.getFullYear();")]
+    [MemberData(nameof(ScanClient_OfAScriptThatDecides_IsAFindingRows))]
     public void ScanClient_OfAScriptThatDecides_IsAFinding(string line)
     {
         Assert.Equal([(OperationSourceScan.ScriptDecides, 1)], OperationSourceScan.ScanClient("src/Shopfolio.Web/wwwroot/js/a.js", line, _statusTypes, _statusMembers));

@@ -436,9 +436,9 @@ public sealed class RequestLimitsTests
                 next(app);
                 app.UseEndpoints(endpoints =>
                 {
-                    endpoints.MapPost(GeneralPath, ReadBodyAsync).WithMetadata(new RequestBodyClassAttribute(RequestBodyClass.General));
-                    endpoints.MapPost(LongTextPath, ReadBodyAsync).WithMetadata(new RequestBodyClassAttribute(RequestBodyClass.LongText));
-                    endpoints.MapPost(MachinePath, ReadBodyAsync);
+                    endpoints.MapPost(GeneralPath, (Delegate)ReadBodyAsync).WithMetadata(new RequestBodyClassAttribute(RequestBodyClass.General));
+                    endpoints.MapPost(LongTextPath, (Delegate)ReadBodyAsync).WithMetadata(new RequestBodyClassAttribute(RequestBodyClass.LongText));
+                    endpoints.MapPost(MachinePath, (Delegate)ReadBodyAsync);
                     endpoints.MapGet(ProbePath, (HttpContext context) => $"{context.Request.Scheme}|{context.Request.IsHttps}|{ClientAddress.AxisOf(context)}");
                     endpoints.MapSignedEndpoint<DatabaseTestEndpoint, DatabaseTestNotice>(AntiforgeryExemptions.PaymentNotificationPath);
                 });

@@ -1,0 +1,10 @@
+@page "/panel/urun-listesi"
+@model Shopfolio.IntegrationTests.Pages.PanelProductListSampleModel
+<p class="list-address">@Model.ListAddress</p>
+<p class="shown-page">@Model.Result.PageNumber</p>
+<ul>
+@foreach (var item in Model.Result.Items)
+{
+    <li class="item"><a href="@Model.RecordLink(item.Id)">@item.Name</a></li>
+}
+</ul>

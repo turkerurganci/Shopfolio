@@ -10,6 +10,7 @@ using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Jobs;
+using Shopfolio.Infrastructure.Lists;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Infrastructure.Security;
@@ -34,7 +35,7 @@ builder.Services.AddAuditLineWriter();
 
 // The address rules (07 2.1): every page template is checked against the closed list of first path segments when the routes are built.
 // The input validation pattern (09 3.4): the rule attributes with their codes, the trimming binder, the one page filter and the catalog messages.
-builder.Services.AddRazorPages().AddAddressRules().AddSessionAccess().AddFieldValidation().AddFormSecurity();
+builder.Services.AddRazorPages().AddAddressRules().AddSessionAccess().AddFieldValidation().AddFormSecurity().AddListPattern();
 
 // The two identity schemes, their policies and the closed doors (07 2.3.1; 09 15.1 item 2): the panel and the account folders are closed by folder path.
 builder.Services.AddSessionAuthentication();

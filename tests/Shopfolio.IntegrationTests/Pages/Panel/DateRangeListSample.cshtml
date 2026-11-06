@@ -1,0 +1,10 @@
+@page "/panel/tarih-araligi"
+@model Shopfolio.IntegrationTests.Pages.DateRangeListSampleModel
+<p class="applied">@Model.Applied</p>
+@foreach (var entry in ViewData.ModelState)
+{
+    foreach (var error in entry.Value!.Errors)
+    {
+        <span class="error" data-field="@entry.Key">@error.ErrorMessage</span>
+    }
+}

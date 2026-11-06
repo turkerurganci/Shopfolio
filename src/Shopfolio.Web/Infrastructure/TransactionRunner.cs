@@ -10,7 +10,7 @@ namespace Shopfolio.Infrastructure;
 /// <summary>
 /// The one transaction runner (09 9.1 item 3). It takes the scope's context from its constructor, opens the transaction, and ends it in one of
 /// three ways: commit after a result that is not refused, roll back after a refused result, roll back and throw again after an exception.
-/// There is no commit in a <c>finally</c> (09 8.1 item 5) and no retry (09 10.7 item 4). The locks the work takes (<see cref="AdvisoryLocks"/>,
+/// There is no commit in a <c>finally</c> (09 8.1 item 5) and no retry (09 10.7 item 4), except the one overload that names unique indexes and runs the whole work again at most <see cref="UniqueConflictAttempts"/> times (09 9.4 item 3). The locks the work takes (<see cref="AdvisoryLocks"/>,
 /// the order row lock, the counters' conditional updates) are transaction scoped and fall with the transaction.
 /// </summary>
 internal sealed class TransactionRunner : ITransactionRunner

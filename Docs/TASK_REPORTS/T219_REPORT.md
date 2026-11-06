@@ -93,7 +93,7 @@ Bütün maddeler bu turda kendi diff'imde yeniden denetlendi.
 
 - **Branch:** `task/T219-arama-motoru-verileri`
 - **Commit:** bkz. PR (son commit dal başı)
-- **PR:** #PR_NO
+- **PR:** #413
 - **CI:** yapım chat'i beklemedi (yönetici düzeni); yönetici izler
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
 

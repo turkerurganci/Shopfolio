@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-06 — T219 (Arama motoru verileri kalıbı) yapım tamamlandı, doğrulama bekliyor (dal `task/T219-arama-motoru-verileri`, PR #PR_NO; kriter 1–8, KK1–KK8 ve `09 §25` öz denetim tablosu raporda; Unit 2773, Integration 1715; yeni tablo/göç yok; backlog'da hedefi T219 olan kayıt yok). T217 Commit hücresi `d2b5379` ve raporunun Post-merge satırı dolduruldu. Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-06 — T219 (Arama motoru verileri kalıbı) yapım tamamlandı, doğrulama bekliyor (dal `task/T219-arama-motoru-verileri`, PR #413; kriter 1–8, KK1–KK8 ve `09 §25` öz denetim tablosu raporda; Unit 2773, Integration 1715; yeni tablo/göç yok; backlog'da hedefi T219 olan kayıt yok). T217 Commit hücresi `d2b5379` ve raporunun Post-merge satırı dolduruldu. Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -118,7 +118,7 @@
 | T216 | Tarih, sayı ve para biçimi: istek ve gösterim | ✓ | ✓ PASS (tur 1) | `9ab9bec` | #411 |
 | T217 | Yapılabilir işlemlerin sunucuda üretimi ve POST işleyicisinde yeniden denetim | ✓ | ✓ PASS (tur 3; tur 1–2 ✗ FAIL) | `d2b5379` | #412 |
 | T218 | Dokuz modülün iskeleti ve Contracts | ✓ | ✓ PASS (tur 3) | `d82b943` | #380 |
-| T219 | Arama motoru verileri kalıbı | ⏳ Devam ediyor | — | — | #PR_NO |
+| T219 | Arama motoru verileri kalıbı | ⏳ Devam ediyor | — | — | #413 |
 | T220 | İş kuyruğu çalıştırıcısı | ✓ | ✓ PASS (tur 1) | `6a1ca3a` | #393 |
 | T221 | Zamanlayıcı | ✓ | ✓ PASS (tur 3) | `f8feec5` | #394 |
 | T222 | Anahtarlar ve tek kullanımlık bağlantılar | ✓ | ✓ PASS (tur 1) | `11fcfb3` | #392 |

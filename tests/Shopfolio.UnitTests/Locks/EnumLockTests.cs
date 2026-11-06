@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.UnitTests.Samples;
 using Shopfolio.UnitTests.Support;
@@ -80,6 +81,17 @@ public sealed class EnumLockTests
     }
 
     [Fact]
+    public void TheErrorCodeRegistry_HasALockFile_EqualToItsMembersBothWays_KK1()
+    {
+        string root = RepositoryRoot.Find();
+        string file = EnumLock.FilePath(root, typeof(ErrorCode));
+
+        Assert.Contains(typeof(ErrorCode), StoredEnums());
+        Assert.True(File.Exists(file), "The lock file of ErrorCode is missing.");
+        Assert.Empty(EnumLock.Compare(EnumLock.ReadNames(File.ReadAllText(file)), Enum.GetNames<ErrorCode>()));
+    }
+
+    [Fact]
     public void Compare_WhenAMemberIsAddedAndTheFileIsNotUpdated_Fails()
     {
         IReadOnlyList<string> findings = EnumLock.Compare(["Placed", "Preparing"], ["Placed", "Preparing", "Shipped"]);
@@ -108,8 +120,14 @@ public sealed class EnumLockTests
         DbContextOptionsBuilder<Shopfolio.Infrastructure.AppDbContext> options = new();
         Shopfolio.Infrastructure.AppDbContext.Configure(options, "Host=localhost;Database=shopfolio_lock_model");
         using Shopfolio.Infrastructure.AppDbContext context = new(options.Options);
-        return ApplicationEnums.Persistent().Concat(ModelEnums(context)).Distinct().ToList();
+        return ApplicationEnums.Persistent().Concat(ModelEnums(context)).Concat(NamedEnums).Distinct().ToList();
     }
+
+    /// <summary>
+    /// The enums that are no stored value but whose names are a contract all the same, added to the set by name (D-47 item 2): <c>ErrorCode</c> - the log
+    /// and every comparison carry its names, and a code once given does not change (07 6.1.1; 09 8.2 item 1, 12 item 3). <c>NoticeCode</c> joins in T214.
+    /// </summary>
+    private static readonly Type[] NamedEnums = [typeof(ErrorCode)];
 
     private static IEnumerable<Type> ModelEnums(DbContext context)
     {

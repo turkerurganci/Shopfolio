@@ -74,7 +74,7 @@ internal sealed partial class UnexpectedErrorLayer
         bool machine = context.GetEndpoint()?.Metadata.GetMetadata<MachineEndpointMetadata>() is not null;
         ErrorState state = ErrorClassifier.Classify(context.Request.Method, machine, mark is not null);
 
-        LogUnexpected(_logger, exception, LogEvents.UnexpectedError, UnexpectedErrorCodes.For(state), state.ToString(), state == ErrorState.OutcomeUncertain ? mark?.Operation : null);
+        LogUnexpected(_logger, exception, LogEvents.UnexpectedError, ErrorClassifier.CodeOf(state).ToString(), state.ToString(), state == ErrorState.OutcomeUncertain ? mark?.Operation : null);
         _counter.Record();
 
         string? target = state == ErrorState.OutcomeUncertain ? TargetOf(context, mark) : null;
@@ -136,7 +136,7 @@ internal static class UnexpectedErrorAnswer
             response.StatusCode = StatusCodes.Status500InternalServerError;
             response.ContentType = null;
             response.ContentLength = null;
-            response.Headers.CacheControl = "no-store";
+            response.Headers.CacheControl = Security.SecurityHeaders.NoStore;
             switch (resolution.State)
             {
                 case ErrorState.MachineEndpoint:

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 
 namespace Shopfolio.Infrastructure.Security;
@@ -26,10 +27,12 @@ internal sealed class ForgeryProtectionFilter : IAsyncPageFilter, IOrderedFilter
     public const string Message = "İşlem tamamlanamadı. Sayfanın süresi dolmuş olabilir; yazdıklarınız korundu, aynı düğmeyle yeniden deneyin.";
 
     private readonly IAntiforgery _antiforgery;
+    private readonly RejectionLog _rejections;
 
-    public ForgeryProtectionFilter(IAntiforgery antiforgery)
+    public ForgeryProtectionFilter(IAntiforgery antiforgery, RejectionLog rejections)
     {
         _antiforgery = antiforgery;
+        _rejections = rejections;
     }
 
     public int Order => FilterOrder;
@@ -52,6 +55,9 @@ internal sealed class ForgeryProtectionFilter : IAsyncPageFilter, IOrderedFilter
             await next();
             return;
         }
+
+        // The refusal is a rejection like the others: one line with the code and no value (09 8.2 item 3; D-132).
+        _rejections.Rejected(ErrorCode.AntiforgeryValidationFailed);
 
         if (context.HandlerInstance is not PageModel page)
         {

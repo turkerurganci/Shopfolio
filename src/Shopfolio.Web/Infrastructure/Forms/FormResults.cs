@@ -97,6 +97,16 @@ internal static class FormResults
     internal static IActionResult UnexpectedFailure(PageModel page)
     {
         ArgumentNullException.ThrowIfNull(page);
+
+        // The same header set as the layer's own 500 (UnexpectedErrorAnswer; 09 15.2 item 5; D-140): the page again carries the sent values. Written when
+        // the response starts, after the form tag's token has set its own pair, as the no-store attribute does.
+        page.HttpContext.Response.OnStarting(
+            static state =>
+            {
+                ((HttpContext)state).Response.Headers.CacheControl = Security.SecurityHeaders.NoStore;
+                return Task.CompletedTask;
+            },
+            page.HttpContext);
         PageResult result = page.Page();
         result.StatusCode = StatusCodes.Status500InternalServerError;
         return result;

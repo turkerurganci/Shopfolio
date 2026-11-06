@@ -64,7 +64,7 @@
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests -c Release` (Consistency ayrı) | 2427 + 207 = 2634, başarısız 0 (yeni: `OperationGateTests`, `OperationSourceScanTests` — 65 test satırı) |
-| Integration | ✓ | `dotnet test tests/Shopfolio.IntegrationTests -c Release` (Postgres 18 konteyneri) | 1595, başarısız 0, atlanan 0 (yeni: `OperationPatternTests` 13) |
+| Integration | ✓ | `dotnet test tests/Shopfolio.IntegrationTests -c Release` (Postgres 18 konteyneri) | 1695, başarısız 0, atlanan 0 — validator düzeltmesi: yapım 1595 yazmıştı; CI 42236914259 `total: 1695` ve doğrulayıcının parça koşuları 508 + 182 + 112 + 482 + 411 = 1695 = T216'nın 1682'si + 13 (yeni: `OperationPatternTests` 13) |
 | Contract | — | — | bu task'ta yok |
 | Derleme/biçim | ✓ | `dotnet build -c Release -warnaserror`; `dotnet format --verify-no-changes` | 0 uyarı, değişiklik yok |
 
@@ -72,10 +72,16 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | (validator doldurur) |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-06, head `3cb1380`) |
+| Bulgu sayısı | 1 (B1 ORTA, S1) |
+| Düzeltme gerekli mi | Evet — B1 |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-154, K2 bu PR'da kapatıldı) |
+
+### Doğrulama tur 1 — ✗ FAIL
+
+**B1 (ORTA, S1; kriter 3, 8; KK3, KK8; `09 §25` "kod hiçbir doküman cümlesiyle çelişmiyor mu"):** kalıp gerçek bir sayfada kullanılamıyor. `09 §8.3` madde 3 `GatedOrderOperation`'ı "giriş noktasının (sayfa işleyicisinin) işlem sahipliği" yapar; ama sınıf `Shopfolio.Modules.Ordering` ad alanındadır (`Contracts` dışı) ve `09 §6` madde 2 ve 7 sayfanın modülün `Contracts` dışı türüne başvurmasını ve onu enjekte etmesini yasaklar. Doğrulayıcı sondası: `src/Shopfolio.Web/Pages/Panel/` altına `GatedOrderOperation`'ı enjekte edip `RunAsync` çağıran geçici bir sayfa modeli eklenince `ModuleBoundaryTests.PagesAndEndpoints_InApplicationAssembly_TouchNeitherModuleInternalsNorTheContext` kırmızı ("ValidatorProbeT217Model does …"); sonda silindi. Örnek sayfa test derlemesinde (`Shopfolio.IntegrationTests.Pages`) durduğu için sınır testinin kapsamı dışındadır ve çelişkiyi gizler — örnek sayfa `AppDbContext`'e ve varlıklara da doğrudan dokunur. Aynı boşluk GET tarafında da var: ürünün kuralları modülün iç türü olursa sayfa GET'te kural örneğine `Contracts` dışından ulaşamaz; `09 §8.3` kuralın ve kapılı sipariş işleminin sayfaya hangi `Contracts` yüzeyiyle ulaştığını yazmıyor. Beklenen: kalıp `09 §6`'ya uyan bir yolla sunulur (ör. sipariş işlemini ve kural değerlendirmesini `Ordering.Contracts` arayüzünden veren bir yüzey, işlemi sayfanın `ITransactionRunner`'ı açar; `09 §6` madde 3 ve `§9.1` madde 3 ile), `09 §8.3` madde 1 ve 3 bunu yazar ve örnek sayfa ya da bir mimari test gerçek `Shopfolio.Pages` ad alanındaki kullanımın sınır testinden geçtiğini gösterir.
+
+Kriter 1, 2, 4–7 ve KK1, KK2, KK4–KK7 ✓ (kriter 7 örnek kuralla; gerçek kurallar D-153). Doğrulayıcı ayrıca sınadı: üç reddedilen POST (müşteri 303, panel 422, panel 409) sonrası **bütün tabloların** içerik özeti değişmedi; Türkiye gece yarısı sınırında (20:59:59Z açık, 21:00:00Z kapalı) son gün doğru davranıyor (geçici sondalar, silindi). Unit 2634, Integration 1695 geçti, 0 atlanan; dal CI 42236914259 yeşil. K1: tarama darlıkları → D-154. K2: Integration sayısı 1595 → 1695 (rapor, durum, hafıza) bu PR'da düzeltildi. `12` satırlarının `Durum`'u değişmedi (T217'nin KP'si yok; `07 §8.1`'i anan VAL-A578, VAL-A716, VAL-B097, VAL-B117 ekran task'larınındır).
 
 ## Altyapı Değişiklikleri
 
@@ -113,4 +119,4 @@ Bu task'ın hedefi olan başka backlog kaydı yoktur (`grep -n T217 Docs/DEFERRE
 - **Önceki task kaydı:** T216 status Commit hücresi (`9ab9bec`) ve `T216_REPORT` post-merge satırı dolduruldu (skill adım 15); eski durum girişi `STATUS_CHANGELOG.md`'ye taşındı.
 - **Repo memory (bitiş kapısı 9):** güncellendi
 - **⚠ Kararlar:** (1) gerçek ekran kuralları F3–F5'te, T217'de örnek kural; (2) müşterinin "kapalı"sı bildirimde `OperationClosed`, kayıt satırında `OperationNotAvailable`; yeni kod yok.
-- **Diğer:** Integration toplamı (1595) tek tam koşudur; T216 raporundaki 1682 parça koşularıyla toplanmıştı; sayım yöntemi farklı olduğundan doğrudan karşılaştırılmadı (bu koşuda 0 başarısız, 0 atlanan).
+- **Diğer:** Integration toplamı (1595; validator: doğrusu 1695 — CI ve parça koşuları) tek tam koşudur; T216 raporundaki 1682 parça koşularıyla toplanmıştı; sayım yöntemi farklı olduğundan doğrudan karşılaştırılmadı (bu koşuda 0 başarısız, 0 atlanan).

@@ -75,6 +75,8 @@ public sealed class VersionedSideBulkWriteScanTests
                 (VersionedSideBulkWriteScan.RawStatementOnSide, 18),
                 (VersionedSideBulkWriteScan.RawStatementOnSide, 19),
                 (VersionedSideBulkWriteScan.RawStatementOnSide, 21),
+                (VersionedSideBulkWriteScan.RawStatementOnSide, 44),
+                (VersionedSideBulkWriteScan.RawStatementOnSide, 45),
             ],
             findings);
     }
@@ -109,6 +111,8 @@ public sealed class VersionedSideBulkWriteScanTests
                 (VersionedSideBulkWriteScan.BulkWriteInSideModule, 29),
                 (VersionedSideBulkWriteScan.BulkWriteInSideModule, 38),
                 (VersionedSideBulkWriteScan.BulkWriteInSideModule, 39),
+                (VersionedSideBulkWriteScan.RawStatementOnSide, 44),
+                (VersionedSideBulkWriteScan.RawStatementOnSide, 45),
             ],
             findings);
     }

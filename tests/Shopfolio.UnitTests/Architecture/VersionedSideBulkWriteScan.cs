@@ -11,9 +11,9 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <list type="number">
 /// <item>A statement that names a set of the order side or of the product form (<c>db.Orders</c>, <c>db.Variants</c>, <c>Set&lt;Order&gt;()</c>) and ends in a bulk
 /// write (<c>ExecuteUpdate</c>, <c>ExecuteDelete</c>) or hands the rows to <c>CurrentStateWrite</c>.</item>
-/// <item>A raw statement (<c>ExecuteSql*</c>, <c>SqlQuery</c>) that holds <c>UPDATE</c>, <c>DELETE FROM</c> or <c>INSERT INTO</c> of a table of those sides.</item>
+/// <item>The text of a raw write - <c>UPDATE</c>, <c>DELETE FROM</c> or <c>INSERT INTO</c> of a table of those sides - wherever it is handed to the database (<c>ExecuteSql*</c>, <c>SqlQuery</c>, a command object's <c>CommandText</c>, a variable).</item>
 /// <item>A bulk write of any kind inside the modules that own those sides (<c>Ordering</c>, <c>AfterSales</c>, <c>Payment</c>, <c>Catalog</c>) outside the closed list of
-/// the places that have one (the counters' one writer, the guest cart's disposal, the image derivative job): a set reached through a variable or a helper is
+/// the places that have one (the counters' one writer, the guest cart's disposal, the image derivative job, the disposal of unlinked images): a set reached through a variable or a helper is
 /// not named in its statement, but the module is.</item>
 /// </list>
 /// A bulk write of a set outside the sides (sessions, links, heartbeats, the job queue) is not a finding. The sets and the tables are the ones the two
@@ -54,12 +54,13 @@ internal static partial class VersionedSideBulkWriteScan
         "src/Shopfolio.Web/Modules/Ordering/", "src/Shopfolio.Web/Modules/AfterSales/", "src/Shopfolio.Web/Modules/Payment/", "src/Shopfolio.Web/Modules/Catalog/",
     ];
 
-    /// <summary>The places inside those modules that have a bulk write: the counters' one writer, the guest cart's disposal (a cart is no order), the image derivative job (an image is no product row).</summary>
+    /// <summary>The places inside those modules that have a bulk write: the counters' one writer, the guest cart's disposal (a cart is no order), the image derivative job and the disposal of unlinked images (an image row with no link left is no product row).</summary>
     public static readonly IReadOnlyList<string> AllowedPlaces =
     [
         "src/Shopfolio.Web/Modules/Catalog/StockCounters.cs",
         "src/Shopfolio.Web/Modules/Ordering/GuestCartDisposalPart.cs",
         "src/Shopfolio.Web/Modules/Catalog/ImageDerivativeJobHandler.cs",
+        "src/Shopfolio.Web/Modules/Catalog/ImageDisposalParts.cs",
     ];
 
     public static bool Applies(string relativePath)
@@ -90,12 +91,10 @@ internal static partial class VersionedSideBulkWriteScan
                 }
             }
 
-            foreach (Match raw in RawStatement().Matches(clean))
+            // The text of the write is the finding, wherever it is handed to the database: ExecuteSql*, SqlQuery, a command object's CommandText, a variable.
+            foreach (Match raw in RawOnSide().Matches(clean))
             {
-                if (RawOnSide().IsMatch(raw.Value))
-                {
-                    AddAt(findings, RawStatementOnSide, clean, raw.Index + RawOnSide().Match(raw.Value).Index);
-                }
+                AddAt(findings, RawStatementOnSide, clean, raw.Index);
             }
 
             if (SideModules.Any(m => path.StartsWith(m, StringComparison.Ordinal)))
@@ -149,13 +148,9 @@ internal static partial class VersionedSideBulkWriteScan
         matchTimeoutMilliseconds: 5000)]
     private static partial Regex NamedSetPattern();
 
-    // A raw statement: ExecuteSql / ExecuteSqlRaw / ExecuteSqlInterpolated / SqlQuery, with its text to the end of the statement.
-    [GeneratedRegex(@"\b(?:ExecuteSql\w*|SqlQuery\w*)\s*(?:<[^()]*>)?\s*\([^;]*;", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
-    private static partial Regex RawStatement();
-
     // UPDATE orders ..., DELETE FROM variants ..., INSERT INTO refunds ...: the text of a write to a table of the two sides, quoted or not, schema-qualified or not.
     [GeneratedRegex(
-        @"\b(?:UPDATE|DELETE\s+FROM|INSERT\s+INTO)\s+(?:ONLY\s+)?(?:""?public""?\.)?""?(?:orders|order_items|cancellations|item_removals|late_delivery_terminations|withdrawals|returns|return_rejections|not_returned_closures|defect_claims|refund_iban_requests|payment_records|refunds|refund_records|refund_ibans|order_address_histories|order_email_histories|stock_reservations|checkbox_acceptances|checkbox_acceptance_order_items|products|variants|options|option_values|product_categories|product_images|discounts)""?(?![\w])",
+        @"\b(?:UPDATE|DELETE\s+FROM|INSERT\s+INTO)\s+(?:ONLY\s+)?(?:(?:\\?"")?public(?:\\?"")?\.)?(?:\\?"")?(?:orders|order_items|cancellations|item_removals|late_delivery_terminations|withdrawals|returns|return_rejections|not_returned_closures|defect_claims|refund_iban_requests|payment_records|refunds|refund_records|refund_ibans|order_address_histories|order_email_histories|stock_reservations|checkbox_acceptances|checkbox_acceptance_order_items|products|variants|options|option_values|product_categories|product_images|discounts)(?:\\?"")?(?![\w])",
         RegexOptions.CultureInvariant | RegexOptions.IgnoreCase,
         matchTimeoutMilliseconds: 5000)]
     private static partial Regex RawOnSide();

@@ -176,6 +176,26 @@ public sealed class FormVersionSourceScanTests
         Assert.Empty(FormVersionSourceScan.Scan("src/Shopfolio.Web/Pages/A.cshtml.cs", text));
     }
 
+    // The two rules must not lock each other (the page scan wants a named handler and no module internals, this scan wants the helper and no model-state field):
+    // the sample pages of the integration tests are written in the shape a real page has, and both scans read them as application pages.
+    [Theory]
+    [InlineData("VersionedProduct.cshtml")]
+    [InlineData("VersionedProduct.cshtml.cs")]
+    [InlineData("VersionedStock.cshtml")]
+    [InlineData("VersionedStock.cshtml.cs")]
+    [InlineData("VersionedOrder.cshtml")]
+    [InlineData("VersionedOrder.cshtml.cs")]
+    public void TheSamplePagesOfTheVersionedForms_PassTheFormVersionScanAndThePageScan(string file)
+    {
+        string text = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "tests", "Shopfolio.IntegrationTests", "Pages", "Panel", file));
+        string asApplicationPage = "src/Shopfolio.Web/Pages/Panel/" + file;
+
+        Assert.Empty(FormVersionSourceScan.Scan(asApplicationPage, text));
+        // The sample handlers read the context and the module internals to stay small; those two rules are the sample's own and not the shape under test.
+        IReadOnlyList<(string Rule, int Line)> pageFindings = PageSourceScan.Scan(asApplicationPage, text);
+        Assert.DoesNotContain(pageFindings, f => f.Rule != PageSourceScan.ViewTouchesContext && f.Rule != PageSourceScan.ViewTouchesModuleInternals);
+    }
+
     private static string ReadSample(string name) =>
         File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "tests", "Shopfolio.UnitTests", "Architecture", "ViolationSamples", "Forms", name));
 }

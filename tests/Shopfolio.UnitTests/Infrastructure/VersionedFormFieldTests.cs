@@ -198,7 +198,7 @@ public sealed class VersionedFormFieldTests
     [Fact]
     public void RecordSaveControl_WithAConflict_IsTheMessageTheLinkToTheCurrentStateInANewTabAndOneSubmitButton()
     {
-        string html = VersionFields.Render(ConflictControls.RecordSaveControl(true, "/panel/urun/ornek-urun"));
+        string html = System.Net.WebUtility.HtmlDecode(VersionFields.Render(ConflictControls.RecordSaveControl(true, "/panel/urun/ornek-urun")));
 
         Assert.Contains(ConflictControls.RecordMessage, html, StringComparison.Ordinal);
         Assert.Contains("role=\"alert\"", html, StringComparison.Ordinal);
@@ -231,7 +231,7 @@ public sealed class VersionedFormFieldTests
     {
         string html = VersionFields.Render(ConflictControls.OrderNotice(ConflictControls.OrderMessage));
 
-        Assert.Contains("Sipariş siz bakarken değişti; işlem uygulanmadı. Siparişin güncel hâli aşağıda.", html, StringComparison.Ordinal);
+        Assert.Contains("Sipariş siz bakarken değişti; işlem uygulanmadı. Siparişin güncel hâli aşağıda.", System.Net.WebUtility.HtmlDecode(html), StringComparison.Ordinal);
         Assert.DoesNotContain("<button", html, StringComparison.Ordinal);
         Assert.DoesNotContain("<a ", html, StringComparison.Ordinal);
         Assert.DoesNotContain("Yine de", html, StringComparison.Ordinal);

@@ -38,4 +38,11 @@ internal sealed class BulkWrites
         await rows.ExecuteUpdateAsync(s => s.SetProperty(o => o.BillingDistrict, "x"), ct);
         await db.Database.ExecuteSqlAsync($"SELECT 1", ct);
     }
+
+    public void Command(NpgsqlCommand command)
+    {
+        command.CommandText = "UPDATE products SET description = 'x'";
+        string sql = "DELETE FROM orders WHERE 1 = 0";
+        command.CommandText = "SELECT count(*) FROM orders";
+    }
 }

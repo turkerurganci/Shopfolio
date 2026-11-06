@@ -105,7 +105,7 @@ Her madde `git diff origin/main...HEAD` üzerinde yeniden denetlendi; testler bu
 - **Commit:** `ff848b9` — yapım; ardından PR numarası commit'i geldi
 - **PR:** #403
 - **CI:** dal CI 42133128685 (head `cade300`) success — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate
-- **Post-merge run'lar:** *(merge'den sonra; sonraki task dalında doldurulur)*
+- **Post-merge run'lar:** squash `3226fcd` (#403) — CI 42138101595 success, Publish 42138101567 success (T208 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

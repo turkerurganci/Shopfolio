@@ -2,7 +2,7 @@
 // Line numbers are part of the test. A full-line comment that says If-Match, ETag, ?Version=1 or asp-route-version is not a finding.
 internal sealed class VersionCarriage
 {
-    public static IActionResult Redirects(RecordInput input)
+    public static IActionResult Moves(RecordInput input)
     {
         FormResults.SeeOther($"/panel/urun?Version={input.Version}");
         FormResults.SeeOther($"/panel/urun/{input.Id}/{input.Version}");

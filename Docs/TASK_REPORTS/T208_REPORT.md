@@ -1,6 +1,6 @@
 # T208 — Sürümün ve gösterilen değerin formda taşınması, koşullu güncelleme
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (yapım tamamlandı, doğrulama bekliyor) | **Tarih:** 2026-11-06
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-06
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -80,10 +80,23 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-06, head `3247026`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 → D-129 (eksik `Original` alanı boş değerle eşleşir; `09 §10.2` m.4 ve `ShownValue` açıklaması "eksik alan eşleşme değildir" der), K2 → D-130 (örnek `VersionedOrder` müşteri reddi 409 + yönetici iletisi; `07 §2.4.3` 303 → kök ister; T212 madde 4) |
+
+### Doğrulayıcının kanıtları (tur 1)
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana checkout'un bekçileri); ana dal son 3 run 42149223898, 42149223864, 42138101567 success; `grep T208 .claude/memory/MEMORY.md` satır 22.
+- **Dal CI:** 42150380946 (head `3247026`) success — Lint, Build, Unit (1762), Integration (1413), Contract, Migration dry-run, Paketleme, E2E, CI Gate.
+- **Yerel:** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` çıkış 0; Unit (+Consistency) 1931/1931 (T208'in üç test sınıfı 173/173); betik testleri 4 dosya; Integration 1413/1413 gerçek PostgreSQL 18'de (127.0.0.1) parça parça — Web+Pages 241 (`VersionedFormPageTests` 21), Security+Concurrency+SignedEndpoints 54, Jobs+Disposal+Outages 103, Database+FileSecrets+Files+Logging 122, Model 499 + 394 (`--max-threads 3`); CI'ın 1413'üyle eşit. Koşu sonrası `git status` temiz, `dotnet restore --locked-mode` çıkış 0.
+- **Geçici doğrulayıcı testleri (koşuldu, sonra geri alındı):** (1) müşterinin kalem iptali ekrandaki açık adetle iki kez gönderilir → ilki 303, ikincisi işlenmez, tek iptal kaydı, sürüm +1 (kriter 8'in müşteri payı); (2) yönetici araya adres (ilçe) düzeltmesi yazar, müşterinin iptali eski ekranın açık adediyle gönderilir → 303 ve uygulanır, sürüm +2 (`VAL-A614`). İkisi 1/1 yeşil.
+- **Kod okuması:** `RecordSave.SaveAsync` izlenmeyen kayıtta `InvalidOperationException`, erken karşılaştırma, `BumpVersion`, `DbUpdateConcurrencyException` yalnız burada `VersionConflict`; eşzamanlı iki kayıt testinde ikisi aynı sürümü yükler, biri yazar, öteki gerçek veritabanında 0 satırla reddedilir (kriter 4). `VersionFields` değeri `TagBuilder` ile işleyicinin verdiği değerden yazar (model durumundan değil), sütun adı `Version` / `…Version` (`06 §4`: `PaymentMethodsVersion`). 13 varlık `IVersionedRecord`; `06 §2.6.2` listesiyle (ürün, kupon, kurumsal içerik, marka, firma kimliği, yasal metin) ve sipariş ile eşit; çok sürümlü firma ayarları dışarıda. Stok yazımı `StockCounters.SaveStockQuantityAsync` gösterilen değeri ve ayrılmış adedi tek `ExecuteUpdate` koşulunda taşır.
+- **Taramalar:** `FormVersionSourceScan` istisnasız; ihlal örnekleri ayrı dosyalarda (`ViolationSamples/Forms/VersionCarriage.cs`, `VersionFields.cshtml`), satırları teste yazılı. `VersionedSideBulkWriteScan` izin listesi tam yolla dört dosya; `StockCounters` dışındaki üçü yan küme ya da tablo adı taşımaz (`AllowedPlaces_ExceptTheCountersFile_…`; elle denetim: `Carts`, `Images`, `images` tablosu); aynı adlı dosya başka yolda izinli değil; küme listesi bekçilerin kapsadığı kümelerle testle eşli; ihlal örneği `ViolationSamples/BulkWrites/VersionedSides.cs`.
+- **D-95 (c):** kapandı — izlenmeyen kayıt reddi (`RecordSave_OfARecordThatIsNotTracked_IsAProgrammingError`) ve toplu yazım taraması; (a) sıra gerekçesi `09 §10.2` m.3'te, (a)(b) kendisi T348'de; satırın hedef sütunu güncel.
+- **Task satırları (`12 §7.5`):** `VAL-A610` (kriter 5), `VAL-A611` (kriter 5), `VAL-A612` (kriter 6), `VAL-A613` (kriter 8), `VAL-A614` (kriter 2, 9; geçici test 2) → PASS: `07 §2.4`'ün mekanizma satırlarıdır ve beklenen sonuçları örnek sayfalarda uç yanıtı + veri kaydıyla tam gözlendi. `BEKLEMEDE` kalanlar: `VAL-A582`, `VAL-A689` (müşteriye 303 → kök — T212 madde 4 ve müşteri işlem task'ları), `VAL-A712` (yöneticinin kalem işlemi, sipariş task'ı), `VAL-A744` (elle sıra), `VAL-A757`, `VAL-A758` (ayar bölümleri), KP-76 satırları `VAL-A371`, `A372`, `C076`–`C078` (uç ve tarayıcı düzeyi; T364, T542 ve sipariş task'ları — T228 emsali). `12_matris_denetle.py --kapsam 1-77`: Hata 0.
+- **Güvenlik:** sır yok; yetki etkisi yok (örnek sayfalar yalnız test projesinde, `[IgnoreAntiforgeryToken]` `src/`'de yok); girdi: gösterilen sayı `NumberStyles.None` ile okunur, "Güncel hâli aç" yalnız site yolu (`FormResults.IsLocalPath`), alanlar kodlanır; yeni bağımlılık yok (`*.csproj`, kilit dosyaları değişmedi).
+- **Yapım raporu karşılaştırması:** sonuçlar uyumlu. Uyuşmazlık 1: öz denetim `12` satırlarını `VAL-A610`, `A611`, `A744` diye eşler — `A744` elle sıranın satırıdır (T208'in değil), `A612`–`A614` ve KP-76 satırları anılmamış. Uyuşmazlık 2: kriter 8'in müşteri payı için gösterilen test çift gönderim değil eski adet gönderimidir; doğrulayıcı çift gönderimi geçici testle sınadı. Öz denetim tablosu her madde için kanıt taşıyor.
 
 ## Altyapı Değişiklikleri
 
@@ -97,7 +110,7 @@
 - **Branch:** `task/T208-surum-gosterilen-deger`
 - **Commit:** son commit PR'ın başıdır (aşağıdaki PR numarasıyla birlikte)
 - **PR:** #404
-- **CI:** yapım işçisi izlemez; dal CI'ı yardımcı izler
+- **CI:** dal CI 42150380946 (head `3247026`) success — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
 
 ## Dış Varsayımlar

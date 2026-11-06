@@ -109,7 +109,7 @@
 | T207 | Kimlik şemaları ve erişim reddi | ✓ | ✓ PASS (tur 1) | `3226fcd` | #403 |
 | T208 | Sürümün ve gösterilen değerin formda taşınması, koşullu güncelleme | ✓ | ✓ PASS (tur 1) | `aeab023` | #404 |
 | T209 | Tek kullanımlık değerler, tekrar gönderim, sahteciliğe karşı koruma ve güvenlik başlıkları | ✓ | ✓ PASS (tur 1) | `088168e` | #405 |
-| T210 | Liste kalıbı | ⏳ | — | — | PR |
+| T210 | Liste kalıbı | ⏳ | — | — | #406 |
 | T211 | Model bağlama kalıbı | ✓ | ✓ PASS (tur 2; tur 1 ✗ FAIL) | `da20c4e` | #402 |
 | T212 | Hata gösterimi ve HTTP durumları | ⬚ | — | — | — |
 | T213 | Hata kodu kayıt defteri | ⬚ | — | — | — |

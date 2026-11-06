@@ -91,7 +91,7 @@
 
 - **Branch:** `task/T210-liste-kalibi`
 - **Commit:** son commit PR'ın başıdır
-- **PR:** #PRNO
+- **PR:** #406
 - **CI:** *(yapım işçisi izlemez; yönetici izler)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
 

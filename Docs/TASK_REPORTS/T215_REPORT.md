@@ -28,8 +28,8 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Gövde tavanı uç sınıfı başına | ✓ | `RequestBodyLimitMiddlewareTests.TheCeilings_AreTheDocumentsNumbers`, `EveryClass_HasACeiling…`, `AGetOrHead_HasNoBody…`; `RequestLimitsTests.ABodyAtTheClassCeiling_ReachesTheEndpoint…` (genel, uzun metin, makine), `TheGeneralClass_RefusesWhatTheLongTextClassAccepts` |
-| 2 | Tavanı aşan 413, form yeniden gösterilmez | ✓ | `RequestLimitsTests.TheRefusal_OfAPage_IsAPlainPageWithNoFormAndNoRetryAfter_AndNothingWasRead`, `TheRefusal_OfAMachineEndpoint_HasNoBody`, `ABodyWithNoDeclaredLength_IsMeasured…`; `RequestBodyLimitMiddlewareTests.APageRefusal_IsThePlainOperationPage_NoForm_NoStoredValues` |
+| 1 | Gövde tavanı uç sınıfı başına | ✓ | `RequestBodyLimitMiddlewareTests.TheCeilings_AreTheDocumentsNumbers`, `EveryClass_HasACeiling…`, `AGetOrHead_HasNoBody…`; `RequestLimitsTests.ABodyAtTheClassCeiling_ReachesTheEndpoint…` (genel, uzun metin, makine), `TheGeneralClass_RefusesWhatTheLongTextClassAccepts`; gerçek Kestrel: `OnARealServer_ABodyBelowAtAndOverTheCeiling_…` (genel 64 KB ve uzun metin 1 MB sınıfı × chunked/Content-Length × tavan−1, tavan, tavan+1, +4 MB, 40 MB) |
+| 2 | Tavanı aşan 413, form yeniden gösterilmez | ✓ | `RequestLimitsTests.TheRefusal_OfAPage_IsAPlainPageWithNoFormAndNoRetryAfter_AndNothingWasRead`, `TheRefusal_OfAMachineEndpoint_HasNoBody`, `ABodyWithNoDeclaredLength_IsMeasured…` (TestServer); gerçek Kestrel: `OnARealServer_…` (chunked dahil 413, form yok, kod yanıtta yok, `PayloadTooLarge` satırı) ve `OnARealServer_ARefusedChunkedBody_IsNotAnUnexpectedError_…`; `RequestBodyLimitMiddlewareTests.APageRefusal_IsThePlainOperationPage_NoForm_NoStoredValues`, `AServerThatThrowsItsOwn413WhileTheBodyIsRead_…` |
 | 3 | Kayan pencere 60 sn, 6 dilim; eksen IP, IPv6 /64 | ✓ | `TimeDrivenSlidingWindowLimiterTests` (dilim dilim, sahte saat), `RequestRateLimitingTests`, `RequestLimitsTests.TwoAddressesOfOneV6Prefix_ShareOneCounter`, `ClientAddressTests` |
 | 4 | Statik/görsel muaf; bildirim imzası; parçalı yükleme | ✓ | `RequestLimitsTests.StaticFilesAndImages_AreOutsideTheLimit`, `ANotificationWithARightSignature_IsOutsideTheLimit_AndBadSignaturesCountTowardsTheFormLimit…`, `TheChunkedUpload_IsUnderThePageLimitOnly_NotTheFormLimit`, `PostsAreRefusedWith429AfterTheFormLimit_AGetStillPasses…` |
 | 5 | Genel sınır 429, nötr mesaj, makine ucunda gövdesiz, `Retry-After` yok | ✓ | `RequestLimitsTests.APage_IsRefusedWith429AfterThePageLimit_NeutralMessageNoFormNoRetryAfter_AndTheNextWindowOpensIt`, `AMachineEndpoint_IsRefusedWith429AndNoBodyAndNoRetryAfter` |
@@ -41,8 +41,8 @@
 
 | Madde (kabul kriteri / KK) | Sonuç | Kanıt (dosya:satır, test adı) |
 |---|---|---|
-| KK1 her uç sınıfının tavanı yoklanır | ✓ | `RequestLimitsTests.ABodyAtTheClassCeiling…` (Theory: genel, uzun metin, makine), `RequestBodyLimitMiddlewareTests.ABodyAtTheCeiling_PassesWithItsDeclaredLength_ForEveryClass` / `…OneByteOverTheCeiling_IsRefusedWith413_ForEveryClass`, `TheImageUploadClass_IsTheImageCeilingPlusOneMegabyte` |
-| KK2 64 KB üstü 413, form gösterilmez | ✓ | `RequestLimitsTests.TheRefusal_OfAPage_IsAPlainPageWithNoFormAndNoRetryAfter_AndNothingWasRead` |
+| KK1 her uç sınıfının tavanı yoklanır | ✓ | `RequestLimitsTests.OnARealServer_ABodyBelowAtAndOverTheCeiling_…` (gerçek Kestrel, chunked ve Content-Length, tavan−1/tavan/tavan+1/büyük; genel ve uzun metin sınıfı), `ABodyAtTheClassCeiling…` (TestServer Theory: genel, uzun metin), `RequestBodyLimitMiddlewareTests.ABodyAtTheCeiling_PassesWithItsDeclaredLength_ForEveryClass` / `…OneByteOverTheCeiling_IsRefusedWith413_ForEveryClass`, `TheImageUploadClass_IsTheImageCeilingPlusOneMegabyte` |
+| KK2 64 KB üstü 413, form gösterilmez | ✓ | `RequestLimitsTests.TheRefusal_OfAPage_IsAPlainPageWithNoFormAndNoRetryAfter_AndNothingWasRead`; gerçek Kestrel'de chunked ve Content-Length'li: `OnARealServer_ABodyBelowAtAndOverTheCeiling_…` (413, `<form` yok, kod adı yanıtta yok) |
 | KK3 dilimler sahte saatle; /64; vekil dışı başlık adresi değiştirmez | ✓ | `TimeDrivenSlidingWindowLimiterTests.ASegmentsPermitsReturn_WhenThatSegmentLeavesTheWindow_NotBefore`, `TwoAddressesOfOneV6Prefix_ShareOneCounter`, `ForwardedHeadersTests.FromAnyOtherSource_TheForwardedHeadersAreIgnored…`, `RequestLimitsTests.TheForwardedAddressAndScheme_AreBelievedFromTheProxysNetworkOnly` |
 | KK4 statik ve imzası doğru bildirim sınıra girmez; bozuk imza sayılır; parça form sınırına sayılmaz | ✓ | `RequestLimitsTests.StaticFilesAndImages_AreOutsideTheLimit`, `ANotificationWithARightSignature…`, `ABadSignature_IsAnsweredByTheEndpointEvenWhenTheLimitIsReached`, `TheChunkedUpload_IsUnderThePageLimitOnly…` |
 | KK5 429 sayfası nötr, form yok, `Retry-After` yok | ✓ | `RequestLimitsTests.APage_IsRefusedWith429AfterThePageLimit…`, `AMachineEndpoint_IsRefusedWith429AndNoBodyAndNoRetryAfter` |
@@ -51,7 +51,7 @@
 | KK8 limit sayısı yalnız `ProductConstants`'ta; uçta sayı yok | ✓ | Çağrı imzası sayı almaz (`RecordAsync(AttemptLimit, AttemptSubject, ct)`); `AttemptLimits` tablosu yalnız `ProductConstants` okur; `AttemptLimitsConsistencyTests`; gövde tavanları `RequestBodyLimitMiddlewareTests.TheCeilings_AreTheDocumentsNumbers`; `AttemptSample` ve `RequestLimitsTests` sayı yazmaz (`AttemptLimits.Of(...).Threshold`) |
 | Birleştirme: 429/413 `ErrorCode` ile, red satırı `RejectionLog` ile (`09 §8.2` m.1, m.3) | ✓ | `RequestLimitsTests.EachRefusal_WritesOneRejectionLineWithItsCode_Through_TheRejectionLog` (429: olay `RateLimitExceeded`, `code` `RateLimitExceeded`; 413: `PayloadTooLarge`; `fields` yok); `RejectionLineSourceScanTests` geçer (olay ve `code` alanı yalnız `RejectionLog`'da) |
 | Birleştirme: D-143 (429 ve içerik başlıklarında kod yok; `09 §8.2` m.5) | ✓ | `RequestLimitsTests.The429_OfAPageAFormAndAMachineEndpoint_NamesNoErrorCode_…`, `The413_…`, `TheLeakCheck_FindsACodeNameInAContentHeader_AndInTheBody` (yardımcının kendi ihlal örneği: içerik başlığı, yanıt başlığı, gövde); `AttemptLimitPatternTests` 429 sayfası; dört eski test aynı yardımcıyı kullanır |
-| Birleştirme: sonrası tüm kriter ve KK yeniden denetlendi | ✓ | Unit 2375, Integration 1582 geçti; Release `-warnaserror` derleme 0 uyarı; `dotnet format --verify-no-changes` temiz |
+| Birleştirme: sonrası tüm kriter ve KK yeniden denetlendi | ✓ | Düzeltme 1 sonrası: Unit 2378 geçti; Integration ilgili parçalar geçti (aşağıda); Release `-warnaserror` derleme 0 uyarı; `dotnet format --verify-no-changes` temiz |
 | `09 §25` ilgili satır (yeni giriş/deneme yüzeyi §15.4 kapsamında) | ✓ | `AttemptSample` deneme yüzeyi sayacı kullanır; kaynak taraması `RequestOriginSourceScanTests` |
 | Güvenlik taraması | ✓ | Mini kontrol aşağıda; ham `RemoteIpAddress` / başlık güveni / `AttemptRecord` yazımı kaynak taramasıyla tek yere kilitli |
 
@@ -63,6 +63,8 @@ Sık FAIL nedenleri taraması: (1) istisna darlığı: `RequestOriginSourceScanT
 |---|---|---|---|
 | Unit | ✓ 2375 geçti, 0 kalan (`origin/main` birleştirildikten sonra) | `dotnet test --project tests/Shopfolio.UnitTests` | total 2375, failed 0 |
 | Integration | ✓ 1582 geçti, 0 kalan (birleştirmeden sonra) | `dotnet test --project tests/Shopfolio.IntegrationTests --no-build --filter-namespace/--filter-class …` (parçalı) | Concurrency 26, Database 35, Disposal 18, FileSecrets 24, Files 33, Jobs 77, Logging 30, Model 893, Outages 8, Security 32, SignedEndpoints 11, Web 395 (RequestLimitsTests 28, Forgery/SecurityHeaders/VersionedForm/UnexpectedError/FieldValidation/AttemptLimitPattern 91, geri kalan 130 + 146) |
+| Unit (Düzeltme 1) | ✓ 2378 geçti, 0 kalan | `Shopfolio.UnitTests.exe` | +3 test (`RequestBodyLimitMiddlewareTests`) |
+| Integration (Düzeltme 1) | ✓ ilgili parçalar 0 kalan | `Shopfolio.IntegrationTests.exe -class/-namespace …` (parçalı) | RequestLimits+UnexpectedError+Forgery+SecurityHeaders 85 (gerçek Kestrel testleri 5 dahil); Security+SignedEndpoints+Logging 73; AttemptLimit/OneTime/Versioned/PageForm/List/FieldValidation/ModelBinding 154; öteki Web sınıfları 161 |
 | Contract | — | — | bu task'ta yok |
 | Biçim / derleme | ✓ | `dotnet format --verify-no-changes`; `dotnet build Shopfolio.slnx -c Release -warnaserror` | 0 uyarı, 0 hata |
 
@@ -70,7 +72,7 @@ Sık FAIL nedenleri taraması: (1) istisna darlığı: `RequestOriginSourceScanT
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-06, head `ea3cdc7`) |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-06, head `ea3cdc7`); Düzeltme 1 yapıldı, tur 2 bekliyor |
 | Bulgu sayısı | 1 (B1 ORTA, S1) |
 | Düzeltme gerekli mi | Evet — B1 |
 | Bloke-etmeyen not (K) sayısı | 2 (K1 → D-144, K2 → D-145) |
@@ -80,6 +82,22 @@ Sık FAIL nedenleri taraması: (1) istisna darlığı: `RequestOriginSourceScanT
 **B1 (ORTA, S1; kriter 1, 2; KK1, KK2):** uzunluğu bildirilmeyen (`Transfer-Encoding: chunked`) gövdede `RequestBodyLimitMiddleware` sunucunun tavanını `limit`'e kurup okumaya başlar; gerçek Kestrel tavana varınca `BadHttpRequestException` (StatusCode 413) atar, ara katman yakalamaz, istisna yakalama katmanına düşer: yanıt 500 ve "Yazdıklarınız duruyor" mesajlı beklenmeyen hata sayfası, `UnexpectedError` satırı, hata sayacı artar. Tavanın altındaki gövde de reddedilir. Kanıt: uygulamanın ardışık düzeniyle `WebApplicationFactory.UseKestrel()` üzerinde geçici test (geri alındı): 1000 → 200; 65535, 65536, 65537, 204800 → 500; Content-Length'li 65537 → 413. TestServer sunucu tavanını uygulamadığı için `ABodyWithNoDeclaredLength_IsMeasuredAsItIsRead_AndRefusedPastTheCeiling` geçer. `Caddyfile`'da gövde tavanı yoktur; chunked gövde uygulamaya ulaşır. Düzeltme yönü: T203'ün `SignedEndpointHandler` kalıbı (`BadHttpRequestException` 413 → `RefuseAsync`) ya da tamponlama yolunda sunucu tavanını ayrı kurmak; tavanın tam sınırı ve üstü gerçek Kestrel testiyle sınanır.
 
 Kriter 3–8 ve KK3–KK8 ✓. Unit 2375, Integration 1582 geçti; dal CI 42198823274 yeşil. K1: ters vekilde uç başına gövde tavanı yok → D-144. K2: `FormResults.AttemptLimitExceeded` red satırı yazmaz → D-145 (T376). `12` satırlarının `Durum`'u değişmedi (KP-72 satırları limit task'larının). Ayrıntı: doğrulama raporu (yardımcı durum dizini, `dogrulama-raporu-r1.md`).
+
+### Düzeltme 1 (tur 1 FAIL sonrası)
+
+**B1 kök neden:** gerçek Kestrel, `MaxRequestBodySize`'ı chunked gövdede çözülmüş bayta değil okunan ham bayta (chunk boyut satırları ve son chunk dahil) uygular; çerçeve bayt sayısı istemcinin chunk boyutuna bağlıdır, tavana eklenecek sabit bir pay yoktur. Bu yüzden tavan = sunucu tavanı kurulunca tavanın altındaki 65535 baytlık gövde bile `BadHttpRequestException(413)` ile düşüyordu (denemeyle doğrulandı: aynı gövde Content-Length'li 200).
+
+**Çözüm** (`RequestBodyLimits.cs`):
+- Content-Length'li gövde: sunucu tavanı sınıf tavanı kalır (sunucu tam bayt sayar); tavandaki gövde geçer, tavan+1 okunmadan 413.
+- Uzunluğu bildirilmeyen gövde: sunucu tavanı kaldırılır (`null`), gövdeyi ara katman sınıf tavanı + 1 bayta kadar belleğe okur (`ReadWithinAsync`; bellek tavanı sınıf tavanıdır); tavan üstü → 413. Okuma sırasında sunucunun kendi 413 istisnası da (`BadHttpRequestException`, T203 `SignedEndpointHandler` kalıbı) aynı 413 yoluna girer.
+- Ret yanıtı `Connection: close` taşır (HTTP/1.x); okunmamış gövdeyi sunucu boşaltmaya çalışmaz. Tavan yine tek yerde (`RequestBodyLimits`); red satırı `RejectionLog` + `PayloadTooLarge`, kod yanıtta yok, form yeniden gösterilmez (gerçek sunucu testinde doğrulanır).
+- Bildirim ucu (`SignedEndpointHandler`) aynı yoldan geçer: ara katman gövdeyi önce tamponlar, işleyici bellek akışını okur.
+
+**Testler:** `OnARealServer_ABodyBelowAtAndOverTheCeiling_…` (Theory; `WebApplicationFactory.UseKestrel()`, uygulamanın kendi ardışık düzeni; genel 64 KB ve uzun metin 1 MB sınıfı; chunked ve Content-Length; 1000, tavan−1, tavan → 200 ve gövde uzunluğu eşit; tavan+1, +4 MB → 413, sayfa yalın, `<form` yok, kod adı yok, `PayloadTooLarge` satırı; 40 MB'ta sunucu bağlantıyı kapatırsa istemcinin sıfırlanması kabul, uç çağrılmaz); `OnARealServer_ARefusedChunkedBody_…` (makine ucu gövdesiz 413, tavan−1 → 200); birim: sunucu tavanının kaldırılması, sunucunun kendi 413 istisnası, `Connection: close` (HTTP/2'de eklenmez). Düzeltme öncesi aynı test chunked'da 65535 → 500 ile kırmızıydı (denendi). TestServer testi kalır, tek kanıt değildir. Bu görevde 64 KB sınıfı ve bir büyük sınıf (1 MB) gerçek sunucuda sınanır; görsel (P-23+1 MB) ve parça (5 MB) sınıfları aynı koddan geçer, uçları sonraki task'larda doğar.
+
+**K notları:** K1 (D-144, Caddy uç başına tavan) ve K2 (D-145, `AttemptLimitExceeded` red satırı, T376) yerinde ileri atılmış kalır: ikisi de T215 kapsamı dışı (dağıtım dosyası kararı; ilk gerçek çağıran T376); kayıtlara dokunulmadı. B1 çözümü D-144'ü etkilemez (uygulama tarafı tavanı artık Kestrel'den bağımsız tek başına uygular).
+
+**Öz denetim:** kabul kriterleri 1–8 ve KK1–KK8 yukarıdaki tablolarda yeniden denetlendi; 1, 2, KK1, KK2 gerçek sunucu kanıtıyla güncellendi, öteki satırlara dokunulmadı ve ilgili testleri (Security, SignedEndpoints, Logging, Web) yeniden geçti. Sık FAIL nedenleri: davranış yalnız TestServer'da sınandı → gerçek Kestrel testi eklendi; geniş tarama istisnası, tarama çağrı biçimi, sayı anan öteki yerler (sunucu tavanı anlatımı: `RequestBodyLimitMiddleware` özet yorumu güncellendi, başka yerde anılmıyor — `grep` ile tarandı), belgede olmayan sabit (yeni sabit yok) bu düzeltmeye değmedi.
 
 ## Altyapı Değişiklikleri
 

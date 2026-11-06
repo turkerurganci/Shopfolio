@@ -234,6 +234,76 @@ public sealed class RequestBodyLimitMiddlewareTests
         Assert.Equal(Megabyte, feature.MaxRequestBodySize);
     }
 
+    [Fact]
+    public async Task TheServersOwnCeiling_IsLifted_ForABodyWithNoDeclaredLength_BecauseTheServerCountsTheChunkFraming()
+    {
+        Run run = Make("POST", RequestBodyClass.General, null, 100);
+        MaxBodyFeature feature = new();
+        run.Context.Features.Set<IHttpMaxRequestBodySizeFeature>(feature);
+
+        await run.InvokeAsync();
+
+        Assert.True(run.NextCalled);
+        Assert.Null(feature.MaxRequestBodySize);
+    }
+
+    [Fact]
+    public async Task AServerThatThrowsItsOwn413WhileTheBodyIsRead_IsAnsweredWith413_NotLeftToTheUnexpectedErrorLayer()
+    {
+        Run run = Make("POST", RequestBodyClass.General, null, 0);
+        run.Context.Request.Headers.TransferEncoding = "chunked";
+        run.Context.Request.Body = new ThrowingBody();
+
+        await run.InvokeAsync();
+
+        Assert.False(run.NextCalled);
+        Assert.Equal(StatusCodes.Status413PayloadTooLarge, run.Context.Response.StatusCode);
+        Assert.DoesNotContain("<form", run.Html, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ARefusal_ClosesTheConnection_OnHttp1AndAddsNoConnectionHeader_OnHttp2()
+    {
+        Run http1 = Make("POST", null, RequestBodyLimits.GeneralMaxBytes + 1, 1);
+        http1.Context.Request.Protocol = "HTTP/1.1";
+        Run http2 = Make("POST", null, RequestBodyLimits.GeneralMaxBytes + 1, 1);
+        http2.Context.Request.Protocol = "HTTP/2";
+
+        await http1.InvokeAsync();
+        await http2.InvokeAsync();
+
+        Assert.Equal("close", http1.Context.Response.Headers.Connection.ToString());
+        Assert.False(http2.Context.Response.Headers.ContainsKey("Connection"));
+    }
+
+    private sealed class ThrowingBody : Stream
+    {
+        public override bool CanRead => true;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+            => throw new BadHttpRequestException("Request body too large.", StatusCodes.Status413PayloadTooLarge);
+
+        public override int Read(byte[] buffer, int offset, int count) => throw new BadHttpRequestException("Request body too large.", StatusCodes.Status413PayloadTooLarge);
+
+        public override void Flush()
+        {
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    }
+
     private sealed class MaxBodyFeature : IHttpMaxRequestBodySizeFeature
     {
         public bool IsReadOnly => false;

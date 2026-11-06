@@ -174,6 +174,94 @@ public sealed class RequestLimitsTests
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, over.StatusCode);
     }
 
+    // The same ceiling on the application's own pipeline behind a real Kestrel (a test server has no body size limit of its own and throws nothing): a body
+    // with no declared length is read by the server, which throws past its limit, and the middleware turns that into the 413 (B1 of the validation round 1).
+    [Theory]
+    [InlineData(GeneralPath, 64 * Kilobyte, true)]
+    [InlineData(GeneralPath, 64 * Kilobyte, false)]
+    [InlineData(LongTextPath, Megabyte, true)]
+    [InlineData(LongTextPath, Megabyte, false)]
+    public async Task OnARealServer_ABodyBelowAtAndOverTheCeiling_IsAcceptedOrRefusedWith413_ChunkedOrWithDeclaredLength(string path, long ceiling, bool chunked)
+    {
+        List<string> logs = [];
+        EndpointCalls calls = new();
+        await using WebApplicationFactory<Program> factory = Open(Clock(), calls: calls, logDirectory: logs);
+        factory.UseKestrel();
+        factory.StartServer();
+        using HttpClient client = factory.CreateClient();
+
+        long[] accepted = [1000, ceiling - 1, ceiling];
+        long[] refused = [ceiling + 1, ceiling + (4 * Megabyte), 40 * Megabyte];
+        foreach (long size in accepted)
+        {
+            using HttpResponseMessage response = await client.SendAsync(RealRequest(path, size, chunked, "ok-" + size), Ct);
+            Assert.True(response.StatusCode == HttpStatusCode.OK, $"{size} bytes, chunked={chunked}: {(int)response.StatusCode}");
+            Assert.Equal(size.ToString(System.Globalization.CultureInfo.InvariantCulture), await response.Content.ReadAsStringAsync(Ct));
+        }
+
+        int callsBefore = calls.Count;
+        foreach (long size in refused)
+        {
+            string id = "t215-" + Guid.NewGuid().ToString("N");
+            using HttpRequestMessage request = RealRequest(path, size, chunked, id);
+            HttpResponseMessage response;
+            try
+            {
+                response = await client.SendAsync(request, Ct);
+            }
+            catch (HttpRequestException) when (size > ceiling + Megabyte)
+            {
+                // The server closes the connection after the 413 without reading the rest; a client that is still writing a large body may see the
+                // connection reset before it reads the answer; the endpoint was not called either way.
+                continue;
+            }
+
+            using HttpResponseMessage answered = response;
+            string html = await answered.Content.ReadAsStringAsync(Ct);
+
+            Assert.True(answered.StatusCode == HttpStatusCode.RequestEntityTooLarge, $"{size} bytes, chunked={chunked}: {(int)answered.StatusCode}");
+            Assert.Contains(WebUtility.HtmlEncode(RequestBodyLimitMiddleware.Message), html, StringComparison.Ordinal);
+            Assert.DoesNotContain("<form", html, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(nameof(Shopfolio.Infrastructure.Errors.ErrorCode.PayloadTooLarge), html, StringComparison.Ordinal);
+            JsonElement line = Assert.Single(LinesOf(logs[0], id), l => l.TryGetProperty("code", out _));
+            Assert.Equal(nameof(Shopfolio.Infrastructure.Errors.ErrorCode.PayloadTooLarge), line.GetProperty("code").GetString());
+        }
+
+        Assert.Equal(callsBefore, calls.Count);
+    }
+
+    [Fact]
+    public async Task OnARealServer_ARefusedChunkedBody_IsNotAnUnexpectedError_AndTheMachineEndpointAnswersWithNoBody()
+    {
+        await using WebApplicationFactory<Program> factory = Open(Clock());
+        factory.UseKestrel();
+        factory.StartServer();
+        using HttpClient client = factory.CreateClient();
+
+        using HttpResponseMessage machine = await client.SendAsync(RealRequest(MachinePath, (64 * Kilobyte) + 1, chunked: true, "m"), Ct);
+        using HttpResponseMessage within = await client.SendAsync(RealRequest(MachinePath, (64 * Kilobyte) - 1, chunked: true, "m2"), Ct);
+
+        Assert.Equal(HttpStatusCode.RequestEntityTooLarge, machine.StatusCode);
+        Assert.Equal(string.Empty, await machine.Content.ReadAsStringAsync(Ct));
+        Assert.Equal(HttpStatusCode.OK, within.StatusCode);
+    }
+
+    private static HttpRequestMessage RealRequest(string path, long size, bool chunked, string requestId)
+    {
+        // A seekable stream would give the content a length; the header makes the client send the body chunked, with no Content-Length.
+        HttpRequestMessage request = new(HttpMethod.Post, path)
+        {
+            Content = chunked ? new StreamContent(new MemoryStream(new byte[size])) : new ByteArrayContent(new byte[size]),
+        };
+        if (chunked)
+        {
+            request.Headers.TransferEncodingChunked = true;
+        }
+
+        request.Headers.Add("X-Request-Id", requestId);
+        return request;
+    }
+
     [Fact]
     public async Task AGetCarriesNoBody_AGetWithOneIsRefusedWith413()
     {

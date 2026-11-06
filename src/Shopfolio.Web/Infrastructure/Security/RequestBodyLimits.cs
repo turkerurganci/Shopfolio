@@ -92,7 +92,9 @@ internal sealed class RequestBodyClassAttribute : Attribute
 /// Applies the ceiling of the endpoint's class before the body is read and before the anti-forgery check and the signature (07 2.8.1, 2.8.7; 09 15.4):
 /// a declared length above it is answered 413 without reading a byte; a body without a declared length is read no further than one byte past the
 /// ceiling into memory, and answered 413 when it is longer. A request that is refused has no form to show again (the body was not read). The server's own
-/// ceiling is set to the same value where the server has one. A machine endpoint answers with no body; any other request gets the plain operation-level page.
+/// ceiling is set to the class ceiling for a declared length, which it counts exactly; for a body with no declared length it is lifted, because the server
+/// counts the chunk framing too and would throw out a body that is within the ceiling (what this middleware reads is bounded by the ceiling itself, and a
+/// 413 thrown by the server while reading is answered the same way). A machine endpoint answers with no body; any other request gets the plain operation-level page.
 /// </summary>
 internal sealed class RequestBodyLimitMiddleware
 {
@@ -128,12 +130,17 @@ internal sealed class RequestBodyLimitMiddleware
             return;
         }
 
+        // The server's own ceiling counts the exact bytes of a declared length, so the class ceiling is its ceiling there. It also counts the framing of a
+        // chunked body (chunk sizes and the last chunk), which the client controls and which has no bound that could be added to the class ceiling: a body
+        // at the ceiling would be thrown out by the server. So a body with no declared length is measured here, to the class ceiling plus one byte, and the
+        // server's ceiling is lifted for it; what is read never exceeds the ceiling plus one chunk, whatever the framing.
+        bool declaredLength = request.ContentLength is not null;
         if (context.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } serverLimit)
         {
-            serverLimit.MaxRequestBodySize = limit;
+            serverLimit.MaxRequestBodySize = declaredLength ? limit : null;
         }
 
-        if (request.ContentLength is null)
+        if (!declaredLength)
         {
             byte[]? body = await ReadWithinAsync(request.Body, limit, context.RequestAborted);
             if (body is null)
@@ -148,20 +155,28 @@ internal sealed class RequestBodyLimitMiddleware
         await _next(context);
     }
 
-    // Reads at most limit + 1 bytes; null when the body is longer than the limit.
+    // Reads at most limit + 1 bytes; null when the body is longer than the limit. A server that throws its own 413 while reading (its ceiling counted something
+    // else, or is lower than the class ceiling) is the same answer as a longer body.
     private static async Task<byte[]?> ReadWithinAsync(Stream body, long limit, CancellationToken ct)
     {
         using MemoryStream buffer = new();
         byte[] chunk = new byte[16 * 1024];
-        int read;
-        while ((read = await body.ReadAsync(chunk, ct)) > 0)
+        try
         {
-            if (buffer.Length + read > limit)
+            int read;
+            while ((read = await body.ReadAsync(chunk, ct)) > 0)
             {
-                return null;
-            }
+                if (buffer.Length + read > limit)
+                {
+                    return null;
+                }
 
-            buffer.Write(chunk, 0, read);
+                buffer.Write(chunk, 0, read);
+            }
+        }
+        catch (BadHttpRequestException exception) when (exception.StatusCode == StatusCodes.Status413PayloadTooLarge)
+        {
+            return null;
         }
 
         return buffer.ToArray();
@@ -172,6 +187,12 @@ internal sealed class RequestBodyLimitMiddleware
         HttpResponse response = context.Response;
         response.StatusCode = StatusCodes.Status413PayloadTooLarge;
         response.Headers.CacheControl = "no-store";
+
+        // The rest of the body is not read; the connection is closed after the answer instead of the server draining what the client goes on sending.
+        if (!HttpProtocol.IsHttp2(context.Request.Protocol) && !HttpProtocol.IsHttp3(context.Request.Protocol))
+        {
+            response.Headers.Connection = "close";
+        }
         context.RequestServices.GetRequiredService<RejectionLog>().Rejected(ErrorCode.PayloadTooLarge);
         bool machine = endpoint?.Metadata.GetMetadata<MachineEndpointMetadata>() is not null || RateLimitScope.IsMachineEndpoint(context);
         if (machine)

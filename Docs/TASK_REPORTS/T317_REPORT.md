@@ -1,6 +1,6 @@
 # T317 — Ödeme durumu geçişleri: ödeme ekseni
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 ✓ PASS) | **Tarih:** 2026-11-07
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -90,10 +90,16 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama chat'i doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-07; head `0926ba7`, `origin/main` `c4c872c` güncel — birleştirmede değişiklik yok) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-322) |
+
+Validator kanıtları (bağımsız): sekiz kriter ve KK1–KK8 kodda ve testte ✓. Ö1…Ö5 yalnız çekirdeğin `ApplyAsync`'inden yazılır; `TransitionTable.IsTerminal(PaymentStatus)` = {Başarısız, Geri ödendi} ve tabloda bu iki durumdan çıkan satır yok (`03 §1.3`; `02 §5.5`). Kart ödemesi tek yöntemdir (`05 §4.5.3`): Bekliyor'da Ö1 (+ açık fiziksel kalemde S1) sistemle, ödeme kaydı Ö1 satırına bağlı (`06 §4.32` "Ödemeyi onaylayan Ö1"), B-4; aynı işlem kimliği hiçbir şey yazmaz (K-970); İptal edildi'de ve Ödendi'de yeni işlem kimliğinde ödeme Ö1'siz kaydedilir, `LatePayment` geri ödemesi siparişin toplamıyla ve `CardRefund` iş satırıyla aynı işlemde doğar, eksenler durur (`02 §6.2.16`; K-1211). Havale işareti onaysız `IsConfirmationRequired`, sürüm farkında `IsVersionConflict`, kart siparişinde ve Bekliyor dışında red; Ö1 yönetici + S1 sistem, sürüm bir kez artar. Ödenmemiş iptal S3+Ö2 tek istekte (alıcı/yönetici/sistem), ödenmişte çekirdek Ö2'yi reddeder ve hiçbir şey yazılmaz. Gerçekleşen geri ödeme gönderilen toplam (`LatePayment` ve geçersizler hariç) ≥ `Order.Total` ise Ö4/Ö5, altında Ödendi'den Ö3; B-8 iletişim e-postasına, F-4 yalnız sistemin kendi kart iadesinde (firmanın yeniden denemesi hariç, `03 §7.1.18`) firma adresine; başarısız/bilinmeyen sonuçta eksen ve bildirim yok, işaret iade kaydından okunur. Yerel: build `-warnaserror` 0/0, format 3 proje temiz, Unit 3965 (Architecture 906, Consistency 230, öteki 2829), betik testleri 4 dosya, Integration (postgres:18, `shopfolio-t317-val-pg`) Ordering 60 (PaymentTransitionsTests 29), Concurrency 26, PaymentRecordTables + JobCleanupAndRefund 92, web açılışı (ShopfolioWebApplicationFactory, JobQueueRegistration, OperationPattern) 18 — hepsi yeşil; `--locked-mode` restore 0. Dal CI 42396093293 success (head `0926ba7`).
+
+K1 (→ D-322): `PaymentModule.ReadRefundMarksAsync` "geri ödeme gerçekleşmedi" işaretinde geri ödemenin hâlâ kart yolunda olmasını aramaz (`06 §4.34`: işaret havaleye dönünce kalkar). Bugün yolu havaleye çeviren kod yok (T370), bu yüzden davranış etkilenmiyor; T370 yolu çevirirken işaret okumasına `PaymentMethod == Card` koşulu eklenir.
+
+**`12` satırları (`12 §7.5`):** `11 §7.1` T317 kaynakları `10` KP-18 ve KD-62. KP-18 grep'i `VAL-B014`–`B017`, `VAL-A054`–`A059`, `VAL-A977`'yi getirir; hepsi sipariş sayfasının ve girişinin tarayıcı gözlemi ya da uç yanıtıdır, T317 sayfa ya da uç kurmaz (KP-18 → T317, T354, T511) → `BEKLEMEDE` kalır, `Durum` değişmedi. KD-62 matriste yok.
 
 ## Altyapı Değişiklikleri
 
@@ -107,7 +113,7 @@
 - **Branch:** `task/T317-odeme-ekseni`
 - **Commit:** `4362c3d` — T317: Ödeme ekseni: testler derlendi ve geçti, null-forgiving kaldırıldı, rapor ve kayıtlar (dalın son kod commit'i; PR numarası commit'i bunu izler)
 - **PR:** #441
-- **CI:** *(yardımcı izler)*
+- **CI:** 42396093293 success (head `0926ba7`; validator)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında)*
 
 ## Dış Varsayımlar

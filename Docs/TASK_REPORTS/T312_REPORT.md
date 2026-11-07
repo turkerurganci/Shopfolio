@@ -104,7 +104,7 @@
 - **Branch:** `task/T312-dosya-uclari`
 - **PR:** açıldığında PR gövdesinde
 - **CI:** yapım işçisi izlemez
-- **Post-merge run'lar:** squash `1112ca6` (#426) — CI 42366197638 success, Publish 42366197659 success (T341 yapımında dolduruldu)
+- **Post-merge run'lar:** squash `1112ca6` (#426) — CI 42366197638 success, Publish 42366197659 success (T309 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

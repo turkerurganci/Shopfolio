@@ -96,7 +96,7 @@ Validator kanıtları (bağımsız): 10 kriter ve KK1–KK10 kodda ve testte ✓
 - **Commit:** `c06f88b` — T308: Firma bildirimleri F-1...F-6
 - **PR:** #424
 - **CI:** yapım işçisi izlemez; yardımcı yürütür
-- **Post-merge run'lar:** squash `ad8c48d` (#424) — CI 42368786665 success, Publish 42368786653 success (T341 yapımında dolduruldu)
+- **Post-merge run'lar:** squash `ad8c48d` (#424) — CI 42368786665 success, Publish 42368786653 success (T309 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

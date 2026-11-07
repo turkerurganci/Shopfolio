@@ -91,7 +91,7 @@
 - **Commit:** bkz. PR (son commit dal başı)
 - **PR:** #425
 - **CI:** dal CI 42361992653 success (head `461c66b`)
-- **Post-merge run'lar:** squash `eb91975` (#425) — CI 42364842660 success, Publish 42364842661 success (T341 yapımında dolduruldu)
+- **Post-merge run'lar:** squash `eb91975` (#425) — CI 42364842660 success, Publish 42364842661 success (T309 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

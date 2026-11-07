@@ -14,7 +14,7 @@
 - **Önbellek:** `Settings.Contracts.ISitemapSource` + `SitemapView` + `Settings/SitemapSource` — iki modülün yollarını birleştirir, `AppCache` `CacheArea.Sitemap` yuvasında tutar; ilgili kayıt `CacheInvalidations.Add(CacheArea.Sitemap)` ile düşürür.
 - **Uç:** `Endpoints/SitemapEndpoint` (`MapSitemapEndpoints`, `Program.cs`): yalnız GET; `application/xml` ve `text/plain`; çerez, oturum, `X-Robots-Tag` yok (`MachineEndpointMetadata`).
 - **Test kaldırıldı:** T219'un `SitemapAndRobotsTxt_HaveNoEndpointInThisTask` testi (uç artık var; yerine `SitemapEndpointTests`).
-- **Belgeler:** `09 §9.4` madde 6 (site haritası cümlesi T313 ile güncellendi; belge kuralı değişmedi, `05 §3.7.3-4` ve `07 UC-79` ile uyumlu → karar kaydı gerekmedi), `.claude/CONTEXT.md` (arama motoru satırı, `Endpoints/` satırı), `IMPLEMENTATION_STATUS` T313 ⏳, `DEFERRED_BACKLOG` D-161, `MEMORY.md` Güncel Durum.
+- **Belgeler:** `09 §9.4` madde 6 (site haritası cümlesi T313 ile güncellendi; belge kuralı değişmedi, `05 §3.7.3-4` ve `07 UC-79` ile uyumlu → karar kaydı gerekmedi), `.claude/CONTEXT.md` (arama motoru satırı, `Endpoints/` satırı), `IMPLEMENTATION_STATUS` T313 ⏳, `DEFERRED_BACKLOG` D-163, `MEMORY.md` Güncel Durum.
 
 ## Etkilenen Modüller / Dosyalar
 
@@ -80,7 +80,7 @@
 | Doğrulama durumu | ✓ PASS — tur 1 (2026-11-07, head `336f075`) |
 | Bulgu sayısı | 0 |
 | Düzeltme gerekli mi | Hayır |
-| Bloke-etmeyen not (K) sayısı | 3 (K1–K3 bu PR'da kapatıldı — kayıt bu bölüm; açık uçlar zaten D-161) |
+| Bloke-etmeyen not (K) sayısı | 3 (K1–K3 bu PR'da kapatıldı — kayıt bu bölüm; açık uçlar zaten D-163) |
 
 ### Doğrulama tur 1 — ✓ PASS
 
@@ -98,7 +98,7 @@
 | Kriter 6 / KK6 | ✓ | T219 kalıbı değişmedi: panel HTML'i robots meta (`ClosedPages_CarryTheRobotsMetaTagInTheHtml_…`); hesap kökü adresle kapalı (`IsClosedPath_DependsOnTheFirstSegmentOnly` `/hesap/adresler`, `/giris`). Hesabın HTML ekranları henüz yok (oturumsuz istek 302 + `X-Robots-Tag`) — K1 |
 | Kriter 7 / KK7 | ✓ | T219 ara katmanı adrese bakar: CSV dışa aktarma ve panel 404'ü tek `X-Robots-Tag: noindex`; `/indir` kökü kapalı (`IsClosedPath` `/indir/abc`). İndirme ucunun kendisi T312'nin — K3. İki T313 ucu başlık taşımaz |
 | Kriter 8 / KK8 | ✓ | Robots yalnız harita satırı; test arşiv ürün adresini, `/panel`, `/hesap`'ı içermediğini doğrular |
-| Kriter 9 / KK9 | ✓ | `SitemapSource` `AppCache.GetOrLoadAsync(CacheArea.Sitemap)`; değer değişmez `SitemapView` (`09 §10.4` m.1). `TheMap_ComesFromTheCache_…`: işlem dışı yazım önbelleği düşürmez, geri alınan kayıt düşürmez, `CacheInvalidations.Add(CacheArea.Sitemap)` adlı kesinleşen ürün kaydı kuşağı +1 yapar ve yeni ürün haritada. Üretimde kayıt yazıcı henüz yok; yazıcı task'larının yükümlülüğü D-161 (b) |
+| Kriter 9 / KK9 | ✓ | `SitemapSource` `AppCache.GetOrLoadAsync(CacheArea.Sitemap)`; değer değişmez `SitemapView` (`09 §10.4` m.1). `TheMap_ComesFromTheCache_…`: işlem dışı yazım önbelleği düşürmez, geri alınan kayıt düşürmez, `CacheInvalidations.Add(CacheArea.Sitemap)` adlı kesinleşen ürün kaydı kuşağı +1 yapar ve yeni ürün haritada. Üretimde kayıt yazıcı henüz yok; yazıcı task'larının yükümlülüğü D-163 (b) |
 | `09 §6` modül sınırı | ✓ | Uç yalnız `Settings.Contracts.ISitemapSource`; önbellek Settings modülünde; modüller yolları `Contracts` ile verir (`ModuleBoundaryTests.SiteMap_…`) |
 | `09 §9.4` m.6, tarama | ✓ | Dosya adları yalnız `AddressRules.SitemapFile`/`RobotsFile`; `SearchEngineSourceScan` literali yakalar (ihlal örneği testte) |
 | Hız sınırı (`07 §4.32.1` "sayfa") | ✓ | `RateLimitScope.IsMachineEndpoint` yalnız `/sistem`, `/indir`, parçalı yükleme — iki adres sayfa sınırında |
@@ -143,14 +143,14 @@
 
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
-| 1 | Aydınlatma metni ve çerez politikası haritada yok (yayına alınmadıkça 404) | D-161 (a) | Yayın bilgisi ilgili sayfa task'ında |
-| 2 | Kaydı yazan task'lar `CacheInvalidations.Add(CacheArea.Sitemap)` çağırmalı | D-161 (b) | T313 yazıcı eklemez; kalıp testte gösterildi |
+| 1 | Aydınlatma metni ve çerez politikası haritada yok (yayına alınmadıkça 404) | D-163 (a) | Yayın bilgisi ilgili sayfa task'ında |
+| 2 | Kaydı yazan task'lar `CacheInvalidations.Add(CacheArea.Sitemap)` çağırmalı | D-163 (b) | T313 yazıcı eklemez; kalıp testte gösterildi |
 
 ## Notlar
 
 - **Working tree (Adım -1):** temiz.
 - **Ana dal CI startup (Adım 0):** CI 42335449717 success, Publish 42335449709 success (F2 gate PR #415, `6efa235`).
 - **Repo memory (bitiş kapısı 9):** güncellendi.
-- **⚠ kararlar (kurala en uygun seçenekle verildi):** (a) "sabit liste sayfaları" `05`/`07`'de sayılmamış: `/`, hizmetler, referanslar, sss, iletisim, islem-rehberi seçildi; `/hakkimizda` yayındaysa girer (D-161 a); (b) 50.000 URL sınırı uygulanmadı (`05`'te sınır yok, küçük mağaza); (c) birleştirme katmanı Settings'te (iki modülün Contracts'ını birleştirir); (d) kategori haritaya her zaman girer (kategori yayın durumu yok).
+- **⚠ kararlar (kurala en uygun seçenekle verildi):** (a) "sabit liste sayfaları" `05`/`07`'de sayılmamış: `/`, hizmetler, referanslar, sss, iletisim, islem-rehberi seçildi; `/hakkimizda` yayındaysa girer (D-163 a); (b) 50.000 URL sınırı uygulanmadı (`05`'te sınır yok, küçük mağaza); (c) birleştirme katmanı Settings'te (iki modülün Contracts'ını birleştirir); (d) kategori haritaya her zaman girer (kategori yayın durumu yok).
 - **Önceki task kaydı (skill adım 15):** T229 post-merge satırı ve status Commit hücresi dolu; ek işlem yok.
 - **Önceki işçi:** işin büyük kısmı önceki yapım işçisince yapıldı (bağlam sınırında bölündü); bu devam kalanı (biçim denetimi, belgeler, rapor, öz denetim) tamamladı.

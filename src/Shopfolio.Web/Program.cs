@@ -19,6 +19,7 @@ using Shopfolio.Infrastructure.SearchEngine;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.SignedEndpoints;
 using Shopfolio.Infrastructure.StartupDatabase;
+using Shopfolio.Infrastructure.Status;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
@@ -129,6 +130,10 @@ builder.Services.AddScheduler();
 // queue's clean-up runs before them. There is no second timer or service.
 builder.Services.AddDisposal(builder.Configuration);
 
+// The status endpoint's warning conditions (05 9.4.2): after the scheduler, whose heartbeat client reads the certificate's end, and after the
+// modules, which add their own conditions.
+builder.Services.AddStatus();
+
 WebApplication app = builder.Build();
 
 // The forwarded headers (09 15.1 item 8) are the first middleware: the client address and the scheme come from the reverse proxy and from nobody else,
@@ -169,6 +174,7 @@ app.MapGroup(AddressRules.StaticArea).MapStaticAssets();
 app.MapRazorPages()
     .WithStaticAssets();
 app.MapLivenessEndpoint();
+app.MapStatusEndpoint();
 
 // The site map and robots.txt (UC-79; 05 3.7.3, 3.7.4): open machine endpoints, made on request; the map comes from the cache.
 app.MapSitemapEndpoints();

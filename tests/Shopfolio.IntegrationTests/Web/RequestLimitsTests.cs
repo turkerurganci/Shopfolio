@@ -246,6 +246,53 @@ public sealed class RequestLimitsTests
         Assert.Equal(HttpStatusCode.OK, within.StatusCode);
     }
 
+    // D-147: what the client does wrong is no unexpected error. On a real server a broken chunk frame answers the server's own 400 and a client that
+    // resets the connection in the middle of a body answers nothing; neither writes an error line nor moves the counter the status endpoint reads.
+    [Fact]
+    public async Task OnARealServer_ABrokenChunkFrameAnswers400_AndAResetConnection_AreNoUnexpectedErrors()
+    {
+        List<string> logs = [];
+        await using WebApplicationFactory<Program> factory = Open(Clock(), logDirectory: logs);
+        factory.UseKestrel(0);
+        factory.StartServer();
+        using HttpClient client = factory.CreateClient();
+        Shopfolio.Infrastructure.Errors.UnexpectedErrorCounter counter = factory.Services.GetRequiredService<Shopfolio.Infrastructure.Errors.UnexpectedErrorCounter>();
+        int before = counter.CountWithin(TimeSpan.FromMinutes(15));
+        Uri address = client.BaseAddress!;
+
+        string broken;
+        using (System.Net.Sockets.TcpClient tcp = new())
+        {
+            await tcp.ConnectAsync(address.Host, address.Port, Ct);
+            await using System.Net.Sockets.NetworkStream stream = tcp.GetStream();
+            byte[] head = Encoding.ASCII.GetBytes($"POST {GeneralPath} HTTP/1.1\r\nHost: localhost\r\nTransfer-Encoding: chunked\r\nContent-Type: application/octet-stream\r\nConnection: close\r\n\r\nZZ\r\nabc\r\n");
+            await stream.WriteAsync(head, Ct);
+            using StreamReader reader = new(stream, Encoding.ASCII);
+            broken = await reader.ReadToEndAsync(Ct);
+        }
+
+        using (System.Net.Sockets.TcpClient tcp = new())
+        {
+            await tcp.ConnectAsync(address.Host, address.Port, Ct);
+            System.Net.Sockets.NetworkStream stream = tcp.GetStream();
+            byte[] partial = Encoding.ASCII.GetBytes($"POST {GeneralPath} HTTP/1.1\r\nHost: localhost\r\nTransfer-Encoding: chunked\r\nContent-Type: application/octet-stream\r\n\r\n10\r\nabc");
+            await stream.WriteAsync(partial, Ct);
+            await stream.FlushAsync(Ct);
+            tcp.LingerState = new System.Net.Sockets.LingerOption(true, 0);
+        }
+
+        await Task.Delay(TimeSpan.FromSeconds(1), Ct);
+
+        Assert.StartsWith("HTTP/1.1 400", broken, StringComparison.Ordinal);
+        Assert.Equal(before, counter.CountWithin(TimeSpan.FromMinutes(15)));
+        foreach (string path in Directory.GetFiles(logs[0], "app-*.jsonl"))
+        {
+            using FileStream file = new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using StreamReader text = new(file);
+            Assert.DoesNotContain("UnexpectedError", await text.ReadToEndAsync(Ct), StringComparison.Ordinal);
+        }
+    }
+
     private static HttpRequestMessage RealRequest(string path, long size, bool chunked, string requestId)
     {
         // A seekable stream would give the content a length; the header makes the client send the body chunked, with no Content-Length.

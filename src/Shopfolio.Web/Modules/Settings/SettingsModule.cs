@@ -13,13 +13,15 @@ internal sealed class SettingsModule : ISettingsModule
 
     private readonly SalesGates _gates;
     private readonly SalesSwitches _switches;
+    private readonly FirmSettings _firm;
 
-    public SettingsModule(CompanyIdentities identities, CompanySettingsWriter writer, SalesGates gates, SalesSwitches switches)
+    public SettingsModule(CompanyIdentities identities, CompanySettingsWriter writer, SalesGates gates, SalesSwitches switches, FirmSettings firm)
     {
         _identities = identities;
         _writer = writer;
         _gates = gates;
         _switches = switches;
+        _firm = firm;
     }
 
     public Task<SalesGate> GetSalesGateAsync(CancellationToken ct) => _gates.GetAsync(ct);
@@ -39,6 +41,21 @@ internal sealed class SettingsModule : ISettingsModule
 
     public Task<ReturnAddressSection> GetReturnAddressAsync(CancellationToken ct) => _writer.ReadReturnAddressAsync(ct);
 
+    public Task<ShippingFeeSection> GetShippingFeeAsync(CancellationToken ct) => _firm.ReadShippingFeeAsync(ct);
+
+    public Task<SettingsSaveResult> SaveShippingFeeAsync(ShippingFeeInput input, int formVersion, CancellationToken ct) =>
+        _firm.SaveShippingFeeAsync(input, formVersion, ct);
+
+    public Task<PeriodsSection> GetPeriodsAsync(CancellationToken ct) => _firm.ReadPeriodsAsync(ct);
+
+    public Task<SettingsSaveResult> SavePeriodsAsync(PeriodsInput input, int formVersion, CancellationToken ct) =>
+        _firm.SavePeriodsAsync(input, formVersion, ct);
+
+    public Task<ProductDefaultsSection> GetProductDefaultsAsync(CancellationToken ct) => _firm.ReadProductDefaultsAsync(ct);
+
+    public Task<SettingsSaveResult> SaveProductDefaultsAsync(ProductDefaultsInput input, int formVersion, CancellationToken ct) =>
+        _firm.SaveProductDefaultsAsync(input, formVersion, ct);
+
     public Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct) =>
         _writer.SaveReturnAddressAsync(input, formVersion, ct);
 }
@@ -52,6 +69,7 @@ internal static class SettingsModuleRegistration
         services.AddScoped<CompanyIdentities>();
         services.AddScoped<SalesGates>();
         services.AddScoped<SalesSwitches>();
+        services.AddScoped<FirmSettings>();
 
         // The three outside conditions of the sales gate are unbound until their tasks register an implementation in place of these (T352, T353, T366): unbound is not met.
         services.TryAddScoped<ICardPaymentCondition, UnboundCardPaymentCondition>();

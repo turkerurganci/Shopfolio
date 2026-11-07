@@ -41,6 +41,34 @@ public interface ISettingsModule
     /// </summary>
     Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct);
 
+    /// <summary>The shipping fee section (02 11.1 P-1, P-3, P-4): the fee, the two optional amounts and the section's version.</summary>
+    Task<ShippingFeeSection> GetShippingFeeAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The shipping fee form's save (T381; 07 UC-168): in the caller's open transaction, row lock first, then the conditional update of this section's version only, and
+    /// the trail row with the old and new value of each changed field in the same transaction (02 10.3.1 (6)). A negative, over-limit or more-than-two-decimal amount and an
+    /// empty fee are refusals; a save that changes nothing writes nothing.
+    /// </summary>
+    Task<SettingsSaveResult> SaveShippingFeeAsync(ShippingFeeInput input, int formVersion, CancellationToken ct);
+
+    /// <summary>The periods section (02 11.1 P-5, P-7): the firm default of the shipping period, the bank transfer payment window and the section's version.</summary>
+    Task<PeriodsSection> GetPeriodsAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The periods form's save (T381; 07 UC-170): same transaction, lock and trail as <see cref="SaveShippingFeeAsync"/>. A shipping period over P-5's upper fence and a payment
+    /// window outside P-7's lower or upper fence is a refusal that names the side and the fence value (02 4.1.5).
+    /// </summary>
+    Task<SettingsSaveResult> SavePeriodsAsync(PeriodsInput input, int formVersion, CancellationToken ct);
+
+    /// <summary>The product defaults section (02 11.1 P-8, P-10): the download allowance, the VAT rate default and the section's version.</summary>
+    Task<ProductDefaultsSection> GetProductDefaultsAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The product defaults form's save (T381; 07 UC-171): same transaction, lock and trail. An allowance under P-8's lower fence and a rate outside 0 to under 100 with two decimals
+    /// are refusals. The rate of an existing product does not change (a product carries its own rate).
+    /// </summary>
+    Task<SettingsSaveResult> SaveProductDefaultsAsync(ProductDefaultsInput input, int formVersion, CancellationToken ct);
+
     /// <summary>
     /// The decision of the sales gate and of the gate of the data-collecting entries (T331; 02 3.1.5): computed in one place from the database on every call and never
     /// stored (05 4.1.5). The storefront, the cart, the payment step, the order confirmation's transaction, the registration, the Google sign-in, the contact form and

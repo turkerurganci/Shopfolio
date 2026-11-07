@@ -5,7 +5,7 @@ using Shopfolio.Modules.Payment.Contracts;
 namespace Shopfolio.Modules.Notifications.Contracts;
 
 /// <summary>
-/// An event the customer is told about at the order's contact e-mail (B-1…B-8; 08 2.2.6; 02 9.2): the values of the event, which the dispatch row keeps because
+/// An event the customer is told about at the order's contact e-mail (B-1…B-16; 08 2.2.6; 02 9.2): the values of the event, which the dispatch row keeps because
 /// the body is made at the time of sending and the event's record may be changed or gone by then (06 4.58 <c>EventValues</c>; 05 4.4.2). The order itself
 /// (its number, access key, frozen IBAN and documents) is read when the body is made; the dispatch row's order link points at it. The customer's name is not
 /// a value of any of these notices: the greeting has no name (08 2.2.6 item 1).

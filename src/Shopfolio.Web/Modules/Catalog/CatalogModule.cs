@@ -97,6 +97,10 @@ internal sealed class CatalogModule : ICatalogModule
         return _counters.SaveStockQuantityAsync(variantId, shownValue, newValue, ct);
     }
 
+    public Task<VariantStockState?> GetStockStateAsync(Guid variantId, CancellationToken ct) => _counters.GetStateAsync(variantId, ct);
+
+    public Task<ProductAvailability> GetAvailabilityAsync(Guid productId, CancellationToken ct) => _counters.GetAvailabilityAsync(productId, ct);
+
     private Task<bool> ApplyAsync(StockClaim claim, CounterMove move, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(claim);

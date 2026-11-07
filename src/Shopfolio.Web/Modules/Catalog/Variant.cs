@@ -48,9 +48,13 @@ internal sealed class Variant
 
     public DateTimeOffset? FirstOnSaleAt { get; set; }
 
-    public static Variant Create(Guid productId, string sku, decimal price, DateTimeOffset now)
+    /// <summary>
+    /// Creates the variant. <paramref name="stockQuantity"/> is the first stock or capacity (02 3.6.2): a number for a physical product, empty for a digital product, optional
+    /// for a service; <c>VariantStockGuard</c> refuses the save when it does not fit the product's type. Later writes go through the counters' conditional update.
+    /// </summary>
+    public static Variant Create(Guid productId, string sku, decimal price, DateTimeOffset now, int? stockQuantity = null)
     {
-        Variant variant = new() { Id = EntityIds.New(), CreatedAt = now, ProductId = productId, Price = price };
+        Variant variant = new() { Id = EntityIds.New(), CreatedAt = now, ProductId = productId, Price = price, StockQuantity = stockQuantity };
         variant.SetSku(sku);
         return variant;
     }

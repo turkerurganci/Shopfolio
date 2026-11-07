@@ -68,6 +68,19 @@ public sealed class SalesModelShapeTests
         { "PeopleAlsoViewed", "people also" },
         { "Rfq", "rfq" },
         { "RFQNumber", "rfq" },
+        { "NotifyMe", "notify me" },
+        { "BackInStockSubscription", "back in stock" },
+        { "stock_alert", "stock alert" },
+        { "StockNotificationRequest", "stock notification" },
+        { "RestockNotification", "restock notification" },
+        { "Waitlist", "waitlist" },
+        { "WaitListEntry", "wait list" },
+        { "LowStockWarning", "low stock" },
+        { "StockThreshold", "stock threshold" },
+        { "Only2Left", "only left" },
+        { "LastUnitsBadge", "last units" },
+        { "UnitsLeft", "units left" },
+        { "RemainingStock", "remaining stock" },
     };
 
     [Theory]
@@ -87,6 +100,14 @@ public sealed class SalesModelShapeTests
     [InlineData("Starter")]
     [InlineData("BookmarkRequest")]
     [InlineData("Quoted")]
+    [InlineData("StockCode")]
+    [InlineData("StockCounters")]
+    [InlineData("IsSoldOut")]
+    [InlineData("ProductAvailability")]
+    [InlineData("StockBelowReserved")]
+    [InlineData("ListReservationHoldersAsync")]
+    [InlineData("NotifyCustomer")]
+    [InlineData("LowerBound")]
     public void TheScan_DoesNotMistakeAnOrdinaryNameForAForbiddenOne(string name)
     {
         Assert.Empty(SalesModelShape.FindingsIn(name));

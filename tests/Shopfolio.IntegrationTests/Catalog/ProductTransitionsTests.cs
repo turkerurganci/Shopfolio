@@ -705,6 +705,7 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
         {
             Variant variant = Variant.Create(product.Id, $"SKU-{n:D4}-{variants.Count}", 100m, Now.AddMinutes(n));
             variant.PublishStatus = status;
+            variant.StockQuantity = 10;
             variants.Add(variant);
         }
 

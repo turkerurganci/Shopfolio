@@ -73,10 +73,30 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-07, head `62d03a8`) |
-| Bulgu sayısı | 1 (B1 DÜŞÜK S1) |
-| Düzeltme gerekli mi | Evet — B1 |
-| Bloke-etmeyen not (K) sayısı | 1 (K1, bu PR'da kapatıldı) |
+| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-07, head `d42a5a4`) — önce tur 1 ✗ FAIL (head `62d03a8`) |
+| Bulgu sayısı | Tur 2: 2 (B1 DÜŞÜK S1, B2 DÜŞÜK S1) · tur 1: 1 (düzeltildi) |
+| Düzeltme gerekli mi | Evet — tur 2 B1, B2 (düzeltme 2; iterasyon 1/2 kullanıldı, `12 §8.5`) |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (K1 → D-372) · tur 1: 1 (kapandı) |
+
+### Tur 2 (2026-11-07, head `d42a5a4` + `origin/main` birleştirmesi)
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana deponun `scripts/git-hooks`'u, worktree paylaşır); ana dal CI 42408991705, 42405002224, 42405001882 success; MEMORY'de T333 satırı var.
+
+**Kabul kriterleri (validator):** 1–8 ✓, KK1–KK8 ✓. Kanıt: kod okuması (`CategoryTree`, `CategoryLevels`, `ProductCategoryLinks`, `ProductListReader`) ve yerel koşu — Integration `CategoryTreeAndListsTests` 32/32 (iki sınır testi ayrı koşuldu: 33 sn, 41 sn), `ConcurrencyTests` 26/26 (gerçek PostgreSQL 18); Unit 4064/4064 (Architecture, Consistency dahil); build `-warnaserror` 0 uyarı; format ×3 temiz; betik testleri 4/4; dal CI 42406747948 (head `d42a5a4`) bütün işler pass. Tur 1 B1 düzeltmesi yerinde: iki listede `2×24+7` aynı `CreatedAt`'li ürün bütün sayfalarda yinelenmeden ve kaybolmadan yürünür, süzgeçli koşular da sınırı geçer; `\` harfi harfine aranır.
+
+**Task satırları (`12 §7.5`):** VAL-A001…A008, VAL-A181…A185 uç/tarayıcı kanıtı ister; T333 uç kurmaz (D-331, D-333) → `BEKLEMEDE` kalır, `12` değişmedi.
+
+**B1 (DÜŞÜK, S1):** `09 §25` Performans "okuma sorgusu izlemesiz ve projeksiyonlu mu?" — hayır. `09 §20` madde 3 (okuma tablosu "Liste, sorgu sınırı, performans" → §20): "listede yalnız ekranın gösterdiği sütunlar `Select` ile projeksiyonla alınır, varlığın tamamı alınmaz." `ProductListReader.PageOfAsync` `IOrderedQueryable<Product>`'u `ToPageAsync`'e verir; sayfa `Product`'ın bütün sütunlarıyla (sınırsız `Description` gövdesi dahil) okunur, karta yalnız `Id`, `Name`, `Slug` gider. D-134 (T210 K1) bunu açıkça T333'e yönlendirmişti ("projeksiyonla okur") ve kayıt açık kaldı. Koddaki gerekçe ("kayda projeksiyon edilip üyesine göre sıralanamaz") yalnız konumlu `record` için doğrudur; üyeleri `init` olan bir sınıfa (`new Row { Id = …, CreatedAt = …, Name = …, Slug = … }`) projeksiyon `OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id)` ile çevrilir. **Düzeltme:** sayfa projeksiyonla okunur; D-134 kapatılır (fiyat ve stok kısmı T333'te karşılandı).
+
+**B2 (DÜŞÜK, S1):** `09 §20` madde 4: "Zorunlu test … kalem ya da ilişki yükleyen liste ve ekranlara istenir" — liste kart rakamlarını (en düşük fiyat, satın alınabilirlik) varyantlardan yükler; sorgu sayısının sayfadaki ürün sayısından bağımsız olduğunu komut yakalayıcıyla sayan entegrasyon testi yok (`09 §25` Test: "Yeni ya da değişen her kuralın bölümündeki Test maddesi karşılanmış mı?"). Sayfa boyu sabit olduğundan test aynı listeyi az ve çok ürünle (ör. 1 ve 24) koşup komut sayısının eşit olduğunu onaylar. Üretim kodu bugün sabit sayıda sorgu çalıştırır; eksik olan kilitleyen testtir.
+
+**K1 → D-372 (T361):** `ProductCategoryLinks.SetAsync` `Menu`/`CategoryTree` alanını bildirmez; menü önbelleği kurulunca bağ değişikliği bayat menü bırakır. Bugün o önbelleği dolduran kod yok.
+
+**Güvenlik:** sır yok; uç yok (yetki D-333); arama deseni parametreli ve kaçışlı (`EF.Functions.Like`, `\`); ham SQL yok; yeni bağımlılık yok — temiz.
+
+**Yapım raporu karşılaştırması:** 1 uyuşmazlık — öz denetimin "`09 §10` / `§25` ✓" satırı okumaların `AsNoTracking` olduğunu yazar, projeksiyonu ve §20 madde 4 testini anmaz (B1, B2). Kabul kriterleri ve KK tabloları validator'la uyumlu.
+
+### Tur 1 (2026-11-07, head `62d03a8`)
 
 **Başlangıç kapıları:** working tree temiz, `core.hooksPath` = `scripts/git-hooks`; ana dal CI 42402532255, 42401437836, 42401437807 success; memory satırı var.
 

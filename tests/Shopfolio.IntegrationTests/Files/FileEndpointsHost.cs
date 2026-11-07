@@ -187,15 +187,31 @@ internal sealed class FileEndpointsHost : IAsyncDisposable
         DigitalFile file = await AttachFileAsync(db, variant.Id, content, fileName);
         (Guid orderId, _, _) = await TestSessions.OrderAsync(Dsn, null);
         OrderItem item = OrderItem.Create(orderId, product.Id, variant.Id, itemType, "Kitap", 1, 10m, 20m, 1.67m, now);
-        item.DigitalFileId = file.Id;
         if (itemType == ProductType.Digital)
         {
+            item.DigitalFileId = file.Id;
             item.DownloadAllowance = 3;
         }
 
         db.OrderItems.Add(item);
         await db.SaveChangesAsync(Ct);
         return (item.Id, variant.Id, file.Id);
+    }
+
+    /// <summary>An order item whose variant link is empty and whose last known file is a started upload that never completed (an unattached, incomplete row).</summary>
+    public async Task<Guid> SeedItemOfAnIncompleteFileAsync()
+    {
+        DateTimeOffset now = Time.GetUtcNow();
+        await using AppDbContext db = NewContext();
+        DigitalFile file = DigitalFile.Create(EntityIds.NewStorageKey(), "yarim.pdf", 50, now);
+        db.DigitalFiles.Add(file);
+        (Guid orderId, _, _) = await TestSessions.OrderAsync(Dsn, null);
+        OrderItem item = OrderItem.Create(orderId, null, null, ProductType.Digital, "Kitap", 1, 10m, 20m, 1.67m, now);
+        item.DigitalFileId = file.Id;
+        item.DownloadAllowance = 3;
+        db.OrderItems.Add(item);
+        await db.SaveChangesAsync(Ct);
+        return item.Id;
     }
 
     /// <summary>Detaches the variant's current file (if any) and attaches a new completed one with the given bytes; the file is written to the store.</summary>

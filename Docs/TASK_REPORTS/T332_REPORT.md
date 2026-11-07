@@ -71,7 +71,7 @@
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --no-build` | 3528 geçti (düzeltmeden sonra tam koşu: yeniden adlandırma ve enum dosyası ayrımı sonrası ilgili sınıflar 104 + 38 + 68 yeşil) |
 | Integration | ✓ (parçalı) | `dotnet test --project tests/Shopfolio.IntegrationTests/... --filter-namespace …` | `SalesModelTests` 28; Model ad alanı 953 (süre sınırında kesilen üç göç testi `SchedulerBackupDisposalAndKeyTablesTests`, `CatalogCoreTablesTests` ayrı koşuda 115/115 geçti); Concurrency+Files+Disposal+Database 161; Web+Pages+Jobs 408; Logging+Outages+Security+SignedEndpoints+FileSecrets 116 |
 | Format / derleme | ✓ | `dotnet format <proje> --verify-no-changes`; `dotnet build -warnaserror` | üç proje temiz |
-| Consistency | bkz. Notlar | `--filter-trait "Consistency=true"` | docs commit'inden sonra koşuldu |
+| Consistency | ✓ | `--filter-trait "Consistency=true"` (docs commit'inden sonra) | 209 geçti |
 
 ## Doğrulama
 

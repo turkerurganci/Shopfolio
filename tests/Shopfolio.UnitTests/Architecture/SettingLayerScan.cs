@@ -141,7 +141,7 @@ internal static partial class SettingLayerScan
     [GeneratedRegex(@"^\s*public\s+(?:const\s+|static\s+|readonly\s+)*[\w<>\[\]?,. ]+?\s+(?<name>\w+)\s*(?:\{|=)", RegexOptions.CultureInvariant)]
     private static partial Regex PublicMember();
 
-    [GeneratedRegex(@"\[\s*BindProperty\b", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"[\[,]\s*BindProperty\b", RegexOptions.CultureInvariant)]
     private static partial Regex BindPropertyAttribute();
 
     // public int Name { get; set; }  (after the [BindProperty] attribute, on the same line or the line before)
@@ -149,7 +149,7 @@ internal static partial class SettingLayerScan
     private static partial Regex PublicProperty();
 
     // name="Input.CategoryLevelMax"  /  asp-for="CategoryLevelMax"  /  id='CategoryLevelMax'
-    [GeneratedRegex(@"\b(?:name|id|asp-for)\s*=\s*[""'](?<name>[\w.\[\]]+)[""']", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"\b(?:name|id|asp-for)\s*=\s*[""']@?(?<name>[\w.\[\]]+)[""']", RegexOptions.CultureInvariant)]
     private static partial Regex MarkupField();
 
     [GeneratedRegex(@"^(?<key>[A-Za-z_][A-Za-z0-9_]*)=", RegexOptions.CultureInvariant)]

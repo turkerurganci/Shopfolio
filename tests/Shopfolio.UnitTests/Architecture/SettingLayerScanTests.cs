@@ -110,6 +110,16 @@ public sealed class SettingLayerScanTests
         Assert.Equal((SettingLayerScan.FormFieldNamesProductConstant, line), Assert.Single(findings));
     }
 
+    [Theory]
+    [InlineData("<input asp-for=\"@Model.Input.CategoryLevelMax\" />")]
+    [InlineData("<input id='CategoryLevelMax' />")]
+    [InlineData("[Required, BindProperty] public int CategoryLevelMax { get; set; }")]
+    [InlineData("[BindProperty(SupportsGet = true)]\npublic int CategoryLevelMax { get; set; }")]
+    public void PanelFormScan_SeesEachWayAFieldIsWritten(string source)
+    {
+        Assert.Single(SettingLayerScan.ScanPanelFormSource(source, ProductConstantNames()));
+    }
+
     [Fact]
     public void PanelFormScan_OnCleanSample_ReportsNothing_AndAFirmSettingFieldIsNotAConstant()
     {

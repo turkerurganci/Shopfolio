@@ -166,7 +166,7 @@ public sealed class SalesModelTests : IAsyncLifetime
         Option color = Option.Create(oneDimension.Id, "Renk", 1, Now);
         OptionValue red = OptionValue.Create(color.Id, "Kırmızı", 1, Now);
         OptionValue green = OptionValue.Create(color.Id, "Yeşil", 2, Now);
-        Variant plainVariant = Variant.Create(plain.Id, "SADE-01", 10m, Now);
+        Variant plainVariant = Variant.Create(plain.Id, "SADE-01", 10m, Now, 100);
         await SaveAsync(c =>
         {
             c.Products.AddRange(plain, oneDimension);
@@ -195,7 +195,7 @@ public sealed class SalesModelTests : IAsyncLifetime
     public async Task ACombinationHeldByAnotherVariant_IsTaken_ButNotByTheVariantBeingEdited()
     {
         (Product product, OptionValue red, OptionValue blue, OptionValue sizeM, OptionValue sizeL) = await SeedTwoDimensionsAsync();
-        Variant held = Variant.Create(product.Id, "KOMB-01", 10m, Now);
+        Variant held = Variant.Create(product.Id, "KOMB-01", 10m, Now, 100);
         held.FirstOptionValueId = red.Id;
         held.SecondOptionValueId = sizeM.Id;
         await SaveAsync(c => c.Variants.Add(held));
@@ -213,13 +213,13 @@ public sealed class SalesModelTests : IAsyncLifetime
     public async Task TheMatrixNeedNotBeFull_AMissingCombinationIsACellNoVariantOpens()
     {
         (Product product, OptionValue red, OptionValue blue, OptionValue sizeM, OptionValue sizeL) = await SeedTwoDimensionsAsync();
-        Variant redM = Variant.Create(product.Id, "MX-RM", 10m, Now);
+        Variant redM = Variant.Create(product.Id, "MX-RM", 10m, Now, 100);
         redM.FirstOptionValueId = red.Id;
         redM.SecondOptionValueId = sizeM.Id;
-        Variant redL = Variant.Create(product.Id, "MX-RL", 10m, Now);
+        Variant redL = Variant.Create(product.Id, "MX-RL", 10m, Now, 100);
         redL.FirstOptionValueId = red.Id;
         redL.SecondOptionValueId = sizeL.Id;
-        Variant blueL = Variant.Create(product.Id, "MX-BL", 10m, Now);
+        Variant blueL = Variant.Create(product.Id, "MX-BL", 10m, Now, 100);
         blueL.FirstOptionValueId = blue.Id;
         blueL.SecondOptionValueId = sizeL.Id;
         await SaveAsync(c => c.Variants.AddRange(redM, redL, blueL));
@@ -249,7 +249,7 @@ public sealed class SalesModelTests : IAsyncLifetime
             Assert.False(closed.IsOpened);
         }
 
-        Variant only = Variant.Create(plain.Id, "MS-01", 10m, Now);
+        Variant only = Variant.Create(plain.Id, "MS-01", 10m, Now, 100);
         await SaveAsync(c => c.Variants.Add(only));
         await using AppDbContext after = NewContext();
         OptionMatrixCell opened = Assert.Single(await new ProductStructureReader(after).GetMatrixAsync(plain.Id, Ct));
@@ -283,7 +283,7 @@ public sealed class SalesModelTests : IAsyncLifetime
         (Product product, Variant first) = await SeedPhysicalProductWithOneVariantAsync("kod-ilk", "Ahşap-I01");
         Option option = Option.Create(product.Id, "Renk", 1, Now);
         OptionValue value = OptionValue.Create(option.Id, "Kırmızı", 1, Now);
-        Variant second = Variant.Create(product.Id, "AHŞAP-ı01", 10m, Now);
+        Variant second = Variant.Create(product.Id, "AHŞAP-ı01", 10m, Now, 100);
         second.FirstOptionValueId = value.Id;
 
         await SaveAsync(c =>
@@ -307,12 +307,12 @@ public sealed class SalesModelTests : IAsyncLifetime
 
         Assert.Equal("AHSAP-MASA-01", await SuggestAsync(product.Id, null));
 
-        Variant first = Variant.Create(product.Id, "AHSAP-MASA-01", 10m, Now);
+        Variant first = Variant.Create(product.Id, "AHSAP-MASA-01", 10m, Now, 100);
         await SaveAsync(c => c.Variants.Add(first));
         Assert.Equal("AHSAP-MASA-02", await SuggestAsync(product.Id, "Tamamen Başka Ad"));
 
         // Another product holds the next code: the order goes up until the code is free; the comparison is the identity one.
-        await SaveAsync(c => c.Variants.Add(Variant.Create(another.Id, "ahsap-masa-02", 10m, Now)));
+        await SaveAsync(c => c.Variants.Add(Variant.Create(another.Id, "ahsap-masa-02", 10m, Now, 100)));
         Assert.Equal("AHSAP-MASA-03", await SuggestAsync(product.Id, null));
     }
 
@@ -342,7 +342,7 @@ public sealed class SalesModelTests : IAsyncLifetime
         await SaveAsync(c =>
         {
             c.Products.Add(holder);
-            c.Variants.Add(Variant.Create(holder.Id, "AHSAP-MASA-01", 10m, Now));
+            c.Variants.Add(Variant.Create(holder.Id, "AHSAP-MASA-01", 10m, Now, 100));
         });
         Assert.Equal("AHSAP-MASA-02", await SuggestAsync(null, "Ahşap Masa"));
     }
@@ -351,7 +351,7 @@ public sealed class SalesModelTests : IAsyncLifetime
     public async Task ARenamedProduct_KeepsItsCodes_AndTheNextSuggestionStillComesFromItsAddress()
     {
         Product product = NewProduct("eski-ad", ProductType.Physical, "Eski Ad");
-        Variant first = Variant.Create(product.Id, "ESKI-AD-01", 10m, Now);
+        Variant first = Variant.Create(product.Id, "ESKI-AD-01", 10m, Now, 100);
         await SaveAsync(c =>
         {
             c.Products.Add(product);
@@ -494,7 +494,7 @@ public sealed class SalesModelTests : IAsyncLifetime
     private async Task<(Product Product, Variant Variant)> SeedPhysicalProductWithOneVariantAsync(string slug, string sku)
     {
         Product product = NewProduct(slug, ProductType.Physical);
-        Variant variant = Variant.Create(product.Id, sku, 100m, Now);
+        Variant variant = Variant.Create(product.Id, sku, 100m, Now, 100);
         await SaveAsync(c =>
         {
             c.Products.Add(product);

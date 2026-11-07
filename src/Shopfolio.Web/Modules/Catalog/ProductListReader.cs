@@ -77,9 +77,13 @@ internal sealed class ProductListReader
                 && (max == null || v.Price <= max)));
         }
 
-        // The order is on the product itself (a projection to a record cannot be ordered by its member); the page's cards are read in a second step for the page's keys only.
-        IOrderedQueryable<Product> ordered = products.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id);
-        PagedList<Product> paged = await ordered.ToPageAsync(page, PageSizes.StorefrontProducts, ct);
+        // Only the columns the card shows (and the order's two) are read - the description and the rest of the product are not (09 20 item 3). The projection is a class with
+        // init members, so the order can be put on its members; the page's figures are read in a second step for the page's keys only.
+        IOrderedQueryable<CardRow> ordered = products
+            .Select(p => new CardRow { Id = p.Id, Name = p.Name, Slug = p.Slug, CreatedAt = p.CreatedAt })
+            .OrderByDescending(r => r.CreatedAt)
+            .ThenByDescending(r => r.Id);
+        PagedList<CardRow> paged = await ordered.ToPageAsync(page, PageSizes.StorefrontProducts, ct);
 
         List<Guid> keys = [.. paged.Items.Select(p => p.Id)];
         Dictionary<Guid, CardFigures> figures = await _db.Variants.AsNoTracking()
@@ -94,6 +98,17 @@ internal sealed class ProductListReader
             paged.PageSize,
             paged.TotalCount,
             paged.PageCount);
+    }
+
+    private sealed class CardRow
+    {
+        public required Guid Id { get; init; }
+
+        public required string Name { get; init; }
+
+        public required string Slug { get; init; }
+
+        public required DateTimeOffset CreatedAt { get; init; }
     }
 
     private sealed record CardFigures(Guid ProductId, decimal? LowestPrice, bool IsPurchasable);

@@ -251,7 +251,7 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         for (int i = 0; i < size + 5; i++)
         {
             Product product = await SeedProductAsync($"Dal {i:00}", Now.AddMinutes(i));
-            await SeedVariantAsync(product.Id, $"DAL-{i:00}", 100m + i, stock: null, PublishStatus.Published);
+            await SeedVariantAsync(product.Id, $"DAL-{i:00}", 100m + i, stock: 100, PublishStatus.Published);
             inBranch.Add(product);
             Guid[] hung = (i % 3) switch
             {
@@ -283,6 +283,39 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         // A leaf's page holds just the products hung on it.
         Assert.Equal(onGrandchild, (await ListCategoryAsync("torun")).TotalCount);
         Assert.True(onGrandchild < inBranch.Count);
+    }
+
+    [Fact]
+    public async Task TheListsQueryCount_DoesNotGrowWithThePageFill_ACategoryPageAndASearchPage()
+    {
+        Guid category = await CreateAsync("Sayım", null);
+        Product single = await SeedProductAsync("Sayım tek", Now);
+        await SeedVariantAsync(single.Id, "SAYIM-TEK", 10m, stock: 5, PublishStatus.Published);
+        await SetLinksAsync(single.Id, [category], category);
+
+        int oneProductCategory = await CountCommandsAsync(context => new ProductListReader(context).ListCategoryAsync("sayim", null, 1, Ct));
+        int oneProductSearch = await CountCommandsAsync(context => new ProductListReader(context).SearchAsync("sayım", null, 1, Ct));
+
+        // The page fills up: more than one page of products, each with two variants (the figures read their rows), and the first page is a full one.
+        int size = PageSizes.StorefrontProducts;
+        for (int i = 0; i < size + 3; i++)
+        {
+            Product product = await SeedProductAsync($"Sayım dolu {i:00}", Now.AddMinutes(i + 1));
+            await SeedVariantAsync(product.Id, $"SAYIM-{i:00}-A", 10m + i, stock: 7, PublishStatus.Published);
+            await SeedVariantAsync(product.Id, $"SAYIM-{i:00}-B", 20m + i, stock: 5, PublishStatus.Published);
+            await SetLinksAsync(product.Id, [category], category);
+        }
+
+        ProductListPage fullCategoryPage = await ListCategoryAsync("sayim");
+        Assert.Equal(size, fullCategoryPage.Items.Count);
+        Assert.Equal(size, (await SearchAsync("sayım")).Items.Count);
+
+        int fullCategory = await CountCommandsAsync(context => new ProductListReader(context).ListCategoryAsync("sayim", null, 1, Ct));
+        int fullSearch = await CountCommandsAsync(context => new ProductListReader(context).SearchAsync("sayım", null, 1, Ct));
+
+        Assert.True(oneProductCategory > 0);
+        Assert.Equal(oneProductCategory, fullCategory);
+        Assert.Equal(oneProductSearch, fullSearch);
     }
 
     [Fact]
@@ -558,7 +591,7 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
     {
         Guid cat = await CreateAsync("Stok", null);
         Product oneBuyable = await SeedProductAsync("Bir satın alınabilir", Now);
-        Product unlimited = await SeedProductAsync("Sınırsız", Now.AddMinutes(1));
+        Product unlimited = await SeedProductAsync("Sınırsız", Now.AddMinutes(1), productType: ProductType.Digital);
         Product soldOut = await SeedProductAsync("Tükenmiş", Now.AddMinutes(2));
         Product reserved = await SeedProductAsync("Ayrılmış", Now.AddMinutes(3));
         Product draftOnly = await SeedProductAsync("Taslak varyant", Now.AddMinutes(4));
@@ -600,11 +633,11 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
             await SetLinksAsync(product.Id, [cat], cat);
         }
 
-        await SeedVariantAsync(cheap.Id, "P-1", 50m, stock: null, PublishStatus.Published);
-        await SeedVariantAsync(pricey.Id, "P-2", 500m, stock: null, PublishStatus.Published);
-        await SeedVariantAsync(both.Id, "P-3A", 80m, stock: null, PublishStatus.Published);
-        await SeedVariantAsync(both.Id, "P-3B", 900m, stock: null, PublishStatus.Published);
-        await SeedVariantAsync(cheap.Id, "P-1D", 700m, stock: null, PublishStatus.Draft);
+        await SeedVariantAsync(cheap.Id, "P-1", 50m, stock: 100, PublishStatus.Published);
+        await SeedVariantAsync(pricey.Id, "P-2", 500m, stock: 100, PublishStatus.Published);
+        await SeedVariantAsync(both.Id, "P-3A", 80m, stock: 100, PublishStatus.Published);
+        await SeedVariantAsync(both.Id, "P-3B", 900m, stock: 100, PublishStatus.Published);
+        await SeedVariantAsync(cheap.Id, "P-1D", 700m, stock: 100, PublishStatus.Draft);
 
         AssertIds(await ListCategoryAsync("fiyat", new ProductListFilter(MaxPrice: 100m)), cheap.Id, both.Id);
         AssertIds(await ListCategoryAsync("fiyat", new ProductListFilter(MinPrice: 400m)), pricey.Id, both.Id);
@@ -705,7 +738,7 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         for (int i = 0; i < count; i++)
         {
             Product product = await SeedProductAsync($"Aynı an {i:00}", Now);
-            await SeedVariantAsync(product.Id, $"A-{i:00}", 10m + i, stock: null, PublishStatus.Published);
+            await SeedVariantAsync(product.Id, $"A-{i:00}", 10m + i, stock: 7, PublishStatus.Published);
             seeded.Add(product.Id);
         }
 
@@ -863,10 +896,10 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         return [.. invalidations.TakePendingAreas()];
     }
 
-    private async Task<Product> SeedProductAsync(string name, DateTimeOffset createdAt, PublishStatus status = PublishStatus.Published, string? description = null)
+    private async Task<Product> SeedProductAsync(string name, DateTimeOffset createdAt, PublishStatus status = PublishStatus.Published, string? description = null, ProductType productType = ProductType.Physical)
     {
         string slug = Slug.From(name, "urun") + "-" + Guid.NewGuid().ToString("N")[..6];
-        Product product = Product.Create(name, slug, ProductType.Physical, 20m, createdAt);
+        Product product = Product.Create(name, slug, productType, 20m, createdAt);
         product.PublishStatus = status;
         product.Description = description;
         await SaveAsync(c => c.Products.Add(product));
@@ -906,6 +939,17 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
             c.Options.Add(option);
             c.OptionValues.Add(optionValue);
         });
+    }
+
+    /// <summary>Counts the commands one read sends, by a command interceptor on a fresh context.</summary>
+    private async Task<int> CountCommandsAsync(Func<AppDbContext, Task<ProductListPage?>> read)
+    {
+        CommandCounter counter = new();
+        DbContextOptionsBuilder<AppDbContext> builder = new();
+        AppDbContext.Configure(builder, _collection.Dsn).AddInterceptors(counter);
+        await using AppDbContext context = new(builder.Options);
+        Assert.NotNull(await read(context));
+        return counter.Count;
     }
 
     private AppDbContext NewContext()
@@ -951,5 +995,23 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         }
 
         return rows;
+    }
+
+    /// <summary>Counts the commands (reads and writes) a context sends.</summary>
+    private sealed class CommandCounter : Microsoft.EntityFrameworkCore.Diagnostics.DbCommandInterceptor
+    {
+        private int _count;
+
+        public int Count => Volatile.Read(ref _count);
+
+        public override ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<System.Data.Common.DbDataReader>> ReaderExecutingAsync(
+            System.Data.Common.DbCommand command,
+            Microsoft.EntityFrameworkCore.Diagnostics.CommandEventData eventData,
+            Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<System.Data.Common.DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            Interlocked.Increment(ref _count);
+            return ValueTask.FromResult(result);
+        }
     }
 }

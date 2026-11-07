@@ -43,6 +43,18 @@ public interface ICatalogModule
     Task<StockQuantityWriteResult> SaveStockQuantityAsync(Guid variantId, int? shownValue, int? newValue, CancellationToken ct);
 
     /// <summary>
+    /// The stock field and the reserved quantity beside it (02 3.6.7), for the panel's stock field; null when the variant is gone. The orders that hold the reservation are
+    /// the Ordering module's (<c>IOrderingModule.ListReservationHoldersAsync</c>). A plain read; never for a visitor-facing page.
+    /// </summary>
+    Task<VariantStockState?> GetStockStateAsync(Guid variantId, CancellationToken ct);
+
+    /// <summary>
+    /// The sold-out state of a product for the visitor (02 3.6.3-3.6.5): its published variants, each sold out or not, and the product sold out when all are - it then stays
+    /// on the shop window, marked, and cannot be added to the cart. Carries no stock number, no threshold and no "notify me" state. A plain read.
+    /// </summary>
+    Task<ProductAvailability> GetAvailabilityAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>
     /// An image upload (09 15.6 items 5, 7; 05 7.7.2): the size ceiling (P-23), the type from the content, the pixel ceiling, the re-encoded source
     /// copy in the file store and - in the caller's open transaction, which the method joins and never opens (09 9.1 item 3) - the unlinked image
     /// row and its derivative job. Called outside a transaction it throws at the job row. The refusal is a result, not an exception.

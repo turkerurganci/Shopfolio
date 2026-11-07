@@ -21,6 +21,11 @@ internal static partial class SalesModelShape
         ["min", "quantity"], ["minimum", "quantity"], ["min", "qty"], ["minimum", "qty"], ["min", "order", "quantity"], ["minimum", "order", "quantity"], ["min", "order", "qty"], ["min", "units"], ["minimum", "units"], ["min", "pieces"],
         ["review"], ["reviews"], ["rating"], ["ratings"], ["star", "rating"], ["stars"], ["recommendation"], ["recommendations"], ["recommended", "products"],
         ["related", "products"], ["similar", "products"], ["also", "bought"], ["customers", "also"], ["people", "also"],
+
+        // T334 (02 3.6.4, 3.6.5; 10 KD-9, KD-33): no "notify me when it is back" record or message, and no low-stock warning with a threshold or a count shown to the visitor.
+        ["notify", "me"], ["notify", "when", "available"], ["back", "in", "stock"], ["stock", "alert"], ["stock", "alerts"], ["stock", "notification"], ["stock", "notifications"],
+        ["restock", "notification"], ["restock", "alert"], ["waitlist"], ["wait", "list"], ["low", "stock"], ["stock", "threshold"], ["stock", "warning"], ["few", "left"],
+        ["only", "left"], ["last", "units"], ["units", "left"], ["items", "left"], ["remaining", "stock"], ["remaining", "units"],
     ];
 
     /// <summary>The names of the application assembly: types, members, enum values and parameters, with the owner so that a finding points at its place.</summary>

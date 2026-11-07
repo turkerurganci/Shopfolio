@@ -767,7 +767,7 @@ Bu bölüm durum geçişinin, yan etkinin, işlem izinin, belge kopyasının ve 
    | `Order` — iade ve e-posta (5) | `RetryCardRefund`, `RefundByBankTransfer`, `MarkCardRefundNotCompleted`, `ReportRefundTransferNotCompleted`, `ResendEmail` | Sipariş |
    | `AdminAccounts` | `SendAdminInvitation`, `WithdrawAdminInvitation` (konu `AdminInvitation`); `CreateAdminAccount`, `RemoveAdminAccount`, `ChangeAdminEmail` (konu `Admin`) | Yönetici hesapları |
    | `LegalTextVersion` | `PublishLegalText` | `LegalTextVersion` |
-   | `Settings` | `UpdateSettings` | `CompanySettings`; teslimat illerinde `Province` |
+   | `Settings` | `UpdateSettings` | `CompanySettings`; teslimat illerinde `Province`; platform imzasında `Branding` |
    | `Export` | `ExportOrders`, `ExportCustomers`, `ExportContactRequests` | Konu boştur |
    | `CustomerDeletion` | `DeleteCustomerAccount` | `Customer` |
 

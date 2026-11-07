@@ -8,13 +8,21 @@ namespace Shopfolio.Modules.CorporateContent;
 internal sealed class CorporateContentModule : ICorporateContentModule
 {
     private readonly CorporateContentSitemapReader _sitemap;
+    private readonly BrandingSettings _branding;
 
-    public CorporateContentModule(CorporateContentSitemapReader sitemap)
+    public CorporateContentModule(CorporateContentSitemapReader sitemap, BrandingSettings branding)
     {
         _sitemap = sitemap;
+        _branding = branding;
     }
 
     public Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct) => _sitemap.ListAsync(ct);
+
+    public Task<BrandingSection> GetBrandingAsync(CancellationToken ct) => _branding.ReadSectionAsync(ct);
+
+    public Task<BrandingSaveResult> SaveBrandingAsync(BrandingInput input, int formVersion, CancellationToken ct) => _branding.SaveAsync(input, formVersion, ct);
+
+    public Task<BrandIdentity> GetBrandIdentityAsync(CancellationToken ct) => _branding.ReadIdentityAsync(ct);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddCorporateContentModule</c> once.</summary>
@@ -25,6 +33,7 @@ internal static class CorporateContentModuleRegistration
         services.AddScoped<CorporateContentSitemapReader>();
         services.AddScoped<ContentPublishing>();
         services.AddScoped<ContactRequests>();
+        services.AddScoped<BrandingSettings>();
         services.AddScoped<ICorporateContentModule, CorporateContentModule>();
         return services;
     }

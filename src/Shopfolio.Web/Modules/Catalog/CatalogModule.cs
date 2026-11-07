@@ -104,6 +104,8 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task<ImageUploadResult> UploadImageAsync(byte[] content, CancellationToken ct) => _imageUploads.UploadAsync(content, ct);
 
+    public Task<bool> ImageExistsAsync(Guid imageId, CancellationToken ct) => _imageUploads.ExistsAsync(imageId, ct);
+
     public Task ReleaseAsync(StockClaim claim, CancellationToken ct) => ApplyAsync(claim, CounterMove.Release, ct);
 
     public Task CommitAsync(StockClaim claim, CancellationToken ct) => ApplyAsync(claim, CounterMove.Commit, ct);

@@ -32,7 +32,7 @@
 | 2 | Teslim edildi ve İptal edildi terminal | ✓ | `ATerminalState_IsLeftByNoOperation_KK2` (17 satır) |
 | 3 | S1 ödeme onayıyla aynı anda, yalnız fiziksel kalemli siparişte; B-4 Ö1'in, S1 ayrıca bildirim üretmez | ✓ | `S1_OnAnOrderWithoutAPhysicalItem_IsRefused_...KK3`, `S1_OnAMixedOrderWithAPhysicalItem_WritesO1AndS1_...OneB4Row_KK3`, `S1_AfterTheTransfersO1_WritesS1Alone_AndNoSecondB4Row_KK3` |
 | 4 | S2, S10, S11 kapanışı tamamlayan son olayla işler | ✓ | `TheLastEventThatCompletesTheClosure_WritesTheDeliveredTransition_InTheSameOperation_KK4`, `S7_OfAShipmentWhoseItemsAreClosed...EndsInS11_KK4`; ayrı yöntem yok: `TheShipmentAxis_HasAnOperationForS1S3S4S9AndS5ToS8_AndNoneForTheClosures_KK4` |
-| 5 | S3 müşteri/sebepli yönetici/sistem, S4 müşteri/sebepli yönetici, S9 sebepli yönetici; B-7 gider | ✓ | `S3_ByTheCustomer_...KK5`, `S4_ByTheCustomer_...KK5`, `TheAdministratorsCancellation_ByTheState_...KK5`, `S3_BySystem_...KK5`, `TheOtherActors_AreRefusedByEachCancellation_...KK5`, `TheCancellationsTriggers_AreTheOnesOfTheTable_KK5` |
+| 5 | S3 müşteri/sebepli yönetici/sistem, S4 müşteri/sebepli yönetici, S9 sebepli yönetici; B-7 gider | ✓ | `S3_ByTheCustomer_...KK5`, `S4_ByTheCustomer_...KK5`, `TheAdministratorsCancellation_ByTheState_...KK5`, `S3_BySystem_...KK5`, `TheOtherActors_AreRefusedByEachCancellation_...KK5`, `TheCancellationsTriggers_AreTheOnesOfTheTable_KK5`; düzeltme r1: `TheAdministratorsWholeOrderCancellation_IsRefused_WhileAnItemIsMarkedDelivered_AndWritesNothing_KK5` (S3, S4, S9) |
 | 6 | Kapanışla işleyen S3/S4/S9 sebepsiz, B-7 yok | ✓ | `TheClosure_OfPlacedAndPreparing_IsWrittenWithoutAReasonOfTheFirm_AndWithoutB7_KK6`, `S9_AsTheClosing_AfterS7_...KK6`, `S9_AsTheClosing_IsRefused_WhileAnItemIsOpen_...KK6` |
 | 7 | S5 ve S8 yalnız yönetici, geri alınamaz onay, yalnız açık fiziksel kalem; B-5 | ✓ | `S5_WithoutTheConfirmation_...KK7`, `S5_SendsOnlyTheOpenPhysicalItems_...OneB5Row_KK7`, `S8_SendsTheOpenPhysicalItemsAgain_...KK7`, `S8_WithoutTheConfirmation_...KK7`, `ByAnotherKindOfActor_TheTablesShipmentRows_AreRefused_KK7` |
 | 8 | S6 yöneticinin teslim işareti ve tarihi; kendiliğinden geçiş ve bildirim yok | ✓ | `S6_MarksTheOpenPhysicalItemsWithTheDate_WritesNoNotice_AndNothingFollowsByItself_KK8`, `S6_AfterwardsNoClosureOrOperationMovesTheDeliveredOrder_KK8`, `S6_WithADateInTheFuture_...KK8` |
@@ -50,7 +50,7 @@
 | k2 / KK2 terminalden çıkış yok | ✓ | `ATerminalState_IsLeftByNoOperation_KK2` |
 | k3 / KK3 fiziksel kalemsiz S1 yok, karışık girer, tek B-4 | ✓ | KK3 üç test |
 | k4 / KK4 son olay kapanışı doğurur | ✓ | KK4 üç test |
-| k5 / KK5 her iptal yalnız kendi tetikleyenleriyle; B-7 | ✓ | KK5 testleri; girdi reddi `TheAdministratorsCancellation_WithoutItsInputs_...KK5` (5 durum) |
+| k5 / KK5 her iptal yalnız kendi tetikleyenleriyle; B-7; teslim işaretli kalemli sipariş İptal edildi'ye geçmez | ✓ | KK5 testleri; girdi reddi `TheAdministratorsCancellation_WithoutItsInputs_...KK5` (5 durum); `CancellationConditionAsync` kalemsiz yolda `DeliveryMarkedAt != null` kalem varken false; `TheAdministratorsWholeOrderCancellation_IsRefused_...KK5` S3 (hizmet açık + teslim dijital), S4, S9 (fiziksel açık + teslim dijital): ret `ConditionNotMet`, `AssertNothingWrittenAsync` |
 | k6 / KK6 kapanışla sebepsiz, B-7 yok | ✓ | KK6 üç test |
 | k7 / KK7 onaysız ve yönetici dışı ret; yalnız açık fiziksel kalem; B-5 | ✓ | KK7 testleri; kargo verisi reddi `S5_WithInvalidCarrierData_...` (7 durum) |
 | k8 / KK8 S6 sonrası kendiliğinden geçiş yok | ✓ | KK8 testleri |
@@ -73,19 +73,26 @@ Sık FAIL nedenleri (`sik-fail-nedenleri.md` ilk 5):
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build --filter-namespace Shopfolio.UnitTests.Architecture` ve `--filter-not-namespace ...Architecture` | Architecture 868 yeşil; öteki 3039 yeşil (Ordering 63, bunun 8'i yeni) |
-| Integration | ✓ | `dotnet test tests/Shopfolio.IntegrationTests --no-build --filter-namespace Shopfolio.IntegrationTests.Ordering` (PostgreSQL 18 konteyneri) | 122 yeşil: `ShipmentTransitionsTests` 91, `OrderTransitionsTests` 31 |
+| Unit (düzeltme r1, `origin/main` birleştirmesi sonrası) | ✓ | `--filter-namespace` Architecture*, Consistency* ve `--filter-not-namespace` ikisi | Architecture 906; Consistency 230; öteki 2840 yeşil |
+| Integration (düzeltme r1) | ✓ | `--filter-class` `ShipmentTransitionsTests`, `OrderTransitionsTests` + `OrderTransitionsDefinition` (PostgreSQL 18 konteyneri) | 125 yeşil: `ShipmentTransitionsTests` 94 (91 + B1 için 3), öteki 31 |
 | Contract | — | — | Bu task'ta sözleşme testi türü yok |
 | Biçim | ✓ | `dotnet format <proje> --verify-no-changes` (üç proje) | temiz |
 | Derleme | ✓ | `dotnet build ... -warnaserror` (Web, Unit, Integration) | 0 uyarı, 0 hata |
+
+## Düzeltme (tur 1 → tur 2)
+
+- **B1 (ORTA, S1) giderildi:** `OrderTransitions.Shipment.cs` `CancellationConditionAsync` — sistem ve kalem iptali dışındaki (yöneticinin ve müşterinin bütün sipariş) yolunda, teslim işaretli (`DeliveryMarkedAt`) kalem varsa koşul sağlanmaz; S3, S4 ve S9 `ConditionNotMet` ile reddedilir, hiçbir şey yazılmaz (`02 §5.4`, §7.2.2, §7.2.5; `03 §1.2`).
+- **Test:** `ShipmentTransitionsTests.TheAdministratorsWholeOrderCancellation_IsRefused_WhileAnItemIsMarkedDelivered_AndWritesNothing_KK5` — üç durum (Alındı/S3, Hazırlanıyor/S4, Teslim edilemedi/S9), her biri ret + durum, sürüm, kayıt ve bildirim satırı değişmedi.
+- `origin/main` birleştirildi; kayıt belgesi çakışmaları çözüldü. Backlog değişmedi (D-340–D-341 gerekmedi).
+- Öz denetim: kriter 1–9 ve KK1–KK9 düzeltilmiş diff'te yeniden denetlendi (yukarıdaki tablo).
 
 ## Doğrulama
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-07; head `620b368` + `origin/main` birleştirmesi) |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-07; head `620b368` + `origin/main` birleştirmesi); düzeltme yapıldı, tur 2 bekliyor |
 | Bulgu sayısı | 1 (B1 ORTA S1) |
-| Düzeltme gerekli mi | Evet — bu PR'da (B1) |
+| Düzeltme gerekli mi | Yapıldı — bu PR'da (B1) |
 | Bloke-etmeyen not (K) sayısı | 0 |
 
 ### Doğrulama tur 1 — ✗ FAIL (2026-11-07)

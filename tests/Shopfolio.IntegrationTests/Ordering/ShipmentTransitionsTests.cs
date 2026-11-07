@@ -345,6 +345,23 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
         Assert.Equal(DispatchType.B7, Assert.Single(await reader.DispatchRecords.Where(d => d.OrderId == order.Id).ToListAsync(Ct)).DispatchType);
     }
 
+    [Theory]
+    [InlineData(OrderStatus.Placed)]
+    [InlineData(OrderStatus.Preparing)]
+    [InlineData(OrderStatus.DeliveryFailed)]
+    public async Task TheAdministratorsWholeOrderCancellation_IsRefused_WhileAnItemIsMarkedDelivered_AndWritesNothing_KK5(OrderStatus status)
+    {
+        // The state names the transition (Placed S3, Preparing S4, DeliveryFailed S9). The open item is a service (S3) or a physical item (S4, S9); the delivered one is a digital item. A delivered item is not cancelled, so the order does not end in Cancelled (02 5.4).
+        ItemSpec open = status == OrderStatus.Placed ? new ItemSpec(ProductType.Service, 1, false) : Physical(1);
+        (Order order, _) = await SeedAsync(status, PaymentStatus.Paid, open, new ItemSpec(ProductType.Digital, 1, true));
+
+        OrderTransitionResult result = await RunAsync((unit, token) => unit.CancelOrderAsync(
+            CancelOrderRequest.ByAdministrator(order.Id, AdminCaller, 1, true, CancellationReason.Other, "Ürün hasarlı"), token));
+
+        Assert.Equal(TransitionRefusal.ConditionNotMet, result.Refusal);
+        await AssertNothingWrittenAsync(order.Id, status, PaymentStatus.Paid);
+    }
+
     [Fact]
     public async Task TheAdministratorsCancellation_OfAnUnpaidOrder_CarriesTheReasonOnBothRecords_KK5()
     {

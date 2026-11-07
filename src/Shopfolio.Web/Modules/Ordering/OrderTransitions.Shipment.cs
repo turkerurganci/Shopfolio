@@ -251,6 +251,13 @@ internal sealed partial class OrderTransitions
             return !unpaid && order.OrderStatus != OrderStatus.DeliveryFailed && (await OpenItemsAsync(order, physicalOnly: false, ct)).Count == 0;
         }
 
+        // A whole-order cancellation never takes an item marked delivered (a delivered digital item, a completed service): such an order does not end in
+        // Cancelled (02 5.4 Cancelled, 7.2.2, 7.2.5; 03 1.2).
+        if (await _db.OrderItems.AnyAsync(i => i.OrderId == order.Id && i.DeliveryMarkedAt != null, ct))
+        {
+            return false;
+        }
+
         if (request.Actor == ActorKind.Buyer)
         {
             // The customer cancels an unpaid order as a whole; a paid order's cancellation is its last open item's (the branch above).

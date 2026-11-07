@@ -147,4 +147,26 @@ public interface ICatalogModule
     /// whatever its status; the publication rules are the caller's. A plain read.
     /// </summary>
     Task<IReadOnlyList<OptionMatrixCell>> GetOptionMatrixAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>
+    /// Saves a product's gallery as the product form posts it (02 3.11.2, 3.11.3; 06 4.71): the links are made to match the list, the position in the list is the order, the main mark is the
+    /// listed one - or the current main image while it stays, or the first image - so a gallery that has an image always has exactly one main image, and the firm's alternative text is kept.
+    /// The gallery's and the variants' images together, each once, may not pass P-24. A refusal writes nothing. Joins the caller's transaction and never saves it (09 9.1 item 3); outside one it throws.
+    /// </summary>
+    Task<GallerySaveResult> SaveProductGalleryAsync(Guid productId, IReadOnlyList<GalleryEntry> entries, CancellationToken ct);
+
+    /// <summary>
+    /// Gives a variant its own image or - with null - takes it away so that it takes the product's again (02 3.11.1); the variant's image counts toward P-24 (02 3.11.3). Joins the caller's transaction
+    /// and never saves it; outside one it throws.
+    /// </summary>
+    Task<VariantImageResult> SetVariantImageAsync(Guid variantId, Guid? imageId, CancellationToken ct);
+
+    /// <summary>The product's gallery in its order with the text each image uses (02 3.11.2, 3.11.4): the firm's when written, else "product name - image n / total". A plain read.</summary>
+    Task<IReadOnlyList<GalleryImage>> GetProductGalleryAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>The alternative text of the image the showcase card and the list show (02 3.11.4): the firm's text for the main image when written, else the product's name alone; null for no such product. A plain read.</summary>
+    Task<string?> GetCardImageAltTextAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>The image a variant shows (02 3.11.1, 3.11.4): its own, else the product's main image, with the text for it; null when it has neither. A plain read.</summary>
+    Task<VariantImage?> GetVariantImageAsync(Guid variantId, CancellationToken ct);
 }

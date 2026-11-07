@@ -63,12 +63,32 @@ public sealed class VersionedSideBulkWriteScanTests
     {
         string root = RepositoryRoot.Find();
 
-        foreach (string place in VersionedSideBulkWriteScan.AllowedPlaces.Where(p => !p.EndsWith("/StockCounters.cs", StringComparison.Ordinal)))
+        foreach (string place in VersionedSideBulkWriteScan.AllowedPlaces.Where(p => !p.EndsWith("/StockCounters.cs", StringComparison.Ordinal) && p != VersionedSideBulkWriteScan.GalleryMainMarkPlace))
         {
             // The same text under a path that is no allowed place: a closed place must not hide a write of a side's record.
             IReadOnlyList<(string Rule, int Line)> findings = VersionedSideBulkWriteScan.Scan(OtherModule, File.ReadAllText(Path.Combine(root, place)));
 
             Assert.True(findings.Count == 0, $"{place} writes a record of the order side or of the product form: {string.Join(", ", findings)}");
+        }
+    }
+
+    [Fact]
+    public void TheGalleryMainMarkPlace_HoldsExactlyOneBulkStatement_OnlyOnTheProductImages_AndTheRestOfTheGalleryHoldsNone()
+    {
+        string root = RepositoryRoot.Find();
+        string place = File.ReadAllText(Path.Combine(root, VersionedSideBulkWriteScan.GalleryMainMarkPlace));
+
+        IReadOnlyList<(string Rule, int Line)> inPlace = VersionedSideBulkWriteScan.Scan(OtherModule, place);
+        Assert.Equal(VersionedSideBulkWriteScan.NamedSetBulkWrite, Assert.Single(inPlace).Rule);
+        Assert.Equal(1, System.Text.RegularExpressions.Regex.Count(place, "Execute(Update|Delete)Async", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
+        Assert.Contains("db.ProductImages.Where", place, StringComparison.Ordinal);
+
+        // The other files of the gallery are not places: a second bulk statement in any of them would be a finding.
+        foreach (string file in new[] { "ProductGallery.cs", "GalleryRules.cs", "ImageAltText.cs" })
+        {
+            string path = "src/Shopfolio.Web/Modules/Catalog/" + file;
+            Assert.DoesNotContain(path, VersionedSideBulkWriteScan.AllowedPlaces);
+            Assert.Empty(VersionedSideBulkWriteScan.Scan(path, File.ReadAllText(Path.Combine(root, path))));
         }
     }
 

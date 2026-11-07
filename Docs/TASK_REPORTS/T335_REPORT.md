@@ -79,6 +79,18 @@
 | Integration Web | ✓ (⚠ 1 kararsız) | `--filter-namespace Shopfolio.IntegrationTests.Web` | 156/157; kırılan `AppCacheTests.ThePriceShowsAtOnce_*(kestrel: True)` tek başına koşunca 14/14 geçti (zamanlamaya bağlı, T335 koduna dokunmuyor) |
 | Format / derleme | ✓ | `dotnet build -warnaserror`, `dotnet format --verify-no-changes` (Web, Unit, Integration) | temiz |
 
+### Main birleştirmesi (2026-11-08, `origin/main` T339 #445)
+
+`origin/main` dala birleştirildi (rebase yok). Çakışma: `CatalogModule.cs` (kurucuya `ProductPageReader pages` ve `ProductGallery gallery` birlikte; alanlar ve yöntemler iki taraftan korundu), `IMPLEMENTATION_STATUS.md` (son güncelleme T335, T339 girişi `STATUS_CHANGELOG.md`'ye), `DEFERRED_BACKLOG.md` (main kayıtları + D-401…D-403; aktif kalem 153). Main'in galeri kodu yayın kapısına ve dosya silme kuralına dokunmaz: `ProductGallery` yalnız galeri bağlarını (`ProductImages`) yazar, `PublishedProductGate` ve `DigitalFileCoverage` tek kural evi olarak durur. Birleşik ağaçta bütün kabul kriterleri (1–10), KK1–KK10, `09 §25` ve güvenlik taraması yeniden denetlendi; yukarıdaki tablolar geçerli, sonuçlar değişmedi:
+
+| Tür | Sonuç (birleşik ağaç) |
+|---|---|
+| Unit (Architecture 943, Consistency 241, öteki 3084) | ✓ 4268/4268 |
+| Integration `ProductPublishGateTests` | ✓ 31/31 |
+| Integration `ProductTransitionsTests` | ✓ 41/41 |
+| Integration `ProductGalleryTests` (T339) | ✓ 18/18 |
+| `build -warnaserror`, `dotnet format --verify-no-changes` | ✓ temiz |
+
 ## Doğrulama
 
 | Alan | Sonuç |

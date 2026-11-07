@@ -55,6 +55,12 @@ internal sealed class Variant
         return variant;
     }
 
+    /// <summary>The publish status move (03 1.8.1): written by <see cref="ProductTransitions"/>.</summary>
+    internal void ApplyPublishStatus(PublishStatus status) => PublishStatus = status;
+
+    /// <summary>The first moment the variant and its product are Published together (06 4.6); once written it does not change.</summary>
+    internal void MarkFirstOnSale(DateTimeOffset now) => FirstOnSaleAt ??= now;
+
     /// <summary>Writes the stock code and its normalized form together (06 2.8.2).</summary>
     public void SetSku(string sku)
     {

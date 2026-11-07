@@ -26,6 +26,19 @@ public interface IOrderingModule
     /// dropped at the order page's button).
     /// </summary>
     Task<DownloadableItem?> FindDownloadableItemAsync(Guid orderItemId, CancellationToken ct);
+
+    /// <summary>
+    /// Takes the cart items of the given variants off the cart (03 1.8.3; 02 3.16.7; 06 4.16): each unmarked item is marked with the product's name in the caller's
+    /// operation - the operation that took the product or the variant off the showcase - so it no longer enters the order or the amounts and is told to the customer once.
+    /// An item already marked keeps its first mark. Returns the number of items marked. Joins the caller's transaction (09 9.1 item 3).
+    /// </summary>
+    Task<int> RemoveFromCartsAsync(IReadOnlyCollection<Guid> variantIds, string productName, CancellationToken ct);
+
+    /// <summary>
+    /// The once-told message of the items taken off a cart (02 3.16.7; 06 4.16; K-1044 (3)): the product names of the marked items, which are deleted in the same call - the
+    /// request that shows them is the request that removes them. Empty when the cart has none.
+    /// </summary>
+    Task<IReadOnlyList<string>> TakeRemovedItemNoticesAsync(Guid cartId, CancellationToken ct);
 }
 
 /// <summary>The links a digital order item holds to its file (06 4.18): the variant, emptied when the variant is deleted, and the last known file.</summary>

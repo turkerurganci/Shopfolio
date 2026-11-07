@@ -110,6 +110,10 @@ public sealed class SitemapSourceTests
         public Task<UploadChunkResult> ReceiveChunkAsync(Guid id, long start, Stream body, long length, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<UploadStatus?> GetUploadStatusAsync(Guid id, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ShowcasePage> ListShowcaseAsync(string? search, int page, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
     }
 
     private sealed class FakeContent(IReadOnlyList<string> paths) : ICorporateContentModule

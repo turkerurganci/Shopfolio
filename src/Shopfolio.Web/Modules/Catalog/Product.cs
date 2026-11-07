@@ -73,6 +73,19 @@ internal sealed class Product : IVersionedRecord
     }
 
     public void BumpVersion() => Version++;
+
+    /// <summary>
+    /// The publish status move (03 1.8.1): written by <see cref="ProductTransitions"/>. The first publication fixes the address (06 4.5); it does not change
+    /// again, in the archive too.
+    /// </summary>
+    internal void ApplyPublishStatus(PublishStatus status, DateTimeOffset now)
+    {
+        PublishStatus = status;
+        if (status == PublishStatus.Published)
+        {
+            SlugFixedAt ??= now;
+        }
+    }
 }
 
 internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>

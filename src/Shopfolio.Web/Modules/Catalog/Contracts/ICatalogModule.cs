@@ -73,4 +73,17 @@ public interface ICatalogModule
 
     /// <summary>The state of a chunked upload (07 4.31.2): null when the upload is unknown or was swept. A plain read; it writes nothing.</summary>
     Task<UploadStatus?> GetUploadStatusAsync(Guid id, CancellationToken ct);
+
+    /// <summary>
+    /// The storefront's product list and search (02 5.1; 09 10.5): only Published products, newest first, 24 a page. A <paramref name="search"/> that is not null filters by
+    /// the name; a word that makes no pattern gives an empty page. A Draft and an Archived product are in neither; a sold-out Published product is in both, marked
+    /// (02 3.6.4). A plain read; it writes nothing.
+    /// </summary>
+    Task<ShowcasePage> ListShowcaseAsync(string? search, int page, CancellationToken ct);
+
+    /// <summary>
+    /// The option list of a product page (02 5.1; 03 1.8.1): the product's Published variants when the product is Published, otherwise none. A Draft and an Archived variant
+    /// are not listed; a sold-out one is, marked (02 3.6.3). A plain read; it writes nothing.
+    /// </summary>
+    Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct);
 }

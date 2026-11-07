@@ -16,14 +16,17 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly CatalogSitemapReader _sitemap;
     private readonly DigitalFileReader _fileReader;
     private readonly DigitalFileUploads _fileUploads;
+    private readonly ShowcaseReader _showcase;
 
     public CatalogModule(
         StockCounters counters,
         ImageUploads imageUploads,
         CatalogSitemapReader sitemap,
         DigitalFileReader fileReader,
-        DigitalFileUploads fileUploads)
+        DigitalFileUploads fileUploads,
+        ShowcaseReader showcase)
     {
+        _showcase = showcase;
         _counters = counters;
         _imageUploads = imageUploads;
         _sitemap = sitemap;
@@ -43,6 +46,10 @@ internal sealed class CatalogModule : ICatalogModule
     public Task<UploadStatus?> GetUploadStatusAsync(Guid id, CancellationToken ct) => _fileUploads.StatusAsync(id, ct);
 
     public Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct) => _sitemap.ListAsync(ct);
+
+    public Task<ShowcasePage> ListShowcaseAsync(string? search, int page, CancellationToken ct) => _showcase.ListAsync(search, page, ct);
+
+    public Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct) => _showcase.ListOptionsAsync(productId, ct);
 
     public Task<bool> ReserveAsync(StockClaim claim, StockClaim? releasedFirst, CancellationToken ct)
     {
@@ -89,6 +96,12 @@ internal static class CatalogModuleRegistration
         services.AddJobHandler<ImageDerivativeJobHandler>(JobType.ImageDerivative);
         services.AddDisposalPart<ImageDisposalPart>();
         services.AddDisposalPart<OrphanImageFilePart>();
+
+        // The publish status transitions (T321; 09 9.1 item 1): the class is what the module takes, the open face is the same instance. The gate is open until T335 (D-300).
+        services.AddScoped<ShowcaseReader>();
+        services.AddScoped<IPublishGate, UnwrittenPublishGate>();
+        services.AddScoped<ProductTransitions>();
+        services.AddScoped<IProductTransitions>(provider => provider.GetRequiredService<ProductTransitions>());
         services.AddScoped<ICatalogModule, CatalogModule>();
         return services;
     }

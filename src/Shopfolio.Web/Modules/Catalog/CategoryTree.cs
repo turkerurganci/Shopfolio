@@ -60,7 +60,7 @@ internal sealed class CategoryTree
 
         Category category = Category.Create(trimmed, slug, parentCategoryId, level, _time.GetUtcNow());
         _db.Categories.Add(category);
-        Invalidate(addressChanges: true);
+        MarkAreas(addressChanges: true);
         return CategoryWriteResult.Written(category.Id);
     }
 
@@ -80,7 +80,7 @@ internal sealed class CategoryTree
         }
 
         category.Name = trimmed;
-        Invalidate(addressChanges: false);
+        MarkAreas(addressChanges: false);
         return CategoryWriteResult.Written(categoryId);
     }
 
@@ -113,7 +113,7 @@ internal sealed class CategoryTree
             category.Relocate(parent, verdict.NewLevels[category.Id]);
         }
 
-        Invalidate(addressChanges: false);
+        MarkAreas(addressChanges: false);
         return CategoryWriteResult.Written(categoryId);
     }
 
@@ -139,7 +139,7 @@ internal sealed class CategoryTree
         }
 
         _db.Categories.Remove(category);
-        Invalidate(addressChanges: true);
+        MarkAreas(addressChanges: true);
         return CategoryWriteResult.Written(categoryId);
     }
 
@@ -181,7 +181,7 @@ internal sealed class CategoryTree
         return ordered;
     }
 
-    private void Invalidate(bool addressChanges)
+    private void MarkAreas(bool addressChanges)
     {
         _invalidations.Add(CacheArea.Menu);
         _invalidations.Add(CacheArea.CategoryTree);

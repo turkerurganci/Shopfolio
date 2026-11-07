@@ -17,7 +17,7 @@ public sealed partial class CategoryLevelWriterTests
 
     private const string EntityFile = "Modules/Catalog/Category.cs";
 
-    [GeneratedRegex(@"\b(Category\.Create|\.Relocate)\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    [GeneratedRegex(@"(\bCategory\.Create|\.Relocate)\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex LevelWriteCall();
 
     [Fact]

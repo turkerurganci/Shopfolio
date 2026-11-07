@@ -49,24 +49,19 @@ internal sealed class ProductCategoryLinks
             return ProductCategoriesResult.Refused(ProductCategoriesOutcome.PrimaryNotAmongCategories);
         }
 
-        List<ProductCategory> held = await _db.ProductCategories.AsNoTracking().Where(l => l.ProductId == productId).ToListAsync(ct);
-        List<Guid> toRemove = [.. held.Where(l => !wanted.Contains(l.CategoryId)).Select(l => l.Id)];
-        List<Guid> toAdd = [.. wanted.Where(id => held.All(l => l.CategoryId != id))];
-        bool markChanges = held.Any(l => l.IsPrimaryCategory != (l.CategoryId == primaryCategoryId) && wanted.Contains(l.CategoryId));
-        if (toRemove.Count == 0 && toAdd.Count == 0 && !markChanges)
+        List<ProductCategory> held = await _db.ProductCategories.Where(l => l.ProductId == productId).ToListAsync(ct);
+        List<ProductCategory> remarked = [.. held.Where(l => wanted.Contains(l.CategoryId) && l.IsPrimaryCategory != (l.CategoryId == primaryCategoryId))];
+        List<ProductCategory> toRemove = [.. held.Where(l => !wanted.Contains(l.CategoryId)), .. remarked];
+        List<Guid> toAdd = [.. wanted.Where(id => held.All(l => l.CategoryId != id)), .. remarked.Select(l => l.CategoryId)];
+        if (toRemove.Count == 0 && toAdd.Count == 0)
         {
             return ProductCategoriesResult.Written;
         }
 
-        // The mark is cleared first, the links that go are deleted, the mark is set on a link that stays; a new link is added at the save with its mark already right.
-        await _db.ProductCategories.Where(l => l.ProductId == productId && l.IsPrimaryCategory && l.CategoryId != primaryCategoryId)
-            .ExecuteUpdateAsync(set => set.SetProperty(l => l.IsPrimaryCategory, false), ct);
-        await _db.ProductCategories.Where(l => toRemove.Contains(l.Id)).ExecuteDeleteAsync(ct);
-        if (primaryCategoryId is Guid kept && held.Any(l => l.CategoryId == kept))
-        {
-            await _db.ProductCategories.Where(l => l.ProductId == productId && l.CategoryId == kept && !l.IsPrimaryCategory)
-                .ExecuteUpdateAsync(set => set.SetProperty(l => l.IsPrimaryCategory, true), ct);
-        }
+        // The changes go through the tracker (a bulk statement would bypass the product's version guard, 09 10.2). A link whose mark changes is deleted and
+        // written anew: the tracker writes the deletes before the inserts, and it does not order two updates by the filtered unique index, so flipping two
+        // marks in one save could meet the index with two marks of one product.
+        _db.ProductCategories.RemoveRange(toRemove);
 
         DateTimeOffset now = _time.GetUtcNow();
         foreach (Guid categoryId in toAdd)

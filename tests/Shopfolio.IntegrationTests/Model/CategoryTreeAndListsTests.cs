@@ -132,6 +132,7 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         await AssertLevelInvariantAsync();
         await RunAsync((tree, ct) => tree.MoveAsync(d, a, ct));
         await AssertLevelInvariantAsync();
+        Assert.Equal(["A=1", "B=3", "C=1", "D=2"], await QueryAsync("SELECT name || '=' || level FROM categories ORDER BY name"));
     }
 
     // ---- KK2, KK4: a product hangs on any node and on several; one main category ----
@@ -175,6 +176,29 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
 
         await SetLinksAsync(product.Id, [], null);
         Assert.Equal(0L, await ScalarAsync<long>($"SELECT count(*) FROM product_categories WHERE product_id = '{product.Id}'"));
+    }
+
+    [Fact]
+    public async Task TheMainMark_MovesBetweenLinksThatStay_InBothDirections_EveryTime()
+    {
+        Guid a = await CreateAsync("A", null);
+        Guid b = await CreateAsync("B", null);
+        Guid c = await CreateAsync("C", null);
+        Product product = await SeedProductAsync("Gidiş", Now);
+        await SetLinksAsync(product.Id, [a, b, c], a);
+
+        for (int i = 0; i < 12; i++)
+        {
+            Guid next = new[] { b, c, a }[i % 3];
+            await SetLinksAsync(product.Id, [a, b, c], next);
+            Assert.Equal([next], await PrimaryCategoriesAsync(product.Id));
+        }
+
+        // The marked link goes while a link that stays takes the mark.
+        await SetLinksAsync(product.Id, [b, c], c);
+        Assert.Equal([c], await PrimaryCategoriesAsync(product.Id));
+        await SetLinksAsync(product.Id, [b, c], b);
+        Assert.Equal([b], await PrimaryCategoriesAsync(product.Id));
     }
 
     [Fact]
@@ -274,8 +298,8 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         Assert.Empty(empty.Items);
         Assert.Equal(0, empty.TotalCount);
         Assert.Equal(1, empty.PageCount);
-        Assert.Null(await ListCategoryAsync("yok", allowNull: true));
-        Assert.Null(await ListCategoryAsync(null, allowNull: true));
+        Assert.Null(await ListCategoryOrNullAsync("yok"));
+        Assert.Null(await ListCategoryOrNullAsync(null));
         Assert.Equal(1, past.PageNumber);
         Assert.Single(past.Items);
     }
@@ -439,7 +463,7 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
 
         Assert.Equal(["Ampul 40W"], (await SearchAsync("ampul")).Items.Select(i => i.Name));
         Assert.Equal(["Elektrikli Isıtıcı"], (await SearchAsync("ısıtıcı")).Items.Select(i => i.Name));
-        Assert.DoesNotContain(await SearchAsync("ampul"), i => i.Id == byDescription.Id || i.Id == byCategory.Id || i.Id == byOption.Id);
+        Assert.DoesNotContain((await SearchAsync("ampul")).Items, i => i.Id == byDescription.Id || i.Id == byCategory.Id || i.Id == byOption.Id);
         Assert.Equal(bulb.Id, (await SearchAsync("ampul")).Items.Single().Id);
         Assert.Equal(heater.Id, (await SearchAsync("ısıtıcı")).Items.Single().Id);
     }
@@ -475,9 +499,9 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         Assert.Equal(["Yüzde %50 Fırsat"], (await SearchAsync("%")).Items.Select(i => i.Name));
         Assert.Equal(["a_b kodu"], (await SearchAsync("_")).Items.Select(i => i.Name));
         Assert.Equal(["a_b kodu"], (await SearchAsync("a_b")).Items.Select(i => i.Name));
-        Assert.Null(await SearchAsync("", allowNull: true));
-        Assert.Null(await SearchAsync("   ", allowNull: true));
-        Assert.Null(await SearchAsync(null, allowNull: true));
+        Assert.Null(await SearchOrNullAsync(""));
+        Assert.Null(await SearchOrNullAsync("   "));
+        Assert.Null(await SearchOrNullAsync(null));
     }
 
     // ---- KK8: two filters, no sort, newest first ----
@@ -673,35 +697,28 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
 
     private async Task<ProductListPage> ListCategoryAsync(string? slug, ProductListFilter? filter = null, int page = 1)
     {
-        ProductListPage? result = await ListCategoryAsync(slug, filter, page, allowNull: false);
-        return result!;
+        ProductListPage? result = await ListCategoryOrNullAsync(slug, filter, page);
+        Assert.NotNull(result);
+        return result;
     }
 
-    private async Task<ProductListPage?> ListCategoryAsync(string? slug, bool allowNull)
-    {
-        return await ListCategoryAsync(slug, null, 1, allowNull);
-    }
-
-    private async Task<ProductListPage?> ListCategoryAsync(string? slug, ProductListFilter? filter, int page, bool allowNull)
+    private async Task<ProductListPage?> ListCategoryOrNullAsync(string? slug, ProductListFilter? filter = null, int page = 1)
     {
         await using AppDbContext context = NewContext();
-        ProductListPage? result = await new ProductListReader(context).ListCategoryAsync(slug, filter, page, Ct);
-        Assert.True(allowNull || result is not null);
-        return result;
+        return await new ProductListReader(context).ListCategoryAsync(slug, filter, page, Ct);
     }
 
     private async Task<ProductListPage> SearchAsync(string? word, ProductListFilter? filter = null)
     {
-        ProductListPage? result = await SearchAsync(word, allowNull: false, filter);
-        return result!;
+        ProductListPage? result = await SearchOrNullAsync(word, filter);
+        Assert.NotNull(result);
+        return result;
     }
 
-    private async Task<ProductListPage?> SearchAsync(string? word, bool allowNull, ProductListFilter? filter = null)
+    private async Task<ProductListPage?> SearchOrNullAsync(string? word, ProductListFilter? filter = null)
     {
         await using AppDbContext context = NewContext();
-        ProductListPage? result = await new ProductListReader(context).SearchAsync(word, filter, 1, Ct);
-        Assert.True(allowNull || result is not null);
-        return result;
+        return await new ProductListReader(context).SearchAsync(word, filter, 1, Ct);
     }
 
     private async Task<List<Guid>> PrimaryCategoriesAsync(Guid productId)
@@ -716,7 +733,7 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
             "SELECT count(*) FROM categories c LEFT JOIN categories p ON p.id = c.parent_category_id WHERE c.level <> coalesce(p.level, 0) + 1"));
     }
 
-    private CategoryTree NewTree(AppDbContext context) => new(context, new AdvisoryLocks(context), new CacheInvalidations(context), TimeProvider.System);
+    private static CategoryTree NewTree(AppDbContext context) => new(context, new AdvisoryLocks(context), new CacheInvalidations(context), TimeProvider.System);
 
     /// <summary>Runs a tree write the way the transaction runner does: one transaction, saved and committed unless the result is a refusal, which rolls it back.</summary>
     private async Task<CategoryWriteResult> RunAsync(Func<CategoryTree, CancellationToken, Task<CategoryWriteResult>> work)
@@ -763,7 +780,22 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         Variant variant = Variant.Create(productId, sku, price, Now);
         variant.PublishStatus = status;
         variant.StockQuantity = stock;
-        await SaveAsync(c => c.Variants.Add(variant));
+
+        // A product's variants differ by their option values (the unique key of a product's variants): the product's one option gets a value per variant.
+        await using AppDbContext context = NewContext();
+        Option? option = await context.Options.SingleOrDefaultAsync(o => o.ProductId == productId, Ct);
+        if (option is null)
+        {
+            option = Option.Create(productId, "Seçenek", 1, Now);
+            context.Options.Add(option);
+        }
+
+        int valueCount = await context.OptionValues.CountAsync(v => v.OptionId == option.Id, Ct);
+        OptionValue optionValue = OptionValue.Create(option.Id, sku, valueCount + 1, Now);
+        context.OptionValues.Add(optionValue);
+        variant.FirstOptionValueId = optionValue.Id;
+        context.Variants.Add(variant);
+        await context.SaveChangesAsync(Ct);
         return variant;
     }
 

@@ -77,24 +77,24 @@ internal sealed class ProductListReader
                 && (max == null || v.Price <= max)));
         }
 
-        IOrderedQueryable<ListRow> rows = products
-            .Select(p => new ListRow(
-                p.Id,
-                p.Name,
-                p.Slug,
-                p.CreatedAt,
-                _db.Variants.Where(v => v.ProductId == p.Id && v.PublishStatus == PublishStatus.Published).Min(v => (decimal?)v.Price),
-                _db.Variants.Any(v => v.ProductId == p.Id && v.PublishStatus == PublishStatus.Published && (v.StockQuantity == null || v.StockQuantity - v.ReservedQuantity > 0))))
-            .OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id);
+        // The order is on the product itself (a projection to a record cannot be ordered by its member); the page's cards are read in a second step for the page's keys only.
+        IOrderedQueryable<Product> ordered = products.OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id);
+        PagedList<Product> paged = await ordered.ToPageAsync(page, PageSizes.StorefrontProducts, ct);
 
-        PagedList<ListRow> paged = await rows.ToPageAsync(page, PageSizes.StorefrontProducts, ct);
+        List<Guid> keys = [.. paged.Items.Select(p => p.Id)];
+        Dictionary<Guid, CardFigures> figures = await _db.Variants.AsNoTracking()
+            .Where(v => keys.Contains(v.ProductId) && v.PublishStatus == PublishStatus.Published)
+            .GroupBy(v => v.ProductId)
+            .Select(g => new CardFigures(g.Key, g.Min(v => (decimal?)v.Price), g.Any(v => v.StockQuantity == null || v.StockQuantity - v.ReservedQuantity > 0)))
+            .ToDictionaryAsync(f => f.ProductId, ct);
+
         return new ProductListPage(
-            [.. paged.Items.Select(r => new ProductListItem(r.Id, r.Name, r.Slug, r.LowestPrice, r.IsPurchasable))],
+            [.. paged.Items.Select(p => new ProductListItem(p.Id, p.Name, p.Slug, figures.TryGetValue(p.Id, out CardFigures? f) ? f.LowestPrice : null, f is not null && f.IsPurchasable))],
             paged.PageNumber,
             paged.PageSize,
             paged.TotalCount,
             paged.PageCount);
     }
 
-    private sealed record ListRow(Guid Id, string Name, string Slug, DateTimeOffset CreatedAt, decimal? LowestPrice, bool IsPurchasable);
+    private sealed record CardFigures(Guid ProductId, decimal? LowestPrice, bool IsPurchasable);
 }

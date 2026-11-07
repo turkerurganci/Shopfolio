@@ -66,7 +66,7 @@ internal sealed class OrderTransitions : IOrderTransitions
         }
 
         // 2. The white list, the actor and the reasons - all on the order's values; nothing is written yet.
-        if (!TryPlan(order, request, out List<object> steps, out OrderStatus orderStatus, out PaymentStatus paymentStatus, out TransitionRejection? refusal))
+        if (!TryPlan(order, request, out List<(ShipmentTransition? Shipment, PaymentTransition? Payment)> steps, out OrderStatus orderStatus, out PaymentStatus paymentStatus, out TransitionRejection? refusal))
         {
             return TransitionOutcome.Rejected(refusal!.Value);
         }
@@ -85,19 +85,18 @@ internal sealed class OrderTransitions : IOrderTransitions
         // 4. The status fields; 5. the records.
         DateTimeOffset now = _time.GetUtcNow();
         List<Guid> recordIds = [];
-        foreach (object step in steps)
+        foreach ((ShipmentTransition? shipment, PaymentTransition? payment) in steps)
         {
             TransitionCode code;
-            if (step is ShipmentTransition shipment)
+            if (shipment is not null)
             {
                 order.ApplyTransition(shipment);
                 code = shipment.Code;
             }
             else
             {
-                PaymentTransition payment = (PaymentTransition)step;
-                order.ApplyTransition(payment);
-                code = payment.Code;
+                order.ApplyTransition(payment!);
+                code = payment!.Code;
             }
 
             TransitionReasons? reasons = request.Reasons is { IsEmpty: false } ? request.Reasons : null;
@@ -272,7 +271,7 @@ internal sealed class OrderTransitions : IOrderTransitions
     private static bool TryPlan(
         Order order,
         TransitionRequest request,
-        out List<object> steps,
+        out List<(ShipmentTransition? Shipment, PaymentTransition? Payment)> steps,
         out OrderStatus orderStatus,
         out PaymentStatus paymentStatus,
         out TransitionRejection? refusal)
@@ -301,7 +300,7 @@ internal sealed class OrderTransitions : IOrderTransitions
                 }
 
                 orderStatus = shipment.To;
-                steps.Add(shipment);
+                steps.Add((shipment, null));
             }
             else
             {
@@ -312,7 +311,7 @@ internal sealed class OrderTransitions : IOrderTransitions
                 }
 
                 paymentStatus = payment.To;
-                steps.Add(payment);
+                steps.Add((null, payment));
             }
 
             IReadOnlyList<ActorKind> actors = TransitionTable.ActorsOf(code)!;

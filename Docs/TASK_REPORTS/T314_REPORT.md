@@ -95,7 +95,7 @@ Entegrasyon paketinin tamamı yerelde koşulmadı (parçalı); CI'a bırakıldı
 
 - **Branch:** `task/T314-durum-ucu`
 - **Commit:** bkz. PR (son commit dal başı)
-- **PR:** bkz. `Docs/IMPLEMENTATION_STATUS.md` T314 satırı
+- **PR:** #418
 - **CI:** yapım chat'i beklemedi (yönetici düzeni); yönetici izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

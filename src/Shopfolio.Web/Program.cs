@@ -176,4 +176,7 @@ app.MapRazorPages()
 app.MapLivenessEndpoint();
 app.MapStatusEndpoint();
 
+// The site map and robots.txt (UC-79; 05 3.7.3, 3.7.4): open machine endpoints, made on request; the map comes from the cache.
+app.MapSitemapEndpoints();
+
 app.Run();

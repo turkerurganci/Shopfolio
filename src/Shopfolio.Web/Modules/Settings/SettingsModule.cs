@@ -39,6 +39,7 @@ internal static class SettingsModuleRegistration
         services.AddScoped<CompanySettingsWriter>();
         services.AddScoped<CompanyIdentities>();
         services.AddScoped<ISettingsModule, SettingsModule>();
+        services.AddScoped<ISitemapSource, SitemapSource>();
         services.AddScoped<Shopfolio.Infrastructure.Security.ICookiePolicyPublication, CookiePolicyPublication>();
         return services;
     }

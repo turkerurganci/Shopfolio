@@ -1,0 +1,117 @@
+using Shopfolio.Infrastructure;
+using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.CorporateContent.Contracts;
+using Shopfolio.Modules.Settings;
+using Shopfolio.Modules.Settings.Contracts;
+
+namespace Shopfolio.UnitTests.Infrastructure;
+
+/// <summary>
+/// The site map's cache owner without a database (T313 criterion 9, KK9; 09 10.4 items 1, 2 and 6; 05 3.7.3, 7.10.1): the two modules are read once and the second
+/// call comes from the cache; an invalidation of the site map area makes the next call read again; another area does not touch it; the read goes through the
+/// modules' Contracts and the fixed list pages come with it.
+/// </summary>
+public sealed class SitemapSourceTests
+{
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task TheSecondCall_ComesFromTheCache_AndReadsNeitherModule()
+    {
+        AppCache cache = new();
+        FakeCatalog catalog = new(["/urun/masa"]);
+        FakeContent content = new(["/hizmet/montaj"]);
+        SitemapSource source = new(cache, catalog, content);
+
+        SitemapView first = await source.GetAsync(Ct);
+        SitemapView second = await source.GetAsync(Ct);
+
+        Assert.Same(first, second);
+        Assert.Equal(1, catalog.Reads);
+        Assert.Equal(1, content.Reads);
+        Assert.Equal([.. Shopfolio.Infrastructure.SearchEngine.SiteMapFiles.FixedListPaths, "/hizmet/montaj", "/urun/masa"], first.Paths);
+    }
+
+    [Fact]
+    public async Task AnInvalidationOfTheSiteMapArea_MakesTheNextCallReadAgain_AndShowsTheNewRecord()
+    {
+        AppCache cache = new();
+        FakeCatalog catalog = new(["/urun/masa"]);
+        SitemapSource source = new(cache, catalog, new FakeContent([]));
+        await source.GetAsync(Ct);
+
+        catalog.Paths = ["/urun/masa", "/urun/sandalye"];
+        cache.Invalidate(CacheArea.Sitemap);
+        SitemapView after = await source.GetAsync(Ct);
+
+        Assert.Equal(2, catalog.Reads);
+        Assert.Contains("/urun/sandalye", after.Paths);
+    }
+
+    [Fact]
+    public async Task AnInvalidationOfAnotherArea_LeavesTheSiteMapInTheCache()
+    {
+        AppCache cache = new();
+        FakeCatalog catalog = new(["/urun/masa"]);
+        SitemapSource source = new(cache, catalog, new FakeContent([]));
+        await source.GetAsync(Ct);
+
+        foreach (CacheArea area in Enum.GetValues<CacheArea>().Where(a => a != CacheArea.Sitemap))
+        {
+            cache.Invalidate(area);
+        }
+
+        await source.GetAsync(Ct);
+
+        Assert.Equal(1, catalog.Reads);
+    }
+
+    [Fact]
+    public async Task AClosedPathFromAModule_NeverReachesTheMap()
+    {
+        SitemapSource source = new(new AppCache(), new FakeCatalog(["/panel/urunler", "/arama", "/urun/masa"]), new FakeContent(["/sepet"]));
+
+        SitemapView view = await source.GetAsync(Ct);
+
+        Assert.DoesNotContain("/panel/urunler", view.Paths);
+        Assert.DoesNotContain("/arama", view.Paths);
+        Assert.DoesNotContain("/sepet", view.Paths);
+        Assert.Contains("/urun/masa", view.Paths);
+    }
+
+    private sealed class FakeCatalog(IReadOnlyList<string> paths) : ICatalogModule
+    {
+        public IReadOnlyList<string> Paths { get; set; } = paths;
+
+        public int Reads { get; private set; }
+
+        public Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct)
+        {
+            Reads++;
+            return Task.FromResult(Paths);
+        }
+
+        public Task<bool> ReserveAsync(StockClaim claim, StockClaim? releasedFirst, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task ReleaseAsync(StockClaim claim, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task CommitAsync(StockClaim claim, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task ReturnAsync(StockClaim claim, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<StockQuantityWriteResult> SaveStockQuantityAsync(Guid variantId, int? shownValue, int? newValue, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ImageUploadResult> UploadImageAsync(byte[] content, CancellationToken ct) => throw new NotSupportedException();
+    }
+
+    private sealed class FakeContent(IReadOnlyList<string> paths) : ICorporateContentModule
+    {
+        public int Reads { get; private set; }
+
+        public Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct)
+        {
+            Reads++;
+            return Task.FromResult(paths);
+        }
+    }
+}

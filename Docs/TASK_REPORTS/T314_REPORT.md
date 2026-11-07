@@ -1,6 +1,6 @@
 # T314 — Durum ucu: uyarı koşulları ve 500 sayacı
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -79,10 +79,42 @@ Entegrasyon paketinin tamamı yerelde koşulmadı (parçalı); CI'a bırakıldı
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-07, head `a57c4ca`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 kapatıldı — kod kanıtı; K2 → D-161) |
+
+### Doğrulama tur 1 — ✓ PASS
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` ana deponun `scripts/git-hooks`'u; main son üç tamamlanmış run 42335449709, 42335449717, 42306192052 `success`; hafızada T314 satırı var.
+
+**Kriterler 1–10 ✓, KK1–KK10 ✓, `09 §25` ✓.** Kanıtlar (doğrulayıcı):
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 / KK1 | ✓ | `StatusEndpoint`: `MapGet("/sistem/durum")`, `open.Count == 0 ? 200 : 503`, `Cache-Control: no-store`, gövde yok; `Get_WithNoOpenCondition_Is200_*`, `Get_WithOneConditionOpen_Is503_*` (13 senaryo: gövde boş, `Content-Length` 0, çerez yok) |
+| Kriter 2 / KK2 | ✓ | Koşul adı yalnız `StatusEvaluator` dönüşünde, yanıta yazılmaz; çok koşulda yanıt tek koşulla aynı (`Get_WithSeveralConditionsOpen_*`); imza/oturum metaverisi yok, yalnız `MachineEndpointMetadata` (canlılık ucuyla aynı eşleme) |
+| Kriter 3 / KK3 | ✓ | `DiskFull` `>=` eşik (%85 → açık, `VAL-A964` ile uyumlu); `LogShippingStalled` bekleyen > 10 dosya ya da son başarıdan beri ≥ 10 dk ve son hata son başarıdan yeni; sahte okuyucularla `disk-full`, `log-files-waiting`, `log-shipping-stalled`; gerçek `pg_stat_archiver` + `pg_ls_archive_statusdir()` okuması (yetki `40-schema.sql`, `pg_monitor` yok) |
+| Kriter 4 / KK4 | ✓ | `FullBackupCondition` (`backup_status_records.last_succeeded_at` — yalnız sunucu dışı yedek başarısı yazar, `database-job.sh`) ve `FileBackupCondition` (`backup-status.json`, `write-status.sh` biçimi) iki ayrı koşul; `EachBackup_OpensTheStatusAlone_*` ikisini ayrı açar, öteki taze iken kapanmaz |
+| Kriter 5 / KK5 | ✓ | `HeartbeatTooOld` `> 5 dk`, kayıt yoksa açık; `Heartbeat_WithinTheAge_*` |
+| Kriter 6 / KK6 | ✓ | `ChannelWarningCondition` kanal hâli kaydından okur (saklanan işaret yok, `05 §10.2.1`), 5 hata + ≥ 15 dk; `TheChannelWarning_ClosesWhenTheCountIsReset_KK6` açık → sıfırlanınca 200 |
+| Kriter 7 / KK7 | ✓ | Sayaç yalnız `UnexpectedErrorLayer.Resolve`'da artar (tek `Record()` çağrısı) ve `Resolve` yalnız atılan istisnada çağrılır; 409/422/429 `FormResults` sonucudur, katmana düşmez (K1). Sayaç bellek içi `ConcurrentQueue`, pencere ayardan; `NineFailedRequestsAreClosed_TheTenthOpens_*` gerçek katmanla 9 → 200, 10 → 503, pencere geçince 200 |
+| Kriter 8 / KK8 | ✓ | `PaymentStartFailureSeries` (bellek, kilitli) + `PaymentStartSeriesOpen` (≥ 5, ≥ 15 dk); `ThePaymentSeries_*_KK8` genç dizi 200, yaşlı 503, ilk başarıda 200. Sertifika: nabız istemcisinin (`https://{Domain}/`) TLS geri çağrısı bitişi DER'den okur, doğrulama kararını platforma bırakır; `< 14 gün` açık, okunmamışsa açık |
+| Kriter 9 / KK9 | ✓ | `JobQueueStatusCondition` (`Infrastructure/Jobs/` altında): başarısız satır var ya da zamanı gelmiş en eski bekleyen satır `> 15 dk`; zamanı gelmemiş ve taze satır kapalı (`AJobNotYetDue_*`), `job-overdue`, `job-failed`; `NightlyJobTooOld` `> 26 saat` (`nightly-old`) |
+| Kriter 10 / KK10 | ✓ | Eşikler `StatusThresholdOptions` (`DEPLOY_RUNBOOK §C` satırları önceden var); `TheDiskThreshold_IsTheOneInTheSettings_*` ayar 0.95 iken %90 → 200; `TheLivenessEndpoint_StaysAt200_*` 13 senaryoda 200; okunamayan dosya ve boşaltılmış `heartbeat_records` → 503; bilinmeyen istisna 503'e çevrilmez, gövdesiz 500 ve sayaç +1 |
+| D-147 | ✓ | `ConnectionResetException` → `ClientGone`, `BadHttpRequestException` → kendi kodu, gövdesiz, `no-store`; ikisi de satır/sayaç yok (birim + gerçek Kestrel testi) |
+| `09 §25` | ✓ | geniş `catch` yok (yalnız bilinen okuma hata türleri); zaman `TimeProvider`'dan; yeni ayar/paket/göç yok; modül sınırı (iş tablosu `Jobs/`, kanal kaydı `Notifications/`); `09 §8.1` m.3, m.8 ve `CONTEXT.md` güncel |
+| Güvenlik | ✓ | sır yok; uç imzasız ve gövdesiz, koşul adı sızmaz; hız sınırı sayfa sınıfında; sertifika geri çağrısı yalnız bitişi saklar, kabul kararı `errors == None`; yeni bağımlılık yok (`System.Formats.Asn1` çatıda) |
+
+**Testler (doğrulayıcı, yerel):** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` Web ve Unit projelerinde temiz, Integration projesinde değişen iki dosyada temiz (projenin tamamı 150 sn'yi aştı; CI Lint yeşil); Unit 2878/2878 (Consistency 207 + diğer 2671); betik testleri 4/4; Integration yerelde PostgreSQL 18 ile parçalı: `MigrationBundleTests` 2/2, `StatusEndpointTests` 41/41, `StatusEndpointTests`+`RequestLimitsTests`+canlılık+`SignedEndpointDatabaseTests` 85/85 (süreç kapanışta 160 sn sınırına takıldı, 85'in hepsi geçti), `UnexpectedErrorLayerTests`+`SchedulerHeartbeatTests`+`EmailOutageTests`+`VersionedFormPageTests`+`OperationPatternTests` 79/79; kalan sınıflar için dal CI'ı. Koşu sonrası `git status` temiz, `dotnet restore --locked-mode` 0. **Dal CI:** run 42339425149 (head `a57c4ca`) `success` — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate.
+
+**Task satırları (`12 §7.5`):** `11 §7.1`'de T314'ün `10` birimleri KP-50 ve KD-60'tır. `KP-50` grep'i panel ana sayfasının satırlarını getirir (`VAL-A257`…`VAL-A264`; KP-50 → T314, T382, T521): beklenen sonuçları panel ana sayfasının sayaçları ve uyarılarıdır, T314 panel ekranı kurmaz → `BEKLEMEDE` kalır. `KD-60` satırı yok. Durum ucuyla ilgili satırlar (`VAL-A446`, `A709`, `A946`, `A959`, `A964`…`A971`) KP grep'iyle gelmez; T314'ün testleri bunların sınırlarını sahte ölçümle karşılar, ama satırların ön koşulu gerçek kurulum (gerçek disk, gerçek arşivleme, sahte sağlayıcıyla jeton isteği — T404) ister → `BEKLEMEDE` kalır (T219, T229 emsali). Durum hücresi değişmedi; `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K1 (kapatıldı — kod kanıtı):** KK7 "409 sayılmaz" der; tümleşik test 409 yerine 404 sınar. 409 (sürüm çakışması), 422 ve 429 `FormResults`/`OperationRunner` sonucudur, istisna olarak katmana düşmez; sayacın tek yazımı `Resolve` içindedir. Kod değişikliği gerekmez.
+
+**K2 → D-161:** işlem günlüğü aktarımının durması son başarılı aktarımdan sayılır; uzun süre WAL üretmeyen sistemde tek bir geçici aktarım hatası koşulu hemen açar (bir sonraki başarılı denemede kalkar). Dış kontrol iki ardışık başarısızlıkta uyardığı için etkisi düşük; okuma `VAL-A965`'in "9 ve 11 dakika durmuş" ölçüsüyle F6'da teyit edilir.
+
+**Yapım raporu karşılaştırması:** uyumlu; öz denetim tablosu her kriter ve KK için kanıtlı. İki küçük fark: KK7 satırı "404/409 sayılmaz" der ama test yalnız 404'ü sınar (K1); raporda `12` task satırları bölümü yok (bu doğrulamada yazıldı).
 
 ## Altyapı Değişiklikleri
 

@@ -691,6 +691,18 @@ public sealed class MembershipTests : IAsyncLifetime
 
         public Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<ShippingFeeSection> GetShippingFeeAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<SettingsSaveResult> SaveShippingFeeAsync(ShippingFeeInput input, int formVersion, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<PeriodsSection> GetPeriodsAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<SettingsSaveResult> SavePeriodsAsync(PeriodsInput input, int formVersion, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ProductDefaultsSection> GetProductDefaultsAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<SettingsSaveResult> SaveProductDefaultsAsync(ProductDefaultsInput input, int formVersion, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<SalesSwitchResult> CloseSalesTemporarilyAsync(bool shownIsClosed, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<SalesSwitchResult> ReopenSalesAsync(bool shownIsClosed, CancellationToken ct) => throw new NotSupportedException();

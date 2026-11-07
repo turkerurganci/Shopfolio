@@ -106,6 +106,7 @@ internal static class OrderingModuleRegistration
         services.AddScoped<OrderTransitions>();
         services.AddScoped<IOrderTransitions>(provider => provider.GetRequiredService<OrderTransitions>());
         services.AddDisposalPart<GuestCartDisposalPart>();
+        services.AddDisposalPart<OrderDisposalPart>();
         return services;
     }
 }

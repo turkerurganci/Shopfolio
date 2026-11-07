@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Modules.Catalog.Contracts;
@@ -14,6 +12,8 @@ namespace Shopfolio.Modules.Ordering;
 /// (<see cref="ApplyAsync"/>): this part takes the order's lock, checks the operation's own condition, asks the core for the transitions by their
 /// identity and writes the side effects after it, in the same transaction - the payment and refund records through the Payment module, the notices
 /// through the Notifications module (09 9.1 item 6). An operation raises the order's version once, whether or not an axis moved (06 2.6.4).
+/// Ö1 has its one path here, with the payment record (09 24 item 4). Ö2 has no operation of its own: it closes with S3 in the shipment axis's one
+/// cancellation (<see cref="CancelOrderAsync"/>), which owns the administrator's confirmation and the "Other" note rule (02 5.9; 06 4.19).
 /// </summary>
 internal sealed partial class OrderTransitions
 {
@@ -110,36 +110,6 @@ internal sealed partial class OrderTransitions
         return new PaymentTransitionResult(applied);
     }
 
-    public async Task<PaymentTransitionResult> CancelUnpaidOrderAsync(UnpaidOrderCancellation cancellation, CancellationToken ct)
-    {
-        ArgumentNullException.ThrowIfNull(cancellation);
-        if (!TryReadCanceller(cancellation, out TransitionActor? actor, out TransitionReasons? reasons))
-        {
-            return new PaymentTransitionResult([], isNotOpen: true);
-        }
-
-        // The administrator's operation always compares the screen's version (05 7.3.2; 09 10.2 item 3; D-291 (b)).
-        if (cancellation.Actor == ActorKind.Admin && cancellation.ExpectedVersion is null)
-        {
-            return new PaymentTransitionResult([], isVersionConflict: true);
-        }
-
-        // S3 and Ö2 in one request (03 1.3 Ö2): the core refuses a paid order - Ö2 leaves only Bekliyor - and writes nothing.
-        TransitionCode[] codes = [TransitionCode.S3, TransitionCode.O2];
-        TransitionOutcome outcome = await ApplyAsync(new TransitionRequest(cancellation.OrderId, codes, actor, reasons, cancellation.ExpectedVersion), null, ct);
-        if (outcome.IsRejected)
-        {
-            return PaymentRefused(outcome);
-        }
-
-        Order order = await _db.Orders.SingleAsync(o => o.Id == cancellation.OrderId, ct);
-        await QueueNoticeAsync(
-            order.Id,
-            new CancelledNotice(order.Id, cancellation.Actor, cancellation.FirmReason, cancellation.ReasonNote, cancellation.SystemReason, null),
-            ct);
-        return new PaymentTransitionResult(codes);
-    }
-
     public async Task<PaymentTransitionResult> ApplyCardRefundOutcomeAsync(CardRefundOutcome outcome, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(outcome);
@@ -231,34 +201,6 @@ internal sealed partial class OrderTransitions
         }
 
         return new PaymentTransitionResult(applied);
-    }
-
-    /// <summary>
-    /// The canceller of an unpaid order and the reason its records carry (06 4.19; 03 1.3 Ö2): the customer gives none; the administrator the firm's
-    /// reason and the screen's version; the system an automatic kind - never the closure, which is the closure rule's (05 4.1.3).
-    /// </summary>
-    private static bool TryReadCanceller(
-        UnpaidOrderCancellation cancellation, [NotNullWhen(true)] out TransitionActor? actor, out TransitionReasons? reasons)
-    {
-        actor = null;
-        reasons = null;
-        bool hasAdmin = cancellation.AdminId is not null || cancellation.AdminName is not null;
-        switch (cancellation.Actor)
-        {
-            case ActorKind.Buyer when !hasAdmin && cancellation is { FirmReason: null, ReasonNote: null, SystemReason: null }:
-                actor = TransitionActor.Buyer;
-                return true;
-            case ActorKind.Admin when cancellation is { AdminId: { } adminId, AdminName: { } adminName, FirmReason: { } firm, SystemReason: null }:
-                actor = TransitionActor.Admin(adminId, adminName);
-                reasons = TransitionReasons.OfFirm(firm, cancellation.ReasonNote);
-                return true;
-            case ActorKind.System when !hasAdmin && cancellation is { SystemReason: { } kind, FirmReason: null, ReasonNote: null } && kind != TransitionReason.Closure:
-                actor = TransitionActor.System;
-                reasons = TransitionReasons.OfKind(kind);
-                return true;
-            default:
-                return false;
-        }
     }
 
     private static PaymentTransitionResult PaymentRefused(TransitionOutcome outcome)

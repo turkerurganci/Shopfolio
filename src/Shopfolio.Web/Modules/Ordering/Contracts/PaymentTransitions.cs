@@ -17,20 +17,6 @@ public sealed record CardPaymentSucceeded(Guid OrderId, string ProviderTransacti
 public sealed record TransferPaidMark(Guid OrderId, Guid AdminId, string AdminName, int ExpectedVersion, bool IsIrreversibleConfirmed);
 
 /// <summary>
-/// The cancellation of an order whose payment never came (03 1.3 Ö2; 02 5.5): S3 and Ö2 together, whoever cancels. The customer gives no reason; the
-/// administrator gives the firm's reason (the note of "Other") and the screen's version; the system gives the kind of its automatic cancellation.
-/// </summary>
-public sealed record UnpaidOrderCancellation(
-    Guid OrderId,
-    ActorKind Actor,
-    Guid? AdminId,
-    string? AdminName,
-    CancellationReason? FirmReason,
-    string? ReasonNote,
-    TransitionReason? SystemReason,
-    int? ExpectedVersion);
-
-/// <summary>
 /// The outcome of one card refund request (05 4.6.2), from the refund job or the outcome query: <see cref="RefundRecordState.Succeeded"/>,
 /// <see cref="RefundRecordState.Failed"/> or <see cref="RefundRecordState.OutcomePending"/> (the outcome is unknown).
 /// </summary>

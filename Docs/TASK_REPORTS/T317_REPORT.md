@@ -1,6 +1,6 @@
 # T317 — Ödeme durumu geçişleri: ödeme ekseni
 
-**Faz:** F3 | **Durum:** ⏳ Düzeltme bekliyor (doğrulama tur 2 ✗ FAIL; tur 1 ✓ PASS) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ⏳ Doğrulama bekliyor (düzeltme turu 3 bitti: tur 2 B1 ve K1/D-389; tur 1 ✓ PASS) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -12,18 +12,19 @@
   - `ApplyCardPaymentAsync` — kartta sağlayıcının başarı bildirimi ve son sorgunun olumlu cevabı aynı yoldan: Ö1 sistem, açık fiziksel kalem varsa S1 aynı istekte; ödeme kaydı (Ö1 geçiş kaydına bağlı) ve B-4. Aynı işlem kimliği ikinci kez gelirse hiçbir şey yazılmaz (`IsAlreadyApplied`).
   - Ödenmesi kalmamış siparişe gelen kart ödemesi (iptal edilmiş ya da yeni işlem kimliğiyle ödenmiş): ödeme kaydında Ö1'siz durur, sistem `Refund.ForLatePayment` + `CardRefund` iş satırıyla geri öder; eksenler kıpırdamaz, sürüm bir kez artar.
   - `MarkTransferPaidAsync` — havalede yöneticinin "ödendi" işareti: geri alınamaz onay ve ekrandaki sürüm zorunlu; Ö1 yönetici, S1 sistem (iki istek, aynı kilit, sürüm bir kez artar — D-291 (a)); ödeme kaydı ve B-4.
-  - `CancelUnpaidOrderAsync` — ödenmemiş siparişin iptali kim yaparsa yapsın S3 + Ö2 tek istekte; yönetici firma gerekçesi ve sürümle, sistem otomatik gerekçeyle (kapanış hariç); B-7. Ödenmiş sipariş reddedilir (Ö2 yalnız Bekliyor'dan).
+  - ~~`CancelUnpaidOrderAsync`~~ — düzeltme turu 3'te kaldırıldı (B1): ödenmemiş siparişin iptalinin tek yolu T316'nın `CancelOrderAsync`'idir (Alındı + Bekliyor'da S3 + Ö2 tek istekte, kim yaparsa yapsın; yöneticide geri alınamaz onay, sürüm ve "Diğer ⇔ not" denetimi; B-7). Ö2'nin ödeme ekseninde ayrı yöntemi yoktur.
   - `ApplyCardRefundOutcomeAsync` — kart iadesinin sonucu: gerçekleşince gönderilen toplam ödenen tutara ulaştıysa Ödendi'den Ö4 / Kısmen geri ödendi'den Ö5, altındaysa Ödendi'den Ö3; B-8 her gerçekleşen geri ödemede, F-4 yalnız sistemin kendiliğinden kart iadesinde (firmanın yeniden denemesi değilse). Başarısız ya da bilinmeyen sonuçta eksen aynı, bildirim yok, panel işareti iade kaydından düşer.
   - `ProcessTransferRefundAsync` — yöneticinin havale geri ödemesini işlemesi (onay + sürüm): Ö3/Ö4/Ö5 aynı kuralla, B-8 (F-4 yok).
 - Ödeme modülü yüzü (`IPaymentModule`/`PaymentModule`): `IsPaymentRecorded`, `RecordCardPayment`, `RecordTransferMark`, `StartLatePaymentRefund`, `WriteCardRefundOutcome`, `MarkTransferRefundSent`, `SentRefundTotal`, `ReadRefundMarks`; çağıranın işlemine yazar, `SaveChanges` çağırmaz. Kayıtlar `RefundFacts`, `RefundMarks`.
 - `TransitionTable`: `FindPayment(from, to)` (Ö3/Ö4/Ö5 ikinci bir listeden değil tablodan okunur), `IsTerminal(PaymentStatus)`.
 - `TransitionRequest` yorumu D-291 (a)'ya göre düzeltildi; `PaymentRecord` yorumları `06 §4.32` ile eşitlendi (geçiş kaydı Ö1'dir).
-- Sözleşme kayıtları (`Ordering/Contracts/PaymentTransitions.cs`): `CardPaymentSucceeded`, `TransferPaidMark`, `UnpaidOrderCancellation`, `CardRefundOutcome`, `TransferRefundProcessing`, `PaymentTransitionResult` (enum eklenmedi; ret bir değerdir, işlem koşucusu geri alır).
+- Sözleşme kayıtları (`Ordering/Contracts/PaymentTransitions.cs`): `CardPaymentSucceeded`, `TransferPaidMark`, `CardRefundOutcome`, `TransferRefundProcessing`, `PaymentTransitionResult` (enum eklenmedi; ret bir değerdir, işlem koşucusu geri alır).
 - Bu turda (3. işçi): test derlemesi (eksik `using`), dijital kalemin adet kuralına uyan test tohumu, `09 §3.1` madde 5'e göre kaynak koddaki null-forgiving `!` kullanımlarının kaldırılması (`Refused(TransitionOutcome)`, `[NotNullWhen(true)]`, `OfType<RefundRecord>()`).
 
 ## Etkilenen Modüller / Dosyalar
 
-- `src/Shopfolio.Web/Modules/Ordering/`: `OrderTransitions.Payment.cs` (yeni), `OrderTransitions.cs`, `TransitionTable.cs`, `TransitionRequests.cs`, `Contracts/IOrderTransitions.cs`, `Contracts/PaymentTransitions.cs` (yeni)
+- `src/Shopfolio.Web/Modules/Ordering/`: `OrderTransitions.Payment.cs` (yeni), `OrderTransitions.cs`, `OrderTransitions.Shipment.cs` (düzeltme turu 3: `StartPreparationAsync` yalnız S1), `TransitionTable.cs`, `TransitionRequests.cs`, `Contracts/IOrderTransitions.cs`, `Contracts/PaymentTransitions.cs` (yeni)
+- Düzeltme turu 3 testleri: `tests/Shopfolio.IntegrationTests/Ordering/PaymentTransitionsTests.cs` (KK4 `CancelOrderAsync` üzerinden, 33), `Ordering/ShipmentTransitionsTests.cs` (S1 testleri yeni imzaya; karışık sipariş testi kart ödemesi yoluna)
 - `src/Shopfolio.Web/Modules/Payment/`: `PaymentModule.cs`, `PaymentRecord.cs`, `Contracts/IPaymentModule.cs`, `Contracts/PaymentFacts.cs`
 - Testler: `tests/Shopfolio.IntegrationTests/Ordering/PaymentTransitionsTests.cs` (yeni, 29), `Ordering/OrderingTestServices.cs` (yeni, ortak DI), `Ordering/OrderTransitionsTests.cs` (ortak DI'a bağlandı); `tests/Shopfolio.UnitTests/Ordering/TransitionTableTests.cs` (+2)
 - Kayıt: bu rapor, `Docs/IMPLEMENTATION_STATUS.md`, `Docs/DEFERRED_BACKLOG.md`, `.claude/memory/MEMORY.md`; T307, T315, T332, T366, T381 raporlarının "Post-merge run'lar" satırı ve status Commit hücreleri
@@ -35,7 +36,7 @@
 | 1 | Ö1…Ö5 beyaz liste; Başarısız ve Geri ödendi terminal | ✓ | `TransitionTable.Payment` + `IsTerminal`; `ThePaymentAxisTerminalStates_AreExactlyTheStatesNoPaymentRowLeaves_T317KK1`, `MarkTransferPaid_OnAnOrderThatIsNotPending_IsRefused_AndWritesNothing_KK1`, `RefundSent_OnARefundedOrder_DoesNotLeaveTheTerminalState_KK1` |
 | 2 | Ö1 kartta başarı bildirimi ya da son sorgunun olumlu cevabıyla | ✓ | `ApplyCardPaymentAsync`; `CardPayment_FromTheNotificationAndFromTheFinalQuery_AppliesO1AndS1ByTheSystem_TheRecordAndB4_KK2`, `CardPayment_ThatCameAlready_DoesNothing_KK2`, `CardPayment_OfAnOrderWithoutAPhysicalItem_AppliesO1Only_AndATransferOrderIsRefused_KK2` |
 | 3 | Ö1 havalede yöneticinin işareti, geri alınamaz onay, B-4 | ✓ | `MarkTransferPaidAsync`; `MarkTransferPaid_WithoutTheConfirmation_IsRefused_AndWritesNothing_KK3`, `MarkTransferPaid_Confirmed_IsO1ByTheAdministratorAndS1ByTheSystem_OneVersionRaise_TheRecordAndB4_KK3`, `MarkTransferPaid_OnACardOrder_IsRefused_KK3` |
-| 4 | Ö2 S3'le aynı anda, her iptalde, kim yaparsa yapsın | ✓ | `CancelUnpaidOrderAsync`; `CancelUnpaid_ByAnyone_IsS3AndO2InOneOperation_WithTheReason_AndB7_KK4` (Buyer/Admin/System), `CancelUnpaid_OfAPaidOrder_DoesNotApplyO2_AndWritesNothing_KK4` |
+| 4 | Ö2 S3'le aynı anda, her iptalde, kim yaparsa yapsın | ✓ | Tek yol `CancelOrderAsync` (`OrderTransitions.Shipment.cs:35`; `ChooseCancellation` :219 Alındı + Bekliyor → S3 + Ö2); `CancelOrder_OfAnUnpaidOrder_ByAnyone_IsS3AndO2InOneOperation_WithTheReason_AndB7_KK4` (Buyer/Admin/System), `CancelOrder_OfAPaidOrder_DoesNotApplyO2_KK4` (Buyer/Admin/System) |
 | 5 | Ö3/Ö4/Ö5 kart iadesi gerçekleşince ya da yöneticinin geri ödemeyi işlemesiyle | ✓ | `ApplyRefundSentAsync`; `CardRefundSucceeded_OnAPaidOrder_IsO3ForAPartAndO4ForTheWhole_KK5`, `CardRefundSucceeded_OnAPartlyRefundedOrder_IsO5ForTheRest_AndNoTransitionBelowIt_KK5`, `ProcessTransferRefund_IsTheAdministratorsO3_WithTheConfirmationAndTheVersion_AndB8WithoutF4_KK5` |
 | 6 | B-8 müşteriye; sistemin kendiliğinden kart iadesinde F-4 firmaya | ✓ | `SystemCardRefundSucceeded_WritesB8ToTheCustomer_AndF4ToTheFirm_KK6`, `FirmRetryOrAdministratorsCardRefundSucceeded_WritesB8Only_KK6` |
 | 7 | Başarısız/bilinmeyen iadede eksen aynı, işaret düşer, bildirim yok | ✓ | `CardRefundNotSentOrUnknown_LeavesTheAxis_SendsNoNotice_AndTheMarkFalls_KK7` (Failed, OutcomePending), `CardRefundOutcome_OfARecordThatIsNotOpen_IsRefused` |
@@ -43,7 +44,7 @@
 
 ### Öz denetim (bitiş kapısı 2)
 
-> Bütün maddeler bu turda yeniden denetlendi (önceki işçilerin yazdıkları dahil).
+> Bütün maddeler bu turda yeniden denetlendi (önceki işçilerin yazdıkları dahil). Düzeltme turu 3'te (2026-11-08) 11 satır 2112–2135'teki sekiz kriter, KK1–KK8, `09 §25` ve güvenlik taraması birleşik ağaçta (`origin/main` + dal) yeniden `grep -n` ile denetlendi; değişen satırlar KK4, B1 ve K1/D-389'dur, ötekiler aynı kanıtla geçerli ve testleri yeniden koşuldu.
 
 | Madde (kabul kriteri / KK) | Sonuç | Kanıt (dosya:satır, test adı) |
 |---|---|---|
@@ -51,12 +52,14 @@
 | KK1 tablo dışı geçiş reddedilir, terminal durum kalkmaz | ✓ | `MarkTransferPaid_OnAnOrderThatIsNotPending_IsRefused_AndWritesNothing_KK1` (Theory), `RefundSent_OnARefundedOrder_DoesNotLeaveTheTerminalState_KK1`; birim `ThePaymentAxisTerminalStates_…` beklenen kümeyi tablodan iki yönlü türetir |
 | KK2 başarı bildirimi ve son sorgu Ö1'i işler | ✓ | `CardPayment_FromTheNotificationAndFromTheFinalQuery_…_KK2` |
 | KK3 onaysız "ödendi" reddedilir | ✓ | `MarkTransferPaid_WithoutTheConfirmation_IsRefused_AndWritesNothing_KK3` |
-| KK4 ödenmemişte S3+Ö2 aynı işlemde; ödenmişte Ö2 yok | ✓ | `CancelUnpaid_ByAnyone_…_KK4`, `CancelUnpaid_OfAPaidOrder_…_KK4`, `CancelUnpaid_ByTheAdministratorWithoutTheVersion_OrByTheSystemAsAClosure_IsRefused_KK4` |
+| KK4 ödenmemişte S3+Ö2 aynı işlemde; ödenmişte Ö2 yok | ✓ | `PaymentTransitionsTests.cs:209` `CancelOrder_OfAnUnpaidOrder_ByAnyone_…_KK4` (iki kayıt, tek sürüm artışı, gerekçe, B-7), :232 `CancelOrder_OfAPaidOrder_DoesNotApplyO2_KK4` (alıcı/sistem `ConditionNotMet`; firma S3 tek başına, ödeme Ödendi'de kalır), :249 onaysız yönetici → `ConfirmationRequired`, :264 "Diğer" dışı notlu / "Diğer" notsuz (boş dahil) → `InvalidInput`, :276 sürümsüz → `InvalidInput`, eski sürüm → `VersionConflict`, sistem kapanış gerekçesi → `ReasonNotAllowed`; retlerde hiçbir şey yazılmaz |
+| B1: ödenmemiş iptalin tek yolu (`09 §24` m.4, `09 §25` "tek işlev") | ✓ | `CancelUnpaidOrderAsync`, `UnpaidOrderCancellation`, `TryReadCanceller` silindi (`grep -rn CancelUnpaidOrder src` → yalnız `FinalPaymentQueryStep.CancelUnpaidOrder` adımı); S3+Ö2 yalnız `ChooseCancellation`'da (`grep -n "TransitionCode.O2" src` → Shipment :219, tablo ve okumalar) |
+| K1/D-389: Ö1'in tek yolu | ✓ | `StartPreparationAsync(Guid, CancellationToken)` yalnız S1 (`OrderTransitions.Shipment.cs:21`); Ö1 yazan yalnız `ApplyCardPaymentAsync` :20 ve `MarkTransferPaidAsync` :64 (`grep -n "TransitionCode.O1" src` → Payment :44, :90, :96 ve tablo); `ShipmentTransitionsTests` `S1_OnAMixedOrderWithAPhysicalItem_ComesWithTheCardApprovalO1_…_KK3` ödeme kaydını da sınar |
 | KK5 kısmi Ö3, tam Ö4, kalan Ö5 | ✓ | `CardRefundSucceeded_OnAPaidOrder_…_KK5`, `CardRefundSucceeded_OnAPartlyRefundedOrder_…_KK5`, `ProcessTransferRefund_…_KK5`; hedef kod `TransitionTable.FindPayment`'tan (beklenen değer tablodan türetilir) |
 | KK6 B-8 ve F-4 doğru alıcıya | ✓ | `SystemCardRefundSucceeded_WritesB8ToTheCustomer_AndF4ToTheFirm_KK6`, `FirmRetryOrAdministratorsCardRefundSucceeded_WritesB8Only_KK6` |
 | KK7 yanıtsız iadede eksen aynı, işaret düşer | ✓ | `CardRefundNotSentOrUnknown_LeavesTheAxis_SendsNoNotice_AndTheMarkFalls_KK7` (`ReadRefundMarksAsync`) |
 | KK8 iptal edilmiş siparişin ödemesi iade edilir | ✓ | `CardPayment_ToACancelledOrder_…_KK8`, `LatePaymentRefundSucceeded_…_KK8` |
-| `09 §25` doküman uyumu: okunan bölümler | ✓ | 11 T317 bloğu; `03 §1.3`, §1.2 (S1), §2.5; `02 §5.5`, §5.6.3, §6.1.2, §6.2.16, §7.2.8; `05 §4.5.3`, §4.6, §7.3.2; `06 §4.32`; `09 §9`, §3.1, §25 |
+| `09 §25` doküman uyumu: okunan bölümler | ✓ | 11 T317 bloğu; `03 §1.3`, §1.2 (S1), §2.5; `02 §5.5`, §5.6.3, §5.9 (firma iptali S3 geri alınamaz onay ister — düzeltme turu 3), §6.1.2, §6.2.16, §7.2.8; `05 §4.5.3`, §4.6, §7.3.2; `06 §4.19` ("Diğer" not taşır), §4.32; `09 §9`, §3.1, §24 m.4 (tek işlev tablosu), §25 |
 | `09 §25` yeni adlar belgeden, çelişki yok | ✓ | Ö1…Ö5, B-4/B-7/B-8/F-4, `PaymentRecord`, `Refund`, `RefundRecord` adları 06/02 ile aynı; yeni enum yok |
 | `09 §25` diff yalnız görev | ✓ | Kapsam dışı (stok/kupon serbest bırakma, sepet temizliği, sayfa ve iş işleyicisi) yazılmadı — ⚠ listesi |
 | `09 §25` modül sınırı (yalnız Contracts, arayüzde SaveChanges yok) | ✓ | `IPaymentModule`, `INotificationsModule`, `IAfterSalesModule` üzerinden; Architecture testleri yeşil (Unit 3965) |
@@ -74,6 +77,9 @@
 | Sık FAIL (3) DB varsayılanı / FK dizini | uygulanamaz | Şema değişmedi |
 | Sık FAIL (4) aynı sayıyı anan yerler | ✓ | Backlog `Aktif kalem` 125 → 126 (sayım 126); status satırı; D-291 hedef hücresi |
 | Sık FAIL (5) beklenen değer sabitten | ✓ | Testler hedef durumu `TransitionTable.FindPayment/FindShipment(...).To`'dan okur |
+| Sık FAIL — tek kural evi yerine kendi denetimi (T341 r2, T317 r2) | ✓ | Düzeltme turu 3: ödenmemiş iptalin onay, sürüm ve "Diğer ⇔ not" denetimi yalnız `TryCancellationActor`'da (`OrderTransitions.Shipment.cs:314`, :323); T317'nin kendi denetimi (`TryReadCanceller`) silindi |
+| Sık FAIL — modül metodu SaveChanges / işlem açar (T223, T321) | ✓ | `grep -n "SaveChanges\|BeginTransaction" src/Shopfolio.Web/Modules/Ordering src/Shopfolio.Web/Modules/Payment` → yalnız kayıt bekçileri (interceptor); yöntemler çağıranın işlemine yazar |
+| Sık FAIL — kural değişince öteki yerler (#381) | ✓ | `IOrderTransitions` özeti ve `StartPreparationAsync` yorumu, `OrderTransitions.Payment.cs` sınıf özeti, D-307 ve D-389, bu raporun "Yapılan İşler", "Sözleşme kayıtları" ve ⚠ 8. maddesi güncellendi; `grep -rn "approvesPayment\|CancelUnpaidOrderAsync\|UnpaidOrderCancellation" src tests` → 0 |
 | Güvenlik taraması | ✓ | Sır yok; yeni uç/paket yok; yönetici kimliği ve sürüm çağırandan, yetki sayfa kapısında; girdi `ArgumentNullException`/`ThrowIfNullOrWhiteSpace` |
 
 ## Test Sonuçları
@@ -169,7 +175,7 @@ Dış varsayım: yok — task yalnız uygulama içi geçiş kuralıdır; sağlay
 5. `ProcessTransferRefundAsync` yalnız havale yolu; kart yolundaki firma geri ödemesi iş + sonuç (`ApplyCardRefundOutcomeAsync`) ile, aktör geri ödemenin yöneticisi.
 6. S1 koşulu: açık adedi olan fiziksel kalem (`03 §1.2` "en az bir fiziksel kalem"); dijital/hizmet siparişinde yalnız Ö1.
 7. Geç ödemenin iade tutarı siparişin toplamı (`06 §4.32`: ödeme kaydında tutar saklanmaz, siparişin toplamıdır).
-8. Sürümsüz yönetici iptali `IsVersionConflict` döner (D-291 (b)).
+8. ~~Sürümsüz yönetici iptali `IsVersionConflict` döner (D-291 (b)).~~ Düzeltme turu 3: ödenmemiş iptal T316'nın `CancelOrderAsync`'inden geçer; sürümsüz yönetici iptali orada `InvalidInput`, eski sürüm `VersionConflict` döner (D-291 (b)).
 
 ## Notlar
 

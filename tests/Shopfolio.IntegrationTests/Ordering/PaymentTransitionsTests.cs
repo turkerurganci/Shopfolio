@@ -200,23 +200,24 @@ public sealed class PaymentTransitionsTests : IAsyncLifetime
         await AssertStateAsync(order.Id, OrderStatus.Placed, PaymentStatus.Pending, 1);
     }
 
-    // ---- KK4: the unpaid cancellation ----
+    // ---- KK4: the unpaid cancellation, through the one cancellation of the unit (09 24 item 4) ----
 
     [Theory]
     [InlineData(ActorKind.Buyer)]
     [InlineData(ActorKind.Admin)]
     [InlineData(ActorKind.System)]
-    public async Task CancelUnpaid_ByAnyone_IsS3AndO2InOneOperation_WithTheReason_AndB7_KK4(ActorKind actor)
+    public async Task CancelOrder_OfAnUnpaidOrder_ByAnyone_IsS3AndO2InOneOperation_WithTheReason_AndB7_KK4(ActorKind actor)
     {
         (Order order, _) = await SeedOrderAsync(OrderStatus.Placed, PaymentStatus.Pending);
 
-        PaymentTransitionResult result = await RunAsync((unit, token) => unit.CancelUnpaidOrderAsync(UnpaidCancellation(order.Id, actor, 1), token));
+        OrderTransitionResult result = await RunAsync((unit, token) => unit.CancelOrderAsync(WholeCancellation(order.Id, actor), token));
 
-        Assert.Equal([TransitionCode.S3, TransitionCode.O2], result.Applied);
+        Assert.False(result.IsRejected);
         await AssertStateAsync(order.Id, TransitionTable.FindShipment(TransitionCode.S3)!.To, TransitionTable.FindPayment(TransitionCode.O2)!.To, 2);
         await using AppDbContext reader = NewContext();
         List<TransitionRecord> records = await reader.TransitionRecords.Where(t => t.OrderId == order.Id).ToListAsync(Ct);
         Assert.Equal(new[] { TransitionCode.S3, TransitionCode.O2 }.Order(), records.Select(r => r.TransitionCode).Order());
+        Assert.Equal(records.Select(r => r.Id).Order(), result.TransitionRecordIds.Order());
         CancellationReason? firmReason = actor == ActorKind.Admin ? CancellationReason.OutOfStock : null;
         TransitionReason? systemReason = actor == ActorKind.System ? TransitionReason.PaymentWindowExpired : null;
         Assert.All(records, r => Assert.Equal((actor, firmReason, systemReason), (r.ActorKind, r.CancellationReason, r.TransitionReason)));
@@ -228,32 +229,62 @@ public sealed class PaymentTransitionsTests : IAsyncLifetime
     [InlineData(ActorKind.Buyer)]
     [InlineData(ActorKind.Admin)]
     [InlineData(ActorKind.System)]
-    public async Task CancelUnpaid_OfAPaidOrder_DoesNotApplyO2_AndWritesNothing_KK4(ActorKind actor)
+    public async Task CancelOrder_OfAPaidOrder_DoesNotApplyO2_KK4(ActorKind actor)
     {
+        // The customer and the system cancel only an unpaid order as a whole; the firm's whole cancellation of a paid order is S3 alone - the payment
+        // axis stays Ödendi and its refund is the cancellation task's (02 5.5).
         (Order order, _) = await SeedOrderAsync(OrderStatus.Placed, PaymentStatus.Paid);
 
-        PaymentTransitionResult result = await RunAsync((unit, token) => unit.CancelUnpaidOrderAsync(UnpaidCancellation(order.Id, actor, 1), token));
+        OrderTransitionResult result = await RunAsync((unit, token) => unit.CancelOrderAsync(WholeCancellation(order.Id, actor), token));
 
-        Assert.True(result.IsNotOpen);
-        await AssertStateAsync(order.Id, OrderStatus.Placed, PaymentStatus.Paid, 1);
+        bool firm = actor == ActorKind.Admin;
+        Assert.Equal(firm ? null : TransitionRefusal.ConditionNotMet, result.Refusal);
+        await AssertStateAsync(order.Id, firm ? OrderStatus.Cancelled : OrderStatus.Placed, PaymentStatus.Paid, firm ? 2 : 1);
         await using AppDbContext reader = NewContext();
-        Assert.False(await reader.DispatchRecords.AnyAsync(d => d.OrderId == order.Id, Ct));
+        TransitionCode[] expected = firm ? [TransitionCode.S3] : [];
+        Assert.Equal(expected, await reader.TransitionRecords.Where(t => t.OrderId == order.Id).Select(t => t.TransitionCode).ToListAsync(Ct));
     }
 
     [Fact]
-    public async Task CancelUnpaid_ByTheAdministratorWithoutTheVersion_OrByTheSystemAsAClosure_IsRefused_KK4()
+    public async Task CancelOrder_OfAnUnpaidOrder_ByTheAdministratorWithoutTheConfirmation_IsRefused_AndWritesNothing_KK4()
     {
         (Order order, _) = await SeedOrderAsync(OrderStatus.Placed, PaymentStatus.Pending);
 
-        PaymentTransitionResult noVersion = await RunAsync((unit, token) => unit.CancelUnpaidOrderAsync(UnpaidCancellation(order.Id, ActorKind.Admin, null), token));
-        PaymentTransitionResult closure = await RunAsync((unit, token) => unit.CancelUnpaidOrderAsync(
-            UnpaidCancellation(order.Id, ActorKind.System, null) with { SystemReason = TransitionReason.Closure }, token));
-        PaymentTransitionResult staleScreen = await RunAsync((unit, token) => unit.CancelUnpaidOrderAsync(UnpaidCancellation(order.Id, ActorKind.Admin, 2), token));
+        OrderTransitionResult result = await RunAsync((unit, token) => unit.CancelOrderAsync(
+            CancelOrderRequest.ByAdministrator(order.Id, AdminCaller(), 1, false, CancellationReason.OutOfStock), token));
 
-        Assert.True(noVersion.IsVersionConflict);
-        Assert.True(closure.IsNotOpen);
-        Assert.True(staleScreen.IsVersionConflict);
-        await AssertStateAsync(order.Id, OrderStatus.Placed, PaymentStatus.Pending, 1);
+        Assert.Equal(TransitionRefusal.ConfirmationRequired, result.Refusal);
+        await AssertNothingWrittenAsync(order.Id);
+    }
+
+    [Theory]
+    [InlineData(CancellationReason.OutOfStock, "not for this reason")]
+    [InlineData(CancellationReason.Other, null)]
+    [InlineData(CancellationReason.Other, "   ")]
+    public async Task CancelOrder_OfAnUnpaidOrder_ByTheAdministrator_WithANoteOutsideOther_OrOtherWithoutANote_IsRefused_KK4(CancellationReason reason, string? note)
+    {
+        (Order order, _) = await SeedOrderAsync(OrderStatus.Placed, PaymentStatus.Pending);
+
+        OrderTransitionResult result = await RunAsync((unit, token) => unit.CancelOrderAsync(
+            CancelOrderRequest.ByAdministrator(order.Id, AdminCaller(), 1, true, reason, note), token));
+
+        Assert.Equal(TransitionRefusal.InvalidInput, result.Refusal);
+        await AssertNothingWrittenAsync(order.Id);
+    }
+
+    [Fact]
+    public async Task CancelOrder_OfAnUnpaidOrder_ByTheAdministratorWithoutTheVersion_OrAStaleOne_OrByTheSystemAsAClosure_IsRefused_KK4()
+    {
+        (Order order, _) = await SeedOrderAsync(OrderStatus.Placed, PaymentStatus.Pending);
+
+        OrderTransitionResult noVersion = await RunAsync((unit, token) => unit.CancelOrderAsync(WholeCancellation(order.Id, ActorKind.Admin) with { ExpectedVersion = null }, token));
+        OrderTransitionResult staleScreen = await RunAsync((unit, token) => unit.CancelOrderAsync(WholeCancellation(order.Id, ActorKind.Admin) with { ExpectedVersion = 2 }, token));
+        OrderTransitionResult closure = await RunAsync((unit, token) => unit.CancelOrderAsync(CancelOrderRequest.BySystem(order.Id, TransitionReason.Closure), token));
+
+        Assert.Equal(TransitionRefusal.InvalidInput, noVersion.Refusal);
+        Assert.Equal(TransitionRefusal.VersionConflict, staleScreen.Refusal);
+        Assert.Equal(TransitionRefusal.ReasonNotAllowed, closure.Refusal);
+        await AssertNothingWrittenAsync(order.Id);
     }
 
     // ---- KK5: the refund's sent money ----
@@ -440,12 +471,23 @@ public sealed class PaymentTransitionsTests : IAsyncLifetime
 
     private TransferRefundProcessing Processing(Guid orderId, Guid refundId, int version) => new(orderId, refundId, _admin!.Id, _admin.Name, version, true);
 
-    private UnpaidOrderCancellation UnpaidCancellation(Guid orderId, ActorKind actor, int? version) => actor switch
+    private TransitionAdmin AdminCaller() => new(_admin!.Id, _admin.Name);
+
+    /// <summary>The whole-order cancellation of each actor: the customer's without a reason, the firm's confirmed with a closed-list reason, the system's with its kind.</summary>
+    private CancelOrderRequest WholeCancellation(Guid orderId, ActorKind actor) => actor switch
     {
-        ActorKind.Admin => new(orderId, actor, _admin!.Id, _admin.Name, CancellationReason.OutOfStock, null, null, version),
-        ActorKind.System => new(orderId, actor, null, null, null, null, TransitionReason.PaymentWindowExpired, null),
-        _ => new(orderId, actor, null, null, null, null, null, null),
+        ActorKind.Admin => CancelOrderRequest.ByAdministrator(orderId, AdminCaller(), 1, true, CancellationReason.OutOfStock),
+        ActorKind.System => CancelOrderRequest.BySystem(orderId, TransitionReason.PaymentWindowExpired),
+        _ => CancelOrderRequest.ByCustomer(orderId),
     };
+
+    /// <summary>A refused unpaid cancellation leaves the order as seeded: no axis moved, no version raise, no record and no notice.</summary>
+    private async Task AssertNothingWrittenAsync(Guid orderId)
+    {
+        await AssertStateAsync(orderId, OrderStatus.Placed, PaymentStatus.Pending, 1, records: 0);
+        await using AppDbContext reader = NewContext();
+        Assert.False(await reader.DispatchRecords.AnyAsync(d => d.OrderId == orderId, Ct));
+    }
 
     private async Task AssertStateAsync(Guid orderId, OrderStatus orderStatus, PaymentStatus paymentStatus, int version, int? records = null)
     {

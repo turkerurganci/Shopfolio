@@ -6,7 +6,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// The scan of the disposal code for a retention number written in place (T201 criterion 3, KK3; 09 3.5 item 1): the disposal step, its parts
 /// and its registration never write a duration of their own. A period is a product constant (<c>ProductConstants</c>), a row of
 /// <c>DisposalTimings</c> or the part that owns a legal period; here the code names that constant. The scan reads
-/// <c>src/Shopfolio.Web/Infrastructure/Disposal/</c> and the two parts that live in their modules (the guest cart and the invitation) and finds a time span, a month, a year or a day written with a digit literal. Comments are not scanned.
+/// <c>src/Shopfolio.Web/Infrastructure/Disposal/</c> and the three parts that live in their modules (the guest cart, the order and the invitation) and finds a time span, a month, a year or a day written with a digit literal. Comments are not scanned.
 /// </summary>
 internal static partial class DisposalNumberSourceScan
 {
@@ -20,6 +20,7 @@ internal static partial class DisposalNumberSourceScan
         string path = relativePath.Replace('\\', '/');
         return (path.Contains(DisposalFolder, StringComparison.Ordinal) && !path.EndsWith("/DisposalTimings.cs", StringComparison.Ordinal))
             || path.EndsWith("/Modules/Ordering/GuestCartDisposalPart.cs", StringComparison.Ordinal)
+            || path.EndsWith("/Modules/Ordering/OrderDisposalPart.cs", StringComparison.Ordinal)
             || path.EndsWith("/Modules/Administration/AdminInvitationDisposalPart.cs", StringComparison.Ordinal);
     }
 

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T380 (İşlem izi) doğrulama tur 2 ✓ PASS (head `1180a80` + `origin/main` birleştirmesi, PR #419; kriter 1–10, KK1–KK10 ve `09 §25` ✓; tur 1 bulgusu (kişisel veri `Details` yuvalarında) kapandı; Consistency 207, Unit 2869, betik testleri; Integration yerelde parçalı ~1800 test, ilgisiz iki Kestrel port çakışması tek başına yeşil; dal CI 42346985169 yeşil; `12` `Durum`: KP-63 satırları panel ve çağıran task'lara bağlı, `BEKLEMEDE` kaldı; K1 raporda kapatıldı, K2 → D-176). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T330 (Firma kimliği) doğrulama tur 1 ✓ PASS (head `04eafd6`, PR #420; kriter 1–8, KK1–KK8 ve `09 §25` ✓ — sayfa ve panel bağı T535/T506/T537/T361'in kendi kriterleri; Unit 3010 (Architecture 769, Consistency 207, kalan 2034; birleşik dalda 3050), betik testleri; Integration yerelde parçalı 1806 hepsi geçti; dal CI 42348609633 yeşil; `12` `Durum` değişmedi (KP-35, KP-58 satırları sayfa/uç kanıtı ister, `BEKLEMEDE`); doğrulamada `origin/main` (T304) dala birleştirildi; K-notu yok). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -169,7 +169,7 @@
 | T327 | Kendiliğinden işleyen anlar ve sitenin kesintisinde süreler | ⬚ | — | — | — |
 | T328 | Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi | ⬚ | — | — | — |
 | T329 | İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi) | ⬚ | — | — | — |
-| T330 | Firma kimliği: tek firma, tip ve tipe göre zorunlu alanlar, yasal kimlik bilgilerinin erişilebilirliği, iade adresi | ⬚ | — | — | — |
+| T330 | Firma kimliği: tek firma, tip ve tipe göre zorunlu alanlar, yasal kimlik bilgilerinin erişilebilirliği, iade adresi | ✓ | ✓ PASS (tur 1) | — | #420 |
 | T331 | Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması | ⬚ | — | — | — |
 | T332 | Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu | ⬚ | — | — | — |
 | T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ⬚ | — | — | — |
@@ -217,7 +217,7 @@
 | T375 | Yöneticinin sipariş düzeltmeleri: ileri yönlü kayıt, tutar değişmez, firmanın teyidiyle e-posta ve adres düzeltmesi, cayma beyanı geri alınmaz | ⬚ | — | — | — |
 | T376 | Deneme limitleri: dokuz limit, kayan pencere, hesap kilitlenmez, nötr mesaj | ⬚ | — | — | — |
 | T377 | Limit ilkeleri: iki eksen, ödenmemiş sipariş sayımı, yönetici muafiyeti yok, tanınan tarayıcı işareti | ⬚ | — | — | — |
-| T378 | Zaman sayımı: tek saat dilimi, iş günü ve resmî tatil listesi, takvim ve iş günü sayımı, gün sonu, tarih aralığı, çitler | ✓ | ✓ PASS (tur 1) | — | #416 |
+| T378 | Zaman sayımı: tek saat dilimi, iş günü ve resmî tatil listesi, takvim ve iş günü sayımı, gün sonu, tarih aralığı, çitler | ✓ | ✓ PASS (tur 1) | `552a13d` | #416 |
 | T379 | Yönetici hesapları: ilk yönetici ve davet, kaldırma kuralları, tek rol, ayrı hesap türü, davetin geri çekilmesi, erişim kaybında kurtarma sınırı | ⬚ | — | — | — |
 | T380 | İşlem izi: sekiz alan, kim-ne zaman-ne değişti, değiştirilemez ve silinemez, sistem olayları ize girmez, düz liste, on yıl | ✓ | ✓ PASS (tur 2) | — | #419 |
 | T381 | Ayar katmanları ve parametre envanteri: firma ayarı, kurulum ayarı, ürün sabiti, varsayılan ve çit, değişikliğin ize yazılması | ⬚ | — | — | — |

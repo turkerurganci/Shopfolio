@@ -1,0 +1,102 @@
+using Microsoft.EntityFrameworkCore;
+
+using Shopfolio.Infrastructure;
+using Shopfolio.Modules.Settings.Contracts;
+
+namespace Shopfolio.Modules.Settings;
+
+/// <summary>A version the generator wrote: the type, the row's id and number, and whether the cause was the shipped template (a system event, no trail row) or a changed setting.</summary>
+internal sealed record GeneratedVersion(LegalTextType Type, Guid Id, int VersionNumber, bool IsTemplateChange);
+
+/// <summary>
+/// The writer of the generated legal texts' new versions (09 11.4 item 6; 06 4.56; 02 3.33.3): the Pre-Information Form and the Distance Sales Contract. It is called from
+/// two places - the save of the company identity and of the return address (every setting that feeds the texts calls it after its own write; the shipping fee and period
+/// sections of T350 and T362 will do the same) and the application's start - and it follows one order: the settings row is locked, the text is made <i>under that lock</i>
+/// from the current values (<see cref="PlaceholderFiller.Fill"/>, the company's values filled and the order's tokens left in place), it is compared with the last published row of
+/// the type, and a row is added only when the text or the template's version id differs. A save that changes no value therefore writes no version. A text made outside the
+/// lock and carried in would let two concurrent saves drop one of the changes (05 7.3.5; K-1088).
+/// <para>
+/// The trail row of a version that a changed setting caused belongs with that setting's own trail row, which the saves write when the trail is wired to them (D-165 (a));
+/// a version a changed template caused is a system event and never has a row (02 3.33.3, 10.3.3).
+/// </para>
+/// </summary>
+internal sealed class LegalTextGenerator
+{
+    private readonly AppDbContext _db;
+    private readonly CompanySettingsWriter _writer;
+    private readonly TimeProvider _time;
+
+    public LegalTextGenerator(AppDbContext db, CompanySettingsWriter writer, TimeProvider time)
+    {
+        _db = db;
+        _writer = writer;
+        _time = time;
+    }
+
+    /// <summary>Writes the new version of each generated text whose text or template changed; returns the versions written, none when nothing changed.</summary>
+    public async Task<IReadOnlyList<GeneratedVersion>> RegenerateAsync(CancellationToken ct)
+    {
+        await _writer.LockAsync(ct);
+        IReadOnlyDictionary<string, string?> values = await ReadCompanyValuesAsync(ct);
+        DateTimeOffset now = _time.GetUtcNow();
+        List<GeneratedVersion> written = [];
+        foreach (LegalTextType type in LegalTextTemplates.GeneratedTypes)
+        {
+            LegalTextTemplate template = LegalTextTemplates.Get(type);
+            string text = PlaceholderFiller.Fill(template.Text, values, requireAll: false);
+            var last = await _db.LegalTextVersions.AsNoTracking()
+                .Where(l => l.LegalTextType == type && l.PublishedAt != null)
+                .OrderByDescending(l => l.VersionNumber)
+                .Select(l => new { l.VersionNumber, l.Text, l.TemplateVersion })
+                .FirstOrDefaultAsync(ct);
+            if (last is not null && last.Text == text && last.TemplateVersion == template.Version)
+            {
+                continue;
+            }
+
+            LegalTextVersion row = LegalTextVersion.CreatePublished(type, (last?.VersionNumber ?? 0) + 1, now, text, now);
+            row.TemplateVersion = template.Version;
+            _db.LegalTextVersions.Add(row);
+            written.Add(new GeneratedVersion(type, row.Id, row.VersionNumber!.Value, last is null || last.TemplateVersion != template.Version));
+        }
+
+        // The rows are added to the caller's unit of work: the command pipeline and the start-up transaction runner save it before they commit. The one writer of the settings
+        // row stays CompanySettingsWriter (09 10.3 item 4), so this file calls no save.
+        return written;
+    }
+
+    private async Task<IReadOnlyDictionary<string, string?>> ReadCompanyValuesAsync(CancellationToken ct)
+    {
+        Company company = await _db.Companies.AsNoTracking().SingleAsync(ct);
+        CompanySettings settings = await _db.CompanySettings.AsNoTracking().SingleAsync(ct);
+        Guid[] provinceIds = [.. new[] { company.ProvinceId, settings.ReturnProvinceId }.OfType<Guid>()];
+        Dictionary<Guid, string> provinces = await _db.Provinces.AsNoTracking().Where(p => provinceIds.Contains(p.Id)).ToDictionaryAsync(p => p.Id, p => p.Name, ct);
+        string? CompanyProvince() => company.ProvinceId is Guid id && provinces.TryGetValue(id, out string? name) ? name : null;
+
+        string? returnAddress = null;
+        if (settings.ReturnRecipientName is not null && settings.ReturnProvinceId is Guid returnProvince && settings.ReturnDistrict is not null && settings.ReturnAddressLine is not null)
+        {
+            string province = provinces.GetValueOrDefault(returnProvince, string.Empty);
+            returnAddress = $"{settings.ReturnRecipientName}, {settings.ReturnAddressLine}, {settings.ReturnDistrict} / {province}";
+            if (settings.ReturnPhone is not null)
+            {
+                returnAddress += $", Telefon: {settings.ReturnPhone}";
+            }
+        }
+
+        return new Dictionary<string, string?>(StringComparer.Ordinal)
+        {
+            ["CompanyLegalName"] = company.LegalName,
+            ["CompanyTaxIdNumber"] = company.TaxIdNumber,
+            ["CompanyMersisNumber"] = company.MersisNumber,
+            ["CompanyTradeRegistryNumber"] = company.TradeRegistryNumber,
+            ["CompanyProvince"] = CompanyProvince(),
+            ["CompanyDistrict"] = company.District,
+            ["CompanyAddressLine"] = company.AddressLine,
+            ["CompanyPhone"] = company.Phone,
+            ["CompanyEmail"] = company.Email,
+            ["CompanyKepAddress"] = company.KepAddress,
+            ["ReturnAddress"] = returnAddress,
+        };
+    }
+}

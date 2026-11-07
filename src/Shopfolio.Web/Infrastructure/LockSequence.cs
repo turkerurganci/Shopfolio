@@ -90,7 +90,7 @@ internal static class LockSequence
 
     private static bool IsSeparate(LockKind kind)
     {
-        return kind is LockKind.CategoryTree or LockKind.AdminSet;
+        return kind is LockKind.CategoryTree or LockKind.AdminSet or LockKind.DigitalFile;
     }
 
     private sealed class State

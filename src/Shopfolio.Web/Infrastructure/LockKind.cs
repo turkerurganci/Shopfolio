@@ -2,7 +2,7 @@ namespace Shopfolio.Infrastructure;
 
 /// <summary>
 /// The kinds of database lock an application transaction takes, in the order of 05 7.3.5: the cart's advisory lock, the order rows, the variant
-/// rows, the coupon row. The category tree and the administrator set are their own families: a transaction that takes one of them takes no
+/// rows, the coupon row. The category tree, the administrator set and one digital file row (the chunked upload, 05 7.7.3) are their own families: a transaction that takes one of them takes no
 /// order, variant or coupon lock. Not stored; the order of the members is the lock order.
 /// </summary>
 internal enum LockKind
@@ -13,4 +13,5 @@ internal enum LockKind
     Coupon,
     CategoryTree,
     AdminSet,
+    DigitalFile,
 }

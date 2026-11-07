@@ -101,6 +101,7 @@ public sealed class LockSequenceTests
     [Theory]
     [InlineData("CategoryTree")]
     [InlineData("AdminSet")]
+    [InlineData("DigitalFile")]
     [InlineData("Cart")]
     public void Check_SameAdvisoryLockAgainRightAfterItself_IsAllowed(string kindName)
     {

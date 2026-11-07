@@ -65,6 +65,9 @@ internal static class DigitalFileDelivery
 
     public const string FallbackFileName = "download";
 
+    /// <summary>The chunk of the chunked upload: 5 MB (09 3.5 table; 07 2.8.1). The one place of the number; the chunk's body ceiling reads it.</summary>
+    public const long UploadChunkSizeBytes = 5L * 1024 * 1024;
+
     private const int FileNameMaxLength = 150;
 
     /// <summary>The size check against P-26; a file of exactly the ceiling is within it.</summary>

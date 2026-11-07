@@ -5,6 +5,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Routing;
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
@@ -28,6 +29,14 @@ internal sealed class OrderingModule : IOrderingModule
         return await _db.Orders.AsNoTracking()
             .Where(o => o.OrderNumber == number && o.CustomerId == customerId)
             .Select(o => (Guid?)o.Id)
+            .SingleOrDefaultAsync(ct);
+    }
+
+    public async Task<DownloadableItem?> FindDownloadableItemAsync(Guid orderItemId, CancellationToken ct)
+    {
+        return await _db.OrderItems.AsNoTracking()
+            .Where(i => i.Id == orderItemId && i.ProductType == ProductType.Digital)
+            .Select(i => new DownloadableItem(i.VariantId, i.DigitalFileId))
             .SingleOrDefaultAsync(ct);
     }
 

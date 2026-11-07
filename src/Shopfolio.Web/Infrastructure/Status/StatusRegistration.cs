@@ -18,6 +18,7 @@ internal static class StatusRegistration
         services.TryAddSingleton<PaymentStartFailureSeries>();
         services.TryAddSingleton<CertificateExpiryMemory>();
         services.TryAddSingleton<IDiskUsageReader, DriveDiskUsageReader>();
+        services.TryAddSingleton<DiskUsageGuard>();
         services.TryAddScoped<ILogShippingReader, PostgresLogShippingReader>();
         services.TryAddSingleton<IFileBackupStatusReader>(new JsonFileBackupStatusReader(JsonFileBackupStatusReader.DefaultDirectory));
 

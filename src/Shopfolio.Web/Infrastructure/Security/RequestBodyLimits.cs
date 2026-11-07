@@ -50,7 +50,7 @@ internal static class RequestBodyLimits
     public const long ImageUploadMaxBytes = ProductConstants.ImageMaxBytes + Megabyte;
 
     /// <summary>A chunk of the chunked upload: 5 MB.</summary>
-    public const long ChunkMaxBytes = 5 * Megabyte;
+    public const long ChunkMaxBytes = Files.DigitalFileDelivery.UploadChunkSizeBytes;
 
     /// <summary>The payment provider's notification: 64 KB, the signed endpoint pipeline's number.</summary>
     public const long NotificationMaxBytes = SignedEndpointLimits.BodyMaxBytes;
@@ -116,6 +116,20 @@ internal sealed class RequestBodyLimitMiddleware
         RequestBodyClass? declared = endpoint?.Metadata.GetMetadata<RequestBodyClassAttribute>()?.BodyClass;
         long limit = RequestBodyLimits.Of(context.Request.Method, declared);
         HttpRequest request = context.Request;
+
+        // The chunk of the chunked upload is measured by its endpoint, in the order of 07 4.31.2 (session, then 404, then 413): a refusal here would answer
+        // 413 before the session and before the unknown upload. The body is not read in this middleware and the server's own ceiling is lifted for it; the
+        // endpoint reads nothing before the session and the row are known, then counts it (ChunkBody; D-148).
+        if (declared == RequestBodyClass.Chunk && !HttpMethods.IsGet(request.Method) && !HttpMethods.IsHead(request.Method))
+        {
+            if (context.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } chunkServerLimit)
+            {
+                chunkServerLimit.MaxRequestBodySize = null;
+            }
+
+            await _next(context);
+            return;
+        }
 
         bool hasBody = request.ContentLength is > 0 || request.Headers.ContainsKey("Transfer-Encoding");
         if (!hasBody)

@@ -1,10 +1,6 @@
 # Shopfolio — Ertelenmiş İşler Backlog'u
 
-<<<<<<< HEAD
-**Son güncelleme:** 2026-11-07 | **Aktif kalem:** 94 | **Gate'i bloklayan:** 0
-=======
-**Son güncelleme:** 2026-11-07 | **Aktif kalem:** 101 | **Gate'i bloklayan:** 0
->>>>>>> origin/main
+**Son güncelleme:** 2026-11-07 | **Aktif kalem:** 97 | **Gate'i bloklayan:** 0
 
 > **Amaç:** Bilinçli olarak ertelenen **her** somut işin tek izlenebilir listesi.
 >

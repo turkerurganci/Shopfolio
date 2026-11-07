@@ -132,7 +132,7 @@ KK1–KK7 aynı testlerle ✓. `package-build.sh` adım 5: kurucu SQL (`10`…`4
 - **Commit:** *(PR açıklamasında head SHA)*
 - **PR:** #385
 - **CI:** *(yardımcı izler)*
-- **Post-merge run'lar:** squash `a36010b` — CI 41928364243 success, Publish 41928364198 success (T228 dalında dolduruldu, skill adım 15)
+- **Post-merge run'lar:** squash `a36010b` — CI 41928364198 success, Publish 41928364243 success (kimlikler F2 gate'te düzeltildi) (T228 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

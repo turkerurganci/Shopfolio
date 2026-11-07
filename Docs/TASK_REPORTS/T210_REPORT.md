@@ -107,7 +107,7 @@
 - **Commit:** son commit PR'ın başıdır
 - **PR:** #406
 - **CI:** dal run 42165996784 success (validator, 2026-11-06)
-- **Post-merge run'lar:** squash `539d9cd` (#406) — CI 42169337501 success, Publish 42169337584 success (T212 dalında dolduruldu, skill adım 15)
+- **Post-merge run'lar:** squash `539d9cd` (#406) — CI 42169337584 success, Publish 42169337501 success (kimlikler F2 gate'te düzeltildi) (T212 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar
 

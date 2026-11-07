@@ -45,7 +45,7 @@ internal static partial class FieldRuleSourceScan
     [GeneratedRegex(@"\b(TextTooLong|InvalidQuantity)(Attribute)?\s*\(\s*(\w+\s*:\s*)?\d|\bInvalidAmount(Attribute)?\s*\([^)\]]*Max\s*=\s*\d")]
     private static partial Regex NumberOnLimit();
 
-    // The framework's own output: data-val attributes, the switch turned on, the validation scripts.
-    [GeneratedRegex(@"data-val|ClientValidationEnabled\s*=\s*true|jquery[.-]validat|jquery[.-]unobtrusive", RegexOptions.IgnoreCase)]
+    // The framework's own output: data-val attributes (not data-value or data-validity), the switch turned on, the validation scripts.
+    [GeneratedRegex(@"data-val(?![a-z0-9_])|ClientValidationEnabled\s*=\s*true|jquery[.-]validat|jquery[.-]unobtrusive", RegexOptions.IgnoreCase)]
     private static partial Regex ClientValidation();
 }

@@ -104,7 +104,7 @@
 | T202 | Dış servislerin bağlantı katmanı: ortak yüz, hata sınıfı, zaman aşımı, sahteler | ✓ | ✓ PASS (tur 1) | `a5cd5b1` | #396 |
 | T203 | İmzalı makine ucu altyapısı: imza denetimi, gövde tavanı | ✓ | ✓ PASS (tur 2; tur 1 ✗ FAIL) | `aee8538` | #397 |
 | T204 | Dış servis çökmesi davranışı ve sahtelerle sınama | ✓ | ✓ PASS (tur 1) | `4628f9c` | #398 |
-| T205 | Açılışta veritabanı fail-fast denetimi | ✓ | ✓ PASS (tur 1) | a36010b | #385 |
+| T205 | Açılışta veritabanı fail-fast denetimi | ✓ | ✓ PASS (tur 1) | `a36010b` | #385 |
 | T206 | Adres yapısı, önekler ve sayfa–form işleyici kalıbı | ✓ | ✓ PASS (tur 1) | `494a34c` | #401 |
 | T207 | Kimlik şemaları ve erişim reddi | ✓ | ✓ PASS (tur 1) | `3226fcd` | #403 |
 | T208 | Sürümün ve gösterilen değerin formda taşınması, koşullu güncelleme | ✓ | ✓ PASS (tur 1) | `aeab023` | #404 |
@@ -124,15 +124,15 @@
 | T222 | Anahtarlar ve tek kullanımlık bağlantılar | ✓ | ✓ PASS (tur 1) | `11fcfb3` | #392 |
 | T223 | Dosya deposu | ✓ | ✓ PASS (tur 2; tur 1 ✗ FAIL) | `5cc7896` | #399 |
 | T224 | Çerez politikası | ✓ | ✓ PASS (tur 2; tur 1 ✗ FAIL) | `bcedad3` | #400 |
-| T225 | Sistem kayıtları | ✓ | ✓ PASS (tur 3) | b8c180f | #389 |
-| T226 | Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi | ✓ | ✓ PASS (tur 1) | b8f20ad | #383 |
-| T227 | Zaman ve para | ✓ | ✓ PASS (tur 1) | 15daf95 | #382 |
+| T225 | Sistem kayıtları | ✓ | ✓ PASS (tur 3) | `b8c180f` | #389 |
+| T226 | Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi | ✓ | ✓ PASS (tur 1) | `b8f20ad` | #383 |
+| T227 | Zaman ve para | ✓ | ✓ PASS (tur 1) | `15daf95` | #382 |
 | T228 | Eşzamanlılık denetimi | ✓ | ✓ PASS (tur 1) | `36b586f` | #391 |
-| T229 | Uygulama belleğinde önbellek | ✓ | ✓ PASS (tur 1) | — | #414 |
-| T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ✓ | ✓ PASS (tur 2) | a2da89f | #386 |
-| T231 | Maskelemenin üç katmanının testleri | ✓ | ✓ PASS (tur 1) | dac48c8 | #387 |
-| T232 | Veri koruma halkası | ✓ | ✓ PASS (tur 2) | daace97 | #388 |
-| T233 | Veritabanı oturum süreleri | ✓ | ✓ PASS (tur 2) | 810fe27 | #384 |
+| T229 | Uygulama belleğinde önbellek | ✓ | ✓ PASS (tur 1) | `f4da03c` | #414 |
+| T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ✓ | ✓ PASS (tur 2) | `a2da89f` | #386 |
+| T231 | Maskelemenin üç katmanının testleri | ✓ | ✓ PASS (tur 1) | `dac48c8` | #387 |
+| T232 | Veri koruma halkası | ✓ | ✓ PASS (tur 2) | `daace97` | #388 |
+| T233 | Veritabanı oturum süreleri | ✓ | ✓ PASS (tur 2) | `810fe27` | #384 |
 
 ---
 

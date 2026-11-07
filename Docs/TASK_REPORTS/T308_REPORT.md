@@ -56,6 +56,13 @@
 
 Sık FAIL nedenleri taraması: (1) bekçi/tarama istisnası eklenmedi; (2) kaynak taraması bu task'ta yeni kural eklemedi, mevcut `EmailRenderingSourceScan` ad alanını kapsar; (3) DB default'u ya da FK/dizin değişikliği yok (şema değişmedi); (4) sayı anan başka yer yok (README/başlık sayacı değişmedi, `CONTEXT.md` satırı eklendi); (5) belge kuralı (05/07/11) değişmedi, karar kaydı gerekmedi.
 
+## Düzeltme 1 (CI Lint kırmızı)
+
+- **Neden:** Lint adımı `CompanyNoticeTemplateTests.cs(1,1): IMPORTS` verdi (`using` sırası: `Security` / `SearchEngine`). Düzeltildi; `dotnet format --verify-no-changes` temiz.
+- `origin/main` (T310 #423) birleştirildi (rebase değil); çakışma yalnız `MEMORY.md` (iki satır da kalır) ve `IMPLEMENTATION_STATUS.md` (yalnız en yeni "Son güncelleme"; T310 girişi `STATUS_CHANGELOG.md`'ye taşındı) içindeydi. `STATUS_CHANGELOG.md`'deki yinelenen T330 girişi teke indirildi. Backlog main ile aynı.
+- Yerelde: restore `--locked-mode`, format temiz, derleme `-warnaserror` 0 uyarı, Consistency 209, tam Unit 3317, Integration `CompanyNoticeQueueTests` 11 geçti.
+- Öz denetim yeniden yapıldı: 10 kriter ve KK1–KK10 ile `09 §25` satırlarının kanıt testleri Unit/Integration dosyalarında mevcut (ad eşleşmesi grep ile), sık FAIL nedenleri (bekçi istisnası, tarama biçimi, DB default/FK, sayı tutarlılığı, karar kaydı) bu task'a dokunmuyor.
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |

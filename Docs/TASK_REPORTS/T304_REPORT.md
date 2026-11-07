@@ -1,6 +1,6 @@
 # T304 — Alıcı başına bildirim gönderim sınırı
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-07
 
 ---
 
@@ -67,10 +67,40 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — (doğrulama ayrı) |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-07, head `a8f38c1`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-172) |
+
+### Doğrulama tur 1 — ✓ PASS
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` ana deponun `scripts/git-hooks`'u; main son üç tamamlanmış run 42346300012, 42346300006, 42344353073 `success`; hafızada T304 satırı var (satır 22).
+
+**Kriterler 1–9 ✓, KK1–KK9 ✓, `09 §25` ✓.** Kanıtlar (doğrulayıcı):
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 / KK1 | ✓ | `RecipientSendLimit.TakesPart` = `B1…B16` (enum sırası `DispatchType.cs`'te B1–B16 ardışık) ve `OrderId` dolu; aday sorgusu `OrderId != null` — `06 §4.58`'in tür tablosunda yalnız B satırları sipariş bağı taşır, F ve hesap e-postası adaya giremez; `FirmAndAccountEmails_AreNotLimited_AndNotCounted` (gerçek PostgreSQL) |
+| Kriter 2 / KK2 | ✓ | Şema değişmedi (dalda göç yok); sayı her soruşta `dispatch_records`'tan okunur; `TheCounter_IsReadFromTheRecord_…` satır silinince cevap değişir |
+| Kriter 3 / KK3 | ✓ | `CountEarlier` iki tarafı `TextNormalizer.NormalizeIdentity` (`06 §2.8.1`'in tek işlevi) ile karşılaştırır; `AddressesThatDifferInCase_AreOneRecipient_EvenOnTwoOrders`, birim testinde boşluk ve Türkçe İ/ı |
+| Kriter 4 / KK4 | ✓ | `IsOver(earlier) => earlier >= 20`; `UuidOrder.IsBefore` (`CreatedAt`, eşitlikte PostgreSQL `uuid` bayt sırası) — satırın kendisi ve sonrakiler sayılmaz; `OfTwentyOneRowsMadeAtTheSameMoment_TheOneWithTheLargestIdIsOver_WhateverTheOrderOfAsking`, `TheIdOrder_IsTheDatabasesByteOrder_NotTheGuidStructOrder` |
+| Kriter 5 / KK5 | ✓ | Aday sorgusu hâle bakmaz (`Undelivered` dahil); `ARefusedRow_IsCounted_AndTheCountFallsWhenTheWindowSlides` |
+| Kriter 6 / KK6 | ✓ | `Refuse`: `AttemptCount` 1, `RecipientError`, `Undelivered`, `NextAttemptAt` boş; ayrı işlemde koşullu (`Queued` ve `AttemptCount == 0`); `AFreshRowOverTheLimit_…` sahte servis `Calls` boş, `channel_state_records` JSON'u aynı; karşı örnek `ARowUnderTheLimit_GoesToTheService_AfterTheAsk` |
+| Kriter 7 / KK7 | ✓ | Aynı test: `orders` satırı JSON'u ve başka dağıtım satırı aynı; `DispatchMarks.HasMarkAsync` siparişte true, öteki siparişte false; grup ve en son satır `06 §4.58` "İşaretlerin ve uyarıların okunuşu" ile aynı (`DispatchMarksTests`) |
+| Kriter 8 / KK8 | ✓ | `IsExempt(OriginalDispatchId != null)` — `06 §4.58`'e göre alan yalnız yeniden gönderimde ve düzeltme sonrası B-1'de dolu; sayım hâle ve muafiyete bakmaz; `AResending_IsExempt_…` (Sent olur, sonraki aşar), `TheResendingCounts_…` |
+| Kriter 9 / KK9 | ✓ | `AskAsync` ilk kapısı `Queued` + `AttemptCount == 0` + `LastOutcome` boş, değilse `NotFirstAttempt`; `ARetry_DoesNotAskTheLimitAgain`; `RecipientLimitLog` tek alan `suppressedCount`, adres parametresi yok; `TheSecurityLine_…`, `RecipientLimitLogTests`; olay adı `09 §18.2` m.3 listesinde |
+| `09 §25` | ✓ | zaman `TimeProvider`; dış çağrı yok, yazım `ITransactionRunner` içinde; sabitler tek yerde ve 08/09 ile eşit (`RecipientSendLimitConsistencyTests`); türler `internal`; yeni paket/ayar/göç yok; aynı işi yapan uuid sıralayıcısı yok (grep) |
+| Güvenlik | ✓ | sır yok; kayıt satırı adres taşımaz; yeni giriş yüzeyi ve yetki etkisi yok; yeni bağımlılık yok |
+
+**Testler (doğrulayıcı, yerel):** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` üç projede ayrı ayrı temiz; Consistency 209/209, Unit 2759/2759; betik testleri 4 dosya geçti; Integration yalnız dalın eklediği `RecipientSendLimitTests` 11/11 (PostgreSQL 18, yerel konteyner) — kalan Integration için dal CI 42346270356 `success` (head `a8f38c1`).
+
+**Task satırları (`12 §7.5`):** T304'ün `11 §7.1` kaynakları `08 §2.2.4`, `02 §9.1`, §9.1.2, §9.1.6'dır (KP birimi yok). `08 §2.2.4` kaynaklı satırlar `VAL-E086` (ORTA, mock) ve `VAL-E095` (ORTA, mock): ikisi de yukarıdaki tümleşik testlerle (sahte e-posta altyapısı) karşılandı → `BEKLEMEDE` → `PASS`. `VAL-E095`'in panelden yeniden gönderim ve e-posta düzeltmesi akışları sahip task'larındadır; sınırın davranışı `OriginalDispatchId` dolu satırla doğrulandı (`08 §2.2.4` muafiyeti yalnız bu alandan okur). `02 §9.1` kaynaklı satırlar (`VAL-A317`, `VAL-A324`…`VAL-A336`) KP-66/KP-68 üzerinden gönderen ve yeniden gönderim task'larınındır; T304 onları karşılamaz, `Durum` değişmedi. `12_matris_denetle.py --kapsam 1-77`: Hata 0.
+
+**K1 → D-172:** sayaç her soruşta pencerenin bütün alıcılarının siparişe bağlı satırlarını belleğe okur (alıcının normalleştirilmiş sütunu yok, `06 §4.58`); doğru ama hacimle karesel büyür. Ölçüm hacmi büyük gösterirse `06` değişikliğiyle normalleştirilmiş sütun ve dizin.
+
+**Yapım raporu karşılaştırması:** uyumlu; öz denetim tablosu her kriter ve KK için kanıtlı; doğrulayıcının K1'i raporun ⚠ A1 (d) notuyla aynı gözlemdir (backlog kaydı yoktu, D-172 açıldı). Raporda `12` task satırları bölümü yok (bu doğrulamada yazıldı).
+
+**Merge notu:** PR #421 `main` ile `.claude/memory/MEMORY.md` ve `Docs/DEFERRED_BACKLOG.md`'de (ve bu commit'le `IMPLEMENTATION_STATUS.md`/`STATUS_CHANGELOG.md` başlığında) çakışır — T313 (#417) sonrası kayıt dosyaları; kodda çakışma yok. Merge'den önce yardımcı çözer.
 
 ## Altyapı Değişiklikleri
 
@@ -84,7 +114,7 @@
 - **Branch:** `task/T304-bildirim-siniri`
 - **Commit:** `365a29d` — T304: Alıcı başına bildirim gönderim sınırı
 - **PR:** #421
-- **CI:** *(yardımcı izler)*
+- **CI:** dal CI 42346270356 `success` (head `a8f38c1`)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

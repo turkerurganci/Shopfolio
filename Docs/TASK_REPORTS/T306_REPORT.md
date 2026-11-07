@@ -1,6 +1,6 @@
 # T306 — Müşteri bildirimleri B-1…B-8
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (PR açıldı, doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✗ FAIL (doğrulama tur 1) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -88,10 +88,104 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-07) |
+| Bulgu sayısı | 2 (B1 ORTA S1, B2 DÜŞÜK S1) |
+| Düzeltme gerekli mi | Evet — B1 ve B2 bu PR'da |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-231, K2 → D-232) |
+
+### Doğrulama Sonucu — T306 Müşteri bildirimleri — tur 1
+**Tarih:** 2026-11-07   **Branch:** task/T306-musteri-bildirimleri-1   **Commit:** `deb3a3f` (+ `origin/main` `1112ca6` birleştirmesi, kayıt commit'i)
+
+#### Verdict: ✗ FAIL
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş |
+| Hook kurulumu | ✓ | `git config core.hooksPath` → `C:\projects\Shopfolio\scripts\git-hooks` |
+| Ana dal CI (son 3) | ✓ | 42364842661 success · 42364842660 success · 42362112644 success |
+| Memory drift | ✓ | `grep -nE "\bT306\b" .claude/memory/MEMORY.md` → satır 22 |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Tür `DispatchType` B1…B8; iskelet ortak, hitapta ad yok; B-2/B-3/B-5 yeniden gönderimde güncel bilgi cümlesi | ✓ | `CustomerNoticeValues.For` sekiz tür; `CustomerNoticeTemplates.Make(…, carriesCurrentInfoNote)` yalnız B-2/B-3/B-5'te `true`; `EmailResend.Sentence` iki cümle; testler `TheEightNotices_…`, `EveryNotice_StartsWithMerhaba_WithoutAName_…`, `AResend_…OnlyB2B3B5…`, `ANewEventOfTheSameType_CarriesNeitherSentence` geçti |
+| 2 | Sipariş numarası konuda ve olayın cümlesinde; ana düğme misafir/silinmiş hesapta anahtarlı, üyede hesap adresi | ✓ | `OrderLink`: `IsGuestOrder || IsAccountDeleted` → `EmailLinks.GuestOrder(AccessKey)`, aksi `MemberOrder`; anahtarsız misafir reddedilir; sekiz şablonun olay cümlesinde `{number}`; `ThePageButton_…` üç test, `TheSubjects_AreTheTitlesOfTheSpec` geçti |
+| 3 | B-1 sipariş oluşunca ve misafir e-postası düzeltilince; iki yasal metin donan sürümle, ≥ 12 punto tam metin, ek yok | ~ Kısmi | Gövde ✓ (`Received`: düğmeden sonra iki `EmailLegalText`, sırayla; `EmailFrame.razor` `font-size:12pt` = gövde 16px, `-webkit-text-size-adjust:100%`; ek yok). **Düzeltme tetiği ✗:** `OrderReceivedNotice(OrderId, OriginalDispatchId)` → `CustomerNoticeRow(B1, OriginalDispatchId, null)` — satır ilk e-postanın oluşma anını olay değerlerine yazmaz; `06 §4.58` `EventValues` "düzeltme sonrası B-1'de ilk e-postanın değerleri ve oluşma anı", `08 §2.2.5` m.6 "ilk yeniden gönderim bu anı olayın değerlerine yazar … ilk satır kendi süresiyle önce silinebilir", `08 §2.2.6` B-1 "yeniden gönderim cümlesini o satırın tarihiyle taşır". `CustomerNoticeValues.Read(B1, …)` anı döndüremez; `OrderNoticeContext.ResendOf`'un kaynağı yalnız silinebilir ilk satır kalır. Test `TheB1AfterACorrection_IsANewRowToTheNewAddress_CarryingTheFirstRowsId` yalnız kimliği sınar → Bulgu B1 |
+| 4 | B-2 donan IBAN, sipariş numarası, son ödeme günü | ✓ | `IbanBlock`: `order.BankTransferIban` (siparişin donan değeri) `DisplayFormat.Iban` ile; açıklama satırında numara; `LastPaymentDay(windowEnd−1 tick)`; `B2_…` üç test geçti |
+| 5 | B-3 süre başına bir kez; son iş günü başı; kesinti dönüşü T324'te | ✓ | `CustomerNoticeQueue.ReminderIsDueAsync`: aynı sipariş ve aynı pencere sonunda ikinci satır yok, yeniden başlayan pencereye yeni satır, dolmuş pencereye satır yok; zamanlama T324 m.7'nin (`11` satır 2304); tümleşik `B3_IsWrittenOnceForAWindow_…`, `…Restarted_…`, `…HasRunOut_…`, `…OfAnotherOrder_…` geçti |
+| 6 | B-4 kart onayı ve "ödendi"; dijital kalemde indirme cümlesi sipariş sayfasına | ✓ | `Confirmed`: `HasDigitalItem` → cümle, indirme adresi yok, düğme sipariş sayfası; `B4_WithADigitalItem_…` geçti |
+| 7 | B-5 kargo bloğu şirket türüne göre; takip bağlantısı yalnız listedeki şirkette, `noreferrer` | ✓ | `Shipped` + `CarrierCatalog.Describe`: listede ad/numara/bağlantı, "Diğer" ve listeden çıkmışta bağlantısız, kendi araçta yalnız beyan; `EmailButton(isExternal: true)` → `rel="noreferrer"`; `B5_…` altı test geçti (biçim sapması ayrıca Bulgu B2) |
+| 8 | B-6 ve üç B-7 söyleyişinde firma e-postası ve telefonu | ✓ | `FirmContact` B-6 ve B-7'nin her dalında; eksikse ret; `B6_…`, `B7_By…` testleri geçti |
+| 9 | B-7 üç söyleyiş, sistem sebebi, kalem iptali ayrı konu, kalem ve adet yalnız onda, yönetici sebebi aynen + on dört gün | ✓ | `Cancelled`: Buyer/Admin/System dalları; `AdministratorReasonText`/`SystemReasonText` `08`'in listesiyle birebir; Closure reddedilir; on dört gün cümlesi yalnız yönetici dalında; kalem konusu `"Siparişinizdeki bir kalem iptal edildi"`; `B7_…` testleri geçti |
+| 10 | B-8 neden, tutar, yöntem; IBAN yok; geç ödemede ayrı cümle | ✓ | `Refunded`: `RefundReason` listesi `08` ile birebir, `DisplayFormat.Amount`, kart/havale cümlesi, IBAN yazılmaz, `LatePayment` ayrı cümle + tutar satırı; `B8_…` üç test geçti |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+T306'nın KP birimi KP-66 (`11 §7.1`). `VAL-A317`–`A320` ve `A324` B-1…B-8'i anar, `A321`–`A323` B-9…B-16'yı (T307), `A325` bildirim ayarının yokluğunu. Hepsi bildirimin **gerçekten gönderilmesini** (sahte e-posta altyapısı, olayın tetiği) ister; T306 gönderen ve tetik çağrısı yazmaz (D-97, D-166, D-232) — T305'teki gibi hiçbiri T306'nın kriterine eşlenmez, `Durum` değişmedi.
+
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı |
+|---|---|---|---|---|---|
+| VAL-A317 | KRİTİK | mock | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-A318 | ORTA | mock | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-A319 | ORTA | mock | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-A320 | ORTA | mock | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-A324 | ORTA | mock | BEKLEMEDE | BEKLEMEDE | — |
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1 sekiz tür kapalı listede; hitapta ad yok; B-2, B-3, B-5 yeniden gönderiminde ikinci cümle
+- [x] KK2 misafir ve silinmiş hesapta anahtarlı, üyede hesap adresi
+- [x] KK3 yasal metinler tam, en az 12 punto, ek yok
+- [x] KK4 B-2 donan IBAN'ı yazar
+- [x] KK5 B-3 süre başına bir
+- [x] KK6 dijital kalemde indirme cümlesi
+- [x] KK7 üç kargo biçimi ayrı
+- [x] KK8 B-6 ve üç B-7 söyleyişinde telefon, e-posta
+- [x] KK9 kalem iptalinde ayrı konu, kalem ve adet; sistem ve yönetici sebebi, on dört gün cümlesi
+- [x] KK10 B-8'de neden, tutar, yöntem, geç ödeme cümlesi; IBAN yok
+- [ ] `09 §25` — "Kod hiçbir doküman cümlesiyle çelişmiyor mu?" hayır: B1 (`06 §4.58`, `08 §2.2.5` m.6), B2 (`08 §2.2.5` m.2). Öteki satırlar ✓: modül sınırı (Architecture 809 yeşil), `TimeProvider`, tarih/tutar `DisplayFormat`, şema/paket/ayar yok, kaçış Razor'da (`MarkupString` yok)
+- [x] Güvenlik taraması (e-posta gövdesinde kaçış, bağlantı, kişisel veri) — aşağıda
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Derleme | ✓ | `dotnet build Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` (Web, Unit, Integration) | üçü çıkış 0 |
+| Unit — Notifications | ✓ | `--filter-namespace Shopfolio.UnitTests.Notifications` | 142/142 |
+| Unit — Architecture | ✓ | `--filter-namespace Shopfolio.UnitTests.Architecture` | 809/809 |
+| Unit — Consistency | ✓ | `--filter-namespace Shopfolio.UnitTests.Consistency` | 209/209 |
+| Unit — kalan | ✓ | `--filter-not-namespace` (üçü) | 2258/2258 (toplam 3418) |
+| Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration | ✓ | `--filter-class "*CustomerNoticeQueueTests"` (Postgres 18, `shopfolio-t306-val-pg`, 127.0.0.1:55610) | 11/11 |
+| Integration komşu | ✓ | `JobQueueRegistrationTests`, `StatusEndpointTests`, `RevertLinkDigestRewriteStartupTests` · `RecipientSendLimitTests`, `DispatchAndChannelStateTablesTests`, `EmailOutageTests` | 46/46 · 46/46 |
+| Dal CI | ✓ | `gh run list --branch task/T306-musteri-bildirimleri-1` | 42365665924 success (head `deb3a3f`) |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz
+- Auth etkisi: Temiz (uç yok; `INotificationsModule` yalnız çağıranın işleminde yazar, işlem yoksa istisna)
+- Input validation: Temiz — gövde değerleri (`ReasonNote`, ürün adı, takip numarası, kargo adı) Razor ile kodlanır; takip numarası adrese `Uri.EscapeDataString` ile girer (`CarrierCatalog.BuildLink`); `EmailButton` yalnız mutlak `https` kabul eder; olay değerlerinde ad, adres, IBAN, sipariş numarası yok (`TheEventsValues_HoldOnlyWhatTheEventHolds_…`); B-8 IBAN yazmaz
+- Yeni bağımlılık: Yok
+
+#### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| B1 | kriter 3 (satıra bağlı değil) | ORTA | S1 | Beklenen: düzeltme sonrası B-1 satırı olay değerlerine ilk e-postanın oluşma anını yazar; yeniden gönderim cümlesi bu değerden üretilir (`06 §4.58` `EventValues`; `08 §2.2.5` m.6; `08 §2.2.6` B-1 düzeltme tetiği). Gerçekleşen: `EventValues = null`; okuyucu anı döndüremez; ilk satır silinince cümlenin tarihi kaybolur. Düzeltme önerisi: kuyruk düzeltmede ilk satırın `CreatedAt`'ini okuyup (aynı sipariş ve `B1` olduğunu denetleyerek) değer olarak yazar ya da olay kaydı anı taşır; `Read` anı döndürür; tümleşik ve birim test | T385 panelden yeniden gönderimi (aynı değeri kopyalar) | bu PR'da düzeltilir | `CustomerNoticeValues.cs`, `CustomerNoticeQueue.cs`, `Contracts/CustomerNotices.cs`, testler |
+| B2 | — (doküman uyumu) | DÜŞÜK | S1 | Beklenen: marka rengi yalnız ana düğmenin zemininde; bağlantılar ürünün sabit renginde (`08 §2.2.5` m.2; B-5 "Takip et" bir bağlantıdır, m.4 ana eylem düğmedir). Gerçekleşen: "Takip et" `EmailButton` ile marka renkli ikinci dolu düğme olarak, ana düğmeden önce çizilir (yapım raporu ⚠ notunda kabul etmiş, çözmemiş). Öneri: dış bağlantı için sabit renkli bağlantı bloğu (ya da `EmailButton`'a ikincil görünüm), `noreferrer` ve düz metindeki tam adres korunur | — | bu PR'da düzeltilir | `CustomerNoticeTemplates.cs` (`Shipped`), `EmailContent.cs`/`EmailFrame.razor` |
+
+#### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | `08 §2.2.6` B-2, B-3 ve B-8 geç ödeme örnek cümleleri numarasız; kod madde 2'yi izleyip numarayı ekledi — belge geri beslemesi | DEFERRED_BACKLOG'a forward: D-231 |
+| K2 | `OrderNoticeContext`'i siparişten kuran gönderen yok (B-1 metinleri `PlaceholderFiller` ile onay anı değerleri, `ResendOf`, firma iletişimi) | DEFERRED_BACKLOG'a forward: D-232 |
+
+#### Yapım Raporu Karşılaştırması
+- Uyum: 2 uyuşmazlık
+- Kriter 3: yapım ✓ diyor; düzeltme sonrası B-1'in olay değerlerine ilk e-postanın anını yazmadığı (B1) raporda yok.
+- B-5 "Takip et" ikinci düğme: yapım ⚠ notunda yazmış, `08 §2.2.5` m.2 ile çelişkisini değerlendirmemiş (B2).
+- Öz denetim tablosu var, her madde kanıtlı (kriter 1–10, KK1–KK10, `09 §25`). "Known Limitations"ta `PlaceholderFiller` çağrısının gönderene kaldığı backlog kimliksiz yazılmış → K2/D-232.
+- Test sayıları uyumlu (Unit 3418, Integration 11).
+
+#### Merge ve Post-merge
+- FAIL — merge yok. Kayıt commit'i dalda (rapor, status, changelog, memory, backlog D-231/D-232); `12` `Durum` değişmedi.
 
 ## Altyapı Değişiklikleri
 

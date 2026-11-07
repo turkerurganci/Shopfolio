@@ -334,6 +334,8 @@ public sealed class StatusEndpointTests
         public double Fraction { get; set; } = 0.40;
 
         public double UsedFraction() => Fraction;
+
+        public DiskCapacity Capacity() => new(1_000_000, (long)((1.0 - Fraction) * 1_000_000));
     }
 
     private sealed class FakeLogShipping : ILogShippingReader

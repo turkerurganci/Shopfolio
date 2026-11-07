@@ -112,6 +112,38 @@ public sealed class ForgeryProtectionSourceScanTests
         Assert.Empty(ForgeryProtectionSourceScan.Scan("src/Shopfolio.Web/Infrastructure/SignedEndpoints/SignedEndpointRegistration.cs", line));
     }
 
+    // D-131: the two POSTs of the chunked upload, in the one file, with the path from the header-token list, the panel's session and the header check.
+    [Theory]
+    [InlineData("endpoints.MapPost(AntiforgeryExemptions.UploadStartPath, StartAsync).WithMetadata(M).RequireAdminSession().RequireHeaderForgeryToken();")]
+    [InlineData("endpoints.MapPost(AntiforgeryExemptions.UploadChunkPath, ChunkAsync)\n    .WithMetadata(M, new RequestBodyClassAttribute(C.Chunk))\n    .RequireAdminSession()\n    .RequireHeaderForgeryToken();")]
+    public void Scan_OfTheUploadPostsInTheUploadFileWithTheHeaderCheck_IsQuiet_AndTheSameShapeInAnyOtherFileIsAFinding(string statement)
+    {
+        Assert.Empty(ForgeryProtectionSourceScan.Scan(ForgeryProtectionSourceScan.UploadEndpointsFile, statement));
+        Assert.Contains(ForgeryProtectionSourceScan.Scan(Code, statement), f => f.Rule == ForgeryProtectionSourceScan.OtherWritingEndpoint);
+        Assert.Contains(
+            ForgeryProtectionSourceScan.Scan("src/Shopfolio.Web/Endpoints/Files/DownloadEndpoint.cs", statement),
+            f => f.Rule == ForgeryProtectionSourceScan.OtherWritingEndpoint);
+        Assert.Contains(
+            ForgeryProtectionSourceScan.Scan("other/src/Shopfolio.Web/Endpoints/Files/UploadEndpoints.cs", statement),
+            f => f.Rule == ForgeryProtectionSourceScan.OtherWritingEndpoint);
+    }
+
+    // In the upload file itself the relaxation is narrow: a literal path, a path of another list, a missing session or header check, or another writing method is a finding.
+    [Theory]
+    [InlineData("endpoints.MapPost(\"/panel/yukleme\", StartAsync).RequireAdminSession().RequireHeaderForgeryToken();")]
+    [InlineData("endpoints.MapPost(AntiforgeryExemptions.PaymentNotificationPath, StartAsync).RequireAdminSession().RequireHeaderForgeryToken();")]
+    [InlineData("endpoints.MapPost(AntiforgeryExemptions.UploadStartPath + \"/x\", StartAsync).RequireAdminSession().RequireHeaderForgeryToken();")]
+    [InlineData("endpoints.MapPost(AntiforgeryExemptions.UploadStartPath, StartAsync).RequireAdminSession();")]
+    [InlineData("endpoints.MapPost(AntiforgeryExemptions.UploadStartPath, StartAsync).RequireHeaderForgeryToken();")]
+    [InlineData("endpoints.MapPost(AntiforgeryExemptions.UploadStartPath, StartAsync);")]
+    [InlineData("endpoints.MapPut(AntiforgeryExemptions.UploadStartPath, StartAsync).RequireAdminSession().RequireHeaderForgeryToken();")]
+    [InlineData("endpoints.MapMethods(AntiforgeryExemptions.UploadStartPath, [\"POST\"], StartAsync).RequireAdminSession().RequireHeaderForgeryToken();")]
+    [InlineData("endpoints.MapDelete(AntiforgeryExemptions.UploadChunkPath, StartAsync).RequireAdminSession().RequireHeaderForgeryToken();")]
+    public void Scan_OfAnUploadFilePostThatLacksPartOfTheShape_IsAFinding(string statement)
+    {
+        Assert.Contains(ForgeryProtectionSourceScan.Scan(ForgeryProtectionSourceScan.UploadEndpointsFile, statement), f => f.Rule == ForgeryProtectionSourceScan.OtherWritingEndpoint);
+    }
+
     [Theory]
     [InlineData("endpoints.MapGet(\"/x\", h);")]
     [InlineData("var map = MapPostcode(x);")]

@@ -175,9 +175,9 @@ public sealed class SessionAccessTests
         await using WebApplicationFactory<Program> factory = Open(out _, withUploadEndpoint: true);
         using HttpClient client = ClientOf(factory);
 
-        using HttpResponseMessage anonymous = await PostAsync(client, "/panel/yukleme");
-        using HttpResponseMessage customer = await PostAsync(client, "/panel/yukleme", CustomerCookie(customerKey));
-        using HttpResponseMessage admin = await PostAsync(client, "/panel/yukleme", AdminCookie(adminKey));
+        using HttpResponseMessage anonymous = await PostAsync(client, "/panel/yukleme-deneme");
+        using HttpResponseMessage customer = await PostAsync(client, "/panel/yukleme-deneme", CustomerCookie(customerKey));
+        using HttpResponseMessage admin = await PostAsync(client, "/panel/yukleme-deneme", AdminCookie(adminKey));
 
         Assert.Equal(HttpStatusCode.SeeOther, anonymous.StatusCode);
         Assert.Equal(HttpStatusCode.SeeOther, customer.StatusCode);
@@ -668,7 +668,7 @@ internal sealed class UploadEndpointStartupFilter : IStartupFilter
         return app =>
         {
             next(app);
-            app.UseEndpoints(endpoints => endpoints.MapPost("/panel/yukleme", () => Results.Ok()).RequireAdminSession());
+            app.UseEndpoints(endpoints => endpoints.MapPost("/panel/yukleme-deneme", () => Results.Ok()).RequireAdminSession());
         };
     }
 }

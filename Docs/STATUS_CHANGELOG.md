@@ -9,6 +9,18 @@
 
 ---
 
+## 2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) yapım tamamlandı
+
+2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) yapım tamamlandı, PR açıldı, doğrulama bekliyor (Unit 3418, Integration yerelde CustomerNoticeQueueTests 11, format ve derleme `-warnaserror` temiz; öz denetim kriter 1–10, KK1–KK10 ✓; backlog aktif 104).
+
+---
+
+## 2026-11-07 — T312 (Dosya uçları) doğrulama tur 1 PASS
+
+2026-11-07 — T312 (Dosya uçları: imzalı indirme ve parçalı yükleme) doğrulama tur 1 ✓ PASS (head `93e5beb` + `origin/main` birleştirmesi, PR #426; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Consistency 209, Unit 3114, betik testleri; Integration yerelde parçalı — Files 81, Web üç sınıf 97, Concurrency 26 — hepsi geçti; dal CI 42362008048 yeşil; bulgu 0; `12` `Durum` değişmedi (KP-20/KP-44 satırları T511 ve formun kaydını bekler); K1 → D-217 (indirme 404'ünün E-06 sayfası, T504), K2 → D-218 ("kalemi indirilemez"in kapsamı, T511), K3 kod kanıtıyla kapandı; backlog aktif 100).
+
+---
+
 ## 2026-11-07 — T331 (Satış kapısı) doğrulama tur 1 PASS
 
 2026-11-07 — T331 (Satış kapısı) doğrulama tur 1 ✓ PASS (head `461c66b` + `origin/main` birleştirmesi, PR #425; kriter 1–8, KK1–KK8 ve `09 §25` ✓ (4 ve ekran yüzleri modül düzeyinde; ekran/POST bağları D-198, D-199 ile T346/T347/T341/T365/T508/T535'e); Unit 3282 (Architecture+Consistency+InstallationSettings 1185, öteki 2097), betik testleri, Integration yerelde SalesGate 22 + CompanyIdentity/AuditTrail 46, dal CI 42361992653 yeşil; `12` `Durum` değişmedi (KP-25, KP-38, KP-59, KP-60 satırları uç yanıtı/tarayıcı kanıtı ister, `BEKLEMEDE`); doğrulamada `origin/main` birleştirildi, backlog aktif 104; K-notu yok).

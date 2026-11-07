@@ -61,13 +61,14 @@ public sealed class SalesModelTests : IAsyncLifetime
         string[] forbidden =
         [
             "quote", "offer_request", "price_on_request", "ask_price", "appointment", "booking",
-            "review", "rating", "star", "recommend", "related_product", "also_bought", "similar_product",
+            "review", "rating", "_star_", "recommend", "related_product", "also_bought", "similar_product",
         ];
-        Assert.Empty(names.Concat(tables).Where(n => forbidden.Any(f => n.Contains(f, StringComparison.Ordinal))));
+        // "_star_" is a whole word ("start_date" is not a star); the others are word stems.
+        Assert.DoesNotContain(names.Concat(tables), n => forbidden.Any(f => ("_" + n.Replace('.', '_') + "_").Contains(f, StringComparison.Ordinal)));
 
         // A minimum quantity of any spelling: "min" followed by a quantity word in one name (the minimum order amount of 02 3.18.3 is a money setting, not a quantity).
-        Assert.Empty(names.Where(n => System.Text.RegularExpressions.Regex.IsMatch(
-            n.Split('.')[1], "^(min|minimum)_.*(quantity|qty|count|units|pieces)", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5))));
+        Assert.DoesNotContain(names, n => System.Text.RegularExpressions.Regex.IsMatch(
+            n.Split('.')[1], "^(min|minimum)_.*(quantity|qty|count|units|pieces)", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
     }
 
     [Fact]
@@ -409,6 +410,7 @@ public sealed class SalesModelTests : IAsyncLifetime
         await using AppDbContext context = NewContext();
         Product loaded = await context.Products.SingleAsync(p => p.Id == product.Id, Ct);
         loaded.ProductType = ProductType.Digital;
+        loaded.BumpVersion();
         await Assert.ThrowsAsync<InvalidOperationException>(() => context.SaveChangesAsync(Ct));
 
         loaded.WithdrawalExemptionReason = null;
@@ -422,8 +424,9 @@ public sealed class SalesModelTests : IAsyncLifetime
         List<string> productColumns = await QueryAsync("SELECT column_name FROM information_schema.columns WHERE table_name = 'products' ORDER BY 1");
 
         Assert.Equal(["withdrawal_exemption_reason"], productColumns.Where(c => c.Contains("exemption", StringComparison.Ordinal)).ToList());
-        Assert.Empty((await QueryAsync("SELECT column_name FROM information_schema.columns WHERE table_name = 'variants' ORDER BY 1"))
-            .Where(c => c.Contains("exemption", StringComparison.Ordinal)));
+        Assert.DoesNotContain(
+            await QueryAsync("SELECT column_name FROM information_schema.columns WHERE table_name = 'variants' ORDER BY 1"),
+            c => c.Contains("exemption", StringComparison.Ordinal));
     }
 
     // ---- KK10: a service is not published without its fulfilment period; zero days is refused ----

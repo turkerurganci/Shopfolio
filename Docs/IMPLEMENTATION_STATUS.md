@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) doğrulama tur 3 ✓ PASS — eskalasyon sonrası tam doğrulama (head `3e9eb28`, PR #427; kriter 1–10 ve KK1–KK10 ✓, bulgu yok; düzeltme 2 ile B-1 düzeltmesinin `OriginalDispatchId`'si zincirin köküne iner; dal CI 42373330980 yeşil; Unit 3572 (Architecture 830), Integration CustomerNoticeQueueTests 14 + komşu 41; `12` `Durum` değişmedi (A317–A320, A324 gönderimi ister, `BEKLEMEDE`); K1 → D-272 (`EventValues` yük biçimi örnek dosyası), backlog aktif 108). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T366 (Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin) doğrulama tur 2 ✓ PASS (head `171fc5d`, PR #428; tam yeniden doğrulama: kriter 1–10, KK1–KK10, `09 §25` ve güvenlik taraması ✓ — tur 1 bulgusu kapandı: aydınlatma kimlik eksikken yayımlanmaz, yer tutucular gösterimde güncel kimlikle HTML kodlu dolar; 4, 5, 6 modül düzeyinde; Unit 3500, betik testleri, Integration yerelde parçalı 121 geçti, dal CI 42371931110 yeşil; `12` `Durum` değişmedi; K1 → D-268 (T356), K2 → D-269 (T507); backlog aktif 115). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -205,7 +205,7 @@
 | T363 | Sayfa adresleri, arama motoru bilgileri, kapalı sayfalar ve paylaşım | ⬚ | — | — | — |
 | T364 | Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler | ⬚ | — | — | — |
 | T365 | İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması | ⬚ | — | — | — |
-| T366 | Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin | ⬚ | — | — | — |
+| T366 | Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin | ✓ | ✓ PASS (tur 2) | — | #428 |
 | T367 | Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon | ⬚ | — | — | — |
 | T368 | Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi | ⬚ | — | — | — |
 | T369 | İşlemin adet birimi ve geri ödeme tutarı: açık adet, kupon payı, KDV, kargo ücretinin iptalde ve caymada ayrılması | ⬚ | — | — | — |

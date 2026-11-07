@@ -320,8 +320,8 @@ public sealed partial class OperationPatternTests
         await using AppDbContext db = NewContext();
         Province province = await db.Provinces.AsNoTracking().FirstOrDefaultAsync(Ct) ?? Province.Create("06", "Ankara", Now);
         bool provinceExists = await db.Provinces.AnyAsync(p => p.Id == province.Id, Ct);
-        LegalTextVersion form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, n, Now, "metin", Now);
-        LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, n, Now, "metin", Now);
+        LegalTextVersion form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, n * 1000, Now, "metin", Now);
+        LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, n * 1000, Now, "metin", Now);
         LegalTextVersion notice = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, n, Now, "metin", Now).WithHosting();
         Order order = Order.Create(
             $"2026-9{n:D5}", $"op-access-placeholder-{n}", $"op-confirm-placeholder-{n}", PaymentMethod.Card, true, "Ali@Example.com", 120m, 0m, Now.AddHours(1), Now);

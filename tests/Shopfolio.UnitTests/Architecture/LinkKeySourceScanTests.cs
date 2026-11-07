@@ -100,7 +100,8 @@ public sealed class LinkKeySourceScanTests
     {
         const string digest = "string Key(byte[] content) => Convert.ToHexStringLower(SHA256.HashData(content));";
 
-        Assert.Equal(["src/Shopfolio.Web/Modules/Catalog/ImageUploads.cs"], LinkKeySourceScan.GeneratorExceptions);
+        Assert.Equal(["src/Shopfolio.Web/Modules/Catalog/ImageUploads.cs", "src/Shopfolio.Web/Modules/Settings/LegalTextTemplates.cs"], LinkKeySourceScan.GeneratorExceptions);
+        Assert.Empty(LinkKeySourceScan.Scan("src/Shopfolio.Web/Modules/Settings/LegalTextTemplates.cs", digest));
         Assert.Empty(LinkKeySourceScan.Scan("src/Shopfolio.Web/Modules/Catalog/ImageUploads.cs", digest));
         Assert.Equal(
             [(LinkKeySourceScan.GeneratorOutsideSecurity, 1)],

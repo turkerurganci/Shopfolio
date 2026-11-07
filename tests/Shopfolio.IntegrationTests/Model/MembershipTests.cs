@@ -694,5 +694,23 @@ public sealed class MembershipTests : IAsyncLifetime
         public Task<SalesSwitchResult> CloseSalesTemporarilyAsync(bool shownIsClosed, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<SalesSwitchResult> ReopenSalesAsync(bool shownIsClosed, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<LegalTextSummary>> GetLegalTextsAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<LegalTextDraft> GetLegalTextDraftAsync(LegalTextType type, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<SettingsSaveResult> SaveLegalTextDraftAsync(LegalTextType type, string text, string? hostingLocation, int formVersion, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<LegalTextPublishResult> PublishLegalTextAsync(LegalTextType type, int formVersion, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<LegalTextVersionIds> GetCurrentLegalTextVersionsAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<bool> AreShownLegalTextVersionsCurrentAsync(Guid shownPreInformationFormId, Guid shownDistanceSalesContractId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<LegalTextVersionInfo?> GetLegalTextVersionAsync(Guid versionId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<LegalTextVersionInfo?> GetLatestLegalTextVersionAsync(LegalTextType type, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task SynchronizeGeneratedLegalTextsAsync(CancellationToken ct) => throw new NotSupportedException();
     }
 }

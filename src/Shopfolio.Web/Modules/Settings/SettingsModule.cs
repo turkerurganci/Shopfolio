@@ -13,13 +13,23 @@ internal sealed class SettingsModule : ISettingsModule
 
     private readonly SalesGates _gates;
     private readonly SalesSwitches _switches;
+    private readonly LegalTexts _legalTexts;
+    private readonly LegalTextGenerator _generator;
 
-    public SettingsModule(CompanyIdentities identities, CompanySettingsWriter writer, SalesGates gates, SalesSwitches switches)
+    public SettingsModule(
+        CompanyIdentities identities,
+        CompanySettingsWriter writer,
+        SalesGates gates,
+        SalesSwitches switches,
+        LegalTexts legalTexts,
+        LegalTextGenerator generator)
     {
         _identities = identities;
         _writer = writer;
         _gates = gates;
         _switches = switches;
+        _legalTexts = legalTexts;
+        _generator = generator;
     }
 
     public Task<SalesGate> GetSalesGateAsync(CancellationToken ct) => _gates.GetAsync(ct);
@@ -34,13 +44,51 @@ internal sealed class SettingsModule : ISettingsModule
 
     public Task<LegalIdentity> GetLegalIdentityAsync(CancellationToken ct) => _identities.GetLegalAsync(ct);
 
-    public Task<SettingsSaveResult> SaveCompanyIdentityAsync(CompanyIdentityInput input, int formVersion, CancellationToken ct) =>
-        _identities.SaveAsync(input, formVersion, ct);
+    public async Task<SettingsSaveResult> SaveCompanyIdentityAsync(CompanyIdentityInput input, int formVersion, CancellationToken ct)
+    {
+        SettingsSaveResult result = await _identities.SaveAsync(input, formVersion, ct);
+        if (result.IsSaved)
+        {
+            // The identity feeds the two generated texts (02 3.33.3): the new versions are made under the row lock this save still holds (09 11.4 item 6; K-1088).
+            await _generator.RegenerateAsync(ct);
+        }
+
+        return result;
+    }
 
     public Task<ReturnAddressSection> GetReturnAddressAsync(CancellationToken ct) => _writer.ReadReturnAddressAsync(ct);
 
-    public Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct) =>
-        _writer.SaveReturnAddressAsync(input, formVersion, ct);
+    public async Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct)
+    {
+        SettingsSaveResult result = await _writer.SaveReturnAddressAsync(input, formVersion, ct);
+        if (result.IsSaved)
+        {
+            // The return address is written into both generated texts (02 7.4.4): same order as the identity's.
+            await _generator.RegenerateAsync(ct);
+        }
+
+        return result;
+    }
+
+    public Task<IReadOnlyList<LegalTextSummary>> GetLegalTextsAsync(CancellationToken ct) => _legalTexts.GetSummariesAsync(ct);
+
+    public Task<LegalTextDraft> GetLegalTextDraftAsync(LegalTextType type, CancellationToken ct) => _legalTexts.GetDraftAsync(type, ct);
+
+    public Task<SettingsSaveResult> SaveLegalTextDraftAsync(LegalTextType type, string text, string? hostingLocation, int formVersion, CancellationToken ct) =>
+        _legalTexts.SaveDraftAsync(type, text, hostingLocation, formVersion, ct);
+
+    public Task<LegalTextPublishResult> PublishLegalTextAsync(LegalTextType type, int formVersion, CancellationToken ct) => _legalTexts.PublishAsync(type, formVersion, ct);
+
+    public Task<LegalTextVersionIds> GetCurrentLegalTextVersionsAsync(CancellationToken ct) => _legalTexts.GetCurrentVersionIdsAsync(ct);
+
+    public Task<bool> AreShownLegalTextVersionsCurrentAsync(Guid shownPreInformationFormId, Guid shownDistanceSalesContractId, CancellationToken ct) =>
+        _legalTexts.AreShownCurrentAsync(shownPreInformationFormId, shownDistanceSalesContractId, ct);
+
+    public Task<LegalTextVersionInfo?> GetLegalTextVersionAsync(Guid versionId, CancellationToken ct) => _legalTexts.GetVersionAsync(versionId, ct);
+
+    public Task<LegalTextVersionInfo?> GetLatestLegalTextVersionAsync(LegalTextType type, CancellationToken ct) => _legalTexts.GetLatestVersionAsync(type, ct);
+
+    public async Task SynchronizeGeneratedLegalTextsAsync(CancellationToken ct) => await _generator.RegenerateAsync(ct);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddSettingsModule</c> once.</summary>
@@ -52,14 +100,18 @@ internal static class SettingsModuleRegistration
         services.AddScoped<CompanyIdentities>();
         services.AddScoped<SalesGates>();
         services.AddScoped<SalesSwitches>();
+        services.AddScoped<LegalTexts>();
+        services.AddScoped<LegalTextGenerator>();
 
-        // The three outside conditions of the sales gate are unbound until their tasks register an implementation in place of these (T352, T353, T366): unbound is not met.
+        // The privacy notice condition is bound here (T366) before the defaults below; the payment conditions are unbound until their tasks register an implementation in
+        // place of these (T352, T353): unbound is not met.
+        services.TryAddScoped<IPrivacyNoticeCondition, PrivacyNoticeCondition>();
         services.TryAddScoped<ICardPaymentCondition, UnboundCardPaymentCondition>();
         services.TryAddScoped<IBankTransferCondition, UnboundBankTransferCondition>();
-        services.TryAddScoped<IPrivacyNoticeCondition, UnboundPrivacyNoticeCondition>();
         services.AddScoped<ISettingsModule, SettingsModule>();
         services.AddScoped<ISitemapSource, SitemapSource>();
         services.AddScoped<Shopfolio.Infrastructure.Security.ICookiePolicyPublication, CookiePolicyPublication>();
+        services.AddHostedService<GeneratedLegalTextsStartup>();
         return services;
     }
 }

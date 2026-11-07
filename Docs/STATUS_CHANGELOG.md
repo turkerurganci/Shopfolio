@@ -9,6 +9,10 @@
 
 ---
 
+## 2026-11-07 — T366 (Yasal metinler) doğrulama tur 2 PASS
+
+**Son güncelleme:** 2026-11-07 — T366 (Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin) doğrulama tur 2 ✓ PASS (head `171fc5d`, PR #428; tam yeniden doğrulama: kriter 1–10, KK1–KK10, `09 §25` ve güvenlik taraması ✓ — tur 1 bulgusu kapandı: aydınlatma kimlik eksikken yayımlanmaz, yer tutucular gösterimde güncel kimlikle HTML kodlu dolar; 4, 5, 6 modül düzeyinde; Unit 3500, betik testleri, Integration yerelde parçalı 121 geçti, dal CI 42371931110 yeşil; `12` `Durum` değişmedi; K1 → D-268 (T356), K2 → D-269 (T507); backlog aktif 115). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
 ## 2026-11-07 — T341 (Üyelik) yapım bitti
 
 **Son güncelleme:** 2026-11-07 — T341 (Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı) yapım bitti, PR #433 açık, doğrulama bekliyor (task `⏳ Devam ediyor`; Unit 3477 (Architecture dahil), Integration yerelde MembershipTests 29 + SessionLinkAttemptLoginTables/LinkRecords/Disposal 99 geçti; modül yüzü: kayıt, doğrulama bağlantısı okuma ve doğrulama, yeniden gönderim, şifre ve kapı denetimi, sipariş hesabı çözümü, misafir siparişlerinin bağlanması, hesap adı, giriş kaydı; ekran ve POST bağları D-254, şifre politikası D-251, e-posta gönderimi D-252, gece silmesi D-253, L-1 ve oturum D-255; D-64 ve D-96 kapandı, backlog aktif 106). Önceki kayıt `STATUS_CHANGELOG.md`de.
@@ -28,6 +32,24 @@ T306 (Müşteri bildirimleri B-1…B-8) doğrulama tur 2 ✗ FAIL (head `26e99f2
 ## 2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) doğrulama tur 1 FAIL
 
 2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) doğrulama tur 1 ✗ FAIL (head `deb3a3f` + `origin/main` birleştirmesi, PR #427; kriter 3 ~ Kısmi — düzeltme sonrası B-1 satırı ilk e-postanın oluşma anını olay değerlerine yazmıyor (`06 §4.58` `EventValues`, `08 §2.2.5` m.6) — bulgu B1 ORTA S1; B2 DÜŞÜK S1 — B-5 "Takip et" marka renkli ikinci düğme (`08 §2.2.5` m.2); öteki kriterler ve KK ✓; Consistency 209, Unit 3418, betik testleri, Integration yerelde parçalı (CustomerNoticeQueueTests 11, altı komşu sınıf 92) geçti; dal CI 42365665924 yeşil; `12` `Durum` değişmedi; K1 → D-231, K2 → D-232; backlog aktif 104). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
+---
+
+## 2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) doğrulama tur 3 PASS
+
+2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) doğrulama tur 3 ✓ PASS — eskalasyon sonrası tam doğrulama (head `3e9eb28`, PR #427; kriter 1–10 ve KK1–KK10 ✓, bulgu yok; düzeltme 2 ile B-1 düzeltmesinin `OriginalDispatchId`'si zincirin köküne iner; dal CI 42373330980 yeşil; Unit 3572 (Architecture 830), Integration CustomerNoticeQueueTests 14 + komşu 41; `12` `Durum` değişmedi (A317–A320, A324 gönderimi ister, `BEKLEMEDE`); K1 → D-272 (`EventValues` yük biçimi örnek dosyası), backlog aktif 108).
+
+---
+
+## 2026-11-07 — T366 (Yasal metinler) doğrulama tur 1 FAIL
+
+2026-11-07 — T366 (Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin) doğrulama tur 1 ✗ FAIL (head `24163d5` + `origin/main` birleştirmesi, PR #428; kriter 2 ✗: aydınlatma metni firma kimliği eksikken yayına alınabiliyor, kimlik yer tutucuları boş değerle donuyor ve kimlik sonradan dolunca liste "tamamlandı" der, kapının aydınlatma koşulu açılır, vitrindeki metin veri sorumlusunun unvanı ve KEP'i boş kalır (`06 §4.56`, `04` 9.19.7, 9.19.11, `02 §3.1.5`); öteki kriterler ✓ (4, 5, 6 modül düzeyinde); Consistency 209, Unit 3234, betik testleri, Integration yerelde parçalı 118 geçti, dal CI 42368746924 yeşil; `12` `Durum` değişmedi; K1 → D-240; backlog aktif 108; düzeltme turu gerekli).
+
+---
+
+## 2026-11-07 — T366 (Yasal metinler) yapım bitti
+
+2026-11-07 — T366 (Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin) yapım tamamlandı, doğrulama bekliyor (dal `task/T366-yasal-metinler`, PR #428; kriter 1–10, KK1–KK10 öz denetimde ✓ — 4, 5, 6'nın ekran ve e-posta yüzleri T356/T306/T385/T540/T507'de, D-222; Unit Architecture 846 + öteki 2597, Integration yerelde LegalText 13, SalesGate 22, CompanyIdentity 24, Model 974, Web 492, Files 81, Logging 30 geçti; Lint yerelde temiz; yeni D-219…D-222, D-165 (b) kapandı, D-167 T356'ya ileri, D-198 T366 payı kapandı; backlog aktif 106).
 
 ---
 
@@ -57,7 +79,7 @@ T306 (Müşteri bildirimleri B-1…B-8) doğrulama tur 2 ✗ FAIL (head `26e99f2
 
 ## 2026-11-07 — T312 (Dosya uçları) doğrulama tur 1 PASS
 
-**Son güncelleme:** 2026-11-07 — T312 (Dosya uçları: imzalı indirme ve parçalı yükleme) doğrulama tur 1 ✓ PASS (head `93e5beb` + `origin/main` birleştirmesi, PR #426; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Consistency 209, Unit 3114, betik testleri; Integration yerelde parçalı — Files 81, Web üç sınıf 97, Concurrency 26 — hepsi geçti; dal CI 42362008048 yeşil; bulgu 0; `12` `Durum` değişmedi (KP-20/KP-44 satırları T511 ve formun kaydını bekler); K1 → D-217 (indirme 404'ünün E-06 sayfası, T504), K2 → D-218 ("kalemi indirilemez"in kapsamı, T511), K3 kod kanıtıyla kapandı; backlog aktif 100).
+2026-11-07 — T312 (Dosya uçları: imzalı indirme ve parçalı yükleme) doğrulama tur 1 ✓ PASS (head `93e5beb` + `origin/main` birleştirmesi, PR #426; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Consistency 209, Unit 3114, betik testleri; Integration yerelde parçalı — Files 81, Web üç sınıf 97, Concurrency 26 — hepsi geçti; dal CI 42362008048 yeşil; bulgu 0; `12` `Durum` değişmedi (KP-20/KP-44 satırları T511 ve formun kaydını bekler); K1 → D-217 (indirme 404'ünün E-06 sayfası, T504), K2 → D-218 ("kalemi indirilemez"in kapsamı, T511), K3 kod kanıtıyla kapandı; backlog aktif 100).
 
 ---
 

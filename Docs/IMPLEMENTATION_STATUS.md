@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T341 (Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı) doğrulama tur 1 ✓ PASS (head `391cdc3` + `origin/main` birleştirmesi, PR #433; kriter 1–9, KK1–KK9 ve `09 §25` ✓ (ekran, POST ve sipariş ucu yüzleri modül düzeyinde; bağlar D-254), güvenlik taraması temiz; build `-warnaserror` 0 uyarı, format üç proje temiz, Unit 3534 (Architecture 842, Consistency 213, öteki 2479), betik testleri, Integration yerelde MembershipTests 29, SessionLinkAttemptLoginTables + LinkRecords + AccountEmailQueue 95, AppCache 14; dal CI 42378956325 yeşil; bulgu 0; K-notu 3: K1 D-252 hedefi T309 → T514, K2 D-289 (P-12 iki sabitte), K3 D-290 (`09 §15.1` m.5 metni); `12` `VAL-D018`…`VAL-D020` `BEKLEMEDE` kaldı (sipariş geçmişinin uç yanıtı sonraki task'larda); backlog aktif 113). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T341 (Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı) doğrulama tur 1 ✓ PASS (head `391cdc3` + `origin/main` birleştirmesi, PR #433; kriter 1–9, KK1–KK9 ve `09 §25` ✓ (ekran, POST ve sipariş ucu yüzleri modül düzeyinde; bağlar D-254), güvenlik taraması temiz; build `-warnaserror` 0 uyarı, format üç proje temiz, Unit 3534 (Architecture 842, Consistency 213, öteki 2479), betik testleri, Integration yerelde MembershipTests 29, SessionLinkAttemptLoginTables + LinkRecords + AccountEmailQueue 95, AppCache 14; dal CI 42378956325 yeşil; bulgu 0; K-notu 3: K1 D-252 hedefi T309 → T514, K2 D-289 (P-12 iki sabitte), K3 D-290 (`09 §15.1` m.5 metni); `12` `VAL-D018`…`VAL-D020` `BEKLEMEDE` kaldı (sipariş geçmişinin uç yanıtı sonraki task'larda); backlog aktif 120). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -205,7 +205,7 @@
 | T363 | Sayfa adresleri, arama motoru bilgileri, kapalı sayfalar ve paylaşım | ⬚ | — | — | — |
 | T364 | Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler | ⬚ | — | — | — |
 | T365 | İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması | ⬚ | — | — | — |
-| T366 | Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin | ⬚ | — | — | — |
+| T366 | Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin | ✓ | ✓ PASS (tur 2) | — | #428 |
 | T367 | Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon | ⬚ | — | — | — |
 | T368 | Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi | ⬚ | — | — | — |
 | T369 | İşlemin adet birimi ve geri ödeme tutarı: açık adet, kupon payı, KDV, kargo ücretinin iptalde ve caymada ayrılması | ⬚ | — | — | — |

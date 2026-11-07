@@ -1,6 +1,6 @@
 # T306 — Müşteri bildirimleri B-1…B-8
 
-**Faz:** F3 | **Durum:** ✗ FAIL (doğrulama tur 1) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** düzeltme 1 yapıldı, doğrulama bekliyor (tur 1 ✗ FAIL: B1, B2) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -69,7 +69,7 @@
 
 - B-2, B-3 ve B-8 geç ödeme cümlesine sipariş numarası eklendi (`08 §2.2.6` madde 2 "olayın cümlesinde"); metin birebir değil.
 - B-7 sebep "Sebep: {metin}." paragrafı olarak yazılır (spec yalnız "+ sebep" der).
-- B-5 "Takip et" bağlantısı ikinci bir düğme bloğu (`EmailButton`, dış bağlantı) olarak, ana düğmeden önce gelir.
+- B-5 "Takip et" bağlantısı (`EmailButton`, dış bağlantı) ana düğmeden önce gelir; **düzeltme 1'den beri dolu düğme değil, sabit renkli bağlantıdır** (B2).
 - B-1 yasal metinler `OrderNoticeContext`'te doldurulmuş gelir (`PlaceholderFiller` çağrısı gönderim task'ının işi); B-3'ün "son iş günü başı" zamanlaması T324/T353'te, burada yalnız süre başına bir + dolmuşsa yok.
 - `INotificationsModule`/`NotificationsModule` T308 (PR #424) ile aynı dosyalara dokunuyor; ikisi merge edilirken küçük çakışma beklenir.
 - Aynı sipariş için eşzamanlı iki B-3: kilidi çağıran tutar (`09 §9.1` m.5); kuyruk yazıcısı kendisi kilit almaz.
@@ -186,6 +186,17 @@ T306'nın KP birimi KP-66 (`11 §7.1`). `VAL-A317`–`A320` ve `A324` B-1…B-8'
 
 #### Merge ve Post-merge
 - FAIL — merge yok. Kayıt commit'i dalda (rapor, status, changelog, memory, backlog D-231/D-232); `12` `Durum` değişmedi.
+
+## Düzeltme 1
+
+`origin/main` (T308 #424) dala birleştirildi: `INotificationsModule` ve `NotificationsModule`'de iki tarafın üyeleri de kaldı (`QueueCustomerNoticeAsync` + `QueueCompanyNoticeAsync` + `QueueAdminNoticeAsync`; kurucu iki kuyruğu birlikte alır).
+
+| Bulgu | Yapılan | Kanıt |
+|---|---|---|
+| B1 (ORTA) olay değerine ilk e-postanın anı yazılmıyordu | `OrderReceivedNotice`'a `FirstEmailSentAt` eklendi (çağıran null bırakır). `CustomerNoticeQueue` düzeltmede ilk satırı okur — aynı sipariş ve `B1` olmak zorunda, değilse `ArgumentException` — ve satırın `CreatedAt`'ini (ilk satır kendisi düzeltme satırıysa onun taşıdığı anı) `EventValues`'a `FirstEmailSentAt` olarak yazar. `CustomerNoticeValues.Read(B1, …)` anı döndürür; şablon B-1'de yeniden gönderim cümlesini bu değerden üretir (yoksa `OrderNoticeContext.ResendOf`). | birim `TheB1AfterACorrection_CarriesTheFirstEmailsMoment_AsItsEventValue_AndTheReaderReturnsIt`, `TheB1AfterACorrection_MakesItsResendSentenceFromItsOwnEventValue_WithoutTheFirstRow`; tümleşik `TheB1AfterACorrection_WritesTheFirstRowsCreationMoment_AsItsEventValue_AndKeepsItAfterTheFirstRowIsDeleted` (ilk satır silinir, an kalır; ikinci düzeltme aynı anı taşır), `TheB1AfterACorrection_NeedsTheFirstRowToBeThisOrdersOwnB1` |
+| B2 (DÜŞÜK) "Takip et" marka renkli ikinci dolu düğme | `EmailFrame.razor`: dış bağlantı (`EmailButton { IsExternal: true }`) artık düğme değil; `EmailColors.LinkText` sabit renkli, altı çizili bağlantı, `rel="noreferrer"` ve altında tam adres; marka rengi yalnız ana düğmenin zemininde. Düz metin aynı. | birim `B5_TheTrackingLink_IsAPlainLinkInTheFixedColour_AndTheBrandColourIsOnlyTheMainButtons` (markalı örnekte marka rengi yalnız tek düğmede, bağlantıda `background` yok); mevcut `B5_…NoReferrer` ve `AnExternalAddress_CarriesNoReferrer_…` yeşil |
+
+**Öz denetim (düzeltme 1):** kriter 1–10, KK1–KK10 ve `09 §25` yeniden kendi diff'imde denetlendi: kriter 3 ve KK3 artık tam ✓ (düzeltme tetiği olay değerini yazar); kriter 7 ve KK7 ✓ (bağlantı yalnız listedeki şirkette, `noreferrer`, düğme değil); öteki maddeler değişmedi, ilgili testler yeşil. Sık FAIL nedenleri: (1) yeni tarama/istisna yok; (2) yeni tarama yok, `EmailRenderingSourceScan` Razor değişikliğini görür ve yeşil (`MarkupString` yok); (3) şema değişikliği yok; (4) sayı anan başka yer yok (backlog aktif 105 = `⚪`+`🟡` satırları, `origin/main` 103 + D-231/D-232); (5) olay değeri artık `EventValues`'ta.
 
 ## Altyapı Değişiklikleri
 

@@ -109,6 +109,49 @@ public sealed class CustomerNoticeQueueTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task TheB1AfterACorrection_WritesTheFirstRowsCreationMoment_AsItsEventValue_AndKeepsItAfterTheFirstRowIsDeleted()
+    {
+        Guid orderId = await SeedOrderAsync();
+        await RunAsync(queue => queue.QueueAsync(new OrderReceivedNotice(orderId), "eski@example.com", Ct));
+        Guid first = (await ReadAllAsync()).Single().Id;
+        _time.SetUtcNow(Now.AddDays(3));
+
+        await RunAsync(queue => queue.QueueAsync(new OrderReceivedNotice(orderId, first), "yeni@example.com", Ct));
+
+        DispatchRecord correction = (await ReadAllAsync()).Single(r => r.Id != first);
+        Assert.Equal(Now.AddDays(3), correction.CreatedAt);
+        Assert.Equal(Now, CustomerNoticeValues.ReadFirstEmailSentAt(correction.EventValues));
+
+        // The first row goes by its own period: the re-send sentence of the correction's row still has its date.
+        await ExecuteAsync($"DELETE FROM dispatch_records WHERE id = '{first}'");
+        DispatchRecord remaining = Assert.Single(await ReadAllAsync());
+        OrderReceivedNotice read = Assert.IsType<OrderReceivedNotice>(CustomerNoticeValues.Read(remaining.DispatchType, remaining.OrderId!.Value, remaining.EventValues));
+        Assert.Equal(Now, read.FirstEmailSentAt);
+
+        // A second correction (a re-send of the correction's row) carries the same first moment on, not the correction's own.
+        await RunAsync(queue => queue.QueueAsync(new OrderReceivedNotice(orderId, remaining.Id), "yeni2@example.com", Ct));
+        DispatchRecord third = (await ReadAllAsync()).Single(r => r.Id != remaining.Id);
+        Assert.Equal(Now, CustomerNoticeValues.ReadFirstEmailSentAt(third.EventValues));
+    }
+
+    [Fact]
+    public async Task TheB1AfterACorrection_NeedsTheFirstRowToBeThisOrdersOwnB1()
+    {
+        Guid orderId = await SeedOrderAsync();
+        Guid other = await SeedOrderAsync();
+        await RunAsync(queue => queue.QueueAsync(new OrderReceivedNotice(other), "baska@example.com", Ct));
+        await RunAsync(queue => queue.QueueAsync(new PaymentConfirmedNotice(orderId), "eski@example.com", Ct));
+        List<DispatchRecord> rows = await ReadAllAsync();
+        Guid otherOrdersB1 = rows.Single(r => r.OrderId == other).Id;
+        Guid thisOrdersB4 = rows.Single(r => r.OrderId == orderId).Id;
+
+        await Assert.ThrowsAnyAsync<ArgumentException>(() => RunAsync(queue => queue.QueueAsync(new OrderReceivedNotice(orderId, otherOrdersB1), "yeni@example.com", Ct)));
+        await Assert.ThrowsAnyAsync<ArgumentException>(() => RunAsync(queue => queue.QueueAsync(new OrderReceivedNotice(orderId, thisOrdersB4), "yeni@example.com", Ct)));
+        await Assert.ThrowsAnyAsync<ArgumentException>(() => RunAsync(queue => queue.QueueAsync(new OrderReceivedNotice(orderId, Guid.NewGuid()), "yeni@example.com", Ct)));
+        Assert.Equal(2, (await ReadAllAsync()).Count);
+    }
+
+    [Fact]
     public async Task EveryOfTheEightTypes_SatisfiesTheTablesOrderLinkAndRelatedRecordRule()
     {
         Guid orderId = await SeedOrderAsync();

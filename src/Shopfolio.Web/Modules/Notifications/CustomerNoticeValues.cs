@@ -20,6 +20,7 @@ internal sealed record CustomerNoticeRow(DispatchType Type, Guid? OriginalDispat
 /// </summary>
 internal static class CustomerNoticeValues
 {
+    public const string FirstEmailSentAtName = "FirstEmailSentAt";
     public const string WindowEndsAt = "WindowEndsAt";
     public const string Carrier = "Carrier";
     public const string OtherCarrierName = "OtherCarrierName";
@@ -53,7 +54,15 @@ internal static class CustomerNoticeValues
         switch (notice)
         {
             case OrderReceivedNotice received:
-                return new CustomerNoticeRow(DispatchType.B1, received.OriginalDispatchId, null);
+                if (received.FirstEmailSentAt is not null && received.OriginalDispatchId is null)
+                {
+                    throw new ArgumentException("The first e-mail's moment belongs to a B-1 after a correction, which names the first row (06 4.58).", nameof(notice));
+                }
+
+                return new CustomerNoticeRow(
+                    DispatchType.B1,
+                    received.OriginalDispatchId,
+                    received.FirstEmailSentAt is { } firstSentAt ? Write((FirstEmailSentAtName, Moment(firstSentAt))) : null);
             case TransferChosenNotice chosen:
                 return new CustomerNoticeRow(DispatchType.B2, null, Write((WindowEndsAt, Moment(chosen.PaymentWindowEndsAt))));
             case TransferReminderNotice reminder:
@@ -89,7 +98,7 @@ internal static class CustomerNoticeValues
         switch (type)
         {
             case DispatchType.B1:
-                return new OrderReceivedNotice(orderId);
+                return new OrderReceivedNotice(orderId, null, ReadMoment(Get(values, FirstEmailSentAtName)));
             case DispatchType.B4:
                 return new PaymentConfirmedNotice(orderId);
             case DispatchType.B6:
@@ -120,6 +129,9 @@ internal static class CustomerNoticeValues
                 return null;
         }
     }
+
+    /// <summary>The first e-mail's creation moment a B-1 row after a correction holds; null for any other row or a malformed list.</summary>
+    public static DateTimeOffset? ReadFirstEmailSentAt(string? eventValues) => ReadMoment(Get(ReadList(eventValues), FirstEmailSentAtName));
 
     /// <summary>The window end a B-2 or B-3 row holds; null for any other row or a malformed list.</summary>
     public static DateTimeOffset? ReadWindowEnd(string? eventValues) => ReadMoment(Get(ReadList(eventValues), WindowEndsAt));

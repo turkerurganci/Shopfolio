@@ -60,7 +60,7 @@ internal sealed class CustomerNoticeTemplates
         string number = order.OrderNumber;
         return notice switch
         {
-            OrderReceivedNotice => Make(order, "Siparişiniz alındı", false, Received(order, number)),
+            OrderReceivedNotice received => Make(order, "Siparişiniz alındı", false, Received(order, number), received.FirstEmailSentAt),
             TransferChosenNotice chosen => Make(order, "Havale/EFT bilgileriniz", true, TransferChosen(order, number, chosen)),
             TransferReminderNotice reminder => Make(order, "Havale ödemeniz bekleniyor", true, TransferReminder(order, number, reminder)),
             PaymentConfirmedNotice => Make(order, "Ödemeniz onaylandı", false, Confirmed(order, number)),
@@ -93,9 +93,10 @@ internal sealed class CustomerNoticeTemplates
         return _links.MemberOrder(order.OrderNumber);
     }
 
-    private static EmailContent Make(OrderNoticeContext order, string title, bool carriesCurrentInfoNote, List<EmailBlock> blocks)
+    private static EmailContent Make(OrderNoticeContext order, string title, bool carriesCurrentInfoNote, List<EmailBlock> blocks, DateTimeOffset? eventResendOf = null)
     {
-        EmailResend? resend = order.ResendOf is { } at ? new EmailResend(at, carriesCurrentInfoNote) : null;
+        // A B-1 correction's moment comes from the row's own event values (it outlives the first row); the group's first row is the source of the other notices'.
+        EmailResend? resend = (eventResendOf ?? order.ResendOf) is { } at ? new EmailResend(at, carriesCurrentInfoNote) : null;
         return new EmailContent(title, order.OrderNumber, blocks, resend);
     }
 

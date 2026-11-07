@@ -30,7 +30,8 @@ public sealed record EmailKeyValue(string Label, string Value) : EmailBlock
 /// <summary>
 /// The main action (08 2.2.5 item 4): a button in the HTML, and under it the same address as plain text; in the plain text part the label and the address.
 /// The address is a full <c>https</c> address (built by <see cref="EmailLinks"/>, whose root is the installation's domain setting, never the request's
-/// <c>Host</c>). <see cref="IsExternal"/> marks another site's address (a carrier's tracking page, 08 2.4), which carries <c>rel="noreferrer"</c>.
+/// <c>Host</c>). <see cref="IsExternal"/> marks another site's address (a carrier's tracking page, 08 2.4): it is a link, not a button (the brand colour is the main button's
+/// background alone - 08 2.2.5 items 2 and 4), drawn in the product's fixed link colour with <c>rel="noreferrer"</c> and the full address under it.
 /// </summary>
 public sealed record EmailButton : EmailBlock
 {

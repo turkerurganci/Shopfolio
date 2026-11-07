@@ -15,8 +15,11 @@ public abstract record CustomerNotice(Guid OrderId);
 /// <summary>
 /// B-1: the order was placed, or the firm corrected a guest order's e-mail address. <paramref name="OriginalDispatchId"/> is the row id of the order's first B-1 on
 /// the correction (06 4.58): the new row is a re-sending of it (08 2.2.6 B-1 "Düzeltme tetiği"); on the placement it is null.
+/// <paramref name="FirstEmailSentAt"/> is the creation moment of that first row: the queue reads it from the first row and writes it into the new row's event values
+/// (06 4.58 <c>EventValues</c>; 08 2.2.5 item 6), so the re-send sentence keeps its date when the first row is deleted by its own period; callers leave it null,
+/// and the reader of a stored row fills it.
 /// </summary>
-public sealed record OrderReceivedNotice(Guid OrderId, Guid? OriginalDispatchId = null) : CustomerNotice(OrderId);
+public sealed record OrderReceivedNotice(Guid OrderId, Guid? OriginalDispatchId = null, DateTimeOffset? FirstEmailSentAt = null) : CustomerNotice(OrderId);
 
 /// <summary>B-2: the bank transfer was chosen. <paramref name="PaymentWindowEndsAt"/> is the order's window end at the event (the last payment day is the day before it ends).</summary>
 public sealed record TransferChosenNotice(Guid OrderId, DateTimeOffset PaymentWindowEndsAt) : CustomerNotice(OrderId);

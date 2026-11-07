@@ -370,6 +370,31 @@ public sealed class CustomerNoticeTemplateTests
     }
 
     [Fact]
+    public async Task B5_TheTrackingLink_IsAPlainLinkInTheFixedColour_AndTheBrandColourIsOnlyTheMainButtons()
+    {
+        const string brandColor = "#E11D48";
+        EmailComposer composer = new(Links(), Site(), _services, _services.GetRequiredService<ILoggerFactory>());
+        EmailContent content = Templates().Compose(Guest(), new ShippedNotice(OrderId, "YurticiKargo", null, "YT 123/456", false));
+
+        EmailMessage message = await composer.ComposeAsync(Recipient, new EmailBranding("Örnek Mağaza", null, brandColor), _firm, content, Ct);
+
+        // The brand colour is the background of one button alone (the cell's bgcolor and its style): the order page's.
+        Assert.Equal(2, CountOf(message.HtmlBody.ToUpperInvariant(), brandColor));
+        Assert.Contains($"background-color:{brandColor}", message.HtmlBody, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Siparişi görüntüle</a>", Decoded(message.HtmlBody), StringComparison.Ordinal);
+
+        // The carrier link is a link in the product's fixed colour, no filled button, noreferrer kept, the full address in the plain text and under it.
+        string anchor = message.HtmlBody[(message.HtmlBody.LastIndexOf("<a href=\"https://www.yurticikargo.com", StringComparison.Ordinal))..];
+        anchor = anchor[..anchor.IndexOf("</a>", StringComparison.Ordinal)];
+        Assert.Contains("rel=\"noreferrer\"", anchor, StringComparison.Ordinal);
+        Assert.Contains($"color:{EmailColors.LinkText}", anchor, StringComparison.Ordinal);
+        Assert.DoesNotContain("display:inline-block", anchor, StringComparison.Ordinal);
+        Assert.DoesNotContain("background", anchor, StringComparison.Ordinal);
+        Assert.Equal(1, CountOf(message.HtmlBody, ">https://www.yurticikargo.com/tr/online-servisler/gonderi-sorgula?code=YT%20123%2F456<"));
+        Assert.Contains("Takip et:\nhttps://www.yurticikargo.com/tr/online-servisler/gonderi-sorgula?code=YT%20123%2F456", message.TextBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task B5_OfAnotherCompany_WritesTheNameAndTheNumber_ButNoLink()
     {
         EmailMessage message = await Compose(Guest(), new ShippedNotice(OrderId, null, "Yerel Kurye", "K-77", false));
@@ -642,6 +667,36 @@ public sealed class CustomerNoticeTemplateTests
 
         Assert.Equal(first, CustomerNoticeValues.For(new OrderReceivedNotice(OrderId, first)).OriginalDispatchId);
         Assert.Null(CustomerNoticeValues.For(new OrderReceivedNotice(OrderId)).OriginalDispatchId);
+    }
+
+    [Fact]
+    public void TheB1AfterACorrection_CarriesTheFirstEmailsMoment_AsItsEventValue_AndTheReaderReturnsIt()
+    {
+        Guid first = Guid.Parse("018f0000-0000-7000-8000-0000000000c3");
+
+        CustomerNoticeRow row = CustomerNoticeValues.For(new OrderReceivedNotice(OrderId, first, FirstAt));
+
+        Assert.Equal(first, row.OriginalDispatchId);
+        Assert.NotNull(row.EventValues);
+        Assert.Equal(FirstAt, CustomerNoticeValues.ReadFirstEmailSentAt(row.EventValues));
+        OrderReceivedNotice read = Assert.IsType<OrderReceivedNotice>(CustomerNoticeValues.Read(DispatchType.B1, OrderId, row.EventValues));
+        Assert.Equal(FirstAt, read.FirstEmailSentAt);
+        Assert.Null(CustomerNoticeValues.ReadFirstEmailSentAt(null));
+        Assert.Null(Assert.IsType<OrderReceivedNotice>(CustomerNoticeValues.Read(DispatchType.B1, OrderId, null)).FirstEmailSentAt);
+
+        // A moment without the first row's id is no correction.
+        Assert.Throws<ArgumentException>(() => CustomerNoticeValues.For(new OrderReceivedNotice(OrderId, null, FirstAt)));
+    }
+
+    [Fact]
+    public async Task TheB1AfterACorrection_MakesItsResendSentenceFromItsOwnEventValue_WithoutTheFirstRow()
+    {
+        CustomerNotice stored = CustomerNoticeValues.Read(DispatchType.B1, OrderId, CustomerNoticeValues.For(new OrderReceivedNotice(OrderId, Guid.NewGuid(), FirstAt)).EventValues)!;
+
+        EmailMessage message = await Compose(Guest(), stored);
+
+        Assert.Contains("Bu e-posta 4 Ekim 2026 tarihli bildirimin yeniden gönderilmesidir.", message.TextBody, StringComparison.Ordinal);
+        Assert.DoesNotContain(EmailResend.CurrentInfoSentence, message.TextBody, StringComparison.Ordinal);
     }
 
     [Fact]

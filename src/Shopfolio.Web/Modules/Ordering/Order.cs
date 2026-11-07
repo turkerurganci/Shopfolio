@@ -230,6 +230,19 @@ internal sealed class Order : IVersionedRecord
     public void BumpVersion() => Version++;
 
     /// <summary>
+    /// Writes the carrier data of a shipment (S5) or a re-sending (S8) (02 5.4; 06 4.17): a listed company's code or an unlisted company's name with the
+    /// tracking number, or the own-vehicle declaration alone. The database holds the combination (<c>at_most_one_carrier</c>,
+    /// <c>tracking_number_with_carrier</c>, <c>own_vehicle_without_carrier</c>); the moment is the transition record's, not stored here.
+    /// </summary>
+    internal void RecordShipment(string? carrier, string? otherCarrierName, string? trackingNumber, bool isOwnVehicleDelivery)
+    {
+        Carrier = carrier;
+        OtherCarrierName = otherCarrierName;
+        TrackingNumber = trackingNumber;
+        IsOwnVehicleDelivery = isOwnVehicleDelivery;
+    }
+
+    /// <summary>
     /// Writes the shipment axis of a white-list transition (09 9.1 item 4): the one write of <see cref="OrderStatus"/> besides the correction. Only
     /// <see cref="OrderTransitions"/> calls it, after the lock, the white list and the condition; the version is raised once by the unit for the whole
     /// operation, not here.

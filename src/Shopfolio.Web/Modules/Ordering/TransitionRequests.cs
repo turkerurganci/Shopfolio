@@ -89,6 +89,12 @@ internal enum TransitionRejection
     /// <summary>The transitions together would leave the two axes in a forbidden pair (03 1.4.1).</summary>
     ForbiddenStatePair,
 
+    /// <summary>The operation's irreversible-action confirmation (03 1.6.1) was not given.</summary>
+    ConfirmationRequired,
+
+    /// <summary>A value of the request is not valid (the carrier data, the delivery date, the reason of a cancellation).</summary>
+    InvalidInput,
+
     /// <summary>The correction is asked by something other than an administrator from the panel.</summary>
     CorrectionRequiresPanel,
 
@@ -97,6 +103,12 @@ internal enum TransitionRejection
 
     /// <summary>The corrected record is not this order's, is a correction itself, was corrected already, or its result is no longer the state.</summary>
     CorrectionNotPossible,
+}
+
+/// <summary>The codes an operation names once it has the locked order, or the refusal it ends with before any write (<see cref="OrderTransitions.ApplyChosenAsync"/>).</summary>
+internal sealed record ChosenTransitions(IReadOnlyList<TransitionCode> Codes, TransitionRejection? Refusal = null)
+{
+    public static ChosenTransitions Refuse(TransitionRejection refusal) => new([], refusal);
 }
 
 /// <summary>The result of a transition or correction (09 9.1 item 3): a refusal is a value, not an exception; the runner rolls back on it.</summary>

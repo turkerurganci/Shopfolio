@@ -52,7 +52,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
     /// Applies the white-list transitions of the request. <paramref name="condition"/> is the operation's own condition (gecikme feshi, an open item,
     /// the service window; 05 4.1.2): it is read after the table, against the locked order, and returns false to refuse.
     /// </summary>
-    public async Task<TransitionOutcome> ApplyAsync(
+    public Task<TransitionOutcome> ApplyAsync(
         TransitionRequest request,
         Func<Order, CancellationToken, Task<bool>>? condition,
         CancellationToken ct)
@@ -64,18 +64,46 @@ internal sealed partial class OrderTransitions : IOrderTransitions
             throw new ArgumentException("A request names at least one transition.", nameof(request));
         }
 
+        return ApplyChosenAsync(request.OrderId, request.Actor, request.Reasons, request.ExpectedVersion, _ => new ChosenTransitions(request.Codes), condition, ct);
+    }
+
+    /// <summary>
+    /// The core of <see cref="ApplyAsync"/> for an operation whose transition depends on the state the order is in once it is locked (the cancellation is
+    /// S3 from Placed, S4 from Preparing, S9 from DeliveryFailed): the lock is taken, the order loaded and the screen's version compared first, then
+    /// <paramref name="choose"/> names the codes against the order as it is now. A choice that carries a refusal ends the call before anything is written.
+    /// </summary>
+    internal async Task<TransitionOutcome> ApplyChosenAsync(
+        Guid orderId,
+        TransitionActor actor,
+        TransitionReasons? requestedReasons,
+        int? expectedVersion,
+        Func<Order, ChosenTransitions> choose,
+        Func<Order, CancellationToken, Task<bool>>? condition,
+        CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(actor);
+        ArgumentNullException.ThrowIfNull(choose);
+
         // 1. The lock; the order is loaded after it (an order loaded before the lock may be stale).
-        await _locks.LockAsync([request.OrderId], ct);
-        Order? order = await _db.Orders.SingleOrDefaultAsync(o => o.Id == request.OrderId, ct);
+        await _locks.LockAsync([orderId], ct);
+        Order? order = await _db.Orders.SingleOrDefaultAsync(o => o.Id == orderId, ct);
         if (order is null)
         {
             return TransitionOutcome.Rejected(TransitionRejection.OrderNotFound);
         }
 
-        if (request.ExpectedVersion is { } shown && shown != order.Version)
+        if (expectedVersion is { } shown && shown != order.Version)
         {
             return TransitionOutcome.Rejected(TransitionRejection.VersionConflict);
         }
+
+        ChosenTransitions chosen = choose(order);
+        if (chosen.Refusal is { } chosenRefusal)
+        {
+            return TransitionOutcome.Rejected(chosenRefusal);
+        }
+
+        TransitionRequest request = new(orderId, chosen.Codes, actor, requestedReasons, expectedVersion);
 
         // 2. The white list, the actor and the reasons - all on the order's values; nothing is written yet.
         if (!TryPlan(order, request, out List<(ShipmentTransition? Shipment, PaymentTransition? Payment)> steps, out OrderStatus orderStatus, out PaymentStatus paymentStatus, out TransitionRejection? refusal))

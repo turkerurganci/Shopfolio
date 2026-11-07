@@ -41,15 +41,15 @@ internal sealed partial class OrderTransitions
         if (order.PaymentStatus == PaymentStatus.Pending)
         {
             // Ö1 by the system and, on an order with a physical item, S1 with it (03 1.2 S1; 02 5.6): one lock, one version raise.
-            TransitionCode[] codes = await HasOpenPhysicalItemAsync(order.Id, ct) ? [TransitionCode.O1, TransitionCode.S1] : [TransitionCode.O1];
+            TransitionCode[] codes = (await OpenItemsAsync(order, physicalOnly: true, ct)).Count > 0 ? [TransitionCode.O1, TransitionCode.S1] : [TransitionCode.O1];
             TransitionOutcome approval = await ApplyAsync(new TransitionRequest(order.Id, codes, TransitionActor.System), null, ct);
             if (approval.IsRejected)
             {
-                return Refused(approval);
+                return PaymentRefused(approval);
             }
 
             await _payment.RecordCardPaymentAsync(order.Id, payment.ProviderTransactionId, approval.TransitionRecordIds[0], ct);
-            await QueueCustomerNoticeAsync(order, new PaymentConfirmedNotice(order.Id), ct);
+            await QueueNoticeAsync(order.Id, new PaymentConfirmedNotice(order.Id), ct);
             return new PaymentTransitionResult(codes);
         }
 
@@ -90,23 +90,23 @@ internal sealed partial class OrderTransitions
             new TransitionRequest(order.Id, TransitionCode.O1, TransitionActor.Admin(mark.AdminId, mark.AdminName), expectedVersion: mark.ExpectedVersion), null, ct);
         if (approval.IsRejected)
         {
-            return Refused(approval);
+            return PaymentRefused(approval);
         }
 
         List<TransitionCode> applied = [TransitionCode.O1];
-        if (await HasOpenPhysicalItemAsync(order.Id, ct))
+        if ((await OpenItemsAsync(order, physicalOnly: true, ct)).Count > 0)
         {
             TransitionOutcome preparing = await ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S1, TransitionActor.System), null, ct);
             if (preparing.IsRejected)
             {
-                return Refused(preparing);
+                return PaymentRefused(preparing);
             }
 
             applied.Add(TransitionCode.S1);
         }
 
         await _payment.RecordTransferMarkAsync(order.Id, approval.TransitionRecordIds[0], ct);
-        await QueueCustomerNoticeAsync(order, new PaymentConfirmedNotice(order.Id), ct);
+        await QueueNoticeAsync(order.Id, new PaymentConfirmedNotice(order.Id), ct);
         return new PaymentTransitionResult(applied);
     }
 
@@ -129,12 +129,12 @@ internal sealed partial class OrderTransitions
         TransitionOutcome outcome = await ApplyAsync(new TransitionRequest(cancellation.OrderId, codes, actor, reasons, cancellation.ExpectedVersion), null, ct);
         if (outcome.IsRejected)
         {
-            return Refused(outcome);
+            return PaymentRefused(outcome);
         }
 
         Order order = await _db.Orders.SingleAsync(o => o.Id == cancellation.OrderId, ct);
-        await QueueCustomerNoticeAsync(
-            order,
+        await QueueNoticeAsync(
+            order.Id,
             new CancelledNotice(order.Id, cancellation.Actor, cancellation.FirmReason, cancellation.ReasonNote, cancellation.SystemReason, null),
             ct);
         return new PaymentTransitionResult(codes);
@@ -215,7 +215,7 @@ internal sealed partial class OrderTransitions
                 TransitionOutcome outcome = await ApplyAsync(new TransitionRequest(order.Id, row.Code, actor), null, ct);
                 if (outcome.IsRejected)
                 {
-                    return Refused(outcome);
+                    return PaymentRefused(outcome);
                 }
 
                 applied.Add(row.Code);
@@ -223,7 +223,7 @@ internal sealed partial class OrderTransitions
         }
 
         RaiseVersionOnce(order);
-        await QueueCustomerNoticeAsync(order, new RefundProcessedNotice(order.Id, refund.RefundType, refund.Amount, refund.PaymentMethod), ct);
+        await QueueNoticeAsync(order.Id, new RefundProcessedNotice(order.Id, refund.RefundType, refund.Amount, refund.PaymentMethod), ct);
         if (refund is { ActorKind: ActorKind.System, PaymentMethod: PaymentMethod.Card, IsFirmRetry: false })
         {
             await _notifications.QueueCompanyNoticeAsync(
@@ -261,7 +261,7 @@ internal sealed partial class OrderTransitions
         }
     }
 
-    private static PaymentTransitionResult Refused(TransitionOutcome outcome)
+    private static PaymentTransitionResult PaymentRefused(TransitionOutcome outcome)
     {
         return outcome.Rejection switch
         {
@@ -275,27 +275,5 @@ internal sealed partial class OrderTransitions
     {
         await _locks.LockAsync([orderId], ct);
         return await _db.Orders.SingleOrDefaultAsync(o => o.Id == orderId, ct);
-    }
-
-    /// <summary>True when the order carries a physical item with an open quantity (03 1.2 S1: the shipment line starts with the payment's approval).</summary>
-    private async Task<bool> HasOpenPhysicalItemAsync(Guid orderId, CancellationToken ct)
-    {
-        List<OrderItem> physical = await _db.OrderItems.Where(i => i.OrderId == orderId && i.ProductType == ProductType.Physical).ToListAsync(ct);
-        if (physical.Count == 0)
-        {
-            return false;
-        }
-
-        IReadOnlyDictionary<Guid, int> closed = await _afterSales.ClosedQuantitiesAsync([.. physical.Select(i => i.Id)], ct);
-        return physical.Any(i => i.Quantity - closed.GetValueOrDefault(i.Id) > 0);
-    }
-
-    /// <summary>A customer notice goes to the order's contact e-mail; an order whose address was emptied by the disposal has no recipient (08 2.2.6).</summary>
-    private async Task QueueCustomerNoticeAsync(Order order, CustomerNotice notice, CancellationToken ct)
-    {
-        if (!string.IsNullOrWhiteSpace(order.ContactEmail))
-        {
-            await _notifications.QueueCustomerNoticeAsync(notice, order.ContactEmail, ct);
-        }
     }
 }

@@ -7,7 +7,10 @@ namespace Shopfolio.Infrastructure;
 /// </summary>
 internal static class ParameterFences
 {
-    /// <summary>P-5 — upper fence of the shipping period, in business days; the lower fence is zero.</summary>
+    /// <summary>P-5 — lower fence of the shipping period, in business days: zero.</summary>
+    public const int ShippingPeriodLower = 0;
+
+    /// <summary>P-5 — upper fence of the shipping period, in business days.</summary>
     public const int ShippingPeriodUpper = 10;
 
     /// <summary>P-7 — lower fence of the bank transfer payment window, in business days.</summary>

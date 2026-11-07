@@ -44,6 +44,26 @@ internal static class TurkeyTime
     }
 
     /// <summary>
+    /// The instant a date range entered as two dates runs out (02 4.1.4; K-1559): the 00:00 of the day after the end date, so the end date is
+    /// included as a whole day. A discount's end is written to the price history with this instant.
+    /// </summary>
+    public static DateTimeOffset EndOfRange(DateOnly endDay)
+    {
+        return StartOf(endDay.AddDays(1));
+    }
+
+    /// <summary>
+    /// Whether <paramref name="instant"/> falls in the date range <paramref name="startDay"/> to <paramref name="endDay"/> (02 4.1.4): the
+    /// range begins at 00:00 of the start day and the end day is included as a whole - <c>StartOf(start) &lt;= instant &lt; StartOf(end + 1)</c>
+    /// (09 7.1 item 3). A range that ends before it starts is a caller error; a one-day range has equal dates.
+    /// </summary>
+    public static bool IsWithinRange(DateTimeOffset instant, DateOnly startDay, DateOnly endDay)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(endDay, startDay);
+        return StartOf(startDay) <= instant && instant < EndOfRange(endDay);
+    }
+
+    /// <summary>
     /// Whether <paramref name="instant"/> falls in a period of <paramref name="days"/> days started on <paramref name="startDay"/>:
     /// <c>StartOf(startDay + 1) &lt;= instant &lt; StartOf(startDay + days + 1)</c> (09 7.1 item 3).
     /// </summary>

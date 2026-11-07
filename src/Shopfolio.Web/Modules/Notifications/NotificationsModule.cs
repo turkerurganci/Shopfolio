@@ -11,6 +11,18 @@ namespace Shopfolio.Modules.Notifications;
 /// <summary>The Notifications module's implementation of its open surface; internal, reached only through <see cref="INotificationsModule"/>.</summary>
 internal sealed class NotificationsModule : INotificationsModule
 {
+    private readonly CompanyNoticeQueue _companyNotices;
+
+    public NotificationsModule(CompanyNoticeQueue companyNotices)
+    {
+        ArgumentNullException.ThrowIfNull(companyNotices);
+        _companyNotices = companyNotices;
+    }
+
+    public Task<int> QueueCompanyNoticeAsync(CompanyNotice notice, CancellationToken ct) => _companyNotices.QueueCompanyAsync(notice, ct);
+
+    public Task<int> QueueAdminNoticeAsync(AdminNotice notice, IReadOnlyCollection<string> adminEmails, CancellationToken ct) =>
+        Task.FromResult(_companyNotices.QueueAdmins(notice, adminEmails));
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddNotificationsModule</c> once.</summary>
@@ -32,6 +44,10 @@ internal static class NotificationsModuleRegistration
         // The e-mail common pattern (T305; 08 2.2.5; 09 11.4): the addresses and the composer that makes the subject, the HTML and the plain text part.
         services.AddSingleton<EmailLinks>();
         services.AddSingleton<EmailComposer>();
+
+        // The firm notices F-1…F-6 (T308; 08 2.2.7): the writer of their dispatch rows, in the caller's transaction; F-1…F-4 go to the firm's contact e-mail.
+        services.AddScoped<ICompanyContactEmail, CompanyContactEmail>();
+        services.AddScoped<CompanyNoticeQueue>();
 
         // The per-recipient sending limit asked at a row's first attempt (08 2.2.4); its thinned security line keeps one window in memory.
         services.AddScoped<RecipientLimitCheck>();

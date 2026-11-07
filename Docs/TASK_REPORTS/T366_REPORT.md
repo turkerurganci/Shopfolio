@@ -83,10 +83,37 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-07; head `24163d5` + `origin/main` birleştirmesi) |
+| Bulgu sayısı | 1 (S1, KRİTİK) |
+| Düzeltme gerekli mi | Evet — düzeltme turu |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-240) |
+
+### Doğrulama tur 1 — validator kanıtları
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `scripts/git-hooks`; ana dal CI son 3 run 42368786653, 42368786665, 42366197659 `success`; memory'de T366 satırı var. Dal CI 42368746924 (`24163d5`) `success`.
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Dört metin sürümlü, ayrı kayıt; ilk ikisi üretilir, son ikisi taslak | ✓ | `LegalTextTemplates.GeneratedTypes`, `LegalTexts.RequireFirmEdited`; `LegalTextTests.TheFourTexts_...` geçti |
+| 2 | Son iki metin boşaltılamaz; aydınlatma taslağı kapsamı; barındırma dolmadan tamamlanmaz | ✗ | Boşaltma reddi ve taslak içeriği ✓; ama `LegalTexts.PublishAsync` firma kimliği eksikken aydınlatmayı yayımlar (yalnız metin ve barındırma denetlenir), kimlik yer tutucuları `PlaceholderFiller.Fill(..., requireAll: false)` ile boş değerle donar. Geçici sonda testi (koşudan sonra geri alındı): kimliksiz yayın → `"<p>Sorumlu: [] KEP: []</p>"`; kimlik kaydedilince `GetLegalTextsAsync` aydınlatmayı `IsComplete` der, kapının `PrivacyNotice` koşulu açılır, son yayımlanan metin hâlâ boş unvan/KEP taşır. `06 §4.56` ve `04` 9.19.7 "aydınlatma metni tamamlanmadan yayına alınmaz", `04` 9.19.11 "kimlik değişirse yer tutucu yeni değeri gösterir", `02 §3.1.5` koşul 4 |
+| 3 | Sürüm kendiliğinden artar; şablonunki ize girmez | ✓ | `LegalTextGenerator` kilit altında üretir, metin + şablon kimliği karşılaştırması; ilgili beş test geçti; ayar sürümünün iz satırı D-220 |
+| 4 | Sürüm artarsa sipariş oluşmaz; yeniden onay ve bildirim yok | ✓ (modül düzeyi; onay adımı T356) | `AreShownLegalTextVersionsCurrentAsync`; `ANewVersion_MakesTheShownIdsStale_...` geçti |
+| 5 | Aydınlatma bağlantısı ekranları, çerez altbilgide; kutu/gördü kaydı yok | ✓ (liste; ekranlar D-222) | `LegalTextLinks`, `LegalLinkScreen.All` `02 §3.33.5` ile birebir; şema taraması ve `LegalTextSourceScan` |
+| 6 | Onay e-postasında tam metin, ek yok | ✓ (modül yüzü; gövde T306, yeniden gönderim T385) | şablon "tam metin" yazar, ek/PDF taraması |
+| 7 | Uyuşmazlık bilgisi var, rakam yok | ✓ | iki şablonun 6./9. maddesi; `_WritesTheDisputeBodies_AndNoMoneyLimit` |
+| 8 | Çelişki denetimi yok; hatırlatma satırı | ✓ | `LegalTextLinks.Reminder` |
+| 9 | Dört metin tamamlanmadan satış açılmaz; eksik adıyla | ✓ (kriter 2'nin bulgusu kapının "tamam" tanımını da etkiler) | `PrivacyNoticeCondition` bağlı; `LegalTextMissingPart` |
+| 10 | Açık rıza yönetimi yok | ✓ | şema ve kaynak taraması |
+
+**Testler (yerel):** build `-warnaserror` temiz; `dotnet format --verify-no-changes` üç projede 0; Consistency 209/209; Unit 3234/3234; betik testleri 4 dosya; Integration parçalı (`postgres:18`, konteyner `shopfolio-t366-val-pg`): LegalText + SalesGate + CompanyIdentity 59/59, SettingsTables + StartupDatabaseCheck + OperationPattern 59/59; `dotnet restore --locked-mode` 0.
+
+**Bulgu 1 (S1, KRİTİK, kriter 2):** aydınlatma metni firma kimliği eksikken yayımlanabiliyor, kimlik yer tutucuları boş donuyor; kimlik dolunca liste ve satış kapısı metni "tamam" sayıyor, vitrindeki ve siparişe donan aydınlatma veri sorumlusunun unvanı/iletişimi boş. Kimlik sonradan değişince yer tutucu yeni değeri göstermiyor (yapımın ⚠ (b) kararı `04` 9.19.11 ile çelişir). Düzeltme önerisi: (1) `PublishAsync` kimliğin eksik alanı varken `CompanyIdentity` reddiyle yayımlamaz; (2) yer tutucunun güncel kimliği göstermesi — ya gösterimde doldurma (yayımlanan metin belirteci taşır, okuma `PlaceholderFiller` + HTML kodlamayla doldurur) ya da kimlik kaydında aydınlatmanın yeni sürümü; seçim belge kuralıyla çelişirse karar kaydı. Test: kimliksiz yayın reddi, kimlik değişince görünen değerin değişmesi.
+
+**K1 → D-240:** `{{ReturnAddress}}` `09 §9.3` madde 2'nin kapalı kümesinin (`Order`/`OrderItem` alanları) dışında; davranış doğru, kural metni saymıyor.
+
+**`12` satırları:** KP-14, KP-25, KP-35, KP-61, KP-73 satırları (`VAL-A047`…`VAL-A052`, `VAL-A986`, `VAL-B020`, `VAL-A090`, `VAL-C026`, `VAL-C027`, `VAL-A125`…`VAL-A130`, `VAL-A299`, `VAL-A300`, `VAL-D034`, `VAL-A363`…`VAL-A367`) tarayıcı/uç kanıtı ister; `Durum` `BEKLEMEDE` kaldı.
+
+**Yapım raporu karşılaştırması:** kriter 2 yapımda ✓, validator ✗ (kimliksiz yayın senaryosu öz denetimde yok); öteki kriterler uyumlu. Öz denetim tablosu var ve maddeleri kanıtlı.
 
 ## Altyapı Değişiklikleri
 

@@ -9,6 +9,18 @@
 
 ---
 
+## 2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 1 FAIL, düzeltme yapıldı
+
+2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 1 ✗ FAIL (head `8d71d89`, PR #439; kriter 1–9 ve KK1–KK9 ✓, `09 §25` iki "hayır": Bulgu 1 DÜŞÜK S1 — yeni sayfalı vitrin listesi `ShowcaseReader.ListAsync` sınır testi olmadan eklendi (`09 §19.2` m.5, §10.5 m.6); Bulgu 2 DÜŞÜK S1 — `OrderingModule.TakeRemovedItemNoticesAsync` `DbUpdateConcurrencyException`'ı kayıt varyantı dışında ret olarak yakalıyor (`09 §10.2` m.2); güvenlik taraması temiz; Unit Architecture 906 + öteki 3070, betik testleri, Integration yerelde ProductTransitions 35 + SitemapEndpoint 10; dal CI 42394867534 yeşil; K-notu yok; `12` `Durum` değişmedi (KP-7/KP-40 satırları uç ve panel kanıtı ister); backlog aktif 130). Düzeltme yapıldı (iki bulgu: vitrin listesi sınır testleri, `TakeRemovedItemNoticesAsync` sepet kilidi altında ve yakalamasız; Integration ProductTransitions 40, Unit 906 + 3075), doğrulama tur 2 bekliyor.
+
+## 2026-11-07 — T322 (İçerik yayın durumları ve iletişim talebi durumları) doğrulama tur 1 PASS
+
+2026-11-07 — T322 doğrulama tur 1 ✓ PASS (head `106c8ae`, PR #438; kriter 1–9, KK1–KK9 ve `09 §25` ✓; Unit 3790 + Consistency 230 + Architecture 906, betik testleri, Integration CorporateContent 45; dal CI 42394560527 yeşil; bulgu 0, K-notu 0; `12` `Durum` değişmedi; backlog aktif 128).
+
+## 2026-11-07 — T322 (İçerik yayın durumları ve iletişim talebi durumları) yapım bitti
+
+2026-11-07 — T322 (İçerik yayın durumları ve iletişim talebi durumları) yapım tamamlandı, doğrulama bekliyor (dal `task/T322-icerik-iletisim-durumlari`; kriter 1–9, KK1–KK9 öz denetimde ✓; Unit Consistency 230, Architecture 906, CorporateContent 57, Integration CorporateContent 45, format ve derleme `-warnaserror` temiz; şema yok; `12` `Durum` değişmedi; yeni backlog D-315…D-317, aktif 128).
+
 ## 2026-11-07 — T301 (Siparişin imha parçası) doğrulama tur 1 PASS
 
 2026-11-07 — T301 (Siparişin imha parçası) doğrulama tur 1 ✓ PASS (head `78b8449` + `origin/main` birleştirmesi, PR #431; kriter 1–9, KK1–KK9 ve `09 §25` ✓, güvenlik taraması temiz; Unit 3469 (Architecture 830, Consistency 209, öteki 2430), betik testleri, Integration yerelde OrderDisposal 27, Disposal + ModuleCallTransaction 21, CookiePolicy + LoggingFiles 25; dal CI 42376054521 yeşil; bulgu 0, K-notu 0; `12` `Durum` değişmedi (KP-74'ün T301'e düşen satırı `VAL-D047` zaten PASS); backlog aktif 125).

@@ -34,9 +34,16 @@ internal sealed class ContactRequest
     /// <summary>The moment of the last closing; every closing writes it again and reopening does not empty it (06 4.57).</summary>
     public DateTimeOffset? LastClosedAt { get; set; }
 
-    public static ContactRequest Create(string name, string email, ContactTopic contactTopic, string message, DateTimeOffset now)
+    /// <summary>
+    /// The moment the retention runs from (02 5.13; 03 1.9.2; Z-33): the last closing, or the creation moment of a request that was never closed. A request
+    /// that was closed and reopened keeps its last closing here until it is closed again; the period does not stop while it is open.
+    /// </summary>
+    public DateTimeOffset RetentionStart => LastClosedAt ?? CreatedAt;
+
+    /// <summary>A request is born open (02 5.13); the contact form's send is the only birth.</summary>
+    public static ContactRequest Create(string name, string email, ContactTopic contactTopic, string message, DateTimeOffset now, string? phone = null)
     {
-        return new ContactRequest { Id = EntityIds.New(), CreatedAt = now, Name = name, Email = email, ContactTopic = contactTopic, Message = message };
+        return new ContactRequest { Id = EntityIds.New(), CreatedAt = now, Name = name, Email = email, Phone = phone, ContactTopic = contactTopic, Message = message };
     }
 }
 

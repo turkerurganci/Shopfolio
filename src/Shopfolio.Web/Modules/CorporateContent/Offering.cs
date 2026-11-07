@@ -12,7 +12,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// (reordering changes rows); the page address is unique over every row, draft ones included (06 4.72.1). The record is deleted by its
 /// event; its content-product and gallery links, which cascade, are OfferingProduct and OfferingImage.
 /// </summary>
-internal sealed class Offering : IVersionedRecord
+internal sealed class Offering : IContentRecord
 {
     public Guid Id { get; set; }
 
@@ -43,6 +43,11 @@ internal sealed class Offering : IVersionedRecord
 
     /// <summary>Raises the version by one; every save of the record calls it (06 2.6.1; 09 10.2 item 1).</summary>
     public void BumpVersion() => Version++;
+
+    public ContentRecordKind Kind => ContentRecordKind.Offering;
+
+    public IReadOnlyList<ContentGateField> MissingGateFields() =>
+        ContentGate.Missing(Kind, field => field == ContentGateField.Name ? ContentGate.IsFilled(Name) : ContentGate.Unreadable(Kind, field));
 
     public static Offering Create(string name, string slug, int sortOrder, DateTimeOffset now)
     {

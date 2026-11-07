@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 1 ✗ FAIL (head `8d71d89`, PR #439; kriter 1–9 ve KK1–KK9 ✓, `09 §25` iki "hayır": Bulgu 1 DÜŞÜK S1 — yeni sayfalı vitrin listesi `ShowcaseReader.ListAsync` sınır testi olmadan eklendi (`09 §19.2` m.5, §10.5 m.6); Bulgu 2 DÜŞÜK S1 — `OrderingModule.TakeRemovedItemNoticesAsync` `DbUpdateConcurrencyException`'ı kayıt varyantı dışında ret olarak yakalıyor (`09 §10.2` m.2); güvenlik taraması temiz; Unit Architecture 906 + öteki 3070, betik testleri, Integration yerelde ProductTransitions 35 + SitemapEndpoint 10; dal CI 42394867534 yeşil; K-notu yok; `12` `Durum` değişmedi (KP-7/KP-40 satırları uç ve panel kanıtı ister); backlog aktif 130). Düzeltme yapıldı (iki bulgu: vitrin listesi sınır testleri, `TakeRemovedItemNoticesAsync` sepet kilidi altında ve yakalamasız; Integration ProductTransitions 40, Unit 906 + 3075), doğrulama tur 2 bekliyor. Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 2 ✗ FAIL (head `921491a` + `origin/main` (T322, #436) birleştirmesi, PR #439; kriter 1–9 ve KK1–KK9 ✓, tur 1'in iki bulgusu kapandı; `09 §25` bir "hayır": Bulgu 1 DÜŞÜK S1 — `IOrderingModule` arayüz metotları `RemoveFromCartsAsync` ve `TakeRemovedItemNoticesAsync` `SaveChangesAsync` çağırıyor (`09 §6` m.3, m.7); güvenlik taraması temiz; Unit Consistency 230 + Architecture 906 + öteki 2845, betik testleri, Integration yerelde ProductTransitions 40, Catalog + Ordering + Concurrency 97, Sitemap + SearchEngineData + Scheduler 31, Web host 77 (birleştirme öncesi `921491a`); dal CI 42399951671 yeşil; K-notu 1 (D-353 → T502: sayfalı liste projeksiyonsuz); `12` `Durum` değişmedi (KP-7/KP-40 satırları uç ve panel kanıtı ister); iki iterasyon sınırı doldu — eskalasyon (`12 §8.5`); backlog aktif 134). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -160,8 +160,8 @@
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ⬚ | — | — | — |
 | T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |
-| T321 | Ürün yayın durumları | ✗ | ✗ FAIL (tur 1); düzeltme yapıldı, tur 2 bekliyor | `8d71d89` | #439 |
-| T322 | İçerik yayın durumları ve iletişim talebi durumları | ⬚ | — | — | — |
+| T321 | Ürün yayın durumları | ✗ | ✗ FAIL (tur 2; eskalasyon) | `921491a` | #439 |
+| T322 | İçerik yayın durumları ve iletişim talebi durumları | ✓ | ✓ PASS (tur 1) | — | #438 |
 | T323 | Durum × rol × işlem tablosu | ⬚ | — | — | — |
 | T324 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | ⬚ | — | — | — |
 | T325 | Zaman aşımı akışları: teslim, cayma, geri ödeme ve ayıp talebi süreleri | ⬚ | — | — | — |

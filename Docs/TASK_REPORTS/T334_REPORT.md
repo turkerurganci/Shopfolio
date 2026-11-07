@@ -90,8 +90,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T334-stok-kontenjan`
-- **Commit:** PR başlığındaki son commit (dal başı)
-- **PR:** #PRNO
+- **Commit:** `1c8bf42` (dal başı, PR açılışında)
+- **PR:** #443
 - **CI:** dal CI doğrulamada izlenir
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır sonraki task dalında güncellenir)*
 

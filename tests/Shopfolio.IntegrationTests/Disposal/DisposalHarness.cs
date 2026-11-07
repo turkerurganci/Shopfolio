@@ -9,7 +9,9 @@ using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration;
+using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Payment;
 using Shopfolio.UnitTests.Fakes;
 
 namespace Shopfolio.IntegrationTests.Disposal;
@@ -51,6 +53,12 @@ internal sealed class DisposalHarness : IAsyncDisposable
         services.AddDisposal(directories);
         services.AddDisposalPart<GuestCartDisposalPart>();
         services.AddDisposalPart<AdminInvitationDisposalPart>();
+
+        // The order's part (T301) and the module surfaces it reaches: the order row lock, the payment and after-sales modules.
+        services.AddScoped<OrderLocks>();
+        services.AddPaymentModule();
+        services.AddAfterSalesModule();
+        services.AddDisposalPart<OrderDisposalPart>();
         _provider = services.BuildServiceProvider();
     }
 
@@ -83,6 +91,26 @@ internal sealed class DisposalHarness : IAsyncDisposable
         await using AsyncServiceScope scope = _provider.CreateAsyncScope();
         INightlyStep step = _provider.GetServices<INightlyStep>().Single(s => s is DisposalStep);
         await step.RunAsync(scope.ServiceProvider, Now, ct);
+    }
+
+    /// <summary>
+    /// Runs only the order's part, in a scope of its own, at the clock's moment; <paramref name="afterPick"/> is the part's seam between the pick and
+    /// the lock (06 9.2.1), where a test lets another transaction change an order.
+    /// </summary>
+    public async Task RunOrderPartAsync(Func<IReadOnlyList<Guid>, CancellationToken, Task>? afterPick, CancellationToken ct)
+    {
+        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        OrderDisposalPart part = scope.ServiceProvider.GetServices<IDisposalPart>().OfType<OrderDisposalPart>().Single();
+        part.AfterPick = afterPick;
+        await part.RunAsync(new DisposalRun(scope.ServiceProvider, Now), ct);
+    }
+
+    /// <summary>Calls a module surface of the harness's scope, outside any transaction of the caller (a test of the surface's own guard).</summary>
+    public async Task<T> WithServiceAsync<TService, T>(Func<TService, Task<T>> call)
+        where TService : notnull
+    {
+        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        return await call(scope.ServiceProvider.GetRequiredService<TService>());
     }
 
     /// <summary>Runs a piece of work with a scope's context and the part-writing helper, at the clock's moment.</summary>

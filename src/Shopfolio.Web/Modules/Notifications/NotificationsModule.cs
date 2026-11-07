@@ -33,6 +33,10 @@ internal static class NotificationsModuleRegistration
         services.AddSingleton<EmailLinks>();
         services.AddSingleton<EmailComposer>();
 
+        // The per-recipient sending limit asked at a row's first attempt (08 2.2.4); its thinned security line keeps one window in memory.
+        services.AddScoped<RecipientLimitCheck>();
+        services.AddSingleton<RecipientLimitLog>();
+
         // The e-mail channel warning is a condition of the status endpoint (05 9.4.7).
         services.AddStatusCondition<ChannelWarningCondition>();
         return services;

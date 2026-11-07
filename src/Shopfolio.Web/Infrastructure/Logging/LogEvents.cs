@@ -20,6 +20,9 @@ internal static class LogEvents
     /// <summary>The thinned line of a signature failure: the first request of an address writes a line, the later ones of the 60 second window are only counted (05 4.5.2).</summary>
     public const string SignatureFailureSampled = "SignatureFailureSampled";
 
+    /// <summary>The thinned line of a customer notification refused by the per-recipient sending limit: the first refusal writes a line, the later ones of the 60 second window are only counted; no address (08 2.2.4).</summary>
+    public const string RecipientLimitExceededSampled = "RecipientLimitExceededSampled";
+
     /// <summary>A request was rejected by validation; the line carries a single code or the <c>fields</c> array (09 18.2 item 4).</summary>
     public const string ValidationRejected = "ValidationRejected";
 

@@ -77,10 +77,39 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-07; head `48db1e8` + `origin/main` (T309, `987e438`) birleştirmesi) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (D-283) |
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = ana checkout'un `scripts/git-hooks`'u; ana dal CI son üç tamamlanmış run success — 42368786653, 42368786665 (`ad8c48d`), 42366197659 (`1112ca6`); `MEMORY.md` T332 satırı var.
+
+**Kabul kriterleri (validator kanıtı):**
+
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `SalesModelShape` uygulama derlemesinin bütün tür, üye, enum değeri ve parametre adlarını sözcüklere bölüp tarar (quote, price on request, appointment, booking, …); `NoTableOrColumn_…` DB adlarını tarar; `src/Shopfolio.Web` arayüz dosyalarında (cshtml/razor/js/json/resx) "fiyat sorunuz", "teklif iste", "randevu" grep'i boş |
+| 2 | ✓ | `ProductType` üç üye; `products.product_type` kısıtı dördüncü değeri `CheckViolation` ile reddeder; `variants`'ta tip/istisna/ifa süresi sütunu yok (Integration + Unit `TheVariant_HasNoType…`) |
+| 3 | ✓ | `CartItem` yalnız `VariantId` taşır; `cart_items`'ta `product_id` yok |
+| 4 | ✓ | `OptionStructureRules.NextOptionOrder` sınırı `ProductConstants.OptionDimensionMax`'tan okur; `Option` kısıtı üçüncü sırayı `CheckViolation` ile reddeder; kuralda literal yok (kaynak taraması testi) |
+| 5 | ✓ | `GetOptionMatrixAsync` kartezyen hücreleri verir, açılmamış hücre `VariantId = null` (`IsOpened = false`); vitrin gösterimi T503 (D-247) |
+| 6 | ✓ | `CheckStockCodeAsync` boşu `Missing`, `ab-ı1`/`Ab-I1`/` ab-i1 ` için `Taken`; benzersiz dizin harfi farklı ikinci kodu `UniqueViolation` ile reddeder, ilk kod `Ahşap-I01` olarak kalır; öneri adresten (`AHSAP-MASA-01`, ilk yirmi karakter, kesimde kalan tire düşer), kaydedilmemiş üründe o anki addan, ad boşsa `null`; ad değişince var olan kod değişmez |
+| 7 | ✓ | `Product`/`Variant`'ta min/minimum adlı özellik yok, yalnız `MaxQuantityPerOrder`; DB'de `min_…quantity` sütunu yok; tek adetli `CartItem` kaydedilir |
+| 8 | ✓ | review/rating/stars/recommendation/related/similar products adları kodda ve DB'de yok; arayüz dosyalarında "yorum", "puan", "yıldız", "benzer ürün" grep'i boş |
+| 9 | ✓ | `withdrawal_exemption_reason` yalnız `products`'ta; bayrak sütunu yok; işaretli ve işaretsiz fiziksel ürün yayına alınır; dijital/hizmette sebep `ProductDefinitionGuard` ile SQL'den önce reddedilir; tip değişiminde de |
+| 10 | ✓ | Yayındaki hizmet ifa süresiz `InvalidOperationException` (taslak kaydedilir); 1 ve 30 gün yayınlanır; 0 gün `CheckViolation`; varsayılan yok (`ProductDefinitionRules.IsFulfilmentPeriodEntered`) |
+
+**Task satırları (`12 §7.5`):** `11 §7.1` T332 kaynakları KP-4, KP-5, KP-6, KP-39, KD-6, KD-28, KD-35, KD-37. KP grep'i `VAL-A009`…`VAL-A020`, `VAL-B001`, `VAL-A163`…`VAL-A176`'yı getirir; hepsinin beklenen sonucu vitrin, ürün sayfası, sepet ya da panel ekranıdır (tarayıcı gözlemi, uç yanıtı) ve T332 uç ya da sayfa kurmaz (KP-4 → T332, T334, T503; KP-5 → … T503; KP-6 → … T351, T356, T503; KP-39 → T334, T335, T336, T525) → hepsi `BEKLEMEDE` kalır, `Durum` değişmedi. KD satırları matriste yok.
+
+**Doğrulama kontrol listesi:** KK1–KK10 ✓ (yukarıdaki kanıtlar); `09 §25` ✓ — göç yok, yeni kalıcı enum yok (`StockCodeCheck`, `VariantStructureCheck` saklanmaz), yeni paket yok, modül sınırı korunur (yalnız `Contracts` yüzü), okumalar `AsNoTracking`; `ImageDisposalPart.Quote` → `SqlIdentifier` adlandırması tarama bulgusunun gereğidir, davranış değişmez (ImageDisposal Integration yeşil). Güvenlik: sır yok; yetki etkisi yok (yeni uç yok); girdi — stok kodu sorgusu EF parametresiyle, `StartsWith` öneki yalnız `[a-z0-9-]` adresten; yayın bekçisi bütün `SaveChanges` yollarında, `Products` üzerinde toplu `ExecuteUpdate`/`UPDATE products` yok (grep boş); stok kodu tekliği normalleştirilmiş sütunun benzersiz dizininde.
+
+**Testler (validator):** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` üç proje çıkış 0; Unit 3528/3528 (birleştirmeden önce), 3585/3585 (birleştirmeden sonra); betik testleri 4 dosya geçti; Integration (yerel `postgres:18`) SalesModelTests 28/28, ImageDisposal + Sitemap 10/10, birleştirme sonrası SalesModel + AccountEmailQueue 42/42; dal CI 42376259158 (head `48db1e8`) success — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate.
+
+**Bloke-etmeyen notlar:** K1 — seçenek silinince yalnız sırası 2 olan seçenek kalırsa `CheckVariantStructureAsync(ürün, null, değer)` `Valid` der ama `second_value_needs_first` kuralı reddeder; T332'de seçenek silen yol yok → D-283 (T525). Boş stok kodunun veri düzleminde kısıtı yoktur; yazma yolunun `CheckStockCodeAsync` çağırması D-249'da kayıtlı (ek kayıt gerekmedi).
+
+**Yapım raporu karşılaştırması:** uyumlu; öz denetim tablosu her kriter ve KK için kanıtlı. Uyuşmazlık: raporda `12` task satırları bölümü yoktu (bu doğrulamada yazıldı).
+
+**Merge notu:** dal `origin/main` (T309, #429) ile birleştirildi; çakışma yalnız kayıt belgelerinde (STATUS, STATUS_CHANGELOG, MEMORY, backlog, T308/T331 raporları), main kayıtları korunarak çözüldü ("Aktif kalem" 109 + D-283 = 110; T309 PASS ve T332 yapım girişleri `STATUS_CHANGELOG.md`'ye taşındı); T312 raporundaki yinelenen post-merge notu main'deki satır olduğu için düşürüldü; T309'un Commit hücresi ve post-merge satırı dolduruldu; kodda çakışma yok.
 
 ## Altyapı Değişiklikleri
 
@@ -93,8 +122,8 @@
 
 - **Branch:** `task/T332-satis-modeli`
 - **Commit:** PR açıklamasında head SHA
-- **PR:** dönüş mesajında
-- **CI:** *(yapım işçisi izlemez)*
+- **PR:** #432
+- **CI:** dal CI 42376259158 (head `48db1e8`) success
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
 
 ## Dış Varsayımlar

@@ -1,6 +1,6 @@
 # T308 — Firma bildirimleri F-1…F-6
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-07
 
 ---
 
@@ -76,10 +76,12 @@ Sık FAIL nedenleri taraması: (1) bekçi/tarama istisnası eklenmedi; (2) kayna
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-07; head `77c623d` + `origin/main` birleştirmesi) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-224) |
+
+Validator kanıtları (bağımsız): 10 kriter ve KK1–KK10 kodda ve testte ✓ — metinler `08 §2.2.7` ile birebir, F-4 nedenleri B-8 listesiyle, satırlar `OrderId` boş (DB kısıtı), F-5'te gerçek satırda tam IBAN yok, F-6 gövdesi `admins` silindikten sonra satırdan. Build `-warnaserror` 0 uyarı; format üç proje temiz; Unit 3317 (Architecture 797 + öteki 2520; T308 57); betik testleri 4 dosya; Integration PostgreSQL 18 (`shopfolio-t308-val-pg`, 127.0.0.1:55730, silindi): CompanyNoticeQueue + MigrationBundle 13, Dispatch/Email/Job komşuları 84, Logging 30; restore `--locked-mode` 0; dal CI 42363737559 success. `12` satırları (VAL-B022, A123, A124, A326–A331) olayın tetiğini ve gönderimi ister → `BEKLEMEDE` kalır. K1: birim testinde `Assert.False(DispatchMarks.HasMark([]))` davranışı sınamaz (KK4 tümleşik testle karşılanır) → D-224. Yapım raporuyla uyum tam (Unit sayısı 3286 ↔ 3317 farkı birleştirmeden).
 
 ## Altyapı Değişiklikleri
 

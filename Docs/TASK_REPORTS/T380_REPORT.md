@@ -187,7 +187,7 @@ Tur 2'nin tam sonucu raporun sonundaki "Doğrulama Sonucu — T380 İşlem izi �
 - **Branch:** `task/T380-islem-izi`
 - **PR:** açıldığında PR gövdesinde
 - **CI:** yapım işçisi izlemez
-- **Post-merge run'lar:** squash `7f8d6c3` (#419) — CI 42356915419 success, Publish 42356915467 success (T308 yapımında dolduruldu)
+- **Post-merge run'lar:** squash `7f8d6c3` (#419) — CI 42356915419 success, Publish 42356915467 success (T331 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

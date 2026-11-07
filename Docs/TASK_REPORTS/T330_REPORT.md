@@ -126,7 +126,7 @@
 - **Commit:** bkz. PR (son commit dal başı)
 - **PR:** #420
 - **CI:** dal CI 42348609633 (head `04eafd6`) ✓ yeşil
-- **Post-merge run'lar:** squash `4924037` (#420) — CI 42358802050 success, Publish 42358802017 success (T308 yapımında dolduruldu)
+- **Post-merge run'lar:** squash `4924037` (#420) — CI 42358802050 success, Publish 42358802017 success (T331 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

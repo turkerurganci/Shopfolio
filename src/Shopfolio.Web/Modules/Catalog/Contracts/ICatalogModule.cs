@@ -44,4 +44,10 @@ public interface ICatalogModule
     /// row and its derivative job. Called outside a transaction it throws at the job row. The refusal is a result, not an exception.
     /// </summary>
     Task<ImageUploadResult> UploadImageAsync(byte[] content, CancellationToken ct);
+
+    /// <summary>
+    /// The page addresses the site map takes from this module (05 3.7.3; 02 3.30.5, 3.30.6): <c>/urun/{slug}</c> of every published product and
+    /// <c>/kategori/{slug}</c> of every category. An archived product and a draft are not listed. A plain read; the site map's cache is Settings'.
+    /// </summary>
+    Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct);
 }

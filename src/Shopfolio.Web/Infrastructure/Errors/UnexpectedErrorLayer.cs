@@ -41,7 +41,7 @@ internal sealed class UnexpectedErrorCounter
 }
 
 /// <summary>What the layer decided for one error: the state and, for an uncertain outcome, the screen that shows the result.</summary>
-internal sealed record ErrorResolution(ErrorState State, string? Target, bool ClientGone = false);
+internal sealed record ErrorResolution(ErrorState State, string? Target, bool ClientGone = false, int? ClientStatus = null);
 
 /// <summary>
 /// The single catching layer (09 8.1 items 2, 3, 5-8; 05 10.3). Both entry points of the framework - the page filter around the handler and the
@@ -68,6 +68,18 @@ internal sealed partial class UnexpectedErrorLayer
         if (exception is OperationCanceledException && context.RequestAborted.IsCancellationRequested)
         {
             return new ErrorResolution(ErrorState.PageLevel, null, ClientGone: true);
+        }
+
+        // A client's own fault is no unexpected error (D-147): a reset connection has nobody to answer, a malformed request gets its own status.
+        // Neither is logged as an error line nor counted.
+        if (exception is Microsoft.AspNetCore.Connections.ConnectionResetException)
+        {
+            return new ErrorResolution(ErrorState.PageLevel, null, ClientGone: true);
+        }
+
+        if (exception is BadHttpRequestException badRequest)
+        {
+            return new ErrorResolution(ErrorState.PageLevel, null, ClientStatus: badRequest.StatusCode);
         }
 
         OperationMark? mark = context.Items.TryGetValue(OperationMark.ItemKey, out object? stored) ? stored as OperationMark : null;
@@ -128,6 +140,15 @@ internal static class UnexpectedErrorAnswer
         {
             // Nothing more can be said to this client: a started answer cannot be replaced, a gone client does not read one.
             context.Abort();
+            return;
+        }
+
+        if (resolution.ClientStatus is { } clientStatus)
+        {
+            response.StatusCode = clientStatus;
+            response.ContentType = null;
+            response.ContentLength = null;
+            response.Headers.CacheControl = Security.SecurityHeaders.NoStore;
             return;
         }
 

@@ -7,7 +7,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// hand-made Turkish letter replacement) is written only in <c>TextNormalizer.cs</c>; (2) the address pattern (a run of characters other than <c>a-z</c> and <c>0-9</c>)
 /// is written only in <c>Slug.cs</c>; (3) no identifier, column name or form field is a search engine field the firm could fill (<c>MetaTitle</c>, <c>SeoTitle</c>,
 /// <c>OgImage</c>, <c>Canonical...</c> and the like - 02 3.30.5); (4) <c>sitemap.xml</c> and <c>robots.txt</c> are named only in <c>AddressRules.cs</c> (the reserved first
-/// segments): their endpoints are T313's; (5) the robots meta tag and the <c>X-Robots-Tag</c> header are written only in <c>SearchEngine/</c> and, with its reason,
+/// segments): the endpoint of T313 and the contents take the names from the constants there; (5) the robots meta tag and the <c>X-Robots-Tag</c> header are written only in <c>SearchEngine/</c> and, with its reason,
 /// in the CSV result. The scan reads whole texts (a call split over lines is found), blanks comments first and keeps their lines; <c>.cs</c> and <c>.cshtml</c> files
 /// of <c>src</c> are scanned, the test projects are not.
 /// </summary>
@@ -17,7 +17,7 @@ internal static partial class SearchEngineSourceScan
     public const string AddressPatternOutsideSlug = "writes the address pattern [^a-z0-9] outside Slug.cs (09 9.4 item 3: Slug.From is the one function)";
     public const string SearchEngineField = "names a search engine field the firm could fill (MetaTitle, SeoTitle, OgImage, Canonical... ; 02 3.30.5: there is no SEO field)";
     public const string SlugTyped = "has a form field named Slug (02 3.30.2: the address is made on the server from the name; the firm never types it)";
-    public const string ProtocolFileOutsideRules = "names sitemap.xml or robots.txt outside AddressRules.cs (T219 criterion 7: the endpoints and contents are T313's)";
+    public const string ProtocolFileOutsideRules = "names sitemap.xml or robots.txt outside AddressRules.cs (T313: SitemapFile and RobotsFile are the one place; the endpoint and the contents take the names from there)";
     public const string RobotsOutsideSearchEngine = "writes the robots meta tag or the X-Robots-Tag header outside Infrastructure/SearchEngine (05 3.7.4: the closing is the search engine data pattern's)";
 
     public const string NormalizerFile = "src/Shopfolio.Web/Infrastructure/TextNormalizer.cs";

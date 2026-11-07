@@ -7,4 +7,9 @@ namespace Shopfolio.Modules.CorporateContent.Contracts;
 /// </summary>
 public interface ICorporateContentModule
 {
+    /// <summary>
+    /// The page addresses the site map takes from this module (05 3.7.3; 02 3.30.5, 3.30.6): <c>/hizmet/{slug}</c>, <c>/referans/{slug}</c> and
+    /// <c>/sayfa/{slug}</c> of every published record, and <c>/hakkimizda</c> when the about page is published. A draft is not listed. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct);
 }

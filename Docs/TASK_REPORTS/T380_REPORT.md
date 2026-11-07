@@ -238,3 +238,23 @@ Dış varsayım: yok. Ana dal CI startup: `gh run list --branch main --limit 3` 
 **Sonuçlar:** build `-warnaserror` 0/0 (Unit, Integration); Unit `Administration` 100/100, `AuditTrailSourceScanTests` 23/23; Integration `AuditTrailTests` 22/22 (PostgreSQL 18, `t380-pg`, silindi); `dotnet format --verify-no-changes` değişen üç dosyada temiz.
 
 **⚠ Kolay karar:** kod biçimi tek bir ASCII sözcüğü ("Ayse") ayıramaz; yalnız boşluklu/Türkçe harfli/rakamla başlayan metni reddeder. Çağıran task'lar kod olarak enum adı verir; daha sıkısı kodun gerçek sabit kümesini bilmeyi gerektirir (çağıran task'larda).
+
+## Düzeltme 2 (düzeltme 1 PR CI kırmızı: "3. Unit test")
+
+**Yapılan:** Hata `ForbiddenTestPatternScanTests.TestProjects_Sources_HaveNoForbiddenPatterns`'ti. Yerelde koşuldu: `AuditEntryRulesTests.TheValuesOfASetting_AreNotHeldToTheShapes_TheFirmsOwnIbanAndReturnAddressAreWritten` doğrulama çağırıyor ama hiç `Assert` yoktu (`TestWithoutAssertion`). Test kodu, sibling testlerle aynı biçimde `Assert.Null(Record.Exception(() => ...))` ile "istisna atmaz" iddiasına bağlandı. Tarama, bekçi ya da istisna listesi değiştirilmedi; kişisel veri düzeltmesine (KK3) dokunulmadı.
+
+- `origin/main` dala birleştirildi. Çakışmalar yalnız kayıt belgelerinde: `IMPLEMENTATION_STATUS` "Son güncelleme" T380 girişi kaldı, main'in T313 girişi `STATUS_CHANGELOG.md`'ye taşındı; `MEMORY` üç satır da kaldı (T380, T313, T314); `DEFERRED_BACKLOG` main'in D-162/D-163 kayıtları korundu, T380'in kaydı D-164 kaldı; "Aktif kalem" yeniden sayıldı: 94 (91 açık + 3 sürüyor), main ile aynı. Yeni backlog kaydı yok.
+
+**Testler (birleştirilmiş dal, Postgres 18 `t380`, silindi):** Unit `Architecture` 787/787 (taramanın kendisi dahil), Unit geri kalan (`Consistency=true` hariç) 2082/2082, kırmızı yok. Integration `Model` içinde `AuditTrailTests` + `AdminAndAuditTablesTests` 64/64. Build 0 uyarı, 0 hata.
+
+### Öz denetim (Düzeltme 2)
+
+| # | Madde | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | CI hatası kapandı | ✓ | `ForbiddenTestPatternScanTests` yerelde yeşil (Architecture 787/787) |
+| 2 | Bekçi/tarama istisnası eklenmedi, tarama gevşetilmedi | ✓ | `tests/Shopfolio.UnitTests/Architecture/` değişmedi; yalnız `AuditEntryRulesTests.cs` tek satır |
+| 3 | Kabul kriterleri 1–10, KK1–KK10 | ✓ | Düzeltme 1 tablosundaki testler birleştirilmiş dalda yeşil (Administration, AuditTrailTests) |
+| 4 | Kişisel veri düzeltmesi (KK3) bozulmadı | ✓ | `AuditEntryRules` değişmedi; yuva testleri yeşil |
+| 5 | Kural değişmedi, sayı anan başka yer yok | ✓ | Belge kuralı/09 metni değişmedi; yalnız test satırı |
+| 6 | 06 Varsayılan/FK dizini | ✓ (kapsam dışı) | Şema değişmedi |
+| 7 | Kayıt belgeleri tutarlı | ✓ | STATUS tek giriş, eskisi changelog'da; backlog sayacı 94 |

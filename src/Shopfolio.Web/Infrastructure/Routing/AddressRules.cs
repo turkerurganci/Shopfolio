@@ -50,10 +50,16 @@ internal static partial class AddressRules
     /// <summary>The machine and file areas (07 2.1.2, 2.1.9).</summary>
     public static readonly IReadOnlyList<string> MachineAreas = ["sistem", "indir", "gorsel", "statik"];
 
+    /// <summary>The site map file's name (07 2.1.9, 4.32.1); the endpoint (T313) and the robots.txt body take the name from here.</summary>
+    public const string SitemapFile = "sitemap.xml";
+
+    /// <summary>The robots file's name (07 2.1.9, 4.32.1).</summary>
+    public const string RobotsFile = "robots.txt";
+
     /// <summary>
     /// The two protocol files whose names are fixed by the protocol (07 2.1.9; 05 3.7.4): the only first segments that carry a dot.
     /// </summary>
-    public static readonly IReadOnlyList<string> ProtocolFiles = ["sitemap.xml", "robots.txt"];
+    public static readonly IReadOnlyList<string> ProtocolFiles = [SitemapFile, RobotsFile];
 
     /// <summary>The closed list of the first path segment (07 2.1.2): the five prefixes, the fixed pages, the account, the order root, the panel and the machine areas.</summary>
     public static readonly IReadOnlyList<string> ClosedFirstSegments =

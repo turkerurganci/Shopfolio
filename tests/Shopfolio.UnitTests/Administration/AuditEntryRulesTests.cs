@@ -310,7 +310,7 @@ public sealed class AuditEntryRulesTests
     {
         AuditDetails details = new("Havale bilgisi", [new AuditValueChange("ReturnAddress", "Atatürk Mah. 12. Sk. No:3", "Yeni Mah. 2. Sk.")]);
 
-        AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateSettings, "CompanySettings", Target, details));
+        Assert.Null(Record.Exception(() => AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateSettings, "CompanySettings", Target, details))));
     }
 
     [Theory]

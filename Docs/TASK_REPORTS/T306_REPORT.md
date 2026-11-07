@@ -342,7 +342,7 @@ Yönetici yardımcı düzeni: merge ve post-merge izleme yardımcının (adım 1
 - **Commit:** bkz. PR (head SHA PR açıklamasında)
 - **PR:** #427 — `T306: Müşteri bildirimleri B-1…B-8`
 - **CI:** dal CI'ı validator izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `9e3f8c3` (#427) — CI 42382907080 success, Publish 42382907093 success (T307 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

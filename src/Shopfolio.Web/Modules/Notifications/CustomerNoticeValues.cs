@@ -9,7 +9,12 @@ using Shopfolio.Modules.Payment.Contracts;
 namespace Shopfolio.Modules.Notifications;
 
 /// <summary>What the dispatch row of a customer notice is made of: its type, the first e-mail's row id (B-1 after a correction) and the event's values as the stored list (null when the notice has none).</summary>
-internal sealed record CustomerNoticeRow(DispatchType Type, Guid? OriginalDispatchId, string? EventValues);
+internal sealed record CustomerNoticeRow(
+    DispatchType Type,
+    Guid? OriginalDispatchId,
+    string? EventValues,
+    DispatchRelatedRecordType? RelatedRecordType = null,
+    Guid? RelatedRecordId = null);
 
 /// <summary>
 /// The event's values of the customer notices B-1…B-8 (08 2.2.6 item 4; 06 4.58 <c>EventValues</c>; 05 4.4.2): a JSON list of name and value pairs - the same shape as
@@ -18,7 +23,7 @@ internal sealed record CustomerNoticeRow(DispatchType Type, Guid? OriginalDispat
 /// method); the order's own data is read from the order when the body is made. A notice that breaks the rule of its type is refused when the row is made, so a
 /// row that cannot be written into a body never exists. Moments are round-trip text, amounts are invariant text, enums are their code names.
 /// </summary>
-internal static class CustomerNoticeValues
+internal static partial class CustomerNoticeValues
 {
     public const string FirstEmailSentAtName = "FirstEmailSentAt";
     public const string WindowEndsAt = "WindowEndsAt";
@@ -84,15 +89,15 @@ internal static class CustomerNoticeValues
                     null,
                     Write((RefundTypeName, refund.RefundType.ToString()), (Amount, Money(refund.Amount)), (Method, refund.Method.ToString())));
             default:
-                throw new ArgumentException($"{notice.GetType().Name} is not a customer notice of B-1…B-8.", nameof(notice));
+                return ForAfterOrder(notice);
         }
     }
 
     /// <summary>
-    /// The notice a stored row means, or null when the type is not one of B-1…B-8 or the stored list is missing a value its type needs or holds one that is not
+    /// The notice a stored row means (B-9 also needs the row's related record id), or null when the type is not one of B-1…B-16 or the stored list is missing a value its type needs or holds one that is not
     /// of the form the writer makes (the reader is tolerant, 09 12 item 5). The order is the row's order link.
     /// </summary>
-    public static CustomerNotice? Read(DispatchType type, Guid orderId, string? eventValues)
+    public static CustomerNotice? Read(DispatchType type, Guid orderId, string? eventValues, Guid? relatedRecordId = null)
     {
         Dictionary<string, string>? values = ReadList(eventValues);
         switch (type)
@@ -126,7 +131,7 @@ internal static class CustomerNoticeValues
                     && Enum.TryParse(Get(values, Method), out PaymentMethod method) && Enum.IsDefined(method):
                 return new RefundProcessedNotice(orderId, refundType, amount, method);
             default:
-                return null;
+                return ReadAfterOrder(type, orderId, values, relatedRecordId);
         }
     }
 

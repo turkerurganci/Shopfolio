@@ -136,7 +136,6 @@ public sealed class RequestBodyLimitMiddlewareTests
     [InlineData(null, 64 * Kilobyte)]
     [InlineData("General", 64 * Kilobyte)]
     [InlineData("LongText", Megabyte)]
-    [InlineData("Chunk", 5 * Megabyte)]
     [InlineData("Notification", 64 * Kilobyte)]
     public async Task ABodyOneByteOverTheCeiling_IsRefusedWith413_ForEveryClass_WithoutReadingIt(string? className, long ceiling)
     {
@@ -145,6 +144,41 @@ public sealed class RequestBodyLimitMiddlewareTests
         Assert.False(run.NextCalled);
         Assert.Equal(StatusCodes.Status413PayloadTooLarge, run.Context.Response.StatusCode);
         Assert.Equal(0, run.Context.Request.Body.Position);
+    }
+
+    // T312 (07 4.31.2; D-148): the chunk class is measured by its own endpoint, after the session and the 404, so the middleware refuses nothing, reads nothing and
+    // lifts the server's own ceiling; the endpoint answers the 413 itself (UploadEndpointsTests: a big chunk of an unknown upload is a 404, not a 413).
+    [Theory]
+    [InlineData(5 * Megabyte + 1, true)]
+    [InlineData(100 * Megabyte, true)]
+    [InlineData(null, false)]
+    public async Task TheChunkClass_IsPassedOnUnmeasured_WhateverTheLength_AndTheServersCeilingIsLifted(long? declaredLength, bool declared)
+    {
+        Run run = Make("POST", RequestBodyClass.Chunk, declaredLength, 10);
+        MaxBodyFeature feature = new() { MaxRequestBodySize = 1234 };
+        run.Context.Features.Set<IHttpMaxRequestBodySizeFeature>(feature);
+
+        await run.InvokeAsync();
+
+        Assert.Equal(declared, run.Context.Request.ContentLength is not null);
+        Assert.True(run.NextCalled);
+        Assert.Equal(StatusCodes.Status200OK, run.Context.Response.StatusCode);
+        Assert.Equal(10, run.NextReadBytes);
+        Assert.Null(feature.MaxRequestBodySize);
+    }
+
+    [Fact]
+    public async Task TheEndpointsOwnRefusal_IsTheSame413AsTheMiddlewares_NoBodyOnAMachineEndpoint()
+    {
+        Run run = Make("POST", RequestBodyClass.Chunk, RequestBodyLimits.ChunkMaxBytes + 1, 1, machine: true, path: "/panel/yukleme/x");
+
+        run.Context.Response.Body = run.Response;
+
+        await RequestBodyLimitMiddleware.RefuseAsync(run.Context, run.Context.GetEndpoint());
+
+        Assert.Equal(StatusCodes.Status413PayloadTooLarge, run.Context.Response.StatusCode);
+        Assert.Equal(0, run.Response.Length);
+        Assert.Equal("close", run.Context.Response.Headers.Connection.ToString());
     }
 
     [Fact]

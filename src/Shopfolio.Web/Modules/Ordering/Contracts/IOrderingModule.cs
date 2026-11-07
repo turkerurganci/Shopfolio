@@ -19,4 +19,14 @@ public interface IOrderingModule
     /// emptied or empty key. The key is case sensitive (07 2.1.7). The order is a guest's or a member's: the address opens for a member too (02 3.22.3).
     /// </summary>
     Task<Guid?> FindOrderByAccessKeyAsync(string accessKey, CancellationToken ct);
+
+    /// <summary>
+    /// What the download endpoint needs of an order item (07 4.31.1; 05 7.7.4): its variant link and last known file link, or null when there is no such item or it
+    /// is not a digital item - the caller answers both with the same 404. A plain read; it writes nothing and does not look at the download counter (the right
+    /// dropped at the order page's button).
+    /// </summary>
+    Task<DownloadableItem?> FindDownloadableItemAsync(Guid orderItemId, CancellationToken ct);
 }
+
+/// <summary>The links a digital order item holds to its file (06 4.18): the variant, emptied when the variant is deleted, and the last known file.</summary>
+public sealed record DownloadableItem(Guid? VariantId, Guid? DigitalFileId);

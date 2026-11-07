@@ -7,8 +7,8 @@ namespace Shopfolio.UnitTests.Architecture;
 /// (<c>.cs</c> and <c>.cshtml</c>): (1) no way out of the forgery protection but the one switch of the signed endpoints - no <c>IgnoreAntiforgery…</c>
 /// name anywhere, <c>DisableAntiforgery</c> only in <c>SignedEndpointRegistration.cs</c>, no <c>RequireAntiforgeryToken(false)</c>, every
 /// <c>MapSignedEndpoint</c> call takes its path from <c>AntiforgeryExemptions</c> and never from a literal, and no other writing endpoint is mapped
-/// (a minimal <c>MapPost</c> has no page filter - the browser POSTs are page handlers, 09 4.1; the header-token endpoint of the chunked upload brings
-/// its own mechanism and relaxes this rule in its task); (2) a post form in a view carries the token: the form tag adds it only when it has no
+/// (a minimal <c>MapPost</c> has no page filter - the browser POSTs are page handlers, 09 4.1; the header-token endpoints of the chunked upload bring
+/// their own mechanism and relax this rule in one file only, D-131); (2) a post form in a view carries the token: the form tag adds it only when it has no
 /// <c>action</c> of its own, so a post form with an <c>action</c> needs <c>asp-antiforgery="true"</c>, none may switch it off, and none posts to another
 /// site; (3) the headers of 09 15.2 items 3 and 4 are written in their own files only, the policy has no <c>unsafe-inline</c>, no <c>unsafe-eval</c> and
 /// no report-only form, and nothing in the application writes HSTS or calls <c>UseHsts</c> (the reverse proxy does, 05 6.8.1); (4) the markup of
@@ -43,6 +43,11 @@ internal static partial class ForgeryProtectionSourceScan
 
     private const string RegistrationFile = "Infrastructure/SignedEndpoints/SignedEndpointRegistration.cs";
 
+    private static readonly string[] HeaderTokenPathArguments = ["AntiforgeryExemptions.UploadStartPath", "AntiforgeryExemptions.UploadChunkPath"];
+
+    /// <summary>The one file whose POST mappings may carry the header token check instead of being page handlers or signed endpoints (09 15.7 item 4; D-131).</summary>
+    public const string UploadEndpointsFile = "src/Shopfolio.Web/Endpoints/Files/UploadEndpoints.cs";
+
     public static IReadOnlyList<(string Rule, int Line)> Scan(string relativePath, string text)
     {
         string path = relativePath.Replace('\\', '/');
@@ -55,7 +60,15 @@ internal static partial class ForgeryProtectionSourceScan
         if (!path.EndsWith(RegistrationFile, StringComparison.Ordinal))
         {
             Add(findings, DisableOutsideRegistration, DisableName(), clean);
-            Add(findings, OtherWritingEndpoint, WritingMap(), clean);
+            foreach (Match map in WritingMap().Matches(clean))
+            {
+                // The one relaxation (D-131): the two POSTs of the chunked upload, mapped in the one file, from the header-token list, with the session and the header check.
+                if (!(string.Equals(path, UploadEndpointsFile, StringComparison.Ordinal) && IsHeaderTokenPost(clean, map)))
+                {
+                    findings.Add((OtherWritingEndpoint, LineOf(clean, map.Index)));
+                }
+            }
+
             foreach (Match call in SignedMap().Matches(clean))
             {
                 if (!PathComesFromTheList(clean, call))
@@ -127,6 +140,54 @@ internal static partial class ForgeryProtectionSourceScan
         {
             findings.Add((StyleBlockOutsideLayout, line));
         }
+    }
+
+    // A MapPost call of the upload endpoints' file that is allowed: it is MapPost (no other writing method), its first argument (the path) is made of AntiforgeryExemptions
+    // members and holds no string literal, and its statement (up to the semicolon) carries both RequireAdminSession( and RequireHeaderForgeryToken(.
+    private static bool IsHeaderTokenPost(string clean, Match map)
+    {
+        if (!map.Value.StartsWith("MapPost", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        int open = map.Index + map.Length - 1;
+        int end = clean.IndexOf(';', open);
+        if (end < 0)
+        {
+            return false;
+        }
+
+        string statement = clean[map.Index..end];
+        int depth = 0;
+        int comma = -1;
+        for (int i = open; i < end; i++)
+        {
+            if (clean[i] is '(' or '[' or '{')
+            {
+                depth++;
+            }
+            else if (clean[i] is ')' or ']' or '}')
+            {
+                depth--;
+            }
+            else if (clean[i] == ',' && depth == 1)
+            {
+                comma = i;
+                break;
+            }
+        }
+
+        if (comma < 0)
+        {
+            return false;
+        }
+
+        string pathArgument = clean[(open + 1)..comma];
+        return HeaderTokenPathArguments.Contains(pathArgument.Trim(), StringComparer.Ordinal)
+            && !pathArgument.Contains('"', StringComparison.Ordinal)
+            && statement.Contains(".RequireAdminSession(", StringComparison.Ordinal)
+            && statement.Contains(".RequireHeaderForgeryToken(", StringComparison.Ordinal);
     }
 
     // The path argument of a MapSignedEndpoint call: the call's whole argument list holds AntiforgeryExemptions. and no string literal.

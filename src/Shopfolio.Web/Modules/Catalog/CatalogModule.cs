@@ -14,13 +14,33 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly StockCounters _counters;
     private readonly ImageUploads _imageUploads;
     private readonly CatalogSitemapReader _sitemap;
+    private readonly DigitalFileReader _fileReader;
+    private readonly DigitalFileUploads _fileUploads;
 
-    public CatalogModule(StockCounters counters, ImageUploads imageUploads, CatalogSitemapReader sitemap)
+    public CatalogModule(
+        StockCounters counters,
+        ImageUploads imageUploads,
+        CatalogSitemapReader sitemap,
+        DigitalFileReader fileReader,
+        DigitalFileUploads fileUploads)
     {
         _counters = counters;
         _imageUploads = imageUploads;
         _sitemap = sitemap;
+        _fileReader = fileReader;
+        _fileUploads = fileUploads;
     }
+
+    public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct)
+        => _fileReader.FindAsync(variantId, lastKnownFileId, ct);
+
+    public Task<UploadStartResult> StartUploadAsync(string? fileName, long sizeBytes, CancellationToken ct)
+        => _fileUploads.StartAsync(fileName, sizeBytes, ct);
+
+    public Task<UploadChunkResult> ReceiveChunkAsync(Guid id, long start, Stream body, long length, CancellationToken ct)
+        => _fileUploads.ReceiveAsync(id, start, body, length, ct);
+
+    public Task<UploadStatus?> GetUploadStatusAsync(Guid id, CancellationToken ct) => _fileUploads.StatusAsync(id, ct);
 
     public Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct) => _sitemap.ListAsync(ct);
 
@@ -61,6 +81,9 @@ internal static class CatalogModuleRegistration
         services.AddScoped<StockCounters>();
         services.AddScoped<ImageUploads>();
         services.AddScoped<CatalogSitemapReader>();
+        services.AddScoped<DigitalFileReader>();
+        services.AddScoped<DigitalFileLocks>();
+        services.AddScoped<DigitalFileUploads>();
 
         // The image derivative job (D-97) and the image disposal (D-102): the rows first, the files they leave behind after (06 9.3.4).
         services.AddJobHandler<ImageDerivativeJobHandler>(JobType.ImageDerivative);

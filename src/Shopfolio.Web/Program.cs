@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 
 using Shopfolio.Endpoints;
+using Shopfolio.Endpoints.Files;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Errors;
@@ -178,5 +179,8 @@ app.MapStatusEndpoint();
 
 // The site map and robots.txt (UC-79; 05 3.7.3, 3.7.4): open machine endpoints, made on request; the map comes from the cache.
 app.MapSitemapEndpoints();
+
+// The file endpoints (UC-37, UC-83; 09 15.7): the signed download and the chunked upload under the panel's session.
+app.MapFileEndpoints();
 
 app.Run();

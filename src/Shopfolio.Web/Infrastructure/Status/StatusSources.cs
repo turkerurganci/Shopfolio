@@ -11,7 +11,13 @@ namespace Shopfolio.Infrastructure.Status;
 internal interface IDiskUsageReader
 {
     double UsedFraction();
+
+    /// <summary>The disk's size and free space in bytes: the upload's admission check adds the declared size to the used part (<see cref="DiskUsageGuard"/>).</summary>
+    DiskCapacity Capacity();
 }
+
+/// <summary>The data disk's total size and the free bytes of it.</summary>
+internal readonly record struct DiskCapacity(long TotalBytes, long FreeBytes);
 
 /// <summary>The state of the log archiving read from the database's own statistics (05 9.4.4, 9.4.10).</summary>
 internal interface ILogShippingReader
@@ -38,6 +44,12 @@ internal sealed class DriveDiskUsageReader : IDiskUsageReader
 
     public double UsedFraction()
     {
+        DiskCapacity capacity = Capacity();
+        return 1.0 - ((double)capacity.FreeBytes / capacity.TotalBytes);
+    }
+
+    public DiskCapacity Capacity()
+    {
         // The directory is made on the first write; the nearest directory that exists is on the same disk.
         string? probe = _path;
         while (probe is not null && !Directory.Exists(probe))
@@ -52,7 +64,7 @@ internal sealed class DriveDiskUsageReader : IDiskUsageReader
             throw new IOException("The disk reports no size.");
         }
 
-        return 1.0 - ((double)drive.AvailableFreeSpace / total);
+        return new DiskCapacity(total, drive.AvailableFreeSpace);
     }
 }
 

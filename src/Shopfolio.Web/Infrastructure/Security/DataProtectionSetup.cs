@@ -21,6 +21,7 @@ internal static class DataProtectionSetup
             .SetApplicationName(ApplicationName)
             .PersistKeysToDbContext<AppDbContext>();
         services.AddSingleton<ProtectedValues>();
+        services.AddSingleton<DownloadLinks>();
         return services;
     }
 }

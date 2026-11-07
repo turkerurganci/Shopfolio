@@ -102,6 +102,14 @@ public sealed class SitemapSourceTests
         public Task<StockQuantityWriteResult> SaveStockQuantityAsync(Guid variantId, int? shownValue, int? newValue, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<ImageUploadResult> UploadImageAsync(byte[] content, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<UploadStartResult> StartUploadAsync(string? fileName, long sizeBytes, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<UploadChunkResult> ReceiveChunkAsync(Guid id, long start, Stream body, long length, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<UploadStatus?> GetUploadStatusAsync(Guid id, CancellationToken ct) => throw new NotSupportedException();
     }
 
     private sealed class FakeContent(IReadOnlyList<string> paths) : ICorporateContentModule

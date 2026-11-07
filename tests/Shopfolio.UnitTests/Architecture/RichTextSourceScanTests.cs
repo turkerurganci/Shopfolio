@@ -52,6 +52,15 @@ public sealed class RichTextSourceScanTests
     }
 
     [Fact]
+    public void TheSearchHeadException_IsTheTwoHeadBuildersOfTodayAndGrowsByNothing_UntilD357MovesThem()
+    {
+        string text = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), RichTextSourceScan.SearchHeadFile));
+
+        // D-357: the two places that return the head as markup. A third one is a new raw-markup place and needs its own decision, not this file's exception.
+        Assert.Equal(2, System.Text.RegularExpressions.Regex.Count(text, @"\bHtmlString\b", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
+    }
+
+    [Fact]
     public void Scan_OnViolationSampleInAModule_ReportsEveryRuleOnItsLine()
     {
         IReadOnlyList<(string Rule, int Line)> findings = RichTextSourceScan.Scan("src/Shopfolio.Web/Modules/Catalog/Leak.cs", Sample());

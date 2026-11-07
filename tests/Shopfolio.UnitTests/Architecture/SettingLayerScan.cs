@@ -18,6 +18,8 @@ internal static partial class SettingLayerScan
 
     public const string TemplateKeyIsSecretSetting = "settings template lists a secret setting";
 
+    public const string FormFieldNamesProductConstant = "panel form field has the name of a product constant";
+
     /// <summary>The normalized names of the constants (fields that are literals) of a class.</summary>
     public static HashSet<string> ConstantNames(Type constantsClass)
     {
@@ -88,6 +90,47 @@ internal static partial class SettingLayerScan
         return findings;
     }
 
+    /// <summary>
+    /// Findings of scan (3), the panel's forms (T381 criterion 7; 02 11.2): a form field - a bound page model member or a markup field (<c>name</c>, <c>id</c> or
+    /// <c>asp-for</c>) - whose last name segment is the name of a product constant. A product constant is not a setting, so the panel has no field for it.
+    /// Returns the rule and the 1-based line of each finding.
+    /// </summary>
+    public static IReadOnlyList<(string Rule, int Line)> ScanPanelFormSource(string text, IReadOnlySet<string> productConstantNames)
+    {
+        List<(string Rule, int Line)> findings = [];
+        string[] lines = text.ReplaceLineEndings("\n").Split('\n');
+        bool bindPending = false;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            string line = lines[i];
+            bool boundHere = BindPropertyAttribute().IsMatch(line);
+            Match member = PublicProperty().Match(line);
+            bool flagged = false;
+            if (member.Success && (boundHere || bindPending) && productConstantNames.Contains(Normalize(member.Groups["name"].Value)))
+            {
+                flagged = true;
+            }
+
+            foreach (Match field in MarkupField().Matches(line))
+            {
+                string value = field.Groups["name"].Value;
+                if (productConstantNames.Contains(Normalize(value[(value.LastIndexOf('.') + 1)..])))
+                {
+                    flagged = true;
+                }
+            }
+
+            if (flagged)
+            {
+                findings.Add((FormFieldNamesProductConstant, i + 1));
+            }
+
+            bindPending = boundHere && !member.Success;
+        }
+
+        return findings;
+    }
+
     /// <summary>The comparison form of a name: letters and digits, upper case.</summary>
     public static string Normalize(string name) => new string([.. name.Where(char.IsLetterOrDigit)]).ToUpperInvariant();
 
@@ -97,6 +140,17 @@ internal static partial class SettingLayerScan
     // public int Name { get; set; }  /  public const string Name = ...;  /  public static readonly ... Name = ...;
     [GeneratedRegex(@"^\s*public\s+(?:const\s+|static\s+|readonly\s+)*[\w<>\[\]?,. ]+?\s+(?<name>\w+)\s*(?:\{|=)", RegexOptions.CultureInvariant)]
     private static partial Regex PublicMember();
+
+    [GeneratedRegex(@"[\[,]\s*BindProperty\b", RegexOptions.CultureInvariant)]
+    private static partial Regex BindPropertyAttribute();
+
+    // public int Name { get; set; }  (after the [BindProperty] attribute, on the same line or the line before)
+    [GeneratedRegex(@"\bpublic\s+[\w<>\[\]?,. ]+?\s+(?<name>\w+)\s*\{", RegexOptions.CultureInvariant)]
+    private static partial Regex PublicProperty();
+
+    // name="Input.CategoryLevelMax"  /  asp-for="CategoryLevelMax"  /  id='CategoryLevelMax'
+    [GeneratedRegex(@"\b(?:name|id|asp-for)\s*=\s*[""']@?(?<name>[\w.\[\]]+)[""']", RegexOptions.CultureInvariant)]
+    private static partial Regex MarkupField();
 
     [GeneratedRegex(@"^(?<key>[A-Za-z_][A-Za-z0-9_]*)=", RegexOptions.CultureInvariant)]
     private static partial Regex TemplateAssignment();

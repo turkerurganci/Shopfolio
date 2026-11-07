@@ -33,6 +33,18 @@ internal static class PeriodFences
         return Check(days, ParameterFences.FulfilmentPeriodLower, int.MaxValue);
     }
 
+    /// <summary>The download allowance of an order line (P-8): at the lower fence or above; it has no upper fence.</summary>
+    public static Verdict CheckDownloadAllowance(int downloads)
+    {
+        return Check(downloads, ParameterFences.DownloadAllowanceLower, int.MaxValue);
+    }
+
+    /// <summary>The most a product may be bought in one order (P-9): at the lower fence or above; it has no upper fence.</summary>
+    public static Verdict CheckMaxQuantityPerOrder(int quantity)
+    {
+        return Check(quantity, ParameterFences.MaxQuantityPerOrderLower, int.MaxValue);
+    }
+
     private static Verdict Check(int value, int lower, int upper)
     {
         if (value < lower)

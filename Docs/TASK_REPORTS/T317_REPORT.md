@@ -88,9 +88,24 @@
 |---|---|---|---|
 | Build | ✓ | `dotnet build --no-restore Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
 | Lint | ✓ | `dotnet format … --verify-no-changes --include` (değişen klasörler) | değişiklik yok |
-| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/… --no-build` | 3965 / 3965 (TransitionTableTests 26) |
-| Integration | ✓ (1 ilgisiz) | `dotnet test --project tests/Shopfolio.IntegrationTests/… --no-build --filter-namespace …` (postgres:18, `shopfolio-t317-pg`) | Ordering 60 (PaymentTransitionsTests 29), Jobs + Concurrency 103, Model 1076, Database/Files/Security/… 251, Web 513'te 512 — düşen `VersionedFormPageTests.OrderPost_ByTheAdministrator_WithAnOldVersion_…_KK6` T317'ye bağlı değil, sıra bağımlı tohum çakışması (D-310) |
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/… --no-build` | 3965 / 3965 (TransitionTableTests 26); düzeltme turu 3 birleşik ağaçta 4116 / 4116 |
+| Integration | ✓ (1 ilgisiz) | `dotnet test --project tests/Shopfolio.IntegrationTests/… --no-build --filter-namespace …` (postgres:18, `shopfolio-t317-pg`) | Ordering 60 (PaymentTransitionsTests 29), Jobs + Concurrency 103, Model 1076, Database/Files/Security/… 251, Web 513'te 512 — düşen `VersionedFormPageTests.OrderPost_ByTheAdministrator_WithAnOldVersion_…_KK6` T317'ye bağlı değil, sıra bağımlı tohum çakışması (D-310). Düzeltme turu 3 (birleşik ağaç, `shopfolio-t317-fix3-pg`): Payment 33, Shipment + OrderTransitions 125, Disposal + Concurrency 71 |
 | Contract | — | NOT_APPLICABLE | |
+
+## Düzeltme turu 3 (2026-11-08)
+
+Doğrulama tur 2 B1 ve K1 (D-389) için. Dal `origin/task/T317-odeme-ekseni` (`545a12b`) + `origin/main` `a89710b` (T321, #439) birleştirmesi; kayıt çakışmaları (backlog, status) çözüldü, kod çakışması yok.
+
+**Ne değişti:**
+
+- **B1 — ödenmemiş iptalin tek yolu.** `IOrderTransitions.CancelUnpaidOrderAsync`, `UnpaidOrderCancellation` kaydı ve `TryReadCanceller` kaldırıldı. Seçilen yol "kaldır, T316 yolundan sına": `09 §24` madde 4 aynı işin tek işlevini ister ve T316'nın `CancelOrderAsync`'i Alındı + Bekliyor'da S3 + Ö2'yi zaten tek istekte yazıyor (`ChooseCancellation`). Onay, sürüm ve "Diğer ⇔ not" denetimi tek yerde kalır (`TryCancellationActor`); ikinci bir sarmalayıcı ikinci bir giriş noktası olurdu. Müşteri yolu ve S3 + Ö2 tek işlem davranışı değişmedi. `IOrderTransitions` ve `OrderTransitions.Payment.cs` özetleri Ö2'nin ayrı yöntemi olmadığını yazar.
+- **K1 / D-389 — Ö1'in tek yolu.** `StartPreparationAsync`'ten `approvesPayment` parametresi ve Ö1 + B-4 dalı kaldırıldı; yöntem yalnız S1 yazar (ödeme Ödendi'yken; Bekliyor'da çift kuralı reddeder). Ö1'i yalnız ödeme kaydı yazan `ApplyCardPaymentAsync` (aynı işlem kimliğini ayıklar) ve `MarkTransferPaidAsync` yazar. Kaldırılan dalın üretim çağıranı yoktu; para davranışı değişmedi. D-389 kapandı, D-307 T318 payına daraldı.
+
+**Testler:**
+
+- `PaymentTransitionsTests` KK4 (11 durum, 5 yöntem) artık `CancelOrderAsync` üzerinden: ödenmemiş siparişte alıcı/yönetici/sistem S3 + Ö2 tek işlemde (iki kayıt, gerekçe, tek sürüm artışı, B-7); ödenmiş siparişte Ö2 yok (alıcı ve sistem `ConditionNotMet`, firma S3 tek başına ve ödeme Ödendi'de); **onaysız yönetici iptali `ConfirmationRequired`**; **"Diğer" dışı gerekçeyle notlu, "Diğer" ile notsuz ya da boş notlu yönetici iptali `InvalidInput`**; sürümsüz `InvalidInput`, eski sürüm `VersionConflict`, sistemin kapanış gerekçesi `ReasonNotAllowed`. Her retten sonra sipariş, kayıt ve bildirim satırı değişmemiştir.
+- `ShipmentTransitionsTests`: S1 testleri yeni imzaya geçti (fiziksel kalemsiz sipariş ödeme Ödendi'yken tohumlanır, koşul reddeder); karışık sipariş testi kart ödemesi yoluna taşındı (`S1_OnAMixedOrderWithAPhysicalItem_ComesWithTheCardApprovalO1_OneVersionRaise_AndOneB4Row_KK3`) ve ödeme kaydının Ö1'e bağlandığını da sınar.
+- Birleşik ağaçta (yerel): restore 0; build `-warnaserror` 0 uyarı / 0 hata; `dotnet format --verify-no-changes` (Ordering kaynak + test klasörleri) temiz; Unit 4116 / 4116; Integration (postgres:18, `shopfolio-t317-fix3-pg`, 127.0.0.1:55437) PaymentTransitionsTests 33, ShipmentTransitionsTests + OrderTransitionsTests 125, Disposal + Concurrency 71 — hepsi yeşil.
 
 ## Doğrulama
 
@@ -147,6 +162,7 @@ K1 (→ D-322): `PaymentModule.ReadRefundMarksAsync` "geri ödeme gerçekleşmed
 
 - **Branch:** `task/T317-odeme-ekseni`
 - **Commit:** `4362c3d` — T317: Ödeme ekseni: testler derlendi ve geçti, null-forgiving kaldırıldı, rapor ve kayıtlar (dalın son kod commit'i; PR numarası commit'i bunu izler)
+- **Düzeltme turu 3:** `T317: düzeltme turu 3 — ödenmemiş iptalin tek yolu CancelOrderAsync (B1), Ö1'in tek yolu ödeme ekseni (D-389)` + `origin/main` birleştirmesi (dalın başı)
 - **PR:** #441
 - **CI:** 42414305022 success (head `66bcf16`; validator tur 2) · 42396093293 success (head `0926ba7`; validator tur 1)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında)*

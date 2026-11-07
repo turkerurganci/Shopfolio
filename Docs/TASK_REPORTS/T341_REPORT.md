@@ -58,9 +58,9 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit (Architecture dahil) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj` | UNIT_SONUC |
-| Consistency | ✓ | `… --filter-trait "Consistency=true"` | CONS_SONUC |
-| Integration (yerelde, parçalı) | ✓ | `--filter-class "*MembershipTests"`, `"*SessionLinkAttemptLoginTablesTests"`, `"*LinkRecordsTests"`, `"*DisposalTests"` | MembershipTests 29/29; üç komşu sınıf 99/99 |
+| Unit (Architecture dahil) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj` | 3477 geçti, 0 hata (Architecture ad alanı 842 dahil) |
+| Consistency | ✓ | `… --filter-trait "Consistency=true"` | 209 geçti |
+| Integration (yerelde, parçalı) | ✓ | `--filter-class "*MembershipTests"`, `"*SessionLinkAttemptLoginTablesTests"`, `"*LinkRecordsTests"`, `"*DisposalTests"` | MembershipTests 29/29; üç komşu sınıf 99/99; Concurrency 26/26 |
 
 ## Doğrulama
 

@@ -93,8 +93,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T339-urun-gorsel-metin`
-- **Commit:** *(PR açılınca son commit yazılır)*
-- **PR:** *(PR açılınca yazılır)*
+- **Commit:** `e950c0c` — T339: Ürün görseli ve metni: rapor, K-1577, backlog D-357..D-361, durum kayıtları (PR kaydı sonrası commit ile ilerler)
+- **PR:** #445
 - **CI:** *(yönetici izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

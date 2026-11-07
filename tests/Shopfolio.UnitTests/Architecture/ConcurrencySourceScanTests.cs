@@ -31,6 +31,7 @@ public sealed class ConcurrencySourceScanTests
 
         Assert.Contains(ConcurrencySourceScan.AdvisoryLocksFile, scanned);
         Assert.Contains(ConcurrencySourceScan.JobClaimFile, scanned);
+        Assert.Contains(ConcurrencySourceScan.DigitalFileLocksFile, scanned);
         Assert.Contains(ConcurrencySourceScan.OrderLocksFile, scanned);
         Assert.Contains(ConcurrencySourceScan.StockCountersFile, scanned);
         Assert.Empty(findings);
@@ -82,6 +83,29 @@ public sealed class ConcurrencySourceScanTests
         Assert.Contains((ConcurrencySourceScan.RowLockText, 7), findings);
         Assert.Contains((ConcurrencySourceScan.ShareLockText, 8), findings);
         Assert.Contains((ConcurrencySourceScan.CounterWrite, 10), findings);
+    }
+
+    [Fact]
+    public void Scan_InTheDigitalFileLocksFile_AllowsOnlyThePlainRowLockText()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = ConcurrencySourceScan.Scan(ConcurrencySourceScan.DigitalFileLocksFile, ReadSample());
+
+        Assert.Contains((ConcurrencySourceScan.RowLockText, 5), findings);
+        Assert.DoesNotContain((ConcurrencySourceScan.RowLockText, 6), findings);
+        Assert.Contains((ConcurrencySourceScan.RowLockText, 7), findings);
+        Assert.Contains((ConcurrencySourceScan.ShareLockText, 8), findings);
+        Assert.Contains((ConcurrencySourceScan.CounterWrite, 10), findings);
+    }
+
+    [Theory]
+    [InlineData("src/Shopfolio.Web/Modules/Ordering/DigitalFileLocks.cs")]
+    [InlineData("other/src/Shopfolio.Web/Modules/Catalog/DigitalFileLocks.cs")]
+    [InlineData("src/Shopfolio.Web/Endpoints/Files/UploadEndpoints.cs")]
+    public void Scan_AFileOfTheSameNameAsDigitalFileLocksElsewhere_OrAnotherFile_IsNotAnAllowedPlace(string path)
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = ConcurrencySourceScan.Scan(path, ReadSample());
+
+        Assert.Contains((ConcurrencySourceScan.RowLockText, 6), findings);
     }
 
     [Fact]

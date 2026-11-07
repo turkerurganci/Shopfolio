@@ -70,5 +70,5 @@ public sealed class UploadChunkResult : IOperationResult
 
     public static UploadChunkResult Accepted(long receivedBytes, bool isCompleted) => new(null, receivedBytes, isCompleted);
 
-    public static UploadChunkResult Mismatch(long receivedBytes) => new("Mismatch", receivedBytes, false);
+    public static UploadChunkResult Mismatch(long receivedBytes, bool isCompleted) => new("Mismatch", receivedBytes, isCompleted);
 }

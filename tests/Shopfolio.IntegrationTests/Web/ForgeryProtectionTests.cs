@@ -359,7 +359,7 @@ public sealed partial class ForgeryProtectionTests
 
         List<string> violations = WritingEndpointAudit.Violations(WritingEndpointAudit.Of([.. factory.Services.GetServices<EndpointDataSource>().SelectMany(d => d.Endpoints)]));
 
-        Assert.Equal(["/panel/yukleme: a writing endpoint outside the closed list"], violations);
+        Assert.Equal(["/panel/yukleme-deneme: a writing endpoint outside the closed list"], violations);
     }
 
     [Fact]
@@ -408,6 +408,43 @@ public sealed partial class ForgeryProtectionTests
         ];
 
         Assert.Equal(["/sistem/odeme-bildirimi: on the closed list but its check is not switched off"], WritingEndpointAudit.Violations(endpoints));
+    }
+
+    // --- D-131: the header-token list of the chunked upload (09 15.7 item 4) ---
+
+    [Fact]
+    public void TheAudit_AcceptsTheChunkedUploadsPostsWithTheHeaderCheck_AndAReadingEndpointOnTheSamePattern_D131()
+    {
+        List<AuditedEndpoint> endpoints =
+        [
+            new(AntiforgeryExemptions.UploadStartPath, IsPage: false, HasPolicy: false, HasIgnoreAttribute: false, AcceptsWrites: true, SwitchedOff: false, HasHeaderToken: true),
+            new(AntiforgeryExemptions.UploadChunkPath, IsPage: false, HasPolicy: false, HasIgnoreAttribute: false, AcceptsWrites: true, SwitchedOff: false, HasHeaderToken: true),
+            new(AntiforgeryExemptions.UploadChunkPath, IsPage: false, HasPolicy: false, HasIgnoreAttribute: false, AcceptsWrites: false, SwitchedOff: false),
+        ];
+
+        Assert.Empty(WritingEndpointAudit.Violations(endpoints));
+    }
+
+    [Fact]
+    public void TheAudit_IsRedOnAHeaderTokenPathWithoutTheCheck_OnTheCheckOffTheList_OnAListedPathWithTheCheckSwitchedOff_AndOnAnyOtherWritingEndpoint_D131()
+    {
+        List<AuditedEndpoint> endpoints =
+        [
+            new(AntiforgeryExemptions.UploadStartPath, IsPage: false, HasPolicy: false, HasIgnoreAttribute: false, AcceptsWrites: true, SwitchedOff: false),
+            new("/panel/baska-yukleme", IsPage: false, HasPolicy: false, HasIgnoreAttribute: false, AcceptsWrites: true, SwitchedOff: false, HasHeaderToken: true),
+            new(AntiforgeryExemptions.UploadChunkPath, IsPage: false, HasPolicy: false, HasIgnoreAttribute: false, AcceptsWrites: true, SwitchedOff: true, HasHeaderToken: true),
+            new("/panel/yukleme/{id}/iptal", IsPage: false, HasPolicy: false, HasIgnoreAttribute: false, AcceptsWrites: true, SwitchedOff: false),
+        ];
+
+        Assert.Equal(
+            [
+                "/panel/baska-yukleme: a writing endpoint outside the closed list",
+                "/panel/baska-yukleme: carries the header token check but is not on the header token list",
+                "/panel/yukleme: on the header token list but carries no header token check",
+                "/panel/yukleme/{id}: on the header token list but its check is switched off",
+                "/panel/yukleme/{id}/iptal: a writing endpoint outside the closed list",
+            ],
+            [.. WritingEndpointAudit.Violations(endpoints).Order(StringComparer.Ordinal)]);
     }
 }
 

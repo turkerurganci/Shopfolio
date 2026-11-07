@@ -75,7 +75,7 @@ internal sealed class DigitalFileUploads
         // A completed upload answers 409 whatever the chunk says; the script reads the status and finds it complete.
         if (row.UploadCompletedAt is not null || start != received)
         {
-            return UploadChunkResult.Mismatch(received);
+            return UploadChunkResult.Mismatch(received, row.UploadCompletedAt is not null);
         }
 
         // (d) The chunk's length is the one the endpoint counted before the lock (the declared length, or the bytes it buffered).

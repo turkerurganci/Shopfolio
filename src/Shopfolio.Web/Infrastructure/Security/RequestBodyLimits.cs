@@ -196,7 +196,8 @@ internal sealed class RequestBodyLimitMiddleware
         return buffer.ToArray();
     }
 
-    private static async Task RefuseAsync(HttpContext context, Endpoint? endpoint)
+    /// <summary>The 413 answer (07 2.8.7): also the chunk endpoint's, which measures its body itself after the session and the 404 (07 4.31.2).</summary>
+    internal static async Task RefuseAsync(HttpContext context, Endpoint? endpoint)
     {
         HttpResponse response = context.Response;
         response.StatusCode = StatusCodes.Status413PayloadTooLarge;

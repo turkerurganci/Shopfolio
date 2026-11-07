@@ -82,8 +82,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T304-bildirim-siniri`
-- **Commit:** *(PR açılınca yazılır)*
-- **PR:** #NN
+- **Commit:** `365a29d` — T304: Alıcı başına bildirim gönderim sınırı
+- **PR:** #421
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -143,7 +143,7 @@
 | T301 | Siparişin imha parçası | ⬚ | — | — | — |
 | T302 | Öteki kayıtların süreyle imhası | ⬚ | — | — | — |
 | T303 | İlk yönetici yönetim komutu ve komut çatısı | ⬚ | — | — | — |
-| T304 | Alıcı başına bildirim gönderim sınırı | ⏳ | — | — | #NN |
+| T304 | Alıcı başına bildirim gönderim sınırı | ⏳ | — | — | #421 |
 | T305 | E-posta ortak kalıbı ve gövde üretimi | ⬚ | — | — | — |
 | T306 | Müşteri bildirimleri B-1…B-8 | ⬚ | — | — | — |
 | T307 | Müşteri bildirimleri B-9…B-16 | ⬚ | — | — | — |

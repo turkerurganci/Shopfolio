@@ -282,7 +282,7 @@ public sealed class AdminAndAuditTablesTests : IAsyncLifetime
         await SaveAsync(c =>
         {
             c.Admins.Add(admin);
-            c.AuditLogs.Add(AuditLog.Create(AuditOperation.SendAdminInvitation, admin.Id, admin.Name, admin.Email, "AdminInvitation", target, "{\"InvitedAddress\":\"yeni@example.com\"}", Now));
+            c.AuditLogs.Add(AuditLog.Create(AuditOperation.SendAdminInvitation, admin.Id, admin.Name, admin.Email, "AdminInvitation", target, new AuditDetails(values: [new AuditValue("InvitedAddress", "yeni@example.com")]), Now));
         });
 
         // The administrator is removed: the row stays as it was written (06 2.2.5, 4.63).
@@ -298,7 +298,7 @@ public sealed class AdminAndAuditTablesTests : IAsyncLifetime
         Assert.Equal("AdminInvitation", row.TargetRecordType);
         Assert.Equal(target, row.TargetRecordId);
         Assert.Equal(Now, row.CreatedAt);
-        Assert.Contains("yeni@example.com", row.Details, StringComparison.Ordinal);
+        Assert.Equal("yeni@example.com", Assert.Single(row.Details!.Values).Value);
     }
 
     [Fact]

@@ -1,6 +1,6 @@
 # T341 — Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-07
 
 ---
 
@@ -66,10 +66,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | (doğrulayıcı doldurur) |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-07; head `391cdc3` + `origin/main` birleştirmesi). Kriter 1–9 ve KK1–KK9 validator kanıtıyla ✓ (kanıt testleri yukarıdaki tabloyla aynı, kod okunarak teyit edildi: kapı → alan → L-3 sırası, tembel Z-1 silmesi ve imha kaydı, düğmeyle tek koşullu tüketim, `LinkGuestOrdersAsync`'in hesabı olan ve hesabı silinmiş siparişi almaması, `ResolveOrderAccountAsync`'in bekleyen kayda bağlamaması, giriş kaydının kendi işleminde dört değerle yazılması). Kriter 3 ve 5'in sipariş ucu ve ekran mesajı yüzleri modül düzeyinde doğrulandı; bağları D-254 (T509, T514). Validator yerelde: build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` üç proje temiz; Unit 3534 (Architecture 842, Consistency 213, öteki 2479); betik testleri 4 dosya; Integration PostgreSQL 18 (`shopfolio-t341-val-pg`) MembershipTests 29/29, SessionLinkAttemptLoginTables + LinkRecords + AccountEmailQueue 95/95, AppCache + SessionAuthentication 14/14. Dal CI 42378956325 success (head `391cdc3`). Güvenlik: sır yok; parola yalnız `PasswordService`'te (210 000 yineleme), hesapsız adreste sahte özetle aynı iş; bağlantı anahtarı türetilir, ham anahtar saklanmaz; L-3 ve L-9 her istekte iki eksende; hesap varlığı yalnız `02 §8.1.4`'ün izin verdiği kayıt ekranında söylenir; misafir siparişi yalnız doğrulanmış e-postayla bağlanır. Yeni dış bağımlılık yok. `12`: KP-28 → `VAL-D018`, `VAL-D019`, `VAL-D020` (T341) ve `VAL-D021` (T375); üçünün beklenen sonucu sipariş geçmişinin uç yanıtıdır (Veri kaydı + Uç yanıtı), uç sonraki task'larda → `Durum` `BEKLEMEDE` kaldı; `12_matris_denetle.py --kapsam 1-77` hata 0. |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 — K1: D-252'nin hedefi T309'du, T309 bu PR'dan önce merge edildi ve doğrulama e-postasını kuyruğa yazan çağrı kimsenin kapsamında kalmadı → hedef T514 (UC-48/UC-49 yan etkisi; bu PR'da kayıt güncellendi). K2: `origin/main` birleştirmesiyle P-12 iki sabitte (`VerificationLinkLifetimeHours` ve T309'un `EmailVerificationLinkHours`, ikisi de 24) → D-289 (T514). K3: `09 §15.1` madde 5 `PasswordHasher<object>` der, kod `PasswordHasher<HashSubject>` → D-290 (F3 gate). Yapım raporu karşılaştırması: kriter tablosu ve öz denetim kanıtlı, verdict uyumlu; tek uyuşmazlık öz denetimin "P-12 yalnız `VerificationLinkLifetimeHours`" satırıdır — dal başında doğruydu, `origin/main` birleştirmesinden sonra değil (K2). |
 
 ## Altyapı Değişiklikleri
 
@@ -94,11 +94,13 @@ Dış varsayım: yok.
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
 | 1 | Şifre politikası (uzunluk, yaygın liste) kayıtta yok | D-251 | T342 kriter 7 |
-| 2 | Doğrulama e-postasının gönderim satırı ve gövdesi | D-252 | T309 |
+| 2 | Doğrulama e-postasının gönderim satırı ve gövdesi | D-252 | T514 (doğrulama tur 1 K1: T309 önce merge edildi, kuyruk yüzü hazır, çağrı UC-48/UC-49 yan etkisi) |
 | 3 | Gecelik Z-1 silmesi (T341'de yalnız tembel silme) | D-253 | T324 |
 | 4 | Kayıt, doğrulama, giriş ekranları ve POST uçları; yeniden kayıt tekil dizin yarışı için yeniden deneme | D-254 | T514, T515, T517 |
 | 5 | L-1 sayacı ve oturum açma | D-255 | T342 |
 | 6 | D-64 (LoginRecord yarısı), D-96 K2 kapandı; D-199 modül yüzü kapandı, ekran D-254 | D-64, D-96, D-199 | — |
+| 7 | P-12 iki sabitte (doğrulama tur 1 K2) | D-289 | T514 |
+| 8 | `09 §15.1` madde 5 metni `PasswordHasher<HashSubject>` ile hizalanır (doğrulama tur 1 K3) | D-290 | F3 gate |
 
 ## Notlar
 

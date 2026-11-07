@@ -106,7 +106,7 @@
 
 - **Branch:** `task/T336-fiyat-kdv`
 - **Commit:** `7c58024` (kod), `abafdab` (entegrasyon testleri), belgeler commit'i — son hali PR'da
-- **PR:** #PR_NO
+- **PR:** #444
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
 

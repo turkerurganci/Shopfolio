@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T304 (Alıcı başına bildirim gönderim sınırı) doğrulama tur 1 ✓ PASS (head `a8f38c1`, PR #421; kriter 1–9, KK1–KK9 ve `09 §25` ✓; Consistency 209, Unit 2759, betik testleri; Integration yerelde `RecipientSendLimitTests` 11 ve dal CI 42346270356 yeşil; `12` `Durum`: `VAL-E086`, `VAL-E095` → `PASS`; K1 → D-172). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T305 (E-posta ortak kalıbı ve gövde üretimi) doğrulama tur 1 ✓ PASS (head `2ee4f63`, PR #422; kriter 1–9, KK1–KK9 ve `09 §25` ✓; Unit 3049 (T305 56), betik testleri, Integration yerelde parçalı 1793 hepsi geçti, dal CI 42352393327 yeşil; `12` `Durum` değişmedi — KP-66/KP-68 satırları gönderen yolunu ister, `BEKLEMEDE`; K1 raporda kapatıldı (D-97/D-166 sahibi), K2 → D-189, K3 → D-190). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -144,7 +144,7 @@
 | T302 | Öteki kayıtların süreyle imhası | ⬚ | — | — | — |
 | T303 | İlk yönetici yönetim komutu ve komut çatısı | ⬚ | — | — | — |
 | T304 | Alıcı başına bildirim gönderim sınırı | ✓ | ✓ PASS (tur 1) | — | #421 |
-| T305 | E-posta ortak kalıbı ve gövde üretimi | ⏳ | — | — | #422 |
+| T305 | E-posta ortak kalıbı ve gövde üretimi | ✓ | ✓ PASS (tur 1) | — | #422 |
 | T306 | Müşteri bildirimleri B-1…B-8 | ⬚ | — | — | — |
 | T307 | Müşteri bildirimleri B-9…B-16 | ⬚ | — | — | — |
 | T308 | Firma bildirimleri F-1…F-6 | ⬚ | — | — | — |

@@ -1,6 +1,6 @@
 # T305 — E-posta ortak kalıbı ve gövde üretimi
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -71,10 +71,42 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-07, head `2ee4f63`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 (K1 bu PR'da kapatıldı; K2 → D-189; K3 → D-190) |
+
+### Doğrulama tur 1 — ✓ PASS
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` ana deponun `scripts/git-hooks`'u; main son üç tamamlanmış run 42351368236, 42351368096, 42346300012 `success`; hafızada T305 satırı var (satır 22).
+
+**Kriterler 1–9 ✓, KK1–KK9 ✓, `09 §25` ✓.** Kanıtlar (doğrulayıcı, kod okuması + testler):
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 / KK1 | ✓ | `EmailComposer.ComposeAsync` aynı `EmailFrameModel`'den `HtmlBody` (Razor `EmailFrame` + `HtmlRenderer`) ve `TextBody` (`EmailTextWriter`) üretir; düğme adresi düz metinde `Link.AbsoluteUri`; `TheLink_IsTheSameFullAddress_…`, `TheTwoParts_CarryTheSameValuesAndTheSameAddresses_FromOneModel` |
+| Kriter 2 / KK2 | ✓ | `EmailFrame.razor`: dış tablo `width="600"` + `max-width:600px`, tek sütun, satır içi biçim, sistem yazı tipi; `<script>`, `<link>`, `<style>`, `<form>` yok, tek `<img>` yalnız logo varken; `TheHtml_HasNoScript_NoExternalStyle_NoForm_NoTrackingPixel_AndNoImageWithoutALogo` |
+| Kriter 3 / KK3 | ✓ | Logo `EmailLinks.Logo` (yalnız `/gorsel/` altı, kök `SiteAddress` = `https://` + alan adı ayarı), `alt` = marka adı (adsızda alan adı); logosuzda başlık metni; `EmailColors.Button`: marka rengi yalnız düğme `bgcolor`/`background-color`, yazı WCAG oranı yüksek olan siyah/beyaz (`02 §3.29.5`), `#RRGGBB` değilse sabit renk; `TheBrandColour_IsOnlyTheMainButtonsBackground` (renk iki kez, ikisi de düğme zemini), `TheTextOnTheButton_IsBlackOrWhiteByContrast` |
+| Kriter 4 / KK4 | ✓ | `EmailComposer.Subject`: `OneLine(brand) + ": " + OneLine(title)` + `" (Sipariş {no})"`; başlık şablonun sabiti, müşteri metni modele girmez; `EmailText.BrandOrDomain`; `OneLine` denetim karakterlerini (CR, LF, NEL, BEL) ve U+2028/2029'u boşluğa çevirir; `ABrandNameWithLineBreaksAndControlCharacters_IsOneLine_…`, `WithoutABrandName_TheDomainStandsInItsPlace_…` |
+| Kriter 5 / KK5 | ✓ | Çerçevede her değer `@…` ile Razor kodlamasından geçer (öznitelik dahil); `EmailRenderingSourceScan` ad alanında `MarkupString`/`HtmlString`/`Html.Raw`/`AddMarkupContent` yok; düz metin yazıcısı her değeri `OneLine`'dan geçirir; `AValueWithMarkup_IsTextInTheHtml_AndTheLineBreaksAreBlanksInThePlainText`, `TheFirmsValues_AreEncodedToo_…`, `AValueThatLooksLikeALinkOrAnAttribute_StaysText` |
+| Kriter 6 / KK6 | ✓ | `EmailButton` yalnız mutlak `https` kabul eder; çerçevede düğmenin hemen altında aynı adres `<p>` metni; `EmailLinks.GuestOrder` `/siparis/erisim/{anahtar}`, `MemberOrder` `/siparis/{no}` (`07 §2.1.3`, UC-33/UC-34), değer `Uri.EscapeDataString`; dış adreste `rel="noreferrer"`; düğmesiz içerik bağlantısız (B-15, silinme); `TheMainAction_IsAButton_AndTheSameAddressIsPlainTextUnderIt`, `AnEmailWithoutAButton_HasNoLinkAtAll_…` |
+| Kriter 7 / KK7 | ✓ | `EmailKeyValue.Amount/Date/Number` ve `EmailResend.Sentence` yalnız `DisplayFormat`'ı çağırır (`04 §8.2`; tarih Türkiye günü); değer çağırandan gelir, bileşen saat okumaz; `AmountsDatesAndNumbers_AreInTheDisplayFormat` ("1.200 TL", "266,67 TL", "-50 TL", "4 Ekim 2026", 21:00 UTC → "5 Ekim 2026", "1.250") |
+| Kriter 8 / KK8 | ✓ | `EmailResend` yalnız şablon verirse cümle gövdenin en üstünde (HTML ve düz metin); konu `Resend`'den bağımsız; `AResend_KeepsTheSubject_AndPutsTheDatedSentenceOnTop_InBothParts`, `ANewEventOfTheSameType_CarriesNoResendSentence`, `TheResendDate_IsTheTurkeyDayOfTheFirstEmail` |
+| Kriter 9 / KK9 | ✓ | Altbilgi `FirmName`, `FirmEmail`, `ReplySentence` ("Bu e-postayı yanıtlayarak firmaya ulaşabilirsiniz."); abonelik/pazarlama/platform imzası yok; yanıt adresi firma e-postası; `TheFooter_HasTheLegalName…AndNoSubscriptionOrMarketing` |
+| `09 §25` | ✓ | `HtmlRenderer` çatıyla (yeni paket yok, kilit dosyaları main ile aynı; `RequiresAspNetWebAssets=false` örtük Blazor varlık paketini kapatır); yeni ayar/göç yok; kaynak taraması + ihlalli örnek (`Scan_OnTheViolationSample_ReportsEveryShapeOfEveryRule`); `CONTEXT.md` Infrastructure satırı güncel; zaman ve tutar biçimi `DisplayFormat`'tan; gövde saklanmaz (`05 §4.4.2`) |
+| Güvenlik | ✓ | sır yok; uç ve yetki etkisi yok; girdi: HTML kodlaması, konu/gönderen adı tek satır, yol değeri yüzde kodlu, renk `#RRGGBB` doğrulamalı (style özniteliği), logo yolu `/gorsel/` önekli, düğme yalnız `https`; adres kökü istek başlığından okunmaz (tarama); yeni dış bağımlılık yok |
+
+**Testler (doğrulayıcı, yerel):** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` Web, UnitTests, IntegrationTests ayrı ayrı temiz; Unit 3049/3049 (Architecture + Consistency + Locks 987, kalan 2062; T305 sınıfları 56/56); betik testleri 4 dosya geçti; Integration gerçek PostgreSQL 18 (yerel konteyner) parçalı, hepsi geçti: `MigrationBundleTests` 2, Web 592 (beş parça), Security + Pages 32, Concurrency + Jobs 103, Database 36, Model 893 (üç parça), Disposal/FileSecrets/Files/Logging/Outages/SignedEndpoints 135 — toplam 1793; koşu sonrası `git status` temiz, `dotnet restore Shopfolio.slnx --locked-mode` çıkış 0. Dal CI 42352393327 `success` (head `2ee4f63`); önceki iki run (Lint, Paketleme) Düzeltme 1–2 ile kapandı.
+
+**Task satırları (`12 §7.5`):** T305'in KP birimleri KP-66 ve KP-68 (`11 §7.1`). Satırları `VAL-A317`–`A325` ve `VAL-A332`–`A336` (14 satır) bildirimin gerçekten gönderilmesini (sahte e-posta altyapısı, olayın tetiği, yeniden deneme, işaret, panelden yeniden gönderim) ister; T305 gönderen yazmaz (D-97, D-166), bu yüzden hiçbiri T305'in kriterine eşlenmez ve `Durum`'ları `BEKLEMEDE` kalır. `08 §2.2.5`'i anan `VAL-A159` (KP-56) da gönderilmiş e-posta ister; T305'in kalıbı onun beklenen sonucunu (logo mutlak adres, alt metin, düğme zemini, imza yok) birim düzeyde karşılar, satır sahip task'ında (gönderen) okunur.
+
+**K1 (bu PR'da kapatıldı):** D-97 ve D-166 göndericiyi ve sınırın çağrı noktasını "T305/T385/T407"ye bırakıyordu; T305 kriterleri göndericiyi kapsamaz ve T305 yazmadı. İki kaydın sahibi T385/T407 olarak düzeltildi, `EmailComposer`'ın hazır olduğu not edildi.
+
+**K2 → D-189:** Düğmenin varsayılan rengi (`EmailColors.DefaultButtonBackground = "#1A56DB"`) "ürünün varsayılan rengi"nin (`02 §3.29.5`) tek kaynağı değil; vitrinin tasarım sistemi rengi tanımlayınca e-posta aynı kaynaktan okumalı.
+
+**K3 → D-190:** `09 §11.4` madde 7'nin "düz metin parçasında … etiket yoktur" cümlesi iki biçimde okunabilir; kural (madde 2), `08 §2.2.4` ve kriter 5 / KK5 yalnız satır sonunu ister ve eşdeğerlik (`08 §2.2.5` madde 1) değerin olduğu gibi kalmasını gerektirir. T305 bu okumayla doğru (yapım raporu ⚠ 2 ile aynı); cümle doküman geçişinde netleşmeli.
+
+**Yapım raporu karşılaştırması:** uyumlu; öz denetim tablosu her kriter, KK, `09 §11.4` m.7 ve `09 §25` için kanıtlı. Raporun Integration'ı "koşulmadı" diyor; doğrulayıcı yerelde parçalı koştu (hepsi geçti). Raporun ⚠ 2'si K3 olarak backlog'a taşındı; D-97/D-166 sahiplik düzeltmesi (K1) raporda yoktu. Raporda `12` task satırları bölümü yok (bu doğrulamada yazıldı).
 
 ## Altyapı Değişiklikleri
 

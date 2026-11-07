@@ -82,7 +82,7 @@ Entegrasyon paketinin tamamı yerelde koşulmadı (parçalı); CI'a bırakıldı
 | Doğrulama durumu | ✓ PASS — tur 1 (2026-11-07, head `a57c4ca`) |
 | Bulgu sayısı | 0 |
 | Düzeltme gerekli mi | Hayır |
-| Bloke-etmeyen not (K) sayısı | 2 (K1 kapatıldı — kod kanıtı; K2 → D-161) |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 kapatıldı — kod kanıtı; K2 → D-162) |
 
 ### Doğrulama tur 1 — ✓ PASS
 
@@ -112,7 +112,7 @@ Entegrasyon paketinin tamamı yerelde koşulmadı (parçalı); CI'a bırakıldı
 
 **K1 (kapatıldı — kod kanıtı):** KK7 "409 sayılmaz" der; tümleşik test 409 yerine 404 sınar. 409 (sürüm çakışması), 422 ve 429 `FormResults`/`OperationRunner` sonucudur, istisna olarak katmana düşmez; sayacın tek yazımı `Resolve` içindedir. Kod değişikliği gerekmez.
 
-**K2 → D-161:** işlem günlüğü aktarımının durması son başarılı aktarımdan sayılır; uzun süre WAL üretmeyen sistemde tek bir geçici aktarım hatası koşulu hemen açar (bir sonraki başarılı denemede kalkar). Dış kontrol iki ardışık başarısızlıkta uyardığı için etkisi düşük; okuma `VAL-A965`'in "9 ve 11 dakika durmuş" ölçüsüyle F6'da teyit edilir.
+**K2 → D-162:** işlem günlüğü aktarımının durması son başarılı aktarımdan sayılır; uzun süre WAL üretmeyen sistemde tek bir geçici aktarım hatası koşulu hemen açar (bir sonraki başarılı denemede kalkar). Dış kontrol iki ardışık başarısızlıkta uyardığı için etkisi düşük; okuma `VAL-A965`'in "9 ve 11 dakika durmuş" ölçüsüyle F6'da teyit edilir.
 
 **Yapım raporu karşılaştırması:** uyumlu; öz denetim tablosu her kriter ve KK için kanıtlı. İki küçük fark: KK7 satırı "404/409 sayılmaz" der ama test yalnız 404'ü sınar (K1); raporda `12` task satırları bölümü yok (bu doğrulamada yazıldı).
 

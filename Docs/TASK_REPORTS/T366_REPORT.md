@@ -99,7 +99,7 @@
 
 - **Branch:** `task/T366-yasal-metinler`
 - **Commit:** bkz. PR (son commit dal başı)
-- **PR:** aşağıda güncellenir
+- **PR:** #428
 - **CI:** yapım işçisi izlemez
 - **Post-merge run'lar:** *(validator doldurur)*
 

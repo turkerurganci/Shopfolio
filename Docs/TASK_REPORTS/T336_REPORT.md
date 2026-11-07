@@ -23,7 +23,7 @@
 - `src/Shopfolio.Web/Modules/Catalog/`: `ItemPricing.cs`, `PriceLabelRules.cs`, `PriceLabelGuard.cs`, `PriceLabelReader.cs`, `ProductDefinitionRules.cs`, `ProductDefinitionGuard.cs`, `CatalogModule.cs`, `Contracts/ICatalogModule.cs`, `Contracts/Pricing/PriceLabel.cs`, `Contracts/Pricing/PricingRecords.cs`
 - `tests/Shopfolio.UnitTests/`: `Catalog/ItemPricingTests.cs`, `Catalog/PriceLabelRulesTests.cs`, `Catalog/ProductDefinitionRulesTests.cs`, `Infrastructure/MoneyTests.cs`, `Infrastructure/SitemapSourceTests.cs` (sahte Katalog yeni yöntemleri taşır)
 - `tests/Shopfolio.IntegrationTests/`: `Database/SeededCountry.cs` (yeni), `Model/PriceAndVatTests.cs` (yeni); üretim yeri uyarlaması: `Concurrency/ConcurrencyTests.cs`, `Files/ImageFilesTests.cs`, `Model/BranchContentLinkAndContactRequestTablesTests.cs`, `Model/CartAndOrderCoreTablesTests.cs`, `Model/CatalogCoreTablesTests.cs`, `Model/SalesModelTests.cs`, `Model/StockReservationAndHistoryTablesTests.cs`, `Web/AppCacheTests.cs`, `Web/ListSeed.cs`, `Web/SearchEngineDataTests.cs`, `Web/SitemapEndpointTests.cs`, `Web/VersionedFormPageTests.cs`
-- Belgeler: bu rapor, `IMPLEMENTATION_STATUS.md`, `STATUS_CHANGELOG.md`, `.claude/memory/MEMORY.md`, `DEFERRED_BACKLOG.md` (D-74 kısmi, D-76 ✅, D-344–D-346; aktif 130 → 132); T301, T307, T315, T322, T328, T332, T366, T381 raporlarının "Post-merge run'lar" satırı ve status Commit hücreleri.
+- Belgeler: bu rapor, `IMPLEMENTATION_STATUS.md`, `STATUS_CHANGELOG.md`, `.claude/memory/MEMORY.md`, `DEFERRED_BACKLOG.md` (D-74 kısmi, D-76 ✅, D-344–D-346; aktif 130 → 132, `origin/main`'deki T316'nın beş kalemiyle (D-305…D-309) 137); T301, T307, T315, T322, T328, T332, T366, T381 raporlarının "Post-merge run'lar" satırı ve status Commit hücreleri; T316'nın status Commit hücresi.
 
 ## Kabul Kriterleri Kontrolü
 
@@ -70,7 +70,7 @@
 | Sık FAIL 1: bekçi/tarama istisnası geniş | ✓ | `PriceLabelGuard` istisnasız; toplu deyimle yazılan satır kapsam dışı olduğu sınıf yorumunda açık (öteki bekçilerin kalıbı) |
 | Sık FAIL 2: tarama bir çağrı biçimini kaçırıyor | uygulanamaz | yeni tarama yok |
 | Sık FAIL 3: 06 varsayılanı / FK dizini | uygulanamaz | şema değişmedi |
-| Sık FAIL 4: aynı sayıyı anan öteki yerler | ✓ | `Money` sınıf yorumu ("dördüncü işlev T369"), D-74 metni, backlog `Aktif kalem` 130 → 132, status satırı, sekiz raporun Post-merge satırı |
+| Sık FAIL 4: aynı sayıyı anan öteki yerler | ✓ | `Money` sınıf yorumu ("dördüncü işlev T369"), D-74 metni, backlog `Aktif kalem` 130 → 132 → 137 (T316 birleştirmesi; satırlar sayılarak: ⚪ 134 + 🟡 3), status satırı ve "Son güncelleme", sekiz raporun Post-merge satırı |
 | Sık FAIL 5: modül yöntemi kendisi `SaveChanges` | ✓ | `GetPriceLabelAsync` düz okuma; öteki üçü saf |
 | Para kodu: yuvarlama yönü ve kuruş testle | ✓ | `RoundingDirection_…`, `VatOf_AnExactHalfKurus_GoesUp`, `APrice_IsAboveZeroWithAtMostTwoDecimals_…`, `RandomItems_KeepTheOrderAndAddUp` |
 
@@ -127,10 +127,10 @@ Dış varsayım: yok.
 
 ## Notlar
 
-- **Working tree (Adım -1):** temiz; `core.hooksPath` = `scripts/git-hooks`. Devam turunda da temiz başlandı (`origin/task/T336-fiyat-kdv` head `7c58024`, `origin/main` birleştirildi, çakışma yok).
+- **Working tree (Adım -1):** temiz; `core.hooksPath` = `scripts/git-hooks`. Devam turunda da temiz başlandı (`origin/task/T336-fiyat-kdv` head `7c58024`, `origin/main` birleştirildi, çakışma yok). İkinci devam turunda `origin/main` (T316 `924ef92`) yeniden birleştirildi; status ve backlog çakışması elle çözüldü (T315 Commit hücresi korunarak T316 satırı main'den, Aktif kalem yeniden sayıldı), T316'nın "Son güncelleme" girişi `STATUS_CHANGELOG.md` başına taşındı.
 - **Ana dal CI startup (Adım 0):** ilk tur 42401437836, 42401437807 (T322 `f9ea0fe`), 42398252751 — success. Devam turu: 42405002224, 42405001882 (T328 `fe78e7b`), 42402532255 — success.
 - **Repo memory (bitiş kapısı 9):** güncellendi.
-- **Önceki task'ların merge kaydı:** T301 (`a3c9d1a`), T307 (`7150d1a`), T315 (`8caf0f0`), T322 (`f9ea0fe`), T328 (`fe78e7b`), T332 (`c4c872c`), T366 (`11c68fb`), T381 (`ac7d43e`) — status Commit hücreleri ve raporların "Post-merge run'lar" satırı dolduruldu.
+- **Önceki task'ların merge kaydı:** T301 (`a3c9d1a`), T307 (`7150d1a`), T315 (`8caf0f0`), T322 (`f9ea0fe`), T328 (`fe78e7b`), T332 (`c4c872c`), T366 (`11c68fb`), T381 (`ac7d43e`) — status Commit hücreleri ve raporların "Post-merge run'lar" satırı dolduruldu. T316 (`924ef92`): status Commit hücresi dolduruldu; ana dal CI'ı (42408991723) bu turda henüz sürdüğünden raporun "Post-merge run'lar" satırı boş bırakıldı (Publish 42408991705 success).
 - **⚠ Kolay kararlar (kurala en uygun seçenekle verildi):**
   1. Kargo ücreti bölüşümünün ağırlığı fiziksel kalemin kupondan önceki tutarıdır (birim fiyat × adet). `02 §3.19.2` "bu kalemlerin tutarına orantılı" der; tutar kalemin `02 §3.8.3` adım 1'deki tutarı olarak okundu.
   2. Fiyatın uygulandığı tarih, başlangıcı "şimdi"ye kadar gelmiş son `PriceHistory` satırıdır; gelecek tarihli satır sayılmaz (aynı başlangıçta kimliğe göre sonuncu).

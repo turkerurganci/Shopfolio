@@ -257,7 +257,7 @@ public sealed partial class VersionedFormPageTests
         Product detached = await db.Products.AsNoTracking().SingleAsync(p => p.Id == product.Id, Ct);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => RecordSave.SaveAsync(db, detached, detached.Version, p => p.Description = "x", Ct));
+            () => RecordSave.SaveAsync(db, detached, detached.Version, p => p.SetDescription("x"), Ct));
         Assert.Null((await ReadProductAsync(product.Id)).Description);
     }
 
@@ -295,7 +295,7 @@ public sealed partial class VersionedFormPageTests
                 Product tracked = await db.Products.SingleAsync(p => p.Id == product.Id, token);
                 mine.SetResult();
                 await other.Task.WaitAsync(TimeSpan.FromSeconds(30), token);
-                return await RecordSave.SaveAsync(db, tracked, product.Version, p => p.Description = description, token);
+                return await RecordSave.SaveAsync(db, tracked, product.Version, p => p.SetDescription(description), token);
             },
             Ct);
     }
@@ -709,7 +709,7 @@ public sealed partial class VersionedFormPageTests
     {
         await using AppDbContext context = NewContext();
         Product product = await context.Products.SingleAsync(p => p.Id == id, Ct);
-        product.Description = description;
+        product.SetDescription(description);
         product.BumpVersion();
         await context.SaveChangesAsync(Ct);
     }

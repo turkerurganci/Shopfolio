@@ -13,15 +13,23 @@ namespace Shopfolio.Modules.Notifications;
 internal sealed class NotificationsModule : INotificationsModule
 {
     private readonly CustomerNoticeQueue _customerNotices;
+    private readonly CompanyNoticeQueue _companyNotices;
 
-    public NotificationsModule(CustomerNoticeQueue customerNotices)
+    public NotificationsModule(CustomerNoticeQueue customerNotices, CompanyNoticeQueue companyNotices)
     {
         ArgumentNullException.ThrowIfNull(customerNotices);
+        ArgumentNullException.ThrowIfNull(companyNotices);
         _customerNotices = customerNotices;
+        _companyNotices = companyNotices;
     }
 
     public Task<int> QueueCustomerNoticeAsync(CustomerNotice notice, string recipientEmail, CancellationToken ct) =>
         _customerNotices.QueueAsync(notice, recipientEmail, ct);
+
+    public Task<int> QueueCompanyNoticeAsync(CompanyNotice notice, CancellationToken ct) => _companyNotices.QueueCompanyAsync(notice, ct);
+
+    public Task<int> QueueAdminNoticeAsync(AdminNotice notice, IReadOnlyCollection<string> adminEmails, CancellationToken ct) =>
+        Task.FromResult(_companyNotices.QueueAdmins(notice, adminEmails));
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddNotificationsModule</c> once.</summary>
@@ -48,6 +56,10 @@ internal static class NotificationsModuleRegistration
         services.AddSingleton(CarrierCatalog.Default);
         services.AddScoped<CustomerNoticeQueue>();
         services.AddSingleton<CustomerNoticeTemplates>();
+
+        // The firm notices F-1…F-6 (T308; 08 2.2.7): the writer of their dispatch rows, in the caller's transaction; F-1…F-4 go to the firm's contact e-mail.
+        services.AddScoped<ICompanyContactEmail, CompanyContactEmail>();
+        services.AddScoped<CompanyNoticeQueue>();
 
         // The per-recipient sending limit asked at a row's first attempt (08 2.2.4); its thinned security line keeps one window in memory.
         services.AddScoped<RecipientLimitCheck>();

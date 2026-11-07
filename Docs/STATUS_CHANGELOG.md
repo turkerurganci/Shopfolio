@@ -9,6 +9,10 @@
 
 ---
 
+## 2026-11-07 — T322 (İçerik yayın durumları ve iletişim talebi durumları) doğrulama tur 1 PASS
+
+2026-11-07 — T322 doğrulama tur 1 ✓ PASS (head `106c8ae`, PR #438; kriter 1–9, KK1–KK9 ve `09 §25` ✓; Unit 3790 + Consistency 230 + Architecture 906, betik testleri, Integration CorporateContent 45; dal CI 42394560527 yeşil; bulgu 0, K-notu 0; `12` `Durum` değişmedi; backlog aktif 128).
+
 ## 2026-11-07 — T322 (İçerik yayın durumları ve iletişim talebi durumları) yapım bitti
 
 2026-11-07 — T322 (İçerik yayın durumları ve iletişim talebi durumları) yapım tamamlandı, doğrulama bekliyor (dal `task/T322-icerik-iletisim-durumlari`; kriter 1–9, KK1–KK9 öz denetimde ✓; Unit Consistency 230, Architecture 906, CorporateContent 57, Integration CorporateContent 45, format ve derleme `-warnaserror` temiz; şema yok; `12` `Durum` değişmedi; yeni backlog D-315…D-317, aktif 128).

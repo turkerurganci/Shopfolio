@@ -1,6 +1,6 @@
 # T322 — İçerik yayın durumları ve iletişim talebi durumları
 
-**Faz:** F3 | **Durum:** ⏳ Yapım tamamlandı, doğrulama bekliyor | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-07
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -81,7 +81,38 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-07; head `106c8ae`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = ana checkout'un `scripts/git-hooks`'u; ana dal CI son üç tamamlanmış run success — 42393301185, 42393301195 (T332), 42391220711 (T381); `MEMORY.md` T322 satırı var.
+
+**Kabul kriterleri (validator kanıtı):**
+
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | Yedi içerik tablosunun `publish_status` kısıtı yalnız `Draft`/`Published` (Integration `EverySevenContentTables_…_KK1`); geçmiş/sürüm/arşiv tablosu yok; `ContentVisibility.Decide` `Archived`'ı reddeder; ileri tarihli yayın alanı yok (`10` KD-38) |
+| 2 | ✓ | `ContentPublishing.ChangeAsync` yayına geçişte `MissingGateFields()` boş değilse `GateIncomplete` + eksik alanlar döner, yazmaz; `ContentGate.RequiredFields` `02 §3.27.13`/§5.2 tablosuyla birebir (şubede ad + il + ilçe + açık adres, `06` §3.27.7 satırı); yayındaki kaydın düzenlemesi `SaveEditAsync` ile hemen kaydedilir (`Edit_APublishedRecord_ThatKeepsTheGate_IsSaved_…_KK3`) |
+| 3 | ✓ | `SaveEditAsync` yayındaki kayıtta eksik kapı alanında `PublishedGateBroken` döner, `RecordSave` çağrılmaz; ret işlemi geri alır (Integration: şube açık adresi boşluğa çekilince satır ve sürüm değişmez) |
+| 4 | ✓ | `ContentVisibility.Decide`: Taslak ziyaretçiye `Hidden`, yöneticiye `ShownWithDraftBand`; site haritası taslağı göstermez, yayınla gösterir, geri alınca kaldırır (Integration `ADraft_IsNotOnTheSiteMap_…_KK4`) |
+| 5 | ✓ | `IsInRange` iki uç dahil, boş tarih sınır değil; yayındaki duyuru aralık dışında herkese `Hidden` (Unit KK5 sınır değerli teoriler) |
+| 6 | ✓ | `DeleteAsync` Hakkımızda'da onaylı da olsa `Forbidden`; Hakkımızda `UnpublishAsync` ile taslağa alınır; öteki altı tür yalnız `irreversibleWarningConfirmed` ile silinir, onaysız `ConfirmationRequired` (Integration KK6, altı tür teorisi) |
+| 7 | ✓ | `ContactRequestStatus` iki üye; `contact_requests` kısıtı yalnız `Open`/`Closed`; süre/sayaç sütunu yok (Integration `TheStatusColumn_…_KK7`) |
+| 8 | ✓ | `OpenAsync` satırı Açık yazar ve F-2'yi aynı işlemde kuyruğa alır (geri almada ikisi birlikte gider; bildirimde yalnız konu); `CloseAsync`/`ReopenAsync` koşullu güncelleme, yönetici kimliği zorunlu, bildirim yazmaz (kapat–aç–kapat sonrası tek `dispatch_records` satırı); eşzamanlı iki kapatma tek yazım |
+| 9 | ✓ | `RetentionStart = LastClosedAt ?? CreatedAt`; yeniden açma `last_closed_at`'i boşaltmaz; Integration KK9: hiç kapatılmamış → açılış, yeniden açılıp kapatılmış → yeni kapatılış, açık duran yeniden açılmış → eski kapatılış |
+
+**Task satırları (`12 §7.5`):** `11 §7.1` T322 kaynakları `03 §1.8`, §1.9; `02 §3.27.23`, §3.32.4, §5.2, §5.13; `10` KD-38 — KP birimi yok, `12`'de T322 ya da KD-38 satırı yok; `Durum` hücresi değişmedi.
+
+**Doğrulama kontrol listesi:** KK1–KK9 ✓ (yukarıdaki kanıtlar); `09 §25` ✓ — göç ve yeni kalıcı enum yok, yeni paket yok, modül kaydı `AddCorporateContentModule`'de, zaman `TimeProvider`'dan, sürüm `RecordSave.SaveAsync` ile, talep durumu `CurrentStateWrite` koşullu güncellemesiyle, önbellek geçersiz kılma `CacheInvalidations` ile (kesinleşmeden sonra); `IOperationRule`/`[GatedOperation]` satırı uygulanamaz (`09 §8.3` madde 1–2 kalıbı `03 §1.11` işlemlerine bağlı); işlem izi ve ilk yayında adres sabitleme panel task'ında (D-315 → T360).
+
+**Testler (validator):** `dotnet build Shopfolio.slnx --no-restore -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` üç proje çıkış 0; Unit (Consistency hariç) 3790/3790, Consistency 230/230, Architecture 906/906, CorporateContent 57/57; betik testleri 4 dosya geçti; Integration (yerel `postgres:18`) CorporateContent 45/45; `dotnet restore --locked-mode` çıkış 0; dal CI 42394560527 (head `106c8ae`) success.
+
+**Güvenlik:** sır yok; yeni bağımlılık yok; ham SQL yok; F-2 kişisel veri taşımaz; talep kapat/aç yönetici kimliği ister (yetki denetimi çağıran panelde).
+
+**Bloke-etmeyen notlar:** yok (D-315…D-317 yapımda forward edilmişti).
+
+**Yapım raporu karşılaştırması:** uyumlu; öz denetim tablosu her kriter ve KK için kanıtlı. Uyuşmazlık: raporda `12` task satırları bölümü yoktu (bu doğrulamada yazıldı).
 
 ## Altyapı Değişiklikleri
 
@@ -94,9 +125,9 @@
 
 - **Branch:** `task/T322-icerik-iletisim-durumlari`
 - **Commit:** son baş SHA PR açıklamasında
-- **PR:** PR açıklamasında
-- **CI:** doğrulayıcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **PR:** #438
+- **CI:** dal CI 42394560527 (head `106c8ae`) success
+- **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
 
 ## Dış Varsayımlar
 

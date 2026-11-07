@@ -1,0 +1,38 @@
+ÖN BİLGİLENDİRME FORMU
+
+Sipariş numarası: {{OrderNumber}}
+
+1. SATICI
+Unvan: {{CompanyLegalName}}
+Vergi kimlik numarası: {{CompanyTaxIdNumber}}
+MERSİS numarası: {{CompanyMersisNumber}}
+Ticaret sicil numarası: {{CompanyTradeRegistryNumber}}
+Adres: {{CompanyAddressLine}}, {{CompanyDistrict}} / {{CompanyProvince}}
+Telefon: {{CompanyPhone}}
+E-posta: {{CompanyEmail}}
+KEP adresi: {{CompanyKepAddress}}
+
+2. ALICI
+Teslimat bilgileri: {{ShippingRecipientName}}, {{ShippingPhone}}, {{ShippingAddressLine}}, {{ShippingDistrict}} / {{ShippingProvince}}
+Fatura bilgileri: {{BillingRecipientName}}, {{BillingAddressLine}}, {{BillingDistrict}} / {{BillingProvince}}
+E-posta: {{ContactEmail}}
+
+3. ÜRÜN, HİZMET VE BEDEL
+Sipariş edilen ürün ve hizmetlerin adı, adedi ve birim fiyatı sipariş özetinde yazar. Vergiler dahil toplam bedel: {{Total}}. Kargo bedeli: {{ShippingFee}}. Ödeme, sipariş sırasında seçtiğiniz yöntemle yapılır; siparişi onaylamanız ödeme yükümlülüğü doğurur.
+
+4. TESLİMAT
+Ürünler yalnızca satıcının teslimat yaptığı illere gönderilir; seçtiğiniz teslimat adresinin ili bu illerdendir. Fiziksel ürünler sipariş onayından itibaren en geç {{ShippingPeriod}} iş günü içinde kargoya verilir. Dijital ürünler ödemenin onaylanmasından sonra indirilir; hizmetler sipariş sırasında bildirilen sürede ifa edilir.
+
+5. CAYMA HAKKI
+Fiziksel ürünlerde teslim tarihinden itibaren on dört gün içinde, gerekçe göstermeden ve cezai şart ödemeden sözleşmeden cayabilirsiniz. Cayma hakkınızı, bu süre içinde sipariş sayfanızdan cayma beyanında bulunarak kullanırsınız. Malı, cayma beyanınızdan itibaren on dört gün içinde göndermeniz gerekir.
+İade için taşıyıcı belirlenmemiştir: malı dilediğiniz taşıyıcıyla, aşağıdaki iade adresine, bedeli teslim alırken satıcı tarafından ödenmek üzere (ödemeli) gönderirsiniz. İade kargo bedeli satıcıya aittir; siz önden ödeme yapmazsınız.
+İade adresi: {{ReturnAddress}}
+Hizmetlerde cayma hakkı, sizin onayınızla başlayan hizmetin ifasının tamamlanmasıyla sona erer. Dijital ürünlerde, indirme başladıktan sonra cayma hakkı kullanılamaz.
+Cayma hakkının istisnaları: tüketicinin istekleri veya kişisel ihtiyaçları doğrultusunda hazırlanan mallar, çabuk bozulabilen mallar, teslimden sonra ambalajı açılmış iade edilmesi sağlık ve hijyen bakımından uygun olmayan mallar ve Mesafeli Sözleşmeler Yönetmeliği'nde sayılan diğer haller. İstisna kapsamındaki ürünlerde istisna ve sebebi ürün sayfasında ve siparişte yazar; koşullu sebeplerde "koruyucu ambalajı açılmamışsa cayabilirsiniz".
+Cayma hâlinde bedel, iade edilen malın satıcıya ulaşmasından itibaren, mevzuatta belirtilen süre içinde ödeme yaptığınız yöntemle geri ödenir.
+
+6. UYUŞMAZLIK
+Bu sözleşmeden doğan uyuşmazlıklarda başvurularınızı tüketici hakem heyetine ya da — dava açılmadan önce arabulucuya başvurma şartıyla — tüketici mahkemesine yapabilirsiniz. Parasal başvuru sınırları her yıl güncellenir; güncel değerler için ilgili mercilerin duyurularına bakınız.
+
+7. ONAY
+Bu formu okuduğunuzu ve ön bilgileri elektronik ortamda teyit ettiğinizi, siparişi onaylayarak kabul etmiş olursunuz. Form, sipariş onay e-postanızın gövdesinde de tam metin olarak gönderilir.

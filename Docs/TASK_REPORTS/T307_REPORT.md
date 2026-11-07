@@ -1,6 +1,6 @@
 # T307 — Müşteri bildirimleri B-9…B-16
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamamlandı, doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -90,10 +90,21 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-07) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-293) |
+
+### Doğrulama tur 1 — validator kanıtları (2026-11-07)
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `scripts/git-hooks`; ana dal son 3 run 42382907093, 42382907080, 42379036303 success; memory'de T307 satırı var.
+- **Kabul kriterleri 1–10:** hepsi ✓ — kod `08 §2.2.6` B-9…B-16 ve madde 1–6 ile satır satır karşılaştırıldı (`CustomerNoticeTemplates.AfterOrder.cs`, `CustomerNoticeValues.AfterOrder.cs`); konu başlıkları, olay cümleleri, B-14'ün altı sebep cümlesi ve düğme etiketi, B-13 durum adları, B-16 metinleri spec'le birebir; yeniden gönderimde güncel bilgi cümlesi yalnız B-10/B-12/B-13'te (`Make(..., true, ...)`). Testler: `CustomerNoticeAfterOrderTemplateTests` 120/120, `CustomerNoticeAfterOrderQueueTests` + `CustomerNoticeQueueTests` 22/22 (Postgres 18, 127.0.0.1:55611).
+- **Yerel sınama:** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı/0 hata; `dotnet format --verify-no-changes` Web/Unit/Integration çıkış 0; Unit 3536 + Consistency 213 (birleştirme sonrası Unit 3572) geçti; betik testleri 4 dosya geçti.
+- **Dal CI:** 42385697297 (head `43be541`) success.
+- **`12` satırları:** `VAL-A321`–`A323` (KP-66; B-9…B-16) gönderilmiş e-posta ve tetik ister; T307 gönderen ve tetik yazmaz (D-97, D-166, D-232, D-293) — `BEKLEMEDE` → `BEKLEMEDE` (T305/T306 emsali).
+- **Güvenlik:** diff'te sır, `Html.Raw`/`MarkupString`/`HtmlString`, saat okuması ve yeni paket yok; değerler `EmailComposer` kaçışıyla basılır (`B9_AMarkupInAnItemOrAnAddress_IsTextInTheHtml`); B-14 IBAN taşımaz, B-15 bağlantı/ad/yeni adres taşımaz.
+- **K1 → D-293:** gönderen ve yeniden gönderim yazıcısı için T307'nin eklediği bağlar (il adları `ProvinceNames`, B-9'un `RelatedRecordId`'sinin `Read`'e verilmesi ve kopyalanması, iade adresinin yalnız fiziksel kalemde caymada/ayıp talebinde verilmesi) D-232'de yazılı değildi.
+- **Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu her madde için kanıtlı. Yapım raporu ProvinceNames'i D-232 kapsamında saydı ama D-232 metnine eklenmemişti — D-293 ile kapatıldı.
 
 ## Altyapı Değişiklikleri
 
@@ -107,7 +118,7 @@
 - **Branch:** `task/T307-musteri-bildirimleri-2`
 - **Commit:** bkz. PR (son commit dal başı)
 - **PR:** #435
-- **CI:** — (yapım işçisi yoklamaz)
+- **CI:** 42385697297 success (head `43be541`; validator)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
 
 ## Dış Varsayımlar
@@ -121,6 +132,7 @@
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
 | 1 | Satırdan gövdeyi kuracak `OrderNoticeContext` üreticisi (il adları dahil) | D-232 | T306'da açıldı; gönderim task'ının işi |
+| 2 | B-9…B-16'ya özgü bağlar: `ProvinceNames`, B-9 `RelatedRecordId`'nin `Read`'e verilmesi ve yeniden gönderimde kopyalanması, iade adresi koşulu | D-293 | Doğrulama tur 1 K1; gönderen ve tetik task'larının işi |
 
 ## Notlar
 

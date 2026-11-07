@@ -9,6 +9,10 @@
 
 ---
 
+## 2026-11-07 — T317 (Ödeme durumu geçişleri: ödeme ekseni) doğrulama tur 1 PASS
+
+2026-11-07 — T317 (Ödeme durumu geçişleri: ödeme ekseni) doğrulama tur 1 ✓ PASS (head `0926ba7`, `origin/main` `c4c872c` güncel, PR #441; kriter 1–8, KK1–KK8, `09 §25` ✓, güvenlik taraması temiz; Unit 3965 (Architecture 906, Consistency 230, öteki 2829), betik testleri, Integration yerelde Ordering 60, Concurrency 26, PaymentRecordTables + JobCleanupAndRefund 92, web açılışı 18; dal CI 42396093293 yeşil; bulgu 0, K-notu 1 (D-322 → T370); `12` `Durum` değişmedi (KP-18 satırları sipariş sayfası kanıtı ister); backlog aktif 140).
+
 ## 2026-11-07 — T334 (Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme) doğrulama tur 1 PASS
 
 2026-11-07 — T334 (Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme) doğrulama tur 1 ✓ PASS (head `2b3e600` + `origin/main` (T328) birleştirmesi, PR #443; kriter 1–8, KK1–KK8 ve `09 §25` ✓, güvenlik taraması temiz; Unit 4069 (birleştirmeden önce), 4093 (sonra); betik testleri; Integration yerelde StockAndCapacity 27, CatalogCore+SalesModel 88, Concurrency+ImageFiles+CartAndOrderCore+StockReservation 133, AppCache+SearchEngineData+VersionedFormPage 53 (yapım raporundaki `VersionedFormPageTests` düşmesi yinelenmedi), birleştirme sonrası NotificationMapQueue+SalesModel 31; dal CI 42403928586 yeşil; bulgu 0, K-notu 1 → D-362 (T525); `12` `Durum` değişmedi (satırların kanıtı uç yanıtı, tarayıcı gözlemi ya da ödeme onayı — T503, T525, T348); backlog aktif sayısı yeniden sayıldı: 139).

@@ -1,6 +1,6 @@
 # T317 — Ödeme durumu geçişleri: ödeme ekseni
 
-**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 ✓ PASS) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ⏳ Düzeltme bekliyor (doğrulama tur 2 ✗ FAIL; tur 1 ✓ PASS) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -90,10 +90,39 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-07; head `0926ba7`, `origin/main` `c4c872c` güncel — birleştirmede değişiklik yok) |
-| Bulgu sayısı | 0 |
-| Düzeltme gerekli mi | Hayır |
-| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-322) |
+| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-08; head `66bcf16` — T316 ile kod birleştirmesi; `origin/main` `af6e7d3` güncel). Önceki: ✓ PASS (tur 1, 2026-11-07; head `0926ba7`) |
+| Bulgu sayısı | 1 (B1 — ORTA, S1) |
+| Düzeltme gerekli mi | Evet — B1 bu PR'da |
+| Bloke-etmeyen not (K) sayısı | tur 2: 1 (K1 → D-389); tur 1: 1 (K1 → D-322) |
+
+### Tur 2 (2026-11-08) — ✗ FAIL
+
+Kapsam tam (kriter 1–8, KK1–KK8, `09 §25`, güvenlik); birleştirmede değişen ödeme kodu (`QueueNoticeAsync`/`OpenItemsAsync` ortak yardımcıları, `PaymentRefused`) ayrıca okundu ve sınandı.
+
+| # | Kriter / KK | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 / KK1 | Ö1…Ö5 beyaz liste; Başarısız ve Geri ödendi terminal | ✓ | `TransitionTable.IsTerminal(PaymentStatus)` = {Failed, Refunded}; `ApplyRefundSentAsync` terminalden çıkmaz; `MarkTransferPaid_OnAnOrderThatIsNotPending_…_KK1`, `RefundSent_OnARefundedOrder_…_KK1`, birim `TransitionTableTests` yeşil |
+| 2 / KK2 | Ö1 kartta başarı bildirimi ya da son sorgu | ✓ | `ApplyCardPaymentAsync` tek yol; Bekliyor'da Ö1 (+açık fiziksel kalemde S1) sistemle, ödeme kaydı Ö1'e bağlı, B-4 `QueueNoticeAsync` ile; aynı işlem kimliği `IsAlreadyApplied`; `CardPayment_…_KK2` (3 test) yeşil |
+| 3 / KK3 | Ö1 havalede yönetici işareti, geri alınamaz onay, B-4 | ✓ | `MarkTransferPaidAsync`: onaysız `IsConfirmationRequired`, sürüm farkı `IsVersionConflict`; Ö1 yönetici + S1 sistem, sürüm bir kez; `MarkTransferPaid_…_KK3` (3 test) yeşil |
+| 4 / KK4 | Ö2 S3'le aynı anda, kim iptal ederse | ✓ | `CancelUnpaidOrderAsync` S3+Ö2 tek istekte, ödenmişte çekirdek reddeder; `CancelUnpaid_…_KK4` yeşil. Yöneticinin yolundaki onay eksiği B1'de |
+| 5 / KK5 | Ö3/Ö4/Ö5 | ✓ | `SentRefundTotalAsync` (`LatePayment` ve geçersizler hariç) ≥ `Order.Total` → Ö4/Ö5, altında Ö3; `CardRefundSucceeded_…_KK5`, `ProcessTransferRefund_…_KK5` yeşil |
+| 6 / KK6 | B-8 müşteriye, F-4 firmaya | ✓ | `ApplyRefundSentAsync`: B-8 her gerçekleşen iadede; F-4 yalnız sistem + kart + yeniden deneme değil; `…_KK6` (2 test) yeşil |
+| 7 / KK7 | Başarısız/bilinmeyen iade: eksen aynı, işaret, bildirim yok | ✓ | `ApplyCardRefundOutcomeAsync` `!IsSent` dalı yalnız sürümü artırır; `CardRefundNotSentOrUnknown_…_KK7` yeşil |
+| 8 / KK8 | İptal edilmiş siparişin ödemesi iade edilir | ✓ | Ö1'siz ödeme kaydı + `LatePayment` iadesi + `CardRefund` iş satırı aynı işlemde; `…_KK8` (2 test) yeşil |
+| KK | `09 §25` ilgili satırlar | ✗ | B1: "Kod hiçbir doküman cümlesiyle çelişmiyor mu?" ve "Aynı işi yapan tek işlev varsa o çağrılmış mı?" → hayır |
+| KK | Güvenlik taraması | ✓ | Sır yok; yeni uç/paket yok; yetki sayfa kapısında (T527); girdi denetimi `ArgumentNullException`/`ThrowIfNullOrWhiteSpace` |
+
+**Bulgu B1 (ORTA, S1 — `09 §25`; `02 §5.9`, `03 §1.6.1.3`, `09 §24` madde 4):** birleştirmeden sonra `IOrderTransitions` ödenmemiş siparişin iptalini iki açık yöntemle sunar: T316'nın `CancelOrderAsync`'i (Alındı + Bekliyor'da S3+Ö2) ve T317'nin `CancelUnpaidOrderAsync`'i. İkincisinin yönetici yolu firma iptalini (S3) **geri alınamaz onay olmadan** yazar: `UnpaidOrderCancellation`'da onay alanı yoktur, `TryReadCanceller` yalnız yönetici kimliği, adı ve firma gerekçesini ister. `02 §5.9` "firma kaynaklı iptal (S3, S4, S9)" için onayı zorunlu tutar. Aynı yol "Diğer ⇔ not" kuralını da (`06 §4.19`) denetlemez. T316'nın yolu ikisini de denetler (`Confirmed` → `ConfirmationRequired`, `Other`/not → `InvalidInput`). Kanıt: `CancelUnpaid_ByAnyone_IsS3AndO2InOneOperation_WithTheReason_AndB7_KK4(Admin)` onaysız istekle S3+Ö2 yazıp geçer (yerel ve CI yeşil). Düzeltme: ödenmemiş iptalin tek yolu kalır. Ya `CancelUnpaidOrderAsync` kaldırılır ve KK4 testleri `CancelOrderAsync` üzerinden sınanır, ya da `CancelUnpaidOrderAsync` T316'nın yoluna bağlanır ve yöneticinin onaysız ya da "Diğer"siz notlu iptalinin reddi test edilir.
+
+**K1 (→ D-389):** Ödeme onayının iki yolu var. T316'nın `StartPreparationAsync(orderId, approvesPayment: true)` yöntemi Ö1+S1 ve B-4 yazar, ama ödeme kaydı yazmaz ve tekrar gelen ödemeyi ayıklamaz. T317'nin `ApplyCardPaymentAsync` ve `MarkTransferPaidAsync` yöntemleri ise Ö1'i kendileri yazar. D-307 hâlâ "T317 ve T318 bu çağrı biçimini kullanır" der. Bugün bu yöntemleri çağıran üretim kodu yok. Yapılacak: Ö1'in tek yolu seçilir (T317 yöntemleri), `approvesPayment: true` dalı kaldırılır ya da ödeme kaydı yazmayan bir Ö1 yolu kalmayacak biçimde daraltılır, D-307 buna göre güncellenir.
+
+Yerel (tur 2): restore 0; build `-warnaserror` 0 uyarı / 0 hata; `dotnet format --verify-no-changes` 3 proje temiz; Unit 3862 (Consistency hariç; Architecture dahil) + Consistency 241 yeşil; betik testleri 4 dosya; Integration (postgres:18, `shopfolio-t317-val2-pg`, 127.0.0.1:55930) PaymentTransitionsTests + OrderTransitionsTests 60, ShipmentTransitionsTests 94, DisposalTests + OrderDisposalTests 45 — hepsi yeşil; `--locked-mode` restore 0; `12_matris_denetle.py --kapsam 1-77` hata 0. Dal CI 42414305022 success (head `66bcf16`). Ana dal CI son 3: 42411903829, 42411903876, 42408991705 success. Memory drift: `T317` satırı var.
+
+**`12` satırları (tur 2):** KP-18 satırları (`VAL-B014`–`B017`, `VAL-A054`–`A059`, `VAL-A977`) sipariş sayfasının tarayıcı ve uç kanıtını ister. T317'nin kabul kriterleriyle eşlenmez → `BEKLEMEDE` kalır, `Durum` değişmedi.
+
+**Yapım raporu karşılaştırması (tur 2):** öz denetim tablosu var ve her maddesi kanıtlı. 1 uyuşmazlık var: "`09 §25` yeni adlar belgeden, çelişki yok ✓" maddesi `02 §5.9`'u okumamış (okunan bölümler listesinde §5.9 yok). Birleştirmenin bıraktığı çift yol da raporda yok.
+
+### Tur 1 (2026-11-07) — ✓ PASS
 
 Validator kanıtları (bağımsız): sekiz kriter ve KK1–KK8 kodda ve testte ✓. Ö1…Ö5 yalnız çekirdeğin `ApplyAsync`'inden yazılır; `TransitionTable.IsTerminal(PaymentStatus)` = {Başarısız, Geri ödendi} ve tabloda bu iki durumdan çıkan satır yok (`03 §1.3`; `02 §5.5`). Kart ödemesi tek yöntemdir (`05 §4.5.3`): Bekliyor'da Ö1 (+ açık fiziksel kalemde S1) sistemle, ödeme kaydı Ö1 satırına bağlı (`06 §4.32` "Ödemeyi onaylayan Ö1"), B-4; aynı işlem kimliği hiçbir şey yazmaz (K-970); İptal edildi'de ve Ödendi'de yeni işlem kimliğinde ödeme Ö1'siz kaydedilir, `LatePayment` geri ödemesi siparişin toplamıyla ve `CardRefund` iş satırıyla aynı işlemde doğar, eksenler durur (`02 §6.2.16`; K-1211). Havale işareti onaysız `IsConfirmationRequired`, sürüm farkında `IsVersionConflict`, kart siparişinde ve Bekliyor dışında red; Ö1 yönetici + S1 sistem, sürüm bir kez artar. Ödenmemiş iptal S3+Ö2 tek istekte (alıcı/yönetici/sistem), ödenmişte çekirdek Ö2'yi reddeder ve hiçbir şey yazılmaz. Gerçekleşen geri ödeme gönderilen toplam (`LatePayment` ve geçersizler hariç) ≥ `Order.Total` ise Ö4/Ö5, altında Ödendi'den Ö3; B-8 iletişim e-postasına, F-4 yalnız sistemin kendi kart iadesinde (firmanın yeniden denemesi hariç, `03 §7.1.18`) firma adresine; başarısız/bilinmeyen sonuçta eksen ve bildirim yok, işaret iade kaydından okunur. Yerel: build `-warnaserror` 0/0, format 3 proje temiz, Unit 3965 (Architecture 906, Consistency 230, öteki 2829), betik testleri 4 dosya, Integration (postgres:18, `shopfolio-t317-val-pg`) Ordering 60 (PaymentTransitionsTests 29), Concurrency 26, PaymentRecordTables + JobCleanupAndRefund 92, web açılışı (ShopfolioWebApplicationFactory, JobQueueRegistration, OperationPattern) 18 — hepsi yeşil; `--locked-mode` restore 0. Dal CI 42396093293 success (head `0926ba7`).
 
@@ -113,7 +142,7 @@ K1 (→ D-322): `PaymentModule.ReadRefundMarksAsync` "geri ödeme gerçekleşmed
 - **Branch:** `task/T317-odeme-ekseni`
 - **Commit:** `4362c3d` — T317: Ödeme ekseni: testler derlendi ve geçti, null-forgiving kaldırıldı, rapor ve kayıtlar (dalın son kod commit'i; PR numarası commit'i bunu izler)
 - **PR:** #441
-- **CI:** 42396093293 success (head `0926ba7`; validator)
+- **CI:** 42414305022 success (head `66bcf16`; validator tur 2) · 42396093293 success (head `0926ba7`; validator tur 1)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında)*
 
 ## Dış Varsayımlar

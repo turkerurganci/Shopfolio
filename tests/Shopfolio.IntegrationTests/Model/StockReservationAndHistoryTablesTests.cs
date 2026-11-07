@@ -693,7 +693,7 @@ public sealed class StockReservationAndHistoryTablesTests : IAsyncLifetime
 
     private async Task<Variant> SeedVariantAsync(string sku = "KAPI-1")
     {
-        Product product = Product.Create("Kapı " + sku, "kapi-" + sku.ToLowerInvariant(), ProductType.Physical, 20m, Now);
+        Product product = Product.Create("Kapı " + sku, "kapi-" + sku.ToLowerInvariant(), ProductType.Physical, 20m, Now).WithSeededOrigin();
         Variant variant = Variant.Create(product.Id, sku, 100m, Now);
         await SaveAsync(c =>
         {

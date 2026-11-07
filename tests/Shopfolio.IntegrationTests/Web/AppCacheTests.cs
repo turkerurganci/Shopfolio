@@ -639,7 +639,7 @@ public sealed partial class AppCacheTests : IAsyncLifetime
         await using AsyncServiceScope scope = provider.Services.CreateAsyncScope();
         AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         string slug = Slug.From("Ahşap Masa", AddressRules.ProductPrefix);
-        Product product = Product.Create("Ahşap Masa", slug, ProductType.Physical, 20m, Now);
+        Product product = Product.Create("Ahşap Masa", slug, ProductType.Physical, 20m, Now).WithSeededOrigin();
         product.PublishStatus = PublishStatus.Published;
         db.Products.Add(product);
         db.Variants.Add(Variant.Create(product.Id, "AHSAP-MASA-01", price, Now));

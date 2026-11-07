@@ -773,7 +773,7 @@ public sealed class ConcurrencyTests : IAsyncLifetime
     private async Task<Product> SeedProductAsync()
     {
         int n = Interlocked.Increment(ref _counter);
-        Product product = Product.Create("Kapı", $"kapi-{n}", ProductType.Physical, 20m, Now);
+        Product product = Product.Create("Kapı", $"kapi-{n}", ProductType.Physical, 20m, Now).WithSeededOrigin();
         await SaveAsync(c => c.Products.Add(product));
         return product;
     }
@@ -781,7 +781,7 @@ public sealed class ConcurrencyTests : IAsyncLifetime
     private async Task<Variant> SeedVariantAsync(int? stock)
     {
         int n = Interlocked.Increment(ref _counter);
-        Product product = Product.Create("Kapı", $"kapi-{n}", ProductType.Physical, 20m, Now);
+        Product product = Product.Create("Kapı", $"kapi-{n}", ProductType.Physical, 20m, Now).WithSeededOrigin();
         Variant variant = Variant.Create(product.Id, $"KAPI-{n}", 100m, Now);
         variant.StockQuantity = stock;
         await SaveAsync(c =>

@@ -41,6 +41,8 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
 
     private readonly CollectionDatabaseFixture _collection;
 
+    private Guid _originId;
+
     public CatalogCoreTablesTests(CollectionDatabaseFixture collection)
     {
         _collection = collection;
@@ -51,6 +53,11 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         await ExecuteAsync("TRUNCATE product_categories, product_images, variants, option_values, options, categories, images, products, countries CASCADE");
+
+        // The countries are emptied above, so a physical product's required place of origin (02 3.8.5; T336) points at a row of this class's own.
+        Country origin = Country.Create("ZZ", "Deneme Ülkesi", Now);
+        _originId = origin.Id;
+        await SaveAsync(c => c.Countries.Add(origin));
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -306,6 +313,7 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
     public async Task NameAndItsSearchForm_AreWrittenTogether()
     {
         Product product = Product.Create("ÇELİK Kapı IŞIK", "celik-kapi", ProductType.Physical, 20m, Now);
+        product.OriginCountryId = _originId;
         await SaveAsync(c => c.Products.Add(product));
 
         Assert.Equal("celik kapi isik", await ScalarAsync<string>($"SELECT name_search_form FROM products WHERE id = '{product.Id}'"));
@@ -397,7 +405,9 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
     [Fact]
     public async Task NetQuantityOfZero_IsRefused()
     {
+        // A unit on the product, so the application's pairing guard lets the zero through and the database's own check is what refuses it.
         Product product = NewProduct("a");
+        product.MeasurementUnit = MeasurementUnit.Kilogram;
         await SaveAsync(c => c.Products.Add(product));
         Variant variant = Variant.Create(product.Id, "A", 5m, Now);
         variant.NetQuantity = 0m;
@@ -806,9 +816,11 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
         Assert.Empty(unindexed);
     }
 
-    private static Product NewProduct(string slug)
+    private Product NewProduct(string slug)
     {
-        return Product.Create("Ürün " + slug, slug, ProductType.Physical, 20m, Now);
+        Product product = Product.Create("Ürün " + slug, slug, ProductType.Physical, 20m, Now);
+        product.OriginCountryId = _originId;
+        return product;
     }
 
     private async Task<(Product Product, Option Option, OptionValue Value)> SeedOneOptionAsync()

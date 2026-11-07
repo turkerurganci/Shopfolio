@@ -1,6 +1,6 @@
 # T366 — Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -83,10 +83,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-07; head `24163d5` + `origin/main` birleştirmesi) |
-| Bulgu sayısı | 1 (S1, KRİTİK) |
-| Düzeltme gerekli mi | Evet — düzeltme turu |
-| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-240) |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-07; head `171fc5d`) · önceki: ✗ FAIL (tur 1, head `24163d5` + `origin/main` birleştirmesi) |
+| Bulgu sayısı | 0 (tur 2) · tur 1: 1 (S1, KRİTİK — düzeltme 1'de kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | tur 2: 2 (K1 → D-268, K2 → D-269) · tur 1: 1 (K1 → D-240) |
 
 ### Doğrulama tur 1 — validator kanıtları
 
@@ -114,6 +114,35 @@
 **`12` satırları:** KP-14, KP-25, KP-35, KP-61, KP-73 satırları (`VAL-A047`…`VAL-A052`, `VAL-A986`, `VAL-B020`, `VAL-A090`, `VAL-C026`, `VAL-C027`, `VAL-A125`…`VAL-A130`, `VAL-A299`, `VAL-A300`, `VAL-D034`, `VAL-A363`…`VAL-A367`) tarayıcı/uç kanıtı ister; `Durum` `BEKLEMEDE` kaldı.
 
 **Yapım raporu karşılaştırması:** kriter 2 yapımda ✓, validator ✗ (kimliksiz yayın senaryosu öz denetimde yok); öteki kriterler uyumlu. Öz denetim tablosu var ve maddeleri kanıtlı.
+
+### Doğrulama tur 2 — validator kanıtları (tam yeniden doğrulama)
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana kopyanın `scripts/git-hooks`'u, kurulu); ana dal CI son 3 run 42368786653, 42368786665, 42366197659 `success`; memory'de T366 satırı var. Dal CI 42371931110 (`171fc5d`) `success`.
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Dört metin sürümlü, ayrı kayıt; ilk ikisi üretilir, son ikisi taslak | ✓ | `LegalTextTemplates.GeneratedTypes`, `LegalTexts.RequireFirmEdited`, taslaklar `InsertStartupData`; `TheFourTexts_...` geçti |
+| 2 | Boşaltılamaz; aydınlatma taslağı kapsamı; barındırma (ve kimlik) dolmadan tamamlanmaz | ✓ | `SaveDraftAsync` boş metin ve dolu barındırmayı boşaltmayı reddeder; `PublishAsync` barındırma ve her eksik kimlik alanını adıyla reddeder (tur 1 bulgusu kapandı); okuma yer tutucuyu güncel kimlikle, HTML kodlu doldurur (`04` 9.19.11, `07 UC-174` 422); `ThePrivacyNotice_IsNotPublishedWhileAnIdentityField_IsMissing_...`, `ThePublishedNotice_ShowsTheCurrentIdentity_...`, `TheGate_KeepsThePrivacyNoticeClosed_...` geçti; taslakta alıcı grupları, hukuki sebepler (6563 m.11/3 dahil), başvuru yolları |
+| 3 | Sürüm kendiliğinden artar; şablonunki ize girmez | ✓ | üretici kilit altında üretir, metin + şablon kimliği karşılaştırır; yayın her seferinde yeni numara; beş test geçti; ayar sürümünün iz satırı D-220 (D-165 (a)) |
+| 4 | Sürüm artarsa sipariş oluşmaz; yeniden onay ve bildirim yok | ✓ (modül düzeyi; adım T356) | `AreShownLegalTextVersionsCurrentAsync` yalnız form + sözleşmeye bakar (`VAL-A986` ile uyumlu); `ANewVersion_...AndNobodyIsNotified` geçti |
+| 5 | Bağlantı ekranları, çerez altbilgide; kutu/gördü yok | ✓ (liste; ekranlar D-222) | `LegalLinkScreen.All` `02 §3.33.5` ile birebir; `NoTableOrColumn_...`, `LegalTextSourceScan` |
+| 6 | E-postada donan sürümle tam metin, ek yok | ✓ (T366 payı: donan sürüm okunur, ek/PDF yok; gövde T306, yeniden gönderim T385 — kriterin kendi bölüşümü) | `GetLegalTextVersionAsync`; `_NamesNoFile`; ek taraması |
+| 7 | Uyuşmazlık bilgisi var, rakam yok | ✓ | iki şablonun uyuşmazlık maddesi; `_WritesTheDisputeBodies_AndNoMoneyLimit` |
+| 8 | Çelişki denetimi yok; hatırlatma satırı | ✓ | `LegalTextLinks.Reminder` |
+| 9 | Dört metin tamamlanmadan satış açılmaz; eksik adıyla | ✓ | `PrivacyNoticeCondition` bağlı, varsayılan kaldırıldı; kapı çerez yayınını ayrıca ister; `LegalTextMissingPart`; `TheGate_HasThePrivacyNoticeOpen_...` |
+| 10 | Açık rıza yönetimi yok | ✓ | şema ve kaynak taraması |
+
+**Güvenlik:** yer tutucu doldurma kaçış yapmaz, kimlik değeri firma metninde `WebUtility.HtmlEncode` ile girer, gösterim yeniden süzer (`09 §15.3` madde 4); şablon belirteç kümesi kapalı (`_IsInTheClosedSet_`; `ReturnAddress` D-240); taslak metninin temizlenmesi T507 (D-219; `RichTextSanitizer` henüz yok, T339). `LinkKeySourceScan` istisnası tek dosya, `09 §15.1` madde 1'in saydığı `§11.4` madde 5 özeti, testte sabit. Sır, yetki etkisi, yeni paket yok.
+
+**Testler (yerel):** build `-warnaserror` temiz; `dotnet format --verify-no-changes` üç projede 0; Unit 3500/3500 (Architecture + Consistency + LegalText 1075, öteki 2425); betik testleri 4 dosya; Integration parçalı (`postgres:18`, `shopfolio-t366-val-pg`): LegalText 16/16, SalesGate + CompanyIdentity 46/46, SettingsTables + StartupDatabaseCheck + OperationPattern 59/59.
+
+**K1 → D-268 (T356):** şablon içeriği `02 §3.24.3`'e karşı T356'nın KK3'ünde tamamlanmalı: kargoya verme süresi "sipariş onayından" yazıyor (`02 §3.20.6`, Z-10: ödeme onayından); geri ödeme başlangıcı yalnız teslimden sonraki caymanın kuralı (`02 §7.4.1`); formda meslek odası ve "sipariş nasıl kurulur" metni yok; ayrıca firma değerindeki `{{Ad}}` biçimli dize ikinci doldurmada (sipariş aşaması) genişler.
+
+**K2 → D-269 (T507):** `PublishAsync` taslağın sürümünü artırmaz; `07 UC-174`'ün 409/idempotency'si ve `06 §4.56`'nın eşzamanlı yayın yinelemesi T507'nin aynı işlemde `SaveLegalTextDraftAsync` + `PublishLegalTextAsync` çağırması ve dizini yineleme listesine vermesiyle sağlanır; D-219'un "sayfa temizler" ifadesi `09 §15.3` madde 1 ile (temizleme metni yazan işlevde) hizalanmalı.
+
+**`12` satırları:** KP-14, KP-25, KP-35, KP-61, KP-73 satırları uç/tarayıcı kanıtı ister; `Durum` `BEKLEMEDE` kaldı.
+
+**Yapım raporu karşılaştırması:** kriterlerde uyumlu (kriter 6'yı yapım `~`, validator ✓ — kriter gövdeyi T306'ya açıkça bölüştürüyor). Küçük uyuşmazlık: düzeltme öz denetimi "yeni kapalı değer sınıfı yok" der, oysa `LegalTextMissingPart` ve `LegalLinkScreen` ilk yapımda eklendi (saklanmayan liste, `09 §12` tablosuna girmez; sorun değil). Öz denetim tablosu var ve maddeleri kanıtlı.
 
 ## Düzeltme 1 (tur 1 FAIL sonrası)
 

@@ -1,6 +1,6 @@
 # T330 — Firma kimliği: tek firma, tip ve tipe göre zorunlu alanlar, yasal kimlik bilgilerinin erişilebilirliği, iade adresi
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 ✓ PASS) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -81,10 +81,37 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-07, head `04eafd6`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama tur 1 — ✓ PASS
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` ana deponun `scripts/git-hooks`'u; main son üç tamamlanmış run 42351368236, 42351368096, 42346300012 `success`; hafızada T330 satırı var (satır 22).
+
+**Kapsam okuması:** T330 F3'tedir (`11` faz tablosu: iş mantığı, sayfasız). Sayfa ve panel bağları sonraki task'ların kendi kabul kriterleridir: İletişim sayfasının kimlik bloğu T506 k3, altbilgideki tam kimlik ve ETBİS bandı T537 k6, menünün İletişim öğesi T361 k4, kimlik formu ve `SaveCompany` T535 k6–k7, iade adresi formu T536 k10. Kriter 6, 7 ve KK6, KK7 bu yüzden servis düzeyinde değerlendirildi ve karşılandı (öncel: T313 k8 "sayfa testi T549").
+
+| Madde | Sonuç | Kanıt (doğrulayıcı) |
+|---|---|---|
+| Kriter 1 / KK1 | ✓ | `ISettingsModule` ve `CompanyIdentityInput`'ta firma ekleme/seçme/silme, dil, pazar, para birimi üyesi yok; `CompanyIdentities` yalnız `SingleAsync` ile okur, satır eklemez; Integration `SecondCompanyRow_AndDeletingTheCompany_AreRefused` (tekil dizin `23505`, bağlam koruması silmeyi `InvalidOperationException` ile reddeder, satır sayısı 1) |
+| Kriter 2 / KK2 | ✓ | Giriş kaydı yalnız `06 §4.1`'in 15 alanıdır; alan adı, gönderen, sağlayıcı anahtarı, Google kimliği yok (`02 §3.1.2`); logo/marka ayrı (§4.54) |
+| Kriter 3 / KK3 | ✓ | `CompanyType` üç değer (`06` §5: `Tradesman`, `NaturalPersonMerchant`, `LegalEntity`); `Check` tanımsız değeri `InvalidListValue` ile reddeder; `TypeFields` esnafta unvan + VKN, iki tacir tipinde unvan + MERSİS + sicil (`02 §3.1.3`) |
+| Kriter 4 / KK4 | ✓ | `CommonFields` sekiz alan (il, ilçe, adres, telefon, e-posta, KEP, oda, kurallar); boş zorunlu alan ret değildir, `MissingFields`e girer; dolu zorunlu alan boşalınca `FilledFieldCleared`; tip değişimi reddedilmez, seçili tip temizlenemez; `Save_WithAnEmptyKepAddress_IsAccepted_AndTheGateWaitsForIt`, `Save_EmptyingAFilledKepAddress_IsRefused_AndNothingIsWritten`, `Save_ChangingTheType_IsNeverRefused_…`. Ayrı bildirim adresi alanı yok; F-1…F-4'ün yönlendirmesi T308 k1'in, tek `Email` alanı onun kaynağı |
+| Kriter 5 | ✓ | Oda ve kurallar `CommonFields`'te (tipten bağımsız); `LegalIdentity` ikisini ve doluysa `BusinessName`'i taşır; `LegalIdentity_OfAMerchant_ShowsTheBusinessNameWhenFilled_…`, boşken `null` |
+| Kriter 6 / KK6 | ✓ (servis düzeyi) | `GetLegalIdentityAsync` oturum istemez, tipin alanlarını verir (başka tipin dolu değeri gösterilmez), ili adıyla verir; `LegalIdentity_NeedsNoSession_…` |
+| Kriter 7 / KK7 | ✓ (servis düzeyi) | `EtbisVerificationUrl` isteğe bağlı, `MissingFields`e girmez; dolu bağlantı döner, boşken `null`; ürün ETBİS'e kayıt yapan kod taşımaz (dış çağrı yok) |
+| Kriter 8 / KK8 | ✓ | `CompanySettingsWriter.SaveReturnAddressAsync`: kilit → denetim → `ReturnAddressVersion` koşullu tek `ExecuteUpdate`; dört parça birlikte, dolduktan sonra boşaltılamaz; `Withdrawal_KeepsTheReturnAddressItCopied_WhenTheSettingChangesLater` beyan satırının adresi ayar değişince aynı kalır |
+| `09 §25` | ✓ | Eşzamanlılık `09 §10.3` m.1–5 ile uyumlu (izlemesiz okuma, tek yazıcı, `FOR UPDATE` kilidi, bölüm sürümü, sürümler belirteç değil — model testi); `LockKind.CompanySettings` `05 §7.3.5`'in "sipariş tarafının dışındaki kilit" cümlesiyle aynı (ayrı aile); kaynak taraması ihlal örneğiyle kırmızı; modül sınırı yalnız `Contracts`; göç, paket, ayar yok. İşlem izi maddesi (`AuditOperation`) karşılanmadı: iz yazıcısı T380'indir, D-165 (a) kayıtlı |
+| Güvenlik | ✓ | Sır yok; yeni uç ve giriş yüzeyi yok; yasal kimlik bilerek açıktır (`02 §3.1.4`), başka tipin değeri sızmaz; e-posta, KEP, telefon, bağlantı, il sunucuda denetlenir; yeni bağımlılık yok |
+
+**Testler (doğrulayıcı, yerel, head `04eafd6`):** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` üç projede ayrı ayrı temiz; Unit Architecture 769, Consistency 207, kalan 2034 — hepsi geçti; betik testleri 4 dosya geçti; Integration (PostgreSQL 18, yerel konteyner) parçalı: `MigrationBundleTests` 2, Model 917 (`CompanyIdentityTests` dahil), Concurrency 26, Database 36, Security 32, Web üç parça 592, Jobs 77, Pages/Disposal/FileSecrets/Files 75, Logging/Outages/SignedEndpoints 49 — toplam 1806, hepsi geçti. Koşu sonrası `git status` temiz, `dotnet restore --locked-mode` 0. Dal CI 42348609633 (head `04eafd6`) `success`.
+
+**Task satırları (`12 §7.5`):** `11 §7.1` birimleri KP-35 (T330, T356, T366, T537), KP-58 (T330, T535), KD-21 (satır yok). KP-35 satırları `VAL-A125`…`VAL-A130` ve KP-58 satırları `VAL-A284`, `A285`, `A992`, `A286`, `A287`, `VAL-D031` kanıtını tarayıcı gözlemi ve uç yanıtıyla ister; T330 sayfa ve uç kurmaz → hepsi `BEKLEMEDE` kalır (öncel T313, T314). Servis düzeyindeki karşılıkları yukarıdaki tabloda. Matris betiği (`--kapsam 1-77`) hata 0.
+
+**Yapım raporu karşılaştırması:** bir uyuşmazlık — yapım raporu kriter 6, 7 ve KK6, KK7'yi `~` yazdı; doğrulayıcı bunları F3 kapsamında `✓` (servis düzeyi) sayar, çünkü sayfa kısımları T506, T537, T361'in kendi kriterleridir ve plandan düşmez. Öz denetim tablosu her kriter ve KK için kanıtlı; `09 §25` iz maddesinin `✗ → D-165` kaydı doğrulayıcının okumasıyla aynı. Raporda `12` task satırları bölümü yoktu (burada yazıldı).
+
+**Merge notu:** PR #420 `main` (T304, #421) ile `MEMORY.md` ve `DEFERRED_BACKLOG.md`'de çakışıyordu; doğrulamada `origin/main` dala birleştirildi (iki satır da kaldı; backlog aktif 97 — sayıldı). Birleşik dalda build temiz, Unit 3050 geçti; kod dosyasında çakışma yoktu. Birleşik başın CI'ı yardımcının merge kapısıdır.
 
 ## Altyapı Değişiklikleri
 
@@ -98,7 +125,7 @@
 - **Branch:** `task/T330-firma-kimligi`
 - **Commit:** bkz. PR (son commit dal başı)
 - **PR:** #420
-- **CI:** *(yapım CI izlemez)*
+- **CI:** dal CI 42348609633 (head `04eafd6`) ✓ yeşil
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

@@ -102,6 +102,10 @@ public sealed class SitemapSourceTests
 
         public Task<StockQuantityWriteResult> SaveStockQuantityAsync(Guid variantId, int? shownValue, int? newValue, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<VariantStockState?> GetStockStateAsync(Guid variantId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ProductAvailability> GetAvailabilityAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<ImageUploadResult> UploadImageAsync(byte[] content, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct) => throw new NotSupportedException();

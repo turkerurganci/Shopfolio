@@ -40,6 +40,16 @@ internal sealed class OrderingModule : IOrderingModule
             .SingleOrDefaultAsync(ct);
     }
 
+    public async Task<IReadOnlyList<ReservationHolder>> ListReservationHoldersAsync(Guid variantId, CancellationToken ct)
+    {
+        return await _db.StockReservations.AsNoTracking()
+            .Where(r => r.VariantId == variantId)
+            .Join(_db.Orders, r => r.OrderId, o => o.Id, (r, o) => new { r.CreatedAt, r.Id, o.OrderNumber, OrderId = o.Id, r.Quantity })
+            .OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id)
+            .Select(x => new ReservationHolder(x.OrderId, x.OrderNumber, x.Quantity))
+            .ToListAsync(ct);
+    }
+
     public async Task<Guid?> FindOrderByAccessKeyAsync(string accessKey, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(accessKey);

@@ -353,7 +353,7 @@ public sealed class ProductGalleryTests : IAsyncLifetime
     private async Task<(Product Product, Variant Variant)> SeedProductWithVariantAsync(string slug, string? name = null)
     {
         Product product = NewProduct(slug, name);
-        Variant variant = Variant.Create(product.Id, slug.ToUpperInvariant(), 100m, Now);
+        Variant variant = Variant.Create(product.Id, slug.ToUpperInvariant(), 100m, Now, 100);
         await SaveAsync(c =>
         {
             c.Products.Add(product);
@@ -365,7 +365,7 @@ public sealed class ProductGalleryTests : IAsyncLifetime
     private async Task<Variant> AddVariantAsync(Product product, Guid optionId, string sku)
     {
         OptionValue value = OptionValue.Create(optionId, "Mavi", 2, Now);
-        Variant variant = Variant.Create(product.Id, sku, 100m, Now);
+        Variant variant = Variant.Create(product.Id, sku, 100m, Now, 100);
         variant.FirstOptionValueId = value.Id;
         await SaveAsync(c =>
         {
@@ -382,7 +382,7 @@ public sealed class ProductGalleryTests : IAsyncLifetime
         Option size = Option.Create(product.Id, "Beden", 2, Now);
         OptionValue red = OptionValue.Create(color.Id, "Kırmızı", 1, Now);
         OptionValue sizeM = OptionValue.Create(size.Id, "M", 1, Now);
-        Variant variant = Variant.Create(product.Id, "KK6-01", 100m, Now);
+        Variant variant = Variant.Create(product.Id, "KK6-01", 100m, Now, 100);
         variant.FirstOptionValueId = red.Id;
         variant.SecondOptionValueId = sizeM.Id;
         await SaveAsync(c =>

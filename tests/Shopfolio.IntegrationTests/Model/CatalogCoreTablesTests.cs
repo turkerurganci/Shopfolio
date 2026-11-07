@@ -144,7 +144,7 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
         Product product = NewProduct("celik-kapi");
         Option option = Option.Create(product.Id, "Renk", 1, Now);
         OptionValue value = OptionValue.Create(option.Id, "Kırmızı", 1, Now);
-        Variant variant = Variant.Create(product.Id, "KAPI-1", 1500m, Now);
+        Variant variant = Variant.Create(product.Id, "KAPI-1", 1500m, Now, 100);
         variant.FirstOptionValueId = value.Id;
         Category category = Category.Create("Kapılar", "kapilar", null, 1, Now);
         Image image = Image.Create("abc123", ImageFormat.Jpeg, 2560, 2560, Now);
@@ -375,9 +375,9 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
             c.Options.Add(option);
             c.OptionValues.AddRange(small, medium);
         });
-        Variant first = Variant.Create(product.Id, "Kapı-ISIK", 10m, Now);
+        Variant first = Variant.Create(product.Id, "Kapı-ISIK", 10m, Now, 100);
         first.FirstOptionValueId = small.Id;
-        Variant second = Variant.Create(product.Id, "kapı-ısık", 10m, Now);
+        Variant second = Variant.Create(product.Id, "kapı-ısık", 10m, Now, 100);
         second.FirstOptionValueId = medium.Id;
         await SaveAsync(c => c.Variants.Add(first));
 
@@ -391,7 +391,7 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
         Product product = NewProduct("a");
         await SaveAsync(c => c.Products.Add(product));
 
-        Assert.Equal((CheckViolation, "ck_variants_price_above_zero"), await ViolationOfAsync(c => c.Variants.Add(Variant.Create(product.Id, "A", 0m, Now))));
+        Assert.Equal((CheckViolation, "ck_variants_price_above_zero"), await ViolationOfAsync(c => c.Variants.Add(Variant.Create(product.Id, "A", 0m, Now, 100))));
     }
 
     [Fact]
@@ -399,7 +399,7 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
     {
         Product product = NewProduct("a");
         await SaveAsync(c => c.Products.Add(product));
-        Variant variant = Variant.Create(product.Id, "A", 5m, Now);
+        Variant variant = Variant.Create(product.Id, "A", 5m, Now, 100);
         variant.NetQuantity = 0m;
 
         Assert.Equal((CheckViolation, "ck_variants_net_quantity_above_zero"), await ViolationOfAsync(c => c.Variants.Add(variant)));
@@ -410,17 +410,20 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
     {
         Product product = NewProduct("a");
         await SaveAsync(c => c.Products.Add(product));
-        Variant variant = Variant.Create(product.Id, "A", 5m, Now);
-        variant.StockQuantity = -1;
+        Variant variant = Variant.Create(product.Id, "A", 5m, Now, 100);
+        await SaveAsync(c => c.Variants.Add(variant));
 
-        Assert.Equal((CheckViolation, "ck_variants_stock_not_below_reserved"), await ViolationOfAsync(c => c.Variants.Add(variant)));
+        // A save that would write the negative number is refused by the stock guard first (T334); the constraint is the last defense of a write that bypasses it.
+        PostgresException error = await Assert.ThrowsAsync<PostgresException>(() => ExecuteAsync($"UPDATE variants SET stock_quantity = -1 WHERE id = '{variant.Id}'"));
+
+        Assert.Equal((CheckViolation, "ck_variants_stock_not_below_reserved"), (error.SqlState, error.ConstraintName));
     }
 
     [Fact]
     public async Task StockBelowTheReservedQuantity_IsRefused_AndEqualIsAccepted()
     {
         Product product = NewProduct("a");
-        Variant variant = Variant.Create(product.Id, "A", 5m, Now);
+        Variant variant = Variant.Create(product.Id, "A", 5m, Now, 100);
         variant.StockQuantity = 10;
         await SaveAsync(c =>
         {
@@ -439,7 +442,8 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
     [Fact]
     public async Task NegativeReservedQuantity_IsRefused_AndAnUnlimitedStockIsAccepted()
     {
-        Product product = NewProduct("a");
+        // An unlimited stock is a service without capacity (T334: a physical variant has a number).
+        Product product = Product.Create("Ürün a", "a", ProductType.Service, 20m, Now);
         Variant variant = Variant.Create(product.Id, "A", 5m, Now);
         await SaveAsync(c =>
         {
@@ -460,19 +464,19 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
         await SaveAsync(c =>
         {
             c.Products.Add(product);
-            c.Variants.Add(Variant.Create(product.Id, "A", 5m, Now));
+            c.Variants.Add(Variant.Create(product.Id, "A", 5m, Now, 100));
         });
 
         Assert.Equal(
             (UniqueViolation, "ix_variants_product_id_first_option_value_id_second_option_val"),
-            await ViolationOfAsync(c => c.Variants.Add(Variant.Create(product.Id, "B", 5m, Now))));
+            await ViolationOfAsync(c => c.Variants.Add(Variant.Create(product.Id, "B", 5m, Now, 100))));
     }
 
     [Fact]
     public async Task SecondValueWithoutTheFirst_IsRefused()
     {
         (Product product, _, OptionValue value) = await SeedOneOptionAsync();
-        Variant variant = Variant.Create(product.Id, "A", 5m, Now);
+        Variant variant = Variant.Create(product.Id, "A", 5m, Now, 100);
         variant.SecondOptionValueId = value.Id;
 
         Assert.Equal((CheckViolation, "ck_variants_second_value_needs_first"), await ViolationOfAsync(c => c.Variants.Add(variant)));
@@ -484,11 +488,11 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
         (Product product, Option option, OptionValue red) = await SeedOneOptionAsync();
         OptionValue blue = OptionValue.Create(option.Id, "Mavi", 2, Now);
         await SaveAsync(c => c.OptionValues.Add(blue));
-        Variant first = Variant.Create(product.Id, "A", 5m, Now);
+        Variant first = Variant.Create(product.Id, "A", 5m, Now, 100);
         first.FirstOptionValueId = red.Id;
-        Variant duplicate = Variant.Create(product.Id, "B", 5m, Now);
+        Variant duplicate = Variant.Create(product.Id, "B", 5m, Now, 100);
         duplicate.FirstOptionValueId = red.Id;
-        Variant other = Variant.Create(product.Id, "C", 5m, Now);
+        Variant other = Variant.Create(product.Id, "C", 5m, Now, 100);
         other.FirstOptionValueId = blue.Id;
         await SaveAsync(c => c.Variants.Add(first));
 
@@ -503,7 +507,7 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
     {
         Product product = NewProduct("a");
         Image image = Image.Create("k", ImageFormat.Png, 10, 10, Now);
-        Variant variant = Variant.Create(product.Id, "A", 5m, Now);
+        Variant variant = Variant.Create(product.Id, "A", 5m, Now, 100);
         variant.ImageId = image.Id;
         await SaveAsync(c =>
         {
@@ -729,7 +733,7 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
         Product product = NewProduct("a");
         Option option = Option.Create(product.Id, "Renk", 1, Now);
         OptionValue value = OptionValue.Create(option.Id, "Kırmızı", 1, Now);
-        Variant variant = Variant.Create(product.Id, "A", 5m, Now);
+        Variant variant = Variant.Create(product.Id, "A", 5m, Now, 100);
         variant.FirstOptionValueId = value.Id;
         Category category = Category.Create("Bir", "bir", null, 1, Now);
         Image image = Image.Create("k", ImageFormat.Jpeg, 10, 10, Now);
@@ -762,7 +766,7 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
     public async Task CategoryHoldingAProduct_ImageInAGallery_AndOptionValueOfAVariant_AreNotDeleted()
     {
         (Product product, _, OptionValue value) = await SeedOneOptionAsync();
-        Variant variant = Variant.Create(product.Id, "A", 5m, Now);
+        Variant variant = Variant.Create(product.Id, "A", 5m, Now, 100);
         variant.FirstOptionValueId = value.Id;
         Category category = Category.Create("Bir", "bir", null, 1, Now);
         Image image = Image.Create("k", ImageFormat.Jpeg, 10, 10, Now);

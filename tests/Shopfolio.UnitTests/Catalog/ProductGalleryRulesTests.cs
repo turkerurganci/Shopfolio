@@ -20,7 +20,7 @@ public sealed class ProductGalleryRulesTests
     // ---- main image (criterion 2; KK2) ----
 
     [Fact]
-    public void TheFirstImageAdded_ComesAsTheMainImage_WhateverTheFormMarked()
+    public void TheFirstImageAdded_ComesAsTheMainImage_WhenTheFormMarksNone()
     {
         Assert.Equal(A, GalleryRules.MainOf([Entry(A)], currentMainImageId: null));
         Assert.Equal(A, GalleryRules.MainOf([Entry(A), Entry(B)], currentMainImageId: null));

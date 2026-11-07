@@ -1,6 +1,6 @@
 # T339 — Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — birleşik durumda test tohumu düzeltmesi bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL; düzeltme 1 yapıldı — doğrulama tur 2 bekliyor) | **Tarih:** 2026-11-07
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -84,6 +84,30 @@
 | Bloke-etmeyen not (K) sayısı | 2 — K1 → D-383 (`VersionedFormPageTests.OrderPage_…_KK2` yerelde main'de de düşüyor), K2 → D-384 (yanıltıcı birim test adı) |
 
 **Doğrulayıcı uyuşmazlık notları (adım 13):** (1) Notlar'daki ana dal run'ı 42408991723 `failure` değil `cancelled`'dır (eşzamanlılık iptali; aynı içeriği taşıyan `af6e7d3` CI 42411903829 yeşil). (2) Test Sonuçları'ndaki `VersionedFormPageTests` 21/21 yerelde yinelenmedi: `OrderPage_TheAdministratorsFormCarriesTheVersion_TheCustomersCarriesOnlyTheShownOpenQuantity_KK2` `legal_text_versions` tekil dizinine takılıyor; aynı test `origin/main`'de de aynı biçimde düşüyor (T339 dışı; D-383). (3) Öz denetim tablosu tam ve kanıtlı.
+
+## Düzeltme 1 (tur 1 FAIL sonrası, 2026-11-08)
+
+**Yapılan:** `origin/main` (`af6e7d3`, T334) dala birleştirildi (rebase yok). B1 giderildi: `ProductGalleryTests.cs` içindeki üç stoksuz `Variant.Create(..., Now)` çağrısı T334'ün kalıbıyla `Variant.Create(..., Now, 100)` oldu; ürün koduna dokunulmadı. Birleşik ağaçta düşen başka test yok. K2 (D-384) kapatıldı: `ProductGalleryRulesTests` testi `TheFirstImageAdded_ComesAsTheMainImage_WhenTheFormMarksNone` olarak yeniden adlandırıldı. Kayıt belgesi çakışmaları (`IMPLEMENTATION_STATUS` Son güncelleme: yalnız en son giriş, T334 doğrulama girişi ve T339 tur 1 FAIL girişi `STATUS_CHANGELOG`'a; `DEFERRED_BACKLOG` Aktif kalem yeniden sayıldı) çözüldü. K-1577 `origin/main`'de başka kayda verilmemişti, numara aynı kaldı.
+
+**Öz denetim (birleşik ağaçta, 11'deki k1–k9 ve KK1–KK9 yeniden):**
+
+| Madde | Sonuç | Kanıt (birleşik ağaç, head üstü) |
+|---|---|---|
+| k1 / KK1 varyant kendi görseli, yoksa ürününki | ✓ | `ProductGalleryTests` 18/18 (`AVariantWithoutItsOwnImage_…`, `AVariantOfAProductWithoutImages_ShowsNone`) |
+| k2 / KK2 ana işaret sıradan bağımsız; kaldırılınca sıradaki ana | ✓ | `ProductGalleryTests` 18/18; Unit `ProductGalleryRulesTests` |
+| k3 / KK3 galeri sırası | ✓ | `TheOrderOfTheList_IsTheOrderOfTheGallery` |
+| k4 / KK4 format, boyut, adet tavanı | ✓ | `TheGallery_TakesTheCeilingAndRefusesOneMore_…`, `TheVariantsImages_CountWithTheGalleryOnes_…` (18/18); T223 Unit testleri (3019 içinde) |
+| k5 / KK5 yeniden kodlama, yön, meta veri | ✓ | T223 `ImageProcessorTests` (Unit 3019/3019) |
+| k6 / KK6 alt metin | ✓ | `TheAlternativeText_…`, `TheCardText_…`; Unit `ImageAltText` testleri |
+| k7 / KK7 ad tavanı, açıklama serbest | ✓ | `TheNameTakesItsCeiling_…`, `TheDescription_HasNoCeiling_…`; `CatalogCoreTablesTests` |
+| k8 / KK8 tek kapalı set | ✓ | Unit `RichTextSanitizerTests` + `RichTextSourceScan` (Architecture 943/943) |
+| k9 / KK9 garanti alanı yok | ✓ | `NoTableOrColumn_CarriesAWarrantyOrAGuarantee`; Unit `NoTypeMemberOrParameterOfTheApplication_…` |
+| `09 §25` ilgili satırlar | ✓ | Değişmedi; Consistency 241/241, Architecture 943/943 |
+| Sık FAIL: main'in yeni zorunlu alanını tohumlamama | ✓ | Birleşik ağaçta `ProductGalleryTests`, `StockAndCapacityTests`, Model ve Web ad alanları koşuldu |
+
+**Birleşik ağaç sınaması:** restore ✓; build `-c Release -warnaserror` 0 uyarı 0 hata; format 3 proje temiz; Unit 943 (Architecture) + 241 (Consistency) + 3019 (öteki) hepsi geçti; Integration `ProductGalleryTests` 18/18, `StockAndCapacityTests` 27/27, Model ad alanı 1123/1123 (parçalı: 18 + 27 + 182 + 213 + 234 + 449), Concurrency 26/26, Web ad alanı parçalı: 151 + 174 + 103 + 134 (+ 1 düşen, D-392) + `LivenessEndpointTests` 12 (aşağıya bak). Kalan düşme: `VersionedFormPageTests.OrderPost_ByTheAdministrator_SentTwice_TheSecondIs409_KK8` (23505, sıra bağımlı sayaç; D-383 ailesi, T339 dışı → D-392).
+
+**⚠ Düzeltme turu:** (1) `LivenessEndpointTests` 12 testi geçer ama test süreci yerelde kapanmaz (100 sn `timeout` ile öldü); T339 dışı → D-391. (2) Model ad alanının ilk parçalı koşusunda (10 sınıf, 141 sn) bir test düştü (ayrıntı kesildi); aynı sınıflar iki yarıda yeniden koşulunca 182 + 213 hepsi geçti — geçici dalgalanma, yinelenmedi.
 
 ## Altyapı Değişiklikleri
 

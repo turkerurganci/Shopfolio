@@ -56,7 +56,7 @@ public sealed class NotificationMapConsistencyTests
     }
 
     [Fact]
-    public void EveryRowOf7_3_NamesOnlyRowsThatExist_AndEveryRowOf7_1And7_2_IsNamedByARowOf7_3()
+    public void EveryRowOf7_3_NamesOnlyRowsThatExist_AndEveryRowOf7_1_IsNamedByARowOf7_3()
     {
         HashSet<string> known = [.. NotificationMap.Triggers.Select(t => t.RowId), .. NotificationMap.NoNotices.Select(n => n.RowId)];
         string[] named = [.. NotificationMap.Events.SelectMany(e => e.Rows).Distinct()];

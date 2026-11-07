@@ -9,6 +9,12 @@
 
 ---
 
+## 2026-11-07 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) yapım bitti
+
+2026-11-07 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) yapım tamamlandı, doğrulama bekliyor (dal `task/T339-urun-gorsel-metin`, PR #445; kriter 1–9, KK1–KK9 öz denetimde ✓; Unit 4159 (Architecture + Consistency dahil), Integration `ProductGalleryTests` 18, Model 690, Concurrency 26, `VersionedFormPageTests` 21, `SearchEngineDataTests` 18; derleme `-warnaserror` ve biçim üç proje temiz; şema yok; yeni bağımlılık `HtmlSanitizer` 10.0.1120 (K-1577, 09 tablosu 9.0.892 yerine; AngleSharp açığı nedeniyle); kapı: kurumsal uzun metin ve yasal metin yazım işlevleri temizleyiciyi o task'larda çağıracak (D-360, D-219); yeni backlog D-357…D-361, Aktif kalem 140).
+
+---
+
 ## 2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) doğrulama tur 2 PASS
 
 2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) doğrulama tur 2 ✓ PASS (head `2d04809` + `origin/main` birleştirmesi, PR #437; kriter 1–9, KK1–KK9 ve `09 §25` ✓, güvenlik taraması temiz; tur 1 bulgusu B1 — yöneticinin bütün sipariş iptali teslim işaretli kalemi denetlemiyordu — giderildi ve S3, S4, S9 için sınandı; bulgu 0, K-notu 0; dal CI 42399324842 yeşil; yerelde derleme `-warnaserror` 0 uyarı, biçim üç proje temiz, Unit Architecture 906 + Consistency 230 + öteki 2840, betik testleri 4/4, Integration `ShipmentTransitionsTests` 94, `OrderTransitionsTests` 31, `ConcurrencyTests` 26 (postgres:18); `12` KP-46 satırları uç yanıtı ister → `BEKLEMEDE` kalır; kayıt belgeleri çakışması `origin/main` (T322) ile çözüldü, backlog Aktif kalem 135). Merge ve post-merge CI yardımcıda.

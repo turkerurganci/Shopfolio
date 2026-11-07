@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) yapım tamamlandı, doğrulama bekliyor (dal `task/T339-urun-gorsel-metin`, PR #445; kriter 1–9, KK1–KK9 öz denetimde ✓; Unit 4159 (Architecture + Consistency dahil), Integration `ProductGalleryTests` 18, Model 690, Concurrency 26, `VersionedFormPageTests` 21, `SearchEngineDataTests` 18; derleme `-warnaserror` ve biçim üç proje temiz; şema yok; yeni bağımlılık `HtmlSanitizer` 10.0.1120 (K-1577, 09 tablosu 9.0.892 yerine; AngleSharp açığı nedeniyle); kapı: kurumsal uzun metin ve yasal metin yazım işlevleri temizleyiciyi o task'larda çağıracak (D-360, D-219); yeni backlog D-357…D-361, Aktif kalem 140).
+**Son güncelleme:** 2026-11-08 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) doğrulama tur 1 ✗ FAIL (head `7d65caf`, PR #445; dalın kendi tabanında kriter 1–9, KK1–KK9, `09 §25` ve güvenlik taraması ✓, dal CI 42411851018 yeşil, Unit 922 + 241 + 2996, Integration `ProductGalleryTests` 18, Concurrency 26, `SearchEngineDataTests` 18; B1 ORTA S2: `origin/main` (`af6e7d3`, T334) birleştirilince `ProductGalleryTests` 14/18 düşer — T334'ün `VariantStockGuard`'ı fiziksel varyantta stok numarası ister, testin üç tohumu stoksuz varyant kurar; birleştirme push edilmedi; düzeltme: birleştir + `Variant.Create(..., Now, 100)`; K1 → D-383, K2 → D-384; `12` `Durum` değişmedi (satırlar uç yanıtı ve tarayıcı gözlemi ister — T503, T525); backlog aktif 142). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -178,7 +178,7 @@
 | T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ⬚ | — | — | — |
 | T337 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | ⬚ | — | — | — |
 | T338 | Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması | ⬚ | — | — | — |
-| T339 | Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti | ⏳ | — | — | #445 |
+| T339 | Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti | ⏳ | ✗ FAIL (tur 1) | — | #445 |
 | T340 | Dijital ürün: dosya, indirme hakkı, hak yenileme, yeniden satın alma | ⬚ | — | — | — |
 | T341 | Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı | ⬚ | — | — | — |
 | T342 | Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri | ⬚ | — | — | — |

@@ -1,6 +1,6 @@
 # T339 — Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — birleşik durumda test tohumu düzeltmesi bekliyor) | **Tarih:** 2026-11-07
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -78,10 +78,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulayıcı doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-08, head `7d65caf`). Dalın kendi tabanında kriter 1–9, KK1–KK9, `09 §25` ve güvenlik taraması ✓ (dal CI 42411851018 yeşil; yerelde Unit 922 + 241 + 2996, Integration `ProductGalleryTests` 18/18, Concurrency 26/26, `SearchEngineDataTests` 18/18). `origin/main` (`af6e7d3`, T334) birleştirilince `ProductGalleryTests` 14/18 düşer: T334'ün `VariantStockGuard`'ı fiziksel varyantta stok numarası ister, testin üç tohumu (`Variant.Create(..., Now)`, satır 356, 368, 385) stoksuz varyant kurar. Birleştirme geri alındı, push edilmedi. |
+| Bulgu sayısı | 1 (B1 ORTA S2 — birleşik durumda `ProductGalleryTests` kırık) |
+| Düzeltme gerekli mi | Evet — `origin/main` birleştirilir, üç tohum T334'ün kalıbıyla stok alır (`Variant.Create(..., Now, 100)`), birleşik durumda `ProductGalleryTests` ve dalın dokunduğu Integration sınıfları yeniden koşulur |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 → D-383 (`VersionedFormPageTests.OrderPage_…_KK2` yerelde main'de de düşüyor), K2 → D-384 (yanıltıcı birim test adı) |
+
+**Doğrulayıcı uyuşmazlık notları (adım 13):** (1) Notlar'daki ana dal run'ı 42408991723 `failure` değil `cancelled`'dır (eşzamanlılık iptali; aynı içeriği taşıyan `af6e7d3` CI 42411903829 yeşil). (2) Test Sonuçları'ndaki `VersionedFormPageTests` 21/21 yerelde yinelenmedi: `OrderPage_TheAdministratorsFormCarriesTheVersion_TheCustomersCarriesOnlyTheShownOpenQuantity_KK2` `legal_text_versions` tekil dizinine takılıyor; aynı test `origin/main`'de de aynı biçimde düşüyor (T339 dışı; D-383). (3) Öz denetim tablosu tam ve kanıtlı.
 
 ## Altyapı Değişiklikleri
 

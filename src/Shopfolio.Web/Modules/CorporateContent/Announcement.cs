@@ -13,7 +13,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// one (the single-row index of the migration, 06 2.3.2). It may be deleted, and a new row may then be opened. The visibility inside the
 /// date range is read from the status and the dates, never stored.
 /// </summary>
-internal sealed class Announcement : IVersionedRecord
+internal sealed class Announcement : IContentRecord
 {
     public Guid Id { get; set; }
 
@@ -36,6 +36,11 @@ internal sealed class Announcement : IVersionedRecord
 
     /// <summary>Raises the version by one; every save of the record calls it (06 2.6.1; 09 10.2 item 1).</summary>
     public void BumpVersion() => Version++;
+
+    public ContentRecordKind Kind => ContentRecordKind.Announcement;
+
+    public IReadOnlyList<ContentGateField> MissingGateFields() =>
+        ContentGate.Missing(Kind, field => field == ContentGateField.Text ? ContentGate.IsFilled(Text) : ContentGate.Unreadable(Kind, field));
 
     public static Announcement Create(DateTimeOffset now)
     {

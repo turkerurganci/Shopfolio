@@ -25,3 +25,12 @@ scripts/git-hooks/commit-msg text eol=lf
 *.gif  binary
 *.pdf  binary
 *.ico  binary
+
+# Append-only shared record files: parallel task branches only add lines
+# (newest entry at the top), so a union merge keeps both sides instead of
+# conflicting. Do NOT add files whose lines are edited in place
+# (IMPLEMENTATION_STATUS.md table cells, DEFERRED_BACKLOG.md header counter,
+# CONTEXT.md). Note: GitHub's own mergeability check may ignore merge drivers;
+# this helps local `git merge origin/main` on task branches.
+Docs/STATUS_CHANGELOG.md merge=union
+.claude/memory/MEMORY.md merge=union

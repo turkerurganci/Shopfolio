@@ -8,6 +8,15 @@ namespace Shopfolio.Modules.AfterSales.Contracts;
 public interface IAfterSalesModule
 {
     /// <summary>
+    /// The order's disposal (06 9.2.1, 9.2.2; K-1030; K-1069): empties the administrator link and name of the item records (the cancellation's and the late
+    /// delivery termination's and the withdrawal's included), the cancellation's free note and the IBAN links of the cancellation, the late delivery termination and
+    /// the withdrawal, and deletes the refund IBAN requests and the refund IBANs of the orders. The item records themselves, their amounts and their dates stay.
+    /// It writes through the caller's change tracker: the caller holds the orders' row locks inside its transaction, has loaded the order items, raises the orders'
+    /// versions and saves; the method opens no transaction and saves nothing (09 6 item 3).
+    /// </summary>
+    Task ErasePersonalDataAsync(OrderPersonalDataScope scope, CancellationToken ct);
+
+    /// <summary>
     /// The quantity each order item has closed by its item records (02 5.8; 06 2.7.2; K-790): the sum of the quantities of its cancellation,
     /// removal, late delivery termination and withdrawal records, saved or added in the caller's context and not saved yet. An item with no such record is
     /// not in the result. The order module takes the item's open quantity as its own quantity minus this (03 1.4.3: the closure rule). A plain read;
@@ -15,3 +24,9 @@ public interface IAfterSalesModule
     /// </summary>
     Task<IReadOnlyDictionary<Guid, int>> ClosedQuantitiesAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 }
+
+/// <summary>The orders whose personal data goes, with the ids that reach their records: their items and their refunds (the refund IBAN request is linked to either).</summary>
+public sealed record OrderPersonalDataScope(
+    IReadOnlyCollection<Guid> OrderIds,
+    IReadOnlyCollection<Guid> OrderItemIds,
+    IReadOnlyCollection<Guid> RefundIds);

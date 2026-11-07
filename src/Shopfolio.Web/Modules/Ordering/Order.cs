@@ -190,6 +190,29 @@ internal sealed class Order : IVersionedRecord
         NormalizedContactEmail = email is null ? null : TextNormalizer.NormalizeIdentity(email);
     }
 
+    /// <summary>
+    /// The disposal's change of the order (06 9.2.1; K-1030 (1), K-1052): the contact (the normalized e-mail with it), the access key, the two addresses, the
+    /// account link, the cart link and the IP address are emptied together - the database's check keeps them together. The confirmation key and every
+    /// commercial field stay. The caller holds the order's row lock and raises the version.
+    /// </summary>
+    public void ErasePersonalData()
+    {
+        SetContactEmail(null);
+        OrderAccessKey = null;
+        IpAddress = null;
+        CustomerId = null;
+        CartId = null;
+        ShippingRecipientName = null;
+        ShippingPhone = null;
+        ShippingProvinceId = null;
+        ShippingDistrict = null;
+        ShippingAddressLine = null;
+        BillingRecipientName = null;
+        BillingProvinceId = null;
+        BillingDistrict = null;
+        BillingAddressLine = null;
+    }
+
     /// <summary>Writes the two document copies; they are written once, at confirmation, and never again (09 9.3 item 1).</summary>
     public void FreezeDocuments(string preInformationFormText, string distanceSalesContractText)
     {

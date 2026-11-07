@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Validation;
+using FieldRejection = Shopfolio.Modules.Settings.Contracts.FieldRejection;
 using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.Settings;

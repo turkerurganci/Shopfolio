@@ -62,5 +62,26 @@ internal sealed class EmailLinks
         return Absolute(key is null ? "/panel/" + screen : "/panel/" + screen + "/" + Uri.EscapeDataString(key));
     }
 
+    /// <summary>
+    /// The address of an account link (08 2.2.8): a customer's is <c>/{screen}/{key}</c>, an administrator's <c>/panel/{screen}/{key}</c> - the same text for both,
+    /// the path alone differs (K-694; 07 2.1.4, 2.1.5). The screen is a fixed name the template writes; the key is percent-encoded.
+    /// </summary>
+    public Uri Account(string screen, string key, bool isAdmin)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(screen);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        if (isAdmin)
+        {
+            return Panel(screen, key);
+        }
+
+        if (!screen.All(c => char.IsAsciiLetterLower(c) || c == '-'))
+        {
+            throw new ArgumentException("An account screen is a name of lower case letters and hyphens (07 2.1.4).", nameof(screen));
+        }
+
+        return Absolute("/" + screen + "/" + Uri.EscapeDataString(key));
+    }
+
     private Uri Absolute(string path) => new(_site.Absolute(path), UriKind.Absolute);
 }

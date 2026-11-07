@@ -12,17 +12,24 @@ namespace Shopfolio.Modules.Notifications;
 internal sealed class NotificationsModule : INotificationsModule
 {
     private readonly CompanyNoticeQueue _companyNotices;
+    private readonly AccountEmailQueue _accountEmails;
 
-    public NotificationsModule(CompanyNoticeQueue companyNotices)
+    public NotificationsModule(CompanyNoticeQueue companyNotices, AccountEmailQueue accountEmails)
     {
         ArgumentNullException.ThrowIfNull(companyNotices);
+        ArgumentNullException.ThrowIfNull(accountEmails);
         _companyNotices = companyNotices;
+        _accountEmails = accountEmails;
     }
 
     public Task<int> QueueCompanyNoticeAsync(CompanyNotice notice, CancellationToken ct) => _companyNotices.QueueCompanyAsync(notice, ct);
 
     public Task<int> QueueAdminNoticeAsync(AdminNotice notice, IReadOnlyCollection<string> adminEmails, CancellationToken ct) =>
         Task.FromResult(_companyNotices.QueueAdmins(notice, adminEmails));
+
+    public Task<int> QueueAccountEmailAsync(AccountEmail email, CancellationToken ct) => Task.FromResult(_accountEmails.Queue(email));
+
+    public Task<bool> QueueGoogleLinkConfirmationAsync(Guid customerId, string email, CancellationToken ct) => _accountEmails.QueueGoogleConfirmationAsync(customerId, email, ct);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddNotificationsModule</c> once.</summary>
@@ -48,6 +55,10 @@ internal static class NotificationsModuleRegistration
         // The firm notices F-1…F-6 (T308; 08 2.2.7): the writer of their dispatch rows, in the caller's transaction; F-1…F-4 go to the firm's contact e-mail.
         services.AddScoped<ICompanyContactEmail, CompanyContactEmail>();
         services.AddScoped<CompanyNoticeQueue>();
+
+        // The account and administration e-mails (T309; 08 2.2.8): the writer of their dispatch rows and the body made at the time of sending, which reads the link record first.
+        services.AddScoped<AccountEmailQueue>();
+        services.AddScoped<AccountEmailBodies>();
 
         // The per-recipient sending limit asked at a row's first attempt (08 2.2.4); its thinned security line keeps one window in memory.
         services.AddScoped<RecipientLimitCheck>();

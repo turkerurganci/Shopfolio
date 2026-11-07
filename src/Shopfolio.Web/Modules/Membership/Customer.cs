@@ -57,6 +57,9 @@ internal sealed class Customer
         return customer;
     }
 
+    /// <summary>Replaces the stored digest with a newer one made with the current hashing settings.</summary>
+    public void RenewDigest(string digest) => PasswordHash = digest;
+
     /// <summary>Writes the email and its normalized form together (06 2.8.2).</summary>
     public void SetEmail(string email)
     {

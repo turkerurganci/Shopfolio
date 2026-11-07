@@ -15,11 +15,14 @@ internal sealed class OrderingModule : IOrderingModule
 {
     private readonly AppDbContext _db;
 
+    private readonly OrderLocks _locks;
+
     private readonly AdvisoryLocks _advisoryLocks;
 
-    public OrderingModule(AppDbContext db, AdvisoryLocks advisoryLocks)
+    public OrderingModule(AppDbContext db, OrderLocks locks, AdvisoryLocks advisoryLocks)
     {
         _db = db;
+        _locks = locks;
         _advisoryLocks = advisoryLocks;
     }
 
@@ -41,6 +44,41 @@ internal sealed class OrderingModule : IOrderingModule
             .Where(i => i.Id == orderItemId && i.ProductType == ProductType.Digital)
             .Select(i => new DownloadableItem(i.VariantId, i.DigitalFileId))
             .SingleOrDefaultAsync(ct);
+    }
+
+    public async Task<int> LinkGuestOrdersAsync(Guid customerId, string email, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(email);
+        if (_db.Database.CurrentTransaction is null)
+        {
+            throw new InvalidOperationException("The guest orders are linked only inside the transaction of the verification (02 3.13.2; 09 6 item 3).");
+        }
+
+        string normalized = TextNormalizer.NormalizeIdentity(email);
+
+        // The orders are locked first and read after the lock (05 7.3.2): a guest order another request is changing at this moment is waited for, not overwritten. An order that
+        // has an account, or whose account was deleted, is never taken (K-1116).
+        Guid[] candidates = await _db.Orders.AsNoTracking()
+            .Where(o => o.CustomerId == null && !o.IsAccountDeleted && o.NormalizedContactEmail == normalized)
+            .Select(o => o.Id)
+            .ToArrayAsync(ct);
+        if (candidates.Length == 0)
+        {
+            return 0;
+        }
+
+        await _locks.LockAsync(candidates, ct);
+        List<Order> orders = await _db.Orders
+            .Where(o => candidates.Contains(o.Id) && o.CustomerId == null && !o.IsAccountDeleted && o.NormalizedContactEmail == normalized)
+            .ToListAsync(ct);
+
+        // The account link is a non-raising field (06 2.6.4): the order's version does not move, and the save of the caller's unit of work writes this column only.
+        foreach (Order order in orders)
+        {
+            order.CustomerId = customerId;
+        }
+
+        return orders.Count;
     }
 
     public async Task<int> RemoveFromCartsAsync(IReadOnlyCollection<Guid> variantIds, string productName, CancellationToken ct)

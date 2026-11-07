@@ -335,6 +335,7 @@ public sealed class FieldRuleTests
             new FieldRequiredAttribute(), new InvalidEmailAttribute(), new InvalidPhoneAttribute(), new InvalidIbanAttribute(), new InvalidAmountAttribute(),
             new InvalidPercentageAttribute(), new InvalidQuantityAttribute(5), new InvalidUrlAttribute(), new TextTooLongAttribute(5),
             new InvalidListValueAttribute("A"), new InvalidColorAttribute(), new CheckboxNotAcceptedAttribute(), new InvalidDateAttribute(),
+            new PasswordTooWeakAttribute(),
         ];
 
         foreach (FieldRuleAttribute rule in rules)

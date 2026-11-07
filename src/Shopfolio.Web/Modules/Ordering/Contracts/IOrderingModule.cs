@@ -46,6 +46,16 @@ public interface IOrderingModule
     /// are exactly the orders whose payment is awaited. A plain read; it writes nothing.
     /// </summary>
     Task<IReadOnlyList<ReservationHolder>> ListReservationHoldersAsync(Guid variantId, CancellationToken ct);
+
+    /// <summary>
+    /// The open orders that hold a product (02 3.7.7; 06 4.17): the orders not in a terminal shipment state - payment awaited, or paid and not completed - with an item of this
+    /// product, each counted once. The panel says it before a deletion is confirmed; it stops nothing. An order whose item link was emptied by an earlier deletion is not counted.
+    /// A plain read; it writes nothing.
+    /// </summary>
+    Task<int> CountOpenOrdersOfProductAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>The open orders (as <see cref="CountOpenOrdersOfProductAsync"/>) with an item of this variant, each counted once. A plain read; it writes nothing.</summary>
+    Task<int> CountOpenOrdersOfVariantAsync(Guid variantId, CancellationToken ct);
 }
 
 /// <summary>An order that holds units of a variant's stock or capacity: its id, its number and the reserved units.</summary>

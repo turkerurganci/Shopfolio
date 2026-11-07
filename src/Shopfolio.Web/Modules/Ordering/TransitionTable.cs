@@ -111,5 +111,8 @@ internal static class TransitionTable
     }
 
     /// <summary>True for a terminal state of the shipment axis (02 5.4): the closing states are left only by the firm's correction.</summary>
-    public static bool IsTerminal(OrderStatus status) => status is OrderStatus.Delivered or OrderStatus.Cancelled;
+    public static bool IsTerminal(OrderStatus status) => TerminalStatuses.Contains(status);
+
+    /// <summary>The terminal states of the shipment axis (02 5.4); an order in any other state is an open order (02 3.7.7), and a query reads this list, not a copy of it.</summary>
+    public static IReadOnlyList<OrderStatus> TerminalStatuses { get; } = [OrderStatus.Delivered, OrderStatus.Cancelled];
 }

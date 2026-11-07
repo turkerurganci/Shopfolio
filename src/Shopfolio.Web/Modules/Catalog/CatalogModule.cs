@@ -20,6 +20,7 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly ShowcaseReader _showcase;
     private readonly StockCodes _stockCodes;
     private readonly ProductStructureReader _structure;
+    private readonly ProductPageReader _pages;
 
     public CatalogModule(
         StockCounters counters,
@@ -29,8 +30,10 @@ internal sealed class CatalogModule : ICatalogModule
         DigitalFileUploads fileUploads,
         ShowcaseReader showcase,
         StockCodes stockCodes,
-        ProductStructureReader structure)
+        ProductStructureReader structure,
+        ProductPageReader pages)
     {
+        _pages = pages;
         _showcase = showcase;
         _counters = counters;
         _imageUploads = imageUploads;
@@ -57,6 +60,10 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task<IReadOnlyList<OptionMatrixCell>> GetOptionMatrixAsync(Guid productId, CancellationToken ct)
         => _structure.GetMatrixAsync(productId, ct);
+
+    public Task<ProductPage> GetProductPageAsync(string? slug, bool isAdministrator, CancellationToken ct) => _pages.ReadAsync(slug, isAdministrator, ct);
+
+    public Task<IReadOnlyList<Guid>> ListVariantsWithoutFileAsync(Guid productId, CancellationToken ct) => _fileReader.ListPublishedWithoutFileAsync(productId, ct);
 
     public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct)
         => _fileReader.FindAsync(variantId, lastKnownFileId, ct);
@@ -127,11 +134,13 @@ internal static class CatalogModuleRegistration
         services.AddDisposalPart<ImageDisposalPart>();
         services.AddDisposalPart<OrphanImageFilePart>();
 
-        // The publish status transitions (T321; 09 9.1 item 1): the class is what the module takes, the open face is the same instance. The gate is open until T335 (D-300).
+        // The publish status transitions (T321; 09 9.1 item 1): the class is what the module takes, the open face is the same instance. The gate is T335's (D-300).
         services.AddScoped<ShowcaseReader>();
-        services.AddScoped<IPublishGate, UnwrittenPublishGate>();
+        services.AddScoped<ProductPageReader>();
+        services.AddScoped<IPublishGate, CatalogPublishGate>();
         services.AddScoped<ProductTransitions>();
         services.AddScoped<IProductTransitions>(provider => provider.GetRequiredService<ProductTransitions>());
+        services.AddScoped<IProductRemoval, ProductRemoval>();
         services.AddScoped<ICatalogModule, CatalogModule>();
         return services;
     }

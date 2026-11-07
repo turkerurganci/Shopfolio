@@ -120,6 +120,10 @@ public sealed class SitemapSourceTests
 
         public Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<ProductPage> GetProductPageAsync(string? slug, bool isAdministrator, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<Guid>> ListVariantsWithoutFileAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<string?> SuggestStockCodeAsync(Guid? productId, string? productName, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<StockCodeCheck> CheckStockCodeAsync(string? stockCode, Guid? exceptVariantId, CancellationToken ct) => throw new NotSupportedException();

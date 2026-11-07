@@ -15,7 +15,7 @@ internal enum ProductDefinitionProblem
 /// The type-dependent rules of the product definition as pure functions (02 3.2.2, 3.2.3, 7.3.4; 06 4.5; 11 T332 criteria 2, 9, 10). The type lives on the product and is a
 /// closed three-valued field; the withdrawal exemption is the reason field being filled, only on a physical product, and it never enters the publication gate; a service
 /// product carries a fulfilment period of at least <see cref="ParameterFences.FulfilmentPeriodLower"/> day and is not published without one (P-44). The rest of the gate
-/// (name, main category, a published variant, the digital file) is the publication task's (T335) and is not read here.
+/// (name, main category, a published variant, the digital file) is <see cref="PublishGateRules"/>'s (T335), which asks this class for the fulfilment period - the rule stays here.
 /// </summary>
 internal static class ProductDefinitionRules
 {

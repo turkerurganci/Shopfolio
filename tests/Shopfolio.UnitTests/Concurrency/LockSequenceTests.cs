@@ -4,7 +4,7 @@ namespace Shopfolio.UnitTests.Concurrency;
 
 /// <summary>
 /// The lock order of 05 7.3.5 as <see cref="LockSequence"/> holds it (T228 criteria 7, 8; KK7): the cart's advisory lock first and alone at
-/// the head, then the order rows by id, the variant rows by id and the coupon last; the category tree's and the administrator set's locks are
+/// the head, then the order rows by id, the variant rows by id and the coupon last; the category tree's, the administrator set's and the company settings row's locks are
 /// taken alone. A reversed request is refused before any statement is sent; the integration tests show the same through the real lock takers.
 /// </summary>
 public sealed class LockSequenceTests
@@ -40,6 +40,16 @@ public sealed class LockSequenceTests
         { "Variant", "AdminSet" },
         { "Cart", "CategoryTree" },
         { "CategoryTree", "AdminSet" },
+        { "CompanySettings", "Order" },
+        { "CompanySettings", "Variant" },
+        { "CompanySettings", "Coupon" },
+        { "CompanySettings", "Cart" },
+        { "CompanySettings", "AdminSet" },
+        { "CompanySettings", "CategoryTree" },
+        { "Order", "CompanySettings" },
+        { "Cart", "CompanySettings" },
+        { "AdminSet", "CompanySettings" },
+        { "CategoryTree", "CompanySettings" },
     };
 
     [Theory]
@@ -101,6 +111,7 @@ public sealed class LockSequenceTests
     [Theory]
     [InlineData("CategoryTree")]
     [InlineData("AdminSet")]
+    [InlineData("CompanySettings")]
     [InlineData("Cart")]
     public void Check_SameAdvisoryLockAgainRightAfterItself_IsAllowed(string kindName)
     {
@@ -131,6 +142,6 @@ public sealed class LockSequenceTests
 
     private static Guid? KeyOf(LockKind kind, Guid key)
     {
-        return kind is LockKind.CategoryTree or LockKind.AdminSet ? null : key;
+        return kind is LockKind.CategoryTree or LockKind.AdminSet or LockKind.CompanySettings ? null : key;
     }
 }

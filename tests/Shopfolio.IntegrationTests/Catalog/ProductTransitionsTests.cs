@@ -1,6 +1,7 @@
 using System.Net;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 
 using Npgsql;
@@ -257,6 +258,50 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
         Assert.Equal((1, 0), (page.PageNumber, page.TotalCount));
     }
 
+    // ---- the showcase list's paging (09 19.2 item 5, 10.5 item 6) ----
+
+    [Fact]
+    public async Task TheShowcaseList_WithProductsOfTheSameCreatedAt_NeitherRepeatsNorLosesOneAtThePageBorders()
+    {
+        const int Total = (PageSizes.StorefrontProducts * 2) + 1;
+        List<Product> seeded = await SeedSameMomentAsync(Total);
+        await SeedAsync(PublishStatus.Draft, PublishStatus.Draft, name: "Taslak");
+
+        ShowcasePage first = await ShowcaseAsync(null, 1);
+        ShowcasePage second = await ShowcaseAsync(null, 2);
+        ShowcasePage third = await ShowcaseAsync(null, 3);
+
+        Assert.Equal([PageSizes.StorefrontProducts, PageSizes.StorefrontProducts, 1], [first.Items.Count, second.Items.Count, third.Items.Count]);
+        Assert.All([first, second, third], p => Assert.Equal((Total, 3, PageSizes.StorefrontProducts), (p.TotalCount, p.PageCount, p.PageSize)));
+        Guid[] shown = [.. first.Items.Concat(second.Items).Concat(third.Items).Select(i => i.Id)];
+        Assert.Equal(Total, shown.Distinct().Count());
+        Assert.Equal(seeded.Select(p => p.Id).Order(), shown.Order());
+    }
+
+    [Theory]
+    [InlineData(4)]
+    [InlineData(int.MaxValue)]
+    public async Task AShowcasePage_PastTheLast_IsTheLastPage_AndOneBelowTheFirst_IsTheFirst(int asked)
+    {
+        await SeedSameMomentAsync((PageSizes.StorefrontProducts * 2) + 1);
+
+        ShowcasePage past = await ShowcaseAsync(null, asked);
+        ShowcasePage below = await ShowcaseAsync(null, 0);
+
+        Assert.Equal((3, 1), (past.PageNumber, past.Items.Count));
+        Assert.Equal((1, PageSizes.StorefrontProducts), (below.PageNumber, below.Items.Count));
+    }
+
+    [Fact]
+    public async Task AShowcaseListOfOnePage_HasPageCountOne()
+    {
+        await SeedSameMomentAsync(3);
+
+        ShowcasePage page = await ShowcaseAsync(null, 1);
+
+        Assert.Equal((3, 3, 1, 1), (page.Items.Count, page.TotalCount, page.PageCount, page.PageNumber));
+    }
+
     // ---- KK5: the gate ----
 
     [Fact]
@@ -422,6 +467,19 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
 
     // ---- KK7: the cart ----
 
+    [Fact]
+    public async Task TwoRequestsTakingTheNoticesTogether_TellThemOnce_AndNeitherThrows_KK7()
+    {
+        (Product product, List<Variant> variants) = await SeedAsync(PublishStatus.Published, PublishStatus.Published, PublishStatus.Published);
+        Guid cartId = await SeedCartAsync((variants[0].Id, 1), (variants[1].Id, 2));
+        await RunAsync((unit, token) => unit.ChangeProductStatusAsync(product.Id, PublishStatus.Archived, product.Version, token));
+
+        IReadOnlyList<string>[] taken = await Task.WhenAll(TakeNoticesAsync(cartId), TakeNoticesAsync(cartId));
+
+        Assert.Equal(2, taken.Sum(t => t.Count));
+        Assert.Empty(await TakeNoticesAsync(cartId));
+    }
+
     [Theory]
     [InlineData(PublishStatus.Archived)]
     [InlineData(PublishStatus.Draft)]
@@ -529,7 +587,21 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
 
     // ---- helpers ----
 
-    private Task<ShowcasePage> ShowcaseAsync(string? search) => WithCatalogAsync((catalog, token) => catalog.ListShowcaseAsync(search, 1, token));
+    private Task<ShowcasePage> ShowcaseAsync(string? search, int page = 1) => WithCatalogAsync((catalog, token) => catalog.ListShowcaseAsync(search, page, token));
+
+    /// <summary>Seeds Published products that all carry one <c>CreatedAt</c>, so only the id tells them apart in the list's order.</summary>
+    private async Task<List<Product>> SeedSameMomentAsync(int count)
+    {
+        int n = Interlocked.Increment(ref _counter);
+        List<Product> products = [.. Enumerable.Range(0, count).Select(i =>
+        {
+            Product product = Product.Create($"Masa {i}", $"ayni-an-{n:D4}-{i:D3}", ProductType.Physical, 20m, Now.AddDays(1));
+            product.PublishStatus = PublishStatus.Published;
+            return product;
+        })];
+        await SaveAsync(c => c.Products.AddRange(products));
+        return products;
+    }
 
     private Task<IReadOnlyList<ShowcaseVariant>> OptionsAsync(Guid productId) => WithCatalogAsync((catalog, token) => catalog.ListOptionVariantsAsync(productId, token));
 
@@ -544,7 +616,13 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
     {
         await using ServiceProvider provider = BuildProvider();
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
-        return await scope.ServiceProvider.GetRequiredService<IOrderingModule>().TakeRemovedItemNoticesAsync(cartId, Ct);
+
+        // The call joins the caller's transaction and takes the cart's lock inside it (09 9.1 item 3, 10.2 item 5).
+        AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(Ct);
+        IReadOnlyList<string> notices = await scope.ServiceProvider.GetRequiredService<IOrderingModule>().TakeRemovedItemNoticesAsync(cartId, Ct);
+        await transaction.CommitAsync(Ct);
+        return notices;
     }
 
     private async Task<PublishChangeResult> RunAsync(Func<IProductTransitions, CancellationToken, Task<PublishChangeResult>> work)

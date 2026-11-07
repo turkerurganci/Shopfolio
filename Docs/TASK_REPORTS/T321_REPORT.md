@@ -1,6 +1,6 @@
 # T321 — Ürün yayın durumları
 
-**Faz:** F3 | **Durum:** ✗ FAIL (doğrulama tur 1) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ⏳ Düzeltme yapıldı (tur 1 FAIL sonrası; doğrulama tur 2 bekliyor) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -13,7 +13,7 @@
 - Son Yayında varyantın taslağa/arşive alınması `LastPublishedVariant` ile engellenir; ürünün kendisi her zaman çıkabilir.
 - İlk yayında `Product.SlugFixedAt` ve ilk satış anı (`Variant.MarkFirstOnSale`) bir kez yazılır.
 - Vitrin okuması `ShowcaseReader`: `ShowcaseVisibility.Listed` (yalnız Yayında ürün) ve `InOptionList` (ürün ve varyant Yayında); liste, arama ve seçenek listesi; tükenmişlik süzgeçte yok, işaretle gösterilir. `CatalogSitemapReader` aynı `Listed` kuralını kullanır.
-- Sepet: `IOrderingModule.RemoveFromCartsAsync` vitrinden kalkan kalemi sepetten çıkarır (kalem `RemovedProductName` ile işaretlenir, sepette sayılmaz); `TakeRemovedItemNoticesAsync` bir kez söyler ve siler.
+- Sepet: `IOrderingModule.RemoveFromCartsAsync` vitrinden kalkan kalemi sepetten çıkarır (kalem `RemovedProductName` ile işaretlenir, sepette sayılmaz); `TakeRemovedItemNoticesAsync` bir kez söyler ve siler (sepetin tavsiye kilidi altında; istisna yakalamaz).
 - `ICatalogModule`: `ListShowcaseAsync`, `ListOptionVariantsAsync` (T332 yöntemleriyle birleştirildi).
 
 ## Etkilenen Modüller / Dosyaları
@@ -61,8 +61,8 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 3976/3976 (main birleştirmesi sonrası) |
-| Integration (T321) | ✓ | `--filter-class *ProductTransitionsTests` | 35/35 |
+| Unit (düzeltme sonrası) | ✓ | `--no-build`, Architecture ve öteki ayrı | 906 + 3075 |
+| Integration (T321, düzeltme sonrası) | ✓ | `--filter-class *ProductTransitionsTests` (5 yeni test) | 40/40; `SitemapEndpointTests` 10/10 |
 | Integration (komşu: Sitemap, CatalogCoreTables, CartAndOrderCoreTables, ModuleCallTransaction) | ✓ | `--filter-class` dörtlü | 138/138 |
 | Integration (SearchEngineData, ListPaging + ProductTransitions) | ✓ | `--filter-class` üçlü | 68/68 |
 | Integration (Ordering + Concurrency; önceki işçi) | ✓ | — | 57/57 |
@@ -74,7 +74,7 @@
 |---|---|
 | Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-07) |
 | Bulgu sayısı | tur 1: 2 (Bulgu 1 DÜŞÜK S1 — vitrin listesinin sınır testi yok; Bulgu 2 DÜŞÜK S1 — `DbUpdateConcurrencyException` kayıt varyantı dışında yakalanıyor) |
-| Düzeltme gerekli mi | Evet — iki bulgu bu PR'da |
+| Düzeltme gerekli mi | Evet — iki bulgu bu PR'da; yapıldı (aşağıdaki "Düzeltme — tur 1 sonrası") |
 | Bloke-etmeyen not (K) sayısı | tur 1: 0 |
 
 ### Doğrulama Sonucu — T321 Ürün yayın durumları — tur 1
@@ -167,6 +167,33 @@ Koşu sonrası konteyner adıyla silindi, `git status` temiz.
 
 #### Merge ve Post-merge
 - FAIL — merge yok.
+
+## Düzeltme — tur 1 sonrası
+
+| Bulgu | Düzeltme | Kanıt |
+|---|---|---|
+| 1 Vitrin listesi sınır testi yok | `ListShowcaseAsync` üzerinden üç test: aynı `CreatedAt`'li 49 ürün 24+24+1 sayfada ne yinelenir ne kaybolur; sayfa 4 ve `int.MaxValue` son sayfayı, 0 ilk sayfayı verir; tek sayfalık listede `PageCount` 1 | `TheShowcaseList_WithProductsOfTheSameCreatedAt_NeitherRepeatsNorLosesOneAtThePageBorders`, `AShowcasePage_PastTheLast_IsTheLastPage_AndOneBelowTheFirst_IsTheFirst`, `AShowcaseListOfOnePage_HasPageCountOne` |
+| 2 `DbUpdateConcurrencyException` yakalanıyor | Yakalama kaldırıldı; `TakeRemovedItemNoticesAsync` işlemin ilk deyimi olarak sepetin tavsiye kilidini (`AdvisoryLocks`, `AdvisoryLockScope.Cart`, 09 §10.2 m.5) alır, sonra okur ve siler; eşzamanlı ikinci istek kilitte bekler, işaretli kalem bulamaz ve boş döner. Toplu yazma yok (`VersionedSideBulkWriteScan` yeşil); kilit metni yeni dosyaya girmedi | `TwoRequestsTakingTheNoticesTogether_TellThemOnce_AndNeitherThrows_KK7` (iki eşzamanlı çağrı, toplam 2 ad), `AProductTakenOffTheShowcase_..._KK7` (ikinci çağrı boş) |
+
+Not: `TakeRemovedItemNoticesAsync` artık çağıranın işleminde çalışmalıdır (kilit işlem dışında alınamaz); sayfa bağı D-302'de (T346) işlem içinde çağrılacak.
+
+### Öz denetim — düzeltme turu (11'deki kriterlerin ve KK1–KK9'un bütünü, düzeltilmiş diff'te)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| 1 / KK1 ürün ve varyant durumu ayrı | ✓ | `EveryMoveBetweenTheThreeStatuses_IsFree_...KK1`, `APublishedProduct_CanHaveADraftVariant_...KK1` (40/40 yeşil) |
+| 2 / KK2 panel işlemi, bildirim yok, iz var | ✓ | `AMove_WritesOneTrailRow...KK2`, `AMoveWhoseTrailRowCannotBeWritten_...KK2_KK7` |
+| 3 / KK3 taslak vitrinde yok | ✓ | `TheList_AndTheSearch_...KK3_KK4`, `TheOptionList_...KK3_KK4`; yeni sayfalama testleri yalnız Yayında ürünleri sayar (taslak tohum sayıya girmez) |
+| 4 / KK4 arşiv vitrinde yok, kayıt korunur | ✓ | aynı testler, `AVariantArchivedUnderAPublishedProduct_...KK4` |
+| 5 / KK5 kapı, red durumu değiştirmez | ✓ | `AGateThatRefuses_...KK5` |
+| 6 / KK6 son Yayında varyant engeli | ✓ (panel iletisi D-304) | `TheLastPublishedVariantOfAPublishedProduct_CannotLeavePublished_KK6` |
+| 7 / KK7 sepetten çıkar, bir kez söylenir | ✓ | `AProductTakenOffTheShowcase_...KK7` (ikinci çağrı boş), `TwoRequestsTakingTheNoticesTogether_...KK7` (eşzamanlı) |
+| 8 / KK8 sipariş etkilenmez | ✓ | `AnOpenOrder_IsNotTouchedBy...KK8`, `TemporarilyClosingTheSales_...KK8` |
+| 9 / KK9 tükenmiş görünür | ✓ | `ASoldOutPublishedProduct_...KK9` |
+| `09 §25` sayfalı liste sınır testi | ✓ | üç sayfalama testi (Bulgu 1) |
+| `09 §25` / `§10.2` m.2 istisna yalnız beklenmeyen hâlde | ✓ | `OrderingModule.cs`'de `DbUpdateConcurrencyException` yok (`grep` boş) |
+| `09 §25` bekçi/tarama | ✓ | `VersionedSideBulkWriteScanTests`, `ConcurrencySourceScan` yeşil (Architecture 906/906) |
+| Güvenlik | ✓ | yeni uç/girdi yok; kilit anahtarı sepet kimliği, parametreli |
 
 ## Altyapı Değişiklikleri
 

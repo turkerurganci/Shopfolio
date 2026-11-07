@@ -15,9 +15,12 @@ internal sealed class OrderingModule : IOrderingModule
 {
     private readonly AppDbContext _db;
 
-    public OrderingModule(AppDbContext db)
+    private readonly AdvisoryLocks _advisoryLocks;
+
+    public OrderingModule(AppDbContext db, AdvisoryLocks advisoryLocks)
     {
         _db = db;
+        _advisoryLocks = advisoryLocks;
     }
 
     public async Task<Guid?> FindMemberOrderAsync(string orderNumber, Guid customerId, CancellationToken ct)
@@ -65,6 +68,9 @@ internal sealed class OrderingModule : IOrderingModule
 
     public async Task<IReadOnlyList<string>> TakeRemovedItemNoticesAsync(Guid cartId, CancellationToken ct)
     {
+        // The cart's lock heads the transaction: a request that arrived together with this one waits here, and once the first has committed it reads no
+        // marked item - it tells nothing (told once), with no exception on the way (09 10.2 items 2, 5).
+        await _advisoryLocks.LockAsync(AdvisoryLockScope.Cart, cartId, ct);
         List<CartItem> marked = await _db.CartItems
             .Where(i => i.CartId == cartId && i.RemovedProductName != null)
             .OrderBy(i => i.CreatedAt).ThenBy(i => i.Id)
@@ -76,16 +82,7 @@ internal sealed class OrderingModule : IOrderingModule
 
         string[] names = [.. marked.Select(i => i.RemovedProductName!)];
         _db.CartItems.RemoveRange(marked);
-        try
-        {
-            await _db.SaveChangesAsync(ct);
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            // A request that arrived together with this one deleted the rows first: it told them; this one tells nothing (told once).
-            return [];
-        }
-
+        await _db.SaveChangesAsync(ct);
         return names;
     }
 

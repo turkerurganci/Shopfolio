@@ -67,10 +67,100 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | **tur 2: ✗ FAIL** (2026-11-07; head `2aa0153`; ayrıntı aşağıda). Tur 1: ✓ PASS (2026-11-07; head `391cdc3` + `origin/main` birleştirmesi). Kriter 1–9 ve KK1–KK9 validator kanıtıyla ✓ (kanıt testleri yukarıdaki tabloyla aynı, kod okunarak teyit edildi: kapı → alan → L-3 sırası, tembel Z-1 silmesi ve imha kaydı, düğmeyle tek koşullu tüketim, `LinkGuestOrdersAsync`'in hesabı olan ve hesabı silinmiş siparişi almaması, `ResolveOrderAccountAsync`'in bekleyen kayda bağlamaması, giriş kaydının kendi işleminde dört değerle yazılması). Kriter 3 ve 5'in sipariş ucu ve ekran mesajı yüzleri modül düzeyinde doğrulandı; bağları D-254 (T509, T514). Validator yerelde: build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` üç proje temiz; Unit 3534 (Architecture 842, Consistency 213, öteki 2479); betik testleri 4 dosya; Integration PostgreSQL 18 (`shopfolio-t341-val-pg`) MembershipTests 29/29, SessionLinkAttemptLoginTables + LinkRecords + AccountEmailQueue 95/95, AppCache + SessionAuthentication 14/14. Dal CI 42378956325 success (head `391cdc3`). Güvenlik: sır yok; parola yalnız `PasswordService`'te (210 000 yineleme), hesapsız adreste sahte özetle aynı iş; bağlantı anahtarı türetilir, ham anahtar saklanmaz; L-3 ve L-9 her istekte iki eksende; hesap varlığı yalnız `02 §8.1.4`'ün izin verdiği kayıt ekranında söylenir; misafir siparişi yalnız doğrulanmış e-postayla bağlanır. Yeni dış bağımlılık yok. `12`: KP-28 → `VAL-D018`, `VAL-D019`, `VAL-D020` (T341) ve `VAL-D021` (T375); üçünün beklenen sonucu sipariş geçmişinin uç yanıtıdır (Veri kaydı + Uç yanıtı), uç sonraki task'larda → `Durum` `BEKLEMEDE` kaldı; `12_matris_denetle.py --kapsam 1-77` hata 0. |
-| Bulgu sayısı | tur 1: 0 · tur 2: 1 (ORTA S1 — aşağıda "Doğrulama tur 2") |
-| Düzeltme gerekli mi | tur 1: Hayır · tur 2: Evet (Bulgu 1) |
-| Bloke-etmeyen not (K) sayısı | 3 — K1: D-252'nin hedefi T309'du, T309 bu PR'dan önce merge edildi ve doğrulama e-postasını kuyruğa yazan çağrı kimsenin kapsamında kalmadı → hedef T514 (UC-48/UC-49 yan etkisi; bu PR'da kayıt güncellendi). K2: `origin/main` birleştirmesiyle P-12 iki sabitte (T341'in ayrı ömür sabiti ve T309'un `EmailVerificationLinkHours`'u, ikisi de 24) → D-289 (CI düzeltmesinde kapandı, aşağıya bakın). K3: `09 §15.1` madde 5 `PasswordHasher<object>` der, kod `PasswordHasher<HashSubject>` → D-290 (F3 gate). Yapım raporu karşılaştırması: kriter tablosu ve öz denetim kanıtlı, verdict uyumlu; tek uyuşmazlık öz denetimin "P-12 yalnız tek sabitte" satırıdır — dal başında doğruydu, `origin/main` birleştirmesinden sonra değil (K2). |
+| Doğrulama durumu | **tur 3: ✓ PASS** (2026-11-08; head `b2c6cca`; ayrıntı aşağıda "Doğrulama tur 3"; merge öncesi `origin/main` ile `Modules/Ordering` iki dosyasındaki kod çakışması çözülmeli). Tur 2: ✗ FAIL (2026-11-07; head `2aa0153`). Tur 1: ✓ PASS (2026-11-07; head `391cdc3` + `origin/main` birleştirmesi). Kriter 1–9 ve KK1–KK9 validator kanıtıyla ✓ (kanıt testleri yukarıdaki tabloyla aynı, kod okunarak teyit edildi: kapı → alan → L-3 sırası, tembel Z-1 silmesi ve imha kaydı, düğmeyle tek koşullu tüketim, `LinkGuestOrdersAsync`'in hesabı olan ve hesabı silinmiş siparişi almaması, `ResolveOrderAccountAsync`'in bekleyen kayda bağlamaması, giriş kaydının kendi işleminde dört değerle yazılması). Kriter 3 ve 5'in sipariş ucu ve ekran mesajı yüzleri modül düzeyinde doğrulandı; bağları D-254 (T509, T514). Validator yerelde: build `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` üç proje temiz; Unit 3534 (Architecture 842, Consistency 213, öteki 2479); betik testleri 4 dosya; Integration PostgreSQL 18 (`shopfolio-t341-val-pg`) MembershipTests 29/29, SessionLinkAttemptLoginTables + LinkRecords + AccountEmailQueue 95/95, AppCache + SessionAuthentication 14/14. Dal CI 42378956325 success (head `391cdc3`). Güvenlik: sır yok; parola yalnız `PasswordService`'te (210 000 yineleme), hesapsız adreste sahte özetle aynı iş; bağlantı anahtarı türetilir, ham anahtar saklanmaz; L-3 ve L-9 her istekte iki eksende; hesap varlığı yalnız `02 §8.1.4`'ün izin verdiği kayıt ekranında söylenir; misafir siparişi yalnız doğrulanmış e-postayla bağlanır. Yeni dış bağımlılık yok. `12`: KP-28 → `VAL-D018`, `VAL-D019`, `VAL-D020` (T341) ve `VAL-D021` (T375); üçünün beklenen sonucu sipariş geçmişinin uç yanıtıdır (Veri kaydı + Uç yanıtı), uç sonraki task'larda → `Durum` `BEKLEMEDE` kaldı; `12_matris_denetle.py --kapsam 1-77` hata 0. |
+| Bulgu sayısı | tur 1: 0 · tur 2: 1 (ORTA S1 — aşağıda "Doğrulama tur 2") · tur 3: 0 |
+| Düzeltme gerekli mi | tur 1: Hayır · tur 2: Evet (Bulgu 1) · tur 3: Hayır |
+| Bloke-etmeyen not (K) sayısı | tur 3: 1 — K1 → D-385 (T509; aşağıda "Doğrulama tur 3"). Tur 1: 3 — K1: D-252'nin hedefi T309'du, T309 bu PR'dan önce merge edildi ve doğrulama e-postasını kuyruğa yazan çağrı kimsenin kapsamında kalmadı → hedef T514 (UC-48/UC-49 yan etkisi; bu PR'da kayıt güncellendi). K2: `origin/main` birleştirmesiyle P-12 iki sabitte (T341'in ayrı ömür sabiti ve T309'un `EmailVerificationLinkHours`'u, ikisi de 24) → D-289 (CI düzeltmesinde kapandı, aşağıya bakın). K3: `09 §15.1` madde 5 `PasswordHasher<object>` der, kod `PasswordHasher<HashSubject>` → D-290 (F3 gate). Yapım raporu karşılaştırması: kriter tablosu ve öz denetim kanıtlı, verdict uyumlu; tek uyuşmazlık öz denetimin "P-12 yalnız tek sabitte" satırıdır — dal başında doğruydu, `origin/main` birleştirmesinden sonra değil (K2). |
+
+### Doğrulama tur 3 — Doğrulama Sonucu — T341 Üyelik — tur 3
+**Tarih:** 2026-11-08   **Branch:** task/T341-uyelik   **Commit:** b2c6cca
+
+#### Verdict: ✓ PASS
+
+Merge öncesi koşul (verdict'i değiştirmez, merge'ü engeller): PR #433 `mergeable: CONFLICTING`. Kayıt commit'inden önce `git merge origin/main` (main `af6e7d3`, T334) denendi; kayıt belgelerinin yanında **iki kod dosyasında çakışma** çıktı — `src/Shopfolio.Web/Modules/Ordering/Contracts/IOrderingModule.cs` ve `src/Shopfolio.Web/Modules/Ordering/OrderingModule.cs`. Dal `LinkGuestOrdersAsync`'i, main (T334) `ListReservationHoldersAsync` + `ReservationHolder` kaydını aynı yere ekliyor; iki taraf da ekleme, silme yok. Talimat gereği doğrulayıcı kod çakışmasını çözmedi, `git merge --abort` ile birleştirmeden vazgeçti; bu kayıt commit'i birleştirmesiz dala yazıldı. Merge'den önce çakışma çözülmeli (iki üye de korunur) ve dal CI'ı yeniden yeşil olmalı.
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş; `git config core.hooksPath` → `C:\projects\Shopfolio\scripts\git-hooks` |
+| Ana dal CI (son 3) | ✓ | `gh run list --branch main --status completed --limit 3`: 42411903876 success (Publish, T334), 42408991705 success (Publish, T316), 42408991723 cancelled (CI, T316 — `ci.yml` `concurrency: cancel-in-progress` ile bir sonraki push T334 tarafından iptal; başarısızlık değil). Aynı commit'in CI'ı 42411903829 (T334, `af6e7d3`) success; önceki CI 42405001882 (T328) success |
+| Memory drift | ✓ | `grep -nE "\bT341\b" .claude/memory/MEMORY.md` → satır 22 |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Üyelik zorunlu değil; misafir siparişi doğrulama kapısının dışında (`02 §3.13.1`, §3.13.4) | ✓ | `ResolveOrderAccountAsync(null, …)` doğrulama aramaz → `Guest`, `IsAccepted`; `AGuestOrder_NeedsNoVerification_AndAnAddressWithNoAccountStaysAGuest` geçti. Sipariş ucunun bağı D-254 (T509) |
+| 2 | Geçmiş misafir siparişleri yalnız doğrulanmış e-postayla düşer; silinmiş hesabın siparişi bağlanmaz (`02 §3.13.2`, §3.15.3) | ✓ | Bağlama yalnız `VerifyEmailAsync`'te, tüketim ve `EmailVerifiedAt` koşullu yazımından sonra; `OrderingModule.LinkGuestOrdersAsync` adayları okur, `OrderLocks` ile kilitler (`LockSequence`'e bildirir), kilitten sonra `CustomerId == null && !IsAccountDeleted && NormalizedContactEmail == normalized` ile yeniden yükler; sürüm artmaz. `Verifying_BringsTheGuestOrdersOfTheAddressToTheAccount_AndOnlyThose` (harf/boşluk farkı bağlanır; başkasının, hesabı olan ve hesabı silinmiş sipariş bağlanmaz; `version` 1) ve `APendingRegistration_TakesNoOrder_UntilItIsVerified` geçti |
+| 3 | Doğrulanmış hesabın adresiyle girişsiz sipariş kabul edilir, anında tam bağlanır, bekleyen kayda bağlanmaz; giriş duvarı yok (`02 §3.13.3`) | ✓ (modül yüzü) | Misafir dalında yalnız `EmailVerifiedAt != null` hesap → `GuestBoundToAccount` + kimlik; bekleyen kayıt → `Guest`. `AGuestOrderWithAVerifiedAccountsAddress_IsBoundToTheAccountAtOnce_AndAPendingRegistrationIsNotBoundTo` geçti. Kenar hâl K1 (D-385) |
+| 4 | Doğrulanmamış hesapla giriş ve sipariş yok; tek tip hesap (`02 §3.13.4`, §5.12.1, §8.1.1) | ✓ | `CheckCredentialsAsync` doğru şifrede de `EmailNotVerified`, giriş kaydına `Failed`; `ResolveOrderAccountAsync` oturumlu doğrulanmamışta `RefusedUnverified` (`IsAccepted` false); hesap türü alanı yok. `AnUnverifiedAccount_IsRefusedAtTheSignIn_…`, `ASignedInOrder_IsTheAccountsOwn_AndAnUnverifiedAccountCannotOrder` geçti |
+| 5 | Z-1 dolunca kayıt silinir, e-posta yeniden kayda açılır; süresi geçmiş bağlantı "bağlantı geçersiz, yeniden kayıt olun" (`02 §3.13.5`, §6.5.1, Z-1) | ✓ (modül yüzü) | Ömür kayıt anından `ProductConstants.EmailVerificationLinkHours` (P-12 = 24, tek sabit); yeniden kayıtta ilk bağlantısı bitmiş bekleyen kayıt `ExecuteDeleteAsync` ile silinir (bağlantıları birlikte), imha kaydına `PendingRegistration` 1; süresi geçmiş bağlantı `Expired` (silinmiş kaydın bağlantısı `Missing`; `04` 5.21.12'ye göre ikisi de 5.21.4'ün "bağlantı geçersiz, yeniden kayıt olun" hâli). `Register_AfterThePendingRegistrationEnded_…`, `AnExpiredLink_IsInvalid_…` geçti. Gece silmesi D-253 (T324), ekran D-254 (T514) |
+| 6 | Doğrulama bağlantıyla değil düğmeyle (`02 §3.13.5`, §8.1.3) | ✓ | `ReadVerificationLinkAsync` salt okur; `VerifyEmailAsync` işlem ister ve tek koşullu `TryConsumeAsync`; `LinkKeySourceScan` `TryConsumeAsync`'i yalnız `MembershipModule.VerifyEmailAsync`'te, `.VerifyEmailAsync(` çağrısını yalnız `OnPost…`'ta kabul eder. `OpeningTheLink_ChangesNothing_AndTheButtonVerifies` (okuma öncesi/sonrası durum eşit) ve `LinkKeySourceScanTests` geçti |
+| 7 | Kayıt formu ad, e-posta, şifre ister; ad zorunlu; ad değişimi yeniden doğrulamasız (`02 §3.13.21`) | ✓ | `RegisterInput(Name, Email, Password)`; boş/boşluk ad `FieldRequired`, hiçbir satır yazılmaz; e-posta `04` 7.3.2.1'in tek evi `InvalidEmailAttribute` ile (`MembershipModule.EmailRule`; tur 2 Bulgu 1 kapandı — `IsValidEmail`/`MailAddress` üyelikte yok); `ChangeNameAsync` yalnız `Name`'i yazar, doğrulama ve sipariş dokunulmaz. `Register_WithoutAName_…`, `Register_WithAWrongAddress_IsRefusedAndNamed` (8 vaka), `Register_TakesTheAddressTheProjectsOneEmailRuleAccepts`, `TheName_ChangesWithoutANewVerification_AndLeavesTheOrdersRecipientNameAlone` geçti |
+| 8 | Kayıtta ve hesapta pazarlama onayı alanı yok (`02 §3.13.18`, §8.4.1) | ✓ | `TheFormAndTheAccount_HaveNoMarketingConsentField` (`RegisterInput` tam üç özellik; `Customer` üyelerinde yasak sözcük yok) geçti |
+| 9 | Veri toplayan girişlerin kapısı kapalıyken kayıt reddedilir; her giriş denemesi zaman, IP, e-posta, sonuçla yazılır (`02 §3.13.19`, §3.13.20) | ✓ | Kapı alanlardan ve L-3'ten önce (`DataCollectionClosed`, karşılanmayan koşullar adıyla, deneme sayılmaz); giriş kapının arkasında değil; `LoginRecorder` kendi kapsam ve işleminde yazar (red geri almaz), IP yoksa `IPAddress.None`, adres `LoginRecord.Create` içinde normalleşir. `Register_WithTheGateClosed_…`, `SignIn_OfAnExistingAccount_IsNotBehindTheClosedGate`, `EveryAttempt_IsOneRow_…`, `TheSignInRecord_NormalizesTheEnteredAddressItself` geçti; `CredentialSourceScan` tek yazarı kilitler |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-D018 (kriter 2) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE — veri kaydı yarısı kanıtlı; beklenen sonuç sipariş geçmişinin uç yanıtı, uç sonraki task'larda (D-254) | — |
+| VAL-D019 (kriter 2) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE (aynı) | — |
+| VAL-D020 (kriter 3) | ORTA | yok | BEKLEMEDE | BEKLEMEDE (aynı) | — |
+
+`grep -nE 'KP-28([^0-9]|$)' Docs/12_VALIDATION_PROTOCOL.md` → dört satır; `VAL-D021` (`02 §10.4.11`, firma e-posta düzeltmesi) T341'in kriterlerine bağlı değil. `Durum` hücreleri değişmedi; `python -I -X utf8 scripts/doc-scans/12_matris_denetle.py --kapsam 1-77` → hata 0.
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1: misafir sipariş verir, doğrulama aranmaz — `AGuestOrder_NeedsNoVerification_…`
+- [x] KK2: geçmiş misafir siparişi doğrulanmış e-postayla hesaba düşer — `Verifying_BringsTheGuestOrders…`
+- [x] KK3: misafir sipariş doğrulanmış hesaba anında bağlanır, bekleyen kayda bağlanmaz — `AGuestOrderWithAVerifiedAccountsAddress_…`
+- [x] KK4: doğrulanmamış hesap girişte ve siparişte reddedilir — `AnUnverifiedAccount_IsRefusedAtTheSignIn_…`, `ASignedInOrder_…`
+- [x] KK5: Z-1 sonrası kayıt silinir, e-posta yeniden kaydolur; geçersiz bağlantı — `Register_AfterThePendingRegistrationEnded_…`, `AnExpiredLink_IsInvalid_…`
+- [x] KK6: bağlantıya tıklamak doğrulamaz, düğme doğrular — `OpeningTheLink_ChangesNothing_…`, `LinkKeySourceScanTests`
+- [x] KK7: adsız kayıt reddedilir; ad değişimi yeniden doğrulama istemez — `Register_WithoutAName_…`, `TheName_Changes…`
+- [x] KK8: formda ve kayıtta pazarlama alanı yok — `TheFormAndTheAccount_HaveNoMarketingConsentField`
+- [x] KK9: kapı kapalıyken kayıt reddedilir; her giriş dört alanla yazılır — `Register_WithTheGateClosed_…`, `EveryAttempt_IsOneRow_…`
+- [x] `09 §25`: doküman uyumu (yeni hata kodu/enum yok — kullanılan kodlar `07 §6`'da mevcut; `EmailAlreadyRegistered` `07` 5231 ve `02 §8.1.4` ile uyumlu), tek işlev (e-posta `InvalidEmailAttribute`, sabit `EmailVerificationLinkHours`, anahtar `LinkKeys`, özet `PasswordService`), modül sınırı (Membership → `IOrderingModule`), `TimeProvider`, sonuç sınıfları (`IOperationResult`, red istisna değil), eşzamanlılık (koşullu tüketim, `OrderLocks`), göç yok, yeni paket yok (`Microsoft.AspNetCore.Identity` çatıyla gelir), deneme sınırı L-3/L-9 (L-1 T342 — D-255), kaynak taraması + ihlal örneği (`CredentialSourceScan`, `ViolationSamples/Credentials/Misuse.cs`). `09 §15.1` Test maddesinin "sahte özet, sayaçlı dekoratör" testi D-364 ile girişin sahibi T342'ye kayıtlı (davranış kodla doğrulandı); `IterationCount` değerinin `09`'a dönüşü D-365 (F3 gate) — ikisi tur 2'de forward edilmiş K-notu, bu turda bağımsız olarak da aynı sınıfta değerlendirildi
+- [x] Güvenlik taraması: aşağıda
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Restore | ✓ | `dotnet restore Shopfolio.slnx` | 3 proje |
+| Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format <proje> --verify-no-changes --no-restore` ×3 (Web, UnitTests, IntegrationTests) | çıkış 0 ×3 |
+| Unit — Consistency | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/… --no-build --filter-trait "Consistency=true"` | 241/241 |
+| Unit — öteki (Architecture dahil) | ✓ | `… --no-build --filter-not-trait "Consistency=true"` | 3828/3828 |
+| Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration — Membership | ✓ | PostgreSQL 18 `shopfolio-t341-val3-pg` (127.0.0.1:55641), `--filter-class "*.MembershipTests"` | 34/34 (theory vakaları dahil) |
+| Integration — komşu | ✓ | `--filter-class` `*.SessionLinkAttemptLoginTablesTests`, `*.LinkRecordsTests`, `*.AccountEmailQueueTests` | 95/95 |
+| Dal CI | ✓ | `gh pr checks 433` / `gh run list --branch task/T341-uyelik` | 42410595147 success (head `b2c6cca`): Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate pass |
+
+Konteyner `docker rm -f -v shopfolio-t341-val3-pg` ile silindi.
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz — sır yok; parola hiçbir kayda, günlüğe, mesaja yazılmaz; özette ham değer yok (`Register_MakesAnUnverifiedAccount_…`).
+- Auth etkisi: Temiz — parola özeti çatının PBKDF2 özetleyicisi, tek sarmalayıcı `PasswordService` (210 000 yineleme, özet başına tuz), eski ayarlı özet başarılı girişte yenilenir; hesapsız ya da şifresiz hesapta `VerifyNobody` ile aynı iş (hesap var/yok zamanlama farkı daraltılır); bilinmeyen adres ve yanlış şifre aynı `InvalidCredentials`, `EmailNotVerified` yalnız doğru şifreyle (varlık sızmaz); hesap varlığı yalnız `02 §8.1.4`'ün izin verdiği kayıt ekranında (`EmailAlreadyRegistered`), L-3 daraltır. Doğrulama bağlantısı anahtarı `LinkKeys` (HMAC) ile türer, kayıtta yalnız özeti; tüketim tek koşullu güncelleme, GET yazmaz. Misafir siparişi yalnız doğrulanmış e-postayla bağlanır.
+- Input validation: Temiz — ad zorunlu (kırpılır), e-posta proje kuralı, şifre boş olamaz (politika T342 — D-251); L-3 ve L-9 her istekte e-posta ve IP ekseninde kendi işleminde sayılır, L-9 aşımında önceki bağlantı geçerli kalır.
+- Yeni bağımlılık: Yok.
+
+#### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| — | — | — | — | Bulgu yok | — | — | — |
+
+#### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | `ResolveOrderAccountAsync` oturum kimliği bir hesaba karşılık gelmezse (hesap o arada silinmiş — yarış) `Guest` döner ve sipariş e-postasının doğrulanmış hesabını aramaz; `02 §3.13.3` o adresin hesabına anında bağlamayı ister | DEFERRED_BACKLOG'a forward: D-385 (T509) |
+
+#### Yapım Raporu Karşılaştırması
+- Uyum: Tam uyumlu (verdict ve kriter sonuçları aynı); 1 küçük sayısal fark.
+- Kriter tablosu ve öz denetim tablosu her kabul kriteri ve KK için ✓ ve kanıt (test adı) taşıyor; tur 2 bulgusunun düzeltmesi öz denetimde ayrı satırda.
+- Fark: yapım raporu MembershipTests için 29/29 yazar; doğrulayıcı koşusunda 34/34 (theory vakaları ayrı sayılır ve tur 2 düzeltmesiyle e-posta vakaları arttı). Unit sayısı main birleştirmeleriyle büyüdü (rapor 3477 + 209; doğrulayıcı 3828 + 241). Davranış farkı yok.
+- Yapım raporu K1'in kenar hâlini anmıyor.
+
+#### Merge ve Post-merge
+- Squash: — (yardımcının işi; önce `Modules/Ordering` kod çakışması çözülmeli ve dal CI'ı yeşil olmalı)
+- Post-merge run'lar: —
 
 ### Doğrulama tur 2 — Doğrulama Sonucu — T341 Üyelik — tur 2
 **Tarih:** 2026-11-07   **Branch:** task/T341-uyelik   **Commit:** 2aa0153 (doğrulanan head; kayıt commit'i öncesi `origin/main` (T328) birleştirildi)

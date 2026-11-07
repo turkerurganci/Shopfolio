@@ -21,8 +21,11 @@ internal sealed class AboutPage : IContentRecord
     /// <summary>Plain text; the publish gate (06 4.46).</summary>
     public string? ShortIntroduction { get; set; }
 
-    /// <summary>Cleaned HTML of the closed text format set (06 2.10.1).</summary>
-    public string? LongText { get; set; }
+    /// <summary>Cleaned HTML of the closed text format set (06 2.10.1); written only by <see cref="SetLongText"/>.</summary>
+    public string? LongText { get; private set; }
+
+    /// <summary>Writes the long text through the cleaner (09 15.3 item 1); an empty text is no text.</summary>
+    public void SetLongText(string? text) => LongText = ContentRules.CleanLongText(text);
 
     public PublishStatus PublishStatus { get; set; } = PublishStatus.Draft;
 

@@ -25,6 +25,9 @@ internal static class CorporateContentModuleRegistration
         services.AddScoped<CorporateContentSitemapReader>();
         services.AddScoped<ContentPublishing>();
         services.AddScoped<ContactRequests>();
+        services.AddScoped<ContentAuthoring>();
+        services.AddScoped<SocialLinks>();
+        services.AddScoped<ContentReaders>();
         services.AddScoped<ICorporateContentModule, CorporateContentModule>();
         return services;
     }

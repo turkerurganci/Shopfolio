@@ -20,8 +20,11 @@ internal sealed class FaqItem : IContentRecord
     /// <summary>The question; part of the publish gate.</summary>
     public string Question { get; set; } = string.Empty;
 
-    /// <summary>Cleaned HTML of the closed text format set (06 2.10.1); part of the publish gate.</summary>
-    public string? Answer { get; set; }
+    /// <summary>Cleaned HTML of the closed text format set (06 2.10.1); part of the publish gate; written only by <see cref="SetAnswer"/>.</summary>
+    public string? Answer { get; private set; }
+
+    /// <summary>Writes the answer through the cleaner (09 15.3 item 1); an empty answer is no answer.</summary>
+    public void SetAnswer(string? answer) => Answer = ContentRules.CleanLongText(answer);
 
     /// <summary>The manual order; not unique (06 4.49).</summary>
     public int SortOrder { get; set; }

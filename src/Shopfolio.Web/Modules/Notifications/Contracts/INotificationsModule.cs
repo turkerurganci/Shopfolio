@@ -29,4 +29,17 @@ public interface INotificationsModule
     /// Written in the caller's open transaction like <see cref="QueueCompanyNoticeAsync"/>. Returns the number of rows written.
     /// </summary>
     Task<int> QueueAdminNoticeAsync(AdminNotice notice, IReadOnlyCollection<string> adminEmails, CancellationToken ct);
+
+    /// <summary>
+    /// Queues one of the account and administration e-mails (08 2.2.8; T309) for the address the record names: one dispatch row in the "queued" state, written in the
+    /// caller's open transaction, which the method joins and never opens. The link record of a link e-mail is made by the caller in the same transaction and named by
+    /// id; the row carries that id and never the key. Returns the number of rows written (one). Refuses a record that breaks the rule of its kind.
+    /// </summary>
+    Task<int> QueueAccountEmailAsync(AccountEmail email, CancellationToken ct);
+
+    /// <summary>
+    /// Queues the Google sign-in confirmation e-mail for a customer account (08 2.2.8; K-1281, K-1282) and makes its link record in the caller's transaction - unless the
+    /// account already has a valid confirmation link, when no link and no e-mail is made and the result is false. True means the link and the row were written.
+    /// </summary>
+    Task<bool> QueueGoogleLinkConfirmationAsync(Guid customerId, string email, CancellationToken ct);
 }

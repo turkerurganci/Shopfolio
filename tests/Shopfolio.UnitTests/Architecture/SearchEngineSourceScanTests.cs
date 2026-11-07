@@ -205,9 +205,15 @@ public sealed partial class SearchEngineSourceScanTests
     }
 
     [Fact]
-    public void TheApplicationsEndpoints_HaveNoSitemapAndNoRobotsFileYet_TheNamesStayReserved()
+    public void TheProtocolFileNames_AreReservedFirstSegments_AndTheConstantsAreTheOnePlace()
     {
         Assert.Equal(["sitemap.xml", "robots.txt"], AddressRules.ProtocolFiles);
+        Assert.Equal(AddressRules.ProtocolFiles, [AddressRules.SitemapFile, AddressRules.RobotsFile]);
+
+        // The endpoint of T313 and the contents name the files through the constants; a literal in either is a finding (the one place is AddressRules.cs).
+        Assert.Single(SearchEngineSourceScan.Scan("src/Shopfolio.Web/Endpoints/SitemapEndpoint.cs", "endpoints.MapGet(\"/sitemap.xml\", Handler);"));
+        Assert.Single(SearchEngineSourceScan.Scan("src/Shopfolio.Web/Infrastructure/SearchEngine/SiteMapFiles.cs", "return \"Sitemap: \" + site.Absolute(\"/robots.txt\");"));
+        Assert.Empty(SearchEngineSourceScan.Scan("src/Shopfolio.Web/Endpoints/SitemapEndpoint.cs", "endpoints.MapGet(\"/\" + AddressRules.SitemapFile, Handler);"));
         Assert.All(AddressRules.ProtocolFiles, name => Assert.True(AddressRules.IsClosedFirstSegment(name)));
     }
 }

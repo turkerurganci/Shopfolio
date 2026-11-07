@@ -13,12 +13,16 @@ internal sealed class CatalogModule : ICatalogModule
 {
     private readonly StockCounters _counters;
     private readonly ImageUploads _imageUploads;
+    private readonly CatalogSitemapReader _sitemap;
 
-    public CatalogModule(StockCounters counters, ImageUploads imageUploads)
+    public CatalogModule(StockCounters counters, ImageUploads imageUploads, CatalogSitemapReader sitemap)
     {
         _counters = counters;
         _imageUploads = imageUploads;
+        _sitemap = sitemap;
     }
+
+    public Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct) => _sitemap.ListAsync(ct);
 
     public Task<bool> ReserveAsync(StockClaim claim, StockClaim? releasedFirst, CancellationToken ct)
     {
@@ -56,6 +60,7 @@ internal static class CatalogModuleRegistration
     {
         services.AddScoped<StockCounters>();
         services.AddScoped<ImageUploads>();
+        services.AddScoped<CatalogSitemapReader>();
 
         // The image derivative job (D-97) and the image disposal (D-102): the rows first, the files they leave behind after (06 9.3.4).
         services.AddJobHandler<ImageDerivativeJobHandler>(JobType.ImageDerivative);

@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -35,8 +34,8 @@ public sealed class SearchEngineDefinition : ICollectionFixture<CollectionDataba
 /// The search engine data pattern on the opened application and a real PostgreSQL (T219 criteria 1 to 8; KK1, KK3 to KK8; 05 3.7; 09 9.4 item 3): the record page's first
 /// HTML carries the title, description, Open Graph and the four JSON-LD blocks made from the database (the price and the stock status are read, not typed), a page
 /// without a main image falls back to the logo, a closed page - the panel, a filtered list, the search page, a draft - carries the robots meta tag and nothing else for the
-/// engines, an answer that is not HTML carries one <c>X-Robots-Tag: noindex</c>, no firm field for the engines exists, <c>/sitemap.xml</c> and <c>/robots.txt</c> have no
-/// endpoint, and two records made with the same name at the same time get <c>celik-kapi</c> and <c>celik-kapi-2</c>. The page behaviour is checked on a real Kestrel
+/// engines, an answer that is not HTML carries one <c>X-Robots-Tag: noindex</c>, no firm field for the engines exists (the site map and robots.txt are T313's, SitemapEndpointTests),
+/// and two records made with the same name at the same time get <c>celik-kapi</c> and <c>celik-kapi-2</c>. The page behaviour is checked on a real Kestrel
 /// server too, whose pipeline is not the test server's.
 /// </summary>
 [Collection(SearchEngineDefinition.Name)]
@@ -395,25 +394,6 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
             string[] names = [.. InputName().Matches(page.Body).Select(m => m.Groups[1].Value)];
             Assert.DoesNotContain(names, n => Regex.IsMatch(n, "(?i)(meta|seo|canonical|og[_-]|slug|robots)", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
         }
-    }
-
-    // ---- KK7: no sitemap and no robots.txt in this task ----
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task SitemapAndRobotsTxt_HaveNoEndpointInThisTask(bool kestrel)
-    {
-        await using Host host = new(_database.Dsn, kestrel);
-
-        List<string> patterns = [.. host.Factory.Services.GetServices<EndpointDataSource>().SelectMany(d => d.Endpoints).OfType<RouteEndpoint>().Select(e => e.RoutePattern.RawText ?? string.Empty)];
-        Answer sitemap = await GetAsync(host, "/sitemap.xml");
-        Answer robots = await GetAsync(host, "/robots.txt");
-
-        Assert.NotEmpty(patterns);
-        Assert.DoesNotContain(patterns, p => p.Contains("sitemap", StringComparison.OrdinalIgnoreCase) || p.Contains("robots", StringComparison.OrdinalIgnoreCase));
-        Assert.Equal(HttpStatusCode.NotFound, sitemap.Status);
-        Assert.Equal(HttpStatusCode.NotFound, robots.Status);
     }
 
     // ---- KK1: the address, the conflict, the retry (09 9.4 item 3) ----

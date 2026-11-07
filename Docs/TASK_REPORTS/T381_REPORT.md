@@ -156,7 +156,7 @@ Başlangıç kapıları: working tree temiz, `core.hooksPath` = `scripts/git-hoo
 - **Branch:** `task/T381-ayar-katmanlari`
 - **PR:** #430
 - **CI:** yapım işçisi izlemez
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır sonraki task dalında güncellenir)*
+- **Post-merge run'lar:** squash `ac7d43e` (#430) — CI 42391220711 success, Publish 42391220720 success (T317 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

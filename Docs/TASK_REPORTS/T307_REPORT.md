@@ -119,7 +119,7 @@
 - **Commit:** bkz. PR (son commit dal başı)
 - **PR:** #435
 - **CI:** 42385697297 success (head `43be541`; validator)
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
+- **Post-merge run'lar:** squash `7150d1a` (#435) — CI 42388017617 success, Publish 42388017677 success (T317 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

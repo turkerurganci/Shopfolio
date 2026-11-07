@@ -127,8 +127,8 @@ internal sealed class PaymentModule : IPaymentModule
                 .OrderByDescending(r => r.CreatedAt)
                 .ThenByDescending(r => r.Id)
                 .FirstOrDefault())
-            .Where(r => r is not null)
-            .Select(r => r!.State)];
+            .OfType<RefundRecord>()
+            .Select(r => r.State)];
 
         return new RefundMarks(latest.Contains(RefundRecordState.Failed), latest.Contains(RefundRecordState.OutcomePending));
     }

@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Modules.Catalog.Contracts;
@@ -43,7 +45,7 @@ internal sealed partial class OrderTransitions
             TransitionOutcome approval = await ApplyAsync(new TransitionRequest(order.Id, codes, TransitionActor.System), null, ct);
             if (approval.IsRejected)
             {
-                return Refused(approval.Rejection!.Value);
+                return Refused(approval);
             }
 
             await _payment.RecordCardPaymentAsync(order.Id, payment.ProviderTransactionId, approval.TransitionRecordIds[0], ct);
@@ -88,7 +90,7 @@ internal sealed partial class OrderTransitions
             new TransitionRequest(order.Id, TransitionCode.O1, TransitionActor.Admin(mark.AdminId, mark.AdminName), expectedVersion: mark.ExpectedVersion), null, ct);
         if (approval.IsRejected)
         {
-            return Refused(approval.Rejection!.Value);
+            return Refused(approval);
         }
 
         List<TransitionCode> applied = [TransitionCode.O1];
@@ -97,7 +99,7 @@ internal sealed partial class OrderTransitions
             TransitionOutcome preparing = await ApplyAsync(new TransitionRequest(order.Id, TransitionCode.S1, TransitionActor.System), null, ct);
             if (preparing.IsRejected)
             {
-                return Refused(preparing.Rejection!.Value);
+                return Refused(preparing);
             }
 
             applied.Add(TransitionCode.S1);
@@ -124,10 +126,10 @@ internal sealed partial class OrderTransitions
 
         // S3 and Ö2 in one request (03 1.3 Ö2): the core refuses a paid order - Ö2 leaves only Bekliyor - and writes nothing.
         TransitionCode[] codes = [TransitionCode.S3, TransitionCode.O2];
-        TransitionOutcome outcome = await ApplyAsync(new TransitionRequest(cancellation.OrderId, codes, actor!, reasons, cancellation.ExpectedVersion), null, ct);
+        TransitionOutcome outcome = await ApplyAsync(new TransitionRequest(cancellation.OrderId, codes, actor, reasons, cancellation.ExpectedVersion), null, ct);
         if (outcome.IsRejected)
         {
-            return Refused(outcome.Rejection!.Value);
+            return Refused(outcome);
         }
 
         Order order = await _db.Orders.SingleAsync(o => o.Id == cancellation.OrderId, ct);
@@ -213,7 +215,7 @@ internal sealed partial class OrderTransitions
                 TransitionOutcome outcome = await ApplyAsync(new TransitionRequest(order.Id, row.Code, actor), null, ct);
                 if (outcome.IsRejected)
                 {
-                    return Refused(outcome.Rejection!.Value);
+                    return Refused(outcome);
                 }
 
                 applied.Add(row.Code);
@@ -235,7 +237,8 @@ internal sealed partial class OrderTransitions
     /// The canceller of an unpaid order and the reason its records carry (06 4.19; 03 1.3 Ö2): the customer gives none; the administrator the firm's
     /// reason and the screen's version; the system an automatic kind - never the closure, which is the closure rule's (05 4.1.3).
     /// </summary>
-    private static bool TryReadCanceller(UnpaidOrderCancellation cancellation, out TransitionActor? actor, out TransitionReasons? reasons)
+    private static bool TryReadCanceller(
+        UnpaidOrderCancellation cancellation, [NotNullWhen(true)] out TransitionActor? actor, out TransitionReasons? reasons)
     {
         actor = null;
         reasons = null;
@@ -258,9 +261,9 @@ internal sealed partial class OrderTransitions
         }
     }
 
-    private static PaymentTransitionResult Refused(TransitionRejection rejection)
+    private static PaymentTransitionResult Refused(TransitionOutcome outcome)
     {
-        return rejection switch
+        return outcome.Rejection switch
         {
             TransitionRejection.OrderNotFound => new PaymentTransitionResult([], isOrderNotFound: true),
             TransitionRejection.VersionConflict => new PaymentTransitionResult([], isVersionConflict: true),

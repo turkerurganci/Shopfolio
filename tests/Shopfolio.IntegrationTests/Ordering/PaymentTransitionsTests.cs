@@ -9,6 +9,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.AfterSales.Contracts;
@@ -560,7 +561,9 @@ public sealed class PaymentTransitionsTests : IAsyncLifetime
         order.DistanceSalesContractVersionId = contract.Id;
         order.PrivacyNoticeVersionId = notice.Id;
         order.FreezeDocuments("ön bilgilendirme", "mesafeli satış");
-        OrderItem item = OrderItem.Create(order.Id, null, null, productType, "Ürün", 3, 100m, 20m, 16.67m, Now);
+        // A digital item is bought once (the database's quantity rule), a physical one any number of times.
+        int quantity = productType == ProductType.Digital ? 1 : 3;
+        OrderItem item = OrderItem.Create(order.Id, null, null, productType, "Ürün", quantity, 100m, 20m, 16.67m, Now);
         if (productType == ProductType.Digital)
         {
             item.DownloadAllowance = 5;

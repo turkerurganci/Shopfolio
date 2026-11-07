@@ -172,7 +172,7 @@
 | T330 | Firma kimliği: tek firma, tip ve tipe göre zorunlu alanlar, yasal kimlik bilgilerinin erişilebilirliği, iade adresi | ✓ | ✓ PASS (tur 1) | `4924037` | #420 |
 | T331 | Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması | ✓ | ✓ PASS (tur 1) | `eb91975` | #425 |
 | T332 | Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu | ✓ | ✓ PASS (tur 1) | `c4c872c` | #432 |
-| T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ⏳ | — | — | — |
+| T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ⏳ | — | — | #442 |
 | T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ⬚ | — | — | — |
 | T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ⬚ | — | — | — |
 | T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ⬚ | — | — | — |

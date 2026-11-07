@@ -88,7 +88,7 @@
 
 - **Branch:** `task/T333-kategori-arama-suzgec`
 - **Commit:** PR açıklamasında head SHA
-- **PR:** bkz. status
+- **PR:** #442
 - **CI:** *(yapım chat'i CI yoklamaz)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
 

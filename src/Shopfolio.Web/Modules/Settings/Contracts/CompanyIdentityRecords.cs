@@ -1,3 +1,5 @@
+using Shopfolio.Infrastructure;
+
 namespace Shopfolio.Modules.Settings.Contracts;
 
 /// <summary>
@@ -92,5 +94,5 @@ public sealed record ReturnAddressSection(ReturnAddressSnapshot? Address, int Ve
 /// <summary>The values the return address form sends (04 7.2.21.6, 7.2.21.7) without the section version, which travels apart.</summary>
 public sealed record ReturnAddressInput(string? RecipientName, Guid? ProvinceId, string? District, string? AddressLine, string? Phone);
 
-/// <summary>One refused field of a save: the field's name (the member of the input record) and the code of 07 6.2.2 (<c>FieldCodes</c>).</summary>
-public sealed record FieldRejection(string Field, string Code);
+/// <summary>One refused field of a save: the field's name (the member of the input record) and the code of 07 6.2.2 (<c>FieldCodes</c>); a value outside a fence also says the side it crossed and the fence value (02 4.1.5; <c>PeriodFences</c>), which the page turns into its message.</summary>
+public sealed record FieldRejection(string Field, string Code, FenceSide Side = FenceSide.Within, int Fence = 0);

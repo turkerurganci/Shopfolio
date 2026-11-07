@@ -96,7 +96,7 @@ Validator kanıtları (bağımsız): 10 kriter ve KK1–KK10 kodda ve testte ✓
 - **Commit:** bkz. PR (son commit dal başı)
 - **PR:** #429
 - **CI:** yapım işçisi izlemez
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
+- **Post-merge run'lar:** squash `987e438` (#429) — CI 42379036303 success, Publish 42379036312 success (T307 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

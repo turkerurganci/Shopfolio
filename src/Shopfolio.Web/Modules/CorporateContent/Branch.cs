@@ -12,7 +12,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// point. It has one image, whose link is the record's column and whose alternative text sits beside it. Deleted by its event; the links to
 /// the province and to the image are restrictive, so a replaced or deleted branch leaves its image unlinked and the disposal deletes it.
 /// </summary>
-internal sealed class Branch : IVersionedRecord
+internal sealed class Branch : IContentRecord
 {
     public Guid Id { get; set; }
 
@@ -48,6 +48,20 @@ internal sealed class Branch : IVersionedRecord
 
     /// <summary>Raises the version by one; every save of the record calls it (06 2.6.1; 09 10.2 item 1).</summary>
     public void BumpVersion() => Version++;
+
+    public ContentRecordKind Kind => ContentRecordKind.Branch;
+
+    public IReadOnlyList<ContentGateField> MissingGateFields() =>
+        ContentGate.Missing(
+            Kind,
+            field => field switch
+            {
+                ContentGateField.Name => ContentGate.IsFilled(Name),
+                ContentGateField.Province => ProvinceId is not null,
+                ContentGateField.District => ContentGate.IsFilled(District),
+                ContentGateField.AddressLine => ContentGate.IsFilled(AddressLine),
+                _ => ContentGate.Unreadable(Kind, field),
+            });
 
     public static Branch Create(string name, int sortOrder, DateTimeOffset now)
     {

@@ -13,6 +13,7 @@ internal sealed class SettingsModule : ISettingsModule
 
     private readonly SalesGates _gates;
     private readonly SalesSwitches _switches;
+    private readonly FirmSettings _firm;
     private readonly LegalTexts _legalTexts;
     private readonly LegalTextGenerator _generator;
 
@@ -21,6 +22,7 @@ internal sealed class SettingsModule : ISettingsModule
         CompanySettingsWriter writer,
         SalesGates gates,
         SalesSwitches switches,
+        FirmSettings firm,
         LegalTexts legalTexts,
         LegalTextGenerator generator)
     {
@@ -28,6 +30,7 @@ internal sealed class SettingsModule : ISettingsModule
         _writer = writer;
         _gates = gates;
         _switches = switches;
+        _firm = firm;
         _legalTexts = legalTexts;
         _generator = generator;
     }
@@ -57,6 +60,21 @@ internal sealed class SettingsModule : ISettingsModule
     }
 
     public Task<ReturnAddressSection> GetReturnAddressAsync(CancellationToken ct) => _writer.ReadReturnAddressAsync(ct);
+
+    public Task<ShippingFeeSection> GetShippingFeeAsync(CancellationToken ct) => _firm.ReadShippingFeeAsync(ct);
+
+    public Task<SettingsSaveResult> SaveShippingFeeAsync(ShippingFeeInput input, int formVersion, CancellationToken ct) =>
+        _firm.SaveShippingFeeAsync(input, formVersion, ct);
+
+    public Task<PeriodsSection> GetPeriodsAsync(CancellationToken ct) => _firm.ReadPeriodsAsync(ct);
+
+    public Task<SettingsSaveResult> SavePeriodsAsync(PeriodsInput input, int formVersion, CancellationToken ct) =>
+        _firm.SavePeriodsAsync(input, formVersion, ct);
+
+    public Task<ProductDefaultsSection> GetProductDefaultsAsync(CancellationToken ct) => _firm.ReadProductDefaultsAsync(ct);
+
+    public Task<SettingsSaveResult> SaveProductDefaultsAsync(ProductDefaultsInput input, int formVersion, CancellationToken ct) =>
+        _firm.SaveProductDefaultsAsync(input, formVersion, ct);
 
     public async Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct)
     {
@@ -100,6 +118,7 @@ internal static class SettingsModuleRegistration
         services.AddScoped<CompanyIdentities>();
         services.AddScoped<SalesGates>();
         services.AddScoped<SalesSwitches>();
+        services.AddScoped<FirmSettings>();
         services.AddScoped<LegalTexts>();
         services.AddScoped<LegalTextGenerator>();
 

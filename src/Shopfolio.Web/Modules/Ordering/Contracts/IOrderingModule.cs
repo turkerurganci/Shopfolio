@@ -26,7 +26,32 @@ public interface IOrderingModule
     /// dropped at the order page's button).
     /// </summary>
     Task<DownloadableItem?> FindDownloadableItemAsync(Guid orderItemId, CancellationToken ct);
+
+    /// <summary>
+    /// The retention arm of each of the given orders (06 9.1 Z-28, Z-41, Z-43; K-1030 (3), (4)), read from the payment record at this moment: whether the payment
+    /// was taken, the moment an unpaid order failed, and whether the order's personal data is disposed. A plain read for the other modules' disposal parts; the
+    /// order's own part reads the same way. An order that does not exist is not in the answer.
+    /// </summary>
+    Task<IReadOnlyList<OrderPaymentArm>> FindPaymentArmsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct);
+
+    /// <summary>The order each of the given items belongs to (06 4.18); an item that does not exist is not in the answer.</summary>
+    Task<IReadOnlyList<OrderOfItem>> FindOrdersOfItemsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// The unpaid orders that failed before <paramref name="failedBefore"/> (06 9.1 Z-41), except the ones in <paramref name="exclude"/>, at most
+    /// <paramref name="max"/>: the disposal part of a record that is kept ten years from the moment the order failed asks for them page by page.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> FindUnpaidFailedOrdersAsync(DateTimeOffset failedBefore, IReadOnlyCollection<Guid> exclude, int max, CancellationToken ct);
 }
+
+/// <summary>
+/// An order's retention arm (06 9.1): <see cref="IsPaid"/> is true when the order has a payment record that is not corrected; <see cref="FailedAt"/> is the
+/// moment of the Ö2 transition of an unpaid Failed order and null otherwise; <see cref="PersonalDataDisposed"/> says the order's disposal part has run.
+/// </summary>
+public sealed record OrderPaymentArm(Guid OrderId, bool IsPaid, DateTimeOffset? FailedAt, bool PersonalDataDisposed);
+
+/// <summary>The order of an order item.</summary>
+public sealed record OrderOfItem(Guid OrderItemId, Guid OrderId);
 
 /// <summary>The links a digital order item holds to its file (06 4.18): the variant, emptied when the variant is deleted, and the last known file.</summary>
 public sealed record DownloadableItem(Guid? VariantId, Guid? DigitalFileId);

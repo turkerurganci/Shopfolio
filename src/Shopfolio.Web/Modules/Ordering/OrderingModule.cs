@@ -14,10 +14,32 @@ namespace Shopfolio.Modules.Ordering;
 internal sealed class OrderingModule : IOrderingModule
 {
     private readonly AppDbContext _db;
+    private readonly OrderPaymentArms _arms;
 
-    public OrderingModule(AppDbContext db)
+    public OrderingModule(AppDbContext db, OrderPaymentArms arms)
     {
         _db = db;
+        _arms = arms;
+    }
+
+    public Task<IReadOnlyList<OrderPaymentArm>> FindPaymentArmsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => _arms.ReadAsync(orderIds, ct);
+
+    public Task<IReadOnlyList<Guid>> FindUnpaidFailedOrdersAsync(DateTimeOffset failedBefore, IReadOnlyCollection<Guid> exclude, int max, CancellationToken ct) =>
+        _arms.FindUnpaidFailedBeforeAsync(failedBefore, exclude, max, ct);
+
+    public async Task<IReadOnlyList<OrderOfItem>> FindOrdersOfItemsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderItemIds);
+        Guid[] ids = [.. orderItemIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return [];
+        }
+
+        return await _db.OrderItems.AsNoTracking()
+            .Where(i => ids.Contains(i.Id))
+            .Select(i => new OrderOfItem(i.Id, i.OrderId))
+            .ToListAsync(ct);
     }
 
     public async Task<Guid?> FindMemberOrderAsync(string orderNumber, Guid customerId, CancellationToken ct)
@@ -61,6 +83,7 @@ internal static class OrderingModuleRegistration
     public static IServiceCollection AddOrderingModule(this IServiceCollection services)
     {
         services.AddScoped<OrderLocks>();
+        services.AddScoped<OrderPaymentArms>();
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
 

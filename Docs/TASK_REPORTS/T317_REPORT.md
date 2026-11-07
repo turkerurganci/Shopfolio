@@ -105,8 +105,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T317-odeme-ekseni`
-- **Commit:** *(PR açıldıktan sonra yazılır)*
-- **PR:** *(PR açıldıktan sonra yazılır)*
+- **Commit:** `4362c3d` — T317: Ödeme ekseni: testler derlendi ve geçti, null-forgiving kaldırıldı, rapor ve kayıtlar (dalın son kod commit'i; PR numarası commit'i bunu izler)
+- **PR:** #441
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında)*
 

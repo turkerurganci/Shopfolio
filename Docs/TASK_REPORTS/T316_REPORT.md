@@ -1,6 +1,6 @@
 # T316 — Sipariş durumu geçişleri: sevkiyat ekseni
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -83,10 +83,56 @@ Sık FAIL nedenleri (`sik-fail-nedenleri.md` ilk 5):
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor (yapım chat'i doldurmaz) |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-07; head `620b368` + `origin/main` birleştirmesi) |
+| Bulgu sayısı | 1 (B1 ORTA S1) |
+| Düzeltme gerekli mi | Evet — bu PR'da (B1) |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama tur 1 — ✗ FAIL (2026-11-07)
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş; `core.hooksPath` kurulu |
+| Ana dal CI (son 3) | ✓ | 42393301185, 42393301195, 42391220711 success |
+| Memory drift | ✓ | MEMORY T316 satırı var |
+
+#### Kabul Kriterleri (validator)
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `TransitionTable.Shipment` 11 satır, geri yön yok; KK1 testleri yeşil; `CorrectAsync` tablo reddine takılmaz |
+| 2 | ✓ | Terminalden çıkan satır yok; KK2 17 satır yeşil |
+| 3 | ✓ | Fiziksel kalem koşulu; Ö1+S1 tek işlem, tek B-4; KK3 yeşil |
+| 4 | ✓ | S2/S10/S11 yöntemi yok, kapanış kuralı işlem sonunda; KK4 yeşil |
+| 5 | ~ | Tetikleyenler ve B-7 doğru; ama yöneticinin kalemsiz iptali teslim işaretli kalemi denetlemez — sonda Alındı+Ödendi, hizmet + teslim işaretli dijital → `S3`, `Cancelled` (B1) |
+| 6 | ✓ | Kapanış Closure nedeniyle, B-7 yok; S9 kapanışı açık/teslimli kalemde ret; KK6 yeşil |
+| 7 | ✓ | Yönetici, onay, kargo verisi, yalnız açık fiziksel kalem, B-5; KK7 yeşil |
+| 8 | ✓ | Tarih sınırları, bildirim yok, Delivered'da kapanış erken döner; KK8 yeşil |
+| 9 | ✓ | B-6 tek satır; KK9 yeşil |
+
+#### Task Satırları (`12 §7.5`)
+KP-46 satırları `VAL-A207`, `A208`, `C039`…`C048` uç yanıtı ister (panel; D-308 → T527); T316 uç yazmaz, kritere eşlenmez (T305/T306 emsali) — `Durum` hepsinde `BEKLEMEDE` → `BEKLEMEDE`. `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+#### Test Sonuçları
+| Tür | Sonuç | Çıktı |
+|---|---|---|
+| Derleme `-warnaserror` | ✓ | 0 uyarı, 0 hata |
+| Biçim (Web, Unit, Integration) | ✓ | çıkış 0 |
+| Unit Architecture / Consistency / öteki | ✓ | 868/868 · 230/230 · 2809/2809 |
+| Betik testleri | ✓ | 4 dosya geçti |
+| Integration Ordering (postgres:18) | ✓ | 122/122 |
+| Dal CI | ✓ | 42393227539 yeşil |
+
+#### Güvenlik
+Secret temiz · auth temiz (uç yok; yönetici kimlik, ad ve sürüm zorunlu) · girdi doğrulaması temiz (kargo verisi, teslim tarihi, "Diğer" notu) · yeni bağımlılık yok.
+
+#### Bulgular
+| # | Madde | Severity | Sınıf | Beklenen ↔ gerçekleşen | Karar | Dosya |
+|---|---|---|---|---|---|---|
+| B1 | kriter 5 / KK5 | ORTA | S1 | Teslim işaretli (teslim edilmiş dijital, tamamlanmış hizmet) kalemli sipariş firma iptaliyle İptal edildi'ye geçmez (`02 §5.4` İptal edildi tanımı ve "Kalem ve adet düzeyinde iptal" maddesi, §7.2.2, §7.2.5; `03 §1.2`) ↔ `CancellationConditionAsync` kalemsiz yönetici isteğinde yalnız Teslim edilemedi'de açık kalem arar; S3, S4, S9 Cancelled yazar | Bu PR'da: yöneticinin kalemsiz yolu teslim işaretli kalem varken reddeder; S3, S4, S9 için sınanır | `OrderTransitions.Shipment.cs` · `ShipmentTransitionsTests.cs` |
+
+#### Yapım raporu karşılaştırması
+1 uyuşmazlık: kriter 5 yapımda ✓, doğrulamada ~ (B1). Öz denetim tablosu tam ve kanıtlı; test sayıları birebir.
 
 ## Altyapı Değişiklikleri
 

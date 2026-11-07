@@ -124,7 +124,7 @@
 - **Commit:** PR açıklamasında head SHA
 - **PR:** #432
 - **CI:** dal CI 42376259158 (head `48db1e8`) success
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
+- **Post-merge run'lar:** squash `c4c872c` (#432) — CI 42393301185 success, Publish 42393301195 success (T333 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

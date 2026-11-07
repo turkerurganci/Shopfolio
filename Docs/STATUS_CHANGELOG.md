@@ -9,6 +9,12 @@
 
 ---
 
+## 2026-11-07 — T301 (Siparişin imha parçası) doğrulama tur 1 PASS
+
+**Son güncelleme:** 2026-11-07 — T301 (Siparişin imha parçası) doğrulama tur 1 ✓ PASS (head `78b8449` + `origin/main` birleştirmesi, PR #431; kriter 1–9, KK1–KK9 ve `09 §25` ✓, güvenlik taraması temiz; Unit 3469 (Architecture 830, Consistency 209, öteki 2430), betik testleri, Integration yerelde OrderDisposal 27, Disposal + ModuleCallTransaction 21, CookiePolicy + LoggingFiles 25; dal CI 42376054521 yeşil; bulgu 0, K-notu 0; `12` `Durum` değişmedi (KP-74'ün T301'e düşen satırı `VAL-D047` zaten PASS); backlog aktif 125).
+
+---
+
 ## 2026-11-07 — T332 (Satış modeli) doğrulama tur 1 PASS
 
 **Son güncelleme:** 2026-11-07 — T332 (Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu) doğrulama tur 1 ✓ PASS (head `48db1e8` + `origin/main` (T309) birleştirmesi, PR #432; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Unit 3585 (birleştirme sonrası), betik testleri, Integration yerelde SalesModel 28, AccountEmailQueue 14, ImageDisposal + Sitemap 10; dal CI 42376259158 yeşil; bulgu 0, K-notu 1 (D-283 → T525); `12` `Durum` değişmedi (KP-4/KP-5/KP-6/KP-39 satırları vitrin ve panel kanıtı ister); backlog aktif 125).

@@ -1,6 +1,7 @@
 using System.Reflection;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 using Npgsql;
 
@@ -682,7 +683,7 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
     private async Task<ProductCategoriesResult> SetLinksAsync(Guid productId, Guid[] categories, Guid? primary)
     {
         await using AppDbContext context = NewContext();
-        await using var transaction = await context.Database.BeginTransactionAsync(Ct);
+        await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(Ct);
         ProductCategoriesResult result = await new ProductCategoryLinks(context, TimeProvider.System).SetAsync(productId, categories, primary, Ct);
         if (result.IsRejected)
         {
@@ -739,7 +740,7 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
     private async Task<CategoryWriteResult> RunAsync(Func<CategoryTree, CancellationToken, Task<CategoryWriteResult>> work)
     {
         await using AppDbContext context = NewContext();
-        await using var transaction = await context.Database.BeginTransactionAsync(Ct);
+        await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(Ct);
         CategoryWriteResult result = await work(NewTree(context), Ct);
         if (result.IsRejected)
         {
@@ -755,7 +756,7 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
     private async Task<List<CacheArea>> AreasOfAsync(Func<CategoryTree, CancellationToken, Task<CategoryWriteResult>> work)
     {
         await using AppDbContext context = NewContext();
-        await using var transaction = await context.Database.BeginTransactionAsync(Ct);
+        await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(Ct);
         CacheInvalidations invalidations = new(context);
         CategoryTree tree = new(context, new AdvisoryLocks(context), invalidations, TimeProvider.System);
         CategoryWriteResult result = await work(tree, Ct);

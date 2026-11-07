@@ -9,6 +9,18 @@
 
 ---
 
+## 2026-11-07 — T309 (Hesap ve yönetim e-postaları) yapım tamamlandı
+
+**Son güncelleme:** 2026-11-07 — T309 (Hesap ve yönetim e-postaları) yapım tamamlandı, PR açıldı (dal `task/T309-hesap-yonetim-epostalari`; yedi hesap e-postası, ömürler P-12…P-14/P-47 sabitlerinden, Google teyidi için tek bağlantı kuralı; Unit 3521 (Architecture 830), Integration `AccountEmailQueueTests` 14; yeni backlog D-233, D-234, backlog aktif 105).
+
+---
+
+## 2026-11-07 — T308 (Firma bildirimleri) doğrulama tur 1 PASS
+
+**Son güncelleme:** 2026-11-07 — T308 (Firma bildirimleri F-1…F-6) doğrulama tur 1 ✓ PASS (head `77c623d` + `origin/main` birleştirmesi, PR #424; kriter 1–10, KK1–KK10 ve `09 §25` ✓; Unit 3317 (Architecture 797, öteki 2520), betik testleri, Integration yerelde CompanyNoticeQueue + MigrationBundle 13, Dispatch/Email/Job komşuları 84, Logging 30, dal CI 42363737559 yeşil; `12` `Durum` değişmedi (KP-34, KP-67 satırları olayın tetiğini ve sahte altyapıyla gönderimi ister, `BEKLEMEDE`); doğrulamada `origin/main` birleştirildi; K1 → D-224, backlog aktif 105).
+
+---
+
 ## 2026-11-07 — T312 (Dosya uçları) doğrulama tur 1 PASS
 
 **Son güncelleme:** 2026-11-07 — T312 (Dosya uçları: imzalı indirme ve parçalı yükleme) doğrulama tur 1 ✓ PASS (head `93e5beb` + `origin/main` birleştirmesi, PR #426; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Consistency 209, Unit 3114, betik testleri; Integration yerelde parçalı — Files 81, Web üç sınıf 97, Concurrency 26 — hepsi geçti; dal CI 42362008048 yeşil; bulgu 0; `12` `Durum` değişmedi (KP-20/KP-44 satırları T511 ve formun kaydını bekler); K1 → D-217 (indirme 404'ünün E-06 sayfası, T504), K2 → D-218 ("kalemi indirilemez"in kapsamı, T511), K3 kod kanıtıyla kapandı; backlog aktif 100).

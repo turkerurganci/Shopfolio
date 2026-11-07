@@ -63,6 +63,10 @@ internal static class OrderingModuleRegistration
         services.AddScoped<OrderLocks>();
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
+
+        // The transition unit (09 9.1 item 1): the class is what the module's own operations take; the open face is the same instance.
+        services.AddScoped<OrderTransitions>();
+        services.AddScoped<IOrderTransitions>(provider => provider.GetRequiredService<OrderTransitions>());
         services.AddDisposalPart<GuestCartDisposalPart>();
         services.AddDisposalPart<OrderDisposalPart>();
         return services;

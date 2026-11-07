@@ -15,6 +15,14 @@ public interface IAfterSalesModule
     /// versions and saves; the method opens no transaction and saves nothing (09 6 item 3).
     /// </summary>
     Task ErasePersonalDataAsync(OrderPersonalDataScope scope, CancellationToken ct);
+
+    /// <summary>
+    /// The quantity each order item has closed by its item records (02 5.8; 06 2.7.2; K-790): the sum of the quantities of its cancellation,
+    /// removal, late delivery termination and withdrawal records, saved or added in the caller's context and not saved yet. An item with no such record is
+    /// not in the result. The order module takes the item's open quantity as its own quantity minus this (03 1.4.3: the closure rule). A plain read;
+    /// it writes nothing and takes no lock - the caller holds the order's lock (05 7.3.2).
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, int>> ClosedQuantitiesAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 }
 
 /// <summary>The orders whose personal data goes, with the ids that reach their records: their items and their refunds (the refund IBAN request is linked to either).</summary>

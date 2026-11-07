@@ -60,6 +60,63 @@ internal sealed class CompanySettingsWriter
         return true;
     }
 
+    /// <summary>
+    /// Writes the shipping fee section (P-1, P-3, P-4) by one update conditional on the section's version (09 10.3 items 3, 4): <see langword="false"/> means the version is no
+    /// longer the form's and nothing was written. The values are checked and the trail row is written by <c>FirmSettings</c>, the caller, in the same transaction.
+    /// </summary>
+    public async Task<bool> WriteShippingFeeAsync(decimal fee, decimal? freeShippingThreshold, decimal? minimumOrderAmount, int formVersion, CancellationToken ct)
+    {
+        int written = await _db.CompanySettings
+            .Where(s => s.ShippingFeeVersion == formVersion)
+            .ExecuteUpdateAsync(
+                set => set
+                    .SetProperty(s => s.ShippingFee, fee)
+                    .SetProperty(s => s.FreeShippingThreshold, freeShippingThreshold)
+                    .SetProperty(s => s.MinimumOrderAmount, minimumOrderAmount)
+                    .SetProperty(s => s.ShippingFeeVersion, s => s.ShippingFeeVersion + 1),
+                ct);
+        return Written(written);
+    }
+
+    /// <summary>Writes the periods section (P-5, P-7) by one update conditional on the section's version; same contract as <see cref="WriteShippingFeeAsync"/>.</summary>
+    public async Task<bool> WritePeriodsAsync(int shippingPeriod, int bankTransferPaymentWindow, int formVersion, CancellationToken ct)
+    {
+        int written = await _db.CompanySettings
+            .Where(s => s.PeriodsVersion == formVersion)
+            .ExecuteUpdateAsync(
+                set => set
+                    .SetProperty(s => s.DefaultShippingPeriod, shippingPeriod)
+                    .SetProperty(s => s.BankTransferPaymentWindow, bankTransferPaymentWindow)
+                    .SetProperty(s => s.PeriodsVersion, s => s.PeriodsVersion + 1),
+                ct);
+        return Written(written);
+    }
+
+    /// <summary>Writes the product defaults section (P-8, P-10) by one update conditional on the section's version; same contract as <see cref="WriteShippingFeeAsync"/>.</summary>
+    public async Task<bool> WriteProductDefaultsAsync(int downloadAllowance, decimal defaultVatRate, int formVersion, CancellationToken ct)
+    {
+        int written = await _db.CompanySettings
+            .Where(s => s.ProductDefaultsVersion == formVersion)
+            .ExecuteUpdateAsync(
+                set => set
+                    .SetProperty(s => s.DownloadAllowance, downloadAllowance)
+                    .SetProperty(s => s.DefaultVatRate, defaultVatRate)
+                    .SetProperty(s => s.ProductDefaultsVersion, s => s.ProductDefaultsVersion + 1),
+                ct);
+        return Written(written);
+    }
+
+    private bool Written(int rows)
+    {
+        if (rows == 0)
+        {
+            return false;
+        }
+
+        _invalidations.Add(CacheArea.Settings);
+        return true;
+    }
+
     /// <summary>The return address section as stored: the address when all four required parts are there, and the section's version.</summary>
     public async Task<ReturnAddressSection> ReadReturnAddressAsync(CancellationToken ct)
     {

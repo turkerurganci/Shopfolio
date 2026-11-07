@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -26,24 +27,24 @@ internal static partial class AuditEntryRules
     public const int MaxValueLength = 2000;
 
     /// <summary>The operations that must not carry an old-new pair (09 9.2 item 4): the old and the new value would be the customer's data or a note's text.</summary>
-    private static readonly HashSet<AuditOperation> NoPairOperations =
-    [
+    private static readonly FrozenSet<AuditOperation> NoPairOperations = new HashSet<AuditOperation>
+    {
         AuditOperation.CorrectAddress,
         AuditOperation.CorrectContactEmail,
         AuditOperation.SaveInternalNote,
         AuditOperation.DeleteCustomerAccount,
-    ];
+    }.ToFrozenSet();
 
     /// <summary>The operations that carry the changed fields of a firm setting with their old and new value (02 10.3.1 (1), (6)).</summary>
-    private static readonly HashSet<AuditOperation> PairRequiredOperations =
-    [
+    private static readonly FrozenSet<AuditOperation> PairRequiredOperations = new HashSet<AuditOperation>
+    {
         AuditOperation.UpdateCompany,
         AuditOperation.UpdateBranding,
         AuditOperation.UpdateSettings,
-    ];
+    }.ToFrozenSet();
 
     /// <summary>The field and value names that stand for a customer's personal data, compared by their letters alone and in lower case.</summary>
-    private static readonly HashSet<string> PersonalNames = new(StringComparer.Ordinal)
+    private static readonly FrozenSet<string> PersonalNames = new HashSet<string>(StringComparer.Ordinal)
     {
         "name", "fullname", "firstname", "lastname", "surname", "customername", "recipientname", "buyername", "contactname", "accountholder", "accountholdername",
         "address", "shippingaddress", "billingaddress", "deliveryaddress", "invoiceaddress", "street", "addressline", "addressdetail", "neighborhood", "district",
@@ -51,18 +52,18 @@ internal static partial class AuditEntryRules
         "email", "emailaddress", "contactemail", "customeremail", "oldemail", "newemail",
         "iban", "ibannumber", "bankaccount",
         "note", "notetext", "internalnote", "text", "notebody", "message",
-    };
+    }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>
     /// The closed list of the field and value names an order row and the deletion of an account may carry (letters only, lower case): codes, dates, quantities and the
     /// cargo data of the firm's own operations - nothing that is a customer's text. The audit trail interface is the one place this list is kept (09 9.2 item 4).
     /// </summary>
-    private static readonly HashSet<string> CustomerSafeNames = new(StringComparer.Ordinal)
+    private static readonly FrozenSet<string> CustomerSafeNames = new HashSet<string>(StringComparer.Ordinal)
     {
         "field", "operation", "reason", "reasoncode", "correctionreason", "transitioncode", "fromstatus", "tostatus", "channel", "count",
         "date", "requestdate", "requestedat", "ibanrequestedat", "deliveredat", "shippedat", "arrivalat", "arrivaldate", "returnarrivaldate", "deliverydate",
         "carrier", "carriername", "trackingnumber", "itemid", "item", "quantity", "oldquantity", "newquantity", "amount", "refundid", "returnid", "paymentid",
-    };
+    }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>The fixed kind of the target record of an operation (09 9.2 item 3); an operation that is not here takes any kind (a publication takes the kind of the record, 06 5.2.3).</summary>
     public static IReadOnlyList<string>? TargetTypesOf(AuditOperation operation) => operation switch

@@ -62,7 +62,7 @@ public sealed class AuditEntryRulesTests
     {
         foreach (AuditOperation operation in Enum.GetValues<AuditOperation>())
         {
-            AuditEntryRules.Validate(ValidEntry(operation));
+            Assert.Null(Record.Exception(() => AuditEntryRules.Validate(ValidEntry(operation))));
         }
     }
 
@@ -91,7 +91,7 @@ public sealed class AuditEntryRulesTests
                 new AuditValueChange("MaxPreparationDays", "3", "5"),
             ]);
 
-        AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateSettings, "CompanySettings", Target, details));
+        Assert.Null(Record.Exception(() => AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateSettings, "CompanySettings", Target, details))));
     }
 
     [Theory]
@@ -217,7 +217,7 @@ public sealed class AuditEntryRulesTests
             "2026ABCD",
             changes: [new AuditValueChange("TrackingNumber", "YK12345678901", "TR12345678901234"), new AuditValueChange("DeliveredAt", "2026-11-04", "2026-11-05")]);
 
-        AuditEntryRules.Validate(new AuditEntry(AuditOperation.CorrectShippingInfo, "Order", Target, details));
+        Assert.Null(Record.Exception(() => AuditEntryRules.Validate(new AuditEntry(AuditOperation.CorrectShippingInfo, "Order", Target, details))));
     }
 
     // ---- The target ----

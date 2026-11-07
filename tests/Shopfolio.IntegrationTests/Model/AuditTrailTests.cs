@@ -438,7 +438,19 @@ public sealed class AuditTrailTests : IAsyncLifetime
 
     // ---- helpers ----
 
-    private static AuditEntry Valid(AuditOperation operation) => Shopfolio.UnitTests.Administration.AuditEntryRulesTests.ValidEntry(operation);
+    private static readonly Guid TargetId = Guid.Parse("018f0000-0000-7000-8000-000000000001");
+
+    /// <summary>An entry that meets every rule of its operation.</summary>
+    private static AuditEntry Valid(AuditOperation operation)
+    {
+        IReadOnlyList<string>? kinds = AuditEntryRules.TargetTypesOf(operation);
+        string? type = kinds is null ? "Product" : kinds.Count == 0 ? null : kinds[0];
+        Guid? id = type is null ? null : TargetId;
+        AuditDetails? details = operation is AuditOperation.UpdateCompany or AuditOperation.UpdateBranding or AuditOperation.UpdateSettings
+            ? new AuditDetails("Ayar", [new AuditValueChange("Field", "1", "2")])
+            : null;
+        return new AuditEntry(operation, type, id, details);
+    }
 
     private AppDbContext NewContext()
     {

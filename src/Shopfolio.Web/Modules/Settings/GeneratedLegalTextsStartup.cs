@@ -1,7 +1,6 @@
 using Npgsql;
 
 using Shopfolio.Infrastructure;
-using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.Settings;
@@ -20,15 +19,13 @@ internal sealed class StartupSyncResult : IOperationResult
 /// settings row lock, through <see cref="ISettingsModule.SynchronizeGeneratedLegalTextsAsync"/>. A database that cannot be reached is not a failure of the start: the liveness
 /// endpoint says so (09 10.7 item 6), and the texts are written by the next start or by the next change of a feeding setting.
 /// </summary>
-internal sealed partial class GeneratedLegalTextsStartup : IHostedService
+internal sealed class GeneratedLegalTextsStartup : IHostedService
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<GeneratedLegalTextsStartup> _logger;
 
-    public GeneratedLegalTextsStartup(IServiceScopeFactory scopeFactory, ILogger<GeneratedLegalTextsStartup> logger)
+    public GeneratedLegalTextsStartup(IServiceScopeFactory scopeFactory)
     {
         _scopeFactory = scopeFactory;
-        _logger = logger;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -47,13 +44,10 @@ internal sealed partial class GeneratedLegalTextsStartup : IHostedService
         }
         catch (NpgsqlException)
         {
-            // The exception is not written: its text can carry connection details.
-            LogNotSynchronized(_logger, LogEvents.StartupDatabaseChecked);
+            // Nothing is written here: the start data check has already warned once that the database could not be reached (its single warning line), and the exception's text
+            // can carry connection details.
         }
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
-    [LoggerMessage(Level = LogLevel.Warning, Message = "{Event}: the database could not be reached; the generated legal texts were not synchronized.")]
-    private static partial void LogNotSynchronized(ILogger logger, string @event);
 }

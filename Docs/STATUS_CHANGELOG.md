@@ -15,6 +15,12 @@
 
 ---
 
+## 2026-11-07 — T380 doğrulama tur 2 PASS
+
+**Son güncelleme:** 2026-11-07 — T380 (İşlem izi) doğrulama tur 2 ✓ PASS (head `1180a80` + `origin/main` birleştirmesi, PR #419; kriter 1–10, KK1–KK10 ve `09 §25` ✓; tur 1 bulgusu (kişisel veri `Details` yuvalarında) kapandı; Consistency 207, Unit 2869, betik testleri; Integration yerelde parçalı ~1800 test, ilgisiz iki Kestrel port çakışması tek başına yeşil; dal CI 42346985169 yeşil; `12` `Durum`: KP-63 satırları panel ve çağıran task'lara bağlı, `BEKLEMEDE` kaldı; K1 raporda kapatıldı, K2 → D-176). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
+---
+
 ## 2026-11-07 — T380 düzeltme turu 1
 
 **Son güncelleme:** 2026-11-07 — T380 (İşlem izi) düzeltme turu 1 yapıldı, doğrulama tur 2 bekliyor (PR #419; tur 1 bulgu 1 KRİTİK S1 kapatıldı: `AuditEntryRules` Order satırında ve `DeleteCustomerAccount`'ta `Details`'in her yuvasını denetler — Order'da görünen ad yalnız sipariş numarası, hesap silmede görünen ad yok, değer adları kapalı listede ve her adın değeri kapalı biçimde (kod, tarih, adet, tutar, kimlik), serbest metin taşıyabilecek adlar (kargo adı, takip numarası, kalem adı) listeden çıkarıldı; `09 §9.2` m.4 yuva cümlesi eklendi; K1 backlog numarası D-161 → D-164 (main'deki D-161 ile çakışma); Unit Administration 100/100, Integration AuditTrailTests 22/22; `12` `Durum` değişmedi; doğrulama ve merge yardımcıda).

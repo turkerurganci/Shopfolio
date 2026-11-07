@@ -81,7 +81,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T341-uyelik`
-- **PR:** PR_NO
+- **PR:** #433
 - **CI:** yapım işçisi izlemez
 - **Post-merge run'lar:** *(doğrulayıcı doldurur — merge sonrası; sonraki task dalında)*
 

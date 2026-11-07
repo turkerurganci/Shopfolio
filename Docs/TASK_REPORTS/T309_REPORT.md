@@ -1,6 +1,6 @@
 # T309 — Hesap ve yönetim e-postaları
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamam, doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -76,10 +76,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-07; head `2ca3caa`, `origin/main` yeni commit getirmedi) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+Validator kanıtları (bağımsız): 10 kriter ve KK1–KK10 kodda ve testte ✓ — yedi konu ve gövde metni `08 §2.2.8` ile birebir (konu `EmailComposer` ile "{marka}: {başlık}", `OrderNumber` boş, hitap "Merhaba,"); satır yalnız bağlantı kaydı kimliğini taşır, anahtar `AccountEmailTemplates` içinde `LinkKeys.Derive` (HMAC) ile üretilir; `AccountEmailBodies` gönderim anında kaydı okur, kullanılmış/değiştirilmiş/süresi dolmuş/silinmiş bağlantıda gövde yok; ömürler `ProductConstants` P-12 24 saat, P-13 60 dakika, P-14 72 saat, P-47 7 gün (`02 §11.2` satırlarıyla eşit); işaret yalnız `AdminInvitation` türünde; Google teyidi yalnız müşteri, geçerli bağlantı varken üretilmez (yarış D-234'te). Build `-warnaserror` 0 uyarı; format üç proje temiz; Unit 3521 (Consistency 213 + Architecture 830 + öteki 2478); betik testleri 4 dosya; Integration PostgreSQL 18 (`shopfolio-t309-val-pg`, 127.0.0.1:55740, silindi): AccountEmailQueue 14, CompanyNoticeQueue 11, RecipientSendLimit 11; restore `--locked-mode` 0; dal CI 42371984874 success. `12` satırları: KP-66/KP-67 satırları (VAL-A317…A331) sipariş ve firma bildirimleridir, hesap e-postası satırı yok; `Durum` değişmedi. Yapım raporu ile tam uyumlu.
 
 ## Altyapı Değişiklikleri
 
@@ -92,7 +94,7 @@
 
 - **Branch:** `task/T309-hesap-yonetim-epostalari`
 - **Commit:** bkz. PR (son commit dal başı)
-- **PR:** açıldığında PR gövdesinde
+- **PR:** #429
 - **CI:** yapım işçisi izlemez
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
 

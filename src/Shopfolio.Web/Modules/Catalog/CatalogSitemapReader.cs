@@ -23,7 +23,7 @@ internal sealed class CatalogSitemapReader
     public async Task<IReadOnlyList<string>> ListAsync(CancellationToken ct)
     {
         List<string> products = await _db.Products.AsNoTracking()
-            .Where(p => p.PublishStatus == PublishStatus.Published)
+            .Listed()
             .OrderBy(p => p.Slug).ThenBy(p => p.Id)
             .Select(p => p.Slug)
             .ToListAsync(ct);

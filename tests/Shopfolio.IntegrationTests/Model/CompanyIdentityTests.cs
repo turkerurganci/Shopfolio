@@ -495,8 +495,8 @@ public sealed class CompanyIdentityTests : IAsyncLifetime
     /// <summary>Seeds an order with one item for the declaration and returns the item's id.</summary>
     private async Task<Guid> SeedItemAsync()
     {
-        LegalTextVersion form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, 1, Now, "metin", Now);
-        LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, 1, Now, "metin", Now);
+        LegalTextVersion form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, 90, Now, "metin", Now);
+        LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, 90, Now, "metin", Now);
         LegalTextVersion notice = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, 1, Now, "metin", Now).WithHosting();
         await SaveAsync(c => c.LegalTextVersions.AddRange(form, contract, notice));
         int n = Interlocked.Increment(ref _orderCounter);

@@ -1,6 +1,6 @@
 # T316 — Sipariş durumu geçişleri: sevkiyat ekseni
 
-**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Doğrulama tur 2 PASS | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -90,10 +90,56 @@ Sık FAIL nedenleri (`sik-fail-nedenleri.md` ilk 5):
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-07; head `620b368` + `origin/main` birleştirmesi); düzeltme yapıldı, tur 2 bekliyor |
-| Bulgu sayısı | 1 (B1 ORTA S1) |
-| Düzeltme gerekli mi | Yapıldı — bu PR'da (B1) |
+| Doğrulama durumu | ✓ PASS — tur 2 (2026-11-07; head `2d04809` + `origin/main` birleştirmesi — çakışma yalnız kayıt belgelerinde); tur 1 ✗ FAIL (B1) |
+| Bulgu sayısı | Tur 2: 0 · tur 1: 1 (B1 ORTA S1, bu PR'da giderildi) |
+| Düzeltme gerekli mi | Hayır |
 | Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama tur 2 — ✓ PASS (2026-11-07)
+
+Kapsam tam (dokuz kriter, KK1–KK9, `09 §25`, güvenlik); önceki tur raporu okunmadan bağımsız üretildi.
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş; `core.hooksPath` kurulu |
+| Ana dal CI (son 3) | ✓ | 42402532255, 42401437836, 42401437807 success |
+| Memory drift | ✓ | MEMORY'de T316 satırları var |
+
+#### Kabul Kriterleri (validator)
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `TransitionTable.Shipment` 11 satır, geri yön yok; her işlem `TryPlan`'den geçer (kaynak ≠ `From` → `NotInTheTable`); `CorrectAsync` tabloyu okumaz; KK1 testleri yeşil |
+| 2 | ✓ | Terminalden çıkan satır yok; kapanış kuralı terminalde erken döner; KK2 (17) yeşil |
+| 3 | ✓ | Fiziksel kalem koşulu; Ö1+S1 tek kilit/sürüm, B-4 yalnız onaylı yolda; onaysız + Bekliyor çift kuralıyla ret; KK3 yeşil |
+| 4 | ✓ | S2/S10/S11 yöntemi yok; kapanış işlem sonunda; KK4 yeşil |
+| 5 | ✓ | Aktör/sebep (`TryCancellationActor`, `ActorsOf`, `ReasonsAllowed`) ve koşul (`CancellationConditionAsync`: sistem yalnız Alındı+Bekliyor; müşteri ödenmemişte bütün, ödenmişte son açık kalem; teslim işaretli kalemli bütün sipariş iptali ret); B-7 her kabulde bir; KK5 testleri (B1 testi dahil) yeşil |
+| 6 | ✓ | S3/S4 kapanışı sistem + Closure, bildirim yok; S9 kapanışı yöneticinin sebepsiz işlemi, açık/teslimli kalemde ret; KK6 yeşil |
+| 7 | ✓ | Yönetici, onay, kargo verisi normalizasyonu, yalnız açık fiziksel kalem, B-5; KK7 yeşil |
+| 8 | ✓ | Tarih ileri ve son S5/S8 gününden önce olamaz; açık fiziksel kalemlere işaret; bildirim yok; KK8 yeşil |
+| 9 | ✓ | Yönetici + sürüm, B-6 tek satır; KK9 yeşil |
+
+#### Task Satırları (`12 §7.5`)
+KP-46 satırları (`VAL-A207`, `A208`, `C039`…`C048`) uç yanıtı ister (D-308 → T527); T316 uç yazmaz — `Durum` hepsinde `BEKLEMEDE` → `BEKLEMEDE`. KD-24 satırı yok. `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+#### Test Sonuçları
+| Tür | Sonuç | Çıktı |
+|---|---|---|
+| Derleme `-warnaserror` | ✓ | 0 uyarı, 0 hata |
+| Biçim (Web, Unit, Integration) | ✓ | çıkış 0 |
+| Unit Architecture / Consistency / öteki | ✓ | 906/906 · 230/230 · 2840/2840 |
+| Betik testleri | ✓ | 4 dosya geçti |
+| Integration (postgres:18) | ✓ | `ShipmentTransitionsTests` 94/94, `OrderTransitionsTests` 31/31, `ConcurrencyTests` 26/26 |
+| Dal CI | ✓ | 42399324842 (head `2d04809`) yeşil |
+
+#### Güvenlik
+Secret temiz · auth temiz (uç yok; yönetici kimlik, ad ve sürüm zorunlu) · girdi doğrulaması temiz (kargo verisi, teslim tarihi, "Diğer" notu; uzunluk sınırı D-309) · yeni bağımlılık yok.
+
+#### Bulgular
+Yok. K-notu yok.
+
+#### Yapım raporu karşılaştırması
+Tam uyumlu: dokuz kriter ✓, test sayıları birebir; öz denetim tablosu kanıtlı.
 
 ### Doğrulama tur 1 — ✗ FAIL (2026-11-07)
 

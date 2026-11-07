@@ -88,10 +88,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-07) |
-| Bulgu sayısı | 2 (B1 ORTA S1, B2 DÜŞÜK S1) |
-| Düzeltme gerekli mi | Evet — B1 ve B2 bu PR'da |
-| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-231, K2 → D-232) |
+| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-07; tur 1 ✗ FAIL) |
+| Bulgu sayısı | tur 2: 1 (Bulgu 1 ORTA S1 — düzeltme sonrası B-1'in `OriginalDispatchId`'si) · tur 1: 2 (B1 ORTA S1, B2 DÜŞÜK S1 — kapandı) |
+| Düzeltme gerekli mi | Evet — Bulgu 1 bu PR'da; tur 2 FAIL, iki iterasyon sınırı: eskalasyon (`12 §8.5`, `INSTRUCTIONS.md` §3.3) |
+| Bloke-etmeyen not (K) sayısı | tur 2: 0 · tur 1: 2 (K1 → D-231, K2 → D-232) |
 
 ### Doğrulama Sonucu — T306 Müşteri bildirimleri — tur 1
 **Tarih:** 2026-11-07   **Branch:** task/T306-musteri-bildirimleri-1   **Commit:** `deb3a3f` (+ `origin/main` `1112ca6` birleştirmesi, kayıt commit'i)
@@ -197,6 +197,66 @@ T306'nın KP birimi KP-66 (`11 §7.1`). `VAL-A317`–`A320` ve `A324` B-1…B-8'
 | B2 (DÜŞÜK) "Takip et" marka renkli ikinci dolu düğme | `EmailFrame.razor`: dış bağlantı (`EmailButton { IsExternal: true }`) artık düğme değil; `EmailColors.LinkText` sabit renkli, altı çizili bağlantı, `rel="noreferrer"` ve altında tam adres; marka rengi yalnız ana düğmenin zemininde. Düz metin aynı. | birim `B5_TheTrackingLink_IsAPlainLinkInTheFixedColour_AndTheBrandColourIsOnlyTheMainButtons` (markalı örnekte marka rengi yalnız tek düğmede, bağlantıda `background` yok); mevcut `B5_…NoReferrer` ve `AnExternalAddress_CarriesNoReferrer_…` yeşil |
 
 **Öz denetim (düzeltme 1):** kriter 1–10, KK1–KK10 ve `09 §25` yeniden kendi diff'imde denetlendi: kriter 3 ve KK3 artık tam ✓ (düzeltme tetiği olay değerini yazar); kriter 7 ve KK7 ✓ (bağlantı yalnız listedeki şirkette, `noreferrer`, düğme değil); öteki maddeler değişmedi, ilgili testler yeşil. Sık FAIL nedenleri: (1) yeni tarama/istisna yok; (2) yeni tarama yok, `EmailRenderingSourceScan` Razor değişikliğini görür ve yeşil (`MarkupString` yok); (3) şema değişikliği yok; (4) sayı anan başka yer yok (backlog aktif 105 = `⚪`+`🟡` satırları, `origin/main` 103 + D-231/D-232); (5) olay değeri artık `EventValues`'ta.
+
+### Doğrulama Sonucu — T306 Müşteri bildirimleri — tur 2
+**Tarih:** 2026-11-07   **Branch:** task/T306-musteri-bildirimleri-1   **Commit:** `26e99f2` (+ kayıt commit'i; `origin/main` yeni commit taşımıyordu)
+
+#### Verdict: ✗ FAIL
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş |
+| Hook kurulumu | ✓ | `git config core.hooksPath` → `C:\projects\Shopfolio\scripts\git-hooks` |
+| Ana dal CI (son 3) | ✓ | 42368786653 success · 42368786665 success · 42366197659 success |
+| Memory drift | ✓ | `grep -nE "\bT306\b" .claude/memory/MEMORY.md` → satır 22 |
+
+#### Kabul Kriterleri
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | Sekiz kayıt → `B1`…`B8`; `"Merhaba,"` adsız; güncel bilgi cümlesi yalnız B-2, B-3, B-5; birim `TheEightNotices_…`, `EveryNotice_…`, `AResend_…`, `ANewEventOfTheSameType_…` |
+| 2 | ✓ | Konu sonu ve olay cümlesinde numara; `OrderLink` misafir/silinmiş hesapta `/siparis/erisim/{key}`, üyede `/siparis/{no}`; birim `ThePageButton_…` ×3, `AGuestOrderWithoutAnAccessKey_…` |
+| 3 | ~ Kısmi | Gövde, yerleşim, `12pt` (gövde 16px), yazı küçültme kapalı, ek yok ✓; düzeltmede ilk e-postanın anı olay değerinde ✓; **düzeltme satırının `OriginalDispatchId`'si ilk satırın kimliği değil** (Bulgu 1) |
+| 4 | ✓ | `IbanBlock` donmuş `BankTransferIban` dörderli + sipariş numarası; son ödeme günü cümlesi; birim `B2_…` ×3 |
+| 5 | ✓ | `ReminderIsDueAsync` aynı süre sonunda ikinci satır yok, dolmuş sürede yok, yeniden başlayan sürede yeni; zamanlama `TransferSchedule.ReminderAt`, tetik T324; tümleşik `B3_…` ×4 |
+| 6 | ✓ | `HasDigitalItem` cümlesi, indirme adresi yok; birim `B4_…` |
+| 7 | ✓ | `CarrierCatalog.Describe`/`BuildLink`; dış bağlantı `rel="noreferrer"`, sabit renk, düğme değil; birim `B5_…` ×7 |
+| 8 | ✓ | `FirmContact` B-6 ve B-7'nin üç dalında; birim `B6_…`, `B7_…` |
+| 9 | ✓ | Ayrı konu, `ItemText` + adet yalnız kalem iptalinde, sebep listeleri birebir, on dört gün cümlesi yalnız yönetici dalında; birim `B7_…` ×6 |
+| 10 | ✓ | Neden listesi, `DisplayFormat.Amount`, kart/havale cümlesi, IBAN yok, geç ödeme cümlesi; birim `B8_…` ×3 |
+
+#### Task Satırları (`12 §7.5`)
+`VAL-A317` (KRİTİK), `A318`, `A319`, `A320`, `A324` (ORTA) — mock — `BEKLEMEDE` → `BEKLEMEDE`: gönderilmiş e-posta ve olayın tetiğini ister; T306 gönderen ve tetik yazmaz (D-97, D-166, D-232), kritere eşlenmez (T305 emsali). `A321`–`A323` T307, `A325` ayar yokluğu.
+
+#### Test Sonuçları
+| Tür | Sonuç | Çıktı |
+|---|---|---|
+| Derleme `-warnaserror` | ✓ | 0 uyarı, 0 hata |
+| Format (Web, Unit, Integration) | ✓ | çıkış 0 |
+| Unit (Consistency dışı) | ✓ | 3363/3363 |
+| Consistency | ✓ | 209/209 |
+| Betik testleri | ✓ | 4 dosya |
+| Integration `CustomerNoticeQueueTests` | ✓ | 13/13 (Postgres 18, 127.0.0.1:55800) |
+| Integration `*CompanyNotice*`, `*Dispatch*`, `*Email*` | ✓ | 49/49 |
+| `dotnet restore --locked-mode` | ✓ | çıkış 0, `git status` temiz |
+| Dal CI | ✓ | 42370396257 success (head `26e99f2`) |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz · Auth etkisi: Temiz · Input validation: Temiz (Razor kodlaması, `Uri.EscapeDataString`, `noreferrer`, konuda müşteri metni yok, `EventValues` kişisel veri taşımaz) · Yeni bağımlılık: Yok
+
+#### Bulgular
+| # | Madde | Severity | Sınıf | Beklenen ↔ gerçekleşen | Karar | Dosya |
+|---|---|---|---|---|---|---|
+| 1 | — (kriter 3, KK3) | ORTA | S1 | Düzeltme sonrası B-1 satırı siparişin ilk B-1 satırının kimliğini taşır; yeniden gönderilen satır kendisi bir yeniden gönderimse onun taşıdığı kimliği (`08 §2.2.6` B-1, `08 §2.2.5` m.6, `06 §4.58` `OriginalDispatchId`); grup ve "e-posta ulaşmadı" işareti bu kimlikten okunur ↔ `CustomerNoticeQueue` çağıranın verdiği kimliği aynen yazar; verilen satır bir düzeltme satırıysa anını taşır, kimliğini taşımaz. Daldaki tümleşik test ikinci düzeltmeyi tam bu yolla yazar (`OrderReceivedNotice(orderId, remaining.Id)`) ve üçüncü satırın kimliği `remaining.Id` olur — grup bölünür; ilk satır silinmişken asıl ilk kimlik `ArgumentException` alır. Öneri: `first.OriginalDispatchId ?? firstId` yaz, testte doğrula | bu PR'da düzeltilir | `CustomerNoticeQueue.cs`, `CustomerNoticeQueueTests.cs` |
+
+#### Bloke-etmeyen Notlar
+Yeni K-notu yok (tur 1'in D-231, D-232 kayıtları açık).
+
+#### Yapım Raporu Karşılaştırması
+1 uyuşmazlık: düzeltme 1 öz denetimi kriter 3 / KK3'ü "artık tam ✓" yazar; düzeltme yalnız anı taşır, kimliği taşımaz (Bulgu 1). Öteki kriterler ve ⚠ notları uyumlu; öz denetim tablosu kanıtlı.
+
+#### Merge ve Post-merge
+FAIL — merge yok. Tur 2 FAIL: `12 §8.5` iki iterasyon sınırı, eskalasyon (`INSTRUCTIONS.md` §3.3).
 
 ## Altyapı Değişiklikleri
 

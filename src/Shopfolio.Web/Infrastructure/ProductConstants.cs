@@ -117,6 +117,51 @@ internal static class ProductConstants
     /// </summary>
     public const int ShortTextMaxLength = 200;
 
+    /// <summary>P-29 — character ceiling of the short introduction of the about page.</summary>
+    public const int ShortIntroductionMaxLength = 400;
+
+    /// <summary>P-30 — character ceiling of the announcement text.</summary>
+    public const int AnnouncementTextMaxLength = 120;
+
+    /// <summary>P-48 — life of the recognized browser mark, in days from the last successful sign-in from that browser to that account (Z-46).</summary>
+    public const int RecognizedBrowserMarkDays = 90;
+
+    /// <summary>P-17 — shortest password, in characters.</summary>
+    public const int PasswordMinLength = 10;
+
+    /// <summary>P-18 — card payment window, in minutes (Z-7).</summary>
+    public const int CardPaymentMinutes = 30;
+
+    /// <summary>P-19 — length of the random block of an order number, in characters.</summary>
+    public const int OrderNumberRandomBlockLength = 6;
+
+    /// <summary>P-22 — the image formats the product accepts.</summary>
+    public const string ImageFormats = "JPEG, PNG, WebP";
+
+    /// <summary>P-24 — images of one product, the product's and its variants' together.</summary>
+    public const int ImagesPerProductMax = 20;
+
+    /// <summary>P-25 — images of one corporate content record.</summary>
+    public const int ImagesPerContentRecordMax = 20;
+
+    /// <summary>P-39 — the periodic disposal runs once in this many days (Z-36).</summary>
+    public const int DisposalIntervalDays = 1;
+
+    /// <summary>P-40 — retention of a contact request, in years from its last closing (Z-33).</summary>
+    public const int ContactRequestRetentionYears = 2;
+
+    /// <summary>P-40 — retention of a contact request of the "about an order" kind, in years: the legal period (6563 numbered Law, article 11/3).</summary>
+    public const int OrderContactRequestRetentionYears = 10;
+
+    /// <summary>P-41 — retention of the dispatch record of the account and administration e-mails and of the notifications to the company, in years (Z-34).</summary>
+    public const int DispatchRecordRetentionYears = 1;
+
+    /// <summary>P-43 — retention of the transfer line IBAN of a return whose goods did not come back, in days after the customer's period to send the goods ends (Z-38).</summary>
+    public const int ReturnIbanRetentionDays = 30;
+
+    /// <summary>P-42 — the narrowest supported screen width, in CSS pixels.</summary>
+    public const int NarrowestScreenCssPixels = 320;
+
     /// <summary>P-23 — size ceiling of one image file, in bytes: 10 MB (05 6.6.1).</summary>
     public const long ImageMaxBytes = 10L * 1024 * 1024;
 

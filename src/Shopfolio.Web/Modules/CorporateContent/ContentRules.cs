@@ -15,16 +15,16 @@ namespace Shopfolio.Modules.CorporateContent;
 internal static class ContentRules
 {
     /// <summary>A name or title (06 11.2 P-27).</summary>
-    public const int TitleMaxLength = 150;
+    public const int TitleMaxLength = ProductConstants.ProductNameMaxLength;
 
     /// <summary>A short description or a question (06 11.2 P-28).</summary>
     public const int ShortDescriptionMaxLength = ProductConstants.ShortTextMaxLength;
 
     /// <summary>The short introduction of the about page (06 11.2 P-29).</summary>
-    public const int ShortIntroductionMaxLength = 400;
+    public const int ShortIntroductionMaxLength = ProductConstants.ShortIntroductionMaxLength;
 
     /// <summary>The announcement text (06 11.2 P-30).</summary>
-    public const int AnnouncementTextMaxLength = 120;
+    public const int AnnouncementTextMaxLength = ProductConstants.AnnouncementTextMaxLength;
 
     /// <summary>Lowercase ASCII letters and digits joined by single hyphens, never starting or ending with one (06 4.72.4).</summary>
     public const string SlugFormat = "slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'";

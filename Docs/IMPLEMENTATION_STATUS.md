@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T378 (Zaman sayımı) doğrulama tur 1 ✓ PASS (head `33e4d94`, PR #416; kriter 1–9, KK1–KK9 ve `09 §25` ✓; Unit 2669 + Consistency 207, betik testleri; Integration dokunulmadı (dal CI 42337007822 yeşil); `12` `Durum` değişmedi — task'ın KP satırı yok, ilgili `VAL-A801` tüketici task'larda `BEKLEMEDE`; K1 bu PR'da kapatıldı (`DateTimeSignatures` özet yorumu yerine taşındı); K2 → D-161 (sıfır iş günlük kargoya verme süresi sayımda istisna atar → T325)). Merge commit'i sonraki task dalında yazılır. Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T314 (Durum ucu: uyarı koşulları ve 500 sayacı) doğrulama tur 1 ✓ PASS (head `a57c4ca`, PR #418; kriter 1–10, KK1–KK10 ve `09 §25` ✓; Unit 2878, Integration yerelde parçalı (StatusEndpointTests 41) ve dal CI 42339425149 yeşil; `12` `Durum` değişmedi — KP-50 satırları ve durum ucu satırları `BEKLEMEDE`; K1 kod kanıtıyla kapandı, K2 → D-162). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -153,7 +153,7 @@
 | T311 | Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım | ⬚ | — | — | — |
 | T312 | Dosya uçları: imzalı indirme ucu ve parçalı yükleme ucu | ⬚ | — | — | — |
 | T313 | Site haritası ve robots.txt | ⬚ | — | — | — |
-| T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ⬚ | — | — | — |
+| T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | — | #418 |
 | T315 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | ⬚ | — | — | — |
 | T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ⬚ | — | — | — |
 | T317 | Ödeme durumu geçişleri: ödeme ekseni | ⬚ | — | — | — |

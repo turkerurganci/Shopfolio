@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T317 (Ödeme durumu geçişleri: ödeme ekseni) doğrulama tur 1 ✓ PASS (head `0926ba7`, `origin/main` `c4c872c` güncel, PR #441; kriter 1–8, KK1–KK8, `09 §25` ✓, güvenlik taraması temiz; Unit 3965 (Architecture 906, Consistency 230, öteki 2829), betik testleri, Integration yerelde Ordering 60, Concurrency 26, PaymentRecordTables + JobCleanupAndRefund 92, web açılışı 18; dal CI 42396093293 yeşil; bulgu 0, K-notu 1 (D-322 → T370); `12` `Durum` değişmedi (KP-18 satırları sipariş sayfası kanıtı ister); backlog aktif 130). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T317 (Ödeme durumu geçişleri: ödeme ekseni) doğrulama tur 1 ✓ PASS (head `0926ba7`, `origin/main` `c4c872c` güncel, PR #441; kriter 1–8, KK1–KK8, `09 §25` ✓, güvenlik taraması temiz; Unit 3965 (Architecture 906, Consistency 230, öteki 2829), betik testleri, Integration yerelde Ordering 60, Concurrency 26, PaymentRecordTables + JobCleanupAndRefund 92, web açılışı 18; dal CI 42396093293 yeşil; bulgu 0, K-notu 1 (D-322 → T370); `12` `Durum` değişmedi (KP-18 satırları sipariş sayfası kanıtı ister); backlog aktif 132). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -167,7 +167,7 @@
 | T325 | Zaman aşımı akışları: teslim, cayma, geri ödeme ve ayıp talebi süreleri | ⬚ | — | — | — |
 | T326 | Zaman aşımı akışları: katalog, kupon, içerik, iletişim ve bildirim süreleri | ⬚ | — | — | — |
 | T327 | Kendiliğinden işleyen anlar ve sitenin kesintisinde süreler | ⬚ | — | — | — |
-| T328 | Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi | ⬚ | — | — | — |
+| T328 | Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi | ✓ | ✓ PASS (tur 1) | — | #440 |
 | T329 | İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi) | ⬚ | — | — | — |
 | T330 | Firma kimliği: tek firma, tip ve tipe göre zorunlu alanlar, yasal kimlik bilgilerinin erişilebilirliği, iade adresi | ✓ | ✓ PASS (tur 1) | `4924037` | #420 |
 | T331 | Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması | ✓ | ✓ PASS (tur 1) | `eb91975` | #425 |

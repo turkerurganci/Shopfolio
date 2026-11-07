@@ -6,9 +6,9 @@ using Shopfolio.Modules.Notifications.Contracts;
 namespace Shopfolio.Modules.Notifications;
 
 /// <summary>
-/// The writer of the dispatch rows of the customer notices B-1…B-8 (08 2.2.6; 06 4.58; T306): each notice is one row in the "queued" state, written in the
+/// The writer of the dispatch rows of the customer notices B-1…B-16 (08 2.2.6; 06 4.58; T306, T307): each notice is one row in the "queued" state, written in the
 /// transaction of the event that made it and saved by that transaction (09 9.1 item 3; the row commits with the event or goes with it). The row carries the
-/// order link and no related record (06 4.58's type table), the event's values (<see cref="CustomerNoticeValues"/>) and, on the B-1 after a correction, the first
+/// order link and no related record - except B-9's, which names its withdrawal, termination or claim (06 4.58's type table), the event's values (<see cref="CustomerNoticeValues"/>) and, on the B-1 after a correction, the first
 /// e-mail's row id (the chain's root: a given row that is itself a re-sending hands on the id it carries) and its creation moment (read from the given row, which must be the order's own B-1; the moment is the event value the re-send sentence is made from, so it
 /// outlives the first row's own deletion - 08 2.2.5 item 6). Nothing is sent here, and the body is not stored: it is made when the row is sent, from the order and these values.
 /// <para>
@@ -31,7 +31,8 @@ internal sealed class CustomerNoticeQueue
     }
 
     /// <summary>
-    /// Queues a notice B-1…B-8 for <paramref name="recipientEmail"/>, the order's contact e-mail (the new address on a B-1 correction). Returns the number of rows
+    /// Queues a notice B-1…B-16 for <paramref name="recipientEmail"/>, the order's contact e-mail (the new address on a B-1 correction; the old address on B-15).
+    /// B-9 also writes its related record's type and id (06 4.58's type table). Returns the number of rows
     /// written: one, or zero for a B-3 that is not due (already sent for this window, or the window has run out).
     /// </summary>
     public async Task<int> QueueAsync(CustomerNotice notice, string recipientEmail, CancellationToken ct)
@@ -54,7 +55,7 @@ internal sealed class CustomerNoticeQueue
             return 0;
         }
 
-        DispatchRecord record = DispatchRecord.Queue(row.Type, recipientEmail.Trim(), notice.OrderId, null, null, now);
+        DispatchRecord record = DispatchRecord.Queue(row.Type, recipientEmail.Trim(), notice.OrderId, row.RelatedRecordType, row.RelatedRecordId, now);
         record.OriginalDispatchId = row.OriginalDispatchId;
         record.EventValues = row.EventValues;
         _db.DispatchRecords.Add(record);

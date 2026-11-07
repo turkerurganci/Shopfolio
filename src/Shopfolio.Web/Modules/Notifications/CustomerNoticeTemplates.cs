@@ -23,7 +23,8 @@ internal sealed record OrderNoticeContext(
     string? DistanceSalesContractText,
     string FirmEmail,
     string FirmPhone,
-    DateTimeOffset? ResendOf);
+    DateTimeOffset? ResendOf,
+    IReadOnlyDictionary<Guid, string>? ProvinceNames = null);
 
 /// <summary>
 /// The templates of the customer notices B-1…B-8 (08 2.2.6; 09 11.4 item 1): from the order's values and the event's values each notice makes the
@@ -31,7 +32,7 @@ internal sealed record OrderNoticeContext(
 /// without a name (the recipient of the delivery and the buyer may be different people), the event's sentence with the order number, the notice's sections, the
 /// main button with its address under it - and the footer is the frame's. Nothing here reads a request, a table or the clock: every value is handed in.
 /// </summary>
-internal sealed class CustomerNoticeTemplates
+internal sealed partial class CustomerNoticeTemplates
 {
     /// <summary>The label of the main button (08 2.2.6 item 3).</summary>
     public const string OrderButtonLabel = "Siparişi görüntüle";
@@ -72,7 +73,15 @@ internal sealed class CustomerNoticeTemplates
                 false,
                 Cancelled(order, number, cancelled)),
             RefundProcessedNotice refund => Make(order, "Geri ödemeniz işlendi", false, Refunded(order, number, refund)),
-            _ => throw new ArgumentException($"{notice.GetType().Name} is not a customer notice of B-1…B-8.", nameof(notice)),
+            DeclarationReceivedNotice declaration => Make(order, DeclarationTitle(declaration), false, Declaration(order, number, declaration)),
+            AddressCorrectedNotice address => Make(order, "Siparişinizin adresi düzeltildi", true, AddressCorrected(order, number, address)),
+            ItemRemovedNotice removed => Make(order, "Siparişinizdeki bir kalem değişti", false, ItemRemoved(order, number, removed)),
+            CarrierCorrectedNotice carrier => Make(order, "Kargo bilginiz düzeltildi", true, CarrierCorrected(order, number, carrier)),
+            StatusCorrectedNotice status => Make(order, "Siparişinizin durumu düzeltildi", true, StatusCorrected(order, number, status)),
+            RefundIbanRequestedNotice request => Make(order, "Geri ödemeniz için IBAN bilgisi gerekli", false, IbanRequested(order, number, request)),
+            OrderEmailChangedNotice changed => Make(order, "Siparişinizin e-posta adresi değiştirildi", false, EmailChanged(order, number, changed)),
+            ReturnRejectedNotice rejected => Make(order, "İade ettiğiniz ürün kabul edilmedi", false, ReturnRejected(order, number, rejected)),
+            _ => throw new ArgumentException($"{notice.GetType().Name} is not a customer notice of B-1…B-16.", nameof(notice)),
         };
     }
 
@@ -161,31 +170,38 @@ internal sealed class CustomerNoticeTemplates
     private List<EmailBlock> Shipped(OrderNoticeContext order, string number, ShippedNotice notice)
     {
         List<EmailBlock> blocks = [new EmailParagraph(Greeting), new EmailParagraph($"{number} numaralı siparişiniz kargoya verildi.")];
+        blocks.AddRange(ShippingBlocks(notice));
+        blocks.Add(Button(order));
+        return blocks;
+    }
+
+    /// <summary>The shipping block of B-5 and, with the corrected values, of B-12 (08 2.2.6 B-5, B-12): the company and the number with the tracking link, or the own-vehicle sentence.</summary>
+    private List<EmailBlock> ShippingBlocks(ShippedNotice notice)
+    {
+        List<EmailBlock> blocks = [];
         if (notice.IsOwnVehicleDelivery)
         {
             blocks.Add(new EmailParagraph("Siparişiniz firmamızın kendi aracıyla teslim edilecektir."));
+            return blocks;
         }
-        else
+
+        ShippingDisplay display = _carriers.Describe(notice.Carrier, notice.OtherCarrierName, notice.TrackingNumber, false);
+        if (display.CarrierName is not null)
         {
-            ShippingDisplay display = _carriers.Describe(notice.Carrier, notice.OtherCarrierName, notice.TrackingNumber, false);
-            if (display.CarrierName is not null)
-            {
-                blocks.Add(new EmailKeyValue("Kargo şirketi", display.CarrierName));
-            }
-
-            if (display.TrackingNumber is not null)
-            {
-                blocks.Add(new EmailKeyValue("Takip numarası", display.TrackingNumber));
-            }
-
-            if (display.Link is not null)
-            {
-                // The carrier's own tracking page: another site, so it carries noreferrer (08 2.2.5 item 4, 2.4).
-                blocks.Add(new EmailButton(TrackingLabel, new Uri(display.Link.Href, UriKind.Absolute), isExternal: true));
-            }
+            blocks.Add(new EmailKeyValue("Kargo şirketi", display.CarrierName));
         }
 
-        blocks.Add(Button(order));
+        if (display.TrackingNumber is not null)
+        {
+            blocks.Add(new EmailKeyValue("Takip numarası", display.TrackingNumber));
+        }
+
+        if (display.Link is not null)
+        {
+            // The carrier's own tracking page: another site, so it carries noreferrer (08 2.2.5 item 4, 2.4).
+            blocks.Add(new EmailButton(TrackingLabel, new Uri(display.Link.Href, UriKind.Absolute), isExternal: true));
+        }
+
         return blocks;
     }
 

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) yapım bitti ⏳ doğrulama bekliyor (dal `task/T333-kategori-arama-suzgec`; kriter 1–8 ve KK1–KK8 öz denetimde ✓; Unit 3983, Integration `CategoryTreeAndListsTests` 29, Model ad alanı 1105; şema değişmedi; backlog D-330…D-334, aktif 130; T332 Commit hücresi `c4c872c`). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) doğrulama tur 1 ✗ FAIL (head `62d03a8` + `origin/main` birleştirmesi, PR #442; kriter 1–8 ve KK1–KK8 ✓, güvenlik taraması temiz; `09 §25` "yeni sayfalı liste sınır testi" HAYIR → B1 DÜŞÜK S1: iki yeni sayfalı liste (kategori sayfası, arama) için eşit `CreatedAt`'li ürünleri sayfa sınırına düşüren test yok (`09 §10.5` madde 6, §19.2 madde 5); build, format, Unit 3983, betik testleri, Integration `CategoryTreeAndListsTests` 29 + `ConcurrencyTests` 26 yerelde yeşil, dal CI 42401392964 yeşil; `12` `Durum` değişmedi (VAL-A001…A008, A181…A185 BEKLEMEDE); K1 rapor cümlesi düzeltildi; backlog aktif 133). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -161,7 +161,7 @@
 | T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |
 | T321 | Ürün yayın durumları | ⬚ | — | — | — |
-| T322 | İçerik yayın durumları ve iletişim talebi durumları | ⬚ | — | — | — |
+| T322 | İçerik yayın durumları ve iletişim talebi durumları | ✓ | ✓ PASS (tur 1) | — | #438 |
 | T323 | Durum × rol × işlem tablosu | ⬚ | — | — | — |
 | T324 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | ⬚ | — | — | — |
 | T325 | Zaman aşımı akışları: teslim, cayma, geri ödeme ve ayıp talebi süreleri | ⬚ | — | — | — |
@@ -172,7 +172,7 @@
 | T330 | Firma kimliği: tek firma, tip ve tipe göre zorunlu alanlar, yasal kimlik bilgilerinin erişilebilirliği, iade adresi | ✓ | ✓ PASS (tur 1) | `4924037` | #420 |
 | T331 | Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması | ✓ | ✓ PASS (tur 1) | `eb91975` | #425 |
 | T332 | Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu | ✓ | ✓ PASS (tur 1) | `c4c872c` | #432 |
-| T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ⏳ | — | — | #442 |
+| T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ⏳ | ✗ FAIL (tur 1) | — | #442 |
 | T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ⬚ | — | — | — |
 | T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ⬚ | — | — | — |
 | T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ⬚ | — | — | — |

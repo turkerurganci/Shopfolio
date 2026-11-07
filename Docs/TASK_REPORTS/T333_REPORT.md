@@ -10,7 +10,7 @@
 ## Yapılan İşler
 
 - **Kategori düzeyi (`09 §9.4` madde 4):** `CategoryLevels` saf hesap (düzey = üst + 1, dal kayması, derinlik sınırı `ProductConstants`'tan, kendi dalına taşıma reddi, alt dal listesi). Düzeyi yazan tek yer `CategoryTree`; `Category.Level` özel ayarlayıcılı, `Category.Create` (düzeyle) ve `Category.Relocate` yalnız ağaçtan çağrılır (kaynak taraması).
-- **Ağaç yazımı:** `CategoryTree` — `CreateAsync`, `MoveAsync`, `DeleteAsync` ağaç danışma kilidini (`AdvisoryLockScope.CategoryTree`) ilk deyim olarak alır, `RenameAsync` kilitsizdir (düzeyi etkilemez). Modül `SaveChanges` çağırmaz, çağıranın işlemine katılır; ret dönüş değeridir (`CategoryWriteResult`). Dolu kategori (ürünü ya da alt kategorisi olan) silinmez; ret sayıları taşır; veritabanı son savunmadır. Yazım `Menu` + `CategoryTree` (oluşturma, silme ve ad değişiminde ayrıca `Sitemap`) önbellek alanlarını `CacheInvalidations`'a bildirir.
+- **Ağaç yazımı:** `CategoryTree` — `CreateAsync`, `MoveAsync`, `DeleteAsync` ağaç danışma kilidini (`AdvisoryLockScope.CategoryTree`) ilk deyim olarak alır, `RenameAsync` kilitsizdir (düzeyi etkilemez). Modül `SaveChanges` çağırmaz, çağıranın işlemine katılır; ret dönüş değeridir (`CategoryWriteResult`). Dolu kategori (ürünü ya da alt kategorisi olan) silinmez; ret sayıları taşır; veritabanı son savunmadır. Yazım `Menu` + `CategoryTree` (oluşturma ve silmede ayrıca `Sitemap`; ad değişimi adresi değiştirmediği için `Sitemap` bildirmez) önbellek alanlarını `CacheInvalidations`'a bildirir.
 - **Ürün–kategori bağı:** `ProductCategoryLinks.SetAsync` — bir ürün için kategori kümesi + tek ana kategori (boş küme = ana yok; dolu küme = ana zorunlu ve kümede). Değişiklik izleyiciden geçer (toplu deyim `ProductVersionGuard`'ı atlar); işareti değişen bağ silinip yeniden yazılır (izleyici iki güncellemeyi dolu-süzgeçli tekil dizine göre sıralamaz). Değişimde ürün sürümü artar.
 - **Listeler:** `ProductListReader` — `ListCategoryAsync(adres)` (kategori + bütün alt dal, ürün başına tek satır) ve `SearchAsync` (`SearchTerm.ToLikePattern` + `NameSearchForm`). Yalnız yayındaki ürün; sıralama `CreatedAt` azalan, `Id` azalan; sayfa `PageSizes.StorefrontProducts`; sayfa ürün üzerinde sıralanır, kartın en düşük fiyatı ve satın alınabilirliği sayfanın anahtarlarıyla ikinci sorguda okunur. Süzgeç: fiyat aralığı + stokta; ters aralık uygulanmaz; iki süzgeç birlikteyse aynı varyant hem aralıkta hem satın alınabilir olmalıdır.
 - **Modül yüzü:** `ICatalogModule` + `CatalogModule`: `GetCategoryTreeAsync`, `Create/Rename/Move/DeleteCategoryAsync`, `SetProductCategoriesAsync`, `ListCategoryProductsAsync`, `SearchProductsAsync`. Türler `Contracts.Categories` ve `Contracts.Lists` alt ad alanlarında (enum'lar alt ad alanında — `EnumLockTests`).
@@ -72,10 +72,24 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-07, head `62d03a8`) |
+| Bulgu sayısı | 1 (B1 DÜŞÜK S1) |
+| Düzeltme gerekli mi | Evet — B1 |
+| Bloke-etmeyen not (K) sayısı | 1 (K1, bu PR'da kapatıldı) |
+
+**Başlangıç kapıları:** working tree temiz, `core.hooksPath` = `scripts/git-hooks`; ana dal CI 42402532255, 42401437836, 42401437807 success; memory satırı var.
+
+**Kabul kriterleri (validator):** 1–8 ✓ ve KK1–KK8 ✓ — kanıtlar yukarıdaki tabloyla aynı testler, validator yerelde koştu (Integration `CategoryTreeAndListsTests` 29/29, `ConcurrencyTests` 26/26; Unit 3983/3983; build `-warnaserror` 0 uyarı; format ×3 temiz; betik testleri; `--locked-mode` restore 0); dal CI 42401392964 (head `62d03a8`) bütün işler pass.
+
+**Task satırları (`12 §7.5`):** VAL-A001…A008 (KP-1…KP-3), VAL-A181…A185 (KP-41) uç/tarayıcı kanıtı ister; T333 uç kurmaz (D-331, D-333) → hepsi `BEKLEMEDE` kalır; `12` değişmedi; `12_matris_denetle.py --kapsam 1-77` Hata 0.
+
+**B1 (DÜŞÜK, S1):** `09 §25` "Yeni sayfalı liste … sınır testi var mı?" — hayır. `09 §10.5` madde 6 ve §19.2 madde 5 her yeni sayfalı liste için eşit `CreatedAt`'li ürünlerin sayfa sınırında ne yinelenmediğini ne kaybolmadığını sınayan entegrasyon testini zorunlu tutar. T333'ün iki yeni listesinde (kategori sayfası, arama) böyle test yok: `TheLists_AreNewestFirst_EqualMoments…` eşit anları tek sayfada sınar; `ACategoryPage_…` ve `TheSearchPage_…` sınırı farklı `CreatedAt`'lerle geçer; T210 `ListPagingTests` gerçek okuyucuyu değil yalın sorguyu yürür. Öz denetimin "Sık FAIL (5) ✓" satırı bu yüzden yanlış. **Düzeltme:** her iki liste için `PageSizes.StorefrontProducts`'tan fazla aynı `CreatedAt`'li ürünü sınıra düşürüp bütün sayfaları yürüyen test (yinelenme yok, kayıp yok); aynı dosyada `\` harfi harfine aranır (madde 6).
+
+**K1:** "Yapılan İşler" ad değişiminde `Sitemap` bildirildiğini yazıyordu; kod ve `TheTreeWrites_NameTheCacheAreasTheyMakeStale` bildirmez (adres değişmez) — cümle düzeltildi.
+
+**Güvenlik:** sır yok; uç yok (yetki D-333); arama deseni parametreli ve kaçışlı, ad kırpılır; yeni bağımlılık yok.
+
+**Yapım raporu karşılaştırması:** 2 uyuşmazlık — öz denetim "Sık FAIL (5)" (B1) ve ad değişiminin `Sitemap` bildirimi (K1).
 
 ## Altyapı Değişiklikleri
 

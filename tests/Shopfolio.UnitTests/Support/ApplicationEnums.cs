@@ -10,6 +10,15 @@ internal static class ApplicationEnums
     /// <summary>The namespace of the stored enums that belong to shared infrastructure (06 5.4, 5.5).</summary>
     public const string ValuesNamespace = "Shopfolio.Infrastructure.Values";
 
+    /// <summary>
+    /// The enums of a module's <c>Contracts</c> that are named, not stored: the value is a result code an operation returns and no column ever holds it
+    /// (T316: the refusal of the transition unit's open face). Each is listed by its full name; a stored enum is never added here.
+    /// </summary>
+    private static readonly HashSet<string> NotStored = new(StringComparer.Ordinal)
+    {
+        "Shopfolio.Modules.Ordering.Contracts.TransitionRefusal",
+    };
+
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>
     public static Dictionary<string, Type> ByName()
     {
@@ -22,7 +31,7 @@ internal static class ApplicationEnums
     public static IReadOnlyList<Type> Persistent()
     {
         return typeof(Shopfolio.Infrastructure.AppDbContext).Assembly.GetTypes()
-            .Where(t => t.IsEnum && IsPersistentNamespace(t.Namespace))
+            .Where(t => t.IsEnum && IsPersistentNamespace(t.Namespace) && !NotStored.Contains(t.FullName!))
             .OrderBy(t => t.FullName, StringComparer.Ordinal)
             .ToList();
     }

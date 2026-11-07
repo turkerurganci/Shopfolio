@@ -29,7 +29,7 @@
 | 4 | Doğrulanmamış hesapla giriş ve sipariş yok | ✓ | `AnUnverifiedAccount_IsRefusedAtTheSignIn_EvenWithTheRightPassword_AndTheAttemptIsAFailedOne`, `ASignedInOrder_IsTheAccountsOwn_AndAnUnverifiedAccountCannotOrder` |
 | 5 | Z-1 sonrası kayıt silinir, e-posta yeniden kayda açılır; süresi geçmiş bağlantı "geçersiz" | ✓ | `Register_AfterThePendingRegistrationEnded_FreesTheAddress_DeletesTheOldRowAndCountsItInTheDisposalRecord`, `AnExpiredLink_IsInvalid_AndVerifiesNothing_AndASecondUseIsRefused` (gece silmesi T324, D-253; mesajın ekranı D-254) |
 | 6 | Doğrulama bağlantıyla değil düğmeyle | ✓ | `OpeningTheLink_ChangesNothing_AndTheButtonVerifies`; `LinkKeySourceScanTests` (`VerifyEmailAsync` çağrısı OnGet'te bulgu, OnPost'ta temiz) |
-| 7 | Ad zorunlu; ad değişimi yeniden doğrulamasız | ✓ | `Register_WithoutAName_IsRefused_AndNothingIsWritten`, `TheName_ChangesWithoutANewVerification_AndLeavesTheOrdersRecipientNameAlone` |
+| 7 | Kayıt formu ad, e-posta, şifre ister; ad zorunlu; ad değişimi yeniden doğrulamasız | ✓ | `Register_WithoutAName_IsRefused_AndNothingIsWritten`, `TheName_ChangesWithoutANewVerification_AndLeavesTheOrdersRecipientNameAlone`; e-posta biçimi `04` 7.3.2.1'in tek evi `InvalidEmailAttribute` ile (`MembershipModule.EmailRule`; özel `IsValidEmail` kaldırıldı): `Register_WithAWrongAddress_IsRefusedAndNamed` (70 karakterlik yerel kısım, `ali@exa_mple.com`, `ali@-example.com`, `"a b"@example.com` red), `Register_TakesTheAddressTheProjectsOneEmailRuleAccepts` (`a..b@example.com` kabul) |
 | 8 | Pazarlama onayı alanı yok | ✓ | `TheFormAndTheAccount_HaveNoMarketingConsentField` (`RegisterInput` üç özellik; `Customer` üyeleri) |
 | 9 | Kapı kapalıyken kayıt reddedilir; her deneme zaman, IP, e-posta, sonuçla giriş kaydında | ✓ | `Register_WithTheGateClosed_IsRefused_NamingTheWaitingConditions_AndCountsNoAttempt`, `SignIn_OfAnExistingAccount_IsNotBehindTheClosedGate`, `EveryAttempt_IsOneRow_WithTheMomentTheIpTheNormalizedEmailAndTheOutcome_AndARefusalDoesNotTakeItBack` |
 
@@ -43,7 +43,8 @@
 | KK4: doğrulanmamış hesap girişte ve siparişte reddedilir | ✓ | `AnUnverifiedAccount_IsRefusedAtTheSignIn_…`, `ASignedInOrder_IsTheAccountsOwn_AndAnUnverifiedAccountCannotOrder` |
 | KK5: Z-1 sonrası kayıt silinir, e-posta yeniden kaydolur; geçersiz bağlantı | ✓ | `Register_AfterThePendingRegistrationEnded_…`, `AnExpiredLink_IsInvalid_…` (`VerificationLinkStatus.Expired`) |
 | KK6: bağlantıya tıklamak doğrulamaz, düğme doğrular | ✓ | `OpeningTheLink_ChangesNothing_AndTheButtonVerifies`, `LinkKeySourceScanTests.Scan_OnACallOfTheVerificationCommand_…` |
-| KK7: adsız kayıt reddedilir; ad değişimi yeniden doğrulama istemez | ✓ | `Register_WithoutAName_IsRefused_…`, `TheName_ChangesWithoutANewVerification_…` |
+| KK7: adsız kayıt reddedilir; ad değişimi yeniden doğrulama istemez | ✓ | `Register_WithoutAName_IsRefused_…`, `TheName_ChangesWithoutANewVerification_…`; e-posta alanı proje kuralıyla (`Register_WithAWrongAddress_…`, `Register_TakesTheAddressTheProjectsOneEmailRuleAccepts`) |
+| `09 §25` — "aynı işi yapan tek işlev varsa o çağrılmış mı" | ✓ | kayıt e-postası `InvalidEmailAttribute` ile denetlenir; `grep -rn MailAddress src/`: kalan kullanım yalnız `EmailOptions.IsPlainAddress` (gönderen adresi ayarı, kullanıcı alanı değil) ve `SmtpCaptureEmailGateway` (gönderim); üyelikte özel e-posta denetimi yok |
 | KK8: formda ve kayıtta pazarlama alanı yok | ✓ | `TheFormAndTheAccount_HaveNoMarketingConsentField` |
 | KK9: kapı kapalıyken kayıt reddedilir; giriş dört alanla yazılır | ✓ | `Register_WithTheGateClosed_…`, `EveryAttempt_IsOneRow_…` |
 | `09 §25` — kaynak taraması ve ihlal örneği | ✓ | `CredentialSourceScanTests` (9; `ViolationSamples/Credentials/Misuse.cs`), `LinkKeySourceScanTests` (12; yeni 3) |
@@ -160,6 +161,13 @@ Konteyner `docker rm -f -v shopfolio-t341-val2-pg` ile silindi; koşu sonrası `
 #### Merge ve Post-merge
 - Merge yok (FAIL). Kayıt commit'i dalda: rapor, status (`✗ FAIL (tur 2)`), changelog, hafıza, backlog (D-364, D-365; aktif 136); `origin/main` (T328) birleştirmesi, çakışma yalnız kayıt belgelerinde (STATUS "Son güncelleme", backlog başlığı) çözüldü.
 
+
+## Düzeltme (tur 2 bulgusu)
+
+Bulgu 1 (ORTA S1): kayıt e-postası `MembershipModule.IsValidEmail` (çatının `MailAddress` ayrıştırıcısı) ile ayrı bir kuralla denetleniyordu; `04` 7.3.2.1'in tek evi `InvalidEmailAttribute` ile iki yönde ayrışıyordu (`09 §3.4` m.1, §24 m.4, §25 "tek işlev"). Düzeltme: `IsValidEmail` ve `EmailMaxLength` kaldırıldı; `MembershipModule.EmailRule` (`InvalidEmailAttribute`) `CompanyIdentityRules`'ın kalıbıyla (`GetValidationResult`) çağrılır. Misafir sipariş formunun ve kaydın e-posta kuralı artık tek; kriter 2'nin bağlaması aynı adresin iki formda aynı kabul edilmesine dayanır, bu sağlandı. Testler: `Register_WithAWrongAddress_IsRefusedAndNamed` dört örnekle genişledi, yeni `Register_TakesTheAddressTheProjectsOneEmailRuleAccepts`. Öz denetim: 11'deki T341 kriter 1–9, KK1–KK9 ve `09 §25` satırları düzeltilmiş diff'te yeniden denetlendi (düzeltme yalnız e-posta biçim denetimine dokunur; öteki kriterlerin kodu değişmedi, testleri geçti).
+
+- Yerelde: build `-warnaserror` 0 uyarı; format üç proje temiz; Unit Architecture 924, Consistency 241, `FieldRuleTests` 84; Integration MembershipTests 34/34, AccountEmailQueueTests 14/14.
+- **⚠** `a..b@example.com` proje kuralınca geçerlidir ve kayıtta artık kabul edilir; `SmtpCaptureEmailGateway` gönderimde `MailAddress` kullandığından böyle bir adrese e-posta gönderimi çatının ayrıştırıcısına takılabilir (kapı `TryCreate` ile gönderimi reddeder, çökmez) — kural evi `04` 7.3.2.1'dir, gönderim tarafı D-379.
 
 ## CI düzeltmesi (2026-11-07)
 

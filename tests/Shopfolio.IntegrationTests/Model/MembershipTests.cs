@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Reflection;
 
@@ -14,6 +15,7 @@ using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Catalog.Contracts;
@@ -164,12 +166,28 @@ public sealed class MembershipTests : IAsyncLifetime
     [InlineData("not-an-address", ErrorCode.InvalidEmail)]
     [InlineData("Ali <ali@example.com>", ErrorCode.InvalidEmail)]
     [InlineData("ali@localhost", ErrorCode.InvalidEmail)]
+    [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com", ErrorCode.InvalidEmail)]
+    [InlineData("ali@exa_mple.com", ErrorCode.InvalidEmail)]
+    [InlineData("ali@-example.com", ErrorCode.InvalidEmail)]
+    [InlineData("\"a b\"@example.com", ErrorCode.InvalidEmail)]
     public async Task Register_WithAWrongAddress_IsRefusedAndNamed(string email, ErrorCode expected)
     {
         RegistrationResult result = await RegisterAsync("Ali", email);
 
         Assert.Equal(expected, result.Code);
         Assert.Contains(new MembershipFieldError(nameof(RegisterInput.Email), expected), result.Fields);
+    }
+
+    [Fact]
+    public async Task Register_TakesTheAddressTheProjectsOneEmailRuleAccepts()
+    {
+        // 04 7.3.2.1 accepts this address (the guest order form does too); a second, stricter rule here would keep its guest orders from ever binding.
+        const string address = "a..b@example.com";
+        Assert.Null(new InvalidEmailAttribute().GetValidationResult(address, new ValidationContext(address)));
+
+        RegistrationResult result = await RegisterAsync("Ali", address);
+
+        Assert.True(result.IsRegistered);
     }
 
     [Fact]

@@ -9,6 +9,10 @@
 
 ---
 
+## 2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) doğrulama tur 2 PASS
+
+2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) doğrulama tur 2 ✓ PASS (head `2d04809` + `origin/main` birleştirmesi, PR #437; kriter 1–9, KK1–KK9 ve `09 §25` ✓, güvenlik taraması temiz; tur 1 bulgusu B1 giderildi ve S3, S4, S9 için sınandı; bulgu 0, K-notu 0; dal CI 42399324842 yeşil; Unit Architecture 906 + Consistency 230 + öteki 2840, Integration `ShipmentTransitionsTests` 94, `OrderTransitionsTests` 31, `ConcurrencyTests` 26; `12` KP-46 satırları `BEKLEMEDE` kalır). Merge ve post-merge CI yardımcıda.
+
 ## 2026-11-07 — T328 (Bildirim haritası) doğrulama tur 1 PASS
 
 2026-11-07 — T328 (Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi) doğrulama tur 1 ✓ PASS (head `0edb3bd`, PR #440; kriter 1–7, KK1–KK7 ve `09 §25` ✓, güvenlik taraması temiz; KK7 iki mutasyonla (kodda fazla satır, belgede eksik akış atfı) kırıldığı görüldü; Unit Consistency 241, öteki 3746; betik testleri; Integration yerelde NotificationMapQueue 3, komşu kuyruk sınıfları 47; dal CI 42394956374 yeşil; bulgu 0, K-notu 1 (D-295 sayımı ve backlog aktif sayısı bu PR'da düzeltildi); `12` `Durum` değişmedi (kaynak birimi `03 §7.1`–§7.3'e bağlı satır yok); backlog aktif 130).
@@ -16,6 +20,15 @@
 ## 2026-11-07 — T341 (Üyelik) doğrulama tur 1 PASS
 
 2026-11-07 — T341 (Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı) doğrulama tur 1 ✓ PASS (head `391cdc3` + `origin/main` birleştirmesi, PR #433; kriter 1–9, KK1–KK9 ve `09 §25` ✓ (ekran, POST ve sipariş ucu yüzleri modül düzeyinde; bağlar D-254), güvenlik taraması temiz; build `-warnaserror` 0 uyarı, format üç proje temiz, Unit 3534 (Architecture 842, Consistency 213, öteki 2479), betik testleri, Integration yerelde MembershipTests 29, SessionLinkAttemptLoginTables + LinkRecords + AccountEmailQueue 95, AppCache 14; dal CI 42378956325 yeşil; bulgu 0; K-notu 3: K1 D-252 hedefi T309 → T514, K2 D-289 (P-12 iki sabitte; CI düzeltmesinde tek sabite indi, ✅), K3 D-290 (`09 §15.1` m.5 metni); `12` `VAL-D018`…`VAL-D020` `BEKLEMEDE` kaldı (sipariş geçmişinin uç yanıtı sonraki task'larda); CI düzeltmesi: main'e giren T381 yüzünden `GateOnlySettings` yeni üyeleri uyguladı ve P-12 için tek sabit `EmailVerificationLinkHours` kullanıldı; backlog aktif 132).
+## 2026-11-07 — T328 (Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi) doğrulama tur 1 PASS
+
+T328 (Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi) doğrulama tur 1 ✓ PASS (head `0edb3bd`, PR #440; kriter 1–7, KK1–KK7 ve `09 §25` ✓, güvenlik taraması temiz; KK7 iki mutasyonla (kodda fazla satır, belgede eksik akış atfı) kırıldığı görüldü; Unit Consistency 241, öteki 3746; betik testleri; Integration yerelde NotificationMapQueue 3, komşu kuyruk sınıfları 47; dal CI 42394956374 yeşil; bulgu 0, K-notu 1 (D-295 sayımı ve backlog aktif sayısı bu PR'da düzeltildi); `12` `Durum` değişmedi (kaynak birimi `03 §7.1`–§7.3'e bağlı satır yok); backlog aktif 130).
+
+---
+
+## 2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) doğrulama tur 1 FAIL
+
+2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) doğrulama tur 1 ✗ FAIL (head `620b368` + `origin/main` birleştirmesi, PR #437; kriter 5 ~: yöneticinin bütün sipariş iptali (S3/S4/S9) teslim işaretli kalemi denetlemez ve teslim edilmiş dijital kalemli siparişi İptal edildi'ye alır — `02 §5.4`, §7.2.2, §7.2.5 (B1 ORTA S1); öteki kriterler, KK1–KK4, KK6–KK9 ve `09 §25` ✓, güvenlik taraması temiz; Unit Architecture 868 + Consistency 230 + öteki 2809, Integration Ordering 122, betik testleri ✓; dal CI 42393227539 yeşil; `12` `Durum` değişmedi (KP-46 satırları uç yanıtı ister); backlog aktif 130). Düzeltme r1 yapıldı (B1: teslim işaretli kalemli sipariş bütün sipariş iptaliyle İptal edildi'ye geçmez; S3/S4/S9 testleri; Integration Ordering 125), tur 2 bekliyor. Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 ## 2026-11-07 — T332 (Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu) doğrulama tur 1 PASS
 
@@ -27,6 +40,10 @@
 ## 2026-11-07 — T322 (İçerik yayın durumları ve iletişim talebi durumları) yapım bitti
 
 2026-11-07 — T322 (İçerik yayın durumları ve iletişim talebi durumları) yapım tamamlandı, doğrulama bekliyor (dal `task/T322-icerik-iletisim-durumlari`; kriter 1–9, KK1–KK9 öz denetimde ✓; Unit Consistency 230, Architecture 906, CorporateContent 57, Integration CorporateContent 45, format ve derleme `-warnaserror` temiz; şema yok; `12` `Durum` değişmedi; yeni backlog D-315…D-317, aktif 128).
+
+## 2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) yapım bitti
+
+2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) yapım bitti, doğrulama bekliyor (dal `task/T316-sevkiyat-ekseni`, PR #437; kriter 1–9 ve KK1–KK9 öz denetimde ✓; Unit Architecture 868 + öteki 3039, Integration Ordering 122 (ShipmentTransitionsTests 91); backlog D-305…D-309 yeni, D-291 (b) sevkiyat ekseni için kapandı, aktif 125).
 
 ## 2026-11-07 — T301 (Siparişin imha parçası) doğrulama tur 1 PASS
 

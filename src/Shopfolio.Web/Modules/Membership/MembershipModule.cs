@@ -1,5 +1,5 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net;
-using System.Net.Mail;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +8,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Membership.Contracts;
 using Shopfolio.Modules.Membership.Contracts.Results;
@@ -24,7 +25,8 @@ namespace Shopfolio.Modules.Membership;
 /// </summary>
 internal sealed class MembershipModule : IMembershipModule
 {
-    private const int EmailMaxLength = 254;
+    // The one home of the e-mail rule (04 7.3.2.1; 09 3.4 item 1): the form of the guest order's address and of the registration's is one rule.
+    private static readonly InvalidEmailAttribute EmailRule = new();
 
     private readonly AppDbContext _db;
     private readonly ISettingsModule _settings;
@@ -84,7 +86,7 @@ internal sealed class MembershipModule : IMembershipModule
         {
             fields.Add(new MembershipFieldError(nameof(RegisterInput.Email), ErrorCode.FieldRequired));
         }
-        else if (!IsValidEmail(email))
+        else if (EmailRule.GetValidationResult(email, new ValidationContext(email)) is not null)
         {
             fields.Add(new MembershipFieldError(nameof(RegisterInput.Email), ErrorCode.InvalidEmail));
         }
@@ -330,12 +332,6 @@ internal sealed class MembershipModule : IMembershipModule
         _ => throw new ArgumentOutOfRangeException(nameof(state), state, "Not a link state."),
     };
 
-    // A plain address: one "@", a dotted host, nothing the framework's parser would reshape (a display name, a comment).
-    private static bool IsValidEmail(string email) =>
-        email.Length <= EmailMaxLength
-        && MailAddress.TryCreate(email, out MailAddress? parsed)
-        && string.Equals(parsed.Address, email, StringComparison.Ordinal)
-        && parsed.Host.Contains('.', StringComparison.Ordinal);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddMembershipModule</c> once.</summary>

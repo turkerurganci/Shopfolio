@@ -89,7 +89,7 @@
 
 - **Branch:** `task/T331-satis-kapisi`
 - **Commit:** bkz. PR (son commit dal başı)
-- **PR:** #NN
+- **PR:** #425
 - **CI:** *(yapım chat'i izlemez)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

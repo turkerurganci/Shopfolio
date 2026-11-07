@@ -1,5 +1,7 @@
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Catalog.Contracts.Categories;
+using Shopfolio.Modules.Catalog.Contracts.Lists;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
 using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Settings;
@@ -119,6 +121,22 @@ public sealed class SitemapSourceTests
         public Task<VariantStructureCheck> CheckVariantStructureAsync(Guid productId, Guid? firstOptionValueId, Guid? secondOptionValueId, Guid? exceptVariantId, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<OptionMatrixCell>> GetOptionMatrixAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<CategoryWriteResult> CreateCategoryAsync(string? name, Guid? parentCategoryId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<CategoryWriteResult> RenameCategoryAsync(Guid categoryId, string? name, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<CategoryWriteResult> MoveCategoryAsync(Guid categoryId, Guid? newParentCategoryId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<CategoryWriteResult> DeleteCategoryAsync(Guid categoryId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ProductCategoriesResult> SetProductCategoriesAsync(Guid productId, IReadOnlyCollection<Guid> categoryIds, Guid? primaryCategoryId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ProductListPage?> ListCategoryProductsAsync(string? categorySlug, ProductListFilter? filter, int page, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ProductListPage?> SearchProductsAsync(string? search, ProductListFilter? filter, int page, CancellationToken ct) => throw new NotSupportedException();
     }
 
     private sealed class FakeContent(IReadOnlyList<string> paths) : ICorporateContentModule

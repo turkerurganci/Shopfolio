@@ -5,6 +5,8 @@ using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Values;
 
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Catalog.Contracts.Categories;
+using Shopfolio.Modules.Catalog.Contracts.Lists;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
 
 namespace Shopfolio.Modules.Catalog;
@@ -19,6 +21,9 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly DigitalFileUploads _fileUploads;
     private readonly StockCodes _stockCodes;
     private readonly ProductStructureReader _structure;
+    private readonly CategoryTree _categories;
+    private readonly ProductCategoryLinks _links;
+    private readonly ProductListReader _lists;
 
     public CatalogModule(
         StockCounters counters,
@@ -27,8 +32,14 @@ internal sealed class CatalogModule : ICatalogModule
         DigitalFileReader fileReader,
         DigitalFileUploads fileUploads,
         StockCodes stockCodes,
-        ProductStructureReader structure)
+        ProductStructureReader structure,
+        CategoryTree categories,
+        ProductCategoryLinks links,
+        ProductListReader lists)
     {
+        _categories = categories;
+        _links = links;
+        _lists = lists;
         _counters = counters;
         _imageUploads = imageUploads;
         _sitemap = sitemap;
@@ -54,6 +65,28 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task<IReadOnlyList<OptionMatrixCell>> GetOptionMatrixAsync(Guid productId, CancellationToken ct)
         => _structure.GetMatrixAsync(productId, ct);
+
+    public Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct) => _categories.ReadAsync(ct);
+
+    public Task<CategoryWriteResult> CreateCategoryAsync(string? name, Guid? parentCategoryId, CancellationToken ct)
+        => _categories.CreateAsync(name, parentCategoryId, ct);
+
+    public Task<CategoryWriteResult> RenameCategoryAsync(Guid categoryId, string? name, CancellationToken ct)
+        => _categories.RenameAsync(categoryId, name, ct);
+
+    public Task<CategoryWriteResult> MoveCategoryAsync(Guid categoryId, Guid? newParentCategoryId, CancellationToken ct)
+        => _categories.MoveAsync(categoryId, newParentCategoryId, ct);
+
+    public Task<CategoryWriteResult> DeleteCategoryAsync(Guid categoryId, CancellationToken ct) => _categories.DeleteAsync(categoryId, ct);
+
+    public Task<ProductCategoriesResult> SetProductCategoriesAsync(Guid productId, IReadOnlyCollection<Guid> categoryIds, Guid? primaryCategoryId, CancellationToken ct)
+        => _links.SetAsync(productId, categoryIds, primaryCategoryId, ct);
+
+    public Task<ProductListPage?> ListCategoryProductsAsync(string? categorySlug, ProductListFilter? filter, int page, CancellationToken ct)
+        => _lists.ListCategoryAsync(categorySlug, filter, page, ct);
+
+    public Task<ProductListPage?> SearchProductsAsync(string? search, ProductListFilter? filter, int page, CancellationToken ct)
+        => _lists.SearchAsync(search, filter, page, ct);
 
     public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct)
         => _fileReader.FindAsync(variantId, lastKnownFileId, ct);
@@ -110,6 +143,9 @@ internal static class CatalogModuleRegistration
         services.AddScoped<DigitalFileUploads>();
         services.AddScoped<StockCodes>();
         services.AddScoped<ProductStructureReader>();
+        services.AddScoped<CategoryTree>();
+        services.AddScoped<ProductCategoryLinks>();
+        services.AddScoped<ProductListReader>();
 
         // The image derivative job (D-97) and the image disposal (D-102): the rows first, the files they leave behind after (06 9.3.4).
         services.AddJobHandler<ImageDerivativeJobHandler>(JobType.ImageDerivative);

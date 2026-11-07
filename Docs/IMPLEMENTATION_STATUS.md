@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T381 (Ayar katmanları ve parametre envanteri) yapım tamamlandı, PR açıldı, doğrulama bekliyor (dal `task/T381-ayar-katmanlari`; Unit 3314 + Consistency, Integration FirmSetting 24 + SalesGate/CompanyIdentity 46; D-164 ve D-176 yeniden ileri atıldı, D-256 yeni, backlog aktif 104). Önceki kayıt `STATUS_CHANGELOG.md`de.
+**Son güncelleme:** 2026-11-07 — T381 (Ayar katmanları ve parametre envanteri) yapım tamamlandı, PR açıldı, doğrulama bekliyor (dal `task/T381-ayar-katmanlari`; Unit 3318 + Consistency 215, Integration FirmSetting 24 + SalesGate/CompanyIdentity 46; D-164 ve D-176 yeniden ileri atıldı, D-256 yeni, backlog aktif 104). Önceki kayıt `STATUS_CHANGELOG.md`de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.

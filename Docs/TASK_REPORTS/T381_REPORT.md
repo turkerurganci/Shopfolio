@@ -68,8 +68,8 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit (Consistency hariç) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/... --no-build --filter-not-trait "Consistency=true"` | 3314/3314 (tarama düzeltmesinden önce; `SettingLayerScanTests` sonra 17/17) |
-| Consistency | ✓ | `... --filter-trait "Consistency=true"` | bkz. Notlar (docs commit'inden sonra) |
+| Unit (Consistency hariç) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/... --no-build --filter-not-trait "Consistency=true"` | 3318/3318 (Architecture dahil) |
+| Consistency | ✓ | `... --filter-trait "Consistency=true"` | 215/215 (docs commit inden sonra) |
 | Integration | ✓ | `... IntegrationTests --filter-class "*FirmSetting*"`; `*SalesGateTests`, `*CompanyIdentityTests` | 24/24; 46/46 |
 | Derleme/format | ✓ | `dotnet build Shopfolio.slnx -warnaserror`; `dotnet format <proje> --verify-no-changes` (üç proje) | 0 uyarı, 0 hata; değişiklik yok |
 

@@ -96,6 +96,6 @@ internal static partial class ModuleSourceScan
     [GeneratedRegex(@"^\s*builder\.Services\.Add[A-Za-z]+Module\(\);\s*$")]
     private static partial Regex PlainStatement();
 
-    [GeneratedRegex(@"\b(IEventBus|IEventPublisher|IEventHandler|IDomainEvent|DomainEvent|IMediator|INotificationHandler|EventAggregator|MediatR)\b")]
+    [GeneratedRegex(@"\b(IEventBus|IEventPublisher|IEventHandler|IDomainEvent|DomainEvent|DomainEvents|AddDomainEvent|INotification|IMediator|INotificationHandler|EventAggregator|MediatR)\b")]
     private static partial Regex EventPublisherName();
 }

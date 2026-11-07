@@ -30,7 +30,8 @@ internal sealed class DefectClaim
     /// <summary>The description of the problem; free text that may carry personal data.</summary>
     public string Description { get; set; } = string.Empty;
 
-    public DefectClaimStatus DefectClaimStatus { get; set; }
+    /// <summary>The claim's status, a line of its own (06 4.30): written only by the transition unit's one method <see cref="ApplyStatus"/> (09 9.1 item 4).</summary>
+    public DefectClaimStatus DefectClaimStatus { get; private set; }
 
     /// <summary>
     /// The status history as a JSON list of values (06 2.5.1, 4.30), stored in a <c>jsonb</c> column; only appended. The typed entry and
@@ -67,6 +68,16 @@ internal sealed class DefectClaim
             ReturnAddressLine = returnAddress?.AddressLine,
             ReturnPhone = returnAddress?.Phone,
         };
+    }
+
+    /// <summary>
+    /// The one write of the status after the birth (09 9.1 item 4: the item record's status property has a private setter and one internal method).
+    /// Only the transition unit calls it (the source scan of T315); the history entry that goes with the change and the claim's own transitions
+    /// (Open to Resolved, the reopening in the claim's window) arrive with the task that owns the claim's status (T320).
+    /// </summary>
+    internal void ApplyStatus(DefectClaimStatus status)
+    {
+        DefectClaimStatus = status;
     }
 }
 

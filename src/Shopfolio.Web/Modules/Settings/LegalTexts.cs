@@ -21,7 +21,7 @@ namespace Shopfolio.Modules.Settings;
 /// </summary>
 internal sealed class LegalTexts
 {
-    /// <summary>The identity tokens of a firm-edited text's draft (06 4.1 field names); the publication fills them from the company identity, HTML-encoded.</summary>
+    /// <summary>The identity tokens of a firm-edited text's draft (06 4.1 field names); the reads fill them from the current company identity, HTML-encoded (04 9.19.11); the publication keeps them and is refused while an identity field is missing.</summary>
     internal static readonly IReadOnlyList<string> IdentityTokens =
     [
         "LegalName", "TaxIdNumber", "MersisNumber", "TradeRegistryNumber", "ProvinceId", "District", "AddressLine", "Phone", "Email", "KepAddress", "ChamberName", "BusinessName",
@@ -149,6 +149,15 @@ internal sealed class LegalTexts
             rejections.Add(new Contracts.FieldRejection(nameof(LegalTextVersion.HostingLocation), FieldCodes.FieldRequired));
         }
 
+        if (type == LegalTextType.PrivacyNotice)
+        {
+            // The notice is not complete without the controller's identity (02 3.33.2; 06 4.56; 04 9.19.7): each missing identity field is refused by its own name.
+            foreach (string field in (await _identities.GetCompletenessAsync(ct)).MissingFields)
+            {
+                rejections.Add(new Contracts.FieldRejection(field, FieldCodes.FieldRequired));
+            }
+        }
+
         if (rejections.Count > 0)
         {
             return LegalTextPublishResult.Refused(rejections);
@@ -158,8 +167,9 @@ internal sealed class LegalTexts
             .Where(l => l.LegalTextType == type && l.PublishedAt != null)
             .MaxAsync(l => l.VersionNumber, ct);
         DateTimeOffset now = _time.GetUtcNow();
-        string text = PlaceholderFiller.Fill(draft.Text, await IdentityValuesAsync(ct), requireAll: false);
-        LegalTextVersion row = LegalTextVersion.CreatePublished(type, (last ?? 0) + 1, now, text, now);
+
+        // The identity tokens stay in the published text: the reads fill them from the current identity (04 9.19.11), so a version is never frozen with a stale or empty value.
+        LegalTextVersion row = LegalTextVersion.CreatePublished(type, (last ?? 0) + 1, now, draft.Text, now);
         row.HostingLocation = type == LegalTextType.PrivacyNotice ? draft.HostingLocation!.Trim() : null;
         _db.LegalTextVersions.Add(row);
 
@@ -187,19 +197,32 @@ internal sealed class LegalTexts
 
     public async Task<LegalTextVersionInfo?> GetVersionAsync(Guid versionId, CancellationToken ct)
     {
-        return await _db.LegalTextVersions.AsNoTracking()
+        LegalTextVersionInfo? info = await _db.LegalTextVersions.AsNoTracking()
             .Where(l => l.Id == versionId && l.PublishedAt != null)
             .Select(l => new LegalTextVersionInfo(l.Id, l.LegalTextType, l.VersionNumber!.Value, l.PublishedAt!.Value, l.Text, l.HostingLocation))
             .SingleOrDefaultAsync(ct);
+        return info is null ? null : await WithIdentityAsync(info, ct);
     }
 
     public async Task<LegalTextVersionInfo?> GetLatestVersionAsync(LegalTextType type, CancellationToken ct)
     {
-        return await _db.LegalTextVersions.AsNoTracking()
+        LegalTextVersionInfo? info = await _db.LegalTextVersions.AsNoTracking()
             .Where(l => l.LegalTextType == type && l.PublishedAt != null)
             .OrderByDescending(l => l.VersionNumber)
             .Select(l => new LegalTextVersionInfo(l.Id, l.LegalTextType, l.VersionNumber!.Value, l.PublishedAt!.Value, l.Text, l.HostingLocation))
             .FirstOrDefaultAsync(ct);
+        return info is null ? null : await WithIdentityAsync(info, ct);
+    }
+
+    /// <summary>The display step of a firm-edited text (04 9.19.11): the identity tokens of the published text are filled from the current company identity, HTML-encoded. The stored row is not touched.</summary>
+    private async Task<LegalTextVersionInfo> WithIdentityAsync(LegalTextVersionInfo info, CancellationToken ct)
+    {
+        if (!IsEditedByFirm(info.Type) || !PlaceholderFiller.TokenNames(info.Text).Any())
+        {
+            return info;
+        }
+
+        return info with { Text = PlaceholderFiller.Fill(info.Text, await IdentityValuesAsync(ct), requireAll: false) };
     }
 
     /// <summary>The Turkish name of a text as the trail shows it (02 10.3.1 (5)).</summary>

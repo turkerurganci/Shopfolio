@@ -77,8 +77,9 @@ public interface ISettingsModule
     Task<SettingsSaveResult> SaveLegalTextDraftAsync(LegalTextType type, string text, string? hostingLocation, int formVersion, CancellationToken ct);
 
     /// <summary>
-    /// Publishes the draft of a firm-edited text as the next version (T366; 02 3.33.2, 3.33.3): the number is the last plus one, the identity placeholders are filled from the
-    /// company identity, the row is added and the trail row is written in the same transaction. The privacy notice is not published without its hosting location.
+    /// Publishes the draft of a firm-edited text as the next version (T366; 02 3.33.2, 3.33.3): the number is the last plus one, the row is added with the identity placeholders
+    /// kept (the reads fill them from the current identity - 04 9.19.11) and the trail row is written in the same transaction. The privacy notice is not published without its
+    /// hosting location and every identity field of the chosen company type: each missing one is refused by its name.
     /// </summary>
     Task<LegalTextPublishResult> PublishLegalTextAsync(LegalTextType type, int formVersion, CancellationToken ct);
 

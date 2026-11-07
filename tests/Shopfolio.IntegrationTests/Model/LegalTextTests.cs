@@ -111,6 +111,7 @@ public sealed class LegalTextTests : IAsyncLifetime
     {
         LegalTextDraft draft = await RunAsync(m => m.GetLegalTextDraftAsync(LegalTextType.PrivacyNotice, Ct));
 
+        await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput(), 1, Ct));
         LegalTextPublishResult refused = await RunAsync(m => m.PublishLegalTextAsync(LegalTextType.PrivacyNotice, draft.FormVersion, Ct));
         Assert.Equal([new FieldRejection("HostingLocation", FieldCodes.FieldRequired)], refused.Rejections);
 
@@ -146,6 +147,59 @@ public sealed class LegalTextTests : IAsyncLifetime
         LegalTextVersionInfo version = (await RunAsync(m => m.GetLegalTextVersionAsync(result.VersionId!.Value, Ct)))!;
         Assert.Contains("Yılmaz Ticaret", version.Text, StringComparison.Ordinal);
         Assert.Equal(before + 1, await TrailCountAsync());
+    }
+
+    [Fact]
+    public async Task ThePrivacyNotice_IsNotPublishedWhileAnIdentityField_IsMissing_AndEachMissingFieldIsNamed()
+    {
+        await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput() with { KepAddress = null }, 1, Ct));
+        LegalTextDraft draft = await RunAsync(m => m.GetLegalTextDraftAsync(LegalTextType.PrivacyNotice, Ct));
+        Assert.True((await RunAsync(m => m.SaveLegalTextDraftAsync(LegalTextType.PrivacyNotice, "<p>{{LegalName}} {{KepAddress}}</p>", "Avrupa", draft.FormVersion, Ct))).IsSaved);
+        LegalTextDraft saved = await RunAsync(m => m.GetLegalTextDraftAsync(LegalTextType.PrivacyNotice, Ct));
+
+        LegalTextPublishResult refused = await RunAsync(m => m.PublishLegalTextAsync(LegalTextType.PrivacyNotice, saved.FormVersion, Ct));
+
+        Assert.True(refused.IsRejected);
+        Assert.Equal([new FieldRejection("KepAddress", FieldCodes.FieldRequired)], refused.Rejections);
+        Assert.Equal(0, await VersionCountAsync(LegalTextType.PrivacyNotice));
+        Assert.Equal(0, await TrailCountAsync());
+    }
+
+    [Fact]
+    public async Task ThePublishedNotice_ShowsTheCurrentIdentity_AfterAnIdentityFieldChanges_WithoutANewVersion()
+    {
+        await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput(), 1, Ct));
+        LegalTextPublishResult result = await PublishAsync(LegalTextType.PrivacyNotice, "<p>{{LegalName}} - {{KepAddress}}</p>", "Avrupa");
+        Assert.True(result.IsPublished);
+
+        LegalTextVersionInfo first = (await RunAsync(m => m.GetLegalTextVersionAsync(result.VersionId!.Value, Ct)))!;
+        Assert.Equal("<p>Yılmaz Ticaret - firma@hs01.kep.tr</p>", first.Text);
+
+        await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput() with { LegalName = "Yeni & Ticaret", KepAddress = "yeni@hs01.kep.tr" }, 2, Ct));
+
+        LegalTextVersionInfo byId = (await RunAsync(m => m.GetLegalTextVersionAsync(result.VersionId!.Value, Ct)))!;
+        LegalTextVersionInfo latest = (await RunAsync(m => m.GetLatestLegalTextVersionAsync(LegalTextType.PrivacyNotice, Ct)))!;
+        Assert.Equal("<p>Yeni &amp; Ticaret - yeni@hs01.kep.tr</p>", byId.Text);
+        Assert.Equal(byId.Text, latest.Text);
+        Assert.Equal(1, await VersionCountAsync(LegalTextType.PrivacyNotice));
+        Assert.Contains("{{LegalName}}", await ScalarAsync<string>("SELECT text FROM legal_text_versions WHERE published_at IS NOT NULL AND legal_text_type = 'PrivacyNotice'"), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TheGate_KeepsThePrivacyNoticeClosed_WhileTheIdentityIsMissing_AndTheListNamesTheIdentity()
+    {
+        await RunAsync(m => m.SaveReturnAddressAsync(new ReturnAddressInput("Depo Sorumlusu", _provinceId, "Çankaya", "Depo Sk. 4", "3121234567"), 1, Ct));
+        LegalTextDraft draft = await RunAsync(m => m.GetLegalTextDraftAsync(LegalTextType.PrivacyNotice, Ct));
+        Assert.True((await RunAsync(m => m.SaveLegalTextDraftAsync(LegalTextType.PrivacyNotice, "<p>{{LegalName}}</p>", "Avrupa", draft.FormVersion, Ct))).IsSaved);
+        LegalTextDraft saved = await RunAsync(m => m.GetLegalTextDraftAsync(LegalTextType.PrivacyNotice, Ct));
+
+        Assert.True((await RunAsync(m => m.PublishLegalTextAsync(LegalTextType.PrivacyNotice, saved.FormVersion, Ct))).IsRejected);
+
+        SalesGate gate = await RunAsync(m => m.GetSalesGateAsync(Ct));
+        Assert.Contains(SalesGateCondition.PrivacyNotice, gate.UnmetConditions);
+        LegalTextSummary notice = (await RunAsync(m => m.GetLegalTextsAsync(Ct))).Single(s => s.Type == LegalTextType.PrivacyNotice);
+        Assert.Contains(LegalTextMissingPart.CompanyIdentity, notice.Missing);
+        Assert.Contains(LegalTextMissingPart.NotPublished, notice.Missing);
     }
 
     // ---- KK3: generated texts and the version rule ----

@@ -205,6 +205,44 @@ internal sealed class Order : IVersionedRecord
     }
 
     public void BumpVersion() => Version++;
+
+    /// <summary>
+    /// Writes the shipment axis of a white-list transition (09 9.1 item 4): the one write of <see cref="OrderStatus"/> besides the correction. Only
+    /// <see cref="OrderTransitions"/> calls it, after the lock, the white list and the condition; the version is raised once by the unit for the whole
+    /// operation, not here.
+    /// </summary>
+    internal void ApplyTransition(ShipmentTransition transition)
+    {
+        ArgumentNullException.ThrowIfNull(transition);
+        if (OrderStatus != transition.From)
+        {
+            throw new InvalidOperationException($"{transition.Code} leaves {transition.From}, the order is {OrderStatus} (09 9.1 item 4).");
+        }
+
+        OrderStatus = transition.To;
+    }
+
+    /// <summary>Writes the payment axis of a white-list transition (09 9.1 item 4); see <see cref="ApplyTransition(ShipmentTransition)"/>.</summary>
+    internal void ApplyTransition(PaymentTransition transition)
+    {
+        ArgumentNullException.ThrowIfNull(transition);
+        if (PaymentStatus != transition.From)
+        {
+            throw new InvalidOperationException($"{transition.Code} leaves {transition.From}, the payment is {PaymentStatus} (09 9.1 item 4).");
+        }
+
+        PaymentStatus = transition.To;
+    }
+
+    /// <summary>
+    /// Writes the two axes of the firm's correction (05 4.1.1): outside the white list, a new transition that is not an undo. Only
+    /// <see cref="OrderTransitions"/> calls it, from the panel's operation.
+    /// </summary>
+    internal void ApplyCorrection(OrderStatus orderStatus, PaymentStatus paymentStatus)
+    {
+        OrderStatus = orderStatus;
+        PaymentStatus = paymentStatus;
+    }
 }
 
 internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>

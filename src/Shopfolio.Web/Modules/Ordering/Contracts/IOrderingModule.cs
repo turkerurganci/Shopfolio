@@ -26,6 +26,14 @@ public interface IOrderingModule
     /// dropped at the order page's button).
     /// </summary>
     Task<DownloadableItem?> FindDownloadableItemAsync(Guid orderItemId, CancellationToken ct);
+
+    /// <summary>
+    /// The guest orders of a verified address fall to the account that verified it (T341; 02 3.13.2): in the caller's open transaction, one conditional update of the orders that
+    /// have no account, are not marked as an account's deleted one and carry the address as their contact e-mail (matched in its normalized form). An order that already belongs
+    /// to an account, and the orders of a deleted account, are not taken. The link is a non-raising field: the order's version does not move (06 2.6.5). Returns the number of
+    /// orders taken.
+    /// </summary>
+    Task<int> LinkGuestOrdersAsync(Guid customerId, string email, CancellationToken ct);
 }
 
 /// <summary>The links a digital order item holds to its file (06 4.18): the variant, emptied when the variant is deleted, and the last known file.</summary>

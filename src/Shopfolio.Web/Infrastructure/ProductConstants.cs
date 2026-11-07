@@ -12,6 +12,9 @@ internal static class ProductConstants
     /// <summary>P-21 — option dimensions of a product.</summary>
     public const int OptionDimensionMax = 2;
 
+    /// <summary>P-12 — lifetime of the e-mail verification link, in hours from the first link of the registration (Z-1; 02 3.13.5).</summary>
+    public const int VerificationLinkLifetimeHours = 24;
+
     /// <summary>P-15 — short session (no "remember me"): hours from the last operation (Z-4).</summary>
     public const int ShortSessionHours = 2;
 

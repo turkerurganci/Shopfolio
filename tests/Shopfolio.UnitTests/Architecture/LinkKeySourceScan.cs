@@ -36,6 +36,16 @@ internal static partial class LinkKeySourceScan
     /// <summary>The file that holds the consuming itself.</summary>
     public const string LinkRecordsFile = "src/Shopfolio.Web/Infrastructure/Security/LinkRecords.cs";
 
+    /// <summary>
+    /// The closed list of files that consume a link outside a page handler, each with the one method that may (T341): the Membership module's verification command is
+    /// the page's POST work, joined to the caller's transaction; it consumes the link in <c>VerifyEmailAsync</c> and nowhere else in the file, and a call of
+    /// <c>VerifyEmailAsync</c> is itself held to the <c>OnPost</c> rule, so the link's GET still changes nothing (MK-51).
+    /// </summary>
+    public static readonly IReadOnlyDictionary<string, string> ConsumingMethods = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["src/Shopfolio.Web/Modules/Membership/MembershipModule.cs"] = "VerifyEmailAsync",
+    };
+
     private static readonly string[] ControlKeywords = ["if", "for", "foreach", "while", "switch", "using", "lock", "catch", "fixed", "when", "return", "nameof", "typeof"];
 
     public static IReadOnlyList<(string Rule, int Line)> Scan(string relativePath, string text)
@@ -62,16 +72,17 @@ internal static partial class LinkKeySourceScan
 
         if (!string.Equals(path, LinkRecordsFile, StringComparison.Ordinal))
         {
-            FindConsumeOutsidePost(findings, clean);
+            FindConsumeOutsidePost(findings, path, clean);
         }
 
         return [.. findings.OrderBy(f => f.Line)];
     }
 
-    private static void FindConsumeOutsidePost(List<(string Rule, int Line)> findings, string text)
+    private static void FindConsumeOutsidePost(List<(string Rule, int Line)> findings, string path, string text)
     {
         List<(string Name, int Start, int End)> methods = Methods(text);
-        foreach (Match call in ConsumeCall().Matches(text))
+        ConsumingMethods.TryGetValue(path, out string? ownMethod);
+        foreach (Match call in ConsumeCall().Matches(text).Concat(VerifyCall().Matches(text)))
         {
             // The outermost method that holds the call: a local function inside OnGet is still part of the handler.
             (string Name, int Start, int End)? owner = methods
@@ -79,7 +90,12 @@ internal static partial class LinkKeySourceScan
                 .OrderByDescending(m => m.End - m.Start)
                 .Cast<(string Name, int Start, int End)?>()
                 .FirstOrDefault();
-            if (owner is null || !owner.Value.Name.StartsWith("OnPost", StringComparison.Ordinal))
+            bool isPost = owner is not null && owner.Value.Name.StartsWith("OnPost", StringComparison.Ordinal);
+
+            // The one dispensation: the consuming command of a module, in its one named method; its callers are held to the OnPost rule by <see cref="VerifyCall"/>.
+            bool isOwnMethod = ownMethod is not null && owner is not null && string.Equals(owner.Value.Name, ownMethod, StringComparison.Ordinal)
+                && call.Value.StartsWith("TryConsumeAsync", StringComparison.Ordinal);
+            if (!isPost && !isOwnMethod)
             {
                 Record(findings, ConsumeOutsidePost, text, call.Index);
             }
@@ -172,6 +188,10 @@ internal static partial class LinkKeySourceScan
 
     [GeneratedRegex(@"\bTryConsumeAsync\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ConsumeCall();
+
+    // A call of the module command that consumes the verification link (a member access, so the declaration is not a call): only an OnPost handler may make it.
+    [GeneratedRegex(@"\.\s*VerifyEmailAsync\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex VerifyCall();
 
     [GeneratedRegex(@"(?<!\b(?:class|record|struct|interface|new)\s+)\b(?<name>\w+)\s*\([^()]*\)\s*(?:where\s+[^{=;]*)?(?:(?<arrow>=>)|\{)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex MethodHeader();

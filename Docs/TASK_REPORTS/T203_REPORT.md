@@ -1,6 +1,6 @@
 # T203 — İmzalı makine ucu altyapısı: imza denetimi, gövde tavanı
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 FAIL → düzeltme 1 push edildi, tur 2 bekliyor) | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-05
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).

@@ -1,6 +1,6 @@
 # T229 — Uygulama belleğinde önbellek
 
-**Faz:** F2 | **Durum:** ✓ Doğrulama tur 1 PASS (merge bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -127,7 +127,7 @@ Derleme: `dotnet build Shopfolio.slnx -c Release -warnaserror` 0 uyarı; `dotnet
 - **Commit:** bkz. PR (son commit dal başı)
 - **PR:** #414
 - **CI:** yapım chat'i beklemedi (yönetici düzeni); yönetici izler
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; sonraki task dalında güncellenir)*
+- **Post-merge run'lar:** squash `f4da03c` (#414) — CI 42306192016 success, Publish 42306192052 success (F2 gate'te dolduruldu)
 
 ## Dış Varsayımlar
 

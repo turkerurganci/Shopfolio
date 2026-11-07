@@ -30,7 +30,7 @@ Bu hook'lar **iyi niyete bağlı olmayan** savunma katmanıdır. Disiplin kurall
 >
 > **Hız (ön süzgeç):** İçerik katmanı eklenen satırları önce tek geçişte süzer (baştaki `+` atılır, yalnız sır anahtarı adı geçen satırlar atama denetimine girer); büyük göç dosyalarında satır başına süreç açılmaz. Kurallar aynıdır, yalnız hız artar.
 >
-> **Bilinen sınır:** kaynak kodda tırnaksız tek tanımlayıcıya (`Token = AKIAEXAMPLEKEY123`) ya da tırnaksız noktalı zincire (ör. JWT biçimi `a.b.c`) atama geçer; sonraki satıra taşan birleştirmede ilk satır zincirse ikisi de geçer. Kilit dosyası istisnası dosya adına göredir (içeriğine bakılmaz). Sınama: `bash scripts/git-hooks/test-pre-commit.sh`.
+> **Bilinen sınır:** kaynak kodda tırnaksız tek tanımlayıcıya (`Token = AKIAEXAMPLEKEY123`) ya da tırnaksız noktalı zincire (ör. JWT biçimi `a.b.c`) atama geçer; sonraki satıra taşan birleştirmede ilk satır zincirse ikisi de geçer. Kilit dosyası istisnası dosya adına göredir (içeriğine bakılmaz). EF göç istisnası `type: "…"` dizgisini yalnız PostgreSQL tür adı biçimiyle sınırlar: bu biçime uyan küçük harfli onaltılık değer ya da boşluklu küçük harf dizgi (`type: "text sup3rs3cretvalue"`), adlı argümanda tırnaksız tanımlayıcı (`maxLength: sk_live_…`) ve onaltılık sayı (`precision: 0x…`) da geçer — gerçekçi bir sır ataması değildir (göç uygulanamaz, derlenmez), sınır olarak yazılıdır (D-60). Sınama: `bash scripts/git-hooks/test-pre-commit.sh`.
 
 ---
 

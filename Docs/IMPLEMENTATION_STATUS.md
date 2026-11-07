@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T229 (Uygulama belleğinde önbellek) doğrulama tur 1 ✓ PASS (head `6d25c8d`, PR #414; kriter 1–7, KK1–KK7 ve `09 §25` ✓; Unit 2826, Integration 1729 (yerelde dokuz parça; dal CI 42300942345 yeşil); `12` `Durum` değişmedi — ilgili `VAL-A835` `BEKLEMEDE`; K1 → D-158 (`09 §20` m.9'un yorumu yalnız testte, taramanın darlığı)). Merge commit'i sonraki task dalında yazılır. Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — F2 (Çekirdek servisler) gate check: ✓ PASS (main `f4da03c`; T201–T233; Consistency 207/207, Unit 2826/2826, Integration 1730/1730 (parçalı), betik testleri 4 dosya; Release `-warnaserror` 0/0; üç imaj `--no-cache`; yerel referans kurulum sıfırdan, canlılık 200, denetimler yeşil; F2'de göç yok, 18 göç ileri ve idempotent; `11 §6.2` F2: mimari testler kasıtlı ihlalle kırmızı, maskeleme testleri yeşil; matris F2 189 satır, S3 0; `VAL-A991` gate'te yeniden PASS; backlog: D-32, D-60, D-68, D-85, D-123, D-128, D-157 ✅, yeni D-159, D-160; rapor `CHECKPOINT_REPORTS/GATE_CHECK_F2.md`; merge ve `phase/F2-pass` yardımcıda).
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -31,7 +31,7 @@
 |---|---|---|---|---|---|
 | F0 | Proje iskeleti | `T01`–`T10` (10) | ✓ PASS | `phase/F0-pass` | [GATE_CHECK_F0](CHECKPOINT_REPORTS/GATE_CHECK_F0.md) |
 | F1 | Veri katmanı | `T101`–`T120` (20) | ✓ PASS | `phase/F1-pass` | [GATE_CHECK_F1](CHECKPOINT_REPORTS/GATE_CHECK_F1.md) |
-| F2 | Çekirdek servisler | `T201`–`T233` (33) | ⬚ | — | |
+| F2 | Çekirdek servisler | `T201`–`T233` (33) | ✓ PASS | `phase/F2-pass` | [GATE_CHECK_F2](CHECKPOINT_REPORTS/GATE_CHECK_F2.md) |
 | F3 | İş mantığı | `T301`–`T390` (90) | ⬚ | — | |
 | F4 | Entegrasyonlar | `T401`–`T410` (10) | ⬚ | — | |
 | F5 | Kullanıcı arayüzü | `T501`–`T549` (49) | ⬚ | — | |
@@ -104,7 +104,7 @@
 | T202 | Dış servislerin bağlantı katmanı: ortak yüz, hata sınıfı, zaman aşımı, sahteler | ✓ | ✓ PASS (tur 1) | `a5cd5b1` | #396 |
 | T203 | İmzalı makine ucu altyapısı: imza denetimi, gövde tavanı | ✓ | ✓ PASS (tur 2; tur 1 ✗ FAIL) | `aee8538` | #397 |
 | T204 | Dış servis çökmesi davranışı ve sahtelerle sınama | ✓ | ✓ PASS (tur 1) | `4628f9c` | #398 |
-| T205 | Açılışta veritabanı fail-fast denetimi | ✓ | ✓ PASS (tur 1) | a36010b | #385 |
+| T205 | Açılışta veritabanı fail-fast denetimi | ✓ | ✓ PASS (tur 1) | `a36010b` | #385 |
 | T206 | Adres yapısı, önekler ve sayfa–form işleyici kalıbı | ✓ | ✓ PASS (tur 1) | `494a34c` | #401 |
 | T207 | Kimlik şemaları ve erişim reddi | ✓ | ✓ PASS (tur 1) | `3226fcd` | #403 |
 | T208 | Sürümün ve gösterilen değerin formda taşınması, koşullu güncelleme | ✓ | ✓ PASS (tur 1) | `aeab023` | #404 |
@@ -124,15 +124,15 @@
 | T222 | Anahtarlar ve tek kullanımlık bağlantılar | ✓ | ✓ PASS (tur 1) | `11fcfb3` | #392 |
 | T223 | Dosya deposu | ✓ | ✓ PASS (tur 2; tur 1 ✗ FAIL) | `5cc7896` | #399 |
 | T224 | Çerez politikası | ✓ | ✓ PASS (tur 2; tur 1 ✗ FAIL) | `bcedad3` | #400 |
-| T225 | Sistem kayıtları | ✓ | ✓ PASS (tur 3) | b8c180f | #389 |
-| T226 | Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi | ✓ | ✓ PASS (tur 1) | b8f20ad | #383 |
-| T227 | Zaman ve para | ✓ | ✓ PASS (tur 1) | 15daf95 | #382 |
+| T225 | Sistem kayıtları | ✓ | ✓ PASS (tur 3) | `b8c180f` | #389 |
+| T226 | Ayar katmanları, tasarım değerleri ve açılışta ayar denetimi | ✓ | ✓ PASS (tur 1) | `b8f20ad` | #383 |
+| T227 | Zaman ve para | ✓ | ✓ PASS (tur 1) | `15daf95` | #382 |
 | T228 | Eşzamanlılık denetimi | ✓ | ✓ PASS (tur 1) | `36b586f` | #391 |
-| T229 | Uygulama belleğinde önbellek | ✓ | ✓ PASS (tur 1) | — | #414 |
-| T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ✓ | ✓ PASS (tur 2) | a2da89f | #386 |
-| T231 | Maskelemenin üç katmanının testleri | ✓ | ✓ PASS (tur 1) | dac48c8 | #387 |
-| T232 | Veri koruma halkası | ✓ | ✓ PASS (tur 2) | daace97 | #388 |
-| T233 | Veritabanı oturum süreleri | ✓ | ✓ PASS (tur 2) | 810fe27 | #384 |
+| T229 | Uygulama belleğinde önbellek | ✓ | ✓ PASS (tur 1) | `f4da03c` | #414 |
+| T230 | Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi | ✓ | ✓ PASS (tur 2) | `a2da89f` | #386 |
+| T231 | Maskelemenin üç katmanının testleri | ✓ | ✓ PASS (tur 1) | `dac48c8` | #387 |
+| T232 | Veri koruma halkası | ✓ | ✓ PASS (tur 2) | `daace97` | #388 |
+| T233 | Veritabanı oturum süreleri | ✓ | ✓ PASS (tur 2) | `810fe27` | #384 |
 
 ---
 

@@ -1,6 +1,6 @@
 # T230 — Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi
 
-**Faz:** F2 | **Durum:** ✓ Doğrulama tur 2 PASS (merge bekliyor) | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-05
 
 > Taslağı yapım chat'i doldurdu; doğrulama chat'i finalize eder.
 
@@ -128,7 +128,7 @@ Testler (validator, yerel): build `-warnaserror` 0 uyarı · `dotnet format --ve
 ## Commit & PR
 
 - **Branch:** `task/T230-kayit-yazicilari-bicimleyici`
-- **Commit / PR / CI:** PR başlığında (`T230: Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi`); CI yapım işçisince beklenmez
+- **Commit / PR / CI:** PR #386 (`T230: Uygulama kayıtlarının üç yazıcısı ve satır biçimleyicisi`; numara F2 gate'te yazıldı); CI yapım işçisince beklenmez
 - **Post-merge run'lar:** squash `a2da89f` — CI 41946974061 success, Publish 41946974227 success (T228 dalında dolduruldu, skill adım 15)
 
 ## Dış Varsayımlar

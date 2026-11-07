@@ -53,3 +53,5 @@ public sealed class Sample
 /* a markup line that is not a comment line: */
 <input data-val-length-max="150" />
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+<option data-value="x">a look-alike attribute that is not the framework's output</option>
+<div data-validity="ok"></div>

@@ -1,6 +1,6 @@
 # T225 — Sistem kayıtları
 
-**Faz:** F2 | **Durum:** ⏳ Devam ediyor (doğrulama tur 2 FAIL; düzeltme 2 yapıldı, tur 3 bekliyor) | **Tarih:** 2026-11-05
+**Faz:** F2 | **Durum:** ✓ Tamamlandı (doğrulama tur 3 PASS) | **Tarih:** 2026-11-05
 
 > Taslağı yapım chat'i doldurdu; doğrulama chat'i finalize eder.
 

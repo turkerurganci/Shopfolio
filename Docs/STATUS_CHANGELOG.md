@@ -15,6 +15,12 @@
 
 ---
 
+## 2026-11-07 — T229 doğrulama tur 1 PASS
+
+**Son güncelleme:** 2026-11-07 — T229 (Uygulama belleğinde önbellek) doğrulama tur 1 ✓ PASS (head `6d25c8d`, PR #414; kriter 1–7, KK1–KK7 ve `09 §25` ✓; Unit 2826, Integration 1729 (yerelde dokuz parça; dal CI 42300942345 yeşil); `12` `Durum` değişmedi — ilgili `VAL-A835` `BEKLEMEDE`; K1 → D-158 (`09 §20` m.9'un yorumu yalnız testte, taramanın darlığı)). Merge commit'i sonraki task dalında yazılır. Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
+---
+
 ## 2026-11-07 — T229 yapım tamamlandı, doğrulama bekliyor
 
 **Son güncelleme:** 2026-11-07 — T229 (Uygulama belleğinde önbellek) yapım tamamlandı, doğrulama bekliyor (dal `task/T229-uygulama-bellegi-onbellek`, PR #414; kriter 1–7, KK1–KK7 ve `09 §25` öz denetim tablosu raporda; Unit 2826, Integration 1729; ⚠ K1–K4 raporda). Önceki kayıt `STATUS_CHANGELOG.md`'de.

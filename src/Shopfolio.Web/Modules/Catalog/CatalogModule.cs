@@ -119,6 +119,9 @@ internal static class CatalogModuleRegistration
         services.AddJobHandler<ImageDerivativeJobHandler>(JobType.ImageDerivative);
         services.AddDisposalPart<ImageDisposalPart>();
         services.AddDisposalPart<OrphanImageFilePart>();
+        services.AddDisposalPart<IncompleteDigitalUploadPart>();
+        services.AddDisposalPart<DigitalFileDisposalPart>();
+        services.AddDisposalPart<OrphanDigitalFilePart>();
         services.AddScoped<ICatalogModule, CatalogModule>();
         return services;
     }

@@ -11,7 +11,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// A reference work (06 4.48): the same fields and rules as the service presentation (<see cref="Offering"/>); the difference is a title
 /// instead of a name. Deleted by its event; its content-product and gallery links are PortfolioItemProduct and PortfolioItemImage.
 /// </summary>
-internal sealed class PortfolioItem : IVersionedRecord
+internal sealed class PortfolioItem : IContentRecord
 {
     public Guid Id { get; set; }
 
@@ -42,6 +42,11 @@ internal sealed class PortfolioItem : IVersionedRecord
 
     /// <summary>Raises the version by one; every save of the record calls it (06 2.6.1; 09 10.2 item 1).</summary>
     public void BumpVersion() => Version++;
+
+    public ContentRecordKind Kind => ContentRecordKind.PortfolioItem;
+
+    public IReadOnlyList<ContentGateField> MissingGateFields() =>
+        ContentGate.Missing(Kind, field => field == ContentGateField.Title ? ContentGate.IsFilled(Title) : ContentGate.Unreadable(Kind, field));
 
     public static PortfolioItem Create(string title, string slug, int sortOrder, DateTimeOffset now)
     {

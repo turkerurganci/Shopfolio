@@ -137,7 +137,7 @@ public sealed class MembershipTests : IAsyncLifetime
         Assert.Equal(result.LinkId, link.Id);
         Assert.Equal(LinkType.EmailVerification, link.LinkType);
         Assert.Equal(customer.Id, link.CustomerId);
-        Assert.Equal(Start.AddHours(ProductConstants.VerificationLinkLifetimeHours), link.ExpiresAt);
+        Assert.Equal(Start.AddHours(ProductConstants.EmailVerificationLinkHours), link.ExpiresAt);
         Assert.Equal(link.ExpiresAt, result.LinkExpiresAt);
         Assert.Equal(_keys.DigestFor(link.Id), link.TokenHash);
     }
@@ -238,7 +238,7 @@ public sealed class MembershipTests : IAsyncLifetime
     public async Task Register_AfterThePendingRegistrationEnded_FreesTheAddress_DeletesTheOldRowAndCountsItInTheDisposalRecord()
     {
         RegistrationResult first = await RegisterAsync("Eski", "ali@example.com");
-        _time.Advance(TimeSpan.FromHours(ProductConstants.VerificationLinkLifetimeHours));
+        _time.Advance(TimeSpan.FromHours(ProductConstants.EmailVerificationLinkHours));
         _time.Advance(TimeSpan.FromHours(2));
 
         RegistrationResult again = await RegisterAsync("Yeni", "ali@example.com", ip: IPAddress.Parse("203.0.113.99"));
@@ -325,7 +325,7 @@ public sealed class MembershipTests : IAsyncLifetime
     {
         RegistrationResult registered = await RegisterAsync("Ali", "ali@example.com");
         string key = _keys.Derive(registered.LinkId!.Value);
-        _time.Advance(TimeSpan.FromHours(ProductConstants.VerificationLinkLifetimeHours));
+        _time.Advance(TimeSpan.FromHours(ProductConstants.EmailVerificationLinkHours));
 
         EmailVerificationResult expired = await RunAsync(m => m.VerifyEmailAsync(key, Ct));
 
@@ -512,7 +512,7 @@ public sealed class MembershipTests : IAsyncLifetime
         VerificationResendResult limited = await RunAsync(m => m.ResendVerificationLinkAsync(id, IPAddress.Parse("198.51.100.77"), Ct));
         Assert.Equal(ErrorCode.VerificationLinkLimitExceeded, limited.Code);
 
-        _time.Advance(TimeSpan.FromHours(ProductConstants.VerificationLinkLifetimeHours + 2));
+        _time.Advance(TimeSpan.FromHours(ProductConstants.EmailVerificationLinkHours + 2));
         VerificationResendResult ended = await RunAsync(m => m.ResendVerificationLinkAsync(id, IPAddress.Parse("198.51.100.78"), Ct));
         Assert.Equal(ErrorCode.PendingRegistrationUnresolved, ended.Code);
 

@@ -131,7 +131,7 @@ internal sealed class MembershipModule : IMembershipModule
             _db.DisposalRecords.Add(DisposalRecord.Counted(DisposalRecordType.PendingRegistration, 1, now));
         }
 
-        DateTimeOffset expiresAt = now.AddHours(ProductConstants.VerificationLinkLifetimeHours);
+        DateTimeOffset expiresAt = now.AddHours(ProductConstants.EmailVerificationLinkHours);
         Customer customer = Customer.Create(name, email, _hashing.Hash(entered), emailVerifiedAt: null, googleLinkedAt: null, now);
         LinkRecord link = LinkRecord.ForCustomer(_linkKeys, LinkType.EmailVerification, customer.Id, expiresAt, now);
         _db.Customers.Add(customer);

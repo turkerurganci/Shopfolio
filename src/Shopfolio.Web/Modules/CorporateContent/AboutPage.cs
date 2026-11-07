@@ -12,7 +12,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// there at setup; the row is born at its first save and is at most one (the single-row index of the migration, 06 2.3.2). It is never
 /// deleted, only put back to draft (<see cref="CorporateContentRecordsGuard"/>).
 /// </summary>
-internal sealed class AboutPage : IVersionedRecord
+internal sealed class AboutPage : IContentRecord
 {
     public Guid Id { get; set; }
 
@@ -30,6 +30,11 @@ internal sealed class AboutPage : IVersionedRecord
 
     /// <summary>Raises the version by one; every save of the record calls it (06 2.6.1; 09 10.2 item 1).</summary>
     public void BumpVersion() => Version++;
+
+    public ContentRecordKind Kind => ContentRecordKind.AboutPage;
+
+    public IReadOnlyList<ContentGateField> MissingGateFields() =>
+        ContentGate.Missing(Kind, field => field == ContentGateField.ShortIntroduction ? ContentGate.IsFilled(ShortIntroduction) : ContentGate.Unreadable(Kind, field));
 
     public static AboutPage Create(DateTimeOffset now)
     {

@@ -11,7 +11,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// A frequently asked question (06 4.49): a question and its answer, listed on one page in the order the firm gives. It has no page of its
 /// own, so no page address. Deleted by its event; its gallery links are FaqItemImage.
 /// </summary>
-internal sealed class FaqItem : IVersionedRecord
+internal sealed class FaqItem : IContentRecord
 {
     public Guid Id { get; set; }
 
@@ -32,6 +32,18 @@ internal sealed class FaqItem : IVersionedRecord
 
     /// <summary>Raises the version by one; every save of the record calls it (06 2.6.1; 09 10.2 item 1).</summary>
     public void BumpVersion() => Version++;
+
+    public ContentRecordKind Kind => ContentRecordKind.FaqItem;
+
+    public IReadOnlyList<ContentGateField> MissingGateFields() =>
+        ContentGate.Missing(
+            Kind,
+            field => field switch
+            {
+                ContentGateField.Question => ContentGate.IsFilled(Question),
+                ContentGateField.Answer => ContentGate.IsFilled(Answer),
+                _ => ContentGate.Unreadable(Kind, field),
+            });
 
     public static FaqItem Create(string question, int sortOrder, DateTimeOffset now)
     {

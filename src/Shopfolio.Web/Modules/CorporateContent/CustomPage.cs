@@ -11,7 +11,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// A general page (06 4.51): a title, a text and a gallery (CustomPageImage), for content that fits no ready-made type; listed in the
 /// footer and, when marked, in the top menu. Legal texts are not general pages. Deleted by its event; its gallery links go with it.
 /// </summary>
-internal sealed class CustomPage : IVersionedRecord
+internal sealed class CustomPage : IContentRecord
 {
     public Guid Id { get; set; }
 
@@ -40,6 +40,11 @@ internal sealed class CustomPage : IVersionedRecord
 
     /// <summary>Raises the version by one; every save of the record calls it (06 2.6.1; 09 10.2 item 1).</summary>
     public void BumpVersion() => Version++;
+
+    public ContentRecordKind Kind => ContentRecordKind.CustomPage;
+
+    public IReadOnlyList<ContentGateField> MissingGateFields() =>
+        ContentGate.Missing(Kind, field => field == ContentGateField.Title ? ContentGate.IsFilled(Title) : ContentGate.Unreadable(Kind, field));
 
     public static CustomPage Create(string title, string slug, int sortOrder, DateTimeOffset now)
     {

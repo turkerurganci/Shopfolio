@@ -23,6 +23,8 @@ internal static class CorporateContentModuleRegistration
     public static IServiceCollection AddCorporateContentModule(this IServiceCollection services)
     {
         services.AddScoped<CorporateContentSitemapReader>();
+        services.AddScoped<ContentPublishing>();
+        services.AddScoped<ContactRequests>();
         services.AddScoped<ICorporateContentModule, CorporateContentModule>();
         return services;
     }

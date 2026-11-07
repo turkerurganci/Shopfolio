@@ -172,9 +172,9 @@ public sealed class ConcurrencyTests : IAsyncLifetime
         await using AppDbContext second = NewContext();
         Product firstCopy = await first.Products.SingleAsync(p => p.Id == product.Id, Ct);
         Product secondCopy = await second.Products.SingleAsync(p => p.Id == product.Id, Ct);
-        firstCopy.Description = "ilk";
+        firstCopy.SetDescription("ilk");
         firstCopy.BumpVersion();
-        secondCopy.Description = "ikinci";
+        secondCopy.SetDescription("ikinci");
         secondCopy.BumpVersion();
 
         recorder.Commands.Clear();
@@ -214,12 +214,12 @@ public sealed class ConcurrencyTests : IAsyncLifetime
         await using (AppDbContext other = NewContext())
         {
             Product copy = await other.Products.SingleAsync(p => p.Id == product.Id, Ct);
-            copy.Description = "başka";
+            copy.SetDescription("başka");
             copy.BumpVersion();
             await other.SaveChangesAsync(Ct).WaitAsync(TimeSpan.FromSeconds(10), Ct);
         }
 
-        held.Description = "geç";
+        held.SetDescription("geç");
         held.BumpVersion();
         await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => holder.SaveChangesAsync(Ct));
     }

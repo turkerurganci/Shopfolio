@@ -82,6 +82,12 @@
 - **Birleşik ağacın gerektirdiği test kurulumu:** `OrderingModule` artık `OrderPaymentArms` (→ `IPaymentModule`) ve `AdvisoryLocks` ister; `DisposalHarness` `AdvisoryLocks` kaydını, `ProductTransitionsTests`, `ConcurrencyTests`, `OrderTransitionsTests`, `ShipmentTransitionsTests` kurulumları `AddPaymentModule()` çağrısını aldı (yalnız test kurulumu).
 - **Sonuç:** derleme `-warnaserror` 0 uyarı; Unit 933 + 242 + 2948 = 4123 geçti; Integration RecordDisposal 13, OrderDisposal 27, Disposal 18 + StockAndCapacity 27, ProductTransitions + ImageFiles 55, OrderTransitions + ShipmentTransitions 125, Concurrency + AuditTrail 48 geçti; format temiz; çakışma işareti yok. KK1–KK9 birleşik ağaçta ✓ (T302'nin parça kayıtları `CatalogModule`/`OrderingModule`'de duruyor, `IOrderingModule`'ün üç T302 yöntemi yerinde).
 
+### main birleştirmesi 2 (T339 #445 girince)
+
+- **Çakışan dosyalar:** `tests/Shopfolio.UnitTests/Architecture/VersionedSideBulkWriteScan.cs` (izinli yer listesi); belgelerde `DEFERRED_BACKLOG.md`, `IMPLEMENTATION_STATUS.md`.
+- **Çözüm:** tarama listesinde iki tarafın satırları birlikte kaldı (T302'nin `DigitalFileDisposalParts.cs` ve `InboundNotificationDisposalPart.cs` satırları + T339'un `GalleryMainMarkPlace`); istisna genişletilmedi. STATUS "Son güncelleme" yalnız bu giriş (T339 tur 2 girişi `STATUS_CHANGELOG.md`'ye), backlog main kayıtları + dalınkiler, Aktif kalem yeniden sayıldı: 157.
+- **Sonuç:** derleme `-warnaserror` 0 uyarı; Unit Architecture 943 + Consistency 242 + öteki 3040 = 4225 geçti; Integration RecordDisposalTests + ProductGalleryTests + ConcurrencyTests 57, DigitalFile + ImageFilesTests + Disposal sınıfları 174 geçti; format temiz; çakışma işareti yok. KK1–KK9 birleşik ağaçta ✓ (T302'nin on üç parçasının kaydı yerinde, kabul kriterleri 1–9 ve KK1–KK9 madde madde denetlendi).
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok

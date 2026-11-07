@@ -28,6 +28,10 @@ internal static class NotificationsModuleRegistration
         // The job queue takes no row before the step has run (D-96 K1; 09 15.1 item 4).
         services.AddJobStartGate<RevertLinkDigestRewriteGate>();
 
+        // The per-recipient sending limit asked at a row's first attempt (08 2.2.4); its thinned security line keeps one window in memory.
+        services.AddScoped<RecipientLimitCheck>();
+        services.AddSingleton<RecipientLimitLog>();
+
         // The e-mail channel warning is a condition of the status endpoint (05 9.4.7).
         services.AddStatusCondition<ChannelWarningCondition>();
         return services;

@@ -3,8 +3,41 @@ namespace Shopfolio.Modules.Settings.Contracts;
 /// <summary>
 /// The open surface of the Settings module (09 6 item 1; 05 3.4.1): what other modules, the pages and the commands may call. The module owns the company identity, the sales gate, the legal texts and the delivery provinces (05 3.3.10).
 /// The members arrive with the tasks that own the module's rules, as methods that take and give immutable records and join the caller's
-/// database transaction (09 6 item 3).
+/// database transaction (09 6 item 3). The installation has one company (02 3.1.1): there is no member that adds, selects, switches or deletes a
+/// company, and none that chooses a language, a market or a currency.
 /// </summary>
 public interface ISettingsModule
 {
+    /// <summary>The company identity as the identity form shows it (T330; 02 3.1.2).</summary>
+    Task<CompanyIdentity> GetCompanyIdentityAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The fields the identity still waits for (02 3.1.3, 3.1.5 condition 1): read from the row on every call, never stored. A caller that decides
+    /// the sales gate (T331) reads this and nothing else of the identity.
+    /// </summary>
+    Task<CompanyIdentityCompleteness> GetCompanyIdentityCompletenessAsync(CancellationToken ct);
+
+    /// <summary>
+    /// What a visitor reads under the "İletişim" heading (02 3.1.4): open to everyone, no administrator session is asked or taken.
+    /// </summary>
+    Task<LegalIdentity> GetLegalIdentityAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The identity form's save (02 3.1.2, 3.1.3; 07 9.16.2): in the caller's open transaction, which the method joins and never opens. The row of the
+    /// company settings is locked first (05 7.3.5; K-1088), the values are checked against the row as it is, and the row is written with the
+    /// version the form carried (09 10.2 item 2). An empty required field does not stop the save - the sales gate stays closed - but a filled
+    /// required field of the chosen type or of the three types' common set cannot be emptied, and a type once chosen cannot be cleared; changing the
+    /// type is never refused. The refusals are results.
+    /// </summary>
+    Task<SettingsSaveResult> SaveCompanyIdentityAsync(CompanyIdentityInput input, int formVersion, CancellationToken ct);
+
+    /// <summary>The return address section (02 3.1.7): the address when it is complete, and the section's version.</summary>
+    Task<ReturnAddressSection> GetReturnAddressAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The return address form's save (02 3.1.7; 09 10.3): in the caller's open transaction, row lock first, then the conditional update of this
+    /// section's version only. The four required parts come together or not at all; once filled they cannot be emptied; the telephone is optional.
+    /// A declaration copies <see cref="GetReturnAddressAsync"/>'s address as a value, so a later change never reaches a made declaration (T372).
+    /// </summary>
+    Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct);
 }

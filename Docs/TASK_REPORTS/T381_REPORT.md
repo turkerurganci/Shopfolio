@@ -92,7 +92,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T381-ayar-katmanlari`
-- **PR:** açıldığında PR gövdesinde
+- **PR:** #430
 - **CI:** yapım işçisi izlemez
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır sonraki task dalında güncellenir)*
 

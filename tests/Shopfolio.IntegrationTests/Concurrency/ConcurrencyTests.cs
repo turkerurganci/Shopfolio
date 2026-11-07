@@ -853,6 +853,9 @@ public sealed class ConcurrencyTests : IAsyncLifetime
         services.AddSingleton(TimeProvider.System);
         services.AddScoped<IJobQueue, JobQueue>();
         services.AddFileStore();
+        services.AddOptions<Shopfolio.Infrastructure.InstallationSettings.StatusThresholdOptions>();
+        services.AddSingleton<Shopfolio.Infrastructure.Status.IDiskUsageReader, Shopfolio.Infrastructure.Status.DriveDiskUsageReader>();
+        services.AddSingleton<Shopfolio.Infrastructure.Status.DiskUsageGuard>();
         services.AddSingleton<ImageProcessor>();
         services.AddCatalogModule();
         services.AddOrderingModule();

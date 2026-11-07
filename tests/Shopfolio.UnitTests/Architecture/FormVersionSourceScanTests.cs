@@ -132,6 +132,25 @@ public sealed class FormVersionSourceScanTests
         Assert.Equal([(FormVersionSourceScan.VersionInHeader, 1)], FormVersionSourceScan.Scan("src/Shopfolio.Web/Endpoints/A.cs", line));
     }
 
+    [Theory]
+    [InlineData("var t = new EntityTagHeaderValue(\"\\\"1\\\"\");")]
+    [InlineData("var entityTag = value;")]
+    public void Scan_OfTheDownloadEndpointsEntityTagNames_IsQuietOnlyInThatFile(string line)
+    {
+        Assert.Empty(FormVersionSourceScan.Scan(FormVersionSourceScan.DownloadEndpointFile, line));
+        Assert.Equal([(FormVersionSourceScan.VersionInHeader, 1)], FormVersionSourceScan.Scan("src/Shopfolio.Web/Endpoints/Other.cs", line));
+    }
+
+    [Theory]
+    [InlineData("context.Response.Headers.ETag = \"x\";")]
+    [InlineData("var m = context.Request.Headers.IfMatch;")]
+    [InlineData("var m = context.Request.Headers[\"If-Match\"];")]
+    [InlineData("var m = HeaderNames.ETag;")]
+    public void Scan_OfAConditionalHeaderInTheDownloadEndpointFile_IsStillAFinding(string line)
+    {
+        Assert.Equal([(FormVersionSourceScan.VersionInHeader, 1)], FormVersionSourceScan.Scan(FormVersionSourceScan.DownloadEndpointFile, line));
+    }
+
     [Fact]
     public void Scan_OfALinkCallThatNamesAVersionInItsArguments_IsAFindingWhateverTheSplit()
     {

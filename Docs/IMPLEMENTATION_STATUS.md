@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T302 (Öteki kayıtların süreyle imhası) yapım tamamlandı, doğrulama bekliyor (dal `task/T302-kayit-imha`, PR #446; kriter 1–9, KK1–KK9 öz denetimde ✓; Unit 4110 (Architecture 933, Consistency 242, Disposal 23), Integration RecordDisposal 13, Disposal 18, OrderDisposal 27, Files 81, Ordering 125, Concurrency 26, Model 1106, Database 36 yeşil; format temiz; şema yok; `12` `Durum` değişmedi; ⚠ gönderim kaydının kolu yalnız ödeme kaydından okunur, siparişi kilitlemez; ayıp talebi silmesi sipariş sürümünü artırmaz; gelen bildirim 10 yıl tasarım değeridir (09 §3.5 satırı eklendi); `VersionedFormPageTests` sınıf birlikte koşunca titriyor (D-378); backlog D-102 ✅, D-99 T302 payı ✅, yeni D-374…D-378, aktif 143). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-08 — T302 (Öteki kayıtların süreyle imhası) doğrulama tur 1 ✓ PASS (PR #446; kriter 1–9, KK1–KK9, `09 §25` ✓, güvenlik taraması temiz, bulgu 0, K 0; `VAL-D051` PASS; dal CI 42417352638 yeşil; `origin/main` (T321, #439) kod çakışması yalnız ekleme olarak çözüldü, birleşik ağaçta Unit 4123, Integration dokunulan sınıflar yeşil; backlog aktif 149). Merge ve post-merge CI yardımcıda. Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -141,7 +141,7 @@
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
 | T301 | Siparişin imha parçası | ✓ | ✓ PASS (tur 1) | `a3c9d1a` | #431 |
-| T302 | Öteki kayıtların süreyle imhası | ⏳ | — | — | #446 |
+| T302 | Öteki kayıtların süreyle imhası | ✓ | ✓ PASS (tur 1) | — | #446 |
 | T303 | İlk yönetici yönetim komutu ve komut çatısı | ⬚ | — | — | — |
 | T304 | Alıcı başına bildirim gönderim sınırı | ✓ | ✓ PASS (tur 1) | `268ab8d` | #421 |
 | T305 | E-posta ortak kalıbı ve gövde üretimi | ✓ | ✓ PASS (tur 1) | `7cc0db5` | #422 |

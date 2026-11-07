@@ -9,6 +9,10 @@
 
 ---
 
+## 2026-11-08 — T302 (Öteki kayıtların süreyle imhası) yapım tamamlandı
+
+2026-11-08 — T302 (Öteki kayıtların süreyle imhası) yapım tamamlandı, doğrulama bekliyor (dal `task/T302-kayit-imha`, PR #446; kriter 1–9, KK1–KK9 öz denetimde ✓; Unit 4110 (Architecture 933, Consistency 242, Disposal 23), Integration RecordDisposal 13, Disposal 18, OrderDisposal 27, Files 81, Ordering 125, Concurrency 26, Model 1106, Database 36 yeşil; format temiz; şema yok; `12` `Durum` değişmedi; ⚠ gönderim kaydının kolu yalnız ödeme kaydından okunur, siparişi kilitlemez; ayıp talebi silmesi sipariş sürümünü artırmaz; gelen bildirim 10 yıl tasarım değeridir (09 §3.5 satırı eklendi); `VersionedFormPageTests` sınıf birlikte koşunca titriyor (D-378); backlog D-102 ✅, D-99 T302 payı ✅, yeni D-374…D-378, aktif 143). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
 ## 2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 3 PASS
 
 2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 3 ✓ PASS (head `c5b9afd` + `origin/main` (T316, #437) birleştirmesi, PR #439; kriter 1–9, KK1–KK9 ve `09 §25` ✓, güvenlik taraması temiz; tur 2 Bulgu 1 — `IOrderingModule` sepet metotlarının kendi `SaveChangesAsync`'i — giderildi: iki metot yalnız izlenen değişiklik bırakır, kaydı `ITransactionRunner` yapar (`TheCartMethods_DoNotSaveOnTheirOwn_...KK7`); bulgu 0, yeni K-notu 0; dal CI 42406697716 yeşil; yerelde derleme `-warnaserror` 0 uyarı, biçim üç proje temiz, Unit 4062/4062 (Architecture ve Consistency dahil), betik testleri 4/4, Integration `ProductTransitionsTests` 41, Sitemap + SearchEngine + Scheduler + ContentStatus 65, OrderTransitions + Concurrency 57 (postgres:18); `12` KP-7/KP-40 satırları uç yanıtı, panel ya da adres sayfası ister → `BEKLEMEDE` kalır; kayıt belgeleri çakışması `origin/main` ile çözüldü, backlog Aktif kalem 145). Merge ve post-merge CI yardımcıda.

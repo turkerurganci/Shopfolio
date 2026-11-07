@@ -1,6 +1,6 @@
 # T302 — Öteki kayıtların süreyle imhası
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamamlandı, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -70,10 +70,17 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-08) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### main birleştirmesi (doğrulama sonrası, T321 #439 girince)
+
+- **Çakışan dosyalar:** `CatalogModule.cs` (kayıt satırları), `IOrderingModule.cs` (yöntemler), `OrderingModule.cs` (kurucu); belgelerde `DEFERRED_BACKLOG.md`, `IMPLEMENTATION_STATUS.md`.
+- **Çözüm:** kod çakışmaları yalnız ekleme: iki tarafın kayıtları ve yöntemleri birlikte kaldı; `OrderingModule` kurucusu `OrderPaymentArms` ve `AdvisoryLocks`'u birlikte alır. Hiçbir tarafın davranışı değişmedi. Belgelerde STATUS "Son güncelleme" yalnız bu giriş (T321 tur 3 girişi `STATUS_CHANGELOG.md`'ye), backlog main kayıtları + dalınkiler, Aktif kalem yeniden sayıldı: 149.
+- **Birleşik ağacın gerektirdiği test kurulumu:** `OrderingModule` artık `OrderPaymentArms` (→ `IPaymentModule`) ve `AdvisoryLocks` ister; `DisposalHarness` `AdvisoryLocks` kaydını, `ProductTransitionsTests`, `ConcurrencyTests`, `OrderTransitionsTests`, `ShipmentTransitionsTests` kurulumları `AddPaymentModule()` çağrısını aldı (yalnız test kurulumu).
+- **Sonuç:** derleme `-warnaserror` 0 uyarı; Unit 933 + 242 + 2948 = 4123 geçti; Integration RecordDisposal 13, OrderDisposal 27, Disposal 18 + StockAndCapacity 27, ProductTransitions + ImageFiles 55, OrderTransitions + ShipmentTransitions 125, Concurrency + AuditTrail 48 geçti; format temiz; çakışma işareti yok. KK1–KK9 birleşik ağaçta ✓ (T302'nin parça kayıtları `CatalogModule`/`OrderingModule`'de duruyor, `IOrderingModule`'ün üç T302 yöntemi yerinde).
 
 ## Altyapı Değişiklikleri
 

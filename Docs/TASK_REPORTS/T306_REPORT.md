@@ -1,6 +1,6 @@
 # T306 — Müşteri bildirimleri B-1…B-8
 
-**Faz:** F3 | **Durum:** düzeltme 2 yapıldı, tam doğrulama bekliyor (tur 1 ✗ FAIL: B1, B2; tur 2 ✗ FAIL: Bulgu 1) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı — doğrulama tur 3 ✓ PASS (tur 1 ✗ FAIL: B1, B2; tur 2 ✗ FAIL: Bulgu 1; düzeltme 2 sonrası tam doğrulama) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -88,10 +88,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-07; tur 1 ✗ FAIL) |
-| Bulgu sayısı | tur 2: 1 (Bulgu 1 ORTA S1 — düzeltme sonrası B-1'in `OriginalDispatchId`'si) · tur 1: 2 (B1 ORTA S1, B2 DÜŞÜK S1 — kapandı) |
-| Düzeltme gerekli mi | Evet — Bulgu 1 bu PR'da; tur 2 FAIL, iki iterasyon sınırı: eskalasyon (`12 §8.5`, `INSTRUCTIONS.md` §3.3) |
-| Bloke-etmeyen not (K) sayısı | tur 2: 0 · tur 1: 2 (K1 → D-231, K2 → D-232) |
+| Doğrulama durumu | ✓ PASS (tur 3 — eskalasyon sonrası tam doğrulama, 2026-11-07; tur 2 ✗ FAIL, tur 1 ✗ FAIL) |
+| Bulgu sayısı | tur 3: 0 · tur 2: 1 (Bulgu 1 ORTA S1 — düzeltme 2'de kapandı) · tur 1: 2 (B1 ORTA S1, B2 DÜŞÜK S1 — kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | tur 3: 1 (K1 → D-272) · tur 2: 0 · tur 1: 2 (K1 → D-231, K2 → D-232) |
 
 ### Doğrulama Sonucu — T306 Müşteri bildirimleri — tur 1
 **Tarih:** 2026-11-07   **Branch:** task/T306-musteri-bildirimleri-1   **Commit:** `deb3a3f` (+ `origin/main` `1112ca6` birleştirmesi, kayıt commit'i)
@@ -267,6 +267,67 @@ FAIL — merge yok. Tur 2 FAIL: `12 §8.5` iki iterasyon sınırı, eskalasyon (
 | 1 (ORTA) düzeltme sonrası B-1'in `OriginalDispatchId`'si verilen satır düzeltme satırıysa kökü taşımıyordu | `CustomerNoticeQueue` verilen satırdan kimliği de okur ve `OriginalDispatchId` olarak `given.OriginalDispatchId ?? givenId` yazar (zincir köke iner; kök satırı silinmiş olsa da arama gerekmez, kimlik ve an verilen satırdan gelir). Satır yine aynı sipariş ve `B1` olmak zorunda. Çağıran ilk satırı ya da zincirin herhangi bir satırını verebilir; aynı kimlik grubu belirler, "e-posta ulaşmadı" işareti grubun en son satırını okur (`DispatchMarks`, değişmedi). Sözleşme açıklaması güncellendi. | tümleşik `TheB1AfterACorrection_WritesTheFirstRowsCreationMoment_…` (ikinci düzeltmede üçüncü satır `OriginalDispatchId == first`, ilk satır silinmişken), yeni `TheSecondB1AfterACorrection_JoinsTheFirstRowsGroup_WhateverRowOfTheChainIsGiven` (ilk satır ya da ikinci satır verilse de bütün satırlar `first` kimliğinde, an ilk satırınki); `TheB1AfterACorrection_NeedsTheFirstRowToBeThisOrdersOwnB1` yeşil |
 
 **Öz denetim (düzeltme 2):** kriter 1–10, KK1–KK10 ve `09 §25` kendi diff'imde yeniden denetlendi: kriter 3 ve KK3 artık kimlik ve an için tam ✓ (kök çözülür, ilk an taşınır); öteki maddeler değişmedi, ilgili testler yeşil (Notifications 202, Architecture 830, tümleşik kuyruk 14). Sık FAIL nedenleri: (1) yeni tarama/istisna yok; (2) yeni tarama yok; (3) şema değişikliği yok (`original_dispatch_id` T117'den, FK yok); (4) sayı anan başka yer yok, backlog yeni kayıt açılmadı; (5) olay değeri `EventValues`'ta, kimlik zinciri kökü artık çözülüyor (T306 r2 satırı).
+
+### Doğrulama Sonucu — T306 Müşteri bildirimleri — tur 3
+**Tarih:** 2026-11-07   **Branch:** task/T306-musteri-bildirimleri-1   **Commit:** `3e9eb28` (+ kayıt commit'i; `origin/main` yeni commit taşımıyordu)
+
+#### Verdict: ✓ PASS
+
+Eskalasyon sonrası tam yeniden doğrulama: kriter 1–10, KK1–KK10, `09 §25` ve güvenlik taraması baştan.
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş |
+| Hook kurulumu | ✓ | `git config core.hooksPath` → `C:\projects\Shopfolio\scripts\git-hooks` |
+| Ana dal CI (son 3) | ✓ | 42368786653 success · 42368786665 success · 42366197659 success |
+| Memory drift | ✓ | `grep -nE "\bT306\b" .claude/memory/MEMORY.md` → satır 22 |
+
+#### Kabul Kriterleri
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `CustomerNoticeValues.For` sekiz kayıt → `B1`…`B8`; `"Merhaba,"` adsız; ikinci cümle yalnız B-2, B-3, B-5 (`carriesCurrentInfoNote`); birim `TheEightNotices_…`, `EveryNotice_…`, `AResend_…`, `ANewEventOfTheSameType_…` |
+| 2 | ✓ | Konu sonu `(Sipariş {n})` ve sekiz olay cümlesinde numara (D-231); `OrderLink` misafir/silinmiş hesapta `/siparis/erisim/{key}`, anahtarsızsa red, üyede `/siparis/{no}`; birim `ThePageButton_…` ×3, `AGuestOrderWithoutAnAccessKey_…` |
+| 3 | ✓ | Cümle · düğme · iki `EmailLegalText` sırayla; `12pt` (gövde 16px), yazı küçültme kapalı, ek yok; düzeltmede `OriginalDispatchId = given.OriginalDispatchId ?? givenId` (zincir kökü) ve ilk an olay değerinde; birim `B1_…`, `TheTwoTexts_…`, `TheB1AfterACorrection_…`; tümleşik `TheSecondB1AfterACorrection_JoinsTheFirstRowsGroup_…`, `…KeepsItAfterTheFirstRowIsDeleted`, `…NeedsTheFirstRowToBeThisOrdersOwnB1` |
+| 4 | ✓ | `IbanBlock` donmuş IBAN dörderli + sipariş numarası; son gün `TransferSchedule` kuralı; birim `B2_…` ×3 |
+| 5 | ✓ | `ReminderIsDueAsync` aynı süre sonunda ikinci satır yok, dolmuş sürede yok, yeniden başlayan sürede yeni; tetik T324 m.7; tümleşik `B3_…` ×4 |
+| 6 | ✓ | Dijital kalem cümlesi, indirme adresi yok; birim `B4_…` |
+| 7 | ✓ | `CarrierCatalog.Describe`/`BuildLink`; dış bağlantı sabit renk, `rel="noreferrer"`, düğme değil; birim `B5_…` ×7 |
+| 8 | ✓ | `FirmContact` B-6 ve B-7'nin üç dalında; birim `B6_…`, `B7_…` |
+| 9 | ✓ | Ayrı konu, kalem + adet yalnız kalem iptalinde, iki sebep listesi birebir, `Other` aynen, on dört gün yalnız yönetici dalında; birim `B7_…` ×6 |
+| 10 | ✓ | Neden listesi, `DisplayFormat.Amount`, kart/havale cümlesi, IBAN yok, geç ödeme cümlesi; birim `B8_…` ×3 |
+
+#### Task Satırları (`12 §7.5`)
+`VAL-A317` (KRİTİK), `A318`, `A319`, `A320`, `A324` (ORTA) — mock — `BEKLEMEDE` → `BEKLEMEDE`: gönderilmiş e-postayı ve olayın tetiğini ister; T306 gönderen ve tetik yazmaz (D-166, D-232). `A321`–`A323` T307, `A325` ayar yokluğu. `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+#### Test Sonuçları
+| Tür | Sonuç | Çıktı |
+|---|---|---|
+| Derleme `-warnaserror` | ✓ | 0 uyarı, 0 hata |
+| Format (Web, Unit, Integration) | ✓ | çıkış 0 |
+| Unit Architecture / öteki (Consistency dahil) | ✓ | 830/830 · 2742/2742 (T306 sınıfı 108) |
+| Betik testleri | ✓ | 4 dosya |
+| Integration `CustomerNoticeQueueTests` | ✓ | 14/14 (Postgres 18, 127.0.0.1:55760) |
+| Integration `CompanyNoticeQueueTests`, `DispatchAndChannelStateTablesTests` | ✓ | 11/11, 30/30 |
+| `dotnet restore --locked-mode` | ✓ | çıkış 0, `git status` temiz |
+| Dal CI | ✓ | 42373330980 success (head `3e9eb28`) |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz · Auth etkisi: Temiz · Input validation: Temiz (Razor kodlaması, düz metinde tek satır, `Uri.EscapeDataString`, `noreferrer`, konuda müşteri metni yok, `EventValues` kişisel veri taşımaz) · Yeni bağımlılık: Yok
+
+#### Bulgular
+Yok.
+
+#### Bloke-etmeyen Notlar
+| # | Not | Karar |
+|---|---|---|
+| K1 | `DispatchRecord.EventValues` `jsonb` yük biçimi `PayloadJson`/`HasConversion` dışında ve `UnitTests/Payloads/` örnek dosyasız (`09 §12` m.5, m.8); T304/T308 kalıbı, T306 aynı listeye B-1…B-8 adlarını ekler | DEFERRED_BACKLOG'a forward → D-272 |
+
+#### Yapım Raporu Karşılaştırması
+Tam uyumlu; öz denetim tablosu kanıtlı. Küçük ifade farkı: ⚠ notu B-7 sebebini "Sebep: {metin}." yazar, kodda sonda nokta yok.
+
+#### Merge ve Post-merge
+Yönetici yardımcı düzeni: merge ve post-merge izleme yardımcının (adım 17–18).
 
 ## Altyapı Değişiklikleri
 

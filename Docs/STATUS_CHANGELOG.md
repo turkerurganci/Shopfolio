@@ -9,6 +9,10 @@
 
 ---
 
+## 2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) doğrulama tur 2
+
+T306 (Müşteri bildirimleri B-1…B-8) doğrulama tur 2 ✗ FAIL (head `26e99f2`, PR #427; kriter 3 ~ Kısmi — Bulgu 1 ORTA S1: düzeltme sonrası B-1 satırı, verilen ilk satır kendisi bir düzeltme satırıysa onun taşıdığı ilk kimliği değil kendi kimliğini `OriginalDispatchId`'ye yazar, grup bölünür — `06 §4.58`, `08 §2.2.5` m.6; öteki kriterler ✓; dal CI 42370396257 yeşil; Unit 3363 + Consistency 209, Integration CustomerNoticeQueueTests 13 + komşu 49; `12` `Durum` değişmedi; yeni K-notu yok, backlog aktif 105; iki iterasyon sınırı — eskalasyon).
+
 ## 2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) düzeltme 1
 
 2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) düzeltme 1 yapıldı, doğrulama tur 2 bekliyor (PR #427; tur 1 ✗ FAIL bulguları kapatıldı: B1 ORTA — düzeltme sonrası B-1 satırı olay değerlerine ilk e-postanın oluşma anını (`FirstEmailSentAt`) yazar, kuyruk ilk satırı (aynı sipariş, `B1`) okur, `Read` anı döndürür, yeniden gönderim cümlesi bu değerden üretilir, ilk satır silinse de tarih kalır; B2 DÜŞÜK — B-5 "Takip et" dolu düğme değil, sabit renkli bağlantı, `noreferrer` ve tam adres korunur, marka rengi yalnız ana düğmede; `origin/main` (T308 #424) birleştirildi, `INotificationsModule`/`NotificationsModule` iki tarafın üyeleriyle; Unit Notifications 202, Architecture 830, Infrastructure 1162, kalan 2331, Integration yerelde CustomerNoticeQueueTests 13, format ve derleme `-warnaserror` temiz; `12` `Durum` değişmedi; backlog aktif 105).

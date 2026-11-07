@@ -84,6 +84,49 @@ public sealed class SettingLayerScanTests
     }
 
     [Fact]
+    public void PanelForms_HaveNoFieldForAProductConstant()
+    {
+        string root = RepositoryRoot.Find();
+        string pages = Path.Combine(root, "src", "Shopfolio.Web", "Pages");
+        List<string> findings = [];
+        foreach (string file in Directory.EnumerateFiles(pages, "*.*", SearchOption.AllDirectories).Where(f => f.EndsWith(".cshtml", StringComparison.Ordinal) || f.EndsWith(".cs", StringComparison.Ordinal)))
+        {
+            foreach ((string rule, int line) in SettingLayerScan.ScanPanelFormSource(File.ReadAllText(file), ProductConstantNames()))
+            {
+                findings.Add($"{Path.GetRelativePath(root, file)}:{line} {rule}");
+            }
+        }
+
+        Assert.Empty(findings);
+    }
+
+    [Theory]
+    [InlineData("ProductConstantFormField.cshtml", 5)]
+    [InlineData("BoundConstantPageModel.cs", 7)]
+    public void PanelFormScan_OnViolationSample_ReportsTheRuleOnItsLine(string sample, int line)
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = SettingLayerScan.ScanPanelFormSource(File.ReadAllText(SamplePath(sample)), ProductConstantNames());
+
+        Assert.Equal((SettingLayerScan.FormFieldNamesProductConstant, line), Assert.Single(findings));
+    }
+
+    [Theory]
+    [InlineData("<input asp-for=\"@Model.Input.CategoryLevelMax\" />")]
+    [InlineData("<input id='CategoryLevelMax' />")]
+    [InlineData("[Required, BindProperty] public int CategoryLevelMax { get; set; }")]
+    [InlineData("[BindProperty(SupportsGet = true)]\npublic int CategoryLevelMax { get; set; }")]
+    public void PanelFormScan_SeesEachWayAFieldIsWritten(string source)
+    {
+        Assert.Single(SettingLayerScan.ScanPanelFormSource(source, ProductConstantNames()));
+    }
+
+    [Fact]
+    public void PanelFormScan_OnCleanSample_ReportsNothing_AndAFirmSettingFieldIsNotAConstant()
+    {
+        Assert.Empty(SettingLayerScan.ScanPanelFormSource(File.ReadAllText(SamplePath("CleanForm.cshtml")), ProductConstantNames()));
+    }
+
+    [Fact]
     public void TemplateScan_OnCleanSample_ReportsNothing()
     {
         Assert.Empty(SettingLayerScan.ScanSettingsTemplate(File.ReadAllText(SamplePath("SettingsClean.env")), ProductConstantNames(), SecretSettingKeys()));

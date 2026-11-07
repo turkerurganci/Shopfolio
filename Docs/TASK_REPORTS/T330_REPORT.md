@@ -97,7 +97,7 @@
 
 - **Branch:** `task/T330-firma-kimligi`
 - **Commit:** bkz. PR (son commit dal başı)
-- **PR:** bkz. aşağıdaki PR numarası satırı
+- **PR:** #420
 - **CI:** *(yapım CI izlemez)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

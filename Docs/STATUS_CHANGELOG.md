@@ -9,6 +9,12 @@
 
 ---
 
+## 2026-11-08 — T339 doğrulama tur 2 ✓ PASS (PR #445)
+
+T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) doğrulama tur 2 ✓ PASS (head `8a5b0a9` + `origin/main` (`a89710b`, T321, #439) birleştirmesi, PR #445; kriter 1–9, KK1–KK9, `09 §25` ve güvenlik taraması ✓; tur 1 B1 giderildi: birleşik ağaçta `ProductGalleryTests` 18/18; Unit 3032 + Architecture 943 + Consistency 241, betik testleri, Integration yerelde Gallery 18, Concurrency + SearchEngineData 44, GalleryLink + CatalogCore + SampleDatabase + StockAndCapacity 144, ImageFiles 14, VersionedFormPage + ProductTransitions 61/62 (düşen tek test D-392, T339 dışı); temizleyiciye ek 24 örneklik XSS yoklaması temiz; dal CI 42419057833 yeşil; bulgu 0, yeni K-notu yok; `12` `Durum` değişmedi (KP-5/KP-42 satırları uç ve tarayıcı kanıtı ister); backlog aktif 153). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
+---
+
 ## 2026-11-08 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) düzeltme turu 1 yapıldı
 
 2026-11-08 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) düzeltme turu 1 yapıldı, doğrulama tur 2 bekliyor (PR #445; `origin/main` (`af6e7d3`, T334) dala birleştirildi; B1 giderildi: `ProductGalleryTests.cs` üç tohum `Variant.Create(..., Now, 100)` ile stoklu, ürün koduna dokunulmadı; K2 → D-384 kapatıldı (test adı `…WhenTheFormMarksNone`), K1 → D-383 açık; kayıt belgesi çakışmaları çözüldü; backlog aktif 147; yeni K-notları D-391, D-392).
@@ -25,6 +31,25 @@
 
 2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 3 ✓ PASS (head `c5b9afd` + `origin/main` (T316, #437) birleştirmesi, PR #439; kriter 1–9, KK1–KK9 ve `09 §25` ✓, güvenlik taraması temiz; tur 2 Bulgu 1 — `IOrderingModule` sepet metotlarının kendi `SaveChangesAsync`'i — giderildi: iki metot yalnız izlenen değişiklik bırakır, kaydı `ITransactionRunner` yapar (`TheCartMethods_DoNotSaveOnTheirOwn_...KK7`); bulgu 0, yeni K-notu 0; dal CI 42406697716 yeşil; yerelde derleme `-warnaserror` 0 uyarı, biçim üç proje temiz, Unit 4062/4062 (Architecture ve Consistency dahil), betik testleri 4/4, Integration `ProductTransitionsTests` 41, Sitemap + SearchEngine + Scheduler + ContentStatus 65, OrderTransitions + Concurrency 57 (postgres:18); `12` KP-7/KP-40 satırları uç yanıtı, panel ya da adres sayfası ister → `BEKLEMEDE` kalır; kayıt belgeleri çakışması `origin/main` ile çözüldü, backlog Aktif kalem 145). Merge ve post-merge CI yardımcıda.
 
+## 2026-11-07 — T334 (Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme) doğrulama tur 1 PASS
+
+2026-11-07 — T334 (Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme) doğrulama tur 1 ✓ PASS (head `2b3e600` + `origin/main` (T328) birleştirmesi, PR #443; kriter 1–8, KK1–KK8 ve `09 §25` ✓, güvenlik taraması temiz; Unit 4069 (birleştirmeden önce), 4093 (sonra); betik testleri; Integration yerelde StockAndCapacity 27, CatalogCore+SalesModel 88, Concurrency+ImageFiles+CartAndOrderCore+StockReservation 133, AppCache+SearchEngineData+VersionedFormPage 53 (yapım raporundaki `VersionedFormPageTests` düşmesi yinelenmedi), birleştirme sonrası NotificationMapQueue+SalesModel 31; dal CI 42403928586 yeşil; bulgu 0, K-notu 1 → D-362 (T525); `12` `Durum` değişmedi (satırların kanıtı uç yanıtı, tarayıcı gözlemi ya da ödeme onayı — T503, T525, T348); backlog aktif sayısı yeniden sayıldı: 139). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
+## 2026-11-07 — T341 (Üyelik) doğrulama tur 2 FAIL
+
+2026-11-07 — T341 (Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı) doğrulama tur 2 ✗ FAIL (CI düzeltmesi sonrası tam yeniden doğrulama; head `2aa0153`, PR #433; kriter 1–6, 8, 9 ve KK1–KK9 ✓, kriter 7 ~ Kısmi; `09 §25` bir "hayır": Bulgu 1 ORTA S1 — `MembershipModule.RegisterAsync` e-posta biçimini `04` 7.3.2.1'in tek kuralı `InvalidEmailAttribute` yerine çatının `MailAddress` ayrıştırıcısıyla kurulan ayrı bir `IsValidEmail` ile denetliyor (`09 §3.4` m.1, §24 m.4); iki kural iki yönde ayrışıyor (`a..b@example.com` kuralın kabul ettiği adres kayıtta red, 70 karakterlik yerel kısım, `_`'lı ve `-` ile başlayan alan adı, boşluklu tırnaklı yerel kısım kayıtta kabul); build `-warnaserror` 0 uyarı, format üç proje temiz, Unit 4037 (Architecture 918, Consistency 230, öteki 2889), betik testleri, Integration yerelde MembershipTests 29 + komşu dört sınıf 109; dal CI 42404071089 yeşil; K-notu 2: K1 D-364 (`09 §15.1` Test: hesap yokken sahte özetle doğrulamanın sayaçlı dekoratör testi yok → T342), K2 D-365 (`PasswordService.IterationCount` 210000 `09`'da yazılı değil → F3 gate); `12` `VAL-D018`…`VAL-D020` `BEKLEMEDE` kaldı; `origin/main` (T328) birleştirildi; backlog aktif 136). Düzeltme r2 yapıldı (Bulgu 1: `IsValidEmail` kaldırıldı, kayıt e-postası `InvalidEmailAttribute` ile; `a..b@example.com` kabul, 70 karakterlik yerel kısım, `_`'lı ve `-` ile başlayan alan adı, boşluklu tırnaklı yerel kısım ret testleri; Integration MembershipTests 34, AccountEmailQueueTests 14; D-379 gönderim tarafı; backlog aktif 142), tur 3 bekliyor. Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
+## 2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) doğrulama tur 2 PASS
+
+2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) doğrulama tur 2 ✓ PASS (head `2d04809` + `origin/main` birleştirmesi, PR #437; kriter 1–9, KK1–KK9 ve `09 §25` ✓, güvenlik taraması temiz; tur 1 bulgusu B1 giderildi ve S3, S4, S9 için sınandı; bulgu 0, K-notu 0; dal CI 42399324842 yeşil; Unit Architecture 906 + Consistency 230 + öteki 2840, Integration `ShipmentTransitionsTests` 94, `OrderTransitionsTests` 31, `ConcurrencyTests` 26; `12` KP-46 satırları `BEKLEMEDE` kalır). Merge ve post-merge CI yardımcıda.
+
+## 2026-11-07 — T328 (Bildirim haritası) doğrulama tur 1 PASS
+
+2026-11-07 — T328 (Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi) doğrulama tur 1 ✓ PASS (head `0edb3bd`, PR #440; kriter 1–7, KK1–KK7 ve `09 §25` ✓, güvenlik taraması temiz; KK7 iki mutasyonla (kodda fazla satır, belgede eksik akış atfı) kırıldığı görüldü; Unit Consistency 241, öteki 3746; betik testleri; Integration yerelde NotificationMapQueue 3, komşu kuyruk sınıfları 47; dal CI 42394956374 yeşil; bulgu 0, K-notu 1 (D-295 sayımı ve backlog aktif sayısı bu PR'da düzeltildi); `12` `Durum` değişmedi (kaynak birimi `03 §7.1`–§7.3'e bağlı satır yok); backlog aktif 130).
+
+## 2026-11-07 — T341 (Üyelik) doğrulama tur 1 PASS
+
+2026-11-07 — T341 (Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı) doğrulama tur 1 ✓ PASS (head `391cdc3` + `origin/main` birleştirmesi, PR #433; kriter 1–9, KK1–KK9 ve `09 §25` ✓ (ekran, POST ve sipariş ucu yüzleri modül düzeyinde; bağlar D-254), güvenlik taraması temiz; build `-warnaserror` 0 uyarı, format üç proje temiz, Unit 3534 (Architecture 842, Consistency 213, öteki 2479), betik testleri, Integration yerelde MembershipTests 29, SessionLinkAttemptLoginTables + LinkRecords + AccountEmailQueue 95, AppCache 14; dal CI 42378956325 yeşil; bulgu 0; K-notu 3: K1 D-252 hedefi T309 → T514, K2 D-289 (P-12 iki sabitte; CI düzeltmesinde tek sabite indi, ✅), K3 D-290 (`09 §15.1` m.5 metni); `12` `VAL-D018`…`VAL-D020` `BEKLEMEDE` kaldı (sipariş geçmişinin uç yanıtı sonraki task'larda); CI düzeltmesi: main'e giren T381 yüzünden `GateOnlySettings` yeni üyeleri uyguladı ve P-12 için tek sabit `EmailVerificationLinkHours` kullanıldı; backlog aktif 132).
 ---
 
 ## 2026-11-07 — T334 (Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme) doğrulama tur 1 PASS
@@ -122,6 +147,10 @@ T328 (Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve 
 ## 2026-11-07 — T366 (Yasal metinler) doğrulama tur 2
 
 2026-11-07 — T366 (Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin) doğrulama tur 2 ✓ PASS (head `171fc5d`, PR #428; tam yeniden doğrulama: kriter 1–10, KK1–KK10, `09 §25` ve güvenlik taraması ✓ — tur 1 bulgusu kapandı: aydınlatma kimlik eksikken yayımlanmaz, yer tutucular gösterimde güncel kimlikle HTML kodlu dolar; 4, 5, 6 modül düzeyinde; Unit 3500, betik testleri, Integration yerelde parçalı 121 geçti, dal CI 42371931110 yeşil; `12` `Durum` değişmedi; K1 → D-268 (T356), K2 → D-269 (T507); backlog aktif 115).
+## 2026-11-07 — T341 (Üyelik) yapım bitti
+
+2026-11-07 — T341 (Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı) yapım bitti, PR #433 açık, doğrulama bekliyor (task `⏳ Devam ediyor`; Unit 3477 (Architecture dahil), Integration yerelde MembershipTests 29 + SessionLinkAttemptLoginTables/LinkRecords/Disposal 99 geçti; modül yüzü: kayıt, doğrulama bağlantısı okuma ve doğrulama, yeniden gönderim, şifre ve kapı denetimi, sipariş hesabı çözümü, misafir siparişlerinin bağlanması, hesap adı, giriş kaydı; ekran ve POST bağları D-254, şifre politikası D-251, e-posta gönderimi D-252, gece silmesi D-253, L-1 ve oturum D-255; D-64 ve D-96 kapandı, backlog aktif 106). Önceki kayıt `STATUS_CHANGELOG.md`de.
+
 ## 2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) doğrulama tur 3 PASS
 
 2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) doğrulama tur 3 ✓ PASS — eskalasyon sonrası tam doğrulama (head `3e9eb28`, PR #427; kriter 1–10 ve KK1–KK10 ✓, bulgu yok; düzeltme 2 ile B-1 düzeltmesinin `OriginalDispatchId`'si zincirin köküne iner; dal CI 42373330980 yeşil; Unit 3572 (Architecture 830), Integration CustomerNoticeQueueTests 14 + komşu 41; `12` `Durum` değişmedi (A317–A320, A324 gönderimi ister, `BEKLEMEDE`); K1 → D-272 (`EventValues` yük biçimi örnek dosyası), backlog aktif 108).

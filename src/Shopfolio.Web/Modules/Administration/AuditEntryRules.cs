@@ -12,9 +12,10 @@ namespace Shopfolio.Modules.Administration;
 /// <list type="bullet">
 /// <item>The operation is a defined code and the target record has the kind the operation owns; the kind and the id are given together, and an export has neither.</item>
 /// <item>A company, branding or settings change carries its changed fields with the old and the new value.</item>
-/// <item>An order operation and the deletion of a customer's account carry no personal data of the customer: no field or value is named after a name, an address,
-/// a phone, an email, an IBAN or a note, and no value looks like an email address or an IBAN. The correction of an address, of a contact email, an internal note
-/// and the deletion of an account carry no old-new pair at all.</item>
+/// <item>An order operation and the deletion of a customer's account carry no personal data of the customer in any slot of the details: no field or value is named
+/// after a name, an address, a phone, an email, an IBAN or a note; every value is a code, a date, a count, an amount or an id by the shape of its name; no value looks
+/// like an email address or an IBAN. The display name of an order row is the order number; the deletion of an account has none (it names the operation and its date,
+/// not the account). The correction of an address, of a contact email, an internal note and the deletion of an account carry no old-new pair at all.</item>
 /// </list>
 /// </summary>
 internal static partial class AuditEntryRules
@@ -25,6 +26,9 @@ internal static partial class AuditEntryRules
     public const int MaxNameLength = 100;
 
     public const int MaxValueLength = 2000;
+
+    /// <summary>The longest code a protected row carries as a value.</summary>
+    public const int MaxCodeLength = 64;
 
     /// <summary>The operations that must not carry an old-new pair (09 9.2 item 4): the old and the new value would be the customer's data or a note's text.</summary>
     private static readonly FrozenSet<AuditOperation> NoPairOperations = new HashSet<AuditOperation>
@@ -54,16 +58,52 @@ internal static partial class AuditEntryRules
         "note", "notetext", "internalnote", "text", "notebody", "message",
     }.ToFrozenSet(StringComparer.Ordinal);
 
-    /// <summary>
-    /// The closed list of the field and value names an order row and the deletion of an account may carry (letters only, lower case): codes, dates, quantities and the
-    /// cargo data of the firm's own operations - nothing that is a customer's text. The audit trail interface is the one place this list is kept (09 9.2 item 4).
-    /// </summary>
-    private static readonly FrozenSet<string> CustomerSafeNames = new HashSet<string>(StringComparer.Ordinal)
+    /// <summary>The closed shapes a value of an order row or of the deletion of an account takes: a code, a date, a count or an amount, an id - never a customer's text.</summary>
+    private enum ValueShape
     {
-        "field", "operation", "reason", "reasoncode", "correctionreason", "transitioncode", "fromstatus", "tostatus", "channel", "count",
-        "date", "requestdate", "requestedat", "ibanrequestedat", "deliveredat", "shippedat", "arrivalat", "arrivaldate", "returnarrivaldate", "deliverydate",
-        "carrier", "carriername", "trackingnumber", "itemid", "item", "quantity", "oldquantity", "newquantity", "amount", "refundid", "returnid", "paymentid",
-    }.ToFrozenSet(StringComparer.Ordinal);
+        Code,
+        Date,
+        Count,
+        Amount,
+        Id,
+    }
+
+    /// <summary>
+    /// The closed list of the field and value names an order row and the deletion of an account may carry (letters only, lower case), each with the one shape its value
+    /// takes. A name that can carry free text (a carrier's name, a tracking number, an item's name) is not on the list. The audit trail interface is the one place this
+    /// list is kept (09 9.2 item 4).
+    /// </summary>
+    private static readonly FrozenDictionary<string, ValueShape> CustomerSafeNames = new Dictionary<string, ValueShape>(StringComparer.Ordinal)
+    {
+        ["field"] = ValueShape.Code,
+        ["operation"] = ValueShape.Code,
+        ["reason"] = ValueShape.Code,
+        ["reasoncode"] = ValueShape.Code,
+        ["correctionreason"] = ValueShape.Code,
+        ["transitioncode"] = ValueShape.Code,
+        ["fromstatus"] = ValueShape.Code,
+        ["tostatus"] = ValueShape.Code,
+        ["channel"] = ValueShape.Code,
+        ["count"] = ValueShape.Count,
+        ["quantity"] = ValueShape.Count,
+        ["oldquantity"] = ValueShape.Count,
+        ["newquantity"] = ValueShape.Count,
+        ["amount"] = ValueShape.Amount,
+        ["date"] = ValueShape.Date,
+        ["requestdate"] = ValueShape.Date,
+        ["requestedat"] = ValueShape.Date,
+        ["ibanrequestedat"] = ValueShape.Date,
+        ["deliveredat"] = ValueShape.Date,
+        ["shippedat"] = ValueShape.Date,
+        ["arrivalat"] = ValueShape.Date,
+        ["arrivaldate"] = ValueShape.Date,
+        ["returnarrivaldate"] = ValueShape.Date,
+        ["deliverydate"] = ValueShape.Date,
+        ["itemid"] = ValueShape.Id,
+        ["refundid"] = ValueShape.Id,
+        ["returnid"] = ValueShape.Id,
+        ["paymentid"] = ValueShape.Id,
+    }.ToFrozenDictionary(StringComparer.Ordinal);
 
     /// <summary>The fixed kind of the target record of an operation (09 9.2 item 3); an operation that is not here takes any kind (a publication takes the kind of the record, 06 5.2.3).</summary>
     public static IReadOnlyList<string>? TargetTypesOf(AuditOperation operation) => operation switch
@@ -189,14 +229,18 @@ internal static partial class AuditEntryRules
             throw new ArgumentException($"{entry.Operation} carries no old and new value (09 9.2 item 4).", nameof(entry));
         }
 
+        CheckDisplayName(entry.Operation, details.DisplayName);
+
         foreach (AuditValueChange change in details.Changes)
         {
-            RefuseName(change.Field);
+            ValueShape shape = RefuseName(change.Field);
+            CheckShape(entry.Operation, change.Field, shape, change.OldValue);
+            CheckShape(entry.Operation, change.Field, shape, change.NewValue);
         }
 
         foreach (AuditValue value in details.Values)
         {
-            RefuseName(value.Name);
+            CheckShape(entry.Operation, value.Name, RefuseName(value.Name), value.Value);
         }
 
         foreach (string? text in Texts(details))
@@ -239,7 +283,48 @@ internal static partial class AuditEntryRules
         }
     }
 
-    private static void RefuseName(string name)
+    // The display name of an order row is the order number and nothing else; the deletion of an account names the operation and its date, not the account (02 10.3.1 (3), (8)).
+    private static void CheckDisplayName(AuditOperation operation, string? displayName)
+    {
+        if (displayName is null)
+        {
+            return;
+        }
+
+        if (operation == AuditOperation.DeleteCustomerAccount)
+        {
+            throw new ArgumentException("The deletion of an account names the operation and its date, not the account: it has no display name (06 4.63; 02 10.3.1 (8)).");
+        }
+
+        if (!OrderNumber().IsMatch(displayName))
+        {
+            throw new ArgumentException($"The display name of {operation} is the order number only (09 9.2 item 4).");
+        }
+    }
+
+    private static void CheckShape(AuditOperation operation, string name, ValueShape shape, string? value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        bool fits = shape switch
+        {
+            ValueShape.Code => value.Length <= MaxCodeLength && CodeText().IsMatch(value),
+            ValueShape.Date => DateText().IsMatch(value),
+            ValueShape.Count => CountText().IsMatch(value),
+            ValueShape.Amount => AmountText().IsMatch(value),
+            ValueShape.Id => Guid.TryParseExact(value, "D", out _),
+            _ => false,
+        };
+        if (!fits)
+        {
+            throw new ArgumentException($"The value of '{name}' of {operation} is not a {shape.ToString().ToLowerInvariant()}: the customer's text is not written (09 9.2 item 4).");
+        }
+    }
+
+    private static ValueShape RefuseName(string name)
     {
         string key = new([.. name.Where(char.IsLetter).Select(c => char.ToLower(c, CultureInfo.InvariantCulture))]);
         if (PersonalNames.Contains(key))
@@ -248,11 +333,32 @@ internal static partial class AuditEntryRules
         }
 
         // The rows that protect the customer take the names of a closed list: a free name could carry the customer's text under an innocent field.
-        if (!CustomerSafeNames.Contains(key))
+        if (!CustomerSafeNames.TryGetValue(key, out ValueShape shape))
         {
             throw new ArgumentException($"The name '{name}' is not on the closed list of the names an order row may carry (09 9.2 item 4); a new name is added to the list with its reason.");
         }
+
+        return shape;
     }
+
+    // Order number: the year, a hyphen and the random block (02 3.22.1, P-19).
+    [GeneratedRegex(@"^\d{4}-[A-Za-z0-9]{4,12}$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex OrderNumber();
+
+    // A code: ASCII letters and digits, starting with a letter, parts joined by . _ or - - no space, no Turkish letter, so a sentence or a full name is not one.
+    [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9]*(?:[._\-][A-Za-z0-9]+)*$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex CodeText();
+
+    // A date or a moment in ISO 8601: a phone number or a house number is not one.
+    [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,7})?)?(?:Z|[+\-]\d{2}:\d{2})?)?$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex DateText();
+
+    // A count has at most six digits, so an eleven-digit phone number is not one.
+    [GeneratedRegex(@"^\d{1,6}$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex CountText();
+
+    [GeneratedRegex(@"^\d{1,9}(?:\.\d{1,2})?$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex AmountText();
 
     // A Turkish IBAN is TR, two check digits and twenty-two digits (the only account the product refunds to); spaces and hyphens inside are the way it is written by hand.
     // A cargo tracking number is not caught: it has no TR prefix followed by twenty-four digits.

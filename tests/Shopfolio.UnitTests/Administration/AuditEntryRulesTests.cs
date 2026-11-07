@@ -136,7 +136,7 @@ public sealed class AuditEntryRulesTests
     {
         foreach (AuditOperation operation in OrderOperations())
         {
-            AuditDetails asValue = new("Sipariş 2026ABCD", values: [new AuditValue(name, "x")]);
+            AuditDetails asValue = new("2026-ABCD12", values: [new AuditValue(name, "x")]);
             Assert.Throws<ArgumentException>(() => AuditEntryRules.Validate(new AuditEntry(operation, "Order", Target, asValue)));
         }
     }
@@ -168,8 +168,8 @@ public sealed class AuditEntryRulesTests
                 [
                     new(displayName: value),
                     new("x", values: [new AuditValue("Reason", value)]),
-                    new("x", changes: [new AuditValueChange("TrackingNumber", value, "1")]),
-                    new("x", changes: [new AuditValueChange("TrackingNumber", "1", value)]),
+                    new("x", changes: [new AuditValueChange("Reason", value, "Ok")]),
+                    new("x", changes: [new AuditValueChange("Reason", "Ok", value)]),
                 ];
                 foreach (AuditDetails details in places)
                 {
@@ -179,18 +179,152 @@ public sealed class AuditEntryRulesTests
         }
     }
 
+    // Known personal data of a customer: a name, an address, a phone, an internal note's text (T380 criterion 3, 09 9.2 item 4 Test).
+    public static TheoryData<string> PersonalTexts() => new()
+    {
+        "Ayşe Yılmaz",
+        "Ayşe",
+        "Atatürk Mah. 12. Sk. No:3 Kadıköy",
+        "0532 123 45 67",
+        "05321234567",
+        "+90 532 123 45 67",
+        "Müşteri kapıda aranmak istiyor",
+        "Bu müşteri her zaman geç alır",
+    };
+
+    private static IEnumerable<AuditDetails> EverySlotWith(string text)
+    {
+        yield return new AuditDetails(displayName: text);
+        foreach (string name in new[] { "Field", "Operation", "Reason", "ReasonCode", "CorrectionReason", "TransitionCode", "FromStatus", "ToStatus", "Channel" })
+        {
+            yield return new AuditDetails("2026-ABCD12", values: [new AuditValue(name, text)]);
+            yield return new AuditDetails("2026-ABCD12", changes: [new AuditValueChange(name, text, "Ok")]);
+            yield return new AuditDetails("2026-ABCD12", changes: [new AuditValueChange(name, "Ok", text)]);
+        }
+
+        foreach (string name in new[] { "Count", "Quantity", "OldQuantity", "NewQuantity", "Amount", "Date", "RequestDate", "IbanRequestedAt", "DeliveredAt", "ShippedAt", "ItemId", "RefundId" })
+        {
+            yield return new AuditDetails("2026-ABCD12", values: [new AuditValue(name, text)]);
+            yield return new AuditDetails("2026-ABCD12", changes: [new AuditValueChange(name, text, null)]);
+            yield return new AuditDetails("2026-ABCD12", changes: [new AuditValueChange(name, null, text)]);
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(PersonalTexts))]
+    public void AnOrderRow_RefusesAKnownNameAddressPhoneAndNote_InEverySlotOfTheDetails(string text)
+    {
+        foreach (AuditOperation operation in OrderOperations())
+        {
+            foreach (AuditDetails details in EverySlotWith(text))
+            {
+                Assert.Throws<ArgumentException>(() => AuditEntryRules.Validate(new AuditEntry(operation, "Order", Target, details)));
+            }
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(PersonalTexts))]
+    public void TheDeletionOfAnAccount_RefusesAKnownNameAddressPhoneAndNote_InEverySlotOfTheDetails(string text)
+    {
+        foreach (AuditDetails details in EverySlotWith(text).Where(d => d.Changes.Count == 0))
+        {
+            Assert.Throws<ArgumentException>(() => AuditEntryRules.Validate(new AuditEntry(AuditOperation.DeleteCustomerAccount, "Customer", Target, details)));
+        }
+    }
+
+    [Theory]
+    [InlineData("Ayşe Yılmaz")]
+    [InlineData("Ali")]
+    [InlineData("2026")]
+    [InlineData("Sipariş 2026-ABCD12")]
+    [InlineData("2026-ABCD12 Ayşe")]
+    [InlineData("Atatürk Mah. 12. Sk. No:3")]
+    [InlineData("")]
+    public void TheDisplayNameOfAnOrderRow_IsTheOrderNumberOnly(string displayName)
+    {
+        foreach (AuditOperation operation in OrderOperations())
+        {
+            Assert.Throws<ArgumentException>(() => AuditEntryRules.Validate(new AuditEntry(operation, "Order", Target, new AuditDetails(displayName))));
+            AuditEntryRules.Validate(new AuditEntry(operation, "Order", Target, new AuditDetails("2026-7K4M9P")));
+            AuditEntryRules.Validate(new AuditEntry(operation, "Order", Target, null));
+        }
+    }
+
+    [Fact]
+    public void TheDeletionOfAnAccount_HasNoDisplayName_ItNamesTheOperationAndItsDateOnly()
+    {
+        foreach (string name in new[] { "Ayşe Yılmaz", "2026-ABCD12", "Hesap silindi", "" })
+        {
+            Assert.Throws<ArgumentException>(() => AuditEntryRules.Validate(new AuditEntry(AuditOperation.DeleteCustomerAccount, "Customer", Target, new AuditDetails(name))));
+        }
+
+        AuditEntryRules.Validate(new AuditEntry(AuditOperation.DeleteCustomerAccount, "Customer", Target, new AuditDetails(values: [new AuditValue("Operation", "DeleteCustomerAccount"), new AuditValue("RequestDate", "2026-11-05")])));
+    }
+
+    [Theory]
+    [InlineData("Carrier")]
+    [InlineData("CarrierName")]
+    [InlineData("TrackingNumber")]
+    [InlineData("Item")]
+    [InlineData("ItemName")]
+    [InlineData("Description")]
+    [InlineData("Comment")]
+    public void AValueNameThatCanCarryFreeText_IsNotOnTheClosedList(string name)
+    {
+        foreach (AuditOperation operation in OrderOperations().Append(AuditOperation.DeleteCustomerAccount))
+        {
+            string type = operation == AuditOperation.DeleteCustomerAccount ? "Customer" : "Order";
+            Assert.Throws<ArgumentException>(() => AuditEntryRules.Validate(new AuditEntry(operation, type, Target, new AuditDetails(values: [new AuditValue(name, "YK12345678901")]))));
+        }
+    }
+
+    [Fact]
+    public void ACodeADateACountAnAmountAndAnId_AreWrittenInTheirSlots()
+    {
+        AuditDetails details = new(
+            "2026-7K4M9P",
+            changes: [new AuditValueChange("FromStatus", "AwaitingPayment", "Paid"), new AuditValueChange("Quantity", "2", "3"), new AuditValueChange("DeliveredAt", "2026-11-04T09:30:00+03:00", "2026-11-05")],
+            values: [new AuditValue("Reason", "Damaged"), new AuditValue("Amount", "149.90"), new AuditValue("ItemId", Target.ToString("D")), new AuditValue("Channel", "bank_transfer")]);
+
+        Assert.Null(Record.Exception(() => AuditEntryRules.Validate(new AuditEntry(AuditOperation.CorrectShippingInfo, "Order", Target, details))));
+    }
+
+    [Theory]
+    [InlineData("Quantity", "05321234567")]
+    [InlineData("Quantity", "-1")]
+    [InlineData("Amount", "0532 123 45 67")]
+    [InlineData("Date", "12. Sk. No:3")]
+    [InlineData("Date", "2026-11-05 Ayşe")]
+    [InlineData("ItemId", "Ayşe")]
+    [InlineData("Reason", "Ayşe Yılmaz")]
+    [InlineData("Reason", "1st")]
+    public void AValueOfTheWrongShapeForItsName_IsRefused(string name, string value)
+    {
+        Assert.Throws<ArgumentException>(() => AuditEntryRules.Validate(
+            new AuditEntry(AuditOperation.CorrectShippingInfo, "Order", Target, new AuditDetails(values: [new AuditValue(name, value)]))));
+    }
+
+    [Fact]
+    public void TheValuesOfASetting_AreNotHeldToTheShapes_TheFirmsOwnIbanAndReturnAddressAreWritten()
+    {
+        AuditDetails details = new("Havale bilgisi", [new AuditValueChange("ReturnAddress", "Atatürk Mah. 12. Sk. No:3", "Yeni Mah. 2. Sk.")]);
+
+        AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateSettings, "CompanySettings", Target, details));
+    }
+
     [Theory]
     [InlineData(AuditOperation.CorrectAddress)]
     [InlineData(AuditOperation.CorrectContactEmail)]
     [InlineData(AuditOperation.SaveInternalNote)]
     public void TheCorrectionOfAnAddressOrAnEmailAndTheNote_CarryNoOldAndNewPair(AuditOperation operation)
     {
-        AuditDetails pair = new("2026ABCD", changes: [new AuditValueChange("Field", "a", "b")]);
+        AuditDetails pair = new("2026-ABCD12", changes: [new AuditValueChange("Field", "a", "b")]);
 
         Assert.Throws<ArgumentException>(() => AuditEntryRules.Validate(new AuditEntry(operation, "Order", Target, pair)));
 
         // The row names the order, the field and the operation only.
-        AuditEntryRules.Validate(new AuditEntry(operation, "Order", Target, new AuditDetails("2026ABCD", values: [new AuditValue("Field", "ShippingAddress")])));
+        AuditEntryRules.Validate(new AuditEntry(operation, "Order", Target, new AuditDetails("2026-ABCD12", values: [new AuditValue("Field", "ShippingAddress")])));
     }
 
     [Fact]
@@ -205,17 +339,17 @@ public sealed class AuditEntryRulesTests
     [Fact]
     public void TheIbanRequestRow_CarriesTheDateOnly()
     {
-        AuditEntryRules.Validate(new AuditEntry(AuditOperation.ReceiveReturnWithIbanRequest, "Order", Target, new AuditDetails("2026ABCD", values: [new AuditValue("IbanRequestedAt", "2026-11-05")])));
+        AuditEntryRules.Validate(new AuditEntry(AuditOperation.ReceiveReturnWithIbanRequest, "Order", Target, new AuditDetails("2026-ABCD12", values: [new AuditValue("IbanRequestedAt", "2026-11-05")])));
         Assert.Throws<ArgumentException>(() => AuditEntryRules.Validate(
-            new AuditEntry(AuditOperation.ReceiveReturnWithIbanRequest, "Order", Target, new AuditDetails("2026ABCD", values: [new AuditValue("Iban", "TR330006100519786457841326")]))));
+            new AuditEntry(AuditOperation.ReceiveReturnWithIbanRequest, "Order", Target, new AuditDetails("2026-ABCD12", values: [new AuditValue("Iban", "TR330006100519786457841326")]))));
     }
 
     [Fact]
-    public void ATrackingNumberAndADate_AreNotTakenForAnIbanOrAnEmail()
+    public void ACodeAndADate_AreNotTakenForAnIbanOrAnEmail()
     {
         AuditDetails details = new(
-            "2026ABCD",
-            changes: [new AuditValueChange("TrackingNumber", "YK12345678901", "TR12345678901234"), new AuditValueChange("DeliveredAt", "2026-11-04", "2026-11-05")]);
+            "2026-ABCD12",
+            changes: [new AuditValueChange("Reason", "Returned", "TR12Damaged"), new AuditValueChange("DeliveredAt", "2026-11-04", "2026-11-05")]);
 
         Assert.Null(Record.Exception(() => AuditEntryRules.Validate(new AuditEntry(AuditOperation.CorrectShippingInfo, "Order", Target, details))));
     }

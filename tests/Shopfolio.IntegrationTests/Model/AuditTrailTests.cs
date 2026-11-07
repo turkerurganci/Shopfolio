@@ -58,7 +58,7 @@ public sealed class AuditTrailTests : IAsyncLifetime
     public async Task Write_InsideTheRunner_AddsOneRowWithTheAdministratorTheMomentTheAreaAndTheDetails()
     {
         Admin admin = await SeedAdminAsync("Ali Yılmaz", "ali@example.com");
-        AuditDetails details = new("2026ABCD", [new AuditValueChange("TrackingNumber", "A1", "B2")]);
+        AuditDetails details = new("2026-ABCD12", [new AuditValueChange("Reason", "A1", "B2")]);
 
         await RunAsync(admin, trail => trail.WriteAsync(new AuditEntry(AuditOperation.CorrectShippingInfo, "Order", Target, details), Ct));
 
@@ -71,8 +71,8 @@ public sealed class AuditTrailTests : IAsyncLifetime
         Assert.Equal("CorrectShippingInfo", row.Operation);
         Assert.Equal("Order", row.TargetRecordType);
         Assert.Equal(Target, row.TargetRecordId);
-        Assert.Equal("2026ABCD", row.Details!.DisplayName);
-        Assert.Equal(new AuditValueChange("TrackingNumber", "A1", "B2"), Assert.Single(row.Details.Changes));
+        Assert.Equal("2026-ABCD12", row.Details!.DisplayName);
+        Assert.Equal(new AuditValueChange("Reason", "A1", "B2"), Assert.Single(row.Details.Changes));
     }
 
     [Fact]
@@ -136,13 +136,45 @@ public sealed class AuditTrailTests : IAsyncLifetime
                     {
                         foreach (string value in values)
                         {
-                            AuditEntry entry = new(operation, "Order", Target, new AuditDetails("2026ABCD", values: [new AuditValue(field, value)]));
+                            AuditEntry entry = new(operation, "Order", Target, new AuditDetails("2026-ABCD12", values: [new AuditValue(field, value)]));
                             await Assert.ThrowsAsync<ArgumentException>(() => trail.WriteAsync(entry, Ct));
                         }
                     }
 
-                    AuditEntry withEmail = new(operation, "Order", Target, new AuditDetails("2026ABCD", values: [new AuditValue("Reason", "ayse@example.com")]));
+                    AuditEntry withEmail = new(operation, "Order", Target, new AuditDetails("2026-ABCD12", values: [new AuditValue("Reason", "ayse@example.com")]));
                     await Assert.ThrowsAsync<ArgumentException>(() => trail.WriteAsync(withEmail, Ct));
+                }
+            });
+
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM audit_logs"));
+    }
+
+    [Fact]
+    public async Task AKnownNameAddressPhoneAndNote_AreRefusedInEverySlotOfTheDetails_ForAnOrderRowAndTheDeletionOfAnAccount()
+    {
+        Admin admin = await SeedAdminAsync("Ali", "ali@example.com");
+        string[] texts = ["Ayşe Yılmaz", "Atatürk Mah. 12. Sk. No:3 Kadıköy", "0532 123 45 67", "Müşteri kapıda aranmak istiyor"];
+
+        await RunAsync(
+            admin,
+            async trail =>
+            {
+                foreach (string text in texts)
+                {
+                    List<AuditEntry> entries =
+                    [
+                        new(AuditOperation.DeleteCustomerAccount, "Customer", Target, new AuditDetails(text)),
+                        new(AuditOperation.DeleteCustomerAccount, "Customer", Target, new AuditDetails(values: [new AuditValue("Reason", text)])),
+                        new(AuditOperation.CorrectAddress, "Order", Target, new AuditDetails(text)),
+                        new(AuditOperation.SaveInternalNote, "Order", Target, new AuditDetails("2026-ABCD12", values: [new AuditValue("Field", text)])),
+                        new(AuditOperation.MarkShipped, "Order", Target, new AuditDetails("2026-ABCD12", values: [new AuditValue("Reason", text)])),
+                        new(AuditOperation.CorrectShippingInfo, "Order", Target, new AuditDetails("2026-ABCD12", [new AuditValueChange("Reason", text, "Ok")])),
+                        new(AuditOperation.CorrectShippingInfo, "Order", Target, new AuditDetails("2026-ABCD12", [new AuditValueChange("DeliveredAt", "2026-11-04", text)])),
+                    ];
+                    foreach (AuditEntry entry in entries)
+                    {
+                        await Assert.ThrowsAsync<ArgumentException>(() => trail.WriteAsync(entry, Ct));
+                    }
                 }
             });
 
@@ -157,9 +189,9 @@ public sealed class AuditTrailTests : IAsyncLifetime
         const string newAddress = "Yeni Mah. 2. Sk. No:2";
 
         await Assert.ThrowsAsync<ArgumentException>(() => RunAsync(admin, trail => trail.WriteAsync(
-            new AuditEntry(AuditOperation.CorrectAddress, "Order", Target, new AuditDetails("2026ABCD", [new AuditValueChange("Field", oldAddress, newAddress)])), Ct)));
+            new AuditEntry(AuditOperation.CorrectAddress, "Order", Target, new AuditDetails("2026-ABCD12", [new AuditValueChange("Field", oldAddress, newAddress)])), Ct)));
         await RunAsync(admin, trail => trail.WriteAsync(
-            new AuditEntry(AuditOperation.CorrectAddress, "Order", Target, new AuditDetails("2026ABCD", values: [new AuditValue("Field", "ShippingAddress")])), Ct));
+            new AuditEntry(AuditOperation.CorrectAddress, "Order", Target, new AuditDetails("2026-ABCD12", values: [new AuditValue("Field", "ShippingAddress")])), Ct));
 
         string stored = await ScalarAsync<string>("SELECT details::text FROM audit_logs");
         Assert.DoesNotContain("Mah.", stored, StringComparison.Ordinal);
@@ -268,7 +300,7 @@ public sealed class AuditTrailTests : IAsyncLifetime
         AuditLog wrong = await ReadSingleAsync();
         _time.Advance(TimeSpan.FromMinutes(5));
 
-        await RunAsync(admin, trail => trail.WriteAsync(new AuditEntry(AuditOperation.CorrectTransition, "Order", Target, new AuditDetails("2026ABCD", values: [new AuditValue("TransitionCode", "S6")])), Ct));
+        await RunAsync(admin, trail => trail.WriteAsync(new AuditEntry(AuditOperation.CorrectTransition, "Order", Target, new AuditDetails("2026-ABCD12", values: [new AuditValue("TransitionCode", "S6")])), Ct));
 
         AuditPage page = await ReadAsync(trail => trail.ListAsync(new AuditQuery(), Ct));
         Assert.Equal(["CorrectTransition", "MarkDelivered"], page.Items.Select(r => r.Operation));

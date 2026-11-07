@@ -82,7 +82,7 @@
 | Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-07, head `4345bf9`) |
 | Bulgu sayısı | 1 (KRİTİK, S1 — kriter 3 / KK3 / `09 §9.2` m.4) |
 | Düzeltme gerekli mi | Evet — bu PR'da düzeltme turu |
-| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-161) |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-164) |
 
 ### Doğrulama Sonucu — T380 İşlem izi — tur 1
 **Tarih:** 2026-11-07   **Branch:** task/T380-islem-izi   **Commit:** 4345bf9 (doğrulanan head; doğrulama kaydı bunun üstüne commit'lendi)
@@ -164,7 +164,7 @@
 #### Bloke-etmeyen Notlar (K-notları)
 | # | Not | Karar |
 |---|---|---|
-| K1 | `AuditEntryRules.TargetTypesOf(UpdateSettings)` yalnız `CompanySettings`/`Province`'i kabul eder (`09 §9.2` m.3 tablosuyla aynı); `02 §10.3.1` (6) ve `VAL-D039` ürün formundaki P-6, P-9, P-44 değişikliklerini de eski-yeni değerle ize ister — konusu `Product` olan satır bugün reddedilir. Ayrıca müşteri verisi için kapalı ad listesi ve hedef tür haritası yalnız kodda (`09`'da yok; yapım ⚠ (1)). | DEFERRED_BACKLOG'a forward: D-161 (T381 + D-159 doküman geçişi) |
+| K1 | `AuditEntryRules.TargetTypesOf(UpdateSettings)` yalnız `CompanySettings`/`Province`'i kabul eder (`09 §9.2` m.3 tablosuyla aynı); `02 §10.3.1` (6) ve `VAL-D039` ürün formundaki P-6, P-9, P-44 değişikliklerini de eski-yeni değerle ize ister — konusu `Product` olan satır bugün reddedilir. Ayrıca müşteri verisi için kapalı ad listesi ve hedef tür haritası yalnız kodda (`09`'da yok; yapım ⚠ (1)). | DEFERRED_BACKLOG'a forward: D-164 (T381 + D-159 doküman geçişi) |
 
 #### Yapım Raporu Karşılaştırması
 - Uyum: 1 uyuşmazlık
@@ -205,3 +205,36 @@ Dış varsayım: yok. Ana dal CI startup: `gh run list --branch main --limit 3` 
 - **Repo memory (bitiş kapısı 9):** güncellendi.
 - **⚠ Kolay kararlar:** (1) Müşteri verisi için kapalı ad listesi ve hedef tür haritası `09`'da yok, `AuditEntryRules`'ta; (2) IBAN deseni yalnız TR; (3) kişisel ad kara listesi harf-dışı karakterleri atarak küçük harfle karşılaştırır.
 - **Devir:** önceki işçi bağlam sınırında bölündü; bu işçi derleme/test düzeltmelerini (Integration yardımcı kopyası, `FrozenSet`, iddiasız testler) yaptı ve raporu yazdı.
+
+## Düzeltme 1 (doğrulama tur 1 FAIL → bulgu 1 KRİTİK S1)
+
+**Yapılan:** `AuditEntryRules` müşteri kişisel verisini `Details`'in her yuvasında denetler (`WriteAsync` doğrular, ihlal `ArgumentException`).
+
+- `Order` alanı satırlarında görünen ad yalnız sipariş numarasıdır (`yıl-blok`, `02 §3.22.1`); `DeleteCustomerAccount`'ta görünen ad yoktur (satır işlemi ve tarihini adlandırır; `06 §4.63`, `02 §10.3.1` (8)).
+- Değer adları kapalı listededir ve her ad tek bir kapalı biçime bağlıdır: kod (ASCII harf/rakam, harfle başlar, boşluk ve Türkçe harf yok, en çok 64), ISO tarih, adet (en çok 6 hane), tutar, kimlik (Guid). Alan adı ve eski/yeni değer çiftleri aynı biçim denetiminden geçer.
+- Serbest metin taşıyabilen adlar (`carrier`, `carriername`, `trackingnumber`, `item`) listeden çıkarıldı.
+- E-posta/IBAN deseni her yuvada korundu (kod biçimine uyan `TR…` IBAN'ı için).
+- `09 §9.2` m.4'e tek cümle: yasak `Details`'in her yuvası için geçerli, `Order`'da görünen ad sipariş numarası, hesap silmede yok, değer adı/biçim kapalı, Test her yuvada. `02`/`06` ile çelişmez (yeni kural değil, `02 §10.3.1` (3), (8) ve `06 §4.63`'ün yuva düzeyinde uygulanışı).
+- Backlog: dalın doğrulayıcı kaydı D-161 → **D-164** (main'deki D-161 T378'in); "Aktif kalem" main'e göre yeniden sayıldı (93 satır); dal içindeki bütün atıflar güncellendi.
+
+**Testler:** Unit `AuditEntryRulesTests`: bilinen ad ("Ayşe Yılmaz"), adres, telefon (üç biçim), not metni örnekleriyle her yuva (görünen ad; `Field/Operation/Reason/ReasonCode/CorrectionReason/TransitionCode/FromStatus/ToStatus/Channel` değeri ve eski/yeni; adet/tutar/tarih/kimlik adları) × bütün `Order` işlemleri ve `DeleteCustomerAccount` reddi; görünen ad yalnız sipariş numarası; hesap silmede görünen ad yok; kapatılan adlar; yanlış biçimli değer; kabul edilen kod/tarih/adet/tutar/kimlik; ayar satırı (`UpdateSettings`) biçime bağlı değil. Integration `AKnownNameAddressPhoneAndNote_AreRefusedInEverySlotOfTheDetails…`: reddedilen girişlerden sonra `audit_logs` boş.
+
+### Öz denetim (Düzeltme 1)
+
+| # | Kriter / KK | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 / KK1 | Sekiz alan | ✓ | Değişmedi; `TheEightAreas_AreEightAndEveryOperationBelongsToOne`, `EveryOperation_IsWritten_AndAllEightAreasAreOnTheRows` yeşil |
+| 2 / KK2 | Kim, ne zaman, neyi; ayarda eski-yeni | ✓ | Değişmedi; `ASettingsChange_KeepsTheOldAndTheNewValue…`, `TheValuesOfASetting_AreNotHeldToTheShapes…` yeşil |
+| 3 / KK3 | Kişisel veri/iç not metni değer olarak yazılamaz (her yuva) | ✓ | `AnOrderRow_RefusesAKnownNameAddressPhoneAndNote_InEverySlotOfTheDetails` (8 örnek), `TheDeletionOfAnAccount_Refuses…`, `TheDisplayNameOfAnOrderRow_IsTheOrderNumberOnly`, `TheDeletionOfAnAccount_HasNoDisplayName…`, `AValueNameThatCanCarryFreeText_IsNotOnTheClosedList`; Integration `AKnownNameAddressPhoneAndNote_AreRefused…` |
+| 4 / KK4 | Aynı veritabanı işlemi | ✓ | Değişmedi; `AuditTrailTests` 22/22 |
+| 5 / KK5 | Değiştirilemez/silinemez | ✓ | Değişmedi; tablo/yetki testleri `AuditTrailTests` içinde yeşil |
+| 6 / KK6 | Düzeltme yeni satır | ✓ | `ACorrectionOfAWrongTransition_IsANewRow…` yeşil (`TransitionCode` = `S6` kod biçimi) |
+| 7 / KK7 | Sistem olayı ize girmez | ✓ | Değişmedi; `AuditTrailSourceScanTests` 23/23 |
+| 8 / KK8 | Düz liste, süzgeçler | ✓ | Değişmedi |
+| 9 / KK9 | On yıl | ✓ | Değişmedi |
+| 10 / KK10 | İhlal modülü yok | ✓ | `AuditTrailSourceScanTests` yeşil |
+| `09 §25` Test | Her yuvada sınama | ✓ | Yukarıdaki yuva testleri |
+
+**Sonuçlar:** build `-warnaserror` 0/0 (Unit, Integration); Unit `Administration` 100/100, `AuditTrailSourceScanTests` 23/23; Integration `AuditTrailTests` 22/22 (PostgreSQL 18, `t380-pg`, silindi); `dotnet format --verify-no-changes` değişen üç dosyada temiz.
+
+**⚠ Kolay karar:** kod biçimi tek bir ASCII sözcüğü ("Ayse") ayıramaz; yalnız boşluklu/Türkçe harfli/rakamla başlayan metni reddeder. Çağıran task'lar kod olarak enum adı verir; daha sıkısı kodun gerçek sabit kümesini bilmeyi gerektirir (çağıran task'larda).

@@ -98,7 +98,13 @@ public sealed partial class TimeAndMoneyRulesTests
         Assert.Contains($"{Sample}.Expire(dueAt) (parameter)", findings);
         Assert.Contains($"{Sample}.DueAt (return)", findings);
         Assert.Contains($"{Sample}..ctor(openedAt) (parameter)", findings);
+        Assert.Contains($"{Sample}.History (property)", findings);
+        Assert.Contains($"{Sample}.Pairs (property)", findings);
+        Assert.Contains($"{Sample}.Dated (property)", findings);
+        Assert.Contains($"{Sample}.Mapped (property)", findings);
+        Assert.Contains($"{Sample}.Bulk(days) (parameter)", findings);
         Assert.DoesNotContain(findings, f => f.StartsWith($"{Sample}.StoredAt", StringComparison.Ordinal));
+        Assert.DoesNotContain(findings, f => f.StartsWith($"{Sample}.Instants", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -183,17 +189,36 @@ public sealed partial class TimeAndMoneyRulesTests
         return Calls(architecture).Where(c => ForbiddenTimeMember().IsMatch(c.Target)).ToList();
     }
 
+    /// <summary>Whether <paramref name="type"/> is <see cref="DateTime"/> or holds one as an element or a generic argument (D-77).</summary>
+    private static bool HoldsDateTime(System.Type type)
+    {
+        System.Type plain = Nullable.GetUnderlyingType(type) ?? type;
+        if (plain == typeof(DateTime))
+        {
+            return true;
+        }
+
+        // An array, a by-reference or pointer type, and every generic argument (a list, a dictionary, a tuple element) hold their element types.
+        if (plain.HasElementType)
+        {
+            return HoldsDateTime(plain.GetElementType()!);
+        }
+
+        return plain.IsGenericType && plain.GetGenericArguments().Any(HoldsDateTime);
+    }
+
     /// <summary>
-    /// Every field, property, method parameter and method return of <see cref="DateTime"/> (or <c>DateTime?</c>) declared in the assembly,
-    /// compiler-made members included: a <c>DateTime</c> whose <c>Kind</c> is wrong or unspecified shifts the time zone silently, so an
-    /// instant is a <see cref="DateTimeOffset"/> everywhere (09 7.1 item 2). A local inside a method body is not a declaration and is not
-    /// listed - <c>TurkeyTime</c> builds its day boundary that way.
+    /// Every field, property, method parameter and method return of <see cref="DateTime"/> (or <c>DateTime?</c>, or a type that holds one -
+    /// an array, a generic argument, a tuple element) declared in the assembly, compiler-made members included: a <c>DateTime</c> whose
+    /// <c>Kind</c> is wrong or unspecified shifts the time zone silently, so an instant is a <see cref="DateTimeOffset"/> everywhere (09 7.1
+    /// item 2). A local inside a method body is not a declaration and is not listed - <c>TurkeyTime</c> builds its day boundary that way.
     /// </summary>
+
     private static List<string> DateTimeSignatures(System.Reflection.Assembly assembly)
     {
         const System.Reflection.BindingFlags Declared = System.Reflection.BindingFlags.DeclaredOnly | System.Reflection.BindingFlags.Instance
             | System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
-        static bool IsDateTime(System.Type type) => (Nullable.GetUnderlyingType(type) ?? type) == typeof(DateTime);
+        static bool IsDateTime(System.Type type) => HoldsDateTime(type);
 
         List<string> findings = [];
         foreach (System.Type type in assembly.GetTypes())

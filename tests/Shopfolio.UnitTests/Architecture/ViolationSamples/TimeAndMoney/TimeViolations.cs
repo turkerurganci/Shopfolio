@@ -65,6 +65,21 @@ public sealed class LocalTimeRecord
 
     public DateTimeOffset StoredAt { get; set; }
 
+    // The same instant kept inside an array, a generic type or a tuple (D-77): reported; the DateTimeOffset forms are not.
+    public DateTime[] History { get; set; } = [];
+
+    public System.Collections.Generic.List<DateTime?> Pairs { get; set; } = [];
+
+    public (DateTime At, int Count) Dated { get; set; }
+
+    public System.Collections.Generic.IReadOnlyDictionary<string, DateTime> Mapped { get; set; } = null!;
+
+    public System.Collections.Generic.List<DateTimeOffset> Instants { get; set; } = [];
+
+    public void Bulk(System.Collections.Generic.IEnumerable<DateTime> days)
+    {
+    }
+
     public void Expire(DateTime dueAt) => _shippedAt = dueAt;
 
     public DateTime? DueAt() => _shippedAt;

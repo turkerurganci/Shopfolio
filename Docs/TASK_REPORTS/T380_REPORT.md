@@ -1,6 +1,6 @@
 # T380 — İşlem izi: sekiz alan, kim-ne zaman-ne değişti, değiştirilemez ve silinemez, sistem olayları ize girmez, düz liste, on yıl
 
-**Faz:** F3 | **Durum:** ✗ FAIL (doğrulama tur 1; düzeltme bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ PASS (doğrulama tur 2) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -79,10 +79,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-07, head `4345bf9`) |
-| Bulgu sayısı | 1 (KRİTİK, S1 — kriter 3 / KK3 / `09 §9.2` m.4) |
-| Düzeltme gerekli mi | Evet — bu PR'da düzeltme turu |
-| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-164) |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-07, head `1180a80` + `origin/main` birleştirmesi) · tur 1 ✗ FAIL (head `4345bf9`) |
+| Bulgu sayısı | Tur 2: 0 · tur 1: 1 (KRİTİK, S1 — kriter 3 / KK3 / `09 §9.2` m.4; Düzeltme 1'de kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 2 (K1 raporda kapatıldı, K2 → D-176) · tur 1: 1 (K1 → D-164) |
+
+Tur 2'nin tam sonucu raporun sonundaki "Doğrulama Sonucu — T380 İşlem izi — tur 2" bölümündedir.
 
 ### Doğrulama Sonucu — T380 İşlem izi — tur 1
 **Tarih:** 2026-11-07   **Branch:** task/T380-islem-izi   **Commit:** 4345bf9 (doğrulanan head; doğrulama kaydı bunun üstüne commit'lendi)
@@ -258,3 +260,104 @@ Dış varsayım: yok. Ana dal CI startup: `gh run list --branch main --limit 3` 
 | 5 | Kural değişmedi, sayı anan başka yer yok | ✓ | Belge kuralı/09 metni değişmedi; yalnız test satırı |
 | 6 | 06 Varsayılan/FK dizini | ✓ (kapsam dışı) | Şema değişmedi |
 | 7 | Kayıt belgeleri tutarlı | ✓ | STATUS tek giriş, eskisi changelog'da; backlog sayacı 94 |
+
+## Doğrulama tur 2
+
+### Doğrulama Sonucu — T380 İşlem izi — tur 2
+**Tarih:** 2026-11-07   **Branch:** task/T380-islem-izi   **Commit:** `1180a80` (doğrulanan head; 16. adımda `origin/main` birleştirmesi + kayıt commit'i eklendi)
+
+#### Verdict: ✓ PASS
+
+Kapsam TAM: kriter 1–10, KK1–KK10, `09 §25` ve güvenlik taraması baştan koşuldu. Tur 1 bulgusu (müşterinin kişisel verisi `Details`'in `DisplayName` yuvasında) kapandı: `AuditEntryRules` `Order` kodlarında ve `DeleteCustomerAccount`'ta her yuvayı denetler — `Order`'da görünen ad yalnız sipariş numarası (`^\d{4}-[A-Za-z0-9]{4,12}$`), hesap silmede görünen ad yok, değer ve alan adları kapalı listede ve her adın değeri tek kapalı biçimde (kod, ISO tarih, ≤6 haneli adet, tutar, Guid), `@` ve TR IBAN deseni her yuvada reddedilir, `CorrectAddress`/`CorrectContactEmail`/`SaveInternalNote`/`DeleteCustomerAccount`'ta eski–yeni çifti yok.
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana dizinin bekçisi) |
+| Ana dal CI (son 3) | ✓ | 42351368236 success, 42351368096 success, 42346300012 success |
+| Memory drift | ✓ | `grep -nE "\bT380\b" .claude/memory/MEMORY.md` → satır 22 (+ satır 98, T106) |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Sekiz alan | ✓ | `AuditOperationText.AreaOf` 43 kod → 8 alan; `AuditEntryRulesTests.AnEntryOfEachOfTheEightAreas_IsAccepted…`, `EveryOperation_HasAValidEntry…`; tümleşik `EveryOperation_IsWritten_AndAllEightAreasAreOnTheRows` (yerelde yeşil) |
+| 2 | Kim, ne zaman, neyi; ayarda eski–yeni | ✓ | `AuditTrail.WriteAsync` yönetici kimliği/ad/e-postayı `IAuditActorSource`'tan, anı `TimeProvider`'dan yazar; `UpdateCompany/UpdateBranding/UpdateSettings` çiftsiz reddedilir; `Write_InsideTheRunner_AddsOneRow…`, `ASettingsChange_KeepsTheOldAndTheNewValue…` |
+| 3 | Sipariş satırında kişisel veri yok; iç not metni yok | ✓ | `AuditEntryRules.ValidateDetails` (kod okundu); tümleşik `AKnownNameAddressPhoneAndNote_AreRefusedInEverySlotOfTheDetails…` ("Ayşe Yılmaz", adres, telefon, not × 7 yuva → `ArgumentException`, 0 satır), `TheRowOfAnAddressCorrection_NamesTheOrderTheFieldAndTheOperationOnly` (`details::text` "Mah." içermez) |
+| 4 | Aynı veritabanı işleminde | ✓ | `WriteAsync` işlem yoksa `InvalidOperationException`, `SaveChanges` çağırmaz; `ARefusedResult_UndoesTheRow_AndAnExceptionUndoesIt`, `Write_OutsideATransaction_IsRefused…` |
+| 5 | Değiştirilemez/silinemez; yalnız ekle–oku; imha fonksiyonu | ✓ | `TheApplicationUser_CannotChangeOrRemoveARow_ThroughTheContext` (uygulama kullanıcısıyla `ExecuteUpdate`/`ExecuteDelete` → 42501); T106 `AdminAndAuditTablesTests` yetki/katalog/sınır testleri yeşil; arayüzde güncelleme/silme yok (`AuditTrailSurfaceTests`) |
+| 6 | Düzeltme yeni satır | ✓ | `ACorrectionOfAWrongTransition_IsANewRow_AndTheWrongOnesRowStaysAsItWas` |
+| 7 | Sistem olayı ve kurulum komutu yazılmaz | ✓ | yönetici yoksa istisna (`WithoutAnAdministrator_…`); `TheCodes_NameNoSystemEvent…`; kaynak taraması `SystemCodeReachesTheTrail` (`Infrastructure/` `IAuditTrail`'e erişemez) |
+| 8 | Düz liste; tarih aralığı + yönetici süzgeci; arama/gruplama/dışa aktarma yok | ✓ | `AuditQuery(From, To, AdminId, Page)`; en yeni önce + `Id`, `PageSizes.Panel`=25; `TheListQuery_HasTheDateRangeTheAdministratorAndThePageOnly`, `TheTrailInterface_…NoSearchNoGroupingNoExport…`, `TheDateRange_IsTurkeyDays_…`, `ThePages_AreTwentyFiveRows_…` |
+| 9 | On yıl; kaldırılan yöneticinin satırı ad/e-postayla | ✓ | `ARowNineYearsOld_StaysWhenTheDisposalRuns…`, `TheRowsOfARemovedAdministrator_StayWithTheNameWritten…`; T106 sınır testleri |
+| 10 | İhlal kaydı modülü ve toplu bildirim yok | ✓ | kaynak taraması `BreachModule` kuralı + ihlal örneği; `ApplicationSource_…_AndNoBreachModule` yeşil |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-A310 (kriter 2) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D036 (kriter 1) | ORTA | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D037 (kriter 1) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D038 (kriter 1) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D039 (kriter 2) | ORTA | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D040 (kriter 2) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D041 (kriter 1, 3) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-A311 (kriter 8) | ORTA | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D042 (kriter 5) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | — |
+
+KP-63 satırlarının (`11 §7.1`: KP-63 → T380, T522) kanıt türü "Uç yanıtı / Tarayıcı gözlemi + Veri kaydı"dır; panel ekranı (T522) ve izi yazan panel işlemleri (T381, sipariş ve yönetici task'ları) gelmeden uç ve ekran kanıtı üretilemez → `BEKLEMEDE` (T314 emsali). T380'in payı (arayüz, kurallar, veritabanı koruması) kriter 1–10'da kanıtlandı. KP-77 satırları (VAL-A104, A107–A110, D024, C031) üye kaydı ekranı/silme akışınındır (T345, T533). KD-58'in satırı yok. `12_matris_denetle.py --kapsam 1-77` → Hata: 0.
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1: sekiz alan türü kabul edilir
+- [x] KK2: satır alanları; ayarda eski–yeni değer
+- [x] KK3: adres, e-posta ve iç not metni satırda yok (her yuvada)
+- [x] KK4: işlem geri alınınca iz de geri alınır
+- [x] KK5: güncelleme ve silme yetkisi reddedilir
+- [x] KK6: düzeltme yeni satır, eskisi durur
+- [x] KK7: sistem olayı ve komut satır üretmez
+- [x] KK8: süzgeçler var, arama ve dışa aktarma yok
+- [x] KK9: on yıl dolmadan silinmez
+- [x] KK10: ihlal kaydı modülü ve toplu bildirim yok
+- [x] `09 §25`: arayüz metodunda `SaveChanges` yok; yalnız `AuditTrail` `AuditLogs`'a dokunur (tarama); zaman `TimeProvider`; sayfalı liste `Id` ile biter, `ToPageAsync` + `PageSizes`, sınır testi var; okuma izlemesiz; süzme eksenleri 06'nın iki dizininde (T106); yük biçimi `PayloadJson` + `HasConversion`/`ValueComparer`, örnek `Payloads/AuditDetails/1.json`; yeni paket/ayar/göç yok; yeni kural için kaynak taraması ve ihlal örneği var
+- [x] Güvenlik taraması (aşağıda)
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format <Web|Unit|Integration csproj> --no-restore --verify-no-changes` | üçü çıkış 0 |
+| Consistency | ✓ | `dotnet test --project tests/Shopfolio.UnitTests … --filter-trait "Consistency=true"` | 207/207 |
+| Unit | ✓ | `… --filter-not-trait "Consistency=true"` | 2869/2869 |
+| Betik | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration (PostgreSQL 18, `shopfolio-t380-val-pg`, 127.0.0.1:55640, silindi) | ✓ | `--filter-class` / `--filter-namespace` parçaları | MigrationBundle 2/2; Audit sınıfları (`AuditTrailTests`, `AdminAndAuditTablesTests`, `DisposalTests`) 82/82; Model 915/915; Security+Concurrency+Jobs+Disposal 153/153; Database+FileSecrets+Files+Logging+Outages+SignedEndpoints 142/142; Web A–E 80/80, F–L 149/149, M–O 98/98, P–Se 128/130, Si–W 132/132 |
+| Integration notu | — | `SearchEngineDataTests` (kestrel: True) iki test | aynı koşuda paralel Kestrel testlerinin 127.0.0.1:5000 çakışması ("address already in use"); sınıf tek başına 18/18 yeşil; T380'e ilgisiz, yerel ortam |
+| Dal CI (8a) | ✓ | `gh run list --branch task/T380-islem-izi --limit 3` | 42346985169 success (head `1180a80`); önceki 42344210981 failure (düzeltme 1, iddiasız test — Düzeltme 2'de kapandı) |
+| Restore | ✓ | `dotnet restore Shopfolio.slnx --locked-mode` | çıkış 0; koşu sonrası `git status` temiz |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz (diff'te sır yok; yalnız test fixture'ının parola özelliğine atıf)
+- Auth etkisi: Temiz — yeni uç yok; yönetici panel şemasının (`SessionSchemes.AdminScheme`) kimliğinden ve hesap satırından okunur, yoksa yazım reddedilir
+- Input validation: Temiz — `AuditEntryRules` uzunluk/sayı tavanı, hedef tür haritası, müşteri verisi yasağı; regex'lerde zaman aşımı var
+- Yeni bağımlılık: Yok
+
+#### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| — | — | — | — | Tur 2'de bulgu yok | — | — | — |
+
+#### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | Kod biçimi (`^[A-Za-z][A-Za-z0-9]*(?:[._\-][A-Za-z0-9]+)*$`) tek bir ASCII sözcüğünü ("Ayse") kod sanar; boşluklu, Türkçe harfli, rakamlı ad/adres/telefon/not her yuvada reddedilir. `09 §9.2` m.4 "her adın değeri tek bir kapalı biçimdedir (kod…)" der ve test cümlesinin örnekleri ("Ayşe Yılmaz", adres, telefon, not) reddediliyor; biçim denetimi tek sözcüklü adı anlamsal olarak ayıramaz, çağıran task'lar kod yuvasına enum adı verir. Yapım raporu da ⚠ olarak yazmış. | Bu PR'da kapatıldı — kural metniyle uyumlu, kod değişikliği gerekmez |
+| K2 | `RequestAuditActorSource`'un oturumlu yolu sınanmadı: test adı "ForARequestWithoutASession" der ama yalnız `HttpContext` olmayan yolu kurar; geçerli yönetici oturumundan kimlik/ad/e-postanın geçtiği yol ve hesabı kaldırılmış yöneticinin oturumu sınanmadı. Kimlik ayrıştırması mevcut `SessionSchemes.AccountId(ClaimsPrincipal)`'ı yeniden yazar (`09 §24` m.4). Bugün izi istekten çağıran üretim kodu yok. | DEFERRED_BACKLOG'a forward: D-176 (izi istekten ilk yazan panel task'ı; en geç F3 gate) |
+
+#### Yapım Raporu Karşılaştırması
+- Uyum: Tam uyumlu (kriter ve KK sonuçları); 2 küçük fark
+- Yapım raporunun ilk öz denetim tablosu `09 §25` satırında "yeni 09 metni yok" der; Düzeltme 1 `09 §9.2` m.4'e yuva cümlesi ekledi ve Düzeltme 1 bölümü bunu yazar (eski satır geçersiz kaldı, düzeltme bölümü doğru).
+- K1'i yapım raporu Düzeltme 1'de ⚠ kolay karar olarak yazmış; K2 yapım raporunda yok. Öz denetim tabloları (ana, Düzeltme 1, Düzeltme 2) kriter ve KK başına kanıtlı. Sayılar main birleştirmeleriyle değişti (Unit 2908 → doğrulamada 2869 + Consistency 207; `AuditTrailTests` 22).
+
+#### 16. adım kayıtları
+- Dal `origin/main` (`268ab8d`, T304) ile birleştirildi; çakışmalar yalnız kayıt belgelerinde (MEMORY, DEFERRED_BACKLOG, IMPLEMENTATION_STATUS) — iki tarafın kayıtları korundu; PR #419 bu commit'le yeniden birleştirilebilir.
+- Rapor (`T380_REPORT.md` tur 2 bölümü), status (`T380` ✓ PASS (tur 2); önceki iki "Son güncelleme" `STATUS_CHANGELOG.md`'ye), memory, backlog (D-176; aktif 97) commit ve push edildi. `12` `Durum` hücresi değişmedi.
+
+#### Merge ve Post-merge
+- Merge yok (yardımcının işi, 17–18. adım). Push sonrası dal CI'ının yeşil olması gerekir (birleştirme commit'i yeni bir koşu tetikler).

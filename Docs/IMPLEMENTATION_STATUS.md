@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T380 (İşlem izi) düzeltme turu 1 yapıldı, doğrulama tur 2 bekliyor (PR #419; tur 1 bulgu 1 KRİTİK S1 kapatıldı: `AuditEntryRules` Order satırında ve `DeleteCustomerAccount`'ta `Details`'in her yuvasını denetler — Order'da görünen ad yalnız sipariş numarası, hesap silmede görünen ad yok, değer adları kapalı listede ve her adın değeri kapalı biçimde (kod, tarih, adet, tutar, kimlik), serbest metin taşıyabilecek adlar (kargo adı, takip numarası, kalem adı) listeden çıkarıldı; `09 §9.2` m.4 yuva cümlesi eklendi; K1 backlog numarası D-161 → D-164 (main'deki D-161 ile çakışma); Unit Administration 100/100, Integration AuditTrailTests 22/22; `12` `Durum` değişmedi; doğrulama ve merge yardımcıda).
+**Son güncelleme:** 2026-11-07 — T380 (İşlem izi) doğrulama tur 2 ✓ PASS (head `1180a80` + `origin/main` birleştirmesi, PR #419; kriter 1–10, KK1–KK10 ve `09 §25` ✓; tur 1 bulgusu (kişisel veri `Details` yuvalarında) kapandı; Consistency 207, Unit 2869, betik testleri; Integration yerelde parçalı ~1800 test, ilgisiz iki Kestrel port çakışması tek başına yeşil; dal CI 42346985169 yeşil; `12` `Durum`: KP-63 satırları panel ve çağıran task'lara bağlı, `BEKLEMEDE` kaldı; K1 raporda kapatıldı, K2 → D-176). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -143,7 +143,7 @@
 | T301 | Siparişin imha parçası | ⬚ | — | — | — |
 | T302 | Öteki kayıtların süreyle imhası | ⬚ | — | — | — |
 | T303 | İlk yönetici yönetim komutu ve komut çatısı | ⬚ | — | — | — |
-| T304 | Alıcı başına bildirim gönderim sınırı | ⬚ | — | — | — |
+| T304 | Alıcı başına bildirim gönderim sınırı | ✓ | ✓ PASS (tur 1) | — | #421 |
 | T305 | E-posta ortak kalıbı ve gövde üretimi | ⬚ | — | — | — |
 | T306 | Müşteri bildirimleri B-1…B-8 | ⬚ | — | — | — |
 | T307 | Müşteri bildirimleri B-9…B-16 | ⬚ | — | — | — |
@@ -219,7 +219,7 @@
 | T377 | Limit ilkeleri: iki eksen, ödenmemiş sipariş sayımı, yönetici muafiyeti yok, tanınan tarayıcı işareti | ⬚ | — | — | — |
 | T378 | Zaman sayımı: tek saat dilimi, iş günü ve resmî tatil listesi, takvim ve iş günü sayımı, gün sonu, tarih aralığı, çitler | ✓ | ✓ PASS (tur 1) | — | #416 |
 | T379 | Yönetici hesapları: ilk yönetici ve davet, kaldırma kuralları, tek rol, ayrı hesap türü, davetin geri çekilmesi, erişim kaybında kurtarma sınırı | ⬚ | — | — | — |
-| T380 | İşlem izi: sekiz alan, kim-ne zaman-ne değişti, değiştirilemez ve silinemez, sistem olayları ize girmez, düz liste, on yıl | ✗ | ✗ FAIL (tur 1) | `4345bf9` | #419 |
+| T380 | İşlem izi: sekiz alan, kim-ne zaman-ne değişti, değiştirilemez ve silinemez, sistem olayları ize girmez, düz liste, on yıl | ✓ | ✓ PASS (tur 2) | — | #419 |
 | T381 | Ayar katmanları ve parametre envanteri: firma ayarı, kurulum ayarı, ürün sabiti, varsayılan ve çit, değişikliğin ize yazılması | ⬚ | — | — | — |
 | T382 | Panel ana sayfası verisi: altı bekleyen iş sayacı, kanal ve firma bildirimi uyarıları, kurulum kontrol listesi | ⬚ | — | — | — |
 | T383 | Satış özeti ve ölçüler: dönem seçimi, ciro, sayılar, dört mağaza ölçüsü, sıfır payda, tepe gün sayısı | ⬚ | — | — | — |

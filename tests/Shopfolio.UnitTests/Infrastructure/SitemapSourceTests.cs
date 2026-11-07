@@ -1,5 +1,6 @@
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Catalog.Contracts.Variants;
 using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
@@ -110,6 +111,14 @@ public sealed class SitemapSourceTests
         public Task<UploadChunkResult> ReceiveChunkAsync(Guid id, long start, Stream body, long length, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<UploadStatus?> GetUploadStatusAsync(Guid id, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<string?> SuggestStockCodeAsync(Guid? productId, string? productName, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<StockCodeCheck> CheckStockCodeAsync(string? stockCode, Guid? exceptVariantId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<VariantStructureCheck> CheckVariantStructureAsync(Guid productId, Guid? firstOptionValueId, Guid? secondOptionValueId, Guid? exceptVariantId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<OptionMatrixCell>> GetOptionMatrixAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
     }
 
     private sealed class FakeContent(IReadOnlyList<string> paths) : ICorporateContentModule

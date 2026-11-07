@@ -26,7 +26,17 @@ public interface IOrderingModule
     /// dropped at the order page's button).
     /// </summary>
     Task<DownloadableItem?> FindDownloadableItemAsync(Guid orderItemId, CancellationToken ct);
+
+    /// <summary>
+    /// The orders that hold a variant's reservation now (02 3.6.7; 06 4.14): the panel's stock field shows them beside the reserved quantity and a refused lowering names
+    /// them. One row per order with its number and the reserved units, the most recent reservation first. A reservation lives only until payment or release, so these
+    /// are exactly the orders whose payment is awaited. A plain read; it writes nothing.
+    /// </summary>
+    Task<IReadOnlyList<ReservationHolder>> ListReservationHoldersAsync(Guid variantId, CancellationToken ct);
 }
+
+/// <summary>An order that holds units of a variant's stock or capacity: its id, its number and the reserved units.</summary>
+public sealed record ReservationHolder(Guid OrderId, string OrderNumber, int Quantity);
 
 /// <summary>The links a digital order item holds to its file (06 4.18): the variant, emptied when the variant is deleted, and the last known file.</summary>
 public sealed record DownloadableItem(Guid? VariantId, Guid? DigitalFileId);

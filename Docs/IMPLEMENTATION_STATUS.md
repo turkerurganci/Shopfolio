@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T336 (Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri) yapım tamamlandı, doğrulama bekliyor (dal `task/T336-fiyat-kdv`, PR #444; kriter 1–8, KK1–KK8 öz denetimde ✓; Unit 4115, Integration 2133 (yeni PriceAndVat 19), format ve derleme `-warnaserror` temiz; şema yok; `12` `Durum` değişmedi; D-76 ✅, D-74 kısmi, yeni backlog D-344…D-346; `origin/main` (T316) birleştirildi; doğrulama tur 1 içerikte temiz, main ile kod çakışması nedeniyle BLOCKED → `origin/main` (T334) birleştirildi: kesici listesinde `PriceLabelGuard` ve `VariantStockGuard` birlikte, dört entegrasyon testinin tohumu iki tarafı birlikte taşır, `StockAndCapacityTests` fiziksel ürüne üretim yeri, `PriceAndVatTests` fiziksel varyanta stok adedi alır (yalnız tohum); birleşik dalda Unit 4159, Integration 2267 parçalı yeşil; doğrulayıcı K1 → D-381 (T525); backlog Aktif kalem 142). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-08 — T336 (Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri) doğrulama tur 2 içerikte temiz, main ile kod çakışması nedeniyle BLOCKED → `origin/main` (T321, `a89710b`) dala birleştirildi (dal `task/T336-fiyat-kdv`, PR #444): `CatalogModule.cs` kurucusunda `_priceLabels` ve `_showcase` birlikte; T321'in `ProductTransitionsTests` tohumu fiziksel ürüne üretim yeri alır (`.WithSeededOrigin()`, yalnız tohum; iki tarafın davranışı ve tutar/KDV mantığı değişmedi); birleşik dalda derleme `-warnaserror` 0 uyarı, format temiz, Unit 4172 / 4172 (Architecture 933, Consistency 241 dahil), Integration parçalı yeşil (ProductTransitions 41, PriceAndVat + StockAndCapacity 46, SitemapEndpoint + SearchEngineData + ContentStatus 62; yerel PostgreSQL 18); kriter 1–8 ve KK1–KK8 öz denetimde birleşik ağaçta yeniden ✓; backlog Aktif kalem satırlar sayılarak 148 (⚪ 145 + 🟡 3); doğrulama tur 3 bekliyor. Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -160,7 +160,7 @@
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ⬚ | — | — | — |
 | T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |
-| T321 | Ürün yayın durumları | ⬚ | — | — | — |
+| T321 | Ürün yayın durumları | ✓ | ✓ PASS (tur 3) | — | #439 |
 | T322 | İçerik yayın durumları ve iletişim talebi durumları | ✓ | ✓ PASS (tur 1) | `f9ea0fe` | #438 |
 | T323 | Durum × rol × işlem tablosu | ⬚ | — | — | — |
 | T324 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | ⬚ | — | — | — |

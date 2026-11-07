@@ -15,9 +15,12 @@ internal sealed class OrderingModule : IOrderingModule
 {
     private readonly AppDbContext _db;
 
-    public OrderingModule(AppDbContext db)
+    private readonly AdvisoryLocks _advisoryLocks;
+
+    public OrderingModule(AppDbContext db, AdvisoryLocks advisoryLocks)
     {
         _db = db;
+        _advisoryLocks = advisoryLocks;
     }
 
     public async Task<Guid?> FindMemberOrderAsync(string orderNumber, Guid customerId, CancellationToken ct)
@@ -38,6 +41,47 @@ internal sealed class OrderingModule : IOrderingModule
             .Where(i => i.Id == orderItemId && i.ProductType == ProductType.Digital)
             .Select(i => new DownloadableItem(i.VariantId, i.DigitalFileId))
             .SingleOrDefaultAsync(ct);
+    }
+
+    public async Task<int> RemoveFromCartsAsync(IReadOnlyCollection<Guid> variantIds, string productName, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(variantIds);
+        ArgumentException.ThrowIfNullOrWhiteSpace(productName);
+        if (variantIds.Count == 0)
+        {
+            return 0;
+        }
+
+        // Tracked rows saved by the transaction owner (09 6 item 3), not a bulk statement: a cart item is no order-side row, but the module's bulk writes are a closed list (09 10.2 item 4).
+        Guid[] ids = [.. variantIds];
+        List<CartItem> items = await _db.CartItems
+            .Where(i => i.VariantId != null && ids.Contains(i.VariantId.Value) && i.RemovedProductName == null)
+            .ToListAsync(ct);
+        foreach (CartItem item in items)
+        {
+            item.RemovedProductName = productName;
+        }
+
+        return items.Count;
+    }
+
+    public async Task<IReadOnlyList<string>> TakeRemovedItemNoticesAsync(Guid cartId, CancellationToken ct)
+    {
+        // The cart's lock heads the transaction: a request that arrived together with this one waits here, and once the first has committed it reads no
+        // marked item - it tells nothing (told once), with no exception on the way (09 10.2 items 2, 5).
+        await _advisoryLocks.LockAsync(AdvisoryLockScope.Cart, cartId, ct);
+        List<CartItem> marked = await _db.CartItems
+            .Where(i => i.CartId == cartId && i.RemovedProductName != null)
+            .OrderBy(i => i.CreatedAt).ThenBy(i => i.Id)
+            .ToListAsync(ct);
+        if (marked.Count == 0)
+        {
+            return [];
+        }
+
+        string[] names = [.. marked.Select(i => i.RemovedProductName!)];
+        _db.CartItems.RemoveRange(marked);
+        return names;
     }
 
     public async Task<IReadOnlyList<ReservationHolder>> ListReservationHoldersAsync(Guid variantId, CancellationToken ct)

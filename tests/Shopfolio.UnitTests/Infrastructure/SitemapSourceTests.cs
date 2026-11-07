@@ -117,6 +117,10 @@ public sealed class SitemapSourceTests
 
         public Task<UploadStatus?> GetUploadStatusAsync(Guid id, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<ShowcasePage> ListShowcaseAsync(string? search, int page, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<string?> SuggestStockCodeAsync(Guid? productId, string? productName, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<StockCodeCheck> CheckStockCodeAsync(string? stockCode, Guid? exceptVariantId, CancellationToken ct) => throw new NotSupportedException();

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T330 (Firma kimliği) doğrulama tur 1 ✓ PASS (head `04eafd6`, PR #420; kriter 1–8, KK1–KK8 ve `09 §25` ✓ — sayfa ve panel bağı T535/T506/T537/T361'in kendi kriterleri; Unit 3010 (Architecture 769, Consistency 207, kalan 2034; birleşik dalda 3050), betik testleri; Integration yerelde parçalı 1806 hepsi geçti; dal CI 42348609633 yeşil; `12` `Durum` değişmedi (KP-35, KP-58 satırları sayfa/uç kanıtı ister, `BEKLEMEDE`); doğrulamada `origin/main` (T304) dala birleştirildi; K-notu yok). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T305 (E-posta ortak kalıbı ve gövde üretimi) doğrulama tur 1 ✓ PASS (head `2ee4f63`, PR #422; kriter 1–9, KK1–KK9 ve `09 §25` ✓; Unit 3049 (T305 56), betik testleri, Integration yerelde parçalı 1793 hepsi geçti, dal CI 42352393327 yeşil; `12` `Durum` değişmedi — KP-66/KP-68 satırları gönderen yolunu ister, `BEKLEMEDE`; K1 raporda kapatıldı (D-97/D-166 sahibi), K2 → D-189, K3 → D-190). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -144,7 +144,7 @@
 | T302 | Öteki kayıtların süreyle imhası | ⬚ | — | — | — |
 | T303 | İlk yönetici yönetim komutu ve komut çatısı | ⬚ | — | — | — |
 | T304 | Alıcı başına bildirim gönderim sınırı | ✓ | ✓ PASS (tur 1) | — | #421 |
-| T305 | E-posta ortak kalıbı ve gövde üretimi | ⬚ | — | — | — |
+| T305 | E-posta ortak kalıbı ve gövde üretimi | ✓ | ✓ PASS (tur 1) | — | #422 |
 | T306 | Müşteri bildirimleri B-1…B-8 | ⬚ | — | — | — |
 | T307 | Müşteri bildirimleri B-9…B-16 | ⬚ | — | — | — |
 | T308 | Firma bildirimleri F-1…F-6 | ⬚ | — | — | — |
@@ -152,8 +152,8 @@
 | T310 | Kargo şirketi listesi ve takip bağlantısı kalıpları | ⬚ | — | — | — |
 | T311 | Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım | ⬚ | — | — | — |
 | T312 | Dosya uçları: imzalı indirme ucu ve parçalı yükleme ucu | ⬚ | — | — | — |
-| T313 | Site haritası ve robots.txt | ✓ | ✓ PASS (tur 1) | — | #417 |
-| T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | — | #418 |
+| T313 | Site haritası ve robots.txt | ✓ | ✓ PASS (tur 1) | `f94b4d8` | #417 |
+| T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | `335e9cb` | #418 |
 | T315 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | ⬚ | — | — | — |
 | T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ⬚ | — | — | — |
 | T317 | Ödeme durumu geçişleri: ödeme ekseni | ⬚ | — | — | — |

@@ -55,12 +55,16 @@ public sealed class ModuleSourceScanTests
     [InlineData(3)]
     [InlineData(5)]
     [InlineData(6)]
+    [InlineData(8)]
+    [InlineData(10)]
+    [InlineData(11)]
     public void ScanEventPublisher_OnViolationSample_ReportsTheLine(int line)
     {
         IReadOnlyList<(string Rule, int Line)> findings = ModuleSourceScan.ScanEventPublisher(File.ReadAllText(SamplePath("EventPublisher.cs")));
 
         Assert.Contains((ModuleSourceScan.EventPublisher, line), findings);
         Assert.DoesNotContain(findings, f => f.Line <= 2);
+        Assert.DoesNotContain(findings, f => f.Line == 12);
     }
 
     private static IEnumerable<string> SourceFiles(string root)

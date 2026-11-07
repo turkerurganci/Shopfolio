@@ -194,7 +194,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         string slug = Slug.From(name, AddressRules.ProductPrefix);
         Product product = Product.Create(name, slug, ProductType.Physical, 20m, Now);
-        product.Description = "<p>Masif <b>meşe</b> masa, el yapımı.</p>";
+        product.SetDescription("<p>Masif <strong>meşe</strong> masa, el yapımı.</p>");
         product.PublishStatus = status;
         db.Products.Add(product);
         Variant variant = Variant.Create(product.Id, "AHSAP-MASA-01", price, Now, 100);

@@ -48,7 +48,7 @@ public sealed class VersionedProductModel : PageModel
             async token =>
             {
                 Product product = await db.Products.SingleAsync(p => p.Id == id, token);
-                return await RecordSave.SaveAsync(db, product, Input.Version, p => p.Description = description, token);
+                return await RecordSave.SaveAsync(db, product, Input.Version, p => p.SetDescription(description), token);
             },
             ct);
         if (result.IsSaved)

@@ -53,6 +53,23 @@ internal sealed class BusinessCalendar
     }
 
     /// <summary>
+    /// The last day of a period set in business days (02 4.1.4): the start day is not counted, the period begins on the next day, and the
+    /// <paramref name="businessDays"/>-th business day after <paramref name="startDay"/> is its last day. The same rule as a period in calendar
+    /// days (<see cref="TurkeyTime.LastDayOfPeriod"/>) with weekends and holidays left out of the count.
+    /// </summary>
+    public DateOnly LastDayOfBusinessPeriod(DateOnly startDay, int businessDays)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(businessDays, 1);
+        DateOnly day = startDay;
+        for (int counted = 0; counted < businessDays; counted++)
+        {
+            day = NextBusinessDay(day);
+        }
+
+        return day;
+    }
+
+    /// <summary>
     /// Reads a holiday list: one holiday a line as <c>yyyy-MM-dd</c> and its name; <c>#</c> lines and blank lines are skipped. A day that
     /// cannot be read, a day written twice and a day out of date order are format errors that name the line.
     /// </summary>

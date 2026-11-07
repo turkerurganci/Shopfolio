@@ -35,8 +35,8 @@ public sealed class CarrierCatalog
     public const string Placeholder = "{takipNumarasi}";
 
     /// <summary>
-    /// The product list. Entries enter only after the pattern opened a shipment in a browser with a real tracking number (08 2.4; DV-32, DV-33); a company
-    /// that fails the try is not here and is "Diğer".
+    /// The product list: the four companies of 08 2.4. The browser try with a real tracking number (DV-32) is done at T601 (K-1576); a company whose pattern
+    /// fails it leaves the list and is "Diğer". MNG Kargo, PTT Kargo and HepsiJet were not readable (DV-33) and stay "Diğer".
     /// </summary>
     public static CarrierCatalog Default { get; } = new(
         [

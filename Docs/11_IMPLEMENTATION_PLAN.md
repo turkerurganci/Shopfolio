@@ -1928,7 +1928,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Kabul kriterleri:**
   1. Şirket listesi ve takip kalıpları kodda durur; panelden düzenlenmez (`08 §2.4`; `06 §8.4.1`).
   2. Kod adı ASCII, tek kelime, büyük harfle başlar ve kalıcıdır; başka şirkete verilmez (`08 §2.4`; `06 §5.3.12`).
-  3. Kalıp `https` adrestir ve tek `{takipNumarasi}` yer tutucusu taşır; her kalıp gerçek bir takip numarasıyla tarayıcıda denenir, tutmayan şirket listeye girmez ve "Diğer" olur; `MngKargo`, `PttKargo`, `HepsiJet` kalıbı okunabilirse listeye girer; sonuç DV-32 ve DV-33 satırlarına tarihle yazılır (`08 §2.4`, §4.1).
+  3. Kalıp `https` adrestir ve tek `{takipNumarasi}` yer tutucusu taşır; `MngKargo`, `PttKargo`, `HepsiJet` kalıbı okunabilirse listeye girer, okunamazsa "Diğer" kalır; DV-33'ün sonucu satıra tarihle yazılır. DV-32'nin gerçek numarayla tarayıcı denemesi T601'dedir (`08 §2.4`, §4.1; K-1576).
   4. Takip numarası yüzde kodlanır; ondan başka adres parçası türetilmez (`08 §2.4` alan eşlemesi).
   5. "Takip et" yalnız listedeki şirket seçilmiş ve numara girilmişse görünür (`08 §2.4`).
   6. "Diğer", kendi aracımızla teslim ve listeden çıkmış şirkette bağlantı yoktur; "Diğer"de ve çıkmış şirkette ad ve numara, kendi aracımızla teslimde yalnız beyan görünür (`08 §2.4`, §2.2.6 B-5; `04` 5.16.8).
@@ -1939,7 +1939,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
 - **Doğrulama kontrol listesi:**
   - KK1: liste kodda; ayar ve tablo yok.
   - KK2: kod adları ASCII, büyük harfle başlar ve tekil.
-  - KK3: her kalıpta tek yer tutucu, `https`; DV-32 ve DV-33 satırları tarihli ve sonuçlu; listede yalnız denemede gönderiyi açan şirket var.
+  - KK3: her kalıpta tek yer tutucu, `https`; DV-33 satırı tarihli ve sonuçlu; DV-32 satırı T601'i gösterir.
   - KK4: boşluklu numara kodlanır.
   - KK5: numarasız şirkette bağlantı yok.
   - KK6: üç durumda bağlantı yok; "Diğer" ve çıkmış şirkette ad ve numara, kendi aracımızla teslimde yalnız beyan var.
@@ -5566,6 +5566,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   9. Kurulum tarafı satırları runbook'tadır: gönderen adresinden deneme iletisi, erişim kaybında yeni yönetici ve isteyenin doğrulanması, ÖK-1…ÖK-12 (`02 §9.1.5`, §10.2.7; `10 §4.1`).
   10. Kanıtlar `12` §12.1 `VAL-F001`…`VAL-F012` satırlarına bağlanır.
   11. Yük senaryosu k6 betiği `scripts/load/` altında yazılır ve `12` §12.12'nin kurulumuyla koşulur; koşunun çıktı özeti ve sınır ayarları `VAL-F013`, `VAL-F014` satırlarına bağlanır (`05 §11.1`).
+  12. DV-32: dört şirketin (`YurticiKargo`, `ArasKargo`, `SuratKargo`, `Ups`) takip kalıbı gerçek takip numarasıyla tarayıcıda denenir; tutmayan şirket listeden çıkar ve "Diğer" olur; sonuç `08 §4.1` DV-32 satırına ve `12` `VAL-E033`'e tarihle yazılır (K-1576).
 - **Test beklentisi:** E2E
 - **Doğrulama kontrol listesi:**
   - KK1: gerçek yapılandırmayla açılış.
@@ -5579,6 +5580,7 @@ Her task bir `####` bloğudur; alanlar şu sırayla ve birer kez yazılır (K-14
   - KK9: kurulum tarafı satırları.
   - KK10: `12` bağlanışı.
   - KK11: yük betiği depoda; kurulum maddeleri; çıktı özeti `VAL-F013`, `VAL-F014`'e bağlı.
+  - KK12: DV-32 satırı ve `VAL-E033` tarihli ve sonuçlu; listede yalnız denemede gönderiyi açan şirket var.
   - `09 §25` ilgili satırlar; güvenlik taraması
 
 #### T602: Güncelleme komutu: referanstan başlayıp sırayla, geride kalmış kurulumun ara sürümlerden geçişi, geri alma ve yedekten dönüş koşulu

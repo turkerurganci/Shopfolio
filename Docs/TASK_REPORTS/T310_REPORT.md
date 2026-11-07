@@ -113,7 +113,7 @@
 - **Commit:** `5e0c1d0` (kod), devam commit'i (plan düzeltmesi, rapor)
 - **PR:** #423
 - **CI:** dal CI 42353336593 `success` (head `c3e1670`; doğrulayıcı)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `e177fd4` (#423) — CI 42362112617 success, Publish 42362112644 success (T331 doğrulamasında dolduruldu)
 
 ## Dış Varsayımlar
 

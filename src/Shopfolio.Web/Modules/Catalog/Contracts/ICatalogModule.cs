@@ -50,4 +50,27 @@ public interface ICatalogModule
     /// <c>/kategori/{slug}</c> of every category. An archived product and a draft are not listed. A plain read; the site map's cache is Settings'.
     /// </summary>
     Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The file an order item downloads now (05 7.7.3; 02 3.12.7; 06 4.70): the variant's current file when the variant stands - its own, else its product's - and
+    /// otherwise the item's last known file; null when there is none or its upload did not complete. A plain read; it writes nothing.
+    /// </summary>
+    Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct);
+
+    /// <summary>
+    /// Starts a chunked upload (07 4.31.2; 09 15.7 item 5): checks the name and the declared size (400), P-26 and the disk threshold (422) and writes a new
+    /// unlinked, incomplete file row. Joins the caller's transaction (09 9.1 item 3).
+    /// </summary>
+    Task<UploadStartResult> StartUploadAsync(string? fileName, long sizeBytes, CancellationToken ct);
+
+    /// <summary>
+    /// Takes one chunk of a chunked upload (07 4.31.2; 09 15.7 item 6) under the file row's lock: the received bytes are read from the file store inside the
+    /// lock, a chunk that starts elsewhere is refused, the bytes are appended and the last one completes the upload in the same transaction. A request that
+    /// finds every byte written but the upload not completed - a crash after the last chunk - completes it without appending (K-1203). Joins the caller's
+    /// transaction and must run inside one.
+    /// </summary>
+    Task<UploadChunkResult> ReceiveChunkAsync(Guid id, long start, Stream body, long length, CancellationToken ct);
+
+    /// <summary>The state of a chunked upload (07 4.31.2): null when the upload is unknown or was swept. A plain read; it writes nothing.</summary>
+    Task<UploadStatus?> GetUploadStatusAsync(Guid id, CancellationToken ct);
 }

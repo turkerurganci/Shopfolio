@@ -16,11 +16,14 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <item>A view: a version or shown-value field made from the posted model state (<c>asp-for</c>, <c>HiddenFor</c>). The framework restores the posted value there, so a
 /// re-displayed form (07 2.4.5) would carry the old version and "Yine de kaydet" could never succeed; <c>VersionFields</c> writes the value the handler chose.</item>
 /// </list>
-/// The helper that writes the fields (<c>Infrastructure/Forms/VersionFields.cs</c>) contains the names as strings and matches none of the rules. There is no
+/// The helper that writes the fields (<c>Infrastructure/Forms/VersionFields.cs</c>) contains the names as strings and matches none of the rules. The one allowed place is the download endpoint's entity tag (T312; 09 15.7 item 2), by full path and the two names of that call only. There is no other
 /// allowed file. The test projects are not scanned: they write violations to prove the rules.
 /// </summary>
 internal static partial class FormVersionSourceScan
 {
+    /// <summary>The one file that may name the download's entity tag (09 15.7 item 2).</summary>
+    public const string DownloadEndpointFile = "src/Shopfolio.Web/Endpoints/Files/DownloadEndpoint.cs";
+
     public const string VersionInAddress = "carries a version or a shown value in an address (07 2.4.7: they are fields of the POST body)";
     public const string VersionInHeader = "carries a version or a shown value in a header, or uses a conditional request header (07 2.4.7: no If-Match, no ETag)";
     public const string VersionFieldInNonPostForm = "a form that is not a post form holds a version or shown-value field (07 2.4.7: the field would go into the address)";
@@ -36,7 +39,16 @@ internal static partial class FormVersionSourceScan
         Add(findings, VersionInAddress, QueryPair(), clean);
         Add(findings, VersionInAddress, PathParameter(), clean);
         Add(findings, VersionInAddress, LinkCallWithField(), clean);
-        Add(findings, VersionInHeader, ConditionalHeader(), clean);
+        foreach (Match conditional in ConditionalHeader().Matches(clean))
+        {
+            // The one allowed place (T312; 09 15.7 item 2; 07 4.31.1): the download's strong ETag and Last-Modified are the framework file result's validators for a range
+            // request - no form version rides on them. Only the two names of that call, only in that file; If-Match and the others stay findings there too.
+            if (!(string.Equals(path, DownloadEndpointFile, StringComparison.Ordinal) && conditional.Value is "EntityTagHeaderValue" or "entityTag"))
+            {
+                findings.Add((VersionInHeader, clean.AsSpan(0, conditional.Index).Count('\n') + 1));
+            }
+        }
+
         Add(findings, VersionInHeader, HeaderWithField(), clean);
         if (view)
         {

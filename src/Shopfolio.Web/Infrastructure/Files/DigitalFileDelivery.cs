@@ -55,7 +55,9 @@ internal sealed class DigitalFileDownload : IAsyncDisposable
 /// The delivery of a digital product file (05 6.6.3; 09 15.6 neighbours): there is no type limit - a seller may sell an e-book, software, a design
 /// file or an archive - the size ceiling is P-26, and the file is always served as a download with a general binary type and the header that
 /// forbids guessing the type, so it never opens in the browser and never runs on the site. The content is not scanned; it belongs to the seller
-/// (02 3.21.1). The endpoints that serve and accept the file (T312, T340) call this and add nothing to the headers.
+/// (02 3.21.1). The download endpoint (T312) gives the framework's file result (<c>Results.File</c>, 09 15.7 items 2 and 3) this class's type, safe name and
+/// open stream: the framework writes <c>Content-Disposition</c> from the safe name, so <see cref="DigitalFileDownload.ContentDisposition"/> is the same header
+/// for a test to compare and no second way to write it; the start of the chunked upload (T312) takes the size ceiling from <see cref="CheckSize"/>.
 /// </summary>
 internal static class DigitalFileDelivery
 {
@@ -64,6 +66,9 @@ internal static class DigitalFileDelivery
     public const string NoSniff = "nosniff";
 
     public const string FallbackFileName = "download";
+
+    /// <summary>The chunk of the chunked upload: 5 MB (09 3.5 table; 07 2.8.1). The one place of the number; the chunk's body ceiling reads it.</summary>
+    public const long UploadChunkSizeBytes = 5L * 1024 * 1024;
 
     private const int FileNameMaxLength = 150;
 

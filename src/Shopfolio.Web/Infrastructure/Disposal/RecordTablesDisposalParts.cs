@@ -17,7 +17,7 @@ internal sealed class LoginRecordDisposalPart : IDisposalPart
     public Task RunAsync(DisposalRun run, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(run);
-        DateTimeOffset cutoff = LogFileRetention.Cutoff(run.Now);
+        DateTimeOffset cutoff = LogFileRetention.Cutoff(run.Now).ToUniversalTime();
         return run.ChunksAsync(
             DisposalRecordType.LoginRecord,
             async (db, max, cancel) =>

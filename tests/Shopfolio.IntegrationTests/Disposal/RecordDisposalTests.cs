@@ -185,8 +185,8 @@ public sealed class RecordDisposalTests : IAsyncLifetime
     [Fact]
     public async Task ADispatchRecordOfNoOrder_GoesAtOneYear()
     {
-        DispatchRecord gone = DispatchRecord.Queue(DispatchType.EmailVerificationLink, "a@example.com", null, null, null, Ago(2 * 365));
-        DispatchRecord kept = DispatchRecord.Queue(DispatchType.EmailVerificationLink, "b@example.com", null, null, null, Ago(200));
+        DispatchRecord gone = DispatchRecord.Queue(DispatchType.F5, "a@example.com", null, null, null, Ago(2 * 365));
+        DispatchRecord kept = DispatchRecord.Queue(DispatchType.F5, "b@example.com", null, null, null, Ago(200));
         await _harness.SeedAsync(db => db.DispatchRecords.AddRange(gone, kept));
 
         await _harness.RunPartAsync<DispatchRecordDisposalPart>(Ct);
@@ -345,9 +345,8 @@ public sealed class RecordDisposalTests : IAsyncLifetime
     {
         DigitalFile gone = DigitalFile.Create(EntityIds.NewStorageKey(), "a.pdf", 10, Ago(3));
         gone.UploadCompletedAt = Ago(3);
-        DigitalFile standing = DigitalFile.Create(EntityIds.NewStorageKey(), "b.pdf", 10, Ago(3));
-        standing.UploadCompletedAt = Ago(3);
-        standing.AttachedAt = Ago(3);
+        DigitalFile standing = DigitalFile.Create(EntityIds.NewStorageKey(), "b.pdf", 10, _harness.Now - TimeSpan.FromHours(1));
+        standing.UploadCompletedAt = _harness.Now - TimeSpan.FromHours(1);
         await _harness.SeedAsync(db => db.DigitalFiles.AddRange(gone, standing));
         string orphanKey = EntityIds.NewStorageKey();
         string youngOrphanKey = EntityIds.NewStorageKey();
@@ -438,6 +437,15 @@ public sealed class RecordDisposalTests : IAsyncLifetime
         order.BillingProvinceId = _provinceId;
         order.BillingDistrict = "Çankaya";
         order.BillingAddressLine = "Atatürk Bulvarı 1";
+        order.CompanyType = CompanyType.Tradesman;
+        order.CompanyLegalName = "Örnek Ticaret";
+        order.CompanyTaxIdNumber = "1234567890";
+        order.CompanyProvinceId = _provinceId;
+        order.CompanyDistrict = "Çankaya";
+        order.CompanyAddressLine = "Kızılay 2";
+        order.CompanyPhone = "3121234567";
+        order.CompanyEmail = "firma@example.com";
+        order.CompanyKepAddress = "firma@hs01.kep.tr";
         order.PreInformationFormVersionId = _formId;
         order.DistanceSalesContractVersionId = _contractId;
         order.PrivacyNoticeVersionId = _noticeId;

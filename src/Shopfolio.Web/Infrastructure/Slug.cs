@@ -127,8 +127,7 @@ internal static class StockCodeSuggestion
         ArgumentNullException.ThrowIfNull(usedCodes);
         ArgumentOutOfRangeException.ThrowIfLessThan(order, 1);
         HashSet<string> used = new(usedCodes.Select(TextNormalizer.NormalizeIdentity), StringComparer.Ordinal);
-        string head = productSlug.Length > AddressLength ? productSlug[..AddressLength] : productSlug;
-        string prefix = head.TrimEnd('-').ToUpperInvariant();
+        string prefix = Prefix(productSlug);
         for (int n = order; ; n++)
         {
             string code = $"{prefix}-{n:00}";
@@ -137,5 +136,13 @@ internal static class StockCodeSuggestion
                 return code;
             }
         }
+    }
+
+    /// <summary>The part of every suggested code of a product that precedes the hyphen and the order: the address in capitals, cut at <see cref="AddressLength"/>.</summary>
+    public static string Prefix(string productSlug)
+    {
+        ArgumentNullException.ThrowIfNull(productSlug);
+        string head = productSlug.Length > AddressLength ? productSlug[..AddressLength] : productSlug;
+        return head.TrimEnd('-').ToUpperInvariant();
     }
 }

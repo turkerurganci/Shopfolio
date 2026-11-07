@@ -86,7 +86,7 @@
 
 - **Branch:** `task/T302-kayit-imha`
 - **Commit:** PR başlığında; head SHA PR'da
-- **PR:** #PRNO
+- **PR:** #446
 - **CI:** doğrulayıcı izler
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
 

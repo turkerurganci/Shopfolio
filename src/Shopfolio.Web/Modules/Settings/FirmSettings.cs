@@ -3,6 +3,7 @@ using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
@@ -96,17 +97,17 @@ internal sealed class FirmSettings
         PeriodsSection current = await ReadPeriodsAsync(ct);
 
         List<FieldRejection> rejections = [];
-        CheckFenced(rejections, nameof(PeriodsInput.ShippingPeriod), "P-5", input.ShippingPeriod);
+        CheckFenced(rejections, nameof(PeriodsInput.DefaultShippingPeriod), "P-5", input.DefaultShippingPeriod);
         CheckFenced(rejections, nameof(PeriodsInput.BankTransferPaymentWindow), "P-7", input.BankTransferPaymentWindow);
         if (rejections.Count > 0)
         {
             return SettingsSaveResult.Refused(rejections);
         }
 
-        int shipping = input.ShippingPeriod!.Value;
+        int shipping = input.DefaultShippingPeriod!.Value;
         int window = input.BankTransferPaymentWindow!.Value;
         List<AuditValueChange> changes = [];
-        Track(changes, nameof(CompanySettings.DefaultShippingPeriod), current.ShippingPeriod, shipping);
+        Track(changes, nameof(CompanySettings.DefaultShippingPeriod), current.DefaultShippingPeriod, shipping);
         Track(changes, nameof(CompanySettings.BankTransferPaymentWindow), current.BankTransferPaymentWindow, window);
         if (changes.Count == 0)
         {
@@ -201,7 +202,7 @@ internal sealed class FirmSettings
         PeriodFences.Verdict verdict = FirmSettingFences.Check(parameterId, number);
         if (!verdict.IsWithin)
         {
-            rejections.Add(new FieldRejection(field, FieldCodes.InvalidQuantity, verdict.Side, verdict.Fence));
+            rejections.Add(new FieldRejection(field, nameof(ErrorCode.ValueOutOfBounds), verdict.Side, verdict.Fence));
         }
     }
 

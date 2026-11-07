@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration;
@@ -116,8 +117,8 @@ public sealed class FirmSettingsTests : IAsyncLifetime
     // ---- KK6: the fences are applied in the panel's save ----
 
     [Theory]
-    [InlineData(11, 2, nameof(PeriodsInput.ShippingPeriod), FenceSide.AboveUpper, 10)]
-    [InlineData(-1, 2, nameof(PeriodsInput.ShippingPeriod), FenceSide.BelowLower, 0)]
+    [InlineData(11, 2, nameof(PeriodsInput.DefaultShippingPeriod), FenceSide.AboveUpper, 10)]
+    [InlineData(-1, 2, nameof(PeriodsInput.DefaultShippingPeriod), FenceSide.BelowLower, 0)]
     [InlineData(2, 0, nameof(PeriodsInput.BankTransferPaymentWindow), FenceSide.BelowLower, 1)]
     [InlineData(2, 4, nameof(PeriodsInput.BankTransferPaymentWindow), FenceSide.AboveUpper, 3)]
     public async Task APeriodOutsideItsFence_IsRefusedWithTheSideAndTheFence_AndNothingIsStored(int shipping, int window, string field, FenceSide side, int fence)
@@ -126,7 +127,7 @@ public sealed class FirmSettingsTests : IAsyncLifetime
 
         Assert.False(result.IsSaved);
         Assert.False(result.IsVersionConflict);
-        Assert.Equal(new Shopfolio.Modules.Settings.Contracts.FieldRejection(field, FieldCodes.InvalidQuantity, side, fence), Assert.Single(result.Rejections));
+        Assert.Equal(new Shopfolio.Modules.Settings.Contracts.FieldRejection(field, nameof(ErrorCode.ValueOutOfBounds), side, fence), Assert.Single(result.Rejections));
         Assert.Equal(new PeriodsSection(2, 2, 1), await RunAsync(m => m.GetPeriodsAsync(Ct)));
         Assert.Empty(await ReadTrailAsync());
     }
@@ -149,7 +150,7 @@ public sealed class FirmSettingsTests : IAsyncLifetime
 
         Assert.Equal(
             [
-                new Shopfolio.Modules.Settings.Contracts.FieldRejection(nameof(ProductDefaultsInput.DownloadAllowance), FieldCodes.InvalidQuantity, FenceSide.BelowLower, 1),
+                new Shopfolio.Modules.Settings.Contracts.FieldRejection(nameof(ProductDefaultsInput.DownloadAllowance), nameof(ErrorCode.ValueOutOfBounds), FenceSide.BelowLower, 1),
                 new Shopfolio.Modules.Settings.Contracts.FieldRejection(nameof(ProductDefaultsInput.DefaultVatRate), FieldCodes.InvalidPercentage),
             ],
             result.Rejections);

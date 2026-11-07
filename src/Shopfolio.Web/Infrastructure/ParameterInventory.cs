@@ -109,7 +109,7 @@ internal static class ParameterInventory
         Constant("P-12", C(nameof(ProductConstants.EmailVerificationLinkHours), ParameterUnit.Hours)),
         Constant("P-13", C(nameof(ProductConstants.PasswordResetLinkMinutes), ParameterUnit.Minutes)),
         Constant("P-14", C(nameof(ProductConstants.AdminInvitationLinkHours), ParameterUnit.Hours)),
-        Constant("P-47", C(nameof(ProductConstants.EmailChangeUndoLinkDays), ParameterUnit.Days)),
+        Constant("P-47", C(nameof(ProductConstants.EmailChangeRevertLinkDays), ParameterUnit.Days)),
         Constant("P-15", C(nameof(ProductConstants.ShortSessionHours), ParameterUnit.Hours)),
         Constant("P-16", C(nameof(ProductConstants.LongSessionDays), ParameterUnit.Days)),
         Constant("P-48", C(nameof(ProductConstants.RecognizedBrowserMarkDays), ParameterUnit.Days)),

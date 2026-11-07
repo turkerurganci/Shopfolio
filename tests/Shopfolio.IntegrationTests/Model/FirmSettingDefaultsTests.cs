@@ -47,7 +47,7 @@ public sealed class FirmSettingDefaultsTests
         Assert.Equal(start["P-1"], fee.ShippingFee);
         Assert.Equal(start["P-3"], fee.FreeShippingThreshold);
         Assert.Equal(start["P-4"], fee.MinimumOrderAmount);
-        Assert.Equal(start["P-5"], periods.ShippingPeriod);
+        Assert.Equal(start["P-5"], periods.DefaultShippingPeriod);
         Assert.Equal(start["P-7"], periods.BankTransferPaymentWindow);
         Assert.Equal(start["P-8"], defaults.DownloadAllowance);
         Assert.Equal(start["P-10"], defaults.DefaultVatRate);
@@ -60,7 +60,7 @@ public sealed class FirmSettingDefaultsTests
         PeriodsSection periods = await ReadAsync(m => m.GetPeriodsAsync(Ct));
         ProductDefaultsSection defaults = await ReadAsync(m => m.GetProductDefaultsAsync(Ct));
 
-        Assert.True(FirmSettingFences.Check("P-5", periods.ShippingPeriod).IsWithin);
+        Assert.True(FirmSettingFences.Check("P-5", periods.DefaultShippingPeriod).IsWithin);
         Assert.True(FirmSettingFences.Check("P-7", periods.BankTransferPaymentWindow).IsWithin);
         Assert.True(FirmSettingFences.Check("P-8", defaults.DownloadAllowance).IsWithin);
     }

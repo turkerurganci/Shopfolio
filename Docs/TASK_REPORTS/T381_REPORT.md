@@ -82,6 +82,12 @@
 | Düzeltme gerekli mi | Evet — B1 ve B2 |
 | Bloke-etmeyen not (K) sayısı | 2 (K1 → D-279; K2 bu PR'da kapatıldı) |
 
+### Düzeltme turu 1 (2026-11-07)
+
+- **B1:** `FirmSettings.CheckFenced` çit dışı değeri `07 §6.2.6`'daki `ValueOutOfBounds` (422) koduyla reddeder (`Side` + `Fence` ile); `FirmSettingsTests` çit testleri bu kodu bekler. Kriter 6 ve KK6 artık ✓.
+- **B2:** `PeriodsInput.ShippingPeriod` ve `PeriodsSection.ShippingPeriod` adı `DefaultShippingPeriod` oldu (`07 UC-170`, `06 §4.2`); reddin `Field` adı da aynıdır. Aynı adı anan öteki yerler (`FirmSettings`, `FirmSettingDefaultsTests`, `FirmSettingsTests`) güncellendi; `Product`/`Order.ShippingPeriod` ve `CountedPeriod.ShippingPeriod` başka kavramlardır, `06`'da da bu adladır.
+- **`origin/main` birleştirmesi:** T309 aynı ömür sabitlerini (P-12, P-13, P-14, P-47) `ProductConstants`'a eklemişti; bu daldaki yinelenenler silindi, `P-47` envanter satırı T309'un `EmailChangeRevertLinkDays` adını anar. Kayıt belgeleri çakışması çözüldü.
+
 ### Doğrulama tur 1 — validator kanıtları
 
 Başlangıç kapıları: working tree temiz, `core.hooksPath` = `scripts/git-hooks`; ana dal son 3 run success (42368786653, 42368786665, 42366197659); memory'de T381 satırı var. Dal CI 42375448881 success (head `98f5550`).
@@ -140,5 +146,5 @@ Dış varsayım: yok. (Kanıt: yeni paket, dış servis ya da araç sürümü ku
 - **Working tree (Adım -1):** temiz; hooksPath repo betiğinde.
 - **Ana dal CI startup (Adım 0):** main `ad8c48d`: CI 42368786665 success, Publish 42368786653 success; önceki `1112ca6`: CI 42366197638 success.
 - **Repo memory (bitiş kapısı 9):** güncellendi.
-- **⚠ Kolay kararlar:** (1) Çit dışı değer için `07 §6.2`'de çite özel hata kodu yok; `InvalidQuantity` + `Side` + `Fence` kullanıldı, mesajı T536 kurar. (2) `ProductConstants`'a henüz kullanıcısı olmayan 19 sabit eklendi (eşitlik denetimi gereği); kullanıcıları ilgili task'larda bağlanır. (3) P-22 sabiti dize (`ImageFormats`).
+- **⚠ Kolay kararlar:** (1) Çit dışı değer `07 §6.2.6`'daki `ValueOutOfBounds` (422) koduyla reddedilir (`Side` + `Fence` ile); mesajı T536 kurar (tur 1 B1 düzeltmesi; ilk yapım yanlış olarak `InvalidQuantity` kullanmış, `07`'de çite özel kod yok demişti). (2) `ProductConstants`'a henüz kullanıcısı olmayan 19 sabit eklendi (eşitlik denetimi gereği); kullanıcıları ilgili task'larda bağlanır. (3) P-22 sabiti dize (`ImageFormats`).
 - **Devir:** önceki işçi bağlam sınırında bölündü; bu işçi testleri koştu, formatı doğruladı, taramayı sertleştirdi, belge ve kayıt işlerini bitirdi.

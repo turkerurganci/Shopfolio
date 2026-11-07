@@ -7,10 +7,10 @@ public sealed record ShippingFeeInput(decimal? ShippingFee, decimal? FreeShippin
 public sealed record ShippingFeeSection(decimal ShippingFee, decimal? FreeShippingThreshold, decimal? MinimumOrderAmount, int Version);
 
 /// <summary>The values the periods form sends (02 11.1 P-5, P-7; 04 7.2.21.4): business days, without the section version.</summary>
-public sealed record PeriodsInput(int? ShippingPeriod, int? BankTransferPaymentWindow);
+public sealed record PeriodsInput(int? DefaultShippingPeriod, int? BankTransferPaymentWindow);
 
 /// <summary>The periods section as stored (06 4.2): the firm default of the shipping period (P-5), the bank transfer payment window (P-7) and the section's version.</summary>
-public sealed record PeriodsSection(int ShippingPeriod, int BankTransferPaymentWindow, int Version);
+public sealed record PeriodsSection(int DefaultShippingPeriod, int BankTransferPaymentWindow, int Version);
 
 /// <summary>The values the product defaults form sends (02 11.1 P-8, P-10; 04 7.2.21.5), without the section version.</summary>
 public sealed record ProductDefaultsInput(int? DownloadAllowance, decimal? DefaultVatRate);

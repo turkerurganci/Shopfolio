@@ -123,18 +123,6 @@ internal static class ProductConstants
     /// <summary>P-30 — character ceiling of the announcement text.</summary>
     public const int AnnouncementTextMaxLength = 120;
 
-    /// <summary>P-12 — life of the e-mail verification link, in hours (Z-1).</summary>
-    public const int EmailVerificationLinkHours = 24;
-
-    /// <summary>P-13 — life of the password reset link, and of the confirmation link of a Google sign-in, in minutes (Z-2).</summary>
-    public const int PasswordResetLinkMinutes = 60;
-
-    /// <summary>P-14 — life of the administrator invitation link, in hours (Z-3).</summary>
-    public const int AdminInvitationLinkHours = 72;
-
-    /// <summary>P-47 — life of the link that undoes an e-mail address change, in days (Z-45).</summary>
-    public const int EmailChangeUndoLinkDays = 7;
-
     /// <summary>P-48 — life of the recognized browser mark, in days from the last successful sign-in from that browser to that account (Z-46).</summary>
     public const int RecognizedBrowserMarkDays = 90;
 

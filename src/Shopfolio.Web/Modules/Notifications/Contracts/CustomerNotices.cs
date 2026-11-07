@@ -14,7 +14,8 @@ public abstract record CustomerNotice(Guid OrderId);
 
 /// <summary>
 /// B-1: the order was placed, or the firm corrected a guest order's e-mail address. <paramref name="OriginalDispatchId"/> is the row id of the order's first B-1 on
-/// the correction (06 4.58): the new row is a re-sending of it (08 2.2.6 B-1 "Düzeltme tetiği"); on the placement it is null.
+/// the correction (06 4.58): the new row is a re-sending of it (08 2.2.6 B-1 "Düzeltme tetiği"); on the placement it is null. A caller may also give the row of an
+/// earlier correction: the queue resolves the chain's root and writes the root's id, so every row of the e-mail is in one group.
 /// <paramref name="FirstEmailSentAt"/> is the creation moment of that first row: the queue reads it from the first row and writes it into the new row's event values
 /// (06 4.58 <c>EventValues</c>; 08 2.2.5 item 6), so the re-send sentence keeps its date when the first row is deleted by its own period; callers leave it null,
 /// and the reader of a stored row fills it.

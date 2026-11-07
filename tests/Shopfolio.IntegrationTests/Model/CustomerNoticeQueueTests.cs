@@ -132,6 +132,36 @@ public sealed class CustomerNoticeQueueTests : IAsyncLifetime
         await RunAsync(queue => queue.QueueAsync(new OrderReceivedNotice(orderId, remaining.Id), "yeni2@example.com", Ct));
         DispatchRecord third = (await ReadAllAsync()).Single(r => r.Id != remaining.Id);
         Assert.Equal(Now, CustomerNoticeValues.ReadFirstEmailSentAt(third.EventValues));
+
+        // ...and its group id is the first row's id (the chain's root, which the correction's row carries), not the correction's own id: one group, whose last row the mark reads.
+        Assert.Equal(first, remaining.OriginalDispatchId);
+        Assert.Equal(first, third.OriginalDispatchId);
+    }
+
+    [Fact]
+    public async Task TheSecondB1AfterACorrection_JoinsTheFirstRowsGroup_WhateverRowOfTheChainIsGiven()
+    {
+        Guid orderId = await SeedOrderAsync();
+        await RunAsync(queue => queue.QueueAsync(new OrderReceivedNotice(orderId), "eski@example.com", Ct));
+        Guid first = (await ReadAllAsync()).Single().Id;
+        _time.SetUtcNow(Now.AddDays(1));
+        await RunAsync(queue => queue.QueueAsync(new OrderReceivedNotice(orderId, first), "yeni@example.com", Ct));
+        Guid second = (await ReadAllAsync()).Single(r => r.Id != first).Id;
+        _time.SetUtcNow(Now.AddDays(2));
+
+        // The first row is given: its own id is the root.
+        await RunAsync(queue => queue.QueueAsync(new OrderReceivedNotice(orderId, first), "yeni2@example.com", Ct));
+        // The second row (a re-sending itself) is given: the root it carries is written.
+        await RunAsync(queue => queue.QueueAsync(new OrderReceivedNotice(orderId, second), "yeni3@example.com", Ct));
+
+        List<DispatchRecord> rows = await ReadAllAsync();
+        Assert.Equal(4, rows.Count);
+        Assert.Null(rows.Single(r => r.Id == first).OriginalDispatchId);
+        Assert.All(rows.Where(r => r.Id != first), r =>
+        {
+            Assert.Equal(first, r.OriginalDispatchId);
+            Assert.Equal(Now, CustomerNoticeValues.ReadFirstEmailSentAt(r.EventValues));
+        });
     }
 
     [Fact]

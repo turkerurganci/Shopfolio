@@ -9,7 +9,7 @@ namespace Shopfolio.Modules.Notifications;
 /// The writer of the dispatch rows of the customer notices B-1…B-8 (08 2.2.6; 06 4.58; T306): each notice is one row in the "queued" state, written in the
 /// transaction of the event that made it and saved by that transaction (09 9.1 item 3; the row commits with the event or goes with it). The row carries the
 /// order link and no related record (06 4.58's type table), the event's values (<see cref="CustomerNoticeValues"/>) and, on the B-1 after a correction, the first
-/// e-mail's row id and its creation moment (read from the first row, which must be the order's own B-1; the moment is the event value the re-send sentence is made from, so it
+/// e-mail's row id (the chain's root: a given row that is itself a re-sending hands on the id it carries) and its creation moment (read from the given row, which must be the order's own B-1; the moment is the event value the re-send sentence is made from, so it
 /// outlives the first row's own deletion - 08 2.2.5 item 6). Nothing is sent here, and the body is not stored: it is made when the row is sent, from the order and these values.
 /// <para>
 /// B-3 is once per window (08 2.2.6 B-3; 03 4.1.9): a second row for the same window end is not written, a window that restarted after the "paid" mark was
@@ -44,7 +44,9 @@ internal sealed class CustomerNoticeQueue
         if (notice is OrderReceivedNotice { OriginalDispatchId: { } firstId } received)
         {
             // The correction's row keeps the first e-mail's creation moment: the first row may be deleted by its own period before the re-send is made (08 2.2.5 item 6).
-            row = CustomerNoticeValues.For(received with { FirstEmailSentAt = await ReadFirstEmailMomentAsync(received.OrderId, firstId, ct) });
+            // Its group id is the chain's root: a given row that is itself a re-sending names the root it carries, so a second correction joins the first one's group (06 4.58).
+            (Guid rootId, DateTimeOffset firstMoment) = await ReadFirstEmailAsync(received.OrderId, firstId, ct);
+            row = CustomerNoticeValues.For(received with { OriginalDispatchId = rootId, FirstEmailSentAt = firstMoment });
         }
 
         if (row.Type == DispatchType.B3 && !await ReminderIsDueAsync(notice.OrderId, row, now, ct))
@@ -59,15 +61,15 @@ internal sealed class CustomerNoticeQueue
         return 1;
     }
 
-    private async Task<DateTimeOffset> ReadFirstEmailMomentAsync(Guid orderId, Guid firstId, CancellationToken ct)
+    private async Task<(Guid RootId, DateTimeOffset FirstMoment)> ReadFirstEmailAsync(Guid orderId, Guid givenId, CancellationToken ct)
     {
-        // The row must be this order's own B-1; a row that is itself a correction already holds the first e-mail's moment, which is carried on unchanged.
-        var first = await _db.DispatchRecords.AsNoTracking()
-            .Where(d => d.Id == firstId && d.OrderId == orderId && d.DispatchType == DispatchType.B1)
-            .Select(d => new { d.CreatedAt, d.EventValues })
+        // The row must be this order's own B-1; a row that is itself a correction already holds the chain's root id and the first e-mail's moment, which are carried on unchanged.
+        var given = await _db.DispatchRecords.AsNoTracking()
+            .Where(d => d.Id == givenId && d.OrderId == orderId && d.DispatchType == DispatchType.B1)
+            .Select(d => new { d.CreatedAt, d.EventValues, d.OriginalDispatchId })
             .SingleOrDefaultAsync(ct)
-            ?? throw new ArgumentException("The first e-mail of a B-1 correction is this order's own B-1 row (06 4.58).", nameof(firstId));
-        return CustomerNoticeValues.ReadFirstEmailSentAt(first.EventValues) ?? first.CreatedAt;
+            ?? throw new ArgumentException("The first e-mail of a B-1 correction is this order's own B-1 row (06 4.58).", nameof(givenId));
+        return (given.OriginalDispatchId ?? givenId, CustomerNoticeValues.ReadFirstEmailSentAt(given.EventValues) ?? given.CreatedAt);
     }
 
     private async Task<bool> ReminderIsDueAsync(Guid orderId, CustomerNoticeRow row, DateTimeOffset now, CancellationToken ct)

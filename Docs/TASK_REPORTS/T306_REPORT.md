@@ -1,6 +1,6 @@
 # T306 — Müşteri bildirimleri B-1…B-8
 
-**Faz:** F3 | **Durum:** düzeltme 1 yapıldı, doğrulama bekliyor (tur 1 ✗ FAIL: B1, B2) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** düzeltme 2 yapıldı, tam doğrulama bekliyor (tur 1 ✗ FAIL: B1, B2; tur 2 ✗ FAIL: Bulgu 1) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -78,8 +78,8 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ 3418/3418 | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --no-build` | 0 hata; Architecture 809 ayrıca yeşil; `CustomerNoticeTemplateTests` 105 |
-| Integration | ✓ 11/11 | `--filter-class "*CustomerNoticeQueueTests"` (Postgres 18, 127.0.0.1:55371) | 0 hata |
+| Unit | ✓ Notifications 202/202; Architecture 830/830 (düzeltme 2) | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --no-build --filter-namespace …` | 0 hata |
+| Integration | ✓ 14/14 | `--filter-class "*CustomerNoticeQueueTests"` (Postgres 18, 127.0.0.1:55600; düzeltme 2) | 0 hata |
 | Derleme | ✓ | `dotnet build -warnaserror` (Unit, Integration) | 0 uyarı, 0 hata |
 | Format | ✓ | `dotnet format <proje> --verify-no-changes` (Web, Unit, Integration) | değişiklik yok |
 | Consistency | ✓ | `--filter-trait "Consistency=true"` (docs commit'inden sonra) | 0 hata |
@@ -257,6 +257,16 @@ Yeni K-notu yok (tur 1'in D-231, D-232 kayıtları açık).
 
 #### Merge ve Post-merge
 FAIL — merge yok. Tur 2 FAIL: `12 §8.5` iki iterasyon sınırı, eskalasyon (`INSTRUCTIONS.md` §3.3).
+
+## Düzeltme 2
+
+`origin/main` ilerlemedi (ad8c48d); birleştirme gerekmedi.
+
+| Bulgu | Yapılan | Kanıt |
+|---|---|---|
+| 1 (ORTA) düzeltme sonrası B-1'in `OriginalDispatchId`'si verilen satır düzeltme satırıysa kökü taşımıyordu | `CustomerNoticeQueue` verilen satırdan kimliği de okur ve `OriginalDispatchId` olarak `given.OriginalDispatchId ?? givenId` yazar (zincir köke iner; kök satırı silinmiş olsa da arama gerekmez, kimlik ve an verilen satırdan gelir). Satır yine aynı sipariş ve `B1` olmak zorunda. Çağıran ilk satırı ya da zincirin herhangi bir satırını verebilir; aynı kimlik grubu belirler, "e-posta ulaşmadı" işareti grubun en son satırını okur (`DispatchMarks`, değişmedi). Sözleşme açıklaması güncellendi. | tümleşik `TheB1AfterACorrection_WritesTheFirstRowsCreationMoment_…` (ikinci düzeltmede üçüncü satır `OriginalDispatchId == first`, ilk satır silinmişken), yeni `TheSecondB1AfterACorrection_JoinsTheFirstRowsGroup_WhateverRowOfTheChainIsGiven` (ilk satır ya da ikinci satır verilse de bütün satırlar `first` kimliğinde, an ilk satırınki); `TheB1AfterACorrection_NeedsTheFirstRowToBeThisOrdersOwnB1` yeşil |
+
+**Öz denetim (düzeltme 2):** kriter 1–10, KK1–KK10 ve `09 §25` kendi diff'imde yeniden denetlendi: kriter 3 ve KK3 artık kimlik ve an için tam ✓ (kök çözülür, ilk an taşınır); öteki maddeler değişmedi, ilgili testler yeşil (Notifications 202, Architecture 830, tümleşik kuyruk 14). Sık FAIL nedenleri: (1) yeni tarama/istisna yok; (2) yeni tarama yok; (3) şema değişikliği yok (`original_dispatch_id` T117'den, FK yok); (4) sayı anan başka yer yok, backlog yeni kayıt açılmadı; (5) olay değeri `EventValues`'ta, kimlik zinciri kökü artık çözülüyor (T306 r2 satırı).
 
 ## Altyapı Değişiklikleri
 

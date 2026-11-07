@@ -26,6 +26,12 @@
     <EmbeddedResource Include="Infrastructure/PublicHolidays.txt" LogicalName="Shopfolio.Infrastructure.PublicHolidays.txt" />
   </ItemGroup>
 
+  <!-- The templates of the two generated legal texts ship inside the application (02 3.33.1; 09 11.4 item 5). -->
+  <ItemGroup>
+    <EmbeddedResource Include="Modules/Settings/Templates/PreInformationForm.tr.txt" LogicalName="Shopfolio.Modules.Settings.Templates.PreInformationForm.tr.txt" />
+    <EmbeddedResource Include="Modules/Settings/Templates/DistanceSalesContract.tr.txt" LogicalName="Shopfolio.Modules.Settings.Templates.DistanceSalesContract.tr.txt" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="Shopfolio.UnitTests" />
     <InternalsVisibleTo Include="Shopfolio.IntegrationTests" />

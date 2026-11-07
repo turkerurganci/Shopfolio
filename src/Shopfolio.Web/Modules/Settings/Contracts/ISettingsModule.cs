@@ -59,4 +59,47 @@ public interface ISettingsModule
     /// gate says whether they are open or which conditions still hold them closed. Same transaction and trail as <see cref="CloseSalesTemporarilyAsync"/>.
     /// </summary>
     Task<SalesSwitchResult> ReopenSalesAsync(bool shownIsClosed, CancellationToken ct);
+
+    /// <summary>
+    /// The four legal texts as the panel lists them (T366; 02 3.33.1, 3.33.9): each with its last published number and the parts that are missing, by name. The privacy
+    /// notice is missing its publication, its hosting location or the identity fields; the cookie policy its publication; the two generated texts their first version.
+    /// </summary>
+    Task<IReadOnlyList<LegalTextSummary>> GetLegalTextsAsync(CancellationToken ct);
+
+    /// <summary>The draft of a firm-edited text (the privacy notice or the cookie policy); another type is an <see cref="ArgumentException"/> (02 3.33.1).</summary>
+    Task<LegalTextDraft> GetLegalTextDraftAsync(LegalTextType type, CancellationToken ct);
+
+    /// <summary>
+    /// Saves the draft of a firm-edited text (T366; 02 3.33.2): in the caller's transaction, the record variant against the draft's version. The text cannot be emptied; the
+    /// hosting location exists on the privacy notice only and cannot be emptied once filled. The text is taken as given: the closed-format cleaning of the HTML is the panel
+    /// page's step before this call (09 15.3; T507).
+    /// </summary>
+    Task<SettingsSaveResult> SaveLegalTextDraftAsync(LegalTextType type, string text, string? hostingLocation, int formVersion, CancellationToken ct);
+
+    /// <summary>
+    /// Publishes the draft of a firm-edited text as the next version (T366; 02 3.33.2, 3.33.3): the number is the last plus one, the identity placeholders are filled from the
+    /// company identity, the row is added and the trail row is written in the same transaction. The privacy notice is not published without its hosting location.
+    /// </summary>
+    Task<LegalTextPublishResult> PublishLegalTextAsync(LegalTextType type, int formVersion, CancellationToken ct);
+
+    /// <summary>The versions in force an order freezes at its confirmation (T366; 02 3.33.4).</summary>
+    Task<LegalTextVersionIds> GetCurrentLegalTextVersionsAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The confirmation step's check (T366; 02 3.33.4, 3.17.2): true when the form and the contract the customer was shown are still the last published versions of their
+    /// types. When one has risen the order is not created and the customer confirms the current text; there is no re-consent window and no notice for a text that changed.
+    /// </summary>
+    Task<bool> AreShownLegalTextVersionsCurrentAsync(Guid shownPreInformationFormId, Guid shownDistanceSalesContractId, CancellationToken ct);
+
+    /// <summary>A published version by its id; every version an order froze stays readable (02 3.33.3). <see langword="null"/> when there is no such version.</summary>
+    Task<LegalTextVersionInfo?> GetLegalTextVersionAsync(Guid versionId, CancellationToken ct);
+
+    /// <summary>The last published version of a type; <see langword="null"/> when there is none.</summary>
+    Task<LegalTextVersionInfo?> GetLatestLegalTextVersionAsync(LegalTextType type, CancellationToken ct);
+
+    /// <summary>
+    /// Writes the first versions of the two generated texts and a new version when the shipped template changed (T366; 06 4.56, 09 11.4 item 5): the start-up step, a system
+    /// event that writes no trail row. In the caller's transaction, row lock first.
+    /// </summary>
+    Task SynchronizeGeneratedLegalTextsAsync(CancellationToken ct);
 }

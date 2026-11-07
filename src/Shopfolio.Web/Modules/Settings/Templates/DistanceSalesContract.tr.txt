@@ -1,0 +1,46 @@
+MESAFELİ SATIŞ SÖZLEŞMESİ
+
+Sipariş numarası: {{OrderNumber}}
+
+MADDE 1 - TARAFLAR
+SATICI: {{CompanyLegalName}}
+Vergi kimlik numarası: {{CompanyTaxIdNumber}}
+MERSİS numarası: {{CompanyMersisNumber}}
+Ticaret sicil numarası: {{CompanyTradeRegistryNumber}}
+Adres: {{CompanyAddressLine}}, {{CompanyDistrict}} / {{CompanyProvince}}
+Telefon: {{CompanyPhone}} · E-posta: {{CompanyEmail}} · KEP adresi: {{CompanyKepAddress}}
+ALICI: {{BillingRecipientName}}
+Teslimat: {{ShippingRecipientName}}, {{ShippingPhone}}, {{ShippingAddressLine}}, {{ShippingDistrict}} / {{ShippingProvince}}
+E-posta: {{ContactEmail}}
+Alıcı, on sekiz yaşını doldurduğunu ve sözleşme yapma ehliyetine sahip olduğunu beyan eder.
+
+MADDE 2 - KONU
+Bu sözleşme, alıcının satıcıya ait internet sitesinden sipariş ettiği ürün ve hizmetlerin satışı ve teslimi ile tarafların hak ve yükümlülüklerini, 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği hükümlerine göre düzenler.
+
+MADDE 3 - ÜRÜN, HİZMET VE BEDEL
+Sipariş edilen ürün ve hizmetlerin niteliği, adedi ve fiyatı sipariş özetinde yazar. Vergiler dahil toplam bedel: {{Total}}. Kargo bedeli: {{ShippingFee}}. Fiyatlar Türk lirasıdır.
+
+MADDE 4 - ÖDEME
+Ödeme, alıcının sipariş sırasında seçtiği yöntemle yapılır. Havale ile ödemede ödeme, sipariş sırasında bildirilen süre içinde satıcının hesabına yapılır; süre içinde yapılmayan ödemede sipariş iptal edilir. Siparişin onaylanması ödeme yükümlülüğü doğurur.
+
+MADDE 5 - TESLİMAT
+Fiziksel ürünler, sipariş onayından itibaren en geç {{ShippingPeriod}} iş günü içinde kargoya verilir ve alıcının bildirdiği teslimat adresine gönderilir. Satıcı yalnızca teslimat yaptığı illere gönderim yapar. Dijital ürünler ödemenin onaylanmasından sonra indirilir; hizmetler sipariş sırasında bildirilen sürede ifa edilir. Mal, alıcıya ya da alıcının bildirdiği kişiye teslim edildiğinde teslim edilmiş sayılır.
+
+MADDE 6 - CAYMA HAKKI
+Alıcı, fiziksel ürünlerde teslim tarihinden itibaren on dört gün içinde, herhangi bir gerekçe göstermeden ve cezai şart ödemeden sözleşmeden cayabilir. Cayma hakkı, sipariş sayfasından yapılan cayma beyanıyla kullanılır. Alıcı malı, cayma beyanından itibaren on dört gün içinde gönderir.
+İade için taşıyıcı belirlenmemiştir: alıcı malı dilediği taşıyıcıyla, satıcının iade adresine, bedeli teslim alırken satıcı tarafından ödenmek üzere gönderir. İade kargo bedeli satıcıya aittir.
+İade adresi: {{ReturnAddress}}
+Hizmetlerde cayma hakkı, alıcının onayıyla başlayan hizmetin ifasının tamamlanmasıyla sona erer. Dijital ürünlerde, indirme başladıktan sonra cayma hakkı kullanılamaz. Yönetmelikte sayılan istisna kapsamındaki ürünlerde cayma hakkı yoktur; istisna ve sebebi ürün sayfasında ve siparişte yazar.
+Cayma hâlinde bedel, iade edilen malın satıcıya ulaşmasından itibaren mevzuatta belirtilen süre içinde alıcının ödeme yaptığı yöntemle geri ödenir.
+
+MADDE 7 - AYIPLI MAL
+Alıcı, ayıplı maldan doğan haklarını Tüketicinin Korunması Hakkında Kanun'a göre kullanır ve ayıp talebini sipariş sayfasından iletir.
+
+MADDE 8 - KİŞİSEL VERİLER
+Alıcının kişisel verileri, sitede yayımlanan aydınlatma metnine göre işlenir.
+
+MADDE 9 - UYUŞMAZLIK
+Bu sözleşmeden doğan uyuşmazlıklarda alıcı, başvurularını tüketici hakem heyetine ya da — dava açılmadan önce arabulucuya başvurma şartıyla — tüketici mahkemesine yapabilir. Parasal başvuru sınırları her yıl güncellenir; güncel değerler için ilgili mercilerin duyurularına bakınız.
+
+MADDE 10 - YÜRÜRLÜK
+Alıcı, siparişi onaylayarak bu sözleşmenin tüm koşullarını kabul etmiş olur. Sözleşme, sipariş onaylandığı gün yürürlükte olan sürümüyle kurulur ve sipariş onay e-postasının gövdesinde tam metin olarak alıcıya gönderilir.

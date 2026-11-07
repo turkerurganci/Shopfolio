@@ -46,5 +46,21 @@ internal sealed class EmailLinks
         return Absolute(path);
     }
 
+    /// <summary>
+    /// A screen of the panel (07 2.1.5; 08 2.2.7): <c>/panel/{screen}</c> or, with an inner key, <c>/panel/{screen}/{key}</c>. The screen is a fixed name the
+    /// template writes (lower case letters and hyphens); the key is percent-encoded. A visitor without a session lands on the sign-in page and, after it, on
+    /// this screen (07 2.3.2).
+    /// </summary>
+    public Uri Panel(string screen, string? key = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(screen);
+        if (!screen.All(c => char.IsAsciiLetterLower(c) || c == '-'))
+        {
+            throw new ArgumentException("A panel screen is a name of lower case letters and hyphens (07 2.1.5).", nameof(screen));
+        }
+
+        return Absolute(key is null ? "/panel/" + screen : "/panel/" + screen + "/" + Uri.EscapeDataString(key));
+    }
+
     private Uri Absolute(string path) => new(_site.Absolute(path), UriKind.Absolute);
 }

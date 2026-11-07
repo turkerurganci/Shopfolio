@@ -9,6 +9,10 @@
 
 ---
 
+## 2026-11-07 — T315 (Durum makinesi çekirdeği) doğrulama tur 1 PASS
+
+2026-11-07 — T315 (Durum makinesi çekirdeği) doğrulama tur 1 ✓ PASS (head `0d30a6f` + `origin/main` birleştirmesi, PR #434; kriter 1–8 ve KK1–KK8 ✓, bulgu yok; dal CI 42381390535 yeşil; Unit 3570 (Architecture 844, Consistency 224), Integration OrderTransitionsTests 31; `12`'de T315 satırı yok; K1 → D-291 (S1'in sistem aktörü ve havale onayı; yönetici geçişinde sürüm — T316/T317), backlog aktif 118).
+
 ## 2026-11-07 — T307 (Müşteri bildirimleri B-9…B-16) doğrulama tur 1 PASS
 
 2026-11-07 — T307 (Müşteri bildirimleri B-9…B-16) doğrulama tur 1 ✓ PASS (head `43be541` + `origin/main` birleştirmesi, PR #435; kriter 1–10, KK1–KK10, `09 §25` ve güvenlik taraması ✓, bulgu yok; Unit 3536 + Consistency 213 (birleştirme sonrası Unit 3572), betik testleri, Integration yerelde parçalı (CustomerNoticeAfterOrderQueueTests + CustomerNoticeQueueTests 22) geçti, dal CI 42385697297 yeşil; `12` `Durum` değişmedi (A321–A323 gönderimi ve tetiği ister — T305/T306 emsali); K1 → D-293 (gönderen ve yeniden gönderim yazıcısı: il adları, B-9 bağlı kaydı, iade adresi koşulu); backlog aktif 116). Önceki kayıt `STATUS_CHANGELOG.md`'de.
@@ -17,7 +21,7 @@
 
 2026-11-07 — T307 (Müşteri bildirimleri B-9…B-16) yapım tamamlandı, doğrulama bekliyor (PR #435; kriter 1–10, KK1–KK10 öz denetimde ✓; Unit 3749, Integration CustomerNotice 22, format ve derleme `-warnaserror` temiz; `12` `Durum` değişmedi (A324, A335 gönderimi ister); yeni backlog kaydı yok, aktif 108).
 
-## 2026-11-07 — T366 (Yasal metinler) doğrulama tur 2 PASS
+## 2026-11-07 — T366 (Yasal metinler) doğrulama tur 2
 
 2026-11-07 — T366 (Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin) doğrulama tur 2 ✓ PASS (head `171fc5d`, PR #428; tam yeniden doğrulama: kriter 1–10, KK1–KK10, `09 §25` ve güvenlik taraması ✓ — tur 1 bulgusu kapandı: aydınlatma kimlik eksikken yayımlanmaz, yer tutucular gösterimde güncel kimlikle HTML kodlu dolar; 4, 5, 6 modül düzeyinde; Unit 3500, betik testleri, Integration yerelde parçalı 121 geçti, dal CI 42371931110 yeşil; `12` `Durum` değişmedi; K1 → D-268 (T356), K2 → D-269 (T507); backlog aktif 115).
 

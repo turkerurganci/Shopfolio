@@ -186,7 +186,7 @@ public sealed class RequestLimitsTests
         List<string> logs = [];
         EndpointCalls calls = new();
         await using WebApplicationFactory<Program> factory = Open(Clock(), calls: calls, logDirectory: logs);
-        factory.UseKestrel();
+        factory.UseKestrel(0);
         factory.StartServer();
         using HttpClient client = factory.CreateClient();
 
@@ -234,7 +234,7 @@ public sealed class RequestLimitsTests
     public async Task OnARealServer_ARefusedChunkedBody_IsNotAnUnexpectedError_AndTheMachineEndpointAnswersWithNoBody()
     {
         await using WebApplicationFactory<Program> factory = Open(Clock());
-        factory.UseKestrel();
+        factory.UseKestrel(0);
         factory.StartServer();
         using HttpClient client = factory.CreateClient();
 

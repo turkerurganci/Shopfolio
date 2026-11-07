@@ -107,7 +107,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
             AdminKey = TestSessions.AdminAsync(dsn).GetAwaiter().GetResult().Key;
             if (kestrel)
             {
-                Factory.UseKestrel();
+                Factory.UseKestrel(0);
                 Factory.StartServer();
                 using HttpClient probe = Factory.CreateClient();
                 HttpClientHandler socket = new() { AllowAutoRedirect = false, UseCookies = false };

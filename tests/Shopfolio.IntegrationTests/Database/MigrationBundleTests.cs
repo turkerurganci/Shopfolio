@@ -6,7 +6,7 @@ namespace Shopfolio.IntegrationTests.Database;
 public sealed class MigrationBundleTests
 {
     [Fact]
-    public async Task BuildAsync_WhenBundleIsBuilt_LeavesTrackedLockFilesUnchanged()
+    public async Task BuildFreshAsync_WhenBundleIsBuilt_LeavesTrackedLockFilesUnchanged()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         string root = RepositoryRoot.Find();
@@ -16,12 +16,34 @@ public sealed class MigrationBundleTests
         Assert.NotEmpty(lockFiles);
         Dictionary<string, byte[]> before = lockFiles.ToDictionary(path => path, File.ReadAllBytes);
 
-        using MigrationBundle bundle = await MigrationBundle.BuildAsync(ct);
+        string executable;
+        using (MigrationBundle bundle = await MigrationBundle.BuildFreshAsync(ct))
+        {
+            executable = bundle.ExecutablePath;
+            Assert.True(File.Exists(executable));
+        }
 
-        Assert.True(File.Exists(bundle.ExecutablePath));
+        Assert.False(File.Exists(executable));
         foreach ((string path, byte[] content) in before)
         {
             Assert.Equal(content, await File.ReadAllBytesAsync(path, ct));
         }
+    }
+
+    [Fact]
+    public async Task BuildAsync_WhenCalledTwiceForTheSameBuild_ReusesTheCachedBundle()
+    {
+        CancellationToken ct = TestContext.Current.CancellationToken;
+
+        string first;
+        using (MigrationBundle bundle = await MigrationBundle.BuildAsync(ct))
+        {
+            first = bundle.ExecutablePath;
+        }
+
+        using MigrationBundle again = await MigrationBundle.BuildAsync(ct);
+
+        Assert.Equal(first, again.ExecutablePath);
+        Assert.True(File.Exists(again.ExecutablePath));
     }
 }

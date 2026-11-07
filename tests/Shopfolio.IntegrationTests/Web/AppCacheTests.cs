@@ -599,7 +599,7 @@ public sealed partial class AppCacheTests : IAsyncLifetime
 
             if (kestrel)
             {
-                Factory.UseKestrel();
+                Factory.UseKestrel(0);
                 Factory.StartServer();
                 using HttpClient probe = Factory.CreateClient();
                 HttpClientHandler socket = new() { AllowAutoRedirect = false, UseCookies = false };

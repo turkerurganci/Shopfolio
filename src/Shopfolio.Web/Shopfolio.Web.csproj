@@ -3,6 +3,9 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Shopfolio</RootNamespace>
+    <!-- With a .razor file (the e-mail frame, T305) the Web SDK would add Microsoft.AspNetCore.App.Internal.Assets (the Blazor script assets) to the restore by itself,
+         and the container restore, which sees the project file only, would then read other references than the lock file. The application serves no Blazor script. -->
+    <RequiresAspNetWebAssets>false</RequiresAspNetWebAssets>
   </PropertyGroup>
 
   <ItemGroup>

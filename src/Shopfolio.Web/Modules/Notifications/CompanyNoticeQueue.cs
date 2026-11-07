@@ -56,6 +56,7 @@ internal sealed class CompanyNoticeQueue
     public async Task<int> QueueCompanyAsync(CompanyNotice notice, CancellationToken ct)
     {
         CompanyNoticeRow row = CompanyNoticeValues.ForCompany(notice);
+        NotificationMap.Require(row.Type, NoticeFamily.Firm);
         RequireTransaction();
         string? recipient = await _contact.GetAsync(ct);
         if (recipient is null)
@@ -72,6 +73,7 @@ internal sealed class CompanyNoticeQueue
     {
         ArgumentNullException.ThrowIfNull(adminEmails);
         CompanyNoticeRow row = CompanyNoticeValues.ForAdmins(notice);
+        NotificationMap.Require(row.Type, NoticeFamily.Administrators);
         RequireTransaction();
         List<string> recipients = [];
         foreach (string email in adminEmails)

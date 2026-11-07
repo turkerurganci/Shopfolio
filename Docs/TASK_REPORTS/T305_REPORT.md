@@ -121,7 +121,7 @@
 - **Commit:** `8943077` — T305: E-posta ortak kalıbı ve gövde üretimi (üstüne PR numarası commit'i)
 - **PR:** #422
 - **CI:** *(yardımcı izler)*
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
+- **Post-merge run'lar:** squash `7cc0db5` (#422) — CI 42360805990 success, Publish 42360805989 success (T308 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

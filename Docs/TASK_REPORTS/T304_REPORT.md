@@ -115,7 +115,7 @@
 - **Commit:** `365a29d` — T304: Alıcı başına bildirim gönderim sınırı
 - **PR:** #421
 - **CI:** dal CI 42346270356 `success` (head `a8f38c1`)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `268ab8d` (#421) — CI 42351368096 success, Publish 42351368236 success (T308 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

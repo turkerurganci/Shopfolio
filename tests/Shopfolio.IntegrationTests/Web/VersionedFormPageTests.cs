@@ -619,7 +619,7 @@ public sealed partial class VersionedFormPageTests
     {
         Product product = await SeedProductAsync();
         int n = Interlocked.Increment(ref _counter);
-        Variant variant = Variant.Create(product.Id, $"KAPI-{n}", 100m, Now);
+        Variant variant = Variant.Create(product.Id, $"KAPI-{n}", 100m, Now, 100);
         variant.StockQuantity = stock;
         await SaveAsync(c => c.Variants.Add(variant));
         return variant;

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Catalog.Contracts.Variants;
 
 namespace Shopfolio.Modules.Catalog;
 
@@ -82,6 +83,27 @@ internal sealed class StockCounters
         }
 
         LockSequence.Enter(_db, LockKind.Variant, variantId);
+
+        // The type decides what the field may hold (02 3.6.2): a physical variant needs a number, a digital variant has no field. The type is the product's, read here; a
+        // variant that is gone has none and falls to the conditional update's own answer below.
+        ProductType? type = await _db.Variants.AsNoTracking()
+            .Where(v => v.Id == variantId)
+            .Join(_db.Products, v => v.ProductId, p => p.Id, (v, p) => (ProductType?)p.ProductType)
+            .SingleOrDefaultAsync(ct);
+        if (type is { } known)
+        {
+            IReadOnlyList<StockProblem> problems = StockRules.Check(known, newValue);
+            if (problems.Contains(StockProblem.PhysicalWithoutStock))
+            {
+                return StockQuantityWriteResult.StockRequired;
+            }
+
+            if (problems.Contains(StockProblem.DigitalWithStock))
+            {
+                return StockQuantityWriteResult.NotTracked;
+            }
+        }
+
         int written = await _db.Variants
             .Where(v => v.Id == variantId && v.StockQuantity == shownValue && (newValue == null || newValue >= v.ReservedQuantity))
             .ExecuteUpdateAsync(s => s.SetProperty(v => v.StockQuantity, newValue), ct);
@@ -93,9 +115,35 @@ internal sealed class StockCounters
         // Nothing was written: the reason is read in the same transaction, under the row lock the update took (09 10.2 item 4).
         var now = await _db.Variants.AsNoTracking()
             .Where(v => v.Id == variantId)
-            .Select(v => new { v.StockQuantity })
+            .Select(v => new { v.StockQuantity, v.ReservedQuantity })
             .SingleOrDefaultAsync(ct);
-        return now is null || now.StockQuantity != shownValue ? StockQuantityWriteResult.ShownValueChanged : StockQuantityWriteResult.BelowReserved;
+        return now is null || now.StockQuantity != shownValue
+            ? StockQuantityWriteResult.ShownValueChanged
+            : StockQuantityWriteResult.BelowReservedBy(now.ReservedQuantity);
+    }
+
+    /// <summary>The panel's read of the stock field and the reserved quantity beside it (02 3.6.7); null when the variant is gone. A plain read.</summary>
+    public async Task<VariantStockState?> GetStateAsync(Guid variantId, CancellationToken ct)
+    {
+        return await _db.Variants.AsNoTracking()
+            .Where(v => v.Id == variantId)
+            .Select(v => new VariantStockState(v.StockQuantity, v.ReservedQuantity))
+            .SingleOrDefaultAsync(ct);
+    }
+
+    /// <summary>
+    /// The sold-out state of a product's variants as the visitor sees it (02 3.6.3-3.6.5): the published variants, each only sold out or not - never a count - and the product
+    /// sold out when every visible variant is. A draft or archived variant is not shown to the visitor, so it neither counts nor appears. A plain read.
+    /// </summary>
+    public async Task<ProductAvailability> GetAvailabilityAsync(Guid productId, CancellationToken ct)
+    {
+        var rows = await _db.Variants.AsNoTracking()
+            .Where(v => v.ProductId == productId && v.PublishStatus == PublishStatus.Published)
+            .OrderBy(v => v.CreatedAt).ThenBy(v => v.Id)
+            .Select(v => new { v.Id, v.StockQuantity, v.ReservedQuantity })
+            .ToListAsync(ct);
+        List<VariantAvailability> variants = [.. rows.Select(r => new VariantAvailability(r.Id, StockRules.IsSoldOut(r.StockQuantity, r.ReservedQuantity)))];
+        return new ProductAvailability(variants, StockRules.IsProductSoldOut([.. variants.Select(v => v.IsSoldOut)]));
     }
 
     // A reservation that did not fit is the caller's refusal; a return to a deleted or unlimited variant has nothing to add; a freeing, a final

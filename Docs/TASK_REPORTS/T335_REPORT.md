@@ -99,7 +99,7 @@
 
 - **Branch:** `task/T335-urun-yayin-kapisi`
 - **Commit:** son head SHA PR gövdesinde
-- **PR:** PR_NO
+- **PR:** #447
 - **CI:** yöneticide (yapım işçisi CI izlemez)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T335 (Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı) yapım bitti, ⏳ doğrulama bekliyor (dal `task/T335-urun-yayin-kapisi`; kriter 1–10 ve KK1–KK10 öz denetimde ✓: gerçek `CatalogPublishGate` (`UnwrittenPublishGate` kalktı), `DigitalFileCoverage` tek okuma (kapı + dosya silme), `PublishedProductGate` (son Yayında varyant tek kural), `ProductRemoval` (ürün/varyant kalıcı silme, dosya kaldırma, etki sayımı), `ProductPageReader` (adres cevabı); Unit 3921 + Consistency 241, Integration `ProductPublishGateTests` 31 + `ProductTransitionsTests` 41; backlog D-248, D-300, D-304 ✅, D-303 kısmen ✅, D-301 yeniden ileri atıldı, yeni D-401…D-403); önceki task'ların (T316, T321, T334) merge kaydı dolduruldu.
+**Son güncelleme:** 2026-11-08 — T335 (Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı) yapım bitti, ⏳ doğrulama bekliyor (PR #447, dal `task/T335-urun-yayin-kapisi`; kriter 1–10 ve KK1–KK10 öz denetimde ✓: gerçek `CatalogPublishGate` (`UnwrittenPublishGate` kalktı), `DigitalFileCoverage` tek okuma (kapı + dosya silme), `PublishedProductGate` (son Yayında varyant tek kural), `ProductRemoval` (ürün/varyant kalıcı silme, dosya kaldırma, etki sayımı), `ProductPageReader` (adres cevabı); Unit 3921 + Consistency 241, Integration `ProductPublishGateTests` 31 + `ProductTransitionsTests` 41; backlog D-248, D-300, D-304 ✅, D-303 kısmen ✅, D-301 yeniden ileri atıldı, yeni D-401…D-403); önceki task'ların (T316, T321, T334) merge kaydı dolduruldu.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -174,7 +174,7 @@
 | T332 | Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu | ✓ | ✓ PASS (tur 1) | `c4c872c` | #432 |
 | T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ⬚ | — | — | — |
 | T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ✓ | ✓ PASS (tur 1) | `af6e7d3` | #443 |
-| T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ⏳ | — | — | PR açılıyor |
+| T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ⏳ | — | — | #447 |
 | T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ⬚ | — | — | — |
 | T337 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | ⬚ | — | — | — |
 | T338 | Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması | ⬚ | — | — | — |

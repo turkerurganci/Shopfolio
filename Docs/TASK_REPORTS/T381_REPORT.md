@@ -1,6 +1,6 @@
 # T381 — Ayar katmanları ve parametre envanteri: firma ayarı, kurulum ayarı, ürün sabiti, varsayılan ve çit, değişikliğin ize yazılması
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamam, doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — düzeltme bekliyor) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -77,10 +77,37 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-07, head `98f5550`) |
+| Bulgu sayısı | 2 (B1 ORTA S1, B2 DÜŞÜK S1) |
+| Düzeltme gerekli mi | Evet — B1 ve B2 |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-279; K2 bu PR'da kapatıldı) |
+
+### Doğrulama tur 1 — validator kanıtları
+
+Başlangıç kapıları: working tree temiz, `core.hooksPath` = `scripts/git-hooks`; ana dal son 3 run success (42368786653, 42368786665, 42366197659); memory'de T381 satırı var. Dal CI 42375448881 success (head `98f5550`).
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Üç katman | ✓ | `ParameterLayer` üç değer; `ParameterInventory.Entries` 49 satır; `ParameterLayersTests.TheInventory_HasTheThreeLayers…` |
+| 2 | Atama ölçütü | ✓ | `ParameterLayers.Assign` (`02 §10.1.3` ile birebir); Theory 8 durum + var olan satırlar ölçütle eşleşir |
+| 3 | Kurulum ayarları | ✓ | `InstallationSettings` 5 kalem, 3 zorunlu (`09 §3.5` m.2); `company_settings`'te karşılığı yok (`FirmSettingDefaultsTests`) |
+| 4 | On firma ayarı | ✓ (servis düzeyi) | Consistency: 10 firma ayarı = `02 §11.1`; yedi mağaza ayarının üç kaydı `FirmSettingsTests`'te; panel ekranı T536, ürün formu T525 |
+| 5 | Varsayılanla dolu kurulum | ✓ | `FirmSettingDefaultsTests` (4) gerçek göçlerle; P-44 sütunu yok |
+| 6 | Çitler, çit dışı ret | ~ | Değer reddedilir ve saklanmaz, iz yazılmaz (`FirmSettingsTests` Theory 4 + P-8); ama ret kodu `InvalidQuantity`, `07 §6.2` `ValueOutOfBounds` der (B1). P-6/P-9/P-44 yazım yolu yok (K1) |
+| 7 | Ürün sabiti alanı yok, tek yer | ✓ | `SettingLayerScanTests.PanelForms_HaveNoFieldForAProductConstant` + iki ihlal örneği kırmızı; Consistency sabit ↔ satır birebir |
+| 8 | P-2, P-11 kaldırılmış | ✓ | `Removed` satırları, Consistency `["P-11","P-2"]` |
+| 9 | Ayar değişikliği izde | ✓ (üç bölüm) | `FirmSettingsTests`: `UpdateSettings` satırı, yönetici, görünen ad, eski/yeni değer; değişmeyen kayıt iz yazmaz; geri alma; ürün formu D-164, öteki kayıtlar D-256 |
+| 10 | Envanter eşitliği Consistency | ✓ | `ParameterInventoryConsistencyTests` 6 test; Consistency 215/215 |
+
+**Bulgular:**
+- **B1 (ORTA, S1):** `FirmSettings.CheckFenced` çit dışı değeri `FieldCodes.InvalidQuantity` ile reddeder. `07 §6.2.6` `ValueOutOfBounds` (422) kodunu tam bu iş için tanımlar: "Parametrenin çitinin dışında — kargoya verme süresi P-5, ifa süresi P-44, havale ödeme süresi P-7, indirme hakkı P-8 … UC-114, UC-170, UC-171". `InvalidQuantity` ise "adet birden küçük ya da tam sayı değil" kodudur (mesajı "1 ile {1} arasında bir tam sayı"). Testler (`FirmSettingsTests` çit Theory'si, P-8 testi) yanlış kodu kilitliyor. Yapım raporundaki "07 §6.2'de çite özel hata kodu yok" ifadesi yanlış. Düzeltme: ret `ValueOutOfBounds` ile (gerekiyorsa `FieldRejection.Code` sözleşmesi bu alan dışı kodu da kabul edecek biçimde), testler aynı PR'da.
+- **B2 (DÜŞÜK, S1):** `PeriodsInput.ShippingPeriod` ve `PeriodsSection.ShippingPeriod` — `07 UC-170` isteği ve `06 §4.2` sütunu `DefaultShippingPeriod` der (`09 §25`: yeni ad `06`/`07`'den birebir). Reddin `Field` adı da bu yüzden formun alanıyla eşleşmez. Düzeltme: ad `DefaultShippingPeriod`.
+
+**K-notları:** K1 — ürün formundaki P-6/P-9/P-44 çitinin yazım yolu yok → D-279 (T525). K2 — yapım T308'in PASS girişini status'tan kaldırmış ama `STATUS_CHANGELOG.md`'ye taşımamıştı → bu PR'da taşındı.
+
+**Testler (validator, yerel):** `dotnet build Shopfolio.slnx -c Release -warnaserror` 0 uyarı; `dotnet format` üç proje değişiklik yok; Consistency 215/215; Unit Architecture 838 + öteki 2480 = 3318/3318; betik testleri 4 dosya geçti; Integration `FirmSettingsTests` + `FirmSettingDefaultsTests` 24/24, `CompanyIdentityTests` + `SalesGateTests` 46/46 (PostgreSQL 18, ayrı konteyner, sonra silindi).
+
+**Yapım raporu karşılaştırması:** kriter 6 ve KK6 raporda ✓, validator ~ (B1); "kolay karar (1)" belgeyle çelişiyor. Öz denetim tablosu var ve kanıtlı.
 
 ## Altyapı Değişiklikleri
 

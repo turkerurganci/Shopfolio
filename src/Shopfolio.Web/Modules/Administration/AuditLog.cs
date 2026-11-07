@@ -48,11 +48,11 @@ internal sealed class AuditLog : IOrderVersionExempt
     public Guid? TargetRecordId { get; private set; }
 
     /// <summary>
-    /// "What changed" as a JSON list of values (06 2.5.1, 4.63), stored in a <c>jsonb</c> column. Never holds the personal data of a customer
-    /// (09 9.2 item 4). The text is validated JSON; its typed form (<c>AuditDetails</c> and the shared <c>PayloadJson</c> setting, 09 12 item 5)
-    /// arrives with the audit trail interface (T380) and does not change the column.
+    /// "What changed" as a JSON list of values (06 2.5.1, 4.63), stored in a <c>jsonb</c> column through the one payload setting
+    /// (<see cref="PayloadJson"/>, 09 12 item 5). Never holds the personal data of a customer (09 9.2 item 4): <see cref="AuditEntryRules"/> refuses it
+    /// before the row is made.
     /// </summary>
-    public string? Details { get; private set; }
+    public AuditDetails? Details { get; private set; }
 
     public static AuditLog Create(
         AuditOperation operation,
@@ -61,7 +61,7 @@ internal sealed class AuditLog : IOrderVersionExempt
         string adminEmail,
         string? targetRecordType,
         Guid? targetRecordId,
-        string? details,
+        AuditDetails? details,
         DateTimeOffset now)
     {
         return new AuditLog
@@ -89,7 +89,7 @@ internal sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         builder.Property(l => l.AdminEmail).HasColumnType("text");
         builder.Property(l => l.Operation).HasColumnType("text");
         builder.Property(l => l.TargetRecordType).HasColumnType("text");
-        builder.Property(l => l.Details).HasColumnType("jsonb");
+        builder.Property(l => l.Details).HasPayloadConversion();
 
         // No relationship to any table: the administrator and the target record are values (06 2.2.6).
         builder.HasIndex(l => l.CreatedAt);

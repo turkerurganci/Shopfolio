@@ -16,6 +16,8 @@ internal static class AdministrationModuleRegistration
     public static IServiceCollection AddAdministrationModule(this IServiceCollection services)
     {
         services.AddScoped<IAdministrationModule, AdministrationModule>();
+        services.AddScoped<IAuditActorSource, RequestAuditActorSource>();
+        services.AddScoped<IAuditTrail, AuditTrail>();
         services.AddDisposalPart<AdminInvitationDisposalPart>();
         return services;
     }

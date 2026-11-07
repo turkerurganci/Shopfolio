@@ -1,0 +1,9 @@
+{
+  "DisplayName": "Firma ayarları",
+  "Changes": [
+    { "Field": "MaxPreparationDays", "OldValue": "3", "NewValue": "5" }
+  ],
+  "Values": [
+    { "Name": "Reason", "Value": "Elle düzeltme" }
+  ]
+}

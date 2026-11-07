@@ -54,6 +54,9 @@ public sealed class TemplateDatabaseFixture : IAsyncLifetime
 {
     public const string TemplateName = "shopfolio_test_template";
 
+    /// <summary>Command timeout of the administrator's statements, in seconds.</summary>
+    private const int AdminCommandTimeoutSeconds = 120;
+
     private string _adminDsn = string.Empty;
 
     /// <summary>
@@ -212,7 +215,8 @@ public sealed class TemplateDatabaseFixture : IAsyncLifetime
     {
         await using NpgsqlConnection connection = new(_adminDsn);
         await connection.OpenAsync(ct);
-        await using NpgsqlCommand command = new(sql, connection);
+        // CREATE/DROP DATABASE copies or removes whole directories: under a loaded disk they outlast the 30-second default (D-68).
+        await using NpgsqlCommand command = new(sql, connection) { CommandTimeout = AdminCommandTimeoutSeconds };
         await command.ExecuteNonQueryAsync(ct);
     }
 

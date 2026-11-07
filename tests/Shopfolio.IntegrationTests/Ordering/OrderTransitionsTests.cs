@@ -625,7 +625,7 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
         services.AddSingleton<ImageProcessor>();
         services.AddCatalogModule();
         services.AddAfterSalesModule();
-        services.AddNotificationsModule();
+        services.AddNoticeDependencies();
         services.AddOrderingModule();
         return services.BuildServiceProvider();
     }

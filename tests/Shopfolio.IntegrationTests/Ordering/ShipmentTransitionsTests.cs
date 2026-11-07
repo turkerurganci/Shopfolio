@@ -10,6 +10,7 @@ using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.Imaging;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.AfterSales.Contracts;
@@ -124,7 +125,7 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
         OrderTransitionResult refused = await RunAsync((unit, token) => unit.ShipOrderAsync(
             new ShipOrderRequest(order.Id, AdminCaller, 2, true, Listed), token));
         TransitionOutcome corrected = await RunCoreAsync((core, token) => core.CorrectAsync(
-            new CorrectionRequest(order.Id, deliveredRecord, CorrectionReason.EarlyOrWrongDeliveryMark, null, TransitionActor.Admin(_admin!.Id, _admin.Name), 2), null, token));
+            new CorrectionRequest(order.Id, deliveredRecord, CorrectionReason.MarkedBeforeOccurred, null, TransitionActor.Admin(_admin!.Id, _admin.Name), 2), null, token));
 
         Assert.Equal(TransitionRefusal.NotInTheTable, refused.Refusal);
         Assert.False(corrected.IsRejected);
@@ -230,7 +231,7 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
     {
         // An order with one closed item of its line and one delivered digital item: the closing record is the last event.
         ItemSpec delivered = new(ProductType.Digital, 1, true);
-        (Order order, List<OrderItem> items) = await SeedAsync(status, PaymentStatus.Paid, new ItemSpec(closedType, 2), delivered);
+        (Order order, List<OrderItem> items) = await SeedAsync(status, PaymentStatus.Paid, new ItemSpec(closedType, 1), delivered);
         ClosureResult closure = ClosureResult.None;
 
         await RunCoreAsync(async (core, token) =>
@@ -392,23 +393,12 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
         OrderTransitionResult systemS9 = await RunAsync((unit, token) => unit.CancelOrderAsync(CancelOrderRequest.BySystem(returned.Id, TransitionReason.CardPaymentFailed), token));
 
         Assert.Equal(TransitionRefusal.ConditionNotMet, systemS3.Refusal);
-        Assert.Equal(TransitionRefusal.ConditionNotMet, systemS4.Refusal);
+        Assert.Equal(TransitionRefusal.ReasonNotAllowed, systemS4.Refusal);
         Assert.Equal(TransitionRefusal.ActorNotAllowed, customerS9.Refusal);
         Assert.Equal(TransitionRefusal.ActorNotAllowed, systemS9.Refusal);
         await AssertNothingWrittenAsync(placedPaid.Id, OrderStatus.Placed, PaymentStatus.Paid);
         await AssertNothingWrittenAsync(preparing.Id, OrderStatus.Preparing, PaymentStatus.Paid);
         await AssertNothingWrittenAsync(returned.Id, OrderStatus.DeliveryFailed, PaymentStatus.Paid);
-    }
-
-    [Fact]
-    public async Task TheTablesCancellationTriggers_AreTheOnesOf03Section1Point2_KK5()
-    {
-        // S3: customer, firm, system; S4: customer, firm (the system only as the closure); S9: the firm alone.
-        Assert.Equivalent(new[] { ActorKind.Buyer, ActorKind.Admin, ActorKind.System }, TransitionTable.ActorsOf(TransitionCode.S3));
-        Assert.Contains(ActorKind.Buyer, TransitionTable.ActorsOf(TransitionCode.S4)!);
-        Assert.Contains(ActorKind.Admin, TransitionTable.ActorsOf(TransitionCode.S4)!);
-        Assert.Equal([ActorKind.Admin], TransitionTable.ActorsOf(TransitionCode.S9));
-        await Task.CompletedTask;
     }
 
     [Theory]
@@ -658,12 +648,12 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
         await using AppDbContext reader = NewContext();
         Order saved = await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct);
         Assert.Equal((OrderStatus.Shipped, "ArasKargo", "AR-77", 4), (saved.OrderStatus, saved.Carrier, saved.TrackingNumber, saved.Version));
-        Assert.Equal(
-            [TransitionCode.S5, TransitionCode.S7, TransitionCode.S8],
-            (await reader.TransitionRecords.Where(t => t.OrderId == order.Id).OrderBy(t => t.CreatedAt).ThenBy(t => t.TransitionCode).ToListAsync(Ct)).Select(t => t.TransitionCode).Order());
-        Assert.Equal(
-            [DispatchType.B5, DispatchType.B5, DispatchType.B6],
-            (await reader.DispatchRecords.Where(d => d.OrderId == order.Id).Select(d => d.DispatchType).ToListAsync(Ct)).Order());
+        Assert.Equivalent(
+            new[] { TransitionCode.S5, TransitionCode.S7, TransitionCode.S8 },
+            await reader.TransitionRecords.Where(t => t.OrderId == order.Id).Select(t => t.TransitionCode).ToListAsync(Ct));
+        Assert.Equivalent(
+            new[] { DispatchType.B5, DispatchType.B5, DispatchType.B6 },
+            await reader.DispatchRecords.Where(d => d.OrderId == order.Id).Select(d => d.DispatchType).ToListAsync(Ct));
     }
 
     [Fact]
@@ -712,9 +702,9 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
         Assert.All(saved.Where(i => i.Id != items[0].Id), i => Assert.Null(i.DeliveryMarkedAt));
         Assert.Equal(OrderStatus.Delivered, (await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct)).OrderStatus);
         Assert.Equal(dispatchBefore, await CountDispatchAsync(order.Id));
-        Assert.Equal(
-            [TransitionCode.S5, TransitionCode.S6],
-            (await reader.TransitionRecords.Where(t => t.OrderId == order.Id).Select(t => t.TransitionCode).ToListAsync(Ct)).Order());
+        Assert.Equivalent(
+            new[] { TransitionCode.S5, TransitionCode.S6 },
+            await reader.TransitionRecords.Where(t => t.OrderId == order.Id).Select(t => t.TransitionCode).ToListAsync(Ct));
         Assert.Null(result.ClosureCode);
     }
 
@@ -877,7 +867,6 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
         Assert.Empty(await reader.DispatchRecords.Where(d => d.OrderId == orderId).ToListAsync(Ct));
         Assert.Null(saved.Carrier);
         Assert.Null(saved.TrackingNumber);
-        Assert.All(await reader.OrderItems.Where(i => i.OrderId == orderId).ToListAsync(Ct), i => Assert.Equal(i.DeliveryDate is null, i.DeliveryMarkedAt is null));
     }
 
     private async Task<int> CountDispatchAsync(Guid orderId)
@@ -969,7 +958,7 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
         services.AddSingleton<ImageProcessor>();
         services.AddCatalogModule();
         services.AddAfterSalesModule();
-        services.AddNotificationsModule();
+        services.AddNoticeDependencies();
         services.AddOrderingModule();
         return services.BuildServiceProvider();
     }

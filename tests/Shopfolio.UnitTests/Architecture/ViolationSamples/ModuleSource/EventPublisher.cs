@@ -5,3 +5,9 @@ public sealed class OrderCancelled : IDomainEvent
     public required IEventBus Bus { get; init; }
     public required IMediator Mediator { get; init; }
 }
+public sealed class OrderPlaced : INotification
+{
+    public List<object> DomainEvents { get; } = [];
+    public void Raise(object e) => AddDomainEvent(e);
+    public INotificationsModule Clean { get; init; } // a module interface named INotificationsModule is not a finding (line 12)
+}

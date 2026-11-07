@@ -129,11 +129,11 @@ public sealed class PriceAndVatTests : IAsyncLifetime
         await SaveAsync(c => c.Products.Add(product));
 
         InvalidOperationException variant = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => SaveAsync(c => c.Variants.Add(Variant.Create(product.Id, "UC-ONDALIK", 12.345m, Now))));
+            () => SaveAsync(c => c.Variants.Add(Variant.Create(product.Id, "UC-ONDALIK", 12.345m, Now, 100))));
         Assert.Contains("two decimals", variant.Message, StringComparison.Ordinal);
         Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM variants"));
 
-        Variant stored = Variant.Create(product.Id, "IKI-ONDALIK", 12.35m, Now);
+        Variant stored = Variant.Create(product.Id, "IKI-ONDALIK", 12.35m, Now, 100);
         await SaveAsync(c => c.Variants.Add(stored));
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => SaveAsync(c => c.PriceHistories.Add(PriceHistory.Create(stored.Id, 12.345m, Now, Now))));
@@ -147,7 +147,7 @@ public sealed class PriceAndVatTests : IAsyncLifetime
         await SaveAsync(c => c.Products.Add(product));
 
         DbUpdateException error = await Assert.ThrowsAsync<DbUpdateException>(
-            () => SaveAsync(c => c.Variants.Add(Variant.Create(product.Id, "SIFIR", 0.00m, Now))));
+            () => SaveAsync(c => c.Variants.Add(Variant.Create(product.Id, "SIFIR", 0.00m, Now, 100))));
 
         PostgresException postgres = Assert.IsType<PostgresException>(error.InnerException);
         Assert.Equal((PostgresErrorCodes.CheckViolation, "ck_variants_price_above_zero"), (postgres.SqlState, postgres.ConstraintName));
@@ -229,8 +229,8 @@ public sealed class PriceAndVatTests : IAsyncLifetime
         await SaveAsync(c => c.Products.Add(product));
 
         InvalidOperationException missing = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => SaveAsync(c => c.Variants.Add(Variant.Create(product.Id, "BOS-MIKTAR", 50m, Now))));
-        Variant zero = Variant.Create(product.Id, "SIFIR-MIKTAR", 50m, Now);
+            () => SaveAsync(c => c.Variants.Add(Variant.Create(product.Id, "BOS-MIKTAR", 50m, Now, 100))));
+        Variant zero = Variant.Create(product.Id, "SIFIR-MIKTAR", 50m, Now, 100);
         zero.NetQuantity = 0m;
         DbUpdateException zeroError = await Assert.ThrowsAsync<DbUpdateException>(() => SaveAsync(c => c.Variants.Add(zero)));
 
@@ -244,7 +244,7 @@ public sealed class PriceAndVatTests : IAsyncLifetime
     {
         Product product = NewProduct(ProductType.Physical);
         await SaveAsync(c => c.Products.Add(product));
-        Variant variant = Variant.Create(product.Id, "BIRIMSIZ", 50m, Now);
+        Variant variant = Variant.Create(product.Id, "BIRIMSIZ", 50m, Now, 100);
         variant.NetQuantity = 250m;
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => SaveAsync(c => c.Variants.Add(variant)));
@@ -256,7 +256,7 @@ public sealed class PriceAndVatTests : IAsyncLifetime
         Product product = NewProduct(ProductType.Physical);
         product.MeasurementUnit = MeasurementUnit.Kilogram;
         await SaveAsync(c => c.Products.Add(product));
-        Variant variant = Variant.Create(product.Id, "DORT-ONDALIK", 50m, Now);
+        Variant variant = Variant.Create(product.Id, "DORT-ONDALIK", 50m, Now, 100);
         variant.NetQuantity = 0.1234m;
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => SaveAsync(c => c.Variants.Add(variant)));
@@ -336,7 +336,7 @@ public sealed class PriceAndVatTests : IAsyncLifetime
             product.OriginCountryId = origin;
         }
 
-        Variant variant = Variant.Create(product.Id, "SKU-" + _counter, price, Now);
+        Variant variant = Variant.Create(product.Id, "SKU-" + _counter, price, Now, type == ProductType.Physical ? 100 : null);
         await SaveAsync(c =>
         {
             c.Products.Add(product);
@@ -354,10 +354,10 @@ public sealed class PriceAndVatTests : IAsyncLifetime
         Option option = Option.Create(product.Id, "Boy", 1, Now);
         OptionValue one = OptionValue.Create(option.Id, "Küçük", 1, Now);
         OptionValue two = OptionValue.Create(option.Id, "Büyük", 2, Now);
-        Variant a = Variant.Create(product.Id, first.Sku, first.Price, Now);
+        Variant a = Variant.Create(product.Id, first.Sku, first.Price, Now, 100);
         a.FirstOptionValueId = one.Id;
         a.NetQuantity = first.NetQuantity;
-        Variant b = Variant.Create(product.Id, second.Sku, second.Price, Now);
+        Variant b = Variant.Create(product.Id, second.Sku, second.Price, Now, 100);
         b.FirstOptionValueId = two.Id;
         b.NetQuantity = second.NetQuantity;
         await SaveAsync(c =>

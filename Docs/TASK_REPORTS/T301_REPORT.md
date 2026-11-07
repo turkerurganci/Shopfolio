@@ -96,7 +96,7 @@ Validator kanıtları (bağımsız): kriter 1–9 ve KK1–KK9 kodda ve testte t
 - **Commit:** bkz. PR (son commit dal başı)
 - **PR:** #431
 - **CI:** dal CI 42376054521 success (head `78b8449`)
-- **Post-merge run'lar:** squash `a3c9d1a` (#431) — CI 42398252920 success, Publish 42398252751 success (T336 yapımında dolduruldu)
+- **Post-merge run'lar:** squash `a3c9d1a` (#431) — CI 42398252920 success, Publish 42398252751 success (T334 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

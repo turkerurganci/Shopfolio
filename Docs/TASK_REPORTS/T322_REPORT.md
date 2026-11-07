@@ -127,7 +127,7 @@
 - **Commit:** son baş SHA PR açıklamasında
 - **PR:** #438
 - **CI:** dal CI 42394560527 (head `106c8ae`) success
-- **Post-merge run'lar:** squash `f9ea0fe` (#438) — CI 42401437807 success, Publish 42401437836 success (T336 yapımında dolduruldu)
+- **Post-merge run'lar:** squash `f9ea0fe` (#438) — CI 42401437807 success, Publish 42401437836 success (T334 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

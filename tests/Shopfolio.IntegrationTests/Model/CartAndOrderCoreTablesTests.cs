@@ -1354,7 +1354,7 @@ public sealed class CartAndOrderCoreTablesTests : IAsyncLifetime
     private async Task<Variant> SeedVariantAsync()
     {
         Product product = Product.Create("Kapı", "kapi", ProductType.Physical, 20m, Now).WithSeededOrigin();
-        Variant variant = Variant.Create(product.Id, "KAPI-1", 100m, Now);
+        Variant variant = Variant.Create(product.Id, "KAPI-1", 100m, Now, 100);
         await SaveAsync(c =>
         {
             c.Products.Add(product);

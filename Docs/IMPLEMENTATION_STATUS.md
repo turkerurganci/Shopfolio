@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T336 (Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri) yapım tamamlandı, doğrulama bekliyor (dal `task/T336-fiyat-kdv`, PR #444; kriter 1–8, KK1–KK8 öz denetimde ✓; Unit 4115, Integration 2133 (yeni PriceAndVat 19), format ve derleme `-warnaserror` temiz; şema yok; `12` `Durum` değişmedi; D-76 ✅, D-74 kısmi, yeni backlog D-344…D-346; `origin/main` (T316) birleştirildi, backlog Aktif kalem 137). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T336 (Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri) yapım tamamlandı, doğrulama bekliyor (dal `task/T336-fiyat-kdv`, PR #444; kriter 1–8, KK1–KK8 öz denetimde ✓; Unit 4115, Integration 2133 (yeni PriceAndVat 19), format ve derleme `-warnaserror` temiz; şema yok; `12` `Durum` değişmedi; D-76 ✅, D-74 kısmi, yeni backlog D-344…D-346; `origin/main` (T316) birleştirildi; doğrulama tur 1 içerikte temiz, main ile kod çakışması nedeniyle BLOCKED → `origin/main` (T334) birleştirildi: kesici listesinde `PriceLabelGuard` ve `VariantStockGuard` birlikte, dört entegrasyon testinin tohumu iki tarafı birlikte taşır, `StockAndCapacityTests` fiziksel ürüne üretim yeri, `PriceAndVatTests` fiziksel varyanta stok adedi alır (yalnız tohum); birleşik dalda Unit 4159, Integration 2267 parçalı yeşil; doğrulayıcı K1 → D-381 (T525); backlog Aktif kalem 142). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -173,7 +173,7 @@
 | T331 | Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması | ✓ | ✓ PASS (tur 1) | `eb91975` | #425 |
 | T332 | Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu | ✓ | ✓ PASS (tur 1) | `c4c872c` | #432 |
 | T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ⬚ | — | — | — |
-| T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ⬚ | — | — | — |
+| T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ✓ | ✓ PASS (tur 1) | — | #443 |
 | T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ⬚ | — | — | — |
 | T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ⏳ | — | — | #444 |
 | T337 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | ⬚ | — | — | — |

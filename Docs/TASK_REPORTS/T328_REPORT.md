@@ -94,7 +94,7 @@ Kendi PostgreSQL konteyneri (`shopfolio-t328-pg`, 127.0.0.1:55371) adıyla silin
 - **Commit:** PR'ın head SHA'sı PR gövdesinde
 - **PR:** #440
 - **CI:** dal run 42394956374 — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate yeşil
-- **Post-merge run'lar:** squash `fe78e7b` (#440) — CI 42405001882 success, Publish 42405002224 success (T336 yapımında dolduruldu)
+- **Post-merge run'lar:** squash `fe78e7b` (#440) — CI 42405001882 success, Publish 42405002224 success (T334 doğrulamasında dolduruldu)
 
 ## Dış Varsayımlar
 

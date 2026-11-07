@@ -642,7 +642,7 @@ public sealed partial class AppCacheTests : IAsyncLifetime
         Product product = Product.Create("Ahşap Masa", slug, ProductType.Physical, 20m, Now).WithSeededOrigin();
         product.PublishStatus = PublishStatus.Published;
         db.Products.Add(product);
-        db.Variants.Add(Variant.Create(product.Id, "AHSAP-MASA-01", price, Now));
+        db.Variants.Add(Variant.Create(product.Id, "AHSAP-MASA-01", price, Now, 100));
         await db.SaveChangesAsync(Ct);
         return slug;
     }

@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) `origin/main` (T321, T334) ile kod birleştirmesi yapıldı ⏳ yeniden doğrulama bekliyor (PR #442; kurucu çakışması iki tarafın eklemesiyle çözüldü, vitrin görünürlüğü `ShowcaseVisibility.Listed()` tek yerine bağlandı, backlog aktif kalem 150; önceki durum: düzeltme 2 bitti, doğrulama tur 3 bekliyordu; tur 2 ✗ FAIL B1 ve B2 (DÜŞÜK S1) giderildi: B1 `ProductListReader` sayfayı artık yalnız kartın sütunlarıyla `Select` projeksiyonuyla okuyor (`init` üyeli özel sınıf; sıra `CreatedAt` azalan, `Id` azalan aynı), D-134 ✅; B2 `TheListsQueryCount_DoesNotGrowWithThePageFill_…` komut yakalayıcıyla 1 ürünlü ve dolu sayfada sorgu sayısının eşitliğini sınar; `origin/main` (T334) birleşince tohum uyarlandı (Physical varyantta stok sayısı zorunlu, sınırsız varyant için Digital ürün); Integration `CategoryTreeAndListsTests` 31/31 + iki sınır testi ayrı 1/1 + 1/1; Unit Architecture 936, Consistency 241, Catalog 61; backlog aktif kalem 144; `12` değişmedi). Önceki kayıtlar `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-08 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) `origin/main` (T339, #445) ile ikinci kod birleştirmesi yapıldı ⏳ yeniden doğrulama bekliyor (PR #442; `CatalogModule`, `ICatalogModule` ve `SitemapSourceTests` çakışmaları iki tarafın eklemesiyle çözüldü, `CategoryTreeAndListsTests` tohumu main'in özel `Description` ayarlayıcısı için `SetDescription` çağırır; birleşik ağaçta Integration `CategoryTreeAndListsTests` 33/33, `ProductGalleryTests` 18/18, `ProductTransitionsTests` 41/41; Unit Architecture 946, Consistency 241, kalan 3044; `build -warnaserror` ve `dotnet format` temiz; backlog aktif kalem 158). Önceki kayıtlar `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -178,7 +178,7 @@
 | T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ⬚ | — | — | — |
 | T337 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | ⬚ | — | — | — |
 | T338 | Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması | ⬚ | — | — | — |
-| T339 | Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti | ⬚ | — | — | — |
+| T339 | Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti | ✓ | ✓ PASS (tur 2) | — | #445 |
 | T340 | Dijital ürün: dosya, indirme hakkı, hak yenileme, yeniden satın alma | ⬚ | — | — | — |
 | T341 | Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı | ⬚ | — | — | — |
 | T342 | Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri | ⬚ | — | — | — |

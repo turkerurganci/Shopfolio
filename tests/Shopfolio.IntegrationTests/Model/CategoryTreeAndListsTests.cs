@@ -901,7 +901,7 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         string slug = Slug.From(name, "urun") + "-" + Guid.NewGuid().ToString("N")[..6];
         Product product = Product.Create(name, slug, productType, 20m, createdAt);
         product.PublishStatus = status;
-        product.Description = description;
+        product.SetDescription(description);
         await SaveAsync(c => c.Products.Add(product));
         return product;
     }

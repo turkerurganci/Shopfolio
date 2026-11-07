@@ -25,6 +25,7 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly CategoryTree _categories;
     private readonly ProductCategoryLinks _links;
     private readonly ProductListReader _lists;
+    private readonly ProductGallery _gallery;
 
     public CatalogModule(
         StockCounters counters,
@@ -37,7 +38,8 @@ internal sealed class CatalogModule : ICatalogModule
         ProductStructureReader structure,
         CategoryTree categories,
         ProductCategoryLinks links,
-        ProductListReader lists)
+        ProductListReader lists,
+        ProductGallery gallery)
     {
         _categories = categories;
         _links = links;
@@ -50,6 +52,7 @@ internal sealed class CatalogModule : ICatalogModule
         _fileUploads = fileUploads;
         _stockCodes = stockCodes;
         _structure = structure;
+        _gallery = gallery;
     }
 
     public Task<string?> SuggestStockCodeAsync(Guid? productId, string? productName, CancellationToken ct)
@@ -90,6 +93,21 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task<ProductListPage?> SearchProductsAsync(string? search, ProductListFilter? filter, int page, CancellationToken ct)
         => _lists.SearchAsync(search, filter, page, ct);
+
+    public Task<GallerySaveResult> SaveProductGalleryAsync(Guid productId, IReadOnlyList<GalleryEntry> entries, CancellationToken ct)
+        => _gallery.SaveAsync(productId, entries, ct);
+
+    public Task<VariantImageResult> SetVariantImageAsync(Guid variantId, Guid? imageId, CancellationToken ct)
+        => _gallery.SetVariantImageAsync(variantId, imageId, ct);
+
+    public Task<IReadOnlyList<GalleryImage>> GetProductGalleryAsync(Guid productId, CancellationToken ct)
+        => _gallery.ReadAsync(productId, ct);
+
+    public Task<string?> GetCardImageAltTextAsync(Guid productId, CancellationToken ct)
+        => _gallery.GetCardAltTextAsync(productId, ct);
+
+    public Task<VariantImage?> GetVariantImageAsync(Guid variantId, CancellationToken ct)
+        => _gallery.GetVariantImageAsync(variantId, ct);
 
     public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct)
         => _fileReader.FindAsync(variantId, lastKnownFileId, ct);
@@ -157,6 +175,7 @@ internal static class CatalogModuleRegistration
         services.AddScoped<CategoryTree>();
         services.AddScoped<ProductCategoryLinks>();
         services.AddScoped<ProductListReader>();
+        services.AddScoped<ProductGallery>();
 
         // The image derivative job (D-97) and the image disposal (D-102): the rows first, the files they leave behind after (06 9.3.4).
         services.AddJobHandler<ImageDerivativeJobHandler>(JobType.ImageDerivative);

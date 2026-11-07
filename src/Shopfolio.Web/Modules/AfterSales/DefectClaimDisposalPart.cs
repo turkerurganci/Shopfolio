@@ -37,9 +37,10 @@ internal sealed record DefectClaimHistoryEntry(DateTimeOffset At);
 /// <summary>
 /// The defect claim's part of the nightly disposal (06 9.3.1, 4.30; Z-29; K-951, K-1054). A claim is deleted when its last status change is ten years old and its
 /// order is disposed: it is never deleted before the order's own disposal (Z-29), and the order's arm is read through the Ordering surface
-/// (<see cref="IOrderingModule"/>) at the moment of the disposal. The deletion is one statement for a chunk of at most <see cref="DisposalTimings.PartSize"/> rows;
-/// the return and refund links to the claim are emptied by the database (SetNull, 06 7.2). The deletion does not touch the order's row, so the order's version does
-/// not move. The disposal row of type <see cref="DisposalRecordType.DefectClaim"/> is written only for a chunk that deleted something.
+/// (<see cref="IOrderingModule"/>) at the moment of the disposal. A chunk of at most <see cref="DisposalTimings.PartSize"/> claims is removed as tracked rows and the
+/// transaction runner saves them with the disposal row (no bulk statement: the order side's rows are written only through a save, 09 10.2); the return and refund
+/// links to the claim are emptied by the database (SetNull, 06 7.2). The part takes no order lock - the order is already disposed and nothing writes it - so the
+/// order's version does not move. The disposal row of type <see cref="DisposalRecordType.DefectClaim"/> is written only for a chunk that deleted something.
 /// </summary>
 internal sealed class DefectClaimDisposalPart : IDisposalPart
 {
@@ -105,7 +106,9 @@ internal sealed class DefectClaimDisposalPart : IDisposalPart
         }
 
         Guid[] ids = [.. due];
-        return await db.DefectClaims.Where(c => ids.Contains(c.Id)).ExecuteDeleteAsync(ct);
+        List<DefectClaim> claims = await db.DefectClaims.Where(c => ids.Contains(c.Id)).ToListAsync(ct);
+        db.DefectClaims.RemoveRange(claims);
+        return claims.Count;
     }
 
     private sealed record Candidate(Guid Id, Guid OrderItemId, DateTimeOffset CreatedAt, string StatusHistory);

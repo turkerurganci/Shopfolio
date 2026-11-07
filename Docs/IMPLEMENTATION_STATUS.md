@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T381 (Ayar katmanları ve parametre envanteri) doğrulama tur 1 ✗ FAIL (head `98f5550`, PR #430; B1 ORTA S1: çit dışı değer `07 §6.2`'nin `ValueOutOfBounds` kodu yerine `InvalidQuantity` ile reddediliyor (UC-170, UC-171); B2 DÜŞÜK S1: `PeriodsInput`/`PeriodsSection` alanı `ShippingPeriod`, `07 UC-170`/`06 §4.2` adı `DefaultShippingPeriod`; öteki kriterler ✓; build, format, Unit 3318 + Consistency 215, betik testleri, Integration FirmSetting 24 + SalesGate/CompanyIdentity 46 yerelde yeşil, dal CI 42375448881 yeşil; `12` `Durum` değişmedi; K1 → D-279, backlog aktif 105; dal merge edilmez, düzeltme turu gerekir). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T309 (Hesap ve yönetim e-postaları) doğrulama tur 1 ✓ PASS (head `2ca3caa`, PR #429; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Unit 3521 (Consistency 213, Architecture 830, öteki 2478), betik testleri, Integration yerelde AccountEmailQueue 14, CompanyNoticeQueue 11, RecipientSendLimit 11; dal CI 42371984874 yeşil; bulgu 0, K-notu 0; `12` `Durum` değişmedi (KP-66/KP-67 satırlarında hesap e-postası yok); backlog aktif 105). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -148,7 +148,7 @@
 | T306 | Müşteri bildirimleri B-1…B-8 | ⬚ | — | — | — |
 | T307 | Müşteri bildirimleri B-9…B-16 | ⬚ | — | — | — |
 | T308 | Firma bildirimleri F-1…F-6 | ✓ | ✓ PASS (tur 1) | `ad8c48d` | #424 |
-| T309 | Hesap ve yönetim e-postaları | ⬚ | — | — | — |
+| T309 | Hesap ve yönetim e-postaları | ✓ | ✓ PASS (tur 1) | — | #429 |
 | T310 | Kargo şirketi listesi ve takip bağlantısı kalıpları | ✓ | ✓ PASS (tur 1) | `e177fd4` | #423 |
 | T311 | Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım | ⬚ | — | — | — |
 | T312 | Dosya uçları: imzalı indirme ucu ve parçalı yükleme ucu | ✓ | ✓ PASS (tur 1) | `1112ca6` | #426 |

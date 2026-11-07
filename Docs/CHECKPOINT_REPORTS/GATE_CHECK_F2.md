@@ -14,7 +14,41 @@ Testler bütün katmanlarda yeşil, build temiz, üç imaj `--no-cache` derleniy
 
 | Task | Squash | PR | CI | Publish |
 |---|---|---|---|---|
-{{RUNS}}
+| T218 | `d82b943` | #380 | 41884524385 | 41884524541 |
+| (chore: öz denetim bitiş kapısı) | `062a75a` | #381 | 41892827650 | 41892827706 |
+| T227 | `15daf95` | #382 | 41893977418 | 41893977627 |
+| T226 | `b8f20ad` | #383 | 41903408080 | 41903408101 |
+| T233 | `810fe27` | #384 | 41917927066 | 41917927000 |
+| T205 | `a36010b` | #385 | 41928364198 | 41928364243 |
+| T230 | `a2da89f` | #386 | 41946974061 | 41946974227 |
+| T231 | `dac48c8` | #387 | 41953520461 | 41953520476 |
+| (chore: pre-push CI bekçisi kır) | `6dded6d` | #390 | 41958746107 | 41958746129 |
+| T232 | `daace97` | #388 | 41960563145 | 41960563164 |
+| T225 | `b8c180f` | #389 | 41969409791 | 41969409700 |
+| T228 | `36b586f` | #391 | 41973187267 | 41973187361 |
+| T222 | `11fcfb3` | #392 | 41981392945 | 41981392743 |
+| T220 | `6a1ca3a` | #393 | 41999269209 (2. deneme) | 41999269502 |
+| T221 | `f8feec5` | #394 | 42021631103 | 42021631131 |
+| T201 | `cafdf86` | #395 | 42031439198 | 42031439167 |
+| T202 | `a5cd5b1` | #396 | 42042657330 | 42042657292 |
+| T203 | `aee8538` | #397 | 42068911080 | 42068910959 |
+| T204 | `4628f9c` | #398 | 42086512742 | 42086513414 |
+| T223 | `5cc7896` | #399 | 42097338902 | 42097339118 |
+| T224 | `bcedad3` | #400 | 42113408503 | 42113408500 |
+| T206 | `494a34c` | #401 | 42128519929 | 42128519903 |
+| T207 | `3226fcd` | #403 | 42138101595 | 42138101567 |
+| T211 | `da20c4e` | #402 | 42149223864 | 42149223898 |
+| T208 | `aeab023` | #404 | 42153788573 | 42153788582 |
+| T209 | `088168e` | #405 | 42162567538 | 42162567568 |
+| T210 | `539d9cd` | #406 | 42169337584 | 42169337501 |
+| T212 | `4694519` | #407 | 42182118653 | 42182118563 |
+| T213 | `11a2c7d` | #408 | 42195116854 | 42195116675 |
+| T214 | `9a56f83` | #410 | 42207595893 | 42207595875 |
+| T215 | `5ebe163` | #409 | 42217406499 | 42217406517 |
+| T216 | `9ab9bec` | #411 | 42230582053 | 42230581953 |
+| T217 | `d2b5379` | #412 | 42276704951 | 42276704953 |
+| T219 | `4ce191c` | #413 | 42294762382 | 42294762521 |
+| T229 | `f4da03c` | #414 | 42306192016 | 42306192052 |
 
 - **Ortam:** Windows 11 + Docker Desktop (bellek ~4 GB, 12 çekirdek; makinede başka bir projenin 14 konteyneri çalışıyordu) · .NET SDK 10.0.400 · Docker 29.2.1 · Compose v5.1.0 · git 2.42 · gh 2.89 · Python 3.12.10 · PostgreSQL 18.6.
 
@@ -22,10 +56,10 @@ Testler bütün katmanlarda yeşil, build temiz, üç imaj `--no-cache` derleniy
 | Katman | Tür | Sonuç | Detay |
 |---|---|---|---|
 | Lint | `restore --locked-mode` + `dotnet format --verify-no-changes` + Consistency | ✓ | üç proje temiz; Consistency 207/207 |
-| Unit | xUnit v3 | ✓ | 2619/2619 (Consistency hariç); toplam 2826 |
+| Unit | xUnit v3 | ✓ | 2619/2619 (Consistency hariç); toplam 2826. Bu PR'ın kod değişikliklerinden (D-85, D-123 (b)) sonra gate HEAD'inde Release yeniden: 2826/2826 (Architecture dahil) |
 | Integration | PostgreSQL `postgres:18.6` | ✓ | 1730/1730, parçalı (Web 542 altı parça, Security + SignedEndpoints + Outages + FileSecrets 75, Concurrency + Disposal 44, Jobs 77, Files + Logging 63, Database 36, Model 893 üç parça `--max-threads 3`) |
 | Betik testleri | `tests/scripts/run-script-tests.sh` (Debian konteyneri) | ✓ | 4 dosya: 21 + 13 + 129 + 27 assertion |
-| Göç modeli | `dotnet ef migrations has-pending-model-changes` | ✓ | {{PENDING}} |
+| Göç modeli | `dotnet ef migrations has-pending-model-changes` | ✓ | değişiklik yok (gate HEAD'inde, Release) |
 | E2E · Contract | — | N/A | `NOT_APPLICABLE` (E2E F6 T601, D-41) |
 | Önceki fazlar (F0, F1) | aynı koşu | ✓ | F0 ve F1 testleri yukarıdaki sayılarda; kırılan yok |
 
@@ -44,14 +78,28 @@ Testler bütün katmanlarda yeşil, build temiz, üç imaj `--no-cache` derleniy
 | Yedek aracı imajı (`--no-cache`) | ✓ | 38 sn |
 
 ### Fresh Environment
-{{FRESH}}
+Yapılandırma: **yerel referans kurulum** (`scripts/local-reference/`, `DEPLOY_RUNBOOK §K`; `IMAGE_TAG=f2gate`, `T09_STATE_DIR=/tmp/f2gate-state`). Reçete sıfırdan koşuldu: `host-up`, `storage-setup`, `install-installation` (çıkış 0). Gerçek sunucuya ilk iniş T603'tedir (D-40). Reçetenin kaynak adları sabit `t09-*` olduğu için kurulum o adlarla açıldı (D-71). Komut süre sınırı yüzünden üç adım elle parçalandı, reçetenin kendisi değiştirilmedi: `host-up`'ın imaj yüklemesi Docker içi bir yardımcı konteynerle (`docker save | docker exec -i t09-host docker load`) yapıldı ve kalan adımları (Caddy çekme, `/opt/shopfolio` dosyaları, `minio-ca.crt`) aynı komutlarla elle koşuldu; `storage-setup`'ın `keys` denetimi ayrı bir konteynerde (`f2gate-keys`) koşuldu; `checks.sh image-ids`'in iç `docker save`'i (uygulama imajı 1,6 GB, D-160) sunucu içinde ayrı koşuldu ve kimlikler elle karşılaştırıldı.
+
+| Servis | Durum |
+|---|---|
+| `proxy` (Caddy) | up |
+| `app` | up (healthy) — konteyner içi canlılık `HTTP/1.1 200 OK`; `https://shopfolio.internal/sistem/canlilik` 200 |
+| `database` | up (healthy) |
+| `backup` | up |
+| `migrate` (tek seferlik) | Exited (0), 18 göç uygulandı, "Done." |
+| Nesne deposu (`storage-setup`) | `setup` ✓ · `keys` 28 ok, "All checks passed" · `lifecycle`: 30 günlük kural ✓, 7 günlük yarım yükleme kuralı MinIO'da tutulmuyor (reçetenin yerel notu; gerçek kovada T603, D-40) |
+| Denetimler | secrets ✓ (sır dosyaları `-r--------`, sahipleri hizmet kullanıcıları) · bootstrap ✓ (kurucu kullanıcı ağdan reddediliyor, `trust` satırı 0, kayıtta düz parola 0) · image-ids 3 ok (yapılandırma özetleri dışarıda ve içeride eşit: app `e8cf57dc…`, database `96aab208…`, backup `2d68f100…`) · isolation 7 ok · egress 6 ok · redirect-hsts 3 ok · client-address 3 ok |
+
+Kurulumda göç zinciri ve seed ayrı provayla aynı (Migration bölümü). Uygulama ve göç konteynerinin kaydında `Cannot load library libgssapi_krb5.so.2` satırı yine görüldü (D-27).
+
+Temizlik: `down.sh all`; `shopfolio-*:f2gate` imajları, geçici `f2gate-pg`, `f2gate-keys` ve yardımcı konteynerler silindi; `t09-*` kalıntısı yok; `skinora-*` ve başka `shopfolio-*` konteynerlerine dokunulmadı.
 
 ### Migration
 Ayrı prova: boş PostgreSQL 18.6 (`f2gate-pg`), veritabanı imajının kurulum SQL'iyle (`10-roles` … `40-schema`), demet göç paketi (`efbundle`) şema sahibi kullanıcısıyla.
 
 | Adım | Sonuç |
 |---|---|
-| Model doğrulama | ✓ `has-pending-model-changes` {{PENDING}} |
+| Model doğrulama | ✓ `has-pending-model-changes` değişiklik yok ("No changes have been made to the model since the last migration.") |
 | İlk apply | ✓ 18 göç 21 sn'de uygulandı; F2'de yeni göç yok (`git diff phase/F1-pass..HEAD -- src/Shopfolio.Web/Infrastructure/Migrations` boş) |
 | İdempotency (2. apply) | ✓ "No migrations were applied"; şema ve veri dökümü (`pg_dump`) özdeş (`\restrict` satırı hariç) |
 | Seed | ✓ 81 il, 249 ülke, 81 teslimat ili, 2 yasal metin taslağı, 6 tek satırlık kayıt (her biri 1 satır); 80 tablo (79 + göç geçmişi) — F1 ile aynı |
@@ -80,7 +128,7 @@ Ayrı prova: boş PostgreSQL 18.6 (`f2gate-pg`), veritabanı imajının kurulum 
 | Satır (`VAL-…`) | Severity | Kanıt | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
 |---|---|---|---|---|---|
 | — (F2 hücresi "D — kayıt maskeleme"; seviye D'de maskeleme satırı yok, `VAL-D004` kart verisidir) | — | `11 §6.2` F2: maskeleme testleri yeşil (yukarıda); `VAL-A991` aşağıda | — | — | — (doküman boşluğu D-44, F2 için genişletildi; D-159) |
-| `VAL-A991` (T225; F2'de `PASS` alan tek satır, gate'te yeniden doğrulandı) | KRİTİK | {{A991}} | PASS | PASS (değişmedi) | — |
+| `VAL-A991` (T225; F2'de `PASS` alan tek satır, gate'te yeniden doğrulandı) | KRİTİK | Taze ortamda ters vekil üzerinden üç istek: `/siparis/erisim/<anahtar>/teyit?q=<e-posta>`, `/siparis/erisim/<anahtar>?q=…&x=1`, `/arama?q=<e-posta>` (sahte bir istek başlığıyla). Erişim kaydı (`/var/log/caddy/access.log`) satırları `/siparis/erisim/{key}/teyit?q=*`, `/siparis/erisim/{key}?q=*&x=*`, `/arama?q=*`; ham anahtar, aranan sözcük ve başlık değeri erişim kaydında 0, uygulama kaydında 0; hiçbir satırda `headers` nesnesi yok, alanlar `05 §9.1.2` listesi (zaman, IP, yöntem, yol, durum, boy, süre, tarayıcı kimliği, istek kimliği). Uygulama yarısı: `PathMaskerTests`, `ExceptionMaskerTests` ve Logging integration yeşil | PASS | PASS (değişmedi) | — |
 
 `12`'nin 1.503 satırından `PASS` olanlar `VAL-A838` (F1) ve `VAL-A991` (F2); F2 gate'inde `Durum`'u değişen satır yok. Maskelemeyi anan öteki satır `VAL-A960` (KRİTİK, `BEKLEMEDE`) beklenmeyen hatanın uçtan uca kaydıdır, ön koşulu oturumu açık müşteri ve form (F3); F2 hücresi ona bağlı değildir.
 
@@ -107,7 +155,6 @@ Yok.
 | 5 | DÜŞÜK | Integration her koşuda göç paketini yeniden kuruyordu | Bu PR'da kapandı (D-157) |
 | 6 | ORTA | Uygulama imajı SkiaSharp'ın kullanılmayan Windows ve macOS yerel kütüphanelerini PDB'leriyle taşıyor (467 MB; imaj 277 → 781 MB) | D-160 |
 | 7 | DÜŞÜK | F1 gate'in "en geç F2 gate" üst sınırı koyduğu on üç doküman kalemi kapanmadı (`06`, `09` 2026-11-02'den beri değişmedi) | D-159 (tek doküman geçişi, en geç F3 gate) |
-{{EXTRA_FINDINGS}}
 
 ### Öğrenim Terfileri
 | # | Öğrenim | Sınıf | Hedef katman | Uygulanan değişiklik |
@@ -137,14 +184,14 @@ Yok.
 | D-128 | F2 gate | ✅ | Neden bulundu ve düzeltildi (sabit port) |
 | D-157 | F2 gate | ✅ | Göç paketi önbelleği |
 | D-21, D-44, D-45, D-51, D-55, D-56, D-58, D-63, D-86, D-120 | en geç F2 gate | D-159, en geç F3 gate | Doküman geçişi F2'de yapılmadı; tek kalemde toplandı |
-| D-27 | T230 | T601, en geç F6 gate | T230 satırı belgeye yazmadı; {{D27}} |
+| D-27 | T230 | T601, en geç F6 gate | T230 satırı belgeye yazmadı; satır F2 gate taze ortamında uygulama ve göç konteynerinde yine görüldü |
 | D-70 | en geç F2 gate | en geç T538 | Kod düzeyinde durum aynı |
 | D-71, D-91 (K2), D-92, D-93 | en geç F2 gate | T601 | Reçete ve Caddyfile'a F2'de dokunulmadı |
 | D-80, D-89, D-90, D-96, D-108, D-126, D-144, D-147, D-150, D-151, D-152, D-158 (b) | en geç F2 gate | en geç F3 gate (adlı task'larla) | Bugün `src/`'de örneği yok ya da sahibi F3 task'ı; D-89 Roslyn kararı, D-90 K3 kararı, D-108 tavan kararı yardımcıya |
 | D-81 | en geç F2 gate | T343, T352, T389, T515; en geç F3 gate | Tüketici F3'te |
 | D-138, D-141, D-146 | en geç F2 gate | T537, T541, T503; en geç F5 gate | Sahip task'ları F5'te |
 | D-159 | — | ⚪ yeni | `06`/`09`/`12` doküman geçişi |
-| D-160 | — | ⚪ yeni | İmajdaki kullanılmayan yerel kütüphaneler |
+| D-160 | — | 🟡 yeni | İmajdaki kullanılmayan yerel kütüphaneler |
 
 Hâlâ açık ve hedefi geçerli öteki kalemler F2 task'larına bağlı değil (hedefleri F3–F6 task'ları ya da T603). D-99'un T201 payı T201'de kapandı, kalanları F3 task'larında. Aktif kalem 98 → 93 (yedi kapandı, iki açıldı).
 

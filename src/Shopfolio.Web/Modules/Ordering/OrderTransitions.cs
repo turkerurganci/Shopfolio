@@ -5,7 +5,9 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -18,7 +20,7 @@ namespace Shopfolio.Modules.Ordering;
 /// the whole check is done on the order's values before the first write, so a refused call leaves the tracked order as it was.
 /// The core is called with the transaction the entry point opened (<c>ITransactionRunner</c>, 09 9.1 item 3); the unit opens none.
 /// </summary>
-internal sealed class OrderTransitions : IOrderTransitions
+internal sealed partial class OrderTransitions : IOrderTransitions
 {
     private static readonly TransitionCode[] ReasonCodes = [TransitionCode.S3, TransitionCode.S4, TransitionCode.S9, TransitionCode.O2];
     private static readonly TransitionCode[] ClosureCodes = [TransitionCode.S3, TransitionCode.S4, TransitionCode.S9];
@@ -26,13 +28,23 @@ internal sealed class OrderTransitions : IOrderTransitions
     private readonly AppDbContext _db;
     private readonly OrderLocks _locks;
     private readonly IAfterSalesModule _afterSales;
+    private readonly IPaymentModule _payment;
+    private readonly INotificationsModule _notifications;
     private readonly TimeProvider _time;
 
-    public OrderTransitions(AppDbContext db, OrderLocks locks, IAfterSalesModule afterSales, TimeProvider time)
+    public OrderTransitions(
+        AppDbContext db,
+        OrderLocks locks,
+        IAfterSalesModule afterSales,
+        IPaymentModule payment,
+        INotificationsModule notifications,
+        TimeProvider time)
     {
         _db = db;
         _locks = locks;
         _afterSales = afterSales;
+        _payment = payment;
+        _notifications = notifications;
         _time = time;
     }
 

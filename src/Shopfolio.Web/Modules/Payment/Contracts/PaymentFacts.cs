@@ -3,20 +3,9 @@ using Shopfolio.Modules.Ordering.Contracts;
 namespace Shopfolio.Modules.Payment.Contracts;
 
 /// <summary>
-/// The outcome of one card refund request (05 4.6.2): sent - the provider carried the refund out; not sent - the provider refused it or the request
-/// could not go; unknown - a timeout, a broken connection or a crash after the request went, so it is not known whether the money left.
-/// </summary>
-public enum CardRefundResult
-{
-    Succeeded,
-    Failed,
-    Unknown,
-}
-
-/// <summary>
 /// What the payment axis needs to know of one refund (06 4.33; 02 5.5): whose order it is, its reason, amount and way, who started it, whether it is
-/// sent or voided, and whether the request that carried it out was the firm's retry after a failed one. The record is a copy; the refund stays the
-/// Payment module's.
+/// sent or voided, and whether the request that carried it out was the firm's retry after a failed one (03 7.1.18: the retry's success is B-8 only).
+/// The record is a copy; the refund stays the Payment module's.
 /// </summary>
 public sealed record RefundFacts(
     Guid RefundId,

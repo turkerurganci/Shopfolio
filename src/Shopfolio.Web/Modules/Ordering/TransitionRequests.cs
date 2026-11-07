@@ -33,8 +33,10 @@ internal sealed record TransitionReasons(TransitionReason? Automatic, Cancellati
 
 /// <summary>
 /// A request for one or more transitions of one order, by their identity (05 4.1.1: the panel, the storefront and the background job ask for the
-/// transition by name). More than one code is for the transitions that happen together - the unpaid cancellation S3 with O2, the payment's approval
-/// O1 with S1 (02 5.6) - applied in the order given, in one lock, one version raise and one set of transition records. <paramref name="ExpectedVersion"/>
+/// transition by name). More than one code is for the transitions that happen together with one actor - the unpaid cancellation S3 with O2, the card
+/// payment's approval O1 with S1 by the system (02 5.6) - applied in the order given, in one lock, one version raise and one set of transition records.
+/// A request carries one actor: the bank transfer's approval is two requests under the same lock - O1 by the administrator, S1 by the system (03 1.2 S1;
+/// D-291) - and the version is still raised once. <paramref name="ExpectedVersion"/>
 /// is the version the administrator's screen showed; the customer's and the system's operations leave it empty and compare their condition with
 /// the order as it is now (09 10.2 item 3).
 /// </summary>

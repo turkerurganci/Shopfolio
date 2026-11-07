@@ -104,7 +104,7 @@
 
 - **Branch:** `task/T306-musteri-bildirimleri-1`
 - **Commit:** bkz. PR (head SHA PR açıklamasında)
-- **PR:** PR başlığı `T306: Müşteri bildirimleri B-1…B-8`
+- **PR:** #427 — `T306: Müşteri bildirimleri B-1…B-8`
 - **CI:** dal CI'ı validator izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -9,6 +9,12 @@
 
 ---
 
+## 2026-11-07 — T334 (Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme) doğrulama tur 1 PASS
+
+2026-11-07 — T334 (Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme) doğrulama tur 1 ✓ PASS (head `2b3e600` + `origin/main` (T328) birleştirmesi, PR #443; kriter 1–8, KK1–KK8 ve `09 §25` ✓, güvenlik taraması temiz; Unit 4069 (birleştirmeden önce), 4093 (sonra); Integration yerelde StockAndCapacity 27 ve dokunulan sınıflar; dal CI 42403928586 yeşil; bulgu 0, K-notu 1 → D-362 (T525); `12` `Durum` değişmedi; backlog aktif sayısı yeniden sayıldı: 139).
+
+---
+
 ## 2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) doğrulama tur 2 PASS
 
 2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) doğrulama tur 2 ✓ PASS (head `2d04809` + `origin/main` birleştirmesi, PR #437; kriter 1–9, KK1–KK9 ve `09 §25` ✓, güvenlik taraması temiz; tur 1 bulgusu B1 — yöneticinin bütün sipariş iptali teslim işaretli kalemi denetlemiyordu — giderildi ve S3, S4, S9 için sınandı; bulgu 0, K-notu 0; dal CI 42399324842 yeşil; yerelde derleme `-warnaserror` 0 uyarı, biçim üç proje temiz, Unit Architecture 906 + Consistency 230 + öteki 2840, betik testleri 4/4, Integration `ShipmentTransitionsTests` 94, `OrderTransitionsTests` 31, `ConcurrencyTests` 26 (postgres:18); `12` KP-46 satırları uç yanıtı ister → `BEKLEMEDE` kalır; kayıt belgeleri çakışması `origin/main` (T322) ile çözüldü, backlog Aktif kalem 135). Merge ve post-merge CI yardımcıda.

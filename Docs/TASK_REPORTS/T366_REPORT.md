@@ -168,7 +168,7 @@
 - **Commit:** bkz. PR (son commit dal başı)
 - **PR:** #428
 - **CI:** yapım işçisi izlemez
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `11c68fb` (#428) — CI 42385726793 success, Publish 42385726804 success (T336 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

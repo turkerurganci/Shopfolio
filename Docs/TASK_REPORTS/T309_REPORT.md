@@ -69,7 +69,7 @@
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --no-build` (tümü; ayrıca `--filter-namespace *.Architecture*` ve `*.Notifications*`/`*.Consistency*`/`*.Infrastructure*`) | 3521/3521 (Architecture 830; Notifications + Consistency + Infrastructure 1518), 0 hata; `LinkLifetimesConsistencyTests` 4/4 |
 | Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests/... --no-restore --filter-class "*.AccountEmailQueueTests"` | 14/14 (PostgreSQL 18, konteyner `shopfolio-t309-pg`, iş bitince silindi) |
 | Derleme / biçim | ✓ | `dotnet build ... -warnaserror` (Unit, Integration); `dotnet format <proje> --verify-no-changes` (Web, Unit, Integration); `dotnet restore Shopfolio.slnx --locked-mode` | 0 uyarı, 0 hata; biçim farkı yok |
-| Consistency (docs sonrası) | ✓ | `--filter-trait "Consistency=true"` (docs commit'inden sonra) | bkz. Notlar |
+| Consistency (docs sonrası) | ✓ | `--filter-trait "Consistency=true"` (docs commit'inden sonra) | 213/213 (docs commit'i `428b3be` sonrası), 0 hata |
 | Contract | — | — | Bu task'ta sözleşme testi yok |
 
 ## Doğrulama

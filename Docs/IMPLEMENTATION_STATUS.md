@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T305 (E-posta ortak kalıbı ve gövde üretimi) doğrulama tur 1 ✓ PASS (head `2ee4f63`, PR #422; kriter 1–9, KK1–KK9 ve `09 §25` ✓; Unit 3049 (T305 56), betik testleri, Integration yerelde parçalı 1793 hepsi geçti, dal CI 42352393327 yeşil; `12` `Durum` değişmedi — KP-66/KP-68 satırları gönderen yolunu ister, `BEKLEMEDE`; K1 raporda kapatıldı (D-97/D-166 sahibi), K2 → D-189, K3 → D-190). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T310 (Kargo şirketi listesi) doğrulama tur 1 ✓ PASS (head `c3e1670` + `origin/main` birleştirmesi, PR #423; kriter 1–9, KK1–KK9 ve `09 §25` ✓; plan düzeltmesi K-1576 kurala uygun (DV-32 tarayıcı denemesi T601 kriter 12'de); Consistency 209, Unit 2815, betik testleri; Integration dokunulmadı, dal CI 42353336593 yeşil; `12` `Durum`: `VAL-E034` → `PASS`, `VAL-E033` (T601) ve `VAL-A060`…`A063` (sipariş sayfası) `BEKLEMEDE`; K1 → D-196). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -149,7 +149,7 @@
 | T307 | Müşteri bildirimleri B-9…B-16 | ⬚ | — | — | — |
 | T308 | Firma bildirimleri F-1…F-6 | ⬚ | — | — | — |
 | T309 | Hesap ve yönetim e-postaları | ⬚ | — | — | — |
-| T310 | Kargo şirketi listesi ve takip bağlantısı kalıpları | ⬚ | — | — | — |
+| T310 | Kargo şirketi listesi ve takip bağlantısı kalıpları | ✓ | ✓ PASS (tur 1) | — | #423 |
 | T311 | Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım | ⬚ | — | — | — |
 | T312 | Dosya uçları: imzalı indirme ucu ve parçalı yükleme ucu | ⬚ | — | — | — |
 | T313 | Site haritası ve robots.txt | ✓ | ✓ PASS (tur 1) | `f94b4d8` | #417 |

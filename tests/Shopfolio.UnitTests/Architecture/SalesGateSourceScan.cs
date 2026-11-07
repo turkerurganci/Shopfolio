@@ -64,7 +64,7 @@ internal static partial class SalesGateSourceScan
     }
 
     // Comments are blanked and keep their lines: block comments (and the Razor comment) by their newlines, full-line and trailing line comments by their text.
-    private static string BlankComments(string text)
+    internal static string BlankComments(string text)
     {
         string withoutBlocks = BlockComment().Replace(text, m => new string('\n', m.Value.Count(c => c == '\n')));
         return string.Join('\n', withoutBlocks.Split('\n').Select(StripLineComment));

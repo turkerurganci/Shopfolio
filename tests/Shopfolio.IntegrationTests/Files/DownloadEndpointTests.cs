@@ -98,6 +98,7 @@ public sealed partial class DownloadEndpointTests
         using HttpResponseMessage response = await host.Client.GetAsync(Link(tampered), Ct);
         using HttpResponseMessage garbage = await host.Client.GetAsync(Link("not-a-signed-value"), Ct);
 
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         await AssertEmpty404Async(response);
         await AssertEmpty404Async(garbage);
     }
@@ -127,6 +128,7 @@ public sealed partial class DownloadEndpointTests
         using HttpResponseMessage notDigital = await host.Client.GetAsync(Link(host.LinkFor(physical)), Ct);
         using HttpResponseMessage unknownItem = await host.Client.GetAsync(Link(host.LinkFor(Guid.NewGuid())), Ct);
 
+        Assert.Equal(HttpStatusCode.NotFound, notDigital.StatusCode);
         await AssertEmpty404Async(notDigital);
         await AssertEmpty404Async(unknownItem);
     }
@@ -139,6 +141,7 @@ public sealed partial class DownloadEndpointTests
 
         using HttpResponseMessage response = await host.Client.GetAsync(Link(host.LinkFor(item)), Ct);
 
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         await AssertEmpty404Async(response);
     }
 

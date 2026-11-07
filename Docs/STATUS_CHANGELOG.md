@@ -9,6 +9,16 @@
 
 ---
 
+## 2026-11-07 — T328 (Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi) doğrulama tur 1 PASS
+
+T328 (Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi) doğrulama tur 1 ✓ PASS (head `0edb3bd`, PR #440; kriter 1–7, KK1–KK7 ve `09 §25` ✓, güvenlik taraması temiz; KK7 iki mutasyonla (kodda fazla satır, belgede eksik akış atfı) kırıldığı görüldü; Unit Consistency 241, öteki 3746; betik testleri; Integration yerelde NotificationMapQueue 3, komşu kuyruk sınıfları 47; dal CI 42394956374 yeşil; bulgu 0, K-notu 1 (D-295 sayımı ve backlog aktif sayısı bu PR'da düzeltildi); `12` `Durum` değişmedi (kaynak birimi `03 §7.1`–§7.3'e bağlı satır yok); backlog aktif 130).
+
+---
+
+## 2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) doğrulama tur 1 FAIL
+
+2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) doğrulama tur 1 ✗ FAIL (head `620b368` + `origin/main` birleştirmesi, PR #437; kriter 5 ~: yöneticinin bütün sipariş iptali (S3/S4/S9) teslim işaretli kalemi denetlemez ve teslim edilmiş dijital kalemli siparişi İptal edildi'ye alır — `02 §5.4`, §7.2.2, §7.2.5 (B1 ORTA S1); öteki kriterler, KK1–KK4, KK6–KK9 ve `09 §25` ✓, güvenlik taraması temiz; Unit Architecture 868 + Consistency 230 + öteki 2809, Integration Ordering 122, betik testleri ✓; dal CI 42393227539 yeşil; `12` `Durum` değişmedi (KP-46 satırları uç yanıtı ister); backlog aktif 130). Düzeltme r1 yapıldı (B1: teslim işaretli kalemli sipariş bütün sipariş iptaliyle İptal edildi'ye geçmez; S3/S4/S9 testleri; Integration Ordering 125), tur 2 bekliyor. Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
 ## 2026-11-07 — T332 (Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu) doğrulama tur 1 PASS
 
 2026-11-07 — T332 (Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu) doğrulama tur 1 ✓ PASS (head `48db1e8` + `origin/main` (T309) birleştirmesi, PR #432; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Unit 3585 (birleştirme sonrası), betik testleri, Integration yerelde SalesModel 28, AccountEmailQueue 14, ImageDisposal + Sitemap 10; dal CI 42376259158 yeşil; bulgu 0, K-notu 1 (D-283 → T525); `12` `Durum` değişmedi (KP-4/KP-5/KP-6/KP-39 satırları vitrin ve panel kanıtı ister); backlog aktif 125).
@@ -19,6 +29,10 @@
 ## 2026-11-07 — T322 (İçerik yayın durumları ve iletişim talebi durumları) yapım bitti
 
 2026-11-07 — T322 (İçerik yayın durumları ve iletişim talebi durumları) yapım tamamlandı, doğrulama bekliyor (dal `task/T322-icerik-iletisim-durumlari`; kriter 1–9, KK1–KK9 öz denetimde ✓; Unit Consistency 230, Architecture 906, CorporateContent 57, Integration CorporateContent 45, format ve derleme `-warnaserror` temiz; şema yok; `12` `Durum` değişmedi; yeni backlog D-315…D-317, aktif 128).
+
+## 2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) yapım bitti
+
+2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) yapım bitti, doğrulama bekliyor (dal `task/T316-sevkiyat-ekseni`, PR #437; kriter 1–9 ve KK1–KK9 öz denetimde ✓; Unit Architecture 868 + öteki 3039, Integration Ordering 122 (ShipmentTransitionsTests 91); backlog D-305…D-309 yeni, D-291 (b) sevkiyat ekseni için kapandı, aktif 125).
 
 ## 2026-11-07 — T301 (Siparişin imha parçası) doğrulama tur 1 PASS
 

@@ -5,6 +5,7 @@ using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Values;
 
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Catalog.Contracts.Variants;
 
 namespace Shopfolio.Modules.Catalog;
 
@@ -17,6 +18,8 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly DigitalFileReader _fileReader;
     private readonly DigitalFileUploads _fileUploads;
     private readonly ShowcaseReader _showcase;
+    private readonly StockCodes _stockCodes;
+    private readonly ProductStructureReader _structure;
 
     public CatalogModule(
         StockCounters counters,
@@ -24,7 +27,9 @@ internal sealed class CatalogModule : ICatalogModule
         CatalogSitemapReader sitemap,
         DigitalFileReader fileReader,
         DigitalFileUploads fileUploads,
-        ShowcaseReader showcase)
+        ShowcaseReader showcase,
+        StockCodes stockCodes,
+        ProductStructureReader structure)
     {
         _showcase = showcase;
         _counters = counters;
@@ -32,7 +37,26 @@ internal sealed class CatalogModule : ICatalogModule
         _sitemap = sitemap;
         _fileReader = fileReader;
         _fileUploads = fileUploads;
+        _stockCodes = stockCodes;
+        _structure = structure;
     }
+
+    public Task<string?> SuggestStockCodeAsync(Guid? productId, string? productName, CancellationToken ct)
+        => _stockCodes.SuggestAsync(productId, productName, ct);
+
+    public Task<StockCodeCheck> CheckStockCodeAsync(string? stockCode, Guid? exceptVariantId, CancellationToken ct)
+        => _stockCodes.CheckAsync(stockCode, exceptVariantId, ct);
+
+    public Task<VariantStructureCheck> CheckVariantStructureAsync(
+        Guid productId,
+        Guid? firstOptionValueId,
+        Guid? secondOptionValueId,
+        Guid? exceptVariantId,
+        CancellationToken ct)
+        => _structure.CheckVariantAsync(productId, firstOptionValueId, secondOptionValueId, exceptVariantId, ct);
+
+    public Task<IReadOnlyList<OptionMatrixCell>> GetOptionMatrixAsync(Guid productId, CancellationToken ct)
+        => _structure.GetMatrixAsync(productId, ct);
 
     public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct)
         => _fileReader.FindAsync(variantId, lastKnownFileId, ct);
@@ -91,6 +115,8 @@ internal static class CatalogModuleRegistration
         services.AddScoped<DigitalFileReader>();
         services.AddScoped<DigitalFileLocks>();
         services.AddScoped<DigitalFileUploads>();
+        services.AddScoped<StockCodes>();
+        services.AddScoped<ProductStructureReader>();
 
         // The image derivative job (D-97) and the image disposal (D-102): the rows first, the files they leave behind after (06 9.3.4).
         services.AddJobHandler<ImageDerivativeJobHandler>(JobType.ImageDerivative);

@@ -1,3 +1,5 @@
+using Shopfolio.Modules.Catalog.Contracts.Variants;
+
 namespace Shopfolio.Modules.Catalog.Contracts;
 
 /// <summary>
@@ -86,4 +88,38 @@ public interface ICatalogModule
     /// are not listed; a sold-out one is, marked (02 3.6.3). A plain read; it writes nothing.
     /// </summary>
     Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>
+    /// The stock code the new variant's form is filled with (02 3.3.4; 05 7.8.1, MK-32): the product's address in capitals - its first twenty characters - a hyphen and
+    /// the two-digit order of the variant, raised until no other variant holds the code. A saved product (<paramref name="productId"/>) starts from its address and
+    /// the order of its next variant; a product not saved yet starts from <paramref name="productName"/> as it is now; null when there is neither a saved product nor a
+    /// name - the field then stays empty and required. Only the new variant's form asks for it: a code already given never changes with the name. A plain read.
+    /// </summary>
+    Task<string?> SuggestStockCodeAsync(Guid? productId, string? productName, CancellationToken ct);
+
+    /// <summary>
+    /// Whether a stock code typed in the variant form can be saved (02 3.3.4; 06 2.8.2): missing when blank, taken when another variant holds it - compared without
+    /// letter case, "I", "İ", "ı" and "i" being one letter -, free otherwise. <paramref name="exceptVariantId"/> is the variant being edited. The code itself is kept as
+    /// typed. A plain read; the unique index is the last defense of two saves that race for one code.
+    /// </summary>
+    Task<StockCodeCheck> CheckStockCodeAsync(string? stockCode, Guid? exceptVariantId, CancellationToken ct);
+
+    /// <summary>
+    /// The verdict on the option values a variant of the product would be bound to (02 3.3.2, 3.3.3; 06 4.6 "Uygulamada"): the values are the product's own - the
+    /// first of its option of order 1, the second of its option of order 2 -, every option of the product has its value, and no other variant
+    /// (<paramref name="exceptVariantId"/> is the one being edited) holds the combination. A plain read.
+    /// </summary>
+    Task<VariantStructureCheck> CheckVariantStructureAsync(
+        Guid productId,
+        Guid? firstOptionValueId,
+        Guid? secondOptionValueId,
+        Guid? exceptVariantId,
+        CancellationToken ct);
+
+    /// <summary>
+    /// The option matrix of a product (02 3.3.3): a cell per combination of its option values, each with the variant that opens it or none - a combination the firm
+    /// did not open is shown and cannot be chosen. A product without options has one cell with both values empty. Every variant of the product opens its cell,
+    /// whatever its status; the publication rules are the caller's. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<OptionMatrixCell>> GetOptionMatrixAsync(Guid productId, CancellationToken ct);
 }

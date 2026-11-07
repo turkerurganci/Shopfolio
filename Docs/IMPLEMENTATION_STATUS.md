@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) doğrulama tur 1 ✗ FAIL (head `62d03a8` + `origin/main` birleştirmesi, PR #442; kriter 1–8 ve KK1–KK8 ✓, güvenlik taraması temiz; `09 §25` "yeni sayfalı liste sınır testi" HAYIR → B1 DÜŞÜK S1: iki yeni sayfalı liste (kategori sayfası, arama) için eşit `CreatedAt`'li ürünleri sayfa sınırına düşüren test yok (`09 §10.5` madde 6, §19.2 madde 5); build, format, Unit 3983, betik testleri, Integration `CategoryTreeAndListsTests` 29 + `ConcurrencyTests` 26 yerelde yeşil, dal CI 42401392964 yeşil; `12` `Durum` değişmedi (VAL-A001…A008, A181…A185 BEKLEMEDE); K1 rapor cümlesi düzeltildi; backlog aktif 133). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) düzeltme 1 bitti ⏳ doğrulama tur 2 bekliyor (PR #442; tur 1 ✗ FAIL B1 DÜŞÜK S1: kategori sayfası ve arama listesi için eşit `CreatedAt`'li ürünleri sayfa sınırına düşüren test yoktu → eklendi: iki liste için gerçek okuyucuyla bütün sayfalar yürünür, yinelenme ve kayıp yok, son sayfa dahil, süzgeçli koşular dahil; arama sözcüğündeki ters bölü harfi harfine aranır; üretim kodu değişmedi; `origin/main` birleştirildi; build, format ×3, Unit 4064, Integration `CategoryTreeAndListsTests` 32 + `ConcurrencyTests` 26 yerelde yeşil; `12` `Durum` değişmedi; backlog aktif 135). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -167,7 +167,7 @@
 | T325 | Zaman aşımı akışları: teslim, cayma, geri ödeme ve ayıp talebi süreleri | ⬚ | — | — | — |
 | T326 | Zaman aşımı akışları: katalog, kupon, içerik, iletişim ve bildirim süreleri | ⬚ | — | — | — |
 | T327 | Kendiliğinden işleyen anlar ve sitenin kesintisinde süreler | ⬚ | — | — | — |
-| T328 | Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi | ⬚ | — | — | — |
+| T328 | Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi | ✓ | ✓ PASS (tur 1) | — | #440 |
 | T329 | İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi) | ⬚ | — | — | — |
 | T330 | Firma kimliği: tek firma, tip ve tipe göre zorunlu alanlar, yasal kimlik bilgilerinin erişilebilirliği, iade adresi | ✓ | ✓ PASS (tur 1) | `4924037` | #420 |
 | T331 | Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması | ✓ | ✓ PASS (tur 1) | `eb91975` | #425 |

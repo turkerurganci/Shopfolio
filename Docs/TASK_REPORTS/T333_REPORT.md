@@ -58,13 +58,14 @@
 | Sık FAIL (2) eşitlik denetimi tek yönlü | ✓ (uygulanmaz) | yeni enum ya da sabit tablo yok; yeni enum'lar alt ad alanında (`EnumLockTests` yeşil); `ProductCategoriesOutcome`, `CategoryWriteOutcome` saklanmaz |
 | Sık FAIL (3) DB varsayılanı / FK dizini | ✓ (uygulanmaz) | şema ve göç değişmedi; kullanılan `categories`/`product_categories` kısıtları ve dizinler `CreateCatalogCoreTables` göçünde (ana işaret için dolu-süzgeçli tekil dizin `ix_product_categories_product_id`) |
 | Sık FAIL (4) aynı sayıyı anan öteki yerler | ✓ | derinlik yalnız `ProductConstants`'tan; sayfa boyu yalnız `PageSizes.StorefrontProducts`; test beklentileri bu sabitlerden okur |
-| Sık FAIL (5) yeni sayfalı listeye sınır testi | ✓ | `TheLists_AreNewestFirst_EqualMomentsByTheKeyDescending_…` (aynı `CreatedAt`, anahtar azalan), `AnEmptyCategory_IsAnEmptyPage_…AndAPastLastPageShowsTheLast` (`page: int.MaxValue`, son sayfa, boş sayfa), `TheSearchPage_TakesTheSameFiltersAndTheSamePageSize_…` (iki sayfa); eşzamanlılık: `TwoOpposingMoves_…` gerçek DB'de |
+| Sık FAIL (5) yeni sayfalı listeye sınır testi | ✓ (düzeltme 1) | `ACategoryPage_WithEqualCreatedAtAcrossThePageBoundary_RepeatsNoProductAndLosesNone_TheLastPageIncluded` (2×boy+7 ürün hep aynı `CreatedAt`, gerçek `ProductListReader.ListCategoryAsync`, bütün sayfalar yürünür: yinelenme yok, kayıp yok, son sayfa boyu doğru; stok süzgeçli koşu da), `TheSearchPage_WithEqualCreatedAtAcrossThePageBoundary_…` (aynı sınama `SearchAsync` için; fiyat süzgeçli koşu da), `TheSearch_TakesABackslashAsALetter` (ters bölü harfi harfine aranır); ayrıca `TheLists_AreNewestFirst_EqualMomentsByTheKeyDescending_…`, `AnEmptyCategory_IsAnEmptyPage_…AndAPastLastPageShowsTheLast` (`page: int.MaxValue`), `TwoOpposingMoves_…` gerçek DB'de |
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 3983 geçti, 0 kaldı (Architecture ve Consistency dahil) |
+| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 4064 geçti, 0 kaldı (Architecture ve Consistency dahil; düzeltme 1 sonrası, `origin/main` birleşik) |
+| Integration (düzeltme 1) | ✓ (parçalı) | `--filter-class …CategoryTreeAndListsTests` (yöntem süzgeçleriyle üç parça); `…ConcurrencyTests` | `CategoryTreeAndListsTests` 32/32 (3 yeni); `ConcurrencyTests` 26/26 |
 | Integration | ✓ (parçalı) | `dotnet test tests/Shopfolio.IntegrationTests --no-build --filter-class …` / `--filter-namespace …` | `CategoryTreeAndListsTests` 29/29; Model ad alanı 1105 (1104 geçti; süre sınırında `CatalogCoreTablesTests.Migration_WhenPgTrgmIsNotInstalled…` yük altında kesildi, tek başına geçti); Model dışı 866 (2 kırmızı: `SearchEngineDataTests…kestrel` yeniden koşuda geçti; `VersionedFormPageTests.OrderPost_ByTheAdministrator_…_KK6` sınıf içinde yerel DB'de `origin/main` üzerinde de kırmızı — `legal_text_versions` tekil dizini, bu task'la ilgisiz, tek başına geçer) |
 | Format / derleme | ✓ | `dotnet format <proje> --verify-no-changes`; `dotnet build -warnaserror` | üç proje temiz, 0 uyarı |
 
@@ -84,6 +85,8 @@
 **Task satırları (`12 §7.5`):** VAL-A001…A008 (KP-1…KP-3), VAL-A181…A185 (KP-41) uç/tarayıcı kanıtı ister; T333 uç kurmaz (D-331, D-333) → hepsi `BEKLEMEDE` kalır; `12` değişmedi; `12_matris_denetle.py --kapsam 1-77` Hata 0.
 
 **B1 (DÜŞÜK, S1):** `09 §25` "Yeni sayfalı liste … sınır testi var mı?" — hayır. `09 §10.5` madde 6 ve §19.2 madde 5 her yeni sayfalı liste için eşit `CreatedAt`'li ürünlerin sayfa sınırında ne yinelenmediğini ne kaybolmadığını sınayan entegrasyon testini zorunlu tutar. T333'ün iki yeni listesinde (kategori sayfası, arama) böyle test yok: `TheLists_AreNewestFirst_EqualMoments…` eşit anları tek sayfada sınar; `ACategoryPage_…` ve `TheSearchPage_…` sınırı farklı `CreatedAt`'lerle geçer; T210 `ListPagingTests` gerçek okuyucuyu değil yalın sorguyu yürür. Öz denetimin "Sık FAIL (5) ✓" satırı bu yüzden yanlış. **Düzeltme:** her iki liste için `PageSizes.StorefrontProducts`'tan fazla aynı `CreatedAt`'li ürünü sınıra düşürüp bütün sayfaları yürüyen test (yinelenme yok, kayıp yok); aynı dosyada `\` harfi harfine aranır (madde 6).
+
+**Düzeltme 1 (B1):** yalnız test eklendi (üretim kodu değişmedi; sıralama `CreatedAt desc, Id desc` zaten ikinci anahtarlı): `CategoryTreeAndListsTests`'e iki liste için sayfa sınırı testleri (kategori sayfası, arama; ikisinde de süzgeçli koşu) ve `TheSearch_TakesABackslashAsALetter`. Öz denetimde kabul kriterleri 1–8 ve KK1–KK8 düzeltilmiş diff'te yeniden denetlendi: ilgili Integration testleri ve Unit yeşil, üretim diff'i değişmedi, kayıt belgeleri çakışması (STATUS, backlog) çözüldü, birleşme kalıntısı yok.
 
 **K1:** "Yapılan İşler" ad değişiminde `Sitemap` bildirildiğini yazıyordu; kod ve `TheTreeWrites_NameTheCacheAreasTheyMakeStale` bildirmez (adres değişmez) — cümle düzeltildi.
 

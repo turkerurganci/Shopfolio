@@ -660,7 +660,104 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         Assert.Equal($"Ortak {size + 2:00}", unfiltered.Items[0].Name);
     }
 
+    // ---- page boundary: equal moments across the page edge (09 10.5 item 6, 19.2 item 5, 25) ----
+
+    [Fact]
+    public async Task ACategoryPage_WithEqualCreatedAtAcrossThePageBoundary_RepeatsNoProductAndLosesNone_TheLastPageIncluded()
+    {
+        Guid category = await CreateAsync("Sınır", null);
+        int size = PageSizes.StorefrontProducts;
+        int count = (2 * size) + 7;
+        HashSet<Guid> seeded = [];
+        for (int i = 0; i < count; i++)
+        {
+            Product product = await SeedProductAsync($"Eşit {i:00}", Now);
+            await SeedVariantAsync(product.Id, $"E-{i:00}", 10m + i, stock: i % 2 == 0 ? 0 : 5, PublishStatus.Published);
+            await SetLinksAsync(product.Id, [category], category);
+            seeded.Add(product.Id);
+        }
+
+        await AssertWholeListIsWalkedOnceAsync(page => ListCategoryAsync("sinir", page: page), seeded, size);
+
+        // A filtered list crosses the boundary too: the odd indexes are in stock, and their count is more than one page.
+        int expected = Enumerable.Range(0, count).Count(i => i % 2 == 1);
+        Assert.True(expected > size);
+        ProductListFilter filter = new(InStockOnly: true);
+        List<Guid> walked = [];
+        ProductListPage first = await ListCategoryAsync("sinir", filter, 1);
+        Assert.Equal(expected, first.TotalCount);
+        for (int page = 1; page <= first.PageCount; page++)
+        {
+            walked.AddRange((await ListCategoryAsync("sinir", filter, page)).Items.Select(i => i.Id));
+        }
+
+        Assert.Equal(expected, walked.Count);
+        Assert.Equal(expected, walked.Distinct().Count());
+        Assert.All(walked, id => Assert.Contains(id, seeded));
+    }
+
+    [Fact]
+    public async Task TheSearchPage_WithEqualCreatedAtAcrossThePageBoundary_RepeatsNoProductAndLosesNone_TheLastPageIncluded()
+    {
+        int size = PageSizes.StorefrontProducts;
+        int count = (2 * size) + 7;
+        HashSet<Guid> seeded = [];
+        for (int i = 0; i < count; i++)
+        {
+            Product product = await SeedProductAsync($"Aynı an {i:00}", Now);
+            await SeedVariantAsync(product.Id, $"A-{i:00}", 10m + i, stock: null, PublishStatus.Published);
+            seeded.Add(product.Id);
+        }
+
+        await AssertWholeListIsWalkedOnceAsync(page => SearchAsync("aynı an", page: page), seeded, size);
+
+        // With a price filter the matching set is smaller than the list but still crosses the boundary: indexes 10 to 40 are 31 products.
+        ProductListFilter filter = new(MinPrice: 20m, MaxPrice: 50m);
+        ProductListPage firstFiltered = await SearchAsync("aynı an", filter, 1);
+        Assert.Equal(31, firstFiltered.TotalCount);
+        List<Guid> walked = [];
+        for (int page = 1; page <= firstFiltered.PageCount; page++)
+        {
+            walked.AddRange((await SearchAsync("aynı an", filter, page)).Items.Select(i => i.Id));
+        }
+
+        Assert.Equal(31, walked.Count);
+        Assert.Equal(31, walked.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task TheSearch_TakesABackslashAsALetter()
+    {
+        await SeedProductAsync(@"Yol a\b modeli", Now);
+        await SeedProductAsync("Yol ab modeli", Now.AddMinutes(1));
+        await SeedProductAsync("Yol a b modeli", Now.AddMinutes(2));
+
+        Assert.Equal([@"Yol a\b modeli"], (await SearchAsync(@"a\b")).Items.Select(i => i.Name));
+        Assert.Equal([@"Yol a\b modeli"], (await SearchAsync(@"\")).Items.Select(i => i.Name));
+        Assert.Empty((await SearchAsync(@"a\\b")).Items);
+    }
+
     // ---- helpers ----
+
+    private static async Task AssertWholeListIsWalkedOnceAsync(Func<int, Task<ProductListPage>> readPage, HashSet<Guid> seeded, int size)
+    {
+        ProductListPage first = await readPage(1);
+        Assert.Equal(seeded.Count, first.TotalCount);
+        Assert.Equal((seeded.Count + size - 1) / size, first.PageCount);
+        Assert.True(first.PageCount > 2);
+
+        List<Guid> walked = [];
+        for (int page = 1; page <= first.PageCount; page++)
+        {
+            ProductListPage read = await readPage(page);
+            Assert.Equal(page < first.PageCount ? size : seeded.Count - (size * (first.PageCount - 1)), read.Items.Count);
+            walked.AddRange(read.Items.Select(i => i.Id));
+        }
+
+        Assert.Equal(seeded.Count, walked.Count);
+        Assert.Equal(seeded.Count, walked.Distinct().Count());
+        Assert.True(seeded.SetEquals(walked));
+    }
 
     private static void AssertIds(ProductListPage page, params Guid[] expected)
     {
@@ -709,17 +806,17 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         return await new ProductListReader(context).ListCategoryAsync(slug, filter, page, Ct);
     }
 
-    private async Task<ProductListPage> SearchAsync(string? word, ProductListFilter? filter = null)
-    {
-        ProductListPage? result = await SearchOrNullAsync(word, filter);
-        Assert.NotNull(result);
-        return result;
-    }
-
-    private async Task<ProductListPage?> SearchOrNullAsync(string? word, ProductListFilter? filter = null)
+    private async Task<ProductListPage?> SearchOrNullAsync(string? word, ProductListFilter? filter = null, int page = 1)
     {
         await using AppDbContext context = NewContext();
-        return await new ProductListReader(context).SearchAsync(word, filter, 1, Ct);
+        return await new ProductListReader(context).SearchAsync(word, filter, page, Ct);
+    }
+
+    private async Task<ProductListPage> SearchAsync(string? word, ProductListFilter? filter = null, int page = 1)
+    {
+        ProductListPage? result = await SearchOrNullAsync(word, filter, page);
+        Assert.NotNull(result);
+        return result;
     }
 
     private async Task<List<Guid>> PrimaryCategoriesAsync(Guid productId)

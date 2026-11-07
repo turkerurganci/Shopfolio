@@ -38,6 +38,27 @@ internal static class DispatchMarks
         return HasMark(rows);
     }
 
+    /// <summary>
+    /// The "e-mail did not arrive" mark of an account or administration e-mail (08 2.2.8; 02 9.4): none of the seven puts a mark except the administrator invitation,
+    /// whose mark sits on the invitation's own row - the latest invitation e-mail row of the invitation (the related record) decides, and the row of the firm notice
+    /// F-6 that names the same invitation is not an invitation e-mail. Every other type gives false whatever its rows say: the user asks for the link again and the
+    /// panel has no row to show it on.
+    /// </summary>
+    public static async Task<bool> AccountEmailHasMarkAsync(AppDbContext db, DispatchType type, Guid relatedRecordId, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(db);
+        if (type != DispatchType.AdminInvitation)
+        {
+            return false;
+        }
+
+        List<Row> rows = await db.DispatchRecords.AsNoTracking()
+            .Where(d => d.DispatchType == DispatchType.AdminInvitation && d.RelatedRecordType == DispatchRelatedRecordType.AdminInvitation && d.RelatedRecordId == relatedRecordId)
+            .Select(d => new Row(d.Id, d.OriginalDispatchId, d.CreatedAt, d.DispatchState))
+            .ToListAsync(ct);
+        return HasMark(rows);
+    }
+
     /// <summary>A row as the mark reads it.</summary>
     internal readonly record struct Row(Guid Id, Guid? OriginalDispatchId, DateTimeOffset CreatedAt, DispatchState State);
 }

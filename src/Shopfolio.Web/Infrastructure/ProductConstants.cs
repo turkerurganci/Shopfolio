@@ -96,6 +96,18 @@ internal static class ProductConstants
     /// <summary>P-49 — window of the verification link request limit L9, in minutes (Z-27).</summary>
     public const int VerificationResendAttemptWindowMinutes = 60;
 
+    /// <summary>P-12 — life of the e-mail verification link, in hours (Z-1); also the life of the new address verification link (the change request's moment, Z-1).</summary>
+    public const int EmailVerificationLinkHours = 24;
+
+    /// <summary>P-13 — life of the password reset link, in minutes (Z-2); the Google sign-in confirmation link has the same life.</summary>
+    public const int PasswordResetLinkMinutes = 60;
+
+    /// <summary>P-14 — life of the administrator invitation link, in hours (Z-3).</summary>
+    public const int AdminInvitationLinkHours = 72;
+
+    /// <summary>P-47 — life of the e-mail change revert link, in days (Z-45).</summary>
+    public const int EmailChangeRevertLinkDays = 7;
+
     /// <summary>P-27 — character ceiling of a product name (and of a name or title in the corporate content).</summary>
     public const int ProductNameMaxLength = 150;
 

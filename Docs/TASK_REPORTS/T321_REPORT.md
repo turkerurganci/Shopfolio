@@ -1,6 +1,6 @@
 # T321 — Ürün yayın durumları
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✗ FAIL (doğrulama tur 1) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -72,10 +72,101 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — (yapım) |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-07) |
+| Bulgu sayısı | tur 1: 2 (Bulgu 1 DÜŞÜK S1 — vitrin listesinin sınır testi yok; Bulgu 2 DÜŞÜK S1 — `DbUpdateConcurrencyException` kayıt varyantı dışında yakalanıyor) |
+| Düzeltme gerekli mi | Evet — iki bulgu bu PR'da |
+| Bloke-etmeyen not (K) sayısı | tur 1: 0 |
+
+### Doğrulama Sonucu — T321 Ürün yayın durumları — tur 1
+**Tarih:** 2026-11-07   **Branch:** task/T321-urun-yayin-durumlari   **Commit:** `8d71d89` (origin/main `c4c872c` zaten içeride; birleştirme "Already up to date")
+
+#### Verdict: ✗ FAIL
+
+Kabul kriterleri 1–9 ve KK1–KK9 davranış olarak karşılandı; testler ve CI yeşil. FAIL sebebi `09 §25` kontrol listesinin iki "hayır" cevabı (§25: "hayır düzeltilir ve düzeltilmeden kabul edilmez"): yeni sayfalı vitrin listesinin sınır testi yok (Bulgu 1) ve `DbUpdateConcurrencyException` kayıt varyantı dışında ret olarak yakalanıyor (Bulgu 2).
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş |
+| Hook kurulumu | ✓ | `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana checkout'un bekçisi; daldaki kopya kullanılmadı) |
+| Ana dal CI (son 3) | ✓ | 42393301185 success, 42393301195 success (T332), 42391220711 success (T381) |
+| Memory drift | ✓ | `.claude/memory/MEMORY.md:22` T321 satırı |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Ürün ve varyant Taslak/Yayında/Arşiv'i ayrı taşır | ✓ | `ProductTransitions.ChangeProductStatusAsync`/`ChangeVariantStatusAsync` ayrı alan yazar; `APublishedProduct_CanHaveADraftVariant_AndTheOtherWayRound_KK1`, `EveryMoveBetweenTheThreeStatuses_IsFree_..._KK1` (6 geçiş × ürün+varyant) yerelde yeşil |
+| 2 | Geçiş panel işlemi, bildirim yok, iz satırı var | ✓ | `ChangePublishStatus` iz satırı aynı işlemde; Job/Dispatch 0 — `AMove_WritesOneTrailRowOfThePublishStatus_AndNoJobAndNoDispatch_KK2`; iz yazılamazsa geri alınır `AMoveWhoseTrailRowCannotBeWritten_..._KK2_KK7` |
+| 3 | Taslak ürün liste/aramada yok; taslak varyant seçenek listesinde yok | ✓ | `ShowcaseVisibility.Listed`/`InOptionList`; `TheList_AndTheSearch_ShowOnlyThePublishedProducts_..._KK3_KK4`, `TheOptionList_ShowsOnlyThePublishedVariants_..._KK3_KK4`; birim `Listed_...`, `InOptionList_..._InEveryPairOfStatuses` |
+| 4 | Arşiv ürün liste/aramada yok, kayıt korunur; arşiv varyant vitrinden kalkar | ✓ | aynı testler (arşiv kaydı okunur) + `AVariantArchivedUnderAPublishedProduct_LeavesTheOptionList_..._KK4` |
+| 5 | Yayında'ya geçiş kapıdan geçer, red durumu değiştirmez | ✓ | `IPublishGate` yalnız hedef Published iken sorulur; `AMoveToPublished_AsksTheGate_..._KK5`, `AGateThatRefuses_LeavesTheStatusAsItWas_NoRowAndNoVersionRise_KK5` (Draft, Archived); gerçek koşullar T335 (D-300) |
+| 6 | Kapıyı bozan işlem engellenir, sebep söylenir, yönlendirilir | ✓ (birim düzeyi) | `LastPublishedVariant` (`07 §6.2`, 422) döner, iz/sürüm/sepet yazılmaz — `TheLastPublishedVariantOfAPublishedProduct_CannotLeavePublished_KK6`, `ARefusedMove_LeavesTheCartsAlone_KK7`; panel metni T335 m.9'un kriteri (D-304) |
+| 7 | Vitrinden kalkan kalem sepetten çıkar, bir kez söylenir | ✓ | `RemoveFromCartsAsync` durum yazımından sonra `RemovedProductName` işaretler (`06` CartItem); `TakeRemovedItemNoticesAsync` verip siler — `AProductTakenOffTheShowcase_LeavesTheCarts_AndIsToldOnce_KK7` (ikinci çağrı boş), `AVariantTakenOffTheShowcase_..._KK7`; sayfa bağı D-302 |
+| 8 | Yayın durumu siparişi etkilemez; satış kapatma durumu değiştirmez | ✓ | `AnOpenOrder_IsNotTouchedByAnyMoveOfItsProductOrVariant_KK8` (durum, sürüm, tutar, geçiş kaydı parmak izi), `TemporarilyClosingTheSales_ChangesNoPublishStatus_AndTheListStays_KK8` |
+| 9 | Tükenmişlik ayrı durum değil, tükenmiş Yayında ürün görünür | ✓ | `ASoldOutPublishedProduct_IsInTheSearch_AndInTheList_MarkedSoldOut_KK9`; birim `Visibility_DoesNotLookAtTheStock_..._KK9` |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+T321'in birimleri KP-7 ve KP-40. Satırların hepsi uç yanıtı, panel ya da tarayıcı kanıtı ister (adres sayfaları, önizleme bandı, panel geçişi, silme); T321 uç ve sayfa yazmaz — adres ve panel T335 m.6–9'da. `A024` (taslak varyant seçenek listesinde yok) ve `C037`/`C038` (panel geçişi) T321 kriteri 3 ve 1'in davranışını anar ama kanıt türü "Uç yanıtı"dır; üretilemez. Hiçbir satır T321'in kriteriyle tam kanıtlanmadı, `Durum` değişmedi.
+
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı |
+|---|---|---|---|---|---|
+| VAL-A021, A022, A023, D001, A024 | ORTA | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-C037, C038, A177, A178, A179, A180 | ORTA | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D025 | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | — (silme, T335) |
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1: ürün Yayında iken varyantı Taslak olabilir.
+- [x] KK2: geçişte bildirim yok, iz satırı var.
+- [x] KK3: taslak ürün listede ve aramada yok; taslak varyant seçenek listesinde yok.
+- [x] KK4: arşiv ürün listede ve aramada yok, kaydı okunur; arşivlenmiş varyant vitrinde yok.
+- [x] KK5: Yayında'ya geçiş kapıyı çağırır; sahte kapının reddi durumu değiştirmez.
+- [x] KK6: son Yayında varyantın arşive alınması engellenir; ret kodu `LastPublishedVariant` (panel metni T335 m.9, D-304).
+- [x] KK7: arşive alınan ürün sepetten çıkar, bir kez söylenir.
+- [x] KK8: açık sipariş yayın durumundan etkilenmez.
+- [x] KK9: tükenmiş Yayında ürün aramada görünür.
+- [ ] `09 §25` ilgili satırlar — iki "hayır": "Yeni sayfalı liste … sınır testi var mı?" (Bulgu 1); "İstisna yalnız beklenmeyen hâlde mi …" / `09 §10.2` m.2 (Bulgu 2). Öteki satırlar evet ya da uygulanamaz (göç, yeni paket, dış servis, POST/form yok).
+- [x] Güvenlik taraması temiz.
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Restore | ✓ | `dotnet restore Shopfolio.slnx`; sonda `--locked-mode` | çıkış 0 |
+| Derleme | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format <proje> --verify-no-changes --no-restore` (Web, Unit, Integration) | üçü çıkış 0 |
+| Unit Architecture | ✓ | `--filter-namespace Shopfolio.UnitTests.Architecture` | 906/906 |
+| Unit öteki (Consistency dahil) | ✓ | `--filter-not-namespace Shopfolio.UnitTests.Architecture` | 3070/3070 |
+| Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya |
+| Integration `ProductTransitionsTests` | ✓ | Postgres 18, `shopfolio-t321-val-pg`, 127.0.0.1:55871 | 35/35 |
+| Integration `SitemapEndpointTests` | ✓ | aynı | 10/10 |
+| Dal CI | ✓ | `gh pr checks 439`, run 42394867534 (head `8d71d89`) | Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate pass |
+
+Koşu sonrası konteyner adıyla silindi, `git status` temiz.
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz
+- Auth etkisi: Temiz — yeni uç, sayfa ya da form yok; geçiş birimi işlem dışında çağrılırsa `InvalidOperationException`, iz satırı oturumdaki yöneticiden
+- Input validation: Temiz — arama sözcüğü `SearchTerm.ToLikePattern` ve parametreli `EF.Functions.Like`'tan geçer; hedef durum `Enum.IsDefined` ile denetlenir
+- Yeni bağımlılık: Yok
+
+#### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| 1 | `09 §25` (satır yok) | DÜŞÜK | S1 | Beklenen: her yeni sayfalı liste sınır testiyle eklenir (`09 §19.2` m.5, `§10.5` m.6, `§25`) — aynı `CreatedAt`'li ürünler 24'lük sayfa sınırında ne yinelenir ne kaybolur, son sayfayı ve `int` aralığını aşan `page` son sayfayı verir, tek sayfalık listede `PageCount` 1. Gerçekleşen: `ShowcaseReader.ListAsync` / `ICatalogModule.ListShowcaseAsync` yeni sayfalı liste (`ToPageAsync`, `PageSizes.StorefrontProducts`); testlerin hepsi `page = 1` ile çağırır, sınır testi yok (T210'un `ListPagingTests`'i elle kurulan sorguyu sınar, bu okuyucuyu değil). | — | bu PR'da düzeltilir: `ListShowcaseAsync` üzerinden sınır testi (ya da sayfalama task kapsamında değilse listeyi sayfasız bırakmak) | `src/Shopfolio.Web/Modules/Catalog/ShowcaseReader.cs` · `tests/Shopfolio.IntegrationTests/Catalog/ProductTransitionsTests.cs` |
+| 2 | `09 §25` (satır yok) | DÜŞÜK | S1 | Beklenen: `DbUpdateConcurrencyException` yalnız kayıt varyantının kaydında (`RecordSave`) ret olarak yakalanır, öteki her yerde beklenmeyen hatadır (`09 §10.2` m.2, `§8.1`). Gerçekleşen: `OrderingModule.TakeRemovedItemNoticesAsync` silmede bu istisnayı yakalayıp boş liste döner (`OrderingModule.cs:83`). | KK7 ("bir kez söylenir") | bu PR'da düzeltilir: yakalama kaldırılır ya da eşzamanlı ikinci isteğin boş dönmesi istisnasız bir yolla sağlanır (ör. sepet satırını kilitleyip okuma) | `src/Shopfolio.Web/Modules/Ordering/OrderingModule.cs` |
+
+#### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| — | Yeni K-notu yok (KK6 panel metni D-304, sayfa bağı D-302, kapı D-300 yapımda zaten forward edildi) | — |
+
+#### Yapım Raporu Karşılaştırması
+- Uyum: 2 uyuşmazlık
+- Öz denetim tablosunda `09 §25` satırı ✓; validator iki "hayır" buldu (Bulgu 1, 2). Raporun "ListPaging + ProductTransitions" koşusu `ShowcaseReader`'ın sayfalamasını kapsamaz.
+- KK6 kabul kriterleri tablosunda "✓", öz denetimde "✓ kod; ~ ileti metni" — iki tablo tutarsız. Validator kriteri birim düzeyinde ✓ saydı (panel metni T335 m.9).
+- Öteki kriterlerde kanıtlar validatorınkiyle uyumlu.
+
+#### Merge ve Post-merge
+- FAIL — merge yok.
 
 ## Altyapı Değişiklikleri
 

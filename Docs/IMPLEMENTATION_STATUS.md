@@ -151,7 +151,7 @@
 | T309 | Hesap ve yönetim e-postaları | ⬚ | — | — | — |
 | T310 | Kargo şirketi listesi ve takip bağlantısı kalıpları | ⬚ | — | — | — |
 | T311 | Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım | ⬚ | — | — | — |
-| T312 | Dosya uçları: imzalı indirme ucu ve parçalı yükleme ucu | ⬚ | — | — | — |
+| T312 | Dosya uçları: imzalı indirme ucu ve parçalı yükleme ucu | ⏳ | — | — | — |
 | T313 | Site haritası ve robots.txt | ✓ | ✓ PASS (tur 1) | — | #417 |
 | T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | — | #418 |
 | T315 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | ⬚ | — | — | — |

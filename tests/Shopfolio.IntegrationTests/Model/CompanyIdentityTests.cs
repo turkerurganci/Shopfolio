@@ -9,6 +9,8 @@ using Npgsql;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.Modules.Administration;
+using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.CorporateContent.Contracts;
@@ -463,6 +465,9 @@ public sealed class CompanyIdentityTests : IAsyncLifetime
         ServiceCollection services = new();
         services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn));
         services.AddScoped<CacheInvalidations>();
+        services.AddSingleton<TimeProvider>(TimeProvider.System);
+        services.AddScoped<IAuditActorSource, NoActor>();
+        services.AddScoped<IAuditTrail, AuditTrail>();
         services.AddSettingsModule();
         return services.BuildServiceProvider();
     }
@@ -561,5 +566,11 @@ public sealed class CompanyIdentityTests : IAsyncLifetime
         await connection.OpenAsync(Ct);
         await using NpgsqlCommand command = new(sql, connection);
         return (T)(await command.ExecuteScalarAsync(Ct))!;
+    }
+
+    /// <summary>The identity and address saves write no trail row, so no administrator is needed; only the switch does.</summary>
+    private sealed class NoActor : IAuditActorSource
+    {
+        public Task<AuditActor?> CurrentAsync(CancellationToken ct) => Task.FromResult<AuditActor?>(null);
     }
 }

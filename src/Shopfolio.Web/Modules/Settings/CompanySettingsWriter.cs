@@ -41,6 +41,25 @@ internal sealed class CompanySettingsWriter
         await _db.Database.SqlQuery<Guid>($"SELECT id AS \"Value\" FROM company_settings FOR UPDATE").ToListAsync(ct);
     }
 
+    /// <summary>
+    /// Writes the "close sales temporarily" switch (02 3.1.6; 09 10.3 item 3): the switch carries no version and takes no row lock, so the write is one update conditional on the
+    /// value the screen showed (<paramref name="original"/>). <see langword="false"/> means the switch is no longer that value - another administrator changed it - and nothing
+    /// was written. The caller writes the trail row in the same transaction.
+    /// </summary>
+    public async Task<bool> WriteSalesSwitchAsync(bool original, bool target, CancellationToken ct)
+    {
+        int written = await _db.CompanySettings
+            .Where(s => s.IsSalesTemporarilyClosed == original)
+            .ExecuteUpdateAsync(set => set.SetProperty(s => s.IsSalesTemporarilyClosed, target), ct);
+        if (written == 0)
+        {
+            return false;
+        }
+
+        _invalidations.Add(CacheArea.Settings);
+        return true;
+    }
+
     /// <summary>The return address section as stored: the address when all four required parts are there, and the section's version.</summary>
     public async Task<ReturnAddressSection> ReadReturnAddressAsync(CancellationToken ct)
     {

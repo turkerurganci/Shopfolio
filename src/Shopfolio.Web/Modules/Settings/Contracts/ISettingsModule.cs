@@ -40,4 +40,23 @@ public interface ISettingsModule
     /// A declaration copies <see cref="GetReturnAddressAsync"/>'s address as a value, so a later change never reaches a made declaration (T372).
     /// </summary>
     Task<SettingsSaveResult> SaveReturnAddressAsync(ReturnAddressInput input, int formVersion, CancellationToken ct);
+
+    /// <summary>
+    /// The decision of the sales gate and of the gate of the data-collecting entries (T331; 02 3.1.5): computed in one place from the database on every call and never
+    /// stored (05 4.1.5). The storefront, the cart, the payment step, the order confirmation's transaction, the registration, the Google sign-in, the contact form and
+    /// the panel's setup checklist all read this value. The method only reads and opens no transaction.
+    /// </summary>
+    Task<SalesGate> GetSalesGateAsync(CancellationToken ct);
+
+    /// <summary>
+    /// Closes sales temporarily (T331; 02 3.1.6; 07 9.16.3): one update against the value the screen showed (<paramref name="shownIsClosed"/>, no version, no row lock) and the
+    /// trail row in the caller's transaction, by the administrator of the request. A changed or already closed switch writes nothing and is a result.
+    /// </summary>
+    Task<SalesSwitchResult> CloseSalesTemporarilyAsync(bool shownIsClosed, CancellationToken ct);
+
+    /// <summary>
+    /// Opens sales again (T331; 02 3.1.6; 07 9.16.4): switches the temporary closure off against the value the screen showed. The switch alone does not open sales - the result's
+    /// gate says whether they are open or which conditions still hold them closed. Same transaction and trail as <see cref="CloseSalesTemporarilyAsync"/>.
+    /// </summary>
+    Task<SalesSwitchResult> ReopenSalesAsync(bool shownIsClosed, CancellationToken ct);
 }

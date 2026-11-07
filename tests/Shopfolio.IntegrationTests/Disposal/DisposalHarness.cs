@@ -63,6 +63,7 @@ internal sealed class DisposalHarness : IAsyncDisposable
         // The order's part (T301) and the module surfaces it reaches: the order row lock, the payment and after-sales modules.
         services.AddScoped<OrderLocks>();
         services.AddScoped<OrderPaymentArms>();
+        services.AddScoped<AdvisoryLocks>();
         services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddPaymentModule();
         services.AddAfterSalesModule();

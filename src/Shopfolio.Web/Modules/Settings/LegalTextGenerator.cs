@@ -1,60 +1,9 @@
-using System.Security.Cryptography;
-using System.Text;
-
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.Settings;
-
-/// <summary>One shipped template of a generated legal text: its text and its version id (09 11.4 item 5).</summary>
-internal sealed record LegalTextTemplate(LegalTextType Type, string Text, string Version);
-
-/// <summary>
-/// The templates that come with the product (02 3.33.1; 09 11.4 items 3 and 5): constant text files embedded in the assembly. The version id of a template is the first
-/// twelve hexadecimal digits of the SHA-256 of its content with line endings normalized to <c>\n</c>, so it changes exactly when the text changes and never because of the
-/// checkout's line endings; there is no hand-raised version constant. Only the two generated texts have a template.
-/// </summary>
-internal static class LegalTextTemplates
-{
-    /// <summary>The two generated types, in the order their versions are written.</summary>
-    public static IReadOnlyList<LegalTextType> GeneratedTypes { get; } = [LegalTextType.PreInformationForm, LegalTextType.DistanceSalesContract];
-
-    /// <summary>The tokens of a generated text that the version fills from the settings: the company identity and the return address. Every other token is an order field that waits (09 9.3 item 2).</summary>
-    public static IReadOnlyList<string> CompanyTokens { get; } =
-    [
-        "CompanyLegalName", "CompanyTaxIdNumber", "CompanyMersisNumber", "CompanyTradeRegistryNumber", "CompanyProvince", "CompanyDistrict", "CompanyAddressLine",
-        "CompanyPhone", "CompanyEmail", "CompanyKepAddress", "ReturnAddress",
-    ];
-
-    public static LegalTextTemplate Get(LegalTextType type)
-    {
-        string name = type switch
-        {
-            LegalTextType.PreInformationForm => "PreInformationForm.tr.txt",
-            LegalTextType.DistanceSalesContract => "DistanceSalesContract.tr.txt",
-            _ => throw new ArgumentException($"{type} is not a generated legal text and has no template.", nameof(type)),
-        };
-        string text = Read($"Shopfolio.Modules.Settings.Templates.{name}");
-        return new LegalTextTemplate(type, text, VersionOf(text));
-    }
-
-    public static string VersionOf(string text)
-    {
-        ArgumentNullException.ThrowIfNull(text);
-        byte[] hash = SHA256.HashData(Encoding.UTF8.GetBytes(text.ReplaceLineEndings("\n")));
-        return Convert.ToHexStringLower(hash)[..12];
-    }
-
-    private static string Read(string resourceName)
-    {
-        using Stream stream = typeof(LegalTextTemplates).Assembly.GetManifestResourceStream(resourceName)
-            ?? throw new InvalidOperationException($"The template resource {resourceName} is not in the assembly.");
-        using StreamReader reader = new(stream, Encoding.UTF8);
-        return reader.ReadToEnd().ReplaceLineEndings("\n");
-    }
-}
 
 /// <summary>A version the generator wrote: the type, the row's id and number, and whether the cause was the shipped template (a system event, no trail row) or a changed setting.</summary>
 internal sealed record GeneratedVersion(LegalTextType Type, Guid Id, int VersionNumber, bool IsTemplateChange);
@@ -111,11 +60,8 @@ internal sealed class LegalTextGenerator
             written.Add(new GeneratedVersion(type, row.Id, row.VersionNumber!.Value, last is null || last.TemplateVersion != template.Version));
         }
 
-        if (written.Count > 0)
-        {
-            await _db.SaveChangesAsync(ct);
-        }
-
+        // The rows are added to the caller's unit of work: the command pipeline and the start-up transaction runner save it before they commit. The one writer of the settings
+        // row stays CompanySettingsWriter (09 10.3 item 4), so this file calls no save.
         return written;
     }
 

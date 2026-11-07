@@ -2,19 +2,6 @@ using Shopfolio.Infrastructure;
 
 namespace Shopfolio.Modules.Settings.Contracts;
 
-/// <summary>What still waits before a legal text counts as complete (02 3.33.2, 3.33.9): the panel names the text and, for the privacy notice, the part.</summary>
-public enum LegalTextMissingPart
-{
-    /// <summary>No version of the text has been published.</summary>
-    NotPublished,
-
-    /// <summary>The hosting and e-mail infrastructure location section of the privacy notice is empty.</summary>
-    HostingLocation,
-
-    /// <summary>The company identity fields that feed the privacy notice are not all filled.</summary>
-    CompanyIdentity,
-}
-
 /// <summary>
 /// One of the four legal texts as the panel's list shows it (02 3.33.1, 3.33.9): the type, the number of its last published version, whether the firm edits it, and what is
 /// missing by name. A text with an empty <see cref="Missing"/> is complete.
@@ -82,21 +69,6 @@ public sealed class LegalTextPublishResult : IOperationResult
     }
 }
 
-/// <summary>The screens on which the privacy notice link and the cookie policy link are shown (02 3.33.5). A pure list: the screens read it, no consent box and no "seen" record exist.</summary>
-public enum LegalLinkScreen
-{
-    AccountRegistration,
-    GoogleSignIn,
-    OrderConfirmationStep,
-    CancellationIbanEntry,
-    DelayTerminationIbanEntry,
-    WithdrawalIbanEntry,
-    OrderPageIbanField,
-    DefectRequest,
-    ContactForm,
-    Footer,
-}
-
 /// <summary>
 /// Where the legal text links stand (02 3.33.5; 11 T366 criterion 5): the privacy notice link is on every screen that opens a new personal data field and on the footer of
 /// every page; the cookie policy link is on the footer only; there is no cookie banner, no consent box for the notice and no per-user "seen" record - the proof is the text's
@@ -105,7 +77,7 @@ public enum LegalLinkScreen
 public static class LegalTextLinks
 {
     /// <summary>The screens that carry the privacy notice link, the footer included.</summary>
-    public static IReadOnlyList<LegalLinkScreen> PrivacyNoticeScreens { get; } = [.. Enum.GetValues<LegalLinkScreen>()];
+    public static IReadOnlyList<LegalLinkScreen> PrivacyNoticeScreens { get; } = LegalLinkScreen.All;
 
     /// <summary>The screens that carry the cookie policy link: the footer.</summary>
     public static IReadOnlyList<LegalLinkScreen> CookiePolicyScreens { get; } = [LegalLinkScreen.Footer];

@@ -63,8 +63,8 @@ public sealed class PlaceholderFillerAndLinksTests
             LegalLinkScreen.ContactForm, LegalLinkScreen.Footer,
         ];
 
-        Assert.Equal(required.Order(), LegalTextLinks.PrivacyNoticeScreens.Order());
-        Assert.Equal(10, Enum.GetValues<LegalLinkScreen>().Length);
+        Assert.Equal(required.Select(s => s.Name).Order(StringComparer.Ordinal), LegalTextLinks.PrivacyNoticeScreens.Select(s => s.Name).Order(StringComparer.Ordinal));
+        Assert.Equal(10, LegalLinkScreen.All.Count);
     }
 
     [Fact]

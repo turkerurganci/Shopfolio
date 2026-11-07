@@ -87,7 +87,7 @@
 - **Commit:** `f707331` — T378: Zaman sayımı: iş günü ve takvim günü sayımı, tarih aralığı, çitler
 - **PR:** #416
 - **CI:** dal CI 42337007822 (head `33e4d94`) ✓ yeşil
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `552a13d` (#416) — CI 42343289320 success, Publish 42343289321 success (T305 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

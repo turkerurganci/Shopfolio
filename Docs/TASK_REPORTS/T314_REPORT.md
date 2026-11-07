@@ -129,7 +129,7 @@ Entegrasyon paketinin tamamı yerelde koşulmadı (parçalı); CI'a bırakıldı
 - **Commit:** bkz. PR (son commit dal başı)
 - **PR:** #418
 - **CI:** yapım chat'i beklemedi (yönetici düzeni); yönetici izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `335e9cb` (#418) — CI 42344353123 success, Publish 42344353073 success (T305 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

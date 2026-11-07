@@ -1,6 +1,6 @@
 # T313 — Site haritası ve robots.txt
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamam, doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-07
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -77,10 +77,46 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-07, head `336f075`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 (K1–K3 bu PR'da kapatıldı — kayıt bu bölüm; açık uçlar zaten D-161) |
+
+### Doğrulama tur 1 — ✓ PASS
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` ana deponun `scripts/git-hooks`'u (`C:\projects\Shopfolio\scripts\git-hooks`); main son üç tamamlanmış run 42335449709, 42335449717, 42306192052 `success`; hafızada T313 satırı var. Dal CI 42339118325 `success` (head `336f075`).
+
+**Kriterler 1–9 ✓, KK1–KK9 ✓, `09 §25` ✓.** Kanıtlar (doğrulayıcı):
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| Kriter 1 / KK1 | ✓ | `SitemapEndpoint` iki `MapGet` (`Program.cs` `MapSitemapEndpoints`); istek anında `ISitemapSource` + `SiteMapFiles`; `TheTwoAddresses_Answer200_…` (TestServer + Kestrel) 200, `application/xml`/`text/plain` UTF-8, BOM yok; POST 405/400 |
+| Kriter 2 / KK2 | ✓ | `CatalogSitemapReader` (yayındaki ürün `PublishStatus.Published`, tüm kategoriler — kategoride yayın durumu yok, boş kategori 200'dür `07 §4.2.1`), `CorporateContentSitemapReader` (yayındaki hizmet, referans, genel sayfa; yayındaysa `/hakkimizda` — taslak Hakkımızda 404, `07 §4.8.1`); sabit liste `/`, `/hizmetler`, `/referanslar`, `/sss`, `/iletisim` (+`/islem-rehberi`) hep 200 (`07 §4.1`, §4.7, §4.9, §4.10, §4.11). `TheMap_HasTheFourLists_…` gerçek PostgreSQL'de |
+| Kriter 3 / KK3 | ✓ | Okuyucular yalnız `Published` okur; `Compose` `SearchEngineClosure.IsClosedPath` ile kapalıyı düşürür; test arşiv/taslak (ürün, hizmet, referans, sayfa) ve on kapalı kökü dışarıda bulur; `Compose_LeavesOutAClosedPath` (13 durum), `AClosedPathFromAModule_NeverReachesTheMap` |
+| Kriter 4 / KK4 | ✓ | `OneForm` küçük harf, sondaki `/` yok, sorgu/parça/çift eğik çizgi düşer (`07 §2.1.7`); `EveryAddress_IsLowerCase_…` — sahte `Host` başlığı yansımaz, adres kurulumun alan adı |
+| Kriter 5 / KK5 | ✓ | `SiteMapFiles.Robots` = `Sitemap: https://<alan adı>/sitemap.xml\n`; `Robots_IsOneLine…` tek satır, `Disallow` yok |
+| Kriter 6 / KK6 | ✓ | T219 kalıbı değişmedi: panel HTML'i robots meta (`ClosedPages_CarryTheRobotsMetaTagInTheHtml_…`); hesap kökü adresle kapalı (`IsClosedPath_DependsOnTheFirstSegmentOnly` `/hesap/adresler`, `/giris`). Hesabın HTML ekranları henüz yok (oturumsuz istek 302 + `X-Robots-Tag`) — K1 |
+| Kriter 7 / KK7 | ✓ | T219 ara katmanı adrese bakar: CSV dışa aktarma ve panel 404'ü tek `X-Robots-Tag: noindex`; `/indir` kökü kapalı (`IsClosedPath` `/indir/abc`). İndirme ucunun kendisi T312'nin — K3. İki T313 ucu başlık taşımaz |
+| Kriter 8 / KK8 | ✓ | Robots yalnız harita satırı; test arşiv ürün adresini, `/panel`, `/hesap`'ı içermediğini doğrular |
+| Kriter 9 / KK9 | ✓ | `SitemapSource` `AppCache.GetOrLoadAsync(CacheArea.Sitemap)`; değer değişmez `SitemapView` (`09 §10.4` m.1). `TheMap_ComesFromTheCache_…`: işlem dışı yazım önbelleği düşürmez, geri alınan kayıt düşürmez, `CacheInvalidations.Add(CacheArea.Sitemap)` adlı kesinleşen ürün kaydı kuşağı +1 yapar ve yeni ürün haritada. Üretimde kayıt yazıcı henüz yok; yazıcı task'larının yükümlülüğü D-161 (b) |
+| `09 §6` modül sınırı | ✓ | Uç yalnız `Settings.Contracts.ISitemapSource`; önbellek Settings modülünde; modüller yolları `Contracts` ile verir (`ModuleBoundaryTests.SiteMap_…`) |
+| `09 §9.4` m.6, tarama | ✓ | Dosya adları yalnız `AddressRules.SitemapFile`/`RobotsFile`; `SearchEngineSourceScan` literali yakalar (ihlal örneği testte) |
+| Hız sınırı (`07 §4.32.1` "sayfa") | ✓ | `RateLimitScope.IsMachineEndpoint` yalnız `/sistem`, `/indir`, parçalı yükleme — iki adres sayfa sınırında |
+| Güvenlik | ✓ | Sır yok; yeni paket yok (kilit dosyası değişmedi); girdi yok (parametresiz GET); adres istek ana bilgisayarından değil; XML `XmlWriter` ile kaçışlı; uçlar spec gereği açık |
+
+**Task satırları (`12 §7.5`):** `KP-37` (`11 §7.1`: T219, T313, T363). T313'ün uç yanıtıyla karşılanan dört satır `PASS`: `VAL-A378` (dört liste), `VAL-A379` (arşiv ve taslak yok), `VAL-A381` (XML, kurulumun alan adı), `VAL-A398` (robots engellemez, harita adresi). `VAL-A380` (kayıt değişince güncelleme — panel yazıcıları yok), `VAL-A395`/`VAL-A396` (sayfanın 404'ü / arşiv sayfasının açılışı — T549), `VAL-A397` (indirme ucu T312) ve öteki KP-37 satırları `BEKLEMEDE`. Matris betiği (`--kapsam 1-77`) hata 0.
+
+**Testler (doğrulayıcı, yerel):** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı/0 hata · `dotnet format --verify-no-changes` Web ve IntegrationTests projesi çıkış 0, UnitTests değişen beş dosya çıkış 0 (proje bütünü 150 sn'ye sığmadı) · Unit Architecture 764 + öteki 2087 = 2851 · betik testleri 4 dosya · Integration gerçek PostgreSQL 18 (`shopfolio-t313-val-pg`, port 55640): MigrationBundle 2, Sitemap+SearchEngineData 28, Web A–E 80, F 67, J+L 82, M–R 161, S–W 150, Pages+Security+Logging 62, Concurrency+Disposal+FileSecrets+Files 101, Jobs+Outages+SignedEndpoints 96, Database 36, Model (3 parça, `--max-threads 3`) 367+309+217 — hepsi geçti · `git status` temiz, `dotnet restore --locked-mode` 0.
+
+**Bloke-etmeyen notlar:**
+
+| # | Not | Karar |
+|---|---|---|
+| K1 | Öz denetimde KK6 kanıtı "hesap dahil" deniyor; T219 testi yalnız panel, süzgeç ve arama sayfasını açar. Hesap kökünün kapalılığı adres kuralının birim testinden gelir; hesabın HTML ekranları kendi task'larında | bu PR'da kapatıldı (kanıt bu bölümde düzeltildi) |
+| K2 | Harita `/` ve `/islem-rehberi`'yi de taşır; `02 §3.30.2`'nin beş liste sayfasından geniş, ama ikisi de hep 200 ve kapalı değil — `07 §4.32.1` yasaklamaz | bu PR'da kapatıldı (değişiklik gerekmez) |
+| K3 | KK7'nin "indirme yanıtı" bugün yalnız adres kuralıyla sınanır; `/indir` ucu T312'nin, başlık oradaki uç yanıtında görünür | bu PR'da kapatıldı (T312'nin kendi kriteri; `VAL-A397` `BEKLEMEDE`) |
+
+**Yapım raporu karşılaştırması:** kriter ve KK sonuçları uyumlu; tek uyuşmazlık K1 (KK6 kanıt cümlesi). Öz denetim tablosu var ve her maddesi kanıtlı.
 
 ## Altyapı Değişiklikleri
 

@@ -131,7 +131,7 @@
 - **Commit:** son commit PR'da
 - **PR:** PR açıklamasında
 - **CI:** yapım chat'i izlemez
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
+- **Post-merge run'lar:** squash `f94b4d8` (#417) — CI 42346300012 success, Publish 42346300006 success (T305 yapımında dolduruldu)
 
 ## Dış Varsayımlar
 

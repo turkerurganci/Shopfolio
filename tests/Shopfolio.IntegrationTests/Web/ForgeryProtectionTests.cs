@@ -440,9 +440,10 @@ public sealed partial class ForgeryProtectionTests
             [
                 "/panel/baska-yukleme: a writing endpoint outside the closed list",
                 "/panel/baska-yukleme: carries the header token check but is not on the header token list",
-                "/panel/yukleme: on the header token list but carries no header token check",
-                "/panel/yukleme/{id}: on the header token list but its check is switched off",
                 "/panel/yukleme/{id}/iptal: a writing endpoint outside the closed list",
+                "/panel/yukleme/{id}: its check is switched off but it is not on the closed list",
+                "/panel/yukleme/{id}: on the header token list but its check is switched off",
+                "/panel/yukleme: on the header token list but carries no header token check",
             ],
             [.. WritingEndpointAudit.Violations(endpoints).Order(StringComparer.Ordinal)]);
     }

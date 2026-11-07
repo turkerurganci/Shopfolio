@@ -1,6 +1,6 @@
 # T378 — Zaman sayımı: tek saat dilimi, iş günü ve resmî tatil listesi, takvim ve iş günü sayımı, gün sonu, tarih aralığı, çitler
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -67,10 +67,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-07, head `33e4d94`) |
+| Bulgu sayısı | 0 (S1/S2/S3 yok) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 bu PR'da kapatıldı (`TimeAndMoneyRulesTests`: `DateTimeSignatures`'ın özet yorumu araya giren `HoldsDateTime`'ın üstünde kalmıştı; yerine taşındı, `HoldsDateTime`'a kendi özeti yazıldı); K2 → D-161 (P-5 alt çiti 0 çit içi, ama iş günü sayımı `days < 1`'de istisna atar; sıfırın anlamı T325'te) |
+
+**Validator kanıtları (bağımsız koşu, 2026-11-07):** başlangıç kapıları temiz (working tree boş; `core.hooksPath` ana checkout'un `scripts/git-hooks`'u; main son üç run 42335449709, 42335449717, 42306192052 `success`; memory'de T378 satırı var). `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı/0 hata; `dotnet format --verify-no-changes` Web ve UnitTests çıkış 0; Unit (Consistency hariç) 2669/2669, Consistency 207/207, betik testleri yeşil; K1 düzeltmesi sonrası `TimeAndMoneyRulesTests` 34/34; `dotnet restore --locked-mode` 0. Integration: dal integration testine dokunmuyor, dal CI 42337007822 (head `33e4d94`) dokuz işin hepsi `success`. Kriterler kod okunarak ve testlerle eşlendi: k1/KK1 `TurkeyTime.Offset` tek sabit, 2026–2027 her gün 24 saat (`SingleTimeZoneTests`), `TimeZoneInfo`/ikinci ofset kaynak taramasında yok (git grep ile de teyit); k2/KK2 tatil dosyasında arife yok, 19 Mart ve 28 Ekim 2026 iş günü; k3/KK3 2030 kapsam dışı, 1 Ocak ve 23 Nisan iş günü; k4/KK4 on sürenin yalnız ikisi iş günü (enum'un tamamı üzerinde); k5/KK5 `ManualTimeProvider` ile son günün son tiki içeride, ertesi 00:00 dışarıda (takvim ve iş günü); k6/KK6 `SpanEnd` an + süre; k7/KK7 `IsWithinRange` iki ucu ve tek günlük aralık; k8/KK8 `PeriodFences` P-5/P-7/P-44 değerleri `02 §11.1` ile birebir, panelde uygulama T381 k6'nın; 13 iş günü listede en çok 26 takvim günü; k9/KK9 `PeriodCounting` saat okumaz, `TurkeyTime.StartOf/DateOf`'tan geçer. `12`: task'ın KP kaynağı yok (`11 §7.1` kaynakları `02 §4.1.x`, `09 §7`); `02 §4.1`'e atıf veren tek satır `VAL-A801` (indirim/kupon/duyuru aralığı, uçtan uca) tüketici task'larda doğrulanır, `Durum` `BEKLEMEDE` kalır. Yapım raporuyla uyum tam; öz denetim tablosu kriter ve KK başına kanıtlı.
 
 ## Altyapı Değişiklikleri
 
@@ -84,7 +86,7 @@
 - **Branch:** `task/T378-zaman-sayimi`
 - **Commit:** `f707331` — T378: Zaman sayımı: iş günü ve takvim günü sayımı, tarih aralığı, çitler
 - **PR:** #416
-- **CI:** *(yardımcı izler)*
+- **CI:** dal CI 42337007822 (head `33e4d94`) ✓ yeşil
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

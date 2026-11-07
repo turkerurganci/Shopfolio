@@ -189,12 +189,7 @@ public sealed partial class TimeAndMoneyRulesTests
         return Calls(architecture).Where(c => ForbiddenTimeMember().IsMatch(c.Target)).ToList();
     }
 
-    /// <summary>
-    /// Every field, property, method parameter and method return of <see cref="DateTime"/> (or <c>DateTime?</c>) declared in the assembly,
-    /// compiler-made members included: a <c>DateTime</c> whose <c>Kind</c> is wrong or unspecified shifts the time zone silently, so an
-    /// instant is a <see cref="DateTimeOffset"/> everywhere (09 7.1 item 2). A local inside a method body is not a declaration and is not
-    /// listed - <c>TurkeyTime</c> builds its day boundary that way.
-    /// </summary>
+    /// <summary>Whether <paramref name="type"/> is <see cref="DateTime"/> or holds one as an element or a generic argument (D-77).</summary>
     private static bool HoldsDateTime(System.Type type)
     {
         System.Type plain = Nullable.GetUnderlyingType(type) ?? type;
@@ -211,6 +206,13 @@ public sealed partial class TimeAndMoneyRulesTests
 
         return plain.IsGenericType && plain.GetGenericArguments().Any(HoldsDateTime);
     }
+
+    /// <summary>
+    /// Every field, property, method parameter and method return of <see cref="DateTime"/> (or <c>DateTime?</c>, or a type that holds one -
+    /// an array, a generic argument, a tuple element) declared in the assembly, compiler-made members included: a <c>DateTime</c> whose
+    /// <c>Kind</c> is wrong or unspecified shifts the time zone silently, so an instant is a <see cref="DateTimeOffset"/> everywhere (09 7.1
+    /// item 2). A local inside a method body is not a declaration and is not listed - <c>TurkeyTime</c> builds its day boundary that way.
+    /// </summary>
 
     private static List<string> DateTimeSignatures(System.Reflection.Assembly assembly)
     {

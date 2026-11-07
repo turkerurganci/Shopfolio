@@ -9,6 +9,10 @@
 
 ---
 
+## 2026-11-07 — T334 (Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme) yapım bitti
+
+2026-11-07 — T334 (Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme) yapım tamamlandı, doğrulama bekliyor (dal `task/T334-stok-kontenjan`; kriter 1–8, KK1–KK8 öz denetimde ✓; Unit 4069 (Consistency dahil), Integration StockAndCapacity 27 ve ilgili Model/Concurrency/Ordering/Jobs sınıfları yeşil, format ve derleme `-warnaserror` temiz; şema yok; `12` `Durum` değişmedi; ⚠ `VersionedFormPageTests` OrderPost_..._KK8 sınıf birlikte koşunca düşüyor, tek başına geçiyor, T334'ten bağımsız görünüyor; yeni backlog D-335…D-337, aktif 131; T301, T307, T315, T322, T332, T366, T381 merge kaydı dolduruldu).
+
 ## 2026-11-07 — T322 (İçerik yayın durumları ve iletişim talebi durumları) doğrulama tur 1 PASS
 
 2026-11-07 — T322 doğrulama tur 1 ✓ PASS (head `106c8ae`, PR #438; kriter 1–9, KK1–KK9 ve `09 §25` ✓; Unit 3790 + Consistency 230 + Architecture 906, betik testleri, Integration CorporateContent 45; dal CI 42394560527 yeşil; bulgu 0, K-notu 0; `12` `Durum` değişmedi; backlog aktif 128).

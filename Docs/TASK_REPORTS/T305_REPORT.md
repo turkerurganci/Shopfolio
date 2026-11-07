@@ -86,8 +86,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T305-eposta-kalibi`
-- **Commit:** *(PR'da)*
-- **PR:** *(PR'da)*
+- **Commit:** `8943077` — T305: E-posta ortak kalıbı ve gövde üretimi (üstüne PR numarası commit'i)
+- **PR:** #422
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
 

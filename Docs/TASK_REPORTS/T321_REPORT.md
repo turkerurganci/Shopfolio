@@ -1,6 +1,6 @@
 # T321 — Ürün yayın durumları
 
-**Faz:** F3 | **Durum:** ⏳ Düzeltme yapıldı (tur 1 FAIL sonrası; doğrulama tur 2 bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ⏳ Düzeltme 2 yapıldı (tur 2 FAIL sonrası; doğrulama tur 3 bekliyor) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -288,6 +288,35 @@ Matris betiği `python -I -X utf8 scripts/doc-scans/12_matris_denetle.py --kapsa
 #### Merge ve Post-merge
 - Squash: yok (FAIL)
 - Post-merge run'lar: yok
+
+## Düzeltme 2 — tur 2 sonrası
+
+| Bulgu | Düzeltme | Kanıt |
+|---|---|---|
+| 1 Modül arayüz metotları kendisi `SaveChanges` çağırıyor (`09 §6` m.3, m.7; §9.1 m.3) | `RemoveFromCartsAsync` ve `TakeRemovedItemNoticesAsync`'ten `_db.SaveChangesAsync` kaldırıldı; izlenen değişiklikleri işlemin sahibi yazar: geçiş birimi `ITransactionRunner.RunAsync` içinde çalışır ve çalıştırıcı sonda kaydeder (`TransactionRunner.cs`). Davranış aynı: yayından kaldırmada sepetten çıkarma işaretlenir, bildirim bir kez alınır. `TakeNoticesAsync` test yardımcısı ham işlem yerine `ITransactionRunner.RunAsync` ile çağırır | `TheCartMethods_DoNotSaveOnTheirOwn_TheTransactionOwnerDoes_KK7` (işlem kaydedilmeden tamamlanınca iki metodun değişikliği kalmaz); `TwoRequestsTakingTheNoticesTogether_...KK7` ve öteki KK7 testleri yeşil |
+
+Aynı kalıp taraması: `grep -n SaveChangesAsync src/Shopfolio.Web/Modules` yalnız `CorporateContent/ContentPublishing.cs` (T322, bu dalın dışı) döner; `OrderingModule.cs`'de yok.
+
+### Öz denetim — düzeltme 2 (11'deki kriterlerin ve KK1–KK9'un bütünü, düzeltilmiş diff'te)
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| 1 / KK1 ürün ve varyant durumu ayrı | ✓ | `EveryMoveBetweenTheThreeStatuses_IsFree_...KK1`, `APublishedProduct_CanHaveADraftVariant_...KK1` (yeşil) |
+| 2 / KK2 panel işlemi, bildirim yok, iz var | ✓ | `AMove_WritesOneTrailRow...KK2`, `AMoveWhoseTrailRowCannotBeWritten_...KK2_KK7` (yeşil) |
+| 3 / KK3 taslak vitrinde yok | ✓ | `TheList_AndTheSearch_...KK3_KK4`, `TheOptionList_...KK3_KK4` |
+| 4 / KK4 arşiv vitrinde yok, kayıt korunur | ✓ | aynı testler, `AVariantArchivedUnderAPublishedProduct_...KK4` |
+| 5 / KK5 kapı, red durumu değiştirmez | ✓ | `AGateThatRefuses_...KK5` |
+| 6 / KK6 son Yayında varyant engeli | ✓ (panel iletisi D-304) | `TheLastPublishedVariantOfAPublishedProduct_CannotLeavePublished_KK6` |
+| 7 / KK7 sepetten çıkar, bir kez söylenir | ✓ | `AProductTakenOffTheShowcase_...KK7`, `TwoRequestsTakingTheNoticesTogether_...KK7`, yeni `TheCartMethods_DoNotSaveOnTheirOwn_...KK7` (KK7 grubu 9/9) |
+| 8 / KK8 sipariş etkilenmez | ✓ | `AnOpenOrder_IsNotTouchedBy...KK8`, `TemporarilyClosingTheSales_...KK8` |
+| 9 / KK9 tükenmiş görünür | ✓ | `ASoldOutPublishedProduct_...KK9` |
+| `09 §25` modül arayüz metodunda `SaveChanges` yok | ✓ | `OrderingModule.cs`'de `SaveChangesAsync` yok (`grep` boş); yeni test |
+| `09 §25` sayfalı liste sınır testi, `DbUpdateConcurrencyException` istisnası | ✓ | tur 1 düzeltmeleri korunur (sayfalama testleri yeşil; `OrderingModule.cs`'de yakalama yok) |
+| `09 §25` bekçi/tarama | ✓ | Architecture 912/912 |
+| Sık FAIL (modül metodunda SaveChanges, T223 r1 / T321 r2) | ✓ | yukarıdaki `grep` |
+| Güvenlik | ✓ | yeni uç/girdi yok |
+
+Sınama (düzeltme 2): derleme `-warnaserror` 0 uyarı; `dotnet format` üç proje temiz; Unit Architecture 912, Consistency 241, Catalog + Ordering 99; Integration ProductTransitions grupları (KK7 9, KK1/2/5/6 17, KK3/8/9 + sayfalama 14), ModuleCallTransaction + CartAndOrderCoreTables + Sitemap 78, Ordering + Concurrency 57 — hepsi yeşil.
 
 ## Altyapı Değişiklikleri
 

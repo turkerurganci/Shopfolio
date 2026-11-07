@@ -38,6 +38,7 @@ internal sealed class CustomerNoticeQueue
     public async Task<int> QueueAsync(CustomerNotice notice, string recipientEmail, CancellationToken ct)
     {
         CustomerNoticeRow row = CustomerNoticeValues.For(notice);
+        NotificationMap.Require(row.Type, NoticeFamily.Customer);
         ArgumentException.ThrowIfNullOrWhiteSpace(recipientEmail);
         RequireTransaction();
         DateTimeOffset now = _time.GetUtcNow();

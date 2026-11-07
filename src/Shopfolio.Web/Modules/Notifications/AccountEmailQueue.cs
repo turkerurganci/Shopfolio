@@ -66,6 +66,7 @@ internal sealed class AccountEmailQueue
 
     private DispatchRecord Make(AccountEmailRow row)
     {
+        NotificationMap.Require(row.Type, NoticeFamily.Account);
         DispatchRecord record = DispatchRecord.Queue(row.Type, row.Recipient, null, row.RelatedRecordType, row.RelatedRecordId, _time.GetUtcNow());
         record.EventValues = row.EventValues;
         return record;

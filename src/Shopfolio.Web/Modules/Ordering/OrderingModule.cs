@@ -52,7 +52,7 @@ internal sealed class OrderingModule : IOrderingModule
             return 0;
         }
 
-        // Tracked rows saved with the caller's transaction, not a bulk statement: a cart item is no order-side row, but the module's bulk writes are a closed list (09 10.2 item 4).
+        // Tracked rows saved by the transaction owner (09 6 item 3), not a bulk statement: a cart item is no order-side row, but the module's bulk writes are a closed list (09 10.2 item 4).
         Guid[] ids = [.. variantIds];
         List<CartItem> items = await _db.CartItems
             .Where(i => i.VariantId != null && ids.Contains(i.VariantId.Value) && i.RemovedProductName == null)
@@ -62,7 +62,6 @@ internal sealed class OrderingModule : IOrderingModule
             item.RemovedProductName = productName;
         }
 
-        await _db.SaveChangesAsync(ct);
         return items.Count;
     }
 
@@ -82,7 +81,6 @@ internal sealed class OrderingModule : IOrderingModule
 
         string[] names = [.. marked.Select(i => i.RemovedProductName!)];
         _db.CartItems.RemoveRange(marked);
-        await _db.SaveChangesAsync(ct);
         return names;
     }
 

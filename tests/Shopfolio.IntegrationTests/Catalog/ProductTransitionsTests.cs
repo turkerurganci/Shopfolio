@@ -527,6 +527,42 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task TheCartMethods_DoNotSaveOnTheirOwn_TheTransactionOwnerDoes_KK7()
+    {
+        (Product product, List<Variant> variants) = await SeedAsync(PublishStatus.Published, PublishStatus.Published, PublishStatus.Published);
+        Guid cartId = await SeedCartAsync((variants[0].Id, 1));
+
+        // The transaction is committed without any save: a module method that saved itself would leave its change behind (09 6 item 3).
+        await using (ServiceProvider provider = BuildProvider())
+        await using (AsyncServiceScope scope = provider.CreateAsyncScope())
+        {
+            AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(Ct);
+            await scope.ServiceProvider.GetRequiredService<IOrderingModule>().RemoveFromCartsAsync([variants[0].Id], product.Name, Ct);
+            await transaction.CommitAsync(Ct);
+        }
+
+        await using (AppDbContext reader = NewContext())
+        {
+            Assert.Null((await reader.CartItems.SingleAsync(i => i.CartId == cartId, Ct)).RemovedProductName);
+        }
+
+        await RunAsync((unit, token) => unit.ChangeVariantStatusAsync(variants[0].Id, PublishStatus.Draft, product.Version, token));
+        await using (ServiceProvider provider = BuildProvider())
+        await using (AsyncServiceScope scope = provider.CreateAsyncScope())
+        {
+            AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(Ct);
+            IReadOnlyList<string> notices = await scope.ServiceProvider.GetRequiredService<IOrderingModule>().TakeRemovedItemNoticesAsync(cartId, Ct);
+            await transaction.CommitAsync(Ct);
+            Assert.Equal(["Masa"], notices);
+        }
+
+        await using AppDbContext after = NewContext();
+        Assert.Equal(1, await after.CartItems.CountAsync(i => i.CartId == cartId && i.RemovedProductName != null, Ct));
+    }
+
+    [Fact]
     public async Task AMoveThatDoesNotTakeAnythingOffTheShowcase_LeavesTheCartsAlone_KK7()
     {
         (Product product, List<Variant> variants) = await SeedAsync(PublishStatus.Draft, PublishStatus.Published, PublishStatus.Published);
@@ -617,12 +653,16 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
         await using ServiceProvider provider = BuildProvider();
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
 
-        // The call joins the caller's transaction and takes the cart's lock inside it (09 9.1 item 3, 10.2 item 5).
-        AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await using IDbContextTransaction transaction = await db.Database.BeginTransactionAsync(Ct);
-        IReadOnlyList<string> notices = await scope.ServiceProvider.GetRequiredService<IOrderingModule>().TakeRemovedItemNoticesAsync(cartId, Ct);
-        await transaction.CommitAsync(Ct);
-        return notices;
+        // The call joins the transaction owner's transaction and takes the cart's lock inside it; the owner saves (09 6 item 3, 9.1 item 3, 10.2 item 5).
+        IOrderingModule ordering = scope.ServiceProvider.GetRequiredService<IOrderingModule>();
+        TakenNotices taken = await scope.ServiceProvider.GetRequiredService<ITransactionRunner>()
+            .RunAsync(async token => new TakenNotices(await ordering.TakeRemovedItemNoticesAsync(cartId, token)), Ct);
+        return taken.Names;
+    }
+
+    private sealed record TakenNotices(IReadOnlyList<string> Names) : IOperationResult
+    {
+        public bool IsRejected => false;
     }
 
     private async Task<PublishChangeResult> RunAsync(Func<IProductTransitions, CancellationToken, Task<PublishChangeResult>> work)

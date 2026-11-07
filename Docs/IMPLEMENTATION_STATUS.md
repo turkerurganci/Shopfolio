@@ -152,7 +152,7 @@
 | T310 | Kargo şirketi listesi ve takip bağlantısı kalıpları | ⬚ | — | — | — |
 | T311 | Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım | ⬚ | — | — | — |
 | T312 | Dosya uçları: imzalı indirme ucu ve parçalı yükleme ucu | ⬚ | — | — | — |
-| T313 | Site haritası ve robots.txt | ⬚ | — | — | — |
+| T313 | Site haritası ve robots.txt | ⏳ | — | — | — |
 | T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ⬚ | — | — | — |
 | T315 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | ⬚ | — | — | — |
 | T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ⬚ | — | — | — |

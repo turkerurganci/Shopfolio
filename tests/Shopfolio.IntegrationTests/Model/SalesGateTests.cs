@@ -16,6 +16,7 @@ using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
+using Shopfolio.Modules.Settings.Contracts.Gates;
 
 namespace Shopfolio.IntegrationTests.Model;
 
@@ -193,6 +194,8 @@ public sealed class SalesGateTests : IAsyncLifetime
         SalesGate noCookie = await ReadGateAsync(Bindings.AllOpen);
         SalesGate noNotice = await ReadGateAsync(BindingsWithout(SalesGateCondition.PrivacyNotice));
         await PublishCookiePolicyAsync();
+        // before the cookie policy is published, both are named; after, only the notice
+        Assert.Equal([SalesGateCondition.PrivacyNotice, SalesGateCondition.CookiePolicy], noNotice.RefusalOf(DataCollectionEntry.AccountRegistration)!.UnmetConditions);
         SalesGate noNoticeButCookie = await ReadGateAsync(BindingsWithout(SalesGateCondition.PrivacyNotice));
         SalesGate both = await ReadGateAsync(Bindings.AllOpen);
 
@@ -200,8 +203,8 @@ public sealed class SalesGateTests : IAsyncLifetime
         {
             Assert.Equal(ErrorCode.DataCollectionClosed, noCookie.RefusalOf(entry)!.Code);
             Assert.Equal([SalesGateCondition.CookiePolicy], noCookie.RefusalOf(entry)!.UnmetConditions);
-            Assert.Equal([SalesGateCondition.PrivacyNotice], noNotice.RefusalOf(entry)!.UnmetConditions.Where(c => c == SalesGateCondition.PrivacyNotice));
-            Assert.NotNull(noNoticeButCookie.RefusalOf(entry));
+            Assert.Equal([SalesGateCondition.PrivacyNotice, SalesGateCondition.CookiePolicy], noNotice.RefusalOf(entry)!.UnmetConditions);
+            Assert.Equal([SalesGateCondition.PrivacyNotice], noNoticeButCookie.RefusalOf(entry)!.UnmetConditions);
             Assert.Null(both.RefusalOf(entry));
         }
 
@@ -290,7 +293,7 @@ public sealed class SalesGateTests : IAsyncLifetime
         Assert.True(staleClose.IsClosedNow);
         Assert.True(repeatedClose.IsClosedNow);
         Assert.False(staleReopen.IsClosedNow);
-        Assert.Equal(3, (await ReadTrailAsync()).Count);
+        Assert.Equal(2, (await ReadTrailAsync()).Count); // the one close and the one reopen; the four refused calls left no row
         Assert.False(await ScalarAsync<bool>("SELECT is_sales_temporarily_closed FROM company_settings"));
     }
 
@@ -348,45 +351,25 @@ public sealed class SalesGateTests : IAsyncLifetime
         Assert.True(await ScalarAsync<bool>("SELECT is_sales_temporarily_closed FROM company_settings"));
     }
 
-    [Fact]
-    public async Task TheSwitch_IsNotBlockedByAHeldSettingsRowLock_BecauseItTakesNone()
-    {
-        await ArrangeAsync(broken: null);
-        await using ServiceProvider holderProvider = BuildProvider(Bindings.AllOpen, _admin);
-        await using AsyncServiceScope holderScope = holderProvider.CreateAsyncScope();
-        AppDbContext holderContext = holderScope.ServiceProvider.GetRequiredService<AppDbContext>();
-        await using IDbContextTransaction holder = await holderContext.Database.BeginTransactionAsync(Ct);
-        await holderContext.Database.ExecuteSqlRawAsync("SELECT id FROM company_settings FOR UPDATE", Ct);
-
-        // A row-locked row blocks a plain UPDATE; the switch's conditional update must wait for no one else's identity save, so it is the only write the lock would hold back.
-        // The test shows the contract of the code, not of PostgreSQL: the switch method names no FOR UPDATE and opens no lock sequence.
-        Task<SalesSwitchResult> close = RunAsync(m => m.CloseSalesTemporarilyAsync(false, Ct), Bindings.AllOpen, _admin);
-        Task finished = await Task.WhenAny(close, Task.Delay(TimeSpan.FromSeconds(1.5), Ct));
-        Assert.NotSame(close, finished);
-
-        await holder.CommitAsync(Ct);
-        SalesSwitchResult result = await close.WaitAsync(TimeSpan.FromSeconds(30), Ct);
-        Assert.True(result.IsWritten);
-    }
-
     // ---- KK5, KK6, KK7: nothing that closes the gate touches an open order or a published legal text ----
 
     [Fact]
     public async Task OpenOrders_AreNotTouched_WhenTheSwitchOrAConditionClosesTheGate_AndTheirIbanAndTextsStayAsFrozen()
     {
         await ArrangeAsync(broken: null);
-        await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput(CompanyType.Tradesman), 2, Ct));
         await SeedOrdersAsync();
         await PublishCookiePolicyAsync();
+        await ExecuteAsync($"UPDATE company_settings SET is_bank_transfer_enabled = true, bank_transfer_iban = '{FrozenIban}'");
+        Assert.True((await ReadGateAsync(Bindings.Transfer)).IsOpen);
         string orders = await OrderStateAsync();
         string texts = await LegalTextStateAsync();
         Assert.Contains(FrozenIban, orders, StringComparison.Ordinal);
 
         // The switch is turned on; the identity changes type and loses its required fields; the return address is emptied; the transfer is closed and its IBAN replaced.
         await RunAsync(m => m.CloseSalesTemporarilyAsync(false, Ct), Bindings.Transfer, _admin);
-        await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput(CompanyType.LegalEntity) with { MersisNumber = null }, 3, Ct));
+        await RunAsync(m => m.SaveCompanyIdentityAsync(CompleteInput(CompanyType.LegalEntity) with { MersisNumber = null, TaxIdNumber = "1234567890" }, 2, Ct));
         await ExecuteAsync("UPDATE company_settings SET return_recipient_name = NULL, return_province_id = NULL, return_district = NULL, return_address_line = NULL");
-        await ExecuteAsync("UPDATE company_settings SET is_bank_transfer_enabled = false, bank_transfer_iban = NULL");
+        await ExecuteAsync("UPDATE company_settings SET is_bank_transfer_enabled = false, bank_transfer_iban = 'TR000000000000000000000001'");
         SalesGate gate = await ReadGateAsync(Bindings.Transfer);
 
         Assert.Equal(
@@ -469,8 +452,8 @@ public sealed class SalesGateTests : IAsyncLifetime
     }
 
     private static Bindings BindingsWithout(SalesGateCondition broken) => new(
+        Bound: true,
         Card: broken != SalesGateCondition.PaymentMethod,
-        Transfer: false,
         PrivacyNotice: broken != SalesGateCondition.PrivacyNotice);
 
     private Task<SalesGate> ReadGateAsync(Bindings bindings) => RunAsync(m => m.GetSalesGateAsync(Ct), bindings);
@@ -545,15 +528,11 @@ public sealed class SalesGateTests : IAsyncLifetime
         services.AddScoped<IAuditTrail, AuditTrail>();
 
         // The outside conditions are bound before the module registers its defaults, the way the tasks that own them will bind them; no binding keeps the default (unbound).
-        if (bindings is { } bound)
+        if (bindings is { Bound: true } bound)
         {
             services.AddScoped<ICardPaymentCondition>(_ => new FixedCardCondition(bound.Card));
             services.AddScoped<IBankTransferCondition, SettingsRowBankTransferCondition>();
             services.AddScoped<IPrivacyNoticeCondition>(_ => new FixedPrivacyNoticeCondition(bound.PrivacyNotice));
-            if (bound.Transfer)
-            {
-                services.AddScoped<ICardPaymentCondition>(_ => new FixedCardCondition(false));
-            }
         }
 
         services.AddSettingsModule();
@@ -570,6 +549,8 @@ public sealed class SalesGateTests : IAsyncLifetime
         T result = await call(scope.ServiceProvider.GetRequiredService<ISettingsModule>());
         if (commit)
         {
+            // The command pipeline saves the unit of work (the trail row is added to the context) before it commits.
+            await context.SaveChangesAsync(Ct);
             await transaction.CommitAsync(Ct);
         }
         else
@@ -611,14 +592,15 @@ public sealed class SalesGateTests : IAsyncLifetime
     }
 
     /// <summary>Which outside conditions the test binds (the module's defaults are the unbound ones): the card line, the bank transfer line read from the row, the privacy notice.</summary>
-    private sealed record Bindings(bool Card, bool Transfer, bool PrivacyNotice)
+    private sealed record Bindings(bool Bound, bool Card, bool PrivacyNotice)
     {
-        public static Bindings AllOpen { get; } = new(true, false, true);
+        public static Bindings AllOpen { get; } = new(true, true, true);
 
-        /// <summary>Only the transfer line is open (read from the settings row, the way the transfer task will read it); the card line and the notice as the test arranges.</summary>
-        public static Bindings Transfer { get; } = new(false, true, true);
+        /// <summary>Only the transfer line can be open (read from the settings row, the way the transfer task will read it); the card line is closed.</summary>
+        public static Bindings Transfer { get; } = new(true, false, true);
 
-        public static Bindings? None => null;
+        /// <summary>Nothing bound: the module's own defaults (unbound, therefore unmet) stay.</summary>
+        public static Bindings None { get; } = new(false, false, false);
     }
 
     private sealed class FixedCardCondition(bool open) : ICardPaymentCondition

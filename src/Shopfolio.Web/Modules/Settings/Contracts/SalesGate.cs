@@ -1,70 +1,7 @@
 using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Modules.Settings.Contracts.Gates;
 
 namespace Shopfolio.Modules.Settings.Contracts;
-
-/// <summary>
-/// The conditions of the sales gate, each by its name (02 3.1.5, 3.33.9, 6.9.10; 10 4.1 ÖK-8…ÖK-11): the panel and the refusals say which one is not met. The four
-/// conditions of 02 3.1.5 are the identity, the payment method, the temporary closure and the four legal texts; the fourth is named by the part that is missing
-/// (the privacy notice, the cookie policy, the return address that feeds the two generated texts), so the panel says which text waits.
-/// </summary>
-public enum SalesGateCondition
-{
-    /// <summary>The chosen company type's required identity fields are filled (condition 1).</summary>
-    CompanyIdentity,
-
-    /// <summary>At least one payment method is open (condition 2).</summary>
-    PaymentMethod,
-
-    /// <summary>The "close sales temporarily" switch is on (condition 3 is the switch being off).</summary>
-    TemporaryClosure,
-
-    /// <summary>The privacy notice is complete and published: the identity fields and the hosting location are filled (condition 4; the same definition as the data-collecting entries').</summary>
-    PrivacyNotice,
-
-    /// <summary>The cookie policy is published (condition 4).</summary>
-    CookiePolicy,
-
-    /// <summary>The return address that the two generated texts carry is entered (condition 4).</summary>
-    ReturnAddress,
-}
-
-/// <summary>What a surface may do while the gate is closed or open (02 3.1.5, 3.1.6, 6.1.4). The first three are never closed by the gate.</summary>
-public enum SalesGateOperation
-{
-    /// <summary>The storefront and the corporate pages: products stay visible (02 3.1.5).</summary>
-    BrowseShowcase,
-
-    /// <summary>The visitor's existing cart: kept and shown as it is (02 3.1.6, 6.1.4).</summary>
-    KeepExistingCart,
-
-    /// <summary>An order that is already open: runs on, the bank transfer approval included (02 3.1.6).</summary>
-    ContinueOpenOrder,
-
-    /// <summary>Adding a product to the cart.</summary>
-    AddToCart,
-
-    /// <summary>Moving from the cart to the payment step.</summary>
-    ProceedToCheckout,
-
-    /// <summary>Confirming a new order; a guest order too.</summary>
-    ConfirmOrder,
-}
-
-/// <summary>An entry that collects personal data (02 3.13.19, 3.32.8, 3.33.9). The sign-in of an existing account collects nothing new and is never closed.</summary>
-public enum DataCollectionEntry
-{
-    /// <summary>The account registration form.</summary>
-    AccountRegistration,
-
-    /// <summary>A Google sign-in that would open a new account.</summary>
-    NewAccountGoogleSignIn,
-
-    /// <summary>The contact form.</summary>
-    ContactForm,
-
-    /// <summary>A sign-in to an existing account, by password or by Google: not affected.</summary>
-    ExistingAccountSignIn,
-}
 
 /// <summary>
 /// The reason a gate answers a refused request with: the code the screen turns into its message and the conditions that are not met, by name, with the identity

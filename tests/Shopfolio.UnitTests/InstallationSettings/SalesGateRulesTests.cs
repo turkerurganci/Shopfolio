@@ -3,6 +3,7 @@ using System.Reflection;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
+using Shopfolio.Modules.Settings.Contracts.Gates;
 
 namespace Shopfolio.UnitTests.InstallationSettings;
 

@@ -1,4 +1,5 @@
 using Shopfolio.Modules.Settings.Contracts;
+using Shopfolio.Modules.Settings.Contracts.Gates;
 
 namespace Shopfolio.Modules.Settings;
 

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
+using Shopfolio.Modules.Settings.Contracts.Gates;
 
 namespace Shopfolio.Modules.Settings;
 

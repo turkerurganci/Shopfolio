@@ -59,7 +59,7 @@ internal static class NotificationsModuleRegistration
         services.AddSingleton<EmailLinks>();
         services.AddSingleton<EmailComposer>();
 
-        // The customer notices B-1…B-8 (T306; 08 2.2.6): the writer of their dispatch rows, in the caller's transaction, and the templates of their bodies.
+        // The customer notices B-1…B-16 (T306, T307; 08 2.2.6): the writer of their dispatch rows, in the caller's transaction, and the templates of their bodies.
         services.AddSingleton(CarrierCatalog.Default);
         services.AddScoped<CustomerNoticeQueue>();
         services.AddSingleton<CustomerNoticeTemplates>();

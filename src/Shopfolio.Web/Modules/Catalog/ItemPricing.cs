@@ -1,4 +1,5 @@
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
 
@@ -16,20 +17,17 @@ internal static class ItemPricing
     /// <summary>The decimals of a money amount: the kuruş (02 3.8.4; 06 2.5.1 <c>numeric(12,2)</c>).</summary>
     public const int AmountDecimals = 2;
 
-    /// <summary>Whether a price can be saved (02 3.8.4; K-62, K-600): above zero, at most two decimals, at most the money type's limit.</summary>
-    public static bool IsValidPrice(decimal price) => price > 0 && HasAtMostDecimals(price, AmountDecimals) && price <= Money.MaxAmount;
+    /// <summary>The panel's price field rule (04 7.3.2.8, without zero): the one home of what a price may be.</summary>
+    private static readonly InvalidAmountAttribute PriceField = new();
 
-    /// <summary>Whether a number has at most <paramref name="decimals"/> decimals; trailing zeros do not count and nothing is rounded.</summary>
-    public static bool HasAtMostDecimals(decimal value, int decimals)
-    {
-        decimal shifted = value;
-        for (int i = 0; i < decimals; i++)
-        {
-            shifted *= 10m;
-        }
+    /// <summary>
+    /// Whether a price can be saved (02 3.8.4; K-62, K-600): above zero, at most two decimals, at most the money type's limit. It asks the panel's amount
+    /// field rule itself, so the form and the calculation cannot part.
+    /// </summary>
+    public static bool IsValidPrice(decimal price) => PriceField.Allows(price);
 
-        return shifted % 1 == 0;
-    }
+    /// <summary>Whether a number has at most <paramref name="decimals"/> decimals: the project's one decimal count (<see cref="FieldRuleAttribute.HasAtMostDecimals"/>).</summary>
+    public static bool HasAtMostDecimals(decimal value, int decimals) => FieldRuleAttribute.HasAtMostDecimals(value, decimals);
 
     /// <summary>The amounts of one item in the fixed order of 02 3.8.3.</summary>
     public static ItemAmounts Price(ItemPriceInput input)

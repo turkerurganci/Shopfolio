@@ -10,7 +10,7 @@
 ## Yapılan İşler
 
 - **`Infrastructure/Money`:** `VatOf(gross, ratePercent)` = `Round(gross × oran / (100 + oran))` (`09 §14.1` madde 3; D-74'ün `VatOf` payı). Girdi denetimi değerle karşılaştırır (`value < 0`): `-0.00m` artık reddedilmez, `Round` düz sıfır verir (D-76).
-- **`Modules/Catalog/ItemPricing` (saf):** `Price` — `02 §3.8.3` sırası: birim fiyat × adet (yuvarlanmaz) → kupon payı düşülür → kalan brütten KDV bir kez ayrılır ve kalemde kuruşa yuvarlanır, matrah kalandır. `SplitShippingFee` — kargo ücreti yalnız fiziksel kalemlerin oranlarına bölünür (tek oran tamamını alır; çok oranda `Money.Allocate`: parçalar aşağı, artık en büyük parçaya), her parçanın KDV'si kendi oranıyla. `SumOrderTotal` — sipariş toplamı kalemlerin ödenecek tutarları + kargo; matrah + KDV'den türetilmez (K-61). `IsValidPrice` (sıfırdan büyük, en çok iki ondalık, para tavanı içinde) ve `HasAtMostDecimals`.
+- **`Modules/Catalog/ItemPricing` (saf):** `Price` — `02 §3.8.3` sırası: birim fiyat × adet (yuvarlanmaz) → kupon payı düşülür → kalan brütten KDV bir kez ayrılır ve kalemde kuruşa yuvarlanır, matrah kalandır. `SplitShippingFee` — kargo ücreti yalnız fiziksel kalemlerin oranlarına bölünür (tek oran tamamını alır; çok oranda `Money.Allocate`: parçalar aşağı, artık en büyük parçaya), her parçanın KDV'si kendi oranıyla. `SumOrderTotal` — sipariş toplamı kalemlerin ödenecek tutarları + kargo; matrah + KDV'den türetilmez (K-61). `IsValidPrice` (sıfırdan büyük, en çok iki ondalık, para tavanı içinde) kendi denetimini yazmaz, panelin tutar alanı kuralını (`InvalidAmountAttribute`, sıfırsız) `FieldRuleAttribute.Allows` ile sorar; `HasAtMostDecimals` projenin tek ondalık sayımına (`FieldRuleAttribute.HasAtMostDecimals`, iki ondalıklı form kuralları da onu çağırır) yönlenir — tek kural evi (`09 §3.4` m.1).
 - **`Modules/Catalog/PriceLabelRules` (saf):** üretim yerinin zorunluluğu/izni/görünmesi (`IsOriginRequired`, `IsOriginAllowed`, `ShowsOrigin`), net miktarın birimle eşleşmesi (`CheckNetQuantity`: eksik, birimsiz, sıfır ve altı, üçten fazla ondalık), birim fiyat (`UnitPrice`: temel birimin bir ölçüsü için, kuruşa yuvarlanmış; satış fiyatına eşitse gösterilmez) ve temel birim tablosu (`BaseOf`).
 - **`ProductDefinitionRules` / `ProductDefinitionGuard`:** fiziksel üründe üretim yeri her kayıtta zorunlu (`PhysicalProductWithoutOrigin`), hizmette yasak (`OriginOnAService`); dijitalde isteğe bağlı.
 - **`PriceLabelGuard` (yeni kayıt bekçisi, `AppDbContext` kesicilerinde):** varyant ve fiyat geçmişi fiyatında ikiden fazla ondalık SQL'den önce reddedilir (sütun sessizce yuvarlardı, `02 §3.8.1`); birim–net miktar eşleşmesi iki yönden denetlenir (yazılan varyant ürününün birimine — izlenmeyen ürün veritabanından okunur —, birimi yazılan ürün bütün varyantlarına — izlenmeyenler veritabanından); net miktarda üçten fazla ondalık reddedilir. Sıfır fiyat ve sıfır net miktar veritabanının kısıtlarına kalır (`ck_variants_price_above_zero`, `ck_variants_net_quantity_above_zero`).
@@ -19,7 +19,7 @@
 
 ## Etkilenen Modüller / Dosyalar
 
-- `src/Shopfolio.Web/Infrastructure/Money.cs`, `AppDbContext.cs` (kesici listesi)
+- `src/Shopfolio.Web/Infrastructure/Money.cs`, `AppDbContext.cs` (kesici listesi), `Validation/FieldRuleAttribute.cs` (`Allows`, genel `HasAtMostDecimals`)
 - `src/Shopfolio.Web/Modules/Catalog/`: `ItemPricing.cs`, `PriceLabelRules.cs`, `PriceLabelGuard.cs`, `PriceLabelReader.cs`, `ProductDefinitionRules.cs`, `ProductDefinitionGuard.cs`, `CatalogModule.cs`, `Contracts/ICatalogModule.cs`, `Contracts/Pricing/PriceLabel.cs`, `Contracts/Pricing/PricingRecords.cs`
 - `tests/Shopfolio.UnitTests/`: `Catalog/ItemPricingTests.cs`, `Catalog/PriceLabelRulesTests.cs`, `Catalog/ProductDefinitionRulesTests.cs`, `Infrastructure/MoneyTests.cs`, `Infrastructure/SitemapSourceTests.cs` (sahte Katalog yeni yöntemleri taşır)
 - `tests/Shopfolio.IntegrationTests/`: `Database/SeededCountry.cs` (yeni), `Model/PriceAndVatTests.cs` (yeni); üretim yeri uyarlaması: `Concurrency/ConcurrencyTests.cs`, `Files/ImageFilesTests.cs`, `Model/BranchContentLinkAndContactRequestTablesTests.cs`, `Model/CartAndOrderCoreTablesTests.cs`, `Model/CatalogCoreTablesTests.cs`, `Model/SalesModelTests.cs`, `Model/StockReservationAndHistoryTablesTests.cs`, `Web/AppCacheTests.cs`, `Web/ListSeed.cs`, `Web/SearchEngineDataTests.cs`, `Web/SitemapEndpointTests.cs`, `Web/VersionedFormPageTests.cs`
@@ -72,14 +72,16 @@
 | Sık FAIL 3: 06 varsayılanı / FK dizini | uygulanamaz | şema değişmedi |
 | Sık FAIL 4: aynı sayıyı anan öteki yerler | ✓ | `Money` sınıf yorumu ("dördüncü işlev T369"), D-74 metni, backlog `Aktif kalem` 130 → 132 → 137 (T316 birleştirmesi; satırlar sayılarak: ⚪ 134 + 🟡 3), status satırı ve "Son güncelleme", sekiz raporun Post-merge satırı |
 | Sık FAIL 5: modül yöntemi kendisi `SaveChanges` | ✓ | `GetPriceLabelAsync` düz okuma; öteki üçü saf |
+| Sık FAIL: tek kural evi yerine özel denetim | ✓ | İkinci devam turunda bulundu ve düzeltildi: `ItemPricing.IsValidPrice` fiyat kuralını, `HasAtMostDecimals` ondalık sayımını ayrıca yazıyordu; şimdi `ItemPricing.cs` `PriceField.Allows(price)` (`InvalidAmountAttribute`) ve `FieldRuleAttribute.HasAtMostDecimals`'a yönlenir; `APrice_IsAboveZeroWithAtMostTwoDecimals_InTheRuleAndInTheFormsAmountField` ikisinin aynı kalmasını sınar |
+| Sık FAIL: belgede olmayan sabit | ✓ | `AmountDecimals` (2) ve `NetQuantityDecimals` (3) `06`'nın `numeric(12,2)` / `numeric(12,3)` sütun hassasiyeti; `09 §3.5`'e yeni tavan/süre girmedi |
 | Para kodu: yuvarlama yönü ve kuruş testle | ✓ | `RoundingDirection_…`, `VatOf_AnExactHalfKurus_GoesUp`, `APrice_IsAboveZeroWithAtMostTwoDecimals_…`, `RandomItems_KeepTheOrderAndAddUp` |
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests` | 4107 / 4107 geçti (Consistency ve Architecture dahil) |
-| Integration | ✓ | `dotnet test tests/Shopfolio.IntegrationTests -- --filter-namespace …` / `--filter-class …` (parçalı, yerel PostgreSQL 18) | 2133 geçti, 0 kaldı; yeni `PriceAndVatTests` 19 / 19. `LivenessEndpointTests`'in erişilemeyen sunucuya bağlanan bir testi yerel Windows ortamında askıda kaldı (T336'nın dokunmadığı sınıf; CI Linux'ta koşar) |
+| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests` | 4115 / 4115 geçti (Consistency ve Architecture dahil; T316 birleştirmesi ve tek kural evi düzeltmesinden sonra yeniden koşuldu) |
+| Integration | ✓ | `dotnet test tests/Shopfolio.IntegrationTests -- --filter-namespace …` / `--filter-class …` (parçalı, yerel PostgreSQL 18) | 2133 geçti, 0 kaldı; yeni `PriceAndVatTests` 19 / 19 (T316 birleştirmesinden sonra yeniden 19 / 19; T316'nın yeni Ordering testleri ürün satırı yazmaz, üretim yeri uyarlaması gerekmedi). `LivenessEndpointTests`'in erişilemeyen sunucuya bağlanan bir testi yerel Windows ortamında askıda kaldı (T336'nın dokunmadığı sınıf; CI Linux'ta koşar) |
 | Contract | uygulanamaz | — | — |
 | Format | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes` | değişiklik yok |
 | Build | ✓ | `dotnet build Shopfolio.slnx -c Release -warnaserror` | 0 uyarı, 0 hata |

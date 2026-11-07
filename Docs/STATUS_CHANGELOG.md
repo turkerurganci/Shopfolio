@@ -15,9 +15,15 @@
 
 ---
 
+## 2026-11-07 — T313 doğrulama tur 1 PASS
+
+**Son güncelleme:** 2026-11-07 — T313 (Site haritası ve robots.txt) doğrulama tur 1 ✓ PASS (head `336f075`, PR #417; kriter 1–9, KK1–KK9 ve `09 §25` ✓; Unit 2851, Integration yerelde parçalı hepsi geçti (dal CI 42339118325 yeşil); `12` `Durum`: `VAL-A378`, `VAL-A379`, `VAL-A381`, `VAL-A398` → `PASS`, öteki KP-37 satırları `BEKLEMEDE`; K1–K3 raporda kapatıldı, açık uçlar D-163). Merge commit'i sonraki task dalında yazılır. Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
+---
+
 ## 2026-11-07 — T314 doğrulama tur 1 PASS
 
-**Son güncelleme:** 2026-11-07 — T314 (Durum ucu: uyarı koşulları ve 500 sayacı) doğrulama tur 1 ✓ PASS (head `a57c4ca`, PR #418; kriter 1–10, KK1–KK10 ve `09 §25` ✓; Unit 2878, Integration yerelde parçalı (StatusEndpointTests 41) ve dal CI 42339425149 yeşil; `12` `Durum` değişmedi — KP-50 satırları ve durum ucu satırları `BEKLEMEDE`; K1 kod kanıtıyla kapandı, K2 → D-162). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T314 (Durum ucu: uyarı koşulları ve 500 sayacı) doğrulama tur 1 ✓ PASS (head `a57c4ca`, PR #418; kriter 1–10, KK1–KK10 ve `09 §25` ✓; Unit 2878, Integration yerelde parçalı (StatusEndpointTests 41) ve dal CI 42339425149 yeşil; `12` `Durum` değişmedi — KP-50 satırları ve durum ucu satırları `BEKLEMEDE`; K1 kod kanıtıyla kapandı, K2 → D-162).
 
 ---
 

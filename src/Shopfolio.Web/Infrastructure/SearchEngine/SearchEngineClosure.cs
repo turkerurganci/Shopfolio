@@ -8,7 +8,7 @@ namespace Shopfolio.Infrastructure.SearchEngine;
 /// The pages the search engines may not index (02 3.30.6; 05 3.7.4): the cart, the payment step, the order pages, the order tracking, the account pages, the
 /// panel (all of it), the site search and the downloads. A closed page's answer says so in every shape: an HTML answer carries the robots meta tag
 /// (<see cref="SearchEngineData.Head"/>), an answer that is not HTML carries the <c>X-Robots-Tag: noindex</c> header (<see cref="SearchEngineClosureMiddleware"/>);
-/// <c>robots.txt</c> never blocks them, because a blocked page cannot be read and its <c>noindex</c> would not be seen (05 3.7.4; the file is T313's). What
+/// <c>robots.txt</c> never blocks them, because a blocked page cannot be read and its <c>noindex</c> would not be seen (05 3.7.4; the file is T313's, SiteMapFiles). What
 /// is closed is decided by the address here, and by the page itself where the address does not tell: a list with a filter (<c>IListPage</c>, 07 2.6.7), a
 /// draft and an archived product (02 3.30.6) call <see cref="MarkClosed"/> or hand the head data the mark.
 /// </summary>

@@ -250,6 +250,29 @@ public sealed class ModuleBoundaryTests
         Assert.All(cache, t => Assert.DoesNotContain(t.Dependencies, d => d.Target.FullName.StartsWith("Shopfolio.Modules.", StringComparison.Ordinal)));
     }
 
+    // The site map (T313; 05 3.7.3, 7.10.1; 09 10.4): the endpoint reaches the map only through the Settings module's Contracts interface, the cache is reached inside that
+    // module, and each module's part of the map is read inside the module and given out through its Contracts.
+    [Fact]
+    public void SiteMap_TheEndpointNamesNeitherTheCacheNorAnyModuleInternal_AndTheCacheIsReachedInsideTheSettingsModule()
+    {
+        IType endpoint = _application.Value.Types.Single(t => t.FullName == "Shopfolio.Endpoints.SitemapEndpoint");
+        List<string> used = endpoint.Dependencies.Select(d => d.Target.FullName).ToList();
+        Assert.Contains("Shopfolio.Modules.Settings.Contracts.ISitemapSource", used);
+        Assert.DoesNotContain("Shopfolio.Infrastructure.AppCache", used);
+        Assert.DoesNotContain("Shopfolio.Infrastructure.CacheArea", used);
+        Assert.DoesNotContain(used, name => name.StartsWith("Shopfolio.Modules.", StringComparison.Ordinal) && !name.Contains(".Contracts.", StringComparison.Ordinal));
+        Assert.Empty(Evaluate(_application.Value, PageRule()));
+
+        IType source = _application.Value.Types.Single(t => t.FullName == "Shopfolio.Modules.Settings.SitemapSource");
+        List<string> sourceUses = source.Dependencies.Select(d => d.Target.FullName).ToList();
+        Assert.Contains("Shopfolio.Infrastructure.AppCache", sourceUses);
+        Assert.Contains("Shopfolio.Modules.Catalog.Contracts.ICatalogModule", sourceUses);
+        Assert.Contains("Shopfolio.Modules.CorporateContent.Contracts.ICorporateContentModule", sourceUses);
+        Assert.DoesNotContain(sourceUses, name => name.StartsWith("Shopfolio.Modules.Catalog.", StringComparison.Ordinal) && !name.Contains(".Contracts.", StringComparison.Ordinal));
+        Assert.DoesNotContain(sourceUses, name => name.StartsWith("Shopfolio.Modules.CorporateContent.", StringComparison.Ordinal) && !name.Contains(".Contracts.", StringComparison.Ordinal));
+        Assert.DoesNotContain(sourceUses, name => name.Contains("AppDbContext", StringComparison.Ordinal));
+    }
+
     [Fact]
     public void SearchEngineDataPattern_InApplicationAssembly_IsCommonInfrastructureThatReachesNoModuleType()
     {

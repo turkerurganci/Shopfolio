@@ -66,10 +66,17 @@ public sealed record EmailLegalText(string Title, string Text) : EmailBlock;
 /// <c>OriginalDispatchId</c> row, 06 4.58). A new event of the same type (the second transfer reminder, the second item cancellation) is not a re-send:
 /// the template passes no note for it.
 /// </summary>
-public sealed record EmailResend(DateTimeOffset OriginalAt)
+public sealed record EmailResend(DateTimeOffset OriginalAt, bool CarriesCurrentInfoNote = false)
 {
-    /// <summary>The one sentence on top of the body: "Bu e-posta 4 Ekim 2026 tarihli bildirimin yeniden gönderilmesidir."</summary>
-    public string Sentence => $"Bu e-posta {DisplayFormat.Date(OriginalAt)} tarihli bildirimin yeniden gönderilmesidir.";
+    /// <summary>The second sentence of a re-sent e-mail that holds information a later event can change (08 2.2.6 item 5).</summary>
+    public const string CurrentInfoSentence = "Bu e-postadaki bilgi o tarihteki bilgidir; güncel bilgi sipariş sayfasındadır.";
+
+    /// <summary>
+    /// The sentence on top of the body: "Bu e-posta 4 Ekim 2026 tarihli bildirimin yeniden gönderilmesidir." - and, when <see cref="CarriesCurrentInfoNote"/> is set
+    /// (the transfer details B-2 and B-3, the tracking data B-5 and B-12, the address B-10, the status B-13), the current-information sentence next to it.
+    /// </summary>
+    public string Sentence => $"Bu e-posta {DisplayFormat.Date(OriginalAt)} tarihli bildirimin yeniden gönderilmesidir."
+        + (CarriesCurrentInfoNote ? " " + CurrentInfoSentence : string.Empty);
 }
 
 /// <summary>

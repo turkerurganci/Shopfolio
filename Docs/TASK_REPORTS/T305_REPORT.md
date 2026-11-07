@@ -123,3 +123,18 @@ Tetikleyici tarama (`plan tier`, kota, sürüm, registry, …): iki varsayım bu
 4. **HTML'de Türkçe karakterler sayısal başvuru** (`&#xDC;` gibi) çıkar: `HtmlRenderer`'ın varsayılan kodlayıcısı; geçerli HTML, istemcide aynı görünür, testler çözerek karşılaştırır.
 5. **Yeniden gönderim kararını şablon verir:** `EmailContent.Resend` null ise cümle yoktur; "ilk e-postanın tarihi" ve "yeni olay mı" ayrımı `OriginalDispatchId`'yi okuyan T306+ şablonlarının işidir (`08 §2.2.5` m.6); T305 yalnız cümleyi ve yerini üretir.
 6. **Logo yolu `/gorsel/` altında** zorunlu (`07 §2.1.2`); başka yol `ArgumentException`. Logonun kaynak kopya adresini seçmek (WebP türevi değil) Branding'i okuyan şablon / T306 işidir.
+
+## Düzeltme 1
+
+**Neden:** PR #422 CI'ı (head `8aa0b2c`, run 42347826185) "1. Lint"te kırmızıydı: `EmailComposer.cs(79,13): error IDE0008: Use explicit type instead of 'var'`. Önceki tur `dotnet format` denetimini yalnız değişen yollarda koşmuştu; CI bütün çözümü denetler.
+
+**Düzeltme:** `RenderAsync` içindeki `var root` açık türe çevrildi (`HtmlRootComponent root`, `using Microsoft.AspNetCore.Components.Web.HtmlRendering;` eklendi). Davranış değişmedi. `origin/main` dalda zaten vardı; birleştirme gerekmedi. Yeni backlog kaydı yok.
+
+| Denetim | Sonuç | Komut / Çıktı |
+|---|---|---|
+| Biçim, bütün çözüm | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes` rc=0; Web, UnitTests, IntegrationTests projeleri ayrı ayrı da temiz (Razor dahil) |
+| Consistency | ✓ | `--filter-trait "Consistency=true"`: 207 geçti, 0 başarısız |
+| Unit | ✓ | `-c Release --filter-not-trait "Consistency=true"`: 2802 geçti, 0 başarısız |
+| Web derlemesi | ✓ | 0 uyarı, 0 hata |
+
+**Öz denetim:** Diff tek dosyada, bir tür adı ve bir `using` satırı (rapor hariç); kabul kriterleri 1–9 ve yukarıdaki "Öz denetim" tablosunun bütün maddeleri değişmeden ✓ (kanıt testleri yeşil: 2802 + 207). `sik-fail-nedenleri.md` taraması: bu düzeltme tarama istisnası, DB, kural sayısı ya da belge kuralı değiştirmiyor; ilgili sık neden yok.

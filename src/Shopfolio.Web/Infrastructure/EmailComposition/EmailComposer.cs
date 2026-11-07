@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.Web.HtmlRendering;
 using Microsoft.Extensions.Options;
 
 using Shopfolio.Infrastructure.InstallationSettings;
@@ -76,7 +77,7 @@ internal sealed class EmailComposer
         await using HtmlRenderer renderer = new(_services, _loggers);
         return await renderer.Dispatcher.InvokeAsync(async () =>
         {
-            var root = await renderer.RenderComponentAsync<EmailFrame>(
+            HtmlRootComponent root = await renderer.RenderComponentAsync<EmailFrame>(
                 ParameterView.FromDictionary(new Dictionary<string, object?> { [nameof(EmailFrame.Model)] = model }));
             return root.ToHtmlString();
         });

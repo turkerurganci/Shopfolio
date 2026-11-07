@@ -1,6 +1,6 @@
 # T301 — Siparişin imha parçası
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -76,10 +76,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — (doğrulama chat'i doldurur) |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-07) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+Validator kanıtları (bağımsız): kriter 1–9 ve KK1–KK9 kodda ve testte tek tek doğrulandı — kol `JudgeAsync`'te düzeltilmemiş ödeme kaydından (Ö1'i düzeltme satırınca düzeltilmiş havale işareti ödeme sayılmaz, Ö1'siz geç kart ödemesi sayılır); Z-28 sınırı Türkiye saatinde yıl dönümü (`OrderRetention.PaidCreatedBefore`), Z-41 Ö2 anının en geç değerinden üç yıl; kilit `OrderLocks` (`FOR UPDATE`, kimlik sırası), kilitten sonra `ContactEmail` dolu ve yeniden yargı; `ck_orders_disposal_fields_together` birlikte boşalmayı korur; parça tek `ITransactionRunner` işlemi (`DisposalRun.ChunksAsync`), modül yüzeyleri işlem dışında reddeder. Yerel: `dotnet build -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` üç proje temiz; Unit Architecture 830, Consistency 209, öteki 2430 geçti; betik testleri 4/4; Integration (PostgreSQL 18) `OrderDisposalTests` 27, `DisposalTests` + `ModuleCallTransactionTests` 21, `CookiePolicyTests` + `LoggingFilesTests` 25 (DI açılışı) geçti. Dal CI 42376054521 success (head `78b8449`). Ana dal CI son 3: 42368786653, 42368786665, 42366197659 success. `12`: KP-74'ün T301'e düşen satırı `VAL-D047` (tür ve sayı) zaten PASS; öteki KP-74 satırları başka task'ların payıdır, `Durum` değişmedi. Yapım raporu ile uyuşmazlık yok.
 
 ## Altyapı Değişiklikleri
 
@@ -92,8 +94,8 @@
 
 - **Branch:** `task/T301-siparis-imha`
 - **Commit:** bkz. PR (son commit dal başı)
-- **PR:** açıldığında PR gövdesinde
-- **CI:** yapım işçisi izlemez
+- **PR:** #431
+- **CI:** dal CI 42376054521 success (head `78b8449`)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
 
 ## Dış Varsayımlar

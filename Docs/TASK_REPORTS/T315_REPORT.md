@@ -1,6 +1,6 @@
 # T315 — Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 ✓ PASS) | **Tarih:** 2026-11-07
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -81,10 +81,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | doğrulama bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-07; head `0d30a6f`, `origin/main` birleştirildi — çakışma yalnız kayıt belgelerinde) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-291) |
+
+Validator kanıtları (bağımsız): sekiz kriter ve KK1–KK8 kodda ve testte ✓ — `TransitionTable` on altı satırı `09 §9.1` m.2 ve `02 §5.4`/§5.5 ile eşit, aktör kümeleri `03 §1.2`/§1.3 tetikleyenleriyle uyumlu; `ApplyAsync` sırası kilit → sürüm → beyaz liste/aktör/sebep → çift kuralı → koşul → yazım → kayıt → kapanış (`05 §4.1.2`, §4.1.3); düzeltme yalnız kimlikli yönetici aktörü ve sürümle, düzeltilmiş ya da başka siparişin kaydı reddedilir; durum ayarlayıcıları `private`, yazıcıları birim dışında anan kaynak `TransitionUnitSourceScan` ile kırmızı (ihlal örnekleriyle sınanır; `09 §9.1` m.8 mekanizması). Yerel: `dotnet build -warnaserror` 0 uyarı, `dotnet format --verify-no-changes` üç proje temiz, Unit 3570/3570 (Architecture 844, Consistency 224, öteki 2502), betik testleri 4/4, Integration `OrderTransitionsTests` 31/31 (gerçek PostgreSQL 18), `dotnet restore --locked-mode` 0; `origin/main` birleştirmesinden sonra yeniden `build -warnaserror` temiz ve Unit 3678/3678. Dal CI 42381390535 yeşil. `12`'de T315'in KP satırı yok (`03 §1.1`, §1.10 kaynaklı; `Durum` hücresi yazılmadı). K1 (bloke etmez) → D-291: S1 yalnız sistem aktörüne açık olduğundan havale onayı Ö1+S1 tek istekle yazılamaz (`TransitionRequest` yorumu bunu tek istek gibi anlatıyor); yönetici aktöründe `ExpectedVersion` çekirdekte zorunlu değil — T316/T317.
 
 ## Altyapı Değişiklikleri
 

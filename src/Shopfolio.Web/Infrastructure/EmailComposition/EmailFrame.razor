@@ -10,7 +10,7 @@
 <meta name="color-scheme" content="light">
 <title>@Model.Subject</title>
 </head>
-<body style="margin:0;padding:0;background-color:#F4F5F7;">
+<body style="margin:0;padding:0;background-color:#F4F5F7;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F4F5F7;">
 <tr>
 <td align="center" style="padding:24px 12px;">
@@ -51,11 +51,15 @@ else
 </tr>
 </table>
             break;
+        case EmailButton { IsExternal: true } link:
+<p style="margin:8px 0 8px 0;"><a href="@link.Link.AbsoluteUri" rel="noreferrer" style="font-weight:bold;color:@EmailColors.LinkText;text-decoration:underline;">@link.Label</a></p>
+<p style="margin:0 0 16px 0;font-size:14px;line-height:20px;color:#52606D;word-break:break-all;">@link.Link.AbsoluteUri</p>
+            break;
         case EmailButton button:
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 8px 0;">
 <tr>
 <td align="center" bgcolor="@Model.ButtonBackground" style="background-color:@Model.ButtonBackground;border-radius:4px;">
-<a href="@button.Link.AbsoluteUri" rel="@(button.IsExternal ? "noreferrer" : null)" style="display:inline-block;padding:12px 24px;font-family:@FontFamily;font-size:16px;line-height:24px;font-weight:bold;color:@Model.ButtonText;text-decoration:none;">@button.Label</a>
+<a href="@button.Link.AbsoluteUri" style="display:inline-block;padding:12px 24px;font-family:@FontFamily;font-size:16px;line-height:24px;font-weight:bold;color:@Model.ButtonText;text-decoration:none;">@button.Label</a>
 </td>
 </tr>
 </table>

@@ -195,7 +195,7 @@ public sealed class CompanyIdentityRulesTests
         Company company = Company.Create(Now);
         CompanyIdentityInput input = SetField(Input(CompanyType.Tradesman), field, value);
 
-        Assert.Contains(new Shopfolio.Modules.Settings.Contracts.FieldRejection(field, code), CompanyIdentityRules.Check(company, CompanyIdentityRules.Normalize(input), provinceExists: true));
+        Assert.Contains(new Shopfolio.Modules.Settings.Contracts.FieldRejection(field, code), CompanyIdentityRules.Check(company, CompanyIdentityRules.ToStoredForm(input), provinceExists: true));
     }
 
     [Theory]
@@ -210,7 +210,7 @@ public sealed class CompanyIdentityRulesTests
         Company company = Company.Create(Now);
         CompanyIdentityInput input = SetField(Input(CompanyType.Tradesman), field, value);
 
-        Assert.Empty(CompanyIdentityRules.Check(company, CompanyIdentityRules.Normalize(input), provinceExists: true));
+        Assert.Empty(CompanyIdentityRules.Check(company, CompanyIdentityRules.ToStoredForm(input), provinceExists: true));
     }
 
     [Theory]
@@ -221,16 +221,16 @@ public sealed class CompanyIdentityRulesTests
     [InlineData("  532 123 4567  ")]
     public void Phone_InTheAcceptedForms_IsStoredAsTenDigits_AndPassesTheRule(string typed)
     {
-        CompanyIdentityInput normalized = CompanyIdentityRules.Normalize(Input(CompanyType.Tradesman) with { Phone = typed });
+        CompanyIdentityInput normalized = CompanyIdentityRules.ToStoredForm(Input(CompanyType.Tradesman) with { Phone = typed });
 
         Assert.Equal("5321234567", normalized.Phone);
         Assert.Empty(CompanyIdentityRules.Check(Company.Create(Now), normalized, provinceExists: true));
     }
 
     [Fact]
-    public void Normalize_TrimsTexts_AndTurnsBlankIntoNothing_AndEmptyGuidIntoNoProvince()
+    public void ToStoredForm_TrimsTexts_AndTurnsBlankIntoNothing_AndEmptyGuidIntoNoProvince()
     {
-        CompanyIdentityInput normalized = CompanyIdentityRules.Normalize(
+        CompanyIdentityInput normalized = CompanyIdentityRules.ToStoredForm(
             Input(CompanyType.Tradesman) with { LegalName = "  Ayşe Yılmaz ", District = "   ", BusinessName = "", ProvinceId = Guid.Empty });
 
         Assert.Equal("Ayşe Yılmaz", normalized.LegalName);

@@ -216,7 +216,12 @@ public sealed class CompanyIdentityTests : IAsyncLifetime
             m => m.SaveCompanyIdentityAsync(
                 CompleteInput(CompanyType.Tradesman) with
                 {
-                    Email = "yok", KepAddress = "yok", Phone = "123", EtbisVerificationUrl = "yok", ProfessionalConductRules = "https://", ProvinceId = Guid.NewGuid(),
+                    Email = "yok",
+                    KepAddress = "yok",
+                    Phone = "123",
+                    EtbisVerificationUrl = "yok",
+                    ProfessionalConductRules = "https://",
+                    ProvinceId = Guid.NewGuid(),
                 },
                 1,
                 Ct));

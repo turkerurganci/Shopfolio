@@ -117,7 +117,7 @@ internal static class CompanyIdentityRules
     /// The form every value is stored in (06 2.8.5, 2.5.1): white space around a text is dropped, an empty text is nothing, and a telephone is
     /// compacted to its ten digits - the text of a telephone that cannot be a number stays as typed so that the rule refuses it.
     /// </summary>
-    public static CompanyIdentityInput Normalize(CompanyIdentityInput input)
+    public static CompanyIdentityInput ToStoredForm(CompanyIdentityInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
         return input with

@@ -88,7 +88,7 @@ internal sealed class CompanyIdentities
         await _writer.LockAsync(ct);
 
         Company company = await _db.Companies.SingleAsync(ct);
-        CompanyIdentityInput input = CompanyIdentityRules.Normalize(raw);
+        CompanyIdentityInput input = CompanyIdentityRules.ToStoredForm(raw);
         bool provinceExists = input.ProvinceId is not Guid province || await _db.Provinces.AnyAsync(p => p.Id == province, ct);
         IReadOnlyList<Contracts.FieldRejection> rejections = CompanyIdentityRules.Check(company, input, provinceExists);
         if (rejections.Count > 0)

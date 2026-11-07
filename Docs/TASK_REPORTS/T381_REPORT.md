@@ -1,6 +1,6 @@
 # T381 — Ayar katmanları ve parametre envanteri: firma ayarı, kurulum ayarı, ürün sabiti, varsayılan ve çit, değişikliğin ize yazılması
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — düzeltme bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 ✓ PASS) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -12,7 +12,7 @@
 - **Envanter** (`Infrastructure/ParameterInventory.cs`): `ParameterLayer` (firma ayarı, kurulum ayarı, ürün sabiti), `ParameterHarm`, `ParameterLayers.Assign` (atama ölçütü), `ParameterEntry` (P-1…P-49; P-2 ve P-11 `Removed`), `ParameterUnit`, `InstallationSettings` (5 kalem: alan adı, gönderen adresi, e-posta gönderim kimliği, ödeme sağlayıcı anahtarları, Google kimlik bilgileri).
 - **Çitler** (`Infrastructure/FirmSettingFences.cs`): P-5, P-6, P-7, P-8, P-9, P-44 için `BoundsOf`/`Check`; `PeriodFences`'e `CheckDownloadAllowance` ve `CheckMaxQuantityPerOrder`.
 - **Ürün sabitleri** (`ProductConstants`): P-12, 13, 14, 17, 18, 19, 22, 24, 25, 29, 30, 39, 40 (2), 41, 42, 43, 47, 48 eklendi; `ContentRules` P-27/29/30'u sabitten alır.
-- **Firma ayarı yazma/okuma** (`Modules/Settings/FirmSettings.cs`, `CompanySettingsWriter`, `ISettingsModule` altı yeni üye, `FirmSettingRecords`): kargo ücreti, süreler ve ürün varsayılanları; tek yazıcı kuralı; değişen her alan eski/yeni değerle `UpdateSettings` iz satırı, değişmeyen kayıt iz yazmaz. Çit dışı değer `InvalidQuantity` + `Side` + `Fence` ile reddedilir.
+- **Firma ayarı yazma/okuma** (`Modules/Settings/FirmSettings.cs`, `CompanySettingsWriter`, `ISettingsModule` altı yeni üye, `FirmSettingRecords`): kargo ücreti, süreler ve ürün varsayılanları; tek yazıcı kuralı; değişen her alan eski/yeni değerle `UpdateSettings` iz satırı, değişmeyen kayıt iz yazmaz. Çit dışı değer `ValueOutOfBounds` (`07 §6.2.6`) + `Side` + `Fence` ile reddedilir (düzeltme turu 1; ilk yapımda `InvalidQuantity` idi).
 - **Tarama** (`SettingLayerScan.ScanPanelFormSource`): panel formunda ürün sabiti adlı alan yok (bağlı sayfa modeli üyesi ve işaretleme alanı: `name`, `id`, `asp-for`, `@Model.` önekli, birleşik nitelik listesi, bir önceki satırdaki `[BindProperty]`); iki ihlal ve bir temiz örnek.
 - **Belgeler:** `09 §3.5` m.1'e envanter ve çit evi cümlesi; backlog D-164, D-176 yeniden ileri atıldı, D-256 yeni; status, memory; T308/T312/T331 merge kayıtları dolduruldu.
 
@@ -77,10 +77,39 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-07, head `98f5550`) |
-| Bulgu sayısı | 2 (B1 ORTA S1, B2 DÜŞÜK S1) |
-| Düzeltme gerekli mi | Evet — B1 ve B2 |
-| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-279; K2 bu PR'da kapatıldı) |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-07, head `25e420c`); tur 1 ✗ FAIL (head `98f5550`) |
+| Bulgu sayısı | Tur 2: 0 · tur 1: 2 (B1 ORTA S1, B2 DÜŞÜK S1 — düzeltme turu 1'de kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (K1 bu PR'da kapatıldı) · tur 1: 2 (K1 → D-279; K2 bu PR'da kapatıldı) |
+
+### Doğrulama tur 2 — validator kanıtları (2026-11-07, head `25e420c`)
+
+Başlangıç kapıları: working tree temiz, `core.hooksPath` = `scripts/git-hooks`; ana dal son 3 run success (42379036303, 42379036312, 42368786653); memory'de T381 satırı var. Dal CI 42381345942 success (head `25e420c`). `origin/main` dalın içinde (birleştirme gerekmedi).
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Üç katman | ✓ | `ParameterLayer` üç değer; `ParameterInventory.Entries` 49 satır (10 firma ayarı, 37 ürün sabiti, 2 kaldırılmış); kurulum ayarı ayrı liste, `company_settings`'te sütunu yok |
+| 2 | Atama ölçütü | ✓ | `ParameterLayers.Assign` `02 §10.1.3` cümlesiyle birebir (kurulumdan → kurulum ayarı; zarar yalnız firmaya + işletme kararı → firma ayarı; aksi ürün sabiti); `ParameterLayersTests` Theory + var olan satırlar |
+| 3 | Kurulum ayarları | ✓ | `InstallationSettings` 5 kalem (alan adı, gönderen adresi, gönderim kimliği zorunlu; ödeme anahtarları, Google koşullu); `ISettingsModule` girdi/bölüm kayıtlarında karşılığı yok (`ParameterLayersTests`), Consistency `10.1.3` metniyle eşler |
+| 4 | On firma ayarı | ✓ | Consistency: 10 firma ayarı = `02 §11.1`; mağaza düzeyindeki yedisi (P-1, P-3, P-4, P-5, P-7, P-8, P-10) üç bölüm kaydıyla yazılır (`FirmSettingsTests`); P-6/P-9/P-44 ürün formu alanı (T525; `11` T5xx alan kuralı) |
+| 5 | Varsayılanla dolu kurulum | ✓ | `FirmSettingDefaultsTests` gerçek göçlerle: başlangıç değerleri, çit içinde, kargo 0, eşikler boş; `SettingDefaultsConsistencyTests` değerleri `02 §11.1` ile eşler; P-44 sütunu yok (ürün formunun zorunlu alanı) |
+| 6 | Çitler, çit dışı ret | ✓ | `FirmSettings.CheckFenced` → `FirmSettingFences.Check` → `ValueOutOfBounds` (`07 §6.2.6`, UC-170/171) + taraf + çit; değer saklanmaz, iz yazılmaz (`FirmSettingsTests` çit Theory'leri, sınırlar kabul); çit sayıları Consistency ile `02 §11.1` "Çit" sütunundan; ürün formu payı D-279 → T525 |
+| 7 | Ürün sabiti alanı yok, tek yer | ✓ | `SettingLayerScanTests.PanelForms_HaveNoFieldForAProductConstant` (gerçek `Pages`), ihlal örnekleri kırmızı; Consistency her sabit tek satıra ait; `ContentRules` P-27/29/30'u sabitten alır; src'de P değerlerinin yinelenen literali yok (grep) |
+| 8 | P-2, P-11 kaldırılmış | ✓ | `Removed` satırları; Consistency `["P-11","P-2"]` ve `§11` metnindeki "kimlikler yeniden sıralanmaz" |
+| 9 | Ayar değişikliği izde | ✓ | `FirmSettingsTests`: değişen her alan `UpdateSettings` satırında eski/yeni değerle, aynı işlemde (geri almada ikisi de yok), yöneticisiz/işlem dışı ret; değişmeyen kayıt iz yazmaz; ürün formu D-164, öteki kayıtlar D-256 |
+| 10 | Envanter eşitliği Consistency | ✓ | `ParameterInventoryConsistencyTests` 6 test (satır/katman, metin, sabit ↔ satır, kalın değer ↔ sabit birimiyle 28 satır, çitler, kurulum ayarları) |
+
+Kontrol listesi KK1–KK10 kriterlerle aynı kanıtlarla ✓. `09 §25` ilgili satırlar: yeni adlar `06 §4.2`/`07 UC-168/170/171` ile birebir (`DefaultShippingPeriod`); bölüm sürümü + satır kilidi (`LockSequence`) + koşullu güncelleme; iz aynı işlemde, `Details` kişisel veri taşımaz; mimari testler yeşil; eşitlik denetimi yeni tabloyla güncel; göç yok, paket yok.
+
+**Güvenlik taraması:** sır yok (kurulum ayarları yalnız anahtar adıyla anılır); kurulum ayarı ve sır panel yüzeyinde yok; çit dışı değer sunucuda reddedilir; iz eski/yeni değeri taşır; yazım yalnız işlem içinde ve yöneticiyle; yeni bağımlılık yok.
+
+**`12` satırları (KP-64):** `VAL-A312`, `VAL-B027`, `VAL-A313`, `VAL-A314` (KRİTİK), `VAL-A315` — beklenen sonuçları panel ekranı, ürün formu ve uçtan uca sipariş (uç yanıtı, tarayıcı gözlemi); T381 ekran kurmaz → `BEKLEMEDE` kalır (T525, T536, T601). `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**Testler (validator, yerel):** `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` üç proje çıkış 0; Consistency 219/219; Unit Architecture 838 + öteki 2529; betik testleri 4 dosya geçti; Integration `FirmSettingsTests` + `FirmSettingDefaultsTests` 24/24, `CompanyIdentityTests` + `SalesGateTests` + `StartupDataTests` 71/71 (PostgreSQL 18, ayrı konteyner, sonra silindi); `dotnet restore --locked-mode` çıkış 0.
+
+**Bulgular:** yok. **K-notu:** K1 — raporun "Yapılan İşler" maddesi ve başlık durumu düzeltme turundan sonra eski kalmıştı (`InvalidQuantity`) → bu PR'da düzeltildi.
+
+**Yapım raporu karşılaştırması:** kriter ve KK sonuçları uyumlu; öz denetim tablosu var ve kanıtlı; tek uyuşmazlık K1 (eski metin).
 
 ### Düzeltme turu 1 (2026-11-07)
 

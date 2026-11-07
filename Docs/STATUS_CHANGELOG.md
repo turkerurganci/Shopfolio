@@ -9,6 +9,10 @@
 
 ---
 
+## 2026-11-07 — T381 (Ayar katmanları ve parametre envanteri) düzeltme turu 1 bitti
+
+2026-11-07 — T381 (Ayar katmanları ve parametre envanteri) düzeltme turu 1 bitti, doğrulama bekliyor (PR #430; B1: çit dışı değer `07 §6.2.6`'daki `ValueOutOfBounds` koduyla reddediliyor; B2: `PeriodsInput`/`PeriodsSection.ShippingPeriod` adı `DefaultShippingPeriod` oldu; `origin/main` birleştirildi, T309'un yinelenen ömür sabitleri kaldırıldı).
+
 ## 2026-11-07 — T381 (Ayar katmanları ve parametre envanteri) doğrulama tur 1 FAIL
 
 2026-11-07 — T381 (Ayar katmanları ve parametre envanteri) doğrulama tur 1 ✗ FAIL (head `98f5550`, PR #430; B1 ORTA S1: çit dışı değer `07 §6.2`'nin `ValueOutOfBounds` kodu yerine `InvalidQuantity` ile reddediliyor (UC-170, UC-171); B2 DÜŞÜK S1: `PeriodsInput`/`PeriodsSection` alanı `ShippingPeriod`, `07 UC-170`/`06 §4.2` adı `DefaultShippingPeriod`; öteki kriterler ✓; build, format, Unit 3318 + Consistency 215, betik testleri, Integration FirmSetting 24 + SalesGate/CompanyIdentity 46 yerelde yeşil, dal CI 42375448881 yeşil; `12` `Durum` değişmedi; K1 → D-279, backlog aktif 105; dal merge edilmez, düzeltme turu gerekir).

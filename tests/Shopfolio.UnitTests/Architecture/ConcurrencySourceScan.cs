@@ -6,7 +6,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <summary>
 /// Source scan of the concurrency code's single places (T228 KK9 and criterion 5; 09 10.2 items 4-6, 9.1 item 5, 10.9 item 2): the advisory lock
 /// and the row lock text (<c>pg_advisory</c>, <c>pg_try_advisory</c>, <c>FOR UPDATE</c>, <c>FOR NO KEY UPDATE</c>) stands only in <c>AdvisoryLocks.cs</c> and
-/// <c>OrderLocks.cs</c>; the plain <c>FOR UPDATE</c> text is also allowed in <c>CompanySettingsWriter.cs</c> (the settings row lock of 09 10.3 item 2, T330), which is also the one place that bulk-writes the settings row (09 10.3 item 4: <c>ExecuteUpdate</c>, <c>ExecuteDelete</c> or a raw <c>UPDATE</c>/<c>DELETE</c> of <c>company_settings</c> elsewhere is a finding); the one more place is the job queue's
+/// <c>OrderLocks.cs</c>; the plain <c>FOR UPDATE</c> text is also allowed in <c>CompanySettingsWriter.cs</c> (the settings row lock of 09 10.3 item 2, T330), which is also the one place that bulk-writes the settings row (09 10.3 item 4: <c>ExecuteUpdate</c>, <c>ExecuteDelete</c>, <c>SaveChanges</c> in a file that names the row's type, or a raw <c>UPDATE</c>/<c>DELETE</c> of <c>company_settings</c> elsewhere is a finding); the one more place is the job queue's
 /// <c>JobClaim.cs</c>, and only for the plain <c>FOR UPDATE</c> text (the row lock of taking a row, T220; no advisory text, no <c>NO KEY</c> form there); the shared row lock text (<c>FOR SHARE</c>, <c>FOR KEY SHARE</c>) only in
 /// <c>OrderLocks.cs</c>; and a counter - the stock or capacity field, the reserved quantity, the coupon's used and reserved rights - is written
 /// by a bulk update (<c>SetProperty</c>) or a raw <c>UPDATE ... SET</c> only in <c>StockCounters.cs</c>. The places are full paths, not file
@@ -63,7 +63,7 @@ internal static partial class ConcurrencySourceScan
         if (path != CompanySettingsWriterFile)
         {
             // Bulk writes of the settings row (09 10.3 item 4): a file that names the row's type or table is a finding for each bulk update/delete call
-            // in it (a variable holding the query is no way around it), and a raw UPDATE/DELETE of the table is a finding in any file.
+            // and each SaveChanges call in it (a variable holding the query is no way around it; 09 10.3 item 4: no code saves the row), and a raw UPDATE/DELETE of the table is a finding in any file.
             if (CompanySettingsName().IsMatch(clean))
             {
                 Add(findings, CompanySettingsWrite, BulkWriteCall(), clean);
@@ -167,7 +167,7 @@ internal static partial class ConcurrencySourceScan
     [GeneratedRegex(@"\bCompanySettings\b|\bcompany_settings\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex CompanySettingsName();
 
-    [GeneratedRegex(@"\bExecute(?:Update|Delete)(?:Async)?\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    [GeneratedRegex(@"\b(?:Execute(?:Update|Delete)|SaveChanges)(?:Async)?\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex BulkWriteCall();
 
     [GeneratedRegex(@"\b(?:UPDATE|DELETE\s+FROM)\s+(?:ONLY\s+)?(?:[\\""]*\w+[\\""]*\.)?[\\""]*company_settings\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

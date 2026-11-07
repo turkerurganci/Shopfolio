@@ -14,6 +14,7 @@ internal sealed class CompanySettingsWrites(AppDbContext db)
         $"UPDATE company_settings SET return_phone = 'x'", ct);
     public Task RawQuotedUpdate(CancellationToken ct) => db.Database.ExecuteSqlAsync($"update public.\"company_settings\" set return_phone = 'x'", ct);
     public Task RawDelete(CancellationToken ct) => db.Database.ExecuteSqlAsync($"DELETE FROM company_settings", ct);
+    public Task Tracked(CancellationToken ct) => db.SaveChangesAsync(ct);
 
     // Not findings: a comment that says ExecuteUpdate on CompanySettings, a read, and another table written raw.
     public Task Read(CancellationToken ct) => db.CompanySettings.AsNoTracking().SingleAsync(ct);

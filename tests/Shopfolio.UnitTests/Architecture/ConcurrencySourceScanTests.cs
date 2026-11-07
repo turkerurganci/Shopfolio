@@ -135,6 +135,7 @@ public sealed class ConcurrencySourceScanTests
                 (ConcurrencySourceScan.CompanySettingsWrite, 14),
                 (ConcurrencySourceScan.CompanySettingsWrite, 15),
                 (ConcurrencySourceScan.CompanySettingsWrite, 16),
+                (ConcurrencySourceScan.CompanySettingsWrite, 17),
             ],
             findings);
     }

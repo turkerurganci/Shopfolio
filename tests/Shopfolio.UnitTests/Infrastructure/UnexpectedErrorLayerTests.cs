@@ -53,6 +53,41 @@ public sealed class UnexpectedErrorLayerTests
     }
 
     [Fact]
+    public void Resolve_OfAResetConnection_IsClientGone_NoCounterEntry()
+    {
+        UnexpectedErrorCounter counter = new(TimeProvider.System);
+        UnexpectedErrorLayer layer = new(NullLogger<UnexpectedErrorLayer>.Instance, counter);
+        DefaultHttpContext context = new();
+        context.Request.Method = "POST";
+
+        ErrorResolution resolution = layer.Resolve(context, new Microsoft.AspNetCore.Connections.ConnectionResetException("reset"));
+
+        Assert.True(resolution.ClientGone);
+        Assert.Equal(0, counter.CountWithin(TimeSpan.FromMinutes(15)));
+    }
+
+    [Theory]
+    [InlineData(400)]
+    [InlineData(408)]
+    [InlineData(413)]
+    public async Task Resolve_OfABadRequest_AnswersItsOwnStatusWithoutABody_NoCounterEntry(int status)
+    {
+        UnexpectedErrorCounter counter = new(TimeProvider.System);
+        UnexpectedErrorLayer layer = new(NullLogger<UnexpectedErrorLayer>.Instance, counter);
+        DefaultHttpContext context = new();
+        context.Request.Method = "POST";
+        context.Response.Body = new MemoryStream();
+
+        ErrorResolution resolution = layer.Resolve(context, new BadHttpRequestException("bad", status));
+        await UnexpectedErrorAnswer.WriteAsync(context, resolution);
+
+        Assert.Equal(status, context.Response.StatusCode);
+        Assert.Equal(0, context.Response.Body.Length);
+        Assert.Equal("no-store", context.Response.Headers.CacheControl.ToString());
+        Assert.Equal(0, counter.CountWithin(TimeSpan.FromMinutes(15)));
+    }
+
+    [Fact]
     public void Resolve_ACancellationWhileTheClientStays_IsAnUnexpectedError()
     {
         UnexpectedErrorCounter counter = new(TimeProvider.System);

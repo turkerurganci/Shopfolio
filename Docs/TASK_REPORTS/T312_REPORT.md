@@ -90,7 +90,7 @@
 
 **Yapım raporu karşılaştırması:** uyumlu; öz denetim tablosu her kriter ve KK için kanıtlı. Uyuşmazlık: Known Limitations 1 backlog kimliği taşımıyordu (D-218 açıldı).
 
-**Merge notu:** dal `origin/main` (T310, #423) ile birleştirildi; çakışma yalnız `MEMORY.md` ve `DEFERRED_BACKLOG.md`'de, kayıtlar korunarak çözüldü ("Aktif kalem" main 102 − 4 kapanış + 2 yeni = 100; T310 girişi `STATUS_CHANGELOG.md`'ye taşındı); kodda çakışma yok, birleştirme sonrası derleme temiz.
+**Merge notu:** dal `origin/main` (T310, #423) ile birleştirildi; çakışma yalnız `MEMORY.md` ve `DEFERRED_BACKLOG.md`'de, kayıtlar korunarak çözüldü ("Aktif kalem" main 102 − 4 kapanış + 2 yeni = 100; T310 girişi `STATUS_CHANGELOG.md`'ye taşındı); kodda çakışma yok, birleştirme sonrası derleme temiz. T312 squash `1112ca6` (#426) — CI 42366197638 success, Publish 42366197659 success (T332 yapımında dolduruldu).
 
 ## Altyapı Değişiklikleri
 

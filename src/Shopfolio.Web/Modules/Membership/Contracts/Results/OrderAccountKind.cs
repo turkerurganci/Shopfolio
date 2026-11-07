@@ -1,4 +1,4 @@
-namespace Shopfolio.Modules.Membership.Contracts;
+namespace Shopfolio.Modules.Membership.Contracts.Results;
 
 /// <summary>Whose an order is (02 3.13.1, 3.13.3, 3.13.4).</summary>
 public enum OrderAccountKind

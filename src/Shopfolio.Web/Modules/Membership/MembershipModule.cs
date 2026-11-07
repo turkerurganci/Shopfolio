@@ -10,6 +10,7 @@ using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Membership.Contracts;
+using Shopfolio.Modules.Membership.Contracts.Results;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.Modules.Settings.Contracts.Gates;

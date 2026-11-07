@@ -1,5 +1,6 @@
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Modules.Membership.Contracts.Results;
 using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.Membership.Contracts;

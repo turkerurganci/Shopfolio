@@ -155,4 +155,41 @@ public sealed class LinkKeySourceScanTests
 
         Assert.Empty(LinkKeySourceScan.Scan("src/Shopfolio.Web/Pages/Account/Verify.cshtml.cs", text));
     }
+
+    [Fact]
+    public void Scan_OnACallOfTheVerificationCommand_FindsItInAnOnGetHandlerAndNotInAnOnPostHandler()
+    {
+        const string onGet = "public async Task OnGetAsync(CancellationToken ct) { await _membership.VerifyEmailAsync(key, ct); }";
+        const string onPost = "public async Task OnPostAsync(CancellationToken ct) { await _membership.VerifyEmailAsync(key, ct); }";
+        const string page = "src/Shopfolio.Web/Pages/Account/Verify.cshtml.cs";
+
+        Assert.Contains(LinkKeySourceScan.Scan(page, onGet), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+        Assert.Empty(LinkKeySourceScan.Scan(page, onPost));
+    }
+
+    [Fact]
+    public void Scan_OnTheConsumingCommandsFile_AllowsTheConsumeInItsOneNamedMethodOnly()
+    {
+        const string own = "public async Task<R> VerifyEmailAsync(string key, CancellationToken ct) { return await _links.TryConsumeAsync(id, ct); }";
+        const string other = "public async Task<R> ResendAsync(string key, CancellationToken ct) { return await _links.TryConsumeAsync(id, ct); }";
+        const string callsIt = "public async Task<R> ResendAsync(string key, CancellationToken ct) { return await _module.VerifyEmailAsync(key, ct); }";
+        string file = LinkKeySourceScan.ConsumingMethods.Keys.Single();
+
+        Assert.Empty(LinkKeySourceScan.Scan(file, own));
+        Assert.Contains(LinkKeySourceScan.Scan(file, other), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+        Assert.Contains(LinkKeySourceScan.Scan(file, callsIt), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+        Assert.Contains(LinkKeySourceScan.Scan("src/Shopfolio.Web/Modules/Membership/Other.cs", own), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+    }
+
+    [Fact]
+    public void ConsumingMethods_NamesOnlyExistingFiles_EachWithOneMethodThatConsumes()
+    {
+        string root = RepositoryRoot.Find();
+        foreach ((string path, string method) in LinkKeySourceScan.ConsumingMethods)
+        {
+            string text = File.ReadAllText(Path.Combine(root, path));
+            Assert.Contains(method + "(", text, StringComparison.Ordinal);
+            Assert.Contains("TryConsumeAsync(", text, StringComparison.Ordinal);
+        }
+    }
 }

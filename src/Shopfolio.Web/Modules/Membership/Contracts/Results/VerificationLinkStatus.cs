@@ -1,4 +1,4 @@
-namespace Shopfolio.Modules.Membership.Contracts;
+namespace Shopfolio.Modules.Membership.Contracts.Results;
 
 /// <summary>What the verification link shows when it is read (05 6.4.6): no usable record, or the record's state.</summary>
 public enum VerificationLinkStatus

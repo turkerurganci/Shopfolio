@@ -7,7 +7,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// functions are named only in <c>Infrastructure/Security/</c> and <c>Modules/Membership/</c> - a closed list of other files may be added with
 /// its reason; (2) inside those two folders no weaker source makes a key (<c>Random</c>, <c>Guid.NewGuid</c>, <c>Guid.CreateVersion7</c>);
 /// (3) a link key is derived only where an e-mail body is made (<c>Modules/Notifications/</c>) and inside <c>LinkKeys.cs</c>; (4) a link is consumed
-/// only from an <c>OnPost…</c> handler (a link's GET changes nothing, MK-51). The scan reads the whole text, so a call split over several lines
+/// only from an <c>OnPost…</c> handler (a link's GET changes nothing, MK-51), the one dispensation being <see cref="ConsumingMethods"/> (a module's consuming command, whose callers are held to the same rule). The scan reads the whole text, so a call split over several lines
 /// is found; full-line comments are blanked first and keep their line. The test projects are not scanned.
 /// </summary>
 internal static partial class LinkKeySourceScan

@@ -19,6 +19,7 @@ using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Membership.Contracts;
+using Shopfolio.Modules.Membership.Contracts.Results;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
@@ -465,7 +466,6 @@ public sealed class MembershipTests : IAsyncLifetime
     [Fact]
     public async Task ASuccessfulSignIn_WithADigestOfOlderSettings_RenewsTheDigest()
     {
-        var hashing = _provider.GetRequiredService<PasswordService>();
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
         string old = new Microsoft.AspNetCore.Identity.PasswordHasher<object>(Options.Create(new Microsoft.AspNetCore.Identity.PasswordHasherOptions { IterationCount = 10_000 })).HashPassword(new object(), Entered);
         await ExecuteAsync($"UPDATE customers SET password_hash = '{old}'");
@@ -475,8 +475,8 @@ public sealed class MembershipTests : IAsyncLifetime
         Assert.True(result.Succeeded);
         string renewed = await ScalarAsync<string>($"SELECT password_hash FROM customers WHERE id = '{id}'");
         Assert.NotEqual(old, renewed);
-        Assert.False(hashing.Verify(renewed, Entered).NeedsRehash);
-        Assert.True(hashing.Verify(renewed, Entered).Matched);
+        Assert.False(_provider.GetRequiredService<PasswordService>().Verify(renewed, Entered).NeedsRehash);
+        Assert.True(_provider.GetRequiredService<PasswordService>().Verify(renewed, Entered).Matched);
     }
 
     // ---- the verification link asked for again ----

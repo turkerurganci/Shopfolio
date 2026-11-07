@@ -1,6 +1,6 @@
 # T331 — Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -73,10 +73,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — (validator doldurur) |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-07; head `461c66b` + `origin/main` birleştirmesi). Kriter 1–8 ve KK1–KK8 validator kanıtıyla ✓ (kanıt testleri yukarıdaki tabloyla aynı; validator yerelde build `-warnaserror`, format, Unit 3282, betik testleri, Integration SalesGate 22 + CompanyIdentity/AuditTrail 46 koştu; dal CI 42361992653 yeşil). Kriter 2–7'nin ekran ve POST yüzleri (sepet, ödeme, kayıt, form, panel) modül düzeyinde doğrulandı; bağları D-198, D-199. `12` satırları (KP-25, KP-38, KP-59, KP-60) `BEKLEMEDE` kaldı: kanıt türleri uç yanıtı / tarayıcı gözlemi, uçlar sonraki task'larda |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
 
 ## Altyapı Değişiklikleri
 
@@ -90,7 +90,7 @@
 - **Branch:** `task/T331-satis-kapisi`
 - **Commit:** bkz. PR (son commit dal başı)
 - **PR:** #425
-- **CI:** *(yapım chat'i izlemez)*
+- **CI:** dal CI 42361992653 success (head `461c66b`)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

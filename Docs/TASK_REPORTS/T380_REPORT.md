@@ -1,6 +1,6 @@
 # T380 — İşlem izi: sekiz alan, kim-ne zaman-ne değişti, değiştirilemez ve silinemez, sistem olayları ize girmez, düz liste, on yıl
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✗ FAIL (doğrulama tur 1; düzeltme bekliyor) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -79,10 +79,99 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-07, head `4345bf9`) |
+| Bulgu sayısı | 1 (KRİTİK, S1 — kriter 3 / KK3 / `09 §9.2` m.4) |
+| Düzeltme gerekli mi | Evet — bu PR'da düzeltme turu |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-161) |
+
+### Doğrulama Sonucu — T380 İşlem izi — tur 1
+**Tarih:** 2026-11-07   **Branch:** task/T380-islem-izi   **Commit:** 4345bf9 (doğrulanan head; doğrulama kaydı bunun üstüne commit'lendi)
+
+#### Verdict: ✗ FAIL
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş; `core.hooksPath` = `scripts/git-hooks` |
+| Ana dal CI (son 3) | ✓ | 42335449709 success · 42335449717 success · 42306192052 success |
+| Memory drift | ✓ | `grep -nE "\bT380\b" .claude/memory/MEMORY.md` → satır 22 |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Sekiz alan | ✓ | `AuditOperationText.AreaOf` 43 kod → 8 alan; `AuditEntryRulesTests.TheEightAreas_AreEightAndEveryOperationBelongsToOne`, `AnEntryOfEachOfTheEightAreas…`; tümleşik `EveryOperation_IsWritten_AndAllEightAreasAreOnTheRows` yeşil |
+| 2 | Kim, ne zaman, neyi; ayarda eski-yeni | ✓ | `AuditTrail.WriteAsync` yöneticiyi `IAuditActorSource`'tan, anı `TimeProvider`'dan alır; `UpdateCompany/UpdateBranding/UpdateSettings` `Changes` olmadan reddedilir; `ASettingsChange_KeepsTheOldAndTheNewValue_AndTheListReturnsThem` yeşil |
+| 3 | Sipariş satırı kişisel veriyi değer olarak taşımaz; iç not metni ize girmez | ✗ | Koruma yalnız ad listesi (alan/değer adı) ve `@`/TR IBAN deseniyle; `DisplayName` serbest metin ve hiçbir ad/adres/telefon/not denetimi görmez. Doğrulayıcı yoklaması (geçici birim test, silindi; 4/4 "kabul edildi"): `CorrectAddress` + `DisplayName` "Atatürk Mah. 12. Sk. No:3 Kadıköy" · `SaveInternalNote` + `DisplayName` "Müşteri kapıda aranmak istiyor" · `DeleteCustomerAccount` + `DisplayName` "Ayşe Yılmaz" · `MarkShipped` + `Reason` = "0532 123 45 67" — dördü de `AuditEntryRules.Validate`'ten geçer ve yazılır. Bulgu 1 |
+| 4 | Aynı veritabanı işleminde | ✓ | `WriteAsync` açık işlem yoksa `InvalidOperationException`; satır çağıranın `SaveChanges`'ıyla gider; `ARefusedResult_UndoesTheRow_AndAnExceptionUndoesIt`, `ACommittedOperation_KeepsEveryRowItWrote`, `Write_OutsideATransaction_IsRefused…` yeşil |
+| 5 | Değiştirilemez/silinemez; yalnız ekle-oku; imha fonksiyonu | ✓ | Uygulama kullanıcısıyla `ExecuteUpdate`/`ExecuteDelete` → 42501 (`TheApplicationUser_CannotChangeOrRemoveARow_ThroughTheContext`); T106 `AdminAndAuditTablesTests` (yetki, fonksiyon) yeşil; arayüzde güncelleme/silme yöntemi yok (`AuditTrailSurfaceTests`) |
+| 6 | Düzeltme yeni satır | ✓ | `ACorrectionOfAWrongTransition_IsANewRow_AndTheWrongOnesRowStaysAsItWas` yeşil |
+| 7 | Sistem olayı/komut ize yazılmaz | ✓ | Yönetici yoksa `InvalidOperationException` (`WithoutAnAdministrator…`, `TheRequestSource_HasNoActor…`); `AuditTrailSourceScan` paylaşılan altyapının `IAuditTrail`/`AuditEntry`'ye erişimini kırar (ihlal örneğiyle); kodlarda sistem olayı yok |
+| 8 | Düz liste; tarih aralığı + yönetici süzgeci; arama/gruplama/dışa aktarma yok | ✓ | `AuditQuery` yalnız `From/To/AdminId/Page`; Türkiye günü sınırı, en yeni önce + `Id`, `PageSizes.Panel`, sayfa sınırı testleri yeşil (arayüz düzeyi; ekran T522) |
+| 9 | On yıl; kaldırılan yönetici ad/e-postayla | ✓ | Satır yönetici adını/e-postasını değer olarak taşır; `TheRowsOfARemovedAdministrator_StayWithTheNameWritten…`, `ARowNineYearsOld_StaysWhenTheDisposalRuns…` + T106 sınır testleri yeşil |
+| 10 | İhlal kaydı modülü/toplu bildirim yok | ✓ | `AuditTrailSourceScan` `BreachModule` kuralı (tanımlayıcı, rota, görünüm, dosya adı) + ihlal örneği; kaynak taraması yeşil |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-A310 (kriter 2) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D036 (kriter 1) | ORTA | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D037 (kriter 1) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D038 (kriter 1) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D039 (kriter 2) | ORTA | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D040 (kriter 2) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D041 (kriter 1, 3) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-A311 (kriter 8) | ORTA | yok | BEKLEMEDE | BEKLEMEDE | — |
+| VAL-D042 (kriter 5) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | — |
+
+`grep -nE 'KP-63([^0-9]|$)|KP-77([^0-9]|$)|KD-58([^0-9]|$)'`: KP-63 dokuz satır; KP-77 satırları (VAL-A104, A107–A110, D024, C031) üye hesabı ekranı/silme akışınındır (T380'in payı yalnız silme satırının yazılabilmesi); KD-58'in satırı yok (kapsam dışı). Satırların ön koşulu (panel oturumu, ilgili işlemin akışı — T522 ve çağıran task'lar) yok; kanıt türü `Uç yanıtı`/`Tarayıcı gözlemi` arayüz testiyle üretilemez → `12 §5` kural 1 gereği `BEKLEMEDE` kalır. `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1: sekiz alan türü kabul edilir
+- [x] KK2: satır alanları; ayarda eski–yeni değer
+- [ ] KK3: adres, e-posta ve iç not metni satırda yok — e-posta reddedilir; adres ve iç not metni `DisplayName`'de (ve serbest değer adlarında) kabul edilip yazılır (Bulgu 1)
+- [x] KK4: işlem geri alınınca iz de geri alınır
+- [x] KK5: güncelleme ve silme yetkisi reddedilir
+- [x] KK6: düzeltme yeni satır, eskisi durur
+- [x] KK7: sistem olayı ve komut satır üretmez
+- [x] KK8: süzgeçler var, arama ve dışa aktarma yok
+- [x] KK9: on yıl dolmadan silinmez
+- [x] KK10: ihlal kaydı modülü ve toplu bildirim yok
+- [ ] `09 §25`: "Yeni ya da değişen her kuralın bölümündeki Test maddesi karşılanmış mı?" — `09 §9.2` m.4 Test'i ("bilinen ad, adres, telefon, e-posta, IBAN ve not metniyle yazılan satırın `Details`'i bu değeri içermez") yalnız kişisel adlı alan yuvasında sınanmış; `DisplayName` ve izinli adlı değer yuvası sınanmamış ve bu yuvalarda değer yazılıyor (Bulgu 1). Öteki ilgili satırlar (§9.2 kod listesi/aynı işlem, §10.5 sayfalama `Id` + `ToPageAsync` + sınır testi, §12 yük örneği `Payloads/AuditDetails/1.json`, §6 modül sınırı + mimari tarama, TimeProvider) ✓
+- [x] Güvenlik taraması (aşağıda)
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx -warnaserror` | 0 uyarı, 0 hata |
+| Format | ✓ | `dotnet format <proje> --verify-no-changes` (Web tam; Unit ve Integration değişen dosyalarla `--include`; Unit tam koşu 150 sn'yi aştı — CI Lint yeşil) | çıkış 0 |
+| Unit (+Consistency) | ✓ 2908/2908 | `dotnet test --project tests/Shopfolio.UnitTests … --filter-namespace` altı parça | 68 + 786 + 916 + 491 + 440 + 207; 0 hata |
+| Betik | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration | ✓ (parçalı, kısmi) | PostgreSQL 18 (`shopfolio-t380-val-pg`, 127.0.0.1:55710, koşu sonrası silindi): `MigrationBundleTests` 2 · `AuditTrailTests` + `AdminAndAuditTablesTests` 63 · `Database` 36 · `Security` + `Disposal` 50 · Model komşuları (Enum, ModelRule, ModuleCallTransaction, StartupData, SettingsTables, SampleDatabase, SchedulerBackupDisposalAndKey) 148 | 299/299 yeşil; kalan (Web, Pages, Jobs, Concurrency, öteki Model) için dal CI'ına dayanıldı |
+| Dal CI | ✓ | `gh run list --branch task/T380-islem-izi` | 42339490480 success (head `4345bf9`) |
+| Restore | ✓ | `dotnet restore Shopfolio.slnx --locked-mode` | çıkış 0; `git status` temiz |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz
+- Auth etkisi: Temiz — yönetici yalnız `AdminScheme` kimliğinden ve `Admins` satırından; oturumsuz/istek dışı kodda yazma istisnayla reddedilir
+- Input validation: Bulgu — müşteri kişisel verisinin ize girmesine karşı doğrulama `DisplayName` ve serbest değer yuvasını kapsamıyor (Bulgu 1; on yıl silinemeyen tabloya kişisel veri)
+- Yeni bağımlılık: Yok
+
+#### Bulgular (`12 §8.2` defect kaydı)
+| # | Madde (`VAL-…`) | Severity | Hata sınıfı (S1/S2/S3) | Beklenen ↔ gerçekleşen | Etkilenen komşu maddeler | Karar | Etkilenen dosya |
+|---|---|---|---|---|---|---|---|
+| 1 | Kriter 3, KK3, `09 §9.2` m.4 (+ Test cümlesi) | KRİTİK | S1 | Beklenen: `Order` kodlarında ve `DeleteCustomerAccount`'ta müşterinin adı, adresi, telefonu, e-postası, IBAN'ı ve not metni `Details`'in **hiçbir** yuvasında değer olarak yazılamaz, `WriteAsync` doğrular; hesap silme satırı "hesabı değil işlemi ve tarihini adlandırır" (`06 §4.63`, `02 §10.3.1` (8)). Gerçekleşen: `DisplayName` serbest metin — adres, iç not metni ve üyenin adı `DisplayName` olarak kabul edilip yazılır; izinli adlı değerlerde (`Reason` vb.) telefon/ad/adres metni de geçer; testler yalnız kişisel adlı alanı sınar. Düzeltme önerisi: (a) `DeleteCustomerAccount`'ta `DisplayName` yok (null değilse `ArgumentException`); (b) `Order` kodlarında `DisplayName` yalnız sipariş numarası biçiminde; (c) korunan kodlarda serbest metin taşıyabilen değer adları (`reason`, `correctionreason` vb.) kapalı kod/tarih/sayı biçimine bağlanır ya da listeden çıkar; (d) `09 §9.2` m.4 Test'i her yuvada (`DisplayName`, `Values`, `Changes` eski/yeni) bilinen ad, adres, telefon ve not metniyle sınanır | VAL-D041 (silinen üyenin kişisel verisi izde yok), VAL-D024 | düzeltme turu (bu PR) | `src/Shopfolio.Web/Modules/Administration/AuditEntryRules.cs` · `tests/Shopfolio.UnitTests/Administration/AuditEntryRulesTests.cs` · `tests/Shopfolio.IntegrationTests/Model/AuditTrailTests.cs` |
+
+#### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | `AuditEntryRules.TargetTypesOf(UpdateSettings)` yalnız `CompanySettings`/`Province`'i kabul eder (`09 §9.2` m.3 tablosuyla aynı); `02 §10.3.1` (6) ve `VAL-D039` ürün formundaki P-6, P-9, P-44 değişikliklerini de eski-yeni değerle ize ister — konusu `Product` olan satır bugün reddedilir. Ayrıca müşteri verisi için kapalı ad listesi ve hedef tür haritası yalnız kodda (`09`'da yok; yapım ⚠ (1)). | DEFERRED_BACKLOG'a forward: D-161 (T381 + D-159 doküman geçişi) |
+
+#### Yapım Raporu Karşılaştırması
+- Uyum: 1 uyuşmazlık
+- Yapım raporu kriter 3'ü ve KK3'ü ✓ sayar ve öz denetimde `09 §25` satırlarını "aynen uygulandı" diye ✓ geçer; kanıt olarak gösterilen testler yalnız kişisel adlı alan yuvasını ve e-posta/IBAN desenini sınar, `DisplayName` yuvasını sınamaz. Öteki dokuz kriter ve test sayıları (Unit 2908, `AuditTrailTests` 21) doğrulayıcı sonucuyla uyumlu. Öz denetim tablosu var, maddeleri kanıtlı.
+
+#### Merge ve Post-merge
+- FAIL — merge yok; dal düzeltme turuna döner.
 
 ## Altyapı Değişiklikleri
 

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.Infrastructure.EmailComposition;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Status;
 
@@ -27,6 +28,10 @@ internal static class NotificationsModuleRegistration
 
         // The job queue takes no row before the step has run (D-96 K1; 09 15.1 item 4).
         services.AddJobStartGate<RevertLinkDigestRewriteGate>();
+
+        // The e-mail common pattern (T305; 08 2.2.5; 09 11.4): the addresses and the composer that makes the subject, the HTML and the plain text part.
+        services.AddSingleton<EmailLinks>();
+        services.AddSingleton<EmailComposer>();
 
         // The per-recipient sending limit asked at a row's first attempt (08 2.2.4); its thinned security line keeps one window in memory.
         services.AddScoped<RecipientLimitCheck>();

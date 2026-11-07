@@ -144,7 +144,7 @@
 | T302 | Öteki kayıtların süreyle imhası | ⬚ | — | — | — |
 | T303 | İlk yönetici yönetim komutu ve komut çatısı | ⬚ | — | — | — |
 | T304 | Alıcı başına bildirim gönderim sınırı | ✓ | ✓ PASS (tur 1) | — | #421 |
-| T305 | E-posta ortak kalıbı ve gövde üretimi | ⬚ | — | — | — |
+| T305 | E-posta ortak kalıbı ve gövde üretimi | ✓ | ✓ PASS (tur 1) | — | #422 |
 | T306 | Müşteri bildirimleri B-1…B-8 | ⬚ | — | — | — |
 | T307 | Müşteri bildirimleri B-9…B-16 | ⬚ | — | — | — |
 | T308 | Firma bildirimleri F-1…F-6 | ⬚ | — | — | — |
@@ -152,8 +152,8 @@
 | T310 | Kargo şirketi listesi ve takip bağlantısı kalıpları | ✓ | ✓ PASS (tur 1) | — | #423 |
 | T311 | Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım | ⬚ | — | — | — |
 | T312 | Dosya uçları: imzalı indirme ucu ve parçalı yükleme ucu | ⬚ | — | — | — |
-| T313 | Site haritası ve robots.txt | ✓ | ✓ PASS (tur 1) | — | #417 |
-| T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | — | #418 |
+| T313 | Site haritası ve robots.txt | ✓ | ✓ PASS (tur 1) | `f94b4d8` | #417 |
+| T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | `335e9cb` | #418 |
 | T315 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | ⬚ | — | — | — |
 | T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ⬚ | — | — | — |
 | T317 | Ödeme durumu geçişleri: ödeme ekseni | ⬚ | — | — | — |

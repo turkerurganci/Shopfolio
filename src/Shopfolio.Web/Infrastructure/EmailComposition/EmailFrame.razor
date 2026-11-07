@@ -1,0 +1,104 @@
+@* The one frame of every e-mail (08 2.2.5; 09 11.4 item 1): single column, 600 px at most, table layout with inline styles, the system font; no script, no
+   external style, no form, no tracking pixel; dark theme is left to the client. Every value is written through Razor's own encoding - there is no raw markup
+   anywhere (09 11.4 item 2; the architecture scan EmailRenderingSourceScan). Only the fixed colours of the product are here; the brand colour is the main
+   button's background alone (EmailColors). *@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>@Model.Subject</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F4F5F7;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F4F5F7;">
+<tr>
+<td align="center" style="padding:24px 12px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background-color:#FFFFFF;font-family:@FontFamily;font-size:16px;line-height:24px;color:#1F2933;">
+<tr>
+<td style="padding:24px 24px 8px 24px;border-bottom:1px solid #E4E7EB;">
+@if (Model.LogoUrl is not null)
+{
+<img src="@Model.LogoUrl" alt="@Model.BrandText" width="@Model.LogoWidth" style="display:block;border:0;max-width:100%;height:auto;">
+}
+else
+{
+<div style="font-size:22px;line-height:28px;font-weight:bold;color:#1F2933;">@Model.BrandText</div>
+}
+</td>
+</tr>
+<tr>
+<td style="padding:16px 24px 24px 24px;">
+@if (Model.ResendSentence is not null)
+{
+<p style="margin:0 0 16px 0;font-size:14px;line-height:20px;color:#52606D;">@Model.ResendSentence</p>
+}
+@foreach (EmailBlock block in Model.Blocks)
+{
+    switch (block)
+    {
+        case EmailHeading heading:
+<h1 style="margin:0 0 16px 0;font-size:20px;line-height:28px;font-weight:bold;color:#1F2933;">@heading.Text</h1>
+            break;
+        case EmailParagraph paragraph:
+<p style="margin:0 0 16px 0;">@paragraph.Text</p>
+            break;
+        case EmailKeyValue row:
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin:0 0 8px 0;">
+<tr>
+<td style="padding:0 12px 0 0;color:#52606D;vertical-align:top;">@row.Label</td>
+<td style="font-weight:bold;vertical-align:top;">@row.Value</td>
+</tr>
+</table>
+            break;
+        case EmailButton button:
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 8px 0;">
+<tr>
+<td align="center" bgcolor="@Model.ButtonBackground" style="background-color:@Model.ButtonBackground;border-radius:4px;">
+<a href="@button.Link.AbsoluteUri" rel="@(button.IsExternal ? "noreferrer" : null)" style="display:inline-block;padding:12px 24px;font-family:@FontFamily;font-size:16px;line-height:24px;font-weight:bold;color:@Model.ButtonText;text-decoration:none;">@button.Label</a>
+</td>
+</tr>
+</table>
+<p style="margin:0 0 16px 0;font-size:14px;line-height:20px;color:#52606D;word-break:break-all;">@button.Link.AbsoluteUri</p>
+            break;
+        case EmailLegalText legal:
+<h2 style="margin:16px 0 8px 0;font-size:16px;line-height:24px;font-weight:bold;color:#1F2933;">@legal.Title</h2>
+            @foreach (IReadOnlyList<string> lines in EmailText.Paragraphs(legal.Text))
+            {
+<p style="margin:0 0 12px 0;font-size:12pt;line-height:1.5;">
+                @for (int i = 0; i < lines.Count; i++)
+                {
+                    if (i > 0)
+                    {
+<br>
+                    }
+                    @lines[i]
+                }
+</p>
+            }
+            break;
+    }
+}
+</td>
+</tr>
+<tr>
+<td style="padding:16px 24px 24px 24px;border-top:1px solid #E4E7EB;font-size:14px;line-height:20px;color:#52606D;">
+<div style="font-weight:bold;">@Model.FirmName</div>
+<div>@Model.FirmEmail</div>
+<div style="margin-top:8px;">@EmailFrameModel.ReplySentence</div>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+</body>
+</html>
+
+@code {
+    // The system font stack (08 2.2.5 item 1): no web font is loaded.
+    private const string FontFamily = "-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
+    [Parameter, EditorRequired]
+    public required EmailFrameModel Model { get; set; }
+}

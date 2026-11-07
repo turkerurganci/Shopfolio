@@ -106,7 +106,7 @@
 
 - **Branch:** `task/T307-musteri-bildirimleri-2`
 - **Commit:** bkz. PR (son commit dal başı)
-- **PR:** #PRNO
+- **PR:** #435
 - **CI:** — (yapım işçisi yoklamaz)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
 

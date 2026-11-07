@@ -9,6 +9,12 @@
 
 ---
 
+## 2026-11-08 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) düzeltme turu 1 yapıldı
+
+2026-11-08 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) düzeltme turu 1 yapıldı, doğrulama tur 2 bekliyor (PR #445; `origin/main` (`af6e7d3`, T334) dala birleştirildi; B1 giderildi: `ProductGalleryTests.cs` üç tohum `Variant.Create(..., Now, 100)` ile stoklu, ürün koduna dokunulmadı; K2 → D-384 kapatıldı (test adı `…WhenTheFormMarksNone`), K1 → D-383 açık; kayıt belgesi çakışmaları çözüldü; backlog aktif 147; yeni K-notları D-391, D-392).
+
+---
+
 ## 2026-11-08 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) doğrulama tur 1 FAIL
 
 2026-11-08 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) doğrulama tur 1 ✗ FAIL (head `7d65caf`, PR #445; dalın kendi tabanında kriter 1–9, KK1–KK9, `09 §25` ve güvenlik taraması ✓, dal CI 42411851018 yeşil, Unit 922 + 241 + 2996, Integration `ProductGalleryTests` 18, Concurrency 26, `SearchEngineDataTests` 18; B1 ORTA S2: `origin/main` (`af6e7d3`, T334) birleştirilince `ProductGalleryTests` 14/18 düşer — T334'ün `VariantStockGuard`'ı fiziksel varyantta stok numarası ister, testin üç tohumu stoksuz varyant kurar; birleştirme push edilmedi; düzeltme: birleştir + `Variant.Create(..., Now, 100)`; K1 → D-383, K2 → D-384; `12` `Durum` değişmedi (satırlar uç yanıtı ve tarayıcı gözlemi ister — T503, T525); backlog aktif 142).

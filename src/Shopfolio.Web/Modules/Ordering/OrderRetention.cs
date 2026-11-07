@@ -24,12 +24,12 @@ internal static class OrderRetention
     public static DateTimeOffset PaidCreatedBefore(DateTimeOffset now)
     {
         int year = TurkeyTime.DateOf(now).Year - PaidOrderYears;
-        return TurkeyTime.StartOf(new DateOnly(year, 1, 1));
+        return TurkeyTime.StartOf(new DateOnly(year, 1, 1)).ToUniversalTime();
     }
 
     /// <summary>Z-41's edge at <paramref name="now"/>: an unpaid order that failed before the returned instant is past its personal data period.</summary>
     public static DateTimeOffset FailedBefore(DateTimeOffset now)
     {
-        return now.ToOffset(TurkeyTime.Offset).AddYears(-FailedOrderPersonalDataYears);
+        return now.ToOffset(TurkeyTime.Offset).AddYears(-FailedOrderPersonalDataYears).ToUniversalTime();
     }
 }

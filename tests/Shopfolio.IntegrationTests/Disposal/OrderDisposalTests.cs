@@ -8,6 +8,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.AfterSales.Contracts;
@@ -119,7 +120,7 @@ public sealed class OrderDisposalTests : IAsyncLifetime
     {
         // Created in 2016: the period ends at 00:00 Turkey time on 1 January 2027 = 21:00 UTC on 31 December 2026.
         Order order = await SeedPaidOrderAsync(new DateTimeOffset(2016, 3, 1, 9, 0, 0, TimeSpan.Zero));
-        DateTimeOffset turn = TurkeyTime.StartOf(new DateOnly(2027, 1, 1));
+        DateTimeOffset turn = TurkeyTime.StartOf(new DateOnly(2027, 1, 1)).ToUniversalTime();
 
         _harness.Time.SetUtcNow(turn - TimeSpan.FromSeconds(1));
         await _harness.RunOrderPartAsync(null, Ct);
@@ -221,7 +222,7 @@ public sealed class OrderDisposalTests : IAsyncLifetime
         Assert.False(await HasPersonalDataAsync(failed.Id));
         Assert.True(await HasPersonalDataAsync(keptPaid.Id));
         Assert.Equal(2, await DisposalCountAsync());
-        Assert.Equal(1, await ScalarAsync<long>("SELECT count(*) FROM disposal_records WHERE record_type = 'Order'"));
+        Assert.Equal(1, await ScalarAsync<long>("SELECT count(*) FROM disposal_records WHERE disposal_record_type = 'Order'"));
     }
 
     // ---- KK2, KK3: the lock and the version, the order picked twice ----
@@ -305,7 +306,7 @@ public sealed class OrderDisposalTests : IAsyncLifetime
 
         Assert.Equal(0, await ScalarAsync<long>("SELECT count(*) FROM orders WHERE contact_email IS NOT NULL"));
         Assert.Equal(total, await DisposalCountAsync());
-        Assert.Equal(2, await ScalarAsync<long>("SELECT count(*) FROM disposal_records WHERE record_type = 'Order'"));
+        Assert.Equal(2, await ScalarAsync<long>("SELECT count(*) FROM disposal_records WHERE disposal_record_type = 'Order'"));
     }
 
     [Fact]
@@ -487,7 +488,7 @@ public sealed class OrderDisposalTests : IAsyncLifetime
         await _harness.RunOrderPartAsync(null, Ct);
 
         Assert.Equal(1, await ScalarAsync<long>("SELECT count(*) FROM disposal_records"));
-        Assert.Equal(2, await ScalarAsync<int>("SELECT sum(count) FROM disposal_records WHERE record_type = 'Order'"));
+        Assert.Equal(2, await ScalarAsync<long>("SELECT sum(count) FROM disposal_records WHERE disposal_record_type = 'Order'"));
     }
 
     // ---- The module surfaces join the caller's transaction ----
@@ -656,7 +657,7 @@ public sealed class OrderDisposalTests : IAsyncLifetime
         Order order = await SeedPaidOrderAsync(at, customer.Id);
         DigitalFile file = DigitalFile.Create(EntityIds.NewStorageKey(), "kitap.pdf", 100, at);
         await _harness.SeedAsync(db => db.DigitalFiles.Add(file));
-        OrderItem item = OrderItem.Create(order.Id, null, null, ProductType.Digital, "Kitap", 4, 100m, 20m, 16.67m, at);
+        OrderItem item = OrderItem.Create(order.Id, null, null, ProductType.Digital, "Kitap", 1, 100m, 20m, 16.67m, at);
         item.DownloadAllowance = 3;
         item.DigitalFileId = file.Id;
         await _harness.SeedAsync(db => db.OrderItems.Add(item));
@@ -688,8 +689,8 @@ public sealed class OrderDisposalTests : IAsyncLifetime
         OrderAddressHistory addressHistory = OrderAddressHistory.Create(
             order.Id,
             AddressType.ShippingAddress,
-            ("Eski Ad", null, _provinceId, "Çankaya", "Eski adres"),
-            ("Ali Veli", null, _provinceId, "Çankaya", "Atatürk Bulvarı 1"),
+            ("Eski Ad", "5321111111", _provinceId, "Çankaya", "Eski adres"),
+            ("Ali Veli", "5320000000", _provinceId, "Çankaya", "Atatürk Bulvarı 1"),
             admin.Id,
             admin.Name,
             at);
@@ -710,7 +711,7 @@ public sealed class OrderDisposalTests : IAsyncLifetime
 
     private Task<int> DisposalCountAsync()
     {
-        return ScalarAsync<int>("SELECT coalesce(sum(count), 0)::int FROM disposal_records WHERE record_type = 'Order'");
+        return ScalarAsync<int>("SELECT coalesce(sum(count), 0)::int FROM disposal_records WHERE disposal_record_type = 'Order'");
     }
 
     private Task<long> CountAsync(string table, string condition, Guid key, string keyColumn)

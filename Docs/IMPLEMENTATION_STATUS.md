@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T317 (Ödeme durumu geçişleri: ödeme ekseni) doğrulama tur 2 ✗ FAIL (head `66bcf16` — T316 ile kod birleştirmesi, `origin/main` `af6e7d3` güncel, PR #441; kriter 1–8 ve KK1–KK8 ✓, `09 §25` ✗, güvenlik taraması temiz; B1 (ORTA, S1): birleştirmeden sonra ödenmemiş iptalin iki açık yolu var, `CancelUnpaidOrderAsync`'in yönetici yolu firma iptalini (S3) geri alınamaz onaysız ve "Diğer ⇔ not" kuralı denetlenmeden yazar (`02 §5.9`, `03 §1.6.1.3`, `06 §4.19`); K1 → D-389 (Ö1'in iki yolu, D-307); Unit 3862 + Consistency 241, betik testleri, Integration Payment+OrderTransitions 60, Shipment 94, Disposal 45; dal CI 42414305022 yeşil; `12` `Durum` değişmedi; backlog aktif 141). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-08 — T317 (Ödeme durumu geçişleri: ödeme ekseni) düzeltme turu 3 yapıldı (PR #441; tur 2 B1 giderildi: ödenmemiş iptalin tek yolu T316'nın `CancelOrderAsync`'i — `CancelUnpaidOrderAsync`, `UnpaidOrderCancellation` ve kendi denetimi kaldırıldı, KK4 testleri `CancelOrderAsync` üzerinden; onaysız yönetici iptali `ConfirmationRequired`, "Diğer" dışı notlu / "Diğer" notsuz yönetici iptali `InvalidInput` sınandı; K1/D-389 kapandı: `StartPreparationAsync` yalnız S1, Ö1'in tek yolu ödeme kaydı yazan `ApplyCardPaymentAsync`/`MarkTransferPaidAsync`, D-307 T318'e daraldı; `origin/main` `a89710b` (T321) birleştirildi, kayıt çakışmaları çözüldü; birleşik ağaçta build `-warnaserror` 0/0, format temiz, Unit 4116, Integration Payment 33, Shipment + OrderTransitions 125, Disposal + Concurrency 71 (postgres:18); backlog aktif 146). Doğrulama tur 3 bekliyor. Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -160,7 +160,7 @@
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ⬚ | — | — | — |
 | T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |
-| T321 | Ürün yayın durumları | ⬚ | — | — | — |
+| T321 | Ürün yayın durumları | ✓ | ✓ PASS (tur 3) | — | #439 |
 | T322 | İçerik yayın durumları ve iletişim talebi durumları | ✓ | ✓ PASS (tur 1) | `f9ea0fe` | #438 |
 | T323 | Durum × rol × işlem tablosu | ⬚ | — | — | — |
 | T324 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | ⬚ | — | — | — |

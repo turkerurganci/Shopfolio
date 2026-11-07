@@ -59,7 +59,7 @@ internal sealed class ProductGallery
 
         if (currentMain is not null && currentMain.ImageId != mainImageId)
         {
-            await _db.ProductImages.Where(p => p.ProductId == productId && p.IsMain).ExecuteUpdateAsync(s => s.SetProperty(p => p.IsMain, false), ct);
+            await GalleryMainMark.ClearAsync(_db, productId, ct);
             currentMain.IsMain = false;
         }
 

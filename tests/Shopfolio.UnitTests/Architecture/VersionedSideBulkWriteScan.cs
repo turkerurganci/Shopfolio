@@ -61,7 +61,11 @@ internal static partial class VersionedSideBulkWriteScan
         "src/Shopfolio.Web/Modules/Ordering/GuestCartDisposalPart.cs",
         "src/Shopfolio.Web/Modules/Catalog/ImageDerivativeJobHandler.cs",
         "src/Shopfolio.Web/Modules/Catalog/ImageDisposalParts.cs",
+        GalleryMainMarkPlace,
     ];
+
+    /// <summary>The gallery's one bulk statement (T339): the main mark taken off a product's current main image inside the caller's transaction; a file of that one statement and nothing else.</summary>
+    public const string GalleryMainMarkPlace = "src/Shopfolio.Web/Modules/Catalog/GalleryMainMark.cs";
 
     public static bool Applies(string relativePath)
     {

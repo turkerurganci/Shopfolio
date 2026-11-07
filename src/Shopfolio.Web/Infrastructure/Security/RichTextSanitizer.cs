@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 using AngleSharp.Css.Dom;
 using AngleSharp.Dom;
 
@@ -28,11 +30,11 @@ internal static class RichTextSanitizer
     public static readonly IReadOnlySet<string> AllowedSchemes = new HashSet<string>(StringComparer.Ordinal) { "http", "https", "mailto" };
 
     /// <summary>The elements that fall together with what they contain: code, styles, embedded documents and the two foreign-content roots.</summary>
-    private static readonly HashSet<string> DroppedWithContent = new HashSet<string>(StringComparer.Ordinal)
+    private static readonly FrozenSet<string> DroppedWithContent = new[]
     {
         "script", "style", "iframe", "frame", "frameset", "object", "embed", "applet", "noscript", "noembed", "noframes", "template",
         "svg", "math", "title", "head", "textarea", "select", "option", "xmp", "plaintext", "canvas", "audio", "video",
-    };
+    }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>The library's cleaner is not documented as safe for two threads at once; every thread builds its own from the same list.</summary>
     private static readonly ThreadLocal<HtmlSanitizer> Cleaner = new(Build);

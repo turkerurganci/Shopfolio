@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 using Npgsql;
 
@@ -406,7 +407,7 @@ public sealed class ProductGalleryTests : IAsyncLifetime
         where T : IOperationResult
     {
         await using AppDbContext context = NewContext();
-        await using var transaction = await context.Database.BeginTransactionAsync(Ct);
+        await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(Ct);
         T result = await write(new ProductGallery(context, TimeProvider.System));
         if (result.IsRejected)
         {

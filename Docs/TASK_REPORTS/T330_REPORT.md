@@ -124,3 +124,12 @@ Dış varsayım: yok (saf kod; paket, plan, servis, API ya da ortam varsayımı 
   5. Yeni `LockKind.CompanySettings` (ayrı aile).
   6. Telefon kural dışı yazım "olduğu gibi" kalır ve kural reddeder; geçerliyse on haneye sıkıştırılır (`06 §2.5.1`).
   7. `CompanyIdentityRules.Normalize` yerine `ToStoredForm`: `SearchEngineSourceScan` "Normalize" adını ad katlama sayıyor.
+
+## Düzeltme 1
+
+CI "1. Lint" (run 42346250564, head `2d53728`) `dotnet format --verify-no-changes` ile kırmızıydı: `CompanyIdentityRules.cs` (WHITESPACE), `ConcurrencySourceScan.cs` (WHITESPACE), `CompanySettingsWriter.cs` (IMPORTS).
+
+- `origin/main` dala birleştirildi (merge). Çakışma yalnız kayıt belgelerinde: `IMPLEMENTATION_STATUS.md` (T313/T314 satırları main'inkiyle; "Son güncelleme" main'in girişi), `MEMORY.md` (iki satır da kaldı). Backlog "Aktif kalem" 94 → 95 olarak yeniden sayıldı (D-165 eklendi). Kod dosyasında çakışma yok.
+- Biçim: `dotnet format` ile üç dosya düzeltildi (yalnız boşluk/using biçimi, davranış değişmedi); `dotnet format Shopfolio.slnx --no-restore --verify-no-changes` temiz.
+- Testler (birleşik dal): Unit Architecture+Concurrency+Consistency 1030, geri kalan 1980; hepsi geçti (toplam 3010, `CompanyIdentity*` 41 sınıf bunun içinde).
+- Öz denetim: düzeltme yalnız biçim ve kayıt birleştirmesi; T330 kabul kriterleri tablosu yukarıdaki haliyle geçerli (6 ve 7 modül düzeyinde `~`, sayfa kısmı D-165 ve T535/T506/T537/T361). Çakışma işaretçisi kalmadı. Yeni backlog kaydı yok.

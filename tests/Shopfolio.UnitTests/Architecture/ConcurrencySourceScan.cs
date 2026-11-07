@@ -26,7 +26,7 @@ internal static partial class ConcurrencySourceScan
 
     public const string CompanySettingsWriterFile = "src/Shopfolio.Web/Modules/Settings/CompanySettingsWriter.cs";
 
-    public const string AdvisoryLocksFile ="src/Shopfolio.Web/Infrastructure/AdvisoryLocks.cs";
+    public const string AdvisoryLocksFile = "src/Shopfolio.Web/Infrastructure/AdvisoryLocks.cs";
 
     public const string JobClaimFile = "src/Shopfolio.Web/Infrastructure/Jobs/JobClaim.cs";
 

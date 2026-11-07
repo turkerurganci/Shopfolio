@@ -1,6 +1,7 @@
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Settings.Contracts;
+
 using FieldRejection = Shopfolio.Modules.Settings.Contracts.FieldRejection;
 
 namespace Shopfolio.Modules.Settings;

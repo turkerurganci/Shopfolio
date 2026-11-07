@@ -82,7 +82,7 @@ Kendi PostgreSQL konteyneri (`shopfolio-t328-pg`, 127.0.0.1:55371) adıyla silin
 
 - **Branch:** `task/T328-bildirim-haritasi`
 - **Commit:** PR'ın head SHA'sı PR gövdesinde
-- **PR:** açıldığında PR gövdesinde
+- **PR:** #440
 - **CI:** yapım işçisi yoklamaz
 - **Post-merge run'lar:** *(validator doldurur)*
 

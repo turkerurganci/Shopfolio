@@ -8,6 +8,14 @@ namespace Shopfolio.Modules.Notifications.Contracts;
 public interface INotificationsModule
 {
     /// <summary>
+    /// Queues the customer notice B-1…B-8 for <paramref name="recipientEmail"/> - the order's contact e-mail, the new address on a B-1 correction (08 2.2.6; T306):
+    /// one dispatch row in the "queued" state, written in the caller's open transaction, which the method joins and never opens - the row commits with the event or
+    /// goes with it. The row carries the order link and the event's values; the body is made when the row is sent. Returns the number of rows written: one, or
+    /// zero for a B-3 that is not due (the window's reminder is already queued, or the window has run out). The caller holds the order's row lock (09 9.1 item 5).
+    /// </summary>
+    Task<int> QueueCustomerNoticeAsync(CustomerNotice notice, string recipientEmail, CancellationToken ct);
+
+    /// <summary>
     /// Queues the firm notice F-1…F-4 for the firm's contact e-mail (08 2.2.7; T308): one dispatch row in the "queued" state, written in the caller's open
     /// transaction, which the method joins and never opens - the row commits with the event or goes with it. The row carries the event's values (the inner key
     /// of the panel screen, the order number, the amounts) and no customer data. Returns the number of rows written: zero while the firm has entered no

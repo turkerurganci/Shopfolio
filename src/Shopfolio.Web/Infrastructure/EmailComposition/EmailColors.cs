@@ -9,6 +9,7 @@ namespace Shopfolio.Infrastructure.EmailComposition;
 public static class EmailColors
 {
     public const string DefaultButtonBackground = "#1A56DB";
+    public const string LinkText = "#1A56DB";
     public const string White = "#FFFFFF";
     public const string Black = "#000000";
 

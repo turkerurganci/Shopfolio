@@ -9,6 +9,28 @@
 
 ---
 
+## 2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) düzeltme 1
+
+2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) düzeltme 1 yapıldı, doğrulama tur 2 bekliyor (PR #427; tur 1 ✗ FAIL bulguları kapatıldı: B1 ORTA — düzeltme sonrası B-1 satırı olay değerlerine ilk e-postanın oluşma anını (`FirstEmailSentAt`) yazar, kuyruk ilk satırı (aynı sipariş, `B1`) okur, `Read` anı döndürür, yeniden gönderim cümlesi bu değerden üretilir, ilk satır silinse de tarih kalır; B2 DÜŞÜK — B-5 "Takip et" dolu düğme değil, sabit renkli bağlantı, `noreferrer` ve tam adres korunur, marka rengi yalnız ana düğmede; `origin/main` (T308 #424) birleştirildi, `INotificationsModule`/`NotificationsModule` iki tarafın üyeleriyle; Unit Notifications 202, Architecture 830, Infrastructure 1162, kalan 2331, Integration yerelde CustomerNoticeQueueTests 13, format ve derleme `-warnaserror` temiz; `12` `Durum` değişmedi; backlog aktif 105).
+
+## 2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) doğrulama tur 1 FAIL
+
+2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) doğrulama tur 1 ✗ FAIL (head `deb3a3f` + `origin/main` birleştirmesi, PR #427; kriter 3 ~ Kısmi — düzeltme sonrası B-1 satırı ilk e-postanın oluşma anını olay değerlerine yazmıyor (`06 §4.58` `EventValues`, `08 §2.2.5` m.6) — bulgu B1 ORTA S1; B2 DÜŞÜK S1 — B-5 "Takip et" marka renkli ikinci düğme (`08 §2.2.5` m.2); öteki kriterler ve KK ✓; Consistency 209, Unit 3418, betik testleri, Integration yerelde parçalı (CustomerNoticeQueueTests 11, altı komşu sınıf 92) geçti; dal CI 42365665924 yeşil; `12` `Durum` değişmedi; K1 → D-231, K2 → D-232; backlog aktif 104). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
+---
+
+## 2026-11-07 — T308 (Firma bildirimleri F-1…F-6) doğrulama tur 1 PASS
+
+2026-11-07 — T308 (Firma bildirimleri F-1…F-6) doğrulama tur 1 ✓ PASS (head `77c623d` + `origin/main` birleştirmesi, PR #424; kriter 1–10, KK1–KK10 ve `09 §25` ✓; Unit 3317 (Architecture 797, öteki 2520), betik testleri, Integration yerelde CompanyNoticeQueue + MigrationBundle 13, Dispatch/Email/Job komşuları 84, Logging 30, dal CI 42363737559 yeşil; `12` `Durum` değişmedi (KP-34, KP-67 satırları olayın tetiğini ve sahte altyapıyla gönderimi ister, `BEKLEMEDE`); doğrulamada `origin/main` birleştirildi; K1 → D-224, backlog aktif 105). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
+---
+
+## 2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) yapım tamamlandı
+
+2026-11-07 — T306 (Müşteri bildirimleri B-1…B-8) yapım tamamlandı, PR açıldı, doğrulama bekliyor (Unit 3418, Integration yerelde CustomerNoticeQueueTests 11, format ve derleme `-warnaserror` temiz; öz denetim kriter 1–10, KK1–KK10 ✓; backlog aktif 104).
+
+---
+
 ## 2026-11-07 — T312 (Dosya uçları) doğrulama tur 1 PASS
 
 **Son güncelleme:** 2026-11-07 — T312 (Dosya uçları: imzalı indirme ve parçalı yükleme) doğrulama tur 1 ✓ PASS (head `93e5beb` + `origin/main` birleştirmesi, PR #426; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Consistency 209, Unit 3114, betik testleri; Integration yerelde parçalı — Files 81, Web üç sınıf 97, Concurrency 26 — hepsi geçti; dal CI 42362008048 yeşil; bulgu 0; `12` `Durum` değişmedi (KP-20/KP-44 satırları T511 ve formun kaydını bekler); K1 → D-217 (indirme 404'ünün E-06 sayfası, T504), K2 → D-218 ("kalemi indirilemez"in kapsamı, T511), K3 kod kanıtıyla kapandı; backlog aktif 100).

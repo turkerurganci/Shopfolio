@@ -5,19 +5,26 @@ using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Status;
 
 using Shopfolio.Modules.Notifications.Contracts;
+using Shopfolio.Modules.Ordering.Contracts;
 
 namespace Shopfolio.Modules.Notifications;
 
 /// <summary>The Notifications module's implementation of its open surface; internal, reached only through <see cref="INotificationsModule"/>.</summary>
 internal sealed class NotificationsModule : INotificationsModule
 {
+    private readonly CustomerNoticeQueue _customerNotices;
     private readonly CompanyNoticeQueue _companyNotices;
 
-    public NotificationsModule(CompanyNoticeQueue companyNotices)
+    public NotificationsModule(CustomerNoticeQueue customerNotices, CompanyNoticeQueue companyNotices)
     {
+        ArgumentNullException.ThrowIfNull(customerNotices);
         ArgumentNullException.ThrowIfNull(companyNotices);
+        _customerNotices = customerNotices;
         _companyNotices = companyNotices;
     }
+
+    public Task<int> QueueCustomerNoticeAsync(CustomerNotice notice, string recipientEmail, CancellationToken ct) =>
+        _customerNotices.QueueAsync(notice, recipientEmail, ct);
 
     public Task<int> QueueCompanyNoticeAsync(CompanyNotice notice, CancellationToken ct) => _companyNotices.QueueCompanyAsync(notice, ct);
 
@@ -44,6 +51,11 @@ internal static class NotificationsModuleRegistration
         // The e-mail common pattern (T305; 08 2.2.5; 09 11.4): the addresses and the composer that makes the subject, the HTML and the plain text part.
         services.AddSingleton<EmailLinks>();
         services.AddSingleton<EmailComposer>();
+
+        // The customer notices B-1…B-8 (T306; 08 2.2.6): the writer of their dispatch rows, in the caller's transaction, and the templates of their bodies.
+        services.AddSingleton(CarrierCatalog.Default);
+        services.AddScoped<CustomerNoticeQueue>();
+        services.AddSingleton<CustomerNoticeTemplates>();
 
         // The firm notices F-1…F-6 (T308; 08 2.2.7): the writer of their dispatch rows, in the caller's transaction; F-1…F-4 go to the firm's contact e-mail.
         services.AddScoped<ICompanyContactEmail, CompanyContactEmail>();

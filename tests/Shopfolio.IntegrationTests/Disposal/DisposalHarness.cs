@@ -6,11 +6,16 @@ using Npgsql;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
+using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
+using Shopfolio.Modules.Catalog;
+using Shopfolio.Modules.CorporateContent;
+using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment;
 using Shopfolio.UnitTests.Fakes;
 
@@ -38,6 +43,7 @@ internal sealed class DisposalHarness : IAsyncDisposable
     public DisposalHarness(string dsn, LogDirectories directories)
     {
         Dsn = dsn;
+        Files = new InMemoryFileStore(Time);
         DataSource = NpgsqlDataSource.Create(dsn);
         ServiceCollection services = new();
         services.AddSingleton<TimeProvider>(Time);
@@ -56,9 +62,19 @@ internal sealed class DisposalHarness : IAsyncDisposable
 
         // The order's part (T301) and the module surfaces it reaches: the order row lock, the payment and after-sales modules.
         services.AddScoped<OrderLocks>();
+        services.AddScoped<OrderPaymentArms>();
+        services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddPaymentModule();
         services.AddAfterSalesModule();
         services.AddDisposalPart<OrderDisposalPart>();
+
+        // The other time-bound records' parts (T302): the dispatch record, the contact request and the digital files, with the file store they sweep.
+        services.AddSingleton<IFileStore>(Files);
+        services.AddDisposalPart<DispatchRecordDisposalPart>();
+        services.AddDisposalPart<ContactRequestDisposalPart>();
+        services.AddDisposalPart<IncompleteDigitalUploadPart>();
+        services.AddDisposalPart<DigitalFileDisposalPart>();
+        services.AddDisposalPart<OrphanDigitalFilePart>();
         _provider = services.BuildServiceProvider();
     }
 
@@ -67,6 +83,9 @@ internal sealed class DisposalHarness : IAsyncDisposable
     public NpgsqlDataSource DataSource { get; }
 
     public ManualTimeProvider Time { get; } = new(Start);
+
+    /// <summary>The file store the parts sweep: the in-memory fake, aged with the fake clock.</summary>
+    public InMemoryFileStore Files { get; }
 
     public DateTimeOffset Now => Time.GetUtcNow();
 
@@ -102,6 +121,15 @@ internal sealed class DisposalHarness : IAsyncDisposable
         await using AsyncServiceScope scope = _provider.CreateAsyncScope();
         OrderDisposalPart part = scope.ServiceProvider.GetServices<IDisposalPart>().OfType<OrderDisposalPart>().Single();
         part.AfterPick = afterPick;
+        await part.RunAsync(new DisposalRun(scope.ServiceProvider, Now), ct);
+    }
+
+    /// <summary>Runs one part by its type, in a scope of its own, at the clock's moment (the part is the one the step would run).</summary>
+    public async Task RunPartAsync<TPart>(CancellationToken ct)
+        where TPart : class, IDisposalPart
+    {
+        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        TPart part = scope.ServiceProvider.GetServices<IDisposalPart>().OfType<TPart>().Single();
         await part.RunAsync(new DisposalRun(scope.ServiceProvider, Now), ct);
     }
 

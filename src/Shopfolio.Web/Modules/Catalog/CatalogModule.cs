@@ -5,6 +5,7 @@ using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Values;
 
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
 
 namespace Shopfolio.Modules.Catalog;
@@ -19,6 +20,7 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly DigitalFileUploads _fileUploads;
     private readonly StockCodes _stockCodes;
     private readonly ProductStructureReader _structure;
+    private readonly PriceLabelReader _priceLabels;
 
     public CatalogModule(
         StockCounters counters,
@@ -27,8 +29,10 @@ internal sealed class CatalogModule : ICatalogModule
         DigitalFileReader fileReader,
         DigitalFileUploads fileUploads,
         StockCodes stockCodes,
-        ProductStructureReader structure)
+        ProductStructureReader structure,
+        PriceLabelReader priceLabels)
     {
+        _priceLabels = priceLabels;
         _counters = counters;
         _imageUploads = imageUploads;
         _sitemap = sitemap;
@@ -54,6 +58,15 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task<IReadOnlyList<OptionMatrixCell>> GetOptionMatrixAsync(Guid productId, CancellationToken ct)
         => _structure.GetMatrixAsync(productId, ct);
+
+    public Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct) => _priceLabels.GetAsync(variantId, ct);
+
+    public ItemAmounts PriceItem(ItemPriceInput input) => ItemPricing.Price(input);
+
+    public IReadOnlyList<ShippingVatPart> SplitShippingFee(decimal shippingFee, IReadOnlyList<ShippingBasisLine> lines)
+        => ItemPricing.SplitShippingFee(shippingFee, lines);
+
+    public decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee) => ItemPricing.SumOrderTotal(items, shippingFee);
 
     public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct)
         => _fileReader.FindAsync(variantId, lastKnownFileId, ct);
@@ -110,6 +123,7 @@ internal static class CatalogModuleRegistration
         services.AddScoped<DigitalFileUploads>();
         services.AddScoped<StockCodes>();
         services.AddScoped<ProductStructureReader>();
+        services.AddScoped<PriceLabelReader>();
 
         // The image derivative job (D-97) and the image disposal (D-102): the rows first, the files they leave behind after (06 9.3.4).
         services.AddJobHandler<ImageDerivativeJobHandler>(JobType.ImageDerivative);

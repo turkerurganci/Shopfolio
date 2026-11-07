@@ -249,6 +249,7 @@ internal sealed class AppDbContext : DbContext, IDataProtectionKeyContext
                 CatalogRecordsGuard.Instance,
                 ProductVersionGuard.Instance,
                 ProductDefinitionGuard.Instance,
+                PriceLabelGuard.Instance,
                 LoginRecordsGuard.Instance,
                 OrderingRecordsGuard.Instance,
                 OrderVersionGuard.Instance,

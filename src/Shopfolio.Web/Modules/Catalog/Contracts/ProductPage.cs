@@ -1,21 +1,5 @@
 namespace Shopfolio.Modules.Catalog.Contracts;
 
-/// <summary>What an address under <c>/urun/{slug}</c> answers (02 3.7.5, 3.7.6, 3.30.4): the page, the "not sold any more" page, the administrator's draft preview, or "page not found".</summary>
-public enum ProductPageKind
-{
-    /// <summary>No page: the address is unknown, deleted or a draft's seen by a visitor - one and the same "page not found" (02 3.30.4).</summary>
-    NotFound,
-
-    /// <summary>A Published product: the product page with its Published variants.</summary>
-    Published,
-
-    /// <summary>A Draft product seen by a signed-in administrator: the page with the "Draft" band and every variant but the archived (02 3.7.5).</summary>
-    DraftPreview,
-
-    /// <summary>An Archived product: the "Bu ürün artık satılmıyor" page - name, image and status, no price and no cart (02 3.7.6).</summary>
-    Archived,
-}
-
 /// <summary>A variant on the product page: the visitor sees only the Published ones; the administrator's preview adds the Draft ones, marked by <see cref="Status"/> (02 3.7.5).</summary>
 public sealed record ProductPageVariant(Guid Id, string Sku, decimal Price, bool IsSoldOut, PublishStatus Status);
 

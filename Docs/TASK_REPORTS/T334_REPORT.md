@@ -120,7 +120,7 @@
 - **Commit:** `1c8bf42` (dal başı, PR açılışında)
 - **PR:** #443
 - **CI:** dal CI 42403928586 (head `2b3e600`) success
-- **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır sonraki task dalında güncellenir)*
+- **Post-merge run'lar:** squash `af6e7d3` (#443) — CI 42411903829 success, Publish 42411903876 success (T335 dalında dolduruldu)
 
 ## Dış Varsayımlar
 

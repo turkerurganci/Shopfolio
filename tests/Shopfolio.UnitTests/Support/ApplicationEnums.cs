@@ -12,11 +12,12 @@ internal static class ApplicationEnums
 
     /// <summary>
     /// The enums of a module's <c>Contracts</c> that are named, not stored: the value is a result code an operation returns and no column ever holds it
-    /// (T316: the refusal of the transition unit's open face). Each is listed by its full name; a stored enum is never added here.
+    /// (T316: the refusal of the transition unit's open face; T335: what a product address answers). Each is listed by its full name; a stored enum is never added here.
     /// </summary>
     private static readonly HashSet<string> NotStored = new(StringComparer.Ordinal)
     {
         "Shopfolio.Modules.Ordering.Contracts.TransitionRefusal",
+        "Shopfolio.Modules.Catalog.Contracts.ProductPageKind",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

@@ -280,6 +280,9 @@ public sealed class PublishGateTests
     [InlineData("_db.Remove(variant);")]
     [InlineData("context.RemoveRange(variants);")]
     [InlineData("Products.Remove(p);")]
+    [InlineData("await _db.Database.ExecuteSqlRawAsync(\"DELETE FROM variants WHERE id = {0}\", id);")]
+    [InlineData("await _db.Database.ExecuteSqlAsync($\"delete from public.products where id = {id}\", ct);")]
+    [InlineData("await _db.Database.ExecuteSqlRawAsync(\"TRUNCATE TABLE \\\"products\\\" CASCADE\");")]
     public void Scan_OnEveryFormOfADeletion_ReportsIt_OutsideTheUnit(string text)
     {
         Assert.Single(CatalogDeletionScan.Scan("src/Shopfolio.Web/Modules/Catalog/Other.cs", text));
@@ -293,6 +296,8 @@ public sealed class PublishGateTests
     [InlineData("// _db.Products.Remove(product);")]
     [InlineData("/// <c>_db.Variants.Remove(variant)</c>")]
     [InlineData("var products = _db.Products.Where(p => p.Id == id).ToList();")]
+    [InlineData("await _db.Database.ExecuteSqlRawAsync(\"DELETE FROM cart_items WHERE id = {0}\", id);")]
+    [InlineData("await _db.Database.ExecuteSqlRawAsync(\"UPDATE variants SET stock_quantity = 0 WHERE id = {0}\", id);")]
     public void Scan_OnWhatIsNotAProductOrVariantDeletion_ReportsNothing(string text)
     {
         Assert.Empty(CatalogDeletionScan.Scan("src/Shopfolio.Web/Modules/Catalog/Other.cs", text));
@@ -337,6 +342,9 @@ internal static class CatalogDeletionScan
     private static readonly Regex DeletedState = new(@"EntityState\s*\.\s*Deleted", RegexOptions.Compiled);
 
     private static readonly Regex NamesAProductOrAVariant = new(@"product|variant", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    // A raw statement on the two tables: the table's name after DELETE FROM or TRUNCATE (quoted or not, schema-qualified or not).
+    private static readonly Regex RawSql = new(@"\b(DELETE\s+FROM|TRUNCATE(\s+TABLE)?)\s+(ONLY\s+)?([\\""]*\w+[\\""]*\.)?[\\""]*(products|variants)\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     /// <summary>The 1-based line a statement that deletes a product or a variant starts on, outside the unit's file; comment lines are not statements.</summary>
     public static IReadOnlyList<int> Scan(string relativePath, string text)
@@ -386,5 +394,6 @@ internal static class CatalogDeletionScan
     private static bool IsDeletion(string statement)
         => (OnTheSets.IsMatch(statement) && Deleting.IsMatch(statement))
             || OnTheContext.IsMatch(statement)
+            || RawSql.IsMatch(statement)
             || (DeletedState.IsMatch(statement) && statement.Contains("Entry(", StringComparison.Ordinal) && NamesAProductOrAVariant.IsMatch(statement));
 }

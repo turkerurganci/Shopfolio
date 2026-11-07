@@ -63,7 +63,10 @@ public sealed class NotificationMapConsistencyTests
 
         Assert.All(NotificationMap.Events, e => Assert.NotEmpty(e.Rows));
         Assert.Empty(named.Except(known));
-        Assert.Empty(known.Except(named));
+
+        // Every notice row is named by an event row. The 7.2 rows that no event row names are the standing statements ("no notice for X", e.g. the time-outs, the contact form, the
+        // marketing messages) that no state-machine transition or record event leads to; the 7.2 rows an event row names are checked above.
+        Assert.Empty(NotificationMap.Triggers.Select(t => t.RowId).Except(named));
     }
 
     [Fact]

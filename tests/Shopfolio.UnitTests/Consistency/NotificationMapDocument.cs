@@ -173,6 +173,16 @@ internal static partial class NotificationMapDocument
     public static IReadOnlySet<string> AllRowIds()
     {
         HashSet<string> ids = new(StringComparer.Ordinal);
+        // A "§2.10.4" citation names a section, so the numbered headings count as ids too.
+        foreach (string heading in DocumentLines.Value.Where(l => l.StartsWith('#')))
+        {
+            string[] words = heading.TrimStart('#').Trim().Split(' ', 2);
+            if (FlowRowId().IsMatch(words[0]))
+            {
+                ids.Add(words[0]);
+            }
+        }
+
         foreach (string line in DocumentLines.Value.Where(l => l.StartsWith('|')))
         {
             string first = Cells(line)[0];
@@ -200,7 +210,7 @@ internal static partial class NotificationMapDocument
             .Distinct(),
     ];
 
-    private static IReadOnlyList<DocumentRow> Rows(string startPrefix, string endPrefix, Regex idPattern)
+    private static List<DocumentRow> Rows(string startPrefix, string endPrefix, Regex idPattern)
     {
         string[] lines = DocumentLines.Value;
         int start = Array.FindIndex(lines, l => l.StartsWith(startPrefix, StringComparison.Ordinal));

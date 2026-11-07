@@ -42,6 +42,13 @@ public interface IOrderingModule
     /// <paramref name="max"/>: the disposal part of a record that is kept ten years from the moment the order failed asks for them page by page.
     /// </summary>
     Task<IReadOnlyList<Guid>> FindUnpaidFailedOrdersAsync(DateTimeOffset failedBefore, IReadOnlyCollection<Guid> exclude, int max, CancellationToken ct);
+
+    /// <summary>
+    /// The orders that hold a variant's reservation now (02 3.6.7; 06 4.14): the panel's stock field shows them beside the reserved quantity and a refused lowering names
+    /// them. One row per order with its number and the reserved units, the most recent reservation first. A reservation lives only until payment or release, so these
+    /// are exactly the orders whose payment is awaited. A plain read; it writes nothing.
+    /// </summary>
+    Task<IReadOnlyList<ReservationHolder>> ListReservationHoldersAsync(Guid variantId, CancellationToken ct);
 }
 
 /// <summary>
@@ -52,6 +59,9 @@ public sealed record OrderPaymentArm(Guid OrderId, bool IsPaid, DateTimeOffset? 
 
 /// <summary>The order of an order item.</summary>
 public sealed record OrderOfItem(Guid OrderItemId, Guid OrderId);
+
+/// <summary>An order that holds units of a variant's stock or capacity: its id, its number and the reserved units.</summary>
+public sealed record ReservationHolder(Guid OrderId, string OrderNumber, int Quantity);
 
 /// <summary>The links a digital order item holds to its file (06 4.18): the variant, emptied when the variant is deleted, and the last known file.</summary>
 public sealed record DownloadableItem(Guid? VariantId, Guid? DigitalFileId);

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.EmailComposition;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Status;

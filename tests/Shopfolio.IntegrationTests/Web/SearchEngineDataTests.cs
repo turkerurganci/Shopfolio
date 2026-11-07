@@ -197,7 +197,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         product.Description = "<p>Masif <b>meşe</b> masa, el yapımı.</p>";
         product.PublishStatus = status;
         db.Products.Add(product);
-        Variant variant = Variant.Create(product.Id, "AHSAP-MASA-01", price, Now);
+        Variant variant = Variant.Create(product.Id, "AHSAP-MASA-01", price, Now, 100);
         variant.StockQuantity = stock;
         db.Variants.Add(variant);
         Guid imageId = Guid.Empty;
@@ -492,7 +492,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
             _ =>
             {
                 attempts++;
-                db.Variants.Add(Variant.Create(productId, "ahsap-masa-01", 5m, Now));
+                db.Variants.Add(Variant.Create(productId, "ahsap-masa-01", 5m, Now, 100));
                 return Task.FromResult(new SavedProduct(false, string.Empty));
             },
             ["ix_products_slug"],

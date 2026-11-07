@@ -80,7 +80,7 @@
 
 - **Şema/migration:** Yok
 - **Config / ortam değişkeni:** Yok (yeni ayar, süre, tavan yok; `.env.example` değişmedi)
-- **Paketleme / dağıtım:** `packages.lock.json`'a Razor SDK'nın örtük `Microsoft.AspNetCore.App.Internal.Assets` 10.0.11 girdisi eklendi (aşağıda ⚠ 3)
+- **Paketleme / dağıtım:** `packages.lock.json`'a Razor SDK'nın örtük `Microsoft.AspNetCore.App.Internal.Assets` 10.0.11 girdisi eklenmişti; Düzeltme 2'de kaldırıldı (`packages.lock.json` değişmez; ⚠ 3)
 - **Yeni bağımlılık:** Yok (`HtmlRenderer` çatıyla gelir; `09 §11.4`)
 
 ## Commit & PR
@@ -119,7 +119,7 @@ Tetikleyici tarama (`plan tier`, kota, sürüm, registry, …): iki varsayım bu
 
 1. **Bileşen ve model yeri:** `Infrastructure/EmailComposition/` (modül dışı), model türleri `public`. Sebep: Razor bileşeni her zaman `public`tir, parametre türü de `public` olmak zorundadır; modül içinde `public` tür `09 §6` m.1'e ve mimari teste aykırıdır. `09 §11.4` yer söylemez; `CONTEXT.md` güncellendi. Birleştirici, adresler ve yazıcılar `internal`dır.
 2. **Düz metin parçasında HTML benzeri değer olduğu gibi gider** (yalnız satır sonu boşluk olur): `08 §2.2.4` düz metin için başka bir şey istemez; `09 §11.4` m.7'nin "düz metin parçasında etiket yoktur" cümlesi şablonun kendi işaretlemesi olarak okundu (düz metin işaretleme yorumlamaz). Aksi okuma doğrulamada çıkarsa etiket temizleme eklenir.
-3. **`packages.lock.json` değişti:** .razor dosyası Razor SDK'sının örtük `Microsoft.AspNetCore.App.Internal.Assets` 10.0.11 paketini kilit dosyasına yazdırdı (çatı sürümüyle aynı; üçüncü taraf değil, `Directory.Packages.props` satırı gerekmedi). Kilitli geri yükleme için commit'e girdi.
+3. **`packages.lock.json` değişmez (Düzeltme 2 ile düzeltildi):** ilk turda .razor dosyasının getirdiği örtük `Microsoft.AspNetCore.App.Internal.Assets` girdisi kilide yazılmıştı; kapsayıcı geri yüklemesi yalnız csproj'u gördüğü için `NU1004` verdi. Örtük ekleme `RequiresAspNetWebAssets=false` ile kapatıldı, kilit `main`'deki hâline döndü.
 4. **HTML'de Türkçe karakterler sayısal başvuru** (`&#xDC;` gibi) çıkar: `HtmlRenderer`'ın varsayılan kodlayıcısı; geçerli HTML, istemcide aynı görünür, testler çözerek karşılaştırır.
 5. **Yeniden gönderim kararını şablon verir:** `EmailContent.Resend` null ise cümle yoktur; "ilk e-postanın tarihi" ve "yeni olay mı" ayrımı `OriginalDispatchId`'yi okuyan T306+ şablonlarının işidir (`08 §2.2.5` m.6); T305 yalnız cümleyi ve yerini üretir.
 6. **Logo yolu `/gorsel/` altında** zorunlu (`07 §2.1.2`); başka yol `ArgumentException`. Logonun kaynak kopya adresini seçmek (WebP türevi değil) Branding'i okuyan şablon / T306 işidir.
@@ -138,3 +138,20 @@ Tetikleyici tarama (`plan tier`, kota, sürüm, registry, …): iki varsayım bu
 | Web derlemesi | ✓ | 0 uyarı, 0 hata |
 
 **Öz denetim:** Diff tek dosyada, bir tür adı ve bir `using` satırı (rapor hariç); kabul kriterleri 1–9 ve yukarıdaki "Öz denetim" tablosunun bütün maddeleri değişmeden ✓ (kanıt testleri yeşil: 2802 + 207). `sik-fail-nedenleri.md` taraması: bu düzeltme tarama istisnası, DB, kural sayısı ya da belge kuralı değiştirmiyor; ilgili sık neden yok.
+
+## Düzeltme 2
+
+**Neden:** PR #422 CI'ı (head `1dbd6b0`, run 42350175720) "7. Paketleme doğrulaması"nda kırmızıydı: kapsayıcıda `dotnet restore src/Shopfolio.Web/Shopfolio.Web.csproj --locked-mode` `NU1004: The package references have changed`. Kök neden: Web SDK, projede `.razor` dosyası görünce `RequiresAspNetWebAssets=true` yapar ve `Microsoft.AspNetCore.App.Internal.Assets` (Blazor betik varlıkları) paketini restore'a örtük ekler. İlk tur bu girdiyi `packages.lock.json`'a yazmıştı; `deploy/images/app/Dockerfile` geri yüklemeyi yalnız csproj + kilit ile (kaynaksız, `.razor` yok) koşar, orada örtük ekleme olmaz, kilit "fazla" kalır.
+
+**Düzeltme:** `src/Shopfolio.Web/Shopfolio.Web.csproj`'a `<RequiresAspNetWebAssets>false</RequiresAspNetWebAssets>` (gerekçe yorumuyla); uygulama Blazor betiği sunmaz, `HtmlRenderer` bu pakete bağlı değildir. Üç `packages.lock.json` (Web, UnitTests, IntegrationTests) `origin/main` ile birebir; yeni paket ve `Directory.Packages.props` satırı yok (üçüncü bir seçenek olan açık `PackageReference` 09 Kütüphaneler tablosu satırı ve tutarlılık testi gerektirirdi, seçilmedi). `origin/main` (T304 #421) dala birleştirildi (rebase değil): STATUS "Son güncelleme" main'in girişi, MEMORY satırları hepsi, backlog'da main kayıtları (D-166, D-172) + D-167, "Aktif kalem" 97 (93 ⚪ + 3 🟡 main'de 96, artı D-167); T305 STATUS satırı ⏳ + #422; `NotificationsModule` kayıtları birlikte. Yeni backlog kaydı yok.
+
+| Denetim | Sonuç | Komut / Çıktı |
+|---|---|---|
+| Kilitli geri yükleme, çözüm | ✓ | `dotnet restore Shopfolio.slnx --locked-mode --force`: üç proje temiz |
+| Kapsayıcı görünümü (csproj + kilit, `.razor` yok) | ✓ | kopya dizinde `--locked-mode` temiz (önceki tur: NU1004) |
+| Uygulama imajı | ✓ | `docker build -f deploy/images/app/Dockerfile -t t305-app .`: geri yükleme ve `publish` adımları geçti (migration paketi adımı ön plan sınırında kesildi; adımdan öncesi kanıt); imaj/kaynak silindi |
+| Web derlemesi | ✓ | 0 uyarı, 0 hata |
+| Biçim | ✓ | `dotnet format --verify-no-changes`: Web, UnitTests, IntegrationTests temiz |
+| Unit | ✓ | `--filter-not-trait "Consistency=true"`: 2840 geçti, 0 başarısız (T305: 56); Architecture 769, Consistency 209 geçti |
+
+**Öz denetim:** kabul kriterleri 1–9 ve "Öz denetim" tablosu diff'te yeniden denetlendi; Düzeltme 2 yalnız csproj özelliği + birleştirme + rapor; ürün kodu, test, belge kuralı değişmedi, tüm kanıt testleri yeşil (T305 56, Architecture 769). `sik-fail-nedenleri.md`: "aynı sayıyı anan öteki yerler" — backlog sayacı (97), STATUS satırı, MEMORY ve rapor ⚠ 3 / Altyapı satırı güncellendi; tarama istisnası, DB, karar kaydısız 09 metni yok.

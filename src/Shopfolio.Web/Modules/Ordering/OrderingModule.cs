@@ -64,6 +64,7 @@ internal static class OrderingModuleRegistration
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddDisposalPart<GuestCartDisposalPart>();
+        services.AddDisposalPart<OrderDisposalPart>();
         return services;
     }
 }

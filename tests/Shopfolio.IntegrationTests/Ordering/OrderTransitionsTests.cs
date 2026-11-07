@@ -17,6 +17,7 @@ using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
@@ -624,6 +625,7 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
         services.AddSingleton<ImageProcessor>();
         services.AddCatalogModule();
         services.AddAfterSalesModule();
+        services.AddNotificationsModule();
         services.AddOrderingModule();
         return services.BuildServiceProvider();
     }

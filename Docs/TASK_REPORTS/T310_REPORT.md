@@ -80,7 +80,7 @@
 
 - **Branch:** `task/T310-kargo-sirketleri`
 - **Commit:** `5e0c1d0` (kod), devam commit'i (plan düzeltmesi, rapor)
-- **PR:** bkz. PR açıklaması
+- **PR:** #423
 - **CI:** yoklanmadı
 - **Post-merge run'lar:** *(validator doldurur)*
 

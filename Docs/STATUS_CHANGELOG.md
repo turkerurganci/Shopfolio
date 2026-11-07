@@ -9,6 +9,12 @@
 
 ---
 
+## 2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 3 PASS
+
+2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 3 ✓ PASS (head `c5b9afd` + `origin/main` (T316, #437) birleştirmesi, PR #439; kriter 1–9, KK1–KK9 ve `09 §25` ✓, güvenlik taraması temiz; tur 2 Bulgu 1 — `IOrderingModule` sepet metotlarının kendi `SaveChangesAsync`'i — giderildi: iki metot yalnız izlenen değişiklik bırakır, kaydı `ITransactionRunner` yapar (`TheCartMethods_DoNotSaveOnTheirOwn_...KK7`); bulgu 0, yeni K-notu 0; dal CI 42406697716 yeşil; yerelde derleme `-warnaserror` 0 uyarı, biçim üç proje temiz, Unit 4062/4062 (Architecture ve Consistency dahil), betik testleri 4/4, Integration `ProductTransitionsTests` 41, Sitemap + SearchEngine + Scheduler + ContentStatus 65, OrderTransitions + Concurrency 57 (postgres:18); `12` KP-7/KP-40 satırları uç yanıtı, panel ya da adres sayfası ister → `BEKLEMEDE` kalır; kayıt belgeleri çakışması `origin/main` ile çözüldü, backlog Aktif kalem 145). Merge ve post-merge CI yardımcıda.
+
+---
+
 ## 2026-11-07 — T334 (Stok ve hizmet kontenjanı) doğrulama tur 1 PASS
 
 2026-11-07 — T334 (Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme) doğrulama tur 1 ✓ PASS (head `2b3e600` + `origin/main` (T328) birleştirmesi, PR #443; kriter 1–8, KK1–KK8 ve `09 §25` ✓, güvenlik taraması temiz; Unit 4069 (birleştirmeden önce), 4093 (sonra); betik testleri; Integration yerelde StockAndCapacity 27, CatalogCore+SalesModel 88, Concurrency+ImageFiles+CartAndOrderCore+StockReservation 133, AppCache+SearchEngineData+VersionedFormPage 53 (yapım raporundaki `VersionedFormPageTests` düşmesi yinelenmedi), birleştirme sonrası NotificationMapQueue+SalesModel 31; dal CI 42403928586 yeşil; bulgu 0, K-notu 1 → D-362 (T525); `12` `Durum` değişmedi (satırların kanıtı uç yanıtı, tarayıcı gözlemi ya da ödeme onayı — T503, T525, T348); backlog aktif sayısı yeniden sayıldı: 139). Önceki kayıt `STATUS_CHANGELOG.md`'de.
@@ -16,6 +22,9 @@
 ## 2026-11-07 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) doğrulama tur 2 FAIL
 
 2026-11-07 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) doğrulama tur 2 ✗ FAIL (head `d42a5a4` + `origin/main` birleştirmesi, PR #442; kriter 1–8 ve KK1–KK8 ✓, tur 1 B1 düzeltmesi doğrulandı (iki listede sayfa sınırı testleri yeşil); güvenlik taraması temiz; Unit 4064, Integration `CategoryTreeAndListsTests` 32/32 + `ConcurrencyTests` 26/26; dal CI 42406747948 yeşil). **Bulgular:** B1 DÜŞÜK S1 — `09 §25` Performans "okuma sorgusu projeksiyonlu mu" hayır: `ProductListReader` sayfayı `Product` varlığının bütün sütunlarıyla (açıklama gövdesi dahil) okur, `09 §20` madde 3 yalnız gösterilen sütunların `Select` ile alınmasını ister (D-134 bunu T333'e yönlendirmişti); B2 DÜŞÜK S1 — `09 §20` madde 4: varyant rakamlarını yükleyen liste için sorgu sayısının sayfadaki ürün sayısından bağımsız olduğunu komut yakalayıcıyla sınayan entegrasyon testi yok. K1 → D-372 (ürün–kategori bağı değişince menü/ağaç önbellek alanı bildirimi, T361). Düzeltme 2 gerekli: B1 + B2 (ve D-134 kapanışı); iterasyon 1/2 kullanıldı (`12 §8.5`).
+## 2026-11-07 — T321 (Ürün yayın durumları) düzeltme 2 yapıldı
+
+2026-11-07 — T321 (Ürün yayın durumları) düzeltme 2 yapıldı (tur 2 Bulgu 1: `IOrderingModule.RemoveFromCartsAsync` ve `TakeRemovedItemNoticesAsync` artık `SaveChangesAsync` çağırmaz — kaydı işlemin sahibi (`ITransactionRunner`) yapar, `09 §6` m.3, m.7; yeni test `TheCartMethods_DoNotSaveOnTheirOwn_TheTransactionOwnerDoes_KK7`; `TakeNoticesAsync` test yardımcısı `ITransactionRunner` üzerinden; `origin/main` (T328, #440) birleştirildi; 11'deki kriterler ve KK1–KK9 düzeltilmiş diff'te yeniden denetlendi; doğrulama tur 3 bekliyor; backlog aktif 136). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 ## 2026-11-07 — T316 (Sipariş durumu geçişleri: sevkiyat ekseni) doğrulama tur 2 PASS
 
@@ -36,6 +45,17 @@
 ## 2026-11-07 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) yapım bitti
 
 2026-11-07 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) yapım bitti ⏳ doğrulama bekliyor (dal `task/T333-kategori-arama-suzgec`; kriter 1–8 ve KK1–KK8 öz denetimde ✓; Unit 3983, Integration `CategoryTreeAndListsTests` 29, Model ad alanı 1105; şema değişmedi; backlog D-330…D-334, aktif 130; T332 Commit hücresi `c4c872c`).
+## 2026-11-07 — T328 (Bildirim haritası) doğrulama tur 1 PASS
+
+2026-11-07 — T328 (Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi) doğrulama tur 1 ✓ PASS (head `0edb3bd`, PR #440; kriter 1–7, KK1–KK7 ve `09 §25` ✓, güvenlik taraması temiz; KK7 iki mutasyonla (kodda fazla satır, belgede eksik akış atfı) kırıldığı görüldü; Unit Consistency 241, öteki 3746; betik testleri; Integration yerelde NotificationMapQueue 3, komşu kuyruk sınıfları 47; dal CI 42394956374 yeşil; bulgu 0, K-notu 1 (D-295 sayımı ve backlog aktif sayısı bu PR'da düzeltildi); `12` `Durum` değişmedi (kaynak birimi `03 §7.1`–§7.3'e bağlı satır yok); backlog aktif 130). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
+## 2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 2 FAIL
+
+2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 2 ✗ FAIL (head `921491a` + `origin/main` (T322, #436) birleştirmesi, PR #439; kriter 1–9 ve KK1–KK9 ✓, tur 1'in iki bulgusu kapandı; `09 §25` bir "hayır": Bulgu 1 DÜŞÜK S1 — `IOrderingModule` arayüz metotları `RemoveFromCartsAsync` ve `TakeRemovedItemNoticesAsync` `SaveChangesAsync` çağırıyor (`09 §6` m.3, m.7); güvenlik taraması temiz; Unit Consistency 230 + Architecture 906 + öteki 2845, betik testleri, Integration yerelde ProductTransitions 40, Catalog + Ordering + Concurrency 97, Sitemap + SearchEngineData + Scheduler 31, Web host 77 (birleştirme öncesi `921491a`); dal CI 42399951671 yeşil; K-notu 1 (D-353 → T502: sayfalı liste projeksiyonsuz); `12` `Durum` değişmedi (KP-7/KP-40 satırları uç ve panel kanıtı ister); iki iterasyon sınırı doldu — eskalasyon (`12 §8.5`); backlog aktif 134). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
+## 2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 1 FAIL, düzeltme yapıldı
+
+2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 1 ✗ FAIL (head `8d71d89`, PR #439; kriter 1–9 ve KK1–KK9 ✓, `09 §25` iki "hayır": Bulgu 1 DÜŞÜK S1 — yeni sayfalı vitrin listesi `ShowcaseReader.ListAsync` sınır testi olmadan eklendi (`09 §19.2` m.5, §10.5 m.6); Bulgu 2 DÜŞÜK S1 — `OrderingModule.TakeRemovedItemNoticesAsync` `DbUpdateConcurrencyException`'ı kayıt varyantı dışında ret olarak yakalıyor (`09 §10.2` m.2); güvenlik taraması temiz; Unit Architecture 906 + öteki 3070, betik testleri, Integration yerelde ProductTransitions 35 + SitemapEndpoint 10; dal CI 42394867534 yeşil; K-notu yok; `12` `Durum` değişmedi (KP-7/KP-40 satırları uç ve panel kanıtı ister); backlog aktif 130). Düzeltme yapıldı (iki bulgu: vitrin listesi sınır testleri, `TakeRemovedItemNoticesAsync` sepet kilidi altında ve yakalamasız; Integration ProductTransitions 40, Unit 906 + 3075), doğrulama tur 2 bekliyor.
 ---
 
 ## 2026-11-07 — T328 (Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi) doğrulama tur 1 PASS

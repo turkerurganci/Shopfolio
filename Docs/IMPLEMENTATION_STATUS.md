@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) düzeltme 2 bitti ⏳ doğrulama tur 3 bekliyor (PR #442; tur 2 ✗ FAIL B1 ve B2 (DÜŞÜK S1) giderildi: B1 `ProductListReader` sayfayı artık yalnız kartın sütunlarıyla `Select` projeksiyonuyla okuyor (`init` üyeli özel sınıf; sıra `CreatedAt` azalan, `Id` azalan aynı), D-134 ✅; B2 `TheListsQueryCount_DoesNotGrowWithThePageFill_…` komut yakalayıcıyla 1 ürünlü ve dolu sayfada sorgu sayısının eşitliğini sınar; `origin/main` (T334) birleşince tohum uyarlandı (Physical varyantta stok sayısı zorunlu, sınırsız varyant için Digital ürün); Integration `CategoryTreeAndListsTests` 31/31 + iki sınır testi ayrı 1/1 + 1/1; Unit Architecture 936, Consistency 241, Catalog 61; backlog aktif kalem 144; `12` değişmedi). Önceki kayıtlar `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-08 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) `origin/main` (T321, T334) ile kod birleştirmesi yapıldı ⏳ yeniden doğrulama bekliyor (PR #442; kurucu çakışması iki tarafın eklemesiyle çözüldü, vitrin görünürlüğü `ShowcaseVisibility.Listed()` tek yerine bağlandı, backlog aktif kalem 150; önceki durum: düzeltme 2 bitti, doğrulama tur 3 bekliyordu; tur 2 ✗ FAIL B1 ve B2 (DÜŞÜK S1) giderildi: B1 `ProductListReader` sayfayı artık yalnız kartın sütunlarıyla `Select` projeksiyonuyla okuyor (`init` üyeli özel sınıf; sıra `CreatedAt` azalan, `Id` azalan aynı), D-134 ✅; B2 `TheListsQueryCount_DoesNotGrowWithThePageFill_…` komut yakalayıcıyla 1 ürünlü ve dolu sayfada sorgu sayısının eşitliğini sınar; `origin/main` (T334) birleşince tohum uyarlandı (Physical varyantta stok sayısı zorunlu, sınırsız varyant için Digital ürün); Integration `CategoryTreeAndListsTests` 31/31 + iki sınır testi ayrı 1/1 + 1/1; Unit Architecture 936, Consistency 241, Catalog 61; backlog aktif kalem 144; `12` değişmedi). Önceki kayıtlar `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -160,7 +160,7 @@
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ⬚ | — | — | — |
 | T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |
-| T321 | Ürün yayın durumları | ⬚ | — | — | — |
+| T321 | Ürün yayın durumları | ✓ | ✓ PASS (tur 3) | — | #439 |
 | T322 | İçerik yayın durumları ve iletişim talebi durumları | ✓ | ✓ PASS (tur 1) | `f9ea0fe` | #438 |
 | T323 | Durum × rol × işlem tablosu | ⬚ | — | — | — |
 | T324 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | ⬚ | — | — | — |

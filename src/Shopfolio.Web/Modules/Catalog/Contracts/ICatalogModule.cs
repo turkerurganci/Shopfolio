@@ -91,6 +91,19 @@ public interface ICatalogModule
     Task<UploadStatus?> GetUploadStatusAsync(Guid id, CancellationToken ct);
 
     /// <summary>
+    /// The storefront's product list and search (02 5.1; 09 10.5): only Published products, newest first, 24 a page. A <paramref name="search"/> that is not null filters by
+    /// the name; a word that makes no pattern gives an empty page. A Draft and an Archived product are in neither; a sold-out Published product is in both, marked
+    /// (02 3.6.4). A plain read; it writes nothing.
+    /// </summary>
+    Task<ShowcasePage> ListShowcaseAsync(string? search, int page, CancellationToken ct);
+
+    /// <summary>
+    /// The option list of a product page (02 5.1; 03 1.8.1): the product's Published variants when the product is Published, otherwise none. A Draft and an Archived variant
+    /// are not listed; a sold-out one is, marked (02 3.6.3). A plain read; it writes nothing.
+    /// </summary>
+    Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>
     /// The stock code the new variant's form is filled with (02 3.3.4; 05 7.8.1, MK-32): the product's address in capitals - its first twenty characters - a hyphen and
     /// the two-digit order of the variant, raised until no other variant holds the code. A saved product (<paramref name="productId"/>) starts from its address and
     /// the order of its next variant; a product not saved yet starts from <paramref name="productName"/> as it is now; null when there is neither a saved product nor a

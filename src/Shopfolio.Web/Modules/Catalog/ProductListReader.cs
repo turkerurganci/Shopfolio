@@ -58,7 +58,8 @@ internal sealed class ProductListReader
         return await PageOfAsync(products, filter, page, ct);
     }
 
-    private IQueryable<Product> Published() => _db.Products.AsNoTracking().Where(p => p.PublishStatus == PublishStatus.Published);
+    // The product's visibility is the one rule of ShowcaseVisibility (09 24 item 4), not a condition written here.
+    private IQueryable<Product> Published() => _db.Products.AsNoTracking().Listed();
 
     private async Task<ProductListPage> PageOfAsync(IQueryable<Product> products, ProductListFilter? filter, int page, CancellationToken ct)
     {

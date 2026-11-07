@@ -363,6 +363,7 @@ public sealed class SalesGateTests : IAsyncLifetime
         Assert.True((await ReadGateAsync(Bindings.Transfer)).IsOpen);
         string orders = await OrderStateAsync();
         string texts = await LegalTextStateAsync();
+        string knownIds = await ScalarAsync<string>("SELECT string_agg(id::text, ',') FROM legal_text_versions");
         Assert.Contains(FrozenIban, orders, StringComparison.Ordinal);
 
         // The switch is turned on; the identity changes type and loses its required fields; the return address is emptied; the transfer is closed and its IBAN replaced.
@@ -376,7 +377,7 @@ public sealed class SalesGateTests : IAsyncLifetime
             [SalesGateCondition.CompanyIdentity, SalesGateCondition.PaymentMethod, SalesGateCondition.TemporaryClosure, SalesGateCondition.PrivacyNotice, SalesGateCondition.ReturnAddress],
             gate.UnmetConditions);
         Assert.Equal(orders, await OrderStateAsync());
-        Assert.Equal(texts, await LegalTextStateAsync());
+        Assert.Equal(texts, await LegalTextStateAsync(knownIds));
         Assert.Contains(FrozenIban, await OrderStateAsync(), StringComparison.Ordinal);
         Assert.True(gate.Permits(SalesGateOperation.ContinueOpenOrder));
         Assert.True(gate.Permits(SalesGateOperation.KeepExistingCart));
@@ -468,8 +469,8 @@ public sealed class SalesGateTests : IAsyncLifetime
 
     private async Task SeedOrdersAsync()
     {
-        LegalTextVersion form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, 1, Now, "metin", Now);
-        LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, 1, Now, "metin", Now);
+        LegalTextVersion form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, 90, Now, "metin", Now);
+        LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, 90, Now, "metin", Now);
         LegalTextVersion notice = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, 1, Now, "metin", Now).WithHosting();
         await SaveAsync(c => c.LegalTextVersions.AddRange(form, contract, notice));
         foreach (PaymentMethod method in new[] { PaymentMethod.Card, PaymentMethod.BankTransfer })
@@ -509,8 +510,11 @@ public sealed class SalesGateTests : IAsyncLifetime
     private Task<string> OrderStateAsync() =>
         ScalarAsync<string>("SELECT coalesce(string_agg(to_jsonb(o)::text, '|' ORDER BY o.order_number), '') || '#' || coalesce((SELECT string_agg(to_jsonb(i)::text, '|' ORDER BY i.id) FROM order_items i), '') FROM orders o");
 
-    private Task<string> LegalTextStateAsync() =>
-        ScalarAsync<string>("SELECT coalesce(string_agg(to_jsonb(l)::text, '|' ORDER BY l.legal_text_type, l.version_number), '') FROM legal_text_versions l");
+    /// <summary>The rows of the legal texts as stored; with the ids, only the rows that existed then (a changed identity may add a version of a generated text, never change a published row).</summary>
+    private Task<string> LegalTextStateAsync(string? onlyIds = null) =>
+        ScalarAsync<string>(
+            "SELECT coalesce(string_agg(to_jsonb(l)::text, '|' ORDER BY l.legal_text_type, l.version_number), '') FROM legal_text_versions l "
+            + (onlyIds is null ? string.Empty : $"WHERE l.id = ANY(string_to_array('{onlyIds}', ',')::uuid[])"));
 
     private async Task<List<AuditLog>> ReadTrailAsync()
     {

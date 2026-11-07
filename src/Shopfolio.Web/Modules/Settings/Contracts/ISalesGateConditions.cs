@@ -22,7 +22,7 @@ public interface IBankTransferCondition
 
 /// <summary>
 /// The privacy notice part of the legal text condition (02 3.1.5 condition 4, 3.33.2, 3.33.9): true when a version of the privacy notice has been published with its hosting
-/// location section filled. The legal text task (T366) binds it; until then the default says "not published" and the condition is not met (11 T331 criterion 8). The
+/// location section filled. The legal text task (T366) binds it (<c>PrivacyNoticeCondition</c>: the last published version carries its hosting location). The
 /// identity fields of the same definition are read by the gate itself from the identity, so the notice is "complete" only when both hold.
 /// </summary>
 public interface IPrivacyNoticeCondition

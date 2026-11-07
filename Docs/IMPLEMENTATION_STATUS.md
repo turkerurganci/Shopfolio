@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-07 — T381 (Ayar katmanları ve parametre envanteri) doğrulama tur 2 ✓ PASS (head `25e420c`, PR #430; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Unit Consistency 219, Architecture 838, öteki 2529; betik testleri; Integration yerelde FirmSettings + FirmSettingDefaults 24, CompanyIdentity + SalesGate + StartupData 71; dal CI 42381345942 yeşil; bulgu 0, K-notu 1 (rapordaki eski metin, bu PR'da kapandı); `12` `Durum` değişmedi (KP-64 satırları ekran/ürün formu/uçtan uca — BEKLEMEDE); backlog aktif sayısı değişmedi). Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-07 — T381 (Ayar katmanları ve parametre envanteri) doğrulama tur 2 ✓ PASS (head `25e420c`, PR #430; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Unit Consistency 219, Architecture 838, öteki 2529; betik testleri; Integration yerelde FirmSettings + FirmSettingDefaults 24, CompanyIdentity + SalesGate + StartupData 71; dal CI 42381345942 yeşil; bulgu 0, K-notu 1 (rapordaki eski metin, bu PR'da kapandı); `12` `Durum` değişmedi (KP-64 satırları ekran/ürün formu/uçtan uca — BEKLEMEDE); backlog aktif 117, main ile birleşik). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -205,7 +205,7 @@
 | T363 | Sayfa adresleri, arama motoru bilgileri, kapalı sayfalar ve paylaşım | ⬚ | — | — | — |
 | T364 | Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler | ⬚ | — | — | — |
 | T365 | İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması | ⬚ | — | — | — |
-| T366 | Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin | ⬚ | — | — | — |
+| T366 | Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin | ✓ | ✓ PASS (tur 2) | — | #428 |
 | T367 | Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon | ⬚ | — | — | — |
 | T368 | Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi | ⬚ | — | — | — |
 | T369 | İşlemin adet birimi ve geri ödeme tutarı: açık adet, kupon payı, KDV, kargo ücretinin iptalde ve caymada ayrılması | ⬚ | — | — | — |

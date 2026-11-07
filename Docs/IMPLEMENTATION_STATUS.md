@@ -140,18 +140,18 @@
 
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
-| T301 | Siparişin imha parçası | ⬚ | — | — | — |
+| T301 | Siparişin imha parçası | ⏳ | — | — | — |
 | T302 | Öteki kayıtların süreyle imhası | ⬚ | — | — | — |
 | T303 | İlk yönetici yönetim komutu ve komut çatısı | ⬚ | — | — | — |
 | T304 | Alıcı başına bildirim gönderim sınırı | ✓ | ✓ PASS (tur 1) | `268ab8d` | #421 |
 | T305 | E-posta ortak kalıbı ve gövde üretimi | ✓ | ✓ PASS (tur 1) | `7cc0db5` | #422 |
 | T306 | Müşteri bildirimleri B-1…B-8 | ⬚ | — | — | — |
 | T307 | Müşteri bildirimleri B-9…B-16 | ⬚ | — | — | — |
-| T308 | Firma bildirimleri F-1…F-6 | ✓ | ✓ PASS (tur 1) | — | #424 |
+| T308 | Firma bildirimleri F-1…F-6 | ✓ | ✓ PASS (tur 1) | `ad8c48d` | #424 |
 | T309 | Hesap ve yönetim e-postaları | ⬚ | — | — | — |
 | T310 | Kargo şirketi listesi ve takip bağlantısı kalıpları | ✓ | ✓ PASS (tur 1) | `e177fd4` | #423 |
 | T311 | Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım | ⬚ | — | — | — |
-| T312 | Dosya uçları: imzalı indirme ucu ve parçalı yükleme ucu | ✓ | ✓ PASS (tur 1) | — | #426 |
+| T312 | Dosya uçları: imzalı indirme ucu ve parçalı yükleme ucu | ✓ | ✓ PASS (tur 1) | `1112ca6` | #426 |
 | T313 | Site haritası ve robots.txt | ✓ | ✓ PASS (tur 1) | `f94b4d8` | #417 |
 | T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | `335e9cb` | #418 |
 | T315 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | ⬚ | — | — | — |
@@ -170,7 +170,7 @@
 | T328 | Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi | ⬚ | — | — | — |
 | T329 | İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi) | ⬚ | — | — | — |
 | T330 | Firma kimliği: tek firma, tip ve tipe göre zorunlu alanlar, yasal kimlik bilgilerinin erişilebilirliği, iade adresi | ✓ | ✓ PASS (tur 1) | `4924037` | #420 |
-| T331 | Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması | ✓ | ✓ PASS (tur 1) | — | #425 |
+| T331 | Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması | ✓ | ✓ PASS (tur 1) | `eb91975` | #425 |
 | T332 | Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu | ⬚ | — | — | — |
 | T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ⬚ | — | — | — |
 | T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ⬚ | — | — | — |

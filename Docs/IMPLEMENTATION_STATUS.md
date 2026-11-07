@@ -149,7 +149,7 @@
 | T307 | Müşteri bildirimleri B-9…B-16 | ⬚ | — | — | — |
 | T308 | Firma bildirimleri F-1…F-6 | ⏳ | — | — | #424 |
 | T309 | Hesap ve yönetim e-postaları | ⬚ | — | — | — |
-| T310 | Kargo şirketi listesi ve takip bağlantısı kalıpları | ⬚ | — | — | — |
+| T310 | Kargo şirketi listesi ve takip bağlantısı kalıpları | ✓ | ✓ PASS (tur 1) | — | #423 |
 | T311 | Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım | ⬚ | — | — | — |
 | T312 | Dosya uçları: imzalı indirme ucu ve parçalı yükleme ucu | ⬚ | — | — | — |
 | T313 | Site haritası ve robots.txt | ✓ | ✓ PASS (tur 1) | `f94b4d8` | #417 |

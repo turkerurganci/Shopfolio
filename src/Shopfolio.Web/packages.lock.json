@@ -12,6 +12,16 @@
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.1, 11.0.0)"
         }
       },
+      "HtmlSanitizer": {
+        "type": "Direct",
+        "requested": "[10.0.1120, )",
+        "resolved": "10.0.1120",
+        "contentHash": "WMq/9x/5MO39D8H6jWiDU5MNUZHuUPhJycMBPIS+nhR7Tzo5MnTbsx/oqFGBweWM2gs1GNFblE+X3RA8HSsXvw==",
+        "dependencies": {
+          "AngleSharp": "1.9.0",
+          "AngleSharp.Css": "1.3.1"
+        }
+      },
       "Microsoft.AspNetCore.DataProtection.EntityFrameworkCore": {
         "type": "Direct",
         "requested": "[10.0.14, )",
@@ -104,6 +114,19 @@
         "requested": "[4.154.0, )",
         "resolved": "4.154.0",
         "contentHash": "U6HQ/n+wQ09WyXQB6PK1l46BIrHqTN/dImV84pti3mLxnlOdcSASPQzJwzuZmEgiCbriLtu5fP0t9cdzpFPHsw=="
+      },
+      "AngleSharp": {
+        "type": "Transitive",
+        "resolved": "1.9.0",
+        "contentHash": "NOKbXBsj4gaudXjAmdfSPxgUmKNbxP0k87ZRN56N0FW3u2z8AT7sRnTEOWjKoNrPI1vq4slV7Ld2nBCOvu/v8w=="
+      },
+      "AngleSharp.Css": {
+        "type": "Transitive",
+        "resolved": "1.3.1",
+        "contentHash": "l930Ghj0vGGXyoDRYWzi0ls8v0RTLmtouIkWep17Ob0wxU/mn+Rw6xUnmFHUjrWJQ66gYLwS22C6/btMjiBTyg==",
+        "dependencies": {
+          "AngleSharp": "[1.9.0, 2.0.0)"
+        }
       },
       "Humanizer.Core": {
         "type": "Transitive",

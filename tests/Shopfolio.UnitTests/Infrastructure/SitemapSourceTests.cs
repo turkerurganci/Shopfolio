@@ -119,6 +119,16 @@ public sealed class SitemapSourceTests
         public Task<VariantStructureCheck> CheckVariantStructureAsync(Guid productId, Guid? firstOptionValueId, Guid? secondOptionValueId, Guid? exceptVariantId, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<OptionMatrixCell>> GetOptionMatrixAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<GallerySaveResult> SaveProductGalleryAsync(Guid productId, IReadOnlyList<GalleryEntry> entries, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<VariantImageResult> SetVariantImageAsync(Guid variantId, Guid? imageId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<GalleryImage>> GetProductGalleryAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<string?> GetCardImageAltTextAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<VariantImage?> GetVariantImageAsync(Guid variantId, CancellationToken ct) => throw new NotSupportedException();
     }
 
     private sealed class FakeContent(IReadOnlyList<string> paths) : ICorporateContentModule

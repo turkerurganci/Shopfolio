@@ -257,7 +257,7 @@ public sealed partial class VersionedFormPageTests
         Product detached = await db.Products.AsNoTracking().SingleAsync(p => p.Id == product.Id, Ct);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => RecordSave.SaveAsync(db, detached, detached.Version, p => p.Description = "x", Ct));
+            () => RecordSave.SaveAsync(db, detached, detached.Version, p => p.SetDescription("x"), Ct));
         Assert.Null((await ReadProductAsync(product.Id)).Description);
     }
 

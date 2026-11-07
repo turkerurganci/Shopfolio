@@ -107,6 +107,7 @@ public sealed class MembershipTests : IAsyncLifetime
         services.AddSingleton(_gate);
         services.AddScoped<ISettingsModule, GateOnlySettings>();
         services.AddScoped<OrderLocks>();
+        services.AddScoped<AdvisoryLocks>();
         services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddMembershipModule();
         _provider = services.BuildServiceProvider();

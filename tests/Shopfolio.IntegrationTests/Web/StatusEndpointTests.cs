@@ -265,6 +265,21 @@ public sealed class StatusEndpointTests
     }
 
     [Fact]
+    public async Task AnUnknownFailureOfAReading_IsA500WithoutABody_TheCatchingLayerCountsIt_AndItIsNeverReadAsOpen()
+    {
+        await using Scenario scenario = await OpenAsync(throwingCondition: true);
+        UnexpectedErrorCounter counter = scenario.Services.GetRequiredService<UnexpectedErrorCounter>();
+        int before = counter.CountWithin(TimeSpan.FromMinutes(15));
+
+        using HttpResponseMessage response = await scenario.Client.GetAsync(_statusUri, Ct);
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Empty(await response.Content.ReadAsStringAsync(Ct));
+        Assert.Equal("no-store", response.Headers.CacheControl?.ToString());
+        Assert.Equal(before + 1, counter.CountWithin(TimeSpan.FromMinutes(15)));
+    }
+
+    [Fact]
     public async Task TheFileBackupReader_ReadsTheStatusFileOfTheBackupTool_AndAMissingOrDamagedFileThrows()
     {
         string directory = Path.Combine(Path.GetTempPath(), "shopfolio-t314-" + Guid.NewGuid().ToString("N"));
@@ -300,11 +315,18 @@ public sealed class StatusEndpointTests
 
     // --- The scenario ---
 
-    private async Task<Scenario> OpenAsync(string? name = null, Dictionary<string, string>? settings = null)
+    private async Task<Scenario> OpenAsync(string? name = null, Dictionary<string, string>? settings = null, bool throwingCondition = false)
     {
-        Scenario scenario = new(_database, settings);
+        Scenario scenario = new(_database, settings) { ThrowingCondition = throwingCondition };
         await scenario.StartAsync(name);
         return scenario;
+    }
+
+    private sealed class ThrowingStatusCondition : IStatusCondition
+    {
+        public string Name => "Throwing";
+
+        public Task<bool> IsOpenAsync(CancellationToken ct) => throw new NotImplementedException();
     }
 
     private sealed class FakeDisk : IDiskUsageReader
@@ -346,6 +368,11 @@ public sealed class StatusEndpointTests
 
         public ManualTimeProvider Time { get; }
 
+        /// <summary>Registers one more condition whose reading throws a type the evaluator does not know (D-139).</summary>
+        public bool ThrowingCondition { get; init; }
+
+        public IServiceProvider Services => _factory!.Services;
+
         public FakeDisk Disk { get; } = new();
 
         public FakeLogShipping LogShipping { get; } = new();
@@ -377,6 +404,10 @@ public sealed class StatusEndpointTests
                 services.RemoveAll<IFileBackupStatusReader>();
                 services.AddSingleton<IFileBackupStatusReader>(FileBackup);
                 services.AddRazorPages().AddApplicationPart(typeof(ErrorSampleModel).Assembly);
+                if (ThrowingCondition)
+                {
+                    services.AddSingleton<IStatusCondition, ThrowingStatusCondition>();
+                }
             }));
             Client = ForgeryTokenHandler.CreateClient(_factory);
             SampleClient = Client;

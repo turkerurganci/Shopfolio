@@ -58,6 +58,11 @@ internal sealed class UnexpectedErrorPageFilter : IAsyncPageFilter, IOrderedFilt
 
     private static IActionResult ResultOf(ErrorResolution resolution, PageHandlerExecutingContext context)
     {
+        if (resolution.ClientStatus is not null)
+        {
+            return new ErrorAnswerResult(resolution);
+        }
+
         switch (resolution.State)
         {
             case ErrorState.OutcomeUncertain:

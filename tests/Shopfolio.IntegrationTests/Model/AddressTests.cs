@@ -101,6 +101,9 @@ public sealed class AddressTests : IAsyncLifetime
         services.AddScoped<LoginRecorder>();
         services.AddSingleton<PasswordService>();
         services.AddSingleton(_delivery);
+        services.AddScoped<ReauthenticationValues>();
+        services.AddScoped<SessionStore>();
+        services.AddScoped<PasswordRegime>();
         services.AddScoped<ProvinceList>();
         services.AddScoped<ISettingsModule, ProvinceSettings>();
         services.AddScoped<OrderLocks>();

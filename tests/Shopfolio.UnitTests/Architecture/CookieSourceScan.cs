@@ -52,10 +52,12 @@ internal static partial class CookieSourceScan
             Add(findings, HostPrefixLiteral, PrefixInString(), clean);
         }
 
-        if (!string.Equals(path, HeaderFilterFile, StringComparison.Ordinal))
-        {
-            Add(findings, RawSetCookieHeader, SetCookieHeader(), clean);
-        }
+        // The header filter file is allowed one form only (D-114): Headers.Remove(HeaderNames.SetCookie). Those characters are blanked (line breaks kept); any other
+        // naming of the header in that file - an Append, an indexer, a string - is a finding like anywhere else.
+        string headerText = string.Equals(path, HeaderFilterFile, StringComparison.Ordinal)
+            ? AllowedRemoval().Replace(clean, m => Regex.Replace(m.Value, @"[^\n]", " "))
+            : clean;
+        Add(findings, RawSetCookieHeader, SetCookieHeader(), headerText);
 
         Add(findings, ConsentBanner, ConsentSupport(), clean);
         return [.. findings.OrderBy(f => f.Line).ThenBy(f => f.Rule, StringComparer.Ordinal)];
@@ -101,6 +103,10 @@ internal static partial class CookieSourceScan
     // The Set-Cookie response header named in any form: the string "Set-Cookie", HeaderNames.SetCookie, Headers.SetCookie, Headers["Set-Cookie"], Append("Set-Cookie", ...).
     [GeneratedRegex(@"Set-Cookie|\bSetCookie\b", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 5000)]
     private static partial Regex SetCookieHeader();
+
+    // The one form the header filter file may name the header in: the removal of it from the response's headers.
+    [GeneratedRegex(@"\bHeaders\s*\.\s*Remove\s*\(\s*HeaderNames\s*\.\s*SetCookie\s*\)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex AllowedRemoval();
 
     [GeneratedRegex(@"\b(?:CheckConsentNeeded|UseCookiePolicy|CookiePolicyOptions|ConsentCookie)\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ConsentSupport();

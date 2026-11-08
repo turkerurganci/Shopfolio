@@ -9,6 +9,8 @@
 
 ---
 
+2026-11-08 — T318 (İki eksenin bağı) merge sonrası CI düzeltmesi: `AxesTieTests` fiziksel ürün tohumu T336 kuralı gereği `.WithSeededOrigin()` alır (yalnız test tohumu; PR #455, dal `task/T318-eksen-bagi`); Axes 20, Payment 33, Shipment 86 yerelde yeşil.
+
 ## 2026-11-08 — T336 (Fiyat ve KDV) doğrulama tur 4 ✓ PASS (PR #444)
 
 2026-11-08 — T336 (Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri) doğrulama tur 4 ✓ PASS (head `32173b1` + `origin/main` (T317, `7097c01`) birleştirmesi, PR #444; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 1–3 içerikte temiz, main ile kod çakışması nedeniyle BLOCKED idi; birleşik ağaçta Unit 4288 (Architecture 955, Consistency 241), betik testleri, Integration parçalı yeşil (PriceAndVat 19, StockAndCapacity + ProductGallery 45, ProductTransitions + SearchEngineData 59, Payment + OrderTransitions 64, ShipmentTransitions 94, dokunulan Model 220, Web/Concurrency 85); dal CI 42430213489 yeşil; para kodu elle sınandı; bulgu 0, yeni K-notu yok; `12` `Durum` değişmedi (KP-5/KP-39 satırları T503/T525'in sayfa ve uç kanıtını ister); backlog aktif 165).

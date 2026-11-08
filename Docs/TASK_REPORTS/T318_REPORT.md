@@ -80,6 +80,8 @@ Bütün maddeler (ilk işçinin yaptıkları dahil) bu turda diff'te `grep -n` i
 | Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı |
 | Contract | — | — | NOT_APPLICABLE |
 
+**Merge sonrası düzeltme (2026-11-08):** main'deki T336 kuralı (fiziksel ürün üretim yeri ister) `AxesTieTests` tohumunu kırdı; `SeedVariantAsync` fiziksel ürüne `.WithSeededOrigin()` alır (yalnız tohum, üretim kodu ve davranış değişmedi); Axes 20, Payment 33, Shipment 86 yerelde yeniden yeşil.
+
 **Değişen / silinen eski testler (gerekçe):**
 
 | Test | Değişiklik | Gerekçe ve yeni karşılık |

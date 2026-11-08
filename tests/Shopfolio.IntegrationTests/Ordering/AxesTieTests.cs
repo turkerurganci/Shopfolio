@@ -506,6 +506,11 @@ public sealed class AxesTieTests : IAsyncLifetime
     {
         int n = Interlocked.Increment(ref _counter);
         Product product = Product.Create("Ürün", $"eksen-urun-{n}", type, 20m, Start);
+        if (type == ProductType.Physical)
+        {
+            product.WithSeededOrigin();
+        }
+
         Variant variant = Variant.Create(product.Id, $"EKS-{n}", 10m, Start, stock);
         await SaveAsync(c =>
         {

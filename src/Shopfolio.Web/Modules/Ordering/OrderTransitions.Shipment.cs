@@ -12,10 +12,11 @@ namespace Shopfolio.Modules.Ordering;
 /// The shipment axis of the transition unit (T316; 03 1.2, 1.6.1; 02 5.4; 05 4.1): the operations whose condition is written here - the three
 /// cancellations S3, S4 and S9, the reasonless S9 closing, S5, S6, S7 and S8. Each one is the unit's core (<see cref="ApplyChosenAsync"/>: lock, version,
 /// white list, actor, reason, pair rule, then its own condition) followed, in the same transaction, by what the transition owns beyond the status: the
-/// carrier data, the delivery marks, the unpaid cancellation's freed reservation (03 1.4.4.3), the customer notice's dispatch row (B-5, B-6, B-7). S1 has
-/// no operation of its own: it is written with Ö1 by the payment axis's approval (T318; 03 1.4.2.1). S2, S10 and S11 have no operation here: they are the
-/// closure rule's (<see cref="EvaluateClosureAsync"/>), written at the end of the operation that completes it. The stock, the coupon and the refund a
-/// cancellation of a paid order frees are the item record tasks' side effects (<see cref="OrderCounters.ReturnAsync"/>), written after this core (09 9.1 item 6).
+/// carrier data, the delivery marks, the unpaid cancellation's freed reservation (03 1.4.4.3; 06 4.14 path 3; T324), the customer notice's dispatch row
+/// (B-5, B-6, B-7). S1 has no operation of its own: it is written with Ö1 by the payment axis's approval (T318; 03 1.4.2.1). S2, S10 and S11 have no
+/// operation here: they are the closure rule's (<see cref="EvaluateClosureAsync"/>), written at the end of the operation that completes it. The stock, the
+/// coupon and the refund a cancellation of a paid order frees are the item record tasks' side effects (<see cref="OrderCounters.ReturnAsync"/>), written
+/// after this core (09 9.1 item 6).
 /// </summary>
 internal sealed partial class OrderTransitions
 {
@@ -35,6 +36,7 @@ internal sealed partial class OrderTransitions
             request.ExpectedVersion,
             order =>
             {
+                // S3 with Ö2 is chosen only for a placed order whose payment is pending: the unpaid order of both rules (03 1.4.4.3; 06 4.14 path 3).
                 ChosenTransitions chosen = ChooseCancellation(order);
                 unpaid = chosen.Codes.Contains(TransitionCode.O2);
                 return chosen;
@@ -46,10 +48,11 @@ internal sealed partial class OrderTransitions
             return Refused(outcome);
         }
 
-        // The unpaid cancellation (S3 + Ö2) frees the reservation in the same transaction (03 1.4.4.3); a paid order's freed units are its item records' (1.4.4.4).
+        // The unpaid cancellation (S3 + Ö2) frees what its confirmation reserved in the same transaction (03 1.4.4.3; 06 4.14 path 3); a paid order's rows
+        // were deleted at Ö1 and its freed units are its item records' (1.4.4.4).
         if (unpaid)
         {
-            await _counters.ReleaseAsync(await _db.Orders.SingleAsync(o => o.Id == request.OrderId, ct), ct);
+            await ReleaseReservationAsync(request.OrderId, ct);
         }
 
         // B-7 goes with the cancellation, once, in the customer's, the administrator's or the system's wording (08 2.2.6); an item cancellation names the item.

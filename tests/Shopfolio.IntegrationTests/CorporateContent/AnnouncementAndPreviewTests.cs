@@ -61,12 +61,24 @@ public sealed class AnnouncementAndPreviewTests : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         await ExecuteAsync(
-            "TRUNCATE audit_logs, cart_items, carts, order_items, orders, variants, products, categories, admins, about_pages, offerings, portfolio_items, faq_items, branches, custom_pages, announcements, images, provinces CASCADE");
-        await ExecuteAsync(
-            "UPDATE company_settings SET homepage_layout = 'ContentFirst', menu_name_products = 'Ürünler', menu_name_offerings = 'Hizmetlerimiz', "
-            + "menu_name_portfolio_items = 'Referanslarımız', menu_name_about_page = 'Hakkımızda', menu_name_faq_items = 'SSS', menu_name_contact = 'İletişim'");
+            "TRUNCATE audit_logs, cart_items, carts, order_items, orders, variants, products, categories, admins, about_pages, offerings, portfolio_items, faq_items, branches, custom_pages, announcements, images, provinces, companies, company_settings CASCADE");
+        CompanySettings settings = CompanySettings.Create(Now);
+        settings.BankTransferPaymentWindow = 1;
+        settings.DownloadAllowance = 1;
+        settings.HomepageLayout = HomepageLayout.ContentFirst;
+        settings.MenuNameProducts = "Ürünler";
+        settings.MenuNameOfferings = "Hizmetlerimiz";
+        settings.MenuNamePortfolioItems = "Referanslarımız";
+        settings.MenuNameAboutPage = "Hakkımızda";
+        settings.MenuNameFaqItems = "SSS";
+        settings.MenuNameContact = "İletişim";
         _admin = Admin.Create("Firma Yöneticisi", "yonetici@example.com", "digest-placeholder", Now);
-        await SaveAsync(c => c.Admins.Add(_admin));
+        await SaveAsync(c =>
+        {
+            c.Companies.Add(Company.Create(Now));
+            c.CompanySettings.Add(settings);
+            c.Admins.Add(_admin);
+        });
         _time.Set(Now);
 
         ServiceCollection services = new();

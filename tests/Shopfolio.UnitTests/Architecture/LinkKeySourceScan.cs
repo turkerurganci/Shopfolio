@@ -42,9 +42,22 @@ internal static partial class LinkKeySourceScan
     /// the page's POST work, joined to the caller's transaction; it consumes the link in <c>VerifyEmailAsync</c> and nowhere else in the file, and a call of
     /// <c>VerifyEmailAsync</c> is itself held to the <c>OnPost</c> rule, so the link's GET still changes nothing (MK-51).
     /// </summary>
-    public static readonly IReadOnlyDictionary<string, string> ConsumingMethods = new Dictionary<string, string>(StringComparer.Ordinal)
+    public static readonly IReadOnlyDictionary<string, string[]> ConsumingMethods = new Dictionary<string, string[]>(StringComparer.Ordinal)
     {
-        ["src/Shopfolio.Web/Modules/Membership/MembershipModule.cs"] = "VerifyEmailAsync",
+        ["src/Shopfolio.Web/Modules/Membership/MembershipModule.cs"] = ["VerifyEmailAsync"],
+
+        // The one password rule's reset button (T342): both account types consume the password reset link here and nowhere else.
+        ["src/Shopfolio.Web/Infrastructure/Security/PasswordRegime.cs"] = ["ResetPasswordAsync"],
+    };
+
+    /// <summary>
+    /// The closed list of the modules' thin wrappers of a consuming command (T342): the method of the same name that only passes the call on to the consuming code. The wrapper's
+    /// own name is the called name, so the dispensation covers nothing else in the file, and its callers are held to the <c>OnPost</c> rule like any caller of the command.
+    /// </summary>
+    public static readonly IReadOnlyDictionary<string, string[]> WrapperMethods = new Dictionary<string, string[]>(StringComparer.Ordinal)
+    {
+        ["src/Shopfolio.Web/Modules/Membership/MembershipModule.cs"] = ["ResetPasswordAsync"],
+        ["src/Shopfolio.Web/Modules/Administration/AdministrationModule.cs"] = ["ResetPasswordAsync"],
     };
 
     private static readonly string[] ControlKeywords = ["if", "for", "foreach", "while", "switch", "using", "lock", "catch", "fixed", "when", "return", "nameof", "typeof"];
@@ -82,7 +95,8 @@ internal static partial class LinkKeySourceScan
     private static void FindConsumeOutsidePost(List<(string Rule, int Line)> findings, string path, string text)
     {
         List<(string Name, int Start, int End)> methods = Methods(text);
-        ConsumingMethods.TryGetValue(path, out string? ownMethod);
+        ConsumingMethods.TryGetValue(path, out string[]? ownMethods);
+        WrapperMethods.TryGetValue(path, out string[]? wrappers);
         foreach (Match call in ConsumeCall().Matches(text).Concat(VerifyCall().Matches(text)))
         {
             // The outermost method that holds the call: a local function inside OnGet is still part of the handler.
@@ -94,9 +108,13 @@ internal static partial class LinkKeySourceScan
             bool isPost = owner is not null && owner.Value.Name.StartsWith("OnPost", StringComparison.Ordinal);
 
             // The one dispensation: the consuming command of a module, in its one named method; its callers are held to the OnPost rule by <see cref="VerifyCall"/>.
-            bool isOwnMethod = ownMethod is not null && owner is not null && string.Equals(owner.Value.Name, ownMethod, StringComparison.Ordinal)
+            bool isOwnMethod = ownMethods is not null && owner is not null && ownMethods.Contains(owner.Value.Name, StringComparer.Ordinal)
                 && call.Value.StartsWith("TryConsumeAsync", StringComparison.Ordinal);
-            if (!isPost && !isOwnMethod)
+
+            // The wrapper: a listed method that makes the call of its own name (ResetPasswordAsync calling ResetPasswordAsync) and nothing else.
+            bool isWrapper = wrappers is not null && owner is not null && wrappers.Contains(owner.Value.Name, StringComparer.Ordinal)
+                && Regex.Replace(call.Value, @"[\s.(]", string.Empty) == owner.Value.Name;
+            if (!isPost && !isOwnMethod && !isWrapper)
             {
                 Record(findings, ConsumeOutsidePost, text, call.Index);
             }
@@ -191,7 +209,7 @@ internal static partial class LinkKeySourceScan
     private static partial Regex ConsumeCall();
 
     // A call of the module command that consumes the verification link (a member access, so the declaration is not a call): only an OnPost handler may make it.
-    [GeneratedRegex(@"\.\s*VerifyEmailAsync\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    [GeneratedRegex(@"\.\s*(?:VerifyEmailAsync|ResetPasswordAsync)\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex VerifyCall();
 
     [GeneratedRegex(@"(?<!\b(?:class|record|struct|interface|new)\s+)\b(?<name>\w+)\s*\([^()]*\)\s*(?:where\s+[^{=;]*)?(?:(?<arrow>=>)|\{)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

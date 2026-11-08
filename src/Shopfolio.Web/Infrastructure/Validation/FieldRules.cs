@@ -306,3 +306,16 @@ public sealed class CheckboxNotAcceptedAttribute : FieldRuleAttribute
 
     protected override bool Accepts(object? value) => value is true;
 }
+
+/// <summary>
+/// A password that is too short or too common (04 7.3.2.2; 02 3.13.15): a wrapper around the one home of the password policy, <see cref="Security.PasswordPolicy"/> (09 15.1 item 5);
+/// the message names the minimum length P-17. Like every rule it accepts an empty value - whether the field is optional is the required rule's business.
+/// </summary>
+public sealed class PasswordTooWeakAttribute : FieldRuleAttribute
+{
+    public override string Code => FieldCodes.PasswordTooWeak;
+
+    public override string? ParameterText => DisplayFormat.Number(ProductConstants.PasswordMinLength);
+
+    protected override bool Accepts(object? value) => IsEmpty(value) || (value is string text && Security.PasswordPolicy.Validate(text) is null);
+}

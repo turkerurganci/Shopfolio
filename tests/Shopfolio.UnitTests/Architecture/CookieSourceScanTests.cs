@@ -94,8 +94,19 @@ public sealed class CookieSourceScanTests
         {
             Assert.Equal([(CookieSourceScan.RawSetCookieHeader, 1)], CookieSourceScan.Scan("src/Shopfolio.Web/Modules/Cart/Misuse.cs", write));
             Assert.Equal([(CookieSourceScan.RawSetCookieHeader, 1)], CookieSourceScan.Scan(CookieSourceScan.BrowserCookiesFile, write));
-            Assert.Empty(CookieSourceScan.Scan(CookieSourceScan.HeaderFilterFile, write));
+            Assert.Equal([(CookieSourceScan.RawSetCookieHeader, 1)], CookieSourceScan.Scan(CookieSourceScan.HeaderFilterFile, write));
         }
+    }
+
+    [Fact]
+    public void TheHeaderFilterFile_MayOnlyRemoveTheHeader_D114()
+    {
+        const string removal = "removal.Response.Headers.Remove(HeaderNames.SetCookie);";
+        const string split = "removal.Response.Headers\n    .Remove(\n        HeaderNames.SetCookie);\ncontext.Response.Headers.Append(\"Set-Cookie\", \"_ga=1\");";
+
+        Assert.Empty(CookieSourceScan.Scan(CookieSourceScan.HeaderFilterFile, removal));
+        Assert.Equal([(CookieSourceScan.RawSetCookieHeader, 4)], CookieSourceScan.Scan(CookieSourceScan.HeaderFilterFile, split));
+        Assert.Equal([(CookieSourceScan.RawSetCookieHeader, 1)], CookieSourceScan.Scan("src/Shopfolio.Web/Modules/Cart/Misuse.cs", removal));
     }
 
     [Fact]

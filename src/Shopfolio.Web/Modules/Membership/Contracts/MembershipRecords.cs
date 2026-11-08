@@ -11,8 +11,11 @@ namespace Shopfolio.Modules.Membership.Contracts;
 /// </summary>
 public sealed record RegisterInput(string Name, string Email, string Password);
 
-/// <summary>One refused field of a form: the field's name as the input's and the code of 07 6.2.2.</summary>
-public sealed record MembershipFieldError(string Field, ErrorCode Code);
+/// <summary>
+/// One refused field of a form: the field's name as the input's and the code of 07 6.2.2. <paramref name="Detail"/> carries the one value the message needs when the code alone is not
+/// enough - the province name of a delivery refusal (04 5.13.23) - and is null otherwise.
+/// </summary>
+public sealed record MembershipFieldError(string Field, ErrorCode Code, string? Detail = null);
 
 /// <summary>
 /// The outcome of the registration (02 3.13.5; 07 UC-47): registered with the id of the unverified account and of its first verification link and the moment that link ends,

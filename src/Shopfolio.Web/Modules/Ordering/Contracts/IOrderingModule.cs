@@ -132,6 +132,13 @@ public interface IOrderingModule
     Task<CardPaymentQueryTarget?> GetCardPaymentQueryTargetAsync(Guid orderId, DateTimeOffset now, CancellationToken ct);
 
     /// <summary>
+    /// What the customer's order page shows of the delivery (02 3.20.4-3.20.7; 04 5.16.8): the order's frozen shipping promise and its text, the moment the payment was confirmed, the moment
+    /// the promise runs out, the moment of the shipment and the carrier display (the company and tracking number, the "Takip et" link only for a listed company, or the own-vehicle
+    /// declaration alone). Null when there is no such order. A plain read; it writes nothing.
+    /// </summary>
+    Task<OrderShippingView?> GetShippingViewAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
     /// Which of the given transition records a correction row points at (06 4.19 <c>CorrectedTransitionRecordId</c>), the caller's unsaved rows included: a
     /// cancellation whose closing transition is corrected is undone (06 4.22; T319). A plain read; it writes nothing.
     /// </summary>

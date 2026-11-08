@@ -98,8 +98,8 @@ internal sealed class Order : IVersionedRecord
     /// <summary>The firm's IBAN at confirmation on a bank transfer order; filled exactly on a bank transfer order.</summary>
     public string? BankTransferIban { get; set; }
 
-    /// <summary>The shipping promise in business days; empty when the order has no physical item.</summary>
-    public int? ShippingPeriod { get; set; }
+    /// <summary>The shipping promise in business days; empty when the order has no physical item. Written once by <see cref="FreezeShippingPromise"/> at confirmation (02 3.20.5).</summary>
+    public int? ShippingPeriod { get; private set; }
 
     public DateTimeOffset PaymentWindowEndsAt { get; set; }
 
@@ -245,6 +245,25 @@ internal sealed class Order : IVersionedRecord
 
         PreInformationFormText = preInformationFormText;
         DistanceSalesContractText = distanceSalesContractText;
+    }
+
+    /// <summary>
+    /// Freezes the shipping promise (02 3.20.5; 11 T350 criterion 6): the longest period of the order's physical items (<see cref="ShippingPromise.OfOrder"/>), or null for an order with
+    /// none. Written once, at confirmation, before the first save; a later change of the firm default or of a product never reaches an order, and a second call is a programming error.
+    /// </summary>
+    public void FreezeShippingPromise(int? period)
+    {
+        if (period < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(period), "A shipping period is never negative.");
+        }
+
+        if (ShippingPeriod is not null)
+        {
+            throw new InvalidOperationException("The order's shipping promise is written once, at confirmation (02 3.20.5).");
+        }
+
+        ShippingPeriod = period;
     }
 
     public void BumpVersion() => Version++;

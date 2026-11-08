@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
+using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -48,9 +49,10 @@ internal sealed partial class OrderTransitions
                 return PaymentRefused(approval);
             }
 
+            ClosureResult closure = await CompleteApprovalAsync(order, TransitionActor.System, ct);
             await _payment.RecordCardPaymentAsync(order.Id, payment.ProviderTransactionId, approval.TransitionRecordIds[0], ct);
             await QueueNoticeAsync(order.Id, new PaymentConfirmedNotice(order.Id), ct);
-            return new PaymentTransitionResult(codes);
+            return new PaymentTransitionResult(closure.Code is { } closed ? [.. codes, closed] : codes);
         }
 
         // A payment to a cancelled order, or a second payment with a new transaction id to a paid one (02 6.2.16; K-1211): it stays in the payment
@@ -103,6 +105,13 @@ internal sealed partial class OrderTransitions
             }
 
             applied.Add(TransitionCode.S1);
+        }
+
+        // The closure that the mark completes is the administrator's event (03 1.5.3: S2 by the administrator on the transfer line).
+        ClosureResult closure = await CompleteApprovalAsync(order, TransitionActor.Admin(mark.AdminId, mark.AdminName), ct);
+        if (closure.Code is { } closed)
+        {
+            applied.Add(closed);
         }
 
         await _payment.RecordTransferMarkAsync(order.Id, approval.TransitionRecordIds[0], ct);
@@ -201,6 +210,29 @@ internal sealed partial class OrderTransitions
         }
 
         return new PaymentTransitionResult(applied);
+    }
+
+    /// <summary>
+    /// The rest of Ö1's simultaneous transitions (03 1.4.2.1, 1.4.4.2), in the approval's transaction: the reserved units and the coupon right fall
+    /// finally, every open digital item takes its delivery mark, and on an order without an open physical item the closure rule ends the line - S2
+    /// when nothing is left to deliver (the digital order), nothing while a service item waits for its "completed" mark. The S1 of a physical order
+    /// was written with Ö1 by the caller.
+    /// </summary>
+    private async Task<ClosureResult> CompleteApprovalAsync(Order order, TransitionActor actor, CancellationToken ct)
+    {
+        await _counters.CommitAsync(order, ct);
+        DateTimeOffset now = _time.GetUtcNow();
+        foreach (OrderItem item in await OpenItemsAsync(order, physicalOnly: false, ct))
+        {
+            // The system delivers the digital item at the approval (03 8.2.3): the mark and its date - the approval's day in Turkey - go together (the delivery_mark_and_date_together rule).
+            if (item.ProductType == ProductType.Digital && item.DeliveryMarkedAt is null)
+            {
+                item.DeliveryMarkedAt = now;
+                item.DeliveryDate = TurkeyTime.DateOf(now);
+            }
+        }
+
+        return await EvaluateClosureAsync(order, actor, ct);
     }
 
     private static PaymentTransitionResult PaymentRefused(TransitionOutcome outcome)

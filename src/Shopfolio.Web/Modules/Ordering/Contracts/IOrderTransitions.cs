@@ -9,10 +9,13 @@ namespace Shopfolio.Modules.Ordering.Contracts;
 /// that take and give immutable records and join the caller's database transaction (09 6 item 3): none of them opens a transaction, takes a caller's
 /// lock before its own or calls an outside service. No method is open before its condition is written: a call that named a code and skipped the
 /// condition would open the white list's rows without their rules.
-/// The shipment axis (T316): S1 <see cref="StartPreparationAsync"/>, S3/S4/S9 <see cref="CancelOrderAsync"/>, S5 <see cref="ShipOrderAsync"/>,
-/// S6 <see cref="MarkDeliveredAsync"/>, S7 <see cref="MarkDeliveryFailedAsync"/>, S8 <see cref="ResendOrderAsync"/>, the reasonless S9 closing
-/// <see cref="CloseReturnedOrderAsync"/>; S2, S10 and S11 have no operation of their own - they are the closure rule's, written at the end of the operation
-/// that completes it (03 1.4.3).
+/// The shipment axis (T316): S3/S4/S9 <see cref="CancelOrderAsync"/>, S5 <see cref="ShipOrderAsync"/>, S6 <see cref="MarkDeliveredAsync"/>,
+/// S7 <see cref="MarkDeliveryFailedAsync"/>, S8 <see cref="ResendOrderAsync"/>, the reasonless S9 closing <see cref="CloseReturnedOrderAsync"/>; S1 has no
+/// operation of its own - it is written with Ö1 by the approval (T318; 03 1.4.2.1; D-307) - and S2, S10 and S11 are the closure rule's, written at the end of
+/// the operation that completes it (03 1.4.3).
+/// The two axes' tie (T318; 03 1.4): the combination table (<c>TransitionTable.Combinations</c>), the simultaneous transitions - Ö1 with S1 or S2, the
+/// digital items' delivery marks and the final decrease of the reservation; S3 with Ö2 and the freed reservation; the closure rule; the transfer mark's
+/// correction moving both axes - and the counters' moments (<c>CounterMomentTable</c>).
 /// The payment axis (T317): Ö1 <see cref="ApplyCardPaymentAsync"/> and <see cref="MarkTransferPaidAsync"/> - the one path of the approval, with the payment
 /// record (09 24 item 4) - Ö3/Ö4/Ö5 <see cref="ApplyCardRefundOutcomeAsync"/> and <see cref="ProcessTransferRefundAsync"/>; Ö2 has no operation of its own:
 /// an unpaid order's cancellation writes it with S3 in <see cref="CancelOrderAsync"/>.
@@ -21,13 +24,17 @@ public interface IOrderTransitions
 {
     /// <summary>
     /// Applies the provider's successful card payment (05 4.5.3: the one path of the notification and the final query). On a pending order: Ö1 by the
-    /// system and, when the order carries an open physical item, S1 with it (03 1.2 S1); the payment record and B-4. On a cancelled order, and on a
+    /// system and, when the order carries an open physical item, S1 with it (03 1.2 S1); the reservation falls finally, the open digital items take their
+    /// delivery mark and an order without an open physical item reads the closure rule (S2; 03 1.4.2.1); the payment record and B-4. On a cancelled order, and on a
     /// paid one when the transaction id is new (K-1211): the payment record without an Ö1 and the system's card refund queued in the same transaction;
     /// the axes stay. A transaction id already recorded does nothing (K-970).
     /// </summary>
     Task<PaymentTransitionResult> ApplyCardPaymentAsync(CardPaymentSucceeded payment, CancellationToken ct);
 
-    /// <summary>The administrator's "paid" mark on a bank transfer order: Ö1 by the administrator, S1 by the system with it (D-291), the payment record and B-4.</summary>
+    /// <summary>
+    /// The administrator's "paid" mark on a bank transfer order: Ö1 by the administrator, S1 by the system with it (D-291), the same simultaneous effects as the
+    /// card's approval (03 1.4.2.1) with the closure as the administrator's event, the payment record and B-4.
+    /// </summary>
     Task<PaymentTransitionResult> MarkTransferPaidAsync(TransferPaidMark mark, CancellationToken ct);
 
     /// <summary>
@@ -38,14 +45,6 @@ public interface IOrderTransitions
 
     /// <summary>The administrator processes a bank transfer refund: the refund is sent, Ö3, Ö4 or Ö5 by the administrator, and B-8.</summary>
     Task<PaymentTransitionResult> ProcessTransferRefundAsync(TransferRefundProcessing processing, CancellationToken ct);
-
-    /// <summary>
-    /// S1 alone, Placed to Preparing (03 1.2; 02 5.4): the system, on an order whose payment is already Paid and that carries at least one physical item; S1
-    /// produces no notice. The payment's approval is not this call's: Ö1 with S1 in one lock, one version raise and one B-4 row is written by
-    /// <see cref="ApplyCardPaymentAsync"/> or <see cref="MarkTransferPaidAsync"/>, which write the payment record with it (D-389). A pending payment is refused
-    /// by the pair rule (03 1.4.1 (c)).
-    /// </summary>
-    Task<OrderTransitionResult> StartPreparationAsync(Guid orderId, CancellationToken ct);
 
     /// <summary>
     /// S3, S4 or S9 (03 1.2; 02 5.4): the order's cancellation by the customer, the administrator with a reason, or the system; B-7 goes to the customer. An unpaid

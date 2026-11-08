@@ -1,6 +1,7 @@
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Categories;
+using Shopfolio.Modules.Catalog.Contracts.Coupons;
 using Shopfolio.Modules.Catalog.Contracts.Lists;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
@@ -103,6 +104,10 @@ public sealed class SitemapSourceTests
 
         public Task ReturnAsync(StockClaim claim, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<bool> RetakeAsync(StockClaim claim, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task RestoreAsync(StockClaim claim, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<StockQuantityWriteResult> SaveStockQuantityAsync(Guid variantId, int? shownValue, int? newValue, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<VariantStockState?> GetStockStateAsync(Guid variantId, CancellationToken ct) => throw new NotSupportedException();
@@ -124,6 +129,10 @@ public sealed class SitemapSourceTests
         public Task<ShowcasePage> ListShowcaseAsync(string? search, int page, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ProductPage> GetProductPageAsync(string? slug, bool isAdministrator, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<Guid>> ListVariantsWithoutFileAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<string?> SuggestStockCodeAsync(Guid? productId, string? productName, CancellationToken ct) => throw new NotSupportedException();
 
@@ -148,6 +157,14 @@ public sealed class SitemapSourceTests
         public IReadOnlyList<ShippingVatPart> SplitShippingFee(decimal shippingFee, IReadOnlyList<ShippingBasisLine> lines) => throw new NotSupportedException();
 
         public decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee) => throw new NotSupportedException();
+
+        public Task<CouponWriteResult> CreateCouponAsync(CouponDefinition definition, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<CouponApplication> EvaluateCouponAsync(string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<CouponApplication> ApplyCouponAsync(Guid cartId, string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct) => throw new NotSupportedException();
+
+        public bool ReturnsCouponRight(IReadOnlyList<ItemClosure> items) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct) => throw new NotSupportedException();
 

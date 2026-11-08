@@ -418,7 +418,7 @@ Konteyner `shopfolio-t321-val3-pg` (postgres:18, 127.0.0.1:55821) koşudan sonra
 - **Commit:** PR açılırken son head SHA PR gövdesinde
 - **PR:** PR açıldığında bildirilir
 - **CI:** yoklanmadı (yapım işçisi izlemez)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `a89710b` (#439) — CI 42419095662 success, Publish 42419095630 success (T335 dalında dolduruldu)
 
 ## Dış Varsayımlar
 

@@ -585,10 +585,25 @@ public sealed class StorefrontReadersTests : IAsyncLifetime
         int n = Interlocked.Increment(ref _counter);
         Product product = Product.Create(name, $"urun-{n:D4}", ProductType.Physical, 20m, Now.AddMinutes(n)).WithSeededOrigin();
         product.PublishStatus = status;
+
+        // The publish gate (T335) refuses a product without a published variant; a draft seed carries one so the test can publish it through the transition.
+        Variant? variant = null;
+        if (status == PublishStatus.Draft)
+        {
+            product.FulfilmentPeriod = 3;
+            variant = Variant.Create(product.Id, $"SKU-{n:D4}", 100m, Now.AddMinutes(n));
+            variant.PublishStatus = PublishStatus.Published;
+            variant.StockQuantity = 10;
+        }
+
         await SaveAsync(c =>
         {
             c.Products.Add(product);
             c.ProductCategories.Add(ProductCategory.Create(product.Id, category, true, Now));
+            if (variant is not null)
+            {
+                c.Variants.Add(variant);
+            }
         });
         return product.Id;
     }

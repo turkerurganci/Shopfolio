@@ -1,4 +1,5 @@
 using Shopfolio.Modules.Catalog.Contracts.Categories;
+using Shopfolio.Modules.Catalog.Contracts.Coupons;
 using Shopfolio.Modules.Catalog.Contracts.Lists;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
@@ -35,6 +36,19 @@ public interface ICatalogModule
     /// and the variant still exists, the used coupon right is given back; in the lock order.
     /// </summary>
     Task ReturnAsync(StockClaim claim, CancellationToken ct);
+
+    /// <summary>
+    /// The wrong cancellation's correction on a paid order (06 4.14 path 6; 03 1.4.4.7): the units the cancellation freed are taken again - each only
+    /// if what is left is enough - and fall at once; the coupon right counts as used again, even past its limit. A deleted variant is skipped: it has
+    /// no stock to take. False when one variant did not fit; the caller refuses the correction and the transaction undoes the rows already written.
+    /// </summary>
+    Task<bool> RetakeAsync(StockClaim claim, CancellationToken ct);
+
+    /// <summary>
+    /// The transfer mark's correction (06 4.14 path 5; 03 1.4.4.8): the finally decreased units go back to the reservation - the stock, when not
+    /// unlimited, and the reserved quantity rise together - and the used coupon right becomes a reserved one. A deleted variant is skipped.
+    /// </summary>
+    Task RestoreAsync(StockClaim claim, CancellationToken ct);
 
     /// <summary>
     /// The panel's write of the stock or capacity field (05 7.3.1; 06 2.6.5; 02 §3.6.7): one conditional update - the new value is written only if
@@ -109,6 +123,19 @@ public interface ICatalogModule
     /// are not listed; a sold-out one is, marked (02 3.6.3). A plain read; it writes nothing.
     /// </summary>
     Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>
+    /// What the address <c>/urun/{slug}</c> answers (02 3.7.5, 3.7.6, 3.30.4): a Published product is its page; an Archived product is the "Bu ürün artık satılmıyor" page with its name,
+    /// image and status - and no variant, so no price and no cart; a Draft product is "page not found" for a visitor and the page with the "Draft" band for a signed-in administrator
+    /// (<paramref name="isAdministrator"/>), who sees the Draft variants too; an address that holds no product, a deleted one among them, is "page not found". A plain read.
+    /// </summary>
+    Task<ProductPage> GetProductPageAsync(string? slug, bool isAdministrator, CancellationToken ct);
+
+    /// <summary>
+    /// The Published variants of a digital product that no file serves (02 3.7.4): the variants the publish gate counts and the panel shows as missing a file - none for a product of
+    /// another type, one that has a file at product level, or one whose Published variants each carry their own. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> ListVariantsWithoutFileAsync(Guid productId, CancellationToken ct);
 
     /// <summary>
     /// The stock code the new variant's form is filled with (02 3.3.4; 05 7.8.1, MK-32): the product's address in capitals - its first twenty characters - a hyphen and
@@ -193,6 +220,34 @@ public interface ICatalogModule
 
     /// <summary>The order total (02 3.8.3; K-61): the sum of the items' payable amounts and the shipping fee, never net plus VAT again. A pure calculation.</summary>
     decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee);
+
+    /// <summary>
+    /// Adds a new coupon to the caller's unit of work (02 3.10.2, 3.10.4, 3.10.5; 07 UC-122): a percentage above zero and under one hundred, or a fixed amount above zero
+    /// with a larger minimum basket amount; a date range; a usage count. Every field problem and a code another coupon holds - compared without letter case, "I", "İ",
+    /// "ı" and "i" being one letter - refuse it, and nothing is added. Joins the caller's transaction and never saves (09 9.1 item 3).
+    /// </summary>
+    Task<CouponWriteResult> CreateCouponAsync(CouponDefinition definition, CancellationToken ct);
+
+    /// <summary>
+    /// The verdict on a coupon code for a basket now (02 3.10.1-3.10.5): accepted with every item's share - a percentage rounded in each item, a fixed amount spread in
+    /// proportion with the left-over kuruş on the largest item - and the VAT separated after it; not accepted when unknown, outside its dates, its rights used up, equal
+    /// to or above the basket, or rounded to a total of zero; its own outcome under the minimum basket amount. The basket total before the coupon is the base of the
+    /// thresholds (02 3.10.7). A plain read; it counts no attempt and reserves no right - the confirmation reserves it (<see cref="ReserveAsync"/>).
+    /// </summary>
+    Task<CouponApplication> EvaluateCouponAsync(string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct);
+
+    /// <summary>
+    /// The payment step's coupon field (07 UC-23; 02 3.10.5, 8.2 L-6): <see cref="EvaluateCouponAsync"/> behind the cart's invalid attempt limit - past the limit the field
+    /// closes and the code is not looked at; a code that is not accepted counts toward the limit, an accepted one and one under its minimum basket amount do not. The
+    /// attempt rows are written in the counter's own short transactions; nothing else is written.
+    /// </summary>
+    Task<CouponApplication> ApplyCouponAsync(Guid cartId, string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct);
+
+    /// <summary>
+    /// Whether closing an order's units gives its coupon right back (02 5.11.3, 7.2.6, 7.4.8): only when every unit of every item is closed - cancelled, removed, terminated
+    /// for late delivery, withdrawn or returned; a partial cancellation or return keeps the right. The right moves through <see cref="ReturnAsync"/>. A pure rule.
+    /// </summary>
+    bool ReturnsCouponRight(IReadOnlyList<ItemClosure> items);
 
     /// <summary>
     /// The whole category tree, depth first: a node, then its sub-categories in the Turkish alphabetical order of their names at every level (02 3.4.1) - the order of the panel's tree,

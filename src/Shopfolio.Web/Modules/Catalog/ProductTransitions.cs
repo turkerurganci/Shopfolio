@@ -128,8 +128,7 @@ internal sealed class ProductTransitions : IProductTransitions
         }
 
         // The gate of a published product is kept while it is published too (03 1.8.2): its last Published variant stays.
-        if (from == PublishStatus.Published && product.PublishStatus == PublishStatus.Published
-            && !await _db.Variants.AnyAsync(v => v.ProductId == product.Id && v.Id != variantId && v.PublishStatus == PublishStatus.Published, ct))
+        if (await PublishedProductGate.IsLastPublishedVariantAsync(_db, product, variant, ct))
         {
             return PublishChangeResult.LastPublishedVariant;
         }

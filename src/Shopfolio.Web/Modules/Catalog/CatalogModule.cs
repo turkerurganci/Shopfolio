@@ -1,11 +1,14 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Jobs;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Categories;
+using Shopfolio.Modules.Catalog.Contracts.Coupons;
 using Shopfolio.Modules.Catalog.Contracts.Lists;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
@@ -23,6 +26,7 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly ShowcaseReader _showcase;
     private readonly StockCodes _stockCodes;
     private readonly ProductStructureReader _structure;
+    private readonly ProductPageReader _pages;
     private readonly PriceLabelReader _priceLabels;
     private readonly CategoryTree _categories;
     private readonly ProductCategoryLinks _links;
@@ -31,6 +35,7 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly Discounts _discounts;
     private readonly VariantPrices _variantPrices;
     private readonly CatalogMenuReader _menu;
+    private readonly Coupons _coupons;
 
     public CatalogModule(
         StockCounters counters,
@@ -41,6 +46,7 @@ internal sealed class CatalogModule : ICatalogModule
         ShowcaseReader showcase,
         StockCodes stockCodes,
         ProductStructureReader structure,
+        ProductPageReader pages,
         PriceLabelReader priceLabels,
         CategoryTree categories,
         ProductCategoryLinks links,
@@ -48,11 +54,14 @@ internal sealed class CatalogModule : ICatalogModule
         ProductGallery gallery,
         Discounts discounts,
         VariantPrices variantPrices,
-        CatalogMenuReader menu)
+        CatalogMenuReader menu,
+        Coupons coupons)
     {
+        _pages = pages;
         _discounts = discounts;
         _menu = menu;
         _variantPrices = variantPrices;
+        _coupons = coupons;
         _priceLabels = priceLabels;
         _categories = categories;
         _links = links;
@@ -85,6 +94,10 @@ internal sealed class CatalogModule : ICatalogModule
     public Task<IReadOnlyList<OptionMatrixCell>> GetOptionMatrixAsync(Guid productId, CancellationToken ct)
         => _structure.GetMatrixAsync(productId, ct);
 
+    public Task<ProductPage> GetProductPageAsync(string? slug, bool isAdministrator, CancellationToken ct) => _pages.ReadAsync(slug, isAdministrator, ct);
+
+    public Task<IReadOnlyList<Guid>> ListVariantsWithoutFileAsync(Guid productId, CancellationToken ct) => _fileReader.ListPublishedWithoutFileAsync(productId, ct);
+
     public Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct) => _priceLabels.GetAsync(variantId, ct);
 
     public Task<DiscountSaveResult> SaveDiscountAsync(Guid productId, decimal percentage, DateOnly startDate, DateOnly endDate, CancellationToken ct)
@@ -102,6 +115,15 @@ internal sealed class CatalogModule : ICatalogModule
         => ItemPricing.SplitShippingFee(shippingFee, lines);
 
     public decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee) => ItemPricing.SumOrderTotal(items, shippingFee);
+
+    public Task<CouponWriteResult> CreateCouponAsync(CouponDefinition definition, CancellationToken ct) => _coupons.CreateAsync(definition, ct);
+
+    public Task<CouponApplication> EvaluateCouponAsync(string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct) => _coupons.EvaluateAsync(code, lines, ct);
+
+    public Task<CouponApplication> ApplyCouponAsync(Guid cartId, string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct)
+        => _coupons.ApplyAsync(cartId, code, lines, ct);
+
+    public bool ReturnsCouponRight(IReadOnlyList<ItemClosure> items) => CouponRules.ReturnsRight(items);
 
     public Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct) => _categories.ReadAsync(ct);
 
@@ -178,6 +200,10 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task ReturnAsync(StockClaim claim, CancellationToken ct) => ApplyAsync(claim, CounterMove.Return, ct);
 
+    public Task<bool> RetakeAsync(StockClaim claim, CancellationToken ct) => ApplyAsync(claim, CounterMove.Retake, ct);
+
+    public Task RestoreAsync(StockClaim claim, CancellationToken ct) => ApplyAsync(claim, CounterMove.Restore, ct);
+
     public Task<StockQuantityWriteResult> SaveStockQuantityAsync(Guid variantId, int? shownValue, int? newValue, CancellationToken ct)
     {
         return _counters.SaveStockQuantityAsync(variantId, shownValue, newValue, ct);
@@ -220,6 +246,11 @@ internal static class CatalogModuleRegistration
         services.AddScoped<VariantPrices>();
         services.AddDueRecordSource<DiscountBoundarySource>();
 
+        // The coupon (T338): its application counts the cart's invalid attempts (L-6). The counter is infrastructure that Program.cs registers first; a host that builds
+        // the module alone (the tests) gets it here, and the application's own registration is never doubled.
+        services.AddScoped<Coupons>();
+        services.TryAddScoped<AttemptCounter>();
+
         // The image derivative job (D-97) and the image disposal (D-102): the rows first, the files they leave behind after (06 9.3.4).
         services.AddJobHandler<ImageDerivativeJobHandler>(JobType.ImageDerivative);
         services.AddDisposalPart<ImageDisposalPart>();
@@ -228,11 +259,13 @@ internal static class CatalogModuleRegistration
         services.AddDisposalPart<DigitalFileDisposalPart>();
         services.AddDisposalPart<OrphanDigitalFilePart>();
 
-        // The publish status transitions (T321; 09 9.1 item 1): the class is what the module takes, the open face is the same instance. The gate is open until T335 (D-300).
+        // The publish status transitions (T321; 09 9.1 item 1): the class is what the module takes, the open face is the same instance. The gate is T335's (D-300).
         services.AddScoped<ShowcaseReader>();
-        services.AddScoped<IPublishGate, UnwrittenPublishGate>();
+        services.AddScoped<ProductPageReader>();
+        services.AddScoped<IPublishGate, CatalogPublishGate>();
         services.AddScoped<ProductTransitions>();
         services.AddScoped<IProductTransitions>(provider => provider.GetRequiredService<ProductTransitions>());
+        services.AddScoped<IProductRemoval, ProductRemoval>();
         services.AddScoped<ICatalogModule, CatalogModule>();
         return services;
     }

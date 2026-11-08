@@ -50,8 +50,8 @@ internal sealed class Discounts
 
         // A zero is refused before anything is written: the history never takes a price of zero (06 4.11).
         ReferenceRule rule = ReferencePriceRules.RuleOf(product.ProductType, product.WithdrawalExemptionReason);
-        List<ReferenceInput> before = await PriceHistoryReads.VariantsAsSavedAsync(_db, productId, ct);
-        if (before.FirstOrDefault(v => DiscountRules.ReachesZero(v.Price, percentage)) is { } zero)
+        List<ReferenceInput> variants = await PriceHistoryReads.VariantsAsSavedAsync(_db, productId, ct);
+        if (variants.FirstOrDefault(v => DiscountRules.ReachesZero(v.Price, percentage)) is { } zero)
         {
             Dictionary<Guid, decimal> known = await PriceHistoryReads.ReferencesAsync(_db, rule, DiscountRules.StartsAt(terms), [zero], ct);
             return DiscountSaveResult.DiscountedPriceZero(zero.VariantId, known[zero.VariantId]);
@@ -68,8 +68,8 @@ internal sealed class Discounts
         IReadOnlyList<PriceHistory> rows = await _recorder.RecordAsync(productId, ct);
 
         // The reference reads the history as this unit of work leaves it: a bound the earlier discount owed is a price that applied (02 3.9.3).
-        Dictionary<Guid, decimal> references = await PriceHistoryReads.ReferencesAsync(_db, rule, DiscountRules.StartsAt(terms), before, ct);
-        foreach (ReferenceInput variant in before)
+        Dictionary<Guid, decimal> references = await PriceHistoryReads.ReferencesAsync(_db, rule, DiscountRules.StartsAt(terms), variants, ct);
+        foreach (ReferenceInput variant in variants)
         {
             decimal reference = references[variant.VariantId];
             if (DiscountRules.CheckVariant(variant.Price, reference, percentage) != DiscountProblem.None)

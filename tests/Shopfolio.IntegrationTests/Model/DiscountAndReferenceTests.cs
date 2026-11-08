@@ -35,6 +35,7 @@ public sealed class DiscountAndReferenceTests : IAsyncLifetime
     private static readonly DateOnly Today = new(2026, 11, 20);
     private static readonly DateTimeOffset Now = TurkeyTime.StartOf(Today).AddHours(9);
     private static readonly DateTimeOffset LongAgo = Now.AddDays(-60);
+    private static readonly string[] SaveDiscountParameters = ["productId", "percentage", "startDate", "endDate", "ct"];
 
     private readonly CollectionDatabaseFixture _collection;
     private readonly MovableTime _time = new(Now);
@@ -69,7 +70,7 @@ public sealed class DiscountAndReferenceTests : IAsyncLifetime
         DiscountView view = Assert.IsType<DiscountView>(await ReadAsync(db => DiscountsOf(db).GetAsync(product.Id, Ct)));
         Assert.Equal(DiscountState.Running, view.State);
         Assert.Equal(
-            [new DiscountVariantLine(v[0].Id, 1000m, 1000m, 800m), new DiscountVariantLine(v[1].Id, 1250m, 1250m, 1000m)],
+            new[] { new DiscountVariantLine(v[0].Id, 1000m, 1000m, 800m), new DiscountVariantLine(v[1].Id, 1250m, 1250m, 1000m) },
             view.Variants.OrderBy(l => l.Price));
     }
 
@@ -97,7 +98,7 @@ public sealed class DiscountAndReferenceTests : IAsyncLifetime
 
         // Not started yet, then running: 0,01 x 0,40 = 0,004 -> 0,00 is refused; 0,02 x 0,40 = 0,008 -> 0,01 is not.
         Assert.Same(VariantPriceResult.DiscountedPriceZero, await RunAsync(db => PricesOf(db).ChangeAsync(v[0].Id, 0.01m, Ct)));
-        _time.Now = TurkeyTime.StartOf(Today.AddDays(1));
+        _time.Now = TurkeyTime.StartOf(Today.AddDays(1)).AddHours(1);
         Assert.Same(VariantPriceResult.DiscountedPriceZero, await RunAsync(db => PricesOf(db).ChangeAsync(v[0].Id, 0.01m, Ct)));
         Assert.Same(VariantPriceResult.Changed, await RunAsync(db => PricesOf(db).ChangeAsync(v[0].Id, 0.02m, Ct)));
 
@@ -121,7 +122,7 @@ public sealed class DiscountAndReferenceTests : IAsyncLifetime
         DateTimeOffset closes = TurkeyTime.EndOfRange(end);
 
         Assert.Empty(await FindDueAsync(source, opens.AddTicks(-1)));
-        Assert.Equal([new DueRecord(product.Id, opens)], await FindDueAsync(source, opens));
+        Assert.Equal(new[] { new DueRecord(product.Id, opens) }, await FindDueAsync(source, opens));
 
         // The scheduler comes six hours late: the row carries 00.00 of the start day.
         _time.Now = opens.AddHours(6);
@@ -130,12 +131,12 @@ public sealed class DiscountAndReferenceTests : IAsyncLifetime
         Assert.Empty(await FindDueAsync(source, _time.Now));
 
         // 23.59 of the end day is still inside the range.
-        _time.Now = new DateTimeOffset(end.Year, end.Month, end.Day, 23, 59, 0, TurkeyTime.Offset);
+        _time.Now = new DateTimeOffset(end.Year, end.Month, end.Day, 23, 59, 0, TurkeyTime.Offset).ToUniversalTime();
         Assert.Equal(80m, Assert.IsType<DiscountLine>((await LabelAsync(v[0].Id)).Discount).DiscountedPrice);
         Assert.Empty(await FindDueAsync(source, _time.Now));
 
         _time.Now = closes;
-        Assert.Equal([new DueRecord(product.Id, closes)], await FindDueAsync(source, closes));
+        Assert.Equal(new[] { new DueRecord(product.Id, closes) }, await FindDueAsync(source, closes));
         await ProcessAsync(source, product.Id);
         Assert.Equal((closes, 100m), (await HistoryAsync(v[0].Id))[^1]);
         PriceLabel after = await LabelAsync(v[0].Id);
@@ -201,8 +202,8 @@ public sealed class DiscountAndReferenceTests : IAsyncLifetime
         Assert.Empty(await QueryAsync(
             "SELECT table_name || '.' || column_name FROM information_schema.columns WHERE table_name IN ('products', 'variants', 'discounts', 'price_histories') AND column_name LIKE '%reference%'"));
         Assert.Equal(
-            ["productId", "percentage", "startDate", "endDate", "ct"],
-            typeof(ICatalogModule).GetMethod(nameof(ICatalogModule.SaveDiscountAsync))!.GetParameters().Select(p => p.Name));
+            SaveDiscountParameters,
+            typeof(ICatalogModule).GetMethod(nameof(ICatalogModule.SaveDiscountAsync))!.GetParameters().Select(p => p.Name ?? string.Empty));
     }
 
     // ---- KK6: the window's lowest, an off-sale stretch, an earlier campaign, the product's rule ----
@@ -277,7 +278,7 @@ public sealed class DiscountAndReferenceTests : IAsyncLifetime
     public async Task ANewVariant_TakesItsReferenceFromItsOwnHistory_NotFromItsSiblings()
     {
         (Product product, Variant[] v) = await SeedAsync(ProductType.Physical, null, 50m, 100m);
-        await ExecuteAsync($"UPDATE variants SET first_on_sale_at = '{Now.AddDays(-3):O}', created_at = '{Now.AddDays(-3):O}' WHERE id = '{v[1].Id}'");
+        await ExecuteAsync($"UPDATE variants SET first_on_sale_at = '{Now.AddDays(-3):u}', created_at = '{Now.AddDays(-3):u}' WHERE id = '{v[1].Id}'");
         await ExecuteAsync($"DELETE FROM price_histories WHERE variant_id = '{v[1].Id}'");
         await AddRowAsync(v[1].Id, 100m, Now.AddDays(-3));
 
@@ -364,7 +365,7 @@ public sealed class DiscountAndReferenceTests : IAsyncLifetime
         _time.Now = opens.AddHours(3);
         Assert.Same(VariantPriceResult.Changed, await RunAsync(db => PricesOf(db).ChangeAsync(v[0].Id, 150m, Ct)));
 
-        Assert.Equal([(opens, 80m), (opens.AddHours(3), 120m)], (await HistoryAsync(v[0].Id))[^2..]);
+        Assert.Equal(new[] { (opens, 80m), (opens.AddHours(3), 120m) }, (await HistoryAsync(v[0].Id))[^2..]);
     }
 
     [Fact]
@@ -392,6 +393,10 @@ public sealed class DiscountAndReferenceTests : IAsyncLifetime
         if (type == ProductType.Physical)
         {
             product.WithSeededOrigin();
+        }
+        else if (type == ProductType.Service)
+        {
+            product.FulfilmentPeriod = 5;
         }
 
         product.PublishStatus = PublishStatus.Published;

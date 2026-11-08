@@ -52,6 +52,12 @@ internal sealed class PriceHistoryRecorder
                 DateTimeOffset since = stored.DefinedAt > before.CreatedAt ? stored.DefinedAt : before.CreatedAt;
                 foreach (PricePoint bound in DiscountRules.OwedBounds(stored.Terms, since, before.Price, lastAt, now))
                 {
+                    // One moment holds one price: a bound that falls at now is left to the row at now, which carries the price as this unit of work leaves it.
+                    if (bound.StartedAt >= now)
+                    {
+                        continue;
+                    }
+
                     added.Add(Add(variant.VariantId, bound.Price, bound.StartedAt, now));
                     (lastAt, lastPrice) = (bound.StartedAt, bound.Price);
                 }

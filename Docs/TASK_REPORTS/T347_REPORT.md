@@ -1,6 +1,6 @@
 # T347 — Sepet adet kuralları: stok ve sipariş başına sınır, boşalma, istek listesi yokluğu
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamam, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurdu; doğrulama chat'i finalize eder. Yapım iki işçide yürüdü: ilk işçi kodu ve testleri yazıp bağlam sınırında durdu, devam işçisi tam test paketlerini, biçimi, kayıtları ve raporu bitirdi.
 
@@ -83,10 +83,36 @@ Güvenlik taraması: kullanıcı girdisi ham SQL'e yalnız parametre olarak gire
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | **tur 1: ✓ PASS** (2026-11-08; head `a8bfecd1`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-637, K2 → D-638) |
+
+### Doğrulama tur 1 (2026-11-08)
+
+**Verdict: ✓ PASS** (kapsam tam: kabul kriterleri 1–7, KK1–KK7, `09 §25`, güvenlik taraması).
+
+Başlangıç: working tree temiz; `core.hooksPath` depo bekçisi; ana dal son 3 tamamlanmış run (42500144509, 42500141831, 42493884474) success. Dal CI'ı run 42502184068 (head `a8bfecd1`) bütün işler yeşil.
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Stoktan fazla adet eklenmez, adet söylenmez, ayrılmış adet düşülür | ✓ | `CartQuantityRules.ExceedsStock` (`stock - reserved`); `CartAddResult`/`CartQuantityVerdict` stok sayısı taşımaz, `OrderLimit` yalnız `OverOrderLimit`'te dolu; ilk eklemede red sepet bırakmaz; `CartQuantityTests` KK1 iki test yeşil |
+| 2 | Artırma ve birleşme aynı kural, adet indirilmez, kalem siparişe girmez; kontenjan aynı | ✓ | Ekleme kuralı sepet kilidi altında güncel kalemlerden okur (`Carts.AddAsync` → `RefusalAsync`); birleşme adedi değiştirmez (`GREATEST`), okuma her kalemi `JudgeCartQuantitiesAsync`'ten geçirir, adet yazan yer yok; kontenjan aynı `stock_quantity` alanında; KK2 dört test |
+| 3 | Sınır bütün varyantların toplamına, sayıyla söylenir; ikisi aşılınca yalnız sınır; boşsa stok | ✓ | `CartQuantityRules.JudgeAdd` (sınır önce, aday stoğu aşsa da toplama girer); KK3 dört entegrasyon + beş birim testi (taşma dahil) |
+| 4 | Sonradan aşılan sınırda kalem kalır, siparişe ve toplama girmez | ✓ | `Judge` toplamı yalnız `EntersBeforeLimit` kalemlerden; `CartRules.EntersOrder(..., quantityProblem)`; `OrderableSubtotal` 100 TL (KK4 testi) |
+| 5 | Kalem sayısına tavan yok | ✓ | Eklemede kalem sayısı okunmaz; `TheFiftyFirstLine_IsAdded_*_KK5` yeşil; performans satırı `VAL-F013` |
+| 6 | Ödemede yalnız giren kalemler çıkar; birleşen misafir sepeti hesaba dokunmaz | ✓ | `CompleteApprovalAsync` (kart ve havale ortak yolu) → `DeleteOrderedItemsAsync` (siparişin `cart_id`'si ve varyantları); birleşmede misafir sepeti silinir, kimlik yeniden kullanılmaz; KK6 üç test |
+| 7 | İstek listesi, favori, sepet hatırlatma yok | ✓ | `WishlistAbsenceScanTests` (kaynak + bildirim sözleşmeleri); validator `git grep` `src` bütün dosya türlerinde 0 eşleşme |
+
+Testler (validator): build `-warnaserror` 0/0; format üç proje çıkış 0; Unit 4951/4951; betik testleri 4/4; Integration (PG18, `shopfolio-t347-val-pg`) Ordering 301, Catalog + Files + Web + Concurrency 794 — hepsi yeşil. `origin/main` (T311) çakışmasız birleşti; birleşik ağaçta build 0/0, Unit 4974/4974, Integration Ordering + Payment 315 yeşil; `--locked-mode` çıkış 0.
+
+Güvenlik: ham SQL tek kapalı yerde ve parametreli (`variant_id = ANY({variantIds})`), tarama testi beş deyime bağlar; silme siparişin kendi `cart_id`'siyle sınırlı; adet toplamı `long`, `int` taşması `NoStock`; yanıtlar stok adedini taşımaz; yetki yüzeyi değişmedi; yeni bağımlılık yok.
+
+`12` satırları: `VAL-A030`, `A031`, `A033`, `A979` (KP-9), `A978`, `A989` (02 §3.16.8–§3.16.10) ve `D072` (02 §3.16.12) uç yanıtı kanıtı ister; T347 modül düzeyidir (uç T508) → `BEKLEMEDE` kalır (T346/T318/T338 emsali). `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+K-notları: K1 → D-637 (D-560 "dijital ürün adedi" payı kapanmadı: `AddToCartAsync` dijital varyantı ikinci kez ya da 1'den büyük adetle kabul eder; kural `CheckDigitalAddAsync`'te var ama ekleme yolu çağırmıyor — T347 kriteri değil, `02 §3.12.4`). K2 → D-638 (yeni sonuç adları `NoStock`/`OverOrderLimit` `07`'nin hata kodlarıyla — `StockInsufficient`, `MaxQuantityPerOrderExceeded` — birebir değil; uçta eşleme yazılmalı).
+
+Yapım raporu karşılaştırması: davranışta tam uyum; öz denetim tablosu kriter ve KK başına kanıtlı. Uyuşmazlık: "Kapanan: D-560 (bu task)" — D-560'ın dijital adet payı yapılmadı (K1).
 
 ## Altyapı Değişiklikleri
 

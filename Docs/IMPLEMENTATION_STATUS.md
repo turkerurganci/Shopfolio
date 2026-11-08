@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T335 (Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı) doğrulama tur 1 ✓ PASS (head `7241002` + `origin/main` (`e2e9dbc`, T341, #433) birleştirmesi, PR #447; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Unit 4027 + Consistency 241 (birleşik ağaçta 4039 + 241), Integration `ProductPublishGateTests` 31/31 ve `ProductTransitionsTests` 41/41 (PostgreSQL 18, yerel); dal CI 42425264272 success; `12` satırları (`VAL-A021`…`A024`, `D001`, `C037`, `C038`, `A163`, `A171`, `A177`…`A180`, `D025`) `BEKLEMEDE` kaldı — kanıt türü uç yanıtı/tarayıcı, sayfalar T503/T549/T525'te; bulgu yok, K-notu yok (dosya silme–yayın yarışı yapımda D-401'e ileri atılmış). T341 birleştirmesinde yalnız STATUS çakıştı; ardından `origin/main` (`7097c01`, T317, #441) ikinci birleştirmesinde `TransitionTable.cs` ile üç kayıt belgesi çakıştı, iki taraf birlikte korundu (`TerminalStatuses` ve ödeme ekseninin `IsTerminal(PaymentStatus)` yan yana); `Modules/Ordering` iki dosyası kendiliğinden birleşti, derleme ve Unit temiz; backlog aktif 154 (satır sayısı 162, başlık sayacı main ile aynı kuralla 8 eksik tutuluyor)).
+**Son güncelleme:** 2026-11-08 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) doğrulama tur 4 ✓ PASS (TAM yeniden doğrulama; head `f6412bf` + `origin/main` (T341, #433) birleştirmesi, PR #442; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 3 BLOCKED (main kod çakışması) iki kod birleştirmesiyle giderildi; Unit 4231/4231 (Architecture, Consistency dahil), betik testleri 4/4, Integration `CategoryTreeAndListsTests` 33/33 (parçalı, gerçek PostgreSQL 18), `build -warnaserror` ve `dotnet format` temiz; dal CI 42425396677 success; bulgu 0; K1: D-332 hedefi tamamlanmış T339'dan T502'ye taşındı; `VAL-A001`…`A008`, `VAL-A181`…`A185` `BEKLEMEDE` kaldı (uç ve tarayıcı kanıtı sayfa task'larında); backlog aktif kalem yeniden sayıldı: 159). Önceki kayıtlar `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -141,7 +141,7 @@
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
 | T301 | Siparişin imha parçası | ✓ | ✓ PASS (tur 1) | `a3c9d1a` | #431 |
-| T302 | Öteki kayıtların süreyle imhası | ⬚ | — | — | — |
+| T302 | Öteki kayıtların süreyle imhası | ✓ | ✓ PASS (tur 1) | — | #446 |
 | T303 | İlk yönetici yönetim komutu ve komut çatısı | ⬚ | — | — | — |
 | T304 | Alıcı başına bildirim gönderim sınırı | ✓ | ✓ PASS (tur 1) | `268ab8d` | #421 |
 | T305 | E-posta ortak kalıbı ve gövde üretimi | ✓ | ✓ PASS (tur 1) | `7cc0db5` | #422 |
@@ -172,8 +172,8 @@
 | T330 | Firma kimliği: tek firma, tip ve tipe göre zorunlu alanlar, yasal kimlik bilgilerinin erişilebilirliği, iade adresi | ✓ | ✓ PASS (tur 1) | `4924037` | #420 |
 | T331 | Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması | ✓ | ✓ PASS (tur 1) | `eb91975` | #425 |
 | T332 | Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu | ✓ | ✓ PASS (tur 1) | `c4c872c` | #432 |
-| T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ⬚ | — | — | — |
-| T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ✓ | ✓ PASS (tur 1) | `af6e7d3` | #443 |
+| T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ✓ | ✓ PASS (tur 4) | — | #442 |
+| T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ✓ | ✓ PASS (tur 1) | — | #443 |
 | T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ✓ | ✓ PASS (tur 1) | — | #447 |
 | T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ⬚ | — | — | — |
 | T337 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | ⬚ | — | — | — |

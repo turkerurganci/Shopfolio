@@ -20,6 +20,7 @@ using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;

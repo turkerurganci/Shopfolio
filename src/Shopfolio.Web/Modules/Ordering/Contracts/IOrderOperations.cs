@@ -1,0 +1,35 @@
+using Shopfolio.Infrastructure.Operations;
+
+namespace Shopfolio.Modules.Ordering.Contracts;
+
+/// <summary>One open operation of an order as the server decided it: the operation, the item it is open for (null for an operation on the order), and its values (open quantity, upper limit, last day).</summary>
+public sealed record OrderOperationEntry(OrderOperation Operation, Guid? OrderItemId, OperationAvailability Availability);
+
+/// <summary>The operations open to one side of an order at one moment (03 1.11): only the open ones are in the list - an operation outside its interval is not offered at all (03 1.11; T323 criterion 3).</summary>
+public sealed record OrderOperationsView(Guid OrderId, ActorKind Actor, int Version, IReadOnlyList<OrderOperationEntry> Open)
+{
+    /// <summary>True when the operation is open for the item (or for the order when <paramref name="orderItemId"/> is null).</summary>
+    public bool IsOpen(OrderOperation operation, Guid? orderItemId = null) => Open.Any(e => e.Operation == operation && e.OrderItemId == orderItemId);
+}
+
+/// <summary>
+/// The one decision of the forty-one operations of 03 1.11 (T323; 09 8.3 item 1; 07 8.1.5): from the order's status, the payment status, the item's type and its open quantity the
+/// decision says which operations are open now. The order page and the panel draw their buttons from <see cref="ReadAsync"/>; every POST asks <see cref="CheckAsync"/> - the same
+/// decision, worked out again from the records, so a button that was hidden, stale or never drawn is refused all the same (05 MK-47, 6.2.1). There is no role model: the customer's
+/// side is the buyer and the panel's side is the firm's administrator (02 10.1.2; K-912). Both methods only read; <see cref="CheckAsync"/> is called inside the writer's
+/// transaction after the order's row lock (05 7.3.2), so the answer is the answer of the state the write sees.
+/// </summary>
+public interface IOrderOperations
+{
+    /// <summary>
+    /// The operations open to <paramref name="actor"/> (Buyer or Admin) on the order, or null when there is no such order. The customer's view is the order page's, the
+    /// administrator's is the panel's; an operation of the other side is never in the list.
+    /// </summary>
+    Task<OrderOperationsView?> ReadAsync(Guid orderId, ActorKind actor, CancellationToken ct);
+
+    /// <summary>
+    /// The verdict of one request: closed when the operation is not in the table, is not open now for the order (or the item), or the item is not the order's; the quantity
+    /// above the open quantity is refused whole. A request for a missing order is closed.
+    /// </summary>
+    Task<OperationVerdict> CheckAsync(Guid orderId, OrderOperation operation, Guid? orderItemId, int? quantity, CancellationToken ct);
+}

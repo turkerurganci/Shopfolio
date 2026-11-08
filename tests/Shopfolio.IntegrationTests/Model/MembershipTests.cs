@@ -121,6 +121,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
         services.AddScoped<OrderLocks>();
         services.AddScoped<DownloadCounters>();
         services.AddScoped<OrderPaymentArms>();
+        services.AddScoped<OrderAccess>();
         services.AddScoped<AdvisoryLocks>();
         services.AddCartServices();
         services.AddScoped<IOrderingModule, OrderingModule>();

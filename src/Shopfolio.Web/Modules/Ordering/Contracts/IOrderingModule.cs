@@ -93,7 +93,7 @@ public interface IOrderingModule
 
     /// <summary>
     /// Adds a variant to the owner's cart (02 3.16.1, 3.16.5): a new line remembers the unit price of this moment; the same variant again raises the quantity and leaves that price alone. The cart is
-    /// made when it does not exist. A variant that is not on the showcase or is sold out is not added. The stock and per-order limits of the quantity are T347's. Joins the caller's transaction and
+    /// made when it does not exist. A variant that is not on the showcase or is sold out is not added. A quantity the stock less the reserved units does not hold is refused as NoStock without a number; one that passes the product's per-order limit over all its variants is refused as OverOrderLimit with the limit, and the limit wins when both are broken (T347; 02 3.16.8, 3.16.9). Joins the caller's transaction and
     /// does not save.
     /// </summary>
     Task<CartAddResult> AddToCartAsync(CartOwner owner, Guid variantId, int quantity, CancellationToken ct);

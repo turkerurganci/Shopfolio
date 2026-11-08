@@ -72,6 +72,27 @@ public interface IOrderTransitions
     Task<OrderTransitionResult> ResendOrderAsync(ShipOrderRequest request, CancellationToken ct);
 
     /// <summary>
+    /// The customer opens a defect claim on an item (03 1.9.1, 2.9; 02 7.5; T320): one claim per item, inside the channel of Z-18, with the defective units (at most the
+    /// units open to a claim). B-9 goes to the customer and F-3 to the firm. The order's statuses do not change.
+    /// </summary>
+    Task<ItemRecordResult> OpenDefectClaimAsync(OpenDefectClaimRequest request, CancellationToken ct);
+
+    /// <summary>The administrator marks an open defect claim resolved (03 1.9.1); no notice goes.</summary>
+    Task<ItemRecordResult> ResolveDefectClaimAsync(ResolveDefectClaimRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// A resolved defect claim is reopened inside Z-18 (03 1.9.1; K-681) - the same record, never a second one. The customer's reopening may raise the units and sends
+    /// B-9 and F-3; the administrator's sends nothing.
+    /// </summary>
+    Task<ItemRecordResult> ReopenDefectClaimAsync(ReopenDefectClaimRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// The administrator rejects returned goods at the receipt step (03 1.7.1.7; 02 7.4.9; K-656): only on an item frozen with a conditional exemption, at most the
+    /// declaration's units still on the way back, with the irreversible-action confirmation. B-16 goes to the customer; no refund is paid.
+    /// </summary>
+    Task<ItemRecordResult> RejectReturnAsync(RejectReturnRequest request, CancellationToken ct);
+
+    /// <summary>
     /// The administrator's correction of a wrong transition (T319; 03 1.6.2; 02 10.4.6; 05 4.1.4): a new transition with a reason from the closed list that
     /// sets the axis back; the wrong row and the correction both stay in the record, and B-13 goes. There is no "undo": the panel corrects by this one path.
     /// What is corrected, and on what condition: the early delivery mark S6 (the physical items' marks go, the withdrawal and defect periods wait for the new

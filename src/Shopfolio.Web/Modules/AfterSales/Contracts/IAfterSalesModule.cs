@@ -33,6 +33,41 @@ public interface IAfterSalesModule
     /// </summary>
     Task<IReadOnlyDictionary<Guid, ItemUnitFacts>> UnitFactsAsync(IReadOnlyCollection<Guid> orderItemIds, bool includeUnsaved, CancellationToken ct);
 
+    /// <summary>The item's defect claim as it stands (06 4.30), or null when the item has none. A plain read.</summary>
+    Task<DefectClaimInfo?> FindDefectClaimAsync(Guid orderItemId, CancellationToken ct);
+
+    /// <summary>
+    /// The item record writers (03 1.7.1, 1.7.4, 1.9.1; T320). Each adds its own row in the caller's context - two declarations are two rows, two partial
+    /// arrivals two receipts (K-790, K-794) - after the unit rule (at least one, at most the quantity open to the operation; a larger value is refused). They join the
+    /// caller's transaction and require the order's row lock in it (05 7.3.2): the caller is the transition unit, which checks the order's own conditions, raises the
+    /// order's version and saves (09 9.1 item 4; 09 6 item 3). A refusal is a value and writes nothing.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="OpenDefectClaimAsync"/>: one claim per item (an existing claim, open or resolved, is refused), the channel of Z-18 and the units open to a claim.
+    /// <see cref="ChangeDefectClaimStatusAsync"/>: the claim's own transitions (Open to Resolved by an administrator; Resolved to Open by the customer or an
+    /// administrator inside Z-18, the customer may raise the units), the status and its history entry together - the only path to the claim's status.
+    /// <see cref="AddReturnRejectionAsync"/>: only on an item frozen with a conditional exemption, at most the declaration's units still on the way back.
+    /// </remarks>
+    Task<ItemRecordWriteResult> OpenDefectClaimAsync(DefectClaimOpening opening, CancellationToken ct);
+
+    /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
+    Task<ItemRecordWriteResult> ChangeDefectClaimStatusAsync(DefectClaimStatusChange change, CancellationToken ct);
+
+    /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
+    Task<ItemRecordWriteResult> AddWithdrawalAsync(WithdrawalDeclaration declaration, CancellationToken ct);
+
+    /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
+    Task<ItemRecordWriteResult> AddReturnReceiptAsync(ReturnReceiptEntry entry, CancellationToken ct);
+
+    /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
+    Task<ItemRecordWriteResult> AddReturnRejectionAsync(ReturnRejectionEntry entry, CancellationToken ct);
+
+    /// <summary>
+    /// The items' panel marks (03 1.7.3; K-675): read from the records while the condition lasts, never stored - "awaiting the returned goods" and "awaiting the IBAN".
+    /// The caller hands in the items' delivery dates (the item is the order's). Every item is in the result. A plain read.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, ItemMarks>> ItemMarksAsync(IReadOnlyCollection<ItemDelivery> items, CancellationToken ct);
+
     /// <summary>
     /// The cancellation records that closed the order with the given transition (06 4.22 <c>TransitionRecordId</c>: the S3, S4 or S9 written with the
     /// cancellation of the last open units) - what the correction of the firm's wrong cancellation takes back (03 1.6.2.2). A plain read.

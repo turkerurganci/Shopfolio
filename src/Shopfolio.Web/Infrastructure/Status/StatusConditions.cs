@@ -14,6 +14,12 @@ internal interface IStatusCondition
 {
     string Name { get; }
 
+    /// <summary>
+    /// True when the condition reads the web process's own memory (the error counter, the payment start series, the certificate seen by the heartbeat): another process - the server's
+    /// status command - has no such memory and does not evaluate it (05 8.5.6, 9.4.10).
+    /// </summary>
+    bool ReadsProcessMemory => false;
+
     Task<bool> IsOpenAsync(CancellationToken ct);
 }
 
@@ -155,6 +161,8 @@ internal sealed class UnexpectedErrorCondition : IStatusCondition
 
     public string Name => "UnexpectedErrors";
 
+    public bool ReadsProcessMemory => true;
+
     public Task<bool> IsOpenAsync(CancellationToken ct)
     {
         StatusThresholdOptions options = _options.Value;
@@ -179,6 +187,8 @@ internal sealed class PaymentStartFailureCondition : IStatusCondition
 
     public string Name => "PaymentStartFailures";
 
+    public bool ReadsProcessMemory => true;
+
     public Task<bool> IsOpenAsync(CancellationToken ct)
     {
         (int count, DateTimeOffset? firstAt) = _series.Snapshot();
@@ -201,6 +211,8 @@ internal sealed class CertificateCondition : IStatusCondition
     }
 
     public string Name => "Certificate";
+
+    public bool ReadsProcessMemory => true;
 
     public Task<bool> IsOpenAsync(CancellationToken ct) =>
         Task.FromResult(StatusRules.CertificateExpiring(_memory.NotAfter, _time.GetUtcNow(), _options.Value));

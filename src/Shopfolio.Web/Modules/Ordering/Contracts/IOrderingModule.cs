@@ -1,3 +1,4 @@
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.Ordering.Contracts;
@@ -182,7 +183,26 @@ public interface IOrderingModule
     /// cancellation whose closing transition is corrected is undone (06 4.22; T319). A plain read; it writes nothing.
     /// </summary>
     Task<IReadOnlySet<Guid>> FindCorrectedTransitionRecordsAsync(IReadOnlyCollection<Guid> transitionRecordIds, CancellationToken ct);
+
+    /// <summary>
+    /// The number of card orders that wait for their payment (T389; 05 8.5.6; 08 2.1.2): received, payment pending, paid by card - the payment form may still be open or the final query is
+    /// waiting. These are the "open card job" part that lives in the order. A plain read; it counts and writes nothing.
+    /// </summary>
+    Task<int> CountCardOrdersAwaitingPaymentAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The items of the orders paid by card whose payment is not fully refunded (T389; 05 8.5.6; 08 2.1.2): the facts the AfterSales module needs to tell which of them could still
+    /// cause a card refund. Read one page at a time: the items of the next <paramref name="maxOrders"/> such orders after <paramref name="afterOrderId"/> (by order id; null starts
+    /// from the first), an empty list at the end - the set grows with every paid order, so it is never taken whole (09 20 item 2). A plain read; it writes nothing.
+    /// </summary>
+    Task<IReadOnlyList<PaidCardItem>> ListPaidCardItemsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct);
 }
+
+/// <summary>
+/// One item of an order paid by card, as the status command's refund-exposure count reads it: the order and the item, the type, the ordered quantity and the delivery facts
+/// (the physical item's delivery date, the mark of a service or digital item).
+/// </summary>
+public sealed record PaidCardItem(Guid OrderId, Guid OrderItemId, ProductType ProductType, int Quantity, DateOnly? DeliveryDate, DateTimeOffset? DeliveryMarkedAt);
 
 /// <summary>A card order that waits for its payment: its number, which the provider's query names, and whether its payment window has ended.</summary>
 public sealed record CardPaymentQueryTarget(string OrderNumber, bool WindowEnded);

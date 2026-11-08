@@ -43,7 +43,7 @@
 
 | Madde (kabul kriteri / KK) | Sonuç | Kanıt (dosya:satır, test adı) |
 |---|---|---|
-| KK1 kupon kodu ödeme adımında uygulanır | ✓ | `ICatalogModule.cs:184` `ApplyCouponAsync`; `Coupons.cs:95`; `ThePaymentStep_AppliesTheCode_WithTheSharesOfEveryItem` |
+| KK1 kupon kodu ödeme adımında uygulanır | ✓ | `ICatalogModule.cs:212` `ApplyCouponAsync`; `Coupons.cs:95`; `ThePaymentStep_AppliesTheCode_WithTheSharesOfEveryItem` |
 | KK2 yüzde ve sabit iki tanım çalışır | ✓ | `CouponRules.cs:47` `CheckDefinition`; `Coupons.cs:36`; iki test (yukarıda) |
 | KK3 kuruş artığı en büyük kaleme | ✓ | `CouponRules.cs:167` `AmountShares` (`Money.Allocate`); `AFixedAmount_IsSpreadInProportion_…` |
 | KK4 pay donar, KDV paydan sonra | ✓ | `CouponRules.cs:96` (`ItemPricing.Price` share ile); `TheShareTheOrderItemFroze_…`, `TheAcceptedCoupon_…AndTheVatIsSeparatedAfterTheShare` |

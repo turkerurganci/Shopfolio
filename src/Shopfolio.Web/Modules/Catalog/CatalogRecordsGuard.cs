@@ -5,9 +5,10 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 namespace Shopfolio.Modules.Catalog;
 
 /// <summary>
-/// Refuses the writes the catalog never allows (06 4.11, 4.13; 06 2.2.3): a price history row is only appended and never updated, and a coupon
-/// is permanent and never deleted. The save is refused before any SQL is sent, so there is no code path that changes a price history row or
-/// removes a coupon. A price history row still goes with its variant: the database cascades it, and a tracked row the context deletes with its
+/// Refuses the writes the catalog never allows (06 4.11, 4.12, 4.13; 06 2.2.3): a price history row is only appended and never updated, a discount
+/// is replaced by a new row and never updated - the moment it was defined, which the price history's bounds read, is its row's creation (K-1041 (2)) -,
+/// and a coupon is permanent and never deleted. The save is refused before any SQL is sent, so there is no code path that changes a price history row
+/// or a discount row, or removes a coupon. A price history row still goes with its variant: the database cascades it, and a tracked row the context deletes with its
 /// variant is not an update. A bulk statement (<c>ExecuteDelete</c>, <c>ExecuteUpdate</c>) does not pass through a save and is not covered here.
 /// </summary>
 internal sealed class CatalogRecordsGuard : SaveChangesInterceptor
@@ -46,6 +47,11 @@ internal sealed class CatalogRecordsGuard : SaveChangesInterceptor
             if (entry.State == EntityState.Modified && entry.Entity is PriceHistory)
             {
                 throw new InvalidOperationException("A price history row is only appended and never updated (06 4.11, 2.2.3); a new price is a new row.");
+            }
+
+            if (entry.State == EntityState.Modified && entry.Entity is Discount)
+            {
+                throw new InvalidOperationException("A discount is never updated (06 4.12): a new definition replaces the row, its moment of definition is the new row's creation.");
             }
         }
     }

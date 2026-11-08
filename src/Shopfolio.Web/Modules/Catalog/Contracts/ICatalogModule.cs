@@ -147,6 +147,34 @@ public interface ICatalogModule
     Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct);
 
     /// <summary>
+    /// Saves a product's dated percentage discount (02 3.9.1, 3.9.2, 3.9.5; 06 4.12): the rate applies to every variant on its own price; the range starts at 00.00 of
+    /// the start day and holds the end day whole. The new definition replaces the product's discount. Refused, writing nothing, when the rate is not above zero and below
+    /// one hundred with at most two decimals, when the end is before the start, or when a variant's rounded discounted price would be 0,00 TL or would not be below the
+    /// reference price the system computes from that variant's price history (02 3.9.3, 3.9.4) - the refusal names the variant. The price history gets the rows the
+    /// change owes (06 4.11). Joins the caller's transaction and never saves it (09 9.1 item 3); outside one it throws. The product form raises the product's version.
+    /// </summary>
+    Task<DiscountSaveResult> SaveDiscountAsync(Guid productId, decimal percentage, DateOnly startDate, DateOnly endDate, CancellationToken ct);
+
+    /// <summary>
+    /// Removes a product's discount (06 4.12); removing a running discount writes the variants' own prices to the history (K-1041 (3)). Joins the caller's transaction
+    /// and never saves it; outside one it throws.
+    /// </summary>
+    Task<DiscountRemoveResult> RemoveDiscountAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>
+    /// A product's discount as the product form shows it (04 9.5.8): the rate, the dates, the state now, and per variant its price, the reference price the system
+    /// computed - read only, never entered (02 3.9.3) - and the discounted price. Null when the product has no discount. A plain read.
+    /// </summary>
+    Task<DiscountView?> GetDiscountAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>
+    /// Changes a variant's price (02 3.8.4, 3.9.1, 3.9.3): refused when the price is not a valid amount, and - while the product's discount has not ended - when its
+    /// rounded discounted price would be 0,00 TL; the same price writes nothing. The price history gets the new applied price (06 4.11). Joins the caller's transaction
+    /// and never saves it; outside one it throws. The product form raises the product's version.
+    /// </summary>
+    Task<VariantPriceResult> ChangeVariantPriceAsync(Guid variantId, decimal price, CancellationToken ct);
+
+    /// <summary>
     /// The amounts of one item in the fixed order of 02 3.8.3: the unit price - the discounted one, already rounded, in a discount - times the quantity, the
     /// coupon share taken off, the VAT separated from the rest at the item's rate and rounded to the kuruş in the item, the net amount the rest. A pure calculation.
     /// </summary>

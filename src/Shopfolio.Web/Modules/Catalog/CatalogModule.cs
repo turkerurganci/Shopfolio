@@ -31,6 +31,8 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly ProductCategoryLinks _links;
     private readonly ProductListReader _lists;
     private readonly ProductGallery _gallery;
+    private readonly Discounts _discounts;
+    private readonly VariantPrices _variantPrices;
     private readonly Coupons _coupons;
 
     public CatalogModule(
@@ -47,8 +49,12 @@ internal sealed class CatalogModule : ICatalogModule
         ProductCategoryLinks links,
         ProductListReader lists,
         ProductGallery gallery,
+        Discounts discounts,
+        VariantPrices variantPrices,
         Coupons coupons)
     {
+        _discounts = discounts;
+        _variantPrices = variantPrices;
         _coupons = coupons;
         _priceLabels = priceLabels;
         _categories = categories;
@@ -83,6 +89,15 @@ internal sealed class CatalogModule : ICatalogModule
         => _structure.GetMatrixAsync(productId, ct);
 
     public Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct) => _priceLabels.GetAsync(variantId, ct);
+
+    public Task<DiscountSaveResult> SaveDiscountAsync(Guid productId, decimal percentage, DateOnly startDate, DateOnly endDate, CancellationToken ct)
+        => _discounts.SaveAsync(productId, percentage, startDate, endDate, ct);
+
+    public Task<DiscountRemoveResult> RemoveDiscountAsync(Guid productId, CancellationToken ct) => _discounts.RemoveAsync(productId, ct);
+
+    public Task<DiscountView?> GetDiscountAsync(Guid productId, CancellationToken ct) => _discounts.GetAsync(productId, ct);
+
+    public Task<VariantPriceResult> ChangeVariantPriceAsync(Guid variantId, decimal price, CancellationToken ct) => _variantPrices.ChangeAsync(variantId, price, ct);
 
     public ItemAmounts PriceItem(ItemPriceInput input) => ItemPricing.Price(input);
 
@@ -205,6 +220,12 @@ internal static class CatalogModuleRegistration
         services.AddScoped<ProductCategoryLinks>();
         services.AddScoped<ProductListReader>();
         services.AddScoped<ProductGallery>();
+
+        // The discount and the price history (T337): one writer of the history, the two writers that call it, and the scheduler's source of the discounts' bounds.
+        services.AddScoped<PriceHistoryRecorder>();
+        services.AddScoped<Discounts>();
+        services.AddScoped<VariantPrices>();
+        services.AddDueRecordSource<DiscountBoundarySource>();
 
         // The coupon (T338): its application counts the cart's invalid attempts (L-6). The counter is infrastructure that Program.cs registers first; a host that builds
         // the module alone (the tests) gets it here, and the application's own registration is never doubled.

@@ -23,6 +23,41 @@ internal interface IPaymentGateway
 
     /// <summary>Verifies an incoming notification's signature over its form fields: a local computation, no call (08 3.2).</summary>
     NotificationVerification VerifyNotification(IReadOnlyDictionary<string, string> formFields);
+
+    /// <summary>
+    /// What a notification's event type and outcome, as they came and as the inbound record keeps them, mean to the product (08 2.1.5 "event type
+    /// and outcome values"; 05 4.5.5): a payment that succeeded, a payment that failed, or a value the layer does not recognize. A local computation,
+    /// no call: the notification endpoint reads it at the record and the processing job reads it again from the record, so the provider's values
+    /// stay inside the layer.
+    /// </summary>
+    NotificationResult ReadNotificationResult(string eventType, string outcome);
+
+    /// <summary>
+    /// The amount check of a successful payment's notification against the order's paid total (08 2.1.5 "amount comparison"; 05 3.6.1, 4.5.5;
+    /// 06 4.35 Constraints): the form of "the amount holds" is the provider's, so it is the layer's. A local computation, no call; a mismatch is a
+    /// class of its own, never an exception.
+    /// </summary>
+    NotificationAmountCheck CheckNotificationAmount(PaymentNotice notice, decimal orderTotal);
+}
+
+/// <summary>What a recorded notification's event type and outcome mean (08 2.1.5; 06 5.6.6 <c>UnrecognizedNotification</c>).</summary>
+internal enum NotificationResult
+{
+    /// <summary>The payment succeeded: applied through the one path of 05 4.5.3 when the amount holds.</summary>
+    PaymentSucceeded,
+
+    /// <summary>The payment failed: the unpaid order is cancelled by the system (02 6.2.1); no amount is checked.</summary>
+    PaymentFailed,
+
+    /// <summary>The event type or the outcome is none the layer knows: the notification is recorded marked and not processed.</summary>
+    Unrecognized,
+}
+
+/// <summary>The class of a successful payment notification's amount check (08 2.1.5): the amount holds, or it does not and the notification is marked.</summary>
+internal enum NotificationAmountCheck
+{
+    Holds,
+    Mismatch,
 }
 
 /// <summary>
@@ -47,14 +82,18 @@ internal sealed record PaymentStartRequest(
 internal sealed record CardRefund(string OrderNumber, decimal Amount, Guid RefundRecordId);
 
 /// <summary>
-/// The fields of a verified notification that the field mapping reads (08 2.1.5): the provider's transaction reference (the order number without
-/// dashes), the outcome as it came, the paid total and the started amount, and the three marks the core checks before it applies a success.
+/// The fields of a verified notification that the field mapping reads (08 2.1.5): the provider's transaction reference as it came (the order number
+/// without dashes; kept in the record's transaction id and order reference), the order number the layer maps it back to - null when the mapping does
+/// not hold -, the event type and the outcome as they came, the collected total and the started amount - null when the field could not be read (a body
+/// that cannot be parsed; 05 4.5.5) -, and the three marks the core checks before it applies a notification.
 /// </summary>
 internal sealed record PaymentNotice(
     string ProviderTransactionId,
+    string? OrderNumber,
+    string EventType,
     string Outcome,
-    decimal TotalAmount,
-    decimal PaymentAmount,
+    decimal? TotalAmount,
+    decimal? PaymentAmount,
     bool PaidByCard,
     bool InLira,
     bool TestMode);

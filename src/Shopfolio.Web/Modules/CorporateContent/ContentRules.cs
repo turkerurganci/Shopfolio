@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Catalog.Contracts;
 
 namespace Shopfolio.Modules.CorporateContent;
@@ -28,6 +29,16 @@ internal static class ContentRules
 
     /// <summary>Lowercase ASCII letters and digits joined by single hyphens, never starting or ending with one (06 4.72.4).</summary>
     public const string SlugFormat = "slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'";
+
+    /// <summary>
+    /// The long text of a record as it is kept (06 2.10.1; 09 15.3 item 1): the closed text format set's cleaning is applied here and only here, and an
+    /// empty text - or one the cleaner empties - is no text. Every long text setter of the module calls this.
+    /// </summary>
+    public static string? CleanLongText(string? text)
+    {
+        string cleaned = RichTextSanitizer.Sanitize(text);
+        return cleaned.Length == 0 ? null : cleaned;
+    }
 
     /// <summary>The publish status of a content record: draft by default, and only draft or published (06 2.9.2; K-1026 (2)).</summary>
     public static PropertyBuilder<PublishStatus> AsContentPublishStatus(this PropertyBuilder<PublishStatus> builder)

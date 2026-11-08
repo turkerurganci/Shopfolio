@@ -22,8 +22,11 @@ internal sealed class PortfolioItem : IContentRecord
 
     public string? ShortDescription { get; set; }
 
-    /// <summary>Cleaned HTML of the closed text format set (06 2.10.1).</summary>
-    public string? Text { get; set; }
+    /// <summary>Cleaned HTML of the closed text format set (06 2.10.1); written only by <see cref="SetText"/>.</summary>
+    public string? Text { get; private set; }
+
+    /// <summary>Writes the text through the cleaner (09 15.3 item 1); an empty text is no text.</summary>
+    public void SetText(string? text) => Text = ContentRules.CleanLongText(text);
 
     /// <summary>The manual order; not unique (06 4.47).</summary>
     public int SortOrder { get; set; }

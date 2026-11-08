@@ -281,6 +281,9 @@ internal static class OrderingModuleRegistration
         services.AddDueRecordSource<TransferPaymentExpiry>();
         services.AddDueRecordSource<TransferPaymentReminder>();
         services.AddDueRecordSource<CardPaymentExpiry>();
+
+        // The delivery periods (T325; 03 4.1.10-4.1.13): read from the order's records, never a source - Z-10, Z-11 and Z-39 run out without an action.
+        services.AddScoped<OrderPeriods>();
         return services;
     }
 }

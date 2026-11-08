@@ -45,15 +45,17 @@ public sealed class CartOwner
 /// <summary>
 /// One line of the cart as the customer sees it (02 3.16.5, 3.16.6). The line reads its price and its availability from the current product. <see cref="PriceChanged"/> is true when the
 /// price that applies now differs from the one at the first add - in either direction; the old price and the direction are not carried (02 3.16.5). <see cref="EntersOrder"/> is false for a
-/// sold-out line, which stays in the cart marked and does not enter the order or the amounts (02 3.16.6, 3.16.7). <see cref="QuantityProblem"/> says why a line stays out for its quantity (T347; 02
-/// 3.16.8-3.16.10): above the stock ("Bu adette stok yok", no number) or above the product's per-order limit (<see cref="OrderLimit"/>, told as a number). Such a line stays in the cart, its
-/// quantity is never lowered by itself, and it does not enter the order, the amounts or the limit's total.
+/// sold-out line, which stays in the cart marked and does not enter the order or the amounts (02 3.16.6, 3.16.7). <see cref="ProductType"/> tells whether the line carries the shipping fee and
+/// the minimum order amount (02 3.18.3, 3.19.1). <see cref="QuantityProblem"/> says why a line stays out for its quantity (T347; 02 3.16.8-3.16.10): above the stock ("Bu adette stok yok", no
+/// number) or above the product's per-order limit (<see cref="OrderLimit"/>, told as a number). Such a line stays in the cart, its quantity is never lowered by itself, and it does not enter the
+/// order, the amounts or the limit's total.
 /// </summary>
 public sealed record CartLine(
     Guid ItemId,
     Guid VariantId,
     Guid ProductId,
     string ProductName,
+    ProductType ProductType,
     int Quantity,
     decimal UnitPrice,
     bool PriceChanged,
@@ -65,7 +67,8 @@ public sealed record CartLine(
 /// <summary>
 /// The cart as the cart page shows it (T346). <see cref="RemovedProductNames"/> are the items taken off the showcase since the last view, told once and deleted by the call that gave them;
 /// <see cref="MergeAddedProductNames"/> are the products the sign-in merge added to what the customer saw, told once (02 3.16.4). <see cref="OrderableSubtotal"/> is the sum of unit price times
-/// quantity of the lines that enter the order - the only basis the coupon's minimum, the shipping fee and the thresholds may read (02 3.16.7).
+/// quantity of the lines that enter the order - the only basis the coupon's minimum, the shipping fee and the thresholds may read (02 3.16.7). <see cref="Shipping"/> is the shipping fee, the
+/// free shipping message and the minimum order shortfall on that basis (T349; 02 3.18, 3.19); a shortfall closes the payment step (<see cref="CartPaymentBlock.MinimumOrderAmountNotMet"/>).
 /// </summary>
 public sealed record CartView(
     Guid? CartId,
@@ -73,7 +76,8 @@ public sealed record CartView(
     IReadOnlyList<string> RemovedProductNames,
     IReadOnlyList<string> MergeAddedProductNames,
     CartPaymentBlock PaymentBlock,
-    decimal OrderableSubtotal)
+    decimal OrderableSubtotal,
+    ShippingAssessment Shipping)
 {
     /// <summary>True when the payment step may open: at least one line enters the order.</summary>
     public bool CanOpenPayment => PaymentBlock == CartPaymentBlock.None;

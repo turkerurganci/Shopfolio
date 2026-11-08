@@ -176,4 +176,24 @@ public interface IMembershipModule
     /// <see cref="ErrorCode.DeliveryProvinceNotServed"/> and the province's name; a digital or service basket never reaches that check, and the billing province is never restricted.
     /// </summary>
     Task<OrderAddressResolution> ResolveOrderAddressesAsync(OrderAddressRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// The member's own deletion of the account (T345; 02 3.15.1-3.15.3, 3.15.6; 07 UC-68), in the caller's transaction, which saves: an open revert link of an e-mail change closes it
+    /// (<c>EmailChangeRevertPending</c>, with the end of the link, nothing deleted, the reauthentication value unspent); the reauthentication value of <see cref="ReauthenticateAsync"/> is
+    /// redeemed (none: <c>ReauthenticationRequired</c>); the orders go on with their own record and are never linked again; one e-mail goes to the address; the account and what hangs on it
+    /// are deleted and the disposal record counts them. The irreversible-action confirmation is the page's (03 1.6.1.8).
+    /// </summary>
+    Task<AccountDeletionResult> DeleteAccountAsync(Guid customerId, Guid sessionId, string? reauthenticationValue, CancellationToken ct);
+
+    /// <summary>
+    /// The administrator's deletion on the data subject's request (T345; 02 3.15.5; 07 UC-157), in the caller's transaction, which saves: the same rule as the member's own with no
+    /// reauthentication, and a row of the operation in the audit trail that names the operation and its date and nothing of the account (02 10.3.1). An unverified pending registration is not found.
+    /// </summary>
+    Task<AccountDeletionResult> DeleteAccountOnRequestAsync(Guid customerId, CancellationToken ct);
+
+    /// <summary>The member record view for an e-mail (T345; 02 3.15.5; 07 UC-95): read only, a value that nothing writes back; no account, an unverified pending registration or a verified account.</summary>
+    Task<MemberRecord> FindMemberRecordAsync(string email, CancellationToken ct);
+
+    /// <summary>The end of the open revert link that closes the account's deletion, or nothing (T345; 02 3.15.6): the account screen shows the reason and the date.</summary>
+    Task<DateTimeOffset?> GetDeletionBlockedUntilAsync(Guid customerId, CancellationToken ct);
 }

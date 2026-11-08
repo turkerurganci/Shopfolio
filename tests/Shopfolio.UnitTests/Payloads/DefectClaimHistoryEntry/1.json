@@ -1,0 +1,4 @@
+[
+  { "At": "2026-11-08T09:00:00+00:00", "Status": "Resolved", "ActorKind": "Admin", "Quantity": null },
+  { "At": "2026-11-09T10:30:00+00:00", "Status": "Open", "ActorKind": "Buyer", "Quantity": 2 }
+]

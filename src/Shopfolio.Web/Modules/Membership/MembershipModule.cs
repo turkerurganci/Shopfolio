@@ -41,6 +41,8 @@ internal sealed class MembershipModule : IMembershipModule
     private readonly CustomerPasswords _accounts;
     private readonly TimeProvider _time;
     private readonly AddressBooks _addresses;
+    private readonly GoogleSignIns _google;
+    private readonly EmailChanges _emailChanges;
 
     public MembershipModule(
         AppDbContext db,
@@ -54,8 +56,12 @@ internal sealed class MembershipModule : IMembershipModule
         PasswordRegime passwords,
         CustomerPasswords accounts,
         TimeProvider time,
-        AddressBooks addresses)
+        AddressBooks addresses,
+        GoogleSignIns google,
+        EmailChanges emailChanges)
     {
+        _google = google;
+        _emailChanges = emailChanges;
         _passwords = passwords;
         _accounts = accounts;
         _addresses = addresses;
@@ -334,6 +340,39 @@ internal sealed class MembershipModule : IMembershipModule
         return changed == 1 ? NameChangeResult.Changed() : NameChangeResult.Missing();
     }
 
+    public bool IsGoogleSignInOpen => _google.IsOpen;
+
+    public Task<GoogleSignInResult> SignInWithGoogleAsync(GoogleIdentity identity, IPAddress? ipAddress, CancellationToken ct) => _google.SignInAsync(identity, ipAddress, ct);
+
+    public Task<GoogleLinkConfirmationResult> ConfirmGoogleLinkAsync(string key, CancellationToken ct) => _google.ConfirmGoogleLinkAsync(key, ct);
+
+    public async Task<EmailLinkReading> ReadEmailLinkAsync(string key, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        LinkReading reading = await _links.ReadAsync(key, ct);
+        if (reading.Record is not { CustomerId: Guid customerId } record || reading.State is not { } state)
+        {
+            return new EmailLinkReading(null, VerificationLinkStatus.Missing, null);
+        }
+
+        EmailLinkKind? kind = record.LinkType switch
+        {
+            LinkType.EmailVerification => EmailLinkKind.Registration,
+            LinkType.NewEmailVerification => EmailLinkKind.NewAddress,
+            LinkType.GoogleLinkConfirmation => EmailLinkKind.GoogleConfirmation,
+            _ => null,
+        };
+        return kind is null ? new EmailLinkReading(null, VerificationLinkStatus.Missing, null) : new EmailLinkReading(kind, StatusOf(state), customerId);
+    }
+
+    public Task<EmailChangeRequestResult> RequestEmailChangeAsync(Guid customerId, string newEmail, IPAddress? ipAddress, CancellationToken ct) =>
+        _emailChanges.RequestAsync(customerId, newEmail, ipAddress, ct);
+
+    public Task<EmailChangeResendResult> ResendEmailChangeLinkAsync(Guid customerId, IPAddress? ipAddress, CancellationToken ct) =>
+        _emailChanges.ResendAsync(customerId, ipAddress, ct);
+
+    public Task<NewEmailVerificationResult> VerifyNewEmailAsync(string key, CancellationToken ct) => _emailChanges.VerifyNewEmailAsync(key, ct);
+
     public Task<IReadOnlyList<AddressBookEntry>> GetAddressBookAsync(Guid customerId, CancellationToken ct) => _addresses.ListAsync(customerId, ct);
 
     public Task<AddressBookEntry?> GetAddressBookEntryAsync(Guid customerId, Guid entryId, CancellationToken ct) => _addresses.GetAsync(customerId, entryId, ct);
@@ -366,7 +405,7 @@ internal sealed class MembershipModule : IMembershipModule
         }
     }
 
-    private static VerificationLinkStatus StatusOf(LinkState state) => state switch
+    internal static VerificationLinkStatus StatusOf(LinkState state) => state switch
     {
         LinkState.Valid => VerificationLinkStatus.Valid,
         LinkState.Used => VerificationLinkStatus.Used,
@@ -385,6 +424,8 @@ internal static class MembershipModuleRegistration
         services.AddScoped<AddressBooks>();
         services.AddScoped<IMembershipModule, MembershipModule>();
         services.AddScoped<CustomerPasswords>();
+        services.AddScoped<GoogleSignIns>();
+        services.AddScoped<EmailChanges>();
         services.AddScoped<ISessionService, SessionService>();
 
         // Z-1's nightly deletion (T324; D-253): the unverified registrations and the pending address changes whose link has ended.

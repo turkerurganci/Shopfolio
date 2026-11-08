@@ -87,6 +87,21 @@ public sealed class VersionedSideBulkWriteScanTests
     }
 
     [Fact]
+    public void TheCartStatementsPlace_HoldsExactlyFourStatements_AllInsertsOnTheCartTables_AndNoUpdateNoDeleteAndNoSideTable()
+    {
+        string place = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), VersionedSideBulkWriteScan.CartStatementsPlace));
+        System.Text.RegularExpressions.RegexOptions options = System.Text.RegularExpressions.RegexOptions.CultureInvariant;
+        TimeSpan timeout = TimeSpan.FromSeconds(5);
+
+        Assert.Equal(4, System.Text.RegularExpressions.Regex.Count(place, @"ExecuteSql\w*\(", options, timeout));
+        Assert.Equal(4, System.Text.RegularExpressions.Regex.Count(place, @"INSERT INTO (carts|cart_items) \(", options, timeout));
+        Assert.Equal(0, System.Text.RegularExpressions.Regex.Count(place, @"ExecuteUpdate|ExecuteDelete|SqlQuery|SaveChanges|DELETE FROM|\bFROM\b", options, timeout));
+
+        // The same text under a path that is no allowed place: no table of the two sides is named, and no set of them either.
+        Assert.Empty(VersionedSideBulkWriteScan.Scan(OtherModule, place));
+    }
+
+    [Fact]
     public void TheGalleryMainMarkPlace_HoldsExactlyOneBulkStatement_OnlyOnTheProductImages_AndTheRestOfTheGalleryHoldsNone()
     {
         string root = RepositoryRoot.Find();

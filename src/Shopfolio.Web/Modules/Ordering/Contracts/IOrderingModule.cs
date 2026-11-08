@@ -91,6 +91,29 @@ public interface IOrderingModule
     Task<IReadOnlyList<string>> TakeRemovedItemNoticesAsync(Guid cartId, CancellationToken ct);
 
     /// <summary>
+    /// The cart page's read (T346; 02 3.16): the owner's cart with its lines read live from the current product - the price that applies now, the "fiyatı değişti" mark, the "Tükendi" mark - and the
+    /// once-told messages: the items taken off the showcase (deleted by this call) and the products the sign-in merge added (their mark is cleared by this call). A guest cart's last access moment is
+    /// renewed. No cart is created by a read. The payment step is blocked when no line can enter an order (02 3.16.7). Takes the cart's advisory lock first and joins the caller's transaction (09 10.2
+    /// item 5); it does not save. The cart never empties by itself: neither time, nor an open payment, nor a closed sale touches it (02 3.16.2).
+    /// </summary>
+    Task<CartView> OpenCartAsync(CartOwner owner, CancellationToken ct);
+
+    /// <summary>
+    /// Adds a variant to the owner's cart (02 3.16.1, 3.16.5): a new line remembers the unit price of this moment; the same variant again raises the quantity and leaves that price alone. The cart is
+    /// made when it does not exist. A variant that is not on the showcase or is sold out is not added. The stock and per-order limits of the quantity are T347's. Joins the caller's transaction and
+    /// does not save.
+    /// </summary>
+    Task<CartAddResult> AddToCartAsync(CartOwner owner, Guid variantId, int quantity, CancellationToken ct);
+
+    /// <summary>
+    /// The sign-in merge (T346; 02 3.16.3, 3.16.4): the guest browser's cart falls into the member's cart and ends. The same variant keeps the larger quantity and the price of the line added first; other
+    /// variants stand side by side. Whatever the member's cart holds that the guest cart did not show - another product, or a larger quantity - is marked to be told once. One method for every sign-in path.
+    /// It takes the guest cart's advisory lock first, so it runs in a transaction of its own and not in the one that holds the account's lock (05 6.1.2; <c>LockKind.Account</c> is a family of its own).
+    /// Joins the caller's transaction and does not save. A key that matches no cart merges nothing.
+    /// </summary>
+    Task<CartMergeResult> MergeGuestCartAsync(Guid customerId, string guestCartKey, CancellationToken ct);
+
+    /// <summary>
     /// The orders that hold a variant's reservation now (02 3.6.7; 06 4.14): the panel's stock field shows them beside the reserved quantity and a refused lowering names
     /// them. One row per order with its number and the reserved units, the most recent reservation first. A reservation lives only until payment or release, so these
     /// are exactly the orders whose payment is awaited. A plain read; it writes nothing.

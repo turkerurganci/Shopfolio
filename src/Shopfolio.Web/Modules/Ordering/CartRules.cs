@@ -1,4 +1,6 @@
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -20,11 +22,30 @@ internal static class CartRules
     /// </summary>
     public static bool EntersOrder(bool isOnShowcase, bool isSoldOut) => isOnShowcase && !isSoldOut;
 
-    /// <summary>The payment step does not open when no line can enter an order (02 3.16.7): an empty cart and a cart of sold-out lines alike.</summary>
-    public static CartPaymentBlock PaymentBlockOf(IReadOnlyCollection<CartLine> lines)
+    /// <summary>
+    /// The payment step does not open when no line can enter an order (02 3.16.7): an empty cart and a cart of sold-out lines alike; nor when the basis is under the minimum order amount
+    /// (02 3.18.1; T349) - the cart shows the missing amount (<see cref="ShippingAssessment.MinimumOrderMessage"/>).
+    /// </summary>
+    public static CartPaymentBlock PaymentBlockOf(IReadOnlyCollection<CartLine> lines, ShippingAssessment shipping)
     {
         ArgumentNullException.ThrowIfNull(lines);
-        return lines.Any(l => l.EntersOrder) ? CartPaymentBlock.None : CartPaymentBlock.NoOrderableItem;
+        ArgumentNullException.ThrowIfNull(shipping);
+        if (!lines.Any(l => l.EntersOrder))
+        {
+            return CartPaymentBlock.NoOrderableItem;
+        }
+
+        return shipping.Refusal is null ? CartPaymentBlock.None : CartPaymentBlock.MinimumOrderAmountNotMet;
+    }
+
+    /// <summary>
+    /// The shipping terms of the cart (02 3.18, 3.19; T349): on <see cref="OrderableSubtotal"/>, with a physical item only when a physical line enters the order - a sold-out physical line
+    /// carries neither the fee nor the minimum (02 3.18.3, 3.19.3).
+    /// </summary>
+    public static ShippingAssessment AssessShipping(IReadOnlyCollection<CartLine> lines, ShippingFeeSection terms)
+    {
+        ArgumentNullException.ThrowIfNull(lines);
+        return ShippingCharge.Assess(terms, OrderableSubtotal(lines), lines.Any(l => l.EntersOrder && l.ProductType == ProductType.Physical));
     }
 
     /// <summary>The basis the coupon's minimum, the shipping fee and the thresholds read (02 3.16.7): unit price times quantity of the lines that enter the order only.</summary>

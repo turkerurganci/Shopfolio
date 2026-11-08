@@ -4,6 +4,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -47,13 +48,13 @@ internal sealed class Carts
         return names;
     }
 
-    public async Task<CartView> OpenAsync(CartOwner owner, CancellationToken ct)
+    public async Task<CartView> OpenAsync(CartOwner owner, ShippingFeeSection shippingTerms, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(owner);
         Guid? found = await FindCartIdAsync(owner, ct);
         if (found is not Guid cartId)
         {
-            return Empty(null);
+            return Empty(null, shippingTerms);
         }
 
         // The lock heads the transaction: a merge or an add that arrived together with this read is waited for, and what it wrote is read after it (09 10.2 item 5).
@@ -61,7 +62,7 @@ internal sealed class Carts
         Cart? cart = await _db.Carts.SingleOrDefaultAsync(c => c.Id == cartId, ct);
         if (cart is null)
         {
-            return Empty(null);
+            return Empty(null, shippingTerms);
         }
 
         // A guest cart that is opened lives again for the full cookie life (06 9.4.3); a member's cart has no access moment.
@@ -91,6 +92,7 @@ internal sealed class Carts
                 fact.VariantId,
                 fact.ProductId,
                 fact.ProductName,
+                fact.ProductType,
                 item.Quantity,
                 fact.UnitPrice,
                 CartRules.PriceChanged(item.FirstAddedUnitPrice, fact.UnitPrice),
@@ -104,7 +106,8 @@ internal sealed class Carts
             }
         }
 
-        return new CartView(cartId, lines, removed, [.. mergeAdded.Distinct()], CartRules.PaymentBlockOf(lines), CartRules.OrderableSubtotal(lines));
+        ShippingAssessment shipping = CartRules.AssessShipping(lines, shippingTerms);
+        return new CartView(cartId, lines, removed, [.. mergeAdded.Distinct()], CartRules.PaymentBlockOf(lines, shipping), CartRules.OrderableSubtotal(lines), shipping);
     }
 
     public async Task<CartAddResult> AddAsync(CartOwner owner, Guid variantId, int quantity, CancellationToken ct)
@@ -236,5 +239,5 @@ internal sealed class Carts
         return await FindCartIdAsync(owner, ct) ?? throw new InvalidOperationException("The cart that was just made is not found (06 4.15).");
     }
 
-    private static CartView Empty(Guid? cartId) => new(cartId, [], [], [], CartPaymentBlock.NoOrderableItem, 0m);
+    private static CartView Empty(Guid? cartId, ShippingFeeSection shippingTerms) => new(cartId, [], [], [], CartPaymentBlock.NoOrderableItem, 0m, CartRules.AssessShipping([], shippingTerms));
 }

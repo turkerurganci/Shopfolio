@@ -8,6 +8,7 @@ using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
+using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -173,7 +174,7 @@ internal sealed class OrderingModule : IOrderingModule
         return await _carts.TakeRemovedNamesAsync(cartId, ct);
     }
 
-    public Task<CartView> OpenCartAsync(CartOwner owner, CancellationToken ct) => _carts.OpenAsync(owner, ct);
+    public Task<CartView> OpenCartAsync(CartOwner owner, ShippingFeeSection shippingTerms, CancellationToken ct) => _carts.OpenAsync(owner, shippingTerms, ct);
 
     public Task<CartAddResult> AddToCartAsync(CartOwner owner, Guid variantId, int quantity, CancellationToken ct) => _carts.AddAsync(owner, variantId, quantity, ct);
 

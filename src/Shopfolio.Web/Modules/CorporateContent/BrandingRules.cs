@@ -1,4 +1,7 @@
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+
+using Shopfolio.Infrastructure.Validation;
 
 namespace Shopfolio.Modules.CorporateContent;
 
@@ -10,8 +13,6 @@ internal static class BrandingRules
 {
     /// <summary>The longest value a trail row holds (<c>AuditEntryRules.MaxValueLength</c>; a test keeps the two equal): the brand name has no ceiling of its own (06 4.54), so its trail text stops here.</summary>
     public const int TrailValueMaxLength = 2000;
-
-    private const int ColorLength = 7;
 
     /// <summary>The brand name as it is stored: trimmed; empty or white space is none (06 4.54).</summary>
     public static string? NormalizeName(string? raw) => string.IsNullOrWhiteSpace(raw) ? null : raw.Trim();
@@ -28,8 +29,10 @@ internal static class BrandingRules
             return true;
         }
 
+        // The one rule of the colour shape is InvalidColorAttribute (the code's single home, as CompanyIdentityRules uses its sibling attributes); it is applied to the trimmed value, so a
+        // value the module stores is one the attribute accepts too.
         string trimmed = raw.Trim();
-        if (trimmed.Length != ColorLength || trimmed[0] != '#' || !trimmed.Skip(1).All(char.IsAsciiHexDigit))
+        if (new InvalidColorAttribute().GetValidationResult(trimmed, new ValidationContext(trimmed)) is not null)
         {
             return false;
         }

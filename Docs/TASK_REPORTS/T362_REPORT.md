@@ -9,7 +9,7 @@
 ## Yapılan İşler
 
 - **Sözleşme:** `Modules/CorporateContent/Contracts/BrandingContracts.cs` — `BrandingSection` (formun gösterdiği saklı değerler + sürüm), `BrandingInput` (ad, logo, simge, renk, imza anahtarı: betik, stil, izleme, ikinci renk, tema alanı yok), `BrandingRejection`, `BrandingSaveResult` (kaydedildi, sürüm çakışması, alan reddi), `BrandIdentity` (vitrinin ve e-postanın tek okuması; saklanmaz).
-- **Kurallar:** `BrandingRules` (saf) — ad kırpma, renk biçimi (`#` + 6 onaltılık, büyük harfe), simge harfi (`RequestFormat.Culture` ile büyük harf; i → İ), iz metni sınırı.
+- **Kurallar:** `BrandingRules` (saf) — ad kırpma, renk biçimi (kırpılmış değere `InvalidColorAttribute`, büyük harfe), simge harfi (`RequestFormat.Culture` ile büyük harf; i → İ), iz metni sınırı.
 - **Kayıt ve okuma:** `BrandingSettings` — `SaveAsync` kayıt değişkeni (`RecordSave`; sürüm karşılaştırması, işlem zorunlu, `SaveChanges` çağırmaz); ad bir kez girilince boşaltılamaz; renk biçimi; logo/simge yüklenmiş görsel olmalı; dört ayar `UpdateBranding`, imza anahtarı ayrı `UpdateSettings` satırı (hedef `Branding`); değişmeyen kayıt iz ve sürüm yazmaz; `CacheArea.Settings` düşer. `ReadIdentityAsync`: ad yoksa alan adı, renk yoksa ürünün varsayılanı, yazı rengi `EmailColors.Button` (tek kural evi).
 - **Modül yüzü:** `ICorporateContentModule` + `CorporateContentModule`: `GetBrandingAsync`, `SaveBrandingAsync`, `GetBrandIdentityAsync`; `AddScoped<BrandingSettings>`.
 - **Katalog:** `ICatalogModule.ImageExistsAsync` (başka modül `Image` türüne erişemez) + `CatalogModule` + `ImageUploads.ExistsAsync`.
@@ -52,7 +52,7 @@
 | Sık FAIL 2: tarama çağrı biçimi kaçırıyor | ✓ | Yeni tarama yok; kapalı üye listeleri yansıma ile tüm public özellikleri sayar |
 | Sık FAIL 3: DB varsayılanı / FK dizini | ✓ | Şema değişikliği yok (`brandings`: `is_platform_signature_enabled` DEFAULT true, `version` DEFAULT 1 T119/T120'de; tek satırlı tabloda FK dizini yok, `06 §7.5.2`; `ContentRecordAndBrandingTablesTests` geçti) |
 | Sık FAIL 4: kural değişince anan her yer | ✓ | `UpdateSettings` hedef listesi değişti: `grep "CompanySettings"` — `AuditEntryRules.cs:116`, `09 §9.2` satır 770; `05/06/07/08/12` bu hedef listesini anmıyor (grep `UpdateSettings` boş); `AuditEntryRulesTests` genişletildi; Consistency 241/241 |
-| Sık FAIL 5: SaveChanges / kendi denetimi | ✓ | `BrandingSettings` `SaveChanges` çağırmaz (testte kaydı işlemin sahibi yapar); renk/okunurluk tek kural evi `EmailColors`; biçim denetimi `BrandingRules.TryNormalizeColor` (E-posta tarafındaki `EmailColors.TryParse` gösterim güvenliği, saklama biçimi ayrı soru) |
+| Sık FAIL 5: SaveChanges / kendi denetimi | ✓ | `BrandingSettings` `SaveChanges` çağırmaz (testte kaydı işlemin sahibi yapar); renk/okunurluk tek kural evi `EmailColors`; biçim denetimi `BrandingRules.TryNormalizeColor` içinde `new InvalidColorAttribute()` ile (`FieldRules.cs:292`, tek kural evi; `CompanyIdentityRules.AddFormRejection` kalıbı; kırpılmış değere uygulanır — `grep -n "InvalidColorAttribute" BrandingRules.cs`; kendi `#RRGGBB` kodu kalmadı: `grep IsAsciiHexDigit` boş; ayrışan örnek `"  #ffff00 "` ve ret örnekleri `AColourTheModuleStores_IsOneTheSingleRuleAccepts_…` teorisinde; E-posta tarafındaki `EmailColors.TryParse` gösterim güvenliği, saklama biçimi değil) — B1 düzeltmesi tur 1 |
 | Birleşik ağaçta main'in zorunlu alanları | ✓ | `origin/main` (T341, `e2e9dbcc`) birleştirildi; testler `Image.Create`, `Admin.Create` güncel imzalarla; Unit 955 + 3315 + Consistency, Integration 29 + 157 geçti |
 
 ## Test Sonuçları

@@ -1,6 +1,8 @@
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 using Shopfolio.Infrastructure.EmailComposition;
+using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.CorporateContent;
 using Shopfolio.Modules.CorporateContent.Contracts;
@@ -53,6 +55,32 @@ public sealed class BrandingRulesTests
     {
         Assert.False(BrandingRules.TryNormalizeColor(raw, out string? color));
         Assert.Null(color);
+    }
+
+    [Theory]
+    [InlineData("#1a56db")]
+    [InlineData("  #ffff00 ")]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("#FFF")]
+    [InlineData("#123456;color:red")]
+    [InlineData("red")]
+    public void AColourTheModuleStores_IsOneTheSingleRuleAccepts_AndARefusedOneIsRefusedByBoth(string raw)
+    {
+        bool stored = BrandingRules.TryNormalizeColor(raw, out string? color);
+        string text = color ?? string.Empty;
+        bool ruleAccepts = new InvalidColorAttribute().GetValidationResult(text, new ValidationContext(text)) is null;
+
+        // What the module keeps always passes the one rule; what the module refuses is a value the rule refuses once trimmed.
+        if (stored)
+        {
+            Assert.True(ruleAccepts);
+        }
+        else
+        {
+            string trimmed = raw.Trim();
+            Assert.NotNull(new InvalidColorAttribute().GetValidationResult(trimmed, new ValidationContext(trimmed)));
+        }
     }
 
     // ---- The name and the initial (KK3, KK4) ----

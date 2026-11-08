@@ -59,6 +59,7 @@ public sealed class TransitionUnitSourceScanTests
                 (TransitionUnitSourceScan.OutsideCall, 29),
                 (TransitionUnitSourceScan.OutsideCall, 30),
                 (TransitionUnitSourceScan.OutsideCall, 31),
+                (TransitionUnitSourceScan.OutsideCall, 32),
             ],
             findings);
     }
@@ -79,6 +80,7 @@ public sealed class TransitionUnitSourceScanTests
 
         Assert.DoesNotContain(findings, f => f.Line is >= 27 and <= 30);
         Assert.Contains((TransitionUnitSourceScan.OutsideCall, 31), findings);
+        Assert.Contains((TransitionUnitSourceScan.OutsideCall, 32), findings);
         Assert.Contains((TransitionUnitSourceScan.OpenSetter, 5), findings);
     }
 

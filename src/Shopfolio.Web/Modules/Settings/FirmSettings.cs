@@ -47,6 +47,17 @@ internal sealed class FirmSettings
             .SingleAsync(ct);
     }
 
+    /// <summary>The home page and menu section (T361; 06 4.2): the layout, the six names and the section's version. The save of the section is the panel's (T535).</summary>
+    public async Task<HomepageSection> ReadHomepageAsync(CancellationToken ct)
+    {
+        return await _db.CompanySettings.AsNoTracking()
+            .Select(s => new HomepageSection(
+                s.HomepageLayout,
+                new MenuNames(s.MenuNameProducts, s.MenuNameOfferings, s.MenuNamePortfolioItems, s.MenuNameAboutPage, s.MenuNameFaqItems, s.MenuNameContact),
+                s.HomepageVersion))
+            .SingleAsync(ct);
+    }
+
     public async Task<PeriodsSection> ReadPeriodsAsync(CancellationToken ct)
     {
         return await _db.CompanySettings.AsNoTracking()

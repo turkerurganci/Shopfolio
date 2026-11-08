@@ -13,6 +13,20 @@ public interface ICorporateContentModule
     /// </summary>
     Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct);
 
+    /// <summary>
+    /// The storefront's menu (T361; 02 3.28.4-3.28.6; 04 2.2.3): the fixed skeleton in the layout's order with the firm's names, each item with its visibility and - when hidden - its reason;
+    /// the categories under "Ürünler"; the published general pages for the footer and the menu. A type with no published record is hidden, a category with no published product below it is
+    /// not listed. The structure is cached; the names and the layout are read on every call. A plain read.
+    /// </summary>
+    Task<StorefrontMenu> GetMenuAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The home page (T361; 02 3.28.1-3.28.3; 04 5.1): the blocks that show in the order of the chosen layout - the corporate block, the flagged services and references, the newest
+    /// published products - each with what it shows. A block with nothing to show is not there; a draft is never on the page. The corporate part is cached; the showcase is read on every
+    /// call. A plain read.
+    /// </summary>
+    Task<HomepageView> GetHomepageAsync(CancellationToken ct);
+
     /// <summary>The brand form as the panel shows it (T362; 02 3.29; 04 9.15): the stored values and the form's version. A plain read; the panel's view of the brand never carries the brand colour on itself (02 3.29.1).</summary>
     Task<BrandingSection> GetBrandingAsync(CancellationToken ct);
 

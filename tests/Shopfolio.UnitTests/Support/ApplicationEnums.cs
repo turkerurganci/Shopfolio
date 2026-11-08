@@ -19,6 +19,10 @@ internal static class ApplicationEnums
     {
         "Shopfolio.Modules.Ordering.Contracts.TransitionRefusal",
         "Shopfolio.Modules.AfterSales.Contracts.ItemRecordRefusal",
+        // T361: the storefront's read shapes - which menu item or home page block a record is, and why a menu item is hidden; computed per read, never a column.
+        "Shopfolio.Modules.CorporateContent.Contracts.MenuItemKind",
+        "Shopfolio.Modules.CorporateContent.Contracts.MenuHiddenReason",
+        "Shopfolio.Modules.CorporateContent.Contracts.HomepageBlockKind",
         "Shopfolio.Modules.Ordering.Contracts.CorrectionObstacle",
         "Shopfolio.Modules.Catalog.Contracts.ProductPageKind",
     };

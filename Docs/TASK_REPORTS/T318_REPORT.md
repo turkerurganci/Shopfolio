@@ -75,7 +75,7 @@ Bütün maddeler (ilk işçinin yaptıkları dahil) bu turda diff'te `grep -n` i
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/...` | 4289/4289 (yeni 35: Combination 7, CounterMoment 3, OrderLines 25) |
-| Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests/... --filter-namespace ...` (beş parça, yerel PostgreSQL 18) | 2271/2271 (Ordering 170; yeni `AxesTieTests` 20) |
+| Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests/... --filter-namespace ...` (beş parça, yerel PostgreSQL 18) | 2271/2271 (Ordering 170; yeni `AxesTieTests` 20); `origin/main` (`7ddf334`) birleştirildikten sonra Unit 4289/4289, Consistency 277/277 ve Ordering sınıfları (Axes 20, Payment 33, Shipment 86, OrderTransitions 31) yeniden yeşil |
 | Lint | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes` | değişiklik yok |
 | Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı |
 | Contract | — | — | NOT_APPLICABLE |
@@ -110,8 +110,8 @@ Bütün maddeler (ilk işçinin yaptıkları dahil) bu turda diff'te `grep -n` i
 ## Commit & PR
 
 - **Branch:** `task/T318-eksen-bagi`
-- **Commit:** dalın son commit'i PR'da
-- **PR:** #PRNO
+- **Commit:** `f33d781` (backlog kayıtları; üstünde yalnız PR numarası commit'i)
+- **PR:** #455
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 

@@ -195,7 +195,7 @@
 | T352 | Ödeme: satıcı ve kart verisi, iki yöntem, 3D Secure, taksit, ters ibraz | ⬚ | — | — | — |
 | T353 | Havale/EFT: IBAN ve siparişe donması, ödendi işareti, hatırlatma, süresi dolmuş sipariş | ⬚ | — | — | — |
 | T354 | Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı | ✓ | ✓ PASS (tur 4) | — | #470 |
-| T355 | Sipariş anında donan değerler | ⬚ | — | — | — |
+| T355 | Sipariş anında donan değerler | ✓ | ✓ PASS (tur 1) | — | #484 |
 | T356 | Onay adımı: onay kutuları, Ön Bilgilendirme Formu içeriği, işlem rehberi | ⬚ | — | — | — |
 | T357 | Fatura verisi ve dışa aktarmada donmuş kimlik | ⬚ | — | — | — |
 | T358 | Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar | ✓ | ✓ PASS (tur 1) | — | #449 |
@@ -229,7 +229,7 @@
 | T386 | Sipariş müdahaleleri: kalem adedi azaltma ve çıkarma, kargo bilgisinin ve teslim tarihinin düzeltilmesi, iç not | ⬚ | — | — | — |
 | T387 | Kurulum tarafı yönetim komutları: iş satırını yeniden kuyruğa alma ya da kapatma, anahtar yenilemesi sonrası ödeme sonucunun uygulanması, kayıt okuma komutu | ⬚ | — | — | — |
 | T388 | Dönüş denetimi komutu ve dönüşten sonra silmelerin yeniden uygulanması | ⬚ | — | — | — |
-| T389 | Hesap ve durum yönetim komutları: oturumları sonlandırma, şifreyi geçersiz kılma, durum | ⬚ | — | — | — |
+| T389 | Hesap ve durum yönetim komutları: oturumları sonlandırma, şifreyi geçersiz kılma, durum | ✓ | ✓ PASS (tur 3) | — | #472 |
 | T390 | Uçtan uca dal akış testleri (servis düzeyi): karışık sipariş, kargoda cayma, IBAN'sız iade, e-posta düzeltme | ⬚ | — | — | — |
 
 ---

@@ -34,6 +34,7 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly ProductGallery _gallery;
     private readonly CartVariantReader _cartVariants;
     private readonly CartQuantityReader _cartQuantities;
+    private readonly OrderItemSourceReader _orderItemSources;
     private readonly Discounts _discounts;
     private readonly VariantPrices _variantPrices;
     private readonly ShippingPeriodReader _shippingPeriods;
@@ -61,10 +62,12 @@ internal sealed class CatalogModule : ICatalogModule
         CatalogMenuReader menu,
         Coupons coupons,
         CartVariantReader cartVariants,
-        CartQuantityReader cartQuantities)
+        CartQuantityReader cartQuantities,
+        OrderItemSourceReader orderItemSources)
     {
         _cartVariants = cartVariants;
         _cartQuantities = cartQuantities;
+        _orderItemSources = orderItemSources;
         _pages = pages;
         _discounts = discounts;
         _menu = menu;
@@ -178,6 +181,9 @@ internal sealed class CatalogModule : ICatalogModule
     public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct)
         => _cartVariants.ListAsync(variantIds, ct);
 
+    public Task<IReadOnlyList<OrderItemSource>> ListOrderItemSourcesAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct)
+        => _orderItemSources.ListAsync(variantIds, ct);
+
     public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, CancellationToken ct)
         => _cartQuantities.JudgeAsync(lines, ct);
 
@@ -261,6 +267,7 @@ internal static class CatalogModuleRegistration
         services.AddScoped<ShippingPeriodReader>();
         services.AddScoped<CartVariantReader>();
         services.AddScoped<CartQuantityReader>();
+        services.AddScoped<OrderItemSourceReader>();
         services.AddScoped<CategoryTree>();
         services.AddScoped<CatalogMenuReader>();
         services.AddScoped<ProductCategoryLinks>();

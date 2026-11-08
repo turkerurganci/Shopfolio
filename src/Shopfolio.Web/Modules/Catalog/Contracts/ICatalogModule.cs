@@ -345,6 +345,12 @@ public interface ICatalogModule
     Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct);
 
     /// <summary>
+    /// What an order item freezes of each variant at the moment the order is born (T355; 02 3.23.1, 3.23.4): the values that produce the paid amount, the product's description and the
+    /// attributes of the delivery line and the withdrawal regime, read once from the live product. A variant that does not exist is not in the answer. A plain read; it writes nothing.
+    /// </summary>
+    Task<IReadOnlyList<OrderItemSource>> ListOrderItemSourcesAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct);
+
+    /// <summary>
     /// The verdict on the quantity of each line of a cart that is read (T347; 02 3.16.8, 3.16.10): a quantity above the stock less the reserved units - or the service capacity - is
     /// <see cref="CartQuantityProblem.NoStock"/>; the lines of a product that together pass its "bir siparişte en fazla" limit are <see cref="CartQuantityProblem.OverOrderLimit"/>, a line over the stock
     /// not counting into the total. Neither the stock nor the reserved units are given. A variant that does not exist is not in the answer. A plain read; it writes nothing.

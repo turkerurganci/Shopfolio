@@ -46,6 +46,12 @@ internal sealed record AuditLine
         ArgumentException.ThrowIfNullOrWhiteSpace(command);
         return new AuditLine(LogEvents.AdminCommand, "{Event} {Command} {AccountId}", "Command", command, "AccountId", accountId);
     }
+
+    /// <summary>
+    /// An administration command with no target account: the command that names an account by e-mail and finds none, and the commands that act on no account (09 13.2 item 5).
+    /// The id is the empty id (<see cref="Guid.Empty"/>) - "no target" - so the line has the same shape as any other and still holds no e-mail address.
+    /// </summary>
+    public static AuditLine AdminCommandWithoutTarget(string command) => AdminCommand(command, Guid.Empty);
 }
 
 /// <summary>

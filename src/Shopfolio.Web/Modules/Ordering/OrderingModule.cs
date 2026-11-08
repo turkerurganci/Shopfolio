@@ -47,6 +47,19 @@ internal sealed class OrderingModule : IOrderingModule
 
     public Task<OrderShippingView?> GetShippingViewAsync(Guid orderId, CancellationToken ct) => _shippingViews.GetAsync(orderId, ct);
 
+    public async Task<ConfirmationParties?> GetConfirmationPartiesAsync(Guid orderId, CancellationToken ct)
+    {
+        Order? order = await _db.Orders.AsNoTracking().SingleOrDefaultAsync(o => o.Id == orderId, ct);
+        if (order is null)
+        {
+            return null;
+        }
+
+        List<OrderAddressHistory> addresses = await _db.OrderAddressHistories.AsNoTracking().Where(h => h.OrderId == orderId).ToListAsync(ct);
+        List<OrderEmailHistory> emails = await _db.OrderEmailHistories.AsNoTracking().Where(h => h.OrderId == orderId).ToListAsync(ct);
+        return OrderFreeze.PartiesAtConfirmation(order, addresses, emails);
+    }
+
     public Task<IReadOnlyList<OrderPaymentArm>> FindPaymentArmsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => _arms.ReadAsync(orderIds, ct);
 
     public Task<IReadOnlyList<Guid>> FindUnpaidFailedOrdersAsync(DateTimeOffset failedBefore, IReadOnlyCollection<Guid> exclude, int max, CancellationToken ct) =>
@@ -254,6 +267,33 @@ internal sealed class OrderingModule : IOrderingModule
     {
         OrderStatus[] terminal = [.. TransitionTable.TerminalStatuses];
         return _db.Orders.AsNoTracking().Where(o => !terminal.Contains(o.OrderStatus));
+    }
+
+    public Task<int> CountCardOrdersAwaitingPaymentAsync(CancellationToken ct)
+        => _db.Orders.AsNoTracking().CountAsync(PaymentWindowRules.Awaiting(PaymentMethod.Card), ct);
+
+    public async Task<IReadOnlyList<PaidCardItem>> ListPaidCardItemsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxOrders, 1);
+        PaymentStatus[] paid = [PaymentStatus.Paid, PaymentStatus.PartiallyRefunded];
+        IQueryable<Order> orders = _db.Orders.AsNoTracking().Where(o => o.PaymentMethod == PaymentMethod.Card && paid.Contains(o.PaymentStatus));
+        if (afterOrderId is { } after)
+        {
+            orders = orders.Where(o => o.Id.CompareTo(after) > 0);
+        }
+
+        // One page: the next orders by id and their items; the caller walks the pages, so no read takes the growing set whole (09 20 item 2).
+        Guid[] pageOrderIds = await orders.OrderBy(o => o.Id).Select(o => o.Id).Take(maxOrders).ToArrayAsync(ct);
+        if (pageOrderIds.Length == 0)
+        {
+            return [];
+        }
+
+        return await _db.OrderItems.AsNoTracking()
+            .Where(i => pageOrderIds.Contains(i.OrderId))
+            .OrderBy(i => i.OrderId).ThenBy(i => i.Id)
+            .Select(i => new PaidCardItem(i.OrderId, i.Id, i.ProductType, i.Quantity, i.DeliveryDate, i.DeliveryMarkedAt))
+            .ToListAsync(ct);
     }
 
     public async Task<CardPaymentQueryTarget?> GetCardPaymentQueryTargetAsync(Guid orderId, DateTimeOffset now, CancellationToken ct)

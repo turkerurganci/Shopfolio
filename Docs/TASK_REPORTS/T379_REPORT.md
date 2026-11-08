@@ -1,6 +1,6 @@
 # T379 — Yönetici hesapları: ilk yönetici ve davet, kaldırma kuralları, tek rol, ayrı hesap türü, davetin geri çekilmesi, erişim kaybında kurtarma sınırı
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — düzeltme bekliyor) | **Tarih:** 2026-11-08
 
 ---
 
@@ -68,10 +68,25 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-08) |
+| Bulgu sayısı | 1 (B1 ORTA S1) |
+| Düzeltme gerekli mi | Evet — `MembershipTests.AdminAccounts.cs`'te yedi `var` açık türle değişir; dal CI yeşil |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-617) |
+
+### Doğrulama Sonucu — tur 1 (validator)
+
+**Head:** `beae4623` (origin/main `a71c6f02` ile güncel; birleştirme gerekmedi) · **PR:** #473 · **Verdict:** ✗ FAIL
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = depo `scripts/git-hooks` (ana checkout'un mutlak yolu); ana dal CI son 3: 42493884421, 42493884474, 42492032713 hepsi `success`.
+- **Dal CI:** 42495939596 ✗ — 1. Lint `dotnet format Shopfolio.slnx --no-restore --verify-no-changes` yedi `IDE0008 Use explicit type instead of 'var'` (`tests/Shopfolio.IntegrationTests/Model/MembershipTests.AdminAccounts.cs` satır 61, 267, 289, 350, 382, 398, 445); CI Gate ✗; Build, Unit, Integration, Contract, Migration, Paketleme `skipping` — CI'da hiç koşmadı. Önceki run 42495922687 (`ca7a3b7d`) `cancelled`. Dalın `success` run'ı yok.
+- **Kabul kriterleri (modül düzeyi, kod + test okundu):** 1 ✓ (kayıt yolu yok — `AdminAccountRulesScanTests`; davet tek yol, `CreateAdminAsync` yalnız komutlarda) · 2 ✓ (P-14 72 saat, tek kullanım, ad boş/zayıf şifre bağlantıyı tüketmez) · 3 ✓ (kendini ve son yöneticiyi `AdminSet` kilidi altında reddeder; onaysız çağrı yazmaz) · 4 ✓ (oturumlar FK ile düşer, gönderdiği davetler bağlantısıyla geçersizleşir, onay sayıyı söyler, iz satırı `InvalidatedInvitations` taşır, F-6 kaldırılan dahil herkese — `02 §9.3.4`; imha kaydı `Admin` `06 §5.5.3`) · 5 ✓ (rol/yetki alanı yok, rol adı taraması) · 6 ✓ (yeniden doğrulama, L-9, geri alma açıkken kapalı; iz satırı eski/yeni; `companies.email` değişmez; ad yeniden doğrulamasız ve izsiz — `02 §10.3.1` (4) adı saymaz) · 7 ✓ (ilişki yok; tür içinde harf ayrımsız tekil; müşteri adresi davete engel değil; iki kapı ayrı) · 8 ✓ (geri çekme bağlantıyı o an bitirir, bildirim yok; aynı adrese yeni davet öncekini geçersiz kılar; K-1085 kabulde hesap açmaz, davet geçersiz; yalnız gönderim F-6) · 9 ✓ (kurtarma ucu yok, tarama).
+- **KK1–KK9:** ✓ (kriterlerle aynı kanıt). `09 §25`: yeni ad ve işlem kodları önceden kayıtlı (`AuditOperation`, `DisposalRecordType.Admin`); şema değişmedi; kilit sırası `LockSequence` testlerde koştu; K1 dışında bulgu yok.
+- **Task satırları (KP-62):** VAL-A301–A309, C068–C074, D035 uç yanıtı / tarayıcı / panel kanıtı ister; uçlar ve sayfalar sonraki task'larda (T520, T522, T523). `Durum` hücreleri `BEKLEMEDE` kaldı (T343/T380 emsali).
+- **Testler (yerel):** build `-warnaserror` 0 uyarı; format: Web ve UnitTests temiz, IntegrationTests 7 × IDE0008 (B1); Unit 4881/4881; Integration `MembershipTests` 114/114, `AddressTests` + `EmailCaptureRegistrationTests` + `CookiePolicyTests` + `MembershipSessionTests` 27/27; betik testleri 4 dosya.
+- **B1 — ORTA, S1 Sapma (biçim kuralı, `09 §3.1`):** yedi `var` bildirimi `.editorconfig`'in IDE0008 kuralını çiğner; Lint kırmızı olduğu için dal CI'ı yeşil değil ve sonraki adımlar CI'da hiç koşmadı. Düzeltme: `StartAdminWorldAsync` dönüşünün açık türü yazılır; `dotnet format Shopfolio.slnx --no-restore --verify-no-changes` temiz; dal CI'ı yeşil (Integration dahil).
+- **K1 → D-617:** `AdminEmailChanges`'in üç yardımcısı `Membership/EmailChanges.cs`'tekilerin kopyası (`09 §24` madde 4); davranış aynı, düzeltme turunda kapatılabilir.
+- **Güvenlik:** sır yok; yetki: gönderen/kaldıran aktör istekten okunur, satırı yoksa yazılmaz; girdi: e-posta tek kural (`InvalidEmailAttribute`), şifre `PasswordPolicy`, ad boş reddi; yeni bağımlılık yok.
+- **Yapım raporu karşılaştırması:** 1 uyuşmazlık — Test Sonuçları "Biçim ✓ `dotnet format --verify-no-changes` (değişen klasörler) çıktı yok" iddiası yanlış: IntegrationTests projesinde yedi IDE0008 var (CI ve yerel). Öz denetim tablosu var ve kanıtlı; öteki satırlar validator bulgularıyla uyumlu.
 
 ## Altyapı Değişiklikleri
 

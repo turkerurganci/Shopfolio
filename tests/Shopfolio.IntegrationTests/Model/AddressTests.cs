@@ -99,6 +99,9 @@ public sealed class AddressTests : IAsyncLifetime
         services.AddSingleton(new LinkKeys(Options.Create(new LinkKeyOptions { DerivationSecret = Convert.ToBase64String(new byte[LinkKeyOptions.DerivationSecretMinBytes]) })));
         services.AddScoped<LoginRecorder>();
         services.AddSingleton<PasswordService>();
+        services.AddScoped<ReauthenticationValues>();
+        services.AddScoped<SessionStore>();
+        services.AddScoped<PasswordRegime>();
         services.AddScoped<ProvinceList>();
         services.AddScoped<ISettingsModule, ProvinceSettings>();
         services.AddScoped<OrderLocks>();

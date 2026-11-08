@@ -75,6 +75,14 @@ internal static class LockSequence
         }
     }
 
+    /// <summary>True when the context's open transaction has already taken this lock (so it is not taken twice).</summary>
+    public static bool Holds(DbContext context, LockKind kind, Guid? key)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        Guid? transactionId = context.Database.CurrentTransaction?.TransactionId;
+        return transactionId is not null && States.TryGetValue(context, out State? state) && state.TransactionId == transactionId && state.Taken.Contains((kind, key));
+    }
+
     /// <summary>The orders whose row lock the context's open transaction holds; empty without a transaction.</summary>
     public static IReadOnlyCollection<Guid> LockedOrders(DbContext context)
     {
@@ -90,7 +98,7 @@ internal static class LockSequence
 
     private static bool IsSeparate(LockKind kind)
     {
-        return kind is LockKind.CategoryTree or LockKind.AdminSet or LockKind.DigitalFile or LockKind.CompanySettings;
+        return kind is LockKind.CategoryTree or LockKind.AdminSet or LockKind.DigitalFile or LockKind.CompanySettings or LockKind.Account;
     }
 
     private sealed class State

@@ -22,7 +22,7 @@ internal sealed class CreateAdminCommand : IAdminCommand
 
     public IReadOnlyList<CommandOption> Options { get; } = [];
 
-    public async Task<CommandExit> RunAsync(CommandInput input, CancellationToken ct)
+    public async Task<CommandExit> ExecuteAsync(CommandInput input, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
         ITerminal terminal = input.Terminal;
@@ -75,12 +75,12 @@ internal sealed class CreateAdminCommand : IAdminCommand
     {
         return (result.Field, result.Code) switch
         {
-            (AdminCreationField.Name, _) => "Ad boş olamaz.",
-            (AdminCreationField.Email, ErrorCode.FieldRequired) => "E-posta boş olamaz.",
-            (AdminCreationField.Email, ErrorCode.InvalidEmail) => "E-posta adresinin biçimi geçersiz.",
-            (AdminCreationField.Email, ErrorCode.EmailAlreadyRegistered) => "Bu e-posta ile bir yönetici hesabı zaten var.",
-            (AdminCreationField.Password, ErrorCode.FieldRequired) => "Şifre boş olamaz.",
-            (AdminCreationField.Password, _) => $"Şifre politikasına uymuyor: en az {ProductConstants.PasswordMinLength} karakter olmalı ve yaygın şifrelerden biri olmamalı.",
+            (AdminCreationFields.Name, _) => "Ad boş olamaz.",
+            (AdminCreationFields.Email, ErrorCode.FieldRequired) => "E-posta boş olamaz.",
+            (AdminCreationFields.Email, ErrorCode.InvalidEmail) => "E-posta adresinin biçimi geçersiz.",
+            (AdminCreationFields.Email, ErrorCode.EmailAlreadyRegistered) => "Bu e-posta ile bir yönetici hesabı zaten var.",
+            (AdminCreationFields.Password, ErrorCode.FieldRequired) => "Şifre boş olamaz.",
+            (AdminCreationFields.Password, _) => $"Şifre politikasına uymuyor: en az {ProductConstants.PasswordMinLength} karakter olmalı ve yaygın şifrelerden biri olmamalı.",
             _ => "Hesap açılamadı.",
         };
     }

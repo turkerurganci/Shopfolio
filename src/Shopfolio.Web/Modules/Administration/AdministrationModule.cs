@@ -113,28 +113,28 @@ internal sealed class AdministrationModule : IAdministrationModule
         string cleanEmail = email.Trim();
         if (cleanName.Length == 0)
         {
-            return AdminCreationResult.Refused(AdminCreationField.Name, ErrorCode.FieldRequired);
+            return AdminCreationResult.Refused(AdminCreationFields.Name, ErrorCode.FieldRequired);
         }
 
         if (cleanEmail.Length == 0)
         {
-            return AdminCreationResult.Refused(AdminCreationField.Email, ErrorCode.FieldRequired);
+            return AdminCreationResult.Refused(AdminCreationFields.Email, ErrorCode.FieldRequired);
         }
 
         if (_emailRule.GetValidationResult(cleanEmail, new ValidationContext(cleanEmail)) is not null)
         {
-            return AdminCreationResult.Refused(AdminCreationField.Email, ErrorCode.InvalidEmail);
+            return AdminCreationResult.Refused(AdminCreationFields.Email, ErrorCode.InvalidEmail);
         }
 
         if (PasswordPolicy.Validate(password) is { } passwordRefusal)
         {
-            return AdminCreationResult.Refused(AdminCreationField.Password, passwordRefusal);
+            return AdminCreationResult.Refused(AdminCreationFields.Password, passwordRefusal);
         }
 
         string normalized = TextNormalizer.NormalizeIdentity(cleanEmail);
         if (await _db.Admins.AsNoTracking().AnyAsync(a => a.NormalizedEmail == normalized, ct))
         {
-            return AdminCreationResult.Refused(AdminCreationField.Email, ErrorCode.EmailAlreadyRegistered);
+            return AdminCreationResult.Refused(AdminCreationFields.Email, ErrorCode.EmailAlreadyRegistered);
         }
 
         // An administrator account has no verified state and no role (06 4.37, 8.3.1, 8.3.2): the row is the whole account.

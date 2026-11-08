@@ -34,7 +34,7 @@ internal sealed partial class CommandDispatcher
     }
 
     /// <summary>Runs the command named by the first argument; <paramref name="arguments"/> are the arguments after <c>admin</c>.</summary>
-    public async Task<int> RunAsync(string[] arguments, CancellationToken ct)
+    public async Task<int> ExecuteAsync(string[] arguments, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(arguments);
         try
@@ -85,7 +85,7 @@ internal sealed partial class CommandDispatcher
         }
 
         await using ServiceProvider services = _services();
-        return await command.RunAsync(new CommandInput(values, _terminal, services), ct);
+        return await command.ExecuteAsync(new CommandInput(values, _terminal, services), ct);
     }
 
     private Dictionary<string, object>? ReadOptions(IAdminCommand command, string[] arguments)

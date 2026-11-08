@@ -42,7 +42,7 @@ internal static class CommandHost
     }
 
     /// <summary>Runs the command named after <c>admin</c> and returns the process exit code.</summary>
-    public static async Task<int> RunAsync(string[] args)
+    public static async Task<int> ExecuteAsync(string[] args)
     {
         ArgumentNullException.ThrowIfNull(args);
         ConsoleTerminal terminal = new();
@@ -52,7 +52,7 @@ internal static class CommandHost
 
         // Ctrl+C keeps its default: the process ends and the open transaction is rolled back by the server when the connection drops. A handler that only cancels a token would leave
         // a password prompt that cannot be left.
-        return await dispatcher.RunAsync(args[1..], CancellationToken.None);
+        return await dispatcher.ExecuteAsync(args[1..], CancellationToken.None);
     }
 
     /// <summary>
@@ -60,12 +60,10 @@ internal static class CommandHost
     /// </summary>
     internal static IConfiguration BuildConfiguration()
     {
-        ConfigurationBuilder builder = new();
-        builder.SetBasePath(AppContext.BaseDirectory);
-        builder.AddJsonFile("appsettings.json", optional: true);
-        builder.AddEnvironmentVariables();
-        ((IConfigurationBuilder)builder).Add(new SecretFileConfigurationSource(new SecretFiles(SecretFiles.DefaultDirectory)));
-        return builder.Build();
+        // The host builder's default sources (settings files, environment) are the ones the web host has; only its configuration is taken, no host is built.
+        HostApplicationBuilder builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { Args = [], ContentRootPath = AppContext.BaseDirectory });
+        ((IConfigurationBuilder)builder.Configuration).Add(new SecretFileConfigurationSource(new SecretFiles(SecretFiles.DefaultDirectory)));
+        return builder.Configuration;
     }
 
     /// <summary>The command mode's service collection: no hosted service and no server service (architecture test, 09 13.2 item 1).</summary>

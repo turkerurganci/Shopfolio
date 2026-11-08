@@ -19,7 +19,9 @@ internal static partial class SessionWriteSourceScan
     public const string PermissionFields = "writes the reauthentication permission's fields outside ReauthenticationValues (06 4.39: written together, one place)";
 
     private const string Store = "src/Shopfolio.Web/Infrastructure/Security/SessionStore.cs";
-    private const string Values = "src/Shopfolio.Web/Infrastructure/Security/ReauthenticationValues.cs";
+    // The command mode's service list only registers the permission's writer (the modules' constructors need it, as in ForgerySetup); the command mode grants no permission (T303).
+    private const string CommandHostFile = "src/Shopfolio.Web/Commands/CommandHost.cs";
+    private const string Values ="src/Shopfolio.Web/Infrastructure/Security/ReauthenticationValues.cs";
 
     /// <summary>
     /// The closed lists, rule by rule, each file with its reason: the store is the writer; <c>ReauthenticationValues</c> is the permission's own writer that the store calls;
@@ -42,7 +44,7 @@ internal static partial class SessionWriteSourceScan
             "src/Shopfolio.Web/Infrastructure/Security/RecognizedBrowserMark.cs",
             "src/Shopfolio.Web/Infrastructure/AppDbContext.cs",
         ],
-        [PermissionValues] = [Store, Values, "src/Shopfolio.Web/Infrastructure/Security/ForgerySetup.cs", "src/Shopfolio.Web/Infrastructure/Security/Session.cs"],
+        [PermissionValues] = [Store, Values, "src/Shopfolio.Web/Infrastructure/Security/ForgerySetup.cs", "src/Shopfolio.Web/Infrastructure/Security/Session.cs", CommandHostFile],
         [PermissionFields] = [Values],
     };
 

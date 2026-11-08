@@ -42,7 +42,7 @@ internal interface IAdminCommand
 
     IReadOnlyList<CommandOption> Options { get; }
 
-    Task<CommandExit> RunAsync(CommandInput input, CancellationToken ct);
+    Task<CommandExit> ExecuteAsync(CommandInput input, CancellationToken ct);
 }
 
 /// <summary>

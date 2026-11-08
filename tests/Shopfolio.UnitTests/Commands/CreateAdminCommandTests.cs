@@ -34,7 +34,7 @@ public sealed class CreateAdminCommandTests
         terminal.Answer(Name).Answer(Email).Secret(Password).Secret(Password);
         (CommandInput input, RecordingWriter writer) = Input(terminal);
 
-        CommandExit exit = await new CreateAdminCommand().RunAsync(input, Ct);
+        CommandExit exit = await new CreateAdminCommand().ExecuteAsync(input, Ct);
 
         Assert.Equal(CommandExit.UsageError, exit);
         Assert.Equal(0, terminal.Reads);
@@ -51,7 +51,7 @@ public sealed class CreateAdminCommandTests
         terminal.Answer(name).Answer(Email).Secret(Password).Secret(Password);
         (CommandInput input, RecordingWriter writer) = Input(terminal);
 
-        CommandExit exit = await new CreateAdminCommand().RunAsync(input, Ct);
+        CommandExit exit = await new CreateAdminCommand().ExecuteAsync(input, Ct);
 
         Assert.Equal(CommandExit.Refused, exit);
         Assert.Empty(writer.Lines);
@@ -64,7 +64,7 @@ public sealed class CreateAdminCommandTests
         terminal.Answer(Name).Answer(Email).Secret(Password).Secret(Password + "x");
         (CommandInput input, RecordingWriter writer) = Input(terminal);
 
-        CommandExit exit = await new CreateAdminCommand().RunAsync(input, Ct);
+        CommandExit exit = await new CreateAdminCommand().ExecuteAsync(input, Ct);
 
         Assert.Equal(CommandExit.Refused, exit);
         Assert.Empty(writer.Lines);

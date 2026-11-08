@@ -27,7 +27,7 @@ public sealed class CommandDispatcherTests
         FakeTerminal terminal = new();
         RecordingCommand command = new();
 
-        int exit = await Dispatcher(Commands(command), terminal).RunAsync([TypedValue], Ct);
+        int exit = await Dispatcher(Commands(command), terminal).ExecuteAsync([TypedValue], Ct);
 
         Assert.Equal((int)CommandExit.UsageError, exit);
         Assert.DoesNotContain(TypedValue, terminal.AllOutput, StringComparison.Ordinal);
@@ -39,7 +39,7 @@ public sealed class CommandDispatcherTests
     {
         FakeTerminal terminal = new();
 
-        int exit = await Dispatcher(Commands(new RecordingCommand()), terminal).RunAsync([], Ct);
+        int exit = await Dispatcher(Commands(new RecordingCommand()), terminal).ExecuteAsync([], Ct);
 
         Assert.Equal((int)CommandExit.UsageError, exit);
     }
@@ -53,7 +53,7 @@ public sealed class CommandDispatcherTests
         FakeTerminal terminal = new();
         RecordingCommand command = new();
 
-        int exit = await Dispatcher(Commands(command), terminal).RunAsync(["record", argument + TypedValue, TypedValue], Ct);
+        int exit = await Dispatcher(Commands(command), terminal).ExecuteAsync(["record", argument + TypedValue, TypedValue], Ct);
 
         Assert.Equal((int)CommandExit.UsageError, exit);
         Assert.DoesNotContain(TypedValue, terminal.AllOutput, StringComparison.Ordinal);
@@ -67,7 +67,7 @@ public sealed class CommandDispatcherTests
         FakeTerminal terminal = new();
         RecordingCommand command = new();
 
-        int exit = await Dispatcher(Commands(command), terminal).RunAsync(["record"], Ct);
+        int exit = await Dispatcher(Commands(command), terminal).ExecuteAsync(["record"], Ct);
 
         Assert.Equal((int)CommandExit.UsageError, exit);
         Assert.Contains("--label", terminal.Error, StringComparison.Ordinal);
@@ -79,7 +79,7 @@ public sealed class CommandDispatcherTests
     {
         FakeTerminal terminal = new();
 
-        int exit = await Dispatcher(Commands(new RecordingCommand()), terminal).RunAsync(["record", "--label"], Ct);
+        int exit = await Dispatcher(Commands(new RecordingCommand()), terminal).ExecuteAsync(["record", "--label"], Ct);
 
         Assert.Equal((int)CommandExit.UsageError, exit);
     }
@@ -90,8 +90,8 @@ public sealed class CommandDispatcherTests
         FakeTerminal terminal = new();
         IReadOnlyList<IAdminCommand> commands = Commands(new RecordingCommand());
 
-        Assert.Equal((int)CommandExit.UsageError, await Dispatcher(commands, terminal).RunAsync(["record", "--label", string.Empty], Ct));
-        Assert.Equal((int)CommandExit.UsageError, await Dispatcher(commands, terminal).RunAsync(["record", "--label", "a", "--label", "b"], Ct));
+        Assert.Equal((int)CommandExit.UsageError, await Dispatcher(commands, terminal).ExecuteAsync(["record", "--label", string.Empty], Ct));
+        Assert.Equal((int)CommandExit.UsageError, await Dispatcher(commands, terminal).ExecuteAsync(["record", "--label", "a", "--label", "b"], Ct));
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public sealed class CommandDispatcherTests
         FakeTerminal terminal = new();
         RecordingCommand command = new() { Result = CommandExit.Refused };
 
-        int exit = await Dispatcher(Commands(command), terminal).RunAsync(["record", "--label", "x"], Ct);
+        int exit = await Dispatcher(Commands(command), terminal).ExecuteAsync(["record", "--label", "x"], Ct);
 
         Assert.Equal((int)CommandExit.Refused, exit);
         Assert.Equal("x", command.LastLabel);
@@ -113,7 +113,7 @@ public sealed class CommandDispatcherTests
         FakeTerminal terminal = new();
         RecordingCommand command = new() { Failure = new InvalidOperationException("secret detail " + TypedValue) };
 
-        int exit = await Dispatcher(Commands(command), terminal).RunAsync(["record", "--label", "x"], Ct);
+        int exit = await Dispatcher(Commands(command), terminal).ExecuteAsync(["record", "--label", "x"], Ct);
 
         Assert.Equal((int)CommandExit.UnexpectedError, exit);
         Assert.Contains(nameof(InvalidOperationException), terminal.Error, StringComparison.Ordinal);
@@ -131,7 +131,7 @@ public sealed class CommandDispatcherTests
         {
             made++;
             return new ServiceCollection().BuildServiceProvider();
-        }).RunAsync(["bogus"], Ct);
+        }).ExecuteAsync(["bogus"], Ct);
 
         Assert.Equal((int)CommandExit.UsageError, exit);
         Assert.Equal(0, made);
@@ -142,7 +142,7 @@ public sealed class CommandDispatcherTests
     {
         FakeTerminal terminal = new();
 
-        int exit = await Dispatcher(Commands(new RecordingCommand()), terminal).RunAsync(["--help"], Ct);
+        int exit = await Dispatcher(Commands(new RecordingCommand()), terminal).ExecuteAsync(["--help"], Ct);
 
         Assert.Equal((int)CommandExit.Success, exit);
         Assert.Contains("record", terminal.Output, StringComparison.Ordinal);
@@ -157,7 +157,7 @@ public sealed class CommandDispatcherTests
         FakeTerminal terminal = new();
         RecordingCommand command = new();
 
-        int exit = await Dispatcher(Commands(command), terminal).RunAsync(["record", "--help"], Ct);
+        int exit = await Dispatcher(Commands(command), terminal).ExecuteAsync(["record", "--help"], Ct);
 
         Assert.Equal((int)CommandExit.Success, exit);
         Assert.Contains("--label", terminal.Output, StringComparison.Ordinal);
@@ -175,7 +175,7 @@ public sealed class CommandDispatcherTests
         FakeTerminal terminal = new();
         RecordingCommand command = new();
 
-        int exit = await Dispatcher(Commands(command), terminal).RunAsync(["record", "--label", "x", "--at", value], Ct);
+        int exit = await Dispatcher(Commands(command), terminal).ExecuteAsync(["record", "--label", "x", "--at", value], Ct);
 
         Assert.Equal((int)CommandExit.UsageError, exit);
         Assert.DoesNotContain(value, terminal.AllOutput, StringComparison.Ordinal);
@@ -191,7 +191,7 @@ public sealed class CommandDispatcherTests
         FakeTerminal terminal = new();
         RecordingCommand command = new();
 
-        int exit = await Dispatcher(Commands(command), terminal).RunAsync(["record", "--label", "x", "--at", value], Ct);
+        int exit = await Dispatcher(Commands(command), terminal).ExecuteAsync(["record", "--label", "x", "--at", value], Ct);
 
         Assert.Equal((int)CommandExit.Success, exit);
         Assert.Equal(DateTimeOffset.Parse(expectedUtc, System.Globalization.CultureInfo.InvariantCulture), command.LastAt);
@@ -220,7 +220,7 @@ public sealed class CommandDispatcherTests
 
         public DateTimeOffset? LastAt { get; private set; }
 
-        public Task<CommandExit> RunAsync(CommandInput input, CancellationToken ct)
+        public Task<CommandExit> ExecuteAsync(CommandInput input, CancellationToken ct)
         {
             Runs++;
             if (Failure is not null)

@@ -3,12 +3,12 @@ using Shopfolio.Infrastructure.Errors;
 
 namespace Shopfolio.Modules.Administration.Contracts;
 
-/// <summary>The field a refused administrator creation names; the closed set of the command's three values (05 8.5.2).</summary>
-public enum AdminCreationField
+/// <summary>The field a refused administrator creation names; the closed set of the command's three values (05 8.5.2). Plain constants, not a stored enum: nothing is persisted.</summary>
+public static class AdminCreationFields
 {
-    Name,
-    Email,
-    Password,
+    public const string Name = "name";
+    public const string Email = "email";
+    public const string Password = "password";
 }
 
 /// <summary>
@@ -17,7 +17,7 @@ public enum AdminCreationField
 /// </summary>
 public sealed class AdminCreationResult : IOperationResult
 {
-    private AdminCreationResult(Guid? adminId, AdminCreationField? field, ErrorCode? code)
+    private AdminCreationResult(Guid? adminId, string? field, ErrorCode? code)
     {
         AdminId = adminId;
         Field = field;
@@ -30,7 +30,7 @@ public sealed class AdminCreationResult : IOperationResult
     public Guid? AdminId { get; }
 
     /// <summary>The refused field; empty when created.</summary>
-    public AdminCreationField? Field { get; }
+    public string? Field { get; }
 
     /// <summary>The refusal's code; empty when created.</summary>
     public ErrorCode? Code { get; }
@@ -39,5 +39,5 @@ public sealed class AdminCreationResult : IOperationResult
 
     internal static AdminCreationResult Created(Guid adminId) => new(adminId, null, null);
 
-    internal static AdminCreationResult Refused(AdminCreationField field, ErrorCode code) => new(null, field, code);
+    internal static AdminCreationResult Refused(string field, ErrorCode code) => new(null, field, code);
 }

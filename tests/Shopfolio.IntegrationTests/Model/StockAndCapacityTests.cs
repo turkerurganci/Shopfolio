@@ -479,6 +479,11 @@ public sealed class StockAndCapacityTests : IAsyncLifetime
     {
         int n = Interlocked.Increment(ref _counter);
         Product product = Product.Create("Ürün", $"urun-{n}", type, 20m, Now);
+        if (type == ProductType.Physical)
+        {
+            product.WithSeededOrigin();
+        }
+
         if (published)
         {
             product.PublishStatus = PublishStatus.Published;
@@ -528,6 +533,12 @@ public sealed class StockAndCapacityTests : IAsyncLifetime
         await using AppDbContext context = NewContext();
         Product product = await context.Products.SingleAsync(p => p.Id == productId, Ct);
         product.ProductType = type;
+        if (type == ProductType.Physical)
+        {
+            // A physical product needs its place of origin (T336), so the refusal under test is the stock one, not the missing origin.
+            product.WithSeededOrigin();
+        }
+
         product.BumpVersion();
         await context.SaveChangesAsync(Ct);
     }

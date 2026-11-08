@@ -8,7 +8,8 @@ namespace Shopfolio.UnitTests.Catalog;
 /// <summary>
 /// The type-dependent rules of the product definition as pure functions (T332; 02 3.2.2, 3.2.3, 7.3.4; 06 4.5; 11 T332 criteria 2, 9, 10; KK2, KK9, KK10): the withdrawal exemption is
 /// only for a physical product and never enters the gate; a published service needs a fulfilment period of at least one day and has no default; a draft service, a physical
-/// product and a digital product need none. The integration tests run the same rules through the save guard on a real database.
+/// product and a digital product need none. The place of origin (T336 criterion 8; KK8; 02 3.8.5) is required on a physical product in every status, optional on a digital one and
+/// absent on a service. The integration tests run the same rules through the save guard on a real database.
 /// </summary>
 public sealed class ProductDefinitionRulesTests
 {
@@ -16,8 +17,12 @@ public sealed class ProductDefinitionRulesTests
 
     private static readonly WithdrawalExemptionReason?[] Reasons = [null, .. Enum.GetValues<WithdrawalExemptionReason>().Select(r => (WithdrawalExemptionReason?)r)];
 
+    private static readonly Guid? Origin = Guid.Parse("019a4e3a-0000-7002-8000-000000000001");
+
+    private static readonly Guid?[] Origins = [null, Origin];
+
     [Fact]
-    public void EveryCombinationOfTypeStatusReasonAndPeriod_BreaksExactlyTheRulesOfTheDocument()
+    public void EveryCombinationOfTypeStatusReasonPeriodAndOrigin_BreaksExactlyTheRulesOfTheDocument()
     {
         foreach (ProductType type in Enum.GetValues<ProductType>())
         {
@@ -27,18 +32,31 @@ public sealed class ProductDefinitionRulesTests
                 {
                     foreach (int? period in Periods)
                     {
-                        List<ProductDefinitionProblem> expected = [];
-                        if (reason is not null && type != ProductType.Physical)
+                        foreach (Guid? origin in Origins)
                         {
-                            expected.Add(ProductDefinitionProblem.ExemptionOutsideAPhysicalProduct);
-                        }
+                            List<ProductDefinitionProblem> expected = [];
+                            if (reason is not null && type != ProductType.Physical)
+                            {
+                                expected.Add(ProductDefinitionProblem.ExemptionOutsideAPhysicalProduct);
+                            }
 
-                        if (type == ProductType.Service && status == PublishStatus.Published && (period is null || period < 1))
-                        {
-                            expected.Add(ProductDefinitionProblem.ServiceWithoutFulfilmentPeriodIsPublished);
-                        }
+                            if (type == ProductType.Service && status == PublishStatus.Published && (period is null || period < 1))
+                            {
+                                expected.Add(ProductDefinitionProblem.ServiceWithoutFulfilmentPeriodIsPublished);
+                            }
 
-                        Assert.Equal(expected, ProductDefinitionRules.Check(type, status, reason, period));
+                            if (type == ProductType.Physical && origin is null)
+                            {
+                                expected.Add(ProductDefinitionProblem.PhysicalProductWithoutOrigin);
+                            }
+
+                            if (type == ProductType.Service && origin is not null)
+                            {
+                                expected.Add(ProductDefinitionProblem.OriginOnAService);
+                            }
+
+                            Assert.Equal(expected, ProductDefinitionRules.Check(type, status, reason, period, origin));
+                        }
                     }
                 }
             }
@@ -50,9 +68,9 @@ public sealed class ProductDefinitionRulesTests
     {
         foreach (WithdrawalExemptionReason? reason in Reasons)
         {
-            Assert.Empty(ProductDefinitionRules.Check(ProductType.Physical, PublishStatus.Published, reason, null));
-            Assert.Empty(ProductDefinitionRules.Check(ProductType.Physical, PublishStatus.Draft, reason, null));
-            Assert.Empty(ProductDefinitionRules.Check(ProductType.Physical, PublishStatus.Archived, reason, 7));
+            Assert.Empty(ProductDefinitionRules.Check(ProductType.Physical, PublishStatus.Published, reason, null, Origin));
+            Assert.Empty(ProductDefinitionRules.Check(ProductType.Physical, PublishStatus.Draft, reason, null, Origin));
+            Assert.Empty(ProductDefinitionRules.Check(ProductType.Physical, PublishStatus.Archived, reason, 7, Origin));
         }
     }
 
@@ -61,11 +79,30 @@ public sealed class ProductDefinitionRulesTests
     {
         Assert.Equal(
             [ProductDefinitionProblem.ServiceWithoutFulfilmentPeriodIsPublished],
-            ProductDefinitionRules.Check(ProductType.Service, PublishStatus.Published, null, null));
-        Assert.Empty(ProductDefinitionRules.Check(ProductType.Service, PublishStatus.Draft, null, null));
-        Assert.Empty(ProductDefinitionRules.Check(ProductType.Service, PublishStatus.Archived, null, null));
-        Assert.Empty(ProductDefinitionRules.Check(ProductType.Service, PublishStatus.Published, null, 1));
-        Assert.Empty(ProductDefinitionRules.Check(ProductType.Digital, PublishStatus.Published, null, null));
+            ProductDefinitionRules.Check(ProductType.Service, PublishStatus.Published, null, null, null));
+        Assert.Empty(ProductDefinitionRules.Check(ProductType.Service, PublishStatus.Draft, null, null, null));
+        Assert.Empty(ProductDefinitionRules.Check(ProductType.Service, PublishStatus.Archived, null, null, null));
+        Assert.Empty(ProductDefinitionRules.Check(ProductType.Service, PublishStatus.Published, null, 1, null));
+        Assert.Empty(ProductDefinitionRules.Check(ProductType.Digital, PublishStatus.Published, null, null, null));
+    }
+
+    [Fact]
+    public void TheOrigin_IsRequiredOnAPhysicalProductInEveryStatus_OptionalOnADigitalOne_AndAbsentOnAService()
+    {
+        foreach (PublishStatus status in Enum.GetValues<PublishStatus>())
+        {
+            Assert.Equal([ProductDefinitionProblem.PhysicalProductWithoutOrigin], ProductDefinitionRules.Check(ProductType.Physical, status, null, null, null));
+            Assert.Empty(ProductDefinitionRules.Check(ProductType.Physical, status, null, null, Origin));
+            Assert.Empty(ProductDefinitionRules.Check(ProductType.Digital, status, null, null, null));
+            Assert.Empty(ProductDefinitionRules.Check(ProductType.Digital, status, null, null, Origin));
+            Assert.Equal([ProductDefinitionProblem.OriginOnAService], ProductDefinitionRules.Check(ProductType.Service, status, null, 3, Origin));
+        }
+
+        Assert.True(PriceLabelRules.IsOriginRequired(ProductType.Physical));
+        Assert.False(PriceLabelRules.IsOriginRequired(ProductType.Digital));
+        Assert.False(PriceLabelRules.IsOriginRequired(ProductType.Service));
+        Assert.True(PriceLabelRules.IsOriginAllowed(ProductType.Digital));
+        Assert.False(PriceLabelRules.IsOriginAllowed(ProductType.Service));
     }
 
     [Fact]

@@ -98,6 +98,23 @@ internal static class RequestFormat
     }
 
     /// <summary>
+    /// The stored form of an optional telephone field (06 2.5.1, 2.8.5): nothing for an empty text; the ten digits when the text is a number of the accepted forms
+    /// (<see cref="CompactPhone"/>), else the trimmed text, which <see cref="Validation.InvalidPhoneAttribute"/> then refuses. The one place of this decision: the
+    /// company identity and the branch both store through it.
+    /// </summary>
+    public static string? StoredPhone(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        string text = value.Trim();
+        string compact = CompactPhone(text);
+        return compact.Length == 10 && compact.All(char.IsAsciiDigit) && compact[0] != '0' ? compact : text;
+    }
+
+    /// <summary>
     /// The stored form of an IBAN (06 2.5.1; 04 7.3.2.7; 07 2.9.5): the blanks are ignored and the letters are upper case - "TR33 0006 1005 1978 6457 8413 26"
     /// and "tr330006100519786457841326" are the same IBAN. Whether it is a valid IBAN is the rule's question (<see cref="Validation.InvalidIbanAttribute"/>).
     /// </summary>

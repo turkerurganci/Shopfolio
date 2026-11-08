@@ -2,6 +2,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Categories;
 using Shopfolio.Modules.Catalog.Contracts.Lists;
+using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
 using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Settings;
@@ -131,6 +132,14 @@ public sealed class SitemapSourceTests
         public Task<VariantStructureCheck> CheckVariantStructureAsync(Guid productId, Guid? firstOptionValueId, Guid? secondOptionValueId, Guid? exceptVariantId, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<OptionMatrixCell>> GetOptionMatrixAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct) => throw new NotSupportedException();
+
+        public ItemAmounts PriceItem(ItemPriceInput input) => throw new NotSupportedException();
+
+        public IReadOnlyList<ShippingVatPart> SplitShippingFee(decimal shippingFee, IReadOnlyList<ShippingBasisLine> lines) => throw new NotSupportedException();
+
+        public decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct) => throw new NotSupportedException();
 

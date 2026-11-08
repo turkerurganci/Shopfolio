@@ -67,8 +67,7 @@ internal sealed class FileEndpointsHost : IAsyncDisposable
 
         if (kestrel)
         {
-            _factory.UseKestrel(0);
-            _factory.StartServer();
+            _factory.Start();
             using HttpClient probe = _factory.CreateClient();
             Client = new HttpClient(new ForgeryTokenHandler { InnerHandler = new ForwardedHttpsHandler { InnerHandler = new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false } } })
             {

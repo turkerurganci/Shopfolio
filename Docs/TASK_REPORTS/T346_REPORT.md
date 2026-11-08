@@ -29,7 +29,7 @@
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
 | 1 | Üyenin sepeti hesapta, her cihazda aynı; misafirin sepeti tarayıcıya bağlı, üye çıkınca o tarayıcıda boş | ✓ | `CartTests.AMembersCart_IsTheSameInEveryBrowser_AndTheGuestKeyIsEmptyAfterTheSignIn_KK1`, `TwoGuestBrowsers_HaveTheirOwnCarts_AndAMemberAddsToTheAccountCart_KK1`; `Carts.FindCartIdAsync` |
-| 2 | Sepet kendiliğinden boşalmaz, süre parametresi yok; yarım ödeme, kesinti, kapalı satışta durur | ✓ | `CartTests.ACartThatWasLeftForTwoYears_AndAnOpenOrderOfTheCart_AreNotEmptied_KK2`, `ASoldOutLine_AndALineOfAProductTakenOffTheShowcase_DoNotEmptyTheCartOnTheirOwn_KK2`; `CartTimerScanTests` (mevcut, zamanlayıcı yok); `Carts` hiçbir yerde sepeti boşaltmaz |
+| 2 | Sepet kendiliğinden boşalmaz, süre parametresi yok; yarım ödeme, kesinti, kapalı satışta durur | ✓ | `CartTests.ACartThatWasLeftForTwoYears_AndAnOpenOrderOfTheCart_AreNotEmptied_KK2`, `ASoldOutLine_DoesNotEmptyTheCartOnItsOwn_KK2` (D-580 ile yeniden adlandırıldı); `CartTimerScanTests` (mevcut, zamanlayıcı yok); `Carts` hiçbir yerde sepeti boşaltmaz |
 | 3 | Girişte iki sepet birleşir; aynı varyantta büyük adet, farklı varyant ayrı kalem; giriş yolundan bağımsız | ✓ | `CartTests.TheMerge_KeepsTheLargerQuantity_*_KK3`, `TheMerge_IsOneMethod_ForEveryWayIn_*_KK3`, `TwoMergesAtOnce_*_KK3`, `TwoAddsAtOnce_*_KK3`; tek yöntem `IOrderingModule.MergeGuestCartAsync` |
 | 4 | Görülmeyen ürün/adet bir kez ve adıyla söylenir; eklenmediyse mesaj yok | ✓ | `CartTests.TheMerge_TellsOnceWhatTheGuestCartDidNotShow_ByName_KK4`, `TheMerge_TellsNothing_WhenTheMemberCartAddedNothingTheGuestDidNotSee_KK4`; `CartRulesTests.MergeShowsNew_*_KK4` |
 | 5 | Güncel fiyat ve alınabilirlik; ilk fiyattan farklıysa tek metin, yönsüz; adet artışı referansı değiştirmez; birleşmede önce eklenen belirler | ✓ | `CartTests.ThePriceMark_IsOneFlag_WithoutDirection_AndGoesWhenThePriceReturns_KK5`, `AQuantityIncrease_DoesNotMoveTheReferencePrice_KK5`, `TheMerge_TakesTheReferencePriceOfTheLineAddedFirst_KK5` (iki yön); `CartRulesTests.PriceChanged_*` |
@@ -83,10 +83,36 @@ Güvenlik taraması: kullanıcı girdisi ham SQL'e yalnız parametre olarak (`Ex
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | **tur 1: ✗ FAIL** (2026-11-08; head `859f957a`) |
-| Bulgu sayısı | 1 (ORTA, S2) |
-| Düzeltme gerekli mi | Evet — test düzenekleri DI kaydı + tam Integration koşusu |
-| Bloke-etmeyen not (K) sayısı | 4 (K1, K2 bu PR'da; K3 → D-579, K4 → D-580) |
+| Doğrulama durumu | **tur 2: ✓ PASS** (2026-11-08; head `7eb682aa`) · tur 1: ✗ FAIL (head `859f957a`) |
+| Bulgu sayısı | tur 2: 0 · tur 1: 1 (ORTA, S2; düzeltme 1'de kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | tur 2: 2 (K1 → D-589, K2 → D-590) · tur 1: 4 (K1, K2 bu PR'da; K3 → D-579, K4 → D-580) |
+
+### Doğrulama tur 2 (2026-11-08)
+
+**Verdict: ✓ PASS** (kapsam tam: bütün kabul kriterleri, KK1–KK7, `09 §25`, güvenlik taraması).
+
+Başlangıç: working tree temiz; `core.hooksPath` depo bekçisi; ana dal son 3 run (42489399568, 42489399534, 42487801055) success.
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Üyenin sepeti hesapta, misafirinki tarayıcıda; çıkışta boş | ✓ | `Carts.FindCartIdAsync` (üye `customer_id`, misafir `SecretKey.Hash`); `CartTests` KK1 üç test yeşil (birleşmeden sonra misafir anahtarı boş sepet, okuma sepet açmaz) |
+| 2 | Kendiliğinden boşalmaz | ✓ | `carts`/`cart_items` silen tek yerler `Carts.TakeRemovedNamesAsync` (bir kez söylenen işaret) ve `MergeAsync` (misafir sepet); süre parametresi, ödeme ya da ayar okuması yok (grep); `CartTests` KK2 iki test |
+| 3 | Büyük adet kalır, farklı varyant ayrı, giriş yolundan bağımsız | ✓ | `CartStatements.MergeItemAsync` (`GREATEST`); tek yöntem `MergeGuestCartAsync` (bağlama D-558 → T515); KK3 dört test, eşzamanlı birleşme ve ekleme istisnasız |
+| 4 | Görülmeyen ürün/adet bir kez, adıyla | ✓ | `CartRules.MergeShowsNew`; `IsMergeNoticePending` okumada düşer; KK4 üç test + birim |
+| 5 | Canlı fiyat, yönsüz tek işaret, adet artışı ve birleşme referansı | ✓ | `CartVariantReader` (indirimli fiyat `DiscountRules.AppliedPrice`), `CartRules.PriceChanged`, `UpsertItemAsync` fiyata dokunmaz, `MergeItemAsync` küçük ana göre; KK5 dört test |
+| 6 | Tükendi kalır, siparişe girmez, stok dönünce girer | ✓ | `CartRules.EntersOrder`; KK6 iki test |
+| 7 | Kalkan kalem çıkar ve bir kez söylenir; ödeme adımı engeli; tutar | ✓ | `RemoveFromCartsAsync` + `TakeRemovedNamesAsync`; `PaymentBlockOf`, `OrderableSubtotal`; KK7 iki test + birim (onayda boşalma T348, kargo/eşik T349 — D-562) |
+
+Testler: build `-warnaserror` 0/0; format üç proje çıkış 0; Unit 4773/4773; betik testleri 4/4; Integration (PG18, `shopfolio-t346-val-pg`) Ordering 246, Address + Membership + Sitemap 71, Disposal 61, Catalog 72 — hepsi yeşil; `origin/main` birleştirmesinden sonra (çakışmasız) build temiz, Unit 4864, Ordering 281, Address + Membership 110, Disposal 61 yeşil; `--locked-mode` çıkış 0. Dal CI run 42490284273 (head `7eb682aa`): bütün işler success.
+
+Güvenlik: misafir anahtarı yalnız özetle saklanır, `CartOwner.ToString` yazmaz; ham SQL `ExecuteSqlAsync` interpolasyonuyla parametreli ve tek kapalı yerde (`CartStatements.cs`, tarama testi dört `INSERT`); sahip her çağrıda parametre; yeni bağımlılık yok.
+
+`12` satırları: `VAL-A028`, `A029` (KRİTİK), `B006`, `B007` uç yanıtı (T508, giriş T515), `D002` iş kaydı ister → `BEKLEMEDE` kalır (tur 1 ve T318/T338 emsali); `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+K-notları: K1 → D-589 (misafir ekleme ile birleşme aynı anda: ekleme kilitten sonra silinmiş sepete düşer), K2 → D-590 (birleşmede `RemovedProductName` işaretinin taşınması test edilmemiş).
+
+Yapım raporu karşılaştırması: davranışta tam uyum. Uyuşmazlıklar (bu turda düzeltildi): kriter 2 kanıtında eski test adı (D-580 öncesi); "Known Limitations" D-561 hedefi T347 yazıyordu (T376). "Test Sonuçları" tablosu ilk yapımın sayılarını taşır (Unit 4716, Integration 60); güncel sayılar "Düzeltme 1" ve bu bölümdedir.
 
 ### Doğrulama tur 1 (2026-11-08)
 
@@ -146,7 +172,7 @@ Bulgu 1: `OrderingModule`'ü elle kuran üç düzenek (`DisposalHarness`, `Addre
 | 1 | Giriş yolları birleştirmeyi ayrı işlemde çağırır | D-558 | giriş sayfası task'ı (T515) |
 | 2 | Sepet sayfası `OpenCartAsync` ve satış kapısı okuması | D-559 | T508 |
 | 3 | Stok, sipariş başına sınır, dijital adet, `int` taşması koruması | D-560 | T347 |
-| 4 | L-6 sayaç taşıması birleşmede | D-561 | T347 |
+| 4 | L-6 sayaç taşıması birleşmede | D-561 | T376 (doğrulama tur 1 K2) |
 | 5 | `OrderableSubtotal` kupon asgarisi, kargo ve eşik okuması | D-562 | T349 |
 
 ## Notlar

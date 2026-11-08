@@ -632,7 +632,7 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
         int n = Interlocked.Increment(ref _counter);
         List<Product> products = [.. Enumerable.Range(0, count).Select(i =>
         {
-            Product product = Product.Create($"Masa {i}", $"ayni-an-{n:D4}-{i:D3}", ProductType.Physical, 20m, Now.AddDays(1));
+            Product product = Product.Create($"Masa {i}", $"ayni-an-{n:D4}-{i:D3}", ProductType.Physical, 20m, Now.AddDays(1)).WithSeededOrigin();
             product.PublishStatus = PublishStatus.Published;
             return product;
         })];
@@ -699,7 +699,7 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
     private async Task<(Product Product, List<Variant> Variants)> SeedAsync(PublishStatus productStatus, PublishStatus[] variantStatuses, string name = "Masa")
     {
         int n = Interlocked.Increment(ref _counter);
-        Product product = Product.Create(name, $"urun-{n:D4}", ProductType.Physical, 20m, Now.AddMinutes(n));
+        Product product = Product.Create(name, $"urun-{n:D4}", ProductType.Physical, 20m, Now.AddMinutes(n)).WithSeededOrigin();
         product.PublishStatus = productStatus;
         List<Variant> variants = [];
         foreach (PublishStatus status in variantStatuses)

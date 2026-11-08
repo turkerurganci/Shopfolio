@@ -108,7 +108,7 @@ public sealed class SitemapEndpointTests : IAsyncLifetime
         // Products: one of each state. A product's address is the one the record page answers; an archived one is read by its direct address only.
         foreach ((string slug, PublishStatus status) in new[] { ("masa", PublishStatus.Published), ("taslak-masa", PublishStatus.Draft), ("arsiv-masa", PublishStatus.Archived) })
         {
-            Product product = Product.Create(slug, slug, ProductType.Physical, 20m, Now);
+            Product product = Product.Create(slug, slug, ProductType.Physical, 20m, Now).WithSeededOrigin();
             product.PublishStatus = status;
             db.Products.Add(product);
         }
@@ -139,7 +139,7 @@ public sealed class SitemapEndpointTests : IAsyncLifetime
 
     private static async Task SeedProductAsync(AppDbContext db, string slug)
     {
-        Product product = Product.Create(slug, slug, ProductType.Physical, 20m, Now);
+        Product product = Product.Create(slug, slug, ProductType.Physical, 20m, Now).WithSeededOrigin();
         product.PublishStatus = PublishStatus.Published;
         db.Products.Add(product);
         await db.SaveChangesAsync(Ct);
@@ -321,7 +321,7 @@ public sealed class SitemapEndpointTests : IAsyncLifetime
             Outcome outcome = await refused.ServiceProvider.GetRequiredService<ITransactionRunner>().RunAsync(
                 async token =>
                 {
-                    Product product = Product.Create("Geri Alinan", "geri-alinan", ProductType.Physical, 20m, Now);
+                    Product product = Product.Create("Geri Alinan", "geri-alinan", ProductType.Physical, 20m, Now).WithSeededOrigin();
                     product.PublishStatus = PublishStatus.Published;
                     db.Products.Add(product);
                     await db.SaveChangesAsync(token);
@@ -343,7 +343,7 @@ public sealed class SitemapEndpointTests : IAsyncLifetime
             Outcome outcome = await saved.ServiceProvider.GetRequiredService<ITransactionRunner>().RunAsync(
                 async token =>
                 {
-                    Product product = Product.Create("Yeni Masa", "yeni-masa", ProductType.Physical, 20m, Now);
+                    Product product = Product.Create("Yeni Masa", "yeni-masa", ProductType.Physical, 20m, Now).WithSeededOrigin();
                     product.PublishStatus = PublishStatus.Published;
                     db.Products.Add(product);
                     await db.SaveChangesAsync(token);

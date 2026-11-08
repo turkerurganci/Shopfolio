@@ -9,6 +9,18 @@
 
 ---
 
+## 2026-11-08 — T336 (Fiyat ve KDV) doğrulama tur 4 ✓ PASS (PR #444)
+
+2026-11-08 — T336 (Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri) doğrulama tur 4 ✓ PASS (head `32173b1` + `origin/main` (T317, `7097c01`) birleştirmesi, PR #444; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 1–3 içerikte temiz, main ile kod çakışması nedeniyle BLOCKED idi; birleşik ağaçta Unit 4288 (Architecture 955, Consistency 241), betik testleri, Integration parçalı yeşil (PriceAndVat 19, StockAndCapacity + ProductGallery 45, ProductTransitions + SearchEngineData 59, Payment + OrderTransitions 64, ShipmentTransitions 94, dokunulan Model 220, Web/Concurrency 85); dal CI 42430213489 yeşil; para kodu elle sınandı; bulgu 0, yeni K-notu yok; `12` `Durum` değişmedi (KP-5/KP-39 satırları T503/T525'in sayfa ve uç kanıtını ister); backlog aktif 165).
+
+## 2026-11-08 — T336 (Fiyat ve KDV) doğrulama tur 3 BLOCKED, main (T339, T341) birleştirildi
+
+2026-11-08 — T336 (Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri) doğrulama tur 3 içerikte temiz, main ile kod çakışması nedeniyle BLOCKED → `origin/main` (T339 `9bb46eb`, T341 `e2e9dbc`) dala birleştirildi (dal `task/T336-fiyat-kdv`, PR #444): `CatalogModule.cs`, `ICatalogModule.cs`, `SitemapSourceTests.cs`, `SearchEngineDataTests.cs` iki tarafın eklemeleriyle birlikte; T339'un `ProductGalleryTests` tohumu fiziksel ürüne üretim yeri alır (`.WithSeededOrigin()`, yalnız tohum; iki tarafın davranışı ve tutar/KDV mantığı değişmedi); birleşik dalda derleme `-warnaserror` 0 uyarı, format temiz, Unit 4286 / 4286 (Architecture 955, Consistency 241 dahil), Integration parçalı yeşil (ProductGallery 18, PriceAndVat + StockAndCapacity 46, ProductTransitions 41, SearchEngineData + SitemapEndpoint 28 ve fiziksel ürün tohumlayan on bir sınıf 359; yerel PostgreSQL 18); kriter 1–8 ve KK1–KK8 öz denetimde birleşik ağaçta yeniden ✓; backlog Aktif kalem satırlar sayılarak 164 (⚪ 161 + 🟡 3); doğrulama tur 4 bekliyor.
+
+## 2026-11-08 — T336 (Fiyat ve KDV) doğrulama tur 2 BLOCKED, main (T321) birleştirildi
+
+2026-11-08 — T336 (Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri) doğrulama tur 2 içerikte temiz, main ile kod çakışması nedeniyle BLOCKED → `origin/main` (T321, `a89710b`) dala birleştirildi (dal `task/T336-fiyat-kdv`, PR #444): `CatalogModule.cs` kurucusunda `_priceLabels` ve `_showcase` birlikte; T321'in `ProductTransitionsTests` tohumu fiziksel ürüne üretim yeri alır (`.WithSeededOrigin()`, yalnız tohum; iki tarafın davranışı ve tutar/KDV mantığı değişmedi); birleşik dalda derleme `-warnaserror` 0 uyarı, format temiz, Unit 4172 / 4172 (Architecture 933, Consistency 241 dahil), Integration parçalı yeşil (ProductTransitions 41, PriceAndVat + StockAndCapacity 46, SitemapEndpoint + SearchEngineData + ContentStatus 62; yerel PostgreSQL 18); kriter 1–8 ve KK1–KK8 öz denetimde birleşik ağaçta yeniden ✓; backlog Aktif kalem satırlar sayılarak 148 (⚪ 145 + 🟡 3); doğrulama tur 3 bekliyor. Önceki kayıt `STATUS_CHANGELOG.md`'de.
+
 ## 2026-11-08 — T358 (Kurumsal içerik tipleri) doğrulama tur 1 PASS
 
 2026-11-08 — T358 (Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar) doğrulama tur 1 ✓ PASS (head `ec355d3` + `origin/main` (`7097c01`, T317, #441) birleştirmesi, PR #449; kriter 1–10, KK1–KK10, `09 §25` ve güvenlik taraması ✓; Unit Architecture 955 + Consistency 241 + öteki 3090, betik testleri, Integration yerelde CorporateContent 64 (`ContentAuthoringTests` 19), ContentRecordAndBrandingTables + SearchEngineData 97, CompanyIdentity + SalesGate 46; dal CI 42430159867 yeşil; bulgu 0; K1 → D-440 (Architecture'da bir kez görülen, adı yakalanamayan düşme); `12` `Durum` değişmedi (KP-32/33/36/54 satırları uç ve tarayıcı kanıtı ister); backlog aktif 154). Önceki kayıt `STATUS_CHANGELOG.md`'de.
@@ -86,6 +98,10 @@ T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin
 2026-11-08 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) doğrulama tur 1 ✗ FAIL (head `7d65caf`, PR #445; dalın kendi tabanında kriter 1–9, KK1–KK9, `09 §25` ve güvenlik taraması ✓, dal CI 42411851018 yeşil, Unit 922 + 241 + 2996, Integration `ProductGalleryTests` 18, Concurrency 26, `SearchEngineDataTests` 18; B1 ORTA S2: `origin/main` (`af6e7d3`, T334) birleştirilince `ProductGalleryTests` 14/18 düşer — T334'ün `VariantStockGuard`'ı fiziksel varyantta stok numarası ister, testin üç tohumu stoksuz varyant kurar; birleştirme push edilmedi; düzeltme: birleştir + `Variant.Create(..., Now, 100)`; K1 → D-383, K2 → D-384; `12` `Durum` değişmedi (satırlar uç yanıtı ve tarayıcı gözlemi ister — T503, T525); backlog aktif 142).
 
 ---
+
+## 2026-11-07 — T336 (Fiyat ve KDV) doğrulama tur 1 BLOCKED, main (T334) birleştirildi
+
+2026-11-07 — T336 (Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri) yapım tamamlandı, doğrulama bekliyor (dal `task/T336-fiyat-kdv`, PR #444; kriter 1–8, KK1–KK8 öz denetimde ✓; Unit 4115, Integration 2133 (yeni PriceAndVat 19), format ve derleme `-warnaserror` temiz; şema yok; `12` `Durum` değişmedi; D-76 ✅, D-74 kısmi, yeni backlog D-344…D-346; `origin/main` (T316) birleştirildi; doğrulama tur 1 içerikte temiz, main ile kod çakışması nedeniyle BLOCKED → `origin/main` (T334) birleştirildi: kesici listesinde `PriceLabelGuard` ve `VariantStockGuard` birlikte, dört entegrasyon testinin tohumu iki tarafı birlikte taşır, `StockAndCapacityTests` fiziksel ürüne üretim yeri, `PriceAndVatTests` fiziksel varyanta stok adedi alır (yalnız tohum); birleşik dalda Unit 4159, Integration 2267 parçalı yeşil; doğrulayıcı K1 → D-381 (T525); backlog Aktif kalem 142). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 ## 2026-11-07 — T321 (Ürün yayın durumları) doğrulama tur 3 PASS
 

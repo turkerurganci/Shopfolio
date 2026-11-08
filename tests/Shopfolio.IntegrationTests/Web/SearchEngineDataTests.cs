@@ -195,7 +195,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
         AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         string slug = Slug.From(name, AddressRules.ProductPrefix);
-        Product product = Product.Create(name, slug, ProductType.Physical, 20m, Now);
+        Product product = Product.Create(name, slug, ProductType.Physical, 20m, Now).WithSeededOrigin();
         product.SetDescription("<p>Masif <strong>meşe</strong> masa, el yapımı.</p>");
         product.PublishStatus = status;
         db.Products.Add(product);
@@ -438,7 +438,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
                         throw new TimeoutException("The second record never read the table.");
                     }
 
-                    db.Products.Add(Product.Create("Çelik Kapı", slug, ProductType.Physical, 20m, Now));
+                    db.Products.Add(Product.Create("Çelik Kapı", slug, ProductType.Physical, 20m, Now).WithSeededOrigin());
                     return new SavedProduct(false, slug);
                 },
                 ["ix_products_slug"],
@@ -466,7 +466,7 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
             _ =>
             {
                 attempts++;
-                db.Products.Add(Product.Create("Sabit Masa", "sabit-masa", ProductType.Physical, 20m, Now));
+                db.Products.Add(Product.Create("Sabit Masa", "sabit-masa", ProductType.Physical, 20m, Now).WithSeededOrigin());
                 return Task.FromResult(new SavedProduct(false, "sabit-masa"));
             },
             ["ix_products_slug"],

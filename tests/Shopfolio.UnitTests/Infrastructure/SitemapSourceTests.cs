@@ -1,6 +1,7 @@
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Categories;
+using Shopfolio.Modules.Catalog.Contracts.Coupons;
 using Shopfolio.Modules.Catalog.Contracts.Lists;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
@@ -158,6 +159,14 @@ public sealed class SitemapSourceTests
         public IReadOnlyList<ShippingVatPart> SplitShippingFee(decimal shippingFee, IReadOnlyList<ShippingBasisLine> lines) => throw new NotSupportedException();
 
         public decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee) => throw new NotSupportedException();
+
+        public Task<CouponWriteResult> CreateCouponAsync(CouponDefinition definition, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<CouponApplication> EvaluateCouponAsync(string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<CouponApplication> ApplyCouponAsync(Guid cartId, string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct) => throw new NotSupportedException();
+
+        public bool ReturnsCouponRight(IReadOnlyList<ItemClosure> items) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct) => throw new NotSupportedException();
 

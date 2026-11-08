@@ -1,4 +1,5 @@
 using Shopfolio.Modules.Catalog.Contracts.Categories;
+using Shopfolio.Modules.Catalog.Contracts.Coupons;
 using Shopfolio.Modules.Catalog.Contracts.Lists;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
@@ -225,6 +226,34 @@ public interface ICatalogModule
 
     /// <summary>The order total (02 3.8.3; K-61): the sum of the items' payable amounts and the shipping fee, never net plus VAT again. A pure calculation.</summary>
     decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee);
+
+    /// <summary>
+    /// Adds a new coupon to the caller's unit of work (02 3.10.2, 3.10.4, 3.10.5; 07 UC-122): a percentage above zero and under one hundred, or a fixed amount above zero
+    /// with a larger minimum basket amount; a date range; a usage count. Every field problem and a code another coupon holds - compared without letter case, "I", "İ",
+    /// "ı" and "i" being one letter - refuse it, and nothing is added. Joins the caller's transaction and never saves (09 9.1 item 3).
+    /// </summary>
+    Task<CouponWriteResult> CreateCouponAsync(CouponDefinition definition, CancellationToken ct);
+
+    /// <summary>
+    /// The verdict on a coupon code for a basket now (02 3.10.1-3.10.5): accepted with every item's share - a percentage rounded in each item, a fixed amount spread in
+    /// proportion with the left-over kuruş on the largest item - and the VAT separated after it; not accepted when unknown, outside its dates, its rights used up, equal
+    /// to or above the basket, or rounded to a total of zero; its own outcome under the minimum basket amount. The basket total before the coupon is the base of the
+    /// thresholds (02 3.10.7). A plain read; it counts no attempt and reserves no right - the confirmation reserves it (<see cref="ReserveAsync"/>).
+    /// </summary>
+    Task<CouponApplication> EvaluateCouponAsync(string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct);
+
+    /// <summary>
+    /// The payment step's coupon field (07 UC-23; 02 3.10.5, 8.2 L-6): <see cref="EvaluateCouponAsync"/> behind the cart's invalid attempt limit - past the limit the field
+    /// closes and the code is not looked at; a code that is not accepted counts toward the limit, an accepted one and one under its minimum basket amount do not. The
+    /// attempt rows are written in the counter's own short transactions; nothing else is written.
+    /// </summary>
+    Task<CouponApplication> ApplyCouponAsync(Guid cartId, string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct);
+
+    /// <summary>
+    /// Whether closing an order's units gives its coupon right back (02 5.11.3, 7.2.6, 7.4.8): only when every unit of every item is closed - cancelled, removed, terminated
+    /// for late delivery, withdrawn or returned; a partial cancellation or return keeps the right. The right moves through <see cref="ReturnAsync"/>. A pure rule.
+    /// </summary>
+    bool ReturnsCouponRight(IReadOnlyList<ItemClosure> items);
 
     /// <summary>
     /// The whole category tree, depth first: a node, then its sub-categories in the Turkish alphabetical order of their names at every level (02 3.4.1) - the order of the panel's tree,

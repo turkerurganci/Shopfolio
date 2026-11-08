@@ -6,11 +6,12 @@ using Shopfolio.Modules.Catalog.Contracts.Pricing;
 namespace Shopfolio.Modules.Catalog;
 
 /// <summary>
-/// The plain read of a variant's price label (02 3.8.5, 12.1.5; 11 T336 criteria 1, 2, 8): the price as stored - the number the administrator typed -, the
-/// product's VAT rate, the origin line when the product shows it, the date the price applies since - the start of the variant's last price history row that has
-/// started by now (02 3.9.3; "now" from <see cref="TimeProvider"/>) - and the unit price of a product sold by measure. Nothing is written and no lock is taken.
-/// The unit price comes from the variant's price; in a discount the discounted price is the one that applies, which the discount's task passes through
-/// <see cref="PriceLabelRules.UnitPrice"/> (D-345). The country's name is the Settings module's list (D-344).
+/// The plain read of a variant's price label (02 3.8.5, 3.9.2, 3.9.3, 12.1.5, 12.1.6; 11 T336 criteria 1, 2, 8; 11 T337 criteria 4, 5): the price as stored - the
+/// number the administrator typed -, the product's VAT rate, the origin line when the product shows it, the date the price applies since - the start of the
+/// variant's last price history row that has started by now (02 3.9.3; "now" from <see cref="TimeProvider"/>) -, the unit price of a product sold by measure, and
+/// the declaration of the product's running discount: the discounted price, the reference price the system computes from the variant's own history and the range's
+/// dates. The unit price is of the price that applies - the discounted price while the discount runs (D-345). Nothing is written and no lock is taken. The
+/// country's name is the Settings module's list (D-344).
 /// </summary>
 internal sealed class PriceLabelReader
 {
@@ -32,7 +33,7 @@ internal sealed class PriceLabelReader
                 _db.Products.AsNoTracking(),
                 v => v.ProductId,
                 p => p.Id,
-                (v, p) => new { v.Price, v.NetQuantity, p.VatRate, p.ProductType, p.OriginCountryId, p.MeasurementUnit })
+                (v, p) => new { v.ProductId, v.Price, v.FirstOnSaleAt, v.NetQuantity, p.VatRate, p.ProductType, p.OriginCountryId, p.MeasurementUnit })
             .SingleOrDefaultAsync(ct);
         if (row is null)
         {
@@ -47,6 +48,14 @@ internal sealed class PriceLabelReader
             .Select(h => (DateTimeOffset?)h.StartedAt)
             .FirstOrDefaultAsync(ct);
 
+        DiscountLine? discount = null;
+        if ((await PriceHistoryReads.RunningDiscountsAsync(_db, [row.ProductId], now, ct)).TryGetValue(row.ProductId, out RunningDiscount? running))
+        {
+            ReferenceInput variant = new(variantId, row.Price, row.FirstOnSaleAt);
+            Dictionary<Guid, decimal> references = await PriceHistoryReads.ReferencesAsync(_db, running.Rule, DiscountRules.StartsAt(running.Terms), [variant], ct);
+            discount = DiscountRules.LineOf(running.Terms, row.Price, references[variantId]);
+        }
+
         bool sellsByMeasure = row.MeasurementUnit is not null;
         return new PriceLabel(
             row.Price,
@@ -55,6 +64,7 @@ internal sealed class PriceLabelReader
             since,
             row.MeasurementUnit,
             sellsByMeasure ? row.NetQuantity : null,
-            PriceLabelRules.UnitPrice(row.Price, row.MeasurementUnit, row.NetQuantity));
+            PriceLabelRules.UnitPrice(discount?.DiscountedPrice ?? row.Price, row.MeasurementUnit, row.NetQuantity),
+            discount);
     }
 }

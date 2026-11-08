@@ -107,6 +107,16 @@ internal static class DiscountRules
         return discounted < referencePrice ? DiscountProblem.None : DiscountProblem.NotBelowReference;
     }
 
+    /// <summary>
+    /// The declaration of a running discount on a variant (02 3.9.2, 3.9.3, 12.1.6): its rounded discounted price, its reference price, the rate and the range's two
+    /// dates, which are shown wherever the declaration is (K-545).
+    /// </summary>
+    public static DiscountLine LineOf(DiscountTerms terms, decimal price, decimal referencePrice)
+    {
+        ArgumentNullException.ThrowIfNull(terms);
+        return new DiscountLine(DiscountedPrice(price, terms.Percentage), referencePrice, terms.Percentage, terms.StartDate, terms.EndDate);
+    }
+
     /// <summary>Whether a price, entered while a discount has not ended, would be discounted to 0,00 TL (02 3.9.1: "İndirim yürürken ... bir fiyat da girilemez"; K-600).</summary>
     public static bool ReachesZero(decimal price, decimal percentage) => DiscountedPrice(price, percentage) == 0m;
 

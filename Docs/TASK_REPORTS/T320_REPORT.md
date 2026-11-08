@@ -1,6 +1,6 @@
 # T320 — Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — Z-18 kanalı ve "teslimden sonra" kuralı iki yerde, farklı) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 ✓ PASS; tur 1 ✗ FAIL — B1 düzeltildi) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -82,6 +82,26 @@ Sayılar `origin/main` `02ec5357` (T342) birleştirmesinden sonraki ağaçtır.
 **Tur 1 düzeltmesi (2026-11-08, `origin/main` `26fd3a96` birleştirmesinden sonra):** `dotnet build Shopfolio.slnx -c Release -warnaserror` 0 uyarı / 0 hata; `dotnet format <proje> --verify-no-changes --no-restore` 3 proje çıkış 0; Unit tam, üç parçada 4783/4783 (Consistency 280, Architecture 980, öteki 3523); Integration (PostgreSQL 18 ayrı konteyner) Ordering ad alanı 261/261 (`ItemRecordsTests` dahil), `ItemRecordsTests` + `OrderDisposalTests` 62/62. Integration'da AfterSales ad alanı yok; AfterSales'i çağıran öteki sınıf `Disposal.OrderDisposalTests`.
 
 ## Doğrulama
+
+### Tur 2 (2026-11-08) — ✓ PASS
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✓ PASS — tur 2 (head `be854ace` = tur 1 B1 düzeltmesi; kayıt commit'inden önce `origin/main` `f1603761` (T303) birleştirildi, çakışma yok). Kapsam tam: kriter 1–10, KK1–KK10, `09 §25` ve güvenlik taraması yeniden. Yerelde (head `be854ace`): `dotnet restore` + `build -warnaserror` 0 uyarı / 0 hata; `dotnet format --verify-no-changes` 3 proje çıkış 0; Unit (Consistency ve Architecture dahil) 4783/4783; betik testleri 4/4; Integration (PostgreSQL 18, ayrı konteyner) `ItemRecordsTests` 35/35, Disposal ad alanı 61/61, Ordering ad alanı 261/261, Model ad alanı 1315/1315; `has-pending-model-changes` temiz; koşu sonrası `git status` temiz, `restore --locked-mode` 0; birleştirme sonrası derleme `-warnaserror` 0/0. Dal CI run 42486773053 (head `be854ace`) yeşil: Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, CI Gate. Ana dal son üç tamamlanmış run: 42483789437, 42483789393, 42480365166 — success |
+| Tur 1 B1 | Kapandı — Z-18 kanalının tek evi `AfterSalesPeriodRules.IsDefectClaimChannelOpen`; `OpenDefectClaimAsync` ve yeniden açma onu çağırır (`grep DefectClaimWindow` src/tests boş). Teslim tarihsiz fiziksel kalemde Teslim edilemedi açık, İptal edildi ve Hazırlanıyor kapalı: `03 §1.11.9` / §2.9.1 "Kargoya verildi'ye geçtikten sonra", §1.11.5 aynı sözü "Kargoya verildi, Teslim edilemedi, Teslim edildi" diye açar — okuma belgeye uyar. Unit `DefectClaimChannel_OfAnUndatedPhysicalItem_IsOpenInDeliveryFailed_AndClosedInCancelled`, Integration `OpenDefectClaim_OnAnUndatedPhysicalItem_FollowsTheChannelRule_DeliveryFailedIncluded` (4 durum). `ItemMarksAsync` `AfterSalesPeriodRules.IsAfterDelivery`'yi çağırır. Main kuralının değişmesi kayıtlı (D-532 ✅); kuralı başka çağıran yok |
+| Kabul kriterleri | 1–10 ✓ (kanıt aşağıda) |
+| Bulgu sayısı | 0 |
+| Bloke-etmeyen not (K) sayısı | 1 — K1: `03 §1.7.3.4`'ün kalemsiz hâli (iptal edilmiş siparişe geç gelen ödemenin geri ödemesinde işaret siparişe düşer; `RefundIbanRequest.ForRefund`) `ItemMarksAsync`'te yok ve D-526'nın sahip listesinde anılmıyor → D-583 (T370) |
+
+**Tur 2 doğrulayıcı kanıtı (kriter başına):** (1) `OrderItem`'da durum özelliği yok (yansıma testi); cayma, teslim alma, ret ve talep satırları yapanı, anı, adedi; geçmiş girdisi an/durum/yapan türü taşır — Integration `Records_CarryTheActorTheMomentAndTheUnits_OnTheirOwnRows`; tablo sütunları `03 §1.7.4` cümlesinden okunur (Consistency). (2) `ItemRecordTable.Rows` `03 §1.7.1`'in on bir satırıyla ve "Hatta sayılışı" hücreleriyle eşit (Consistency, belge metninden okur); her kayıt türü için açık adet etkisi Integration `ClosedQuantity_MovesByTheRecord_AsTheTableSays` (11 tür). (3) `ItemQuantities.IsSelectable` 1 ≤ adet ≤ açık adet; talep 0/2/4 reddi (açık 1), cayma 4/0 ve aynı işlemde kaydedilmemiş beyan sayılır, teslim almada yoldaki adet. (4) iki beyan iki satır, iki parça teslim alma iki satır, üçüncüsü `WithdrawalNotAwaiting`. (5) `WithdrawalExemptions.IsConditional` yalnız `HygieneSensitive`, `SealedMedia`; istisnasız/mutlak istisnalı kalemde ret `ConditionNotMet`, satır ve gönderim yok; koşullu istisnada onaysız `ConfirmationRequired`, fazla adet `InvalidInput`, onaylı ret satırı + B-16 müşterinin adresine. (6) ikinci talep ve Çözüldü'de yeni talep `ConditionNotMet`; Açık talebi yeniden açma `StatusNotAllowed`; müşteri yeniden açışı aynı satırı (aynı `RecordId`) Açık yapar, adet 2'ye çıkar, geçmiş iki girdi. (7) `DefectClaimStatusWriter`: Çözüldü yalnız yönetici; yönetici adet artıramaz; sınır günü yeniden açma kabul, ertesi gün müşteri ve yönetici için ret (`Reopening_OnTheLastDay_…`, iki aktör), yeni talep de ret. (8) doğuşta ve müşteri yeniden açışında B-9 müşterinin `ContactEmail`'ine, F-3 firma adresine; yönetici yeniden açışı ve çözüldü işareti gönderim satırı yazmaz. (9) ayıp işlemlerinden sonra sipariş Teslim edildi + Ödendi, sürüm her işlemde bir artar, geçiş kaydı yok (`05 §4.1.2`); paralı çözüm T374 (D-524). (10) "iade malı bekleniyor" teslim alma, kapanış, yeniden açılan kapanış ve retle; "IBAN bekleniyor" karşılanma ve kapanmayla kalkar; işaretler saklanmaz, her okumada kayıtlardan hesaplanır.
+
+**Tur 2 task satırları (`12 §7.5`):** KP-23 → VAL-A082, C020–C024, A083, A084, C025; kaynak birimleri → VAL-C107, C108, D107. Hepsinin kanıt türü uç yanıtı ister; T320 uç kurmaz (müşteri ucu T374, panel uçları `ResolveDefectClaim`/`ReopenDefectClaim`/`RejectReturn` T528) → modül düzeyi kanıt bu raporda, `Durum` `BEKLEMEDE` kalır, `12` değişmedi; `12_matris_denetle.py --kapsam 1-77` Hata 0. VAL-D107'nin "hata sonrası ne durum ne girdi" kolu T320'de yazımın tek çağrıda olmasıyla (`ApplyStatus`) ve çalıştırıcının red/istisnada geri almasıyla karşılanır; satırın uç kanıtı T374/T528'de.
+
+**Tur 2 güvenlik:** sır ve kişisel veri yok (diff taraması); yeni uç/POST yok — müşteri sahipliği ve yönetici yetkisi uç katmanında (T374, T528); geçiş biriminde yönetici işlemleri `TryAdminActor`, müşteri yeniden açışında yönetici/sürüm verilirse ret; açıklama boş geçilemez, varış tarihi gelecekte olamaz; yeni bağımlılık yok.
+
+**Tur 2 yapım raporu karşılaştırması (adım 13):** tam uyumlu. Öz denetim tablosu her kabul kriteri ve KK için kanıtlı; tur 1 uyuşmazlıkları (öz denetimin T325 birleştirmesinden önce yazılması, test sayılarının ağacı) düzeltme işçisinin birleşik ağaçta yeniden denetimiyle giderildi. Yapım raporunun "işlem izi uygulanamaz" okuması doğru: geçiş biriminin hiçbir işlemi iz yazmıyor, `RejectReturn` izi T528'in kapı katmanında.
+
+### Tur 1 (2026-11-08) — ✗ FAIL
 
 | Alan | Sonuç |
 |---|---|

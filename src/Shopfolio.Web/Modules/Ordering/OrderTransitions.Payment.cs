@@ -221,6 +221,7 @@ internal sealed partial class OrderTransitions
     private async Task<ClosureResult> CompleteApprovalAsync(Order order, TransitionActor actor, CancellationToken ct)
     {
         await _counters.CommitAsync(order, ct);
+        await EmptyCartOfOrderedItemsAsync(order, ct);
         DateTimeOffset now = _time.GetUtcNow();
         foreach (OrderItem item in await OpenItemsAsync(order, physicalOnly: false, ct))
         {
@@ -233,6 +234,27 @@ internal sealed partial class OrderTransitions
         }
 
         return await EvaluateClosureAsync(order, actor, ct);
+    }
+
+    /// <summary>
+    /// The cart empties of the lines that entered the paid order (02 3.16.12): each variant of the order's items leaves the cart the order was born from, whole - the quantity added while the payment
+    /// was pending goes with it - and every other line stays. A guest cart that was merged into an account at sign-in no longer exists, so its order's payment finds nothing and takes no line from
+    /// the account's cart (02 3.17.7). The order's cart link is a value, not a foreign key (06 2.2.6); it is empty after the disposal. One conditional statement, no cart lock: this transaction holds
+    /// the order's lock and the cart's lock is the first statement of a transaction (09 10.2 item 5).
+    /// </summary>
+    private async Task EmptyCartOfOrderedItemsAsync(Order order, CancellationToken ct)
+    {
+        if (order.CartId is not Guid cartId)
+        {
+            return;
+        }
+
+        Guid[] variantIds = await _db.OrderItems.AsNoTracking()
+            .Where(i => i.OrderId == order.Id && i.VariantId != null)
+            .Select(i => i.VariantId!.Value)
+            .Distinct()
+            .ToArrayAsync(ct);
+        await _cartStatements.DeleteOrderedItemsAsync(cartId, variantIds, ct);
     }
 
     private static PaymentTransitionResult PaymentRefused(TransitionOutcome outcome)

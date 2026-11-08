@@ -1,3 +1,4 @@
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
@@ -16,9 +17,11 @@ internal static class CartRules
 
     /// <summary>
     /// Whether the line enters the order and the amounts (02 3.16.6, 3.16.7): the product and the variant stand on the showcase and the variant can be bought. A sold-out line stays in the cart, marked,
-    /// and is bought again when the stock returns; it is outside the coupon's minimum, the shipping fee and the thresholds.
+    /// and is bought again when the stock returns; it is outside the coupon's minimum, the shipping fee and the thresholds. A line whose quantity the stock or the per-order limit does not
+    /// hold stays in the cart with its message and enters the order only when the customer lowers the quantity (02 3.16.8-3.16.10; T347).
     /// </summary>
-    public static bool EntersOrder(bool isOnShowcase, bool isSoldOut) => isOnShowcase && !isSoldOut;
+    public static bool EntersOrder(bool isOnShowcase, bool isSoldOut, CartQuantityProblem quantityProblem = CartQuantityProblem.None)
+        => isOnShowcase && !isSoldOut && quantityProblem == CartQuantityProblem.None;
 
     /// <summary>The payment step does not open when no line can enter an order (02 3.16.7): an empty cart and a cart of sold-out lines alike.</summary>
     public static CartPaymentBlock PaymentBlockOf(IReadOnlyCollection<CartLine> lines)

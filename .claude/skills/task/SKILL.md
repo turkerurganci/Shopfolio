@@ -138,9 +138,11 @@ gh run list --branch main --limit 3 --json databaseId,conclusion,status,displayT
 
 15. **Status güncelle** — `Docs/IMPLEMENTATION_STATUS.md`'de task `⏳ Devam ediyor`.
     **`✓ Tamamlandı` yapma** — bu doğrulama chat'inin işidir.
+    **"Son güncelleme" satırı:** Task/doğrulama commit'i `Docs/IMPLEMENTATION_STATUS.md`'nin başındaki "**Son güncelleme:**" satırına DOKUNMAZ (paralel PR'larda her merge'ten sonra çakışıyordu, 2026-11-08); olayı `Docs/STATUS_CHANGELOG.d/<TXXX>.md`'ye (task başına tek dosya; yeni giriş dosyanın en üstüne) ve task'ın tablo satırına yazar; `STATUS_CHANGELOG.md`'ye dokunmaz. Satırı ve parçaları yalnız birleştiren taraf (faz kapısı kayıt PR'ı, chore/kayıt PR'ı) toplar. main birleştirmesinde bu satır çakışırsa main sürümü alınır, dalın girişi parça dosyasına taşınır.
+    **Ortak satırlar:** `Docs/DEFERRED_BACKLOG.md` başlığındaki "Aktif kalem" sayacını ve STATUS'taki "backlog aktif" sayısını DEĞİŞTİRME (kayıt satırlarını ekle/kapat; sayacı faz kapısı kayıt PR'ı yeniden sayar). Tablo satırları (STATUS task satırı, 12 `Durum` hücresi) ve task'ın raporu task PR'ında kalır.
     **Önceki task'ların merge kaydı:** merge edilmiş bir task'ın raporunda "Post-merge run'lar" satırı boşsa ya da hiç yoksa, ya da status'ta "Commit" hücresi boşsa veya squash hash'i değilse (doğrulama merge'den önce yazdığı için dalın head hash'ini taşır) bu dalda doldurulur — squash hash (`git log --oneline origin/main`) ve ana dal run'ları (`gh run list --branch main`); `skills/validate` 16. adımın notu (F0 gate'inde on raporun hepsi boş bulundu; F1 gate'inde status'un yirmi Commit hücresi head hash'iydi, on raporda satır boş ya da yoktu).
 
-16. **Repo memory güncelle** — `.claude/memory/MEMORY.md` "Güncel Durum" bloğuna TXX için 1–2 satır (commit hash + PR no + tek cümle çıktı).
+16. **Repo memory** — `.claude/memory/MEMORY.md` "Güncel Durum" ve benzeri anlık özete DOKUNMA (her PR'da çakışıyordu, 2026-11-08); faz kapısı kayıt PR'ı günceller.
 
 17. **Rapor + status + memory commit ve push.**
     **Neden:** Bulut oturumlarında commit edilmeyen dosyalar oturum kapanınca kaybolur; ayrıca validator'ın dalda görmesi gerekir.
@@ -170,7 +172,7 @@ Aşağıdaki **dokuz maddenin hepsi ✓** olmadan task "yapım bitti" sayılmaz 
   git log main..HEAD --format='%s' | grep -oE '^T[0-9]+(\.[0-9]+)?[a-z]?' | sort -u
   ```
   Çıktıda **yalnız kendi TXX'in** görünmeli. Başka TXX varsa **bundled-PR ihlali** — `git rebase -i main` ile kaldır veya ayrı dala `cherry-pick` et. (commit-msg ve pre-push Layer 3 hook'ları aynı kontrolü otomatik yapar; bu manuel check hook yoksa son savunmadır.)
-- [ ] **Repo memory'de TXX satırı var** — yoksa validator Adım 0b'de BLOCKED verir
+- [ ] **MEMORY.md'ye dokunulmadı** — "Güncel Durum"u faz kapısı kayıt PR'ı günceller
 
 **Otomatik BLOCKED trigger:** Raporda "PR: Henüz oluşturulmadı", "PR: TBD", "PR: —" veya boş PR alanı görülürse **otomatik BLOCKED** (`DEPENDENCY_MISMATCH`) — yapım chat'i açık kalır, sonraki task'a geçilmez.
 

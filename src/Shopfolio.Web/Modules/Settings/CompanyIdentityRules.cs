@@ -144,17 +144,7 @@ internal static class CompanyIdentityRules
     public static string? Text(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>The stored form of a telephone (06 2.5.1): the ten digits when the text is a number of the accepted forms, else the trimmed text.</summary>
-    public static string? Phone(string? value)
-    {
-        string? text = Text(value);
-        if (text is null)
-        {
-            return null;
-        }
-
-        string compact = RequestFormat.CompactPhone(text);
-        return compact.Length == 10 && compact.All(char.IsAsciiDigit) && compact[0] != '0' ? compact : text;
-    }
+    public static string? Phone(string? value) => RequestFormat.StoredPhone(value);
 
     private static bool LooksLikeLink(string? value)
     {

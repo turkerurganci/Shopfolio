@@ -56,7 +56,7 @@ public sealed class ContentStatusTests : IAsyncLifetime
     public async Task Publish_ACompleteRecord_MovesItToPublished_AndRaisesTheVersionByOne_KK2()
     {
         FaqItem faq = FaqItem.Create("İade var mı?", 1, Now);
-        faq.Answer = "<p>Evet.</p>";
+        faq.SetAnswer("<p>Evet.</p>");
         await SeedAsync(faq);
 
         ContentResult result = await RunAsync((_, publishing) => publishing.PublishAsync(ContentRecordKind.FaqItem, faq.Id, 1, Ct));
@@ -214,14 +214,14 @@ public sealed class ContentStatusTests : IAsyncLifetime
     public async Task Edit_APublishedRecord_ThatKeepsTheGate_IsSaved_AndIsOnTheSiteAtOnce_KK3()
     {
         FaqItem faq = FaqItem.Create("İade var mı?", 1, Now);
-        faq.Answer = "<p>Evet.</p>";
+        faq.SetAnswer("<p>Evet.</p>");
         faq.PublishStatus = PublishStatus.Published;
         await SeedAsync(faq);
 
         ContentResult result = await RunAsync(async (db, publishing) =>
         {
             FaqItem tracked = await db.FaqItems.SingleAsync(f => f.Id == faq.Id, Ct);
-            return await publishing.SaveEditAsync(tracked, 1, f => f.Answer = "<p>Evet, 14 gün içinde.</p>", Ct);
+            return await publishing.SaveEditAsync(tracked, 1, f => f.SetAnswer("<p>Evet, 14 gün içinde.</p>"), Ct);
         });
 
         Assert.Equal(ContentOutcome.Saved, result.Outcome);
@@ -234,13 +234,13 @@ public sealed class ContentStatusTests : IAsyncLifetime
     public async Task Edit_ADraft_MayLeaveAGateFieldEmpty_AndIsSaved_KK3()
     {
         FaqItem faq = FaqItem.Create("İade var mı?", 1, Now);
-        faq.Answer = "<p>Evet.</p>";
+        faq.SetAnswer("<p>Evet.</p>");
         await SeedAsync(faq);
 
         ContentResult result = await RunAsync(async (db, publishing) =>
         {
             FaqItem tracked = await db.FaqItems.SingleAsync(f => f.Id == faq.Id, Ct);
-            return await publishing.SaveEditAsync(tracked, 1, f => f.Answer = null, Ct);
+            return await publishing.SaveEditAsync(tracked, 1, f => f.SetAnswer(null), Ct);
         });
 
         Assert.Equal(ContentOutcome.Saved, result.Outcome);
@@ -367,7 +367,7 @@ public sealed class ContentStatusTests : IAsyncLifetime
                 return PortfolioItem.Create(complete ? "Proje" : "   ", "proje", 1, Now);
             case ContentRecordKind.FaqItem:
                 FaqItem faq = FaqItem.Create("Soru?", 1, Now);
-                faq.Answer = complete ? "<p>Cevap</p>" : null;
+                faq.SetAnswer(complete ? "<p>Cevap</p>" : null);
                 return faq;
             case ContentRecordKind.Branch:
                 return NewBranch(complete);

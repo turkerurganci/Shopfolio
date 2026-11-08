@@ -91,7 +91,7 @@ Yerel notlar: Model parçasının ilk koşusu makine yüklüyken (7 dk 38 sn) 4 
 
 - **Branch:** `task/T338-kupon`
 - **Commit:** `85bdd9e` — kod ve testler (1. işçi); rapor/kayıt commit'i bu dalda
-- **PR:** #PR_NO
+- **PR:** #458
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 

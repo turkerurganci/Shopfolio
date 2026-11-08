@@ -52,7 +52,7 @@
 | Sık FAIL: bekçi/tarama istisnası geniş | ✓ | yeni tarama ve istisna eklenmedi; tek yazıcı taraması D-567 olarak T375'e bağlandı |
 | Sık FAIL: kaynak taraması çağrı biçimi | ✓ | yeni tarama yok (yukarısı) |
 | Sık FAIL: DB default / FK dizini | ✓ | şema değişmedi (migration yok); `ix_orders_order_number` ve `ix_orders_order_access_key` önceden vardı, testle adları doğrulandı |
-| Sık FAIL: aynı sayıyı anan öteki yerler | ✓ | `OrderingModule`'ü elle kuran yer yok (`grep "new OrderingModule("`); kayıt `AddOrderingModule`'de, bütün test sağlayıcıları onu çağırır; Ordering ad alanı Integration 244 test yeşil |
+| Sık FAIL: aynı sayıyı anan öteki yerler | ✓ | Düzeltme 1: önceki iddia yanlıştı. `git grep -nE "OrderingModule>|OrderingModule\(|IOrderingModule"` ile `tests/` tarandı: elle kuran üç düzenek (`DisposalHarness`, `AddressTests`, `MembershipTests`) vardı, üçüne `OrderAccess` kaydı eklendi; ötekiler `AddOrderingModule()` çağırıyor; `SchedulerHarness` `IOrderingModule` kaydetmiyor. Integration TAM küme yeşil (aşağıda) |
 | Sık FAIL: karar kaydısız 09 metni | ✓ | `09`, `02`, `05` değişmedi; belge boşluğu olan yorum D-566'da |
 | Sık FAIL: test beklenen değeri sabitten türetmiyor | ✓ | blok uzunluğu ve desen `ProductConstants`'tan; alfabe literali `05 §6.4.2`'nin kuralının kendisidir (bilerek ikinci kopya) |
 | Sık FAIL: sayfalı liste / eşzamanlılık / önbellek | ✓ | yok: liste, önbellek ya da yazma yok; çakışma yarışı dizin + yeniden deneme adlarıyla (D-563) |
@@ -62,7 +62,7 @@
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj -c Release --no-build` | 4748 geçti, 0 kalan (14 yeni: `OrderNumberTests`; Consistency dahil) |
-| Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj -c Release --no-build --filter-namespace ...Ordering` | `OrderAccessTests` 18 yeni; Ordering ad alanı 244; `SessionAccessTests` 36 geçti. Tam Integration yerelde koşulmadı (CI) |
+| Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj -c Release --no-build --filter-namespace ...Ordering` | `OrderAccessTests` 18 yeni; Ordering ad alanı 244; `SessionAccessTests` 36 geçti. Düzeltme 1 sonrası (main birleştirilmiş ağaç) TAM Integration klasör parçalarıyla koşuldu: Disposal 61, Model 1354, Ordering 244, Catalog 72, Concurrency 26, Jobs 77, Security 32, geri kalanı 916; toplam 2782, 0 kalan (Model'in ilk koşusunda 1 test bir kez düştü, aynı komutla iki yeniden koşuda 1354/1354 geçti) |
 | Build / format | ✓ | `dotnet build ... -c Release -warnaserror` (Web, Unit, Integration); `dotnet format Shopfolio.slnx --no-restore --verify-no-changes` | 0 uyarı, 0 hata; format temiz |
 | Contract | — | `NOT_APPLICABLE` | |
 
@@ -87,6 +87,10 @@
 - **B1 — ORTA, S2 Kırılma:** `OrderingModule` kurucusuna `OrderAccess` eklendi; `OrderingModule`'ü elle kaydeden üç düzenek (`tests/Shopfolio.IntegrationTests/Disposal/DisposalHarness.cs:69`, `Model/AddressTests.cs:111`, `Model/MembershipTests.cs:121`) `OrderAccess`'i kaydetmediği için `IOrderingModule` çözülemiyor: `Unable to resolve service for type 'Shopfolio.Modules.Ordering.OrderAccess'` (CI'da 109 test; Disposal*, `AddressTests`, `MembershipTests`). Düzeltme: üç düzeneğe `services.AddScoped<OrderAccess>();` eklenir; tam Integration yerelde ya da CI'da yeşil görülür.
 - **Güvenlik:** sır yok; numara tek başına hiçbir yolu açmıyor, yanlış parçaların hepsi aynı `null`; anahtar `SecretKey.Create` (256 bit), imhada boş; yeni bağımlılık yok.
 - **Yapım raporu karşılaştırması:** 1 uyuşmazlık — öz denetimdeki "`OrderingModule`'ü elle kuran yer yok; bütün test sağlayıcıları `AddOrderingModule`'ü çağırır" iddiası yanlış (`grep "new OrderingModule("` arama biçimi `AddScoped<IOrderingModule, OrderingModule>` kaydını yakalamadı); tam Integration koşulmadığı için kırılma görülmedi.
+
+### Düzeltme 1
+
+B1 giderildi: `DisposalHarness`, `Model/AddressTests`, `Model/MembershipTests` düzeneklerine `services.AddScoped<OrderAccess>();` eklendi (başka elle kuran düzenek yok). Kabul kriterleri 1–6 ve KK1–KK6 ile kontrol listesinin bütün maddeleri düzeltilmiş diff'te yeniden denetlendi: ✓ (üretim kodu değişmedi). Build `-warnaserror` 0 uyarı, format üç proje temiz, Integration tam küme yeşil.
 
 ## Altyapı Değişiklikleri
 

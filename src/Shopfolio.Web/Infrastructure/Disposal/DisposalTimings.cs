@@ -15,4 +15,7 @@ internal static class DisposalTimings
 
     /// <summary>A file or an unlinked image goes only when it is at least this many days old: a file just written may not have its row yet (05 7.7.1, 7.7.2; K-980).</summary>
     public const int UnlinkedFileMinAgeDays = 1;
+
+    /// <summary>A gelen bildirim kaydı (inbound notification record) goes after this many years: a design value of the record, not a legal period (05 4.5.5, 11.1.20; 06 9.1 Z-28, Z-41).</summary>
+    public const int InboundNotificationRetentionYears = 10;
 }

@@ -25,6 +25,8 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.CorporateContent.Contracts.HomepageBlockKind",
         "Shopfolio.Modules.Ordering.Contracts.CorrectionObstacle",
         "Shopfolio.Modules.Catalog.Contracts.ProductPageKind",
+        "Shopfolio.Modules.Ordering.Contracts.CartAddOutcome",
+        "Shopfolio.Modules.Ordering.Contracts.CartPaymentBlock",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

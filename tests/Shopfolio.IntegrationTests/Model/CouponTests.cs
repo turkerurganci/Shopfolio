@@ -17,6 +17,7 @@ using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Coupons;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
@@ -203,6 +204,24 @@ public sealed class CouponTests : IAsyncLifetime
         // The limit's own invalid attempt is still let through - and is the last.
         Assert.Equal(CouponOutcome.Rejected, (await ApplyAsync(cart, "YANLIS", Basket)).Outcome);
         Assert.Equal(CouponOutcome.AttemptLimitExceeded, (await ApplyAsync(cart, "YAZ10", Basket)).Outcome);
+    }
+
+    [Fact]
+    public async Task ACouponDoesNotLowerTheBasis_OfTheThresholdAndTheMinimumOrderAmount_T349_KK2()
+    {
+        await SeedPercentAsync("YARI50", 50m);
+        CouponLine[] basket = [new(250m, 2, 20m)];
+
+        CouponApplication applied = await EvaluateAsync("YARI50", basket);
+
+        // The customer pays 250 after the coupon; the basis stays the 500 before it (02 3.10.7, 3.18.2, 3.19.4), so shipping is free and the minimum of 400 is met.
+        Assert.Equal(CouponOutcome.Accepted, applied.Outcome);
+        Assert.Equal(250m, applied.Items.Sum(i => i.Payable));
+        ShippingAssessment assessment = ShippingCharge.Assess(new ShippingFeeSection(50m, 500m, 400m, 1), applied.BasketTotal, hasPhysicalItem: true);
+        Assert.Equal(500m, assessment.Basis);
+        Assert.Equal(0m, assessment.Fee);
+        Assert.Equal("Kargo ücretsiz", assessment.FreeShippingMessage);
+        Assert.Null(assessment.Refusal);
     }
 
     // ---- KK6: dates and rights ----

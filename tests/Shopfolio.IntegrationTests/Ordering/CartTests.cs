@@ -42,6 +42,9 @@ public sealed class CartTests : IAsyncLifetime
 
     private int _counter;
 
+    // The firm's shipping section the page reads and hands to the cart's read (T349); the defaults are P-1 0 TL, P-3 and P-4 empty, and a test that needs terms sets them.
+    private ShippingFeeSection _shippingTerms = new(0m, null, null, 1);
+
     public CartTests(CollectionDatabaseFixture collection)
     {
         _collection = collection;
@@ -55,6 +58,80 @@ public sealed class CartTests : IAsyncLifetime
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    // ---- T349: the minimum order amount, the shipping fee and the free shipping threshold in the cart ----
+
+    [Fact]
+    public async Task UnderTheMinimum_TheCartClosesThePaymentStep_AndTellsTheMissingAmount_T349_KK1()
+    {
+        SetShippingTerms(50m, null, 500m);
+        (_, List<Variant> variants) = await SeedProductAsync("Masa", 1, price: 185m);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        await AddAsync(owner, variants[0].Id, 2);
+
+        CartView under = await OpenAsync(owner);
+
+        Assert.Equal(CartPaymentBlock.MinimumOrderAmountNotMet, under.PaymentBlock);
+        Assert.False(under.CanOpenPayment);
+        Assert.Equal("Sipariş verebilmek için 130 TL'lik daha ürün ekleyin", under.Shipping.MinimumOrderMessage);
+
+        // One more item reaches the minimum and the step opens; the firm's fee is charged once whatever the quantity.
+        await AddAsync(owner, variants[0].Id, 1);
+        CartView met = await OpenAsync(owner);
+        Assert.Equal(CartPaymentBlock.None, met.PaymentBlock);
+        Assert.Equal(50m, met.Shipping.Fee);
+    }
+
+    [Fact]
+    public async Task ADigitalCart_HasNoMinimumAndNoFee_AndAMixedCartsBasisCountsTheDigitalItem_T349_KK3_KK4_KK7()
+    {
+        SetShippingTerms(50m, 500m, 300m);
+        (_, List<Variant> digital) = await SeedProductAsync("E-kitap", 1, ProductType.Digital, 120m);
+        (_, List<Variant> physical) = await SeedProductAsync("Masa", 1, price: 200m);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        await AddAsync(owner, digital[0].Id, 1);
+
+        CartView digitalOnly = await OpenAsync(owner);
+        Assert.Equal(CartPaymentBlock.None, digitalOnly.PaymentBlock);
+        Assert.Equal(0m, digitalOnly.Shipping.Fee);
+        Assert.Null(digitalOnly.Shipping.FreeShippingMessage);
+
+        // 200 physical + 120 digital = 320: the minimum of 300 is met only because the digital item enters the basis; the fee is charged once.
+        await AddAsync(owner, physical[0].Id, 1);
+        CartView mixed = await OpenAsync(owner);
+        Assert.Equal(320m, mixed.Shipping.Basis);
+        Assert.Equal(CartPaymentBlock.None, mixed.PaymentBlock);
+        Assert.Equal(50m, mixed.Shipping.Fee);
+        Assert.Equal("Ücretsiz kargoya 180 TL kaldı", mixed.Shipping.FreeShippingMessage);
+    }
+
+    [Fact]
+    public async Task AtTheThreshold_TheFeeIsZero_AndASoldOutLine_StaysOutOfTheFeeAndTheBasis_T349_KK6_KK8()
+    {
+        SetShippingTerms(50m, 500m, null);
+        (_, List<Variant> variants) = await SeedProductAsync("Masa", 2, price: 250m);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        await AddAsync(owner, variants[0].Id, 1);
+        await AddAsync(owner, variants[1].Id, 1);
+
+        CartView atThreshold = await OpenAsync(owner);
+        Assert.Equal(0m, atThreshold.Shipping.Fee);
+        Assert.Equal("Kargo ücretsiz", atThreshold.Shipping.FreeShippingMessage);
+
+        // The second line runs out: it no longer counts toward the threshold, the fee comes back and the message tells what is left.
+        await ExecuteAsync($"UPDATE variants SET stock_quantity = 0 WHERE id = '{variants[1].Id}'");
+        CartView soldOut = await OpenAsync(owner);
+        Assert.Equal(250m, soldOut.Shipping.Basis);
+        Assert.Equal(50m, soldOut.Shipping.Fee);
+        Assert.Equal("Ücretsiz kargoya 250 TL kaldı", soldOut.Shipping.FreeShippingMessage);
+
+        // Only a sold-out physical line left: no physical item enters the order, so neither the fee nor the message shows.
+        await ExecuteAsync($"UPDATE variants SET stock_quantity = 0 WHERE id = '{variants[0].Id}'");
+        CartView none = await OpenAsync(owner);
+        Assert.False(none.Shipping.HasPhysicalItem);
+        Assert.Equal(0m, none.Shipping.Fee);
+        Assert.Null(none.Shipping.FreeShippingMessage);
+    }
 
     // ---- KK1: the member's cart is the account's; the guest's is the browser's ----
 
@@ -458,17 +535,17 @@ public sealed class CartTests : IAsyncLifetime
 
     private static string NewKey() => $"key-{Guid.NewGuid():N}";
 
-    private async Task<(Product Product, List<Variant> Variants)> SeedProductAsync(string name, int variantCount)
+    private async Task<(Product Product, List<Variant> Variants)> SeedProductAsync(string name, int variantCount, ProductType type = ProductType.Physical, decimal price = 100m)
     {
         int n = Interlocked.Increment(ref _counter);
-        Product product = Product.Create(name, $"urun-{n:D4}", ProductType.Physical, 20m, Now.AddMinutes(n)).WithSeededOrigin();
+        Product product = Product.Create(name, $"urun-{n:D4}", type, 20m, Now.AddMinutes(n)).WithSeededOrigin();
         product.PublishStatus = PublishStatus.Published;
         List<Variant> variants = [];
         for (int i = 0; i < variantCount; i++)
         {
-            Variant variant = Variant.Create(product.Id, $"SKU-{n:D4}-{i}", 100m, Now.AddMinutes(n));
+            Variant variant = Variant.Create(product.Id, $"SKU-{n:D4}-{i}", price, Now.AddMinutes(n));
             variant.PublishStatus = PublishStatus.Published;
-            variant.StockQuantity = 10;
+            variant.StockQuantity = type == ProductType.Physical ? 10 : null;
             variants.Add(variant);
         }
 
@@ -561,11 +638,13 @@ public sealed class CartTests : IAsyncLifetime
         });
     }
 
-    private Task<CartView> OpenAsync(CartOwner owner) => RunAsync((ordering, token) => ordering.OpenCartAsync(owner, token));
+    private Task<CartView> OpenAsync(CartOwner owner) => RunAsync((ordering, token) => ordering.OpenCartAsync(owner, _shippingTerms, token));
 
     private Task<CartAddResult> AddAsync(CartOwner owner, Guid variantId, int quantity) => RunAsync((ordering, token) => ordering.AddToCartAsync(owner, variantId, quantity, token));
 
     private Task<CartMergeResult> MergeAsync(Guid customerId, string key) => RunAsync((ordering, token) => ordering.MergeGuestCartAsync(customerId, key, token));
+
+    private void SetShippingTerms(decimal fee, decimal? threshold, decimal? minimum) => _shippingTerms = new ShippingFeeSection(fee, threshold, minimum, 1);
 
     // One request: its own scope and transaction; the owner of the transaction saves (09 6 item 3, 10.2 item 5).
     private async Task<T> RunAsync<T>(Func<IOrderingModule, CancellationToken, Task<T>> work)

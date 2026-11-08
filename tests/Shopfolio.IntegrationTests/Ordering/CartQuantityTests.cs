@@ -30,6 +30,7 @@ namespace Shopfolio.IntegrationTests.Ordering;
 public sealed class CartQuantityTests : IAsyncLifetime
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 8, 9, 0, 0, TimeSpan.Zero);
+    private static readonly ShippingFeeSection NoShippingTerms = new(0m, null, null, 1);
 
     private readonly CollectionDatabaseFixture _collection;
 
@@ -469,7 +470,8 @@ public sealed class CartQuantityTests : IAsyncLifetime
         return await reader.Variants.AsNoTracking().Where(v => v.Id == variantId).Select(v => v.ProductId).SingleAsync(Ct);
     }
 
-    private Task<CartView> OpenAsync(CartOwner owner) => RunAsync((ordering, token) => ordering.OpenCartAsync(owner, token));
+    // T349: the cart reads its shipping terms; no fee, no threshold and no minimum keep these quantity cases free of them.
+    private Task<CartView> OpenAsync(CartOwner owner) => RunAsync((ordering, token) => ordering.OpenCartAsync(owner, NoShippingTerms, token));
 
     private Task<CartAddResult> AddAsync(CartOwner owner, Guid variantId, int quantity) => RunAsync((ordering, token) => ordering.AddToCartAsync(owner, variantId, quantity, token));
 

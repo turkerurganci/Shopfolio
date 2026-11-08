@@ -1,3 +1,5 @@
+using Shopfolio.Modules.Settings.Contracts;
+
 namespace Shopfolio.Modules.Ordering.Contracts;
 
 /// <summary>
@@ -116,10 +118,12 @@ public interface IOrderingModule
     /// <summary>
     /// The cart page's read (T346; 02 3.16): the owner's cart with its lines read live from the current product - the price that applies now, the "fiyatı değişti" mark, the "Tükendi" mark - and the
     /// once-told messages: the items taken off the showcase (deleted by this call) and the products the sign-in merge added (their mark is cleared by this call). A guest cart's last access moment is
-    /// renewed. No cart is created by a read. The payment step is blocked when no line can enter an order (02 3.16.7). Takes the cart's advisory lock first and joins the caller's transaction (09 10.2
+    /// renewed. No cart is created by a read. The payment step is blocked when no line can enter an order (02 3.16.7) or when the basis is under the minimum order amount (02 3.18.1).
+    /// <paramref name="shippingTerms"/> is the firm's shipping section as the caller read it (<c>ISettingsModule.GetShippingFeeAsync</c>; P-1, P-3, P-4): the view carries the fee, the free shipping
+    /// message and the missing amount on the orderable basis (T349; 02 3.18, 3.19). Takes the cart's advisory lock first and joins the caller's transaction (09 10.2
     /// item 5); it does not save. The cart never empties by itself: neither time, nor an open payment, nor a closed sale touches it (02 3.16.2).
     /// </summary>
-    Task<CartView> OpenCartAsync(CartOwner owner, CancellationToken ct);
+    Task<CartView> OpenCartAsync(CartOwner owner, ShippingFeeSection shippingTerms, CancellationToken ct);
 
     /// <summary>
     /// Adds a variant to the owner's cart (02 3.16.1, 3.16.5): a new line remembers the unit price of this moment; the same variant again raises the quantity and leaves that price alone. The cart is

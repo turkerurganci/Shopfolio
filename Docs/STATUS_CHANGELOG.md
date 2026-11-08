@@ -9,6 +9,12 @@
 
 ---
 
+## 2026-11-08 — T362 (Marka kimliği) doğrulama tur 2 ✓ PASS (PR #448)
+
+T362 (Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası) doğrulama tur 2 ✓ PASS (TAM yeniden doğrulama; head `659eb11`, PR #448; kriter 1–6, KK1–KK6, `09 §25` ve güvenlik taraması ✓; tur 1 B1 giderildi — renk biçimi kırpılmış değere `InvalidColorAttribute` ile denetlenir; dal CI 42435465085 success; Unit 4294/4294, betik testleri 4/4, Integration `BrandingTests` 29/29 + komşu üç sınıf 115/115; bulgu 0, yeni K-notu yok; D-442 açık; `VAL-A157`…`VAL-A160` `BEKLEMEDE` kaldı (sayfa T534/T537, gönderen D-442); `12_matris_denetle.py` Hata 0). Dal main ile birleştirilmedi: main'de T302 ile `CorporateContentModule.cs` kod çakışması var, birleştirmeyi yardımcının işçisi yapar.
+
+---
+
 ## 2026-11-08 — T362 (Marka kimliği) doğrulama tur 1 ✗ FAIL; B1 düzeltildi (PR #448)
 
 Bulgu B1 (DÜŞÜK, S1, `09 §25` "tek işlev"): `BrandingRules.TryNormalizeColor` kendi `#RRGGBB` denetimini yazıyordu; tek kural evi `InvalidColorAttribute`. Düzeltme: biçim denetimi kırpılmış değere `new InvalidColorAttribute()` ile yapılır (`CompanyIdentityRules` kalıbı), büyük harfe çevirme kalır; ayrışan örnek (`"  #ffff00 "`) ve ret örnekleri `BrandingRulesTests` teorisine girdi; `T362_REPORT.md` öz denetim tablosu güncellendi. T362 diff'inin geri kalanında kendi denetimi yok (grep). `origin/main` (T333, #442 dahil) birleştirildi; durum satırı main sürümü, backlog sayacı 160.

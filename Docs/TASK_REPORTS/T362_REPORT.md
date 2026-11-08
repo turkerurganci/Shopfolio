@@ -1,6 +1,6 @@
 # T362 — Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — renk biçimi denetimi `InvalidColorAttribute`'a bağlanmayı bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 ✓ PASS; merge yardımcıda) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -71,6 +71,15 @@
 ## Doğrulama
 
 | Alan | Sonuç |
+|---|---|
+| Doğrulama durumu (tur 2) | ✓ PASS — tur 2 (2026-11-08, TAM yeniden doğrulama, head `659eb11`, PR #448). Kriter 1–6, KK1–KK6, `09 §25` ve güvenlik taraması ✓; tur 1 B1 giderildi: `BrandingRules.TryNormalizeColor` biçimi kırpılmış değere `new InvalidColorAttribute()` ile denetler (kendi `#RRGGBB` kodu yok; `AColourTheModuleStores_IsOneTheSingleRuleAccepts_…` teorisi `"  #ffff00 "` ve ret örnekleriyle iki kuralı birlikte sınar). Başlangıç kapıları: working tree temiz, hooksPath `scripts/git-hooks`, ana dal son 3 run 42436765863, 42434282714, 42434282725 success, MEMORY satırı var. Dal CI 42435465085 (head `659eb11`) success (Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, CI Gate). Yerel: restore + `--locked-mode` 0; derleme `-warnaserror` Web/Unit/Integration 0/0; `dotnet format --verify-no-changes` Web projesi tam + değişen test dosyaları temiz; Unit tam 4294/4294 (Architecture ve Consistency dahil); betik testleri 4/4; Integration `BrandingTests` 29/29, komşu `ContentRecordAndBrandingTablesTests` + `AuditTrailTests` + `ImageFilesTests` 115/115 (postgres:18 geçici konteyner). Görsel bağı imha parçasında model FK'larından okunur (`ImageDisposalPart`), logo/simge bağlı görsel silinmez |
+| Bulgu sayısı (tur 2) | 0 |
+| Düzeltme gerekli mi (tur 2) | Hayır |
+| Bloke-etmeyen not (tur 2) | 0 yeni; D-442 (tur 1 K1) açık kalır. Yapım raporuyla uyum tam; tek fark: "Başlangıç kapıları (devam işçisi)" satırındaki ana dal kırmızısı tur 1 dönemine aittir, bugünkü son 3 run yeşil |
+
+**Tur 2 task satırları:** `VAL-A157`…`VAL-A160` `BEKLEMEDE` kaldı (kanıt türü uç yanıtı + tarayıcı gözlemi / iş kaydı; sayfa T534/T537, gönderen D-442). `12_matris_denetle.py --kapsam 1-77` → Hata: 0.
+
+| Alan (tur 1) | Sonuç |
 |---|---|
 | Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-08, head `f0ef3ca` + `origin/main` `7097c01` birleştirmesi). Kriter 1–6 ve KK1–KK6 ✓, güvenlik taraması temiz, dal CI 42429549117 yeşil; yerelde derleme `-warnaserror` 0/0, biçim temiz (Integration projesi `whitespace` + `style`, analizörler derlemede), Unit Architecture 955 + Consistency 241 + öteki 3074, betik testleri 4/4, Integration `BrandingTests` 29/29, komşu (`ImageFilesTests`, `AuditTrailTests`, `ContentRecordAndBrandingTablesTests`, `AdminAndAuditTablesTests`, `FirmSettingsTests`, `CompanyIdentityTests`, `DisposalTests`) 219/219 (bunlar `f0ef3ca`'da); birleşik ağaçta derleme 0/0, Unit 955 + 3317, Integration `BrandingTests` + `AuditTrailTests` 51/51. Kontrol listesinin `09 §25` maddesi ✗ (B1) |
 | Bulgu sayısı | 1 — B1 DÜŞÜK S1 (`09 §25` "aynı işi yapan tek işlev varsa o çağrılmış mı?"; `09 §3.4` m.1, §24 m.4; T341 tur 2 B1'in kalıbı): `BrandingRules.TryNormalizeColor` `InvalidColor` alan kodunun tek evi `InvalidColorAttribute`'u (`Infrastructure/Validation/FieldRules.cs:292`, `06 4.54`) çağırmadan kendi `#RRGGBB` kuralını kurar ve aynı kodu verir. Ölçülen ayrışma: `"  #ffff00 "` modülde kabul edilir (`BrandingRulesTests.AColour_IsStoredAsHashAndSixCapitalDigits` bunu sınar), nitelikte reddedilir (uzunluk 10 ≠ 7) — T534'ün formu niteliği taşıdığında aynı alan iki kuralla denetlenir. Modülün öteki denetimi zaten bu kalıptadır (`CompanyIdentityRules` niteliğin örneğini çağırır) |

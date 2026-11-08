@@ -54,7 +54,16 @@ public interface IOrderingModule
     /// are exactly the orders whose payment is awaited. A plain read; it writes nothing.
     /// </summary>
     Task<IReadOnlyList<ReservationHolder>> ListReservationHoldersAsync(Guid variantId, CancellationToken ct);
+
+    /// <summary>
+    /// What the card payment's final query needs (03 4.1.7; 08 2.1.6): the order's number and whether its window (Z-7) has ended at <paramref name="now"/>;
+    /// empty when the order is not a card order that still waits for its payment - paid, cancelled, or a bank transfer. A plain read; it writes nothing.
+    /// </summary>
+    Task<CardPaymentQueryTarget?> GetCardPaymentQueryTargetAsync(Guid orderId, DateTimeOffset now, CancellationToken ct);
 }
+
+/// <summary>A card order that waits for its payment: its number, which the provider's query names, and whether its payment window has ended.</summary>
+public sealed record CardPaymentQueryTarget(string OrderNumber, bool WindowEnded);
 
 /// <summary>An order that holds units of a variant's stock or capacity: its id, its number and the reserved units.</summary>
 public sealed record ReservationHolder(Guid OrderId, string OrderNumber, int Quantity);

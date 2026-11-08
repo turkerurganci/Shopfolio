@@ -13,8 +13,9 @@ namespace Shopfolio.Modules.Ordering;
 /// cancellations S3, S4 and S9, the reasonless S9 closing, S5, S6, S7 and S8. Each one is the unit's core (<see cref="ApplyChosenAsync"/>: lock, version,
 /// white list, actor, reason, pair rule, then its own condition) followed, in the same transaction, by what the transition owns beyond the status: the
 /// carrier data, the delivery marks, the customer notice's dispatch row (B-4, B-5, B-6, B-7). S2, S10 and S11 have no operation here: they are the closure
-/// rule's (<see cref="EvaluateClosureAsync"/>), written at the end of the operation that completes it. The stock, the coupon and the refund a cancellation of a
-/// paid order frees are the cancellation tasks' side effects, written after this core (09 9.1 item 6), not by this file.
+/// rule's (<see cref="EvaluateClosureAsync"/>), written at the end of the operation that completes it. An unpaid order's cancellation frees its reservation
+/// here, after the core (06 4.14 path 3; T324). The stock, the coupon and the refund a cancellation of a paid order frees are the cancellation tasks' side
+/// effects, written after this core (09 9.1 item 6), not by this file.
 /// </summary>
 internal sealed partial class OrderTransitions
 {
@@ -40,17 +41,28 @@ internal sealed partial class OrderTransitions
             return Refused(refusal!.Value);
         }
 
+        bool unpaid = false;
         TransitionOutcome outcome = await ApplyChosenAsync(
             request.OrderId,
             actor!,
             reasons,
             request.ExpectedVersion,
             ChooseCancellation,
-            (order, token) => CancellationConditionAsync(order, request, token),
+            (order, token) =>
+            {
+                unpaid = order.PaymentStatus == PaymentStatus.Pending;
+                return CancellationConditionAsync(order, request, token);
+            },
             ct);
         if (outcome.IsRejected)
         {
             return Refused(outcome);
+        }
+
+        // The unpaid order's cancellation (S3 with Ö2) frees what its confirmation reserved (06 4.14 path 3); a paid order's rows were deleted at Ö1.
+        if (unpaid)
+        {
+            await ReleaseReservationAsync(request.OrderId, ct);
         }
 
         // B-7 goes with the cancellation, once, in the customer's, the administrator's or the system's wording (08 2.2.6); an item cancellation names the item.

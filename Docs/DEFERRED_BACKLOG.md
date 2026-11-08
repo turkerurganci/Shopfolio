@@ -1,6 +1,6 @@
 # Shopfolio — Ertelenmiş İşler Backlog'u
 
-**Son güncelleme:** 2026-11-08 | **Aktif kalem:** 177 | **Gate'i bloklayan:** 0
+**Son güncelleme:** 2026-11-08 | **Aktif kalem:** 174 | **Gate'i bloklayan:** 0
 
 > Task/doğrulama commit'leri "Aktif kalem" sayacını değiştirmez (çakışma, 2026-11-08); kayıt satırlarını ekler/kapatır, sayacı faz kapısı kayıt PR'ı yeniden sayar.
 

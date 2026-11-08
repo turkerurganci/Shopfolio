@@ -9,10 +9,6 @@
 
 ---
 
-## 2026-11-08 — T344 (Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma) doğrulama tur 1 ✓ PASS (head `7e82f4f` + `origin/main` (`bcb856d`, T302, #446) birleştirmesi, PR #451; kriter 1–9, KK1–KK9, `09 §25` ve güvenlik taraması ✓; bulgu 0; dal CI 42436178107 yeşil; Unit 4277/4277 (birleştirmeden sonra Architecture + Membership 990/990), Integration `AddressTests` 13/13 ve `MembershipTests` 34/34; `VAL-A039`–`A042`, `A101` BEKLEMEDE (uç yanıtı ödeme adımı ve defter sayfası task'larında); K1: D-127'nin T344 payı kapandı; backlog aktif 166)
-
-## 2026-11-08 — T344 (Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma) yapım tamam, PR açıldı (dal `task/T344-adres`; kriter 1–9, KK1–KK9 öz denetimle ✓; Unit 4277, Integration `AddressTests` 13/13 ve `MembershipTests` 34/34; backlog D-435–D-437; doğrulama bekliyor)
-
 ## 2026-11-08 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) doğrulama tur 4 ✓ PASS (TAM yeniden doğrulama; head `f6412bf` + `origin/main` (T341, #433) birleştirmesi, PR #442; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 3 BLOCKED (main kod çakışması) iki kod birleştirmesiyle giderildi; Unit 4231/4231 (Architecture, Consistency dahil), betik testleri 4/4, Integration `CategoryTreeAndListsTests` 33/33 (parçalı, gerçek PostgreSQL 18), `build -warnaserror` ve `dotnet format` temiz; dal CI 42425396677 success; bulgu 0; K1: D-332 hedefi tamamlanmış T339'dan T502'ye taşındı; `VAL-A001`…`A008`, `VAL-A181`…`A185` `BEKLEMEDE` kaldı (uç ve tarayıcı kanıtı sayfa task'larında); backlog aktif kalem yeniden sayıldı: 159). Önceki kayıtlar `STATUS_CHANGELOG.md`'de.
 ## 2026-11-08 — T336 (Fiyat ve KDV) doğrulama tur 4 ✓ PASS (PR #444)
 

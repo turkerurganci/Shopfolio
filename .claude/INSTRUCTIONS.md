@@ -1,6 +1,6 @@
 # AI Çalışma Talimatları
 
-**Katman:** L3 | **Son güncelleme:** 2026-10-30
+**Katman:** L3 | **Son güncelleme:** 2026-11-08
 
 > Bu dosya ajanın **oturum davranışını** tanımlar. Sürecin *neden*i [`Docs/00_PROJECT_METHODOLOGY.md`](../Docs/00_PROJECT_METHODOLOGY.md)'de, *sınırlar* [`GUARDRAILS.md`](GUARDRAILS.md)'de, *adım adım iş akışları* [`skills/`](skills/)'dedir.
 
@@ -116,7 +116,7 @@ Açtığın **her** PR'ın CI run'ını `concluded + success` olana kadar **sen*
   - Anchoring yasağı: commit mesajı, dal adı gibi ipuçlarından "muhtemelen doğrudur" varsayımı yapılmaz.
 - **Yönetici yardımcı düzeninde doğrulama (K-1505; D-02):** yardımcı her task için doğrulama talimatını yazar ve izole doğrulama ajanını `SubAgentIndependentValidation` kalıbıyla **kendisi açar** — talimat proje sahibine gösterilmez, "başlat" beklenmez (skill §0, yönetici düzeni istisnası).
   - Ajan `general-purpose` (fork değil); efor task'a göre (proje sahibinin kararı, 2026-11-04): para dışı task `[dogrulama-orta]` (FAIL sonrası `[yeniden-dogrulama-orta]`), Opus + `medium`; para task'ı (yapım işçisi `[yapim-para]`: tutar hesabı, para hareketi, ödeme sağlayıcısı, iade, komisyon, hakediş, cüzdan, fatura tutarı) ve emin olunmayan durum `[dogrulama]` / `[yeniden-dogrulama]`, Opus + `high`; bekçi para task'ında orta eforu engeller. Faz kapısı fazda para task'ı varsa `high`. Kapsam ve talimat eforla değişmez. Görev metni talimat yolunu taşıyan tek satırdır. Talimat yukarıdaki izolasyon girdilerinden başka bir şey taşımaz; yardımcının yorumu ve yapım işçisinin dönüş metni girmez.
-  - Validator `skills/validate`'i 16. adıma kadar koşar (rapor, status, memory commit + push), **merge etmez**; verdict'i talimattaki rapor dosyasına yazar.
+  - Validator `skills/validate`'i 16. adıma kadar koşar (rapor, status commit + push), **merge etmez**; verdict'i talimattaki rapor dosyasına yazar.
   - Yardımcı sonucu ajanın dönüş metninden değil rapor dosyasından okur — yol, değişiklik zamanı (başlatmadan sonra), başlıkta task ve tur numarası. **PASS ve dal CI yeşilse** squash merge'ü ve merge sonrası CI izlemesini (`skills/validate` 17–18. adım) yardımcı yapar. FAIL / BLOCKED'da merge yok; düzeltmeden sonra doğrulama tam yeniden yapılır (para dışı task `[yeniden-dogrulama-orta]`, para task'ı `[yeniden-dogrulama]`; kapsam iki eforda da tam).
   - **Eskalasyon (12 §8.5; 2 iterasyon sınırı):** iterasyon, bir düzeltme ve onu izleyen tam yeniden doğrulamadır; sayaç doğrulama raporlarının başlığındaki tur numarasıdır. Düzeltmeden sonraki ikinci yeniden doğrulama da FAIL verirse eskalasyonu yönetici yardımcı düzeninde yardımcı, düzen kapalıyken ana oturum açar (proje sahibine bulgularla sunar); ikisi de tur numarasını rapordan okur, doğrulayıcı önceki turları bilmediği için eskalasyonu açamaz. Yeni doğrulama chat'i bu noktada açılmaz. İstisna (12 §8.4): proje sahibi bir satırı o risk için kabul edilmiş risk olarak onaylarsa backlog kaydını onayı alan açar (yardımcı; düzen kapalıyken ana oturum) ve düzeltmesiz bir kabul turu açılır; tur numarası artmaz, iterasyon sayılmaz.
   - Validator'ın merge-öncesi veto yetkisi (00 §D.9) korunur: merge'ün tek kapısı validator'ın PASS'idir. Bekçi değişmez — merge'ü yalnız yardımcı ve ana oturum çalıştırır.
@@ -171,7 +171,7 @@ Açtığın **her** PR'ın CI run'ını `concluded + success` olana kadar **sen*
 
 ### 3.8 Repo hafızası
 
-Her task bitişinde `.claude/memory/MEMORY.md` "Güncel Durum" bloğuna TXX için 1–2 satır özet (commit hash + PR no + tek cümle çıktı) eklenir. Validator bunu Adım 0b'de kontrol eder; yoksa BLOCKED.
+`.claude/memory/MEMORY.md` "Güncel Durum" bloğunu task/doğrulama commit'i güncellemez (2026-11-08); faz kapısı kayıt PR'ı fazın özetini yazar. Validator `MEMORY.md`'de TXX satırı aramaz.
 
 ### 3.9 Durum sorularında kaynak
 
@@ -280,4 +280,4 @@ Düzenin dört işletim kuralı (UI/UX tasarım aşaması, K-852):
 
 - [`Docs/00_PROJECT_METHODOLOGY.md`](../Docs/00_PROJECT_METHODOLOGY.md)'ye sadık kal.
 - **Bir aşama veya faz, öğrenimi yazılmadan kapanmaz** (00 §K). Öğrenim ya §N'e yazılır ya bir kurala terfi eder.
-- `Docs/IMPLEMENTATION_STATUS.md` her task tamamlandığında güncellenir.
+- `Docs/IMPLEMENTATION_STATUS.md` her task tamamlandığında güncellenir; ancak "Son güncelleme" satırına task/düzeltme/doğrulama commit'i dokunmaz, yalnız birleştiren taraf (faz kapısı kayıt PR'ı, chore/kayıt PR'ı) günceller; olay `Docs/STATUS_CHANGELOG.d/<TXXX>.md` parça dosyasına yazılır, `STATUS_CHANGELOG.md`'ye dokunulmaz; parçaları birleştiren taraf toplar. Aynı şekilde backlog "Aktif kalem" sayacını ve `MEMORY.md` "Güncel Durum"u task/doğrulama commit'i değiştirmez, faz kapısı kayıt PR'ı günceller (2026-11-08).

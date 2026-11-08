@@ -18,13 +18,14 @@ internal sealed record BranchView(
     string? AddressLine,
     string? Phone,
     string? WorkingHours,
-    MapLinkView? MapLink);
+    MapLinkView? MapLink,
+    bool IsDraft = false);
 
 /// <summary>The "Haritada aç" link of a branch: the address of the map the firm gave and the text the page shows. The map opens elsewhere; nothing is embedded.</summary>
 internal sealed record MapLinkView(string Url, string Text);
 
 /// <summary>A question as the one list shows it (02 3.27.6).</summary>
-internal sealed record FaqView(Guid Id, string Question, string? AnswerHtml);
+internal sealed record FaqView(Guid Id, string Question, string? AnswerHtml, bool IsDraft = false);
 
 /// <summary>
 /// The contact page (02 3.27.8): not a record but a composition - the contact details and legal identity of the company, the published branches in the firm's order, and the contact form
@@ -54,23 +55,38 @@ internal sealed class ContentReaders
     }
 
     /// <summary>The published questions on the one FAQ page, in the firm's order (ties by the time they were created).</summary>
-    public async Task<IReadOnlyList<FaqView>> ListFaqAsync(CancellationToken ct)
+    public Task<IReadOnlyList<FaqView>> ListFaqAsync(CancellationToken ct) => QueryFaqAsync(ContentAudience.Visitor, ct);
+
+    /// <summary>
+    /// The FAQ page as the signed-in administrator previews it (02 3.27.25): the draft questions stand in their place in the one list, each marked <see cref="FaqView.IsDraft"/>
+    /// for the "Taslak" band. A visitor's list is <see cref="ListFaqAsync(CancellationToken)"/>.
+    /// </summary>
+    public Task<IReadOnlyList<FaqView>> ListFaqForAdministratorAsync(CancellationToken ct) => QueryFaqAsync(ContentAudience.Administrator, ct);
+
+    /// <summary>The contact page: the identity, the published branches in the firm's order, and the form.</summary>
+    public Task<ContactPageContent> ReadContactPageAsync(CancellationToken ct) => QueryContactPageAsync(ContentAudience.Visitor, ct);
+
+    /// <summary>The contact page as the signed-in administrator previews it (02 3.27.25): the draft branches stand in their place, each marked <see cref="BranchView.IsDraft"/>.</summary>
+    public Task<ContactPageContent> ReadContactPageForAdministratorAsync(CancellationToken ct) => QueryContactPageAsync(ContentAudience.Administrator, ct);
+
+    private async Task<IReadOnlyList<FaqView>> QueryFaqAsync(ContentAudience audience, CancellationToken ct)
     {
+        PublishStatus[] statuses = ContentVisibility.VisibleStatuses(audience);
         return await _db.FaqItems.AsNoTracking()
-            .Where(f => f.PublishStatus == PublishStatus.Published)
+            .Where(f => statuses.Contains(f.PublishStatus))
             .OrderBy(f => f.SortOrder).ThenBy(f => f.CreatedAt).ThenBy(f => f.Id)
-            .Select(f => new FaqView(f.Id, f.Question, f.Answer))
+            .Select(f => new FaqView(f.Id, f.Question, f.Answer, f.PublishStatus == PublishStatus.Draft))
             .ToListAsync(ct);
     }
 
-    /// <summary>The contact page: the identity, the published branches in the firm's order, and the form.</summary>
-    public async Task<ContactPageContent> ReadContactPageAsync(CancellationToken ct)
+    private async Task<ContactPageContent> QueryContactPageAsync(ContentAudience audience, CancellationToken ct)
     {
         LegalIdentity identity = await _settings.GetLegalIdentityAsync(ct);
+        PublishStatus[] statuses = ContentVisibility.VisibleStatuses(audience);
         var rows = await _db.Branches.AsNoTracking()
-            .Where(b => b.PublishStatus == PublishStatus.Published)
+            .Where(b => statuses.Contains(b.PublishStatus))
             .OrderBy(b => b.SortOrder).ThenBy(b => b.CreatedAt).ThenBy(b => b.Id)
-            .Select(b => new { b.Id, b.Name, b.ProvinceId, b.District, b.AddressLine, b.Phone, b.WorkingHours, b.MapUrl })
+            .Select(b => new { b.Id, b.Name, b.ProvinceId, b.District, b.AddressLine, b.Phone, b.WorkingHours, b.MapUrl, b.PublishStatus })
             .ToListAsync(ct);
         Guid[] provinceIds = [.. rows.Where(r => r.ProvinceId is not null).Select(r => r.ProvinceId!.Value).Distinct()];
         IReadOnlyDictionary<Guid, string> names = await _provinces.GetNamesAsync(provinceIds, ct);
@@ -84,7 +100,8 @@ internal sealed class ContentReaders
                 r.AddressLine,
                 r.Phone,
                 r.WorkingHours,
-                MapLinkOf(r.MapUrl))),
+                MapLinkOf(r.MapUrl),
+                r.PublishStatus == PublishStatus.Draft)),
         ];
         return new ContactPageContent(identity, branches, HasContactForm: true);
     }

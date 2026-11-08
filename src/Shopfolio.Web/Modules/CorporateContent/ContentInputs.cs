@@ -27,6 +27,12 @@ internal sealed record BranchInput(string? Name, Guid? ProvinceId, string? Distr
 internal sealed record CustomPageInput(string? Title, string? Text, bool IsShownInMenu);
 
 /// <summary>
+/// The values of the announcement form (02 3.27.21): the one-line plain text (P-30), the optional link and the optional first and last day it shows (Turkey days, both inclusive).
+/// There is no second announcement, no order, no image and no colour field.
+/// </summary>
+internal sealed record AnnouncementInput(string? Text, string? LinkUrl, DateOnly? StartDate, DateOnly? EndDate);
+
+/// <summary>
 /// The field rules of the corporate content forms (02 3.27.3-3.27.9, 3.27.13, 3.27.15, 3.27.24; 04 7.3.2): the checks go through the form rule attributes of
 /// <c>Infrastructure/Validation</c> - the one home of the form of a link, a phone number and a character ceiling - and this class only decides which field takes which rule.
 /// A ceiling counts characters, not bytes (P-27..P-29). A text is stored trimmed and an empty one is stored as nothing (06 2.8.5); a plain text is stored as typed - no markup is
@@ -100,6 +106,24 @@ internal static class ContentInputRules
         Ceiling(rejections, nameof(BranchInput.WorkingHours), Text(input.WorkingHours), ContentRules.ShortDescriptionMaxLength);
         Apply(rejections, nameof(BranchInput.Phone), Phone(input.Phone), new InvalidPhoneAttribute(), FieldCodes.InvalidPhone);
         Apply(rejections, nameof(BranchInput.MapUrl), Text(input.MapUrl), new InvalidUrlAttribute(), FieldCodes.InvalidUrl);
+        return rejections;
+    }
+
+    /// <summary>
+    /// The refusals of the announcement's values (02 3.27.21, 3.27.24): the text is within P-30 - counted in characters of the stored (trimmed) form -, the link has the form of a
+    /// link, and the last day is not before the first. The text may be empty: an empty announcement is saved as a draft and the publish gate asks for the text.
+    /// </summary>
+    public static List<FieldRejection> Check(AnnouncementInput input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        List<FieldRejection> rejections = [];
+        Ceiling(rejections, nameof(AnnouncementInput.Text), Text(input.Text), ContentRules.AnnouncementTextMaxLength);
+        Apply(rejections, nameof(AnnouncementInput.LinkUrl), Text(input.LinkUrl), new InvalidUrlAttribute(), FieldCodes.InvalidUrl);
+        if (input.StartDate is { } start && input.EndDate is { } end && end < start)
+        {
+            rejections.Add(new FieldRejection(nameof(AnnouncementInput.EndDate), FieldCodes.InvalidDateRange));
+        }
+
         return rejections;
     }
 

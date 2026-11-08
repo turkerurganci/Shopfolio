@@ -32,6 +32,10 @@ internal static class DisposalRegistration
         services.AddDisposalPart<SessionDisposalPart>();
         services.AddDisposalPart<RecognizedBrowserMarkDisposalPart>();
 
+        // The sign-in records (Z-40) and the disposal records themselves (Z-44) have no module of their own: the infrastructure holds both tables.
+        services.AddDisposalPart<LoginRecordDisposalPart>();
+        services.AddDisposalPart<DisposalRecordDisposalPart>();
+
         // The guest cart's and the administrator invitation's parts belong to their modules (09 6 item 2): AddOrderingModule and
         // AddAdministrationModule register them with AddDisposalPart.
         services.AddDisposalPart<RevertLinkAddressDisposalPart>();

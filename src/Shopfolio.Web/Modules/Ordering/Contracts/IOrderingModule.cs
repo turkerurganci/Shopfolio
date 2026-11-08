@@ -28,6 +28,22 @@ public interface IOrderingModule
     Task<DownloadableItem?> FindDownloadableItemAsync(Guid orderItemId, CancellationToken ct);
 
     /// <summary>
+    /// The retention arm of each of the given orders (06 9.1 Z-28, Z-41, Z-43; K-1030 (3), (4)), read from the payment record at this moment: whether the payment
+    /// was taken, the moment an unpaid order failed, and whether the order's personal data is disposed. A plain read for the other modules' disposal parts; the
+    /// order's own part reads the same way. An order that does not exist is not in the answer.
+    /// </summary>
+    Task<IReadOnlyList<OrderPaymentArm>> FindPaymentArmsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct);
+
+    /// <summary>The order each of the given items belongs to (06 4.18); an item that does not exist is not in the answer.</summary>
+    Task<IReadOnlyList<OrderOfItem>> FindOrdersOfItemsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// The unpaid orders that failed before <paramref name="failedBefore"/> (06 9.1 Z-41), except the ones in <paramref name="exclude"/>, at most
+    /// <paramref name="max"/>: the disposal part of a record that is kept ten years from the moment the order failed asks for them page by page.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> FindUnpaidFailedOrdersAsync(DateTimeOffset failedBefore, IReadOnlyCollection<Guid> exclude, int max, CancellationToken ct);
+
+    /// <summary>
     /// The guest orders of a verified address fall to the account that verified it (T341; 02 3.13.2): in the caller's open transaction, one conditional update of the orders that
     /// have no account, are not marked as an account's deleted one and carry the address as their contact e-mail (matched in its normalized form). An order that already belongs
     /// to an account, and the orders of a deleted account, are not taken. The link is a non-raising field: the order's version does not move (06 2.6.5). Returns the number of
@@ -64,6 +80,14 @@ public interface IOrderingModule
 
 /// <summary>A card order that waits for its payment: its number, which the provider's query names, and whether its payment window has ended.</summary>
 public sealed record CardPaymentQueryTarget(string OrderNumber, bool WindowEnded);
+/// <summary>
+/// An order's retention arm (06 9.1): <see cref="IsPaid"/> is true when the order has a payment record that is not corrected; <see cref="FailedAt"/> is the
+/// moment of the Ö2 transition of an unpaid Failed order and null otherwise; <see cref="PersonalDataDisposed"/> says the order's disposal part has run.
+/// </summary>
+public sealed record OrderPaymentArm(Guid OrderId, bool IsPaid, DateTimeOffset? FailedAt, bool PersonalDataDisposed);
+
+/// <summary>The order of an order item.</summary>
+public sealed record OrderOfItem(Guid OrderItemId, Guid OrderId);
 
 /// <summary>An order that holds units of a variant's stock or capacity: its id, its number and the reserved units.</summary>
 public sealed record ReservationHolder(Guid OrderId, string OrderNumber, int Quantity);

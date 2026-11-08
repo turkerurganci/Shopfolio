@@ -8,6 +8,7 @@ using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
+using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -150,6 +151,38 @@ internal sealed class OrderingModule : IOrderingModule
         return orders.Count;
     }
 
+    public async Task<AccountOrderRelease> MarkAccountDeletedAsync(Guid customerId, CancellationToken ct)
+    {
+        if (_db.Database.CurrentTransaction is null)
+        {
+            throw new InvalidOperationException("The account's orders are marked only inside the transaction of its deletion (02 3.15.1; 09 6 item 3).");
+        }
+
+        // The account's row is held by the caller's FOR UPDATE (AccountLocks, first in the lock order; 09 15.1 item 3), so the orders are locked by id and read after the lock, the way the guest-order
+        // linking does (05 7.3.2): an order another request is changing at this moment is waited for, not overwritten. Both columns are non-raising fields (06 2.6.4): the version does not
+        // move, and the caller's save writes them in one statement per order, so "deleted_account_without_link" holds.
+        Guid[] candidates = await _db.Orders.AsNoTracking()
+            .Where(o => o.CustomerId == customerId)
+            .Select(o => o.Id)
+            .ToArrayAsync(ct);
+        int marked = 0;
+        if (candidates.Length > 0)
+        {
+            await _locks.LockAsync(candidates, ct);
+            List<Order> orders = await _db.Orders.Where(o => candidates.Contains(o.Id) && o.CustomerId == customerId).ToListAsync(ct);
+            foreach (Order order in orders)
+            {
+                order.IsAccountDeleted = true;
+                order.CustomerId = null;
+            }
+
+            marked = orders.Count;
+        }
+
+        int carts = await _db.Carts.AsNoTracking().CountAsync(c => c.CustomerId == customerId, ct);
+        return new AccountOrderRelease(marked, carts);
+    }
+
     public async Task<int> RemoveFromCartsAsync(IReadOnlyCollection<Guid> variantIds, string productName, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(variantIds);
@@ -180,7 +213,7 @@ internal sealed class OrderingModule : IOrderingModule
         return await _carts.TakeRemovedNamesAsync(cartId, ct);
     }
 
-    public Task<CartView> OpenCartAsync(CartOwner owner, CancellationToken ct) => _carts.OpenAsync(owner, ct);
+    public Task<CartView> OpenCartAsync(CartOwner owner, ShippingFeeSection shippingTerms, CancellationToken ct) => _carts.OpenAsync(owner, shippingTerms, ct);
 
     public Task<CartAddResult> AddToCartAsync(CartOwner owner, Guid variantId, int quantity, CancellationToken ct) => _carts.AddAsync(owner, variantId, quantity, ct);
 

@@ -8,7 +8,8 @@ namespace Shopfolio.Infrastructure;
 /// The lock order of 05 7.3.5, held per transaction (MK-21): every place that takes a lock - <see cref="AdvisoryLocks"/>, the order row lock and
 /// the Catalog counters' conditional updates - reports it here first, and a lock asked out of order is refused with an exception before any
 /// SQL is sent. The order is: the cart's advisory lock first and alone at the head, then the order rows by id, then the variant rows by id, the
-/// coupon last. The category tree's and the administrator set's advisory locks do not join the order: the transaction that takes one takes no
+/// coupon last. The account's row lock (09 15.1 item 3) is a head of its own: the sign-in and the password flows take it alone, the account's
+/// deletion takes it first and then its orders by id (05 6.1.2; T345), never after another lock and never together with the cart's. The category tree's and the administrator set's advisory locks do not join the order: the transaction that takes one takes no
 /// other lock. A reversed request is a programming error (it could wait on the reverse of another transaction); the tests that run the code
 /// catch it (T228 criterion 7). The state hangs on the context and is reset when the context's transaction changes.
 /// </summary>
@@ -68,7 +69,15 @@ internal static class LockSequence
                     $"The cart lock is asked after the {lastKind} lock: the cart's advisory lock is the first lock of the confirmation (05 4.2.2, 7.3.5).");
             }
         }
-        else if (kind < lastKind || (kind == lastKind && key is Guid k && lastKey is Guid l && CompareKeys(k, l) < 0))
+        else if (kind == LockKind.Account)
+        {
+            if (!taken.All(t => t.Kind == LockKind.Account && t.Key == key))
+            {
+                throw new InvalidOperationException(
+                    $"The account lock is asked after the {lastKind} lock: the account's row is the first lock of the deletion, before its orders (09 15.1 item 3; 05 6.1.2).");
+            }
+        }
+        else if (Rank(kind) < Rank(lastKind) || (kind == lastKind && key is Guid k && lastKey is Guid l && CompareKeys(k, l) < 0))
         {
             throw new InvalidOperationException(
                 $"The {kind} lock {key} is asked after the {lastKind} lock {lastKey}: locks are taken as cart, orders by id, variants by id, coupon last (05 7.3.5).");
@@ -98,7 +107,13 @@ internal static class LockSequence
 
     private static bool IsSeparate(LockKind kind)
     {
-        return kind is LockKind.CategoryTree or LockKind.AdminSet or LockKind.DigitalFile or LockKind.CompanySettings or LockKind.Account;
+        return kind is LockKind.CategoryTree or LockKind.AdminSet or LockKind.DigitalFile or LockKind.CompanySettings;
+    }
+
+    // The account's row heads the order the way the cart's advisory lock does (the account's own flows take no cart lock): account, then orders by id, variants, coupon.
+    private static int Rank(LockKind kind)
+    {
+        return kind == LockKind.Account ? -1 : (int)kind;
     }
 
     private sealed class State

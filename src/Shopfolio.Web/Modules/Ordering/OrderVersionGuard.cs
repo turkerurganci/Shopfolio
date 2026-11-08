@@ -21,7 +21,7 @@ internal sealed class OrderVersionGuard : SaveChangesInterceptor
 {
     /// <summary>
     /// Fields whose system write does not raise the order's version (06 2.6.4): the customer's download counter (its conditional update), the
-    /// item's file link written when a file is removed or bound to a plane, and the order's account link written when the account is deleted or
+    /// item's file link written when a file is removed or bound to a plane, and the order's account link and its deleted-account mark written when the account is deleted or
     /// a guest order is bound to an account.
     /// </summary>
     public static readonly IReadOnlyList<(string Type, string Field)> NonRaisingFields =
@@ -29,6 +29,7 @@ internal sealed class OrderVersionGuard : SaveChangesInterceptor
         (VersionScope.NameOf(typeof(OrderItem)), nameof(OrderItem.DownloadCount)),
         (VersionScope.NameOf(typeof(OrderItem)), nameof(OrderItem.DigitalFileId)),
         (VersionScope.NameOf(typeof(Order)), nameof(Order.CustomerId)),
+        (VersionScope.NameOf(typeof(Order)), nameof(Order.IsAccountDeleted)),
     ];
 
     /// <summary>

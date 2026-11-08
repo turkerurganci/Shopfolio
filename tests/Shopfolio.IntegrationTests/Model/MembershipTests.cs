@@ -729,7 +729,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
 
         public Task<SettingsSaveResult> SaveDeliveryProvincesAsync(IReadOnlyCollection<Guid> provinceIds, int formVersion, CancellationToken ct) => throw new NotSupportedException();
 
-        public Task<DeliveryArea> GetDeliveryAreaAsync(CancellationToken ct) => throw new NotSupportedException();
+        public Task<DeliveryArea> GetDeliveryAreaAsync(CancellationToken ct) => Task.FromResult(new DeliveryArea(gate.Provinces, []));
 
         public Task<CompanyIdentity> GetCompanyIdentityAsync(CancellationToken ct) => throw new NotSupportedException();
 

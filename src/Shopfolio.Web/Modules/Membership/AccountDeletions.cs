@@ -59,7 +59,7 @@ internal sealed class AccountDeletions
             return refusal;
         }
 
-        if (!await _sessions.TryRedeemReauthenticationAsync(customerId, sessionId, ReauthenticationOperation.AccountDeletion, reauthenticationValue, ct))
+        if (!await _sessions.TryRedeemReauthenticationHeldAsync(customerId, sessionId, ReauthenticationOperation.AccountDeletion, reauthenticationValue, ct))
         {
             return AccountDeletionResult.Refused(ErrorCode.ReauthenticationRequired);
         }

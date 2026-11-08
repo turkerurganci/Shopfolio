@@ -42,12 +42,12 @@ internal sealed class MemberRecords
         // An unverified pending registration is no account (02 3.13.5): the view says that and shows nothing of it but the address and the day it was made.
         if (row.EmailVerifiedAt is null)
         {
-            return new MemberRecord(MemberRecordKind.Unverified, row.Id, null, row.Email, row.CreatedAt, false, false, [], null);
+            return new MemberRecord(true, false, row.Id, null, row.Email, row.CreatedAt, false, false, [], null);
         }
 
         IReadOnlyList<AddressBookEntry> book = await _addresses.ListAsync(row.Id, ct);
         DateTimeOffset? blockedUntil = await EmailChanges.OpenRevertEndAsync(_db, row.Id, _time.GetUtcNow(), ct);
-        return new MemberRecord(MemberRecordKind.Account, row.Id, row.Name, row.Email, row.CreatedAt, !string.IsNullOrEmpty(row.PasswordHash), row.GoogleLinkedAt is not null, book, blockedUntil);
+        return new MemberRecord(true, true, row.Id, row.Name, row.Email, row.CreatedAt, !string.IsNullOrEmpty(row.PasswordHash), row.GoogleLinkedAt is not null, book, blockedUntil);
     }
 
     /// <summary>The end of the open revert link that closes the account's deletion, or nothing (02 3.15.6): the account screen shows the reason and the date.</summary>

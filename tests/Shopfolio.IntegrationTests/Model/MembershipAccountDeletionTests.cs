@@ -286,16 +286,16 @@ public sealed partial class MembershipTests
         MemberRecord pending = await ReadAsync(m => m.FindMemberRecordAsync("bekleyen@example.com", Ct));
         MemberRecord none = await ReadAsync(m => m.FindMemberRecordAsync("yok@example.com", Ct));
 
-        Assert.Equal(MemberRecordKind.Account, account.Kind);
+        Assert.True(account.Exists && account.IsAccount);
         Assert.Equal(id, account.CustomerId);
         Assert.Equal("Ali", account.Name);
         Assert.Single(account.Addresses);
         Assert.True(account.HasPassword);
         Assert.False(account.IsGoogleLinked);
-        Assert.Equal(MemberRecordKind.Unverified, pending.Kind);
+        Assert.True(pending.Exists && !pending.IsAccount);
         Assert.Null(pending.Name);
         Assert.Empty(pending.Addresses);
-        Assert.Equal(MemberRecordKind.NotFound, none.Kind);
+        Assert.False(none.Exists || none.IsAccount);
         Assert.Equal(before, await StateAsync());
     }
 

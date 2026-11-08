@@ -36,24 +36,12 @@ public sealed class AccountDeletionResult : IOperationResult
     internal static AccountDeletionResult RevertPending(DateTimeOffset endsAt) => new(0, ErrorCode.EmailChangeRevertPending, endsAt);
 }
 
-/// <summary>What the panel's member record view found for an e-mail (02 3.15.5; 04 9.12.13): no account, an unverified pending registration, or a verified account.</summary>
-public enum MemberRecordKind
-{
-    /// <summary>No customer account carries the address (not an error: the view says so).</summary>
-    NotFound,
-
-    /// <summary>The address belongs to a pending registration whose e-mail was never verified; it is no account and cannot be deleted from the view.</summary>
-    Unverified,
-
-    /// <summary>A verified account.</summary>
-    Account,
-}
-
 /// <summary>
 /// The member record view (02 3.15.5; 07 UC-95; 04 9.12): what the firm reads to answer a personal data request - the account's existence and name (02 3.13.21), the address book, the
 /// ways in (password, Google) and the revert link that closes the deletion (02 3.15.6). It is a value: nothing in it is written back, and the module has no member-record edit.
 /// </summary>
-/// <param name="Kind">What the address is.</param>
+/// <param name="Exists">A row carries the address (a pending registration or a verified account); false is not an error: the view says so.</param>
+/// <param name="IsAccount">The row is a verified account; false with <c>Exists</c> is a pending registration whose e-mail was never verified - no account, and it cannot be deleted from the view.</param>
 /// <param name="CustomerId">The account's id; empty when there is none.</param>
 /// <param name="Name">The account's name; empty unless a verified account.</param>
 /// <param name="Email">The address as entered; empty unless there is a row.</param>
@@ -63,7 +51,8 @@ public enum MemberRecordKind
 /// <param name="Addresses">The address book, oldest first.</param>
 /// <param name="DeletionBlockedUntil">The end of an open revert link (Z-45) while it is open: the deletion is closed until then; empty otherwise.</param>
 public sealed record MemberRecord(
-    MemberRecordKind Kind,
+    bool Exists,
+    bool IsAccount,
     Guid? CustomerId,
     string? Name,
     string? Email,
@@ -74,5 +63,5 @@ public sealed record MemberRecord(
     DateTimeOffset? DeletionBlockedUntil)
 {
     /// <summary>The view of an address with no account.</summary>
-    public static MemberRecord None { get; } = new(MemberRecordKind.NotFound, null, null, null, null, false, false, [], null);
+    public static MemberRecord None { get; } = new(false, false, null, null, null, null, false, false, [], null);
 }

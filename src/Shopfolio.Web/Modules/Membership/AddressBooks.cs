@@ -35,14 +35,15 @@ internal sealed class AddressBooks
             .OrderBy(a => a.CreatedAt).ThenBy(a => a.Id)
             .ToListAsync(ct);
         Dictionary<Guid, string> names = await ProvinceNamesAsync(ct);
-        return rows.Select(row => EntryOf(row, names)).ToList();
+        DeliveryArea area = await _settings.GetDeliveryAreaAsync(ct);
+        return rows.Select(row => EntryOf(row, names, area)).ToList();
     }
 
     /// <summary>One entry of the member's, or nothing when it is not theirs or is gone (the answer is the same: 07 2.3.3).</summary>
     public async Task<AddressBookEntry?> GetAsync(Guid customerId, Guid entryId, CancellationToken ct)
     {
         AddressBook? row = await _db.AddressBooks.AsNoTracking().SingleOrDefaultAsync(a => a.Id == entryId && a.CustomerId == customerId, ct);
-        return row is null ? null : EntryOf(row, await ProvinceNamesAsync(ct));
+        return row is null ? null : EntryOf(row, await ProvinceNamesAsync(ct), await _settings.GetDeliveryAreaAsync(ct));
     }
 
     public async Task<AddressBookSaveResult> CreateAsync(Guid customerId, AddressBookInput input, CancellationToken ct)
@@ -161,6 +162,18 @@ internal sealed class AddressBooks
                     errors);
             }
 
+            // The delivery area restricts the shipping province only (02 3.20.1): a basket with no physical item asks no shipping address and never gets here.
+            if (shippingFour is not null)
+            {
+                DeliveryArea area = await _settings.GetDeliveryAreaAsync(ct);
+                if (!area.IsServed(shippingFour.ProvinceId))
+                {
+                    string field = typedShipping ? AddressFieldRules.ShippingPrefix + nameof(AddressBookInput.ProvinceId) : nameof(OrderAddressRequest.AddressBookId);
+                    errors.Add(NotServed(field, shippingFour.ProvinceId, await ProvinceNamesAsync(ct)));
+                    shippingFour = null;
+                }
+            }
+
             bool phoneOk = AddressFieldRules.TryStorePhone(nameof(OrderAddressRequest.ShippingPhone), phoneText, true, errors, out string? phone);
             if (shippingFour is not null && phoneOk)
             {
@@ -232,10 +245,25 @@ internal sealed class AddressBooks
         return (await _settings.GetProvincesAsync(ct)).ToDictionary(p => p.Id, p => p.Name);
     }
 
-    private static AddressBookEntry EntryOf(AddressBook row, IReadOnlyDictionary<Guid, string> provinceNames)
+    private static AddressBookEntry EntryOf(AddressBook row, IReadOnlyDictionary<Guid, string> provinceNames, DeliveryArea area)
     {
         return new AddressBookEntry(
-            row.Id, row.Name, row.RecipientName, row.ProvinceId, provinceNames.GetValueOrDefault(row.ProvinceId, string.Empty), row.District, row.AddressLine, row.Phone, row.CreatedAt);
+            row.Id,
+            row.Name,
+            row.RecipientName,
+            row.ProvinceId,
+            provinceNames.GetValueOrDefault(row.ProvinceId, string.Empty),
+            row.District,
+            row.AddressLine,
+            row.Phone,
+            row.CreatedAt,
+            area.IsServed(row.ProvinceId));
+    }
+
+    /// <summary>The refusal of a shipping province the company does not deliver to (02 3.20.1; K-772): the field the member chose and the province's name.</summary>
+    private static MembershipFieldError NotServed(string field, Guid provinceId, IReadOnlyDictionary<Guid, string> provinceNames)
+    {
+        return new MembershipFieldError(field, ErrorCode.DeliveryProvinceNotServed, provinceNames.GetValueOrDefault(provinceId, string.Empty));
     }
 
     private void RequireTransaction(string message)

@@ -16,6 +16,7 @@ internal sealed class OrderingModule : IOrderingModule
 {
     private readonly AppDbContext _db;
     private readonly OrderPaymentArms _arms;
+    private readonly ShippingViewReader _shippingViews;
 
     private readonly OrderLocks _locks;
 
@@ -30,10 +31,13 @@ internal sealed class OrderingModule : IOrderingModule
         _carts = carts;
         _db = db;
         _arms = arms;
+        _shippingViews = new ShippingViewReader(db);
         _locks = locks;
         _advisoryLocks = advisoryLocks;
         _downloads = downloads;
     }
+
+    public Task<OrderShippingView?> GetShippingViewAsync(Guid orderId, CancellationToken ct) => _shippingViews.GetAsync(orderId, ct);
 
     public Task<IReadOnlyList<OrderPaymentArm>> FindPaymentArmsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => _arms.ReadAsync(orderIds, ct);
 

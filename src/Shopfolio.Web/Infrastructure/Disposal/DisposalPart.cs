@@ -48,7 +48,21 @@ internal sealed class DisposalRun
     /// again and again, until a chunk returns fewer than the part size. A chunk that deleted something writes one disposal row of
     /// <paramref name="type"/> with that number in the same transaction; a chunk that deleted nothing writes no row (06 9.3.1). Returns the total.
     /// </summary>
-    public async Task<int> ChunksAsync(DisposalRecordType type, Func<AppDbContext, int, CancellationToken, Task<int>> deleteChunk, CancellationToken ct)
+    public Task<int> ChunksAsync(DisposalRecordType type, Func<AppDbContext, int, CancellationToken, Task<int>> deleteChunk, CancellationToken ct)
+    {
+        return RunChunksAsync(type, deleteChunk, ct);
+    }
+
+    /// <summary>
+    /// The same chunks, with no disposal row: for the clean-up of a record that carries no personal data and that 06 9.4.3 says writes none (an upload that was
+    /// never completed; K-979's measure). A part that deletes records that do carry personal data uses <see cref="ChunksAsync"/>.
+    /// </summary>
+    public Task<int> ChunksWithoutRecordAsync(Func<AppDbContext, int, CancellationToken, Task<int>> deleteChunk, CancellationToken ct)
+    {
+        return RunChunksAsync(null, deleteChunk, ct);
+    }
+
+    private async Task<int> RunChunksAsync(DisposalRecordType? type, Func<AppDbContext, int, CancellationToken, Task<int>> deleteChunk, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(deleteChunk);
         ITransactionRunner runner = _services.GetRequiredService<ITransactionRunner>();
@@ -60,9 +74,9 @@ internal sealed class DisposalRun
                 async cancel =>
                 {
                     int deleted = await deleteChunk(db, DisposalTimings.PartSize, cancel);
-                    if (deleted > 0)
+                    if (deleted > 0 && type is { } recordType)
                     {
-                        db.DisposalRecords.Add(DisposalRecord.Counted(type, deleted, Now));
+                        db.DisposalRecords.Add(DisposalRecord.Counted(recordType, deleted, Now));
                     }
 
                     return new DisposalChunkResult(deleted);

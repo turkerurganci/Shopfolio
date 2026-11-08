@@ -183,6 +183,9 @@ internal static class CatalogModuleRegistration
         services.AddJobHandler<ImageDerivativeJobHandler>(JobType.ImageDerivative);
         services.AddDisposalPart<ImageDisposalPart>();
         services.AddDisposalPart<OrphanImageFilePart>();
+        services.AddDisposalPart<IncompleteDigitalUploadPart>();
+        services.AddDisposalPart<DigitalFileDisposalPart>();
+        services.AddDisposalPart<OrphanDigitalFilePart>();
 
         // The publish status transitions (T321; 09 9.1 item 1): the class is what the module takes, the open face is the same instance. The gate is open until T335 (D-300).
         services.AddScoped<ShowcaseReader>();

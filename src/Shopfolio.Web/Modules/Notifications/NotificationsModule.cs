@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.EmailComposition;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Status;
@@ -45,6 +46,9 @@ internal static class NotificationsModuleRegistration
     public static IServiceCollection AddNotificationsModule(this IServiceCollection services)
     {
         services.AddScoped<INotificationsModule, NotificationsModule>();
+
+        // The dispatch record's disposal (T302; 06 9.3.1): the rows past Z-34 or Z-43 and the unpaid arm's emptying; it asks the order's arm through the Ordering surface.
+        services.AddDisposalPart<DispatchRecordDisposalPart>();
 
         // The start-up rewrite of the pending revert links' digests (05 6.x.20): hosted services start in registration order, so it is added
         // here, after the start-up checks, and the job queue and the e-mail sending are registered after it.

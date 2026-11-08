@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Modules.CorporateContent.Contracts;
 
 namespace Shopfolio.Modules.CorporateContent;
@@ -34,6 +35,7 @@ internal static class CorporateContentModuleRegistration
         services.AddScoped<ContentPublishing>();
         services.AddScoped<ContactRequests>();
         services.AddScoped<BrandingSettings>();
+        services.AddDisposalPart<ContactRequestDisposalPart>();
         services.AddScoped<ICorporateContentModule, CorporateContentModule>();
         return services;
     }

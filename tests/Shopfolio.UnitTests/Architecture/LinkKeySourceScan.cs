@@ -46,6 +46,10 @@ internal static partial class LinkKeySourceScan
     {
         ["src/Shopfolio.Web/Modules/Membership/MembershipModule.cs"] = ["VerifyEmailAsync"],
 
+        // The Google link confirmation and the new e-mail verification (T343): each consumes its link in its one command and nowhere else in the file.
+        ["src/Shopfolio.Web/Modules/Membership/GoogleSignIns.cs"] = ["ConfirmGoogleLinkAsync"],
+        ["src/Shopfolio.Web/Modules/Membership/EmailChanges.cs"] = ["VerifyNewEmailAsync"],
+
         // The one password rule's reset button (T342): both account types consume the password reset link here and nowhere else.
         ["src/Shopfolio.Web/Infrastructure/Security/PasswordRegime.cs"] = ["ResetPasswordAsync"],
     };
@@ -56,7 +60,7 @@ internal static partial class LinkKeySourceScan
     /// </summary>
     public static readonly IReadOnlyDictionary<string, string[]> WrapperMethods = new Dictionary<string, string[]>(StringComparer.Ordinal)
     {
-        ["src/Shopfolio.Web/Modules/Membership/MembershipModule.cs"] = ["ResetPasswordAsync"],
+        ["src/Shopfolio.Web/Modules/Membership/MembershipModule.cs"] = ["ResetPasswordAsync", "ConfirmGoogleLinkAsync", "VerifyNewEmailAsync"],
         ["src/Shopfolio.Web/Modules/Administration/AdministrationModule.cs"] = ["ResetPasswordAsync"],
     };
 
@@ -209,7 +213,7 @@ internal static partial class LinkKeySourceScan
     private static partial Regex ConsumeCall();
 
     // A call of the module command that consumes the verification link (a member access, so the declaration is not a call): only an OnPost handler may make it.
-    [GeneratedRegex(@"\.\s*(?:VerifyEmailAsync|ResetPasswordAsync)\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    [GeneratedRegex(@"\.\s*(?:VerifyEmailAsync|ResetPasswordAsync|ConfirmGoogleLinkAsync|VerifyNewEmailAsync)\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex VerifyCall();
 
     [GeneratedRegex(@"(?<!\b(?:class|record|struct|interface|new)\s+)\b(?<name>\w+)\s*\([^()]*\)\s*(?:where\s+[^{=;]*)?(?:(?<arrow>=>)|\{)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

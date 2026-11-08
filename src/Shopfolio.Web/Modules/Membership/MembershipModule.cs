@@ -36,6 +36,8 @@ internal sealed class MembershipModule : IMembershipModule
     private readonly LinkKeys _linkKeys;
     private readonly LoginRecorder _logins;
     private readonly PasswordService _hashing;
+    private readonly PasswordRegime _passwords;
+    private readonly CustomerPasswords _accounts;
     private readonly TimeProvider _time;
 
     public MembershipModule(
@@ -47,8 +49,12 @@ internal sealed class MembershipModule : IMembershipModule
         LinkKeys linkKeys,
         LoginRecorder logins,
         PasswordService hashing,
+        PasswordRegime passwords,
+        CustomerPasswords accounts,
         TimeProvider time)
     {
+        _passwords = passwords;
+        _accounts = accounts;
         _db = db;
         _settings = settings;
         _ordering = ordering;
@@ -91,10 +97,10 @@ internal sealed class MembershipModule : IMembershipModule
             fields.Add(new MembershipFieldError(nameof(RegisterInput.Email), ErrorCode.InvalidEmail));
         }
 
-        // The password's length and common-password policy is T342's (D-251); here it must only not be empty.
-        if (entered.Length == 0)
+        // The one home of the password policy (02 3.13.15; D-251): a refusal is a field error and, like every field error, comes before L-3 and is not counted.
+        if (PasswordPolicy.Validate(entered) is { } passwordRefusal)
         {
-            fields.Add(new MembershipFieldError(nameof(RegisterInput.Password), ErrorCode.FieldRequired));
+            fields.Add(new MembershipFieldError(nameof(RegisterInput.Password), passwordRefusal));
         }
 
         if (fields.Count > 0)
@@ -227,37 +233,54 @@ internal sealed class MembershipModule : IMembershipModule
         return VerificationResendResult.Issued(link.Id, expiresAt);
     }
 
-    public async Task<CredentialCheckResult> CheckCredentialsAsync(string email, string entered, IPAddress? ipAddress, CancellationToken ct)
+    public async Task<CredentialCheckResult> CheckCredentialsAsync(string email, string entered, IPAddress? ipAddress, string? recognizedBrowserMark, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(email);
         ArgumentNullException.ThrowIfNull(entered);
         RequireTransaction("The sign-in check is made only inside a transaction (09 6 item 3).");
 
-        string normalized = TextNormalizer.NormalizeIdentity(email);
-        Customer? customer = await _db.Customers.SingleOrDefaultAsync(c => c.NormalizedEmail == normalized, ct);
-
-        // The same work whether or not the address has an account (05 6.1.4).
-        HashCheck check = customer?.PasswordHash is { } digest ? _hashing.Verify(digest, entered) : _hashing.VerifyNobody(entered);
-        if (customer is null || !check.Matched)
+        // The limit L-1, the hashing work and the verified-address gate are the one password rule's (02 3.13.4, 3.13.17); the sign-in record is this module's.
+        SignInVerdict check = await _passwords.CheckPasswordAsync(_accounts, email, entered, ipAddress, recognizedBrowserMark, ct);
+        if (check.Outcome != VerdictKind.Matched || check.AccountId is not { } customerId)
         {
+            // A blocked attempt is written as a failed one: the record keeps every attempt (02 3.13.19).
             await _logins.RecordAsync(ipAddress, AccountType.Customer, email, LoginOutcome.Failed, ct);
-            return CredentialCheckResult.Refused(ErrorCode.InvalidCredentials);
-        }
-
-        if (customer.EmailVerifiedAt is null)
-        {
-            // The hard gate (02 3.13.4): the right password does not open an unverified account, and the attempt is a failed one.
-            await _logins.RecordAsync(ipAddress, AccountType.Customer, email, LoginOutcome.Failed, ct);
-            return CredentialCheckResult.Refused(ErrorCode.EmailNotVerified);
-        }
-
-        if (check.NeedsRehash)
-        {
-            customer.RenewDigest(_hashing.Hash(entered));
+            return CredentialCheckResult.Refused(check.Outcome switch
+            {
+                VerdictKind.Blocked => ErrorCode.SignInLimitExceeded,
+                VerdictKind.NotEligible => ErrorCode.EmailNotVerified,
+                _ => ErrorCode.InvalidCredentials,
+            });
         }
 
         await _logins.RecordAsync(ipAddress, AccountType.Customer, email, LoginOutcome.Succeeded, ct);
-        return CredentialCheckResult.Granted(customer.Id);
+        return CredentialCheckResult.Granted(customerId);
+    }
+
+    public Task<ResetRequested> RequestPasswordResetAsync(string email, IPAddress? ipAddress, CancellationToken ct)
+    {
+        RequireTransaction("The reset link is written only inside a transaction (09 6 item 3).");
+        return _passwords.RequestResetAsync(_accounts, email, ipAddress, ct);
+    }
+
+    public Task<AccountLinkReading> ReadPasswordResetLinkAsync(string key, CancellationToken ct) => _passwords.ReadResetLinkAsync(AccountType.Customer, key, ct);
+
+    public Task<ResetOutcome> ResetPasswordAsync(string key, string newPassword, string? recognizedBrowserMark, CancellationToken ct)
+    {
+        RequireTransaction("The reset is written only inside a transaction (02 3.13.9; 09 6 item 3).");
+        return _passwords.ResetPasswordAsync(_accounts, key, newPassword, recognizedBrowserMark, ct);
+    }
+
+    public Task<ReauthenticationResult> ReauthenticateAsync(Guid customerId, Guid sessionId, ReauthenticationOperation operation, string password, IPAddress? ipAddress, string? recognizedBrowserMark, CancellationToken ct)
+    {
+        RequireTransaction("The reauthentication is written only inside a transaction (09 6 item 3).");
+        return _passwords.ReauthenticateAsync(_accounts, customerId, sessionId, operation, password, ipAddress, recognizedBrowserMark, ct);
+    }
+
+    public Task<ChangeOutcome> ChangePasswordAsync(Guid customerId, Guid sessionId, string newPassword, string? reauthenticationValue, string? recognizedBrowserMark, CancellationToken ct)
+    {
+        RequireTransaction("The password is written only inside a transaction (09 6 item 3).");
+        return _passwords.ChangePasswordAsync(_accounts, customerId, sessionId, newPassword, reauthenticationValue, recognizedBrowserMark, ct);
     }
 
     public async Task<OrderAccountResolution> ResolveOrderAccountAsync(Guid? signedInCustomerId, string contactEmail, CancellationToken ct)
@@ -340,6 +363,8 @@ internal static class MembershipModuleRegistration
     public static IServiceCollection AddMembershipModule(this IServiceCollection services)
     {
         services.AddScoped<IMembershipModule, MembershipModule>();
+        services.AddScoped<CustomerPasswords>();
+        services.AddScoped<ISessionService, SessionService>();
         return services;
     }
 }

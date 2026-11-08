@@ -57,6 +57,13 @@ internal sealed class LinkRecords
         return record.ExpiresAt <= now ? LinkState.Expired : LinkState.Valid;
     }
 
+    /// <summary>Adds a new link record to the caller's transaction; the transaction's owner saves it.</summary>
+    public void Add(LinkRecord link)
+    {
+        ArgumentNullException.ThrowIfNull(link);
+        _db.LinkRecords.Add(link);
+    }
+
     /// <summary>Reads the link of an arriving key: the key is digested and the digest is searched; the secret is not read. Writes nothing.</summary>
     public async Task<LinkReading> ReadAsync(string key, CancellationToken ct)
     {

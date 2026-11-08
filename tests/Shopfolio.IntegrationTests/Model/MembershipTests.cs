@@ -18,6 +18,8 @@ using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.Modules.Administration;
+using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Membership.Contracts;
@@ -45,7 +47,7 @@ public sealed class MembershipDefinition : ICollectionFixture<CollectionDatabase
 /// layer, the sign-in recorder and the transaction runner are the real ones, and every call runs in the runner's transaction the way a page handler does, so a refusal rolls back.
 /// </summary>
 [Collection(MembershipDefinition.Name)]
-public sealed class MembershipTests : IAsyncLifetime
+public sealed partial class MembershipTests : IAsyncLifetime
 {
     private const string Entered = "a-long-enough-password";
 
@@ -77,7 +79,7 @@ public sealed class MembershipTests : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        await ExecuteAsync("TRUNCATE customers, orders, legal_text_versions, provinces, link_records, attempt_records, login_records, disposal_records CASCADE");
+        await ExecuteAsync("TRUNCATE customers, admins, orders, legal_text_versions, provinces, link_records, attempt_records, login_records, disposal_records CASCADE");
         Province province = Province.Create("06", "Ankara", Start);
         _form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, 1, Start, "metin", Start);
         _contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, 1, Start, "metin", Start);
@@ -103,13 +105,19 @@ public sealed class MembershipTests : IAsyncLifetime
         services.AddScoped<LinkRecords>();
         services.AddSingleton(_keys);
         services.AddScoped<LoginRecorder>();
-        services.AddSingleton<PasswordService>();
+        services.AddSingleton<CountingHasher>();
+        services.AddSingleton<PasswordService>(p => p.GetRequiredService<CountingHasher>());
+        services.AddScoped<ReauthenticationValues>();
+        services.AddScoped<SessionStore>();
+        services.AddScoped<PasswordRegime>();
         services.AddSingleton(_gate);
         services.AddScoped<ISettingsModule, GateOnlySettings>();
         services.AddScoped<OrderLocks>();
         services.AddScoped<AdvisoryLocks>();
         services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddMembershipModule();
+        services.AddScoped<AdminPasswords>();
+        services.AddScoped<IAdministrationModule, AdministrationModule>();
         _provider = services.BuildServiceProvider();
     }
 
@@ -231,7 +239,7 @@ public sealed class MembershipTests : IAsyncLifetime
         Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
         _gate.Gate = new SalesGate([SalesGateCondition.PrivacyNotice], []);
 
-        CredentialCheckResult result = await RunAsync(m => m.CheckCredentialsAsync("ali@example.com", Entered, Ip, Ct));
+        CredentialCheckResult result = await RunAsync(m => m.CheckCredentialsAsync("ali@example.com", Entered, Ip, null, Ct));
 
         Assert.True(result.Succeeded);
         Assert.Equal(id, result.CustomerId);
@@ -441,7 +449,7 @@ public sealed class MembershipTests : IAsyncLifetime
     {
         await SeedCustomerAsync("ali@example.com", verified: false);
 
-        CredentialCheckResult result = await RunAsync(m => m.CheckCredentialsAsync("ali@example.com", Entered, Ip, Ct));
+        CredentialCheckResult result = await RunAsync(m => m.CheckCredentialsAsync("ali@example.com", Entered, Ip, null, Ct));
 
         Assert.Equal(ErrorCode.EmailNotVerified, result.Code);
         Assert.Equal([LoginOutcome.Failed], await OutcomesAsync());
@@ -455,11 +463,11 @@ public sealed class MembershipTests : IAsyncLifetime
         await SeedCustomerAsync("ali@example.com", verified: true);
         IPAddress ip = IPAddress.Parse("203.0.113.55");
 
-        CredentialCheckResult good = await RunAsync(m => m.CheckCredentialsAsync("Ali@Example.com", Entered, ip, Ct));
+        CredentialCheckResult good = await RunAsync(m => m.CheckCredentialsAsync("Ali@Example.com", Entered, ip, null, Ct));
         _time.Advance(TimeSpan.FromMinutes(1));
-        CredentialCheckResult wrong = await RunAsync(m => m.CheckCredentialsAsync("ali@example.com", "yanlis", ip, Ct));
+        CredentialCheckResult wrong = await RunAsync(m => m.CheckCredentialsAsync("ali@example.com", "yanlis", ip, null, Ct));
         _time.Advance(TimeSpan.FromMinutes(1));
-        CredentialCheckResult nobody = await RunAsync(m => m.CheckCredentialsAsync(" Yok@Example.com", Entered, null, Ct));
+        CredentialCheckResult nobody = await RunAsync(m => m.CheckCredentialsAsync(" Yok@Example.com", Entered, null, null, Ct));
 
         Assert.True(good.Succeeded);
         Assert.Equal(ErrorCode.InvalidCredentials, wrong.Code);
@@ -489,7 +497,7 @@ public sealed class MembershipTests : IAsyncLifetime
         string old = new Microsoft.AspNetCore.Identity.PasswordHasher<object>(Options.Create(new Microsoft.AspNetCore.Identity.PasswordHasherOptions { IterationCount = 10_000 })).HashPassword(new object(), Entered);
         await ExecuteAsync($"UPDATE customers SET password_hash = '{old}'");
 
-        CredentialCheckResult result = await RunAsync(m => m.CheckCredentialsAsync("ali@example.com", Entered, Ip, Ct));
+        CredentialCheckResult result = await RunAsync(m => m.CheckCredentialsAsync("ali@example.com", Entered, Ip, null, Ct));
 
         Assert.True(result.Succeeded);
         string renewed = await ScalarAsync<string>($"SELECT password_hash FROM customers WHERE id = '{id}'");

@@ -1,5 +1,8 @@
 using System.Net;
 
+using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Values;
+
 namespace Shopfolio.Modules.Membership.Contracts;
 
 /// <summary>
@@ -44,9 +47,36 @@ public interface IMembershipModule
     /// <summary>
     /// The sign-in's check of the e-mail and the password (02 3.13.4, 3.13.19, 3.13.20): the same work is done whether or not the address has an account; an unverified account
     /// is refused even with the right password (<c>EmailNotVerified</c>) and the attempt is written as failed. Every attempt is one sign-in record row with its moment, IP,
-    /// e-mail and outcome, written in a transaction of its own so a refusal does not take it back. The sign-in is never behind the gate. The limit L-1 and the session are T342's.
+    /// e-mail and outcome, written in a transaction of its own so a refusal does not take it back. The sign-in is never behind the gate. The limit L-1 (02 3.13.17) is counted
+    /// before the work, on the IP and on the e-mail - or, when <paramref name="recognizedBrowserMark"/> is a valid mark of the account, on that mark alone with the IP; over the
+    /// threshold nothing is checked, the account is not locked and the refusal is <c>SignInLimitExceeded</c> (the attempt is written as failed). The session is
+    /// <see cref="ISessionService.SignInAsync"/>.
     /// </summary>
-    Task<CredentialCheckResult> CheckCredentialsAsync(string email, string password, IPAddress? ipAddress, CancellationToken ct);
+    Task<CredentialCheckResult> CheckCredentialsAsync(string email, string password, IPAddress? ipAddress, string? recognizedBrowserMark, CancellationToken ct);
+
+    /// <summary>
+    /// The reset's request (02 3.13.11, 3.13.17; L-2): counted on the e-mail and the IP on every request; over the limit the refusal is <c>PasswordResetLimitExceeded</c>; otherwise
+    /// a success that does not tell whether the address has an account - the link's id is filled only for an eligible (verified) account, the caller sends the e-mail (T309).
+    /// </summary>
+    Task<ResetRequested> RequestPasswordResetAsync(string email, IPAddress? ipAddress, CancellationToken ct);
+
+    /// <summary>What the reset page shows when the link opens (02 3.13.9): only reads; a key of another type is missing.</summary>
+    Task<AccountLinkReading> ReadPasswordResetLinkAsync(string key, CancellationToken ct);
+
+    /// <summary>
+    /// The reset's button (02 3.13.9, 3.13.10): the new password is checked against the policy first and a refusal consumes nothing; then the link is consumed, the password written,
+    /// every session of the account ended and every browser mark but the presented one ended. A refusal rolls the caller's transaction back.
+    /// </summary>
+    Task<ResetOutcome> ResetPasswordAsync(string key, string newPassword, string? recognizedBrowserMark, CancellationToken ct);
+
+    /// <summary>The reauthentication of a signed-in customer for one operation (02 3.13.13): a wrong password counts to L-1; success returns the value of the operation form's hidden field.</summary>
+    Task<ReauthenticationResult> ReauthenticateAsync(Guid customerId, Guid sessionId, ReauthenticationOperation operation, string password, IPAddress? ipAddress, string? recognizedBrowserMark, CancellationToken ct);
+
+    /// <summary>
+    /// The password change at the account (02 3.13.10, 3.13.13): the policy, then the reauthentication value of <see cref="ReauthenticateAsync"/> (none: <c>ReauthenticationRequired</c>);
+    /// the other sessions end, the session that changed the password stays, the other browsers' marks end. A change of the name asks for none of this.
+    /// </summary>
+    Task<ChangeOutcome> ChangePasswordAsync(Guid customerId, Guid sessionId, string newPassword, string? reauthenticationValue, string? recognizedBrowserMark, CancellationToken ct);
 
     /// <summary>
     /// The account an order belongs to (02 3.13.1, 3.13.3, 3.13.4; read only): a signed-in verified customer's order is theirs; a guest whose address belongs to a verified

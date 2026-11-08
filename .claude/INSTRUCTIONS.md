@@ -1,6 +1,6 @@
 # AI Çalışma Talimatları
 
-**Katman:** L3 | **Son güncelleme:** 2026-10-30
+**Katman:** L3 | **Son güncelleme:** 2026-11-08
 
 > Bu dosya ajanın **oturum davranışını** tanımlar. Sürecin *neden*i [`Docs/00_PROJECT_METHODOLOGY.md`](../Docs/00_PROJECT_METHODOLOGY.md)'de, *sınırlar* [`GUARDRAILS.md`](GUARDRAILS.md)'de, *adım adım iş akışları* [`skills/`](skills/)'dedir.
 
@@ -280,4 +280,4 @@ Düzenin dört işletim kuralı (UI/UX tasarım aşaması, K-852):
 
 - [`Docs/00_PROJECT_METHODOLOGY.md`](../Docs/00_PROJECT_METHODOLOGY.md)'ye sadık kal.
 - **Bir aşama veya faz, öğrenimi yazılmadan kapanmaz** (00 §K). Öğrenim ya §N'e yazılır ya bir kurala terfi eder.
-- `Docs/IMPLEMENTATION_STATUS.md` her task tamamlandığında güncellenir.
+- `Docs/IMPLEMENTATION_STATUS.md` her task tamamlandığında güncellenir; ancak "Son güncelleme" satırına task/düzeltme/doğrulama commit'i dokunmaz, yalnız birleştiren taraf (faz kapısı kayıt PR'ı, chore/kayıt PR'ı) günceller; olay `STATUS_CHANGELOG.md`'ye yazılır (2026-11-08).

@@ -125,7 +125,7 @@ user-invocable: true
 
 19. Tek bir `chore:` PR'ında:
     - Gate raporu → `Docs/CHECKPOINT_REPORTS/GATE_CHECK_FX.md`
-    - `Docs/IMPLEMENTATION_STATUS.md` faz satırı `✓ PASS`
+    - `Docs/IMPLEMENTATION_STATUS.md` faz satırı `✓ PASS` ve "Son güncelleme" satırı (satırı birleştiren taraf olarak bu kayıt PR'ı günceller; eski giriş `STATUS_CHANGELOG.md`'nin en üstüne taşınır)
     - Repo memory: faz özet satırı (tarih, PR no, squash hash, tag, ana metrikler) + "sıradaki" satırı + tarih başlığı
     - Backlog forward'ları ve hijyen düzeltmeleri
     - Gate'te okunan ya da yeniden doğrulanan `12` satırlarının `Durum` hücreleri (`12 §7.5`, `§11.1` madde 1 ve 4, Kanıt ortamı hücresi üst ortamı yazan satırda düşük ortam `PASS`'inin `BEKLEMEDE`'ye dönüşü dahil; `12`'nin sürümünü artırmaz)

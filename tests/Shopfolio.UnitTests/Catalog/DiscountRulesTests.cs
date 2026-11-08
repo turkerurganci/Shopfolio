@@ -169,5 +169,40 @@ public sealed class DiscountRulesTests
         Assert.Empty(DiscountRules.OwedBounds(Terms, end.AddHours(1), 100m, null, end.AddDays(1)));
     }
 
+    // ---- T326 KK1: the discount that ends reverts the price; ending at the confirmation is a summary difference (Z-20; 03 4.1.23) ----
+
+    [Fact]
+    public void TheAppliedPrice_RevertsToTheOwnPrice_AtTheExactMomentTheRangeEnds_Z20_KK1()
+    {
+        DateTimeOffset end = DiscountRules.EndsAt(Terms);
+
+        Assert.Equal(80m, DiscountRules.AppliedPrice(100m, Terms, end.AddTicks(-1)));
+        Assert.Equal(100m, DiscountRules.AppliedPrice(100m, Terms, end));
+        Assert.Equal(100m, DiscountRules.AppliedPrice(100m, Terms, end.AddDays(30)));
+    }
+
+    [Fact]
+    public void ADiscountThatEndsBetweenTheSummaryAndTheConfirmation_IsASummaryDifference_Z20_KK1()
+    {
+        DateTimeOffset end = DiscountRules.EndsAt(Terms);
+
+        Assert.True(DiscountRules.IsSummaryDifference(Terms, end.AddMinutes(-5), end));
+        Assert.True(DiscountRules.IsSummaryDifference(Terms, end.AddMinutes(-5), end.AddHours(2)));
+        Assert.False(DiscountRules.IsSummaryDifference(Terms, end.AddMinutes(-5), end.AddTicks(-1)));
+    }
+
+    [Fact]
+    public void ADiscountThatStartsBetweenTheSummaryAndTheConfirmation_IsASummaryDifference_AndAnUnchangedStateIsNot_Z20_KK1()
+    {
+        DateTimeOffset start = DiscountRules.StartsAt(Terms);
+        DateTimeOffset end = DiscountRules.EndsAt(Terms);
+
+        Assert.True(DiscountRules.IsSummaryDifference(Terms, start.AddMinutes(-1), start));
+        Assert.False(DiscountRules.IsSummaryDifference(Terms, start.AddHours(1), end.AddTicks(-1)));
+        Assert.False(DiscountRules.IsSummaryDifference(Terms, end, end.AddDays(3)));
+        Assert.False(DiscountRules.IsSummaryDifference(Terms, start.AddDays(-9), start.AddDays(-8)));
+        Assert.False(DiscountRules.IsSummaryDifference(null, start.AddMinutes(-1), start));
+    }
+
     private static decimal Dec(string text) => decimal.Parse(text, CultureInfo.InvariantCulture);
 }

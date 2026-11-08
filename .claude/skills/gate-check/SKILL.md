@@ -64,7 +64,7 @@ user-invocable: true
 
 13. **Doküman uyumu** — enum değerleri, API sözleşmeleri, entity alanları referans dokümanlarla tutarlı mı?
 
-   **Faz satırları (`12 §6.2`, `11 §6.2`):** fazın `11 §6.2` ek kontrolleri ve `12 §6.2` tablosunda bu faz için sayılan `12` satırları okunur, kanıtları üretilir ve gate raporunun "Faz Satırları" tablosuna satır kimliğiyle yazılır. Satır `PASS` ya da kaydı bulunan `KABUL EDİLMİŞ RİSK` (`grep -n 'VAL-…' Docs/DEFERRED_BACKLOG.md`; `12 §8.4`) değilse — `BEKLEMEDE` dahil — verdict FAIL'dir. Satırların `Durum` hücresi gate raporuyla aynı commit'te güncellenir (`12 §7.5`).
+   **Faz satırları (`12 §6.2`, `11 §6.2`):** fazın `11 §6.2` ek kontrolleri ve `12 §6.2` tablosunda bu faz için sayılan `12` satırları okunur, kanıtları üretilir ve gate raporunun "Faz Satırları" tablosuna satır kimliğiyle yazılır. Satır `PASS` ya da kaydı bulunan `KABUL EDİLMİŞ RİSK` (`grep -rn 'VAL-…' Docs/DEFERRED_BACKLOG.md Docs/DEFERRED_BACKLOG.d/`; `12 §8.4`) değilse — `BEKLEMEDE` dahil — verdict FAIL'dir. Satırların `Durum` hücresi gate raporuyla aynı commit'te güncellenir (`12 §7.5`).
 
    **Son fazın gate'i (F6; bu MVP'nin son uygulama fazı F6'dir) — final çıkış (`12 §6.3`):** yukarıdaki satırlara ek olarak `12 §6.3` tablosunun her kriteri satır kimlikleriyle işaretlenir ve gate raporunun "Final Çıkış" tablosuna yazılır: tüm KRİTİK satırlar `PASS` (kimliklerle sayım) · ORTA satırlar `PASS` ya da kaydı bulunan `KABUL EDİLMİŞ RİSK` · `BEKLEMEDE` kalan DÜŞÜK satırlar kimliğiyle listelenir (istisna yalnız F6 gate'inde okunmayan satır içindir; "E `gerçek`" satırları dahil gate'te okunan satır istisna dışıdır) · çekirdek entegrasyon: Kanıt ortamı `sandbox`/`gerçek` olan E satırları `mock` ile `PASS` sayılmaz; K-23 DV satırları (DV-6, DV-7, DV-10; DV-5 koşullu) yalnız `gerçek` · seviye F satırları ve `[yük]` iki satırı · kabul kanıtı (`VP12-01` senaryoları). Final çıkış yedi gate'in `PASS`'ini varsayar (`12 §5`); biri eksikse bu tablo doldurulmaz, verdict FAIL'dir.
 
@@ -113,11 +113,11 @@ user-invocable: true
 
 ## Adım 8 — Backlog hijyeni
 
-18. `Docs/DEFERRED_BACKLOG.md`'deki açık kalemleri **kod düzeyinde** yeniden doğrula:
+18. `Docs/DEFERRED_BACKLOG.md` ve `Docs/DEFERRED_BACKLOG.d/` parçalarındaki açık kalemleri **kod düzeyinde** yeniden doğrula:
     - Araya giren işlerle çözülmüş olanlar → `✅ Çözüldü → <nerede>`; kayıt kabul edilmiş riskse ("KABUL EDİLMİŞ RİSK — `VAL-…`") satır bu gate'te yeniden doğrulanır ve `Durum` hücresi `PASS` olur (`12 §8.4`)
     - Stale olanlar (açıklama artık gerçeği yansıtmıyor) → düzelt/daralt
     - Hâlâ açık olanlar → öncelik ve "neyi bloklar" alanını güncelle
-    - **Açık risk envanteri (`12 §6.2`, §8.4, §10):** açıklaması "KABUL EDİLMİŞ RİSK — `VAL-…`" diye başlayan her kalem listelenir; matriste `Durum` hücresi `KABUL EDİLMİŞ RİSK` olan her satırın kaydı `grep -n 'VAL-…' Docs/DEFERRED_BACKLOG.md` ile bulunur (kaydı olmayan hücre `FAIL`'dir → verdict FAIL), kaydın kabul tarihi ve proje sahibinin o risk için onayı okunur; envanter proje sahibine gösterilir ve kabulü gate raporuna yazılır. Onay gate-check'in kararı değildir.
+    - **Açık risk envanteri (`12 §6.2`, §8.4, §10):** açıklaması "KABUL EDİLMİŞ RİSK — `VAL-…`" diye başlayan her kalem listelenir; matriste `Durum` hücresi `KABUL EDİLMİŞ RİSK` olan her satırın kaydı `grep -rn 'VAL-…' Docs/DEFERRED_BACKLOG.md Docs/DEFERRED_BACKLOG.d/` ile bulunur (kaydı olmayan hücre `FAIL`'dir → verdict FAIL), kaydın kabul tarihi ve proje sahibinin o risk için onayı okunur; envanter proje sahibine gösterilir ve kabulü gate raporuna yazılır. Onay gate-check'in kararı değildir.
 
 ---
 
@@ -125,7 +125,7 @@ user-invocable: true
 
 19. Tek bir `chore:` PR'ında:
     - Gate raporu → `Docs/CHECKPOINT_REPORTS/GATE_CHECK_FX.md`
-    - `Docs/IMPLEMENTATION_STATUS.md` faz satırı `✓ PASS` ve "Son güncelleme" satırı (satırı birleştiren taraf olarak bu kayıt PR'ı günceller; eski giriş `STATUS_CHANGELOG.md`'nin en üstüne taşınır). **Parçaları topla:** `Docs/STATUS_CHANGELOG.d/*.md` girişlerini tarih sırasıyla `STATUS_CHANGELOG.md`'ye aktar, parça dosyalarını (README hariç) sil; **backlog sayacı:** `Docs/DEFERRED_BACKLOG.md` başlığındaki "Aktif kalem" ve STATUS'taki "backlog aktif" sayısını yeniden say
+    - `Docs/IMPLEMENTATION_STATUS.md` faz satırı `✓ PASS` ve "Son güncelleme" satırı (satırı birleştiren taraf olarak bu kayıt PR'ı günceller; eski giriş `STATUS_CHANGELOG.md`'nin en üstüne taşınır). **Parçaları topla:** `Docs/STATUS_CHANGELOG.d/*.md` girişlerini tarih sırasıyla `STATUS_CHANGELOG.md`'ye aktar, parça dosyalarını (README hariç) sil; **backlog parçaları:** `Docs/DEFERRED_BACKLOG.d/*.md` kalemlerini D numarası sırasıyla `DEFERRED_BACKLOG.md` bölüm 2 tablosunun sonuna aktar, parça dosyalarını (README hariç) sil, sayaç bundan sonra sayılır; **backlog sayacı:** `Docs/DEFERRED_BACKLOG.md` başlığındaki "Aktif kalem" ve STATUS'taki "backlog aktif" sayısını yeniden say
     - Repo memory: "Güncel Durum" bloğu (task/doğrulama commit'leri dokunmaz; bunu bu PR günceller) + faz özet satırı (tarih, PR no, squash hash, tag, ana metrikler) + "sıradaki" satırı + tarih başlığı
     - Backlog forward'ları ve hijyen düzeltmeleri
     - Gate'te okunan ya da yeniden doğrulanan `12` satırlarının `Durum` hücreleri (`12 §7.5`, `§11.1` madde 1 ve 4, Kanıt ortamı hücresi üst ortamı yazan satırda düşük ortam `PASS`'inin `BEKLEMEDE`'ye dönüşü dahil; `12`'nin sürümünü artırmaz)

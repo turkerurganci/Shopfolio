@@ -103,14 +103,30 @@ internal static class TransitionTable
     }
 
     /// <summary>
-    /// False for the crossed cells of the two axes' combination table: a failed payment is a cancelled order and a pending payment is a placed
-    /// order (03 1.4.1; 02 5.6.1). The same pairs the database's <c>status_pair_allowed</c> rule keeps (06 4.17); a transition or a correction that
-    /// would end in one is refused before anything is written.
+    /// The two axes' combination table (03 1.4.1; 02 5.3.1, 5.6.1), cell by cell: a shipment state's row lists the payment states it may stand
+    /// with. The crossed cells are (c) a pending payment on an order past Placed - Preparing is reached only with the payment's approval and the
+    /// payment returns to Pending only with the transfer mark's correction, together with the shipment (1.4.2.4); (d) Delivered with Pending or
+    /// Failed; (e) a failed payment on an order that is not Cancelled - it is born only with the unpaid cancellation; (g) Cancelled with Pending -
+    /// the unpaid cancellation makes the payment Failed. The database's <c>status_pair_allowed</c> rule keeps the same pairs (06 4.17); the
+    /// equality with the document is <c>CombinationTableConsistencyTests</c>.
+    /// </summary>
+    public static IReadOnlyDictionary<OrderStatus, IReadOnlySet<PaymentStatus>> Combinations { get; } = new Dictionary<OrderStatus, IReadOnlySet<PaymentStatus>>
+    {
+        [OrderStatus.Placed] = new HashSet<PaymentStatus> { PaymentStatus.Pending, PaymentStatus.Paid, PaymentStatus.PartiallyRefunded, PaymentStatus.Refunded },
+        [OrderStatus.Preparing] = new HashSet<PaymentStatus> { PaymentStatus.Paid, PaymentStatus.PartiallyRefunded, PaymentStatus.Refunded },
+        [OrderStatus.Shipped] = new HashSet<PaymentStatus> { PaymentStatus.Paid, PaymentStatus.PartiallyRefunded, PaymentStatus.Refunded },
+        [OrderStatus.DeliveryFailed] = new HashSet<PaymentStatus> { PaymentStatus.Paid, PaymentStatus.PartiallyRefunded, PaymentStatus.Refunded },
+        [OrderStatus.Delivered] = new HashSet<PaymentStatus> { PaymentStatus.Paid, PaymentStatus.PartiallyRefunded, PaymentStatus.Refunded },
+        [OrderStatus.Cancelled] = new HashSet<PaymentStatus> { PaymentStatus.Paid, PaymentStatus.Failed, PaymentStatus.PartiallyRefunded, PaymentStatus.Refunded },
+    };
+
+    /// <summary>
+    /// False for a crossed cell of the combination table (<see cref="Combinations"/>; 03 1.4.1). A transition or a correction that would end in one
+    /// is refused before anything is written.
     /// </summary>
     public static bool IsPairAllowed(OrderStatus orderStatus, PaymentStatus paymentStatus)
     {
-        return (paymentStatus != PaymentStatus.Failed || orderStatus == OrderStatus.Cancelled)
-            && (paymentStatus != PaymentStatus.Pending || orderStatus == OrderStatus.Placed);
+        return Combinations.TryGetValue(orderStatus, out IReadOnlySet<PaymentStatus>? allowed) && allowed.Contains(paymentStatus);
     }
 
     /// <summary>True for a terminal state of the shipment axis (02 5.4): the closing states are left only by the firm's correction.</summary>

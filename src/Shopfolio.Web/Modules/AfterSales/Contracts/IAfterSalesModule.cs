@@ -23,6 +23,15 @@ public interface IAfterSalesModule
     /// it writes nothing and takes no lock - the caller holds the order's lock (05 7.3.2).
     /// </summary>
     Task<IReadOnlyDictionary<Guid, int>> ClosedQuantitiesAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// The units of each order item as the coupon right's return reads them (06 4.14, the paragraph after path 6; 03 1.4.4; K-1104, K-1106): the closed
+    /// quantity of <see cref="ClosedQuantitiesAsync"/>, the withdrawn quantity, and how much of the withdrawal the returned goods' receipt, the return
+    /// rejection and the standing "goods did not come back" closing settled. With <paramref name="includeUnsaved"/> the records the caller added to its
+    /// context and has not saved count too; without it only the saved ones - the order as it was before the caller's record. Every item is in the result.
+    /// A plain read; the caller holds the order's lock.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, ItemUnitFacts>> UnitFactsAsync(IReadOnlyCollection<Guid> orderItemIds, bool includeUnsaved, CancellationToken ct);
 }
 
 /// <summary>The orders whose personal data goes, with the ids that reach their records: their items and their refunds (the refund IBAN request is linked to either).</summary>

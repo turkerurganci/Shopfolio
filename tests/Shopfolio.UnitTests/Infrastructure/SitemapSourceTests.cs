@@ -103,6 +103,10 @@ public sealed class SitemapSourceTests
 
         public Task ReturnAsync(StockClaim claim, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<bool> RetakeAsync(StockClaim claim, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task RestoreAsync(StockClaim claim, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<StockQuantityWriteResult> SaveStockQuantityAsync(Guid variantId, int? shownValue, int? newValue, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<VariantStockState?> GetStockStateAsync(Guid variantId, CancellationToken ct) => throw new NotSupportedException();

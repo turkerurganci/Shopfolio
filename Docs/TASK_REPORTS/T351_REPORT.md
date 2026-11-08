@@ -74,7 +74,7 @@
 | Bloke-etmeyen not (K) sayısı | 2 (D-685, D-686) |
 
 ### Doğrulama tur 1 — Doğrulama Sonucu — T351 Teslim işaretleri — tur 1
-**Tarih:** 2026-11-08   **Branch:** task/T351-teslim-isaretleri   **Commit:** `7adf3e66` (doğrulanan dal ucu); kayıt commit'i `origin/main` `e3b34b75` birleştirmesi üstünde, PR #478
+**Tarih:** 2026-11-08   **Branch:** task/T351-teslim-isaretleri   **Commit:** `7adf3e66` (doğrulanan dal ucu); kayıt commit'i `origin/main` `48dadb92` (T354, T323) birleştirmesi üstünde, PR #478
 
 **Verdict: ✓ PASS**
 
@@ -86,7 +86,7 @@
 - **Bulgu:** 0.
 - **K-notları:** K1 hizmet işareti İptal edildi siparişi ayrıca denetlemez, kapalı adedi iptal kaydından okur (iptal kaydı yazımı D-519) → D-685 (T367, T368). K2 `CacheSourceScanTests` yükte regex zaman aşımı → D-686 (F3 gate).
 - **Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu kanıtlı.
-- **Birleştirme notu:** `origin/main` (`e3b34b75`) çakışmasız birleşti.
+- **Birleştirme notu:** `origin/main` (`48dadb92`: T354, T323) çakışmasız birleşti; birleşik ağaçta build ve tam Unit 5063/5063. GitHub'ın daldaki main birleştirmesi (`d6f7a63c`) de birleştirildi; ağaç farkı yok.
 
 ## Altyapı Değişiklikleri
 

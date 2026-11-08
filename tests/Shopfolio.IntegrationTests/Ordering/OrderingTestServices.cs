@@ -41,6 +41,7 @@ internal static class OrderingTestServices
         services.AddSingleton<ImageProcessor>();
         services.AddCatalogModule();
         services.AddAfterSalesModule();
+        services.AddSettingsDependencies();
         services.AddOrderingModule();
         services.AddPaymentModule();
 

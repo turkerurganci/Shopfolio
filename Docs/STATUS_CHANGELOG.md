@@ -11,7 +11,7 @@
 
 ## 2026-11-08 — T362 (Marka kimliği) yapım bitti
 
-2026-11-08 — T362 (Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası) yapım bitti, PR #PRNO açık, doğrulama bekliyor (dal `task/T362-marka-kimligi`; task `⏳`; kriter 1–6 ve KK1–KK6 öz denetimde ✓; Unit 955 (Architecture) + 3315 + Consistency 241, Integration `BrandingTests` 29/29 ve komşu dört sınıf 157/157; şema, paket, ortam değişikliği yok). `CorporateContent` modülü marka formunu okur ve kaydeder (`SaveBrandingAsync`: sürüm, ad boşaltılamaz, renk `#RRGGBB`, görsel yüklenmiş olmalı), vitrin ve e-postanın tek okuması `GetBrandIdentityAsync`; iz: dört ayar `UpdateBranding`, imza anahtarı ayrı `UpdateSettings` satırı (hedef `Branding`, `09 §9.2` tablosu güncellendi). Marka formu sayfası ve vitrin/e-posta bağlama T534/T537'de. Ana dal CI 42426248097 (T341 birleşmesi) T362 dışı: `UploadEndpointsTests` port 5000 çakışması.
+2026-11-08 — T362 (Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası) yapım bitti, PR #448 açık, doğrulama bekliyor (dal `task/T362-marka-kimligi`; task `⏳`; kriter 1–6 ve KK1–KK6 öz denetimde ✓; Unit 955 (Architecture) + 3315 + Consistency 241, Integration `BrandingTests` 29/29 ve komşu dört sınıf 157/157; şema, paket, ortam değişikliği yok). `CorporateContent` modülü marka formunu okur ve kaydeder (`SaveBrandingAsync`: sürüm, ad boşaltılamaz, renk `#RRGGBB`, görsel yüklenmiş olmalı), vitrin ve e-postanın tek okuması `GetBrandIdentityAsync`; iz: dört ayar `UpdateBranding`, imza anahtarı ayrı `UpdateSettings` satırı (hedef `Branding`, `09 §9.2` tablosu güncellendi). Marka formu sayfası ve vitrin/e-posta bağlama T534/T537'de. Ana dal CI 42426248097 (T341 birleşmesi) T362 dışı: `UploadEndpointsTests` port 5000 çakışması.
 
 ---
 

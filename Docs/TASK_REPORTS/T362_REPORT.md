@@ -87,8 +87,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T362-marka-kimligi`
-- **Commit:** son commit SHA'sı PR gövdesinde ve yardımcıya dönüş metninde
-- **PR:** #PRNO
+- **Commit:** `task/T362-marka-kimligi` head (dönüş metninde)
+- **PR:** #448
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

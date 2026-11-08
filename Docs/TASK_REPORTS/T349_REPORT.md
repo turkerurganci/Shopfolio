@@ -1,6 +1,6 @@
 # T349 — Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği
 
-**Faz:** F3 | **Durum:** ⏳ Doğrulama bekliyor (düzeltme 1 bitti; tur 1 ✗ FAIL) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 ✓ PASS; tur 1 ✗ FAIL) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -62,7 +62,7 @@
 | `09 §25` — veri ve göç | ✓ | yük biçimi `HasPayloadConversion()` (`09 §12` m.5), sütun ve tip aynı; yeni biçimin örnek dosyası `tests/Shopfolio.UnitTests/Payloads/ShippingFeeVatShare/1.json` + `ShippingFeeVatSharePayloadTests` (5 test; `09 §12` m.8, düzeltme 1 — tur 1 bulgu 1); `dotnet ef migrations has-pending-model-changes` temiz (önceki işçi; düzeltme 1 model eşlemesine dokunmadı); yeni tablo/FK yok |
 | Güvenlik taraması | ✓ | yeni uç, form, girdi, kişisel veri, sır, kayıt satırı yok; tutar girdileri negatif ve kuruştan ince değerde `ArgumentOutOfRangeException` (`ShippingChargeTests.AnAmountOutsideItsRule_IsAProgrammingError`); ayar çağıranın okuduğu firma bölümüdür, müşteri girdisi değildir |
 | `12` VAL-A043, A044, A045, A291, A292 | BEKLEMEDE | ekran ve panel uçları T508/T509/T536'nın; T349 uç yazmaz (D-627). Kural düzlemi yukarıdaki testlerle karşılanır |
-| `12` VAL-A296 (eşik mesajı koşulu) | BEKLEMEDE | uç yanıtı / tarayıcı gözlemi ister (sayfa T508/T509); kural düzlemi `ShippingChargeTests.TheThresholdMessage_…_KK8` ve `CartTests …_T349_KK6_KK8` |
+| `12` VAL-A296 (kargonun KDV oranı ayar değil, kalemlerin oranını izler — doğrulama tur 2 düzeltti: önceki metin satırı "eşik mesajı koşulu" diye anıyordu) | BEKLEMEDE | uç yanıtı / tarayıcı gözlemi ister (sayfa T508/T509); kural düzlemi `ShippingChargeTests.TheThresholdMessage_…_KK8` ve `CartTests …_T349_KK6_KK8` |
 | `12` VAL-A797 (bölüşüm) | BEKLEMEDE (kural payı ✓) | satırın örneği düzeltme 1'de sınandı: `ShippingChargeTests.TheValidationRowsExample_SplitsTenLiraIntoItsParts_AndTheOrderFreezesThem_VAL_A797` (3,33 / 6,67; KDV 0,56 / 0,61; `Order` aynı değerleri dondurur). "Sipariş anında donar" payı onay akışında (T348, D-626) |
 
 ## Test Sonuçları
@@ -88,10 +88,36 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | **tur 1: ✗ FAIL** (2026-11-08; head `302cb1bf`) |
-| Bulgu sayısı | 1 (ORTA, S1) |
-| Düzeltme gerekli mi | Evet — `ShippingFeeVatShare` yük biçiminin örnek dosyası (`Payloads/ShippingFeeVatShare/1.json`) ve örnek dosya testi; ayrıca `origin/main` (T347, #475) birleştirmesi `CartContracts.cs`'te kod çakışması veriyor |
-| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-650; K2 bu PR'da, düzeltme turunda) |
+| Doğrulama durumu | **tur 2: ✓ PASS** (2026-11-08; head `0451c5d5` + `origin/main` `48dadb92` birleştirmesi) · tur 1: ✗ FAIL (head `302cb1bf`) |
+| Bulgu sayısı | tur 2: 0 · tur 1: 1 (ORTA, S1 — düzeltme 1'de kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | tur 2: 2 (K1 → D-681; K2 bu PR'da kapandı) · tur 1: 2 (K1 → D-650; K2 düzeltme 1'de kapandı) |
+
+### Doğrulama tur 2 (2026-11-08)
+
+**Verdict: ✓ PASS.** Kapsam tam (bütün kriterler, KK'lar, `09 §25`, güvenlik), bağımsız validator.
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Asgari tutar; altında sipariş yok, eksik tutar; sepette ve onayda denetim | ✓ | `ShippingCharge.Assess` (`MinimumOrderShortfall`, `MinimumOrderMessage`, `Refusal` = `MinimumOrderAmountNotMet`, `07 §6.2` 303; kilit dosyasında var), `CartRules.PaymentBlockOf` → `CartPaymentBlock.MinimumOrderAmountNotMet`; Unit `ShippingChargeTests …_KK1` ×3, `CartRulesTests …_T349_KK1`; Integration `CartTests.UnderTheMinimum_…_T349_KK1` (370 → "130 TL'lik", 555'te açılır). Onaydaki çağrı T348'in (T348 → T349 bağımlılığı; D-626), aynı kural `AtConfirmation_…_KK1` ile sınandı |
+| 2 | Taban kupondan önce; kupon engellemez | ✓ | Sepette `OrderableSubtotal`, onayda `CouponApplication.BasketTotal`; Integration `Model.CouponTests.ACouponDoesNotLowerTheBasis_…_T349_KK2` (%50 kupon, taban 500) |
+| 3 | Asgari yalnız fiziksel kalemle; taban bütün giren kalemler; koşul giren kalemlere bakar | ✓ | `AssessShipping`: `EntersOrder && Physical`; Integration `CartTests.ADigitalCart_…_KK3_KK4_KK7` (200 + 120 = 320 ≥ 300); Unit `CartRulesTests …_KK3_KK6` |
+| 4 | Ücret sabit, bir kez; 0 TL her siparişi ücretsiz yapar | ✓ | Unit `TheFee_IsTheFirmsOneAmount_…_KK4`; Integration `CartTests …_KK1` (3 adette ücret 50) |
+| 5 | KDV dahil; orantılı bölüşüm; parça kendi oranıyla | ✓ | `ItemPricing.SplitShippingFee` (T332; `Money.Allocate`/`VatOf`) + `Order.FreezeShippingFeeVatBreakdown`; Unit `…_KK5` (49,99 → 33,33/16,66; KDV 5,56/1,51) ve `…_VAL_A797` (10 → 3,33/6,67; KDV 0,56/0,61) — ikisi de elle hesapla eşit |
+| 6 | Eşik isteğe bağlı; eşit/üstünde ücret yok; girmeyen kalem dışarıda | ✓ | Unit `AtAndAboveTheThreshold_…_KK6` (499,99/500/750); Integration `CartTests.AtTheThreshold_…_KK6_KK8` |
+| 7 | Eşik tabanı bütün giren kalemlerin indirimli toplamı | ✓ | Unit `TheCouponShare_…_KK2_KK7`; Integration `CartTests …_KK3_KK4_KK7`, `CouponTests …_KK2` |
+| 8 | Kalan tutar / "Kargo ücretsiz" koşullu | ✓ | `ShippingAssessment.FreeShippingMessage`; Unit `…_KK8`; Integration `CartTests …_KK6_KK8`. Sayfa gösterimi T508/T509 (D-627) |
+| 9 | Ücret ve karar donar; iptal yeniden hesaplatmaz | ✓ | `FreezeShippingFeeVatBreakdown` bir kez; Integration `OrderTransitionsTests.TheCancellation_…_T349_KK9` (S3+O2 sonrası ücret 49,99 ve döküm veritabanından aynı) |
+
+KK1–KK9 ✓ (yukarıdaki kanıtlar). `09 §25` ✓: tur 1 bulgusu kapandı — `Payloads/ShippingFeeVatShare/1.json` + `ShippingFeeVatSharePayloadTests` (yazım alan adlarıyla, bütün örnekler okunur, bilinmeyen alan atlanır, bugünkü biçimin alan kümesi en son örnekle eşit; `09 §12` m.8); modül sınırı yalnız `Contracts`; tek işlev; `09 §14` yuvarlama yok (yalnız `Math.Max`); göç yok (`has-pending-model-changes` temiz); yeni paket/ayar yok. Güvenlik temiz (yeni uç, form, sır, kişisel veri, bağımlılık yok).
+
+Kanıt: dal CI run 42517753555 (head `0451c5d5`) Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate yeşil. Ana dal son 3 run: 42514888426, 42514888368, 42512134557 success. Yerelde (head `0451c5d5`): restore, build `-warnaserror` 0/0, format üç proje temiz, Unit 5028/5028, betik 4/4, Integration Cart + CartQuantity + Model.CouponTests + OrderTransitions 92/92, `Ordering` ad alanı 323/323, `has-pending-model-changes` temiz, `--locked-mode` çıkış 0. `origin/main` (T323, #474) birleştirmesi çakışmasız; birleşik ağaçta build 0/0, Unit 5054/5054.
+
+`12` satırları: `VAL-A043`, `A044`, `A045`, `A291`, `A292`, `A296` uç yanıtı / tarayıcı gözlemi ister (sayfa ve panel ucu T508/T509/T536) → `BEKLEMEDE`. `VAL-A797`: satırın örneği artık birim testinde (✓), "sipariş anında donar" payı onay akışında (T348, D-626) → `BEKLEMEDE`. Hücre değişmedi.
+
+K-notları: K1 → D-681 (`Docs/DEFERRED_BACKLOG.d/T349.md`): D-221'in kapanışı kargo ücretinin değişmesinin üretilen metin sürümünü artırmadığını söyler; `02 §3.33.3`, `03 §8.7.2.3`, `04 §9.18.9` kargo ücretini besleyen ayar sayar — karar kaydı ya da belge değişikliği gerekir (müşteri etkisi yok). K2 bu PR'da kapandı: öz denetim tablosu `VAL-A296`'yı "eşik mesajı koşulu" diye anıyordu, satırın kuralı "kargonun KDV oranı ayar değil" — metin düzeltildi.
+
+Yapım raporu karşılaştırması: kriter 1–9 ve KK1–KK9'da uyum tam; öz denetim tablosu her madde için kanıtlı. Tek uyuşmazlık K2 (satır etiketi). ⚠ karar 3 (D-221) K1'de ele alındı.
 
 ### Doğrulama tur 1 (2026-11-08)
 
@@ -130,7 +156,7 @@ Yapım raporu karşılaştırması: öz denetimin "`09 §25` — veri ve göç �
 - **Branch:** `task/T349-asgari-tutar-kargo`
 - **Commit:** PR'daki son commit
 - **PR:** #476
-- **CI:** run 42509314185 (head `302cb1bf`) — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate yeşil (doğrulama tur 1)
+- **CI:** run 42517753555 (head `0451c5d5`) — 9 iş yeşil (doğrulama tur 2); run 42509314185 (head `302cb1bf`) — yeşil (doğrulama tur 1)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 
 ## Dış Varsayımlar

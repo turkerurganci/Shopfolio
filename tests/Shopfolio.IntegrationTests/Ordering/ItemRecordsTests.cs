@@ -25,6 +25,7 @@ using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
+using Shopfolio.UnitTests.Fakes;
 
 namespace Shopfolio.IntegrationTests.Ordering;
 
@@ -49,7 +50,7 @@ public sealed class ItemRecordsTests : IAsyncLifetime
 
     private readonly CollectionDatabaseFixture _collection;
 
-    private readonly MovableClock _clock = new(Start);
+    private readonly ManualTimeProvider _clock = new(Start);
 
     private Admin? _admin;
 
@@ -88,7 +89,7 @@ public sealed class ItemRecordsTests : IAsyncLifetime
             c.Admins.Add(_admin);
             c.CompanySettings.Add(settings);
         });
-        _clock.Set(Start);
+        _clock.SetUtcNow(Start);
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -109,14 +110,14 @@ public sealed class ItemRecordsTests : IAsyncLifetime
     {
         (Order order, OrderItem item) = await SeedDeliveredAsync(3, WithdrawalExemptionReason.HygieneSensitive);
         ItemRecordWriteResult withdrawal = await WriteAsync(order.Id, (m, t) => m.AddWithdrawalAsync(Declaration(order, item, 2, DeliveryDay.AddDays(1)), t));
-        _clock.Set(Start.AddHours(1));
+        _clock.SetUtcNow(Start.AddHours(1));
         ItemRecordWriteResult receipt = await WriteAsync(
             order.Id, (m, t) => m.AddReturnReceiptAsync(new ReturnReceiptEntry(Subject(order, item), withdrawal.RecordId!.Value, 1, DeliveryDay.AddDays(2), RecordAdmin, _clock.GetUtcNow()), t));
-        _clock.Set(Start.AddHours(2));
+        _clock.SetUtcNow(Start.AddHours(2));
         ItemRecordResult rejected = await RunAsync((u, t) => u.RejectReturnAsync(Rejection(order.Id, item.Id, withdrawal.RecordId!.Value, 3, 1), t));
-        _clock.Set(Start.AddHours(3));
+        _clock.SetUtcNow(Start.AddHours(3));
         ItemRecordResult opened = await RunAsync((u, t) => u.OpenDefectClaimAsync(new OpenDefectClaimRequest(order.Id, item.Id, 1, "Kırık geldi"), t));
-        _clock.Set(Start.AddHours(4));
+        _clock.SetUtcNow(Start.AddHours(4));
         ItemRecordResult resolved = await RunAsync((u, t) => u.ResolveDefectClaimAsync(new ResolveDefectClaimRequest(order.Id, item.Id, AdminCaller, 5), t));
         Assert.All(new[] { rejected.Refusal, opened.Refusal, resolved.Refusal }, r => Assert.Null(r));
         Assert.False(receipt.IsRejected);
@@ -380,14 +381,14 @@ public sealed class ItemRecordsTests : IAsyncLifetime
         Assert.Null((await RunAsync((u, t) => u.ResolveDefectClaimAsync(new ResolveDefectClaimRequest(order.Id, item.Id, AdminCaller, 2), t))).Refusal);
 
         // The last day is the delivery date two years on (Z-18); the day after it the channel is closed for the customer and the administrator alike.
-        _clock.Set(DeliveredAt.AddYears(DefectClaimWindow.Years).AddDays(1));
+        _clock.SetUtcNow(DeliveredAt.AddYears(DefectClaimWindow.Years).AddDays(1));
         ItemRecordResult late = await RunAsync((u, t) => u.ReopenDefectClaimAsync(Reopen(actor, order.Id, item.Id, 3), t));
         Assert.Equal(TransitionRefusal.ConditionNotMet, late.Refusal);
         ItemRecordResult lateNew = await RunAsync((u, t) => u.OpenDefectClaimAsync(new OpenDefectClaimRequest(other.Id, otherItem.Id, 1, "Kusur"), t));
         Assert.Equal(TransitionRefusal.ConditionNotMet, lateNew.Refusal);
         Assert.Equal(DefectClaimStatus.Resolved, (await FindClaimAsync(item.Id))!.Status);
 
-        _clock.Set(DeliveredAt.AddYears(DefectClaimWindow.Years));
+        _clock.SetUtcNow(DeliveredAt.AddYears(DefectClaimWindow.Years));
         ItemRecordResult onTime = await RunAsync((u, t) => u.ReopenDefectClaimAsync(Reopen(actor, order.Id, item.Id, 3), t));
         Assert.Null(onTime.Refusal);
         Assert.Equal(DefectClaimStatus.Open, (await FindClaimAsync(item.Id))!.Status);
@@ -404,13 +405,13 @@ public sealed class ItemRecordsTests : IAsyncLifetime
         (DispatchType, string?)[] pair = [(DispatchType.B9, order.ContactEmail), (DispatchType.F3, CompanyEmail)];
         Assert.Equal(pair, await ClaimDispatchesAsync(claimId));
 
-        _clock.Set(Start.AddHours(1));
+        _clock.SetUtcNow(Start.AddHours(1));
         Assert.Null((await RunAsync((u, t) => u.ResolveDefectClaimAsync(new ResolveDefectClaimRequest(order.Id, item.Id, AdminCaller, 2), t))).Refusal);
         Assert.Null((await RunAsync((u, t) => u.ReopenDefectClaimAsync(ReopenDefectClaimRequest.ByAdministrator(order.Id, item.Id, AdminCaller, 3), t))).Refusal);
         Assert.Null((await RunAsync((u, t) => u.ResolveDefectClaimAsync(new ResolveDefectClaimRequest(order.Id, item.Id, AdminCaller, 4), t))).Refusal);
         Assert.Equal(pair, await ClaimDispatchesAsync(claimId));
 
-        _clock.Set(Start.AddHours(2));
+        _clock.SetUtcNow(Start.AddHours(2));
         Assert.Null((await RunAsync((u, t) => u.ReopenDefectClaimAsync(ReopenDefectClaimRequest.ByCustomer(order.Id, item.Id), t))).Refusal);
         (DispatchType, string?)[] twice = [.. pair, .. pair];
         Assert.Equal(twice, await ClaimDispatchesAsync(claimId));
@@ -698,20 +699,5 @@ public sealed class ItemRecordsTests : IAsyncLifetime
     private sealed class FixedCompanyContactEmail : ICompanyContactEmail
     {
         public Task<string?> GetAsync(CancellationToken ct) => Task.FromResult<string?>(CompanyEmail);
-    }
-
-    /// <summary>A clock a test sets by hand: the unit reads it for the record moment and the claim window.</summary>
-    private sealed class MovableClock : TimeProvider
-    {
-        private DateTimeOffset _now;
-
-        public MovableClock(DateTimeOffset now)
-        {
-            _now = now;
-        }
-
-        public void Set(DateTimeOffset now) => _now = now;
-
-        public override DateTimeOffset GetUtcNow() => _now;
     }
 }

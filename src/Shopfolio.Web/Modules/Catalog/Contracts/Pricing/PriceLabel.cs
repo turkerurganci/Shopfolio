@@ -4,7 +4,9 @@ namespace Shopfolio.Modules.Catalog.Contracts.Pricing;
 /// The price label of a variant on the product page (02 3.8.5, 12.1.5; Fiyat Etiketi Yönetmeliği m.5): the price exactly as the administrator typed it, VAT
 /// included (02 3.8.1); the product's VAT rate, which the variant inherits (02 3.8.2); the place of origin - filled exactly when the page shows the line: on a
 /// physical product, and on a digital product whose field is filled; never on a service -; the date the price applies since, read from the variant's price history
-/// (empty when the history has no row yet); and, when the product is sold by measure, the measurement unit, the variant's net quantity and the unit price.
+/// (empty when the history has no row yet); when the product is sold by measure, the measurement unit, the variant's net quantity and the unit price - of the price
+/// that applies, the discounted one while a discount runs -; and, while the product's discount runs, its declaration with the start and end dates (02 3.9.2; empty
+/// otherwise).
 /// </summary>
 public sealed record PriceLabel(
     decimal Price,
@@ -13,7 +15,8 @@ public sealed record PriceLabel(
     DateTimeOffset? PriceAppliesSince,
     MeasurementUnit? MeasurementUnit,
     decimal? NetQuantity,
-    UnitPriceLine? UnitPrice);
+    UnitPriceLine? UnitPrice,
+    DiscountLine? Discount);
 
 /// <summary>
 /// The unit price shown next to the sale price (02 3.8.5; K-1018): the VAT-included price of one <paramref name="BaseUnit"/> - 1 kilogram for kilogram and gram,

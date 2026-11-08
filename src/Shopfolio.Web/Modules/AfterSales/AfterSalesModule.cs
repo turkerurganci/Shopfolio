@@ -234,7 +234,7 @@ internal sealed class AfterSalesModule : IAfterSalesModule
         List<CancelledQuantity> cancellations = await _db.Cancellations.Where(c => ids.Contains(c.OrderItemId))
             .Select(c => new CancelledQuantity(c.OrderItemId, c.Quantity, c.TransitionRecordId))
             .ToListAsync(ct);
-        Guid[] closing = [.. cancellations.Where(c => c.TransitionRecordId is not null).Select(c => c.TransitionRecordId!.Value).Distinct()];
+        Guid[] closing = [.. cancellations.Select(c => c.TransitionRecordId).OfType<Guid>().Distinct()];
         IReadOnlySet<Guid> corrected = closing.Length == 0 ? new HashSet<Guid>() : await _ordering.FindCorrectedTransitionRecordsAsync(closing, ct);
         Add(closed, cancellations
             .Where(c => c.TransitionRecordId is not { } closedBy || !corrected.Contains(closedBy))

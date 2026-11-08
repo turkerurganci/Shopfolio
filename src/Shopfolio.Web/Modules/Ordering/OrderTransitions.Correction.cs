@@ -26,7 +26,7 @@ internal sealed partial class OrderTransitions
     public async Task<OrderTransitionResult> CorrectTransitionAsync(CorrectTransitionRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (!TryAdminActor(request.Admin, out TransitionActor? actor))
+        if (!TryAdminActor(request.Admin, out TransitionActor? admin) || admin is not { } actor)
         {
             return Refused(TransitionRefusal.ActorNotAllowed);
         }
@@ -40,7 +40,7 @@ internal sealed partial class OrderTransitions
 
         CorrectionPlan plan = new();
         TransitionOutcome outcome = await CorrectAsync(
-            new CorrectionRequest(request.OrderId, request.TransitionRecordId, reason, note, actor!, request.ExpectedVersion),
+            new CorrectionRequest(request.OrderId, request.TransitionRecordId, reason, note, actor, request.ExpectedVersion),
             (order, corrected, token) => CorrectionConditionAsync(order, corrected, plan, token),
             ct);
         if (outcome.IsRejected)
@@ -82,7 +82,7 @@ internal sealed partial class OrderTransitions
 
             case TransitionCode.S5 or TransitionCode.S8:
                 // An order with no open item left passes the closure rule in the same operation (1.6.2.3; 1.4.3); the carrier data stays (02 10.4.6).
-                closure = await EvaluateClosureAsync(order, actor!, ct);
+                closure = await EvaluateClosureAsync(order, actor, ct);
                 break;
 
             case TransitionCode.S6:

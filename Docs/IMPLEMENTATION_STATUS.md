@@ -159,7 +159,7 @@
 | T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ✓ | ✓ PASS (tur 2) | `924ef92` | #437 |
 | T317 | Ödeme durumu geçişleri: ödeme ekseni | ✓ | ✓ PASS (tur 3) | — | #441 |
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ✓ | ✓ PASS (tur 2) | — | #455 |
-| T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
+| T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⏳ | — | — | — |
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |
 | T321 | Ürün yayın durumları | ✓ | ✓ PASS (tur 3) | `a89710b` | #439 |
 | T322 | İçerik yayın durumları ve iletişim talebi durumları | ✓ | ✓ PASS (tur 1) | `f9ea0fe` | #438 |

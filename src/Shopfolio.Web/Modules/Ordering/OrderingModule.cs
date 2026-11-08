@@ -187,13 +187,12 @@ internal sealed class OrderingModule : IOrderingModule
             return corrected;
         }
 
-        corrected.UnionWith(await _db.TransitionRecords.AsNoTracking()
+        List<Guid?> saved = await _db.TransitionRecords.AsNoTracking()
             .Where(t => t.CorrectedTransitionRecordId != null && ids.Contains(t.CorrectedTransitionRecordId.Value))
-            .Select(t => t.CorrectedTransitionRecordId!.Value)
-            .ToListAsync(ct));
-        corrected.UnionWith(_db.TransitionRecords.Local
-            .Where(t => t.CorrectedTransitionRecordId is { } id && ids.Contains(id))
-            .Select(t => t.CorrectedTransitionRecordId!.Value));
+            .Select(t => t.CorrectedTransitionRecordId)
+            .ToListAsync(ct);
+        corrected.UnionWith(saved.OfType<Guid>());
+        corrected.UnionWith(_db.TransitionRecords.Local.Select(t => t.CorrectedTransitionRecordId).OfType<Guid>().Where(id => ids.Contains(id)));
         return corrected;
     }
 

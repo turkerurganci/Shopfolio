@@ -191,7 +191,7 @@
 | T348 | Sipariş onayı: oluşma anı, özet eşitliği, stok ayırma, ödeme süresi, kendiliğinden iptal | ⬚ | — | — | — |
 | T349 | Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği | ✓ | ✓ PASS (tur 2) | — | #476 |
 | T350 | Teslim: il kısıtı, tek yol, kargoya verme süresi ve sözü, kargoya verildi işareti, kargo şirketi | ✓ | ✓ PASS (tur 1) | — | #460 |
-| T351 | Teslim işaretleri: kalem tipine göre teslim, karışık sipariş, fiziksel teslim tarihi | ⬚ | — | — | — |
+| T351 | Teslim işaretleri: kalem tipine göre teslim, karışık sipariş, fiziksel teslim tarihi | ✓ | ✓ PASS (tur 1) | — | #478 |
 | T352 | Ödeme: satıcı ve kart verisi, iki yöntem, 3D Secure, taksit, ters ibraz | ⬚ | — | — | — |
 | T353 | Havale/EFT: IBAN ve siparişe donması, ödendi işareti, hatırlatma, süresi dolmuş sipariş | ⬚ | — | — | — |
 | T354 | Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı | ✓ | ✓ PASS (tur 4) | — | #470 |

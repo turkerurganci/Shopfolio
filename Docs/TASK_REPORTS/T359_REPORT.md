@@ -1,6 +1,6 @@
 # T359 — Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler
 
-**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✗ Doğrulama tur 2 FAIL (iki iterasyon doldu — eskalasyon) | **Tarih:** 2026-11-08
 
 > Taslağı yapım işçisi doldurur; doğrulama finalize eder.
 
@@ -86,6 +86,21 @@
 ### Düzeltme 1 (2026-11-09)
 
 B1 düzeltildi: `ContentRelationsTests`'e iki Integration sınır testi eklendi (hizmet listesi ve referans listesi; ayrıntı yukarıdaki öz denetim satırında). Üretim kodu değişmedi. Öz denetimde kabul kriterleri 1-8 ve kontrol listesi yeniden denetlendi, hepsi ✓. Backlog kalemi eklenmedi.
+
+### Doğrulama tur 2 (2026-11-09) — ✗ FAIL
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✗ FAIL (tur 2, head `f77197f5`; `origin/main` birleştirildi, yalnız STATUS tablo satırı çakıştı, iki taraf kaldı) |
+| Bulgu sayısı | 1 (B2 DÜŞÜK S1) |
+| Düzeltme gerekli mi | Evet — iki iterasyon doldu (`12 §8.5`): eskalasyon (`INSTRUCTIONS.md` §3.3) |
+| Bloke-etmeyen not (K) sayısı | 1 (K2 → D-712) |
+
+**Validator kabul kriterleri tablosu (tur 2):** K1 ~ (B2) · K2 ✓ · K3 ✓ · K4 ✓ (servis düzeyi; çizim D-674) · K5 ✓ · K6 ✓ · K7 ✓ · K8 ✓; B1 kapandı (iki sınır testi yeşil). `12` satırları `BEKLEMEDE` kaldı (tur 1 gerekçesi); `12_matris_denetle.py --kapsam 1-77` Hata 0. Yerel (birleşik ağaç): build `-warnaserror` 0 uyarı, format üç proje temiz, Unit 5132/5132, betik testleri 4/4, Integration `CorporateContent` 148/148, `Catalog` 72/72. Dal CI 42527884835 yeşil.
+
+- **B2 (DÜŞÜK, S1) — ürün bağı kaydında olmayan ürün bütün listeyi reddediyor; belge "atlanır" diyor.** `ContentProductLinks.SaveAsync` listede var olmayan bir ürün kimliği görünce `ProductNotFound` döner ve hiçbir bağ yazmaz (`ContentProductLinks.cs` satır 91–94; test `ARefusedList_WritesNothing_…_KK1` bunu kilitler). `06 §4.53` "eski formun kaydı silinmiş ürünün bağını yazmaz — bağ kümesi kaydedilirken var olmayan ürün atlanır (`02 §3.27.10`)" ve `07 §9.13.2` "ilgili ürünlerden biri o arada silinmişse bağı atlanır, hata değildir (`06 §4.53`)" der. Etki: form açıkken bağlı bir ürün silinirse içerik kaydının kaydı reddedilir; kural modülde olmadığından panel (T534) yeniden yazmak zorunda kalır (`09 §25` "kod hiçbir doküman cümlesiyle çelişmiyor mu" → hayır). Düzeltme: var olmayan kimlikler atlanır (yalnız var olanlar seçim sırasıyla bağlanır), test atlamayı sınar; tekrar eden ürün reddi kalabilir.
+- **K2 → D-712:** D-673'ün hedefi T360 main'e girdi (#481), `ContentPublishing.DeleteAsync` hâlâ `SaveChangesAsync` çağırıyor; kalem yeni hedefe bağlanmalı.
+- **Yapım raporu karşılaştırması:** rapor "olmayan ürün bütün listeyi reddeder" kararını yazıyor ama `06 §4.53` / `07 §9.13.2` ile karşılaştırmıyor (B2); öteki maddeler validator kanıtıyla uyumlu. Öz denetim tablosu var, maddeler kanıtlı.
 
 ## Altyapı Değişiklikleri
 

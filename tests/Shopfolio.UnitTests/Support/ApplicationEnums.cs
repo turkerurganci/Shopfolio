@@ -27,6 +27,8 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.Catalog.Contracts.ProductPageKind",
         "Shopfolio.Modules.Ordering.Contracts.CartAddOutcome",
         "Shopfolio.Modules.Ordering.Contracts.CartPaymentBlock",
+        // T351: why a delivery date is refused - the result code of the delivery mark, never a column.
+        "Shopfolio.Modules.Ordering.Contracts.DeliveryDateObstacle",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

@@ -9,6 +9,10 @@
 
 ---
 
+## 2026-11-08 — T311 (Ödeme sağlayıcısının bildirim ucu) yapım bitti (PR #PR_NO)
+
+2026-11-08 — T311 (Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım) yapım bitti, ⏳ doğrulama bekliyor (dal `task/T311-odeme-bildirim-ucu`, PR #PR_NO; `origin/main` (T336, #444) birleştirildi). İmzalı uç `POST /sistem/odeme-bildirimi`; imza ve tutar bağlantı katmanında; `08 §2.1.5` sınıflaması; kayıt ve iş satırı aynı işlemde; iş ödeme sonucunu geçiş biriminin tek yolundan uygular. Kriter 1–10, KK1–KK10 öz denetimde ✓; Unit 4393, Integration `PaymentNotificationTests` 14 ve dokunulan sınıflar yeşil. Backlog D-468 (`06 §4.35` `ProcessedAt` metni) yeni.
+
 ## 2026-11-08 — T336 (Fiyat ve KDV) doğrulama tur 4 ✓ PASS (PR #444)
 
 2026-11-08 — T336 (Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri) doğrulama tur 4 ✓ PASS (head `32173b1` + `origin/main` (T317, `7097c01`) birleştirmesi, PR #444; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 1–3 içerikte temiz, main ile kod çakışması nedeniyle BLOCKED idi; birleşik ağaçta Unit 4288 (Architecture 955, Consistency 241), betik testleri, Integration parçalı yeşil (PriceAndVat 19, StockAndCapacity + ProductGallery 45, ProductTransitions + SearchEngineData 59, Payment + OrderTransitions 64, ShipmentTransitions 94, dokunulan Model 220, Web/Concurrency 85); dal CI 42430213489 yeşil; para kodu elle sınandı; bulgu 0, yeni K-notu yok; `12` `Durum` değişmedi (KP-5/KP-39 satırları T503/T525'in sayfa ve uç kanıtını ister); backlog aktif 165).

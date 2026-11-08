@@ -99,6 +99,7 @@ public sealed class MembershipTests : IAsyncLifetime
         services.AddAppCache();
         services.AddScoped<JobEnqueueTracker>();
         services.AddSingleton<IJobSignal, JobSignal>();
+        services.AddScoped<IJobQueue, JobQueue>();
         services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.None));
         services.AddScoped<AttemptCounter>();
         services.AddScoped<LinkRecords>();

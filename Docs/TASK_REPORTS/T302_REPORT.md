@@ -96,6 +96,14 @@
 - **Öz denetim:** `11` satır 1709–1734 kabul kriterleri 1–9 ve KK1–KK9, birleştirmenin dokunduğu dosyalarda (`IOrderingModule`, `OrderingModule`) T302 üyeleri ve `OrderDisposalPart` kaydı yerinde; `RecordDisposalTests` 13 ve `OrderDisposalTests` 27 birleşik ağaçta geçti.
 - **Sonuç:** derleme `-warnaserror` 0 uyarı; Unit Architecture 955 + Consistency 242 + öteki 3040 = 4237 geçti; Integration RecordDisposalTests 13, OrderDisposalTests 27, MembershipTests 34, OrderTransitionsTests 31 geçti; format temiz; çakışma işareti yok.
 
+### main birleştirmesi 4 (T317 #441 girince)
+
+- **Çakışan dosyalar:** `PaymentModule.cs` (using satırları), `OrderTransitionsTests.cs` (`BuildProvider`); belgelerde `DEFERRED_BACKLOG.md`, `IMPLEMENTATION_STATUS.md`.
+- **Çözüm:** `PaymentModule.cs`'te iki tarafın using satırları birlikte kaldı (`Infrastructure.Disposal` + `Jobs` + `Values`); ödeme kodunun davranışı değişmedi, `InboundNotificationDisposalPart` kaydı yerinde. `OrderTransitionsTests.BuildProvider` main'in `OrderingTestServices.Build`'ine bağlandı (dalın yerel kurulumu onun içinde karşılanıyor). STATUS "Son güncelleme" yalnız bu giriş (T317 tur 3 girişi `STATUS_CHANGELOG.md`'ye), backlog main kayıtları + dalınkiler, Aktif kalem yeniden sayıldı: 158.
+- **Birleşik ağacın gerektirdiği test kurulumu:** `PaymentModule` artık `IJobQueue` ister; `MembershipTests` kurulumuna `IJobQueue` kaydı eklendi (yalnız kayıt).
+- **Öz denetim:** `11` satır 1709–1734 kabul kriterleri 1–9 ve KK1–KK9; birleştirmenin dokunduğu `PaymentModule`'de `InboundNotificationDisposalPart` kaydı ve tüm T302 parça kayıtları yerinde (`grep AddDisposalPart`); `RecordDisposalTests` 13 ve `OrderDisposalTests` 27 birleşik ağaçta geçti.
+- **Sonuç:** derleme `-warnaserror` 0 uyarı; Unit Architecture 955 + Consistency 242 + öteki 3042 = 4239 geçti; Integration RecordDisposalTests 13, OrderDisposalTests 27, OrderTransitionsTests 31, PaymentTransitionsTests 33, MembershipTests 34 geçti; format temiz; çakışma işareti yok.
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok

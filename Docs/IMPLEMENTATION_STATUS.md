@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T302 (Öteki kayıtların süreyle imhası) doğrulama tur 1 ✓ PASS (PR #446; kriter 1–9, KK1–KK9, `09 §25` ✓, güvenlik taraması temiz, bulgu 0, K 0; `VAL-D051` PASS; dal CI 42417352638 yeşil; `origin/main` (T321, #439) kod çakışması yalnız ekleme olarak çözüldü, birleşik ağaçta Unit 4123, Integration dokunulan sınıflar yeşil; backlog aktif 157). Üçüncü main birleştirmesi: `origin/main` (T341, #433) birleştirildi; `IOrderingModule` ve `OrderingModule` kurucusu iki tarafın eklemeleriyle birlikte korundu, Unit 4237, Integration RecordDisposal 13, OrderDisposal 27, Membership 34, OrderTransitions 31 yeşil; backlog aktif 157 aynı. Merge ve post-merge CI yardımcıda. Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-08 — T302 (Öteki kayıtların süreyle imhası) doğrulama tur 1 ✓ PASS (PR #446; kriter 1–9, KK1–KK9, `09 §25` ✓, güvenlik taraması temiz, bulgu 0, K 0; `VAL-D051` PASS; dal CI 42417352638 yeşil; `origin/main` (T321, #439) kod çakışması yalnız ekleme olarak çözüldü, birleşik ağaçta Unit 4123, Integration dokunulan sınıflar yeşil; backlog aktif 157). Üçüncü main birleştirmesi: `origin/main` (T341, #433) birleştirildi; `IOrderingModule` ve `OrderingModule` kurucusu iki tarafın eklemeleriyle birlikte korundu, Unit 4237, Integration RecordDisposal 13, OrderDisposal 27, Membership 34, OrderTransitions 31 yeşil; backlog aktif 157 aynı. Dördüncü main birleştirmesi: `origin/main` (T317 ödeme ekseni, #441) birleştirildi; `PaymentModule` kullanımları ve `OrderTransitionsTests` kurulumu (`OrderingTestServices.Build`) iki tarafın eklemeleriyle birlikte korundu, ödeme kodunun davranışı değişmedi; backlog aktif 158. Merge ve post-merge CI yardımcıda. Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -156,7 +156,7 @@
 | T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | `335e9cb` | #418 |
 | T315 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | ✓ | ✓ PASS (tur 1) | `8caf0f0` | #434 |
 | T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ✓ | ✓ PASS (tur 2) | — | #437 |
-| T317 | Ödeme durumu geçişleri: ödeme ekseni | ⬚ | — | — | — |
+| T317 | Ödeme durumu geçişleri: ödeme ekseni | ✓ | ✓ PASS (tur 3) | — | #441 |
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ⬚ | — | — | — |
 | T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |

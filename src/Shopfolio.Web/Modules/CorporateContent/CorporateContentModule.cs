@@ -12,14 +12,24 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     private readonly StorefrontMenuReader _menu;
     private readonly HomepageReader _homepage;
     private readonly BrandingSettings _branding;
+    private readonly AnnouncementReader _announcement;
 
-    public CorporateContentModule(CorporateContentSitemapReader sitemap, StorefrontMenuReader menu, HomepageReader homepage, BrandingSettings branding)
+    public CorporateContentModule(
+        CorporateContentSitemapReader sitemap,
+        StorefrontMenuReader menu,
+        HomepageReader homepage,
+        BrandingSettings branding,
+        AnnouncementReader announcement)
     {
         _sitemap = sitemap;
         _menu = menu;
         _homepage = homepage;
         _branding = branding;
+        _announcement = announcement;
     }
+
+    public Task<AnnouncementView?> GetAnnouncementAsync(bool asAdministrator, CancellationToken ct) =>
+        _announcement.ReadAsync(asAdministrator ? ContentAudience.Administrator : ContentAudience.Visitor, ct);
 
     public Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct) => _sitemap.ListAsync(ct);
 
@@ -48,6 +58,8 @@ internal static class CorporateContentModuleRegistration
         services.AddScoped<ContentReaders>();
         services.AddScoped<StorefrontMenuReader>();
         services.AddScoped<HomepageReader>();
+        services.AddScoped<AnnouncementReader>();
+        services.AddScoped<ContentPageReader>();
         services.AddDisposalPart<ContactRequestDisposalPart>();
         services.AddScoped<ICorporateContentModule, CorporateContentModule>();
         return services;

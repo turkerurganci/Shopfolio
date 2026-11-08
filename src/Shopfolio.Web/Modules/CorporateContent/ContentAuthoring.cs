@@ -227,6 +227,37 @@ internal sealed class ContentAuthoring
         return await EditAsync(page, formVersion, ContentInputRules.Check(input), c => ApplyCustomPage(c, input), ct);
     }
 
+    /// <summary>
+    /// The announcement's first save (02 3.27.21, 3.27.24): the one row is born as a draft with whatever the form holds - an empty announcement is saved too. There is at most one: a
+    /// second is <see cref="AuthoringOutcome.AlreadyExists"/> (the single-row index of the table is the guarantee when two first saves arrive together). After the row is deleted
+    /// (02 3.27.27) a new one may be opened. It is not there at setup (02 3.27.22).
+    /// </summary>
+    public async Task<AuthoringResult> CreateAnnouncementAsync(AnnouncementInput input, CancellationToken ct)
+    {
+        List<FieldRejection> rejections = ContentInputRules.Check(input);
+        if (await _db.Announcements.AnyAsync(ct))
+        {
+            return AuthoringResult.Of(AuthoringOutcome.AlreadyExists);
+        }
+
+        if (rejections.Count > 0)
+        {
+            return AuthoringResult.Refused(rejections);
+        }
+
+        Announcement announcement = Announcement.Create(_time.GetUtcNow());
+        ApplyAnnouncement(announcement, input);
+        _db.Announcements.Add(announcement);
+        return AuthoringResult.Of(AuthoringOutcome.Created, announcement.Id, announcement.Version);
+    }
+
+    /// <summary>The edit of the announcement against the version the form carried; the text is not written into the trail (02 3.27.26).</summary>
+    public async Task<AuthoringResult> SaveAnnouncementAsync(AnnouncementInput input, int formVersion, CancellationToken ct)
+    {
+        Announcement? announcement = await _db.Announcements.SingleOrDefaultAsync(ct);
+        return await EditAsync(announcement, formVersion, ContentInputRules.Check(input), a => ApplyAnnouncement(a, input), ct);
+    }
+
     private async Task<List<FieldRejection>> CheckBranchAsync(BranchInput input, CancellationToken ct)
     {
         List<FieldRejection> rejections = ContentInputRules.Check(input);
@@ -310,6 +341,14 @@ internal sealed class ContentAuthoring
         page.Title = ContentInputRules.Text(input.Title)!;
         page.SetText(input.Text);
         page.IsShownInMenu = input.IsShownInMenu;
+    }
+
+    private static void ApplyAnnouncement(Announcement announcement, AnnouncementInput input)
+    {
+        announcement.Text = ContentInputRules.Text(input.Text);
+        announcement.LinkUrl = ContentInputRules.Text(input.LinkUrl);
+        announcement.StartDate = input.StartDate;
+        announcement.EndDate = input.EndDate;
     }
 
     /// <summary>The province as stored: an empty id is no province.</summary>

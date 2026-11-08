@@ -376,6 +376,13 @@ public sealed class AuditEntryRulesTests
         AuditEntryRules.Validate(new AuditEntry(AuditOperation.ChangePublishStatus, "Product", Target, null));
         AuditEntryRules.Validate(new AuditEntry(AuditOperation.ChangePublishStatus, "CorporateContent", Target, null));
         AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateSettings, "Province", Target, new AuditDetails(changes: [new AuditValueChange("Enabled", "false", "true")])));
+
+        // T362: the platform signature switch is a settings change on the brand row; the four brand settings are the branding operation on the same row.
+        AuditDetails signature = new("Platform imzası", [new AuditValueChange("IsPlatformSignatureEnabled", "true", "false")]);
+        AuditDetails brand = new("Marka", [new AuditValueChange("BrandName", null, "Ayşe Butik")]);
+        AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateSettings, "Branding", Target, signature));
+        AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateBranding, "Branding", Target, brand));
+        Assert.Throws<ArgumentException>(() => AuditEntryRules.Validate(new AuditEntry(AuditOperation.UpdateBranding, "Order", Target, brand)));
     }
 
     [Fact]

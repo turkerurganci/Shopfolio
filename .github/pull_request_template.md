@@ -48,7 +48,7 @@ PR kurallari (00 §D.4):
 - Rapor: `Docs/TASK_REPORTS/TXX_REPORT.md`
 
 ## Ertelenen / Follow-up
-<!-- Ertelenen her kalem Docs/DEFERRED_BACKLOG.md'ye YAZILIR.
+<!-- Ertelenen her kalem Docs/DEFERRED_BACKLOG.d/<TXXX>.md parça dosyasına YAZILIR (DEFERRED_BACKLOG.md tablosuna satır eklenmez).
      Yazilmayan is ertelenmis sayilmaz. -->
 
 ## Notlar

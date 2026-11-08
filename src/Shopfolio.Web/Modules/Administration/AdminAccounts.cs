@@ -69,7 +69,7 @@ internal sealed class AdminAccounts
     /// <summary>
     /// Sends an invitation (07 UC-175; 02 10.2.1, 10.2.6): the sender's row is locked first, so a send and the sender's removal queue; the address must be a valid one that is no
     /// administrator account's (a customer account's address is no obstacle, 02 10.2.5); the unused invitation of the same address is made invalid with its link in the same
-    /// transaction (Z-3; K-661); the invitation, its link of P-14 hours, the e-mail, the trail row and the F-6 notice to every administrator are written. L-9 does not count it.
+    /// transaction (Z-3; K-661); the invitation, its link of P-14 (72 hours), the e-mail, the trail row and the F-6 notice to every administrator are written. L-9 does not count it.
     /// </summary>
     public async Task<AdminInvitationSendResult> SendAsync(string email, CancellationToken ct)
     {

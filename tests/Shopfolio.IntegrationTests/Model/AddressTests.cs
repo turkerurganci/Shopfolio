@@ -18,6 +18,8 @@ using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Membership.Contracts;
+using Shopfolio.Modules.Notifications;
+using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment;
@@ -47,6 +49,7 @@ public sealed class AddressTests : IAsyncLifetime
 
     private readonly CollectionDatabaseFixture _collection;
     private readonly ManualTimeProvider _time = new(Start);
+    private readonly List<ConditionalLine> _lines = [];
     private NpgsqlDataSource _dataSource = null!;
     private ServiceProvider _provider = null!;
     private List<Guid> _provinceIds = [];
@@ -110,6 +113,9 @@ public sealed class AddressTests : IAsyncLifetime
         services.AddScoped<AdvisoryLocks>();
         services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddPaymentModule();
+        services.AddScoped<AccountEmailQueue>();
+        services.AddScoped<INotificationsModule, AccountEmailOnlyNotifications>();
+        services.AddSingleton<IReadOnlyList<ConditionalLine>>(_lines);
         services.AddMembershipModule();
         _provider = services.BuildServiceProvider();
     }

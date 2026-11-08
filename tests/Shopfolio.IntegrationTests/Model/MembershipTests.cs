@@ -24,6 +24,8 @@ using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Membership.Contracts;
 using Shopfolio.Modules.Membership.Contracts.Results;
+using Shopfolio.Modules.Notifications;
+using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment;
@@ -62,6 +64,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
     private readonly CollectionDatabaseFixture _collection;
     private readonly ManualTimeProvider _time = new(Start);
     private readonly GateSwitch _gate = new();
+    private readonly List<ConditionalLine> _lines = [];
     private readonly LinkKeys _keys = new(Options.Create(new LinkKeyOptions { DerivationSecret = Convert.ToBase64String(new byte[LinkKeyOptions.DerivationSecretMinBytes]) }));
     private NpgsqlDataSource _dataSource = null!;
     private ServiceProvider _provider = null!;
@@ -80,7 +83,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        await ExecuteAsync("TRUNCATE customers, admins, orders, legal_text_versions, provinces, link_records, attempt_records, login_records, disposal_records CASCADE");
+        await ExecuteAsync("TRUNCATE customers, admins, orders, legal_text_versions, provinces, link_records, attempt_records, login_records, disposal_records, dispatch_records CASCADE");
         Province province = Province.Create("06", "Ankara", Start);
         _form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, 1, Start, "metin", Start);
         _contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, 1, Start, "metin", Start);
@@ -120,6 +123,9 @@ public sealed partial class MembershipTests : IAsyncLifetime
         services.AddScoped<AdvisoryLocks>();
         services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddPaymentModule();
+        services.AddScoped<AccountEmailQueue>();
+        services.AddScoped<INotificationsModule, AccountEmailOnlyNotifications>();
+        services.AddSingleton<IReadOnlyList<ConditionalLine>>(_lines);
         services.AddMembershipModule();
         services.AddScoped<AdminPasswords>();
         services.AddScoped<IAdministrationModule, AdministrationModule>();

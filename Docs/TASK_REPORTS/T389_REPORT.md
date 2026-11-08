@@ -89,7 +89,7 @@
 
 - **Branch:** `task/T389-hesap-durum-komutlari`
 - **Commit:** son commit PR'ın head'idir
-- **PR:** *(açılınca doldurulur)*
+- **PR:** #472
 - **CI:** yapım işçisi izlemez (yönetici yürütür)
 - **Post-merge run'lar:** *(validator doldurur)*
 

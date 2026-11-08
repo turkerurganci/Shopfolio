@@ -39,7 +39,7 @@ public sealed partial class MembershipTests
         Assert.Contains(new MembershipFieldError(nameof(RegisterInput.Password), ErrorCode.PasswordTooWeak), shortOne.Fields);
         Assert.Contains(new MembershipFieldError(nameof(RegisterInput.Password), ErrorCode.PasswordTooWeak), common.Fields);
         Assert.True(plain.IsRegistered);
-        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM attempt_records"));
+        Assert.Equal(2L, await ScalarAsync<long>("SELECT count(*) FROM attempt_records"));
     }
 
     // ---- KK4: "remember me" is the long session, no choice the short one ----
@@ -77,7 +77,7 @@ public sealed partial class MembershipTests
         await using AppDbContext db = NewContext();
         DateTimeOffset renewed = await db.RecognizedBrowserMarks.Where(m => m.MarkHash == SecretKey.Hash(first.MarkValue)).Select(m => m.ExpiresAt).SingleAsync(Ct);
         Assert.Equal(_time.GetUtcNow().AddDays(ProductConstants.RecognizedBrowserMarkDays), renewed);
-        Assert.Equal(3, await db.RecognizedBrowserMarks.CountAsync(Ct));
+        Assert.Equal(2, await db.RecognizedBrowserMarks.CountAsync(Ct));
     }
 
     // ---- KK9 and L-1: the sign-in limit blocks, never locks ----

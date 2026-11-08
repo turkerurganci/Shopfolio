@@ -207,6 +207,29 @@ public sealed class LinkKeySourceScanTests
         Assert.Empty(LinkKeySourceScan.Scan(page, onPost));
     }
 
+    [Theory]
+    [InlineData("src/Shopfolio.Web/Modules/Membership/GoogleSignIns.cs", "ConfirmGoogleLinkAsync")]
+    [InlineData("src/Shopfolio.Web/Modules/Membership/EmailChanges.cs", "VerifyNewEmailAsync")]
+    public void Scan_OnTheGoogleAndEmailChangeCommands_AllowsTheConsumeInTheOneNamedMethodAndHoldsCallersToOnPost_T343(string file, string method)
+    {
+        string own = $"public async Task<R> {method}(string key, CancellationToken ct) {{ return await _links.TryConsumeAsync(id, ct); }}";
+        const string other = "public async Task<R> ReadAsync(string key, CancellationToken ct) { return await _links.TryConsumeAsync(id, ct); }";
+        string wrapper = $"public Task<R> {method}(string key, CancellationToken ct) => _inner.{method}(key, ct);";
+        string otherCaller = $"public Task<R> ReadAsync(string key, CancellationToken ct) => _inner.{method}(key, ct);";
+        string onGet = $"public async Task OnGetAsync(CancellationToken ct) {{ await _membership.{method}(key, ct); }}";
+        string onPost = $"public async Task OnPostAsync(CancellationToken ct) {{ await _membership.{method}(key, ct); }}";
+        const string page = "src/Shopfolio.Web/Pages/Account/Link.cshtml.cs";
+        const string moduleFile = "src/Shopfolio.Web/Modules/Membership/MembershipModule.cs";
+
+        Assert.Empty(LinkKeySourceScan.Scan(file, own));
+        Assert.Contains(LinkKeySourceScan.Scan(file, other), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+        Assert.Contains(LinkKeySourceScan.Scan(page, onGet), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+        Assert.Empty(LinkKeySourceScan.Scan(page, onPost));
+        Assert.Empty(LinkKeySourceScan.Scan(moduleFile, wrapper));
+        Assert.Contains(LinkKeySourceScan.Scan(moduleFile, otherCaller), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+        Assert.Contains(LinkKeySourceScan.Scan("src/Shopfolio.Web/Modules/Membership/Other.cs", own), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+    }
+
     [Fact]
     public void ConsumingMethods_AndWrappers_NameOnlyExistingFiles_EachWithTheMethodsThatExist()
     {

@@ -17,7 +17,7 @@ T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin
 
 ## 2026-11-08 — T358 (Kurumsal içerik tipleri) yapım bitti
 
-2026-11-08 — T358 (Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar) yapım tamamlandı, doğrulama bekliyor (dal `task/T358-kurumsal-icerik`, PR #PRNO; kriter 1–10, KK1–KK10 ve `09 §25` öz denetimde ✓; Unit 4286 (Consistency ve Architecture dahil), Integration CorporateContent 64, format ve derleme `-warnaserror` temiz; şema yok; D-360 ✅; yeni backlog yok, aktif 152; `12` `Durum` değişmedi).
+2026-11-08 — T358 (Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar) yapım tamamlandı, doğrulama bekliyor (dal `task/T358-kurumsal-icerik`, PR #449; kriter 1–10, KK1–KK10 ve `09 §25` öz denetimde ✓; Unit 4286 (Consistency ve Architecture dahil), Integration CorporateContent 64, format ve derleme `-warnaserror` temiz; şema yok; D-360 ✅; yeni backlog yok, aktif 152; `12` `Durum` değişmedi).
 
 ## 2026-11-08 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) düzeltme turu 1 yapıldı
 

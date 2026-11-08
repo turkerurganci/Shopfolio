@@ -105,7 +105,7 @@ Not: `StoredPhone` taşıması son testlerden sonra yapıldı (davranış aynı,
 
 - **Branch:** `task/T358-kurumsal-icerik`
 - **Commit:** (PR açılışında head SHA: yardımcıya dönüş mesajında)
-- **PR:** #PRNO
+- **PR:** #449
 - **CI:** yardımcı yürütür (işçi CI yoklamaz)
 - **Post-merge run'lar:** *(validator doldurur)*
 

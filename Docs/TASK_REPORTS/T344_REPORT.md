@@ -88,7 +88,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T344-adres`
-- **PR:** #(açılınca)
+- **PR:** #451
 - **CI:** doğrulayıcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -4,17 +4,20 @@ using Microsoft.Extensions.DependencyInjection;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Modules.AfterSales.Contracts;
+using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.AfterSales;
 
 /// <summary>The AfterSales module's implementation of its open surface; internal, reached only through <see cref="IAfterSalesModule"/>.</summary>
-internal sealed class AfterSalesModule : IAfterSalesModule
+internal sealed partial class AfterSalesModule : IAfterSalesModule
 {
     private readonly AppDbContext _db;
+    private readonly ISettingsModule _settings;
 
-    public AfterSalesModule(AppDbContext db)
+    public AfterSalesModule(AppDbContext db, ISettingsModule settings)
     {
         _db = db;
+        _settings = settings;
     }
 
     public async Task ErasePersonalDataAsync(OrderPersonalDataScope scope, CancellationToken ct)

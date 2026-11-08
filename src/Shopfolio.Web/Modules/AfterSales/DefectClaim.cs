@@ -4,8 +4,15 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Modules.AfterSales.Contracts;
+using Shopfolio.Modules.Ordering.Contracts;
 
 namespace Shopfolio.Modules.AfterSales;
+
+/// <summary>
+/// One entry of the defect claim's status history (06 4.30): the moment of the change (<see cref="At"/>, the name the disposal reads - Z-29, K-1054), the new
+/// status, the kind of actor (the customer or an administrator) and, when the customer raised the quantity on reopening, the new quantity.
+/// </summary>
+internal sealed record DefectClaimHistoryEntry(DateTimeOffset At, DefectClaimStatus Status, ActorKind ActorKind, int? Quantity);
 
 /// <summary>
 /// The defect claim a customer opens from the order page (06 4.30): one per item (the unique item link), opened with the defective units
@@ -15,29 +22,29 @@ namespace Shopfolio.Modules.AfterSales;
 /// </summary>
 internal sealed class DefectClaim
 {
-    /// <summary>The empty status history: the claim is born Open and the history holds only the changes after the opening.</summary>
-    public const string EmptyStatusHistory = "[]";
-
     public Guid Id { get; set; }
 
     public DateTimeOffset CreatedAt { get; set; }
 
     public Guid OrderItemId { get; set; }
 
-    /// <summary>The defective units; on reopening it may only grow.</summary>
-    public int Quantity { get; set; }
+    /// <summary>The defective units; on reopening it may only grow, and only by <see cref="ApplyStatus"/>.</summary>
+    public int Quantity { get; private set; }
 
     /// <summary>The description of the problem; free text that may carry personal data.</summary>
     public string Description { get; set; } = string.Empty;
 
-    /// <summary>The claim's status, a line of its own (06 4.30): written only by the transition unit's one method <see cref="ApplyStatus"/> (09 9.1 item 4).</summary>
+    /// <summary>
+    /// The claim's status, a line of its own (06 4.30): written only by <see cref="ApplyStatus"/>, which only <see cref="DefectClaimStatusWriter"/> calls - the
+    /// AfterSales writer that the transition unit's operations reach through <see cref="IAfterSalesModule"/> (09 9.1 item 4; 09 6 item 2).
+    /// </summary>
     public DefectClaimStatus DefectClaimStatus { get; private set; }
 
     /// <summary>
-    /// The status history as a JSON list of values (06 2.5.1, 4.30), stored in a <c>jsonb</c> column; only appended. The typed entry and
-    /// the shared serializer (09 12 item 5) arrive with the task that writes the status first (backlog).
+    /// The status history (06 2.5.1, 4.30): a typed list of values in a <c>jsonb</c> column through the one payload setting (<see cref="PayloadJson"/>, 09 12 item 5).
+    /// The claim is born Open with an empty history; the history holds the changes after the opening and is only appended, in the same call that changes the status.
     /// </summary>
-    public string StatusHistory { get; set; } = EmptyStatusHistory;
+    public List<DefectClaimHistoryEntry> StatusHistory { get; private set; } = [];
 
     /// <summary>The return address's recipient; filled on a physical item.</summary>
     public string? ReturnRecipientName { get; set; }
@@ -61,7 +68,7 @@ internal sealed class DefectClaim
             Quantity = quantity,
             Description = description,
             DefectClaimStatus = DefectClaimStatus.Open,
-            StatusHistory = EmptyStatusHistory,
+            StatusHistory = [],
             ReturnRecipientName = returnAddress?.RecipientName,
             ReturnProvinceId = returnAddress?.ProvinceId,
             ReturnDistrict = returnAddress?.District,
@@ -71,13 +78,19 @@ internal sealed class DefectClaim
     }
 
     /// <summary>
-    /// The one write of the status after the birth (09 9.1 item 4: the item record's status property has a private setter and one internal method).
-    /// Only the transition unit calls it (the source scan of T315); the history entry that goes with the change and the claim's own transitions
-    /// (Open to Resolved, the reopening in the claim's window) arrive with the task that owns the claim's status (T320).
+    /// The one write of the status after the birth (09 9.1 item 4: the item record's status property has a private setter and one internal method). The status and
+    /// its history entry change together (06 4.30): the entry carries the moment, the new status, the actor's kind and the new quantity when the customer raised it.
+    /// The rules of the change - which status may follow, who may change it, the window - are the writer's (<see cref="DefectClaimStatusWriter"/>).
     /// </summary>
-    internal void ApplyStatus(DefectClaimStatus status)
+    internal void ApplyStatus(DefectClaimStatus status, ActorKind actor, DateTimeOffset at, int? quantity)
     {
+        if (quantity is { } raised)
+        {
+            Quantity = raised;
+        }
+
         DefectClaimStatus = status;
+        StatusHistory.Add(new DefectClaimHistoryEntry(at, status, actor, quantity));
     }
 }
 
@@ -95,7 +108,8 @@ internal sealed class DefectClaimConfiguration : IEntityTypeConfiguration<Defect
         builder.HasKey(d => d.Id);
         builder.Property(d => d.Description).HasColumnType("text");
         builder.Property(d => d.DefectClaimStatus).HasDefaultValue(DefectClaimStatus.Open);
-        builder.Property(d => d.StatusHistory).HasColumnType("jsonb").HasDefaultValueSql("'[]'::jsonb");
+        // The payload mapping takes the nullable builder; the list itself is never null (the default is the empty list).
+        builder.Property(d => d.StatusHistory)!.HasPayloadConversion().HasDefaultValueSql("'[]'::jsonb");
         builder.Property(d => d.ReturnRecipientName).HasColumnType("text");
         builder.Property(d => d.ReturnDistrict).HasColumnType("text");
         builder.Property(d => d.ReturnAddressLine).HasColumnType("text");

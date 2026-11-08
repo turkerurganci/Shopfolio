@@ -106,6 +106,13 @@ public sealed class PaymentNotificationTests : IAsyncLifetime
         services.AddAfterSalesModule();
         services.AddOrderingModule();
         services.AddPaymentModule();
+
+        // The Settings module (with its trail) for the payment window the transition unit reads (T319; P-7), as in the ordering tests' services; its
+        // start-up regeneration of the legal texts is left out, as this host seeds no company identity and the ordering tests' services start no host.
+        services.AddScoped<Shopfolio.Modules.Administration.IAuditActorSource, Shopfolio.IntegrationTests.Ordering.NoAuditActor>();
+        services.AddScoped<Shopfolio.Modules.Administration.Contracts.IAuditTrail, Shopfolio.Modules.Administration.AuditTrail>();
+        services.AddSettingsModule();
+        services.Remove(services.Single(d => d.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService) && d.ImplementationType == typeof(GeneratedLegalTextsStartup)));
         services.AddScoped<INotificationsModule, NotificationsModule>();
         services.AddScoped<CustomerNoticeQueue>();
         services.AddScoped<CompanyNoticeQueue>();

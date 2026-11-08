@@ -172,7 +172,7 @@ public sealed class ContentRelationsTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ARefusedList_WritesNothing_ADuplicate_AnUnknownProduct_AnUnknownRecord_KK1()
+    public async Task ARefusedList_WritesNothing_ADuplicate_AnUnknownRecord_KK1()
     {
         Guid category = await SeedCategoryAsync("Mobilya");
         Guid offering = await SeedOfferingAsync("Montaj", 1);
@@ -181,15 +181,34 @@ public sealed class ContentRelationsTests : IAsyncLifetime
         await LinkAsync(ContentLinkOwner.Offering, offering, [a]);
 
         ProductLinksResult duplicate = await LinkAsync(ContentLinkOwner.Offering, offering, [b, b]);
-        ProductLinksResult unknown = await LinkAsync(ContentLinkOwner.Offering, offering, [b, Guid.CreateVersion7()]);
         ProductLinksResult noOwner = await LinkAsync(ContentLinkOwner.Offering, Guid.CreateVersion7(), [a]);
         ProductLinksResult noWork = await LinkAsync(ContentLinkOwner.PortfolioItem, Guid.CreateVersion7(), [a]);
 
         Assert.Equal(ProductLinksOutcome.DuplicateProduct, duplicate.Outcome);
-        Assert.Equal(ProductLinksOutcome.ProductNotFound, unknown.Outcome);
         Assert.Equal(ProductLinksOutcome.OwnerNotFound, noOwner.Outcome);
         Assert.Equal(ProductLinksOutcome.OwnerNotFound, noWork.Outcome);
         Assert.Equal([a], await LinkedIdsAsync(ContentLinkOwner.Offering, offering));
+    }
+
+    [Theory]
+    [InlineData("Offering")]
+    [InlineData("PortfolioItem")]
+    public async Task ADeletedProductInTheList_IsSkipped_TheRestAreLinkedInTheOrderOfTheChoice_NotAnError_KK1(string ownerName)
+    {
+        ContentLinkOwner owner = Enum.Parse<ContentLinkOwner>(ownerName);
+        Guid category = await SeedCategoryAsync("Mobilya");
+        Guid record = owner == ContentLinkOwner.Offering ? await SeedOfferingAsync("Montaj", 1) : await SeedPortfolioAsync("Ofis", 1);
+        Guid a = await SeedProductAsync("A", PublishStatus.Published, category);
+        Guid b = await SeedProductAsync("B", PublishStatus.Published, category);
+        Guid c = await SeedProductAsync("C", PublishStatus.Published, category);
+        Guid gone = await SeedProductAsync("Gone", PublishStatus.Published, category);
+        await DeleteProductAsync(gone);
+
+        ProductLinksResult result = await LinkAsync(owner, record, [c, gone, a, Guid.CreateVersion7(), b]);
+
+        Assert.Equal(ProductLinksOutcome.Saved, result.Outcome);
+        Assert.Equal([c, a, b], await LinkedIdsAsync(owner, record));
+        Assert.Equal(["C", "A", "B"], (await RelatedAsync(owner, record)).Select(p => p.Name));
     }
 
     [Fact]

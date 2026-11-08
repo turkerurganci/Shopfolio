@@ -20,9 +20,6 @@ internal enum ProductLinksOutcome
     /// <summary>The service introduction or reference work does not exist.</summary>
     OwnerNotFound,
 
-    /// <summary>An id of the list is no product of the catalog; nothing was written.</summary>
-    ProductNotFound,
-
     /// <summary>The list names one product twice; nothing was written (a product is linked to a record once, 06 4.53).</summary>
     DuplicateProduct,
 }
@@ -38,8 +35,6 @@ internal sealed class ProductLinksResult : IOperationResult
     public static ProductLinksResult Saved { get; } = new(ProductLinksOutcome.Saved);
 
     public static ProductLinksResult OwnerNotFound { get; } = new(ProductLinksOutcome.OwnerNotFound);
-
-    public static ProductLinksResult ProductNotFound { get; } = new(ProductLinksOutcome.ProductNotFound);
 
     public static ProductLinksResult DuplicateProduct { get; } = new(ProductLinksOutcome.DuplicateProduct);
 
@@ -73,7 +68,7 @@ internal sealed class ContentProductLinks
 
     /// <summary>
     /// Makes the links of the record match the list (the position in the list is the order): the products not in it are unlinked, the new ones are linked, the kept ones take their new place.
-    /// A product of any status can be linked - a draft is kept and not shown. An id that is no product, or a product named twice, refuses the whole list and writes nothing.
+    /// A product of any status can be linked - a draft is kept and not shown. An id that is no product (deleted meanwhile) is skipped and the rest are linked in the order of the choice; a product named twice refuses the whole list and writes nothing.
     /// </summary>
     public async Task<ProductLinksResult> SaveAsync(ContentLinkOwner owner, Guid ownerId, IReadOnlyList<Guid> productIds, CancellationToken ct)
     {
@@ -88,22 +83,21 @@ internal sealed class ContentProductLinks
             return ProductLinksResult.DuplicateProduct;
         }
 
-        if ((await _catalog.FindProductIdsAsync(productIds, ct)).Count != productIds.Count)
-        {
-            return ProductLinksResult.ProductNotFound;
-        }
+        // A product that no longer exists (deleted since the form was opened) is skipped, not an error; the rest keep the order of the choice (06 4.53; 07 9.13.2).
+        HashSet<Guid> existing = [.. await _catalog.FindProductIdsAsync(productIds, ct)];
+        List<Guid> kept = [.. productIds.Where(existing.Contains)];
 
         DateTimeOffset now = _time.GetUtcNow();
         if (owner == ContentLinkOwner.Offering)
         {
             List<OfferingProduct> links = await _db.OfferingProducts.Where(l => l.OfferingId == ownerId).ToListAsync(ct);
-            _db.OfferingProducts.RemoveRange(links.Where(l => !productIds.Contains(l.ProductId)));
-            for (int i = 0; i < productIds.Count; i++)
+            _db.OfferingProducts.RemoveRange(links.Where(l => !kept.Contains(l.ProductId)));
+            for (int i = 0; i < kept.Count; i++)
             {
-                OfferingProduct? link = links.FirstOrDefault(l => l.ProductId == productIds[i]);
+                OfferingProduct? link = links.FirstOrDefault(l => l.ProductId == kept[i]);
                 if (link is null)
                 {
-                    _db.OfferingProducts.Add(OfferingProduct.Create(ownerId, productIds[i], i + 1, now));
+                    _db.OfferingProducts.Add(OfferingProduct.Create(ownerId, kept[i], i + 1, now));
                 }
                 else
                 {
@@ -114,13 +108,13 @@ internal sealed class ContentProductLinks
         else
         {
             List<PortfolioItemProduct> links = await _db.PortfolioItemProducts.Where(l => l.PortfolioItemId == ownerId).ToListAsync(ct);
-            _db.PortfolioItemProducts.RemoveRange(links.Where(l => !productIds.Contains(l.ProductId)));
-            for (int i = 0; i < productIds.Count; i++)
+            _db.PortfolioItemProducts.RemoveRange(links.Where(l => !kept.Contains(l.ProductId)));
+            for (int i = 0; i < kept.Count; i++)
             {
-                PortfolioItemProduct? link = links.FirstOrDefault(l => l.ProductId == productIds[i]);
+                PortfolioItemProduct? link = links.FirstOrDefault(l => l.ProductId == kept[i]);
                 if (link is null)
                 {
-                    _db.PortfolioItemProducts.Add(PortfolioItemProduct.Create(ownerId, productIds[i], i + 1, now));
+                    _db.PortfolioItemProducts.Add(PortfolioItemProduct.Create(ownerId, kept[i], i + 1, now));
                 }
                 else
                 {

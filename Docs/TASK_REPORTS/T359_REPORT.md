@@ -9,7 +9,7 @@
 ## Yapılan İşler
 
 - **Galeri ortak kuralları** `Infrastructure/GalleryText` (ana işaret, boş alt metin yerine "Ad — görsel p / n", firma metni kırpılır): Catalog `GalleryRules`/`ImageAltText` ona devredildi (tek işlev, `09 §25`).
-- **Ürün bağı** `ContentProductLinks` (hizmet ve referans iş): ürün düzleminde, varyantsız; sıra seçim sırası; tekrar ya da olmayan ürün bütün listeyi reddeder; taslak ürün bağda kalır. `ICatalogModule` iki okuma üyesi aldı (`ListPublishedProductsAsync`: yalnız yayındaki kartlar, `FindProductIdsAsync`); ters bağ ve öneri üyesi yok.
+- **Ürün bağı** `ContentProductLinks` (hizmet ve referans iş): ürün düzleminde, varyantsız; sıra seçim sırası; tekrar eden ürün bütün listeyi reddeder, var olmayan (silinmiş) ürün atlanır ve kalan bağlar seçim sırasıyla yazılır (düzeltme 2); taslak ürün bağda kalır. `ICatalogModule` iki okuma üyesi aldı (`ListPublishedProductsAsync`: yalnız yayındaki kartlar, `FindProductIdsAsync`); ters bağ ve öneri üyesi yok.
 - **Elle sıra** `ContentOrdering`: beş liste (hizmet, referans, SSS, şube, genel sayfa); koşullu `ExecuteUpdate` (okunan değer değişmişse 409), eşit değerde bütün liste yeniden numaralanır, sürüm artmaz, menü ve ana sayfa önbelleği düşer; Hakkımızda ve duyuru `NotOrderable`.
 - **Galeri** `ContentGallery` (Hakkımızda, hizmet, referans, SSS, genel sayfa) + şube tek görsel: P-25 tavanı, tekrar/yok görsel reddi, tek ana işaret, etkin alt metin. Kayıt sonrası `CacheArea.HomepageBlocks` düşer (D-498 kapandı).
 - `ContentReaders.ListOfferingsAsync/ListPortfolioItemsAsync` (yayındakiler, elle sıra, 24/sayfa), `ContentMainImages` (HomepageReader'ın özel kopyası ortaklaştı).
@@ -26,7 +26,7 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Ürün bağı, yayındakiler, geri gelir, silinen kalkar, ters bağ/öneri yok | ✓ | Integration `ADraftProductStaysLinked…KK1`, `AnArchivedProduct…`, `ADeletedProductGoesFromTheLink…`, `TheLinkTablesHaveNoVariantColumn…`; Unit `TheCatalogContractHasNoReverseLinkAndNoSuggestionBlock_KK1` |
+| 1 | Ürün bağı, yayındakiler, geri gelir, silinen kalkar, ters bağ/öneri yok | ✓ | Integration `ADraftProductStaysLinked…KK1`, `AnArchivedProduct…`, `ADeletedProductGoesFromTheLink…`, `ADeletedProductInTheListIsSkipped…KK1` (iki sahip tipi; sıra korunur, hata değil), `ARefusedListWritesNothing…` (yinelenen, bilinmeyen kayıt), `TheLinkTablesHaveNoVariantColumn…`; Unit `TheCatalogContractHasNoReverseLinkAndNoSuggestionBlock_KK1` |
 | 2 | Beş liste elle sıralanır; vitrin/ana sayfa/menü izler; ürün listesi etkilenmez | ✓ | Integration `AMoveUpAndDown…KK2` (5 tip), `TheListPageTheHomePageBlockAndTheMenuFollowTheSameOrder…KK2` |
 | 3 | Hiçbir tip zorunlu değil; yayın kapısı tipe göre | ✓ | Integration `ARecordWithAnEmptyRequiredField_CannotBePublished…KK3` (7 tip), `NoTypeIsRequired…KK3`; Unit `ContentGateTests` (T322) |
 | 4 | Hakkımızda boş/yayında değil: marka bloğu | ✓ | Integration `AnAboutPage_NotThereDraftOrEmpty…KK4` (3 durum; çizim D-674) |
@@ -63,8 +63,8 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests -c Release --no-build` | 5076/5076 (düzeltme 1 sonrası, main birleşik) |
-| Integration | ✓ | `--filter-namespace "*CorporateContent*"` ve `"*Catalog*"` (PostgreSQL 17, kendi konteyner) | 123/123 ve 72/72 (ContentRelationsTests 37) |
+| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests -c Release --no-build` | 5140/5140 (düzeltme 2 sonrası, main birleşik) |
+| Integration | ✓ | `--filter-namespace "*CorporateContent*"` ve `"*Catalog*"` (PostgreSQL 17, kendi konteyner) | 150/150 ve 72/72 (düzeltme 2 sonrası; ContentRelationsTests +2) |
 | Format | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes --include <değişen dosyalar>` | temiz |
 | Contract | — | yok | — |
 
@@ -101,6 +101,10 @@ B1 düzeltildi: `ContentRelationsTests`'e iki Integration sınır testi eklendi 
 - **B2 (DÜŞÜK, S1) — ürün bağı kaydında olmayan ürün bütün listeyi reddediyor; belge "atlanır" diyor.** `ContentProductLinks.SaveAsync` listede var olmayan bir ürün kimliği görünce `ProductNotFound` döner ve hiçbir bağ yazmaz (`ContentProductLinks.cs` satır 91–94; test `ARefusedList_WritesNothing_…_KK1` bunu kilitler). `06 §4.53` "eski formun kaydı silinmiş ürünün bağını yazmaz — bağ kümesi kaydedilirken var olmayan ürün atlanır (`02 §3.27.10`)" ve `07 §9.13.2` "ilgili ürünlerden biri o arada silinmişse bağı atlanır, hata değildir (`06 §4.53`)" der. Etki: form açıkken bağlı bir ürün silinirse içerik kaydının kaydı reddedilir; kural modülde olmadığından panel (T534) yeniden yazmak zorunda kalır (`09 §25` "kod hiçbir doküman cümlesiyle çelişmiyor mu" → hayır). Düzeltme: var olmayan kimlikler atlanır (yalnız var olanlar seçim sırasıyla bağlanır), test atlamayı sınar; tekrar eden ürün reddi kalabilir.
 - **K2 → D-712:** D-673'ün hedefi T360 main'e girdi (#481), `ContentPublishing.DeleteAsync` hâlâ `SaveChangesAsync` çağırıyor; kalem yeni hedefe bağlanmalı.
 - **Yapım raporu karşılaştırması:** rapor "olmayan ürün bütün listeyi reddeder" kararını yazıyor ama `06 §4.53` / `07 §9.13.2` ile karşılaştırmıyor (B2); öteki maddeler validator kanıtıyla uyumlu. Öz denetim tablosu var, maddeler kanıtlı.
+
+### Düzeltme 2 (2026-11-09)
+
+B2 düzeltildi: `ContentProductLinks.SaveAsync` var olmayan (silinmiş) ürünü atlar, kalan bağları seçim sırasıyla yazar, hata değildir (`06 §4.53`, `07 §9.13.2`); `ProductNotFound` sonucu kaldırıldı, kural modülde. Yinelenen ürün (`DuplicateProduct`) ve bilinmeyen kayıt (`OwnerNotFound`) reddi aynen korundu (dokümanlar bunlara dokunmuyor; grep ile doğrulandı). Testler: reddi kilitleyen test yinelenen + bilinmeyen kayıtla sınırlandı; yeni `ADeletedProductInTheListIsSkipped_TheRestAreLinkedInTheOrderOfTheChoice_NotAnError_KK1` (hizmet ve referans iş; silinmiş + hiç olmayan kimlik atlanır, sıra korunur, ilgili ürünler aynı sırada). Öz denetimde kabul kriterleri 1-8 ve kontrol listesi KK1-KK8 yeniden denetlendi, hepsi ✓ (KK1 kanıtı güncellendi, yukarıdaki tablo). Yerel: build `-warnaserror` 0 uyarı, format üç proje temiz, Unit 5140/5140, Integration `CorporateContent` 150/150, `Catalog` 72/72. Backlog kalemi eklenmedi (K2/D-712 bu düzeltmenin dışında).
 
 ## Altyapı Değişiklikleri
 

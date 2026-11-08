@@ -32,7 +32,7 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Uç `POST /sistem/odeme-bildirimi`; imza ve tutar bağlantı katmanında | ✓ | `PaymentModule.cs:221` (`MapSignedEndpoint` + `AntiforgeryExemptions.PaymentNotificationPath`), `Program.cs:191`; `PaymentNotificationEndpoint.Verify` → `IPaymentGateway.VerifyNotification`; `PaymentNotificationRule.Classify` → `CheckNotificationAmount`; `PaymentNotificationRuleTests.Verify_AsksTheLinkLayer_…_KK1`, `SuccessWhoseAmountDoesNotHold_IsMarkedAmountMismatch_Row6_KK5` |
+| 1 | Uç `POST /sistem/odeme-bildirimi`; imza ve tutar bağlantı katmanında | ✓ | `PaymentModule.cs:275` (`MapSignedEndpoint` + `AntiforgeryExemptions.PaymentNotificationPath`), `Program.cs:191`; `PaymentNotificationEndpoint.Verify` → `IPaymentGateway.VerifyNotification`; `PaymentNotificationRule.Classify` → `CheckNotificationAmount`; `PaymentNotificationRuleTests.Verify_AsksTheLinkLayer_…_KK1`, `SuccessWhoseAmountDoesNotHold_IsMarkedAmountMismatch_Row6_KK5` |
 | 2 | Bozuk imza 400, kayıt yok, işleme yok, seyreltilmiş güvenlik olayı | ✓ | `PaymentNotificationTests.SignatureThatDoesNotHold_Gets400WithAnEmptyBody_NoRecordNoJob_AndAThinnedSecurityLine_KK1_KK2`; hız sınırı T215: `RequestLimitsTests.ABadSignature_IsAnsweredByTheEndpointEvenWhenTheLimitIsReached`, `ANotificationWithARightSignature_IsOutsideTheLimit_…` |
 | 3 | Doğru imzalı bildirim kayıt diske kesinleştikten sonra 200 `OK` | ✓ | `Success_IsRecordedWithItsJobRow_ReceivedAfterTheCommit_AndTheOrderChangesOnlyInTheJob_KK3_KK6_KK7` (commit anında dışarıdan 0 satır; yanıt `OK`); yanıt sırası `SignedEndpointHandler` (T203) |
 | 4 | Tekrar kaydedilmez, işlenmez, yine 200 | ✓ | `SameNotificationAgain_IsReceivedWithTheSameAnswer_AndWritesNoSecondRecordOrJobRow_KK4`, `SameTransactionWithAnotherOutcome_IsAnotherNotification_KK4`, `JobRowThatComesBack_FindsTheRecordProcessed_AndAppliesNothingAgain_KK4_KK7`; `InboundNotificationInsert.cs` `ON CONFLICT DO NOTHING` |
@@ -63,7 +63,7 @@ Bütün maddeler — önceki işçinin yaptıkları dahil — bu diff'te yeniden
 | `09 §25` — modül sınırı | ✓ | Payment yalnız `Ordering.Contracts`'a başvurur; arayüz metodunda `SaveChanges` yok; mimari testler yeşil |
 | `09 §25` — dış servis `Integrations` arayüzünde, imza ve tutar işleyiciden önce | ✓ | `Verify` hattın kayıt adımından önce; tutar `RecordAsync`'te katmanın işleviyle |
 | `09 §25` — durum değişikliği yalnız geçiş birimiyle | ✓ | İş `IOrderTransitions` çağırır; uç yazmaz |
-| `09 §25` — iş kalıbı (iş türü kayıtlı, işleyici sahip task'ta) | ✓ | `PaymentModule.cs:207`; `JobQueueRegistrationTests` yeşil |
+| `09 §25` — iş kalıbı (iş türü kayıtlı, işleyici sahip task'ta) | ✓ | `PaymentModule.cs:261`; `JobQueueRegistrationTests` yeşil |
 | `09 §25` — eşzamanlılık | ✓ | Tekillik dizini + `ON CONFLICT`; siparişin kilidi geçiş biriminde |
 | `09 §25` — zaman `TimeProvider`'dan | ✓ | Uç ve iş `TimeProvider` alır |
 | `09 §25` — kayıtta kişisel veri yok | ✓ | `AmountMismatch_…_KK5` log satırında referans yok; kayıt kişisel alan taşımaz |
@@ -101,7 +101,7 @@ Bütün maddeler — önceki işçinin yaptıkları dahil — bu diff'te yeniden
 | Düzeltme gerekli mi | Hayır |
 | Bloke-etmeyen not (K) sayısı | 2 (K1 → D-480; K2 D-97'de kapandı) |
 
-Doğrulamadan sonra `origin/main` (T324 zaman aşımı #454, T344 adres #451) birleştirildi: `OrderingModule.cs` ve `PaymentModule.cs`'te iki tarafın eklemeleri yan yana korundu (yalnız ekleme), backlog D-97'ye T324 notu eklendi ve tablo sonu numara sırasıyla dizildi; öz denetim tablosundaki `PaymentModule.cs:217` atfı `:221` oldu.
+Doğrulamadan sonra `origin/main` (T324 zaman aşımı #454, T344 adres #451) birleştirildi: `OrderingModule.cs` ve `PaymentModule.cs`'te iki tarafın eklemeleri yan yana korundu (yalnız ekleme), backlog D-97'ye T324 notu eklendi ve tablo sonu numara sırasıyla dizildi; öz denetim tablosundaki `PaymentModule.cs:217` atfı `:221` oldu. İkinci birleştirmede (T340 #462, T319 #465, T342 #453) `IOrderingModule.cs` ve `VersionedSideBulkWriteScan.cs`'te iki tarafın üyeleri birlikte korundu (yalnız ekleme); `PaymentModule.cs` atıfları `:207` → `:261`, `:221` → `:275` oldu.
 
 ### Doğrulayıcı kanıtları (tur 1)
 

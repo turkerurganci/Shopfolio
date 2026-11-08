@@ -900,6 +900,11 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
     {
         string slug = Slug.From(name, "urun") + "-" + Guid.NewGuid().ToString("N")[..6];
         Product product = Product.Create(name, slug, productType, 20m, createdAt);
+        if (productType == ProductType.Physical)
+        {
+            product.WithSeededOrigin();
+        }
+
         product.PublishStatus = status;
         product.SetDescription(description);
         await SaveAsync(c => c.Products.Add(product));

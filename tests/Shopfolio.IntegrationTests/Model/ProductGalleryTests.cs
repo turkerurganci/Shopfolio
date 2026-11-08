@@ -347,7 +347,7 @@ public sealed class ProductGalleryTests : IAsyncLifetime
 
     private static Product NewProduct(string slug, string? name = null)
     {
-        return Product.Create(name ?? "Ürün " + slug, slug, ProductType.Physical, 20m, Now);
+        return Product.Create(name ?? "Ürün " + slug, slug, ProductType.Physical, 20m, Now).WithSeededOrigin();
     }
 
     private async Task<(Product Product, Variant Variant)> SeedProductWithVariantAsync(string slug, string? name = null)

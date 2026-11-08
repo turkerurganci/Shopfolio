@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 
@@ -20,7 +21,7 @@ internal static class ListSeed
         await using AppDbContext db = Open(dsn);
         for (int n = 1; n <= count; n++)
         {
-            Product product = Product.Create(NameOf(n), $"urun-{n:000}", ProductType.Physical, 20m, First.AddMinutes(n));
+            Product product = Product.Create(NameOf(n), $"urun-{n:000}", ProductType.Physical, 20m, First.AddMinutes(n)).WithSeededOrigin();
             product.PublishStatus = PublishStatus.Published;
             db.Products.Add(product);
             Variant variant = Variant.Create(product.Id, $"SKU-{n:000}", n, First.AddMinutes(n));
@@ -39,7 +40,7 @@ internal static class ListSeed
         List<Guid> ids = [];
         for (int i = 0; i < names.Count; i++)
         {
-            Product product = Product.Create(names[i], $"tied-{Guid.NewGuid():N}", ProductType.Physical, 20m, createdAt);
+            Product product = Product.Create(names[i], $"tied-{Guid.NewGuid():N}", ProductType.Physical, 20m, createdAt).WithSeededOrigin();
             product.PublishStatus = status;
             db.Products.Add(product);
             ids.Add(product.Id);

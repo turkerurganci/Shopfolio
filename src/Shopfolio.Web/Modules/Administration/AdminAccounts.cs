@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.Values;
@@ -313,21 +314,11 @@ internal sealed class AdminAccounts
             return AdminRemovalResult.Confirmation(target.Name, target.Email, unused);
         }
 
-        // The row lock without a change: a send by the target that holds the row finishes first and its invitation is seen by the statements below.
-        if (await _db.Admins.Where(a => a.Id == targetAdminId).ExecuteUpdateAsync(set => set.SetProperty(a => a.Name, a => a.Name), ct) != 1)
+        (int validInvitations, int sessions, List<string> addresses)? removed = await DeleteAccountRowAsync(targetAdminId, now, ct);
+        if (removed is null)
         {
             return AdminRemovalResult.Of(AdminRemovalOutcome.NotFound);
         }
-
-        int validInvitations = await _db.AdminInvitations.AsNoTracking().CountAsync(ValidInvitationOf(targetAdminId, now), ct);
-        List<Guid> open = await OpenInvitationIds(i => i.SenderAdminId == targetAdminId).ToListAsync(ct);
-        await EndLinksAsync(open, now, ct);
-        await _db.AdminInvitations.Where(i => open.Contains(i.Id)).ExecuteUpdateAsync(set => set.SetProperty(i => i.InvalidatedAt, now), ct);
-
-        int sessions = await _db.Sessions.AsNoTracking().CountAsync(s => s.AdminId == targetAdminId, ct);
-        List<string> addresses = await _db.Admins.AsNoTracking().Select(a => a.Email).ToListAsync(ct);
-        await _db.Admins.Where(a => a.Id == targetAdminId).ExecuteDeleteAsync(ct);
-        _db.DisposalRecords.Add(DisposalRecord.Counted(DisposalRecordType.Admin, 1, now));
 
         await _trail.WriteForAsync(
             actor,
@@ -335,9 +326,42 @@ internal sealed class AdminAccounts
                 AuditOperation.RemoveAdminAccount,
                 nameof(Admin),
                 targetAdminId,
-                new AuditDetails(target.Name, values: [new AuditValue("Email", target.Email), new AuditValue("InvalidatedInvitations", validInvitations.ToString(System.Globalization.CultureInfo.InvariantCulture))])));
-        await _notifications.QueueAdminNoticeAsync(new AdminRemovedNotice(targetAdminId, actor.Name, target.Name, now), addresses, ct);
-        return AdminRemovalResult.Removed(target.Name, target.Email, validInvitations, sessions);
+                new AuditDetails(target.Name, values: [new AuditValue("Email", target.Email), new AuditValue("InvalidatedInvitations", removed.Value.validInvitations.ToString(System.Globalization.CultureInfo.InvariantCulture))])));
+        await _notifications.QueueAdminNoticeAsync(new AdminRemovedNotice(targetAdminId, actor.Name, target.Name, now), removed.Value.addresses, ct);
+        return AdminRemovalResult.Removed(target.Name, target.Email, removed.Value.validInvitations, removed.Value.sessions);
+    }
+
+    /// <summary>
+    /// The removal applied again after the database was returned to an earlier moment (T388; 05 8.5.10): the administrator set's lock first and alone, then the same row work as the removal -
+    /// the unused invitations the account sent ended with their links, the row deleted, the disposal record written - and none of its gates: no acting administrator, no self or
+    /// last-administrator refusal, no trail row and no notice (both were written the first time). An account that is not there already is skipped.
+    /// </summary>
+    public async Task<DeletionReapplyResult> ReapplyRemovalAsync(Guid adminId, CancellationToken ct)
+    {
+        RequireTransaction("The removal is written only inside a transaction (09 6 item 3).");
+        await _locks.LockAsync(AdvisoryLockScope.AdminSet, null, ct);
+        return await DeleteAccountRowAsync(adminId, _time.GetUtcNow(), ct) is null ? DeletionReapplyResult.Skipped() : DeletionReapplyResult.Applied();
+    }
+
+    // The row work of a removal, shared by the administrator's removal and its replay after a restore: null when the account is not there. The row lock without a change comes first: a send by the
+    // target that holds the row finishes first and its invitation is seen by the statements after it. Returns what the removal's answer and the notice need.
+    private async Task<(int ValidInvitations, int Sessions, List<string> Addresses)?> DeleteAccountRowAsync(Guid adminId, DateTimeOffset now, CancellationToken ct)
+    {
+        if (await _db.Admins.Where(a => a.Id == adminId).ExecuteUpdateAsync(set => set.SetProperty(a => a.Name, a => a.Name), ct) != 1)
+        {
+            return null;
+        }
+
+        int validInvitations = await _db.AdminInvitations.AsNoTracking().CountAsync(ValidInvitationOf(adminId, now), ct);
+        List<Guid> open = await OpenInvitationIds(i => i.SenderAdminId == adminId).ToListAsync(ct);
+        await EndLinksAsync(open, now, ct);
+        await _db.AdminInvitations.Where(i => open.Contains(i.Id)).ExecuteUpdateAsync(set => set.SetProperty(i => i.InvalidatedAt, now), ct);
+
+        int sessions = await _db.Sessions.AsNoTracking().CountAsync(s => s.AdminId == adminId, ct);
+        List<string> addresses = await _db.Admins.AsNoTracking().Select(a => a.Email).ToListAsync(ct);
+        await _db.Admins.Where(a => a.Id == adminId).ExecuteDeleteAsync(ct);
+        _db.DisposalRecords.Add(DisposalRecord.Counted(DisposalRecordType.Admin, 1, now));
+        return (validInvitations, sessions, addresses);
     }
 
     /// <summary>The administrator's name from their own account (07 UC-178; 02 10.2.4): empty is refused (K-736); no reauthentication; no trail row (the name is not one of the trail's operations).</summary>

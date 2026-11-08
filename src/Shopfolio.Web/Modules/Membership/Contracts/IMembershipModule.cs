@@ -1,5 +1,6 @@
 using System.Net;
 
+using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Catalog.Contracts;
@@ -190,6 +191,13 @@ public interface IMembershipModule
     /// reauthentication, and a row of the operation in the audit trail that names the operation and its date and nothing of the account (02 10.3.1). An unverified pending registration is not found.
     /// </summary>
     Task<AccountDeletionResult> DeleteAccountOnRequestAsync(Guid customerId, CancellationToken ct);
+
+    /// <summary>
+    /// The account's deletion applied again after the database was returned to an earlier moment (T388; 05 8.5.10), for the <c>reapply-deletions</c> command, in the caller's transaction, which
+    /// saves: the same removal as the two deletions above with none of a user's gates (no revert-link check, no reauthentication, no trail row) and no e-mail - the owner was told the first time.
+    /// An account that is not there already is skipped.
+    /// </summary>
+    Task<DeletionReapplyResult> ReapplyAccountDeletionAsync(Guid customerId, CancellationToken ct);
 
     /// <summary>The member record view for an e-mail (T345; 02 3.15.5; 07 UC-95): read only, a value that nothing writes back; no account, an unverified pending registration or a verified account.</summary>
     Task<MemberRecord> FindMemberRecordAsync(string email, CancellationToken ct);

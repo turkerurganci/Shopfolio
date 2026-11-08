@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Backup;
 using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.InstallationSettings;
@@ -106,6 +107,10 @@ internal static class CommandHost
         services.AddScoped<PasswordRegime>();
         services.AddLinkRecords();
         services.AddJobQueue();
+
+        // The two commands of the restore (T388; 05 8.5.10, 8.5.11): the count of the order side's writes after the restore point, and the reader of the application log's deletion lines.
+        services.AddScoped<RollbackAudit>();
+        services.AddSingleton<InstantDeletionLog>();
 
         services.AddFileStore();
         services.AddCatalogModule();

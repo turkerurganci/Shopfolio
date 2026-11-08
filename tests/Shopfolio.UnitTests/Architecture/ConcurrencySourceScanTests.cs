@@ -34,6 +34,7 @@ public sealed class ConcurrencySourceScanTests
         Assert.Contains(ConcurrencySourceScan.DigitalFileLocksFile, scanned);
         Assert.Contains(ConcurrencySourceScan.OrderLocksFile, scanned);
         Assert.Contains(ConcurrencySourceScan.StockCountersFile, scanned);
+        Assert.Contains(ConcurrencySourceScan.DownloadCountersFile, scanned);
         Assert.Contains(ConcurrencySourceScan.CompanySettingsWriterFile, scanned);
         Assert.Empty(findings);
     }
@@ -55,8 +56,40 @@ public sealed class ConcurrencySourceScanTests
                 (ConcurrencySourceScan.CounterWrite, 16),
                 (ConcurrencySourceScan.CounterWrite, 17),
                 (ConcurrencySourceScan.RowLockText, 22),
+                (ConcurrencySourceScan.CounterWrite, 23),
+                (ConcurrencySourceScan.CounterWrite, 24),
+                (ConcurrencySourceScan.CounterWrite, 25),
             ],
             findings);
+    }
+
+    [Fact]
+    public void Scan_InTheDownloadCountersFile_AllowsTheDownloadCounterWrites_AndStillFindsTheStockCounterWrites()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = ConcurrencySourceScan.Scan(ConcurrencySourceScan.DownloadCountersFile, ReadSample());
+
+        Assert.DoesNotContain(findings, f => f.Line is 23 or 24 or 25);
+        Assert.Contains((ConcurrencySourceScan.CounterWrite, 10), findings);
+        Assert.Contains((ConcurrencySourceScan.CounterWrite, 17), findings);
+    }
+
+    [Fact]
+    public void Scan_InTheStockCountersFile_StillFindsTheDownloadCounterWrites_AndNotTheReadOrTheOtherColumn()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = ConcurrencySourceScan.Scan(ConcurrencySourceScan.StockCountersFile, ReadSample());
+
+        Assert.Contains((ConcurrencySourceScan.CounterWrite, 23), findings);
+        Assert.Contains((ConcurrencySourceScan.CounterWrite, 24), findings);
+        Assert.Contains((ConcurrencySourceScan.CounterWrite, 25), findings);
+        Assert.DoesNotContain(findings, f => f.Line is 10 or 12 or 16 or 17 or 28 or 29);
+    }
+
+    [Fact]
+    public void Scan_AFileOfTheSameNameAsDownloadCountersElsewhere_IsNotAnAllowedPlace()
+    {
+        IReadOnlyList<(string Rule, int Line)> findings = ConcurrencySourceScan.Scan("src/Shopfolio.Web/Modules/Catalog/DownloadCounters.cs", ReadSample());
+
+        Assert.Contains((ConcurrencySourceScan.CounterWrite, 23), findings);
     }
 
     [Fact]
@@ -70,7 +103,7 @@ public sealed class ConcurrencySourceScanTests
 
         Assert.Equal([ConcurrencySourceScan.CounterWrite], inOrderLocks.Select(f => f.Rule).Distinct());
         Assert.Equal([ConcurrencySourceScan.ShareLockText, ConcurrencySourceScan.CounterWrite], inAdvisoryLocks.Select(f => f.Rule).Distinct());
-        Assert.Equal([ConcurrencySourceScan.RowLockText, ConcurrencySourceScan.ShareLockText], inStockCounters.Select(f => f.Rule).Distinct());
+        Assert.Equal([ConcurrencySourceScan.RowLockText, ConcurrencySourceScan.ShareLockText, ConcurrencySourceScan.CounterWrite], inStockCounters.Select(f => f.Rule).Distinct());
     }
 
     [Fact]

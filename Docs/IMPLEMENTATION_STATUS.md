@@ -180,7 +180,7 @@
 | T337 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | ✓ | ✓ PASS (tur 1) | — | #457 |
 | T338 | Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması | ✓ | ✓ PASS (tur 1) | — | #458 |
 | T339 | Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti | ✓ | ✓ PASS (tur 2) | — | #445 |
-| T340 | Dijital ürün: dosya, indirme hakkı, hak yenileme, yeniden satın alma | ⬚ | — | — | — |
+| T340 | Dijital ürün: dosya, indirme hakkı, hak yenileme, yeniden satın alma | ✓ | ✓ PASS (tur 1) | — | #462 |
 | T341 | Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı | ✓ | ✓ PASS (tur 3) | — | #433 |
 | T342 | Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri | ✓ | ✓ PASS (tur 3) | — | #453 |
 | T343 | Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma | ⬚ | — | — | — |

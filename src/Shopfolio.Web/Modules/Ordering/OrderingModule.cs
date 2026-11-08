@@ -258,6 +258,9 @@ internal static class OrderingModuleRegistration
         services.AddScoped<OrderCounters>();
         services.AddScoped<OrderTransitions>();
         services.AddScoped<IOrderTransitions>(provider => provider.GetRequiredService<OrderTransitions>());
+        // The operation decision (T323; 03 1.11): the forty-one operations in one table; the screen reads it and every POST asks it again.
+        services.AddScoped<OrderOperations>();
+        services.AddScoped<IOrderOperations>(provider => provider.GetRequiredService<OrderOperations>());
         services.AddDisposalPart<GuestCartDisposalPart>();
         services.AddDisposalPart<OrderDisposalPart>();
 

@@ -103,6 +103,10 @@ public sealed class SitemapSourceTests
 
         public Task ReturnAsync(StockClaim claim, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<bool> RetakeAsync(StockClaim claim, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task RestoreAsync(StockClaim claim, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<StockQuantityWriteResult> SaveStockQuantityAsync(Guid variantId, int? shownValue, int? newValue, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<VariantStockState?> GetStockStateAsync(Guid variantId, CancellationToken ct) => throw new NotSupportedException();
@@ -124,6 +128,10 @@ public sealed class SitemapSourceTests
         public Task<ShowcasePage> ListShowcaseAsync(string? search, int page, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<ProductPage> GetProductPageAsync(string? slug, bool isAdministrator, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<Guid>> ListVariantsWithoutFileAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<string?> SuggestStockCodeAsync(Guid? productId, string? productName, CancellationToken ct) => throw new NotSupportedException();
 

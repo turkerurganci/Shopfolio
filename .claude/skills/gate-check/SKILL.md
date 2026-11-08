@@ -125,8 +125,8 @@ user-invocable: true
 
 19. Tek bir `chore:` PR'ında:
     - Gate raporu → `Docs/CHECKPOINT_REPORTS/GATE_CHECK_FX.md`
-    - `Docs/IMPLEMENTATION_STATUS.md` faz satırı `✓ PASS`
-    - Repo memory: faz özet satırı (tarih, PR no, squash hash, tag, ana metrikler) + "sıradaki" satırı + tarih başlığı
+    - `Docs/IMPLEMENTATION_STATUS.md` faz satırı `✓ PASS` ve "Son güncelleme" satırı (satırı birleştiren taraf olarak bu kayıt PR'ı günceller; eski giriş `STATUS_CHANGELOG.md`'nin en üstüne taşınır). **Parçaları topla:** `Docs/STATUS_CHANGELOG.d/*.md` girişlerini tarih sırasıyla `STATUS_CHANGELOG.md`'ye aktar, parça dosyalarını (README hariç) sil; **backlog sayacı:** `Docs/DEFERRED_BACKLOG.md` başlığındaki "Aktif kalem" ve STATUS'taki "backlog aktif" sayısını yeniden say
+    - Repo memory: "Güncel Durum" bloğu (task/doğrulama commit'leri dokunmaz; bunu bu PR günceller) + faz özet satırı (tarih, PR no, squash hash, tag, ana metrikler) + "sıradaki" satırı + tarih başlığı
     - Backlog forward'ları ve hijyen düzeltmeleri
     - Gate'te okunan ya da yeniden doğrulanan `12` satırlarının `Durum` hücreleri (`12 §7.5`, `§11.1` madde 1 ve 4, Kanıt ortamı hücresi üst ortamı yazan satırda düşük ortam `PASS`'inin `BEKLEMEDE`'ye dönüşü dahil; `12`'nin sürümünü artırmaz)
     - `11 §7.1`'de fazın task'larına bağlı satırların "Implement edildi" ve "Kanıt" hücreleri (`11 §6.1` madde 3) ve faz, kapsama betiğinin `GATE_DOLU` listesine (`scripts/doc-scans/11_matris_kapsama.py`; betik çıkış 0)

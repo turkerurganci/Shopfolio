@@ -2,6 +2,8 @@
 
 **Son güncelleme:** 2026-11-08 | **Aktif kalem:** 174 | **Gate'i bloklayan:** 0
 
+> Task/doğrulama commit'leri "Aktif kalem" sayacını değiştirmez (çakışma, 2026-11-08); kayıt satırlarını ekler/kapatır, sayacı faz kapısı kayıt PR'ı yeniden sayar.
+
 > **Amaç:** Bilinçli olarak ertelenen **her** somut işin tek izlenebilir listesi.
 >
 > **Neden gerekli:** Validator ve gate bulgularının bir kısmı "gerçek ama şimdi değil" kararıyla kapanır. Bu karar yalnızca task raporunun içinde kalırsa **buharlaşır** — yüz rapor sonra kimse o satırı bulamaz.

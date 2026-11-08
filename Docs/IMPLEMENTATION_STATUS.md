@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) doğrulama tur 4 ✓ PASS (TAM yeniden doğrulama; head `f6412bf` + `origin/main` (T341, #433) birleştirmesi, PR #442; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 3 BLOCKED (main kod çakışması) iki kod birleştirmesiyle giderildi; Unit 4231/4231 (Architecture, Consistency dahil), betik testleri 4/4, Integration `CategoryTreeAndListsTests` 33/33 (parçalı, gerçek PostgreSQL 18), `build -warnaserror` ve `dotnet format` temiz; dal CI 42425396677 success; bulgu 0; K1: D-332 hedefi tamamlanmış T339'dan T502'ye taşındı; `VAL-A001`…`A008`, `VAL-A181`…`A185` `BEKLEMEDE` kaldı (uç ve tarayıcı kanıtı sayfa task'larında); backlog aktif kalem yeniden sayıldı: 166). Önceki kayıtlar `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-08 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) doğrulama tur 4 ✓ PASS (TAM yeniden doğrulama; head `f6412bf` + `origin/main` (T341, #433) birleştirmesi, PR #442; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 3 BLOCKED (main kod çakışması) iki kod birleştirmesiyle giderildi; Unit 4231/4231 (Architecture, Consistency dahil), betik testleri 4/4, Integration `CategoryTreeAndListsTests` 33/33 (parçalı, gerçek PostgreSQL 18), `build -warnaserror` ve `dotnet format` temiz; dal CI 42425396677 success; bulgu 0; K1: D-332 hedefi tamamlanmış T339'dan T502'ye taşındı; `VAL-A001`…`A008`, `VAL-A181`…`A185` `BEKLEMEDE` kaldı (uç ve tarayıcı kanıtı sayfa task'larında); backlog aktif kalem yeniden sayıldı: 159). Önceki kayıtlar `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -156,7 +156,7 @@
 | T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | `335e9cb` | #418 |
 | T315 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | ✓ | ✓ PASS (tur 1) | `8caf0f0` | #434 |
 | T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ✓ | ✓ PASS (tur 2) | — | #437 |
-| T317 | Ödeme durumu geçişleri: ödeme ekseni | ⬚ | — | — | — |
+| T317 | Ödeme durumu geçişleri: ödeme ekseni | ✓ | ✓ PASS (tur 3) | — | #441 |
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ⬚ | — | — | — |
 | T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |

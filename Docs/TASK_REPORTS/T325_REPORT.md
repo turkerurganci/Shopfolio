@@ -1,6 +1,6 @@
 # T325 — Zaman aşımı akışları: teslim, cayma, geri ödeme ve ayıp talebi süreleri
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS; merge yardımcıda) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -79,10 +79,34 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-08, head `908b740a` + `origin/main` `02ec5357` (T342 #453) birleştirmesi). Kriter 1–9, KK1–KK9, `09 §25` ve güvenlik taraması ✓ |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 → D-531 (faiz uyarısı kuralı kargoya verme anını okumaz; T368), K2 → D-532 (Teslim edilemedi'de ayıp kanalı okuması belgede açık değil; T374) |
+
+**Doğrulayıcı kanıtları (tur 1):**
+
+| # | Kriter / KK | Sonuç | Doğrulayıcı kanıtı |
+|---|---|---|---|
+| 1 / KK1 | Z-10 ve Z-39 ödeme onayından; aşımda işlem yok, sayaç var | ✓ | `OrderPeriods.PaymentApprovedAtAsync`: düzeltme kaydının göstermediği son Ö1'in anı (kartta başarı bildirimi, havalede işaret; düzeltilen işaret sonrası yeni işaret) — `02 §4.2` Z-10/Z-39 "ödemenin onaylandığı an", `03 §4.1.10` "düzeltmeden sonra yeni ödeme onayı". Z-10 iş günü (`PeriodCounting` `ShippingPeriod`), Z-39 takvim günü (`02 §4.1.3`). Integration KK1 üç test: kaynak (`IDueRecordSource`) siparişi bulmaz, `jobs` boş, sipariş Hazırlanıyor/Ödendi ve sürüm aynı (sayaç bu durumdan okunur). Panel sayacının kendisi T382 (D-513) |
+| 2 / KK2 | Aşımdan sonra iptalde faiz uyarısı | ✓ | `IsLegalInterestWarningDue`: fiziksel Z-10, hizmet Z-39, dijital ve onaysız ödeme false; sınır anı Unit + Integration (`End.AddTicks(-1)` false, `End` true). Uyarının iptal işlemine bağlanması T367/T368 (D-513). Kenar durum K1 |
+| 3 / KK3 | Z-11 sonrası fesih kargodaki siparişte de açık | ✓ | `IsLateDeliveryTerminationOpen`: sipariş onayından (`Order.CreatedAt`) 30 takvim günü (`02 §4.2` Z-11), ödeme onaylı, iptal değil, teslim tarihi yok + açık adedi kalan fiziksel kalem; kişiye özel üretim dışlanmaz (K-597). Integration: Shipped siparişte sınırda açılır, kayıtla kapanan adet yolu kapatır, sınır aşımı işlem üretmez. Ayıpta dönülen adedin ayrıca düşülmesi (`02 §7.1.6`, K-1077) T368 KK2'de ve D-513'te |
+| 4 / KK4 | Teslim tarihi yoksa Z-13 ve Z-18 işlemez | ✓ | `IsWithdrawalWindowOpen` fiziksel kalemde tarih yoksa düğmeyi kapatmaz; `IsDefectClaimChannelOpen` kargodaki tarihsiz fiziksel kalemde açık ve kapanmaz (`02 §7.5.2`, `VAL-C024`'ün kuralı); tarih girilmiş kalem Z-11'i açmaz. Unit KK4 üç test |
+| 5 / KK5 | Pencere kapanınca beyan korunur; hizmette "tamamlandı" kapatır; Z-15 | ✓ | Kural saf işlev, kayıt okumaz/yazmaz; Z-13 teslim tarihinden, Z-14 sipariş tarihinden ya da fiziksel kalemli siparişte teslim tarihinden (girilmemişse başlamaz; `02 §4.2` Z-14), `DeliveryMarkedAt` doluysa kapalı; dijital hiç açık değil. Integration `..._KK6_KK7` beyan kaydı süre sonrası durur |
+| 6 / KK6 | Z-16, Z-17, Z-47 için iş yok; Z-47 gösterilmez; Z-17 yalnız havalede | ✓ | `PeriodTimerScanTests` (iş türü adları; yansımayla bulunan her kaynak/kesinti etkisi/gecelik adım/işleyici bu kuralları ve tarih alanlarını okumaz; `ImpossibilityNoticePeriod` yalnız `CountedPeriod.cs` ve `PeriodCounting.cs`'te); `CancellationRefundStanding` kartta null; `WithdrawalRefundStartDay` `02 §4.2` Z-16 başlangıcıyla birebir (ikisinden geç olanı; mal ulaşmadan null) |
+| 7 / KK7 | Z-42 sonrası "mal dönmedi" kapanışı açılır | ✓ | `IsNotReturnedClosureOpen` = teslimden sonraki cayma ∧ bekleyen adet ∧ beyandan 14 gün dolmuş (`02 §4.2` Z-42 "teslimden sonraki cayma"); Integration'da süre geçince `not_returned_closures` ve `returns` boş, kalem bekler |
+| 8 / KK8 | Z-18 sonrası yeni talep reddedilir | ✓ | `DefectClaimChannelEnd` = teslim günü + 2 yıl, ertesi gün 00:00 (`02 §4.1.4`); fiziksel Kargoya verildi/Teslim edildi'den, hizmet "tamamlandı"dan, dijital onaydan (onayda `DeliveryDate` yazıldığı `OrderTransitions.Payment.cs` `CompleteApprovalAsync`'te teyit edildi). Talep işlemi T374 (D-513). Kenar durum K2 |
+| 9 / KK9 | Z-19 için zamanlayıcı yok | ✓ | `PeriodTimerScanTests` deseni `DownloadCount`/`DownloadAllowance`'ı da arar; desen örnek testi yakaladığını ve yakalamadığını sınar |
+| `09 §25` | ilgili satırlar | ✓ | zaman yalnız çağırandan (kurallar saat okumaz, okuyucu anı parametre alır); modül sınırı (`IAfterSalesModule`, `Contracts`); sayım tek evden (`PeriodCounting`, `TurkeyTime`, `BusinessCalendar`), ödeme onayı anını okuyan ikinci işlev yok; yasal süre sabitleri `02 §11` envanteri dışında, kuralın sınıfında; geçiş/iş/iz/göç/paket/uç yok |
+| Güvenlik | taraması | ✓ | sır yok (diff'te yalnız test yer tutucuları ve örnek IBAN); yeni uç, POST, form, dış çağrı yok; yetki yüzeyi değişmedi; yeni bağımlılık yok (csproj ve kilit dosyası değişmedi) |
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana çalışma ağacının `scripts/git-hooks`'u); ana dal son 3 tamamlanmış run 42475025470 (Publish, success — `02ec5357` T342), 42474266979 (CI, cancelled — `240844aa` #463; eşzamanlılık grubunda `cancel-in-progress` ile T342 itmesi iptal etti, iptal anında Integration dışındaki işler yeşildi), 42474266982 (Publish, success — `240844aa`). Başarısız run yok; `02ec5357`'in CI'ı doğrulama sırasında koşuyordu. Memory kapısı: kaldırıldı (Adım 0b).
+
+**Testler (doğrulayıcı, yerel):** `908b740a` üzerinde `dotnet restore`, `dotnet build -warnaserror` 0 uyarı/0 hata; `dotnet format --verify-no-changes` üç projede çıkış 0; Unit (Architecture + Consistency dahil) 4662/4662; betik testleri 4/4; Integration (PostgreSQL 18, ayrı konteyner) `DeliveryPeriodTests` 7/7, `PaymentTransitionsTests` + `ShipmentTransitionsTests` 119/119. `origin/main` birleştirmesinden sonra (`02ec5357`) build 0 uyarı, Unit 4699/4699. Koşu sonrası `git status` temiz, `dotnet restore --locked-mode` çıkış 0. Dal CI 42474305471 (`908b740a`) bütün işler yeşil; önceki 42470498287'deki Paketleme kırmızısı #463 öncesi restic indirmesiydi.
+
+**`12` satırları:** task tanımı KP kimliği taşımaz (`11 §7.1`'de T325 yalnız `02`/`03` öğeleriyle eşlenir); içerikçe ilgili satırlar `VAL-C009`, `C012`, `C024`, `A067`, `A069`, `A074`, `A075`, `A228`, `A229`, `A532`, `B134`…`B140` (KP-21, KP-22, KP-23, KP-47; uç yanıtı ya da tarayıcı gözlemi isterler) işlemlerin task'larındadır (T367, T368, T370, T371, T374, T382). T325 uç yazmadığı için hiçbiri bu task'ta kanıtlanamaz; `Durum` hücreleri `BEKLEMEDE` kaldı. `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**Yapım raporu karşılaştırması (adım 13):** hüküm uyumlu; öz denetim tablosu her kriter, KK, `09 §25` ve güvenlik için kanıtlı. Uyuşmazlık: Notlar'daki Z-18 "Teslim edilemedi'de kapalı" kolay kararı backlog'a yazılmamıştı → K2 / D-532. K1 (faiz uyarısında kargoya verme anı) yapım raporunda yok → D-531.
 
 ## Altyapı Değişiklikleri
 
@@ -96,8 +120,8 @@
 - **Branch:** `task/T325-zaman-asimi-teslim`
 - **Commit:** `577f6159` — kurallar ve süre göstergesi; `e34bd542` — Integration testi; `e1118849` — `origin/main` birleştirmesi; kayıt commit'i PR'da
 - **PR:** #464
-- **CI:** *(yardımcı izler)*
-- **Post-merge run'lar:** *(validator doldurur)*
+- **CI:** dal CI 42474305471 (`908b740a`) bütün işler yeşil; doğrulama kayıt commit'inin (`origin/main` birleştirmesiyle) CI'ını yardımcı izler
+- **Post-merge run'lar:** *(merge'ü yapan yardımcı doldurur — sonraki kayıt PR'ında)*
 
 ## Dış Varsayımlar
 

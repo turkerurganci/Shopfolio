@@ -51,6 +51,23 @@ internal sealed class CartStatements
             ct);
     }
 
+    /// <summary>
+    /// The paid order's lines leave the cart (T347; 02 3.16.12): the unmarked items of the given variants in the given cart are deleted whole, whatever quantity they hold now. The items of other
+    /// variants stay. A cart that no longer exists deletes nothing. One statement; it takes no cart lock because the payment transaction holds the order's lock first (09 10.2 item 5).
+    /// </summary>
+    public Task<int> DeleteOrderedItemsAsync(Guid cartId, Guid[] variantIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(variantIds);
+        if (variantIds.Length == 0)
+        {
+            return Task.FromResult(0);
+        }
+
+        return _db.Database.ExecuteSqlAsync(
+            $"DELETE FROM cart_items WHERE cart_id = {cartId} AND removed_product_name IS NULL AND variant_id = ANY({variantIds})",
+            ct);
+    }
+
     /// <summary>The merge of one guest line: the larger quantity stays; the line added first (the smaller moment) sets the reference price and keeps its moment (02 3.16.3, 3.16.5).</summary>
     public Task MergeItemAsync(Guid id, Guid memberCartId, Guid variantId, int quantity, decimal firstAddedUnitPrice, DateTimeOffset createdAt, CancellationToken ct)
     {

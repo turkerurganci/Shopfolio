@@ -69,7 +69,7 @@ internal static partial class VersionedSideBulkWriteScan
         CartStatementsPlace,
     ];
 
-    /// <summary>The cart's conditional statements (T346): raw INSERT ... ON CONFLICT on <c>carts</c> and <c>cart_items</c> only - a cart is no order and no product form; a unit test holds the file to those two tables and four statements.</summary>
+    /// <summary>The cart's conditional statements (T346): raw INSERT ... ON CONFLICT on <c>carts</c> and <c>cart_items</c> only - a cart is no order and no product form; T347 adds the one DELETE of the paid order's items from their own cart; a unit test holds the file to those two tables and five statements.</summary>
     public const string CartStatementsPlace = "src/Shopfolio.Web/Modules/Ordering/CartStatements.cs";
 
     /// <summary>The download counter's one writer (T340): the counter is the customer's, not the firm's write of the item, so it does not raise the order's version (06 2.6.4); its renewal under the order's lock raises it in the same file.</summary>

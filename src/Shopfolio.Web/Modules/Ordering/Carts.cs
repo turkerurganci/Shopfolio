@@ -77,6 +77,10 @@ internal sealed class Carts
             .ToListAsync(ct);
         Dictionary<Guid, CartVariantFact> facts = (await _catalog.ListCartVariantFactsAsync([.. items.Select(i => i.VariantId!.Value)], ct)).ToDictionary(f => f.VariantId);
 
+        // The quantity of every line goes through the one stock and per-order-limit rule, the merged lines too; a quantity is never lowered here (02 3.16.8-3.16.10).
+        Dictionary<Guid, CartQuantityVerdict> verdicts = (await _catalog.JudgeCartQuantitiesAsync([.. items.Select(i => new CartQuantityLine(i.VariantId!.Value, i.Quantity))], ct))
+            .ToDictionary(v => v.VariantId);
+
         List<CartLine> lines = [];
         List<string> mergeAdded = [];
         foreach (CartItem item in items)
@@ -86,6 +90,7 @@ internal sealed class Carts
                 continue;
             }
 
+            CartQuantityVerdict verdict = verdicts.TryGetValue(fact.VariantId, out CartQuantityVerdict? judged) ? judged : new CartQuantityVerdict(fact.VariantId, CartQuantityProblem.None, null);
             lines.Add(new CartLine(
                 item.Id,
                 fact.VariantId,
@@ -95,7 +100,9 @@ internal sealed class Carts
                 fact.UnitPrice,
                 CartRules.PriceChanged(item.FirstAddedUnitPrice, fact.UnitPrice),
                 fact.IsSoldOut,
-                CartRules.EntersOrder(fact.IsOnShowcase, fact.IsSoldOut)));
+                CartRules.EntersOrder(fact.IsOnShowcase, fact.IsSoldOut, verdict.Problem),
+                verdict.Problem,
+                verdict.OrderLimit));
             if (item.IsMergeNoticePending)
             {
                 // Told once: the mark goes in the request that tells it (06 4.16; K-1183).
@@ -132,18 +139,63 @@ internal sealed class Carts
             return new CartAddResult(CartAddOutcome.SoldOut, null);
         }
 
-        Guid cartId = await FindCartIdAsync(owner, ct) ?? await EnsureCartAsync(owner, ct);
-        await _locks.LockAsync(AdvisoryLockScope.Cart, cartId, ct);
-        DateTimeOffset now = _time.GetUtcNow();
-        if (owner.GuestCartKey is not null)
+        // A cart that does not exist yet holds nothing else: a refusal on the first add must not leave an empty cart behind.
+        Guid? existingCartId = await FindCartIdAsync(owner, ct);
+        if (existingCartId is null && await RefusalAsync(variantId, quantity, [], ct) is { } firstRefusal)
         {
-            Cart cart = await _db.Carts.SingleAsync(c => c.Id == cartId, ct);
-            cart.LastAccessedAt = now;
+            return firstRefusal;
+        }
+
+        Guid cartId = existingCartId ?? await EnsureCartAsync(owner, ct);
+        await _locks.LockAsync(AdvisoryLockScope.Cart, cartId, ct);
+
+        // The sign-in merge of the same browser may have taken this guest cart's lock first and ended the cart while this add waited: the add then starts the browser's new guest cart. The new cart is
+        // written by the conditional statements and has no earlier request to wait for (D-589).
+        Cart? guestCart = owner.GuestCartKey is null ? null : await _db.Carts.SingleOrDefaultAsync(c => c.Id == cartId, ct);
+        if (owner.GuestCartKey is not null && guestCart is null)
+        {
+            cartId = await EnsureCartAsync(owner, ct);
+            guestCart = await _db.Carts.SingleAsync(c => c.Id == cartId, ct);
+        }
+
+        // The quantity the line would hold is judged under the cart's lock, from the lines as they stand now (02 3.16.8, 3.16.9).
+        List<CartQuantityLine> held = [.. (await _db.CartItems.AsNoTracking()
+            .Where(i => i.CartId == cartId && i.RemovedProductName == null && i.VariantId != null)
+            .Select(i => new { VariantId = i.VariantId!.Value, i.Quantity })
+            .ToListAsync(ct)).Select(i => new CartQuantityLine(i.VariantId, i.Quantity))];
+        if (await RefusalAsync(variantId, quantity, held, ct) is { } refusal)
+        {
+            return refusal;
+        }
+
+        DateTimeOffset now = _time.GetUtcNow();
+        if (guestCart is not null)
+        {
+            guestCart.LastAccessedAt = now;
         }
 
         // The first add remembers the price of this moment; the same variant again only raises the quantity and leaves that price and its moment alone (02 3.16.5).
         await _statements.UpsertItemAsync(EntityIds.New(), cartId, variantId, quantity, fact.UnitPrice, now, ct);
         return new CartAddResult(CartAddOutcome.Added, cartId);
+    }
+
+    // The refusal of an add, or null when the quantity the line would hold is allowed. The quantity is the line's own plus the added one; the firm's limit is judged over the product's lines
+    // together and wins over the stock (02 3.16.8, 3.16.9). A total no count can hold is the stock's refusal too.
+    private async Task<CartAddResult?> RefusalAsync(Guid variantId, int added, IReadOnlyList<CartQuantityLine> held, CancellationToken ct)
+    {
+        long own = held.Where(l => l.VariantId == variantId).Sum(l => (long)l.Quantity) + added;
+        if (own > int.MaxValue)
+        {
+            return new CartAddResult(CartAddOutcome.NoStock, null);
+        }
+
+        CartQuantityVerdict verdict = await _catalog.JudgeCartAddAsync(new CartQuantityLine(variantId, (int)own), held, ct);
+        return verdict.Problem switch
+        {
+            CartQuantityProblem.NoStock => new CartAddResult(CartAddOutcome.NoStock, null),
+            CartQuantityProblem.OverOrderLimit => new CartAddResult(CartAddOutcome.OverOrderLimit, null, verdict.OrderLimit),
+            _ => null,
+        };
     }
 
     public async Task<CartMergeResult> MergeAsync(Guid customerId, string guestCartKey, CancellationToken ct)

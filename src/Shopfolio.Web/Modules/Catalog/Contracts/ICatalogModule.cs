@@ -334,4 +334,17 @@ public interface ICatalogModule
     /// whether the variant is sold out. A variant that does not exist is not in the answer. A plain read; it writes nothing.
     /// </summary>
     Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct);
+
+    /// <summary>
+    /// The verdict on the quantity of each line of a cart that is read (T347; 02 3.16.8, 3.16.10): a quantity above the stock less the reserved units - or the service capacity - is
+    /// <see cref="CartQuantityProblem.NoStock"/>; the lines of a product that together pass its "bir siparişte en fazla" limit are <see cref="CartQuantityProblem.OverOrderLimit"/>, a line over the stock
+    /// not counting into the total. Neither the stock nor the reserved units are given. A variant that does not exist is not in the answer. A plain read; it writes nothing.
+    /// </summary>
+    Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, CancellationToken ct);
+
+    /// <summary>
+    /// The verdict on an add to a cart (T347; 02 3.16.8, 3.16.9): <paramref name="candidate"/> is the variant with the quantity its line would hold after the add, <paramref name="others"/> the cart's
+    /// other lines. The firm's limit is judged first over all the product's variants and, when the quantity breaks both, is the only one told; then the stock. A plain read; it writes nothing.
+    /// </summary>
+    Task<CartQuantityVerdict> JudgeCartAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, CancellationToken ct);
 }

@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 
+using Microsoft.EntityFrameworkCore;
+
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.Imaging;
@@ -31,6 +33,9 @@ internal sealed class ImageUploads
         _db = db;
         _time = time;
     }
+
+    /// <summary>Whether an uploaded image row exists (a plain read): another module that links an image (the brand's logo and site icon) asks before it writes the link.</summary>
+    public Task<bool> ExistsAsync(Guid imageId, CancellationToken ct) => _db.Images.AnyAsync(i => i.Id == imageId, ct);
 
     public async Task<ImageUploadResult> UploadAsync(byte[] content, CancellationToken ct)
     {

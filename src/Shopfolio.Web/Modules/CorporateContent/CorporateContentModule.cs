@@ -11,12 +11,14 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     private readonly CorporateContentSitemapReader _sitemap;
     private readonly StorefrontMenuReader _menu;
     private readonly HomepageReader _homepage;
+    private readonly BrandingSettings _branding;
 
-    public CorporateContentModule(CorporateContentSitemapReader sitemap, StorefrontMenuReader menu, HomepageReader homepage)
+    public CorporateContentModule(CorporateContentSitemapReader sitemap, StorefrontMenuReader menu, HomepageReader homepage, BrandingSettings branding)
     {
         _sitemap = sitemap;
         _menu = menu;
         _homepage = homepage;
+        _branding = branding;
     }
 
     public Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct) => _sitemap.ListAsync(ct);
@@ -24,6 +26,12 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     public Task<StorefrontMenu> GetMenuAsync(CancellationToken ct) => _menu.GetAsync(ct);
 
     public Task<HomepageView> GetHomepageAsync(CancellationToken ct) => _homepage.GetAsync(ct);
+
+    public Task<BrandingSection> GetBrandingAsync(CancellationToken ct) => _branding.ReadSectionAsync(ct);
+
+    public Task<BrandingSaveResult> SaveBrandingAsync(BrandingInput input, int formVersion, CancellationToken ct) => _branding.SaveAsync(input, formVersion, ct);
+
+    public Task<BrandIdentity> GetBrandIdentityAsync(CancellationToken ct) => _branding.ReadIdentityAsync(ct);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddCorporateContentModule</c> once.</summary>
@@ -34,6 +42,7 @@ internal static class CorporateContentModuleRegistration
         services.AddScoped<CorporateContentSitemapReader>();
         services.AddScoped<ContentPublishing>();
         services.AddScoped<ContactRequests>();
+        services.AddScoped<BrandingSettings>();
         services.AddScoped<ContentAuthoring>();
         services.AddScoped<SocialLinks>();
         services.AddScoped<ContentReaders>();

@@ -56,6 +56,17 @@ internal sealed class AddressBook
             Phone = phone,
         };
     }
+
+    /// <summary>The member's edit of an entry (07 UC-72): the name and the five address fields are written; the owner and the moment stay.</summary>
+    public void Rewrite(string name, string recipientName, Guid provinceId, string district, string addressLine, string? phone)
+    {
+        Name = name;
+        RecipientName = recipientName;
+        ProvinceId = provinceId;
+        District = district;
+        AddressLine = addressLine;
+        Phone = phone;
+    }
 }
 
 internal sealed class AddressBookConfiguration : IEntityTypeConfiguration<AddressBook>

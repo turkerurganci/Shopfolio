@@ -25,6 +25,8 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.CorporateContent.Contracts.HomepageBlockKind",
         "Shopfolio.Modules.Ordering.Contracts.CorrectionObstacle",
         "Shopfolio.Modules.Catalog.Contracts.ProductPageKind",
+        // T323: the identity of an operation of 03 1.11 - the request names it and the decision table answers; the document's table is its definition, no column holds it.
+        "Shopfolio.Modules.Ordering.Contracts.OrderOperation",
         "Shopfolio.Modules.Ordering.Contracts.CartAddOutcome",
         "Shopfolio.Modules.Ordering.Contracts.CartPaymentBlock",
         // T347: the verdict on a cart line's quantity - computed per read from the stock and the per-order limit, never a column.

@@ -28,12 +28,14 @@ internal sealed class OrderDisposalPart : IDisposalPart
     private readonly OrderLocks _locks;
     private readonly IPaymentModule _payment;
     private readonly IAfterSalesModule _afterSales;
+    private readonly OrderPaymentArms _arms;
 
-    public OrderDisposalPart(OrderLocks locks, IPaymentModule payment, IAfterSalesModule afterSales)
+    public OrderDisposalPart(OrderLocks locks, IPaymentModule payment, IAfterSalesModule afterSales, OrderPaymentArms arms)
     {
         _locks = locks;
         _payment = payment;
         _afterSales = afterSales;
+        _arms = arms;
     }
 
     public string Name => "Orders";
@@ -170,36 +172,22 @@ internal sealed class OrderDisposalPart : IDisposalPart
         Guid[] ids = orderIds;
         List<OrderRow> rows = await db.Orders.AsNoTracking()
             .Where(o => ids.Contains(o.Id) && o.ContactEmail != null)
-            .Select(o => new OrderRow(o.Id, o.CreatedAt, o.PaymentStatus))
+            .Select(o => new OrderRow(o.Id, o.CreatedAt))
             .ToListAsync(ct);
 
-        IReadOnlyList<PaymentSource> sources = await _payment.FindPaymentSourcesAsync([.. rows.Select(r => r.Id)], ct);
-        Guid[] confirming = [.. sources.Where(s => s.TransitionRecordId is not null).Select(s => s.TransitionRecordId!.Value).Distinct()];
-        HashSet<Guid> corrected = confirming.Length == 0
-            ? []
-            : [.. await db.TransitionRecords.AsNoTracking()
-                .Where(t => t.CorrectedTransitionRecordId != null && confirming.Contains(t.CorrectedTransitionRecordId.Value))
-                .Select(t => t.CorrectedTransitionRecordId!.Value)
-                .ToListAsync(ct)];
-        HashSet<Guid> paid = [.. sources.Where(s => s.TransitionRecordId is null || !corrected.Contains(s.TransitionRecordId.Value)).Select(s => s.OrderId)];
-
-        Guid[] failedUnpaid = [.. rows.Where(r => !paid.Contains(r.Id) && r.PaymentStatus == PaymentStatus.Failed).Select(r => r.Id)];
-        Dictionary<Guid, DateTimeOffset> failedAt = failedUnpaid.Length == 0
-            ? []
-            : await db.TransitionRecords.AsNoTracking()
-                .Where(t => failedUnpaid.Contains(t.OrderId) && t.TransitionCode == TransitionCode.O2)
-                .GroupBy(t => t.OrderId)
-                .Select(g => new FailedMoment(g.Key, g.Max(t => t.CreatedAt)))
-                .ToDictionaryAsync(g => g.OrderId, g => g.At, ct);
+        // The arm is read in the one place that knows it (OrderPaymentArms): the other modules' parts judge with the same reading.
+        IReadOnlyList<OrderPaymentArm> arms = await _arms.ReadAsync([.. rows.Select(r => r.Id)], ct);
+        Dictionary<Guid, OrderPaymentArm> armOf = arms.ToDictionary(a => a.OrderId);
 
         DateTimeOffset paidBefore = OrderRetention.PaidCreatedBefore(now);
         DateTimeOffset failedBefore = OrderRetention.FailedBefore(now);
         HashSet<Guid> due = [];
         foreach (OrderRow row in rows)
         {
-            bool isDue = paid.Contains(row.Id)
+            OrderPaymentArm arm = armOf[row.Id];
+            bool isDue = arm.IsPaid
                 ? row.CreatedAt < paidBefore
-                : failedAt.TryGetValue(row.Id, out DateTimeOffset at) && at < failedBefore;
+                : arm.FailedAt is { } at && at < failedBefore;
             if (isDue)
             {
                 due.Add(row.Id);
@@ -209,7 +197,5 @@ internal sealed class OrderDisposalPart : IDisposalPart
         return due;
     }
 
-    private sealed record OrderRow(Guid Id, DateTimeOffset CreatedAt, PaymentStatus PaymentStatus);
-
-    private sealed record FailedMoment(Guid OrderId, DateTimeOffset At);
+    private sealed record OrderRow(Guid Id, DateTimeOffset CreatedAt);
 }

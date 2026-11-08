@@ -59,6 +59,8 @@ public sealed class DisposalNumberScanTests
         Assert.True(DisposalNumberSourceScan.AppliesTo("src/Shopfolio.Web/Infrastructure/Disposal/DisposalStep.cs"));
         Assert.True(DisposalNumberSourceScan.AppliesTo(@"src\Shopfolio.Web\Infrastructure\Disposal\DisposalStep.cs"));
         Assert.True(DisposalNumberSourceScan.AppliesTo("src/Shopfolio.Web/Modules/Ordering/OrderDisposalPart.cs"));
+        Assert.True(DisposalNumberSourceScan.AppliesTo("src/Shopfolio.Web/Modules/Payment/InboundNotificationDisposalPart.cs"));
+        Assert.True(DisposalNumberSourceScan.AppliesTo("src/Shopfolio.Web/Modules/Catalog/DigitalFileDisposalParts.cs"));
         Assert.False(DisposalNumberSourceScan.AppliesTo("src/Shopfolio.Web/Modules/Ordering/OrderRetention.cs"));
         Assert.False(DisposalNumberSourceScan.AppliesTo("src/Shopfolio.Web/Infrastructure/Disposal/DisposalTimings.cs"));
         Assert.False(DisposalNumberSourceScan.AppliesTo("src/Shopfolio.Web/Infrastructure/Jobs/SchedulerTimings.cs"));

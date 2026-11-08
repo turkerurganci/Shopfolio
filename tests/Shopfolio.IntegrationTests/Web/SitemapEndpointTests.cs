@@ -73,8 +73,7 @@ public sealed class SitemapEndpointTests : IAsyncLifetime
             Factory = new ShopfolioWebApplicationFactory(dsn, new Dictionary<string, string> { [SiteOptions.DomainKey] = InstallationDomain });
             if (kestrel)
             {
-                Factory.UseKestrel(0);
-                Factory.StartServer();
+                Factory.Start();
                 using HttpClient probe = Factory.CreateClient();
                 Client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false }) { BaseAddress = probe.BaseAddress };
             }

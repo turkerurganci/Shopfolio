@@ -56,6 +56,7 @@ Yok.
 | Sık FAIL (5) karar kaydısız 09 metni | ✓ | `09` değişmedi; şablon belirteç kümesi dokunulmadı (D-493 sahip kararı) |
 | Hedefi T350 olan backlog (D-436) | ✓ | D-436 kapandı; D-221, D-309 yeniden ileri atıldı |
 | Güvenlik taraması | ✓ | gizli bilgi yok, yeni bağımlılık yok, SQL parametreli (EF), yeni uç yok |
+| main birleştirmesi sonrası test uyarlaması | ✓ | `DeliveryPeriodTests` tohumu `Order.ShippingPeriod` atamasından `FreezeShippingPromise` çağrısına geçti (main T325 alanı salt okunur yaptı); üretim kodu değişmedi |
 
 ## Test Sonuçları
 

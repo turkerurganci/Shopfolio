@@ -609,6 +609,11 @@ public sealed class ProductPublishGateTests : IAsyncLifetime
     {
         int n = Interlocked.Increment(ref _counter);
         Product product = Product.Create("Masa", $"urun-{n:D4}", type, 20m, Now.AddMinutes(n));
+        if (type == ProductType.Physical)
+        {
+            product.WithSeededOrigin();
+        }
+
         product.PublishStatus = productStatus;
         product.FulfilmentPeriod = fulfilmentPeriod;
         List<Variant> variants = [];

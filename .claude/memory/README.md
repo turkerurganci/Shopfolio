@@ -57,7 +57,7 @@ type: project | feedback | reference | user
 `MEMORY.md` **indeks + güncel durum snapshot**'ıdır:
 
 - Her hafıza dosyası için **tek satır** işaretçi
-- "Güncel Durum" bloğu: son tamamlanan iş, sıradaki iş, açık PR'lar
+- "Güncel Durum" bloğu: son tamamlanan iş, sıradaki iş, açık PR'lar. Bloğu task/doğrulama commit'i güncellemez (çakışma, 2026-11-08); faz kapısı kayıt PR'ı günceller
 
 **MEMORY.md'ye içerik gömülmez.** Her hafıza bir dosyadır; `MEMORY.md` yalnız onları listeler.
 

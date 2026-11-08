@@ -7,6 +7,7 @@ using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Categories;
 using Shopfolio.Modules.Catalog.Contracts.Lists;
+using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
 
 namespace Shopfolio.Modules.Catalog;
@@ -23,6 +24,7 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly StockCodes _stockCodes;
     private readonly ProductStructureReader _structure;
     private readonly ProductPageReader _pages;
+    private readonly PriceLabelReader _priceLabels;
     private readonly CategoryTree _categories;
     private readonly ProductCategoryLinks _links;
     private readonly ProductListReader _lists;
@@ -38,12 +40,14 @@ internal sealed class CatalogModule : ICatalogModule
         StockCodes stockCodes,
         ProductStructureReader structure,
         ProductPageReader pages,
+        PriceLabelReader priceLabels,
         CategoryTree categories,
         ProductCategoryLinks links,
         ProductListReader lists,
         ProductGallery gallery)
     {
         _pages = pages;
+        _priceLabels = priceLabels;
         _categories = categories;
         _links = links;
         _lists = lists;
@@ -78,6 +82,15 @@ internal sealed class CatalogModule : ICatalogModule
     public Task<ProductPage> GetProductPageAsync(string? slug, bool isAdministrator, CancellationToken ct) => _pages.ReadAsync(slug, isAdministrator, ct);
 
     public Task<IReadOnlyList<Guid>> ListVariantsWithoutFileAsync(Guid productId, CancellationToken ct) => _fileReader.ListPublishedWithoutFileAsync(productId, ct);
+
+    public Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct) => _priceLabels.GetAsync(variantId, ct);
+
+    public ItemAmounts PriceItem(ItemPriceInput input) => ItemPricing.Price(input);
+
+    public IReadOnlyList<ShippingVatPart> SplitShippingFee(decimal shippingFee, IReadOnlyList<ShippingBasisLine> lines)
+        => ItemPricing.SplitShippingFee(shippingFee, lines);
+
+    public decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee) => ItemPricing.SumOrderTotal(items, shippingFee);
 
     public Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct) => _categories.ReadAsync(ct);
 
@@ -179,6 +192,7 @@ internal static class CatalogModuleRegistration
         services.AddScoped<DigitalFileUploads>();
         services.AddScoped<StockCodes>();
         services.AddScoped<ProductStructureReader>();
+        services.AddScoped<PriceLabelReader>();
         services.AddScoped<CategoryTree>();
         services.AddScoped<ProductCategoryLinks>();
         services.AddScoped<ProductListReader>();

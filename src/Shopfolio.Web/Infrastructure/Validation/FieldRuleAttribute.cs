@@ -27,6 +27,12 @@ public abstract class FieldRuleAttribute : ValidationAttribute
     /// <summary>Whether the value passes; called for every value, empty ones included.</summary>
     protected abstract bool Accepts(object? value);
 
+    /// <summary>
+    /// Whether the value passes the rule, for code that saves or calculates outside a form (a module asking the same rule its form field asks, so the two
+    /// cannot part: 09 3.4 item 1).
+    /// </summary>
+    public bool Allows(object? value) => Accepts(value);
+
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
         ArgumentNullException.ThrowIfNull(validationContext);
@@ -40,15 +46,20 @@ public abstract class FieldRuleAttribute : ValidationAttribute
     }
 
     /// <summary>Whether a number has at most two decimals (04 7.3.2.8, 7.3.2.9); trailing zeros do not count, and nothing is rounded.</summary>
-    protected static bool HasAtMostTwoDecimals(decimal value)
+    protected static bool HasAtMostTwoDecimals(decimal value) => HasAtMostDecimals(value, 2);
+
+    /// <summary>
+    /// Whether a number has at most <paramref name="decimals"/> decimals; trailing zeros do not count, and nothing is rounded. The one decimal count of the
+    /// project: the form rules and the save-time rules of a price or a net quantity (02 3.8.4, 3.8.5) both ask it.
+    /// </summary>
+    public static bool HasAtMostDecimals(decimal value, int decimals)
     {
         const int ScaleShift = 16;
         const int ScaleMask = 0xFF;
-        const int MaxScale = 2;
 
         // Dividing by one with 28 decimals drops the trailing zeros of the scale (10.500 becomes 10.5).
         decimal stripped = value / 1.0000000000000000000000000000m;
-        return ((decimal.GetBits(stripped)[3] >> ScaleShift) & ScaleMask) <= MaxScale;
+        return ((decimal.GetBits(stripped)[3] >> ScaleShift) & ScaleMask) <= decimals;
     }
 
     /// <summary>An empty value: null, or a text of nothing but white space.</summary>

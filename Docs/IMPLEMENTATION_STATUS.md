@@ -1,9 +1,10 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) doğrulama tur 4 ✓ PASS (TAM yeniden doğrulama; head `f6412bf` + `origin/main` (T341, #433) birleştirmesi, PR #442; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 3 BLOCKED (main kod çakışması) iki kod birleştirmesiyle giderildi; Unit 4231/4231 (Architecture, Consistency dahil), betik testleri 4/4, Integration `CategoryTreeAndListsTests` 33/33 (parçalı, gerçek PostgreSQL 18), `build -warnaserror` ve `dotnet format` temiz; dal CI 42425396677 success; bulgu 0; K1: D-332 hedefi tamamlanmış T339'dan T502'ye taşındı; `VAL-A001`…`A008`, `VAL-A181`…`A185` `BEKLEMEDE` kaldı (uç ve tarayıcı kanıtı sayfa task'larında); backlog aktif kalem yeniden sayıldı: 159). Önceki kayıtlar `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-08 — chore: "Son güncelleme" satırını yalnız birleştiren taraf (faz kapısı kayıt PR'ı, chore/kayıt PR'ı) günceller; task, düzeltme ve doğrulama commit'leri bu satıra dokunmaz, olayı `STATUS_CHANGELOG.md`'nin en üstüne ve task'ın tablo satırına yazar; main birleştirmesinde bu satır çakışırsa main sürümü alınır, dalın girişi changelog'a taşınır.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
+> ⚠️ **Task/doğrulama PR'ları ortak kayıt satırlarına dokunmaz (2026-11-08):** "Son güncelleme" satırı, `STATUS_CHANGELOG.md`, `MEMORY.md` "Güncel Durum" ve backlog "Aktif kalem" sayacı. Olay `STATUS_CHANGELOG.d/<TXXX>.md` parçasına yazılır; birleştiren taraf (faz kapısı kayıt PR'ı, chore/kayıt PR'ı) parçaları toplar, satırı ve sayacı günceller. Tablo satırları ve task raporu task PR'ında kalır.
 > **Neden:** Bir referans projede bu alan 63 KB'lık tek satıra büyüdü ve okuma araçları tarafından kırpıldı — "nerede kaldık" sorusu cevaplanamaz hâle geldi.
 >
 > **Okuma tavsiyesi:** Tek bir task'ın durumu için tüm dosyayı açma; ilgili satırı `grep`'le (`grep -n "^| T42 " Docs/IMPLEMENTATION_STATUS.md`).
@@ -155,7 +156,7 @@
 | T313 | Site haritası ve robots.txt | ✓ | ✓ PASS (tur 1) | `f94b4d8` | #417 |
 | T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | `335e9cb` | #418 |
 | T315 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | ✓ | ✓ PASS (tur 1) | `8caf0f0` | #434 |
-| T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ✓ | ✓ PASS (tur 2) | — | #437 |
+| T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ✓ | ✓ PASS (tur 2) | `924ef92` | #437 |
 | T317 | Ödeme durumu geçişleri: ödeme ekseni | ✓ | ✓ PASS (tur 3) | — | #441 |
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ⬚ | — | — | — |
 | T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
@@ -175,7 +176,7 @@
 | T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ✓ | ✓ PASS (tur 4) | — | #442 |
 | T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ✓ | ✓ PASS (tur 1) | — | #443 |
 | T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ✓ | ✓ PASS (tur 1) | — | #447 |
-| T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ⬚ | — | — | — |
+| T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ✓ | ✓ PASS (tur 4) | — | #444 |
 | T337 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | ⬚ | — | — | — |
 | T338 | Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması | ⬚ | — | — | — |
 | T339 | Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti | ✓ | ✓ PASS (tur 2) | — | #445 |

@@ -23,13 +23,15 @@ internal sealed class ProductRemoval : IProductRemoval
     private readonly IOrderingModule _ordering;
     private readonly DigitalFileLocks _fileLocks;
     private readonly TimeProvider _time;
+    private readonly CacheInvalidations _invalidations;
 
-    public ProductRemoval(AppDbContext db, IOrderingModule ordering, DigitalFileLocks fileLocks, TimeProvider time)
+    public ProductRemoval(AppDbContext db, IOrderingModule ordering, DigitalFileLocks fileLocks, TimeProvider time, CacheInvalidations invalidations)
     {
         _db = db;
         _ordering = ordering;
         _fileLocks = fileLocks;
         _time = time;
+        _invalidations = invalidations;
     }
 
     public async Task<RemovalImpact?> GetProductImpactAsync(Guid productId, CancellationToken ct)
@@ -75,7 +77,15 @@ internal sealed class ProductRemoval : IProductRemoval
         Guid[] variantIds = await _db.Variants.Where(v => v.ProductId == productId).Select(v => v.Id).ToArrayAsync(ct);
         await _ordering.RemoveFromCartsAsync(variantIds, product.Name, ct);
         RecordSaveResult saved = await RecordSave.SaveAsync(_db, product, shownVersion, p => _db.Products.Remove(p), ct);
-        return saved.IsRejected ? RemovalResult.VersionConflict : RemovalResult.Done;
+        if (saved.IsRejected)
+        {
+            return RemovalResult.VersionConflict;
+        }
+
+        // A published product that goes leaves the showcase: the menu's categories and products part and the site map move (02 3.28.6; 05 7.10.1).
+        _invalidations.Add(CacheArea.Menu);
+        _invalidations.Add(CacheArea.Sitemap);
+        return RemovalResult.Done;
     }
 
     public async Task<RemovalResult> DeleteVariantAsync(Guid variantId, int shownVersion, CancellationToken ct)

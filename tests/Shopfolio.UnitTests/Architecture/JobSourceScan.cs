@@ -45,6 +45,9 @@ internal static partial class JobSourceScan
         "src/Shopfolio.Web/Infrastructure/LivenessProbe.cs",
         "src/Shopfolio.Web/Infrastructure/Errors/UnexpectedErrorLayer.cs",
         "src/Shopfolio.Web/Infrastructure/Errors/UnexpectedErrorSetup.cs",
+
+        // The management commands' dispatcher (T303; 09 13.2 item 2): its top-level catch ends an unexpected error with exit code 1 and writes the error's type only.
+        "src/Shopfolio.Web/Commands/CommandDispatcher.cs",
     ];
 
     public static bool Applies(string relativePath)

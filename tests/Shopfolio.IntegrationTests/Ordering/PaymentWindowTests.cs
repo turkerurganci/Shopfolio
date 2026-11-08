@@ -205,6 +205,22 @@ public sealed class PaymentWindowTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task CardWindowEnd_WritesTheQueryAgain_WhenTheRunnerGaveUpOnTheRow_KK5()
+    {
+        Order order = await SeedOrderAsync(PaymentMethod.Card, Start.AddMinutes(-1));
+        await ProcessAsync<CardPaymentExpiry>(order.Id);
+        await ExecuteAsync($"UPDATE jobs SET job_state = 'Failed', next_attempt_at = NULL WHERE related_record_id = '{order.Id}'");
+
+        // The order still waits with its window ended, so it stays due; the next wake-up writes a new pending row (03 4.1.7: the query does not stop).
+        Assert.Equal([order.Id], (await FindDueAsync<CardPaymentExpiry>()).Select(d => d.Id));
+        await ProcessAsync<CardPaymentExpiry>(order.Id);
+
+        await using AppDbContext reader = NewContext();
+        List<Job> rows = await reader.Jobs.Where(j => j.RelatedRecordId == order.Id).ToListAsync(Ct);
+        Assert.Equal(new[] { JobState.Pending, JobState.Failed }.Order(), rows.Select(r => r.JobState).Order());
+    }
+
+    [Fact]
     public async Task FinalQuery_ThatFindsThePayment_AppliesO1WithTheProvidersTransactionId_KK4()
     {
         Order order = await SeedOrderAsync(PaymentMethod.Card, Start.AddMinutes(-1));

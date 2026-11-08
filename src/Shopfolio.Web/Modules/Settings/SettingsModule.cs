@@ -16,6 +16,7 @@ internal sealed class SettingsModule : ISettingsModule
     private readonly FirmSettings _firm;
     private readonly LegalTexts _legalTexts;
     private readonly LegalTextGenerator _generator;
+    private readonly ProvinceList _provinces;
 
     public SettingsModule(
         CompanyIdentities identities,
@@ -24,8 +25,10 @@ internal sealed class SettingsModule : ISettingsModule
         SalesSwitches switches,
         FirmSettings firm,
         LegalTexts legalTexts,
-        LegalTextGenerator generator)
+        LegalTextGenerator generator,
+        ProvinceList provinces)
     {
+        _provinces = provinces;
         _identities = identities;
         _writer = writer;
         _gates = gates;
@@ -107,6 +110,8 @@ internal sealed class SettingsModule : ISettingsModule
     public Task<LegalTextVersionInfo?> GetLatestLegalTextVersionAsync(LegalTextType type, CancellationToken ct) => _legalTexts.GetLatestVersionAsync(type, ct);
 
     public async Task SynchronizeGeneratedLegalTextsAsync(CancellationToken ct) => await _generator.RegenerateAsync(ct);
+
+    public Task<IReadOnlyList<ProvinceInfo>> GetProvincesAsync(CancellationToken ct) => _provinces.GetAllAsync(ct);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddSettingsModule</c> once.</summary>
@@ -121,6 +126,7 @@ internal static class SettingsModuleRegistration
         services.AddScoped<FirmSettings>();
         services.AddScoped<LegalTexts>();
         services.AddScoped<LegalTextGenerator>();
+        services.AddScoped<ProvinceList>();
 
         // The privacy notice condition is bound here (T366) before the defaults below; the payment conditions are unbound until their tasks register an implementation in
         // place of these (T352, T353): unbound is not met.

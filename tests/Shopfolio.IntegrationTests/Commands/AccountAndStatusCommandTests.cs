@@ -12,6 +12,7 @@ using Npgsql;
 using Shopfolio.Commands;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Files;
+using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
@@ -20,7 +21,11 @@ using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.CorporateContent.Contracts;
+using Shopfolio.Modules.Membership.Contracts;
+using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment;
@@ -365,11 +370,13 @@ public sealed class AccountAndStatusCommandTests : IAsyncLifetime
         await SeedRefundAsync(paid, "tx-open");
         Guid sendingRefund = await SeedRefundAsync(paid, "tx-sending");
         await AddRecordAsync(sendingRefund, RefundRecordState.Sending);
+        Guid unknownRefund = await SeedRefundAsync(paid, "tx-unknown");
+        await AddRecordAsync(unknownRefund, RefundRecordState.OutcomePending);
 
         FakeTerminal terminal = new() { IsInputRedirected = false };
         Assert.Equal(0, await RunAsync(terminal, "status"));
 
-        Assert.Contains("Açık kart işi: 3 (ödemesi bekleyen kart siparişi 1, bitmemiş kart iadesi 2)", terminal.Output, StringComparison.Ordinal);
+        Assert.Contains("Açık kart işi: 4 (ödemesi bekleyen kart siparişi 1, bitmemiş kart iadesi 3)", terminal.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -403,6 +410,68 @@ public sealed class AccountAndStatusCommandTests : IAsyncLifetime
 
         Assert.Contains("Açık kart işi: 0 (ödemesi bekleyen kart siparişi 0, bitmemiş kart iadesi 0)", terminal.Output, StringComparison.Ordinal);
         Assert.Contains("Geri ödemesi doğabilecek kart siparişi: 0;", terminal.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Status_WritesTheConditionalLines_TheSecretOnlyKeyAsNotMeasurable_AndAMissingSettingsFileKeyAsClosed()
+    {
+        FakeTerminal terminal = new() { IsInputRedirected = false };
+
+        int exit = await RunAsync(terminal, "status");
+
+        Assert.True(exit == 0, terminal.AllOutput);
+        string output = terminal.Output;
+        Assert.Contains($"  {ConditionalLine.CardPayment}: ölçülemez (eksik: {PaymentOptions.ProviderKeysKey};", output, StringComparison.Ordinal);
+        Assert.Contains($"  {ConditionalLine.GoogleSignIn}: KAPALI (eksik: {GoogleOptions.ClientIdKey}, {GoogleOptions.ClientSecretKey})", output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Status_AConditionalLineWhoseSettingsArePresent_IsWrittenOpen_AndNoValueIsWritten()
+    {
+        FakeTerminal terminal = new() { IsInputRedirected = false };
+        const string firstSample = "first-sample-value";
+        const string secondSample = "second-sample-value";
+        const string thirdSample = "third-sample-value";
+
+        int exit = await RunAsync(terminal, services =>
+        {
+            IConfiguration configuration = new ConfigurationBuilder()
+                .AddConfiguration(Configuration())
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    [PaymentOptions.ProviderKeysKey] = firstSample,
+                    [GoogleOptions.ClientIdKey] = secondSample,
+                    [GoogleOptions.ClientSecretKey] = thirdSample,
+                })
+                .Build();
+            services.AddSingleton(configuration);
+        }, "status");
+
+        Assert.True(exit == 0, terminal.AllOutput);
+        string output = terminal.Output;
+        Assert.Contains($"  {ConditionalLine.CardPayment}: AÇIK", output, StringComparison.Ordinal);
+        Assert.Contains($"  {ConditionalLine.GoogleSignIn}: AÇIK", output, StringComparison.Ordinal);
+        Assert.DoesNotContain(firstSample, output, StringComparison.Ordinal);
+        Assert.DoesNotContain(secondSample, output, StringComparison.Ordinal);
+        Assert.DoesNotContain(thirdSample, output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task TheCommandHost_ResolvesEveryModule_SoACommandThatReachesAnyOfThemDoesNotBreak()
+    {
+        await using ServiceProvider provider = CommandHost.CreateServices(Configuration(), new FakeTerminal()).BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = false });
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        IServiceProvider services = scope.ServiceProvider;
+
+        Assert.IsAssignableFrom<IAdministrationModule>(services.GetRequiredService<IAdministrationModule>());
+        Assert.IsAssignableFrom<IAfterSalesModule>(services.GetRequiredService<IAfterSalesModule>());
+        Assert.IsAssignableFrom<ICatalogModule>(services.GetRequiredService<ICatalogModule>());
+        Assert.IsAssignableFrom<ICorporateContentModule>(services.GetRequiredService<ICorporateContentModule>());
+        Assert.IsAssignableFrom<IMembershipModule>(services.GetRequiredService<IMembershipModule>());
+        Assert.IsAssignableFrom<INotificationsModule>(services.GetRequiredService<INotificationsModule>());
+        Assert.IsAssignableFrom<IOrderingModule>(services.GetRequiredService<IOrderingModule>());
+        Assert.IsAssignableFrom<IPaymentModule>(services.GetRequiredService<IPaymentModule>());
+        Assert.IsAssignableFrom<ISettingsModule>(services.GetRequiredService<ISettingsModule>());
     }
 
     // ---- KK8: the data conversions ----

@@ -3,6 +3,8 @@ using System.Reflection;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.Infrastructure.FileSecrets;
+using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Status;
@@ -42,6 +44,7 @@ internal sealed class StatusCommand : IAdminCommand
         terminal.WriteLine(string.Empty);
 
         await WriteConditionsAsync(terminal, services.GetRequiredService<StatusEvaluator>(), ct);
+        WriteLines(terminal, services.GetRequiredService<IReadOnlyList<ConditionalLine>>());
         await WriteJobQueueAsync(terminal, services.GetRequiredService<JobQueueStatusReader>(), ct);
         await WriteProviderKeysAsync(terminal, services, ct);
         await WriteConversionsAsync(terminal, services.GetServices<IDataConversion>(), ct);
@@ -75,6 +78,37 @@ internal sealed class StatusCommand : IAdminCommand
         }
 
         terminal.WriteLine(string.Empty);
+    }
+
+    private static void WriteLines(ITerminal terminal, IReadOnlyList<ConditionalLine> lines)
+    {
+        terminal.WriteLine("Hatlar (koşullu ayarların açtığı ya da kapattığı):");
+        foreach (ConditionalLine line in lines)
+        {
+            terminal.WriteLine($"  {line.Name}: {DescribeLine(line)}");
+        }
+
+        terminal.WriteLine(string.Empty);
+    }
+
+    /// <summary>
+    /// One line's standing (05 8.4.6, 8.5.6) worked out by the web's own rule (<see cref="ConditionalLines"/>); only the names of the missing keys are written, never a value. The command process is not
+    /// given the provider's secrets (05 6.x.19): a key that only a secret file fills and that is missing here is not proof that the line is closed in the web process, so such a line is "not measurable";
+    /// a missing key of the settings file closes the line for certain.
+    /// </summary>
+    internal static string DescribeLine(ConditionalLine line)
+    {
+        ArgumentNullException.ThrowIfNull(line);
+        if (line.IsOpen)
+        {
+            return "AÇIK";
+        }
+
+        string missing = string.Join(", ", line.MissingKeys);
+        bool onlyFileKeysMissing = line.MissingKeys.All(key => SecretNames.Settings.Any(secret => secret.Key == key));
+        return onlyFileKeysMissing
+            ? $"ölçülemez (eksik: {missing}; sağlayıcı sırları komut sürecine verilmez)"
+            : $"KAPALI (eksik: {missing})";
     }
 
     private static async Task WriteJobQueueAsync(ITerminal terminal, JobQueueStatusReader reader, CancellationToken ct)

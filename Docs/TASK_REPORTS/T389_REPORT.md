@@ -1,6 +1,6 @@
 # T389 — Hesap ve durum yönetim komutları: oturumları sonlandırma, şifreyi geçersiz kılma, durum
 
-**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ⏳ Düzeltme 1 tamam — doğrulama tur 2 bekliyor | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -32,7 +32,7 @@
 | 3 | Hesap yoksa satırda hedef "yok", çıkış 3 | ✓ | Integration `UnknownOrEmptyEmail_ExitsWithThree_ChangesNothing_AndTheLineHoldsTheEmptyId` (4 örnek: bilinmeyen, boş, boşluk); Unit `TheNoTargetLine_HoldsTheCommandAndTheEmptyId_*` |
 | 4 | Sıra: e-posta → iç kimlik → satır → işlem; e-posta ve ad kayda girmez | ✓ | Integration `TheLine_IsWrittenBeforeTheWork_CarriesTheAccountId_AndHoldsNoEmailOrName` (satır yazılırken oturumlar ve özet duruyor), `TheCommandFile_HoldsOneLineWithTheCommandAndTheAccountId_AndNoEmailOrName` |
 | 5 | Kurtarma sırası; arada açılan oturum da düşer | ✓ | Integration `Recovery_EndSessionsThenInvalidatePassword_ASessionOpenedBetweenTheTwoFallsToo` |
-| 6 | `status` koşulları, sürümü, açık ve kapalı hatları, "başarısız" iş satırlarını yazar | ✓ (⚠-3) | Integration `Status_WritesTheVersion_EveryConditionByName_TheJobQueueAndTheUnmeasurableOnes`, `Status_AFailedJobRow_OpensTheJobQueueCondition_AndIsCounted`; Unit `StatusEvaluatorTests.Standings_*` |
+| 6 | `status` koşulları, sürümü, açık ve kapalı hatları, "başarısız" iş satırlarını yazar | ✓ (⚠-3, ⚠-6) | Integration `Status_WritesTheVersion_EveryConditionByName_TheJobQueueAndTheUnmeasurableOnes`, `Status_AFailedJobRow_OpensTheJobQueueCondition_AndIsCounted`, `Status_WritesTheConditionalLines_*`, `Status_AConditionalLineWhoseSettingsArePresent_IsWrittenOpen_AndNoValueIsWritten`; Unit `StatusEvaluatorTests.Standings_*`, `AccountCommandsTests.DescribeLine_*` (düzeltme 1) |
 | 7 | `status` iki sayıyı yazar; ikinci sayı panel sayaçlarına girmez | ✓ (⚠-2) | Integration `Status_TheFirstNumberCounts*`, `Status_TheSecondNumberCountsAWithinWithdrawalWindowCardOrder_*`, `Status_WithNoCardOrderAtAll_WritesTwoZeros`; Unit `RefundExposureCount_IsReadOnlyByTheStatusCommand_*` + `RefundExposureScan_OnSamples_*` |
 | 8 | `status` kayıtlı her dönüşümün kalan satırını yazar | ✓ | Integration `Status_WritesTheRemainingRowsOfEveryRegisteredConversion`, `Status_WithNoRegisteredConversion_SaysSo` |
 | 9 | Üç komut işlem izine yazmaz, bildirim üretmez | ✓ | Integration `TheCommand_WritesNothingToTheTrailTheSentRecordsOrTheJobTables` (3 komut; `audit_logs`, `dispatch_records`, `jobs`, `login_records` anlık görüntüsü `xmin` dahil değişmez, sayılar 0) |
@@ -61,10 +61,33 @@
 | Sık FAIL (modül kurucusuna bağımlılık, test düzenekleri) | ✓ | Hiçbir modül kurucusu değişmedi; yalnız arayüz yöntemleri eklendi; Integration tam koşuldu |
 | Sık FAIL (eşzamanlılık / kilit sırası) | ✓ | `EndAdminSessionsAsync` ve `InvalidateAdminPasswordAsync` hesap kilidini önce alır, sonra özet, sonra oturumlar (`09 §15.1` madde 3, sıfırlama ile aynı sıra) |
 
+### Düzeltme 1 (tur 1 FAIL sonrası, 2026-11-08)
+
+Dal `origin/main` (0226a902) ile birleştirildi (çakışma yok); iki bulgu ve K1 kapatıldı.
+
+- **Bulgu 1 (KRİTİK):** komut kipi, web'in modüllerinin dayandığı iki kaydı yapmıyordu: imaj işleyicisi (`ImageProcessor`; Program.cs'te çıplak satırdı) ve `IHttpContextAccessor` (Administration `RequestAuditActorSource`, `AddHttpContextAccessor` yalnız `LoggingSetup`'ta). Yeni `ImagingRegistration.AddImageProcessing` hem `Program.cs` hem `CommandHost` tarafından çağrılır (ikinci kopya yok); komut kipi `AddHttpContextAccessor()` ekler (istek yok, aktör yok; sunucu hizmeti değil, `CommandStructureTests` yeşil). Test `TheCommandHost_ResolvesEveryModule_SoACommandThatReachesAnyOfThemDoesNotBreak`: dokuz modülün arayüzü komut kipinde çözülür (benzer kırılmayı yakalar).
+- **Bulgu 2 (ORTA):** `status` "Hatlar" bölümü yazar: `CardPayment`, `GoogleSignIn`. Durum web'in tek kural evinden (`ConditionalLines.Evaluate`; `AddConditionalLines` ortak kayıt) okunur, yalnız eksik anahtarın adı yazılır, değer asla. Ayar dosyası anahtarı eksikse KAPALI, yalnız sır dosyası anahtarı eksikse "ölçülemez" (komut süreci sırları almaz, `05 §6.x.19`), hepsi varsa AÇIK. **⚠-6:** "ölçülemez" gösterimi karardır, `D-633` (`DEFERRED_BACKLOG.d/T389.md`) ve `09 §13.2` madde 5 metni.
+- **K1:** `Status_TheFirstNumberCounts*` testine `OutcomePending` kart iadesi eklendi (açık kart işi 4 = 1 + 3).
+
+| Madde | Düzeltmeden sonra | Kanıt |
+|---|---|---|
+| Kriter 1–5 | ✓ | Değişmedi; `AccountAndStatusCommandTests` 29/29 (öncekiler dahil) |
+| Kriter 6 | ✓ (⚠-3, ⚠-6) | `Status_WritesTheConditionalLines_*`, `…ArePresent_IsWrittenOpen_AndNoValueIsWritten`, `DescribeLine_*` (3 Unit) |
+| Kriter 7 | ✓ (⚠-2) | `Status_TheFirstNumber…` (OutcomePending dahil), `Status_TheSecondNumber…`, `Status_WithNoCardOrderAtAll_WritesTwoZeros` birleşik ağaçta yeşil |
+| Kriter 8 | ✓ | `Status_WritesTheRemainingRows…`, `Status_WithNoRegisteredConversion_SaysSo` birleşik ağaçta yeşil |
+| Kriter 9 | ✓ | `TheCommand_WritesNothingToTheTrail…` yeşil |
+| Sık FAIL: modül bağımlılığı / test düzeneği (T389 r1) | ✓ | Integration TAM küme birleşik ağaçta; modül çözüm testi |
+| Sık FAIL: kısmen karşılanan kriter | ✓ | Kriter 6 hatları karşılandı; sır kaynaklı sınır kararla (D-633) |
+| Sık FAIL: tek kural evi | ✓ | Hat durumu `ConditionalLines`; kayıt `AddConditionalLines`/`AddImageProcessing` ortak |
+| Merge | ✓ | `git diff --name-only --diff-filter=U` boş; çakışma işareti yok; `git status` temiz |
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
+| Düzeltme 1 — Unit | ✓ 4926/4926 | `dotnet test --project tests/Shopfolio.UnitTests -c Release --no-build` | Birleşik ağaç |
+| Düzeltme 1 — Integration TAM | ✓ 2861/2861 | `--filter-namespace` parçaları (Catalog+Concurrency+CorporateContent+Database 220; Disposal+FileSecrets+Files+Jobs+Logging+Outages+Security+SignedEndpoints+Commands 400; Ordering+Web 879; Model 1362); PostgreSQL 18 `shopfolio-t389-fix-pg` | Birleşik ağaç |
+| Düzeltme 1 — Build/Format | ✓ | `dotnet build Shopfolio.slnx -c Release --no-restore -warnaserror`; `dotnet format <proje> --verify-no-changes --no-restore` (Web, UnitTests, IntegrationTests) | 0 uyarı, biçim farkı yok |
 | Unit | ✓ 4820/4820 | `dotnet test --project tests/Shopfolio.UnitTests -c Release` | Commands, Architecture, Consistency dahil |
 | Integration | ✓ 2790/2790 | `dotnet test --project tests/Shopfolio.IntegrationTests -c Release` (PostgreSQL 18.6 kapsayıcı `t389`) | `AccountAndStatusCommandTests` 26/26, `CreateAdminCommandTests` dahil |
 | Build/Format | ✓ | `dotnet build Shopfolio.slnx -c Release -warnaserror`; `dotnet format <proje> --verify-no-changes` (Web, UnitTests, IntegrationTests) | 0 uyarı, 0 hata, biçim farkı yok |

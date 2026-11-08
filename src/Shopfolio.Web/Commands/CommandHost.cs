@@ -10,6 +10,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.FileSecrets;
+using Shopfolio.Infrastructure.Imaging;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
@@ -115,7 +116,17 @@ internal static class CommandHost
         services.TryAddSingleton<UnexpectedErrorCounter>();
         services.AddStatus();
 
+        // The registrations the modules stand on, the same calls the web host makes (Program.cs): a module chain that reaches the Catalog module's files needs the image processor.
         services.AddFileStore();
+        services.AddImageProcessing();
+
+        // The audit actor source of the Administration module reads the request's accessor; in a command process there is no request, so it has no actor (AuditActorSource.cs). Not a server service.
+        services.AddHttpContextAccessor();
+
+        // The conditional lines (05 8.4.6), worked out from the same settings classes as the web's start-up check; the status command writes them.
+        services.AddOptions<PaymentOptions>().BindConfiguration(PaymentOptions.SectionName);
+        services.AddOptions<GoogleOptions>().BindConfiguration(GoogleOptions.SectionName);
+        services.AddConditionalLines();
         services.AddCatalogModule();
         services.AddOrderingModule();
         services.AddPaymentModule();

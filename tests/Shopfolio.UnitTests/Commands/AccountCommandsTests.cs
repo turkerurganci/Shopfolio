@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Commands;
+using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.UnitTests.Fakes;
 using Shopfolio.UnitTests.Support;
@@ -145,6 +146,32 @@ public sealed partial class AccountCommandsTests
 
     [GeneratedRegex(@"\bCountCardOrdersWithRefundExposureAsync\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ExposureName();
+
+    // ---- KK6: the conditional lines (05 8.4.6, 8.5.6) ----
+
+    [Fact]
+    public void DescribeLine_AnOpenLine_IsOpen()
+    {
+        Assert.Equal("AÇIK", StatusCommand.DescribeLine(new ConditionalLine(ConditionalLine.CardPayment, [])));
+    }
+
+    [Fact]
+    public void DescribeLine_AMissingKeyOfTheSettingsFile_ClosesTheLine_AndNamesTheKeysOnly()
+    {
+        string text = StatusCommand.DescribeLine(new ConditionalLine(ConditionalLine.GoogleSignIn, [GoogleOptions.ClientIdKey, GoogleOptions.ClientSecretKey]));
+
+        Assert.Equal($"KAPALI (eksik: {GoogleOptions.ClientIdKey}, {GoogleOptions.ClientSecretKey})", text);
+    }
+
+    [Fact]
+    public void DescribeLine_OnlyASecretFileKeyMissing_IsNotMeasurable_BecauseTheCommandProcessIsNotGivenTheSecret()
+    {
+        string card = StatusCommand.DescribeLine(new ConditionalLine(ConditionalLine.CardPayment, [PaymentOptions.ProviderKeysKey]));
+        string google = StatusCommand.DescribeLine(new ConditionalLine(ConditionalLine.GoogleSignIn, [GoogleOptions.ClientSecretKey]));
+
+        Assert.StartsWith("ölçülemez (eksik: " + PaymentOptions.ProviderKeysKey, card, StringComparison.Ordinal);
+        Assert.StartsWith("ölçülemez (eksik: " + GoogleOptions.ClientSecretKey, google, StringComparison.Ordinal);
+    }
 
     private sealed class RecordingWriter : IAuditLineWriter
     {

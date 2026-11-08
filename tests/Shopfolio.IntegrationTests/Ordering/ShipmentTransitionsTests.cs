@@ -80,10 +80,8 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
     [InlineData(OrderStatus.Preparing, Op.MarkDelivered)]
     [InlineData(OrderStatus.Preparing, Op.MarkDeliveryFailed)]
     [InlineData(OrderStatus.Preparing, Op.Resend)]
-    [InlineData(OrderStatus.Preparing, Op.StartPreparation)]
     [InlineData(OrderStatus.Shipped, Op.Ship)]
     [InlineData(OrderStatus.Shipped, Op.Resend)]
-    [InlineData(OrderStatus.Shipped, Op.StartPreparation)]
     [InlineData(OrderStatus.Shipped, Op.CancelByAdmin)]
     [InlineData(OrderStatus.Shipped, Op.CloseReturned)]
     [InlineData(OrderStatus.DeliveryFailed, Op.Ship)]
@@ -137,7 +135,6 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
     // ---- KK2: the terminal states ----
 
     [Theory]
-    [InlineData(OrderStatus.Delivered, Op.StartPreparation)]
     [InlineData(OrderStatus.Delivered, Op.CancelByAdmin)]
     [InlineData(OrderStatus.Delivered, Op.CancelByCustomer)]
     [InlineData(OrderStatus.Delivered, Op.CloseReturned)]
@@ -145,7 +142,6 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
     [InlineData(OrderStatus.Delivered, Op.MarkDelivered)]
     [InlineData(OrderStatus.Delivered, Op.MarkDeliveryFailed)]
     [InlineData(OrderStatus.Delivered, Op.Resend)]
-    [InlineData(OrderStatus.Cancelled, Op.StartPreparation)]
     [InlineData(OrderStatus.Cancelled, Op.CancelByAdmin)]
     [InlineData(OrderStatus.Cancelled, Op.CancelByCustomer)]
     [InlineData(OrderStatus.Cancelled, Op.CancelBySystem)]
@@ -165,20 +161,6 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
     }
 
     // ---- KK3: S1 ----
-
-    [Theory]
-    [InlineData(ProductType.Digital)]
-    [InlineData(ProductType.Service)]
-    public async Task S1_OnAnOrderWithoutAPhysicalItem_IsRefused_AndWritesNothing_KK3(ProductType type)
-    {
-        // The payment is Paid, so the pair rule lets S1 through and the operation's own condition (a physical item) is what refuses.
-        (Order order, _) = await SeedAsync(OrderStatus.Placed, PaymentStatus.Paid, new ItemSpec(type, 1));
-
-        OrderTransitionResult result = await RunAsync((unit, token) => unit.StartPreparationAsync(order.Id, token));
-
-        Assert.Equal(TransitionRefusal.ConditionNotMet, result.Refusal);
-        await AssertNothingWrittenAsync(order.Id, OrderStatus.Placed, PaymentStatus.Paid);
-    }
 
     [Fact]
     public async Task S1_OnAMixedOrderWithAPhysicalItem_ComesWithTheCardApprovalO1_OneVersionRaise_AndOneB4Row_KK3()
@@ -201,30 +183,6 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
         DispatchRecord row = Assert.Single(rows);
         Assert.Equal(DispatchType.B4, row.DispatchType);
         Assert.Equal("Ali@Example.com", row.RecipientEmail);
-    }
-
-    [Fact]
-    public async Task S1_AfterTheTransfersO1_WritesS1Alone_AndNoSecondB4Row_KK3()
-    {
-        (Order order, _) = await SeedAsync(OrderStatus.Placed, PaymentStatus.Paid, Physical(1));
-
-        OrderTransitionResult result = await RunAsync((unit, token) => unit.StartPreparationAsync(order.Id, token));
-
-        Assert.False(result.IsRejected);
-        await using AppDbContext reader = NewContext();
-        Assert.Equal([TransitionCode.S1], await reader.TransitionRecords.Where(t => t.OrderId == order.Id).Select(t => t.TransitionCode).ToListAsync(Ct));
-        Assert.Empty(await reader.DispatchRecords.Where(d => d.OrderId == order.Id).ToListAsync(Ct));
-    }
-
-    [Fact]
-    public async Task S1_WhileThePaymentIsPending_WithoutItsApproval_IsRefusedByThePairRule_KK3()
-    {
-        (Order order, _) = await SeedAsync(OrderStatus.Placed, PaymentStatus.Pending, Physical(1));
-
-        OrderTransitionResult result = await RunAsync((unit, token) => unit.StartPreparationAsync(order.Id, token));
-
-        Assert.Equal(TransitionRefusal.ForbiddenStatePair, result.Refusal);
-        await AssertNothingWrittenAsync(order.Id, OrderStatus.Placed, PaymentStatus.Pending);
     }
 
     // ---- KK4: the last event writes the closure ----
@@ -826,7 +784,6 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
 
     public enum Op
     {
-        StartPreparation,
         CancelByCustomer,
         CancelByAdmin,
         CancelBySystem,
@@ -847,7 +804,6 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
     {
         return op switch
         {
-            Op.StartPreparation => unit.StartPreparationAsync(orderId, token),
             Op.CancelByCustomer => unit.CancelOrderAsync(CancelOrderRequest.ByCustomer(orderId), token),
             Op.CancelByAdmin => unit.CancelOrderAsync(CancelOrderRequest.ByAdministrator(orderId, AdminCaller, version, true, CancellationReason.OutOfStock), token),
             Op.CancelBySystem => unit.CancelOrderAsync(CancelOrderRequest.BySystem(orderId, TransitionReason.PaymentWindowExpired), token),

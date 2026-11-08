@@ -38,6 +38,19 @@ public interface ICatalogModule
     Task ReturnAsync(StockClaim claim, CancellationToken ct);
 
     /// <summary>
+    /// The wrong cancellation's correction on a paid order (06 4.14 path 6; 03 1.4.4.7): the units the cancellation freed are taken again - each only
+    /// if what is left is enough - and fall at once; the coupon right counts as used again, even past its limit. A deleted variant is skipped: it has
+    /// no stock to take. False when one variant did not fit; the caller refuses the correction and the transaction undoes the rows already written.
+    /// </summary>
+    Task<bool> RetakeAsync(StockClaim claim, CancellationToken ct);
+
+    /// <summary>
+    /// The transfer mark's correction (06 4.14 path 5; 03 1.4.4.8): the finally decreased units go back to the reservation - the stock, when not
+    /// unlimited, and the reserved quantity rise together - and the used coupon right becomes a reserved one. A deleted variant is skipped.
+    /// </summary>
+    Task RestoreAsync(StockClaim claim, CancellationToken ct);
+
+    /// <summary>
     /// The panel's write of the stock or capacity field (05 7.3.1; 06 2.6.5; 02 §3.6.7): one conditional update - the new value is written only if
     /// the field still holds the value the form showed and the new value is not below the reserved quantity. The product's version does not
     /// change; the field is outside the product form's version (K-980).

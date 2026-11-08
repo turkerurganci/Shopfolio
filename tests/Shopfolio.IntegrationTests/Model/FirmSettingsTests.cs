@@ -50,6 +50,9 @@ public sealed class FirmSettingsTests : IAsyncLifetime
         await ExecuteAsync(
             "UPDATE company_settings SET shipping_fee = 0, free_shipping_threshold = NULL, minimum_order_amount = NULL, default_shipping_period = 2, "
             + "bank_transfer_payment_window = 2, download_allowance = 5, default_vat_rate = 20, shipping_fee_version = 1, periods_version = 1, product_defaults_version = 1");
+        await ExecuteAsync(
+            "UPDATE company_settings SET delivery_provinces_version = 1; DELETE FROM company_delivery_provinces; "
+            + "INSERT INTO company_delivery_provinces (id, created_at, province_id) SELECT gen_random_uuid(), now(), id FROM provinces");
         _admin = Admin.Create("Ali Yılmaz", "ali@example.com", "hash", Now);
         await using AppDbContext context = NewContext();
         context.Admins.Add(_admin);
@@ -261,6 +264,84 @@ public sealed class FirmSettingsTests : IAsyncLifetime
     private const string OtherColumns =
         "SELECT concat_ws('|', shipping_fee, free_shipping_threshold, minimum_order_amount, default_shipping_period, bank_transfer_payment_window, is_sales_temporarily_closed, "
         + "menu_name_products, homepage_layout, shipping_fee_version, periods_version, payment_methods_version, homepage_version) FROM company_settings";
+
+    // ---- T350 criterion 1: the delivery provinces section ----
+
+    [Fact]
+    public async Task TheDeliveryProvinces_StartAsAllEightyOne_AndTheAreaIsNotRestricted()
+    {
+        DeliveryProvincesSection section = await RunAsync(m => m.GetDeliveryProvincesAsync(Ct));
+        DeliveryArea area = await RunAsync(m => m.GetDeliveryAreaAsync(Ct));
+
+        Assert.Equal(81, section.ProvinceIds.Count);
+        Assert.Equal(1, section.Version);
+        Assert.False(area.IsRestricted);
+        Assert.Null(area.RestrictionLine());
+    }
+
+    [Fact]
+    public async Task SaveDeliveryProvinces_WritesTheSelection_StepsOnlyItsVersion_AndWritesOneTrailRowWithPlateCodes()
+    {
+        List<ProvinceInfo> all = [.. await RunAsync(m => m.GetProvincesAsync(Ct))];
+        Guid[] chosen = [.. all.Where(p => p.Code is "06" or "34" or "35").Select(p => p.Id)];
+
+        SettingsSaveResult result = await RunAsync(m => m.SaveDeliveryProvincesAsync(chosen, 1, Ct));
+
+        Assert.True(result.IsSaved);
+        DeliveryProvincesSection section = await RunAsync(m => m.GetDeliveryProvincesAsync(Ct));
+        Assert.Equal(2, section.Version);
+        Assert.Equal(chosen.Order(), section.ProvinceIds.Order());
+        Assert.Equal(1, await ScalarAsync<int>("SELECT periods_version + shipping_fee_version - 1 FROM company_settings"));
+        Assert.Equal(3, await ScalarAsync<int>("SELECT count(*)::int FROM company_delivery_provinces"));
+
+        DeliveryArea area = await RunAsync(m => m.GetDeliveryAreaAsync(Ct));
+        Assert.True(area.IsRestricted);
+        Assert.Equal(78, area.NotServed.Count);
+        Assert.Equal("Teslimat yapılan iller: Ankara, İstanbul, İzmir", area.RestrictionLine()!.Text);
+
+        AuditLog row = Assert.Single(await ReadTrailAsync());
+        Assert.Equal("UpdateSettings", row.Operation);
+        Assert.Equal(await ScalarAsync<Guid>("SELECT id FROM company_settings"), row.TargetRecordId);
+        Assert.Equal(_admin.Id, row.AdminId);
+        Assert.Equal("Teslimat illeri", row.Details!.DisplayName);
+        AuditValueChange change = Assert.Single(row.Details.Changes);
+        Assert.Equal("DeliveryProvinces", change.Field);
+        Assert.Equal("06,34,35", change.NewValue);
+        Assert.StartsWith("01,02,03", change.OldValue, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SaveDeliveryProvinces_WithTheSameSelection_WritesNothing_AndAStaleVersionIsAConflict()
+    {
+        Guid[] all = [.. (await RunAsync(m => m.GetDeliveryProvincesAsync(Ct))).ProvinceIds];
+
+        SettingsSaveResult same = await RunAsync(m => m.SaveDeliveryProvincesAsync(all, 1, Ct));
+        await RunAsync(m => m.SaveDeliveryProvincesAsync(all.Take(10).ToArray(), 1, Ct));
+        SettingsSaveResult stale = await RunAsync(m => m.SaveDeliveryProvincesAsync(all.Take(20).ToArray(), 1, Ct));
+        SettingsSaveResult staleSame = await RunAsync(m => m.SaveDeliveryProvincesAsync(all.Take(10).ToArray(), 1, Ct));
+
+        Assert.True(same.IsSaved);
+        Assert.True(stale.IsVersionConflict);
+        Assert.True(staleSame.IsVersionConflict);
+        Assert.Equal(10, await ScalarAsync<int>("SELECT count(*)::int FROM company_delivery_provinces"));
+        Assert.Equal(2, await ScalarAsync<int>("SELECT delivery_provinces_version FROM company_settings"));
+        Assert.Single(await ReadTrailAsync());
+    }
+
+    [Fact]
+    public async Task SaveDeliveryProvinces_RefusesAnIdThatIsNotOneOfTheEightyOne_AndAnEmptySelectionIsValid()
+    {
+        SettingsSaveResult unknown = await RunAsync(m => m.SaveDeliveryProvincesAsync([Guid.NewGuid()], 1, Ct));
+        SettingsSaveResult none = await RunAsync(m => m.SaveDeliveryProvincesAsync([], 1, Ct));
+
+        Assert.False(unknown.IsSaved);
+        Assert.Equal(FieldCodes.InvalidProvince, Assert.Single(unknown.Rejections).Code);
+        Assert.True(none.IsSaved);
+        DeliveryArea area = await RunAsync(m => m.GetDeliveryAreaAsync(Ct));
+        Assert.True(area.DeliversNowhere);
+        Assert.Equal("Şu an hiçbir ile teslimat yapılmıyor.", area.RestrictionLine()!.Text);
+        Assert.Equal(0, await ScalarAsync<int>("SELECT count(*)::int FROM company_delivery_provinces"));
+    }
 
     // ---- Helpers ----
 

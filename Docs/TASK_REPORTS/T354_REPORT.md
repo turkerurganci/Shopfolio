@@ -1,6 +1,6 @@
 # T354 — Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — düzeltme bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 2 ⛔ BLOCKED — main ile kod çakışması, birleştirme bekliyor) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -70,10 +70,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-08) |
-| Bulgu sayısı | 1 (B1 ORTA S2) |
-| Düzeltme gerekli mi | Evet — üç test düzeneğine `OrderAccess` kaydı |
-| Bloke-etmeyen not (K) sayısı | 0 |
+| Doğrulama durumu | ⛔ BLOCKED (tur 2, 2026-11-08 — main ile kod çakışması); önceki: ✗ FAIL (tur 1) |
+| Bulgu sayısı | 0 içerik bulgusu (tur 1: B1 ORTA S2, giderildi) |
+| Düzeltme gerekli mi | Evet — `origin/main` birleştirmesi ve `OrderingModule.cs` çakışmasının çözümü |
+| Bloke-etmeyen not (K) sayısı | 1 (rapor içi eskimiş cümle) |
 
 ### Doğrulama Sonucu — tur 1 (validator)
 
@@ -91,6 +91,19 @@
 ### Düzeltme 1
 
 B1 giderildi: `DisposalHarness`, `Model/AddressTests`, `Model/MembershipTests` düzeneklerine `services.AddScoped<OrderAccess>();` eklendi (başka elle kuran düzenek yok). Kabul kriterleri 1–6 ve KK1–KK6 ile kontrol listesinin bütün maddeleri düzeltilmiş diff'te yeniden denetlendi: ✓ (üretim kodu değişmedi). Build `-warnaserror` 0 uyarı, format üç proje temiz, Integration tam küme yeşil.
+
+### Doğrulama Sonucu — tur 2 (validator)
+
+**Head:** `12de6aad` · **PR:** #470 · **Verdict:** ⛔ BLOCKED
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = ana depo `scripts/git-hooks`; ana dal CI son 3: 42492032672, 42490732319, 42490732324 hepsi `success`.
+- **Kabul kriterleri:** 1–6 ve KK1–KK6 ✓ (modül düzeyi; tur 1 ile aynı kanıtlar yeniden üretildi). `09 §25` ilgili satırlar ve güvenlik taraması temiz; yeni bağımlılık yok.
+- **Task satırları:** VAL-D009, B014, B015, B016, A054, A977, A055, A057, A058, B017 `BEKLEMEDE` kaldı (uç/tarayıcı/onay kanıtı T511 ve T348'de).
+- **Testler (yerel):** build `-warnaserror` 0 uyarı; format üç proje temiz; Unit 4822/4822; betik 4 dosya; Integration `OrderAccessTests` 18/18, Ordering 244/244, Disposal 61/61, Model 1353/1354 (düşen `SchedulerBackupDisposalAndKeyTablesTests.Migration_WithoutARoleSettingItReads_…` T354 dışı, tek başına 55/55 geçti — yük altında kararsız).
+- **Dal CI:** 42492570840 ✓ (bütün adımlar).
+- **BLOCKED nedeni:** `git merge origin/main` kod dosyasında çakıştı: `src/Shopfolio.Web/Modules/Ordering/OrderingModule.cs` — T346 (#467) kurucuya `Carts` ve kayda `CartStatements`/`Carts` ekledi, T354 `OrderAccess` ve `OrderIdentifiers`/`OrderAccess` ekliyor. Talimat gereği merge iptal edildi. Çözüm: kurucu iki parametreyi de alır, dört kayıt birlikte kalır; otomatik birleşen üç düzenekte (`DisposalHarness`, `Model/AddressTests`, `Model/MembershipTests`) iki kaydın da bulunduğu denetlenir ve Disposal/Model/Ordering Integration koşulur; sonra birleşik uç için yeni doğrulama turu.
+- **İçerik bulgusu:** yok. **K-notu:** "Notlar > Diğer" satırındaki "Tam Integration paketi yerelde koşulmadı" cümlesi Düzeltme 1 ile eskimiş; birleşme düzeltmesinde güncellenir.
+- **Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu kanıtlı.
 
 ## Altyapı Değişiklikleri
 

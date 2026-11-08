@@ -33,7 +33,7 @@ internal sealed partial class AfterSalesModule
             return ItemRecordWriteResult.Rejected(ItemRecordRefusal.ClaimExists);
         }
 
-        if (!DefectClaimWindow.IsOpen(subject, opening.At))
+        if (!AfterSalesPeriodRules.IsDefectClaimChannelOpen(subject.ProductType, subject.OrderStatus, subject.DeliveryDate, opening.At))
         {
             return ItemRecordWriteResult.Rejected(ItemRecordRefusal.ChannelClosed);
         }
@@ -62,7 +62,7 @@ internal sealed partial class AfterSalesModule
         }
 
         bool reopening = change.Status == DefectClaimStatus.Open && claim.DefectClaimStatus == DefectClaimStatus.Resolved;
-        if (reopening && !DefectClaimWindow.IsOpen(subject, change.At))
+        if (reopening && !AfterSalesPeriodRules.IsDefectClaimChannelOpen(subject.ProductType, subject.OrderStatus, subject.DeliveryDate, change.At))
         {
             return ItemRecordWriteResult.Rejected(ItemRecordRefusal.ChannelClosed);
         }
@@ -139,7 +139,7 @@ internal sealed partial class AfterSalesModule
     public async Task<IReadOnlyDictionary<Guid, ItemMarks>> ItemMarksAsync(IReadOnlyCollection<ItemDelivery> items, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(items);
-        Dictionary<Guid, DateOnly?> deliveries = items.GroupBy(i => i.OrderItemId).ToDictionary(g => g.Key, g => g.First().DeliveryDate);
+        Dictionary<Guid, ItemDelivery> deliveries = items.GroupBy(i => i.OrderItemId).ToDictionary(g => g.Key, g => g.First());
         Guid[] ids = [.. deliveries.Keys];
         Dictionary<Guid, ItemMarks> marks = [];
         if (ids.Length == 0)
@@ -162,19 +162,15 @@ internal sealed partial class AfterSalesModule
 
         foreach (Guid id in ids)
         {
-            DateOnly? delivered = deliveries[id];
+            ItemDelivery item = deliveries[id];
             bool awaitingGoods = withdrawals.Any(w => w.OrderItemId == id
-                && IsAfterDelivery(w.DeclarationDate, w.IsDeliveredBeforeDeclaration, delivered)
+                && AfterSalesPeriodRules.IsAfterDelivery(item.ProductType, item.DeliveryDate, w.DeclarationDate, w.IsDeliveredBeforeDeclaration)
                 && ItemQuantities.AwaitingReceipt(w.Quantity, received.GetValueOrDefault(w.Id), rejected.GetValueOrDefault(w.Id), notReturned.GetValueOrDefault(w.Id)) > 0);
             marks[id] = new ItemMarks(awaitingGoods, awaitingIban.Contains(id));
         }
 
         return marks;
     }
-
-    /// <summary>A withdrawal declared after the delivery starts the return (03 1.7.1.5, 1.7.3.5): a later day, or the same day when the firm answered that the delivery came first.</summary>
-    private static bool IsAfterDelivery(DateOnly declared, bool? deliveredFirst, DateOnly? delivered) =>
-        delivered is { } day && (declared > day || (declared == day && deliveredFirst == true));
 
     private static DefectClaimInfo Info(DefectClaim claim)
     {

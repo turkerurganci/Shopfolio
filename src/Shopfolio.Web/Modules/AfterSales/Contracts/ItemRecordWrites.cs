@@ -5,8 +5,8 @@ namespace Shopfolio.Modules.AfterSales.Contracts;
 
 /// <summary>
 /// The item a record is written on, as the caller - the transition unit, which holds the order's lock (05 7.3.2) - read it from the order: the order and the item,
-/// the item's quantity and type, the order's shipment status, the item's delivery mark and delivery date (02 5.8) and its frozen withdrawal exemption (06 4.17).
-/// The AfterSales writers read the item's records themselves; what belongs to the order is handed in, because the order is not theirs (09 6 item 2).
+/// the item's quantity and type, the order's shipment status, the item's delivery date - the delivery mark is written with it (02 5.8) - and its frozen withdrawal
+/// exemption (06 4.17). The AfterSales writers read the item's records themselves; what belongs to the order is handed in, because the order is not theirs (09 6 item 2).
 /// </summary>
 public sealed record ItemRecordSubject(
     Guid OrderId,
@@ -14,7 +14,6 @@ public sealed record ItemRecordSubject(
     int ItemQuantity,
     ProductType ProductType,
     OrderStatus OrderStatus,
-    DateTimeOffset? DeliveryMarkedAt,
     DateOnly? DeliveryDate,
     WithdrawalExemptionReason? WithdrawalExemptionReason);
 
@@ -66,8 +65,11 @@ public sealed record ItemRecordWriteResult(ItemRecordRefusal? Refusal, Guid? Rec
     public static ItemRecordWriteResult Rejected(ItemRecordRefusal refusal) => new(refusal, null, null);
 }
 
-/// <summary>An item's delivery date as the panel marks read it (03 1.7.3.5: a withdrawal after the delivery starts the return).</summary>
-public sealed record ItemDelivery(Guid OrderItemId, DateOnly? DeliveryDate);
+/// <summary>
+/// An item's type and delivery date as the panel marks read them (03 1.7.3.5: a withdrawal after the delivery starts the return - only a physical item's, as the one
+/// rule of 02 7.3.5 reads it).
+/// </summary>
+public sealed record ItemDelivery(Guid OrderItemId, ProductType ProductType, DateOnly? DeliveryDate);
 
 /// <summary>
 /// An item's panel marks (03 1.7.3; K-675): not a status and never stored - read from the records while the condition lasts. <paramref name="AwaitingReturnGoods"/> -

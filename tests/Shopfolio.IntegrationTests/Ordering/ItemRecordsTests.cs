@@ -370,6 +370,26 @@ public sealed class ItemRecordsTests : IAsyncLifetime
         Assert.Equal(DefectClaimStatus.Open, (await FindClaimAsync(item.Id))!.Status);
     }
 
+    /// <summary>
+    /// The writer reads the one channel rule (AfterSalesPeriodRules, Z-18): a physical item with no delivery date takes a claim once the order reached "Kargoya verildi" -
+    /// in "Teslim edilemedi" too (03 1.11.9; 1.11.5 reads the same words) - and not before it (T320 B1).
+    /// </summary>
+    [Theory]
+    [InlineData(OrderStatus.Preparing, false)]
+    [InlineData(OrderStatus.Shipped, true)]
+    [InlineData(OrderStatus.DeliveryFailed, true)]
+    [InlineData(OrderStatus.Delivered, true)]
+    public async Task OpenDefectClaim_OnAnUndatedPhysicalItem_FollowsTheChannelRule_DeliveryFailedIncluded(OrderStatus status, bool opens)
+    {
+        (Order order, OrderItem item) = await SeedAsync(status, PaymentStatus.Paid, ProductType.Physical, 1, delivered: false, exemption: null);
+
+        ItemRecordResult result = await RunAsync((u, t) => u.OpenDefectClaimAsync(new OpenDefectClaimRequest(order.Id, item.Id, 1, "Kusur"), t));
+
+        Assert.Equal(opens, result.Refusal is null);
+        Assert.Equal(opens ? 1 : 0, await CountAsync(c => c.DefectClaims.Where(d => d.OrderItemId == item.Id)));
+        Assert.Equal(AfterSalesPeriodRules.IsDefectClaimChannelOpen(ProductType.Physical, status, null, _clock.GetUtcNow()), opens);
+    }
+
     [Theory]
     [InlineData(ActorKind.Buyer)]
     [InlineData(ActorKind.Admin)]
@@ -381,14 +401,14 @@ public sealed class ItemRecordsTests : IAsyncLifetime
         Assert.Null((await RunAsync((u, t) => u.ResolveDefectClaimAsync(new ResolveDefectClaimRequest(order.Id, item.Id, AdminCaller, 2), t))).Refusal);
 
         // The last day is the delivery date two years on (Z-18); the day after it the channel is closed for the customer and the administrator alike.
-        _clock.SetUtcNow(DeliveredAt.AddYears(DefectClaimWindow.Years).AddDays(1));
+        _clock.SetUtcNow(DeliveredAt.AddYears(AfterSalesPeriodRules.DefectClaimYears).AddDays(1));
         ItemRecordResult late = await RunAsync((u, t) => u.ReopenDefectClaimAsync(Reopen(actor, order.Id, item.Id, 3), t));
         Assert.Equal(TransitionRefusal.ConditionNotMet, late.Refusal);
         ItemRecordResult lateNew = await RunAsync((u, t) => u.OpenDefectClaimAsync(new OpenDefectClaimRequest(other.Id, otherItem.Id, 1, "Kusur"), t));
         Assert.Equal(TransitionRefusal.ConditionNotMet, lateNew.Refusal);
         Assert.Equal(DefectClaimStatus.Resolved, (await FindClaimAsync(item.Id))!.Status);
 
-        _clock.SetUtcNow(DeliveredAt.AddYears(DefectClaimWindow.Years));
+        _clock.SetUtcNow(DeliveredAt.AddYears(AfterSalesPeriodRules.DefectClaimYears));
         ItemRecordResult onTime = await RunAsync((u, t) => u.ReopenDefectClaimAsync(Reopen(actor, order.Id, item.Id, 3), t));
         Assert.Null(onTime.Refusal);
         Assert.Equal(DefectClaimStatus.Open, (await FindClaimAsync(item.Id))!.Status);
@@ -492,7 +512,7 @@ public sealed class ItemRecordsTests : IAsyncLifetime
         new(orderId, itemId, withdrawalId, AdminCaller, version, true, quantity, DeliveryDay.AddDays(2));
 
     private static ItemRecordSubject Subject(Order order, OrderItem item) =>
-        new(order.Id, item.Id, item.Quantity, item.ProductType, OrderStatus.Delivered, item.DeliveryMarkedAt, item.DeliveryDate, item.WithdrawalExemptionReason);
+        new(order.Id, item.Id, item.Quantity, item.ProductType, OrderStatus.Delivered, item.DeliveryDate, item.WithdrawalExemptionReason);
 
     private static WithdrawalDeclaration Declaration(Order order, OrderItem item, int quantity, DateOnly declared) =>
         new(Subject(order, item), quantity, null, declared, null, 100m * quantity, 0m, 16.67m * quantity, null, Start);
@@ -510,7 +530,7 @@ public sealed class ItemRecordsTests : IAsyncLifetime
         await using ServiceProvider provider = BuildProvider();
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
         IReadOnlyDictionary<Guid, ItemMarks> marks = await scope.ServiceProvider.GetRequiredService<IAfterSalesModule>()
-            .ItemMarksAsync([new ItemDelivery(item.Id, item.DeliveryDate)], Ct);
+            .ItemMarksAsync([new ItemDelivery(item.Id, item.ProductType, item.DeliveryDate)], Ct);
         return marks[item.Id];
     }
 

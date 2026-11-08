@@ -1,21 +1,17 @@
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.AfterSales.Contracts;
-using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.UnitTests.Architecture;
 
 namespace Shopfolio.UnitTests.Ordering;
 
 /// <summary>
-/// The pure rules of the item records (T320; 03 1.7.4, 1.9.1; 02 Z-18, 7.4.9): the unit rule, the claim's own transitions and history, the claim's channel and the
-/// conditional exemptions, and the source scan's one allowed caller of the claim's status writer (D-274).
+/// The pure rules of the item records (T320; 03 1.7.4, 1.9.1; 02 7.4.9): the unit rule, the claim's own transitions and history, the conditional exemptions, and
+/// the source scan's one allowed caller of the claim's status writer (D-274). The claim's channel (Z-18) is AfterSalesPeriodRules' and tested there.
 /// </summary>
 public sealed class ItemRecordRulesTests
 {
     private static readonly DateTimeOffset At = new(2026, 11, 8, 9, 0, 0, TimeSpan.Zero);
-
-    private static ItemRecordSubject Subject(ProductType type, OrderStatus status, DateOnly? deliveryDate, DateTimeOffset? markedAt = null) =>
-        new(Guid.NewGuid(), Guid.NewGuid(), 3, type, status, markedAt ?? (deliveryDate is null ? null : At), deliveryDate, null);
 
     // ---- KK3: the unit rule ----
 
@@ -99,36 +95,7 @@ public sealed class ItemRecordRulesTests
         Assert.Equal(2, claim.Quantity);
     }
 
-    // ---- KK7: the channel of Z-18 ----
-
-    [Fact]
-    public void Window_OnAPhysicalItem_OpensWithTheShipment_AndDoesNotRunWithoutADeliveryDate()
-    {
-        Assert.False(DefectClaimWindow.IsOpen(Subject(ProductType.Physical, OrderStatus.Preparing, null), At));
-        Assert.True(DefectClaimWindow.IsOpen(Subject(ProductType.Physical, OrderStatus.Shipped, null), At.AddYears(5)));
-        Assert.True(DefectClaimWindow.IsOpen(Subject(ProductType.Physical, OrderStatus.DeliveryFailed, null), At));
-        Assert.False(DefectClaimWindow.IsOpen(Subject(ProductType.Physical, OrderStatus.Cancelled, null), At));
-    }
-
-    [Fact]
-    public void Window_ClosesAfterTheLastDay_TwoYearsFromTheDeliveryDate_InTurkeyTime()
-    {
-        DateOnly delivered = new(2026, 11, 8);
-        ItemRecordSubject subject = Subject(ProductType.Physical, OrderStatus.Delivered, delivered);
-
-        Assert.Equal(new DateOnly(2028, 11, 8), DefectClaimWindow.LastDay(subject));
-        Assert.True(DefectClaimWindow.IsOpen(subject, new DateTimeOffset(2028, 11, 8, 20, 59, 59, TimeSpan.Zero)));
-        Assert.False(DefectClaimWindow.IsOpen(subject, new DateTimeOffset(2028, 11, 8, 21, 0, 0, TimeSpan.Zero)));
-    }
-
-    [Fact]
-    public void Window_OnADigitalOrServiceItem_OpensWithTheDeliveryMark()
-    {
-        Assert.False(DefectClaimWindow.IsOpen(Subject(ProductType.Service, OrderStatus.Preparing, null), At));
-        Assert.False(DefectClaimWindow.IsOpen(Subject(ProductType.Digital, OrderStatus.Shipped, null), At));
-        Assert.True(DefectClaimWindow.IsOpen(Subject(ProductType.Service, OrderStatus.Delivered, new DateOnly(2026, 11, 8)), At));
-        Assert.False(DefectClaimWindow.IsOpen(Subject(ProductType.Digital, OrderStatus.Delivered, new DateOnly(2026, 11, 8)), At.AddYears(2).AddDays(1)));
-    }
+    // KK7's channel of Z-18 is AfterSalesPeriodRules' one rule; its tests are in AfterSalesPeriodRulesTests (T320 B1).
 
     // ---- D-274: the scan's one caller of the claim's status writer ----
 

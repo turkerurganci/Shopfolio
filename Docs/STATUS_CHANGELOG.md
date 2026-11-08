@@ -9,6 +9,8 @@
 
 ---
 
+## 2026-11-08 — T344 (Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma) doğrulama tur 1 ✓ PASS (head `7e82f4f` + `origin/main` (`bcb856d`, T302, #446) birleştirmesi, PR #451; kriter 1–9, KK1–KK9, `09 §25` ve güvenlik taraması ✓; bulgu 0; dal CI 42436178107 yeşil; Unit 4277/4277 (birleştirmeden sonra Architecture + Membership 990/990), Integration `AddressTests` 13/13 ve `MembershipTests` 34/34; `VAL-A039`–`A042`, `A101` BEKLEMEDE (uç yanıtı ödeme adımı ve defter sayfası task'larında); K1: D-127'nin T344 payı kapandı; backlog aktif 166)
+
 ## 2026-11-08 — T344 (Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma) yapım tamam, PR açıldı (dal `task/T344-adres`; kriter 1–9, KK1–KK9 öz denetimle ✓; Unit 4277, Integration `AddressTests` 13/13 ve `MembershipTests` 34/34; backlog D-435–D-437; doğrulama bekliyor)
 
 ## 2026-11-08 — T302 (Öteki kayıtların süreyle imhası) doğrulama tur 1 PASS

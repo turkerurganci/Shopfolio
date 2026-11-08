@@ -19,6 +19,7 @@
 
 > Kısa tut. Tarihsel detay `MEMORY_ARCHIVE.md`'ye taşınır (00 §G.2).
 
+- **T344 (F3) ✓ PASS tur 1 — 2026-11-08 (head `7e82f4f` + `origin/main` `bcb856d` (T302) birleştirmesi, PR #451; kriter 1–9, KK1–KK9, `09 §25`, güvenlik ✓; bulgu 0; dal CI 42436178107 yeşil; Unit 4277, Integration `AddressTests` 13 + `MembershipTests` 34; `VAL-A039`–`A042`, `A101` BEKLEMEDE (uç yanıtı T509/T518); K1: D-127 T344 payı ✅ (`InvalidProvince` m.2 yolu); backlog aktif 166).**
 - **T344 (F3) ⏳ yapım tamam, PR açıldı — 2026-11-08 (dal `task/T344-adres`; adres defteri, adres kuralları tek evi `AddressFieldRules`, 81 il okuması, tipe göre istenen adresler, `Order.FreezeAddresses`; Unit 4277, Integration `AddressTests` 13 + `MembershipTests` 34; backlog D-435–D-437).**
 
 - **T302 (F3) ✓ PASS tur 1 — 2026-11-08 (head `5b89cbe` + `origin/main` birleştirmesi, PR #446; bulgu 0; `VAL-D051` PASS; kriter 1–9, KK1–KK9 ✓; Unit 4123, Integration dokunulan sınıflar yeşil; şema yok; backlog D-102 ✅, D-374…D-378, aktif 149):** gönderim kaydı, iletişim talebi, giriş ve imha kaydı, ayıp talebi, gelen bildirim, görsel ve dijital dosya imha parçaları kendi modüllerinde `AddDisposalPart<T>` ile; kol siparişin ödeme kaydından okunur (`FindPaymentArmsAsync`); gelen bildirim 10 yıl (09 §3.5 satırı); dosya silen parça satırı dosyadan önce yazar. ⚠ siparişi kilitlemez, ayıp talebi silmesi sipariş sürümünü artırmaz, tarama istisnası dosya düzeyinde (gerekçeli).

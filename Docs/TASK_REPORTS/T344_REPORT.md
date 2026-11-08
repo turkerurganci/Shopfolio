@@ -1,6 +1,6 @@
 # T344 — Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamam, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -73,10 +73,81 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 bu PR'da kapatıldı) |
+
+### Doğrulama tur 1 — Doğrulama Sonucu — T344 Adres — tur 1
+**Tarih:** 2026-11-08   **Branch:** task/T344-adres   **Commit:** `7e82f4f` (doğrulanan head) + `origin/main` `bcb856d` (T302, #446) birleştirmesi
+
+#### Verdict: ✓ PASS
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş; `core.hooksPath` kurulu |
+| Ana dal CI (son 3) | ✓ | 42436765863, 42434282714, 42434282725 — üçü success |
+| Memory drift | ✓ | `MEMORY.md` satır 22 |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Üye birden çok adlandırılmış adres; misafirin defteri yok | ✓ | `AddressTests` KK1 ve sahiplik testi; misafir `AddressBookId` → 404 |
+| 2 | Yeni adres siparişe donar, deftere yalnız seçimle yazılır | ✓ | `ResolveAsync` koşulu; `AddressTests` KK2 iki test |
+| 3 | Fatura varsayılan teslimatla aynı; ayrı seçilebilir | ✓ | `AddressTests` KK3 |
+| 4 | İl 81'lik kapalı listeden | ✓ | `ProvinceList`; `InvalidProvince`; `AddressTests` KK4 (81 il) |
+| 5 | Fiziksel kalemli sipariş iki adres ister | ✓ | `RequirementOf`; `AddressTests` KK5 (9 alan hatası birlikte) |
+| 6 | Yalnız dijital/hizmet: yalnız fatura | ✓ | `RequirementOf`; `AddressTests` KK6; ekrandaki gösterim T509'da (`AsksShipping` hazır) |
+| 7 | Sipariş adresleri donar | ✓ | `Order.FreezeAddresses`; `orders`'ta defter sütunu/FK yok; `AddressTests` KK7 |
+| 8 | Dört alan zorunlu, ilçe serbest | ✓ | `CheckAddress`; `AddressTests` KK8; `AddressFieldRulesTests` |
+| 9 | Telefon kuralları; fatura telefonsuz; posta kodu/T.C. yok | ✓ | `TryStorePhone`; `AddressTests` KK9 iki test; `BillingAddressSnapshot` |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-A039 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (uç yanıtı ödeme adımında — T509, D-437) | — |
+| VAL-A040 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (aynı) | — |
+| VAL-A041 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (aynı) | — |
+| VAL-A042 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (aynı) | — |
+| VAL-A101 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (uç defter sayfasında — T518) | — |
+
+KP-13 satırları (`VAL-A043`–`A046`) T349/T350'nin, KP-27'nin öteki satırları T342/T343'ün; KD-27'nin satırı yok. `12_matris_denetle.py --kapsam 1-77` → Hata: 0.
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1–KK9 (yukarıdaki kanıtlarla)
+- [x] `09 §25`: modül sınırı, `SaveChanges` yok, tek kural evi, `TimeProvider`, izlemesiz okuma, şema/göç ve paket yok; sayfa/POST maddeleri uygulanamaz (sayfa yok, D-437)
+- [x] Güvenlik taraması
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata |
+| Biçim | ✓ | `dotnet format --verify-no-changes` (üç proje) | temiz |
+| Unit | ✓ | üç namespace parçası | 4277/4277; birleştirmeden sonra Membership+Architecture 990/990 |
+| Betik | ✓ | `run-script-tests.sh` | ok |
+| Integration | ✓ | `AddressTests`, `MembershipTests` (postgres:18) | 13/13, 34/34 |
+| Dal CI | ✓ | `gh pr checks 451` | run 42436178107 bütün işler pass |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz
+- Auth etkisi: Temiz (sahiplik sorguda; başkasının girdisi 404)
+- Input validation: Temiz
+- Yeni bağımlılık: Yok
+
+#### Bulgular (`12 §8.2` defect kaydı)
+Bulgu yok.
+
+#### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | D-127'nin T344 payı (`InvalidProvince`) işaretlenmemişti; kod m.2 yolunda | bu PR'da kapatıldı (D-127 güncellendi) |
+
+#### Yapım Raporu Karşılaştırması
+- Uyum: Tam uyumlu; öz denetim tablosu kanıtlı. Tek eksik D-127 payının anılmaması (K1).
+
+#### Merge ve Post-merge
+- Squash ve post-merge run'lar: yardımcı (17–18. adım)
 
 ## Altyapı Değişiklikleri
 

@@ -1,6 +1,6 @@
 # T335 — Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -95,10 +95,96 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-08) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama Sonucu — T335 Ürün yayın durumu — tur 1
+**Tarih:** 2026-11-08   **Branch:** task/T335-urun-yayin-kapisi   **Commit:** `7241002` (+ `origin/main` `e2e9dbc` (T341, #433) birleştirmesi, kayıt commit'inde)
+
+#### Verdict: ✓ PASS
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş |
+| Hook kurulumu | ✓ | `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana checkout'un `scripts/git-hooks`'u, mutlak yol; daldaki kopya kullanılmadı — talimat kuralı); değiştirilmedi |
+| Ana dal CI (son 3) | ✓ | 42426248059 success (T341), 42423723835 success (T339), 42423723933 success (T339) |
+| Memory drift | ✓ | `grep -nE "\bT335\b" .claude/memory/MEMORY.md` → satır 22 (yapım satırı) |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Ürün ve varyant durumu ayrı; geçişler T321 makinesinden | ✓ | `ProductTransitions.ChangeProductStatusAsync/ChangeVariantStatusAsync` kapıyı (`IPublishGate`) ve `PublishedProductGate`'i çağırır; durum alanını yalnız `ApplyPublishStatus` yazar. Integration `*_KK1` (2 test) ✓, `ProductTransitionsTests` 41/41 ✓ |
+| 2 | Arşiv silme değil; kayıt durur, vitrinden çıkar | ✓ | `AnArchivedProduct_KeepsItsRecordAndVariants_AndLeavesTheListAndTheOptions_KK2` ✓ (satır ve varyant sayısı aynı; vitrin listesi ve seçenek listesi boş) |
+| 3 | Yayına: ad, ana kategori, tip, ≥1 Yayında varyant; açıklama ve görsel zorunlu değil | ✓ | `PublishGateRules.UnmetOfProduct` (`PublishGate.cs`) dört koşul; `CatalogPublishGate` ana kategoriyi `IsPrimaryCategory`'den, Yayında varyantı sayımla okur. Unit `*_KK3` (6 test) ✓; Integration `*_KK3` (3 test) ✓ — ana olmayan kategori kapıyı açmaz, açıklamasız ve görselsiz ürün yayına geçer |
+| 4 | Dijital: Yayında her varyant dosyalı (kendi ya da ürününki); hizmet: ifa süresi | ✓ | `DigitalFileCoverage.FindPublishedWithoutFileAsync` (ayrılmış dosya sayılmaz); ifa süresi `ProductDefinitionRules.IsFulfilmentPeriodEntered` (tek kural evi). Unit `*_KK4` ✓; Integration `*_KK4` (ürün düzeyi dosya, ayrılmış dosya, taslak ürün altında dijital varyant, hizmet 0/null/1 gün) ✓ |
+| 5 | Yayındaki dijital varyantı dosyasız bırakan dosya silme engellenir | ✓ | `ProductRemoval.RemoveDigitalFileAsync`: dosya satırı kilidi (`DigitalFileLocks`) → yayındaki dijital üründe `FindPublishedWithoutFileAsync(..., exceptFileId)` → `DigitalFileRequired` + varyant listesi; satır kalır (`DetachedAt`). Integration `*_KK5` (5 test/teori) ✓ |
+| 6 | Taslak adres: ziyaretçiye NotFound, yöneticiye "Taslak" bandı; taslak varyant ziyaretçiye görünmez | ✓ | `ProductPageReader.ReadAsync` + `ProductPage.ShowsDraftBand`; ziyaretçi varyantları `InOptionList` (T321 kuralı). Integration `ADraftProductsAddress_*_KK6`, `APublishedProductsAddress_*_KK6`, `AnAddressThatHoldsNoProduct_*_KK6` ✓. Sayfa/uç T503 ve T549'da (`11` T503 k3, T549 k1–k3) |
+| 7 | Arşiv adresi "Bu ürün artık satılmıyor": fiyat ve sepet yok; liste ve aramada yok | ✓ | `ProductPageKind.Archived` → varyant listesi boş, `ShowsPrice`/`OffersCart`/`IsIndexable` false; liste/arama dışlaması T321 `ShowcaseReader`. Integration `AnArchivedProductsAddress_*_KK7` (ziyaretçi ve yönetici) ✓; Unit `ThePageKinds_*`, `OnlyAPublishedPage_*` ✓ |
+| 8 | Silme kalıcı; geçmiş sipariş bozulmaz; açık siparişli de silinir, açık sipariş sayısı onaydan önce; varyantın ayırması düşer | ✓ | `ProductRemoval.DeleteProductAsync/DeleteVariantAsync` (sürüm `RecordSave`, sepet kalemleri önce işaretlenir); `GetProductImpactAsync/GetVariantImpactAsync` açık sipariş sayısı (`IOrderingModule.CountOpenOrdersOf*`, terminal = `TransitionTable.TerminalStatuses`) ve ayrılmış adet. Integration `*_KK8` (5 test): sipariş parmak izi aynı, kalemin `ProductId/VariantId` null, ad/tutarlar donmuş; 2 açık + 2 kapalı siparişte sayım 2; `StockReservations` 0 ✓ |
+| 9 | Son Yayında varyant arşivlenemez, taslağa çekilemez, silinemez; panel yönlendirir | ✓ | `PublishedProductGate.IsLastPublishedVariantAsync` tek kural; durum geçişi ve silme aynı `LastPublishedVariant` + `SuggestedProductMoves` = [Draft, Archived]. Integration `*_KK9` (4 test) ✓ — sürüm ve sepet değişmez |
+| 10 | Kapı ürünün ne olduğuna bakmaz; yaş/izin/engelleme/yasaklı kategori/mevzuat belgesi alanı yok | ✓ | `PublishCondition.All` kapalı altı ad; Unit `*_KK10` (3 test + tarama sınaması) ✓ — model ve kapı adlarında yasak sözcük yok, ad ne olursa olsun aynı cevap |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-A021, A022, A023, D001, A024 (KP-7) | ORTA | yok | BEKLEMEDE | BEKLEMEDE (kanıt türü uç yanıtı; adres sayfası T503/T549 — modül okuması ✓) | — |
+| VAL-C037, C038 (KP-40) | ORTA | yok | BEKLEMEDE | BEKLEMEDE (veri kaydı ✓; panel/uç kanıtı T525) | — |
+| VAL-A177, A178, A179, A180 (KP-40) | ORTA | yok | BEKLEMEDE | BEKLEMEDE (önizleme ve silme onayı panel/tarayıcı kanıtı; T525/T503) | — |
+| VAL-D025 (KP-40) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE (veri kaydı ✓ — KK8; "sipariş sayfası açılır" uç kanıtı sayfa task'larında) | — |
+| VAL-A163, A171 (KP-39) | ORTA | yok | BEKLEMEDE | BEKLEMEDE (kapının veri kaydı ✓ — KK3, KK4; uç yanıtı T525) | — |
+
+KP-39'un öteki satırları (A164–A170, A172–A176) T335 kriterlerine bağlı değil (T332/T334/T336/T525). KD-28 ve KD-38 için `12`'de satır yok. Hücre değişmedi; `python -I -X utf8 scripts/doc-scans/12_matris_denetle.py --kapsam 1-77` hata 0.
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1: ürün ve varyant durumu bağımsız değişir
+- [x] KK2: arşivde kayıt durur, vitrinde yok
+- [x] KK3: eksik ad, kategori, tip ya da varyantla Yayında reddedilir
+- [x] KK4: dosyasız dijital varyantla kapı kapalı
+- [x] KK5: dosya silme yayındaki varyantı dosyasız bırakıyorsa engellenir
+- [x] KK6: taslak adres ziyaretçide yok, yöneticide bant
+- [x] KK7: arşiv sayfasında fiyat ve sepet düğmesi yok
+- [x] KK8: silinen ürünün eski siparişi bozulmaz
+- [x] KK9: son Yayında varyant üç yolla da korunur
+- [x] KK10: yaş, izin ve yasaklı kategori alanı yok; kapı türe bakmaz
+- [x] `09 §25` ilgili satırlar: modül sınırı (Contracts, `ProductRemoval`'da `SaveChanges`/işlem açma yok — Unit tarama testi), tek kural evi (`PublishedProductGate`, `DigitalFileCoverage`, `ProductDefinitionRules`), şema/göç/paket/ayar yok, zaman `TimeProvider`'dan, iz alanı kapalı (`02 §10.3.1` ürün silmeyi saymaz), eşzamanlılık: silme ve geçiş ürün sürümüyle; dosya silme–yayın yarışı D-401'de ileri kayıtlı
+- [x] Güvenlik taraması
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Restore | ✓ | `dotnet restore Shopfolio.slnx` | 3 proje |
+| Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata (birleşik ağaçta da) |
+| Format | ✓ | Web: `dotnet format --verify-no-changes --no-restore` 0; Unit ve Integration: `format whitespace`/`style`/`analyzers --verify-no-changes` her biri 0 (tam `format` Unit'te 150 sn'yi aştığı için alt komutlara bölündü) | temiz |
+| Unit (Consistency hariç) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build --filter-not-trait "Consistency=true"` | 4027/4027 (birleşik ağaç 4039/4039) |
+| Unit Consistency | ✓ | `--filter-trait "Consistency=true"` | 241/241 (birleşik ağaçta da) |
+| Betik testleri | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration `ProductPublishGateTests` | ✓ | `--filter-class ...ProductPublishGateTests` + `--filter-method "*KKn"` üç grup | 6 + 16 + 9 = 31/31 |
+| Integration `ProductTransitionsTests` | ✓ | `--filter-class "*ProductTransitionsTests"` | 41/41 |
+| Ortam | ✓ | `postgres:18`, konteyner `shopfolio-t335-val-pg` 127.0.0.1:55731; koşu sonrası `docker rm -f -v` ile silindi; `git status` temiz; `dotnet restore --locked-mode` 0 | — |
+| Dal CI (adım 8a) | ✓ | `gh pr checks 447`; `gh run list --branch task/T335-urun-yayin-kapisi` | 42425264272 success (head `7241002`): Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate pass |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz (diff'te sır, bağlantı dizesi, anahtar yok)
+- Auth etkisi: Temiz — yeni uç yok; `GetProductPageAsync(isAdministrator)` bayrağını çağıran sayfa oturumdan verecek (T503); taslak ve silinmiş adres aynı NotFound (sebep ayırt edilmez)
+- Input validation: Temiz — ham SQL yok; slug boşsa NotFound; silmede ürün sürümü karşılaştırılır
+- Yeni bağımlılık: Yok
+
+#### Bulgular (`12 §8.2` defect kaydı)
+Yok.
+
+#### Bloke-etmeyen Notlar (K-notları)
+Yok. (Dosya silme ile ürünü yayına alma arasındaki kilitsiz yarış yapımda D-401'e, yayındaki ürünün zorunlu alanını boşaltan düzenleme D-403'e ileri atılmış; doğrulayıcı ikisini de gördü, yeni kayıt açmadı.)
+
+#### Yapım Raporu Karşılaştırması
+- Uyum: Tam uyumlu. Öz denetim tablosu her kriter ve KK için ✓ + kanıt taşıyor. Yapımın Unit sayısı birleşik ağaçta 4268 (= 4027 + 241) ile bu doğrulamanın sayısı aynı. ⚠ kararları (açık sipariş = terminal olmayan sipariş; silmede iz satırı yok; yönetici Yayında üründe taslak varyantı görür) belgeyle çelişmiyor (`02 §3.7.7`, §10.3.1, §3.7.5; ödemesi Başarısız sipariş İptal edildi'dir — `02 §3.17.6`).
+
+#### Merge ve Post-merge
+- Squash: yardımcı yapar (doğrulayıcı merge etmez)
+- Post-merge run'lar: yardımcı izler
+
 
 ## Altyapı Değişiklikleri
 

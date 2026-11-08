@@ -28,6 +28,14 @@ public interface IOrderingModule
     Task<DownloadableItem?> FindDownloadableItemAsync(Guid orderItemId, CancellationToken ct);
 
     /// <summary>
+    /// The guest orders of a verified address fall to the account that verified it (T341; 02 3.13.2): in the caller's open transaction, one conditional update of the orders that
+    /// have no account, are not marked as an account's deleted one and carry the address as their contact e-mail (matched in its normalized form). An order that already belongs
+    /// to an account, and the orders of a deleted account, are not taken. The link is a non-raising field: the order's version does not move (06 2.6.5). Returns the number of
+    /// orders taken.
+    /// </summary>
+    Task<int> LinkGuestOrdersAsync(Guid customerId, string email, CancellationToken ct);
+
+    /// <summary>
     /// Takes the cart items of the given variants off the cart (03 1.8.3; 02 3.16.7; 06 4.16): each unmarked item is marked with the product's name in the caller's
     /// operation - the operation that took the product or the variant off the showcase - so it no longer enters the order or the amounts and is told to the customer once.
     /// An item already marked keeps its first mark. Returns the number of items marked. Joins the caller's transaction (09 9.1 item 3).

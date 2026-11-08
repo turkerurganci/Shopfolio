@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T335 (Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı) yapım bitti, ⏳ doğrulama bekliyor (PR #447, dal `task/T335-urun-yayin-kapisi`; kriter 1–10 ve KK1–KK10 öz denetimde ✓: gerçek `CatalogPublishGate` (`UnwrittenPublishGate` kalktı), `DigitalFileCoverage` tek okuma (kapı + dosya silme), `PublishedProductGate` (son Yayında varyant tek kural), `ProductRemoval` (ürün/varyant kalıcı silme, dosya kaldırma, etki sayımı), `ProductPageReader` (adres cevabı); Unit 3921 + Consistency 241, Integration `ProductPublishGateTests` 31 + `ProductTransitionsTests` 41; backlog D-248, D-300, D-304 ✅, D-303 kısmen ✅, D-301 yeniden ileri atıldı, yeni D-401…D-403); önceki task'ların (T316, T321, T334) merge kaydı dolduruldu.
+**Son güncelleme:** 2026-11-08 — T335 (Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı) doğrulama tur 1 ✓ PASS (head `7241002` + `origin/main` (`e2e9dbc`, T341, #433) birleştirmesi, PR #447; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Unit 4027 + Consistency 241 (birleşik ağaçta 4039 + 241), Integration `ProductPublishGateTests` 31/31 ve `ProductTransitionsTests` 41/41 (PostgreSQL 18, yerel); dal CI 42425264272 success; `12` satırları (`VAL-A021`…`A024`, `D001`, `C037`, `C038`, `A163`, `A171`, `A177`…`A180`, `D025`) `BEKLEMEDE` kaldı — kanıt türü uç yanıtı/tarayıcı, sayfalar T503/T549/T525'te; bulgu yok, K-notu yok (dosya silme–yayın yarışı yapımda D-401'e ileri atılmış). T341 birleştirmesinde yalnız STATUS çakıştı; `Modules/Ordering` iki dosyası kendiliğinden birleşti, derleme ve Unit temiz; backlog "Aktif kalem" yeniden sayıldı: 161 (⚪ 158 + 🟡 3; başlıktaki 153 main'de de eskimişti)).
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -174,13 +174,13 @@
 | T332 | Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu | ✓ | ✓ PASS (tur 1) | `c4c872c` | #432 |
 | T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ⬚ | — | — | — |
 | T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ✓ | ✓ PASS (tur 1) | `af6e7d3` | #443 |
-| T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ⏳ | — | — | #447 |
+| T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ✓ | ✓ PASS (tur 1) | — | #447 |
 | T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ⬚ | — | — | — |
 | T337 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | ⬚ | — | — | — |
 | T338 | Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması | ⬚ | — | — | — |
 | T339 | Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti | ✓ | ✓ PASS (tur 2) | — | #445 |
 | T340 | Dijital ürün: dosya, indirme hakkı, hak yenileme, yeniden satın alma | ⬚ | — | — | — |
-| T341 | Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı | ⬚ | — | — | — |
+| T341 | Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı | ✓ | ✓ PASS (tur 3) | — | #433 |
 | T342 | Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri | ⬚ | — | — | — |
 | T343 | Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma | ⬚ | — | — | — |
 | T344 | Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma | ⬚ | — | — | — |

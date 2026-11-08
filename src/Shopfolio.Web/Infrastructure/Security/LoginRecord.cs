@@ -31,10 +31,12 @@ internal sealed class LoginRecord
 
     public LoginOutcome Outcome { get; private set; }
 
-    public static LoginRecord Create(IPAddress ipAddress, AccountType accountType, string normalizedEmail, LoginOutcome outcome, DateTimeOffset now)
+    /// <summary>The one way to make a row. The entered address is normalized here (09 9.4 item 1; D-64), so the row never holds a value the caller normalized.</summary>
+    public static LoginRecord Create(IPAddress ipAddress, AccountType accountType, string email, LoginOutcome outcome, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(ipAddress);
-        return new LoginRecord { Id = EntityIds.New(), CreatedAt = now, IpAddress = ipAddress, AccountType = accountType, NormalizedEmail = normalizedEmail, Outcome = outcome };
+        ArgumentNullException.ThrowIfNull(email);
+        return new LoginRecord { Id = EntityIds.New(), CreatedAt = now, IpAddress = ipAddress, AccountType = accountType, NormalizedEmail = TextNormalizer.NormalizeIdentity(email), Outcome = outcome };
     }
 }
 

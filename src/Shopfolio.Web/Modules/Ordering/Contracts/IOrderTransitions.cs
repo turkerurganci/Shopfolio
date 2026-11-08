@@ -62,8 +62,18 @@ public interface IOrderTransitions
     /// <summary>S5, Preparing to Shipped (03 1.2): the administrator ships the open physical items, with the irreversible-action confirmation and the carrier data; B-5 goes to the customer.</summary>
     Task<OrderTransitionResult> ShipOrderAsync(ShipOrderRequest request, CancellationToken ct);
 
-    /// <summary>S6, Shipped to Delivered (03 1.2): the administrator's delivery mark and delivery date, written on the open physical items; no notice goes and nothing follows by itself.</summary>
+    /// <summary>
+    /// S6, Shipped to Delivered (03 1.2): the administrator's delivery mark and delivery date, written on the open physical items; no notice goes and nothing follows by itself. The date
+    /// is not in the future and not before the day of the shipment; a refused date names its reason in <see cref="OrderTransitionResult.DateObstacle"/> (02 3.20.11).
+    /// </summary>
     Task<OrderTransitionResult> MarkDeliveredAsync(MarkDeliveredRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// The service item's "completed" mark (T351; 02 3.20.9, 7.3.3; 03 8.2.9): the administrator delivers the item's whole open quantity. It is set only while the payment is not Pending or
+    /// Failed (a partial refund does not close it), only on a service item that carries no mark and has an open quantity. It is an item mark, not a transition: the item has no state of its
+    /// own, and when it was the last open item the closure rule ends the order's line in the same operation (S2, S10 or S11, the administrator's event). No notice goes.
+    /// </summary>
+    Task<OrderTransitionResult> MarkServiceCompletedAsync(MarkServiceCompletedRequest request, CancellationToken ct);
 
     /// <summary>S7, Shipped to DeliveryFailed (03 1.2): the administrator marks the returned shipment; B-6 goes to the customer, and the closure rule is read at the end (S11).</summary>
     Task<OrderTransitionResult> MarkDeliveryFailedAsync(AdminOrderRequest request, CancellationToken ct);

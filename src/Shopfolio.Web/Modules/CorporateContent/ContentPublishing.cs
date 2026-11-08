@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Infrastructure.Forms;
+using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 
 namespace Shopfolio.Modules.CorporateContent;
@@ -52,20 +53,27 @@ internal sealed record ContentResult(ContentOutcome Outcome, IReadOnlyList<Conte
 /// The publish rules of the corporate content (T322; 02 5.2, 3.27.23; 03 1.8.4): the move from draft to published through the gate, the way back to
 /// draft, the save of an edit that may not break the gate of a published record, and the deletion with its warning. There are two statuses and no
 /// archive, no later-dated publication and no version history (10 KD-38). Every method joins the caller's transaction and never opens one (09 9.1
-/// item 3). The administrator's record of the status change (the audit trail) and the address that is fixed at the first publication belong to the
-/// panel operations that call this class (T360, T363).
+/// item 3). A change of the status - the publication and the way back to draft - writes one trail row in the same transaction, who and when from the signed-in
+/// administrator (T360; 02 3.27.26, 10.3.1 (2)); an edit of a record's text writes none and neither does the deletion (02 3.27.26, 10.3.1). The address that is fixed at the first
+/// publication belongs to T363.
 /// </summary>
 internal sealed class ContentPublishing
 {
+    /// <summary>The field name of the status change in the trail row (the same as the catalog's).</summary>
+    private const string StatusField = nameof(IContentRecord.PublishStatus);
+
     private readonly AppDbContext _db;
     private readonly CacheInvalidations _invalidations;
+    private readonly IAuditTrail _trail;
 
-    public ContentPublishing(AppDbContext db, CacheInvalidations invalidations)
+    public ContentPublishing(AppDbContext db, CacheInvalidations invalidations, IAuditTrail trail)
     {
         ArgumentNullException.ThrowIfNull(db);
         ArgumentNullException.ThrowIfNull(invalidations);
+        ArgumentNullException.ThrowIfNull(trail);
         _db = db;
         _invalidations = invalidations;
+        _trail = trail;
     }
 
     /// <summary>Draft to published; refused with the empty gate fields when a required field is empty. No second approval exists - any administrator publishes.</summary>
@@ -163,6 +171,7 @@ internal sealed class ContentPublishing
             }
         }
 
+        PublishStatus from = record.PublishStatus;
         RecordSaveResult saved = await RecordSave.SaveAsync(_db, record, expectedVersion, r => r.PublishStatus = target, ct);
         if (!saved.IsSaved)
         {
@@ -170,7 +179,33 @@ internal sealed class ContentPublishing
         }
 
         DropStaleAreas();
+        await _trail.WriteAsync(
+            new AuditEntry(
+                AuditOperation.ChangePublishStatus,
+                kind.ToString(),
+                record.Id,
+                new AuditDetails(TrailNameOf(record), [new AuditValueChange(StatusField, from.ToString(), target.ToString())])),
+            ct);
         return ContentResult.Of(ContentOutcome.Changed, record.Version);
+    }
+
+    /// <summary>
+    /// The name the trail row shows for a record (06 4.63): the record's own name, title or question, never its long text. The about page and the announcement carry no name
+    /// of their own; they are shown by the type's fixed name.
+    /// </summary>
+    private static string TrailNameOf(IContentRecord record)
+    {
+        return record switch
+        {
+            AboutPage => nameof(AboutPage),
+            Announcement => nameof(Announcement),
+            Offering offering => offering.Name,
+            PortfolioItem item => item.Title,
+            FaqItem faq => faq.Question,
+            Branch branch => branch.Name,
+            CustomPage page => page.Title,
+            _ => throw new ArgumentOutOfRangeException(nameof(record), record.Kind, "Unknown content record kind."),
+        };
     }
 
     /// <summary>The cached parts a content record shows in: the menu, the home page blocks and the site map (05 7.10.1).</summary>

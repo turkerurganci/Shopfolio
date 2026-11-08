@@ -221,6 +221,8 @@ public sealed class SitemapSourceTests
 
         public Task<HomepageView> GetHomepageAsync(CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<AnnouncementView?> GetAnnouncementAsync(bool asAdministrator, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<BrandingSection> GetBrandingAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<BrandingSaveResult> SaveBrandingAsync(BrandingInput input, int formVersion, CancellationToken ct) => throw new NotSupportedException();

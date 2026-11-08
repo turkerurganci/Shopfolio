@@ -67,19 +67,17 @@ internal sealed class DisposalHarness : IAsyncDisposable
         services.AddScoped<DownloadCounters>();
         services.AddScoped<OrderPaymentArms>();
         services.AddScoped<AdvisoryLocks>();
+        services.AddCartServices();
         services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddPaymentModule();
         services.AddAfterSalesModule();
         services.AddSettingsDependencies();
         services.AddDisposalPart<OrderDisposalPart>();
 
-        // The other time-bound records' parts (T302): the dispatch record, the contact request and the digital files, with the file store they sweep.
+        // The other time-bound records' parts (T302): the dispatch record, the contact request and the file store they sweep; the digital files' parts come with the Catalog module's registration (AddCartServices).
         services.AddSingleton<IFileStore>(Files);
         services.AddDisposalPart<DispatchRecordDisposalPart>();
         services.AddDisposalPart<ContactRequestDisposalPart>();
-        services.AddDisposalPart<IncompleteDigitalUploadPart>();
-        services.AddDisposalPart<DigitalFileDisposalPart>();
-        services.AddDisposalPart<OrphanDigitalFilePart>();
         _provider = services.BuildServiceProvider();
     }
 

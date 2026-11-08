@@ -1,7 +1,10 @@
 using System.Reflection;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
+
+using Npgsql;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
@@ -22,30 +25,17 @@ using Xunit;
 
 namespace Shopfolio.IntegrationTests.Model;
 
-/// <summary>The administrator the test's audit trail names; empty until a test sets it (an operation that needs an actor then throws).</summary>
-internal sealed class AuditActorHolder
-{
-    public AuditActor? Current { get; set; }
-}
-
-internal sealed class HeldAuditActorSource(AuditActorHolder holder) : IAuditActorSource
-{
-    public Task<AuditActor?> CurrentAsync(CancellationToken ct) => Task.FromResult(holder.Current);
-}
-
 /// <summary>
 /// T345: the deletion of an account and the personal data request (02 3.15; 03 9.4; 07 UC-68, UC-157, UC-95). The module's own rules are sampled here on the real database: what goes with
 /// the account, what stays with the order, the one e-mail, the revert link's gate, the reauthentication and the administrator's trail row.
 /// </summary>
 public sealed partial class MembershipTests
 {
-    private readonly AuditActorHolder _actor = new();
-
     private async Task<Guid> SeedAdminActorAsync()
     {
         Admin admin = Admin.Create("Yonetici", "yonetici@example.com", SeedDigest.Value, Start);
         await SaveAsync(c => c.Admins.Add(admin));
-        _actor.Current = new AuditActor(admin.Id, admin.Name, admin.Email);
+        ActAs(admin.Id, admin.Name, admin.Email);
         return admin.Id;
     }
 
@@ -161,6 +151,94 @@ public sealed partial class MembershipTests
         Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM customers WHERE email_verified_at IS NOT NULL"));
         Assert.Null(await OwnerOfAsync(order));
         Assert.True(await ScalarAsync<bool>($"SELECT is_account_deleted FROM orders WHERE id = '{order}'"));
+    }
+
+    // The race of 05 6.1.2 / 09 15.1 item 3 on two real sessions: the order's insert takes FOR KEY SHARE on its customer row, the deletion takes FOR UPDATE on it. Whichever comes first, the order
+    // ends marked (the insert committed first and the deletion found it) or never exists (the deletion committed first and the insert failed on the removed account).
+
+    [Fact]
+    public async Task AnOrderInsertedWhileTheAccountIsBeingDeleted_IsWaitedFor_AndEndsMarked_KK5()
+    {
+        Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
+        await SeedAdminActorAsync();
+        (Order order, OrderItem item) = BuildOrder("ali@example.com", id, accountDeleted: false);
+        await using AppDbContext confirming = NewContext();
+        await using IDbContextTransaction open = await confirming.Database.BeginTransactionAsync(Ct);
+        confirming.Orders.Add(order);
+        confirming.OrderItems.Add(item);
+        await confirming.SaveChangesAsync(Ct);
+
+        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Database.OpenConnectionAsync(Ct);
+        int pid = await BackendPidAsync(db);
+        Task<AccountDeletionResult> deleting = scope.ServiceProvider.GetRequiredService<ITransactionRunner>().RunAsync(
+            _ => scope.ServiceProvider.GetRequiredService<IMembershipModule>().DeleteAccountOnRequestAsync(id, Ct),
+            Ct);
+        await WaitUntilBlockedAsync(pid);
+        Assert.False(deleting.IsCompleted);
+        await open.CommitAsync(Ct);
+
+        AccountDeletionResult result = await deleting.WaitAsync(TimeSpan.FromSeconds(30), Ct);
+
+        Assert.True(result.IsDeleted);
+        Assert.Equal(1, result.OrdersKept);
+        Assert.Null(await OwnerOfAsync(order.Id));
+        Assert.True(await ScalarAsync<bool>($"SELECT is_account_deleted FROM orders WHERE id = '{order.Id}'"));
+        Assert.Equal(0L, await ScalarAsync<long>($"SELECT count(*) FROM customers WHERE id = '{id}'"));
+    }
+
+    [Fact]
+    public async Task AnOrderInsertedAfterTheDeletionHoldsTheAccount_WaitsAndFails_SoNoUnmarkedOrderExists_KK5()
+    {
+        Guid id = await SeedCustomerAsync("ali@example.com", verified: true);
+        await SeedAdminActorAsync();
+        (Order order, OrderItem item) = BuildOrder("ali@example.com", id, accountDeleted: false);
+        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await using IDbContextTransaction open = await db.Database.BeginTransactionAsync(Ct);
+        AccountDeletionResult result = await scope.ServiceProvider.GetRequiredService<IMembershipModule>().DeleteAccountOnRequestAsync(id, Ct);
+        Assert.True(result.IsDeleted);
+        await db.SaveChangesAsync(Ct);
+
+        await using AppDbContext confirming = NewContext();
+        await confirming.Database.OpenConnectionAsync(Ct);
+        int pid = await BackendPidAsync(confirming);
+        confirming.Orders.Add(order);
+        confirming.OrderItems.Add(item);
+        Task inserting = confirming.SaveChangesAsync(Ct);
+        await WaitUntilBlockedAsync(pid);
+        Assert.False(inserting.IsCompleted);
+        await open.CommitAsync(Ct);
+
+        await Assert.ThrowsAnyAsync<DbUpdateException>(() => inserting.WaitAsync(TimeSpan.FromSeconds(30), Ct));
+        Assert.Equal(0L, await ScalarAsync<long>($"SELECT count(*) FROM orders WHERE id = '{order.Id}'"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM orders WHERE customer_id IS NULL AND is_account_deleted = false"));
+    }
+
+    private static async Task<int> BackendPidAsync(AppDbContext context)
+    {
+        return (await context.Database.SqlQuery<int>($"SELECT pg_backend_pid() AS \"Value\"").ToListAsync(Ct)).Single();
+    }
+
+    /// <summary>Waits until the backend waits on a lock (pg_stat_activity), at most about ten seconds.</summary>
+    private async Task WaitUntilBlockedAsync(int pid)
+    {
+        await using NpgsqlConnection connection = new(_collection.Dsn);
+        await connection.OpenAsync(Ct);
+        for (int attempt = 0; attempt < 400; attempt++)
+        {
+            await using NpgsqlCommand command = new("SELECT wait_event_type FROM pg_stat_activity WHERE pid = @pid", connection);
+            command.Parameters.AddWithValue("pid", pid);
+            if (await command.ExecuteScalarAsync(Ct) is string type && type == "Lock")
+            {
+                return;
+            }
+
+            await Task.Delay(25, Ct);
+        }
+
+        throw new Xunit.Sdk.XunitException($"Backend {pid} never waited on a lock.");
     }
 
     // ---- KK9: an open revert link of an e-mail change closes the deletion, the member's and the firm's ----

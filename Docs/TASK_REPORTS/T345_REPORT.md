@@ -1,6 +1,6 @@
 # T345 — Hesabın silinmesi ve kişisel veri başvurusu
 
-**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** Düzeltme 1 tamam (doğrulama tur 2 bekliyor) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -27,7 +27,7 @@
 | 2 | Sipariş kişisel verisi saklama süresine kadar durur | ✓ | `DeleteOwn_LeavesTheOrdersWithTheirOwnRecord_MarkedDeleted_WithoutRaisingTheVersion_KK2_KK4`; süre sonu imhası mevcut `OrderDisposalPart` |
 | 3 | Silme e-postası bir kez | ✓ | `DeleteOwn_QueuesTheNoticeOnce_ToTheAccountsAddress_KK3` |
 | 4 | Yürüyen sipariş silmeyi engellemez | ✓ | KK2_KK4 testi |
-| 5 | Silinmiş hesabın siparişi bağlanmaz | ✓ | `ANewAccountOfTheSameAddress_DoesNotTakeTheDeletedAccountsOrder_KK5` |
+| 5 | Silinmiş hesabın siparişi bağlanmaz | ✓ | `ANewAccountOfTheSameAddress_DoesNotTakeTheDeletedAccountsOrder_KK5`; eşzamanlı: `AnOrderInsertedWhileTheAccountIsBeingDeleted_IsWaitedFor_AndEndsMarked_KK5`, `AnOrderInsertedAfterTheDeletionHoldsTheAccount_WaitsAndFails_SoNoUnmarkedOrderExists_KK5` (iki oturum, gerçek PostgreSQL; düzeltme 1) |
 | 6 | KVKK talebi ayrı modül/durum makinesi/sayaç yok | ✓ | `ThePersonalDataRequest_HasNoTableStateMachineOrExportOfItsOwn_KK6_KK7` |
 | 7 | Veri indirme yok; üye kaydı düzenlemesiz | ✓ | `TheMemberRecordView_ReadsTheAccount_AndWritesNothing_KK7` |
 | 8 | Yönetici silmesi aynı kural, iz satırı hesabı adlandırmaz | ✓ | `DeleteOnRequest_GivesTheSameResult_AndWritesATrailRowThatNamesNothingOfTheAccount_KK8`; `DeleteOnRequest_WithoutAnActor_Throws_...` |
@@ -46,6 +46,31 @@
 | Kaynak tutarlılığı: modül işlemi açmaz, SaveChanges çağırmaz | ✓ | `AccountDeletions.RequireTransaction`, `MarkAccountDeletedAsync` işlem kontrolü |
 | Elle kuran test düzenekleri | ✓ | Integration TAM (parçalar halinde) yeşil |
 | `dotnet format` | ✓ | Web, UnitTests, IntegrationTests `--verify-no-changes` temiz |
+
+### Düzeltme 1 (doğrulama tur 1 FAIL; B1) — öz denetim
+
+Düzeltme: `AccountDeletions.HoldAndCheckAsync` hesabın satırını `AccountLocks.LockAsync` ile `SELECT … FOR UPDATE` kilitler (`09 §15.1` m.3; `05 §6.1.2` K-1084); kuru `UPDATE` (`FOR NO KEY UPDATE`) kalktı. `LockSequence`: `LockKind.Account` artık sepet danışma kilidi gibi sıranın başıdır — hesap, sonra sipariş satırları kimliğe göre, varyant, kupon; hesap kilidi başka kilidin ardından ve sepet/ayrı ailelerle birlikte istenemez, giriş ve şifre akışları yine yalnız hesap kilidini alır. Belgeyle çelişki yok: `09 §15.1` m.3 hesabı silen işlemi `AccountLocks` kullanıcısı sayar, `05 §7.3.5` hesap kilidini anmaz (metin eksiği D-664). `main` birleşti: `MembershipModule.cs` çakışmasında iki taraf (`AccountDeletions`, `MemberRecords` + `IAdminPendingEmailChanges`) korundu; test düzeneğinde main'in `SwitchableAuditActor`'ı tek kaynak (T345'in `AuditActorHolder` düzeneği kaldırıldı).
+
+| Madde | Sonuç | Kanıt |
+|---|---|---|
+| K1 silmeden sonra hesap ve ona bağlı satırlar yok, imha kaydı | ✓ | KK1 testi yeşil (Membership 142/142 birleşik ağaçta) |
+| K2 sipariş kişisel verisi durur | ✓ | KK2_KK4 testi |
+| K3 e-posta bir kez | ✓ | KK3 testi |
+| K4 yürüyen sipariş engellemez | ✓ | KK2_KK4 testi |
+| K5 silinmiş hesabın siparişi bağlanmaz (eşzamanlı dahil) | ✓ | sıralı KK5 + iki yeni iki-oturumlu yarış testi: sipariş ya işaretli ya hiç oluşmamış |
+| K6, K7 | ✓ | KK6_KK7, KK7 testleri |
+| K8 yönetici silmesi, iz satırı | ✓ | KK8 testleri (main'in aktör düzeneğiyle) |
+| K9 geri alma bağlantısı kapısı | ✓ | KK9 testi |
+| `09 §25`: kod hiçbir doküman cümlesiyle çelişmiyor; eşzamanlılık doğru | ✓ | `09 §15.1` m.3 uygulanıyor; kilit sırası birim testleri (Account → Order/Variant/Coupon izinli; Order/Cart/ayrı aileler → Account ve Account → Cart/CompanySettings yasak); `ConcurrencySourceScan` yeşil |
+| Sık FAIL: eşzamanlılık belge kilidinden zayıf, yarış testi yok (T345 r1) | ✓ | `FOR UPDATE` + iki yarış testi |
+| Sık FAIL: kilit sırası tutarsız (ters sıralı iki akış) | ✓ | sıra tek: hesap → sipariş; olası onay↔silme ölü kilidi D-665'e yazıldı |
+| Sık FAIL: kod birleştirmesinde iki yol / main'in yeni zorunlu alanı / elle kurulan düzenekler | ✓ | birleşik ağaçta Unit 5008, Integration parçaları yeşil |
+| Sık FAIL: format test dosyasında koşulmadan "temiz" | ✓ | Web, UnitTests, IntegrationTests `--verify-no-changes` çıkış 0 |
+| Çakışma işareti / durum | ✓ | `git diff --name-only --diff-filter=U` boş, `git grep` işaret boş, `git status` temiz |
+
+## Test Sonuçları (düzeltme 1)
+
+Birleşik ağaçta: build `-warnaserror` 0 uyarı; Unit 5008/5008; Integration `MembershipTests` + `AddressTests` 142/142; `ConcurrencyTests` + `OperationPatternTests` + `OrderTransitionsTests` 70/70 (postgres:18, `shopfolio-t345-fix-pg`).
 
 ## Test Sonuçları
 
@@ -102,5 +127,5 @@
 - **Working tree (Adım -1):** temiz
 - **Ana dal CI startup (Adım 0):** run 42506023683, 42506023800, 42500144509 — hepsi success
 - **Repo memory (bitiş kapısı 9):** güncellenmedi (parça dosyası kuralı; MEMORY "Güncel Durum" dokunulmaz)
-- **⚠ Kolay kararlar:** yönetici silmesi doğrulanmamış kaydı bulamaz (NotFound); sepet danışma kilidi alınmaz; yeniden doğrulama değeri geri alma bağlantısı reddinde harcanmaz; eşzamanlı onaylanan sipariş + silme yarışı için test yazılmadı; Account kilidini istemeyen `TryRedeemReauthenticationHeldAsync` yalnız hesap satırını yazıyla tutan silme akışı içindir.
+- **⚠ Kolay kararlar:** yönetici silmesi doğrulanmamış kaydı bulamaz (NotFound); sepet danışma kilidi alınmaz; yeniden doğrulama değeri geri alma bağlantısı reddinde harcanmaz; eşzamanlı onaylanan sipariş + silme yarışı (düzeltme 1'de iki oturumlu test eklendi); `TryRedeemReauthenticationHeldAsync` yalnız silme akışı içindir (hesap kilidi bu akışta zaten tutulur). Düzeltme 1: hesap kilidi sıranın başıdır (D-664 belge, D-665 olası ölü kilit).
 - **Hook:** kurulu

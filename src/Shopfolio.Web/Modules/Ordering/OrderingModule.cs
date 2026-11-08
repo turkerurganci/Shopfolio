@@ -157,7 +157,7 @@ internal sealed class OrderingModule : IOrderingModule
             throw new InvalidOperationException("The account's orders are marked only inside the transaction of its deletion (02 3.15.1; 09 6 item 3).");
         }
 
-        // The account's row is held by the caller's write (no account lock family is asked, 05 7.3.5), so the orders are locked by id and read after the lock, the way the guest-order
+        // The account's row is held by the caller's FOR UPDATE (AccountLocks, first in the lock order; 09 15.1 item 3), so the orders are locked by id and read after the lock, the way the guest-order
         // linking does (05 7.3.2): an order another request is changing at this moment is waited for, not overwritten. Both columns are non-raising fields (06 2.6.4): the version does not
         // move, and the caller's save writes them in one statement per order, so "deleted_account_without_link" holds.
         Guid[] candidates = await _db.Orders.AsNoTracking()

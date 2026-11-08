@@ -20,6 +20,9 @@ public sealed class LockSequenceTests
         { "Order", "Variant" },
         { "Order", "Coupon" },
         { "Variant", "Coupon" },
+        { "Account", "Order" },
+        { "Account", "Variant" },
+        { "Account", "Coupon" },
     };
 
     public static TheoryData<string, string> RefusedPairs => new()
@@ -48,7 +51,6 @@ public sealed class LockSequenceTests
         { "CompanySettings", "CategoryTree" },
         { "Order", "CompanySettings" },
         { "Cart", "CompanySettings" },
-        { "Account", "Order" },
         { "Account", "Cart" },
         { "Account", "CompanySettings" },
         { "Order", "Account" },
@@ -120,6 +122,7 @@ public sealed class LockSequenceTests
     [InlineData("DigitalFile")]
     [InlineData("CompanySettings")]
     [InlineData("Cart")]
+    [InlineData("Account")]
     public void Check_SameAdvisoryLockAgainRightAfterItself_IsAllowed(string kindName)
     {
         LockKind kind = Enum.Parse<LockKind>(kindName);

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Membership.Contracts;
@@ -94,14 +95,14 @@ internal sealed class AccountDeletions
         return await RemoveAsync(customerId, now, ct);
     }
 
-    // The account's row is held by a no-op update of the verified account (the same row lock a sign-in or a password change takes): the lock family of the account is taken alone (05 7.3.5)
-    // and this transaction goes on into the order rows, so the row is held by the write, not by the lock sequence - the way the new address's verification holds it. Everything is read after it.
+    // The account's row is locked with SELECT ... FOR UPDATE (AccountLocks; 09 15.1 item 3; 05 6.1.2; K-1084) before anything else, the lock the sign-in and the password flows take. A no-op
+    // UPDATE would not do: it takes FOR NO KEY UPDATE, which does not wait for the FOR KEY SHARE an order insert takes on its customer (the foreign key), so an order confirmed at that moment
+    // would escape the mark. Under FOR UPDATE that insert waits for the deletion (and then fails on the removed account) or is committed first and found by the order read below.
+    // The account's lock heads the lock order and the orders follow by id (LockSequence). Everything is read after it.
     private async Task<AccountDeletionResult?> HoldAndCheckAsync(Guid customerId, DateTimeOffset now, CancellationToken ct)
     {
-        int held = await _db.Customers
-            .Where(c => c.Id == customerId && c.EmailVerifiedAt != null)
-            .ExecuteUpdateAsync(set => set.SetProperty(c => c.Name, c => c.Name), ct);
-        if (held != 1)
+        if (!await AccountLocks.LockAsync(_db, AccountType.Customer, customerId, ct)
+            || !await _db.Customers.AsNoTracking().AnyAsync(c => c.Id == customerId && c.EmailVerifiedAt != null, ct))
         {
             return AccountDeletionResult.Refused(ErrorCode.NotFound);
         }

@@ -33,6 +33,29 @@ internal sealed class AuditTrail : IAuditTrail
         AuditActor actor = await _actors.CurrentAsync(ct)
             ?? throw new InvalidOperationException("There is no signed-in administrator: the system events and the installation commands write no audit row (02 10.3.3; 09 9.2 item 1).");
 
+        Add(actor, entry);
+    }
+
+    /// <summary>
+    /// The row of an operation whose administrator is known to the Administration module itself and is not the request's signed-in one: the invitee who has just opened the
+    /// account and the administrator whose new address has just been verified from a link have no session (07 UC-113, UC-186), so the module names them (T379). The same rules and the
+    /// same transaction as <see cref="WriteAsync"/>; the interface the other modules see stays the one that takes the actor from the request (09 9.2 item 1).
+    /// </summary>
+    internal Task WriteForAsync(AuditActor actor, AuditEntry entry)
+    {
+        ArgumentNullException.ThrowIfNull(actor);
+        AuditEntryRules.Validate(entry);
+        if (_db.Database.CurrentTransaction is null)
+        {
+            throw new InvalidOperationException("An audit row is written in the caller's transaction and never alone (05 4.7.2; 09 9.2 item 5).");
+        }
+
+        Add(actor, entry);
+        return Task.CompletedTask;
+    }
+
+    private void Add(AuditActor actor, AuditEntry entry)
+    {
         // The row is saved by the caller's transaction (09 9.1 item 3): it commits with the operation or goes with it.
         _db.AuditLogs.Add(AuditLog.Create(
             entry.Operation,

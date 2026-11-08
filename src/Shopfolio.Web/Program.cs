@@ -2,6 +2,7 @@ using Microsoft.Extensions.Options;
 
 using Npgsql;
 
+using Shopfolio.Commands;
 using Shopfolio.Endpoints;
 using Shopfolio.Endpoints.Files;
 using Shopfolio.Infrastructure;
@@ -31,6 +32,12 @@ using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Settings;
+
+// The command mode (05 8.5.1; 09 13.2 item 1): the first argument "admin" runs a management command and builds no web host.
+if (CommandHost.IsCommandMode(args))
+{
+    return await CommandHost.ExecuteAsync(args);
+}
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -190,3 +197,4 @@ app.MapSitemapEndpoints();
 app.MapFileEndpoints();
 
 app.Run();
+return (int)CommandExit.Success;

@@ -18,6 +18,7 @@ using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.CorporateContent;
 using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
@@ -858,6 +859,7 @@ public sealed class ConcurrencyTests : IAsyncLifetime
         services.AddSingleton<Shopfolio.Infrastructure.Status.DiskUsageGuard>();
         services.AddSingleton<ImageProcessor>();
         services.AddCatalogModule();
+        services.AddPaymentModule();
         services.AddOrderingModule();
         return services.BuildServiceProvider();
     }

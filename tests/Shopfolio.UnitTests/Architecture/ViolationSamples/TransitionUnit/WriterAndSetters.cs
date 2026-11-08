@@ -29,5 +29,6 @@ public sealed class Sample
         Action<ShipmentTransition> apply = order.ApplyTransition;
         string name = nameof(Order.ApplyCorrection);
         claim.ApplyStatus(DefectClaimStatus.Resolved);
+        afterSales.ChangeDefectClaimStatusAsync(change, ct);
     }
 }

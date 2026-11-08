@@ -160,13 +160,13 @@
 | T317 | Ödeme durumu geçişleri: ödeme ekseni | ✓ | ✓ PASS (tur 3) | — | #441 |
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ✓ | ✓ PASS (tur 2) | — | #455 |
 | T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ✓ | ✓ PASS (tur 1) | — | #465 |
-| T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |
+| T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ✓ | ✓ PASS (tur 2) | — | #466 |
 | T321 | Ürün yayın durumları | ✓ | ✓ PASS (tur 3) | `a89710b` | #439 |
 | T322 | İçerik yayın durumları ve iletişim talebi durumları | ✓ | ✓ PASS (tur 1) | `f9ea0fe` | #438 |
 | T323 | Durum × rol × işlem tablosu | ⬚ | — | — | — |
 | T324 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | ✓ | ✓ PASS (tur 1) | — | #454 |
 | T325 | Zaman aşımı akışları: teslim, cayma, geri ödeme ve ayıp talebi süreleri | ✓ | ✓ PASS (tur 1) | — | #464 |
-| T326 | Zaman aşımı akışları: katalog, kupon, içerik, iletişim ve bildirim süreleri | ⬚ | — | — | — |
+| T326 | Zaman aşımı akışları: katalog, kupon, içerik, iletişim ve bildirim süreleri | ✓ | ✓ PASS (tur 1) | — | #471 |
 | T327 | Kendiliğinden işleyen anlar ve sitenin kesintisinde süreler | ⬚ | — | — | — |
 | T328 | Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi | ✓ | ✓ PASS (tur 1) | `fe78e7b` | #440 |
 | T329 | İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi) | ⬚ | — | — | — |
@@ -186,7 +186,7 @@
 | T343 | Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma | ✓ | ✓ PASS (tur 1) | — | #468 |
 | T344 | Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma | ✓ | ✓ PASS (tur 1) | — | #451 |
 | T345 | Hesabın silinmesi ve kişisel veri başvurusu | ⬚ | — | — | — |
-| T346 | Sepet: sahiplik, giriş anında birleşme, canlı kalem, siparişe girmeyen kalemler | ⬚ | — | — | — |
+| T346 | Sepet: sahiplik, giriş anında birleşme, canlı kalem, siparişe girmeyen kalemler | ✓ | ✓ PASS (tur 2) | — | #467 |
 | T347 | Sepet adet kuralları: stok ve sipariş başına sınır, boşalma, istek listesi yokluğu | ⬚ | — | — | — |
 | T348 | Sipariş onayı: oluşma anı, özet eşitliği, stok ayırma, ödeme süresi, kendiliğinden iptal | ⬚ | — | — | — |
 | T349 | Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği | ⬚ | — | — | — |

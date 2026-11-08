@@ -84,6 +84,19 @@ public sealed class ContentVisibilityTests
         Assert.Equal(ContentShown.Hidden, ContentVisibility.Decide(draft, ContentAudience.Visitor, Today));
     }
 
+    [Fact]
+    public void AnAnnouncement_IsGoneFromTheSite_AtMidnightAfterItsEndDay_WithoutAnyoneRemovingIt_Z23_KK4()
+    {
+        DateOnly end = new(2026, 11, 30);
+        Announcement announcement = Published(start: new DateOnly(2026, 11, 1), end: end);
+        DateTimeOffset gone = Shopfolio.Infrastructure.TurkeyTime.EndOfRange(end);
+
+        // The record is the same published record at both moments; only the day differs.
+        Assert.Equal(ContentShown.Shown, ContentVisibility.Decide(announcement, ContentAudience.Visitor, Shopfolio.Infrastructure.TurkeyTime.DateOf(gone.AddTicks(-1))));
+        Assert.Equal(ContentShown.Hidden, ContentVisibility.Decide(announcement, ContentAudience.Visitor, Shopfolio.Infrastructure.TurkeyTime.DateOf(gone)));
+        Assert.Equal(PublishStatus.Published, announcement.PublishStatus);
+    }
+
     private static Announcement Published(DateOnly? start, DateOnly? end)
     {
         Announcement announcement = Announcement.Create(Now);

@@ -74,6 +74,17 @@ internal static class DiscountRules
         return TurkeyTime.IsWithinRange(at, terms.StartDate, terms.EndDate) ? DiscountState.Running : DiscountState.Ended;
     }
 
+    /// <summary>
+    /// Whether the discount started or ended between the moment a summary was shown (<paramref name="shownAt"/>) and the moment it is confirmed (<paramref name="confirmedAt"/>)
+    /// - the price the customer saw is not the price that applies, and the confirmation is a summary difference (03 4.1.23, 1.10.1; 02 5.11.1; Z-20). The system ends the
+    /// discount by itself (<see cref="DiscountBoundarySource"/>); a discount that ends at the confirmation moment is not carried over it. No discount, or one that did not
+    /// change state, is no difference.
+    /// </summary>
+    public static bool IsSummaryDifference(DiscountTerms? terms, DateTimeOffset shownAt, DateTimeOffset confirmedAt)
+    {
+        return terms is not null && (StateAt(terms, shownAt) == DiscountState.Running) != (StateAt(terms, confirmedAt) == DiscountState.Running);
+    }
+
     /// <summary>The price that applies to a variant at <paramref name="at"/> (02 3.9.1, 5.11.1): the discounted price while its product's discount runs, else its own price.</summary>
     public static decimal AppliedPrice(decimal price, DiscountTerms? terms, DateTimeOffset at)
     {

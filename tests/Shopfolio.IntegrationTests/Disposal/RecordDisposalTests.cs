@@ -415,7 +415,11 @@ public sealed class RecordDisposalTests : IAsyncLifetime
     private async Task<DefectClaim> SeedClaimAsync(Guid itemId, DateTimeOffset createdAt, string history)
     {
         DefectClaim claim = DefectClaim.Create(itemId, 1, "Kusurlu", null, createdAt);
-        claim.StatusHistory = history;
+        foreach (DefectClaimHistoryEntry entry in PayloadJson.Read<List<DefectClaimHistoryEntry>>(history)!)
+        {
+            claim.ApplyStatus(entry.Status, entry.ActorKind, entry.At, entry.Quantity);
+        }
+
         await _harness.SeedAsync(db => db.DefectClaims.Add(claim));
         return claim;
     }

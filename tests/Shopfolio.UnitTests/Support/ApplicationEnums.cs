@@ -18,12 +18,15 @@ internal static class ApplicationEnums
     private static readonly HashSet<string> NotStored = new(StringComparer.Ordinal)
     {
         "Shopfolio.Modules.Ordering.Contracts.TransitionRefusal",
+        "Shopfolio.Modules.AfterSales.Contracts.ItemRecordRefusal",
         // T361: the storefront's read shapes - which menu item or home page block a record is, and why a menu item is hidden; computed per read, never a column.
         "Shopfolio.Modules.CorporateContent.Contracts.MenuItemKind",
         "Shopfolio.Modules.CorporateContent.Contracts.MenuHiddenReason",
         "Shopfolio.Modules.CorporateContent.Contracts.HomepageBlockKind",
         "Shopfolio.Modules.Ordering.Contracts.CorrectionObstacle",
         "Shopfolio.Modules.Catalog.Contracts.ProductPageKind",
+        "Shopfolio.Modules.Ordering.Contracts.CartAddOutcome",
+        "Shopfolio.Modules.Ordering.Contracts.CartPaymentBlock",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

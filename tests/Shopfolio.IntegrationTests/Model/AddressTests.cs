@@ -15,6 +15,7 @@ using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Ordering;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Membership.Contracts;
@@ -112,6 +113,7 @@ public sealed class AddressTests : IAsyncLifetime
         services.AddScoped<OrderPaymentArms>();
         services.AddScoped<OrderAccess>();
         services.AddScoped<AdvisoryLocks>();
+        services.AddCartServices();
         services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddPaymentModule();
         services.AddScoped<AccountEmailQueue>();

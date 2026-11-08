@@ -50,6 +50,8 @@ public sealed class CouponTests : IAsyncLifetime
 
     private readonly CollectionDatabaseFixture _collection;
 
+    private readonly ManualTimeProvider _time = new(Now);
+
     private int _counter;
 
     public CouponTests(CollectionDatabaseFixture collection)
@@ -218,6 +220,41 @@ public sealed class CouponTests : IAsyncLifetime
 
         Assert.True(await ReserveAsync(personal.Id));
         Assert.Equal(CouponOutcome.Rejected, (await EvaluateAsync("kisiye", Basket)).Outcome);
+    }
+
+    [Fact]
+    public async Task AfterTheEndDay_ANewOrderIsRefused_AndTheRightsOfConfirmedOrdersStayWhereTheyWere_T326_KK3()
+    {
+        Coupon coupon = await SeedPercentAsync("SONGUN", 10m, limit: 5);
+        StockClaim paid = new([], coupon.Id);
+        Assert.True(await ReserveAsync(coupon.Id));
+        await RunAsync(async (catalog, token) =>
+        {
+            await catalog.CommitAsync(paid, token);
+            return Done.Value;
+        });
+        Assert.True(await ReserveAsync(coupon.Id));
+        await AssertRightsAsync(coupon.Id, used: 1, reserved: 1);
+
+        // The last minute of the end day still accepts the code; the moment after it does not - no step in between touches the coupon.
+        DateTimeOffset gone = TurkeyTime.EndOfRange(End);
+        _time.SetUtcNow(gone.AddTicks(-1));
+        Assert.Equal(CouponOutcome.Accepted, (await EvaluateAsync("songun", Basket)).Outcome);
+        _time.SetUtcNow(gone);
+        Assert.Equal(CouponOutcome.Rejected, (await EvaluateAsync("songun", Basket)).Outcome);
+        _time.SetUtcNow(gone.AddDays(40));
+        Assert.Equal(CouponOutcome.Rejected, (await EvaluateAsync("songun", Basket)).Outcome);
+
+        // The paid order's used right and the waiting order's reserved right are where they were; the row is not changed (version 1).
+        await AssertRightsAsync(coupon.Id, used: 1, reserved: 1);
+
+        // The waiting order's right still goes through its own transitions after the end: it is released like any other, not by the date.
+        await RunAsync(async (catalog, token) =>
+        {
+            await catalog.ReleaseAsync(new StockClaim([], coupon.Id), token);
+            return Done.Value;
+        });
+        await AssertRightsAsync(coupon.Id, used: 1, reserved: 0);
     }
 
     // ---- KK8: the last right, and its return ----
@@ -449,7 +486,7 @@ public sealed class CouponTests : IAsyncLifetime
         services.AddScoped<ITransactionRunner, TransactionRunner>();
         services.AddAppCache();
         services.AddScoped<AdvisoryLocks>();
-        services.AddSingleton<TimeProvider>(new ManualTimeProvider(Now));
+        services.AddSingleton<TimeProvider>(_time);
         services.AddScoped<IJobQueue, JobQueue>();
         services.AddFileStore();
         services.AddOptions<Shopfolio.Infrastructure.InstallationSettings.StatusThresholdOptions>();

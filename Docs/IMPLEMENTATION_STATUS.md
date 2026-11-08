@@ -183,7 +183,7 @@
 | T340 | Dijital ürün: dosya, indirme hakkı, hak yenileme, yeniden satın alma | ✓ | ✓ PASS (tur 1) | — | #462 |
 | T341 | Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı | ✓ | ✓ PASS (tur 3) | — | #433 |
 | T342 | Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri | ✓ | ✓ PASS (tur 3) | — | #453 |
-| T343 | Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma | ⏳ | — | — | — |
+| T343 | Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma | ⏳ | — | — | #468 |
 | T344 | Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma | ✓ | ✓ PASS (tur 1) | — | #451 |
 | T345 | Hesabın silinmesi ve kişisel veri başvurusu | ⬚ | — | — | — |
 | T346 | Sepet: sahiplik, giriş anında birleşme, canlı kalem, siparişe girmeyen kalemler | ⬚ | — | — | — |

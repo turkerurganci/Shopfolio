@@ -86,7 +86,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T343-google-giris`
-- **PR:** (açılışta yazılır)
+- **PR:** #468
 - **CI:** (yönetici izler)
 
 ## Dış Varsayımlar

@@ -86,7 +86,7 @@
 
 - **Branch:** `task/T354-siparis-no-takip`
 - **Commit:** (PR'da)
-- **PR:** #NN
+- **PR:** #470
 - **CI:** (yönetici yardımcı izler)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası)*
 

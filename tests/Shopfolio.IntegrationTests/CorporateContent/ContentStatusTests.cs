@@ -5,6 +5,8 @@ using Npgsql;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.Modules.Administration;
+using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.CorporateContent;
 
@@ -43,9 +45,13 @@ public sealed class ContentStatusTests : IAsyncLifetime
 
     private string AppDsn => _template.DsnFor(_collection.DatabaseName, _template.Users.App, _template.Users.AppPassword, pooling: false);
 
+    private Admin _admin = null!;
+
     public async ValueTask InitializeAsync()
     {
-        await ExecuteAsync("TRUNCATE about_pages, offerings, portfolio_items, faq_items, branches, custom_pages, announcements CASCADE");
+        await ExecuteAsync("TRUNCATE audit_logs, admins, about_pages, offerings, portfolio_items, faq_items, branches, custom_pages, announcements CASCADE");
+        _admin = Admin.Create("Firma Yöneticisi", "yonetici@example.com", "digest-placeholder", Now);
+        await SeedAsync(_admin);
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -406,7 +412,7 @@ public sealed class ContentStatusTests : IAsyncLifetime
     {
         await using AppDbContext db = NewContext();
         CacheInvalidations invalidations = new(db);
-        ContentPublishing publishing = new(db, invalidations);
+        ContentPublishing publishing = new(db, invalidations, new AuditTrail(db, new FixedActor(_admin), TimeProvider.System));
         TransactionRunner runner = new(db, new JobEnqueueTracker(), new JobSignal(), invalidations, new AppCache());
         return await runner.RunAsync(cancel => work(db, publishing), Ct);
     }
@@ -461,5 +467,10 @@ public sealed class ContentStatusTests : IAsyncLifetime
         await connection.OpenAsync(Ct);
         await using NpgsqlCommand command = new(sql, connection);
         await command.ExecuteNonQueryAsync(Ct);
+    }
+
+    private sealed class FixedActor(Admin admin) : IAuditActorSource
+    {
+        public Task<AuditActor?> CurrentAsync(CancellationToken ct) => Task.FromResult<AuditActor?>(new AuditActor(admin.Id, admin.Name, admin.Email));
     }
 }

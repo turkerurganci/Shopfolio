@@ -77,8 +77,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T361-ana-sayfa-menu`
-- **Commit:** son commit PR'ın head'idir (dönüşte bildirilir)
-- **PR:** PR açıldığında numara PR gövdesinde ve yardımcının dönüşünde yer alır
+- **Commit:** dal head'i (PR #461 sayfasında)
+- **PR:** #461
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

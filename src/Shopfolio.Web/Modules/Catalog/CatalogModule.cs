@@ -32,8 +32,10 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly ProductCategoryLinks _links;
     private readonly ProductListReader _lists;
     private readonly ProductGallery _gallery;
+    private readonly CartVariantReader _cartVariants;
     private readonly Discounts _discounts;
     private readonly VariantPrices _variantPrices;
+    private readonly ShippingPeriodReader _shippingPeriods;
     private readonly CatalogMenuReader _menu;
     private readonly Coupons _coupons;
 
@@ -54,13 +56,17 @@ internal sealed class CatalogModule : ICatalogModule
         ProductGallery gallery,
         Discounts discounts,
         VariantPrices variantPrices,
+        ShippingPeriodReader shippingPeriods,
         CatalogMenuReader menu,
-        Coupons coupons)
+        Coupons coupons,
+        CartVariantReader cartVariants)
     {
+        _cartVariants = cartVariants;
         _pages = pages;
         _discounts = discounts;
         _menu = menu;
         _variantPrices = variantPrices;
+        _shippingPeriods = shippingPeriods;
         _coupons = coupons;
         _priceLabels = priceLabels;
         _categories = categories;
@@ -99,6 +105,8 @@ internal sealed class CatalogModule : ICatalogModule
     public Task<IReadOnlyList<Guid>> ListVariantsWithoutFileAsync(Guid productId, CancellationToken ct) => _fileReader.ListPublishedWithoutFileAsync(productId, ct);
 
     public Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct) => _priceLabels.GetAsync(variantId, ct);
+
+    public Task<IReadOnlyList<VariantShippingPeriod>> GetShippingPeriodsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct) => _shippingPeriods.GetAsync(variantIds, ct);
 
     public Task<DiscountSaveResult> SaveDiscountAsync(Guid productId, decimal percentage, DateOnly startDate, DateOnly endDate, CancellationToken ct)
         => _discounts.SaveAsync(productId, percentage, startDate, endDate, ct);
@@ -163,6 +171,9 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task<VariantImage?> GetVariantImageAsync(Guid variantId, CancellationToken ct)
         => _gallery.GetVariantImageAsync(variantId, ct);
+
+    public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct)
+        => _cartVariants.ListAsync(variantIds, ct);
 
     public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct)
         => _fileReader.FindAsync(variantId, lastKnownFileId, ct);
@@ -234,6 +245,8 @@ internal static class CatalogModuleRegistration
         services.AddScoped<StockCodes>();
         services.AddScoped<ProductStructureReader>();
         services.AddScoped<PriceLabelReader>();
+        services.AddScoped<ShippingPeriodReader>();
+        services.AddScoped<CartVariantReader>();
         services.AddScoped<CategoryTree>();
         services.AddScoped<CatalogMenuReader>();
         services.AddScoped<ProductCategoryLinks>();

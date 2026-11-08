@@ -1,0 +1,5 @@
+{
+  "tags": ["a", "br", "em", "h3", "li", "p", "strong", "ul"],
+  "attributes": ["href"],
+  "schemes": ["http", "https", "mailto"]
+}

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 
@@ -24,7 +25,8 @@ internal sealed class Product : IVersionedRecord
     /// <summary>The searched form of the name; written only together with the name by <see cref="SetName"/> (06 2.7.1).</summary>
     public string NameSearchForm { get; private set; } = string.Empty;
 
-    public string? Description { get; set; }
+    /// <summary>The description, in the closed text format set (02 3.11.6); no length ceiling (02 3.11.5). Written only by <see cref="SetDescription"/>, cleaned (06 2.10.1).</summary>
+    public string? Description { get; private set; }
 
     public ProductType ProductType { get; set; }
 
@@ -70,6 +72,16 @@ internal sealed class Product : IVersionedRecord
         ArgumentNullException.ThrowIfNull(name);
         Name = name;
         NameSearchForm = TextNormalizer.Simplify(name);
+    }
+
+    /// <summary>
+    /// Writes the description (06 2.10.1; 09 15.3 item 1): the closed text format set's cleaning is applied here and only here; a text that is empty or white space only
+    /// is stored as no description. A format outside the set falls, the paragraphs and line breaks stay.
+    /// </summary>
+    public void SetDescription(string? description)
+    {
+        string cleaned = RichTextSanitizer.Sanitize(description);
+        Description = cleaned.Length == 0 ? null : cleaned;
     }
 
     public void BumpVersion() => Version++;

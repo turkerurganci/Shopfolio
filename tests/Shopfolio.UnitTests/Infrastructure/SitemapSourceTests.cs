@@ -136,6 +136,16 @@ public sealed class SitemapSourceTests
         public IReadOnlyList<ShippingVatPart> SplitShippingFee(decimal shippingFee, IReadOnlyList<ShippingBasisLine> lines) => throw new NotSupportedException();
 
         public decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee) => throw new NotSupportedException();
+
+        public Task<GallerySaveResult> SaveProductGalleryAsync(Guid productId, IReadOnlyList<GalleryEntry> entries, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<VariantImageResult> SetVariantImageAsync(Guid variantId, Guid? imageId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<GalleryImage>> GetProductGalleryAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<string?> GetCardImageAltTextAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<VariantImage?> GetVariantImageAsync(Guid variantId, CancellationToken ct) => throw new NotSupportedException();
     }
 
     private sealed class FakeContent(IReadOnlyList<string> paths) : ICorporateContentModule

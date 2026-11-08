@@ -97,6 +97,10 @@ builder.Services.AddScoped<OperationRunner>();
 // The counter of the attempt limits L-1 to L-6 and L-9 (09 15.4 items 5 and 6): the one writer of the attempt record.
 builder.Services.AddScoped<AttemptCounter>();
 
+// The sign-in record's one writer and the one wrapper of the password hasher (09 15.1 item 5; 02 3.13.19).
+builder.Services.AddScoped<LoginRecorder>();
+builder.Services.AddSingleton<PasswordService>();
+
 // The link layer (09 15.1 items 3 and 4): the key derivation and the reading and consuming of link records.
 builder.Services.AddLinkRecords();
 

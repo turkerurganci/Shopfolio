@@ -90,6 +90,12 @@ internal sealed class LinkRecords
     /// </summary>
     public async Task<int> SupersedeEarlierAsync(LinkType linkType, Guid? customerId, Guid? adminId, Guid exceptLinkId, CancellationToken ct)
     {
+        // An empty owner would match every invitation link of the type (D-96): the owner is a customer or an administrator, exactly one. The invitation's own call arrives with T379.
+        if ((customerId is null) == (adminId is null))
+        {
+            throw new ArgumentException("A superseding call names exactly one owner, a customer or an administrator (05 6.4.6; D-96).", nameof(customerId));
+        }
+
         DateTimeOffset now = _time.GetUtcNow();
         return await _db.LinkRecords
             .Where(l => l.LinkType == linkType && l.CustomerId == customerId && l.AdminId == adminId && l.Id != exceptLinkId

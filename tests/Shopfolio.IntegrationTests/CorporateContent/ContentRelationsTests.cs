@@ -403,6 +403,23 @@ public sealed class ContentRelationsTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task AGallerySave_DropsTheHomePageBlocks_SoTheCardShowsTheNewMainImageAtOnce_KK5()
+    {
+        Guid offering = await SeedKindAsync(ContentRecordKind.Offering, "Montaj", 1, flagged: true);
+        Guid[] images = [await SeedImageAsync(), await SeedImageAsync()];
+        HomepageView before = await HomeAsync();
+
+        await GalleryAsync(ContentRecordKind.Offering, offering, [new(images[0], null, false), new(images[1], null, true)]);
+        HomepageView after = await HomeAsync();
+        await GalleryAsync(ContentRecordKind.Offering, offering, [new(images[0], null, true), new(images[1], null, false)]);
+        HomepageView swapped = await HomeAsync();
+
+        Assert.Null(before.Offerings!.Cards.Single().MainImage);
+        Assert.Equal(images[1], after.Offerings!.Cards.Single().MainImage?.ImageId);
+        Assert.Equal(images[0], swapped.Offerings!.Cards.Single().MainImage?.ImageId);
+    }
+
+    [Fact]
     public async Task WithoutAnAltText_TheNameAndThePlaceAreUsed_WithTheFirmsTextTheFirmsTextIs_KK5()
     {
         Guid offering = await SeedOfferingAsync("Montaj", 1);

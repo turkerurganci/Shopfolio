@@ -71,9 +71,12 @@ internal sealed class ContentGallery
     private readonly ISettingsModule _settings;
     private readonly ContentPublishing _publishing;
     private readonly TimeProvider _time;
+    private readonly CacheInvalidations _invalidations;
 
-    public ContentGallery(AppDbContext db, ICatalogModule catalog, ISettingsModule settings, ContentPublishing publishing, TimeProvider time)
+    public ContentGallery(AppDbContext db, ICatalogModule catalog, ISettingsModule settings, ContentPublishing publishing, TimeProvider time, CacheInvalidations invalidations)
     {
+        ArgumentNullException.ThrowIfNull(invalidations);
+        _invalidations = invalidations;
         ArgumentNullException.ThrowIfNull(db);
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(settings);
@@ -291,6 +294,8 @@ internal sealed class ContentGallery
             link.IsMain = isMain;
         }
 
+        // The home page's corporate block and cards carry the main image: the cached blocks are dropped once the transaction commits (09 10.4 item 3; D-498).
+        _invalidations.Add(CacheArea.HomepageBlocks);
         return new ContentGalleryResult(ContentGalleryOutcome.Saved);
     }
 

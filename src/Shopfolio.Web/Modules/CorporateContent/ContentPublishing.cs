@@ -52,20 +52,23 @@ internal sealed record ContentResult(ContentOutcome Outcome, IReadOnlyList<Conte
 /// The publish rules of the corporate content (T322; 02 5.2, 3.27.23; 03 1.8.4): the move from draft to published through the gate, the way back to
 /// draft, the save of an edit that may not break the gate of a published record, and the deletion with its warning. There are two statuses and no
 /// archive, no later-dated publication and no version history (10 KD-38). Every method joins the caller's transaction and never opens one (09 9.1
-/// item 3). The administrator's record of the status change (the audit trail) and the address that is fixed at the first publication belong to the
-/// panel operations that call this class (T360, T363).
+/// item 3). The first publication of a record that has an address of its own fixes the address here (T363; <see cref="IAddressedContentRecord"/>). The administrator's
+/// record of the status change (the audit trail) belongs to the panel operations that call this class (T360; D-315).
 /// </summary>
 internal sealed class ContentPublishing
 {
     private readonly AppDbContext _db;
     private readonly CacheInvalidations _invalidations;
+    private readonly TimeProvider _time;
 
-    public ContentPublishing(AppDbContext db, CacheInvalidations invalidations)
+    public ContentPublishing(AppDbContext db, CacheInvalidations invalidations, TimeProvider time)
     {
         ArgumentNullException.ThrowIfNull(db);
         ArgumentNullException.ThrowIfNull(invalidations);
+        ArgumentNullException.ThrowIfNull(time);
         _db = db;
         _invalidations = invalidations;
+        _time = time;
     }
 
     /// <summary>Draft to published; refused with the empty gate fields when a required field is empty. No second approval exists - any administrator publishes.</summary>
@@ -163,7 +166,21 @@ internal sealed class ContentPublishing
             }
         }
 
-        RecordSaveResult saved = await RecordSave.SaveAsync(_db, record, expectedVersion, r => r.PublishStatus = target, ct);
+        // The first publication fixes the address in the same save as the status (02 3.30.2; 06 4.72); a record that goes back to draft and out again keeps the moment.
+        DateTimeOffset now = _time.GetUtcNow();
+        RecordSaveResult saved = await RecordSave.SaveAsync(
+            _db,
+            record,
+            expectedVersion,
+            r =>
+            {
+                r.PublishStatus = target;
+                if (target == PublishStatus.Published && r is IAddressedContentRecord addressed)
+                {
+                    addressed.SlugFixedAt ??= now;
+                }
+            },
+            ct);
         if (!saved.IsSaved)
         {
             return ContentResult.Of(ContentOutcome.VersionConflict);

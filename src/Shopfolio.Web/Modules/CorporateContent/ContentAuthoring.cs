@@ -124,11 +124,15 @@ internal sealed class ContentAuthoring
         return AuthoringResult.Of(AuthoringOutcome.Created, offering.Id, offering.Version);
     }
 
-    /// <summary>The edit of a service introduction against the version the form carried.</summary>
+    /// <summary>The edit of a service introduction against the version the form carried; until the first publication the address follows the name (02 3.30.2).</summary>
     public async Task<AuthoringResult> SaveOfferingAsync(Guid id, OfferingInput input, int formVersion, CancellationToken ct)
     {
         Offering? offering = await _db.Offerings.SingleOrDefaultAsync(o => o.Id == id, ct);
-        return await EditAsync(offering, formVersion, ContentInputRules.Check(input), o => ApplyOffering(o, input), ct);
+        List<FieldRejection> rejections = ContentInputRules.Check(input);
+        string? slug = offering is null || rejections.Count > 0
+            ? null
+            : await SlugForSaveAsync(_db.Offerings.Select(o => o.Slug), ContentInputRules.Text(input.Name)!, AddressRules.ServicePrefix, offering, ct);
+        return await EditAsync(offering, formVersion, rejections, o => { ApplyOffering(o, input); WriteSlug(o, slug); }, ct);
     }
 
     /// <summary>A new reference work (02 3.27.5): a draft with its address made from the title.</summary>
@@ -149,11 +153,15 @@ internal sealed class ContentAuthoring
         return AuthoringResult.Of(AuthoringOutcome.Created, item.Id, item.Version);
     }
 
-    /// <summary>The edit of a reference work against the version the form carried.</summary>
+    /// <summary>The edit of a reference work against the version the form carried; until the first publication the address follows the title (02 3.30.2).</summary>
     public async Task<AuthoringResult> SavePortfolioItemAsync(Guid id, PortfolioItemInput input, int formVersion, CancellationToken ct)
     {
         PortfolioItem? item = await _db.PortfolioItems.SingleOrDefaultAsync(p => p.Id == id, ct);
-        return await EditAsync(item, formVersion, ContentInputRules.Check(input), p => ApplyPortfolio(p, input), ct);
+        List<FieldRejection> rejections = ContentInputRules.Check(input);
+        string? slug = item is null || rejections.Count > 0
+            ? null
+            : await SlugForSaveAsync(_db.PortfolioItems.Select(p => p.Slug), ContentInputRules.Text(input.Title)!, AddressRules.ReferencePrefix, item, ct);
+        return await EditAsync(item, formVersion, rejections, p => { ApplyPortfolio(p, input); WriteSlug(p, slug); }, ct);
     }
 
     /// <summary>A new question (02 3.27.6): a draft; it has no page address, and the list is one list - no heading to put it under.</summary>
@@ -220,11 +228,15 @@ internal sealed class ContentAuthoring
         return AuthoringResult.Of(AuthoringOutcome.Created, page.Id, page.Version);
     }
 
-    /// <summary>The edit of a general page against the version the form carried.</summary>
+    /// <summary>The edit of a general page against the version the form carried; until the first publication the address follows the title (02 3.30.2).</summary>
     public async Task<AuthoringResult> SaveCustomPageAsync(Guid id, CustomPageInput input, int formVersion, CancellationToken ct)
     {
         CustomPage? page = await _db.CustomPages.SingleOrDefaultAsync(c => c.Id == id, ct);
-        return await EditAsync(page, formVersion, ContentInputRules.Check(input), c => ApplyCustomPage(c, input), ct);
+        List<FieldRejection> rejections = ContentInputRules.Check(input);
+        string? slug = page is null || rejections.Count > 0
+            ? null
+            : await SlugForSaveAsync(_db.CustomPages.Select(c => c.Slug), ContentInputRules.Text(input.Title)!, AddressRules.GeneralPagePrefix, page, ct);
+        return await EditAsync(page, formVersion, rejections, c => { ApplyCustomPage(c, input); WriteSlug(c, slug); }, ct);
     }
 
     private async Task<List<FieldRejection>> CheckBranchAsync(BranchInput input, CancellationToken ct)
@@ -314,6 +326,32 @@ internal sealed class ContentAuthoring
 
     /// <summary>The province as stored: an empty id is no province.</summary>
     private static Guid? StoredProvince(BranchInput input) => input.ProvinceId == Guid.Empty ? null : input.ProvinceId;
+
+    /// <summary>
+    /// The address a record is saved with (02 3.30.2; 06 4.72.3): made again from the name while the address is not fixed - the addresses of the other records are read afresh, the record's
+    /// own is not counted - and the current one once the first publication fixed it. The one function is <see cref="Slug.ForSaveAsync"/>.
+    /// </summary>
+    private static Task<string> SlugForSaveAsync(IQueryable<string> slugs, string name, string root, IAddressedContentRecord record, CancellationToken ct) =>
+        Slug.ForSaveAsync(
+            name,
+            root,
+            record.Slug,
+            record.SlugFixedAt,
+            async (baseSlug, cancel) =>
+            {
+                string numbered = baseSlug + "-";
+                return await slugs.Where(s => s == baseSlug || s.StartsWith(numbered)).ToListAsync(cancel);
+            },
+            ct);
+
+    /// <summary>Writes the address <see cref="SlugForSaveAsync"/> made; a record whose address is fixed is never written here.</summary>
+    private static void WriteSlug(IAddressedContentRecord record, string? slug)
+    {
+        if (slug is not null && record.SlugFixedAt is null)
+        {
+            record.Slug = slug;
+        }
+    }
 
     /// <summary>The free address of a new record (09 9.4 item 3): the name's address, or the first numbered one no row of the table holds (a draft's address counts as used).</summary>
     private static async Task<string> NewSlugAsync(IQueryable<string> slugs, string name, string root, CancellationToken ct)

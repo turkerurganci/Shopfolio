@@ -140,7 +140,7 @@ public sealed class ContentAuthoringTests : IAsyncLifetime
             {
                 await using AppDbContext db = NewContext();
                 CacheInvalidations invalidations = new(db);
-                ContentAuthoring authoring = new(db, new ContentPublishing(db, invalidations), new ProvinceList(db), TimeProvider.System);
+                ContentAuthoring authoring = new(db, new ContentPublishing(db, invalidations, TimeProvider.System), new ProvinceList(db), TimeProvider.System);
                 TransactionRunner runner = new(db, new JobEnqueueTracker(), new JobSignal(), invalidations, new AppCache());
                 return await runner.RunAsync(cancel => authoring.CreateOfferingAsync(new OfferingInput("Çelik Kapı", null, null, false), cancel), retryOn, Ct);
             }),
@@ -164,6 +164,86 @@ public sealed class ContentAuthoringTests : IAsyncLifetime
         Assert.Equal(2, await ScalarAsync<int>($"SELECT sort_order FROM offerings WHERE id = '{b.Id}'"));
         Assert.Equal("Draft", await ScalarAsync<string>($"SELECT publish_status FROM portfolio_items WHERE id = '{p.Id}'"));
         Assert.Equal("proje", await SlugAsync("portfolio_items", p.Id!.Value));
+    }
+
+    // ---- T363: the address follows the name until the first publication, then it is fixed ----
+
+    [Fact]
+    public async Task AnOfferingsAddress_FollowsTheNameOnEveryEdit_TakesANumberOnAClash_AndKeepsItsOwnWhenTheNameIsSavedAgain_T363()
+    {
+        AuthoringResult other = await RunAsync((authoring, _) => authoring.CreateOfferingAsync(new OfferingInput("Mobil Uygulama", null, null, false), Ct));
+        AuthoringResult mine = await RunAsync((authoring, _) => authoring.CreateOfferingAsync(new OfferingInput("Web Tasarım", null, null, false), Ct));
+        Assert.Equal("web-tasarim", await SlugAsync("offerings", mine.Id!.Value));
+
+        AuthoringResult renamed = await RunAsync((authoring, _) => authoring.SaveOfferingAsync(mine.Id!.Value, new OfferingInput("Kurumsal Site", null, null, false), mine.Version!.Value, Ct));
+        AuthoringResult same = await RunAsync((authoring, _) => authoring.SaveOfferingAsync(mine.Id!.Value, new OfferingInput("Kurumsal Site", "kısa", null, false), renamed.Version!.Value, Ct));
+        AuthoringResult clash = await RunAsync((authoring, _) => authoring.SaveOfferingAsync(mine.Id!.Value, new OfferingInput("mobil uygulama", null, null, false), same.Version!.Value, Ct));
+
+        Assert.Equal(AuthoringOutcome.Saved, renamed.Outcome);
+        Assert.Equal(AuthoringOutcome.Saved, same.Outcome);
+        Assert.Equal(AuthoringOutcome.Saved, clash.Outcome);
+        Assert.Equal("mobil-uygulama", await SlugAsync("offerings", other.Id!.Value));
+        Assert.Equal("mobil-uygulama-2", await SlugAsync("offerings", mine.Id!.Value));
+    }
+
+    [Fact]
+    public async Task AnOfferingsFirstPublication_FixesTheAddress_AndNeitherAnEditNorTheWayBackToDraftChangesIt_T363()
+    {
+        AuthoringResult created = await RunAsync((authoring, _) => authoring.CreateOfferingAsync(new OfferingInput("Web Tasarım", null, null, false), Ct));
+        Guid id = created.Id!.Value;
+        Assert.Equal(0L, await ScalarAsync<long>($"SELECT count(*) FROM offerings WHERE id = '{id}' AND slug_fixed_at IS NOT NULL"));
+
+        ContentResult published = await RunAsync((_, publishing) => publishing.PublishAsync(ContentRecordKind.Offering, id, created.Version!.Value, Ct));
+        DateTime fixedAt = await ScalarAsync<DateTime>($"SELECT slug_fixed_at FROM offerings WHERE id = '{id}'");
+        AuthoringResult edited = await RunAsync((authoring, _) => authoring.SaveOfferingAsync(id, new OfferingInput("Tamamen Başka Ad", null, null, false), published.Version!.Value, Ct));
+        ContentResult draft = await RunAsync((_, publishing) => publishing.UnpublishAsync(ContentRecordKind.Offering, id, edited.Version!.Value, Ct));
+        AuthoringResult editedAgain = await RunAsync((authoring, _) => authoring.SaveOfferingAsync(id, new OfferingInput("Bir Ad Daha", null, null, false), draft.Version!.Value, Ct));
+        ContentResult again = await RunAsync((_, publishing) => publishing.PublishAsync(ContentRecordKind.Offering, id, editedAgain.Version!.Value, Ct));
+
+        Assert.Equal(ContentOutcome.Changed, published.Outcome);
+        Assert.Equal(AuthoringOutcome.Saved, edited.Outcome);
+        Assert.Equal(ContentOutcome.Changed, draft.Outcome);
+        Assert.Equal(AuthoringOutcome.Saved, editedAgain.Outcome);
+        Assert.Equal(ContentOutcome.Changed, again.Outcome);
+        Assert.Equal("web-tasarim", await SlugAsync("offerings", id));
+        Assert.Equal(fixedAt, await ScalarAsync<DateTime>($"SELECT slug_fixed_at FROM offerings WHERE id = '{id}'"));
+        Assert.Equal("Bir Ad Daha", await ScalarAsync<string>($"SELECT name FROM offerings WHERE id = '{id}'"));
+    }
+
+    [Fact]
+    public async Task AReferenceWorkAndAGeneralPage_FollowTheirTitleUntilTheFirstPublication_ThenStay_T363()
+    {
+        AuthoringResult work = await RunAsync((authoring, _) => authoring.CreatePortfolioItemAsync(new PortfolioItemInput("Eski Proje", null, null, false), Ct));
+        AuthoringResult page = await RunAsync((authoring, _) => authoring.CreateCustomPageAsync(new CustomPageInput("Eski Sayfa", null, false), Ct));
+        AuthoringResult workRenamed = await RunAsync((authoring, _) => authoring.SavePortfolioItemAsync(work.Id!.Value, new PortfolioItemInput("Yeni Proje", null, null, false), work.Version!.Value, Ct));
+        AuthoringResult pageRenamed = await RunAsync((authoring, _) => authoring.SaveCustomPageAsync(page.Id!.Value, new CustomPageInput("Yeni Sayfa", null, false), page.Version!.Value, Ct));
+
+        Assert.Equal("yeni-proje", await SlugAsync("portfolio_items", work.Id!.Value));
+        Assert.Equal("yeni-sayfa", await SlugAsync("custom_pages", page.Id!.Value));
+
+        ContentResult workPublished = await RunAsync((_, publishing) => publishing.PublishAsync(ContentRecordKind.PortfolioItem, work.Id!.Value, workRenamed.Version!.Value, Ct));
+        ContentResult pagePublished = await RunAsync((_, publishing) => publishing.PublishAsync(ContentRecordKind.CustomPage, page.Id!.Value, pageRenamed.Version!.Value, Ct));
+        await RunAsync((authoring, _) => authoring.SavePortfolioItemAsync(work.Id!.Value, new PortfolioItemInput("Üçüncü Proje", null, null, false), workPublished.Version!.Value, Ct));
+        await RunAsync((authoring, _) => authoring.SaveCustomPageAsync(page.Id!.Value, new CustomPageInput("Üçüncü Sayfa", null, false), pagePublished.Version!.Value, Ct));
+
+        Assert.Equal("yeni-proje", await SlugAsync("portfolio_items", work.Id!.Value));
+        Assert.Equal("yeni-sayfa", await SlugAsync("custom_pages", page.Id!.Value));
+        Assert.Equal(1L, await ScalarAsync<long>($"SELECT count(*) FROM portfolio_items WHERE id = '{work.Id}' AND slug_fixed_at IS NOT NULL"));
+        Assert.Equal(1L, await ScalarAsync<long>($"SELECT count(*) FROM custom_pages WHERE id = '{page.Id}' AND slug_fixed_at IS NOT NULL"));
+    }
+
+    [Fact]
+    public async Task ADeletedRecordsAddress_IsFreeAgain_AndADraftsAddressCountsAsUsed_T363()
+    {
+        AuthoringResult first = await RunAsync((authoring, _) => authoring.CreateOfferingAsync(new OfferingInput("Web Tasarım", null, null, false), Ct));
+        AuthoringResult second = await RunAsync((authoring, _) => authoring.CreateOfferingAsync(new OfferingInput("Web Tasarım", null, null, false), Ct));
+        Assert.Equal("web-tasarim-2", await SlugAsync("offerings", second.Id!.Value));
+
+        ContentResult deleted = await RunAsync((_, publishing) => publishing.DeleteAsync(ContentRecordKind.Offering, first.Id!.Value, irreversibleWarningConfirmed: true, Ct));
+        AuthoringResult third = await RunAsync((authoring, _) => authoring.CreateOfferingAsync(new OfferingInput("Web Tasarım", null, null, false), Ct));
+
+        Assert.Equal(ContentOutcome.Deleted, deleted.Outcome);
+        Assert.Equal("web-tasarim", await SlugAsync("offerings", third.Id!.Value));
     }
 
     // ---- KK7: the branch ----
@@ -371,7 +451,7 @@ public sealed class ContentAuthoringTests : IAsyncLifetime
     {
         await using AppDbContext db = NewContext();
         CacheInvalidations invalidations = new(db);
-        ContentPublishing publishing = new(db, invalidations);
+        ContentPublishing publishing = new(db, invalidations, TimeProvider.System);
         ContentAuthoring authoring = new(db, publishing, new ProvinceList(db), TimeProvider.System);
         TransactionRunner runner = new(db, new JobEnqueueTracker(), new JobSignal(), invalidations, new AppCache());
         return await runner.RunAsync(cancel => work(authoring, publishing), Ct);

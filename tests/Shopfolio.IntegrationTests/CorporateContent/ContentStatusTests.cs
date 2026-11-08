@@ -406,7 +406,7 @@ public sealed class ContentStatusTests : IAsyncLifetime
     {
         await using AppDbContext db = NewContext();
         CacheInvalidations invalidations = new(db);
-        ContentPublishing publishing = new(db, invalidations);
+        ContentPublishing publishing = new(db, invalidations, TimeProvider.System);
         TransactionRunner runner = new(db, new JobEnqueueTracker(), new JobSignal(), invalidations, new AppCache());
         return await runner.RunAsync(cancel => work(db, publishing), Ct);
     }

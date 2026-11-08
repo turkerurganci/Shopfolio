@@ -93,7 +93,7 @@
 
 - **Branch:** `task/T355-donan-degerler`
 - **Commit:** son commit PR'da
-- **PR:** #PRNO
+- **PR:** #484
 - **CI:** *(validator doldurur)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 

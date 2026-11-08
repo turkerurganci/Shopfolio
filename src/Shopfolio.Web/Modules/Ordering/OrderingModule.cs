@@ -23,14 +23,21 @@ internal sealed class OrderingModule : IOrderingModule
 
     private readonly DownloadCounters _downloads;
 
-    public OrderingModule(AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks, DownloadCounters downloads)
+    private readonly OrderAccess _access;
+
+    public OrderingModule(AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks, DownloadCounters downloads, OrderAccess access)
     {
         _db = db;
         _arms = arms;
         _locks = locks;
         _advisoryLocks = advisoryLocks;
         _downloads = downloads;
+        _access = access;
     }
+
+    public Task<OrderAccessLookup?> FindOrderByNumberAndEmailAsync(string orderNumber, string email, CancellationToken ct) => _access.FindByNumberAndEmailAsync(orderNumber, email, ct);
+
+    public Task<OrderPageSummary?> GetOrderPageSummaryAsync(Guid orderId, CancellationToken ct) => _access.GetSummaryAsync(orderId, ct);
 
     public Task<IReadOnlyList<OrderPaymentArm>> FindPaymentArmsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => _arms.ReadAsync(orderIds, ct);
 
@@ -251,6 +258,10 @@ internal static class OrderingModuleRegistration
         services.AddScoped<OrderLocks>();
         services.AddScoped<OrderPaymentArms>();
         services.AddScoped<DownloadCounters>();
+
+        // The order number, the access key and the ways into the order page (T354; 02 3.22).
+        services.AddScoped<OrderIdentifiers>();
+        services.AddScoped<OrderAccess>();
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
 

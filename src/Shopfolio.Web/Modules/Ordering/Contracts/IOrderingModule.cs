@@ -21,6 +21,21 @@ public interface IOrderingModule
     Task<Guid?> FindOrderByAccessKeyAsync(string accessKey, CancellationToken ct);
 
     /// <summary>
+    /// The guest's lookup by number and e-mail (07 UC-32; 02 3.22.3, 3.22.5): the order whose number matches without regard to letter case and whose contact e-mail, as frozen
+    /// on the order, matches in its normalized form - with the access key the caller turns into the 303 to the access-key root. The number alone opens nothing. An order of a
+    /// deleted account, or of an account whose address changed, matches by its frozen address; an order whose personal data is disposed never matches. Any wrong or empty
+    /// part gives the same null: the answer does not say which part failed or whether the order exists (K-772). A plain read; the failed-lookup limits (L-5) are the caller's
+    /// attempt layer.
+    /// </summary>
+    Task<OrderAccessLookup?> FindOrderByNumberAndEmailAsync(string orderNumber, string email, CancellationToken ct);
+
+    /// <summary>
+    /// The status, the delivery area with its tracking link, the download buttons and the frozen bank transfer IBAN of an order the caller has already opened by one of the
+    /// three ways (02 3.22.4); null when the order does not exist. Read from the order alone: no e-mail stands between the buyer and any of them (02 6.1.1). A plain read.
+    /// </summary>
+    Task<OrderPageSummary?> GetOrderPageSummaryAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
     /// What the download endpoint needs of an order item (07 4.31.1; 05 7.7.4): its variant link and last known file link, or null when there is no such item, it
     /// is not a digital item or its order's payment is not confirmed (02 3.12.1) - the caller answers all of them with the same 404. A plain read; it writes nothing
     /// and does not look at the download counter (the right dropped at the order page's button).

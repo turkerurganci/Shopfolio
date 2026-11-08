@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
@@ -231,6 +232,23 @@ internal sealed class Order : IVersionedRecord
         BillingProvinceId = null;
         BillingDistrict = null;
         BillingAddressLine = null;
+    }
+
+    /// <summary>
+    /// The renewal of the access key (02 3.22.5, 8.3.5, 10.4.11): a new key is made and the old one stops opening the order at once, because the key is kept as it is and the
+    /// lookup compares it exactly. The only renewal there is - the key has no life of its own and nothing but the firm's correction of a guest order's e-mail renews it (the
+    /// operation is T375's). Refused on an order whose personal data is disposed: its key is empty for good (06 9.2.1). The caller holds the order's row lock and raises the version.
+    /// </summary>
+    internal string RenewAccessKey()
+    {
+        if (OrderAccessKey is null)
+        {
+            throw new InvalidOperationException("The order's personal data is disposed: its access key is empty and is not made again (06 9.2.1).");
+        }
+
+        string renewed = SecretKey.Create();
+        OrderAccessKey = renewed;
+        return renewed;
     }
 
     /// <summary>Writes the two document copies; they are written once, at confirmation, and never again (09 9.3 item 1).</summary>

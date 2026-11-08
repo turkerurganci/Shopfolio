@@ -333,6 +333,9 @@ internal static class OrderingModuleRegistration
         services.AddDueRecordSource<TransferPaymentReminder>();
         services.AddDueRecordSource<CardPaymentExpiry>();
 
+        // The refund IBAN's deletion day on a withdrawal whose goods did not come back (T327; Z-38; 03 4.2.8).
+        services.AddDueRecordSource<RefundIbanDeletionDay>();
+
         // The delivery periods (T325; 03 4.1.10-4.1.13): read from the order's records, never a source - Z-10, Z-11 and Z-39 run out without an action.
         services.AddScoped<OrderPeriods>();
         return services;

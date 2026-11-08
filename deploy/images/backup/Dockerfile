@@ -1,33 +1,13 @@
-# Backup tool image (05 8.2.2, 09 17): a small base image, the restic binary pinned by SHA-256, and the scheduler of the nightly
-# file backup. Build context is the repository root (09 4.3 item 1):  docker build -f deploy/images/backup/Dockerfile .
+# Backup tool image (05 8.2.2, 09 17): a small base image, the restic binary pinned by image digest, and the scheduler of the
+# nightly file backup. Build context is the repository root (09 4.3 item 1):  docker build -f deploy/images/backup/Dockerfile .
 # Base image is pinned by tag and digest (05 8.2.3, MK-10); the monthly maintenance release renews both (05 8.8.2).
 
-# ---- fetch: download restic and refuse any binary whose SHA-256 differs from the one pinned here ----
-# The download is retried (5 attempts, 10 s apart) so a short GitHub outage does not fail the build; busybox wget has no retry
-# options, hence the shell loop. The SHA-256 check below still gates every attempt's result.
-FROM alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS fetch
-# restic 0.19.1 (released 2026-07-05, BSD-2-Clause). The digests are those of the release's SHA256SUMS file for the .bz2 assets.
-# A new version changes all three lines together (09 3.3 item 7); Dependabot does not watch this file.
-ARG RESTIC_VERSION=0.19.1
-ARG RESTIC_SHA256_AMD64=f415415624dcc452f2a02b8c33641791a8c6d6d3b65bbb3543fcf9a25151585c
-ARG RESTIC_SHA256_ARM64=a5f64aaab53d51e311fa3829124c5b703f2d14cf187d8640b6be3b2b49376465
-ARG TARGETARCH
-RUN set -eu; \
-    case "${TARGETARCH:-amd64}" in \
-      amd64) expected="${RESTIC_SHA256_AMD64}" ;; \
-      arm64) expected="${RESTIC_SHA256_ARM64}" ;; \
-      *) echo "unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
-    esac; \
-    downloaded=no; \
-    for attempt in 1 2 3 4 5; do \
-      if wget -q -O /tmp/restic.bz2 "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_${TARGETARCH:-amd64}.bz2"; then downloaded=yes; break; fi; \
-      echo "restic download failed (attempt ${attempt} of 5)" >&2; \
-      if [ "${attempt}" -lt 5 ]; then sleep 10; fi; \
-    done; \
-    [ "${downloaded}" = yes ] || { echo "restic download failed after 5 attempts" >&2; exit 1; }; \
-    echo "${expected}  /tmp/restic.bz2" | sha256sum -c -; \
-    bunzip2 /tmp/restic.bz2; \
-    chmod 0555 /tmp/restic
+# ---- restic: the binary comes from the official restic image, pinned by tag and index digest ----
+# No download from GitHub release assets at build time: a GitHub outage (HTTP 504 on release downloads) failed every build.
+# The registry verifies the pinned digest, so the binary is as fixed as the former SHA-256 check made it.
+# restic 0.19.1 (released 2026-07-05, BSD-2-Clause). A new version changes the tag and the digest together (09 3.3 item 7);
+# Dependabot does not watch this file.
+FROM restic/restic:0.19.1@sha256:136600b6ff6843d61d355f7f71f460a166429f35de6fd11b568fece3c9a4d510 AS restic
 
 # ---- final ----
 FROM alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
@@ -35,7 +15,7 @@ FROM alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c
 RUN apk add --no-cache ca-certificates tzdata \
     && addgroup -g 10001 -S backup \
     && adduser -u 10001 -S -G backup -h /home/backup backup
-COPY --from=fetch /tmp/restic /usr/local/bin/restic
+COPY --from=restic --chown=0:0 --chmod=0555 /usr/bin/restic /usr/local/bin/restic
 COPY --chmod=0555 deploy/images/shared/scheduler.sh /usr/local/bin/scheduler.sh
 # The nightly job and the status writer it sources (09 17 items 4 and 5). Compose gives the scheduler the job as its command.
 COPY --chmod=0555 deploy/images/backup/file-backup-job.sh /usr/local/bin/file-backup-job.sh

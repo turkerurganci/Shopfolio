@@ -3,7 +3,7 @@
 #
 #   1. Source scan of the build files: no `latest`, every base image pinned by tag and digest, no secret value.
 #   2. The three images build with `docker build -f deploy/images/<name>/Dockerfile .` (build context: repository root).
-#   3. A restic archive whose SHA-256 differs from the pinned one makes the backup image build fail.
+#   3. restic comes from the official image pinned by tag and digest; nothing is downloaded at build time.
 #   4. No image runs as root.
 #   5. The application image carries the migration bundle; the bundle is applied to the PostgreSQL service as an installation
 #      does it (setup SQL of the database image, migration, then application); the container then starts against the migrated database and the liveness
@@ -79,24 +79,21 @@ for name in app database backup; do
   docker build -f "deploy/images/$name/Dockerfile" -t "shopfolio-$name:$TAG" .
 done
 
-# ---- 3. wrong restic digest ---------------------------------------------------------------------------------------------
-echo "== 3/7 A restic archive with a wrong SHA-256 fails the backup image build"
-WRONG_DIGEST_LOG="$(mktemp)"
-if docker build -f deploy/images/backup/Dockerfile \
-  --build-arg RESTIC_SHA256_AMD64=0000000000000000000000000000000000000000000000000000000000000000 \
-  --build-arg RESTIC_SHA256_ARM64=0000000000000000000000000000000000000000000000000000000000000000 \
-  --no-cache-filter fetch --progress=plain -t "shopfolio-backup:wrong-digest" . >"$WRONG_DIGEST_LOG" 2>&1; then
-  rm -f "$WRONG_DIGEST_LOG"
-  fail "the backup image built with a wrong restic SHA-256; the digest check does not gate the build"
+# ---- 3. restic source ---------------------------------------------------------------------------------------------------
+# restic comes from the official image pinned by tag and digest; the registry refuses any other content. No build step may
+# download it from GitHub release assets (a GitHub outage failed every build) or from anywhere else.
+echo "== 3/7 restic comes from the digest-pinned official image, not a download"
+if ! grep -qE '^FROM restic/restic:[0-9]+\.[0-9]+\.[0-9]+@sha256:[0-9a-f]{64} AS restic$' deploy/images/backup/Dockerfile; then
+  fail "deploy/images/backup/Dockerfile does not take restic from 'restic/restic:<version>@sha256:<digest> AS restic'"
 fi
-# The build must fail for the right reason: the digest check said so, not a network or download error.
-if ! grep -q 'did NOT match' "$WRONG_DIGEST_LOG"; then
-  tail -n 30 "$WRONG_DIGEST_LOG"
-  rm -f "$WRONG_DIGEST_LOG"
-  fail "the backup image build failed, but not with a SHA-256 mismatch ('did NOT match' is missing from its output)"
+if grep -nE 'wget|curl|github\.com/restic' deploy/images/backup/Dockerfile; then
+  fail "the backup image downloads something at build time (line above)"
 fi
-rm -f "$WRONG_DIGEST_LOG"
-echo "ok: the build failed with a SHA-256 mismatch, as required"
+if [ "$(docker run --rm --entrypoint /usr/local/bin/restic "shopfolio-backup:$TAG" version | cut -d' ' -f2)" != \
+  "$(sed -nE 's/^FROM restic\/restic:([0-9.]+)@.*/\1/p' deploy/images/backup/Dockerfile)" ]; then
+  fail "the restic in the backup image is not the pinned version"
+fi
+echo "ok: restic is pinned by digest and matches the pinned version"
 
 # ---- 4. users ---------------------------------------------------------------------------------------------------------
 echo "== 4/7 No image runs as root"

@@ -10,6 +10,7 @@ using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.Values;
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Membership.Contracts;
 using Shopfolio.Modules.Membership.Contracts.Results;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -37,6 +38,7 @@ internal sealed class MembershipModule : IMembershipModule
     private readonly LoginRecorder _logins;
     private readonly PasswordService _hashing;
     private readonly TimeProvider _time;
+    private readonly AddressBooks _addresses;
 
     public MembershipModule(
         AppDbContext db,
@@ -47,8 +49,10 @@ internal sealed class MembershipModule : IMembershipModule
         LinkKeys linkKeys,
         LoginRecorder logins,
         PasswordService hashing,
-        TimeProvider time)
+        TimeProvider time,
+        AddressBooks addresses)
     {
+        _addresses = addresses;
         _db = db;
         _settings = settings;
         _ordering = ordering;
@@ -307,6 +311,21 @@ internal sealed class MembershipModule : IMembershipModule
         return changed == 1 ? NameChangeResult.Changed() : NameChangeResult.Missing();
     }
 
+    public Task<IReadOnlyList<AddressBookEntry>> GetAddressBookAsync(Guid customerId, CancellationToken ct) => _addresses.ListAsync(customerId, ct);
+
+    public Task<AddressBookEntry?> GetAddressBookEntryAsync(Guid customerId, Guid entryId, CancellationToken ct) => _addresses.GetAsync(customerId, entryId, ct);
+
+    public Task<AddressBookSaveResult> CreateAddressBookEntryAsync(Guid customerId, AddressBookInput input, CancellationToken ct) => _addresses.CreateAsync(customerId, input, ct);
+
+    public Task<AddressBookSaveResult> UpdateAddressBookEntryAsync(Guid customerId, Guid entryId, AddressBookInput input, CancellationToken ct) =>
+        _addresses.UpdateAsync(customerId, entryId, input, ct);
+
+    public Task<AddressBookDeleteResult> DeleteAddressBookEntryAsync(Guid customerId, Guid entryId, CancellationToken ct) => _addresses.DeleteAsync(customerId, entryId, ct);
+
+    public AddressRequirement GetAddressRequirement(IReadOnlyCollection<ProductType> itemTypes) => AddressFieldRules.RequirementOf(itemTypes);
+
+    public Task<OrderAddressResolution> ResolveOrderAddressesAsync(OrderAddressRequest request, CancellationToken ct) => _addresses.ResolveAsync(request, ct);
+
     private async Task<DateTimeOffset?> FirstLinkEndAsync(Guid customerId, CancellationToken ct)
     {
         return await _db.LinkRecords.AsNoTracking()
@@ -340,6 +359,7 @@ internal static class MembershipModuleRegistration
 {
     public static IServiceCollection AddMembershipModule(this IServiceCollection services)
     {
+        services.AddScoped<AddressBooks>();
         services.AddScoped<IMembershipModule, MembershipModule>();
 
         // Z-1's nightly deletion (T324; D-253): the unverified registrations and the pending address changes whose link has ended.

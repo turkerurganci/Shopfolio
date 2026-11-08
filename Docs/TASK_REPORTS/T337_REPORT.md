@@ -99,7 +99,7 @@
 
 - **Branch:** `task/T337-indirim-referans-fiyat`
 - **Commit:** PR'ın head'i
-- **PR:** *(PR açılınca)*
+- **PR:** #457
 - **CI:** *(validator doldurur)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 

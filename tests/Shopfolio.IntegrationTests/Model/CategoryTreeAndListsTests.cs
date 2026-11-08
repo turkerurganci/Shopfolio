@@ -814,7 +814,7 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
     {
         await using AppDbContext context = NewContext();
         await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(Ct);
-        ProductCategoriesResult result = await new ProductCategoryLinks(context, TimeProvider.System).SetAsync(productId, categories, primary, Ct);
+        ProductCategoriesResult result = await new ProductCategoryLinks(context, TimeProvider.System, new CacheInvalidations(context)).SetAsync(productId, categories, primary, Ct);
         if (result.IsRejected)
         {
             await transaction.RollbackAsync(Ct);

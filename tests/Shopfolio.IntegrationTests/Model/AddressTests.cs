@@ -15,6 +15,7 @@ using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Ordering;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Membership.Contracts;
@@ -108,6 +109,7 @@ public sealed class AddressTests : IAsyncLifetime
         services.AddScoped<DownloadCounters>();
         services.AddScoped<OrderPaymentArms>();
         services.AddScoped<AdvisoryLocks>();
+        services.AddCartServices();
         services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddPaymentModule();
         services.AddMembershipModule();
@@ -583,6 +585,8 @@ public sealed class AddressTests : IAsyncLifetime
     private sealed class ProvinceSettings(ProvinceList provinces) : ISettingsModule
     {
         public Task<IReadOnlyList<ProvinceInfo>> GetProvincesAsync(CancellationToken ct) => provinces.GetAllAsync(ct);
+
+        public Task<HomepageSection> GetHomepageAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<SalesGate> GetSalesGateAsync(CancellationToken ct) => throw new NotSupportedException();
 

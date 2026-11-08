@@ -119,7 +119,7 @@ public sealed class CartTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task ASoldOutLine_AndALineOfAProductTakenOffTheShowcase_DoNotEmptyTheCartOnTheirOwn_KK2()
+    public async Task ASoldOutLine_DoesNotEmptyTheCartOnItsOwn_KK2()
     {
         (_, List<Variant> variants) = await SeedProductAsync("Masa", 2);
         Guid customerId = await SeedCustomerAsync();
@@ -254,6 +254,22 @@ public sealed class CartTests : IAsyncLifetime
         await SeedCartAsync(null, otherKey, (variants[0].Id, 1, 100m));
         await MergeAsync(other, otherKey);
         Assert.Empty((await OpenAsync(CartOwner.ForMember(other))).MergeAddedProductNames);
+    }
+
+    [Fact]
+    public async Task TheMerge_CarriesTheTold_Once_NoPaymentMethodMark_OfTheGuestCart_ToTheMembersCart_KK4()
+    {
+        (_, List<Variant> variants) = await SeedProductAsync("Masa", 1);
+        Guid customerId = await SeedCustomerAsync();
+        string key = NewKey();
+        Guid guestCartId = await SeedCartAsync(null, key, (variants[0].Id, 1, 100m));
+        await ExecuteAsync($"UPDATE carts SET is_payment_unavailable_notice_pending = true WHERE id = '{guestCartId}'");
+
+        await MergeAsync(customerId, key);
+
+        await using AppDbContext reader = NewContext();
+        Cart memberCart = await reader.Carts.AsNoTracking().SingleAsync(c => c.CustomerId == customerId, Ct);
+        Assert.True(memberCart.IsPaymentUnavailableNoticePending);
     }
 
     // ---- KK5: the live line and the reference price ----

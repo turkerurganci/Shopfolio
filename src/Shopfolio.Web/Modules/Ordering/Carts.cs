@@ -196,6 +196,13 @@ internal sealed class Carts
             marked.CartId = memberCartId;
         }
 
+        // The told-once "no payment method" mark moves with the cart too, so the message is not lost with the guest cart (D-579).
+        if (guestCart.IsPaymentUnavailableNoticePending)
+        {
+            Cart memberCart = await _db.Carts.SingleAsync(c => c.Id == memberCartId, ct);
+            memberCart.IsPaymentUnavailableNoticePending = true;
+        }
+
         _db.CartItems.RemoveRange(guestLive);
         _db.Carts.Remove(guestCart);
         return new CartMergeResult(memberCartId, true, unseen);

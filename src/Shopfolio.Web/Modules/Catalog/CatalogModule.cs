@@ -35,6 +35,7 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly CartVariantReader _cartVariants;
     private readonly Discounts _discounts;
     private readonly VariantPrices _variantPrices;
+    private readonly CatalogMenuReader _menu;
     private readonly Coupons _coupons;
 
     public CatalogModule(
@@ -54,12 +55,14 @@ internal sealed class CatalogModule : ICatalogModule
         ProductGallery gallery,
         Discounts discounts,
         VariantPrices variantPrices,
+        CatalogMenuReader menu,
         Coupons coupons,
         CartVariantReader cartVariants)
     {
         _cartVariants = cartVariants;
         _pages = pages;
         _discounts = discounts;
+        _menu = menu;
         _variantPrices = variantPrices;
         _coupons = coupons;
         _priceLabels = priceLabels;
@@ -126,6 +129,8 @@ internal sealed class CatalogModule : ICatalogModule
     public bool ReturnsCouponRight(IReadOnlyList<ItemClosure> items) => CouponRules.ReturnsRight(items);
 
     public Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct) => _categories.ReadAsync(ct);
+
+    public Task<CatalogMenu> GetMenuAsync(CancellationToken ct) => _menu.ReadAsync(ct);
 
     public Task<CategoryWriteResult> CreateCategoryAsync(string? name, Guid? parentCategoryId, CancellationToken ct)
         => _categories.CreateAsync(name, parentCategoryId, ct);
@@ -237,6 +242,7 @@ internal static class CatalogModuleRegistration
         services.AddScoped<PriceLabelReader>();
         services.AddScoped<CartVariantReader>();
         services.AddScoped<CategoryTree>();
+        services.AddScoped<CatalogMenuReader>();
         services.AddScoped<ProductCategoryLinks>();
         services.AddScoped<ProductListReader>();
         services.AddScoped<ProductGallery>();

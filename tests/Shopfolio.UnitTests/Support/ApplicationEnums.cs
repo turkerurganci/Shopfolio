@@ -18,6 +18,10 @@ internal static class ApplicationEnums
     private static readonly HashSet<string> NotStored = new(StringComparer.Ordinal)
     {
         "Shopfolio.Modules.Ordering.Contracts.TransitionRefusal",
+        // T361: the storefront's read shapes - which menu item or home page block a record is, and why a menu item is hidden; computed per read, never a column.
+        "Shopfolio.Modules.CorporateContent.Contracts.MenuItemKind",
+        "Shopfolio.Modules.CorporateContent.Contracts.MenuHiddenReason",
+        "Shopfolio.Modules.CorporateContent.Contracts.HomepageBlockKind",
         "Shopfolio.Modules.Ordering.Contracts.CorrectionObstacle",
         "Shopfolio.Modules.Catalog.Contracts.ProductPageKind",
         "Shopfolio.Modules.Ordering.Contracts.CartAddOutcome",

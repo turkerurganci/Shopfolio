@@ -104,6 +104,21 @@ K-notları: K1 D-302 hedefi T508'e taşındı (modül tarafı `OpenCartAsync`'te
 
 Yapım raporu karşılaştırması: Integration satırı "✓ 60 geçti" diyor ama tam suite koşulmamış; regresyon buradan kaçtı. CartTests sayısı teorilerle 23'tür (raporda 19).
 
+### Düzeltme 1 (2026-11-08)
+
+`origin/main` birleştirildi (rebase değil): tek kod çakışması `CatalogModule.cs` kurucusunda; iki tarafın üyeleri birlikte kaldı (`CatalogMenuReader menu` + `CartVariantReader cartVariants`). Kayıt belgelerinde main sürümü alındı, dalın girişleri `STATUS_CHANGELOG.d/T346.md` / `DEFERRED_BACKLOG.d/T346.md` parçalarında.
+
+Bulgu 1: `OrderingModule`'ü elle kuran üç düzenek (`DisposalHarness`, `AddressTests`, `MembershipTests`) tek ortak yardımcıyı kullanır: `tests/Shopfolio.IntegrationTests/Ordering/CartTestServices.cs` (`AddCartServices`: `Carts`, `CartStatements`, Catalog modülü ve ona gereken `ImageProcessor`, dosya deposu, disk eşikleri). Catalog kaydı dijital dosya silme parçalarını (`IncompleteDigitalUploadPart`, `DigitalFileDisposalPart`, `OrphanDigitalFilePart`) da getirdiğinden `DisposalHarness`'ın kendi üç kaydı kaldırıldı (çift kayıt `Sequence contains more than one element` veriyordu). Üretim DI'ı değişmedi. K3 (D-579): `Carts.MergeAsync` misafir sepetin "ödeme yöntemi yok" işaretini üye sepetine taşır (+ yeni `CartTests`); K4 (D-580): test adı gövdesine uydu.
+
+Öz denetim: 11'deki T346 kabul kriterleri 1–7 ve `12` kontrol listesi birleşik ağaçta yeniden denetlendi; `CartTests` (24) ve bütün `Ordering` ad alanı (246) yeşil, T361'in menü okuyucusu ile sepet okuyucusu birlikte kayıtlı. `impl/sik-fail-nedenleri.md` okundu: "main ilerleyince dalın testleri yeni alanı tohumlamıyor" ve "birleşik ağaçta test koş" satırları nedeniyle Integration tam paket birleşik ağaçta koşuldu.
+
+| Tür | Sonuç | Çıktı |
+|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx -c Release -warnaserror` 0 uyarı, 0 hata |
+| Format | ✓ | Web, UnitTests, IntegrationTests `--verify-no-changes` çıkış 0 |
+| Unit | ✓ | 4773/4773 |
+| Integration (tam, ad alanı grupları, PG18 `shopfolio-t346-fix-pg`) | ✓ | Model 1315 (1 test paralel koşuda bir kez düştü, tek başına 55/55 geçti: `SchedulerBackupDisposalAndKeyTablesTests` göç/rol testi), Catalog+Concurrency+CorporateContent 184, Disposal+Jobs+Logging+Files 270, Ordering+Outages+Pages 264 (düzeltme sonrası Ordering 246), Security+SignedEndpoints+Web+FileSecrets+Database 697; başka düşen yok |
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok

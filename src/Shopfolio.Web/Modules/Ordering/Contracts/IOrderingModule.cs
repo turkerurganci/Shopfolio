@@ -159,9 +159,10 @@ public interface IOrderingModule
 
     /// <summary>
     /// The items of the orders paid by card whose payment is not fully refunded (T389; 05 8.5.6; 08 2.1.2): the facts the AfterSales module needs to tell which of them could still
-    /// cause a card refund. A plain read; it writes nothing.
+    /// cause a card refund. Read one page at a time: the items of the next <paramref name="maxOrders"/> such orders after <paramref name="afterOrderId"/> (by order id; null starts
+    /// from the first), an empty list at the end - the set grows with every paid order, so it is never taken whole (09 20 item 2). A plain read; it writes nothing.
     /// </summary>
-    Task<IReadOnlyList<PaidCardItem>> ListPaidCardItemsAsync(CancellationToken ct);
+    Task<IReadOnlyList<PaidCardItem>> ListPaidCardItemsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct);
 }
 
 /// <summary>

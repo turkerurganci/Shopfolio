@@ -26,26 +26,32 @@ internal sealed partial class AfterSalesModule : IAfterSalesModule
         _time = time;
     }
 
-    public async Task<int> CountCardOrdersWithRefundExposureAsync(CancellationToken ct)
+    internal const int ExposurePageOrders = 500;
+
+    public Task<int> CountCardOrdersWithRefundExposureAsync(CancellationToken ct) => CountCardOrdersWithRefundExposureAsync(ExposurePageOrders, ct);
+
+    // The orders are walked a page at a time (an order's items stay in one page), so memory holds one page whatever the number of paid orders (09 20 item 2).
+    internal async Task<int> CountCardOrdersWithRefundExposureAsync(int pageOrders, CancellationToken ct)
     {
-        IReadOnlyList<PaidCardItem> items = await _ordering.ListPaidCardItemsAsync(ct);
-        if (items.Count == 0)
-        {
-            return 0;
-        }
-
-        IReadOnlyDictionary<Guid, int> closed = await ClosedQuantitiesAsync([.. items.Select(i => i.OrderItemId)], ct);
         DateTimeOffset now = _time.GetUtcNow();
-        HashSet<Guid> exposed = [];
-        foreach (PaidCardItem item in items)
+        int count = 0;
+        Guid? after = null;
+        while (true)
         {
-            if (item.Quantity - closed.GetValueOrDefault(item.OrderItemId) > 0 && CouldStillCauseRefund(item, now))
+            IReadOnlyList<PaidCardItem> items = await _ordering.ListPaidCardItemsAsync(after, pageOrders, ct);
+            if (items.Count == 0)
             {
-                exposed.Add(item.OrderId);
+                return count;
             }
-        }
 
-        return exposed.Count;
+            after = items[^1].OrderId;
+            IReadOnlyDictionary<Guid, int> closed = await ClosedQuantitiesAsync([.. items.Select(i => i.OrderItemId)], ct);
+            count += items
+                .Where(i => i.Quantity - closed.GetValueOrDefault(i.OrderItemId) > 0 && CouldStillCauseRefund(i, now))
+                .Select(i => i.OrderId)
+                .Distinct()
+                .Count();
+        }
     }
 
     // An item with open units either waits to be delivered (the cancellation, the late-delivery termination and the defect path stay open) or was delivered and its withdrawal window

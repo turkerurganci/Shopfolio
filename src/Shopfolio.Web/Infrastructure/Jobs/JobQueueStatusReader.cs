@@ -29,10 +29,15 @@ internal sealed class JobQueueStatusReader
     {
         DateTimeOffset now = _time.GetUtcNow();
         int failed = await _db.Jobs.AsNoTracking().CountAsync(j => j.JobState == JobState.Failed, ct);
-        List<DateTimeOffset> due = await _db.Jobs.AsNoTracking()
-            .Where(j => j.JobState == JobState.Pending && (j.NextAttemptAt == null || j.NextAttemptAt <= now))
-            .Select(j => j.NextAttemptAt ?? j.CreatedAt)
-            .ToListAsync(ct);
-        return new JobQueueDetails(failed, due.Count, due.Count == 0 ? null : due.Min());
+        IQueryable<Job> due = _db.Jobs.AsNoTracking()
+            .Where(j => j.JobState == JobState.Pending && (j.NextAttemptAt == null || j.NextAttemptAt <= now));
+        int dueCount = await due.CountAsync(ct);
+        if (dueCount == 0)
+        {
+            return new JobQueueDetails(failed, 0, null);
+        }
+
+        DateTimeOffset oldest = await due.MinAsync(j => j.NextAttemptAt ?? j.CreatedAt, ct);
+        return new JobQueueDetails(failed, dueCount, oldest);
     }
 }

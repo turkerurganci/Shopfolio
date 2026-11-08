@@ -122,6 +122,41 @@ public sealed partial class AccountCommandsTests
         Assert.Empty(ExposureCountUses(panel, "int n = 1; // CountCardOrdersWithRefundExposureAsync is the installer's alone"));
     }
 
+    // ---- 09 20 item 2: the growing paid-card set is read a page at a time, never whole ----
+
+    [Fact]
+    public void PaidCardItemRead_InTheSource_TakesAPageOfOrders()
+    {
+        string source = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "src", "Shopfolio.Web", "Modules", "Ordering", "OrderingModule.cs"));
+
+        Assert.Empty(UnboundedListReads(source, "ListPaidCardItemsAsync"));
+    }
+
+    [Fact]
+    public void PaidCardItemRead_Scan_OnSamples_FindsAWholeSetRead()
+    {
+        const string whole = "public async Task<IReadOnlyList<PaidCardItem>> ListPaidCardItemsAsync(CancellationToken ct)\n{\n    return await _db.OrderItems.Select(i => i).ToListAsync(ct);\n}\n";
+        const string paged = "public async Task<IReadOnlyList<PaidCardItem>> ListPaidCardItemsAsync(Guid? a, int max, CancellationToken ct)\n{\n    Guid[] ids = await orders.OrderBy(o => o.Id).Select(o => o.Id).Take(max).ToArrayAsync(ct);\n    return await _db.OrderItems.ToListAsync(ct);\n}\n";
+
+        Assert.Single(UnboundedListReads(whole, "ListPaidCardItemsAsync"));
+        Assert.Empty(UnboundedListReads(paged, "ListPaidCardItemsAsync"));
+    }
+
+    // The method's body (from its name to the next method) reads a list or array of the set: it must carry a Take on the way.
+    private static List<string> UnboundedListReads(string source, string method)
+    {
+        int start = source.IndexOf($" {method}(", StringComparison.Ordinal);
+        if (start < 0)
+        {
+            return [$"{method} not found"];
+        }
+
+        int end = source.IndexOf("\n    public ", start + 1, StringComparison.Ordinal);
+        string body = end < 0 ? source[start..] : source[start..end];
+        bool reads = body.Contains("ToListAsync", StringComparison.Ordinal) || body.Contains("ToArrayAsync", StringComparison.Ordinal);
+        return reads && !body.Contains(".Take(", StringComparison.Ordinal) ? [$"{method}: a list read without Take"] : [];
+    }
+
     private static readonly string[] _exposureAllowed =
     [
         "src/Shopfolio.Web/Commands/StatusCommand.cs",

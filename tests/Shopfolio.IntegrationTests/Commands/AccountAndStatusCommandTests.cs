@@ -21,6 +21,7 @@ using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.CorporateContent.Contracts;
@@ -399,6 +400,27 @@ public sealed class AccountAndStatusCommandTests : IAsyncLifetime
         Assert.Contains("Geri ödemesi doğabilecek kart siparişi: 2;", terminal.Output, StringComparison.Ordinal);
         Assert.Contains("ödemesi bekleyen kart siparişi 1,", terminal.Output, StringComparison.Ordinal);
         Assert.Equal(before, await OrdersSnapshotAsync());
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(500)]
+    public async Task RefundExposureCount_WalkedInPagesOfAnySize_GivesTheSameNumber(int pageOrders)
+    {
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+        await SeedCardOrderAsync(OrderStatus.Delivered, PaymentStatus.Paid, itemDeliveryDate: today.AddDays(-2));
+        await SeedCardOrderAsync(OrderStatus.Delivered, PaymentStatus.Paid, itemDeliveryDate: today.AddDays(-90));
+        await SeedCardOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid);
+        await SeedCardOrderAsync(OrderStatus.Preparing, PaymentStatus.PartiallyRefunded);
+        await SeedCardOrderAsync(OrderStatus.Preparing, PaymentStatus.Paid, PaymentMethod.BankTransfer);
+        await SeedCardOrderAsync(OrderStatus.Delivered, PaymentStatus.Refunded, itemDeliveryDate: today.AddDays(-2));
+        await SeedCardOrderAsync(OrderStatus.Delivered, PaymentStatus.Paid, itemDeliveryDate: today.AddDays(-200));
+
+        int counted = await InTransactionAsync(async s => (await ((AfterSalesModule)s.GetRequiredService<IAfterSalesModule>()).CountCardOrdersWithRefundExposureAsync(pageOrders, Ct)));
+
+        Assert.Equal(3, counted);
     }
 
     [Fact]

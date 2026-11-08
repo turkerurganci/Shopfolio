@@ -81,7 +81,21 @@ Dal `origin/main` (0226a902) ile birleştirildi (çakışma yok); iki bulgu ve K
 | Sık FAIL: tek kural evi | ✓ | Hat durumu `ConditionalLines`; kayıt `AddConditionalLines`/`AddImageProcessing` ortak |
 | Merge | ✓ | `git diff --name-only --diff-filter=U` boş; çakışma işareti yok; `git status` temiz |
 
+### Düzeltme 2 (tur 2 FAIL sonrası, 2026-11-08)
+
+Bulgu 1 (ORTA, `09 §20` m.2): kartla ödenmiş kalemler artık bütün olarak belleğe alınmaz. `IOrderingModule.ListPaidCardItemsAsync(afterOrderId, maxOrders, ct)` sipariş kimliğine göre sayfa sayfa okur (sayfa = sonraki 500 sipariş ve kalemleri, `Take` ile); `CountCardOrdersWithRefundExposureAsync` sayfaları gezer, her sayfada kapalı adedi sorgular ve siparişleri sayar — bellekte tek sayfa. Süre kuralı iş günü takvimine bağlı olduğundan (SQL'e çevrilemez) küme süzülmedi, sayfalandı. K1: `JobQueueStatusReader` `CountAsync` + `MinAsync` ile SQL'de. K2: `D-601` hedefi `T382`.
+Sınama: `RefundExposureCount_WalkedInPagesOfAnySize_GivesTheSameNumber` (Integration; sayfa 1/2/3/500 aynı sayı), `PaidCardItemRead_InTheSource_TakesAPageOfOrders` + örnek taraması (Unit); `Status_TheSecondNumber…` aynen yeşil.
+
+| Öz denetim (düzeltme 2) | Sonuç | Kanıt |
+|---|---|---|
+| Kabul kriterleri 1–9, KK1–KK9 yeniden | ✓ | Commands Unit/Integration kümeleri yeşil; değişiklik yalnız sayım yolu ve kuyruk okuyucu |
+| `09 §25` Performans (büyüyen küme sayfalı) | ✓ | sayfalı okuma, `PaidCardItemRead_*` taraması |
+| Biçim / derleme | ✓ | `dotnet build -warnaserror` 0 uyarı, `dotnet format --verify-no-changes` üç projede temiz |
+| Birleştirme | ✓ | `origin/main` ile "Already up to date"; çakışma işareti yok |
+
 ## Test Sonuçları
+
+Düzeltme 2: Unit 4671 + Commands/Architecture/Jobs 1120 geçti; Integration TAM küme parçalı yeşil (Commands 47, Jobs+Ordering+Payment 376 + Jobs 77 ayrıca, Catalog+Concurrency+CorporateContent+Database+Disposal 281, kalan 2175). Altyapı kaynaklı geçici zaman aşımları (veritabanı bırakma) yeniden koşuda geçti.
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|

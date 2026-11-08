@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
+using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -223,9 +224,11 @@ internal sealed partial class OrderTransitions
         DateTimeOffset now = _time.GetUtcNow();
         foreach (OrderItem item in await OpenItemsAsync(order, physicalOnly: false, ct))
         {
+            // The system delivers the digital item at the approval (03 8.2.3): the mark and its date - the approval's day in Turkey - go together (the delivery_mark_and_date_together rule).
             if (item.ProductType == ProductType.Digital && item.DeliveryMarkedAt is null)
             {
                 item.DeliveryMarkedAt = now;
+                item.DeliveryDate = TurkeyTime.DateOf(now);
             }
         }
 

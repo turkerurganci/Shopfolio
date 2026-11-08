@@ -3,6 +3,8 @@
 # Base image is pinned by tag and digest (05 8.2.3, MK-10); the monthly maintenance release renews both (05 8.8.2).
 
 # ---- fetch: download restic and refuse any binary whose SHA-256 differs from the one pinned here ----
+# The download is retried (5 attempts, 10 s apart) so a short GitHub outage does not fail the build; busybox wget has no retry
+# options, hence the shell loop. The SHA-256 check below still gates every attempt's result.
 FROM alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS fetch
 # restic 0.19.1 (released 2026-07-05, BSD-2-Clause). The digests are those of the release's SHA256SUMS file for the .bz2 assets.
 # A new version changes all three lines together (09 3.3 item 7); Dependabot does not watch this file.
@@ -16,7 +18,13 @@ RUN set -eu; \
       arm64) expected="${RESTIC_SHA256_ARM64}" ;; \
       *) echo "unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
     esac; \
-    wget -q -O /tmp/restic.bz2 "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_${TARGETARCH:-amd64}.bz2"; \
+    downloaded=no; \
+    for attempt in 1 2 3 4 5; do \
+      if wget -q -O /tmp/restic.bz2 "https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_${TARGETARCH:-amd64}.bz2"; then downloaded=yes; break; fi; \
+      echo "restic download failed (attempt ${attempt} of 5)" >&2; \
+      if [ "${attempt}" -lt 5 ]; then sleep 10; fi; \
+    done; \
+    [ "${downloaded}" = yes ] || { echo "restic download failed after 5 attempts" >&2; exit 1; }; \
     echo "${expected}  /tmp/restic.bz2" | sha256sum -c -; \
     bunzip2 /tmp/restic.bz2; \
     chmod 0555 /tmp/restic

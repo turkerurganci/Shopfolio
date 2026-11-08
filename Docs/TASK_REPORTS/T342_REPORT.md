@@ -73,10 +73,26 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | **tur 2: ✗ FAIL** (2026-11-08; head `1fa9150` + `origin/main` `7ddf334` birleştirmesi, temiz) · tur 1: ✗ FAIL (head `0fadc90`) |
-| Bulgu sayısı | tur 2: 2 (ORTA S1, DÜŞÜK S1) · tur 1: 1 (KRİTİK S1, kapandı) |
-| Düzeltme gerekli mi | Evet — tur 2 iterasyon sınırındadır (`12 §8.5`); yol yardımcının/proje sahibinin kararı |
-| Bloke-etmeyen not (K) sayısı | tur 2: 1 (D-431'e forward) · tur 1: 2 (kapatıldı) |
+| Doğrulama durumu | **tur 3: ✓ PASS** (2026-11-08; FAIL sonrası tam yeniden doğrulama; head `87de279` + `origin/main` `cca21e4` birleştirmesi) · tur 2: ✗ FAIL (head `1fa9150`) · tur 1: ✗ FAIL (head `0fadc90`) |
+| Bulgu sayısı | tur 3: 0 · tur 2: 2 (ORTA S1, DÜŞÜK S1; kapandı) · tur 1: 1 (KRİTİK S1, kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | tur 3: 2 (K1 bu PR'da kapatıldı, K2 D-431'e forward) · tur 2: 1 (D-431'e forward) · tur 1: 2 (kapatıldı) |
+
+### Doğrulama tur 3
+
+**Başlangıç kapıları:** working tree temiz, `core.hooksPath` ana checkout'un `scripts/git-hooks`'u; ana dal CI 42446700476, 42446700473, 42445081110 success; MEMORY satır 22. Dal CI 42446113821 (head `87de279`) success.
+
+**Kabul kriterleri ve KK1–KK9:** hepsi ✓ (kriter 5 T342 payı; e-posta/silme T517 k2, D-429). Tur 2 Bulgu 1 kapandı: şifre sıfırlama, değiştirme ve yeniden doğrulama hesap satırını EN BAŞTA kilitler, `SessionStore`'un oturum satırı yazan yöntemleri önce hesabı ister; sıra tek (hesap → oturum/bağlantı); `MembershipPasswordLockOrderTests` (NOWAIT sondası, değiştirme ↔ sıfırlama, değiştirme ↔ giriş iki sırada) yeşil. Tur 2 Bulgu 2 kapandı: `05 §6.1.2` ve `09 §15.1` m.3 `FOR UPDATE`.
+
+**Testler:** build `-warnaserror` 0/0, format temiz; Unit 4349 (birleştirme sonrası 4407), betik 4; Integration Membership 58, komşu 258 (Concurrency, Security, Disposal, oturum/bağlantı/deneme tabloları, OneTimeValue, AttemptLimitPattern, FieldValidation, SessionAccess, ForgeryProtection, ModelBinding); `--locked-mode` çıkış 0.
+
+**Satırlar:** `VAL-A096/A097/A098/A103/D017` BEKLEMEDE (kanıt türü uç yanıtı; sayfa task'ları); matris denetimi Hata 0.
+
+**K-notları:** K1 — `06 §4.39` (2 yer) ve `07`'nin iki giriş ucu girişin "paylaşımlı kilit"ini yazıyordu, `09 §10.2` m.6 izinli `FOR UPDATE` listesinde `AccountLocks.cs` yoktu → bu PR'da hizalandı (davranış değişmedi). K2 — `05 §7.3.5` hesap kilidi ailesini anmıyor → D-431'e eklendi.
+
+**Yapım raporu karşılaştırması:** 2 uyuşmazlık — kabul tablosunda kriter 5 "✓ / ~" (öz denetimde ✓); öz denetimin "doküman çelişkisi yok" maddesi `06`/`07`/`09 §10.2` kalanlarını taramamış (K1).
+
+**Kayıt:** `origin/main` (T336) birleştirildi — çakışma yalnız `DEFERRED_BACKLOG.md` (D-364 ↔ D-344…D-381), "Aktif kalem" 174; dalın `STATUS_CHANGELOG.d/T342.md` parçası `STATUS_CHANGELOG.md`'ye taşındı (main'de parça klasörü yok).
 
 ### Doğrulama tur 2
 

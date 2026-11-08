@@ -20,7 +20,7 @@ internal static partial class ConcurrencySourceScan
 
     public const string ShareLockText = "takes a shared row lock outside OrderLocks.cs (09 10.2 item 6, 10.9 item 2)";
 
-    public const string CounterWrite = "writes a counter outside StockCounters.cs (09 10.2 item 4: the counters' one writer)";
+    public const string CounterWrite = "writes a counter outside its one writer: StockCounters.cs, or DownloadCounters.cs for the download counter (09 10.2 item 4)";
 
     public const string CompanySettingsWrite = "writes the company settings row outside CompanySettingsWriter.cs (09 10.3 item 4: the row's one writer)";
 
@@ -36,8 +36,13 @@ internal static partial class ConcurrencySourceScan
 
     public const string StockCountersFile = "src/Shopfolio.Web/Modules/Catalog/StockCounters.cs";
 
+    public const string DownloadCountersFile = "src/Shopfolio.Web/Modules/Ordering/DownloadCounters.cs";
+
     /// <summary>The counter properties (06 2.6.5) and their columns.</summary>
-    public static readonly IReadOnlyList<string> CounterProperties = ["StockQuantity", "ReservedQuantity", "UsedCount", "ReservedCount"];
+    public static readonly IReadOnlyList<string> StockCounterProperties = ["StockQuantity", "ReservedQuantity", "UsedCount", "ReservedCount"];
+
+    /// <summary>The download counter (06 4.18; T340): written only by <c>DownloadCounters.cs</c>.</summary>
+    public static readonly IReadOnlyList<string> DownloadCounterProperties = ["DownloadCount"];
 
     /// <summary>The scan applies to every application source file; the allowed places are per rule.</summary>
     public static bool Applies(string relativePath)
@@ -79,14 +84,28 @@ internal static partial class ConcurrencySourceScan
             Add(findings, ShareLockText, ShareLock(), clean);
         }
 
-        if (path != StockCountersFile)
+        // Each counter group has its one writer file: the stock and coupon counters, and the download counter (T340; D-94 (1)). A write of a group's counter anywhere else is
+        // a finding, whichever file the other group's writer is.
+        bool inStockWriter = path == StockCountersFile;
+        bool inDownloadWriter = path == DownloadCountersFile;
+        if (!inStockWriter)
         {
-            Add(findings, CounterWrite, CounterColumnUpdate(), clean);
+            Add(findings, CounterWrite, StockCounterColumnUpdate(), clean);
+        }
+
+        if (!inDownloadWriter)
+        {
+            Add(findings, CounterWrite, DownloadCounterColumnUpdate(), clean);
+        }
+
+        if (!inStockWriter || !inDownloadWriter)
+        {
             foreach (Match call in SetPropertyCall().Matches(clean))
             {
                 int open = call.Index + call.Length - 1;
                 string first = FirstArgument(clean, open);
-                if (CounterProperties.Any(p => Regex.IsMatch(first, $@"\b{p}\b", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5))))
+                IEnumerable<string> guarded = (inStockWriter ? Array.Empty<string>() : StockCounterProperties).Concat(inDownloadWriter ? Array.Empty<string>() : DownloadCounterProperties);
+                if (guarded.Any(p => Regex.IsMatch(first, $@"\b{p}\b", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5))))
                 {
                     AddAt(findings, CounterWrite, clean, call.Index);
                 }
@@ -164,7 +183,10 @@ internal static partial class ConcurrencySourceScan
     private static partial Regex ShareLock();
 
     [GeneratedRegex(@"\bUPDATE\s+[\w.""]+\s+SET\b[^;]*?\b(?:stock_quantity|reserved_quantity|used_count|reserved_count)\s*=", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
-    private static partial Regex CounterColumnUpdate();
+    private static partial Regex StockCounterColumnUpdate();
+
+    [GeneratedRegex(@"\bUPDATE\s+[\w.""]+\s+SET\b[^;]*?\bdownload_count\s*=", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex DownloadCounterColumnUpdate();
 
     [GeneratedRegex(@"\bCompanySettings\b|\bcompany_settings\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex CompanySettingsName();

@@ -21,12 +21,15 @@ internal sealed class OrderingModule : IOrderingModule
 
     private readonly AdvisoryLocks _advisoryLocks;
 
-    public OrderingModule(AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks)
+    private readonly DownloadCounters _downloads;
+
+    public OrderingModule(AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks, DownloadCounters downloads)
     {
         _db = db;
         _arms = arms;
         _locks = locks;
         _advisoryLocks = advisoryLocks;
+        _downloads = downloads;
     }
 
     public Task<IReadOnlyList<OrderPaymentArm>> FindPaymentArmsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => _arms.ReadAsync(orderIds, ct);
@@ -63,10 +66,39 @@ internal sealed class OrderingModule : IOrderingModule
 
     public async Task<DownloadableItem?> FindDownloadableItemAsync(Guid orderItemId, CancellationToken ct)
     {
+        // Delivery follows the confirmed payment (02 3.12.1): an item of an order whose payment is not confirmed is not downloadable.
         return await _db.OrderItems.AsNoTracking()
-            .Where(i => i.Id == orderItemId && i.ProductType == ProductType.Digital)
+            .Where(i => i.Id == orderItemId
+                && i.ProductType == ProductType.Digital
+                && _db.Orders.Where(DownloadRules.PaymentConfirmed).Any(o => o.Id == i.OrderId))
             .Select(i => new DownloadableItem(i.VariantId, i.DigitalFileId))
             .SingleOrDefaultAsync(ct);
+    }
+
+    public Task<DownloadTakeResult> TakeDownloadAsync(Guid orderItemId, CancellationToken ct) => _downloads.TakeAsync(orderItemId, ct);
+
+    public Task<DownloadRenewalResult> RenewDownloadAllowanceAsync(Guid orderItemId, int expectedVersion, CancellationToken ct)
+        => _downloads.RenewAsync(orderItemId, expectedVersion, ct);
+
+    public async Task<DigitalAddCheck> CheckDigitalAddAsync(DigitalAddRequest request, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (request.ProductType != ProductType.Digital)
+        {
+            return new DigitalAddCheck(true, false, false);
+        }
+
+        // A second add of the same variant is refused (02 3.12.4); the marked items of a cart are no items of it (06 4.16).
+        bool isInCart = request.CartId is Guid cartId
+            && await _db.CartItems.AsNoTracking().AnyAsync(i => i.CartId == cartId && i.VariantId == request.VariantId && i.RemovedProductName == null, ct);
+
+        // A member's past is read from the member's orders with a confirmed payment - the ones the order page can download from (02 3.12.9); a guest has none to read.
+        bool wasBought = request.CustomerId is Guid customerId
+            && await _db.OrderItems.AsNoTracking()
+                .Where(i => i.VariantId == request.VariantId)
+                .AnyAsync(i => _db.Orders.Where(DownloadRules.PaymentConfirmed).Any(o => o.Id == i.OrderId && o.CustomerId == customerId), ct);
+
+        return new DigitalAddCheck(DownloadRules.IsQuantityAllowed(request.ProductType, request.Quantity), isInCart, wasBought);
     }
 
     public async Task<int> LinkGuestOrdersAsync(Guid customerId, string email, CancellationToken ct)
@@ -218,6 +250,7 @@ internal static class OrderingModuleRegistration
     {
         services.AddScoped<OrderLocks>();
         services.AddScoped<OrderPaymentArms>();
+        services.AddScoped<DownloadCounters>();
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
 

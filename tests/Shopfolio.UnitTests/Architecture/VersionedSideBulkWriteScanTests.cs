@@ -63,13 +63,27 @@ public sealed class VersionedSideBulkWriteScanTests
     {
         string root = RepositoryRoot.Find();
 
-        foreach (string place in VersionedSideBulkWriteScan.AllowedPlaces.Where(p => !p.EndsWith("/StockCounters.cs", StringComparison.Ordinal) && p != VersionedSideBulkWriteScan.GalleryMainMarkPlace))
+        foreach (string place in VersionedSideBulkWriteScan.AllowedPlaces.Where(p => !p.EndsWith("/StockCounters.cs", StringComparison.Ordinal) && p != VersionedSideBulkWriteScan.GalleryMainMarkPlace && p != VersionedSideBulkWriteScan.DownloadCountersPlace))
         {
             // The same text under a path that is no allowed place: a closed place must not hide a write of a side's record.
             IReadOnlyList<(string Rule, int Line)> findings = VersionedSideBulkWriteScan.Scan(OtherModule, File.ReadAllText(Path.Combine(root, place)));
 
             Assert.True(findings.Count == 0, $"{place} writes a record of the order side or of the product form: {string.Join(", ", findings)}");
         }
+    }
+
+    [Fact]
+    public void TheDownloadCountersPlace_HoldsExactlyTwoBulkStatements_BothOnlyOnTheDownloadCounter_AndNoDeleteAndNoRawWrite()
+    {
+        string place = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), VersionedSideBulkWriteScan.DownloadCountersPlace));
+        System.Text.RegularExpressions.RegexOptions options = System.Text.RegularExpressions.RegexOptions.CultureInvariant;
+        TimeSpan timeout = TimeSpan.FromSeconds(5);
+
+        Assert.Equal(2, System.Text.RegularExpressions.Regex.Count(place, "ExecuteUpdateAsync", options, timeout));
+        Assert.Equal(0, System.Text.RegularExpressions.Regex.Count(place, "ExecuteDelete|ExecuteSql|SqlQuery|SaveChanges", options, timeout));
+        Assert.Equal(2, System.Text.RegularExpressions.Regex.Count(place, @"SetProperty\(i => i\.DownloadCount,", options, timeout));
+        Assert.Equal(2, System.Text.RegularExpressions.Regex.Count(place, "SetProperty", options, timeout));
+        Assert.NotEmpty(VersionedSideBulkWriteScan.Scan(OtherModule, place));
     }
 
     [Fact]

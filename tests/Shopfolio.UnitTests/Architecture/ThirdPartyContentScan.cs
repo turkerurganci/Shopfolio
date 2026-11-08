@@ -28,6 +28,9 @@ internal static partial class ThirdPartyContentScan
     /// </summary>
     public static readonly IReadOnlyCollection<string> PaymentFramePages = [];
 
+    /// <summary>The files whose text is markup: only these are searched for an element in angle brackets (D-114).</summary>
+    public static readonly string[] MarkupExtensions = [".cshtml", ".razor", ".html", ".htm", ".svg"];
+
     public static IReadOnlyList<(string Rule, int Line)> Scan(string relativePath, string text) => Scan(relativePath, text, PaymentFramePages);
 
     /// <summary>The scan with the list of payment frame pages given, so a test can show that the exception is one page wide and one element wide.</summary>
@@ -39,14 +42,18 @@ internal static partial class ThirdPartyContentScan
         Add(findings, TrackingName, Tracking(), clean);
         Add(findings, ConsentBannerName, Banner(), clean);
         Add(findings, EmbeddedContent, EmbedAddress(), clean);
-        Add(findings, EmbeddedContent, OtherEmbedElement(), clean);
+
+        // The element rules read markup (D-114): in a code or script file a "<object>" is a generic type argument (09 15.1 item 5 writes PasswordHasher<object>), so there only the
+        // createElement form of an element is searched.
+        bool isMarkup = MarkupExtensions.Any(e => path.EndsWith(e, StringComparison.OrdinalIgnoreCase));
+        Add(findings, EmbeddedContent, isMarkup ? OtherEmbedElement() : OtherCreatedElement(), clean);
         if (framePages.Contains(path, StringComparer.Ordinal))
         {
             Add(findings, FrameSource, ForeignFrameSource(), clean);
         }
         else
         {
-            Add(findings, EmbeddedContent, FrameElement(), clean);
+            Add(findings, EmbeddedContent, isMarkup ? FrameElement() : FrameCreatedElement(), clean);
         }
 
         Add(findings, ExternalResource, ForeignResource(), clean);
@@ -107,9 +114,16 @@ internal static partial class ThirdPartyContentScan
     [GeneratedRegex(@"<\s*iframe\b|createElement\s*\(\s*['""]iframe['""]", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 5000)]
     private static partial Regex FrameElement();
 
+    // The same element made in a code or script file: only the createElement form (D-114).
+    [GeneratedRegex(@"createElement\s*\(\s*['""]iframe['""]", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex FrameCreatedElement();
+
     // The other elements that embed another document: frame, frameset, object, embed - a finding on every page, the payment frame pages included.
     [GeneratedRegex(@"<\s*(?:frame|frameset|object|embed)\b|createElement\s*\(\s*['""](?:frame|frameset|object|embed)['""]", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 5000)]
     private static partial Regex OtherEmbedElement();
+
+    [GeneratedRegex(@"createElement\s*\(\s*['""](?:frame|frameset|object|embed)['""]", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex OtherCreatedElement();
 
     // On a payment frame page the frame takes its address from the provider's origin or from the site itself (05 6.5.4: frame-src is 'self' and https://www.paytr.com):
     // a src that is neither a path of the site nor an address under https://www.paytr.com/, and a srcdoc, are findings.

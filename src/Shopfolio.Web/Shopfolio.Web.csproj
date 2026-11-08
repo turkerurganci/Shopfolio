@@ -33,6 +33,11 @@
     <EmbeddedResource Include="Modules/Settings/Templates/DistanceSalesContract.tr.txt" WithCulture="false" LogicalName="Shopfolio.Modules.Settings.Templates.DistanceSalesContract.tr.txt" />
   </ItemGroup>
 
+  <!-- The list of very common passwords the password policy refuses ships inside the application (02 3.13.15; 09 15.1 item 5). -->
+  <ItemGroup>
+    <EmbeddedResource Include="Infrastructure/Security/CommonPasswords.txt" WithCulture="false" LogicalName="Shopfolio.Infrastructure.Security.CommonPasswords.txt" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="Shopfolio.UnitTests" />
     <InternalsVisibleTo Include="Shopfolio.IntegrationTests" />

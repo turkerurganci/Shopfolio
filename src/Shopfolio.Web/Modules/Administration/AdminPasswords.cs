@@ -47,6 +47,16 @@ internal sealed class AdminPasswords : IPasswordAccounts
         return row is null ? null : new PasswordAccount(row.Id, row.Email, row.PasswordHash, IsVerified: true);
     }
 
+    /// <summary>
+    /// Empties the digest: the password is unusable until the password reset writes a new one (06 4.37; 05 8.5.4). The caller holds the account's row lock; it is asked again here, like
+    /// <see cref="SetPasswordAsync"/>, so the lock is always taken before the digest is written.
+    /// </summary>
+    public async Task InvalidatePasswordAsync(Guid id, CancellationToken ct)
+    {
+        await AccountLocks.LockAsync(_db, AccountType.Admin, id, ct);
+        await _db.Admins.Where(a => a.Id == id).ExecuteUpdateAsync(set => set.SetProperty(a => a.PasswordHash, (string?)null), ct);
+    }
+
     public async Task SetPasswordAsync(Guid id, string digest, CancellationToken ct)
     {
         await AccountLocks.LockAsync(_db, AccountType.Admin, id, ct);

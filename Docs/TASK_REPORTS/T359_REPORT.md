@@ -1,6 +1,6 @@
 # T359 — Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamam, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-08
 
 > Taslağı yapım işçisi doldurur; doğrulama finalize eder.
 
@@ -70,10 +70,16 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-09, head `5cdc79c4`) |
+| Bulgu sayısı | 1 (B1 DÜŞÜK S1) |
+| Düzeltme gerekli mi | Evet — B1 bu dalda düzeltilir, yeni doğrulama turu |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-687) |
+
+**Validator kabul kriterleri tablosu:** K1 ✓ · K2 ✓ · K3 ✓ · K4 ✓ (servis düzeyi; çizim D-674) · K5 ✓ · K6 ✓ · K7 ✓ · K8 ✓; kontrol listesi `09 §25` maddesi ✗ (B1). `12` satırları (`VAL-A118`, `A119`, `A148`, `A150`, `C033`, `C034`) `BEKLEMEDE` kaldı: kanıt ortamı uç yanıtı / tarayıcı gözlemi, sayfa ve uç sahibi T505/T537/T360/T363 (T358 emsali).
+
+- **B1 (DÜŞÜK, S1) — iki yeni sayfalı listenin sayfa sınırı testi yok.** `ContentReaders.ListOfferingsAsync` ve `ListPortfolioItemsAsync` (`ToPageAsync`, `PageSizes.ContentList` = 24) bu task'ta eklendi; `09 §10.5` madde 6 "eşit anahtarlı kayıtlar sayfa sınırında ne yinelenir ne kaybolur (… elle sıralı liste için ayrı ayrı); son sayfayı aşan `page` son sayfayı verir … Her sayfalı liste için sınır testi zorunludur: yeni liste, testi olmadan eklenmez (§25)" der. `ListOfferingsAsync` yalnız ilk sayfası 3 kayıtla (KK2 testi), `ListPortfolioItemsAsync` hiç sınanmıyor (`grep -rn ListPortfolioItemsAsync tests` boş). Düzeltme: iki liste için Integration sınır testi — aynı `SortOrder`'lı (ve aynı `CreatedAt`'li) 25+ yayında kayıt sayfa sınırına düşer, iki sayfa yürününce kayıt ne yinelenir ne kaybolur; taslak sayılmaz; son sayfayı aşan `page` son sayfayı verir (emsal `CategoryTreeAndListsTests.ACategoryPage_WithEqualCreatedAtAcrossThePageBoundary_…`, `AuditTrailTests.ThePages_AreTwentyFiveRows_…`).
+- **K1 → D-687:** D-671 "D-500'ün karar kısmı bu şekilde kapanır" der ama `DEFERRED_BACKLOG.d/T361.md` D-500 açık kaldı; iki kalem tek konu.
+- **Yapım raporu karşılaştırması:** öz denetim tablosunda `09 §10.5` sınır testi maddesi yok (B1 kaçmış); öteki maddeler validator kanıtıyla uyumlu.
 
 ## Altyapı Değişiklikleri
 
@@ -85,7 +91,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T359-kurumsal-icerik`
-- **PR:** açılışta eklenir
+- **PR:** #479
 - **CI:** — (yardımcı izler)
 
 ## Dış Varsayımlar

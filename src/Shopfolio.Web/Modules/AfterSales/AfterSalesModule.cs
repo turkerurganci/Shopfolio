@@ -6,19 +6,22 @@ using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.AfterSales;
 
 /// <summary>The AfterSales module's implementation of its open surface; internal, reached only through <see cref="IAfterSalesModule"/>.</summary>
-internal sealed class AfterSalesModule : IAfterSalesModule
+internal sealed partial class AfterSalesModule : IAfterSalesModule
 {
     private readonly AppDbContext _db;
+    private readonly ISettingsModule _settings;
     private readonly IOrderingModule _ordering;
     private readonly TimeProvider _time;
 
-    public AfterSalesModule(AppDbContext db, IOrderingModule ordering, TimeProvider time)
+    public AfterSalesModule(AppDbContext db, ISettingsModule settings, IOrderingModule ordering, TimeProvider time)
     {
         _db = db;
+        _settings = settings;
         _ordering = ordering;
         _time = time;
     }

@@ -23,8 +23,11 @@ internal sealed class OrderingModule : IOrderingModule
 
     private readonly DownloadCounters _downloads;
 
-    public OrderingModule(AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks, DownloadCounters downloads)
+    private readonly Carts _carts;
+
+    public OrderingModule(AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks, DownloadCounters downloads, Carts carts)
     {
+        _carts = carts;
         _db = db;
         _arms = arms;
         _locks = locks;
@@ -163,19 +166,14 @@ internal sealed class OrderingModule : IOrderingModule
         // The cart's lock heads the transaction: a request that arrived together with this one waits here, and once the first has committed it reads no
         // marked item - it tells nothing (told once), with no exception on the way (09 10.2 items 2, 5).
         await _advisoryLocks.LockAsync(AdvisoryLockScope.Cart, cartId, ct);
-        List<CartItem> marked = await _db.CartItems
-            .Where(i => i.CartId == cartId && i.RemovedProductName != null)
-            .OrderBy(i => i.CreatedAt).ThenBy(i => i.Id)
-            .ToListAsync(ct);
-        if (marked.Count == 0)
-        {
-            return [];
-        }
-
-        string[] names = [.. marked.Select(i => i.RemovedProductName!)];
-        _db.CartItems.RemoveRange(marked);
-        return names;
+        return await _carts.TakeRemovedNamesAsync(cartId, ct);
     }
+
+    public Task<CartView> OpenCartAsync(CartOwner owner, CancellationToken ct) => _carts.OpenAsync(owner, ct);
+
+    public Task<CartAddResult> AddToCartAsync(CartOwner owner, Guid variantId, int quantity, CancellationToken ct) => _carts.AddAsync(owner, variantId, quantity, ct);
+
+    public Task<CartMergeResult> MergeGuestCartAsync(Guid customerId, string guestCartKey, CancellationToken ct) => _carts.MergeAsync(customerId, guestCartKey, ct);
 
     public async Task<IReadOnlyList<ReservationHolder>> ListReservationHoldersAsync(Guid variantId, CancellationToken ct)
     {
@@ -263,6 +261,8 @@ internal static class OrderingModuleRegistration
         services.AddScoped<OrderLocks>();
         services.AddScoped<OrderPaymentArms>();
         services.AddScoped<DownloadCounters>();
+        services.AddScoped<CartStatements>();
+        services.AddScoped<Carts>();
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
 

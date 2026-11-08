@@ -220,6 +220,46 @@ public sealed class AttemptCounterTests : IAsyncLifetime
         });
     }
 
+    [Fact]
+    public async Task The_window_slides_with_every_attempt_and_the_block_opens_by_itself_when_the_count_falls_to_the_threshold_T326_KK8()
+    {
+        AttemptSubject subject = AttemptSubject.Email("ayse@example.com");
+        AttemptRule rule = AttemptLimits.Of(AttemptLimit.L1, AttemptAxis.Email);
+        TimeSpan step = TimeSpan.FromMinutes(1);
+        Assert.True(step * (rule.Threshold + 1) < rule.Window, "the attempts of the test all fall inside one window");
+
+        await WithCounterAsync(async counter =>
+        {
+            // Threshold + 1 failures, one minute apart: the last one passes the threshold and the subject's work is blocked.
+            for (int i = 0; i <= rule.Threshold; i++)
+            {
+                await counter.RecordAsync(AttemptLimit.L1, subject, Ct);
+                bool exceeded = await counter.IsExceededAsync(AttemptLimit.L1, subject, Ct);
+                Assert.Equal(i == rule.Threshold, exceeded);
+                if (i < rule.Threshold)
+                {
+                    _time.Advance(step);
+                }
+            }
+
+            int rowsWhileBlocked = await CountRowsAsync(AttemptLimit.L1, subject);
+            Assert.Equal(rule.Threshold + 1, rowsWhileBlocked);
+
+            // The first row leaves the window (it started Threshold minutes ago): the count is the threshold and the block is open - nobody opened it.
+            _time.Advance(rule.Window - (step * rule.Threshold) + TimeSpan.FromMilliseconds(1));
+            Assert.False(await counter.IsExceededAsync(AttemptLimit.L1, subject, Ct));
+            Assert.Equal(rowsWhileBlocked, await CountRowsAsync(AttemptLimit.L1, subject));
+
+            // A new failure counts again from now, over the rows that are still inside the window: the block closes again by the same sliding count.
+            await counter.RecordAsync(AttemptLimit.L1, subject, Ct);
+            Assert.True(await counter.IsExceededAsync(AttemptLimit.L1, subject, Ct));
+
+            // Past the window of every row the subject is clear again, with no unlock step in between.
+            _time.Advance(rule.Window + TimeSpan.FromMilliseconds(1));
+            Assert.False(await counter.IsExceededAsync(AttemptLimit.L1, subject, Ct));
+        });
+    }
+
     [Theory]
     [InlineData(AttemptLimit.L7)]
     [InlineData(AttemptLimit.L8)]

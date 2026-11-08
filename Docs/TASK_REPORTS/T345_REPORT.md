@@ -1,6 +1,6 @@
 # T345 — Hesabın silinmesi ve kişisel veri başvurusu
 
-**Faz:** F3 | **Durum:** Düzeltme 1 tamam (doğrulama tur 2 bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -82,6 +82,41 @@ Birleşik ağaçta: build `-warnaserror` 0 uyarı; Unit 5008/5008; Integration `
 
 ## Doğrulama
 
+### Tur 2 (2026-11-08, head `1a100354`) — ✓ PASS
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✓ PASS (tur 2; tam kapsam yeniden doğrulama) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-683) |
+| Dal CI | run 42517577979 (head `1a100354`) bütün işler pass |
+| Ana dal CI (son 3) | 42514888426, 42514888368, 42512134557 — success |
+
+**Validator kabul kriterleri tablosu (tur 2):**
+
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `AccountDeletions.RemoveAsync` hesabı siler; oturum, işaret, defter, sepet, bekleyen değişiklik, bağlantı kaydı FK `Cascade`; imha kaydı Customer/Session/RecognizedBrowserMark/Cart/PendingEmailChange/LinkRecord tür+sayı; test KK1 yeşil |
+| 2 | ✓ | Sipariş satırı ve kişisel alanlar kalır, Order imha satırı yok (test KK2_KK4); süre sonu imhası `OrderDisposalPart` müşteri bağından bağımsız |
+| 3 | ✓ | `QueueAccountEmailAsync(AccountDeletedEmail)` tek; test KK3 (üye) ve KK8 (yönetici) birer `AccountDeletedNotice`; ikinci silme NotFound, gönderim 1; şablon `AccountEmailTemplates.Deleted` tarih, silinenler, siparişlerin sürdüğü, numara+e-posta girişi; bağlantısız (`CarriesLink`) |
+| 4 | ✓ | Silmede sipariş durumu denetimi yok; `OrderAccess.FindByNumberAndEmailAsync` donmuş iletişim e-postasıyla hesaptan bağımsız arar |
+| 5 | ✓ | `AccountLocks.LockAsync` `FOR UPDATE` → `MarkAccountDeletedAsync` aday okuması kilitten sonra; `LinkGuestOrdersAsync` `!IsAccountDeleted`; sıralı KK5 + iki oturumlu yarış testleri (ilk yarış testi eski kuru `UPDATE` ile kırmızı olurdu: işaretsiz `SET NULL`) |
+| 6 | ✓ | `ContactTopic.PersonalDataRequest`; `ContactRequestStatus` 2 değer; Kvkk tipi/tablosu yok (test KK6_KK7) |
+| 7 | ✓ | `IMembershipModule`'de Export/Download yok; `MemberRecord` değişmez kayıt, `FindMemberRecordAsync` yalnız okur (test KK7 durum karşılaştırması) |
+| 8 | ✓ | `DeleteByAdministratorAsync` aynı `HoldAndCheckAsync` + `RemoveAsync`; iz satırı `DeleteCustomerAccount`, konu `Customer`, ayrıntı Operation+Date, görünen ad yok (test KK8); aktörsüz istisna |
+| 9 | ✓ | `EmailChangeRevertPending` + `RevertLinkEndsAt` üye ve yönetici için; değer harcanmaz; bağlantı bitince silinir (test KK9) |
+
+**Test (yerel):** build `-warnaserror` 0 uyarı; format ×3 çıkış 0; Unit 5008/5008 (main birleşik ağaçta 5034/5034); betik 4/4; Integration `MembershipTests` + `AddressTests` 142/142; `ConcurrencyTests`, `OperationPatternTests`, `OrderTransitionsTests`, `CartTests`, `CartQuantityTests`, `SessionAccessTests` 142/142 (postgres:18, `shopfolio-t345-val2-pg`).
+
+**`12` satırları:** VAL-A104 → PASS (iş kaydı: iki silme yolunda tek gönderim satırı, mock e-posta). VAL-D022, D023, D024, C030, C031, A105–A110 → BEKLEMEDE: kanıt türleri uç yanıtı, uygulama kaydı ya da tarayıcı gözlemi; sayfalar T517/T533, iletişim formu ve aydınlatma metni başka task'larda (T343'ün VAL-D018–D021 emsali). `12_matris_denetle.py --kapsam 1-77` Hata 0.
+
+**K1 (→ D-683):** `SessionStore.TryRedeemReauthenticationHeldAsync` / `ISessionService` özeti düzeltme 1'den önceki kuru `UPDATE` ve "hesap kilidi tek başına" modelini anlatıyor; yöntem artık gereksiz. Davranış etkisi yok.
+
+**Yapım raporu karşılaştırması:** kabul kriterleri ve öz denetim tablosu kanıtlı, verdict'le uyumlu. Uyuşmazlık: "Yapılan İşler" maddeleri (hesap satırı yazıyla tutulur; "Account kilidi tek başına alınır… kilit sırası kuralı gevşetilmedi") düzeltme 1'den önceki hâli anlatıyor; düzeltme 1 bölümü güncel durumu doğru yazıyor. D-665 (onay ↔ silme olası ölü kilidi) veri kaybı doğurmaz (`05 §7.3.5` son cümle), forward kabul.
+
+### Tur 1
+
 | Alan | Sonuç |
 |---|---|
 | Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-08, head `7f842037`) |
@@ -103,8 +138,8 @@ Birleşik ağaçta: build `-warnaserror` 0 uyarı; Unit 5008/5008; Integration `
 ## Commit & PR
 
 - **Branch:** `task/T345-hesap-silme-kvkk`
-- **PR:** açılışta eklenir
-- **CI:** yoklanmadı (yönetici izler)
+- **PR:** #477
+- **CI:** run 42517577979 (head `1a100354`) yeşil
 - **Post-merge run'lar:** doğrulayıcı doldurur
 
 ## Dış Varsayımlar

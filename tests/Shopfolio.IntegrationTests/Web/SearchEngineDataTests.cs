@@ -181,7 +181,10 @@ public sealed partial class SearchEngineDataTests : IAsyncLifetime
             branding.LogoId = logo.Id;
         }
 
-        db.FaqItems.Add(new FaqItem { Id = Guid.CreateVersion7(), CreatedAt = Now, Question = "İade var mı?", Answer = "<p>Evet, <b>14 gün</b> içinde.</p>", SortOrder = 1, PublishStatus = PublishStatus.Published });
+        FaqItem faq = FaqItem.Create("İade var mı?", 1, Now);
+        faq.SetAnswer("<p>Evet, <strong>14 gün</strong> içinde.</p>");
+        faq.PublishStatus = PublishStatus.Published;
+        db.FaqItems.Add(faq);
         await db.SaveChangesAsync(Ct);
         return logoId;
     }

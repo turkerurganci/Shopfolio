@@ -25,6 +25,9 @@ internal static partial class AddressRules
     /// <summary>The prefix of a general page record.</summary>
     public const string GeneralPagePrefix = "sayfa";
 
+    /// <summary>The contact page: company identity, branches and the contact form on one page (07 2.1.2; 02 3.27.8). The service introduction's "Bize ulaşın" button leads here.</summary>
+    public const string ContactPage = "iletisim";
+
     /// <summary>The panel's path area (07 2.1.5; 05 3.5.1): the one area where an internal key may be part of the path.</summary>
     public const string PanelArea = "panel";
 
@@ -40,7 +43,7 @@ internal static partial class AddressRules
     /// <summary>The fixed pages: the first segment of each of them (07 2.1.2; the home page <c>/</c> has no segment).</summary>
     public static readonly IReadOnlyList<string> FixedPages =
     [
-        "arama", "hizmetler", "referanslar", "hakkimizda", "sss", "iletisim", "aydinlatma-metni", "cerez-politikasi", "islem-rehberi", "sepet", "odeme",
+        "arama", "hizmetler", "referanslar", "hakkimizda", "sss", ContactPage, "aydinlatma-metni", "cerez-politikasi", "islem-rehberi", "sepet", "odeme",
         "siparis-takibi",
     ];
 

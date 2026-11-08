@@ -200,7 +200,7 @@ Secret temiz · auth temiz (uç yok; yönetici kimlik, ad ve sürüm zorunlu) ·
 - **Commit:** kod başlığı `T316: Sevkiyat ekseni testleri: Integration derlendi ve koşuldu, Unit sözleşme testleri, TransitionRefusal kendi dosyasında`; ilk WIP `876a289`
 - **PR:** #437
 - **CI:** yapım chat'i izlemez; yönetici izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** squash `924ef92` (#437) — Publish 42408991705 success; CI 42408991723 cancelled (aynı ref'in yarışan koşusu; sonraki squash'ların CI'ları yeşil: T334 42411903829, T321 42419095662) (T335 dalında dolduruldu)
 
 ## Dış Varsayımlar
 

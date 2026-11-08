@@ -37,6 +37,19 @@ public interface ICatalogModule
     Task ReturnAsync(StockClaim claim, CancellationToken ct);
 
     /// <summary>
+    /// The wrong cancellation's correction on a paid order (06 4.14 path 6; 03 1.4.4.7): the units the cancellation freed are taken again - each only
+    /// if what is left is enough - and fall at once; the coupon right counts as used again, even past its limit. A deleted variant is skipped: it has
+    /// no stock to take. False when one variant did not fit; the caller refuses the correction and the transaction undoes the rows already written.
+    /// </summary>
+    Task<bool> RetakeAsync(StockClaim claim, CancellationToken ct);
+
+    /// <summary>
+    /// The transfer mark's correction (06 4.14 path 5; 03 1.4.4.8): the finally decreased units go back to the reservation - the stock, when not
+    /// unlimited, and the reserved quantity rise together - and the used coupon right becomes a reserved one. A deleted variant is skipped.
+    /// </summary>
+    Task RestoreAsync(StockClaim claim, CancellationToken ct);
+
+    /// <summary>
     /// The panel's write of the stock or capacity field (05 7.3.1; 06 2.6.5; 02 §3.6.7): one conditional update - the new value is written only if
     /// the field still holds the value the form showed and the new value is not below the reserved quantity. The product's version does not
     /// change; the field is outside the product form's version (K-980).
@@ -109,6 +122,19 @@ public interface ICatalogModule
     /// are not listed; a sold-out one is, marked (02 3.6.3). A plain read; it writes nothing.
     /// </summary>
     Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>
+    /// What the address <c>/urun/{slug}</c> answers (02 3.7.5, 3.7.6, 3.30.4): a Published product is its page; an Archived product is the "Bu ürün artık satılmıyor" page with its name,
+    /// image and status - and no variant, so no price and no cart; a Draft product is "page not found" for a visitor and the page with the "Draft" band for a signed-in administrator
+    /// (<paramref name="isAdministrator"/>), who sees the Draft variants too; an address that holds no product, a deleted one among them, is "page not found". A plain read.
+    /// </summary>
+    Task<ProductPage> GetProductPageAsync(string? slug, bool isAdministrator, CancellationToken ct);
+
+    /// <summary>
+    /// The Published variants of a digital product that no file serves (02 3.7.4): the variants the publish gate counts and the panel shows as missing a file - none for a product of
+    /// another type, one that has a file at product level, or one whose Published variants each carry their own. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> ListVariantsWithoutFileAsync(Guid productId, CancellationToken ct);
 
     /// <summary>
     /// The stock code the new variant's form is filled with (02 3.3.4; 05 7.8.1, MK-32): the product's address in capitals - its first twenty characters - a hyphen and

@@ -23,6 +23,7 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly ShowcaseReader _showcase;
     private readonly StockCodes _stockCodes;
     private readonly ProductStructureReader _structure;
+    private readonly ProductPageReader _pages;
     private readonly PriceLabelReader _priceLabels;
     private readonly CategoryTree _categories;
     private readonly ProductCategoryLinks _links;
@@ -41,6 +42,7 @@ internal sealed class CatalogModule : ICatalogModule
         ShowcaseReader showcase,
         StockCodes stockCodes,
         ProductStructureReader structure,
+        ProductPageReader pages,
         PriceLabelReader priceLabels,
         CategoryTree categories,
         ProductCategoryLinks links,
@@ -50,6 +52,7 @@ internal sealed class CatalogModule : ICatalogModule
         VariantPrices variantPrices,
         ShippingPeriodReader shippingPeriods)
     {
+        _pages = pages;
         _discounts = discounts;
         _variantPrices = variantPrices;
         _shippingPeriods = shippingPeriods;
@@ -84,6 +87,10 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task<IReadOnlyList<OptionMatrixCell>> GetOptionMatrixAsync(Guid productId, CancellationToken ct)
         => _structure.GetMatrixAsync(productId, ct);
+
+    public Task<ProductPage> GetProductPageAsync(string? slug, bool isAdministrator, CancellationToken ct) => _pages.ReadAsync(slug, isAdministrator, ct);
+
+    public Task<IReadOnlyList<Guid>> ListVariantsWithoutFileAsync(Guid productId, CancellationToken ct) => _fileReader.ListPublishedWithoutFileAsync(productId, ct);
 
     public Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct) => _priceLabels.GetAsync(variantId, ct);
 
@@ -178,6 +185,10 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task ReturnAsync(StockClaim claim, CancellationToken ct) => ApplyAsync(claim, CounterMove.Return, ct);
 
+    public Task<bool> RetakeAsync(StockClaim claim, CancellationToken ct) => ApplyAsync(claim, CounterMove.Retake, ct);
+
+    public Task RestoreAsync(StockClaim claim, CancellationToken ct) => ApplyAsync(claim, CounterMove.Restore, ct);
+
     public Task<StockQuantityWriteResult> SaveStockQuantityAsync(Guid variantId, int? shownValue, int? newValue, CancellationToken ct)
     {
         return _counters.SaveStockQuantityAsync(variantId, shownValue, newValue, ct);
@@ -228,11 +239,13 @@ internal static class CatalogModuleRegistration
         services.AddDisposalPart<DigitalFileDisposalPart>();
         services.AddDisposalPart<OrphanDigitalFilePart>();
 
-        // The publish status transitions (T321; 09 9.1 item 1): the class is what the module takes, the open face is the same instance. The gate is open until T335 (D-300).
+        // The publish status transitions (T321; 09 9.1 item 1): the class is what the module takes, the open face is the same instance. The gate is T335's (D-300).
         services.AddScoped<ShowcaseReader>();
-        services.AddScoped<IPublishGate, UnwrittenPublishGate>();
+        services.AddScoped<ProductPageReader>();
+        services.AddScoped<IPublishGate, CatalogPublishGate>();
         services.AddScoped<ProductTransitions>();
         services.AddScoped<IProductTransitions>(provider => provider.GetRequiredService<ProductTransitions>());
+        services.AddScoped<IProductRemoval, ProductRemoval>();
         services.AddScoped<ICatalogModule, CatalogModule>();
         return services;
     }

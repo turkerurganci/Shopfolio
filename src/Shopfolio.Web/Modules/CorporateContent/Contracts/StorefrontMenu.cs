@@ -2,28 +2,6 @@ using Shopfolio.Modules.Catalog.Contracts.Categories;
 
 namespace Shopfolio.Modules.CorporateContent.Contracts;
 
-/// <summary>The items of the menu's fixed skeleton (02 3.28.4, 3.28.5): the five that can be hidden, the general pages the firm shows in the menu, and the contact page that is always there.</summary>
-public enum MenuItemKind
-{
-    Products,
-    Offerings,
-    PortfolioItems,
-    AboutPage,
-    FaqItems,
-    GeneralPage,
-    Contact,
-}
-
-/// <summary>Why a menu item is not on the site now (04 9.14.4): the panel names the reason in the item's row.</summary>
-public enum MenuHiddenReason
-{
-    /// <summary>The type has no published record (02 3.28.4) - a type that has only drafts, and an about page that is not published, are in this case.</summary>
-    NoPublishedRecord,
-
-    /// <summary>The catalog has no published product, so the products part has nothing to show (02 3.28.6).</summary>
-    NoPublishedProduct,
-}
-
 /// <summary>
 /// One item of the top menu. <see cref="Name"/> is the firm's name for the item (the product's default until it changes it) or, for a general page, its title; <see cref="Path"/> is the
 /// page the item opens, or null for the products item, which only opens the category list (02 3.28.4; 04 5.1.6 - there is no all-products page). A hidden item has its reason.

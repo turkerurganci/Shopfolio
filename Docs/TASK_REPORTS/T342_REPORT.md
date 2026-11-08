@@ -87,7 +87,7 @@
 
 - **Branch:** `task/T342-giris-oturum`
 - **Commit:** son head PR açıklamasında
-- **PR:** PR açıklamasında
+- **PR:** #453
 - **CI:** yönetici izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

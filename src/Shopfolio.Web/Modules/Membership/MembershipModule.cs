@@ -442,6 +442,7 @@ internal static class MembershipModuleRegistration
         services.AddScoped<EmailChanges>();
         services.AddScoped<AccountDeletions>();
         services.AddScoped<MemberRecords>();
+        services.AddScoped<IAdminPendingEmailChanges, AdminPendingEmailChanges>();
         services.AddScoped<ISessionService, SessionService>();
 
         // Z-1's nightly deletion (T324; D-253): the unverified registrations and the pending address changes whose link has ended.

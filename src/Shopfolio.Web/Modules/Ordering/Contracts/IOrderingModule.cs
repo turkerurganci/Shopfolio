@@ -21,6 +21,21 @@ public interface IOrderingModule
     Task<Guid?> FindOrderByAccessKeyAsync(string accessKey, CancellationToken ct);
 
     /// <summary>
+    /// The guest's lookup by number and e-mail (07 UC-32; 02 3.22.3, 3.22.5): the order whose number matches without regard to letter case and whose contact e-mail, as frozen
+    /// on the order, matches in its normalized form - with the access key the caller turns into the 303 to the access-key root. The number alone opens nothing. An order of a
+    /// deleted account, or of an account whose address changed, matches by its frozen address; an order whose personal data is disposed never matches. Any wrong or empty
+    /// part gives the same null: the answer does not say which part failed or whether the order exists (K-772). A plain read; the failed-lookup limits (L-5) are the caller's
+    /// attempt layer.
+    /// </summary>
+    Task<OrderAccessLookup?> FindOrderByNumberAndEmailAsync(string orderNumber, string email, CancellationToken ct);
+
+    /// <summary>
+    /// The status, the delivery area with its tracking link, the download buttons and the frozen bank transfer IBAN of an order the caller has already opened by one of the
+    /// three ways (02 3.22.4); null when the order does not exist. Read from the order alone: no e-mail stands between the buyer and any of them (02 6.1.1). A plain read.
+    /// </summary>
+    Task<OrderPageSummary?> GetOrderPageSummaryAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
     /// The order a payment notification names (08 2.1.5; 05 4.5.5): the order with exactly that number - the number the link layer mapped the provider's
     /// reference back to -, with its paid total and payment method, or null when there is none. A plain read without the order's lock: the notification
     /// endpoint only classifies and records, the order's state is written by the processing job through the transition unit (05 4.5.2, 4.5.3).
@@ -108,7 +123,7 @@ public interface IOrderingModule
 
     /// <summary>
     /// Adds a variant to the owner's cart (02 3.16.1, 3.16.5): a new line remembers the unit price of this moment; the same variant again raises the quantity and leaves that price alone. The cart is
-    /// made when it does not exist. A variant that is not on the showcase or is sold out is not added. The stock and per-order limits of the quantity are T347's. Joins the caller's transaction and
+    /// made when it does not exist. A variant that is not on the showcase or is sold out is not added. A quantity the stock less the reserved units does not hold is refused as NoStock without a number; one that passes the product's per-order limit over all its variants is refused as OverOrderLimit with the limit, and the limit wins when both are broken (T347; 02 3.16.8, 3.16.9). Joins the caller's transaction and
     /// does not save.
     /// </summary>
     Task<CartAddResult> AddToCartAsync(CartOwner owner, Guid variantId, int quantity, CancellationToken ct);

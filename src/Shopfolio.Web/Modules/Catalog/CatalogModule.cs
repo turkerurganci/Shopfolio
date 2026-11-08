@@ -33,6 +33,7 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly ProductListReader _lists;
     private readonly ProductGallery _gallery;
     private readonly CartVariantReader _cartVariants;
+    private readonly CartQuantityReader _cartQuantities;
     private readonly Discounts _discounts;
     private readonly VariantPrices _variantPrices;
     private readonly ShippingPeriodReader _shippingPeriods;
@@ -59,9 +60,11 @@ internal sealed class CatalogModule : ICatalogModule
         ShippingPeriodReader shippingPeriods,
         CatalogMenuReader menu,
         Coupons coupons,
-        CartVariantReader cartVariants)
+        CartVariantReader cartVariants,
+        CartQuantityReader cartQuantities)
     {
         _cartVariants = cartVariants;
+        _cartQuantities = cartQuantities;
         _pages = pages;
         _discounts = discounts;
         _menu = menu;
@@ -175,6 +178,12 @@ internal sealed class CatalogModule : ICatalogModule
     public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct)
         => _cartVariants.ListAsync(variantIds, ct);
 
+    public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, CancellationToken ct)
+        => _cartQuantities.JudgeAsync(lines, ct);
+
+    public Task<CartQuantityVerdict> JudgeCartAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, CancellationToken ct)
+        => _cartQuantities.JudgeAddAsync(candidate, others, ct);
+
     public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct)
         => _fileReader.FindAsync(variantId, lastKnownFileId, ct);
 
@@ -247,6 +256,7 @@ internal static class CatalogModuleRegistration
         services.AddScoped<PriceLabelReader>();
         services.AddScoped<ShippingPeriodReader>();
         services.AddScoped<CartVariantReader>();
+        services.AddScoped<CartQuantityReader>();
         services.AddScoped<CategoryTree>();
         services.AddScoped<CatalogMenuReader>();
         services.AddScoped<ProductCategoryLinks>();

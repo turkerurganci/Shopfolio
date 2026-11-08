@@ -82,7 +82,7 @@ public sealed class PaymentWindowTests : IAsyncLifetime
         Order after = await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct);
         Assert.Equal((OrderStatus.Cancelled, PaymentStatus.Failed, 2), (after.OrderStatus, after.PaymentStatus, after.Version));
         List<TransitionRecord> records = await reader.TransitionRecords.Where(t => t.OrderId == order.Id).ToListAsync(Ct);
-        Assert.Equal([TransitionCode.O2, TransitionCode.S3], records.Select(r => r.TransitionCode).Order());
+        Assert.Equal(new[] { TransitionCode.O2, TransitionCode.S3 }.Order(), records.Select(r => r.TransitionCode).Order());
         Assert.All(records, r => Assert.Equal((ActorKind.System, TransitionReason.PaymentWindowExpired), (r.ActorKind, r.TransitionReason!.Value)));
         Assert.Equal([DispatchType.B7], await reader.DispatchRecords.Where(d => d.OrderId == order.Id).Select(d => d.DispatchType).ToListAsync(Ct));
 
@@ -145,8 +145,8 @@ public sealed class PaymentWindowTests : IAsyncLifetime
         Assert.Equal(1, await CountRemindersAsync(order.Id));
         Assert.Null((await ReadOrderAsync(order.Id)).PaymentReminderAt);
 
-        // The correction of the "paid" mark starts a new window and writes its reminder moment (03 4.1.9; K-685; T319): the reminder goes once more.
-        await ExecuteAsync($"UPDATE orders SET payment_reminder_at = '{Now:O}' WHERE id = '{order.Id}'");
+        // The correction of the "paid" mark starts a new window and writes its end and its reminder moment (03 4.1.9; K-685; T319): the reminder goes once more.
+        await ExecuteAsync($"UPDATE orders SET payment_window_ends_at = '{windowEnd.AddDays(1):O}', payment_reminder_at = '{Now:O}' WHERE id = '{order.Id}'");
         await ProcessAsync<TransferPaymentReminder>(order.Id);
         Assert.Equal(2, await CountRemindersAsync(order.Id));
         DispatchRecord reminder = (await ReadRemindersAsync(order.Id)).First();
@@ -292,10 +292,10 @@ public sealed class PaymentWindowTests : IAsyncLifetime
     {
         // Monday 2026-11-09, noon in Turkey: one business day ends at 00:00 of Wednesday, three at 00:00 of the Friday after (no holiday in the week).
         DateTimeOffset placed = Start;
-        int original = await ScalarAsync("SELECT bank_transfer_payment_window FROM company_settings");
         PaymentWindow one;
         PaymentWindow three;
         PaymentWindow card;
+        await SeedCompanySettingsAsync();
         try
         {
             one = await WindowAsync(PaymentMethod.BankTransfer, placed, businessDays: 1);
@@ -304,9 +304,9 @@ public sealed class PaymentWindowTests : IAsyncLifetime
         }
         finally
         {
-            await ExecuteAsync($"UPDATE company_settings SET bank_transfer_payment_window = {original}");
+            // The collection's other tests start without the firm's settings row; it is taken away again.
+            await ExecuteAsync("TRUNCATE company_settings CASCADE");
         }
-
 
         Assert.Equal(PeriodCounting.EndOf(CountedPeriod.BankTransferPaymentWindow, placed, 1, BusinessCalendar.Product), one.EndsAt);
         Assert.Equal(PeriodCounting.EndOf(CountedPeriod.BankTransferPaymentWindow, placed, 3, BusinessCalendar.Product), three.EndsAt);
@@ -314,6 +314,24 @@ public sealed class PaymentWindowTests : IAsyncLifetime
         Assert.Equal(TransferSchedule.ReminderAt(three.EndsAt), three.ReminderAt);
         Assert.Equal(placed + TimeSpan.FromMinutes(ProductConstants.CardPaymentMinutes), card.EndsAt);
         Assert.Null(card.ReminderAt);
+    }
+
+    private async Task SeedCompanySettingsAsync()
+    {
+        await ExecuteAsync("TRUNCATE company_settings CASCADE");
+        CompanySettings settings = CompanySettings.Create(Start);
+        settings.BankTransferPaymentWindow = 1;
+        settings.DownloadAllowance = 1;
+        settings.HomepageLayout = Shopfolio.Modules.CorporateContent.Contracts.HomepageLayout.StoreFirst;
+        settings.MenuNameProducts = "Ürünler";
+        settings.MenuNameOfferings = "Hizmetler";
+        settings.MenuNamePortfolioItems = "Çalışmalar";
+        settings.MenuNameAboutPage = "Hakkımızda";
+        settings.MenuNameFaqItems = "Sıkça Sorulanlar";
+        settings.MenuNameContact = "İletişim";
+        await using AppDbContext db = NewContext();
+        db.CompanySettings.Add(settings);
+        await db.SaveChangesAsync(Ct);
     }
 
     private async Task<PaymentWindow> WindowAsync(PaymentMethod method, DateTimeOffset start, int businessDays)
@@ -481,14 +499,6 @@ public sealed class PaymentWindowTests : IAsyncLifetime
         DbContextOptionsBuilder<AppDbContext> builder = new();
         AppDbContext.Configure(builder, _collection.Dsn);
         return new AppDbContext(builder.Options);
-    }
-
-    private async Task<int> ScalarAsync(string sql)
-    {
-        await using NpgsqlConnection connection = new(_collection.Dsn);
-        await connection.OpenAsync(Ct);
-        await using NpgsqlCommand command = new(sql, connection);
-        return Convert.ToInt32(await command.ExecuteScalarAsync(Ct), System.Globalization.CultureInfo.InvariantCulture);
     }
 
     private async Task ExecuteAsync(string sql)

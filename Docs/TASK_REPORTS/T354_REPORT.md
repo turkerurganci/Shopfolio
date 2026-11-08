@@ -1,6 +1,6 @@
 # T354 — Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamam, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — düzeltme bekliyor) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -70,10 +70,23 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | (doğrulayıcı doldurur) |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-08) |
+| Bulgu sayısı | 1 (B1 ORTA S2) |
+| Düzeltme gerekli mi | Evet — üç test düzeneğine `OrderAccess` kaydı |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama Sonucu — tur 1 (validator)
+
+**Head:** `53a71cd0` + `origin/main` `f1603761` birleştirmesi · **PR:** #470 · **Verdict:** ✗ FAIL
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = depo `scripts/git-hooks`; ana dal CI son 3: 42483789437, 42483789393, 42480365166 hepsi `success`.
+- **Kabul kriterleri (modül düzeyi):** 1–6 ✓ ve KK1–KK6 ✓ — `OrderNumber` alfabesi ve uzunluğu `09 §15.1` madde 1 ile birebir (P-19 = 6); `OrderIdentifiers` çakışmada ve iptalde numarayı atlar, dizin adları veritabanıyla eşleşir; üç yol (`FindMemberOrderAsync`, `FindOrderByNumberAndEmailAsync`, `FindOrderByAccessKeyAsync`) ve `RenewAccessKey`/imha davranışı testlerle kanıtlı; sayfa özeti dört bilgiyi siparişten okur. Sayfa uçları T511 (D-565), onay çağıranı T348 (D-563), yenileme çağıranı T375 (D-564) — plan katmanlamasıyla uyumlu.
+- **Task satırları:** KP-17/18'in T354'e düşen satırları (VAL-D009, B014, B015, B016, A054, A977, A055, A057, A058, B017) uç yanıtı / tarayıcı / sipariş onayı kanıtı ister; uçlar ve onay sonraki task'larda. `Durum` hücreleri `BEKLEMEDE` kaldı.
+- **Testler (yerel):** build `-warnaserror` 0 uyarı; format üç proje temiz; Unit 4770/4770; betik testleri 4 dosya; Integration Ordering ad alanı 244/244. `Model.AddressTests` ve `Model.MembershipTests` yerelde düşüyor (aşağıda B1).
+- **Dal CI:** 42485052233 ✗ — 4. Integration test 110/2729 başarısız; öteki adımlar yeşil.
+- **B1 — ORTA, S2 Kırılma:** `OrderingModule` kurucusuna `OrderAccess` eklendi; `OrderingModule`'ü elle kaydeden üç düzenek (`tests/Shopfolio.IntegrationTests/Disposal/DisposalHarness.cs:69`, `Model/AddressTests.cs:111`, `Model/MembershipTests.cs:121`) `OrderAccess`'i kaydetmediği için `IOrderingModule` çözülemiyor: `Unable to resolve service for type 'Shopfolio.Modules.Ordering.OrderAccess'` (CI'da 109 test; Disposal*, `AddressTests`, `MembershipTests`). Düzeltme: üç düzeneğe `services.AddScoped<OrderAccess>();` eklenir; tam Integration yerelde ya da CI'da yeşil görülür.
+- **Güvenlik:** sır yok; numara tek başına hiçbir yolu açmıyor, yanlış parçaların hepsi aynı `null`; anahtar `SecretKey.Create` (256 bit), imhada boş; yeni bağımlılık yok.
+- **Yapım raporu karşılaştırması:** 1 uyuşmazlık — öz denetimdeki "`OrderingModule`'ü elle kuran yer yok; bütün test sağlayıcıları `AddOrderingModule`'ü çağırır" iddiası yanlış (`grep "new OrderingModule("` arama biçimi `AddScoped<IOrderingModule, OrderingModule>` kaydını yakalamadı); tam Integration koşulmadığı için kırılma görülmedi.
 
 ## Altyapı Değişiklikleri
 

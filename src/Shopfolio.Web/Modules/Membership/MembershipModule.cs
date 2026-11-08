@@ -114,23 +114,24 @@ internal sealed class MembershipModule : IMembershipModule
 
         DateTimeOffset now = _time.GetUtcNow();
         string normalized = TextNormalizer.NormalizeIdentity(email);
-        var existing = await _db.Customers.AsNoTracking()
+        Guid? existingId = await _db.Customers.AsNoTracking()
             .Where(c => c.NormalizedEmail == normalized)
-            .Select(c => new { c.Id, c.EmailVerifiedAt })
+            .Select(c => (Guid?)c.Id)
             .SingleOrDefaultAsync(ct);
-        if (existing is not null)
+        if (existingId is { } existing)
         {
-            // A pending registration whose first link has ended is gone and its address is free again (02 3.13.5; Z-1). The nightly deletion is T324's (D-253); this is the
-            // lazy half, done when the address is asked for.
-            DateTimeOffset? firstEnd = existing.EmailVerifiedAt is null ? await FirstLinkEndAsync(existing.Id, ct) : null;
-            bool endedPending = existing.EmailVerifiedAt is null && (firstEnd is null || firstEnd <= now);
-            if (!endedPending)
+            // A pending registration whose first link has ended is gone and its address is free again (02 3.13.5; Z-1). The nightly deletion is
+            // PendingRegistrationDisposalPart (T324); this is the lazy half, done when the address is asked for - both read PendingRecordExpiry's rule.
+            int deleted = await _db.Customers
+                .Where(c => c.Id == existing)
+                .Where(PendingRecordExpiry.EndedRegistration(_db, now))
+                .ExecuteDeleteAsync(ct);
+            if (deleted == 0)
             {
                 return RegistrationResult.Refused(ErrorCode.EmailAlreadyRegistered);
             }
 
-            await _db.Customers.Where(c => c.Id == existing.Id && c.EmailVerifiedAt == null).ExecuteDeleteAsync(ct);
-            _db.DisposalRecords.Add(DisposalRecord.Counted(DisposalRecordType.PendingRegistration, 1, now));
+            _db.DisposalRecords.Add(DisposalRecord.Counted(DisposalRecordType.PendingRegistration, deleted, now));
         }
 
         DateTimeOffset expiresAt = now.AddHours(ProductConstants.EmailVerificationLinkHours);
@@ -340,6 +341,10 @@ internal static class MembershipModuleRegistration
     public static IServiceCollection AddMembershipModule(this IServiceCollection services)
     {
         services.AddScoped<IMembershipModule, MembershipModule>();
+
+        // Z-1's nightly deletion (T324; D-253): the unverified registrations and the pending address changes whose link has ended.
+        services.AddDisposalPart<PendingRegistrationDisposalPart>();
+        services.AddDisposalPart<PendingEmailChangeDisposalPart>();
         return services;
     }
 }

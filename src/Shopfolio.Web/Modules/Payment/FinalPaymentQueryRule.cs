@@ -23,8 +23,8 @@ internal enum FinalPaymentQueryStep
 /// unanswered call apart (<see cref="PaymentQueryResult.NoResponse"/>, the timeout, the unreachable provider and the unlisted answer included);
 /// an unanswered query is not a "no payment" - the order is not cancelled and the query repeats every five minutes while the provider is down
 /// (<see cref="JobTimings.FinalPaymentQueryInterval"/>). The payment period is not stopped by the outage; only its cancellation waits. The
-/// handler that reads the order, applies the result and cancels is the payment provider task's (T403) and calls this rule first; a successful
-/// answer that cannot be applied is that task's rule (08 2.1.6).
+/// handler that reads the order, applies the result and cancels is <see cref="FinalPaymentQueryJobHandler"/> (T324) and calls this rule first; a
+/// successful answer that cannot be applied, and the code errors' own interval, are the payment provider task's rules (T403; 08 2.1.6).
 /// </summary>
 internal static class FinalPaymentQueryRule
 {

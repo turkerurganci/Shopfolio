@@ -55,7 +55,7 @@ public sealed class OutageRulesTests
     [Fact]
     public void FinalQuery_EachClass_HasItsOwnStep()
     {
-        Assert.Equal(FinalPaymentQueryStep.ApplyPayment, FinalPaymentQueryRule.Decide(new PaymentQueryResult.Paid(120m, 120m, true, true, false)));
+        Assert.Equal(FinalPaymentQueryStep.ApplyPayment, FinalPaymentQueryRule.Decide(new PaymentQueryResult.Paid("2026000204", 120m, 120m, true, true, false)));
         Assert.Equal(FinalPaymentQueryStep.CancelUnpaidOrder, FinalPaymentQueryRule.Decide(new PaymentQueryResult.NoPayment()));
         Assert.Equal(FinalPaymentQueryStep.AskAgain, FinalPaymentQueryRule.Decide(new PaymentQueryResult.NoResponse("timeout")));
     }

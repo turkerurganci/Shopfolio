@@ -94,6 +94,30 @@ Dal `origin/main` (0226a902) ile birleştirildi (çakışma yok); iki bulgu ve K
 
 ## Doğrulama
 
+### Tur 2 (2026-11-08)
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-08; dal `4607ae6c` `origin/main` `4c049223` ile birleştirilerek) |
+| Bulgu sayısı | 1 (1 ORTA S1) |
+| Düzeltme gerekli mi | Evet |
+| Bloke-etmeyen not (K) sayısı | 2 |
+
+Kabul kriterleri 1–9 ve KK1–KK9 validator kanıtıyla ✓ (birleşik ağaçta Integration `Shopfolio.IntegrationTests.Commands` 43/43, `StatusEndpointTests` + `ProductGalleryTests` 59/59; Unit 4949/4949; build `-warnaserror` 0 uyarı; format üç proje temiz; betik testleri 4/4; PR CI run 42505970515 yeşil). Tur 1'in iki bulgusu ve K1 kapandı (komut kipi dokuz modülü çözüyor; "Hatlar" bölümü `ConditionalLines`'tan; `OutcomePending` örneği testte). `VAL-A984` satırının beklenen sonucu karşılandı (`PASS`).
+
+**Bulgular:**
+
+1. **ORTA · S1 · `09 §25` Performans satırı ("Büyüyen küme sayfalı mı") / `09 §20` madde 2:** `OrderingModule.ListPaidCardItemsAsync` kartla ödenmiş ve tam geri ödenmemiş **bütün** siparişlerin bütün kalemlerini `ToListAsync` ile belleğe alır; `AfterSalesModule.CountCardOrdersWithRefundExposureAsync` sonra bu kimliklerin hepsiyle `ClosedQuantitiesAsync`'i çağırır ve süzmeyi bellekte yapar. Ödendi siparişi süresiz Ödendi kalır, küme siparişle büyür ve hiç küçülmez; `§20` madde 2 "`ToList`/`ToArray` ile bütün kümeyi belleğe almak yasaktır" der (tek istisna dışa aktarma), kümenin kapalı olduğu gerekçesi de yazılı değil. `§25` "hayır" cevabı düzeltilmeden kabul edilmez. Düzeltme yönü: sayım SQL'de yapılır ya da sorgu yalnız açık / cayma süresi içindeki kalemleri getirecek biçimde süzülür (teslim edilmemiş fiziksel kalem, işaretsiz hizmet/dijital kalem, teslim tarihi son 14 günün içinde olan fiziksel kalem) — böylece okunan küme etkin siparişlerle sınırlanır; davranış testleri (`Status_TheSecondNumber…`) aynen yeşil kalmalı.
+
+**K-notları:**
+
+- K1 — `JobQueueStatusReader.ReadAsync` zamanı gelmiş bütün bekleyen satırların zamanını listeye alıp en eskisini bellekte bulur; sayı `CountAsync`, en eski an `MinAsync` ile SQL'de alınabilir (aynı düzeltme turunda kapatılır).
+- K2 — `D-601`'in hedefi "Panel sayaçları task'ı" yazılı; task'ın kimliği `T382`'dir (Panel ana sayfası verisi: altı bekleyen iş sayacı) — hedef sütunu `T382` olarak düzeltilir (aynı düzeltme turunda kapatılır).
+
+**Yapım raporu karşılaştırması:** öz denetim tablosu var ve her maddede kanıt yazılı; "`09 §25` ilgili satırlar ✓" satırı Performans bölümünü (büyüyen küme, `§20` madde 2) anmıyor — bulgu 1 bu satırla uyuşmuyor. Öteki kriter ve KK sonuçları validator ile uyumlu.
+
+### Tur 1 (2026-11-08)
+
 | Alan | Sonuç |
 |---|---|
 | Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-08; dal `origin/main` ile birleştirilerek) |

@@ -520,6 +520,47 @@ public sealed class StorefrontReadersTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ThePermanentDeletionOfTheLastPublishedProduct_DropsTheMenu_AndTheCategoryAndTheItemGo_KK6()
+    {
+        Guid furniture = await SeedCategoryAsync("Mobilya", null);
+        Guid garden = await SeedCategoryAsync("Bahçe", null);
+        Guid table = await SeedProductAsync("Masa", PublishStatus.Published, furniture);
+        await SeedProductAsync("Çardak", PublishStatus.Published, garden);
+        StorefrontMenu before = await MenuAsync();
+
+        await DeleteProductAsync(table);
+        StorefrontMenu afterFirst = await MenuAsync();
+
+        Guid arbor = await ProductIdAsync("Çardak");
+        await DeleteProductAsync(arbor);
+        StorefrontMenu afterLast = await MenuAsync();
+
+        Assert.Equal(["Bahçe", "Mobilya"], before.Categories.Select(c => c.Name));
+        Assert.Equal(["Bahçe"], afterFirst.Categories.Select(c => c.Name));
+        Assert.True(afterFirst.Items.Single(i => i.Kind == MenuItemKind.Products).IsVisible);
+        Assert.False(afterLast.Items.Single(i => i.Kind == MenuItemKind.Products).IsVisible);
+        Assert.Empty(afterLast.Categories);
+    }
+
+    private async Task DeleteProductAsync(Guid productId)
+    {
+        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        int version = (await db.Products.AsNoTracking().SingleAsync(p => p.Id == productId, Ct)).Version;
+        IProductRemoval removal = scope.ServiceProvider.GetRequiredService<IProductRemoval>();
+        RemovalResult result = await scope.ServiceProvider.GetRequiredService<ITransactionRunner>()
+            .RunAsync(token => removal.DeleteProductAsync(productId, version, token), Ct);
+        Assert.True(result.IsDone);
+    }
+
+    private async Task<Guid> ProductIdAsync(string name)
+    {
+        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        return (await db.Products.AsNoTracking().SingleAsync(p => p.Name == name, Ct)).Id;
+    }
+
+    [Fact]
     public async Task ThePublicationOfAContentRecord_DropsTheMenuAndTheBlocks_AtOnce_KK3()
     {
         Guid offering = await SeedOfferingAsync("Montaj", 1, PublishStatus.Draft, flagged: true);

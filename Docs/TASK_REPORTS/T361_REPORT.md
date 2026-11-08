@@ -29,7 +29,7 @@
 | 3 | İşaretli hizmet ve referanslar elle sırayla; işaretli yoksa blok çıkmaz | ✓ | Integration `TheServiceAndReferenceBlocks_ShowOnlyPublishedFlaggedRecords_InTheManualOrder_AtMostThree_KK3`, `ABlockWithoutAFlaggedPublishedRecord_IsNotOnThePage_KK3` |
 | 4 | Menü düzenleyici yok; yayında kaydı olmayan tip gizli; menü adı değişir | ✓ | Integration `ATypeWithOnlyDrafts_IsHidden_WithItsReason_…_KK4`, `ARenamedMenuItem_ShowsTheNewNameAtOnce_…_KK4`; Unit `TheMenuHasNoWayToAddRemoveOrReorderAnItem_KK4`, `ATypeShowsExactlyWhenItHasAPublishedRecord_KK4` |
 | 5 | Genel sayfa altbilgide, işaretliyse menüde | ✓ | Integration `AGeneralPage_IsInTheFooter_AndInTheTopMenuOnlyWhenMarked_BeforeContact_KK5`; Unit `AGeneralPage_IsInTheFooterAlways_…_KK5` |
-| 6 | Ürünsüz kategori menüde yok; yalnız alt dalda ürün varsa üst var; boş katalogda ürünler kısmı yok; boş kategori adresi boş sayfa | ✓ | Integration `ACategoryWithoutAPublishedProduct_IsNotInTheMenu_AParentWhoseOnlyProductsAreBelowIs_KK6`, `WithNoPublishedProduct_TheProductsItemIsHidden_…_KK6`, `AnEmptyCategoryAddress_ShowsAnEmptyPage_AndAnUnknownAddressIsNotFound_KK6`, `ThePublicationOfAProduct_DropsTheMenu_…_KK6`, `TheCategoriesOfAProduct_DropTheMenu_WhenTheyChange_KK6` |
+| 6 | Ürünsüz kategori menüde yok; yalnız alt dalda ürün varsa üst var; boş katalogda ürünler kısmı yok; boş kategori adresi boş sayfa | ✓ | Integration `ACategoryWithoutAPublishedProduct_IsNotInTheMenu_AParentWhoseOnlyProductsAreBelowIs_KK6`, `WithNoPublishedProduct_TheProductsItemIsHidden_…_KK6`, `AnEmptyCategoryAddress_ShowsAnEmptyPage_AndAnUnknownAddressIsNotFound_KK6`, `ThePublicationOfAProduct_DropsTheMenu_…_KK6`, `TheCategoriesOfAProduct_DropTheMenu_WhenTheyChange_KK6`, `ThePermanentDeletionOfTheLastPublishedProduct_DropsTheMenu_AndTheCategoryAndTheItemGo_KK6` |
 
 ### Öz denetim (bitiş kapısı 2)
 
@@ -40,7 +40,8 @@
 | KK3 işaretsiz blok hiç görünmez | ✓ | `ABlockWithoutAFlaggedPublishedRecord_IsNotOnThePage_KK3` |
 | KK4 menü adı değişir, yalnız taslaklı tip gizli | ✓ | `ARenamedMenuItem_…_KK4`, `ATypeWithOnlyDrafts_…_KK4` |
 | KK5 genel sayfa altbilgide, işaretliyse menüde | ✓ | `AGeneralPage_IsInTheFooter_…_KK5` |
-| KK6 boş kategori yok / alt dalda ürünlü üst var / boş katalogda ürünler yok / boş kategori adresi 404 vermez | ✓ | KK6 testleri (kriter 6) |
+| KK6 boş kategori yok / alt dalda ürünlü üst var / boş katalogda ürünler yok / boş kategori adresi 404 vermez | ✓ | KK6 testleri (kriter 6); kalıcı silme dahil: `ThePermanentDeletionOfTheLastPublishedProduct_DropsTheMenu_AndTheCategoryAndTheItemGo_KK6` (tur 1 düzeltmesi, B1) |
+| `09 §25` önbellek: geçersiz kılma işlem kesinleştikten sonra; alanı değiştiren bütün yazma yolları tarandı | ✓ | `grep -rn` (`Products.Remove`, `Variants.Remove`, `Categories.Remove`, `ProductCategories`, `PublishStatus` yazımları, `ExecuteDelete/Update`): ürün durum geçişi, kategori bağı, kategori ağacı, içerik yayını, marka, firma ayarı zaten bildirir; eksik olan tek yol `ProductRemoval.DeleteProductAsync` idi, şimdi `Menu` + `Sitemap` bildirir (işlemi `TransactionRunner` kesinleştirir). Varyant yazımı `Listed()`'i etkilemez (yalnız ürün durumu) |
 | `09 §25` tek işlev: sabit sayfa adresleri tek yerde | ✓ | `AddressRules` sabitleri; `FixedPages` ve `CorporateContentSitemapReader.AboutPagePath` aynı sabitten; `TheFixedItemsPaths_AreTheFixedPagesOfTheAddressRules_AndProductsHasNoPage_KK4` |
 | `09 §25` / T102: enum dosyası yalnız enum; sütun olmayan enum kilit dosyası istemez | ✓ | `EnumSourceScanTests`, `EnumLockTests`, `EnumTableConsistencyTests` Unit koşusunda geçti; üç enum ayrı dosya + `ApplicationEnums.NotStored` (tam adla, dar) |
 | `09 §6` modül sınırı, `09 §9.1` kayıt işlemin sahibinde | ✓ | Yalnız okuma metotları, `SaveChanges`/işlem yok; `ModuleBoundaryTests` Unit koşusunda geçti |
@@ -97,12 +98,14 @@
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
 | 1 | İçerik ana görseli değişince `HomepageBlocks` düşmüyor | D-498 | Görsel bağlama yolu başka task'ta |
-| 2 | Ürün oluşturma/kalıcı silme menü ve site haritasını düşürmüyor | D-499 | Yol henüz yok |
+| 2 | ~~Ürün oluşturma/kalıcı silme menü ve site haritasını düşürmüyor~~ — çözüldü: kalıcı silme (T335, main'de) artık `Menu` + `Sitemap` düşürür; oluşturma taslak açar, menüyü etkilemez | D-499 ✅ | Tur 1 düzeltmesinde kapandı |
 | 3 | Görsel alternatif metni varsayılanı | D-500 | Sayfa task'ında karar |
 | 4 | T535 düzen kaydı için düşürme notu | D-501 | T535 |
 | 5 | Sayfa uçları ve düzen kaydı | D-502 | T505/T535/T537 |
 
 ## Notlar
+
+- **Düzeltme turu (tur 1 FAIL sonrası, B1):** `ProductRemoval` `CacheInvalidations` alır; `DeleteProductAsync` başarıda `CacheArea.Menu` ve `CacheArea.Sitemap` bildirir (`ProductTransitions` kalıbı). Entegrasyon testi eklendi (son yayındaki ürün silinince "Ürünler" ve boş kategori menüden düşer). D-499 ✅ kapatıldı, "Known Limitations" 2 düzeltildi. Öz denetim tablosu baştan yeniden denetlendi (tüm satırlar), önbellek yazma yolu taraması satırı eklendi. Düzeltme sonrası yerelde: build `-warnaserror` 0/0, biçim temiz (3 proje), Unit 4649/4649, Integration `CorporateContent` 86/86 ve `Catalog` 72/72. `sik-fail-nedenleri` okundu: önbellek yolu satırı (T361 r1) ve kayıt tutarlılığı (D numarası, sayılar) denetlendi.
 
 - **Working tree (Adım -1):** temiz (devam işçisi, `git status --short` boş); `core.hooksPath` = `scripts/git-hooks` (ana depo yolu).
 - **Ana dal CI startup (Adım 0):** `gh run list --branch main --limit 3`: 42460749345 success, 42460749391 success, 42457733364 success.

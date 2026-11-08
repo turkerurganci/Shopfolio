@@ -129,6 +129,7 @@ internal static class SettingsModuleRegistration
         services.TryAddScoped<IBankTransferCondition, UnboundBankTransferCondition>();
         services.AddScoped<ISettingsModule, SettingsModule>();
         services.AddScoped<ISitemapSource, SitemapSource>();
+        services.AddScoped<IProvinceList, ProvinceList>();
         services.AddScoped<Shopfolio.Infrastructure.Security.ICookiePolicyPublication, CookiePolicyPublication>();
         services.AddHostedService<GeneratedLegalTextsStartup>();
         return services;

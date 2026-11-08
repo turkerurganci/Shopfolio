@@ -159,7 +159,7 @@ public sealed class ContentGateTests
                 about.ShortIntroduction = "Kısa tanıtım";
                 break;
             case FaqItem faq:
-                faq.Answer = "<p>Cevap</p>";
+                faq.SetAnswer("<p>Cevap</p>");
                 break;
             case Branch branch:
                 branch.ProvinceId = SomeProvince;
@@ -191,7 +191,7 @@ public sealed class ContentGateTests
                 faq.Question = " ";
                 break;
             case (FaqItem faq, ContentGateField.Answer):
-                faq.Answer = null;
+                faq.SetAnswer(null);
                 break;
             case (Branch branch, ContentGateField.Name):
                 branch.Name = string.Empty;

@@ -1,11 +1,14 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Jobs;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Categories;
+using Shopfolio.Modules.Catalog.Contracts.Coupons;
 using Shopfolio.Modules.Catalog.Contracts.Lists;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
@@ -31,6 +34,7 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly ProductGallery _gallery;
     private readonly Discounts _discounts;
     private readonly VariantPrices _variantPrices;
+    private readonly Coupons _coupons;
 
     public CatalogModule(
         StockCounters counters,
@@ -48,11 +52,13 @@ internal sealed class CatalogModule : ICatalogModule
         ProductListReader lists,
         ProductGallery gallery,
         Discounts discounts,
-        VariantPrices variantPrices)
+        VariantPrices variantPrices,
+        Coupons coupons)
     {
         _pages = pages;
         _discounts = discounts;
         _variantPrices = variantPrices;
+        _coupons = coupons;
         _priceLabels = priceLabels;
         _categories = categories;
         _links = links;
@@ -106,6 +112,15 @@ internal sealed class CatalogModule : ICatalogModule
         => ItemPricing.SplitShippingFee(shippingFee, lines);
 
     public decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee) => ItemPricing.SumOrderTotal(items, shippingFee);
+
+    public Task<CouponWriteResult> CreateCouponAsync(CouponDefinition definition, CancellationToken ct) => _coupons.CreateAsync(definition, ct);
+
+    public Task<CouponApplication> EvaluateCouponAsync(string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct) => _coupons.EvaluateAsync(code, lines, ct);
+
+    public Task<CouponApplication> ApplyCouponAsync(Guid cartId, string? code, IReadOnlyList<CouponLine> lines, CancellationToken ct)
+        => _coupons.ApplyAsync(cartId, code, lines, ct);
+
+    public bool ReturnsCouponRight(IReadOnlyList<ItemClosure> items) => CouponRules.ReturnsRight(items);
 
     public Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct) => _categories.ReadAsync(ct);
 
@@ -224,6 +239,11 @@ internal static class CatalogModuleRegistration
         services.AddScoped<Discounts>();
         services.AddScoped<VariantPrices>();
         services.AddDueRecordSource<DiscountBoundarySource>();
+
+        // The coupon (T338): its application counts the cart's invalid attempts (L-6). The counter is infrastructure that Program.cs registers first; a host that builds
+        // the module alone (the tests) gets it here, and the application's own registration is never doubled.
+        services.AddScoped<Coupons>();
+        services.TryAddScoped<AttemptCounter>();
 
         // The image derivative job (D-97) and the image disposal (D-102): the rows first, the files they leave behind after (06 9.3.4).
         services.AddJobHandler<ImageDerivativeJobHandler>(JobType.ImageDerivative);

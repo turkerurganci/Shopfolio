@@ -20,6 +20,7 @@ using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
@@ -819,6 +820,7 @@ public sealed class ProductTransitionsTests : IAsyncLifetime
         services.AddSingleton<ImageProcessor>();
         services.AddCatalogModule();
         services.AddAfterSalesModule();
+        services.AddPaymentModule();
         services.AddOrderingModule();
         services.AddScoped<IAuditActorSource>(_ => new FixedActor(_admin));
         services.AddScoped<IAuditTrail, AuditTrail>();

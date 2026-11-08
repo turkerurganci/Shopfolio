@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Modules.AfterSales.Contracts;
 
 namespace Shopfolio.Modules.AfterSales;
@@ -142,6 +143,7 @@ internal static class AfterSalesModuleRegistration
     public static IServiceCollection AddAfterSalesModule(this IServiceCollection services)
     {
         services.AddScoped<IAfterSalesModule, AfterSalesModule>();
+        services.AddDisposalPart<DefectClaimDisposalPart>();
         return services;
     }
 }

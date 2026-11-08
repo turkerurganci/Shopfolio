@@ -5,6 +5,8 @@ using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Values;
 
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Catalog.Contracts.Categories;
+using Shopfolio.Modules.Catalog.Contracts.Lists;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
 
@@ -22,6 +24,9 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly StockCodes _stockCodes;
     private readonly ProductStructureReader _structure;
     private readonly PriceLabelReader _priceLabels;
+    private readonly CategoryTree _categories;
+    private readonly ProductCategoryLinks _links;
+    private readonly ProductListReader _lists;
     private readonly ProductGallery _gallery;
 
     public CatalogModule(
@@ -34,9 +39,15 @@ internal sealed class CatalogModule : ICatalogModule
         StockCodes stockCodes,
         ProductStructureReader structure,
         PriceLabelReader priceLabels,
+        CategoryTree categories,
+        ProductCategoryLinks links,
+        ProductListReader lists,
         ProductGallery gallery)
     {
         _priceLabels = priceLabels;
+        _categories = categories;
+        _links = links;
+        _lists = lists;
         _showcase = showcase;
         _counters = counters;
         _imageUploads = imageUploads;
@@ -73,6 +84,28 @@ internal sealed class CatalogModule : ICatalogModule
         => ItemPricing.SplitShippingFee(shippingFee, lines);
 
     public decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee) => ItemPricing.SumOrderTotal(items, shippingFee);
+
+    public Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct) => _categories.ReadAsync(ct);
+
+    public Task<CategoryWriteResult> CreateCategoryAsync(string? name, Guid? parentCategoryId, CancellationToken ct)
+        => _categories.CreateAsync(name, parentCategoryId, ct);
+
+    public Task<CategoryWriteResult> RenameCategoryAsync(Guid categoryId, string? name, CancellationToken ct)
+        => _categories.RenameAsync(categoryId, name, ct);
+
+    public Task<CategoryWriteResult> MoveCategoryAsync(Guid categoryId, Guid? newParentCategoryId, CancellationToken ct)
+        => _categories.MoveAsync(categoryId, newParentCategoryId, ct);
+
+    public Task<CategoryWriteResult> DeleteCategoryAsync(Guid categoryId, CancellationToken ct) => _categories.DeleteAsync(categoryId, ct);
+
+    public Task<ProductCategoriesResult> SetProductCategoriesAsync(Guid productId, IReadOnlyCollection<Guid> categoryIds, Guid? primaryCategoryId, CancellationToken ct)
+        => _links.SetAsync(productId, categoryIds, primaryCategoryId, ct);
+
+    public Task<ProductListPage?> ListCategoryProductsAsync(string? categorySlug, ProductListFilter? filter, int page, CancellationToken ct)
+        => _lists.ListCategoryAsync(categorySlug, filter, page, ct);
+
+    public Task<ProductListPage?> SearchProductsAsync(string? search, ProductListFilter? filter, int page, CancellationToken ct)
+        => _lists.SearchAsync(search, filter, page, ct);
 
     public Task<GallerySaveResult> SaveProductGalleryAsync(Guid productId, IReadOnlyList<GalleryEntry> entries, CancellationToken ct)
         => _gallery.SaveAsync(productId, entries, ct);
@@ -153,12 +186,18 @@ internal static class CatalogModuleRegistration
         services.AddScoped<StockCodes>();
         services.AddScoped<ProductStructureReader>();
         services.AddScoped<PriceLabelReader>();
+        services.AddScoped<CategoryTree>();
+        services.AddScoped<ProductCategoryLinks>();
+        services.AddScoped<ProductListReader>();
         services.AddScoped<ProductGallery>();
 
         // The image derivative job (D-97) and the image disposal (D-102): the rows first, the files they leave behind after (06 9.3.4).
         services.AddJobHandler<ImageDerivativeJobHandler>(JobType.ImageDerivative);
         services.AddDisposalPart<ImageDisposalPart>();
         services.AddDisposalPart<OrphanImageFilePart>();
+        services.AddDisposalPart<IncompleteDigitalUploadPart>();
+        services.AddDisposalPart<DigitalFileDisposalPart>();
+        services.AddDisposalPart<OrphanDigitalFilePart>();
 
         // The publish status transitions (T321; 09 9.1 item 1): the class is what the module takes, the open face is the same instance. The gate is open until T335 (D-300).
         services.AddScoped<ShowcaseReader>();

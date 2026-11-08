@@ -1,3 +1,5 @@
+using Shopfolio.Modules.Catalog.Contracts.Categories;
+using Shopfolio.Modules.Catalog.Contracts.Lists;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
 
@@ -157,6 +159,51 @@ public interface ICatalogModule
 
     /// <summary>The order total (02 3.8.3; K-61): the sum of the items' payable amounts and the shipping fee, never net plus VAT again. A pure calculation.</summary>
     decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee);
+
+    /// <summary>
+    /// The whole category tree, depth first: a node, then its sub-categories in the Turkish alphabetical order of their names at every level (02 3.4.1) - the order of the panel's tree,
+    /// the product form and the storefront menu. Each node carries its direct sub-category and product counts (02 3.4.5). A plain read.
+    /// </summary>
+    Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct);
+
+    /// <summary>
+    /// Creates a category at the root (<paramref name="parentCategoryId"/> empty) or under a parent (07 9.6.2; 02 3.4.1; 06 4.9): a blank name, a missing parent and a fourth level are refused. Takes the
+    /// category tree's lock as the first statement of the caller's transaction, which it joins and must run inside (09 9.1 item 3; 05 7.3.5).
+    /// </summary>
+    Task<CategoryWriteResult> CreateCategoryAsync(string? name, Guid? parentCategoryId, CancellationToken ct);
+
+    /// <summary>Renames a category (07 9.6.3): its address and level stay; its place among its siblings follows the new name. Joins the caller's transaction.</summary>
+    Task<CategoryWriteResult> RenameCategoryAsync(Guid categoryId, string? name, CancellationToken ct);
+
+    /// <summary>
+    /// Moves a category with its whole branch under another parent or to the root (07 9.6.4; 02 3.4.6): refused when the move would pass three levels or put the category under its own
+    /// branch, and then nothing is written. Takes the tree's lock first and joins the caller's transaction.
+    /// </summary>
+    Task<CategoryWriteResult> MoveCategoryAsync(Guid categoryId, Guid? newParentCategoryId, CancellationToken ct);
+
+    /// <summary>
+    /// Deletes a category that holds no product and no sub-category (07 9.6.5; 02 3.4.5); otherwise refuses with the two counts that block it. Takes the tree's lock first and joins the
+    /// caller's transaction.
+    /// </summary>
+    Task<CategoryWriteResult> DeleteCategoryAsync(Guid categoryId, CancellationToken ct);
+
+    /// <summary>
+    /// Sets the categories a product hangs on and its main category (02 3.4.2, 3.4.4; 06 4.10): any node, any number, exactly one main category among them, or none when the set is empty.
+    /// The product's version rises when the set changes (06 2.6.2). Joins the caller's transaction.
+    /// </summary>
+    Task<ProductCategoriesResult> SetProductCategoriesAsync(Guid productId, IReadOnlyCollection<Guid> categoryIds, Guid? primaryCategoryId, CancellationToken ct);
+
+    /// <summary>
+    /// A category page's product list (02 3.4.3, 3.5.2, 3.5.3; 07 2.6.3): the published products of the category and of every branch below it in one list, newest first, filtered on the price
+    /// range and the stock state only, paged at the storefront page size (09 10.5 item 4). Null when no category has <paramref name="categorySlug"/>; an empty category is an empty page. A plain read.
+    /// </summary>
+    Task<ProductListPage?> ListCategoryProductsAsync(string? categorySlug, ProductListFilter? filter, int page, CancellationToken ct);
+
+    /// <summary>
+    /// The search result (02 3.5.1; 05 7.9; 07 2.6.3): the published products whose name contains the word - compared without letter case and Turkish characters on the simplified name; the
+    /// description, the category name and the option values are not searched. Same order, page size and filters as the category page. Null when the word is empty or only blanks. A plain read.
+    /// </summary>
+    Task<ProductListPage?> SearchProductsAsync(string? search, ProductListFilter? filter, int page, CancellationToken ct);
 
     /// <summary>
     /// Saves a product's gallery as the product form posts it (02 3.11.2, 3.11.3; 06 4.71): the links are made to match the list, the position in the list is the order, the main mark is the

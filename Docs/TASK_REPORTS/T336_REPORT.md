@@ -123,6 +123,17 @@
 | Sık FAIL: birleştirmede aynı işi yapan iki yol | ✓ | çakışmalar yalnız ekleme sınırında; iki tarafın yöntemleri ayrı işler yapar (fiyat etiketi / galeri) |
 | Para kodu: yuvarlama yönü ve kuruş testle | ✓ | `RoundingDirection_…`, `VatOf_AnExactHalfKurus_GoesUp`, `APrice_IsAboveZeroWithAtMostTwoDecimals_…`, `RandomItems_KeepTheOrderAndAddUp`; para kuralı değişmedi |
 
+### Öz denetim — kod birleştirmesi 4 (`origin/main` T333 `cfe924e` + T302 `bcb856d` ile birleşik ağaç)
+
+> Doğrulama tur 4 PASS'ından sonra main'in iki merge'üyle çakışma çıktı. k1–k8 satırlarının atıfları (`PriceAndVatTests.cs`, `ItemPricingTests.cs`, `ItemPricing.cs`, `Money.cs`, `ProductDefinitionGuard.cs`, `AppDbContext.cs:252`) birleşik ağaçta `grep -n` ile aynı satırlarda bulundu; aşağıda yalnız yeri değişen ya da yeni olan atıflar var. Atıf yapılan D kalemleri (D-74, D-346, D-381) backlog'da duruyor.
+
+| Madde | Sonuç | Kanıt (birleşik ağaç, dosya:satır) |
+|---|---|---|
+| Modül yüzü | ✓ | `CatalogModule.cs:26` `_priceLabels`, `:27`–`:29` T333'ün `_categories`, `_links`, `_lists` alanları, `:30` `_gallery`; kurucu hepsini alır; `:79`–`:86` fiyat yöntemleri, `:88`–`:108` T333'ün kategori ve liste yöntemleri; DI `:188` `PriceLabelReader`, `:189`–`:191` T333'ün üç sınıfı, `:192` `ProductGallery`; `ICatalogModule.cs:146`–`:161` fiyat yöntemleri, `:167`–`:206` T333'ün yöntemleri; `SitemapSourceTests` sahte modülü iki tarafın `NotSupportedException` yöntemlerini birlikte taşır |
+| Main testlerinin anlamı | ✓ | `CategoryTreeAndListsTests.cs:905` `SeedProductAsync` fiziksel ürüne yalnız `.WithSeededOrigin()` verir (T336'nın zorunlu menşe alanı; hizmet ve dijital tohum değişmedi); liste ve arama beklentileri değişmedi; 33 / 33 |
+| Para kodu | ✓ | çözüm yalnız ekleme; tutar ve KDV hesabına dokunulmadı; `PriceAndVatTests` + `StockAndCapacityTests` 46 / 46 |
+| Sık FAIL: aynı sayıyı anan yerler | ✓ | backlog `Aktif kalem` satırlar sayılarak 174 (main başlığındaki 163 satır sayımıyla tutmuyordu); status "Son güncelleme" main sürümünde, dalın girişi `STATUS_CHANGELOG.md` başında |
+
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |

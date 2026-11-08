@@ -78,6 +78,8 @@
 
 Yerel istisnalar (T324'ten bağımsız, `origin/main`'de de aynı): `VersionedFormPageTests.OrderPost_ByTheAdministrator_SentTwice_TheSecondIs409_KK8` 23505 (D-378/D-383/D-392; `origin/main` `bcb856d`'de aynı test aynı hatayla düştü); `LivenessEndpointTests` süreci bitirmiyor (D-391) — bu yüzden Web'in ilk yarısı parçası zaman sınırında kesildi (181 geçti, 0 hata).
 
+Main sonrası düzeltme (2026-11-08): T336'nın üretim yeri kuralıyla `PaymentWindowTests.SeedReservationAsync` fiziksel ürün tohumu `.WithSeededOrigin()` alır (yalnız test tohumu, davranış değişmedi); derleme `-warnaserror` 0 uyarı, format temiz, `PaymentWindowTests` + `PendingRecordDisposalTests` 18/18 geçti (PostgreSQL 18).
+
 ## Doğrulama
 
 | Alan | Sonuç |

@@ -410,7 +410,7 @@ public sealed class PaymentWindowTests : IAsyncLifetime
     private async Task<(Guid VariantId, Guid CouponId)> SeedReservationAsync(Guid orderId, int units)
     {
         int n = Interlocked.Increment(ref _counter);
-        Product product = Product.Create("Kapı", $"kapi-t324-{n}", ProductType.Physical, 20m, Start);
+        Product product = Product.Create("Kapı", $"kapi-t324-{n}", ProductType.Physical, 20m, Start).WithSeededOrigin();
         Variant variant = Variant.Create(product.Id, $"KAPI-T324-{n}", 100m, Start, 100);
         variant.StockQuantity = 5;
         Coupon coupon = Coupon.CreatePercentage($"T324K{n}", 10m, new DateOnly(2026, 11, 1), new DateOnly(2026, 11, 30), 10, Start);

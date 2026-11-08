@@ -426,6 +426,9 @@ internal sealed partial class OrderTransitions
             TransitionRejection.ForbiddenStatePair => TransitionRefusal.ForbiddenStatePair,
             TransitionRejection.ConfirmationRequired => TransitionRefusal.ConfirmationRequired,
             TransitionRejection.InvalidInput => TransitionRefusal.InvalidInput,
+            TransitionRejection.CorrectionRequiresPanel => TransitionRefusal.ActorNotAllowed,
+            TransitionRejection.CorrectionReasonRequired => TransitionRefusal.InvalidInput,
+            TransitionRejection.CorrectionNotPossible => TransitionRefusal.CorrectionNotPossible,
             _ => TransitionRefusal.ConditionNotMet,
         };
         return Refused(refusal);

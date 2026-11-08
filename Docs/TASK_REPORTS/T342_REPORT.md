@@ -1,6 +1,6 @@
 # T342 — Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri
 
-**Faz:** F3 | **Durum:** ⏳ doğrulama tur 2 bekliyor (tur 1 Bulgu 1 düzeltildi) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✗ doğrulama tur 2 FAIL (tur 1 Bulgu 1 kapandı; tur 2 Bulgu 1–2 açık) | **Tarih:** 2026-11-08
 
 ---
 
@@ -72,10 +72,44 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | **tur 1: ✗ FAIL** (2026-11-08; head `0fadc90` + `origin/main` `bcb856d` birleştirmesi, temiz) |
-| Bulgu sayısı | 1 (KRİTİK, S1) |
-| Düzeltme gerekli mi | Evet — bu PR'da (tur 2) |
-| Bloke-etmeyen not (K) sayısı | 2 (ikisi de bu PR'da kapatıldı) |
+| Doğrulama durumu | **tur 2: ✗ FAIL** (2026-11-08; head `1fa9150` + `origin/main` `7ddf334` birleştirmesi, temiz) · tur 1: ✗ FAIL (head `0fadc90`) |
+| Bulgu sayısı | tur 2: 2 (ORTA S1, DÜŞÜK S1) · tur 1: 1 (KRİTİK S1, kapandı) |
+| Düzeltme gerekli mi | Evet — tur 2 iterasyon sınırındadır (`12 §8.5`); yol yardımcının/proje sahibinin kararı |
+| Bloke-etmeyen not (K) sayısı | tur 2: 1 (D-431'e forward) · tur 1: 2 (kapatıldı) |
+
+### Doğrulama tur 2
+
+**Başlangıç kapıları:** working tree temiz, `core.hooksPath` ana checkout'un `scripts/git-hooks`'u; ana dal CI 42436765868, 42436765863, 42434282714 success; MEMORY satır 22. Dal CI 42442007381 (head `1fa9150`) success.
+
+**Kabul kriterleri (validator kanıtı):**
+
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `RequestResetAsync` (P-13 = 60 dk, `SupersedeEarlierAsync`), `ResetPasswordAsync` (`TryConsumeAsync`); `TheReset_TakesTheLinkOnce_…_KK1_KK2`, `…AnExpiredOrAlienLinkIsInvalid`, `AskingAgain_…` |
+| 2 | ✓ (davranış) | `EndAllAsync`, `InvalidateMarksAsync`, sıfırlayan tarayıcıya işaret; tur 1 Bulgu 1 kapandı (`AccountLocks`, `ASignIn…_KK2` ×4 yeşil); eşzamanlı değiştirmenin kilit sırası → Bulgu 1 |
+| 3 | ✓ | `TheResetRequest_IsNeutral_…_KK3`; kayıt `EmailAlreadyRegistered` |
+| 4 | ✓ | `OpenAsync` (P-16 = 30 gün çerez / tarayıcı oturumu), işleyici P-15 = 2 sa; `SignIn_OpensTheLongSession…_KK4` |
+| 5 | ✓ (T342 payı) | `TheChange_…`, `TheReauthenticationValue_IsForOneOperationAndOneOwnSession`; ad değişimi yeniden doğrulamasız; e-posta/silme T517 (D-429) |
+| 6 | ✓ | `AWrongPasswordAtTheReauthentication_…_KK6` |
+| 7 | ✓ | `PasswordPolicy` (`LengthInTextElements` ≥ 10, `OrdinalIgnoreCase`, gömülü liste); `PasswordPolicyTests`, `Register_…_KK7` |
+| 8 | ✓ | `TheAdministrator_…_KK8`, `TheAdministratorsReset_…_KK8`, yönetici eşzamanlılık testleri |
+| 9 | ✓ | L-1 5/20, L-2 3/10; `SignIn_IsBlockedAfterFiveFailures_…_KK9`, `TheResetRequest_OverL2_…_KK9`, `ARecognizedBrowser_…`; L-3/L-9 T341 |
+
+KK1–KK9 ✓; `09 §25` eşzamanlılık satırı ✗ (Bulgu 1) ve doküman uyumu satırı ✗ (Bulgu 2); tek işlev, kaynak taraması + ihlal örneği, `SecretKey`, deneme sınırı kapsamı, `LockSequence` bildirimi ✓.
+
+**Task satırları (`12`):** `VAL-A096`, `A097`, `A098`, `A103` (KRİTİK), `D017` (KRİTİK) `BEKLEMEDE` kaldı (kanıt türü uç yanıtı; D-431, D-429). `12_matris_denetle.py --kapsam 1-77` → Hata: 0.
+
+**Testler (yerel):** build `-warnaserror` 0/0 (birleştirme sonrası da); biçim ×3 temiz; Unit 4291/0; betik 4 dosya; Integration Membership 54/0 + komşu 143/0 ve 125/0; kilitli restore çıkış 0. Kilitlenme sondası (commit edilmedi): değiştirmenin deyim sırası ↔ sıfırlama iki bağlantıda → `40P01 deadlock detected`.
+
+**Güvenlik:** sır yok; auth temiz (Bulgu 1 güvenli düşer: işlem geri alınır); girdi doğrulaması temiz; yeni bağımlılık yok.
+
+**Bulgu 1 — ORTA, S1 (KK2; `09 §25` eşzamanlılık; `09 §10.2` m.3/m.5, `05 §7.3.5` sıra ilkesi; `VAL-A098`, `VAL-D017`):** `ChangePasswordAsync` önce yeniden doğrulama değerini tüketir (oturum satırı güncellemesi = satır kilidi), sonra `SetPasswordAsync` içinde hesap satırını kilitler; `ResetPasswordAsync` önce hesabı, sonra `EndAllAsync` ile oturum satırlarını kilitler. Aynı hesapta değiştirme ve sıfırlama aynı anda → karşılıklı bekleme, PostgreSQL `40P01` (yerelde üretildi: değiştirme düştü). İki oturumdan aynı anda iki değiştirmede de aynı kalıp. Sonuç güvenli ama düşen istek beklenmeyen hata alır; kusuru tur 1 düzeltmesi getirdi. Tur 1'in istediği "değiştirme ↔ giriş" eşzamanlı sınaması da yok. **Düzeltme:** `ChangePasswordAsync` hesap kilidini değerin tüketiminden önce, işlemin ilk kilidi olarak alır; iki bağlantılı sınama değiştirme ↔ sıfırlama ve değiştirme ↔ giriş.
+
+**Bulgu 2 — DÜŞÜK, S1 (`09 §25` doküman uyumu; `09 §15.1` m.3, `05 §6.1.2`):** belge girişte paylaşımlı kilit (`LockSharedAsync`) ve ayrı `LockForUpdateAsync` der; kod tek `LockAsync`, girişte de `FOR UPDATE` (D-428 yazar, belge düzeltilmemiş, çelişki bildirilmemiş). Gerekçe makul (paylaşımlı kilit altında özet yenilemesi eşzamanlı iki girişte kilitlenirdi). **Düzeltme:** belge gerekçesiyle `FOR UPDATE`'e çekilir (karar kaydıyla) ya da kod belgeye uyar.
+
+**K-notları:** K1 — `LockKind.Account` ayrı aile: giriş sayfası sepeti girişle aynı işlemde birleştirirse `LockSequence` sepet kilidini reddeder → D-431 metnine forward edildi.
+
+**Yapım raporu karşılaştırması:** 2 uyuşmazlık — öz denetimde `09 §25` eşzamanlılık ✓ (validator ✗, Bulgu 1; yapım yalnız giriş ↔ sıfırlama sırasını sınadı); öz denetim `FOR UPDATE` der, belgenin paylaşımlı kilidiyle çelişkiyi anmaz (Bulgu 2). Öz denetim tablosu var ve kanıtlı.
 
 ### Doğrulama tur 1
 

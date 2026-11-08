@@ -93,7 +93,7 @@
 
 - **Branch:** `task/T349-asgari-tutar-kargo`
 - **Commit:** PR'daki son commit
-- **PR:** *(PR açılınca yazılır)*
+- **PR:** #476
 - **CI:** *(doğrulama doldurur)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 

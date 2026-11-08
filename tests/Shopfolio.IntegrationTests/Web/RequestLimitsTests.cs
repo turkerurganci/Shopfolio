@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.SignedEndpoints;
@@ -48,7 +49,8 @@ public sealed class RequestLimitsTests
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
-    private WebApplicationFactory<Program> Open(ManualTimeProvider time, int pages = 1000, int forms = 1000, EndpointCalls? calls = null, List<string>? logDirectory = null)
+    private WebApplicationFactory<Program> Open(
+        ManualTimeProvider time, int pages = 1000, int forms = 1000, EndpointCalls? calls = null, List<string>? logDirectory = null, FakePaymentGateway? gateway = null)
     {
         EndpointCalls seen = calls ?? new EndpointCalls();
         ShopfolioWebApplicationFactory factory = new(
@@ -63,7 +65,9 @@ public sealed class RequestLimitsTests
         {
             s.AddSingleton<TimeProvider>(time);
             s.AddSingleton(seen);
-            s.AddScoped<DatabaseTestEndpoint>();
+            // The application's own notification endpoint (T311) answers the notification path; the link layer is the hand-written fake, whose
+            // default refuses the signature.
+            s.AddSingleton<IPaymentGateway>(gateway ?? new FakePaymentGateway());
             s.AddRazorPages().AddApplicationPart(typeof(ForgeryTokenSampleModel).Assembly);
             s.AddSingleton<IStartupFilter, LimitsStartupFilter>();
         }));
@@ -557,7 +561,13 @@ public sealed class RequestLimitsTests
     [Fact]
     public async Task ANotificationWithARightSignature_IsOutsideTheLimit_AndBadSignaturesCountTowardsTheFormLimitOfTheirAddress()
     {
-        await using WebApplicationFactory<Program> factory = Open(Clock(), forms: 3);
+        // A right signature names no order: recorded marked (the first time) and received, the rest repeats of it.
+        PaymentNotice notice = new("2026000000", null, FakePaymentGateway.PaymentEventType, FakePaymentGateway.SucceededOutcome, 1m, 1m, true, true, false);
+        FakePaymentGateway gateway = new();
+        gateway.EnqueueVerification([.. Enumerable.Repeat<NotificationVerification>(new NotificationVerification.SignatureValid(notice), 8)]);
+        gateway.EnqueueVerification([.. Enumerable.Repeat<NotificationVerification>(new NotificationVerification.SignatureInvalid(), 3)]);
+        gateway.EnqueueVerification(new NotificationVerification.SignatureValid(notice));
+        await using WebApplicationFactory<Program> factory = Open(Clock(), forms: 3, gateway: gateway);
         using HttpClient client = ClientOf(factory);
         const string peer = "198.51.100.20";
         string path = AntiforgeryExemptions.PaymentNotificationPath;
@@ -690,7 +700,6 @@ public sealed class RequestLimitsTests
                     endpoints.MapPost(LongTextPath, (Delegate)ReadBodyAsync).WithMetadata(new RequestBodyClassAttribute(RequestBodyClass.LongText));
                     endpoints.MapPost(MachinePath, (Delegate)ReadBodyAsync);
                     endpoints.MapGet(ProbePath, (HttpContext context) => $"{context.Request.Scheme}|{context.Request.IsHttps}|{ClientAddress.AxisOf(context)}");
-                    endpoints.MapSignedEndpoint<DatabaseTestEndpoint, DatabaseTestNotice>(AntiforgeryExemptions.PaymentNotificationPath);
                 });
             };
         }

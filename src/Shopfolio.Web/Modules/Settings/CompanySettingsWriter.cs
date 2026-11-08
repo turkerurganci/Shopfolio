@@ -106,6 +106,18 @@ internal sealed class CompanySettingsWriter
         return Written(written);
     }
 
+    /// <summary>
+    /// Steps the delivery provinces section's version by one update conditional on the form's version (09 10.3 items 3, 4): <see langword="false"/> means the version is no longer
+    /// the form's and nothing was written. The province rows and the trail row are written by <c>DeliveryProvinces</c>, the caller, in the same transaction.
+    /// </summary>
+    public async Task<bool> WriteDeliveryProvincesVersionAsync(int formVersion, CancellationToken ct)
+    {
+        int written = await _db.CompanySettings
+            .Where(s => s.DeliveryProvincesVersion == formVersion)
+            .ExecuteUpdateAsync(set => set.SetProperty(s => s.DeliveryProvincesVersion, s => s.DeliveryProvincesVersion + 1), ct);
+        return Written(written);
+    }
+
     private bool Written(int rows)
     {
         if (rows == 0)

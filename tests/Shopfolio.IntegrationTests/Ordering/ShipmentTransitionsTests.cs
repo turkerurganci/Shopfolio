@@ -659,6 +659,104 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
         await AssertNothingWrittenAsync(order.Id, OrderStatus.DeliveryFailed, PaymentStatus.Paid);
     }
 
+    // ---- T350 KK7, KK8, KK9: the promise counts from the payment approval; the shipped mark shows the company and number ----
+
+    [Fact]
+    public async Task ThePromise_RunsFromTheLastUncorrectedPaymentApproval_AndNeverFromTheOrdersBirth_T350KK7()
+    {
+        (Order order, _) = await SeedAsync(OrderStatus.Placed, PaymentStatus.Paid, Physical(1));
+        await ExecuteAsync($"UPDATE orders SET shipping_period = 3 WHERE id = '{order.Id}'");
+        DateTimeOffset first = Start.AddDays(1);
+        DateTimeOffset second = Start.AddDays(3);
+        TransitionRecord firstApproval = TransitionRecord.Create(order.Id, TransitionCode.O1, ActorKind.System, null, null, null, null, null, null, null, first);
+        await SaveAsync(c => c.TransitionRecords.Add(firstApproval));
+
+        OrderShippingView? viaFirst = await ReadViewAsync(order.Id);
+        await SaveAsync(c =>
+        {
+            c.TransitionRecords.Add(TransitionRecord.Create(order.Id, TransitionCode.Correction, ActorKind.Admin, _admin!.Id, _admin.Name, null, null, CorrectionReason.Other, null, firstApproval.Id, first.AddHours(1)));
+            c.TransitionRecords.Add(TransitionRecord.Create(order.Id, TransitionCode.O1, ActorKind.System, null, null, null, null, null, null, null, second));
+        });
+        OrderShippingView? viaSecond = await ReadViewAsync(order.Id);
+
+        Assert.Equal(first, viaFirst!.PaymentConfirmedAt);
+        Assert.Equal(PeriodCounting.EndOf(CountedPeriod.ShippingPeriod, first, 3, BusinessCalendar.Product), viaFirst.PromiseEndsAt);
+        Assert.Equal(second, viaSecond!.PaymentConfirmedAt);
+        Assert.Equal(PeriodCounting.EndOf(CountedPeriod.ShippingPeriod, second, 3, BusinessCalendar.Product), viaSecond.PromiseEndsAt);
+        Assert.Equal(3, viaSecond.ShippingPeriod);
+        Assert.Equal("3 iş günü içinde kargoya verilir", viaSecond.PromiseText);
+    }
+
+    [Fact]
+    public async Task AnOrderWithNoPromise_AndAnUnpaidOne_ShowNoPromiseEnd_T350KK7()
+    {
+        (Order digital, _) = await SeedAsync(OrderStatus.Placed, PaymentStatus.Paid, new ItemSpec(ProductType.Digital, 1));
+        (Order unpaid, _) = await SeedAsync(OrderStatus.Placed, PaymentStatus.Pending, Physical(1));
+        await ExecuteAsync($"UPDATE orders SET shipping_period = 2 WHERE id = '{unpaid.Id}'");
+        await SaveAsync(c => c.TransitionRecords.Add(TransitionRecord.Create(digital.Id, TransitionCode.O1, ActorKind.System, null, null, null, null, null, null, null, Start)));
+
+        OrderShippingView? digitalView = await ReadViewAsync(digital.Id);
+        OrderShippingView? unpaidView = await ReadViewAsync(unpaid.Id);
+
+        Assert.Null(digitalView!.ShippingPeriod);
+        Assert.Null(digitalView.PromiseText);
+        Assert.Null(digitalView.PromiseEndsAt);
+        Assert.Equal(2, unpaidView!.ShippingPeriod);
+        Assert.Null(unpaidView.PaymentConfirmedAt);
+        Assert.Null(unpaidView.PromiseEndsAt);
+        Assert.Null(await ReadViewAsync(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task TheShippedMark_ShowsAListedCompanyWithItsTrackingLink_AnUnlistedOneWithoutIt_AndTheOwnVehicleAlone_T350KK8KK9()
+    {
+        (Order listed, _) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, Physical(1));
+        (Order other, _) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, Physical(1));
+        (Order own, _) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, Physical(1));
+        OrderShippingView? before = await ReadViewAsync(listed.Id);
+
+        await RunAsync((unit, token) => unit.ShipOrderAsync(new ShipOrderRequest(listed.Id, AdminCaller, 1, true, new ShipmentInfo("YurticiKargo", null, "TR 1001", false)), token));
+        await RunAsync((unit, token) => unit.ShipOrderAsync(new ShipOrderRequest(other.Id, AdminCaller, 1, true, new ShipmentInfo(null, "Yerel Kurye", "K-9", false)), token));
+        await RunAsync((unit, token) => unit.ShipOrderAsync(new ShipOrderRequest(own.Id, AdminCaller, 1, true, new ShipmentInfo(null, null, null, true)), token));
+        OrderShippingView? listedView = await ReadViewAsync(listed.Id);
+        OrderShippingView? otherView = await ReadViewAsync(other.Id);
+        OrderShippingView? ownView = await ReadViewAsync(own.Id);
+
+        Assert.Null(before!.ShippedAt);
+        Assert.Null(before.Display);
+        Assert.Equal(Start, listedView!.ShippedAt);
+        Assert.Equal("Yurtiçi Kargo", listedView.Display!.CarrierName);
+        Assert.Equal("TR 1001", listedView.Display.TrackingNumber);
+        Assert.Equal(CarrierCatalog.Default.BuildLink("YurticiKargo", "TR 1001"), listedView.Display.Link);
+        Assert.NotNull(listedView.Display.Link);
+        Assert.Equal("Yerel Kurye", otherView!.Display!.CarrierName);
+        Assert.Equal("K-9", otherView.Display.TrackingNumber);
+        Assert.Null(otherView.Display.Link);
+        Assert.True(ownView!.Display!.IsOwnVehicleDeclaration);
+        Assert.Null(ownView.Display.CarrierName);
+        Assert.Null(ownView.Display.TrackingNumber);
+        Assert.Null(ownView.Display.Link);
+    }
+
+    [Fact]
+    public void TheShippingPeriodOfAnOrder_IsWrittenOnce_AndNeverNegative_T350KK6()
+    {
+        Order order = Order.Create("2026-000001", "access-placeholder-x", "confirm-placeholder-x", PaymentMethod.Card, true, "ali@example.com", 120m, 0m, Start.AddHours(1), Start);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => order.FreezeShippingPromise(-1));
+        order.FreezeShippingPromise(4);
+        Assert.Equal(4, order.ShippingPeriod);
+        Assert.Throws<InvalidOperationException>(() => order.FreezeShippingPromise(5));
+        Assert.Equal(4, order.ShippingPeriod);
+    }
+
+    private async Task<OrderShippingView?> ReadViewAsync(Guid orderId)
+    {
+        await using ServiceProvider provider = BuildProvider();
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<IOrderingModule>().GetShippingViewAsync(orderId, Ct);
+    }
+
     // ---- KK8: S6 ----
 
     [Fact]

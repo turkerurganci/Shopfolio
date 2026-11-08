@@ -16,6 +16,7 @@ internal sealed class OrderingModule : IOrderingModule
 {
     private readonly AppDbContext _db;
     private readonly OrderPaymentArms _arms;
+    private readonly ShippingViewReader _shippingViews;
 
     private readonly OrderLocks _locks;
 
@@ -32,6 +33,7 @@ internal sealed class OrderingModule : IOrderingModule
         _carts = carts;
         _db = db;
         _arms = arms;
+        _shippingViews = new ShippingViewReader(db);
         _locks = locks;
         _advisoryLocks = advisoryLocks;
         _downloads = downloads;
@@ -41,6 +43,8 @@ internal sealed class OrderingModule : IOrderingModule
     public Task<OrderAccessLookup?> FindOrderByNumberAndEmailAsync(string orderNumber, string email, CancellationToken ct) => _access.FindByNumberAndEmailAsync(orderNumber, email, ct);
 
     public Task<OrderPageSummary?> GetOrderPageSummaryAsync(Guid orderId, CancellationToken ct) => _access.GetSummaryAsync(orderId, ct);
+
+    public Task<OrderShippingView?> GetShippingViewAsync(Guid orderId, CancellationToken ct) => _shippingViews.GetAsync(orderId, ct);
 
     public Task<IReadOnlyList<OrderPaymentArm>> FindPaymentArmsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => _arms.ReadAsync(orderIds, ct);
 
@@ -190,6 +194,20 @@ internal sealed class OrderingModule : IOrderingModule
             .OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id)
             .Select(x => new ReservationHolder(x.OrderId, x.OrderNumber, x.Quantity))
             .ToListAsync(ct);
+    }
+
+    public async Task<OrderForPayment?> FindOrderForPaymentAsync(string orderNumber, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderNumber);
+        if (orderNumber.Length == 0)
+        {
+            return null;
+        }
+
+        return await _db.Orders.AsNoTracking()
+            .Where(o => o.OrderNumber == orderNumber)
+            .Select(o => new OrderForPayment(o.Id, o.Total, o.PaymentMethod))
+            .SingleOrDefaultAsync(ct);
     }
 
     public Task<int> CountOpenOrdersOfProductAsync(Guid productId, CancellationToken ct)

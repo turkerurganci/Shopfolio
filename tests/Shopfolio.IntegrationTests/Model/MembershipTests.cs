@@ -720,6 +720,12 @@ public sealed partial class MembershipTests : IAsyncLifetime
     {
         public Task<SalesGate> GetSalesGateAsync(CancellationToken ct) => Task.FromResult(gate.Gate);
 
+        public Task<DeliveryProvincesSection> GetDeliveryProvincesAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<SettingsSaveResult> SaveDeliveryProvincesAsync(IReadOnlyCollection<Guid> provinceIds, int formVersion, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<DeliveryArea> GetDeliveryAreaAsync(CancellationToken ct) => throw new NotSupportedException();
+
         public Task<CompanyIdentity> GetCompanyIdentityAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<CompanyIdentityCompleteness> GetCompanyIdentityCompletenessAsync(CancellationToken ct) => throw new NotSupportedException();

@@ -161,12 +161,12 @@ public sealed class RestoreCommandsTests : IAsyncLifetime
         await using ServiceProvider provider = CommandHost.CreateServices(configuration, new FakeTerminal()).BuildServiceProvider();
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
 
-        Assert.NotNull(scope.ServiceProvider.GetRequiredService<IMembershipModule>());
-        Assert.NotNull(scope.ServiceProvider.GetRequiredService<IAdministrationModule>());
-        Assert.NotNull(provider.GetRequiredService<InstantDeletionLog>());
-        Assert.NotNull(scope.ServiceProvider.GetRequiredService<SessionStore>());
-        Assert.NotNull(scope.ServiceProvider.GetRequiredService<LinkRecords>());
-        Assert.NotNull(scope.ServiceProvider.GetRequiredService<RollbackAudit>());
+        Assert.IsAssignableFrom<IMembershipModule>(scope.ServiceProvider.GetRequiredService<IMembershipModule>());
+        Assert.IsAssignableFrom<IAdministrationModule>(scope.ServiceProvider.GetRequiredService<IAdministrationModule>());
+        Assert.IsType<InstantDeletionLog>(provider.GetRequiredService<InstantDeletionLog>());
+        Assert.IsAssignableFrom<SessionStore>(scope.ServiceProvider.GetRequiredService<SessionStore>());
+        Assert.IsAssignableFrom<LinkRecords>(scope.ServiceProvider.GetRequiredService<LinkRecords>());
+        Assert.IsAssignableFrom<RollbackAudit>(scope.ServiceProvider.GetRequiredService<RollbackAudit>());
     }
 
     // ---- reapply-deletions ----

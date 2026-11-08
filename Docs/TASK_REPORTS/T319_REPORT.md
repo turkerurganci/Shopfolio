@@ -108,8 +108,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T319-geri-alinamaz`
-- **Commit:** `fd127e3` ve öncesi (kod), kayıt commit'i bu PR'da
-- **PR:** #NN
+- **Commit:** `fd127e3` ve öncesi (kod), `6698b83` (kayıtlar, rapor, `!` temizliği)
+- **PR:** #465
 - **CI:** — (yardımcı izler)
 - **Post-merge run'lar:** *(validator doldurur)*
 

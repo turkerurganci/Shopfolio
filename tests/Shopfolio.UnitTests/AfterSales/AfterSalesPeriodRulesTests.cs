@@ -195,10 +195,34 @@ public sealed class AfterSalesPeriodRulesTests
         Assert.False(AfterSalesPeriodRules.IsDefectClaimChannelOpen(ProductType.Physical, OrderStatus.Preparing, null, OrderedAt));
     }
 
+    /// <summary>
+    /// "Kargoya verildi'ye geçtikten sonra" (03 1.11.9, 2.9.1) is every status after it, as 03 1.11.5 reads the same words: "Teslim edilemedi" keeps the channel
+    /// open; an order cancelled before any delivery has none (T320 B1, D-532).
+    /// </summary>
+    [Fact]
+    public void DefectClaimChannel_OfAnUndatedPhysicalItem_IsOpenInDeliveryFailed_AndClosedInCancelled()
+    {
+        Assert.True(AfterSalesPeriodRules.IsDefectClaimChannelOpen(ProductType.Physical, OrderStatus.DeliveryFailed, null, OrderedAt));
+        Assert.True(AfterSalesPeriodRules.IsDefectClaimChannelOpen(ProductType.Physical, OrderStatus.Delivered, null, OrderedAt.AddYears(5)));
+        Assert.False(AfterSalesPeriodRules.IsDefectClaimChannelOpen(ProductType.Physical, OrderStatus.Cancelled, null, OrderedAt));
+        Assert.False(AfterSalesPeriodRules.IsDefectClaimChannelOpen(ProductType.Physical, OrderStatus.Placed, null, OrderedAt));
+    }
+
+    [Fact]
+    public void DefectClaimChannel_ClosesAtTurkeyMidnight_AfterTheLastDay()
+    {
+        DateOnly delivered = new(2026, 11, 8);
+
+        Assert.True(AfterSalesPeriodRules.IsDefectClaimChannelOpen(ProductType.Physical, OrderStatus.Delivered, delivered, new DateTimeOffset(2028, 11, 8, 20, 59, 59, TimeSpan.Zero)));
+        Assert.False(AfterSalesPeriodRules.IsDefectClaimChannelOpen(ProductType.Physical, OrderStatus.Delivered, delivered, new DateTimeOffset(2028, 11, 8, 21, 0, 0, TimeSpan.Zero)));
+    }
+
     [Fact]
     public void DefectClaimChannel_OfAServiceItem_OpensWithTheCompletedMark_AndOfADigitalItem_WithTheApproval()
     {
         Assert.False(AfterSalesPeriodRules.IsDefectClaimChannelOpen(ProductType.Service, OrderStatus.Placed, null, OrderedAt));
+        Assert.False(AfterSalesPeriodRules.IsDefectClaimChannelOpen(ProductType.Service, OrderStatus.Delivered, null, OrderedAt));
+        Assert.False(AfterSalesPeriodRules.IsDefectClaimChannelOpen(ProductType.Digital, OrderStatus.Shipped, null, OrderedAt));
         Assert.True(AfterSalesPeriodRules.IsDefectClaimChannelOpen(ProductType.Service, OrderStatus.Delivered, Day, OrderedAt));
         Assert.True(AfterSalesPeriodRules.IsDefectClaimChannelOpen(ProductType.Digital, OrderStatus.Delivered, Day, OrderedAt));
     }

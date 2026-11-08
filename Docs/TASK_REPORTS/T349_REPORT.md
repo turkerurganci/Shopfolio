@@ -1,6 +1,6 @@
 # T349 — Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği
 
-**Faz:** F3 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ⏳ Düzeltme bekliyor (doğrulama tur 1 ✗ FAIL) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -77,10 +77,28 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | **tur 1: ✗ FAIL** (2026-11-08; head `302cb1bf`) |
+| Bulgu sayısı | 1 (ORTA, S1) |
+| Düzeltme gerekli mi | Evet — `ShippingFeeVatShare` yük biçiminin örnek dosyası (`Payloads/ShippingFeeVatShare/1.json`) ve örnek dosya testi; ayrıca `origin/main` (T347, #475) birleştirmesi `CartContracts.cs`'te kod çakışması veriyor |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-650; K2 bu PR'da, düzeltme turunda) |
+
+### Doğrulama tur 1 (2026-11-08)
+
+**Verdict: ✗ FAIL.** Kabul kriterleri 1–9 ve KK1–KK9 davranış olarak ✓ (kural düzleminde; onaydaki çağrı T348'in — D-626, sayfalar T508/T509'un — D-627; plan bağımlılığı T348 → T349). Bloke eden tek sebep `09 §25` kontrol listesi maddesidir:
+
+| # | Madde | Severity | Sınıf | Beklenen ↔ gerçekleşen | Etkilenen dosya |
+|---|---|---|---|---|---|
+| 1 | — (`09 §25` "Değer ekleyen PR — yeni biçimin örnek dosyası"; `09 §12` m.8) | ORTA | S1 | Her yük tipinin her tarihsel biçimi `tests/Shopfolio.UnitTests/Payloads/<Tip>/<sıra>.json` olarak depoda olmalı ve örnek dosya testi bütün örnekleri okumalı, bugünkü yazılan biçimin alan kümesini en son örnekle eşlemeli ↔ T349 `Order.ShippingFeeVatBreakdown`'ı yeni yük tipi `ShippingFeeVatShare` (`VatRate`, `Part`, `Vat`) ile `HasPayloadConversion()`'a bağladı (D-65) ama `Payloads/ShippingFeeVatShare/` klasörü ve testi yok (`ls tests/Shopfolio.UnitTests/Payloads` → yalnız `AuditDetails`, `DefectClaimHistoryEntry`). Emsal: T320 aynı dönüşümde (D-67) `Payloads/DefectClaimHistoryEntry/1.json` + `DefectClaimHistoryPayloadTests` ekledi. Düzeltme: `1.json` + `ShippingFeeVatSharePayloadTests` (yazım `PayloadJson.Write` alan adlarıyla, gidiş-dönüş, bütün örnekler okunur, alan kümesi eşitliği) | `src/Shopfolio.Web/Modules/Ordering/ShippingFeeVatShare.cs` · `tests/Shopfolio.UnitTests/Payloads/` |
+
+Kanıt: dal CI run 42509314185 (head `302cb1bf`) 9 işin hepsi yeşil; yerelde build `-warnaserror` 0/0, `dotnet format --verify-no-changes` üç proje temiz, Unit 4951/4951, betik testleri 4/4, Integration `CartTests` + `Model.CouponTests` + `OrderTransitionsTests` 76/76, `Ordering` ad alanı 289/289, `Disposal` 61/61 (iki ad alanı tek koşuda birlikte verilince Disposal'ın 61 testi düştü, ayrı koşularda yeşil — koşu düzeneği; CI tam paketi yeşil), `dotnet ef migrations has-pending-model-changes` temiz, `--locked-mode` çıkış 0. Güvenlik: temiz (uç, form, sır, kişisel veri, yeni bağımlılık yok; tutar girdileri `ArgumentOutOfRangeException` ile korunur). Ana dal son 3 run: 42506023683, 42506023800, 42500144509 success.
+
+`12` satırları: `VAL-A043`, `A044`, `A045`, `A291`, `A292`, `A296` uç yanıtı / tarayıcı gözlemi ister (sayfa ve panel ucu T508/T509/T536) → `BEKLEMEDE`. `VAL-A797` (KRİTİK, `Veri kaydı + Test raporu`) satırın örneğiyle (10 TL; 100 TL %20 + 200 TL %10 → 3,33 / 6,67; KDV 0,56 / 0,61) sınanmadı ve "sipariş anında donar" payı onay akışındadır (T348, D-626) → `BEKLEMEDE`.
+
+K-notları: K1 → D-650 (P-1 = 0 TL iken P-3 tanımlıysa "Ücretsiz kargoya N TL kaldı" yazılır, oysa kargo zaten ücretsizdir — `02 §3.19.5` bu hâli ayırmıyor; kod belgeye uyuyor). K2 bu PR'da (düzeltme turunda): `VAL-A797`'nin örnek değerleriyle birim testi eklenir.
+
+Yapım raporu karşılaştırması: öz denetimin "`09 §25` — veri ve göç ✓" satırı yük biçiminin örnek dosyası maddesini atlamış (bulgu 1). Öz denetim `VAL-A797`'yi ✓ sayıyor ama satırın örneği sınanmamış ve onay payı T348'de; `VAL-A296` öz denetimde anılmıyor. Öteki 9 kriter ve 9 KK'da uyum tam.
+
+**Birleştirme notu:** `git merge origin/main` (T347 #475, T379 #473) `src/Shopfolio.Web/Modules/Ordering/Contracts/CartContracts.cs` (kod) ve `Docs/DEFERRED_BACKLOG.d/T346.md` (kayıt) dosyalarında çakıştı; kod çakışması yüzünden birleştirme geri alındı (`git merge --abort`), doğrulama dalın kendi ucunda yapıldı. Düzeltme turu main'i birleştirip `CartContracts.cs`'i (T347'nin `CartLine`/`CartView` alanları + T349'un `ProductType` ve `Shipping`'i) çözmeli ve Ordering testlerini yeniden koşmalı.
 
 ## Altyapı Değişiklikleri
 
@@ -94,7 +112,7 @@
 - **Branch:** `task/T349-asgari-tutar-kargo`
 - **Commit:** PR'daki son commit
 - **PR:** #476
-- **CI:** *(doğrulama doldurur)*
+- **CI:** run 42509314185 (head `302cb1bf`) — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate yeşil (doğrulama tur 1)
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 
 ## Dış Varsayımlar

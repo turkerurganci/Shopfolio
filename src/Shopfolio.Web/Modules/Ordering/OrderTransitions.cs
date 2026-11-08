@@ -7,6 +7,7 @@ using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -27,14 +28,22 @@ internal sealed partial class OrderTransitions : IOrderTransitions
     private readonly AppDbContext _db;
     private readonly OrderLocks _locks;
     private readonly IAfterSalesModule _afterSales;
+    private readonly IPaymentModule _payment;
     private readonly INotificationsModule _notifications;
     private readonly TimeProvider _time;
 
-    public OrderTransitions(AppDbContext db, OrderLocks locks, IAfterSalesModule afterSales, INotificationsModule notifications, TimeProvider time)
+    public OrderTransitions(
+        AppDbContext db,
+        OrderLocks locks,
+        IAfterSalesModule afterSales,
+        IPaymentModule payment,
+        INotificationsModule notifications,
+        TimeProvider time)
     {
         _db = db;
         _locks = locks;
         _afterSales = afterSales;
+        _payment = payment;
         _notifications = notifications;
         _time = time;
     }

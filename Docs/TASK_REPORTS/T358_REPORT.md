@@ -1,6 +1,6 @@
 # T358 — Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS; merge yardımcıda) | **Tarih:** 2026-11-08
 
 > Taslağı yapım işçisi doldurur; doğrulama finalize eder.
 
@@ -89,10 +89,35 @@ Not: `StoredPhone` taşıması son testlerden sonra yapıldı (davranış aynı,
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-08, head `ec355d3`; kayıt commit'inden önce `origin/main` (`7097c01`, T317) birleştirildi, çakışma yalnız backlog başlığında). Kriter 1–10, KK1–KK10, `09 §25` ve güvenlik taraması ✓ |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 — K1 → D-440: Unit `Architecture` ad alanının yereldeki ilk koşusu 954/955 (düşen testin adı yakalanamadı), aynı derlemeyle üç tekrar koşu 955/955, dal CI Unit yeşil; T358'le bağı gösterilemedi |
+
+**Doğrulayıcı kanıtları (tur 1):**
+
+| # | Kriter / KK | Sonuç | Doğrulayıcı kanıtı |
+|---|---|---|---|
+| 1 / KK1 | Hazır tipler + sabit düzenli genel sayfa; sayfa kurucu yok | ✓ | `ContentAuthoring` tip başına sabit `Create…`/`Save…` çifti, form kayıtlarında blok/bölüm/düzen alanı yok; uç eklenmedi (diff'te sayfa/uç dosyası yok); `NoTypeOrMemberOfTheModule_IsAPageBuilder_KK1`, `TheEntryForms_HaveNoBlockSectionOrLayoutField_KK1` (Unit yeşil) |
+| 2 / KK2 | Beş hazır tip + genel sayfa + duyuru; galeri yok | ✓ | `ContentTypes.ReadyMade` (5) + `Added` (2) = `ContentRecordKind` iki yönlü; `ANameOutsideTheClosedList_IsNotAType_KK2` (Gallery, Contact, Blog, LegalText…) |
+| 3 / KK3 | Hakkımızda tek; kısa tanıtım düz metin, P-29 (400); ikincisi ve silme reddedilir | ✓ | `CreateAboutPageAsync` → `AlreadyExists` + tek satır dizini (`AsSingleRow`); `ContentPublishing.DeleteAsync` Hakkımızda'da `Forbidden` ve `CorporateContentRecordsGuard` (T322, `TheAboutPage_IsNeverDeleted_EvenWhenConfirmed_…`); kısa tanıtım `Text()` ile harfiyen (`<b>x</b> & y` veritabanında aynen), uzun metin temizleyicide (`<script>` düşer) — Integration `ContentAuthoringTests` 19/19 |
+| 4 / KK4 | Hizmet fiyatsız, sepetsiz; "Bize ulaşın" → `/iletisim` | ✓ | `OfferingInput`/`Offering`'de fiyat/sepet/stok üyesi yok; `ContentPresentation.OfferingContactButtonPath` = `"/" + AddressRules.ContactPage` (`FixedPages` içinde) |
+| 5 / KK5 | Referans iş: başlık, kısa açıklama, metin, görsel; ek alan yok | ✓ | `PortfolioItemInput` alan kümesi birebir dört alan; `PortfolioItem`'da müşteri/yıl/kategori yok |
+| 6 / KK6 | SSS soru-cevap; soru düz metin, P-28 (200); tek liste | ✓ | `ListFaqAsync` parametresiz düz liste, yalnız yayındakiler, `SortOrder` → `CreatedAt` → `Id`; soru harfiyen saklanır (`<i>İade?</i>`), cevap temizlenir |
+| 7 / KK7 | Şube: ad + adres zorunlu, il kapalı listeden, gömülü harita yok, "Haritada aç" | ✓ | taslakta ad zorunlu (`02 §3.27.24`), yayın kapısı `Name, Province, District, AddressLine` (`ContentRecords.cs:68`); il `IProvinceList.ExistsAsync` (listede olmayan → `InvalidProvince`, satır yazılmaz); `MapUrl` yalnız http/https (`javascript:`, `ftp:`, iframe metni reddedilir, okumada `null`); `Branch`'te adres/menü/koordinat/gömme üyesi yok |
+| 8 / KK8 | İletişim sayfası ayrı tip değil | ✓ | `ContentRecordKind`'de Contact yok; `ReadContactPageAsync` = kimlik + yayındaki şubeler (firma sırası, il adı, harita bağlantısı) + form |
+| 9 / KK9 | Genel sayfa sınırsız; yasal metin genel sayfa değil | ✓ | adet sabiti/denetimi yok; 12 kayıt 12 ayrı adres (`kampanya` … `kampanya-12`); `ContentRecordKind`'de yasal tip yok |
+| 10 / KK10 | Altı platform + isteğe bağlı WhatsApp; donma yok | ✓ | `SocialPlatform` = Instagram, Facebook, X, LinkedIn, YouTube, TikTok; adı birebir olmayan platform ya da hatalı bağlantı bütün kaydı reddeder (yazılmaz); platform başına tekil dizin veritabanında; sipariş tablolarında Social/WhatsApp sütunu yok, `social_links` yabancı anahtarsız; WhatsApp kuralı `CheckWhatsAppNumber` (yazımı `SaveHomepage`: `11` satır 5159, T535; KP-55 T361/T535) |
+| `09 §25` | ilgili satırlar | ✓ | giriş birimi `SaveChanges` çağırmaz; zaman `TimeProvider`; adres `Slug.From` + `Slug.FirstFree`, yeniden deneme yalnız adı verilen tekil dizinde (`ThreeRecordsOfTheSameName…` testi); uzun metin `RichTextSanitizer` (D-360 kapandı, beş ayarlayıcı `private`); telefon saklama biçimi tek işlev (`RequestFormat.StoredPhone`); göç, paket, uç yok |
+| Güvenlik | taraması | ✓ | sır yok; yeni uç/POST yok (yetki etkisi yok); bağlantılar yalnız http/https; düz metinler gösterimde kaçışlı basılır; yeni bağımlılık yok |
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `scripts/git-hooks`; ana dal son 3 tamamlanmış run 42430286045 (Publish, success), 42430286061 (CI, success, `7097c01`), 42426248097 (CI, `cancelled` — `e2e9dbc` T341, `cancel-in-progress` ile `7097c01` push'unda 00:33'te iptal; aynı içeriği taşıyan sonraki CI 42430286061 yeşil); memory satırı var.
+
+**Testler (doğrulayıcı, yerel, `ec355d3`):** `dotnet restore` + `dotnet build -warnaserror` 0 uyarı/0 hata; `dotnet format --verify-no-changes` Web projesi temiz, Unit `CorporateContent` klasörü temiz, Integration `CorporateContent` boşluk denetimi temiz (dal CI Lint yeşil); Unit Architecture 955 (ilk koşu 954/955 → D-440; üç tekrar 955/955) + Consistency 241 + öteki 3090; betik testleri 4/4; Integration (PostgreSQL 18 konteyner): `CorporateContent` ad alanı 64/64 (`ContentAuthoringTests` 19/19), `ContentRecordAndBrandingTablesTests` + `SearchEngineDataTests` 97/97, `CompanyIdentityTests` + `SalesGateTests` 46/46; koşu sonrası `git status` temiz, `dotnet restore --locked-mode` 0. Dal CI 42430159867 (`ec355d3`) yeşil.
+
+**`12` satırları:** KP-32, KP-33, KP-36, KP-54 satırları (`VAL-A115`…`A122`, `A131`…`A135`, `A146`…`A151`, `C032`…`C035`) hep `Kanıt ortamı: yok` ve uç yanıtı / tarayıcı gözlemi ister; T358 uç ya da sayfa eklemez (sahipleri T505, T506, T534, T535, T537). Bu task'ın servis düzeyi kanıtı kabul kriterleri tablosundadır; satırların `Durum`'u `BEKLEMEDE` kaldı.
+
+**Yapım raporu karşılaştırması (adım 13):** tam uyumlu; öz denetim tablosu her kriter ve KK için kanıtlı. Küçük not: Known Limitations 2'de WhatsApp yazımı "T361 k2" diye anılır; plan satırı (`11` 5159) `SaveHomepage`'i T535'e verir; KP-55 (WhatsApp dahil) T361 ve T535'e eşli — hüküm etkisi yok.
 
 ## Altyapı Değişiklikleri
 
@@ -107,7 +132,7 @@ Not: `StoredPhone` taşıması son testlerden sonra yapıldı (davranış aynı,
 - **Commit:** (PR açılışında head SHA: yardımcıya dönüş mesajında)
 - **PR:** #449
 - **CI:** yardımcı yürütür (işçi CI yoklamaz)
-- **Post-merge run'lar:** *(validator doldurur)*
+- **Post-merge run'lar:** *(merge sonrası yardımcı; bu commit'e giremez)*
 
 ## Dış Varsayımlar
 

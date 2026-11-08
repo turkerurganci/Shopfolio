@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T341 (Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı) doğrulama tur 3 ✓ PASS (FAIL sonrası tam yeniden doğrulama; head `b2c6cca`, PR #433; kriter 1–9, KK1–KK9 ve `09 §25` ✓, güvenlik taraması temiz; tur 2 Bulgu 1 giderildi — kayıt e-postası `InvalidEmailAttribute` ile denetlenir; Unit 4069 (Consistency 241), Integration MembershipTests 34/34 ve komşu üç sınıf 95/95; dal CI 42410595147 success; `VAL-D018`…`VAL-D020` `BEKLEMEDE` kaldı (uç yanıtı sonraki task'larda); K1 → D-385 (T509). `origin/main` (T334) birleştirildi: `Modules/Ordering` iki dosyasında iki tarafın üyeleri birlikte korundu; backlog aktif sayısı yeniden sayıldı: 153; ikinci main birleştirmesi: `origin/main` (T321, #439) de birleştirildi, `OrderingModule` kurucusu ve `IOrderingModule` üyeleri iki tarafın eklemeleriyle birlikte korundu).
+**Son güncelleme:** 2026-11-08 — T358 (Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar) doğrulama tur 1 ✓ PASS (head `ec355d3` + `origin/main` (`7097c01`, T317, #441) birleştirmesi, PR #449; kriter 1–10, KK1–KK10, `09 §25` ve güvenlik taraması ✓; Unit Architecture 955 + Consistency 241 + öteki 3090, betik testleri, Integration yerelde CorporateContent 64 (`ContentAuthoringTests` 19), ContentRecordAndBrandingTables + SearchEngineData 97, CompanyIdentity + SalesGate 46; dal CI 42430159867 yeşil; bulgu 0; K1 → D-440 (Architecture'da bir kez görülen, adı yakalanamayan düşme); `12` `Durum` değişmedi (KP-32/33/36/54 satırları uç ve tarayıcı kanıtı ister); backlog aktif 154). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -156,7 +156,7 @@
 | T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | `335e9cb` | #418 |
 | T315 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | ✓ | ✓ PASS (tur 1) | `8caf0f0` | #434 |
 | T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ✓ | ✓ PASS (tur 2) | — | #437 |
-| T317 | Ödeme durumu geçişleri: ödeme ekseni | ⬚ | — | — | — |
+| T317 | Ödeme durumu geçişleri: ödeme ekseni | ✓ | ✓ PASS (tur 3) | — | #441 |
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ⬚ | — | — | — |
 | T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |
@@ -197,7 +197,7 @@
 | T355 | Sipariş anında donan değerler | ⬚ | — | — | — |
 | T356 | Onay adımı: onay kutuları, Ön Bilgilendirme Formu içeriği, işlem rehberi | ⬚ | — | — | — |
 | T357 | Fatura verisi ve dışa aktarmada donmuş kimlik | ⬚ | — | — | — |
-| T358 | Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar | ⏳ | — | — | #449 |
+| T358 | Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar | ✓ | ✓ PASS (tur 1) | — | #449 |
 | T359 | Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler | ⬚ | — | — | — |
 | T360 | Duyuru şeridi, boş kurulum, içerik yayın durumu, önizleme ve silme | ⬚ | — | — | — |
 | T361 | Ana sayfa düzeni ve üst menü | ⬚ | — | — | — |

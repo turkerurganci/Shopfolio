@@ -108,6 +108,25 @@ Düzeltme 2: Unit 4671 + Commands/Architecture/Jobs 1120 geçti; Integration TAM
 
 ## Doğrulama
 
+### Tur 3 (2026-11-08)
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✓ PASS (tur 3, 2026-11-08; dal ucu `2b73afed`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (`D-658`'e ileri alındı) |
+
+Kabul kriterleri 1–9 ve KK1–KK9 validator kanıtıyla ✓: Integration `Shopfolio.IntegrationTests.Commands` 47/47 (PostgreSQL 18, `shopfolio-t389-val3-pg`), `Web` 594 (ilk tam koşuda adı alınamayan 1 geçici hata; iki parçalı yeniden koşuda 99 + 495 hepsi yeşil), `Security` 33/33; Unit 4742/4742 + Consistency 280/280; build `-warnaserror` 0 uyarı; format üç proje temiz; betik testleri 4/4; `--locked-mode` restore 0; PR CI run 42516494053 (dal ucu `2b73afed`) bütün adımlar yeşil; ana dal son üç run (42514888426, 42514888368, 42512134557) `success`. `VAL-A984` `PASS` (ikinci sayı: iki gün önce teslim + teslim edilmemiş ödenmiş kart siparişi sayılır, 90 gün önce teslim, havale, bekleyen ve tam iade sayılmaz; `OutcomePending` iade açık kart işine girer; panel sayaçları henüz yok — kaynak taraması ve `D-601`). Tur 2'nin bulgusu kapandı: `ListPaidCardItemsAsync` sipariş kimliği sırasıyla `Take` ile sayfalı okur, sayı sayfa boyundan bağımsız (`RefundExposureCount_WalkedInPagesOfAnySize_GivesTheSameNumber` 1/2/3/500); K1 (`JobQueueStatusReader` `CountAsync` + `MinAsync`) ve K2 (`D-601` hedefi `T382`) kapandı.
+
+**K-notları:**
+
+- K1 — Düzeltme 2'nin getirdiği `AfterSalesModule.ExposurePageOrders = 500` (okuma sayfası) `09 §3.5` madde 4 tablosunda yok; benzer sayfalar (dışa aktarma, imha) tabloda. Kılavuzun koyduğu bir değer olmadığı ve iç ayrıntı olduğu için bloke etmez → `D-658` (F3 faz kapısı).
+
+**Birleştirme notu:** `origin/main` (`48dadb92`) ile birleştirmede `src/Shopfolio.Web/Modules/AfterSales/Contracts/IAfterSalesModule.cs` kod çakışması verdi; birleştirme geri alındı (`git merge --abort`), doğrulama dalın kendi ucunda yapıldı, bu kayıt commit'i birleştirmesiz. PR #472 şu an `CONFLICTING`; merge'den önce çakışma çözülmeli.
+
+**Yapım raporu karşılaştırması:** öz denetim tablosu (kabul kriterleri ve KK1–KK9, düzeltme 2 tablosu) var, her maddede kanıt yazılı; sonuçlar validator ile uyumlu. Düzeltme 2'nin öz denetimi `09 §25`'in "§3.5 tablosu" sorusunu anmıyor (K1).
+
 ### Tur 2 (2026-11-08)
 
 | Alan | Sonuç |

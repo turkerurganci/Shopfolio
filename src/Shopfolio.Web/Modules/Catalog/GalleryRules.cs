@@ -17,23 +17,7 @@ internal static class GalleryRules
     public static Guid? MainOf(IReadOnlyList<GalleryEntry> entries, Guid? currentMainImageId)
     {
         ArgumentNullException.ThrowIfNull(entries);
-        if (entries.Count == 0)
-        {
-            return null;
-        }
-
-        GalleryEntry? marked = entries.FirstOrDefault(e => e.IsMain);
-        if (marked is not null)
-        {
-            return marked.ImageId;
-        }
-
-        if (currentMainImageId is { } current && entries.Any(e => e.ImageId == current))
-        {
-            return current;
-        }
-
-        return entries[0].ImageId;
+        return GalleryText.MainOf([.. entries.Select(e => (e.ImageId, e.IsMain))], currentMainImageId);
     }
 
     /// <summary>The number of images a product holds: the gallery's and its variants' images together, an image used twice counted once.</summary>
@@ -48,5 +32,5 @@ internal static class GalleryRules
     public static bool IsOverTheLimit(int imageCount) => imageCount > ProductConstants.ImagesPerProductMax;
 
     /// <summary>The firm's alternative text as it is kept: trimmed; empty or white space is none (the text is then generated, <see cref="ImageAltText"/>).</summary>
-    public static string? CleanAltText(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+    public static string? CleanAltText(string? text) => GalleryText.CleanAltText(text);
 }

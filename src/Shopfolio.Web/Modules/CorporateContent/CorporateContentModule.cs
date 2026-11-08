@@ -46,6 +46,9 @@ internal static class CorporateContentModuleRegistration
         services.AddScoped<ContentAuthoring>();
         services.AddScoped<SocialLinks>();
         services.AddScoped<ContentReaders>();
+        services.AddScoped<ContentProductLinks>();
+        services.AddScoped<ContentOrdering>();
+        services.AddScoped<ContentGallery>();
         services.AddScoped<StorefrontMenuReader>();
         services.AddScoped<HomepageReader>();
         services.AddDisposalPart<ContactRequestDisposalPart>();

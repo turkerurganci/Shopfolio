@@ -56,13 +56,15 @@
 | Sık FAIL 5 (belge kuralını değiştiren 09 metni karar kaydısız) | ✓ | 09 metni değişmedi; sıra kaydırma yöntemi k-note olarak D-675'te |
 | Sık FAIL: kurucuya yeni bağımlılık, elle kuran düzenekler | ✓ | `ContentGallery` kurucusu `CacheInvalidations` aldı; Integration CorporateContent (121) + Catalog (72) koşuldu |
 | Önbellek geçersiz kılma tüm yazma yollarında | ✓ | galeri kaydı `HomepageBlocks`'u düşürür (D-498; `AGallerySaveDropsTheHomePageBlocks…`), sıra kaydırma `Menu`+`HomepageBlocks` |
+| `09 §10.5` m.6, `09 §25`, Sık FAIL (yeni sayfalı listeye sınır testi) | ✓ | `TheOfferingsPage_WithEqualOrderAndCreatedAtAcrossThePageBoundary…` ve `ThePortfolioPage_…` (Integration `ContentRelationsTests`): aynı `SortOrder` ve `CreatedAt`'li 34 yayında kayıt + 5 taslak; iki sayfa yürünür, kayıt yinelenmez/kaybolmaz, sıra `Id` artan, taslak sayılmaz, aşan `page` son sayfa, `0` ilk sayfa |
+| Sık FAIL (format test dosyasında koşuldu mu) | ✓ | `dotnet format` üç projede `--verify-no-changes` temiz |
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests -c Release --no-build` | 5024/5024 (ContentRelationsTests 19) |
-| Integration | ✓ | `--filter-namespace "*CorporateContent"` ve `"*.Catalog"` (PostgreSQL 18, kendi konteyner) | 121/121 ve 72/72 (ContentRelationsTests 35) |
+| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests -c Release --no-build` | 5076/5076 (düzeltme 1 sonrası, main birleşik) |
+| Integration | ✓ | `--filter-namespace "*CorporateContent*"` ve `"*Catalog*"` (PostgreSQL 17, kendi konteyner) | 123/123 ve 72/72 (ContentRelationsTests 37) |
 | Format | ✓ | `dotnet format Shopfolio.slnx --no-restore --verify-no-changes --include <değişen dosyalar>` | temiz |
 | Contract | — | yok | — |
 
@@ -80,6 +82,10 @@
 - **B1 (DÜŞÜK, S1) — iki yeni sayfalı listenin sayfa sınırı testi yok.** `ContentReaders.ListOfferingsAsync` ve `ListPortfolioItemsAsync` (`ToPageAsync`, `PageSizes.ContentList` = 24) bu task'ta eklendi; `09 §10.5` madde 6 "eşit anahtarlı kayıtlar sayfa sınırında ne yinelenir ne kaybolur (… elle sıralı liste için ayrı ayrı); son sayfayı aşan `page` son sayfayı verir … Her sayfalı liste için sınır testi zorunludur: yeni liste, testi olmadan eklenmez (§25)" der. `ListOfferingsAsync` yalnız ilk sayfası 3 kayıtla (KK2 testi), `ListPortfolioItemsAsync` hiç sınanmıyor (`grep -rn ListPortfolioItemsAsync tests` boş). Düzeltme: iki liste için Integration sınır testi — aynı `SortOrder`'lı (ve aynı `CreatedAt`'li) 25+ yayında kayıt sayfa sınırına düşer, iki sayfa yürününce kayıt ne yinelenir ne kaybolur; taslak sayılmaz; son sayfayı aşan `page` son sayfayı verir (emsal `CategoryTreeAndListsTests.ACategoryPage_WithEqualCreatedAtAcrossThePageBoundary_…`, `AuditTrailTests.ThePages_AreTwentyFiveRows_…`).
 - **K1 → D-687:** D-671 "D-500'ün karar kısmı bu şekilde kapanır" der ama `DEFERRED_BACKLOG.d/T361.md` D-500 açık kaldı; iki kalem tek konu.
 - **Yapım raporu karşılaştırması:** öz denetim tablosunda `09 §10.5` sınır testi maddesi yok (B1 kaçmış); öteki maddeler validator kanıtıyla uyumlu.
+
+### Düzeltme 1 (2026-11-09)
+
+B1 düzeltildi: `ContentRelationsTests`'e iki Integration sınır testi eklendi (hizmet listesi ve referans listesi; ayrıntı yukarıdaki öz denetim satırında). Üretim kodu değişmedi. Öz denetimde kabul kriterleri 1-8 ve kontrol listesi yeniden denetlendi, hepsi ✓. Backlog kalemi eklenmedi.
 
 ## Altyapı Değişiklikleri
 

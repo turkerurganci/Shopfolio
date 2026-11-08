@@ -527,6 +527,60 @@ public sealed class ContentRelationsTests : IAsyncLifetime
         Assert.Contains("<p>Anlatım</p>", stored.Text, StringComparison.Ordinal);
     }
 
+    // ---- page boundary: equal order and equal moments across the page edge (09 10.5 item 6, 25) ----
+
+    [Fact]
+    public async Task TheOfferingsPage_WithEqualOrderAndCreatedAtAcrossThePageBoundary_RepeatsNoCardAndLosesNone_DraftsNotCounted_TheLastPageIncluded()
+    {
+        (List<Guid> expected, List<Guid> walked) = await WalkListBoundaryAsync(ContentRecordKind.Offering);
+        Assert.Equal(expected, walked);
+    }
+
+    [Fact]
+    public async Task ThePortfolioPage_WithEqualOrderAndCreatedAtAcrossThePageBoundary_RepeatsNoCardAndLosesNone_DraftsNotCounted_TheLastPageIncluded()
+    {
+        (List<Guid> expected, List<Guid> walked) = await WalkListBoundaryAsync(ContentRecordKind.PortfolioItem);
+        Assert.Equal(expected, walked);
+    }
+
+    /// <summary>Seeds published and draft records with one order and one creation moment, walks both pages, checks the page numbers, and returns the key-ordered published ids and the walked ids.</summary>
+    private async Task<(List<Guid> Expected, List<Guid> Walked)> WalkListBoundaryAsync(ContentRecordKind kind)
+    {
+        int size = PageSizes.ContentList;
+        int published = size + 10;
+        for (int i = 0; i < published; i++)
+        {
+            await SeedEqualAsync(kind, PublishStatus.Published, $"Yayında {i:00}");
+        }
+
+        for (int i = 0; i < 5; i++)
+        {
+            await SeedEqualAsync(kind, PublishStatus.Draft, $"Taslak {i:00}");
+        }
+
+        List<Guid> expected = await PublishedIdsByKeyAsync(kind);
+        Assert.Equal(published, expected.Count);
+
+        ContentCardPage first = await ListContentAsync(kind, 1);
+        Assert.Equal(published, first.TotalCount);
+        Assert.Equal(2, first.PageCount);
+        Assert.Equal(size, first.Cards.Count);
+
+        ContentCardPage second = await ListContentAsync(kind, 2);
+        Assert.Equal(2, second.PageNumber);
+        Assert.Equal(published - size, second.Cards.Count);
+
+        List<Guid> walked = [.. first.Cards.Select(c => c.Id), .. second.Cards.Select(c => c.Id)];
+        Assert.Equal(published, walked.Distinct().Count());
+
+        // A page past the last one gives the last page; a page below the first gives the first.
+        ContentCardPage past = await ListContentAsync(kind, 9);
+        Assert.Equal(2, past.PageNumber);
+        Assert.Equal(second.Cards.Select(c => c.Id), past.Cards.Select(c => c.Id));
+        Assert.Equal(1, (await ListContentAsync(kind, 0)).PageNumber);
+        return (expected, walked);
+    }
+
     // ---- operations ----
 
     private async Task<ProductLinksResult> LinkAsync(ContentLinkOwner owner, Guid ownerId, IReadOnlyList<Guid> productIds)
@@ -620,7 +674,23 @@ public sealed class ContentRelationsTests : IAsyncLifetime
         return await scope.ServiceProvider.GetRequiredService<ContentReaders>().ListOfferingsAsync(1, Ct);
     }
 
+    private async Task<ContentCardPage> ListContentAsync(ContentRecordKind kind, int page)
+    {
+        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        ContentReaders readers = scope.ServiceProvider.GetRequiredService<ContentReaders>();
+        return kind == ContentRecordKind.Offering ? await readers.ListOfferingsAsync(page, Ct) : await readers.ListPortfolioItemsAsync(page, Ct);
+    }
+
     // ---- reads of the stored state ----
+
+    /// <summary>The ids of the published records of the kind in the order of the database's own key comparison (the last tie-break of the list).</summary>
+    private async Task<List<Guid>> PublishedIdsByKeyAsync(ContentRecordKind kind)
+    {
+        await using AppDbContext db = NewContext();
+        return kind == ContentRecordKind.Offering
+            ? await db.Offerings.AsNoTracking().Where(r => r.PublishStatus == PublishStatus.Published).OrderBy(r => r.Id).Select(r => r.Id).ToListAsync(Ct)
+            : await db.PortfolioItems.AsNoTracking().Where(r => r.PublishStatus == PublishStatus.Published).OrderBy(r => r.Id).Select(r => r.Id).ToListAsync(Ct);
+    }
 
     private async Task<int> VersionOfAsync(ContentRecordKind kind, Guid id)
     {
@@ -797,6 +867,24 @@ public sealed class ContentRelationsTests : IAsyncLifetime
                 return page.Id;
             default:
                 throw new ArgumentOutOfRangeException(nameof(kind));
+        }
+    }
+
+    /// <summary>A record of a list kind with the same order and the same creation moment as every other one the page-boundary test seeds.</summary>
+    private async Task SeedEqualAsync(ContentRecordKind kind, PublishStatus status, string name)
+    {
+        int n = Interlocked.Increment(ref _counter);
+        if (kind == ContentRecordKind.Offering)
+        {
+            Offering offering = Offering.Create(name, $"hizmet-{n:D3}", 1, Now);
+            offering.PublishStatus = status;
+            await SaveAsync(c => c.Offerings.Add(offering));
+        }
+        else
+        {
+            PortfolioItem work = PortfolioItem.Create(name, $"referans-{n:D3}", 1, Now);
+            work.PublishStatus = status;
+            await SaveAsync(c => c.PortfolioItems.Add(work));
         }
     }
 

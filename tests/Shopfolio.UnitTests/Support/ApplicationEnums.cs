@@ -25,6 +25,8 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.CorporateContent.Contracts.HomepageBlockKind",
         "Shopfolio.Modules.Ordering.Contracts.CorrectionObstacle",
         "Shopfolio.Modules.Catalog.Contracts.ProductPageKind",
+        // T323: the identity of an operation of 03 1.11 - the request names it and the decision table answers; the document's table is its definition, no column holds it.
+        "Shopfolio.Modules.Ordering.Contracts.OrderOperation",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

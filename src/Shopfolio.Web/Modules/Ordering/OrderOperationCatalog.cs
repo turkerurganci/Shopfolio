@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
@@ -33,7 +35,7 @@ internal static class OrderOperationCatalog
     }
 
     private static OperationRow Row(OrderOperation operation, ActorKind actor, OperationScope scope, Func<OperationInput, OperationAvailability> evaluate) =>
-        new(operation, "1.11." + (int)operation, actor, scope, new Rule(evaluate));
+        new(operation, "1.11." + ((int)operation + 1), actor, scope, new Rule(evaluate));
 
     private static OperationRow Customer(OrderOperation operation, OperationScope scope, Func<OperationInput, OperationAvailability> evaluate) => Row(operation, ActorKind.Buyer, scope, evaluate);
 
@@ -88,7 +90,7 @@ internal static class OrderOperationCatalog
         Firm(OrderOperation.RecordLateTerminationFromOtherChannel, OperationScope.Order, i => Open(IsLateTerminationOpen(i.Order))),
     ];
 
-    private static readonly Dictionary<OrderOperation, OperationRow> ByOperation = Rows.ToDictionary(r => r.Operation);
+    private static readonly FrozenDictionary<OrderOperation, OperationRow> ByOperation = Rows.ToFrozenDictionary(r => r.Operation);
 
     /// <summary>The row of the operation, or null when the value is no operation of the table.</summary>
     public static OperationRow? Find(OrderOperation operation) => ByOperation.GetValueOrDefault(operation);

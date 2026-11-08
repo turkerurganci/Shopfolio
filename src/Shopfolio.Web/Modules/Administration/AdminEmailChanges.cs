@@ -11,6 +11,7 @@ using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.Administration.Contracts.Results;
 using Shopfolio.Modules.Membership.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
 
@@ -165,7 +166,7 @@ internal sealed class AdminEmailChanges
     /// old address gets the notice with the revert link, and the trail row is written for the administrator whose address changed (the link opens no session). When the address
     /// became another administrator's meanwhile nothing is consumed (422). A refusal rolls the caller's transaction back.
     /// </summary>
-    public async Task<AdminEmailVerificationResult> VerifyAsync(string key, CancellationToken ct)
+    public async Task<AdminEmailVerificationResult> VerifyNewEmailAsync(string key, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(key);
         RequireTransaction("The new address is verified only inside a transaction (09 6 item 3).");

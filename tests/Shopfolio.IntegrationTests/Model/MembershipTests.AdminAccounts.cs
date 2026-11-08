@@ -7,6 +7,7 @@ using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.Administration.Contracts.Results;
 using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Notifications.Contracts;
 
@@ -242,6 +243,20 @@ public sealed partial class MembershipTests
         Assert.Equal(AdminInvitationSendOutcome.ActorNotAdministrator, sent.Outcome);
         Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM admin_invitations"));
         Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM dispatch_records"));
+    }
+
+    [Fact]
+    public async Task TheInvitationsButton_AndTheManagementCommand_OnOneAddressAtOnce_OpenOneAccount_K1085()
+    {
+        await StartAdminWorldAsync("ilk@example.com");
+        AdminInvitationSendResult sent = await SendInvitationAsync("yeni@example.com");
+
+        Task<AdminInvitationAcceptance> accept = AcceptAsync(sent.LinkId!.Value, "Davetli", Entered);
+        Task<AdminCreationResult> command = RunAdminAsync(a => a.CreateAdminAsync(Guid.NewGuid(), "Komut", "yeni@example.com", Entered, Ct));
+        await Task.WhenAll(accept, command);
+
+        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM admins WHERE normalized_email = 'yeni@example.com'"));
+        Assert.True((await accept).IsCreated != (await command).IsCreated);
     }
 
     // ---- k3, k4, KK3, KK4: the removal ----

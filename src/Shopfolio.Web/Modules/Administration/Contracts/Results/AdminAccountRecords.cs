@@ -2,7 +2,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Security;
 
-namespace Shopfolio.Modules.Administration.Contracts;
+namespace Shopfolio.Modules.Administration.Contracts.Results;
 
 /// <summary>The field names of the administrator account forms (07 7.2.23, 7.2.24; 04 7.2.2): plain constants, nothing is persisted.</summary>
 public static class AdminAccountFields
@@ -11,19 +11,6 @@ public static class AdminAccountFields
     public const string Name = "Name";
     public const string Password = "Password";
     public const string NewEmail = "NewEmail";
-}
-
-/// <summary>What became of an invitation sent (07 UC-175; 02 10.2.1, 10.2.6).</summary>
-public enum AdminInvitationSendOutcome
-{
-    /// <summary>The invitation, its link, its e-mail, the trail row and the F-6 notice are written.</summary>
-    Sent,
-
-    /// <summary>The address is empty, malformed or an administrator account's (422, on the <c>Email</c> field); nothing is written.</summary>
-    Refused,
-
-    /// <summary>The acting administrator is no longer an administrator (removed meanwhile): nothing is written and the request goes to the sign-in (07 UC-177).</summary>
-    ActorNotAdministrator,
 }
 
 /// <summary>
@@ -71,20 +58,6 @@ public sealed class AdminInvitationSendResult : IOperationResult
     internal static AdminInvitationSendResult NotAdministrator() => new(AdminInvitationSendOutcome.ActorNotAdministrator, null, null, null, null, null, 0);
 }
 
-/// <summary>What became of the withdrawal of an invitation (07 UC-176).</summary>
-public enum AdminInvitationWithdrawalOutcome
-{
-    Withdrawn,
-
-    /// <summary>The invitation was used, made invalid, withdrawn or ran out meanwhile (303, code <c>InvitationNoLongerActive</c>): nothing is written.</summary>
-    NoLongerActive,
-
-    /// <summary>The invitation's row is gone - the nightly deletion took it (404).</summary>
-    NotFound,
-
-    ActorNotAdministrator,
-}
-
 /// <summary>The outcome of withdrawing an unused invitation (07 UC-176; 02 10.2.6): the link is invalid from the moment and the invitee gets no notice.</summary>
 public sealed class AdminInvitationWithdrawalResult : IOperationResult
 {
@@ -106,19 +79,6 @@ public sealed class AdminInvitationWithdrawalResult : IOperationResult
 
 /// <summary>What the invitation page shows when its link opens (07 UC-112): the link's status and, for a valid link, the address the account will be opened for.</summary>
 public sealed record AdminInvitationReading(AccountLinkStatus Status, string? Email);
-
-/// <summary>What became of the invitee's button (07 UC-113).</summary>
-public enum AdminInvitationAcceptanceOutcome
-{
-    /// <summary>The account is born, the link is used and the invitation accepted.</summary>
-    Created,
-
-    /// <summary>The name or the password is refused (422): the link is not consumed.</summary>
-    FieldRefused,
-
-    /// <summary>The link is not valid (200): used, withdrawn, made invalid or ran out - or the address became an administrator's meanwhile, when the invitation is made invalid (K-1085).</summary>
-    LinkInvalid,
-}
 
 /// <summary>
 /// The outcome of opening an administrator account from an invitation (07 UC-113; 02 10.2.1, 10.2.6). Only a field refusal asks for the caller's rollback; an invalid link
@@ -161,24 +121,6 @@ public sealed class AdminInvitationAcceptance : IOperationResult
     internal static AdminInvitationAcceptance FieldRefused(string field, ErrorCode code) => new(AdminInvitationAcceptanceOutcome.FieldRefused, null, null, field, code, null, true);
 
     internal static AdminInvitationAcceptance LinkInvalid(AccountLinkStatus status, bool rollsBack = false) => new(AdminInvitationAcceptanceOutcome.LinkInvalid, null, null, null, null, status, rollsBack);
-}
-
-/// <summary>What became of the removal of an administrator (07 UC-177).</summary>
-public enum AdminRemovalOutcome
-{
-    Removed,
-
-    /// <summary>The first send without the confirmation (200): nothing is written; the confirmation window says what the removal does.</summary>
-    ConfirmationNeeded,
-
-    /// <summary>The target is the acting administrator or the last one (422, <c>LastAdminRemoval</c>): the panel says why.</summary>
-    Refused,
-
-    /// <summary>The target is gone - removed meanwhile (404).</summary>
-    NotFound,
-
-    /// <summary>The acting administrator is no longer one: nothing is written and the request goes to the sign-in.</summary>
-    ActorNotAdministrator,
 }
 
 /// <summary>
@@ -242,27 +184,6 @@ public sealed class AdminNameChangeResult : IOperationResult
     internal static AdminNameChangeResult Done() => new(true, null, null);
 
     internal static AdminNameChangeResult Refused(ErrorCode code) => new(false, AdminAccountFields.Name, code);
-}
-
-/// <summary>What became of the administrator's request to change the e-mail address (07 UC-179).</summary>
-public enum AdminEmailChangeOutcome
-{
-    Requested,
-
-    /// <summary>The address is empty, malformed or another administrator account's (422, on <c>NewEmail</c>).</summary>
-    FieldRefused,
-
-    /// <summary>An open revert link closes the change (422, <c>EmailChangeRevertPending</c>); <see cref="AdminEmailChangeRequestResult.RevertEndsAt"/> says until when.</summary>
-    RevertPending,
-
-    /// <summary>L-9 over its limit on a request that replaces a pending one (429).</summary>
-    Limited,
-
-    /// <summary>The reauthentication value is missing, wrong or dropped (303 to the reauthentication page); nothing is written.</summary>
-    ReauthenticationRequired,
-
-    /// <summary>No such administrator.</summary>
-    NotFound,
 }
 
 /// <summary>The outcome of the administrator's address change request (07 UC-179; 02 10.2.4): the new address waits for verification, the old one keeps working.</summary>

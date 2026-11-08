@@ -9,6 +9,7 @@ using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.Administration.Contracts.Results;
 using Shopfolio.Modules.Notifications.Contracts;
 
 namespace Shopfolio.Modules.Administration;
@@ -196,7 +197,7 @@ internal sealed class AdminAccounts
     /// update; the account is born with the invitation's address, the name and the password digest, and no role; the invitation is marked accepted; the trail row names the new
     /// administrator. When the address has become an administrator's meanwhile, no account is opened and the invitation is made invalid (K-1085). No session is opened.
     /// </summary>
-    public async Task<AdminInvitationAcceptance> AcceptAsync(string key, string name, string password, CancellationToken ct)
+    public async Task<AdminInvitationAcceptance> AcceptInvitationAsync(string key, string name, string password, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(key);
         ArgumentNullException.ThrowIfNull(name);

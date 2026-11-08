@@ -2,6 +2,7 @@ using System.Net;
 
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
+using Shopfolio.Modules.Administration.Contracts.Results;
 
 namespace Shopfolio.Modules.Administration.Contracts;
 

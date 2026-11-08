@@ -11,6 +11,7 @@ using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.Administration.Contracts.Results;
 
 namespace Shopfolio.Modules.Administration;
 
@@ -172,7 +173,7 @@ internal sealed class AdministrationModule : IAdministrationModule
 
     public Task<AdminInvitationReading> ReadInvitationLinkAsync(string key, CancellationToken ct) => _admins.ReadAsync(key, ct);
 
-    public Task<AdminInvitationAcceptance> AcceptInvitationAsync(string key, string name, string password, CancellationToken ct) => _admins.AcceptAsync(key, name, password, ct);
+    public Task<AdminInvitationAcceptance> AcceptInvitationAsync(string key, string name, string password, CancellationToken ct) => _admins.AcceptInvitationAsync(key, name, password, ct);
 
     public Task<AdminRemovalResult> RemoveAdminAsync(Guid targetAdminId, bool confirmed, CancellationToken ct) => _admins.RemoveAsync(targetAdminId, confirmed, ct);
 
@@ -183,7 +184,7 @@ internal sealed class AdministrationModule : IAdministrationModule
 
     public Task<AdminEmailChangeResendResult> ResendEmailChangeLinkAsync(Guid adminId, IPAddress? ipAddress, CancellationToken ct) => _emailChanges.ResendAsync(adminId, ipAddress, ct);
 
-    public Task<AdminEmailVerificationResult> VerifyNewEmailAsync(string key, CancellationToken ct) => _emailChanges.VerifyAsync(key, ct);
+    public Task<AdminEmailVerificationResult> VerifyNewEmailAsync(string key, CancellationToken ct) => _emailChanges.VerifyNewEmailAsync(key, ct);
 
     private void RequireTransaction(string message)
     {
@@ -201,6 +202,8 @@ internal static class AdministrationModuleRegistration
     {
         services.AddScoped<IAdministrationModule, AdministrationModule>();
         services.AddScoped<AdminPasswords>();
+        // The acting administrator is read from the request; in the command host there is no request and the accessor answers with none (the commands write no trail row, 02 10.3.3).
+        services.AddHttpContextAccessor();
         services.AddScoped<IAuditActorSource, RequestAuditActorSource>();
         services.AddScoped<AdminAccounts>();
         services.AddScoped<AdminEmailChanges>();

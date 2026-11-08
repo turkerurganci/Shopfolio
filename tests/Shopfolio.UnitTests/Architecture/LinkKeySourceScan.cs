@@ -52,6 +52,10 @@ internal static partial class LinkKeySourceScan
 
         // The one password rule's reset button (T342): both account types consume the password reset link here and nowhere else.
         ["src/Shopfolio.Web/Infrastructure/Security/PasswordRegime.cs"] = ["ResetPasswordAsync"],
+
+        // The administrator invitation's button and the administrator's new e-mail verification (T379): each consumes its link in its one command and nowhere else in the file.
+        ["src/Shopfolio.Web/Modules/Administration/AdminAccounts.cs"] = ["AcceptInvitationAsync"],
+        ["src/Shopfolio.Web/Modules/Administration/AdminEmailChanges.cs"] = ["VerifyNewEmailAsync"],
     };
 
     /// <summary>
@@ -61,7 +65,7 @@ internal static partial class LinkKeySourceScan
     public static readonly IReadOnlyDictionary<string, string[]> WrapperMethods = new Dictionary<string, string[]>(StringComparer.Ordinal)
     {
         ["src/Shopfolio.Web/Modules/Membership/MembershipModule.cs"] = ["ResetPasswordAsync", "ConfirmGoogleLinkAsync", "VerifyNewEmailAsync"],
-        ["src/Shopfolio.Web/Modules/Administration/AdministrationModule.cs"] = ["ResetPasswordAsync"],
+        ["src/Shopfolio.Web/Modules/Administration/AdministrationModule.cs"] = ["ResetPasswordAsync", "AcceptInvitationAsync", "VerifyNewEmailAsync"],
     };
 
     private static readonly string[] ControlKeywords = ["if", "for", "foreach", "while", "switch", "using", "lock", "catch", "fixed", "when", "return", "nameof", "typeof"];

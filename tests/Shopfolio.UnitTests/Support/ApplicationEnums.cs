@@ -27,6 +27,8 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.Catalog.Contracts.ProductPageKind",
         "Shopfolio.Modules.Ordering.Contracts.CartAddOutcome",
         "Shopfolio.Modules.Ordering.Contracts.CartPaymentBlock",
+        // T347: the verdict on a cart line's quantity - computed per read from the stock and the per-order limit, never a column.
+        "Shopfolio.Modules.Catalog.Contracts.CartQuantityProblem",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

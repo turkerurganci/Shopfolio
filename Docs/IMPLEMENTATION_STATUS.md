@@ -187,7 +187,7 @@
 | T344 | Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma | ✓ | ✓ PASS (tur 1) | — | #451 |
 | T345 | Hesabın silinmesi ve kişisel veri başvurusu | ⬚ | — | — | — |
 | T346 | Sepet: sahiplik, giriş anında birleşme, canlı kalem, siparişe girmeyen kalemler | ✓ | ✓ PASS (tur 2) | — | #467 |
-| T347 | Sepet adet kuralları: stok ve sipariş başına sınır, boşalma, istek listesi yokluğu | ⬚ | — | — | — |
+| T347 | Sepet adet kuralları: stok ve sipariş başına sınır, boşalma, istek listesi yokluğu | ✓ | ✓ PASS (tur 1) | — | #475 |
 | T348 | Sipariş onayı: oluşma anı, özet eşitliği, stok ayırma, ödeme süresi, kendiliğinden iptal | ⬚ | — | — | — |
 | T349 | Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği | ⬚ | — | — | — |
 | T350 | Teslim: il kısıtı, tek yol, kargoya verme süresi ve sözü, kargoya verildi işareti, kargo şirketi | ✓ | ✓ PASS (tur 1) | — | #460 |

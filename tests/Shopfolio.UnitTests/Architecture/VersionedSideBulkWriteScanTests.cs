@@ -87,15 +87,20 @@ public sealed class VersionedSideBulkWriteScanTests
     }
 
     [Fact]
-    public void TheCartStatementsPlace_HoldsExactlyFourStatements_AllInsertsOnTheCartTables_AndNoUpdateNoDeleteAndNoSideTable()
+    public void TheCartStatementsPlace_HoldsExactlyFiveStatements_FourInsertsAndTheOneDeleteOfThePaidOrdersItems_OnTheCartTablesOnly()
     {
         string place = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), VersionedSideBulkWriteScan.CartStatementsPlace));
         System.Text.RegularExpressions.RegexOptions options = System.Text.RegularExpressions.RegexOptions.CultureInvariant;
         TimeSpan timeout = TimeSpan.FromSeconds(5);
 
-        Assert.Equal(4, System.Text.RegularExpressions.Regex.Count(place, @"ExecuteSql\w*\(", options, timeout));
+        Assert.Equal(5, System.Text.RegularExpressions.Regex.Count(place, @"ExecuteSql\w*\(", options, timeout));
         Assert.Equal(4, System.Text.RegularExpressions.Regex.Count(place, @"INSERT INTO (carts|cart_items) \(", options, timeout));
-        Assert.Equal(0, System.Text.RegularExpressions.Regex.Count(place, @"ExecuteUpdate|ExecuteDelete|SqlQuery|SaveChanges|DELETE FROM|\bFROM\b", options, timeout));
+
+        // The one delete (T347; 02 3.16.12) is the paid order's items leaving their own cart: it names only cart_items and is bounded by the cart's id; nothing else deletes, updates or reads.
+        Assert.Equal(1, System.Text.RegularExpressions.Regex.Count(place, @"DELETE FROM cart_items WHERE cart_id = ", options, timeout));
+        Assert.Equal(1, System.Text.RegularExpressions.Regex.Count(place, @"DELETE FROM", options, timeout));
+        Assert.Equal(1, System.Text.RegularExpressions.Regex.Count(place, @"\bFROM\b", options, timeout));
+        Assert.Equal(0, System.Text.RegularExpressions.Regex.Count(place, @"ExecuteUpdate|ExecuteDelete|SqlQuery|SaveChanges|\bUPDATE\s+\w+\s+SET\b|\bTRUNCATE\b", options, timeout));
 
         // The same text under a path that is no allowed place: no table of the two sides is named, and no set of them either.
         Assert.Empty(VersionedSideBulkWriteScan.Scan(OtherModule, place));

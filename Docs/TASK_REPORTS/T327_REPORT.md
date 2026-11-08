@@ -89,7 +89,7 @@
 
 - **Branch:** `task/T327-otomatik-anlar`
 - **Commit:** son commit PR'da
-- **PR:** (açılınca yazılır)
+- **PR:** #480
 - **CI:** dal CI'ı PR'da
 - **Post-merge run'lar:** *(validator doldurur)*
 

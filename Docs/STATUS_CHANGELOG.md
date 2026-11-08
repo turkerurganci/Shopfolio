@@ -9,9 +9,9 @@
 
 ---
 
-## 2026-11-08 — T311 (Ödeme sağlayıcısının bildirim ucu) yapım bitti (PR #PR_NO)
+## 2026-11-08 — T311 (Ödeme sağlayıcısının bildirim ucu) yapım bitti (PR #456)
 
-2026-11-08 — T311 (Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım) yapım bitti, ⏳ doğrulama bekliyor (dal `task/T311-odeme-bildirim-ucu`, PR #PR_NO; `origin/main` (T336, #444) birleştirildi). İmzalı uç `POST /sistem/odeme-bildirimi`; imza ve tutar bağlantı katmanında; `08 §2.1.5` sınıflaması; kayıt ve iş satırı aynı işlemde; iş ödeme sonucunu geçiş biriminin tek yolundan uygular. Kriter 1–10, KK1–KK10 öz denetimde ✓; Unit 4393, Integration `PaymentNotificationTests` 14 ve dokunulan sınıflar yeşil. Backlog D-468 (`06 §4.35` `ProcessedAt` metni) yeni.
+2026-11-08 — T311 (Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım) yapım bitti, ⏳ doğrulama bekliyor (dal `task/T311-odeme-bildirim-ucu`, PR #456; `origin/main` (T336, #444) birleştirildi). İmzalı uç `POST /sistem/odeme-bildirimi`; imza ve tutar bağlantı katmanında; `08 §2.1.5` sınıflaması; kayıt ve iş satırı aynı işlemde; iş ödeme sonucunu geçiş biriminin tek yolundan uygular. Kriter 1–10, KK1–KK10 öz denetimde ✓; Unit 4393, Integration `PaymentNotificationTests` 14 ve dokunulan sınıflar yeşil. Backlog D-468 (`06 §4.35` `ProcessedAt` metni) yeni.
 
 ## 2026-11-08 — T336 (Fiyat ve KDV) doğrulama tur 4 ✓ PASS (PR #444)
 

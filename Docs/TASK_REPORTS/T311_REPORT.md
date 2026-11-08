@@ -112,7 +112,7 @@ Bütün maddeler — önceki işçinin yaptıkları dahil — bu diff'te yeniden
 
 - **Branch:** `task/T311-odeme-bildirim-ucu`
 - **Commit:** dalın son commit'i (PR head)
-- **PR:** #PR_NO
+- **PR:** #456
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

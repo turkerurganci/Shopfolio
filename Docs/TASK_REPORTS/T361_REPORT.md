@@ -1,6 +1,6 @@
 # T361 — Ana sayfa düzeni ve üst menü
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — ürün kalıcı silme yolu menü önbelleğini düşürmüyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 ✓ PASS; tur 1 ✗ FAIL B1 düzeltildi) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -60,6 +60,21 @@
 | Biçim / derleme | ✓ | `dotnet build -c Release -warnaserror`, `dotnet format Shopfolio.slnx --verify-no-changes` | temiz |
 
 ## Doğrulama
+
+### Tur 2 (2026-11-08, head `2266a634`; kayıt commit'inden önce `origin/main` `02ec5357` birleştirildi)
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✓ PASS — tur 2. Kapsam tam: kriter 1–6 ve KK1–KK6 ✓, `09 §25` ilgili maddeler ✓, güvenlik taraması temiz. Dal CI 42474299037 (head `2266a634`): 1–8 ve CI Gate yeşil. Ana dalın son üç tamamlanmış run'ı: 42475025461 CI success, 42475025470 Publish success, 42474266979 CI `cancelled` (concurrency: yeni push önceki koşuyu iptal etti; başarısız iş yok). Yerelde: restore, build `-warnaserror` 0/0, `dotnet format --verify-no-changes` 3 proje temiz, Unit 4649/4649, betik testleri 4/4, Integration (dalın eklediği/dokunduğu sınıflar + yan yollar: StorefrontReaders, Address, Branding, CategoryTreeAndLists, Membership, ProductPublishGate, ProductTransitions, ContentStatus, SearchEngineData, SitemapEndpoint) 131/131 + 134/134. `origin/main` birleştirmesinden sonra (çakışma yok): build 0/0, Unit 4686/4686, Integration (StorefrontReaders, Membership, Address, Branding) 122/122, `restore --locked-mode` 0 |
+| Bulgu sayısı | 0. Tur 1 B1 kapandı: `ProductRemoval.DeleteProductAsync` başarıda `CacheArea.Menu` ve `CacheArea.Sitemap` bildirir; `ThePermanentDeletionOfTheLastPublishedProduct_DropsTheMenu_AndTheCategoryAndTheItemGo_KK6` önbelleği doldurduktan sonra siler ve menünün düştüğünü sınar (geçti). Önbelleği besleyen yazma yolları yeniden tarandı: ürün durum geçişi, kategori bağı, kategori ağacı (oluştur/ad/taşı/sil), içerik yayını/düzenleme/silme düşürür; içerik görseli ve elle sıra yazma yolu henüz yok (D-498) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 — K1: D-372 (T333 K-notu, hedef T361: kategori bağı ve yayın geçişi menü alanını bildirmeli) T361'de karşılandı (`ProductCategoryLinks`, `ProductTransitions`; `TheCategoriesOfAProduct_DropTheMenu_WhenTheyChange_KK6`, `ThePublicationOfAProduct_DropsTheMenu_…_KK6`) ama ⚪ açık kalmıştı → bu PR'da ✅ kapatıldı; kalanı (ağaç önbelleğe alınırsa `CacheArea.CategoryTree` bildirimi; bugün ağaç önbelleksiz) D-529'a forward |
+
+**Task satırları (tur 2, `12 §7.5`):** VAL-A001, VAL-A003 (KP-1), VAL-A111…A114 (KP-31), VAL-A152…A154 (KP-55) uç yanıtı / tarayıcı gözlemi ister; T361 uç ve sayfa kurmaz (D-502; T333 emsali) → `BEKLEMEDE` kalır; `12` değişmedi; KD-39/KD-40 için matris satırı yok. `12_matris_denetle.py --kapsam 1-77` Hata 0.
+
+**Doğrulayıcı uyuşmazlık notları (tur 2, adım 13):** Kriterlerde uyum tam. Test tablosundaki Unit sayısı (4537) birleştirme öncesinin; bugün 4649 (main sonrası 4686) — bilgi notu. Öz denetim tablosu tam ve kanıtlı.
+
+### Tur 1
 
 | Alan | Sonuç |
 |---|---|

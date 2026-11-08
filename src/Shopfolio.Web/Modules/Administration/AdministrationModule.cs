@@ -11,6 +11,7 @@ using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.Administration.Contracts.Results;
 
 namespace Shopfolio.Modules.Administration;
 
@@ -32,8 +33,28 @@ internal sealed class AdministrationModule : IAdministrationModule
     private readonly PasswordService _hashing;
     private readonly TimeProvider _time;
 
-    public AdministrationModule(AppDbContext db, PasswordRegime passwords, AdminPasswords accounts, SessionStore sessions, LoginRecorder logins, PasswordService hashing, TimeProvider time)
+    private readonly AdminAccounts _admins;
+    private readonly AdminEmailChanges _emailChanges;
+    private readonly AdvisoryLocks _locks;
+
+    public AdministrationModule(
+        AppDbContext db,
+        PasswordRegime passwords,
+        AdminPasswords accounts,
+        SessionStore sessions,
+        LoginRecorder logins,
+        PasswordService hashing,
+        TimeProvider time,
+        AdminAccounts admins,
+        AdminEmailChanges emailChanges,
+        AdvisoryLocks locks)
     {
+        ArgumentNullException.ThrowIfNull(admins);
+        ArgumentNullException.ThrowIfNull(emailChanges);
+        ArgumentNullException.ThrowIfNull(locks);
+        _admins = admins;
+        _emailChanges = emailChanges;
+        _locks = locks;
         ArgumentNullException.ThrowIfNull(db);
         ArgumentNullException.ThrowIfNull(passwords);
         ArgumentNullException.ThrowIfNull(accounts);
@@ -131,6 +152,8 @@ internal sealed class AdministrationModule : IAdministrationModule
             return AdminCreationResult.Refused(AdminCreationFields.Password, passwordRefusal);
         }
 
+        // The administrator set's lock is alone and first (05 7.3.5): the command and an invitation's acceptance open accounts one after the other.
+        await _locks.LockAsync(AdvisoryLockScope.AdminSet, null, ct);
         string normalized = TextNormalizer.NormalizeIdentity(cleanEmail);
         if (await _db.Admins.AsNoTracking().AnyAsync(a => a.NormalizedEmail == normalized, ct))
         {
@@ -186,6 +209,25 @@ internal sealed class AdministrationModule : IAdministrationModule
         return AdminAccountWorkResult.Done();
     }
 
+    public Task<AdminInvitationSendResult> SendInvitationAsync(string email, CancellationToken ct) => _admins.SendAsync(email, ct);
+
+    public Task<AdminInvitationWithdrawalResult> WithdrawInvitationAsync(Guid invitationId, CancellationToken ct) => _admins.WithdrawAsync(invitationId, ct);
+
+    public Task<AdminInvitationReading> ReadInvitationLinkAsync(string key, CancellationToken ct) => _admins.ReadAsync(key, ct);
+
+    public Task<AdminInvitationAcceptance> AcceptInvitationAsync(string key, string name, string password, CancellationToken ct) => _admins.AcceptInvitationAsync(key, name, password, ct);
+
+    public Task<AdminRemovalResult> RemoveAdminAsync(Guid targetAdminId, bool confirmed, CancellationToken ct) => _admins.RemoveAsync(targetAdminId, confirmed, ct);
+
+    public Task<AdminNameChangeResult> ChangeNameAsync(Guid adminId, string name, CancellationToken ct) => _admins.ChangeNameAsync(adminId, name, ct);
+
+    public Task<AdminEmailChangeRequestResult> RequestEmailChangeAsync(Guid adminId, Guid sessionId, string newEmail, string? reauthenticationValue, IPAddress? ipAddress, CancellationToken ct) =>
+        _emailChanges.RequestAsync(adminId, sessionId, newEmail, reauthenticationValue, ipAddress, ct);
+
+    public Task<AdminEmailChangeResendResult> ResendEmailChangeLinkAsync(Guid adminId, IPAddress? ipAddress, CancellationToken ct) => _emailChanges.ResendAsync(adminId, ipAddress, ct);
+
+    public Task<AdminEmailVerificationResult> VerifyNewEmailAsync(string key, CancellationToken ct) => _emailChanges.VerifyNewEmailAsync(key, ct);
+
     private void RequireTransaction(string message)
     {
         if (_db.Database.CurrentTransaction is null)
@@ -202,8 +244,13 @@ internal static class AdministrationModuleRegistration
     {
         services.AddScoped<IAdministrationModule, AdministrationModule>();
         services.AddScoped<AdminPasswords>();
+        // The acting administrator is read from the request; in the command host there is no request and the accessor answers with none (the commands write no trail row, 02 10.3.3).
+        services.AddHttpContextAccessor();
         services.AddScoped<IAuditActorSource, RequestAuditActorSource>();
-        services.AddScoped<IAuditTrail, AuditTrail>();
+        services.AddScoped<AdminAccounts>();
+        services.AddScoped<AdminEmailChanges>();
+        services.AddScoped<AuditTrail>();
+        services.AddScoped<IAuditTrail>(p => p.GetRequiredService<AuditTrail>());
         services.AddDisposalPart<AdminInvitationDisposalPart>();
         return services;
     }

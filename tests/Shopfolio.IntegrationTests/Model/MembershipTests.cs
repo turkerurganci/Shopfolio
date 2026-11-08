@@ -121,6 +121,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
         services.AddScoped<OrderLocks>();
         services.AddScoped<DownloadCounters>();
         services.AddScoped<OrderPaymentArms>();
+        services.AddScoped<OrderAccess>();
         services.AddScoped<AdvisoryLocks>();
         services.AddCartServices();
         services.AddScoped<IOrderingModule, OrderingModule>();
@@ -131,6 +132,11 @@ public sealed partial class MembershipTests : IAsyncLifetime
         services.AddMembershipModule();
         services.AddScoped<AdminPasswords>();
         services.AddScoped<IAdministrationModule, AdministrationModule>();
+        services.AddScoped<AdminAccounts>();
+        services.AddScoped<AdminEmailChanges>();
+        services.AddScoped<AuditTrail>();
+        services.AddSingleton<SwitchableAuditActor>();
+        services.AddSingleton<IAuditActorSource>(p => p.GetRequiredService<SwitchableAuditActor>());
         _provider = services.BuildServiceProvider();
     }
 

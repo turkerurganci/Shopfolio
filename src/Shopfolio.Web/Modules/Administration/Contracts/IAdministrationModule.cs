@@ -2,6 +2,7 @@ using System.Net;
 
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
+using Shopfolio.Modules.Administration.Contracts.Results;
 
 namespace Shopfolio.Modules.Administration.Contracts;
 
@@ -62,4 +63,31 @@ public interface IAdministrationModule
     /// password reset. Refused when the account is gone. It writes no operation trail line and makes no notification (05 8.5.7). Joins the caller's transaction.
     /// </summary>
     Task<AdminAccountWorkResult> InvalidateAdminPasswordAsync(Guid adminId, CancellationToken ct);
+
+    /// <summary>Sends an invitation to an address (T379; 07 UC-175; 02 10.2.1, 10.2.6): the earlier unused invitation of the address is made invalid, the e-mail, the trail row and the F-6 notice are written.</summary>
+    Task<AdminInvitationSendResult> SendInvitationAsync(string email, CancellationToken ct);
+
+    /// <summary>Withdraws an unused invitation (07 UC-176; 02 10.2.6): the link ends at once; nobody is notified.</summary>
+    Task<AdminInvitationWithdrawalResult> WithdrawInvitationAsync(Guid invitationId, CancellationToken ct);
+
+    /// <summary>What the invitation page shows when its link opens (07 UC-112): only reads.</summary>
+    Task<AdminInvitationReading> ReadInvitationLinkAsync(string key, CancellationToken ct);
+
+    /// <summary>The invitee's button (07 UC-113): the name and the password pass, the link is consumed and the account is born.</summary>
+    Task<AdminInvitationAcceptance> AcceptInvitationAsync(string key, string name, string password, CancellationToken ct);
+
+    /// <summary>Removes another administrator (07 UC-177; 02 10.2.2); without the confirmation it only tells what the removal does.</summary>
+    Task<AdminRemovalResult> RemoveAdminAsync(Guid targetAdminId, bool confirmed, CancellationToken ct);
+
+    /// <summary>The administrator's own name (07 UC-178; 02 10.2.4): no reauthentication.</summary>
+    Task<AdminNameChangeResult> ChangeNameAsync(Guid adminId, string name, CancellationToken ct);
+
+    /// <summary>The administrator's request to change the e-mail address (07 UC-179; 02 10.2.4), after the reauthentication.</summary>
+    Task<AdminEmailChangeRequestResult> RequestEmailChangeAsync(Guid adminId, Guid sessionId, string newEmail, string? reauthenticationValue, IPAddress? ipAddress, CancellationToken ct);
+
+    /// <summary>Asks the pending change's link again (07 UC-180); L-9 counts it.</summary>
+    Task<AdminEmailChangeResendResult> ResendEmailChangeLinkAsync(Guid adminId, IPAddress? ipAddress, CancellationToken ct);
+
+    /// <summary>The new address's button (07 UC-186): the address changes, the old one is told with a revert link, the trail row is written.</summary>
+    Task<AdminEmailVerificationResult> VerifyNewEmailAsync(string key, CancellationToken ct);
 }

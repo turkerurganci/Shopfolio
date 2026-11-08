@@ -143,23 +143,12 @@ internal sealed class OrderingModule : IOrderingModule
             throw new InvalidOperationException("The account's orders are marked only inside the transaction of its deletion (02 3.15.1; 09 6 item 3).");
         }
 
-        // The orders are locked first and read after the lock (05 7.3.2): an order another request is changing at this moment is waited for, not overwritten.
-        Guid[] candidates = await _db.Orders.AsNoTracking().Where(o => o.CustomerId == customerId).Select(o => o.Id).ToArrayAsync(ct);
-        int marked = 0;
-        if (candidates.Length > 0)
-        {
-            await _locks.LockAsync(candidates, ct);
-            List<Order> orders = await _db.Orders.Where(o => candidates.Contains(o.Id) && o.CustomerId == customerId).ToListAsync(ct);
-
-            // Both columns move in one statement, as the check "deleted_account_without_link" asks; the version does not move (06 2.6.4).
-            foreach (Order order in orders)
-            {
-                order.IsAccountDeleted = true;
-                order.CustomerId = null;
-            }
-
-            marked = orders.Count;
-        }
+        // The account's row is held by the caller (the reauthentication's account lock stands alone in the lock order, 05 7.3.5), so no order lock can follow it: both columns move in ONE
+        // conditional update, which waits for any request that is changing the order at this moment and touches nothing else. It is the way the guest-order linking writes the account link too;
+        // the check "deleted_account_without_link" is met in the same statement and the version does not move (06 2.6.4).
+        int marked = await _db.Orders
+            .Where(o => o.CustomerId == customerId)
+            .ExecuteUpdateAsync(set => set.SetProperty(o => o.IsAccountDeleted, true).SetProperty(o => o.CustomerId, (Guid?)null), ct);
 
         int carts = await _db.Carts.AsNoTracking().CountAsync(c => c.CustomerId == customerId, ct);
         return new AccountOrderRelease(marked, carts);

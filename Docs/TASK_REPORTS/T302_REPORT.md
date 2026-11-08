@@ -88,6 +88,14 @@
 - **Çözüm:** tarama listesinde iki tarafın satırları birlikte kaldı (T302'nin `DigitalFileDisposalParts.cs` ve `InboundNotificationDisposalPart.cs` satırları + T339'un `GalleryMainMarkPlace`); istisna genişletilmedi. STATUS "Son güncelleme" yalnız bu giriş (T339 tur 2 girişi `STATUS_CHANGELOG.md`'ye), backlog main kayıtları + dalınkiler, Aktif kalem yeniden sayıldı: 157.
 - **Sonuç:** derleme `-warnaserror` 0 uyarı; Unit Architecture 943 + Consistency 242 + öteki 3040 = 4225 geçti; Integration RecordDisposalTests + ProductGalleryTests + ConcurrencyTests 57, DigitalFile + ImageFilesTests + Disposal sınıfları 174 geçti; format temiz; çakışma işareti yok. KK1–KK9 birleşik ağaçta ✓ (T302'nin on üç parçasının kaydı yerinde, kabul kriterleri 1–9 ve KK1–KK9 madde madde denetlendi).
 
+### main birleştirmesi 3 (T341 #433 girince)
+
+- **Çakışan dosyalar:** `IOrderingModule.cs` (yöntemler), `OrderingModule.cs` (kurucu); belgelerde `IMPLEMENTATION_STATUS.md`.
+- **Çözüm:** kod çakışmaları yalnız ekleme: T302'nin okuma yöntemleri (`FindPaymentArmsAsync`, `FindOrdersOfItemsAsync`, `FindUnpaidFailedOrdersAsync`) ile main'in `LinkGuestOrdersAsync`'i birlikte kaldı; `OrderingModule` kurucusu `OrderPaymentArms`, `OrderLocks` ve `AdvisoryLocks`'u birlikte alır. Hiçbir tarafın davranışı değişmedi. STATUS "Son güncelleme" yalnız bu giriş (T341 tur 3 girişi `STATUS_CHANGELOG.md`'ye taşındı); tablo iki taraf; backlog aktif 157 (main kayıtları aynen + T302'nin D-374…D-378 ve D-102 çözümü).
+- **Birleşik ağacın gerektirdiği test kurulumu:** `MembershipTests` kurulumuna `OrderPaymentArms` ve `AddPaymentModule()` kaydı eklendi (yalnız kayıt).
+- **Öz denetim:** `11` satır 1709–1734 kabul kriterleri 1–9 ve KK1–KK9, birleştirmenin dokunduğu dosyalarda (`IOrderingModule`, `OrderingModule`) T302 üyeleri ve `OrderDisposalPart` kaydı yerinde; `RecordDisposalTests` 13 ve `OrderDisposalTests` 27 birleşik ağaçta geçti.
+- **Sonuç:** derleme `-warnaserror` 0 uyarı; Unit Architecture 955 + Consistency 242 + öteki 3040 = 4237 geçti; Integration RecordDisposalTests 13, OrderDisposalTests 27, MembershipTests 34, OrderTransitionsTests 31 geçti; format temiz; çakışma işareti yok.
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok

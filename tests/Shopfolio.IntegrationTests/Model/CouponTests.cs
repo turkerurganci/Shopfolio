@@ -21,6 +21,7 @@ using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
+using Shopfolio.UnitTests.Fakes;
 
 namespace Shopfolio.IntegrationTests.Model;
 
@@ -448,7 +449,7 @@ public sealed class CouponTests : IAsyncLifetime
         services.AddScoped<ITransactionRunner, TransactionRunner>();
         services.AddAppCache();
         services.AddScoped<AdvisoryLocks>();
-        services.AddSingleton<TimeProvider>(new FixedTime(Now));
+        services.AddSingleton<TimeProvider>(new ManualTimeProvider(Now));
         services.AddScoped<IJobQueue, JobQueue>();
         services.AddFileStore();
         services.AddOptions<Shopfolio.Infrastructure.InstallationSettings.StatusThresholdOptions>();
@@ -489,11 +490,6 @@ public sealed class CouponTests : IAsyncLifetime
         await connection.OpenAsync(Ct);
         await using NpgsqlCommand command = new(sql, connection);
         return (T)(await command.ExecuteScalarAsync(Ct))!;
-    }
-
-    private sealed class FixedTime(DateTimeOffset now) : TimeProvider
-    {
-        public override DateTimeOffset GetUtcNow() => now;
     }
 
     /// <summary>A written result of a test transaction.</summary>

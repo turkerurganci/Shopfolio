@@ -322,4 +322,10 @@ public interface ICatalogModule
 
     /// <summary>The image a variant shows (02 3.11.1, 3.11.4): its own, else the product's main image, with the text for it; null when it has neither. A plain read.</summary>
     Task<VariantImage?> GetVariantImageAsync(Guid variantId, CancellationToken ct);
+
+    /// <summary>
+    /// The live facts a cart item reads of its variant (T346; 02 3.16.5-3.16.7): the product's name, the price that applies now, whether the variant and its product are Published and
+    /// whether the variant is sold out. A variant that does not exist is not in the answer. A plain read; it writes nothing.
+    /// </summary>
+    Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct);
 }

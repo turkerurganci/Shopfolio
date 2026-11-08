@@ -1,6 +1,6 @@
 # T354 — Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 2 ⛔ BLOCKED — main ile kod çakışması, birleştirme bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 3 ⛔ BLOCKED — main (T350) ile kod çakışması, birleştirme bekliyor) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -70,10 +70,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⛔ BLOCKED (tur 2, 2026-11-08 — main ile kod çakışması); önceki: ✗ FAIL (tur 1) |
+| Doğrulama durumu | ⛔ BLOCKED (tur 3, 2026-11-08 — main (T350) ile kod çakışması); önceki: ⛔ BLOCKED (tur 2), ✗ FAIL (tur 1) |
 | Bulgu sayısı | 0 içerik bulgusu (tur 1: B1 ORTA S2, giderildi) |
 | Düzeltme gerekli mi | Evet — `origin/main` birleştirmesi ve `OrderingModule.cs` çakışmasının çözümü |
-| Bloke-etmeyen not (K) sayısı | 1 (rapor içi eskimiş cümle) |
+| Bloke-etmeyen not (K) sayısı | 0 |
 
 ### Doğrulama Sonucu — tur 1 (validator)
 
@@ -103,6 +103,19 @@ B1 giderildi: `DisposalHarness`, `Model/AddressTests`, `Model/MembershipTests` d
 - **Dal CI:** 42492570840 ✓ (bütün adımlar).
 - **BLOCKED nedeni:** `git merge origin/main` kod dosyasında çakıştı: `src/Shopfolio.Web/Modules/Ordering/OrderingModule.cs` — T346 (#467) kurucuya `Carts` ve kayda `CartStatements`/`Carts` ekledi, T354 `OrderAccess` ve `OrderIdentifiers`/`OrderAccess` ekliyor. Talimat gereği merge iptal edildi. Çözüm: kurucu iki parametreyi de alır, dört kayıt birlikte kalır; otomatik birleşen üç düzenekte (`DisposalHarness`, `Model/AddressTests`, `Model/MembershipTests`) iki kaydın da bulunduğu denetlenir ve Disposal/Model/Ordering Integration koşulur; sonra birleşik uç için yeni doğrulama turu.
 - **İçerik bulgusu:** yok. **K-notu:** "Notlar > Diğer" satırındaki "Tam Integration paketi yerelde koşulmadı" cümlesi Düzeltme 1 ile eskimiş; birleşme düzeltmesinde güncellenir.
+- **Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu kanıtlı.
+
+### Doğrulama Sonucu — tur 3 (validator)
+
+**Head:** `6c2919e8` · **PR:** #470 · **Verdict:** ⛔ BLOCKED
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = ana depo `scripts/git-hooks`; ana dal CI son 3: 42500144509, 42500141831, 42493884421 hepsi `success`.
+- **Kabul kriterleri:** 1–6 ve KK1–KK6 ✓ (modül düzeyi; tam kapsam yeniden denetlendi). `09 §15.1` madde 1 (alfabe, P-19 = 6, `RandomNumberGenerator.GetInt32`), `02 §3.22.1`–§3.22.5, `07 §2.3.4` ve `04 5.15.6` ile uyumlu; `09 §25` ilgili satırlar ve güvenlik taraması temiz; yeni bağımlılık yok.
+- **Task satırları:** VAL-D009, B014, B015, B016, A054, A977, A055, A057, A058, B017 `BEKLEMEDE` kaldı (uç/tarayıcı/onay kanıtı T511 ve T348'de); `12_matris_denetle.py --kapsam 1-77` hata 0.
+- **Testler (yerel):** build `-warnaserror` 0 uyarı; format üç proje temiz; Unit 4878/4878; betik 4 dosya; Integration Ordering 299/299, Disposal+Model+Concurrency 1442/1442, Catalog+CorporateContent+Files+Pages+Web 854/854; sonrasında `git status` temiz, `restore --locked-mode` çıkış 0.
+- **Dal CI:** 42500104111 ✓ (head `6c2919e8`, bütün adımlar).
+- **BLOCKED nedeni:** `git merge origin/main` (main `0226a902`, T350 #460) yine `src/Shopfolio.Web/Modules/Ordering/OrderingModule.cs`'te çakıştı; PR #470 `CONFLICTING`. T350 kurucuya `_shippingViews = new ShippingViewReader(db);` ve `GetShippingViewAsync` yöntemini ekledi; T354 `_access = access;` ve iki yöntem ekliyor. Talimat gereği merge iptal edildi. Çözüm: çakışan blokta iki taraf kalır (üç yöntem birlikte); öteki dosyalar otomatik birleşir; build ve Ordering/Model/Disposal Integration koşulur; sonra birleşik uç için yeni doğrulama turu.
+- **İçerik bulgusu:** yok. **K-notu:** yok (tur 2'nin K-notu kapanmış).
 - **Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu kanıtlı.
 
 ## Altyapı Değişiklikleri

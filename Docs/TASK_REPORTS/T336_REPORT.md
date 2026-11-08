@@ -137,10 +137,35 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama chat'i doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 4, 2026-11-08; head `32173b1` + `origin/main` (T317, `7097c01`) birleştirmesi `fc75b58`; tur 1–3 içerikte temiz, main ile kod çakışması nedeniyle BLOCKED) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 yeni (önceki turun D-381'i açık, hedefi T525) |
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = ana checkout'un `scripts/git-hooks`'u; ana dal CI son üç tamamlanmış run success — 42430286061 (CI) ve 42430286045 (Publish) `7097c01` (T317), 42426248059 (Publish, `e2e9dbc`). `e2e9dbc`'nin CI run'ı 42426248097 eşzamanlılık kuralıyla iptal edildi ("higher priority waiting request"; başarısızlık değil) — içeriği `7097c01`'in yeşil CI'ında koştu. `MEMORY.md` T336 satırı var.
+
+**Kabul kriterleri (validator kanıtı):**
+
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `PriceLabelReader` fiyatı sütundan aynen döndürür; `PriceLabelGuard` iki ondalığı aşan fiyatı sütun yuvarlamadan önce reddeder; `ThePriceTyped_IsThePriceTheLabelShows_VatIncluded` (1234.56 → etiket ve `price::text` aynı) |
+| 2 | ✓ | `products.vat_rate` tek KDV sütunu, `variants`'ta yok; etiket oranı üründen okur; varsayılan `CompanySettings.DefaultVatRate` (P-10 = 20) — `TheDefaultRate_ComesFromTheSetting_…`; formun öneriyi göstermesi T525 (D-346; `06 §4.5` "uygulamada — form") |
+| 3 | ✓ | `order_items.vat_amount` saklanır, matrah sütunu yok (türetilir, `06 §4.18`); `orders.shipping_fee_vat_breakdown` jsonb; `ItemPricing.SplitShippingFee` yalnız fiziksel kalemlerin oranlarını alır, dijital/hizmet oranı kargoya geçmez (`TheShippingFee_TakesThePhysicalItemsRate_…`, iki oranlı bölüşüm testi) |
+| 4 | ✓ | `ItemPricing.Price` KDV'yi kalemde `Money.VatOf` ile bir kez yuvarlar; `SumOrderTotal` = kalemlerin ödenen tutarı + kargo (üç × 0,10: kalem KDV toplamı 0,06 ≠ toplamın KDV'si 0,05) |
+| 5 | ✓ | Sıra kodda sabit: birim × adet (yuvarlanmaz) → kupon payı → kalandan KDV, matrah fark; 83,33 × 2, pay 16,67 → KDV 25,00 (kuponsuz olsa 27,78); 1000 turlu özellik testi |
+| 6 | ✓ | `Money.Round` `AwayFromZero` (12,345 → 12,35); `Allocate` parçaları aşağı, artık en büyük ağırlıkta (100 / 3 → 33,34 + 33,33 + 33,33; kargo 10,00 → 4,28 + 5,72) |
+| 7 | ✓ | `ItemPricing.IsValidPrice` = panelin `InvalidAmountAttribute`'u (sıfır, negatif, üç ondalık, tavan üstü red); `PriceLabelGuard` (varyant + fiyat geçmişi), `ck_variants_price_above_zero`; para `decimal` (`TimeAndMoneyRulesTests`) |
+| 8 | ✓ | `ProductDefinitionRules`: fizikselde üretim yeri her durumda zorunlu, hizmette yasak, dijitalde isteğe bağlı; `PriceLabelRules.ShowsOrigin`; tarih başlamış son `PriceHistory` satırından (`TimeProvider`); birim ürünün (dokuz değerli kapalı liste), net miktar varyantın — birimliyken boş/sıfır red, birimsizken dolu red, iki yönden (`AUnitGivenLater_…`); birim fiyat temel birim için, satış fiyatına eşitse gösterilmez |
+
+**Elle sınama (para kodu):** `02 §3.8.3` ve `09 §14.1`'den bağımsız olarak (Python `Decimal`, `ROUND_HALF_UP` / `ROUND_DOWN`) hesaplanan değerler testlerin beklentileriyle birebir: 12,345 → 12,35, 12,344 → 12,34; 100 × 3, pay 30, %20 → 300 / 270 / 45,00 / 225,00; 83,33 × 2, pay 16,67 → 25,00 / 124,99; 45,50 %10 → 4,14 / 41,36; 0,07 × 3 %20 → 0,035 yukarı 0,04; kargo 10,00 (150 : 200) → 4,28 + 5,72, KDV 0,71 + 0,52; birim fiyat 0,01 / 16 g → 0,625 yukarı 0,63.
+
+**Task satırları (`12 §7.5`):** VAL-A013, A014, A015, A017, A165, A166, A168, A169 `BEKLEMEDE` kalır — beklenen sonuçları ürün sayfası ya da panel uç yanıtı / tarayıcı gözlemidir; KP-5'in ve KP-39'un satırlarını kapatan task'lar T503 ve T525'tir (`11 §7`); T336 bu satırların modül düzeyindeki ön koşullarını kurar. `12_matris_denetle.py --kapsam 1-77`: hata 0.
+
+**Testler (birleşik ağaç `fc75b58`):** `dotnet build -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` üç proje temiz; Unit 955 (Architecture) + 241 (Consistency) + 3092 = 4288 / 4288; betik testleri 4 / 4; Integration (yerel PostgreSQL 18, parçalı) PriceAndVat 19, StockAndCapacity + ProductGallery 45, ProductTransitions + SearchEngineData 59, PaymentTransitions + OrderTransitions 64, ShipmentTransitions 94, dokunulan Model sınıfları 220, Concurrency + ImageFiles + AppCache + SitemapEndpoint + VersionedFormPage 85 — hepsi yeşil. Dal CI 42430213489 (`32173b1`) bütün işler yeşil.
+
+**`09 §25`:** doküman uyumu ✓ (adlar `06 §4.5`, §4.6, §4.17, §4.18 ile birebir); kapsam ✓ (uç, sayfa, şema, ayar yok); modül sınırı ✓ (arayüz yöntemleri saf ya da düz okuma, `SaveChanges` yok); para yalnız `Money` ✓; zaman `TimeProvider` ✓; göç / paket / güvenlik uç soruları uygulanamaz (yok). **Güvenlik:** sır yok; yetki etkisi yok; girdi doğrulaması sıkılaştı (bekçiler); yeni bağımlılık yok.
+
+**Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu kriter ve KK başına kanıtlı. Test Sonuçları tablosundaki Unit sayısı (4115) eski koşunun; güncel sayılar birleştirme öz denetimlerinde.
 
 ## Altyapı Değişiklikleri
 

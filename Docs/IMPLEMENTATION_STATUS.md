@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T336 (Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri) doğrulama tur 3 içerikte temiz, main ile kod çakışması nedeniyle BLOCKED → `origin/main` (T339 `9bb46eb`, T341 `e2e9dbc`) dala birleştirildi (dal `task/T336-fiyat-kdv`, PR #444): `CatalogModule.cs`, `ICatalogModule.cs`, `SitemapSourceTests.cs`, `SearchEngineDataTests.cs` iki tarafın eklemeleriyle birlikte; T339'un `ProductGalleryTests` tohumu fiziksel ürüne üretim yeri alır (`.WithSeededOrigin()`, yalnız tohum; iki tarafın davranışı ve tutar/KDV mantığı değişmedi); birleşik dalda derleme `-warnaserror` 0 uyarı, format temiz, Unit 4286 / 4286 (Architecture 955, Consistency 241 dahil), Integration parçalı yeşil (ProductGallery 18, PriceAndVat + StockAndCapacity 46, ProductTransitions 41, SearchEngineData + SitemapEndpoint 28 ve fiziksel ürün tohumlayan on bir sınıf 359; yerel PostgreSQL 18); kriter 1–8 ve KK1–KK8 öz denetimde birleşik ağaçta yeniden ✓; backlog Aktif kalem satırlar sayılarak 164 (⚪ 161 + 🟡 3); doğrulama tur 4 bekliyor. Önceki kayıt `STATUS_CHANGELOG.md`'de.
+**Son güncelleme:** 2026-11-08 — T336 (Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri) doğrulama tur 4 ✓ PASS (head `32173b1` + `origin/main` (T317, `7097c01`) birleştirmesi, PR #444; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 1–3 içerikte temiz, main ile kod çakışması nedeniyle BLOCKED idi; birleşik ağaçta Unit 4288 (Architecture 955, Consistency 241), betik testleri, Integration parçalı yeşil (PriceAndVat 19, StockAndCapacity + ProductGallery 45, ProductTransitions + SearchEngineData 59, Payment + OrderTransitions 64, ShipmentTransitions 94, dokunulan Model 220, Web/Concurrency 85); dal CI 42430213489 yeşil; para kodu elle sınandı; bulgu 0, yeni K-notu yok; `12` `Durum` değişmedi (KP-5/KP-39 satırları T503/T525'in sayfa ve uç kanıtını ister); backlog aktif 165). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -175,7 +175,7 @@
 | T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ⬚ | — | — | — |
 | T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ✓ | ✓ PASS (tur 1) | — | #443 |
 | T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ⬚ | — | — | — |
-| T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ⏳ | — | — | #444 |
+| T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ✓ | ✓ PASS (tur 4) | — | #444 |
 | T337 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | ⬚ | — | — | — |
 | T338 | Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması | ⬚ | — | — | — |
 | T339 | Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti | ✓ | ✓ PASS (tur 2) | — | #445 |

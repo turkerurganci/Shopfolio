@@ -9,6 +9,10 @@
 
 ---
 
+## 2026-11-08 — T336 (Fiyat ve KDV) doğrulama tur 3 BLOCKED, main (T339, T341) birleştirildi
+
+2026-11-08 — T336 (Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri) doğrulama tur 3 içerikte temiz, main ile kod çakışması nedeniyle BLOCKED → `origin/main` (T339 `9bb46eb`, T341 `e2e9dbc`) dala birleştirildi (dal `task/T336-fiyat-kdv`, PR #444): `CatalogModule.cs`, `ICatalogModule.cs`, `SitemapSourceTests.cs`, `SearchEngineDataTests.cs` iki tarafın eklemeleriyle birlikte; T339'un `ProductGalleryTests` tohumu fiziksel ürüne üretim yeri alır (`.WithSeededOrigin()`, yalnız tohum; iki tarafın davranışı ve tutar/KDV mantığı değişmedi); birleşik dalda derleme `-warnaserror` 0 uyarı, format temiz, Unit 4286 / 4286 (Architecture 955, Consistency 241 dahil), Integration parçalı yeşil (ProductGallery 18, PriceAndVat + StockAndCapacity 46, ProductTransitions 41, SearchEngineData + SitemapEndpoint 28 ve fiziksel ürün tohumlayan on bir sınıf 359; yerel PostgreSQL 18); kriter 1–8 ve KK1–KK8 öz denetimde birleşik ağaçta yeniden ✓; backlog Aktif kalem satırlar sayılarak 164 (⚪ 161 + 🟡 3); doğrulama tur 4 bekliyor.
+
 ## 2026-11-08 — T317 (Ödeme durumu geçişleri: ödeme ekseni) doğrulama tur 3 ✓ PASS (PR #441)
 
 2026-11-08 — T317 (Ödeme durumu geçişleri: ödeme ekseni) doğrulama tur 3 ✓ PASS (head `24be2b5` + `origin/main` (`9bb46eb`, T339, #445) birleştirmesi, PR #441; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 2 B1 giderildi — ödenmemiş iptalin tek yolu `CancelOrderAsync`, Ö1'in tek yolu ödeme ekseni (D-389); Unit Architecture 933 + Consistency 241 + öteki 2942, betik testleri, Integration yerelde PaymentTransitions 33, OrderTransitions 31, ShipmentTransitions 94, Disposal 45 ve 4 geçici yoklama; dal CI 42421489591 yeşil; bulgu 0; K1 bu PR'da kapatıldı (D-291 metni güncel yola ve test adına bağlandı); `12` `Durum` değişmedi (KP-18 satırları sayfa ve uç kanıtı ister); backlog aktif 154).

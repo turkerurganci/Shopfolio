@@ -17,6 +17,7 @@ internal sealed class SettingsModule : ISettingsModule
     private readonly LegalTexts _legalTexts;
     private readonly LegalTextGenerator _generator;
     private readonly ProvinceList _provinces;
+    private readonly DeliveryProvinces _delivery;
 
     public SettingsModule(
         CompanyIdentities identities,
@@ -26,9 +27,11 @@ internal sealed class SettingsModule : ISettingsModule
         FirmSettings firm,
         LegalTexts legalTexts,
         LegalTextGenerator generator,
-        ProvinceList provinces)
+        ProvinceList provinces,
+        DeliveryProvinces delivery)
     {
         _provinces = provinces;
+        _delivery = delivery;
         _identities = identities;
         _writer = writer;
         _gates = gates;
@@ -112,6 +115,23 @@ internal sealed class SettingsModule : ISettingsModule
     public async Task SynchronizeGeneratedLegalTextsAsync(CancellationToken ct) => await _generator.RegenerateAsync(ct);
 
     public Task<IReadOnlyList<ProvinceInfo>> GetProvincesAsync(CancellationToken ct) => _provinces.GetAllAsync(ct);
+
+    public Task<DeliveryProvincesSection> GetDeliveryProvincesAsync(CancellationToken ct) => _delivery.ReadAsync(ct);
+
+    public async Task<SettingsSaveResult> SaveDeliveryProvincesAsync(IReadOnlyCollection<Guid> provinceIds, int formVersion, CancellationToken ct)
+    {
+        SettingsSaveResult result = await _delivery.SaveAsync(provinceIds, formVersion, ct);
+        if (result.IsSaved)
+        {
+            // The delivery restriction belongs to the pre-information form (02 3.24.3, 3.33.3): the generator runs under the row lock this save still holds and writes a version only
+            // when the generated text differs (D-221, D-493).
+            await _generator.RegenerateAsync(ct);
+        }
+
+        return result;
+    }
+
+    public Task<DeliveryArea> GetDeliveryAreaAsync(CancellationToken ct) => _delivery.GetAreaAsync(ct);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddSettingsModule</c> once.</summary>
@@ -127,6 +147,7 @@ internal static class SettingsModuleRegistration
         services.AddScoped<LegalTexts>();
         services.AddScoped<LegalTextGenerator>();
         services.AddScoped<ProvinceList>();
+        services.AddScoped<DeliveryProvinces>();
 
         // The privacy notice condition is bound here (T366) before the defaults below; the payment conditions are unbound until their tasks register an implementation in
         // place of these (T352, T353): unbound is not met.

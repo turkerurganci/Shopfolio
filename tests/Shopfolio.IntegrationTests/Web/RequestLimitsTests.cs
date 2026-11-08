@@ -186,8 +186,7 @@ public sealed class RequestLimitsTests
         List<string> logs = [];
         EndpointCalls calls = new();
         await using WebApplicationFactory<Program> factory = Open(Clock(), calls: calls, logDirectory: logs);
-        factory.UseKestrel(0);
-        factory.StartServer();
+        factory.Start();
         using HttpClient client = factory.CreateClient();
 
         long[] accepted = [1000, ceiling - 1, ceiling];
@@ -234,8 +233,7 @@ public sealed class RequestLimitsTests
     public async Task OnARealServer_ARefusedChunkedBody_IsNotAnUnexpectedError_AndTheMachineEndpointAnswersWithNoBody()
     {
         await using WebApplicationFactory<Program> factory = Open(Clock());
-        factory.UseKestrel(0);
-        factory.StartServer();
+        factory.Start();
         using HttpClient client = factory.CreateClient();
 
         using HttpResponseMessage machine = await client.SendAsync(RealRequest(MachinePath, (64 * Kilobyte) + 1, chunked: true, "m"), Ct);
@@ -253,8 +251,7 @@ public sealed class RequestLimitsTests
     {
         List<string> logs = [];
         await using WebApplicationFactory<Program> factory = Open(Clock(), logDirectory: logs);
-        factory.UseKestrel(0);
-        factory.StartServer();
+        factory.Start();
         using HttpClient client = factory.CreateClient();
         Shopfolio.Infrastructure.Errors.UnexpectedErrorCounter counter = factory.Services.GetRequiredService<Shopfolio.Infrastructure.Errors.UnexpectedErrorCounter>();
         int before = counter.CountWithin(TimeSpan.FromMinutes(15));

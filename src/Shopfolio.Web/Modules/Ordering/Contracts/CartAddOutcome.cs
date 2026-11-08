@@ -17,4 +17,10 @@ public enum CartAddOutcome
 
     /// <summary>The variant is sold out and cannot be added (02 3.6.4).</summary>
     SoldOut,
+
+    /// <summary>The quantity the line would hold is above what can be bought now ("Bu adette stok yok"; 02 3.16.8). The cart is not changed and the message gives no number.</summary>
+    NoStock,
+
+    /// <summary>The quantity of the product's lines together would pass the firm's per-order limit (02 3.16.9); the result carries the limit. It wins over <see cref="NoStock"/>.</summary>
+    OverOrderLimit,
 }

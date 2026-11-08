@@ -111,6 +111,8 @@ public sealed class SitemapSourceTests
 
         public Task<ImageUploadResult> UploadImageAsync(byte[] content, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<bool> ImageExistsAsync(Guid imageId, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<DigitalFileLocation?> FindDownloadFileAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<UploadStartResult> StartUploadAsync(string? fileName, long sizeBytes, CancellationToken ct) => throw new NotSupportedException();
@@ -183,5 +185,11 @@ public sealed class SitemapSourceTests
             Reads++;
             return Task.FromResult(paths);
         }
+
+        public Task<BrandingSection> GetBrandingAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<BrandingSaveResult> SaveBrandingAsync(BrandingInput input, int formVersion, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<BrandIdentity> GetBrandIdentityAsync(CancellationToken ct) => throw new NotSupportedException();
     }
 }

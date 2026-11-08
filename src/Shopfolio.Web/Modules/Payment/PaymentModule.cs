@@ -156,6 +156,38 @@ internal sealed class PaymentModule : IPaymentModule
         return _db.Refunds.Local.Any(r => r.OrderId == orderId && r.VoidedAt is null);
     }
 
+    public async Task<IReadOnlySet<Guid>> FindSettledRefundSubjectsAsync(IReadOnlyCollection<Guid> subjectIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(subjectIds);
+        HashSet<Guid> settled = [];
+        if (subjectIds.Count == 0)
+        {
+            return settled;
+        }
+
+        // A sent refund is done; a voided one never goes (06 4.33). Each subject reaches its refund through its own link.
+        Guid[] ids = [.. subjectIds.Distinct()];
+        List<RefundLinks> refunds = await _db.Refunds.AsNoTracking()
+            .Where(r => (r.SentAt != null || r.VoidedAt != null)
+                && ((r.CancellationId != null && ids.Contains(r.CancellationId.Value))
+                    || (r.LateDeliveryTerminationId != null && ids.Contains(r.LateDeliveryTerminationId.Value))
+                    || (r.ReturnId != null && ids.Contains(r.ReturnId.Value))))
+            .Select(r => new RefundLinks(r.CancellationId, r.LateDeliveryTerminationId, r.ReturnId))
+            .ToListAsync(ct);
+        foreach (RefundLinks refund in refunds)
+        {
+            foreach (Guid? link in new[] { refund.CancellationId, refund.LateDeliveryTerminationId, refund.ReturnId })
+            {
+                if (link is { } id && ids.Contains(id))
+                {
+                    settled.Add(id);
+                }
+            }
+        }
+
+        return settled;
+    }
+
     public async Task<bool> IsCancellationRefundUnderwayAsync(IReadOnlyCollection<Guid> cancellationIds, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(cancellationIds);
@@ -245,6 +277,9 @@ internal sealed class PaymentModule : IPaymentModule
             refund.VoidedAt is not null,
             isFirmRetry);
     }
+
+    /// <summary>The three subject links of a settled refund, as <see cref="FindSettledRefundSubjectsAsync"/> reads them.</summary>
+    private sealed record RefundLinks(Guid? CancellationId, Guid? LateDeliveryTerminationId, Guid? ReturnId);
 }
 
 /// <summary>

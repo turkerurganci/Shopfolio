@@ -67,6 +67,7 @@ internal sealed class OrderAccess
                 o.PaymentStatus,
                 o.PaymentMethod,
                 o.BankTransferIban,
+                o.PaymentWindowEndsAt,
                 o.Carrier,
                 o.OtherCarrierName,
                 o.TrackingNumber,
@@ -92,6 +93,9 @@ internal sealed class OrderAccess
 
         string? iban = order.PaymentMethod == PaymentMethod.BankTransfer ? order.BankTransferIban : null;
         ShippingDisplay shipping = CarrierCatalog.Default.Describe(order.Carrier, order.OtherCarrierName, order.TrackingNumber, order.IsOwnVehicleDelivery);
-        return new OrderPageSummary(order.Id, order.OrderNumber, order.OrderStatus, order.PaymentStatus, shipping, downloads, iban);
+        DateTimeOffset? transferEndsAt = order.PaymentMethod == PaymentMethod.BankTransfer && order.PaymentStatus == PaymentStatus.Pending && order.OrderStatus == OrderStatus.Placed
+            ? order.PaymentWindowEndsAt
+            : null;
+        return new OrderPageSummary(order.Id, order.OrderNumber, order.OrderStatus, order.PaymentStatus, shipping, downloads, iban, transferEndsAt);
     }
 }

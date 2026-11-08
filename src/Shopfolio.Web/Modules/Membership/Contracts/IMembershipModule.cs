@@ -1,5 +1,7 @@
 using System.Net;
 
+using Shopfolio.Modules.Catalog.Contracts;
+
 namespace Shopfolio.Modules.Membership.Contracts;
 
 /// <summary>
@@ -57,4 +59,43 @@ public interface IMembershipModule
 
     /// <summary>The member changes the account's name (02 3.13.21): an empty name is refused; no verification is asked again and no order's recipient name is touched.</summary>
     Task<NameChangeResult> ChangeNameAsync(Guid customerId, string name, CancellationToken ct);
+
+    /// <summary>
+    /// The member's address book (T344; 02 3.14.1; 07 UC-70): the entries, oldest first, each with the province's name; read only. A guest has no book - the caller has no customer id to ask
+    /// with.
+    /// </summary>
+    Task<IReadOnlyList<AddressBookEntry>> GetAddressBookAsync(Guid customerId, CancellationToken ct);
+
+    /// <summary>One entry of the member's book for the edit form (07 UC-70): empty when it is not the member's or is gone - the answer is the same (07 2.3.3).</summary>
+    Task<AddressBookEntry?> GetAddressBookEntryAsync(Guid customerId, Guid entryId, CancellationToken ct);
+
+    /// <summary>
+    /// A new entry in the member's book (02 3.14.1, 3.14.6; 07 UC-71): in the caller's transaction, which saves. The name, the recipient's name, the province from the closed list, the
+    /// district and the open address are required; the telephone is optional and, when given, a Turkish number. A province that is not in the list of 81 is <c>InvalidProvince</c>. A
+    /// province the firm does not deliver to is kept - the restriction works at the payment step (T350).
+    /// </summary>
+    Task<AddressBookSaveResult> CreateAddressBookEntryAsync(Guid customerId, AddressBookInput input, CancellationToken ct);
+
+    /// <summary>
+    /// The member's edit of an entry (07 UC-72): the same fields and rules as the new entry. An entry that is not the member's, or is gone, is not found whatever the fields are. No order
+    /// is touched - an order froze its addresses (02 3.14.5).
+    /// </summary>
+    Task<AddressBookSaveResult> UpdateAddressBookEntryAsync(Guid customerId, Guid entryId, AddressBookInput input, CancellationToken ct);
+
+    /// <summary>The member's deletion of an entry (07 UC-73; no confirmation is asked): deleted, or not found when it is not the member's or was gone. No order is touched (02 3.14.5).</summary>
+    Task<AddressBookDeleteResult> DeleteAddressBookEntryAsync(Guid customerId, Guid entryId, CancellationToken ct);
+
+    /// <summary>
+    /// The addresses a basket asks for by the types of its items (02 3.14.4): at least one physical item asks the shipping and the billing address (the billing one may be the shipping
+    /// one); digital and service items only ask the billing address and show no shipping field. A basket with no item is an <see cref="ArgumentException"/>.
+    /// </summary>
+    AddressRequirement GetAddressRequirement(IReadOnlyCollection<ProductType> itemTypes);
+
+    /// <summary>
+    /// The address part of an order (02 3.14.1-3.14.6; 07 UC-27): in the caller's transaction, which saves. The addresses the basket asks for are checked, every refused field together, and the
+    /// values to freeze are returned; a member's typed shipping address is written to the book only when the member chose to keep it (K-680), a guest has none. The shipping address always
+    /// carries a telephone - a book entry without one takes the one typed on the step - and the billing address carries none. The caller writes the returned values into the order's own
+    /// columns: the order keeps no link to a book entry, so an entry's later change or deletion never reaches it (02 3.14.5). The delivery province restriction is T350's.
+    /// </summary>
+    Task<OrderAddressResolution> ResolveOrderAddressesAsync(OrderAddressRequest request, CancellationToken ct);
 }

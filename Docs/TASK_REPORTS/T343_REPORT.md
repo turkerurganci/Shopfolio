@@ -1,6 +1,6 @@
 # T343 — Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulamaya hazır) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -71,10 +71,79 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | (doğrulayıcı doldurur) |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-08) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (D-577, D-578'e forward) |
+
+### Doğrulama Sonucu — T343 Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma — tur 1
+
+**Tarih:** 2026-11-08   **Branch:** `task/T343-google-giris`   **Commit:** `b067fd6d` (+ `origin/main` `26fd3a96` birleştirmesi)
+
+#### Verdict: ✓ PASS
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş; `core.hooksPath` = `scripts/git-hooks` |
+| Ana dal CI (son 3) | ✓ | 42480365166 success · 42480365007 success · 42479203249 success |
+| Memory drift | — | Adım 0b kaldırıldı (2026-11-08) |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Yalnız Google; Facebook yok | ✓ | `SingleSocialSignInScanTests` (kaynak taraması + ihlal örnekleri) yeşil; `src` altında başka sağlayıcı adı yok |
+| 2 | Kimlik bilgisi kurulum ayarı; düğme yok, panelde anahtar yok | ✓ | `IsGoogleSignInOpen` yalnız `ConditionalLine.GoogleSignIn` açıkken; kapalıyken `Unavailable`, hiçbir şey yazılmaz (KK2 iki test); `Modules/Settings` altında Google anahtarı yok (grep) |
+| 3 | Tek hesap, iki yol; bekleyen kayıt silinir | ✓ | `GoogleSignIns.SignInAsync` hesap satırını kilitler, doğrulanmış hesaba girer; bekleyen kayıt `ExecuteDelete` + imha kaydı; kapı kapalıyken durur (KK3 testleri) |
+| 4 | Yetkisiz adreste bağ/oturum yok; teyit, Z-2, tek geçerli, e-posta değişince geçersiz | ✓ | `GoogleAddressAuthority` (`gmail.com` tam ya da `hd`); teyit kilit altında (D-234 eş zamanlı test); `ConfirmGoogleLinkAsync` tek koşullu tüketim, oturum yok; süre ve adres değişince geçersiz (KK4 testleri) |
+| 5 | Şifresiz başlar; sıfırlama şifre belirler | ✓ | `Customer.Create(passwordHash: null)`; `TheResetFlow_OnAPasswordlessGoogleAccount_SetsThePassword_KK5` |
+| 6 | E-posta doğrulanmadan değişmez | ✓ | `RequestAsync` yalnız bekleyen kaydı yazar, bağlantı yeni adrese; adres `VerifyNewEmailAsync`'te değişir (KK6 testleri) |
+| 7 | Bağlama kuralı yeni adres için; Google bağı kalkar; eski siparişler kalır | ✓ | `VerifyNewEmailAsync` `GoogleLinkedAt = null`, `LinkGuestOrdersAsync(yeni adres)`; KK7 testi |
+| 8 | Eski adrese geri alma bağlantısı; Z-45'te eski adres silinir | ✓ | `EmailChangeRevert` bağlantısı `PreviousEmail` ile, bildirim; gece imhası (`TemporaryRecordParts`) KK8 testi |
+| 9 | Yeniden ve yerine geçen istek L-9; Google sayılmaz | ✓ | `CountedOverLimitAsync` (L-9 e-posta + IP); ilk istek sayılmaz (`02 §8.2` L-9); KK9 testleri |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı |
+|---|---|---|---|---|---|
+| VAL-B021, A091, A093, A094, A095, A100, A102 | ORTA / KRİTİK | mock / yok | BEKLEMEDE | BEKLEMEDE | — (kanıt türü uç yanıtı/tarayıcı; sayfa task'ları T515, T517) |
+| VAL-A092 | KRİTİK | mock | BEKLEMEDE | BEKLEMEDE | — (uç yanıtı, T515) |
+
+KP-27'nin öteki satırları (A096–A099, A101, A103, C028, C029, C116, D017) T342/T344/T519 kapsamında; değişmedi. `12_matris_denetle.py --kapsam 1-77` → Hata 0.
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1–KK9 (yukarıdaki kanıtlar)
+- [x] `09 §25`: modül sınırı (yalnız `Contracts`, `SaveChanges` yok), zaman `TimeProvider`'dan, kilit sırası (hesap → bağlantı), mimari testler yeşil
+- [x] Güvenlik taraması
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata (birleştirmeden önce ve sonra) |
+| Biçim | ✓ | `dotnet format <proje> --verify-no-changes --no-restore` (3 proje) | çıkış 0 |
+| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 4743/4743; `origin/main` birleştirmesinden sonra 4765/4765 |
+| Betik | ✓ | `bash tests/scripts/run-script-tests.sh` | 4/4 |
+| Integration | ✓ | `--filter-class ...MembershipTests --filter-class ...AddressTests` (konteyner `shopfolio-t343-val-pg`) | 110/110 |
+| Dal CI | ✓ | `gh pr checks 468` | run 42483471276 (`b067fd6d`) tüm işler pass |
+| Kilit | ✓ | `dotnet restore Shopfolio.slnx --locked-mode` | çıkış 0 |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz
+- Auth etkisi: Temiz — yetkisiz adreste bağ ve oturum yok; teyit ve doğrulama bağlantıları yalnız `OnPost` (`LinkKeySourceScan`); hesap satırı kilidi altında karar
+- Input validation: Temiz — adres boş/biçim denetimi, normalleştirme
+- Yeni bağımlılık: Yok
+
+#### Bulgular
+Yok.
+
+#### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | Google ile doğan hesapta o adresin geçmiş misafir siparişleri bağlanmıyor (`03 §9.1.6`, `07 §2.2.5`, `02 §3.13.2`); `OpenAccountAsync` hesabı yalnız bağlama ekler, kaydı çağıran yapar; D-556 bu adımı anmıyor | D-577 → T515 |
+| K2 | `VerifyNewEmailAsync`'teki `catch (DbUpdateException)` `ExecuteUpdateAsync` çevresinde; EF toplu güncellemede sağlayıcı hatasını sarmıyorsa yarışta `Taken` yerine istisna döner (işlem yine geri alınır). `EmailChange_Resend_OverTheLimit_...` testi önceki geçerli bağlantıyı değil ilk (yerine geçilmiş) bağlantının `Missing` olmadığını sınıyor | D-578 → T519 |
+
+#### Yapım Raporu Karşılaştırması
+- Uyum: kriterlerde tam uyumlu; öz denetim tablosu var, her madde kanıtlı.
+- Uyuşmazlık 1: rapor ve D-556, Google ile doğan hesapta misafir siparişlerinin bağlanmasını anmıyor (K1).
 
 ## Altyapı Değişiklikleri
 
@@ -102,6 +171,8 @@ Dış varsayım: yok. Google'a gerçek çağrı yok; kimlik `GoogleIdentity` ola
 | 3 | Kendi adresine istek için ayrı hata kodu | D-555 | `ErrorCode`/`07` değişikliği (⚠: `EmailTakenByOtherAccount` kullanıldı) |
 | 4 | Doğan hesapta kaydet-sonra-oturum sırası ve yeniden deneme | D-556 | sayfa task'ı (T515) |
 | 5 | `07` UC-51/53 sözleşme metni ekleri | D-557 | ilk sayfa task'ı |
+| 6 | Google ile doğan hesapta misafir siparişlerinin bağlanması (doğrulama K1) | D-577 | kayıttan sonra; sayfa task'ı (T515) |
+| 7 | `ExecuteUpdate` çevresindeki `DbUpdateException` yakalaması ve L-9 aşım testinin zayıf iddiası (doğrulama K2) | D-578 | T519 aynı dosyaya dokunur |
 
 ## Notlar
 

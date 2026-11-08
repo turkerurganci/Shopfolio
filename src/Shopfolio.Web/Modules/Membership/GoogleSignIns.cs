@@ -98,7 +98,12 @@ internal sealed class GoogleSignIns
         string email = (identity.Email ?? string.Empty).Trim();
         if (email.Length == 0 || EmailRule.GetValidationResult(email, new ValidationContext(email)) is not null)
         {
-            await _logins.RecordAsync(ipAddress, AccountType.Customer, email, LoginOutcome.Failed, ct);
+            // An empty address names no account, so there is nothing to record (the login record's address is required).
+            if (email.Length > 0)
+            {
+                await _logins.RecordAsync(ipAddress, AccountType.Customer, email, LoginOutcome.Failed, ct);
+            }
+
             return GoogleSignInResult.Refused(email.Length == 0 ? ErrorCode.FieldRequired : ErrorCode.InvalidEmail);
         }
 

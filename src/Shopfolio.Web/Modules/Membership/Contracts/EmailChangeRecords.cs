@@ -4,16 +4,6 @@ using Shopfolio.Modules.Membership.Contracts.Results;
 
 namespace Shopfolio.Modules.Membership.Contracts;
 
-/// <summary>Which of the account links the shared landing page (07 UC-52, E-21) opened: the registration's, the new address's or the Google confirmation's.</summary>
-public enum EmailLinkKind
-{
-    Registration,
-
-    NewAddress,
-
-    GoogleConfirmation,
-}
-
 /// <summary>The reading of one of the three links of the landing page: its kind and status and the account it belongs to. Only reads (MK-51); a key of another type is <see cref="VerificationLinkStatus.Missing"/>.</summary>
 public sealed record EmailLinkReading(EmailLinkKind? Kind, VerificationLinkStatus Status, Guid? CustomerId);
 

@@ -165,7 +165,7 @@ internal sealed class EmailChanges
     }
 
     /// <summary>
-    /// The new address's button (02 3.13.14; 07 UC-53): the account's row is locked, the link is consumed with one conditional update, the address changes, the Google link goes, the
+    /// The new address's button (02 3.13.14; 07 UC-53): the address changes (which holds the account's row), the Google link goes, the link is consumed with one conditional update, the
     /// unverified pending registration of the address is deleted in the same transaction, the old address gets the notice with the revert link and the new address's guest orders fall to
     /// the account. A refusal rolls the caller's transaction back, which takes the consumption back (02 3.13.14, K-1080).
     /// </summary>
@@ -174,19 +174,10 @@ internal sealed class EmailChanges
         ArgumentNullException.ThrowIfNull(key);
         RequireTransaction("The new address is verified only inside a transaction (02 3.13.14; 09 6 item 3).");
 
+        // The account's lock family (05 7.3.5) is taken alone, and this command ends in the guest orders' row locks, so the account's row is held by the update of its address
+        // below, which comes before the link is consumed: the row first, then the link (05 6.1.2). A sign-in that holds the row makes the update wait; one that comes after sees the address.
         LinkReading reading = await _links.ReadAsync(key, ct);
-        if (reading.Record is not { LinkType: LinkType.NewEmailVerification, CustomerId: Guid customerId })
-        {
-            return NewEmailVerificationResult.LinkInvalid(VerificationLinkStatus.Missing);
-        }
-
-        if (!await AccountLocks.LockAsync(_db, AccountType.Customer, customerId, ct))
-        {
-            return NewEmailVerificationResult.LinkInvalid(VerificationLinkStatus.Missing);
-        }
-
-        reading = await _links.ReadAsync(key, ct);
-        if (reading.Record is not { LinkType: LinkType.NewEmailVerification, CustomerId: Guid } record || reading.State is not { } state)
+        if (reading.Record is not { LinkType: LinkType.NewEmailVerification, CustomerId: Guid customerId } record || reading.State is not { } state)
         {
             return NewEmailVerificationResult.LinkInvalid(VerificationLinkStatus.Missing);
         }
@@ -206,8 +197,8 @@ internal sealed class EmailChanges
             return NewEmailVerificationResult.LinkInvalid(VerificationLinkStatus.Expired);
         }
 
-        var account = await _db.Customers.AsNoTracking().Where(c => c.Id == customerId).Select(c => new { c.Email, c.EmailVerifiedAt }).SingleAsync(ct);
-        if (account.EmailVerifiedAt is null)
+        var account = await _db.Customers.AsNoTracking().Where(c => c.Id == customerId).Select(c => new { c.Email, c.NormalizedEmail, c.EmailVerifiedAt }).SingleOrDefaultAsync(ct);
+        if (account?.EmailVerifiedAt is null)
         {
             return NewEmailVerificationResult.LinkInvalid(VerificationLinkStatus.Missing);
         }
@@ -216,13 +207,6 @@ internal sealed class EmailChanges
         if (await _db.Customers.AsNoTracking().AnyAsync(c => c.NormalizedEmail == pending.NormalizedNewEmail && c.Id != customerId && c.EmailVerifiedAt != null, ct))
         {
             return NewEmailVerificationResult.Taken();
-        }
-
-        // One conditional update: of two requests at once exactly one takes the link (07 2.5.3).
-        if (!await _links.TryConsumeAsync(record.Id, ct))
-        {
-            LinkReading again = await _links.ReadAsync(key, ct);
-            return NewEmailVerificationResult.LinkInvalid(again.State is { } current ? MembershipModule.StatusOf(current) : VerificationLinkStatus.Missing);
         }
 
         // An unverified pending registration does not hold the address: it goes in this transaction, counted in the disposal record (02 3.13.14; K-1080).
@@ -236,16 +220,29 @@ internal sealed class EmailChanges
         {
             string newEmail = pending.NewEmail;
             string normalizedNew = pending.NormalizedNewEmail;
-            await _db.Customers
-                .Where(c => c.Id == customerId)
+            string oldNormalized = account.NormalizedEmail;
+            int changed = await _db.Customers
+                .Where(c => c.Id == customerId && c.NormalizedEmail == oldNormalized)
                 .ExecuteUpdateAsync(
                     set => set.SetProperty(c => c.Email, newEmail).SetProperty(c => c.NormalizedEmail, normalizedNew).SetProperty(c => c.GoogleLinkedAt, (DateTimeOffset?)null),
                     ct);
+            if (changed != 1)
+            {
+                // The address moved under another request that came first: nothing is changed here and the caller's rollback takes the deletion back.
+                return NewEmailVerificationResult.LinkInvalid(VerificationLinkStatus.Superseded);
+            }
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {
             // Another verified account took the address between the check and the write; the unique index stopped it and the caller's rollback takes everything back.
             return NewEmailVerificationResult.Taken();
+        }
+
+        // One conditional update: of two requests at once exactly one takes the link (07 2.5.3); a refusal rolls the address back with the caller's transaction.
+        if (!await _links.TryConsumeAsync(record.Id, ct))
+        {
+            LinkReading again = await _links.ReadAsync(key, ct);
+            return NewEmailVerificationResult.LinkInvalid(again.State is { } current ? MembershipModule.StatusOf(current) : VerificationLinkStatus.Missing);
         }
 
         await _db.PendingEmailChanges.Where(p => p.Id == pending.Id).ExecuteDeleteAsync(ct);

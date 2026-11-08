@@ -1,6 +1,6 @@
 # T350 — Teslim: il kısıtı, tek yol, kargoya verme süresi ve sözü, kargoya verildi işareti, kargo şirketi
 
-**Faz:** F3 | **Durum:** ⏳ Yapım tamam, doğrulama bekliyor | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -80,7 +80,84 @@ Yok.
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+### Doğrulama tur 1 — Doğrulama Sonucu — T350 Teslim — tur 1
+**Tarih:** 2026-11-08   **Branch:** task/T350-teslim   **Commit:** `bfdc36c` (doğrulanan head; `9c97e24` + `origin/main` `637885c` birleştirmesi), PR #460
+
+#### Verdict: ✓ PASS
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` |
+| Ana dal CI (son 3) | ✓ | 42464077677, 42464077701 (T335), 42463181128 (T318) — üçü success |
+| Memory drift | — | Adım 0b kaldırıldı (2026-11-08); aranmadı |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Teslimat illeri seçilir (varsayılan Türkiye); kapalı ilde fiziksel kalemli sipariş sebebiyle reddedilir; dijital/hizmet girmez; il düzeyi | ✓ | `DeliveryProvinces` (kilit → koşullu sürüm → izlenen satırlar → plaka kodlu iz satırı); varsayılan 81 il `InsertStartupData` göçünde; `AddressBooks.ResolveAsync` yalnız teslimat adresi (fiziksel sepet) için `DeliveryProvinceNotServed` + il adı (`Detail`); metin `04 5.13.23` ile aynı ("Bu firma Ankara iline teslimat yapmıyor."). Testler: `AddressTests …_T350KK1`, `FirmSettingsTests` 4 yeni test, `DeliveryAreaTests` 7 test — yeşil |
+| 2 | Defterdeki kapalı il adresi ödemede seçilemez | ✓ | `AddressBookEntry.IsDeliverable`; defter kaydı seçimi `AddressBookId` alanıyla reddedilir; fatura ili kısıtlanmaz. `AddressTests …_T350KK2` yeşil |
+| 3 | Tek teslimat yolu kargo; seçenek/mağaza teslimi/adlandırılmış seçenek yok | ✓ | `SingleDeliveryWayTests`: uygulama derlemesindeki tüm ad ve EF tablo/sütun taraması + yakalama/yanlış pozitif örnekleri — yeşil |
+| 4 | Tek parça, tek takip numarası; kalemler en uzun süreyi bekler | ✓ | `SingleDeliveryWayTests` (`orders.tracking_number` tek; taşıyıcı sütunları 4 tane); `ShippingPromise.OfOrder` en uzun (`ShippingPromiseTests`) |
+| 5 | Söz = kargoya verme süresi, iş günü, yalnız fiziksel; vitrin metni; çit (P-5/P-6) ve çit üstü sebepli ret | ✓ | `ShippingPromise.Effective` dijital/hizmette null; `Text` "N iş günü içinde kargoya verilir" (`02 §3.20.4`, `04 5.4.5`); `PromiseEnds` → `PeriodCounting` iş günü; ürün süresi `ProductDefinitionRules.CheckShippingPeriod` (P-6 = P-5 çiti 0–10) + kayıt bekçisi + DB check (`CatalogCoreTablesTests`); firma varsayılanı çiti `FirmSettingsTests` (11 → AboveUpper). Ürün formu ekranı reddi D-496 (T525) — ekran bu task'ın değil |
+| 6 | Ürün varsayılanı ezer, varyant devralır; sözü en uzun süre, onayda donar | ✓ | `ShippingPeriodReader` (varyant → ürünün süresi/tipi; `DiscountAndReferenceTests …_T350KK6`); `Effective` (ürün ?? firma, 0 geçerli); `Order.FreezeShippingPromise` private set + bir kez (`ShipmentTransitionsTests …_T350KK6`). Onay anındaki çağrı siparişin doğduğu T348'de: D-494 |
+| 7 | Süre ödeme onayı anında (Ö1) başlar | ✓ | `ShippingViewReader` son düzeltilmemiş Ö1'den sayar; `ShipmentTransitionsTests …_T350KK7` (2 test), `ShippingPromiseTests` (hafta sonu onayı, onay günü sayılmaz). Kart/havale yolu kriter metnince T325: D-495 |
+| 8 | Bilgisiz kargoya verildi işareti konmaz; müşteri sipariş sayfasında görür | ✓ | `S5_WithInvalidCarrierData_IsRefused_AndWritesNothing_KK7` (7 bilgisiz/yanlış bileşim, T316) yeşil; müşteri görünümü `GetShippingViewAsync` → `…_T350KK8KK9` yeşil |
+| 9 | Liste, "Diğer" adla, "Takip et" yalnız listedekinde | ✓ | `CarrierCatalog` (T310) üzerinden: listedeki şirkette bağlantı, "Diğer"de ad+numara, kendi aracında yalnız beyan — `…_T350KK8KK9` |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-A046 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (uç yanıtı ödeme adımında — T509) | — |
+| VAL-A060 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (uç ürün sayfasında — T511) | — |
+| VAL-A061 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (uç müşteri sipariş sayfasında) | — |
+| VAL-A062 | DÜŞÜK | yok | BEKLEMEDE | BEKLEMEDE (tarayıcı gözlemi; sayfa sonra) | — |
+| VAL-A063 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (uç müşteri sipariş sayfasında) | — |
+| VAL-C040 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (uç panel sipariş ekranında — T527) | — |
+| VAL-C041 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (aynı — T527) | — |
+| VAL-A293 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (uç panel ayar ekranında — T536) | — |
+| VAL-A294 | ORTA | yok | BEKLEMEDE | BEKLEMEDE (uç panel ayar ekranında — T536) | — |
+
+Satırların kanıt türü uç yanıtı / tarayıcı gözlemidir; T350 uç ve ekran yazmaz (T344 doğrulamasındaki uygulama). KP-13/KP-46/KP-59'un öteki satırları T349, T316/T318/T319, T331/T353'ündür. `12` değişmedi; `12_matris_denetle.py --kapsam 1-77` → Hata: 0.
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1–KK9 (yukarıdaki kanıtlarla)
+- [x] `09 §25` ilgili satırlar: modül sınırı (yalnız `Contracts`), arayüz yönteminde `SaveChanges` yok, bölüm sürümü + satır kilidi + koşullu güncelleme, iz satırı aynı işlemde ve kişisel veri yok (plaka kodu), zaman `TimeProvider`'dan, yeni paket/göç/değer yok (`DeliveryProvinceNotServed` mevcut kod)
+- [x] Güvenlik taraması
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Restore | ✓ | `dotnet restore Shopfolio.slnx` / `--locked-mode` | çıkış 0 |
+| Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata |
+| Biçim | ✓ | `dotnet format <proje> --verify-no-changes --no-restore` ×3 | üçü çıkış 0 |
+| Unit (+Consistency, Architecture) | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 4649/4649 |
+| Betik | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration (dokunulan sınıflar) | ✓ | Address, FirmSettings, CatalogCoreTables, DiscountAndReference, Membership, ShipmentTransitions | 244/244 |
+| Integration (komşu, gerçek modül kaydı) | ✓ | ProductPublishGate, ProductTransitions, LegalText, SalesGate, CompanyIdentity, FirmSettingDefaults, Branding, PriceAndVat, StockAndCapacity | 213/213 |
+| Dal CI | ✓ (not) | `gh pr checks 460`; `gh run list --branch task/T350-teslim` | `9c97e24`: 42461958983 success. `bfdc36c` (yalnız main birleştirmesi): 42464103500 failure — yalnız "7. Paketleme", restic indirmesinde `HTTP 504 Gateway Time-out` (dış ağ, geçici); Lint/Build/Unit/Integration/Contract/Migration yeşil. Bu turun kayıt push'u CI'ı yeniden koşturur; merge öncesi yeşil görülmeli |
+
+Konteyner `shopfolio-t350-val-pg` (port 55611) koşu sonunda `docker rm -f -v` ile silindi; `git status` temiz.
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz
+- Auth etkisi: Temiz (yeni uç yok; modül yöntemleri çağıranın yetkili işleminde)
+- Input validation: Temiz (il kimliği 81'lik kapalı listeye karşı; ürün süresi çitle, bekçi + DB check)
+- Yeni bağımlılık: Yok
+
+#### Bulgular (`12 §8.2` defect kaydı)
+Yok.
+
+#### Bloke-etmeyen Notlar (K-notları)
+Yok. (Yapımın açtığı D-493–D-496 ile D-221/D-309 güncellemeleri yerinde ve hedefli; D-436 kapanışı kodla eşleşiyor.)
+
+#### Yapım Raporu Karşılaştırması
+- Uyum: Tam uyumlu. Öz denetim tablosu var ve her maddesi kanıtlı. Sayı farkı (Unit 4562 → 4649) main birleştirmesinden.
+
+#### Merge ve Post-merge
+- Merge yapılmadı (yardımcının işi, 17–18. adımlar).

@@ -15,6 +15,10 @@ T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin
 
 ---
 
+## 2026-11-08 — T358 (Kurumsal içerik tipleri) yapım bitti
+
+2026-11-08 — T358 (Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar) yapım tamamlandı, doğrulama bekliyor (dal `task/T358-kurumsal-icerik`, PR #PRNO; kriter 1–10, KK1–KK10 ve `09 §25` öz denetimde ✓; Unit 4286 (Consistency ve Architecture dahil), Integration CorporateContent 64, format ve derleme `-warnaserror` temiz; şema yok; D-360 ✅; yeni backlog yok, aktif 152; `12` `Durum` değişmedi).
+
 ## 2026-11-08 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) düzeltme turu 1 yapıldı
 
 2026-11-08 — T339 (Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti) düzeltme turu 1 yapıldı, doğrulama tur 2 bekliyor (PR #445; `origin/main` (`af6e7d3`, T334) dala birleştirildi; B1 giderildi: `ProductGalleryTests.cs` üç tohum `Variant.Create(..., Now, 100)` ile stoklu, ürün koduna dokunulmadı; K2 → D-384 kapatıldı (test adı `…WhenTheFormMarksNone`), K1 → D-383 açık; kayıt belgesi çakışmaları çözüldü; backlog aktif 147; yeni K-notları D-391, D-392).

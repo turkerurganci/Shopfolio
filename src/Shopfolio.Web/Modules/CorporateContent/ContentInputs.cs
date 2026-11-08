@@ -38,17 +38,7 @@ internal static class ContentInputRules
     public static string? Text(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>The stored form of a telephone (06 2.5.1): the ten digits when the text is a number of the accepted forms, else the trimmed text, which the rule then refuses.</summary>
-    public static string? Phone(string? value)
-    {
-        string? text = Text(value);
-        if (text is null)
-        {
-            return null;
-        }
-
-        string compact = RequestFormat.CompactPhone(text);
-        return compact.Length == 10 && compact.All(char.IsAsciiDigit) && compact[0] != '0' ? compact : text;
-    }
+    public static string? Phone(string? value) => RequestFormat.StoredPhone(value);
 
     /// <summary>The refusals of the about page's values (02 3.27.3): only the ceiling of the short introduction; an empty about page is saved as a draft (02 3.27.24).</summary>
     public static List<FieldRejection> Check(AboutPageInput input)

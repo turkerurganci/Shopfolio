@@ -1,6 +1,6 @@
 # T360 — Duyuru şeridi, boş kurulum, içerik yayın durumu, önizleme ve silme
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamamlandı, doğrulama bekliyor) | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS; merge yardımcıda) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -75,10 +75,24 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-09, head `b7284315`; kayıt commit'inden önce `origin/main` (`a504ff84`, T349) birleştirildi, çakışma yok; birleştirme sonrası derleme, Unit 5081 ve Integration CorporateContent 111 yeşil). Kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓ |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 — K1 → D-698: şubenin yayın durumu iz satırı içerikçe sınanmıyor (`EveryKindOfRecord_…_KK6` şubeyi atlar; davranış doğru, yalnız test kapsamı) |
+
+**Doğrulayıcı kanıtları (tur 1):**
+
+| # | Kriter / KK | Sonuç | Doğrulayıcı kanıtı |
+|---|---|---|---|
+| 1 / KK1 | Tek duyuru, P-30, düz metin, aralık | ✓ | Kod: `ContentInputRules.Check(AnnouncementInput)` (tavan `ContentRules.AnnouncementTextMaxLength`, `InvalidUrlAttribute`, bitiş ≥ başlangıç); `AnnouncementReader` → `ContentVisibility.Decide(announcement, audience, TurkeyTime.DateOf(now))`; iki uç dahil, ertesi gün 00.00'da gizli (`02 §4.1.4`, T378 k7 ile aynı). Testler: `TheStrip_ShowsOnlyInsideTheDateRange_…_KK1`, `ATextOverP30_…_KK1`, `ATextOfExactlyP30Characters_…_KK1`, `TheAnnouncementIsOne_…_KK1`, `TwoFirstSaves…_KK1`, `APublishedAnnouncement_…TheTextIsNotChanged_KK1` (işaretleme ham saklanır, sayfa kaçışlı basar) |
+| 2 / KK2 | Boş kurulum | ✓ | `EmptyInstallationTests` şablon DB'de TRUNCATE'siz: 14 içerik/katalog/görsel/duyuru tablosu 0 satır; modül iki kitleye boş döner |
+| 3 / KK3 | Kaldırılan taslak; ikinci onay yok | ✓ | `ContentPublishing.UnpublishAsync` → `Draft`; `AnyOneAdministrator_Publishes_…_KK3`; `ThePublishOperations_AreTwo…_KK3` |
+| 4 / KK4 | Taslak kaydı, kapı | ✓ | Boş duyuru ve boş Hakkımızda taslak kaydedilir, yayın `[Text]` / `[ShortIntroduction]` eksikle reddedilir; yayındaki referansın başlığını boşaltan düzenleme reddedilir (`…_KK4`) |
+| 5 / KK5 | Taslak ziyaretçiye yok, yöneticiye bantlı | ✓ | `ContentVisibility.VisibleStatuses`; `ContentPageReader` (sayfa ziyaretçiye null), `FaqView/BranchView/AnnouncementView.IsDraft`; `…_KK5` testleri |
+| 6 / KK6 | Sürüm geçmişi yok; iz | ✓ | Yayın/kaldırma aynı işlemde `ChangePublishStatus` (kim: `AdminId`; eski→yeni durum); metin düzenlemesi, tekrar, ret ve silme iz yazmaz; iz yazılamazsa geri alınır (`APublicationWhoseTrailRowCannotBeWritten_IsRolledBack_…_KK6`) |
+| 7 / KK7 | Silme menü yeri, işaret, ürün bağı | ✓ | Menü görünürlüğü düşer, ana sayfa bloğu boşalır, `offering_products` / `portfolio_item_products` 0, ürün kalır; onaysız uyarı silmez, Hakkımızda `Forbidden` (`…_KK7`) |
+| 8 / KK8 | İleri tarih yalnız duyuruda | ✓ | Yansıma testleri: altı tipte gün alanı / zamanlama adı yok, yayın yöntemleri tarih parametresi almaz (`…_KK8`) |
+| 9 | `12` satırları | — | KP-36 (`VAL-A133`), KP-54 (`VAL-A146`…`A151`, `C032`…`C035`), KP-57 (`VAL-A161`, `C036`, `A162`) hep `Kanıt ortamı: yok` ve uç yanıtı / tarayıcı gözlemi ister; T360 uç ya da sayfa eklemez (sahipleri T534, T537). Servis düzeyi kanıtı bu tablodadır; `Durum` `BEKLEMEDE` kaldı (T358 emsali) |
 
 ## Altyapı Değişiklikleri
 
@@ -93,7 +107,8 @@
 - **Commit:** dalın başı (PR açıklamasında)
 - **PR:** PR açıklamasında
 - **CI:** doğrulayıcı izler
-- **Post-merge run'lar:** *(validator doldurur)*
+- **CI (dal):** run 42525208897 success (head `b7284315`; Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate pass)
+- **Post-merge run'lar:** *(merge sonrası yardımcı / sonraki kayıt PR'ı)*
 
 ## Dış Varsayımlar
 

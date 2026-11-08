@@ -13,15 +13,39 @@ namespace Shopfolio.Modules.Ordering.Contracts;
 /// S6 <see cref="MarkDeliveredAsync"/>, S7 <see cref="MarkDeliveryFailedAsync"/>, S8 <see cref="ResendOrderAsync"/>, the reasonless S9 closing
 /// <see cref="CloseReturnedOrderAsync"/>; S2, S10 and S11 have no operation of their own - they are the closure rule's, written at the end of the operation
 /// that completes it (03 1.4.3).
+/// The payment axis (T317): Ö1 <see cref="ApplyCardPaymentAsync"/> and <see cref="MarkTransferPaidAsync"/> - the one path of the approval, with the payment
+/// record (09 24 item 4) - Ö3/Ö4/Ö5 <see cref="ApplyCardRefundOutcomeAsync"/> and <see cref="ProcessTransferRefundAsync"/>; Ö2 has no operation of its own:
+/// an unpaid order's cancellation writes it with S3 in <see cref="CancelOrderAsync"/>.
 /// </summary>
 public interface IOrderTransitions
 {
     /// <summary>
-    /// S1, Placed to Preparing (03 1.2; 02 5.4): the system, together with the payment's approval and only on an order that carries at least one physical item.
-    /// With <paramref name="approvesPayment"/> the call writes the card approval Ö1 and S1 in one lock, one version raise and one B-4 row - B-4 is Ö1's notice and
-    /// S1 produces none; without it the payment is already Paid (a bank transfer marked by the administrator, whose Ö1 wrote the B-4) and the call writes S1 alone.
+    /// Applies the provider's successful card payment (05 4.5.3: the one path of the notification and the final query). On a pending order: Ö1 by the
+    /// system and, when the order carries an open physical item, S1 with it (03 1.2 S1); the payment record and B-4. On a cancelled order, and on a
+    /// paid one when the transaction id is new (K-1211): the payment record without an Ö1 and the system's card refund queued in the same transaction;
+    /// the axes stay. A transaction id already recorded does nothing (K-970).
     /// </summary>
-    Task<OrderTransitionResult> StartPreparationAsync(Guid orderId, bool approvesPayment, CancellationToken ct);
+    Task<PaymentTransitionResult> ApplyCardPaymentAsync(CardPaymentSucceeded payment, CancellationToken ct);
+
+    /// <summary>The administrator's "paid" mark on a bank transfer order: Ö1 by the administrator, S1 by the system with it (D-291), the payment record and B-4.</summary>
+    Task<PaymentTransitionResult> MarkTransferPaidAsync(TransferPaidMark mark, CancellationToken ct);
+
+    /// <summary>
+    /// Applies the outcome of a card refund request (05 4.6.2): on success Ö3, Ö4 or Ö5 by the refund's actor, B-8, and F-4 when the system refunded by
+    /// itself; on failure or an unknown outcome the axis stays, no notice goes and the panel mark is read from the refund records.
+    /// </summary>
+    Task<PaymentTransitionResult> ApplyCardRefundOutcomeAsync(CardRefundOutcome outcome, CancellationToken ct);
+
+    /// <summary>The administrator processes a bank transfer refund: the refund is sent, Ö3, Ö4 or Ö5 by the administrator, and B-8.</summary>
+    Task<PaymentTransitionResult> ProcessTransferRefundAsync(TransferRefundProcessing processing, CancellationToken ct);
+
+    /// <summary>
+    /// S1 alone, Placed to Preparing (03 1.2; 02 5.4): the system, on an order whose payment is already Paid and that carries at least one physical item; S1
+    /// produces no notice. The payment's approval is not this call's: Ö1 with S1 in one lock, one version raise and one B-4 row is written by
+    /// <see cref="ApplyCardPaymentAsync"/> or <see cref="MarkTransferPaidAsync"/>, which write the payment record with it (D-389). A pending payment is refused
+    /// by the pair rule (03 1.4.1 (c)).
+    /// </summary>
+    Task<OrderTransitionResult> StartPreparationAsync(Guid orderId, CancellationToken ct);
 
     /// <summary>
     /// S3, S4 or S9 (03 1.2; 02 5.4): the order's cancellation by the customer, the administrator with a reason, or the system; B-7 goes to the customer. An unpaid

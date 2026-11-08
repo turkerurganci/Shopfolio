@@ -18,29 +18,18 @@ namespace Shopfolio.Modules.Ordering;
 /// </summary>
 internal sealed partial class OrderTransitions
 {
-    public async Task<OrderTransitionResult> StartPreparationAsync(Guid orderId, bool approvesPayment, CancellationToken ct)
+    public async Task<OrderTransitionResult> StartPreparationAsync(Guid orderId, CancellationToken ct)
     {
-        TransitionCode[] codes = approvesPayment ? [TransitionCode.O1, TransitionCode.S1] : [TransitionCode.S1];
+        // S1 alone: Ö1 - with its payment record and B-4 - is the payment axis's one path (D-389); S1 adds no notice (03 1.2 S1).
         TransitionOutcome outcome = await ApplyChosenAsync(
             orderId,
             TransitionActor.System,
             null,
             null,
-            _ => new ChosenTransitions(codes),
+            _ => new ChosenTransitions([TransitionCode.S1]),
             async (order, token) => await _db.OrderItems.AnyAsync(i => i.OrderId == order.Id && i.ProductType == ProductType.Physical, token),
             ct);
-        if (outcome.IsRejected)
-        {
-            return Refused(outcome);
-        }
-
-        // B-4 is the payment approval's notice (Ö1); S1 adds none (03 1.2 S1). A call without the approval follows an Ö1 that wrote it already.
-        if (approvesPayment)
-        {
-            await QueueNoticeAsync(orderId, new PaymentConfirmedNotice(orderId), ct);
-        }
-
-        return Applied(outcome, []);
+        return outcome.IsRejected ? Refused(outcome) : Applied(outcome, []);
     }
 
     public async Task<OrderTransitionResult> CancelOrderAsync(CancelOrderRequest request, CancellationToken ct)

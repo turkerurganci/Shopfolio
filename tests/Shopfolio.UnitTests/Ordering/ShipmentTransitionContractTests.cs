@@ -35,9 +35,10 @@ public sealed class ShipmentTransitionContractTests
         MethodInfo[] methods = typeof(IOrderTransitions).GetMethods();
 
         Assert.NotEmpty(methods);
+        // The shipment axis returns OrderTransitionResult, the payment axis (T317) PaymentTransitionResult.
         Assert.All(methods, m =>
         {
-            Assert.Equal(typeof(Task<OrderTransitionResult>), m.ReturnType);
+            Assert.Contains(m.ReturnType, new[] { typeof(Task<OrderTransitionResult>), typeof(Task<PaymentTransitionResult>) });
             Assert.Equal(typeof(CancellationToken), m.GetParameters()[^1].ParameterType);
         });
     }
@@ -45,7 +46,10 @@ public sealed class ShipmentTransitionContractTests
     [Fact]
     public void TheShipmentAxis_HasAnOperationForS1S3S4S9AndS5ToS8_AndNoneForTheClosures_KK4()
     {
-        string[] names = typeof(IOrderTransitions).GetMethods().Select(m => m.Name).Order().ToArray();
+        // The shipment axis's operations are the ones that return OrderTransitionResult; the payment axis's (T317) return PaymentTransitionResult.
+        string[] names = typeof(IOrderTransitions).GetMethods()
+            .Where(m => m.ReturnType == typeof(Task<OrderTransitionResult>))
+            .Select(m => m.Name).Order().ToArray();
 
         // S2, S10 and S11 are written by the closure rule's last event, not by an operation of their own (03 1.2).
         string[] expected =

@@ -607,28 +607,7 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
         return (order, item);
     }
 
-    private ServiceProvider BuildProvider()
-    {
-        ServiceCollection services = new();
-        services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn));
-        services.AddScoped<JobEnqueueTracker>();
-        services.AddSingleton<IJobSignal, JobSignal>();
-        services.AddScoped<ITransactionRunner, TransactionRunner>();
-        services.AddAppCache();
-        services.AddScoped<AdvisoryLocks>();
-        services.AddSingleton(TimeProvider.System);
-        services.AddScoped<IJobQueue, JobQueue>();
-        services.AddFileStore();
-        services.AddOptions<Shopfolio.Infrastructure.InstallationSettings.StatusThresholdOptions>();
-        services.AddSingleton<Shopfolio.Infrastructure.Status.IDiskUsageReader, Shopfolio.Infrastructure.Status.DriveDiskUsageReader>();
-        services.AddSingleton<Shopfolio.Infrastructure.Status.DiskUsageGuard>();
-        services.AddSingleton<ImageProcessor>();
-        services.AddCatalogModule();
-        services.AddAfterSalesModule();
-        services.AddNoticeDependencies();
-        services.AddOrderingModule();
-        return services.BuildServiceProvider();
-    }
+    private ServiceProvider BuildProvider() => OrderingTestServices.Build(_collection.Dsn);
 
     private AppDbContext NewContext()
     {

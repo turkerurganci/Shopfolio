@@ -150,5 +150,11 @@ public sealed class SitemapSourceTests
             Reads++;
             return Task.FromResult(paths);
         }
+
+        public Task<BrandingSection> GetBrandingAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<BrandingSaveResult> SaveBrandingAsync(BrandingInput input, int formVersion, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<BrandIdentity> GetBrandIdentityAsync(CancellationToken ct) => throw new NotSupportedException();
     }
 }

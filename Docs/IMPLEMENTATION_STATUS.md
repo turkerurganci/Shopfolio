@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T341 (Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı) doğrulama tur 3 ✓ PASS (FAIL sonrası tam yeniden doğrulama; head `b2c6cca`, PR #433; kriter 1–9, KK1–KK9 ve `09 §25` ✓, güvenlik taraması temiz; tur 2 Bulgu 1 giderildi — kayıt e-postası `InvalidEmailAttribute` ile denetlenir; Unit 4069 (Consistency 241), Integration MembershipTests 34/34 ve komşu üç sınıf 95/95; dal CI 42410595147 success; `VAL-D018`…`VAL-D020` `BEKLEMEDE` kaldı (uç yanıtı sonraki task'larda); K1 → D-385 (T509). `origin/main` (T334) birleştirildi: `Modules/Ordering` iki dosyasında iki tarafın üyeleri birlikte korundu; backlog aktif sayısı yeniden sayıldı: 153; ikinci main birleştirmesi: `origin/main` (T321, #439) de birleştirildi, `OrderingModule` kurucusu ve `IOrderingModule` üyeleri iki tarafın eklemeleriyle birlikte korundu).
+**Son güncelleme:** 2026-11-08 — T362 (Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası) yapım bitti, doğrulama bekliyor (task `⏳ Devam ediyor`; kriter 1–6, KK1–KK6 öz denetimde ✓; Unit 955 + 3315 (Consistency 241), Integration BrandingTests 29 + komşu 157; şema yok; sayfa ve e-posta bağlama T534/T537; ana dal CI 42426248097 T362 dışı port çakışması).
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -201,7 +201,7 @@
 | T359 | Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler | ⬚ | — | — | — |
 | T360 | Duyuru şeridi, boş kurulum, içerik yayın durumu, önizleme ve silme | ⬚ | — | — | — |
 | T361 | Ana sayfa düzeni ve üst menü | ⬚ | — | — | — |
-| T362 | Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası | ⬚ | — | — | — |
+| T362 | Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası | ⏳ | — | — | #PRNO |
 | T363 | Sayfa adresleri, arama motoru bilgileri, kapalı sayfalar ve paylaşım | ⬚ | — | — | — |
 | T364 | Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler | ⬚ | — | — | — |
 | T365 | İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması | ⬚ | — | — | — |

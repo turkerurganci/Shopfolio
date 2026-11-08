@@ -75,6 +75,11 @@ internal sealed class BrandingSettings
     public async Task<BrandingSaveResult> SaveAsync(BrandingInput input, int formVersion, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(input);
+        if (_db.Database.CurrentTransaction is null)
+        {
+            throw new InvalidOperationException("The brand identity is written only inside the caller's transaction (09 9.1 item 3).");
+        }
+
         Branding row = await _db.Brandings.SingleAsync(ct);
         if (row.Version != formVersion)
         {

@@ -1,6 +1,6 @@
 # T337 — İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1: PASS) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -83,10 +83,40 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-08; head `7006bcc`, `origin/main` `e7f6ba0` dalın tabanında — birleştirme gerekmedi) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — D-487, D-488 (backlog'a forward) |
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = ana checkout'un `scripts/git-hooks`'u; ana dal CI son üç tamamlanmış run success — 42452259880 ve 42452259999 (`e7f6ba0`, T324 #454), 42450627470 (`ea62688`, chore #450).
+
+**Kabul kriterleri (validator kanıtı):**
+
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | Ürün başına tek `discounts` satırı (oran + iki tarih); `Discounts.SaveAsync` her varyantı `DiscountRules.DiscountedPrice(variant.Price, oran)` ile kendi fiyatından denetler, `PriceHistoryRecorder` her varyanta kendi uygulanan fiyatını yazar; `ADiscount_ComesDownToEveryVariantOnItsOwnPrice_…` (1000 → 800, 1250 → 1000) |
+| 2 | ✓ | Oran kuralı `InvalidPercentageAttribute` (0 < oran < 100, en çok iki ondalık; `FieldRules.cs`) — 100 ve 0 red (`TheRate_IsAboveZeroAndBelowOneHundred_…`); sıfıra yuvarlanan varyant kayıttan önce `DiscountedPriceZero` (0,01 × 0,40 = 0,004 → 0,00); `VariantPrices.ChangeAsync` indirim bitmemişken sıfıra indiren fiyatı reddeder, bitince serbest (`WhileTheDiscountHasNotEnded_…`); ret, çağıran kaydetse de satır bırakmaz |
+| 3 | ✓ | `StartsAt` = `TurkeyTime.StartOf(StartDate)`, `EndsAt` = `TurkeyTime.EndOfRange(EndDate)` (T378 yardımcısı; `09 §7.1` (3) — 23:59 karşılaştırması yok); `TheScheduler_OpensTheDiscountAtMidnight…`: başlangıçtan bir tik önce borç yok, 00.00'da var; 6 saat geç gelen zamanlayıcı satırı 00.00'a yazar; bitiş günü 23:59'da hâlâ indirimli, ertesi 00.00'da kapanır ve liste fiyatı o anla yazılır (`02 §4.1.4`, K-1559) |
+| 4 | ✓ | Sözleşme düzleminde: `DiscountLine(…, StartDate, EndDate)` etikette (`PriceLabel.Discount`) ve kartta (`ProductListItem.Discount`), yalnız indirim sürerken; `TheRunningDiscountsDates_AreOnTheLabelAndOnTheCard_…` (başlamadan önce null). Sayfalar `11`'de T502/T503'ün (T503 kaynakları `02 §3.9.2`'yi anar) — D-477 |
+| 5 | ✓ | `SaveDiscountAsync(productId, percentage, startDate, endDate, ct)` referans almaz; `products`, `variants`, `discounts`, `price_histories`'te `%reference%` sütunu yok (`TheReference_HasNoColumn_…`); referans her okumada geçmişten hesaplanır (`PriceHistoryReads.ReferencesAsync`); geçmişin tek yazıcısı `PriceHistoryRecorder`, satır güncellenmez (`CatalogRecordsGuard`) |
+| 6 | ✓ | `ReferencePriceRules.RuleOf`: hizmet ve `Perishable` → hemen önceki; fiziksel, dijital ve `ExpiryDated` → 10 günün en düşüğü (pencere açılışında yürürlükteki fiyat dahil, yayın durumuna bakılmaz); `OnGoods_APriceSetWhileOffSale_…` (taslakta 70 → referans 70; %25 = 75 red, %31 = 69 kabul), `AnEarlierCampaignsDiscountedPrice_LowersTheReference` (dijital; 85 ≥ 80 red), `TheReference_FollowsTheProductsRule` (4 durum: 80 / 80 / 100 / 100) |
+| 7 | ✓ | Pencere `max(FirstOnSaleAt, başlangıç − 10 gün)`ten başlar, yalnız varyantın kendi satırları okunur; `AVariantOnSaleForLessThanTheWindow_…`, `ANewVariant_TakesItsReferenceFromItsOwnHistory_NotFromItsSiblings` (kardeşi 50, yeni varyant 100) |
+| 8 | ✓ | `CheckVariant`: indirimli ≥ referans → `NotBelowReference(variantId, indirimli, referans)`; `Undo` bu çağrının eklediği satırları ve indirimi çıkarır, eski satır kalır (`ARefusedDiscount_LeavesTheEarlierDiscountAndTheHistoryAsTheyWere`) |
+| 9 | ✓ | Kriter T355'e bağlı (KK9: "T355 KK1'de sınanır"); T337'nin payı donacak değerin (`DiscountLine.ReferencePrice`) etikette taşınması — D-476 |
+
+**Elle sınama (para):** 1000 × 0,80 = 800,00; 1250 × 0,80 = 1000,00; 0,01 × 0,40 = 0,004 → 0,00 (red), 0,02 × 0,40 = 0,008 → 0,01; 45 × 0,80 = 36,00 → 36 × 1000 / 250 = 144,00 TL/kg; 100 × 0,75 = 75 ≥ 70 (red), 100 × 0,69 = 69 < 70; 100 × 0,85 = 85 ≥ 80 (red), 100 × 0,79 = 79 < 80 — testlerin beklentileriyle birebir.
+
+**Task satırları (`12 §7.5`):** VAL-A018, VAL-A191, A192, A193, A194, A195 `BEKLEMEDE` kalır — kanıt türleri uç yanıtı / tarayıcı gözlemidir; KP-5'in ve KP-43'ün satırlarını kapatan task'lar T503 ve T525'tir (`11 §7`); T337 modül düzeyindeki ön koşulları kurar ve sınar. `12_matris_denetle.py --kapsam 1-77`: hata 0.
+
+**Testler (head `7006bcc`):** `dotnet restore` temiz; `dotnet build -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` üç proje temiz; Unit 4434 / 4434 (Architecture ve Consistency dahil); betik testleri 4 / 4; Integration (yerel PostgreSQL 18, parçalı) 87 / 87 (DiscountAndReference 20, CategoryTreeAndLists, PriceAndVat, ListPaging) + 118 / 118 (Jobs ve Catalog ad alanları — zamanlayıcıya yeni kaynak) + 68 / 68 (StockAndCapacity, PaymentWindow, Concurrency). CI (#457, run 42453730158): Lint, Build, Unit, Contract, Migration dry-run, Paketleme, E2E pass; Integration doğrulama anında koşuyordu.
+
+**`09 §25`:** doküman uyumu ✓ (adlar `06 §4.11`, §4.12; tek kural evleri `Money.Round`, `TurkeyTime`, `InvalidPercentageAttribute`); kapsam ✓ (uç, sayfa, şema, paket, ayar yok); modül sınırı ✓ (yazıcılar çağıranın işlemine katılır, `SaveChanges` yok, işlem dışında atar); zaman yalnız `TimeProvider` ✓; zamanlayıcı kaynağı `AddDueRecordSource` ile ✓; kart indirimleri sabit sorgu sayısıyla ✓. Ret sebebi adlarından ikisi `07 §6.2` koduyla birebir değil — galeri emsaliyle bloke etmez, D-487.
+
+**Güvenlik:** sır yok; yeni uç / yetki yüzeyi yok; girdi (oran, tarih, fiyat) modülde alan kurallarıyla denetlenir; ham SQL yok; yeni bağımlılık yok.
+
+**Bloke-etmeyen notlar:** K1 → D-487 (iki ret sebebi adı `07` koduna T525'te eşlenir); K2 → D-488 (indirim kaydından sonra fiyat artışı beyanı referansın üstüne çıkarabilir; `02 §3.9.5` yalnız kayıtta denetler — karar, T525).
+
+**Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu kriter ve KK başına kanıtlı. Validator'ın iki K-notu yapım raporunda yok (yeni gözlem).
 
 ## Altyapı Değişiklikleri
 
@@ -100,7 +130,7 @@
 - **Branch:** `task/T337-indirim-referans-fiyat`
 - **Commit:** PR'ın head'i
 - **PR:** #457
-- **CI:** *(validator doldurur)*
+- **CI:** run 42453730158 (`7006bcc`) doğrulama anında Integration koşuyordu, öteki işler pass; doğrulama commit'inin CI'ını yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 
 ## Dış Varsayımlar

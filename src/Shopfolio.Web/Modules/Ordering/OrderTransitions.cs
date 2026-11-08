@@ -30,6 +30,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
     private readonly IAfterSalesModule _afterSales;
     private readonly IPaymentModule _payment;
     private readonly INotificationsModule _notifications;
+    private readonly OrderCounters _counters;
     private readonly TimeProvider _time;
 
     public OrderTransitions(
@@ -38,6 +39,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         IAfterSalesModule afterSales,
         IPaymentModule payment,
         INotificationsModule notifications,
+        OrderCounters counters,
         TimeProvider time)
     {
         _db = db;
@@ -45,6 +47,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         _afterSales = afterSales;
         _payment = payment;
         _notifications = notifications;
+        _counters = counters;
         _time = time;
     }
 
@@ -195,9 +198,16 @@ internal sealed partial class OrderTransitions : IOrderTransitions
             return TransitionOutcome.Rejected(TransitionRejection.CorrectionNotPossible);
         }
 
-        // The correction returns the axis to the corrected row's source - only while the order is still where that row left it.
+        // The correction returns the axis to the corrected row's source - only while the order is still where that row left it. S1 has no
+        // correction of its own: it goes back only with the transfer mark's, both axes together (03 1.4.2.4).
         OrderStatus orderStatus = order.OrderStatus;
         PaymentStatus paymentStatus = order.PaymentStatus;
+        TransitionRecord? tiedPreparation = null;
+        if (corrected.TransitionCode == TransitionCode.S1)
+        {
+            return TransitionOutcome.Rejected(TransitionRejection.CorrectionNotPossible);
+        }
+
         if (TransitionTable.FindShipment(corrected.TransitionCode) is { } shipment && order.OrderStatus == shipment.To)
         {
             orderStatus = shipment.From;
@@ -205,6 +215,30 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         else if (TransitionTable.FindPayment(corrected.TransitionCode) is { } payment && order.PaymentStatus == payment.To)
         {
             paymentStatus = payment.From;
+            if (payment.Code == TransitionCode.O1)
+            {
+                // The payment returns to Pending only by the transfer mark's correction (03 1.4.1 (c)); the card line's payment axis has none (1.6.2).
+                if (order.PaymentMethod != PaymentMethod.BankTransfer)
+                {
+                    return TransitionOutcome.Rejected(TransitionRejection.CorrectionNotPossible);
+                }
+
+                // Preparing goes back to Placed with it (1.4.2.4): the S1 written with the mark is corrected in the same operation.
+                if (order.OrderStatus == OrderStatus.Preparing)
+                {
+                    tiedPreparation = await _db.TransitionRecords
+                        .Where(t => t.OrderId == order.Id && t.TransitionCode == TransitionCode.S1
+                            && !_db.TransitionRecords.Any(c => c.CorrectedTransitionRecordId == t.Id))
+                        .OrderByDescending(t => t.CreatedAt)
+                        .FirstOrDefaultAsync(ct);
+                    if (tiedPreparation is null)
+                    {
+                        return TransitionOutcome.Rejected(TransitionRejection.CorrectionNotPossible);
+                    }
+
+                    orderStatus = OrderStatus.Placed;
+                }
+            }
         }
         else
         {
@@ -222,12 +256,26 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         }
 
         order.ApplyCorrection(orderStatus, paymentStatus);
-        TransitionRecord record = TransitionRecord.Create(
-            order.Id, TransitionCode.Correction, ActorKind.Admin, request.Actor.AdminId, request.Actor.AdminName,
-            null, null, request.Reason, request.Note, corrected.Id, _time.GetUtcNow());
-        _db.TransitionRecords.Add(record);
+        DateTimeOffset now = _time.GetUtcNow();
+        List<Guid> recordIds = [];
+        TransitionRecord[] targets = tiedPreparation is null ? [corrected] : [corrected, tiedPreparation];
+        foreach (TransitionRecord target in targets)
+        {
+            TransitionRecord record = TransitionRecord.Create(
+                order.Id, TransitionCode.Correction, ActorKind.Admin, request.Actor.AdminId, request.Actor.AdminName,
+                null, null, request.Reason, request.Note, target.Id, now);
+            _db.TransitionRecords.Add(record);
+            recordIds.Add(record.Id);
+        }
+
+        // The transfer mark's correction keeps the reservation (03 1.4.4.8): what fell at Ö1 goes back to it.
+        if (corrected.TransitionCode == TransitionCode.O1)
+        {
+            await _counters.RestoreAsync(order, ct);
+        }
+
         RaiseVersionOnce(order);
-        return TransitionOutcome.Applied([record.Id], ClosureResult.None);
+        return TransitionOutcome.Applied(recordIds, ClosureResult.None);
     }
 
     /// <summary>

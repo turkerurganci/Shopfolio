@@ -138,16 +138,17 @@ public sealed class PaymentTransitionsTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CardPayment_OfAnOrderWithoutAPhysicalItem_AppliesO1Only_AndATransferOrderIsRefused_KK2()
+    public async Task CardPayment_OfAnOrderWithoutAPhysicalItem_AppliesNoS1_AndATransferOrderIsRefused_KK2()
     {
+        // No S1 without a physical item; the digital order's delivery mark ends its line with S2 in the same approval (T318; 03 1.4.2.1).
         (Order digital, _) = await SeedOrderAsync(OrderStatus.Placed, PaymentStatus.Pending, productType: ProductType.Digital);
         (Order transfer, _) = await SeedOrderAsync(OrderStatus.Placed, PaymentStatus.Pending, PaymentMethod.BankTransfer);
 
         PaymentTransitionResult applied = await RunAsync((unit, token) => unit.ApplyCardPaymentAsync(new CardPaymentSucceeded(digital.Id, "trx-digital"), token));
         PaymentTransitionResult refused = await RunAsync((unit, token) => unit.ApplyCardPaymentAsync(new CardPaymentSucceeded(transfer.Id, "trx-transfer"), token));
 
-        Assert.Equal([TransitionCode.O1], applied.Applied);
-        await AssertStateAsync(digital.Id, OrderStatus.Placed, PaymentStatus.Paid, 2);
+        Assert.Equal([TransitionCode.O1, TransitionCode.S2], applied.Applied);
+        await AssertStateAsync(digital.Id, OrderStatus.Delivered, PaymentStatus.Paid, 2);
         Assert.True(refused.IsNotOpen);
         await AssertStateAsync(transfer.Id, OrderStatus.Placed, PaymentStatus.Pending, 1);
     }

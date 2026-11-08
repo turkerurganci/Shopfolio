@@ -16,6 +16,13 @@ internal enum OperationScope
     OrderOrItem,
 }
 
+/// <summary>The two steps 03 1.11.32 holds in one row: the retry or the transfer route of a card refund that did not come through, and the administrator's "gerçekleşmedi" mark on one whose outcome is awaited.</summary>
+internal enum CardRefundOperationStep
+{
+    RetryOrRedirect,
+    MarkNotRealized,
+}
+
 /// <summary>One row of the decision table: the operation, its row identity in 03 1.11, whose operation it is, what it is about and its one rule function (09 8.3 item 1).</summary>
 internal sealed record OperationRow(OrderOperation Operation, string Id, ActorKind Actor, OperationScope Scope, IOperationRule<OperationInput> Rule);
 
@@ -71,14 +78,14 @@ internal static class OrderOperationCatalog
         Firm(OrderOperation.RemoveOrReduceItem, OperationScope.Item, RemoveOrReduce),
         Firm(OrderOperation.CorrectAddress, OperationScope.Order, i => Open(IsAddressCorrectable(i.Order))),
         Firm(OrderOperation.CorrectCarrier, OperationScope.Order, i => Open(i.Order.HasPhysicalItem && i.Order.HasShipped)),
-        Firm(OrderOperation.CorrectDeliveryOrArrivalDate, OperationScope.Order, i => Open(i.Order.Items.Any(item => item.DeliveryDate is not null || item.Period.ReceivableUnits > 0 || item.Period.RejectableUnits > 0))),
+        Firm(OrderOperation.CorrectDeliveryOrArrivalDate, OperationScope.Order, i => Open(i.Order.Items.Any(item => item.DeliveryDate is not null || item.Period.HasArrivalRecord))),
         Firm(OrderOperation.CorrectTransition, OperationScope.Order, i => Open(i.Order.HasCorrectableTransition)),
         Firm(OrderOperation.WriteInternalNote, OperationScope.Order, i => Open(!i.Order.PersonalDataDisposed)),
         Firm(OrderOperation.ReceiveReturnedGoods, OperationScope.Item, i => Units(i.Item?.Period.ReceivableUnits ?? 0)),
         Firm(OrderOperation.RejectReturnedGoods, OperationScope.Item, i => Units(i.Item?.Period.RejectableUnits ?? 0)),
         Firm(OrderOperation.CloseAsNotReturned, OperationScope.Item, i => Units(i.Item?.Period.NotReturnedClosableUnits ?? 0)),
         Firm(OrderOperation.ProcessRefund, OperationScope.Order, i => Open(IsRefundProcessable(i.Order))),
-        Firm(OrderOperation.RetryOrRedirectCardRefund, OperationScope.Order, i => Open(i.Order.PaymentMethod == PaymentMethod.Card && ((i.Order.CardRefundNotRealized && !i.Order.HasRefundIban) || i.Order.CardRefundOutcomePending))),
+        Firm(OrderOperation.RetryOrRedirectCardRefund, OperationScope.Order, i => Open(IsCardRefundStepOpen(i.Order, CardRefundOperationStep.RetryOrRedirect) || IsCardRefundStepOpen(i.Order, CardRefundOperationStep.MarkNotRealized))),
         Firm(OrderOperation.ReportTransferRefundFailed, OperationScope.Order, i => Open(i.Order.PaymentMethod == PaymentMethod.BankTransfer && i.Order.HasRefundIban)),
         Firm(OrderOperation.RecordWithdrawalFromOtherChannel, OperationScope.Item, RecordWithdrawal),
         Firm(OrderOperation.CorrectGuestEmail, OperationScope.Order, i => Open(i.Order.IsGuestOrder && !i.Order.PersonalDataDisposed)),
@@ -150,6 +157,34 @@ internal static class OrderOperationCatalog
         }
 
         return OperationGate.Decide(row.Rule, new OperationInput(facts, item), quantity);
+    }
+
+    /// <summary>
+    /// Whether one of the two steps of 03 1.11.32 is open: retrying the card refund or opening the transfer route needs the "geri ödeme gerçekleşmedi" mark and no IBAN yet; marking
+    /// the refund as not realized needs the "geri ödeme sonucu bekleniyor" mark (K-940). While the outcome is awaited only the second is open. The row's rule and the screen's button
+    /// ask this one function.
+    /// </summary>
+    public static bool IsCardRefundStepOpen(OrderOperationFacts facts, CardRefundOperationStep step)
+    {
+        ArgumentNullException.ThrowIfNull(facts);
+        if (facts.PaymentMethod != PaymentMethod.Card)
+        {
+            return false;
+        }
+
+        return step switch
+        {
+            CardRefundOperationStep.RetryOrRedirect => facts.CardRefundNotRealized && !facts.HasRefundIban && !facts.CardRefundOutcomePending,
+            CardRefundOperationStep.MarkNotRealized => facts.CardRefundOutcomePending,
+            _ => false,
+        };
+    }
+
+    /// <summary>The POST's check of one step of 03 1.11.32: the operation's row must be open and the step itself must be the open one.</summary>
+    public static OperationVerdict CheckCardRefundStep(OrderOperationFacts facts, CardRefundOperationStep step)
+    {
+        ArgumentNullException.ThrowIfNull(facts);
+        return IsCardRefundStepOpen(facts, step) ? Check(facts, OrderOperation.RetryOrRedirectCardRefund, null, null) : Closed();
     }
 
     private static OperationVerdict Closed() => new(OperationDecision.Closed, OperationAvailability.Closed);

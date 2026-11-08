@@ -65,6 +65,16 @@ Not: `CheckAsync` yazıcının işlem içinde, sipariş satır kilidinden sonra 
 - **B2 (DÜŞÜK, S1) — 1.11.25 ulaşma tarihi kolu teslim almadan önce açık, sonra kapalı.** Kural `ReceivableUnits > 0 || RejectableUnits > 0` okur (henüz teslim alınmamış adet); `03 §1.11.25` "ulaşma tarihinde iade teslim almadan sonra" der. Teslim tarihi olmayan kalemde teslim alınmış dönüşün ulaşma tarihi düzeltilemez. B1 ile birlikte düzelir (teslim alma/ret kaydı varlığı okunmalı).
 - **B3 (DÜŞÜK, S1) — 1.11.32 "geri ödeme sonucu bekleniyor"da yeniden deneme ve havale yolunu da açık veriyor.** Satır `CardRefundOutcomePending` iken açıktır; `03 §1.11.32` ve `02 §7.2.8` "sonuç beklenirken yeniden deneme ve havale yolu kapalıdır" der, yalnız "gerçekleşmedi" işareti açıktır. Karar alt işlemi ayırmadığı için ekran ve POST yeniden denemeyi bu hâlde reddedemez.
 
+## Düzeltme 1 (doğrulama tur 1 FAIL — B1, B2, B3)
+
+| Bulgu | Düzeltme | Kanıt (03 §1.11 satırına bağlı test) |
+|---|---|---|
+| B1 ORTA — 1.11.28/29 yalnız teslimden sonraki caymayı sayıyordu | `ItemPeriodStatesAsync` teslim alınacak adedi teslim alma yazıcısıyla (`ReceiptRefusalAsync`) aynı kuraldan sayar: `ItemQuantities.AwaitingReceipt`, `IsAfterDelivery` süzgeci yok (tek kural evi); fiziksel kalemin gecikme feshinin malı da sayılır; hizmet/dijital kalemin cayması mal doğurmaz; "mal dönmedi" kapanışı (1.11.30) teslim sonrası cayma olarak kaldı | Integration `TheReturnedGoods_AreTakenIn_BeforeTheDeliveryDateToo_...1_11_28`, `TheGoodsOfALateDeliveryTermination_AreTakenIn_1_11_28`, `AServiceItemsWithdrawal_HasNoGoodsToTakeIn_1_11_28`; Unit `ReceivingReturnedGoods_FollowsTheUnitsTheAfterSalesReadSays_...1_11_28` |
+| B2 DÜŞÜK — 1.11.25 yönü ters | Kural "teslim tarihi var ya da teslim alma/ret kaydı var" (`ItemPeriodState.HasArrivalRecord`); bekleyen adet okunmaz | Unit `CorrectArrivalDate_NeedsAReceiptOnFile_NotGoodsStillAwaited_1_11_25`; Integration (aynı 1.11.25 testi: teslim almadan önce kapalı, sonra açık) |
+| B3 DÜŞÜK — 1.11.32 sonuç beklenirken tümüyle açık | İki alt adım ayrıldı: `OrderOperationCatalog.IsCardRefundStepOpen` (`RetryOrRedirect`: "gerçekleşmedi" işareti, IBAN yok, sonuç beklenmiyor; `MarkNotRealized`: yalnız "sonucu bekleniyor") ve POST denetimi `CheckCardRefundStep`; satırın kuralı ikisinden biri açıkken açık | Unit `CardRefund_WhileTheOutcomeIsAwaited_OnlyTheNotRealizedMarkIsOpen_1_11_32` |
+
+Öz denetim (düzeltilmiş diff): kabul kriterleri 1–8 ve KK1–KK8 yeniden denetlendi, yukarıdaki ✓ tablosu geçerli; `09 §25` "kod hiçbir doküman cümlesiyle çelişmiyor mu" → B1–B3 kapandı. Sık FAIL satırı ("açılma koşulu yazıcının kabul ettiği durumlardan dar/ters") için koşul yazıcıyla aynı işlevden gelir. Yeni backlog: D-656 (fesih malının teslim alma yazıcısı yok), D-657 (1.11.32'nin iki adımının yazıcıları/ekranı kararın adım denetimini çağırmalı). Test: Unit 4960/4960; Integration `Ordering` ad alanı 293/293 (kalan ad alanları CI'da).
+
 ## Altyapı Değişiklikleri
 
 - **Şema/migration:** Yok

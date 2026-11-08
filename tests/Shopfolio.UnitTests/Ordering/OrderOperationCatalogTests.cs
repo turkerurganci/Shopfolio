@@ -16,7 +16,7 @@ public sealed class OrderOperationCatalogTests
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 8, 12, 0, 0, TimeSpan.Zero);
 
-    private static ItemPeriodState NoPeriod() => new(0, false, null, false, null, null, false, false, 0, 0, 0);
+    private static ItemPeriodState NoPeriod() => new(0, false, null, false, null, null, false, false, 0, 0, 0, false);
 
     private static OperationItemFacts Item(ProductType type, int open = 1, bool marked = false, ItemPeriodState? period = null, int downloads = 0, DateOnly? delivery = null) =>
         new(Guid.NewGuid(), type, open, open, delivery, marked, downloads, period ?? NoPeriod());
@@ -269,6 +269,57 @@ public sealed class OrderOperationCatalogTests
             Assert.True(IsOpen(facts, OrderOperation.WriteInternalNote), status.ToString());
             Assert.False(IsOpen(facts with { PersonalDataDisposed = true }, OrderOperation.WriteInternalNote), status.ToString());
         }
+    }
+
+    [Fact]
+    public void CorrectArrivalDate_NeedsAReceiptOnFile_NotGoodsStillAwaited_1_11_25()
+    {
+        OperationItemFacts awaiting = Item(ProductType.Physical, period: NoPeriod() with { ReceivableUnits = 1 });
+        OperationItemFacts received = Item(ProductType.Physical, period: NoPeriod() with { HasArrivalRecord = true });
+        OperationItemFacts delivered = Item(ProductType.Physical, delivery: new DateOnly(2026, 11, 7));
+
+        Assert.False(IsOpen(Order(OrderStatus.Shipped, PaymentStatus.Paid, PaymentMethod.Card, awaiting), OrderOperation.CorrectDeliveryOrArrivalDate));
+        Assert.True(IsOpen(Order(OrderStatus.Shipped, PaymentStatus.Paid, PaymentMethod.Card, received), OrderOperation.CorrectDeliveryOrArrivalDate));
+        Assert.True(IsOpen(Order(OrderStatus.Delivered, PaymentStatus.Paid, PaymentMethod.Card, delivered), OrderOperation.CorrectDeliveryOrArrivalDate));
+    }
+
+    [Fact]
+    public void CardRefund_WhileTheOutcomeIsAwaited_OnlyTheNotRealizedMarkIsOpen_1_11_32()
+    {
+        OrderOperationFacts none = Order(OrderStatus.Cancelled, PaymentStatus.Paid, PaymentMethod.Card, Item(ProductType.Physical));
+        OrderOperationFacts notRealized = none with { CardRefundNotRealized = true };
+        OrderOperationFacts withIban = notRealized with { HasRefundIban = true };
+        OrderOperationFacts pending = none with { CardRefundOutcomePending = true };
+        OrderOperationFacts transfer = notRealized with { PaymentMethod = PaymentMethod.BankTransfer };
+
+        Assert.False(OrderOperationCatalog.IsCardRefundStepOpen(none, CardRefundOperationStep.RetryOrRedirect));
+        Assert.False(OrderOperationCatalog.IsCardRefundStepOpen(none, CardRefundOperationStep.MarkNotRealized));
+        Assert.True(OrderOperationCatalog.IsCardRefundStepOpen(notRealized, CardRefundOperationStep.RetryOrRedirect));
+        Assert.False(OrderOperationCatalog.IsCardRefundStepOpen(notRealized, CardRefundOperationStep.MarkNotRealized));
+        Assert.False(OrderOperationCatalog.IsCardRefundStepOpen(withIban, CardRefundOperationStep.RetryOrRedirect));
+        Assert.False(OrderOperationCatalog.IsCardRefundStepOpen(pending, CardRefundOperationStep.RetryOrRedirect));
+        Assert.True(OrderOperationCatalog.IsCardRefundStepOpen(pending, CardRefundOperationStep.MarkNotRealized));
+        Assert.False(OrderOperationCatalog.IsCardRefundStepOpen(transfer, CardRefundOperationStep.RetryOrRedirect));
+
+        // The row stays open for the order while either step is, and the POST's step check agrees with the steps.
+        Assert.True(IsOpen(notRealized, OrderOperation.RetryOrRedirectCardRefund));
+        Assert.True(IsOpen(pending, OrderOperation.RetryOrRedirectCardRefund));
+        Assert.False(IsOpen(none, OrderOperation.RetryOrRedirectCardRefund));
+        Assert.Equal(OperationDecision.Closed, OrderOperationCatalog.CheckCardRefundStep(pending, CardRefundOperationStep.RetryOrRedirect).Decision);
+        Assert.Equal(OperationDecision.Allowed, OrderOperationCatalog.CheckCardRefundStep(pending, CardRefundOperationStep.MarkNotRealized).Decision);
+        Assert.Equal(OperationDecision.Allowed, OrderOperationCatalog.CheckCardRefundStep(notRealized, CardRefundOperationStep.RetryOrRedirect).Decision);
+        Assert.Equal(OperationDecision.Closed, OrderOperationCatalog.CheckCardRefundStep(notRealized, CardRefundOperationStep.MarkNotRealized).Decision);
+    }
+
+    [Fact]
+    public void ReceivingReturnedGoods_FollowsTheUnitsTheAfterSalesReadSays_BeforeAndAfterTheDelivery_1_11_28()
+    {
+        OperationItemFacts item = Item(ProductType.Physical, open: 0, period: NoPeriod() with { ReceivableUnits = 2, RejectableUnits = 1 });
+        OrderOperationFacts facts = Order(OrderStatus.Shipped, PaymentStatus.Paid, PaymentMethod.Card, item);
+
+        Assert.Equal(2, OrderOperationCatalog.Check(facts, OrderOperation.ReceiveReturnedGoods, item.ItemId, 2).Availability.MaxQuantity);
+        Assert.Equal(OperationDecision.QuantityExceedsOpen, OrderOperationCatalog.Check(facts, OrderOperation.ReceiveReturnedGoods, item.ItemId, 3).Decision);
+        Assert.True(IsOpen(facts, OrderOperation.RejectReturnedGoods, item.ItemId, 1));
     }
 
     [Fact]

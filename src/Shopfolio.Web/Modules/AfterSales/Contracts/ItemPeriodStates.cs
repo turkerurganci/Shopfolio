@@ -24,9 +24,10 @@ public sealed record ItemPeriodQuery(
 /// withdrawal records closed; <paramref name="WithdrawalWindowOpen"/> and <paramref name="WithdrawalLastDay"/> - Z-13 or Z-14 as 03 4.1.14-4.1.16 read it (the last day is null
 /// while the window has no running period); <paramref name="DefectChannelOpen"/> and <paramref name="DefectLastDay"/> - Z-18; <paramref name="DefectClaim"/> - the item's one
 /// claim; <paramref name="IsExempt"/> and <paramref name="IsConditionallyExempt"/> - the frozen exemption excludes the withdrawal, or holds only while the packaging is unopened;
-/// <paramref name="ReceivableUnits"/> - the withdrawn units whose goods the firm may still take in (the ones on their way back and the ones closed as not come back);
+/// <paramref name="ReceivableUnits"/> - the withdrawn or terminated units whose goods the firm may still take in, before or after the delivery (the ones on their way back and the ones closed as not come back);
 /// <paramref name="RejectableUnits"/> - the units on their way back, on an item with a conditional exemption; <paramref name="NotReturnedClosableUnits"/> - the units on their
-/// way back whose sending period (Z-42) has run out.
+/// way back whose sending period (Z-42) has run out; <paramref name="HasArrivalRecord"/> - a receipt or a rejection of the item's returned goods is on file, so an arrival date
+/// exists to correct (03 1.11.25).
 /// </summary>
 public sealed record ItemPeriodState(
     int ClosedUnits,
@@ -39,7 +40,8 @@ public sealed record ItemPeriodState(
     bool IsConditionallyExempt,
     int ReceivableUnits,
     int RejectableUnits,
-    int NotReturnedClosableUnits);
+    int NotReturnedClosableUnits,
+    bool HasArrivalRecord = false);
 
 /// <summary>An order's refund IBAN as the operation decision reads it (03 1.11.11, 1.11.12, 1.11.39): whether one is on file and whether a request for one is open on an item.</summary>
 public sealed record RefundIbanState(bool HasIban, bool HasOpenRequest);

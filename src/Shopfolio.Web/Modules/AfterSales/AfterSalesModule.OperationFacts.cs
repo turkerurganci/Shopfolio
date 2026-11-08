@@ -28,6 +28,9 @@ internal sealed partial class AfterSalesModule
             .Where(c => ids.Contains(c.OrderItemId))
             .ToDictionaryAsync(c => c.OrderItemId, c => c.DefectClaimStatus, ct);
         IReadOnlyList<WithdrawalStanding> standings = await WithdrawalStandingsAsync(ids, ct);
+        IReadOnlyList<TerminationStanding> terminations = await TerminationStandingsAsync(ids, ct);
+        HashSet<Guid> arrivals = [.. (await _db.Returns.AsNoTracking().Where(r => ids.Contains(r.OrderItemId)).Select(r => r.OrderItemId).Distinct().ToListAsync(ct))
+            .Concat(await _db.ReturnRejections.AsNoTracking().Where(r => ids.Contains(r.OrderItemId)).Select(r => r.OrderItemId).Distinct().ToListAsync(ct))];
 
         foreach (Guid id in ids)
         {
@@ -48,17 +51,28 @@ internal sealed partial class AfterSalesModule
             int receivable = 0;
             int rejectable = 0;
             int closable = 0;
+            bool physical = q.ProductType == ProductType.Physical;
             foreach (WithdrawalStanding w in standings.Where(s => s.OrderItemId == id))
             {
-                if (!AfterSalesPeriodRules.IsAfterDelivery(q.ProductType, q.DeliveryDate, w.DeclarationDate, w.IsDeliveredBeforeDeclaration))
+                // The goods of a withdrawal come back before the delivery too (a parcel declined or returned in transit) and the receipt writer takes them in the same way
+                // (ReceiptRefusalAsync: whatever still awaits); only the "mal dönmedi" closure is the after-delivery withdrawal's (03 1.11.30).
+                int awaiting = ItemQuantities.AwaitingReceipt(w.Quantity, w.Received, w.Rejected, w.NotReturned);
+                if (physical)
                 {
-                    continue;
+                    receivable += awaiting + w.NotReturned;
+                    rejectable += conditional ? awaiting : 0;
                 }
 
-                int awaiting = ItemQuantities.AwaitingReceipt(w.Quantity, w.Received, w.Rejected, w.NotReturned);
-                receivable += awaiting + w.NotReturned;
-                rejectable += conditional ? awaiting : 0;
-                closable += AfterSalesPeriodRules.IsNotReturnedClosureOpen(true, awaiting, w.DeclarationDate, now) ? awaiting : 0;
+                if (AfterSalesPeriodRules.IsAfterDelivery(q.ProductType, q.DeliveryDate, w.DeclarationDate, w.IsDeliveredBeforeDeclaration))
+                {
+                    closable += AfterSalesPeriodRules.IsNotReturnedClosureOpen(true, awaiting, w.DeclarationDate, now) ? awaiting : 0;
+                }
+            }
+
+            // The goods of a late-delivery termination arrive the same way (03 1.11.28: "feshedilmiş fiziksel kalem").
+            if (physical)
+            {
+                receivable += terminations.Where(t => t.OrderItemId == id).Sum(t => Math.Max(0, t.Quantity - t.Received));
             }
 
             states[id] = new ItemPeriodState(
@@ -72,7 +86,8 @@ internal sealed partial class AfterSalesModule
                 conditional,
                 receivable,
                 rejectable,
-                closable);
+                closable,
+                arrivals.Contains(id));
         }
 
         return states;
@@ -104,6 +119,18 @@ internal sealed partial class AfterSalesModule
         return [.. withdrawals.Select(w => new WithdrawalStanding(
             w.Id, w.OrderItemId, w.Quantity, w.DeclarationDate, w.IsDeliveredBeforeDeclaration, received.GetValueOrDefault(w.Id), rejected.GetValueOrDefault(w.Id), notReturned.GetValueOrDefault(w.Id)))];
     }
+
+    /// <summary>The late-delivery terminations of the items with the units received against each.</summary>
+    private async Task<IReadOnlyList<TerminationStanding>> TerminationStandingsAsync(Guid[] itemIds, CancellationToken ct)
+    {
+        var rows = await _db.LateDeliveryTerminations.AsNoTracking().Where(t => itemIds.Contains(t.OrderItemId)).Select(t => new { t.Id, t.OrderItemId, t.Quantity }).ToListAsync(ct);
+        Guid[] ids = [.. rows.Select(t => t.Id)];
+        Dictionary<Guid, int> received = await _db.Returns.AsNoTracking().Where(r => r.LateDeliveryTerminationId != null && ids.Contains(r.LateDeliveryTerminationId.Value))
+            .GroupBy(r => r.LateDeliveryTerminationId!.Value).Select(g => new { g.Key, Sum = g.Sum(r => r.Quantity) }).ToDictionaryAsync(g => g.Key, g => g.Sum, ct);
+        return [.. rows.Select(t => new TerminationStanding(t.OrderItemId, t.Quantity, received.GetValueOrDefault(t.Id)))];
+    }
+
+    private sealed record TerminationStanding(Guid OrderItemId, int Quantity, int Received);
 
     private sealed record WithdrawalStanding(
         Guid Id, Guid OrderItemId, int Quantity, DateOnly DeclarationDate, bool? IsDeliveredBeforeDeclaration, int Received, int Rejected, int NotReturned);

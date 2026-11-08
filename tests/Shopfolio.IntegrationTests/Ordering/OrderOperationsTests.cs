@@ -13,7 +13,9 @@ using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
+using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
+using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications;
@@ -167,6 +169,76 @@ public sealed class OrderOperationsTests : IAsyncLifetime
         Assert.All(admin.Open, e => Assert.True((int)e.Operation >= 14));
         Assert.True(admin.IsOpen(OrderOperation.MarkTransferPaid));
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => await WithOperationsAsync(o => o.ReadAsync(order.Id, ActorKind.System, Ct)));
+    }
+
+    [Fact]
+    public async Task TheReturnedGoods_AreTakenIn_BeforeTheDeliveryDateToo_AndAfterAnAdminReceiptTheArrivalDateIsCorrectable_1_11_25_1_11_28()
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(PaymentMethod.Card, ProductType.Physical);
+        Guid itemId = items[0].Id;
+        await ExecuteAsync($"UPDATE orders SET order_status = 'Shipped', payment_status = 'Paid' WHERE id = '{order.Id}'");
+        Admin admin = Admin.Create("Veli", $"veli-{EntityIds.New():N}@example.com", "digest-placeholder", Start);
+        DateOnly today = DateOnly.FromDateTime(Start.UtcDateTime);
+        Withdrawal withdrawal = Withdrawal.ByBuyer(itemId, 1, today, null, new ItemAmounts(100m, 10m, 15m), null, Start);
+        await using (AppDbContext context = NewContext())
+        {
+            context.Admins.Add(admin);
+            context.Withdrawals.Add(withdrawal);
+            await context.SaveChangesAsync(Ct);
+        }
+
+        // Shipped, no delivery date, a withdrawal on its way back: the receipt writer takes the goods, so the decision opens the step (and a rejection only with a conditional exemption).
+        OrderOperationsView awaiting = (await WithOperationsAsync(o => o.ReadAsync(order.Id, ActorKind.Admin, Ct)))!;
+        Assert.True(awaiting.IsOpen(OrderOperation.ReceiveReturnedGoods, itemId));
+        Assert.Equal(OperationDecision.Allowed, (await WithOperationsAsync(o => o.CheckAsync(order.Id, OrderOperation.ReceiveReturnedGoods, itemId, 1, Ct))).Decision);
+        Assert.False(awaiting.IsOpen(OrderOperation.RejectReturnedGoods, itemId));
+        Assert.False(awaiting.IsOpen(OrderOperation.CloseAsNotReturned, itemId));
+        Assert.False(awaiting.IsOpen(OrderOperation.CorrectDeliveryOrArrivalDate));
+
+        await using (AppDbContext context = NewContext())
+        {
+            context.Returns.Add(Return.ForWithdrawal(itemId, withdrawal.Id, 1, today, admin.Id, admin.Name, Start));
+            await context.SaveChangesAsync(Ct);
+        }
+
+        // The goods are in: nothing is left to take, and the arrival date now exists to correct.
+        OrderOperationsView received = (await WithOperationsAsync(o => o.ReadAsync(order.Id, ActorKind.Admin, Ct)))!;
+        Assert.False(received.IsOpen(OrderOperation.ReceiveReturnedGoods, itemId));
+        Assert.True(received.IsOpen(OrderOperation.CorrectDeliveryOrArrivalDate));
+    }
+
+    [Fact]
+    public async Task TheGoodsOfALateDeliveryTermination_AreTakenIn_1_11_28()
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(PaymentMethod.Card, ProductType.Physical);
+        Guid itemId = items[0].Id;
+        await ExecuteAsync($"UPDATE orders SET order_status = 'Preparing', payment_status = 'Paid' WHERE id = '{order.Id}'");
+        LateDeliveryTermination termination = LateDeliveryTermination.ByBuyer(itemId, 1, DateOnly.FromDateTime(Start.UtcDateTime), new ItemAmounts(100m, 10m, 15m), null, Start);
+        await using (AppDbContext context = NewContext())
+        {
+            context.LateDeliveryTerminations.Add(termination);
+            await context.SaveChangesAsync(Ct);
+        }
+
+        OrderOperationsView view = (await WithOperationsAsync(o => o.ReadAsync(order.Id, ActorKind.Admin, Ct)))!;
+        Assert.True(view.IsOpen(OrderOperation.ReceiveReturnedGoods, itemId));
+    }
+
+    [Fact]
+    public async Task AServiceItemsWithdrawal_HasNoGoodsToTakeIn_1_11_28()
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(PaymentMethod.Card, ProductType.Service);
+        Guid itemId = items[0].Id;
+        await ExecuteAsync($"UPDATE orders SET order_status = 'Placed', payment_status = 'Paid' WHERE id = '{order.Id}'");
+        Withdrawal withdrawal = Withdrawal.ByBuyer(itemId, 1, DateOnly.FromDateTime(Start.UtcDateTime), null, new ItemAmounts(100m, 10m, 15m), null, Start);
+        await using (AppDbContext context = NewContext())
+        {
+            context.Withdrawals.Add(withdrawal);
+            await context.SaveChangesAsync(Ct);
+        }
+
+        OrderOperationsView view = (await WithOperationsAsync(o => o.ReadAsync(order.Id, ActorKind.Admin, Ct)))!;
+        Assert.False(view.IsOpen(OrderOperation.ReceiveReturnedGoods, itemId));
     }
 
     // ---- helpers ----

@@ -1,6 +1,6 @@
 # T351 — Teslim işaretleri: kalem tipine göre teslim, karışık sipariş, fiziksel teslim tarihi
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -68,10 +68,25 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (D-685, D-686) |
+
+### Doğrulama tur 1 — Doğrulama Sonucu — T351 Teslim işaretleri — tur 1
+**Tarih:** 2026-11-08   **Branch:** task/T351-teslim-isaretleri   **Commit:** `7adf3e66` (doğrulanan dal ucu); kayıt commit'i `origin/main` `e3b34b75` birleştirmesi üstünde, PR #478
+
+**Verdict: ✓ PASS**
+
+- **Başlangıç kapıları:** working tree temiz; hook yolu `scripts/git-hooks`; ana dal CI son 3: 42514888426, 42514888368, 42512134557 success.
+- **Kabul kriterleri 1–7 ✓** (validator kanıtı): `MarkServiceCompletedAsync` (yönetici, kilit → sürüm → `IsServiceMarkOffered` → işaret+gün → kapanış → sürüm bir kez); ödeme koşulu Pending/Failed dışı (`02 §3.20.9`, §6.7.14 birebir); `CheckDeliveryDate` + `DateObstacle` (K-554 sebebi); S6 tarihi yalnız açık fiziksel kalemlere; karışık siparişte Preparing ekseni ve Hazırlanıyor'da indirme; fiziksel kalemleri iptal edilmiş siparişte son işaret S10; fiziksel kalemsiz siparişte S5/S6/S7 `NotInTheTable`, son işaret S2; `ItemHasNoStateMachineTests` taraması.
+- **KK1–KK7, `09 §25`, güvenlik ✓.** Secret yok; yalnız yönetici aktörü; kalem/sürüm/sipariş girdisi denetimli; yeni bağımlılık, şema ve göç yok.
+- **Task satırları (`12 §7.5`):** KP-6 → `VAL-B001`, `VAL-A020`; ikisi de uç/tarayıcı kanıtı (T503, T508, T509, T356) — `BEKLEMEDE` kaldı. `12_matris_denetle.py --kapsam 1-77` hata 0.
+- **Testler:** build `-warnaserror` 0 uyarı; format ×3 temiz; Unit dal ucu 5022/5023 (`CacheSourceScanTests` regex zaman aşımı, tek başına 36/36 — K2), birleşik ağaçta 5063/5063; betik testleri 4/4; Integration parçalı (`DeliveryMarksTests`, `ShipmentTransitionsTests`, `StatusCorrectionTests`) 140/140; `--locked-mode` çıkış 0. Dal CI run 42516860761 tüm işler pass.
+- **Bulgu:** 0.
+- **K-notları:** K1 hizmet işareti İptal edildi siparişi ayrıca denetlemez, kapalı adedi iptal kaydından okur (iptal kaydı yazımı D-519) → D-685 (T367, T368). K2 `CacheSourceScanTests` yükte regex zaman aşımı → D-686 (F3 gate).
+- **Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu kanıtlı.
+- **Birleştirme notu:** `origin/main` (`e3b34b75`) çakışmasız birleşti.
 
 ## Altyapı Değişiklikleri
 
@@ -85,7 +100,7 @@
 - **Branch:** `task/T351-teslim-isaretleri`
 - **Commit:** kod başı `258819a3`; rapor commit `d71ada77`
 - **PR:** #478
-- **CI:** yoklanmadı (yapım işçisi CI izlemez)
+- **CI:** run 42516860761 (head `7adf3e66`) tüm işler pass (doğrulayıcı)
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

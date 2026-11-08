@@ -167,7 +167,7 @@
 | T324 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | ✓ | ✓ PASS (tur 1) | — | #454 |
 | T325 | Zaman aşımı akışları: teslim, cayma, geri ödeme ve ayıp talebi süreleri | ✓ | ✓ PASS (tur 1) | — | #464 |
 | T326 | Zaman aşımı akışları: katalog, kupon, içerik, iletişim ve bildirim süreleri | ✓ | ✓ PASS (tur 1) | — | #471 |
-| T327 | Kendiliğinden işleyen anlar ve sitenin kesintisinde süreler | ⬚ | — | — | — |
+| T327 | Kendiliğinden işleyen anlar ve sitenin kesintisinde süreler | ✓ | ✓ PASS (tur 1) | — | #480 |
 | T328 | Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi | ✓ | ✓ PASS (tur 1) | `fe78e7b` | #440 |
 | T329 | İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi) | ⬚ | — | — | — |
 | T330 | Firma kimliği: tek firma, tip ve tipe göre zorunlu alanlar, yasal kimlik bilgilerinin erişilebilirliği, iade adresi | ✓ | ✓ PASS (tur 1) | `4924037` | #420 |
@@ -191,7 +191,7 @@
 | T348 | Sipariş onayı: oluşma anı, özet eşitliği, stok ayırma, ödeme süresi, kendiliğinden iptal | ⬚ | — | — | — |
 | T349 | Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği | ✓ | ✓ PASS (tur 2) | — | #476 |
 | T350 | Teslim: il kısıtı, tek yol, kargoya verme süresi ve sözü, kargoya verildi işareti, kargo şirketi | ✓ | ✓ PASS (tur 1) | — | #460 |
-| T351 | Teslim işaretleri: kalem tipine göre teslim, karışık sipariş, fiziksel teslim tarihi | ⬚ | — | — | — |
+| T351 | Teslim işaretleri: kalem tipine göre teslim, karışık sipariş, fiziksel teslim tarihi | ✓ | ✓ PASS (tur 1) | — | #478 |
 | T352 | Ödeme: satıcı ve kart verisi, iki yöntem, 3D Secure, taksit, ters ibraz | ⬚ | — | — | — |
 | T353 | Havale/EFT: IBAN ve siparişe donması, ödendi işareti, hatırlatma, süresi dolmuş sipariş | ⬚ | — | — | — |
 | T354 | Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı | ✓ | ✓ PASS (tur 4) | — | #470 |
@@ -200,7 +200,7 @@
 | T357 | Fatura verisi ve dışa aktarmada donmuş kimlik | ⬚ | — | — | — |
 | T358 | Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar | ✓ | ✓ PASS (tur 1) | — | #449 |
 | T359 | Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler | ⬚ | — | — | — |
-| T360 | Duyuru şeridi, boş kurulum, içerik yayın durumu, önizleme ve silme | ⬚ | — | — | — |
+| T360 | Duyuru şeridi, boş kurulum, içerik yayın durumu, önizleme ve silme | ✓ | ✓ PASS (tur 1) | — | #481 |
 | T361 | Ana sayfa düzeni ve üst menü | ✓ | ✓ PASS (tur 2) | — | #461 |
 | T362 | Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası | ✓ | ✓ PASS (tur 2) | — | #448 |
 | T363 | Sayfa adresleri, arama motoru bilgileri, kapalı sayfalar ve paylaşım | ⬚ | — | — | — |

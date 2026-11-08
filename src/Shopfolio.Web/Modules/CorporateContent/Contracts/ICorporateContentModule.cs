@@ -27,6 +27,13 @@ public interface ICorporateContentModule
     /// </summary>
     Task<HomepageView> GetHomepageAsync(CancellationToken ct);
 
+    /// <summary>
+    /// The announcement strip at the top of every page (T360; 02 3.27.21, 3.27.25): the text and the optional link, or null when no strip shows. A published announcement shows only
+    /// inside its dates, on the Turkey day of the time source; <paramref name="asAdministrator"/> - the request of a signed-in administrator - also gets a draft, marked
+    /// <see cref="AnnouncementView.IsDraft"/>. Never cached and never stored; a plain read.
+    /// </summary>
+    Task<AnnouncementView?> GetAnnouncementAsync(bool asAdministrator, CancellationToken ct);
+
     /// <summary>The brand form as the panel shows it (T362; 02 3.29; 04 9.15): the stored values and the form's version. A plain read; the panel's view of the brand never carries the brand colour on itself (02 3.29.1).</summary>
     Task<BrandingSection> GetBrandingAsync(CancellationToken ct);
 

@@ -131,4 +131,9 @@ public interface ISettingsModule
     /// event that writes no trail row. In the caller's transaction, row lock first.
     /// </summary>
     Task SynchronizeGeneratedLegalTextsAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The closed list of the 81 provinces in plate-code order (T344; 02 3.14.3; 06 4.3): read only. An address form's list and the check of an address's province both read it.
+    /// </summary>
+    Task<IReadOnlyList<ProvinceInfo>> GetProvincesAsync(CancellationToken ct);
 }

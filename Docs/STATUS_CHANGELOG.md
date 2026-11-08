@@ -9,38 +9,6 @@
 
 ---
 
-## 2026-11-08 — T362 (Marka kimliği) doğrulama tur 2 ✓ PASS (PR #448)
-
-T362 (Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası) doğrulama tur 2 ✓ PASS (TAM yeniden doğrulama; head `659eb11`, PR #448; kriter 1–6, KK1–KK6, `09 §25` ve güvenlik taraması ✓; tur 1 B1 giderildi — renk biçimi kırpılmış değere `InvalidColorAttribute` ile denetlenir; dal CI 42435465085 success; Unit 4294/4294, betik testleri 4/4, Integration `BrandingTests` 29/29 + komşu üç sınıf 115/115; bulgu 0, yeni K-notu yok; D-442 açık; `VAL-A157`…`VAL-A160` `BEKLEMEDE` kaldı (sayfa T534/T537, gönderen D-442); `12_matris_denetle.py` Hata 0). Dal main ile birleştirilmedi: main'de T302 ile `CorporateContentModule.cs` kod çakışması var, birleştirmeyi yardımcının işçisi yapar.
-
----
-
-## 2026-11-08 — T362 (Marka kimliği) doğrulama tur 1 ✗ FAIL; B1 düzeltildi (PR #448)
-
-Bulgu B1 (DÜŞÜK, S1, `09 §25` "tek işlev"): `BrandingRules.TryNormalizeColor` kendi `#RRGGBB` denetimini yazıyordu; tek kural evi `InvalidColorAttribute`. Düzeltme: biçim denetimi kırpılmış değere `new InvalidColorAttribute()` ile yapılır (`CompanyIdentityRules` kalıbı), büyük harfe çevirme kalır; ayrışan örnek (`"  #ffff00 "`) ve ret örnekleri `BrandingRulesTests` teorisine girdi; `T362_REPORT.md` öz denetim tablosu güncellendi. T362 diff'inin geri kalanında kendi denetimi yok (grep). `origin/main` (T333, #442 dahil) birleştirildi; durum satırı main sürümü, backlog sayacı 160.
-
-Tur 1 sonucu: kriter 1–6 ve KK1–KK6 ✓, güvenlik taraması temiz, dal CI yeşil; tek bulgu B1; K1 `D-442`'ye ileri atıldı.
-
----
-
-## 2026-11-08 — T317 doğrulama tur 3 ✓ PASS (PR #441)
-
-2026-11-08 — T317 (Ödeme durumu geçişleri: ödeme ekseni) doğrulama tur 3 ✓ PASS (head `24be2b5` + `origin/main` (`9bb46eb`, T339, #445) birleştirmesi, PR #441; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 2 B1 giderildi — ödenmemiş iptalin tek yolu `CancelOrderAsync`, Ö1'in tek yolu ödeme ekseni (D-389); Unit Architecture 933 + Consistency 241 + öteki 2942, betik testleri, Integration yerelde PaymentTransitions 33, OrderTransitions 31, ShipmentTransitions 94, Disposal 45 ve 4 geçici yoklama; dal CI 42421489591 yeşil; bulgu 0; K1 bu PR'da kapatıldı (D-291 metni güncel yola ve test adına bağlandı); `12` `Durum` değişmedi (KP-18 satırları sayfa ve uç kanıtı ister); backlog aktif 154).
-
----
-
-## 2026-11-08 — T362 (Marka kimliği) yapım bitti
-
-2026-11-08 — T362 (Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası) yapım bitti, PR #448 açık, doğrulama bekliyor (dal `task/T362-marka-kimligi`; task `⏳`; kriter 1–6 ve KK1–KK6 öz denetimde ✓; Unit 955 (Architecture) + 3315 + Consistency 241, Integration `BrandingTests` 29/29 ve komşu dört sınıf 157/157; şema, paket, ortam değişikliği yok). `CorporateContent` modülü marka formunu okur ve kaydeder (`SaveBrandingAsync`: sürüm, ad boşaltılamaz, renk `#RRGGBB`, görsel yüklenmiş olmalı), vitrin ve e-postanın tek okuması `GetBrandIdentityAsync`; iz: dört ayar `UpdateBranding`, imza anahtarı ayrı `UpdateSettings` satırı (hedef `Branding`, `09 §9.2` tablosu güncellendi). Marka formu sayfası ve vitrin/e-posta bağlama T534/T537'de. Ana dal CI 42426248097 (T341 birleşmesi) T362 dışı: `UploadEndpointsTests` port 5000 çakışması.
-
----
-
-## 2026-11-08 — T341 doğrulama tur 3 ✓ PASS (PR #433)
-
-T341 (Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı) doğrulama tur 3 ✓ PASS (FAIL sonrası tam yeniden doğrulama; head `b2c6cca`, PR #433; kriter 1–9, KK1–KK9 ve `09 §25` ✓, güvenlik taraması temiz; tur 2 Bulgu 1 giderildi — kayıt e-postası `InvalidEmailAttribute` ile denetlenir; Unit 4069 (Consistency 241), Integration MembershipTests 34/34 ve komşu üç sınıf 95/95; dal CI 42410595147 success; `VAL-D018`…`VAL-D020` `BEKLEMEDE` kaldı (uç yanıtı sonraki task'larda); K1 → D-385 (T509). `origin/main` (T334) birleştirildi: `Modules/Ordering` iki dosyasında iki tarafın üyeleri birlikte korundu; backlog aktif sayısı yeniden sayıldı: 153; ikinci main birleştirmesi: `origin/main` (T321, #439) de birleştirildi, `OrderingModule` kurucusu ve `IOrderingModule` üyeleri iki tarafın eklemeleriyle birlikte korundu).
-
----
-
 ## 2026-11-08 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) doğrulama tur 4 ✓ PASS (TAM yeniden doğrulama; head `f6412bf` + `origin/main` (T341, #433) birleştirmesi, PR #442; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 3 BLOCKED (main kod çakışması) iki kod birleştirmesiyle giderildi; Unit 4231/4231 (Architecture, Consistency dahil), betik testleri 4/4, Integration `CategoryTreeAndListsTests` 33/33 (parçalı, gerçek PostgreSQL 18), `build -warnaserror` ve `dotnet format` temiz; dal CI 42425396677 success; bulgu 0; K1: D-332 hedefi tamamlanmış T339'dan T502'ye taşındı; `VAL-A001`…`A008`, `VAL-A181`…`A185` `BEKLEMEDE` kaldı (uç ve tarayıcı kanıtı sayfa task'larında); backlog aktif kalem yeniden sayıldı: 159). Önceki kayıtlar `STATUS_CHANGELOG.md`'de.
 ## 2026-11-08 — T336 (Fiyat ve KDV) doğrulama tur 4 ✓ PASS (PR #444)
 

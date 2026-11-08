@@ -9,10 +9,6 @@
 
 ---
 
-## 2026-11-08 — T311 (Ödeme sağlayıcısının bildirim ucu) yapım bitti (PR #456)
-
-2026-11-08 — T311 (Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım) yapım bitti, ⏳ doğrulama bekliyor (dal `task/T311-odeme-bildirim-ucu`, PR #456; `origin/main` (T336, #444) birleştirildi). İmzalı uç `POST /sistem/odeme-bildirimi`; imza ve tutar bağlantı katmanında; `08 §2.1.5` sınıflaması; kayıt ve iş satırı aynı işlemde; iş ödeme sonucunu geçiş biriminin tek yolundan uygular. Kriter 1–10, KK1–KK10 öz denetimde ✓; Unit 4393, Integration `PaymentNotificationTests` 14 ve dokunulan sınıflar yeşil. Backlog D-468 (`06 §4.35` `ProcessedAt` metni) yeni.
-
 ## 2026-11-08 — T333 (Kategori ağacı, site içi arama ve liste süzgeçleri) doğrulama tur 4 ✓ PASS (TAM yeniden doğrulama; head `f6412bf` + `origin/main` (T341, #433) birleştirmesi, PR #442; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 3 BLOCKED (main kod çakışması) iki kod birleştirmesiyle giderildi; Unit 4231/4231 (Architecture, Consistency dahil), betik testleri 4/4, Integration `CategoryTreeAndListsTests` 33/33 (parçalı, gerçek PostgreSQL 18), `build -warnaserror` ve `dotnet format` temiz; dal CI 42425396677 success; bulgu 0; K1: D-332 hedefi tamamlanmış T339'dan T502'ye taşındı; `VAL-A001`…`A008`, `VAL-A181`…`A185` `BEKLEMEDE` kaldı (uç ve tarayıcı kanıtı sayfa task'larında); backlog aktif kalem yeniden sayıldı: 159). Önceki kayıtlar `STATUS_CHANGELOG.md`'de.
 ## 2026-11-08 — T336 (Fiyat ve KDV) doğrulama tur 4 ✓ PASS (PR #444)
 

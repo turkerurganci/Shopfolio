@@ -1,6 +1,6 @@
 # T318 — İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -95,10 +95,35 @@ Bütün maddeler (ilk işçinin yaptıkları dahil) bu turda diff'te `grep -n` i
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-08, head `393bd9f` = `d36a461` + `origin/main` (`b3455838`, T358, #449) birleştirmesi; T318 diff'i birleştirmeyle değişmedi). Kriter 1–10, KK1–KK10, `09 §25` ve güvenlik taraması ✓ |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 — K1 bu PR'da kapatıldı: yapım raporunun "`12` doğrulama protokolü" satırı başka KP'lerin satırlarını (`VAL-C079`…`C099`) anar, task'ın kaynak KP'lerinin (KP-46, KP-51) grep'ini yapmaz; KP-46 satırları ve `VAL-A265` anılmaz. Doğru küme aşağıdaki "`12` satırları" paragrafındadır |
+
+**Doğrulayıcı kanıtları (tur 1):**
+
+| # | Kriter / KK | Sonuç | Doğrulayıcı kanıtı |
+|---|---|---|---|
+| 1 / KK1 | Birleşim tablosu kodda; ulaşılamaz çift reddedilir | ✓ | `TransitionTable.Combinations` 30 hücre `03 §1.4.1` ile elle karşılaştırıldı (Alındı: Bekliyor/Ödendi/KGÖ/GÖ; ara dört durum ve Teslim edildi: Ödendi/KGÖ/GÖ; İptal edildi: Bekliyor dışı hepsi); `IsPairAllowed` tabloyu okur; ret yolu geçişte (`ApplyChosenAsync`, `IsPairAllowed` → `ForbiddenStatePair`) ve düzeltmede (`CorrectAsync`); `Combinations_EqualTheDocumentsTable_CellByCell_KK1` (belgeden okur), `Apply_ATransitionThatWouldEndInAForbiddenPair_IsRefusedBeforeAnythingIsWritten`, `IsPairAllowed_EqualsTheCombinationRuleOfTheDatabase_ForAllPairs` yeşil |
+| 2 / KK2 | Teslim edildi + Bekliyor/Başarısız yasak | ✓ | `Delivered_WithPendingOrFailed_IsForbidden_KK2`; dijital havale siparişinde Ö1 düzeltmesi `ForbiddenStatePair`, düzeltme kaydı 0 (`TheTransferMarksCorrection_OfADeliveredOrder_IsRefusedByThePairRule_KK2`); kapanış Bekliyor/Başarısız'da Teslim edildi yazmaz (`EvaluateClosureAsync`) |
+| 3 / KK3 | Hazırlanıyor'a yalnız ödeme onayıyla; Bekliyor'a yalnız havale düzeltmesiyle | ✓ | S1'in açık yüzde yöntemi yok (`StartPreparationAsync` kaldırıldı; `ShipmentTransitionContractTests`); S1 yalnız Ö1 ile (`ApplyCardPaymentAsync`, `MarkTransferPaidAsync`); Hazırlanıyor + Bekliyor çifti `APendingPayment_StandsOnlyWithPlaced_KK3` ve DB kuralı; `CorrectAsync`: tek başına S1 düzeltmesi ve kart Ö1 düzeltmesi `CorrectionNotPossible` (`TheCardApprovalsCorrection_IsRefused_…_KK3`), havale Ö1 düzeltmesi Hazırlanıyor'da S1'i de düzeltir — iki düzeltme kaydı, Alındı + Bekliyor (`TheTransferMarksCorrection_OnPreparing_…_KK3_KK8`) |
+| 4 / KK4 | Eşzamanlı geçişler tek işlemde | ✓ | `CompleteApprovalAsync` Ö1'in işleminde: `CommitAsync`, açık dijital kaleme `DeliveryMarkedAt` + `DeliveryDate` (Türkiye tarihi; `06` DeliveryDate tanımı), kapanış kuralı; testler: dijital kart [O1, S2] tek işlem, sürüm 2 (`ADigitalOrdersCardPayment_…_KK4`); karışık kart [O1, S1], yalnız dijital kalem işaretli (`AMixedOrdersCardPayment_…_KK4_KK8`); dijital havale S2 yönetici aktörüyle (`ADigitalOrdersTransferMark_…_KK4`; `03 §1.5.3`); dijital + hizmet Alındı + Ödendi'de bekler (`…_KK4`); S3 + Ö2 ayırmayı aynı işlemde bırakır (`TheUnpaidCancellation_…_KK4_KK8`); son kalemin kapanışı T316 `TheLastEventThatCompletesTheClosure_…_KK4` |
+| 5 / KK5 | Kapanış: teslim varsa Teslim edildi, yoksa İptal edildi | ✓ | `EvaluateClosureAsync` (S2/S10/S11 ya da kapanış sebebiyle S3/S4); üç sonuç ayrı: S11 (`ADeliveryFailedOrderWithADeliveredItem_…`), S2/S10 (T316 `…_KK4` teorisi), S4 kapanış (`TheClosure_ByATermination_…_KK7`), bekleme (`AnOrderWithNoDeliveredItem_OnShippedOrDeliveryFailed_…_KK5_KK6`) |
+| 6 / KK6 | Teslimsiz Kargoya verildi/Teslim edilemedi bekler; S7 dahil S11; yanıtsız sorguda iptal ertelenir | ✓ | Kargoya verildi'de erken dönüş, Teslim edilemedi'de iptal satırı `null`; `AnOrderWithNoDeliveredItem_…` (iki durum); 2 adetten 1'i kapanınca bekler, son adette S11 (`ADeliveryFailedOrderWithADeliveredItem_…_KK6_KK7`); S7'nin kendisi kapanışı tamamlarsa S11 (T316 `S7_OfAShipmentWhoseItemsAreClosedAndOthersDelivered_EndsInS11_…`); yanıtsız son sorgu T204/T305 kuralı (`OutageRulesTests`) — T318 değiştirmedi |
+| 7 / KK7 | Kalem adetle açık; kapanışta iptal kaydı ve ikinci geri ödeme yok | ✓ | açıklık `Quantity - ClosedQuantities > 0`; `TheClosure_ByATermination_OpensNoCancellationRecordAndNoSecondRefund_KK7` (`cancellations` 0, `refunds` 0, S4) |
+| 8 / KK8 | Sayaç etkisi an tablosuyla | ✓ | `CounterMomentTable` 9 satır `03 §1.4.4` ile, `OrderCounters` yöntemleri `06 §4.14` yazım yollarıyla (1 ayırma, 2 kesin düşme, 3 serbest bırakma, 5 düzeltmede ayırmaya dönüş — satılabilir adet değişmez, 6 yeniden alma — yetmezse false, kupon limit aşsa da) karşılaştırıldı; `StockCounters` `Retake`/`Restore` koşullu `ExecuteUpdate`, silinmiş varyant atlanır; kupon dönüşü yalnız siparişi son hâline getiren kayıtta ve bir kez, ret/"mal dönmedi"de hiç (`IsCouponReturnDueAsync`); dokuz anın testleri `AxesTieTests` `…_KK8` yeşil; `CounterMomentTableConsistencyTests` yeşil. Üretim çağıranları D-453 |
+| 9 / KK9 | Yedi hattın dizisi ve adım sayısı; karışıkta toplam, "ödendi" bir kez | ✓ | `OrderLines.Rows` ve `StepsOf` `03 §1.5`, §8.5 ile elle karşılaştırıldı (kart fiziksel 2, havale 3, hizmet 1/2, dijital 0/1; havale fiziksel + hizmet 4); `OrderLinesConsistencyTests` beklenenleri belgeden okur, yeşil. Uçtan uca ölçüm (`VAL-B023`…`B026`) panel işlemleriyle — D-454 |
+| 10 / KK10 | Tek tipli hatta en çok üç | ✓ | `ASingleTypeLine_NeverExceedsTheCeiling_AndTheHeaviestIsThePhysicalOrderByTransfer_KK10` (tavan 8.5'ten okunur, en ağır yalnız havale fiziksel) |
+| `09 §25` | ilgili satırlar | ✓ | durum yalnız geçiş biriminde; `TransitionTable` 16 satır değişmedi; sıra kilit → beyaz liste → koşul → durum → kayıt → iç yan etki (sayaç, işaret) → dış (ödeme kaydı, B-4/B-7 satırı); sayaçlar `ICatalogModule`, kalem olguları `IAfterSalesModule` `Contracts`'ından; `SaveChanges` yok; zaman `TimeProvider`; göç, paket, ayar yok; mimari testler yeşil |
+| Güvenlik | taraması | ✓ | diff'te sır, dış servis, ham SQL (üretim), yeni uç ya da paket yok; düzeltme yalnız panel aktörüyle (mevcut denetim); yeni girdi yüzeyi yok |
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana checkout'un `scripts/git-hooks`'u; worktree'de aynı bekçi, daldaki kopya kullanılmadı); ana dal son 3 tamamlanmış run 42443632733 (success), 42443632759 (success, `7ddf334`), 42436765868 (success, `bcb856d`); memory: `grep -nE "\bT318\b"` satır 25'i getirir (D-307 → T318); kayıt kuralı (2026-11-08) gereği "Güncel Durum"a dokunulmaz.
+
+**Testler (doğrulayıcı, yerel, `393bd9f`):** `dotnet restore` + `dotnet build -warnaserror` 0 uyarı/0 hata; `dotnet format --verify-no-changes` Web, Unit, Integration projeleri temiz; Unit Consistency 277/277, öteki (Architecture dahil) 4070/4070; betik testleri 4/4; Integration (PostgreSQL 18 konteyner): `Ordering` ad alanı 170/170 (`AxesTieTests` dahil), Concurrency + StockAndCapacity + ModuleCallTransaction + OrderDisposal 83/83, ProductTransitions 41/41; sonrasında `git status` temiz, `dotnet restore --locked-mode` 0. Dal CI: `d36a461` run 42444593460 success (Lint, Build, Unit, Integration, Migration, Paketleme, E2E, Gate); `393bd9f` run 42445310215 doğrulama anında koşuyordu.
+
+**`12` satırları:** `11 §7.1` T318 kaynakları KP-46, KP-51. KP-46 satırları (`VAL-A207`, `A208`, `C039`…`C048`) panel uç yanıtı ister (D-308 → T527); KP-51 satırları `VAL-B023`…`B026` "Uç yanıtı + Veri kaydı" ister — hizmetin "tamamlandı" işlemi ve panel uçları yok (D-454 → T351; uç T527), `VAL-A265` (fatura) tarayıcı/uç gözlemidir. T318 uç ya da sayfa eklemez; servis düzeyi kanıt kriter 9–10 satırlarındadır. Hepsinin `Durum`'u `BEKLEMEDE` kaldı. `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**Yapım raporu karşılaştırması (adım 13):** hüküm uyumlu; öz denetim tablosu her kriter ve KK için kanıtlı. Uyuşmazlık 1 (K1): `12` satırları yukarıdaki gibi düzeltildi.
 
 ## Altyapı Değişiklikleri
 

@@ -186,7 +186,7 @@
 | T343 | Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma | ⬚ | — | — | — |
 | T344 | Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma | ✓ | ✓ PASS (tur 1) | — | #451 |
 | T345 | Hesabın silinmesi ve kişisel veri başvurusu | ⬚ | — | — | — |
-| T346 | Sepet: sahiplik, giriş anında birleşme, canlı kalem, siparişe girmeyen kalemler | ⏳ | — | — | #467 |
+| T346 | Sepet: sahiplik, giriş anında birleşme, canlı kalem, siparişe girmeyen kalemler | ⏳ | ✗ FAIL (tur 1) | — | #467 |
 | T347 | Sepet adet kuralları: stok ve sipariş başına sınır, boşalma, istek listesi yokluğu | ⬚ | — | — | — |
 | T348 | Sipariş onayı: oluşma anı, özet eşitliği, stok ayırma, ödeme süresi, kendiliğinden iptal | ⬚ | — | — | — |
 | T349 | Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği | ⬚ | — | — | — |

@@ -83,10 +83,26 @@ Güvenlik taraması: kullanıcı girdisi ham SQL'e yalnız parametre olarak (`Ex
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | **tur 1: ✗ FAIL** (2026-11-08; head `859f957a`) |
+| Bulgu sayısı | 1 (ORTA, S2) |
+| Düzeltme gerekli mi | Evet — test düzenekleri DI kaydı + tam Integration koşusu |
+| Bloke-etmeyen not (K) sayısı | 4 (K1, K2 bu PR'da; K3 → D-579, K4 → D-580) |
+
+### Doğrulama tur 1 (2026-11-08)
+
+**Verdict: ✗ FAIL.** Kabul kriterleri 1–7 ve KK1–KK7 davranış olarak ✓ (kanıt: `CartTests` 23/23 yerelde PG18'de yeşil; `carts`/`cart_items`'a yazan bütün yerlerin grep taraması KK2 için; kod okuması). Bloke eden tek sebep:
+
+| # | Madde | Severity | Sınıf | Beklenen ↔ gerçekleşen | Etkilenen dosya |
+|---|---|---|---|---|---|
+| 1 | — (CI/regresyon) | ORTA | S2 | Dal CI'ı yeşil olmalı ↔ run 42483081386'da 4. Integration test FAIL: 2708 testten 110'u `Unable to resolve service for type 'Shopfolio.Modules.Ordering.Carts' while attempting to activate 'Shopfolio.Modules.Ordering.OrderingModule'` ile düşüyor (MembershipTests 49, OrderDisposalTests 24, DisposalTests 13, RecordDisposalTests 12, AddressTests 12). `OrderingModule`'ü elle kuran düzenekler `Carts`, `CartStatements`, `CartVariantReader` kaydını almadı. Yerelde OrderDisposalTests + AddressTests 36/36 aynı hatayla yeniden üretildi | `tests/Shopfolio.IntegrationTests/Disposal/DisposalHarness.cs`, `Model/AddressTests.cs`, `Model/MembershipTests.cs` |
+
+Testler: build `-warnaserror` temiz; format temiz; Unit 4751/4751; betik testleri 4/4; `--locked-mode` çıkış 0. Güvenlik: temiz (anahtar özetle saklanır, ham SQL parametreli, yeni bağımlılık yok).
+
+`12` satırları: `VAL-A028`, `A029`, `B006`, `B007`, `D002` uç yanıtı / iş kaydı kanıtı ister; T346 modül düzeyidir (uç T508, giriş T515) → `BEKLEMEDE` kalır (T318/T338/T380 emsali). KP-9/KP-10'un öteki satırları T347 ve T340'ındır.
+
+K-notları: K1 D-302 hedefi T508'e taşındı (modül tarafı `OpenCartAsync`'te); K2 D-561 hedefi T347 → T376 (L-6 `11 §7.1`'de T376/T338'e bağlı); K3 → D-579 (birleşme `IsPaymentUnavailableNoticePending`'i taşımıyor); K4 → D-580 (KK2 testinin adı gövdesiyle uyuşmuyor).
+
+Yapım raporu karşılaştırması: Integration satırı "✓ 60 geçti" diyor ama tam suite koşulmamış; regresyon buradan kaçtı. CartTests sayısı teorilerle 23'tür (raporda 19).
 
 ## Altyapı Değişiklikleri
 

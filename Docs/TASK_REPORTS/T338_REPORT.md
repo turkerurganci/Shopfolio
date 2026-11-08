@@ -1,6 +1,6 @@
 # T338 — Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamamlandı, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Doğrulama PASS (tur 1; merge yardımcıda) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -75,10 +75,32 @@ Yerel notlar: Model parçasının ilk koşusu makine yüklüyken (7 dk 38 sn) 4 
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-08; head `564c86f` = `600df1d` + `origin/main` `4ff04bc` birleştirmesi) |
+| Bulgu sayısı | 0 (S1/S2/S3 yok) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — ikisi de backlog'da (D-482, D-483); yeni kayıt açılmadı |
+
+**Validator kanıtları (bağımsız koşu, yapım raporu Faz 3'e kadar açılmadı):**
+
+| # | Kriter / KK | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 / KK1 | Ödeme adımında kod, sepet toplamına iner | ✓ | `Coupons.ApplyAsync` (sepet kimliği + L-6 → `EvaluateAsync`); Integration `ThePaymentStep_AppliesTheCode_WithTheSharesOfEveryItem` yeşil; sayfa ucu T509 (D-483) |
+| 2 / KK2 | Yüzde ya da sabit | ✓ | `CouponRules.CheckDefinition` iki dal; `Coupons.CreateAsync` → `Coupon.CreatePercentage`/`CreateAmount`; Unit + Integration tanım testleri yeşil |
+| 3 / KK3 | Kalem kalem pay, kalan kuruş en büyük kaleme | ✓ | `PercentageShares` = `Money.Round` kalem içinde; `AmountShares` = `Money.Allocate` (aşağı, kalan en büyük ağırlığa) + taşma dağıtımı (D-482); 1000 turluk özellik testi toplamı ve 0 ≤ pay ≤ tutar sınırını tutturuyor |
+| 4 / KK4 | Pay donar, KDV paydan sonra | ✓ | `Evaluate` her kalemi `ItemPricing.Price(unitPrice, qty, share, vat)` ile kurar (`02 §3.8.3` sırası); 180×20/120 = 30,00 (paysız 33,33 değil); sipariş kalemine yazılan pay kupon %50'ye çekilince 10,00/15,00 kalıyor (Integration) |
+| 5 / KK5 | Sepete eşit/aşan ve yuvarlamayla sıfır ret; asgari ve %100 kayıtta | ✓ | `amount >= basketTotal` → Rejected; `basketTotal - shares.Sum() <= 0` → Rejected (0,01×2 %50 ve %99,99); `InvalidPercentageAttribute` (0,100) açık aralık; sabitte asgari zorunlu ve > tutar (`CouponValueInvalid`) |
+| 6 / KK6 | Tarih aralığı, toplam adet, kişiye özel = 1 | ✓ | `TurkeyTime.IsWithinRange` (başlangıç 00:00, bitiş günü bütün; UTC 21:00 sınırları sınandı); `UsedCount + ReservedCount >= TotalUsageLimit` → Rejected; Integration `ACodeOutsideItsDates_OrWithItsRightsTaken_IsRefused` |
+| 7 / KK7 | Kod tekil, harf ayrımsız; deneme limiti alanı kapatır | ✓ | `NormalizeIdentity` + `NormalizedCode` tekil dizini; YAZ10/yaz10, İNDİRİM/indirim, KIŞ/kış yinelenmiyor, ındırım yarışı `UniqueViolation`; 5 geçersizden sonra geçerli kod da `AttemptLimitExceeded`, başka sepet etkilenmiyor (P-36 5/15 dk) |
+| 8 / KK8 | Son hak tek siparişe; yalnız tam iptal/iadede döner | ✓ | `StockCounters.WriteCouponAsync` koşullu güncelleme + `LockKind.Coupon`; Integration'da ikinci işlem kilitte bekleyip `false` alıyor, sayaç used 0/reserved 1; Commit → used 1, Return → 0, Release → 0; `ReturnsRight` yalnız bütün adetler kapanınca `true` |
+| 9 / KK9 | Kupon eşik tabanını düşürmez | ✓ | `CouponApplication.BasketTotal` kupon öncesi toplam (500,00 ↔ ödenecek 450,00); eşik karşılaştırması T349 (D-483) |
+| `09 §25` | Review checklist | ✓ | Para yalnız `Money`/`ItemPricing`; zaman `TimeProvider`; arayüz yöntemi işlem açmıyor/kaydetmiyor; hata kodları `07 §6`'da (`DuplicateCouponCode`, `CouponValueInvalid`, `CouponUsageBelowUsed`, `InvalidPercentage`, `InvalidAmount`, `InvalidDateRange`, `FieldRequired`); göç/paket/ayar yok; mimari testler yeşil |
+| Güvenlik | Tarama | ✓ | Sır yok (diff taraması); yeni deneme yüzeyi L-6 kapsamında; bilinmeyen/tarih dışı/hak dolu aynı ret (K-845); yeni POST/sayfa yok; yeni bağımlılık yok |
+
+**Validator test koşusu:** `dotnet build Shopfolio.slnx --no-restore -warnaserror` 0 uyarı/0 hata; `dotnet format --verify-no-changes` üç proje temiz; Unit (Consistency hariç) 4204/4204, Consistency 242/242; betik testleri 4/4; Integration `CouponTests` 19/19, `StockAndCapacityTests`+`ConcurrencyTests`+`CategoryTreeAndListsTests`+`ProductTransitionsTests`+`JobQueueRegistrationTests`+`SchedulerRegistrationTests`+`AppCacheTests` 146/146, `PaymentWindowTests`+`ShipmentTransitionsTests` 109/109 (PostgreSQL 18, 127.0.0.1:55644). Dal CI run 42456195767 (head `564c86f`) bütün işler yeşil. Ana dal son 3 run (42452259880, 42452259999, 42450627496) success.
+
+**Task satırları (`12 §7.5`):** `VAL-A036`–`A038`, `A196`–`A198` (Uç yanıtı + Veri kaydı; uç ödeme adımı ve panel kupon formu — T509, T526) ve `VAL-D008` (ödemesi beklenen sipariş ön koşulu — T348) `BEKLEMEDE` kalır; T338 modül düzeyini kurar. KP-16/KP-43'ün öteki satırları (D005–D007, B013, A191–A195) başka task'ların. `12_matris_denetle.py --kapsam 1-77` → Hata: 0.
+
+**Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu her kriter ve KK için kanıtlı. Sayı farkı: yapım raporundaki Unit 4414 tek koşudur, validator Consistency'yi ayrı koştu (4204 + 242) — main birleştirmesi sonrası sayım; uyuşmazlık değil.
 
 ## Altyapı Değişiklikleri
 
@@ -92,7 +114,7 @@ Yerel notlar: Model parçasının ilk koşusu makine yüklüyken (7 dk 38 sn) 4 
 - **Branch:** `task/T338-kupon`
 - **Commit:** `85bdd9e` — kod ve testler (1. işçi); rapor/kayıt commit'i bu dalda
 - **PR:** #458
-- **CI:** *(yardımcı izler)*
+- **CI:** run 42456195767 (head `564c86f`) — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, CI Gate yeşil
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 
 ## Dış Varsayımlar

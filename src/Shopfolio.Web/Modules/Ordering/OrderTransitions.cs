@@ -30,7 +30,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
     private readonly IAfterSalesModule _afterSales;
     private readonly IPaymentModule _payment;
     private readonly INotificationsModule _notifications;
-    private readonly ICatalogModule _catalog;
+    private readonly OrderCounters _counters;
     private readonly TimeProvider _time;
 
     public OrderTransitions(
@@ -39,7 +39,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         IAfterSalesModule afterSales,
         IPaymentModule payment,
         INotificationsModule notifications,
-        ICatalogModule catalog,
+        OrderCounters counters,
         TimeProvider time)
     {
         _db = db;
@@ -47,7 +47,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         _afterSales = afterSales;
         _payment = payment;
         _notifications = notifications;
-        _catalog = catalog;
+        _counters = counters;
         _time = time;
     }
 
@@ -198,9 +198,16 @@ internal sealed partial class OrderTransitions : IOrderTransitions
             return TransitionOutcome.Rejected(TransitionRejection.CorrectionNotPossible);
         }
 
-        // The correction returns the axis to the corrected row's source - only while the order is still where that row left it.
+        // The correction returns the axis to the corrected row's source - only while the order is still where that row left it. S1 has no
+        // correction of its own: it goes back only with the transfer mark's, both axes together (03 1.4.2.4).
         OrderStatus orderStatus = order.OrderStatus;
         PaymentStatus paymentStatus = order.PaymentStatus;
+        TransitionRecord? tiedPreparation = null;
+        if (corrected.TransitionCode == TransitionCode.S1)
+        {
+            return TransitionOutcome.Rejected(TransitionRejection.CorrectionNotPossible);
+        }
+
         if (TransitionTable.FindShipment(corrected.TransitionCode) is { } shipment && order.OrderStatus == shipment.To)
         {
             orderStatus = shipment.From;
@@ -208,6 +215,30 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         else if (TransitionTable.FindPayment(corrected.TransitionCode) is { } payment && order.PaymentStatus == payment.To)
         {
             paymentStatus = payment.From;
+            if (payment.Code == TransitionCode.O1)
+            {
+                // The payment returns to Pending only by the transfer mark's correction (03 1.4.1 (c)); the card line's payment axis has none (1.6.2).
+                if (order.PaymentMethod != PaymentMethod.BankTransfer)
+                {
+                    return TransitionOutcome.Rejected(TransitionRejection.CorrectionNotPossible);
+                }
+
+                // Preparing goes back to Placed with it (1.4.2.4): the S1 written with the mark is corrected in the same operation.
+                if (order.OrderStatus == OrderStatus.Preparing)
+                {
+                    tiedPreparation = await _db.TransitionRecords
+                        .Where(t => t.OrderId == order.Id && t.TransitionCode == TransitionCode.S1
+                            && !_db.TransitionRecords.Any(c => c.CorrectedTransitionRecordId == t.Id))
+                        .OrderByDescending(t => t.CreatedAt)
+                        .FirstOrDefaultAsync(ct);
+                    if (tiedPreparation is null)
+                    {
+                        return TransitionOutcome.Rejected(TransitionRejection.CorrectionNotPossible);
+                    }
+
+                    orderStatus = OrderStatus.Placed;
+                }
+            }
         }
         else
         {
@@ -225,12 +256,26 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         }
 
         order.ApplyCorrection(orderStatus, paymentStatus);
-        TransitionRecord record = TransitionRecord.Create(
-            order.Id, TransitionCode.Correction, ActorKind.Admin, request.Actor.AdminId, request.Actor.AdminName,
-            null, null, request.Reason, request.Note, corrected.Id, _time.GetUtcNow());
-        _db.TransitionRecords.Add(record);
+        DateTimeOffset now = _time.GetUtcNow();
+        List<Guid> recordIds = [];
+        TransitionRecord[] targets = tiedPreparation is null ? [corrected] : [corrected, tiedPreparation];
+        foreach (TransitionRecord target in targets)
+        {
+            TransitionRecord record = TransitionRecord.Create(
+                order.Id, TransitionCode.Correction, ActorKind.Admin, request.Actor.AdminId, request.Actor.AdminName,
+                null, null, request.Reason, request.Note, target.Id, now);
+            _db.TransitionRecords.Add(record);
+            recordIds.Add(record.Id);
+        }
+
+        // The transfer mark's correction keeps the reservation (03 1.4.4.8): what fell at Ö1 goes back to it.
+        if (corrected.TransitionCode == TransitionCode.O1)
+        {
+            await _counters.RestoreAsync(order, ct);
+        }
+
         RaiseVersionOnce(order);
-        return TransitionOutcome.Applied([record.Id], ClosureResult.None);
+        return TransitionOutcome.Applied(recordIds, ClosureResult.None);
     }
 
     /// <summary>
@@ -424,19 +469,11 @@ internal sealed partial class OrderTransitions : IOrderTransitions
     /// The release of the order's reservation (06 4.14 path 3; 02 3.17.5): the payment window ran out, the card failed, the unpaid order was
     /// cancelled. Written in the transition unit, in the cancellation's transaction, after the order lock (05 7.3.5: the variants and the coupon
     /// follow the order): the reserved quantities and the reserved coupon right go down by the order's rows, and the rows are deleted. An order
-    /// whose rows are gone - paid, deleted variant, digital only - frees nothing.
+    /// whose rows are gone - paid, deleted variant, digital only - frees nothing. The movement is the moment table's row 1.4.4.3, written by its one
+    /// order-side writer (<see cref="OrderCounters.ReleaseAsync"/>; T318).
     /// </summary>
     private async Task ReleaseReservationAsync(Guid orderId, CancellationToken ct)
     {
-        List<StockReservation> rows = await _db.StockReservations.Where(r => r.OrderId == orderId).ToListAsync(ct);
-        if (rows.Count == 0)
-        {
-            return;
-        }
-
-        VariantQuantity[] variants = [.. rows.Where(r => r.VariantId is not null).Select(r => new VariantQuantity(r.VariantId!.Value, r.Quantity))];
-        Guid? couponId = rows.Where(r => r.CouponId is not null).Select(r => r.CouponId).SingleOrDefault();
-        await _catalog.ReleaseAsync(new StockClaim(variants, couponId), ct);
-        _db.StockReservations.RemoveRange(rows);
+        await _counters.ReleaseAsync(await _db.Orders.SingleAsync(o => o.Id == orderId, ct), ct);
     }
 }

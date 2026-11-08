@@ -44,8 +44,9 @@ public sealed class ShipmentTransitionContractTests
     }
 
     [Fact]
-    public void TheShipmentAxis_HasAnOperationForS1S3S4S9AndS5ToS8_AndNoneForTheClosures_KK4()
+    public void TheShipmentAxis_HasAnOperationForS3S4S9AndS5ToS8_AndNoneForS1OrTheClosures_KK4()
     {
+        // S1 has no operation of its own: it comes with Ö1, in the payment axis's approval (T318; 03 1.4.2.1; D-307).
         // The shipment axis's operations are the ones that return OrderTransitionResult; the payment axis's (T317) return PaymentTransitionResult.
         string[] names = typeof(IOrderTransitions).GetMethods()
             .Where(m => m.ReturnType == typeof(Task<OrderTransitionResult>))
@@ -60,7 +61,6 @@ public sealed class ShipmentTransitionContractTests
             nameof(IOrderTransitions.MarkDeliveryFailedAsync),
             nameof(IOrderTransitions.ResendOrderAsync),
             nameof(IOrderTransitions.ShipOrderAsync),
-            nameof(IOrderTransitions.StartPreparationAsync),
         ];
         Assert.Equal(expected.Order().ToArray(), names);
     }

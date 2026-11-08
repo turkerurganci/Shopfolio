@@ -173,6 +173,10 @@ internal sealed class CatalogModule : ICatalogModule
 
     public Task ReturnAsync(StockClaim claim, CancellationToken ct) => ApplyAsync(claim, CounterMove.Return, ct);
 
+    public Task<bool> RetakeAsync(StockClaim claim, CancellationToken ct) => ApplyAsync(claim, CounterMove.Retake, ct);
+
+    public Task RestoreAsync(StockClaim claim, CancellationToken ct) => ApplyAsync(claim, CounterMove.Restore, ct);
+
     public Task<StockQuantityWriteResult> SaveStockQuantityAsync(Guid variantId, int? shownValue, int? newValue, CancellationToken ct)
     {
         return _counters.SaveStockQuantityAsync(variantId, shownValue, newValue, ct);

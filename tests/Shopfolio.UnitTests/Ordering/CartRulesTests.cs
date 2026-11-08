@@ -79,6 +79,29 @@ public sealed class CartRulesTests
         Assert.Equal(expected, CartRules.EntersOrder(onShowcase, soldOut));
     }
 
+    [Theory]
+    [InlineData(CartQuantityProblem.None, true)]
+    [InlineData(CartQuantityProblem.NoStock, false)]
+    [InlineData(CartQuantityProblem.OverOrderLimit, false)]
+    public void EntersOrder_NeedsAQuantityTheStockAndTheLimitHold_T347KK2(CartQuantityProblem problem, bool expected)
+    {
+        Assert.Equal(expected, CartRules.EntersOrder(true, false, problem));
+    }
+
+    [Fact]
+    public void ALineOverItsStockOrLimit_DoesNotOpenThePaymentStep_AndIsOutOfTheAmounts_T347KK2()
+    {
+        CartLine fine = new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Masa", ProductType.Physical, 1, 50m, false, false, true);
+        CartLine overStock = new(
+            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Sandalye", ProductType.Physical, 9, 10m, false, false, CartRules.EntersOrder(true, false, CartQuantityProblem.NoStock), CartQuantityProblem.NoStock);
+        CartLine overLimit = new(
+            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Lamba", ProductType.Physical, 3, 10m, false, false, CartRules.EntersOrder(true, false, CartQuantityProblem.OverOrderLimit), CartQuantityProblem.OverOrderLimit, 2);
+
+        Assert.Equal(CartPaymentBlock.NoOrderableItem, BlockOf([overStock, overLimit]));
+        Assert.Equal(CartPaymentBlock.None, BlockOf([overStock, fine]));
+        Assert.Equal(50m, CartRules.OrderableSubtotal([fine, overStock, overLimit]));
+    }
+
     [Fact]
     public void PaymentBlock_IsNoOrderableItem_ForAnEmptyCart_AndForACartOfSoldOutLines_KK7()
     {

@@ -25,6 +25,13 @@ internal sealed class Category
 
     public string Slug { get; set; } = string.Empty;
 
+    /// <summary>Puts the category under another parent at another level; the only way a level changes after the category is created, called by the tree's move under its lock.</summary>
+    public void Relocate(Guid? parentCategoryId, int level)
+    {
+        ParentCategoryId = parentCategoryId;
+        Level = level;
+    }
+
     public static Category Create(string name, string slug, Guid? parentCategoryId, int level, DateTimeOffset now)
     {
         return new Category { Id = EntityIds.New(), CreatedAt = now, Name = name, Slug = slug, ParentCategoryId = parentCategoryId, Level = level };

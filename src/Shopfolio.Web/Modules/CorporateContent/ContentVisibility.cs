@@ -41,6 +41,15 @@ internal static class ContentVisibility
     }
 
     /// <summary>
+    /// The statuses whose records <paramref name="audience"/> sees in a list or on a page: published for a visitor, published and draft for the administrator. A reader filters its
+    /// query with this, so the rule of who sees a draft stays in <see cref="Decide(PublishStatus, ContentAudience)"/> alone.
+    /// </summary>
+    public static PublishStatus[] VisibleStatuses(ContentAudience audience)
+    {
+        return [.. new[] { PublishStatus.Published, PublishStatus.Draft }.Where(status => Decide(status, audience) != ContentShown.Hidden)];
+    }
+
+    /// <summary>
     /// The announcement's visibility on <paramref name="today"/> (a Turkey day). A published announcement outside its dates is not on the site for
     /// anyone; a draft is previewed by the administrator whatever its dates, since the preview shows what the text will look like.
     /// </summary>

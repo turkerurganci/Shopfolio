@@ -52,9 +52,11 @@ public sealed class ShipmentTransitionContractTests
             .Where(m => m.ReturnType == typeof(Task<OrderTransitionResult>) && m.Name != nameof(IOrderTransitions.CorrectTransitionAsync))
             .Select(m => m.Name).Order().ToArray();
 
-        // S2, S10 and S11 are written by the closure rule's last event, not by an operation of their own (03 1.2).
+        // S2, S10 and S11 are written by the closure rule's last event, not by an operation of their own (03 1.2). The service item's "completed" mark (T351) is an item mark, not a
+        // transition: it writes a record only when it was the last open item and the closure rule ends the line.
         string[] expected =
         [
+            nameof(IOrderTransitions.MarkServiceCompletedAsync),
             nameof(IOrderTransitions.CancelOrderAsync),
             nameof(IOrderTransitions.CloseReturnedOrderAsync),
             nameof(IOrderTransitions.MarkDeliveredAsync),

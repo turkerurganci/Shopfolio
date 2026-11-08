@@ -43,6 +43,8 @@ internal sealed class MembershipModule : IMembershipModule
     private readonly AddressBooks _addresses;
     private readonly GoogleSignIns _google;
     private readonly EmailChanges _emailChanges;
+    private readonly AccountDeletions _deletions;
+    private readonly MemberRecords _memberRecords;
 
     public MembershipModule(
         AppDbContext db,
@@ -58,8 +60,12 @@ internal sealed class MembershipModule : IMembershipModule
         TimeProvider time,
         AddressBooks addresses,
         GoogleSignIns google,
-        EmailChanges emailChanges)
+        EmailChanges emailChanges,
+        AccountDeletions deletions,
+        MemberRecords memberRecords)
     {
+        _deletions = deletions;
+        _memberRecords = memberRecords;
         _google = google;
         _emailChanges = emailChanges;
         _passwords = passwords;
@@ -388,6 +394,14 @@ internal sealed class MembershipModule : IMembershipModule
 
     public Task<OrderAddressResolution> ResolveOrderAddressesAsync(OrderAddressRequest request, CancellationToken ct) => _addresses.ResolveAsync(request, ct);
 
+    public Task<AccountDeletionResult> DeleteAccountAsync(Guid customerId, Guid sessionId, string? reauthenticationValue, CancellationToken ct) => _deletions.DeleteOwnAsync(customerId, sessionId, reauthenticationValue, ct);
+
+    public Task<AccountDeletionResult> DeleteAccountOnRequestAsync(Guid customerId, CancellationToken ct) => _deletions.DeleteByAdministratorAsync(customerId, ct);
+
+    public Task<MemberRecord> FindMemberRecordAsync(string email, CancellationToken ct) => _memberRecords.FindAsync(email, ct);
+
+    public Task<DateTimeOffset?> GetDeletionBlockedUntilAsync(Guid customerId, CancellationToken ct) => _memberRecords.DeletionBlockedUntilAsync(customerId, ct);
+
     private async Task<DateTimeOffset?> FirstLinkEndAsync(Guid customerId, CancellationToken ct)
     {
         return await _db.LinkRecords.AsNoTracking()
@@ -426,6 +440,8 @@ internal static class MembershipModuleRegistration
         services.AddScoped<CustomerPasswords>();
         services.AddScoped<GoogleSignIns>();
         services.AddScoped<EmailChanges>();
+        services.AddScoped<AccountDeletions>();
+        services.AddScoped<MemberRecords>();
         services.AddScoped<IAdminPendingEmailChanges, AdminPendingEmailChanges>();
         services.AddScoped<ISessionService, SessionService>();
 

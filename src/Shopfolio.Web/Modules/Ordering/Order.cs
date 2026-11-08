@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.DataModel;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
@@ -93,8 +94,11 @@ internal sealed class Order : IVersionedRecord
 
     public decimal ShippingFee { get; set; }
 
-    /// <summary>The shipping fee's VAT breakdown over the physical items' rates, a JSON list of values (06 2.5.1); empty when the fee is 0.</summary>
-    public string? ShippingFeeVatBreakdown { get; set; }
+    /// <summary>
+    /// The shipping fee's VAT breakdown over the physical items' rates, a list of values (06 2.5.1, 4.17); empty when the fee is 0. Written once by <see cref="FreezeShippingFeeVatBreakdown"/> at
+    /// confirmation and never derived again (02 3.19.2, 3.19.6).
+    /// </summary>
+    public List<ShippingFeeVatShare>? ShippingFeeVatBreakdown { get; private set; }
 
     /// <summary>The firm's IBAN at confirmation on a bank transfer order; filled exactly on a bank transfer order.</summary>
     public string? BankTransferIban { get; set; }
@@ -266,6 +270,28 @@ internal sealed class Order : IVersionedRecord
     }
 
     /// <summary>
+    /// Freezes the shipping fee's VAT breakdown (02 3.19.2, 3.19.6; 11 T349 criteria 5, 9): the parts of <c>ICatalogModule.SplitShippingFee</c> for the fee <see cref="Create"/> froze from
+    /// <see cref="ShippingAssessment.Fee"/>. The parts add up to <see cref="ShippingFee"/>; a fee of zero has none. Written once, at confirmation, before the first save; a later cancellation, return
+    /// or settings change never derives it again, and a second call is a programming error.
+    /// </summary>
+    public void FreezeShippingFeeVatBreakdown(IReadOnlyList<ShippingVatPart> parts)
+    {
+        ArgumentNullException.ThrowIfNull(parts);
+        if (ShippingFeeVatBreakdown is not null)
+        {
+            throw new InvalidOperationException("The shipping fee's VAT breakdown is written once, at confirmation (02 3.19.2).");
+        }
+
+        if (parts.Sum(p => p.Part) != ShippingFee)
+        {
+            throw new ArgumentException("The parts of the shipping fee do not add up to the order's shipping fee.", nameof(parts));
+        }
+
+        // A fee of zero has no parts and the column stays empty (06 4.17).
+        ShippingFeeVatBreakdown = parts.Count == 0 ? null : [.. parts.Select(p => new ShippingFeeVatShare(p.VatRate, p.Part, p.Vat))];
+    }
+
+    /// <summary>
     /// Freezes the shipping promise (02 3.20.5; 11 T350 criterion 6): the longest period of the order's physical items (<see cref="ShippingPromise.OfOrder"/>), or null for an order with
     /// none. Written once, at confirmation, before the first save; a later change of the firm default or of a product never reaches an order, and a second call is a programming error.
     /// </summary>
@@ -372,7 +398,7 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.CouponCode).HasColumnType("text");
         builder.Property(o => o.Total).AsMoney();
         builder.Property(o => o.ShippingFee).AsMoney();
-        builder.Property(o => o.ShippingFeeVatBreakdown).HasColumnType("jsonb");
+        builder.Property(o => o.ShippingFeeVatBreakdown).HasPayloadConversion();
         builder.Property(o => o.BankTransferIban).HasColumnType("text");
         builder.Property(o => o.Carrier).HasColumnType("text");
         builder.Property(o => o.OtherCarrierName).HasColumnType("text");

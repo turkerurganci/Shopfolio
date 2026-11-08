@@ -90,7 +90,7 @@ Sayılar `origin/main` `02ec5357` (T342) birleştirmesinden sonraki ağaçtır.
 
 - **Branch:** `task/T320-kalem-kayitlari`
 - **Commit:** `5ddba78c` (tümleşik testler), `3f8f123b` (test düzenleri), `7fedd066` (backlog, STATUS), `e559b60e` (yük örneği testi); main birleştirmesi, saat sahtesi/ihlal örneği ve rapor/kayıt commit'leri bu dalda
-- **PR:** PR_NO
+- **PR:** #466
 - **CI:** *(yönetici izler)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 

@@ -20,6 +20,13 @@ internal sealed class DigitalFileReader
         _db = db;
     }
 
+    /// <summary>The Published variants of a digital product that no file serves (02 3.7.4); empty for a product of another type or one that is gone.</summary>
+    public async Task<IReadOnlyList<Guid>> ListPublishedWithoutFileAsync(Guid productId, CancellationToken ct)
+    {
+        bool isDigital = await _db.Products.AsNoTracking().AnyAsync(p => p.Id == productId && p.ProductType == ProductType.Digital, ct);
+        return isDigital ? await DigitalFileCoverage.FindPublishedWithoutFileAsync(_db, productId, null, ct) : [];
+    }
+
     public async Task<DigitalFileLocation?> FindAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct)
     {
         DigitalFile? file = null;

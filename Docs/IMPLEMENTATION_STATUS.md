@@ -161,7 +161,7 @@
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ✓ | ✓ PASS (tur 2) | — | #455 |
 | T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |
-| T321 | Ürün yayın durumları | ✓ | ✓ PASS (tur 3) | — | #439 |
+| T321 | Ürün yayın durumları | ✓ | ✓ PASS (tur 3) | `a89710b` | #439 |
 | T322 | İçerik yayın durumları ve iletişim talebi durumları | ✓ | ✓ PASS (tur 1) | `f9ea0fe` | #438 |
 | T323 | Durum × rol × işlem tablosu | ⬚ | — | — | — |
 | T324 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | ✓ | ✓ PASS (tur 1) | — | #454 |
@@ -175,7 +175,7 @@
 | T332 | Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu | ✓ | ✓ PASS (tur 1) | `c4c872c` | #432 |
 | T333 | Kategori ağacı, site içi arama ve liste süzgeçleri | ✓ | ✓ PASS (tur 4) | — | #442 |
 | T334 | Stok ve hizmet kontenjanı: takip, tükenme, ayrılmış adedin altına inmeme | ✓ | ✓ PASS (tur 1) | — | #443 |
-| T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ⬚ | — | — | — |
+| T335 | Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı | ✓ | ✓ PASS (tur 1) | — | #447 |
 | T336 | Fiyat ve KDV: kuruş hassasiyeti, kalem bazlı hesap sırası, yuvarlama yönü, fiyat etiketi bilgileri | ✓ | ✓ PASS (tur 4) | — | #444 |
 | T337 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | ✓ | ✓ PASS (tur 1) | — | #457 |
 | T338 | Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması | ✓ | ✓ PASS (tur 1) | — | #458 |

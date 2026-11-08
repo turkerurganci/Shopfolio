@@ -125,6 +125,19 @@ public interface ICatalogModule
     Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct);
 
     /// <summary>
+    /// What the address <c>/urun/{slug}</c> answers (02 3.7.5, 3.7.6, 3.30.4): a Published product is its page; an Archived product is the "Bu ürün artık satılmıyor" page with its name,
+    /// image and status - and no variant, so no price and no cart; a Draft product is "page not found" for a visitor and the page with the "Draft" band for a signed-in administrator
+    /// (<paramref name="isAdministrator"/>), who sees the Draft variants too; an address that holds no product, a deleted one among them, is "page not found". A plain read.
+    /// </summary>
+    Task<ProductPage> GetProductPageAsync(string? slug, bool isAdministrator, CancellationToken ct);
+
+    /// <summary>
+    /// The Published variants of a digital product that no file serves (02 3.7.4): the variants the publish gate counts and the panel shows as missing a file - none for a product of
+    /// another type, one that has a file at product level, or one whose Published variants each carry their own. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> ListVariantsWithoutFileAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>
     /// The stock code the new variant's form is filled with (02 3.3.4; 05 7.8.1, MK-32): the product's address in capitals - its first twenty characters - a hyphen and
     /// the two-digit order of the variant, raised until no other variant holds the code. A saved product (<paramref name="productId"/>) starts from its address and
     /// the order of its next variant; a product not saved yet starts from <paramref name="productName"/> as it is now; null when there is neither a saved product nor a

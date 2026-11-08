@@ -1,5 +1,6 @@
 using Shopfolio.Modules.Catalog.Contracts.Categories;
 using Shopfolio.Modules.Catalog.Contracts.Lists;
+using Shopfolio.Modules.Catalog.Contracts.Pricing;
 using Shopfolio.Modules.Catalog.Contracts.Variants;
 
 namespace Shopfolio.Modules.Catalog.Contracts;
@@ -136,6 +137,28 @@ public interface ICatalogModule
     /// whatever its status; the publication rules are the caller's. A plain read.
     /// </summary>
     Task<IReadOnlyList<OptionMatrixCell>> GetOptionMatrixAsync(Guid productId, CancellationToken ct);
+
+    /// <summary>
+    /// The price label of a variant for the product page (02 3.8.5, 12.1.5): the price as typed, VAT included; the product's VAT rate; the place of origin when the
+    /// page shows its line (physical, filled digital; never a service); the date the price applies since, from the price history; the measurement unit, the net
+    /// quantity and the derived unit price of a product sold by measure. Null when there is no such variant. A plain read.
+    /// </summary>
+    Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct);
+
+    /// <summary>
+    /// The amounts of one item in the fixed order of 02 3.8.3: the unit price - the discounted one, already rounded, in a discount - times the quantity, the
+    /// coupon share taken off, the VAT separated from the rest at the item's rate and rounded to the kuruş in the item, the net amount the rest. A pure calculation.
+    /// </summary>
+    ItemAmounts PriceItem(ItemPriceInput input);
+
+    /// <summary>
+    /// The shipping fee's VAT split over the rates of the order's physical items (02 3.19.2): one rate takes the whole fee; several share it in proportion to their
+    /// items' amounts, the parts rounded down and the left-over kuruş on the largest part; each part's VAT at its rate. Empty for a fee of zero. A pure calculation.
+    /// </summary>
+    IReadOnlyList<ShippingVatPart> SplitShippingFee(decimal shippingFee, IReadOnlyList<ShippingBasisLine> lines);
+
+    /// <summary>The order total (02 3.8.3; K-61): the sum of the items' payable amounts and the shipping fee, never net plus VAT again. A pure calculation.</summary>
+    decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee);
 
     /// <summary>
     /// The whole category tree, depth first: a node, then its sub-categories in the Turkish alphabetical order of their names at every level (02 3.4.1) - the order of the panel's tree,

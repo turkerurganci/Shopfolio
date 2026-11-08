@@ -47,6 +47,19 @@ internal sealed class OrderingModule : IOrderingModule
 
     public Task<OrderShippingView?> GetShippingViewAsync(Guid orderId, CancellationToken ct) => _shippingViews.GetAsync(orderId, ct);
 
+    public async Task<ConfirmationParties?> GetConfirmationPartiesAsync(Guid orderId, CancellationToken ct)
+    {
+        Order? order = await _db.Orders.AsNoTracking().SingleOrDefaultAsync(o => o.Id == orderId, ct);
+        if (order is null)
+        {
+            return null;
+        }
+
+        List<OrderAddressHistory> addresses = await _db.OrderAddressHistories.AsNoTracking().Where(h => h.OrderId == orderId).ToListAsync(ct);
+        List<OrderEmailHistory> emails = await _db.OrderEmailHistories.AsNoTracking().Where(h => h.OrderId == orderId).ToListAsync(ct);
+        return OrderFreeze.PartiesAtConfirmation(order, addresses, emails);
+    }
+
     public Task<IReadOnlyList<OrderPaymentArm>> FindPaymentArmsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => _arms.ReadAsync(orderIds, ct);
 
     public Task<IReadOnlyList<Guid>> FindUnpaidFailedOrdersAsync(DateTimeOffset failedBefore, IReadOnlyCollection<Guid> exclude, int max, CancellationToken ct) =>

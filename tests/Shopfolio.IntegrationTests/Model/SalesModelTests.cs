@@ -488,7 +488,8 @@ public sealed class SalesModelTests : IAsyncLifetime
 
     private static Product NewProduct(string slug, ProductType type, string? name = null)
     {
-        return Product.Create(name ?? "Ürün " + slug, slug, type, 20m, Now);
+        Product product = Product.Create(name ?? "Ürün " + slug, slug, type, 20m, Now);
+        return type == ProductType.Physical ? product.WithSeededOrigin() : product;
     }
 
     private async Task<(Product Product, Variant Variant)> SeedPhysicalProductWithOneVariantAsync(string slug, string sku)

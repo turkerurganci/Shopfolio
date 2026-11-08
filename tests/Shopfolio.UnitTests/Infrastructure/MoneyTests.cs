@@ -159,4 +159,59 @@ public sealed class MoneyTests
         Assert.Equal(2, Shopfolio.Infrastructure.DataModel.ModelBuilderExtensions.PercentType.Scale);
         Assert.Equal(99.99m, Money.MaxPercentage);
     }
+
+    // T336 (09 14.1 items 3, 6; 02 3.8.3; D-74): the VAT inside a VAT-included amount, one amount rounded to the kuruş with an exact half up.
+    [Theory]
+    [InlineData("120", "20", "20.00")]
+    [InlineData("100", "20", "16.67")]
+    [InlineData("110", "10", "10.00")]
+    [InlineData("100", "0", "0.00")]
+    [InlineData("0", "20", "0.00")]
+    [InlineData("10.50", "5", "0.50")]
+    [InlineData("0.21", "5", "0.01")]
+    [InlineData("1", "1", "0.01")]
+    public void VatOf_GrossAndRate_IsTheRoundedVatInsideTheGross(string gross, string rate, string expected)
+    {
+        Assert.Equal(Dec(expected), Money.VatOf(Dec(gross), Dec(rate)));
+    }
+
+    [Fact]
+    public void VatOf_AnExactHalfKurus_GoesUp()
+    {
+        // 10,605 at 5%: 10,605 x 5 / 105 = 0,505 exactly - an exact half kuruş, which goes up to 0,51 (to even would give 0,50).
+        Assert.Equal(0.51m, Money.VatOf(10.605m, 5m));
+        Assert.Equal(0.505m, 10.605m * 5m / 105m);
+    }
+
+    [Theory]
+    [InlineData("-0.01", "20")]
+    [InlineData("100", "-1")]
+    [InlineData("100", "100")]
+    public void VatOf_NegativeGrossOrRateOutsideItsRange_Throws(string gross, string rate)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Money.VatOf(Dec(gross), Dec(rate)));
+    }
+
+    [Fact]
+    public void VatOf_TheLargestRate_IsAccepted()
+    {
+        Assert.Equal(49.99m, Money.VatOf(99.99m, Money.MaxPercentage));
+    }
+
+    // D-76 (T227 validation K1): a zero with the minus sign bit is not negative; it rounds to zero and splits into zero parts.
+    [Fact]
+    public void NegativeZero_IsNotRefused_AndRoundsToAPlainZero()
+    {
+        decimal negativeZero = -0.00m;
+        Assert.True(decimal.IsNegative(negativeZero));
+
+        decimal rounded = Money.Round(negativeZero);
+
+        Assert.Equal(0m, rounded);
+        Assert.False(decimal.IsNegative(rounded));
+        Assert.Equal([0m, 0m], Money.Allocate(negativeZero, [1m, 2m]));
+        Assert.Equal(0m, Money.VatOf(negativeZero, 20m));
+    }
+
+    private static decimal Dec(string value) => decimal.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
 }

@@ -238,7 +238,7 @@ public sealed class ImageFilesTests : IAsyncLifetime
         Image gallery = Image.Create(Key('3'), ImageFormat.Jpeg, 10, 10, old);
         Image variantImage = Image.Create(Key('4'), ImageFormat.Jpeg, 10, 10, old);
         Image logo = Image.Create(Key('5'), ImageFormat.Jpeg, 10, 10, old);
-        Product product = Product.Create("Ürün", "urun", ProductType.Physical, 20m, old);
+        Product product = Product.Create("Ürün", "urun", ProductType.Physical, 20m, old).WithSeededOrigin();
         Variant variant = Variant.Create(product.Id, "SKU-1", 5m, old, 100);
         variant.ImageId = variantImage.Id;
         Branding branding = Branding.Create(old);

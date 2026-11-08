@@ -610,7 +610,7 @@ public sealed partial class VersionedFormPageTests
     private async Task<Product> SeedProductAsync()
     {
         int n = Interlocked.Increment(ref _counter);
-        Product product = Product.Create("Kapı", $"kapi-{n}", ProductType.Physical, 20m, Now);
+        Product product = Product.Create("Kapı", $"kapi-{n}", ProductType.Physical, 20m, Now).WithSeededOrigin();
         await SaveAsync(c => c.Products.Add(product));
         return product;
     }
@@ -629,15 +629,20 @@ public sealed partial class VersionedFormPageTests
     {
         int n = Interlocked.Increment(ref _counter);
         Province province;
+        int version;
         await using (AppDbContext reader = NewContext())
         {
             province = await reader.Provinces.AsNoTracking().FirstOrDefaultAsync(Ct) ?? Province.Create("06", "Ankara", Now);
+
+            // The application's start writes the generated texts' versions too (T366), so the seeded versions follow the largest stored number, whatever
+            // the order the tests ran in, instead of the counter.
+            version = (await reader.LegalTextVersions.MaxAsync(v => v.VersionNumber, Ct) ?? 0) + 1;
         }
 
         bool provinceExists = await ProvinceExistsAsync(province.Id);
-        LegalTextVersion form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, n, Now, "metin", Now);
-        LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, n, Now, "metin", Now);
-        LegalTextVersion notice = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, n, Now, "metin", Now).WithHosting();
+        LegalTextVersion form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, version, Now, "metin", Now);
+        LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, version, Now, "metin", Now);
+        LegalTextVersion notice = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, version, Now, "metin", Now).WithHosting();
         Order order = Order.Create(
             $"2026-{n:D6}", $"access-placeholder-{n}", $"confirm-placeholder-{n}", PaymentMethod.Card, true, "Ali@Example.com", 120m, 0m, Now.AddHours(1), Now);
         order.IpAddress = IPAddress.Parse("203.0.113.5");

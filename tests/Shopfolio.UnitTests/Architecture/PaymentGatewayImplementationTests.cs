@@ -42,5 +42,9 @@ public sealed class PaymentGatewayImplementationTests
         public Task<RefundQueryResult> QueryRefundAsync(CardRefund refund, CancellationToken ct) => throw new NotSupportedException();
 
         public NotificationVerification VerifyNotification(IReadOnlyDictionary<string, string> formFields) => throw new NotSupportedException();
+
+        public NotificationResult ReadNotificationResult(string eventType, string outcome) => throw new NotSupportedException();
+
+        public NotificationAmountCheck CheckNotificationAmount(PaymentNotice notice, decimal orderTotal) => throw new NotSupportedException();
     }
 }

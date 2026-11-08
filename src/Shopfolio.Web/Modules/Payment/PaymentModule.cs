@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Jobs;
+using Shopfolio.Infrastructure.SignedEndpoints;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Payment.Contracts;
 
@@ -192,13 +193,28 @@ internal sealed class PaymentModule : IPaymentModule
     }
 }
 
-/// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddPaymentModule</c> once.</summary>
+/// <summary>
+/// The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddPaymentModule</c> once, and maps the payment provider's notification
+/// endpoint with <c>MapPaymentNotificationEndpoint</c> (UC-80).
+/// </summary>
 internal static class PaymentModuleRegistration
 {
     public static IServiceCollection AddPaymentModule(this IServiceCollection services)
     {
         services.AddScoped<IPaymentModule, PaymentModule>();
         services.AddDisposalPart<InboundNotificationDisposalPart>();
+        services.AddScoped<PaymentNotificationEndpoint>();
+        services.AddTransactionalJobHandler<InboundNotificationJobHandler>(JobType.InboundNotificationProcessing);
         return services;
+    }
+
+    /// <summary>
+    /// Maps UC-80 (07 4.30.1): <c>POST /sistem/odeme-bildirimi</c> as a signed machine endpoint, outside the protection against cross-site forgery
+    /// (07 2.5.5), with the body ceiling of the notification class (07 2.8.1).
+    /// </summary>
+    public static IEndpointConventionBuilder MapPaymentNotificationEndpoint(this IEndpointRouteBuilder endpoints)
+    {
+        return endpoints.MapSignedEndpoint<PaymentNotificationEndpoint, Infrastructure.Integrations.PaymentNotice>(
+            Infrastructure.Security.AntiforgeryExemptions.PaymentNotificationPath);
     }
 }

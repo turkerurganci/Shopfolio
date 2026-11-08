@@ -98,8 +98,8 @@ Güvenlik taraması: kullanıcı girdisi ham SQL'e yalnız parametre olarak gire
 ## Commit & PR
 
 - **Branch:** `task/T347-sepet-adet`
-- **Commit:** son baş PR sayfasındadır
-- **PR:** #PRNO
+- **Commit:** `bffe1c80` — T347 rapor ve kayıtlar (yapım kodu `451b6a9b`)
+- **PR:** #475
 - **CI:** işçi yoklamaz; yöneticinin izlemesindedir
 - **Post-merge run'lar:** *(validator doldurur)*
 

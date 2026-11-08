@@ -9,7 +9,8 @@ namespace Shopfolio.UnitTests.Ordering;
 
 /// <summary>
 /// The open face of the shipment axis (T316; 09 9.1 items 3, 4): the operations of the unit are a value-returning, cancellable set, the refusals the caller
-/// sees are the core's refusals (the correction's own ones apart), and the cancellation request's factories carry each actor's data and no one else's.
+/// sees are the core's refusals (the correction's actor and reason refusals apart - the open face says ActorNotAllowed and InvalidInput for them, T319), and
+/// the cancellation request's factories carry each actor's data and no one else's.
 /// </summary>
 public sealed class ShipmentTransitionContractTests
 {
@@ -17,7 +18,6 @@ public sealed class ShipmentTransitionContractTests
     [
         nameof(TransitionRejection.CorrectionRequiresPanel),
         nameof(TransitionRejection.CorrectionReasonRequired),
-        nameof(TransitionRejection.CorrectionNotPossible),
     ];
 
     [Fact]
@@ -49,7 +49,7 @@ public sealed class ShipmentTransitionContractTests
         // S1 has no operation of its own: it comes with Ö1, in the payment axis's approval (T318; 03 1.4.2.1; D-307).
         // The shipment axis's operations are the ones that return OrderTransitionResult; the payment axis's (T317) return PaymentTransitionResult.
         string[] names = typeof(IOrderTransitions).GetMethods()
-            .Where(m => m.ReturnType == typeof(Task<OrderTransitionResult>))
+            .Where(m => m.ReturnType == typeof(Task<OrderTransitionResult>) && m.Name != nameof(IOrderTransitions.CorrectTransitionAsync))
             .Select(m => m.Name).Order().ToArray();
 
         // S2, S10 and S11 are written by the closure rule's last event, not by an operation of their own (03 1.2).

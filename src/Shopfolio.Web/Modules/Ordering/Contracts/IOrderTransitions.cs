@@ -19,6 +19,7 @@ namespace Shopfolio.Modules.Ordering.Contracts;
 /// The payment axis (T317): Ö1 <see cref="ApplyCardPaymentAsync"/> and <see cref="MarkTransferPaidAsync"/> - the one path of the approval, with the payment
 /// record (09 24 item 4) - Ö3/Ö4/Ö5 <see cref="ApplyCardRefundOutcomeAsync"/> and <see cref="ProcessTransferRefundAsync"/>; Ö2 has no operation of its own:
 /// an unpaid order's cancellation writes it with S3 in <see cref="CancelOrderAsync"/>.
+/// The correction (T319): <see cref="CorrectTransitionAsync"/>, the one way back; no method undoes a transition and a withdrawal is never corrected (03 1.6.2).
 /// </summary>
 public interface IOrderTransitions
 {
@@ -90,4 +91,14 @@ public interface IOrderTransitions
     /// declaration's units still on the way back, with the irreversible-action confirmation. B-16 goes to the customer; no refund is paid.
     /// </summary>
     Task<ItemRecordResult> RejectReturnAsync(RejectReturnRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// The administrator's correction of a wrong transition (T319; 03 1.6.2; 02 10.4.6; 05 4.1.4): a new transition with a reason from the closed list that
+    /// sets the axis back; the wrong row and the correction both stay in the record, and B-13 goes. There is no "undo": the panel corrects by this one path.
+    /// What is corrected, and on what condition: the early delivery mark S6 (the physical items' marks go, the withdrawal and defect periods wait for the new
+    /// date); the firm's cancellation S3, S4, S9 of a paid order (the reservations are taken again, the unsent refund is voided, the open IBAN request closes);
+    /// the wrong S5, S7 or S8 (the closure rule is read in the same operation); the transfer's "paid" mark Ö1 with its S1 (Z-8 starts again, B-3 goes once more).
+    /// A refusal names the <see cref="OrderTransitionResult.Obstacle"/>.
+    /// </summary>
+    Task<OrderTransitionResult> CorrectTransitionAsync(CorrectTransitionRequest request, CancellationToken ct);
 }

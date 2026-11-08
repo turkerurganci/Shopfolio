@@ -12,6 +12,7 @@ using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Payment;
+using Shopfolio.Modules.Settings;
 
 namespace Shopfolio.IntegrationTests.Ordering;
 
@@ -44,6 +45,11 @@ internal static class OrderingTestServices
         services.AddSettingsDependencies();
         services.AddOrderingModule();
         services.AddPaymentModule();
+
+        // The Settings module (with its trail) for the payment window the correction of the transfer mark starts again (T319; P-7).
+        services.AddScoped<Shopfolio.Modules.Administration.IAuditActorSource, NoAuditActor>();
+        services.AddScoped<Shopfolio.Modules.Administration.Contracts.IAuditTrail, Shopfolio.Modules.Administration.AuditTrail>();
+        services.AddSettingsModule();
 
         // The Notifications module's open face and the writers it needs; the firm's contact e-mail is a fixed address, not the Settings module's.
         services.AddScoped<INotificationsModule, NotificationsModule>();

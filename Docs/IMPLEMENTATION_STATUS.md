@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T362 (Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası) yapım bitti, doğrulama bekliyor (task `⏳ Devam ediyor`; kriter 1–6, KK1–KK6 öz denetimde ✓; Unit 955 + 3315 (Consistency 241), Integration BrandingTests 29 + komşu 157; şema yok; sayfa ve e-posta bağlama T534/T537; ana dal CI 42426248097 T362 dışı port çakışması).
+**Son güncelleme:** 2026-11-08 — T362 (Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası) doğrulama tur 1 ✗ FAIL (head `f0ef3ca` + `origin/main` (`7097c01`, T317, #441) birleştirmesi, PR #448; kriter 1–6 ve KK1–KK6 ✓, güvenlik taraması temiz, dal CI 42429549117 yeşil; Unit Architecture 955 + Consistency 241 + öteki 3074, betik testleri, Integration yerelde BrandingTests 29 + komşu 219; B1 DÜŞÜK S1 (`09 §25` "tek işlev"): `BrandingRules.TryNormalizeColor` `InvalidColor` kodunun tek evi `InvalidColorAttribute`'u çağırmadan kendi biçim kuralını kurar ve ondan ayrışır (`"  #ffff00 "` modülde kabul, nitelikte ret); K1 → D-442 (e-posta göndereni markayı `GetBrandIdentityAsync`'ten almalı); `12` `Durum` değişmedi (KP-56 satırları panel ve tarayıcı kanıtı ister); backlog aktif 155). Önceki kayıt `STATUS_CHANGELOG.md`'de.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -156,7 +156,7 @@
 | T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | `335e9cb` | #418 |
 | T315 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | ✓ | ✓ PASS (tur 1) | `8caf0f0` | #434 |
 | T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ✓ | ✓ PASS (tur 2) | — | #437 |
-| T317 | Ödeme durumu geçişleri: ödeme ekseni | ⬚ | — | — | — |
+| T317 | Ödeme durumu geçişleri: ödeme ekseni | ✓ | ✓ PASS (tur 3) | — | #441 |
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ⬚ | — | — | — |
 | T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |
@@ -201,7 +201,7 @@
 | T359 | Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler | ⬚ | — | — | — |
 | T360 | Duyuru şeridi, boş kurulum, içerik yayın durumu, önizleme ve silme | ⬚ | — | — | — |
 | T361 | Ana sayfa düzeni ve üst menü | ⬚ | — | — | — |
-| T362 | Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası | ⏳ | — | — | #448 |
+| T362 | Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası | ⏳ | ✗ FAIL (tur 1) | — | #448 |
 | T363 | Sayfa adresleri, arama motoru bilgileri, kapalı sayfalar ve paylaşım | ⬚ | — | — | — |
 | T364 | Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler | ⬚ | — | — | — |
 | T365 | İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması | ⬚ | — | — | — |

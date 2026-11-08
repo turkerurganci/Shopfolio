@@ -1,6 +1,6 @@
 # T362 — Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — renk biçimi denetimi `InvalidColorAttribute`'a bağlanmayı bekliyor) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -72,10 +72,14 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-08, head `f0ef3ca` + `origin/main` `7097c01` birleştirmesi). Kriter 1–6 ve KK1–KK6 ✓, güvenlik taraması temiz, dal CI 42429549117 yeşil; yerelde derleme `-warnaserror` 0/0, biçim temiz (Integration projesi `whitespace` + `style`, analizörler derlemede), Unit Architecture 955 + Consistency 241 + öteki 3074, betik testleri 4/4, Integration `BrandingTests` 29/29, komşu (`ImageFilesTests`, `AuditTrailTests`, `ContentRecordAndBrandingTablesTests`, `AdminAndAuditTablesTests`, `FirmSettingsTests`, `CompanyIdentityTests`, `DisposalTests`) 219/219 (bunlar `f0ef3ca`'da); birleşik ağaçta derleme 0/0, Unit 955 + 3317, Integration `BrandingTests` + `AuditTrailTests` 51/51. Kontrol listesinin `09 §25` maddesi ✗ (B1) |
+| Bulgu sayısı | 1 — B1 DÜŞÜK S1 (`09 §25` "aynı işi yapan tek işlev varsa o çağrılmış mı?"; `09 §3.4` m.1, §24 m.4; T341 tur 2 B1'in kalıbı): `BrandingRules.TryNormalizeColor` `InvalidColor` alan kodunun tek evi `InvalidColorAttribute`'u (`Infrastructure/Validation/FieldRules.cs:292`, `06 4.54`) çağırmadan kendi `#RRGGBB` kuralını kurar ve aynı kodu verir. Ölçülen ayrışma: `"  #ffff00 "` modülde kabul edilir (`BrandingRulesTests.AColour_IsStoredAsHashAndSixCapitalDigits` bunu sınar), nitelikte reddedilir (uzunluk 10 ≠ 7) — T534'ün formu niteliği taşıdığında aynı alan iki kuralla denetlenir. Modülün öteki denetimi zaten bu kalıptadır (`CompanyIdentityRules` niteliğin örneğini çağırır) |
+| Düzeltme gerekli mi | Evet — `TryNormalizeColor` biçim denetimini `new InvalidColorAttribute()` ile yapar (`CompanyIdentityRules.AddFormRejection` kalıbı; kırpma tutulacaksa kırpılmış değere uygulanır ve bu bilinçli fark yorumda yazılır, ya da kırpma kaldırılır); büyük harfe çevirme kalır; ayrışan örnek ve niteliğin reddettiği bir örnek aynı teoride iki kuralın birlikte sınandığını gösterir. Rapor ve öz denetim tablosundaki "biçim denetimi `BrandingRules.TryNormalizeColor`" satırı güncellenir |
+| Bloke-etmeyen not (K) sayısı | 1 — K1 → D-442 (e-posta göndereni markayı `GetBrandIdentityAsync`'ten kurar; bugün `11`'de bunu söyleyen task yok) |
+
+**Task satırları (`12 §7.5`):** `grep -nE 'KP-56([^0-9]|$)'` → `VAL-A157`…`VAL-A160` (DÜŞÜK; kanıt türü uç yanıtı + tarayıcı gözlemi ya da iş kaydı). Dört satırın beklenen sonucu vitrinde/e-postada görünmeyi ister; sayfa (T534, T537) ve gönderen (D-442) henüz yok → `Durum` `BEKLEMEDE` kaldı. KD-46, KD-47 için matris satırı yok. `12_matris_denetle.py --kapsam 1-77` → Hata: 0.
+
+**Doğrulayıcı uyuşmazlık notları (adım 13):** (1) Notlar'daki ana dal run'ı 42426248097 `failure` değil `cancelled`'dır (eşzamanlılık iptali, Integration işi `7097c01` itilince kesildi; `7097c01` CI 42430286061 yeşil). (2) "Unit (öteki) 3315" Consistency'yi de içerir; iki ad alanı birlikte dışlanınca 3074. (3) Öz denetimin "Sık FAIL 5" satırı biçim denetimini bilinçli olarak `BrandingRules`'a koyar ama `InvalidColorAttribute`'u anmaz — B1 bu boşluktur. (4) Biçim satırı `dotnet format Shopfolio.slnx` der; yerelde Integration projesinin tam biçim koşusu 150 sn'yi aştı, değişen dosya `whitespace` + `style` ile temiz, CI Lint yeşil.
 
 ## Altyapı Değişiklikleri
 

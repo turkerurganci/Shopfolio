@@ -54,13 +54,15 @@ internal static partial class VersionedSideBulkWriteScan
         "src/Shopfolio.Web/Modules/Ordering/", "src/Shopfolio.Web/Modules/AfterSales/", "src/Shopfolio.Web/Modules/Payment/", "src/Shopfolio.Web/Modules/Catalog/",
     ];
 
-    /// <summary>The places inside those modules that have a bulk write: the counters' one writer, the guest cart's disposal (a cart is no order), the image derivative job and the disposal of unlinked images (an image row with no link left is no product row).</summary>
+    /// <summary>The places inside those modules that have a bulk write: the counters' one writer, the guest cart's disposal (a cart is no order), the image derivative job and the disposal of unlinked images (an image row with no link left is no product row), the disposal of unlinked and incomplete digital files (the same), and the inbound notification record's disposal (the record is no order-side row).</summary>
     public static readonly IReadOnlyList<string> AllowedPlaces =
     [
         "src/Shopfolio.Web/Modules/Catalog/StockCounters.cs",
         "src/Shopfolio.Web/Modules/Ordering/GuestCartDisposalPart.cs",
         "src/Shopfolio.Web/Modules/Catalog/ImageDerivativeJobHandler.cs",
         "src/Shopfolio.Web/Modules/Catalog/ImageDisposalParts.cs",
+        "src/Shopfolio.Web/Modules/Catalog/DigitalFileDisposalParts.cs",
+        "src/Shopfolio.Web/Modules/Payment/InboundNotificationDisposalPart.cs",
         GalleryMainMarkPlace,
     ];
 

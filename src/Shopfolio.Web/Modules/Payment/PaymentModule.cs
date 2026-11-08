@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Payment.Contracts;
@@ -197,6 +198,7 @@ internal static class PaymentModuleRegistration
     public static IServiceCollection AddPaymentModule(this IServiceCollection services)
     {
         services.AddScoped<IPaymentModule, PaymentModule>();
+        services.AddDisposalPart<InboundNotificationDisposalPart>();
         return services;
     }
 }

@@ -21,7 +21,14 @@ internal static partial class DisposalNumberSourceScan
         return (path.Contains(DisposalFolder, StringComparison.Ordinal) && !path.EndsWith("/DisposalTimings.cs", StringComparison.Ordinal))
             || path.EndsWith("/Modules/Ordering/GuestCartDisposalPart.cs", StringComparison.Ordinal)
             || path.EndsWith("/Modules/Ordering/OrderDisposalPart.cs", StringComparison.Ordinal)
-            || path.EndsWith("/Modules/Administration/AdminInvitationDisposalPart.cs", StringComparison.Ordinal);
+            || path.EndsWith("/Modules/Administration/AdminInvitationDisposalPart.cs", StringComparison.Ordinal)
+            || path.EndsWith("/Modules/Notifications/DispatchRecordDisposalPart.cs", StringComparison.Ordinal)
+            || path.EndsWith("/Modules/CorporateContent/ContactRequestDisposalPart.cs", StringComparison.Ordinal)
+            || path.EndsWith("/Modules/Payment/InboundNotificationDisposalPart.cs", StringComparison.Ordinal)
+            || path.EndsWith("/Modules/AfterSales/DefectClaimDisposalPart.cs", StringComparison.Ordinal)
+            || path.EndsWith("/Modules/Catalog/ImageDisposalParts.cs", StringComparison.Ordinal)
+            || path.EndsWith("/Modules/Catalog/DigitalFileDisposalParts.cs", StringComparison.Ordinal)
+            || path.EndsWith("/Modules/Catalog/UnlinkedRowDeletion.cs", StringComparison.Ordinal);
     }
 
     public static IReadOnlyList<(string Rule, int Line)> Scan(string text)

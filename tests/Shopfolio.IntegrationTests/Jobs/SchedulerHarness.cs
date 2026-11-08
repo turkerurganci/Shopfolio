@@ -298,6 +298,7 @@ internal sealed class SchedulerHarness : IAsyncDisposable
         services.AddScoped<IJobQueue, JobQueue>();
         services.AddSingleton<IJobSignal, JobSignal>();
         services.AddScoped<OrderLocks>();
+        services.AddScoped<DownloadCounters>();
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddLogging(builder => builder.AddProvider(Logs));
         services.AddHttpClient(HeartbeatPulse.ClientName, client => client.BaseAddress = new Uri("https://localhost/"))

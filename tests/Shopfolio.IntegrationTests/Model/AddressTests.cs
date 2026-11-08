@@ -102,6 +102,7 @@ public sealed class AddressTests : IAsyncLifetime
         services.AddScoped<ProvinceList>();
         services.AddScoped<ISettingsModule, ProvinceSettings>();
         services.AddScoped<OrderLocks>();
+        services.AddScoped<DownloadCounters>();
         services.AddScoped<OrderPaymentArms>();
         services.AddScoped<AdvisoryLocks>();
         services.AddScoped<IOrderingModule, OrderingModule>();

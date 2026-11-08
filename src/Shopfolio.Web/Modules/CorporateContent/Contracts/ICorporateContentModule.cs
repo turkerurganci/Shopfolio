@@ -12,4 +12,21 @@ public interface ICorporateContentModule
     /// <c>/sayfa/{slug}</c> of every published record, and <c>/hakkimizda</c> when the about page is published. A draft is not listed. A plain read.
     /// </summary>
     Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct);
+
+    /// <summary>The brand form as the panel shows it (T362; 02 3.29; 04 9.15): the stored values and the form's version. A plain read; the panel's view of the brand never carries the brand colour on itself (02 3.29.1).</summary>
+    Task<BrandingSection> GetBrandingAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The brand form's save (T362; 02 3.29; 07 UC-163): in the caller's open transaction, which the method joins and never opens - the record variant of 09 10.2 item 2, then the trail rows in the
+    /// same transaction (the four settings as <c>UpdateBranding</c>, the platform signature switch as <c>UpdateSettings</c>, each with the old and the new value). The brand name cannot be emptied
+    /// once entered; a colour that is not <c>#RRGGBB</c> and an image that is not an uploaded image are refused by field; the refusals are results and write nothing. A save that changes nothing
+    /// writes nothing. Needs the signed-in administrator of the request, as the trail does.
+    /// </summary>
+    Task<BrandingSaveResult> SaveBrandingAsync(BrandingInput input, int formVersion, CancellationToken ct);
+
+    /// <summary>
+    /// The brand as the storefront and the e-mails show it (T362; 02 3.29.2-3.29.6, 9.1.4): the name - or the domain until one is entered -, the logo, the site icon or its fallback letter, the colour -
+    /// or the product's default - with the black or white text the system chose for it, and the footer signature switch. Never stored; a plain read.
+    /// </summary>
+    Task<BrandIdentity> GetBrandIdentityAsync(CancellationToken ct);
 }

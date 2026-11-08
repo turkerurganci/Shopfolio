@@ -76,6 +76,12 @@ public interface ICatalogModule
     Task<ImageUploadResult> UploadImageAsync(byte[] content, CancellationToken ct);
 
     /// <summary>
+    /// Whether an image uploaded through <see cref="UploadImageAsync"/> exists (T362; 06 4.54, 4.69): the module that links an image - the brand's logo and site icon - asks before it writes the
+    /// link, so an id that names no image is a refusal and not a foreign key error. A plain read; it writes nothing.
+    /// </summary>
+    Task<bool> ImageExistsAsync(Guid imageId, CancellationToken ct);
+
+    /// <summary>
     /// The page addresses the site map takes from this module (05 3.7.3; 02 3.30.5, 3.30.6): <c>/urun/{slug}</c> of every published product and
     /// <c>/kategori/{slug}</c> of every category. An archived product and a draft are not listed. A plain read; the site map's cache is Settings'.
     /// </summary>

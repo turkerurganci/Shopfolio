@@ -1,6 +1,6 @@
 # T349 — Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği
 
-**Faz:** F3 | **Durum:** ⏳ Düzeltme bekliyor (doğrulama tur 1 ✗ FAIL) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ⏳ Doğrulama bekliyor (düzeltme 1 bitti; tur 1 ✗ FAIL) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -14,11 +14,15 @@
 - **`IOrderingModule.OpenCartAsync(owner, ShippingFeeSection shippingTerms, ct)`:** firma ayarı çağırandan gelir (sayfa `ISettingsModule.GetShippingFeeAsync` okur).
 - **Sipariş:** `Order.ShippingFeeVatBreakdown` `List<ShippingFeeVatShare>?` + `HasPayloadConversion()` (D-65); `Order.FreezeShippingFeeVatBreakdown(IReadOnlyList<ShippingVatPart>)` bir kez yazar, parçalar `ShippingFee`'ye eşit olmalı, 0 TL'de boş. Bölüşüm `ICatalogModule.SplitShippingFee` (T332) — yeni bölüşüm hesabı yazılmadı (`09 §24` m.4). Sütun aynı, göç yok.
 - **Main birleştirmesi:** `origin/main` (T311, #456) dala alındı; `IOrderingModule.cs` ve `OrderingModule.cs` kendiliğinden birleşti (iki tarafın eklemeleri ayrı yerlerde), çakışma yok.
+- **Düzeltme 1 (doğrulama tur 1 bulgu 1 + K2, main birleştirmesi):**
+  - Bulgu 1: yük tipi `ShippingFeeVatShare`'in ilk biçimi `tests/Shopfolio.UnitTests/Payloads/ShippingFeeVatShare/1.json` olarak depoda; `ShippingFeeVatSharePayloadTests` (emsal `DefectClaimHistoryPayloadTests`): `PayloadJson.Write` alan adlarıyla yazar ve geri okur, bütün örnekler hatasız okunur, ilk örneğin değerleri, bilinmeyen alan atlanır / eksik alan varsayılanını alır, bugünkü yazılan biçimin alan kümesi en son örnekle eşit (`09 §12` m.8).
+  - K2: `ShippingChargeTests.TheValidationRowsExample_SplitsTenLiraIntoItsParts_AndTheOrderFreezesThem_VAL_A797` — `12 VAL-A797`'nin örneği (10,00 TL; 100,00 TL %20 + 200,00 TL %10 → parçalar 3,33 / 6,67, KDV 0,56 / 0,61) `ItemPricing.SplitShippingFee` ile hesaplanır ve `Order.FreezeShippingFeeVatBreakdown` aynı değerleri dondurur.
+  - `origin/main` (T347 #475, T379 #473, T354 #470) birleştirildi. Çakışmalar: `Contracts/CartContracts.cs` — `CartLine` iki tarafı taşır (T349 `ProductType` + T347 `QuantityProblem`, `OrderLimit`; özet iki açıklamayı birleştirir); `Order.cs` — iki `using` korundu (`Infrastructure.Security`, `Catalog.Contracts.Pricing`); `DEFERRED_BACKLOG.d/T346.md` — main'in D-589/D-590 "✅ T347" satırları + T349'un D-562 "✅ T349" kapanışı. `Carts.cs` kendiliğinden birleşti (`new CartLine(…, fact.ProductType, …, verdict.Problem, verdict.OrderLimit)`). Birleşik ağaçta derleme için iki test uyarlandı: `CartRulesTests.ALineOverItsStockOrLimit_…_T347KK2` (`ProductType.Physical` + `PaymentBlockOf(lines, shipping)`), `IntegrationTests/Ordering/CartQuantityTests.OpenAsync` (`OpenCartAsync(owner, NoShippingTerms, ct)`).
 
 ## Etkilenen Modüller / Dosyalar
 
 - `src/Shopfolio.Web/Modules/Ordering/Contracts/ShippingCharge.cs` (yeni), `ShippingFeeVatShare.cs` (yeni), `CartRules.cs`, `Carts.cs`, `Contracts/CartContracts.cs`, `Contracts/CartPaymentBlock.cs`, `Contracts/IOrderingModule.cs`, `OrderingModule.cs`, `Order.cs`
-- Testler: `tests/Shopfolio.UnitTests/Ordering/ShippingChargeTests.cs` (yeni), `CartRulesTests.cs`; `tests/Shopfolio.IntegrationTests/Ordering/CartTests.cs`, `OrderTransitionsTests.cs`, `Model/CouponTests.cs`
+- Testler: `tests/Shopfolio.UnitTests/Ordering/ShippingChargeTests.cs` (yeni), `ShippingFeeVatSharePayloadTests.cs` (yeni, düzeltme 1), `Payloads/ShippingFeeVatShare/1.json` (yeni, düzeltme 1), `CartRulesTests.cs`; `tests/Shopfolio.IntegrationTests/Ordering/CartTests.cs`, `CartQuantityTests.cs` (düzeltme 1, birleştirme), `OrderTransitionsTests.cs`, `Model/CouponTests.cs`
 - Doküman: `Docs/DEFERRED_BACKLOG.md` (D-65, D-221 yerinde ✅), `DEFERRED_BACKLOG.d/T346.md` (D-562 ✅), `DEFERRED_BACKLOG.d/T338.md` (D-483'e T349 payı), `DEFERRED_BACKLOG.d/T349.md` (yeni D-626, D-627), `STATUS_CHANGELOG.d/T349.md`, `IMPLEMENTATION_STATUS.md` T349 satırı
 
 ## Kabul Kriterleri Kontrolü
@@ -38,6 +42,7 @@
 ### Öz denetim (bitiş kapısı 2)
 
 > Devam işçisi önceki işçinin yaptıkları dahil bütün maddeleri birleşik ağaçta (`origin/main` T311 dahil) yeniden denetledi.
+> **Düzeltme 1:** bütün kriterler ve kontrol listesi maddeleri düzeltilmiş diff'te, `origin/main` (`e3b34b75`, T347/T379/T354 dahil) birleşik ağaçta yeniden denetlendi; kriter 1–9 ve KK1–KK9 davranışı değişmedi (düzeltme yalnız test, örnek dosya ve birleştirme çözümü), satırlar aşağıda güncel kanıtla. `sik-fail-nedenleri.md` okundu: "yeni JSON kayıt tipi örnek dosyası" (bu turun bulgusu) kapandı; "main ilerleyince testler yeni alanı tohumlamıyor" ve "modül kurucusuna yeni bağımlılık" için birleşik ağaçta Ordering ve Model ad alanları koşuldu (yeni kurucu bağımlılığı yok).
 
 | Madde (kabul kriteri / KK) | Sonuç | Kanıt (dosya:satır, test adı) |
 |---|---|---|
@@ -46,23 +51,29 @@
 | KK2: kuponlu sepet tabanı değişmez | ✓ | `ShippingChargeTests.TheCouponShare_…_KK2_KK7`, `CouponTests …_T349_KK2` |
 | KK3: dijital sepette asgari yok; karışık sepette taban dijital ve hizmeti içerir | ✓ | `ShippingChargeTests.ADigitalOrServiceOrder_…_KK3_KK4`, `CartTests …_T349_KK3_KK4_KK7` |
 | KK4: ücret bir kez, dijital siparişte yok | ✓ | `ShippingChargeTests.TheFee_…_KK4`, `CartTests …_KK3_KK4_KK7` |
-| KK5: karışık oranda bölüşüm ve kalan kuruş doğru | ✓ | `ShippingChargeTests.AMixedRateFee_IsSplit_AndTheOrderFreezesTheParts_KK5`, `TheFrozenBreakdown_…_KK5` (kalan kuruş kuralı `ItemPricing.SplitShippingFee`, T332) |
+| KK5: karışık oranda bölüşüm ve kalan kuruş doğru | ✓ | `ShippingChargeTests.AMixedRateFee_IsSplit_AndTheOrderFreezesTheParts_KK5`, `TheFrozenBreakdown_…_KK5`, `TheValidationRowsExample_…_VAL_A797` (düzeltme 1; kalan kuruş kuralı `ItemPricing.SplitShippingFee`, T332) |
 | KK6: eşikte ve üstünde ücret sıfır; Tükendi kalem kargoya ve tabana girmez | ✓ | `ShippingChargeTests.AtAndAboveTheThreshold_TheFeeIsZero_KK6`, `CartRulesTests …_T349_KK3_KK6`, `CartTests …_T349_KK6_KK8` |
 | KK7: indirim tabanı düşürür, kupon düşürmez; taban dijital ve hizmeti içerir | ✓ | `ShippingChargeTests.TheCouponShare_…_KK2_KK7`, `CartTests …_KK3_KK4_KK7` |
 | KK8: kalan tutar mesajı koşula bağlı | ✓ | `ShippingChargeTests.TheThresholdMessage_…_KK8`, `CartTests …_KK6_KK8` |
 | KK9: iptalden sonra ücret yeniden hesaplanmaz | ✓ | `ShippingChargeTests.TheBreakdown_IsWrittenOnce_…_KK9`, `OrderTransitionsTests …_T349_KK9` |
 | `09 §25` — doküman uyumu | ✓ | adlar `06 §4.17` (`ShippingFee`, `ShippingFeeVatBreakdown`), `07 §6.2` (`MinimumOrderAmountNotMet`), `02 §11.1` P-1, P-3, P-4 (`ShippingFeeSection`); yeni ayar/sabit yok (`KurusDecimals` `02 §3.8.4` kuruşu); kapsam dışı değişiklik yok |
-| `09 §25` — mimari | ✓ | Ordering yalnız `Settings.Contracts` ve `Catalog.Contracts`'a başvurur; modül yönteminde `SaveChanges` yok (`CartTests.TheCartMethods_DoNotSaveOnTheirOwn_TheTransactionOwnerDoes_KK1` yeşil); tek işlev: bölüşüm `SplitShippingFee`, taban `OrderableSubtotal`/`BasketTotal`, tutar biçimi `DisplayFormat.Amount`, kuruş denetimi `FieldRuleAttribute.HasAtMostDecimals`; mimari testler (Unit 4951) yeşil |
+| `09 §25` — mimari | ✓ | Ordering yalnız `Settings.Contracts` ve `Catalog.Contracts`'a başvurur; modül yönteminde `SaveChanges` yok (`CartTests.TheCartMethods_DoNotSaveOnTheirOwn_TheTransactionOwnerDoes_KK1` yeşil); tek işlev: bölüşüm `SplitShippingFee`, taban `OrderableSubtotal`/`BasketTotal`, tutar biçimi `DisplayFormat.Amount`, kuruş denetimi `FieldRuleAttribute.HasAtMostDecimals`; mimari testler (Unit 5028, düzeltme 1 birleşik ağaç) yeşil |
 | `09 §25` — durum/olay/para | ✓ | durum geçişi yok; para hesabı yeni değil (bölüşüm Catalog'un tek işlevinde); `TimeProvider` gerekmez (saat okunmuyor) |
-| `09 §25` — veri ve göç | ✓ | yük biçimi `HasPayloadConversion()` (`09 §12` m.5), sütun ve tip aynı; `dotnet ef migrations has-pending-model-changes` temiz (önceki işçi); yeni tablo/FK yok |
+| `09 §25` — veri ve göç | ✓ | yük biçimi `HasPayloadConversion()` (`09 §12` m.5), sütun ve tip aynı; yeni biçimin örnek dosyası `tests/Shopfolio.UnitTests/Payloads/ShippingFeeVatShare/1.json` + `ShippingFeeVatSharePayloadTests` (5 test; `09 §12` m.8, düzeltme 1 — tur 1 bulgu 1); `dotnet ef migrations has-pending-model-changes` temiz (önceki işçi; düzeltme 1 model eşlemesine dokunmadı); yeni tablo/FK yok |
 | Güvenlik taraması | ✓ | yeni uç, form, girdi, kişisel veri, sır, kayıt satırı yok; tutar girdileri negatif ve kuruştan ince değerde `ArgumentOutOfRangeException` (`ShippingChargeTests.AnAmountOutsideItsRule_IsAProgrammingError`); ayar çağıranın okuduğu firma bölümüdür, müşteri girdisi değildir |
 | `12` VAL-A043, A044, A045, A291, A292 | BEKLEMEDE | ekran ve panel uçları T508/T509/T536'nın; T349 uç yazmaz (D-627). Kural düzlemi yukarıdaki testlerle karşılanır |
-| `12` VAL-A797 (bölüşüm) | ✓ | `ShippingChargeTests.AMixedRateFee_…_KK5` + T332 `SplitShippingFee` testleri |
+| `12` VAL-A296 (eşik mesajı koşulu) | BEKLEMEDE | uç yanıtı / tarayıcı gözlemi ister (sayfa T508/T509); kural düzlemi `ShippingChargeTests.TheThresholdMessage_…_KK8` ve `CartTests …_T349_KK6_KK8` |
+| `12` VAL-A797 (bölüşüm) | BEKLEMEDE (kural payı ✓) | satırın örneği düzeltme 1'de sınandı: `ShippingChargeTests.TheValidationRowsExample_SplitsTenLiraIntoItsParts_AndTheOrderFreezesThem_VAL_A797` (3,33 / 6,67; KDV 0,56 / 0,61; `Order` aynı değerleri dondurur). "Sipariş anında donar" payı onay akışında (T348, D-626) |
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
+| **Düzeltme 1** — Build | ✓ | `dotnet restore Shopfolio.slnx`; `dotnet build Shopfolio.slnx -c Release --no-restore -warnaserror` (birleşik ağaç, `origin/main` `e3b34b75`) | 0 uyarı, 0 hata |
+| **Düzeltme 1** — Format | ✓ | `dotnet format <proje> --verify-no-changes --no-restore` üç proje ayrı ayrı | üçü de temiz (çıkış 0) |
+| **Düzeltme 1** — Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests -c Release --no-build` | 5028/5028 |
+| **Düzeltme 1** — Integration Ordering | ✓ | `--filter-namespace Shopfolio.IntegrationTests.Ordering` (PostgreSQL 18 konteyner, `Host=127.0.0.1`) | 323/323 |
+| **Düzeltme 1** — Integration Model | ✓ | `--filter-namespace Shopfolio.IntegrationTests.Model` | 1380/1380 (ilk koşuda 2 test düştü, adları yakalanmadı; aynı ağaçta ikinci koşu 1380/1380 — ⚠ kararsızlık, CI tam paketi bakar) |
 | Build | ✓ | `dotnet build Shopfolio.slnx -c Release -warnaserror` (birleşik ağaç) | 0 uyarı, 0 hata |
 | Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests -c Release` (birleşik ağaç, Consistency dahil) | 4951/4951 |
 | Integration — Ordering | ✓ | `--filter-namespace Shopfolio.IntegrationTests.Ordering` (birleşik ağaç) | 289 test yeşil; koleksiyon temizliğinde makine yükünden `DROP DATABASE` zaman aşımı (23 "Collection Cleanup Failure") → `CartTests` sınıfı tek başına 23/23 yeşil, temizlik temiz |
@@ -99,6 +110,13 @@ K-notları: K1 → D-650 (P-1 = 0 TL iken P-3 tanımlıysa "Ücretsiz kargoya N 
 Yapım raporu karşılaştırması: öz denetimin "`09 §25` — veri ve göç ✓" satırı yük biçiminin örnek dosyası maddesini atlamış (bulgu 1). Öz denetim `VAL-A797`'yi ✓ sayıyor ama satırın örneği sınanmamış ve onay payı T348'de; `VAL-A296` öz denetimde anılmıyor. Öteki 9 kriter ve 9 KK'da uyum tam.
 
 **Birleştirme notu:** `git merge origin/main` (T347 #475, T379 #473) `src/Shopfolio.Web/Modules/Ordering/Contracts/CartContracts.cs` (kod) ve `Docs/DEFERRED_BACKLOG.d/T346.md` (kayıt) dosyalarında çakıştı; kod çakışması yüzünden birleştirme geri alındı (`git merge --abort`), doğrulama dalın kendi ucunda yapıldı. Düzeltme turu main'i birleştirip `CartContracts.cs`'i (T347'nin `CartLine`/`CartView` alanları + T349'un `ProductType` ve `Shipping`'i) çözmeli ve Ordering testlerini yeniden koşmalı.
+
+### Düzeltme 1 (2026-11-08)
+
+- Bulgu 1 (ORTA, S1) kapandı: `Payloads/ShippingFeeVatShare/1.json` + `ShippingFeeVatSharePayloadTests` (5 test).
+- K2 kapandı: `VAL-A797` örnek değerli birim testi (`ShippingChargeTests …_VAL_A797`).
+- Birleştirme notu kapandı: `origin/main` birleştirildi, `CartContracts.cs` iki tarafı korur; Ordering 323/323, Model 1380/1380, Unit 5028/5028.
+- Yeni backlog kalemi yok.
 
 ## Altyapı Değişiklikleri
 

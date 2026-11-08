@@ -120,6 +120,25 @@ public sealed class ShippingChargeTests
     }
 
     [Fact]
+    public void TheValidationRowsExample_SplitsTenLiraIntoItsParts_AndTheOrderFreezesThem_VAL_A797()
+    {
+        // 12 VAL-A797: 10,00 over physical amounts 100,00 (20%) and 200,00 (10%). 10 x 100 / 300 = 3,333.. -> 3,33; 10 x 200 / 300 = 6,666.. -> 6,66; the sum 9,99
+        // leaves 0,01 for the largest part: 6,67. VAT: 3,33 x 20 / 120 = 0,555 -> 0,56; 6,67 x 10 / 110 = 0,606.. -> 0,61.
+        IReadOnlyList<ShippingVatPart> parts = ItemPricing.SplitShippingFee(10.00m, [
+            new ShippingBasisLine(ProductType.Physical, 20m, 100.00m),
+            new ShippingBasisLine(ProductType.Physical, 10m, 200.00m),
+        ]);
+
+        Assert.Equal([new ShippingVatPart(20m, 3.33m, 0.56m), new ShippingVatPart(10m, 6.67m, 0.61m)], parts);
+        Assert.Equal(10.00m, parts.Sum(p => p.Part));
+
+        Order order = NewOrder(10.00m);
+        order.FreezeShippingFeeVatBreakdown(parts);
+
+        Assert.Equal([new ShippingFeeVatShare(20m, 3.33m, 0.56m), new ShippingFeeVatShare(10m, 6.67m, 0.61m)], order.ShippingFeeVatBreakdown);
+    }
+
+    [Fact]
     public void TheFrozenBreakdown_MustAddUpToTheFee_AndAFreeOrderHasNone_KK5()
     {
         Assert.Throws<ArgumentException>(() => NewOrder(50m).FreezeShippingFeeVatBreakdown([new ShippingVatPart(20m, 49m, 8.17m)]));

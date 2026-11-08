@@ -111,6 +111,8 @@
 
 Öz denetim: kabul kriterleri 1–10 ve KK1–KK10 birleşik ağaçta karşılanıyor (`ProductPublishGateTests` tüm KK gruplarıyla yeşil; açık sipariş sayımı KK8 testleriyle sınandı).
 
+Birleştirme notu (son main birleştirmesi): main'den gelen T317 `OrderPaymentArms` `IPaymentModule` istediği için `ProductPublishGateTests` kurulumuna `services.AddPaymentModule();` (ve `using Shopfolio.Modules.Payment;`) eklendi; başka kod değişmedi. Sonuç: `ProductPublishGateTests` 31/31, `ProductTransitionsTests` 41/41, `CategoryTreeAndListsTests` 33/33, Unit Architecture 958 + Consistency 242 + öteki 3106 yeşil (main'in yeni testleri sayıları artırdı).
+
 ## Doğrulama
 
 | Alan | Sonuç |

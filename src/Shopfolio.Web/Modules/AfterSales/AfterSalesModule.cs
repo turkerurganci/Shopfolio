@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Modules.AfterSales.Contracts;
+using Shopfolio.Modules.Ordering.Contracts;
 
 namespace Shopfolio.Modules.AfterSales;
 
@@ -11,10 +12,14 @@ namespace Shopfolio.Modules.AfterSales;
 internal sealed class AfterSalesModule : IAfterSalesModule
 {
     private readonly AppDbContext _db;
+    private readonly IOrderingModule _ordering;
+    private readonly TimeProvider _time;
 
-    public AfterSalesModule(AppDbContext db)
+    public AfterSalesModule(AppDbContext db, IOrderingModule ordering, TimeProvider time)
     {
         _db = db;
+        _ordering = ordering;
+        _time = time;
     }
 
     public async Task ErasePersonalDataAsync(OrderPersonalDataScope scope, CancellationToken ct)
@@ -166,10 +171,75 @@ internal sealed class AfterSalesModule : IAfterSalesModule
         return facts;
     }
 
+    public async Task<IReadOnlyList<CancelledUnits>> FindCancellationsOfTransitionAsync(Guid transitionRecordId, CancellationToken ct)
+    {
+        return await _db.Cancellations.AsNoTracking()
+            .Where(c => c.TransitionRecordId == transitionRecordId)
+            .OrderBy(c => c.CreatedAt).ThenBy(c => c.Id)
+            .Select(c => new CancelledUnits(c.Id, c.OrderItemId, c.Quantity))
+            .ToListAsync(ct);
+    }
+
+    public async Task<bool> HasClosingRecordAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderItemIds);
+        Guid[] ids = [.. orderItemIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return false;
+        }
+
+        return Added<Cancellation>(ids, c => c.OrderItemId, c => c.Quantity).Count > 0
+            || Added<ItemRemoval>(ids, r => r.OrderItemId, r => r.Quantity).Count > 0
+            || Added<LateDeliveryTermination>(ids, t => t.OrderItemId, t => t.Quantity).Count > 0
+            || Added<Withdrawal>(ids, w => w.OrderItemId, w => w.Quantity).Count > 0
+            || await _db.Cancellations.AnyAsync(c => ids.Contains(c.OrderItemId), ct)
+            || await _db.ItemRemovals.AnyAsync(r => ids.Contains(r.OrderItemId), ct)
+            || await _db.LateDeliveryTerminations.AnyAsync(t => ids.Contains(t.OrderItemId), ct)
+            || await _db.Withdrawals.AnyAsync(w => ids.Contains(w.OrderItemId), ct);
+    }
+
+    public async Task CloseCancellationIbanRequestsAsync(IReadOnlyCollection<Guid> orderItemIds, IReadOnlyCollection<Guid> refundIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderItemIds);
+        ArgumentNullException.ThrowIfNull(refundIds);
+        Guid[] items = [.. orderItemIds.Distinct()];
+        Guid[] refunds = [.. refundIds.Distinct()];
+        if (items.Length == 0 && refunds.Length == 0)
+        {
+            return;
+        }
+
+        // An item request of "cancellation or removal" serves the item's removal too while the item has one; that request stays open (06 4.31).
+        Guid[] removed = [.. await _db.ItemRemovals.Where(r => items.Contains(r.OrderItemId)).Select(r => r.OrderItemId).Distinct().ToListAsync(ct)];
+        List<RefundIbanRequest> open = await _db.RefundIbanRequests
+            .Where(r => r.FulfilledAt == null && r.ClosedAt == null
+                && ((r.RefundId != null && refunds.Contains(r.RefundId.Value))
+                    || (r.RefundId == null && r.OrderItemId != null && items.Contains(r.OrderItemId.Value) && !removed.Contains(r.OrderItemId.Value)
+                        && r.Reason == RefundIbanRequestReason.CancellationOrRemoval)))
+            .ToListAsync(ct);
+        DateTimeOffset now = _time.GetUtcNow();
+        foreach (RefundIbanRequest request in open)
+        {
+            request.ClosedAt = now;
+        }
+    }
+
+    /// <summary>
+    /// The saved closing records. A cancellation that names a closing transition the order module says was corrected is undone: its units are open again
+    /// (06 4.22; 02 10.4.6). The transition records are the order module's, so the corrected ones are asked through its surface.
+    /// </summary>
     private async Task AddSavedClosedAsync(Dictionary<Guid, int> closed, Guid[] ids, CancellationToken ct)
     {
-        Add(closed, await _db.Cancellations.Where(c => ids.Contains(c.OrderItemId)).GroupBy(c => c.OrderItemId)
-            .Select(g => new KeyValuePair<Guid, int>(g.Key, g.Sum(c => c.Quantity))).ToListAsync(ct));
+        List<CancelledQuantity> cancellations = await _db.Cancellations.Where(c => ids.Contains(c.OrderItemId))
+            .Select(c => new CancelledQuantity(c.OrderItemId, c.Quantity, c.TransitionRecordId))
+            .ToListAsync(ct);
+        Guid[] closing = [.. cancellations.Select(c => c.TransitionRecordId).OfType<Guid>().Distinct()];
+        IReadOnlySet<Guid> corrected = closing.Length == 0 ? new HashSet<Guid>() : await _ordering.FindCorrectedTransitionRecordsAsync(closing, ct);
+        Add(closed, cancellations
+            .Where(c => c.TransitionRecordId is not { } closedBy || !corrected.Contains(closedBy))
+            .GroupBy(c => c.OrderItemId)
+            .Select(g => new KeyValuePair<Guid, int>(g.Key, g.Sum(c => c.Quantity))));
         Add(closed, await _db.ItemRemovals.Where(r => ids.Contains(r.OrderItemId)).GroupBy(r => r.OrderItemId)
             .Select(g => new KeyValuePair<Guid, int>(g.Key, g.Sum(r => r.Quantity))).ToListAsync(ct));
         Add(closed, await _db.LateDeliveryTerminations.Where(t => ids.Contains(t.OrderItemId)).GroupBy(t => t.OrderItemId)
@@ -203,6 +273,8 @@ internal sealed class AfterSalesModule : IAfterSalesModule
             closed[itemId] = closed.GetValueOrDefault(itemId) + quantity;
         }
     }
+
+    private sealed record CancelledQuantity(Guid OrderItemId, int Quantity, Guid? TransitionRecordId);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddAfterSalesModule</c> once.</summary>

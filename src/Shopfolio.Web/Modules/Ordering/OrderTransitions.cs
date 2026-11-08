@@ -31,6 +31,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
     private readonly IPaymentModule _payment;
     private readonly INotificationsModule _notifications;
     private readonly OrderCounters _counters;
+    private readonly PaymentWindows _paymentWindows;
     private readonly TimeProvider _time;
 
     public OrderTransitions(
@@ -40,6 +41,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         IPaymentModule payment,
         INotificationsModule notifications,
         OrderCounters counters,
+        PaymentWindows paymentWindows,
         TimeProvider time)
     {
         _db = db;
@@ -48,6 +50,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         _payment = payment;
         _notifications = notifications;
         _counters = counters;
+        _paymentWindows = paymentWindows;
         _time = time;
     }
 

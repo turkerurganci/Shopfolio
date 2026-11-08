@@ -20,4 +20,11 @@ internal sealed class LockAndCounterWrites(AppDbContext db)
     public Task ReadsTheCounter(CancellationToken ct) => db.Variants.ExecuteUpdateAsync(s => s.SetProperty(v => v.Sku, v => v.ReservedQuantity.ToString()), ct);
     public Task OtherColumn(CancellationToken ct) => db.Database.ExecuteSqlAsync($"UPDATE variants SET sku = 'x' WHERE id = {Guid.Empty}", ct);
     public Task TryAdvisoryLock(CancellationToken ct) => db.Database.ExecuteSqlAsync($"SELECT pg_try_advisory_lock(1)", ct);
+    public Task Download(CancellationToken ct) => db.OrderItems.ExecuteUpdateAsync(s => s.SetProperty(i => i.DownloadCount, i => i.DownloadCount + 1), ct);
+    public Task RawDownload(CancellationToken ct) => db.Database.ExecuteSqlAsync($"UPDATE order_items SET download_count = 0 WHERE id = {Guid.Empty}", ct);
+    public Task DownloadByName(CancellationToken ct) => db.OrderItems.ExecuteUpdateAsync(s => s.SetProperty(i => EF.Property<int>(i, "DownloadCount"), 0), ct);
+
+    // Not findings: the download counter read in the value argument, another order item column written raw.
+    public Task ReadsDownloadCount(CancellationToken ct) => db.OrderItems.ExecuteUpdateAsync(s => s.SetProperty(i => i.Sku, i => i.DownloadCount.ToString()), ct);
+    public Task OtherItemColumn(CancellationToken ct) => db.Database.ExecuteSqlAsync($"UPDATE order_items SET sku = 'x' WHERE id = {Guid.Empty}", ct);
 }

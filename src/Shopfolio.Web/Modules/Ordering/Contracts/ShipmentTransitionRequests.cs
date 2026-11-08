@@ -64,7 +64,8 @@ public sealed record CancelOrderRequest(
 /// <summary>
 /// The result of an operation of the transition unit (09 9.1 item 3): a refusal is a value, not an exception, and the runner rolls the transaction back on it.
 /// <see cref="TransitionRecordIds"/> are the records the operation wrote, in order; <see cref="ClosureCode"/> is the closure the rule wrote at the end of the
-/// same operation, if any; <see cref="ItemIds"/> are the items the operation concerned (the open physical items a shipment sent or a delivery mark covered).
+/// same operation, if any; <see cref="ItemIds"/> are the items the operation concerned (the open physical items a shipment sent or a delivery mark covered,
+/// the items whose stock is short for a correction).
 /// </summary>
 public sealed record OrderTransitionResult(
     TransitionRefusal? Refusal,
@@ -73,4 +74,7 @@ public sealed record OrderTransitionResult(
     IReadOnlyList<Guid> ItemIds) : IOperationResult
 {
     public bool IsRejected => Refusal is not null;
+
+    /// <summary>Why the correction can not be made; set only on a <see cref="TransitionRefusal.CorrectionNotPossible"/> refusal.</summary>
+    public CorrectionObstacle? Obstacle { get; init; }
 }

@@ -18,6 +18,7 @@ using Shopfolio.IntegrationTests.Web;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering;
+using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.UnitTests.Fakes;
 
 namespace Shopfolio.IntegrationTests.Files;
@@ -172,7 +173,12 @@ internal sealed class FileEndpointsHost : IAsyncDisposable
     }
 
     /// <summary>A digital product with one variant, a completed file of the given bytes attached to the variant (in the store too), and an order item that bought it.</summary>
-    public async Task<(Guid ItemId, Guid VariantId, Guid FileId)> SeedDownloadAsync(byte[] content, string fileName = "kitap.pdf", ProductType itemType = ProductType.Digital)
+    public async Task<(Guid ItemId, Guid VariantId, Guid FileId)> SeedDownloadAsync(
+        byte[] content,
+        string fileName = "kitap.pdf",
+        ProductType itemType = ProductType.Digital,
+        PaymentStatus payment = PaymentStatus.Paid,
+        int allowance = 3)
     {
         DateTimeOffset now = Time.GetUtcNow();
         string n = Guid.NewGuid().ToString("N")[..8];
@@ -189,12 +195,52 @@ internal sealed class FileEndpointsHost : IAsyncDisposable
         if (itemType == ProductType.Digital)
         {
             item.DigitalFileId = file.Id;
-            item.DownloadAllowance = 3;
+            item.DownloadAllowance = allowance;
         }
 
         db.OrderItems.Add(item);
         await db.SaveChangesAsync(Ct);
+        await SetPaymentAsync(orderId, payment);
         return (item.Id, variant.Id, file.Id);
+    }
+
+    /// <summary>Another digital order item of the given variant, in a new order of the given customer (a guest order when null) with the given payment status.</summary>
+    public async Task<(Guid ItemId, Guid OrderId)> SeedPurchaseAsync(Guid variantId, Guid? customerId, PaymentStatus payment, int allowance = 3)
+    {
+        DateTimeOffset now = Time.GetUtcNow();
+        await using AppDbContext db = NewContext();
+        Guid productId = await db.Variants.Where(v => v.Id == variantId).Select(v => v.ProductId).SingleAsync(Ct);
+        (Guid orderId, _, _) = await TestSessions.OrderAsync(Dsn, customerId);
+        OrderItem item = OrderItem.Create(orderId, productId, variantId, ProductType.Digital, "Kitap", 1, 10m, 20m, 1.67m, now);
+        item.DownloadAllowance = allowance;
+        db.OrderItems.Add(item);
+        await db.SaveChangesAsync(Ct);
+        await SetPaymentAsync(orderId, payment);
+        return (item.Id, orderId);
+    }
+
+    /// <summary>Puts an order in a payment status the way a payment would (the orders table's pair rule: a pending payment is a placed order, a failed one a cancelled order).</summary>
+    public async Task SetPaymentAsync(Guid orderId, PaymentStatus payment)
+    {
+        string orderStatus = payment == PaymentStatus.Failed ? "Cancelled" : payment == PaymentStatus.Pending ? "Placed" : "Preparing";
+        await using AppDbContext db = NewContext();
+        await db.Database.ExecuteSqlAsync($"UPDATE orders SET payment_status = {payment.ToString()}, order_status = {orderStatus} WHERE id = {orderId}", Ct);
+    }
+
+    /// <summary>Runs the work in a scope of the opened application and, when it returns a result that is not refused, in one transaction (the way a module operation runs).</summary>
+    public async Task<T> InTransactionAsync<T>(Func<IServiceProvider, CancellationToken, Task<T>> work)
+        where T : IOperationResult
+    {
+        await using AsyncServiceScope scope = _factory.Services.CreateAsyncScope();
+        ITransactionRunner runner = scope.ServiceProvider.GetRequiredService<ITransactionRunner>();
+        return await runner.RunAsync(token => work(scope.ServiceProvider, token), Ct);
+    }
+
+    /// <summary>Runs a plain read in a scope of the opened application.</summary>
+    public async Task<T> InScopeAsync<T>(Func<IServiceProvider, CancellationToken, Task<T>> work)
+    {
+        await using AsyncServiceScope scope = _factory.Services.CreateAsyncScope();
+        return await work(scope.ServiceProvider, Ct);
     }
 
     /// <summary>An order item whose variant link is empty and whose last known file is a started upload that never completed (an unattached, incomplete row).</summary>

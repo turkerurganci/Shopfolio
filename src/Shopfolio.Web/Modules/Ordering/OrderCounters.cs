@@ -101,6 +101,26 @@ internal sealed class OrderCounters
     }
 
     /// <summary>
+    /// The variants among <paramref name="units"/> that have not enough left for <see cref="RetakeAsync"/> now (1.4.4.7; 03 1.6.2.2): what is left is the stock
+    /// minus the reserved quantity; an unlimited variant and a deleted one (K-1091) are never short. A plain read before the correction's first write, so the
+    /// refusal can name the items; the conditional write of <see cref="RetakeAsync"/> stays the answer that counts.
+    /// </summary>
+    public async Task<IReadOnlyList<Guid>> ShortVariantsAsync(IReadOnlyList<VariantQuantity> units, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(units);
+        List<Guid> shortVariants = [];
+        foreach (VariantQuantity unit in Merge(units))
+        {
+            if (await _catalog.GetStockStateAsync(unit.VariantId, ct) is { StockQuantity: { } stock } state && stock - state.ReservedQuantity < unit.Quantity)
+            {
+                shortVariants.Add(unit.VariantId);
+            }
+        }
+
+        return shortVariants;
+    }
+
+    /// <summary>
     /// 1.4.4.8 (path 5): the transfer mark's correction keeps the reservation - the finally decreased units return to it, the used right becomes a
     /// reserved one and the rows are written again; a deleted variant's row is not.
     /// </summary>

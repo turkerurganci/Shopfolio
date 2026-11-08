@@ -150,6 +150,53 @@ internal sealed class PaymentModule : IPaymentModule
             .ToListAsync(ct);
     }
 
+    public async Task<bool> HasRefundAsync(Guid orderId, CancellationToken ct)
+    {
+        await _db.Refunds.Where(r => r.OrderId == orderId).LoadAsync(ct);
+        return _db.Refunds.Local.Any(r => r.OrderId == orderId && r.VoidedAt is null);
+    }
+
+    public async Task<bool> IsCancellationRefundUnderwayAsync(IReadOnlyCollection<Guid> cancellationIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(cancellationIds);
+        if (cancellationIds.Count == 0)
+        {
+            return false;
+        }
+
+        // Sent, or a card request that is being sent, whose outcome is awaited or that succeeded: the money may have left (06 4.22; K-940). A failed
+        // request alone does not stop the correction - the refund is voided with it.
+        Guid[] ids = [.. cancellationIds];
+        List<Refund> refunds = await LoadCancellationRefundsAsync(ids, ct);
+        if (refunds.Any(r => r.SentAt is not null))
+        {
+            return true;
+        }
+
+        Guid[] refundIds = [.. refunds.Select(r => r.Id)];
+        await _db.RefundRecords.Where(r => refundIds.Contains(r.RefundId)).LoadAsync(ct);
+        return _db.RefundRecords.Local.Any(r => refundIds.Contains(r.RefundId)
+            && r.State is RefundRecordState.Sending or RefundRecordState.OutcomePending or RefundRecordState.Succeeded);
+    }
+
+    public async Task<IReadOnlyList<Guid>> VoidCancellationRefundsAsync(IReadOnlyCollection<Guid> cancellationIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(cancellationIds);
+        if (cancellationIds.Count == 0)
+        {
+            return [];
+        }
+
+        DateTimeOffset now = _time.GetUtcNow();
+        List<Refund> voided = [.. (await LoadCancellationRefundsAsync([.. cancellationIds], ct)).Where(r => r.SentAt is null)];
+        foreach (Refund refund in voided)
+        {
+            refund.VoidedAt = now;
+        }
+
+        return [.. voided.Select(r => r.Id)];
+    }
+
     public async Task<IReadOnlyList<Guid>> ErasePersonalDataAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(orderIds);
@@ -174,6 +221,13 @@ internal sealed class PaymentModule : IPaymentModule
         }
 
         return [.. refunds.Select(r => r.Id)];
+    }
+
+    /// <summary>The cancellations' refunds that are not voided, the open transaction's changes included.</summary>
+    private async Task<List<Refund>> LoadCancellationRefundsAsync(Guid[] cancellationIds, CancellationToken ct)
+    {
+        await _db.Refunds.Where(r => r.CancellationId != null && cancellationIds.Contains(r.CancellationId.Value)).LoadAsync(ct);
+        return [.. _db.Refunds.Local.Where(r => r.CancellationId is { } id && cancellationIds.Contains(id) && r.VoidedAt is null)];
     }
 
     private static RefundFacts Facts(Refund refund, bool isFirmRetry)

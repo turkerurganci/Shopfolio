@@ -93,6 +93,26 @@ public sealed class VersionedSideBulkWriteScanTests
     }
 
     [Fact]
+    public void TheInboundNotificationInsertPlace_HoldsExactlyOneRawStatement_OnlyAnInsertOfTheInboundRecord_AndTheEndpointHoldsNone()
+    {
+        string root = RepositoryRoot.Find();
+        string place = File.ReadAllText(Path.Combine(root, VersionedSideBulkWriteScan.InboundNotificationInsertPlace));
+
+        Assert.Equal(1, System.Text.RegularExpressions.Regex.Count(place, @"\bExecute\w*\s*\(", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
+        Assert.Equal(1, System.Text.RegularExpressions.Regex.Count(place, @"\b(?:INSERT|UPDATE|DELETE)\b", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
+        Assert.Contains("INSERT INTO inbound_notification_records", place, StringComparison.Ordinal);
+        Assert.Contains("ON CONFLICT DO NOTHING", place, StringComparison.Ordinal);
+
+        // The endpoint and the processing job are not places: a bulk or raw write in either would be a finding.
+        foreach (string file in new[] { "PaymentNotificationEndpoint.cs", "InboundNotificationJobHandler.cs", "PaymentNotificationRule.cs" })
+        {
+            string path = "src/Shopfolio.Web/Modules/Payment/" + file;
+            Assert.DoesNotContain(path, VersionedSideBulkWriteScan.AllowedPlaces);
+            Assert.Empty(VersionedSideBulkWriteScan.Scan(path, File.ReadAllText(Path.Combine(root, path))));
+        }
+    }
+
+    [Fact]
     public void Scan_OnTheViolationSample_OutsideTheSideModules_ReportsTheNamedSetsAndTheRawStatementsOnly()
     {
         string sample = ReadSample();

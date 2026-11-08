@@ -24,6 +24,7 @@ using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.SignedEndpoints;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Model;
 using Shopfolio.IntegrationTests.SignedEndpoints;
 using Shopfolio.IntegrationTests.Web;
 using Shopfolio.Modules.AfterSales;
@@ -36,6 +37,7 @@ using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
+using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.UnitTests.Fakes;
 
 namespace Shopfolio.IntegrationTests.Payment;
@@ -225,7 +227,7 @@ public sealed class PaymentNotificationTests : IAsyncLifetime
         await AssertOrderAsync(order.Id, OrderStatus.Cancelled, PaymentStatus.Failed, 2);
         await using AppDbContext reader = NewContext();
         List<TransitionRecord> records = await reader.TransitionRecords.Where(t => t.OrderId == order.Id).ToListAsync(Ct);
-        Assert.Equal([TransitionCode.O2, TransitionCode.S3], records.Select(r => r.TransitionCode).Order());
+        Assert.Equal(new[] { TransitionCode.O2, TransitionCode.S3 }.Order(), records.Select(r => r.TransitionCode).Order());
         Assert.All(records, r => Assert.Equal((ActorKind.System, (TransitionReason?)TransitionReason.CardPaymentFailed), (r.ActorKind, r.TransitionReason)));
     }
 

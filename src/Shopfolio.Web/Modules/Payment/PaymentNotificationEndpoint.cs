@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Integrations;
 using Shopfolio.Infrastructure.Jobs;
@@ -72,23 +70,21 @@ internal sealed partial class PaymentNotificationEndpoint : ISignedEndpoint<Paym
 
         Guid id = EntityIds.New();
         DateTimeOffset now = _time.GetUtcNow();
-        DateTimeOffset? processedAt = reason is null ? null : now;
-        string? reasonText = reason?.ToString();
-        decimal? amount = PaymentNotificationRule.RecordedAmount(notice);
 
         // The notification itself is unique (06 4.35; K-970): the same one again - by the unique index, also when two copies race - writes nothing.
         // The record carries no personal field: the provider's reference, kept as it came in both reference columns (08 2.1.5), the amount and the moments.
-        int written = await _db.Database.ExecuteSqlAsync(
-            $"""
-            INSERT INTO inbound_notification_records
-                (id, created_at, provider_transaction_id, event_type, outcome, order_reference, amount, order_id, processed_at, unprocessed_reason)
-            VALUES
-                ({id}, {now}, {notice.ProviderTransactionId}, {notice.EventType}, {notice.Outcome}, {notice.ProviderTransactionId}, {amount},
-                 {order?.OrderId}, {processedAt}, {reasonText})
-            ON CONFLICT DO NOTHING
-            """,
-            ct);
-        if (written == 0)
+        InboundNotificationRow row = new(
+            id,
+            now,
+            notice.ProviderTransactionId,
+            notice.EventType,
+            notice.Outcome,
+            notice.ProviderTransactionId,
+            PaymentNotificationRule.RecordedAmount(notice),
+            order?.OrderId,
+            reason is null ? null : now,
+            reason);
+        if (!await InboundNotificationInsert.TryInsertAsync(_db, row, ct))
         {
             return new InboundRecordOutcome.AlreadyRecorded();
         }

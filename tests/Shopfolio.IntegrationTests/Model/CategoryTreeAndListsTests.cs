@@ -293,8 +293,8 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         await SeedVariantAsync(single.Id, "SAYIM-TEK", 10m, stock: 5, PublishStatus.Published);
         await SetLinksAsync(single.Id, [category], category);
 
-        int oneProductCategory = await CountCommandsAsync(context => new ProductListReader(context).ListCategoryAsync("sayim", null, 1, Ct));
-        int oneProductSearch = await CountCommandsAsync(context => new ProductListReader(context).SearchAsync("sayım", null, 1, Ct));
+        int oneProductCategory = await CountCommandsAsync(context => new ProductListReader(context, TimeProvider.System).ListCategoryAsync("sayim", null, 1, Ct));
+        int oneProductSearch = await CountCommandsAsync(context => new ProductListReader(context, TimeProvider.System).SearchAsync("sayım", null, 1, Ct));
 
         // The page fills up: more than one page of products, each with two variants (the figures read their rows), and the first page is a full one.
         int size = PageSizes.StorefrontProducts;
@@ -310,8 +310,8 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
         Assert.Equal(size, fullCategoryPage.Items.Count);
         Assert.Equal(size, (await SearchAsync("sayım")).Items.Count);
 
-        int fullCategory = await CountCommandsAsync(context => new ProductListReader(context).ListCategoryAsync("sayim", null, 1, Ct));
-        int fullSearch = await CountCommandsAsync(context => new ProductListReader(context).SearchAsync("sayım", null, 1, Ct));
+        int fullCategory = await CountCommandsAsync(context => new ProductListReader(context, TimeProvider.System).ListCategoryAsync("sayim", null, 1, Ct));
+        int fullSearch = await CountCommandsAsync(context => new ProductListReader(context, TimeProvider.System).SearchAsync("sayım", null, 1, Ct));
 
         Assert.True(oneProductCategory > 0);
         Assert.Equal(oneProductCategory, fullCategory);
@@ -836,13 +836,13 @@ public sealed class CategoryTreeAndListsTests : IAsyncLifetime
     private async Task<ProductListPage?> ListCategoryOrNullAsync(string? slug, ProductListFilter? filter = null, int page = 1)
     {
         await using AppDbContext context = NewContext();
-        return await new ProductListReader(context).ListCategoryAsync(slug, filter, page, Ct);
+        return await new ProductListReader(context, TimeProvider.System).ListCategoryAsync(slug, filter, page, Ct);
     }
 
     private async Task<ProductListPage?> SearchOrNullAsync(string? word, ProductListFilter? filter = null, int page = 1)
     {
         await using AppDbContext context = NewContext();
-        return await new ProductListReader(context).SearchAsync(word, filter, page, Ct);
+        return await new ProductListReader(context, TimeProvider.System).SearchAsync(word, filter, page, Ct);
     }
 
     private async Task<ProductListPage> SearchAsync(string? word, ProductListFilter? filter = null, int page = 1)

@@ -7,6 +7,7 @@ using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -167,6 +168,15 @@ internal sealed class OrderingModule : IOrderingModule
         return _db.Orders.AsNoTracking().Where(o => !terminal.Contains(o.OrderStatus));
     }
 
+    public async Task<CardPaymentQueryTarget?> GetCardPaymentQueryTargetAsync(Guid orderId, DateTimeOffset now, CancellationToken ct)
+    {
+        Order? order = await _db.Orders.AsNoTracking()
+            .Where(o => o.Id == orderId)
+            .Where(PaymentWindowRules.Awaiting(PaymentMethod.Card))
+            .SingleOrDefaultAsync(ct);
+        return order is null ? null : new CardPaymentQueryTarget(order.OrderNumber, PaymentWindowRules.IsPaymentOutcomeUnknown(order, now));
+    }
+
     public async Task<Guid?> FindOrderByAccessKeyAsync(string accessKey, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(accessKey);
@@ -197,6 +207,13 @@ internal static class OrderingModuleRegistration
         services.AddScoped<IOrderTransitions>(provider => provider.GetRequiredService<OrderTransitions>());
         services.AddDisposalPart<GuestCartDisposalPart>();
         services.AddDisposalPart<OrderDisposalPart>();
+
+        // The payment window (T324; 03 4.1.7-4.1.9): its end for the order's confirmation and the correction, and the three sources of its due moments.
+        // The cart has no source: it never empties by itself (03 4.1.6; Z-6).
+        services.AddScoped<PaymentWindows>();
+        services.AddDueRecordSource<TransferPaymentExpiry>();
+        services.AddDueRecordSource<TransferPaymentReminder>();
+        services.AddDueRecordSource<CardPaymentExpiry>();
         return services;
     }
 }

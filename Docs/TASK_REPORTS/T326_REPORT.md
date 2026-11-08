@@ -93,8 +93,8 @@ Bu task'ın süreleri büyük ölçüde kendi kural evlerinde (T337, T338, T322,
 ## Commit & PR
 
 - **Branch:** `task/T326-zaman-asimi-katalog`
-- **Commit:** *(PR açılınca)*
-- **PR:** *(PR açılınca)*
+- **Commit:** `c710fad7` (kural, testler, rapor, kayıt); PR numarası commit'i ayrı
+- **PR:** #471
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(merge'ü yapan yardımcı doldurur)*
 

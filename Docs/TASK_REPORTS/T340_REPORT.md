@@ -89,8 +89,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T340-dijital-urun`
-- **Commit:** son baş SHA PR açıklamasında
-- **PR:** #NN (dönüş metninde)
+- **Commit:** `ce0707b` — T340: Dijital ürün: indirme hakkı, hak yenileme, yeniden satın alma kontrolü, testler ve kayıtlar
+- **PR:** #462
 - **CI:** yönetici izler
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 

@@ -23,6 +23,13 @@ public interface IOrderingModule
     Task<Guid?> FindOrderByAccessKeyAsync(string accessKey, CancellationToken ct);
 
     /// <summary>
+    /// The order a payment notification names (08 2.1.5; 05 4.5.5): the order with exactly that number - the number the link layer mapped the provider's
+    /// reference back to -, with its paid total and payment method, or null when there is none. A plain read without the order's lock: the notification
+    /// endpoint only classifies and records, the order's state is written by the processing job through the transition unit (05 4.5.2, 4.5.3).
+    /// </summary>
+    Task<OrderForPayment?> FindOrderForPaymentAsync(string orderNumber, CancellationToken ct);
+
+    /// <summary>
     /// What the download endpoint needs of an order item (07 4.31.1; 05 7.7.4): its variant link and last known file link, or null when there is no such item, it
     /// is not a digital item or its order's payment is not confirmed (02 3.12.1) - the caller answers all of them with the same 404. A plain read; it writes nothing
     /// and does not look at the download counter (the right dropped at the order page's button).
@@ -154,6 +161,9 @@ public sealed record CardPaymentQueryTarget(string OrderNumber, bool WindowEnded
 /// moment of the Ö2 transition of an unpaid Failed order and null otherwise; <see cref="PersonalDataDisposed"/> says the order's disposal part has run.
 /// </summary>
 public sealed record OrderPaymentArm(Guid OrderId, bool IsPaid, DateTimeOffset? FailedAt, bool PersonalDataDisposed);
+
+/// <summary>The order a payment notification names: its id, its paid total (06 4.17 <c>Total</c>) and its payment method.</summary>
+public sealed record OrderForPayment(Guid OrderId, decimal Total, Shopfolio.Modules.Payment.Contracts.PaymentMethod PaymentMethod);
 
 /// <summary>The order of an order item.</summary>
 public sealed record OrderOfItem(Guid OrderItemId, Guid OrderId);

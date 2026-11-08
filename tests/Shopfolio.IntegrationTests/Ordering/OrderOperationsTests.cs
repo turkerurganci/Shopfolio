@@ -188,7 +188,7 @@ public sealed class OrderOperationsTests : IAsyncLifetime
             $"2026-{n + 323000:D6}", $"access-placeholder-{n}", $"confirm-placeholder-{n}", method, true, "Ali@Example.com", 120m, 0m, Start.AddHours(1), Start);
         order.IpAddress = IPAddress.Parse("203.0.113.5");
         order.CartId = EntityIds.New();
-        order.ShippingPeriod = 2;
+        order.FreezeShippingPromise(2);
         order.BillingRecipientName = "Ali Veli";
         order.BillingProvinceId = province.Id;
         order.BillingDistrict = "Çankaya";

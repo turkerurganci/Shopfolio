@@ -1,6 +1,6 @@
 # T340 — Dijital ürün: dosya, indirme hakkı, hak yenileme, yeniden satın alma
 
-**Faz:** F3 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -74,10 +74,65 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-08) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (D-527, D-528'e forward) |
+
+### Doğrulama Sonucu — T340 Dijital ürün — tur 1
+**Tarih:** 2026-11-08   **Branch:** task/T340-dijital-urun   **Commit:** 99b644a1 (c5fed09 + main birleştirmesi `37d581f7`)
+
+#### Verdict: ✓ PASS
+
+Dal CI'ının son koşusu (42468945822) yalnız `7. Paketleme dogrulamasi`'nda kırmızı: restic indirmesinde `wget: HTTP/1.1 504 Gateway Time-out` (dış sunucu); diff `deploy/`'a dokunmuyor, aynı 504 main'de T338'in 1. denemesini de düşürdü. Kod adımları yeşil. Merge, bu commit'in tetiklediği yeni CI yeşil olunca.
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş |
+| Hook kurulumu | ✓ | `core.hooksPath` ana checkout'un `scripts/git-hooks`'u |
+| Ana dal CI (son 3 tamamlanmış) | ✓ (kod kaynaklı kırılma yok) | 42468912436 `cancelled` (#459; T338 yeniden denemesi eşzamanlılıkla iptal etti), 42464077677 `success`, 42464077701 `success` |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | İndirme yalnız ödemesi onaylı kalemde | ✓ | `DownloadRules.PaymentConfirmed` tek okuma; UC-37 onaysızda 404; üç KK1 Integration testi yeşil (K2) |
+| 2 | Varyant dosyası, yoksa ürününki | ✓ | `DigitalFileReader.FindAsync`; iki KK2 testi yeşil |
+| 3 | Boyut tavanı P-26'dan | ✓ | `ProductConstants.DigitalFileMaxBytes`, `DigitalFileDelivery.CheckSize`; Files 102/102, Unit 4646/4646 |
+| 4 | Dijital adet 1 | ✓ | `IsQuantityAllowed`, `CheckDigitalAddAsync`, DB kısıtı `ck_order_items_quantity_above_zero_one_if_digital`; KK4 testi |
+| 5 | Kalem başına adet, süresiz | ✓ | tek koşullu `ExecuteUpdate`; 800 gün testi, 10 eşzamanlı istekte tam 3 |
+| 6 | Yenileme sayacı sıfırlar | ✓ | `RenewAsync` kilit + sürüm + `BumpVersion`; iki KK6 testi |
+| 7 | O anki dosya; silinince/yenisiz kalkınca son hâl | ✓ | iki KK7 testi; bugünkü yollarda doğru, bağlama yazımı gelince K1 (D-527) |
+| 8 | Güncelleme hakkı değiştirmez | ✓ | sayaç tek yazıcıda (taramalar kilitli); KK8 testi |
+| 9 | Üyeye uyarı, misafire yok, engel yok | ✓ | üç KK9 testi + Unit |
+
+#### Task Satırları (`12 §7.5`)
+KP-9/20/44 grep'i 16 satır getirir (A028…A035, A979, B018, A064…A066, A199…A201); hepsinin kanıt türü uç yanıtı / tarayıcı ve ucu sonraki task'larda (T347/T503/T508, T511, T525/T531). Hücreler `BEKLEMEDE` kaldı; modül düzeyi kanıt yukarıda.
+
+#### Test Sonuçları
+| Tür | Sonuç | Çıktı |
+|---|---|---|
+| Build `-warnaserror` / format ×3 | ✓ | 0 uyarı; çıkış 0 |
+| Unit (+Consistency, Architecture) | ✓ | 4646/4646 |
+| Betik testleri | ✓ | 4 dosya |
+| Integration (Files, Disposal, Jobs, Address+Membership, Catalog) | ✓ | 102, 61, 77, 47, 72 — hepsi yeşil |
+| Dal CI 42468945822 | ✗ (dış) | Paketleme 504; öteki 7 adım yeşil |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz · Auth etkisi: Temiz (indirme ucu daha dar; sahiplik T511'in kökünde) · Input validation: Temiz · Yeni bağımlılık: Yok
+
+#### Bulgular
+Bloke eden bulgu yok.
+
+#### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | `06 §4.70`: dosya bağlama/kaldırma ve ürün/varyant silme etkilenen kalemlerin `DigitalFileId`'sini aynı işlemde yazar; `src/`'te yok. Bağlama gelince "A ile alındı → B bağlandı → sil / yenisiz kaldır" yolunda kalem A'yı verir | forward — D-527 (T525) |
+| K2 | `02 §3.20.9` / K-671 "Bekliyor ya da Başarısız değilken" tanımında `Refunded` onaylı; T340 kapalı sayıyor; D-510 (a)'nın "çelişmeyen" notu tam değil | forward — D-528 (D-510 ile, en geç F3 gate) |
+
+#### Yapım Raporu Karşılaştırması
+- 3 uyuşmazlık, verdict'i değiştirmez: (1) KK7'de K1 anılmamış; (2) D-510 (a) ↔ K-671 (K2); (3) rapordaki `12` listesi (A833, A491, A552, D010, D115) adım 2a'nın KP grep'iyle eşleşmiyor, KP-9/44'ün dijital satırları (A032, A034, A035, A199, A200) eksik — hücreler BEKLEMEDE kaldığı için sonuç aynı.
+- Öz denetim tablosu var, maddeler kanıtlı.
 
 ## Altyapı Değişiklikleri
 

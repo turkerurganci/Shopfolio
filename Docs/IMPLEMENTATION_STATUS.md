@@ -159,7 +159,7 @@
 | T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ✓ | ✓ PASS (tur 2) | `924ef92` | #437 |
 | T317 | Ödeme durumu geçişleri: ödeme ekseni | ✓ | ✓ PASS (tur 3) | — | #441 |
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ✓ | ✓ PASS (tur 2) | — | #455 |
-| T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
+| T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ✓ | ✓ PASS (tur 1) | — | #465 |
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |
 | T321 | Ürün yayın durumları | ✓ | ✓ PASS (tur 3) | `a89710b` | #439 |
 | T322 | İçerik yayın durumları ve iletişim talebi durumları | ✓ | ✓ PASS (tur 1) | `f9ea0fe` | #438 |
@@ -180,7 +180,7 @@
 | T337 | İndirim ve referans fiyat: tarihli indirim, fiyat geçmişinden referans, kaydı engelleyen koşullar | ✓ | ✓ PASS (tur 1) | — | #457 |
 | T338 | Kupon: tanım, kalem payı, sınırlar, kullanım hakkının ayrılması | ✓ | ✓ PASS (tur 1) | — | #458 |
 | T339 | Ürün görseli ve metni: ana görsel, kısıtlar, alternatif metin, metin biçimi seti | ✓ | ✓ PASS (tur 2) | — | #445 |
-| T340 | Dijital ürün: dosya, indirme hakkı, hak yenileme, yeniden satın alma | ⬚ | — | — | — |
+| T340 | Dijital ürün: dosya, indirme hakkı, hak yenileme, yeniden satın alma | ✓ | ✓ PASS (tur 1) | — | #462 |
 | T341 | Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı | ✓ | ✓ PASS (tur 3) | — | #433 |
 | T342 | Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri | ✓ | ✓ PASS (tur 3) | — | #453 |
 | T343 | Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma | ⬚ | — | — | — |

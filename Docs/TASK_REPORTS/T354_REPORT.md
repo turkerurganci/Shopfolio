@@ -1,6 +1,6 @@
 # T354 — Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 3 ⛔ BLOCKED — main (T350) ile kod çakışması, birleştirme bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 4 ✓ PASS — merge öncesi main (T350, T311) ile `OrderingModule`/`IOrderingModule` çakışması çözülmeli) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -70,9 +70,9 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⛔ BLOCKED (tur 3, 2026-11-08 — main (T350) ile kod çakışması); önceki: ⛔ BLOCKED (tur 2), ✗ FAIL (tur 1) |
+| Doğrulama durumu | ✓ PASS (tur 4, 2026-11-08 — dalın içeriğine göre); önceki: ⛔ BLOCKED (tur 3, tur 2), ✗ FAIL (tur 1) |
 | Bulgu sayısı | 0 içerik bulgusu (tur 1: B1 ORTA S2, giderildi) |
-| Düzeltme gerekli mi | Evet — `origin/main` birleştirmesi ve `OrderingModule.cs` çakışmasının çözümü |
+| Düzeltme gerekli mi | İçerikte hayır; merge öncesi `origin/main` birleştirmesi (`OrderingModule.cs`, `Contracts/IOrderingModule.cs` çakışması — iki taraf kalır) |
 | Bloke-etmeyen not (K) sayısı | 0 |
 
 ### Doğrulama Sonucu — tur 1 (validator)
@@ -116,6 +116,19 @@ B1 giderildi: `DisposalHarness`, `Model/AddressTests`, `Model/MembershipTests` d
 - **Dal CI:** 42500104111 ✓ (head `6c2919e8`, bütün adımlar).
 - **BLOCKED nedeni:** `git merge origin/main` (main `0226a902`, T350 #460) yine `src/Shopfolio.Web/Modules/Ordering/OrderingModule.cs`'te çakıştı; PR #470 `CONFLICTING`. T350 kurucuya `_shippingViews = new ShippingViewReader(db);` ve `GetShippingViewAsync` yöntemini ekledi; T354 `_access = access;` ve iki yöntem ekliyor. Talimat gereği merge iptal edildi. Çözüm: çakışan blokta iki taraf kalır (üç yöntem birlikte); öteki dosyalar otomatik birleşir; build ve Ordering/Model/Disposal Integration koşulur; sonra birleşik uç için yeni doğrulama turu.
 - **İçerik bulgusu:** yok. **K-notu:** yok (tur 2'nin K-notu kapanmış).
+- **Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu kanıtlı.
+
+### Doğrulama Sonucu — tur 4 (validator)
+
+**Head:** `061064f4` · **PR:** #470 · **Verdict:** ✓ PASS (dalın içeriğine göre; merge öncesi main birleştirmesi gerekir)
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = ana depo `scripts/git-hooks`; ana dal CI son 3: 42500144509, 42500141831, 42493884474 hepsi `success`.
+- **Kabul kriterleri:** 1–6 ve KK1–KK6 ✓ (modül düzeyi; tam kapsam yeniden denetlendi). `OrderNumber` alfabesi, uzunluğu (P-19 = 6) ve `RandomNumberGenerator.GetInt32` `09 §15.1` madde 1 ile birebir; `OrderIdentifiers` çakışan, iptal edilmiş ve henüz kaydedilmemiş siparişin numarasını atlar, dizin adları veritabanıyla eşleşir; üç yol aynı siparişi açar, numara tek başına hiçbir yolu açmaz, yanlış parçaların hepsi aynı `null`; anahtar `SecretKey.Create`, saat okumaz, yenilenince eskisi ve imhada her yol kapanır; sayfa özeti dört bilgiyi yalnız siparişten okur (`dispatch_records`, `jobs` boş). `09 §25` ilgili satırlar (modül sınırı, salt okuma/izlemesiz projeksiyon, `SecretKey`, `TimeProvider`/parametre, yeni sabit yok) ve güvenlik taraması temiz; yeni bağımlılık yok.
+- **Task satırları:** VAL-D009, B014, B015, B016, A054, A977, A055, A057, A058, B017 `BEKLEMEDE` kaldı (uç/tarayıcı/onay kanıtı T511 ve T348'de; T346, T318, T338 emsali); `12_matris_denetle.py --kapsam 1-77` hata 0.
+- **Testler (yerel):** restore; build `-warnaserror` 0 uyarı; format üç proje temiz; Unit 4878/4878 (Consistency, Architecture dahil); betik 4 dosya; Integration (PG18) `OrderAccessTests` + `Model.AddressTests` + `Model.MembershipTests` 128/128, Disposal 61/61; sonrasında `git status` temiz, `restore --locked-mode` çıkış 0.
+- **Dal CI:** 42500104111 ✓ (head `6c2919e8`, bütün adımlar); `061064f4` yalnız belge commit'i (rapor, status satırı, changelog parçası).
+- **Birleştirme notu:** `git merge origin/main` (main `4c049223`, T311 #456) kod dosyalarında çakıştı: `src/Shopfolio.Web/Modules/Ordering/OrderingModule.cs` (T350 `GetShippingViewAsync` ↔ T354 iki yöntem) ve `src/Shopfolio.Web/Modules/Ordering/Contracts/IOrderingModule.cs` (T311 `FindOrderForPaymentAsync` ↔ T354 iki yöntem). İkisi de ekleme çakışmasıdır; iki taraf kalır. Talimat gereği merge iptal edildi, doğrulama dalın ucunda tamamlandı; merge öncesi birleştirme, build ve Ordering/Model/Disposal Integration koşulmalı.
+- **İçerik bulgusu:** yok. **K-notu:** yok.
 - **Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu kanıtlı.
 
 ## Altyapı Değişiklikleri

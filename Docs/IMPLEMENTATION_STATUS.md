@@ -194,7 +194,7 @@
 | T351 | Teslim işaretleri: kalem tipine göre teslim, karışık sipariş, fiziksel teslim tarihi | ⬚ | — | — | — |
 | T352 | Ödeme: satıcı ve kart verisi, iki yöntem, 3D Secure, taksit, ters ibraz | ⬚ | — | — | — |
 | T353 | Havale/EFT: IBAN ve siparişe donması, ödendi işareti, hatırlatma, süresi dolmuş sipariş | ⬚ | — | — | — |
-| T354 | Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı | ⏳ | ⛔ BLOCKED (tur 3; main çakışması) | — | #470 |
+| T354 | Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı | ✓ | ✓ PASS (tur 4) | — | #470 |
 | T355 | Sipariş anında donan değerler | ⬚ | — | — | — |
 | T356 | Onay adımı: onay kutuları, Ön Bilgilendirme Formu içeriği, işlem rehberi | ⬚ | — | — | — |
 | T357 | Fatura verisi ve dışa aktarmada donmuş kimlik | ⬚ | — | — | — |

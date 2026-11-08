@@ -8,20 +8,24 @@ namespace Shopfolio.Modules.Catalog;
 
 /// <summary>
 /// The plain read of what an order item freezes of its variant (T355; 02 3.23.1): the product's name, type, VAT rate, exemption and fulfilment period; the variant's price as stored, its
-/// option values, the image it shows (its own, else the product's main image - the rule of <see cref="ProductGallery.GetVariantImageAsync"/>) and, on a digital product, its current file
-/// (its own, else the product's - the order of <see cref="DigitalFileReader.FindAsync"/>); and the running discount's declaration with the reference price the price label shows
-/// (<see cref="PriceLabelReader"/>, 02 3.9.6). "Now" is <see cref="TimeProvider"/>'s: the moment of the read is the moment the order is born (02 3.23.4). A variant that does not exist
-/// is not in the answer. Nothing is written and no lock is taken; the caller reads it inside the order's transaction.
+/// option values, the image it shows (asked of <see cref="ProductGallery.GetVariantImageAsync"/>: its own, else the product's main image) and, on a digital product, its current file
+/// (asked of <see cref="DigitalFileReader.CurrentFileAsync"/>; a file whose upload did not complete is none); and the running discount's declaration with the reference price the price
+/// label shows (<see cref="PriceLabelReader"/>, 02 3.9.6). "Now" is <see cref="TimeProvider"/>'s: the moment of the read is the moment the order is born (02 3.23.4). A variant that does
+/// not exist is not in the answer. Nothing is written and no lock is taken; the caller reads it inside the order's transaction.
 /// </summary>
 internal sealed class OrderItemSourceReader
 {
     private readonly AppDbContext _db;
     private readonly TimeProvider _time;
+    private readonly ProductGallery _gallery;
+    private readonly DigitalFileReader _files;
 
-    public OrderItemSourceReader(AppDbContext db, TimeProvider time)
+    public OrderItemSourceReader(AppDbContext db, TimeProvider time, ProductGallery gallery, DigitalFileReader files)
     {
         _db = db;
         _time = time;
+        _gallery = gallery;
+        _files = files;
     }
 
     public async Task<IReadOnlyList<OrderItemSource>> ListAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct)
@@ -47,7 +51,6 @@ internal sealed class OrderItemSourceReader
                     ProductName = p.Name,
                     v.FirstOptionValueId,
                     v.SecondOptionValueId,
-                    OwnImageId = v.ImageId,
                     v.Price,
                     v.FirstOnSaleAt,
                     p.VatRate,
@@ -65,16 +68,6 @@ internal sealed class OrderItemSourceReader
         Dictionary<Guid, string> optionValues = await _db.OptionValues.AsNoTracking()
             .Where(o => optionValueIds.Contains(o.Id))
             .ToDictionaryAsync(o => o.Id, o => o.Value, ct);
-        Dictionary<Guid, Guid> mainImages = await _db.ProductImages.AsNoTracking()
-            .Where(i => productIds.Contains(i.ProductId) && i.IsMain)
-            .ToDictionaryAsync(i => i.ProductId, i => i.ImageId, ct);
-
-        // The current file of a digital variant: an attached, completely uploaded file of the variant, else of its product (02 3.12.7).
-        var files = await _db.DigitalFiles.AsNoTracking()
-            .Where(f => f.DetachedAt == null && f.UploadCompletedAt != null
-                && ((f.VariantId != null && ids.Contains(f.VariantId.Value)) || (f.ProductId != null && productIds.Contains(f.ProductId.Value))))
-            .Select(f => new { f.Id, f.VariantId, f.ProductId })
-            .ToListAsync(ct);
 
         DateTimeOffset now = _time.GetUtcNow();
         Dictionary<Guid, RunningDiscount> running = await PriceHistoryReads.RunningDiscountsAsync(_db, productIds, now, ct);
@@ -89,10 +82,14 @@ internal sealed class OrderItemSourceReader
                 discount = DiscountRules.LineOf(terms.Terms, row.Price, references[row.VariantId]);
             }
 
-            bool isDigital = row.ProductType == ProductType.Digital;
-            Guid? fileId = !isDigital
-                ? null
-                : (files.FirstOrDefault(f => f.VariantId == row.VariantId) ?? files.FirstOrDefault(f => f.VariantId == null && f.ProductId == row.ProductId))?.Id;
+            Guid? imageId = (await _gallery.GetVariantImageAsync(row.VariantId, ct))?.ImageId;
+            Guid? fileId = null;
+            if (row.ProductType == ProductType.Digital)
+            {
+                DigitalFile? file = await _files.CurrentFileAsync(row.VariantId, ct);
+                fileId = file?.UploadCompletedAt is null ? null : file.Id;
+            }
+
             sources.Add(new OrderItemSource(
                 row.VariantId,
                 row.ProductId,
@@ -100,7 +97,7 @@ internal sealed class OrderItemSourceReader
                 row.ProductName,
                 row.FirstOptionValueId is Guid first ? optionValues.GetValueOrDefault(first) : null,
                 row.SecondOptionValueId is Guid second ? optionValues.GetValueOrDefault(second) : null,
-                row.OwnImageId ?? (mainImages.TryGetValue(row.ProductId, out Guid main) ? main : null),
+                imageId,
                 row.Price,
                 row.VatRate,
                 discount,

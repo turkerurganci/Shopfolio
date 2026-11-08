@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Operations;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Administration;
@@ -109,7 +110,7 @@ public sealed class FrozenValuesTests : IAsyncLifetime
     [Fact]
     public async Task TheDeliveryLineAndWithdrawalAttributes_Freeze_AndOnlyANewOrderTakesTheirChange_KK2()
     {
-        Seeded physical = await SeedProductAsync(ProductType.Physical, 100m, exemption: WithdrawalExemptionReason.HygieneSensitive);
+        Seeded physical = await SeedProductAsync(ProductType.Physical, 100m, exemption: WithdrawalExemptionReason.MadeToOrder);
         Seeded service = await SeedProductAsync(ProductType.Service, 200m, fulfilmentPeriod: 5);
         Seeded digital = await SeedProductAsync(ProductType.Digital, 50m);
         Guid fileId = await SeedFileAsync(digital.VariantId);
@@ -126,7 +127,7 @@ public sealed class FrozenValuesTests : IAsyncLifetime
 
         Dictionary<ProductType, OrderItem> before = (await ItemsOfAsync(first)).ToDictionary(i => i.ProductType);
         Dictionary<ProductType, OrderItem> later = (await ItemsOfAsync(second)).ToDictionary(i => i.ProductType);
-        Assert.Equal(WithdrawalExemptionReason.HygieneSensitive, before[ProductType.Physical].WithdrawalExemptionReason);
+        Assert.Equal(WithdrawalExemptionReason.MadeToOrder, before[ProductType.Physical].WithdrawalExemptionReason);
         Assert.Null(later[ProductType.Physical].WithdrawalExemptionReason);
         Assert.Equal(5, before[ProductType.Service].FulfilmentPeriod);
         Assert.Equal(9, later[ProductType.Service].FulfilmentPeriod);
@@ -138,6 +139,18 @@ public sealed class FrozenValuesTests : IAsyncLifetime
         Assert.Null(before[ProductType.Service].WithdrawalExemptionReason);
         Assert.Null(before[ProductType.Physical].DownloadAllowance);
         Assert.Null(before[ProductType.Digital].FulfilmentPeriod);
+
+        // The buttons read the frozen values, not the product (K-598): both orders shipped and paid, the product no longer exempt - the first order's withdrawal stays closed
+        // by its frozen exemption, the second order's is open; the download button counts the allowance each order froze.
+        await ExecuteAsync($"UPDATE orders SET order_status = 'Shipped', payment_status = 'Paid' WHERE id IN ('{first}', '{second}')");
+        OrderOperationsView beforeView = Assert.IsType<OrderOperationsView>(await ReadOperationsAsync(first));
+        OrderOperationsView laterView = Assert.IsType<OrderOperationsView>(await ReadOperationsAsync(second));
+        Assert.False(beforeView.IsOpen(OrderOperation.WithdrawPhysicalItem, before[ProductType.Physical].Id));
+        Assert.True(laterView.IsOpen(OrderOperation.WithdrawPhysicalItem, later[ProductType.Physical].Id));
+        Assert.True(beforeView.IsOpen(OrderOperation.DownloadDigitalFile, before[ProductType.Digital].Id));
+        Assert.Equal(
+            OperationDecision.Closed,
+            (await CheckOperationAsync(first, OrderOperation.WithdrawPhysicalItem, before[ProductType.Physical].Id, 1)).Decision);
 
         // KK4's boxes: the ticked digital box's record keeps the text shown at confirmation and the item it covers (02 3.24.6); the record is never deleted.
         CheckboxAcceptance box = CheckboxAcceptance.Create(first, CheckboxType.Digital, "İndirme, ödemem onaylandığı anda açılacak", Now);
@@ -353,7 +366,7 @@ public sealed class FrozenValuesTests : IAsyncLifetime
     private async Task<OrderItemSource> SourceAsync(Guid variantId)
     {
         await using AppDbContext db = NewContext();
-        return Assert.Single(await new OrderItemSourceReader(db, _time).ListAsync([variantId], Ct));
+        return Assert.Single(await new OrderItemSourceReader(db, _time, new ProductGallery(db, _time), new DigitalFileReader(db)).ListAsync([variantId], Ct));
     }
 
     private async Task<ConfirmationParties?> ReadPartiesAsync(Guid orderId)
@@ -361,6 +374,20 @@ public sealed class FrozenValuesTests : IAsyncLifetime
         await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn);
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
         return await scope.ServiceProvider.GetRequiredService<IOrderingModule>().GetConfirmationPartiesAsync(orderId, Ct);
+    }
+
+    private async Task<OrderOperationsView?> ReadOperationsAsync(Guid orderId)
+    {
+        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn);
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<IOrderOperations>().ReadAsync(orderId, ActorKind.Buyer, Ct);
+    }
+
+    private async Task<OperationVerdict> CheckOperationAsync(Guid orderId, OrderOperation operation, Guid itemId, int quantity)
+    {
+        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn);
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<IOrderOperations>().CheckAsync(orderId, operation, itemId, quantity, Ct);
     }
 
     private async Task<OrderItem> ItemOfAsync(Guid orderId) => Assert.Single(await ItemsOfAsync(orderId));

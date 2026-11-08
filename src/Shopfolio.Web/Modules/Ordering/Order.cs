@@ -191,6 +191,26 @@ internal sealed class Order : IVersionedRecord
     }
 
     /// <summary>
+    /// Freezes the order's addresses into its own columns (02 3.14.5, 3.14.6; 06 4.17): the shipping address with its telephone - empty on an order with no physical item - and the
+    /// billing address, which carries no telephone. Values, never a link to an address book entry, so a later change or deletion of the entry cannot reach the order. Written at birth,
+    /// before the order's first save; the administrator's later correction is another record (<see cref="OrderAddressHistory"/>).
+    /// </summary>
+    public void FreezeAddresses(
+        (string RecipientName, string Phone, Guid ProvinceId, string District, string AddressLine)? shipping,
+        (string RecipientName, Guid ProvinceId, string District, string AddressLine) billing)
+    {
+        ShippingRecipientName = shipping?.RecipientName;
+        ShippingPhone = shipping?.Phone;
+        ShippingProvinceId = shipping?.ProvinceId;
+        ShippingDistrict = shipping?.District;
+        ShippingAddressLine = shipping?.AddressLine;
+        BillingRecipientName = billing.RecipientName;
+        BillingProvinceId = billing.ProvinceId;
+        BillingDistrict = billing.District;
+        BillingAddressLine = billing.AddressLine;
+    }
+
+    /// <summary>
     /// The disposal's change of the order (06 9.2.1; K-1030 (1), K-1052): the contact (the normalized e-mail with it), the access key, the two addresses, the
     /// account link, the cart link and the IP address are emptied together - the database's check keeps them together. The confirmation key and every
     /// commercial field stay. The caller holds the order's row lock and raises the version.

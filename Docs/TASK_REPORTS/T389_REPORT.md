@@ -1,6 +1,6 @@
 # T389 — Hesap ve durum yönetim komutları: oturumları sonlandırma, şifreyi geçersiz kılma, durum
 
-**Faz:** F3 | **Durum:** ⏳ Yapım tamamlandı, doğrulama bekliyor | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -73,10 +73,19 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-08; dal `origin/main` ile birleştirilerek) |
+| Bulgu sayısı | 2 (1 KRİTİK S2, 1 ORTA S1) |
+| Düzeltme gerekli mi | Evet |
+| Bloke-etmeyen not (K) sayısı | 1 |
+
+**Bulgular:**
+
+1. **KRİTİK · S2 · VAL-A984, kriter 6–9 (`status` kısmı):** main ile birleşik hâlde `admin status` `Beklenmeyen hata: InvalidOperationException` ile 1 döner — `Unable to resolve service for type 'Shopfolio.Infrastructure.Imaging.ImageProcessor' while attempting to activate 'Shopfolio.Modules.Catalog.ImageUploads'` (`StatusCommand.WriteProviderKeysAsync`, `IAfterSalesModule` çözülürken; main'deki T320 ile `AfterSalesModule` kurucusuna `ISettingsModule` girdi ve zincir Catalog'un `ImageUploads`'ına iner, `CommandHost` imaj işleyicisini kaydetmiyor). Kanıt: PR CI run 42495682161 "4. Integration test" — `AccountAndStatusCommandTests`'in 9 `status` testi kırmızı (2847'de 9); yerelde `git merge origin/main` sonrası `Status_WithNoCardOrderAtAll_WritesTwoZeros` aynı hatayla kırmızı. Birleşmeden önceki dalda 26/26 yeşil. Düzeltme: komut kipinin hizmet koleksiyonu çözülebilir olmalı (eksik kayıt ya da bağımlılık yolu) ve komut kipinde her komutun gerektirdiği modüllerin çözüldüğünü sınayan bir test.
+2. **ORTA · S1 · kriter 6 / KK6:** `05 §8.5.6` "açık ve kapalı hatları ayrıntısıyla yazar"; `05 §8.4.6` koşullu ayar eksikse "ilgili hat kapalıdır ve bu hâl ... durum komutuna yazılır"; `InstallationSettingsRegistration` yorumu "the status command reads it (T389)". `StatusCommand` `ConditionalLine` (kart ödemesi, Google ile giriş; eksik anahtar adlarıyla) okumuyor ve yazmıyor; bu boşluk için backlog kaydı yok (D-598 yalnız bellek koşullarını kapsar). Not: komut kipi `05 §6.x.19`'a göre sağlayıcı sırlarını almaz — hattın durumu komut sürecinde nasıl okunacağı da çözülmeli (ör. açılış denetiminin kaydı) ya da kararla `05`'e yazılmalı.
+
+**K-notu:** K1 — `CountOpenCardRefundsAsync` "sonucu bilinmeyen" (`OutcomePending`) kart iadesini sayar ama entegrasyon testinde yalnız `Sending` ve kaydı olmayan iade örneklenmiş; `VAL-A984`'ün "sonucu bilinmeyen kart iadesi" örneği düzeltme turunda teste eklenir (bu PR'ın düzeltmesinde kapatılacak).
+
+**Yapım raporu karşılaştırması:** kriter 6 "✓ (⚠-3)" yazılmış, ama "açık ve kapalı hatlar" `ConditionalLine` olarak karşılanmamış (bulgu 2); Integration "2790/2790" birleşmemiş dalda koşulmuş, main ile birleşik hâl kırmızı (bulgu 1); öz denetim tablosu var ve her maddede kanıt yazılı.
 
 ## Altyapı Değişiklikleri
 

@@ -405,7 +405,7 @@ Uygulama **tek projedir**; modüller o projenin klasörü ve ad alanıdır, derl
    ```
 
    Ayrım CI'ın Unit ve Integration adımlarına birebir oturur (`05 §2.3.5`). Dördüncü bir proje (ortak kütüphane, "Core", "Domain") açılmaz — `05 §3.3.13` modülleri teknik katmanlara bölmeyi eledi.
-2. **Uygulama projesinin içi** dört klasördür:
+2. **Uygulama projesinin içi** beş klasördür:
 
    ```text
    src/Shopfolio.Web/
@@ -414,7 +414,10 @@ Uygulama **tek projedir**; modüller o projenin klasörü ve ad alanıdır, derl
                              kayıt, bağlantı katmanı, veritabanı bağlamı ve göçler
      Pages/                  Razor sayfaları
      Endpoints/              makine uçları (sayfa olmayan GET ve POST uçları: dosya uçları — §15.7)
+     Commands/               yönetim komutları (T303; §13.2): komut çatısı ve komut sınıfları, ad alanı Shopfolio.Commands
    ```
+
+   `Commands/` modül değildir: `Pages/` ve `Endpoints/` gibi modülün `Contracts` arayüzünü çağırır, modülün iç tipini görmez (§6; yalnız `CommandHost` kayıt uzantılarını çağırır, `Program.cs` gibi); ayrı klasördür çünkü `Infrastructure/` modül tiplerini görmez, komut ise modül arayüzü ister.
 
    Modül klasörünün adı §5.1'in modül kod adıdır. Modülün varlık yapılandırmaları kendi klasöründedir; **veritabanı bağlamı tektir ve `Infrastructure/` altındadır** — bir modül kendi bağlamını açmaz. Göçler `Infrastructure/` altındadır, bir modülün klasörüne girmez (göç tek şemanın sırasıdır — §10.6).
 3. **Sayfalar modül klasörüne girmez** (`05 §3.3.12`): sayfa modül değildir, modülün arayüzünü çağırır. `Pages/` altında üç grup vardır — `Storefront/` (vitrin), `Account/` (müşterinin hesabı), `Panel/` (yönetim paneli); ortak parçalar `Pages/Shared/`. Sayfa dosyası ve `PageModel` sınıfı §5.3'ün adıyla yazılır. **Adres klasörden türemez:** her sayfa adresini `@page` şablonuyla açıkça yazar ve adres `07 §2.1`'in Türkçe adresidir; dosya ve klasör adı İngilizce kod adıdır.
@@ -1529,8 +1532,8 @@ Bu bölüm uygulamanın arka plan çalıştırıcılarının, yönetim komutlar�
 
 (`05 §8.5`; K-922, K-923, K-971, K-986, K-1324, K-1350.) Kütüphane yoktur (`System.CommandLine` elendi — Kütüphaneler tablosu); kalıp K-1324'ün kararıdır.
 
-1. **Komut kipi girişte ayrılır.** `Program.cs` ilk argüman `admin` ise `CommandHost.RunAsync(args)`'a geçer, ikinci argüman komut adıdır (`admin create-admin`); değilse web ev sahibi kurulur. `CommandHost` yalnız **hizmet koleksiyonu** kurar (veritabanı bağlamı, dokuz modülün `Add<Modül>Module` uzantıları, kayıt) — web ev sahibi ve `IHostedService` kaydı yoktur: zamanlayıcı, nabız, iş kuyruğu ve imha işi çalışmaz (`05 §8.5.1`). Göç komut kipinde çalışmaz; göç hizmetinin işidir (§10.6). Mimari test: komut kipinin hizmet koleksiyonunda `IHostedService` ve sunucu hizmeti yoktur.
-2. **Dağıtıcı.** `IAdminCommand`: `Name`, `Description` (tek satır, Türkçe), `Options` (`CommandOption`: ad, açıklama, zorunlu mu, tür) ve `RunAsync(CommandInput input, CancellationToken ct)`; dönüş `CommandExit` enum'u: `Success = 0`, `UnexpectedError = 1`, `UsageError = 2`, `Refused = 3` (koşul tutmadığı için işlem reddedildi; `05 §8.5.12`'nin "tutar eşit değil" durumu dahil). Komutlar tek statik listede kayıtlıdır (`AdminCommandCatalog.All`); her komut tek sınıftır. Sözdizimi `komut --seçenek değer`; `--help` komut listesini ve her komutun seçeneklerini açıklamalarıyla yazar. **Kullanım hatası iletisi (bilinmeyen komut ya da seçenek) yalnız komut ve seçenek adlarını yazar, argümanın değerini yinelemez.** Dağıtıcının üst düzey `catch`'i beklenmeyen hatayı 1 koduyla bitirir ve hata türünü yazar (geniş `catch`'in dördüncü yeri, §8.1 madde 6).
+1. **Komut kipi girişte ayrılır.** `Program.cs` ilk argüman `admin` ise `CommandHost.ExecuteAsync(args)`'a geçer, ikinci argüman komut adıdır (`admin create-admin`); değilse web ev sahibi kurulur. `CommandHost` yalnız **hizmet koleksiyonu** kurar (veritabanı bağlamı, dokuz modülün `Add<Modül>Module` uzantıları, kayıt) — web ev sahibi ve `IHostedService` kaydı yoktur (modül uzantıları ve `AddJobQueue` hosted service ekler; `CommandHost` en sonda `RemoveAll<IHostedService>()` yapar): zamanlayıcı, nabız, iş kuyruğu ve imha işi çalışmaz (`05 §8.5.1`). Göç komut kipinde çalışmaz; göç hizmetinin işidir (§10.6). Mimari test: komut kipinin hizmet koleksiyonunda `IHostedService` ve sunucu hizmeti yoktur.
+2. **Dağıtıcı.** `IAdminCommand`: `Name`, `Description` (tek satır, Türkçe), `Options` (`CommandOption`: ad, açıklama, zorunlu mu, tür) ve `ExecuteAsync(CommandInput input, CancellationToken ct)` (`RunAsync` değil: o ad işlem sınırı `ITransactionRunner.RunAsync`'in kaynak taramasıyla çakışır, §10.2); dönüş `CommandExit` enum'u: `Success = 0`, `UnexpectedError = 1`, `UsageError = 2`, `Refused = 3` (koşul tutmadığı için işlem reddedildi; `05 §8.5.12`'nin "tutar eşit değil" durumu dahil). Komutlar tek statik listede kayıtlıdır (`AdminCommandCatalog.All`); her komut tek sınıftır. Sözdizimi `komut --seçenek değer`; `--help` komut listesini ve her komutun seçeneklerini açıklamalarıyla yazar. **Kullanım hatası iletisi (bilinmeyen komut ya da seçenek) yalnız komut ve seçenek adlarını yazar, argümanın değerini yinelemez.** Dağıtıcının üst düzey `catch`'i beklenmeyen hatayı 1 koduyla bitirir ve hata türünü yazar (geniş `catch`'in dördüncü yeri, §8.1 madde 6).
 3. **Dokuz komut `05 §8.5`'in tablosuyla birebirdir;** adlar İngilizce kebab-case'tir ve `--help` listesi ile `05 §8.5` tablosunun satırları eşit olmak zorundadır (test).
 
    | Komut | `05 §8.5` | Seçenekler (argümanla yalnız kişisel olmayan değer gelir) |

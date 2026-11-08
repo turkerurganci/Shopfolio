@@ -185,6 +185,8 @@ public sealed partial class CommandStructureTests
         const string host = "src/Shopfolio.Web/Commands/CommandHost.cs";
 
         Assert.Equal([(CommandSourceScan.ConsoleOutsideTerminal, 2)], CommandSourceScan.Scan(command, "// Console.WriteLine in a comment\nConsole.WriteLine(x);\n"));
+        Assert.Equal([(CommandSourceScan.ConsoleOutsideTerminal, 1)], CommandSourceScan.Scan(command, "using static System.Console;\nWriteLine(x);\n"));
+        Assert.Equal([(CommandSourceScan.ConsoleOutsideTerminal, 1)], CommandSourceScan.Scan(command, "System.Console\n    .WriteLine(x);\n"));
         Assert.Empty(CommandSourceScan.Scan(terminal, "Console.WriteLine(x);\nConsole.ReadKey(intercept: true);\n"));
         Assert.Equal([(CommandSourceScan.KeyWithEcho, 1)], CommandSourceScan.Scan(terminal, "Console.ReadKey();\n"));
         Assert.Equal([(CommandSourceScan.KeyWithEcho, 1)], CommandSourceScan.Scan(terminal, "Console.ReadKey(false);\n"));

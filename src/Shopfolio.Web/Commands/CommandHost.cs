@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -6,8 +7,8 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
-using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.Files;
+using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;

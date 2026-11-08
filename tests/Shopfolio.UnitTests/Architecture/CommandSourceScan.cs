@@ -76,7 +76,8 @@ internal static partial class CommandSourceScan
         return string.Join('\n', lines);
     }
 
-    [GeneratedRegex(@"\bConsole\s*\.", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    // Also the static import, after which the console is used without its name.
+    [GeneratedRegex(@"\bConsole\s*\.|\busing\s+static\s+System\.Console\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex ConsoleUse();
 
     // Every ReadKey( call whose argument list does not carry intercept: true.

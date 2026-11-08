@@ -47,16 +47,6 @@ public sealed class CartOwner
 /// </summary>
 public sealed record CartLine(Guid ItemId, Guid VariantId, Guid ProductId, string ProductName, int Quantity, decimal UnitPrice, bool PriceChanged, bool IsSoldOut, bool EntersOrder);
 
-/// <summary>Why the payment step does not open (02 3.16.7).</summary>
-public enum CartPaymentBlock
-{
-    /// <summary>The payment step may open.</summary>
-    None,
-
-    /// <summary>No line of the cart can enter an order: the cart is empty or every line is sold out.</summary>
-    NoOrderableItem,
-}
-
 /// <summary>
 /// The cart as the cart page shows it (T346). <see cref="RemovedProductNames"/> are the items taken off the showcase since the last view, told once and deleted by the call that gave them;
 /// <see cref="MergeAddedProductNames"/> are the products the sign-in merge added to what the customer saw, told once (02 3.16.4). <see cref="OrderableSubtotal"/> is the sum of unit price times
@@ -75,25 +65,6 @@ public sealed record CartView(
 
     /// <summary>The lines that enter the order and the amounts, in the cart's order.</summary>
     public IEnumerable<CartLine> OrderingLines => Lines.Where(l => l.EntersOrder);
-}
-
-/// <summary>What the add of a variant to a cart came to.</summary>
-public enum CartAddOutcome
-{
-    /// <summary>The variant is in the cart: a new line, or the quantity of the existing line went up.</summary>
-    Added,
-
-    /// <summary>The quantity is not above zero.</summary>
-    InvalidQuantity,
-
-    /// <summary>No such variant.</summary>
-    VariantNotFound,
-
-    /// <summary>The variant or its product is not on the showcase.</summary>
-    NotOnSale,
-
-    /// <summary>The variant is sold out and cannot be added (02 3.6.4).</summary>
-    SoldOut,
 }
 
 /// <summary>The result of an add: the outcome, and the cart the line was written to when it was added.</summary>

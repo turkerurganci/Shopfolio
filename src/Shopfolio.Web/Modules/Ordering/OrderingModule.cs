@@ -249,6 +249,7 @@ internal static class OrderingModuleRegistration
         services.AddScoped<OrderLocks>();
         services.AddScoped<OrderPaymentArms>();
         services.AddScoped<DownloadCounters>();
+        services.AddScoped<CartStatements>();
         services.AddScoped<Carts>();
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();

@@ -174,7 +174,7 @@ public sealed class LinkKeySourceScanTests
         const string own = "public async Task<R> VerifyEmailAsync(string key, CancellationToken ct) { return await _links.TryConsumeAsync(id, ct); }";
         const string other = "public async Task<R> ResendAsync(string key, CancellationToken ct) { return await _links.TryConsumeAsync(id, ct); }";
         const string callsIt = "public async Task<R> ResendAsync(string key, CancellationToken ct) { return await _module.VerifyEmailAsync(key, ct); }";
-        string file = LinkKeySourceScan.ConsumingMethods.Keys.Single();
+        const string file = "src/Shopfolio.Web/Modules/Membership/MembershipModule.cs";
 
         Assert.Empty(LinkKeySourceScan.Scan(file, own));
         Assert.Contains(LinkKeySourceScan.Scan(file, other), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
@@ -183,14 +183,51 @@ public sealed class LinkKeySourceScanTests
     }
 
     [Fact]
-    public void ConsumingMethods_NamesOnlyExistingFiles_EachWithOneMethodThatConsumes()
+    public void Scan_OnTheResetButton_AllowsTheConsumeInTheRegimeAndTheWrapperAndNothingElse_T342()
+    {
+        const string regime = "src/Shopfolio.Web/Infrastructure/Security/PasswordRegime.cs";
+        const string wrapperFile = "src/Shopfolio.Web/Modules/Administration/AdministrationModule.cs";
+        const string consumes = "public async Task<R> ResetPasswordAsync(A a, string key, CancellationToken ct) { return await _links.TryConsumeAsync(id, ct); }";
+        const string consumesElsewhere = "public async Task<R> RequestResetAsync(A a, string key, CancellationToken ct) { return await _links.TryConsumeAsync(id, ct); }";
+        const string wrapper = "public Task<R> ResetPasswordAsync(string key, string n, CancellationToken ct) { return _passwords.ResetPasswordAsync(_accounts, key, n, ct); }";
+        const string otherCaller = "public Task<R> ReadAsync(string key, string n, CancellationToken ct) { return _passwords.ResetPasswordAsync(_accounts, key, n, ct); }";
+        const string verifyInWrapper = "public Task<R> ResetPasswordAsync(string key, CancellationToken ct) { return _passwords.VerifyEmailAsync(key, ct); }";
+        const string onGet = "public async Task OnGetAsync(CancellationToken ct) { await _admin.ResetPasswordAsync(key, n, null, ct); }";
+        const string onPost = "public async Task OnPostAsync(CancellationToken ct) { await _admin.ResetPasswordAsync(key, n, null, ct); }";
+        const string page = "src/Shopfolio.Web/Pages/Panel/Reset.cshtml.cs";
+
+        Assert.Empty(LinkKeySourceScan.Scan(regime, consumes));
+        Assert.Contains(LinkKeySourceScan.Scan(regime, consumesElsewhere), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+        Assert.Contains(LinkKeySourceScan.Scan(wrapperFile, consumes), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+        Assert.Empty(LinkKeySourceScan.Scan(wrapperFile, wrapper));
+        Assert.Contains(LinkKeySourceScan.Scan(wrapperFile, otherCaller), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+        Assert.Contains(LinkKeySourceScan.Scan(wrapperFile, verifyInWrapper), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+        Assert.Contains(LinkKeySourceScan.Scan("src/Shopfolio.Web/Pages/Other.cs", wrapper), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+        Assert.Contains(LinkKeySourceScan.Scan(page, onGet), f => f.Rule == LinkKeySourceScan.ConsumeOutsidePost);
+        Assert.Empty(LinkKeySourceScan.Scan(page, onPost));
+    }
+
+    [Fact]
+    public void ConsumingMethods_AndWrappers_NameOnlyExistingFiles_EachWithTheMethodsThatExist()
     {
         string root = RepositoryRoot.Find();
-        foreach ((string path, string method) in LinkKeySourceScan.ConsumingMethods)
+        foreach ((string path, string[] methods) in LinkKeySourceScan.ConsumingMethods)
         {
             string text = File.ReadAllText(Path.Combine(root, path));
-            Assert.Contains(method + "(", text, StringComparison.Ordinal);
             Assert.Contains("TryConsumeAsync(", text, StringComparison.Ordinal);
+            foreach (string method in methods)
+            {
+                Assert.Contains(method + "(", text, StringComparison.Ordinal);
+            }
+        }
+
+        foreach ((string path, string[] methods) in LinkKeySourceScan.WrapperMethods)
+        {
+            string text = File.ReadAllText(Path.Combine(root, path));
+            foreach (string method in methods)
+            {
+                Assert.Contains("." + method + "(", text, StringComparison.Ordinal);
+            }
         }
     }
 }

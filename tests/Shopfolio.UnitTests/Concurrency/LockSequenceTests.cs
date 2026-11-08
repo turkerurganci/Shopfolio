@@ -48,6 +48,12 @@ public sealed class LockSequenceTests
         { "CompanySettings", "CategoryTree" },
         { "Order", "CompanySettings" },
         { "Cart", "CompanySettings" },
+        { "Account", "Order" },
+        { "Account", "Cart" },
+        { "Account", "CompanySettings" },
+        { "Order", "Account" },
+        { "Cart", "Account" },
+        { "AdminSet", "Account" },
         { "AdminSet", "CompanySettings" },
         { "CategoryTree", "CompanySettings" },
     };

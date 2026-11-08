@@ -26,7 +26,9 @@ internal sealed class OrderingModule : IOrderingModule
 
     private readonly Carts _carts;
 
-    public OrderingModule(AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks, DownloadCounters downloads, Carts carts)
+    private readonly OrderAccess _access;
+
+    public OrderingModule(AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks, DownloadCounters downloads, Carts carts, OrderAccess access)
     {
         _carts = carts;
         _db = db;
@@ -35,7 +37,12 @@ internal sealed class OrderingModule : IOrderingModule
         _locks = locks;
         _advisoryLocks = advisoryLocks;
         _downloads = downloads;
+        _access = access;
     }
+
+    public Task<OrderAccessLookup?> FindOrderByNumberAndEmailAsync(string orderNumber, string email, CancellationToken ct) => _access.FindByNumberAndEmailAsync(orderNumber, email, ct);
+
+    public Task<OrderPageSummary?> GetOrderPageSummaryAsync(Guid orderId, CancellationToken ct) => _access.GetSummaryAsync(orderId, ct);
 
     public Task<OrderShippingView?> GetShippingViewAsync(Guid orderId, CancellationToken ct) => _shippingViews.GetAsync(orderId, ct);
 
@@ -269,6 +276,10 @@ internal static class OrderingModuleRegistration
         services.AddScoped<DownloadCounters>();
         services.AddScoped<CartStatements>();
         services.AddScoped<Carts>();
+
+        // The order number, the access key and the ways into the order page (T354; 02 3.22).
+        services.AddScoped<OrderIdentifiers>();
+        services.AddScoped<OrderAccess>();
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
 
@@ -276,6 +287,9 @@ internal static class OrderingModuleRegistration
         services.AddScoped<OrderCounters>();
         services.AddScoped<OrderTransitions>();
         services.AddScoped<IOrderTransitions>(provider => provider.GetRequiredService<OrderTransitions>());
+        // The operation decision (T323; 03 1.11): the forty-one operations in one table; the screen reads it and every POST asks it again.
+        services.AddScoped<OrderOperations>();
+        services.AddScoped<IOrderOperations>(provider => provider.GetRequiredService<OrderOperations>());
         services.AddDisposalPart<GuestCartDisposalPart>();
         services.AddDisposalPart<OrderDisposalPart>();
 

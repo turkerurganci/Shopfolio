@@ -11,8 +11,13 @@ internal abstract record PaymentQueryResult : IExternalCallResult<PaymentQueryRe
     {
     }
 
-    /// <summary>A successful payment exists. The amounts are read culture-free and are not rounded (08 2.1.6).</summary>
-    public sealed record Paid(decimal PaymentAmount, decimal PaymentTotal, bool PaidByCard, bool InLira, bool TestMode) : PaymentQueryResult;
+    /// <summary>
+    /// A successful payment exists. The amounts are read culture-free and are not rounded (08 2.1.6). <paramref name="ProviderTransactionId"/> is the
+    /// provider's reference of the payment, which the payment record keeps and which makes a second application of the same payment a repeat (K-970);
+    /// the layer fills it from the provider's answer - which field it maps is the provider task's (T403, D-448) - and the core never makes it up.
+    /// </summary>
+    public sealed record Paid(string ProviderTransactionId, decimal PaymentAmount, decimal PaymentTotal, bool PaidByCard, bool InLira, bool TestMode)
+        : PaymentQueryResult;
 
     /// <summary>The provider says there is no payment for the order.</summary>
     public sealed record NoPayment : PaymentQueryResult;

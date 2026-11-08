@@ -73,10 +73,25 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1) |
+| Bulgu sayısı | 1 (B1 ORTA, S1) |
+| Düzeltme gerekli mi | Evet — B1 |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-716) |
+
+### Doğrulama Sonucu — tur 1 (validator)
+
+**Head:** `5dc4f221` (origin/main `d0c97cf0` ile güncel; birleştirme gerekmedi) · **PR:** #483 · **Verdict:** ✗ FAIL
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = depo `scripts/git-hooks` (ana checkout'un mutlak yolu); ana dal CI son 3: 42532103711, 42532103776, 42530025706 hepsi `success`.
+- **Dal CI:** 42533329123 (`5dc4f221`) ✓ — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E (advisory), CI Gate `pass`. Önceki run 42533131953 (`dd2d047b`) `cancelled`.
+- **Kabul kriterleri (kod + test okundu, testler koşuldu):** 1 ✓ (kod yalnız `SELECT`; `current_setting` + tablo başına `count(*)`; komut kipinde hosted service yok — ancak kanıt testi kararsız, B1) · 2 ✓ (dağıtıcı `Moment` türü; 6 satırlık teori iki komutta 2, değer iletide yok) · 3 ✓ (`pg_xact_commit_timestamp(xmin) > nokta`; satırın kendi zamanı 3 yıl önce olsa da sayılır; nokta öncesi başlayıp sonra kesinleşen işlem sayılır; hesap/oturum/bağlantı yazımı sayılmaz) · 4 ✓ (xmin son yazanı gösterdiği için boşaltma ve `ON DELETE SET NULL` bağ güncellemesi sayılır; IBAN silme günü sipariş sürümünü yükseltir — `RefundIbanDeletionDay` — yönetici kaldırma iz satırı yazar, hesap silme siparişe yazar; üçü de sayılan tablolarda görünür) · 5 ✓ (toplam > 0 ya da ayar kapalı → 3 ve "dönülmez") · 6 ✓ (Türkiye günü dosyaları, `At >= nokta`, yazılış sırası; her satır kendi işleminde aynı silme yoluyla: `AccountDeletions.RemoveAsync`, `AdminAccounts.DeleteAccountRowAsync`) · 7 ✓ (son yönetici silinir, açık geri alma/yeniden kimlik/aktör kapısı yok; kaydı olmayan satır atlanır; iz, gönderim, iş satırı yazılmaz; ikinci koşu zararsız) · 8 ✓ (`sessions` tümden silinir; `UsedAt IS NULL`, `EmailChangeRevert` dışı ve ömrü noktadan sonra biten bağlantılar noktaya çekilir) · 9 ✓ (göç/imaj değişikliği yok).
+- **KK1–KK9:** ✓ (kriterlerle aynı kanıt; KK1'in entegrasyon kanıtı B1 ile kararsız). **`09 §25`:** modül yöntemleri `RequireTransaction`, işlemi komut açar; `AdminSet` ve hesap kilidi mevcut yollarla; şema/göç yok; yeni paket yok; SQL'de tablo adları sabit listeden, an parametre; tarama istisnası tek giriş + tek dosya.
+- **Task satırları:** T388'in kaynak birimleri `05:MK-72`, `05:§8.5`, `05:§8.7`, `09:§13` — KP birimi yok, adım 2a grep'i satır getirmez. İlgili VAL-A808, A810–A813 (§12.5) geri yüklenmiş test ortamı / uç yanıtı ister; `Durum` hücreleri `BEKLEMEDE` kaldı, matrise dokunulmadı.
+- **Testler (yerel, `postgres:18 -c track_commit_timestamp=on`):** restore 0; build `-warnaserror` 0 uyarı; format Web/UnitTests/IntegrationTests temiz; Unit 5144/5144; betik testleri 4/4; Integration `RestoreCommandsTests` tek başına 12/12; `RestoreCommandsTests` + `Membership*` + `SessionLinkAttemptLoginTablesTests` + `AuditTrail*` birlikte 230/231 — iki koşuda da `RollbackCheck_OnlyReads_NoTransactionIsStartedThatWrites` düştü (B1).
+- **B1 — ORTA, S1 Sapma (`09 §19.1` koleksiyon yalıtımı):** `RollbackCheck_OnlyReads_NoTransactionIsStartedThatWrites` komuttan önce ve sonra `pg_snapshot_xmax(pg_current_snapshot())` değerini karşılaştırır; bu sayaç bütün sunucunundur (veritabanı başına değil). Koleksiyonlar aynı sunucuda kendi veritabanlarında paralel koşar (`09 §19.1`), öteki koleksiyonların yazımı sayacı ilerletir ve test düşer: yerelde iki koşuda da `Expected "3100" / Actual "3106"`. Dal CI'ı bu kez yeşil, ama test paralel yükte kararsız; ana dalda kırmızı run bütün doğrulamaları durdurur (Adım 0). Düzeltme: salt okumanın kanıtı koleksiyonun kendi veritabanına bağlanır (ör. komutun bağlantısını salt okunur işlemde çalıştırmak ya da `pg_stat_database.xact_commit` yerine veritabanına özgü bir ölçü / sayılan tabloların `xmin` kümesinin değişmediği), test `RestoreCommandsTests` başka koleksiyonlarla birlikte koşarken de yeşil.
+- **K1 → D-716:** `refund_iban_requests` ve `refund_ibans` sayılmayan tablo olarak sınıflandı; `06` §4.29 `RefundIbanRequest`'i kalem kayıtlarıyla birlikte sayar ve IBAN silmesinin boşalttığı bir bağ o tablodadır (`05 §8.5.11`). Bugün etkisiz: IBAN silme günü sipariş sürümünü yükseltir (`orders` sayılır), IBAN yazan akış henüz yok. Belgede karara bağlanmalı.
+- **Güvenlik:** sır yok; komut satırı yalnız ad ve boş kimlik; kişisel veri okunmaz; SQL enjeksiyonu yok (sabit tablo adları, parametreli an); yetki etkisi: komutlar yalnız sunucudan; yeni bağımlılık yok.
+- **Yapım raporu karşılaştırması:** 1 uyuşmazlık — kriter 1 ve öz denetim "Integration TAM koşuldu (2935) yeşil" der; yapım koşusu `--max-threads 3` ile sınırlıydı, paralel koleksiyonlarla aynı test kararsız (B1). Öz denetim tablosu var ve kanıtlı; öteki satırlar validator bulgularıyla uyumlu.
 
 ## Altyapı Değişiklikleri
 

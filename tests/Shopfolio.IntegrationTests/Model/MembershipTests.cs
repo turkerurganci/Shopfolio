@@ -129,6 +129,11 @@ public sealed partial class MembershipTests : IAsyncLifetime
         services.AddMembershipModule();
         services.AddScoped<AdminPasswords>();
         services.AddScoped<IAdministrationModule, AdministrationModule>();
+        services.AddScoped<AdminAccounts>();
+        services.AddScoped<AdminEmailChanges>();
+        services.AddScoped<AuditTrail>();
+        services.AddSingleton<SwitchableAuditActor>();
+        services.AddSingleton<IAuditActorSource>(p => p.GetRequiredService<SwitchableAuditActor>());
         _provider = services.BuildServiceProvider();
     }
 

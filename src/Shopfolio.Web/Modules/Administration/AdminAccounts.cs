@@ -373,7 +373,7 @@ internal sealed class AdminAccounts
     }
 
     // A link's life ends now (the invitation's moment is written after, in the same transaction): only links that are unused and still alive are taken.
-    private async Task EndLinksAsync(IReadOnlyCollection<Guid> invitationIds, DateTimeOffset now, CancellationToken ct)
+    private async Task EndLinksAsync(List<Guid> invitationIds, DateTimeOffset now, CancellationToken ct)
     {
         if (invitationIds.Count == 0)
         {

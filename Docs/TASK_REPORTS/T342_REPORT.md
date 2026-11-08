@@ -25,7 +25,7 @@
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
 | 1 | Sıfırlama bağlantısı Z-2 ömürlü, tek kullanımlık; kullanılmış/dolmuş geçersiz | ✓ | `TheReset_TakesTheLinkOnce_EndsEverySession_…_KK1_KK2`, `TheReset_RefusesAWeakNewPassword…AndAnExpiredOrAlienLinkIsInvalid`, `AskingAgain_MakesTheEarlierResetLinkInvalid` |
-| 2 | Sıfırlamada bütün oturumlar kapanır; değiştirmede öteki kapanır, değiştiren kalır; işaretler düşer | ✓ | `TheReset_…EndsTheOtherMarks…`, `TheChange_AsksForTheReauthenticationValue_…_KK2_KK5`; eşzamanlı giriş (tur 1 Bulgu 1): `AccountLocks` + `ASignInCheckedBeforeTheReset_…_KK2`, `ASignInThatWaitsForTheReset_…_KK2` (müşteri ve yönetici) |
+| 2 | Sıfırlamada bütün oturumlar kapanır; değiştirmede öteki kapanır, değiştiren kalır; işaretler düşer | ✓ | tur 2: değiştirme ↔ sıfırlama ve değiştirme ↔ giriş eşzamanlı, kilitlenmesiz (`MembershipPasswordLockOrderTests`); `TheReset_…EndsTheOtherMarks…`, `TheChange_AsksForTheReauthenticationValue_…_KK2_KK5`; eşzamanlı giriş (tur 1 Bulgu 1): `AccountLocks` + `ASignInCheckedBeforeTheReset_…_KK2`, `ASignInThatWaitsForTheReset_…_KK2` (müşteri ve yönetici) |
 | 3 | Sıfırlama ekranı nötr, kayıt ekranı dürüst | ✓ | `TheResetRequest_IsNeutral_ForAKnownAndAnUnknownAddress_…_KK3`; kayıt: `ErrorCode.EmailAlreadyRegistered` (`MembershipModule.RegisterAsync`) |
 | 4 | "Beni hatırla" Z-5, işaretsiz Z-4 | ✓ | `SignIn_OpensTheLongSessionWithRememberMe_AndTheShortOneWithout_KK4` |
 | 5 | Şifre değiştirme/e-posta değiştirme/hesap silme yeniden doğrulama ister; başka işlem istemez | ✓ (şifre) / ~ | şifre: `TheChange_AsksForTheReauthenticationValue_…`, `TheReauthenticationValue_IsForOneOperationAndOneOwnSession`; ad değişimi istemez: T341 `TheName_ChangesWithoutANewVerification_…`; e-posta değişimi ve hesap silme tüketimi kendi task'ında (T517 k2) → D-429 |
@@ -40,7 +40,8 @@
 |---|---|---|
 | KK1: sıfırlama bağlantısı ikinci kullanımda reddedilir | ✓ | `TheReset_TakesTheLinkOnce_…_KK1_KK2` |
 | KK2: sıfırlamada tüm, değiştirmede öteki oturumlar kapanır; işaretler düşer | ✓ | `TheReset_…`, `TheChange_…_KK2_KK5` (`InvalidateMarksAsync`, `PasswordRegime`); eşzamanlı giriş: `AccountLocks.LockByEmailAsync` (`CheckPasswordAsync`) + `SessionStore.OpenAsync` aynı işlemde kilit altında; `ASignIn…_KK2` ×4 |
-| `09 §25` — eşzamanlılık: kilit yerinde mi | ✓ | tek kilit evi `AccountLocks` (`LockKind.Account`, `FOR UPDATE`, `LockSequence` bildirimi, işlem başına bir kez); giriş, `SetPasswordAsync` (sıfırlama, değiştirme, özet yenileme) ve oturum açma aynı satır kilidini alır; iki bağlantılı testler her iki sırayı sınar, kilit kaldırılınca dördü de kırmızı (denendi); kaynak taraması `ConcurrencySourceScan.AccountLocksFile` |
+| `09 §25` — eşzamanlılık: kilit yerinde mi | ✓ | tek kilit evi `AccountLocks` (`LockKind.Account`, `FOR UPDATE`, `LockSequence` bildirimi, işlem başına bir kez); tur 2 Bulgu 1: kilit sırası tek — hesap satırı EN BAŞTA: `PasswordRegime.ResetPasswordAsync`/`ChangePasswordAsync`/`ReauthenticateAsync` `accounts.LockAsync` ile (`IPasswordAccounts.LockAsync`, müşteri ve yönetici), `SessionStore.EndAllAsync`/`GrantReauthenticationAsync`/`TryRedeemReauthenticationAsync` oturum satırından önce `AccountLocks.LockAsync`; `MembershipPasswordLockOrderTests` 4 test: `TheChange_TakesTheAccountLockBeforeTheSessionRow_…_KK2` (hesap satırı dışarıdan tutulurken oturum satırı `NOWAIT` ile alınabilir), `TheChangeAndTheReset_…_WithNoDeadlock_KK2`, `ASignInThatWaitsForTheChange_…_KK2`, `AChangeThatWaitsForASignIn_…_KK2`; kaynak taraması `ConcurrencySourceScan.AccountLocksFile` |
+| `09 §25` — kod hiçbir doküman cümlesiyle çelişmiyor | ✓ | tur 2 Bulgu 2: giriş `FOR UPDATE` kalır (özet yenilemesi paylaşımlı kilidi yükseltir, iki eşzamanlı giriş kilitlenir); `09 §15.1` m.3 ve `05 §6.1.2` koda uydu (`grep -n "FOR UPDATE" Docs/05_TECHNICAL_ARCHITECTURE.md`), karar D-428'de |
 | KK3: iki ekranın mesajı ayrı | ✓ | `TheResetRequest_IsNeutral_…_KK3`; kayıt `EmailAlreadyRegistered` |
 | KK4: Z-5 / Z-4 | ✓ | `SignIn_OpensTheLongSessionWithRememberMe_…_KK4` |
 | KK5: şifre değişimi yeniden doğrulama ister, ad değişimi istemez | ✓ | `TheChange_…_KK2_KK5`; `TheName_ChangesWithoutANewVerification_…` (T341) |
@@ -63,7 +64,7 @@
 |---|---|---|---|
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests -c Release --no-build` | 4291 / 0 başarısız (Architecture 969, `PasswordPolicyTests` 20 dahil) |
 | Integration (Web) | ✓ | `--filter-namespace "Shopfolio.IntegrationTests.Web"` | 594 / 0 başarısız |
-| Integration (Membership) | ✓ | `--filter-class "Shopfolio.IntegrationTests.Model.MembershipTests"` | 54 / 0 başarısız (tur 1 düzeltmesi: +4 eşzamanlılık) |
+| Integration (Membership) | ✓ | `--filter-class "Shopfolio.IntegrationTests.Model.MembershipTests"` | 58 / 0 başarısız (tur 1: +4 eşzamanlılık; tur 2 düzeltmesi: +4 kilit sırası; tur 2 düzeltmesinde `Unit` 4349, `Concurrency` 26 yeşil) |
 | Integration (komşu) | ✓ | `SessionLinkAttemptLoginTablesTests`, `SessionAccessTests`, `OneTimeValueTests` | 114 / 0 başarısız |
 | Derleme / biçim | ✓ | `dotnet build Shopfolio.slnx -c Release --no-restore -warnaserror`; `dotnet format Shopfolio.slnx --no-restore --verify-no-changes` | 0 uyarı, 0 hata; biçim temiz |
 | Contract | — | — | bu task'ta sözleşme testi yok |

@@ -33,6 +33,8 @@ internal sealed class CustomerPasswords : IPasswordAccounts
         return await AccountLocks.LockByEmailAsync(_db, AccountType.Customer, normalizedEmail, ct) is { } id ? await FindAsync(id, ct) : null;
     }
 
+    public Task<bool> LockAsync(Guid id, CancellationToken ct) => AccountLocks.LockAsync(_db, AccountType.Customer, id, ct);
+
     public async Task<PasswordAccount?> FindAsync(Guid id, CancellationToken ct)
     {
         var row = await _db.Customers.AsNoTracking()

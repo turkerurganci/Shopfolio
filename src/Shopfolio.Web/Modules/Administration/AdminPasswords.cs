@@ -36,6 +36,8 @@ internal sealed class AdminPasswords : IPasswordAccounts
         return await AccountLocks.LockByEmailAsync(_db, AccountType.Admin, normalizedEmail, ct) is { } id ? await FindAsync(id, ct) : null;
     }
 
+    public Task<bool> LockAsync(Guid id, CancellationToken ct) => AccountLocks.LockAsync(_db, AccountType.Admin, id, ct);
+
     public async Task<PasswordAccount?> FindAsync(Guid id, CancellationToken ct)
     {
         var row = await _db.Admins.AsNoTracking()

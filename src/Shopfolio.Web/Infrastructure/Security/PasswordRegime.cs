@@ -168,6 +168,12 @@ internal sealed class PasswordRegime
             return ResetOutcome.Refused(refusal);
         }
 
+        // The account's row lock comes before the link row and the session rows, like every flow of the account (09 15.1 item 3).
+        if (!await accounts.LockAsync(accountId, ct))
+        {
+            return ResetOutcome.Invalid(AccountLinkStatus.Missing);
+        }
+
         if (!await _links.TryConsumeAsync(reading.Record.Id, ct))
         {
             LinkReading again = await _links.ReadAsync(key, ct);
@@ -200,6 +206,12 @@ internal sealed class PasswordRegime
         if (accounts.Type == AccountType.Admin && operation == ReauthenticationOperation.AccountDeletion)
         {
             return ReauthenticationResult.Refused(ErrorCode.ReauthenticationOperationInvalid);
+        }
+
+        // The account's row lock first (09 15.1 item 3): the check may renew the digest and the grant writes the session row.
+        if (!await accounts.LockAsync(accountId, ct))
+        {
+            return ReauthenticationResult.Refused(ErrorCode.ReauthenticationFailed);
         }
 
         PasswordAccount? account = await accounts.FindAsync(accountId, ct);
@@ -240,6 +252,12 @@ internal sealed class PasswordRegime
         if (PasswordPolicy.Validate(newPassword) is { } refusal)
         {
             return ChangeOutcome.Refused(refusal);
+        }
+
+        // The account's row lock first, before the session row the redemption updates (the reset takes the account row first too; 09 15.1 item 3).
+        if (!await accounts.LockAsync(accountId, ct))
+        {
+            return ChangeOutcome.Refused(ErrorCode.ReauthenticationRequired);
         }
 
         if (!await _sessions.TryRedeemReauthenticationAsync(accounts.Type, accountId, sessionId, ReauthenticationOperation.PasswordChange, reauthenticationValue, ct))

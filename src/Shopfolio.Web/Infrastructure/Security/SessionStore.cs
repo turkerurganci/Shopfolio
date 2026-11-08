@@ -66,6 +66,8 @@ internal sealed class SessionStore
     /// <summary>Ends every session of the account, except the one named (the session that made the change stays open); null ends them all.</summary>
     public async Task<int> EndAllAsync(AccountType type, Guid accountId, Guid? exceptSessionId, CancellationToken ct)
     {
+        // Session rows of an account are written under the account's row lock, asked first (a no-op when the flow took it already); 09 15.1 item 3.
+        await AccountLocks.LockAsync(_db, type, accountId, ct);
         Guid keep = exceptSessionId ?? Guid.Empty;
         return type == AccountType.Admin
             ? await _db.Sessions.Where(s => s.AdminId == accountId && s.Id != keep).ExecuteDeleteAsync(ct)
@@ -146,12 +148,14 @@ internal sealed class SessionStore
             return null;
         }
 
+        await AccountLocks.LockAsync(_db, type, accountId, ct);
         return await OwnsAsync(type, accountId, sessionId, ct) ? await _reauthentication.GrantAsync(sessionId, operation, ct) : null;
     }
 
     /// <summary>Takes the permission with one conditional update (the session must be the account's); false means the operation must not run.</summary>
     public async Task<bool> TryRedeemReauthenticationAsync(AccountType type, Guid accountId, Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct)
     {
+        await AccountLocks.LockAsync(_db, type, accountId, ct);
         return await OwnsAsync(type, accountId, sessionId, ct) && await _reauthentication.TryRedeemAsync(sessionId, operation, value, ct);
     }
 }

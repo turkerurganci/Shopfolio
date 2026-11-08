@@ -198,6 +198,12 @@ internal interface IPasswordAccounts
     /// </summary>
     Task<PasswordAccount?> LockAndFindByEmailAsync(string normalizedEmail, CancellationToken ct);
 
+    /// <summary>
+    /// Takes the account's row lock (<see cref="AccountLocks"/>); false when there is no such account. Every flow that writes the digest or the account's session rows (reset, change,
+    /// reauthentication) takes it FIRST, before any other row of the account, so all flows lock in the same order: account row, then session rows (09 15.1 item 3; 05 7.3.5).
+    /// </summary>
+    Task<bool> LockAsync(Guid id, CancellationToken ct);
+
     Task<PasswordAccount?> FindAsync(Guid id, CancellationToken ct);
 
     /// <summary>Takes the account's row lock, then writes the new digest with a conditional update in the caller's transaction.</summary>

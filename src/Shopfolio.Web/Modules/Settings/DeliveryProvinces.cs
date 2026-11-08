@@ -13,7 +13,7 @@ namespace Shopfolio.Modules.Settings;
 /// The company's delivery provinces (02 3.20.1; 06 4.2; 07 UC-169; T350): a row of <see cref="CompanyDeliveryProvince"/> says the province is selected, so the selection is a
 /// subset of the closed list of 81 and the restriction is at province level only. The read gives the section or the <see cref="DeliveryArea"/>; the save follows the section order of
 /// 09 10.3: the settings row lock, the check against the stored selection, the conditional update of this section's version (through <see cref="CompanySettingsWriter"/>, the one
-/// writer of the settings row), the province rows deleted and added in the same transaction, and the trail row with the old and the new selection. A save that selects what is selected
+/// writer of the settings row), the province rows removed and added as tracked changes in the same transaction (saved by the transaction's owner), and the trail row with the old and the new selection. A save that selects what is selected
 /// writes nothing - no version step, no row, no trail row.
 /// </summary>
 internal sealed class DeliveryProvinces
@@ -77,10 +77,11 @@ internal sealed class DeliveryProvinces
             return SettingsSaveResult.VersionConflict;
         }
 
+        // The rows leave and enter as tracked changes the transaction's owner saves (09 6 item 3): the settings row's bulk write is the writer's alone (09 10.3 item 4).
         Guid[] removed = [.. stored.Where(id => !wanted.Contains(id))];
         if (removed.Length > 0)
         {
-            await _db.CompanyDeliveryProvinces.Where(p => removed.Contains(p.ProvinceId)).ExecuteDeleteAsync(ct);
+            _db.CompanyDeliveryProvinces.RemoveRange(await _db.CompanyDeliveryProvinces.Where(p => removed.Contains(p.ProvinceId)).ToListAsync(ct));
         }
 
         DateTimeOffset now = _time.GetUtcNow();

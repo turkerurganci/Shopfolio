@@ -146,6 +146,12 @@ public interface ICatalogModule
     Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct);
 
     /// <summary>
+    /// The shipping period of each of the given variants (02 3.20.5): the variant's product, the product's type and the product's own period in business days - null when it sets none
+    /// and the firm default applies. A variant takes its product's period; one that does not exist is left out. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<VariantShippingPeriod>> GetShippingPeriodsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct);
+
+    /// <summary>
     /// Saves a product's dated percentage discount (02 3.9.1, 3.9.2, 3.9.5; 06 4.12): the rate applies to every variant on its own price; the range starts at 00.00 of
     /// the start day and holds the end day whole. The new definition replaces the product's discount. Refused, writing nothing, when the rate is not above zero and below
     /// one hundred with at most two decimals, when the end is before the start, or when a variant's rounded discounted price would be 0,00 TL or would not be below the

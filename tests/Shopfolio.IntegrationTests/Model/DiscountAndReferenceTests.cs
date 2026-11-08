@@ -488,6 +488,29 @@ public sealed class DiscountAndReferenceTests : IAsyncLifetime
         return await read(db);
     }
 
+    // ---- T350 criterion 6: a variant takes its product's shipping period ----
+
+    [Fact]
+    public async Task AVariant_TakesItsProductsShippingPeriodAndType_AndAProductWithNoneAnswersEmpty_T350KK6()
+    {
+        (Product withPeriod, Variant[] a) = await SeedAsync(ProductType.Physical, null, 100m, 120m);
+        (Product withoutPeriod, Variant[] b) = await SeedAsync(ProductType.Digital, null, 50m);
+        await ExecuteAsync($"UPDATE products SET shipping_period = 4 WHERE id = '{withPeriod.Id}'");
+        Guid unknown = Guid.NewGuid();
+
+        IReadOnlyList<VariantShippingPeriod> answer = await ReadAsync(db => new ShippingPeriodReader(db).GetAsync([a[0].Id, a[1].Id, b[0].Id, b[0].Id, unknown], Ct));
+        IReadOnlyList<VariantShippingPeriod> empty = await ReadAsync(db => new ShippingPeriodReader(db).GetAsync([], Ct));
+
+        Assert.Equal(
+            [
+                new VariantShippingPeriod(a[0].Id, withPeriod.Id, ProductType.Physical, 4),
+                new VariantShippingPeriod(a[1].Id, withPeriod.Id, ProductType.Physical, 4),
+                new VariantShippingPeriod(b[0].Id, withoutPeriod.Id, ProductType.Digital, null),
+            ],
+            answer.OrderBy(r => r.VariantId == a[0].Id ? 0 : r.VariantId == a[1].Id ? 1 : 2));
+        Assert.Empty(empty);
+    }
+
     private async Task<PriceLabel> LabelAsync(Guid variantId)
     {
         return Assert.IsType<PriceLabel>(await ReadAsync(db => new PriceLabelReader(db, _time).GetAsync(variantId, Ct)));

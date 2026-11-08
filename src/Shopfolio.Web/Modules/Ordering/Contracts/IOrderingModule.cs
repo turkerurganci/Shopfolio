@@ -76,6 +76,13 @@ public interface IOrderingModule
     /// empty when the order is not a card order that still waits for its payment - paid, cancelled, or a bank transfer. A plain read; it writes nothing.
     /// </summary>
     Task<CardPaymentQueryTarget?> GetCardPaymentQueryTargetAsync(Guid orderId, DateTimeOffset now, CancellationToken ct);
+
+    /// <summary>
+    /// What the customer's order page shows of the delivery (02 3.20.4-3.20.7; 04 5.16.8): the order's frozen shipping promise and its text, the moment the payment was confirmed, the moment
+    /// the promise runs out, the moment of the shipment and the carrier display (the company and tracking number, the "Takip et" link only for a listed company, or the own-vehicle
+    /// declaration alone). Null when there is no such order. A plain read; it writes nothing.
+    /// </summary>
+    Task<OrderShippingView?> GetShippingViewAsync(Guid orderId, CancellationToken ct);
 }
 
 /// <summary>A card order that waits for its payment: its number, which the provider's query names, and whether its payment window has ended.</summary>

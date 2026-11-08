@@ -15,6 +15,9 @@ internal enum ProductDefinitionProblem
 
     /// <summary>A service product carrying a place of origin: a service has no such field (02 3.8.5; 04 9.5.22; T336).</summary>
     OriginOnAService,
+
+    /// <summary>A shipping period above the upper fence of P-5 / P-6 (02 3.20.4; T350): a product's own period may not exceed the firm default's fence.</summary>
+    ShippingPeriodOutsideTheFence,
 }
 
 /// <summary>
@@ -32,7 +35,8 @@ internal static class ProductDefinitionRules
         PublishStatus status,
         WithdrawalExemptionReason? exemptionReason,
         int? fulfilmentPeriod,
-        Guid? originCountryId)
+        Guid? originCountryId,
+        int? shippingPeriod = null)
     {
         List<ProductDefinitionProblem> problems = [];
         if (exemptionReason is not null && type != ProductType.Physical)
@@ -55,7 +59,21 @@ internal static class ProductDefinitionRules
             problems.Add(ProductDefinitionProblem.OriginOnAService);
         }
 
+        if (!CheckShippingPeriod(shippingPeriod))
+        {
+            problems.Add(ProductDefinitionProblem.ShippingPeriodOutsideTheFence);
+        }
+
         return problems;
+    }
+
+    /// <summary>
+    /// Whether a product's own shipping period is within the fence of P-6 (02 3.20.4, 3.20.5; 11 T350 criterion 5): no period at all (the product takes the firm default) is within; a number
+    /// is checked against the fence the firm default has, 0..10 business days. The same question the panel's form asks (<see cref="FirmSettingFences"/>).
+    /// </summary>
+    public static bool CheckShippingPeriod(int? shippingPeriod)
+    {
+        return shippingPeriod is not { } days || FirmSettingFences.Check("P-6", days).Side == FenceSide.Within;
     }
 
     /// <summary>Whether the fulfilment period is entered and within its lower fence: whole days, no default, never below the fence (P-44).</summary>

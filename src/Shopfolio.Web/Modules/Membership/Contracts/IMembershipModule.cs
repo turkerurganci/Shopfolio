@@ -95,7 +95,8 @@ public interface IMembershipModule
     /// The address part of an order (02 3.14.1-3.14.6; 07 UC-27): in the caller's transaction, which saves. The addresses the basket asks for are checked, every refused field together, and the
     /// values to freeze are returned; a member's typed shipping address is written to the book only when the member chose to keep it (K-680), a guest has none. The shipping address always
     /// carries a telephone - a book entry without one takes the one typed on the step - and the billing address carries none. The caller writes the returned values into the order's own
-    /// columns: the order keeps no link to a book entry, so an entry's later change or deletion never reaches it (02 3.14.5). The delivery province restriction is T350's.
+    /// columns: the order keeps no link to a book entry, so an entry's later change or deletion never reaches it (02 3.14.5). A basket that asks for a shipping address (a physical item) is checked against the company's delivery provinces (02 3.20.1): a shipping province it does not deliver to is refused with
+    /// <see cref="ErrorCode.DeliveryProvinceNotServed"/> and the province's name; a digital or service basket never reaches that check, and the billing province is never restricted.
     /// </summary>
     Task<OrderAddressResolution> ResolveOrderAddressesAsync(OrderAddressRequest request, CancellationToken ct);
 }

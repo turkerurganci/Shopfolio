@@ -75,10 +75,24 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-08) |
-| Bulgu sayısı | 1 (B1 ORTA S1) |
-| Düzeltme gerekli mi | Evet — `MembershipTests.AdminAccounts.cs`'te yedi `var` açık türle değişir; dal CI yeşil |
-| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-617) |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-08) — tur 1 ✗ FAIL |
+| Bulgu sayısı | 0 (tur 2); tur 1'in B1'i kapandı |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (tur 1 K1 → D-617, tur 2 K1 → D-639) |
+
+### Doğrulama Sonucu — tur 2 (validator)
+
+**Head:** `5f0e456f` (kayıt commit'inden önce `origin/main` `4c049223` çakışmasız birleştirildi) · **PR:** #473 · **Verdict:** ✓ PASS
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = depo `scripts/git-hooks` (ana checkout'un mutlak yolu); ana dal CI son 3: 42500144509, 42500141831, 42493884474 hepsi `success`.
+- **Dal CI:** 42504976109 (`5f0e456f`) ✓ — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E (advisory), CI Gate hepsi `pass`.
+- **Kabul kriterleri (kapsam tam; kod + test okundu, testler koşuldu):** 1 ✓ (kendi kaydı yok — `AdminAccountRulesScanTests`; `CreateAdminAsync` yalnız komutlarda; davet tek yol) · 2 ✓ (P-14 72 saat; ad boş / zayıf şifre bağlantıyı tüketmez; ikinci kabul `Used`; hesap şifreyle girer, oturum açılmaz) · 3 ✓ (`AdminSet` kilidi altında aktör yeniden okunur; kendini ve son yöneticiyi `Refused`/`LastAdminRemoval`; onaysız çağrı yazmaz — iki yöneticili mağazada kendi dışı hedefte sayı ≥ 2 olduğundan iki engel tek kodla doğru söylenir) · 4 ✓ (oturumlar FK ile anında düşer; gönderdiği geçerli davetler bağlantısıyla geçersizleşir; onay ad, adres ve sayıyı verir; iz satırları `admin_name`/`admin_email` ile kalır; kaldırma satırı `InvalidatedInvitations` taşır; F-6 kaldırılan dahil herkese) · 5 ✓ (rol/yetki alanı yok; rol adı taraması) · 6 ✓ (yeniden doğrulamanın tek kullanımlık değeri, L-9 yerine geçen istekte, geri alma açıkken kapalı; iz satırı eski/yeni adres; `companies.email` aynı; ad yeniden doğrulamasız ve izsiz — `02 §10.3.1` (4) adı saymaz) · 7 ✓ (`Admin`'e sepet/sipariş FK'si yok; tür içinde harf ayrımsız tekil; müşteri adresine davet ayrı yönetici hesabı açar; panel girişi müşteri adresini almaz) · 8 ✓ (geri çekme bağlantıyı o an bitirir, bildirim yok; aynı adrese yeni davet öncekini — süresi dolmuş olanı da — geçersiz kılar; K-1085 okumada ve kabulde; yarış testi tek hesap; yalnız gönderim F-6) · 9 ✓ (kurtarma sayfası/rotası yok, tarama).
+- **KK1–KK9:** ✓ (kriterlerle aynı kanıt). **`09 §25`:** işlem kodları ve `DisposalRecordType.Admin` önceden kayıtlı; `Details`'te müşteri verisi yok (yalnız yönetici adı/adresi, `09 §9.2` madde 4); `AdminSet` ve hesap kilidi `LockSequence`'e bildirilir; şema/göç yok; modül sınırı `IAdminPendingEmailChanges` (Membership `Contracts`) ile; yeni paket yok; anahtarlar `LinkKeys`'ten.
+- **Task satırları (KP-62):** VAL-A301–A309, C068–C074, D035 uç yanıtı / tarayıcı kanıtı ister; uçlar ve sayfalar T520/T522/T523'te. `Durum` hücreleri `BEKLEMEDE` kaldı; `12_matris_denetle.py --kapsam 1-77` Hata 0.
+- **Testler (yerel, taze `postgres:18`):** restore + `--locked-mode` 0; build `-warnaserror` 0 uyarı; format Web/UnitTests/IntegrationTests temiz; Unit 4928/4928 (main birleşmesinden sonra build temiz, Unit 4951/4951); betik testleri 4/4; Integration `MembershipTests` 114/114, `AuditTrailTests` + `AppCacheTests` + `CompanyIdentityTests` 60/60, `Web` ad alanı 592/594 — iki `EmailCaptureRegistrationTests` düşmesi ("HeartbeatRecord row is missing") sınıf tek başına 3/3, CI yeşil, T379'la bağı yok → K1/D-639.
+- **Güvenlik:** sır yok; yetki: gönderen, geri çeken ve kaldıran aktör istekten ve veritabanından okunur, satırı yoksa yazılmaz; girdi: e-posta tek kural (`InvalidEmailAttribute`), şifre `PasswordPolicy`, ad boş reddi; yeni bağımlılık yok.
+- **K1 → D-639** (yeni); D-617 açık, hedefi F3 gate.
+- **Yapım raporu karşılaştırması:** 2 küçük uyuşmazlık — (1) Test Sonuçları "Integration (Web) 594/594": yerelde 592/594 (D-639; CI yeşil); (2) "Commit & PR" bölümü PR #473 açık olduğu hâlde "PR açıldığında doldurulur" diyor. Öz denetim tablosu var ve kanıtlı; öteki satırlar validator bulgularıyla uyumlu.
 
 ### Doğrulama Sonucu — tur 1 (validator)
 

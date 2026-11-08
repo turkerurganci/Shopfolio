@@ -981,6 +981,7 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
         services.AddCatalogModule();
         services.AddAfterSalesModule();
         services.AddNoticeDependencies();
+        services.AddPaymentModule();
         services.AddOrderingModule();
         services.AddPaymentModule();
         return services.BuildServiceProvider();

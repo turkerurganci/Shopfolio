@@ -37,6 +37,18 @@ public sealed partial class DisposalTimingsConsistencyTests
         Assert.Equal(DisposalTimings.GuestCartIdleDays, int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture));
     }
 
+    [Fact]
+    public void InboundNotificationRow_EqualsTheRetentionYears()
+    {
+        Match match = InboundNotificationRow().Match(TableRow("| Gelen bildirim kaydının saklama süresi"));
+
+        Assert.True(match.Success, "The inbound notification row of the 09 3.5 table has changed shape; update this check with it.");
+        Assert.Equal(DisposalTimings.InboundNotificationRetentionYears, int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture));
+    }
+
+    [GeneratedRegex(@"saklama süresi: ([0-9]+) yıl", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex InboundNotificationRow();
+
     [GeneratedRegex(@"en çok ([0-9]+) satır", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex PartRow();
 

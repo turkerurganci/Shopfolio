@@ -641,7 +641,7 @@ public sealed class BranchContentLinkAndContactRequestTablesTests : IAsyncLifeti
         ContactRequest.Create("Ayşe", "ayse@example.com", ContactTopic.GeneralQuestion, "Merhaba", Now);
 
     private static Product NewProduct(string slug) =>
-        Product.Create("Ürün " + slug, slug, ProductType.Physical, 20m, Now);
+        Product.Create("Ürün " + slug, slug, ProductType.Physical, 20m, Now).WithSeededOrigin();
 
     private AppDbContext NewContext()
     {

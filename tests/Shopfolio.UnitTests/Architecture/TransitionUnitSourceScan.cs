@@ -8,8 +8,10 @@ namespace Shopfolio.UnitTests.Architecture;
 /// (<c>OrderStatus</c>, <c>PaymentStatus</c>) and of the defect claim (<c>DefectClaimStatus</c>) are written by the unit only:
 /// <list type="number">
 /// <item>any mention of <c>ApplyTransition</c> or <c>ApplyCorrection</c> outside <c>OrderTransitions.cs</c> (a call, a method group, <c>nameof</c>,
-/// a reflection string) is a finding, except the declaration itself (<c>void ApplyTransition(</c>); <c>ApplyStatus</c> has no caller yet - the defect
-/// claim's unit arrives with T320 and that task names its file here;</item>
+/// a reflection string) is a finding, except the declaration itself (<c>void ApplyTransition(</c>); any mention of the defect claim's <c>ApplyStatus</c>
+/// outside its one caller <c>DefectClaimStatusWriter.cs</c> is a finding (T320; D-274), and so is any mention of the module method that reaches that writer
+/// (<c>ChangeDefectClaimStatusAsync</c>) outside the transition unit's item record file and the AfterSales surface that declares and implements it - the
+/// claim's status is changed only from the transition unit (09 9.1 item 4), through the module that owns the claim (09 6 item 2);</item>
 /// <item>a property named like a status field with a setter that is not <c>private</c> (<c>set</c>, <c>init</c>, <c>internal set</c>, <c>protected set</c>,
 /// <c>private protected set</c>), or a field of that name that is not private;</item>
 /// <item>a bulk update that names a status field: the argument text of <c>ExecuteUpdate</c>, the property argument of <c>SetProperty</c>, the argument
@@ -37,6 +39,20 @@ internal static partial class TransitionUnitSourceScan
 
     public const string UnitFile = "src/Shopfolio.Web/Modules/Ordering/OrderTransitions.cs";
 
+    /// <summary>The one place that calls the defect claim's status writer (T320; D-274): the claim's writer in the AfterSales module, by its full path.</summary>
+    public const string DefectClaimWriterFile = "src/Shopfolio.Web/Modules/AfterSales/DefectClaimStatusWriter.cs";
+
+    /// <summary>
+    /// The files that may name the module method reaching the claim's writer, by full path: the transition unit's item record operations (the only caller), the
+    /// AfterSales surface that declares it and the module that implements it.
+    /// </summary>
+    public static readonly IReadOnlyList<string> DefectClaimChangeFiles =
+    [
+        "src/Shopfolio.Web/Modules/Ordering/OrderTransitions.ItemRecords.cs",
+        "src/Shopfolio.Web/Modules/AfterSales/Contracts/IAfterSalesModule.cs",
+        "src/Shopfolio.Web/Modules/AfterSales/AfterSalesModule.ItemRecords.cs",
+    ];
+
     public static readonly IReadOnlyList<string> StatusProperties = ["OrderStatus", "PaymentStatus", "DefectClaimStatus"];
 
     public static readonly IReadOnlyList<string> StatusColumns = ["order_status", "payment_status", "defect_claim_status"];
@@ -59,7 +75,15 @@ internal static partial class TransitionUnitSourceScan
             Add(findings, OutsideCall, WriterMention(), clean);
         }
 
-        Add(findings, OutsideCall, StatusApplierMention(), clean);
+        if (path != DefectClaimWriterFile)
+        {
+            Add(findings, OutsideCall, StatusApplierMention(), clean);
+        }
+
+        if (!DefectClaimChangeFiles.Contains(path))
+        {
+            Add(findings, OutsideCall, DefectClaimChangeMention(), clean);
+        }
         Add(findings, OpenSetter, OpenStatusSetter(), clean);
         Add(findings, OpenSetter, OpenStatusField(), clean);
         Add(findings, PropertyByName, PropertyByNameCall(), clean);
@@ -219,9 +243,13 @@ internal static partial class TransitionUnitSourceScan
     [GeneratedRegex(@"(?<!\bvoid\s+)\b(?:ApplyTransition|ApplyCorrection)\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex WriterMention();
 
-    // The defect claim's writer has no caller: any mention but the declaration is a finding, in every file.
+    // The defect claim's status writer: any mention but the declaration is a finding outside DefectClaimStatusWriter.cs.
     [GeneratedRegex(@"(?<!\bvoid\s+)\bApplyStatus\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex StatusApplierMention();
+
+    // The module method that reaches the claim's status writer: any mention (a call, a method group, nameof, a string) outside its three files.
+    [GeneratedRegex(@"\bChangeDefectClaimStatusAsync\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex DefectClaimChangeMention();
 
     // A property named like a status field, with an accessor `set`/`init` whose modifiers are not exactly `private`.
     [GeneratedRegex(@"\b(?:OrderStatus|PaymentStatus|DefectClaimStatus)\s*\{[^{}]*?(?<!\bprivate\s)\b(?:set|init)\b\s*(?:;|\{|=>)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]

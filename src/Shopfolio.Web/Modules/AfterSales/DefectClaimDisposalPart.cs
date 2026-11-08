@@ -21,18 +21,14 @@ internal static class DefectClaimRetention
 
     /// <summary>
     /// The moment of a claim's last status change (K-1054; K-1092): the moment of the last entry of its status history, or its opening moment when the history
-    /// has no entry. The entry's moment field is named <c>At</c>; the task that writes the history (T320) keeps that name.
+    /// has no entry. The entry's moment field is <see cref="DefectClaimHistoryEntry.At"/>, the typed history the writer appends (T320; D-374).
     /// </summary>
-    public static DateTimeOffset LastChange(DateTimeOffset createdAt, string statusHistory)
+    public static DateTimeOffset LastChange(DateTimeOffset createdAt, IReadOnlyList<DefectClaimHistoryEntry> statusHistory)
     {
         ArgumentNullException.ThrowIfNull(statusHistory);
-        List<DefectClaimHistoryEntry>? entries = PayloadJson.Read<List<DefectClaimHistoryEntry>>(statusHistory);
-        return entries is { Count: > 0 } ? entries[^1].At : createdAt;
+        return statusHistory.Count > 0 ? statusHistory[^1].At : createdAt;
     }
 }
-
-/// <summary>The one field of a status history entry that the disposal reads (06 4.30): the moment of the change.</summary>
-internal sealed record DefectClaimHistoryEntry(DateTimeOffset At);
 
 /// <summary>
 /// The defect claim's part of the nightly disposal (06 9.3.1, 4.30; Z-29; K-951, K-1054). A claim is deleted when its last status change is ten years old and its
@@ -111,5 +107,5 @@ internal sealed class DefectClaimDisposalPart : IDisposalPart
         return claims.Count;
     }
 
-    private sealed record Candidate(Guid Id, Guid OrderItemId, DateTimeOffset CreatedAt, string StatusHistory);
+    private sealed record Candidate(Guid Id, Guid OrderItemId, DateTimeOffset CreatedAt, List<DefectClaimHistoryEntry> StatusHistory);
 }

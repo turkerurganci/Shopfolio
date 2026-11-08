@@ -22,11 +22,18 @@ internal static class TransitionTestServices
 {
     public static IServiceCollection AddNoticeDependencies(this IServiceCollection services)
     {
+        services.AddSettingsDependencies();
+        services.AddSingleton(new LinkKeys(Options.Create(new LinkKeyOptions { DerivationSecret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(LinkKeyOptions.DerivationSecretMinBytes)) })));
+        services.AddNotificationsModule();
+        return services;
+    }
+
+    /// <summary>The Settings module with its trail: the AfterSales writers read the firm's return address from it (T320; 06 4.25, 4.30).</summary>
+    public static IServiceCollection AddSettingsDependencies(this IServiceCollection services)
+    {
         services.AddScoped<IAuditActorSource, NoAuditActor>();
         services.AddScoped<Shopfolio.Modules.Administration.Contracts.IAuditTrail, AuditTrail>();
         services.AddSettingsModule();
-        services.AddSingleton(new LinkKeys(Options.Create(new LinkKeyOptions { DerivationSecret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(LinkKeyOptions.DerivationSecretMinBytes)) })));
-        services.AddNotificationsModule();
         return services;
     }
 }

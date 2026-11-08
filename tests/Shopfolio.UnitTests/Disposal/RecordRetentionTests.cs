@@ -60,8 +60,10 @@ public sealed class RecordRetentionTests
         DateTimeOffset opened = new(2015, 1, 1, 0, 0, 0, TimeSpan.Zero);
         string history = """[{"At":"2016-05-05T10:00:00+00:00"},{"At":"2018-06-06T11:00:00+00:00","Other":1}]""";
 
-        Assert.Equal(new DateTimeOffset(2018, 6, 6, 11, 0, 0, TimeSpan.Zero), DefectClaimRetention.LastChange(opened, history));
-        Assert.Equal(opened, DefectClaimRetention.LastChange(opened, "[]"));
+        List<DefectClaimHistoryEntry> entries = PayloadJson.Read<List<DefectClaimHistoryEntry>>(history)!;
+
+        Assert.Equal(new DateTimeOffset(2018, 6, 6, 11, 0, 0, TimeSpan.Zero), DefectClaimRetention.LastChange(opened, entries));
+        Assert.Equal(opened, DefectClaimRetention.LastChange(opened, []));
     }
 
     [Fact]

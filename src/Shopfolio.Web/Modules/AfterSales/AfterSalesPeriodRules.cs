@@ -161,16 +161,18 @@ internal static class AfterSalesPeriodRules
     }
 
     /// <summary>
-    /// Z-18 - whether the order page's defect claim channel of an item is open at <paramref name="now"/> (03 4.1.21; 02 4.2 Z-18, 7.5.2): open from
-    /// the moment the order reached "Kargoya verildi" for a physical item, from the "tamamlandı" mark for a service item and from the payment's approval
-    /// for a digital item - the last two are the item's delivery mark, written with its date. The two years run from the item's delivery date (the
-    /// delivery date, the completion's day, the approval's day); a physical item with no delivery date has no running period and its channel does not
-    /// close (VAL-C024; the risk is the firm's). When the channel is closed no new claim is opened and a resolved claim is not reopened.
+    /// Z-18 - whether the order page's defect claim channel of an item is open at <paramref name="now"/> (03 1.11.9, 2.9.1, 4.1.21; 02 4.2 Z-18,
+    /// 7.5.2): open from the moment the order reached "Kargoya verildi" for a physical item - "Kargoya verildi", "Teslim edilemedi" and "Teslim
+    /// edildi", the statuses after it, as 03 1.11.5 reads the same words (T320 B1, D-532) - from the "tamamlandı" mark for a service item and from
+    /// the payment's approval for a digital item - the last two are the item's delivery mark, written with its date. The two years run from the item's
+    /// delivery date (the delivery date, the completion's day, the approval's day); a physical item with no delivery date has no running period and
+    /// its channel does not close (VAL-C024; the risk is the firm's). When the channel is closed no new claim is opened and a resolved claim is not
+    /// reopened - by the customer or by an administrator (03 1.9.1). The order page, the panel and the claim's writers read this one rule.
     /// </summary>
     public static bool IsDefectClaimChannelOpen(ProductType productType, OrderStatus orderStatus, DateOnly? itemDeliveryDate, DateTimeOffset now)
     {
         bool opened = itemDeliveryDate is not null
-            || (productType == ProductType.Physical && orderStatus is OrderStatus.Shipped or OrderStatus.Delivered);
+            || (productType == ProductType.Physical && orderStatus is OrderStatus.Shipped or OrderStatus.DeliveryFailed or OrderStatus.Delivered);
         return opened && (itemDeliveryDate is not { } delivered || now < DefectClaimChannelEnd(delivered));
     }
 }

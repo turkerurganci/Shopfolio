@@ -9,6 +9,7 @@ using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Ordering;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog;
@@ -69,6 +70,7 @@ internal sealed class DisposalHarness : IAsyncDisposable
         services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddPaymentModule();
         services.AddAfterSalesModule();
+        services.AddSettingsDependencies();
         services.AddDisposalPart<OrderDisposalPart>();
 
         // The other time-bound records' parts (T302): the dispatch record, the contact request and the digital files, with the file store they sweep.

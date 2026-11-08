@@ -99,7 +99,7 @@ public sealed class ThirdPartyContentScanTests
     [Theory]
     [InlineData("src/Shopfolio.Web/Infrastructure/Security/PasswordService.cs", "private readonly PasswordHasher<object> _hasher;")]
     [InlineData("src/Shopfolio.Web/Modules/Catalog/Lists.cs", "List<object> rows = new List<embed>();")]
-    [InlineData("src/Shopfolio.Web/wwwroot/js/site.js", "if (a <object) { b(); }")]
+    [InlineData("src/Shopfolio.Web/wwwroot/js/site.js", "if (a <object) b();")]
     public void Scan_OnACodeOrScriptFile_DoesNotTakeAGenericTypeArgumentForAnEmbeddingElement_D114(string path, string text)
     {
         Assert.Empty(ThirdPartyContentScan.Scan(path, text));

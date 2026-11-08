@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Globalization;
 using System.Reflection;
 
@@ -17,7 +18,7 @@ internal static class PasswordPolicy
     /// <summary>The logical name of the embedded list.</summary>
     public const string ListResourceName = "Shopfolio.Infrastructure.Security.CommonPasswords.txt";
 
-    private static readonly Lazy<HashSet<string>> _common = new(LoadList);
+    private static readonly FrozenSet<string> _common = LoadList();
 
     /// <summary>
     /// The policy's verdict: null when the password passes, <see cref="ErrorCode.FieldRequired"/> when it is empty, <see cref="ErrorCode.PasswordTooWeak"/> when it is shorter
@@ -44,13 +45,13 @@ internal static class PasswordPolicy
     public static bool IsCommon(string password)
     {
         ArgumentNullException.ThrowIfNull(password);
-        return _common.Value.Contains(password);
+        return _common.Contains(password);
     }
 
     /// <summary>The number of entries of the shipped list (a test reads it; nothing else does).</summary>
-    public static int CommonCount => _common.Value.Count;
+    public static int CommonCount => _common.Count;
 
-    private static HashSet<string> LoadList()
+    private static FrozenSet<string> LoadList()
     {
         using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(ListResourceName)
             ?? throw new InvalidOperationException($"The embedded list {ListResourceName} is missing (09 15.1 item 5).");
@@ -66,6 +67,6 @@ internal static class PasswordPolicy
             }
         }
 
-        return set;
+        return set.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
     }
 }

@@ -9,6 +9,8 @@
 
 ---
 
+## 2026-11-08 — T344 (Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma) yapım tamam, PR açıldı (dal `task/T344-adres`; kriter 1–9, KK1–KK9 öz denetimle ✓; Unit 4277, Integration `AddressTests` 13/13 ve `MembershipTests` 34/34; backlog D-435–D-437; doğrulama bekliyor)
+
 ## 2026-11-08 — T317 (Ödeme durumu geçişleri: ödeme ekseni) doğrulama tur 3 ✓ PASS (head `24be2b5` + `origin/main` (`9bb46eb`, T339, #445) birleştirmesi, PR #441; kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓; tur 2 B1 giderildi — ödenmemiş iptalin tek yolu `CancelOrderAsync`, Ö1'in tek yolu ödeme ekseni (D-389); Unit Architecture 933 + Consistency 241 + öteki 2942, betik testleri, Integration yerelde PaymentTransitions 33, OrderTransitions 31, ShipmentTransitions 94, Disposal 45 ve 4 geçici yoklama; dal CI 42421489591 yeşil; bulgu 0; K1 bu PR'da kapatıldı (D-291 metni güncel yola ve test adına bağlandı); `12` `Durum` değişmedi (KP-18 satırları sayfa ve uç kanıtı ister); backlog aktif 154).
 
 ## 2026-11-08 — T341 (Üyelik: kayıt, e-posta doğrulama kapısı, misafir siparişinin hesaba bağlanması, hesap adı, giriş kaydı) doğrulama tur 3 PASS

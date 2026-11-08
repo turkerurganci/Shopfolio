@@ -93,8 +93,14 @@ internal sealed class AddressBooks
     public async Task<AddressBookDeleteResult> DeleteAsync(Guid customerId, Guid entryId, CancellationToken ct)
     {
         RequireTransaction("The address book entry is deleted only inside a transaction (09 6 item 3).");
-        int deleted = await _db.AddressBooks.Where(a => a.Id == entryId && a.CustomerId == customerId).ExecuteDeleteAsync(ct);
-        return deleted == 1 ? AddressBookDeleteResult.Deleted() : AddressBookDeleteResult.NotFound();
+        AddressBook? entry = await _db.AddressBooks.SingleOrDefaultAsync(a => a.Id == entryId && a.CustomerId == customerId, ct);
+        if (entry is null)
+        {
+            return AddressBookDeleteResult.NotFound();
+        }
+
+        _db.AddressBooks.Remove(entry);
+        return AddressBookDeleteResult.Deleted();
     }
 
     /// <summary>

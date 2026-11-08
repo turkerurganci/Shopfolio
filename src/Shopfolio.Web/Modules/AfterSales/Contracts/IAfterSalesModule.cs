@@ -94,6 +94,16 @@ public interface IAfterSalesModule
     /// read; it counts and writes nothing.
     /// </summary>
     Task<int> CountCardOrdersWithRefundExposureAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The items' records and periods at <paramref name="now"/> (T323; 03 1.11; 02 4.2 Z-13, Z-14, Z-18, Z-42): the one place the withdrawal window, the defect claim channel and the
+    /// "goods did not come back" period are worked out, read by the order module's operation decision so the screen and the POST share one answer. Every queried item is in the
+    /// result. A plain read; it writes nothing and takes no lock.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, ItemPeriodState>> ItemPeriodStatesAsync(IReadOnlyCollection<ItemPeriodQuery> items, DateTimeOffset now, CancellationToken ct);
+
+    /// <summary>The order's refund IBAN as the operation decision reads it (03 1.11.11, 1.11.12, 1.11.39): the IBAN on file, and an open request on one of the given items. A plain read.</summary>
+    Task<RefundIbanState> RefundIbanStateAsync(Guid orderId, IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 }
 
 /// <summary>One cancellation record as the order module needs it: the record, the item and the units it closed.</summary>

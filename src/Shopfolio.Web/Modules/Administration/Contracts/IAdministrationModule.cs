@@ -36,4 +36,11 @@ public interface IAdministrationModule
 
     /// <summary>The administrator's password change: the policy, the reauthentication value, the other sessions and marks end.</summary>
     Task<ChangeOutcome> ChangePasswordAsync(Guid adminId, Guid sessionId, string newPassword, string? reauthenticationValue, string? recognizedBrowserMark, CancellationToken ct);
+
+    /// <summary>
+    /// Opens an administrator account for the management command (T303; 06 8.3.1; 05 8.5.2): the name, the e-mail and the password pass the same rules as every other account (the
+    /// e-mail form rule and the password policy of 02 3.13.15), the account is born verified and with no role (06 8.3.2), and the id is the one the caller gave, so the command can
+    /// write its line to its own log before the work (05 8.5.7). It writes no operation trail line and makes no notification (02 10.2.7). Joins the caller's transaction.
+    /// </summary>
+    Task<AdminCreationResult> CreateAdminAsync(Guid adminId, string name, string email, string password, CancellationToken ct);
 }

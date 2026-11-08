@@ -1,6 +1,6 @@
 # T327 — Kendiliğinden işleyen anlar ve sitenin kesintisinde süreler
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -73,10 +73,29 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-09; head `9003ac2f`, `origin/main` `a504ff84` ile güncel — birleştirme gerekmedi) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 (D-696, D-697'ye forward) |
+
+**Validator kanıtları (bağımsız koşum):**
+
+| # | Kriter / KK | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | 12 an kayıtta / KK1 | ✓ | `AutomaticMoments.All` 03 §4.2'nin 12 satırını sırayla taşır; `Register_HasTheTwelveMomentsOf03_4_2_InTheirOrder_KK1` ve yansıma testi geçti. 4.2.5/4.2.6 eylemleri veri üyesi adlarıdır (K2) |
+| 2 | Kesintide süreler; bakım modu/penceresi yok / KK2 | ✓ | tek `IOutageEffect` `TransferWindowDeferral`; `src` taraması ve `CompanySettings`'te `Maintenance` yok; KK2 üç Unit testi geçti; `10 KD-60`, `02 §3.34.7` ile eşit |
+| 3 | Dönüşte kaçırılma sırası; Z-8 ve B-3 istisnası / KK3 | ✓ | Integration `Return_RecordsTheOutage_…_KK3_KK7`: sıra `CardPaymentExpiry` (−170 dk) → `refund-iban-deletion-day` (−120) → `TransferPaymentReminder` (−60); ertelenen siparişte iptal ve gönderim yok; `SchedulerScan` sıralaması (`DueAt`, kaynak, id) okundu |
+| 4 | Z-8 ertelemesi / KK4 | ✓ | `DeferredCancellation_…_KK4_KK5`: ayırma 1, gönderim 0, `OrderPageSummary.TransferPaymentEndsAt` = `DeferredWindowEnd`; Razor görünümü T353'te (D-668) |
+| 5 | Ertelenen anda iptal / KK5 | ✓ | aynı test: bir dakika önce değişiklik yok, ertelenen anda İptal edildi + Başarısız, B-7, ayırma 0 |
+| 6 | Z-38 / KK6 | ✓ | `RefundIbanDeletionDay` (kilit → yeniden okuma → kural → uygulama → sürüm) okundu; Integration KK6 iki testi: IBAN silinir, cayma ve kalem kalır, imha kaydı `RefundIban`/1, sürüm +1; bekleyen iptal geri ödemesi IBAN'ı tutar ve gün boşalır. Konu kümesinin eksikleri K1 (D-666, D-696; T370) |
+| 7 | `05 MK-44` yolu / KK7 | ✓ | yeni tespit yolu yok; testte `OutageRecovery.ApplyAsync` kesinti kaydını son nabızdan dönüşe yazar |
+| 8 | Yasal süreler / KK8 | ✓ | `AfterSalesPeriodRules`/`DeliveryPeriodRules` yasal alanları `const`; ayarlarda karşılığı yok; Unit KK8 testi geçti |
+
+**`12` satırları (adım 2a):** task'ın KP birimi `10 KP-75` (izlenebilirlikte KP-74 de). `VAL-D052`…`D055` (KP-75, KRİTİK) T327'nin hiçbir kriterine eşlenmez — BEKLEMEDE kaldı (K3). KP-74'ten `VAL-D049`: Z-38 silmesinin imha kaydı burada kanıtlı, IBAN'ın öteki silme yolları T370 k5'tedir — BEKLEMEDE kaldı (T324 doğrulamasıyla aynı gerekçe). `12 §12.6`'nın `VAL-C109`, `C110`, `A826`, `A827` satırları KP kimliği taşımaz; `Durum` değişmedi, sahipliği D-697. `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları:** K1 — Z-38 konu kümesi hizmet caymasını, kargodan önceki caymayı ve IBAN isteğiyle bağlanan geri ödemeyi saymaz; konu başına "herhangi bir geri ödeme kapandıysa kapalı" varsayımı → D-696 (T370). K2 — kayıtta 4.2.5/4.2.6 eylemleri veri üyesi adları → D-697 (T369, T373). K3 — KP-75 ve `12 §12.6` kesinti satırlarının sahibi → D-697 (F3 gate-check).
+
+Test: Unit 5065/5065, Integration 284/284 (`AutomaticMomentsTests`, `PaymentWindowTests`, `OrderAccessTests`, `SchedulerScanTests`, `SchedulerRegistrationTests`, `SchedulerHeartbeatTests` 64; `CustomerNoticeAfterOrderQueueTests`, `ItemRecordTablesTests`, `ItemRecordsTests`, `NotificationMapQueueTests`, `OrderDisposalTests`, `ReturnRejectionAndIbanRequestTablesTests`, `StatusCorrectionTests` 220; PostgreSQL 18), build `-warnaserror` 0 uyarı, `dotnet format --verify-no-changes` üç projede 0, betik testleri 4/4. Dal CI'ı run 42525030881 yeşil. Yapım raporuyla uyuşmazlık: rapor task'ın `12` satırlarını anmıyor; öz denetim tablosu her kriter ve KK için kanıtlı.
 
 ## Altyapı Değişiklikleri
 

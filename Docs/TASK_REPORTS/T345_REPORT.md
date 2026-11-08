@@ -1,6 +1,6 @@
 # T345 — Hesabın silinmesi ve kişisel veri başvurusu
 
-**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -59,10 +59,14 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | doğrulayıcı doldurur |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-08, head `7f842037`) |
+| Bulgu sayısı | 1 (B1 ORTA S1) |
+| Düzeltme gerekli mi | Evet — B1 bu dalda düzeltilir, yeni doğrulama turu |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-652) |
+
+**Validator kabul kriterleri tablosu:** K1 ✓ · K2 ✓ · K3 ✓ · K4 ✓ · K5 ✗ (B1: eşzamanlı onaylanan sipariş işaretin dışında kalır) · K6 ✓ · K7 ✓ · K8 ✓ · K9 ✓.
+
+- **B1 (ORTA, S1) — silmenin hesap satırı kilidi eşzamanlı onaylanan siparişi işarete katmıyor.** `AccountDeletions.HoldAndCheckAsync` hesabın satırını `ExecuteUpdateAsync(set => set.SetProperty(c => c.Name, c => c.Name))` ile tutar; anahtar sütunu değiştirmeyen `UPDATE` PostgreSQL'de `FOR NO KEY UPDATE` kilidi alır ve bu, `orders.customer_id` yabancı anahtarının ekleme denetimindeki `FOR KEY SHARE` kilidiyle çakışmaz. Silme sürerken aynı hesaba eklenen ve `MarkAccountDeletedAsync`'in aday sorgusunda henüz kesinleşmemiş sipariş işaretlenmez; hesabın silinmesi `ON DELETE SET NULL` ile `customer_id`'yi boşaltır, `is_account_deleted` `false` kalır ve sipariş `LinkGuestOrdersAsync`'in koşuluna (`CustomerId == null && !IsAccountDeleted`) girer — aynı adresle açılan yeni hesaba bağlanır. Beklenen: `05 §6.1.2` (K-1084) "hesabı silen işlem önce hesabın satırını güncelleme kilidiyle okur … eşzamanlı onaylanan sipariş işaretin dışında kalmaz"; `09 §15.1` madde 3: hesabı silen işlem `AccountLocks` ile `FOR UPDATE`; `02 §3.15.3`. Kanıt: PostgreSQL 18'de iki oturum (A: kuru `UPDATE` → 3 sn → aday sayımı → işaret → `DELETE`; B: 1. sn'de `INSERT` siparişi, 4. sn'de `COMMIT`) → A'nın aday sayımı 0, sonuç `customer_id` boş, `is_account_deleted = f`; aynı akış `SELECT … FOR UPDATE` ile koşulunca B'nin eklemesi bekler ve yabancı anahtar hatasıyla düşer, kaçan sipariş yok. Yapım raporu bu yarış için test yazılmadığını not etmiş. Kodda `LockSequence` `LockKind.Account`'u tek başına alınan kilit sayar ve `09 §15.1` madde 3 ile çelişir; çelişki `09 §25` gereği bildirilmeden daha zayıf bir kilitle çözülmüş. Düzeltme yönü: silmede `FOR KEY SHARE` ile çakışan kilit (`AccountLocks` `FOR UPDATE`; `LockSequence`'in hesap → sipariş sırasına izni ya da belge kararıyla eşdeğeri) ve eşzamanlı onay + silme Integration testi.
 
 ## Altyapı Değişiklikleri
 

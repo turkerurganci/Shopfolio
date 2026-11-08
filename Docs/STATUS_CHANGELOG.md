@@ -9,6 +9,12 @@
 
 ---
 
+## 2026-11-08 — T342 (Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri) doğrulama tur 1 ✗ FAIL
+
+2026-11-08 — T342 doğrulama tur 1 ✗ FAIL (head `0fadc90` + `origin/main` (`bcb856d`, T302) birleştirmesi, PR #453; dal CI 42436720596 yeşil; Unit 4035 + Consistency 241 + betik 4, Integration Membership 43 + komşu 103 yerelde yeşil; kriter 1, 3–9 ve KK1, KK3–KK9 ✓). **B1 KRİTİK S1:** giriş hesabın satırını paylaşımlı kilitle okumuyor ve özetin hâlâ aynı olduğunu o kilit altında denetlemiyor (`09 §15.1` m.3, `05 §6.1.2`); şifre sıfırlama/değiştirmeyle aynı anda süren eski şifreli giriş, sıfırlamanın oturum silmesinden sonra kesinleşen oturumla açık kalır — kriter 2 / KK2 ~ Kısmi, `09 §25` eşzamanlılık satırı ✗. K1 D-251 metni düzeltildi (yönetim komutu T303'te), K2 durum satırı doğrulamadan önce ✓ yazılmıştı → ⏳. `12` KP-27 satırları `BEKLEMEDE` kaldı (uç yanıtı sayfa task'larında). Backlog aktif 163 (D-428 notu).
+
+---
+
 ## 2026-11-08 — T342 (Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri) yapım tamamlandı, doğrulama bekliyor (dal `task/T342-giris-oturum`, PR #453; kriter 1–9, KK1–KK9, `09 §25` ve güvenlik taraması öz denetimde ✓; Unit 4276, Integration Membership 50 + komşu 114 + Web 594; D-114, D-133, D-251, D-255, D-364 çözüldü, D-127 T342 payı çözüldü; yeni D-428–D-432)
 
 ## 2026-11-08 — T302 (Öteki kayıtların süreyle imhası) doğrulama tur 1 PASS

@@ -1,6 +1,6 @@
 # T342 — Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamamlandı, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✗ FAIL (doğrulama tur 1; düzeltme bekliyor) | **Tarih:** 2026-11-08
 
 ---
 
@@ -71,10 +71,42 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor (yönetici başlatır) |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | **tur 1: ✗ FAIL** (2026-11-08; head `0fadc90` + `origin/main` `bcb856d` birleştirmesi, temiz) |
+| Bulgu sayısı | 1 (KRİTİK, S1) |
+| Düzeltme gerekli mi | Evet — bu PR'da (tur 2) |
+| Bloke-etmeyen not (K) sayısı | 2 (ikisi de bu PR'da kapatıldı) |
+
+### Doğrulama tur 1
+
+**Başlangıç kapıları:** working tree temiz, `core.hooksPath` ana checkout'un `scripts/git-hooks`'u; ana dal CI 42436765863, 42434282714, 42434282725 success; MEMORY satır 22.
+
+**Kabul kriterleri (validator kanıtı):**
+
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `RequestResetAsync` (P-13, `SupersedeEarlierAsync`), `ResetPasswordAsync` (`TryConsumeAsync`); `TheReset_TakesTheLinkOnce_…_KK1_KK2`, `…AnExpiredOrAlienLinkIsInvalid`, `AskingAgain_…` |
+| 2 | ~ | Sıralı akışta ✓ (`EndAllAsync`, `InvalidateMarksAsync`; `TheReset_…`, `TheChange_…_KK2_KK5`); eşzamanlı girişte ✗ — Bulgu 1 |
+| 3 | ✓ | `TheResetRequest_IsNeutral_…_KK3`; kayıt `EmailAlreadyRegistered` |
+| 4 | ✓ | `SessionStore.OpenAsync`, `SignIn_OpensTheLongSession…_KK4`, işleyici P-15/P-16 (T207) |
+| 5 | ✓ (T342 payı) | `TheChange_…`, `TheReauthenticationValue_IsForOneOperationAndOneOwnSession`; `ChangeNameAsync` yeniden doğrulamasız; e-posta/silme T517 k2 (D-429) |
+| 6 | ✓ | `AWrongPasswordAtTheReauthentication_…_KK6` |
+| 7 | ✓ | `PasswordPolicy`, 313 girdi hepsi ≥ 10; `PasswordPolicyTests`, `Register_…_KK7` |
+| 8 | ✓ | `TheAdministrator_…_KK8`, `TheAdministratorsReset_…_KK8` |
+| 9 | ✓ | `SignIn_IsBlockedAfterFiveFailures_…_KK9`, `TheResetRequest_OverL2_…_KK9`, `ARecognizedBrowser_…`; L-3/L-9 T341 testleri |
+
+KK2 ve `09 §25` eşzamanlılık satırı ✗; KK1, KK3–KK9, tek işlev, kaynak taraması + ihlal örneği ✓.
+
+**Task satırları (`12`):** KP-27'den T342'ye bağlı `VAL-A096`, `A097`, `A098`, `A103` (KRİTİK), `D017` (KRİTİK) — hepsi `BEKLEMEDE` kaldı (kanıt türü uç yanıtı, sayfalar sonraki task'larda; D-431, D-429). `12_matris_denetle.py --kapsam 1-77` → Hata: 0.
+
+**Testler (yerel):** build `-warnaserror` 0/0; biçim ×3 temiz; Unit 4035 + Consistency 241 (birleştirme sonrası Unit 4043); betik 4 dosya; Integration T342 16 testi + Membership kalan 43 + komşu 103 (`AttemptCounterTests`, `LinkRecordsTests`, `OneTimeValueTests`, `SessionLinkAttemptLoginTablesTests`) yeşil; `--locked-mode` 0. Dal CI 42436720596 success.
+
+**Güvenlik:** sır yok; girdi doğrulaması temiz; yeni bağımlılık yok; auth — Bulgu 1.
+
+**Bulgu 1 — KRİTİK, S1 (kriter 2 / KK2; `09 §15.1` m.3, `05 §6.1.2`; `VAL-D017`, `VAL-A097`, `VAL-A098`):** giriş hesabın satırını paylaşımlı kilitle okumuyor ve özetin doğrulanan özetle hâlâ aynı olduğunu o kilidin altında denetlemiyor (`AccountLocks`/`LockSharedAsync` yok; `FindByEmailAsync` `AsNoTracking`; `SessionStore.OpenAsync` özet denetimsiz). Sıfırlama ya da hesapta değiştirme eski şifreli bir girişle aynı anda koşarsa: giriş eski özeti görür, sıfırlamanın `DELETE sessions`'ı girişin kesinleşmemiş oturumunu görmez, oturum ekleyen FK `FOR KEY SHARE`'i `password_hash` güncellemesinin `FOR NO KEY UPDATE`'iyle çakışmaz → eski şifreyle açılan oturum sıfırlamadan sonra yaşar. D-428 bu kilidi T517'ye ertelemişti; yarış T342'nin kendi işlemleri arasında olduğu için ertelenemez. Düzeltme: `AccountLocks` (müşteri + yönetici satırı, `OrderLocks` kalıbı, `LockSequence` bildirimi), girişte `FOR SHARE`, oturum aynı işlemde kilit altında özet eşitliğiyle açılır; sıfırlama ↔ giriş ve değiştirme ↔ giriş eşzamanlı sınaması.
+
+**K-notları:** K1 — D-251 metni "yönetici komutunda" diyordu, komut T303'te → metin düzeltildi. K2 — durum satırının `Durum`'u doğrulamadan önce `✓` yazılmıştı → `⏳` / `✗ FAIL (tur 1)`.
+
+**Yapım raporu karşılaştırması:** 2 uyuşmazlık — kriter 2 (yapım ✓, validator ~; D-428 sıfırlama/değiştirme yarışını anmıyor); kriter 5 kabul tablosunda "✓ / ~", öz denetimde ✓ (validator T342 payını ✓ saydı). Öz denetim tablosu var ve kanıtlı.
 
 ## Altyapı Değişiklikleri
 

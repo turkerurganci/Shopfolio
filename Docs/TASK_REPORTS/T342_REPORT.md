@@ -1,6 +1,6 @@
 # T342 — Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri
 
-**Faz:** F3 | **Durum:** ✗ FAIL (doğrulama tur 1; düzeltme bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ⏳ doğrulama tur 2 bekliyor (tur 1 Bulgu 1 düzeltildi) | **Tarih:** 2026-11-08
 
 ---
 
@@ -25,7 +25,7 @@
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
 | 1 | Sıfırlama bağlantısı Z-2 ömürlü, tek kullanımlık; kullanılmış/dolmuş geçersiz | ✓ | `TheReset_TakesTheLinkOnce_EndsEverySession_…_KK1_KK2`, `TheReset_RefusesAWeakNewPassword…AndAnExpiredOrAlienLinkIsInvalid`, `AskingAgain_MakesTheEarlierResetLinkInvalid` |
-| 2 | Sıfırlamada bütün oturumlar kapanır; değiştirmede öteki kapanır, değiştiren kalır; işaretler düşer | ✓ | `TheReset_…EndsTheOtherMarks…`, `TheChange_AsksForTheReauthenticationValue_…_KK2_KK5` |
+| 2 | Sıfırlamada bütün oturumlar kapanır; değiştirmede öteki kapanır, değiştiren kalır; işaretler düşer | ✓ | `TheReset_…EndsTheOtherMarks…`, `TheChange_AsksForTheReauthenticationValue_…_KK2_KK5`; eşzamanlı giriş (tur 1 Bulgu 1): `AccountLocks` + `ASignInCheckedBeforeTheReset_…_KK2`, `ASignInThatWaitsForTheReset_…_KK2` (müşteri ve yönetici) |
 | 3 | Sıfırlama ekranı nötr, kayıt ekranı dürüst | ✓ | `TheResetRequest_IsNeutral_ForAKnownAndAnUnknownAddress_…_KK3`; kayıt: `ErrorCode.EmailAlreadyRegistered` (`MembershipModule.RegisterAsync`) |
 | 4 | "Beni hatırla" Z-5, işaretsiz Z-4 | ✓ | `SignIn_OpensTheLongSessionWithRememberMe_AndTheShortOneWithout_KK4` |
 | 5 | Şifre değiştirme/e-posta değiştirme/hesap silme yeniden doğrulama ister; başka işlem istemez | ✓ (şifre) / ~ | şifre: `TheChange_AsksForTheReauthenticationValue_…`, `TheReauthenticationValue_IsForOneOperationAndOneOwnSession`; ad değişimi istemez: T341 `TheName_ChangesWithoutANewVerification_…`; e-posta değişimi ve hesap silme tüketimi kendi task'ında (T517 k2) → D-429 |
@@ -39,7 +39,8 @@
 | Madde (kabul kriteri / KK) | Sonuç | Kanıt (dosya:satır, test adı) |
 |---|---|---|
 | KK1: sıfırlama bağlantısı ikinci kullanımda reddedilir | ✓ | `TheReset_TakesTheLinkOnce_…_KK1_KK2` |
-| KK2: sıfırlamada tüm, değiştirmede öteki oturumlar kapanır; işaretler düşer | ✓ | `TheReset_…`, `TheChange_…_KK2_KK5` (`InvalidateMarksAsync`, `PasswordRegime`) |
+| KK2: sıfırlamada tüm, değiştirmede öteki oturumlar kapanır; işaretler düşer | ✓ | `TheReset_…`, `TheChange_…_KK2_KK5` (`InvalidateMarksAsync`, `PasswordRegime`); eşzamanlı giriş: `AccountLocks.LockByEmailAsync` (`CheckPasswordAsync`) + `SessionStore.OpenAsync` aynı işlemde kilit altında; `ASignIn…_KK2` ×4 |
+| `09 §25` — eşzamanlılık: kilit yerinde mi | ✓ | tek kilit evi `AccountLocks` (`LockKind.Account`, `FOR UPDATE`, `LockSequence` bildirimi, işlem başına bir kez); giriş, `SetPasswordAsync` (sıfırlama, değiştirme, özet yenileme) ve oturum açma aynı satır kilidini alır; iki bağlantılı testler her iki sırayı sınar, kilit kaldırılınca dördü de kırmızı (denendi); kaynak taraması `ConcurrencySourceScan.AccountLocksFile` |
 | KK3: iki ekranın mesajı ayrı | ✓ | `TheResetRequest_IsNeutral_…_KK3`; kayıt `EmailAlreadyRegistered` |
 | KK4: Z-5 / Z-4 | ✓ | `SignIn_OpensTheLongSessionWithRememberMe_…_KK4` |
 | KK5: şifre değişimi yeniden doğrulama ister, ad değişimi istemez | ✓ | `TheChange_…_KK2_KK5`; `TheName_ChangesWithoutANewVerification_…` (T341) |
@@ -60,9 +61,9 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests -c Release --no-build` | 4276 / 0 başarısız (Architecture 969, `PasswordPolicyTests` 20 dahil) |
+| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests -c Release --no-build` | 4291 / 0 başarısız (Architecture 969, `PasswordPolicyTests` 20 dahil) |
 | Integration (Web) | ✓ | `--filter-namespace "Shopfolio.IntegrationTests.Web"` | 594 / 0 başarısız |
-| Integration (Membership) | ✓ | `--filter-class "Shopfolio.IntegrationTests.Model.MembershipTests"` | 50 / 0 başarısız |
+| Integration (Membership) | ✓ | `--filter-class "Shopfolio.IntegrationTests.Model.MembershipTests"` | 54 / 0 başarısız (tur 1 düzeltmesi: +4 eşzamanlılık) |
 | Integration (komşu) | ✓ | `SessionLinkAttemptLoginTablesTests`, `SessionAccessTests`, `OneTimeValueTests` | 114 / 0 başarısız |
 | Derleme / biçim | ✓ | `dotnet build Shopfolio.slnx -c Release --no-restore -warnaserror`; `dotnet format Shopfolio.slnx --no-restore --verify-no-changes` | 0 uyarı, 0 hata; biçim temiz |
 | Contract | — | — | bu task'ta sözleşme testi yok |
@@ -133,7 +134,7 @@ KK2 ve `09 §25` eşzamanlılık satırı ✗; KK1, KK3–KK9, tek işlev, kayna
 
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
-| 1 | Giriş yolunda `AccountLocks`/`LockKind.Account` ve `FOR UPDATE` | D-428 | hesap silen/e-posta değiştiren task'ın işi |
+| 1 | Hesap silme ve e-posta değiştirmenin `AccountLocks` payı (giriş, sıfırlama ve değiştirme bu PR.da kilitli, tur 1 Bulgu 1) | D-428 | hesap silen/e-posta değiştiren task (T517) aynı kilidi alır |
 | 2 | E-posta değişimi ve hesap silmede yeniden doğrulama tüketimi | D-429 | T517 k2 |
 | 3 | Tek `__Host-known-device` çerezi müşteri ve yöneticide ortak | D-430 | sayfa task'ları |
 | 4 | Giriş çerezi yazımı, sepet birleşmesi | D-431 | giriş sayfası task'ı |

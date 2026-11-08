@@ -16,7 +16,7 @@ public interface IAdministrationModule
     /// <summary>The panel's credential check: the limit L-1, the hashing work and the sign-in record, as the customer's; an administrator account has no verified state.</summary>
     Task<AdminCredentialCheckResult> CheckCredentialsAsync(string email, string password, IPAddress? ipAddress, string? recognizedBrowserMark, CancellationToken ct);
 
-    /// <summary>Opens the administrator's session: the same lifetimes as the customer's (P-15 hours, P-16 days) and the same mark.</summary>
+    /// <summary>Opens the administrator's session: the same lifetimes as the customer's (P-15 hours, P-16 days) and the same mark. It runs in the credential check's transaction, under the account row lock the check took (09 15.1 item 3).</summary>
     Task<SessionOpening> SignInAsync(Guid adminId, bool rememberMe, string? presentedMark, CancellationToken ct);
 
     /// <summary>Ends one session of the panel (the sign-out).</summary>

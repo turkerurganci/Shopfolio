@@ -192,8 +192,14 @@ internal interface IPasswordAccounts
 
     Task<PasswordAccount?> FindByEmailAsync(string normalizedEmail, CancellationToken ct);
 
+    /// <summary>
+    /// The sign-in's read (09 15.1 item 3; 05 6.1.2): locks the account's row first (<see cref="AccountLocks"/>, held to the end of the transaction) and reads the digest after the
+    /// lock, so the digest checked is the digest a concurrent reset or change has left; null when there is no such account.
+    /// </summary>
+    Task<PasswordAccount?> LockAndFindByEmailAsync(string normalizedEmail, CancellationToken ct);
+
     Task<PasswordAccount?> FindAsync(Guid id, CancellationToken ct);
 
-    /// <summary>Writes the new digest with a conditional update in the caller's transaction.</summary>
+    /// <summary>Takes the account's row lock, then writes the new digest with a conditional update in the caller's transaction.</summary>
     Task SetPasswordAsync(Guid id, string digest, CancellationToken ct);
 }

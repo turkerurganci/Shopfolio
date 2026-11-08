@@ -31,6 +31,11 @@ internal sealed class AdminPasswords : IPasswordAccounts
         return row is null ? null : new PasswordAccount(row.Id, row.Email, row.PasswordHash, IsVerified: true);
     }
 
+    public async Task<PasswordAccount?> LockAndFindByEmailAsync(string normalizedEmail, CancellationToken ct)
+    {
+        return await AccountLocks.LockByEmailAsync(_db, AccountType.Admin, normalizedEmail, ct) is { } id ? await FindAsync(id, ct) : null;
+    }
+
     public async Task<PasswordAccount?> FindAsync(Guid id, CancellationToken ct)
     {
         var row = await _db.Admins.AsNoTracking()
@@ -42,6 +47,7 @@ internal sealed class AdminPasswords : IPasswordAccounts
 
     public async Task SetPasswordAsync(Guid id, string digest, CancellationToken ct)
     {
+        await AccountLocks.LockAsync(_db, AccountType.Admin, id, ct);
         await _db.Admins.Where(a => a.Id == id).ExecuteUpdateAsync(set => set.SetProperty(a => a.PasswordHash, digest), ct);
     }
 }

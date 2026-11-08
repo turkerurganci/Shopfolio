@@ -45,6 +45,9 @@ internal sealed class SessionStore
     /// </summary>
     public async Task<SessionOpening> OpenAsync(AccountType type, Guid accountId, bool isLongLived, string? presentedMark, CancellationToken ct)
     {
+        // The session row joins the sign-in's transaction under the account's row lock (taken by the credential check, asked again here): a reset or change that wrote the digest
+        // first has already ended the sessions, one that comes later waits and then deletes this one (09 15.1 item 3; 05 6.1.2).
+        await AccountLocks.LockAsync(_db, type, accountId, ct);
         DateTimeOffset now = _time.GetUtcNow();
         string key = SecretKey.Create();
         string digest = SecretKey.Hash(key);

@@ -47,7 +47,8 @@ internal sealed class PasswordRegime
         ArgumentNullException.ThrowIfNull(accounts);
         ArgumentNullException.ThrowIfNull(email);
         ArgumentNullException.ThrowIfNull(entered);
-        PasswordAccount? account = await accounts.FindByEmailAsync(TextNormalizer.NormalizeIdentity(email), ct);
+        // The account's row is locked before its digest is read and stays locked until the transaction ends, where the session is opened (09 15.1 item 3; 05 6.1.2).
+        PasswordAccount? account = await accounts.LockAndFindByEmailAsync(TextNormalizer.NormalizeIdentity(email), ct);
         return await CheckAsync(accounts, account, email, entered, ipAddress, presentedMark, ct);
     }
 

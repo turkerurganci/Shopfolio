@@ -12,7 +12,8 @@ public interface ISessionService
 {
     /// <summary>
     /// Opens a session for the customer: "remember me" gives the long session (P-16 days, Z-5), no choice the short one (P-15 hours from the last operation, Z-4). The presented mark
-    /// of the browser is kept when it is valid for this customer, else a new one is given.
+    /// of the browser is kept when it is valid for this customer, else a new one is given. It runs in the same transaction as the credential check that granted it: the check locks the
+    /// account row (<c>AccountLocks</c>) and the session is written under that lock, so a password reset or change cannot slip between the two (09 15.1 item 3; 05 6.1.2).
     /// </summary>
     Task<SessionOpening> SignInAsync(Guid customerId, bool rememberMe, string? presentedMark, CancellationToken ct);
 

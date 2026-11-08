@@ -84,6 +84,9 @@ internal static class TransitionTable
     /// <summary>The shipment row that joins the two states, or null (the closure rule reads the row it needs from here, not from a second list).</summary>
     public static ShipmentTransition? FindShipment(OrderStatus from, OrderStatus to) => Shipment.FirstOrDefault(t => t.From == from && t.To == to);
 
+    /// <summary>The payment row that joins the two states, or null (the refund's sent money reads Ö3, Ö4 or Ö5 from here, not from a second list).</summary>
+    public static PaymentTransition? FindPayment(PaymentStatus from, PaymentStatus to) => Payment.FirstOrDefault(t => t.From == from && t.To == to);
+
     /// <summary>The actor kinds the transition may be requested by; null for a code that is not in the table (the correction included).</summary>
     public static IReadOnlyList<ActorKind>? ActorsOf(TransitionCode code) => Actors.GetValueOrDefault(code);
 
@@ -112,4 +115,7 @@ internal static class TransitionTable
 
     /// <summary>True for a terminal state of the shipment axis (02 5.4): the closing states are left only by the firm's correction.</summary>
     public static bool IsTerminal(OrderStatus status) => status is OrderStatus.Delivered or OrderStatus.Cancelled;
+
+    /// <summary>True for a terminal state of the payment axis (02 5.5; 03 1.3): Başarısız and Geri ödendi; no row of the table leaves them.</summary>
+    public static bool IsTerminal(PaymentStatus status) => status is PaymentStatus.Failed or PaymentStatus.Refunded;
 }

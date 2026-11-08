@@ -131,6 +131,28 @@ public sealed class TransitionTableTests
     }
 
     [Fact]
+    public void ThePaymentAxisTerminalStates_AreExactlyTheStatesNoPaymentRowLeaves_T317KK1()
+    {
+        // The expected set is read from the table both ways: a terminal state is the source of no row, and a state no row leaves is terminal.
+        PaymentStatus[] leftByNoRow = [.. Enum.GetValues<PaymentStatus>().Where(s => !TransitionTable.Payment.Any(t => t.From == s))];
+
+        Assert.Equal(leftByNoRow, Enum.GetValues<PaymentStatus>().Where(TransitionTable.IsTerminal).ToArray());
+        Assert.Equal([PaymentStatus.Failed, PaymentStatus.Refunded], leftByNoRow);
+    }
+
+    [Fact]
+    public void FindPayment_ByTheTwoStates_ReturnsTheRowThatJoinsThem_AndNullWhereNoRowDoes()
+    {
+        foreach (PaymentTransition row in TransitionTable.Payment)
+        {
+            Assert.Same(row, TransitionTable.FindPayment(row.From, row.To));
+        }
+
+        Assert.Null(TransitionTable.FindPayment(PaymentStatus.PartiallyRefunded, PaymentStatus.PartiallyRefunded));
+        Assert.Null(TransitionTable.FindPayment(PaymentStatus.Refunded, PaymentStatus.Paid));
+    }
+
+    [Fact]
     public void FindShipment_ByTheTwoStates_ReturnsTheRowThatJoinsThem()
     {
         Assert.Equal(TransitionCode.S10, TransitionTable.FindShipment(OrderStatus.Preparing, OrderStatus.Delivered)!.Code);

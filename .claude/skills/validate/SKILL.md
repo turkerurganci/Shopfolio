@@ -80,7 +80,7 @@ Task/doğrulama commit'leri `.claude/memory/MEMORY.md` "Güncel Durum" bloğuna 
    - `✗ Karşılanmadı` — eksik veya hatalı, detay yaz
    - `~ Kısmi` — ne eksik, detaylı açıkla
    - `? Doğrulanamadı` — kanıt üretilemedi (**FAIL değil**, kanıt eksikliği)
-   - **Kabul edilmiş risk (`12 §8.4`, §6.1):** `✗` alan kriterin satırı için `grep -n '<VAL-kimliği>' Docs/DEFERRED_BACKLOG.md` çalıştırılır; açıklaması "KABUL EDİLMİŞ RİSK — `VAL-…`" diye başlayan kayıt varsa ve satır KRİTİK değilse satır `KABUL EDİLMİŞ RİSK` olur ve verdict'i FAIL yapmaz; kayıt yoksa ya da satır KRİTİK'se satır `FAIL`'dir. Onay doğrulayıcının kararı değildir (`12 §9`); onay yoksa önerilmez, verdict FAIL'dir.
+   - **Kabul edilmiş risk (`12 §8.4`, §6.1):** `✗` alan kriterin satırı için `grep -rn '<VAL-kimliği>' Docs/DEFERRED_BACKLOG.md Docs/DEFERRED_BACKLOG.d/` çalıştırılır; açıklaması "KABUL EDİLMİŞ RİSK — `VAL-…`" diye başlayan kayıt varsa ve satır KRİTİK değilse satır `KABUL EDİLMİŞ RİSK` olur ve verdict'i FAIL yapmaz; kayıt yoksa ya da satır KRİTİK'se satır `FAIL`'dir. Onay doğrulayıcının kararı değildir (`12 §9`); onay yoksa önerilmez, verdict FAIL'dir.
 
 6. **Doğrulama kontrol listesini çalıştır** — plandaki maddeleri tek tek geç.
 
@@ -118,7 +118,7 @@ Task/doğrulama commit'leri `.claude/memory/MEMORY.md` "Güncel Durum" bloğuna 
 
     Tanım kaynağı `00 §D.10`; hatanın nerede doğduğu `12 §8.1`'dedir.
 
-    **Bloke-etmeyen gözlemler** ayrı listelenir (K-notu). Her K-notu ya bu PR'da kapatılır ya `Docs/DEFERRED_BACKLOG.md`'ye **forward edilir**. Üçüncü seçenek yoktur.
+    **Bloke-etmeyen gözlemler** ayrı listelenir (K-notu). Her K-notu ya bu PR'da kapatılır ya `Docs/DEFERRED_BACKLOG.d/<TXXX>.md` parçasına **forward edilir**. Üçüncü seçenek yoktur.
 
 ---
 
@@ -132,7 +132,7 @@ Task/doğrulama commit'leri `.claude/memory/MEMORY.md` "Güncel Durum" bloğuna 
 15. **Status güncelle** (yalnız PASS) — `Docs/IMPLEMENTATION_STATUS.md`'de `✓ Tamamlandı`.
     **Kural:** Rapor finalize edilmeden status güncellenmiş sayılmaz.
     **"Son güncelleme" satırı:** Task/doğrulama commit'i `Docs/IMPLEMENTATION_STATUS.md`'nin başındaki "**Son güncelleme:**" satırına DOKUNMAZ (paralel PR'larda her merge'ten sonra çakışıyordu, 2026-11-08); olayı `Docs/STATUS_CHANGELOG.d/<TXXX>.md`'ye (task başına tek dosya; yeni giriş dosyanın en üstüne) ve task'ın tablo satırına yazar; `STATUS_CHANGELOG.md`'ye dokunmaz. Satırı ve parçaları yalnız birleştiren taraf (faz kapısı kayıt PR'ı, chore/kayıt PR'ı) toplar. main birleştirmesinde bu satır çakışırsa main sürümü alınır, dalın girişi parça dosyasına taşınır.
-    **Ortak satırlar:** `Docs/DEFERRED_BACKLOG.md` başlığındaki "Aktif kalem" sayacını ve STATUS'taki "backlog aktif" sayısını DEĞİŞTİRME (kayıt satırlarını ekle/kapat; sayacı faz kapısı kayıt PR'ı yeniden sayar). Tablo satırları (STATUS task satırı, 12 `Durum` hücresi) ve task'ın raporu task PR'ında kalır.
+    **Ortak satırlar:** `Docs/DEFERRED_BACKLOG.md` başlığındaki "Aktif kalem" sayacını ve STATUS'taki "backlog aktif" sayısını DEĞİŞTİRME (kayıt satırlarını ekle/kapat; sayacı faz kapısı kayıt PR'ı yeniden sayar). Yeni backlog kalemleri `Docs/DEFERRED_BACKLOG.d/<TXXX>.md` parça dosyasına yazılır, `DEFERRED_BACKLOG.md` tablosuna satır eklenmez; faz kapısı kayıt PR'ı ve chore/kayıt PR'ı parçaları D sırasıyla tabloya aktarıp siler. Kalem araması iki yere bakar: `Docs/DEFERRED_BACKLOG.md` ve `Docs/DEFERRED_BACKLOG.d/`. Tablo satırları (STATUS task satırı, 12 `Durum` hücresi) ve task'ın raporu task PR'ında kalır.
 
 16. **Rapor + status + matris `Durum` hücreleri commit ve push** (MEMORY.md'ye dokunulmaz) — **merge'den önce**; PASS'te de FAIL'de de koşar (FAIL'de dal merge edilmez, kayıt dalda kalır). Task'ın satırlarının `Durum` hücresi `Docs/12_VALIDATION_PROTOCOL.md`'de sonuca göre yazılır (`12 §7.5`; eşleme `12 §6.1` ilk satır): `✓` → `PASS`, `✗` → `FAIL`, `?` → `BEKLEMEDE`, `~` → `12 §6.1` eşlemesi, adım 5'teki onaylı kabul edilmiş risk → `KABUL EDİLMİŞ RİSK`. Aksi hâlde squash merge bu değişiklikleri içermez. **Hücreleri yazdıktan sonra** `python -I -X utf8 scripts/doc-scans/12_matris_denetle.py --kapsam 1-77` koşar ve hata 0 olmadan commit edilmez: matris satır sayısı, kimlik tekilliği ve `12 §1.2` sayım tablosu betikle eşlenir (Aşama 10, Ö-207b; kanıt: elle yazılan `Kanıt ortamı` sayımı üç satır sapmıştı).
     **Not:** Post-merge teyit bilgileri (merge sonrası run ID'leri) bu commit'e **giremez** — merge henüz olmadı. Onlar bir sonraki task dalında veya ayrı bir `chore:` PR'ında eklenir; **doğrudan ana dala push edilmez.**

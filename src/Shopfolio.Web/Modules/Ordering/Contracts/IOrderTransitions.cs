@@ -19,6 +19,7 @@ namespace Shopfolio.Modules.Ordering.Contracts;
 /// The payment axis (T317): Ö1 <see cref="ApplyCardPaymentAsync"/> and <see cref="MarkTransferPaidAsync"/> - the one path of the approval, with the payment
 /// record (09 24 item 4) - Ö3/Ö4/Ö5 <see cref="ApplyCardRefundOutcomeAsync"/> and <see cref="ProcessTransferRefundAsync"/>; Ö2 has no operation of its own:
 /// an unpaid order's cancellation writes it with S3 in <see cref="CancelOrderAsync"/>.
+/// The correction (T319): <see cref="CorrectTransitionAsync"/>, the one way back; no method undoes a transition and a withdrawal is never corrected (03 1.6.2).
 /// </summary>
 public interface IOrderTransitions
 {

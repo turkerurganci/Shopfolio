@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Operations;
@@ -14,9 +15,14 @@ namespace Shopfolio.UnitTests.Ordering;
 /// the transfer mark of an order with a digital item warns first that it can not be corrected, the system's own card refund asks no confirmation, and no
 /// module surface offers an undo: the one way back is the correction of a transition, and nothing corrects a withdrawal.
 /// </summary>
-public sealed class IrreversibleConfirmationTests
+public sealed partial class IrreversibleConfirmationTests
 {
-    private static readonly string[] UndoWords = ["Undo", "Revert", "Rollback", "Reverse", "GeriAl"];
+    /// <summary>
+    /// An undo word as a whole word of a PascalCase name: it starts with its capital and the next letter is not lower case, so "RefundOutcome" (whose
+    /// letters hold "undo") is not an undo while "UndoShipmentAsync" and "RevertPaidMark" are.
+    /// </summary>
+    [GeneratedRegex("(Undo|Revert|Rollback|Reverse|GeriAl)(?![a-z])", RegexOptions.CultureInvariant)]
+    private static partial Regex UndoWord();
 
     /// <summary>One window per operation, with the screen's values; the amounts, the counts and the dates are the display format's.</summary>
     private static IReadOnlyList<IrreversibleConfirmation> Samples() =>
@@ -112,6 +118,20 @@ public sealed class IrreversibleConfirmationTests
         Assert.DoesNotContain(Enum.GetNames<IrreversibleAction>(), n => n.Contains("System", StringComparison.Ordinal));
     }
 
+    [Theory]
+    [InlineData("UndoShipmentAsync", true)]
+    [InlineData("RevertPaidMarkAsync", true)]
+    [InlineData("RollbackCancellation", true)]
+    [InlineData("ReverseTransitionAsync", true)]
+    [InlineData("GeriAlAsync", true)]
+    [InlineData("ShipmentUndo", true)]
+    [InlineData("ApplyCardRefundOutcomeAsync", false)]
+    [InlineData("WriteCardRefundOutcomeAsync", false)]
+    [InlineData("CorrectTransitionAsync", false)]
+    [InlineData("ReversedAtOf", false)]
+    public void TheUndoWordDetector_FindsAWholeWord_AndNotTheLettersInsideAnother(string name, bool isUndo) =>
+        Assert.Equal(isUndo, UndoWord().IsMatch(name));
+
     [Fact]
     public void NoModuleSurface_OffersAnUndo_TheOneWayBackIsTheCorrectionOfATransition_KK1_KK9()
     {
@@ -120,7 +140,7 @@ public sealed class IrreversibleConfirmationTests
             .SelectMany(t => t.GetMethods())];
 
         Assert.NotEmpty(methods);
-        Assert.DoesNotContain(methods, m => UndoWords.Any(w => m.Name.Contains(w, StringComparison.OrdinalIgnoreCase)));
+        Assert.DoesNotContain(methods, m => UndoWord().IsMatch(m.Name));
 
         // The correction is one method of the transition unit; it takes a transition record, so a withdrawal - not a transition - is never corrected (03 1.6.2; K-688).
         MethodInfo correction = Assert.Single(methods, m => m.Name.StartsWith("Correct", StringComparison.Ordinal));

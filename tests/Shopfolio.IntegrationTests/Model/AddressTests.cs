@@ -121,6 +121,8 @@ public sealed class AddressTests : IAsyncLifetime
         services.AddScoped<AccountEmailQueue>();
         services.AddScoped<INotificationsModule, AccountEmailOnlyNotifications>();
         services.AddSingleton<IReadOnlyList<ConditionalLine>>(_lines);
+        services.AddScoped<Shopfolio.Modules.Administration.IAuditActorSource, Shopfolio.IntegrationTests.Ordering.NoAuditActor>();
+        services.AddScoped<Shopfolio.Modules.Administration.Contracts.IAuditTrail, Shopfolio.Modules.Administration.AuditTrail>();
         services.AddMembershipModule();
         _provider = services.BuildServiceProvider();
     }

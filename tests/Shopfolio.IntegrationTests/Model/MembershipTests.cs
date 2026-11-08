@@ -84,7 +84,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
 
     public async ValueTask InitializeAsync()
     {
-        await ExecuteAsync("TRUNCATE customers, admins, orders, legal_text_versions, provinces, link_records, attempt_records, login_records, disposal_records, dispatch_records CASCADE");
+        await ExecuteAsync("TRUNCATE customers, admins, audit_logs, carts, orders, legal_text_versions, provinces, link_records, attempt_records, login_records, disposal_records, dispatch_records CASCADE");
         Province province = Province.Create("06", "Ankara", Start);
         _form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, 1, Start, "metin", Start);
         _contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, 1, Start, "metin", Start);
@@ -95,6 +95,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
             c.LegalTextVersions.AddRange(_form, _contract, _notice);
         });
         _provinceId = province.Id;
+        _gate.Provinces = [new ProvinceInfo(province.Id, province.Code, province.Name)];
 
         _dataSource = NpgsqlDataSource.Create(_collection.Dsn);
         ServiceCollection services = new();
@@ -129,6 +130,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
         services.AddScoped<AccountEmailQueue>();
         services.AddScoped<INotificationsModule, AccountEmailOnlyNotifications>();
         services.AddSingleton<IReadOnlyList<ConditionalLine>>(_lines);
+        services.AddScoped<IAuditTrail, AuditTrail>();
         services.AddMembershipModule();
         services.AddScoped<AdminPasswords>();
         services.AddScoped<IAdministrationModule, AdministrationModule>();
@@ -632,6 +634,17 @@ public sealed partial class MembershipTests : IAsyncLifetime
 
     private async Task<Guid> SeedGuestOrderAsync(string email, Guid? customerId = null, bool accountDeleted = false)
     {
+        (Order order, OrderItem item) = BuildOrder(email, customerId, accountDeleted);
+        await SaveAsync(c =>
+        {
+            c.Orders.Add(order);
+            c.OrderItems.Add(item);
+        });
+        return order.Id;
+    }
+
+    private (Order Order, OrderItem Item) BuildOrder(string email, Guid? customerId, bool accountDeleted)
+    {
         int n = Interlocked.Increment(ref _orderCounter);
         Order order = Order.Create($"2026-{n:D6}", $"access-placeholder-{n}", $"confirm-placeholder-{n}", PaymentMethod.Card, true, email, 120m, 0m, Start.AddHours(1), Start);
         order.IpAddress = IPAddress.Parse("203.0.113.5");
@@ -656,12 +669,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
         order.PrivacyNoticeVersionId = _notice.Id;
         order.FreezeDocuments("ön bilgilendirme", "mesafeli satış");
         OrderItem item = OrderItem.Create(order.Id, null, null, ProductType.Physical, "Kapı", 3, 100m, 20m, 50m, Start);
-        await SaveAsync(c =>
-        {
-            c.Orders.Add(order);
-            c.OrderItems.Add(item);
-        });
-        return order.Id;
+        return (order, item);
     }
 
     private async Task<Guid?> OwnerOfAsync(Guid orderId)
@@ -719,6 +727,8 @@ public sealed partial class MembershipTests : IAsyncLifetime
     private sealed class GateSwitch
     {
         public SalesGate Gate { get; set; } = new([], []);
+
+        public IReadOnlyList<ProvinceInfo> Provinces { get; set; } = [];
     }
 
     private sealed class GateOnlySettings(GateSwitch gate) : ISettingsModule
@@ -729,7 +739,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
 
         public Task<SettingsSaveResult> SaveDeliveryProvincesAsync(IReadOnlyCollection<Guid> provinceIds, int formVersion, CancellationToken ct) => throw new NotSupportedException();
 
-        public Task<DeliveryArea> GetDeliveryAreaAsync(CancellationToken ct) => throw new NotSupportedException();
+        public Task<DeliveryArea> GetDeliveryAreaAsync(CancellationToken ct) => Task.FromResult(new DeliveryArea(gate.Provinces, []));
 
         public Task<CompanyIdentity> GetCompanyIdentityAsync(CancellationToken ct) => throw new NotSupportedException();
 
@@ -777,7 +787,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
 
         public Task SynchronizeGeneratedLegalTextsAsync(CancellationToken ct) => throw new NotSupportedException();
 
-        public Task<IReadOnlyList<ProvinceInfo>> GetProvincesAsync(CancellationToken ct) => throw new NotSupportedException();
+        public Task<IReadOnlyList<ProvinceInfo>> GetProvincesAsync(CancellationToken ct) => Task.FromResult(gate.Provinces);
 
         public Task<HomepageSection> GetHomepageAsync(CancellationToken ct) => throw new NotSupportedException();
     }

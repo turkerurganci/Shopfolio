@@ -86,6 +86,27 @@ public interface IAfterSalesModule
     /// nothing.
     /// </summary>
     Task CloseCancellationIbanRequestsAsync(IReadOnlyCollection<Guid> orderItemIds, IReadOnlyCollection<Guid> refundIds, CancellationToken ct);
+
+    /// <summary>
+    /// The refund IBANs whose deletion day (Z-38) is at or before <paramref name="now"/>, earliest first, all of them (05 5.2.5; 09 13.1 item 6). A plain
+    /// read for the scheduler's scan; it writes nothing.
+    /// </summary>
+    Task<IReadOnlyList<DueRefundIbanDeletion>> FindDueRefundIbanDeletionsAsync(DateTimeOffset now, CancellationToken ct);
+
+    /// <summary>
+    /// What the refund IBAN is used by (<see cref="RefundIbanUse"/>), or null when it is gone. A plain read; the deletion day reads it once to find the
+    /// order and once more under the order's row lock.
+    /// </summary>
+    Task<RefundIbanUse?> FindRefundIbanUseAsync(Guid refundIbanId, CancellationToken ct);
+
+    /// <summary>
+    /// The deletion day's outcome on the IBAN (03 4.2.8; 02 4.3; K-1110, K-1127): with <paramref name="deleteIban"/> the IBAN is deleted - the links of the
+    /// cancellation, the late delivery termination, the withdrawal and the IBAN request are emptied by the database - and the deletion is written to the
+    /// disposal record in the same transaction (Z-44; K-708); the withdrawal and its item stay as they are. Without it the IBAN stays for the refund that
+    /// still uses it and its deletion day is emptied: the deletion that comes with that refund's completion is the refund line's (T370). It joins the
+    /// caller's transaction under the order's row lock and saves nothing (09 6 item 3).
+    /// </summary>
+    Task ApplyRefundIbanDeletionDayAsync(Guid refundIbanId, bool deleteIban, CancellationToken ct);
 }
 
 /// <summary>One cancellation record as the order module needs it: the record, the item and the units it closed.</summary>

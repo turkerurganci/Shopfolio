@@ -17,6 +17,7 @@ internal static class ApplicationEnums
     private static readonly HashSet<string> NotStored = new(StringComparer.Ordinal)
     {
         "Shopfolio.Modules.Ordering.Contracts.TransitionRefusal",
+        "Shopfolio.Modules.AfterSales.Contracts.ItemRecordRefusal",
         "Shopfolio.Modules.Catalog.Contracts.ProductPageKind",
     };
 

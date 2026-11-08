@@ -38,7 +38,7 @@ public sealed class ShipmentTransitionContractTests
         // The shipment axis returns OrderTransitionResult, the payment axis (T317) PaymentTransitionResult.
         Assert.All(methods, m =>
         {
-            Assert.Contains(m.ReturnType, new[] { typeof(Task<OrderTransitionResult>), typeof(Task<PaymentTransitionResult>) });
+            Assert.Contains(m.ReturnType, new[] { typeof(Task<OrderTransitionResult>), typeof(Task<PaymentTransitionResult>), typeof(Task<ItemRecordResult>) });
             Assert.Equal(typeof(CancellationToken), m.GetParameters()[^1].ParameterType);
         });
     }

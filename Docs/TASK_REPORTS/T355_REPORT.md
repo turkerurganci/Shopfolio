@@ -1,6 +1,6 @@
 # T355 — Sipariş anında donan değerler
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS; merge yardımcıda) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -77,10 +77,31 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-09, head `e958219b`; kayıt commit'inden önce `origin/main` birleştirildi: zaten güncel, çakışma yok). Kriter 1–6, KK1–KK6, `09 §25` ve güvenlik taraması ✓ |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+**Doğrulayıcı kanıtları (tur 1):**
+
+| # | Kriter / KK | Sonuç | Doğrulayıcı kanıtı |
+|---|---|---|---|
+| 1 / KK1 | Ödenen tutarı üreten değerler ve ürünün o anki tanımı donar | ✓ | `OrderFreeze.FreezeItem` `OrderItem`'ın bütün donan sütunlarını yazar (birim fiyat, KDV oranı, `amounts.Vat`, `CouponShare`, indirim oranı, indirimli fiyat, referans fiyat, ad, iki seçenek, görsel); okuma `OrderItemSourceReader` referansı `PriceLabelReader` ile aynı yoldan alır (`PriceHistoryReads.ReferencesAsync` + `DiscountRules.LineOf`); Integration `AnItem_KeepsItsPriceDiscountCouponShareVatAndDescription_WhenTheProductChangesLater_KK1`: ürün adı, KDV, fiyat, görsel, seçenek değeri ve indirim değişince canlı okuma yeniyi, kalem eskiyi verir |
+| 2 / KK2 | Tip, istisna, ifa süresi, indirme hakkı donar; düğmeler donmuş değeri okur | ✓ | `FreezeItem` tipe bağlı alanları yalnız kendi tipinde yazar; Ordering ve AfterSales'te ürün özniteliği okuyan yer yok (`grep "_db.(Products\|Variants\|DigitalFiles)\|_catalog."` yalnız sepet ve stok sayaçları); `OrderOperations`, `OrderPeriods` (Z-39), `DownloadCounters`, `OrderTransitions.ItemRecords` kalemin sütunlarını okur; Integration KK2: istisna kaldırılıp ifa süresi ve P-8 değiştikten sonra ilk sipariş eskiyi, ikinci yeniyi taşır; ilk siparişin cayma düğmesi kapalı (`ReadAsync` + `CheckAsync` → `Closed`), ikincininki açık; dosya istisnası `DigitalFileReader.CurrentFileAsync` (tek ev, `FindAsync` de kullanır) |
+| 3 / KK3 | Kalem alanları düz; siparişte yalnız kupon kodu, kargo ücreti, toplamlar; ara katman yok | ✓ | Integration KK3 EF modelinden: 15 donan alan `OrderItem`'da, kalemin siparişe tek FK'si `OrderId`, sipariş ile kalem arasında varlık yok; `Order`'da ürün düzlemli alan yok; `06 §4.17` sipariş sütunları ile birebir |
+| 4 / KK4 | Adres, e-posta, kimlik, sürümler, kutular, IBAN donar; düzeltmede belgeler onay anını gösterir | ✓ | `FreezeLegalIdentity` `06 §4.17`'nin 11 donmuş firma sütununu (tip, unvan, VKN / MERSİS + sicil, il, ilçe, adres, telefon, e-posta, KEP) ve üç sürümü yazar, IBAN yalnız havalede; `PartiesAtConfirmation` geçmişin ilk satırının (`CreatedAt`, `Id`) eski değerini alır; Integration KK4: iki adres düzeltmesi + e-posta düzeltmesinden sonra taraflar onay anındaki değerler; Unit KK4 (Theory üç tip, IBAN, eksik alan, imha edilmiş sipariş); kutu kaydı KK2 testinde metin ve kalemle okunur; adres donması `Order.FreezeAddresses` (T344) |
+| 5 / KK5 | Donma anı doğru; söz onayda sabit | ✓ | `FreezeItem(now)` → kalemin `CreatedAt`'i siparişinki; Integration KK5: indirim bittikten sonra canlı okuma indirimsiz, kalem 800 ve sipariş toplamı 800 kalır, `ShippingPeriod` 2; Unit `TheShippingPromise_IsWrittenOnceAtConfirmation_KK5` (ikinci yazım hata) |
+| 6 / KK6 | Marka ayarları siparişe donmaz | ✓ | Integration KK6: `orders` ve `order_items` sütunlarında brand/logo/color/favicon yok |
+| `09 §25` | ilgili satırlar | ✓ | Ordering yalnız `Catalog.Contracts`, `Settings.Contracts`, `Payment.Contracts`'a başvurur (Unit `Architecture` yeşil); arayüz yöntemleri `SaveChanges` çağırmaz; zaman `TimeProvider`'dan (`OrderFreeze` saatsiz); para üretilmez (`FreezeItem` gelen `ItemAmounts`'ı denetler); tek işlev: dosya kuralı `CurrentFileAsync`'e taşındı, görsel `ProductGallery`, referans `PriceHistoryReads`; göç, paket, ayar, uç, iş yok |
+| Güvenlik | taraması | ✓ | Sır yok; yeni uç ya da POST yok (yetki etkisi yok); okumalar parametreli EF sorgusu; kişisel veri kayda yazılmıyor; `GetConfirmationPartiesAsync` çağıranı yok (T356); yeni bağımlılık yok |
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana kopyanın bekçisi, worktree); ana dal son 3 tamamlanmış run 42532103711, 42532103776 (`d0c97cf0` T327), 42530025706 (`02d83f79` T360) — hepsi success.
+
+**Testler (doğrulayıcı, yerel, `e958219b`):** `dotnet restore` temiz; `dotnet build Shopfolio.slnx --no-restore -warnaserror` 0 uyarı / 0 hata; `dotnet format --verify-no-changes` üç proje çıkış 0; Unit (Architecture + Consistency dahil) 5134/5134; betik testleri 4/4; Integration (PostgreSQL 18 konteyner): `FrozenValuesTests` 6/6, `DigitalDeliveryTests` 21/21 (`DigitalFileReader` yeniden düzenlemesi); dal CI run 42533334898 (head `e958219b`) dokuz işin hepsi yeşil (Integration tam koşu dahil).
+
+**`12` satırları:** KP-17'nin T355'e düşen satırları `VAL-D010`, `D011`, `D012`, `D013`, `D014`, `D015`, `D016` sipariş sayfası / uç yanıtı ve verilmiş sipariş (T348 onayı) ister; T355 uç ve onay akışı eklemez (D-705 → T348, T356). Servis düzeyi kanıt yukarıdaki tablodadır; satırların `Durum`'u `BEKLEMEDE` kaldı (T354, T346, T318, T338 emsali).
+
+**Yapım raporu karşılaştırması (adım 13):** tam uyumlu; öz denetim tablosu her kriter ve KK için kanıtlı. Sayı farkı: Unit 5126 (yapım) ↔ 5134 (doğrulayıcı) — doğrulayıcı main birleştirmesinden sonraki uçta koştu; hüküm etkisi yok.
 
 ## Altyapı Değişiklikleri
 
@@ -94,7 +115,7 @@
 - **Branch:** `task/T355-donan-degerler`
 - **Commit:** son commit PR'da
 - **PR:** #484
-- **CI:** *(validator doldurur)*
+- **CI:** dal run 42533334898 (head `e958219b`) success
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 
 ## Dış Varsayımlar

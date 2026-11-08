@@ -113,7 +113,7 @@ internal static partial class AuditEntryRules
         AuditOperation.SendAdminInvitation or AuditOperation.WithdrawAdminInvitation => ["AdminInvitation"],
         AuditOperation.CreateAdminAccount or AuditOperation.RemoveAdminAccount or AuditOperation.ChangeAdminEmail => ["Admin"],
         AuditOperation.PublishLegalText => ["LegalTextVersion"],
-        AuditOperation.UpdateSettings => ["CompanySettings", "Province"],
+        AuditOperation.UpdateSettings => ["CompanySettings", "Province", "Branding"],
         AuditOperation.ExportOrders or AuditOperation.ExportCustomers or AuditOperation.ExportContactRequests => [],
         AuditOperation.DeleteCustomerAccount => ["Customer"],
         AuditOperation.ChangePublishStatus => null,

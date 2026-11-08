@@ -1,6 +1,6 @@
 # T319 — Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -93,10 +93,41 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — (doğrulama chat'i doldurur) |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-08; bağımsız doğrulama ajanı, `cf6ed041` + `origin/main` birleştirmesi) |
+| Bulgu sayısı | 0 (S1/S2/S3 yok) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 bu PR'da kapatıldı; K2 → D-533 (`Docs/DEFERRED_BACKLOG.d/T319.md`) |
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `scripts/git-hooks`; ana dal son üç tamamlanmış run: `42475025470` Publish success, `42474266979` CI cancelled (yeni push'un eşzamanlılık iptali — `ci.yml` `cancel-in-progress: true`; başarısız iş yok, Integration iptal edildi), `42474266982` Publish success. Dal CI'ı: `42474311101` (head `cf6ed041`) success — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate geçti.
+
+**Kabul kriterleri (doğrulayıcı kanıtı):**
+
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `IrreversibleConfirmations.cs` sekiz `IrreversibleAction` (`03 §1.6.1` tablo sırası); cümleler K-797'nin metniyle, uyarı K-798 (5) ile elle karşılaştırıldı (birebir); "Bu işlem geri alınamaz." son satır; `IOrderTransitions` ve bütün `Contracts` arayüzlerinde geri al yöntemi yok (birim `NoModuleSurface_OffersAnUndo_…`) |
+| 2 | ✓ | `CardRefundOutcome` ve `StartLatePaymentRefundAsync` onay alanı taşımaz; katalogda sistem işlemi yok (`TheSystemsOwnCardRefund_AsksNoConfirmation_…_KK2`) |
+| 3 | ✓ | Çekirdek `CorrectAsync` yanlış satıra dokunmadan `TransitionCode.Correction` satırı ekler (`CorrectedTransitionRecordId`); Integration KK3 testleri |
+| 4 | ✓ | `CorrectTransitionAsync`: sebepsiz, tanımsız, "Diğer" notsuz, notlu başka sebep → `InvalidInput`; B-13 `StatusCorrectedNotice` her düzeltmede |
+| 5 | ✓ | S6 düzeltmesi fiziksel kalemlerin `DeliveryMarkedAt`/`DeliveryDate`'ini boşaltır; pencere saklanmaz, teslim tarihinden hesaplanır — tarih yokken işlemez |
+| 6 | ✓ | `CancellationIsCorrectableAsync`: firma iptali (yönetici + iptal sebebi, kapanış değil), ödeme Ödendi, iade yolda değil (gönderilmiş / Sending / OutcomePending / Succeeded), `ShortVariantsAsync` + koşullu `RetakeAsync`; KK6 testleri (9 satır) |
+| 7 | ✓ | S5/S7/S8 çekirdeğin çift kuralıyla geri; S5 düzeltmesinde `EvaluateClosureAsync` (açık kalemsiz sipariş S4 kapanışı), cayma ve ayıp kaydı kalır; KK7 testleri |
+| 8 | ✓ | `TransferMarkIsCorrectableAsync` dört koşul + dijital kalem; `PaymentWindows.StartAsync` ile Z-8 ve hatırlatma anı yeniden; ikinci B-3 testte sayıldı |
+| 9 | ✓ | Kart Ö1 → `CardPayment`; cayma kaydı geçiş değil → `NotCorrectable`; düzeltme yöntemi yalnız geçiş kaydı alır |
+
+**Kontrol listesi:** KK1–KK9 ✓ (yukarıdaki kanıtlar); `09 §25` ✓ (modül sınırı, tek işlev, `TimeProvider`, durum yalnız geçiş biriminde, ret geri alır; işlem izi sayfa kapısında — UC-150 T530); güvenlik: sır yok, yalnız yönetici (`TryAdminActor`), sebep kapalı listede, yeni bağımlılık yok.
+
+**`12` task satırları (`11 §7.1` T319 kaynağı KP-46):** `VAL-A207`, `A208`, `C039`…`C048` panel uç yanıtı ister (D-308 → T527); T319 uç yazmaz, kritere eşlenmez (T316, T318 emsali) — `Durum` hepsinde `BEKLEMEDE` → `BEKLEMEDE`. `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**Test (doğrulayıcı, yerel):** restore + `build -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` üç projede temiz; Unit 4643/4643 (Consistency, Architecture dahil); betik testleri 4/4; Integration (PostgreSQL 18) `StatusCorrectionTests` 34/34, `Ordering` 219/219, `Disposal` 61/61, `Catalog` 72/72. `origin/main` (T342, T340) birleştirmesinden sonra build temiz, Unit 4699/4699, `Ordering` 219/219; `restore --locked-mode` 0.
+
+**K-notları:**
+
+| # | Not | Karar |
+|---|---|---|
+| K1 | Öz denetim tablosu `12` satırlarını `03 §1.6` grep'iyle bulmuş (`VAL-C102`…`C106`, `B150`, `A713` — §12.3, §12.13, §4.20 satırları, faz/gate okur); task'ın kaynak KP'si KP-46'nın satırlarını anmıyor | Bu PR'da kapatıldı: yukarıdaki `12` task satırları paragrafı KP-46 satırlarını kaydeder; anılan satırların `Durum`'u değişmedi |
+| K2 | `IrreversibleConfirmations` üretimde çağrılmıyor; onay pencerelerini yazacak sayfa task'larının bu tek evden okuması kayıtta yok | D-533 → T527, T528, T529, T533 |
+
+**Yapım raporu karşılaştırması:** kriter ve KK sonuçları tam uyumlu; öz denetim tablosu var ve kanıtlı. Tek uyuşmazlık K1 (`12` satır yöntemi).
 
 ## Altyapı Değişiklikleri
 
@@ -110,7 +141,7 @@
 - **Branch:** `task/T319-geri-alinamaz`
 - **Commit:** `fd127e3` ve öncesi (kod), `6698b83` (kayıtlar, rapor, `!` temizliği)
 - **PR:** #465
-- **CI:** — (yardımcı izler)
+- **CI:** `42474311101` (head `cf6ed041`) success
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

@@ -65,7 +65,7 @@
 | `12` VAL-A976 (onay ile iptal aynı kilit sırası) | ⚠ | İptal tarafı sipariş → değişken/kupon sırasıyla; onay tarafı T348'de — yarış testi T348'in |
 | Sık FAIL: istisnası geniş bekçi / kaçan çağrı biçimi | ✓ | Tarama tip listesi yerine yansıma; desen `Carts`, `CartItems`, `CartItem`, `<Cart>`, `Cart x =` biçimlerini görür, örnekle sınandı |
 | Sık FAIL: aynı sayıyı anan öteki yerler | ✓ | `FinalPaymentQueryRule` özeti, D-97, D-99 ("kart ödemesinin süresi (T403)" payı), D-100, D-253, `PaymentModule` yorumu güncel |
-| Sık FAIL: main'in yeni alanları | ✓ | `origin/main` (T302, #446) birleştirildi; birleşik ağaçta testler yeşil |
+| Sık FAIL: main'in yeni alanları | ✓ | `origin/main` (T302, #446; sonra #452) birleştirildi; birleşik ağaçta derleme `-warnaserror` 0/0, Unit 4273, `PaymentWindowTests` 15 + `PendingRecordDisposalTests` 3 yeniden koşuldu, yeşil |
 
 ## Test Sonuçları
 
@@ -95,7 +95,7 @@ Yerel istisnalar (T324'ten bağımsız, `origin/main`'de de aynı): `VersionedFo
 
 - **Branch:** `task/T324-zaman-asimi`
 - **Commit:** PR başlığında; head SHA PR'da
-- **PR:** PR açıklamasında
+- **PR:** #454
 - **CI:** doğrulayıcı izler
 
 ## Dış Varsayımlar

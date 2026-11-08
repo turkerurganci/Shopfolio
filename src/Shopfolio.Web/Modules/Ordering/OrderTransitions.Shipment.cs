@@ -96,13 +96,14 @@ internal sealed partial class OrderTransitions
         }
 
         DateTimeOffset now = _time.GetUtcNow();
-        if (request.DeliveryDate > TurkeyTime.DateOf(now))
+        DateOnly today = TurkeyTime.DateOf(now);
+        if (DeliveryMarkRules.CheckDeliveryDate(request.DeliveryDate, today, null) is { } future)
         {
-            return Refused(TransitionRefusal.InvalidInput);
+            return DateRefused(future);
         }
 
         List<OrderItem> marked = [];
-        bool dateBeforeShipment = false;
+        DeliveryDateObstacle? dateObstacle = null;
         TransitionOutcome outcome = await ApplyChosenAsync(
             request.OrderId,
             actor!,
@@ -115,9 +116,10 @@ internal sealed partial class OrderTransitions
                 DateTimeOffset? shippedAt = await _db.TransitionRecords
                     .Where(t => t.OrderId == order.Id && (t.TransitionCode == TransitionCode.S5 || t.TransitionCode == TransitionCode.S8))
                     .MaxAsync(t => (DateTimeOffset?)t.CreatedAt, token);
-                if (shippedAt is { } at && request.DeliveryDate < TurkeyTime.DateOf(at))
+                DateOnly? shippingDay = shippedAt is { } at ? TurkeyTime.DateOf(at) : null;
+                dateObstacle = DeliveryMarkRules.CheckDeliveryDate(request.DeliveryDate, today, shippingDay);
+                if (dateObstacle is not null)
                 {
-                    dateBeforeShipment = true;
                     return false;
                 }
 
@@ -128,7 +130,7 @@ internal sealed partial class OrderTransitions
             ct);
         if (outcome.IsRejected)
         {
-            return dateBeforeShipment ? Refused(TransitionRefusal.InvalidInput) : Refused(outcome);
+            return dateObstacle is { } obstacle ? DateRefused(obstacle) : Refused(outcome);
         }
 
         foreach (OrderItem item in marked)
@@ -413,6 +415,10 @@ internal sealed partial class OrderTransitions
     }
 
     private static OrderTransitionResult Refused(TransitionRefusal refusal) => new(refusal, [], null, []);
+
+    /// <summary>The refusal of the delivery date: the wrong value, with the reason the panel tells beside the field (02 3.20.11).</summary>
+    private static OrderTransitionResult DateRefused(DeliveryDateObstacle obstacle) =>
+        new(TransitionRefusal.InvalidInput, [], null, []) { DateObstacle = obstacle };
 
     private static OrderTransitionResult Refused(TransitionOutcome outcome)
     {

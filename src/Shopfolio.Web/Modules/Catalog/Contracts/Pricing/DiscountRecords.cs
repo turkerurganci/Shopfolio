@@ -2,14 +2,6 @@ using Shopfolio.Infrastructure;
 
 namespace Shopfolio.Modules.Catalog.Contracts.Pricing;
 
-/// <summary>The state of a product's discount, read from its dates (04 9.5.8; 03 1.10.1; 06 4.12): not started, running or ended.</summary>
-public enum DiscountState
-{
-    NotStarted,
-    Running,
-    Ended,
-}
-
 /// <summary>
 /// The discount declaration where it is shown - the product page's price block and the storefront card (02 3.9.2, 12.1.6; 04 2.11.2, 5.4.4): the discounted price
 /// rounded to the kuruş, the reference price the system computed (02 3.9.3), the rate, and the discount's start and end dates, which are shown wherever the

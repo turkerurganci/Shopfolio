@@ -48,6 +48,15 @@ internal sealed class Discounts
                 return DiscountSaveResult.EndBeforeStart;
         }
 
+        // A zero is refused before anything is written: the history never takes a price of zero (06 4.11).
+        ReferenceRule rule = ReferencePriceRules.RuleOf(product.ProductType, product.WithdrawalExemptionReason);
+        List<ReferenceInput> before = await PriceHistoryReads.VariantsAsSavedAsync(_db, productId, ct);
+        if (before.FirstOrDefault(v => DiscountRules.ReachesZero(v.Price, percentage)) is { } zero)
+        {
+            Dictionary<Guid, decimal> known = await PriceHistoryReads.ReferencesAsync(_db, rule, DiscountRules.StartsAt(terms), [zero], ct);
+            return DiscountSaveResult.DiscountedPriceZero(zero.VariantId, known[zero.VariantId]);
+        }
+
         Discount? replaced = await _db.Discounts.SingleOrDefaultAsync(d => d.ProductId == productId, ct);
         if (replaced is not null)
         {
@@ -58,23 +67,15 @@ internal sealed class Discounts
         _db.Discounts.Add(discount);
         IReadOnlyList<PriceHistory> rows = await _recorder.RecordAsync(productId, ct);
 
-        List<ReferenceInput> variants = await PriceHistoryReads.VariantsAsSavedAsync(_db, productId, ct);
-        Dictionary<Guid, decimal> references = await PriceHistoryReads.ReferencesAsync(
-            _db,
-            ReferencePriceRules.RuleOf(product.ProductType, product.WithdrawalExemptionReason),
-            DiscountRules.StartsAt(terms),
-            variants,
-            ct);
-        foreach (ReferenceInput variant in variants)
+        // The reference reads the history as this unit of work leaves it: a bound the earlier discount owed is a price that applied (02 3.9.3).
+        Dictionary<Guid, decimal> references = await PriceHistoryReads.ReferencesAsync(_db, rule, DiscountRules.StartsAt(terms), before, ct);
+        foreach (ReferenceInput variant in before)
         {
             decimal reference = references[variant.VariantId];
-            DiscountProblem problem = DiscountRules.CheckVariant(variant.Price, reference, percentage);
-            if (problem != DiscountProblem.None)
+            if (DiscountRules.CheckVariant(variant.Price, reference, percentage) != DiscountProblem.None)
             {
                 Undo(discount, replaced, rows);
-                return problem == DiscountProblem.DiscountedPriceZero
-                    ? DiscountSaveResult.DiscountedPriceZero(variant.VariantId, reference)
-                    : DiscountSaveResult.NotBelowReference(variant.VariantId, DiscountRules.DiscountedPrice(variant.Price, percentage), reference);
+                return DiscountSaveResult.NotBelowReference(variant.VariantId, DiscountRules.DiscountedPrice(variant.Price, percentage), reference);
             }
         }
 

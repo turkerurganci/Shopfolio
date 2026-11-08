@@ -1,3 +1,5 @@
+using Shopfolio.Modules.Settings.Contracts;
+
 namespace Shopfolio.Modules.Ordering.Contracts;
 
 /// <summary>
@@ -93,6 +95,14 @@ public interface IOrderingModule
     Task<int> LinkGuestOrdersAsync(Guid customerId, string email, CancellationToken ct);
 
     /// <summary>
+    /// The account's deletion on the order side (T345; 02 3.15.1-3.15.3; 05 6.1.2), in the caller's open transaction, under the account's row lock the caller holds: the account's orders
+    /// are locked (05 7.3.2), then each is marked as an account's deleted one and its account link is emptied together (a check keeps the two together), so the order is never linked
+    /// to any account again and goes on with its own record - status, contact e-mail and personal data stay until their legal period ends. The marks are a non-raising write: the order's
+    /// version does not move (06 2.6.4). The account's carts are only counted: the database deletes them with the account. The caller saves; the method does not.
+    /// </summary>
+    Task<AccountOrderRelease> MarkAccountDeletedAsync(Guid customerId, CancellationToken ct);
+
+    /// <summary>
     /// Takes the cart items of the given variants off the cart (03 1.8.3; 02 3.16.7; 06 4.16): each unmarked item is marked with the product's name in the caller's
     /// operation - the operation that took the product or the variant off the showcase - so it no longer enters the order or the amounts and is told to the customer once.
     /// An item already marked keeps its first mark. Returns the number of items marked. Joins the caller's transaction (09 9.1 item 3).
@@ -108,10 +118,12 @@ public interface IOrderingModule
     /// <summary>
     /// The cart page's read (T346; 02 3.16): the owner's cart with its lines read live from the current product - the price that applies now, the "fiyatı değişti" mark, the "Tükendi" mark - and the
     /// once-told messages: the items taken off the showcase (deleted by this call) and the products the sign-in merge added (their mark is cleared by this call). A guest cart's last access moment is
-    /// renewed. No cart is created by a read. The payment step is blocked when no line can enter an order (02 3.16.7). Takes the cart's advisory lock first and joins the caller's transaction (09 10.2
+    /// renewed. No cart is created by a read. The payment step is blocked when no line can enter an order (02 3.16.7) or when the basis is under the minimum order amount (02 3.18.1).
+    /// <paramref name="shippingTerms"/> is the firm's shipping section as the caller read it (<c>ISettingsModule.GetShippingFeeAsync</c>; P-1, P-3, P-4): the view carries the fee, the free shipping
+    /// message and the missing amount on the orderable basis (T349; 02 3.18, 3.19). Takes the cart's advisory lock first and joins the caller's transaction (09 10.2
     /// item 5); it does not save. The cart never empties by itself: neither time, nor an open payment, nor a closed sale touches it (02 3.16.2).
     /// </summary>
-    Task<CartView> OpenCartAsync(CartOwner owner, CancellationToken ct);
+    Task<CartView> OpenCartAsync(CartOwner owner, ShippingFeeSection shippingTerms, CancellationToken ct);
 
     /// <summary>
     /// Adds a variant to the owner's cart (02 3.16.1, 3.16.5): a new line remembers the unit price of this moment; the same variant again raises the quantity and leaves that price alone. The cart is

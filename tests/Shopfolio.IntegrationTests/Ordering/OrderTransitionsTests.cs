@@ -25,6 +25,8 @@ using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
 
+using ShippingVatPart = Shopfolio.Modules.Catalog.Contracts.Pricing.ShippingVatPart;
+
 namespace Shopfolio.IntegrationTests.Ordering;
 
 /// <summary>The collection of the transition unit's tests (T315): one database copied from the template.</summary>
@@ -110,6 +112,24 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
         Assert.Equal(
             new[] { TransitionCode.S3, TransitionCode.O2 }.Order(),
             (await reader.TransitionRecords.Where(t => t.OrderId == order.Id).Select(t => t.TransitionCode).ToListAsync(Ct)).Order());
+    }
+
+    [Fact]
+    public async Task TheCancellation_DoesNotRecalculateTheFrozenShippingFee_NorItsBreakdown_T349_KK9()
+    {
+        ShippingVatPart[] parts = [new(20m, 33.33m, 5.56m), new(10m, 16.66m, 1.51m)];
+        (Order order, _) = await SeedOrderAsync(OrderStatus.Placed, PaymentStatus.Pending, shippingParts: parts);
+
+        TransitionOutcome outcome = await RunAsync((unit, token) => unit.ApplyAsync(
+            new TransitionRequest(order.Id, [TransitionCode.S3, TransitionCode.O2], TransitionActor.Buyer), null, token));
+
+        // The breakdown is a typed payload (09 12 item 5; D-65): it comes back from the jsonb column as it was frozen, and the cancellation left it and the fee alone (02 3.19.6).
+        Assert.False(outcome.IsRejected);
+        await using AppDbContext reader = NewContext();
+        Order saved = await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct);
+        Assert.Equal(OrderStatus.Cancelled, saved.OrderStatus);
+        Assert.Equal(49.99m, saved.ShippingFee);
+        Assert.Equal([new ShippingFeeVatShare(20m, 33.33m, 5.56m), new ShippingFeeVatShare(10m, 16.66m, 1.51m)], saved.ShippingFeeVatBreakdown);
     }
 
     [Theory]
@@ -561,7 +581,8 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
         OrderStatus orderStatus,
         PaymentStatus paymentStatus,
         int quantity = 1,
-        ProductType productType = ProductType.Physical)
+        ProductType productType = ProductType.Physical,
+        IReadOnlyList<ShippingVatPart>? shippingParts = null)
     {
         int n = Interlocked.Increment(ref _counter);
         Province province = Province.Create($"{n:D2}", $"İl {n}", Now);
@@ -569,7 +590,8 @@ public sealed class OrderTransitionsTests : IAsyncLifetime
         LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, n, Now, "metin", Now);
         LegalTextVersion notice = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, n, Now, "metin", Now).WithHosting();
         Order order = Order.Create(
-            $"2026-{n:D6}", $"access-placeholder-{n}", $"confirm-placeholder-{n}", PaymentMethod.Card, true, "Ali@Example.com", 120m, 0m, Now.AddHours(1), Now);
+            $"2026-{n:D6}", $"access-placeholder-{n}", $"confirm-placeholder-{n}", PaymentMethod.Card, true, "Ali@Example.com", 120m, shippingParts?.Sum(p => p.Part) ?? 0m, Now.AddHours(1), Now);
+        order.FreezeShippingFeeVatBreakdown(shippingParts ?? []);
         order.IpAddress = IPAddress.Parse("203.0.113.5");
         order.CartId = EntityIds.New();
         order.BillingRecipientName = "Ali Veli";

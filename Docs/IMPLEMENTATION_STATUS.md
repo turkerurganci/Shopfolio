@@ -163,7 +163,7 @@
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ✓ | ✓ PASS (tur 2) | — | #466 |
 | T321 | Ürün yayın durumları | ✓ | ✓ PASS (tur 3) | `a89710b` | #439 |
 | T322 | İçerik yayın durumları ve iletişim talebi durumları | ✓ | ✓ PASS (tur 1) | `f9ea0fe` | #438 |
-| T323 | Durum × rol × işlem tablosu | ⬚ | — | — | — |
+| T323 | Durum × rol × işlem tablosu | ✓ | ✓ PASS (tur 2) | — | #474 |
 | T324 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | ✓ | ✓ PASS (tur 1) | — | #454 |
 | T325 | Zaman aşımı akışları: teslim, cayma, geri ödeme ve ayıp talebi süreleri | ✓ | ✓ PASS (tur 1) | — | #464 |
 | T326 | Zaman aşımı akışları: katalog, kupon, içerik, iletişim ve bildirim süreleri | ✓ | ✓ PASS (tur 1) | — | #471 |
@@ -185,11 +185,11 @@
 | T342 | Giriş ve oturum: oturum ömrü, şifre politikası, sıfırlama, yeniden doğrulama, yönetici hesaplarına aynı rejim, giriş limitleri | ✓ | ✓ PASS (tur 3) | — | #453 |
 | T343 | Google ile giriş ve hesap bağlama, e-posta değişikliği ve geri alma | ✓ | ✓ PASS (tur 1) | — | #468 |
 | T344 | Adres: adres defteri, fatura adresi, kapalı il listesi, tipe göre istenen adresler, siparişe donma | ✓ | ✓ PASS (tur 1) | — | #451 |
-| T345 | Hesabın silinmesi ve kişisel veri başvurusu | ⬚ | — | — | — |
+| T345 | Hesabın silinmesi ve kişisel veri başvurusu | ✓ | ✓ PASS (tur 2) | — | #477 |
 | T346 | Sepet: sahiplik, giriş anında birleşme, canlı kalem, siparişe girmeyen kalemler | ✓ | ✓ PASS (tur 2) | — | #467 |
 | T347 | Sepet adet kuralları: stok ve sipariş başına sınır, boşalma, istek listesi yokluğu | ✓ | ✓ PASS (tur 1) | — | #475 |
 | T348 | Sipariş onayı: oluşma anı, özet eşitliği, stok ayırma, ödeme süresi, kendiliğinden iptal | ⬚ | — | — | — |
-| T349 | Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği | ⬚ | — | — | — |
+| T349 | Asgari sipariş tutarı, kargo ücreti ve ücretsiz kargo eşiği | ✓ | ✓ PASS (tur 2) | — | #476 |
 | T350 | Teslim: il kısıtı, tek yol, kargoya verme süresi ve sözü, kargoya verildi işareti, kargo şirketi | ✓ | ✓ PASS (tur 1) | — | #460 |
 | T351 | Teslim işaretleri: kalem tipine göre teslim, karışık sipariş, fiziksel teslim tarihi | ⬚ | — | — | — |
 | T352 | Ödeme: satıcı ve kart verisi, iki yöntem, 3D Secure, taksit, ters ibraz | ⬚ | — | — | — |

@@ -28,4 +28,7 @@ public interface ISessionService
 
     /// <summary>Takes the permission with one conditional update; false means the operation must not run.</summary>
     Task<bool> TryRedeemReauthenticationAsync(Guid customerId, Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct);
+
+    /// <summary>The same take for a caller that already holds the customer's row by a write of its own and goes on into the order locks (the account lock is a family taken alone, 05 7.3.5).</summary>
+    Task<bool> TryRedeemReauthenticationHeldAsync(Guid customerId, Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct);
 }

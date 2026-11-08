@@ -10,7 +10,8 @@ namespace Shopfolio.Modules.Ordering;
 /// that the order's own field says is due - the transfer order's cancellation, its reminder. Processing runs in one transaction that takes the
 /// order's row lock first, loads the order after it, asks again whether the order is still due (a payment or an administrator's change may have
 /// come in between) and only then applies the change. The order's version is raised by this base after <c>Apply</c>, so a
-/// subclass cannot forget it.
+/// subclass cannot forget it - once: a step that called an operation of the transition unit, which raised it already, is not raised again
+/// (<see cref="OrderTransitions.RaiseVersionOnce(AppDbContext, Order)"/>).
 /// </summary>
 internal abstract class ScheduledOrderTransition : IDueRecordSource
 {
@@ -42,7 +43,7 @@ internal abstract class ScheduledOrderTransition : IDueRecordSource
                 if (order is not null && IsDue(order, now))
                 {
                     await Apply(services, order, now, cancel);
-                    order.BumpVersion();
+                    OrderTransitions.RaiseVersionOnce(db, order);
                 }
 
                 return new SchedulerStepResult();

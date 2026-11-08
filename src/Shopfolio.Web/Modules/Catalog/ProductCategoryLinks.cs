@@ -15,11 +15,13 @@ internal sealed class ProductCategoryLinks
 {
     private readonly AppDbContext _db;
     private readonly TimeProvider _time;
+    private readonly CacheInvalidations _invalidations;
 
-    public ProductCategoryLinks(AppDbContext db, TimeProvider time)
+    public ProductCategoryLinks(AppDbContext db, TimeProvider time, CacheInvalidations invalidations)
     {
         _db = db;
         _time = time;
+        _invalidations = invalidations;
     }
 
     public async Task<ProductCategoriesResult> SetAsync(Guid productId, IReadOnlyCollection<Guid> categoryIds, Guid? primaryCategoryId, CancellationToken ct)
@@ -70,6 +72,9 @@ internal sealed class ProductCategoryLinks
         }
 
         product.BumpVersion();
+
+        // The categories a product hangs on decide which categories show in the menu (02 3.28.6; 05 7.10.1).
+        _invalidations.Add(CacheArea.Menu);
         return ProductCategoriesResult.Written;
     }
 }

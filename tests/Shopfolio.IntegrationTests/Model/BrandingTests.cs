@@ -18,6 +18,7 @@ using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.CorporateContent;
 using Shopfolio.Modules.CorporateContent.Contracts;
+using Shopfolio.Modules.Settings;
 
 namespace Shopfolio.IntegrationTests.Model;
 
@@ -432,6 +433,7 @@ public sealed class BrandingTests : IAsyncLifetime
         services.AddScoped<IAuditTrail, AuditTrail>();
         services.AddOptions<SiteOptions>().Configure(o => o.Domain = Domain);
         services.AddCatalogModule();
+        services.AddSettingsModule();
         services.AddCorporateContentModule();
         return services.BuildServiceProvider();
     }

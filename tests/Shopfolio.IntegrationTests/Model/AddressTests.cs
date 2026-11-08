@@ -590,6 +590,8 @@ public sealed class AddressTests : IAsyncLifetime
     {
         public Task<IReadOnlyList<ProvinceInfo>> GetProvincesAsync(CancellationToken ct) => provinces.GetAllAsync(ct);
 
+        public Task<HomepageSection> GetHomepageAsync(CancellationToken ct) => throw new NotSupportedException();
+
         public Task<SalesGate> GetSalesGateAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<CompanyIdentity> GetCompanyIdentityAsync(CancellationToken ct) => throw new NotSupportedException();

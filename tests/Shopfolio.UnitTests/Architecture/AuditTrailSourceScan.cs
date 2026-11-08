@@ -19,6 +19,12 @@ internal static partial class AuditTrailSourceScan
     public const string SystemCodeReachesTheTrail = "reaches IAuditTrail or AuditEntry from the shared infrastructure (02 10.3.3, 05 4.7.4: system events and installation commands write no trail row)";
     public const string BreachModule = "names a data breach record, detection or bulk notice (02 12.2.9; 10 KD-58: the trail, the login record and the system logs are read for the scope; there is no such module)";
 
+    /// <summary>
+    /// The rollback check counts the trail like every order side table (T388; 05 8.5.11): its closed table list may hold the one entry <c>("audit_logs", string.Empty)</c>; any other
+    /// form of the name in that file (a statement) and the entry anywhere else is still a finding.
+    /// </summary>
+    public const string RollbackCountFile = "src/Shopfolio.Web/Infrastructure/Backup/RollbackAudit.cs";
+
     /// <summary>The closed list of files that may touch the set and the entity.</summary>
     public static readonly string[] TrailFiles =
     [
@@ -49,7 +55,8 @@ internal static partial class AuditTrailSourceScan
 
         if (!path.Contains("/Infrastructure/Migrations/", StringComparison.Ordinal))
         {
-            Add(findings, NamesTheTableOutsideTheMigrations, TableName(), clean);
+            string tableText = path == RollbackCountFile ? RollbackListEntry().Replace(clean, string.Empty) : clean;
+            Add(findings, NamesTheTableOutsideTheMigrations, TableName(), tableText);
         }
 
         if (path.Contains("/Infrastructure/", StringComparison.Ordinal))
@@ -127,6 +134,9 @@ internal static partial class AuditTrailSourceScan
     // disposal record type member are no such form (a member access is preceded by a dot, the name text is a string).
     [GeneratedRegex(@"\bAuditLogs\b|<\s*AuditLog\s*[>,]|\btypeof\s*\(\s*AuditLog\s*\)|\bnew\s+AuditLog\b|(?<![.\w""])AuditLog\s*\.\s*Create\b|\bnameof\s*\(\s*AuditLogs?\s*\)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex TrailTouch();
+
+    [GeneratedRegex(@"\(\s*""audit_logs""\s*,\s*string\.Empty\s*\)", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex RollbackListEntry();
 
     // The table as a word: dispose_expired_audit_logs is another word (the underscore joins it).
     [GeneratedRegex(@"(?<![A-Za-z0-9_])audit_logs(?![A-Za-z0-9_])", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 5000)]

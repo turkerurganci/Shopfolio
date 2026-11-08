@@ -345,7 +345,7 @@ internal sealed class AdminAccounts
 
     // The row work of a removal, shared by the administrator's removal and its replay after a restore: null when the account is not there. The row lock without a change comes first: a send by the
     // target that holds the row finishes first and its invitation is seen by the statements after it. Returns what the removal's answer and the notice need.
-    private async Task<(int ValidInvitations, int Sessions, List<string> Addresses)?> DeleteAccountRowAsync(Guid adminId, DateTimeOffset now, CancellationToken ct)
+    private async Task<(int validInvitations, int sessions, List<string> addresses)?> DeleteAccountRowAsync(Guid adminId, DateTimeOffset now, CancellationToken ct)
     {
         if (await _db.Admins.Where(a => a.Id == adminId).ExecuteUpdateAsync(set => set.SetProperty(a => a.Name, a => a.Name), ct) != 1)
         {

@@ -13,7 +13,9 @@ using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
+using Shopfolio.Infrastructure.SearchEngine;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Status;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog;
@@ -113,6 +115,13 @@ internal static class CommandHost
         services.AddSingleton<InstantDeletionLog>();
 
         services.AddFileStore();
+        // The modules' constructors need the image processor (Catalog's uploads); the command mode makes no derivative (T388: the modules are now resolved for the replay).
+        services.AddSingleton<Shopfolio.Infrastructure.Imaging.ImageProcessor>();
+        // What the modules' constructors take in the web host too (T388: the replay resolves the Membership and Administration modules): the site address, the conditional settings and the disk guard.
+        services.AddSearchEngineData();
+        services.AddInstallationSettings();
+        services.AddSingleton<IDiskUsageReader, DriveDiskUsageReader>();
+        services.AddSingleton<DiskUsageGuard>();
         services.AddCatalogModule();
         services.AddOrderingModule();
         services.AddPaymentModule();

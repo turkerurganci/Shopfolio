@@ -54,14 +54,14 @@
 | Sık FAIL 5 (belge kuralı değişikliği karar kaydısız) | ✓ | 09 değişmedi; belge kuralı değişmedi |
 | Sık FAIL: kapanış kuralı teslim işaretli kalemi denetler (T316 r1) | ✓ | `AServiceItemsMark_…_AndTheLastOneEndsTheLine_KK1`, `WhenEveryItemIsCancelled_NoServiceMarkIsLeftToSet_KK6` |
 | Sık FAIL: modül kurucusu bağımlılığı / Integration TAM | ✓ | kurucu değişmedi; Integration TAM koşuldu (aşağıda) |
-| Sık FAIL: `dotnet format` koşulmadan "temiz" | FORMAT_SONUC | aşağıda |
+| Sık FAIL: `dotnet format` koşulmadan "temiz" | ✓ | `dotnet format --verify-no-changes` Web, UnitTests, IntegrationTests: temiz (birleşme sonrası, yapım işçisi 2) |
 
 ## Test Sonuçları
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | UNIT_SONUC | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --no-build` | TAM koşu |
-| Integration | INTEG_SONUC | `dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj --no-build --filter-namespace "*.Ordering"` ve `--filter-not-namespace "*.Ordering"` | `DeliveryMarksTests` 16/16; Ordering 301/301 |
+| Unit | ✓ 5023/5023 | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj --no-build` | TAM koşu |
+| Integration | ✓ 2895/2895 | `dotnet test --project tests/Shopfolio.IntegrationTests/Shopfolio.IntegrationTests.csproj --no-build --filter-namespace "*.Ordering"` ve `--filter-not-namespace "*.Ordering"` | TAM, birleşik ağaçta, ad alanı parçalarıyla: Model 1379, Catalog..Files 421, Jobs..Web 778, Ordering 317 (`DeliveryMarksTests` 16/16 dahil); 0 hata. Önceki işçinin 88 Npgsql "Timeout during reading" hatası ortamdı (tek konteyner, paralel koşu); temiz konteynerde (max_connections=300) hepsi geçti |
 | Contract | — | — | bu task'ta yok |
 
 ## Doğrulama
@@ -83,7 +83,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T351-teslim-isaretleri`
-- **Commit:** PR_HEAD
+- **Commit:** kod başı `258819a3`; rapor ve PR sonrası başı PR sayfasında
 - **PR:** PR_NO
 - **CI:** yoklanmadı (yapım işçisi CI izlemez)
 - **Post-merge run'lar:** *(validator doldurur)*
@@ -111,4 +111,4 @@ Dış varsayım: yok. Başlangıç: `gh run list --branch main` — Publish 4251
 - **Ana dal CI startup (Adım 0):** yukarıda
 - **Repo memory (bitiş kapısı 9):** güncellenmedi (MEMORY "Güncel Durum"a dokunulmaz, talimat)
 - **Kolay ⚠ kararlar:** (1) ret sebebi `TransitionRefusal`'a yeni değer eklemeden `OrderTransitionResult.DateObstacle` ile verildi; (2) hizmet işaretinin ödeme koşulu kapanış kuralıyla aynı okuma (Bekliyor ve Başarısız dışı; Refunded D-528 notuyla aynı çizgide); (3) hizmet işareti `OrderTransitionResult` döner, kapanış kaydı varsa onu taşır; (4) panel sunumu için yalnız kural (`IsServiceMarkOffered`), modül okuma görünümü yok (D-645).
-- Docker: `shopfolio-t351-pg` port 55480 (55371–55470 Windows tarafından ayrılmış); iş sonunda silindi.
+- Docker: `shopfolio-t351-pg` ve `shopfolio-t351b-pg` (port 55481) iş sonunda adıyla silindi.

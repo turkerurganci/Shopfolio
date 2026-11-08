@@ -1,6 +1,6 @@
 # T320 — Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri
 
-**Faz:** F3 | **Durum:** ⏳ Yapım bitti, doğrulama bekliyor | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — Z-18 kanalı ve "teslimden sonra" kuralı iki yerde, farklı) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -78,6 +78,19 @@ Devam işçisi (4.) önceki üç işçinin yaptıkları dahil bütün maddeleri 
 | Contract | uygulanamaz | — | Dış sözleşme yok |
 
 Sayılar `origin/main` `02ec5357` (T342) birleştirmesinden sonraki ağaçtır.
+
+## Doğrulama
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-08, head `94695c67` = `7ed9e510` + `origin/main` `0a669969` (T325) birleştirmesi). Kriter 1–10 ve KK1–KK10 ✓; `09 §25` "aynı işi yapan tek işlev" ve `09 §1` "bir kural iki yerde farklı anlatılmaz" ✗ (B1); güvenlik taraması temiz. Yerelde derleme `-warnaserror` 0/0, biçim temiz (3 proje), Unit 4762/4762, betik testleri 4/4, Integration: `ItemRecordsTests` + `RecordDisposalTests` 44/44, Disposal ad alanı 61/61, değişen düzeni kullanan Ordering sınıfları 127 + 99, Catalog (AfterSales kayıtlı) 72/72; `has-pending-model-changes` temiz; `restore --locked-mode` 0. Dal CI 42480410576 (head `94695c67`) yeşil (Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate). Ana dal son üç tamamlanmış run: 42479203249, 42479203341, 42477763792 — success |
+| Bulgu sayısı | 1 — **B1 ORTA S1** (`09 §1`, `09 §24` m.4, `09 §25` mimari satırı; komşu satırlar VAL-C020, VAL-C024, VAL-C108): T325'in main'e giren `AfterSalesPeriodRules` sınıfı Z-18 kanalının ve "beyan teslimden sonra mı" kuralının tek evi olarak yazılmış (`IsDefectClaimChannelOpen`, `DefectClaimYears`, `IsAfterDelivery`; sınıf yorumu "one home ... the defect claim operations and the panel read these rules"). T320 main birleştirmesinden sonra aynı kuralları ikinci kez taşıyor: `DefectClaimWindow.IsOpen` / `Years` ve `AfterSalesModule.ItemRecords.cs`'teki özel `IsAfterDelivery`. İkisi farklı karar veriyor: fiziksel kalem, sipariş Teslim edilemedi, teslim tarihi yok → `DefectClaimWindow.IsOpen` açık (T320 testi `Window_OnAPhysicalItem_OpensWithTheShipment_…` bunu `True` bekler), `AfterSalesPeriodRules.IsDefectClaimChannelOpen(Physical, DeliveryFailed, null, now)` kapalı (`orderStatus is Shipped or Delivered`). Sonuç: sipariş sayfası/panel kanalı T325 kuralıyla kapalı gösterirken yazma yolu talebi kabul eder. `IsAfterDelivery`'de T325 ürün tipini (yalnız fiziksel) denetler, T320'nin kopyası denetlemez |
+| Düzeltme gerekli mi | Evet — Z-18 için tek ev: `OpenDefectClaimAsync` ve yeniden açma kanalı `AfterSalesPeriodRules.IsDefectClaimChannelOpen` (ya da tek birleşik işlev) üzerinden okunur, `DefectClaimWindow.Years` kalkar (`DefectClaimYears` tek sabit); Teslim edilemedi'nin kanalı açık mı kapalı mı tek kuralda karara bağlanır (`03 §1.11.9` "Kargoya verildi'ye geçtikten … sonra") ve iki testin beklentisi tekleşir; `ItemMarksAsync` `AfterSalesPeriodRules.IsAfterDelivery`'yi çağırır (çağıran ürün tipini `ItemDelivery` ile verir) |
+| Bloke-etmeyen not (K) sayısı | 1 — K1: `ItemQuantities.AwaitingReceipt` (beyan başına) ile `ItemUnitFacts.AwaitingReceipt` (kalem başına) aynı formülü iki yerde taşır; beyan başına ayrım "iade malı bekleniyor" için gerekli, formül tekleştirilebilir → D-568 (F3 gate) |
+
+**Task satırları (`12 §7.5`):** KP-23 (`grep -nE 'KP-23([^0-9]|$)'`) → VAL-A082, C020, C021, C022, C023, C024, A083, A084, C025; kaynak birimleri (`03 §1.7`, §1.9, §5.3; `02 §5.10`) → VAL-C107, C108, D107 (ve sipariş düzeyi işaret satırları VAL-F011, C115 — sahipleri D-526'da). Hepsinin kanıt türü uç yanıtı ister; T320 uç kurmaz (müşteri ve panel uçları T374 / sayfa task'ları) → `BEKLEMEDE` kalır, `12` değişmedi; `12_matris_denetle.py --kapsam 1-77` Hata 0. B1 hiçbir satırın beklenen sonucunu bugün bozmuyor (Teslim edilemedi satırlarda yok), ama VAL-C020/C024/C108'in kuralını iki yerde, farklı kurar.
+
+**Doğrulayıcı uyuşmazlık notları (adım 13):** (1) Öz denetimin `09 §25` mimari satırı "tek işlev … yeniden kullanıldı" diyor; öz denetim T325 birleştirmesinden (`94695c67`) önce yazıldı, birleştirme sonrası ağaçta `AfterSalesPeriodRules` ile çift kural doğdu (B1). (2) Test sayıları `02ec5357` ağacının; doğrulama `94695c67` ağacında koştu (Unit 4762). (3) Kararlar 9'daki "`VAL-C107/C108` BEKLEMEDE" doğru; KP-23 satırları ve VAL-D107 de aynı gerekçeyle BEKLEMEDE. Öz denetim tablosu tam ve kanıtlı.
 
 ## Altyapı Değişiklikleri
 

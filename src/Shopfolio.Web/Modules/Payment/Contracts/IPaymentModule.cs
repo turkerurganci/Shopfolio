@@ -58,6 +58,25 @@ public interface IPaymentModule
     Task<IReadOnlyList<PaymentSource>> FindPaymentSourcesAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct);
 
     /// <summary>
+    /// True when the order has a refund that is not voided - started, sent or awaiting its outcome - the open transaction's changes included. The transfer's
+    /// "paid" mark is not corrected after a refund (03 1.6.2.4; K-703).
+    /// </summary>
+    Task<bool> HasRefundAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
+    /// True when a refund of the given cancellations that is not voided was sent, or has a card request that is being sent, whose outcome is awaited or that
+    /// succeeded (06 4.22, 4.34; K-940): the money may have left, so the wrong cancellation is not corrected. A plain read under the caller's order lock.
+    /// </summary>
+    Task<bool> IsCancellationRefundUnderwayAsync(IReadOnlyCollection<Guid> cancellationIds, CancellationToken ct);
+
+    /// <summary>
+    /// The correction of the firm's wrong cancellation (06 4.22, 4.33; 02 10.4.6; K-1056): the cancellations' refunds that are neither sent nor voided are voided
+    /// now, and a voided refund is never sent (the card refund handler reads the mark - T405; D-518). Writes through the caller's change tracker and saves
+    /// nothing; returns the voided ids.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> VoidCancellationRefundsAsync(IReadOnlyCollection<Guid> cancellationIds, CancellationToken ct);
+
+    /// <summary>
     /// The order's disposal (06 9.2.1; K-1059): empties the administrator link and name of every refund of the given orders and returns the ids of all their
     /// refunds. It writes through the caller's change tracker - the caller's transaction and order row lock hold, and the caller raises the order's version and
     /// saves. The payment records, the refund records and the inbound notification records are not touched (06 9.2.2).

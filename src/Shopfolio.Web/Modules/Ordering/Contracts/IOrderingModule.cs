@@ -105,6 +105,12 @@ public interface IOrderingModule
     /// empty when the order is not a card order that still waits for its payment - paid, cancelled, or a bank transfer. A plain read; it writes nothing.
     /// </summary>
     Task<CardPaymentQueryTarget?> GetCardPaymentQueryTargetAsync(Guid orderId, DateTimeOffset now, CancellationToken ct);
+
+    /// <summary>
+    /// Which of the given transition records a correction row points at (06 4.19 <c>CorrectedTransitionRecordId</c>), the caller's unsaved rows included: a
+    /// cancellation whose closing transition is corrected is undone (06 4.22; T319). A plain read; it writes nothing.
+    /// </summary>
+    Task<IReadOnlySet<Guid>> FindCorrectedTransitionRecordsAsync(IReadOnlyCollection<Guid> transitionRecordIds, CancellationToken ct);
 }
 
 /// <summary>A card order that waits for its payment: its number, which the provider's query names, and whether its payment window has ended.</summary>

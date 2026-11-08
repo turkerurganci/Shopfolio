@@ -29,4 +29,7 @@ public enum TransitionRefusal
 
     /// <summary>A value of the request is not valid (the carrier data, the delivery date, the reason or its note).</summary>
     InvalidInput,
+
+    /// <summary>The correction can not be made (03 1.6.2; K-703); the result's <c>Obstacle</c> says why (07 6.2.7).</summary>
+    CorrectionNotPossible,
 }

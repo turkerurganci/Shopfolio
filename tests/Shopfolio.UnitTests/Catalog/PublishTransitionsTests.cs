@@ -133,12 +133,9 @@ public sealed class PublishTransitionsTests
     }
 
     [Fact]
-    public async Task UnwrittenGate_IsOpenForEverything_UntilT335()
+    public void TheVerdict_IsOpenExactlyWhenNoConditionIsUnmet_KK3()
     {
-        UnwrittenPublishGate gate = new();
-
-        Assert.True((await gate.CheckProductAsync(Guid.NewGuid(), TestContext.Current.CancellationToken)).IsOpen);
-        Assert.True((await gate.CheckVariantAsync(Guid.NewGuid(), TestContext.Current.CancellationToken)).IsOpen);
+        Assert.True(PublishGateVerdict.Open.IsOpen);
         Assert.False(new PublishGateVerdict(["file"]).IsOpen);
     }
 

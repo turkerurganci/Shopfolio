@@ -182,3 +182,4 @@ Dış varsayım: yok. Entegrasyon testi için yerel `postgres:18` (CI'ın aynı 
 - **Repo memory (bitiş kapısı 9):** güncellendi.
 - **⚠ kolay kararlar:** (1) deftere kaydetmede ad: alıcı adı varsayılan, isteğe bağlı `SavedAddressName` (D-435); (2) misafir + `SaveToAddressBook` sessizce yok sayılır, misafir + `AddressBookId` 404; (3) girdi `customerId` hesapta yoksa misafir sayılır; (4) dijital sepette gönderilen teslimat değerleri okunmaz, "teslimatla aynı" kutusu yok sayılıp fatura yazılı istenir.
 - `IMPLEMENTATION_STATUS.md` "Son güncelleme" satırına dokunulmadı (kural 2026-11-08).
+- **Düzeltme (main birleşimi sonrası CI Integration):** `AddressTests` kurulumunda main'den gelen T317 `OrderPaymentArms` bağımlılığı için `OrderPaymentArms`, `IJobQueue` ve `AddPaymentModule()` kaydı eklendi; yalnız test kurulumu, üretim kodu değişmedi.

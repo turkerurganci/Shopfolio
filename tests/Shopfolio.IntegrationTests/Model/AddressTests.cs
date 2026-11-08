@@ -20,6 +20,7 @@ using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Membership.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
@@ -91,6 +92,7 @@ public sealed class AddressTests : IAsyncLifetime
         services.AddAppCache();
         services.AddScoped<JobEnqueueTracker>();
         services.AddSingleton<IJobSignal, JobSignal>();
+        services.AddScoped<IJobQueue, JobQueue>();
         services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.None));
         services.AddScoped<AttemptCounter>();
         services.AddScoped<LinkRecords>();
@@ -100,8 +102,10 @@ public sealed class AddressTests : IAsyncLifetime
         services.AddScoped<ProvinceList>();
         services.AddScoped<ISettingsModule, ProvinceSettings>();
         services.AddScoped<OrderLocks>();
+        services.AddScoped<OrderPaymentArms>();
         services.AddScoped<AdvisoryLocks>();
         services.AddScoped<IOrderingModule, OrderingModule>();
+        services.AddPaymentModule();
         services.AddMembershipModule();
         _provider = services.BuildServiceProvider();
     }

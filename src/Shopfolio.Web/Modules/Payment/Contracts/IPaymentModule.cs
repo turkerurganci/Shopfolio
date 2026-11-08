@@ -70,6 +70,12 @@ public interface IPaymentModule
     Task<bool> IsCancellationRefundUnderwayAsync(IReadOnlyCollection<Guid> cancellationIds, CancellationToken ct);
 
     /// <summary>
+    /// The refund subjects among <paramref name="subjectIds"/> - cancellation, late delivery termination or goods' receipt ids - that have a refund that was
+    /// sent or voided (06 4.33): their refund no longer uses an IBAN (03 4.2.8; K-1127). A plain read under the caller's order lock.
+    /// </summary>
+    Task<IReadOnlySet<Guid>> FindSettledRefundSubjectsAsync(IReadOnlyCollection<Guid> subjectIds, CancellationToken ct);
+
+    /// <summary>
     /// The correction of the firm's wrong cancellation (06 4.22, 4.33; 02 10.4.6; K-1056): the cancellations' refunds that are neither sent nor voided are voided
     /// now, and a voided refund is never sent (the card refund handler reads the mark - T405; D-518). Writes through the caller's change tracker and saves
     /// nothing; returns the voided ids.

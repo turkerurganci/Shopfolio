@@ -83,8 +83,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T351-teslim-isaretleri`
-- **Commit:** kod başı `258819a3`; rapor ve PR sonrası başı PR sayfasında
-- **PR:** PR_NO
+- **Commit:** kod başı `258819a3`; rapor commit `d71ada77`
+- **PR:** #478
 - **CI:** yoklanmadı (yapım işçisi CI izlemez)
 - **Post-merge run'lar:** *(validator doldurur)*
 

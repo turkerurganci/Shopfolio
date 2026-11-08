@@ -56,7 +56,7 @@ public sealed class ContentStatusTests : IAsyncLifetime
     public async Task Publish_ACompleteRecord_MovesItToPublished_AndRaisesTheVersionByOne_KK2()
     {
         FaqItem faq = FaqItem.Create("İade var mı?", 1, Now);
-        faq.Answer = "<p>Evet.</p>";
+        faq.SetAnswer("<p>Evet.</p>");
         await SeedAsync(faq);
 
         ContentResult result = await RunAsync((_, publishing) => publishing.PublishAsync(ContentRecordKind.FaqItem, faq.Id, 1, Ct));

@@ -5,6 +5,8 @@ using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Settings.Contracts;
 
+using FieldRejection = Shopfolio.Infrastructure.Validation.FieldRejection;
+
 namespace Shopfolio.Modules.CorporateContent;
 
 /// <summary>What became of a corporate content entry (T358).</summary>

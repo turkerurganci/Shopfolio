@@ -5,6 +5,8 @@ using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 
+using FieldRejection = Shopfolio.Infrastructure.Validation.FieldRejection;
+
 namespace Shopfolio.Modules.CorporateContent;
 
 /// <summary>A branch as the contact page lists it (02 3.27.7): the map link carries the fixed text and is null when the branch has none.</summary>

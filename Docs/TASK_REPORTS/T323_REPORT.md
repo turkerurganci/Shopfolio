@@ -1,6 +1,6 @@
 # T323 — Durum × rol × işlem tablosu
 
-**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL (düzeltme bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-08
 
 ## Yapılan İşler
 
@@ -55,11 +55,11 @@ Not: `CheckAsync` yazıcının işlem içinde, sipariş satır kilidinden sonra 
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-08, head `1c68a3b7`) |
-| Bulgu sayısı | 3 (B1 ORTA S1, B2 DÜŞÜK S1, B3 DÜŞÜK S1); K-notu 2 |
-| Düzeltme gerekli mi | Evet — B1–B3 bu dalda düzeltilir, yeni doğrulama turu |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-08, head `e5644a69`; tur 1 ✗ FAIL, head `1c68a3b7`) |
+| Bulgu sayısı | Tur 2: 0 bulgu, K-notu 1 (D-660). Tur 1: 3 (B1 ORTA S1, B2 DÜŞÜK S1, B3 DÜŞÜK S1); K-notu 2 |
+| Düzeltme gerekli mi | Hayır — B1–B3 Düzeltme 1 ile kapandı (tur 2 kanıtıyla) |
 
-**Validator kabul kriterleri tablosu:** K1 ✗ (B1–B3: 1.11.28, 1.11.29, 1.11.25 ve 1.11.32'nin aralıkları `03 §1.11` ile birebir değil) · K2 ✓ · K3 ✓ · K4 ✓ · K5 ✓ · K6 ✓ (karar düzeyinde; yazıcıların bağlanması D-610/D-614) · K7 ✓ · K8 ✓.
+**Validator kabul kriterleri tablosu (tur 2):** K1 ✓ (41 satır; 1.11.25, 1.11.28, 1.11.29 ve 1.11.32 düzeltildi — `OrderOperationCatalogTests`, `OrderOperationsTests` 1.11.25/1.11.28 testleri; 1.11.32 adım ayrımı katalogda, `Contracts` yüzüne taşınması D-657/D-660) · K2 ✓ · K3 ✓ · K4 ✓ · K5 ✓ · K6 ✓ (karar düzeyinde; yazıcıların bağlanması D-610/D-614) · K7 ✓ · K8 ✓. Tur 1 tablosu: K1 ✗ (B1–B3), öteki ✓.
 
 - **B1 (ORTA, S1) — 1.11.28 ve 1.11.29 teslimden önceki caymanın ve gecikme feshinin malını saymıyor.** `AfterSalesModule.OperationFacts.cs` `ReceivableUnits`/`RejectableUnits`'i yalnız `IsAfterDelivery` doğru olan cayma beyanlarından sayar; `IsAfterDelivery` teslim tarihi olmayan fiziksel kalemde `false` döner, fesih kayıtları hiç sayılmaz. `03 §1.11.28` "cayma beyanlı ya da feshedilmiş fiziksel kalemin malı ulaşınca", `02 §6.4.22`, §6.7.3 ve §7.4.7 kargodayken cayılıp dönen gönderiyi ve feshin malını teslim alma adımıyla işler. Senaryo: Kargoya verildi, teslim tarihi yok, müşteri cayar, gönderi firmaya döner → karar 1.11.28'i kapalı verir; mevcut T320 yazıcısı (`ReceiptRefusalAsync`) aynı teslim almayı kabul eder. D-612 yalnız ayıp talebi kolunu (K-808) erteler.
 - **B2 (DÜŞÜK, S1) — 1.11.25 ulaşma tarihi kolu teslim almadan önce açık, sonra kapalı.** Kural `ReceivableUnits > 0 || RejectableUnits > 0` okur (henüz teslim alınmamış adet); `03 §1.11.25` "ulaşma tarihinde iade teslim almadan sonra" der. Teslim tarihi olmayan kalemde teslim alınmış dönüşün ulaşma tarihi düzeltilemez. B1 ile birlikte düzelir (teslim alma/ret kaydı varlığı okunmalı).
@@ -100,3 +100,7 @@ Dış varsayım: yok.
 | 3 | 1.11.26/28/31 yaklaşık karar | D-612 | Panel task'ları |
 | 4 | 1.11.36 `EmailNotDelivered` sabit | D-613 | Notifications iç yüzü |
 | 5 | Panel yazıcıları kararı çağırmıyor | D-614 | D-610 ile aynı |
+| 6 | 1.11.33 kart hattının havale yolunda sunulmuyor | D-643 | Geri ödeme paneli task'ı |
+| 7 | Gecikme feshinin malını teslim alma yazıcısı yok | D-656 | Panel task'ları |
+| 8 | 1.11.32 adımlarının ekran/POST bağlaması | D-657 | Panel task'ları |
+| 9 | 1.11.32 adım ayrımı `Contracts` yüzünde yok (doğrulama tur 2 K-notu) | D-660 | Panel task'ları |

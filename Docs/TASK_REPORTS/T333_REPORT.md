@@ -1,6 +1,6 @@
 # T333 — Kategori ağacı, site içi arama ve liste süzgeçleri
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-07
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 4 ✓ PASS) | **Tarih:** 2026-11-07
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -75,10 +75,26 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 2, 2026-11-07, head `d42a5a4`) — önce tur 1 ✗ FAIL (head `62d03a8`) |
-| Bulgu sayısı | Tur 2: 2 (B1 DÜŞÜK S1, B2 DÜŞÜK S1) · tur 1: 1 (düzeltildi) |
-| Düzeltme gerekli mi | Evet — tur 2 B1, B2 (düzeltme 2; iterasyon 1/2 kullanıldı, `12 §8.5`) |
-| Bloke-etmeyen not (K) sayısı | Tur 2: 1 (K1 → D-372) · tur 1: 1 (kapandı) |
+| Doğrulama durumu | ✓ PASS (tur 4, 2026-11-08, head `f6412bf` + `origin/main` T341 birleştirmesi) — önce tur 3 ⛔ BLOCKED (main kod çakışması), tur 2 ✗ FAIL (head `d42a5a4`), tur 1 ✗ FAIL (head `62d03a8`) |
+| Bulgu sayısı | Tur 4: 0 · tur 2: 2 (kapandı) · tur 1: 1 (kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 4: 1 (K1 → D-332 hedefi T502'ye güncellendi) · tur 2: 1 (K1 → D-372) · tur 1: 1 (kapandı) |
+
+### Tur 4 (2026-11-08, head `f6412bf`; TAM yeniden doğrulama)
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (worktree ana deponun bekçisini paylaşır); ana dal CI 42426248059, 42423723835, 42423723933 success; MEMORY'de T333 satırı var.
+
+**Kabul kriterleri (validator):** 1–8 ✓, KK1–KK8 ✓. Kanıt: kod okuması (`CategoryTree`, `CategoryLevels`, `Category.Relocate`, `ProductCategoryLinks`, `ProductListReader`, `ShowcaseVisibility.Listed()`, `SearchTerm`) ve yerel koşu — Integration `CategoryTreeAndListsTests` 33/33 (gerçek PostgreSQL 18.6; parçalar 11 + 15 + 5 + 1 + 1); Unit 4231/4231 (Architecture, Consistency dahil); betik testleri 4/4; `build -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` Web ve Integration temiz, Unit'te değişen üç dosya temiz; dal CI 42425396677 (head `f6412bf`) dokuz iş success.
+
+**Task satırları (`12 §7.5`):** `VAL-A001`…`A008`, `VAL-A181`…`A185` uç yanıtı / tarayıcı gözlemi ister; T333 uç ve sayfa kurmaz (D-331, D-333) → ön koşul yok, `BEKLEMEDE` kalır; `12` değişmedi.
+
+**`09 §25`:** düzeyi yalnız `CategoryTree` yazar (ayarlayıcı `private`, mimari test); ağaç kilidi ilk deyim ve `LockSequence`'e bildirilir (`AdvisoryLocks`); modül `SaveChanges` çağırmaz, işlem açmaz; liste `Id` ile biten sabit sırada, `ToPageAsync` + `PageSizes.StorefrontProducts`, iki sayfa sınırı testi var; okuma izlemesiz ve projeksiyonlu; sözlük adları `06 §4.9`, §4.10 ile uyumlu.
+
+**Güvenlik:** sır yok; uç yok (yetki D-333'te); arama deseni parametreli ve kaçışlı, ham SQL yok; yeni bağımlılık yok — temiz.
+
+**K1 (D-332):** kaydın hedefi T339'du; T339 birleşti ve kartın görselini eklemedi — kayıt sahipsiz kalmıştı. Hedef kategori sayfasının kartını kuran T502'ye güncellendi.
+
+**Yapım raporu karşılaştırması:** kabul kriteri, KK ve öz denetim tabloları validator'la uyumlu; tek uyuşmazlık Known Limitations satır 3'ün tamamlanmış T339'u göstermesiydi (K1, bu turda düzeltildi).
 
 ### Tur 2 (2026-11-07, head `d42a5a4` + `origin/main` birleştirmesi)
 
@@ -132,7 +148,7 @@
 - **Branch:** `task/T333-kategori-arama-suzgec`
 - **Commit:** PR açıklamasında head SHA
 - **PR:** #442
-- **CI:** *(yapım chat'i CI yoklamaz)*
+- **CI:** dal CI 42425396677 (head `f6412bf`) success — doğrulama tur 4
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; ayrı `chore:` PR'ında veya sonraki task dalında)*
 
 ## Dış Varsayımlar
@@ -148,7 +164,7 @@
 |---|---|---|---|
 | 1 | İndirimli fiyatla süzme ve kart fiyatı | D-330 | İndirim T337'nin işi |
 | 2 | Kategori sayfası, arama sonucu, süzgeç formu ekranı | D-331 | Sayfa task'ları (T502, T503) |
-| 3 | Kartta ana görsel | D-332 | Görsel modeli T339'da |
+| 3 | Kartta ana görsel | D-332 | Kartı kuran sayfa task'ı (T502; hedef doğrulama tur 4'te T339'dan güncellendi) |
 | 4 | Ağaç yazımının panel ekranı ve yetkisi | D-333 | T526 |
 | 5 | "Ana kategori zorunlu" yayın kapısı, ürün formunda kategori seçimi | D-334 | T335 / T525 |
 

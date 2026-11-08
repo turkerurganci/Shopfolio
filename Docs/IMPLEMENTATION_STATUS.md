@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — T335 (Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı) doğrulama tur 1 ✓ PASS (head `7241002` + `origin/main` (`e2e9dbc`, T341, #433) birleştirmesi, PR #447; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Unit 4027 + Consistency 241 (birleşik ağaçta 4039 + 241), Integration `ProductPublishGateTests` 31/31 ve `ProductTransitionsTests` 41/41 (PostgreSQL 18, yerel); dal CI 42425264272 success; `12` satırları (`VAL-A021`…`A024`, `D001`, `C037`, `C038`, `A163`, `A171`, `A177`…`A180`, `D025`) `BEKLEMEDE` kaldı — kanıt türü uç yanıtı/tarayıcı, sayfalar T503/T549/T525'te; bulgu yok, K-notu yok (dosya silme–yayın yarışı yapımda D-401'e ileri atılmış). T341 birleştirmesinde yalnız STATUS çakıştı; `Modules/Ordering` iki dosyası kendiliğinden birleşti, derleme ve Unit temiz; backlog "Aktif kalem" yeniden sayıldı: 161 (⚪ 158 + 🟡 3; başlıktaki 153 main'de de eskimişti)).
+**Son güncelleme:** 2026-11-08 — T335 (Ürün yayın durumu: yayın kapısı, arşiv, silme ve engelleme kalıbı) doğrulama tur 1 ✓ PASS (head `7241002` + `origin/main` (`e2e9dbc`, T341, #433) birleştirmesi, PR #447; kriter 1–10, KK1–KK10 ve `09 §25` ✓, güvenlik taraması temiz; Unit 4027 + Consistency 241 (birleşik ağaçta 4039 + 241), Integration `ProductPublishGateTests` 31/31 ve `ProductTransitionsTests` 41/41 (PostgreSQL 18, yerel); dal CI 42425264272 success; `12` satırları (`VAL-A021`…`A024`, `D001`, `C037`, `C038`, `A163`, `A171`, `A177`…`A180`, `D025`) `BEKLEMEDE` kaldı — kanıt türü uç yanıtı/tarayıcı, sayfalar T503/T549/T525'te; bulgu yok, K-notu yok (dosya silme–yayın yarışı yapımda D-401'e ileri atılmış). T341 birleştirmesinde yalnız STATUS çakıştı; ardından `origin/main` (`7097c01`, T317, #441) ikinci birleştirmesinde `TransitionTable.cs` ile üç kayıt belgesi çakıştı, iki taraf birlikte korundu (`TerminalStatuses` ve ödeme ekseninin `IsTerminal(PaymentStatus)` yan yana); `Modules/Ordering` iki dosyası kendiliğinden birleşti, derleme ve Unit temiz; backlog aktif 154 (satır sayısı 162, başlık sayacı main ile aynı kuralla 8 eksik tutuluyor)).
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
@@ -155,8 +155,8 @@
 | T313 | Site haritası ve robots.txt | ✓ | ✓ PASS (tur 1) | `f94b4d8` | #417 |
 | T314 | Durum ucu: uyarı koşulları ve 500 sayacı | ✓ | ✓ PASS (tur 1) | `335e9cb` | #418 |
 | T315 | Durum makinesi çekirdeği: envanter, geçiş tablosu ve kimlikleri, durum makinesi olmayan varlıkların sınırı | ✓ | ✓ PASS (tur 1) | `8caf0f0` | #434 |
-| T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ✓ | ✓ PASS (tur 2) | `924ef92` | #437 |
-| T317 | Ödeme durumu geçişleri: ödeme ekseni | ⬚ | — | — | — |
+| T316 | Sipariş durumu geçişleri: sevkiyat ekseni | ✓ | ✓ PASS (tur 2) | — | #437 |
+| T317 | Ödeme durumu geçişleri: ödeme ekseni | ✓ | ✓ PASS (tur 3) | — | #441 |
 | T318 | İki eksenin bağı, tipe göre hatlar ve manuel adım bütçesi | ⬚ | — | — | — |
 | T319 | Geri alınamaz geçişler, onay gerekleri ve durum düzeltmesi | ⬚ | — | — | — |
 | T320 | Kalem kayıtları, ayıp talebi durumu, iade reddi ve panel işaretleri | ⬚ | — | — | — |

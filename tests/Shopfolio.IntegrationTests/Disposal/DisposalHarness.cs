@@ -47,6 +47,7 @@ internal sealed class DisposalHarness : IAsyncDisposable
         services.AddAppCache();
         services.AddScoped<JobEnqueueTracker>();
         services.AddSingleton<IJobSignal, JobSignal>();
+        services.AddScoped<IJobQueue, JobQueue>();
         services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.None));
         services.AddSingleton<NightlyJobRunner>();
         services.AddSingleton<INightlyStep, JobQueueCleanupStep>();

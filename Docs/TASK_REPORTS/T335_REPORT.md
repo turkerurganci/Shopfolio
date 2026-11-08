@@ -91,6 +91,26 @@
 | Integration `ProductGalleryTests` (T339) | ✓ 18/18 |
 | `build -warnaserror`, `dotnet format --verify-no-changes` | ✓ temiz |
 
+### Main birleştirmesi 2 (2026-11-08, `origin/main` T317 #441)
+
+`origin/main` ikinci kez dala birleştirildi (rebase yok). Çakışan dosyalar ve çözüm:
+
+- `src/Shopfolio.Web/Modules/Ordering/TransitionTable.cs`: iki tarafın eklemesi birlikte kalır — T335'in `IsTerminal(OrderStatus)` ve `TerminalStatuses` listesi ile main'in `IsTerminal(PaymentStatus)` yöntemi. `OrderStatus` ve geçiş tablosu main'de değişmedi; açık sipariş hâlâ Teslim edildi ve İptal dışıdır (`OrderingModule.OpenOrders` aynı listeyi okur).
+- `Docs/IMPLEMENTATION_STATUS.md`: "Son güncelleme" yalnız T335 girişi; T317 girişi `STATUS_CHANGELOG.md`'nin başına taşındı; tabloda T316 ve T317 satırları main'in, T335 satırı dalın.
+- `Docs/DEFERRED_BACKLOG.md`: main'in D-291 (✅ T316/T317) kaydı aynen; dalın D-300 (✅) ve D-301 (yeniden ileri atıldı) kayıtları korundu; "Aktif kalem" 154 (satır sayısı 162, başlık sayacı main'deki kuralla 8 eksik).
+- `.claude/memory/MEMORY.md` kendiliğinden birleşti (main'in dört satırı eklendi).
+
+| Tür | Sonuç (birleşik ağaç) |
+|---|---|
+| Unit Architecture + Consistency | ✓ 1196/1196 |
+| Unit öteki | ✓ 3086/3086 |
+| Integration `ProductPublishGateTests` (KK1–KK10) | ✓ 31/31 |
+| Integration `OrderTransitionsTests` | ✓ 31/31 |
+| Integration `PaymentTransitionsTests` | ✓ 33/33 |
+| `build -warnaserror`, `dotnet format --verify-no-changes`, çakışma işareti taraması | ✓ temiz |
+
+Öz denetim: kabul kriterleri 1–10 ve KK1–KK10 birleşik ağaçta karşılanıyor (`ProductPublishGateTests` tüm KK gruplarıyla yeşil; açık sipariş sayımı KK8 testleriyle sınandı).
+
 ## Doğrulama
 
 | Alan | Sonuç |

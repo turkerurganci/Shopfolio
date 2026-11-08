@@ -20,6 +20,7 @@ using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
@@ -170,28 +171,32 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
     [InlineData(ProductType.Service)]
     public async Task S1_OnAnOrderWithoutAPhysicalItem_IsRefused_AndWritesNothing_KK3(ProductType type)
     {
-        (Order order, _) = await SeedAsync(OrderStatus.Placed, PaymentStatus.Pending, new ItemSpec(type, 1));
+        // The payment is Paid, so the pair rule lets S1 through and the operation's own condition (a physical item) is what refuses.
+        (Order order, _) = await SeedAsync(OrderStatus.Placed, PaymentStatus.Paid, new ItemSpec(type, 1));
 
-        OrderTransitionResult result = await RunAsync((unit, token) => unit.StartPreparationAsync(order.Id, true, token));
+        OrderTransitionResult result = await RunAsync((unit, token) => unit.StartPreparationAsync(order.Id, token));
 
         Assert.Equal(TransitionRefusal.ConditionNotMet, result.Refusal);
-        await AssertNothingWrittenAsync(order.Id, OrderStatus.Placed, PaymentStatus.Pending);
+        await AssertNothingWrittenAsync(order.Id, OrderStatus.Placed, PaymentStatus.Paid);
     }
 
     [Fact]
-    public async Task S1_OnAMixedOrderWithAPhysicalItem_WritesO1AndS1_OneVersionRaise_AndOneB4Row_KK3()
+    public async Task S1_OnAMixedOrderWithAPhysicalItem_ComesWithTheCardApprovalO1_OneVersionRaise_AndOneB4Row_KK3()
     {
+        // Ö1 with S1 has one path, the payment axis's (D-389): the card payment writes both, the payment record and one B-4 row.
         (Order order, _) = await SeedAsync(OrderStatus.Placed, PaymentStatus.Pending, new ItemSpec(ProductType.Digital, 1), Physical(1));
 
-        OrderTransitionResult result = await RunAsync((unit, token) => unit.StartPreparationAsync(order.Id, true, token));
+        PaymentTransitionResult result = await RunAsync((unit, token) => unit.ApplyCardPaymentAsync(new CardPaymentSucceeded(order.Id, "trx-mixed"), token));
 
-        Assert.False(result.IsRejected);
+        Assert.Equal([TransitionCode.O1, TransitionCode.S1], result.Applied);
         await using AppDbContext reader = NewContext();
         Order saved = await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct);
         Assert.Equal((OrderStatus.Preparing, PaymentStatus.Paid, 2), (saved.OrderStatus, saved.PaymentStatus, saved.Version));
         List<TransitionRecord> records = await reader.TransitionRecords.Where(t => t.OrderId == order.Id).ToListAsync(Ct);
         Assert.Equivalent(new[] { TransitionCode.O1, TransitionCode.S1 }, records.Select(r => r.TransitionCode));
         Assert.All(records, r => Assert.Equal(ActorKind.System, r.ActorKind));
+        PaymentRecord payment = await reader.PaymentRecords.SingleAsync(p => p.OrderId == order.Id, Ct);
+        Assert.Equal(records.Single(r => r.TransitionCode == TransitionCode.O1).Id, payment.TransitionRecordId);
         List<DispatchRecord> rows = await reader.DispatchRecords.Where(d => d.OrderId == order.Id).ToListAsync(Ct);
         DispatchRecord row = Assert.Single(rows);
         Assert.Equal(DispatchType.B4, row.DispatchType);
@@ -203,7 +208,7 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
     {
         (Order order, _) = await SeedAsync(OrderStatus.Placed, PaymentStatus.Paid, Physical(1));
 
-        OrderTransitionResult result = await RunAsync((unit, token) => unit.StartPreparationAsync(order.Id, false, token));
+        OrderTransitionResult result = await RunAsync((unit, token) => unit.StartPreparationAsync(order.Id, token));
 
         Assert.False(result.IsRejected);
         await using AppDbContext reader = NewContext();
@@ -216,7 +221,7 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
     {
         (Order order, _) = await SeedAsync(OrderStatus.Placed, PaymentStatus.Pending, Physical(1));
 
-        OrderTransitionResult result = await RunAsync((unit, token) => unit.StartPreparationAsync(order.Id, false, token));
+        OrderTransitionResult result = await RunAsync((unit, token) => unit.StartPreparationAsync(order.Id, token));
 
         Assert.Equal(TransitionRefusal.ForbiddenStatePair, result.Refusal);
         await AssertNothingWrittenAsync(order.Id, OrderStatus.Placed, PaymentStatus.Pending);
@@ -842,7 +847,7 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
     {
         return op switch
         {
-            Op.StartPreparation => unit.StartPreparationAsync(orderId, false, token),
+            Op.StartPreparation => unit.StartPreparationAsync(orderId, token),
             Op.CancelByCustomer => unit.CancelOrderAsync(CancelOrderRequest.ByCustomer(orderId), token),
             Op.CancelByAdmin => unit.CancelOrderAsync(CancelOrderRequest.ByAdministrator(orderId, AdminCaller, version, true, CancellationReason.OutOfStock), token),
             Op.CancelBySystem => unit.CancelOrderAsync(CancelOrderRequest.BySystem(orderId, TransitionReason.PaymentWindowExpired), token),
@@ -977,6 +982,7 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
         services.AddAfterSalesModule();
         services.AddNoticeDependencies();
         services.AddOrderingModule();
+        services.AddPaymentModule();
         return services.BuildServiceProvider();
     }
 

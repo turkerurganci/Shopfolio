@@ -95,7 +95,7 @@
 
 - **Branch:** `task/T325-zaman-asimi-teslim`
 - **Commit:** `577f6159` — kurallar ve süre göstergesi; `e34bd542` — Integration testi; `e1118849` — `origin/main` birleştirmesi; kayıt commit'i PR'da
-- **PR:** #PRNO
+- **PR:** #464
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

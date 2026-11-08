@@ -18,8 +18,8 @@ public interface IAfterSalesModule
 
     /// <summary>
     /// The quantity each order item has closed by its item records (02 5.8; 06 2.7.2; K-790): the sum of the quantities of its cancellation,
-    /// removal, late delivery termination and withdrawal records, saved or added in the caller's context and not saved yet. An item with no such record is
-    /// not in the result. The order module takes the item's open quantity as its own quantity minus this (03 1.4.3: the closure rule). A plain read;
+    /// removal, late delivery termination and withdrawal records, saved or added in the caller's context and not saved yet. A cancellation whose closing
+    /// transition (S3, S4, S9) was corrected is undone and does not count (06 4.22; 02 10.4.6). An item with no such record is not in the result. The order module takes the item's open quantity as its own quantity minus this (03 1.4.3: the closure rule). A plain read;
     /// it writes nothing and takes no lock - the caller holds the order's lock (05 7.3.2).
     /// </summary>
     Task<IReadOnlyDictionary<Guid, int>> ClosedQuantitiesAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
@@ -32,7 +32,29 @@ public interface IAfterSalesModule
     /// A plain read; the caller holds the order's lock.
     /// </summary>
     Task<IReadOnlyDictionary<Guid, ItemUnitFacts>> UnitFactsAsync(IReadOnlyCollection<Guid> orderItemIds, bool includeUnsaved, CancellationToken ct);
+
+    /// <summary>
+    /// The cancellation records that closed the order with the given transition (06 4.22 <c>TransitionRecordId</c>: the S3, S4 or S9 written with the
+    /// cancellation of the last open units) - what the correction of the firm's wrong cancellation takes back (03 1.6.2.2). A plain read.
+    /// </summary>
+    Task<IReadOnlyList<CancelledUnits>> FindCancellationsOfTransitionAsync(Guid transitionRecordId, CancellationToken ct);
+
+    /// <summary>
+    /// True when one of the items has a cancellation, removal, late delivery termination or withdrawal record, saved or added in the caller's context - a
+    /// cancellation undone by a correction included, since the record stays (03 1.6.2.4; K-703). A plain read.
+    /// </summary>
+    Task<bool> HasClosingRecordAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// The correction of the firm's wrong cancellation closes its open IBAN requests (06 4.22, 4.31; 02 10.4.6; K-1056): the open requests of the voided refunds
+    /// and the open "cancellation or removal" requests of the cancelled items that have no removal record. Writes through the caller's change tracker and saves
+    /// nothing.
+    /// </summary>
+    Task CloseCancellationIbanRequestsAsync(IReadOnlyCollection<Guid> orderItemIds, IReadOnlyCollection<Guid> refundIds, CancellationToken ct);
 }
+
+/// <summary>One cancellation record as the order module needs it: the record, the item and the units it closed.</summary>
+public sealed record CancelledUnits(Guid CancellationId, Guid OrderItemId, int Quantity);
 
 /// <summary>The orders whose personal data goes, with the ids that reach their records: their items and their refunds (the refund IBAN request is linked to either).</summary>
 public sealed record OrderPersonalDataScope(

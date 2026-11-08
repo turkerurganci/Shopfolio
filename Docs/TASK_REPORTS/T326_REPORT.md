@@ -1,6 +1,6 @@
 # T326 — Zaman aşımı akışları: katalog, kupon, içerik, iletişim ve bildirim süreleri
 
-**Faz:** F3 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -78,10 +78,25 @@ Bu task'ın süreleri büyük ölçüde kendi kural evlerinde (T337, T338, T322,
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-08; head `0670e10f` + `origin/main` `f1603761` birleştirmesi) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+**Validator kanıtları (bağımsız koşum):**
+
+| # | Kriter / KK | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Z-20 / KK1 | ✓ | `DiscountRules.IsSummaryDifference` diff'te okundu (iki anın `Running` durumu farklıysa fark); fiyat okuyucuları `StateAt(.., now)` ile (`PriceHistoryReads.RunningDiscountsAsync`, `PriceLabelReader`); `DiscountAndReferenceTests.TheScheduler_...EvenWhenLate` + `DiscountRulesTests` T326 testleri geçti; onayda çağrı D-570 (T348 ⬚) |
+| 2 | Z-21 / KK2 | ✓ | zamanlayıcı sınıfları (8: `DisposalStep`, `JobQueueCleanupStep`, `DiscountBoundarySource`, `ImageDerivativeJobHandler`, `PaymentWindowSources`, `ScheduledOrderTransition`, `TransferWindowDeferral`, `FinalPaymentQueryJobHandler`) grep'le sayıldı, hiçbiri `ReferencePriceRules` okumuyor; `ExpiryTimerScanTests` geçti |
+| 3 | Z-22 / KK3 | ✓ | `CouponTests.AfterTheEndDay_..._T326_KK3` gerçek PostgreSQL 18'de geçti |
+| 4 | Z-23 / KK4 | ✓ | `ContentVisibilityTests...Z23_KK4` geçti; `src`'de duyuru okuyucusu yok (T360 ⬚, D-571) |
+| 5 | Z-24 / KK5 | ✓ | `src`'de `PublishAt`/`ScheduledPublish`/`PublishDate` adı yok (grep); tarama testi geçti |
+| 6 | Z-25, Z-37 / KK6 | ✓ | KVKK/ihlal kaydı, sayacı ya da işi yok; tarama testi geçti |
+| 7 | Z-26 / KK7 | ✓ | diff'te `src` değişikliği yalnız `DiscountRules.cs`; yeniden deneme yalnız `DispatchRetrySchedule` (T381) |
+| 8 | Z-27 / KK8 | ✓ | `AttemptCounterTests.The_window_slides_..._T326_KK8` geçti; `Customer`/`Admin`'de kilit alanı yok |
+
+Test: Unit 4811/4811 (birleştirme sonrası), Integration 55/55 (`CouponTests`, `AttemptCounterTests`, `DiscountAndReferenceTests`), build `-warnaserror` 0 uyarı, `dotnet format --verify-no-changes` üç projede 0, betik testleri 4/4. Yapım raporu ile uyuşmazlık yok.
 
 ## Altyapı Değişiklikleri
 

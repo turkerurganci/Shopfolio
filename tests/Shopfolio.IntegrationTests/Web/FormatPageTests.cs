@@ -106,8 +106,7 @@ public sealed partial class FormatPageTests
             AdminKey = TestSessions.AdminAsync(dsn).GetAwaiter().GetResult().Key;
             if (kestrel)
             {
-                Factory.UseKestrel(0);
-                Factory.StartServer();
+                Factory.Start();
                 using HttpClient probe = Factory.CreateClient();
                 HttpClientHandler socket = new() { AllowAutoRedirect = false, UseCookies = false };
                 Client = new HttpClient(new ForgeryTokenHandler { InnerHandler = new ProxyHandler { InnerHandler = socket } })

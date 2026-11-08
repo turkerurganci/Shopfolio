@@ -662,6 +662,8 @@ public sealed class AddressTests : IAsyncLifetime
             return new DeliveryArea([.. all.Where(p => !delivery.Closed.Contains(p.Id))], [.. all.Where(p => delivery.Closed.Contains(p.Id))]);
         }
 
+        public Task<HomepageSection> GetHomepageAsync(CancellationToken ct) => throw new NotSupportedException();
+
         public Task<SalesGate> GetSalesGateAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<CompanyIdentity> GetCompanyIdentityAsync(CancellationToken ct) => throw new NotSupportedException();

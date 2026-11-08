@@ -262,6 +262,13 @@ public interface ICatalogModule
     Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct);
 
     /// <summary>
+    /// The catalog's part of the storefront menu (T361; 02 3.28.4, 3.28.6): whether any product is published and the categories that hold a published product in themselves or in a
+    /// branch below them, depth first in the alphabetical order of the names. A category with no published product anywhere below it is not listed. A plain read; the menu's cache is the
+    /// CorporateContent module's.
+    /// </summary>
+    Task<CatalogMenu> GetMenuAsync(CancellationToken ct);
+
+    /// <summary>
     /// Creates a category at the root (<paramref name="parentCategoryId"/> empty) or under a parent (07 9.6.2; 02 3.4.1; 06 4.9): a blank name, a missing parent and a fourth level are refused. Takes the
     /// category tree's lock as the first statement of the caller's transaction, which it joins and must run inside (09 9.1 item 3; 05 7.3.5).
     /// </summary>

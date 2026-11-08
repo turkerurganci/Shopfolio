@@ -69,6 +69,8 @@ internal sealed class SettingsModule : ISettingsModule
 
     public Task<ShippingFeeSection> GetShippingFeeAsync(CancellationToken ct) => _firm.ReadShippingFeeAsync(ct);
 
+    public Task<HomepageSection> GetHomepageAsync(CancellationToken ct) => _firm.ReadHomepageAsync(ct);
+
     public Task<SettingsSaveResult> SaveShippingFeeAsync(ShippingFeeInput input, int formVersion, CancellationToken ct) =>
         _firm.SaveShippingFeeAsync(input, formVersion, ct);
 

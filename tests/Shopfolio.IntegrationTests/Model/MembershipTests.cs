@@ -764,5 +764,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
         public Task SynchronizeGeneratedLegalTextsAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<ProvinceInfo>> GetProvincesAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<HomepageSection> GetHomepageAsync(CancellationToken ct) => throw new NotSupportedException();
     }
 }

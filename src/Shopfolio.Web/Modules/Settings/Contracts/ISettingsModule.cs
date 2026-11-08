@@ -152,4 +152,11 @@ public interface ISettingsModule
     /// step refuses a shipping address outside it and the order confirmation compares it again. A plain read; it opens no transaction.
     /// </summary>
     Task<DeliveryArea> GetDeliveryAreaAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The home page layout and the six menu names as stored (T361; 02 3.28.1, 3.28.4; 06 4.2): a new installation holds the content-first layout and the default names
+    /// (06 8.1.1). Read on every call - the storefront's menu and home page compose the names and the layout with the cached structure at read time, so a change of the section
+    /// shows at once. A plain read.
+    /// </summary>
+    Task<HomepageSection> GetHomepageAsync(CancellationToken ct);
 }

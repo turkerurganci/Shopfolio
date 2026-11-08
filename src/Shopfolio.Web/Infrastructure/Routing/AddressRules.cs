@@ -28,6 +28,18 @@ internal static partial class AddressRules
     /// <summary>The contact page: company identity, branches and the contact form on one page (07 2.1.2; 02 3.27.8). The service introduction's "Bize ulaşın" button leads here.</summary>
     public const string ContactPage = "iletisim";
 
+    /// <summary>The service introduction list page (07 2.1.2; 02 3.28.4): the services menu item and the home page block lead here.</summary>
+    public const string ServiceListPage = "hizmetler";
+
+    /// <summary>The reference work list page (07 2.1.2; 02 3.28.4).</summary>
+    public const string ReferenceListPage = "referanslar";
+
+    /// <summary>The about page: one fixed address, no slug (07 2.1.2; 02 3.27.3).</summary>
+    public const string AboutPage = "hakkimizda";
+
+    /// <summary>The one FAQ page (07 2.1.2; 02 3.27.6).</summary>
+    public const string FaqPage = "sss";
+
     /// <summary>The panel's path area (07 2.1.5; 05 3.5.1): the one area where an internal key may be part of the path.</summary>
     public const string PanelArea = "panel";
 
@@ -43,7 +55,7 @@ internal static partial class AddressRules
     /// <summary>The fixed pages: the first segment of each of them (07 2.1.2; the home page <c>/</c> has no segment).</summary>
     public static readonly IReadOnlyList<string> FixedPages =
     [
-        "arama", "hizmetler", "referanslar", "hakkimizda", "sss", ContactPage, "aydinlatma-metni", "cerez-politikasi", "islem-rehberi", "sepet", "odeme",
+        "arama", ServiceListPage, ReferenceListPage, AboutPage, FaqPage, ContactPage, "aydinlatma-metni", "cerez-politikasi", "islem-rehberi", "sepet", "odeme",
         "siparis-takibi",
     ];
 

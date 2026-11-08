@@ -59,10 +59,17 @@
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj` | 4864/4864 (17 yeni tarama testi) |
-| Integration (Model) | ✓ | `--filter-namespace Shopfolio.IntegrationTests.Model` | 1372/1372 (T379: 15 yeni) |
-| Integration (Model dışı) | ✓ | `--filter-not-namespace Shopfolio.IntegrationTests.Model` | 1446'dan 1444 geçti; `LivenessEndpointTests` iki testi yük altında `ObjectDisposedException` verdi, tek başına ve sınıf olarak (16/16) geçti, kodla ilgisiz zamanlama kararsızlığı |
-| Biçim | ✓ | `dotnet format --verify-no-changes` (değişen klasörler) | çıktı yok |
+| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests -c Release --no-build` (Düzeltme 1, main birleşmesi sonrası) | 4928/4928 |
+| Integration (Model) | ✓ | `--filter-namespace Shopfolio.IntegrationTests.Model` | 1379/1379 |
+| Integration (Web) | ✓ | `--filter-namespace Shopfolio.IntegrationTests.Web` | 594/594 |
+| Integration (Database) | ✓ | `--filter-namespace Shopfolio.IntegrationTests.Database` | 36/36 |
+| Integration (öteki) | ✓ | `--filter-not-namespace` Web, Model, Database | 840/840 |
+| Build | ✓ | `dotnet build Shopfolio.slnx -c Release --no-restore -warnaserror` | 0 uyarı, 0 hata |
+| Biçim | ✓ | `dotnet format <proje> --verify-no-changes --no-restore`, Web + UnitTests + IntegrationTests ayrı ayrı | üçünde de çıktı yok (Düzeltme 1; ilk raporda IntegrationTests koşulmamıştı) |
+
+### Düzeltme 1 (doğrulama tur 1, B1)
+
+`MembershipTests.AdminAccounts.cs` içindeki yedi `var X = await StartAdminWorldAsync(...)` açık demet türüyle (`(Guid Id, string Name, string Email)`) değiştirildi; yalnız bildirim türü, davranış aynı. Öz denetim: kabul kriterleri 1–9 ve KK1–KK9 için dal kodu değişmedi, kanıt tablosu yukarıda geçerli ve Integration TAM küme main birleşmesi sonrası yeşil. D-617 (üç yardımcının kopyası) açık bırakıldı: iki akış farklı hesap türü ve tablolarla çalışıyor, ortak yardımcı bu turda küçük ve güvenli bir değişiklik değil.
 
 ## Doğrulama
 

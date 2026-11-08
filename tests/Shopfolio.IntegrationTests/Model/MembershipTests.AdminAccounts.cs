@@ -58,7 +58,7 @@ public sealed partial class MembershipTests
     [Fact]
     public async Task Invitation_IsSentWithItsLinkEmailTrailRowAndF6_AndOpensTheAccountOnce_KK1_KK2()
     {
-        var first = await StartAdminWorldAsync("ilk@example.com");
+        (Guid Id, string Name, string Email) first = await StartAdminWorldAsync("ilk@example.com");
         await SaveAsync(c => c.Admins.Add(Admin.Create("İkinci", "ikinci@example.com", SeedDigest.Value, Start)));
 
         AdminInvitationSendResult sent = await SendInvitationAsync("  Yeni@Example.com ");
@@ -264,7 +264,7 @@ public sealed partial class MembershipTests
     [Fact]
     public async Task Removal_RefusesTheActingAdministratorThemselves_AndTheLastOne_KK3()
     {
-        var only = await StartAdminWorldAsync("ilk@example.com");
+        (Guid Id, string Name, string Email) only = await StartAdminWorldAsync("ilk@example.com");
 
         AdminRemovalResult self = await RunAdminAsync(a => a.RemoveAdminAsync(only.Id, true, Ct));
         AdminRemovalResult missing = await RunAdminAsync(a => a.RemoveAdminAsync(Guid.NewGuid(), true, Ct));
@@ -286,7 +286,7 @@ public sealed partial class MembershipTests
     [Fact]
     public async Task Removal_AsksForTheConfirmationWithTheCount_ThenEndsSessionsAndInvitations_KeepsTheTrail_AndTellsEveryAdministrator_KK4()
     {
-        var acting = await StartAdminWorldAsync("ilk@example.com", "Ayşe");
+        (Guid Id, string Name, string Email) acting = await StartAdminWorldAsync("ilk@example.com", "Ayşe");
         Guid targetId = await SeedAdminAsync("hedef@example.com");
         Guid thirdId = await SeedAdminAsync("ucuncu@example.com");
         SessionOpening one = await InTransactionAsync(s => s.GetRequiredService<IAdministrationModule>().SignInAsync(targetId, false, null, Ct));
@@ -347,7 +347,7 @@ public sealed partial class MembershipTests
     [Fact]
     public async Task Send_ByAnAdministratorWhoseRowIsGone_WritesNothing_KK3()
     {
-        var acting = await StartAdminWorldAsync("ilk@example.com");
+        (Guid Id, string Name, string Email) acting = await StartAdminWorldAsync("ilk@example.com");
         await SeedAdminAsync("hedef@example.com");
         await ExecuteAsync($"DELETE FROM admins WHERE id = '{acting.Id}'");
 
@@ -379,7 +379,7 @@ public sealed partial class MembershipTests
     [Fact]
     public async Task TheName_ChangesWithoutReauthentication_AndEmptyIsRefused_KK6()
     {
-        var me = await StartAdminWorldAsync("ilk@example.com");
+        (Guid Id, string Name, string Email) me = await StartAdminWorldAsync("ilk@example.com");
 
         AdminNameChangeResult empty = await RunAdminAsync(a => a.ChangeNameAsync(me.Id, "   ", Ct));
         AdminNameChangeResult done = await RunAdminAsync(a => a.ChangeNameAsync(me.Id, "  Yeni Ad ", Ct));
@@ -395,7 +395,7 @@ public sealed partial class MembershipTests
     [Fact]
     public async Task TheEmail_ChangesAfterTheReauthentication_WithTheNewAddressLink_TheRevertNotice_TheTrailRow_AndTheFirmContactUntouched_KK6()
     {
-        var me = await StartAdminWorldAsync("ilk@example.com");
+        (Guid Id, string Name, string Email) me = await StartAdminWorldAsync("ilk@example.com");
         await ExecuteAsync("INSERT INTO companies (id, created_at, email) VALUES (gen_random_uuid(), now(), 'iletisim@firma.example')");
         await SeedCustomerAsync("yeni@example.com", verified: true);
         SessionOpening session = await InTransactionAsync(s => s.GetRequiredService<IAdministrationModule>().SignInAsync(me.Id, false, null, Ct));
@@ -442,7 +442,7 @@ public sealed partial class MembershipTests
     [Fact]
     public async Task TheEmailRequestsThatReplaceAPendingOne_AreLimitedByL9_AndTheEarlierLinkStaysValid_KK6()
     {
-        var me = await StartAdminWorldAsync("ilk@example.com");
+        (Guid Id, string Name, string Email) me = await StartAdminWorldAsync("ilk@example.com");
         SessionOpening session = await InTransactionAsync(s => s.GetRequiredService<IAdministrationModule>().SignInAsync(me.Id, false, null, Ct));
         Guid lastLink = Guid.Empty;
         AdminEmailChangeRequestResult? limited = null;

@@ -2,7 +2,7 @@
 
 **Son güncelleme:** 2026-11-08 | **Aktif kalem:** 174 | **Gate'i bloklayan:** 0
 
-> Task/doğrulama commit'leri "Aktif kalem" sayacını değiştirmez (çakışma, 2026-11-08); kayıt satırlarını ekler/kapatır, sayacı faz kapısı kayıt PR'ı yeniden sayar.
+> Task/doğrulama commit'leri "Aktif kalem" sayacını değiştirmez (çakışma, 2026-11-08); kayıt satırlarını ekler/kapatır, sayacı faz kapısı kayıt PR'ı yeniden sayar. Yeni kalemler `Docs/DEFERRED_BACKLOG.d/<TXXX>.md` parçasına yazılır, bu tabloya satır eklenmez (çakışma, 2026-11-08).
 
 > **Amaç:** Bilinçli olarak ertelenen **her** somut işin tek izlenebilir listesi.
 >
@@ -32,6 +32,7 @@
 3. **Backlog forward zorunlu.** Validator ve gate'te çıkan bloke-etmeyen her bulgu ya o PR'da kapatılır ya buraya yazılır. **Üçüncü seçenek yoktur.**
 4. **Hijyen taraması.** Her faz gate'inde açık kalemler kod düzeyinde yeniden doğrulanır — bir kısmı araya giren işlerle çözülmüş, bir kısmı stale olmuş olur (açıklama artık gerçeği yansıtmıyor).
 5. **"Sonraki PR" hedefi üst sınır taşır.** Hedefi "X'e dokunan sonraki PR" ya da "sonraki doküman geçişi" olan kalem bir üst sınır da yazar: en geç bir task ya da faz gate'i. Task PR'ları bu kolu çoğunlukla görmez — F1 gate'inde beş kalemin (D-20, D-21, D-22, D-45, D-60) bu kolu kaçmıştı; gate üst sınırı geçen kalemi yeniden hedefler.
+6. **Parça dosyaları.** Task, düzeltme ve doğrulama commit'leri yeni kalemleri `Docs/DEFERRED_BACKLOG.d/<TXXX>.md`'ye yazar; faz kapısı kayıt PR'ı ve chore/kayıt PR'ı parçaları D sırasıyla bölüm 2 tablosunun sonuna aktarır, parçaları siler ve sayacı yeniden sayar. Kalem araması iki yere bakar: `grep -rn 'D-123' Docs/DEFERRED_BACKLOG.md Docs/DEFERRED_BACKLOG.d/`.
 
 ---
 

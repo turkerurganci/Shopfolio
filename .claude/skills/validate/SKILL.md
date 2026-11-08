@@ -57,19 +57,9 @@ gh run list --branch main --status completed --limit 3 --json databaseId,conclus
 
 **Kanıt:** 3 run ID + conclusion doğrulama bölümüne yazılır.
 
-### Adım 0b — Repo memory drift check (HARD STOP)
+### Adım 0b — Repo memory (kaldırıldı, 2026-11-08)
 
-**Neden:** Repo memory'nin güncelliği gözlemlenebilir değildir — hiçbir kapı kontrol etmezse sessizce geride kalır. Validator son kapıdır.
-
-```bash
-grep -nE "\bTXX\b" .claude/memory/MEMORY.md
-```
-
-- En az bir satır varsa → devam.
-- Hiç satır yoksa → **HARD STOP / BLOCKED (`DEPENDENCY_MISMATCH`).**
-  - Bulgu: *"Repo memory drift — TXX için satır yok. Yapım chat'i memory'i güncellemeden validate'e geçti (task bitiş kapısı madde 9 ihlali)."*
-  - Düzeltme: yapım chat'ine dön → memory güncelle → `chore: memory — TXX yansıt` commit+push (aynı task PR'ına dahil edilebilir veya ayrı chore PR). Sonra validator yeniden başlar.
-  - *"Sonra ekleriz"*, *"önemsiz"* yasak.
+Task/doğrulama commit'leri `.claude/memory/MEMORY.md` "Güncel Durum" bloğuna DOKUNMAZ (paralel PR'larda her merge'ten sonra çakışıyordu); `MEMORY.md`'de TXX satırı aranmaz, satır yokluğu bulgu değildir. Bloğu faz kapısı kayıt PR'ı günceller.
 
 ---
 
@@ -141,9 +131,10 @@ grep -nE "\bTXX\b" .claude/memory/MEMORY.md
 
 15. **Status güncelle** (yalnız PASS) — `Docs/IMPLEMENTATION_STATUS.md`'de `✓ Tamamlandı`.
     **Kural:** Rapor finalize edilmeden status güncellenmiş sayılmaz.
-    **"Son güncelleme" satırı:** Task/doğrulama commit'i `Docs/IMPLEMENTATION_STATUS.md`'nin başındaki "**Son güncelleme:**" satırına DOKUNMAZ (paralel PR'larda her merge'ten sonra çakışıyordu, 2026-11-08); olayı `Docs/STATUS_CHANGELOG.md`'nin en üstüne ve task'ın tablo satırına yazar. Satırı yalnız birleştiren taraf günceller. main birleştirmesinde bu satır çakışırsa main sürümü alınır, dalın girişi changelog'a taşınır.
+    **"Son güncelleme" satırı:** Task/doğrulama commit'i `Docs/IMPLEMENTATION_STATUS.md`'nin başındaki "**Son güncelleme:**" satırına DOKUNMAZ (paralel PR'larda her merge'ten sonra çakışıyordu, 2026-11-08); olayı `Docs/STATUS_CHANGELOG.d/<TXXX>.md`'ye (task başına tek dosya; yeni giriş dosyanın en üstüne) ve task'ın tablo satırına yazar; `STATUS_CHANGELOG.md`'ye dokunmaz. Satırı ve parçaları yalnız birleştiren taraf (faz kapısı kayıt PR'ı, chore/kayıt PR'ı) toplar. main birleştirmesinde bu satır çakışırsa main sürümü alınır, dalın girişi parça dosyasına taşınır.
+    **Ortak satırlar:** `Docs/DEFERRED_BACKLOG.md` başlığındaki "Aktif kalem" sayacını ve STATUS'taki "backlog aktif" sayısını DEĞİŞTİRME (kayıt satırlarını ekle/kapat; sayacı faz kapısı kayıt PR'ı yeniden sayar). Tablo satırları (STATUS task satırı, 12 `Durum` hücresi) ve task'ın raporu task PR'ında kalır.
 
-16. **Rapor + status + memory + matris `Durum` hücreleri commit ve push** — **merge'den önce**; PASS'te de FAIL'de de koşar (FAIL'de dal merge edilmez, kayıt dalda kalır). Task'ın satırlarının `Durum` hücresi `Docs/12_VALIDATION_PROTOCOL.md`'de sonuca göre yazılır (`12 §7.5`; eşleme `12 §6.1` ilk satır): `✓` → `PASS`, `✗` → `FAIL`, `?` → `BEKLEMEDE`, `~` → `12 §6.1` eşlemesi, adım 5'teki onaylı kabul edilmiş risk → `KABUL EDİLMİŞ RİSK`. Aksi hâlde squash merge bu değişiklikleri içermez. **Hücreleri yazdıktan sonra** `python -I -X utf8 scripts/doc-scans/12_matris_denetle.py --kapsam 1-77` koşar ve hata 0 olmadan commit edilmez: matris satır sayısı, kimlik tekilliği ve `12 §1.2` sayım tablosu betikle eşlenir (Aşama 10, Ö-207b; kanıt: elle yazılan `Kanıt ortamı` sayımı üç satır sapmıştı).
+16. **Rapor + status + matris `Durum` hücreleri commit ve push** (MEMORY.md'ye dokunulmaz) — **merge'den önce**; PASS'te de FAIL'de de koşar (FAIL'de dal merge edilmez, kayıt dalda kalır). Task'ın satırlarının `Durum` hücresi `Docs/12_VALIDATION_PROTOCOL.md`'de sonuca göre yazılır (`12 §7.5`; eşleme `12 §6.1` ilk satır): `✓` → `PASS`, `✗` → `FAIL`, `?` → `BEKLEMEDE`, `~` → `12 §6.1` eşlemesi, adım 5'teki onaylı kabul edilmiş risk → `KABUL EDİLMİŞ RİSK`. Aksi hâlde squash merge bu değişiklikleri içermez. **Hücreleri yazdıktan sonra** `python -I -X utf8 scripts/doc-scans/12_matris_denetle.py --kapsam 1-77` koşar ve hata 0 olmadan commit edilmez: matris satır sayısı, kimlik tekilliği ve `12 §1.2` sayım tablosu betikle eşlenir (Aşama 10, Ö-207b; kanıt: elle yazılan `Kanıt ortamı` sayımı üç satır sapmıştı).
     **Not:** Post-merge teyit bilgileri (merge sonrası run ID'leri) bu commit'e **giremez** — merge henüz olmadı. Onlar bir sonraki task dalında veya ayrı bir `chore:` PR'ında eklenir; **doğrudan ana dala push edilmez.**
 
 17. **Merge** (yalnız PASS) — squash merge, mesaj `TXX: Task adı (#NN)`. Yönetici yardımcı düzeninde bu adımı ve 18. adımı yardımcı yapar; doğrulama ajanı 16. adımda verdict'i rapor dosyasına yazıp biter.

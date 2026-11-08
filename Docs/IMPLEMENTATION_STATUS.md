@@ -4,7 +4,7 @@
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.
-> ⚠️ **Task/doğrulama PR'ları "Son güncelleme" satırına dokunmaz; olay `STATUS_CHANGELOG`'a yazılır (2026-11-08).** Satırı yalnız birleştiren taraf günceller.
+> ⚠️ **Task/doğrulama PR'ları ortak kayıt satırlarına dokunmaz (2026-11-08):** "Son güncelleme" satırı, `STATUS_CHANGELOG.md`, `MEMORY.md` "Güncel Durum" ve backlog "Aktif kalem" sayacı. Olay `STATUS_CHANGELOG.d/<TXXX>.md` parçasına yazılır; birleştiren taraf (faz kapısı kayıt PR'ı, chore/kayıt PR'ı) parçaları toplar, satırı ve sayacı günceller. Tablo satırları ve task raporu task PR'ında kalır.
 > **Neden:** Bir referans projede bu alan 63 KB'lık tek satıra büyüdü ve okuma araçları tarafından kırpıldı — "nerede kaldık" sorusu cevaplanamaz hâle geldi.
 >
 > **Okuma tavsiyesi:** Tek bir task'ın durumu için tüm dosyayı açma; ilgili satırı `grep`'le (`grep -n "^| T42 " Docs/IMPLEMENTATION_STATUS.md`).

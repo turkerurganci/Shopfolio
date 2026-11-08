@@ -93,6 +93,14 @@ public interface IOrderingModule
     Task<int> LinkGuestOrdersAsync(Guid customerId, string email, CancellationToken ct);
 
     /// <summary>
+    /// The account's deletion on the order side (T345; 02 3.15.1-3.15.3; 05 6.1.2), in the caller's open transaction, under the account's row lock the caller holds: the account's orders
+    /// are locked (05 7.3.2), then each is marked as an account's deleted one and its account link is emptied together (a check keeps the two together), so the order is never linked
+    /// to any account again and goes on with its own record - status, contact e-mail and personal data stay until their legal period ends. The marks are a non-raising write: the order's
+    /// version does not move (06 2.6.4). The account's carts are only counted: the database deletes them with the account. The caller saves; the method does not.
+    /// </summary>
+    Task<AccountOrderRelease> MarkAccountDeletedAsync(Guid customerId, CancellationToken ct);
+
+    /// <summary>
     /// Takes the cart items of the given variants off the cart (03 1.8.3; 02 3.16.7; 06 4.16): each unmarked item is marked with the product's name in the caller's
     /// operation - the operation that took the product or the variant off the showcase - so it no longer enters the order or the amounts and is told to the customer once.
     /// An item already marked keeps its first mark. Returns the number of items marked. Joins the caller's transaction (09 9.1 item 3).

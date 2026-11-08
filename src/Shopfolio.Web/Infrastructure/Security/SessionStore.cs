@@ -158,4 +158,13 @@ internal sealed class SessionStore
         await AccountLocks.LockAsync(_db, type, accountId, ct);
         return await OwnsAsync(type, accountId, sessionId, ct) && await _reauthentication.TryRedeemAsync(sessionId, operation, value, ct);
     }
+
+    /// <summary>
+    /// The same take for a caller that already holds the account's row by a write of its own (the account deletion's no-op update): the account lock family is not asked, because it is a
+    /// lock taken alone (05 7.3.5) and this transaction goes on into the order locks. Held by the write, the row cannot change between the ownership check and the take.
+    /// </summary>
+    public async Task<bool> TryRedeemReauthenticationHeldAsync(AccountType type, Guid accountId, Guid sessionId, ReauthenticationOperation operation, string? value, CancellationToken ct)
+    {
+        return await OwnsAsync(type, accountId, sessionId, ct) && await _reauthentication.TryRedeemAsync(sessionId, operation, value, ct);
+    }
 }

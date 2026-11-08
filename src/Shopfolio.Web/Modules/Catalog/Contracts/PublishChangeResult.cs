@@ -45,6 +45,9 @@ public sealed class PublishChangeResult : IOperationResult
 
     public bool IsRejected => Code is not null;
 
+    /// <summary>Where the panel sends the administrator after a <c>LastPublishedVariant</c> refusal (03 1.8.2; 02 3.7.8): the product's draft or archive; empty otherwise.</summary>
+    public IReadOnlyList<PublishStatus> SuggestedProductMoves => Code == ErrorCode.LastPublishedVariant ? LastVariantGuidance.ProductMoves : [];
+
     /// <summary>The publish gate refused (07 6.2: <c>PublishGateIncomplete</c>); the conditions are named.</summary>
     public static PublishChangeResult GateIncomplete(IReadOnlyList<string> unmetConditions)
     {

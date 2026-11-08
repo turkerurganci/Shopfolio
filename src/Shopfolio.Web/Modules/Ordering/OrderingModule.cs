@@ -155,6 +155,19 @@ internal sealed class OrderingModule : IOrderingModule
             .ToListAsync(ct);
     }
 
+    public Task<int> CountOpenOrdersOfProductAsync(Guid productId, CancellationToken ct)
+        => OpenOrders().CountAsync(o => _db.OrderItems.Any(i => i.OrderId == o.Id && i.ProductId == productId), ct);
+
+    public Task<int> CountOpenOrdersOfVariantAsync(Guid variantId, CancellationToken ct)
+        => OpenOrders().CountAsync(o => _db.OrderItems.Any(i => i.OrderId == o.Id && i.VariantId == variantId), ct);
+
+    // An open order is one outside the terminal states of the shipment axis (02 3.7.7); the list is the transition table's own.
+    private IQueryable<Order> OpenOrders()
+    {
+        OrderStatus[] terminal = [.. TransitionTable.TerminalStatuses];
+        return _db.Orders.AsNoTracking().Where(o => !terminal.Contains(o.OrderStatus));
+    }
+
     public async Task<CardPaymentQueryTarget?> GetCardPaymentQueryTargetAsync(Guid orderId, DateTimeOffset now, CancellationToken ct)
     {
         Order? order = await _db.Orders.AsNoTracking()

@@ -115,6 +115,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
         services.AddSingleton(_gate);
         services.AddScoped<ISettingsModule, GateOnlySettings>();
         services.AddScoped<OrderLocks>();
+        services.AddScoped<DownloadCounters>();
         services.AddScoped<OrderPaymentArms>();
         services.AddScoped<AdvisoryLocks>();
         services.AddScoped<IOrderingModule, OrderingModule>();

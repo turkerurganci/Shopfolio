@@ -266,6 +266,7 @@ internal static class CatalogModuleRegistration
         services.AddScoped<ProductTransitions>();
         services.AddScoped<IProductTransitions>(provider => provider.GetRequiredService<ProductTransitions>());
         services.AddScoped<IProductRemoval, ProductRemoval>();
+        services.AddScoped<IDigitalDelivery, DigitalDelivery>();
         services.AddScoped<ICatalogModule, CatalogModule>();
         return services;
     }

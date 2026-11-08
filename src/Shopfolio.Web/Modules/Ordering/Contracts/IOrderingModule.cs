@@ -21,11 +21,30 @@ public interface IOrderingModule
     Task<Guid?> FindOrderByAccessKeyAsync(string accessKey, CancellationToken ct);
 
     /// <summary>
-    /// What the download endpoint needs of an order item (07 4.31.1; 05 7.7.4): its variant link and last known file link, or null when there is no such item or it
-    /// is not a digital item - the caller answers both with the same 404. A plain read; it writes nothing and does not look at the download counter (the right
-    /// dropped at the order page's button).
+    /// What the download endpoint needs of an order item (07 4.31.1; 05 7.7.4): its variant link and last known file link, or null when there is no such item, it
+    /// is not a digital item or its order's payment is not confirmed (02 3.12.1) - the caller answers all of them with the same 404. A plain read; it writes nothing
+    /// and does not look at the download counter (the right dropped at the order page's button).
     /// </summary>
     Task<DownloadableItem?> FindDownloadableItemAsync(Guid orderItemId, CancellationToken ct);
+
+    /// <summary>
+    /// Takes one download from an order item's right (05 7.7.4; 02 3.12.5; 09 10.2 item 4): one conditional update that counts the download when the item is digital, its
+    /// payment is confirmed and its counter is below the allowance frozen at the order. The right drops once, when the order page's button makes the link (T511); the
+    /// transfer the link opens takes nothing more. Joins the caller's transaction and must run inside one.
+    /// </summary>
+    Task<DownloadTakeResult> TakeDownloadAsync(Guid orderItemId, CancellationToken ct);
+
+    /// <summary>
+    /// The firm renews an item's download right (07 UC-143; 02 3.12.6): under the order's row lock and against <paramref name="expectedVersion"/> the counter goes back to
+    /// zero and the order's version rises by one. No notice goes out (02 9.2) and the allowance is not touched. Joins the caller's transaction and must run inside one.
+    /// </summary>
+    Task<DownloadRenewalResult> RenewDownloadAllowanceAsync(Guid orderItemId, int expectedVersion, CancellationToken ct);
+
+    /// <summary>
+    /// What a digital variant's add to a cart is asked (02 3.12.4, 3.12.9): the quantity is one, the variant is not already in the cart, and a member who bought it before
+    /// is warned and not stopped; a guest has no past to check. A plain read; it writes nothing. A variant of another product type gets the neutral answer.
+    /// </summary>
+    Task<DigitalAddCheck> CheckDigitalAddAsync(DigitalAddRequest request, CancellationToken ct);
 
     /// <summary>
     /// The retention arm of each of the given orders (06 9.1 Z-28, Z-41, Z-43; K-1030 (3), (4)), read from the payment record at this moment: whether the payment
@@ -93,6 +112,12 @@ public interface IOrderingModule
     /// declaration alone). Null when there is no such order. A plain read; it writes nothing.
     /// </summary>
     Task<OrderShippingView?> GetShippingViewAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
+    /// Which of the given transition records a correction row points at (06 4.19 <c>CorrectedTransitionRecordId</c>), the caller's unsaved rows included: a
+    /// cancellation whose closing transition is corrected is undone (06 4.22; T319). A plain read; it writes nothing.
+    /// </summary>
+    Task<IReadOnlySet<Guid>> FindCorrectedTransitionRecordsAsync(IReadOnlyCollection<Guid> transitionRecordIds, CancellationToken ct);
 }
 
 /// <summary>A card order that waits for its payment: its number, which the provider's query names, and whether its payment window has ended.</summary>

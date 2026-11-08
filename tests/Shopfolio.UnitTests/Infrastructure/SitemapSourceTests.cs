@@ -149,6 +149,8 @@ public sealed class SitemapSourceTests
 
         public Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<CatalogMenu> GetMenuAsync(CancellationToken ct) => throw new NotSupportedException();
+
         public Task<CategoryWriteResult> CreateCategoryAsync(string? name, Guid? parentCategoryId, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<CategoryWriteResult> RenameCategoryAsync(Guid categoryId, string? name, CancellationToken ct) => throw new NotSupportedException();
@@ -183,5 +185,9 @@ public sealed class SitemapSourceTests
             Reads++;
             return Task.FromResult(paths);
         }
+
+        public Task<StorefrontMenu> GetMenuAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<HomepageView> GetHomepageAsync(CancellationToken ct) => throw new NotSupportedException();
     }
 }

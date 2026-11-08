@@ -26,14 +26,16 @@ internal sealed class ProductTransitions : IProductTransitions
     private readonly IOrderingModule _ordering;
     private readonly IAuditTrail _trail;
     private readonly TimeProvider _time;
+    private readonly CacheInvalidations _invalidations;
 
-    public ProductTransitions(AppDbContext db, IPublishGate gate, IOrderingModule ordering, IAuditTrail trail, TimeProvider time)
+    public ProductTransitions(AppDbContext db, IPublishGate gate, IOrderingModule ordering, IAuditTrail trail, TimeProvider time, CacheInvalidations invalidations)
     {
         _db = db;
         _gate = gate;
         _ordering = ordering;
         _trail = trail;
         _time = time;
+        _invalidations = invalidations;
     }
 
     public async Task<PublishChangeResult> ChangeProductStatusAsync(Guid productId, PublishStatus target, int shownVersion, CancellationToken ct)
@@ -81,6 +83,10 @@ internal sealed class ProductTransitions : IProductTransitions
         {
             return PublishChangeResult.VersionConflict;
         }
+
+        // A product that enters or leaves the showcase moves the menu's categories and products part and the site map (02 3.28.6; 05 7.10.1).
+        _invalidations.Add(CacheArea.Menu);
+        _invalidations.Add(CacheArea.Sitemap);
 
         if (from == PublishStatus.Published)
         {

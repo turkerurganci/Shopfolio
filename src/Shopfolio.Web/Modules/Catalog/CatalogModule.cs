@@ -30,6 +30,7 @@ internal sealed class CatalogModule : ICatalogModule
     private readonly ProductGallery _gallery;
     private readonly Discounts _discounts;
     private readonly VariantPrices _variantPrices;
+    private readonly CatalogMenuReader _menu;
 
     public CatalogModule(
         StockCounters counters,
@@ -46,9 +47,11 @@ internal sealed class CatalogModule : ICatalogModule
         ProductListReader lists,
         ProductGallery gallery,
         Discounts discounts,
-        VariantPrices variantPrices)
+        VariantPrices variantPrices,
+        CatalogMenuReader menu)
     {
         _discounts = discounts;
+        _menu = menu;
         _variantPrices = variantPrices;
         _priceLabels = priceLabels;
         _categories = categories;
@@ -101,6 +104,8 @@ internal sealed class CatalogModule : ICatalogModule
     public decimal SumOrderTotal(IReadOnlyList<ItemAmounts> items, decimal shippingFee) => ItemPricing.SumOrderTotal(items, shippingFee);
 
     public Task<IReadOnlyList<CategoryNode>> GetCategoryTreeAsync(CancellationToken ct) => _categories.ReadAsync(ct);
+
+    public Task<CatalogMenu> GetMenuAsync(CancellationToken ct) => _menu.ReadAsync(ct);
 
     public Task<CategoryWriteResult> CreateCategoryAsync(string? name, Guid? parentCategoryId, CancellationToken ct)
         => _categories.CreateAsync(name, parentCategoryId, ct);
@@ -202,6 +207,7 @@ internal static class CatalogModuleRegistration
         services.AddScoped<ProductStructureReader>();
         services.AddScoped<PriceLabelReader>();
         services.AddScoped<CategoryTree>();
+        services.AddScoped<CatalogMenuReader>();
         services.AddScoped<ProductCategoryLinks>();
         services.AddScoped<ProductListReader>();
         services.AddScoped<ProductGallery>();

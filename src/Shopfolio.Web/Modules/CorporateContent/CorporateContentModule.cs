@@ -9,13 +9,21 @@ namespace Shopfolio.Modules.CorporateContent;
 internal sealed class CorporateContentModule : ICorporateContentModule
 {
     private readonly CorporateContentSitemapReader _sitemap;
+    private readonly StorefrontMenuReader _menu;
+    private readonly HomepageReader _homepage;
 
-    public CorporateContentModule(CorporateContentSitemapReader sitemap)
+    public CorporateContentModule(CorporateContentSitemapReader sitemap, StorefrontMenuReader menu, HomepageReader homepage)
     {
         _sitemap = sitemap;
+        _menu = menu;
+        _homepage = homepage;
     }
 
     public Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct) => _sitemap.ListAsync(ct);
+
+    public Task<StorefrontMenu> GetMenuAsync(CancellationToken ct) => _menu.GetAsync(ct);
+
+    public Task<HomepageView> GetHomepageAsync(CancellationToken ct) => _homepage.GetAsync(ct);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddCorporateContentModule</c> once.</summary>
@@ -29,6 +37,8 @@ internal static class CorporateContentModuleRegistration
         services.AddScoped<ContentAuthoring>();
         services.AddScoped<SocialLinks>();
         services.AddScoped<ContentReaders>();
+        services.AddScoped<StorefrontMenuReader>();
+        services.AddScoped<HomepageReader>();
         services.AddDisposalPart<ContactRequestDisposalPart>();
         services.AddScoped<ICorporateContentModule, CorporateContentModule>();
         return services;

@@ -13,7 +13,7 @@ namespace Shopfolio.Modules.CorporateContent;
 internal sealed class CorporateContentSitemapReader
 {
     /// <summary>The about page's fixed address (07 2.1.2).</summary>
-    public const string AboutPagePath = "/hakkimizda";
+    public static readonly string AboutPagePath = "/" + AddressRules.AboutPage;
 
     private readonly AppDbContext _db;
 

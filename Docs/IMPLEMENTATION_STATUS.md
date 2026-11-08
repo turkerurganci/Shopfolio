@@ -164,7 +164,7 @@
 | T321 | Ürün yayın durumları | ✓ | ✓ PASS (tur 3) | — | #439 |
 | T322 | İçerik yayın durumları ve iletişim talebi durumları | ✓ | ✓ PASS (tur 1) | `f9ea0fe` | #438 |
 | T323 | Durum × rol × işlem tablosu | ⬚ | — | — | — |
-| T324 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | ⬚ | — | — | — |
+| T324 | Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri | ✓ | ✓ PASS (tur 1) | — | #454 |
 | T325 | Zaman aşımı akışları: teslim, cayma, geri ödeme ve ayıp talebi süreleri | ⬚ | — | — | — |
 | T326 | Zaman aşımı akışları: katalog, kupon, içerik, iletişim ve bildirim süreleri | ⬚ | — | — | — |
 | T327 | Kendiliğinden işleyen anlar ve sitenin kesintisinde süreler | ⬚ | — | — | — |

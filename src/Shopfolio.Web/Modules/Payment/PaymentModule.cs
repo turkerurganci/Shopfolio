@@ -205,6 +205,10 @@ internal static class PaymentModuleRegistration
         services.AddDisposalPart<InboundNotificationDisposalPart>();
         services.AddScoped<PaymentNotificationEndpoint>();
         services.AddTransactionalJobHandler<InboundNotificationJobHandler>(JobType.InboundNotificationProcessing);
+
+        // The final query's handler (FinalPaymentQueryJobHandler, T324) takes the payment gateway, which has no implementation before the provider's task:
+        // T403 registers it with AddJobHandler<FinalPaymentQueryJobHandler>(JobType.FinalPaymentQuery) beside the gateway (D-449). Until then the rows the
+        // card window's end writes wait in the queue - a type without a handler is not read (09 13.1 item 3).
         return services;
     }
 

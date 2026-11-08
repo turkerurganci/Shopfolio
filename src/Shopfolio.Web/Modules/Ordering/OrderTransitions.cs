@@ -30,6 +30,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
     private readonly IAfterSalesModule _afterSales;
     private readonly IPaymentModule _payment;
     private readonly INotificationsModule _notifications;
+    private readonly ICatalogModule _catalog;
     private readonly TimeProvider _time;
 
     public OrderTransitions(
@@ -38,6 +39,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         IAfterSalesModule afterSales,
         IPaymentModule payment,
         INotificationsModule notifications,
+        ICatalogModule catalog,
         TimeProvider time)
     {
         _db = db;
@@ -45,6 +47,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         _afterSales = afterSales;
         _payment = payment;
         _notifications = notifications;
+        _catalog = catalog;
         _time = time;
     }
 
@@ -398,14 +401,42 @@ internal sealed partial class OrderTransitions : IOrderTransitions
     }
 
     /// <summary>The operation raises the order's version by exactly one, however many writes it makes (06 2.6.4; <see cref="OrderVersionGuard"/>).</summary>
-    private void RaiseVersionOnce(Order order)
+    private void RaiseVersionOnce(Order order) => RaiseVersionOnce(_db, order);
+
+    /// <summary>
+    /// The one rule of "raised by exactly one" (06 2.6.4): the version is raised unless the unit of work already raised it by one. The scheduled
+    /// order change calls it after its own step, which may have been an operation of this unit that raised the version already.
+    /// </summary>
+    internal static void RaiseVersionOnce(AppDbContext db, Order order)
     {
-        _db.ChangeTracker.DetectChanges();
-        PropertyEntry version = _db.Entry(order).Property(ModelBuilderExtensions.VersionPropertyName);
+        ArgumentNullException.ThrowIfNull(db);
+        ArgumentNullException.ThrowIfNull(order);
+        db.ChangeTracker.DetectChanges();
+        PropertyEntry version = db.Entry(order).Property(ModelBuilderExtensions.VersionPropertyName);
         bool raised = version.IsModified && version.CurrentValue is int now && version.OriginalValue is int was && now == was + 1;
         if (!raised)
         {
             order.BumpVersion();
         }
+    }
+
+    /// <summary>
+    /// The release of the order's reservation (06 4.14 path 3; 02 3.17.5): the payment window ran out, the card failed, the unpaid order was
+    /// cancelled. Written in the transition unit, in the cancellation's transaction, after the order lock (05 7.3.5: the variants and the coupon
+    /// follow the order): the reserved quantities and the reserved coupon right go down by the order's rows, and the rows are deleted. An order
+    /// whose rows are gone - paid, deleted variant, digital only - frees nothing.
+    /// </summary>
+    private async Task ReleaseReservationAsync(Guid orderId, CancellationToken ct)
+    {
+        List<StockReservation> rows = await _db.StockReservations.Where(r => r.OrderId == orderId).ToListAsync(ct);
+        if (rows.Count == 0)
+        {
+            return;
+        }
+
+        VariantQuantity[] variants = [.. rows.Where(r => r.VariantId is not null).Select(r => new VariantQuantity(r.VariantId!.Value, r.Quantity))];
+        Guid? couponId = rows.Where(r => r.CouponId is not null).Select(r => r.CouponId).SingleOrDefault();
+        await _catalog.ReleaseAsync(new StockClaim(variants, couponId), ct);
+        _db.StockReservations.RemoveRange(rows);
     }
 }

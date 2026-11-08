@@ -16,6 +16,7 @@ internal sealed class OrderingModule : IOrderingModule
 {
     private readonly AppDbContext _db;
     private readonly OrderPaymentArms _arms;
+    private readonly ShippingViewReader _shippingViews;
 
     private readonly OrderLocks _locks;
 
@@ -23,14 +24,20 @@ internal sealed class OrderingModule : IOrderingModule
 
     private readonly DownloadCounters _downloads;
 
-    public OrderingModule(AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks, DownloadCounters downloads)
+    private readonly Carts _carts;
+
+    public OrderingModule(AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks, DownloadCounters downloads, Carts carts)
     {
+        _carts = carts;
         _db = db;
         _arms = arms;
+        _shippingViews = new ShippingViewReader(db);
         _locks = locks;
         _advisoryLocks = advisoryLocks;
         _downloads = downloads;
     }
+
+    public Task<OrderShippingView?> GetShippingViewAsync(Guid orderId, CancellationToken ct) => _shippingViews.GetAsync(orderId, ct);
 
     public Task<IReadOnlyList<OrderPaymentArm>> FindPaymentArmsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => _arms.ReadAsync(orderIds, ct);
 
@@ -181,19 +188,14 @@ internal sealed class OrderingModule : IOrderingModule
         // The cart's lock heads the transaction: a request that arrived together with this one waits here, and once the first has committed it reads no
         // marked item - it tells nothing (told once), with no exception on the way (09 10.2 items 2, 5).
         await _advisoryLocks.LockAsync(AdvisoryLockScope.Cart, cartId, ct);
-        List<CartItem> marked = await _db.CartItems
-            .Where(i => i.CartId == cartId && i.RemovedProductName != null)
-            .OrderBy(i => i.CreatedAt).ThenBy(i => i.Id)
-            .ToListAsync(ct);
-        if (marked.Count == 0)
-        {
-            return [];
-        }
-
-        string[] names = [.. marked.Select(i => i.RemovedProductName!)];
-        _db.CartItems.RemoveRange(marked);
-        return names;
+        return await _carts.TakeRemovedNamesAsync(cartId, ct);
     }
+
+    public Task<CartView> OpenCartAsync(CartOwner owner, CancellationToken ct) => _carts.OpenAsync(owner, ct);
+
+    public Task<CartAddResult> AddToCartAsync(CartOwner owner, Guid variantId, int quantity, CancellationToken ct) => _carts.AddAsync(owner, variantId, quantity, ct);
+
+    public Task<CartMergeResult> MergeGuestCartAsync(Guid customerId, string guestCartKey, CancellationToken ct) => _carts.MergeAsync(customerId, guestCartKey, ct);
 
     public async Task<IReadOnlyList<ReservationHolder>> ListReservationHoldersAsync(Guid variantId, CancellationToken ct)
     {
@@ -203,6 +205,20 @@ internal sealed class OrderingModule : IOrderingModule
             .OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id)
             .Select(x => new ReservationHolder(x.OrderId, x.OrderNumber, x.Quantity))
             .ToListAsync(ct);
+    }
+
+    public async Task<OrderForPayment?> FindOrderForPaymentAsync(string orderNumber, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderNumber);
+        if (orderNumber.Length == 0)
+        {
+            return null;
+        }
+
+        return await _db.Orders.AsNoTracking()
+            .Where(o => o.OrderNumber == orderNumber)
+            .Select(o => new OrderForPayment(o.Id, o.Total, o.PaymentMethod))
+            .SingleOrDefaultAsync(ct);
     }
 
     public Task<int> CountOpenOrdersOfProductAsync(Guid productId, CancellationToken ct)
@@ -269,6 +285,8 @@ internal static class OrderingModuleRegistration
         services.AddScoped<OrderLocks>();
         services.AddScoped<OrderPaymentArms>();
         services.AddScoped<DownloadCounters>();
+        services.AddScoped<CartStatements>();
+        services.AddScoped<Carts>();
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
 

@@ -144,6 +144,8 @@ public sealed class SitemapSourceTests
 
         public Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<IReadOnlyList<VariantShippingPeriod>> GetShippingPeriodsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<DiscountSaveResult> SaveDiscountAsync(Guid productId, decimal percentage, DateOnly startDate, DateOnly endDate, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<DiscountRemoveResult> RemoveDiscountAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
@@ -193,6 +195,8 @@ public sealed class SitemapSourceTests
         public Task<string?> GetCardImageAltTextAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<VariantImage?> GetVariantImageAsync(Guid variantId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct) => throw new NotSupportedException();
     }
 
     private sealed class FakeContent(IReadOnlyList<string> paths) : ICorporateContentModule

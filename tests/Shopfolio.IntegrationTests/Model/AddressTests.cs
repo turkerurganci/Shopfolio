@@ -15,6 +15,7 @@ using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Ordering;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Membership.Contracts;
@@ -57,6 +58,7 @@ public sealed class AddressTests : IAsyncLifetime
     private LegalTextVersion _form = null!;
     private LegalTextVersion _contract = null!;
     private LegalTextVersion _notice = null!;
+    private readonly DeliverySwitch _delivery = new();
     private int _orderCounter;
 
     public AddressTests(CollectionDatabaseFixture collection)
@@ -102,6 +104,7 @@ public sealed class AddressTests : IAsyncLifetime
         services.AddSingleton(new LinkKeys(Options.Create(new LinkKeyOptions { DerivationSecret = Convert.ToBase64String(new byte[LinkKeyOptions.DerivationSecretMinBytes]) })));
         services.AddScoped<LoginRecorder>();
         services.AddSingleton<PasswordService>();
+        services.AddSingleton(_delivery);
         services.AddScoped<ReauthenticationValues>();
         services.AddScoped<SessionStore>();
         services.AddScoped<PasswordRegime>();
@@ -111,6 +114,7 @@ public sealed class AddressTests : IAsyncLifetime
         services.AddScoped<DownloadCounters>();
         services.AddScoped<OrderPaymentArms>();
         services.AddScoped<AdvisoryLocks>();
+        services.AddCartServices();
         services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddPaymentModule();
         services.AddScoped<AccountEmailQueue>();
@@ -464,7 +468,68 @@ public sealed class AddressTests : IAsyncLifetime
         Assert.Contains("phone", await ColumnsAsync("address_books"));
     }
 
+    // ---- T350 KK1, KK2: the delivery area restricts the shipping province of a physical order ----
+
+    [Fact]
+    public async Task AProvinceTheCompanyDoesNotDeliverTo_RefusesAPhysicalOrder_NamingTheProvince_ButNotADigitalOrNotAServiceOne_T350KK1()
+    {
+        _delivery.Closed.Add(Ankara);
+
+        OrderAddressResolution typed = await RunAsync(m => m.ResolveOrderAddressesAsync(Request(null, [ProductType.Physical]), Ct));
+        OrderAddressResolution mixed = await RunAsync(m => m.ResolveOrderAddressesAsync(Request(null, [ProductType.Physical, ProductType.Digital, ProductType.Service]), Ct));
+        OrderAddressResolution digital = await RunAsync(m => m.ResolveOrderAddressesAsync(BillingOnly(ProductType.Digital), Ct));
+        OrderAddressResolution service = await RunAsync(m => m.ResolveOrderAddressesAsync(BillingOnly(ProductType.Service), Ct));
+        OrderAddressResolution open = await RunAsync(m => m.ResolveOrderAddressesAsync(Request(null, [ProductType.Physical]) with { ShippingProvinceId = Izmir }, Ct));
+
+        Assert.True(typed.IsRejected);
+        Assert.Equal(ErrorCode.DeliveryProvinceNotServed, typed.Code);
+        MembershipFieldError error = Assert.Single(typed.Fields);
+        Assert.Equal("ShippingProvinceId", error.Field);
+        Assert.Equal("Ankara", error.Detail);
+        Assert.Equal("Bu firma Ankara iline teslimat yapmıyor.", DeliveryArea.NotServedMessage(error.Detail!));
+        Assert.Equal(ErrorCode.DeliveryProvinceNotServed, Assert.Single(mixed.Fields).Code);
+        Assert.True(digital.IsResolved);
+        Assert.True(service.IsResolved);
+        Assert.True(open.IsResolved);
+    }
+
+    [Fact]
+    public async Task ABillingProvince_IsNeverRestricted_AndABookEntryInAClosedProvince_CannotBeChosen_T350KK2()
+    {
+        Guid member = await SeedCustomerAsync("ali@example.com");
+        Guid ankaraEntry = (await RunAsync(m => m.CreateAddressBookEntryAsync(member, Book("Ev", Ankara), Ct))).EntryId!.Value;
+        Guid izmirEntry = (await RunAsync(m => m.CreateAddressBookEntryAsync(member, Book("İş", Izmir), Ct))).EntryId!.Value;
+        _delivery.Closed.Add(Ankara);
+
+        IReadOnlyList<AddressBookEntry> book = await ReadAsync(m => m.GetAddressBookAsync(member, Ct));
+        AddressBookEntry? one = await ReadAsync(m => m.GetAddressBookEntryAsync(member, ankaraEntry, Ct));
+        OrderAddressResolution closed = await RunAsync(m => m.ResolveOrderAddressesAsync(Request(member, [ProductType.Physical]) with { AddressBookId = ankaraEntry }, Ct));
+        OrderAddressResolution open = await RunAsync(m => m.ResolveOrderAddressesAsync(Request(member, [ProductType.Physical]) with { AddressBookId = izmirEntry }, Ct));
+        OrderAddressResolution billing = await RunAsync(m => m.ResolveOrderAddressesAsync(
+            Request(member, [ProductType.Physical]) with
+            {
+                ShippingProvinceId = Izmir,
+                IsBillingSameAsShipping = false,
+                BillingRecipientName = "Firma",
+                BillingProvinceId = Ankara,
+                BillingDistrict = "Çankaya",
+                BillingAddressLine = "Kızılay 2",
+            },
+            Ct));
+
+        Assert.Equal([false, true], book.Select(e => e.IsDeliverable));
+        Assert.False(one!.IsDeliverable);
+        MembershipFieldError error = Assert.Single(closed.Fields);
+        Assert.Equal(new MembershipFieldError("AddressBookId", ErrorCode.DeliveryProvinceNotServed, "Ankara"), error);
+        Assert.True(open.IsResolved);
+        Assert.True(billing.IsResolved);
+        Assert.Equal(Ankara, billing.Billing!.ProvinceId);
+    }
+
     // ---- helpers ----
+
+    private OrderAddressRequest BillingOnly(ProductType type) =>
+        new(null, [type], null, null, null, null, null, null, false, null, false, "Ali Veli", Ankara, "Çankaya", "Atatürk Bulvarı 1");
 
     private static AddressBookInput Book(string name, Guid province) => new(name, "Ali Veli", province, "Konak", "Atatürk Cad. 1", "0532 123 45 67");
 
@@ -588,9 +653,24 @@ public sealed class AddressTests : IAsyncLifetime
     }
 
     /// <summary>The Settings module as the address code sees it: the province list is the real one, every other call is not made.</summary>
-    private sealed class ProvinceSettings(ProvinceList provinces) : ISettingsModule
+    private sealed class DeliverySwitch
+    {
+        public HashSet<Guid> Closed { get; } = [];
+    }
+
+    private sealed class ProvinceSettings(ProvinceList provinces, DeliverySwitch delivery) : ISettingsModule
     {
         public Task<IReadOnlyList<ProvinceInfo>> GetProvincesAsync(CancellationToken ct) => provinces.GetAllAsync(ct);
+
+        public Task<DeliveryProvincesSection> GetDeliveryProvincesAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<SettingsSaveResult> SaveDeliveryProvincesAsync(IReadOnlyCollection<Guid> provinceIds, int formVersion, CancellationToken ct) => throw new NotSupportedException();
+
+        public async Task<DeliveryArea> GetDeliveryAreaAsync(CancellationToken ct)
+        {
+            IReadOnlyList<ProvinceInfo> all = await provinces.GetAllAsync(ct);
+            return new DeliveryArea([.. all.Where(p => !delivery.Closed.Contains(p.Id))], [.. all.Where(p => delivery.Closed.Contains(p.Id))]);
+        }
 
         public Task<HomepageSection> GetHomepageAsync(CancellationToken ct) => throw new NotSupportedException();
 

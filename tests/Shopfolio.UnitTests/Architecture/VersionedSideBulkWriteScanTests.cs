@@ -87,6 +87,21 @@ public sealed class VersionedSideBulkWriteScanTests
     }
 
     [Fact]
+    public void TheCartStatementsPlace_HoldsExactlyFourStatements_AllInsertsOnTheCartTables_AndNoUpdateNoDeleteAndNoSideTable()
+    {
+        string place = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), VersionedSideBulkWriteScan.CartStatementsPlace));
+        System.Text.RegularExpressions.RegexOptions options = System.Text.RegularExpressions.RegexOptions.CultureInvariant;
+        TimeSpan timeout = TimeSpan.FromSeconds(5);
+
+        Assert.Equal(4, System.Text.RegularExpressions.Regex.Count(place, @"ExecuteSql\w*\(", options, timeout));
+        Assert.Equal(4, System.Text.RegularExpressions.Regex.Count(place, @"INSERT INTO (carts|cart_items) \(", options, timeout));
+        Assert.Equal(0, System.Text.RegularExpressions.Regex.Count(place, @"ExecuteUpdate|ExecuteDelete|SqlQuery|SaveChanges|DELETE FROM|\bFROM\b", options, timeout));
+
+        // The same text under a path that is no allowed place: no table of the two sides is named, and no set of them either.
+        Assert.Empty(VersionedSideBulkWriteScan.Scan(OtherModule, place));
+    }
+
+    [Fact]
     public void TheGalleryMainMarkPlace_HoldsExactlyOneBulkStatement_OnlyOnTheProductImages_AndTheRestOfTheGalleryHoldsNone()
     {
         string root = RepositoryRoot.Find();
@@ -101,6 +116,26 @@ public sealed class VersionedSideBulkWriteScanTests
         foreach (string file in new[] { "ProductGallery.cs", "GalleryRules.cs", "ImageAltText.cs" })
         {
             string path = "src/Shopfolio.Web/Modules/Catalog/" + file;
+            Assert.DoesNotContain(path, VersionedSideBulkWriteScan.AllowedPlaces);
+            Assert.Empty(VersionedSideBulkWriteScan.Scan(path, File.ReadAllText(Path.Combine(root, path))));
+        }
+    }
+
+    [Fact]
+    public void TheInboundNotificationInsertPlace_HoldsExactlyOneRawStatement_OnlyAnInsertOfTheInboundRecord_AndTheEndpointHoldsNone()
+    {
+        string root = RepositoryRoot.Find();
+        string place = File.ReadAllText(Path.Combine(root, VersionedSideBulkWriteScan.InboundNotificationInsertPlace));
+
+        Assert.Equal(1, System.Text.RegularExpressions.Regex.Count(place, @"\bExecute\w*\s*\(", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
+        Assert.Equal(1, System.Text.RegularExpressions.Regex.Count(place, @"\b(?:INSERT|UPDATE|DELETE)\b", System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromSeconds(5)));
+        Assert.Contains("INSERT INTO inbound_notification_records", place, StringComparison.Ordinal);
+        Assert.Contains("ON CONFLICT DO NOTHING", place, StringComparison.Ordinal);
+
+        // The endpoint and the processing job are not places: a bulk or raw write in either would be a finding.
+        foreach (string file in new[] { "PaymentNotificationEndpoint.cs", "InboundNotificationJobHandler.cs", "PaymentNotificationRule.cs" })
+        {
+            string path = "src/Shopfolio.Web/Modules/Payment/" + file;
             Assert.DoesNotContain(path, VersionedSideBulkWriteScan.AllowedPlaces);
             Assert.Empty(VersionedSideBulkWriteScan.Scan(path, File.ReadAllText(Path.Combine(root, path))));
         }

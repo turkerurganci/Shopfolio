@@ -18,6 +18,7 @@ using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Ordering;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
@@ -122,6 +123,7 @@ public sealed partial class MembershipTests : IAsyncLifetime
         services.AddScoped<DownloadCounters>();
         services.AddScoped<OrderPaymentArms>();
         services.AddScoped<AdvisoryLocks>();
+        services.AddCartServices();
         services.AddScoped<IOrderingModule, OrderingModule>();
         services.AddPaymentModule();
         services.AddScoped<AccountEmailQueue>();
@@ -722,6 +724,12 @@ public sealed partial class MembershipTests : IAsyncLifetime
     private sealed class GateOnlySettings(GateSwitch gate) : ISettingsModule
     {
         public Task<SalesGate> GetSalesGateAsync(CancellationToken ct) => Task.FromResult(gate.Gate);
+
+        public Task<DeliveryProvincesSection> GetDeliveryProvincesAsync(CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<SettingsSaveResult> SaveDeliveryProvincesAsync(IReadOnlyCollection<Guid> provinceIds, int formVersion, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<DeliveryArea> GetDeliveryAreaAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<CompanyIdentity> GetCompanyIdentityAsync(CancellationToken ct) => throw new NotSupportedException();
 

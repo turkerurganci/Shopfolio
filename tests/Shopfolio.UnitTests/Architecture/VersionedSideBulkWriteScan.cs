@@ -54,7 +54,7 @@ internal static partial class VersionedSideBulkWriteScan
         "src/Shopfolio.Web/Modules/Ordering/", "src/Shopfolio.Web/Modules/AfterSales/", "src/Shopfolio.Web/Modules/Payment/", "src/Shopfolio.Web/Modules/Catalog/",
     ];
 
-    /// <summary>The places inside those modules that have a bulk write: the counters' one writer, the download counter's one writer (T340), the guest cart's disposal (a cart is no order), the image derivative job and the disposal of unlinked images (an image row with no link left is no product row), the disposal of unlinked and incomplete digital files (the same), and the inbound notification record's disposal (the record is no order-side row).</summary>
+    /// <summary>The places inside those modules that have a bulk write: the counters' one writer, the download counter's one writer (T340), the guest cart's disposal (a cart is no order), the image derivative job and the disposal of unlinked images (an image row with no link left is no product row), the disposal of unlinked and incomplete digital files (the same), the inbound notification record's disposal and its one insert (the record is no order-side row).</summary>
     public static readonly IReadOnlyList<string> AllowedPlaces =
     [
         "src/Shopfolio.Web/Modules/Catalog/StockCounters.cs",
@@ -65,10 +65,18 @@ internal static partial class VersionedSideBulkWriteScan
         "src/Shopfolio.Web/Modules/Catalog/DigitalFileDisposalParts.cs",
         "src/Shopfolio.Web/Modules/Payment/InboundNotificationDisposalPart.cs",
         GalleryMainMarkPlace,
+        InboundNotificationInsertPlace,
+        CartStatementsPlace,
     ];
+
+    /// <summary>The cart's conditional statements (T346): raw INSERT ... ON CONFLICT on <c>carts</c> and <c>cart_items</c> only - a cart is no order and no product form; a unit test holds the file to those two tables and four statements.</summary>
+    public const string CartStatementsPlace = "src/Shopfolio.Web/Modules/Ordering/CartStatements.cs";
 
     /// <summary>The download counter's one writer (T340): the counter is the customer's, not the firm's write of the item, so it does not raise the order's version (06 2.6.4); its renewal under the order's lock raises it in the same file.</summary>
     public const string DownloadCountersPlace = "src/Shopfolio.Web/Modules/Ordering/DownloadCounters.cs";
+
+    /// <summary>The notification endpoint's one raw statement (T311): the inbound record written with <c>ON CONFLICT DO NOTHING</c> inside the caller's transaction; a file of that one statement and nothing else.</summary>
+    public const string InboundNotificationInsertPlace = "src/Shopfolio.Web/Modules/Payment/InboundNotificationInsert.cs";
 
     /// <summary>The gallery's one bulk statement (T339): the main mark taken off a product's current main image inside the caller's transaction; a file of that one statement and nothing else.</summary>
     public const string GalleryMainMarkPlace = "src/Shopfolio.Web/Modules/Catalog/GalleryMainMark.cs";

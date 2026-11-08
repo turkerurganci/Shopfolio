@@ -23,6 +23,21 @@ public sealed partial class AddressSourceScanTests
     private static string Read(string relative) => File.ReadAllText(Path.Combine(RepositoryRoot.Find(), relative));
 
     [Fact]
+    public void NoInputOrFormModelOfTheApplication_CarriesAnAddressTheFirmCouldType_KK2()
+    {
+        // 02 3.30.2: the firm never types a page address - the form models (the *Input and *Form types) have no Slug member to bind.
+        List<string> typed =
+        [
+            .. typeof(Program).Assembly.GetTypes()
+                .Where(t => t.Name.EndsWith("Input", StringComparison.Ordinal) || t.Name.EndsWith("Form", StringComparison.Ordinal) || t.Name.EndsWith("Model", StringComparison.Ordinal))
+                .SelectMany(t => t.GetProperties().Where(p => p.Name.Contains("Slug", StringComparison.Ordinal)).Select(p => t.FullName + "." + p.Name))
+                .Order(StringComparer.Ordinal),
+        ];
+
+        Assert.Empty(typed);
+    }
+
+    [Fact]
     public void ApplicationSource_HasNoRedirectFromAnOldAddress_NoPlatformShareCode_AndTheSlugIsAssignedInOnePlace()
     {
         string root = RepositoryRoot.Find();
@@ -53,7 +68,7 @@ public sealed partial class AddressSourceScanTests
     [Theory]
     [InlineData("internal sealed class SlugHistory { }")]
     [InlineData("public string OldSlug { get; set; }")]
-    [InlineData("string address = PreviousAddress;")]
+    [InlineData("string address = PreviousSlug;")]
     [InlineData("migrationBuilder.CreateTable(name: \"slug_history\");")]
     [InlineData("builder.HasColumnName(\"old_slug\");")]
     [InlineData("app.UseRewriter(options);")]

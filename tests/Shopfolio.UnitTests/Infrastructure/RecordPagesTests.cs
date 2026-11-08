@@ -124,7 +124,7 @@ public sealed partial class RecordPagesTests
 
         Assert.Equal("Sepet – Yılmaz Mobilya", cart.Title);
         Assert.True(cart.Closed);
-        Assert.Contains("<title>Sepet – Yılmaz Mobilya</title>", head, StringComparison.Ordinal);
+        Assert.Contains("<title>Sepet &#x2013; Yılmaz Mobilya</title>", head, StringComparison.Ordinal);
         Assert.Equal("noindex", Metas(head)["robots"]);
         Assert.Single(Metas(head));
     }

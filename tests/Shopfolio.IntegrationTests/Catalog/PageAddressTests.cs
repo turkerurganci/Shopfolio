@@ -4,9 +4,11 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Catalog.Contracts.Categories;
 
 namespace Shopfolio.IntegrationTests.Catalog;
 
@@ -143,7 +145,7 @@ public sealed class PageAddressTests : IAsyncLifetime
     [Fact]
     public async Task TheFirstPublication_FixesTheAddress_AndTheWayBackToDraftKeepsIt_KK2()
     {
-        Product product = Product.Create("Masa", "masa", ProductType.Service, 20m, Now);
+        Product product = Product.Create("Masa", "masa", ProductType.Digital, 20m, Now);
         Assert.Null(product.SlugFixedAt);
 
         product.ApplyPublishStatus(PublishStatus.Published, Now);
@@ -212,7 +214,7 @@ public sealed class PageAddressTests : IAsyncLifetime
 
     private async Task<Product> SeedProductAsync(string name, string slug, PublishStatus status)
     {
-        Product product = Product.Create(name, slug, ProductType.Service, 20m, Now);
+        Product product = Product.Create(name, slug, ProductType.Digital, 20m, Now);
         product.PublishStatus = status;
         await using AppDbContext context = NewContext();
         context.Products.Add(product);

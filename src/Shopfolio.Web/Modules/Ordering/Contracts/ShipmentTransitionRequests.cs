@@ -26,6 +26,12 @@ public sealed record ShipOrderRequest(Guid OrderId, TransitionAdmin Admin, int E
 public sealed record MarkDeliveredRequest(Guid OrderId, TransitionAdmin Admin, int ExpectedVersion, DateOnly DeliveryDate);
 
 /// <summary>
+/// The "completed" mark of a service item (T351; 02 3.20.9, 7.3.3; 03 8.2.9): the administrator marks the item delivered. It takes the item's whole open quantity (02 7.2.5; K-792); there is no
+/// appointment, calendar or date to enter - the day is the day of the mark.
+/// </summary>
+public sealed record MarkServiceCompletedRequest(Guid OrderId, Guid OrderItemId, TransitionAdmin Admin, int ExpectedVersion);
+
+/// <summary>
 /// S3, S4 or S9: the cancellation of the order (03 1.2; 05 4.1). Which of the three it is follows from the state the order is in once it is locked. The
 /// customer's carries no reason and no administrator; the administrator's carries the screen's version, the irreversible-action confirmation
 /// (03 1.6.1.3) and a reason from the closed list (with the free note on "Other"); the system's carries the kind of automatic cancellation. An unpaid order
@@ -77,4 +83,7 @@ public sealed record OrderTransitionResult(
 
     /// <summary>Why the correction can not be made; set only on a <see cref="TransitionRefusal.CorrectionNotPossible"/> refusal.</summary>
     public CorrectionObstacle? Obstacle { get; init; }
+
+    /// <summary>Why the delivery date was refused (02 3.20.11); set only on the <see cref="TransitionRefusal.InvalidInput"/> refusal of the delivery mark's date.</summary>
+    public DeliveryDateObstacle? DateObstacle { get; init; }
 }

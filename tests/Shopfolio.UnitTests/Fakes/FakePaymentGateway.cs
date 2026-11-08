@@ -27,6 +27,15 @@ internal sealed class FakePaymentGateway : IPaymentGateway
 
     public RefundQueryResult DefaultRefundQuery { get; set; } = new RefundQueryResult.NoResult();
 
+    /// <summary>The fake's event type of a payment notification.</summary>
+    public const string PaymentEventType = "payment";
+
+    /// <summary>The fake's outcome of a successful payment.</summary>
+    public const string SucceededOutcome = "succeeded";
+
+    /// <summary>The fake's outcome of a failed payment.</summary>
+    public const string FailedOutcome = "failed";
+
     public NotificationVerification DefaultVerification { get; set; } = new NotificationVerification.SignatureInvalid();
 
     /// <summary>
@@ -84,6 +93,35 @@ internal sealed class FakePaymentGateway : IPaymentGateway
     public NotificationVerification VerifyNotification(IReadOnlyDictionary<string, string> formFields)
     {
         return Next(nameof(VerifyNotification), formFields, _verifications, DefaultVerification);
+    }
+
+    /// <summary>
+    /// The fake's own values, no provider's: event type <see cref="PaymentEventType"/> with outcome <see cref="SucceededOutcome"/> or
+    /// <see cref="FailedOutcome"/>; anything else is unrecognized. A local computation, not a call: not kept, not affected by an outage.
+    /// </summary>
+    public NotificationResult ReadNotificationResult(string eventType, string outcome)
+    {
+        if (!string.Equals(eventType, PaymentEventType, StringComparison.Ordinal))
+        {
+            return NotificationResult.Unrecognized;
+        }
+
+        return outcome switch
+        {
+            SucceededOutcome => NotificationResult.PaymentSucceeded,
+            FailedOutcome => NotificationResult.PaymentFailed,
+            _ => NotificationResult.Unrecognized,
+        };
+    }
+
+    /// <summary>
+    /// The fake's amount rule, the shape of 08 2.1.5's on the product's values: the started amount equals the order's total and the collected total is
+    /// not below it. A local computation, not a call: not kept.
+    /// </summary>
+    public NotificationAmountCheck CheckNotificationAmount(PaymentNotice notice, decimal orderTotal)
+    {
+        ArgumentNullException.ThrowIfNull(notice);
+        return notice.PaymentAmount == orderTotal && notice.TotalAmount >= orderTotal ? NotificationAmountCheck.Holds : NotificationAmountCheck.Mismatch;
     }
 
     // A call to the provider: during an outage it answers the failure's class; otherwise the queue, then the default.

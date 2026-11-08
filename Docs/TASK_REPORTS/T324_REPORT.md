@@ -1,6 +1,6 @@
 # T324 — Zaman aşımı akışları: hesap, oturum, sepet ve ödeme süreleri
 
-**Faz:** F3 | **Durum:** ⏳ Yapım tamamlandı, doğrulama bekliyor | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS; merge yardımcıda) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -82,7 +82,33 @@ Yerel istisnalar (T324'ten bağımsız, `origin/main`'de de aynı): `VersionedFo
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-08, head `2b5e108` = `6a8d862` + `origin/main` `b345583` (T358) birleştirmesi). Kriter 1–8, KK1–KK8, `09 §25` ve güvenlik taraması ✓ |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1 → D-464 (Z-3 davetin "öteki koşullar" kolu T379 k8 / T520 k9'da sınanır; işlemleri T324'te yok), K2 → D-465 (`PaymentWindows.StartAsync`'i üretimde T348 sipariş onayı ve T319 k8 düzeltmesi çağırır) |
+
+**Doğrulayıcı kanıtları (tur 1):**
+
+| # | Kriter / KK | Sonuç | Doğrulayıcı kanıtı |
+|---|---|---|---|
+| 1 / KK1 | Z-1/Z-2/Z-3 süre dolunca ve yenisi istenince geçersiz; Z-1 silmesi imha kaydında | ✓ | Bağlantı kuralı tek yerde: `LinkRecords.StateOf`, `TryConsumeAsync` (`ExpiresAt > now`, `SupersededAt == null`), `SupersedeEarlierAsync`; `LinkLifetimeTests` dört bağlantı türü için ömrü `ProductConstants`'tan okur (P-12/P-13/P-14). `PendingRecordExpiry.EndedRegistration` (ilk bağlantı ölçüdür, yeniden istek ömrü uzatmaz) tembel silmede (`RegisterAsync`) ve gece parçasında aynı ifade; `EndedEmailChange` = `CreatedAt` + P-12. Integration `PendingRecordDisposalTests` 3/3 (sayı imha kaydında, genç kayıt kalır, boşta kayıt yazılmaz); `MembershipTests` (yeniden istek öncekileri geçersiz kılar ve ilk bağlantının sonunda biter; dolmuş bağlantı geçersiz; dolmuş kayıtta yeniden kayıt adresi boşaltır ve sayar) yeşil. Z-3'ün "öteki koşullar"ını doğuran işlemler T379/T520'nin (K1 → D-464) |
+| 2 / KK2 | Z-4/Z-5 son işlemden; üyenin sepeti hesapta | ✓ | `SessionAuthenticationHandler` `now - LastActivityAt > ömür` (P-15/P-16 sabitten); `SessionAccessTests` (`AShortSession_LivesTwoHoursFromItsLastActivity…`, `ALongSession_LivesThirtyDaysFromItsLastActivity`, `TheLastActivity_IsWrittenAtMostOnceAMinute`) yeşil; `Cart.CustomerId` → `Customer` FK, oturumla bağı yok |
+| 3 / KK3 | Sepet kendiliğinden boşalmaz; Z-6 zamanlayıcısı yok | ✓ | `grep -rnE "\bCarts\b\|\bCartItems\b" src` → yalnız `AppDbContext`, `GuestCartDisposalPart` (400 gün misafir sepeti, `06 §9.4.3` saklama kuralı) ve `OrderingModule` (ödeme onayında sepetten çıkarma); `CartTimerScanTests` (yansımayla bulunan kaynak/kesinti etkisi/gecelik adım/işleyici sepete dokunmaz; desen örnekle sınanır) yeşil |
+| 4 / KK4 | Z-7'de son sorgu; ödeme varsa Ö1, yoksa iptal ve serbest | ✓ | `CardPaymentExpiry` pencere bitince `FinalPaymentQuery` satırını yazar (bekleyen tekil satır); `FinalPaymentQueryJobHandler` sağlayıcıyı kilitsiz sorar, ödeme → `ApplyCardPaymentAsync`, ödeme yok + pencere bitmiş → sistem iptali (S3+Ö2, B-7, `ReleaseReservationAsync`); `PaymentWindowTests` KK4 testleri yeşil. Gerçek sağlayıcı ve DI kaydı T403 (D-97, D-448, D-449) |
+| 5 / KK5 | Yanıtsızda iptal yok, işaret var, vazgeçmeden yinelenir | ✓ | `AskAgain` → `RescheduleAfter(JobTimings.FinalPaymentQueryInterval)` (deneme sayısı artmaz); işaret saklanmaz, `PaymentWindowRules.IsPaymentOutcomeUnknown` (`06` K-675 türetilmiş değer); çalıştırıcı satırdan vazgeçse de sipariş zamanı gelmiş kalır, sonraki uyanış yeni satır yazar; `UnansweredFinalQuery_…_KK5` (3 hata türü × 3 tur), `CardWindowEnd_WritesTheQueryAgain_WhenTheRunnerGaveUpOnTheRow_KK5` yeşil |
+| 6 / KK6 | Z-8'de havale iptali; iptal edilmiş sipariş "ödendi" olmaz | ✓ | `TransferPaymentExpiry` (`WaitsForFreshHeartbeat = true`), kilitli ikinci bakış aynı ifade; sürüm bir kez artar (`RaiseVersionOnce`); `TransferWindowEnd_…_KK6` (S3+Ö2, B-7, ayırma ve kupon hakkı serbest, stok kıpırdamaz), `CancelledTransferOrder_CannotBeMarkedPaidAfterwards_KK6` yeşil |
+| 7 / KK7 | B-3 bir kez; düzeltmede bir kez daha; dönüşte süre dolmuşsa gitmez | ✓ | `TransferReminderDue` = an gelmiş ∧ `PaymentWindowEndsAt > now`; gönderimden sonra `PaymentReminderAt` boşalır; `Reminder_…_KK7`, `MissedReminder_…_KK7`, `WakeUpBeforeTheReturnsFirstHeartbeat_…_D100` yeşil |
+| 8 / KK8 | Havale süresi firma ayarından; öteki süreler `ProductConstants`'tan; sayı başka yerde yok | ✓ | `PaymentWindows.StartAsync` havalede `ISettingsModule.GetPeriodsAsync().BankTransferPaymentWindow` (iş günü), kartta `ProductConstants.CardPaymentMinutes`; `TransferWindow_FollowsTheFirmSetting_…_KK8` (1 ve 3 iş günü farklı son) yeşil; diff'in kod satırlarında sayı sabiti taraması boş. Üretimde çağıranlar T348/T319 (K2 → D-465) |
+| `09 §25` | ilgili satırlar | ✓ | zaman `TimeProvider`; modül sınırı (`IOrderingModule.GetCardPaymentQueryTargetAsync` salt okuma, `AsNoTracking`); iç yan etki (ayırmanın serbest kalması) iptalle aynı işlemde, kilit sırası sipariş → değişken/kupon; işleyici işlem dışında, sonuç kendi işleminde; iş türünün işleyicisi sahip task'ta (T403) kayıtlı; göç, paket, uç yok |
+| Güvenlik | taraması | ✓ | sır yok (diff taraması); yeni uç/POST yok, yetki etkisi yok; dış girdi yok (sağlayıcı yanıtı T403); yeni bağımlılık yok (csproj/kilit dosyası değişmedi) |
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana çalışma ağacının `scripts/git-hooks`'u); ana dal son 3 tamamlanmış run 42443632733 (success), 42443632759 (success) — `7ddf334` (#452), 42436765868 (success) — `bcb856d` (T302); memory kapısı: 2026-11-08 kayıt kuralı (chore #450) gereği task PR'ı MEMORY "Güncel Durum"a dokunmaz, Adım 0b uygulanmadı.
+
+**Testler (doğrulayıcı, yerel, `2b5e108`):** `dotnet restore` + `dotnet build -warnaserror` 0 uyarı/0 hata; `dotnet format --verify-no-changes` üç projede çıkış 0; Unit Architecture 961 + Consistency 242 + öteki 3128 (hepsi geçti); betik testleri 4/4; Integration (PostgreSQL 18, ayrı konteyner) `PaymentWindowTests` + `PendingRecordDisposalTests` 18, `ShipmentTransitionsTests` + `PaymentTransitionsTests` + `StockAndCapacityTests` 154, `MembershipTests` + `SchedulerRegistrationTests` + `SchedulerScanTests` + `AuditTrailTests` 68, `DisposalTests` + `SessionAccessTests` + `OrderTransitionsTests` + `AppCacheTests` 99 — hepsi geçti; koşu sonrası `git status` temiz, `dotnet restore --locked-mode` çıkış 0. Dal CI 42445269145 (`2b5e108`) bütün işler yeşil.
+
+**`12` satırları:** KP-74 satırları (`VAL-A368`…`A370`, `D046`…`D051`). `D046`, `D047`, `D051` zaten PASS; `D049`'un üç işleminden ikisi (bekleyen kaydın ve bekleyen e-posta değişikliğinin silinmesi imha kaydında) bu task'ta kanıtlandı, IBAN'ın silinmesi T370'tedir — satır `BEKLEMEDE` kaldı; `A368`…`A370`, `D048`, `D050` ekran ya da öteki task işidir, `BEKLEMEDE`. `Durum` hücresi değişmedi.
+
+**Yapım raporu karşılaştırması (adım 13):** hüküm uyumlu; öz denetim tablosu her kriter ve KK için kanıtlı. Uyuşmazlıklar: (1) yapım raporunun andığı `VAL-E056`, `VAL-A826`, `VAL-D002`, `VAL-A976` T324'ün kaynak birimi (KP-74) dışındaki satırlardır (08 §3.1, K-898, KP-10, K-890); `Durum`'ları değiştirilmedi. (2) ⚠ (a) ve (c) maddeleri backlog'a yazılmamıştı; K1 → D-464, K2 → D-465 ile forward edildi. Not: doğrulayıcı adım 4'te `PaymentWindows`'u ararken grep çıktısında bu raporun iki satırını erken gördü (T348/T319 sahipliği); sahiplik `11` planından bağımsız doğrulandı.
 
 ## Altyapı Değişiklikleri
 

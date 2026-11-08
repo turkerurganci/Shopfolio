@@ -31,20 +31,20 @@ internal sealed partial class AfterSalesModule
             return null;
         }
 
-        List<RefundIbanSubject> subjects = [];
+        List<Guid> subjects = [];
         subjects.AddRange(await _db.Cancellations.AsNoTracking()
             .Where(c => c.RefundIbanId == refundIbanId)
-            .Select(c => new RefundIbanSubject(c.Id, RefundIbanSubjectKind.Cancellation))
+            .Select(c => c.Id)
             .ToListAsync(ct));
         subjects.AddRange(await _db.LateDeliveryTerminations.AsNoTracking()
             .Where(t => t.RefundIbanId == refundIbanId)
-            .Select(t => new RefundIbanSubject(t.Id, RefundIbanSubjectKind.LateDeliveryTermination))
+            .Select(t => t.Id)
             .ToListAsync(ct));
 
         // A withdrawal's refund is born with its goods' receipt: a withdrawal whose goods did not arrive has no subject (Z-38's case).
         subjects.AddRange(await _db.Returns.AsNoTracking()
             .Where(r => r.WithdrawalId != null && _db.Withdrawals.Any(w => w.Id == r.WithdrawalId && w.RefundIbanId == refundIbanId))
-            .Select(r => new RefundIbanSubject(r.Id, RefundIbanSubjectKind.Receipt))
+            .Select(r => r.Id)
             .ToListAsync(ct));
         return new RefundIbanUse(iban.Id, iban.OrderId, iban.ScheduledDeletionAt, subjects);
     }

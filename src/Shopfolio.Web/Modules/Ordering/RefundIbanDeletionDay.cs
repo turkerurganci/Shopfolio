@@ -55,7 +55,7 @@ internal sealed class RefundIbanDeletionDay : IDueRecordSource
                     return new SchedulerStepResult();
                 }
 
-                IReadOnlySet<Guid> settled = await payment.FindSettledRefundSubjectsAsync([.. use.Subjects.Select(s => s.RecordId)], cancel);
+                IReadOnlySet<Guid> settled = await payment.FindSettledRefundSubjectsAsync(use.SubjectIds, cancel);
                 await afterSales.ApplyRefundIbanDeletionDayAsync(recordId, RefundIbanDeletionRule.ShouldDelete(use, settled), cancel);
                 Order order = await db.Orders.SingleAsync(o => o.Id == use.OrderId, cancel);
                 OrderTransitions.RaiseVersionOnce(db, order);
@@ -76,6 +76,6 @@ internal static class RefundIbanDeletionRule
     {
         ArgumentNullException.ThrowIfNull(use);
         ArgumentNullException.ThrowIfNull(settledSubjects);
-        return use.Subjects.All(s => settledSubjects.Contains(s.RecordId));
+        return use.SubjectIds.All(settledSubjects.Contains);
     }
 }

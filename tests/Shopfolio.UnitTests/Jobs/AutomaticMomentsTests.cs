@@ -116,15 +116,12 @@ public sealed partial class AutomaticMomentsTests
         Assert.True(RefundIbanDeletionRule.ShouldDelete(use, new HashSet<Guid>()));
     }
 
-    [Theory]
-    [InlineData(RefundIbanSubjectKind.Cancellation)]
-    [InlineData(RefundIbanSubjectKind.LateDeliveryTermination)]
-    [InlineData(RefundIbanSubjectKind.Receipt)]
-    public void DeletionDay_KeepsTheIban_WhileAnotherRefundStillUsesIt_AndDeletesItOnceThatRefundIsSettled_KK6(RefundIbanSubjectKind kind)
+    [Fact]
+    public void DeletionDay_KeepsTheIban_WhileAnotherRefundStillUsesIt_AndDeletesItOnceThatRefundIsSettled_KK6()
     {
         Guid pending = Guid.NewGuid();
         Guid settled = Guid.NewGuid();
-        RefundIbanUse use = new(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UnixEpoch, [new(settled, RefundIbanSubjectKind.Cancellation), new(pending, kind)]);
+        RefundIbanUse use = new(Guid.NewGuid(), Guid.NewGuid(), DateTimeOffset.UnixEpoch, [settled, pending]);
 
         Assert.False(RefundIbanDeletionRule.ShouldDelete(use, new HashSet<Guid> { settled }));
         Assert.True(RefundIbanDeletionRule.ShouldDelete(use, new HashSet<Guid> { settled, pending }));

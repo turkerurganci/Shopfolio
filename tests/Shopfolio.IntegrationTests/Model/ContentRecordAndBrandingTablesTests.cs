@@ -634,9 +634,9 @@ public sealed class ContentRecordAndBrandingTablesTests : IAsyncLifetime
 
         string longText = "<p>" + new string('a', 100_000) + "</p>";
         AboutPage page = AboutPage.Create(Now);
-        page.LongText = longText;
+        page.SetLongText(longText);
         Offering offering = Offering.Create("Hizmet", "hizmet", 1, Now);
-        offering.Text = longText;
+        offering.SetText(longText);
         await SaveAsync(c =>
         {
             c.AboutPages.Add(page);

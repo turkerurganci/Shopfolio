@@ -90,7 +90,7 @@ internal sealed class EmailChanges
         DateTimeOffset now = _time.GetUtcNow();
 
         // An open revert link closes the change (02 3.13.14, 3.15.6): a following change must not shut the earlier address's way back.
-        DateTimeOffset? revertEnds = await OpenRevertEndAsync(customerId, now, ct);
+        DateTimeOffset? revertEnds = await OpenRevertEndAsync(_db, customerId, now, ct);
         if (revertEnds is { } ends)
         {
             return EmailChangeRequestResult.RevertPending(ends);
@@ -265,9 +265,10 @@ internal sealed class EmailChanges
     // The life of a pending change is the first link's: P-12 hours from the request (PendingRecordExpiry.EndedEmailChange reads the same rule at night).
     private static bool IsEnded(DateTimeOffset createdAt, DateTimeOffset now) => createdAt <= now - TimeSpan.FromHours(ProductConstants.EmailVerificationLinkHours);
 
-    private async Task<DateTimeOffset?> OpenRevertEndAsync(Guid customerId, DateTimeOffset now, CancellationToken ct)
+    /// <summary>The end of the account's open revert link (not used, not superseded, not ended), or nothing; the account's deletion reads the same rule (02 3.15.6).</summary>
+    internal static async Task<DateTimeOffset?> OpenRevertEndAsync(AppDbContext db, Guid customerId, DateTimeOffset now, CancellationToken ct)
     {
-        return await _db.LinkRecords.AsNoTracking()
+        return await db.LinkRecords.AsNoTracking()
             .Where(l => l.CustomerId == customerId && l.LinkType == LinkType.EmailChangeRevert && l.UsedAt == null && l.SupersededAt == null && l.ExpiresAt > now)
             .OrderByDescending(l => l.ExpiresAt)
             .Select(l => (DateTimeOffset?)l.ExpiresAt)

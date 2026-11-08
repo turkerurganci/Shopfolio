@@ -10,7 +10,7 @@ namespace Shopfolio.Modules.Membership.Contracts;
 /// </summary>
 public sealed record AddressBookInput(string? Name, string? RecipientName, Guid? ProvinceId, string? District, string? AddressLine, string? Phone);
 
-/// <summary>An entry of a member's address book as the book screen and the payment step show it; the phone is the ten stored digits or empty.</summary>
+/// <summary>An entry of a member's address book as the book screen and the payment step show it; the phone is the ten stored digits or empty. <c>IsDeliverable</c> is false when the entry's province is one the company does not deliver to (02 3.20.1): the payment step shows the entry but does not let it be chosen.</summary>
 public sealed record AddressBookEntry(
     Guid Id,
     string Name,
@@ -20,7 +20,8 @@ public sealed record AddressBookEntry(
     string District,
     string AddressLine,
     string? Phone,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    bool IsDeliverable = true);
 
 /// <summary>
 /// The outcome of an address book entry's save (07 UC-71, UC-72): saved with the entry's id, refused for fields (with the field errors), or no such entry - the entry is not this

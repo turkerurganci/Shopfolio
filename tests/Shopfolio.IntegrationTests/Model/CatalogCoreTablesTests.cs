@@ -260,8 +260,19 @@ public sealed class CatalogCoreTablesTests : IAsyncLifetime
     {
         Product product = NewProduct("a");
         product.ShippingPeriod = days;
+        Product stored = NewProduct("b");
+        await SaveAsync(c => c.Products.Add(stored));
 
-        Assert.Equal((CheckViolation, "ck_products_shipping_period_fence"), await ViolationOfAsync(c => c.Products.Add(product)));
+        // The save guard stops it in the application before any SQL is sent (T350 criterion 5; the P-6 fence).
+        await using (AppDbContext context = NewContext())
+        {
+            context.Products.Add(product);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => context.SaveChangesAsync(Ct));
+        }
+
+        // The column's check stands behind it for a write that does not pass through a save.
+        PostgresException error = await Assert.ThrowsAsync<PostgresException>(() => ExecuteAsync($"UPDATE products SET shipping_period = {days} WHERE id = '{stored.Id}'"));
+        Assert.Equal((CheckViolation, "ck_products_shipping_period_fence"), (error.SqlState, error.ConstraintName));
     }
 
     [Theory]

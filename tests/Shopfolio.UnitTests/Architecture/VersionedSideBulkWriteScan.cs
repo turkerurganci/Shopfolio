@@ -13,7 +13,7 @@ namespace Shopfolio.UnitTests.Architecture;
 /// write (<c>ExecuteUpdate</c>, <c>ExecuteDelete</c>) or hands the rows to <c>CurrentStateWrite</c>.</item>
 /// <item>The text of a raw write - <c>UPDATE</c>, <c>DELETE FROM</c> or <c>INSERT INTO</c> of a table of those sides - wherever it is handed to the database (<c>ExecuteSql*</c>, <c>SqlQuery</c>, a command object's <c>CommandText</c>, a variable).</item>
 /// <item>A bulk write of any kind inside the modules that own those sides (<c>Ordering</c>, <c>AfterSales</c>, <c>Payment</c>, <c>Catalog</c>) outside the closed list of
-/// the places that have one (the counters' one writer, the guest cart's disposal, the image derivative job, the disposal of unlinked images): a set reached through a variable or a helper is
+/// the places that have one (the counters' one writer, the download counter's one writer, the guest cart's disposal, the image derivative job, the disposal of unlinked images): a set reached through a variable or a helper is
 /// not named in its statement, but the module is.</item>
 /// </list>
 /// A bulk write of a set outside the sides (sessions, links, heartbeats, the job queue) is not a finding. The sets and the tables are the ones the two
@@ -54,10 +54,11 @@ internal static partial class VersionedSideBulkWriteScan
         "src/Shopfolio.Web/Modules/Ordering/", "src/Shopfolio.Web/Modules/AfterSales/", "src/Shopfolio.Web/Modules/Payment/", "src/Shopfolio.Web/Modules/Catalog/",
     ];
 
-    /// <summary>The places inside those modules that have a bulk write: the counters' one writer, the guest cart's disposal (a cart is no order), the image derivative job and the disposal of unlinked images (an image row with no link left is no product row), the disposal of unlinked and incomplete digital files (the same), and the inbound notification record's disposal (the record is no order-side row).</summary>
+    /// <summary>The places inside those modules that have a bulk write: the counters' one writer, the download counter's one writer (T340), the guest cart's disposal (a cart is no order), the image derivative job and the disposal of unlinked images (an image row with no link left is no product row), the disposal of unlinked and incomplete digital files (the same), and the inbound notification record's disposal (the record is no order-side row).</summary>
     public static readonly IReadOnlyList<string> AllowedPlaces =
     [
         "src/Shopfolio.Web/Modules/Catalog/StockCounters.cs",
+        DownloadCountersPlace,
         "src/Shopfolio.Web/Modules/Ordering/GuestCartDisposalPart.cs",
         "src/Shopfolio.Web/Modules/Catalog/ImageDerivativeJobHandler.cs",
         "src/Shopfolio.Web/Modules/Catalog/ImageDisposalParts.cs",
@@ -65,6 +66,9 @@ internal static partial class VersionedSideBulkWriteScan
         "src/Shopfolio.Web/Modules/Payment/InboundNotificationDisposalPart.cs",
         GalleryMainMarkPlace,
     ];
+
+    /// <summary>The download counter's one writer (T340): the counter is the customer's, not the firm's write of the item, so it does not raise the order's version (06 2.6.4); its renewal under the order's lock raises it in the same file.</summary>
+    public const string DownloadCountersPlace = "src/Shopfolio.Web/Modules/Ordering/DownloadCounters.cs";
 
     /// <summary>The gallery's one bulk statement (T339): the main mark taken off a product's current main image inside the caller's transaction; a file of that one statement and nothing else.</summary>
     public const string GalleryMainMarkPlace = "src/Shopfolio.Web/Modules/Catalog/GalleryMainMark.cs";

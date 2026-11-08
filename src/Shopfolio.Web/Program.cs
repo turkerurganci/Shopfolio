@@ -100,6 +100,8 @@ builder.Services.AddScoped<AttemptCounter>();
 // The sign-in record's one writer and the one wrapper of the password hasher (09 15.1 item 5; 02 3.13.19).
 builder.Services.AddScoped<LoginRecorder>();
 builder.Services.AddSingleton<PasswordService>();
+builder.Services.AddScoped<SessionStore>();
+builder.Services.AddScoped<PasswordRegime>();
 
 // The link layer (09 15.1 items 3 and 4): the key derivation and the reading and consuming of link records.
 builder.Services.AddLinkRecords();

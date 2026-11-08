@@ -16,9 +16,9 @@ internal sealed class HashSubject;
 /// <summary>
 /// The one wrapper of the framework's password hasher (09 15.1 item 5; 05 6.1.4; K-900): the shop front and the panel hash and check a password only here. When there is no
 /// account for an address the check still runs, against a fake digest made once at start-up, and its result is thrown away, so the answer takes about as long for an address
-/// that has an account as for one that has not. The policy (length, common passwords) is T342's and is not checked here.
+/// that has an account as for one that has not. The policy (length, common passwords) is <see cref="PasswordPolicy"/>, called by the callers of this class. The two checks are virtual so a test can count the calls (D-364).
 /// </summary>
-internal sealed class PasswordService
+internal class PasswordService
 {
     /// <summary>PBKDF2 iterations of a new digest: the current OWASP figure for HMAC-SHA512, above the framework default (09 15.1 item 5; K-900).</summary>
     internal const int IterationCount = 210_000;
@@ -41,7 +41,7 @@ internal sealed class PasswordService
     }
 
     /// <summary>Checks the password against a digest.</summary>
-    public HashCheck Verify(string digest, string entered)
+    public virtual HashCheck Verify(string digest, string entered)
     {
         ArgumentNullException.ThrowIfNull(digest);
         ArgumentNullException.ThrowIfNull(entered);
@@ -50,7 +50,7 @@ internal sealed class PasswordService
     }
 
     /// <summary>The check an address with no account (or an account without a password) gets: the same work, never a match.</summary>
-    public HashCheck VerifyNobody(string entered)
+    public virtual HashCheck VerifyNobody(string entered)
     {
         ArgumentNullException.ThrowIfNull(entered);
         _hasher.VerifyHashedPassword(_subject, _fakeDigest, entered);

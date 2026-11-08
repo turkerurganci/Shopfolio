@@ -1,6 +1,6 @@
 # T363 — Sayfa adresleri, arama motoru bilgileri, kapalı sayfalar ve paylaşım
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -74,10 +74,14 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-09, head `4519fe2b`, PR #482). Kriter 1–7, KK1–KK7, `09 §25` ve güvenlik taraması ✓. Başlangıç kapıları: working tree temiz, hooksPath `scripts/git-hooks`, ana dal son 3 run 42528715144, 42528715181, 42524245424 success; dal CI 42528397096 success (Lint, Build, Unit, Integration, Contract, Migration, Paketleme). Yerel: restore ✓, derleme `-warnaserror` 0 uyarı 0 hata, `dotnet format --verify-no-changes` Web/Unit/Integration temiz, Unit 5105/5105 (Architecture + Consistency dahil), betik testleri 4/4, Integration `PageAddressTests` + `ContentAuthoringTests` + `ContentStatusTests` 67/67, Catalog + CorporateContent + Storefront ad alanları 172/172 (PostgreSQL 18), sonrası `git status` temiz, `restore --locked-mode` 0 |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 — K1 bu PR'da kapatıldı: D-690…D-693'ün hedefi T549 (arşivlenmiş ürün sayfası) idi; sayfaları yazan task'lara çevrildi (D-690 → T505, T504; D-691 → T502, T503, T505; D-692 → T503, T505; D-693 → kapalı ekranı yazan task'lar, en geç F5 gate). |
+
+**Task satırları (`12 §7.5`):** `02 §3.30.1`…§3.30.7 kaynak birimleriyle `VAL-A023`, `VAL-D001`, `VAL-A134`, `VAL-A135`, `VAL-A373`…`VAL-A407`, `VAL-D056`…`VAL-D058`, `VAL-A625`, `VAL-A647`. Hepsinin kanıt türü uç yanıtı (bir kısmında + veri kaydı / tarayıcı gözlemi) ister; vitrin ve panel sayfaları henüz yok (T502–T505, T508–T520) → `Durum` değişmedi: `BEKLEMEDE` kalanlar `BEKLEMEDE`, T313'ün `PASS`'leri (`VAL-A378`, `VAL-A379`, `VAL-A381`, `VAL-A398`) yerinde. `12_matris_denetle.py --kapsam 1-77` → Hata: 0.
+
+**Doğrulayıcı uyuşmazlık notları (adım 13):** (1) Known Limitations 2'deki "Vitrin sayfaları T549" plana uymuyor: içerik sayfaları T505'te, 404 T504'te (K1 ile düzeltildi). (2) Rapor "main dala birleştirildi" der; o birleşme `a504ff84`'e kadardır — sonra main'e giren T360 (#481) `ContentPublishing.cs`, `ContentAuthoringTests.cs`, `ContentStatusTests.cs` ve `DEFERRED_BACKLOG.md`'de dalla çakışır (birleştirme notu; yardımcı çözdürür). T360 main'e `ContentPageReader`'ı da getirdi; D-690'ın okuyucu yarısı onunla örtüşebilir. (3) Unit "4822 + Consistency 283" = 5105, doğrulayıcının tam koşusuyla aynı. Öz denetim tablosu var, her maddesi kanıtlı.
 
 ## Altyapı Değişiklikleri
 

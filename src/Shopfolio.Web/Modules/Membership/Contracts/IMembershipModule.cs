@@ -80,6 +80,54 @@ public interface IMembershipModule
     Task<ChangeOutcome> ChangePasswordAsync(Guid customerId, Guid sessionId, string newPassword, string? reauthenticationValue, string? recognizedBrowserMark, CancellationToken ct);
 
     /// <summary>
+    /// True when the installation has the Google application (02 3.13.6; T226's conditional line, D-81): the sign-in and registration screens show "Google ile giriş" only then, and the
+    /// panel has no switch for it. When it is false <see cref="SignInWithGoogleAsync"/> answers <see cref="GoogleSignInOutcome.Unavailable"/> and does nothing.
+    /// </summary>
+    bool IsGoogleSignInOpen { get; }
+
+    /// <summary>
+    /// What a verified Google identity means for the accounts (02 3.13.7, 3.13.8, 3.13.19; 07 UC-51), in the caller's transaction: Google's address not verified binds and opens nothing; a
+    /// matching verified account signs in (<see cref="GoogleSignInOutcome.SignedIn"/>) - linked now when Google is the authority of the address (<c>@gmail.com</c> or a Workspace
+    /// <c>hd</c>) or already linked; a matching account that is not linked, with an address Google is not the authority of, gets a confirmation link and no session
+    /// (<see cref="GoogleSignInOutcome.ConfirmationRequired"/>; the link and the e-mail's row are made under the account's row lock, none while a valid link waits); no matching account
+    /// opens a passwordless verified linked account named by Google (or by the part of the address before the at sign) when the gate of the data-collecting entries is open; an unverified
+    /// pending registration of the address is deleted with its links and the account is born in its place (the gate permitting; closed: nothing changes). A born account is only added
+    /// to the context: the caller saves before it opens the session. The sign-in is not counted to L-1. Joins the caller's transaction; on a unique conflict of the e-mail the caller
+    /// retries like the registration does.
+    /// </summary>
+    Task<GoogleSignInResult> SignInWithGoogleAsync(GoogleIdentity identity, IPAddress? ipAddress, CancellationToken ct);
+
+    /// <summary>
+    /// The Google confirmation link's button (02 3.13.7; 07 UC-53): consumes the link and links the account to Google; opens no session (the user signs in with Google again). The
+    /// link's GET is <see cref="ReadEmailLinkAsync"/>.
+    /// </summary>
+    Task<GoogleLinkConfirmationResult> ConfirmGoogleLinkAsync(string key, CancellationToken ct);
+
+    /// <summary>
+    /// What the shared landing page (07 UC-52, E-21) shows for a registration, new-address or Google confirmation link (05 6.4.6): only reads, writes nothing, so opening a link does
+    /// nothing. Another type's key and an administrator's link are <see cref="VerificationLinkStatus.Missing"/>.
+    /// </summary>
+    Task<EmailLinkReading> ReadEmailLinkAsync(string key, CancellationToken ct);
+
+    /// <summary>
+    /// The account's request for a new address (02 3.13.14; 07 UC-66), in the caller's transaction: the address is checked (empty, form), an open revert link closes the change
+    /// (<c>EmailChangeRevertPending</c>), an address of a verified account - or the account's own - is <c>EmailTakenByOtherAccount</c> (an unverified pending registration does not
+    /// stop it); the pending change is written, taking the place of an earlier one (its link superseded, its life starting now), and the link goes to the NEW address; the account keeps the
+    /// old address until the link's button. The limit L-9 is counted only when the request replaces a live pending change. The reauthentication before this is the page's (T517).
+    /// </summary>
+    Task<EmailChangeRequestResult> RequestEmailChangeAsync(Guid customerId, string newEmail, IPAddress? ipAddress, CancellationToken ct);
+
+    /// <summary>The new address's link asked for again (02 3.13.14; 07 UC-67; L-9): the earlier links are superseded and the new one ends where the pending change ends.</summary>
+    Task<EmailChangeResendResult> ResendEmailChangeLinkAsync(Guid customerId, IPAddress? ipAddress, CancellationToken ct);
+
+    /// <summary>
+    /// The new address's button (02 3.13.14; 07 UC-53), in the caller's transaction: the link is consumed, the address changes, the Google link goes, an unverified pending registration of
+    /// the address is deleted, the old address gets the notice with the revert link (Z-45) and the new address's guest orders fall to the account. A refusal (an invalid link, an address that
+    /// became a verified account's) rolls the transaction back.
+    /// </summary>
+    Task<NewEmailVerificationResult> VerifyNewEmailAsync(string key, CancellationToken ct);
+
+    /// <summary>
     /// The account an order belongs to (02 3.13.1, 3.13.3, 3.13.4; read only): a signed-in verified customer's order is theirs; a guest whose address belongs to a verified
     /// account gets the order bound to it at once, in full; every other guest order stays a guest order and no verification is asked; a signed-in customer whose account is not
     /// verified is refused. A pending registration never receives an order.

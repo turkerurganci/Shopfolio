@@ -259,6 +259,21 @@ public sealed class AxesTieTests : IAsyncLifetime
         Assert.Equal(OrderStatus.Delivered, (await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct)).OrderStatus);
     }
 
+    [Theory]
+    [InlineData(OrderStatus.Shipped)]
+    [InlineData(OrderStatus.DeliveryFailed)]
+    public async Task AnOrderWithNoDeliveredItem_OnShippedOrDeliveryFailed_WaitsForTheShipmentsReturn_WhenItsLastUnitCloses_KK5_KK6(OrderStatus status)
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(status, PaymentStatus.Paid, PaymentMethod.Card, null, new Line(ProductType.Physical, 1));
+
+        ClosureResult closure = await CloseWithAsync(
+            order.Id, db => db.LateDeliveryTerminations.Add(LateDeliveryTermination.ByBuyer(items[0].Id, 1, Today, Amounts, null, Start)));
+
+        Assert.Null(closure.Code);
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(status, (await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct)).OrderStatus);
+    }
+
     [Fact]
     public async Task TheClosure_ByATermination_OpensNoCancellationRecordAndNoSecondRefund_KK7()
     {

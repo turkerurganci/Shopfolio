@@ -5,7 +5,10 @@ using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.Settings;
 
-/// <summary>The province list's open reads (<see cref="IProvinceList"/>); the table is a start-up data table that is never written by a form (06 4.3).</summary>
+/// <summary>
+/// The read of the closed province list (02 3.14.3; 06 4.3): the one place other modules get the provinces from, so an address form's list and the check of an
+/// address's province are the same list. Only reads (<see cref="IProvinceList"/>); the list is start data, never written by the application or a form.
+/// </summary>
 internal sealed class ProvinceList : IProvinceList
 {
     private readonly AppDbContext _db;
@@ -14,6 +17,15 @@ internal sealed class ProvinceList : IProvinceList
     {
         ArgumentNullException.ThrowIfNull(db);
         _db = db;
+    }
+
+    /// <summary>Every province, in plate-code order (the code is unique, so the order is fixed).</summary>
+    public async Task<IReadOnlyList<ProvinceInfo>> GetAllAsync(CancellationToken ct)
+    {
+        return await _db.Provinces.AsNoTracking()
+            .OrderBy(p => p.Code)
+            .Select(p => new ProvinceInfo(p.Id, p.Code, p.Name))
+            .ToListAsync(ct);
     }
 
     public Task<bool> ExistsAsync(Guid provinceId, CancellationToken ct) => _db.Provinces.AsNoTracking().AnyAsync(p => p.Id == provinceId, ct);

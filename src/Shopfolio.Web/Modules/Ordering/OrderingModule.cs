@@ -200,6 +200,18 @@ internal sealed class OrderingModule : IOrderingModule
         return _db.Orders.AsNoTracking().Where(o => !terminal.Contains(o.OrderStatus));
     }
 
+    public Task<int> CountCardOrdersAwaitingPaymentAsync(CancellationToken ct)
+        => _db.Orders.AsNoTracking().CountAsync(PaymentWindowRules.Awaiting(PaymentMethod.Card), ct);
+
+    public async Task<IReadOnlyList<PaidCardItem>> ListPaidCardItemsAsync(CancellationToken ct)
+    {
+        PaymentStatus[] paid = [PaymentStatus.Paid, PaymentStatus.PartiallyRefunded];
+        return await _db.OrderItems.AsNoTracking()
+            .Where(i => _db.Orders.Any(o => o.Id == i.OrderId && o.PaymentMethod == PaymentMethod.Card && paid.Contains(o.PaymentStatus)))
+            .Select(i => new PaidCardItem(i.OrderId, i.Id, i.ProductType, i.Quantity, i.DeliveryDate, i.DeliveryMarkedAt))
+            .ToListAsync(ct);
+    }
+
     public async Task<CardPaymentQueryTarget?> GetCardPaymentQueryTargetAsync(Guid orderId, DateTimeOffset now, CancellationToken ct)
     {
         Order? order = await _db.Orders.AsNoTracking()

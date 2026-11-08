@@ -26,6 +26,19 @@ internal sealed class PaymentModule : IPaymentModule
         _time = time;
     }
 
+    public async Task<int> CountOpenCardRefundsAsync(CancellationToken ct)
+    {
+        return await _db.Refunds.AsNoTracking()
+            .Where(r => r.PaymentMethod == PaymentMethod.Card && r.SentAt == null && r.VoidedAt == null)
+            .Where(r => _db.RefundRecords
+                .Where(record => record.RefundId == r.Id)
+                .OrderByDescending(record => record.CreatedAt)
+                .ThenByDescending(record => record.Id)
+                .Select(record => (RefundRecordState?)record.State)
+                .FirstOrDefault() != RefundRecordState.Failed)
+            .CountAsync(ct);
+    }
+
     public async Task<bool> IsPaymentRecordedAsync(string providerTransactionId, CancellationToken ct)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(providerTransactionId);

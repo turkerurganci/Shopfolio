@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Modules.AfterSales.Contracts;
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
 
 namespace Shopfolio.Modules.AfterSales;
@@ -20,6 +21,40 @@ internal sealed class AfterSalesModule : IAfterSalesModule
         _db = db;
         _ordering = ordering;
         _time = time;
+    }
+
+    public async Task<int> CountCardOrdersWithRefundExposureAsync(CancellationToken ct)
+    {
+        IReadOnlyList<PaidCardItem> items = await _ordering.ListPaidCardItemsAsync(ct);
+        if (items.Count == 0)
+        {
+            return 0;
+        }
+
+        IReadOnlyDictionary<Guid, int> closed = await ClosedQuantitiesAsync([.. items.Select(i => i.OrderItemId)], ct);
+        DateTimeOffset now = _time.GetUtcNow();
+        HashSet<Guid> exposed = [];
+        foreach (PaidCardItem item in items)
+        {
+            if (item.Quantity - closed.GetValueOrDefault(item.OrderItemId) > 0 && CouldStillCauseRefund(item, now))
+            {
+                exposed.Add(item.OrderId);
+            }
+        }
+
+        return exposed.Count;
+    }
+
+    // An item with open units either waits to be delivered (the cancellation, the late-delivery termination and the defect path stay open) or was delivered and its withdrawal window
+    // has not run out. The service item's "tamamlandı" mark and the digital item close the right (Z-14, Z-15), so a delivered one of those never extends the exposure.
+    private static bool CouldStillCauseRefund(PaidCardItem item, DateTimeOffset now)
+    {
+        if (item.ProductType == ProductType.Physical)
+        {
+            return item.DeliveryDate is not { } delivered || now < AfterSalesPeriodRules.WithdrawalWindowEnd(delivered);
+        }
+
+        return item.DeliveryMarkedAt is null;
     }
 
     public async Task ErasePersonalDataAsync(OrderPersonalDataScope scope, CancellationToken ct)

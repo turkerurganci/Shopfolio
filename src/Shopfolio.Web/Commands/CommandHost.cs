@@ -7,12 +7,14 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Status;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.Catalog;
@@ -106,6 +108,12 @@ internal static class CommandHost
         services.AddScoped<PasswordRegime>();
         services.AddLinkRecords();
         services.AddJobQueue();
+
+        // The status command evaluates the endpoint's conditions (05 8.5.6): their thresholds, their sources and the error counter that some of them are constructed with. The conditions
+        // that read the web process's memory are listed by the command and not evaluated (IStatusCondition.ReadsProcessMemory).
+        services.AddOptions<StatusThresholdOptions>().BindConfiguration(StatusThresholdOptions.SectionName);
+        services.TryAddSingleton<UnexpectedErrorCounter>();
+        services.AddStatus();
 
         services.AddFileStore();
         services.AddCatalogModule();

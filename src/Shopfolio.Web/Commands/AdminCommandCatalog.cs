@@ -9,5 +9,8 @@ internal static class AdminCommandCatalog
     public static IReadOnlyList<IAdminCommand> All { get; } =
     [
         new CreateAdminCommand(),
+        new EndSessionsCommand(),
+        new InvalidatePasswordCommand(),
+        new StatusCommand(),
     ];
 }

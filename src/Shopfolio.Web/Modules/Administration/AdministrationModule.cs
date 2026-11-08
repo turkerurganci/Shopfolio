@@ -144,6 +144,48 @@ internal sealed class AdministrationModule : IAdministrationModule
         return AdminCreationResult.Created(adminId);
     }
 
+    public async Task<Guid?> FindAdminIdAsync(string email, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(email);
+        string cleanEmail = email.Trim();
+        if (cleanEmail.Length == 0)
+        {
+            return null;
+        }
+
+        PasswordAccount? account = await _accounts.FindByEmailAsync(TextNormalizer.NormalizeIdentity(cleanEmail), ct);
+        return account?.Id;
+    }
+
+    public async Task<AdminAccountWorkResult> EndAdminSessionsAsync(Guid adminId, CancellationToken ct)
+    {
+        RequireTransaction("The sessions are deleted only inside a transaction (09 6 item 3).");
+
+        // The account's row lock comes first, before the session rows, like every flow of the account (09 15.1 item 3).
+        if (!await _accounts.LockAsync(adminId, ct))
+        {
+            return AdminAccountWorkResult.AccountMissing();
+        }
+
+        await _sessions.EndAllAsync(AccountType.Admin, adminId, null, ct);
+        return AdminAccountWorkResult.Done();
+    }
+
+    public async Task<AdminAccountWorkResult> InvalidateAdminPasswordAsync(Guid adminId, CancellationToken ct)
+    {
+        RequireTransaction("The password is invalidated only inside a transaction (09 6 item 3).");
+
+        // The same order as the reset (09 15.1 item 3): the account's row lock, the digest, then the sessions.
+        if (!await _accounts.LockAsync(adminId, ct))
+        {
+            return AdminAccountWorkResult.AccountMissing();
+        }
+
+        await _accounts.InvalidatePasswordAsync(adminId, ct);
+        await _sessions.EndAllAsync(AccountType.Admin, adminId, null, ct);
+        return AdminAccountWorkResult.Done();
+    }
+
     private void RequireTransaction(string message)
     {
         if (_db.Database.CurrentTransaction is null)

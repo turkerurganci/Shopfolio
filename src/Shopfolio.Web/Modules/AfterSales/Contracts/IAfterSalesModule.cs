@@ -51,6 +51,14 @@ public interface IAfterSalesModule
     /// nothing.
     /// </summary>
     Task CloseCancellationIbanRequestsAsync(IReadOnlyCollection<Guid> orderItemIds, IReadOnlyCollection<Guid> refundIds, CancellationToken ct);
+
+    /// <summary>
+    /// The number of orders paid by card that could still cause a card refund, for the server's status command (T389; 05 8.5.6; 08 2.1.2; K-1287): an order paid by card, not fully refunded,
+    /// that has an open item (an item with units no record has closed, not yet delivered) or an item delivered whose withdrawal window of fourteen days has not run out (Z-13; the service
+    /// item's mark and the digital item close the right, Z-14, Z-15). Each order is counted once. The number is the installer's alone: it is in no counter of the panel (02 10.6.1). A plain
+    /// read; it counts and writes nothing.
+    /// </summary>
+    Task<int> CountCardOrdersWithRefundExposureAsync(CancellationToken ct);
 }
 
 /// <summary>One cancellation record as the order module needs it: the record, the item and the units it closed.</summary>

@@ -82,6 +82,13 @@ public interface IPaymentModule
     /// saves. The payment records, the refund records and the inbound notification records are not touched (06 9.2.2).
     /// </summary>
     Task<IReadOnlyList<Guid>> ErasePersonalDataAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct);
+
+    /// <summary>
+    /// The number of open card refunds, for the server's status command (T389; 05 8.5.6; 08 2.1.2): the card refunds that are neither sent nor voided and whose latest request did not fail -
+    /// the request is still to be sent (the job waits in the queue), is being sent, or its outcome is unknown. A refund whose latest request failed is the firm's to retry or to move to the
+    /// bank transfer; it is not a running card job. A plain read; it counts and writes nothing.
+    /// </summary>
+    Task<int> CountOpenCardRefundsAsync(CancellationToken ct);
 }
 
 /// <summary>One payment record seen from another module (06 4.32): the order, and the transition that confirmed the payment - null on a late card payment.</summary>

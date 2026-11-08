@@ -197,5 +197,8 @@ app.MapSitemapEndpoints();
 // The file endpoints (UC-37, UC-83; 09 15.7): the signed download and the chunked upload under the panel's session.
 app.MapFileEndpoints();
 
+// The payment provider's notification (UC-80; 07 4.30.1): the signed machine endpoint, mapped by the Payment module that records it.
+app.MapPaymentNotificationEndpoint();
+
 app.Run();
 return (int)CommandExit.Success;

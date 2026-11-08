@@ -189,6 +189,20 @@ internal sealed class OrderingModule : IOrderingModule
             .ToListAsync(ct);
     }
 
+    public async Task<OrderForPayment?> FindOrderForPaymentAsync(string orderNumber, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderNumber);
+        if (orderNumber.Length == 0)
+        {
+            return null;
+        }
+
+        return await _db.Orders.AsNoTracking()
+            .Where(o => o.OrderNumber == orderNumber)
+            .Select(o => new OrderForPayment(o.Id, o.Total, o.PaymentMethod))
+            .SingleOrDefaultAsync(ct);
+    }
+
     public Task<int> CountOpenOrdersOfProductAsync(Guid productId, CancellationToken ct)
         => OpenOrders().CountAsync(o => _db.OrderItems.Any(i => i.OrderId == o.Id && i.ProductId == productId), ct);
 

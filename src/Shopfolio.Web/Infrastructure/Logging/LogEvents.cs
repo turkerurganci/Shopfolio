@@ -23,6 +23,9 @@ internal static class LogEvents
     /// <summary>The thinned line of a customer notification refused by the per-recipient sending limit: the first refusal writes a line, the later ones of the 60 second window are only counted; no address (08 2.2.4).</summary>
     public const string RecipientLimitExceededSampled = "RecipientLimitExceededSampled";
 
+    /// <summary>A payment notification whose signature holds was recorded marked and is not processed; the line carries the reason and the record's id only (05 4.5.5).</summary>
+    public const string InboundNotificationUnprocessed = "InboundNotificationUnprocessed";
+
     /// <summary>A request was rejected by validation; the line carries a single code or the <c>fields</c> array (09 18.2 item 4).</summary>
     public const string ValidationRejected = "ValidationRejected";
 

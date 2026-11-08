@@ -49,6 +49,13 @@ internal sealed class StockCounters
         {
             LockSequence.Enter(_db, LockKind.Variant, variantId);
             int written = await WriteVariantAsync(variantId, move, quantity, ct);
+
+            // A corrected order's deleted variant has no stock to take back or to hold again (06 4.14 paths 5 and 6; K-655, K-1091 (1)).
+            if (written == 0 && move is CounterMove.Retake or CounterMove.Restore && !await _db.Variants.AnyAsync(v => v.Id == variantId, ct))
+            {
+                continue;
+            }
+
             if (written == 0 && !Settle(move, isCoupon: false, $"variant {variantId}"))
             {
                 return false;
@@ -153,6 +160,7 @@ internal sealed class StockCounters
         return move switch
         {
             CounterMove.Reserve => false,
+            CounterMove.Retake when !isCoupon => false,
             CounterMove.Return when !isCoupon => true,
             _ => throw new InvalidOperationException($"The {move} of {row} found fewer reserved units than it frees (06 2.7.1, 4.14)."),
         };
@@ -179,6 +187,20 @@ internal sealed class StockCounters
             CounterMove.Return => row
                 .Where(v => v.StockQuantity != null)
                 .ExecuteUpdateAsync(s => s.SetProperty(v => v.StockQuantity, v => v.StockQuantity + quantity), ct),
+
+            // Path 6: what the cancellation freed is taken again only if what is left is enough, and falls at once - the order is paid.
+            CounterMove.Retake => row
+                .Where(v => v.StockQuantity == null || v.StockQuantity - v.ReservedQuantity >= quantity)
+                .ExecuteUpdateAsync(s => s.SetProperty(v => v.StockQuantity, v => v.StockQuantity - quantity), ct),
+
+            // Path 5: the finally decreased units go back to the reservation - the stock (when not unlimited) and the reserved quantity rise together,
+            // so what can be sold does not change.
+            CounterMove.Restore => row
+                .ExecuteUpdateAsync(
+                    s => s
+                        .SetProperty(v => v.StockQuantity, v => v.StockQuantity + quantity)
+                        .SetProperty(v => v.ReservedQuantity, v => v.ReservedQuantity + quantity),
+                    ct),
             _ => throw new ArgumentOutOfRangeException(nameof(move)),
         };
     }
@@ -204,6 +226,19 @@ internal sealed class StockCounters
             CounterMove.Return => row
                 .Where(c => c.UsedCount >= 1)
                 .ExecuteUpdateAsync(s => s.SetProperty(c => c.UsedCount, c => c.UsedCount - 1), ct),
+
+            // Path 6: the right counts as used again, even when the coupon's limit is reached meanwhile (06 4.13, 4.14).
+            CounterMove.Retake => row
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.UsedCount, c => c.UsedCount + 1), ct),
+
+            // Path 5: the used right goes back to a reserved one.
+            CounterMove.Restore => row
+                .Where(c => c.UsedCount >= 1)
+                .ExecuteUpdateAsync(
+                    s => s
+                        .SetProperty(c => c.UsedCount, c => c.UsedCount - 1)
+                        .SetProperty(c => c.ReservedCount, c => c.ReservedCount + 1),
+                    ct),
             _ => throw new ArgumentOutOfRangeException(nameof(move)),
         };
     }

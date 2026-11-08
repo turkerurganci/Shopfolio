@@ -66,6 +66,55 @@ public sealed class StatusEvaluatorTests
         await Assert.ThrowsAsync<NotImplementedException>(() => evaluator.OpenConditionsAsync(Ct));
     }
 
+    // --- The status command's standings (T389 criterion 6; 05 8.5.6) ---
+
+    [Fact]
+    public async Task Standings_ListTheOpenAndTheClosedConditions_InRegistrationOrder()
+    {
+        StatusEvaluator evaluator = new([new Scripted("A", false), new Scripted("B", true)]);
+
+        IReadOnlyList<StatusConditionStanding> standings = await evaluator.StandingsAsync(Ct);
+
+        Assert.Equal(["A", "B"], standings.Select(s => s.Name));
+        Assert.Equal([false, true], standings.Select(s => s.IsOpen));
+        Assert.All(standings, s => Assert.False(s.NotMeasurable || s.SourceUnreadable));
+    }
+
+    [Fact]
+    public async Task Standings_AConditionThatReadsTheWebProcessMemory_IsNotEvaluated_AndIsNeitherOpenNorClosed()
+    {
+        bool evaluated = false;
+        StatusEvaluator evaluator = new([new Scripted("Memory", () => evaluated = true) { ReadsProcessMemory = true }]);
+
+        StatusConditionStanding standing = Assert.Single(await evaluator.StandingsAsync(Ct));
+
+        Assert.False(evaluated);
+        Assert.True(standing.NotMeasurable);
+        Assert.False(standing.IsOpen);
+    }
+
+    [Fact]
+    public async Task Standings_AnUnreadableSource_IsOpenAndMarkedUnreadable_AndTheEndpointListStaysTheSame()
+    {
+        StatusEvaluator evaluator = new([new Scripted("Source", () => throw new IOException()), new Scripted("Other", false)]);
+
+        IReadOnlyList<StatusConditionStanding> standings = await evaluator.StandingsAsync(Ct);
+
+        Assert.True(standings[0].IsOpen);
+        Assert.True(standings[0].SourceUnreadable);
+        Assert.False(standings[1].IsOpen);
+        Assert.Equal(["Source"], await evaluator.OpenConditionsAsync(Ct));
+    }
+
+    [Fact]
+    public void TheThreeMemoryConditions_AreMarkedAsReadingTheProcessMemory_AndTheOthersAreNot()
+    {
+        Assert.True(typeof(UnexpectedErrorCondition).GetProperty(nameof(IStatusCondition.ReadsProcessMemory))!.DeclaringType == typeof(UnexpectedErrorCondition));
+        Assert.True(typeof(PaymentStartFailureCondition).GetProperty(nameof(IStatusCondition.ReadsProcessMemory))!.DeclaringType == typeof(PaymentStartFailureCondition));
+        Assert.True(typeof(CertificateCondition).GetProperty(nameof(IStatusCondition.ReadsProcessMemory))!.DeclaringType == typeof(CertificateCondition));
+        Assert.Null(typeof(DiskUsageCondition).GetProperty(nameof(IStatusCondition.ReadsProcessMemory)));
+    }
+
     private static Exception Failure(string kind) => kind switch
     {
         "db" => new TestDbException(),
@@ -206,6 +255,8 @@ public sealed class StatusEvaluatorTests
         }
 
         public string Name { get; }
+
+        public bool ReadsProcessMemory { get; init; }
 
         public Task<bool> IsOpenAsync(CancellationToken ct) => Task.FromResult(_read());
     }

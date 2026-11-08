@@ -135,6 +135,14 @@ public sealed class SitemapSourceTests
 
         public Task<PriceLabel?> GetPriceLabelAsync(Guid variantId, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<DiscountSaveResult> SaveDiscountAsync(Guid productId, decimal percentage, DateOnly startDate, DateOnly endDate, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<DiscountRemoveResult> RemoveDiscountAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<DiscountView?> GetDiscountAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<VariantPriceResult> ChangeVariantPriceAsync(Guid variantId, decimal price, CancellationToken ct) => throw new NotSupportedException();
+
         public ItemAmounts PriceItem(ItemPriceInput input) => throw new NotSupportedException();
 
         public IReadOnlyList<ShippingVatPart> SplitShippingFee(decimal shippingFee, IReadOnlyList<ShippingBasisLine> lines) => throw new NotSupportedException();

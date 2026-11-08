@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Lists;
+using Shopfolio.Modules.Catalog.Contracts.Pricing;
 
 namespace Shopfolio.Modules.Catalog;
 
@@ -13,15 +14,19 @@ namespace Shopfolio.Modules.Catalog;
 /// name's searched form with a contains match through <see cref="SearchTerm"/>: the description, the category name and the option values are not columns of the query (02 3.5.1).
 /// The two filters are the price range and the stock state only (02 3.5.2): a product passes when one of its published variants does, and when both filters are on, one and the
 /// same variant must satisfy them together - a bought variant is the one in range and in stock. With no filter, sold-out products are listed too. A variant can be bought when it is
-/// published and its stock or capacity is empty (unlimited, or not applicable to a digital variant) or exceeds the reserved quantity (02 3.6.3; 06 4.14). Nothing is written.
+/// published and its stock or capacity is empty (unlimited, or not applicable to a digital variant) or exceeds the reserved quantity (02 3.6.3; 06 4.14). The price filter and the
+/// card's lowest price read the list price; a running discount is declared on the card beside it with its dates (02 3.9.2; K-1578), and filtering on the discounted price is the
+/// storefront's task (T502; D-330). Nothing is written.
 /// </summary>
 internal sealed class ProductListReader
 {
     private readonly AppDbContext _db;
+    private readonly TimeProvider _time;
 
-    public ProductListReader(AppDbContext db)
+    public ProductListReader(AppDbContext db, TimeProvider time)
     {
         _db = db;
+        _time = time;
     }
 
     /// <summary>A category's page by its address; null when no category has the address (the page answers 404). An empty category is an empty page, not a 404 (02 3.28.6).</summary>
@@ -93,12 +98,49 @@ internal sealed class ProductListReader
             .Select(g => new CardFigures(g.Key, g.Min(v => (decimal?)v.Price), g.Any(v => v.StockQuantity == null || v.StockQuantity - v.ReservedQuantity > 0)))
             .ToDictionaryAsync(f => f.ProductId, ct);
 
+        Dictionary<Guid, DiscountLine> discounts = await DiscountLinesAsync(keys, ct);
         return new ProductListPage(
-            [.. paged.Items.Select(p => new ProductListItem(p.Id, p.Name, p.Slug, figures.TryGetValue(p.Id, out CardFigures? f) ? f.LowestPrice : null, f is not null && f.IsPurchasable))],
+            [.. paged.Items.Select(p => new ProductListItem(
+                p.Id,
+                p.Name,
+                p.Slug,
+                figures.TryGetValue(p.Id, out CardFigures? f) ? f.LowestPrice : null,
+                f is not null && f.IsPurchasable,
+                discounts.GetValueOrDefault(p.Id)))],
             paged.PageNumber,
             paged.PageSize,
             paged.TotalCount,
             paged.PageCount);
+    }
+
+    // The discount declarations of the page's products whose discount runs now (02 3.9.2; 04 2.11.2; K-1578): the card's price is the lowest list price, so the
+    // declaration is that lowest-priced published variant's - one rate on every variant keeps it the lowest discounted price too. Three reads whatever the page holds:
+    // the running discounts, their products' published variants, and the chosen variants' history before their start for the reference (02 3.9.3).
+    private async Task<Dictionary<Guid, DiscountLine>> DiscountLinesAsync(List<Guid> productIds, CancellationToken ct)
+    {
+        DateTimeOffset now = _time.GetUtcNow();
+        Dictionary<Guid, RunningDiscount> running = await PriceHistoryReads.RunningDiscountsAsync(_db, productIds, now, ct);
+        if (running.Count == 0)
+        {
+            return [];
+        }
+
+        List<Guid> discounted = [.. running.Keys];
+        var lowest = (await _db.Variants.AsNoTracking()
+                .Where(v => discounted.Contains(v.ProductId) && v.PublishStatus == PublishStatus.Published)
+                .Select(v => new { v.Id, v.ProductId, v.Price, v.FirstOnSaleAt })
+                .ToListAsync(ct))
+            .GroupBy(v => v.ProductId)
+            .Select(g => g.OrderBy(v => v.Price).ThenBy(v => v.Id).First())
+            .Select(v => (Discount: running[v.ProductId], Variant: new ReferenceInput(v.Id, v.Price, v.FirstOnSaleAt)))
+            .ToList();
+        Dictionary<Guid, decimal> references = await PriceHistoryReads.ReferencesAsync(
+            _db,
+            [.. lowest.Select(l => new ReferenceAsk(l.Variant, l.Discount.Rule, DiscountRules.StartsAt(l.Discount.Terms)))],
+            ct);
+        return lowest.ToDictionary(
+            l => l.Discount.ProductId,
+            l => DiscountRules.LineOf(l.Discount.Terms, l.Variant.Price, references[l.Variant.VariantId]));
     }
 
     private sealed class CardRow

@@ -39,6 +39,13 @@ public interface IOrderingModule
     Task<OrderPageSummary?> GetOrderPageSummaryAsync(Guid orderId, CancellationToken ct);
 
     /// <summary>
+    /// The customer's name, addresses and contact e-mail at the moment of confirmation (T355; 02 3.23.3; K-1027 (4), (5)): what the order's frozen pre-information form and distance sales
+    /// contract show in their placeholders. A value the firm corrected later is read from the first row of its history, so the documents keep showing what the customer confirmed; null
+    /// when the order does not exist. A plain read.
+    /// </summary>
+    Task<ConfirmationParties?> GetConfirmationPartiesAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
     /// The order a payment notification names (08 2.1.5; 05 4.5.5): the order with exactly that number - the number the link layer mapped the provider's
     /// reference back to -, with its paid total and payment method, or null when there is none. A plain read without the order's lock: the notification
     /// endpoint only classifies and records, the order's state is written by the processing job through the transition unit (05 4.5.2, 4.5.3).

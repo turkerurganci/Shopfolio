@@ -1,6 +1,6 @@
 # T311 — Ödeme sağlayıcısının bildirim ucu: imza, alan eşlemesi ve durum makinesine aktarım
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS; merge yardımcıda) | **Tarih:** 2026-11-08
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -32,7 +32,7 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | Uç `POST /sistem/odeme-bildirimi`; imza ve tutar bağlantı katmanında | ✓ | `PaymentModule.cs:217` (`MapSignedEndpoint` + `AntiforgeryExemptions.PaymentNotificationPath`), `Program.cs:191`; `PaymentNotificationEndpoint.Verify` → `IPaymentGateway.VerifyNotification`; `PaymentNotificationRule.Classify` → `CheckNotificationAmount`; `PaymentNotificationRuleTests.Verify_AsksTheLinkLayer_…_KK1`, `SuccessWhoseAmountDoesNotHold_IsMarkedAmountMismatch_Row6_KK5` |
+| 1 | Uç `POST /sistem/odeme-bildirimi`; imza ve tutar bağlantı katmanında | ✓ | `PaymentModule.cs:221` (`MapSignedEndpoint` + `AntiforgeryExemptions.PaymentNotificationPath`), `Program.cs:191`; `PaymentNotificationEndpoint.Verify` → `IPaymentGateway.VerifyNotification`; `PaymentNotificationRule.Classify` → `CheckNotificationAmount`; `PaymentNotificationRuleTests.Verify_AsksTheLinkLayer_…_KK1`, `SuccessWhoseAmountDoesNotHold_IsMarkedAmountMismatch_Row6_KK5` |
 | 2 | Bozuk imza 400, kayıt yok, işleme yok, seyreltilmiş güvenlik olayı | ✓ | `PaymentNotificationTests.SignatureThatDoesNotHold_Gets400WithAnEmptyBody_NoRecordNoJob_AndAThinnedSecurityLine_KK1_KK2`; hız sınırı T215: `RequestLimitsTests.ABadSignature_IsAnsweredByTheEndpointEvenWhenTheLimitIsReached`, `ANotificationWithARightSignature_IsOutsideTheLimit_…` |
 | 3 | Doğru imzalı bildirim kayıt diske kesinleştikten sonra 200 `OK` | ✓ | `Success_IsRecordedWithItsJobRow_ReceivedAfterTheCommit_AndTheOrderChangesOnlyInTheJob_KK3_KK6_KK7` (commit anında dışarıdan 0 satır; yanıt `OK`); yanıt sırası `SignedEndpointHandler` (T203) |
 | 4 | Tekrar kaydedilmez, işlenmez, yine 200 | ✓ | `SameNotificationAgain_IsReceivedWithTheSameAnswer_AndWritesNoSecondRecordOrJobRow_KK4`, `SameTransactionWithAnotherOutcome_IsAnotherNotification_KK4`, `JobRowThatComesBack_FindsTheRecordProcessed_AndAppliesNothingAgain_KK4_KK7`; `InboundNotificationInsert.cs` `ON CONFLICT DO NOTHING` |
@@ -96,10 +96,78 @@ Bütün maddeler — önceki işçinin yaptıkları dahil — bu diff'te yeniden
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-08, head `9bb8e06` + `origin/main` ea62688c birleştirmesi, çakışmasız) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-480; K2 D-97'de kapandı) |
+
+Doğrulamadan sonra `origin/main` (T324 zaman aşımı #454, T344 adres #451) birleştirildi: `OrderingModule.cs` ve `PaymentModule.cs`'te iki tarafın eklemeleri yan yana korundu (yalnız ekleme), backlog D-97'ye T324 notu eklendi ve tablo sonu numara sırasıyla dizildi; öz denetim tablosundaki `PaymentModule.cs:217` atfı `:221` oldu.
+
+### Doğrulayıcı kanıtları (tur 1)
+
+#### Kabul Kriterleri
+
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Uç `POST /sistem/odeme-bildirimi`; imza ve tutar bağlantı katmanında | ✓ | `PaymentModuleRegistration.MapPaymentNotificationEndpoint` → `MapSignedEndpoint` (`Program.cs`); `Verify` → `IPaymentGateway.VerifyNotification`; tutar `IPaymentGateway.CheckNotificationAmount` (`PaymentNotificationRule.Classify`); `PaymentNotificationRuleTests` (Row6/Row7, Verify_…_KK1) yeşil |
+| 2 | Bozuk imza 400, kaydedilmez, işlenmez, seyreltilmiş olay; hız sınırı T215 | ✓ | `SignatureThatDoesNotHold_…_KK1_KK2` (400, gövde boş, kayıt 0, iş 0, `SignatureFailureSampled`); `RequestLimitsTests.ANotificationWithARightSignature_IsOutsideTheLimit_…` yeşil |
+| 3 | Kayıt diske kesinleştikten sonra 200 `OK` | ✓ | `Success_…_KK3_KK6_KK7` (commit anında dış bağlantı 0 satır; yanıt `OK`); `SignedEndpointHandler` sırası |
+| 4 | Tekrar kaydedilmez, işlenmez, 200 | ✓ | `SameNotificationAgain_…_KK4` (1 kayıt, 1 iş, iki `OK`); `InboundNotificationInsert` `ON CONFLICT DO NOTHING` + filtreli tekil dizin (`UniqueNotificationWithoutId`) |
+| 5 | Tutarı/siparişi tutmayan, türü tanınmayan, gövdesi çözümlenemeyen: işaretli, işlenmez, 200 | ✓ | `AmountMismatch_…_KK5`, `ReferenceOfNoOrder_…_KK5`, `UnrecognizedOutcomeOrUnreadableBody_…_KK5`; sınıflama sırası `08 §2.1.5` tablosu 3–7 ile birebir |
+| 6 | Kayıt ve iş satırı aynı işlemde; işleme kuyruktan | ✓ | `RecordAsync` hattın işleminde yazar; `RecordThatCannotBeCommitted_…_KK6_KK9` (ikisi de 0) |
+| 7 | Tek yoldan aktarım; uç siparişi yazmaz | ✓ | `InboundNotificationJobHandler` → `ApplyCardPaymentAsync` / `CancelOrderAsync(BySystem(CardPaymentFailed))`; uçta `IOrderTransitions` yok; `Success_…_KK7`, `Failure_CancelsTheUnpaidOrderInTheJob_…`, `FailureOnAnOrderThatIsPaidAlready_…` (sistem iptali yalnız ödenmemiş Placed'de — `CancellationConditionAsync`) |
+| 8 | 64 KB tavan 413; sahtecilik korumasının dışında | ✓ | `BodyAboveTheCeiling_…_KK8`, `TokenlessRequest_…_KK8` (`RequiresValidation` false) |
+| 9 | Kaydedilemeyen 500, hata gövdeleri boş | ✓ | `RecordThatCannotBeCommitted_…_KK6_KK9` (500, gövde boş) |
+| 10 | İptal edilmiş siparişe ödeme aynı tek yoldan; geri ödeme T317 | ✓ | `PaymentToACancelledOrder_…_KK10` (ödeme kaydı, `LatePayment` geri ödeme, `CardRefund` iş satırı) |
+
+#### Task Satırları (`12 §7.5`, adım 2a ve 16)
+
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı |
+|---|---|---|---|---|---|
+| VAL-A545 | KRİTİK | mock | BEKLEMEDE | PASS | — |
+| VAL-A586 | ORTA | mock | BEKLEMEDE | PASS | — |
+| VAL-A595 | KRİTİK | mock | BEKLEMEDE | PASS | — |
+| VAL-A706 | KRİTİK | mock | BEKLEMEDE | PASS | — |
+| VAL-A707 | KRİTİK | mock | BEKLEMEDE | PASS | — |
+| VAL-A821 | KRİTİK | mock | BEKLEMEDE | PASS (kayıt uç işleminde kesinleşir; işlemli işleyici hatası geri alınır ve varsayılan kuralla yeniden denenir — `JobRunnerTests.RunOne_ATransactionalHandlerThatFailsAfterItWrote_…`; yeniden gelen satır bir şey uygulamaz — `JobRowThatComesBack_…`) | — |
+| VAL-A824 | ORTA | mock | BEKLEMEDE | PASS | — |
+| VAL-D082 | KRİTİK | mock | BEKLEMEDE | PASS (başarısız + başarılı iki kayıt — `SameTransactionWithAnotherOutcome_…`; iade türü işaretli/işlenmez — `UnknownOutcomeOrEventType_…_Row4`) | — |
+| VAL-A822 | KRİTİK | mock | BEKLEMEDE | BEKLEMEDE — ön koşul (bildirimle eşzamanlı son sorgu) T403'te; `12 §4.2` kural 9 | — |
+
+KP-15'in öteki satırları (B008–B012, C001, C002, A053, D003, D004) ve D081, A584 sayfa/PayTR/son sorgu/kart iadesi işleyicisi ister; T311'in kriterleriyle eşlenmez, `BEKLEMEDE` kalır. `12_matris_denetle.py --kapsam 1-77` hata 0 (1503 satır).
+
+#### Test Sonuçları
+
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı, 0 hata |
+| Lint | ✓ | `dotnet format <proje> --verify-no-changes --no-restore` ×3 | temiz |
+| Unit (+Consistency, Architecture) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | 4393/4393 |
+| Betik | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya |
+| Integration | ✓ | `--filter-class` PaymentNotificationTests, RequestLimitsTests, JobRunnerTests | 72/72 |
+| Integration | ✓ | `--filter-namespace` SignedEndpoints, Ordering, Web, Security, Model | 2005/2005 |
+| Dal CI | ✓ | `gh pr checks 456` (run 42450573628, head 9bb8e06) | Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate pass |
+
+#### Güvenlik Kontrolü
+
+- Secret sızıntısı: Temiz
+- Auth etkisi: Temiz (imza tek güvence; koruma dışı liste `AntiforgeryExemptions` değişmedi; bozuk imza form sınırına sayılır)
+- Input validation: Temiz (ham SQL parametreli `ExecuteSqlAsync`; alanlar katmanın doğruladıklarıyla sınırlı; uygulama kaydına yalnız sebep + iç kimlik)
+- Yeni bağımlılık: Yok
+
+#### Bloke-etmeyen Notlar (K-notları)
+
+| # | Not | Karar |
+|---|---|---|
+| K1 | `IPaymentGateway`'e eklenen `ReadNotificationResult`/`NotificationResult` ve `CheckNotificationAmount`/`NotificationAmountCheck` `08 §3.1` tablosunda ve `09 §11.1` madde 1–2'de yok ("sınıf eklemek önce 08'e girer"; enum, kapalı kayıt ailesi değil). Davranış KK1 ve `08 §2.1.5` ile uyumlu | DEFERRED_BACKLOG'a forward: D-480 |
+| K2 | D-97 T311'in `InboundNotificationProcessing` işleyicisini sayıyordu; işleyici kayıtlı | bu PR'da kapatıldı (D-97'de T311 ✅) |
+
+#### Yapım Raporu Karşılaştırması
+
+- Uyum: 2 uyuşmazlık, verdict'i etkilemez.
+- Yapım raporu VAL-A822'yi ✓ sayar; doğrulayıcı `BEKLEMEDE` bırakır (son sorgu yolu T403'te, satırın ön koşulu kurulamaz). VAL-A821'i rapor anmaz; doğrulayıcı PASS verdi.
+- Öz denetim tablosu var, maddeler kanıtlı. K1 raporda geçmiyor.
+- Dalın `STATUS_CHANGELOG.md` girişi ve MEMORY "Güncel Durum" satırı chore #450 kuralına aykırıydı; birleştirmede main sürümü alındı, giriş parça dosyasına taşındı (`Docs/STATUS_CHANGELOG.d/T311.md`).
 
 ## Altyapı Değişiklikleri
 

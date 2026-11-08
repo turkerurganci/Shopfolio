@@ -1,6 +1,6 @@
 # T361 — Ana sayfa düzeni ve üst menü
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — ürün kalıcı silme yolu menü önbelleğini düşürmüyor) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -62,10 +62,14 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-08, head `9610aa44` = `16480c3b` + `origin/main` `37d581f7`). Kriter 1–5 ve KK1–KK5 ✓, kriter 6 / KK6 ~ Kısmi; güvenlik taraması temiz; yerelde derleme `-warnaserror` 0/0, biçim temiz (3 proje), Unit 4649/4649, betik testleri 4/4, Integration (dokunulan sınıflar) 130/130, Catalog + CorporateContent ad alanı 157/157. Dal CI 42468942806: 1–6 ve 8 yeşil, 7. Paketleme restic indirmesinde dış `HTTP 504` ile kırmızı (kod değil; yeniden koşulmalı). Ana dalın son üç tamamlanmış run'ı yeşil değil (42468912436 CI `cancelled` — T338 yeniden denemesi iptal etti; 42468912494 Publish dış 504; 42466502303 CI success) — T361 kaynaklı değil |
+| Bulgu sayısı | 1 — B1 DÜŞÜK S1 (kriter 6 / KK6; `09 §25` önbellek maddesi; `05 §7.10.1`; komşu satır VAL-A003): `ProductRemoval.DeleteProductAsync` `CacheArea.Menu` (ve `Sitemap`) bildirmiyor; yayındaki ürün kalıcı silinebiliyor (T335), menü yapısı süresiz önbellekte. Sonda testi (commit edilmedi): tek yayındaki ürün silinince "Ürünler" `IsVisible` = `True` kalıyor, kategori listede kalıyor; ana sayfa vitrin kategori bağlantıları da aynı önbellekten. D-499 ve "Known Limitations" 2 yolu "henüz yok" sayıyordu; yol main'de |
+| Düzeltme gerekli mi | Evet — `ProductRemoval` `CacheInvalidations` alır, `DeleteProductAsync` başarıda `CacheArea.Menu` ve `CacheArea.Sitemap` bildirir; entegrasyon testi (yayındaki tek ürün silinince Ürünler gizli, kategori yok); D-499 metni ve rapordaki "yol henüz yok" düzeltilir |
+| Bloke-etmeyen not (K) sayısı | 1 — K1: D-498 "önbellek süresi kadar" diyordu, `AppCache`'in süresi yok → bu PR'da metin düzeltildi |
+
+**Task satırları (`12 §7.5`):** `grep -nE 'KP-(1|31|55)([^0-9]|$)'` → T361'e bağlı satırlar VAL-A001, VAL-A003 (KP-1), VAL-A111…A114 (KP-31), VAL-A152…A154 (KP-55); hepsi uç yanıtı / tarayıcı gözlemi ister, T361 uç ve sayfa kurmaz (D-502) → `BEKLEMEDE` kalır; `12` değişmedi; `12_matris_denetle.py --kapsam 1-77` Hata 0. B1 kabul kriteri 6'ya bağlıdır; VAL-A003'ün beklenen sonucu (yayına alınınca görünür) kod yüzünde karşılanıyor, satırın kanıtı uç ister.
+
+**Doğrulayıcı uyuşmazlık notları (adım 13):** (1) Kriter 6 yapımda ✓, doğrulamada ~ Kısmi (B1). (2) Notlar'daki ana dal CI kanıtı yapım anının; bugün son üç tamamlanmış main run'ı yeşil değil (iptal + dış 504; T361 kaynaklı değil). Öz denetim tablosu tam ve kanıtlı.
 
 ## Altyapı Değişiklikleri
 

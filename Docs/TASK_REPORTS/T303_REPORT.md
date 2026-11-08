@@ -1,6 +1,6 @@
 # T303 — İlk yönetici yönetim komutu ve komut çatısı
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-08
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -69,10 +69,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — (doğrulama bekliyor) |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-08; head `46b16782` + `origin/main` `26fd3a96` birleştirmesi) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+**Validator kanıtları (tur 1):** kriter 1–9 ve KK1–KK9 kod okuması + testlerle ✓ — `Program.cs` ilk dal `CommandHost.IsCommandMode` (web kurucusundan önce); `CommandHost.CreateServices` sonunda `RemoveAll<IHostedService>()`, `Maintenance` bağlantı dizisi; `CommandDispatcher` iletileri yalnız komut/seçenek adı, üst `catch` yalnız `GetType().Name`; `CreateAdminCommand` `IsInteractive` bakışı her okumadan önce, şifre `ReadKey(intercept: true)` ile iki kez; `AdministrationModule.CreateAdminAsync` → `PasswordPolicy.Validate` (kayıt, sıfırlama ve `PasswordRegime` ile aynı işlev), `InvalidEmailAttribute`; kayıt satırı `AuditLine.AdminCommand(ad, kimlik)` → `command-*.jsonl`, hesap işleminden önce. Yerel: build `-warnaserror` 0/0, `dotnet format` üç proje temiz, Unit 4777/4777, betik testleri 4/4, Integration `Commands` 14/14 ve Administration'ı kullanan komşu sınıflar 113/113 (PostgreSQL 18), birleştirme sonrası build + Unit `Commands` 43/43; dal CI 42483739529 tüm adımlar yeşil. `12` matrisinde T303'ün kaynak birimlerine (06 §8.3, 05 §8.5, 09 §13.2) bağlı satır yok; `12_matris_denetle.py --kapsam 1-77` hata 0.
 
 ## Altyapı Değişiklikleri
 

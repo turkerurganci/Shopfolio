@@ -2,11 +2,13 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.AfterSales.Contracts;
+using Shopfolio.Modules.Catalog.Contracts;
 
 namespace Shopfolio.Modules.AfterSales;
 
 /// <summary>
-/// The customer's cancellation record (T367; 06 4.22; 02 7.2.2, 7.1.7): the writer and the link to the transition that closed the order with it. The amounts are
+/// The cancellation records of the customer (T367) and of the firm (T368) and the late delivery termination record (T368; 06 4.22, 4.24; 02 7.2.2-7.2.4, 7.1.7): the
+/// writers, the link to the transition that closed the order with a cancellation and the records' moments for the legal interest warning. The amounts are
 /// set aside here, from the item's frozen values and from what the item's earlier closing records already set aside, so that the shares of all the item's records
 /// add up to the item's own share to the kuruş (<see cref="ItemShares"/>).
 /// </summary>
@@ -15,18 +17,103 @@ internal sealed partial class AfterSalesModule
     public async Task<ItemRecordWriteResult> AddCancellationAsync(CustomerCancellationEntry entry, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(entry);
+        return await AddCancellationRowAsync(
+            entry.Subject,
+            entry.Quantity,
+            entry.Frozen,
+            amounts => Cancellation.ByBuyer(entry.Subject.OrderItemId, entry.Quantity, amounts, null, entry.At),
+            ct);
+    }
+
+    public async Task<ItemRecordWriteResult> AddFirmCancellationAsync(FirmCancellationEntry entry, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        ArgumentNullException.ThrowIfNull(entry.Admin);
+
+        // The note belongs to "Other" alone and "Other" needs one (02 7.2.4; 06 4.22); the order module checks it first, the writer does not take a row that breaks it.
+        string? note = string.IsNullOrWhiteSpace(entry.ReasonNote) ? null : entry.ReasonNote.Trim();
+        if ((entry.Reason == CancellationReason.Other) != (note is not null))
+        {
+            throw new ArgumentException("The firm's cancellation carries a note exactly on the reason \"Other\".", nameof(entry));
+        }
+
+        return await AddCancellationRowAsync(
+            entry.Subject,
+            entry.Quantity,
+            entry.Frozen,
+            amounts => Cancellation.ByAdmin(entry.Subject.OrderItemId, entry.Quantity, entry.Admin.AdminId, entry.Admin.AdminName, entry.Reason, note, amounts, entry.At),
+            ct);
+    }
+
+    public async Task<ItemRecordWriteResult> AddLateDeliveryTerminationAsync(LateDeliveryTerminationEntry entry, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
         ArgumentNullException.ThrowIfNull(entry.Frozen);
         ItemRecordSubject subject = entry.Subject;
         RequireOrderLock(subject);
+
+        // Only an undelivered physical item is terminated (02 7.2.3: digital and service items go on; an item with a delivery date no longer opens it, 03 4.1.12).
+        if (subject.ProductType != ProductType.Physical || subject.DeliveryDate is not null)
+        {
+            return ItemRecordWriteResult.Rejected(ItemRecordRefusal.StatusNotAllowed);
+        }
+
+        // All the open units, never a choice (02 7.1.6; K-796, K-1077).
         int open = await OpenQuantityAsync(subject, ct);
-        if (!ItemQuantities.IsSelectable(entry.Quantity, open))
+        if (open < 1 || entry.Quantity != open)
         {
             return ItemRecordWriteResult.Rejected(ItemRecordRefusal.QuantityExceedsOpen);
         }
 
         (decimal couponSetAside, decimal vatSetAside) = await SetAsideAsync(subject.OrderItemId, ct);
-        ItemAmounts amounts = ItemShares.SetAside(entry.Frozen, subject.ItemQuantity, entry.Quantity, entry.Quantity == open, couponSetAside, vatSetAside);
-        Cancellation cancellation = Cancellation.ByBuyer(subject.OrderItemId, entry.Quantity, amounts, null, entry.At);
+        ItemAmounts amounts = ItemShares.SetAside(entry.Frozen, subject.ItemQuantity, open, closesTheItem: true, couponSetAside, vatSetAside);
+        LateDeliveryTermination termination = entry.Admin is { } admin
+            ? LateDeliveryTermination.ByAdmin(subject.OrderItemId, open, admin.AdminId, admin.AdminName, entry.DeclarationDate, amounts, null, entry.At)
+            : LateDeliveryTermination.ByBuyer(subject.OrderItemId, open, entry.DeclarationDate, amounts, null, entry.At);
+        _db.LateDeliveryTerminations.Add(termination);
+        return new ItemRecordWriteResult(null, termination.Id, null);
+    }
+
+    public async Task<IReadOnlyList<ClosingRecordMoment>> ClosingRecordMomentsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderItemIds);
+        Guid[] ids = [.. orderItemIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return [];
+        }
+
+        List<Cancellation> cancellations = await _db.Cancellations.AsNoTracking().Where(c => ids.Contains(c.OrderItemId)).ToListAsync(ct);
+        Guid[] closing = [.. cancellations.Select(c => c.TransitionRecordId).OfType<Guid>().Distinct()];
+        IReadOnlySet<Guid> corrected = closing.Length == 0 ? new HashSet<Guid>() : await _ordering.FindCorrectedTransitionRecordsAsync(closing, ct);
+        List<ClosingRecordMoment> moments =
+        [
+            .. cancellations
+                .Where(c => c.TransitionRecordId is not { } closedBy || !corrected.Contains(closedBy))
+                .Select(c => new ClosingRecordMoment(c.Id, c.OrderItemId, ClosingRecordKind.Cancellation, c.CreatedAt)),
+        ];
+        moments.AddRange(await _db.LateDeliveryTerminations.AsNoTracking()
+            .Where(t => ids.Contains(t.OrderItemId))
+            .Select(t => new ClosingRecordMoment(t.Id, t.OrderItemId, ClosingRecordKind.LateDeliveryTermination, t.CreatedAt))
+            .ToListAsync(ct));
+        return [.. moments.OrderBy(m => m.At).ThenBy(m => m.RecordId)];
+    }
+
+    /// <summary>The cancellation row of either actor (06 4.22): the unit rule under the order's lock, the amounts set aside, then the row the caller's factory makes.</summary>
+    private async Task<ItemRecordWriteResult> AddCancellationRowAsync(
+        ItemRecordSubject subject, int quantity, ItemFrozenAmounts frozen, Func<ItemAmounts, Cancellation> create, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(frozen);
+        RequireOrderLock(subject);
+        int open = await OpenQuantityAsync(subject, ct);
+        if (!ItemQuantities.IsSelectable(quantity, open))
+        {
+            return ItemRecordWriteResult.Rejected(ItemRecordRefusal.QuantityExceedsOpen);
+        }
+
+        (decimal couponSetAside, decimal vatSetAside) = await SetAsideAsync(subject.OrderItemId, ct);
+        ItemAmounts amounts = ItemShares.SetAside(frozen, subject.ItemQuantity, quantity, quantity == open, couponSetAside, vatSetAside);
+        Cancellation cancellation = create(amounts);
         _db.Cancellations.Add(cancellation);
         return new ItemRecordWriteResult(null, cancellation.Id, null);
     }

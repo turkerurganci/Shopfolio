@@ -101,7 +101,36 @@ internal sealed class OrderPeriods
         OrderItem item = await _db.OrderItems.AsNoTracking().SingleAsync(i => i.Id == orderItemId, ct);
         int? shippingPeriod = await _db.Orders.Where(o => o.Id == item.OrderId).Select(o => o.ShippingPeriod).SingleAsync(ct);
         DateTimeOffset? approvedAt = await PaymentApprovedAtAsync(item.OrderId, ct);
-        return DeliveryPeriodRules.IsLegalInterestWarningDue(item.ProductType, approvedAt, shippingPeriod, item.FulfilmentPeriod, cancelledAt);
+        DateTimeOffset? firstShippedAt = await FirstShippedAtAsync(item.OrderId, ct);
+        return DeliveryPeriodRules.IsLegalInterestWarningDue(item.ProductType, approvedAt, shippingPeriod, item.FulfilmentPeriod, cancelledAt, firstShippedAt);
+    }
+
+    /// <summary>
+    /// The panel's legal interest warning on the order's item records (T368; 02 7.2.3; 03 4.1.10, 4.1.13): every late delivery termination carries it - "gecikme feshi -
+    /// kanuni faiz yükümlülüğü" - and a cancellation (the customer's or the firm's) carries it when it came after the item's promise ran out
+    /// (<see cref="DeliveryPeriodRules.IsLegalInterestWarningDue"/>). The product computes no interest; the result is the set of the records that show the warning.
+    /// </summary>
+    public async Task<IReadOnlySet<Guid>> LegalInterestWarningsAsync(Guid orderId, CancellationToken ct)
+    {
+        Order order = await _db.Orders.AsNoTracking().SingleAsync(o => o.Id == orderId, ct);
+        Dictionary<Guid, OrderItem> items = await _db.OrderItems.AsNoTracking().Where(i => i.OrderId == orderId).ToDictionaryAsync(i => i.Id, ct);
+        IReadOnlyList<ClosingRecordMoment> records = await _afterSales.ClosingRecordMomentsAsync(items.Keys, ct);
+        DateTimeOffset? approvedAt = await PaymentApprovedAtAsync(orderId, ct);
+        DateTimeOffset? firstShippedAt = await FirstShippedAtAsync(orderId, ct);
+        return records
+            .Where(r => r.Kind == ClosingRecordKind.LateDeliveryTermination
+                || DeliveryPeriodRules.IsLegalInterestWarningDue(
+                    items[r.OrderItemId].ProductType, approvedAt, order.ShippingPeriod, items[r.OrderItemId].FulfilmentPeriod, r.At, firstShippedAt))
+            .Select(r => r.RecordId)
+            .ToHashSet();
+    }
+
+    /// <summary>The order's first shipment: the earliest S5 no correction took back (03 1.6.2.3); the shipping promise ends with it. A re-sending (S8) is not the first.</summary>
+    private async Task<DateTimeOffset?> FirstShippedAtAsync(Guid orderId, CancellationToken ct)
+    {
+        return await Shipments(_db)
+            .Where(t => t.OrderId == orderId && t.TransitionCode == TransitionCode.S5)
+            .MinAsync(t => (DateTimeOffset?)t.CreatedAt, ct);
     }
 
     private async Task<int> OpenQuantityAsync(OrderItem item, CancellationToken ct)

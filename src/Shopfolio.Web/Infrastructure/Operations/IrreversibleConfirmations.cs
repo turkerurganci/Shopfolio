@@ -56,7 +56,10 @@ public static class IrreversibleConfirmations
     public const string IrreversibleSentence = "Bu işlem geri alınamaz.";
 
     /// <summary>K-798 (5): the warning before the "paid" mark's sentence on an order with a digital item.</summary>
-    public const string DigitalItemPaidMarkWarning = "Siparişte dijital ürün var: işaretle birlikte indirme açılır ve bu işaret sonradan düzeltilemez.";
+    /// <summary>02 7.2.4: the warning of the "stokta bulunamadı" reason - Yönetmelik m.16/4 does not take a missing stock as the impossibility of performance.</summary>
+    public const string OutOfStockWarning = "Stokta bulunmaması yasal olarak ifanın imkânsızlaşması sayılmaz; bu iptalin sonucu firmadadır.";
+
+    public const string DigitalItemPaidMarkWarning ="Siparişte dijital ürün var: işaretle birlikte indirme açılır ve bu işaret sonradan düzeltilemez.";
 
     /// <summary>03 1.6.1.1: the bank transfer's "paid" mark; on an order with a digital item the warning that the mark can not be corrected comes first.</summary>
     public static IrreversibleConfirmation TransferPaidMark(bool hasDigitalItem) => new(
@@ -77,11 +80,13 @@ public static class IrreversibleConfirmations
     /// refund starts at once, or the customer is asked for an IBAN) and, on "delivery failed - caused by the customer", that the outbound shipping fee is
     /// not paid back.
     /// </summary>
-    public static IrreversibleConfirmation FirmCancellation(bool isPaid, int units, bool isCardLine, bool isCustomerCausedDeliveryFailure)
+    public static IrreversibleConfirmation FirmCancellation(bool isPaid, int units, bool isCardLine, bool isCustomerCausedDeliveryFailure, bool isOutOfStock = false)
     {
+        // "Stokta bulunamadı": before the confirmation the panel says that a missing stock is not a legal impossibility and the outcome is the firm's (02 7.2.4; T368 k8).
+        string? warning = isOutOfStock ? OutOfStockWarning : null;
         if (!isPaid)
         {
-            return new(IrreversibleAction.FirmCancellation, null, "Sipariş iptal edilecek ve müşteriye sebebiyle bildirilecek.");
+            return new(IrreversibleAction.FirmCancellation, warning, "Sipariş iptal edilecek ve müşteriye sebebiyle bildirilecek.");
         }
 
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(units);
@@ -92,7 +97,7 @@ public static class IrreversibleConfirmations
             sentence += " Gidiş kargo bedeli geri ödenmeyecek.";
         }
 
-        return new(IrreversibleAction.FirmCancellation, null, sentence);
+        return new(IrreversibleAction.FirmCancellation, warning, sentence);
     }
 
     /// <summary>03 1.6.1.4: the processing of a refund - to the customer's IBAN on the transfer line, to the card on the card line.</summary>

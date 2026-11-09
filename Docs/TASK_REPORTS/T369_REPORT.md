@@ -91,7 +91,7 @@ Devam işçisi bütün maddeleri (önceki işçinin yaptıkları dahil) diff'te 
 
 - **Branch:** `task/T369-geri-odeme-tutari`
 - **Commit:** `4ffde5ac` (ara kayıt), `2dcbeb28` (devam), rapor commit'i
-- **PR:** #PRNO
+- **PR:** #501
 - **CI:** yardımcı izler
 - **Post-merge run'lar:**
 

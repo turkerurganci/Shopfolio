@@ -84,8 +84,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T357-fatura-verisi`
-- **Commit:** *(PR head'i)*
-- **PR:** *(aşağıdaki commit'te)*
+- **Commit:** `ff95888c` — T357: Fatura verisi ve dışa aktarmada donmuş kimlik
+- **PR:** #485
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

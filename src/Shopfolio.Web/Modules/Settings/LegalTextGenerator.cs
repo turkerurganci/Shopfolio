@@ -86,17 +86,25 @@ internal sealed class LegalTextGenerator
 
         return new Dictionary<string, string?>(StringComparer.Ordinal)
         {
-            ["CompanyLegalName"] = company.LegalName,
-            ["CompanyTaxIdNumber"] = company.TaxIdNumber,
-            ["CompanyMersisNumber"] = company.MersisNumber,
-            ["CompanyTradeRegistryNumber"] = company.TradeRegistryNumber,
-            ["CompanyProvince"] = CompanyProvince(),
-            ["CompanyDistrict"] = company.District,
-            ["CompanyAddressLine"] = company.AddressLine,
-            ["CompanyPhone"] = company.Phone,
-            ["CompanyEmail"] = company.Email,
-            ["CompanyKepAddress"] = company.KepAddress,
-            ["ReturnAddress"] = returnAddress,
+            ["CompanyLegalName"] = Inert(company.LegalName),
+            ["CompanyTaxIdNumber"] = Inert(company.TaxIdNumber),
+            ["CompanyMersisNumber"] = Inert(company.MersisNumber),
+            ["CompanyTradeRegistryNumber"] = Inert(company.TradeRegistryNumber),
+            ["CompanyChamberName"] = Inert(company.ChamberName),
+            ["CompanyProvince"] = Inert(CompanyProvince()),
+            ["CompanyDistrict"] = Inert(company.District),
+            ["CompanyAddressLine"] = Inert(company.AddressLine),
+            ["CompanyPhone"] = Inert(company.Phone),
+            ["CompanyEmail"] = Inert(company.Email),
+            ["CompanyKepAddress"] = Inert(company.KepAddress),
+            ["ReturnAddress"] = Inert(returnAddress),
+            ["HowTheOrderIsPlaced"] = ProcessGuide.Text,
         };
     }
+
+    /// <summary>
+    /// Makes a company value inert for the second filling (09 9.3 item 3; T356, D-268 (4)): the version's text keeps the value as written, and the order stage fills the order's tokens over
+    /// the whole text again - a value that carried <c>{{ShippingPhone}}</c> would expand there. A double opening brace in a value gets a space between the braces; no other value is touched.
+    /// </summary>
+    internal static string? Inert(string? value) => value?.Replace("{{", "{ {", StringComparison.Ordinal);
 }

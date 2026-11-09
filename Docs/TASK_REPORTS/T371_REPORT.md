@@ -1,6 +1,6 @@
 # T371 — Cayma hakkı: pencere, dijital ve hizmet istisnası, ürün istisna işareti, tek rejim
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -67,10 +67,25 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (D-767) |
+
+### Doğrulama tur 1 — Doğrulama Sonucu — T371 Cayma hakkı: pencere, dijital ve hizmet istisnası, ürün istisna işareti, tek rejim — tur 1
+**Tarih:** 2026-11-09   **Branch:** task/T371-cayma-hakki   **Commit:** `d1a42218` (doğrulanan dal ucu); kayıt commit'i `origin/main` `b90fa93a` (T387) birleştirmesi üstünde, PR #488
+
+**Verdict: ✓ PASS**
+
+- **Başlangıç kapıları:** working tree temiz; hook yolu ana depodaki `scripts/git-hooks` (mutlak yol); ana dal CI son 3: 42558302378, 42558302344, 42548005029 success.
+- **Kabul kriterleri 1–10 ✓** (validator kanıtı): (1) `AfterSalesPeriodRules.WithdrawalWindowDays` = 14 tek sabit, takvim günü; `CompanySettings`, `ProductConstants`, `ParameterInventory`, `appsettings.json`'da cayma yok; m.10 kaydı `OrderOperationCatalog.RecordWithdrawal` pencereyi koşul tutmaz (kapanmış pencerede ve mutlak istisnada açık, Integration `…_KK1_KK4`). (2) `IsWithdrawalWindowOpen` fiziksel kalemde teslim tarihinden, `ServiceWithdrawalStartDay` yalnız hizmette sipariş gününden, fiziksel kalem taşıyan siparişte siparişin teslim tarihinden; `OrderOperations.LoadAsync` `hasPhysical`'ı silinmeyen kalem satırlarından okur (iptal/çıkarma/fesih kayıttır), tarih yoksa pencere başlamaz ve sipariş gününe çekilmez. (3) `WithdrawPhysical` `HasShipped` (Kargoya verildi, Teslim edilemedi, Teslim edildi) ile açılır, tarihsiz kalemde kapanmaz. (4) Pencere sonunda düğme kapanır; beyan kaydına dokunulmaz, `ReceiveReturnedGoods` açık kalır; pencere işaret anından değil girilen tarihten işler (Unit `…_KK2_KK4`). (5) `WithdrawDigitalItem` her zaman kapalı; üçüncü kutu `ConfirmationStepRules` `DigitalWithdrawalWaiver` (T356). (6) `WithdrawService` ödeme onayı ister, pencere ya da `DeliveryMarkedAt` — önce gelen; başlangıçsız pencerede yalnız işaret; `ServiceFulfilmentConsent` kutusu (T356); ifa başlangıcı alanı yok. (7) `OrderItem`, `Withdrawal`, `WithdrawalDeclaration`, `ItemAmounts`'ta ifa/kesinti alanı yok, beyan üç tutarı çağırandan alır (tutar hesabı T369; `VAL-A076`). (8) `Product.WithdrawalExemptionReason` boşalabilir, varyantta yok, fiziksel dışında `ProductDefinitionRules` reddeder; mutlakta düğme yok, koşulluda açık (Integration `…_KK8`, beş sebep + sebepsiz); koşul metni `ConfirmationSummaryText.ExemptionNote`; kural tek evde `AfterSales.Contracts.WithdrawalExemptions`. (9) `OrderFreeze` sebebi kaleme yazar, sonraki ürün değişikliği verilmiş kaleme ulaşmaz (`FrozenValuesTests …_KK2`, `OrderFreezeTests`). (10) Alıcı tarafında (`Order` satıcı kimliği dışında, `Customer`, `AddressBook`, `PartyAddress`, `ConfirmationParties`, `OrderAddressHistory`, `Cart`) ticari alan yok; `src`'de vergi dairesi/fatura tipi/alıcı tipi alanı yok.
+- **KK1–KK10, `09 §25`, güvenlik ✓.** Modül sınırı: Ordering ve Notifications yalnız `AfterSales.Contracts`'a başvurur (mimari testler yeşil); tek işlev (§24 m.4); yeni ayar, sabit, göç, uç yok. Secret yok (test verisi yer tutucu); auth/girdi etkisi yok; yeni bağımlılık yok.
+- **Task satırları (`12 §7.5`):** KP-22 → `VAL-C012`, `C013`, `C015` (kriter 1, 2, 4, 6), `C016`, `C018` (8), `C017` (5), `A076` (7); KP-45 → `VAL-A202`…`A206` (8, 9). Hepsi uç yanıtı / tarayıcı gözlemi / mock geri ödeme ister; beyan ucu T372, panel T525, tutar T369 — `BEKLEMEDE` kaldı (T351, T356 emsali). KP-22'nin öteki satırları (`C011`, `C014`, `C019`, `A071`…`A075`, `A077`…`A081`) beyan, iptal, geri ödeme ve iade task'larınındır. `12_matris_denetle.py --kapsam 1-77` hata 0.
+- **Testler:** build `-warnaserror` 0 uyarı; format ×3 temiz; Unit 5312/5312 (dal ucu), 5409/5409 (birleşik ağaç); betik testleri 4/4; Integration parçalı (`WithdrawalRightTests`, `OrderOperationsTests`, `ItemRecordsTests`, `FrozenValuesTests`, `ConfirmationStepTests`, `CustomerNoticeAfterOrderQueueTests`, `NotificationMapQueueTests`, `OperationPatternTests`) 79/79, birleşik ağaçta `WithdrawalRightTests` + `OrderOperationsTests` 14/14; `--locked-mode` çıkış 0. Dal CI run 42562463736 tüm işler pass.
+- **Bulgu:** 0.
+- **K-notları:** K1 `VAL-A206` beklenen sonucu "üç mutlak, dört koşullu sebep" der; `02 §7.3.4` ve `06 §5.3.7` iki koşullu sebep tanır ((ç) `HygieneSensitive`, (e) `SealedMedia`) → D-767 (`12` güncelleme turu; satır `BEKLEMEDE`).
+- **Yapım raporu karşılaştırması:** kriter ve KK sonuçları uyumlu; öz denetim tablosu kanıtlı. Tek uyuşmazlık: yapım `12` satırlarını `C011`…`C015`, `A076`, `A202`…`A206` sayar; validator `C011` (beyan, T372) ve `C014` (ödeme bekleyen iptal) satırlarını dışarıda, `C016`…`C018` (istisna ve dijital) satırlarını içeride sayar. D-513'ün T371 düğme kolu `ItemPeriodStatesAsync` → `OrderOperationCatalog` ile karşılanmış; kalem öteki task'lar için açık kalır.
+- **Birleştirme notu:** `origin/main` (`b90fa93a`: T387) çakışmasız birleşti; birleşik ağaçta build ve tam Unit 5409/5409.
 
 ## Altyapı Değişiklikleri
 
@@ -84,7 +99,7 @@
 - **Branch:** `task/T371-cayma-hakki`
 - **Commit:** `d070a34c` — T371: Cayma hakkı: pencere, dijital ve hizmet istisnası, ürün istisna işareti, tek rejim
 - **PR:** #488
-- **CI:** *(yardımcı izler)*
+- **CI:** run 42562463736 (`d1a42218`) tüm işler pass
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 
 ## Dış Varsayımlar

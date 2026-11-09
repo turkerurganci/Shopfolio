@@ -105,7 +105,7 @@ public sealed partial class BranchFlowTests
         Assert.Equal([TransitionCode.O3], refunded.Applied);
         await AssertAxesAsync(order.Id, OrderStatus.Preparing, PaymentStatus.PartiallyRefunded);
         Assert.Equal(1, await CountDispatchesAsync(order.Id, DispatchType.B8));
-        Assert.Equal(1, await CountDispatchesAsync(order.Id, DispatchType.F4));
+        Assert.Equal(1, await CountFirmDispatchesAsync(DispatchType.F4, refund.Id));
 
         // The coupon right does not come back - the order lives on (02 5.11.3).
         Assert.Equal(1L, await ScalarAsync($"SELECT used_count FROM coupons WHERE id = '{coupon.Id}'"));

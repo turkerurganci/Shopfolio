@@ -55,7 +55,7 @@ public sealed partial class BranchFlowTests
         Assert.Equal(RefundIbanText, iban.Iban);
         Assert.Equal(("Depo Sokak 3", (Guid?)_returnProvince!.Id, declarationDay), (withdrawal.ReturnAddressLine, withdrawal.ReturnProvinceId, withdrawal.DeclarationDate));
         Assert.Equal(1, await CountDispatchesAsync(order.Id, DispatchType.B9));
-        Assert.Equal(1, await CountDispatchesAsync(order.Id, DispatchType.F3));
+        Assert.Equal(1, await CountFirmDispatchesAsync(DispatchType.F3, withdrawalId));
 
         // The item is closed, but the parcel is with the carrier: the order stays Shipped; the refund period runs from the declaration, not from the goods' return.
         Assert.Equal(1, await ClosedUnitsAsync(item.Id));

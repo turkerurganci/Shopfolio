@@ -138,6 +138,7 @@ public sealed partial class BranchFlowTests : IAsyncLifetime
 
         // The Notifications module's open face and the writers of the dispatch rows; the firm's contact e-mail is the ordering tests' fixed address.
         services.AddScoped<INotificationsModule, NotificationsModule>();
+        services.AddScoped<IOrderContactNotices, OrderContactNotices>();
         services.AddScoped<CustomerNoticeQueue>();
         services.AddScoped<CompanyNoticeQueue>();
         services.AddScoped<AccountEmailQueue>();
@@ -434,6 +435,14 @@ public sealed partial class BranchFlowTests : IAsyncLifetime
     }
 
     private async Task<int> CountDispatchesAsync(Guid orderId, DispatchType type) => (await DispatchesAsync(orderId)).Count(d => d.Type == type);
+
+    /// <summary>The firm's notices (F-3, F-4) carry no order; they point at their record (08 2.2.7) and go to the firm's contact e-mail.</summary>
+    private async Task<int> CountFirmDispatchesAsync(DispatchType type, Guid relatedRecordId)
+    {
+        await using AppDbContext reader = NewContext();
+        return await reader.DispatchRecords.AsNoTracking().CountAsync(
+            d => d.DispatchType == type && d.RelatedRecordId == relatedRecordId && d.OrderId == null && d.RecipientEmail == OrderingTestServices.CompanyEmail, Ct);
+    }
 
     private async Task<OrderOperationsView> BuyerViewAsync(Guid orderId) =>
         (await ReadAsync(sp => sp.GetRequiredService<IOrderOperations>().ReadAsync(orderId, ActorKind.Buyer, Ct)))!;

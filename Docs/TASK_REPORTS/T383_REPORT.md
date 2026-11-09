@@ -84,10 +84,28 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-09; head `9f7b3620` + `origin/main` `8cd6652e` birleşik ağaç, çakışmasız) |
-| Bulgu sayısı | 1 (B1 ORTA S1) |
-| Düzeltme gerekli mi | Evet — B1 |
-| Bloke-etmeyen not (K) sayısı | 0 |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-09; head `e289f0b5`; dal CI 42658024056 yeşil) |
+| Bulgu sayısı | 0 (tur 1'in B1'i kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — D-896, D-897 (`Docs/DEFERRED_BACKLOG.d/T383.md`, hedef F3 kapısı) |
+| Birleştirme notu | `origin/main` `5352fadd` (T384 #502) birleştirmesi kod dosyalarında çakıştı — `ICorporateContentModule.cs`, `CorporateContentModule.cs`, `tests/.../ApplicationEnums.cs` (ve `IMPLEMENTATION_STATUS.md`); `git merge --abort`, doğrulama dalın ucunda; çakışmayı yardımcı çözdürür |
+
+**Validator kabul kriterleri tablosu (tur 2):**
+
+| # | Sonuç | Validator kanıtı |
+|---|---|---|
+| 1 | ✓ | `SalesSummaryService` kurucusu yalnız `IOrderingModule`, `IAfterSalesModule`, `ICorporateContentModule`, `TimeProvider`; tablo, `DbContext`, uç yok; KK1 birim testi yeşil |
+| 2 | ✓ | `SalesPeriodReader.Approved` = Paid/PartiallyRefunded/Refunded; geç gelen kart ödemesi eksenleri değiştirmez, O1 yazmaz (`OrderTransitions.Payment.cs`); Integration KK2 yeşil |
+| 3 | ✓ | `SumAsync(o => o.Total)`; `Order.Total` yalnız `Order.Create`'te yazılır (dalda ve `origin/main`'de); en çok satan on ürün adet → ciro → ad; yöntem dağılımı sipariş sayısıyla; Integration KK3 ve birim testi yeşil |
+| 4 | ✓ | `CreatedAt ∈ [from,to)`; iki gün sonra ödenen havale doğduğu günde (Integration) |
+| 5 | ✓ | `SalesSummaryRules.PaymentCompletion`/`Attempts`: sepet içi sipariş ödenene kadar tek deneme, ilk siparişin dönemi, açık ödeme süresi bekletir, sepetsiz (imha) kendi denemesi (K-1052); 3 birim + 1 Integration yeşil |
+| 6 | ✓ | `ContactRequests.SummaryTopics` = GeneralQuestion, AboutProduct, Other; Integration (beş tipten 3) yeşil |
+| 7 | ✓ | B1 kapandı: `ShippingPromiseCompliance` S3/S4'e ek olarak bütün fiziksel kalemlerin süre bitimindeki açık adedi sıfırsa paydadan çıkarır (`OpenQuantitiesAtAsync`, `SavedClosingUnitsAsync` + `ItemQuantities.Open`, `At < PromiseEndsAt`); 2 birim + 4 Integration yeşil. Validator sondajı (geçici Integration testi, geri alındı): fiziksel kalemi süre dolmadan iptal edilmiş + hizmet açık sipariş ile S4'ü düzeltilmiş iptalli sipariş → beklenen 0/1, gelen 0/1 |
+| 8 | ✓ | `ListItemsWithLossInRangeAsync` (iptal/çıkarma kayıt günü, fesih ve cayma `DeclarationDate`, düzeltilmiş iptal hariç), kapanış ve red tabloları okunmaz; oran kohort, sipariş bir kez; Integration KK8 ve birim yeşil |
+| 9 | ✓ | `SummaryRatio.IsAssessable => Denominator > 0`, yüzde alanı yok; KK9 birim testi |
+| 10 | ✓ | `CountDailyOrdersAsync` = `GetAsync(OfDay(day)).OrderCount`; Integration KK10 kolu |
+
+**Task satırları (tur 2):** `VAL-A272`…`A283` ve `VAL-D030` kanıt olarak uç yanıtı ister — uç T524'te (`07` UC-105) → `BEKLEMEDE` (T384, T318/T338 emsali); mantık bu task'ta yukarıdaki kanıtlarla doğrulandı. `12_matris_denetle.py --kapsam 1-77` hata 0.
 
 **Validator kabul kriterleri tablosu (tur 1):**
 

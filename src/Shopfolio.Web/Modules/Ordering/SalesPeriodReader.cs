@@ -92,7 +92,7 @@ internal sealed class SalesPeriodReader
     /// <summary>
     /// The orders with a physical item whose shipping promise ran out in <c>[from, to)</c> and by <paramref name="now"/> (02 10.6.3; K-535): the promise counts from the last payment
     /// approval (O1) that no correction took back (<see cref="ShippingViewReader"/>), and its end is <see cref="DeliveryPeriodRules.ShippingPeriodEnd"/> - the zero-day promise
-    /// included. The first uncorrected shipment (S5) and the uncorrected cancellation (S3 or S4) come with it.
+    /// included. The first uncorrected shipment (S5), the uncorrected cancellation (S3 or S4) and the order's physical items with their quantities come with it.
     /// </summary>
     private async Task<IReadOnlyList<ShippingPromiseOrder>> ReadShippingPromisesAsync(DateTimeOffset from, DateTimeOffset to, DateTimeOffset now, CancellationToken ct)
     {
@@ -125,13 +125,21 @@ internal sealed class SalesPeriodReader
             .Select(t => new { t.OrderId, t.TransitionCode, t.CreatedAt })
             .ToListAsync(ct);
 
+        // The physical items with their own quantities: whether a cancellation or removal of items closed all of them before the promise ran out is read from the item
+        // records' open quantity by the summary (K-535), not from the order's transitions.
+        var physical = await _db.OrderItems.AsNoTracking()
+            .Where(i => ids.Contains(i.OrderId) && i.ProductType == ProductType.Physical)
+            .Select(i => new { i.OrderId, Item = new PromisedItem(i.Id, i.Quantity) })
+            .ToListAsync(ct);
+
         return
         [
             .. ending.Select(a =>
             {
                 DateTimeOffset? shippedAt = marks.Where(m => m.OrderId == a.OrderId && m.TransitionCode == TransitionCode.S5).Min(m => (DateTimeOffset?)m.CreatedAt);
                 DateTimeOffset? cancelledAt = marks.Where(m => m.OrderId == a.OrderId && m.TransitionCode != TransitionCode.S5).Min(m => (DateTimeOffset?)m.CreatedAt);
-                return new ShippingPromiseOrder(a.OrderId, a.EndsAt, shippedAt, cancelledAt);
+                List<PromisedItem> items = [.. physical.Where(p => p.OrderId == a.OrderId).Select(p => p.Item)];
+                return new ShippingPromiseOrder(a.OrderId, a.EndsAt, shippedAt, cancelledAt, items);
             }),
         ];
     }

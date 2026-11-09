@@ -48,6 +48,11 @@ internal sealed class SalesSummaryService : ISalesSummary
         IReadOnlySet<Guid> cohortLoss = await _afterSales.FindItemsWithLossAsync([.. facts.PaidItems.Select(i => i.OrderItemId)], ct);
         int contactRequests = await _content.CountSummaryContactRequestsAsync(from, to, ct);
 
+        // The promise ratio's denominator (K-535): the open quantity of every physical item at its order's promise end, from the item records' one open quantity rule.
+        IReadOnlyDictionary<Guid, int> openAtPromiseEnd = await _afterSales.OpenQuantitiesAtAsync(
+            [.. facts.ShippingPromises.SelectMany(o => o.PhysicalItems.Select(i => new ItemQuantityAt(i.OrderItemId, i.Quantity, o.PromiseEndsAt)))],
+            ct);
+
         return new SalesSummary(
             period,
             facts.OrderCount,
@@ -57,7 +62,7 @@ internal sealed class SalesSummaryService : ISalesSummary
             facts.PaymentMethods,
             SalesSummaryRules.PaymentCompletion(facts.Attempts, from, to, now),
             contactRequests,
-            SalesSummaryRules.ShippingPromiseCompliance(facts.ShippingPromises),
+            SalesSummaryRules.ShippingPromiseCompliance(facts.ShippingPromises, openAtPromiseEnd),
             SalesSummaryRules.CancellationAndReturn(facts.PaidItems, cohortLoss));
     }
 

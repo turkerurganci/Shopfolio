@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Modules.AfterSales.Contracts;
 
 namespace Shopfolio.Modules.AfterSales;
 
@@ -9,7 +10,7 @@ namespace Shopfolio.Modules.AfterSales;
 /// and the removal on the day they were written, the late delivery termination on its notice's date stamp and the withdrawal on its declaration's date - the withdrawal is counted
 /// when it is declared, whatever happens to the goods later. A cancellation undone by the correction of its closing transition is not counted (06 4.22; K-1056). The
 /// "goods did not come back" closure and the return rejection are not item records of a loss and are never read, so they cannot change the count (02 10.4.9, 7.4.9).
-/// Plain reads; nothing is written.
+/// The shipping promise ratio reads the open quantity of the physical items at the promise's end from the same closing records (K-535). Plain reads; nothing is written.
 /// </summary>
 internal sealed partial class AfterSalesModule
 {
@@ -50,6 +51,26 @@ internal sealed partial class AfterSalesModule
         items.UnionWith(await _db.LateDeliveryTerminations.AsNoTracking().Where(t => ids.Contains(t.OrderItemId)).Select(t => t.OrderItemId).ToListAsync(ct));
         items.UnionWith(await _db.Withdrawals.AsNoTracking().Where(w => ids.Contains(w.OrderItemId)).Select(w => w.OrderItemId).ToListAsync(ct));
         return items;
+    }
+
+    public async Task<IReadOnlyDictionary<Guid, int>> OpenQuantitiesAtAsync(IReadOnlyCollection<ItemQuantityAt> items, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        Dictionary<Guid, int> open = [];
+        if (items.Count == 0)
+        {
+            return open;
+        }
+
+        // The closing records of ClosedQuantitiesAsync, cut at each item's moment; what is left open is the one rule of the item's open quantity (03 1.7.4).
+        List<ClosedUnits> units = await SavedClosingUnitsAsync([.. items.Select(i => i.OrderItemId).Distinct()], ct);
+        foreach (ItemQuantityAt item in items)
+        {
+            int closed = units.Where(u => u.OrderItemId == item.OrderItemId && u.At < item.At).Sum(u => u.Quantity);
+            open[item.OrderItemId] = ItemQuantities.Open(item.Quantity, closed);
+        }
+
+        return open;
     }
 
     /// <summary>The items of the cancellations that still stand: a cancellation whose closing transition was corrected gave its units back (06 4.22).</summary>

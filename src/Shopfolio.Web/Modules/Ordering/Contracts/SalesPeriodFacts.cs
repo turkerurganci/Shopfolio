@@ -40,6 +40,16 @@ public sealed record PaymentAttemptOrder(Guid OrderId, Guid? CartId, DateTimeOff
 
 /// <summary>
 /// An order whose shipping promise ran out in the period (02 10.6.3; K-535): when it ran out (counted from the last uncorrected payment approval), when the order was first
-/// shipped (the first uncorrected S5) and when it was cancelled (the uncorrected S3 or S4); either is null when it did not happen.
+/// shipped (the first uncorrected S5) and when it was cancelled (the uncorrected S3 or S4); either is null when it did not happen. <paramref name="PhysicalItems"/> are its
+/// physical items with their own quantities - the units a cancellation or removal of an item may have closed before the promise ran out (K-535: the mixed order whose
+/// physical items were all cancelled is not counted).
 /// </summary>
-public sealed record ShippingPromiseOrder(Guid OrderId, DateTimeOffset PromiseEndsAt, DateTimeOffset? FirstShippedAt, DateTimeOffset? CancelledAt);
+public sealed record ShippingPromiseOrder(
+    Guid OrderId,
+    DateTimeOffset PromiseEndsAt,
+    DateTimeOffset? FirstShippedAt,
+    DateTimeOffset? CancelledAt,
+    IReadOnlyList<PromisedItem> PhysicalItems);
+
+/// <summary>A physical item of an order whose shipping promise ran out (02 10.6.3): the item and its own quantity, before any item record closed units of it.</summary>
+public sealed record PromisedItem(Guid OrderItemId, int Quantity);

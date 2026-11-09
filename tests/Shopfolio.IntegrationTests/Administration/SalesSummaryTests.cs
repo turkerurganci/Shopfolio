@@ -50,6 +50,7 @@ public sealed class SalesSummaryTests : IAsyncLifetime
     private static readonly DateTimeOffset Now = DayStart.AddDays(6);
     private static readonly DateTimeOffset LongAgo = DayStart.AddDays(-90);
     private const string Iban = "TR330006100519786457841326";
+    private static readonly RecordAmounts Amounts = new(250m, 0m, 50m);
 
     private static int _versionNumber = 5000;
 
@@ -60,6 +61,7 @@ public sealed class SalesSummaryTests : IAsyncLifetime
     private CompanyIdentity? _identity;
     private Guid _shirt;
     private Guid _lamp;
+    private Guid _service;
 
     public SalesSummaryTests(CollectionDatabaseFixture collection)
     {
@@ -78,6 +80,7 @@ public sealed class SalesSummaryTests : IAsyncLifetime
         _identity = await SetCompanyAsync();
         _shirt = await SeedVariantAsync(300m);
         _lamp = await SeedVariantAsync(200m);
+        _service = await SeedVariantAsync(150m, ProductType.Service);
     }
 
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
@@ -199,6 +202,69 @@ public sealed class SalesSummaryTests : IAsyncLifetime
         Assert.Equal(new SummaryRatio(0, 1), (await SummaryAsync(SalesSummaryPeriod.OfDay(Day.AddDays(-3)))).ShippingPromiseCompliance);
     }
 
+    // ---- KK7 (K-535): the mixed order whose physical items were all cancelled or removed one by one before the promise ran out is not counted ----
+
+    [Fact]
+    public async Task AMixedOrderWhosePhysicalItemsWereCancelledAndRemovedInTime_IsLeftOut_TheOpenServiceItemDoesNotBringItIn_KK7()
+    {
+        DateTimeOffset approvedAt = DayStart.AddHours(-10);
+        Guid mixed = await SavePaidPromiseAsync(approvedAt, (_shirt, 2), (_lamp, 1), (_service, 1));
+        Dictionary<Guid, Guid> items = await ItemsOfAsync(mixed);
+        Admin admin = await SaveAdminAsync();
+
+        // The two shirts cancelled one at a time and the lamp removed by the firm, all before the promise ran out at 00:00; the service item stays open. No S3/S4 is written.
+        await SaveAsync(c =>
+        {
+            c.Cancellations.Add(Cancellation.ByBuyer(items[_shirt], 1, Amounts, null, approvedAt.AddHours(1)));
+            c.Cancellations.Add(Cancellation.ByBuyer(items[_shirt], 1, Amounts, null, approvedAt.AddHours(2)));
+            c.ItemRemovals.Add(ItemRemoval.Create(items[_lamp], 1, admin.Id, admin.Name, Amounts, approvedAt.AddHours(3)));
+        });
+
+        SummaryRatio ratio = (await SummaryAsync(SalesSummaryPeriod.OfDay(Day))).ShippingPromiseCompliance;
+
+        Assert.Equal(new SummaryRatio(0, 0), ratio);
+        Assert.False(ratio.IsAssessable);
+    }
+
+    [Fact]
+    public async Task APhysicalItemPartlyCancelledInTime_WhoseRestWasNotShippedInTime_IsCountedAsNotKept_KK7()
+    {
+        DateTimeOffset approvedAt = DayStart.AddHours(-10);
+        Guid partly = await SavePaidPromiseAsync(approvedAt, (_shirt, 3), (_service, 1));
+        Dictionary<Guid, Guid> items = await ItemsOfAsync(partly);
+
+        // One shirt of three cancelled before the promise ran out; the other two are shipped the next day.
+        await SaveAsync(c =>
+        {
+            c.Cancellations.Add(Cancellation.ByBuyer(items[_shirt], 1, Amounts, null, approvedAt.AddHours(1)));
+            c.TransitionRecords.Add(Record(partly, TransitionCode.S5, DayStart.AddDays(1)));
+        });
+
+        Assert.Equal(new SummaryRatio(0, 1), (await SummaryAsync(SalesSummaryPeriod.OfDay(Day))).ShippingPromiseCompliance);
+    }
+
+    [Fact]
+    public async Task PhysicalItemsCancelledAfterThePromiseRanOut_StayInTheDenominator_AsNotKept_KK7()
+    {
+        DateTimeOffset approvedAt = DayStart.AddHours(-10);
+        Guid atTheEnd = await SavePaidPromiseAsync(approvedAt, (_shirt, 1), (_lamp, 1), (_service, 1));
+        Guid afterTheEnd = await SavePaidPromiseAsync(approvedAt, (_shirt, 2), (_service, 1));
+        Dictionary<Guid, Guid> items = await ItemsOfAsync(atTheEnd);
+        Dictionary<Guid, Guid> laterItems = await ItemsOfAsync(afterTheEnd);
+        Admin admin = await SaveAdminAsync();
+
+        // The first order: the shirt cancelled one hour before the end, the lamp removed at the end itself - one physical unit was open when the promise ran out.
+        // The second: both shirts cancelled the next morning, after the promise ran out.
+        await SaveAsync(c =>
+        {
+            c.Cancellations.Add(Cancellation.ByBuyer(items[_shirt], 1, Amounts, null, DayStart.AddHours(-1)));
+            c.ItemRemovals.Add(ItemRemoval.Create(items[_lamp], 1, admin.Id, admin.Name, Amounts, DayStart));
+            c.Cancellations.Add(Cancellation.ByBuyer(laterItems[_shirt], 2, Amounts, null, DayStart.AddHours(9)));
+        });
+
+        Assert.Equal(new SummaryRatio(0, 2), (await SummaryAsync(SalesSummaryPeriod.OfDay(Day))).ShippingPromiseCompliance);
+    }
+
     // ---- KK8: the termination on its notice's stamp, the withdrawal when declared; the closure and the rejection change nothing ----
 
     [Fact]
@@ -280,12 +346,28 @@ public sealed class SalesSummaryTests : IAsyncLifetime
         return new SalesSummaryService(services.GetRequiredService<IOrderingModule>(), services.GetRequiredService<IAfterSalesModule>(), content, time);
     }
 
-    private async Task<Guid> SavePaidPhysicalAsync(DateTimeOffset approvedAt)
+    private Task<Guid> SavePaidPhysicalAsync(DateTimeOffset approvedAt) => SavePaidPromiseAsync(approvedAt, (_shirt, 1));
+
+    // A paid order with a same-day promise (0 business days) approved at approvedAt.
+    private async Task<Guid> SavePaidPromiseAsync(DateTimeOffset approvedAt, params (Guid VariantId, int Quantity)[] lines)
     {
-        Guid order = await SaveOrderAsync(approvedAt.AddMinutes(-5), PaymentMethod.Card, null, 0, (_shirt, 1));
+        Guid order = await SaveOrderAsync(approvedAt.AddMinutes(-5), PaymentMethod.Card, null, 0, lines);
         await SetAxesAsync(order, OrderStatus.Placed, PaymentStatus.Paid);
         await SaveAsync(c => c.TransitionRecords.Add(Record(order, TransitionCode.O1, approvedAt)));
         return order;
+    }
+
+    private async Task<Dictionary<Guid, Guid>> ItemsOfAsync(Guid orderId)
+    {
+        await using AppDbContext db = NewContext();
+        return await db.OrderItems.AsNoTracking().Where(i => i.OrderId == orderId).ToDictionaryAsync(i => i.VariantId!.Value, i => i.Id, Ct);
+    }
+
+    private async Task<Admin> SaveAdminAsync()
+    {
+        Admin admin = Admin.Create("Firma Yöneticisi", $"yonetici{Interlocked.Increment(ref _counter)}@example.com", "digest-placeholder", LongAgo);
+        await SaveAsync(c => c.Admins.Add(admin));
+        return admin;
     }
 
     private async Task<Guid> SaveOrderAsync(DateTimeOffset createdAt, PaymentMethod method, Guid? cartId, int? shippingPeriod, params (Guid VariantId, int Quantity)[] lines)
@@ -330,11 +412,19 @@ public sealed class SalesSummaryTests : IAsyncLifetime
         });
     }
 
-    private async Task<Guid> SeedVariantAsync(decimal price)
+    private async Task<Guid> SeedVariantAsync(decimal price, ProductType type = ProductType.Physical)
     {
         int n = Interlocked.Increment(ref _counter);
-        Product product = Product.Create($"Özet Ürün {n}", $"ozet-urun-{n}", ProductType.Physical, 20m, LongAgo);
-        product.WithSeededOrigin();
+        Product product = Product.Create($"Özet Ürün {n}", $"ozet-urun-{n}", type, 20m, LongAgo);
+        if (type == ProductType.Physical)
+        {
+            product.WithSeededOrigin();
+        }
+        else
+        {
+            product.FulfilmentPeriod = 3;
+        }
+
         product.PublishStatus = PublishStatus.Published;
         Variant variant = Variant.Create(product.Id, $"OZT-{n}", price, LongAgo, 100);
         variant.PublishStatus = PublishStatus.Published;

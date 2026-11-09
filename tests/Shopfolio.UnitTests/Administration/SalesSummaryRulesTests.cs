@@ -125,15 +125,38 @@ public sealed class SalesSummaryRulesTests
 
         SummaryRatio ratio = SalesSummaryRules.ShippingPromiseCompliance(
             [
-                new ShippingPromiseOrder(Guid.NewGuid(), end, end.AddHours(-1), null),
-                new ShippingPromiseOrder(Guid.NewGuid(), end, end.AddDays(2), null),
-                new ShippingPromiseOrder(Guid.NewGuid(), end, null, end.AddDays(1)),
-                new ShippingPromiseOrder(Guid.NewGuid(), end, null, null),
-                new ShippingPromiseOrder(Guid.NewGuid(), end, end, null),
-                new ShippingPromiseOrder(Guid.NewGuid(), end, null, end.AddHours(-3)),
-            ]);
+                new ShippingPromiseOrder(Guid.NewGuid(), end, end.AddHours(-1), null, []),
+                new ShippingPromiseOrder(Guid.NewGuid(), end, end.AddDays(2), null, []),
+                new ShippingPromiseOrder(Guid.NewGuid(), end, null, end.AddDays(1), []),
+                new ShippingPromiseOrder(Guid.NewGuid(), end, null, null, []),
+                new ShippingPromiseOrder(Guid.NewGuid(), end, end, null, []),
+                new ShippingPromiseOrder(Guid.NewGuid(), end, null, end.AddHours(-3), []),
+            ],
+            new Dictionary<Guid, int>());
 
         Assert.Equal(new SummaryRatio(1, 5), ratio);
+    }
+
+    [Fact]
+    public void AnOrderWhosePhysicalItemsWereAllClosedBeforeThePromiseRanOut_IsLeftOut_AnOpenPhysicalUnitKeepsItIn_KK7()
+    {
+        DateTimeOffset end = From.AddHours(12);
+        PromisedItem closedA = new(Guid.NewGuid(), 2), closedB = new(Guid.NewGuid(), 1), partly = new(Guid.NewGuid(), 3), unread = new(Guid.NewGuid(), 1);
+        PromisedItem shippedClosed = new(Guid.NewGuid(), 1);
+        Dictionary<Guid, int> open = new() { [closedA.OrderItemId] = 0, [closedB.OrderItemId] = 0, [partly.OrderItemId] = 1, [shippedClosed.OrderItemId] = 0 };
+
+        // Every physical unit closed by item records before the end: left out. One unit still open: in, not kept. An item the open quantities do not name counts as open.
+        // A shipment before the end keeps the promise whatever was closed beside it.
+        SummaryRatio ratio = SalesSummaryRules.ShippingPromiseCompliance(
+            [
+                new ShippingPromiseOrder(Guid.NewGuid(), end, null, null, [closedA, closedB]),
+                new ShippingPromiseOrder(Guid.NewGuid(), end, null, null, [closedA, partly]),
+                new ShippingPromiseOrder(Guid.NewGuid(), end, null, null, [unread]),
+                new ShippingPromiseOrder(Guid.NewGuid(), end, end.AddHours(-2), null, [shippedClosed]),
+            ],
+            open);
+
+        Assert.Equal(new SummaryRatio(1, 3), ratio);
     }
 
     // ---- KK8: the ratio counts an order once, whatever its records ----
@@ -155,7 +178,7 @@ public sealed class SalesSummaryRulesTests
     public void ARatioWithAZeroDenominator_IsNotAssessable_KK9()
     {
         Assert.False(SalesSummaryRules.PaymentCompletion([], From, To, Now).IsAssessable);
-        Assert.False(SalesSummaryRules.ShippingPromiseCompliance([]).IsAssessable);
+        Assert.False(SalesSummaryRules.ShippingPromiseCompliance([], new Dictionary<Guid, int>()).IsAssessable);
         Assert.False(new SummaryRatio(0, 0).IsAssessable);
         Assert.True(new SummaryRatio(0, 4).IsAssessable);
         Assert.DoesNotContain(typeof(SummaryRatio).GetProperties(), p => p.Name.Contains("Percent", StringComparison.OrdinalIgnoreCase));

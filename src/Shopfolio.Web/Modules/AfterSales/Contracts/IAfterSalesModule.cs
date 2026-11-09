@@ -197,6 +197,13 @@ public interface IAfterSalesModule
     /// does not count, the "goods did not come back" closure and the return rejection are not read. A plain read.
     /// </summary>
     Task<IReadOnlySet<Guid>> FindItemsWithLossAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// The open quantity each given item had at its moment (T383; 02 10.6.3; K-535): the item's quantity minus the units of its saved closing records - the records of
+    /// <see cref="ClosedQuantitiesAsync"/> (cancellation, removal, late delivery termination, withdrawal; a cancellation undone by a correction does not count) - written before
+    /// <see cref="ItemQuantityAt.At"/>, by the one open quantity rule. Every item is in the result. A plain read; it writes nothing and takes no lock.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, int>> OpenQuantitiesAtAsync(IReadOnlyCollection<ItemQuantityAt> items, CancellationToken ct);
 }
 
 /// <summary>One cancellation record as the order module needs it: the record, the item and the units it closed.</summary>

@@ -66,19 +66,25 @@ internal static class SalesSummaryRules
     }
 
     /// <summary>
-    /// The shipping promise compliance ratio (02 10.6.3; K-139, K-140, K-484, K-535): of the orders whose promise ran out in the period and that were not cancelled before it ran out,
-    /// those first shipped before it ran out. An order not yet shipped when the promise ran out has not kept it - shipped later, cancelled or terminated later alike.
+    /// The shipping promise compliance ratio (02 10.6.3; K-139, K-140, K-484, K-535): of the orders whose promise ran out in the period and that still had a physical unit to ship
+    /// when it ran out, those first shipped before it ran out. An order is left out when it was cancelled (S3 or S4) before the promise ran out, or when its physical items were
+    /// all closed by item records before then - <paramref name="openAtPromiseEnd"/>, the open quantity of each physical item at its order's promise end, is zero for every one
+    /// of them (the mixed order whose physical items were cancelled or removed one by one; a service or digital item left open does not bring it in). An order not yet shipped
+    /// when the promise ran out has not kept it - shipped later, cancelled or terminated later alike; an item missing from <paramref name="openAtPromiseEnd"/> counts as open.
     /// </summary>
-    public static SummaryRatio ShippingPromiseCompliance(IEnumerable<ShippingPromiseOrder> orders)
+    public static SummaryRatio ShippingPromiseCompliance(IEnumerable<ShippingPromiseOrder> orders, IReadOnlyDictionary<Guid, int> openAtPromiseEnd)
     {
         ArgumentNullException.ThrowIfNull(orders);
+        ArgumentNullException.ThrowIfNull(openAtPromiseEnd);
         int counted = 0;
         int kept = 0;
         foreach (ShippingPromiseOrder order in orders)
         {
             bool shippedInTime = order.FirstShippedAt is { } shippedAt && shippedAt < order.PromiseEndsAt;
-            bool cancelledInTime = order.CancelledAt is { } cancelledAt && cancelledAt < order.PromiseEndsAt && !shippedInTime;
-            if (cancelledInTime)
+            bool cancelledInTime = order.CancelledAt is { } cancelledAt && cancelledAt < order.PromiseEndsAt;
+            bool physicalClosedInTime = order.PhysicalItems.Count > 0
+                && order.PhysicalItems.All(i => openAtPromiseEnd.TryGetValue(i.OrderItemId, out int open) && open == 0);
+            if (!shippedInTime && (cancelledInTime || physicalClosedInTime))
             {
                 continue;
             }

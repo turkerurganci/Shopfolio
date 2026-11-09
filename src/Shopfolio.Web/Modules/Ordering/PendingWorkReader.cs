@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -29,12 +30,12 @@ internal sealed class PendingWorkReader
         return new PendingOrderCounts(approval, failed);
     }
 
-    public async Task<IReadOnlyList<PendingWorkItem>> ListItemsAsync(PendingWorkSet set, Guid? afterOrderId, int maxOrders, CancellationToken ct)
+    public async Task<IReadOnlyList<PendingWorkItem>> ListItemsAsync(PendingWorkSet workSet, Guid? afterOrderId, int maxOrders, CancellationToken ct)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(maxOrders, 1);
         IQueryable<OrderItem> items = _db.OrderItems.AsNoTracking();
         IQueryable<Order> orders = _db.Orders.AsNoTracking();
-        IQueryable<OrderItem> inSet = set switch
+        IQueryable<OrderItem> inSet = workSet switch
         {
             PendingWorkSet.PreparingPhysical => items.Where(i => i.ProductType == ProductType.Physical
                 && orders.Any(o => o.Id == i.OrderId && o.OrderStatus == OrderStatus.Preparing)),
@@ -46,7 +47,7 @@ internal sealed class PendingWorkReader
                     && o.OrderStatus != OrderStatus.Cancelled
                     && o.PaymentStatus != PaymentStatus.Pending
                     && o.PaymentStatus != PaymentStatus.Failed)),
-            _ => throw new ArgumentOutOfRangeException(nameof(set), set, "Not a pending work set."),
+            _ => throw new ArgumentOutOfRangeException(nameof(workSet), workSet, "Not a pending work set."),
         };
 
         if (afterOrderId is { } after)

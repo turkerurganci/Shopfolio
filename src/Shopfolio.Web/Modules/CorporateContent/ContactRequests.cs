@@ -108,6 +108,9 @@ internal sealed class ContactRequests
     /// </summary>
     internal static readonly ContactTopic[] SummaryTopics = [ContactTopic.GeneralQuestion, ContactTopic.AboutProduct, ContactTopic.Other];
 
+    /// <summary>The requests still open, whatever their topic (T382; 02 10.6.1: the panel home's "açık talep" counts every open contact request); an index on (status, created at) serves it.</summary>
+    public Task<int> CountOpenAsync(CancellationToken ct) => _db.ContactRequests.AsNoTracking().CountAsync(c => c.ContactRequestStatus == ContactRequestStatus.Open, ct);
+
     /// <summary>The requests opened in <c>[from, to)</c> with one of <see cref="SummaryTopics"/>; a request destroyed at the end of its retention is no longer there to count.</summary>
     public Task<int> CountForSummaryAsync(DateTimeOffset from, DateTimeOffset to, CancellationToken ct)
     {

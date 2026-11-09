@@ -64,8 +64,8 @@ internal sealed class OrderingModule : IOrderingModule
 
     public Task<PendingOrderCounts> CountPendingOrdersAsync(CancellationToken ct) => new PendingWorkReader(_db).CountAsync(ct);
 
-    public Task<IReadOnlyList<PendingWorkItem>> ListPendingWorkItemsAsync(PendingWorkSet set, Guid? afterOrderId, int maxOrders, CancellationToken ct) =>
-        new PendingWorkReader(_db).ListItemsAsync(set, afterOrderId, maxOrders, ct);
+    public Task<IReadOnlyList<PendingWorkItem>> ListPendingWorkItemsAsync(PendingWorkSet workSet, Guid? afterOrderId, int maxOrders, CancellationToken ct) =>
+        new PendingWorkReader(_db).ListItemsAsync(workSet, afterOrderId, maxOrders, ct);
 
     public Task<IReadOnlyList<RefundWorkItemFacts>> FindRefundWorkItemFactsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct) =>
         new PendingWorkReader(_db).FindRefundFactsAsync(orderItemIds, ct);

@@ -41,6 +41,11 @@ internal static class ApplicationEnums
         // T384: how an export request ended and what is wrong with the order export's range - result codes of the data export, never a column.
         "Shopfolio.Modules.Administration.Contracts.ExportOutcome",
         "Shopfolio.Modules.Administration.Contracts.ExportRangeError",
+        // T382: the panel home's six counters, the list each leads to, the setup checklist's five items and the order sets the counters read - computed at every call, never a column (02 10.6.1, 10.8.2).
+        "Shopfolio.Modules.Administration.Contracts.PanelCounterKind",
+        "Shopfolio.Modules.Administration.Contracts.PanelListTarget",
+        "Shopfolio.Modules.Administration.Contracts.SetupChecklistItemKind",
+        "Shopfolio.Modules.Ordering.Contracts.PendingWorkSet",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

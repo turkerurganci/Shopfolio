@@ -240,7 +240,7 @@ public interface IOrderingModule
     /// One page of a pending work set (T382; 02 10.6.1): the items of the next <paramref name="maxOrders"/> orders of the set after <paramref name="afterOrderId"/> (by order id; null starts
     /// from the first), an empty list at the end - the set grows with the shop, so it is never taken whole (09 20 item 2). The open quantity is the caller's to decide. A plain read.
     /// </summary>
-    Task<IReadOnlyList<PendingWorkItem>> ListPendingWorkItemsAsync(PendingWorkSet set, Guid? afterOrderId, int maxOrders, CancellationToken ct);
+    Task<IReadOnlyList<PendingWorkItem>> ListPendingWorkItemsAsync(PendingWorkSet workSet, Guid? afterOrderId, int maxOrders, CancellationToken ct);
 
     /// <summary>The refund work's facts of the given items and their orders (T382; 02 10.6.1): type, delivery date, payment way and state, and whether the order was ever shipped. A plain read.</summary>
     Task<IReadOnlyList<RefundWorkItemFacts>> FindRefundWorkItemFactsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);

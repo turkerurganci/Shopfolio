@@ -219,6 +219,8 @@ public sealed class SitemapSourceTests
             return Task.FromResult(paths);
         }
 
+        public Task<int> WriteContactRequestExportAsync(Stream destination, long maxBytes, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<StorefrontMenu> GetMenuAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<HomepageView> GetHomepageAsync(CancellationToken ct) => throw new NotSupportedException();

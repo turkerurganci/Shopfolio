@@ -71,6 +71,14 @@ public interface IPaymentModule
     Task<IReadOnlyList<PaymentSource>> FindPaymentSourcesAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct);
 
     /// <summary>
+    /// The card payments that came late and were paid back by the system (T384; 02 10.7.1, 6.2.16; K-589; 06 4.32, 4.33): for each of the given orders, the first payment record that
+    /// carries no confirming transition (a payment to a cancelled order, or a second one to a paid order) with the date of the payment and of its refund of the type
+    /// <see cref="RefundType.LatePayment"/> and the refund's amount; a refund the system voided does not count and an order with none is not in the result. The refund's date is null
+    /// until it was sent. The order export writes the four values to its late payment columns. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<LatePaymentFact>> ListLatePaymentsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct);
+
+    /// <summary>
     /// True when the order has a refund that is not voided - started, sent or awaiting its outcome - the open transaction's changes included. The transfer's
     /// "paid" mark is not corrected after a refund (03 1.6.2.4; K-703).
     /// </summary>
@@ -119,3 +127,6 @@ public interface IPaymentModule
 
 /// <summary>One payment record seen from another module (06 4.32): the order, and the transition that confirmed the payment - null on a late card payment.</summary>
 public sealed record PaymentSource(Guid OrderId, Guid? TransitionRecordId);
+
+/// <summary>A card payment that came late and was paid back by the system (T384; 02 10.7.1): the order, the moment of the payment, the moment the refund was sent (null until then) and the refund's amount.</summary>
+public sealed record LatePaymentFact(Guid OrderId, DateTimeOffset PaidAt, DateTimeOffset? RefundSentAt, decimal RefundAmount);

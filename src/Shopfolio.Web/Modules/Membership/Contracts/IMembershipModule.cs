@@ -204,4 +204,11 @@ public interface IMembershipModule
 
     /// <summary>The end of the open revert link that closes the account's deletion, or nothing (T345; 02 3.15.6): the account screen shows the reason and the date.</summary>
     Task<DateTimeOffset?> GetDeletionBlockedUntilAsync(Guid customerId, CancellationToken ct);
+
+    /// <summary>
+    /// Writes the member list export's content to <paramref name="destination"/> (T384; 02 10.7.4; 09 10.10): a CSV with the header <c>Ad;E-posta</c> and one line for every account - one that
+    /// never ordered and the unverified pending registration included - with no date range. Returns the number of lines (0: no account - the caller makes no file). The stream stays open;
+    /// the writing stops with an exception when the file passes <paramref name="maxBytes"/>. A plain read.
+    /// </summary>
+    Task<int> WriteCustomerExportAsync(Stream destination, long maxBytes, CancellationToken ct);
 }

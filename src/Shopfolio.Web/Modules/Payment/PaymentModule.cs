@@ -196,6 +196,27 @@ internal sealed class PaymentModule : IPaymentModule
             .ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<LatePaymentFact>> ListLatePaymentsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderIds);
+        if (orderIds.Count == 0)
+        {
+            return [];
+        }
+
+        Guid[] ids = [.. orderIds];
+        var rows = await (
+            from refund in _db.Refunds.AsNoTracking()
+            join payment in _db.PaymentRecords.AsNoTracking() on refund.PaymentRecordId equals payment.Id
+            where ids.Contains(refund.OrderId) && refund.RefundType == RefundType.LatePayment && refund.VoidedAt == null
+            select new { refund.OrderId, payment.CreatedAt, refund.SentAt, refund.Amount, RefundId = refund.Id })
+            .ToListAsync(ct);
+        return [.. rows
+            .GroupBy(r => r.OrderId)
+            .Select(g => g.OrderBy(r => r.CreatedAt).ThenBy(r => r.RefundId).First())
+            .Select(r => new LatePaymentFact(r.OrderId, r.CreatedAt, r.SentAt, r.Amount))];
+    }
+
     public async Task<bool> HasRefundAsync(Guid orderId, CancellationToken ct)
     {
         await _db.Refunds.Where(r => r.OrderId == orderId).LoadAsync(ct);

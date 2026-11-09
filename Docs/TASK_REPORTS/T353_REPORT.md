@@ -1,6 +1,6 @@
 # T353 — Havale/EFT: IBAN ve siparişe donması, ödendi işareti, hatırlatma, süresi dolmuş sipariş
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -67,10 +67,65 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (D-852, D-853) |
+
+### Doğrulama tur 1 — Doğrulama Sonucu — T353 Havale/EFT: IBAN ve siparişe donması, ödendi işareti, hatırlatma, süresi dolmuş sipariş — tur 1
+**Tarih:** 2026-11-09   **Branch:** task/T353-havale-eft   **Commit:** `9204f00d` (doğrulanan dal ucu), PR #500
+
+**Verdict: ✓ PASS**
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş |
+| Hook | ✓ | `core.hooksPath` ana çalışma kopyasının `scripts/git-hooks`'u |
+| Ana dal CI (son 3) | ✓ | 42613944083 success, 42613944248 success, 42611407627 success |
+
+#### Kabul Kriterleri (doğrulayıcı kanıtı)
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `PaymentMethodSettings.SaveAsync`: açıkken IBAN yoksa `FieldRequired`, geçersizse `InvalidIban`, hiçbir şey yazılmaz; `BankTransferCondition` (açık + IBAN dolu) `TryAddScoped` ile tek kayıt, kapı (`SalesGates`) ve yöntem listesi (`PaymentMethods.ListOpenAsync`) aynı arayüzü okur; kapalı yöntemi onay `PaymentMethodUnavailable` ile reddeder. Testler `FirmSettingsTests` iki `_T353_KK1`, `SalesGateTests.UnboundConditions_…`, `PaymentMethodTests.OpenMethods_…`, `OrderConfirmationTests` (satır 590) |
+| 2 | ✓ | `OrderConfirmation.IsTransferCeilingReachedAsync` (IP ekseni herkes, e-posta ekseni yalnız üye — `04` 5.13.5: üyenin iletişim e-postası hesabınki), yalnız havalede; aynı sepetin onayda iptal edilen siparişi `excluding` ile düşülür. `…AFullOpenUnpaidOrderCeiling_ClosesTheTransfer_LeavesTheCardOpen_…_T353_KK2` |
+| 3 | ✓ | IBAN onayda `GetBankTransferIbanAsync` ile siparişe yazılır (`OrderFreeze`); `…AChangedIban_ReachesOnlyTheNewOrders_…_T353_KK3`. F-5: `AdminNotices` bütün yönetici adreslerine (yapan dahil, firma adresine değil), `IbanChangedNotice` yalnız son dört hane + yapan + an (`02 §9.3.3`); temizlenen ya da aynı kalan IBAN bildirim üretmez; iz satırı eski/yeni değerli. `FirmSettingsTests` `_T353_KK3` iki test + sürüm çakışması testi |
+| 4 | ✓ | B-2 havale onayında aynı işlemde (`TransferChosenNotice`; şablon IBAN bloğu + numara + son gün); sipariş sayfası özeti donan IBAN'ı verir (`OrderAccess`); "ödendi" işareti Ö1 (`MarkTransferPaidAsync`, `PaymentTransitionsTests`, `AxesTieTests`). `…TransferConfirmation_QueuesB2WithTheWindowEnd_…_T353_KK4_D770` |
+| 5 | ✓ | Mevcut kod: `TransferSchedule.ReminderAt` = son günün 08:00'i (`SchedulerTimings.TransferReminderHour`, `05 5.3.1`); `TransferPaymentReminder` gönderip anı boşaltır (bir kez); düzeltme yeni an yazar. `PaymentWindowTests.Reminder_GoesOnce…_KK7`, `MissedReminder_…`, `StatusCorrectionTests.TheTransferMarksCorrection_…_TheReminderGoesASecondTime_…`, `TransferScheduleTests` |
+| 6 | ✓ | `BankTransferAmountTests` (ödeme ekseni beş durum, işaret tutar taşımaz, `Order`/`PaymentRecord`'da gelen tutar alanı yok); elle: diff'te tutar alanı yok |
+| 7 | ✓ | `CancelledTransferOrder_CannotBeMarkedPaidAfterwards_KK6`, `TheExpiryCancellation_IsNotCorrectedByTheAdministrator_…_T353_KK7` (red yolu kodda `CancellationIsCorrectableAsync` → `NotCorrectable`; test yalnız `IsRejected` der → K1), `InTheDeferredGap_TheFirmCanStillMarkThePayment_…_T353_KK7` |
+
+#### Task Satırları (`12 §7.5`)
+KP-15 (10), KP-46 (`VAL-C039` ilgili), KP-59 (`VAL-A288`, `A289`, `D032`, `A290` ilgili); KD-3'ün satırı yok. İlgili satırların hepsi "Uç yanıtı" ya da "Tarayıcı gözlemi" ister — ayar ekranı T536, ödeme adımı/teyit T509/T510, sipariş sayfası T511, panel işareti T527; çekirdek kanıtı satırı tamamlamaz. `Durum` değişmedi (VAL-C001 PASS kalır, ötekiler BEKLEMEDE). `12_matris_denetle.py --kapsam 1-77` Hata 0.
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut / kapsam |
+|---|---|---|
+| Build | ✓ 0 uyarı | `dotnet build Shopfolio.slnx --no-restore -warnaserror` |
+| Biçim | ✓ | `dotnet format <proje> --verify-no-changes --no-restore` ×3 |
+| Unit | ✓ 5526/5526 | TAM koşu (Consistency, Architecture dahil) |
+| Betik | ✓ | `tests/scripts/run-script-tests.sh` 4 dosya |
+| Integration | ✓ 1194/1194 | `FirmSettingsTests`+`SalesGateTests`+`LegalTextTests` 67, Ordering ad alanı 449, Payment+Web+Commands 678 |
+| Dal CI | ✓ | run 42616258907 (head `9204f00d`) success — Integration dahil |
+| Kilit | ✓ | koşu sonrası `git status` temiz |
+
+#### Güvenlik Kontrolü
+Secret sızıntısı temiz · auth etkisi yok (yeni uç yok; ayar yazımı iz satırı için oturumdaki yöneticiyi ister) · girdi doğrulaması: IBAN tek kural evinden (`InvalidIbanAttribute.Allows`), sıkıştırma `RequestFormat.CompactIban`; F-5 e-postası tam IBAN taşımaz · yeni bağımlılık yok, göç yok.
+
+#### Bulgular
+Yok.
+
+#### Bloke-etmeyen Notlar
+| # | Not | Karar |
+|---|---|---|
+| K1 | KK7'nin düzeltme testi reddin sebebini (`CorrectionNotPossible`/`NotCorrectable`) sınamıyor | D-852 (`DEFERRED_BACKLOG.d/T353.md`), hedef T530 |
+| K2 | Ödeme adımının yöntem listesi L-8 cevabını onayın kullandığı tek işlevden okumalı | D-853, hedef T509 |
+
+#### Birleştirme notu
+`origin/main` (`9d0d611c`, T377 #497 ve T329 #499) ile birleştirme kodda çakıştı: `src/Shopfolio.Web/Modules/Ordering/OpenUnpaidOrderLimit.cs`, `src/Shopfolio.Web/Modules/Ordering/OrderConfirmation.cs`. T377 aynı L-8 havale reddini `OrderPlacementLimits.FindExceededAsync` → `OrderConfirmationRefusal.AttemptLimitExceeded` ile yazdı (L-7 de); T353'ün `TransferCeilingReached` reddi ve `excluding` sayımı onunla örtüşür. Birleştirme geri alındı; doğrulama dalın ucunda yapıldı. Çözümde tek L-8 sorgusu kalmalı ve T353'ün KK2 testi (özellikle aynı sepetin yeni onayının sayılmaması) kalan yolla geçmeli.
+
+#### Yapım Raporu Karşılaştırması
+Tam uyumlu; öz denetim tablosu var ve her madde kanıtlı. Farklar: K1 ve K2 yapım raporunda yok; Integration'ı ben dokunulan sınıf ve ad alanlarıyla koştum (yapım TAM 3211). ⚠ kararları (D-566 ve D-668 → T511, D-833 → T536) yerinde: sipariş sayfası ve ayar ekranı o task'ların kapsamında.
 
 ## Altyapı Değişiklikleri
 
@@ -84,7 +139,7 @@
 - **Branch:** `task/T353-havale-eft`
 - **Commit:** dal head'i PR'da
 - **PR:** #500
-- **CI:** yardımcı izler
+- **CI:** run 42616258907 (head `9204f00d`) success
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

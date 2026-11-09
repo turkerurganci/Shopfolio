@@ -1,6 +1,6 @@
 # T357 — Fatura verisi ve dışa aktarmada donmuş kimlik
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS; merge yardımcıda) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -69,10 +69,31 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | — (bekliyor) |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-09, head `5c08e626`; kayıt commit'inden önce `origin/main` (`e958c598`, T359 #479 + T388 #483) birleştirildi, çakışma yok). Kriter 1–4, KK1–KK4, `09 §25` ve güvenlik taraması ✓ |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-736, T384) |
+
+**Doğrulayıcı kanıtları (tur 1):**
+
+| # | Kriter / KK | Sonuç | Doğrulayıcı kanıtı |
+|---|---|---|---|
+| 1 / KK1 | Fatura kesilmez; e-Arşiv / e-Fatura entegrasyonu yok | ✓ | `grep -rniE "invoice\|fatura\|e-?ar[sş]iv\|efatura" src/` (göçler hariç) yalnız T357'nin üç dosyasını ve dört yorum / dizgi değerini verir (`OrderNumber.cs`, `OrderAccess.cs` yorumu; `AuditEntryRules` kişisel veri anahtarı `invoiceaddress`; bildirim şablonunda adres tipi metni "fatura"); `Pages/`, `Endpoints/`, `wwwroot/` içinde eşleşme yok; paket eklenmedi. Unit `InvoiceSurfaceTests` (bulgu 0, kapsam testi > 5000 ad, 14 ihlal + 5 serbest örnek) yeşil |
+| 2 / KK2 | Fatura verisinin bütün alanları siparişin donmuş değerlerinden; kargo KDV'si oranlara bölünmüş | ✓ | `InvoiceData` / `InvoiceItem` alanları `02 §3.25.1` listesiyle birebir (kalem dökümü, KDV oranı ve tutarı, indirim, kupon payı ve kodu, kargo ücreti, `ShippingFeeVatBreakdown`, fatura adresi, donmuş kimlik, ödeme yöntemi, onay anı, kalem tipine göre kargoya verme anı, kargo şirketi, alan adı). Kimlik, tutar ve bölüşüm `Order`/`OrderItem` sütunlarından; anlar `06` §4.17'ye uygun olarak son düzeltilmemiş Ö1 ve S5/S8 geçiş kaydından ("okunur, saklanmaz" — `06`'nın `02 §2.2` m6 ve `02 §3.20.7` eşleme satırları). Integration KK2: ürünün KDV oranı ve fiyatı sonradan değişir, veri değişmez; bölüşüm iki oranlı; düzeltilmiş S8 sayılmaz. `OrderTransitions.Correction.cs` yeniden düzenlemesi davranışı değiştirmez: `correction_fields_only_on_correction` kısıtı `corrected_transition_record_id`'yi yalnız `Correction` satırında izin verir, eklenen kod koşulu eşdeğerdir |
+| 3 / KK3 | Fatura dosyası için alan, uç, ekran yok | ✓ | Diff göç, varlık özelliği, sayfa, uç eklemez (`git diff --stat origin/main...HEAD`); `Order`/`OrderItem`'da fatura dosyası alanı yok; KK1 taraması ve `InvoiceSurfaceTests` |
+| 4 / KK4 | Firma kimliği değişince eski siparişin fatura verisi eski kimliği verir | ✓ | `Compose` kimliği yalnız `Order.Company*`'dan okur; `Company*` alanlarını yazan tek yer `OrderFreeze.FreezeLegalIdentity` (`grep "CompanyLegalName ="`); Integration KK4 (`IOrderingModule` üzerinden, şirket satırı değiştikten sonra eski sipariş "Eski Unvan", yeni sipariş ve panel "Yeni Unvan") yeşil |
+| `09 §25` | ilgili satırlar | ✓ | Ordering yalnız `Catalog`/`Payment`/`Settings.Contracts` ve `Infrastructure`'a başvurur (Unit `Architecture` 1095/1095); arayüz yöntemi `SaveChanges` çağırmaz, kilit almaz, `AsNoTracking`; saat okunmaz; para üretilmez; tek işlev: `ShippingVatPart`, `CarrierCatalog.Describe`, `OrderPeriods` tanımları; yeni bağımlılık `IOptions<SiteOptions>` web ve komut düzeneğinde çözülür (Integration `Commands` 59/59); göç, ayar, paket yok. Ad: "fatura verisi"nin sözlükte kod adı yok, alan adları `06 §4.17`/§4.18 ile birebir — yapımın ⚠ a notu kabul |
+| Güvenlik | taraması | ✓ | Sır yok; yeni uç ya da POST yok (yetki etkisi yok); okuma parametreli EF sorgusu; kişisel veri kayda yazılmıyor; yeni dış bağımlılık yok |
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `C:\projects\Shopfolio\scripts\git-hooks` (ana kopyanın bekçisi, worktree); ana dal son 3 tamamlanmış run 42542560429, 42542560342 (`e958c598` T388), 42540074716 (`241f8669` T359) — hepsi success. Dal CI: run 42542237326 (`5c08e626`) success — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate geçti.
+
+**Testler (doğrulayıcı, yerel):** `5c08e626`'da `dotnet restore` temiz; `dotnet build Shopfolio.slnx --no-restore -warnaserror` 0 uyarı / 0 hata; `dotnet format --verify-no-changes` üç proje çıkış 0; Unit Architecture 1095/1095, Consistency 283/283, kalan 3800/3800 (T357 sınıfları 27/27); betik testleri 4/4; Integration (PostgreSQL 18 konteyner) `Shopfolio.IntegrationTests.Ordering` 360/360 (`InvoiceDataTests` 3/3 dahil). Birleştirme sonrası: build 0 uyarı / 0 hata, Unit 5220/5220, Integration `InvoiceDataTests` 3/3, `Commands` 59/59 (`track_commit_timestamp = on` ile; T388'in `RestoreCommandsTests`'i bu ayarı ister).
+
+**`12` satırları:** KP-52'nin satırları `VAL-A266`…`VAL-A271`, `VAL-D029` dışa aktarma dosyası, ucu ve işlem izi ister (T384); T357 dosya, uç ve iz eklemez (D-724 → T384). KD-1'in kendi satırı yok. Servis düzeyi kanıt yukarıdaki tablodadır; satırların `Durum`'u `BEKLEMEDE` kaldı (T355 emsali). `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**K-notları:** K1 — fiziksel kalemin kargoya verme anı siparişin gönderimidir; gönderimden önce iptal edilen ya da çıkarılan fiziksel kalem de bu anı alır ve fatura verisi kalem işlemlerini (iptal, iade adedi) taşımaz. `02 §3.25.1`/§10.7.1 bunu düzenlemez; dosyanın satırında nasıl yazılacağı T384'ün kararıdır → D-736.
+
+**Yapım raporu karşılaştırması (adım 13):** tam uyumlu; öz denetim tablosu her kriter, KK ve `09 §25` maddesi için kanıtlı. ⚠ a–d notlarında doğrulayıcı aynı sonuca vardı. Sayı farkı: Unit 5178 (yapım) ↔ 5220 (doğrulayıcı, birleştirme sonrası) — main'den gelen testler; hüküm etkisi yok.
 
 ## Altyapı Değişiklikleri
 

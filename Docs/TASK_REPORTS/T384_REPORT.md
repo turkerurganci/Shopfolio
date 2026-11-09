@@ -1,6 +1,6 @@
 # T384 — Dışa aktarma: sipariş CSV (fatura verisi), üye ve iletişim talebi listesi, işlem izine yazım, imha edilmiş siparişin boş sütunları
 
-**Faz:** F3 | **Durum:** ⏳ Yapım tamamlandı, doğrulama bekliyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-09
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -47,7 +47,33 @@ Ordering (`OrderExport.cs`, `OrderingModule.cs`), Payment (`ListLatePaymentsAsyn
 
 ## Doğrulama
 
-*(validator doldurur)*
+**Tur 1 — ✗ FAIL (2026-11-09; head `f2ad23c3`, PR #502; `origin/main` `d5676e75` ile güncel, birleştirme gerekmedi).** Bulgu: 1 (ORTA, S1). Düzeltme gerekli: evet.
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` ana deponun `scripts/git-hooks`'u; ana dal son üç run `success` (42627783852, 42627783617, 42619534143); dal CI 42634024845 yeşil (Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, CI Gate).
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Aralık oluşma Türkiye günü; yalnız ödemesi tamamlanmış | ✓ | `OrderExport.ReadAsync` (`CreatedAt` + `TurkeyTime.StartOf`/`EndOfRange`, `IsPaymentCompleted` ya da geç ödeme); `DataExportTests` KK1 iki test geçti |
+| 2 | Kalem başına satır | ✓ | `ALine_IsAnOrderItem_…_KK2` geçti |
+| 3 | Fatura verisi donmuş değerden | ✓ | `InvoiceDataReader.ComposeAsync`; 37 sütun `09 §10.10` madde 5 tablosuyla eşleşti (başlık önekleri D-851); `…_KK3` geçti |
+| 4 | Ödeme, kargo, iletişim alanları | ~ | Genel yol doğru (`…_KK4` iki test geçti), ama `FullyClosedBeforeShipmentAsync` gönderilmiş adedi olan kalemde kargoya verme tarihini boş yazıyor — B1. D-736'nın istediği test yok |
+| 5 | Geç ödemede iki tarih ve tutar | ✓ | `ListLatePaymentsAsync`; `…_KK5` iki test geçti |
+| 6 | İmha edilmişte ad, e-posta, adres boş | ✓ | `Order.ErasePersonalData` alanları boşaltır; `…_KK6` geçti |
+| 7 | Bütün üyeler ve saklanan talepler, aralıksız | ✓ | `CustomerExport`, `ContactRequestExport`; KK7 testleri ve sayfa testleri geçti |
+| 8 | Her dışa aktarma izde | ✓ | `DataExport.ProduceAsync` (iz dosyadan sonra, kendi işleminde); `EveryDownload_IsInTheTrail_…_KK8` yönetici kimliği ve adıyla |
+| 9 | İkinci dışa aktarma yolu yok | ✓ | `ExportSurfaceTests`; `CsvFileResult` kullanılmıyor; içe aktarma/toplu güncelleme adı yok |
+
+**Bulgu B1 (ORTA, S1, `VAL-A267` komşusu):** `OrderExport.FullyClosedBeforeShipmentAsync` kapanan adedi `ClosedQuantitiesAsync`'ten (iptal, çıkarma, fesih ve cayma) alıyor; ama kalemi "gönderimden önce kapanmış" saymak için iptal ya da fesih anlarından herhangi birinin gönderimden önce olması yetiyor. Örnek: 2 adetlik kalemin 1'i gönderimden önce iptal ediliyor, kalan 1 gönderiliyor ve teslimden sonra cayılıyor. Bu kalemin "Kargoya verme tarihi" hücresi boş geliyor; `09 §10.10` madde 5 ve kodun kendi yorumuna göre ("An item closed only in part, or after the shipment, keeps the date") dolu olmalı. Validator sondajı (`DataExportTests`'e geçici test; beklenen `2026-11-07`, gelen `""`) bunu doğruladı; sondaj geri alındı. D-736 "testle" diyordu, ama bu kural için test yok. Düzeltme: gönderimden önce kapanan adet toplamı kalemin adedine ulaşınca tarih boşaltılır; testte tam kapanma, kısmi kapanma ve karışık durum sınanır.
+
+**Task satırları:** `VAL-D029` → PASS (servis düzeyinde iz satırı yönetici ve anla birlikte yazılıyor). `VAL-A266`…`A271` "Uç yanıtı" istiyor, uç T524'te → `BEKLEMEDE` (T318/T338 emsali). `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**Testler (validator):** restore, `build -warnaserror` 0 uyarı; `dotnet format --verify-no-changes` üç projede 0; Unit 5666/5666; betik testleri 4/4; Integration `DataExportTests`, Disposal (3 sınıf), `AddressTests`, `MembershipTests`, `MainFlowTests`, `StorefrontReadersTests` 263/263 (`postgres:18`, `track_commit_timestamp=on`).
+
+**Güvenlik:** sır yok; yeni uç yok (yetki T524); aralık girdisi denetleniyor; yeni paket yok; dosya adı Guid, Unix kipi yalnız sahip; formül etkisizleştirme bütün metin hücrelerinde.
+
+**K-notları:** K1 → D-867 (ödenmiş siparişe gelen ikinci kart ödemesinde geç ödeme sütunları dolu; `09 §10.10` tablosu yalnız iptal edilmiş siparişi anıyor, `02 §6.2.16` K-1211 ikisini aynı yola koyuyor — belge kayması).
+
+**Yapım raporu karşılaştırması:** 1 uyuşmazlık. Öz denetim KK4'ü ✓ yazıyor; B1 yüzünden ~. D-736 "çözüldü" diye kapatılmış, ama istenen test yok. "Kısıtlar" bölümüne atıf var, bölüm raporda yok (`dotnet format` sonucu validator koşusunda temiz).
 
 ## Altyapı Değişiklikleri
 

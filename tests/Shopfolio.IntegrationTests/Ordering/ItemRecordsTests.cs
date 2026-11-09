@@ -515,7 +515,7 @@ public sealed class ItemRecordsTests : IAsyncLifetime
         new(order.Id, item.Id, item.Quantity, item.ProductType, OrderStatus.Delivered, item.DeliveryDate, item.WithdrawalExemptionReason);
 
     private static WithdrawalDeclaration Declaration(Order order, OrderItem item, int quantity, DateOnly declared) =>
-        new(Subject(order, item), quantity, null, declared, null, 100m * quantity, 0m, 16.67m * quantity, null, Start);
+        new(Subject(order, item), quantity, null, declared, null, new ItemFrozenAmounts(100m, 0m, 16.67m * item.Quantity), WithdrawalIban.None, Start);
 
     private async Task<int> ClosedAsync(Guid itemId)
     {

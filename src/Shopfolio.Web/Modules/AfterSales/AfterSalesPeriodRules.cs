@@ -133,6 +133,17 @@ internal static class AfterSalesPeriodRules
         return PeriodStanding.Of(CountedPeriod.ReturnShipmentPeriod, lastDay, now, BusinessCalendar.Product);
     }
 
+    /// <summary>
+    /// Z-38 - the moment the transfer line IBAN of a withdrawal after the delivery is deleted when the goods have not come back (02 4.2 Z-38; 03 4.1.47; K-497):
+    /// <see cref="ProductConstants.ReturnIbanRetentionDays"/> days after the customer's sending period (Z-42) ends - at 00:00 of the day after Z-42's last day, plus P-43.
+    /// The deletion day's source decides at that moment whether a refund still uses the IBAN (K-1110).
+    /// </summary>
+    public static DateTimeOffset ReturnIbanDeletionAt(DateOnly declarationDate)
+    {
+        DateOnly sendingLastDay = PeriodCounting.LastDay(CountedPeriod.ReturnShipmentPeriod, declarationDate, ReturnShipmentPeriodDays, BusinessCalendar.Product);
+        return TurkeyTime.StartOf(sendingLastDay.AddDays(1 + ProductConstants.ReturnIbanRetentionDays));
+    }
+
     /// <summary>The calendar days from the declaration's date to <paramref name="now"/>'s day: what the "iade malı bekleniyor" indicator counts (04 2.6.3; 02 4.2 Z-16).</summary>
     public static int DaysSinceDeclaration(DateOnly declarationDate, DateTimeOffset now)
     {

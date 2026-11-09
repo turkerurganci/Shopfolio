@@ -180,9 +180,24 @@ public sealed partial class LivenessEndpointTests
     private static string UpstreamHost(DsnBuilder dsn) =>
         dsn.Host ?? throw new InvalidOperationException("The test database connection string has no host.");
 
-    private static async Task<CollectingLoggerProvider> AssertAnswers503WithinTheLimitAsync(
+    /// <summary>
+    /// Runs one healthy probe through a separate host so the first-use cost of the process (JIT of the endpoint, the driver and the
+    /// logging path; thread pool growth) is paid before a stopwatch starts. Without it, a cold first request on a busy CI host took
+    /// 4.5 s against a 1 s limit although the probe's own limit held (CI runs 42558302344, 42560074567). The limit and the 3 s bound are unchanged.
+    /// </summary>
+    private async Task WarmUpAsync(CancellationToken ct)
+    {
+        await using ShopfolioWebApplicationFactory warm = new(_database.Dsn, withJobRunner: false);
+        using HttpClient client = warm.CreateClient();
+        using HttpResponseMessage response = await client.GetAsync(_livenessUri, ct);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    private async Task<CollectingLoggerProvider> AssertAnswers503WithinTheLimitAsync(
         string connectionString, bool warmPool, StallingTcpProxy? stallAfterWarmUp, CancellationToken ct)
     {
+        await WarmUpAsync(ct);
+
         // Limit 1 s; the margin allows for a slow CI host. The connection string's own Timeout (15 s) must not decide.
         CollectingLoggerProvider logs = new();
         Dictionary<string, string> settings = new() { [DatabaseOptions.LivenessTimeoutKey] = "1" };

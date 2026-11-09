@@ -80,7 +80,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T372-cayma-beyani`
-- **PR:** *(PR açılınca)*
+- **PR:** #492
 - **CI:** *(validator doldurur)*
 
 ## Dış Varsayımlar

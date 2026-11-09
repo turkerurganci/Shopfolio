@@ -29,7 +29,7 @@ public sealed class AttemptLimitResultTests
     public void TheResult_Is429_WithTheNeutralMessage_AndOneLineWithTheLimitsCode_KK5(ErrorCode code)
     {
         CapturedLines lines = new();
-        PageModel page = PageOf(lines);
+        StubPage page = PageOf(lines);
 
         IActionResult result = FormResults.AttemptLimitExceeded(page, code);
 
@@ -47,14 +47,14 @@ public sealed class AttemptLimitResultTests
     public void ACodeThatIsNoAttemptLimitsCode_IsRefused_AndNoLineIsWritten_KK5(ErrorCode code)
     {
         CapturedLines lines = new();
-        PageModel page = PageOf(lines);
+        StubPage page = PageOf(lines);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => FormResults.AttemptLimitExceeded(page, code));
         Assert.Empty(lines.Messages);
         Assert.Empty(page.ModelState);
     }
 
-    private static PageModel PageOf(CapturedLines lines)
+    private static StubPage PageOf(CapturedLines lines)
     {
         ServiceProvider services = new ServiceCollection()
             .AddLogging(builder => builder.AddProvider(new CapturingProvider(lines)))

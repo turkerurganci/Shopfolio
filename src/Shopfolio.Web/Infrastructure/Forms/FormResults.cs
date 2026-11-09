@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -30,8 +32,8 @@ internal static class FormResults
     public const int TooManyRequestsStatus = StatusCodes.Status429TooManyRequests;
 
     /// <summary>The refusal codes of the nine attempt limits (07 6.2; 02 8.2): L-7 and L-8 share the unpaid order code.</summary>
-    private static readonly HashSet<ErrorCode> AttemptLimitCodes =
-    [
+    private static readonly FrozenSet<ErrorCode> AttemptLimitCodes = new[]
+    {
         ErrorCode.SignInLimitExceeded,
         ErrorCode.PasswordResetLimitExceeded,
         ErrorCode.RegistrationLimitExceeded,
@@ -40,7 +42,7 @@ internal static class FormResults
         ErrorCode.CouponAttemptLimitExceeded,
         ErrorCode.UnpaidOrderLimitExceeded,
         ErrorCode.VerificationLinkLimitExceeded,
-    ];
+    }.ToFrozenSet();
 
     /// <summary>
     /// 303 to a path of this site (07 2.2.2). The path is the site's own - it starts with one slash and is not a scheme-relative or backslash form -

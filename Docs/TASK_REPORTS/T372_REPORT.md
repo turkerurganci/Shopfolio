@@ -1,6 +1,6 @@
 # T372 — Cayma beyanı: sipariş sayfasından ve başka kanaldan, beyanın etkisi, kargoya verilmemiş kalemde iptal yolu, firmanın teyidi
 
-**Faz:** F3 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — havale hattında aynı kalemin ikinci IBAN'sız firma kaydı 500) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -68,7 +68,14 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ Bekliyor |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-09, head `79ce2083`; `origin/main` `5f9b4c43` ile güncel, birleştirme gerekmedi). Kriter 2–5, 8, 9 ✓; kriter 1 ~ ve kriter 6 ~ (firma yolunda ardışık kayıt, B1); kriter 7 / KK7 ✗ (B1); güvenlik taraması temiz; dal CI 42583106374 yeşil. Yerelde restore (kilitli kip dahil) ✓, derleme `-warnaserror` 0/0, `dotnet format --verify-no-changes` 3 proje temiz, Unit 5155/5155 + Consistency 283/283, betik testleri 4/4, Integration dalın dokunduğu 6 sınıf 86/86 |
+| Bulgu sayısı | 1 — **B1 KRİTİK S1** (`02 §10.4.10`, §7.3.5, §7.1.6; VAL-A238, VAL-A231, VAL-A071): havale hattında kalemde açık IBAN isteği varken ikinci IBAN'sız kayıt `AddWithdrawalAsync`'in `iban.Request` dalında ikinci `RefundIbanRequest.ForItem(NoticeWithoutIban)` ekler; `OneOpenIbanRequestPerItem` tekil dizini (`ix_refund_iban_requests_order_item_id1`) 23505 → `DbUpdateException` (500), kayıt yazılmaz. Geçici sınama: iki adetli havale kalemi, `RecordWithdrawalAsync` ×2 (`CameFromOrderEmail=false`) |
+| Düzeltme gerekli mi | Evet — yazıcı kalemde açık istek varsa yenisini eklemez (alan zaten açık); B-14'ün ikinci kayıtta gidip gitmeyeceği `02 §10.4.10` / `03 §1.11.34` ile kararlaştırılır; iki ardışık IBAN'sız kayıt Integration testiyle sınanır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1: firmanın IBAN'sız kaydından sonra müşteri aynı kalemden IBAN girerek beyanda bulunursa yeni `RefundIban` yazılır ama açık IBAN isteği (`FulfilledAt` null) açık kalır; isteğin karşılanması üretimde hiç yazılmıyor → D-797 (T370; düzeltme turu B1 ile kapatabilir). K2: VAL-A238'in üçüncü hâli (sipariş e-postasından gelen, sağlaması tutmayan IBAN → IBAN'sız kayıt + istek + B-14) testte yok → D-798 (T372 düzeltme turu) |
+
+**Task satırları (`12 §7.5`):** KP-22 ve KP-47 grep'i 56 satır getirir; T372'nin konusu VAL-C011, VAL-A071, A072, A077, A080, A081, A231–A238, VAL-C054 (KRİTİK) ve VAL-A234 (ORTA). Hepsi uç yanıtı ya da tarayıcı gözlemi ister; uç ve sayfa yok (D-776) → **BEKLEMEDE** (T371 emsali). Öteki KP-22/KP-47 satırları T369/T370/T373/T368'in. `12_matris_denetle.py --kapsam 1-77` Hata 0 (hücre değişmedi).
+
+**Doğrulayıcı uyuşmazlık notları (adım 13):** (1) Rapor kriter 7'yi ve öz denetim KK7'yi ✓ veriyor; havale hattında aynı kalemin ikinci IBAN'sız firma kaydı sınanmamış ve 500 ile düşüyor (B1). (2) Kriter 1 ve 6'nın "ardışık beyan / kayıt" sözü yalnız müşteri yolunda sınanmış. (3) Test sayıları yapımın kendi ağacına ait (Unit 5430); doğrulama ağacında Unit 5155 + Consistency 283 = 5438, birleşik ağaç sayısıyla eşit.
 
 ## Altyapı Değişiklikleri
 
@@ -81,7 +88,7 @@
 
 - **Branch:** `task/T372-cayma-beyani`
 - **PR:** #492
-- **CI:** *(validator doldurur)*
+- **CI:** 42583106374 success (head `79ce2083`)
 
 ## Dış Varsayımlar
 

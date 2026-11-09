@@ -71,7 +71,14 @@ Bütün maddeler (önceki işçinin yaptıkları dahil) diff'te yeniden denetlen
 
 ## Doğrulama
 
-Doğrulama chat'i doldurur.
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu (tur 1) | ✗ FAIL — tur 1 (2026-11-10, head `0d7d232f`; `origin/main` `338279ea` dal tabanı, birleştirme gerekmedi). Kriter 1–10 ve KK1–KK10 ✓ (kriter 10 modül payı); `09 §25` "kod hiçbir doküman cümlesiyle çelişmiyor mu?" hayır (B1) → FAIL. Ana dal CI son 3 run yeşil (42691939512, 42691939453, 42680032675). Dal CI 42699862671 (head `0d7d232f`) koşuyordu (Lint, Build, Contract, E2E pass). Yerelde: derleme 0 uyarı / 0 hata (`-warnaserror`), `dotnet format --verify-no-changes` üç proje temiz, Unit 5448/5448 + Consistency 291/291, betik testleri 4/4, Integration Ordering 566/566, Integration tam 3379/3379 (yapım raporunun 43 "HeartbeatRecord row is missing" hatası bu koşuda yok — ortam kaynaklı). |
+| Bulgu sayısı | 1 — **B1 ORTA S1** (`06 §4.14`, §4.28; `02 §7.4.8`, §10.4.9; `03 §1.4.4.6`; K-1104, K-1055; D-483 T373 payı): "mal dönmedi" kapanışı geç gelen malın teslim almasıyla bütünüyle açılınca (`ReopenedAt`) bu teslim alma siparişin son adedini kapatıyorsa kupon hakkı dönmeli; dönmüyor. `ReceiveReturnAsync` → `_counters.ReturnAsync(order, [])` → `IsCouponReturnDueAsync`: (a) `UnitFactsAsync(includeUnsaved: true)` kapanışı veritabanından `ReopenedAt == null` ile okur, aynı işlemde yazılan `ReopenedAt`'i görmez → `HasLoss(after)` true; (b) "önce" hâli açık kapanışla `AwaitingReceipt` 0 → `IsFinal(before)` true. Geçici sınama (doğrulayıcı, silindi): tek adetli kuponlu sipariş, kapanış + geç teslim alma → `used_count` 1 kaldı; kapanışsız kontrol vakası 1→0. |
+| Bloke-etmeyen not (K) sayısı | 2 — K1: ret `includeClosed: false` ile açık "mal dönmedi" kapanışının adetlerini reddedemez (`06 §4.26`, §4.27; `02 §7.4.7` — belge açıkça söylemiyor) → D-915 (F3 gate). K2: D-879'un hedefi T373'tü, yapım D-911'e ileri attı; kriterler `02 §7.5.3`'ü içermez → kapandı (D-911 yerinde). |
+| Task satırları (`12 §7.5`) | VAL-A220 → `PASS` (Veri kaydı, kanıt ortamı yok); VAL-A073, A218, A219, A225, A226, A227, C053 (uç yanıtı / tarayıcı), VAL-C052, A223 (iş kaydı / uygulama kaydı, sahte gönderim uçtan uca sınanmadı), VAL-A078 (1. hâl), A075 (T370 ile ortak, uç yok) → `BEKLEMEDE` (T372/T374 emsali); `12_matris_denetle.py --kapsam 1-77` Hata 0. |
+| Yapım raporu karşılaştırması | 2 uyuşmazlık: (1) yapım raporu "kupon hakkı son adet kapanınca `_counters.ReturnAsync(order, [])` ile döner" ve D-483 "T373 payı kapandı" diyor; kapanışı açan teslim almada dönmüyor (B1), kupon dönüşünün testi yok. (2) Tam Integration: yapım 3336/3379 (43 ortam hatası) bildiriyor; doğrulayıcının koşusunda 3379/3379 — ortam kaynaklı olduğu doğrulandı. Öz denetim tablosu kabul kriteri ve KK başına kanıtlı. |
+| Düzeltme gerekli mi | Evet — B1 (yeni yapım turu; düzeltmeden sonra tur 2 doğrulaması) |
 
 ## Altyapı Değişiklikleri
 

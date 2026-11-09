@@ -17,8 +17,9 @@ internal static class RequestFormat
     /// <summary>The one format of a date in a request (07 2.9.3).</summary>
     public const string DateFormat = "yyyy-MM-dd";
 
-    // The characters 04 7.3.2.4 ignores in a telephone number, and the two prefixes it accepts before the ten digits.
-    private static readonly char[] _phoneSeparators = [' ', '-', '(', ')'];
+    // The characters 04 7.3.2.4 ignores in a telephone number besides every blank (char.IsWhiteSpace: a no-break space or a tab copied from a page; D-151), and the
+    // two prefixes it accepts before the ten digits.
+    private static readonly char[] _phoneSeparators = ['-', '(', ')'];
     private const string PhoneCountryPrefix = "+90";
     private const char PhoneTrunkPrefix = '0';
 
@@ -91,7 +92,7 @@ internal static class RequestFormat
     public static string CompactPhone(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
-        string compact = string.Concat(value.Split(_phoneSeparators));
+        string compact = new([.. value.Where(c => !char.IsWhiteSpace(c) && Array.IndexOf(_phoneSeparators, c) < 0)]);
         return compact.StartsWith(PhoneCountryPrefix, StringComparison.Ordinal) ? compact[PhoneCountryPrefix.Length..]
             : compact.StartsWith(PhoneTrunkPrefix) ? compact[1..]
             : compact;
@@ -121,6 +122,7 @@ internal static class RequestFormat
     public static string CompactIban(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
-        return value.Replace(" ", string.Empty, StringComparison.Ordinal).ToUpperInvariant();
+        // Every blank is ignored (char.IsWhiteSpace, the binder's Trim set): a no-break space or a tab copied from a bank's page is a blank too (D-151).
+        return new string([.. value.Where(c => !char.IsWhiteSpace(c))]).ToUpperInvariant();
     }
 }

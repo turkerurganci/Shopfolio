@@ -93,7 +93,7 @@
 
 - **Branch:** `task/T387-kurulum-komutlari`
 - **Commit:** *(PR head)* — T387: Kurulum tarafı yönetim komutları
-- **PR:** #PRNO
+- **PR:** #487
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur — merge sonrası; bu satır ayrı bir `chore:` PR'ında veya sonraki task dalında güncellenir, doğrudan ana dala push edilmez)*
 

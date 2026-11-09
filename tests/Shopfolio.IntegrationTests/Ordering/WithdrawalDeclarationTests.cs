@@ -227,6 +227,23 @@ public sealed partial class WithdrawalDeclarationTests : IAsyncLifetime
         await AssertOrderAsync(order.Id, OrderStatus.Delivered, PaymentStatus.Paid, order.Version + 1);
     }
 
+    [Fact]
+    public async Task AServiceWithdrawal_GivesTheWithdrawnCapacityBack_APhysicalOneLeavesTheStockToTheReceipt_D453()
+    {
+        // 03 1.4.4.6: the service capacity goes back with the declaration by the withdrawn units; physical goods go back only when the firm receives them (T373).
+        (Order service, List<OrderItem> serviceItems) = await SeedAsync(PaymentMethod.Card, OrderStatus.Placed, PaymentStatus.Paid, new ItemSpec(ProductType.Service, 3, false));
+        (Order physical, List<OrderItem> physicalItems) = await SeedAsync(PaymentMethod.Card, OrderStatus.Shipped, PaymentStatus.Paid, new ItemSpec(ProductType.Physical, 2, false));
+        Guid capacity = await SeedVariantAsync(serviceItems[0].Id, ProductType.Service, 4);
+        Guid stock = await SeedVariantAsync(physicalItems[0].Id, ProductType.Physical, 4);
+
+        Assert.Null((await RunAsync((u, t) => u.DeclareWithdrawalAsync(new DeclareWithdrawalRequest(service.Id, serviceItems[0].Id, 2, true), t))).Refusal);
+        Assert.Null((await RunAsync((u, t) => u.DeclareWithdrawalAsync(new DeclareWithdrawalRequest(physical.Id, physicalItems[0].Id, 1, true), t))).Refusal);
+
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(4 + 2, (await reader.Variants.AsNoTracking().SingleAsync(v => v.Id == capacity, Ct)).StockQuantity);
+        Assert.Equal(4, (await reader.Variants.AsNoTracking().SingleAsync(v => v.Id == stock, Ct)).StockQuantity);
+    }
+
     // ---- KK5, KK6, KK7: the firm's record of another channel ----
 
     [Fact]
@@ -536,6 +553,26 @@ public sealed partial class WithdrawalDeclarationTests : IAsyncLifetime
         // The states are set around the entity (it takes them only through the unit); the pair rule of the database still applies.
         await ExecuteAsync($"UPDATE orders SET order_status = '{orderStatus}', payment_status = '{paymentStatus}' WHERE id = '{order.Id}'");
         return (order, items);
+    }
+
+    /// <summary>A product and variant of <paramref name="type"/> with <paramref name="stock"/> left, set as the item's source (the order freezes no other value of it).</summary>
+    private async Task<Guid> SeedVariantAsync(Guid itemId, ProductType type, int stock)
+    {
+        string key = EntityIds.New().ToString("N")[..12];
+        Product product = Product.Create("Kaynak", $"cayma-{key}", type, 20m, Start);
+        if (type == ProductType.Physical)
+        {
+            product.WithSeededOrigin();
+        }
+
+        Variant variant = Variant.Create(product.Id, $"CAY-{key}", 300m, Start, stock);
+        await SaveAsync(c =>
+        {
+            c.Products.Add(product);
+            c.Variants.Add(variant);
+        });
+        await ExecuteAsync($"UPDATE order_items SET product_id = '{product.Id}', variant_id = '{variant.Id}' WHERE id = '{itemId}'");
+        return variant.Id;
     }
 
     private ServiceProvider BuildProvider()

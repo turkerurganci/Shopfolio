@@ -149,13 +149,6 @@ internal sealed partial class AfterSalesModule
             : [.. await _db.RefundIbanRequests.Where(r => r.RefundId == failure.RefundId).Select(r => r.RefundIbanId).ToListAsync(ct)];
         Guid[] ids = [.. candidates.OfType<Guid>().Distinct()];
         List<RefundIban> ibans = await _db.RefundIbans.Where(i => ids.Contains(i.Id) && i.OrderId == failure.OrderId).ToListAsync(ct);
-
-        // Without a record's or a request's IBAN the item's refund was paid to the IBAN on the order's file - the same rule the IBAN's life counts by
-        // (IsUsedByAPendingTransferRefundAsync): a defect remedy begun while an IBAN was on file opens no request (D-907).
-        if (ibans.Count == 0 && failure.OrderItemId is not null)
-        {
-            ibans = [.. (await _db.RefundIbans.Where(i => i.OrderId == failure.OrderId).ToListAsync(ct)).OrderByDescending(i => i.EnteredAt).ThenBy(i => i.Id).Take(1)];
-        }
         if (ibans.Count == 0)
         {
             return null;

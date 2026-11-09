@@ -77,8 +77,9 @@ public sealed class WithdrawalDeclarationRulesTests
     {
         OperationItemFacts item = Item(ProductType.Physical, Period(LastDay), LastDay.AddDays(-14), marked: true);
 
-        Assert.False(WithdrawalNoticeRules.Warnings(item, LastDay.AddYears(1)).BeyondOneYear);
-        WithdrawalNoticeWarnings beyond = WithdrawalNoticeRules.Warnings(item, LastDay.AddYears(1).AddDays(1));
+        DateOnly yearEnd = LastDay.AddYears(WithdrawalNoticeRules.ExtendedYears);
+        Assert.False(WithdrawalNoticeRules.Warnings(item, yearEnd).BeyondOneYear);
+        WithdrawalNoticeWarnings beyond = WithdrawalNoticeRules.Warnings(item, yearEnd.AddDays(1));
         Assert.True(beyond.BeyondOneYear && beyond.OutsideWindow && beyond.NeedsConfirmation);
     }
 

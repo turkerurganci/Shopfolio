@@ -10,8 +10,11 @@ namespace Shopfolio.Modules.Ordering;
 /// </summary>
 internal static class WithdrawalNoticeRules
 {
-    /// <summary>The year after the window's end within which a notice of incomplete information must have been sent (Mesafeli Sözleşmeler Yönetmeliği m.10/1; K-1563).</summary>
-    private const int ExtendedYears = 1;
+    /// <summary>
+    /// The year after the window's end within which a notice of incomplete information must have been sent (Mesafeli Sözleşmeler Yönetmeliği m.10/1; 02 4.2 Z-13;
+    /// K-1563). A legal period, not a product constant: it is not in the parameter inventory (02 11 "Envantere girmeyenler"; 09 3.5 item 1) and lives with its rule.
+    /// </summary>
+    public const int ExtendedYears = 1;
 
     public static WithdrawalNoticeWarnings Warnings(OperationItemFacts item, DateOnly noticeDate)
     {

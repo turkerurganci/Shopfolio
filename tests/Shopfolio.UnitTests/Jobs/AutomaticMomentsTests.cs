@@ -97,6 +97,7 @@ public sealed partial class AutomaticMomentsTests
             typeof(AfterSalesPeriodRules).GetField(nameof(AfterSalesPeriodRules.ReturnShipmentPeriodDays))!,
             typeof(AfterSalesPeriodRules).GetField(nameof(AfterSalesPeriodRules.DefectClaimYears))!,
             typeof(DeliveryPeriodRules).GetField(nameof(DeliveryPeriodRules.LegalDeliveryLimitDays))!,
+            typeof(WithdrawalNoticeRules).GetField(nameof(WithdrawalNoticeRules.ExtendedYears))!,
         ];
         Assert.All(legal, field => Assert.True(field.IsLiteral, $"{field.Name} is a constant (03 4; 02 4.3)."));
 

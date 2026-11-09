@@ -170,7 +170,7 @@ internal sealed partial class OrderTransitions
         return item is null ? (null, null, TransitionRefusal.InvalidInput) : (order, item, null);
     }
 
-    private static ItemRecordSubject Subject(Order order, OrderItem item) =>
+    internal static ItemRecordSubject Subject(Order order, OrderItem item) =>
         new(order.Id, item.Id, item.Quantity, item.ProductType, order.OrderStatus, item.DeliveryDate, item.WithdrawalExemptionReason);
 
     /// <summary>B-9 to the customer and F-3 to the firm (03 1.7.1.10, 1.9.1; 02 9.3.2): the claim's birth or the customer's reopening, with the claim's units and return address.</summary>

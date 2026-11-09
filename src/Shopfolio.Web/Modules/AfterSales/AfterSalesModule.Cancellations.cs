@@ -108,7 +108,13 @@ internal sealed partial class AfterSalesModule
         ];
         moments.AddRange(await _db.LateDeliveryTerminations.AsNoTracking()
             .Where(t => ids.Contains(t.OrderItemId))
-            .Select(t => new ClosingRecordMoment(t.Id, t.OrderItemId, true, t.CreatedAt, t.Quantity))
+            .Select(t => new ClosingRecordMoment(t.Id, t.OrderItemId, true, t.CreatedAt, t.Quantity, false))
+            .ToListAsync(ct));
+
+        // The firm's removal closes units before the shipment too (02 10.4.3; D-848): the export's "closed before the shipment" reads it; the legal interest warning does not.
+        moments.AddRange(await _db.ItemRemovals.AsNoTracking()
+            .Where(r => ids.Contains(r.OrderItemId))
+            .Select(r => new ClosingRecordMoment(r.Id, r.OrderItemId, false, r.CreatedAt, r.Quantity, true))
             .ToListAsync(ct));
         return [.. moments.OrderBy(m => m.At).ThenBy(m => m.RecordId)];
     }

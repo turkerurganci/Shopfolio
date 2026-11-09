@@ -164,7 +164,7 @@ internal sealed partial class CustomerNoticeTemplates
 
     private List<EmailBlock> ReturnRejected(OrderNoticeContext order, string number, ReturnRejectedNotice notice)
     {
-        if (notice.Reason is not (WithdrawalExemptionReason.HygieneSensitive or WithdrawalExemptionReason.SealedMedia))
+        if (!WithdrawalExemptions.IsConditional(notice.Reason))
         {
             throw new ArgumentException("A return is rejected for an opened protective package (08 2.2.6 B-16).", nameof(notice));
         }

@@ -35,6 +35,7 @@ public sealed partial class IrreversibleConfirmationTests
         IrreversibleConfirmations.FirmCancellation(isPaid: false, units: 1, isCardLine: true, isCustomerCausedDeliveryFailure: false),
         IrreversibleConfirmations.FirmCancellation(isPaid: true, units: 3, isCardLine: true, isCustomerCausedDeliveryFailure: false),
         IrreversibleConfirmations.FirmCancellation(isPaid: true, units: 2, isCardLine: false, isCustomerCausedDeliveryFailure: true),
+        IrreversibleConfirmations.FirmCancellation(isPaid: true, units: 1, isCardLine: true, isCustomerCausedDeliveryFailure: false, isOutOfStock: true),
         IrreversibleConfirmations.RefundProcessing(1250.5m, null),
         IrreversibleConfirmations.RefundProcessing(99m, "TR330006100519786457841326"),
         IrreversibleConfirmations.CardRefundingRemoval(2, 300m),
@@ -87,6 +88,21 @@ public sealed partial class IrreversibleConfirmationTests
         Assert.Contains("düzeltilemez", IrreversibleConfirmations.OtherChannelTermination(1, new DateOnly(2026, 11, 4)).Sentence, StringComparison.Ordinal);
         Assert.EndsWith("Gidiş kargo bedeli geri ödenmeyecek.", IrreversibleConfirmations.FirmCancellation(true, 2, false, true).Sentence, StringComparison.Ordinal);
         Assert.Throws<ArgumentOutOfRangeException>(() => IrreversibleConfirmations.ReturnRejection(0));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TheFirmsCancellation_ForOutOfStock_SaysBeforeTheConfirmation_ThatAMissingStockIsNoLegalImpossibility_T368_KK8(bool isPaid)
+    {
+        IrreversibleConfirmation outOfStock = IrreversibleConfirmations.FirmCancellation(isPaid, 1, true, false, isOutOfStock: true);
+        IrreversibleConfirmation other = IrreversibleConfirmations.FirmCancellation(isPaid, 1, true, false);
+
+        // The warning is the window's first line, before the result sentence and the irreversible sentence the confirmation closes with (02 7.2.4).
+        Assert.Equal(IrreversibleConfirmations.OutOfStockLegalNotice, outOfStock.Lines[0]);
+        Assert.Contains("imkânsızlaşması sayılmaz", outOfStock.Warning!, StringComparison.Ordinal);
+        Assert.Null(other.Warning);
+        Assert.Equal(other.Sentence, outOfStock.Sentence);
     }
 
     [Fact]

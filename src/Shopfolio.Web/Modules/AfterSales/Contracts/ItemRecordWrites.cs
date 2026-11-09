@@ -58,6 +58,39 @@ public sealed record ItemFrozenAmounts(decimal UnitPrice, decimal CouponShare, d
 /// </summary>
 public sealed record CustomerCancellationEntry(ItemRecordSubject Subject, int Quantity, ItemFrozenAmounts Frozen, DateTimeOffset At);
 
+/// <summary>
+/// The firm's cancellation of a paid item's units from the panel (03 1.11.21, 8.3.1.1; 02 7.2.4; T368): every call is a record of its own, with the administrator and a
+/// reason from the closed list (06 5.3.6) - the note only on "Other". The amounts are worked out as on the customer's record (<see cref="CustomerCancellationEntry"/>).
+/// </summary>
+public sealed record FirmCancellationEntry(
+    ItemRecordSubject Subject,
+    int Quantity,
+    ItemFrozenAmounts Frozen,
+    ItemRecordAdmin Admin,
+    CancellationReason Reason,
+    string? ReasonNote,
+    DateTimeOffset At);
+
+/// <summary>
+/// The late delivery termination of one undelivered physical item (06 4.24; 02 7.2.3; T368): the customer's from the order page (<paramref name="Admin"/> null) or the
+/// firm's record of a notice that came by another channel (02 10.4.10). <paramref name="Quantity"/> is the item's whole open quantity - units are never chosen (02 7.1.6;
+/// K-796) and the writer refuses any other number. <paramref name="DeclarationDate"/> is the termination's date stamp: the day of the button, or the day the notice reached
+/// the firm; the refund's fourteen days run from it.
+/// </summary>
+public sealed record LateDeliveryTerminationEntry(
+    ItemRecordSubject Subject,
+    int Quantity,
+    ItemFrozenAmounts Frozen,
+    ItemRecordAdmin? Admin,
+    DateOnly DeclarationDate,
+    DateTimeOffset At);
+
+/// <summary>
+/// A cancellation or a late delivery termination as the panel's legal interest warning reads it (02 7.2.3): the record, its item, whether it is a late delivery
+/// termination (<paramref name="IsTermination"/>) or a cancellation, and its moment.
+/// </summary>
+public sealed record ClosingRecordMoment(Guid RecordId, Guid OrderItemId, bool IsTermination, DateTimeOffset At);
+
 /// <summary>The receipt of returned goods of a withdrawal (03 1.7.1.6; K-794): every partial arrival is a record of its own, with the arrival date and the units.</summary>
 public sealed record ReturnReceiptEntry(ItemRecordSubject Subject, Guid WithdrawalId, int Quantity, DateOnly ArrivalDate, ItemRecordAdmin Admin, DateTimeOffset At);
 

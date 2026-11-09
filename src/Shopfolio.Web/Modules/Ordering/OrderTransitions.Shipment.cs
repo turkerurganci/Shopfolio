@@ -54,6 +54,11 @@ internal sealed partial class OrderTransitions
         {
             await ReleaseReservationAsync(request.OrderId, ct);
         }
+        else if (request.Actor == ActorKind.Admin && request.Item is null)
+        {
+            // The firm's whole-order cancellation of a paid order cancels every open item's open units: the records, linked to this transition, and the counters (D-305; T368).
+            await CancelOpenItemsByFirmAsync(request.OrderId, outcome.TransitionRecordIds[0], request, ct);
+        }
 
         // B-7 goes with the cancellation, once, in the customer's, the administrator's or the system's wording (08 2.2.6); an item cancellation names the item.
         await QueueNoticeAsync(
@@ -239,9 +244,11 @@ internal sealed partial class OrderTransitions
 
         if (request.Item is not null)
         {
-            // The last open item's cancellation: only on a paid order (an unpaid one is cancelled as a whole), never on a returned shipment (S9 is the firm's
-            // cancellation or closing), and only when the item record the caller wrote left no open item.
-            return !unpaid && order.OrderStatus != OrderStatus.DeliveryFailed && (await OpenItemsAsync(order, physicalOnly: false, ct)).Count == 0;
+            // The last open item's cancellation: only on a paid order (an unpaid one is cancelled as a whole), on a returned shipment only the firm's (S9 is the
+            // firm's cancellation or closing; T368 - its item cancellation of the last open units is the firm's S9 with its reason), and only when the item
+            // record the caller wrote left no open item.
+            bool returnedAllowed = order.OrderStatus != OrderStatus.DeliveryFailed || request.Actor == ActorKind.Admin;
+            return !unpaid && returnedAllowed && (await OpenItemsAsync(order, physicalOnly: false, ct)).Count == 0;
         }
 
         // A whole-order cancellation never takes an item marked delivered (a delivered digital item, a completed service): such an order does not end in
@@ -297,7 +304,7 @@ internal sealed partial class OrderTransitions
         switch (request.Actor)
         {
             case ActorKind.Buyer:
-                if (request.Admin is not null || request.FirmReason is not null || request.ReasonNote is not null || request.SystemReason is not null)
+                if (request.Admin is not null || request.FirmReason is not null || request.ReasonNote is not null || request.SystemReason is not null || request.OwnerConfirmed)
                 {
                     refusal = request.Admin is not null ? TransitionRefusal.ActorNotAllowed : TransitionRefusal.ReasonNotAllowed;
                     return false;
@@ -322,7 +329,7 @@ internal sealed partial class OrderTransitions
                 // The firm's reason is from the closed list; "Other" carries the free note, no other reason does (06 4.19).
                 if (request.ExpectedVersion is null
                     || request.FirmReason is not { } firmReason
-                    || (firmReason == CancellationReason.Other) != !string.IsNullOrWhiteSpace(request.ReasonNote))
+                    || !FirmReasonRules.IsComplete(firmReason, request.ReasonNote, request.OwnerConfirmed))
                 {
                     refusal = TransitionRefusal.InvalidInput;
                     return false;
@@ -332,7 +339,7 @@ internal sealed partial class OrderTransitions
                 return true;
 
             case ActorKind.System:
-                if (request.Admin is not null || request.FirmReason is not null || request.ReasonNote is not null || request.Item is not null)
+                if (request.Admin is not null || request.FirmReason is not null || request.ReasonNote is not null || request.Item is not null || request.OwnerConfirmed)
                 {
                     refusal = TransitionRefusal.ActorNotAllowed;
                     return false;

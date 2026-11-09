@@ -434,6 +434,8 @@ public sealed class BrandingTests : IAsyncLifetime
         services.AddOptions<SiteOptions>().Configure(o => o.Domain = Domain);
         services.AddCatalogModule();
         services.AddSettingsModule();
+        services.AddScoped<global::Shopfolio.Infrastructure.Security.AttemptCounter>();
+        services.AddScoped<Shopfolio.Modules.Notifications.Contracts.INotificationsModule, Shopfolio.IntegrationTests.CorporateContent.UnusedNotifications>();
         services.AddCorporateContentModule();
         return services.BuildServiceProvider();
     }

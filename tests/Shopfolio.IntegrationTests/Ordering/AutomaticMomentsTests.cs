@@ -14,6 +14,7 @@ using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
+using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog;
@@ -145,12 +146,18 @@ public sealed class AutomaticMomentsTests : IAsyncLifetime
         await ReturnAsync();
         await _provider.GetRequiredService<SchedulerScan>().RunAsync(Ct);
         int version = (await ReadOrderAsync(order.Id)).Version;
+        Admin admin = Admin.Create("Yönetici", $"yonetici-{Guid.NewGuid():N}@example.com", "digest-placeholder", Start);
+        await using (AppDbContext db = NewContext())
+        {
+            db.Admins.Add(admin);
+            await db.SaveChangesAsync(Ct);
+        }
 
         // 02 3.21.8 (K-667): the window ran out in the outage, its cancellation is put off, and the "paid" mark is taken in the meantime.
         await using (AsyncServiceScope scope = _provider.CreateAsyncScope())
         {
             PaymentTransitionResult mark = await scope.ServiceProvider.GetRequiredService<ITransactionRunner>().RunAsync(
-                cancel => scope.ServiceProvider.GetRequiredService<IOrderTransitions>().MarkTransferPaidAsync(new TransferPaidMark(order.Id, Guid.NewGuid(), "Yönetici", version, true), cancel),
+                cancel => scope.ServiceProvider.GetRequiredService<IOrderTransitions>().MarkTransferPaidAsync(new TransferPaidMark(order.Id, admin.Id, admin.Name, version, true), cancel),
                 Ct);
             Assert.False(mark.IsRejected);
         }

@@ -54,7 +54,7 @@ internal sealed class PaymentMethodSettings : IPaymentMethodSettings
             return SettingsSaveResult.Refused([new FieldRejection(nameof(PaymentMethodsInput.BankTransferIban), FieldCodes.FieldRequired)]);
         }
 
-        if (iban is not null && !IbanRule.IsValid(iban))
+        if (iban is not null && !IbanRule.Allows(iban))
         {
             return SettingsSaveResult.Refused([new FieldRejection(nameof(PaymentMethodsInput.BankTransferIban), FieldCodes.InvalidIban)]);
         }

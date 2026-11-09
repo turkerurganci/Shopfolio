@@ -53,7 +53,4 @@ internal static class ItemShares
 
         return parts;
     }
-
-    /// <summary>The amount a record's refund pays back (02 7.1.7 (2); 06 4.33 <c>Amount</c>): the product amount less the coupon share; the shipping fee is added apart.</summary>
-    public static decimal RefundOf(ItemAmounts amounts) => amounts.ProductAmount - amounts.CouponShare;
 }

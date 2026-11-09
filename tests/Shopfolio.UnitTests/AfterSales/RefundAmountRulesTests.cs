@@ -18,6 +18,9 @@ public sealed class RefundAmountRulesTests
 
     private static readonly Guid ItemB = Guid.Parse("20000000-0000-0000-0000-000000000000");
 
+    // The refund's one rule home is the contract's amount (06 4.33 Amount): the product amount less the coupon share.
+    private static decimal RefundOf(ItemAmounts amounts) => new RefundAmount(1, amounts.ProductAmount, amounts.CouponShare, amounts.VatAmount).Amount;
+
     // ---- KK3, KK4: the shares and the refunds ----
 
     [Fact]
@@ -28,8 +31,8 @@ public sealed class RefundAmountRulesTests
         ItemAmounts third = ItemShares.SetAside(Frozen, 3, 1, true, first.CouponShare + second.CouponShare, first.VatAmount + second.VatAmount);
 
         Assert.Equal([33.33m, 33.33m, 33.34m], new[] { first, second, third }.Select(a => a.CouponShare));
-        Assert.Equal([266.67m, 266.67m, 266.66m], new[] { first, second, third }.Select(ItemShares.RefundOf));
-        Assert.Equal((Frozen.UnitPrice * 3) - Frozen.CouponShare, new[] { first, second, third }.Sum(ItemShares.RefundOf));
+        Assert.Equal([266.67m, 266.67m, 266.66m], new[] { first, second, third }.Select(RefundOf));
+        Assert.Equal((Frozen.UnitPrice * 3) - Frozen.CouponShare, new[] { first, second, third }.Sum(RefundOf));
     }
 
     [Theory]
@@ -83,7 +86,7 @@ public sealed class RefundAmountRulesTests
         Assert.Equal([33.33m, 33.33m, 33.34m], parts.Select(p => p.CouponShare));
         Assert.Equal([16.66m, 16.66m, 16.68m], parts.Select(p => p.VatAmount));
         Assert.Equal([300m, 300m, 300m], parts.Select(p => p.ProductAmount));
-        Assert.Equal([266.67m, 266.67m, 266.66m], parts.Select(ItemShares.RefundOf));
+        Assert.Equal([266.67m, 266.67m, 266.66m], parts.Select(RefundOf));
     }
 
     [Fact]

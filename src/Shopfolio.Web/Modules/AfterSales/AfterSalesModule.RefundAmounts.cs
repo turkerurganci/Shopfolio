@@ -61,36 +61,36 @@ internal sealed partial class AfterSalesModule
         switch (query.Subject.Type)
         {
             case RefundType.Cancellation:
-            {
-                if (cancellations.SingleOrDefault(c => c.Id == subjectId) is not { } cancellation)
                 {
-                    return false;
-                }
+                    if (cancellations.SingleOrDefault(c => c.Id == subjectId) is not { } cancellation)
+                    {
+                        return false;
+                    }
 
-                UnitMove move = new(cancellation.OrderItemId, cancellation.Id, cancellation.CreatedAt, cancellation.Quantity);
-                if (BeforeShipment(cancellation.CreatedAt))
-                {
-                    return ShippingFeeRefunds.OnCancellationBeforeShipment(physicalUnits, cancelledBefore, move);
-                }
+                    UnitMove move = new(cancellation.OrderItemId, cancellation.Id, cancellation.CreatedAt, cancellation.Quantity);
+                    if (BeforeShipment(cancellation.CreatedAt))
+                    {
+                        return ShippingFeeRefunds.OnCancellationBeforeShipment(physicalUnits, cancelledBefore, move);
+                    }
 
-                List<UnitMove> afterShipment = [.. cancellations.Where(c => !BeforeShipment(c.CreatedAt)).Select(c => new UnitMove(c.OrderItemId, c.Id, c.CreatedAt, c.Quantity))];
-                return ShippingFeeRefunds.OnCancellationAfterShipment(cancellation.CancellationReason, afterShipment, move);
-            }
+                    List<UnitMove> afterShipment = [.. cancellations.Where(c => !BeforeShipment(c.CreatedAt)).Select(c => new UnitMove(c.OrderItemId, c.Id, c.CreatedAt, c.Quantity))];
+                    return ShippingFeeRefunds.OnCancellationAfterShipment(cancellation.CancellationReason, afterShipment, move);
+                }
 
             case RefundType.ItemRemoval:
-            {
-                // The administrator's removal follows the cancellation's trigger (02 7.2.9; 10.4.3); after the shipment it carries no fee.
-                return removals.SingleOrDefault(r => r.Id == subjectId) is { } removal && BeforeShipment(removal.CreatedAt)
-                    && ShippingFeeRefunds.OnCancellationBeforeShipment(physicalUnits, cancelledBefore, new UnitMove(removal.OrderItemId, removal.Id, removal.CreatedAt, removal.Quantity));
-            }
+                {
+                    // The administrator's removal follows the cancellation's trigger (02 7.2.9; 10.4.3); after the shipment it carries no fee.
+                    return removals.SingleOrDefault(r => r.Id == subjectId) is { } removal && BeforeShipment(removal.CreatedAt)
+                        && ShippingFeeRefunds.OnCancellationBeforeShipment(physicalUnits, cancelledBefore, new UnitMove(removal.OrderItemId, removal.Id, removal.CreatedAt, removal.Quantity));
+                }
 
             case RefundType.LateDeliveryTermination:
-            {
-                List<UnitMove> terminations = [.. (await LocalAsync(_db.LateDeliveryTerminations, t => ids.Contains(t.OrderItemId), ct))
+                {
+                    List<UnitMove> terminations = [.. (await LocalAsync(_db.LateDeliveryTerminations, t => ids.Contains(t.OrderItemId), ct))
                     .Select(t => new UnitMove(t.OrderItemId, t.Id, t.CreatedAt, t.Quantity))];
-                UnitMove? move = terminations.Where(t => t.RecordId == subjectId).Cast<UnitMove?>().SingleOrDefault();
-                return move is { } termination && ShippingFeeRefunds.OnTermination(terminations, termination);
-            }
+                    UnitMove? move = terminations.Where(t => t.RecordId == subjectId).Cast<UnitMove?>().SingleOrDefault();
+                    return move is { } termination && ShippingFeeRefunds.OnTermination(terminations, termination);
+                }
 
             case RefundType.Withdrawal:
                 return handed is not null && await IsWithdrawalTriggerAsync(items, ids, cancelledBefore, query.Subject, ct);

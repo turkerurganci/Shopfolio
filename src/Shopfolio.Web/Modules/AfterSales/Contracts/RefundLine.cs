@@ -24,20 +24,15 @@ public sealed record RefundIbanEntry(Guid OrderId, Guid RequestId, string Iban, 
 /// <summary>The customer's correction of an IBAN in place, until the refund is processed (02 7.4.5; K-575).</summary>
 public sealed record RefundIbanCorrection(Guid OrderId, Guid RefundIbanId, string Iban, DateTimeOffset At);
 
-/// <summary>Why the refund line's IBAN write did not happen.</summary>
-public enum RefundIbanRefusal
+/// <summary>
+/// The outcome of the refund line's IBAN write: the IBAN written, or - with no id - the refusal: <see cref="IsInvalidIban"/> when the text is not a Turkish IBAN
+/// with valid check digits (04 7.3.2.7; the one rule of <c>InvalidIbanAttribute</c>), otherwise no such IBAN or open request on the order.
+/// </summary>
+public sealed record RefundIbanWriteResult(Guid? RefundIbanId, bool IsInvalidIban)
 {
-    /// <summary>The text is not a Turkish IBAN with valid check digits (04 7.3.2.7; the one rule of <c>InvalidIbanAttribute</c>).</summary>
-    InvalidIban,
+    public static RefundIbanWriteResult InvalidIban { get; } = new(null, true);
 
-    /// <summary>No such IBAN or open request on the order.</summary>
-    NotFound,
-}
-
-/// <summary>The outcome of the refund line's IBAN write: the IBAN written, or the refusal.</summary>
-public sealed record RefundIbanWriteResult(Guid? RefundIbanId, RefundIbanRefusal? Refusal)
-{
-    public static RefundIbanWriteResult Rejected(RefundIbanRefusal refusal) => new(null, refusal);
+    public static RefundIbanWriteResult NotFound { get; } = new(null, false);
 }
 
 /// <summary>The firm's "havale gerçekleşmedi" on an item, or on the itemless refund of a late payment (02 7.4.5; K-575, K-1131).</summary>

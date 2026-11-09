@@ -71,6 +71,13 @@ public sealed class ShipmentTransitionContractTests
             nameof(IOrderTransitions.MarkDeliveryFailedAsync),
             nameof(IOrderTransitions.ResendOrderAsync),
             nameof(IOrderTransitions.ShipOrderAsync),
+
+            // The refund line's operations (T370) write no transition: the card refund's retry and transfer path, the customer's IBAN and the transfer's failure.
+            nameof(IOrderTransitions.RetryCardRefundAsync),
+            nameof(IOrderTransitions.OpenRefundTransferPathAsync),
+            nameof(IOrderTransitions.EnterRefundIbanAsync),
+            nameof(IOrderTransitions.ChangeRefundIbanAsync),
+            nameof(IOrderTransitions.ReportTransferFailedAsync),
         ];
         Assert.Equal(expected.Order().ToArray(), names);
     }

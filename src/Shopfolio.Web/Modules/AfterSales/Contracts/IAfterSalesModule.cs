@@ -208,7 +208,7 @@ public interface IAfterSalesModule
     /// The customer's correction of the order's IBAN in place until the refund is processed (02 7.4.5; K-575): the same check as the entry; the firm's step uses
     /// the IBAN in the field at that moment. Writes through the caller's change tracker under the order's row lock and saves nothing.
     /// </summary>
-    Task<RefundIbanWriteResult> CorrectRefundIbanAsync(RefundIbanCorrection correction, CancellationToken ct);
+    Task<RefundIbanWriteResult> ChangeRefundIbanAsync(RefundIbanCorrection correction, CancellationToken ct);
 
     /// <summary>
     /// The card refund succeeded: the open IBAN request of its transfer path closes unfulfilled, the IBAN field closes (02 7.2.8; 06 4.29 <c>ClosedAt</c>). Writes

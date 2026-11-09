@@ -66,41 +66,41 @@ internal sealed partial class AfterSalesModule
         RequireLocked(entry.OrderId);
         if (!IbanRule.Allows(entry.Iban))
         {
-            return RefundIbanWriteResult.Rejected(RefundIbanRefusal.InvalidIban);
+            return RefundIbanWriteResult.InvalidIban;
         }
 
         RefundIbanRequest? request = await OpenRequestsTracked().SingleOrDefaultAsync(r => r.Id == entry.RequestId, ct);
         if (request is null)
         {
-            return RefundIbanWriteResult.Rejected(RefundIbanRefusal.NotFound);
+            return RefundIbanWriteResult.NotFound;
         }
 
         RefundIban iban = RefundIban.Create(entry.OrderId, RequestFormat.CompactIban(entry.Iban), entry.At);
         _db.RefundIbans.Add(iban);
         request.FulfilledAt = entry.At;
         request.RefundIbanId = iban.Id;
-        return new RefundIbanWriteResult(iban.Id, null);
+        return new RefundIbanWriteResult(iban.Id, false);
     }
 
-    public async Task<RefundIbanWriteResult> CorrectRefundIbanAsync(RefundIbanCorrection correction, CancellationToken ct)
+    public async Task<RefundIbanWriteResult> ChangeRefundIbanAsync(RefundIbanCorrection correction, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(correction);
         RequireLocked(correction.OrderId);
         if (!IbanRule.Allows(correction.Iban))
         {
-            return RefundIbanWriteResult.Rejected(RefundIbanRefusal.InvalidIban);
+            return RefundIbanWriteResult.InvalidIban;
         }
 
         // The IBAN lives only while a pending refund uses it (DeleteUnusedRefundIbansAsync): one still on file has not been processed yet.
         RefundIban? iban = await _db.RefundIbans.SingleOrDefaultAsync(i => i.Id == correction.RefundIbanId && i.OrderId == correction.OrderId, ct);
         if (iban is null)
         {
-            return RefundIbanWriteResult.Rejected(RefundIbanRefusal.NotFound);
+            return RefundIbanWriteResult.NotFound;
         }
 
         iban.Iban = RequestFormat.CompactIban(correction.Iban);
         iban.EnteredAt = correction.At;
-        return new RefundIbanWriteResult(iban.Id, null);
+        return new RefundIbanWriteResult(iban.Id, false);
     }
 
     public async Task CloseRefundIbanRequestsOfRefundAsync(Guid refundId, CancellationToken ct)

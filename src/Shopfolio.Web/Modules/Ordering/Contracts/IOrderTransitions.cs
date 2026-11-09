@@ -179,7 +179,7 @@ public interface IOrderTransitions
     Task<OrderTransitionResult> EnterRefundIbanAsync(EnterRefundIbanRequest request, CancellationToken ct);
 
     /// <summary>The customer's correction of an IBAN until the refund is processed (T370; 02 7.4.5; K-575): the same check as the entry.</summary>
-    Task<OrderTransitionResult> CorrectRefundIbanAsync(CorrectRefundIbanRequest request, CancellationToken ct);
+    Task<OrderTransitionResult> ChangeRefundIbanAsync(ChangeRefundIbanRequest request, CancellationToken ct);
 
     /// <summary>
     /// The firm's "havale gerçekleşmedi" (T370; 02 7.4.5; K-575, K-1131): the IBAN is deleted with its disposal record, the field opens again, B-14 goes; the

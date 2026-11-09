@@ -92,9 +92,9 @@ internal sealed partial class OrderTransitions
         }
 
         RefundIbanWriteResult written = await _afterSales.EnterRefundIbanAsync(new RefundIbanEntry(order.Id, open.RequestId, request.Iban, _time.GetUtcNow()), ct);
-        if (written.Refusal is { } refused)
+        if (written.RefundIbanId is null)
         {
-            return Refused(refused == RefundIbanRefusal.InvalidIban ? TransitionRefusal.InvalidInput : TransitionRefusal.ConditionNotMet);
+            return Refused(written.IsInvalidIban ? TransitionRefusal.InvalidInput : TransitionRefusal.ConditionNotMet);
         }
 
         if (open.RefundId is { } turned && open.Reason == RefundIbanRequestReason.CardRefundFailed)
@@ -106,7 +106,7 @@ internal sealed partial class OrderTransitions
         return new OrderTransitionResult(null, [], null, open.OrderItemId is { } itemId ? [itemId] : []);
     }
 
-    public async Task<OrderTransitionResult> CorrectRefundIbanAsync(CorrectRefundIbanRequest request, CancellationToken ct)
+    public async Task<OrderTransitionResult> ChangeRefundIbanAsync(ChangeRefundIbanRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
         Order? order = await LockAndLoadAsync(request.OrderId, ct);
@@ -115,10 +115,10 @@ internal sealed partial class OrderTransitions
             return Refused(TransitionRefusal.OrderNotFound);
         }
 
-        RefundIbanWriteResult written = await _afterSales.CorrectRefundIbanAsync(new RefundIbanCorrection(order.Id, request.RefundIbanId, request.Iban, _time.GetUtcNow()), ct);
-        if (written.Refusal is { } refused)
+        RefundIbanWriteResult written = await _afterSales.ChangeRefundIbanAsync(new RefundIbanCorrection(order.Id, request.RefundIbanId, request.Iban, _time.GetUtcNow()), ct);
+        if (written.RefundIbanId is null)
         {
-            return Refused(refused == RefundIbanRefusal.InvalidIban ? TransitionRefusal.InvalidInput : TransitionRefusal.ConditionNotMet);
+            return Refused(written.IsInvalidIban ? TransitionRefusal.InvalidInput : TransitionRefusal.ConditionNotMet);
         }
 
         RaiseVersionOnce(order);

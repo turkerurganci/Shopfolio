@@ -14,7 +14,7 @@ public sealed record OpenRefundTransferPathRequest(Guid OrderId, Guid RefundId, 
 public sealed record EnterRefundIbanRequest(Guid OrderId, Guid RequestId, string Iban);
 
 /// <summary>The customer's correction of the order's IBAN until the refund is processed (T370; 02 7.4.5; K-575).</summary>
-public sealed record CorrectRefundIbanRequest(Guid OrderId, Guid RefundIbanId, string Iban);
+public sealed record ChangeRefundIbanRequest(Guid OrderId, Guid RefundIbanId, string Iban);
 
 /// <summary>
 /// The firm's "havale gerçekleşmedi" (T370; 02 7.4.5; K-575, K-1131): on an item, or on the itemless refund of a late payment; the screen's version.

@@ -94,8 +94,8 @@ public sealed partial class StatusCorrectionTests
         }
 
         const string Corrected = "TR320010009999901234567890";
-        Assert.Equal(TransitionRefusal.InvalidInput, (await RunAsync((u, t) => u.CorrectRefundIbanAsync(new CorrectRefundIbanRequest(order.Id, ibanId, "TR32001000999990123456789X"), t))).Refusal);
-        OrderTransitionResult corrected = await RunAsync((u, t) => u.CorrectRefundIbanAsync(new CorrectRefundIbanRequest(order.Id, ibanId, Corrected), t));
+        Assert.Equal(TransitionRefusal.InvalidInput, (await RunAsync((u, t) => u.ChangeRefundIbanAsync(new ChangeRefundIbanRequest(order.Id, ibanId, "TR32001000999990123456789X"), t))).Refusal);
+        OrderTransitionResult corrected = await RunAsync((u, t) => u.ChangeRefundIbanAsync(new ChangeRefundIbanRequest(order.Id, ibanId, Corrected), t));
         Assert.False(corrected.IsRejected);
 
         // The firm processes the refund to the IBAN in the field: the IBAN no other pending refund uses goes, with its disposal record.

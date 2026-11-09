@@ -225,13 +225,12 @@ public sealed class SalesGateRulesTests
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
         bool card = await new UnboundCardPaymentCondition().IsOpenAsync(ct);
-        bool transfer = await new UnboundBankTransferCondition().IsOpenAsync(ct);
+        bool transfer = false; // bound by T353 (BankTransferCondition): switched off it is not met
         bool notice = false; // bound by T366 (PrivacyNoticeCondition): with no published notice it is not met
 
         SalesGate gate = SalesGateRules.Evaluate(new SalesGateFacts([], card || transfer, false, notice, true, true));
 
         Assert.False(card);
-        Assert.False(transfer);
         Assert.False(notice);
         Assert.Equal([SalesGateCondition.PaymentMethod, SalesGateCondition.PrivacyNotice], gate.UnmetConditions);
         Assert.False(gate.IsDataCollectionOpen);

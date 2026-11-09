@@ -102,7 +102,7 @@ internal sealed record OrderConfirmationResult(
 /// result with the summary the customer confirmed - any difference of the total, its breakdown, the items, the shipping period or the delivery provinces stops it (02 3.17.2) -, checks
 /// the confirmation step, cancels the cart's earlier unpaid order (02 3.17.7), and then in one go issues the number, freezes the items, the addresses, the identity, the versions, the
 /// documents and the digital and service box records (02 3.23.3), starts the payment window,
-/// reserves the stock, the capacity and the coupon right (02 3.17.3) and queues B-1 and F-1 (02 9.2). Nothing calls an outside service here: the card's redirect follows the commit.
+/// reserves the stock, the capacity and the coupon right (02 3.17.3) and queues B-1, on a bank transfer B-2, and F-1 (02 9.2; 03 4.2.1). Nothing calls an outside service here: the card's redirect follows the commit.
 /// </summary>
 internal sealed class OrderConfirmation
 {
@@ -274,6 +274,13 @@ internal sealed class OrderConfirmation
         // B-1 to the contact e-mail and F-1 to the firm, in the same transaction (02 3.17.1, 9.2; 08 2.2.6, 2.2.7).
         await _notifications.QueueCustomerNoticeAsync(new OrderReceivedNotice(order.Id), request.ContactEmail, ct);
         await _notifications.QueueCompanyNoticeAsync(new NewOrderNotice(order.Id, order.OrderNumber, method, order.Total, now), ct);
+
+        // B-2 on a bank transfer order (02 9.2 B-2, 3.21.6; 03 4.2.1; D-770): the frozen IBAN, the order number and the last payment day, in the same transaction.
+        if (method == PaymentMethod.BankTransfer)
+        {
+            await _notifications.QueueCustomerNoticeAsync(new TransferChosenNotice(order.Id, order.PaymentWindowEndsAt), request.ContactEmail, ct);
+        }
+
         return OrderConfirmationResult.Placed(order.Id, order.OrderNumber);
     }
 

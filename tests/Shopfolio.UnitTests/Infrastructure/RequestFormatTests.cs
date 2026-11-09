@@ -194,6 +194,8 @@ public sealed class RequestFormatTests
     [InlineData("+90 (532) 123-45-67")]
     [InlineData("+905321234567")]
     [InlineData("5321234567")]
+    [InlineData("0532 123 45 67")]
+    [InlineData("0532\t123 45 67")]
     public void CompactPhone_IgnoresBlanksHyphensBracketsAndThePrefix(string value)
     {
         Assert.Equal("5321234567", RequestFormat.CompactPhone(value));
@@ -204,6 +206,8 @@ public sealed class RequestFormatTests
     [InlineData("TR330006100519786457841326")]
     [InlineData("tr33 0006 1005 1978 6457 8413 26")]
     [InlineData(" TR33  0006 1005 1978 6457 8413 26 ")]
+    [InlineData("TR33 0006 1005 1978 6457 8413 26")]
+    [InlineData("TR33\t0006 1005 1978 6457 8413 26")]
     public void CompactIban_AnIbanWithBlanks_IsEqualToTheOneWithout(string value)
     {
         Assert.Equal("TR330006100519786457841326", RequestFormat.CompactIban(value));

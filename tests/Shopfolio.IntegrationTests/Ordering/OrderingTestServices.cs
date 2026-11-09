@@ -24,7 +24,10 @@ internal static class OrderingTestServices
 {
     public const string CompanyEmail = "firma-iletisim@example.com";
 
-    public static ServiceProvider Build(string dsn)
+    public static ServiceProvider Build(string dsn) => Build(dsn, TimeProvider.System);
+
+    /// <summary>The same services on the given clock (T348: the confirmation's window, coupon dates and moments read a fixed time).</summary>
+    public static ServiceProvider Build(string dsn, TimeProvider time)
     {
         ServiceCollection services = new();
         services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, dsn));
@@ -33,7 +36,7 @@ internal static class OrderingTestServices
         services.AddScoped<ITransactionRunner, TransactionRunner>();
         services.AddAppCache();
         services.AddScoped<AdvisoryLocks>();
-        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton(time);
         services.AddScoped<IJobQueue, JobQueue>();
         services.AddFileStore();
         services.AddOptions<StatusThresholdOptions>();

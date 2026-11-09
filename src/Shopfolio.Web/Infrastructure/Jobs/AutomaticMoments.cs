@@ -15,6 +15,7 @@ internal static class AutomaticMoments
     public static readonly IReadOnlyList<AutomaticMoment> All =
     [
         new("4.2.1", "Order confirmation", [
+            "Shopfolio.Modules.Ordering.OrderConfirmation.ConfirmAsync",
             "Shopfolio.Modules.Ordering.OrderIdentifiers.IssueAsync",
             "Shopfolio.Modules.Ordering.Order.FreezeDocuments",
             "Shopfolio.Modules.Ordering.StockReservation.ForVariant",

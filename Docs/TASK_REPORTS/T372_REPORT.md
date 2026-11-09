@@ -59,7 +59,7 @@
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
 | Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests/Shopfolio.UnitTests.csproj` | 5430/5430; Consistency 283/283 |
-| Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests/… --filter-namespace` (Postgres 18, `track_commit_timestamp=on`) | TAM koşu üç parçada: Ordering 392, Model (`--max-threads 3`) 1393, öteki 1333 — 3118/3118; sonra eklenen D-453 testiyle `WithdrawalDeclarationTests` 18/18 |
+| Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests/… --filter-namespace` (Postgres 18, `track_commit_timestamp=on`) | TAM koşu üç parçada: Ordering 392, Model (`--max-threads 3`) 1393, öteki 1333 — 3118/3118; sonra eklenen D-453 testiyle `WithdrawalDeclarationTests` 18/18; `origin/main` (T348) birleştirmesinden sonra Ordering 408/408, Unit 5438/5438 |
 | Contract | — | — | uç yok |
 | Lint | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` (src, Unit, Integration) | değişiklik yok |
 | Build | ✓ | `dotnet build` (src, Unit, Integration) | 0 uyarı |

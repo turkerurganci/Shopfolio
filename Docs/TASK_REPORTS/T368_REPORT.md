@@ -93,7 +93,7 @@
 
 - **Branch:** `task/T368-gecikme-feshi`
 - **Commit:** son commit — "T368: Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi"
-- **PR:** *(açılınca)*
+- **PR:** #498
 - **CI:** *(validator doldurur)*
 
 ## Dış Varsayımlar

@@ -77,10 +77,25 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-09; head `9f7b3620` + `origin/main` `8cd6652e` birleşik ağaç, çakışmasız) |
+| Bulgu sayısı | 1 (B1 ORTA S1) |
+| Düzeltme gerekli mi | Evet — B1 |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+**Validator kabul kriterleri tablosu (tur 1):**
+
+| # | Sonuç | Validator kanıtı |
+|---|---|---|
+| 1 | ✓ | `SalesSummaryService` yalnız üç modül yüzeyi + `TimeProvider`; tablo/bağlam/uç yok; KK1 birim testi yeşil |
+| 2 | ✓ | `SalesPeriodReader.Approved` = Paid/PartiallyRefunded/Refunded (`OrderOperationFacts.PaymentApproved` ile aynı); Integration KK2 yeşil |
+| 3 | ✓ | `SumAsync(o => o.Total)`; `Order.Total` yalnız oluşturmada yazılır (T369 birleşiminde de); Integration KK3 yeşil |
+| 4 | ✓ | `CreatedAt ∈ [from,to)`; havale O1'i iki gün sonra, doğduğu günde sayılır |
+| 5 | ✓ | `SalesSummaryRules.PaymentCompletion`; 3 birim + 1 Integration yeşil |
+| 6 | ✓ | `ContactRequests.SummaryTopics`; Integration KK6 yeşil |
+| 7 | ✗ | **B1:** paydadan yalnız sipariş düzeyindeki S3/S4 çıkarılıyor. Fiziksel kalemi süre dolmadan kalem düzeyinde iptal edilen (ya da çıkarılan), hizmet kalemi açık kalan karışık sipariş S3/S4 almaz (`OrderTransitions.Shipment.cs:247-251`), S5 de alamaz (açık fiziksel kalem yok) → "uyulmadı" sayılıyor. `02 §10.6.3` ve K-535: payda "süre dolmadan iptal edilmemiş fiziksel kalem taşıyan" siparişlerdir; K-535'in gerekçesi tam bu hâldir. Validator sondajı (geçici test, geri alındı): beklenen `0/0`, gelen `0/1` |
+| 8 | ✓ | `ListItemsWithLossInRangeAsync` olay günü; kapanış/ret okunmaz; Integration KK8 yeşil |
+| 9 | ✓ | `SummaryRatio.IsAssessable`; KK9 birim testi yeşil |
+| 10 | ✓ | `CountDailyOrdersAsync` = tek gün özetinin `OrderCount`'u; Integration KK10 kolu yeşil |
 
 ## Altyapı Değişiklikleri
 

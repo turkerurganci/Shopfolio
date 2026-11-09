@@ -63,7 +63,7 @@ Bütün maddeler (önceki işçinin yaptıkları dahil) diff'te yeniden denetlen
 
 ## Commit & PR
 
-- Dal `task/T390-uctan-uca-akislar`; PR base `main`.
+- Dal `task/T390-uctan-uca-akislar`; PR base `main`. PR: #508
 
 ## Dış Varsayımlar
 

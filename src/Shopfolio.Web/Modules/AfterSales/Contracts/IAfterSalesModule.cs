@@ -149,6 +149,15 @@ public interface IAfterSalesModule
     /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
     Task<ItemRecordWriteResult> AddReturnRejectionAsync(ReturnRejectionEntry entry, CancellationToken ct);
 
+    /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
+    Task<ItemRecordWriteResult> AddNotReturnedClosureAsync(NotReturnedClosureEntry entry, CancellationToken ct);
+
+    /// <summary>
+    /// The "Stoğa ekle" step's mark on a receipt (02 7.4.7; 06 4.26 <c>StockAddedAt</c>): once per receipt, the receipt's units as the result; the caller returns them to
+    /// the variant (03 1.4.4.6). Runs in the caller's transaction under the order's row lock and saves nothing.
+    /// </summary>
+    Task<ReturnStockResult> MarkReturnStockAddedAsync(ReturnStockEntry entry, CancellationToken ct);
+
     /// <summary>
     /// The items' panel marks (03 1.7.3; K-675): read from the records while the condition lasts, never stored - "awaiting the returned goods" and "awaiting the IBAN".
     /// The caller hands in the items' delivery dates (the item is the order's). Every item is in the result. A plain read.

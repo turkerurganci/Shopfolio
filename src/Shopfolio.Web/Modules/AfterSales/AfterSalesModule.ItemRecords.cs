@@ -174,16 +174,89 @@ internal sealed partial class AfterSalesModule
     public async Task<ItemRecordWriteResult> AddReturnReceiptAsync(ReturnReceiptEntry entry, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(entry);
-        RequireOrderLock(entry.Subject);
-        ItemRecordRefusal? refusal = await ReceiptRefusalAsync(entry.Subject, entry.WithdrawalId, entry.Quantity, entry.ArrivalDate, ct);
+        ItemRecordSubject subject = entry.Subject;
+        RequireOrderLock(subject);
+
+        // The units of an open "mal dönmedi" closure may arrive too: the receipt reopens the closure (02 10.4.9; 06 4.26, 4.28; K-496).
+        ItemRecordRefusal? refusal = await ReceiptRefusalAsync(subject, entry.WithdrawalId, entry.Quantity, entry.ArrivalDate, includeClosed: true, ct);
         if (refusal is { } refused)
         {
             return ItemRecordWriteResult.Rejected(refused);
         }
 
-        Return receipt = Return.ForWithdrawal(entry.Subject.OrderItemId, entry.WithdrawalId, entry.Quantity, entry.ArrivalDate, entry.Admin.AdminId, entry.Admin.AdminName, entry.At);
+        Withdrawal withdrawal = await _db.Withdrawals.AsNoTracking().SingleAsync(w => w.Id == entry.WithdrawalId, ct);
+        WithdrawalProgress progress = await WithdrawalProgressAsync(withdrawal, ct);
+        Return receipt = Return.ForWithdrawal(subject.OrderItemId, entry.WithdrawalId, entry.Quantity, entry.ArrivalDate, entry.Admin.AdminId, entry.Admin.AdminName, entry.At);
         _db.Returns.Add(receipt);
-        return new ItemRecordWriteResult(null, receipt.Id, null);
+
+        // Units beyond those on the way back are closed ones: the closure opens as a whole (06 4.28 ReopenedAt; K-1055) - the units still not come back await their
+        // receipt again and may be closed by a new row.
+        if (entry.Quantity > progress.Awaiting)
+        {
+            foreach (NotReturnedClosure closure in await _db.NotReturnedClosures.Where(n => n.WithdrawalId == entry.WithdrawalId && n.ReopenedAt == null).ToListAsync(ct))
+            {
+                closure.ReopenedAt = entry.At;
+            }
+        }
+
+        bool ibanRequested = entry.IsTransferLine && await RequestIbanAgainAsync(entry, ct);
+        return new ItemRecordWriteResult(null, receipt.Id, null, null, ibanRequested);
+    }
+
+    public async Task<ItemRecordWriteResult> AddNotReturnedClosureAsync(NotReturnedClosureEntry entry, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        ItemRecordSubject subject = entry.Subject;
+        RequireOrderLock(subject);
+        Withdrawal? withdrawal = subject.ProductType == ProductType.Physical
+            ? await _db.Withdrawals.AsNoTracking().SingleOrDefaultAsync(w => w.Id == entry.WithdrawalId && w.OrderItemId == subject.OrderItemId, ct)
+            : null;
+        int awaiting = withdrawal is null ? 0 : (await WithdrawalProgressAsync(withdrawal, ct)).Awaiting;
+        if (withdrawal is null || awaiting == 0)
+        {
+            return ItemRecordWriteResult.Rejected(ItemRecordRefusal.WithdrawalNotAwaiting);
+        }
+
+        // Only a withdrawal after the delivery whose sending period (Z-42) ran out; running out closes nothing by itself (02 7.4.4, 10.4.9; K-494).
+        bool afterDelivery = AfterSalesPeriodRules.IsAfterDelivery(subject.ProductType, subject.DeliveryDate, withdrawal.DeclarationDate, withdrawal.IsDeliveredBeforeDeclaration);
+        if (!AfterSalesPeriodRules.IsNotReturnedClosureOpen(afterDelivery, awaiting, withdrawal.DeclarationDate, entry.At))
+        {
+            return ItemRecordWriteResult.Rejected(ItemRecordRefusal.SendingPeriodNotOver);
+        }
+
+        if (!ItemQuantities.IsSelectable(entry.Quantity, awaiting))
+        {
+            return ItemRecordWriteResult.Rejected(ItemRecordRefusal.QuantityExceedsOpen);
+        }
+
+        NotReturnedClosure closure = NotReturnedClosure.Create(subject.OrderItemId, withdrawal.Id, entry.Quantity, entry.Admin.AdminId, entry.Admin.AdminName, entry.At);
+        _db.NotReturnedClosures.Add(closure);
+        return new ItemRecordWriteResult(null, closure.Id, null);
+    }
+
+    public async Task<ReturnStockResult> MarkReturnStockAddedAsync(ReturnStockEntry entry, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        RequireOrderLock(entry.Subject);
+        if (entry.Subject.ProductType != ProductType.Physical)
+        {
+            return new ReturnStockResult(ItemRecordRefusal.ReceiptNotFound, 0);
+        }
+
+        Return? receipt = await _db.Returns.SingleOrDefaultAsync(r => r.Id == entry.ReturnId && r.OrderItemId == entry.Subject.OrderItemId, ct);
+        if (receipt is null)
+        {
+            return new ReturnStockResult(ItemRecordRefusal.ReceiptNotFound, 0);
+        }
+
+        // Once per receipt and as many units as were received (02 7.4.7; 06 4.26; K-215): the step never adds twice.
+        if (receipt.StockAddedAt is not null)
+        {
+            return new ReturnStockResult(ItemRecordRefusal.StockNotAddable, 0);
+        }
+
+        receipt.StockAddedAt = entry.At;
+        return new ReturnStockResult(null, receipt.Quantity);
     }
 
     public async Task<ItemRecordWriteResult> AddReturnRejectionAsync(ReturnRejectionEntry entry, CancellationToken ct)
@@ -197,7 +270,7 @@ internal sealed partial class AfterSalesModule
             return ItemRecordWriteResult.Rejected(ItemRecordRefusal.NotConditionalExemption);
         }
 
-        ItemRecordRefusal? refusal = await ReceiptRefusalAsync(entry.Subject, entry.WithdrawalId, entry.Quantity, entry.ArrivalDate, ct);
+        ItemRecordRefusal? refusal = await ReceiptRefusalAsync(entry.Subject, entry.WithdrawalId, entry.Quantity, entry.ArrivalDate, includeClosed: false, ct);
         if (refusal is { } refused)
         {
             return ItemRecordWriteResult.Rejected(refused);
@@ -268,35 +341,73 @@ internal sealed partial class AfterSalesModule
     }
 
     /// <summary>
-    /// The receipt step's rule (03 1.7.1.6, 1.7.1.7; K-794): the withdrawal is the item's, the units are at most those still on the way back, and the arrival date is
-    /// not before the declaration (06 4.26; the caller checks it is not in the future).
+    /// The receipt step's rule (03 1.7.1.6, 1.7.1.7; 02 7.4.7; K-794): a physical item's withdrawal, the units at most those still on the way back - with
+    /// <paramref name="includeClosed"/> also those of an open "mal dönmedi" closure, which the receipt reopens -, and the arrival date not before the item's entered
+    /// delivery date; a parcel withdrawn before its delivery has no delivery date and no lower bound. The date may be before the declaration (K-554: the refund
+    /// period then runs from the declaration); the caller refuses a date in the future.
     /// </summary>
-    private async Task<ItemRecordRefusal?> ReceiptRefusalAsync(ItemRecordSubject subject, Guid withdrawalId, int quantity, DateOnly arrivalDate, CancellationToken ct)
+    private async Task<ItemRecordRefusal?> ReceiptRefusalAsync(
+        ItemRecordSubject subject, Guid withdrawalId, int quantity, DateOnly arrivalDate, bool includeClosed, CancellationToken ct)
     {
-        Withdrawal? withdrawal = await _db.Withdrawals.AsNoTracking().SingleOrDefaultAsync(w => w.Id == withdrawalId && w.OrderItemId == subject.OrderItemId, ct);
+        Withdrawal? withdrawal = subject.ProductType == ProductType.Physical
+            ? await _db.Withdrawals.AsNoTracking().SingleOrDefaultAsync(w => w.Id == withdrawalId && w.OrderItemId == subject.OrderItemId, ct)
+            : null;
         if (withdrawal is null)
         {
             return ItemRecordRefusal.WithdrawalNotAwaiting;
         }
 
-        int received = await _db.Returns.Where(r => r.WithdrawalId == withdrawalId).SumAsync(r => r.Quantity, ct)
-            + AddedSum<Return>(r => r.WithdrawalId == withdrawalId, r => r.Quantity);
-        int rejected = await _db.ReturnRejections.Where(r => r.WithdrawalId == withdrawalId).SumAsync(r => r.Quantity, ct)
-            + AddedSum<ReturnRejection>(r => r.WithdrawalId == withdrawalId, r => r.Quantity);
-        int notReturned = await _db.NotReturnedClosures.Where(n => n.WithdrawalId == withdrawalId && n.ReopenedAt == null).SumAsync(n => n.Quantity, ct);
-        int awaiting = ItemQuantities.AwaitingReceipt(withdrawal.Quantity, received, rejected, notReturned);
-        if (awaiting == 0)
+        WithdrawalProgress progress = await WithdrawalProgressAsync(withdrawal, ct);
+        int takeable = progress.Awaiting + (includeClosed ? progress.NotReturned : 0);
+        if (takeable == 0)
         {
             return ItemRecordRefusal.WithdrawalNotAwaiting;
         }
 
-        if (!ItemQuantities.IsSelectable(quantity, awaiting))
+        if (!ItemQuantities.IsSelectable(quantity, takeable))
         {
             return ItemRecordRefusal.QuantityExceedsOpen;
         }
 
-        return arrivalDate < withdrawal.DeclarationDate ? ItemRecordRefusal.ArrivalDateOutOfRange : null;
+        return subject.DeliveryDate is { } delivered && arrivalDate < delivered ? ItemRecordRefusal.ArrivalDateOutOfRange : null;
     }
+
+    /// <summary>A withdrawal's units still on the way back and those of its open "mal dönmedi" closures, the caller's unsaved records included (K-794).</summary>
+    private async Task<WithdrawalProgress> WithdrawalProgressAsync(Withdrawal withdrawal, CancellationToken ct)
+    {
+        Guid id = withdrawal.Id;
+        int received = await _db.Returns.Where(r => r.WithdrawalId == id).SumAsync(r => r.Quantity, ct)
+            + AddedSum<Return>(r => r.WithdrawalId == id, r => r.Quantity);
+        int rejected = await _db.ReturnRejections.Where(r => r.WithdrawalId == id).SumAsync(r => r.Quantity, ct)
+            + AddedSum<ReturnRejection>(r => r.WithdrawalId == id, r => r.Quantity);
+        int notReturned = await _db.NotReturnedClosures.Where(n => n.WithdrawalId == id && n.ReopenedAt == null).SumAsync(n => n.Quantity, ct)
+            + AddedSum<NotReturnedClosure>(n => n.WithdrawalId == id && n.ReopenedAt == null, n => n.Quantity);
+        return new WithdrawalProgress(ItemQuantities.AwaitingReceipt(withdrawal.Quantity, received, rejected, notReturned), notReturned);
+    }
+
+    /// <summary>
+    /// The IBAN asked for again at a receipt (02 7.4.5; 03 1.7.1.6; K-497, K-498): on the transfer line, after the delivery - the receipt starts the refund's period -,
+    /// when the declaration's IBAN is gone (deleted by Z-38, the closure or the refund line) and no IBAN fulfilled on the item still stands. The customer enters it on
+    /// the order page; the firm never enters it (02 8.4.2). True when a new request was opened - the caller sends B-14; an open request is used as it is.
+    /// </summary>
+    private async Task<bool> RequestIbanAgainAsync(ReturnReceiptEntry entry, CancellationToken ct)
+    {
+        ItemRecordSubject subject = entry.Subject;
+        Withdrawal withdrawal = await _db.Withdrawals.AsNoTracking().SingleAsync(w => w.Id == entry.WithdrawalId, ct);
+        bool afterDelivery = AfterSalesPeriodRules.IsAfterDelivery(subject.ProductType, subject.DeliveryDate, withdrawal.DeclarationDate, withdrawal.IsDeliveredBeforeDeclaration);
+        if (!afterDelivery || withdrawal.RefundIbanId is not null
+            || await _db.RefundIbanRequests.AnyAsync(r => r.OrderItemId == subject.OrderItemId && r.RefundIbanId != null, ct))
+        {
+            return false;
+        }
+
+        RefundIbanRequestOpened opened = await OpenRefundIbanRequestAsync(
+            new RefundIbanRequestEntry(subject.OrderItemId, null, RefundIbanRequestReason.ReturnAfterIbanDeleted, entry.Admin.AdminId, entry.Admin.AdminName, entry.At), ct);
+        return opened.IsNew;
+    }
+
+    /// <summary>A withdrawal's units on the way back and those of its open closures.</summary>
+    private sealed record WithdrawalProgress(int Awaiting, int NotReturned);
 
     private int AddedSum<TRecord>(Func<TRecord, bool> filter, Func<TRecord, int> quantityOf)
         where TRecord : class

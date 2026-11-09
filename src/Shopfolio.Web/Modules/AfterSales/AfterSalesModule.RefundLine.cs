@@ -149,6 +149,13 @@ internal sealed partial class AfterSalesModule
             : [.. await _db.RefundIbanRequests.Where(r => r.RefundId == failure.RefundId).Select(r => r.RefundIbanId).ToListAsync(ct)];
         Guid[] ids = [.. candidates.OfType<Guid>().Distinct()];
         List<RefundIban> ibans = await _db.RefundIbans.Where(i => ids.Contains(i.Id) && i.OrderId == failure.OrderId).ToListAsync(ct);
+
+        // Without a record's or a request's IBAN the item's refund was paid to the IBAN on the order's file - the same rule the IBAN's life counts by
+        // (IsUsedByAPendingTransferRefundAsync): a defect remedy begun while an IBAN was on file opens no request (D-907).
+        if (ibans.Count == 0 && failure.OrderItemId is not null)
+        {
+            ibans = [.. (await _db.RefundIbans.Where(i => i.OrderId == failure.OrderId).ToListAsync(ct)).OrderByDescending(i => i.EnteredAt).ThenBy(i => i.Id).Take(1)];
+        }
         if (ibans.Count == 0)
         {
             return null;
@@ -348,7 +355,14 @@ internal sealed partial class AfterSalesModule
         List<ClosedPart> notReturned = await _db.NotReturnedClosures.Where(c => withdrawalIds.Contains(c.WithdrawalId) && c.ReopenedAt == null)
             .Select(c => new ClosedPart(c.WithdrawalId, c.Quantity))
             .ToListAsync(ct);
-        foreach (ClosedPart part in rejected.Concat(notReturned))
+        // The rejection or closure the caller added in this transaction counts too: the IBAN goes with it (02 7.4.9, 10.4.9; K-1127).
+        IEnumerable<ClosedPart> unsaved = _db.ChangeTracker.Entries<ReturnRejection>()
+            .Where(e => e.State == EntityState.Added && withdrawalIds.Contains(e.Entity.WithdrawalId))
+            .Select(e => new ClosedPart(e.Entity.WithdrawalId, e.Entity.Quantity))
+            .Concat(_db.ChangeTracker.Entries<NotReturnedClosure>()
+                .Where(e => e.State == EntityState.Added && e.Entity.ReopenedAt == null && withdrawalIds.Contains(e.Entity.WithdrawalId))
+                .Select(e => new ClosedPart(e.Entity.WithdrawalId, e.Entity.Quantity)));
+        foreach (ClosedPart part in rejected.Concat(notReturned).Concat(unsaved))
         {
             closed[part.WithdrawalId] = closed.GetValueOrDefault(part.WithdrawalId) + part.Quantity;
         }

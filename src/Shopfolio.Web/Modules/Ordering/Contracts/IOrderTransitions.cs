@@ -146,6 +146,21 @@ public interface IOrderTransitions
     Task<ItemRecordResult> RejectReturnAsync(RejectReturnRequest request, CancellationToken ct);
 
     /// <summary>
+    /// The administrator receives a withdrawal's returned goods (T373; 03 1.7.1.6; 02 7.4.7, 7.4.5, 10.4.9): the arrived units and their date; a receipt of closed units
+    /// reopens the "mal dönmedi" closure, and on the transfer line a receipt whose IBAN was deleted asks the customer for one again (B-14). The stock is not touched.
+    /// </summary>
+    Task<ItemRecordResult> ReceiveReturnAsync(ReceiveReturnRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// The administrator's "mal dönmedi" closure (T373; 03 1.7.1.8; 02 10.4.9): after Z-42, on the units of an after-delivery withdrawal not come back. No notice, no
+    /// refund; the IBAN no pending refund uses goes (K-1127).
+    /// </summary>
+    Task<ItemRecordResult> CloseAsNotReturnedAsync(CloseAsNotReturnedRequest request, CancellationToken ct);
+
+    /// <summary>The administrator's "Stoğa ekle" on a receipt (T373; 02 7.4.7; 03 1.4.4.6): the received units go back to the variant once; not offered when the variant is gone.</summary>
+    Task<ItemRecordResult> AddReturnedStockAsync(AddReturnedStockRequest request, CancellationToken ct);
+
+    /// <summary>
     /// The customer's withdrawal declaration from the order page (T372; 03 1.11.5, 1.11.6, 1.7.1.5; 02 7.3.5): the item and units, the date stamp of the sending, the last
     /// step's confirmation; open only where the order page's button is (a shipped physical item, a paid service item, inside the window, no absolute exemption). The
     /// physical item's record copies the firm's current return address; on the transfer line the IBAN is entered or the one on file is used. Successive declarations are

@@ -1,6 +1,6 @@
 # T375 — Yöneticinin sipariş düzeltmeleri: ileri yönlü kayıt, tutar değişmez, firmanın teyidiyle e-posta ve adres düzeltmesi, cayma beyanı geri alınmaz
 
-**Faz:** F3 | **Durum:** ✓ Yapım tamam, doğrulama bekliyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 ✓ PASS) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -84,6 +84,15 @@ Devam işçisi bütün maddeleri (önceki işçinin yaptıkları dahil) diff'te 
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-09; head `45002c4c`, PR #505; dal CI 42660122152 yeşil — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate) |
+| Bulgu sayısı | 0 |
+| Bloke-etmeyen not (K) sayısı | 3 — K1: `OrderingModule.cs`'te `OrderCorrections` kaydı T323'ün "operation decision" yorumunun altına girmişti → bu PR'da kendi yorumuyla ayrıldı. K2: `12` `VAL-A239` "teyit kayda geçer" ↔ `06` "teyit kaydedilmez" → D-894 (T530). K3: D-883/D-884 hedefi T527 yazıyordu (T527 ilk işareti taşır; düzeltmeler T528/T530/T531) ve D-884 müdahale 5'i (`CorrectTransitionAsync` iz yazmıyor) saymıyordu → bu PR'da parça satırları düzeltildi. |
+| Düzeltme gerekli mi | Hayır |
+
+**Kabul kriterleri (validator kanıtı):** 1 ✓ `OrderCorrections.cs` tutar/adet/fiyat okumaz-yazmaz; `…KK1` testi toplam, kargo, kalem adet/fiyat/KDV/kupon ve eksenleri sabit, sürüm +2, geçiş kaydı yok. 2 ✓ `OrderInterventions.All` dokuz satır (`02 §10.4.1` sırasıyla), elle sipariş yöntemi yok; T375'in iki müdahalesi iz satırı yazar (`…KK2`); öteki yedi müdahalenin iz satırı panel task'larına ileri atılmıştır (D-884; D-646/D-774 emsali) — `VAL-D028` bu yüzden `BEKLEMEDE`. 3 ✓ `OrderOperationCatalog.IsAddressCorrectable` (fiziksel: Placed/Preparing; fiziksel kalemsiz: Delivered/Cancelled hariç) + iki Theory. 4 ✓ `AddressRequestConfirmation.None` → `ConfirmationRequired`, hiçbir şey yazılmaz; fiziksel kalemsizde telefonla teyit `ConditionNotMet`. 5 ✓ B-10 siparişin e-postasına; `OrderAddressHistory` eski/yeni değer, telefon, yönetici, an; iz satırı değer taşımaz. 6 ✓ yalnız misafir ve imha edilmemiş sipariş (1.11.35); sözleşme taraması müşteri yüzeyinde alan/yöntem yok. 7 ✓ ad+kalem+tutar (+fiziksel kalemde telefon) zorunlu; `RenewAccessKey` eski anahtarı ve eski adresle numara sorgusunu kapatır; bekleyen bildirimler (B-15 hariç) yeni adrese (`05 §4.4.3`, K-1138), B-1 yeni adrese, B-15 eski adrese. 8 ✓ `OrderEmailHistory`; bağ kesilir, yeni adresin doğrulanmış hesabı alır (`ResolveOrderAccountAsync` gerçek sorguyla eşdeğer), `IsAccountDeleted` siparişte bağ kurulmaz. 9 ✓ sözleşme yüzeyinde cayma beyanını değiştiren/geri alan yöntem yok (`…KK9`, `IrreversibleConfirmationTests`).
+
+**Testler (validator):** restore ✓; `dotnet build Shopfolio.slnx --no-restore -warnaserror` 0/0; `dotnet format --verify-no-changes` 3 proje temiz; Unit 5701/5701; betik testleri 4/4; Integration (`postgres:18`, `track_commit_timestamp=on`) `OrderCorrectionTests` + `StockReservationAndHistoryTablesTests` 54/54; `--locked-mode` restore 0; `12_matris_denetle.py --kapsam 1-77` Hata 0.
+
+**Task satırları (`12 §7.5`):** KP-8, KP-17, KP-28, KP-48 grep'inden T375'in konusu `VAL-D011`, `VAL-D021`, `VAL-C055`, `VAL-C056`, `VAL-A239`, `VAL-D026`, `VAL-A244`…`A247`, `VAL-D027`, `VAL-D028`, `VAL-A254`'ün adres yarısı. Hepsi uç yanıtı ister (panel ucu T530) ya da — `VAL-D028` — öteki müdahalelerin iz satırını bekler (D-884) → **BEKLEMEDE** kaldı (T353, T369, T372 emsali). KD-13'ün ayrı satırı yok (`VAL-A247` ile).
+
+**Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu her madde için kanıtlı. Uyuşmazlık yalnız backlog hedeflerinde (K3).

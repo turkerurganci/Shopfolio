@@ -90,8 +90,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T329-ilk-uctan-uca`
-- **Commit:** *(push sonrası)*
-- **PR:** *(açılınca)*
+- **Commit:** `8611eaa6` — T329: İlk uçtan uca akış testi — sekiz adım tek Integration testinde, sahte ödemeyle
+- **PR:** #499
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

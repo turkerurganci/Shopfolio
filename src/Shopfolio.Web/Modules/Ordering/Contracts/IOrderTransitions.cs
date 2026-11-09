@@ -133,6 +133,24 @@ public interface IOrderTransitions
     Task<ItemRecordResult> RejectReturnAsync(RejectReturnRequest request, CancellationToken ct);
 
     /// <summary>
+    /// The customer's withdrawal declaration from the order page (T372; 03 1.11.5, 1.11.6, 1.7.1.5; 02 7.3.5): the item and units, the date stamp of the sending, the last
+    /// step's confirmation; open only where the order page's button is (a shipped physical item, a paid service item, inside the window, no absolute exemption). The
+    /// physical item's record copies the firm's current return address; on the transfer line the IBAN is entered or the one on file is used. Successive declarations are
+    /// separate records. No axis changes by the declaration itself; an item without its delivery mark closes its withdrawn units and the last open item's closure is the
+    /// closure rule's. B-9 goes to the customer and F-3 to the firm. A declaration is never undone or corrected.
+    /// </summary>
+    Task<WithdrawalResult> DeclareWithdrawalAsync(DeclareWithdrawalRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// The administrator's record of a withdrawal notified by another channel (T372; 03 1.11.34; 02 10.4.10, 8.3.8): the date the notice reached the firm (past allowed,
+    /// future refused), the irreversible-action confirmation and - outside the window, beyond its year or on an absolute exemption - a separate confirmation; on the
+    /// delivery day the firm answers whether the delivery came first. A physical item not shipped yet takes no record (its way is the "müşteriyle anlaşıldı" cancellation,
+    /// 02 7.3.7). On the transfer line the notice's IBAN is carried over only from the order's contact e-mail; otherwise an IBAN request opens and B-14 goes. B-9 goes to the
+    /// customer; the firm is not told of its own record. The record is never undone or corrected.
+    /// </summary>
+    Task<WithdrawalResult> RecordWithdrawalAsync(RecordWithdrawalRequest request, CancellationToken ct);
+
+    /// <summary>
     /// The administrator's correction of a wrong transition (T319; 03 1.6.2; 02 10.4.6; 05 4.1.4): a new transition with a reason from the closed list that
     /// sets the axis back; the wrong row and the correction both stay in the record, and B-13 goes. There is no "undo": the panel corrects by this one path.
     /// What is corrected, and on what condition: the early delivery mark S6 (the physical items' marks go, the withdrawal and defect periods wait for the new

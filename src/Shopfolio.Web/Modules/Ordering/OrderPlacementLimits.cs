@@ -1,0 +1,49 @@
+using System.Net;
+
+using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Values;
+using Shopfolio.Modules.Payment.Contracts;
+
+namespace Shopfolio.Modules.Ordering;
+
+/// <summary>
+/// The two limits a new order's confirmation meets (02 8.2, 8.2.2, 8.2.3, 8.2.4; T377), asked together at the confirmation's one gate. Both are counted from the orders and both
+/// count on two axes separately - the client's IP and, for a signed-in member only, the account's e-mail -; whichever axis is full stops the order, and the other axis is not asked
+/// to agree. <b>L-7</b> (<see cref="UnpaidCancellationLimit"/>) stops any new order whatever its payment method: the user "cannot confirm a new order for a while".
+/// <b>L-8</b> (<see cref="OpenUnpaidOrderLimit"/>) closes the bank transfer only: a full ceiling leaves the card open, because a card order's hold lasts minutes (02 8.2.3; 3.21.5; 6.2.21).
+/// The administrator is not exempt (02 8.2.4): the gate takes no account type - an administrator has no cart and no order (02 10.2.5), and what a signed-in customer meets here is
+/// what any member meets. Nothing here counts the cart's items or the stock lookups: they have no limit (02 8.2.5).
+/// </summary>
+internal sealed class OrderPlacementLimits
+{
+    private readonly UnpaidCancellationLimit _cancellations;
+    private readonly OpenUnpaidOrderLimit _open;
+
+    public OrderPlacementLimits(UnpaidCancellationLimit cancellations, OpenUnpaidOrderLimit open)
+    {
+        ArgumentNullException.ThrowIfNull(cancellations);
+        ArgumentNullException.ThrowIfNull(open);
+        _cancellations = cancellations;
+        _open = open;
+    }
+
+    /// <summary>
+    /// The limit that stops a new order, or null when none does. <paramref name="memberEmail"/> is the account's e-mail of a signed-in member and null for a guest, who is counted
+    /// on the IP axis only (02 8.2.2). L-7 is asked first - it stops every method; L-8 only when the method is the bank transfer.
+    /// </summary>
+    public async Task<AttemptLimit?> FindExceededAsync(PaymentMethod method, IPAddress? address, string? memberEmail, CancellationToken ct)
+    {
+        if (await _cancellations.IsFullByIpAsync(address, ct) || (memberEmail is not null && await _cancellations.IsFullByEmailAsync(memberEmail, ct)))
+        {
+            return AttemptLimit.L7;
+        }
+
+        if (method == PaymentMethod.BankTransfer
+            && (await _open.IsFullByIpAsync(address, ct) || (memberEmail is not null && await _open.IsFullByEmailAsync(memberEmail, ct))))
+        {
+            return AttemptLimit.L8;
+        }
+
+        return null;
+    }
+}

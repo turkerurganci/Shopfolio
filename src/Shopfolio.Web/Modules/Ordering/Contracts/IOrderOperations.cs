@@ -32,4 +32,10 @@ public interface IOrderOperations
     /// above the open quantity is refused whole. A request for a missing order is closed.
     /// </summary>
     Task<OperationVerdict> CheckAsync(Guid orderId, OrderOperation operation, Guid? orderItemId, int? quantity, CancellationToken ct);
+
+    /// <summary>
+    /// The withdrawal declaration's screen of one item on the order page (02 7.3.5; T372), or null when the customer's withdrawal button is not open for it now - no such
+    /// order or item, a digital item, a physical item not shipped yet (its way is the cancellation, 02 7.3.7), the window closed, an absolute exemption, no open units.
+    /// </summary>
+    Task<WithdrawalScreen?> ReadWithdrawalScreenAsync(Guid orderId, Guid orderItemId, CancellationToken ct);
 }

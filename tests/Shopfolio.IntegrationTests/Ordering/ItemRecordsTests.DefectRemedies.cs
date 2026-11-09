@@ -5,6 +5,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.AfterSales.Contracts;
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering;
@@ -172,12 +173,113 @@ public sealed partial class ItemRecordsTests
         Assert.Equal(OperationDecision.Allowed, (await operations.CheckAsync(order.Id, OrderOperation.WithdrawPhysicalItem, item.Id, 2, Ct)).Decision);
     }
 
+    [Fact]
+    public async Task TheFirmsWholeOrderCancellation_OfAReturnedShipment_CancelsTheUnitsLeftBesideTheRescindedOne_KK8_B1()
+    {
+        (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card, returned: true);
+        Assert.Null((await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 2, 1), t))).Refusal);
+
+        OrderTransitionResult result = await RunAsync((u, t) =>
+            u.CancelOrderAsync(CancelOrderRequest.ByAdministrator(order.Id, AdminCaller, 3, true, CancellationReason.UndeliveredBuyerCaused), t));
+
+        // 02 7.1.6 (K-1077): the rescinded unit is no cancellation's subject; the two units open to an operation get the firm's record, linked to the S9.
+        Assert.False(result.IsRejected);
+        await using AppDbContext reader = NewContext();
+        TransitionRecord s9 = await reader.TransitionRecords.SingleAsync(t => t.Id == Assert.Single(result.TransitionRecordIds), Ct);
+        Cancellation cancellation = await reader.Cancellations.SingleAsync(c => c.OrderItemId == item.Id, Ct);
+        Assert.Equal((TransitionCode.S9, 2, (Guid?)s9.Id), (s9.TransitionCode, cancellation.Quantity, cancellation.TransitionRecordId));
+        Assert.Equal(OrderStatus.Cancelled, (await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct)).OrderStatus);
+        Assert.Equal(item.Quantity, await UnavailableAsync(item.Id));
+    }
+
+    [Fact]
+    public async Task TheFirmsWholeOrderCancellation_OfAReturnedShipmentWhoseUnitsAreAllRescinded_WritesNoItemRecord_KK8_B1()
+    {
+        (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card, claimUnits: 3, returned: true);
+        Assert.Null((await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 2, 3), t))).Refusal);
+
+        OrderTransitionResult result = await RunAsync((u, t) =>
+            u.CancelOrderAsync(CancelOrderRequest.ByAdministrator(order.Id, AdminCaller, 3, true, CancellationReason.UndeliveredBuyerCaused), t));
+
+        Assert.False(result.IsRejected);
+        Assert.Equal(0, await CountAsync(c => c.Cancellations.Where(x => x.OrderItemId == item.Id)));
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(OrderStatus.Cancelled, (await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct)).OrderStatus);
+    }
+
+    [Fact]
+    public async Task TheFirmsItemCancellation_OfTheUnitsLeftBesideARescindedOne_DoesNotCloseTheOrder_KK8_B1()
+    {
+        (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card, returned: true);
+        Assert.Null((await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 2, 1), t))).Refusal);
+
+        OrderTransitionResult result = await RunAsync((u, t) => u.CancelItemByFirmAsync(
+            new CancelItemByFirmRequest(order.Id, item.Id, 2, AdminCaller, 3, true, CancellationReason.UndeliveredBuyerCaused, null, false), t));
+
+        // The rescinded unit does not close the item (02 7.1.6): the closure rule keeps reading the closed units, so the order lives on in "Teslim edilemedi".
+        Assert.False(result.IsRejected);
+        Assert.Empty(result.TransitionRecordIds);
+        Assert.Equal((2, item.Quantity), (await ClosedAsync(item.Id), await UnavailableAsync(item.Id)));
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(OrderStatus.DeliveryFailed, (await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct)).OrderStatus);
+    }
+
+    [Fact]
+    public async Task Rescission_AfterAPriceReductionOfTheWholePaidAmount_PaysNothingMore_AndIsRefused_D893()
+    {
+        (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card);
+        Assert.Null((await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, PaidTotal), t))).Refusal);
+
+        ItemRecordResult rescinded = await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 3, ClaimUnits), t));
+
+        // The item's refunds never pass its paid amount (D-893); with nothing left the zero-amount rule refuses the rescission (D-881) and its units stay open.
+        Assert.Equal(TransitionRefusal.ConditionNotMet, rescinded.Refusal);
+        await using AppDbContext reader = NewContext();
+        Assert.Equal((1, PaidTotal), (await reader.Refunds.CountAsync(r => r.OrderItemId == item.Id, Ct), await reader.Refunds.Where(r => r.OrderItemId == item.Id).SumAsync(r => r.Amount, Ct)));
+        Assert.Equal(0, await UnavailableAsync(item.Id));
+    }
+
+    [Fact]
+    public async Task Rescission_AfterAPartialPriceReduction_PaysAtMostWhatTheItemsRefundsLeft_D893()
+    {
+        const decimal reduction = 200m;
+        (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card);
+        Assert.Null((await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, reduction), t))).Refusal);
+
+        ItemRecordResult rescinded = await RunAsync((u, t) => u.RescindDefectClaimAsync(new RescindDefectClaimRequest(order.Id, item.Id, AdminCaller, 3, ClaimUnits), t));
+
+        // 02 7.1.7 would pay 186.67 for the two units; the item's refunds stop at its paid amount, so the rescission pays the 80 left and still takes its units back.
+        Assert.Null(rescinded.Refusal);
+        Refund refund = await RefundAsync(rescinded.RecordId!.Value);
+        ItemAmounts split = ItemShares.SetAside(new ItemFrozenAmounts(100m, 20m, 16.67m), 3, ClaimUnits, false, 0m, 0m);
+        Assert.True(split.ProductAmount - split.CouponShare > PaidTotal - reduction);
+        Assert.Equal((PaidTotal - reduction, (int?)ClaimUnits, (decimal?)split.CouponShare), (refund.Amount, refund.Quantity, refund.CouponShare));
+        Assert.Equal(ClaimUnits, await UnavailableAsync(item.Id));
+    }
+
+    [Fact]
+    public async Task PriceReduction_IsHeldToTheItemsPaidAmount_WhenTheOrderPaidMore_D893()
+    {
+        (Order order, OrderItem item) = await SeedClaimedAsync(3, PaymentMethod.Card);
+        await ExecuteAsync($"UPDATE orders SET total = 400 WHERE id = '{order.Id}'");
+
+        // The order's paid money not refunded is 400 (02 5.5), but the item paid 280: the item's refunds never pass that (D-893).
+        Assert.Equal(TransitionRefusal.InvalidInput, (await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, PaidTotal + 0.01m), t))).Refusal);
+        Assert.Null((await RunAsync((u, t) => u.ReduceDefectClaimPriceAsync(new ReduceDefectClaimPriceRequest(order.Id, item.Id, AdminCaller, 2, PaidTotal), t))).Refusal);
+        Assert.Equal(1, await CountAsync(c => c.Refunds.Where(r => r.OrderItemId == item.Id)));
+    }
+
     // ---- helpers ----
 
-    /// <summary>A delivered physical item with the customer's open claim on <paramref name="claimUnits"/> units; the order's version is 2 after the claim.</summary>
-    private async Task<(Order Order, OrderItem Item)> SeedClaimedAsync(int quantity, PaymentMethod method, int claimUnits = ClaimUnits)
+    /// <summary>
+    /// A delivered physical item with the customer's open claim on <paramref name="claimUnits"/> units; the order's version is 2 after the claim. On a returned shipment
+    /// (<paramref name="returned"/>) the item is the undated physical item of "Teslim edilemedi", whose claim channel is open too (D-532).
+    /// </summary>
+    private async Task<(Order Order, OrderItem Item)> SeedClaimedAsync(int quantity, PaymentMethod method, int claimUnits = ClaimUnits, bool returned = false)
     {
-        (Order order, OrderItem item) = await SeedDeliveredAsync(quantity, null);
+        (Order order, OrderItem item) = returned
+            ? await SeedAsync(OrderStatus.DeliveryFailed, PaymentStatus.Paid, ProductType.Physical, quantity, delivered: false, exemption: null)
+            : await SeedDeliveredAsync(quantity, null);
         string iban = method == PaymentMethod.BankTransfer ? $"'{FirmIban}'" : "NULL";
         string total = PaidTotal.ToString(System.Globalization.CultureInfo.InvariantCulture);
         await ExecuteAsync($"UPDATE orders SET payment_method = '{method}', bank_transfer_iban = {iban}, total = {total} WHERE id = '{order.Id}'");

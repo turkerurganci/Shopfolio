@@ -42,6 +42,13 @@ public interface IPaymentModule
     Task<decimal> CommittedRefundTotalAsync(Guid orderId, CancellationToken ct);
 
     /// <summary>
+    /// The total of the item's refunds that are not voided - started, awaiting or sent - without the order's shipping fee a refund of an item record carries
+    /// (<paramref name="shippingFee"/>, the order's frozen fee), the open transaction's changes included: the item's paid amount minus this is what a defect remedy may
+    /// still pay back for the item (T374 D-893: the item's refunds never pass its paid amount). A plain read.
+    /// </summary>
+    Task<decimal> CommittedItemRefundTotalAsync(Guid orderItemId, decimal shippingFee, CancellationToken ct);
+
+    /// <summary>
     /// Writes the outcome of one card refund request (05 4.6.2): <see cref="RefundRecordState.Succeeded"/> - the provider carried it out, the refund is
     /// sent; <see cref="RefundRecordState.Failed"/> - refused or not sent; <see cref="RefundRecordState.OutcomePending"/> - unknown, to be asked. The
     /// record must be the order's card refund's and still open (sending or outcome pending); otherwise nothing is written and the result is null.

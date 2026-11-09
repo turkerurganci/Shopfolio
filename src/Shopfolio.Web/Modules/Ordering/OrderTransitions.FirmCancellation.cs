@@ -62,8 +62,11 @@ internal sealed partial class OrderTransitions
 
         RaiseVersionOnce(order);
 
+        // Whether these were the order's last open units is the closure's question (02 7.1.6, 5.8): a unit rescinded on a defect claim does not close its item, so the
+        // closed units are read - as the closure rule and the cancellation's condition read them (T374 B1); the quantity itself was checked against the units open to
+        // an operation above.
         List<OrderItem> items = await _db.OrderItems.Where(i => i.OrderId == order.Id).ToListAsync(ct);
-        IReadOnlyDictionary<Guid, int> closed = await _afterSales.UnavailableQuantitiesAsync([.. items.Select(i => i.Id)], ct);
+        IReadOnlyDictionary<Guid, int> closed = await _afterSales.ClosedQuantitiesAsync([.. items.Select(i => i.Id)], ct);
         bool noOpenUnit = items.All(i => i.Quantity - closed.GetValueOrDefault(i.Id) <= 0);
         bool anyDelivered = items.Any(i => i.DeliveryMarkedAt is not null);
         CancelledItem cancelled = new(item.ProductName, item.FirstOptionValue, item.SecondOptionValue, request.Quantity);
@@ -104,12 +107,14 @@ internal sealed partial class OrderTransitions
     /// <summary>
     /// The item side of the firm's whole-order cancellation of a paid order (D-305; 02 7.2.4, 7.2.6): every open item's open units get a firm cancellation record with the
     /// same reason, linked to the transition that closed the order, and the units go back (1.4.4.4). Called after the transition, in its transaction and under its lock.
+    /// The open units are the ones open to an operation (02 7.1.6; K-1077): the units rescinded on a defect claim are no cancellation's subject, so they are left out
+    /// like the closed ones and an item with none left gets no record (T374 B1).
     /// </summary>
     private async Task CancelOpenItemsByFirmAsync(Guid orderId, Guid transitionRecordId, CancelOrderRequest request, CancellationToken ct)
     {
         Order order = await _db.Orders.SingleAsync(o => o.Id == orderId, ct);
         List<OrderItem> items = await _db.OrderItems.Where(i => i.OrderId == orderId).OrderBy(i => i.CreatedAt).ThenBy(i => i.Id).ToListAsync(ct);
-        IReadOnlyDictionary<Guid, int> closed = await _afterSales.ClosedQuantitiesAsync([.. items.Select(i => i.Id)], ct);
+        IReadOnlyDictionary<Guid, int> closed = await _afterSales.UnavailableQuantitiesAsync([.. items.Select(i => i.Id)], ct);
         ItemRecordAdmin admin = new(request.Admin!.AdminId, request.Admin.AdminName);
         string? note = request.FirmReason == CancellationReason.Other ? request.ReasonNote!.Trim() : null;
         DateTimeOffset now = _time.GetUtcNow();

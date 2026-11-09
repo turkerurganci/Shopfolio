@@ -41,15 +41,18 @@ internal sealed partial class OrderTransitions
             return ItemRefused(Map(refused));
         }
 
-        // A rescission with nothing to pay back (the coupon took the whole price) has no refund to carry its units (06 4.33: the amount is above zero).
+        // The item's refunds never pass its paid amount (D-893): after a price reduction the rescission pays at most what the item's started and sent refunds left.
+        // A rescission with nothing to pay back (the coupon took the whole price, or the earlier refunds did) has no refund to carry its units (06 4.33: the amount
+        // is above zero; D-881).
         RefundAmount amount = check.Amount!;
-        if (amount.Amount <= 0m)
+        decimal payable = Math.Min(amount.Amount, await ItemRefundLeftAsync(order!, item, ct));
+        if (payable <= 0m)
         {
             return ItemRefused(TransitionRefusal.ConditionNotMet);
         }
 
         DefectRescissionShares shares = new(check.ClaimId!.Value, amount.Quantity, amount.CouponShare, amount.VatAmount);
-        return await StartRemedyRefundAsync(order!, subject, request.Admin, amount.Amount, shares, ct);
+        return await StartRemedyRefundAsync(order!, subject, request.Admin, payable, shares, ct);
     }
 
     public async Task<ItemRecordResult> ReduceDefectClaimPriceAsync(ReduceDefectClaimPriceRequest request, CancellationToken ct)
@@ -83,14 +86,25 @@ internal sealed partial class OrderTransitions
             return ItemRefused(Map(refused));
         }
 
-        // The amount-based refund pays back while paid money that is not refunded is left (03 1.11.31): the refunds already started count, so two never pass the total.
-        decimal left = order!.Total - await _payment.CommittedRefundTotalAsync(order.Id, ct);
+        // The amount-based refund pays back while paid money that is not refunded is left (03 1.11.31): the refunds already started count, so two never pass the total;
+        // and the item's refunds never pass the item's paid amount (D-893).
+        decimal left = Math.Min(order!.Total - await _payment.CommittedRefundTotalAsync(order.Id, ct), await ItemRefundLeftAsync(order, item!, ct));
         if (request.Amount > left)
         {
             return ItemRefused(TransitionRefusal.InvalidInput);
         }
 
         return await StartRemedyRefundAsync(order, subject, request.Admin, request.Amount, null, ct);
+    }
+
+    /// <summary>
+    /// What the item's refunds may still pay back (D-893; 12 P5.5): the item's paid amount - its frozen unit price times its units less its coupon share (02 7.1.7) - less
+    /// its refunds that are not voided, started or sent, without the shipping fee one of them carries. Never below zero.
+    /// </summary>
+    private async Task<decimal> ItemRefundLeftAsync(Order order, OrderItem item, CancellationToken ct)
+    {
+        decimal paid = ((item.DiscountedUnitPrice ?? item.UnitPrice) * item.Quantity) - item.CouponShare;
+        return Math.Max(0m, paid - await _payment.CommittedItemRefundTotalAsync(item.Id, order.ShippingFee, ct));
     }
 
     /// <summary>The money was taken and not all paid back (02 5.5): Ödendi or Kısmen geri ödendi.</summary>

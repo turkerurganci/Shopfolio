@@ -153,6 +153,14 @@ internal sealed class PaymentModule : IPaymentModule
             .Sum(r => r.Amount);
     }
 
+    public async Task<decimal> CommittedItemRefundTotalAsync(Guid orderItemId, decimal shippingFee, CancellationToken ct)
+    {
+        await _db.Refunds.Where(r => r.OrderItemId == orderItemId).LoadAsync(ct);
+        return _db.Refunds.Local
+            .Where(r => r.OrderItemId == orderItemId && r.VoidedAt is null)
+            .Sum(r => r.IsShippingFeeIncluded ? r.Amount - shippingFee : r.Amount);
+    }
+
     public async Task<decimal> SentRefundTotalAsync(Guid orderId, CancellationToken ct)
     {
         // Loading puts the saved rows into the context without overwriting the tracked ones; the open transaction's changes are read from there.

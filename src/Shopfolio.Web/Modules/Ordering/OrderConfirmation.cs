@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Coupons;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
@@ -17,7 +18,8 @@ namespace Shopfolio.Modules.Ordering;
 
 /// <summary>
 /// What the customer confirmed at the payment step (02 3.17.1, 3.17.2): the cart, the summary the customer saw - the lines, the shipping fee, the total and the payment method -, the
-/// legal text versions shown with the ticked boxes, the coupon code, the contact e-mail, the addresses and the client address.
+/// legal text versions shown with the ticked boxes, the coupon code, the contact e-mail, the addresses and the client address. The client address is required: a live order always
+/// holds its IP until the disposal empties it (06 4.17; the table's <c>disposal_fields_together</c> rule), so a connection without an address cannot place an order (T377; D-783).
 /// </summary>
 internal sealed record OrderConfirmationRequest(
     CartOwner Owner,
@@ -29,7 +31,7 @@ internal sealed record OrderConfirmationRequest(
     string ContactEmail,
     PartyAddress? Shipping,
     PartyAddress Billing,
-    IPAddress? IpAddress)
+    IPAddress IpAddress)
 {
     /// <summary>The values the summary is made of: the same ones <see cref="OrderConfirmation.SummarizeAsync"/> made the confirmed summary from.</summary>
     public OrderSummaryInput SummaryInput => new(Owner, ConfirmedSummary.PaymentMethod, CouponCode, ContactEmail, Shipping, Billing);
@@ -63,10 +65,11 @@ internal enum OrderConfirmationRefusal
     PaymentMethodUnavailable,
 
     /// <summary>
-    /// The bank transfer was chosen while the open unpaid order ceiling (L-8) is full for this customer - the IP axis, or the e-mail axis of a signed-in member (02 3.21.5, 8.2.2;
-    /// 07 6.2 <c>UnpaidOrderLimitExceeded</c>, told with the neutral message). The card stays open (T353 criterion 2). Nothing is born.
+    /// A limit that counts the orders stops the new order (T377; 02 8.2, 8.2.3; 07 4.13.6): L-7 (too many orders the system cancelled in the window) for any method, L-8 (the open unpaid
+    /// ceiling) for the bank transfer only. Nothing is born and the answer is the neutral one - it names no number, no time and no axis (02 6.1.5); the limit is in
+    /// <see cref="OrderConfirmationResult.ExceededLimit"/> for the log line only.
     /// </summary>
-    TransferCeilingReached,
+    AttemptLimitExceeded,
 }
 
 /// <summary>
@@ -79,7 +82,8 @@ internal sealed record OrderConfirmationResult(
     string? OrderNumber,
     ConfirmationSummary? CurrentSummary,
     IReadOnlyList<SummaryChange> Changes,
-    ConfirmationStepCheck? StepCheck) : IOperationResult
+    ConfirmationStepCheck? StepCheck,
+    AttemptLimit? ExceededLimit = null) : IOperationResult
 {
     public bool IsRejected => Refusal is not null;
 
@@ -87,6 +91,10 @@ internal sealed record OrderConfirmationResult(
 
     public static OrderConfirmationResult Refused(OrderConfirmationRefusal refusal, ConfirmationSummary? current = null, IReadOnlyList<SummaryChange>? changes = null, ConfirmationStepCheck? check = null) =>
         new(refusal, null, null, current, changes ?? [], check);
+
+    /// <summary>The refusal of a limit (T377): the limit that stopped the order, for the log line; the user sees the neutral message only.</summary>
+    public static OrderConfirmationResult LimitExceeded(AttemptLimit limit) =>
+        new(OrderConfirmationRefusal.AttemptLimitExceeded, null, null, null, [], null, limit);
 }
 
 /// <summary>
@@ -109,7 +117,7 @@ internal sealed class OrderConfirmation
     private readonly OrderCounters _counters;
     private readonly OrderTransitions _transitions;
     private readonly IPaymentMethods _paymentMethods;
-    private readonly OpenUnpaidOrderLimit _unpaidLimit;
+    private readonly OrderPlacementLimits _limits;
     private readonly TimeProvider _time;
 
     public OrderConfirmation(
@@ -124,7 +132,7 @@ internal sealed class OrderConfirmation
         OrderCounters counters,
         OrderTransitions transitions,
         IPaymentMethods paymentMethods,
-        OpenUnpaidOrderLimit unpaidLimit,
+        OrderPlacementLimits limits,
         TimeProvider time)
     {
         _db = db;
@@ -138,7 +146,7 @@ internal sealed class OrderConfirmation
         _counters = counters;
         _transitions = transitions;
         _paymentMethods = paymentMethods;
-        _unpaidLimit = unpaidLimit;
+        _limits = limits;
         _time = time;
     }
 
@@ -151,8 +159,7 @@ internal sealed class OrderConfirmation
         // unpaid order is cancelled and its reservation freed, so the customer is not stopped by the stock or the coupon right it held; a refusal below rolls the
         // cancellation back with the rest. A merged guest cart's order carries the deleted guest cart's id and is not found (the exception of 3.17.7).
         ShippingFeeSection shippingTerms = await _settings.GetShippingFeeAsync(ct);
-        List<Guid> replaced = [];
-        CartView cart = await _carts.OpenAsync(request.Owner, shippingTerms, async (id, token) => replaced.AddRange(await CancelEarlierUnpaidOrdersAsync(id, token)), ct);
+        CartView cart = await _carts.OpenAsync(request.Owner, shippingTerms, CancelEarlierUnpaidOrdersAsync, ct);
         List<CartLine> lines = [.. cart.OrderingLines];
         if (cart.CartId is not Guid cartId || lines.Count == 0)
         {
@@ -166,11 +173,12 @@ internal sealed class OrderConfirmation
             return OrderConfirmationResult.Refused(OrderConfirmationRefusal.PaymentMethodUnavailable);
         }
 
-        // 02 3.21.5 (T353 criterion 2): the transfer is closed to a customer whose open unpaid orders fill L-8; counted after the cart's earlier unpaid order was cancelled above,
-        // so the order this one replaces does not count. The card is not limited by it.
-        if (method == PaymentMethod.BankTransfer && await IsTransferCeilingReachedAsync(request.Owner, request.ContactEmail, request.IpAddress, replaced, ct))
+        // 02 8.2.2, 8.2.3, 8.2.4 (T377): the two limits counted from the orders. They are asked after the cart's earlier unpaid order was cancelled above - that order is not one of the
+        // open orders the ceiling counts any more and its cancellation is not L-7's (the same-cart reason) - and a refusal rolls that cancellation back with the rest. A guest is
+        // counted on the IP axis only; a signed-in member on both; there is no exemption for any account (02 8.2.4).
+        if (await _limits.FindExceededAsync(method, request.IpAddress, request.Owner.CustomerId is null ? null : request.ContactEmail, ct) is { } exceeded)
         {
-            return OrderConfirmationResult.Refused(OrderConfirmationRefusal.TransferCeilingReached);
+            return OrderConfirmationResult.LimitExceeded(exceeded);
         }
 
         Evaluation current = await EvaluateAsync(lines, cart.Shipping, request.SummaryInput, ct);
@@ -276,21 +284,7 @@ internal sealed class OrderConfirmation
         return OrderConfirmationResult.Placed(order.Id, order.OrderNumber);
     }
 
-    /// <summary>
-    /// True when the open unpaid order ceiling (L-8; 02 3.21.5, 8.2.2) is full for this customer, so the bank transfer cannot be chosen and the card stays the only way (T353
-    /// criterion 2): the IP axis for everyone, the e-mail axis only for a signed-in member - a guest order is counted on the IP axis alone. The payment step reads the same answer
-    /// to show the transfer as unavailable with its reason (04 5.13.8). <paramref name="replaced"/> are the orders cancelled in this transaction and not yet saved (02 3.17.7).
-    /// </summary>
-    public async Task<bool> IsTransferCeilingReachedAsync(CartOwner owner, string contactEmail, IPAddress? ipAddress, IReadOnlyCollection<Guid> replaced, CancellationToken ct)
-    {
-        ArgumentNullException.ThrowIfNull(owner);
-        ArgumentNullException.ThrowIfNull(contactEmail);
-        int ceiling = OpenUnpaidOrderLimit.Ceiling;
-        return await _unpaidLimit.CountByIpAsync(ipAddress, replaced, ct) >= ceiling
-            || (owner.CustomerId is not null && await _unpaidLimit.CountByEmailAsync(contactEmail, replaced, ct) >= ceiling);
-    }
-
-    private async Task<List<Guid>> CancelEarlierUnpaidOrdersAsync(Guid cartId, CancellationToken ct)
+    private async Task CancelEarlierUnpaidOrdersAsync(Guid cartId, CancellationToken ct)
     {
         List<Guid> earlier = await _db.Orders
             .Where(o => o.CartId == cartId && o.OrderStatus == OrderStatus.Placed && o.PaymentStatus == PaymentStatus.Pending)
@@ -301,8 +295,6 @@ internal sealed class OrderConfirmation
         {
             await _transitions.CancelOrderAsync(CancelOrderRequest.BySystem(orderId, TransitionReason.SameCartReorder), ct);
         }
-
-        return earlier;
     }
 
     /// <summary>

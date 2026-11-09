@@ -11,7 +11,7 @@
 
 - **Ödeme yöntemleri bölümü (kriter 1, 3):** `IPaymentMethodSettings` (`GetAsync`/`SaveAsync`) — havale anahtarı ve IBAN öteki ayar bölümleri gibi kaydedilir: satır kilidi, `PaymentMethodsVersion` koşullu güncellemesi, eski/yeni değerli iz satırı. Açıkken IBAN zorunlu (`FieldRequired`), yazılan IBAN projenin tek kuralıyla denetlenir (`InvalidIbanAttribute.Allows` → `InvalidIban`), `RequestFormat.CompactIban` biçiminde saklanır. IBAN ilk kez girilince ya da değişince aynı işlemde bütün yöneticilere F-5 (`IAdminNotices.QueueIbanChangedAsync` → `IbanChangedNotice`, e-postada yalnız son dört hane); temizlenen IBAN kimseye bildirilmez.
 - **Satış kapısı havale hattı (D-198 T353 payı):** `BankTransferCondition` (havale açık ve IBAN dolu) Settings modülünün kaydıyla bağlandı; `UnboundBankTransferCondition` silindi. Aynı okuma ödeme adımının yöntem listesini (`PaymentMethods.ListOpenAsync`) ve kapıyı besler.
-- **L-8 havale kapanışı (kriter 2):** havale seçilen onayda açık ödenmemiş sipariş tavanı doluysa yeni ret `OrderConfirmationRefusal.TransferCeilingReached`; kart açık kalır. Aynı sepetin onayda iptal edilen önceki siparişi sayımdan düşülür (`OpenUnpaidOrderLimit` `excluding` aşırı yüklemesi). `IsTransferCeilingReachedAsync` ödeme adımı için açık.
+- **L-8 havale kapanışı (kriter 2):** havale seçilen onayda açık ödenmemiş sipariş tavanı doluysa onay reddedilir; kart açık kalır. Düzeltme 1'den sonra ret main'in tek yolundan gelir (T377: `OrderPlacementLimits.FindExceededAsync` → `OrderConfirmationRefusal.AttemptLimitExceeded`, `ExceededLimit = L8`). Aynı sepetin onayda iptal edilen (henüz kaydedilmemiş) önceki siparişi sayılmaz: `OpenUnpaidOrderLimit.Open()` bu iş biriminin Pending'den çıkardığı siparişleri sayımdan düşer.
 - **B-2 (D-770):** havale onayı `TransferChosenNotice`'i ödeme süresinin sonuyla aynı işlemde kuyruğa koyar.
 - **D-151:** `CompactIban`/`CompactPhone` `char.IsWhiteSpace` olan her karakteri atar.
 - **Devam turu:** `PaymentMethodSettings` IBAN kuralını `ValidationAttribute.IsValid(object)` ile çağırıyordu (bağlamsız `ValidationContext` → `ArgumentNullException`); `FieldRuleAttribute.Allows` ile düzeltildi. Ertelenen aralık testi gerçek yönetici satırıyla kuruldu (FK). `origin/main` (T365, T368) birleştirildi; birleşik ağaçta Integration ve Unit TAM koştu.
@@ -40,13 +40,13 @@
 | Madde (kabul kriteri / KK) | Sonuç | Kanıt (dosya:satır, test adı) |
 |---|---|---|
 | KK1: IBAN'sız havale açılmaz, kapalıyken yöntem yok | ✓ | `PaymentMethodSettings.SaveAsync` (FieldRequired); `BankTransferCondition.IsOpenAsync`; `FirmSettingsTests` iki `_T353_KK1` testi |
-| KK2: tavan dolunca havale kapanır, kart açık | ✓ | `OrderConfirmation.cs` (L-8 sayımı, `TransferCeilingReached`); `…_T353_KK2` |
+| KK2: tavan dolunca havale kapanır, kart açık | ✓ | `OrderPlacementLimits.FindExceededAsync` (L-8 yalnız havalede); `OpenUnpaidOrderLimit.Open()` (aynı sepetin kaydedilmemiş iptali düşülür); `…_T353_KK2` (`AttemptLimitExceeded` + `L8`) — düzeltme 1'de birleşik ağaçta yeniden koştu |
 | KK3: IBAN siparişte sabit, değişiklik e-postası | ✓ | `AdminNotices.cs`; `…_T353_KK3` (üç test) |
 | KK4: ödendi işareti ödemeyi onaylar | ✓ | `PaymentTransitionsTests.MarkTransferPaid_Confirmed_…_KK3`; B-2 `…_T353_KK4_D770` |
 | KK5: hatırlatma süre başına bir kez, doğru gün | ✓ | `PaymentWindowTests.Reminder_GoesOnceAtItsMoment_…_KK7`; `TransferScheduleTests` |
 | KK6: eksik ödeme durumu ve gelen tutar alanı yok | ✓ | `BankTransferAmountTests` |
 | KK7: iptalli siparişte işaret reddi, yönetici aşamaz; ertelenen aralıkta kabul | ✓ | `…_T353_KK7` (iki test) |
-| `09 §25`: tek kural evi | ✓ | IBAN kuralı `InvalidIbanAttribute.Allows`; biçim `RequestFormat.CompactIban`; L-8 sayımı `OpenUnpaidOrderLimit` (ikinci sorgu yok) |
+| `09 §25`: tek kural evi | ✓ | IBAN kuralı `InvalidIbanAttribute.Allows`; biçim `RequestFormat.CompactIban`; L-8 sayımı `OpenUnpaidOrderLimit`, ret `OrderPlacementLimits` (düzeltme 1: T353'ün ikinci L-8 yolu kaldırıldı) |
 | `09 §25`: modül arayüzü işlem açmaz / SaveChanges çağırmaz | ✓ | `PaymentMethodSettings` ve `AdminNotices` çağıranın işleminde yazar (testler `ITransactionRunner` içinde) |
 | `09 §25`: eşzamanlılık | ✓ | Satır kilidi + `PaymentMethodsVersion` koşullu güncelleme; `FirmSettingsTests.APaymentMethodsSaveOnAStaleVersion_IsAConflict_AndTellsNoOne` |
 | `09 §25`: sayım veritabanında | ✓ | `OpenUnpaidOrderLimit` sayımı `CountAsync` |
@@ -123,6 +123,11 @@ Yok.
 
 #### Birleştirme notu
 `origin/main` (`9d0d611c`, T377 #497 ve T329 #499) ile birleştirme kodda çakıştı: `src/Shopfolio.Web/Modules/Ordering/OpenUnpaidOrderLimit.cs`, `src/Shopfolio.Web/Modules/Ordering/OrderConfirmation.cs`. T377 aynı L-8 havale reddini `OrderPlacementLimits.FindExceededAsync` → `OrderConfirmationRefusal.AttemptLimitExceeded` ile yazdı (L-7 de); T353'ün `TransferCeilingReached` reddi ve `excluding` sayımı onunla örtüşür. Birleştirme geri alındı; doğrulama dalın ucunda yapıldı. Çözümde tek L-8 sorgusu kalmalı ve T353'ün KK2 testi (özellikle aynı sepetin yeni onayının sayılmaması) kalan yolla geçmeli.
+
+#### Düzeltme 1 (main birleştirmesi)
+`origin/main` (`9d0d611c`) birleştirildi (rebase yok). L-8'in tek evi main'dir: T353'ün `OrderConfirmationRefusal.TransferCeilingReached`, `OrderConfirmation.IsTransferCeilingReachedAsync` ve `OpenUnpaidOrderLimit`'in `excluding` aşırı yüklemeleri kaldırıldı; onay main'deki gibi `OrderPlacementLimits.FindExceededAsync`'i sorar. T353'e özgü davranış (aynı sepetin onayda iptal edilen önceki siparişi sayılmaz) main'de yoktu — main'in yorumu sayılmadığını söylüyordu ama iptal henüz kaydedilmediği için veritabanı onu Pending tutuyordu; KK2 main yoluyla kırmızıydı. En küçük ekleme: `OpenUnpaidOrderLimit.Open()` bağlamın değiştirdiği ve ödemesi artık Pending olmayan `Order` girdilerini sayımdan düşer (imza değişmedi; `AfterSalesModule`'deki kaydedilmemiş satır okumasıyla aynı kalıp). Main'in testleri değişmedi. KK2'nin ret beklentisi `AttemptLimitExceeded` + `ExceededLimit = L8` oldu. Kabul kriterleri 1–7 birleşik ağaçta yeniden denetlendi (testler yerinde, aşağıdaki sınama). D-853 metni kalan tek işleve (`OrderPlacementLimits.FindExceededAsync`) güncellendi.
+
+Sınama (birleşik ağaç): derleme `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 5550/5550 (Architecture + Consistency 1458 dahil); Integration Ordering 468/468, Payment 14/14, T377 limit sınıfları (`MembershipSignInAxesTests`, `AttemptCounterTests`) 16/16, `FirmSettingsTests` + `SalesGateTests` 51/51 (postgres:18, `track_commit_timestamp=on`).
 
 #### Yapım Raporu Karşılaştırması
 Tam uyumlu; öz denetim tablosu var ve her madde kanıtlı. Farklar: K1 ve K2 yapım raporunda yok; Integration'ı ben dokunulan sınıf ve ad alanlarıyla koştum (yapım TAM 3211). ⚠ kararları (D-566 ve D-668 → T511, D-833 → T536) yerinde: sipariş sayfası ve ayar ekranı o task'ların kapsamında.

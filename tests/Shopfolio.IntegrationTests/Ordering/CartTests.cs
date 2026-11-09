@@ -13,6 +13,7 @@ using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Catalog.Contracts.Coupons;
 using Shopfolio.Modules.Membership;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -185,6 +186,38 @@ public sealed class CartTests : IAsyncLifetime
         await using AppDbContext db = NewContext();
         Assert.Equal(expected, await db.AttemptRecords.CountAsync(a => a.NormalizedValue == AttemptSubject.Cart(memberCartId).Value, Ct));
         Assert.Equal(0, await db.AttemptRecords.CountAsync(a => a.NormalizedValue == AttemptSubject.Cart(guestCartId).Value, Ct));
+    }
+
+    [Fact]
+    public async Task TheCouponCounter_IsTheCartsOwn_AGuestBrowsersCartAndAMembersAccountCart_NotTheBrowserNorTheAddress_T377_KK2()
+    {
+        await ExecuteAsync("TRUNCATE attempt_records");
+        (_, List<Variant> variants) = await SeedProductAsync("Masa", 1);
+        Guid customerId = await SeedCustomerAsync();
+        string guestA = NewKey();
+        string guestB = NewKey();
+        await AddAsync(CartOwner.ForGuest(guestA), variants[0].Id, 1);
+        await AddAsync(CartOwner.ForGuest(guestB), variants[0].Id, 1);
+        await AddAsync(CartOwner.ForMember(customerId), variants[0].Id, 1);
+        Guid cartA = (await OpenAsync(CartOwner.ForGuest(guestA))).CartId!.Value;
+        Guid cartB = (await OpenAsync(CartOwner.ForGuest(guestB))).CartId!.Value;
+        Guid memberCart = (await OpenAsync(CartOwner.ForMember(customerId))).CartId!.Value;
+
+        // Seven wrong codes on the guest browser's cart and on the member's account cart (the member's from two browsers: both open the one account cart).
+        for (int i = 0; i < ProductConstants.InvalidCouponAttemptsPerCart + 2; i++)
+        {
+            await ApplyWrongCouponAsync(cartA);
+            await ApplyWrongCouponAsync((await OpenAsync(CartOwner.ForMember(customerId))).CartId!.Value);
+        }
+
+        // Another guest browser's cart is its own counter and the field is open; the two full carts are closed, each on its own count.
+        Assert.Equal(CouponOutcome.Rejected, (await ApplyWrongCouponAsync(cartB)).Outcome);
+        Assert.Equal(CouponOutcome.AttemptLimitExceeded, (await ApplyWrongCouponAsync(cartA)).Outcome);
+        Assert.Equal(CouponOutcome.AttemptLimitExceeded, (await ApplyWrongCouponAsync(memberCart)).Outcome);
+        await using AppDbContext db = NewContext();
+        Assert.Equal(ProductConstants.InvalidCouponAttemptsPerCart, await db.AttemptRecords.CountAsync(a => a.AttemptAxis == AttemptAxis.Cart && a.NormalizedValue == AttemptSubject.Cart(cartA).Value, Ct));
+        Assert.Equal(ProductConstants.InvalidCouponAttemptsPerCart, await db.AttemptRecords.CountAsync(a => a.AttemptAxis == AttemptAxis.Cart && a.NormalizedValue == AttemptSubject.Cart(memberCart).Value, Ct));
+        Assert.Equal(0, await db.AttemptRecords.CountAsync(a => a.AttemptAxis != AttemptAxis.Cart, Ct));
     }
 
     [Fact]
@@ -679,6 +712,14 @@ public sealed class CartTests : IAsyncLifetime
         {
             await counter.RecordAsync(AttemptLimit.L6, AttemptSubject.Cart(cartId), Ct);
         }
+    }
+
+    // One request of the payment step's coupon field with a code that does not exist, on the given cart (07 UC-23; 02 8.2 L-6).
+    private async Task<CouponApplication> ApplyWrongCouponAsync(Guid cartId)
+    {
+        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn);
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<ICatalogModule>().ApplyCouponAsync(cartId, "YOK-" + Guid.NewGuid().ToString("N"), [new CouponLine(100m, 1, 20m)], Ct);
     }
 
     private Task<CartMergeResult> MergeAsync(Guid customerId, string key) => RunAsync((ordering, token) => ordering.MergeGuestCartAsync(customerId, key, token));

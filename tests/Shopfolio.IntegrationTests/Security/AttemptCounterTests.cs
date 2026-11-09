@@ -198,6 +198,27 @@ public sealed class AttemptCounterTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task The_guest_lookups_email_axis_counts_the_typed_address_with_no_order_behind_it_and_the_ip_axis_stays_apart_T377_KK3()
+    {
+        // No order exists anywhere in this database: the axis counts what was typed in the query, whether or not an order has that address (02 8.2.2, 8.3.5).
+        AttemptSubject typed = AttemptSubject.Email("kimse-yok@example.com");
+        AttemptSubject address = AttemptSubject.Ip(System.Net.IPAddress.Parse("203.0.113.40"));
+        AttemptRule emailRule = AttemptLimits.Of(AttemptLimit.L5, AttemptAxis.Email);
+
+        await WithCounterAsync(async counter =>
+        {
+            for (int i = 0; i <= emailRule.Threshold; i++)
+            {
+                await counter.RecordAsync(AttemptLimit.L5, typed, Ct);
+            }
+
+            Assert.True(await counter.IsExceededAsync(AttemptLimit.L5, typed, Ct));
+            Assert.False(await counter.IsExceededAsync(AttemptLimit.L5, address, Ct));
+            Assert.False(await counter.IsExceededAsync(AttemptLimit.L5, AttemptSubject.Email("baska@example.com"), Ct));
+        });
+    }
+
+    [Fact]
     public async Task A_row_exactly_one_window_old_counts_and_one_millisecond_older_does_not()
     {
         AttemptSubject subject = AttemptSubject.Email("ayse@example.com");

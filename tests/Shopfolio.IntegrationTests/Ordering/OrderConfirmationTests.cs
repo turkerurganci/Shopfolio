@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Catalog;
@@ -239,7 +240,8 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
         long ordersBefore = await ScalarAsync("SELECT count(*) FROM orders");
         OrderSummaryInput lastByTransfer = Input(owners[^1], PaymentMethod.BankTransfer, null);
         OrderConfirmationResult refused = await ConfirmAsync(lastByTransfer, (await SummarizeAsync(lastByTransfer))!);
-        Assert.Equal(OrderConfirmationRefusal.TransferCeilingReached, refused.Refusal);
+        Assert.Equal(OrderConfirmationRefusal.AttemptLimitExceeded, refused.Refusal);
+        Assert.Equal(AttemptLimit.L8, refused.ExceededLimit);
         Assert.Equal(ordersBefore, await ScalarAsync("SELECT count(*) FROM orders"));
 
         // The first customer's new confirmation from the same cart replaces its own open order, so it is not stopped by it (02 3.17.7).
@@ -626,6 +628,84 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
         Assert.Equal((OrderStatus.Cancelled, PaymentStatus.Failed), (cancelled.OrderStatus, cancelled.PaymentStatus));
         Assert.Equal(2, await ScalarAsync($"SELECT quantity FROM cart_items WHERE cart_id = '{cartId}'"));
         Assert.Equal(0, await ScalarAsync($"SELECT reserved_quantity FROM variants WHERE id = '{variantId}'"));
+    }
+
+    // ---- T377: the confirmation's one gate for L-7 and L-8 (02 8.2.2, 8.2.3) ----
+
+    [Fact]
+    public async Task AFullOpenCeiling_StopsTheNextBankTransfer_ButTheCardIsAccepted_T377_KK5()
+    {
+        Guid variantId = await SeedVariantAsync("Lamba", 100m, stock: 50);
+        for (int i = 0; i < ProductConstants.OpenUnpaidOrdersMax; i++)
+        {
+            CartOwner guest = CartOwner.ForGuest("guest-" + Guid.NewGuid().ToString("N"));
+            await SeedCartAsync(guest, (variantId, 1));
+            OrderSummaryInput open = Input(guest, PaymentMethod.BankTransfer, null);
+            Assert.False((await ConfirmAsync(open, (await SummarizeAsync(open))!)).IsRejected);
+        }
+
+        CartOwner next = CartOwner.ForGuest("guest-" + Guid.NewGuid().ToString("N"));
+        await SeedCartAsync(next, (variantId, 1));
+        OrderSummaryInput byTransfer = Input(next, PaymentMethod.BankTransfer, null);
+        OrderConfirmationResult stopped = await ConfirmAsync(byTransfer, (await SummarizeAsync(byTransfer))!);
+
+        Assert.True(stopped.IsRejected);
+        Assert.Equal(OrderConfirmationRefusal.AttemptLimitExceeded, stopped.Refusal);
+        Assert.Equal(AttemptLimit.L8, stopped.ExceededLimit);
+        Assert.Equal(ProductConstants.OpenUnpaidOrdersMax, await ScalarAsync("SELECT count(*) FROM orders"));
+
+        OrderSummaryInput byCard = Input(next, PaymentMethod.Card, null);
+        Assert.False((await ConfirmAsync(byCard, (await SummarizeAsync(byCard))!)).IsRejected);
+    }
+
+    [Fact]
+    public async Task ARepeatedConfirmationFromTheSameCart_LowersL8_AndNeverFillsL7_T377_KK4()
+    {
+        Guid variantId = await SeedVariantAsync("Lamba", 100m, stock: 50);
+        CartOwner owner = CartOwner.ForGuest("guest-" + Guid.NewGuid().ToString("N"));
+        await SeedCartAsync(owner, (variantId, 1));
+        OrderSummaryInput input = Input(owner, PaymentMethod.BankTransfer, null);
+        ConfirmationSummary seen = (await SummarizeAsync(input))!;
+
+        // More repeats than both limits allow: each one cancels the earlier unpaid order of the same cart, so the open count stays one and L-7 counts none of them.
+        for (int i = 0; i < UnpaidCancellationLimit.Max + 1; i++)
+        {
+            Assert.False((await ConfirmAsync(input, seen)).IsRejected);
+        }
+
+        await using (AppDbContext reader = NewContext())
+        {
+            Assert.Equal(1, await reader.Orders.CountAsync(o => o.OrderStatus == OrderStatus.Placed, Ct));
+        }
+
+        Assert.Equal(0, await RunAsync(sp => sp.GetRequiredService<UnpaidCancellationLimit>().CountByIpAsync(IPAddress.Parse("203.0.113.5"), Ct)));
+    }
+
+    [Theory]
+    [InlineData(PaymentMethod.Card)]
+    [InlineData(PaymentMethod.BankTransfer)]
+    public async Task AFullL7_StopsTheNextConfirmationWhateverTheMethod_T377_KK4(PaymentMethod method)
+    {
+        Guid variantId = await SeedVariantAsync("Lamba", 100m, stock: 50);
+        TransitionReason[] reasons = [TransitionReason.PaymentWindowExpired, TransitionReason.CardPaymentFailed];
+        for (int i = 0; i < UnpaidCancellationLimit.Max; i++)
+        {
+            CartOwner guest = CartOwner.ForGuest("guest-" + Guid.NewGuid().ToString("N"));
+            await SeedCartAsync(guest, (variantId, 1));
+            OrderSummaryInput done = Input(guest, PaymentMethod.Card, null);
+            OrderConfirmationResult placed = await ConfirmAsync(done, (await SummarizeAsync(done))!);
+            Assert.False(placed.IsRejected);
+            await RunAsync(sp => sp.GetRequiredService<IOrderTransitions>().CancelOrderAsync(CancelOrderRequest.BySystem(placed.OrderId!.Value, reasons[i % 2]), Ct));
+        }
+
+        CartOwner next = CartOwner.ForGuest("guest-" + Guid.NewGuid().ToString("N"));
+        await SeedCartAsync(next, (variantId, 1));
+        OrderSummaryInput input = Input(next, method, null);
+        OrderConfirmationResult stopped = await ConfirmAsync(input, (await SummarizeAsync(input))!);
+
+        Assert.True(stopped.IsRejected);
+        Assert.Equal(OrderConfirmationRefusal.AttemptLimitExceeded, stopped.Refusal);
+        Assert.Equal(AttemptLimit.L7, stopped.ExceededLimit);
     }
 
     // ---- helpers ----

@@ -42,13 +42,31 @@ public sealed record ConfirmationSummary(
     PartyAddress? Shipping,
     PartyAddress? Billing);
 
-/// <summary>The four boxes of the confirmation step (02 3.24.1, 3.24.2): the first two come with every order, the digital one when a digital item is in the order, the service one when a service is.</summary>
-public enum ConfirmationBox
+/// <summary>
+/// The four boxes of the confirmation step (02 3.24.1, 3.24.2): the first two come with every order, the digital one when a digital item is in the order, the service one when a service is.
+/// A closed set of four instances, not an enum: the box set is the step's own and is not a stored value (06 5.1.3 lists the stored enums only).
+/// </summary>
+public sealed class ConfirmationBox
 {
-    PreInformationFormRead,
-    DistanceSalesContractAccepted,
-    DigitalWithdrawalWaiver,
-    ServiceFulfilmentConsent,
+    public static readonly ConfirmationBox PreInformationFormRead = new(nameof(PreInformationFormRead));
+
+    public static readonly ConfirmationBox DistanceSalesContractAccepted = new(nameof(DistanceSalesContractAccepted));
+
+    public static readonly ConfirmationBox DigitalWithdrawalWaiver = new(nameof(DigitalWithdrawalWaiver));
+
+    public static readonly ConfirmationBox ServiceFulfilmentConsent = new(nameof(ServiceFulfilmentConsent));
+
+    private ConfirmationBox(string name)
+    {
+        Name = name;
+    }
+
+    /// <summary>The four boxes in the order they stand on the screen (04 5.13.9 (g)).</summary>
+    public static IReadOnlyList<ConfirmationBox> All { get; } = [PreInformationFormRead, DistanceSalesContractAccepted, DigitalWithdrawalWaiver, ServiceFulfilmentConsent];
+
+    public string Name { get; }
+
+    public override string ToString() => Name;
 }
 
 /// <summary>A box offered to the customer: its text as shown and, for the digital and service boxes, the names of the items it covers (04 2.12.7.6; K-771).</summary>
@@ -83,21 +101,12 @@ public sealed record ConfirmationStepSubmission(
     IReadOnlyList<ConfirmationSummaryLine> Lines,
     PaymentMethod PaymentMethod);
 
-/// <summary>The outcomes of the step's check, in the order they are looked at: a risen legal text version first (the customer confirms the current text), then the boxes.</summary>
-public enum ConfirmationStepOutcome
+/// <summary>
+/// The step's verdict (T356; 02 3.24.1-3.24.3): a risen legal text version is looked at first (the customer confirms the current text; the ticks of the old one are not looked at and no box
+/// is named), then the boxes - <see cref="MissingBoxes"/> are the needed boxes still unticked in the order they stand on the screen (04 5.13.18). Ready means neither.
+/// </summary>
+public sealed record ConfirmationStepCheck(bool LegalTextVersionRaised, IReadOnlyList<ConfirmationBox> MissingBoxes)
 {
     /// <summary>Every needed box is ticked and the shown texts are the current ones.</summary>
-    Ready,
-
-    /// <summary>The form or the contract was published again since it was shown; the order is not created and the boxes' ticks are cleared (04 2.12.7.3).</summary>
-    LegalTextVersionRaised,
-
-    /// <summary>A box the order needs is not ticked; the order is not created and the first missing box is marked (04 5.13.18).</summary>
-    BoxesMissing,
-}
-
-/// <summary>The step's verdict: the outcome and, for <see cref="ConfirmationStepOutcome.BoxesMissing"/>, the needed boxes still unticked in the order they stand on the screen.</summary>
-public sealed record ConfirmationStepCheck(ConfirmationStepOutcome Outcome, IReadOnlyList<ConfirmationBox> MissingBoxes)
-{
-    public bool IsReady => Outcome == ConfirmationStepOutcome.Ready;
+    public bool IsReady => !LegalTextVersionRaised && MissingBoxes.Count == 0;
 }

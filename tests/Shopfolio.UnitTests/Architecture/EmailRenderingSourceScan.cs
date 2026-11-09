@@ -4,7 +4,8 @@ namespace Shopfolio.UnitTests.Architecture;
 
 /// <summary>
 /// Source scan of the e-mail rendering rules (T305 KK2, KK5, KK6; 09 11.4 items 2 and 7; 09 25 "Kaçış gösterim kanalında mı"; 09 19.2 item 3). Two rules over
-/// the e-mail namespace <c>Shopfolio.Infrastructure.EmailComposition</c> - the files of its folder, and any file that declares that namespace elsewhere: (1) no
+/// the e-mail namespace <c>Shopfolio.Infrastructure.EmailComposition</c> and, since T356 (D-167), the order documents' namespace <c>Shopfolio.Modules.Ordering.Documents</c> - the files of
+/// their two folders, and any file that declares one of the namespaces elsewhere: (1) no
 /// raw markup path - <c>MarkupString</c>, <c>HtmlString</c> and any other <c>Html*Content*</c> type, <c>IHtmlContent</c>, <c>HtmlContentBuilder</c>,
 /// <c>Html.Raw</c> or a <c>Raw(</c> call, <c>AddMarkupContent</c>, <c>WriteLiteral</c> - so every value reaches the HTML through the renderer's encoding; (2) no request
 /// header or request object - <c>HttpContext</c>, <c>IHttpContextAccessor</c>, <c>HttpRequest</c>, <c>Request.Host</c>, <c>HostString</c>, <c>X-Forwarded-Host</c>,
@@ -14,15 +15,18 @@ namespace Shopfolio.UnitTests.Architecture;
 /// </summary>
 internal static partial class EmailRenderingSourceScan
 {
-    public const string RawMarkup = "writes raw markup in the e-mail namespace (09 11.4 item 2: values reach the HTML only through the renderer's encoding)";
-    public const string RequestHeaderOrObject = "reads the request or its Host header in the e-mail namespace (09 11.4 item 2: the address root is the domain setting)";
+    public const string RawMarkup = "writes raw markup in the e-mail or order documents namespace (09 11.4 item 2: values reach the HTML only through the renderer's encoding)";
+    public const string RequestHeaderOrObject = "reads the request or its Host header in the e-mail or order documents namespace (09 11.4 item 2: the address root is the domain setting)";
 
     public const string Folder = "src/Shopfolio.Web/Infrastructure/EmailComposition/";
+
+    /// <summary>The order documents' folder (T356; 09 9.3 item 6, 11.4 item 4; D-167): the form and the contract are written as plain text and shown through the display channel, so the same two rules hold there.</summary>
+    public const string DocumentsFolder = "src/Shopfolio.Web/Modules/Ordering/Documents/";
 
     public static bool InScope(string relativePath, string text)
     {
         string path = relativePath.Replace('\\', '/');
-        return path.StartsWith(Folder, StringComparison.Ordinal) || EmailNamespace().IsMatch(text);
+        return path.StartsWith(Folder, StringComparison.Ordinal) || path.StartsWith(DocumentsFolder, StringComparison.Ordinal) || EmailNamespace().IsMatch(text);
     }
 
     public static IReadOnlyList<(string Rule, int Line)> Scan(string relativePath, string text)
@@ -69,7 +73,7 @@ internal static partial class EmailRenderingSourceScan
     [GeneratedRegex(@"@\*.*?\*@", RegexOptions.CultureInvariant | RegexOptions.Singleline, matchTimeoutMilliseconds: 5000)]
     private static partial Regex RazorComment();
 
-    [GeneratedRegex(@"namespace\s+Shopfolio\s*\.\s*Infrastructure\s*\.\s*EmailComposition\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    [GeneratedRegex(@"namespace\s+Shopfolio\s*\.\s*(?:Infrastructure\s*\.\s*EmailComposition|Modules\s*\.\s*Ordering\s*\.\s*Documents)\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex EmailNamespace();
 
     // The raw markup types and calls, in any spelling: MarkupString (also as a cast), HtmlString and the Html*Content* family, IHtmlContent, Html.Raw, Raw(, the

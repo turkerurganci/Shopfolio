@@ -32,6 +32,13 @@ internal static partial class PlaceholderFiller
             match => values.TryGetValue(match.Groups[1].Value, out string? value) ? value ?? string.Empty : match.Value);
     }
 
+    /// <summary>
+    /// Makes a value inert for a later filling over the same text (T356, D-268 (4)): the version's text keeps a company value as written, and the order stage fills the order's tokens
+    /// over the whole text again, so a value that carried <c>{{ShippingPhone}}</c> would expand there. A double opening brace gets a space between the braces; no other value is touched.
+    /// The one place this rule lives: the version's making and the order's filling both call it.
+    /// </summary>
+    public static string? Inert(string? value) => value?.Replace("{{", "{ {", StringComparison.Ordinal);
+
     /// <summary>The names of the tokens in a template, in the order they appear (a name more than once appears more than once).</summary>
     public static IEnumerable<string> TokenNames(string template)
     {

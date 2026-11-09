@@ -86,25 +86,19 @@ internal sealed class LegalTextGenerator
 
         return new Dictionary<string, string?>(StringComparer.Ordinal)
         {
-            ["CompanyLegalName"] = Inert(company.LegalName),
-            ["CompanyTaxIdNumber"] = Inert(company.TaxIdNumber),
-            ["CompanyMersisNumber"] = Inert(company.MersisNumber),
-            ["CompanyTradeRegistryNumber"] = Inert(company.TradeRegistryNumber),
-            ["CompanyChamberName"] = Inert(company.ChamberName),
-            ["CompanyProvince"] = Inert(CompanyProvince()),
-            ["CompanyDistrict"] = Inert(company.District),
-            ["CompanyAddressLine"] = Inert(company.AddressLine),
-            ["CompanyPhone"] = Inert(company.Phone),
-            ["CompanyEmail"] = Inert(company.Email),
-            ["CompanyKepAddress"] = Inert(company.KepAddress),
-            ["ReturnAddress"] = Inert(returnAddress),
+            ["CompanyLegalName"] = PlaceholderFiller.Inert(company.LegalName),
+            ["CompanyTaxIdNumber"] = PlaceholderFiller.Inert(company.TaxIdNumber),
+            ["CompanyMersisNumber"] = PlaceholderFiller.Inert(company.MersisNumber),
+            ["CompanyTradeRegistryNumber"] = PlaceholderFiller.Inert(company.TradeRegistryNumber),
+            ["CompanyChamberName"] = PlaceholderFiller.Inert(company.ChamberName),
+            ["CompanyProvince"] = PlaceholderFiller.Inert(CompanyProvince()),
+            ["CompanyDistrict"] = PlaceholderFiller.Inert(company.District),
+            ["CompanyAddressLine"] = PlaceholderFiller.Inert(company.AddressLine),
+            ["CompanyPhone"] = PlaceholderFiller.Inert(company.Phone),
+            ["CompanyEmail"] = PlaceholderFiller.Inert(company.Email),
+            ["CompanyKepAddress"] = PlaceholderFiller.Inert(company.KepAddress),
+            ["ReturnAddress"] = PlaceholderFiller.Inert(returnAddress),
             ["HowTheOrderIsPlaced"] = ProcessGuide.Text,
         };
     }
-
-    /// <summary>
-    /// Makes a company value inert for the second filling (09 9.3 item 3; T356, D-268 (4)): the version's text keeps the value as written, and the order stage fills the order's tokens over
-    /// the whole text again - a value that carried <c>{{ShippingPhone}}</c> would expand there. A double opening brace in a value gets a space between the braces; no other value is touched.
-    /// </summary>
-    internal static string? Inert(string? value) => value?.Replace("{{", "{ {", StringComparison.Ordinal);
 }

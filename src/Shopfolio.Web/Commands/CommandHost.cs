@@ -8,6 +8,7 @@ using Npgsql;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Backup;
+using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.FileSecrets;
@@ -115,6 +116,14 @@ internal static class CommandHost
         // The two commands of the restore (T388; 05 8.5.10, 8.5.11): the count of the order side's writes after the restore point, and the reader of the application log's deletion lines.
         services.AddScoped<RollbackAudit>();
         services.AddSingleton<InstantDeletionLog>();
+
+        // T387 (05 8.5.5, 8.5.9): the failed job rows of the job command and the reader of the three sources of the read command - the application's log directory from the same
+        // setting as the web's, the proxy's access log at its mounted path (deploy/compose.yaml read-command).
+        services.AddScoped<FailedJobRows>();
+        services.TryAddSingleton(provider => new LogDirectories(
+            LoggingOptions.FromConfiguration(provider.GetRequiredService<IConfiguration>()).Directory,
+            LogDirectories.DefaultAccessDirectory));
+        services.AddScoped<LogReader>();
 
         // The status command evaluates the endpoint's conditions (05 8.5.6): their thresholds, their sources and the error counter that some of them are constructed with. The conditions
         // that read the web process's memory are listed by the command and not evaluated (IStatusCondition.ReadsProcessMemory).

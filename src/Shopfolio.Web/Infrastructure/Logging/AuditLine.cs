@@ -1,13 +1,18 @@
 namespace Shopfolio.Infrastructure.Logging;
 
 /// <summary>
-/// A line of the audit log or the command log (09 18.1 item 2, 18.2 item 5). Only the two shapes exist, and neither can carry a field value: the
-/// parts are the closed event name, a kind or a command name, and internal ids (<see cref="Guid"/>) — an e-mail address or any other value has no
-/// parameter to go into.
+/// A line of the audit log or the command log (09 18.1 item 2, 18.2 item 5). Only these shapes exist, and none can carry a field value: the
+/// parts are the closed event name, a kind or a command name, internal ids (<see cref="Guid"/>) and, for the read command, closed enum names and
+/// days (<see cref="ReadLogs"/>) — an e-mail address, an IP or any other value has no parameter to go into.
 /// </summary>
 internal sealed record AuditLine
 {
     private AuditLine(string eventName, string template, string nameKey, string name, string idKey, Guid id)
+        : this(eventName, template, nameKey, name, idKey, id, [])
+    {
+    }
+
+    private AuditLine(string eventName, string template, string nameKey, string name, string idKey, Guid id, IReadOnlyList<KeyValuePair<string, string>> closedValues)
     {
         EventName = eventName;
         Template = template;
@@ -15,7 +20,17 @@ internal sealed record AuditLine
         Name = name;
         IdKey = idKey;
         Id = id;
+        ClosedValues = closedValues;
     }
+
+    /// <summary>
+    /// The further properties of the read command's line (property name in PascalCase, value): only an enum's name or an ISO day, made here from typed values; empty for the other
+    /// shapes.
+    /// </summary>
+    public IReadOnlyList<KeyValuePair<string, string>> ClosedValues { get; }
+
+    /// <summary>Whether the writer waits until the line is on the disk (<c>FileStream.Flush(true)</c>): the read command's line, before anything is read (05 9.3.4; 09 13.2 item 5).</summary>
+    public bool FlushToDisk => ClosedValues.Count > 0;
 
     /// <summary>The closed event name (<see cref="LogEvents"/>).</summary>
     public string EventName { get; }
@@ -52,6 +67,28 @@ internal sealed record AuditLine
     /// The id is the empty id (<see cref="Guid.Empty"/>) - "no target" - so the line has the same shape as any other and still holds no e-mail address.
     /// </summary>
     public static AuditLine AdminCommandWithoutTarget(string command) => AdminCommand(command, Guid.Empty);
+
+    /// <summary>
+    /// The read command's line (05 8.5.5, 9.3.4; 09 13.2 item 5): the command, the account the filter names (its internal id; the empty id when the filter names no account), the source,
+    /// the filter's kind and the days of the range. The filter's value (an event type, a request id, an IP or an e-mail) is never written: only its kind (D-740).
+    /// </summary>
+    public static AuditLine ReadLogs(string command, Guid accountId, LogSource source, LogFilterKind filter, DateOnly from, DateOnly to)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(command);
+        return new AuditLine(
+            LogEvents.AdminCommand,
+            "{Event} {Command} {AccountId} {LogSource} {FilterKind} {FromDay} {ToDay}",
+            "Command",
+            command,
+            "AccountId",
+            accountId,
+            [
+                new("LogSource", source.ToString()),
+                new("FilterKind", filter.ToString()),
+                new("FromDay", from.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)),
+                new("ToDay", to.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)),
+            ]);
+    }
 }
 
 /// <summary>

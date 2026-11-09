@@ -28,6 +28,12 @@ internal enum SummaryChangeKind
 
     /// <summary>An item could not be reserved; its quantity is never told (02 3.17.2; K-150).</summary>
     ItemNotReserved,
+
+    /// <summary>The order's shipping period (the frozen promise of 02 3.24.3) differs - a product's or the firm's period changed after the summary was shown.</summary>
+    ShippingPeriod,
+
+    /// <summary>The delivery provinces changed and the shipping province is no longer delivered to, or a physical order carries no shipping address (02 3.17.2, 6.2.3).</summary>
+    DeliveryArea,
 }
 
 /// <summary>One change line (02 3.17.2): the item's name and the confirmed and the current value, so the page can say "Lambanın fiyatı 1.000 TL'den 1.200 TL'ye değişti".</summary>
@@ -83,6 +89,12 @@ internal static class SummaryComparison
         if (confirmed.Total != current.Total)
         {
             changes.Add(new SummaryChange(SummaryChangeKind.Total, null, confirmed.Total, current.Total));
+        }
+
+        // The form adds the shipping period to the summary and the order freezes it (02 3.24.3): a period the customer did not see stops the order like any other difference.
+        if (confirmed.ShippingPeriod != current.ShippingPeriod)
+        {
+            changes.Add(new SummaryChange(SummaryChangeKind.ShippingPeriod, null, confirmed.ShippingPeriod, current.ShippingPeriod));
         }
 
         return changes;

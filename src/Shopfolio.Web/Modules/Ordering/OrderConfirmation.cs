@@ -79,8 +79,9 @@ internal sealed record OrderConfirmationResult(
 
 /// <summary>
 /// The confirmation (T348; 02 3.17.1-3.17.7; 03 4.2.1): the one operation that makes an order. In the caller's transaction (09 9.1 item 3) it evaluates the cart again, compares the
-/// result with the summary the customer confirmed - any difference of the total, its breakdown or the items stops it (02 3.17.2) -, checks the confirmation step, cancels the cart's
-/// earlier unpaid order (02 3.17.7), and then in one go issues the number, freezes the items, the addresses, the identity, the versions and the documents, starts the payment window,
+/// result with the summary the customer confirmed - any difference of the total, its breakdown, the items, the shipping period or the delivery provinces stops it (02 3.17.2) -, checks
+/// the confirmation step, cancels the cart's earlier unpaid order (02 3.17.7), and then in one go issues the number, freezes the items, the addresses, the identity, the versions, the
+/// documents and the digital and service box records (02 3.23.3), starts the payment window,
 /// reserves the stock, the capacity and the coupon right (02 3.17.3) and queues B-1 and F-1 (02 9.2). Nothing calls an outside service here: the card's redirect follows the commit.
 /// </summary>
 internal sealed class OrderConfirmation
@@ -146,6 +147,14 @@ internal sealed class OrderConfirmation
             changes.Add(new SummaryChange(SummaryChangeKind.Total, null, null, null));
         }
 
+        // 02 3.17.2, 6.2.3: the delivery provinces are read again in this transaction - the same read the address check uses (T350; D-494). A physical order whose shipping
+        // province is no longer delivered to, or that carries no shipping address, is not born; the delivery area restricts the shipping province only (02 3.20.1).
+        if (current.HasPhysicalItem
+            && (request.Shipping is not { } shippingAddress || !(await _settings.GetDeliveryAreaAsync(ct)).IsServed(shippingAddress.ProvinceId)))
+        {
+            changes.Add(new SummaryChange(SummaryChangeKind.DeliveryArea, null, null, null));
+        }
+
         if (changes.Count > 0)
         {
             return OrderConfirmationResult.Refused(OrderConfirmationRefusal.SummaryChanged, current.Summary, changes);
@@ -204,6 +213,15 @@ internal sealed class OrderConfirmation
 
         _db.Orders.Add(order);
         _db.OrderItems.AddRange(items);
+
+        // 02 3.17.1 -> 3.23.3, 3.24.6: the digital and the service box are frozen with the order - the box's type, the text shown and the items it covers (T356; D-732). The step's
+        // check above is Ready, so every offered box was ticked; the offers are made from the same lines the step showed.
+        foreach ((CheckboxAcceptance acceptance, IReadOnlyList<CheckboxAcceptanceOrderItem> covered) in ConfirmationAcceptances.Records(
+            order.Id, ConfirmationStepRules.Offers(current.Summary.Lines, method), items, now))
+        {
+            _db.CheckboxAcceptances.Add(acceptance);
+            _db.CheckboxAcceptanceOrderItems.AddRange(covered);
+        }
 
         // 02 3.17.3: the stock, the capacity and the coupon right are reserved together; one that does not fit stops the order and its quantity is not told (02 3.17.2).
         if (!await _counters.ReserveAsync(order, items, ct))

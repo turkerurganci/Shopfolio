@@ -94,6 +94,7 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
         await SaveAsync(c =>
         {
             c.Provinces.Add(province);
+            c.CompanyDeliveryProvinces.Add(CompanyDeliveryProvince.Create(province.Id, Now));
             c.CompanySettings.Add(settings);
             c.Companies.Add(company);
             c.LegalTextVersions.AddRange(form, contract, notice);
@@ -167,6 +168,57 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
         Assert.Equal(1, await ScalarAsync($"SELECT reserved_quantity FROM variants WHERE id = '{variantId}'"));
     }
 
+    [Fact]
+    public async Task AMixedConfirmation_FreezesTheDigitalAndTheServiceBox_WithTheTextShownAndTheItemsTheyCover_InTheSameGo_KK1()
+    {
+        Guid lamp = await SeedVariantAsync("Lamba", 100m, stock: 5);
+        Guid template = await SeedVariantAsync("Şablon", 80m, stock: null, ProductType.Digital);
+        Guid guide = await SeedVariantAsync("Rehber", 60m, stock: null, ProductType.Digital);
+        Guid fitting = await SeedVariantAsync("Montaj", 200m, stock: null, ProductType.Service);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        await SeedCartAsync(owner, (lamp, 1), (template, 1), (guide, 1), (fitting, 1));
+        OrderSummaryInput input = Input(owner, PaymentMethod.Card, null);
+        ConfirmationSummary seen = (await SummarizeAsync(input))!;
+
+        // The step offers four boxes; the digital one names both digital items, the service one the service.
+        IReadOnlyList<ConfirmationBoxOffer> shown = await RunAsync(async sp => (await sp.GetRequiredService<IConfirmationStep>().GetViewAsync(seen, Ct)).Boxes);
+        Assert.Equal(4, shown.Count);
+        OrderConfirmationResult result = await ConfirmAsync(input, seen, new TickedBoxes(true, true, true, true));
+
+        Assert.False(result.IsRejected);
+        Guid orderId = result.OrderId!.Value;
+        List<OrderItem> items = await ReadItemsAsync(orderId);
+        await using AppDbContext reader = NewContext();
+        List<CheckboxAcceptance> records = await reader.CheckboxAcceptances.AsNoTracking().Where(a => a.OrderId == orderId).OrderBy(a => a.CheckboxType).ToListAsync(Ct);
+        Assert.Equal([CheckboxType.Digital, CheckboxType.Service], [.. records.Select(r => r.CheckboxType)]);
+        Assert.Equal(shown.Single(b => b.Box == ConfirmationBox.DigitalWithdrawalWaiver).Text, records[0].ShownText);
+        Assert.Equal(shown.Single(b => b.Box == ConfirmationBox.ServiceFulfilmentConsent).Text, records[1].ShownText);
+
+        Guid[] recordIds = [.. records.Select(r => r.Id)];
+        List<CheckboxAcceptanceOrderItem> links = await reader.CheckboxAcceptanceOrderItems.AsNoTracking().Where(l => recordIds.Contains(l.CheckboxAcceptanceId)).ToListAsync(Ct);
+        Assert.Equal(
+            items.Where(i => i.ProductType == ProductType.Digital).Select(i => i.Id).Order(),
+            links.Where(l => l.CheckboxAcceptanceId == records[0].Id).Select(l => l.OrderItemId).Order());
+        Assert.Equal(items.Single(i => i.ProductType == ProductType.Service).Id, links.Single(l => l.CheckboxAcceptanceId == records[1].Id).OrderItemId);
+        Assert.DoesNotContain(links, l => l.OrderItemId == items.Single(i => i.ProductType == ProductType.Physical).Id);
+    }
+
+    [Fact]
+    public async Task AnUntickedDigitalBox_StopsTheOrder_AndNoBoxRecordIsBorn_KK1_KK2()
+    {
+        Guid template = await SeedVariantAsync("Şablon", 80m, stock: null, ProductType.Digital);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        await SeedCartAsync(owner, (template, 1));
+        OrderSummaryInput input = Input(owner, PaymentMethod.Card, null);
+
+        OrderConfirmationResult result = await ConfirmAsync(input, (await SummarizeAsync(input))!);
+
+        Assert.Equal(OrderConfirmationRefusal.ConfirmationStepNotReady, result.Refusal);
+        Assert.Equal([ConfirmationBox.DigitalWithdrawalWaiver], result.StepCheck!.MissingBoxes);
+        Assert.Equal(0, await ScalarAsync("SELECT count(*) FROM orders"));
+        Assert.Equal(0, await ScalarAsync("SELECT count(*) FROM checkbox_acceptances"));
+    }
+
     // ---- KK2: every difference stops the order; an emptied cart makes nothing ----
 
     [Fact]
@@ -221,6 +273,95 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
 
         Assert.Equal(OrderConfirmationRefusal.ConfirmationStepNotReady, result.Refusal);
         Assert.True(result.StepCheck!.LegalTextVersionRaised);
+        await AssertNothingBornAsync(variantId);
+    }
+
+    [Fact]
+    public async Task ADeliveryAreaThatNoLongerServesTheShippingProvince_OrAPhysicalOrderWithoutAShippingAddress_StopsTheOrder_KK2()
+    {
+        Guid variantId = await SeedVariantAsync("Lamba", 1000m, stock: 5);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        await SeedCartAsync(owner, (variantId, 1));
+        OrderSummaryInput input = Input(owner, PaymentMethod.Card, null);
+        ConfirmationSummary seen = (await SummarizeAsync(input))!;
+
+        // The firm stops delivering to Ankara after the summary was shown (02 3.17.2, 6.2.3).
+        await ExecuteAsync("DELETE FROM company_delivery_provinces");
+        OrderConfirmationResult stopped = await ConfirmAsync(input, seen);
+
+        Assert.Equal(OrderConfirmationRefusal.SummaryChanged, stopped.Refusal);
+        Assert.Equal([SummaryChangeKind.DeliveryArea], [.. stopped.Changes.Select(c => c.Kind)]);
+        Assert.Equal(seen.Total, stopped.CurrentSummary!.Total);
+        await AssertNothingBornAsync(variantId);
+
+        // Ankara is served again, but a physical order arrives with no shipping address.
+        await SaveAsync(c => c.CompanyDeliveryProvinces.Add(CompanyDeliveryProvince.Create(_provinceId, Now)));
+        OrderSummaryInput noShipping = input with { Shipping = null };
+        OrderConfirmationResult unaddressed = await ConfirmAsync(noShipping, (await SummarizeAsync(noShipping))!);
+
+        Assert.Equal(OrderConfirmationRefusal.SummaryChanged, unaddressed.Refusal);
+        Assert.Contains(unaddressed.Changes, c => c.Kind == SummaryChangeKind.DeliveryArea);
+        await AssertNothingBornAsync(variantId);
+
+        // With the province served and the address given, the same confirmation is born.
+        Assert.False((await ConfirmAsync(input, (await SummarizeAsync(input))!)).IsRejected);
+    }
+
+    [Fact]
+    public async Task TheDeliveryArea_RestrictsTheShippingProvinceOnly_ADigitalOrderWithNoShippingAddressIsBorn_WhenNoProvinceIsServed_KK2()
+    {
+        Guid template = await SeedVariantAsync("Şablon", 80m, stock: null, ProductType.Digital);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        await SeedCartAsync(owner, (template, 1));
+        await ExecuteAsync("DELETE FROM company_delivery_provinces");
+        OrderSummaryInput input = Input(owner, PaymentMethod.Card, null) with { Shipping = null };
+
+        OrderConfirmationResult result = await ConfirmAsync(input, (await SummarizeAsync(input))!, new TickedBoxes(true, true, true, false));
+
+        Assert.False(result.IsRejected);
+        Assert.Null((await ReadOrderAsync(result.OrderId!.Value)).ShippingProvinceId);
+    }
+
+    [Fact]
+    public async Task AShippingFeeOrAMinimumAmountSetAfterTheSummary_StopsTheOrder_KK2()
+    {
+        Guid variantId = await SeedVariantAsync("Lamba", 1000m, stock: 5);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        await SeedCartAsync(owner, (variantId, 1));
+        OrderSummaryInput input = Input(owner, PaymentMethod.Card, null);
+        ConfirmationSummary seen = (await SummarizeAsync(input))!;
+
+        // A shipping fee the summary did not carry (02 3.17.2: "kargo ücretinin ... değişmesi").
+        await ExecuteAsync("UPDATE company_settings SET shipping_fee = 50");
+        OrderConfirmationResult feeChanged = await ConfirmAsync(input, seen);
+        Assert.Equal(OrderConfirmationRefusal.SummaryChanged, feeChanged.Refusal);
+        Assert.Contains(new SummaryChange(SummaryChangeKind.ShippingFee, null, 0m, 50m), feeChanged.Changes);
+
+        // A minimum order amount the cart no longer meets (02 3.18.1; T349 ShippingCharge.Assess through the cart's read): the total is no longer payable.
+        await ExecuteAsync("UPDATE company_settings SET shipping_fee = 0, minimum_order_amount = 2000");
+        OrderConfirmationResult belowMinimum = await ConfirmAsync(input, seen);
+        Assert.Equal(OrderConfirmationRefusal.SummaryChanged, belowMinimum.Refusal);
+        Assert.Contains(belowMinimum.Changes, c => c.Kind == SummaryChangeKind.Total);
+        await AssertNothingBornAsync(variantId);
+    }
+
+    [Fact]
+    public async Task AShippingPeriodChange_AfterTheSummary_StopsTheOrder_AndTellsBothPeriods_KK2_K4()
+    {
+        Guid variantId = await SeedVariantAsync("Lamba", 1000m, stock: 5);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        await SeedCartAsync(owner, (variantId, 1));
+        OrderSummaryInput input = Input(owner, PaymentMethod.Card, null);
+        ConfirmationSummary seen = (await SummarizeAsync(input))!;
+        Assert.Equal(2, seen.ShippingPeriod);
+
+        // The firm's default period rises after the summary was shown: the form would freeze a promise the customer did not see (02 3.24.3).
+        await ExecuteAsync("UPDATE company_settings SET default_shipping_period = 4");
+        OrderConfirmationResult result = await ConfirmAsync(input, seen);
+
+        Assert.Equal(OrderConfirmationRefusal.SummaryChanged, result.Refusal);
+        Assert.Equal([new SummaryChange(SummaryChangeKind.ShippingPeriod, null, 2, 4)], result.Changes);
+        Assert.Equal(4, result.CurrentSummary!.ShippingPeriod);
         await AssertNothingBornAsync(variantId);
     }
 
@@ -336,10 +477,10 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
     private Task<ConfirmationSummary?> SummarizeAsync(OrderSummaryInput input) =>
         RunAsync(sp => sp.GetRequiredService<OrderConfirmation>().SummarizeAsync(input, Ct));
 
-    private async Task<OrderConfirmationResult> ConfirmAsync(OrderSummaryInput input, ConfirmationSummary seen)
+    private async Task<OrderConfirmationResult> ConfirmAsync(OrderSummaryInput input, ConfirmationSummary seen, TickedBoxes? ticked = null)
     {
         OrderConfirmationRequest request = new(
-            input.Owner, seen, _formId, _contractId, new TickedBoxes(true, true, false, false), input.CouponCode, input.ContactEmail, input.Shipping, input.Billing, IPAddress.Parse("203.0.113.5"));
+            input.Owner, seen, _formId, _contractId, ticked ?? new TickedBoxes(true, true, false, false), input.CouponCode, input.ContactEmail, input.Shipping, input.Billing, IPAddress.Parse("203.0.113.5"));
         await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn, _clock);
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
         OrderConfirmation confirmation = scope.ServiceProvider.GetRequiredService<OrderConfirmation>();
@@ -361,10 +502,20 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
         public bool IsRejected => false;
     }
 
-    private async Task<Guid> SeedVariantAsync(string name, decimal price, int stock)
+    private async Task<Guid> SeedVariantAsync(string name, decimal price, int? stock, ProductType type = ProductType.Physical)
     {
         int n = Interlocked.Increment(ref _counter);
-        Product product = Product.Create(name, $"urun-t348-{n:D4}", ProductType.Physical, 20m, Now.AddDays(-2)).WithSeededOrigin();
+        Product product = Product.Create(name, $"urun-t348-{n:D4}", type, 20m, Now.AddDays(-2));
+        if (type == ProductType.Service)
+        {
+            // A service has no place of origin and is published with a fulfilment period (P-44).
+            product.FulfilmentPeriod = 3;
+        }
+        else
+        {
+            product = product.WithSeededOrigin();
+        }
+
         product.PublishStatus = PublishStatus.Published;
         Variant variant = Variant.Create(product.Id, $"SKU-T348-{n:D4}", price, Now.AddDays(-2));
         variant.PublishStatus = PublishStatus.Published;

@@ -61,6 +61,16 @@ public sealed class SummaryComparisonTests
     }
 
     [Fact]
+    public void AShippingPeriodChange_EitherWay_IsAChange_AndAnEqualPeriodIsNot_K4()
+    {
+        ConfirmationSummary seen = Summary([Lamp]);
+        Assert.Equal([new SummaryChange(SummaryChangeKind.ShippingPeriod, null, 2, 5)], SummaryComparison.Compare(seen, seen with { ShippingPeriod = 5 }));
+        Assert.Equal([new SummaryChange(SummaryChangeKind.ShippingPeriod, null, 2, 1)], SummaryComparison.Compare(seen, seen with { ShippingPeriod = 1 }));
+        Assert.Equal([new SummaryChange(SummaryChangeKind.ShippingPeriod, null, 2, null)], SummaryComparison.Compare(seen, seen with { ShippingPeriod = null }));
+        Assert.Empty(SummaryComparison.Compare(seen, seen with { ShippingPeriod = 2 }));
+    }
+
+    [Fact]
     public void Visibility_HidesExactlyTheFourAutomaticCancellations_KK8()
     {
         Assert.Equal(

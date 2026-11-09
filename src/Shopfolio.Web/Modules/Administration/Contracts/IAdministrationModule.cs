@@ -46,6 +46,25 @@ public interface IAdministrationModule
     /// </summary>
     Task<AdminCreationResult> CreateAdminAsync(Guid adminId, string name, string email, string password, CancellationToken ct);
 
+    /// <summary>
+    /// The internal id of the administrator account that has the e-mail (T389; 05 8.5.3, 8.5.4; 09 13.2 item 5), found the way the sign-in finds it (the normalized form); null when there is
+    /// none. A plain read: the management commands that name an account by e-mail look the id up first, write their log line with the id, and only then work on the id.
+    /// </summary>
+    Task<Guid?> FindAdminIdAsync(string email, CancellationToken ct);
+
+    /// <summary>
+    /// Ends every session of the administrator account (T389; 05 8.5.3): takes the account's row lock first, like every flow that writes the account's sessions (09 15.1 item 3), and
+    /// deletes all the session records. Refused when the account is gone. It writes no operation trail line and makes no notification (05 8.5.7). Joins the caller's transaction.
+    /// </summary>
+    Task<AdminAccountWorkResult> EndAdminSessionsAsync(Guid adminId, CancellationToken ct);
+
+    /// <summary>
+    /// Makes the administrator's password unusable and ends every session of the account in the same transaction (T389; 05 8.5.4; 06 4.37): the account's row lock first, then the digest is
+    /// emptied, then the sessions are deleted - so a sign-in that checked the old digest is either committed before and deleted here, or waits and fails. The account opens again only through the
+    /// password reset. Refused when the account is gone. It writes no operation trail line and makes no notification (05 8.5.7). Joins the caller's transaction.
+    /// </summary>
+    Task<AdminAccountWorkResult> InvalidateAdminPasswordAsync(Guid adminId, CancellationToken ct);
+
     /// <summary>Sends an invitation to an address (T379; 07 UC-175; 02 10.2.1, 10.2.6): the earlier unused invitation of the address is made invalid, the e-mail, the trail row and the F-6 notice are written.</summary>
     Task<AdminInvitationSendResult> SendInvitationAsync(string email, CancellationToken ct);
 

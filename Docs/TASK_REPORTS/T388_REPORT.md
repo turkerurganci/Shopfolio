@@ -28,7 +28,7 @@
 
 | # | Kriter | Sonuç | Kanıt |
 |---|---|---|---|
-| 1 | `rollback-check` salt okuma, uygulama dururken | ✓ | `RollbackAudit` yalnız `SELECT`; Unit `TheCheck_HasNoWritingCall_AndTheScanSeesOneInASample`; Integration `RollbackCheck_OnlyReads_NoTransactionIsStartedThatWrites` (komut öncesi ve sonrası `pg_snapshot_xmax` eşit); komut kipinde sunucu/hosted service yok (`CommandStructureTests`) |
+| 1 | `rollback-check` salt okuma, uygulama dururken | ✓ | `RollbackAudit` yalnız `SELECT`; Unit `TheCheck_HasNoWritingCall_AndTheScanSeesOneInASample`; Integration `RollbackCheck_OnlyReads_NoTransactionIsStartedThatWrites` (testin kendi veritabanında yeni oturumlar salt okunur açılır, komut çıkış 0 ile biter, satır değişmez; kontrol: aynı koşulda yazma 25006 ile reddedilir; sunucu genelinde sayaç yok); komut kipinde sunucu/hosted service yok (`CommandStructureTests`) |
 | 2 | `--restore-point` ofsetli; ofsetsiz/yalnız tarih 2 | ✓ | Unit `RestorePoint_WithoutAnOffset_OrADateAlone_IsAUsageError_AndNothingIsOpened` (6 satır, iki komut), `RestorePoint_IsRequired` |
 | 3 | Her tabloda kesinleşme anına göre sayım | ✓ | Unit `TheCheck_CountsTheTablesOf02_3_34_8_AndTheInboundNotificationRecord`, `EveryTableOfTheModel_IsEitherCountedByTheCheck_OrListedAsNotTheOrderSide`; Integration `RollbackCheck_CountsARowAddedAfterThePoint_WhateverItsOwnTimeSays...` (satırın kendi zamanı 3 yıl önce), `..._CountsATransactionThatStartedBeforeThePointAndCommittedAfterIt` |
 | 4 | Silme = süreye bağlı + anlık; boşaltma/bağ güncellemesi sayılır | ✓ | Sayım güncellemeyi de yakalar: Integration `RollbackCheck_CountsARowChangedAfterThePoint_TheEmptyingOfAnOrderRowIsAChange`; sipariş tarafı tablolar (orders, order_items, refund_ibans dışı sipariş kayıtları, `order_address_histories`...) listede. Süreye bağlı silmeyi (imha, IBAN) zamanlayıcı yeniden çalıştırır, komut gerektirmez; anlık silme `reapply-deletions` ile (kriter 6) |
@@ -68,6 +68,7 @@
 | Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build --max-threads 3` | 5080 geçti, 0 kalan (dönüş komutları sınıfı 21) |
 | Integration | ✓ | `dotnet test tests/Shopfolio.IntegrationTests --no-build --max-threads 3` (yerel `postgres:18.6 -c track_commit_timestamp=on`) | 2935 geçti, 0 kalan (`RestoreCommandsTests` 12) |
 | Contract | — | — | bu task'ta yok |
+| Düzeltme 1 (main birleşik) | ✓ | build `-warnaserror` 0 uyarı, `dotnet format` Web/IntegrationTests temiz; Unit tam; Integration Commands + Ordering + Concurrency + Security/Disposal parçalı, paralel, iki koşu (`track_commit_timestamp=on` yerel konteyner) | Unit 5161/5161; Integration 59 (Commands) + 469 + 497, 0 kalan |
 
 ## Doğrulama
 
@@ -124,6 +125,12 @@
 | 3 | Yeniden uygulamada e-posta kuyruğa girmez | D-702 | `05 §8.5.10` bildirimi anmıyor, belge kararı |
 | 4 | Sayılan tablo listesi `02 §3.34.8`'in ötesinde | D-703 | Belge doğrulaması |
 | 5 | Kesinleşme anı bilinmeyen eski satırlar sayılmaz | D-704 | Yalnız elle kurulan ortam; bilgi |
+
+## Düzeltme 1
+
+- **B1 (ORTA, KK1, `09 §19.1`):** salt okuma testi sunucu genelindeki `pg_snapshot_xmax` sayacını bırakıp testin kendi veritabanına bağlandı: veritabanının `default_transaction_read_only` ayarı açılır, komut çıkış 0 ile biter, sonra ayar kapatılır ve havuz temizlenir (`NpgsqlConnection.ClearAllPools`); aynı koşulda bir yazmanın 25006 ile reddedilmesi kontrol olarak sınanır. Test öteki koleksiyonlarla (Ordering, Concurrency, Disposal/Security) birlikte iki koşuda yeşil.
+- **main birleştirmesi (T389 #472):** `AdminCommandCatalog` iki tarafın beş komutunu da taşır; `CommandHost` iki tarafın kayıtlarını taşır (T388: `RollbackAudit`, `InstantDeletionLog`; main: durum, dosya deposu, görüntü işleme, bağlam erişimcisi, koşullu satırlar). Main'in `AddStatus`/`AddImageProcessing` kayıtları T388'in elle eklediği görüntü işleyici, disk okuyucu ve disk bekçisi kayıtlarını kapsadığından onlar tek kayda indi; `AddInstallationSettings`/`AddSearchEngineData` çağrıları kaldırıldı (doğrulayıcıları T389'un komut kipi testlerini kırıyordu; modüller onlarsız çözülüyor, T388 testleri yeşil). STATUS tablosunda T388 ⏳ ve T389 ✓ satırları birlikte.
+- **Öz denetim:** 11'deki T388 kriter 1–9 ve KK1–KK9 birleşik ağaçta yeniden denetlendi, yukarıdaki tablo güncel (kriter 1 kanıtı değişti, ötekiler aynı testlerle yeşil); sık FAIL "main ilerleyince kayıt/kurucu çakışması" için Integration parçalı koşuldu.
 
 ## Notlar
 

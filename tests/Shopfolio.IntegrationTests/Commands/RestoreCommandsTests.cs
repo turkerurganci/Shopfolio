@@ -143,13 +143,52 @@ public sealed class RestoreCommandsTests : IAsyncLifetime
     {
         await AddLegalTextAsync(1, DateTimeOffset.UtcNow);
         DateTimeOffset point = await PointAfterAsync();
-        string before = await ScalarAsync<string>("SELECT pg_snapshot_xmax(pg_current_snapshot())::text");
+        FakeTerminal terminal = new();
 
-        await RunAsync(new FakeTerminal(), "rollback-check", "--restore-point", point.ToString("o"));
+        // The proof is tied to this test's own database (09 19.1 item 4): its new sessions open read-only, so a write by the check fails, whatever the other collections do on the server.
+        await SetDatabaseReadOnlyAsync(true);
+        try
+        {
+            // The control: a session that opens now (no pooling) cannot write, so the guard is really on.
+            await Assert.ThrowsAsync<PostgresException>(async () =>
+            {
+                await using NpgsqlConnection probe = new(new NpgsqlConnectionStringBuilder(_collection.Dsn) { Pooling = false }.ConnectionString);
+                await probe.OpenAsync(Ct);
+                await using NpgsqlCommand write = new("UPDATE legal_text_versions SET text = 'yazma'", probe);
+                await write.ExecuteNonQueryAsync(Ct);
+            });
 
-        // A transaction that wrote would have been given a number; the next number is the one the check saw.
-        Assert.Equal(before, await ScalarAsync<string>("SELECT pg_snapshot_xmax(pg_current_snapshot())::text"));
-        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM legal_text_versions"));
+            int exit = await RunAsync(terminal, "rollback-check", "--restore-point", point.ToString("o"));
+
+            Assert.True(exit == 0, terminal.AllOutput);
+        }
+        finally
+        {
+            await SetDatabaseReadOnlyAsync(false);
+        }
+
+        Assert.Equal(1L, await ScalarAsync<long>("SELECT count(*) FROM legal_text_versions WHERE text <> 'yazma'"));
+    }
+
+    /// <summary>Sets whether the sessions that open in this test's database are read-only; the reset runs on a session that is made writable first.</summary>
+    private async Task SetDatabaseReadOnlyAsync(bool readOnly)
+    {
+        await using NpgsqlConnection connection = new(new NpgsqlConnectionStringBuilder(_collection.Dsn) { Pooling = false }.ConnectionString);
+        await connection.OpenAsync(Ct);
+
+        // Two statements: the setting must be in force before the transaction of the ALTER begins.
+        await using (NpgsqlCommand writable = new("SET default_transaction_read_only = off", connection))
+        {
+            await writable.ExecuteNonQueryAsync(Ct);
+        }
+
+        await using NpgsqlCommand command = new(
+            $"DO $$ BEGIN EXECUTE format('ALTER DATABASE %I SET default_transaction_read_only = {(readOnly ? "on" : "off")}', current_database()); END $$",
+            connection);
+        await command.ExecuteNonQueryAsync(Ct);
+
+        // A pooled session keeps the setting it was opened with; no session opened under the read-only setting may stay in a pool for the other tests.
+        NpgsqlConnection.ClearAllPools();
     }
 
     [Fact]

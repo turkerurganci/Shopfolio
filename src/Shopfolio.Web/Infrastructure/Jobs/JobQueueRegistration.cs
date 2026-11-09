@@ -15,6 +15,7 @@ internal static class JobQueueRegistration
         ArgumentNullException.ThrowIfNull(services);
         services.AddScoped<JobEnqueueTracker>();
         services.AddScoped<IJobQueue, JobQueue>();
+        services.AddScoped<JobQueueStatusReader>();
         services.AddSingleton<IJobSignal, JobSignal>();
         services.AddSingleton(provider => new JobHandlerRegistry(provider.GetServices<JobHandlerRegistration>()));
         services.AddHostedService<JobRunnerService>();

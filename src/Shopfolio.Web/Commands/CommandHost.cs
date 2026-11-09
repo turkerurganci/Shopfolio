@@ -8,8 +8,10 @@ using Npgsql;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Backup;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.FileSecrets;
+using Shopfolio.Infrastructure.Imaging;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
@@ -114,14 +116,23 @@ internal static class CommandHost
         services.AddScoped<RollbackAudit>();
         services.AddSingleton<InstantDeletionLog>();
 
+        // The status command evaluates the endpoint's conditions (05 8.5.6): their thresholds, their sources and the error counter that some of them are constructed with. The conditions
+        // that read the web process's memory are listed by the command and not evaluated (IStatusCondition.ReadsProcessMemory).
+        services.AddOptions<StatusThresholdOptions>().BindConfiguration(StatusThresholdOptions.SectionName);
+        services.TryAddSingleton<UnexpectedErrorCounter>();
+        services.AddStatus();
+
+        // The registrations the modules stand on, the same calls the web host makes (Program.cs): a module chain that reaches the Catalog module's files needs the image processor.
         services.AddFileStore();
-        // The modules' constructors need the image processor (Catalog's uploads); the command mode makes no derivative (T388: the modules are now resolved for the replay).
-        services.AddSingleton<Shopfolio.Infrastructure.Imaging.ImageProcessor>();
-        // What the modules' constructors take in the web host too (T388: the replay resolves the Membership and Administration modules): the site address, the conditional settings and the disk guard.
-        services.AddSearchEngineData();
-        services.AddInstallationSettings();
-        services.AddSingleton<IDiskUsageReader, DriveDiskUsageReader>();
-        services.AddSingleton<DiskUsageGuard>();
+        services.AddImageProcessing();
+
+        // The audit actor source of the Administration module reads the request's accessor; in a command process there is no request, so it has no actor (AuditActorSource.cs). Not a server service.
+        services.AddHttpContextAccessor();
+
+        // The conditional lines (05 8.4.6), worked out from the same settings classes as the web's start-up check; the status command writes them.
+        services.AddOptions<PaymentOptions>().BindConfiguration(PaymentOptions.SectionName);
+        services.AddOptions<GoogleOptions>().BindConfiguration(GoogleOptions.SectionName);
+        services.AddConditionalLines();
         services.AddCatalogModule();
         services.AddOrderingModule();
         services.AddPaymentModule();

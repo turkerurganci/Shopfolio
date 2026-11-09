@@ -91,7 +91,7 @@
 
 - **Branch:** `task/T348-siparis-onayi`
 - **Commit:** `d7bee8a9` — sipariş onayı işlemi, özet karşılaştırması, görünürlük kuralı; `f84d3c30` — onay testleri ve 4.2.1 kaydı; rapor/kayıt commit'i
-- **PR:** #487
+- **PR:** #489
 - **CI:** *(PR CI'ı — yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

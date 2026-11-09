@@ -254,6 +254,7 @@ internal static class AdministrationModuleRegistration
         services.AddScoped<AdminEmailChanges>();
         services.AddScoped<AuditTrail>();
         services.AddScoped<IAuditTrail>(p => p.GetRequiredService<AuditTrail>());
+        services.AddScoped<ISalesSummary, SalesSummaryService>();
         services.AddDisposalPart<AdminInvitationDisposalPart>();
         return services;
     }

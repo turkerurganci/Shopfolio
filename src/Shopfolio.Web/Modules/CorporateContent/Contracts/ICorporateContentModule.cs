@@ -63,4 +63,10 @@ public interface ICorporateContentModule
     /// transaction of its own, then the request written open with the firm's notice F-2. The sender gets no number and no acknowledgement e-mail (02 3.32.6).
     /// </summary>
     Task<ContactFormResult> SendContactRequestAsync(ContactFormInput input, System.Net.IPAddress? ipAddress, CancellationToken ct);
+
+    /// <summary>
+    /// The sales summary's contact request count (T383; 02 10.6.3): the requests opened in <c>[periodStart, periodEnd)</c> whose topic is General question, About a product or Other - the KVKK
+    /// request and About an order are not the storefront's output and are left out. A plain read that counts; nothing is kept.
+    /// </summary>
+    Task<int> CountSummaryContactRequestsAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, CancellationToken ct);
 }

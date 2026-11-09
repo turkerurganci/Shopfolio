@@ -169,6 +169,19 @@ public interface IAfterSalesModule
 
     /// <summary>The order's refund IBAN as the operation decision reads it (03 1.11.11, 1.11.12, 1.11.39): the IBAN on file, and an open request on one of the given items. A plain read.</summary>
     Task<RefundIbanState> RefundIbanStateAsync(Guid orderId, IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// The items with a cancellation, removal, late delivery termination or withdrawal whose event day falls in <paramref name="startDay"/>…<paramref name="endDay"/> (Turkey days)
+    /// (T383; 02 10.6.3; 07 9.22.1; K-580): the cancellation and the removal on their record's day, the termination on its notice's date stamp, the withdrawal on its declaration's
+    /// date. A cancellation undone by a correction is left out. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> ListItemsWithLossInRangeAsync(DateOnly startDay, DateOnly endDay, CancellationToken ct);
+
+    /// <summary>
+    /// Which of the given items have a cancellation, removal, late delivery termination or withdrawal at any time (T383; 02 10.6.3; K-790); a cancellation undone by a correction
+    /// does not count, the "goods did not come back" closure and the return rejection are not read. A plain read.
+    /// </summary>
+    Task<IReadOnlySet<Guid>> FindItemsWithLossAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 }
 
 /// <summary>One cancellation record as the order module needs it: the record, the item and the units it closed.</summary>

@@ -53,6 +53,12 @@ internal sealed class OrderingModule : IOrderingModule
 
     public Task<OrderShippingView?> GetShippingViewAsync(Guid orderId, CancellationToken ct) => _shippingViews.GetAsync(orderId, ct);
 
+    public Task<SalesPeriodFacts> ReadSalesPeriodAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, DateTimeOffset now, CancellationToken ct) =>
+        new SalesPeriodReader(_db).ReadAsync(periodStart, periodEnd, now, ct);
+
+    public Task<IReadOnlyList<OrderOfItem>> FindPaidOrdersOfItemsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct) =>
+        new SalesPeriodReader(_db).FindPaidOrdersOfItemsAsync(orderItemIds, ct);
+
     public async Task<ConfirmationParties?> GetConfirmationPartiesAsync(Guid orderId, CancellationToken ct)
     {
         Order? order = await _db.Orders.AsNoTracking().SingleOrDefaultAsync(o => o.Id == orderId, ct);

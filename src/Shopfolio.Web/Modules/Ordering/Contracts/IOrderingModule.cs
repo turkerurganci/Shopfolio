@@ -210,6 +210,16 @@ public interface IOrderingModule
     /// from the first), an empty list at the end - the set grows with every paid order, so it is never taken whole (09 20 item 2). A plain read; it writes nothing.
     /// </summary>
     Task<IReadOnlyList<PaidCardItem>> ListPaidCardItemsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct);
+
+    /// <summary>
+    /// The order facts of the sales summary's period <c>[periodStart, periodEnd)</c> (T383; 02 10.6.2, 10.6.3): the approved orders born in it, their totals, methods, products and items, the
+    /// orders of the carts that had an order born in it and the shipping promises that ran out in it by <paramref name="now"/>. A plain read at the moment of the call; it keeps
+    /// and writes nothing.
+    /// </summary>
+    Task<SalesPeriodFacts> ReadSalesPeriodAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, DateTimeOffset now, CancellationToken ct);
+
+    /// <summary>The orders of the given items whose payment was approved (T383; 02 10.6.3); the items of a Failed or pending order are left out. A plain read.</summary>
+    Task<IReadOnlyList<OrderOfItem>> FindPaidOrdersOfItemsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 }
 
 /// <summary>

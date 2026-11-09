@@ -199,7 +199,7 @@
 | T356 | Onay adımı: onay kutuları, Ön Bilgilendirme Formu içeriği, işlem rehberi | ⬚ | — | — | — |
 | T357 | Fatura verisi ve dışa aktarmada donmuş kimlik | ⏳ | — | — | #485 |
 | T358 | Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar | ✓ | ✓ PASS (tur 1) | — | #449 |
-| T359 | Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler | ⬚ | — | — | — |
+| T359 | Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler | ✓ | ✓ PASS (tur 3) | — | #479 |
 | T360 | Duyuru şeridi, boş kurulum, içerik yayın durumu, önizleme ve silme | ✓ | ✓ PASS (tur 1) | — | #481 |
 | T361 | Ana sayfa düzeni ve üst menü | ✓ | ✓ PASS (tur 2) | — | #461 |
 | T362 | Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası | ✓ | ✓ PASS (tur 2) | — | #448 |
@@ -228,7 +228,7 @@
 | T385 | Gönderim yeniden denemesi ve "e-posta ulaşmadı" işareti: üç deneme, işaretin düşüşü, panelden yeniden gönderim, işaretsiz bildirimler | ⬚ | — | — | — |
 | T386 | Sipariş müdahaleleri: kalem adedi azaltma ve çıkarma, kargo bilgisinin ve teslim tarihinin düzeltilmesi, iç not | ⬚ | — | — | — |
 | T387 | Kurulum tarafı yönetim komutları: iş satırını yeniden kuyruğa alma ya da kapatma, anahtar yenilemesi sonrası ödeme sonucunun uygulanması, kayıt okuma komutu | ⬚ | — | — | — |
-| T388 | Dönüş denetimi komutu ve dönüşten sonra silmelerin yeniden uygulanması | ⬚ | — | — | — |
+| T388 | Dönüş denetimi komutu ve dönüşten sonra silmelerin yeniden uygulanması | ✓ | ✓ PASS (tur 2) | — | #483 |
 | T389 | Hesap ve durum yönetim komutları: oturumları sonlandırma, şifreyi geçersiz kılma, durum | ✓ | ✓ PASS (tur 3) | — | #472 |
 | T390 | Uçtan uca dal akış testleri (servis düzeyi): karışık sipariş, kargoda cayma, IBAN'sız iade, e-posta düzeltme | ⬚ | — | — | — |
 

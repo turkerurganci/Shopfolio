@@ -1,5 +1,6 @@
 using System.Net;
 
+using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Administration.Contracts.Results;
@@ -78,6 +79,13 @@ public interface IAdministrationModule
 
     /// <summary>Removes another administrator (07 UC-177; 02 10.2.2); without the confirmation it only tells what the removal does.</summary>
     Task<AdminRemovalResult> RemoveAdminAsync(Guid targetAdminId, bool confirmed, CancellationToken ct);
+
+    /// <summary>
+    /// The administrator's removal applied again after the database was returned to an earlier moment (T388; 05 8.5.10), for the <c>reapply-deletions</c> command, in the caller's transaction,
+    /// which saves: the same removal as <see cref="RemoveAdminAsync"/> (the unused invitations the administrator sent are ended, the account is deleted and the disposal record written) with
+    /// none of its gates - no acting administrator, no self or last-administrator refusal - and no trail row or notice: both were written the first time. An account that is not there already is skipped.
+    /// </summary>
+    Task<DeletionReapplyResult> ReapplyAdminRemovalAsync(Guid adminId, CancellationToken ct);
 
     /// <summary>The administrator's own name (07 UC-178; 02 10.2.4): no reauthentication.</summary>
     Task<AdminNameChangeResult> ChangeNameAsync(Guid adminId, string name, CancellationToken ct);

@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.Values;
@@ -218,6 +219,8 @@ internal sealed class AdministrationModule : IAdministrationModule
     public Task<AdminInvitationAcceptance> AcceptInvitationAsync(string key, string name, string password, CancellationToken ct) => _admins.AcceptInvitationAsync(key, name, password, ct);
 
     public Task<AdminRemovalResult> RemoveAdminAsync(Guid targetAdminId, bool confirmed, CancellationToken ct) => _admins.RemoveAsync(targetAdminId, confirmed, ct);
+
+    public Task<DeletionReapplyResult> ReapplyAdminRemovalAsync(Guid adminId, CancellationToken ct) => _admins.ReapplyRemovalAsync(adminId, ct);
 
     public Task<AdminNameChangeResult> ChangeNameAsync(Guid adminId, string name, CancellationToken ct) => _admins.ChangeNameAsync(adminId, name, ct);
 

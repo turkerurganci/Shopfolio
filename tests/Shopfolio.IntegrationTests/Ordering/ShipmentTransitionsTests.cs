@@ -482,7 +482,7 @@ public sealed class ShipmentTransitionsTests : IAsyncLifetime
         await SaveAsync(c => c.Cancellations.Add(Cancellation.ByBuyer(items[0].Id, 1, Amounts, null, Start)));
 
         OrderTransitionResult result = await RunAsync((unit, token) => unit.CancelOrderAsync(
-            CancelOrderRequest.ByAdministrator(order.Id, AdminCaller, 1, true, CancellationReason.AgreedWithBuyer, agreement: AgreementConfirmation.FromOrderEmail), token));
+            CancelOrderRequest.ByAdministrator(order.Id, AdminCaller, 1, true, CancellationReason.AgreedWithBuyer, ownerConfirmed: true), token));
 
         Assert.Equal(TransitionRefusal.ConditionNotMet, result.Refusal);
         await AssertNothingWrittenAsync(order.Id, OrderStatus.DeliveryFailed, PaymentStatus.Paid);

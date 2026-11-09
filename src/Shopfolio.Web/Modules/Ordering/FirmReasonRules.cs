@@ -11,9 +11,9 @@ namespace Shopfolio.Modules.Ordering;
 /// </summary>
 internal static class FirmReasonRules
 {
-    public static bool IsComplete(CancellationReason reason, string? note, AgreementConfirmation? agreement)
+    public static bool IsComplete(CancellationReason reason, string? note, bool ownerConfirmed)
     {
         return (reason == CancellationReason.Other) == !string.IsNullOrWhiteSpace(note)
-            && (reason == CancellationReason.AgreedWithBuyer) == (agreement is not null);
+            && (reason == CancellationReason.AgreedWithBuyer) == ownerConfirmed;
     }
 }

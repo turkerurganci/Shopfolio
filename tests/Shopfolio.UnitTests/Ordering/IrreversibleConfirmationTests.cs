@@ -99,7 +99,7 @@ public sealed partial class IrreversibleConfirmationTests
         IrreversibleConfirmation other = IrreversibleConfirmations.FirmCancellation(isPaid, 1, true, false);
 
         // The warning is the window's first line, before the result sentence and the irreversible sentence the confirmation closes with (02 7.2.4).
-        Assert.Equal(IrreversibleConfirmations.OutOfStockWarning, outOfStock.Lines[0]);
+        Assert.Equal(IrreversibleConfirmations.OutOfStockLegalNotice, outOfStock.Lines[0]);
         Assert.Contains("imkânsızlaşması sayılmaz", outOfStock.Warning!, StringComparison.Ordinal);
         Assert.Null(other.Warning);
         Assert.Equal(other.Sentence, outOfStock.Sentence);

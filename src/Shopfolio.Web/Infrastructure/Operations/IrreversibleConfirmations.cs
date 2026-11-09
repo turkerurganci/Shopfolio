@@ -55,11 +55,11 @@ public static class IrreversibleConfirmations
     /// <summary>The sentence every irreversible operation's window ends with (04 2.4.1; K-797).</summary>
     public const string IrreversibleSentence = "Bu işlem geri alınamaz.";
 
-    /// <summary>K-798 (5): the warning before the "paid" mark's sentence on an order with a digital item.</summary>
     /// <summary>02 7.2.4: the warning of the "stokta bulunamadı" reason - Yönetmelik m.16/4 does not take a missing stock as the impossibility of performance.</summary>
-    public const string OutOfStockWarning = "Stokta bulunmaması yasal olarak ifanın imkânsızlaşması sayılmaz; bu iptalin sonucu firmadadır.";
+    public const string OutOfStockLegalNotice = "Stokta bulunmaması yasal olarak ifanın imkânsızlaşması sayılmaz; bu iptalin sonucu firmadadır.";
 
-    public const string DigitalItemPaidMarkWarning ="Siparişte dijital ürün var: işaretle birlikte indirme açılır ve bu işaret sonradan düzeltilemez.";
+    /// <summary>K-798 (5): the warning before the "paid" mark's sentence on an order with a digital item.</summary>
+    public const string DigitalItemPaidMarkWarning = "Siparişte dijital ürün var: işaretle birlikte indirme açılır ve bu işaret sonradan düzeltilemez.";
 
     /// <summary>03 1.6.1.1: the bank transfer's "paid" mark; on an order with a digital item the warning that the mark can not be corrected comes first.</summary>
     public static IrreversibleConfirmation TransferPaidMark(bool hasDigitalItem) => new(
@@ -83,7 +83,7 @@ public static class IrreversibleConfirmations
     public static IrreversibleConfirmation FirmCancellation(bool isPaid, int units, bool isCardLine, bool isCustomerCausedDeliveryFailure, bool isOutOfStock = false)
     {
         // "Stokta bulunamadı": before the confirmation the panel says that a missing stock is not a legal impossibility and the outcome is the firm's (02 7.2.4; T368 k8).
-        string? warning = isOutOfStock ? OutOfStockWarning : null;
+        string? warning = isOutOfStock ? OutOfStockLegalNotice : null;
         if (!isPaid)
         {
             return new(IrreversibleAction.FirmCancellation, warning, "Sipariş iptal edilecek ve müşteriye sebebiyle bildirilecek.");

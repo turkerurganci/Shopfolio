@@ -54,10 +54,11 @@ public sealed record CancelOrderRequest(
         new(orderId, ActorKind.Buyer, null, null, false, null, null, null, item);
 
     /// <summary>
-    /// How the firm confirmed that a "müşteriyle anlaşıldı" request came from the order's owner (02 7.2.4, 8.3.8; K-607): required on that reason, absent on the others.
-    /// The product does not check the proof; it only refuses the cancellation the panel sent without the firm's statement.
+    /// The firm's statement that a "müşteriyle anlaşıldı (müşteri talebi)" request came from the order's owner (02 7.2.4, 8.3.8; K-607): it came from the order's contact
+    /// e-mail, or it came another way and the firm confirmed it by turning back to the order's e-mail or delivery telephone - the address or number the request came from
+    /// is no confirmation. Required on that reason, refused on the others; the product does not check the proof, it refuses the cancellation sent without the statement.
     /// </summary>
-    public AgreementConfirmation? Agreement { get; init; }
+    public bool OwnerConfirmed { get; init; }
 
     public static CancelOrderRequest ByAdministrator(
         Guid orderId,
@@ -67,8 +68,8 @@ public sealed record CancelOrderRequest(
         CancellationReason reason,
         string? reasonNote = null,
         CancelledItem? item = null,
-        AgreementConfirmation? agreement = null) =>
-        new(orderId, ActorKind.Admin, admin, expectedVersion, confirmed, reason, reasonNote, null, item) { Agreement = agreement };
+        bool ownerConfirmed = false) =>
+        new(orderId, ActorKind.Admin, admin, expectedVersion, confirmed, reason, reasonNote, null, item) { OwnerConfirmed = ownerConfirmed };
 
     public static CancelOrderRequest BySystem(Guid orderId, TransitionReason reason) =>
         new(orderId, ActorKind.System, null, null, false, null, null, reason, null);
@@ -82,19 +83,9 @@ public sealed record CancelOrderRequest(
 public sealed record CancelItemRequest(Guid OrderId, Guid OrderItemId, int Quantity);
 
 /// <summary>
-/// The firm's statement on a "müşteriyle anlaşıldı (müşteri talebi)" cancellation (02 7.2.4, 8.3.8; K-607): the request came from the order's contact e-mail, or it came
-/// another way and the firm confirmed it by writing to the order's e-mail or calling its delivery telephone. The address or number the request came from is no confirmation.
-/// </summary>
-public enum AgreementConfirmation
-{
-    FromOrderEmail,
-    ConfirmedWithOwner,
-}
-
-/// <summary>
 /// The firm's cancellation of a paid item's units from the panel (03 1.11.21, 8.3.1.1; 02 7.2.4; T368): the item and the units chosen up to its open units, the screen's
 /// version, the irreversible-action confirmation (03 1.6.1.3), a reason from the closed list with the note on "Other", and on "müşteriyle anlaşıldı" the firm's
-/// <see cref="AgreementConfirmation"/>. An unpaid order is cancelled only as a whole (<see cref="CancelOrderRequest.ByAdministrator"/>).
+/// statement that the request came from the order's owner (<see cref="CancelOrderRequest.OwnerConfirmed"/>). An unpaid order is cancelled only as a whole (<see cref="CancelOrderRequest.ByAdministrator"/>).
 /// </summary>
 public sealed record CancelItemByFirmRequest(
     Guid OrderId,
@@ -105,7 +96,7 @@ public sealed record CancelItemByFirmRequest(
     bool Confirmed,
     CancellationReason Reason,
     string? ReasonNote,
-    AgreementConfirmation? Agreement);
+    bool OwnerConfirmed);
 
 /// <summary>
 /// The late delivery termination (03 1.11.8, 1.11.41; 02 7.2.3, 10.4.10; T368): no item and no unit is chosen - every undelivered physical item's open units are

@@ -118,7 +118,7 @@ internal sealed class OrderPeriods
         DateTimeOffset? approvedAt = await PaymentApprovedAtAsync(orderId, ct);
         DateTimeOffset? firstShippedAt = await FirstShippedAtAsync(orderId, ct);
         return records
-            .Where(r => r.Kind == ClosingRecordKind.LateDeliveryTermination
+            .Where(r => r.IsTermination
                 || DeliveryPeriodRules.IsLegalInterestWarningDue(
                     items[r.OrderItemId].ProductType, approvedAt, order.ShippingPeriod, items[r.OrderItemId].FulfilmentPeriod, r.At, firstShippedAt))
             .Select(r => r.RecordId)

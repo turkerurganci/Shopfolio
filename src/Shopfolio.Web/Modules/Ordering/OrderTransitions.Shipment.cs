@@ -304,7 +304,7 @@ internal sealed partial class OrderTransitions
         switch (request.Actor)
         {
             case ActorKind.Buyer:
-                if (request.Admin is not null || request.FirmReason is not null || request.ReasonNote is not null || request.SystemReason is not null || request.Agreement is not null)
+                if (request.Admin is not null || request.FirmReason is not null || request.ReasonNote is not null || request.SystemReason is not null || request.OwnerConfirmed)
                 {
                     refusal = request.Admin is not null ? TransitionRefusal.ActorNotAllowed : TransitionRefusal.ReasonNotAllowed;
                     return false;
@@ -329,7 +329,7 @@ internal sealed partial class OrderTransitions
                 // The firm's reason is from the closed list; "Other" carries the free note, no other reason does (06 4.19).
                 if (request.ExpectedVersion is null
                     || request.FirmReason is not { } firmReason
-                    || !FirmReasonRules.IsComplete(firmReason, request.ReasonNote, request.Agreement))
+                    || !FirmReasonRules.IsComplete(firmReason, request.ReasonNote, request.OwnerConfirmed))
                 {
                     refusal = TransitionRefusal.InvalidInput;
                     return false;
@@ -339,7 +339,7 @@ internal sealed partial class OrderTransitions
                 return true;
 
             case ActorKind.System:
-                if (request.Admin is not null || request.FirmReason is not null || request.ReasonNote is not null || request.Item is not null || request.Agreement is not null)
+                if (request.Admin is not null || request.FirmReason is not null || request.ReasonNote is not null || request.Item is not null || request.OwnerConfirmed)
                 {
                     refusal = TransitionRefusal.ActorNotAllowed;
                     return false;

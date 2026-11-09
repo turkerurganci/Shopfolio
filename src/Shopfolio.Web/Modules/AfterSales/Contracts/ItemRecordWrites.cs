@@ -85,15 +85,11 @@ public sealed record LateDeliveryTerminationEntry(
     DateOnly DeclarationDate,
     DateTimeOffset At);
 
-/// <summary>The kinds of item record the panel's legal interest warning reads (02 7.2.3): a cancellation and a late delivery termination.</summary>
-public enum ClosingRecordKind
-{
-    Cancellation,
-    LateDeliveryTermination,
-}
-
-/// <summary>A cancellation or a late delivery termination as the legal interest warning reads it: the record, its item, its kind and its moment.</summary>
-public sealed record ClosingRecordMoment(Guid RecordId, Guid OrderItemId, ClosingRecordKind Kind, DateTimeOffset At);
+/// <summary>
+/// A cancellation or a late delivery termination as the panel's legal interest warning reads it (02 7.2.3): the record, its item, whether it is a late delivery
+/// termination (<paramref name="IsTermination"/>) or a cancellation, and its moment.
+/// </summary>
+public sealed record ClosingRecordMoment(Guid RecordId, Guid OrderItemId, bool IsTermination, DateTimeOffset At);
 
 /// <summary>The receipt of returned goods of a withdrawal (03 1.7.1.6; K-794): every partial arrival is a record of its own, with the arrival date and the units.</summary>
 public sealed record ReturnReceiptEntry(ItemRecordSubject Subject, Guid WithdrawalId, int Quantity, DateOnly ArrivalDate, ItemRecordAdmin Admin, DateTimeOffset At);

@@ -31,7 +31,7 @@ internal sealed partial class OrderTransitions
         }
 
         // The field rules come before the lock: a quantity under one, a missing note on "Other" or a missing confirmation of the owner are wrong values (09 3.4).
-        if (request.Quantity < 1 || !FirmReasonRules.IsComplete(request.Reason, request.ReasonNote, request.Agreement))
+        if (request.Quantity < 1 || !FirmReasonRules.IsComplete(request.Reason, request.ReasonNote, request.OwnerConfirmed))
         {
             return Refused(TransitionRefusal.InvalidInput);
         }
@@ -74,7 +74,7 @@ internal sealed partial class OrderTransitions
         {
             // The last open units: the firm's S3, S4 or S9 with its reason and its one B-7 naming the item (03 1.2); the record is linked to it (06 4.22).
             CancelOrderRequest closingRequest = CancelOrderRequest.ByAdministrator(
-                order.Id, request.Admin, order.Version, true, request.Reason, note, cancelled, request.Agreement);
+                order.Id, request.Admin, order.Version, true, request.Reason, note, cancelled, request.OwnerConfirmed);
             OrderTransitionResult closing = await CancelOrderAsync(closingRequest, ct);
             if (closing.IsRejected)
             {

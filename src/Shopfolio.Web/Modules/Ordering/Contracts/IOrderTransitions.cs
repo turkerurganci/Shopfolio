@@ -54,6 +54,17 @@ public interface IOrderTransitions
     Task<OrderTransitionResult> CancelOrderAsync(CancelOrderRequest request, CancellationToken ct);
 
     /// <summary>
+    /// The customer cancels units of a paid item from the order page, without the firm's approval (T367; 03 1.11.2-1.11.4; 02 7.2.1, 7.2.2, 7.2.5-7.2.7): the operation
+    /// decision's rule says whether it is open - a physical item until the order passes to Shipped (a preparing order included), a service item until its "tamamlandı"
+    /// mark, a digital item never; an unpaid order only as a whole - and the units are at most the item's open units. In one transaction: the cancellation record with
+    /// the amounts it sets aside (the units' coupon share goes into the refund, the rest of the order keeps its own; no minimum basket is read), then the order's line -
+    /// the cancellation of the last open units is the customer's S3 or S4 with B-7 and the record links it; otherwise B-7 names the item and the closure rule is read
+    /// (a mixed order whose physical units are all cancelled goes on along its other items' line) - then the units go back to stock or the service capacity, and the
+    /// coupon right goes back only when the cancellation closes the whole order. A refusal writes nothing.
+    /// </summary>
+    Task<OrderTransitionResult> CancelItemAsync(CancelItemRequest request, CancellationToken ct);
+
+    /// <summary>
     /// S9 as a closure (03 1.2, 1.4.3; 02 5.4 S9): after S7 the administrator closes a returned order whose open items are all gone and none of which was delivered.
     /// No reason is chosen, no B-7 goes - the items' own records are the reason.
     /// </summary>

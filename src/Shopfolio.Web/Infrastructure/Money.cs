@@ -3,8 +3,8 @@ namespace Shopfolio.Infrastructure;
 /// <summary>
 /// The only place where an amount is rounded to the kuruş (09 14.1 item 1; 05 7.2.6; 02 3.8.3). The direction is written out:
 /// .NET's default <c>Math.Round(x, 2)</c> takes an exact half to the even digit (12,345 to 12,34), the rule wants 12,35. Money is
-/// <see cref="decimal"/>; no floating point type takes part (05 7.2.5). The fourth function of 09 14.1 item 1 (the share of units, 02 7.1.7)
-/// comes with the task that computes it (T369) and is written here, next to these three.
+/// <see cref="decimal"/>; no floating point type takes part (05 7.2.5). The fourth function of 09 14.1 item 1, the share of units (02 7.1.7),
+/// came with the first record that sets a share aside - the customer's cancellation (T367); the remainder rule of the last open units is its caller's.
 /// </summary>
 public static class Money
 {
@@ -95,6 +95,28 @@ public static class Money
 
         parts[largest] += total - allocated;
         return parts;
+    }
+
+    /// <summary>
+    /// The share of the units an operation takes (02 7.1.7 (2), (3); 09 14.1 item 2): <paramref name="units"/>/<paramref name="totalUnits"/> of the item's frozen
+    /// <paramref name="frozenAmount"/> - its coupon share or its VAT - rounded DOWN to the kuruş. The operation that closes the item's last open units does not call it:
+    /// it takes what is left (02 7.1.7 (4)). Three units of an item whose coupon share is 100: one unit 33,33, two units 66,66. The amount is a kuruş amount, not
+    /// negative; the units are at least one and at most the total.
+    /// </summary>
+    public static decimal ShareOfUnits(decimal frozenAmount, int units, int totalUnits)
+    {
+        ThrowIfBelowZero(frozenAmount, nameof(frozenAmount));
+        if (frozenAmount * 100 % 1 != 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(frozenAmount), frozenAmount, "The amount has more than two decimals.");
+        }
+
+        if (totalUnits < 1 || units < 1 || units > totalUnits)
+        {
+            throw new ArgumentOutOfRangeException(nameof(units), units, "The units are at least one and at most the item's units.");
+        }
+
+        return Math.Floor(frozenAmount * units / totalUnits * 100) / 100;
     }
 
     // A value below zero is a programming error. The comparison is on the value, so a negative zero (-0.00m) passes; the framework's

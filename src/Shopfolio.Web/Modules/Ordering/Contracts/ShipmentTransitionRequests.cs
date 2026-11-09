@@ -68,6 +68,13 @@ public sealed record CancelOrderRequest(
 }
 
 /// <summary>
+/// The customer's cancellation of a paid item's units from the order page (03 1.11.2, 1.11.3; 02 7.2.1, 7.2.2, 7.2.5; T367): the item and the units, chosen up to the
+/// item's open units. It carries no version and no confirmation - the customer's operation is checked against the order as it is once locked (09 10.2 item 3) - and
+/// no reason. An unpaid order is cancelled only as a whole (<see cref="CancelOrderRequest.ByCustomer"/>).
+/// </summary>
+public sealed record CancelItemRequest(Guid OrderId, Guid OrderItemId, int Quantity);
+
+/// <summary>
 /// The result of an operation of the transition unit (09 9.1 item 3): a refusal is a value, not an exception, and the runner rolls the transaction back on it.
 /// <see cref="TransitionRecordIds"/> are the records the operation wrote, in order; <see cref="ClosureCode"/> is the closure the rule wrote at the end of the
 /// same operation, if any; <see cref="ItemIds"/> are the items the operation concerned (the open physical items a shipment sent or a delivery mark covered,
@@ -86,4 +93,7 @@ public sealed record OrderTransitionResult(
 
     /// <summary>Why the delivery date was refused (02 3.20.11); set only on the <see cref="TransitionRefusal.InvalidInput"/> refusal of the delivery mark's date.</summary>
     public DeliveryDateObstacle? DateObstacle { get; init; }
+
+    /// <summary>The item record the operation wrote - the customer's cancellation (06 4.22); null for an operation that writes none and on a refusal.</summary>
+    public Guid? ItemRecordId { get; init; }
 }

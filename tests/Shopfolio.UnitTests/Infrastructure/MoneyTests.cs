@@ -213,5 +213,46 @@ public sealed class MoneyTests
         Assert.Equal(0m, Money.VatOf(negativeZero, 20m));
     }
 
+    // ---- The share of units (09 14.1 item 1, the fourth function; 02 7.1.7 (2), (3); T367) ----
+
+    [Theory]
+    [InlineData("100", 1, 3, "33.33")]
+    [InlineData("100", 2, 3, "66.66")]
+    [InlineData("100", 3, 3, "100")]
+    [InlineData("50", 1, 3, "16.66")]
+    [InlineData("0.02", 1, 3, "0.00")]
+    [InlineData("0", 1, 2, "0")]
+    [InlineData("99.99", 1, 1, "99.99")]
+    public void ShareOfUnits_IsTheUnitsShare_RoundedDownToTheKurus(string frozen, int units, int total, string expected)
+    {
+        Assert.Equal(Dec(expected), Money.ShareOfUnits(Dec(frozen), units, total));
+    }
+
+    [Fact]
+    public void ShareOfUnits_IsNeverAboveTheExactShare_AndAKurusAtMostBelowIt()
+    {
+        for (int total = 1; total <= 7; total++)
+        {
+            for (int units = 1; units <= total; units++)
+            {
+                decimal exact = 100.01m * units / total;
+                decimal share = Money.ShareOfUnits(100.01m, units, total);
+                Assert.InRange(exact - share, 0m, 0.0099999999m);
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData("-0.01", 1, 2)]
+    [InlineData("10.005", 1, 2)]
+    [InlineData("10", 0, 2)]
+    [InlineData("10", 3, 2)]
+    [InlineData("10", 1, 0)]
+    [InlineData("10", -1, 2)]
+    public void ShareOfUnits_ANegativeOrSubKurusAmount_OrUnitsOutsideTheItem_Throws(string frozen, int units, int total)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Money.ShareOfUnits(Dec(frozen), units, total));
+    }
+
     private static decimal Dec(string value) => decimal.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
 }

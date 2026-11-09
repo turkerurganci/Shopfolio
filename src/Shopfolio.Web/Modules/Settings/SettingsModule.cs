@@ -153,8 +153,8 @@ internal static class SettingsModuleRegistration
         services.AddScoped<ProvinceList>();
         services.AddScoped<DeliveryProvinces>();
 
-        // The privacy notice condition is bound here (T366) before the defaults below; the payment conditions are unbound until their tasks register an implementation in
-        // place of these (T352, T353): unbound is not met.
+        // The privacy notice condition is bound here (T366) before the defaults below. The card line is bound by the Payment module's registration (T352:
+        // CardPaymentCondition); the transfer line is unbound until its task registers an implementation in place of the default (T353): unbound is not met.
         services.TryAddScoped<IPrivacyNoticeCondition, PrivacyNoticeCondition>();
         services.TryAddScoped<ICardPaymentCondition, UnboundCardPaymentCondition>();
         services.TryAddScoped<IBankTransferCondition, UnboundBankTransferCondition>();

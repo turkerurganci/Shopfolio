@@ -13,14 +13,17 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     private readonly HomepageReader _homepage;
     private readonly BrandingSettings _branding;
     private readonly AnnouncementReader _announcement;
+    private readonly ContactFormSending _contactForm;
 
     public CorporateContentModule(
         CorporateContentSitemapReader sitemap,
         StorefrontMenuReader menu,
         HomepageReader homepage,
         BrandingSettings branding,
-        AnnouncementReader announcement)
+        AnnouncementReader announcement,
+        ContactFormSending contactForm)
     {
+        _contactForm = contactForm;
         _sitemap = sitemap;
         _menu = menu;
         _homepage = homepage;
@@ -42,6 +45,10 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     public Task<BrandingSaveResult> SaveBrandingAsync(BrandingInput input, int formVersion, CancellationToken ct) => _branding.SaveAsync(input, formVersion, ct);
 
     public Task<BrandIdentity> GetBrandIdentityAsync(CancellationToken ct) => _branding.ReadIdentityAsync(ct);
+
+    public Task<ContactFormView> GetContactFormAsync(string? memberName, string? memberEmail, CancellationToken ct) => _contactForm.ReadAsync(memberName, memberEmail, ct);
+
+    public Task<ContactFormResult> SendContactRequestAsync(ContactFormInput input, System.Net.IPAddress? ipAddress, CancellationToken ct) => _contactForm.SendAsync(input, ipAddress, ct);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddCorporateContentModule</c> once.</summary>
@@ -52,6 +59,7 @@ internal static class CorporateContentModuleRegistration
         services.AddScoped<CorporateContentSitemapReader>();
         services.AddScoped<ContentPublishing>();
         services.AddScoped<ContactRequests>();
+        services.AddScoped<ContactFormSending>();
         services.AddScoped<BrandingSettings>();
         services.AddScoped<ContentAuthoring>();
         services.AddScoped<SocialLinks>();

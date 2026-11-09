@@ -50,4 +50,17 @@ public interface ICorporateContentModule
     /// or the product's default - with the black or white text the system chose for it, and the footer signature switch. Never stored; a plain read.
     /// </summary>
     Task<BrandIdentity> GetBrandIdentityAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The contact form as the page shows it (T365; 02 3.32.1, 3.32.3, 3.32.8): open or closed by the gate of the data-collecting entries (with the refusal when closed), the five topics,
+    /// and the starting values - the signed-in member's name and e-mail, which can be changed, or empty values. The form needs no sign-in. A plain read.
+    /// </summary>
+    Task<ContactFormView> GetContactFormAsync(string? memberName, string? memberEmail, CancellationToken ct);
+
+    /// <summary>
+    /// The send of the contact form (T365; 02 3.32; 07 UC-15), in the caller's open transaction, which the method joins and never opens: the gate, then the invisible trap field
+    /// (a filled one drops the send silently and counts nothing), then the fields (all refusals together, uncounted), then the limit L-4 on <paramref name="ipAddress"/> in a
+    /// transaction of its own, then the request written open with the firm's notice F-2. The sender gets no number and no acknowledgement e-mail (02 3.32.6).
+    /// </summary>
+    Task<ContactFormResult> SendContactRequestAsync(ContactFormInput input, System.Net.IPAddress? ipAddress, CancellationToken ct);
 }

@@ -76,8 +76,8 @@
 | Contract | — | — | Bu task'ta sözleşme değişikliği yok |
 | Lint | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` (Web, UnitTests, IntegrationTests) | Temiz (bir boşluk düzeltildi) |
 | Düzeltme 1 — build | ✓ | `dotnet build -c Release -warnaserror` (çözüm) | 0 uyarı, 0 hata |
-| Düzeltme 1 — Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests -c Release --filter-not-trait "Consistency=true"` + `--filter-trait "Consistency=true"` | 5082/5082 + 283/283 |
-| Düzeltme 1 — Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests -c Release` (postgres:18, `-c track_commit_timestamp=on`) | 3086/3086 (tam koşu) |
+| Düzeltme 1 — Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests -c Release` (`origin/main` birleştirmesinden sonra, tutarlılık dahil) | 5403/5403 |
+| Düzeltme 1 — Integration | ✓ | `dotnet test --project tests/Shopfolio.IntegrationTests -c Release` (postgres:18, `-c track_commit_timestamp=on`; birleşik ağaç) | 3095/3095 (tam koşu) |
 | Düzeltme 1 — Lint | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` (Web, UnitTests, IntegrationTests) | Temiz |
 
 ## Doğrulama
@@ -110,7 +110,7 @@
 - **B1 → düzeltildi:** `read-command` sunucunun kayıtlarını salt okuma bağlar (`db-logs` → `/var/log/shopfolio/server/db`, `backup-logs` → `.../backup`, `/var/log/journal` → `.../journal`; `group_add: 10002` veritabanı kayıt dizinleri için). `LogReader` `--source system`'da üç kaynağı okur: uygulama kaydı ve erişim kaydı (JSON), veritabanı/pgBackRest/yedek aracı metin satırları (`ServerTextLine`: zaman satırın başından, yoksa satırdaki ISO UTC anından, yoksa aynı dosyadaki önceki satırdan; hiçbiri yoksa okunamayan) ve systemd günlük dosyaları (`JournalFile`: belgelenmiş dosya biçimi, düz ve sıkı biçim; sıkıştırılmış alan açılmaz — `DEPLOY_RUNBOOK §L.4` `Compress=no`). Süzgeç: `request`/`account`/`ip` sunucu satırında bütün sözcük; `event:` günlükte program ya da birim adı. `DEPLOY_RUNBOOK §M.1` madde 8 (bağlamalar, uid 1654 ACL'i, sütun, zaman, süzgeç, kurulum denemesi), §L.4 ve §L.5 madde 6. D-738 kapandı; gerçek journald denemesi D-749 (T603).
 - **B2 → düzeltildi:** `apply-payment-result` satırı `AuditLine.PaymentResult` — `OrderId`, `PaymentResult`, `AmountInKurus` kapalı değerlerle; salt okuma aramasından sonra, ret ve işlemden önce yazılır, diske inmesi beklenir. Para akışı değişmedi (geçiş yolu ve tutar karşılaştırması aynı).
 - **K1 → D-745 kapandı:** beş sonuç komut testinde adıyla (`Preparing`, stok kesin düşüş, iptalde ayırmanın serbest kalması, işaretin kalkması, işaretsiz siparişte `paid` reddi).
-- **Head:** düzeltme commit'i `origin/main` birleştirmesinden sonra (birleştirme gerekmedi: dal güncel).
+- **Birleştirme:** düzeltmeden sonra `origin/main` dala birleştirildi (çakışma yok); build, Unit ve Integration birleşik ağaçta yeniden koşuldu.
 
 ## Altyapı Değişiklikleri
 

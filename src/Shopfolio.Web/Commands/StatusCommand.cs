@@ -115,7 +115,14 @@ internal sealed class StatusCommand : IAdminCommand
     {
         JobQueueDetails queue = await reader.ReadAsync(ct);
         terminal.WriteLine("İş kuyruğu:");
-        terminal.WriteLine($"  Başarısız iş satırı: {queue.FailedCount}" + (queue.FailedCount > 0 ? " (iş satırı komutuyla yeniden kuyruğa alınır ya da kapatılır)" : string.Empty));
+        terminal.WriteLine($"  Başarısız iş satırı: {queue.FailedCount}" + (queue.FailedCount > 0 ? " (iş satırı komutuyla yeniden kuyruğa alınır ya da kapatılır: admin job --id <kimlik> --action requeue|close)" : string.Empty));
+
+        // The rows are streamed, not taken whole (09 20 item 2): the job command needs each one's id (05 8.5.9).
+        await foreach (FailedJobLine failed in reader.ReadFailed().WithCancellation(ct))
+        {
+            terminal.WriteLine($"    {failed.Id:D}  {failed.JobType}  deneme {failed.AttemptCount}  oluşturuldu {Moment(failed.CreatedAt)}  son hata {failed.LastErrorSummary ?? "-"}");
+        }
+
         terminal.WriteLine($"  Zamanı gelmiş iş satırı: {queue.DueCount}" + (queue.OldestDueAt is { } oldest ? $" (en eskisinin zamanı {Moment(oldest)})" : string.Empty));
         terminal.WriteLine(string.Empty);
     }

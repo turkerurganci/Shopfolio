@@ -517,7 +517,10 @@ Storage=persistent
 MaxRetentionSec=6month
 SystemMaxUse=2G
 SystemMaxFileSize=128M
+Compress=no
 ```
+
+`Compress=no`: kayıt okuma komutu (`read-logs --source system`, §M.1 madde 8) günlük dosyasını kendisi okur ve sıkıştırılmış alanı açmaz (T387). Altı aylık sıkıştırmasız günlük de `SystemMaxUse` içinde kalır; kurulumda `journalctl --disk-usage` ile ölçülür.
 
 Konteyner çalıştırıcısının kaydı (`docker.service`) bu günlüğe girer; ayrı bir döngü gerekmez. Altı aylık günlük birkaç yüz MB tutar (`05 §9.2.2`); `SystemMaxUse` altı ayı karşılamalıdır, yoksa journald süresi dolmadan siler — kurulumda `journalctl --disk-usage` ile ölçülür.
 
@@ -528,5 +531,43 @@ Konteyner çalıştırıcısının kaydı (`docker.service`) bu günlüğe girer
 3. **Ters vekil, istek kimliği:** `curl -sk -H 'X-Request-Id: sahte' https://<alan>/ -o /dev/null`; erişim kaydının son satırında `request_id` bir UUID'dir (`sahte` değil). Bir bağlantı sayfası (`/siparis/erisim/<anahtar>`) ve bir arama (`/arama?search=...`) istenir; kayıtta yol `/siparis/erisim/{key}` ve sorgu değeri `*` olarak yazılır (anahtar ve arama sözcüğü kayıtta bulunmaz); satırda yalnız `user_agent` alanı tarayıcı tanıtımını taşır, `cookie` ve öteki başlıklar yoktur (`request.headers` alanı yok). Satırın alanları L.2'deki kapalı listedir; `remote_port`, `client_ip`, `proto`, `host`, `bytes_read`, `user_id` ve `uuid` satırda **yoktur** (Caddy yükseltmesi yeni bir varsayılan alan eklerse burada görünür; `Caddyfile`'a `delete` satırı eklenir). Sorguda çıplak belirteç denenir: `/arama?a=1&b&c` kayda `/arama?a=*&*&*` olarak yazılır.
 4. **İki kayıt aynı kimlikte:** reddedilen bir istek (örneğin hız sınırı ya da geçersiz form) yapılır; uygulama kaydındaki satırın `requestId` değeri erişim kaydındaki `request_id` ile aynıdır.
 5. **Döndürme:** `logrotate -d /etc/logrotate.d/shopfolio` hata vermez; bir kez `logrotate -f` koşulduktan sonra `access.log-yyyyMMdd` oluşur ve **hiçbir dosya silinmemiştir**; Caddy yeni satırı `access.log`'a yazmaya devam eder.
-6. **Günlük:** `systemd-analyze cat-config systemd/journald.conf` çıktısında `MaxRetentionSec=6month`; `journalctl --disk-usage` `SystemMaxUse` altındadır.
+6. **Günlük:** `systemd-analyze cat-config systemd/journald.conf` çıktısında `MaxRetentionSec=6month` ve `Compress=no`; `journalctl --disk-usage` `SystemMaxUse` altındadır.
 7. **Kayıtta kişisel veri yok:** uygulama kaydının son satırlarında e-posta, adres, telefon, form gövdesi ya da çerez değeri bulunmaz (`grep -E '@|cookie' <app-logs>/app-*.jsonl` boş döner).
+
+---
+
+## M. Kurulum tarafı yönetim komutları — kayıt okuma, iş satırı, ödeme sonucu (T387; `05 §8.5.5`, §8.5.9, §8.5.12, §9.3; `09 §13.2`)
+
+> **Kaynak:** `05 §8.5`, `05 §9.3`, `09 §13.2`; T387. Komutlar K-1324'ün çağrı biçimiyle, TTY'li tek seferlik konteynerle çalışır (`$COMPOSE run --rm <hizmet> admin <komut> ...`; `-T` ve `exec` değil). `COMPOSE` değişkeni §J'dekiyle aynıdır. Her komut çalışmadan önce kendi satırını uygulama kaydının dizinindeki `command-yyyyMMdd.jsonl` dosyasına yazar (`09 §13.2` madde 5); iki komut hizmeti bu yüzden `app-logs` birimini bağlar.
+
+### M.1 `read-logs` — giriş kaydı, sistem kayıtları, imha kaydı (`05 §8.5.5`, §9.3)
+
+Üç kaynak panelde görünmez; yalnız bu komutla, okuyucu kullanıcının bağlantısıyla (`read-command` hizmeti) okunur (`05 §9.3.1`; MK-66).
+
+1. **Sonucun dizini (bir kez, kurulumda):** sunucuda kayıtların ve **hiçbir yedeğin** kapsamadığı bir dizin açılır; varsayılanı `/var/tmp/shopfolio-export`'tur (başka bir yer `settings.env`'de `SHOPFOLIO_EXPORT_DIR` ile verilir): `install -d -m 0700 -o 1654 -g 1654 /var/tmp/shopfolio-export` (1654, uygulama imajının `app` kullanıcısıdır). Dizin dosya yedeğinin (§J) ve sunucunun kayıt döngüsünün (§L.3) listesine **eklenmez** (`05 §9.3.3`).
+2. **Çağrı:** `$COMPOSE run --rm read-command admin read-logs --source <login|system|disposal> --from 2026-10-01 --to 2026-10-31 [--filter <süzgeç>]`. Aralık Türkiye günüdür; `--from` günün başından başlar, `--to` günü dahil eder.
+3. **Süzgeç:** `event:<olay türü>` (giriş kaydında `Succeeded`/`Failed`, imha kaydında kayıt türü, sistem kayıtlarında `event` alanı), `request:<istek kimliği>`, `account:<hesabın iç kimliği>`, `ip`, `email`. **IP ve e-posta argümanla verilmez:** `--filter ip` ya da `--filter email` değersiz yazılır, değer terminalden sorulur; e-posta hesabın iç kimliğine çevrilir (sistem kayıtları e-posta taşımaz, `05 §9.1.3`). Argümanda `ip:...`, `email:...`, `@` içeren ya da IP olarak okunan değer çıkış 2 ile reddedilir ve ileti değeri yinelemez. Girdi yönlendirilmişse (boru, `-T`) IP ve e-posta süzgeci hiçbir satır yazmadan 2 döner.
+4. **Sonuç:** komut standart çıktıya dosyanın yolunu (`/tmp/shopfolio-export/<rastgele kimlik>.csv`, sunucuda 1. adımdaki dizin) ve satır sayısını yazar. CSV UTF-8 (BOM), `;` ayraçlı, CRLF satır sonludur; dosya yalnız sahibince okunur (0600).
+5. **Şifreli iletim:** dosya firmaya **yalnız şifreli** iletilir; örnek: `7z a -t7z -mhe=on -p shopfolio-kayit.7z /var/tmp/shopfolio-export/<kimlik>.csv` (AES-256; parola firmaya ayrı bir kanaldan — telefon ya da yüz yüze — verilir) ya da alıcının açık anahtarıyla `age -r <alıcı-anahtarı> -o shopfolio-kayit.csv.age /var/tmp/shopfolio-export/<kimlik>.csv`. Şifresiz dosya e-postayla, mesajlaşmayla ya da paylaşım bağlantısıyla gönderilmez.
+6. **Silme:** iletim doğrulanınca hem CSV hem şifreli kopya sunucudan silinir: `shred -u /var/tmp/shopfolio-export/<kimlik>.csv shopfolio-kayit.7z` (ya da `rm -f`); `ls /var/tmp/shopfolio-export` boş döner. Dizinde iletilmemiş eski dosya bırakılmaz (`05 §9.3.3`).
+7. **Kayıt:** her çalışma, satırını okumadan önce uygulama kaydına yazar ve diske inmesini bekler (`05 §9.3.4`): satırda komut, kaynak, süzgecin türü, aralığın günleri ve süzgecin hesabının iç kimliği vardır; süzgecin değeri (olay, istek, IP, e-posta) yazılmaz.
+8. **Sistem kayıtlarının üç kaynağı (`05 §9.1.1`, §9.3.1):** `--source system` kayıt dosyalarını (uygulama kaydı, erişim kaydı) ve sunucunun kayıtlarını (§L.1 satır 3–6) birlikte okur. `read-command` hizmeti bunları salt okuma bağlar: `access-logs`, `db-logs` (`/var/log/shopfolio/server/db`: veritabanının kaydı ve pgBackRest'in kaydı), `backup-logs` (`/var/log/shopfolio/server/backup`) ve sunucunun `/var/log/journal` dizini (`/var/log/shopfolio/server/journal`). Veritabanı kayıt dizinleri `logread` grubundadır (10002); hizmet `group_add: ["10002"]` ile yalnız bu gruba katılır. **İşletim sisteminin günlüğü için bir kez, kurulumda:** `setfacl -R -m u:1654:rX /var/log/journal && setfacl -R -d -m u:1654:rX /var/log/journal` (1654 uygulama imajının `app` kullanıcısıdır; §J.4 madde 5'teki yedek ACL'inin yanına; başka dizine verilmez). Sürekli çalışan `app` hizmeti günlüğü bağlamaz; ACL'den yalnız tek seferlik `read-command` yararlanır.
+   - CSV'nin `Dosya` sütunu kaynağı adlandırır: uygulamanın ve vekilin dosya adı, `db/server/postgresql.log`, `db/pgbackrest/<ad>.log`, `backup/file-backup.log`, `journal/<makine>/<dosya>.journal`.
+   - **Satırın zamanı:** JSON satırlarda kendi alanı (`time`, `ts`); veritabanı ve pgBackRest satırlarında başındaki zaman (bölge yazılmamışsa UTC — konteynerlerin saati); yedek aracının kaydında turun başındaki `round starts at <UTC>` zamanı, turun sonraki satırları o zamanı taşır; günlükte girdinin kendi zamanı. Zamanı olmayan satır sayılır, yazılmaz ("Okunamayan satır").
+   - **Süzgeç:** `request`, `account` ve `ip` sunucunun satırlarında bütün bir sözcük olarak aranır (`10.0.0.1`, `10.0.0.15`'i bulmaz); `event:` uygulama kaydında `event` alanı, günlükte programın adı (`event:sshd`) ya da birim adıdır (`event:docker.service`); veritabanının ve yedek aracının satırları olay süzgecine girmez.
+   - **Günlük sıkıştırması kapalıdır (§L.4 `Compress=no`):** komut günlüğün sıkıştırılmış alanını açmaz; sıkıştırılmış ileti taşıyan girdi "Okunamayan satır" sayılır. Kurulumda deneme: `$COMPOSE run --rm read-command admin read-logs --source system --from <bugün> --to <bugün> --filter event:sshd` bakım oturumunun SSH satırını verir.
+
+### M.2 `job` — "Başarısız" iş satırı (`05 §8.5.9`)
+
+1. `$COMPOSE run --rm command admin status` başarısız iş satırlarını kimlikleriyle listeler.
+2. Sorunun nedeni giderildikten sonra satır yeniden kuyruğa alınır: `$COMPOSE run --rm command admin job --id <kimlik> --action requeue` (deneme sayısı sıfırlanır; satırı çalışan uygulamanın iş kuyruğu alır, komut çalıştırmaz). İş artık gerekmiyorsa kapatılır: `--action close`.
+3. Satır başarısız değilse, yoksa ya da aynı işin bekleyen bir satırı kuyrukta varsa komut 3 döner (sonuncusunda başarısız satır `close` ile kapatılır). Durum ucunun iş kuyruğu koşulu ancak başarısız satır kalmayınca kalkar.
+
+### M.3 `apply-payment-result` — anahtar yenilemesinden sonra ödeme sonucu (`05 §8.5.12`)
+
+Yalnız "ödeme sonucu alınamadı" işaretli kart siparişinde çalışır; başka sipariş 3 ile reddedilir. Komut sağlayıcıyı çağırmaz, sır istemez, e-posta göndermez, iş kuyruğunu çalıştırmaz.
+
+1. Sağlayıcının panelinde siparişin ödemesine bakılır (sipariş numarası = sağlayıcıdaki tiresiz işlem numarası).
+2. Başarılı ödeme varsa: `$COMPOSE run --rm command admin apply-payment-result --order-number <numara> --result paid --amount <paneldeki tutar>` — tutar taksit farkı hariç, noktalı ondalık (`1250.50`). Tutar siparişin toplamına eşit değilse 3 döner ve hiçbir şey yazılmaz; eşitse sipariş "Ödendi" olur.
+3. Ödeme yoksa ya da başarısızsa: `--result none` (`--amount` verilmez); sipariş iptal edilir.
+4. Geçiş kaydı ve müşteriye giden e-posta çalışan uygulamanın iş kuyruğundan gider; komut bittiğinde uygulama ayakta olmalıdır.

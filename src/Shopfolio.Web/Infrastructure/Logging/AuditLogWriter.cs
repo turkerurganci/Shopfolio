@@ -55,7 +55,7 @@ internal sealed class AuditLogWriter : IAuditLineWriter
 
             using FileStream stream = new(path, FileMode.Append, FileAccess.Write, FileShare.Read);
             stream.Write(bytes);
-            stream.Flush();
+            stream.Flush(flushToDisk: line.FlushToDisk);
         }
     }
 
@@ -71,6 +71,7 @@ internal sealed class AuditLogWriter : IAuditLineWriter
                 new LogEventProperty("Event", new ScalarValue(line.EventName)),
                 new LogEventProperty(line.NameKey, new ScalarValue(line.Name)),
                 new LogEventProperty(line.IdKey, new ScalarValue(line.Id)),
+                .. line.ClosedValues.Select(value => new LogEventProperty(value.Key, new ScalarValue(value.Value))),
             ]);
 
         using StringWriter text = new(CultureInfo.InvariantCulture);

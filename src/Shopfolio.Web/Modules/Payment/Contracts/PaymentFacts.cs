@@ -26,3 +26,6 @@ public sealed record RefundFacts(
 /// state: it is read from the refund records and goes when its condition goes (K-675).
 /// </summary>
 public sealed record RefundMarks(bool IsNotRealized, bool IsOutcomePending);
+
+/// <summary>The units, coupon share and VAT an item's defect claim rescissions set aside (06 4.33 <c>Quantity</c>, <c>CouponShare</c>, <c>VatAmount</c>; K-1024 (3)).</summary>
+public sealed record RescindedShares(int Quantity, decimal CouponShare, decimal VatAmount);

@@ -12,7 +12,7 @@ public interface ICardPaymentCondition
 
 /// <summary>
 /// The bank transfer line of the payment method condition (02 3.1.5 condition 2; 02 3.21.5): true when the transfer is switched on and the IBAN is filled. The transfer task
-/// (T353) binds it by registering its implementation in place of the default; until then the default says "not open" and the condition is not met (11 T331 criterion 8).
+/// (T353) binds it: the Settings module registers <c>BankTransferCondition</c>, which reads the settings row.
 /// </summary>
 public interface IBankTransferCondition
 {

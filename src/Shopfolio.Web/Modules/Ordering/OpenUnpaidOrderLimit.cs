@@ -52,7 +52,17 @@ internal sealed class OpenUnpaidOrderLimit
         return await OrderAxes.OfMemberEmail(Open(), email).CountAsync(ct);
     }
 
-    private IQueryable<Order> Open() => _db.Orders.AsNoTracking().Where(o => o.PaymentStatus == PaymentStatus.Pending);
+    /// <summary>
+    /// The orders whose payment is Pending, as the caller's unit of work sees them: an order this context has already moved off Pending but not yet saved - the confirmation's
+    /// earlier unpaid order of the same cart, cancelled in its open transaction (02 3.17.7; T353 criterion 2) - is not open any more, though the database still holds it as Pending.
+    /// </summary>
+    private IQueryable<Order> Open()
+    {
+        List<Guid> settled = [.. _db.ChangeTracker.Entries<Order>()
+            .Where(e => e.State == EntityState.Modified && e.Entity.PaymentStatus != PaymentStatus.Pending)
+            .Select(e => e.Entity.Id)];
+        return _db.Orders.AsNoTracking().Where(o => o.PaymentStatus == PaymentStatus.Pending && !settled.Contains(o.Id));
+    }
 
     /// <summary>True when the IP axis holds as many open orders as the ceiling allows.</summary>
     public async Task<bool> IsFullByIpAsync(IPAddress? address, CancellationToken ct) => await CountByIpAsync(address, ct) >= Ceiling;

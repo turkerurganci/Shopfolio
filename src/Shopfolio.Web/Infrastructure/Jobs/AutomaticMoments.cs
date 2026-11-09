@@ -40,7 +40,10 @@ internal static class AutomaticMoments
             "Shopfolio.Modules.AfterSales.Return.StockAddedAt",
         ]),
         new("4.2.6", "Partial cancellation and return", [
-            "Shopfolio.Modules.Payment.Refund.IsShippingFeeIncluded",
+            "Shopfolio.Modules.AfterSales.AfterSalesModule.IsShippingFeeIncludedAsync",
+            "Shopfolio.Modules.AfterSales.ShippingFeeRefunds.OnCancellationBeforeShipment",
+            "Shopfolio.Modules.AfterSales.ShippingFeeRefunds.OnWithdrawal",
+            "Shopfolio.Modules.AfterSales.AfterSalesModule.RefundAmountAsync",
         ]),
         new("4.2.7", "Automatic card refund", [
             "Shopfolio.Modules.Payment.CardRefundJobRule.Decide",

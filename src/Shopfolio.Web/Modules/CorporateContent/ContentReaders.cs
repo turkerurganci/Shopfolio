@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 
 using FieldRejection = Shopfolio.Infrastructure.Validation.FieldRejection;
@@ -23,6 +25,9 @@ internal sealed record BranchView(
 
 /// <summary>The "Haritada aç" link of a branch: the address of the map the firm gave and the text the page shows. The map opens elsewhere; nothing is embedded.</summary>
 internal sealed record MapLinkView(string Url, string Text);
+
+/// <summary>One page of a content list page's cards (04 5.7.3): the service introductions or the reference works in the firm's order, 24 a page.</summary>
+internal sealed record ContentCardPage(IReadOnlyList<HomepageCard> Cards, int PageNumber, int PageSize, int TotalCount, int PageCount);
 
 /// <summary>A question as the one list shows it (02 3.27.6).</summary>
 internal sealed record FaqView(Guid Id, string Question, string? AnswerHtml, bool IsDraft = false);
@@ -52,6 +57,51 @@ internal sealed class ContentReaders
         _db = db;
         _settings = settings;
         _provinces = provinces;
+    }
+
+    /// <summary>
+    /// A page of the published service introductions, in the firm's manual order (T359; 02 3.27.11; 04 5.7.3): 24 a page, ties by the time they were created and the key. A draft is not on the
+    /// list. Each card carries the image marked main (or the first of the gallery's order).
+    /// </summary>
+    public async Task<ContentCardPage> ListOfferingsAsync(int page, CancellationToken ct)
+    {
+        PagedList<Offering> result = await _db.Offerings.AsNoTracking()
+            .Where(o => o.PublishStatus == PublishStatus.Published)
+            .OrderBy(o => o.SortOrder).ThenBy(o => o.CreatedAt).ThenBy(o => o.Id)
+            .ToPageAsync(page, PageSizes.ContentList, ct);
+        Guid[] ids = [.. result.Items.Select(o => o.Id)];
+        Dictionary<Guid, ContentImage> images = ContentMainImages.Of(
+            await _db.OfferingImages.AsNoTracking()
+                .Where(i => ids.Contains(i.OfferingId))
+                .Select(i => new ContentGalleryRow(i.OfferingId, i.ImageId, i.IsMain, i.SortOrder, i.CreatedAt, i.AltText))
+                .ToListAsync(ct));
+        return new ContentCardPage(
+            [.. result.Items.Select(o => new HomepageCard(o.Id, o.Name, o.ShortDescription, AddressRules.RecordAddress(AddressRules.ServicePrefix, o.Slug), images.GetValueOrDefault(o.Id)))],
+            result.PageNumber,
+            result.PageSize,
+            result.TotalCount,
+            result.PageCount);
+    }
+
+    /// <summary>A page of the published reference works, in the firm's manual order (T359; 02 3.27.11; 04 5.7.3): 24 a page, like <see cref="ListOfferingsAsync"/>.</summary>
+    public async Task<ContentCardPage> ListPortfolioItemsAsync(int page, CancellationToken ct)
+    {
+        PagedList<PortfolioItem> result = await _db.PortfolioItems.AsNoTracking()
+            .Where(p => p.PublishStatus == PublishStatus.Published)
+            .OrderBy(p => p.SortOrder).ThenBy(p => p.CreatedAt).ThenBy(p => p.Id)
+            .ToPageAsync(page, PageSizes.ContentList, ct);
+        Guid[] ids = [.. result.Items.Select(p => p.Id)];
+        Dictionary<Guid, ContentImage> images = ContentMainImages.Of(
+            await _db.PortfolioItemImages.AsNoTracking()
+                .Where(i => ids.Contains(i.PortfolioItemId))
+                .Select(i => new ContentGalleryRow(i.PortfolioItemId, i.ImageId, i.IsMain, i.SortOrder, i.CreatedAt, i.AltText))
+                .ToListAsync(ct));
+        return new ContentCardPage(
+            [.. result.Items.Select(p => new HomepageCard(p.Id, p.Title, p.ShortDescription, AddressRules.RecordAddress(AddressRules.ReferencePrefix, p.Slug), images.GetValueOrDefault(p.Id)))],
+            result.PageNumber,
+            result.PageSize,
+            result.TotalCount,
+            result.PageCount);
     }
 
     /// <summary>The published questions on the one FAQ page, in the firm's order (ties by the time they were created).</summary>

@@ -64,8 +64,44 @@ internal sealed class ShowcaseReader
             .OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
             .ToPageAsync(page, PageSizes.StorefrontProducts, ct);
 
+        return new ShowcasePage(await CardsOfAsync(result.Items, ct), result.PageNumber, result.PageSize, result.TotalCount, result.PageCount);
+    }
+
+    /// <summary>
+    /// The cards of the listed products among <paramref name="productIds"/> (T359; 02 3.27.10): a Published product only - a draft and an archived product are left out, and come back when
+    /// it is published again - in the showcase's order (newest first); the caller puts them in its own order. A sold-out product is listed and marked. A plain read.
+    /// </summary>
+    public async Task<IReadOnlyList<ShowcaseProduct>> ListListedByIdsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(productIds);
+        if (productIds.Count == 0)
+        {
+            return [];
+        }
+
+        List<Product> products = await _db.Products.AsNoTracking().Listed()
+            .Where(p => productIds.Contains(p.Id))
+            .OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
+            .ToListAsync(ct);
+        return await CardsOfAsync(products, ct);
+    }
+
+    /// <summary>The ids among <paramref name="productIds"/> that are products, whatever their status (a link is made to a draft product too); a plain read.</summary>
+    public async Task<IReadOnlyList<Guid>> FindProductIdsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(productIds);
+        if (productIds.Count == 0)
+        {
+            return [];
+        }
+
+        return await _db.Products.AsNoTracking().Where(p => productIds.Contains(p.Id)).Select(p => p.Id).ToListAsync(ct);
+    }
+
+    private async Task<IReadOnlyList<ShowcaseProduct>> CardsOfAsync(IReadOnlyList<Product> products, CancellationToken ct)
+    {
         // A product is sold out when none of its Published variants can still be bought (02 3.6.3, 3.6.4): the stock left is the stock less the reserved.
-        Guid[] ids = [.. result.Items.Select(p => p.Id)];
+        Guid[] ids = [.. products.Select(p => p.Id)];
         List<Guid> available = await _db.Variants.AsNoTracking()
             .Where(v => ids.Contains(v.ProductId)
                 && v.PublishStatus == PublishStatus.Published
@@ -74,12 +110,7 @@ internal sealed class ShowcaseReader
             .Distinct()
             .ToListAsync(ct);
         HashSet<Guid> buyable = [.. available];
-        return new ShowcasePage(
-            [.. result.Items.Select(p => new ShowcaseProduct(p.Id, p.Name, p.Slug, !buyable.Contains(p.Id)))],
-            result.PageNumber,
-            result.PageSize,
-            result.TotalCount,
-            result.PageCount);
+        return [.. products.Select(p => new ShowcaseProduct(p.Id, p.Name, p.Slug, !buyable.Contains(p.Id)))];
     }
 
     /// <summary>The option list of a product: its Published variants when the product is Published, otherwise none.</summary>

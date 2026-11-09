@@ -10,7 +10,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// (06 2.2.5); the link to the image is restrictive, so a linked image cannot be disposed of. A gallery has at most one main image; that a
 /// non-empty gallery has exactly one is a rule of the application.
 /// </summary>
-internal sealed class OfferingImage
+internal sealed class OfferingImage : IContentGalleryLink
 {
     public Guid Id { get; set; }
 

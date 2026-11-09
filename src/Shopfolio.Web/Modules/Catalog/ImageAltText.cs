@@ -1,3 +1,5 @@
+using Shopfolio.Infrastructure;
+
 namespace Shopfolio.Modules.Catalog;
 
 /// <summary>
@@ -12,7 +14,6 @@ internal static class ImageAltText
     public const string NamelessProduct = "Ürün";
 
     private const string Dash = " — ";
-    private const string ImageWord = "görsel";
     private const string ValueSeparator = " / ";
 
     /// <summary>The text of a variant's own image: the name and the option values in the order of the options; no values (a product without options) gives the name alone.</summary>
@@ -27,9 +28,7 @@ internal static class ImageAltText
     /// <summary>The text of a gallery image: the name and the place of the image, counted from 1, out of the gallery's count.</summary>
     public static string ForGallery(string? productName, int position, int total)
     {
-        ArgumentOutOfRangeException.ThrowIfLessThan(position, 1);
-        ArgumentOutOfRangeException.ThrowIfLessThan(total, position);
-        return $"{NameOf(productName)}{Dash}{ImageWord} {position} / {total}";
+        return GalleryText.Generated(NameOf(productName), position, total);
     }
 
     /// <summary>The text of the card and the list image: the product's name alone.</summary>
@@ -38,8 +37,7 @@ internal static class ImageAltText
     /// <summary>The firm's text when it wrote one, else the generated one.</summary>
     public static string Choose(string? firmText, Func<string> generated)
     {
-        ArgumentNullException.ThrowIfNull(generated);
-        return GalleryRules.CleanAltText(firmText) ?? generated();
+        return GalleryText.Choose(firmText, generated);
     }
 
     private static string NameOf(string? productName) => string.IsNullOrWhiteSpace(productName) ? NamelessProduct : productName.Trim();

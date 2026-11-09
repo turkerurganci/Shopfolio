@@ -1,6 +1,6 @@
 # T374 — Ayıp talebi: kanal, iki yıllık süre, durumlar, çözüm, dijital dosya güncellemesi
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -91,6 +91,12 @@ Koşulmayanlar (yapım turu, süre bütçesi): Unit tam koşu, Integration'ın d
 | Task satırları (`12 §7.5`) | KP-23 → VAL-A082, C020, C021, C022, C023, C024, A083, A084, C025; KP-49 → VAL-C061, C062 (öteki KP-49 satırları iletişim talebinindir). Hepsi uç yanıtı ister; T374 uç kurmaz (müşteri ve panel ekranları T513, T528; D-880) → modül düzeyi kanıt bu raporda, `Durum` `BEKLEMEDE` kalır (T320, T372 emsali); `12_matris_denetle.py --kapsam 1-77` Hata 0 (hücre değişmedi). VAL-A084 (geri gönderim masrafı) T373'ündür. |
 | Yapım raporu karşılaştırması | 1 uyuşmazlık: öz denetimin "Aynı kuralı anan öteki yerler" satırı "açık adeti okuyan bütün yerler (… firma iptali …) aynı toplama geçti" diyor; sipariş bütününün firma iptali (`CancelOpenItemsByFirmAsync`) geçmedi (B1). Öz denetim tablosu kabul kriteri ve KK başına kanıtlı. |
 | Düzeltme gerekli mi | Evet — B1 (yeni yapım turu; düzeltmeden sonra tur 2 doğrulaması) |
+| Doğrulama durumu (tur 2) | ✓ PASS — tur 2 (2026-11-09, head `4edde518`; `origin/main` `d3ff0f8b` T375 #505 dalda, birleştirme gerekmedi). Kapsam tam: kriter 1–10 ve KK1–KK10 ✓ (modül düzeyi; ekran payı D-880). B1 kapandı: `CancelOpenItemsByFirmAsync` işleme açık adedi `UnavailableQuantitiesAsync` ile okur, açık adedi kalmayan kalem atlanır (`TheFirmsWholeOrderCancellation_…_KK8_B1` iki test); kalem firma iptalinin "son açık adetler" kararı main'deki kapanış okumasına (`ClosedQuantitiesAsync`) döndü — `02 §7.1.6` "dönülen adet kalemi kapatmaz" ile uyumlu (`TheFirmsItemCancellation_…_DoesNotCloseTheOrder_KK8_B1`). K2 / D-893 kararı uygulandı: dönme `min(02 §7.1.7 tutarı, kalemin kalan ödenmiş tutarı)` öder, kalan sıfırsa D-881 reddi; bedel indirimi sipariş ve kalem tavanının küçüğüyle sınırlı (`…_D893` üç test). Ana dal CI son 3 run yeşil (42667039895, 42667039743, 42659142242). Dal CI 42671989182 (head `4edde518`) ✗ — hiçbir iş başlamadı ("workflow file issue", 0 iş); aynı dakikalarda T383 ve T370 PR koşuları da aynı biçimde düştü, dal `.github`'a dokunmuyor → altyapı kaynaklı; merge'den önce kayıt commit'inin koşusu yeşil görülmeli. Yerelde: derleme 0 uyarı / 0 hata (`-warnaserror`), `dotnet format --verify-no-changes` üç proje temiz, Unit 5417/5417 + Consistency 291/291, betik testleri 4/4, Integration Ordering 543/543, Payment + Files + Administration + Model + Disposal 1617/1617; `dotnet restore --locked-mode` 0. |
+| Bulgu sayısı (tur 2) | 0 |
+| Bloke-etmeyen not (K) sayısı (tur 2) | 2 — K1 ⚠: kalem tavanı (D-893) yalnız ayıp çözümlerinin yazıcılarında; bedel indiriminden sonra açık kalan adetlerin iptal, cayma ya da fesih geri ödemesi (satırlarını T370 yazacak) tavanı okumazsa kalemin geri ödemeleri ödenmiş tutarı aşar → D-904 (T370). K2 ⚠: bütün adetleri dönülmüş kalem kapanış sorularında açık sayılır (`02 §7.1.6` lafzı) — Teslim edilemedi'de S9 kapanış değil sebepli firma iptali olur (B-7 gider, iptal kaydı yazılmaz), S8 ve teslim işareti o kalemi de alır; belgeler bu durumu ayrıca yazmaz → D-905 (karar; en geç F3 gate). |
+| Task satırları (`12 §7.5`, tur 2) | Tur 1 ile aynı: 11 satır `BEKLEMEDE` (uç yanıtı ister; uçlar T513, T528 — D-880); `12_matris_denetle.py --kapsam 1-77` Hata 0 (hücre değişmedi). |
+| Yapım raporu karşılaştırması (tur 2) | Tam uyumlu. Öz denetim tablosu kriter ve KK başına kanıtlı; düzeltme 1 notları (B1, D-893, kalem iptalinin kapanış okumasına dönüşü) bağımsız okumayla uyuşuyor. |
+| Düzeltme gerekli mi (tur 2) | Hayır |
 
 ## Altyapı Değişiklikleri
 
@@ -104,7 +110,7 @@ Koşulmayanlar (yapım turu, süre bütçesi): Unit tam koşu, Integration'ın d
 - **Branch:** `task/T374-ayip-talebi`
 - **Commit:** `cd044e6d` (ara kayıt), `43ac6994` (devam), PR no commit'i; düzeltme 1 (dal başı, `origin/main` birleştirmesiyle)
 - **PR:** #504
-- **CI:**
+- **CI:** tur 1 42659236737 yeşil (head `bbe9c7de`); tur 2 42671989182 ✗ altyapı (head `4edde518`, iş başlamadı) — kayıt commit'inin koşusu merge kapısıdır
 - **Post-merge run'lar:**
 
 ## Dış Varsayımlar

@@ -537,5 +537,7 @@ public sealed class SalesSummaryTests : IAsyncLifetime
         public Task<ContactFormView> GetContactFormAsync(string? memberName, string? memberEmail, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<ContactFormResult> SendContactRequestAsync(ContactFormInput input, IPAddress? ipAddress, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<int> WriteContactRequestExportAsync(Stream destination, long maxBytes, CancellationToken ct) => throw new NotSupportedException();
     }
 }

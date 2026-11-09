@@ -36,6 +36,10 @@ public sealed class AttemptNumberScanTests
     [InlineData("var rule = new AttemptRule(Threshold: 20, Window: window);")]
     [InlineData("return open >= 3;")]
     [InlineData("const double window = 0.25;")]
+    [InlineData("return count > 0x5;")]
+    [InlineData("return count > 0b101;")]
+    [InlineData("return count > 1_5;")]
+    [InlineData("return count > 5L;")]
     public void ANumberWrittenInTheCode_IsFound_KK2(string code)
     {
         Assert.Contains(AttemptNumberScan.Scan(code), f => f.Rule == AttemptNumberScan.NumberWritten);

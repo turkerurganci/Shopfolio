@@ -41,6 +41,6 @@ internal static partial class AttemptNumberScan
     [GeneratedRegex("\\$?@?\"(?:[^\"\\\\]|\\\\.)*\"", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex StringLiteral();
 
-    [GeneratedRegex(@"(?<![\w.])[0-9]+(?:\.[0-9]+)?[mMdDfFuUlL]*(?![\w])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    [GeneratedRegex(@"(?<![\w.])(?:0[xXbB][0-9a-fA-F_]+|[0-9][0-9_]*(?:\.[0-9_]+)?)[mMdDfFuUlL]*(?![\w])", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex IntegerLiteral();
 }

@@ -1,6 +1,6 @@
 # T367 — Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım tamam, doğrulama bekliyor) | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 ✓ PASS) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -78,10 +78,17 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-09; head `5e076701`) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — D-803, D-804 (`Docs/DEFERRED_BACKLOG.d/T367.md`) |
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = ana çalışma ağacının `scripts/git-hooks`'u; main son 3 run 42586725445, 42586725547, 42578567856 → success.
+- **Kabul kriterleri (validator kanıtı):** 1 ✓ `OrderOperationCatalog.ItemCancellable` (fiziksel: ödeme onaylı + Alındı/Hazırlanıyor), istek sürüm/onay taşımaz; `…NotYetShipped_…_KK1_KK2` (Placed, Preparing) ve `…OnceTheOrderIsShipped_…_KK1` (Shipped, DeliveryFailed, Delivered → `ConditionNotMet`, hiçbir şey yazılmaz). 2 ✓ aynı testin Preparing kolu. 3 ✓ `APartialCancellation_…_KK3_KK8` (tek S4 Buyer, sürüm 3, kayıt S4'e bağlı), `AMixedOrder_…DeliveredDigitalItem…` (S10 → Teslim edildi, S4 yok), `AMixedOrder_…OpenServiceItemsLine…`. 4 ✓ `BeforeThePaymentsApproval_…_KK4` (kalem → `ConditionNotMet`; bütün → S3 + Ö2). 5 ✓ `CancelDigitalItem` hep kapalı; hizmet `!IsDeliveryMarked` (Preparing, Shipped kolları; işaretli → ret). 6 ✓ `OrderCounters.ReturnAsync` + `IsCouponReturnDueAsync` (önce/sonra "bütün adetler kapandı" — `CouponRules.ReturnsRight`); test stok 5→7, kupon kısmi iptalde 1, son adette 0. 7 ✓ `ItemShares.SetAside` + `Money.ShareOfUnits` (aşağı; son açık adet kalanı alır, hiçbiri kalanı aşmaz) — 33,33/33,33/33,34, geri ödeme 266,67/266,67/266,66, toplam = kalem payı; asgari sepet okunmaz, donmuş paylar değişmez. 8 ✓ B-7 iptal anında kuyruğa (`CreatedAt` = iptal anı), iptal başına bir.
+- **`12` satırları:** `VAL-C003`, `C004` (k1), `C005` (k5), `C006` (k3, k4), `C007` (k4), `B019`, `A085` (k3), `A086`, `A087` (k7) — kanıt türü uç yanıtı (+ veri kaydı); uç T512, geri ödeme T370 → `BEKLEMEDE` kaldı (T351, T371 emsali). KP-21'in öteki satırları (`A067`…`A070`, `C008`…`C010`, `C014`, `C019`) ve KP-24'ün `A088`, `A089`'u fesih, cayma ve geri ödeme task'larınındır.
+- **Testler (validator):** build `-warnaserror` 0/0; `dotnet format --verify-no-changes` üç proje temiz; Unit 5153 + Consistency 283 (main birleştirmesi sonrası 5491); betik 4/4; Integration Ordering 413 (birleşik 428), Catalog + Payment + Concurrency 122, Model + Commands + Web 2057 — hepsi geçti (Model/Commands/Web ilk koşuda 1 kararsız başarısızlık, iki yeniden koşu temiz; dalın dokunmadığı ad alanları).
+- **Güvenlik:** sır yok; yeni uç/sayfa yok (müşteri erişim denetimi ekranın, T512); kalem–sipariş eşleşmesi kilit altında (`AnItemOfAnotherOrder_IsAWrongValue`); adet < 1 ve açık adeti aşan adet `InvalidInput`; yeni bağımlılık yok.
+- **Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu kriter ve KK başına kanıtlı.
 
 ## Altyapı Değişiklikleri
 
@@ -95,7 +102,7 @@
 - **Branch:** `task/T367-musteri-iptali`
 - **Commit:** son commit — "T367: Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon"
 - **PR:** #494
-- **CI:** *(validator)*
+- **CI:** run 42588669661 (head `5e076701`) — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E, CI Gate yeşil
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

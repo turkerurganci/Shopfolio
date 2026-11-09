@@ -8,9 +8,9 @@ using Shopfolio.Modules.Ordering.Contracts;
 namespace Shopfolio.UnitTests.AfterSales;
 
 /// <summary>
-/// The pure rules of the withdrawal declaration (T372 criteria 4, 6, 7; KK4, KK6, KK7; 02 7.1.7, 10.4.10, 4.2 Z-38): the one split of an item's amounts - the units'
-/// coupon share and VAT rounded down to the kuruş and the last open units taking the rest, so the item's records add up to its frozen values -, the warnings the firm
-/// is shown on a notice from another channel (outside the window, beyond its year, an absolute exemption, the delivery day's question) and the IBAN's Z-38 deletion day.
+/// The pure rules of the withdrawal declaration (T372 criteria 6, 7; KK6, KK7; 02 10.4.10, 4.2 Z-38): the warnings the firm is shown on a notice from another channel
+/// (outside the window, beyond its year, an absolute exemption, the delivery day's question) and the IBAN's Z-38 deletion day. The split of an item's amounts (criterion 4,
+/// KK4; 02 7.1.7) is the item records' one function, <see cref="ItemShares"/>, tested in <see cref="ItemSharesTests"/>; the declaration's own records in Integration.
 /// </summary>
 public sealed class WithdrawalDeclarationRulesTests
 {
@@ -21,42 +21,6 @@ public sealed class WithdrawalDeclarationRulesTests
 
     private static OperationItemFacts Item(ProductType type, ItemPeriodState period, DateOnly? delivery = null, bool marked = false) =>
         new(Guid.NewGuid(), type, 1, 1, delivery, marked, 0, period);
-
-    // ---- 02 7.1.7: the one split ----
-
-    [Fact]
-    public void ThreeUnitsWithdrawnOneByOne_TakeTheRoundedDownShares_AndTheLastTakesTheRest_KK4()
-    {
-        // 3 x 300 TL with a 100 TL coupon share: 33.33 + 33.33 + 33.34 (02 7.1.7 (4)).
-        const decimal unitPrice = 300m;
-        const decimal coupon = 100m;
-        const decimal vat = 150m;
-        ItemAmounts first = ItemAmountSplit.Of(unitPrice, 3, coupon, vat, 1, false, 0m, 0m);
-        ItemAmounts second = ItemAmountSplit.Of(unitPrice, 3, coupon, vat, 1, false, first.CouponShare, first.VatAmount);
-        ItemAmounts last = ItemAmountSplit.Of(unitPrice, 3, coupon, vat, 1, true, first.CouponShare + second.CouponShare, first.VatAmount + second.VatAmount);
-
-        Assert.Equal((unitPrice, 33.33m, 50m), (first.ProductAmount, first.CouponShare, first.VatAmount));
-        Assert.Equal((33.33m, 50m), (second.CouponShare, second.VatAmount));
-        Assert.Equal((33.34m, 50m), (last.CouponShare, last.VatAmount));
-        Assert.Equal(coupon, first.CouponShare + second.CouponShare + last.CouponShare);
-        Assert.Equal(vat, first.VatAmount + second.VatAmount + last.VatAmount);
-    }
-
-    [Fact]
-    public void TheWholeItemAtOnce_TakesItsWholeShareAndVat_AndTheProductAmountIsNotRounded()
-    {
-        ItemAmounts whole = ItemAmountSplit.Of(33.335m, 2, 10.01m, 11.11m, 2, true, 0m, 0m);
-        Assert.Equal((66.67m, 10.01m, 11.11m), (whole.ProductAmount, whole.CouponShare, whole.VatAmount));
-
-        ItemAmounts part = ItemAmountSplit.Of(33.335m, 2, 10.01m, 11.11m, 1, false, 0m, 0m);
-        Assert.Equal((33.335m, 5.00m, 5.55m), (part.ProductAmount, part.CouponShare, part.VatAmount));
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(4)]
-    public void UnitsOutsideTheItem_AreAProgrammingError(int quantity) =>
-        Assert.Throws<ArgumentOutOfRangeException>(() => ItemAmountSplit.Of(10m, 3, 0m, 0m, quantity, false, 0m, 0m));
 
     // ---- 02 10.4.10: the warnings of a notice from another channel ----
 

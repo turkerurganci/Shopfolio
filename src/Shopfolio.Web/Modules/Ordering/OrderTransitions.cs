@@ -31,8 +31,8 @@ internal sealed partial class OrderTransitions : IOrderTransitions
     private readonly IPaymentModule _payment;
     private readonly INotificationsModule _notifications;
     private readonly OrderCounters _counters;
-    private readonly OrderOperations _operations;
     private readonly CartStatements _cartStatements;
+    private readonly OrderOperations _operations;
     private readonly PaymentWindows _paymentWindows;
     private readonly TimeProvider _time;
 

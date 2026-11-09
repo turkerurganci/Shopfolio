@@ -98,11 +98,10 @@ internal sealed partial class AfterSalesModule
             return ItemRecordWriteResult.Rejected(ItemRecordRefusal.IbanMissing);
         }
 
-        // The amounts split from the item's frozen values against what its earlier records took; the last open units take the rest (02 7.1.7; K-1104).
-        (decimal takenCoupon, decimal takenVat) = await TakenSharesAsync(subject.OrderItemId, ct);
-        ItemFrozenAmounts frozen = declaration.Frozen;
-        ItemAmounts amounts = ItemAmountSplit.Of(
-            frozen.UnitPrice, subject.ItemQuantity, frozen.CouponShare, frozen.VatAmount, declaration.Quantity, declaration.Quantity == open, takenCoupon, takenVat);
+        // The amounts set aside from the item's frozen values against what its earlier records set aside; the last open units take the rest (02 7.1.7; K-1104).
+        (decimal couponSetAside, decimal vatSetAside) = await SetAsideAsync(subject.OrderItemId, ct);
+        ItemAmounts amounts = ItemShares.SetAside(
+            declaration.Frozen, subject.ItemQuantity, declaration.Quantity, declaration.Quantity == open, couponSetAside, vatSetAside);
 
         // The firm's current return address is copied as a value on a physical item (02 7.3.5; K-665): a later change of the setting never reaches it.
         ReturnAddress? address = subject.ProductType == ProductType.Physical ? await FirmReturnAddressAsync(ct) : null;
@@ -291,38 +290,6 @@ internal sealed partial class AfterSalesModule
         }
 
         return arrivalDate < withdrawal.DeclarationDate ? ItemRecordRefusal.ArrivalDateOutOfRange : null;
-    }
-
-    /// <summary>
-    /// The coupon share and the VAT the item's closing records already took (02 7.1.7 (4)): its cancellations - not those undone by a corrected closing transition, as
-    /// <see cref="ClosedQuantitiesAsync"/> counts them - removals, late delivery terminations and withdrawals, saved or added in the caller's context.
-    /// </summary>
-    private async Task<(decimal Coupon, decimal Vat)> TakenSharesAsync(Guid orderItemId, CancellationToken ct)
-    {
-        var cancellations = await _db.Cancellations.AsNoTracking().Where(c => c.OrderItemId == orderItemId)
-            .Select(c => new { c.CouponShare, c.VatAmount, c.TransitionRecordId }).ToListAsync(ct);
-        Guid[] closing = [.. cancellations.Select(c => c.TransitionRecordId).OfType<Guid>().Distinct()];
-        IReadOnlySet<Guid> corrected = closing.Length == 0 ? new HashSet<Guid>() : await _ordering.FindCorrectedTransitionRecordsAsync(closing, ct);
-        List<(decimal Coupon, decimal Vat)> taken = [.. cancellations
-            .Where(c => c.TransitionRecordId is not { } closedBy || !corrected.Contains(closedBy))
-            .Select(c => (c.CouponShare, c.VatAmount))];
-        taken.AddRange((await _db.ItemRemovals.AsNoTracking().Where(r => r.OrderItemId == orderItemId).Select(r => new { r.CouponShare, r.VatAmount }).ToListAsync(ct))
-            .Select(r => (r.CouponShare, r.VatAmount)));
-        taken.AddRange((await _db.LateDeliveryTerminations.AsNoTracking().Where(t => t.OrderItemId == orderItemId).Select(t => new { t.CouponShare, t.VatAmount }).ToListAsync(ct))
-            .Select(t => (t.CouponShare, t.VatAmount)));
-        taken.AddRange((await _db.Withdrawals.AsNoTracking().Where(w => w.OrderItemId == orderItemId).Select(w => new { w.CouponShare, w.VatAmount }).ToListAsync(ct))
-            .Select(w => (w.CouponShare, w.VatAmount)));
-        taken.AddRange(AddedShares<Cancellation>(orderItemId, c => c.OrderItemId, c => (c.CouponShare, c.VatAmount)));
-        taken.AddRange(AddedShares<ItemRemoval>(orderItemId, r => r.OrderItemId, r => (r.CouponShare, r.VatAmount)));
-        taken.AddRange(AddedShares<LateDeliveryTermination>(orderItemId, t => t.OrderItemId, t => (t.CouponShare, t.VatAmount)));
-        taken.AddRange(AddedShares<Withdrawal>(orderItemId, w => w.OrderItemId, w => (w.CouponShare, w.VatAmount)));
-        return (taken.Sum(t => t.Coupon), taken.Sum(t => t.Vat));
-    }
-
-    private IEnumerable<(decimal Coupon, decimal Vat)> AddedShares<TRecord>(Guid orderItemId, Func<TRecord, Guid> itemOf, Func<TRecord, (decimal, decimal)> sharesOf)
-        where TRecord : class
-    {
-        return [.. _db.ChangeTracker.Entries<TRecord>().Where(e => e.State == EntityState.Added && itemOf(e.Entity) == orderItemId).Select(e => sharesOf(e.Entity))];
     }
 
     private int AddedSum<TRecord>(Func<TRecord, bool> filter, Func<TRecord, int> quantityOf)

@@ -37,49 +37,6 @@ public sealed class MoneyTests
         Assert.Throws<ArgumentOutOfRangeException>(() => Money.Round(-0.005m));
     }
 
-    [Theory]
-    [InlineData("100", 1, 3, "33.33")]
-    [InlineData("100", 2, 3, "66.66")]
-    [InlineData("100", 3, 3, "100")]
-    [InlineData("0.05", 1, 3, "0.01")]
-    [InlineData("0.02", 1, 3, "0")]
-    [InlineData("0", 1, 2, "0")]
-    public void ShareOfUnits_IsTheUnitsRatioOfTheAmount_RoundedDownToTheKurus(string amount, int units, int totalUnits, string expected)
-    {
-        // 02 7.1.7 (2), (3): the units' share of the frozen amount, rounded DOWN (09 14.1 item 1); 66,666.. gives 66,66, never 66,67.
-        Assert.Equal(
-            decimal.Parse(expected, System.Globalization.CultureInfo.InvariantCulture),
-            Money.ShareOfUnits(decimal.Parse(amount, System.Globalization.CultureInfo.InvariantCulture), units, totalUnits));
-    }
-
-    [Fact]
-    public void ShareOfUnits_TheExampleOf02_ThreeUnitsOf300WithACouponShareOf100_RefundsAddUpTo800()
-    {
-        // 09 14.1 item 6 (02 7.1.7): the first and second unit take 33,33 each; the third closes the last open unit and takes what is left, 33,34.
-        decimal first = Money.ShareOfUnits(100m, 1, 3);
-        decimal second = Money.ShareOfUnits(100m, 1, 3);
-        decimal third = 100m - first - second;
-
-        Assert.Equal([33.33m, 33.33m, 33.34m], new[] { first, second, third });
-        Assert.Equal([266.67m, 266.67m, 266.66m], new[] { 300m - first, 300m - second, 300m - third });
-        Assert.Equal(800m, 900m - first - second - third);
-    }
-
-    [Theory]
-    [InlineData(0, 3)]
-    [InlineData(4, 3)]
-    [InlineData(1, 0)]
-    public void ShareOfUnits_UnitsOutsideTheTotal_AreAProgrammingError(int units, int totalUnits)
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() => Money.ShareOfUnits(100m, units, totalUnits));
-    }
-
-    [Fact]
-    public void ShareOfUnits_ANegativeAmount_IsAProgrammingError()
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() => Money.ShareOfUnits(-0.01m, 1, 2));
-    }
-
     [Fact]
     public void Allocate_HundredInThreeEqualWeights_GivesTheLeftOverKurusToTheFirst()
     {
@@ -254,6 +211,61 @@ public sealed class MoneyTests
         Assert.False(decimal.IsNegative(rounded));
         Assert.Equal([0m, 0m], Money.Allocate(negativeZero, [1m, 2m]));
         Assert.Equal(0m, Money.VatOf(negativeZero, 20m));
+    }
+
+    // ---- The share of units (09 14.1 item 1, the fourth function; 02 7.1.7 (2), (3); T367) ----
+
+    [Theory]
+    [InlineData("100", 1, 3, "33.33")]
+    [InlineData("100", 2, 3, "66.66")]
+    [InlineData("100", 3, 3, "100")]
+    [InlineData("50", 1, 3, "16.66")]
+    [InlineData("0.05", 1, 3, "0.01")]
+    [InlineData("0.02", 1, 3, "0.00")]
+    [InlineData("0", 1, 2, "0")]
+    [InlineData("99.99", 1, 1, "99.99")]
+    public void ShareOfUnits_IsTheUnitsShare_RoundedDownToTheKurus(string frozen, int units, int total, string expected)
+    {
+        Assert.Equal(Dec(expected), Money.ShareOfUnits(Dec(frozen), units, total));
+    }
+
+    [Fact]
+    public void ShareOfUnits_TheExampleOf02_ThreeUnitsOf300WithACouponShareOf100_RefundsAddUpTo800()
+    {
+        // 09 14.1 item 6 (02 7.1.7): the first and second unit take 33,33 each; the third closes the last open unit and takes what is left, 33,34.
+        decimal first = Money.ShareOfUnits(100m, 1, 3);
+        decimal second = Money.ShareOfUnits(100m, 1, 3);
+        decimal third = 100m - first - second;
+
+        Assert.Equal([33.33m, 33.33m, 33.34m], new[] { first, second, third });
+        Assert.Equal([266.67m, 266.67m, 266.66m], new[] { 300m - first, 300m - second, 300m - third });
+        Assert.Equal(800m, 900m - first - second - third);
+    }
+
+    [Fact]
+    public void ShareOfUnits_IsNeverAboveTheExactShare_AndAKurusAtMostBelowIt()
+    {
+        for (int total = 1; total <= 7; total++)
+        {
+            for (int units = 1; units <= total; units++)
+            {
+                decimal exact = 100.01m * units / total;
+                decimal share = Money.ShareOfUnits(100.01m, units, total);
+                Assert.InRange(exact - share, 0m, 0.0099999999m);
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData("-0.01", 1, 2)]
+    [InlineData("10.005", 1, 2)]
+    [InlineData("10", 0, 2)]
+    [InlineData("10", 3, 2)]
+    [InlineData("10", 1, 0)]
+    [InlineData("10", -1, 2)]
+    public void ShareOfUnits_ANegativeOrSubKurusAmount_OrUnitsOutsideTheItem_Throws(string frozen, int units, int total)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Money.ShareOfUnits(Dec(frozen), units, total));
     }
 
     private static decimal Dec(string value) => decimal.Parse(value, System.Globalization.CultureInfo.InvariantCulture);

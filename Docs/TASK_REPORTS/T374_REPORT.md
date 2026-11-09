@@ -77,7 +77,7 @@
 | Lint | ✓ | `dotnet format` (Web değişen klasörler; Unit, Integration `--verify-no-changes`) | temiz |
 | Build | ✓ | `dotnet build` Unit + Integration | 0 hata, 0 uyarı |
 
-**Düzeltme 1 sınaması** (konteyner `shopfolio-t374-fix1-pg`, postgres:18, `track_commit_timestamp=on`): `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı / 0 hata; `dotnet format --verify-no-changes` Web (Ordering, Payment) ve Integration temiz; Unit tam 5703/5703 (Architecture 1211/1211, Consistency 291/291 ayrıca); Integration `--filter-namespace` Ordering 517/517, Payment 14/14, `ItemRecordTablesTests` + `PaymentRecordTablesTests` 153/153 (Integration'da ayrı AfterSales ad alanı yok; AfterSales yazıcıları Ordering testlerinden geçer).
+**Düzeltme 1 sınaması** (konteyner `shopfolio-t374-fix1-pg`, postgres:18, `track_commit_timestamp=on`): `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı / 0 hata; `dotnet format --verify-no-changes` Web (Ordering, Payment) ve Integration temiz; Unit tam 5703/5703 (Architecture 1211/1211, Consistency 291/291 ayrıca); Integration `--filter-namespace` Ordering 517/517, Payment 14/14; `origin/main` `d3ff0f8b` (T375 #505) birleştirildikten sonra (çakışma yalnız durum tablosunda) derleme 0/0, Unit 5708/5708, Ordering 543/543, Payment 14/14, `ItemRecordTablesTests` + `PaymentRecordTablesTests` 153/153 (Integration'da ayrı AfterSales ad alanı yok; AfterSales yazıcıları Ordering testlerinden geçer).
 
 Koşulmayanlar (yapım turu, süre bütçesi): Unit tam koşu, Integration'ın değişiklikle ilgisiz ad alanları (Catalog, Pages, Web, Security vb.) — CI koşar.
 

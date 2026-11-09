@@ -159,4 +159,31 @@ public interface IOrderTransitions
     /// A refusal names the <see cref="OrderTransitionResult.Obstacle"/>.
     /// </summary>
     Task<OrderTransitionResult> CorrectTransitionAsync(CorrectTransitionRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// The firm retries a failed card refund (T370; 02 7.2.8; K-569): a new card request; refused while the result is pending, after the refund went, and once
+    /// the customer entered an IBAN on the transfer path.
+    /// </summary>
+    Task<OrderTransitionResult> RetryCardRefundAsync(RetryCardRefundRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// The firm opens the transfer path of a failed card refund (T370; 02 7.2.8; K-569): an IBAN request on the refund and B-14; the payment axis does not move.
+    /// Refused while the result is pending and after the refund went.
+    /// </summary>
+    Task<OrderTransitionResult> OpenRefundTransferPathAsync(OpenRefundTransferPathRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// The customer's IBAN for an open request (T370; 02 7.4.5): format and check digits; on a failed card refund's transfer path the refund's way turns to the transfer.
+    /// The firm never enters an IBAN on this path (02 8.4.2).
+    /// </summary>
+    Task<OrderTransitionResult> EnterRefundIbanAsync(EnterRefundIbanRequest request, CancellationToken ct);
+
+    /// <summary>The customer's correction of an IBAN until the refund is processed (T370; 02 7.4.5; K-575): the same check as the entry.</summary>
+    Task<OrderTransitionResult> CorrectRefundIbanAsync(CorrectRefundIbanRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// The firm's "havale gerçekleşmedi" (T370; 02 7.4.5; K-575, K-1131): the IBAN is deleted with its disposal record, the field opens again, B-14 goes; the
+    /// period does not stop.
+    /// </summary>
+    Task<OrderTransitionResult> ReportTransferFailedAsync(ReportTransferFailedRequest request, CancellationToken ct);
 }

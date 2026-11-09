@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 
+using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -40,8 +42,24 @@ internal sealed partial class OrderTransitions
             return Refused(verdict.Decision == OperationDecision.QuantityExceedsOpen ? TransitionRefusal.InvalidInput : TransitionRefusal.ConditionNotMet);
         }
 
+        // The transfer line's refund goes to the customer's IBAN, taken with the cancellation (T370; 02 7.2.8, 7.4.5; E-16): format and check digits; the card
+        // line asks for no IBAN and opens no field. An IBAN given on the card line is not kept.
+        bool transferRefund = order.PaymentMethod == PaymentMethod.BankTransfer
+            && order.PaymentStatus is PaymentStatus.Paid or PaymentStatus.PartiallyRefunded;
+        string? iban = null;
+        if (transferRefund)
+        {
+            if (string.IsNullOrWhiteSpace(request.Iban) || !IbanRule.Allows(request.Iban))
+            {
+                return Refused(TransitionRefusal.InvalidInput);
+            }
+
+            iban = RequestFormat.CompactIban(request.Iban);
+        }
+
         DateTimeOffset now = _time.GetUtcNow();
-        ItemRecordWriteResult written = await _afterSales.AddCancellationAsync(new CustomerCancellationEntry(Subject(order, item), request.Quantity, FrozenOf(item), now), ct);
+        ItemRecordWriteResult written = await _afterSales.AddCancellationAsync(
+            new CustomerCancellationEntry(Subject(order, item), request.Quantity, FrozenOf(item), now, iban), ct);
         if (written.Refusal is { } refused)
         {
             return Refused(Map(refused));
@@ -84,6 +102,10 @@ internal sealed partial class OrderTransitions
                 closureCode = closure.Code;
             }
         }
+
+        // The refund starts with the record (T370; 02 7.2.8): on the card the system starts it without approval and no IBAN field; on the transfer the firm
+        // processes it to the IBAN that came with the cancellation.
+        await StartRefundOfRecordAsync(order, item, RefundType.Cancellation, cancellationId, iban is not null, null, RefundIbanRequestReason.CancellationOrRemoval, ct);
 
         // 1.4.4.4: the cancelled units go back to stock or the service capacity (a digital item has no counter, 02 7.2.6); the coupon right goes back only when this
         // record closes the whole order (OrderCounters.IsCouponReturnDueAsync; 02 5.11.3, 7.2.7).

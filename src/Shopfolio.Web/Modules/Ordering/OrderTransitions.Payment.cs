@@ -144,6 +144,9 @@ internal sealed partial class OrderTransitions
         TransitionActor actor = refund is { ActorKind: ActorKind.Admin, AdminId: { } adminId, AdminName: { } adminName }
             ? TransitionActor.Admin(adminId, adminName)
             : TransitionActor.System;
+
+        // The card refund went: an open IBAN request of its transfer path closes unfulfilled (T370; 02 7.2.8).
+        await _afterSales.CloseRefundIbanRequestsOfRefundAsync(refund.RefundId, ct);
         return await ApplyRefundSentAsync(order, refund, actor, ct);
     }
 
@@ -172,7 +175,14 @@ internal sealed partial class OrderTransitions
             return new PaymentTransitionResult([], isNotOpen: true);
         }
 
-        return await ApplyRefundSentAsync(order, refund, TransitionActor.Admin(processing.AdminId, processing.AdminName), ct);
+        PaymentTransitionResult sent = await ApplyRefundSentAsync(order, refund, TransitionActor.Admin(processing.AdminId, processing.AdminName), ct);
+        if (!sent.IsRejected)
+        {
+            // The IBAN goes once the last pending refund that uses it is processed, each deletion with its disposal record (T370; 02 7.4.5; Z-44).
+            await DeleteUnusedIbansAsync(order.Id, ct);
+        }
+
+        return sent;
     }
 
     /// <summary>

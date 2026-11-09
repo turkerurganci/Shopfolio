@@ -63,5 +63,3 @@ internal static class RefundLineRules
     }
 }
 
-/// <summary>What <see cref="RefundLineRules.ActionsOf"/> opens: the firm's retry, the firm's transfer path, and turning the way to the transfer with the customer's IBAN.</summary>
-internal readonly record struct CardRefundActions(bool CanRetry, bool CanOpenTransferPath, bool CanTurnToTransfer);

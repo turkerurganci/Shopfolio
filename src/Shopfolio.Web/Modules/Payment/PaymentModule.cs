@@ -367,6 +367,8 @@ internal sealed class PaymentModule : IPaymentModule
         return true;
     }
 
+    public CardRefundActions RefundActionsOf(CardRefundLine line, bool isIbanEntered) => RefundLineRules.ActionsOf(line, isIbanEntered);
+
     public async Task<IReadOnlyList<RefundOfRecord>> FindRefundsOfRecordsAsync(IReadOnlyCollection<Guid> recordIds, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(recordIds);

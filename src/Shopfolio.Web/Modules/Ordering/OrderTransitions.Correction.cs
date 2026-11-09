@@ -77,6 +77,9 @@ internal sealed partial class OrderTransitions
                 // The cancellation is undone (06 4.22): its unsent refunds are voided and their open IBAN requests close; the closure rule is not read.
                 IReadOnlyList<Guid> voided = await _payment.VoidCancellationRefundsAsync(plan.CancellationIds, ct);
                 await _afterSales.CloseCancellationIbanRequestsAsync(plan.CancelledItemIds, voided, ct);
+
+                // The IBAN the customer gave for the undone refund goes unless another pending refund uses it, with its disposal record (T370; 1.6.2.2; D-517).
+                await DeleteUnusedIbansAsync(order.Id, ct);
                 itemIds.AddRange(plan.CancelledItemIds);
                 break;
 

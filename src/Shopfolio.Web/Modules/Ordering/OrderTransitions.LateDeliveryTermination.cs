@@ -6,6 +6,7 @@ using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -104,7 +105,12 @@ internal sealed partial class OrderTransitions
                 return Refused(Map(refused));
             }
 
-            recordIds.Add(written.RecordId ?? throw new InvalidOperationException("The termination writer returned no record."));
+            Guid terminationId = written.RecordId ?? throw new InvalidOperationException("The termination writer returned no record.");
+            recordIds.Add(terminationId);
+
+            // The refund starts with the record (T370; 02 7.2.3, 7.2.8): on the card by the system; on the transfer the firm processes it, and the firm's record
+            // of a notice from another channel asks for the IBAN with B-14 (03 8.4.8); the IBAN field of the customer's own termination form is D-817's.
+            await StartRefundOfRecordAsync(order, item, RefundType.LateDeliveryTermination, terminationId, false, request.Admin, RefundIbanRequestReason.NoticeWithoutIban, ct);
         }
 
         RaiseVersionOnce(order);

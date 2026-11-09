@@ -64,7 +64,7 @@ internal sealed partial class AfterSalesModule
     {
         ArgumentNullException.ThrowIfNull(entry);
         RequireLocked(entry.OrderId);
-        if (!IbanRule.IsValid(entry.Iban))
+        if (!IbanRule.Allows(entry.Iban))
         {
             return RefundIbanWriteResult.Rejected(RefundIbanRefusal.InvalidIban);
         }
@@ -86,7 +86,7 @@ internal sealed partial class AfterSalesModule
     {
         ArgumentNullException.ThrowIfNull(correction);
         RequireLocked(correction.OrderId);
-        if (!IbanRule.IsValid(correction.Iban))
+        if (!IbanRule.Allows(correction.Iban))
         {
             return RefundIbanWriteResult.Rejected(RefundIbanRefusal.InvalidIban);
         }

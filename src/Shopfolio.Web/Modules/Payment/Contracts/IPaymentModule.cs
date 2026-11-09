@@ -131,6 +131,9 @@ public interface IPaymentModule
     /// they settled, the open transaction's changes included (T370; 02 7.4.5; K-1110). A plain read.
     /// </summary>
     Task<IReadOnlyList<RefundOfRecord>> FindRefundsOfRecordsAsync(IReadOnlyCollection<Guid> recordIds, CancellationToken ct);
+
+    /// <summary>What the firm and the customer may do with the refund now (02 7.2.8; K-569, K-940): the refund line's one rule, read by the order's operations and the panel.</summary>
+    CardRefundActions RefundActionsOf(CardRefundLine line, bool isIbanEntered);
 }
 
 /// <summary>One payment record seen from another module (06 4.32): the order, and the transition that confirmed the payment - null on a late card payment.</summary>

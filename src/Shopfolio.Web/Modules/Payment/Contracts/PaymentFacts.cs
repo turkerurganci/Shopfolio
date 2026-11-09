@@ -75,3 +75,6 @@ public sealed record RefundOfRecord(
 {
     public bool IsSettled => SettledAt is not null;
 }
+
+/// <summary>What the refund line opens on a refund (02 7.2.8; K-569, K-940): the firm's retry, the firm's transfer path, and turning the way to the transfer with the customer's IBAN.</summary>
+public readonly record struct CardRefundActions(bool CanRetry, bool CanOpenTransferPath, bool CanTurnToTransfer);

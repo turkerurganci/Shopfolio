@@ -80,7 +80,7 @@ public sealed record CancelOrderRequest(
 /// item's open units. It carries no version and no confirmation - the customer's operation is checked against the order as it is once locked (09 10.2 item 3) - and
 /// no reason. An unpaid order is cancelled only as a whole (<see cref="CancelOrderRequest.ByCustomer"/>).
 /// </summary>
-public sealed record CancelItemRequest(Guid OrderId, Guid OrderItemId, int Quantity);
+public sealed record CancelItemRequest(Guid OrderId, Guid OrderItemId, int Quantity, string? Iban = null);
 
 /// <summary>
 /// The firm's cancellation of a paid item's units from the panel (03 1.11.21, 8.3.1.1; 02 7.2.4; T368): the item and the units chosen up to its open units, the screen's

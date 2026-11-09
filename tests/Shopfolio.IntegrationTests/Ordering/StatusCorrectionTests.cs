@@ -38,7 +38,7 @@ namespace Shopfolio.IntegrationTests.Ordering;
 /// operation runs in the transaction runner like a page would call it; what it wrote is read back from the tables.
 /// </summary>
 [Collection(OrderTransitionsDefinition.Name)]
-public sealed class StatusCorrectionTests : IAsyncLifetime
+public sealed partial class StatusCorrectionTests : IAsyncLifetime
 {
     private static readonly DateTimeOffset Start = new(2026, 11, 9, 9, 0, 0, TimeSpan.Zero);
 
@@ -212,14 +212,16 @@ public sealed class StatusCorrectionTests : IAsyncLifetime
             failed.OutcomeAt = Start;
             itemRequest = RefundIbanRequest.ForItem(items[0].Id, RefundIbanRequestReason.CardRefundFailed, refund.Id, _admin!.Id, _admin.Name, Start);
             await SaveAsync(c => c.RefundRecords.Add(failed));
+            await SaveAsync(c => c.RefundIbanRequests.Add(itemRequest));
         }
         else
         {
-            // The transfer line's cancellation asked for an IBAN on the item ("cancellation or removal"; 06 4.31).
-            itemRequest = RefundIbanRequest.ForItem(items[0].Id, RefundIbanRequestReason.CancellationOrRemoval, null, _admin!.Id, _admin.Name, Start);
+            // The transfer line's cancellation asked for an IBAN on the item by itself ("cancellation or removal"; 06 4.31; T370 KK6).
+            await using AppDbContext before = NewContext();
+            itemRequest = await before.RefundIbanRequests.SingleAsync(r => r.OrderItemId == items[0].Id && r.ClosedAt == null && r.FulfilledAt == null, Ct);
+            Assert.Equal(RefundIbanRequestReason.CancellationOrRemoval, itemRequest.Reason);
         }
 
-        await SaveAsync(c => c.RefundIbanRequests.Add(itemRequest));
         Assert.Equal(2, (await ClosedQuantitiesAsync(items[0].Id)).GetValueOrDefault(items[0].Id));
         _clock.Advance(TimeSpan.FromHours(1));
 

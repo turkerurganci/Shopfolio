@@ -377,6 +377,65 @@ public sealed partial class WithdrawalDeclarationTests : IAsyncLifetime
         Assert.All(await reader.Withdrawals.AsNoTracking().Where(w => w.OrderItemId == item).ToListAsync(Ct), w => Assert.Equal(iban.Id, w.RefundIbanId));
     }
 
+    [Fact]
+    public async Task TwoFirmRecordsWithoutAnIban_OnTheSameTransferItem_AreBothWritten_AndUseTheOneOpenRequest_KK1_KK6_KK7()
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(PaymentMethod.BankTransfer, OrderStatus.Delivered, PaymentStatus.Paid, new ItemSpec(ProductType.Physical, 2, true));
+        Guid item = items[0].Id;
+
+        // The second notice of another unit is recorded too (02 10.4.10, 7.1.6): the item's IBAN field is already open, the record uses that request (06 4.29).
+        Assert.Null((await RunAsync((u, t) => u.RecordWithdrawalAsync(Record(order.Id, item, order.Version, 1, Today), t))).Refusal);
+        Assert.Null((await RunAsync((u, t) => u.RecordWithdrawalAsync(Record(order.Id, item, order.Version + 1, 1, Today), t))).Refusal);
+
+        Assert.Equal(2, await CountAsync(c => c.Withdrawals.Where(w => w.OrderItemId == item && w.RefundIbanId == null)));
+        Assert.Equal(1, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == item && r.FulfilledAt == null && r.ClosedAt == null)));
+        Assert.Equal(1, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == item)));
+
+        // B-14 goes with every record of an IBAN-less notice on the transfer line (02 9.2 B-14; 03 1.11.34).
+        Assert.Equal(2, await CountAsync(c => c.DispatchRecords.Where(d => d.OrderId == order.Id && d.DispatchType == DispatchType.B14)));
+        await AssertOrderAsync(order.Id, OrderStatus.Delivered, PaymentStatus.Paid, order.Version + 2);
+    }
+
+    [Fact]
+    public async Task AnIbanFromTheOrdersEmail_ThatFailsTheCheck_IsNotCarried_TheRecordIsWithoutAnIban_ARequestOpensAndB14Goes_KK7_D798()
+    {
+        // The notice's IBAN passes the order page's format and checksum check (02 10.4.10, 8.4.2); a failing one leaves the record without an IBAN.
+        const string failingChecksum = "TR330006100519786457841327";
+        (Order order, List<OrderItem> items) = await SeedAsync(PaymentMethod.BankTransfer, OrderStatus.Delivered, PaymentStatus.Paid, new ItemSpec(ProductType.Physical, 1, true));
+        Guid item = items[0].Id;
+
+        Assert.Null((await RunAsync((u, t) => u.RecordWithdrawalAsync(Record(order.Id, item, order.Version, 1, Today) with { CameFromOrderEmail = true, NoticeIban = failingChecksum }, t))).Refusal);
+
+        Assert.Null((await SingleWithdrawalAsync(item)).RefundIbanId);
+        Assert.Equal(0, await CountAsync(c => c.RefundIbans.Where(i => i.OrderId == order.Id)));
+        Assert.Equal(1, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == item && r.Reason == RefundIbanRequestReason.NoticeWithoutIban && r.FulfilledAt == null)));
+        Assert.Equal(1, await CountAsync(c => c.DispatchRecords.Where(d => d.OrderId == order.Id && d.DispatchType == DispatchType.B14)));
+    }
+
+    [Fact]
+    public async Task TheCustomersDeclarationWithAnIban_AfterTheFirmsRecordWithoutOne_FulfilsTheItemsOpenRequest_KK7_D797()
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(PaymentMethod.BankTransfer, OrderStatus.Delivered, PaymentStatus.Paid, new ItemSpec(ProductType.Physical, 3, true));
+        Guid item = items[0].Id;
+
+        Assert.Null((await RunAsync((u, t) => u.RecordWithdrawalAsync(Record(order.Id, item, order.Version, 1, Today), t))).Refusal);
+        _clock.SetUtcNow(Start.AddHours(2));
+        Assert.Null((await RunAsync((u, t) => u.DeclareWithdrawalAsync(new DeclareWithdrawalRequest(order.Id, item, 1, true, ValidIban), t))).Refusal);
+
+        // The IBAN the customer entered with the declaration fills the item's field: the request is fulfilled and the item leaves "IBAN pending" (06 4.29; 02 7.4.5).
+        await using (AppDbContext reader = NewContext())
+        {
+            RefundIban iban = await reader.RefundIbans.AsNoTracking().SingleAsync(i => i.OrderId == order.Id, Ct);
+            RefundIbanRequest request = await reader.RefundIbanRequests.AsNoTracking().SingleAsync(r => r.OrderItemId == item, Ct);
+            Assert.Equal((Start.AddHours(2), iban.Id, (DateTimeOffset?)null), (request.FulfilledAt!.Value, request.RefundIbanId!.Value, request.ClosedAt));
+        }
+
+        // A later record without an IBAN opens a new request: the fulfilled one is no longer open.
+        Assert.Null((await RunAsync((u, t) => u.RecordWithdrawalAsync(Record(order.Id, item, order.Version + 2, 1, Today), t))).Refusal);
+        Assert.Equal(1, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == item && r.FulfilledAt == null && r.ClosedAt == null)));
+        Assert.Equal(2, await CountAsync(c => c.RefundIbanRequests.Where(r => r.OrderItemId == item)));
+    }
+
     // ---- KK8: a physical item not shipped yet ----
 
     [Fact]

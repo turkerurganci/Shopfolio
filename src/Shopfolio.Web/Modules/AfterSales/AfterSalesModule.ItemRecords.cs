@@ -131,12 +131,27 @@ internal sealed partial class AfterSalesModule
             }
         }
 
-        // A record without an IBAN on the transfer line opens the item's IBAN request (02 10.4.10; K-581): the customer enters it on the order page.
+        // The item has at most one open IBAN request - the order page opens one IBAN field for it (06 4.29; 02 7.4.5).
+        RefundIbanRequest? openRequest = await _db.RefundIbanRequests
+            .Where(r => r.OrderItemId == subject.OrderItemId && r.FulfilledAt == null && r.ClosedAt == null)
+            .FirstOrDefaultAsync(ct);
+
+        // A record without an IBAN on the transfer line opens the item's IBAN request (02 10.4.10; K-581): the customer enters it on the order page. While the
+        // item's request is still open, a further record uses it - the field is already open (06 4.29: a second event uses the open request).
         if (iban.Request)
         {
             ItemRecordAdmin requester = declaration.Admin ?? throw new InvalidOperationException("Only the administrator's record of a notice opens an IBAN request (02 10.4.10).");
-            _db.RefundIbanRequests.Add(RefundIbanRequest.ForItem(
-                subject.OrderItemId, RefundIbanRequestReason.NoticeWithoutIban, null, requester.AdminId, requester.AdminName, declaration.At));
+            if (openRequest is null)
+            {
+                _db.RefundIbanRequests.Add(RefundIbanRequest.ForItem(
+                    subject.OrderItemId, RefundIbanRequestReason.NoticeWithoutIban, null, requester.AdminId, requester.AdminName, declaration.At));
+            }
+        }
+        else if (refundIban is not null && openRequest is not null)
+        {
+            // A declaration that brings the item an IBAN - entered, carried from the order's e-mail or on file - fulfils its open request (06 4.29; 02 7.4.5).
+            openRequest.FulfilledAt = declaration.At;
+            openRequest.RefundIbanId = refundIban.Id;
         }
 
         ItemReturnAddress? copied = address is { } a ? new ItemReturnAddress(a.RecipientName, a.ProvinceId, a.District, a.AddressLine, a.Phone) : null;

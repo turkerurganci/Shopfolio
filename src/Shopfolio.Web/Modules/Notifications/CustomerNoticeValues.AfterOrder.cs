@@ -60,7 +60,7 @@ internal static partial class CustomerNoticeValues
             case OrderEmailChangedNotice changed:
                 return new CustomerNoticeRow(DispatchType.B15, null, Write((ChangedAt, Moment(changed.ChangedAt))));
             case ReturnRejectedNotice rejected:
-                if (rejected.Reason is not (WithdrawalExemptionReason.HygieneSensitive or WithdrawalExemptionReason.SealedMedia))
+                if (!WithdrawalExemptions.IsConditional(rejected.Reason))
                 {
                     throw new ArgumentException("A return is rejected for an opened protective package: the item is hygiene-sensitive or sealed media (08 2.2.6 B-16).", nameof(notice));
                 }
@@ -189,7 +189,7 @@ internal static partial class CustomerNoticeValues
             case DispatchType.B16:
                 if (ReadItem(values, 1) is { } rejectedItem
                     && Enum.TryParse(Get(values, ExemptionReason), out WithdrawalExemptionReason exemption)
-                    && exemption is WithdrawalExemptionReason.HygieneSensitive or WithdrawalExemptionReason.SealedMedia)
+                    && WithdrawalExemptions.IsConditional(exemption))
                 {
                     return new ReturnRejectedNotice(orderId, rejectedItem, exemption);
                 }

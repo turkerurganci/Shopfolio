@@ -145,9 +145,6 @@ internal static class ConfirmationSummaryText
         return options.Length == 0 ? line.ProductName : $"{line.ProductName} ({string.Join(", ", options)})";
     }
 
-    /// <summary>True for the two conditional reasons (02 7.3.4 (ç), (e)): the right holds while the protective packaging is unopened.</summary>
-    public static bool IsConditional(WithdrawalExemptionReason reason) => reason is WithdrawalExemptionReason.HygieneSensitive or WithdrawalExemptionReason.SealedMedia;
-
     /// <summary>The reason's name in the words of the Regulation's article 15 (02 7.3.4).</summary>
     public static string ReasonName(WithdrawalExemptionReason reason) => reason switch
     {
@@ -163,7 +160,7 @@ internal static class ConfirmationSummaryText
     /// The exemption of a line as the summary and the withdrawal summary say it (02 3.24.3; K-206, K-509): an absolute reason says the right does not exist and why; a conditional one
     /// keeps the right under the condition of the unopened protective packaging.
     /// </summary>
-    public static string ExemptionNote(WithdrawalExemptionReason reason) => IsConditional(reason)
+    public static string ExemptionNote(WithdrawalExemptionReason reason) => WithdrawalExemptions.IsConditional(reason)
         ? $"Cayma hakkı istisnası ({ReasonName(reason)}): {ConditionalWithdrawalNote}."
         : $"Cayma hakkı yoktur: {ReasonName(reason)}.";
 }

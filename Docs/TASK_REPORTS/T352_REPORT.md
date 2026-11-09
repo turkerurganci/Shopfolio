@@ -1,6 +1,6 @@
 # T352 — Ödeme: satıcı ve kart verisi, iki yöntem, 3D Secure, taksit, ters ibraz
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -70,10 +70,61 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (D-795) |
+
+### Doğrulama tur 1 — Doğrulama Sonucu — T352 Ödeme: satıcı ve kart verisi, iki yöntem, 3D Secure, taksit, ters ibraz — tur 1
+**Tarih:** 2026-11-09   **Branch:** task/T352-odeme   **Commit:** `10da8ed7` (doğrulanan dal ucu; `origin/main` `5f9b4c43` ile aynı taban, birleştirme gerekmedi), PR #491
+
+**Verdict: ✓ PASS**
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş |
+| Hook | ✓ | `core.hooksPath` ana çalışma kopyasının `scripts/git-hooks`'u |
+| Ana dal CI (son 3) | ✓ | 42578567856 success, 42578567859 success, 42570905276 success |
+
+#### Kabul Kriterleri (doğrulayıcı kanıtı)
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `PaymentMethodTests` KK1 üç testi (ad taraması + ihlal örneği + `PaymentStartRequest` alan listesi); elle: `PaymentNotice`, `InboundNotificationRecord` kart alanı taşımaz; `src/`'de `masked_pan`/`cvv`/`card_number` yok; Payment modülünün tek kayıt satırı `{Event} {Reason} {RecordId}`; göçlerde kart sütunu yok |
+| 2 | ✓ | `PaymentMethod_HasExactlyTheCardAndTheBankTransfer_NoCashOnDelivery_KK2`, `OpenMethods_..._KK2_KK4`; onay kapalı yöntemi `PaymentMethodUnavailable` ile reddeder (07 §6 kodu var) |
+| 3 | ✓ | 3D/eşik ad taraması + örnek; başarısız bildirim onaylamaz (`PaymentNotificationRuleTests.Failure_IsProcessed_WithoutAnAmountCheck_Row5`, `PaymentNotificationTests.Failure_CancelsTheUnpaidOrderInTheJob_...`); `CardPaymentFailed` → İptal + Başarısız. Sağlayıcıda kapatılamazlık kurulum şartı (`08 §2.1.3`, T406) |
+| 4 | ✓ | `CardCondition_*_KK4` (iki), `PaymentMethods_WithoutTheProviderKeys_OfferOnlyTheTransfer_KK4`; tümleşik `KeylessInstallation_..._T352_KK2_KK4`, `NoOpenMethod_ClosesTheGate_..._T352_KK2_KK4`; kart açık/kapalı ayar alanı yok |
+| 5 | ✓ | Taksit ad taraması + örnek, `Order_CarriesOneAmount_NoInstallmentPlan_KK5`; ekran dosyalarında "taksit" yok; sağlayıcı payı D-786 (T401) |
+| 6 | ✓ | `Preparing_StandsWithAnUnapprovedPayment_Never_KK6`; `OrderTransitionsTests.IsPairAllowed_EqualsTheCombinationRuleOfTheDatabase_ForAllPairs`, `CartAndOrderCoreTablesTests.PendingPaymentWithAPreparingOrder_IsRefused` |
+| 7 | ✓ | `Application_HasNoChargebackEndpointStateOrField_KK7` + örnek, `PaymentAxis_HasOnlyItsFiveStates_NoneForAChargeback_KK7`; `src/`'de `chargeback`/`ibraz` yok |
+| 8 | ✓ | `UnpaidCardOrderCancelledBySystem_..._T352_KK6_KK8` (üç sistem iptali sebebi; sepet adedi durur, ayrılan 0); reddedilen onayda sepet satırı durur |
+
+#### Task Satırları (`12 §7.5`)
+KP-15 → 10 satır (`VAL-B008`…`B012`, `C001`, `C002`, `A053`, `D003`, `D004`). Hiçbiri T352 kanıtıyla tamamlanmaz: uç yanıtı ya da tarayıcı gözlemi ister (T509/T510, sağlayıcı katmanı T401) ya da başka task'ın kaynağıdır (B009 T353; C002/A053 geç ödeme). `Durum` değişmedi (C001 PASS kalır, ötekiler BEKLEMEDE). `12_matris_denetle.py --kapsam 1-77` Hata 0.
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut / kapsam |
+|---|---|---|
+| Build | ✓ 0 uyarı | `dotnet build Shopfolio.slnx --no-restore -warnaserror` |
+| Biçim | ✓ | `dotnet format <proje> --verify-no-changes --no-restore` ×3 |
+| Unit | ✓ 5439/5439 | TAM koşu |
+| Betik | ✓ | `tests/scripts/run-script-tests.sh` 4 dosya |
+| Integration | ✓ 754/754 | Ordering 395, Payment 14, `SalesGateTests`+`AccountAndStatusCommandTests`+`StartupSettingsCheckTests` 83, Catalog+CorporateContent+Concurrency 262 |
+| Dal CI | ✓ | run 42582347076 (head `10da8ed7`) success — Integration tam koşu dahil |
+
+#### Güvenlik Kontrolü
+Secret sızıntısı temiz · auth etkisi yok (yeni uç yok) · girdi doğrulaması: seçilen yöntem sunucuda açık yöntemlerle karşılaştırılır · yeni bağımlılık yok.
+
+#### Bulgular
+Yok.
+
+#### Bloke-etmeyen Notlar
+| # | Not | Karar |
+|---|---|---|
+| K1 | `UnpaidCardOrderCancelledBySystem_..._AndOnlyTheApprovalEmptiesIt_...` adı onayın sepeti boşalttığını söyler, gövde bunu sınamaz | D-795 (`DEFERRED_BACKLOG.d/T352.md`), hedef T353 |
+
+#### Yapım Raporu Karşılaştırması
+Tam uyumlu; öz denetim tablosu var ve kanıtlı. Farklar: K1 yapım raporunda yok; Ordering koşu sayısı 386 ↔ 395 (hepsi geçti). ⚠ (1) yerinde: havale hattı T353'e dek bağsız, üretimde havale onayı da reddedilir; kapı kapalı ve onayı çağıran uç yok.
 
 ## Altyapı Değişiklikleri
 
@@ -87,7 +138,7 @@
 - **Branch:** `task/T352-odeme`
 - **Commit:** `1f8220c4` — T352: kod ve testler
 - **PR:** #491
-- **CI:** *(yardımcı izler)*
+- **CI:** run 42582347076 (head `10da8ed7`) success
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

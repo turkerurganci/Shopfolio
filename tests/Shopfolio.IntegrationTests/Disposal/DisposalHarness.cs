@@ -70,6 +70,7 @@ internal sealed class DisposalHarness : IAsyncDisposable
         services.AddScoped<AdvisoryLocks>();
         services.AddCartServices();
         services.AddScoped<IOrderingModule, OrderingModule>();
+        services.AddScoped<OrderExport>();
         services.AddPaymentModule();
         services.AddAfterSalesModule();
         services.AddSettingsDependencies();

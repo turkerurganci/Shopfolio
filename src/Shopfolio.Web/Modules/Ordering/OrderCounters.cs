@@ -49,6 +49,31 @@ internal sealed class OrderCounters
         return true;
     }
 
+    /// <summary>
+    /// 1.4.4.1 for the order being born (T348; 02 3.17.3): the same reservation as <see cref="ReserveAsync(Order, CancellationToken)"/>, read from the confirmation's frozen
+    /// <paramref name="items"/> that are not saved yet. False when one reservation did not fit: no row is written and the caller refuses the order.
+    /// </summary>
+    public async Task<bool> ReserveAsync(Order order, IReadOnlyList<OrderItem> items, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        ArgumentNullException.ThrowIfNull(items);
+        List<VariantQuantity> units = Merge([.. items
+            .Where(i => i.ProductType != ProductType.Digital && i.VariantId != null)
+            .Select(i => new VariantQuantity(i.VariantId!.Value, i.Quantity))]);
+        if (units.Count == 0 && order.CouponId is null)
+        {
+            return true;
+        }
+
+        if (!await _catalog.ReserveAsync(new StockClaim(units, order.CouponId), null, ct))
+        {
+            return false;
+        }
+
+        WriteRows(order, units);
+        return true;
+    }
+
     /// <summary>1.4.4.2 (path 2): the reserved units fall finally and the reserved right becomes a used one; the rows are deleted.</summary>
     public async Task CommitAsync(Order order, CancellationToken ct)
     {

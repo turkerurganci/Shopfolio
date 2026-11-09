@@ -48,7 +48,13 @@ internal sealed class Carts
         return names;
     }
 
-    public async Task<CartView> OpenAsync(CartOwner owner, ShippingFeeSection shippingTerms, CancellationToken ct)
+    public Task<CartView> OpenAsync(CartOwner owner, ShippingFeeSection shippingTerms, CancellationToken ct) => OpenAsync(owner, shippingTerms, null, ct);
+
+    /// <summary>
+    /// The cart's read with a step between the cart's lock and the read of its lines (T348; 02 3.17.7): the confirmation cancels the cart's earlier unpaid order there, so the lines are
+    /// judged against the stock without the reservation the customer's own earlier order held. The step runs after the cart's lock, which heads the transaction (05 7.3.5).
+    /// </summary>
+    public async Task<CartView> OpenAsync(CartOwner owner, ShippingFeeSection shippingTerms, Func<Guid, CancellationToken, Task>? afterLock, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(owner);
         Guid? found = await FindCartIdAsync(owner, ct);
@@ -63,6 +69,11 @@ internal sealed class Carts
         if (cart is null)
         {
             return Empty(null, shippingTerms);
+        }
+
+        if (afterLock is not null)
+        {
+            await afterLock(cartId, ct);
         }
 
         // A guest cart that is opened lives again for the full cookie life (06 9.4.3); a member's cart has no access moment.

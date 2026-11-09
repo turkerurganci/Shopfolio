@@ -695,6 +695,8 @@ public sealed class AddressTests : IAsyncLifetime
 
         public Task<PeriodsSection> GetPeriodsAsync(CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<string?> GetBankTransferIbanAsync(CancellationToken ct) => throw new NotSupportedException();
+
         public Task<SettingsSaveResult> SavePeriodsAsync(PeriodsInput input, int formVersion, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<ProductDefaultsSection> GetProductDefaultsAsync(CancellationToken ct) => throw new NotSupportedException();

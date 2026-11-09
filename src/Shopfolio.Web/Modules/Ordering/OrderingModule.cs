@@ -381,6 +381,9 @@ internal static class OrderingModuleRegistration
         // The payment window (T324; 03 4.1.7-4.1.9): its end for the order's confirmation and the correction, and the three sources of its due moments.
         // The cart has no source: it never empties by itself (03 4.1.6; Z-6).
         services.AddScoped<PaymentWindows>();
+
+        // The confirmation (T348; 02 3.17): the one operation that makes an order, in the caller's transaction.
+        services.AddScoped<OrderConfirmation>();
         services.AddDueRecordSource<TransferPaymentExpiry>();
         services.AddDueRecordSource<TransferPaymentReminder>();
         services.AddDueRecordSource<CardPaymentExpiry>();

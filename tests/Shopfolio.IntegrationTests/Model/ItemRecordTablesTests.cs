@@ -252,6 +252,7 @@ public sealed class ItemRecordTablesTests : IAsyncLifetime
         string[] expected =
         [
             "cancellations.ix_cancellations_admin_id | CREATE INDEX ix_cancellations_admin_id ON public.cancellations USING btree (admin_id)",
+            "cancellations.ix_cancellations_created_at | CREATE INDEX ix_cancellations_created_at ON public.cancellations USING btree (created_at)",
             "cancellations.ix_cancellations_order_item_id | CREATE INDEX ix_cancellations_order_item_id ON public.cancellations USING btree (order_item_id)",
             "cancellations.ix_cancellations_refund_iban_id | CREATE INDEX ix_cancellations_refund_iban_id ON public.cancellations USING btree (refund_iban_id)",
             "cancellations.ix_cancellations_transition_record_id | CREATE INDEX ix_cancellations_transition_record_id ON public.cancellations USING btree (transition_record_id)",
@@ -261,9 +262,11 @@ public sealed class ItemRecordTablesTests : IAsyncLifetime
             "defect_claims.ix_defect_claims_return_province_id | CREATE INDEX ix_defect_claims_return_province_id ON public.defect_claims USING btree (return_province_id)",
             "defect_claims.pk_defect_claims | CREATE UNIQUE INDEX pk_defect_claims ON public.defect_claims USING btree (id)",
             "item_removals.ix_item_removals_admin_id | CREATE INDEX ix_item_removals_admin_id ON public.item_removals USING btree (admin_id)",
+            "item_removals.ix_item_removals_created_at | CREATE INDEX ix_item_removals_created_at ON public.item_removals USING btree (created_at)",
             "item_removals.ix_item_removals_order_item_id | CREATE INDEX ix_item_removals_order_item_id ON public.item_removals USING btree (order_item_id)",
             "item_removals.pk_item_removals | CREATE UNIQUE INDEX pk_item_removals ON public.item_removals USING btree (id)",
             "late_delivery_terminations.ix_late_delivery_terminations_admin_id | CREATE INDEX ix_late_delivery_terminations_admin_id ON public.late_delivery_terminations USING btree (admin_id)",
+            "late_delivery_terminations.ix_late_delivery_terminations_declaration_date | CREATE INDEX ix_late_delivery_terminations_declaration_date ON public.late_delivery_terminations USING btree (declaration_date)",
             "late_delivery_terminations.ix_late_delivery_terminations_order_item_id | CREATE INDEX ix_late_delivery_terminations_order_item_id ON public.late_delivery_terminations USING btree (order_item_id)",
             "late_delivery_terminations.ix_late_delivery_terminations_refund_iban_id | CREATE INDEX ix_late_delivery_terminations_refund_iban_id ON public.late_delivery_terminations USING btree (refund_iban_id)",
             "late_delivery_terminations.pk_late_delivery_terminations | CREATE UNIQUE INDEX pk_late_delivery_terminations ON public.late_delivery_terminations USING btree (id)",
@@ -281,6 +284,7 @@ public sealed class ItemRecordTablesTests : IAsyncLifetime
             "returns.ix_returns_withdrawal_id | CREATE INDEX ix_returns_withdrawal_id ON public.returns USING btree (withdrawal_id)",
             "returns.pk_returns | CREATE UNIQUE INDEX pk_returns ON public.returns USING btree (id)",
             "withdrawals.ix_withdrawals_admin_id | CREATE INDEX ix_withdrawals_admin_id ON public.withdrawals USING btree (admin_id)",
+            "withdrawals.ix_withdrawals_declaration_date | CREATE INDEX ix_withdrawals_declaration_date ON public.withdrawals USING btree (declaration_date)",
             "withdrawals.ix_withdrawals_order_item_id | CREATE INDEX ix_withdrawals_order_item_id ON public.withdrawals USING btree (order_item_id)",
             "withdrawals.ix_withdrawals_refund_iban_id | CREATE INDEX ix_withdrawals_refund_iban_id ON public.withdrawals USING btree (refund_iban_id)",
             "withdrawals.ix_withdrawals_return_province_id | CREATE INDEX ix_withdrawals_return_province_id ON public.withdrawals USING btree (return_province_id)",

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Payment.Contracts;
 
 namespace Shopfolio.Modules.AfterSales;
 
@@ -24,6 +25,7 @@ internal sealed partial class AfterSalesModule
         }
 
         IReadOnlyDictionary<Guid, int> closed = await ClosedQuantitiesAsync(ids, ct);
+        IReadOnlyDictionary<Guid, RescindedShares> rescinded = await _payment.RescindedSharesAsync(ids, ct);
         Dictionary<Guid, DefectClaimStatus> claims = await _db.DefectClaims.AsNoTracking()
             .Where(c => ids.Contains(c.OrderItemId))
             .ToDictionaryAsync(c => c.OrderItemId, c => c.DefectClaimStatus, ct);
@@ -87,7 +89,9 @@ internal sealed partial class AfterSalesModule
                 receivable,
                 rejectable,
                 closable,
-                arrivals.Contains(id));
+                arrivals.Contains(id),
+                rescinded.TryGetValue(id, out RescindedShares? shares) ? shares.Quantity : 0,
+                AfterSalesPeriodRules.IsDefectClaimChannelExpired(q.DeliveryDate, now));
         }
 
         return states;

@@ -102,6 +102,19 @@ internal sealed class ContactRequests
         return new ContactRequestResult(exists ? ContactRequestOutcome.Unchanged : ContactRequestOutcome.NotFound, requestId);
     }
 
+    /// <summary>
+    /// The topics the sales summary's contact request count takes (02 10.6.3; K-302, K-457): the storefront's output - General question, About a product, Other. "KVKK talebi" and
+    /// "Sipariş hakkında" are after-sale and personal data applications and stay out.
+    /// </summary>
+    internal static readonly ContactTopic[] SummaryTopics = [ContactTopic.GeneralQuestion, ContactTopic.AboutProduct, ContactTopic.Other];
+
+    /// <summary>The requests opened in <c>[from, to)</c> with one of <see cref="SummaryTopics"/>; a request destroyed at the end of its retention is no longer there to count.</summary>
+    public Task<int> CountForSummaryAsync(DateTimeOffset from, DateTimeOffset to, CancellationToken ct)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(to, from);
+        return _db.ContactRequests.AsNoTracking().CountAsync(c => c.CreatedAt >= from && c.CreatedAt < to && SummaryTopics.Contains(c.ContactTopic), ct);
+    }
+
     /// <summary>Only the firm's administrator closes and reopens a request (03 1.9.2); a call without an administrator's identity is a programming error.</summary>
     private static void RequireAdministrator(Guid adminId)
     {

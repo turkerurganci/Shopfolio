@@ -102,6 +102,9 @@ public sealed record LateDeliveryTerminationEntry(
 /// </summary>
 public sealed record ClosingRecordMoment(Guid RecordId, Guid OrderItemId, bool IsTermination, DateTimeOffset At, int Quantity);
 
+/// <summary>An order item, its own quantity and the moment its open quantity is asked at (T383; 02 10.6.3: the end of the order's shipping promise).</summary>
+public sealed record ItemQuantityAt(Guid OrderItemId, int Quantity, DateTimeOffset At);
+
 /// <summary>The receipt of returned goods of a withdrawal (03 1.7.1.6; K-794): every partial arrival is a record of its own, with the arrival date and the units.</summary>
 public sealed record ReturnReceiptEntry(ItemRecordSubject Subject, Guid WithdrawalId, int Quantity, DateOnly ArrivalDate, ItemRecordAdmin Admin, DateTimeOffset At);
 

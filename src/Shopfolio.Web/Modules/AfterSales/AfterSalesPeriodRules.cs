@@ -186,6 +186,15 @@ internal static class AfterSalesPeriodRules
             || (productType == ProductType.Physical && orderStatus is OrderStatus.Shipped or OrderStatus.DeliveryFailed or OrderStatus.Delivered);
         return opened && (itemDeliveryDate is not { } delivered || now < DefectClaimChannelEnd(delivered));
     }
+
+    /// <summary>
+    /// Z-18 ran out (02 7.5.1, 7.5.2): the item has its delivery mark's date and the channel's end has come. The right does not end - the order page sends the customer to
+    /// the contact form, whose topics carry no defect claim (K-302, K-551). An item without the date never expires (the firm's risk; K-506).
+    /// </summary>
+    public static bool IsDefectClaimChannelExpired(DateOnly? itemDeliveryDate, DateTimeOffset now)
+    {
+        return itemDeliveryDate is { } delivered && now >= DefectClaimChannelEnd(delivered);
+    }
 }
 
 /// <summary>

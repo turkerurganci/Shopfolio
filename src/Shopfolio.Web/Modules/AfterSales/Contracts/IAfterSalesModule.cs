@@ -27,6 +27,34 @@ public interface IAfterSalesModule
     Task<IReadOnlyDictionary<Guid, int>> ClosedQuantitiesAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 
     /// <summary>
+    /// The units of each order item that no operation takes (02 7.1.6; K-1077): the closed quantity of <see cref="ClosedQuantitiesAsync"/> plus the units rescinded on a
+    /// defect claim - they do not close the item (the closure rule keeps reading <see cref="ClosedQuantitiesAsync"/>) but are no other operation's subject. The units open
+    /// to an operation are the item's quantity minus this; the caller's unsaved rows count. A plain read under the caller's order lock.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, int>> UnavailableQuantitiesAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// The check of the firm's rescission on a defect claim (02 7.5.3; 03 2.9.4; K-788, K-1077): the item's claim is open, the units are at least one and at most both the
+    /// claim's defective units not rescinded yet and the units open to an operation, and the refund's amounts are split from the item's frozen values against what its
+    /// earlier records set aside - the rescission that takes the last open units takes the rest (02 7.1.7 (4)). It writes nothing: the refund the payment module starts
+    /// is the rescission's record. Requires the caller's transaction and order row lock.
+    /// </summary>
+    Task<DefectRemedyCheck> CheckDefectClaimRescissionAsync(DefectClaimRescissionEntry entry, CancellationToken ct);
+
+    /// <summary>
+    /// The check of the firm's price reduction on a defect claim (02 7.5.3; 03 8.3.3.7; K-228, K-539): the item's claim is open. The item is not returned and no unit
+    /// leaves the open quantity; the amount's ceiling is the payment's. Requires the caller's transaction and order row lock.
+    /// </summary>
+    Task<DefectRemedyCheck> CheckDefectClaimPriceReductionAsync(ItemRecordSubject subject, CancellationToken ct);
+
+    /// <summary>
+    /// The IBAN request of a defect remedy's refund on the bank transfer line (02 7.5.3, 7.4.5; 03 8.3.3.6; K-686): when the order has no IBAN on file and the item has no
+    /// open request, the administrator's request is written on the item for the refund; true when one was written - the caller then sends B-14. Joins the caller's
+    /// transaction under the order's row lock and saves nothing.
+    /// </summary>
+    Task<bool> RequestDefectRemedyIbanAsync(DefectRemedyIbanRequest request, CancellationToken ct);
+
+    /// <summary>
     /// The units of each order item as the coupon right's return reads them (06 4.14, the paragraph after path 6; 03 1.4.4; K-1104, K-1106): the closed
     /// quantity of <see cref="ClosedQuantitiesAsync"/>, the withdrawn quantity, and how much of the withdrawal the returned goods' receipt, the return
     /// rejection and the standing "goods did not come back" closing settled. With <paramref name="includeUnsaved"/> the records the caller added to its
@@ -230,6 +258,26 @@ public interface IAfterSalesModule
     /// IBAN to report. The caller sends B-14. Under the order's row lock in the caller's transaction; saves nothing.
     /// </summary>
     Task<RefundIbanRequestOpened?> ReportTransferFailedAsync(TransferFailure failure, CancellationToken ct);
+
+    /// <summary>
+    /// The items with a cancellation, removal, late delivery termination or withdrawal whose event day falls in <paramref name="startDay"/>…<paramref name="endDay"/> (Turkey days)
+    /// (T383; 02 10.6.3; 07 9.22.1; K-580): the cancellation and the removal on their record's day, the termination on its notice's date stamp, the withdrawal on its declaration's
+    /// date. A cancellation undone by a correction is left out. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> ListItemsWithLossInRangeAsync(DateOnly startDay, DateOnly endDay, CancellationToken ct);
+
+    /// <summary>
+    /// Which of the given items have a cancellation, removal, late delivery termination or withdrawal at any time (T383; 02 10.6.3; K-790); a cancellation undone by a correction
+    /// does not count, the "goods did not come back" closure and the return rejection are not read. A plain read.
+    /// </summary>
+    Task<IReadOnlySet<Guid>> FindItemsWithLossAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// The open quantity each given item had at its moment (T383; 02 10.6.3; K-535): the item's quantity minus the units of its saved closing records - the records of
+    /// <see cref="ClosedQuantitiesAsync"/> (cancellation, removal, late delivery termination, withdrawal; a cancellation undone by a correction does not count) - written before
+    /// <see cref="ItemQuantityAt.At"/>, by the one open quantity rule. Every item is in the result. A plain read; it writes nothing and takes no lock.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, int>> OpenQuantitiesAtAsync(IReadOnlyCollection<ItemQuantityAt> items, CancellationToken ct);
 }
 
 /// <summary>One cancellation record as the order module needs it: the record, the item and the units it closed.</summary>

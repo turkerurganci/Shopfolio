@@ -82,7 +82,7 @@ internal sealed partial class OrderTransitions
         }
 
         List<OrderItem> items = await _db.OrderItems.Where(i => i.OrderId == order.Id).OrderBy(i => i.CreatedAt).ThenBy(i => i.Id).ToListAsync(ct);
-        IReadOnlyDictionary<Guid, int> closed = await _afterSales.ClosedQuantitiesAsync([.. items.Select(i => i.Id)], ct);
+        IReadOnlyDictionary<Guid, int> closed = await _afterSales.UnavailableQuantitiesAsync([.. items.Select(i => i.Id)], ct);
         List<(OrderItem Item, int Open)> terminated =
         [
             .. items

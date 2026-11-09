@@ -1,6 +1,6 @@
 # T368 — Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi
 
-**Faz:** F3 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -80,7 +80,71 @@
 
 ## Doğrulama
 
-*(validator doldurur)*
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✓ PASS (tur 1) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 3 (D-819 güncellendi, D-838, D-817 güncellendi) |
+
+### Doğrulama tur 1 — Doğrulama Sonucu — T368 Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi — tur 1
+**Tarih:** 2026-11-09   **Branch:** task/T368-gecikme-feshi   **Commit:** `246071f7` (doğrulanan dal ucu), PR #498; kayıt commit'inden önce `origin/main` `78a3f598` çakışmasız birleştirildi (yalnız T352 kayıt belgeleri)
+
+**Verdict: ✓ PASS**
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş |
+| Hook | ✓ | `core.hooksPath` ana çalışma kopyasının `scripts/git-hooks`'u |
+| Ana dal CI (son 3) | ✓ | 42600847174 success, 42600846924 success, 42596386708 success |
+
+#### Kabul Kriterleri (doğrulayıcı kanıtı)
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | Kargoya verme süresi aşımında yol T367'nin iptal düğmesi (`CancelItemAsync`, kayıt `Cancellation`); Z-11 yolu ayrı kayıt tipi `LateDeliveryTermination` (`06 §4.24`). Katalog `IsLateTerminationOpen` Hazırlanıyor/Kargoya verildi/Teslim edilemedi; `Termination_OfAShippedOrder_…(Shipped, DeliveryFailed)` kargodayken açık |
+| 2 | ✓ | `DeliveryPeriodRules.IsLateDeliveryTerminationOpen` (ödendi, Z-11 = `Order.CreatedAt` + 30 gün, teslim tarihsiz açık adetli fiziksel kalem); `Termination_OpensExactlyThirtyDays…` (−1 tick ret / tam açık), `…DoesNotOpen_OnAnItemWithADeliveryDate_OnADigitalOnlyOrder_OrOnAnUnpaidOne_KK2`, `…CoversTheItemExemptFromWithdrawal_TheCustomMadeOneToo_KK2` |
+| 3 | ✓ | İşlem adet almaz; her fiziksel teslim tarihsiz kalemin `Quantity − kapalı` adedi; yazıcı başka adedi `QuantityExceedsOpen` ile reddeder ve fiziksel olmayanı `StatusNotAllowed` ile; `…OfAPreparingOrder_…` (1 adet önceden iptal → 2 adet), `…LeavesTheDigitalAndTheServiceItemOut_…_KK3` |
+| 4 | ✓ | Feshedilen adet açık adetten düşer → firma iptali kapalı (`…OfAShippedOrder_…`: firma iptali ret, `Cancellations` boş); Hazırlanıyor'da S4 `Closure` (sebepsiz), kargodakinde geçiş yok; B-7 sayısı değişmez, B-9 + F-3 gider |
+| 5 | ✓ | `FromOtherChannel`: yönetici, onay, sürüm, ulaşma tarihi ≤ bugün; aynı yol (`TerminateForLateDeliveryAsync`), `DeclarationDate` = ulaşma tarihi (`ANoticeFromAnotherChannel_IsRecordedLikeTheButton_…_KK5`), ileri tarih/onaysız/eski sürüm ret, müşteri yolu tarih taşıyamaz; geri ödemenin yazımı D-818 (T370) — süre başlangıcı kayıtta |
+| 6 | ✓ | `OrderPeriods.LegalInterestWarningsAsync`: her fesih + Z-10/Z-39 sonrası her iptal (aktörden bağımsız), düzeltilmiş geçişe bağlı iptal hariç; ilk düzeltilmemiş S5 sözü bitirir (D-531, `DeliveryPeriodRulesTests` D531); `…TheLegalInterestWarning_…_KK6`; faiz alanı/hesabı yok. Panel gösterimi D-819 (T528) |
+| 7 | ✓ | `CancellationReason` altı üye = `02 §7.2.4` listesi (`FirmReasonRulesTests`); "diğer" ↔ not (modül + `reason_note_only_on_other` kısıtı); `Confirmed` yoksa `ConfirmationRequired`; B-7 `CancelledNotice` sebep ve notla; son adetler firmanın S4/S9'u ve kayıt bağlı (`…CarriesTheReasonAndTheNote_SendsB7_…_KK7`, `…ReturnedShipmentsLastUnits_…S9_KK7`) |
+| 8 | ✓ | `IrreversibleConfirmations.FirmCancellation(..., isOutOfStock: true)` uyarı satırı onay cümlesinden önce (`Lines[0]`), öteki sebeplerde yok — ödenmiş ve ödenmemiş (`…ForOutOfStock_…_KK8` teorisi) |
+| 9 | ✓ | `FirmReasonRules.IsComplete`: `AgreedWithBuyer` ↔ `OwnerConfirmed`; kalem ve bütün sipariş iptalinde teyitsiz `InvalidInput`, hiçbir şey yazılmaz (`AgreedWithTheCustomer_…_ItemOrWholeOrder_…_KK9`) |
+
+#### Task Satırları (`12 §7.5`)
+KP-21 ve KP-47'den T368'e eşlenen 11 satır: `VAL-C008` (k1), `C009` (k1–k3), `C010` (k4), `A070` (k5), `C019` (k2), `C049`, `C050` (k7), `C051` (D-305), `A209` (k8), `A228`, `A229` (k6). Hepsi KRİTİK, kanıt türü uç yanıtı ya da tarayıcı gözlemi; uç ve ekran T512/T528'in → `BEKLEMEDE` kaldı (T367, T352 emsali). Geri ödeme satırları (`A069`, `A210`, `A216`, `A217`) T370'in. `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+#### Doğrulama Kontrol Listesi
+- [x] KK1–KK9 (yukarıdaki kriterler)
+- [x] `09 §25`: modül sınırı (AfterSales yazıcıları kilit altında, kaydetmez), tek kural evi (`OrderOperationCatalog`, `FirmReasonRules`, `DeliveryPeriodRules`, `ItemShares`), `TimeProvider`, yeni paket/göç/ayar yok, mimari ve enum kilit testleri yeşil; iz satırı Ordering'de yazılmaz (D-646 kalıbı) → K1
+- [x] Güvenlik taraması
+
+#### Test Sonuçları
+| Tür | Sonuç | Komut / kapsam |
+|---|---|---|
+| Build | ✓ 0 uyarı | `dotnet build Shopfolio.slnx --no-restore -warnaserror` |
+| Biçim | ✓ | `dotnet format <proje> --verify-no-changes --no-restore` ×3 |
+| Unit | ✓ 5213/5213 + Consistency 288/288 | `--filter-not-trait` / `--filter-trait "Consistency=true"` |
+| Betik | ✓ | `tests/scripts/run-script-tests.sh` 4 dosya |
+| Integration | ✓ 278/278 | `LateDeliveryAndFirmCancellation`, `StatusCorrection`, `ShipmentTransitions`, `DeliveryPeriod`, `CustomerCancellation` 170; `AxesTie`, `ItemRecords`, `OrderConfirmation`, `PaymentTransitions` 108 (PostgreSQL 18, `track_commit_timestamp=on`) |
+| Dal CI | ✓ | run 42604944280 (head `246071f7`) success — Integration tam koşu dahil |
+
+#### Güvenlik Kontrolü
+Secret sızıntısı temiz · auth: yönetici yolu `TryAdminActor`, kalem–sipariş eşleşmesi `LockItemAsync`; müşterinin sipariş sahipliği uç işidir (T512) · girdi: ileri tarih, adet < 1, not/teyit kuralı ret · yeni bağımlılık yok.
+
+#### Bulgular
+Yok.
+
+#### Bloke-etmeyen Notlar
+| # | Not | Karar |
+|---|---|---|
+| K1 | D-819 panel payını müşteri ekranı T512'ye yazıyor; firma iptali, başka kanal fesih kaydı ve iki uyarı E-37'nin (T528); `CancelByCompany` ve `RecordLateDeliveryTerminationFromOtherChannel` iz satırları ileri atılmamış | Bu PR'da kapatıldı: D-819 hedefi T512, T528; iz satırı eklendi |
+| K2 | KK6 testi müşteri iptalinin uyarısını sınamıyor (kod aktörden bağımsız); D-793'ün kapanışı bu teste dayanıyor | D-838 (`DEFERRED_BACKLOG.d/T368.md`), hedef T528 |
+| K3 | Başka kanal fesih kaydı IBAN'sızsa IBAN isteği ve B-14 (`03 §8.4.8`) D-817'de yazılı değildi | Bu PR'da kapatıldı: D-817'ye eklendi, hedefe T528 |
+
+#### Yapım Raporu Karşılaştırması
+Tam uyumlu; öz denetim tablosu var ve kanıtlı. Farklar: K1 (yapım D-819'u yalnız T512'ye bağladı), K2, K3 yapım raporunda yok. ⚠ notları yerinde: uyarı metni `02 §7.2.4`'ün iki unsurunu taşır; Teslim edilemedi'deki firma iptalinde stok hemen döner (`03` 1.4.4.4), fesihte kargodaki mal dönüş adımıyla (1.4.4.5).
 
 ## Altyapı Değişiklikleri
 
@@ -94,7 +158,8 @@
 - **Branch:** `task/T368-gecikme-feshi`
 - **Commit:** son commit — "T368: Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi"
 - **PR:** #498
-- **CI:** *(validator doldurur)*
+- **CI:** run 42604944280 (head `246071f7`) success
+- **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar
 
@@ -102,7 +167,7 @@
 
 ## Known Limitations / Follow-up
 
-- D-817 havale hattında IBAN (T370, T512); D-818 geri ödeme kaydı (T370); D-819 ekran payı (T512); D-820 ayıpta dönülmüş adet (T374).
+- D-817 havale hattında IBAN (T370, T512, T528); D-818 geri ödeme kaydı (T370); D-819 ekran payı ve iz satırı (T512, T528); D-820 ayıpta dönülmüş adet (T374); D-838 müşteri iptalinin faiz uyarısı testi (T528).
 
 ## Notlar
 

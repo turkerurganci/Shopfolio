@@ -1,6 +1,6 @@
 # T369 — İşlemin adet birimi ve geri ödeme tutarı: açık adet, kupon payı, KDV, kargo ücretinin iptalde ve caymada ayrılması
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -75,10 +75,14 @@ Devam işçisi bütün maddeleri (önceki işçinin yaptıkları dahil) diff'te 
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-09, head `a604985d` + `origin/main` `d5676e75` (T372 #492) birleştirmesi; birleşik ağaçta sınandı). Kriter 1–8 ve KK1–KK8 ✓ (validator kanıtı: kod okuması `AfterSalesModule.RefundAmounts.cs`, `ItemShares.cs`, `ShippingFeeRefunds.cs`, `OpenQuantityAsync`, `SetAsideAsync`; Unit `RefundAmountRulesTests` 19, Integration `RefundAmountTests` 13 yeşil). Birleşik ağaçta para payı tek kural: T372'nin cayma yazıcısı (`AddWithdrawalAsync`) `ItemShares.SetAside` + `SetAsideAsync` çağırır, dönmenin payı ve adedi cayma yolunda da düşer; teslim almanın parçası `ItemShares.SetAsideParts`, yuvarlama yalnız `Money` (`Math.Floor` tek yerde). Dal CI 42627605629 yeşil (9/9). Yerel (birleşik ağaç): derleme `-warnaserror` 0/0, format 3 proje temiz, Unit 5575/5575 (Consistency dahil), betik 4/4, Integration Ordering 497/497 + Payment/Disposal/Commands 145/145, kilitli restore 0. Ana dal CI 42627783852, 42627783617, 42619534143 success. |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1: D-820'nin (T368 parçası, hedef T374) metni T369'un `OpenQuantityAsync` payını anmıyordu → bu PR'da D-820 satırına not düşüldü. K2: `12 §12.4` `VAL-A803`…`A806`'nın kural yarısı T369 testlerindedir (`RefundAmountRulesTests.KK3_*`/`KK4_*`/`KK5_*`, `RefundAmountTests.KK3_*`/`KK5_*`); satırların "Veri kaydı" yarısı geri ödeme satırını ister (`Refund`; D-843 → T370) → `Durum` değişmedi (BEKLEMEDE), kayıt D-843'te. |
+
+**Task satırları (`12 §7.5`):** KP-21, KP-22, KP-24 grep'i 38 matris satırı getirir; T369'un konusu `VAL-A085`, `A086`, `A087` (k3, k4, k6), `A088` (k7), `A089` (k8), `A073` ve `A067`'nin tutar yarısı. Hepsi uç yanıtı ister (uç T512/T513) ve geri ödeme satırı henüz yazılmıyor (D-843) → **BEKLEMEDE** kaldı (T367, T368, T372 emsali). Öteki satırlar T367/T368/T370–T373'ün. `12_matris_denetle.py --kapsam 1-77` Hata 0.
+
+**Birleştirme notu (main `d5676e75`):** yalnız `Docs/DEFERRED_BACKLOG.md` D-74 satırı çakıştı; kayıt kuralıyla main sürümü alındı (main D-74'ü T367/T372 ile kapatmıştı). Dalın D-74 ekinin özü — T369 `ShareOfUnits`'i parçalı teslim almaya genişletti (`ItemShares.SetAsideParts`) — `STATUS_CHANGELOG.d/T369.md`'ye taşındı. AfterSales kodu metin çakışmasız birleşti.
 
 ## Altyapı Değişiklikleri
 
@@ -92,7 +96,7 @@ Devam işçisi bütün maddeleri (önceki işçinin yaptıkları dahil) diff'te 
 - **Branch:** `task/T369-geri-odeme-tutari`
 - **Commit:** `4ffde5ac` (ara kayıt), `2dcbeb28` (devam), rapor commit'i
 - **PR:** #501
-- **CI:** yardımcı izler
+- **CI:** dal 42627605629 ✓ (head `a604985d`)
 - **Post-merge run'lar:**
 
 ## Dış Varsayımlar

@@ -81,6 +81,7 @@ public sealed class ContentRelationsTests : IAsyncLifetime
         services.AddAfterSalesModule();
         services.AddPaymentModule();
         services.AddOrderingModule();
+        services.AddScoped<global::Shopfolio.Infrastructure.Security.AttemptCounter>();
         services.AddCorporateContentModule();
         services.AddSettingsModule();
         services.AddScoped<IAuditActorSource>(_ => new FixedActor(_admin));

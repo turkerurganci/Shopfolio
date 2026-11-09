@@ -70,6 +70,7 @@ public sealed class EmptyInstallationTests : IAsyncLifetime
         services.AddAfterSalesModule();
         services.AddPaymentModule();
         services.AddOrderingModule();
+        services.AddScoped<global::Shopfolio.Infrastructure.Security.AttemptCounter>();
         services.AddCorporateContentModule();
         services.AddSettingsModule();
         services.AddScoped<IAuditActorSource>(_ => new NoActor());

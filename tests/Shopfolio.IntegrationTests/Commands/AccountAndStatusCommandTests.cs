@@ -45,7 +45,7 @@ namespace Shopfolio.IntegrationTests.Commands;
 /// notification (KK9).
 /// </summary>
 [Collection(CreateAdminCommandDefinition.Name)]
-public sealed class AccountAndStatusCommandTests : IAsyncLifetime
+public sealed partial class AccountAndStatusCommandTests : IAsyncLifetime
 {
     private const string EmailA = "ayse.yilmaz@example.com";
     private const string EmailB = "mehmet.kaya@example.com";
@@ -80,6 +80,11 @@ public sealed class AccountAndStatusCommandTests : IAsyncLifetime
         if (Directory.Exists(_logDirectory))
         {
             Directory.Delete(_logDirectory, recursive: true);
+        }
+
+        if (Directory.Exists(_exportDirectory))
+        {
+            Directory.Delete(_exportDirectory, recursive: true);
         }
 
         return ValueTask.CompletedTask;
@@ -577,6 +582,7 @@ public sealed class AccountAndStatusCommandTests : IAsyncLifetime
             {
                 ["Database:ConnectionString"] = _collection.Dsn,
                 [LoggingOptions.DirectoryKey] = _logDirectory,
+                [Shopfolio.Infrastructure.LogRead.LogExportFile.DirectoryKey] = _exportDirectory,
             })
             .Build();
     }

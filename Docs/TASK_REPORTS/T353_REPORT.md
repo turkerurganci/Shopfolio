@@ -83,7 +83,7 @@
 
 - **Branch:** `task/T353-havale-eft`
 - **Commit:** dal head'i PR'da
-- **PR:** PR açıklamasında; numara dönüşte yardımcıya bildirilir
+- **PR:** #500
 - **CI:** yardımcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

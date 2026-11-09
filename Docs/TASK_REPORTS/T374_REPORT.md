@@ -96,8 +96,8 @@ Koşulmayanlar (süre bütçesi): Unit tam koşu, Integration'ın değişiklikle
 ## Commit & PR
 
 - **Branch:** `task/T374-ayip-talebi`
-- **Commit:** `cd044e6d` (ara kayıt), devam commit'i
-- **PR:** (bu PR)
+- **Commit:** `cd044e6d` (ara kayıt), `43ac6994` (devam), PR no commit'i
+- **PR:** #504
 - **CI:**
 - **Post-merge run'lar:**
 

@@ -74,10 +74,24 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1) |
-| Bulgu sayısı | 1 (B1 ORTA, S1) |
-| Düzeltme gerekli mi | Evet — B1 |
-| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-716) |
+| Doğrulama durumu | ✓ PASS (tur 2); tur 1 ✗ FAIL |
+| Bulgu sayısı | tur 2: 0 · tur 1: 1 (B1 ORTA, S1 — düzeltme 1 ile kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | tur 2: 1 (K1 → D-734) · tur 1: 1 (K1 → D-716) |
+
+### Doğrulama Sonucu — tur 2 (validator)
+
+**Head:** `7ed42256` + `origin/main` `241f8669` birleştirmesi (çakışmasız) · **PR:** #483 · **Verdict:** ✓ PASS
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = depo `scripts/git-hooks`; ana dal CI son 3: 42537382825, 42537382843, 42535966562 hepsi `success`.
+- **Dal CI:** 42538348706 (`7ed42256`) ✓ — Lint, Build, Unit, Integration (8m36s), Contract, Migration dry-run, Paketleme, E2E (advisory), CI Gate `pass`.
+- **Kabul kriterleri (kod + test okundu, testler koşuldu):** 1 ✓ (`RollbackAudit` yalnız `current_setting` + tablo başına `count(*)`; komut sınıfı bağlama dokunmaz; salt okuma entegrasyon testi artık testin kendi veritabanını `default_transaction_read_only` ile açıyor ve kontrol yazması reddediliyor — paralel koleksiyonlarla iki ayrı koşuda yeşil, B1 kapandı) · 2 ✓ (dağıtıcı `Moment` türü; 6 satırlık teori, değer iletide yok; zorunlu seçenek eksikse 2) · 3 ✓ (`pg_xact_commit_timestamp(xmin) > nokta`; satırın kendi zamanı eski olsa da, nokta öncesi başlayıp sonra kesinleşen işlem de sayılır; modelin her tablosu sayılan ya da sipariş tarafı değil olarak sınıflı) · 4 ✓ (xmin son yazanı gösterir; güncelleme testi; hesap silmesinin siparişe yazımı `orders` sayımına düşer) · 5 ✓ (sayı > 0 ya da ayar kapalı → 3 ve "dönülmez") · 6 ✓ (Türkiye günü dosyaları, dönüş anından itibaren yazılış sırasıyla; satırı üreten çağıran D-700'de, T517/T522) · 7 ✓ (son yönetici kaldırılır; eksik kayıt atlanır; iz, gönderim ve iş satırı yazılmaz; ikinci koşu zararsız) · 8 ✓ (bütün oturumlar silinir; kullanılmamış bağlantı dönüş anına çekilir; geri alma, kullanılmış ve süresi geçmiş bağlantıya dokunulmaz) · 9 ✓ (diff'te göç/imaj yok).
+- **KK1–KK9:** ✓. **`09 §25`:** modül yöntemleri `RequireTransaction`, işlemi komut açar; `AdminSet` ve hesap kilidi mevcut yollarla; zaman `TimeProvider`'dan; şema/göç ve yeni paket yok; tablo adları sabit listeden, an parametreli.
+- **Task satırları:** KP birimi yok, adım 2a grep'i satır getirmez; ilgili VAL-A808, A810–A813 geri yüklenmiş test ortamı ister, `BEKLEMEDE` kaldı (matrise dokunulmadı).
+- **Testler (yerel, `postgres:18 -c track_commit_timestamp=on`):** restore 0, `--locked-mode` 0; build `-warnaserror` 0 uyarı; format üç proje temiz; Unit 5161/5161; betik 4/4; Integration Commands 59/59 ve Commands + Logging + Disposal + Membership* + SessionLinkAttemptLoginTablesTests paralel 347/347. main birleştirmesinden sonra build 0 uyarı, Unit 5193/5193, Integration Commands + Membership* + Ordering 543/543.
+- **Güvenlik:** sır yok; komut satırı yalnız ad ve boş kimlik; okuyucu okunamayan satırın metnini yazmaz; SQL enjeksiyonu yok; yetki etkisi yok (komutlar yalnız sunucudan); yeni bağımlılık yok.
+- **K1 → D-734:** `InstantDeletionLog.TryParse` metin olmayan `time`/`recordId` alanında `InvalidOperationException` fırlatır (okunamayan sayılmaz, komut 1 ile biter); `CommandHost.cs`'te kullanılmayan `using Shopfolio.Infrastructure.SearchEngine;`.
+- **Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu var ve kanıtlı. Küçük not: kriter tablosunun "Test Sonuçları" ilk satırındaki Unit sayısı (5080) düzeltme öncesi; düzeltme 1 satırı (5161) güncel sayıyla uyumlu.
 
 ### Doğrulama Sonucu — tur 1 (validator)
 

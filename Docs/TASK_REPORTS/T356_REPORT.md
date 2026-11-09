@@ -1,6 +1,6 @@
 # T356 — Onay adımı: onay kutuları, Ön Bilgilendirme Formu içeriği, işlem rehberi
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -75,10 +75,24 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1) |
-| Bulgu sayısı | 1 (B1 DÜŞÜK, S1) |
-| Düzeltme gerekli mi | Evet — B1 |
-| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-743; K2 kayıt gerektirmez, D-729/D-730 var) |
+| Doğrulama durumu | ✓ PASS (tur 2) — tur 1 ✗ FAIL |
+| Bulgu sayısı | 0 (tur 1 B1 tur 2'de kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 yeni (tur 1 K1 → D-743 açık; K2 kayıt gerektirmez, D-729/D-730 var) |
+
+### Doğrulama Sonucu — tur 2 (validator)
+
+**Head:** `166e750b` (origin/main `02032971` ile güncel; birleştirme gerekmedi) · **PR:** #486 · **Verdict:** ✓ PASS
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = depo `scripts/git-hooks`; ana dal CI son 3: 42548005029, 42548005043, 42546628955 hepsi `success`.
+- **Dal CI:** 42554853076 (`166e750b`) ✓ — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E (advisory), CI Gate `pass`.
+- **B1 kapandı:** `PlaceholderFiller.Inert` `\{(?=\{)` → `"{ "` ile her ardışık açılış ayracını ayırır; `{{{X}}` → `{ { {X}}`, `{{{{X}}` → `{ { { {X}}`; sonuçta `{{` kalmaz, `TokenNames` boş. Çağıranlar: `LegalTextGenerator` firma değerleri ve iade adresi (sürüm anı), `ConfirmationSummaryText.Render` ürün adı + seçenekler (adım ve donmuş kopya aynı işlev). Şablonlarda yan yana iki belirteç yok (`}}{{` taraması boş), değer sınırından belirteç kurulamaz. Testler: `Inert_LeavesNoDoubleOpeningBrace_ForARunOfThreeOrFourBraces_...` (3 örnek, ikinci doldurma dahil), `Render_MakesAProductNameWithThreeOrFourBracesInert_...`. D-268 (4) ✅ artık doğru.
+- **Kabul kriterleri (bütün task yeniden; kod + test okundu, testler koşuldu):** 1 ✓ · 2 ✓ · 3 ✓ (form = `Render` + doldurulan sürüm metni; dört ek bilgi, meslek odası, sabit iade/taşıyıcı/14 gün, istisna ve koşulu, ifa süresi, uyuşmazlık, "sipariş nasıl kurulur", ayrı cayma özeti) · 4 ✓ · 5 ✓ · 6 ✓ (modül payı; ekran D-729) · 7 ✓ · 8 ✓ · 9 ✓ (modül payı; sayfa ve altbilgi D-730 — Pages'te düzen/altbilgi bileşeni yok). KK1–KK9 ✓.
+- **`09 §25`:** Ordering, Settings'e yalnız `Contracts` üzerinden; arayüz yöntemleri işlem açmaz; şema/göç yok; yeni paket yok; zaman okuması yok; belge klasörü kaçış taramasında (D-167), ihlalli örnek kırmızı; doküman çelişkisi yok.
+- **Task satırları:** `VAL-A020`, `A026`, `A027`, `A047`–`A052`, `A986`, `A129`, `A130` tarayıcı gözlemi / uç yanıtı / verilmiş sipariş ister; T356 ekran, uç ve sipariş doğuşu eklemez (D-729, D-730, D-732). `Durum` hücreleri `BEKLEMEDE` kaldı (tur 1 ve T355, T357 emsali); matrise dokunulmadı.
+- **Testler (yerel, `postgres:18 -c track_commit_timestamp=on`):** restore 0; build `-warnaserror` 0 uyarı; format Web/UnitTests/IntegrationTests temiz; Unit 5306/5306; betik 4/4; Integration `Ordering` 369/369; `Model.LegalTextTests` + `CompanyIdentityTests` + `SalesGateTests` + `SettingsTablesTests` 90/90.
+- **Güvenlik:** sır yok (diff'teki `Html.Raw`/`MarkupString`/`HttpContext` yalnız ihlalli örnekte); yetki etkisi yok (uç yok); girdi: belge metni ham, kaçış gösterim kanalında, değerler etkisiz; yeni bağımlılık yok.
+- **Yapım raporu karşılaştırması:** tam uyumlu (düzeltme 1 bölümü B1'i doğru anlatır; kriter 6 ve 9 "~" yerine validator modül payını ✓ sayar — tur 1 K2 ile aynı). Öz denetim tablosu var ve kanıtlı.
 
 ### Doğrulama Sonucu — tur 1 (validator)
 

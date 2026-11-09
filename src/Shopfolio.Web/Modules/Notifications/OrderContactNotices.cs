@@ -28,7 +28,7 @@ internal sealed class OrderContactNotices : IOrderContactNotices
             .FirstOrDefaultAsync(ct);
     }
 
-    public async Task<int> RedirectUnsentCustomerNoticesAsync(Guid orderId, string newEmail, CancellationToken ct)
+    public async Task<int> ReroutePendingCustomerNoticesAsync(Guid orderId, string newEmail, CancellationToken ct)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(newEmail);
         if (_db.Database.CurrentTransaction is null)

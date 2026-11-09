@@ -17,5 +17,5 @@ public interface IOrderContactNotices
     /// is sent, with the new access key, so nothing of the old link goes to the new address and nothing meant for the owner goes to the old one. B-15 is left out - it is the one notice that
     /// goes to the old address - and a row that was sent or marked undelivered is not touched. Returns the number of rows pointed anew.
     /// </summary>
-    Task<int> RedirectUnsentCustomerNoticesAsync(Guid orderId, string newEmail, CancellationToken ct);
+    Task<int> ReroutePendingCustomerNoticesAsync(Guid orderId, string newEmail, CancellationToken ct);
 }

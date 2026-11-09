@@ -220,7 +220,7 @@ internal sealed class OrderCorrections : IOrderCorrections
         OrderTransitions.RaiseVersionOnce(_db, order);
 
         // The notices that were not sent yet go to the new address (K-1138); then B-1 to the new address - the first e-mail's chain, with the new key's link - and B-15 to the old one.
-        await _contactNotices.RedirectUnsentCustomerNoticesAsync(order.Id, newEmail, ct);
+        await _contactNotices.ReroutePendingCustomerNoticesAsync(order.Id, newEmail, ct);
         Guid? root = await _contactNotices.FindFirstOrderReceivedAsync(order.Id, ct);
         await _notifications.QueueCustomerNoticeAsync(new OrderReceivedNotice(order.Id, root), newEmail, ct);
         await _notifications.QueueCustomerNoticeAsync(new OrderEmailChangedNotice(order.Id, now), oldEmail, ct);

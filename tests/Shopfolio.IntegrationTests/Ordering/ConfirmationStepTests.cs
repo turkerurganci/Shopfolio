@@ -351,10 +351,10 @@ public sealed class ConfirmationStepIntegrationTests : IAsyncLifetime
         await using AppDbContext db = NewContext();
         List<OrderItem> items = await db.OrderItems.AsNoTracking().Where(i => i.OrderId == orderId).ToListAsync(Ct);
 
-        var records = ConfirmationAcceptances.Records(orderId, view.Boxes, items, Now);
+        IReadOnlyList<(CheckboxAcceptance Acceptance, IReadOnlyList<CheckboxAcceptanceOrderItem> Items)> records = ConfirmationAcceptances.Records(orderId, view.Boxes, items, Now);
         await SaveAsync(c =>
         {
-            foreach (var (acceptance, links) in records)
+            foreach ((CheckboxAcceptance? acceptance, IReadOnlyList<CheckboxAcceptanceOrderItem>? links) in records)
             {
                 c.CheckboxAcceptances.Add(acceptance);
                 c.CheckboxAcceptanceOrderItems.AddRange(links);

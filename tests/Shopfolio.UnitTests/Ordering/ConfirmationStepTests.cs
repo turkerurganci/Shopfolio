@@ -445,11 +445,11 @@ public sealed class ConfirmationStepTests
         ];
         IReadOnlyList<ConfirmationBoxOffer> offers = ConfirmationStepRules.Offers([.. items.Select(ConfirmationSummaryText.LineOf)], PaymentMethod.Card);
 
-        var records = ConfirmationAcceptances.Records(orderId, offers, items, Now);
+        IReadOnlyList<(CheckboxAcceptance Acceptance, IReadOnlyList<CheckboxAcceptanceOrderItem> Items)> records = ConfirmationAcceptances.Records(orderId, offers, items, Now);
 
         Assert.Equal(2, records.Count);
-        var digital = records.Single(r => r.Acceptance.CheckboxType == CheckboxType.Digital);
-        var serviceRecord = records.Single(r => r.Acceptance.CheckboxType == CheckboxType.Service);
+        (CheckboxAcceptance Acceptance, IReadOnlyList<CheckboxAcceptanceOrderItem> Items) digital = records.Single(r => r.Acceptance.CheckboxType == CheckboxType.Digital);
+        (CheckboxAcceptance Acceptance, IReadOnlyList<CheckboxAcceptanceOrderItem> Items) serviceRecord = records.Single(r => r.Acceptance.CheckboxType == CheckboxType.Service);
         Assert.Equal(offers.Single(o => o.Box == ConfirmationBox.DigitalWithdrawalWaiver).Text, digital.Acceptance.ShownText);
         Assert.Equal(offers.Single(o => o.Box == ConfirmationBox.ServiceFulfilmentConsent).Text, serviceRecord.Acceptance.ShownText);
         Assert.Equal([items[1].Id, items[2].Id], digital.Items.Select(l => l.OrderItemId).Order());

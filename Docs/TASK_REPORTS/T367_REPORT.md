@@ -94,7 +94,7 @@
 
 - **Branch:** `task/T367-musteri-iptali`
 - **Commit:** son commit — "T367: Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon"
-- **PR:** *(açılınca)*
+- **PR:** #494
 - **CI:** *(validator)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

@@ -4,6 +4,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.AfterSales;
@@ -182,11 +183,16 @@ internal sealed partial class AfterSalesModule
         }
     }
 
-    /// <summary>The item's open quantity (03 1.7.4): its quantity minus the units its records closed, the caller's unsaved ones included.</summary>
+    /// <summary>
+    /// The item's quantity open to an operation (03 1.7.4; 02 7.1.6; 06 2.7.2): its quantity minus the units its records closed, the caller's unsaved ones included, and
+    /// minus the units rescinded on a defect claim - they do not close the item but are no other operation's subject (K-1077).
+    /// </summary>
     private async Task<int> OpenQuantityAsync(ItemRecordSubject subject, CancellationToken ct)
     {
         IReadOnlyDictionary<Guid, int> closed = await ClosedQuantitiesAsync([subject.OrderItemId], ct);
-        return ItemQuantities.Open(subject.ItemQuantity, closed.GetValueOrDefault(subject.OrderItemId));
+        IReadOnlyDictionary<Guid, RescindedShares> rescinded = await _payment.RescindedSharesAsync([subject.OrderItemId], ct);
+        int rescindedUnits = rescinded.TryGetValue(subject.OrderItemId, out RescindedShares? shares) ? shares.Quantity : 0;
+        return ItemQuantities.Open(subject.ItemQuantity, closed.GetValueOrDefault(subject.OrderItemId) + rescindedUnits);
     }
 
     /// <summary>

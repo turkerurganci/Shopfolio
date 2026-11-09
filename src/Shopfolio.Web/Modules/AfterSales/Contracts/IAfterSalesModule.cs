@@ -33,6 +33,21 @@ public interface IAfterSalesModule
     /// </summary>
     Task<IReadOnlyDictionary<Guid, ItemUnitFacts>> UnitFactsAsync(IReadOnlyCollection<Guid> orderItemIds, bool includeUnsaved, CancellationToken ct);
 
+    /// <summary>
+    /// What the refund of an item record pays back (02 7.1.7; 06 4.33; T369): a cancellation's, removal's, termination's or withdrawal declaration's own set-aside amounts;
+    /// a receipt of a withdrawal's goods (<see cref="RefundSubject.ReturnId"/>) - the refund of the withdrawal after the delivery, one per receipt (K-1057) - takes its part of the declaration's amounts, split by
+    /// <c>ItemShares.SetAsideParts</c> over the declaration's receipts in their order (02 7.1.7 (5)). Null when the record is not there or the receipt is not a withdrawal's.
+    /// The caller's unsaved records count. A plain read; the caller holds the order's lock.
+    /// </summary>
+    Task<RefundAmount?> RefundAmountAsync(RefundSubject subject, CancellationToken ct);
+
+    /// <summary>
+    /// Whether the record's refund carries the order's frozen shipping fee (02 7.2.9, 7.4.6; 06 4.33 <c>IsShippingFeeIncluded</c>): the rule of <c>ShippingFeeRefunds</c> over the
+    /// records of the order's physical items, the caller's unsaved ones included. The fee is paid back once; the refunds' own unique rule keeps that (06 4.33). A plain
+    /// read; the caller holds the order's lock.
+    /// </summary>
+    Task<bool> IsShippingFeeIncludedAsync(ShippingFeeQuery query, CancellationToken ct);
+
     /// <summary>The item's defect claim as it stands (06 4.30), or null when the item has none. A plain read.</summary>
     Task<DefectClaimInfo?> FindDefectClaimAsync(Guid orderItemId, CancellationToken ct);
 

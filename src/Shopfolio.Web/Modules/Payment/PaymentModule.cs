@@ -244,6 +244,25 @@ internal sealed class PaymentModule : IPaymentModule
         return [.. voided.Select(r => r.Id)];
     }
 
+    public async Task<IReadOnlyDictionary<Guid, RescindedShares>> RescindedSharesAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orderItemIds);
+        Guid[] ids = [.. orderItemIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return new Dictionary<Guid, RescindedShares>();
+        }
+
+        // The saved rows are loaded into the context, so the rows the caller added a moment ago and the ones it voided are read the same way (HasRefundAsync's way).
+        await _db.Refunds.Where(r => r.RefundType == RefundType.DefectClaimRescission && r.OrderItemId != null && ids.Contains(r.OrderItemId.Value)).LoadAsync(ct);
+        return _db.Refunds.Local
+            .Where(r => r.RefundType == RefundType.DefectClaimRescission && r.VoidedAt is null && r.OrderItemId is { } item && ids.Contains(item))
+            .GroupBy(r => r.OrderItemId!.Value)
+            .ToDictionary(
+                g => g.Key,
+                g => new RescindedShares(g.Sum(r => r.Quantity ?? 0), g.Sum(r => r.CouponShare ?? 0m), g.Sum(r => r.VatAmount ?? 0m)));
+    }
+
     public async Task<IReadOnlyList<Guid>> ErasePersonalDataAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(orderIds);

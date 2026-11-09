@@ -112,6 +112,36 @@ public sealed class PaymentWindowTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task TheExpiryCancellation_IsNotCorrectedByTheAdministrator_SoTheMarkStaysClosed_T353_KK7()
+    {
+        Order order = await SeedOrderAsync(PaymentMethod.BankTransfer, Start.AddMinutes(-1));
+        await ProcessAsync<TransferPaymentExpiry>(order.Id);
+        Guid cancellation;
+        await using (AppDbContext records = NewContext())
+        {
+            cancellation = await records.TransitionRecords.Where(r => r.OrderId == order.Id && r.TransitionCode == TransitionCode.S3).Select(r => r.Id).SingleAsync(Ct);
+        }
+
+        // 02 3.21.8 (K-183, K-372): the limit is outside the administrator's correction too - the system's cancellation of the expired order is not taken back.
+        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        IOrderTransitions transitions = scope.ServiceProvider.GetRequiredService<IOrderTransitions>();
+        OrderTransitionResult correction = await scope.ServiceProvider.GetRequiredService<ITransactionRunner>().RunAsync(
+            cancel => transitions.CorrectTransitionAsync(
+                new CorrectTransitionRequest(order.Id, cancellation, new TransitionAdmin(Guid.NewGuid(), "Yönetici"), 2, CorrectionReason.Other, "Para geldi"), cancel),
+            Ct);
+        PaymentTransitionResult mark = await scope.ServiceProvider.GetRequiredService<ITransactionRunner>().RunAsync(
+            cancel => transitions.MarkTransferPaidAsync(new TransferPaidMark(order.Id, Guid.NewGuid(), "Yönetici", 2, true), cancel),
+            Ct);
+
+        Assert.True(correction.IsRejected);
+        Assert.True(mark.IsRejected);
+        await using AppDbContext reader = NewContext();
+        Order after = await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct);
+        Assert.Equal((OrderStatus.Cancelled, PaymentStatus.Failed), (after.OrderStatus, after.PaymentStatus));
+        Assert.False(await reader.PaymentRecords.AnyAsync(p => p.OrderId == order.Id, Ct));
+    }
+
+    [Fact]
     public async Task TransferWindow_ThatStillRuns_OrAPaidOrder_IsNotCancelled()
     {
         Order running = await SeedOrderAsync(PaymentMethod.BankTransfer, Start.AddMinutes(1));

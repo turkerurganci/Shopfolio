@@ -134,7 +134,9 @@ public sealed class SalesGateTests : IAsyncLifetime
     [Fact]
     public async Task UnboundConditions_KeepTheGateClosed_UntilTheirTasksBindThem()
     {
+        // The transfer line is the module's own binding (T353): switched off, only the unbound card line is left for the payment condition.
         await ArrangeAsync(broken: null);
+        await ExecuteAsync("UPDATE company_settings SET is_bank_transfer_enabled = false");
 
         SalesGate gate = await ReadGateAsync(Bindings.None);
 
@@ -535,7 +537,6 @@ public sealed class SalesGateTests : IAsyncLifetime
         if (bindings is { Bound: true } bound)
         {
             services.AddScoped<ICardPaymentCondition>(_ => new FixedCardCondition(bound.Card));
-            services.AddScoped<IBankTransferCondition, SettingsRowBankTransferCondition>();
             services.AddScoped<IPrivacyNoticeCondition>(_ => new FixedPrivacyNoticeCondition(bound.PrivacyNotice));
         }
 
@@ -595,7 +596,7 @@ public sealed class SalesGateTests : IAsyncLifetime
         return (T)(await command.ExecuteScalarAsync(Ct))!;
     }
 
-    /// <summary>Which outside conditions the test binds (the module's defaults are the unbound ones): the card line, the bank transfer line read from the row, the privacy notice.</summary>
+    /// <summary>Which outside conditions the test binds (the module's defaults are the unbound ones): the card line and the privacy notice; the transfer line is the module's own (T353).</summary>
     private sealed record Bindings(bool Bound, bool Card, bool PrivacyNotice)
     {
         public static Bindings AllOpen { get; } = new(true, true, true);
@@ -615,13 +616,6 @@ public sealed class SalesGateTests : IAsyncLifetime
     private sealed class FixedPrivacyNoticeCondition(bool published) : IPrivacyNoticeCondition
     {
         public Task<bool> IsPublishedWithHostingLocationAsync(CancellationToken ct) => Task.FromResult(published);
-    }
-
-    /// <summary>What the transfer task will answer: the transfer is open when it is switched on and its IBAN is filled.</summary>
-    private sealed class SettingsRowBankTransferCondition(AppDbContext db) : IBankTransferCondition
-    {
-        public Task<bool> IsOpenAsync(CancellationToken ct) =>
-            db.CompanySettings.AsNoTracking().AnyAsync(s => s.IsBankTransferEnabled && s.BankTransferIban != null, ct);
     }
 
     private sealed class FixedTime(DateTimeOffset now) : TimeProvider

@@ -17,3 +17,9 @@ public sealed record ProductDefaultsInput(int? DownloadAllowance, decimal? Defau
 
 /// <summary>The product defaults section as stored (06 4.2): the download allowance per order line (P-8), the VAT rate default (P-10) and the section's version.</summary>
 public sealed record ProductDefaultsSection(int DownloadAllowance, decimal DefaultVatRate, int Version);
+
+/// <summary>The values the payment methods form sends (02 3.21.5; 04 E-45): the bank transfer switch and the IBAN as written, without the section version.</summary>
+public sealed record PaymentMethodsInput(bool IsBankTransferEnabled, string? BankTransferIban);
+
+/// <summary>The payment methods section as stored (06 4.2): the bank transfer switch, the IBAN in its stored form (or nothing) and the section's version.</summary>
+public sealed record PaymentMethodsSection(bool IsBankTransferEnabled, string? BankTransferIban, int Version);

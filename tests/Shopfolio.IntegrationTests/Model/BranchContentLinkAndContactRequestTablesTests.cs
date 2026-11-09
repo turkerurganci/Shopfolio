@@ -152,6 +152,7 @@ public sealed class BranchContentLinkAndContactRequestTablesTests : IAsyncLifeti
             "branches.ix_branches_publish_status_sort_order | CREATE INDEX ix_branches_publish_status_sort_order ON public.branches USING btree (publish_status, sort_order)",
             "branches.pk_branches | CREATE UNIQUE INDEX pk_branches ON public.branches USING btree (id)",
             "contact_requests.ix_contact_requests_contact_request_status_created_at | CREATE INDEX ix_contact_requests_contact_request_status_created_at ON public.contact_requests USING btree (contact_request_status, created_at)",
+            "contact_requests.ix_contact_requests_created_at | CREATE INDEX ix_contact_requests_created_at ON public.contact_requests USING btree (created_at)",
             "contact_requests.ix_contact_requests_contact_topic_retention_start | CREATE INDEX ix_contact_requests_contact_topic_retention_start ON public.contact_requests USING btree (contact_topic, COALESCE(last_closed_at, created_at))",
             "contact_requests.pk_contact_requests | CREATE UNIQUE INDEX pk_contact_requests ON public.contact_requests USING btree (id)",
             "offering_products.ix_offering_products_offering_id_product_id | CREATE UNIQUE INDEX ix_offering_products_offering_id_product_id ON public.offering_products USING btree (offering_id, product_id)",

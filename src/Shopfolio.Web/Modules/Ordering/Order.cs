@@ -437,6 +437,9 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasIndex(o => new { o.IpAddress, o.CreatedAt });
         builder.HasIndex(o => new { o.OrderStatus, o.PaymentStatus, o.CreatedAt });
 
+        // The sales summary's period is the orders born in it, whatever their status (02 10.6.2; 4.1.4).
+        builder.HasIndex(o => o.CreatedAt);
+
         // The forbidden pairs of the two axes: every crossed cell of the combination table (03 1.4.1; 02 5.6.1; K-1046).
         builder.HasRule(
             "status_pair_allowed",

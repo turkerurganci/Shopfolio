@@ -278,21 +278,32 @@ internal sealed partial class AfterSalesModule : IAfterSalesModule
     /// </summary>
     private async Task AddSavedClosedAsync(Dictionary<Guid, int> closed, Guid[] ids, CancellationToken ct)
     {
+        Add(closed, (await SavedClosingUnitsAsync(ids, ct))
+            .GroupBy(u => u.OrderItemId)
+            .Select(g => new KeyValuePair<Guid, int>(g.Key, g.Sum(u => u.Quantity))));
+    }
+
+    /// <summary>
+    /// The saved closing records of the items one by one, with their units and the moment they were written: the one list <see cref="AddSavedClosedAsync"/> sums and the
+    /// sales summary cuts at the shipping promise's end (<see cref="OpenQuantitiesAtAsync"/>).
+    /// </summary>
+    private async Task<List<ClosedUnits>> SavedClosingUnitsAsync(Guid[] ids, CancellationToken ct)
+    {
         List<CancelledQuantity> cancellations = await _db.Cancellations.Where(c => ids.Contains(c.OrderItemId))
-            .Select(c => new CancelledQuantity(c.OrderItemId, c.Quantity, c.TransitionRecordId))
+            .Select(c => new CancelledQuantity(c.OrderItemId, c.Quantity, c.TransitionRecordId, c.CreatedAt))
             .ToListAsync(ct);
         Guid[] closing = [.. cancellations.Select(c => c.TransitionRecordId).OfType<Guid>().Distinct()];
         IReadOnlySet<Guid> corrected = closing.Length == 0 ? new HashSet<Guid>() : await _ordering.FindCorrectedTransitionRecordsAsync(closing, ct);
-        Add(closed, cancellations
-            .Where(c => c.TransitionRecordId is not { } closedBy || !corrected.Contains(closedBy))
-            .GroupBy(c => c.OrderItemId)
-            .Select(g => new KeyValuePair<Guid, int>(g.Key, g.Sum(c => c.Quantity))));
-        Add(closed, await _db.ItemRemovals.Where(r => ids.Contains(r.OrderItemId)).GroupBy(r => r.OrderItemId)
-            .Select(g => new KeyValuePair<Guid, int>(g.Key, g.Sum(r => r.Quantity))).ToListAsync(ct));
-        Add(closed, await _db.LateDeliveryTerminations.Where(t => ids.Contains(t.OrderItemId)).GroupBy(t => t.OrderItemId)
-            .Select(g => new KeyValuePair<Guid, int>(g.Key, g.Sum(t => t.Quantity))).ToListAsync(ct));
-        Add(closed, await _db.Withdrawals.Where(w => ids.Contains(w.OrderItemId)).GroupBy(w => w.OrderItemId)
-            .Select(g => new KeyValuePair<Guid, int>(g.Key, g.Sum(w => w.Quantity))).ToListAsync(ct));
+        List<ClosedUnits> units =
+        [
+            .. cancellations
+                .Where(c => c.TransitionRecordId is not { } closedBy || !corrected.Contains(closedBy))
+                .Select(c => new ClosedUnits(c.OrderItemId, c.Quantity, c.CreatedAt)),
+        ];
+        units.AddRange(await _db.ItemRemovals.Where(r => ids.Contains(r.OrderItemId)).Select(r => new ClosedUnits(r.OrderItemId, r.Quantity, r.CreatedAt)).ToListAsync(ct));
+        units.AddRange(await _db.LateDeliveryTerminations.Where(t => ids.Contains(t.OrderItemId)).Select(t => new ClosedUnits(t.OrderItemId, t.Quantity, t.CreatedAt)).ToListAsync(ct));
+        units.AddRange(await _db.Withdrawals.Where(w => ids.Contains(w.OrderItemId)).Select(w => new ClosedUnits(w.OrderItemId, w.Quantity, w.CreatedAt)).ToListAsync(ct));
+        return units;
     }
 
     private List<KeyValuePair<Guid, int>> AddedWhere<TRecord>(Guid[] ids, Func<TRecord, bool> filter, Func<TRecord, Guid> itemOf, Func<TRecord, int> quantityOf)
@@ -321,7 +332,9 @@ internal sealed partial class AfterSalesModule : IAfterSalesModule
         }
     }
 
-    private sealed record CancelledQuantity(Guid OrderItemId, int Quantity, Guid? TransitionRecordId);
+    private sealed record CancelledQuantity(Guid OrderItemId, int Quantity, Guid? TransitionRecordId, DateTimeOffset CreatedAt);
+
+    private sealed record ClosedUnits(Guid OrderItemId, int Quantity, DateTimeOffset At);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddAfterSalesModule</c> once.</summary>

@@ -33,6 +33,9 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.Ordering.Contracts.DeliveryDateObstacle",
         // T347: the verdict on a cart line's quantity - computed per read from the stock and the per-order limit, never a column.
         "Shopfolio.Modules.Catalog.Contracts.CartQuantityProblem",
+        // T383: the sales summary's ready periods and why a custom range is refused - the request names them, nothing is stored (02 10.6.2; KP-53).
+        "Shopfolio.Modules.Administration.Contracts.SalesSummaryPreset",
+        "Shopfolio.Modules.Administration.Contracts.SalesSummaryPeriodRefusal",
         // T375: how the firm knows an address correction was asked by the order's owner - the request carries it, the trail's confirmation is not a column.
         "Shopfolio.Modules.Ordering.Contracts.AddressRequestConfirmation",
         // T384: how an export request ended and what is wrong with the order export's range - result codes of the data export, never a column.

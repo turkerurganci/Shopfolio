@@ -452,7 +452,7 @@ public sealed class ConfirmationStepTests
         (CheckboxAcceptance Acceptance, IReadOnlyList<CheckboxAcceptanceOrderItem> Items) serviceRecord = records.Single(r => r.Acceptance.CheckboxType == CheckboxType.Service);
         Assert.Equal(offers.Single(o => o.Box == ConfirmationBox.DigitalWithdrawalWaiver).Text, digital.Acceptance.ShownText);
         Assert.Equal(offers.Single(o => o.Box == ConfirmationBox.ServiceFulfilmentConsent).Text, serviceRecord.Acceptance.ShownText);
-        Assert.Equal([items[1].Id, items[2].Id], digital.Items.Select(l => l.OrderItemId).Order());
+        Assert.Equal(new[] { items[1].Id, items[2].Id }.Order(), digital.Items.Select(l => l.OrderItemId).Order());
         Assert.Equal([items[3].Id], serviceRecord.Items.Select(l => l.OrderItemId));
         Assert.All(records, r => Assert.Equal(orderId, r.Acceptance.OrderId));
         Assert.All(digital.Items, l => Assert.Equal(digital.Acceptance.Id, l.CheckboxAcceptanceId));

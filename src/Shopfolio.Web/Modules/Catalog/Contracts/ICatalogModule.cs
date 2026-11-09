@@ -119,6 +119,15 @@ public interface ICatalogModule
     Task<ShowcasePage> ListShowcaseAsync(string? search, int page, CancellationToken ct);
 
     /// <summary>
+    /// The cards of the Published products among <paramref name="productIds"/> (T359; 02 3.27.10): what a service introduction's or a reference work's "İlgili ürünler" shows. A Draft and an
+    /// Archived product are left out - and come back when published again; an id that is no product is left out. The cards come in the showcase's order; the caller orders them. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<ShowcaseProduct>> ListPublishedProductsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct);
+
+    /// <summary>The ids among <paramref name="productIds"/> that are products, whatever their status (T359; 02 3.27.10): a content record links a draft product too. A plain read.</summary>
+    Task<IReadOnlyList<Guid>> FindProductIdsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct);
+
+    /// <summary>
     /// The option list of a product page (02 5.1; 03 1.8.1): the product's Published variants when the product is Published, otherwise none. A Draft and an Archived variant
     /// are not listed; a sold-out one is, marked (02 3.6.3). A plain read; it writes nothing.
     /// </summary>

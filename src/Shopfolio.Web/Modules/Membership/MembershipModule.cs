@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Infrastructure.Values;
@@ -397,6 +398,8 @@ internal sealed class MembershipModule : IMembershipModule
     public Task<AccountDeletionResult> DeleteAccountAsync(Guid customerId, Guid sessionId, string? reauthenticationValue, CancellationToken ct) => _deletions.DeleteOwnAsync(customerId, sessionId, reauthenticationValue, ct);
 
     public Task<AccountDeletionResult> DeleteAccountOnRequestAsync(Guid customerId, CancellationToken ct) => _deletions.DeleteByAdministratorAsync(customerId, ct);
+
+    public Task<DeletionReapplyResult> ReapplyAccountDeletionAsync(Guid customerId, CancellationToken ct) => _deletions.ReapplyAsync(customerId, ct);
 
     public Task<MemberRecord> FindMemberRecordAsync(string email, CancellationToken ct) => _memberRecords.FindAsync(email, ct);
 

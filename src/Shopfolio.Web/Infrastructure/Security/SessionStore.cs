@@ -74,6 +74,15 @@ internal sealed class SessionStore
             : await _db.Sessions.Where(s => s.CustomerId == accountId && s.Id != keep).ExecuteDeleteAsync(ct);
     }
 
+    /// <summary>
+    /// Ends every session of every account (05 8.5.10): the command that follows a database restore runs with the application stopped, so no sign-in is in flight and no account row lock
+    /// is needed; a session that came back with the restore must not stay. Returns the number deleted.
+    /// </summary>
+    public async Task<int> EndEverySessionAsync(CancellationToken ct)
+    {
+        return await _db.Sessions.ExecuteDeleteAsync(ct);
+    }
+
     /// <summary>True when the session exists and belongs to the account of the type.</summary>
     public async Task<bool> OwnsAsync(AccountType type, Guid accountId, Guid sessionId, CancellationToken ct)
     {

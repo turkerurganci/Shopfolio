@@ -117,6 +117,16 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
+      # Donus denetimi komutu islemlerin kesinlesme anini okur (05 8.5.11); hizmet konteynerine komut argumani verilemedigi icin ayar acilip konteyner yeniden baslatilir.
+      - name: PostgreSQL kesinlesme anini tutsun (track_commit_timestamp)
+        run: |
+          docker exec ${{ job.services.postgres.id }} psql -U postgres -c "ALTER SYSTEM SET track_commit_timestamp = on"
+          docker restart ${{ job.services.postgres.id }}
+          for i in $(seq 1 30); do
+            docker exec ${{ job.services.postgres.id }} pg_isready -U postgres && break
+            sleep 2
+          done
+          test "$(docker exec ${{ job.services.postgres.id }} psql -U postgres -tA -c 'SHOW track_commit_timestamp')" = "on"
       - run: bash .github/ci-run.sh INTEGRATION_TEST_CMD "4. Integration test"
 
   contract-test:

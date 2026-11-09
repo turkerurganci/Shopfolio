@@ -87,6 +87,21 @@ internal sealed class Product : IVersionedRecord
     public void BumpVersion() => Version++;
 
     /// <summary>
+    /// Writes the address <see cref="ProductAddresses.ForSaveAsync"/> made (02 3.30.2; 06 4.72.3). An address that the first publication fixed is not written again - the same value
+    /// is accepted, any other is a programming error: the one place that changes <see cref="Slug"/> after the creation is this method.
+    /// </summary>
+    internal void SetAddress(string slug)
+    {
+        ArgumentNullException.ThrowIfNull(slug);
+        if (SlugFixedAt is not null && !string.Equals(slug, Slug, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("The address of a product that was published once is fixed (02 3.30.2).");
+        }
+
+        Slug = slug;
+    }
+
+    /// <summary>
     /// The publish status move (03 1.8.1): written by <see cref="ProductTransitions"/>. The first publication fixes the address (06 4.5); it does not change
     /// again, in the archive too.
     /// </summary>

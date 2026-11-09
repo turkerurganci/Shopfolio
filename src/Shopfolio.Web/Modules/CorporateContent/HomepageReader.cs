@@ -130,10 +130,10 @@ internal sealed class HomepageReader
             .Select(o => new { o.Id, o.Name, o.ShortDescription, o.Slug })
             .ToListAsync(ct);
         Guid[] offeringIds = [.. offeringRows.Select(o => o.Id)];
-        Dictionary<Guid, ContentImage> offeringImages = MainImages(
+        Dictionary<Guid, ContentImage> offeringImages = ContentMainImages.Of(
             await _db.OfferingImages.AsNoTracking()
                 .Where(i => offeringIds.Contains(i.OfferingId))
-                .Select(i => new GalleryRow(i.OfferingId, i.ImageId, i.IsMain, i.SortOrder, i.CreatedAt, i.AltText))
+                .Select(i => new ContentGalleryRow(i.OfferingId, i.ImageId, i.IsMain, i.SortOrder, i.CreatedAt, i.AltText))
                 .ToListAsync(ct));
 
         var portfolioRows = await _db.PortfolioItems.AsNoTracking()
@@ -143,10 +143,10 @@ internal sealed class HomepageReader
             .Select(p => new { p.Id, p.Title, p.ShortDescription, p.Slug })
             .ToListAsync(ct);
         Guid[] portfolioIds = [.. portfolioRows.Select(p => p.Id)];
-        Dictionary<Guid, ContentImage> portfolioImages = MainImages(
+        Dictionary<Guid, ContentImage> portfolioImages = ContentMainImages.Of(
             await _db.PortfolioItemImages.AsNoTracking()
                 .Where(i => portfolioIds.Contains(i.PortfolioItemId))
-                .Select(i => new GalleryRow(i.PortfolioItemId, i.ImageId, i.IsMain, i.SortOrder, i.CreatedAt, i.AltText))
+                .Select(i => new ContentGalleryRow(i.PortfolioItemId, i.ImageId, i.IsMain, i.SortOrder, i.CreatedAt, i.AltText))
                 .ToListAsync(ct));
 
         return new HomepageContent(
@@ -171,27 +171,11 @@ internal sealed class HomepageReader
             return null;
         }
 
-        Dictionary<Guid, ContentImage> images = MainImages(
+        Dictionary<Guid, ContentImage> images = ContentMainImages.Of(
             await _db.AboutPageImages.AsNoTracking()
                 .Where(i => i.AboutPageId == about.Id)
-                .Select(i => new GalleryRow(i.AboutPageId, i.ImageId, i.IsMain, i.SortOrder, i.CreatedAt, i.AltText))
+                .Select(i => new ContentGalleryRow(i.AboutPageId, i.ImageId, i.IsMain, i.SortOrder, i.CreatedAt, i.AltText))
                 .ToListAsync(ct));
         return new HomepageIntro(about.ShortIntroduction, "/" + AddressRules.AboutPage, images.GetValueOrDefault(about.Id));
     }
-
-    /// <summary>The image each record shows: the one marked main, or - a gallery always has one, so only when the mark is missing - the first of its order (02 3.11.2).</summary>
-    private static Dictionary<Guid, ContentImage> MainImages(IEnumerable<GalleryRow> rows)
-    {
-        return rows
-            .GroupBy(r => r.OwnerId)
-            .ToDictionary(
-                g => g.Key,
-                g =>
-                {
-                    GalleryRow main = g.OrderByDescending(r => r.IsMain).ThenBy(r => r.SortOrder).ThenBy(r => r.CreatedAt).ThenBy(r => r.ImageId).First();
-                    return new ContentImage(main.ImageId, main.AltText);
-                });
-    }
-
-    private sealed record GalleryRow(Guid OwnerId, Guid ImageId, bool IsMain, int SortOrder, DateTimeOffset CreatedAt, string? AltText);
 }

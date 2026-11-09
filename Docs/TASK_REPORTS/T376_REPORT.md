@@ -1,6 +1,6 @@
 # T376 — Deneme limitleri: dokuz limit, kayan pencere, hesap kilitlenmez, nötr mesaj
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama bekliyor) | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 ✓ PASS) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -68,10 +68,38 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-09, head `81bdbd1e` + `origin/main` birleştirmesi) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-801) |
+
+### Doğrulama tur 1 (bağımsız doğrulayıcı, 2026-11-09)
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = ana depo `scripts/git-hooks`; ana dal son 3 run `42586725445`, `42586725547`, `42578567856` hepsi `success`.
+
+**Kabul kriterleri (validator kanıtı):**
+
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `AttemptLimitInventory` dokuz satır; `AttemptLimitInventoryTests` tabloyu `02 §8.2`'den okur (L-1…L-9, eksen, sayım türü). L-1…L-6, L-9 `AttemptLimits` tablosunda (`AttemptCounter` ile sayılabilir), L-8 `OpenUnpaidOrderLimit`, L-7 kuralı `OrderCountedOf` (sayım T377 — kriter metni). L-4/L-5 çağıranları sayfa task'larında (D-780) |
+| 2 | ✓ | `ProductConstants` değerleri P-31…P-37, P-46, P-49 ile birebir (elle karşılaştırıldı; `AttemptLimitsConsistencyTests`); `AttemptNumberScanTests` sayaç dosyalarında sayı yok |
+| 3 | ✓ | `AttemptCounter.IsExceededAsync` pencereyi `now - Window`'dan sayar; `AttemptCounterTests.The_window_slides_..._T326_KK8`, `A_row_exactly_one_window_old_...` (sahte saat) |
+| 4 | ✓ | `MembershipSessionTests.SignIn_IsBlockedAfterFiveFailures_..._AccountNotLocked_KK9` (pencere sonra giriş başarılı); `TheResetRequest_OverL2_IsRefusedWithoutLockingTheAccount_...` |
+| 5 | ✓ | `NeutralMessages.LimitExceeded` = `02 §6.1.5` metni; `FormResults.AttemptLimitExceeded` 429, nötr mesaj, `Retry-After` yok, red satırı limit koduyla; `NeutralMessageTests`, `AttemptLimitResultTests`, `AttemptLimitPatternTests` |
+| 6 | ✓ | `PasswordRegime` L-1 yeniden doğrulamada sayar; `MembershipSessionTests.AWrongPasswordAtTheReauthentication_CountsToL1_..._KK6` |
+| 7 | ✓ | `Carts.MergeAsync` → `AttemptCounter.MergeCartAsync` aynı bağlam ve işlemde; `CartTests...T376_KK7` (3/2→3, 1/2→2, 2/2→2), `AttemptCounterTests.Merging_carts_*` |
+| 8 | ✓ | `OpenUnpaidOrderLimit` yalnız `PaymentStatus.Pending` sayar, pencere yok, tavanda dolu; `OpenUnpaidOrderLimitTests` 7 test |
+| 9 | ✓ | `AttemptLimitInventoryTests` (dokuz satır, eksen, sayım türü, P satırları) |
+
+**Task satırları (`12`):** KP-72'den T376'ya bağlı `VAL-A351` (KRİTİK), `A352`, `A353` (KRİTİK), `C075` (KRİTİK), `A357`, `A362` (KRİTİK) `BEKLEMEDE` kaldı — kanıt türü uç yanıtı, sayfalar sonraki task'larda (D-801). `A354`–`A356`, `A358`–`A361` T377'nin; `D044`/`D045` giriş kaydının (T341/T342). `12_matris_denetle.py --kapsam 1-77` → Hata: 0.
+
+**Testler:** dal CI `42586923780` bütün işler yeşil (head `81bdbd1e`). Yerelde (main birleştirmesi sonrası) build `-warnaserror` 0 uyarı, `dotnet format --verify-no-changes` üç proje temiz, Unit 5472/5472, betik testleri 4/4, Integration ilgili sınıflar (OpenUnpaidOrderLimit, Cart, AttemptCounter, AttemptLimitPattern, Coupon, MembershipSession, RequestLimits) 105/105.
+
+**Güvenlik:** secret yok; auth etkisi yok (limit sayımı ve red yolu); `OpenUnpaidOrderLimit` sorguları EF parametreli (`inet` eşitliği ve `<<=`); yeni bağımlılık yok.
+
+**Bulgu:** yok. **K1:** T376'nın `12` satırları uç yanıtı kanıtı bekliyor → D-801.
+
+**Yapım raporu karşılaştırması:** kriter ve KK sonuçları uyumlu. Uyuşmazlık: rapor `12` satırlarını anmıyor (bu bölümde yazıldı); Unit sayısı 5446 ↔ doğrulamada 5450 (dal) / 5472 (birleşik ağaç) — sonradan eklenen tarama örnekleri ve main'den gelen testler.
 
 ## Altyapı Değişiklikleri
 
@@ -84,7 +112,7 @@
 
 - **Branch:** `task/T376-deneme-limitleri`
 - **PR:** #493
-- **CI:** doğrulayıcı izler
+- **CI:** ✓ run `42586923780` (head `81bdbd1e`) bütün işler yeşil
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

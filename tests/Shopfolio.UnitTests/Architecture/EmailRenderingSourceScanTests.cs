@@ -9,6 +9,7 @@ namespace Shopfolio.UnitTests.Architecture;
 public sealed class EmailRenderingSourceScanTests
 {
     private const string Sample = "Architecture/ViolationSamples/EmailRendering/Misuse.cs";
+    private const string DocumentsSample = "Architecture/ViolationSamples/EmailRendering/DocumentsMisuse.cs";
     private const string InFolder = EmailRenderingSourceScan.Folder + "Misuse.cs";
 
     private static string SampleText() => File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "tests", "Shopfolio.UnitTests", Sample));
@@ -45,6 +46,8 @@ public sealed class EmailRenderingSourceScanTests
         Assert.Contains(EmailRenderingSourceScan.Folder + "EmailFrame.razor", scanned);
         Assert.Contains(EmailRenderingSourceScan.Folder + "EmailComposer.cs", scanned);
         Assert.Contains(EmailRenderingSourceScan.Folder + "EmailTextWriter.cs", scanned);
+        Assert.Contains(EmailRenderingSourceScan.DocumentsFolder + "OrderDocuments.cs", scanned);
+        Assert.Contains(EmailRenderingSourceScan.DocumentsFolder + "ConfirmationSummaryText.cs", scanned);
         Assert.Empty(findings);
     }
 
@@ -71,6 +74,25 @@ public sealed class EmailRenderingSourceScanTests
                 (EmailRenderingSourceScan.RequestHeaderOrObject, 21),
             ],
             findings);
+    }
+
+    [Fact]
+    public void Scan_TheOrderDocumentsFolderAndNamespace_AreReadWithTheSameRules()
+    {
+        string sample = File.ReadAllText(Path.Combine(RepositoryRoot.Find(), "tests", "Shopfolio.UnitTests", DocumentsSample));
+        (string Rule, int Line)[] expected =
+        [
+            (EmailRenderingSourceScan.RawMarkup, 7),
+            (EmailRenderingSourceScan.RawMarkup, 8),
+            (EmailRenderingSourceScan.RawMarkup, 9),
+            (EmailRenderingSourceScan.RequestHeaderOrObject, 10),
+            (EmailRenderingSourceScan.RequestHeaderOrObject, 11),
+        ];
+
+        // By its folder, and - anywhere else in the source - by the namespace it declares.
+        Assert.Equal(expected, EmailRenderingSourceScan.Scan(EmailRenderingSourceScan.DocumentsFolder + "DocumentsMisuse.cs", sample.Replace("Shopfolio.Modules.Ordering.Documents", "Other", StringComparison.Ordinal)));
+        Assert.Equal(expected, EmailRenderingSourceScan.Scan("src/Shopfolio.Web/Modules/Ordering/Misuse.cs", sample));
+        Assert.Empty(EmailRenderingSourceScan.Scan("src/Shopfolio.Web/Modules/Ordering/Misuse.cs", sample.Replace("Documents", "Other", StringComparison.Ordinal)));
     }
 
     [Fact]

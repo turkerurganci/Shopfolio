@@ -364,6 +364,10 @@ internal static class OrderingModuleRegistration
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
 
+        // The confirmation step and the order's documents (T356; 02 3.24; 09 9.3): the step reads the Settings module only; the documents are written by T348's confirmation and read by four callers.
+        services.AddScoped<IConfirmationStep, ConfirmationStep>();
+        services.AddScoped<IOrderDocuments, Documents.OrderDocuments>();
+
         // The transition unit (09 9.1 item 1): the class is what the module's own operations take; the open face is the same instance.
         services.AddScoped<OrderCounters>();
         services.AddScoped<OrderTransitions>();

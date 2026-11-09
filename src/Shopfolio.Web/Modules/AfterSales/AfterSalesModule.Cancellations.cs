@@ -104,11 +104,11 @@ internal sealed partial class AfterSalesModule
         [
             .. cancellations
                 .Where(c => c.TransitionRecordId is not { } closedBy || !corrected.Contains(closedBy))
-                .Select(c => new ClosingRecordMoment(c.Id, c.OrderItemId, false, c.CreatedAt)),
+                .Select(c => new ClosingRecordMoment(c.Id, c.OrderItemId, false, c.CreatedAt, c.Quantity)),
         ];
         moments.AddRange(await _db.LateDeliveryTerminations.AsNoTracking()
             .Where(t => ids.Contains(t.OrderItemId))
-            .Select(t => new ClosingRecordMoment(t.Id, t.OrderItemId, true, t.CreatedAt))
+            .Select(t => new ClosingRecordMoment(t.Id, t.OrderItemId, true, t.CreatedAt, t.Quantity))
             .ToListAsync(ct));
         return [.. moments.OrderBy(m => m.At).ThenBy(m => m.RecordId)];
     }

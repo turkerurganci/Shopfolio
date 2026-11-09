@@ -198,6 +198,8 @@ public sealed class SitemapSourceTests
 
         public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<IReadOnlyList<OrderItemSource>> ListOrderItemSourcesAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<CartQuantityVerdict> JudgeCartAddAsync(CartQuantityLine candidate, IReadOnlyList<CartQuantityLine> others, CancellationToken ct) => throw new NotSupportedException();

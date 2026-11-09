@@ -29,27 +29,7 @@ internal sealed class DigitalFileReader
 
     public async Task<DigitalFileLocation?> FindAsync(Guid? variantId, Guid? lastKnownFileId, CancellationToken ct)
     {
-        DigitalFile? file = null;
-        if (variantId is Guid variant)
-        {
-            file = await _db.DigitalFiles.AsNoTracking()
-                .Where(f => f.VariantId == variant && f.DetachedAt == null)
-                .SingleOrDefaultAsync(ct);
-            if (file is null)
-            {
-                Guid? productId = await _db.Variants.AsNoTracking()
-                    .Where(v => v.Id == variant)
-                    .Select(v => (Guid?)v.ProductId)
-                    .SingleOrDefaultAsync(ct);
-                if (productId is Guid product)
-                {
-                    file = await _db.DigitalFiles.AsNoTracking()
-                        .Where(f => f.ProductId == product && f.DetachedAt == null)
-                        .SingleOrDefaultAsync(ct);
-                }
-            }
-        }
-
+        DigitalFile? file = variantId is Guid variant ? await CurrentFileAsync(variant, ct) : null;
         if (file is null && lastKnownFileId is Guid last)
         {
             file = await _db.DigitalFiles.AsNoTracking().Where(f => f.Id == last).SingleOrDefaultAsync(ct);
@@ -57,6 +37,29 @@ internal sealed class DigitalFileReader
 
         return file?.UploadCompletedAt is DateTimeOffset completedAt
             ? new DigitalFileLocation(file.StorageKey, file.FileName, file.SizeBytes, completedAt)
+            : null;
+    }
+
+    /// <summary>
+    /// The variant's current file (02 3.12.7): the file linked to the variant and not detached, else its product's; null when there is none or the variant is gone. The file may
+    /// not have completed its upload - such a file is no file to download (<see cref="FindAsync"/>) and none to freeze (T355). The one home of this rule.
+    /// </summary>
+    public async Task<DigitalFile?> CurrentFileAsync(Guid variantId, CancellationToken ct)
+    {
+        DigitalFile? file = await _db.DigitalFiles.AsNoTracking()
+            .Where(f => f.VariantId == variantId && f.DetachedAt == null)
+            .SingleOrDefaultAsync(ct);
+        if (file is not null)
+        {
+            return file;
+        }
+
+        Guid? productId = await _db.Variants.AsNoTracking()
+            .Where(v => v.Id == variantId)
+            .Select(v => (Guid?)v.ProductId)
+            .SingleOrDefaultAsync(ct);
+        return productId is Guid product
+            ? await _db.DigitalFiles.AsNoTracking().Where(f => f.ProductId == product && f.DetachedAt == null).SingleOrDefaultAsync(ct)
             : null;
     }
 }

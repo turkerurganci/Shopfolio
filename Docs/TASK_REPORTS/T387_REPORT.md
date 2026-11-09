@@ -84,10 +84,33 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1) |
-| Bulgu sayısı | 2 (B1 ORTA, S1 · B2 ORTA, S1) |
-| Düzeltme gerekli mi | Evet — B1, B2 |
-| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-745) |
+| Doğrulama durumu | ✓ PASS (tur 2) — tur 1 ✗ FAIL |
+| Bulgu sayısı | Tur 2: 0 · tur 1: 2 (B1 ORTA, S1 · B2 ORTA, S1 — ikisi de düzeltme 1'de kapandı) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | Tur 2: 2 (K1 → D-763, K2 → D-764) · tur 1: 1 (K1 → D-745, kapandı) |
+
+### Doğrulama Sonucu — tur 2 (validator)
+
+**Head:** `4a872add` (origin/main ile güncel; birleştirme gerekmedi) · **PR:** #487 · **Verdict:** ✓ PASS
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = ana checkout'un `scripts/git-hooks`'u (mutlak yol); ana dal CI son 3: 42558302378, 42548005029, 42548005043 hepsi `success`.
+- **Dal CI:** 42560074567 (`4a872add`) ilk denemede yalnız `4. Integration test` kırmızı: `Web.LivenessEndpointTests.Get_WhenTheCommandIsSlow_Returns503WithinTheLimit` — "The answer took 4.5 s; the limit is 1 s" (zamanlama testi; dal `Web/` ve canlılık ucuna dokunmaz). Öteki işler (Lint, Build, Unit, Contract, Migration dry-run, Paketleme, E2E) `pass`. Doğrulayıcı sınıfı yerelde koştu: 16/16 ✓. Başarısız iş yeniden başlatıldı (deneme 2); rapor yazılırken koşuyordu. Bir önceki dal run'ı 42555469688 (`bdf40320`) bütün işler yeşil. Merge, dalın güncel ucundaki CI yeşilse yapılır (yardımcı).
+- **Kabul kriterleri (kod okundu, testler ve doğrulayıcı denemeleri koşuldu):**
+  1 ✓ `FailedJobRows` yalnız `Failed` satırı `JobClaim.LockAsync` kilidiyle alır; requeue `Pending`/0/boş `NextAttemptAt`, close `Completed` + `CompletedAt`; satır işlemden önce; `Job_FailedRow_...` iki eylemde koşul açık → kapalı, `Job_RowThatIsNotFailed_OrIsGone_...` 3.
+  2 ✓ Giriş kaydı (aralık + `event:`, terminalden `email`), sistem kayıtları (uygulama, erişim, veritabanı, pgBackRest, yedek aracı, günlük — düz ve sıkı biçim; aralık, `ip`, `event:sshd`), imha kaydı. Günlük dosya biçimi systemd'nin belgesiyle alan alan karşılaştırıldı (başlık 88/136, giriş 24/64, öğe 16/4, veri yükü 64/72). İmha kaydı komut testi yalnız boş tabloyla — doğrulayıcı geçici testle (silindi) aralık 2, `event:LoginRecord` 1, `request:` 2 gördü (K1); aynı geçici testte terminalden `ip` 1 satır ve satırda IP yok; sistem kayıtlarında `email` → yönetici iç kimliği ile süzme, bilinmeyen e-posta 3.
+  3 ✓ `ip`/`email` değersiz; argümanda değer 2, ileti yinelemez; yönlendirilmiş girdide hiçbir satır yazılmadan 2 (gerçek süreç testi); e-posta sistem kayıtlarında iç kimliğe, giriş kaydında normalize adrese (06 §4.44 `NormalizedEmail`).
+  4 ✓ CSV `Export:TempDirectory` → `/tmp/shopfolio-export` ↔ sunucuda `${SHOPFOLIO_EXPORT_DIR:-/var/tmp/shopfolio-export}`; yedek aracının bağlamaları arasında yok; dosya 0600, `CreateNew`; `DEPLOY_RUNBOOK §M.1` madde 1, 5, 6.
+  5 ✓ `AuditLine.ReadLogs` kapalı değer taşır → `FlushToDisk` → `Flush(true)`; satır okumadan önce, okuma kendi satırını buluyor.
+  6 ✓ `Pages/` taraması + ihlal örnekleri; `LoginRecords`/`DisposalRecords`/`LogReader` okuyan tek yer komut (`Endpoints/` dahil grep).
+  7 ✓ İşaretsiz kart, işaretli havale ve olmayan numara 3; anlık görüntü değişmez.
+  8 ✓ 119.99 ≠ 120 → 3, yazım yok; `paid` Ö1+S1, `Preparing`, stok 10/1 → 9/0, B-4; `none` Ö2+S3, `Cancelled`, 10/1 → 10/0, B-7; ikinci çalışma 3 (işaret kalktı); satır `OrderId`, `PaymentResult`, `AmountInKurus` ile işlemden önce.
+  9 ✓ Komut klasörü taraması (sağlayıcı, e-posta, iş çalıştırıcısı yok); `command` hizmeti yalnız `db_app_connection`; `jobs` satırları `Pending`; `--help` = `09 §13.2` tablosu = `05 §8.5` (9 satır, sıra dahil).
+- **KK1–KK9 ✓** (kriterlerle aynı kanıt). **`09 §25`:** komutlar `Contracts` ve altyapı; satır kilidi yalnız `JobClaim`; tutar `PaymentAmounts.ToKurus`; zaman `TimeProvider`; göç, yeni paket, yeni uygulama ayarı yok (`SHOPFOLIO_EXPORT_DIR` compose bağlama yolu — `SHOPFOLIO_SECRETS_DIR` ile aynı kalıp, runbook'ta); `CONTEXT.md` satırı var; düzenli ifadeler zaman aşımlı.
+- **Task satırları:** KP birimi yok; kaynağı `05 §8.5.12` olan **VAL-C115** (KRİTİK, mock) kriter 7–8 ve KK7–KK8'e eşlendi → `PASS` (tur 1'de yazılan hücre korunur).
+- **Testler (yerel, `postgres:18 -c track_commit_timestamp=on`):** restore 0; build `-warnaserror` 0 uyarı; format üç proje temiz; Unit 5120/5120 + tutarlılık 283/283; betik 4/4; Integration `Commands` 70/70, `Jobs` + `Logging` + `Ordering` 476/476, `Web.LivenessEndpointTests` 16/16.
+- **Güvenlik:** sır yok; kayıt satırında IP, e-posta, süzgeç değeri ve sipariş numarası yok; CSV formül etkisizleştirme; günlük okuyucusu her uzaklığı dosya boyuna karşı sınar, 1 MB tavan, yalnız okur; `read-command` okuyucu kullanıcı + `group_add: 10002` + yalnız uid 1654 için günlük ACL'i (`app` hizmeti günlüğü bağlamaz); yeni bağımlılık yok.
+- **K1 → D-763:** imha kaydı komut testi boş tabloyla. **K2 → D-764:** Ctrl+C ile kesilen `read-logs` yarım CSV bırakır (D-538'e bağlı).
+- **Yapım raporu karşılaştırması:** uyumlu; tek fark öz denetimin KK2 satırı imha kaydını `..._AndDisposal_ByRange_...` ile kanıtlı sayıyor, test satırsız (K1). Öz denetim tablosu var ve kanıtlı.
 
 ### Doğrulama Sonucu — tur 1 (validator)
 

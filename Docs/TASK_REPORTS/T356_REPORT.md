@@ -69,10 +69,26 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✗ FAIL (tur 1) |
+| Bulgu sayısı | 1 (B1 DÜŞÜK, S1) |
+| Düzeltme gerekli mi | Evet — B1 |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-743; K2 kayıt gerektirmez, D-729/D-730 var) |
+
+### Doğrulama Sonucu — tur 1 (validator)
+
+**Head:** `0663fc3d` (origin/main `02032971` ile güncel; birleştirme gerekmedi) · **PR:** #486 · **Verdict:** ✗ FAIL
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = depo `scripts/git-hooks`; ana dal CI son 3: 42548005029, 42548005043, 42546628955 hepsi `success`.
+- **Dal CI:** 42550296580 (`0663fc3d`) ✓ — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E (advisory), CI Gate `pass`.
+- **Kabul kriterleri (kod + test okundu, testler koşuldu):** 1 ✓ (iki sabit kutu her sepette, `MissingBoxes` eksik kutuyu sayar, rıza kutusu yok, düğme metni ve yanındaki ibare iki yöntemde aynı) · 2 ✓ (dijital ve hizmet kutusu sepete göre; işaretsizse `IsReady` false) · 3 ✓ (form = `ConfirmationSummaryText.Render` + doldurulan sürüm metni; adım ve donmuş kopya aynı işlevden; dört ek bilgi, meslek odası, sabit iade, istisna ve koşulu, ifa süresi, "sipariş nasıl kurulur" ve kısa cayma özeti var; B1 bu kriterin değil `09 §9.3` madde 3'ün sapmasıdır) · 4 ✓ (sürüm kimliği güncel değilse kutulara bakılmadan durur) · 5 ✓ · 6 ✓ (modül düzeyi: e-posta satırı görünümde, düzeltilmiş özetle yeniden üretilir; ekran bağlantısı T509, D-729) · 7 ✓ (kutu, gösterilen metin, kapsanan kalemler; gerçek veritabanına yazılır) · 8 ✓ (şema ve kayıtlar not alanı taşımaz, uç yok) · 9 ✓ (modül düzeyi: sabit metin, sayfa parçası `AddressRules`'ta, bayraklar; altbilgi bileşeni ve sayfa yok — T540/T507, D-730; `11 §7.1` `§3.24.8`'i T507 ile paylaştırır).
+- **KK1–KK9:** ✓ (kriterlerle aynı kanıt). **`09 §25`:** Ordering, Settings'e yalnız `Contracts` üzerinden başvurur; arayüz yöntemleri işlem açmaz; şema/göç yok; yeni paket yok; zaman okuması yok; belge klasörü kaçış taramasında (D-167). "Kod hiçbir doküman cümlesiyle çelişmiyor mu" sorusu B1 yüzünden **hayır**.
+- **Task satırları:** T356'nın KP satırları (`VAL-A020`, `A026`, `A027`, `A047`–`A052`, `A986`, `A129`, `A130`) tarayıcı gözlemi / uç yanıtı / verilmiş sipariş ister; T356 ekran, uç ve sipariş doğuşu eklemez (D-729, D-730, D-732). `Durum` hücreleri `BEKLEMEDE` kaldı (T355, T357 emsali), matrise dokunulmadı.
+- **Testler (yerel, `postgres:18 -c track_commit_timestamp=on`):** restore 0; build `-warnaserror` 0 uyarı; format Web/UnitTests/IntegrationTests temiz; Unit 5302/5302; betik testleri 4/4; Integration `Ordering` 369/369; `Model` 1392/1393 — tek hata `CatalogCoreTablesTests.Migration_WhenPgTrgmIsNotInstalled_…` okuma zaman aşımı (yük altında), sınıf tek başına 60/60; T356 göç ve katalog kodu değiştirmez, CI'da tam Integration yeşil.
+- **B1 — DÜŞÜK, S1 Sapma (`09 §9.3` madde 3 "değer yeniden taranmaz"; D-268 (4)):** `PlaceholderFiller.Inert` `value.Replace("{{", "{ {")` ile tek geçişte çalışır; tek sayıda ardışık açılış ayracı bir `{{` bırakır: `"{{{ContactEmail}}"` → `"{ {{ContactEmail}}"` (.NET `String.Replace` ile denendi). Ürün adı ya da firma kimlik değeri (unvan, adres …) `{{{ShippingPhone}}` gibi bir dize taşırsa ikinci doldurmada (adımda `GetViewAsync`, siparişte `GetTextAsync`) müşterinin kişisel değeri metne açılır ve `Render`'ın "the order stage cannot expand it" ile `Inert`'in "a double opening brace gets a space" sözü tutmaz; D-268 (4) ✅ erken kapatıldı. Testler (`Inert_*`, `Render_MakesAProductName…`) yalnız iki ayraçlı dizeyi sınıyor. Düzeltme: etkisizleştirme sonuçta hiç `{{` bırakmaz (ör. her `{` ardından gelen `{` öncesine boşluk — `Regex.Replace(value, @"\{(?=\{)", "{ ")` ya da sonuç `{{` içermeyene kadar), testlere `{{{Ad}}` ve `{{{{Ad}}}}` örnekleri eklenir.
+- **K1 → D-743:** kısa cayma özeti fiziksel kalemi olmayan sepette de fiziksel ürün ve iade kargo cümlelerini yazıyor; düzeltme turunda kapatılabilir.
+- **K2:** kriter 6 ve 9 modül düzeyinde kanıtlı, ekran ve altbilgi parçası D-729 (T509) ve D-730 (T540 · T507) kayıtlarında; yapım raporu bunları "~" diye işaretledi, validator `11 §7.1` paylaşımına dayanarak modül payını ✓ saydı. Yeni kayıt gerekmez.
+- **Güvenlik:** sır yok; yetki etkisi yok (uç yok); girdi: B1 dışında belge metni kaçışsız ham metin, kaçış gösterim kanalında (`09 §9.3` madde 6), belge klasörü taramada; yeni bağımlılık yok.
+- **Yapım raporu karşılaştırması:** 2 uyuşmazlık — (a) rapor D-268 (1–4)'ü kapanmış sayar, (4) tam değil (B1); (b) rapor kriter 6 ve 9'u "~" yazar, validator modül payını ✓ saydı (K2). Öz denetim tablosu var ve kanıtlı.
 
 ## Altyapı Değişiklikleri
 

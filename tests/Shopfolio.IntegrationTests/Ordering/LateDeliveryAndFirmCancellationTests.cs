@@ -10,6 +10,7 @@ using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.Imaging;
 using Shopfolio.Infrastructure.Jobs;
+using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Administration;
@@ -392,6 +393,54 @@ public sealed class LateDeliveryAndFirmCancellationTests : IAsyncLifetime
         Assert.Equal(2, await CountAsync(order.Id, DispatchType.B7));
         Assert.Equal(8, (await VariantAsync(first.Id)).Stock);
         Assert.Equal(6, (await VariantAsync(second.Id)).Stock);
+    }
+
+    // ---- T370: the termination's refund line (02 7.2.8, 7.4.5) ----
+
+    [Fact]
+    public async Task TheTerminationsRefund_OnTheCard_IsStartedByTheSystemWithItsJob_PerRecord_AndOpensNoIbanField_T370_KK1_KK2()
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(OrderStatus.Preparing, new Line(ProductType.Physical, 2), new Line(ProductType.Physical, 1));
+        _clock.SetUtcNow(Late);
+
+        OrderTransitionResult result = await TerminateAsync(TerminateForLateDeliveryRequest.ByCustomer(order.Id));
+
+        Assert.False(result.IsRejected);
+        await using AppDbContext reader = NewContext();
+        List<LateDeliveryTermination> terminations = await reader.LateDeliveryTerminations.OrderBy(t => t.Quantity).ToListAsync(Ct);
+        List<Refund> refunds = await reader.Refunds.Where(r => r.OrderId == order.Id).OrderBy(r => r.Quantity).ToListAsync(Ct);
+
+        // One refund per record, on the card, by the system, for the record's units (the seeded unit price is 100, no coupon, no shipping fee).
+        Assert.Equal(
+            terminations.Select(t => (RefundType.LateDeliveryTermination, PaymentMethod.Card, ActorKind.System, 100m * t.Quantity, (Guid?)t.OrderItemId, (int?)t.Quantity, (Guid?)t.Id)),
+            refunds.Select(r => (r.RefundType, r.PaymentMethod, r.ActorKind, r.Amount, r.OrderItemId, r.Quantity, r.LateDeliveryTerminationId)));
+        foreach (Refund refund in refunds)
+        {
+            Assert.True(await reader.Jobs.AnyAsync(j => j.JobType == JobType.CardRefund && j.RelatedRecordId == refund.Id, Ct));
+        }
+
+        Assert.False(await reader.RefundIbanRequests.AnyAsync(r => r.OrderItemId == items[0].Id || r.OrderItemId == items[1].Id, Ct));
+        Assert.Equal(0, await CountAsync(order.Id, DispatchType.B14));
+    }
+
+    [Fact]
+    public async Task TheTerminationsRefund_OnTheTransfer_FromANoticeWithoutAnIban_OpensTheIbanRequest_WithB14_AndWritesNoRefundYet_T370_KK6()
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(OrderStatus.Preparing, new Line(ProductType.Physical, 2));
+        await ExecuteAsync($"UPDATE orders SET payment_method = 'BankTransfer', bank_transfer_iban = 'TR330006100519786457841326' WHERE id = '{order.Id}'");
+        _clock.SetUtcNow(Late);
+
+        OrderTransitionResult result = await TerminateAsync(TerminateForLateDeliveryRequest.FromOtherChannel(order.Id, AdminCaller, 1, true, TurkeyTime.DateOf(Late)));
+
+        // The firm processes the transfer line's refund from the panel; the notice brought no IBAN, so the customer is asked for one with B-14 (03 8.4.8).
+        Assert.False(result.IsRejected);
+        await using AppDbContext reader = NewContext();
+        Assert.False(await reader.Refunds.AnyAsync(r => r.OrderId == order.Id, Ct));
+        RefundIbanRequest request = await reader.RefundIbanRequests.SingleAsync(r => r.OrderItemId == items[0].Id, Ct);
+        Assert.Equal(
+            (RefundIbanRequestReason.NoticeWithoutIban, (Guid?)_admin!.Id, (DateTimeOffset?)null, (DateTimeOffset?)null),
+            (request.Reason, request.AdminId, request.FulfilledAt, request.ClosedAt));
+        Assert.Equal(1, await CountAsync(order.Id, DispatchType.B14));
     }
 
     // ---- helpers ----

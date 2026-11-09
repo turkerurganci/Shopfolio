@@ -15,41 +15,41 @@ namespace Shopfolio.Modules.Ordering;
 /// </summary>
 internal sealed class OrderAddressHistory
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; private set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; private set; }
 
-    public Guid OrderId { get; set; }
+    public Guid OrderId { get; private set; }
 
-    public AddressType AddressType { get; set; }
+    public AddressType AddressType { get; private set; }
 
-    public string OldRecipientName { get; set; } = string.Empty;
+    public string OldRecipientName { get; private set; } = string.Empty;
 
     /// <summary>The shipping phone before the correction; filled on a shipping address, empty on a billing address.</summary>
-    public string? OldPhone { get; set; }
+    public string? OldPhone { get; private set; }
 
-    public Guid OldProvinceId { get; set; }
+    public Guid OldProvinceId { get; private set; }
 
-    public string OldDistrict { get; set; } = string.Empty;
+    public string OldDistrict { get; private set; } = string.Empty;
 
-    public string OldAddressLine { get; set; } = string.Empty;
+    public string OldAddressLine { get; private set; } = string.Empty;
 
-    public string NewRecipientName { get; set; } = string.Empty;
+    public string NewRecipientName { get; private set; } = string.Empty;
 
     /// <summary>The shipping phone after the correction; filled on a shipping address, empty on a billing address.</summary>
-    public string? NewPhone { get; set; }
+    public string? NewPhone { get; private set; }
 
-    public Guid NewProvinceId { get; set; }
+    public Guid NewProvinceId { get; private set; }
 
-    public string NewDistrict { get; set; } = string.Empty;
+    public string NewDistrict { get; private set; } = string.Empty;
 
-    public string NewAddressLine { get; set; } = string.Empty;
+    public string NewAddressLine { get; private set; } = string.Empty;
 
     /// <summary>The administrator who corrected; emptied when the administrator is removed.</summary>
-    public Guid? AdminId { get; set; }
+    public Guid? AdminId { get; private set; }
 
     /// <summary>The administrator's name, as a value.</summary>
-    public string AdminName { get; set; } = string.Empty;
+    public string AdminName { get; private set; } = string.Empty;
 
     public static OrderAddressHistory Create(
         Guid orderId,

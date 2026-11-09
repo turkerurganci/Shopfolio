@@ -418,13 +418,13 @@ public sealed class StockReservationAndHistoryTablesTests : IAsyncLifetime
         Province province = await ScalarProvinceAsync();
 
         OrderAddressHistory shippingWithoutNewPhone = NewAddressHistory(order.Id, AddressType.ShippingAddress, admin, province.Id, province.Id);
-        shippingWithoutNewPhone.NewPhone = null;
+        Set(shippingWithoutNewPhone, nameof(OrderAddressHistory.NewPhone), null);
         OrderAddressHistory shippingWithoutOldPhone = NewAddressHistory(order.Id, AddressType.ShippingAddress, admin, province.Id, province.Id);
-        shippingWithoutOldPhone.OldPhone = null;
+        Set(shippingWithoutOldPhone, nameof(OrderAddressHistory.OldPhone), null);
         OrderAddressHistory billingWithOldPhone = NewAddressHistory(order.Id, AddressType.BillingAddress, admin, province.Id, province.Id);
-        billingWithOldPhone.OldPhone = "5321234567";
+        Set(billingWithOldPhone, nameof(OrderAddressHistory.OldPhone), "5321234567");
         OrderAddressHistory billingWithNewPhone = NewAddressHistory(order.Id, AddressType.BillingAddress, admin, province.Id, province.Id);
-        billingWithNewPhone.NewPhone = "5321234567";
+        Set(billingWithNewPhone, nameof(OrderAddressHistory.NewPhone), "5321234567");
 
         const string rule = "ck_order_address_histories_phones_by_address_type";
         Assert.Equal((CheckViolation, rule), await ViolationOfAsync(c => c.OrderAddressHistories.Add(shippingWithoutNewPhone)));
@@ -450,9 +450,9 @@ public sealed class StockReservationAndHistoryTablesTests : IAsyncLifetime
         Province province = await ScalarProvinceAsync();
 
         OrderAddressHistory oldBad = NewAddressHistory(order.Id, AddressType.ShippingAddress, admin, province.Id, province.Id);
-        oldBad.OldPhone = phone;
+        Set(oldBad, nameof(OrderAddressHistory.OldPhone), phone);
         OrderAddressHistory newBad = NewAddressHistory(order.Id, AddressType.ShippingAddress, admin, province.Id, province.Id);
-        newBad.NewPhone = phone;
+        Set(newBad, nameof(OrderAddressHistory.NewPhone), phone);
 
         Assert.Equal((CheckViolation, "ck_order_address_histories_old_phone_ten_digits"), await ViolationOfAsync(c => c.OrderAddressHistories.Add(oldBad)));
         Assert.Equal((CheckViolation, "ck_order_address_histories_new_phone_ten_digits"), await ViolationOfAsync(c => c.OrderAddressHistories.Add(newBad)));
@@ -510,7 +510,7 @@ public sealed class StockReservationAndHistoryTablesTests : IAsyncLifetime
         await using (AppDbContext context = NewContext())
         {
             OrderEmailHistory loaded = await context.OrderEmailHistories.SingleAsync(h => h.Id == email.Id, Ct);
-            loaded.NewEmail = "baska@example.com";
+            Set(loaded, nameof(OrderEmailHistory.NewEmail), "baska@example.com");
             InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() => context.SaveChangesAsync(Ct));
             Assert.Contains("only appended", error.Message, StringComparison.Ordinal);
         }
@@ -518,7 +518,7 @@ public sealed class StockReservationAndHistoryTablesTests : IAsyncLifetime
         await using (AppDbContext context = NewContext())
         {
             OrderAddressHistory loaded = await context.OrderAddressHistories.SingleAsync(h => h.Id == address.Id, Ct);
-            loaded.NewDistrict = "Başka";
+            Set(loaded, nameof(OrderAddressHistory.NewDistrict), "Başka");
             InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() => context.SaveChangesAsync(Ct));
             Assert.Contains("only appended", error.Message, StringComparison.Ordinal);
         }
@@ -526,7 +526,7 @@ public sealed class StockReservationAndHistoryTablesTests : IAsyncLifetime
         await using (AppDbContext context = NewContext())
         {
             OrderEmailHistory loaded = await context.OrderEmailHistories.SingleAsync(h => h.Id == email.Id, Ct);
-            loaded.AdminId = Guid.NewGuid();
+            Set(loaded, nameof(OrderEmailHistory.AdminId), (Guid?)Guid.NewGuid());
             await Assert.ThrowsAsync<InvalidOperationException>(() => context.SaveChangesAsync(Ct));
         }
 
@@ -550,8 +550,8 @@ public sealed class StockReservationAndHistoryTablesTests : IAsyncLifetime
 
         await using (AppDbContext context = NewContext())
         {
-            (await context.OrderEmailHistories.SingleAsync(h => h.Id == email.Id, Ct)).AdminId = null;
-            (await context.OrderAddressHistories.SingleAsync(h => h.Id == address.Id, Ct)).AdminId = null;
+            Set(await context.OrderEmailHistories.SingleAsync(h => h.Id == email.Id, Ct), nameof(OrderEmailHistory.AdminId), (Guid?)null);
+            Set(await context.OrderAddressHistories.SingleAsync(h => h.Id == address.Id, Ct), nameof(OrderAddressHistory.AdminId), (Guid?)null);
             await context.SaveChangesAsync(Ct);
         }
 
@@ -588,6 +588,13 @@ public sealed class StockReservationAndHistoryTablesTests : IAsyncLifetime
     }
 
     // ---- helpers ----
+
+    /// <summary>The history rows' setters are private (D-66); a test that needs a value the factory never makes sets it by name.</summary>
+    private static void Set<TEntity>(TEntity entity, string property, object? value)
+        where TEntity : class
+    {
+        typeof(TEntity).GetProperty(property)!.SetValue(entity, value);
+    }
 
     private static OrderAddressHistory NewAddressHistory(Guid orderId, AddressType type, Admin admin, Guid oldProvinceId, Guid newProvinceId)
     {

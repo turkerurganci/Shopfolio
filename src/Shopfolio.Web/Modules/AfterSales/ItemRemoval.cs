@@ -69,6 +69,9 @@ internal sealed class ItemRemovalConfiguration : IEntityTypeConfiguration<ItemRe
         builder.HasOne(OrderingOrderItemType, navigationName: null).WithMany().HasForeignKey(nameof(ItemRemoval.OrderItemId)).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne(AdministrationAdminType, navigationName: null).WithMany().HasForeignKey(nameof(ItemRemoval.AdminId)).OnDelete(DeleteBehavior.SetNull);
 
+        // The sales summary's cancellation and return count reads the records of a period by their day (02 10.6.3).
+        builder.HasIndex(r => r.CreatedAt);
+
         ItemRecordRules.HasQuantityAndAmountRules(builder);
     }
 }

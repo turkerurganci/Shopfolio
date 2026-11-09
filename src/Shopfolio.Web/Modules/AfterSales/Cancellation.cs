@@ -118,6 +118,9 @@ internal sealed class CancellationConfiguration : IEntityTypeConfiguration<Cance
         builder.HasOne(AdministrationAdminType, navigationName: null).WithMany().HasForeignKey(nameof(Cancellation.AdminId)).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne<RefundIban>().WithMany().HasForeignKey(c => c.RefundIbanId).OnDelete(DeleteBehavior.SetNull);
 
+        // The sales summary's cancellation and return count reads the records of a period by their day (02 10.6.3).
+        builder.HasIndex(c => c.CreatedAt);
+
         ItemRecordRules.HasQuantityAndAmountRules(builder);
 
         // The administrator's record carries the reason and the customer's none; the customer's carries no administrator, and the note

@@ -118,6 +118,9 @@ internal sealed class LateDeliveryTerminationConfiguration : IEntityTypeConfigur
         builder.HasOne(AdministrationAdminType, navigationName: null).WithMany().HasForeignKey(nameof(LateDeliveryTermination.AdminId)).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne<RefundIban>().WithMany().HasForeignKey(t => t.RefundIbanId).OnDelete(DeleteBehavior.SetNull);
 
+        // The sales summary's cancellation and return count reads the terminations of a period by their notice's date stamp (02 10.6.3).
+        builder.HasIndex(t => t.DeclarationDate);
+
         ItemRecordRules.HasQuantityAndAmountRules(builder);
         ItemRecordRules.HasBuyerWithoutAdminRule(builder);
     }

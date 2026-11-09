@@ -148,6 +148,9 @@ internal sealed class WithdrawalConfiguration : IEntityTypeConfiguration<Withdra
         builder.HasOne(AdministrationAdminType, navigationName: null).WithMany().HasForeignKey(nameof(Withdrawal.AdminId)).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne<RefundIban>().WithMany().HasForeignKey(w => w.RefundIbanId).OnDelete(DeleteBehavior.SetNull);
 
+        // The sales summary's cancellation and return count reads the withdrawals of a period by their declaration's date (02 10.6.3).
+        builder.HasIndex(w => w.DeclarationDate);
+
         ItemRecordRules.HasQuantityAndAmountRules(builder);
         ItemRecordRules.HasBuyerWithoutAdminRule(builder);
         ItemRecordRules.HasReturnAddressRules(builder);

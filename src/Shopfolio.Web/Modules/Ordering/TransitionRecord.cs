@@ -108,6 +108,9 @@ internal sealed class TransitionRecordConfiguration : IEntityTypeConfiguration<T
 
         builder.HasIndex(t => new { t.OrderId, t.CreatedAt });
 
+        // The sales summary's shipping promise ratio reads the payment approvals (O1) of a period (02 10.6.3).
+        builder.HasIndex(t => new { t.TransitionCode, t.CreatedAt });
+
         builder.HasRule("at_most_one_reason", "num_nonnulls(transition_reason, cancellation_reason, correction_reason) <= 1");
         builder.HasRule(
             "correction_fields_only_on_correction",

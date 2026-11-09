@@ -60,6 +60,9 @@ internal sealed class ContactRequestConfiguration : IEntityTypeConfiguration<Con
 
         builder.HasIndex(c => new { c.ContactRequestStatus, c.CreatedAt });
 
+        // The sales summary's contact request count reads the requests opened in a period (02 10.6.3).
+        builder.HasIndex(c => c.CreatedAt);
+
         // The disposal's scan index (contact topic, COALESCE(last_closed_at, created_at)) is an expression index; EF cannot model it, so
         // the migration writes it.
 

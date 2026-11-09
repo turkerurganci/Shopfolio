@@ -283,6 +283,7 @@ public sealed class CartAndOrderCoreTablesTests : IAsyncLifetime
             "orders.ix_orders_billing_province_id | CREATE INDEX ix_orders_billing_province_id ON public.orders USING btree (billing_province_id)",
             "orders.ix_orders_cart_id | CREATE INDEX ix_orders_cart_id ON public.orders USING btree (cart_id)",
             "orders.ix_orders_company_province_id | CREATE INDEX ix_orders_company_province_id ON public.orders USING btree (company_province_id)",
+            "orders.ix_orders_created_at | CREATE INDEX ix_orders_created_at ON public.orders USING btree (created_at)",
             "orders.ix_orders_confirmation_key | CREATE UNIQUE INDEX ix_orders_confirmation_key ON public.orders USING btree (confirmation_key)",
             "orders.ix_orders_coupon_id | CREATE INDEX ix_orders_coupon_id ON public.orders USING btree (coupon_id)",
             "orders.ix_orders_customer_id | CREATE INDEX ix_orders_customer_id ON public.orders USING btree (customer_id)",
@@ -301,6 +302,7 @@ public sealed class CartAndOrderCoreTablesTests : IAsyncLifetime
             "transition_records.ix_transition_records_admin_id | CREATE INDEX ix_transition_records_admin_id ON public.transition_records USING btree (admin_id)",
             "transition_records.ix_transition_records_corrected_transition_record_id | CREATE INDEX ix_transition_records_corrected_transition_record_id ON public.transition_records USING btree (corrected_transition_record_id)",
             "transition_records.ix_transition_records_order_id_created_at | CREATE INDEX ix_transition_records_order_id_created_at ON public.transition_records USING btree (order_id, created_at)",
+            "transition_records.ix_transition_records_transition_code_created_at | CREATE INDEX ix_transition_records_transition_code_created_at ON public.transition_records USING btree (transition_code, created_at)",
             "transition_records.pk_transition_records | CREATE UNIQUE INDEX pk_transition_records ON public.transition_records USING btree (id)",
         ];
 

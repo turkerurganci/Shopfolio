@@ -8,6 +8,7 @@ using Npgsql;
 using Shopfolio.Infrastructure;
 using Shopfolio.IntegrationTests.CorporateContent;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Model;
 using Shopfolio.IntegrationTests.Ordering;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Administration.Contracts;
@@ -23,6 +24,9 @@ using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
+
+using ItemAmounts = Shopfolio.Modules.Catalog.Contracts.Pricing.ItemAmounts;
+using RecordAmounts = Shopfolio.Modules.AfterSales.ItemAmounts;
 
 namespace Shopfolio.IntegrationTests.Administration;
 
@@ -120,7 +124,7 @@ public sealed class SalesSummaryTests : IAsyncLifetime
         Assert.Equal(1, await DailyCountAsync(Day.AddDays(-1)));
     }
 
-    // ---- KK5: the orders of one cart are one attempt; a cartless order is its own; an open window waits ----
+    // ---- KK5: the orders of one cart are one attempt; another cart's order is its own attempt; an open window waits ----
 
     [Fact]
     public async Task ThePaymentCompletionRatio_CountsACartsOrdersAsOneAttempt_AndWaitsForAnOpenWindow_KK5()
@@ -129,11 +133,11 @@ public sealed class SalesSummaryTests : IAsyncLifetime
         Guid waitingCart = Guid.NewGuid();
         Guid firstTry = await SaveOrderAsync(DayStart.AddHours(1), PaymentMethod.Card, cart, null, (_shirt, 1));
         Guid secondTry = await SaveOrderAsync(DayStart.AddHours(2), PaymentMethod.Card, cart, null, (_shirt, 1));
-        Guid cartless = await SaveOrderAsync(DayStart.AddHours(3), PaymentMethod.Card, null, null, (_lamp, 1));
+        Guid otherCart = await SaveOrderAsync(DayStart.AddHours(3), PaymentMethod.Card, null, null, (_lamp, 1));
         Guid waiting = await SaveOrderAsync(DayStart.AddHours(4), PaymentMethod.BankTransfer, waitingCart, null, (_lamp, 1));
         await SetAxesAsync(firstTry, OrderStatus.Cancelled, PaymentStatus.Failed);
         await SetAxesAsync(secondTry, OrderStatus.Placed, PaymentStatus.Paid);
-        await SetAxesAsync(cartless, OrderStatus.Cancelled, PaymentStatus.Failed);
+        await SetAxesAsync(otherCart, OrderStatus.Cancelled, PaymentStatus.Failed);
         await ExecuteAsync($"UPDATE orders SET payment_window_ends_at = '{Now.AddDays(1):O}' WHERE id = '{waiting}'");
 
         SalesSummary summary = await SummaryAsync(SalesSummaryPeriod.OfDay(Day));
@@ -215,7 +219,7 @@ public sealed class SalesSummaryTests : IAsyncLifetime
         Guid terminatedItem = await ItemOfAsync(terminated);
         Guid undoneItem = await ItemOfAsync(undone);
         Guid unpaidItem = await ItemOfAsync(unpaid);
-        ItemAmounts amounts = ItemPricing.Price(new ItemPriceInput(300m, 1, 0m, 20m));
+        RecordAmounts amounts = new(250m, 0m, 50m);
 
         // The withdrawal declared on day+1 (one unit of two); the termination's notice stamped day+2 but recorded on day+3; a firm cancellation undone by the correction of
         // its closing S4; and the cancellation of an order whose payment never came.
@@ -298,10 +302,9 @@ public sealed class SalesSummaryTests : IAsyncLifetime
             $"2026-S{n:D5}{Guid.NewGuid().ToString("N")[..4]}", $"access-{Guid.NewGuid():N}", $"confirm-{Guid.NewGuid():N}", method, true, "ali@example.com",
             ItemPricing.SumOrderTotal(amounts, 0m), 0m, createdAt.AddHours(1), createdAt);
         order.IpAddress = IPAddress.Parse("203.0.113.5");
-        order.CartId = cartId;
-        order.BankTransferIban = method == PaymentMethod.BankTransfer ? Iban : null;
+        order.CartId = cartId ?? Guid.NewGuid();
         order.FreezeAddresses(("Ali Veli", "5321234567", _province, "Çankaya", "Atatürk Bulvarı 1"), ("Ali Veli", _province, "Çankaya", "Atatürk Bulvarı 1"));
-        OrderFreeze.FreezeLegalIdentity(order, _identity!, new LegalTextVersionIds(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()), null);
+        OrderFreeze.FreezeLegalIdentity(order, _identity!, new LegalTextVersionIds(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid()), method == PaymentMethod.BankTransfer ? Iban : null);
         order.FreezeDocuments("ön bilgilendirme", "mesafeli satış");
         order.FreezeShippingFeeVatBreakdown([]);
         order.FreezeShippingPromise(shippingPeriod ?? 2);

@@ -775,6 +775,9 @@ namespace Shopfolio.Infrastructure.Migrations
                     b.HasIndex("AdminId")
                         .HasDatabaseName("ix_cancellations_admin_id");
 
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_cancellations_created_at");
+
                     b.HasIndex("OrderItemId")
                         .HasDatabaseName("ix_cancellations_order_item_id");
 
@@ -943,6 +946,9 @@ namespace Shopfolio.Infrastructure.Migrations
                     b.HasIndex("AdminId")
                         .HasDatabaseName("ix_item_removals_admin_id");
 
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_item_removals_created_at");
+
                     b.HasIndex("OrderItemId")
                         .HasDatabaseName("ix_item_removals_order_item_id");
 
@@ -1020,6 +1026,9 @@ namespace Shopfolio.Infrastructure.Migrations
 
                     b.HasIndex("AdminId")
                         .HasDatabaseName("ix_late_delivery_terminations_admin_id");
+
+                    b.HasIndex("DeclarationDate")
+                        .HasDatabaseName("ix_late_delivery_terminations_declaration_date");
 
                     b.HasIndex("OrderItemId")
                         .HasDatabaseName("ix_late_delivery_terminations_order_item_id");
@@ -1432,6 +1441,9 @@ namespace Shopfolio.Infrastructure.Migrations
 
                     b.HasIndex("AdminId")
                         .HasDatabaseName("ix_withdrawals_admin_id");
+
+                    b.HasIndex("DeclarationDate")
+                        .HasDatabaseName("ix_withdrawals_declaration_date");
 
                     b.HasIndex("OrderItemId")
                         .HasDatabaseName("ix_withdrawals_order_item_id");
@@ -2533,6 +2545,9 @@ namespace Shopfolio.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_contact_requests");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_contact_requests_created_at");
 
                     b.HasIndex("ContactRequestStatus", "CreatedAt")
                         .HasDatabaseName("ix_contact_requests_contact_request_status_created_at");
@@ -3923,6 +3938,9 @@ namespace Shopfolio.Infrastructure.Migrations
                     b.HasIndex("CouponId")
                         .HasDatabaseName("ix_orders_coupon_id");
 
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_orders_created_at");
+
                     b.HasIndex("CustomerId")
                         .HasDatabaseName("ix_orders_customer_id");
 
@@ -4443,6 +4461,9 @@ namespace Shopfolio.Infrastructure.Migrations
 
                     b.HasIndex("OrderId", "CreatedAt")
                         .HasDatabaseName("ix_transition_records_order_id_created_at");
+
+                    b.HasIndex("TransitionCode", "CreatedAt")
+                        .HasDatabaseName("ix_transition_records_transition_code_created_at");
 
                     b.ToTable("transition_records", null, t =>
                         {

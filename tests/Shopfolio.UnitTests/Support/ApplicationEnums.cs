@@ -33,6 +33,9 @@ internal static class ApplicationEnums
         "Shopfolio.Modules.Ordering.Contracts.DeliveryDateObstacle",
         // T347: the verdict on a cart line's quantity - computed per read from the stock and the per-order limit, never a column.
         "Shopfolio.Modules.Catalog.Contracts.CartQuantityProblem",
+        // T383: the sales summary's ready periods and why a custom range is refused - the request names them, nothing is stored (02 10.6.2; KP-53).
+        "Shopfolio.Modules.Administration.Contracts.SalesSummaryPreset",
+        "Shopfolio.Modules.Administration.Contracts.SalesSummaryPeriodRefusal",
     };
 
     /// <summary>All enums of the application assembly, by simple name; a name used twice is a failure of the naming rule (09 5.1).</summary>

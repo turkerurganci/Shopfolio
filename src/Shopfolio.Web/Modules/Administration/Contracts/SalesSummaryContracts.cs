@@ -18,26 +18,6 @@ public interface ISalesSummary
     Task<int> CountDailyOrdersAsync(DateOnly day, CancellationToken ct);
 }
 
-/// <summary>The ready periods of the summary's period choice (04 9.22.3; 07 5.3.2 <c>SalesSummaryQuery</c>); the custom range is <see cref="SalesSummaryPeriod.Custom"/>.</summary>
-public enum SalesSummaryPreset
-{
-    Today,
-    Yesterday,
-    Last7Days,
-    Last30Days,
-    ThisMonth,
-    LastMonth,
-    MeasurementWindow,
-}
-
-/// <summary>Why a custom range was refused (04 9.22.9; 07 9.22.1): a date is missing, a date is in the future, or the end is before the start.</summary>
-public enum SalesSummaryPeriodRefusal
-{
-    DateMissing,
-    FutureDate,
-    EndBeforeStart,
-}
-
 /// <summary>
 /// The summary's period: two Turkey days, both included (02 4.1.4). The start is at 00:00 Turkey time of <see cref="StartDay"/>, the end at 00:00 of the day after
 /// <see cref="EndDay"/>. A period of one day is the peak day trigger's daily number (02 H-2).

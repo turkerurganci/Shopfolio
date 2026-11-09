@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 using Shopfolio.Infrastructure.Logging;
@@ -37,11 +38,13 @@ internal static class InstallationSettingsRegistration
 
     /// <summary>
     /// What the conditional settings opened or closed, worked out once from the bound <see cref="PaymentOptions"/> and <see cref="GoogleOptions"/> (05 8.4.6); the status command reads it (T389).
-    /// The web host and the command mode register it through this one call.
+    /// The web host and the command mode register it through this one call; the Payment module's registration calls it too, for its card line (T352; D-81), and the first
+    /// registration stands, so a host that bound the options earlier keeps its own.
     /// </summary>
     public static IServiceCollection AddConditionalLines(this IServiceCollection services)
     {
-        services.AddSingleton<IReadOnlyList<ConditionalLine>>(provider =>
+        services.AddOptions();
+        services.TryAddSingleton<IReadOnlyList<ConditionalLine>>(provider =>
             ConditionalLines.Evaluate(
                 provider.GetRequiredService<IOptions<PaymentOptions>>().Value,
                 provider.GetRequiredService<IOptions<GoogleOptions>>().Value));

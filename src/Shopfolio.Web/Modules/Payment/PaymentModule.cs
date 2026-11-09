@@ -3,10 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
+using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.SignedEndpoints;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Payment.Contracts;
+using Shopfolio.Modules.Settings.Contracts;
 
 namespace Shopfolio.Modules.Payment;
 
@@ -304,6 +306,12 @@ internal static class PaymentModuleRegistration
     public static IServiceCollection AddPaymentModule(this IServiceCollection services)
     {
         services.AddScoped<IPaymentModule, PaymentModule>();
+
+        // The card line of the sales gate (T352; D-81, D-198): it reads the conditional lines worked out at start-up, registered here in place of the Settings module's
+        // unbound default (that one is a TryAdd, and a later registration wins either way). The offered methods read the same two conditions as the gate.
+        services.AddConditionalLines();
+        services.AddScoped<ICardPaymentCondition, CardPaymentCondition>();
+        services.AddScoped<IPaymentMethods, PaymentMethods>();
         services.AddDisposalPart<InboundNotificationDisposalPart>();
         services.AddScoped<PaymentNotificationEndpoint>();
         services.AddTransactionalJobHandler<InboundNotificationJobHandler>(JobType.InboundNotificationProcessing);

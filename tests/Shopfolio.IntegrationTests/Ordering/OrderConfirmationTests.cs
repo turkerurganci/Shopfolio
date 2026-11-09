@@ -18,6 +18,7 @@ using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
+using Shopfolio.Modules.Settings.Contracts.Gates;
 using Shopfolio.UnitTests.Fakes;
 
 namespace Shopfolio.IntegrationTests.Ordering;
@@ -46,6 +47,7 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
     private readonly ManualTimeProvider _clock = new(Now);
 
     private int _counter;
+    private bool _cardLineOpen = true;
     private Guid _provinceId;
     private Guid _formId;
     private Guid _contractId;
@@ -461,6 +463,86 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
         Assert.Contains(first.OrderId!.Value, panel);
     }
 
+    // ---- T352: the open payment methods; the cart stays when the payment is left half way or the provider is out ----
+
+    [Fact]
+    public async Task KeylessInstallation_OffersOnlyTheTransfer_RefusesTheCard_AndOpensTheGateWithTheTransfer_T352_KK2_KK4()
+    {
+        _cardLineOpen = false;
+        Guid variantId = await SeedVariantAsync("Lamba", 1000m, stock: 5);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        Guid cartId = await SeedCartAsync(owner, (variantId, 1));
+
+        IReadOnlyList<PaymentMethod> open = await RunAsync(sp => sp.GetRequiredService<IPaymentMethods>().ListOpenAsync(Ct));
+        SalesGate gate = await RunAsync(sp => sp.GetRequiredService<ISettingsModule>().GetSalesGateAsync(Ct));
+        OrderSummaryInput byCard = Input(owner, PaymentMethod.Card, null);
+        OrderConfirmationResult card = await ConfirmAsync(byCard, (await SummarizeAsync(byCard))!);
+
+        Assert.Equal([PaymentMethod.BankTransfer], open);
+        Assert.DoesNotContain(SalesGateCondition.PaymentMethod, gate.UnmetConditions);
+        Assert.Equal(OrderConfirmationRefusal.PaymentMethodUnavailable, card.Refusal);
+        await AssertNothingBornAsync(variantId);
+        Assert.Equal(1, await ScalarAsync($"SELECT count(*) FROM cart_items WHERE cart_id = '{cartId}'"));
+
+        OrderSummaryInput byTransfer = Input(owner, PaymentMethod.BankTransfer, null);
+        OrderConfirmationResult transfer = await ConfirmAsync(byTransfer, (await SummarizeAsync(byTransfer))!);
+        Assert.False(transfer.IsRejected);
+        Assert.Equal(PaymentMethod.BankTransfer, (await ReadOrderAsync(transfer.OrderId!.Value)).PaymentMethod);
+    }
+
+    [Fact]
+    public async Task NoOpenMethod_ClosesTheGate_AndASwitchedOffTransferIsRefusedWhileTheCardIsTaken_T352_KK2_KK4()
+    {
+        await ExecuteAsync("UPDATE company_settings SET is_bank_transfer_enabled = false");
+        Guid variantId = await SeedVariantAsync("Lamba", 1000m, stock: 5);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        await SeedCartAsync(owner, (variantId, 1));
+
+        IReadOnlyList<PaymentMethod> cardOnly = await RunAsync(sp => sp.GetRequiredService<IPaymentMethods>().ListOpenAsync(Ct));
+        OrderSummaryInput byTransfer = Input(owner, PaymentMethod.BankTransfer, null);
+        OrderConfirmationResult transfer = await ConfirmAsync(byTransfer, (await SummarizeAsync(byTransfer))!);
+        Assert.Equal([PaymentMethod.Card], cardOnly);
+        Assert.Equal(OrderConfirmationRefusal.PaymentMethodUnavailable, transfer.Refusal);
+        await AssertNothingBornAsync(variantId);
+
+        _cardLineOpen = false;
+        IReadOnlyList<PaymentMethod> none = await RunAsync(sp => sp.GetRequiredService<IPaymentMethods>().ListOpenAsync(Ct));
+        SalesGate gate = await RunAsync(sp => sp.GetRequiredService<ISettingsModule>().GetSalesGateAsync(Ct));
+        Assert.Empty(none);
+        Assert.Contains(SalesGateCondition.PaymentMethod, gate.UnmetConditions);
+
+        _cardLineOpen = true;
+        OrderSummaryInput byCard = Input(owner, PaymentMethod.Card, null);
+        Assert.False((await ConfirmAsync(byCard, (await SummarizeAsync(byCard))!)).IsRejected);
+    }
+
+    [Theory]
+    [InlineData(TransitionReason.CardPaymentFailed)]
+    [InlineData(TransitionReason.PaymentPageNotOpened)]
+    [InlineData(TransitionReason.PaymentWindowExpired)]
+    public async Task UnpaidCardOrderCancelledBySystem_LeavesTheCartAsItIs_AndOnlyTheApprovalEmptiesIt_T352_KK6_KK8(TransitionReason reason)
+    {
+        Guid variantId = await SeedVariantAsync("Lamba", 1000m, stock: 5);
+        CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+        Guid cartId = await SeedCartAsync(owner, (variantId, 2));
+        OrderSummaryInput input = Input(owner, PaymentMethod.Card, null);
+        OrderConfirmationResult placed = await ConfirmAsync(input, (await SummarizeAsync(input))!);
+        Guid orderId = placed.OrderId!.Value;
+
+        // Left half way: the order waits for its payment, the cart is untouched and the order is not in preparation.
+        Order waiting = await ReadOrderAsync(orderId);
+        Assert.Equal((OrderStatus.Placed, PaymentStatus.Pending), (waiting.OrderStatus, waiting.PaymentStatus));
+        Assert.Equal(2, await ScalarAsync($"SELECT quantity FROM cart_items WHERE cart_id = '{cartId}'"));
+
+        // A failed 3D check, the provider's page that never opened (the provider out) or the window's end: cancelled, the cart stays (02 6.1.4, 6.2.1, 6.2.2, 6.2.15).
+        await RunAsync(sp => sp.GetRequiredService<IOrderTransitions>().CancelOrderAsync(CancelOrderRequest.BySystem(orderId, reason), Ct));
+
+        Order cancelled = await ReadOrderAsync(orderId);
+        Assert.Equal((OrderStatus.Cancelled, PaymentStatus.Failed), (cancelled.OrderStatus, cancelled.PaymentStatus));
+        Assert.Equal(2, await ScalarAsync($"SELECT quantity FROM cart_items WHERE cart_id = '{cartId}'"));
+        Assert.Equal(0, await ScalarAsync($"SELECT reserved_quantity FROM variants WHERE id = '{variantId}'"));
+    }
+
     // ---- helpers ----
 
     private OrderSummaryInput Input(CartOwner owner, PaymentMethod method, string? coupon) =>
@@ -481,7 +563,7 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
     {
         OrderConfirmationRequest request = new(
             input.Owner, seen, _formId, _contractId, ticked ?? new TickedBoxes(true, true, false, false), input.CouponCode, input.ContactEmail, input.Shipping, input.Billing, IPAddress.Parse("203.0.113.5"));
-        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn, _clock);
+        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn, _clock, _cardLineOpen);
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
         OrderConfirmation confirmation = scope.ServiceProvider.GetRequiredService<OrderConfirmation>();
         return await scope.ServiceProvider.GetRequiredService<ITransactionRunner>().RunAsync(token => confirmation.ConfirmAsync(request, token), Ct);
@@ -490,7 +572,7 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
     // One request: its own scope and transaction; the owner of the transaction saves (09 6 item 3).
     private async Task<T> RunAsync<T>(Func<IServiceProvider, Task<T>> work)
     {
-        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn, _clock);
+        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn, _clock, _cardLineOpen);
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
         IServiceProvider services = scope.ServiceProvider;
         Boxed<T> boxed = await services.GetRequiredService<ITransactionRunner>().RunAsync(async _ => new Boxed<T>(await work(services)), Ct);

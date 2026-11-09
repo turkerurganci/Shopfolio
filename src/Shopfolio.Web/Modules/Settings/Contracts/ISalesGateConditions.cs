@@ -2,7 +2,7 @@ namespace Shopfolio.Modules.Settings.Contracts;
 
 /// <summary>
 /// The card line of the payment method condition (02 3.1.5 condition 2; 10 ÖK-9): true when the payment provider's keys are defined at installation. The payment task
-/// (T352) binds it by registering its implementation in place of the default; until then the default says "not open" and the condition is not met (11 T331 criterion 8).
+/// (T352) binds it: the Payment module registers <c>CardPaymentCondition</c>, which reads the conditional line worked out at start-up (05 8.4.6; D-81), in place of the default.
 /// </summary>
 public interface ICardPaymentCondition
 {

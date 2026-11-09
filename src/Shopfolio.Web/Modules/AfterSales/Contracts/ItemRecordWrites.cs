@@ -45,6 +45,19 @@ public sealed record WithdrawalDeclaration(
     Guid? RefundIbanId,
     DateTimeOffset At);
 
+/// <summary>
+/// The item's frozen values an item record sets its amounts aside from (02 7.1.7; 06 4.18): the unit price the customer paid - the discounted one, rounded to the
+/// kuruş, while a discount ran (02 3.9.1) - and the item's coupon share and VAT. The order module hands them in; the item is not this module's (09 6 item 2).
+/// </summary>
+public sealed record ItemFrozenAmounts(decimal UnitPrice, decimal CouponShare, decimal VatAmount);
+
+/// <summary>
+/// The customer's cancellation of a paid item's units from the order page (03 1.11.2, 1.11.3; 02 7.2.1, 7.2.2; T367): every call is a record of its own. The amounts
+/// are worked out by the writer from <paramref name="Frozen"/> and what the item's earlier records set aside (02 7.1.7): the product amount is the unit price times the
+/// units, the coupon share and the VAT are the units' share rounded down, and the record that closes the item's last open units takes what is left.
+/// </summary>
+public sealed record CustomerCancellationEntry(ItemRecordSubject Subject, int Quantity, ItemFrozenAmounts Frozen, DateTimeOffset At);
+
 /// <summary>The receipt of returned goods of a withdrawal (03 1.7.1.6; K-794): every partial arrival is a record of its own, with the arrival date and the units.</summary>
 public sealed record ReturnReceiptEntry(ItemRecordSubject Subject, Guid WithdrawalId, int Quantity, DateOnly ArrivalDate, ItemRecordAdmin Admin, DateTimeOffset At);
 

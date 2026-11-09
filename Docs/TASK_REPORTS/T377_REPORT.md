@@ -1,6 +1,6 @@
 # T377 — Limit ilkeleri: iki eksen, ödenmemiş sipariş sayımı, yönetici muafiyeti yok, tanınan tarayıcı işareti
 
-**Faz:** F3 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-09
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -75,10 +75,75 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ⏳ bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS (tur 1) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (K1 → D-826; K2 bu PR'da kapatıldı) |
+
+### Doğrulama tur 1 — Doğrulama Sonucu — T377 Limit ilkeleri: iki eksen, ödenmemiş sipariş sayımı, yönetici muafiyeti yok, tanınan tarayıcı işareti — tur 1
+**Tarih:** 2026-11-09   **Branch:** task/T377-limit-ilkeleri   **Commit:** `c6b2a167` (doğrulanan dal ucu, PR #497; `origin/main` `78a3f598` çakışmasız birleştirildi)
+
+**Verdict: ✓ PASS**
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş |
+| Hook kurulumu | ✓ | `core.hooksPath` → ana deponun `scripts/git-hooks` |
+| Ana dal CI (son 3) | ✓ | 42600847174 · 42600846924 · 42596386708 — success |
+
+#### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | İki eksen ayrı | ✓ | L-1: `MembershipSignInAxesTests` `TheIpAxisStopsAlone…KK1`, `TheEmailAxisStopsAlone…KK1`; L-7/L-8: `OrderAxes`, `OrderPlacementLimits`; `OrderPlacementLimitTests.TheTwoAxesAreSeparate…KK1` |
+| 2 | Kupon sepet ekseninde | ✓ | `Coupons.cs` `RecordAsync(L6, cart)`; `CartTests.TheCouponCounter_IsTheCartsOwn…KK2` |
+| 3 | L-5 sorgudaki adresi sayar | ✓ | `AttemptCounterTests.The_guest_lookups_email_axis…KK3`; sayfa çağrısı T511 (D-780) |
+| 4 | L-7 yalnız iki sebep; dört istisna sayılmaz | ✓ | `UnpaidCancellationLimit` (S3 + System + `CountedReasons`); `OnlyTheWindowThatRanOut…KK4` (Buyer, Admin, her sebep), `AnyNumberOfTheLeftOutCancellations…KK4`, `TheWindowSlides…KK4`, `OrderConfirmationTests.ARepeatedConfirmationFromTheSameCart…KK4`, `AFullL7_…KK4` (gerçek `CancelOrderAsync`) |
+| 5 | L-8 yalnız havale; e-posta yalnız üye | ✓ | `AFullOpenCeiling_ClosesTheBankTransferOnly…KK5`, `AnOpenCardOrder…KK5`, `L7_/L8_EmailAxisCountsOnlyAMembersOrders…KK5`, `OrderConfirmationTests.AFullOpenCeiling_StopsTheNextBankTransfer…KK5` |
+| 6 | Yönetici muaf değil | ✓ | `TheAdministrator_IsBlocked…KK6`; `TheGateAsksForNoAccountType…KK6` |
+| 7 | Sepet/stok limiti yok | ✓ | `AttemptLimitInventoryTests.Surfaces` (3 test) |
+| 8 | İşaret çerezi | ✓ | `__Host-known-device` + `CookieDefaults`; değer rastgele `SecretKey`, sunucuda özet; `KnownDeviceCookieTests` (4) |
+| 9 | İşaretsiz/uydurma/başka hesap e-postada; işaretli ayrı; IP aynen | ✓ | `AForgedMark…KK9`, `AMarkedBrowser…KK9`, `ARecognizedBrowser_IsCountedOnItsMark…` |
+| 10 | Sıfırlama, Google, 90 gün | ✓ | `PasswordRegime` sıfırlamada `IssueMarkAsync`; `TheReset_TakesTheLinkOnce…`; `SignInLimitSourceScanTests`; `TheMark_IsRecognisedUntilNinetyDays…KK10`; `SignIn_KeepsTheValidMarkOfTheBrowser…` |
+
+#### Task Satırları (`12 §7.5`)
+| Satır | Severity | Kanıt ortamı | Önceki | Yeni | Not |
+|---|---|---|---|---|---|
+| VAL-A354 | ORTA | mock | BEKLEMEDE | PASS | Veri kaydı: `transition_records`/`orders` (gerçek PostgreSQL) |
+| VAL-A355 | ORTA | yok | BEKLEMEDE | PASS | Buyer, Admin, SameCartReorder sayılmaz |
+| VAL-A356 | ORTA | yok | BEKLEMEDE | PASS | `PaymentPageNotOpened` sayılmaz |
+| VAL-A358 | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | uç yanıtı; T511 (D-780) |
+| VAL-A359 | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | uç yanıtı; D-806 |
+| VAL-A360 | ORTA | mock | BEKLEMEDE | BEKLEMEDE | uç yanıtı; D-806 |
+| VAL-A361 | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE | uç yanıtı; D-806, D-807 |
+
+`12_matris_denetle.py --kapsam 1-77`: Hata 0.
+
+#### Test Sonuçları
+| Tür | Sonuç | Çıktı |
+|---|---|---|
+| Build `-warnaserror` | ✓ | 0 uyarı, 0 hata |
+| Format (3 proje) | ✓ | çıkış 0 |
+| Unit (+Consistency, Architecture) | ✓ | 5515/5515 |
+| Betik testleri | ✓ | 4/4 |
+| Integration dokunulan sınıflar | ✓ | 87/87 |
+| Integration `MembershipTests` | ✓ | 133/133 |
+| Dal CI 42600674503 | ✓ | tüm işler pass |
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz · Auth etkisi: Temiz · Input validation: Temiz (`IpAddress` null olamaz) · Yeni bağımlılık: Yok
+
+#### Bulgular
+Bulgu yok.
+
+#### Bloke-etmeyen Notlar
+| # | Not | Karar |
+|---|---|---|
+| K1 | L-8 tavanı eşzamanlı onaylarda aşılabilir (eksen başına kilit yok) | forward → D-826 (F3 gate) |
+| K2 | D-807 `VAL-A354`–`A356`'yı uç yanıtı isteyen satır sayıyordu | bu PR'da kapatıldı (metin düzeltildi, satırlar PASS) |
+
+#### Yapım Raporu Karşılaştırması
+- 1 uyuşmazlık: `VAL-A354`–`A356` yapımda `BEKLEMEDE`; kanıt türleri uç yanıtı değil, doğrulama PASS yazdı. Öz denetim tablosu var ve kanıtlı; kriter kararları aynı.
 
 ## Altyapı Değişiklikleri
 
@@ -91,7 +156,7 @@
 
 - **Branch:** `task/T377-limit-ilkeleri`
 - **PR:** #497
-- **CI:** doğrulayıcı izler
+- **CI:** dal run 42600674503 (head `c6b2a167`) yeşil
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

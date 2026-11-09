@@ -84,6 +84,17 @@
 		file_server
 	}
 
+	# The panel's export paths: the file is made while the request waits, so the proxy waits 150 seconds for the response header - above the
+	# application's 120-second production ceiling (09 3.5 item 4; 09 10.10 item 7). Every other path keeps the proxy's default.
+	handle /panel/disa-aktarma* {
+		reverse_proxy app:8080 {
+			header_up X-Request-Id {http.request.uuid}
+			transport http {
+				response_header_timeout 150s
+			}
+		}
+	}
+
 	handle {
 		reverse_proxy app:8080 {
 			header_up X-Request-Id {http.request.uuid}

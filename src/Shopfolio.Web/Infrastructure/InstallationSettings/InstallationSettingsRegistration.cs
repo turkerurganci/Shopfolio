@@ -32,6 +32,8 @@ internal static class InstallationSettingsRegistration
         services.AddSingleton<IValidateOptions<StatusThresholdOptions>, StatusThresholdOptionsValidator>();
         services.AddSingleton<IValidateOptions<LoggingOptions>, LoggingOptionsValidator>();
 
+        services.TryAddSingleton<ExportTempDirectory>();
+
         services.AddConditionalLines();
         return services;
     }

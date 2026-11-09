@@ -3,6 +3,7 @@ using System.Net;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
@@ -256,6 +257,9 @@ internal static class AdministrationModuleRegistration
         services.AddScoped<AuditTrail>();
         services.AddScoped<IAuditTrail>(p => p.GetRequiredService<AuditTrail>());
         services.AddDisposalPart<AdminInvitationDisposalPart>();
+        services.TryAddSingleton<Shopfolio.Infrastructure.ExportTempDirectory>();
+        services.AddScoped<IDataExport, DataExport>();
+        services.AddHostedService<Shopfolio.Infrastructure.ExportDirectoryStartup>();
         return services;
     }
 }

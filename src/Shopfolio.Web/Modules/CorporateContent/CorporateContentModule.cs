@@ -14,6 +14,7 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     private readonly BrandingSettings _branding;
     private readonly AnnouncementReader _announcement;
     private readonly ContactFormSending _contactForm;
+    private readonly ContactRequestExport _contactRequestExport;
 
     public CorporateContentModule(
         CorporateContentSitemapReader sitemap,
@@ -21,8 +22,10 @@ internal sealed class CorporateContentModule : ICorporateContentModule
         HomepageReader homepage,
         BrandingSettings branding,
         AnnouncementReader announcement,
-        ContactFormSending contactForm)
+        ContactFormSending contactForm,
+        ContactRequestExport contactRequestExport)
     {
+        _contactRequestExport = contactRequestExport;
         _contactForm = contactForm;
         _sitemap = sitemap;
         _menu = menu;
@@ -49,6 +52,8 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     public Task<ContactFormView> GetContactFormAsync(string? memberName, string? memberEmail, CancellationToken ct) => _contactForm.ReadAsync(memberName, memberEmail, ct);
 
     public Task<ContactFormResult> SendContactRequestAsync(ContactFormInput input, System.Net.IPAddress? ipAddress, CancellationToken ct) => _contactForm.SendAsync(input, ipAddress, ct);
+
+    public Task<int> WriteContactRequestExportAsync(Stream destination, long maxBytes, CancellationToken ct) => _contactRequestExport.WriteAsync(destination, maxBytes, ct);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddCorporateContentModule</c> once.</summary>
@@ -60,6 +65,7 @@ internal static class CorporateContentModuleRegistration
         services.AddScoped<ContentPublishing>();
         services.AddScoped<ContactRequests>();
         services.AddScoped<ContactFormSending>();
+        services.AddScoped<ContactRequestExport>();
         services.AddScoped<BrandingSettings>();
         services.AddScoped<ContentAuthoring>();
         services.AddScoped<SocialLinks>();

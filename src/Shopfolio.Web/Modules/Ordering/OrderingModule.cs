@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
+using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Routing;
 using Shopfolio.Modules.Catalog.Contracts;
@@ -29,12 +31,16 @@ internal sealed class OrderingModule : IOrderingModule
 
     private readonly OrderAccess _access;
 
-    public OrderingModule(AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks, DownloadCounters downloads, Carts carts, OrderAccess access)
+    private readonly InvoiceDataReader _invoiceData;
+
+    public OrderingModule(
+        AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks, DownloadCounters downloads, Carts carts, OrderAccess access, IOptions<SiteOptions> site)
     {
         _carts = carts;
         _db = db;
         _arms = arms;
         _shippingViews = new ShippingViewReader(db);
+        _invoiceData = new InvoiceDataReader(db, site);
         _locks = locks;
         _advisoryLocks = advisoryLocks;
         _downloads = downloads;
@@ -59,6 +65,8 @@ internal sealed class OrderingModule : IOrderingModule
         List<OrderEmailHistory> emails = await _db.OrderEmailHistories.AsNoTracking().Where(h => h.OrderId == orderId).ToListAsync(ct);
         return OrderFreeze.PartiesAtConfirmation(order, addresses, emails);
     }
+
+    public Task<IReadOnlyList<InvoiceData>> ListInvoiceDataAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => _invoiceData.ListAsync(orderIds, ct);
 
     public Task<IReadOnlyList<OrderPaymentArm>> FindPaymentArmsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => _arms.ReadAsync(orderIds, ct);
 

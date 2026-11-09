@@ -50,6 +50,20 @@ internal interface IContentRecord : IVersionedRecord
 }
 
 /// <summary>
+/// A content record that has a page address of its own (06 4.72; 02 3.30.2): the service introduction, the reference work and the general page. The address follows the name
+/// until the first publication (<see cref="ContentAuthoring"/> makes it again on every save) and is fixed at that moment (<see cref="ContentPublishing"/> writes
+/// <see cref="SlugFixedAt"/> in the same save as the status); from then on it never changes, whatever the name becomes and wherever the record goes after.
+/// </summary>
+internal interface IAddressedContentRecord : IContentRecord
+{
+    /// <summary>The record's part of the page address.</summary>
+    string Slug { get; set; }
+
+    /// <summary>The moment of the first publication; filled means the address no longer changes.</summary>
+    DateTimeOffset? SlugFixedAt { get; set; }
+}
+
+/// <summary>
 /// The publish gate of the corporate content (02 3.27.13, 5.2; 03 1.8.4): the required fields of each record kind, in one table. A field that holds
 /// only white space is empty. The about page and the announcement have no name or title; their gate is the content itself (the short introduction,
 /// the text). The picture is required in no kind.

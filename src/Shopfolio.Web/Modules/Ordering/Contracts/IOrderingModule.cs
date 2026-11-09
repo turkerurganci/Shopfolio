@@ -46,6 +46,13 @@ public interface IOrderingModule
     Task<ConfirmationParties?> GetConfirmationPartiesAsync(Guid orderId, CancellationToken ct);
 
     /// <summary>
+    /// The invoice data of the given orders (T357; 02 3.25.1, 3.25.3): the values the firm issues the invoice from outside the product - the items' frozen amounts, the shipping fee and
+    /// its frozen VAT breakdown, the billing address, the firm's identity frozen at confirmation (not the panel's current one), the payment method and approval, the hand-over moments,
+    /// the carrier and the domain. The order export (T384) writes them to its file; the product issues and keeps no invoice. An id with no order is skipped. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<InvoiceData>> ListInvoiceDataAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct);
+
+    /// <summary>
     /// The order a payment notification names (08 2.1.5; 05 4.5.5): the order with exactly that number - the number the link layer mapped the provider's
     /// reference back to -, with its paid total and payment method, or null when there is none. A plain read without the order's lock: the notification
     /// endpoint only classifies and records, the order's state is written by the processing job through the transition unit (05 4.5.2, 4.5.3).

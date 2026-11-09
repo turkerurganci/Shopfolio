@@ -30,11 +30,25 @@ internal sealed class OrderPeriods
     /// </summary>
     public async Task<DateTimeOffset?> PaymentApprovedAtAsync(Guid orderId, CancellationToken ct)
     {
-        return await _db.TransitionRecords
-            .Where(t => t.OrderId == orderId && t.TransitionCode == TransitionCode.O1
-                && !_db.TransitionRecords.Any(c => c.TransitionCode == TransitionCode.Correction && c.CorrectedTransitionRecordId == t.Id))
+        return await PaymentApprovals(_db)
+            .Where(t => t.OrderId == orderId)
             .MaxAsync(t => (DateTimeOffset?)t.CreatedAt, ct);
     }
+
+    /// <summary>
+    /// The payment approvals of every order: the Ö1 records no correction record points to. The one definition of the approval; its moment is the latest of these per order.
+    /// </summary>
+    public static IQueryable<TransitionRecord> PaymentApprovals(AppDbContext db) =>
+        db.TransitionRecords.Where(t => t.TransitionCode == TransitionCode.O1
+            && !db.TransitionRecords.Any(c => c.TransitionCode == TransitionCode.Correction && c.CorrectedTransitionRecordId == t.Id));
+
+    /// <summary>
+    /// The shipments of every order: the S5 and S8 records no correction record points to - a shipment mark that was corrected sent nothing (03 1.6.2.3). The moment the order was
+    /// shipped is the latest of these per order (06 4.17: read, not stored).
+    /// </summary>
+    public static IQueryable<TransitionRecord> Shipments(AppDbContext db) =>
+        db.TransitionRecords.Where(t => (t.TransitionCode == TransitionCode.S5 || t.TransitionCode == TransitionCode.S8)
+            && !db.TransitionRecords.Any(c => c.TransitionCode == TransitionCode.Correction && c.CorrectedTransitionRecordId == t.Id));
 
     /// <summary>
     /// Z-10 - where the order's shipping promise stands at <paramref name="now"/> while the order waits to be shipped (Preparing; 03 4.1.10): null when

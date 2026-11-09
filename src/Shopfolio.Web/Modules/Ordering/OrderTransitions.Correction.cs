@@ -151,11 +151,7 @@ internal sealed partial class OrderTransitions
         }
 
         // A shipment is an S5 or S8 row that was not itself corrected: a wrong shipment mark that was corrected sent nothing (1.6.2.3).
-        bool shipped = await _db.TransitionRecords.AnyAsync(
-            t => t.OrderId == order.Id
-                && (t.TransitionCode == TransitionCode.S5 || t.TransitionCode == TransitionCode.S8)
-                && !_db.TransitionRecords.Any(c => c.CorrectedTransitionRecordId == t.Id),
-            ct);
+        bool shipped = await OrderPeriods.Shipments(_db).AnyAsync(t => t.OrderId == order.Id, ct);
         if (items.Any(i => i.DeliveryMarkedAt is not null)
             || shipped
             || await _payment.HasRefundAsync(order.Id, ct)

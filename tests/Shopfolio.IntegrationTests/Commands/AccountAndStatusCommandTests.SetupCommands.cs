@@ -184,7 +184,10 @@ public sealed partial class AccountAndStatusCommandTests
 
         Assert.Equal(0, exit);
         Assert.Equal("Paid", await ScalarAsync<string>($"SELECT payment_status FROM orders WHERE id = '{marked}'"));
-        Assert.True(await ScalarAsync<long>("SELECT count(*) FROM dispatch_records") + await ScalarAsync<long>("SELECT count(*) FROM jobs") > 0);
+        // The one path's own writes: its transition records (Ö1 with S1, D-389) and one B-4 row queued for the running application, nothing sent by the command (05 8.5.7).
+        Assert.Equal("O1,S1", await ScalarAsync<string>($"SELECT string_agg(transition_code, ',' ORDER BY transition_code) FROM transition_records WHERE order_id = '{marked}'"));
+        Assert.Equal("B4", await ScalarAsync<string>($"SELECT string_agg(dispatch_type, ',' ORDER BY dispatch_type) FROM dispatch_records WHERE order_id = '{marked}'"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM jobs WHERE job_state <> 'Pending'"));
     }
 
     [Fact]
@@ -197,7 +200,10 @@ public sealed partial class AccountAndStatusCommandTests
 
         Assert.Equal(0, exit);
         Assert.Equal("Cancelled", await ScalarAsync<string>($"SELECT order_status FROM orders WHERE id = '{marked}'"));
-        Assert.True(await ScalarAsync<long>("SELECT count(*) FROM dispatch_records") + await ScalarAsync<long>("SELECT count(*) FROM jobs") > 0);
+        // The system's cancellation by the payment window's rule: S3 with Ö2 and one B-7 row queued for the running application, nothing sent by the command (05 8.5.7).
+        Assert.Equal("O2,S3", await ScalarAsync<string>($"SELECT string_agg(transition_code, ',' ORDER BY transition_code) FROM transition_records WHERE order_id = '{marked}'"));
+        Assert.Equal("B7", await ScalarAsync<string>($"SELECT string_agg(dispatch_type, ',' ORDER BY dispatch_type) FROM dispatch_records WHERE order_id = '{marked}'"));
+        Assert.Equal(0L, await ScalarAsync<long>("SELECT count(*) FROM jobs WHERE job_state <> 'Pending'"));
     }
 
     private Task<string> NumberOfAsync(Guid orderId) => ScalarAsync<string>($"SELECT order_number FROM orders WHERE id = '{orderId}'");

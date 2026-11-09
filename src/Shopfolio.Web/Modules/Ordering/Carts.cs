@@ -20,10 +20,12 @@ internal sealed class Carts
     private readonly AdvisoryLocks _locks;
     private readonly ICatalogModule _catalog;
     private readonly CartStatements _statements;
+    private readonly AttemptCounter _attempts;
     private readonly TimeProvider _time;
 
-    public Carts(AppDbContext db, AdvisoryLocks locks, ICatalogModule catalog, CartStatements statements, TimeProvider time)
+    public Carts(AppDbContext db, AdvisoryLocks locks, ICatalogModule catalog, CartStatements statements, AttemptCounter attempts, TimeProvider time)
     {
+        _attempts = attempts;
         _db = db;
         _locks = locks;
         _catalog = catalog;
@@ -268,6 +270,10 @@ internal sealed class Carts
             Cart memberCart = await _db.Carts.SingleAsync(c => c.Id == memberCartId, ct);
             memberCart.IsPaymentUnavailableNoticePending = true;
         }
+
+        // The invalid coupon attempts (L-6) of the two carts meet in the same call: the cart with more attempts in the window keeps them under the member's cart, the counters
+        // are not added and not reset (02 8.2.2; 05 6.3.2; 09 15.4 item 6; D-561).
+        await _attempts.MergeCartAsync(guestCartId, memberCartId, ct);
 
         _db.CartItems.RemoveRange(guestLive);
         _db.Carts.Remove(guestCart);

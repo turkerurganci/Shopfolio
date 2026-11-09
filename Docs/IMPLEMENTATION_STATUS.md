@@ -216,7 +216,7 @@
 | T373 | İade: iade kargo bedeli, ödemeli gönderim ve iade adresi, teslim alma adımı, stoğa ekleme, koşullu istisnada ret, kullanılmış mal | ⬚ | — | — | — |
 | T374 | Ayıp talebi: kanal, iki yıllık süre, durumlar, çözüm, dijital dosya güncellemesi | ⬚ | — | — | — |
 | T375 | Yöneticinin sipariş düzeltmeleri: ileri yönlü kayıt, tutar değişmez, firmanın teyidiyle e-posta ve adres düzeltmesi, cayma beyanı geri alınmaz | ⬚ | — | — | — |
-| T376 | Deneme limitleri: dokuz limit, kayan pencere, hesap kilitlenmez, nötr mesaj | ⬚ | — | — | — |
+| T376 | Deneme limitleri: dokuz limit, kayan pencere, hesap kilitlenmez, nötr mesaj | ✓ | ✓ PASS (tur 1) | — | #493 |
 | T377 | Limit ilkeleri: iki eksen, ödenmemiş sipariş sayımı, yönetici muafiyeti yok, tanınan tarayıcı işareti | ⬚ | — | — | — |
 | T378 | Zaman sayımı: tek saat dilimi, iş günü ve resmî tatil listesi, takvim ve iş günü sayımı, gün sonu, tarih aralığı, çitler | ✓ | ✓ PASS (tur 1) | `552a13d` | #416 |
 | T379 | Yönetici hesapları: ilk yönetici ve davet, kaldırma kuralları, tek rol, ayrı hesap türü, davetin geri çekilmesi, erişim kaybında kurtarma sınırı | ✓ | ✓ PASS (tur 2) | — | #473 |

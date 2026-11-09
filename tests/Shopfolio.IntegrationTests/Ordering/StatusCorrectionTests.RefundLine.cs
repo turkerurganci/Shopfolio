@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Values;
@@ -174,6 +175,7 @@ public sealed partial class StatusCorrectionTests
         (Order order, List<OrderItem> items) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, PaymentMethod.Card, new Line(ProductType.Physical, 2), new Line(ProductType.Physical, 1));
         Assert.False((await CancelItemByFirmAsync(order.Id, items[0].Id, 1, 1)).IsRejected);
         Guid refundId = await SeedLatestCardRequestAsync(order.Id, RefundRecordState.Failed);
+        Assert.Equal(new RefundMarks(true, false), await MarksAsync(order.Id));
 
         Assert.False((await RunAsync((u, t) => u.RetryCardRefundAsync(new RetryCardRefundRequest(order.Id, refundId, AdminCaller, 2), t))).IsRejected);
         await using (AppDbContext reader = NewContext())
@@ -198,9 +200,37 @@ public sealed partial class StatusCorrectionTests
         await using AppDbContext after = NewContext();
         Assert.Equal(PaymentMethod.BankTransfer, (await after.Refunds.SingleAsync(r => r.Id == refundId, Ct)).PaymentMethod);
         Assert.Equal(PaymentStatus.Paid, (await after.Orders.SingleAsync(o => o.Id == order.Id, Ct)).PaymentStatus);
+
+        // The refund turned to the transfer: the card way's "not realized" mark drops (06 4.34; D-322).
+        Assert.Equal(new RefundMarks(false, false), await MarksAsync(order.Id));
         Assert.Equal(
             TransitionRefusal.ConditionNotMet,
             (await RunAsync((u, t) => u.RetryCardRefundAsync(new RetryCardRefundRequest(order.Id, refundId, AdminCaller, 5), t))).Refusal);
+    }
+
+    [Fact]
+    public async Task TheCorrection_OfTheFirmsCancellation_DeletesTheIbanEnteredForIt_WithItsDisposalRecord_D517()
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, PaymentMethod.BankTransfer, new Line(ProductType.Physical, 2));
+        Guid s4 = await CancelByFirmAsync(order.Id);
+        Guid requestId = await OpenRequestIdAsync(items[0].Id);
+        Assert.False((await RunAsync((u, t) => u.EnterRefundIbanAsync(new EnterRefundIbanRequest(order.Id, requestId, ValidIban), t))).IsRejected);
+        Guid ibanId;
+        await using (AppDbContext reader = NewContext())
+        {
+            ibanId = (await reader.RefundIbanRequests.SingleAsync(r => r.Id == requestId, Ct)).RefundIbanId!.Value;
+        }
+
+        int disposals = await CountRefundIbanDisposalsAsync();
+        _clock.Advance(TimeSpan.FromHours(1));
+
+        OrderTransitionResult corrected = await CorrectAsync(order.Id, s4, await VersionAsync(order.Id), CorrectionReason.WrongOrder, null);
+
+        // The undone cancellation owes nothing: no pending refund uses the IBAN any more, so it goes with its disposal record (K-1056, K-1131; Z-44).
+        Assert.False(corrected.IsRejected);
+        await using AppDbContext after = NewContext();
+        Assert.False(await after.RefundIbans.AnyAsync(i => i.Id == ibanId, Ct));
+        Assert.Equal(disposals + 1, await CountRefundIbanDisposalsAsync());
     }
 
     [Fact]
@@ -209,6 +239,7 @@ public sealed partial class StatusCorrectionTests
         (Order order, List<OrderItem> items) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, PaymentMethod.Card, new Line(ProductType.Physical, 2), new Line(ProductType.Physical, 1));
         Assert.False((await CancelItemByFirmAsync(order.Id, items[0].Id, 1, 1)).IsRejected);
         Guid refundId = await SeedLatestCardRequestAsync(order.Id, RefundRecordState.OutcomePending);
+        Assert.Equal(new RefundMarks(false, true), await MarksAsync(order.Id));
 
         Assert.Equal(
             TransitionRefusal.ConditionNotMet,
@@ -236,6 +267,12 @@ public sealed partial class StatusCorrectionTests
     {
         await using AppDbContext reader = NewContext();
         return await reader.Cancellations.Where(c => c.OrderItemId == itemId).Select(c => c.Id).SingleAsync(Ct);
+    }
+
+    private async Task<RefundMarks> MarksAsync(Guid orderId)
+    {
+        await using AsyncServiceScope scope = _provider.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<IPaymentModule>().ReadRefundMarksAsync(orderId, Ct);
     }
 
     private async Task<int> CountRefundIbanDisposalsAsync()

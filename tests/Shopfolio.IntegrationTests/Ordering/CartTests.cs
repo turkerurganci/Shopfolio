@@ -719,7 +719,7 @@ public sealed class CartTests : IAsyncLifetime
     {
         await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn);
         await using AsyncServiceScope scope = provider.CreateAsyncScope();
-        return await scope.ServiceProvider.GetRequiredService<ICatalogModule>().ApplyCouponAsync(cartId, "YOK-" + Guid.NewGuid().ToString("N"), [], Ct);
+        return await scope.ServiceProvider.GetRequiredService<ICatalogModule>().ApplyCouponAsync(cartId, "YOK-" + Guid.NewGuid().ToString("N"), [new CouponLine(100m, 1, 20m)], Ct);
     }
 
     private Task<CartMergeResult> MergeAsync(Guid customerId, string key) => RunAsync((ordering, token) => ordering.MergeGuestCartAsync(customerId, key, token));

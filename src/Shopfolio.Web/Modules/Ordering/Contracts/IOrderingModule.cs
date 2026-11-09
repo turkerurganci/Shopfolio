@@ -172,6 +172,13 @@ public interface IOrderingModule
     Task<CardPaymentQueryTarget?> GetCardPaymentQueryTargetAsync(Guid orderId, DateTimeOffset now, CancellationToken ct);
 
     /// <summary>
+    /// What the installer's <c>apply-payment-result</c> command needs (T387; 05 8.5.12): the order with exactly that number, its paid total (06 4.17 <c>Total</c>), whether it is a card
+    /// order and whether it carries the "payment outcome unknown" mark at <paramref name="now"/> (the rule of the final query's handler and the panel - <c>PaymentWindowRules</c>); null
+    /// when there is no such order. A plain read; the command writes through the transition unit, which locks the order.
+    /// </summary>
+    Task<InstallerPaymentTarget?> FindInstallerPaymentTargetAsync(string orderNumber, DateTimeOffset now, CancellationToken ct);
+
+    /// <summary>
     /// What the customer's order page shows of the delivery (02 3.20.4-3.20.7; 04 5.16.8): the order's frozen shipping promise and its text, the moment the payment was confirmed, the moment
     /// the promise runs out, the moment of the shipment and the carrier display (the company and tracking number, the "Takip et" link only for a listed company, or the own-vehicle
     /// declaration alone). Null when there is no such order. A plain read; it writes nothing.
@@ -206,6 +213,9 @@ public sealed record PaidCardItem(Guid OrderId, Guid OrderItemId, ProductType Pr
 
 /// <summary>A card order that waits for its payment: its number, which the provider's query names, and whether its payment window has ended.</summary>
 public sealed record CardPaymentQueryTarget(string OrderNumber, bool WindowEnded);
+
+/// <summary>The order the installer's payment result names (05 8.5.12): its id and number, its paid total, whether it is a card order and whether it carries the "payment outcome unknown" mark.</summary>
+public sealed record InstallerPaymentTarget(Guid OrderId, string OrderNumber, decimal Total, bool IsCard, bool PaymentOutcomeUnknown);
 /// <summary>
 /// An order's retention arm (06 9.1): <see cref="IsPaid"/> is true when the order has a payment record that is not corrected; <see cref="FailedAt"/> is the
 /// moment of the Ö2 transition of an unpaid Failed order and null otherwise; <see cref="PersonalDataDisposed"/> says the order's disposal part has run.

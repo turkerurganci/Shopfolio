@@ -23,6 +23,18 @@ internal enum CommandOptionKind
     /// offset is a usage error: it would depend on the server's time zone (09 13.2 item 3).
     /// </summary>
     Moment,
+
+    /// <summary>
+    /// A Turkey day in ISO 8601 (<c>2026-10-29</c>), read without the culture (09 13.2 item 3; 09 7.1 item 3). The command turns it into the day's start or the next day's start with
+    /// <c>TurkeyTime</c>, so <c>--to</c> includes its day.
+    /// </summary>
+    Date,
+
+    /// <summary>
+    /// An amount in lira as dotted decimal text with at most two places (<c>1250</c>, <c>1250.5</c>, <c>1250.50</c>), read without the culture; compared in whole kuruş (09 13.2 item 3;
+    /// 09 14.2). A comma, a sign, a thousands separator or a third place is a usage error.
+    /// </summary>
+    Amount,
 }
 
 /// <summary>One option of a command (09 13.2 item 2): its name without the dashes, its one-line description, whether it must be given and its kind.</summary>
@@ -74,4 +86,10 @@ internal sealed class CommandInput
 
     /// <summary>The instant of a <see cref="CommandOptionKind.Moment"/> option in UTC; null when it was not given.</summary>
     public DateTimeOffset? Moment(string option) => _values.TryGetValue(option, out object? value) ? (DateTimeOffset)value : null;
+
+    /// <summary>The Turkey day of a <see cref="CommandOptionKind.Date"/> option; null when it was not given.</summary>
+    public DateOnly? Date(string option) => _values.TryGetValue(option, out object? value) ? (DateOnly)value : null;
+
+    /// <summary>The amount of a <see cref="CommandOptionKind.Amount"/> option in whole kuruş; null when it was not given.</summary>
+    public long? AmountInKurus(string option) => _values.TryGetValue(option, out object? value) ? (long)value : null;
 }

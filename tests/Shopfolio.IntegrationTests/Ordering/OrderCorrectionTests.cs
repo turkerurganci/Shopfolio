@@ -40,7 +40,7 @@ namespace Shopfolio.IntegrationTests.Ordering;
 /// to the new address and B-15 to the old one; there is no way to take a declaration back.
 /// </summary>
 [Collection(OrderTransitionsDefinition.Name)]
-public sealed class OrderCorrectionTests : IAsyncLifetime
+public sealed partial class OrderCorrectionTests : IAsyncLifetime
 {
     private static readonly DateTimeOffset Start = new(2026, 11, 9, 9, 0, 0, TimeSpan.Zero);
 
@@ -116,11 +116,18 @@ public sealed class OrderCorrectionTests : IAsyncLifetime
         Assert.Equal((OrderStatus.Preparing, PaymentStatus.Paid, order.Version + 2), (saved.OrderStatus, saved.PaymentStatus, saved.Version));
         Assert.Empty(await reader.TransitionRecords.Where(t => t.OrderId == order.Id).ToListAsync(Ct));
 
-        // The contract has no way to add an item or to touch a price: only the two corrections, and their requests carry no amount, quantity, price or item.
-        Assert.Equal(["CorrectAddressAsync", "CorrectGuestEmailAsync"], typeof(IOrderCorrections).GetMethods().Select(m => m.Name).Order(StringComparer.Ordinal).ToArray());
+        // The contract has no way to add an item or to touch a price: the two contact corrections carry no amount, quantity, price or item; the interventions of T386 carry
+        // no amount, price or total either - the removal names an existing item and the units it takes away, never a new one (02 10.4.3).
+        Assert.Equal(
+            ["CorrectAddressAsync", "CorrectDeliveryDateAsync", "CorrectGuestEmailAsync", "CorrectReturnArrivalDateAsync", "CorrectShipmentAsync", "RemoveItemAsync", "SaveInternalNoteAsync"],
+            typeof(IOrderCorrections).GetMethods().Select(m => m.Name).Order(StringComparer.Ordinal).ToArray());
         string[] carried = [.. new[] { typeof(CorrectAddressRequest), typeof(CorrectGuestEmailRequest) }.SelectMany(t => t.GetProperties()).Select(p => p.Name)];
         Assert.DoesNotContain(carried, n => n.Contains("Amount", StringComparison.Ordinal) && n != nameof(GuestIdentityConfirmation.Amount)
             || n.Contains("Quantity", StringComparison.Ordinal) || n.Contains("Price", StringComparison.Ordinal) || n.Contains("Item", StringComparison.Ordinal) || n.Contains("Total", StringComparison.Ordinal));
+        string[] interventions = [.. new[] { typeof(RemoveItemRequest), typeof(CorrectShipmentRequest), typeof(CorrectDeliveryDateRequest), typeof(CorrectReturnArrivalDateRequest), typeof(SaveInternalNoteRequest) }
+            .SelectMany(t => t.GetProperties()).Select(p => p.Name)];
+        Assert.DoesNotContain(interventions, n => n.Contains("Amount", StringComparison.Ordinal) || n.Contains("Price", StringComparison.Ordinal) || n.Contains("Total", StringComparison.Ordinal)
+            || n.Contains("Product", StringComparison.Ordinal) || n.Contains("Variant", StringComparison.Ordinal));
     }
 
     // ---- KK2: nine interventions, each on the trail ----

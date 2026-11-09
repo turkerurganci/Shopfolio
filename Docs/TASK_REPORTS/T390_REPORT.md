@@ -57,6 +57,17 @@ Bütün maddeler (önceki işçinin yaptıkları dahil) diff'te yeniden denetlen
 | `dotnet build -warnaserror` (Integration projesi) | 0 uyarı / 0 hata |
 | `dotnet format` (değişen test dosyaları) | değişiklik yok |
 
+## Doğrulama
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu (tur 1) | ✗ FAIL — tur 1 (2026-11-10, head `d5838e2b`; `origin/main` `29d3ce6f` dal tabanı, birleştirme gerekmedi). Kriter 1–8 ve 10, KK1–KK8 ve KK10 ✓; kriter 9 / KK9 `~ Kısmi` (B1) → FAIL. Ana dal CI son 3 run yeşil (42712574041, 42712573916, 42691939512). Dal CI 42719494443 (head `d5838e2b`) koşuyordu (Lint, Build, Contract, E2E pass; Unit, Integration, Migration, Paketleme bekliyor). Yerelde: derleme 0 uyarı / 0 hata (`-warnaserror`), `dotnet format --verify-no-changes` üç proje temiz, Unit 5739/5739 (Consistency ve Architecture dahil), betik testleri 4/4, Integration `BranchFlowTests` + `MainFlowTests` + `PaymentNotificationTests` 20/20 (Postgres 18, `track_commit_timestamp=on`). `09 §25` test ve güvenlik satırları temiz; üretim kodu değişmedi. |
+| Bulgu sayısı | 1 — **B1 DÜŞÜK S1** (`03 §2.10.5` adım 4; `02 §10.4.11` "Ne değişmez: müşterinin girdiği IBAN"; kriter 9, KK9): e-posta düzeltmesi testinde "IBAN değişmez" kanıtı boş. Sipariş misafirin havale siparişidir, düzeltme anında iptal/cayma yoktur, `refund_ibans` düzenekte boşaltılır; `ibansBefore` 0'dır ve `Assert.Equal(ibansBefore, …)` 0 = 0 karşılaştırır. Düzeltme müşterinin IBAN'ını silse ya da değiştirse test yine geçer. `OrderCorrectionTests` (T375) de IBAN'lı siparişte düzeltmeyi sınamıyor; kriter başka yerde de kilitli değil. Karşılaştırılan `BankTransferIban` firmanın havale IBAN'ıdır, müşterinin girdiği değil. Öneri: düzeltmeden önce müşterinin IBAN'lı bir iptali (kalem adedi 2, biri iptal) ya da beyanı yazılsın; düzeltmeden sonra IBAN satırı (kimlik, metin, silinme anı) aynı kalsın. |
+| Bloke-etmeyen not (K) sayısı | 0 |
+| Task satırları (`12 §7.5`) | Yok — kaynak birim `03 §2.10.2`–§2.10.5, KP yok; `12`'de task satırı yok (T329 emsali); `12_matris_denetle.py --kapsam 1-77` Hata 0. |
+| Yapım raporu karşılaştırması | 1 uyuşmazlık: yapım raporu KK9'u "IBAN sayısı önceki gibi" kanıtıyla ✓ sayıyor; sayı 0 olduğundan kanıt boş (B1). Öz denetim tablosu kabul kriteri ve KK başına kanıtlı. Not: yapım raporu doğrulayıcının diff okumasında (Faz 1) dal diff'inin içinde göründü; karar kendi kanıtlarıyla verildi. |
+| Düzeltme gerekli mi | Evet — B1 (yeni yapım turu; düzeltmeden sonra tur 2 doğrulaması) |
+
 ## Altyapı Değişiklikleri
 
 - Yok (migration, paket, CI değişikliği yok).

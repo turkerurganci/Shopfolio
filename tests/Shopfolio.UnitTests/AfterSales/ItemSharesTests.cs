@@ -57,6 +57,19 @@ public sealed class ItemSharesTests
     }
 
     [Fact]
+    public void TheProductAmountIsNotRounded_AndTheWholeItemTakesItsWholeShareAndVat()
+    {
+        // 02 7.1.7 (1): the unit price times the units, no rounding (a half-kuruş unit price stays as it is) - T372's withdrawal example.
+        ItemFrozenAmounts frozen = new(33.335m, 10.01m, 11.11m);
+
+        ItemAmounts whole = ItemShares.SetAside(frozen, 2, 2, true, 0m, 0m);
+        ItemAmounts part = ItemShares.SetAside(frozen, 2, 1, false, 0m, 0m);
+
+        Assert.Equal((66.67m, 10.01m, 11.11m), (whole.ProductAmount, whole.CouponShare, whole.VatAmount));
+        Assert.Equal((33.335m, 5.00m, 5.55m), (part.ProductAmount, part.CouponShare, part.VatAmount));
+    }
+
+    [Fact]
     public void AnItemWithoutACoupon_SetsAsideNoCouponShare()
     {
         ItemAmounts amounts = ItemShares.SetAside(Frozen with { CouponShare = 0m }, 3, 1, false, 0m, 0m);

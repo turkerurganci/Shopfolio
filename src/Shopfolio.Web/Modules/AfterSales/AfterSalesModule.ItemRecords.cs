@@ -84,19 +84,91 @@ internal sealed partial class AfterSalesModule
         ArgumentNullException.ThrowIfNull(declaration);
         ItemRecordSubject subject = declaration.Subject;
         RequireOrderLock(subject);
-        if (!ItemQuantities.IsSelectable(declaration.Quantity, await OpenQuantityAsync(subject, ct)))
+        int open = await OpenQuantityAsync(subject, ct);
+        if (!ItemQuantities.IsSelectable(declaration.Quantity, open))
         {
             return ItemRecordWriteResult.Rejected(ItemRecordRefusal.QuantityExceedsOpen);
         }
 
+        WithdrawalIban iban = declaration.Iban;
+        RefundIban? onFile = iban.UseOnFile
+            ? await _db.RefundIbans.Where(i => i.OrderId == subject.OrderId).OrderByDescending(i => i.EnteredAt).ThenBy(i => i.Id).FirstOrDefaultAsync(ct)
+            : null;
+        if (iban.UseOnFile && onFile is null)
+        {
+            return ItemRecordWriteResult.Rejected(ItemRecordRefusal.IbanMissing);
+        }
+
+        // The amounts set aside from the item's frozen values against what its earlier records set aside; the last open units take the rest (02 7.1.7; K-1104).
+        (decimal couponSetAside, decimal vatSetAside) = await SetAsideAsync(subject.OrderItemId, ct);
+        ItemAmounts amounts = ItemShares.SetAside(
+            declaration.Frozen, subject.ItemQuantity, declaration.Quantity, declaration.Quantity == open, couponSetAside, vatSetAside);
+
+        // The firm's current return address is copied as a value on a physical item (02 7.3.5; K-665): a later change of the setting never reaches it.
         ReturnAddress? address = subject.ProductType == ProductType.Physical ? await FirmReturnAddressAsync(ct) : null;
-        ItemAmounts amounts = new(declaration.ProductAmount, declaration.CouponShare, declaration.VatAmount);
+        RefundIban? refundIban = onFile;
+        if (iban.Entered is { } entered)
+        {
+            refundIban = RefundIban.Create(subject.OrderId, entered, declaration.At);
+            _db.RefundIbans.Add(refundIban);
+        }
+
         Withdrawal withdrawal = declaration.Admin is { } admin
-            ? Withdrawal.ByAdmin(subject.OrderItemId, declaration.Quantity, admin.AdminId, admin.AdminName, declaration.DeclarationDate, address, amounts, declaration.RefundIbanId, declaration.At)
-            : Withdrawal.ByBuyer(subject.OrderItemId, declaration.Quantity, declaration.DeclarationDate, address, amounts, declaration.RefundIbanId, declaration.At);
+            ? Withdrawal.ByAdmin(subject.OrderItemId, declaration.Quantity, admin.AdminId, admin.AdminName, declaration.DeclarationDate, address, amounts, refundIban?.Id, declaration.At)
+            : Withdrawal.ByBuyer(subject.OrderItemId, declaration.Quantity, declaration.DeclarationDate, address, amounts, refundIban?.Id, declaration.At);
         withdrawal.IsDeliveredBeforeDeclaration = declaration.IsDeliveredBeforeDeclaration;
         _db.Withdrawals.Add(withdrawal);
-        return new ItemRecordWriteResult(null, withdrawal.Id, null);
+
+        // Z-38: after the delivery the IBAN waits for the goods; it is deleted when the sending period and P-43 have run out unless the goods came (D-667). A later
+        // deletion day already on the IBAN (another declaration of it) is kept (K-1110).
+        if (refundIban is not null
+            && AfterSalesPeriodRules.IsAfterDelivery(subject.ProductType, subject.DeliveryDate, declaration.DeclarationDate, declaration.IsDeliveredBeforeDeclaration))
+        {
+            DateTimeOffset deletionAt = AfterSalesPeriodRules.ReturnIbanDeletionAt(declaration.DeclarationDate);
+            if (refundIban.ScheduledDeletionAt is not { } scheduled || scheduled < deletionAt)
+            {
+                refundIban.ScheduledDeletionAt = deletionAt;
+            }
+        }
+
+        // The item has at most one open IBAN request - the order page opens one IBAN field for it (06 4.29; 02 7.4.5).
+        RefundIbanRequest? openRequest = await _db.RefundIbanRequests
+            .Where(r => r.OrderItemId == subject.OrderItemId && r.FulfilledAt == null && r.ClosedAt == null)
+            .FirstOrDefaultAsync(ct);
+
+        // A record without an IBAN on the transfer line opens the item's IBAN request (02 10.4.10; K-581): the customer enters it on the order page. While the
+        // item's request is still open, a further record uses it - the field is already open (06 4.29: a second event uses the open request).
+        if (iban.Request)
+        {
+            ItemRecordAdmin requester = declaration.Admin ?? throw new InvalidOperationException("Only the administrator's record of a notice opens an IBAN request (02 10.4.10).");
+            if (openRequest is null)
+            {
+                _db.RefundIbanRequests.Add(RefundIbanRequest.ForItem(
+                    subject.OrderItemId, RefundIbanRequestReason.NoticeWithoutIban, null, requester.AdminId, requester.AdminName, declaration.At));
+            }
+        }
+        else if (refundIban is not null && openRequest is not null)
+        {
+            // A declaration that brings the item an IBAN - entered, carried from the order's e-mail or on file - fulfils its open request (06 4.29; 02 7.4.5).
+            openRequest.FulfilledAt = declaration.At;
+            openRequest.RefundIbanId = refundIban.Id;
+        }
+
+        ItemReturnAddress? copied = address is { } a ? new ItemReturnAddress(a.RecipientName, a.ProvinceId, a.District, a.AddressLine, a.Phone) : null;
+        return new ItemRecordWriteResult(null, withdrawal.Id, null, copied);
+    }
+
+    public async Task<WithdrawalNotes> WithdrawalNotesAsync(ProductType productType, bool shippedNotDelivered, WithdrawalExemptionReason? exemption, CancellationToken ct)
+    {
+        // A physical item's screen shows the current return address and the sending period; in transit it first says the carrier brings the goods back (K-838). A service
+        // item's shows neither (K-530). The packaging condition is the conditional exemption's (K-509), the one rule of WithdrawalExemptions.
+        bool physical = productType == ProductType.Physical;
+        ReturnAddress? address = physical ? await FirmReturnAddressAsync(ct) : null;
+        return new WithdrawalNotes(
+            address is { } a ? new ItemReturnAddress(a.RecipientName, a.ProvinceId, a.District, a.AddressLine, a.Phone) : null,
+            physical ? AfterSalesPeriodRules.ReturnShipmentPeriodDays : null,
+            physical && shippedNotDelivered,
+            WithdrawalExemptions.IsConditional(exemption) ? exemption : null);
     }
 
     public async Task<ItemRecordWriteResult> AddReturnReceiptAsync(ReturnReceiptEntry entry, CancellationToken ct)

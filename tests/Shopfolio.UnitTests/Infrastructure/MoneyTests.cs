@@ -220,12 +220,26 @@ public sealed class MoneyTests
     [InlineData("100", 2, 3, "66.66")]
     [InlineData("100", 3, 3, "100")]
     [InlineData("50", 1, 3, "16.66")]
+    [InlineData("0.05", 1, 3, "0.01")]
     [InlineData("0.02", 1, 3, "0.00")]
     [InlineData("0", 1, 2, "0")]
     [InlineData("99.99", 1, 1, "99.99")]
     public void ShareOfUnits_IsTheUnitsShare_RoundedDownToTheKurus(string frozen, int units, int total, string expected)
     {
         Assert.Equal(Dec(expected), Money.ShareOfUnits(Dec(frozen), units, total));
+    }
+
+    [Fact]
+    public void ShareOfUnits_TheExampleOf02_ThreeUnitsOf300WithACouponShareOf100_RefundsAddUpTo800()
+    {
+        // 09 14.1 item 6 (02 7.1.7): the first and second unit take 33,33 each; the third closes the last open unit and takes what is left, 33,34.
+        decimal first = Money.ShareOfUnits(100m, 1, 3);
+        decimal second = Money.ShareOfUnits(100m, 1, 3);
+        decimal third = 100m - first - second;
+
+        Assert.Equal([33.33m, 33.33m, 33.34m], new[] { first, second, third });
+        Assert.Equal([266.67m, 266.67m, 266.66m], new[] { 300m - first, 300m - second, 300m - third });
+        Assert.Equal(800m, 900m - first - second - third);
     }
 
     [Fact]

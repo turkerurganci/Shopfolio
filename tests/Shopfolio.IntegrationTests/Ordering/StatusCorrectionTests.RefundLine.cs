@@ -43,6 +43,20 @@ public sealed partial class StatusCorrectionTests
     }
 
     [Fact]
+    public async Task TheLastPhysicalUnitCancelledBeforeTheCarrier_AddsThePaidShippingFee_ToItsRefund_KK1()
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, PaymentMethod.Card, new Line(ProductType.Physical, 1), new Line(ProductType.Digital, 1));
+        await ExecuteAsync($"UPDATE orders SET shipping_fee = 30, shipping_fee_vat_breakdown = '[]' WHERE id = '{order.Id}'");
+
+        Assert.False((await CancelItemByFirmAsync(order.Id, items[0].Id, 1, 1)).IsRejected);
+
+        // The row carries the record's units and the fee the shipping fee rule adds (02 7.1.7, 7.4.6; VAL-A086, VAL-A088 record half).
+        await using AppDbContext reader = NewContext();
+        Refund refund = await reader.Refunds.SingleAsync(r => r.OrderId == order.Id, Ct);
+        Assert.Equal((130m, true, (int?)1), (refund.Amount, refund.IsShippingFeeIncluded, refund.Quantity));
+    }
+
+    [Fact]
     public async Task TheFirmsCancellation_OnTheTransfer_OpensTheIbanRequest_WithB14_AndWritesNoRefundYet_KK6()
     {
         (Order order, List<OrderItem> items) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, PaymentMethod.BankTransfer, new Line(ProductType.Physical, 2), new Line(ProductType.Physical, 1));

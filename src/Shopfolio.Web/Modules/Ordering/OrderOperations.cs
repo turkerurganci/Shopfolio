@@ -137,7 +137,7 @@ internal sealed class OrderOperations : IOrderOperations
                     i.Id,
                     i.ProductType,
                     i.Quantity,
-                    Math.Max(0, i.Quantity - period.ClosedUnits),
+                    Math.Max(0, i.Quantity - period.ClosedUnits - period.RescindedUnits),
                     i.DeliveryDate,
                     i.DeliveryMarkedAt is not null,
                     i.DownloadAllowance is { } allowance ? Math.Max(0, allowance - i.DownloadCount) : 0,

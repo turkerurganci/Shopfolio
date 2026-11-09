@@ -29,6 +29,19 @@ public interface IPaymentModule
     Task<Guid> StartLatePaymentRefundAsync(Guid orderId, Guid paymentRecordId, decimal paidTotal, CancellationToken ct);
 
     /// <summary>
+    /// Starts the firm's refund of a defect claim's remedy (02 7.5.3; 06 4.33): the rescission's refund with its units and shares, or the price reduction's amount-based
+    /// refund of the item. The refund is started, not sent: the firm processes it on its line (03 1.11.31). Writes through the caller's change tracker under the
+    /// order's row lock and saves nothing; returns the refund's id. The amount is the caller's (the rescission's split, or the firm's amount within its ceiling).
+    /// </summary>
+    Task<Guid> StartDefectRemedyRefundAsync(DefectRemedyRefundStart start, CancellationToken ct);
+
+    /// <summary>
+    /// The total of the order's refunds that are not voided - started, awaiting or sent - that pay the order's money back (the late payment's refund left out, 02 6.2.16),
+    /// the open transaction's changes included: the order's paid total minus this is what an amount-based refund may still pay back (03 1.11.31). A plain read.
+    /// </summary>
+    Task<decimal> CommittedRefundTotalAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
     /// Writes the outcome of one card refund request (05 4.6.2): <see cref="RefundRecordState.Succeeded"/> - the provider carried it out, the refund is
     /// sent; <see cref="RefundRecordState.Failed"/> - refused or not sent; <see cref="RefundRecordState.OutcomePending"/> - unknown, to be asked. The
     /// record must be the order's card refund's and still open (sending or outcome pending); otherwise nothing is written and the result is null.

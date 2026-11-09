@@ -122,6 +122,37 @@ internal sealed class PaymentModule : IPaymentModule
         return Facts(refund, isFirmRetry: false);
     }
 
+    public Task<Guid> StartDefectRemedyRefundAsync(DefectRemedyRefundStart start, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(start);
+        if (_db.Database.CurrentTransaction is null)
+        {
+            throw new InvalidOperationException("A defect remedy's refund is started inside the caller's transaction, under the order's row lock (09 6 item 3).");
+        }
+
+        RefundType type = start.Rescission is null ? RefundType.AmountBased : RefundType.DefectClaimRescission;
+        Refund refund = Refund.ByAdmin(start.OrderId, type, start.PaymentMethod, start.Amount, start.AdminId, start.AdminName, _time.GetUtcNow());
+        refund.OrderItemId = start.OrderItemId;
+        if (start.Rescission is { } rescission)
+        {
+            refund.DefectClaimId = rescission.DefectClaimId;
+            refund.Quantity = rescission.Quantity;
+            refund.CouponShare = rescission.CouponShare;
+            refund.VatAmount = rescission.VatAmount;
+        }
+
+        _db.Refunds.Add(refund);
+        return Task.FromResult(refund.Id);
+    }
+
+    public async Task<decimal> CommittedRefundTotalAsync(Guid orderId, CancellationToken ct)
+    {
+        await _db.Refunds.Where(r => r.OrderId == orderId).LoadAsync(ct);
+        return _db.Refunds.Local
+            .Where(r => r.OrderId == orderId && r.VoidedAt is null && r.RefundType != RefundType.LatePayment)
+            .Sum(r => r.Amount);
+    }
+
     public async Task<decimal> SentRefundTotalAsync(Guid orderId, CancellationToken ct)
     {
         // Loading puts the saved rows into the context without overwriting the tracked ones; the open transaction's changes are read from there.

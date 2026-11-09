@@ -127,6 +127,19 @@ public interface IOrderTransitions
     Task<ItemRecordResult> ReopenDefectClaimAsync(ReopenDefectClaimRequest request, CancellationToken ct);
 
     /// <summary>
+    /// The firm's rescission on an open defect claim (02 7.5.3; T374): on a paid order, the units taken back start the rescission's refund on the order's payment way with
+    /// the amounts of 02 7.1.7; the units leave the open quantity (K-1077) without closing the item. On the bank transfer line without an IBAN the item's IBAN request is
+    /// written and B-14 goes. The order's statuses do not change; the refund moves the payment axis when it is sent. <see cref="ItemRecordResult.RecordId"/> is the refund.
+    /// </summary>
+    Task<ItemRecordResult> RescindDefectClaimAsync(RescindDefectClaimRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// The firm's price reduction on an open defect claim (02 7.5.3, 5.5; T374): on a paid order, an amount-based refund of the item - the item is not returned - at most
+    /// the paid money not yet refunded. On the bank transfer line without an IBAN the item's IBAN request is written and B-14 goes. <see cref="ItemRecordResult.RecordId"/> is the refund.
+    /// </summary>
+    Task<ItemRecordResult> ReduceDefectClaimPriceAsync(ReduceDefectClaimPriceRequest request, CancellationToken ct);
+
+    /// <summary>
     /// The administrator rejects returned goods at the receipt step (03 1.7.1.7; 02 7.4.9; K-656): only on an item frozen with a conditional exemption, at most the
     /// declaration's units still on the way back, with the irreversible-action confirmation. B-16 goes to the customer; no refund is paid.
     /// </summary>

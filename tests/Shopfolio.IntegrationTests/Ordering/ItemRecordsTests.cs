@@ -35,7 +35,7 @@ namespace Shopfolio.IntegrationTests.Ordering;
 /// order's lock, and the panel marks read from the records. Every expected count comes from <see cref="ItemRecordTable"/>, the claim window or the contract.
 /// </summary>
 [Collection(OrderTransitionsDefinition.Name)]
-public sealed class ItemRecordsTests : IAsyncLifetime
+public sealed partial class ItemRecordsTests : IAsyncLifetime
 {
     private const string CompanyEmail = "firma-iletisim@example.com";
 

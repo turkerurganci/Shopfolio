@@ -27,7 +27,9 @@ public sealed record ItemPeriodQuery(
 /// <paramref name="ReceivableUnits"/> - the withdrawn or terminated units whose goods the firm may still take in, before or after the delivery (the ones on their way back and the ones closed as not come back);
 /// <paramref name="RejectableUnits"/> - the units on their way back, on an item with a conditional exemption; <paramref name="NotReturnedClosableUnits"/> - the units on their
 /// way back whose sending period (Z-42) has run out; <paramref name="HasArrivalRecord"/> - a receipt or a rejection of the item's returned goods is on file, so an arrival date
-/// exists to correct (03 1.11.25).
+/// exists to correct (03 1.11.25); <paramref name="RescindedUnits"/> - the units rescinded on the item's defect claim: they do not close the item but leave the units open to
+/// an operation (02 7.1.6; K-1077); <paramref name="DefectChannelExpired"/> - the channel had opened and its two years ran out: the order page sends the customer to the contact
+/// form instead (02 7.5.1, 7.5.2; Z-18).
 /// </summary>
 public sealed record ItemPeriodState(
     int ClosedUnits,
@@ -41,7 +43,9 @@ public sealed record ItemPeriodState(
     int ReceivableUnits,
     int RejectableUnits,
     int NotReturnedClosableUnits,
-    bool HasArrivalRecord = false);
+    bool HasArrivalRecord = false,
+    int RescindedUnits = 0,
+    bool DefectChannelExpired = false);
 
 /// <summary>An order's refund IBAN as the operation decision reads it (03 1.11.11, 1.11.12, 1.11.39): whether one is on file and whether a request for one is open on an item.</summary>
 public sealed record RefundIbanState(bool HasIban, bool HasOpenRequest);

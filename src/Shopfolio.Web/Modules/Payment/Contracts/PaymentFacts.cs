@@ -29,3 +29,20 @@ public sealed record RefundMarks(bool IsNotRealized, bool IsOutcomePending);
 
 /// <summary>The units, coupon share and VAT an item's defect claim rescissions set aside (06 4.33 <c>Quantity</c>, <c>CouponShare</c>, <c>VatAmount</c>; K-1024 (3)).</summary>
 public sealed record RescindedShares(int Quantity, decimal CouponShare, decimal VatAmount);
+
+/// <summary>
+/// The refund of a defect claim's remedy the firm starts (02 7.5.3; 06 4.33; K-788, K-228): the order, the way (the order's payment method), the item, the amount and
+/// the administrator. <paramref name="Rescission"/> makes it the rescission's refund (<see cref="RefundType.DefectClaimRescission"/>, with the claim, the units, the coupon
+/// share and the VAT); null makes it the price reduction's amount-based refund of the item, which takes nothing back.
+/// </summary>
+public sealed record DefectRemedyRefundStart(
+    Guid OrderId,
+    PaymentMethod PaymentMethod,
+    Guid OrderItemId,
+    decimal Amount,
+    Guid AdminId,
+    string AdminName,
+    DefectRescissionShares? Rescission);
+
+/// <summary>What a defect claim's rescission sets aside on its refund (06 4.33 <c>DefectClaimId</c>, <c>Quantity</c>, <c>CouponShare</c>, <c>VatAmount</c>).</summary>
+public sealed record DefectRescissionShares(Guid DefectClaimId, int Quantity, decimal CouponShare, decimal VatAmount);

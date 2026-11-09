@@ -87,7 +87,7 @@ internal sealed class OrderPeriods
     {
         Order order = await _db.Orders.AsNoTracking().SingleAsync(o => o.Id == orderId, ct);
         List<OrderItem> items = await _db.OrderItems.AsNoTracking().Where(i => i.OrderId == orderId).ToListAsync(ct);
-        IReadOnlyDictionary<Guid, int> closed = await _afterSales.ClosedQuantitiesAsync([.. items.Select(i => i.Id)], ct);
+        IReadOnlyDictionary<Guid, int> closed = await _afterSales.UnavailableQuantitiesAsync([.. items.Select(i => i.Id)], ct);
         IEnumerable<ItemDeliveryState> states = items.Select(i => new ItemDeliveryState(i.ProductType, i.Quantity - closed.GetValueOrDefault(i.Id), i.DeliveryDate));
         return DeliveryPeriodRules.IsLateDeliveryTerminationOpen(order.OrderStatus, order.PaymentStatus, order.CreatedAt, states, now);
     }

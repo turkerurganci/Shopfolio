@@ -63,7 +63,7 @@ internal sealed partial class OrderTransitions
         RaiseVersionOnce(order);
 
         List<OrderItem> items = await _db.OrderItems.Where(i => i.OrderId == order.Id).ToListAsync(ct);
-        IReadOnlyDictionary<Guid, int> closed = await _afterSales.ClosedQuantitiesAsync([.. items.Select(i => i.Id)], ct);
+        IReadOnlyDictionary<Guid, int> closed = await _afterSales.UnavailableQuantitiesAsync([.. items.Select(i => i.Id)], ct);
         bool noOpenUnit = items.All(i => i.Quantity - closed.GetValueOrDefault(i.Id) <= 0);
         bool anyDelivered = items.Any(i => i.DeliveryMarkedAt is not null);
         CancelledItem cancelled = new(item.ProductName, item.FirstOptionValue, item.SecondOptionValue, request.Quantity);

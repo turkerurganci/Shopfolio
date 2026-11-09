@@ -15,6 +15,7 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     private readonly AnnouncementReader _announcement;
     private readonly ContactFormSending _contactForm;
     private readonly ContactRequests _requests;
+    private readonly ContactRequestExport _contactRequestExport;
 
     public CorporateContentModule(
         CorporateContentSitemapReader sitemap,
@@ -23,8 +24,10 @@ internal sealed class CorporateContentModule : ICorporateContentModule
         BrandingSettings branding,
         AnnouncementReader announcement,
         ContactFormSending contactForm,
-        ContactRequests requests)
+        ContactRequests requests,
+        ContactRequestExport contactRequestExport)
     {
+        _contactRequestExport = contactRequestExport;
         _contactForm = contactForm;
         _requests = requests;
         _sitemap = sitemap;
@@ -54,6 +57,8 @@ internal sealed class CorporateContentModule : ICorporateContentModule
     public Task<ContactFormResult> SendContactRequestAsync(ContactFormInput input, System.Net.IPAddress? ipAddress, CancellationToken ct) => _contactForm.SendAsync(input, ipAddress, ct);
 
     public Task<int> CountSummaryContactRequestsAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, CancellationToken ct) => _requests.CountForSummaryAsync(periodStart, periodEnd, ct);
+
+    public Task<int> WriteContactRequestExportAsync(Stream destination, long maxBytes, CancellationToken ct) => _contactRequestExport.WriteAsync(destination, maxBytes, ct);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddCorporateContentModule</c> once.</summary>
@@ -65,6 +70,7 @@ internal static class CorporateContentModuleRegistration
         services.AddScoped<ContentPublishing>();
         services.AddScoped<ContactRequests>();
         services.AddScoped<ContactFormSending>();
+        services.AddScoped<ContactRequestExport>();
         services.AddScoped<BrandingSettings>();
         services.AddScoped<ContentAuthoring>();
         services.AddScoped<SocialLinks>();

@@ -98,9 +98,9 @@ public sealed record LateDeliveryTerminationEntry(
 
 /// <summary>
 /// A cancellation or a late delivery termination as the panel's legal interest warning reads it (02 7.2.3): the record, its item, whether it is a late delivery
-/// termination (<paramref name="IsTermination"/>) or a cancellation, and its moment.
+/// termination (<paramref name="IsTermination"/>) or a cancellation, its moment and the quantity it closed.
 /// </summary>
-public sealed record ClosingRecordMoment(Guid RecordId, Guid OrderItemId, bool IsTermination, DateTimeOffset At);
+public sealed record ClosingRecordMoment(Guid RecordId, Guid OrderItemId, bool IsTermination, DateTimeOffset At, int Quantity);
 
 /// <summary>An order item, its own quantity and the moment its open quantity is asked at (T383; 02 10.6.3: the end of the order's shipping promise).</summary>
 public sealed record ItemQuantityAt(Guid OrderItemId, int Quantity, DateTimeOffset At);

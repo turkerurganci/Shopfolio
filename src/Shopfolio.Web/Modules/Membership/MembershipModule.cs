@@ -405,6 +405,8 @@ internal sealed class MembershipModule : IMembershipModule
 
     public Task<DateTimeOffset?> GetDeletionBlockedUntilAsync(Guid customerId, CancellationToken ct) => _memberRecords.DeletionBlockedUntilAsync(customerId, ct);
 
+    public Task<int> WriteCustomerExportAsync(Stream destination, long maxBytes, CancellationToken ct) => new CustomerExport(_db).WriteAsync(destination, maxBytes, ct);
+
     private async Task<DateTimeOffset?> FirstLinkEndAsync(Guid customerId, CancellationToken ct)
     {
         return await _db.LinkRecords.AsNoTracking()

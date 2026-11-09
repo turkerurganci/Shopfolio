@@ -53,6 +53,15 @@ public interface IOrderingModule
     Task<IReadOnlyList<InvoiceData>> ListInvoiceDataAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct);
 
     /// <summary>
+    /// Writes the order export file's content to <paramref name="destination"/> (T384; 02 10.7.1; 09 10.10): a CSV with a header line and one line per order item of the orders created
+    /// in the Turkey day range (both days included) whose payment was completed - the set the sales summary counts - with the invoice data, the contact e-mail and recipient name, the
+    /// hand-over day and the late card payment and its refund. An order whose personal data is disposed keeps its lines with the name, e-mail and address cells empty. Returns the number of
+    /// item lines (0: the range has no order of that set - the caller makes no file). The stream stays open; the writing stops with an exception when the file passes
+    /// <paramref name="maxBytes"/>. A plain read; nothing is written to the records and no lock is taken.
+    /// </summary>
+    Task<int> WriteOrderExportAsync(DateOnly startDay, DateOnly endDay, Stream destination, long maxBytes, CancellationToken ct);
+
+    /// <summary>
     /// The order a payment notification names (08 2.1.5; 05 4.5.5): the order with exactly that number - the number the link layer mapped the provider's
     /// reference back to -, with its paid total and payment method, or null when there is none. A plain read without the order's lock: the notification
     /// endpoint only classifies and records, the order's state is written by the processing job through the transition unit (05 4.5.2, 4.5.3).

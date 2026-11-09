@@ -69,4 +69,11 @@ public interface ICorporateContentModule
     /// request and About an order are not the storefront's output and are left out. A plain read that counts; nothing is kept.
     /// </summary>
     Task<int> CountSummaryContactRequestsAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, CancellationToken ct);
+
+    /// <summary>
+    /// Writes the contact request export's content to <paramref name="destination"/> (T384; 02 10.7.4; 09 10.10): a CSV with the header <c>Ad;E-posta</c> and one line for every request still
+    /// kept, with the name and e-mail the sender typed in the form; no date range. Returns the number of lines (0: no request is kept - the caller makes no file). The stream stays open; the
+    /// writing stops with an exception when the file passes <paramref name="maxBytes"/>. A plain read.
+    /// </summary>
+    Task<int> WriteContactRequestExportAsync(Stream destination, long maxBytes, CancellationToken ct);
 }

@@ -65,6 +65,12 @@
 | Format | ✓ | `dotnet format <proje> --verify-no-changes` (Web, UnitTests, IntegrationTests) | çıkış 0 |
 | Contract | uygulanamaz | — | Uç yok |
 
+### Düzeltme 1 (tur 1 bulgusu B1)
+
+- **B1 düzeltildi:** `PlaceholderFiller.Inert` artık `Regex.Replace(value, @"\{(?=\{)", "{ ")` ile her ardışık açılış ayracını ayırır; `{{{Ad}}` → `{ { {Ad}}`, dört ayraç da sonuçta `{{` bırakmaz. Adım görünümü (`ConfirmationSummaryText.Render`) ve sipariş metni (`LegalTextGenerator` değerleri, ikinci doldurma) aynı tek işlevi çağırır. Yeni testler: `Inert_LeavesNoDoubleOpeningBrace_ForARunOfThreeOrFourBraces_...` (3 örnek, ikinci doldurma dahil), `Render_MakesAProductNameWithThreeOrFourBracesInert_...`. D-268 (4) kanıtı backlog satırında güncellendi.
+- **Öz denetim (düzeltilmiş diff'te yeniden):** kriter 1–9 ve KK1–KK9 yukarıdaki tabloyla aynı kanıtla ✓ (6 ve 9 modül düzeyinde, D-729/D-730); diff yalnız `PlaceholderFiller`, `ConfirmationStepTests`, backlog satırı ve kayıt dosyalarına dokunur, öteki kriterlerin kodu değişmedi. Sık FAIL satırı "etkisizleştirme tek geçişli" ✓ (üç/dört ayraç örnekleri). Çözülmemiş çakışma yok, `git status` temiz.
+- **Sınama (yerel, `postgres:18 -c track_commit_timestamp=on`):** restore 0; build `-warnaserror` 0 uyarı; format Web/UnitTests/IntegrationTests temiz; Unit 5306/5306; Integration `Ordering` 369/369; `*LegalText*` 16/16.
+
 ## Doğrulama
 
 | Alan | Sonuç |

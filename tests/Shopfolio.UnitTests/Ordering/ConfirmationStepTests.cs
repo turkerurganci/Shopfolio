@@ -426,6 +426,39 @@ public sealed class ConfirmationStepTests
         Assert.Equal("Unvan: { {ShippingPhone}} Ltd. / 5551112233", secondPass);
     }
 
+    [Theory]
+    [InlineData("{{{ContactEmail}}")]
+    [InlineData("{{{{ContactEmail}}")]
+    [InlineData("a{{{{{ContactEmail}} b")]
+    public void Inert_LeavesNoDoubleOpeningBrace_ForARunOfThreeOrFourBraces_AndTheSecondFillingDoesNotExpandIt(string value)
+    {
+        string inert = PlaceholderFiller.Inert(value)!;
+
+        Assert.DoesNotContain("{{", inert, StringComparison.Ordinal);
+        Assert.Empty(PlaceholderFiller.TokenNames(inert));
+
+        // The order's filling path: the version text carries the inert value, the order stage fills over the whole text again.
+        string firstPass = PlaceholderFiller.Fill("Unvan: {{CompanyLegalName}} / {{ContactEmail}}", new Dictionary<string, string?> { ["CompanyLegalName"] = inert }, requireAll: false);
+        string secondPass = PlaceholderFiller.Fill(firstPass, new Dictionary<string, string?> { ["ContactEmail"] = "x@example.test" }, requireAll: false);
+
+        Assert.Equal($"Unvan: {inert} / x@example.test", secondPass);
+    }
+
+    [Fact]
+    public void Render_MakesAProductNameWithThreeOrFourBracesInert_SoTheSecondFillingCannotExpandIt()
+    {
+        foreach (string name in new[] { "{{{ContactEmail}} lamba", "{{{{ContactEmail}} lamba" })
+        {
+            OrderItemSource source = Source(name: name);
+            ConfirmationSummary summary = new([ConfirmationSummaryText.LineOf(source, 1, Amounts(source, 1, 0m))], 0m, 1200m, PaymentMethod.Card, 2, null, null, null);
+
+            string text = ConfirmationSummaryText.Render(summary);
+
+            Assert.DoesNotContain("{{", text, StringComparison.Ordinal);
+            Assert.Empty(PlaceholderFiller.TokenNames(text));
+        }
+    }
+
     // ---- KK7: the box record carries the box, its text and the covered items ----
 
     [Fact]

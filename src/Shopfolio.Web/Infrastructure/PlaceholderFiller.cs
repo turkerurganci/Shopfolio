@@ -34,10 +34,14 @@ internal static partial class PlaceholderFiller
 
     /// <summary>
     /// Makes a value inert for a later filling over the same text (T356, D-268 (4)): the version's text keeps a company value as written, and the order stage fills the order's tokens
-    /// over the whole text again, so a value that carried <c>{{ShippingPhone}}</c> would expand there. A double opening brace gets a space between the braces; no other value is touched.
+    /// over the whole text again, so a value that carried <c>{{ShippingPhone}}</c> would expand there. Every opening brace that is followed by another opening brace gets a space after it, so a run of
+    /// three or four braces leaves no double opening brace in the result either; no other value is touched.
     /// The one place this rule lives: the version's making and the order's filling both call it.
     /// </summary>
-    public static string? Inert(string? value) => value?.Replace("{{", "{ {", StringComparison.Ordinal);
+    public static string? Inert(string? value) => value is null ? null : DoubleOpeningBrace().Replace(value, "{ ");
+
+    [GeneratedRegex(@"\{(?=\{)", RegexOptions.CultureInvariant)]
+    private static partial Regex DoubleOpeningBrace();
 
     /// <summary>The names of the tokens in a template, in the order they appear (a name more than once appears more than once).</summary>
     public static IEnumerable<string> TokenNames(string template)

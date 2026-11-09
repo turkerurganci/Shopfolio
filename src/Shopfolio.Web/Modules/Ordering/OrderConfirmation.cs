@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Catalog.Contracts.Coupons;
 using Shopfolio.Modules.Catalog.Contracts.Pricing;
@@ -17,7 +18,8 @@ namespace Shopfolio.Modules.Ordering;
 
 /// <summary>
 /// What the customer confirmed at the payment step (02 3.17.1, 3.17.2): the cart, the summary the customer saw - the lines, the shipping fee, the total and the payment method -, the
-/// legal text versions shown with the ticked boxes, the coupon code, the contact e-mail, the addresses and the client address.
+/// legal text versions shown with the ticked boxes, the coupon code, the contact e-mail, the addresses and the client address. The client address is required: a live order always
+/// holds its IP until the disposal empties it (06 4.17; the table's <c>disposal_fields_together</c> rule), so a connection without an address cannot place an order (T377; D-783).
 /// </summary>
 internal sealed record OrderConfirmationRequest(
     CartOwner Owner,
@@ -29,7 +31,7 @@ internal sealed record OrderConfirmationRequest(
     string ContactEmail,
     PartyAddress? Shipping,
     PartyAddress Billing,
-    IPAddress? IpAddress)
+    IPAddress IpAddress)
 {
     /// <summary>The values the summary is made of: the same ones <see cref="OrderConfirmation.SummarizeAsync"/> made the confirmed summary from.</summary>
     public OrderSummaryInput SummaryInput => new(Owner, ConfirmedSummary.PaymentMethod, CouponCode, ContactEmail, Shipping, Billing);
@@ -61,6 +63,13 @@ internal enum OrderConfirmationRefusal
     /// provider's keys, the bank transfer switched off or without its IBAN. Nothing is born.
     /// </summary>
     PaymentMethodUnavailable,
+
+    /// <summary>
+    /// A limit that counts the orders stops the new order (T377; 02 8.2, 8.2.3; 07 4.13.6): L-7 (too many orders the system cancelled in the window) for any method, L-8 (the open unpaid
+    /// ceiling) for the bank transfer only. Nothing is born and the answer is the neutral one - it names no number, no time and no axis (02 6.1.5); the limit is in
+    /// <see cref="OrderConfirmationResult.ExceededLimit"/> for the log line only.
+    /// </summary>
+    AttemptLimitExceeded,
 }
 
 /// <summary>
@@ -73,7 +82,8 @@ internal sealed record OrderConfirmationResult(
     string? OrderNumber,
     ConfirmationSummary? CurrentSummary,
     IReadOnlyList<SummaryChange> Changes,
-    ConfirmationStepCheck? StepCheck) : IOperationResult
+    ConfirmationStepCheck? StepCheck,
+    AttemptLimit? ExceededLimit = null) : IOperationResult
 {
     public bool IsRejected => Refusal is not null;
 
@@ -81,6 +91,10 @@ internal sealed record OrderConfirmationResult(
 
     public static OrderConfirmationResult Refused(OrderConfirmationRefusal refusal, ConfirmationSummary? current = null, IReadOnlyList<SummaryChange>? changes = null, ConfirmationStepCheck? check = null) =>
         new(refusal, null, null, current, changes ?? [], check);
+
+    /// <summary>The refusal of a limit (T377): the limit that stopped the order, for the log line; the user sees the neutral message only.</summary>
+    public static OrderConfirmationResult LimitExceeded(AttemptLimit limit) =>
+        new(OrderConfirmationRefusal.AttemptLimitExceeded, null, null, null, [], null, limit);
 }
 
 /// <summary>
@@ -103,6 +117,7 @@ internal sealed class OrderConfirmation
     private readonly OrderCounters _counters;
     private readonly OrderTransitions _transitions;
     private readonly IPaymentMethods _paymentMethods;
+    private readonly OrderPlacementLimits _limits;
     private readonly TimeProvider _time;
 
     public OrderConfirmation(
@@ -117,6 +132,7 @@ internal sealed class OrderConfirmation
         OrderCounters counters,
         OrderTransitions transitions,
         IPaymentMethods paymentMethods,
+        OrderPlacementLimits limits,
         TimeProvider time)
     {
         _db = db;
@@ -130,6 +146,7 @@ internal sealed class OrderConfirmation
         _counters = counters;
         _transitions = transitions;
         _paymentMethods = paymentMethods;
+        _limits = limits;
         _time = time;
     }
 
@@ -154,6 +171,14 @@ internal sealed class OrderConfirmation
         if (!(await _paymentMethods.ListOpenAsync(ct)).Contains(method))
         {
             return OrderConfirmationResult.Refused(OrderConfirmationRefusal.PaymentMethodUnavailable);
+        }
+
+        // 02 8.2.2, 8.2.3, 8.2.4 (T377): the two limits counted from the orders. They are asked after the cart's earlier unpaid order was cancelled above - that order is not one of the
+        // open orders the ceiling counts any more and its cancellation is not L-7's (the same-cart reason) - and a refusal rolls that cancellation back with the rest. A guest is
+        // counted on the IP axis only; a signed-in member on both; there is no exemption for any account (02 8.2.4).
+        if (await _limits.FindExceededAsync(method, request.IpAddress, request.Owner.CustomerId is null ? null : request.ContactEmail, ct) is { } exceeded)
+        {
+            return OrderConfirmationResult.LimitExceeded(exceeded);
         }
 
         Evaluation current = await EvaluateAsync(lines, cart.Shipping, request.SummaryInput, ct);

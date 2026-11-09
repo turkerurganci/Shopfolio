@@ -59,6 +59,20 @@ internal sealed class BrowserCookies
     /// <summary>Writes the guest cart's key again with the full life; the cart module calls it at every visit that brings the cookie (05 6.7.5).</summary>
     public static void WriteGuestCart(HttpContext context, string rawCartKey) => Write(context, CookieNames.Cart, rawCartKey, GuestCartLifetime);
 
+    /// <summary>
+    /// Writes the recognized browser mark after a successful sign-in or a password renewed by a reset link (02 8.2.6; 05 6.7.6): the random value the session store gave
+    /// (<see cref="SessionOpening.MarkValue"/>, <c>ResetOutcome.MarkValue</c>) for the lifetime it gave (P-48), required, first party. The value is random and carries no e-mail address,
+    /// no password and no account identifier; only the server side knows which account it is the mark of. It is written again at every successful sign-in, which renews its life.
+    /// </summary>
+    public static void WriteKnownDevice(HttpContext context, string markValue, TimeSpan lifetime)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(markValue);
+        Write(context, CookieNames.KnownDevice, markValue, lifetime);
+    }
+
+    /// <summary>The mark the browser brought, as the sign-in and the reset hand it to the store (<c>presentedMark</c>); null when the cookie did not come. The store decides whether it is valid for the account.</summary>
+    public static string? ReadKnownDevice(HttpContext context) => Read(context, CookieNames.KnownDevice);
+
     /// <summary>Writes what the checkout step holds, encrypted and signed, for the browser session (05 6.7.9).</summary>
     public void WriteCheckout(HttpContext context, string payload)
     {

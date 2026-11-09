@@ -1,3 +1,4 @@
+using Shopfolio.Infrastructure;
 using Shopfolio.Modules.Membership.Contracts;
 
 namespace Shopfolio.Modules.Ordering.Contracts;

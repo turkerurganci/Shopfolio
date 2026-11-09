@@ -77,10 +77,26 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL (tur 1) |
+| Bulgu sayısı | 2 (B1 ORTA, S1 · B2 ORTA, S1) |
+| Düzeltme gerekli mi | Evet — B1, B2 |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-745) |
+
+### Doğrulama Sonucu — tur 1 (validator)
+
+**Head:** `dbb730f4` (origin/main ile güncel; birleştirme gerekmedi) · **PR:** #487 · **Verdict:** ✗ FAIL
+
+- **Başlangıç kapıları:** working tree temiz; `core.hooksPath` = depo `scripts/git-hooks` (ana checkout'un mutlak yolu); ana dal CI son 3: 42548005029, 42548005043, 42546628955 hepsi `success`.
+- **Dal CI:** 42552921022 (`dbb730f4`) ✓ — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E (advisory), CI Gate `pass`. Önceki run 42552896442 (`f02f2b9a`) `cancelled`.
+- **Kabul kriterleri (kod + test okundu, testler koşuldu):** 1 ✓ (yalnız `Failed` satır, `JobClaim.LockAsync` kilidi; requeue `Pending`/0/boş `NextAttemptAt`, close `Completed`; koşul testte açık → kapalı) · **2 ~ Kısmi (B1)** · 3 ✓ (`ip`/`email` değersiz; argümanda `@`, `ip:`, IP biçimli değer 2, ileti değeri yinelemez; e-posta yönetici → müşteri iç kimliğine, giriş kaydında normalize adrese) · 4 ✓ (CSV `/tmp/shopfolio-export` ↔ sunucuda `/var/tmp/shopfolio-export`; `backup` hizmetinin birimlerinde yok; 0600; `DEPLOY_RUNBOOK §M.1` 5–6) · 5 ✓ (`AuditLine.ReadLogs` → `Flush(true)`, satır okumadan önce; okuma kendi satırını buluyor) · 6 ✓ (`Pages/` taraması + ihlal örnekleri) · 7 ✓ (işaretsiz kart, işaretli havale, olmayan numara 3; anlık görüntü değişmez) · **8 ~ Kısmi (B2)** · 9 ✓ (`Commands/` taraması; komut kipinde hosted service yok; B-4/B-7 `jobs` satırı `Pending`; `--help` = `05 §8.5` tablosu iki yönlü ve sıralı).
+- **KK1–KK9:** KK2 ~ (B1), öteki KK'lar ✓ (kriterlerle aynı kanıt; KK8 tutar ve iki yol ✓, kayıt satırı B2). **`09 §25`:** komutlar yalnız `Contracts` arayüzü; durum yalnız geçiş birimiyle; tutar `PaymentAmounts.ToKurus`; zaman `TimeProvider`; göç ve yeni paket yok; düzenli ifadeler zaman aşımlı. "Kod hiçbir doküman cümlesiyle çelişmiyor mu; çelişki varsa BLOCKED bildirilmiş mi?" sorusu B1'de hayır (D-738 "İyileştirme" diye ertelendi).
+- **Task satırları:** kaynak birimleri `03:§1.7`, `05:MK-66`, `MK-72`, `§6.9`, `§8.5`, `§9.3`, `09:§13` — KP birimi yok, adım 2a grep'i satır getirmez. Kaynağı `05 §8.5.12` olan **VAL-C115** (KRİTİK, mock) kabul kriteri 7–8'e eşlendi: işaretsiz ve tutmayan tutar reddi, Ö1+S1+B-4, Ö2+S3+B-7, komutun adıyla satır → `PASS`. Stok ve ayırma etkisi ortak geçiş yolunun kendi testlerinde (K1).
+- **Testler (yerel, `postgres:18 -c track_commit_timestamp=on`):** restore 0; build `-warnaserror` 0 uyarı; format Web/UnitTests/IntegrationTests temiz; Unit 5355/5355; betik testleri 4/4; Integration `AccountAndStatusCommandTests` 43/43, `CreateAdminCommandTests` + `RestoreCommandsTests` 26/26.
+- **B1 — ORTA, S1 Sapma (kabul kriteri 2, KK2; `05 §9.3.1`, §9.1.1, §9.1.4):** "sistem kayıtları" üç kaynaktır — erişim kaydı, uygulama kaydı ve **sunucunun kayıtları** (işletim sisteminin günlüğü, veritabanının ve pgBackRest'in kaydı, yedek aracının kaydı) — ve `05 §9.3.1` "erişim kaydı ve sunucunun kayıtları komutun konteynerine salt okuma bağlanır" der. `read-command` yalnız `app-logs` ve `access-logs:ro` bağlar; `LogReader.SystemLogFiles` yalnız `app-`/`audit-`/`command-` ve `access.log*` okur. `db-logs`, `backup-logs` ve `/var/log/journal` aynı compose'ta `backup` hizmetine zaten salt okuma bağlı. Yapım bunu D-738'e "İyileştirme" diye erteledi; kabul kriterinin parçası backlog'a yazılarak geçilmez (`12 §6.1`), onaylı kabul edilmiş risk de yok. Düzeltme: sunucunun dosya kayıtları `read-command`'a salt okuma bağlanır ve `system` kaynağı onları okur (biçimi JSON olmayan satırlar zamanıyla), ya da sapma belgede karara bağlanır (BLOCKED/karar kaydı).
+- **B2 — ORTA, S1 Sapma (kabul kriteri 8, KK8; `05 §8.5.12` "dayanağı panelin kaydıdır ve uygulama kaydına yazılır"):** kriter "sipariş numarasını ve panelde okunan sonucu alır ve uygulama kaydına yazar" der; komutun satırı `AuditLine.AdminCommandWithoutTarget` — yalnız komut adı ve boş kimlik. Satırdan hangi siparişe hangi sonucun (paid/none, tutar) uygulandığı okunmaz. Düzeltme: satır siparişin iç kimliğini ve sonucu kapalı değerlerle taşır (`AuditLine.ReadLogs` kalıbı; kişisel veri yok), işlemden önce yazılır; testte satır içeriği denetlenir.
+- **K1 → D-745:** VAL-C115 testleri ödeme durumunu ve geçiş kodlarını denetler; siparişin Hazırlanıyor oluşu, stoğun kesin düşmesi, iptalde ayırmaların serbest kalması, işaretin kalkması ve işaretsiz siparişte `paid` reddi komut testinde adıyla denetlenmez (ortak yolun kendi testleri kapsar).
+- **Güvenlik:** sır yok; kayıt satırında IP, e-posta ve süzgeç değeri yok; ileti girilen değeri yinelemez; CSV formül etkisizleştirme; dosya 0600; okuma okuyucu kullanıcıyla (`default_transaction_read_only`); yetki: komutlar yalnız sunucudan; yeni bağımlılık yok.
+- **Yapım raporu karşılaştırması:** 2 uyuşmazlık — kriter 2 ve KK2 ✓ yazılmış, sunucunun kayıtları D-738 ile dışarıda (B1); kriter 8 ✓ yazılmış, kayıt satırı numara ve sonucu taşımıyor (B2). Öz denetim tablosu var ve kanıtlı; öteki satırlar validator bulgularıyla uyumlu.
 
 ## Altyapı Değişiklikleri
 

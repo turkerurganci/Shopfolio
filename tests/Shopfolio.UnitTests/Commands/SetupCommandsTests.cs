@@ -5,8 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Commands;
 using Shopfolio.Infrastructure.Integrations;
-using Shopfolio.Infrastructure.LogRead;
 using Shopfolio.Infrastructure.Logging;
+using Shopfolio.Infrastructure.LogRead;
 using Shopfolio.UnitTests.Architecture;
 using Shopfolio.UnitTests.Fakes;
 using Shopfolio.UnitTests.Support;

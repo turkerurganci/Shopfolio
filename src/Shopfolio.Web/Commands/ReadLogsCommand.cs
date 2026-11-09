@@ -5,8 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using Shopfolio.Infrastructure;
-using Shopfolio.Infrastructure.LogRead;
 using Shopfolio.Infrastructure.Logging;
+using Shopfolio.Infrastructure.LogRead;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.Membership.Contracts;

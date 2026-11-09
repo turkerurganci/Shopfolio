@@ -462,6 +462,16 @@ internal sealed class PaymentModule : IPaymentModule
                 r.Id, r.OrderItemId, r.CancellationId, r.ItemRemovalId, r.LateDeliveryTerminationId, r.WithdrawalId, r.ReturnId, r.Quantity, r.SentAt ?? r.VoidedAt))];
     }
 
+    public async Task<IReadOnlyList<RefundOfRecord>> FindPendingTransferRefundsAsync(Guid orderId, CancellationToken ct)
+    {
+        // Loading puts the saved rows into the context without overwriting the tracked ones: the refund the caller just marked sent is read as sent.
+        await _db.Refunds.Where(r => r.OrderId == orderId).LoadAsync(ct);
+        return [.. _db.Refunds.Local
+            .Where(r => r.OrderId == orderId && r.PaymentMethod == PaymentMethod.BankTransfer && r.SentAt is null && r.VoidedAt is null)
+            .Select(r => new RefundOfRecord(
+                r.Id, r.OrderItemId, r.CancellationId, r.ItemRemovalId, r.LateDeliveryTerminationId, r.WithdrawalId, r.ReturnId, r.Quantity, null))];
+    }
+
     /// <summary>The state of the refund's latest card request, the open transaction's changes included; null when none was written.</summary>
     private async Task<RefundRecordState?> LatestStateAsync(Guid refundId, CancellationToken ct)
     {

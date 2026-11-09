@@ -21,8 +21,8 @@
 
 - Payment: `PaymentModule.cs`, `RefundLineRules.cs` (yeni), `Contracts/IPaymentModule.cs`, `Contracts/PaymentFacts.cs`
 - Ordering: `OrderTransitions.RefundLine.cs` (yeni), `OrderTransitions.CustomerCancellation.cs`, `.FirmCancellation.cs`, `.LateDeliveryTermination.cs`, `.Payment.cs`, `.Correction.cs`, `Contracts/IOrderTransitions.cs`, `Contracts/RefundLineRequests.cs` (yeni), `Contracts/ShipmentTransitionRequests.cs`
-- AfterSales: `AfterSalesModule.RefundLine.cs` (yeni), `AfterSalesModule.Cancellations.cs`, `Contracts/IAfterSalesModule.cs`, `Contracts/RefundLine.cs` (yeni), `Contracts/ItemRecordWrites.cs`
-- Testler: `tests/Shopfolio.UnitTests/Payment/RefundLineRulesTests.cs` (yeni), `tests/Shopfolio.UnitTests/Ordering/ShipmentTransitionContractTests.cs`, `tests/Shopfolio.IntegrationTests/Ordering/StatusCorrectionTests.RefundLine.cs` (yeni), `StatusCorrectionTests.cs`, `LateDeliveryAndFirmCancellationTests.cs`
+- AfterSales: `AfterSalesModule.RefundLine.cs` (yeni), `AfterSalesModule.Cancellations.cs`, `AfterSalesModule.DefectRemedies.cs` (birleştirme düzeltmesi), `Contracts/IAfterSalesModule.cs`, `Contracts/RefundLine.cs` (yeni), `Contracts/ItemRecordWrites.cs`
+- Testler: `tests/Shopfolio.UnitTests/Payment/RefundLineRulesTests.cs` (yeni), `tests/Shopfolio.UnitTests/Ordering/ShipmentTransitionContractTests.cs`, `tests/Shopfolio.IntegrationTests/Ordering/StatusCorrectionTests.RefundLine.cs` (yeni), `StatusCorrectionTests.cs`, `LateDeliveryAndFirmCancellationTests.cs`, `ItemRecordsTests.DefectRemedyIban.cs` (yeni, birleştirme düzeltmesi)
 - Kayıt: `Docs/DEFERRED_BACKLOG.d/T370.md` (yeni), `DEFERRED_BACKLOG.md` ve öteki parça dosyalarında yerinde kapanış/not, `IMPLEMENTATION_STATUS.md` satırı, `STATUS_CHANGELOG.d/T370.md`
 
 ## Kabul Kriterleri Kontrolü
@@ -33,7 +33,7 @@
 | 2 | İptalde kart iadesi onaysız, IBAN alanı yok; havale ve caymada firma panelden | ✓ | `IsStartedBySystem`, `NeedsIbanField`; Unit `OnTheCard_TheSystemStartsTheCancellationsRefund_AndAsksForNoIban_KK2`, `TheWithdrawal_AndTheTransferLine_AreTheFirmsStepOnThePanel_KK2`; Integration `…_KK1_KK2` (iş satırı `CardRefund`, istek yok, B-14 yok) |
 | 3 | Süre başlangıcı: iptalden; teslimden önce caymada ve hizmette beyandan; teslimden sonra ulaşma ile beyandan geç olanı | ✓ | `AfterSalesPeriodRules.CancellationRefundStanding`, `WithdrawalRefundStartDay` (tek kural evi); Unit `ThePeriod_StartsAtTheCancellation_AtTheDeclarationBeforeTheDelivery_AndAtTheLaterOfArrivalAndDeclarationAfter_KK3` (mal beyandan önce ulaştıysa beyandan) |
 | 4 | IBAN biçim + sağlama; işlenene kadar müşterice düzeltme; firma IBAN girmez | ✓ | `InvalidIbanAttribute` (`IbanRule.Allows`) girişte, düzeltmede ve müşteri iptalinde; firma işlemlerinde IBAN parametresi yok; Integration `TheCustomersCancellation_OnTheTransfer_TakesACheckedIban_KK4`, `TheIban_IsEnteredAndCorrected_UntilProcessed_ThenDeletedWithItsDisposalRecord_KK4_KK5` |
-| 5 | IBAN son bekleyen geri ödemeyle silinir; her silme imha kaydına | ✓ | `DeleteUnusedRefundIbansAsync`, `IsRefundIbanInUseAsync`; Integration `…_KK4_KK5`, `TheIban_SharedByAPendingRefund_StaysUntilTheLastOneGoes_KK5`, `TheCorrection_OfTheFirmsCancellation_DeletesTheIbanEnteredForIt_WithItsDisposalRecord_D517` |
+| 5 | IBAN son bekleyen geri ödemeyle silinir; her silme imha kaydına | ✓ | `DeleteUnusedRefundIbansAsync`, `IsRefundIbanInUseAsync` + `IsUsedByAPendingTransferRefundAsync` (kaynağı ne olursa olsun bekleyen havale geri ödemesi; `IPaymentModule.FindPendingTransferRefundsAsync`); Integration `…_KK4_KK5`, `TheIban_SharedByAPendingRefund_StaysUntilTheLastOneGoes_KK5`, `TheCorrection_OfTheFirmsCancellation_DeletesTheIbanEnteredForIt_WithItsDisposalRecord_D517`, `ItemRecordsTests.TheIban_OfTheItemsRequest_StaysWhileTheItemsOtherDefectRefundIsPending_AndGoesWithTheLast_KK5`, `ItemRecordsTests.TheIban_OnTheOrdersFile_StaysWhileAnotherItemsDefectRefundIsPending_AndGoesWithTheLast_KK5` |
 | 6 | Havalede firma iptalinde IBAN isteği kayıtla düşer, B-14, süre durmaz | ✓ | `StartRefundOfRecordAsync` (`NeedsIbanField` + `OpenRefundIbanRequestAsync`); Integration `TheFirmsCancellation_OnTheTransfer_OpensTheIbanRequest_WithB14_AndWritesNoRefundYet_KK6` (ikinci olayda tek B-14), `TheTerminationsRefund_OnTheTransfer_FromANoticeWithoutAnIban_OpensTheIbanRequest_WithB14_AndWritesNoRefundYet_T370_KK6`; süre kayıttan okunur, IBAN'ı beklemez (`CancellationRefundStanding`) |
 | 7 | "Havale gerçekleşmedi" IBAN'ı siler, alanı açar, B-14; kalem "IBAN bekleniyor"a döner, süre durmaz | ✓ | `ReportTransferFailedAsync` (Ordering + AfterSales); Integration `TransferFailed_DeletesTheIban_OpensTheFieldAgain_AndSendsB14_KK7` |
 | 8 | Kart reddi: eksen sabit, işaret, bekleyen iş; yeniden deneme ya da havale yolu (B-14); IBAN'dan sonra deneme kapalı | ✓ | `ActionsOf`, `RetryCardRefundAsync`, `OpenRefundTransferPathAsync`, `EnterRefundIbanAsync`, `ReadRefundMarksAsync`; Unit `AFailedCardRefund_OpensTheRetryAndTheTransferPath_UntilAnIbanIsEntered_KK8`; Integration `AFailedCardRefund_IsRetried_OrTurnedToTheTransfer_AndAfterTheIbanTheRetryIsClosed_KK8` |
@@ -76,9 +76,29 @@
 - Devredilen backlog kalemleri: D-322, D-517, D-790, D-791, D-817, D-818, D-843 kapandı (D-817'nin kalanı D-873); D-526, D-583, D-666, D-667, D-696'nın T370 payı D-874–877'ye taşındı.
 - Main birleştirmesi: `origin/main` `d3ff0f8b` (T375) birleştirildi, birleşik ağaçta Unit + Integration TAM koşuldu.
 
+## Birleştirme ve düzeltme (2026-11-09, tur 1 PASS sonrası)
+
+- **Birleştirme:** `origin/main` `64d0e44a` (T374 #504, T383 #503) dala alındı (rebase yok). Çakışmalar yalnız ekleme: `IAfterSalesModule.cs` (T374'ün dört ayıp üyesi + T383'ün üç okuması, T370 üyeleri yanında), `PaymentFacts.cs` (T374'ün `DefectRemedyRefundStart`, `DefectRescissionShares` + T370'in `RefundOfRecord`, `CardRefundActions`), `DEFERRED_BACKLOG.d/T369.md` (D-842 main'den — T374 kapatması; D-843 daldan — T370 kapatması). Göç yok; ortak kayıt satırları main sürümünde.
+- **Davranış düzeltmesi (yardımcının sahip yerine kararı; `02 §7.4.5`):** birleşik kodda `IsRefundIbanInUseAsync` T374'ün bekleyen ayıp geri ödemelerini (dönme, bedel indirimi) saymıyordu: kalemin iptal/çıkarma/fesih/cayma kaydı olmadığı için kalem isteği atlanıyor, biri işlenince IBAN siliniyor, öteki IBAN'sız kalıyordu. Kural tek yerde: `IsUsedByAPendingTransferRefundAsync` — siparişin işlenmemiş ve geçersizleşmemiş, havale yolundaki her geri ödemesi (kaynağı ne olursa olsun) ödeneceği IBAN'ı kullanımda tutar; ödeneceği IBAN kaydının IBAN'ı, yoksa kendi isteğinin, sonra kaleminin isteğinin IBAN'ı, hiçbiri yoksa dosyadaki IBAN (siparişin her IBAN'ı). Okuma `IPaymentModule.FindPendingTransferRefundsAsync` (açık işlemin değişiklikleri dahil).
+- **Tek yol:** T374'ün `RequestDefectRemedyIbanAsync`'i kalem isteğini artık T370'in tek istek yazıcısıyla (`OpenRefundIbanRequestAsync`) açar; dosyada IBAN varsa istek yok kuralı korunur (`Remedies_OnTheTransferLine…_KK8` testleri yeşil).
+- **T374 kalem tavanı:** `CommittedItemRefundTotalAsync` kalemin geçersizleşmemiş bütün `Refund` satırlarını toplar; T370'in kayıt geri ödemeleri `OrderItemId` ile yazılır (`StartRecordRefundAsync`), sayılır. Havalede kaydın satırı firmanın adımıyla doğduğu için o tutar tavana henüz girmez → **D-906** (T527).
+- **Yeni backlog:** D-906 (yukarıda), D-907 — ayıp geri ödemesinin "havale gerçekleşmedi"si dosyadaki IBAN'ı bulamıyor (`ReportTransferFailedAsync` yalnız kalemin kayıt ve isteklerine bakar) → T373.
+- **Öz denetim:** kriter 1–9 ve KK1–KK9 birleşik ağaçta yeniden denetlendi (yukarıdaki tablo; kanıt testleri birleşik ağaçta yeşil). Sık FAIL nedenleri: birleştirmede iki yol (istek yazıcısı tek yola indirildi); yeni kapanış türünün okuyuculara yayılması (IBAN ömrü T374 geri ödemelerini okur; "gerçekleşmedi" payı D-907); Integration TAM koşuldu; `dotnet format` üç proje.
+
 ## Test Sonuçları
 
-Birleşik ağaç (bu dal + `origin/main` `d3ff0f8b`):
+Birleşik ağaç (bu dal + `origin/main` `64d0e44a`, düzeltmeden sonra):
+
+| Tür | Sonuç | Komut | Çıktı özeti |
+|---|---|---|---|
+| Build | ✓ | `dotnet build -warnaserror` | 0 uyarı, 0 hata |
+| Lint | ✓ | `dotnet format <proje> --verify-no-changes` (3 proje) | temiz |
+| Unit (Consistency dahil) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | 5736/5736 |
+| Integration Ordering + Payment | ✓ | `--filter-namespace …Ordering --filter-namespace …Payment` | 571/571 (yeni 2 IBAN testi dahil) |
+| Integration Model | ✓ | `--filter-namespace …Model` | 1404/1404 |
+| Integration kalan ad alanları | ✓ | `--filter-not-namespace` Ordering/Payment/Model | 1395/1395 |
+
+Önceki birleşik ağaç (bu dal + `origin/main` `d3ff0f8b`):
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
@@ -131,6 +151,8 @@ Dış varsayım: yok (kart iadesi sağlayıcı çağrısı var olan `CardRefund`
 | 4 | Z-38 kaynağının bekleyen geri ödeme konuları | D-876 | Zamanlanmış silme T373 |
 | 5 | "Mal ulaşmadı" hâlinde IBAN silme günü | D-877 | T373 |
 | 6 | Beş yeni geri ödeme işleminin işlem izi satırı | D-898 | D-646/D-774 emsali: iz panel/sayfa işleminde (T527) |
+| 7 | Havalede kaydın doğmamış geri ödemesi tutar tavanlarına girmiyor | D-906 | Satır firmanın panel adımıyla doğar (T527) |
+| 8 | Ayıp geri ödemesinin "havale gerçekleşmedi"si dosyadaki IBAN'ı bulamıyor | D-907 | "Gerçekleşmedi" IBAN bulma kuralı ömür kuralıyla birleştirilecek (T373) |
 
 ## Notlar
 

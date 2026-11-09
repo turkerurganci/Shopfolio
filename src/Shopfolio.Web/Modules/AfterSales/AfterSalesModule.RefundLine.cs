@@ -119,7 +119,7 @@ internal sealed partial class AfterSalesModule
         List<Guid> deleted = [];
         foreach (RefundIban iban in ibans)
         {
-            if (!await IsRefundIbanInUseAsync(iban.Id, ct))
+            if (!await IsRefundIbanInUseAsync(iban.Id, orderId, ct))
             {
                 DeleteIban(iban);
                 deleted.Add(iban.Id);
@@ -173,11 +173,17 @@ internal sealed partial class AfterSalesModule
     /// <item>a withdrawal linked to it with units neither paid back by a settled refund nor closed by a rejection or a "goods did not come back" closure -
     /// the receipt-by-receipt refunds of a later receipt (02 7.1.7);</item>
     /// <item>a request fulfilled with it: on a refund (the transfer path of a failed card refund, the late payment), until that refund settles; on an item,
-    /// while the item has a record without an IBAN of its own whose refund is not settled, or until an item refund settles after the IBAN came.</item>
+    /// while the item has a record without an IBAN of its own whose refund is not settled, or until an item refund settles after the IBAN came;</item>
+    /// <item>a refund of the order pending on the transfer way, whatever its source, that would be paid to it (<see cref="IsUsedByAPendingTransferRefundAsync"/>).</item>
     /// </list>
     /// </summary>
-    private async Task<bool> IsRefundIbanInUseAsync(Guid refundIbanId, CancellationToken ct)
+    private async Task<bool> IsRefundIbanInUseAsync(Guid refundIbanId, Guid orderId, CancellationToken ct)
     {
+        if (await IsUsedByAPendingTransferRefundAsync(refundIbanId, orderId, ct))
+        {
+            return true;
+        }
+
         // A cancellation undone by the correction of the firm's wrong cancellation needs no refund any more (06 4.22; K-1056, K-1131).
         Guid[] linkedItems = [.. await _db.Cancellations.Where(c => c.RefundIbanId == refundIbanId).Select(c => c.OrderItemId).Distinct().ToListAsync(ct)];
         List<Guid> cancellations = [.. (await StandingCancellationsAsync(linkedItems, ct)).Where(c => c.RefundIbanId == refundIbanId).Select(c => c.Id)];
@@ -250,6 +256,72 @@ internal sealed partial class AfterSalesModule
 
         return false;
     }
+
+    /// <summary>
+    /// Whether a refund of the order still pending on the transfer way - neither sent nor voided, whatever its source: a record's, a defect remedy's rescission or price
+    /// reduction (T374), the late payment's - would be paid to the IBAN (02 7.4.5: the IBAN goes once the last pending refund that uses it is processed). The refund is
+    /// paid to its record's IBAN; without one, to the IBANs fulfilled on its own requests, then on its item's requests; without any, to the IBAN on the order's file - so
+    /// it holds every IBAN of the order.
+    /// </summary>
+    private async Task<bool> IsUsedByAPendingTransferRefundAsync(Guid refundIbanId, Guid orderId, CancellationToken ct)
+    {
+        IReadOnlyList<RefundOfRecord> pending = await _payment.FindPendingTransferRefundsAsync(orderId, ct);
+        if (pending.Count == 0)
+        {
+            return false;
+        }
+
+        Guid[] cancellationIds = [.. pending.Select(r => r.CancellationId).OfType<Guid>()];
+        Guid[] terminationIds = [.. pending.Select(r => r.LateDeliveryTerminationId).OfType<Guid>()];
+        Guid[] withdrawalIds = [.. pending.Select(r => r.WithdrawalId).OfType<Guid>()];
+        Dictionary<Guid, Guid> recordIbans = new(
+        [
+            .. await _db.Cancellations.Where(c => cancellationIds.Contains(c.Id) && c.RefundIbanId != null)
+                .Select(c => new KeyValuePair<Guid, Guid>(c.Id, c.RefundIbanId!.Value)).ToListAsync(ct),
+            .. await _db.LateDeliveryTerminations.Where(t => terminationIds.Contains(t.Id) && t.RefundIbanId != null)
+                .Select(t => new KeyValuePair<Guid, Guid>(t.Id, t.RefundIbanId!.Value)).ToListAsync(ct),
+            .. await _db.Withdrawals.Where(w => withdrawalIds.Contains(w.Id) && w.RefundIbanId != null)
+                .Select(w => new KeyValuePair<Guid, Guid>(w.Id, w.RefundIbanId!.Value)).ToListAsync(ct),
+        ]);
+
+        Guid[] refundIds = [.. pending.Select(r => r.RefundId)];
+        Guid[] itemIds = [.. pending.Select(r => r.OrderItemId).OfType<Guid>().Distinct()];
+        List<RequestIban> fulfilled = await _db.RefundIbanRequests
+            .Where(r => r.RefundIbanId != null
+                && ((r.RefundId != null && refundIds.Contains(r.RefundId.Value)) || (r.RefundId == null && r.OrderItemId != null && itemIds.Contains(r.OrderItemId.Value))))
+            .Select(r => new RequestIban(r.OrderItemId, r.RefundId, r.RefundIbanId!.Value))
+            .ToListAsync(ct);
+
+        foreach (RefundOfRecord refund in pending)
+        {
+            Guid? recordId = refund.CancellationId ?? refund.LateDeliveryTerminationId ?? refund.WithdrawalId;
+            if (recordId is { } record && recordIbans.TryGetValue(record, out Guid recordIban))
+            {
+                if (recordIban == refundIbanId)
+                {
+                    return true;
+                }
+
+                continue;
+            }
+
+            List<Guid> own = [.. fulfilled.Where(r => r.RefundId == refund.RefundId).Select(r => r.RefundIbanId)];
+            if (own.Count == 0 && refund.OrderItemId is { } itemId)
+            {
+                own = [.. fulfilled.Where(r => r.RefundId == null && r.OrderItemId == itemId).Select(r => r.RefundIbanId)];
+            }
+
+            if (own.Count == 0 || own.Contains(refundIbanId))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>A request fulfilled with an IBAN: its item or refund and the IBAN.</summary>
+    private sealed record RequestIban(Guid? OrderItemId, Guid? RefundId, Guid RefundIbanId);
 
     /// <summary>An item record's id and item, as the IBAN's use reads it.</summary>
     private sealed record ItemRecordRef(Guid Id, Guid OrderItemId);

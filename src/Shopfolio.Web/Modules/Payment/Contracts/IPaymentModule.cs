@@ -160,6 +160,12 @@ public interface IPaymentModule
     /// </summary>
     Task<IReadOnlyList<RefundOfRecord>> FindRefundsOfRecordsAsync(IReadOnlyCollection<Guid> recordIds, CancellationToken ct);
 
+    /// <summary>
+    /// The order's refunds on the bank transfer way that are neither sent nor voided, whatever their source - a record's, a defect remedy's, the late payment's - with
+    /// their links, the open transaction's changes included (T370; 02 7.4.5): the refunds that may still be paid to an IBAN. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<RefundOfRecord>> FindPendingTransferRefundsAsync(Guid orderId, CancellationToken ct);
+
     /// <summary>What the firm and the customer may do with the refund now (02 7.2.8; K-569, K-940): the refund line's one rule, read by the order's operations and the panel.</summary>
     CardRefundActions RefundActionsOf(CardRefundLine line, bool isIbanEntered);
 }

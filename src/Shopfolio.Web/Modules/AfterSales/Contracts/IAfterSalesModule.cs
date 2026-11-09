@@ -184,6 +184,52 @@ public interface IAfterSalesModule
 
     /// <summary>The order's refund IBAN as the operation decision reads it (03 1.11.11, 1.11.12, 1.11.39): the IBAN on file, and an open request on one of the given items. A plain read.</summary>
     Task<RefundIbanState> RefundIbanStateAsync(Guid orderId, IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// Opens the IBAN request of the refund line (T370; 06 4.29; 02 7.2.8, 7.4.5; K-569, K-690): on the item - or, itemless, on the late payment's refund - unless
+    /// one is already open there, which the event then uses. The caller sends B-14 when <see cref="RefundIbanRequestOpened.IsNew"/>. Writes through the caller's
+    /// change tracker under the order's row lock and saves nothing.
+    /// </summary>
+    Task<RefundIbanRequestOpened> OpenRefundIbanRequestAsync(RefundIbanRequestEntry entry, CancellationToken ct);
+
+    /// <summary>The open IBAN request with the given id, or null when it is fulfilled, closed or gone. A plain read; the caller checks that its item or refund is the order's.</summary>
+    Task<OpenRefundIbanRequest?> FindOpenRefundIbanRequestAsync(Guid requestId, CancellationToken ct);
+
+    /// <summary>True when an IBAN request on the refund was fulfilled: the customer chose the transfer path, so the card refund is not retried (02 7.2.8; K-569).</summary>
+    Task<bool> IsRefundIbanEnteredForRefundAsync(Guid refundId, CancellationToken ct);
+
+    /// <summary>
+    /// The customer's IBAN for an open request (02 7.4.5; 03 1.11.33): checked for format and check digits, stored without blanks and upper case, the request
+    /// fulfilled with it. The firm never enters it (02 8.4.2). Writes through the caller's change tracker under the order's row lock and saves nothing.
+    /// </summary>
+    Task<RefundIbanWriteResult> EnterRefundIbanAsync(RefundIbanEntry entry, CancellationToken ct);
+
+    /// <summary>
+    /// The customer's correction of the order's IBAN in place until the refund is processed (02 7.4.5; K-575): the same check as the entry; the firm's step uses
+    /// the IBAN in the field at that moment. Writes through the caller's change tracker under the order's row lock and saves nothing.
+    /// </summary>
+    Task<RefundIbanWriteResult> CorrectRefundIbanAsync(RefundIbanCorrection correction, CancellationToken ct);
+
+    /// <summary>
+    /// The card refund succeeded: the open IBAN request of its transfer path closes unfulfilled, the IBAN field closes (02 7.2.8; 06 4.29 <c>ClosedAt</c>). Writes
+    /// through the caller's change tracker and saves nothing.
+    /// </summary>
+    Task CloseRefundIbanRequestsOfRefundAsync(Guid refundId, CancellationToken ct);
+
+    /// <summary>
+    /// The IBAN's end (T370; 02 7.4.5; Z-44; K-356, K-1110): every IBAN of the order that no pending refund uses any more is deleted and each deletion is written
+    /// to the disposal record in the same transaction. An IBAN stays while another refund still uses it - a record linked to it whose refund is not settled
+    /// (a withdrawal by its units still to be paid back), or a request fulfilled with it whose refund is not settled. Returns the deleted ids. Under the order's
+    /// row lock in the caller's transaction; saves nothing.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> DeleteUnusedRefundIbansAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
+    /// The firm's "havale gerçekleşmedi" (02 7.4.5; K-575, K-1131): the IBAN the item's refund - or the itemless late payment refund - would use is deleted with
+    /// its disposal record, and a "transfer failed" request opens the IBAN field again; the period does not stop. Returns the request, or null when there is no
+    /// IBAN to report. The caller sends B-14. Under the order's row lock in the caller's transaction; saves nothing.
+    /// </summary>
+    Task<RefundIbanRequestOpened?> ReportTransferFailedAsync(TransferFailure failure, CancellationToken ct);
 }
 
 /// <summary>One cancellation record as the order module needs it: the record, the item and the units it closed.</summary>

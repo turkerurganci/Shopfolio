@@ -3,6 +3,8 @@ using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.Infrastructure.Integrations;
+
 namespace Shopfolio.Commands;
 
 /// <summary>
@@ -142,8 +144,29 @@ internal sealed partial class CommandDispatcher
         {
             CommandOptionKind.Text => text.Length == 0 ? null : text,
             CommandOptionKind.Moment => ParseMoment(text) is { } moment ? moment : null,
+            CommandOptionKind.Date => ParseDate(text) is { } date ? date : null,
+            CommandOptionKind.Amount => ParseAmountInKurus(text) is { } kurus ? kurus : null,
             _ => null,
         };
+    }
+
+    // A Turkey day, yyyy-MM-dd and nothing else (09 13.2 item 3): the exact format keeps an instant or a culture's date out.
+    internal static DateOnly? ParseDate(string text)
+    {
+        return DatePattern().IsMatch(text) && DateOnly.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date) ? date : null;
+    }
+
+    // Dotted decimal text with at most two places, turned into whole kuruş (09 13.2 item 3; 09 14.2): the pattern refuses a comma, a sign, a third place and more than ten whole
+    // digits before the number is read, so the kuruş always fit.
+    internal static long? ParseAmountInKurus(string text)
+    {
+        if (!AmountPattern().IsMatch(text)
+            || !decimal.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal amount))
+        {
+            return null;
+        }
+
+        return PaymentAmounts.ToKurus(amount);
     }
 
     // ISO 8601 with an explicit offset (09 13.2 item 3): the pattern is checked first because the parser alone accepts a date or an instant with no offset
@@ -161,7 +184,13 @@ internal sealed partial class CommandDispatcher
 
     private static string Expectation(CommandOptionKind kind)
     {
-        return kind == CommandOptionKind.Moment ? "ofsetli ISO 8601 an bekleniyor (yıl-ay-günTsaat:dakika:saniye ve ardından Z ya da +ss:dd)" : "boş olmayan metin bekleniyor";
+        return kind switch
+        {
+            CommandOptionKind.Moment => "ofsetli ISO 8601 an bekleniyor (yıl-ay-günTsaat:dakika:saniye ve ardından Z ya da +ss:dd)",
+            CommandOptionKind.Date => "ISO 8601 tarih bekleniyor (yıl-ay-gün)",
+            CommandOptionKind.Amount => "noktalı ondalık tutar bekleniyor (en çok iki hane, ör. 1250.50)",
+            _ => "boş olmayan metin bekleniyor",
+        };
     }
 
     private void WriteCommandList()
@@ -191,4 +220,11 @@ internal sealed partial class CommandDispatcher
 
     [GeneratedRegex(@"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,7})?)?(Z|[+-]\d{2}:\d{2})$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex MomentPattern();
+
+    // ASCII digits only: \d also matches the digits of other scripts.
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex DatePattern();
+
+    [GeneratedRegex(@"^[0-9]{1,10}(\.[0-9]{1,2})?$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex AmountPattern();
 }

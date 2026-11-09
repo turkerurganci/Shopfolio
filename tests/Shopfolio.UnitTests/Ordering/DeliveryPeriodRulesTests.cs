@@ -136,9 +136,25 @@ public sealed class DeliveryPeriodRulesTests
     {
         DateTimeOffset end = DeliveryPeriodRules.ShippingPeriodEnd(ApprovedAt, 2, BusinessCalendar.Product);
 
-        Assert.False(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Physical, ApprovedAt, 2, null, end.AddTicks(-1)));
-        Assert.True(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Physical, ApprovedAt, 2, null, end));
-        Assert.True(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Physical, ApprovedAt, 0, null, TurkeyTime.StartOf(Monday.AddDays(1))));
+        Assert.False(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Physical, ApprovedAt, 2, null, end.AddTicks(-1), null));
+        Assert.True(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Physical, ApprovedAt, 2, null, end, null));
+        Assert.True(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Physical, ApprovedAt, 0, null, TurkeyTime.StartOf(Monday.AddDays(1)), null));
+    }
+
+    [Fact]
+    public void InterestWarning_OnAPhysicalItem_ShippedBeforeThePromisesEnd_IsNotDue_ShippedAtOrAfterItIs_D531()
+    {
+        // 03 4.1.10: the promise ends with the shipment. Shipped inside the promise, later returned and cancelled (S9): no warning; shipped late: warning (T368 KK6).
+        DateTimeOffset end = DeliveryPeriodRules.ShippingPeriodEnd(ApprovedAt, 2, BusinessCalendar.Product);
+        DateTimeOffset cancelledLate = end.AddDays(20);
+
+        Assert.False(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Physical, ApprovedAt, 2, null, cancelledLate, end.AddTicks(-1)));
+        Assert.True(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Physical, ApprovedAt, 2, null, cancelledLate, end));
+        Assert.True(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Physical, ApprovedAt, 2, null, cancelledLate, null));
+
+        // The shipment does not touch the service item's period.
+        DateTimeOffset fulfilmentEnd = DeliveryPeriodRules.FulfilmentPeriodEnd(ApprovedAt, 5);
+        Assert.True(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Service, ApprovedAt, null, 5, fulfilmentEnd, ApprovedAt.AddHours(1)));
     }
 
     [Fact]
@@ -146,8 +162,8 @@ public sealed class DeliveryPeriodRulesTests
     {
         DateTimeOffset end = DeliveryPeriodRules.FulfilmentPeriodEnd(ApprovedAt, 5);
 
-        Assert.False(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Service, ApprovedAt, null, 5, end.AddTicks(-1)));
-        Assert.True(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Service, ApprovedAt, null, 5, end));
+        Assert.False(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Service, ApprovedAt, null, 5, end.AddTicks(-1), null));
+        Assert.True(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Service, ApprovedAt, null, 5, end, null));
     }
 
     [Fact]
@@ -155,8 +171,8 @@ public sealed class DeliveryPeriodRulesTests
     {
         DateTimeOffset late = ApprovedAt.AddDays(60);
 
-        Assert.False(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Digital, ApprovedAt, 2, null, late));
-        Assert.False(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Physical, null, 2, null, late));
-        Assert.False(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Service, null, null, 5, late));
+        Assert.False(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Digital, ApprovedAt, 2, null, late, null));
+        Assert.False(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Physical, null, 2, null, late, null));
+        Assert.False(DeliveryPeriodRules.IsLegalInterestWarningDue(ProductType.Service, null, null, 5, late, null));
     }
 }

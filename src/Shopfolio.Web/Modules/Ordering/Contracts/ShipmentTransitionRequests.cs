@@ -53,6 +53,13 @@ public sealed record CancelOrderRequest(
     public static CancelOrderRequest ByCustomer(Guid orderId, CancelledItem? item = null) =>
         new(orderId, ActorKind.Buyer, null, null, false, null, null, null, item);
 
+    /// <summary>
+    /// The firm's statement that a "müşteriyle anlaşıldı (müşteri talebi)" request came from the order's owner (02 7.2.4, 8.3.8; K-607): it came from the order's contact
+    /// e-mail, or it came another way and the firm confirmed it by turning back to the order's e-mail or delivery telephone - the address or number the request came from
+    /// is no confirmation. Required on that reason, refused on the others; the product does not check the proof, it refuses the cancellation sent without the statement.
+    /// </summary>
+    public bool OwnerConfirmed { get; init; }
+
     public static CancelOrderRequest ByAdministrator(
         Guid orderId,
         TransitionAdmin admin,
@@ -60,8 +67,9 @@ public sealed record CancelOrderRequest(
         bool confirmed,
         CancellationReason reason,
         string? reasonNote = null,
-        CancelledItem? item = null) =>
-        new(orderId, ActorKind.Admin, admin, expectedVersion, confirmed, reason, reasonNote, null, item);
+        CancelledItem? item = null,
+        bool ownerConfirmed = false) =>
+        new(orderId, ActorKind.Admin, admin, expectedVersion, confirmed, reason, reasonNote, null, item) { OwnerConfirmed = ownerConfirmed };
 
     public static CancelOrderRequest BySystem(Guid orderId, TransitionReason reason) =>
         new(orderId, ActorKind.System, null, null, false, null, null, reason, null);
@@ -73,6 +81,36 @@ public sealed record CancelOrderRequest(
 /// no reason. An unpaid order is cancelled only as a whole (<see cref="CancelOrderRequest.ByCustomer"/>).
 /// </summary>
 public sealed record CancelItemRequest(Guid OrderId, Guid OrderItemId, int Quantity);
+
+/// <summary>
+/// The firm's cancellation of a paid item's units from the panel (03 1.11.21, 8.3.1.1; 02 7.2.4; T368): the item and the units chosen up to its open units, the screen's
+/// version, the irreversible-action confirmation (03 1.6.1.3), a reason from the closed list with the note on "Other", and on "müşteriyle anlaşıldı" the firm's
+/// statement that the request came from the order's owner (<see cref="CancelOrderRequest.OwnerConfirmed"/>). An unpaid order is cancelled only as a whole (<see cref="CancelOrderRequest.ByAdministrator"/>).
+/// </summary>
+public sealed record CancelItemByFirmRequest(
+    Guid OrderId,
+    Guid OrderItemId,
+    int Quantity,
+    TransitionAdmin Admin,
+    int ExpectedVersion,
+    bool Confirmed,
+    CancellationReason Reason,
+    string? ReasonNote,
+    bool OwnerConfirmed);
+
+/// <summary>
+/// The late delivery termination (03 1.11.8, 1.11.41; 02 7.2.3, 10.4.10; T368): no item and no unit is chosen - every undelivered physical item's open units are
+/// terminated. The customer's from the order page carries nothing else; the firm's record of a notice that came by another channel carries the administrator, the
+/// screen's version, the irreversible-action confirmation (03 1.6.1.7) and <paramref name="NoticeArrivalDate"/>, the day the notice reached the firm - in the past or
+/// today, never later - from which the refund's fourteen days run.
+/// </summary>
+public sealed record TerminateForLateDeliveryRequest(Guid OrderId, TransitionAdmin? Admin, int? ExpectedVersion, bool Confirmed, DateOnly? NoticeArrivalDate)
+{
+    public static TerminateForLateDeliveryRequest ByCustomer(Guid orderId) => new(orderId, null, null, false, null);
+
+    public static TerminateForLateDeliveryRequest FromOtherChannel(Guid orderId, TransitionAdmin admin, int expectedVersion, bool confirmed, DateOnly noticeArrivalDate) =>
+        new(orderId, admin, expectedVersion, confirmed, noticeArrivalDate);
+}
 
 /// <summary>
 /// The result of an operation of the transition unit (09 9.1 item 3): a refusal is a value, not an exception, and the runner rolls the transaction back on it.
@@ -96,4 +134,7 @@ public sealed record OrderTransitionResult(
 
     /// <summary>The item record the operation wrote - the customer's cancellation (06 4.22); null for an operation that writes none and on a refusal.</summary>
     public Guid? ItemRecordId { get; init; }
+
+    /// <summary>The late delivery termination records the operation wrote, one per terminated item (06 4.24); empty for every other operation and on a refusal.</summary>
+    public IReadOnlyList<Guid> ItemRecordIds { get; init; } = [];
 }

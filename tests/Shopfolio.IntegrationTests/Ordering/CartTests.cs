@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Security;
+using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
 using Shopfolio.Modules.Administration;
@@ -157,6 +159,32 @@ public sealed class CartTests : IAsyncLifetime
         Assert.Empty(after.Lines);
         await using AppDbContext reader = NewContext();
         Assert.Equal(1, await reader.Carts.CountAsync(Ct));
+    }
+
+    [Theory]
+    [InlineData(3, 2, 3)]
+    [InlineData(1, 2, 2)]
+    [InlineData(2, 2, 2)]
+    public async Task TheSignInMerge_CarriesTheLargerInvalidCouponCountUnderTheMembersCart_NotTheSum_T376_KK7(int guestAttempts, int memberAttempts, int expected)
+    {
+        await ExecuteAsync("TRUNCATE attempt_records");
+        (_, List<Variant> variants) = await SeedProductAsync("Masa", 1);
+        Guid customerId = await SeedCustomerAsync();
+        string guestKey = NewKey();
+        await AddAsync(CartOwner.ForGuest(guestKey), variants[0].Id, 1);
+        await AddAsync(CartOwner.ForMember(customerId), variants[0].Id, 1);
+        Guid guestCartId = (await OpenAsync(CartOwner.ForGuest(guestKey))).CartId!.Value;
+        Guid memberCartId = (await OpenAsync(CartOwner.ForMember(customerId))).CartId!.Value;
+        await RecordCouponAttemptsAsync(guestCartId, guestAttempts);
+        await RecordCouponAttemptsAsync(memberCartId, memberAttempts);
+
+        CartMergeResult merge = await MergeAsync(customerId, guestKey);
+
+        Assert.True(merge.WasMerged);
+        Assert.Equal(memberCartId, merge.MemberCartId);
+        await using AppDbContext db = NewContext();
+        Assert.Equal(expected, await db.AttemptRecords.CountAsync(a => a.NormalizedValue == AttemptSubject.Cart(memberCartId).Value, Ct));
+        Assert.Equal(0, await db.AttemptRecords.CountAsync(a => a.NormalizedValue == AttemptSubject.Cart(guestCartId).Value, Ct));
     }
 
     [Fact]
@@ -641,6 +669,17 @@ public sealed class CartTests : IAsyncLifetime
     private Task<CartView> OpenAsync(CartOwner owner) => RunAsync((ordering, token) => ordering.OpenCartAsync(owner, _shippingTerms, token));
 
     private Task<CartAddResult> AddAsync(CartOwner owner, Guid variantId, int quantity) => RunAsync((ordering, token) => ordering.AddToCartAsync(owner, variantId, quantity, token));
+
+    private async Task RecordCouponAttemptsAsync(Guid cartId, int count)
+    {
+        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn);
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        AttemptCounter counter = scope.ServiceProvider.GetRequiredService<AttemptCounter>();
+        for (int i = 0; i < count; i++)
+        {
+            await counter.RecordAsync(AttemptLimit.L6, AttemptSubject.Cart(cartId), Ct);
+        }
+    }
 
     private Task<CartMergeResult> MergeAsync(Guid customerId, string key) => RunAsync((ordering, token) => ordering.MergeGuestCartAsync(customerId, key, token));
 

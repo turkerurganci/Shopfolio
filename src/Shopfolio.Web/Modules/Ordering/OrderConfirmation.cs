@@ -29,7 +29,20 @@ internal sealed record OrderConfirmationRequest(
     string ContactEmail,
     PartyAddress? Shipping,
     PartyAddress Billing,
-    IPAddress? IpAddress);
+    IPAddress? IpAddress)
+{
+    /// <summary>The values the summary is made of: the same ones <see cref="OrderConfirmation.SummarizeAsync"/> made the confirmed summary from.</summary>
+    public OrderSummaryInput SummaryInput => new(Owner, ConfirmedSummary.PaymentMethod, CouponCode, ContactEmail, Shipping, Billing);
+}
+
+/// <summary>The values the payment step's summary is made of (02 3.24.3): the cart's owner, the payment method, the coupon code, the contact e-mail and the two addresses.</summary>
+internal sealed record OrderSummaryInput(
+    CartOwner Owner,
+    PaymentMethod PaymentMethod,
+    string? CouponCode,
+    string ContactEmail,
+    PartyAddress? Shipping,
+    PartyAddress Billing);
 
 /// <summary>Why the confirmation did not make an order (02 3.17.2; T346 k7). A result code, never stored.</summary>
 internal enum OrderConfirmationRefusal
@@ -126,7 +139,7 @@ internal sealed class OrderConfirmation
             return OrderConfirmationResult.Refused(OrderConfirmationRefusal.NoOrderableItem);
         }
 
-        Evaluation current = await EvaluateAsync(lines, cart.Shipping, request, method, ct);
+        Evaluation current = await EvaluateAsync(lines, cart.Shipping, request.SummaryInput, ct);
         List<SummaryChange> changes = [.. SummaryComparison.Compare(request.ConfirmedSummary, current.Summary)];
         if (cart.PaymentBlock != CartPaymentBlock.None || current.CouponRefused)
         {
@@ -218,8 +231,21 @@ internal sealed class OrderConfirmation
         }
     }
 
-    private async Task<Evaluation> EvaluateAsync(List<CartLine> lines, ShippingAssessment shipping, OrderConfirmationRequest request, PaymentMethod method, CancellationToken ct)
+    /// <summary>
+    /// The payment step's summary of the cart as it is now (02 3.24.3): the one evaluation the confirmation repeats, so the summary shown and the summary compared are made the same way.
+    /// Null when no line enters an order. A read under the cart's lock in the caller's transaction; it writes nothing but the cart's read marks.
+    /// </summary>
+    public async Task<ConfirmationSummary?> SummarizeAsync(OrderSummaryInput input, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(input);
+        CartView cart = await _carts.OpenAsync(input.Owner, await _settings.GetShippingFeeAsync(ct), ct);
+        List<CartLine> lines = [.. cart.OrderingLines];
+        return lines.Count == 0 ? null : (await EvaluateAsync(lines, cart.Shipping, input, ct)).Summary;
+    }
+
+    private async Task<Evaluation> EvaluateAsync(List<CartLine> lines, ShippingAssessment shipping, OrderSummaryInput request, CancellationToken ct)
+    {
+        PaymentMethod method = request.PaymentMethod;
         Dictionary<Guid, OrderItemSource> byVariant = (await _catalog.ListOrderItemSourcesAsync([.. lines.Select(l => l.VariantId)], ct)).ToDictionary(s => s.VariantId);
         List<OrderItemSource> sources = [.. lines.Select(l => byVariant[l.VariantId])];
         List<CouponLine> couponLines = [.. lines.Select((l, i) => new CouponLine(AppliedPrice(sources[i]), l.Quantity, sources[i].VatRate))];

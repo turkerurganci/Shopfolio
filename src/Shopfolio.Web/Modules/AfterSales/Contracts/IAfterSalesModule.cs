@@ -53,6 +53,21 @@ public interface IAfterSalesModule
     /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
     Task<ItemRecordWriteResult> ChangeDefectClaimStatusAsync(DefectClaimStatusChange change, CancellationToken ct);
 
+    /// <summary>
+    /// The customer's cancellation record (06 4.22; 02 7.2.2, 7.1.7; T367): the unit rule (at least one, at most the item's open units), then one row with the customer
+    /// as the actor, the moment and the amounts it sets aside from the item - the coupon share and the VAT are the units' share rounded down, and the record that closes
+    /// the item's last open units takes what the earlier records left (02 7.1.7 (4)). Whether the operation is open at all is the order module's decision (03 1.11);
+    /// the writer joins the caller's transaction under the order's row lock and saves nothing.
+    /// </summary>
+    Task<ItemRecordWriteResult> AddCancellationAsync(CustomerCancellationEntry entry, CancellationToken ct);
+
+    /// <summary>
+    /// Links the cancellation the caller added a moment ago to the transition that closed the order with it (06 4.22 <c>TransitionRecordId</c>: the S3, S4 or S9 of
+    /// the cancellation of the order's last open units), so the correction of a wrong cancellation finds it (<see cref="FindCancellationsOfTransitionAsync"/>).
+    /// Writes through the caller's change tracker and saves nothing.
+    /// </summary>
+    Task LinkClosingTransitionAsync(Guid cancellationId, Guid transitionRecordId, CancellationToken ct);
+
     /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
     Task<ItemRecordWriteResult> AddWithdrawalAsync(WithdrawalDeclaration declaration, CancellationToken ct);
 

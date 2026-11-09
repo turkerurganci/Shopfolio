@@ -369,6 +369,8 @@ internal static class OrderingModuleRegistration
         services.AddScoped<OrderLocks>();
         services.AddScoped<OrderPaymentArms>();
         services.AddScoped<OpenUnpaidOrderLimit>();
+        services.AddScoped<UnpaidCancellationLimit>();
+        services.AddScoped<OrderPlacementLimits>();
         services.AddScoped<DownloadCounters>();
         services.AddScoped<CartStatements>();
         services.AddScoped<Carts>();

@@ -1,6 +1,6 @@
 # T370 — Geri ödeme hattı: ödemenin geldiği yol, kart ve havale, IBAN'ın ömrü, geri ödeme süresi, kart iadesi hataları
 
-**Faz:** F3 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -93,12 +93,14 @@ Birleşik ağaç (bu dal + `origin/main` `d3ff0f8b`):
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | Bekliyor |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu | ✓ PASS — tur 1 (2026-11-09, head `6a9ed6b1`; `origin/main` `d3ff0f8b` dalın içinde, main ilerlememiş — birleşik ağaç dalın kendisi). Kriter 1–9 ve KK1–KK9 ✓ (validator kanıtı: kod okuması `RefundLineRules.cs`, `OrderTransitions.RefundLine.cs`, `AfterSalesModule.RefundLine.cs`, `PaymentModule.StartRecordRefundAsync`/`ReadRefundMarksAsync`, `AfterSalesPeriodRules.CancellationRefundStanding`/`WithdrawalRefundStartDay`; Unit `RefundLineRulesTests` ve Integration `StatusCorrectionTests.RefundLine`, `LateDeliveryAndFirmCancellationTests` T370 testleri yeşil). Validator yoklaması (geçici test, commit edilmedi): müşteri iptali kartta sistem geri ödemesini ve `CardRefund` işini açar, IBAN almaz ve istek açmaz (KK2'nin müşteri yarısı); başka siparişin isteğine IBAN girişi `ConditionNotMet`. Yerel: derleme `-warnaserror` 0/0, format 3 proje temiz, Unit 5717/5717 (Consistency dahil), betik 4/4, Integration Ordering 540/540, Payment+Disposal+Jobs+Model 1556/1556, `restore --locked-mode` 0. **Dal CI:** head run 42672074277 `failure` ama hiçbir iş koşmadı (yalnız "6. Migration dry-run" `skipped` kaydı var; aynı dakikada T374 run 42671989182 de işsiz `failure`) — kod kaynaklı değil, altyapı; önceki run 42672002917 yeni push'la `cancelled`. Kayıt commit'inin push'u yeni run tetikler; merge'den önce dal CI'ının yeşili yardımcıca okunur. |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — K1: havale hattında çok kalemli siparişin bütün sipariş firma iptali kalem başına ayrı B-14 gönderir (yoklama: 2 kalem → 2 B-14; `02 §9.2` olayı kalem başına, sapma değil) → **D-902** (T528). K2: `DeleteUnusedRefundIbansAsync` IBAN başına döngüde sorgu yapar (sipariş başına sınırlı küme; `09 §20`) → **D-903** (T373, D-876 ile). |
 
-**Task satırları (`12 §7.5`):** geri ödeme satırının "Veri kaydı" yarısı (VAL-A086/A088 vb.; D-843) artık yazılıyor; satırlar uç yanıtı da istediği için (uç T512/T513) Durum değiştirilmedi (BEKLEMEDE; T367–T369, T372 emsali).
+**Task satırları (`12 §7.5`):** KP-15, KP-21, KP-22, KP-47, KP-74 grep'i 98 matris satırı getirir; T370'in konusu `VAL-A067`, `A068`, `A069` (geri ödeme yarısı), `A078`, `A079`, `A210`, `A211`, `A212`, `A213`, `A216`, `A217`, `A230` ve `D049`'un IBAN silme yarısı. Hepsi uç yanıtı, tarayıcı gözlemi ya da uygulama kaydı (sağlayıcıya giden istek — işleyici T405) ister; uçlar ve ekranlar T512/T527/T528'de → **BEKLEMEDE** kaldı (T367–T369, T372, T375 emsali). `A214`, `A215` (sorgu sonucu ve firmanın "gerçekleşmedi" işareti) T405/T527'nin. Öteki satırlar T367–T369, T371–T373'ün. `12_matris_denetle.py --kapsam 1-77` Hata 0.
+
+**Yapım raporu karşılaştırması:** tam uyumlu; öz denetim tablosu kriter ve KK başına kanıtlı. Tek fark: KK2'nin müşteri iptali yarısı için raporda doğrudan test yok (kanıt firma iptali ve fesih testleri) — validator yoklamasıyla doğrulandı.
 
 ## Altyapı Değişiklikleri
 
@@ -112,7 +114,7 @@ Birleşik ağaç (bu dal + `origin/main` `d3ff0f8b`):
 - **Branch:** `task/T370-geri-odeme-hatti`
 - **Commit:** önceki işçilerin ara kayıtları, `51ae72f3` (gecikme feshi testleri), `origin/main` birleştirmesi, rapor commit'i
 - **PR:** #506
-- **CI:** —
+- **CI:** head `6a9ed6b1` run 42672074277 işsiz `failure` (altyapı; ayrıntı Doğrulama'da); kayıt commit'inin run'ı merge'den önce okunur
 - **Post-merge run'lar:**
 
 ## Dış Varsayımlar

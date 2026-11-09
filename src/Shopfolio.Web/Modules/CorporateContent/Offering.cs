@@ -12,7 +12,7 @@ namespace Shopfolio.Modules.CorporateContent;
 /// (reordering changes rows); the page address is unique over every row, draft ones included (06 4.72.1). The record is deleted by its
 /// event; its content-product and gallery links, which cascade, are OfferingProduct and OfferingImage.
 /// </summary>
-internal sealed class Offering : IContentRecord
+internal sealed class Offering : IContentRecord, IAddressedContentRecord
 {
     public Guid Id { get; set; }
 

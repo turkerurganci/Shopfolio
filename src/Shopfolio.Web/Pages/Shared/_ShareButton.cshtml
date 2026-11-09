@@ -1,0 +1,6 @@
+@* The one "Paylaş" button of a product and a content page (02 3.30.7; 04 5.4.11, 5.8.3; T363). Hidden until the shared script shows it (wwwroot/js/common.js): a device's own
+   share menu on a phone, the page's link copied where there is none, the result said in the line next to the button. No platform's share code and no external address. *@
+<span class="share">
+    <button type="button" class="share-button" data-share hidden>Paylaş</button>
+    <span class="share-result" role="status" aria-live="polite" data-share-result data-copied="Bağlantı kopyalandı." data-failed="Bağlantı kopyalanamadı."></span>
+</span>

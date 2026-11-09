@@ -1,3 +1,5 @@
+using Shopfolio.Modules.Catalog.Contracts;
+
 namespace Shopfolio.Modules.AfterSales.Contracts;
 
 /// <summary>
@@ -53,8 +55,15 @@ public interface IAfterSalesModule
     /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
     Task<ItemRecordWriteResult> ChangeDefectClaimStatusAsync(DefectClaimStatusChange change, CancellationToken ct);
 
-    /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
+    /// <summary>
+    /// The withdrawal declaration's writer (03 1.7.1.5; 02 7.3.5, 10.4.10; T372): a record of its own with the units, the date, the firm's current return address
+    /// copied on a physical item, the amounts split from the item's frozen values (02 7.1.7) and the refund IBAN of the transfer line - entered, the one on file, or
+    /// none with an IBAN request on the item; after the delivery the IBAN gets its Z-38 deletion day. The rules of the other writers apply (lock, units, refusal as a value).
+    /// </summary>
     Task<ItemRecordWriteResult> AddWithdrawalAsync(WithdrawalDeclaration declaration, CancellationToken ct);
+
+    /// <summary>What the declaration screen of an item shows (02 7.3.5; <see cref="WithdrawalNotes"/>): the return address is the setting as it is now. A plain read.</summary>
+    Task<WithdrawalNotes> WithdrawalNotesAsync(ProductType productType, bool shippedNotDelivered, WithdrawalExemptionReason? exemption, CancellationToken ct);
 
     /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
     Task<ItemRecordWriteResult> AddReturnReceiptAsync(ReturnReceiptEntry entry, CancellationToken ct);

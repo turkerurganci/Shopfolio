@@ -31,6 +31,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
     private readonly IPaymentModule _payment;
     private readonly INotificationsModule _notifications;
     private readonly OrderCounters _counters;
+    private readonly OrderOperations _operations;
     private readonly CartStatements _cartStatements;
     private readonly PaymentWindows _paymentWindows;
     private readonly TimeProvider _time;
@@ -44,7 +45,8 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         OrderCounters counters,
         PaymentWindows paymentWindows,
         TimeProvider time,
-        CartStatements cartStatements)
+        CartStatements cartStatements,
+        OrderOperations operations)
     {
         _db = db;
         _locks = locks;
@@ -55,6 +57,7 @@ internal sealed partial class OrderTransitions : IOrderTransitions
         _paymentWindows = paymentWindows;
         _time = time;
         _cartStatements = cartStatements;
+        _operations = operations;
     }
 
     /// <summary>

@@ -83,19 +83,77 @@ internal sealed partial class AfterSalesModule
         ArgumentNullException.ThrowIfNull(declaration);
         ItemRecordSubject subject = declaration.Subject;
         RequireOrderLock(subject);
-        if (!ItemQuantities.IsSelectable(declaration.Quantity, await OpenQuantityAsync(subject, ct)))
+        int open = await OpenQuantityAsync(subject, ct);
+        if (!ItemQuantities.IsSelectable(declaration.Quantity, open))
         {
             return ItemRecordWriteResult.Rejected(ItemRecordRefusal.QuantityExceedsOpen);
         }
 
+        WithdrawalIban iban = declaration.Iban;
+        RefundIban? onFile = iban.UseOnFile
+            ? await _db.RefundIbans.Where(i => i.OrderId == subject.OrderId).OrderByDescending(i => i.EnteredAt).ThenBy(i => i.Id).FirstOrDefaultAsync(ct)
+            : null;
+        if (iban.UseOnFile && onFile is null)
+        {
+            return ItemRecordWriteResult.Rejected(ItemRecordRefusal.IbanMissing);
+        }
+
+        // The amounts split from the item's frozen values against what its earlier records took; the last open units take the rest (02 7.1.7; K-1104).
+        (decimal takenCoupon, decimal takenVat) = await TakenSharesAsync(subject.OrderItemId, ct);
+        ItemFrozenAmounts frozen = declaration.Frozen;
+        ItemAmounts amounts = ItemAmountSplit.Of(
+            frozen.UnitPrice, subject.ItemQuantity, frozen.CouponShare, frozen.VatAmount, declaration.Quantity, declaration.Quantity == open, takenCoupon, takenVat);
+
+        // The firm's current return address is copied as a value on a physical item (02 7.3.5; K-665): a later change of the setting never reaches it.
         ReturnAddress? address = subject.ProductType == ProductType.Physical ? await FirmReturnAddressAsync(ct) : null;
-        ItemAmounts amounts = new(declaration.ProductAmount, declaration.CouponShare, declaration.VatAmount);
+        RefundIban? refundIban = onFile;
+        if (iban.Entered is { } entered)
+        {
+            refundIban = RefundIban.Create(subject.OrderId, entered, declaration.At);
+            _db.RefundIbans.Add(refundIban);
+        }
+
         Withdrawal withdrawal = declaration.Admin is { } admin
-            ? Withdrawal.ByAdmin(subject.OrderItemId, declaration.Quantity, admin.AdminId, admin.AdminName, declaration.DeclarationDate, address, amounts, declaration.RefundIbanId, declaration.At)
-            : Withdrawal.ByBuyer(subject.OrderItemId, declaration.Quantity, declaration.DeclarationDate, address, amounts, declaration.RefundIbanId, declaration.At);
+            ? Withdrawal.ByAdmin(subject.OrderItemId, declaration.Quantity, admin.AdminId, admin.AdminName, declaration.DeclarationDate, address, amounts, refundIban?.Id, declaration.At)
+            : Withdrawal.ByBuyer(subject.OrderItemId, declaration.Quantity, declaration.DeclarationDate, address, amounts, refundIban?.Id, declaration.At);
         withdrawal.IsDeliveredBeforeDeclaration = declaration.IsDeliveredBeforeDeclaration;
         _db.Withdrawals.Add(withdrawal);
-        return new ItemRecordWriteResult(null, withdrawal.Id, null);
+
+        // Z-38: after the delivery the IBAN waits for the goods; it is deleted when the sending period and P-43 have run out unless the goods came (D-667). A later
+        // deletion day already on the IBAN (another declaration of it) is kept (K-1110).
+        if (refundIban is not null
+            && AfterSalesPeriodRules.IsAfterDelivery(subject.ProductType, subject.DeliveryDate, declaration.DeclarationDate, declaration.IsDeliveredBeforeDeclaration))
+        {
+            DateTimeOffset deletionAt = AfterSalesPeriodRules.ReturnIbanDeletionAt(declaration.DeclarationDate);
+            if (refundIban.ScheduledDeletionAt is not { } scheduled || scheduled < deletionAt)
+            {
+                refundIban.ScheduledDeletionAt = deletionAt;
+            }
+        }
+
+        // A record without an IBAN on the transfer line opens the item's IBAN request (02 10.4.10; K-581): the customer enters it on the order page.
+        if (iban.Request)
+        {
+            ItemRecordAdmin requester = declaration.Admin ?? throw new InvalidOperationException("Only the administrator's record of a notice opens an IBAN request (02 10.4.10).");
+            _db.RefundIbanRequests.Add(RefundIbanRequest.ForItem(
+                subject.OrderItemId, RefundIbanRequestReason.NoticeWithoutIban, null, requester.AdminId, requester.AdminName, declaration.At));
+        }
+
+        ItemReturnAddress? copied = address is { } a ? new ItemReturnAddress(a.RecipientName, a.ProvinceId, a.District, a.AddressLine, a.Phone) : null;
+        return new ItemRecordWriteResult(null, withdrawal.Id, null, copied);
+    }
+
+    public async Task<WithdrawalNotes> WithdrawalNotesAsync(ProductType productType, bool shippedNotDelivered, WithdrawalExemptionReason? exemption, CancellationToken ct)
+    {
+        // A physical item's screen shows the current return address and the sending period; in transit it first says the carrier brings the goods back (K-838). A service
+        // item's shows neither (K-530). The packaging condition is the conditional exemption's (K-509), the one rule of WithdrawalExemptions.
+        bool physical = productType == ProductType.Physical;
+        ReturnAddress? address = physical ? await FirmReturnAddressAsync(ct) : null;
+        return new WithdrawalNotes(
+            address is { } a ? new ItemReturnAddress(a.RecipientName, a.ProvinceId, a.District, a.AddressLine, a.Phone) : null,
+            physical ? AfterSalesPeriodRules.ReturnShipmentPeriodDays : null,
+            physical && shippedNotDelivered,
+            WithdrawalExemptions.IsConditional(exemption) ? exemption : null);
     }
 
     public async Task<ItemRecordWriteResult> AddReturnReceiptAsync(ReturnReceiptEntry entry, CancellationToken ct)
@@ -218,6 +276,38 @@ internal sealed partial class AfterSalesModule
         }
 
         return arrivalDate < withdrawal.DeclarationDate ? ItemRecordRefusal.ArrivalDateOutOfRange : null;
+    }
+
+    /// <summary>
+    /// The coupon share and the VAT the item's closing records already took (02 7.1.7 (4)): its cancellations - not those undone by a corrected closing transition, as
+    /// <see cref="ClosedQuantitiesAsync"/> counts them - removals, late delivery terminations and withdrawals, saved or added in the caller's context.
+    /// </summary>
+    private async Task<(decimal Coupon, decimal Vat)> TakenSharesAsync(Guid orderItemId, CancellationToken ct)
+    {
+        var cancellations = await _db.Cancellations.AsNoTracking().Where(c => c.OrderItemId == orderItemId)
+            .Select(c => new { c.CouponShare, c.VatAmount, c.TransitionRecordId }).ToListAsync(ct);
+        Guid[] closing = [.. cancellations.Select(c => c.TransitionRecordId).OfType<Guid>().Distinct()];
+        IReadOnlySet<Guid> corrected = closing.Length == 0 ? new HashSet<Guid>() : await _ordering.FindCorrectedTransitionRecordsAsync(closing, ct);
+        List<(decimal Coupon, decimal Vat)> taken = [.. cancellations
+            .Where(c => c.TransitionRecordId is not { } closedBy || !corrected.Contains(closedBy))
+            .Select(c => (c.CouponShare, c.VatAmount))];
+        taken.AddRange((await _db.ItemRemovals.AsNoTracking().Where(r => r.OrderItemId == orderItemId).Select(r => new { r.CouponShare, r.VatAmount }).ToListAsync(ct))
+            .Select(r => (r.CouponShare, r.VatAmount)));
+        taken.AddRange((await _db.LateDeliveryTerminations.AsNoTracking().Where(t => t.OrderItemId == orderItemId).Select(t => new { t.CouponShare, t.VatAmount }).ToListAsync(ct))
+            .Select(t => (t.CouponShare, t.VatAmount)));
+        taken.AddRange((await _db.Withdrawals.AsNoTracking().Where(w => w.OrderItemId == orderItemId).Select(w => new { w.CouponShare, w.VatAmount }).ToListAsync(ct))
+            .Select(w => (w.CouponShare, w.VatAmount)));
+        taken.AddRange(AddedShares<Cancellation>(orderItemId, c => c.OrderItemId, c => (c.CouponShare, c.VatAmount)));
+        taken.AddRange(AddedShares<ItemRemoval>(orderItemId, r => r.OrderItemId, r => (r.CouponShare, r.VatAmount)));
+        taken.AddRange(AddedShares<LateDeliveryTermination>(orderItemId, t => t.OrderItemId, t => (t.CouponShare, t.VatAmount)));
+        taken.AddRange(AddedShares<Withdrawal>(orderItemId, w => w.OrderItemId, w => (w.CouponShare, w.VatAmount)));
+        return (taken.Sum(t => t.Coupon), taken.Sum(t => t.Vat));
+    }
+
+    private IEnumerable<(decimal Coupon, decimal Vat)> AddedShares<TRecord>(Guid orderItemId, Func<TRecord, Guid> itemOf, Func<TRecord, (decimal, decimal)> sharesOf)
+        where TRecord : class
+    {
+        return [.. _db.ChangeTracker.Entries<TRecord>().Where(e => e.State == EntityState.Added && itemOf(e.Entity) == orderItemId).Select(e => sharesOf(e.Entity))];
     }
 
     private int AddedSum<TRecord>(Func<TRecord, bool> filter, Func<TRecord, int> quantityOf)

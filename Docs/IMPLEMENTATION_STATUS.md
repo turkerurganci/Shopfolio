@@ -205,7 +205,7 @@
 | T362 | Marka kimliği: logo, marka adı, site simgesi, marka rengi, platform imzası | ✓ | ✓ PASS (tur 2) | — | #448 |
 | T363 | Sayfa adresleri, arama motoru bilgileri, kapalı sayfalar ve paylaşım | ✓ | ✓ PASS (tur 1) | — | #482 |
 | T364 | Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler | ⬚ | — | — | — |
-| T365 | İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması | ⬚ | — | — | — |
+| T365 | İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması | ⏳ | — | — | — |
 | T366 | Yasal metinler: dört metin, sürüm, bağlantılar, e-postada tam metin | ✓ | ✓ PASS (tur 2) | `11c68fb` | #428 |
 | T367 | Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon | ✓ | ✓ PASS (tur 1) | — | #494 |
 | T368 | Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi | ⬚ | — | — | — |

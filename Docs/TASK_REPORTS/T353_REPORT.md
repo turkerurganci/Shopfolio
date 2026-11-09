@@ -67,10 +67,70 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✓ PASS (tur 1) |
+| Doğrulama durumu | ✓ PASS (tur 2) |
 | Bulgu sayısı | 0 |
 | Düzeltme gerekli mi | Hayır |
-| Bloke-etmeyen not (K) sayısı | 2 (D-852, D-853) |
+| Bloke-etmeyen not (K) sayısı | 2 (D-852, D-853; tur 2'de yeni K yok) |
+
+### Doğrulama tur 2 — Doğrulama Sonucu — T353 Havale/EFT: IBAN ve siparişe donması, ödendi işareti, hatırlatma, süresi dolmuş sipariş — tur 2
+**Tarih:** 2026-11-09   **Branch:** `task/T353-havale-eft`   **Commit:** `3189dd97` + birleştirme `d45313e5` (`origin/main` `d5676e75`, T372 #492)
+
+Kapsam TAM (kriter 1–7, KK1–KK7, `09 §25`, güvenlik taraması baştan; tur 1 raporuna dayanılmadı). Verdict: **✓ PASS**.
+
+#### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş; `core.hooksPath` = ana depo `scripts/git-hooks` |
+| Ana dal CI (son 3) | ✓ | 42627783852 success, 42627783617 success, 42619534143 success |
+| Dal CI (8a) | ✓ | PR #500 head `3189dd97`: run 42625668294 success (Lint, Build, Unit, Integration, Contract, Migration, Paketleme, CI Gate pass) |
+
+#### Kabul Kriterleri (doğrulayıcı kanıtı)
+| # | Sonuç | Kanıt |
+|---|---|---|
+| 1 | ✓ | `PaymentMethodSettings.SaveAsync`: IBAN boş + açık → `FieldRequired`, bozuk → `InvalidIban`, hiçbir şey yazılmaz; `BankTransferCondition.IsOpenAsync` (açık ∧ IBAN dolu) kapıyı ve `PaymentMethods.ListOpenAsync`'i besler, onay kapalı yöntemi `PaymentMethodUnavailable` ile reddeder; `FirmSettingsTests` `_T353_KK1` ×2, `SalesGateTests` geçti. UC-167'nin 422 kodu (`BankTransferIbanRequired`) uçla birlikte T536 k3'tedir |
+| 2 | ✓ | `OrderPlacementLimits.FindExceededAsync`: L-8 yalnız `BankTransfer`'de, kart sorulmaz; `OpenUnpaidOrderLimit.Open()` aynı sepetin onayda iptal edilen siparişini düşer; `OrderConfirmationTests…_T353_KK2` geçti |
+| 3 | ✓ | `OrderConfirmation` IBAN'ı onay anında ayardan okur, `OrderFreeze.FreezeLegalIdentity` siparişe yazar; `AdminNotices.QueueIbanChangedAsync` bütün yönetici adreslerine F-5 (son dört hane), boşaltılan IBAN bildirim üretmez; `…AChangedIban_ReachesOnlyTheNewOrders…_T353_KK3`, `FirmSettingsTests` `_T353_KK3` ×2 geçti |
+| 4 | ✓ | `OrderAccess` havale siparişinde donmuş IBAN ve numarayı verir; B-2 aynı işlemde (`…_T353_KK4_D770`); `MarkTransferPaidAsync` Ö1 + S1 (`PaymentTransitionsTests.MarkTransferPaid_Confirmed_…_KK3`) geçti |
+| 5 | ✓ | `TransferSchedule.ReminderAt` son iş gününün 08:00'i (`SchedulerTimings.TransferReminderHour`); `TransferPaymentReminder` anı boşaltır (bir kez); düzeltme yeni an yazar; `PaymentWindowTests.Reminder_…_KK7`, `StatusCorrectionTests…_KK3_KK8`, Unit `TransferScheduleTests`, `SchedulerTimingsConsistencyTests` geçti |
+| 6 | ✓ | Unit `BankTransferAmountTests` ×3 (`PaymentStatus`'ta eksik ödeme yok, `TransferPaidMark`'ta ve kayıtlarda tutar alanı yok) |
+| 7 | ✓ | `CancellationIsCorrectableAsync`: sistemin S3'ü firma iptali değildir → `NotCorrectable`; iptalli siparişte Ö1 reddi; `TransferWindowDeferral` ertelenen aralıkta işarete izin verir; `PaymentWindowTests…_KK6`, `…_T353_KK7`, `AutomaticMomentsTests…_T353_KK7` geçti |
+
+#### Task Satırları (`12 §7.5`)
+KP-15 `VAL-B009`, KP-46 `VAL-C039`, KP-59 `VAL-A288`, `A289`, `D032`, `A290`: kanıt türü uç yanıtı / tarayıcı gözlemidir (sipariş sayfası T511, ayar ekranı T536); T353 çekirdek kanıtıyla tamamlanmaz (T350/T352 doğrulamalarındaki uygulama). `Durum` değişmedi (BEKLEMEDE). `12_matris_denetle.py --kapsam 1-77` Hata 0.
+
+#### Doğrulama Kontrol Listesi
+KK1–KK7 ✓ (üstteki tablo). `09 §25`: modül sınırı (Settings → `Administration.Contracts`; Architecture testleri yeşil), tek kural evi (`InvalidIbanAttribute`, `CompactIban`, L-8 tek yolu), eşzamanlılık (satır kilidi + `PaymentMethodsVersion` koşullu güncellemesi), iz aynı işlemde (`UpdateSettings`, eski/yeni değer — `02 §9.3.3`), zaman `TimeProvider`'dan, yeni paket / göç / ayar yok ✓.
+
+#### Test Sonuçları (birleşik ağaç)
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Restore / Build | ✓ | `dotnet restore Shopfolio.slnx`; `dotnet build … --no-restore -warnaserror` | 0 uyarı, 0 hata |
+| Biçim | ✓ | `dotnet format <proje> --verify-no-changes --no-restore` ×3 | değişiklik yok |
+| Unit (+Architecture, Consistency) | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | 5559/5559 |
+| Betik | ✓ | `bash tests/scripts/run-script-tests.sh` | 4 dosya geçti |
+| Integration (dokunulan sınıflar) | ✓ | `FirmSettingsTests`, `SalesGateTests`, `AutomaticMomentsTests`, `OrderConfirmationTests`, `PaymentWindowTests` | 99/99 |
+| Integration (komşu + T372) | ✓ | `OrderingTestServices` kullanan Ordering sınıfları, `PaymentTransitionsTests`, `StatusCorrectionTests`, `WithdrawalDeclarationTests`, `ItemRecordsTests`, `SchedulerHeartbeatTests`, `CustomerNoticeQueueTests` | 257/257 |
+| Sonrası | ✓ | `git status` temiz; `dotnet restore --locked-mode` | çıkış 0 |
+
+postgres:18, `-c track_commit_timestamp=on`, port 55640.
+
+#### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz (yalnız testlerde örnek IBAN'lar)
+- Auth etkisi: Temiz (uç eklenmedi; kayıt çağıranın işleminde, iz için oturumdaki yönetici gerekir)
+- Input validation: Temiz (IBAN projenin tek kuralıyla; her boşluk karakteri atılır — D-151)
+- Yeni bağımlılık: Yok
+
+#### Bulgular
+Yok.
+
+#### Bloke-etmeyen Notlar
+Yeni K yok; tur 1'in D-852 (T530) ve D-853 (T509) kayıtları yerinde.
+
+#### Birleştirme notu
+`origin/main` (`d5676e75`, T372 #492) birleştirildi; kod çakışması yok. Yalnız `Docs/DEFERRED_BACKLOG.d/T327.md` çakıştı: main D-667'yi (T372 payı kapandı), dal D-668'i (T353 payı → T511) değiştirmişti; iki tarafın değişikliği satır satır korundu.
+
+#### Yapım Raporu Karşılaştırması
+Tam uyumlu; öz denetim tablosu var ve her madde kanıtlı. Farklar: Integration'ı dokunulan ve komşu sınıflarla koştum (yapım TAM); Unit sayısı birleşik ağaçta 5559.
 
 ### Doğrulama tur 1 — Doğrulama Sonucu — T353 Havale/EFT: IBAN ve siparişe donması, ödendi işareti, hatırlatma, süresi dolmuş sipariş — tur 1
 **Tarih:** 2026-11-09   **Branch:** task/T353-havale-eft   **Commit:** `9204f00d` (doğrulanan dal ucu), PR #500

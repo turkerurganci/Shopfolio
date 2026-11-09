@@ -1,6 +1,6 @@
 # T348 — Sipariş onayı: oluşma anı, özet eşitliği, stok ayırma, ödeme süresi, kendiliğinden iptal
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ⏳ Devam ediyor (doğrulama tur 1 ✗ FAIL — onay kutularının kaydı yazılmıyor; teslimat illerinin değişimi siparişi durdurmuyor) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -75,10 +75,14 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama chat'i doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✗ FAIL — tur 1 (2026-11-09, head `83000d3a` + `origin/main` `f7d2febe` (T371) birleştirmesi). Kriter 3–8 ve KK3–KK8 ✓; kriter 1 / KK1 ~ (B1), kriter 2 / KK2 ~ (B2); güvenlik taraması temiz; dal CI 42564653239 yeşil (9 iş). Yerelde derleme `-warnaserror` 0/0, `dotnet format --verify-no-changes` 3 proje temiz, Unit 5416/5416, betik testleri 4/4, Integration: Ordering ad alanı 384/384, `AddressTests` + `MembershipTests` 142/142 (birleştirme öncesi ağaçta da dokunulan 10 sınıf 252/252) |
+| Bulgu sayısı | 2 — **B1 KRİTİK S1** (`02 §3.17.1` → §3.23.3, §3.24.6; VAL-D016; D-732): onay, dijital ve hizmet kalemi için işaretlenen kutuların kaydını siparişe dondurmuyor. `ConfirmationAcceptances.Records` (T356; sınıf yorumu "T348 calls this in the confirmation's transaction") üretimde hiç çağrılmıyor; `CheckboxAcceptance` / `CheckboxAcceptanceOrderItem` satırını yazan üretim yolu yok (`grep -rn "ConfirmationAcceptances.Records\|CheckboxAcceptances.Add" src` boş). Dijital kalemli sipariş cayma hakkının düşmesine dair kanıtsız doğar (`02 §3.24.6`: "ispat firmadadır"). T348 testleri yalnız fiziksel kalem kurar. **B2 ORTA S1** (`02 §3.17.2`, §6.2.3; D-494 "T348 onayda alanı yeniden okur"): onay teslimat alanını okumaz (`ConfirmAsync`, `Carts.OpenAsync`, `ShippingFeeSection` il taşımaz); özet gösterildikten sonra teslimat illeri değişirse — teslimat adresinin ili artık hizmet dışında olsa bile — sipariş doğar; `request.Shipping` hiç denetlenmez (fiziksel siparişte `null` ise teslimat adressiz donar). Raporun ⚠ a'sı il kontrolünü T350'ye bırakıyor; T350 bunu D-494 ile T348'e yönlendirmişti |
+| Düzeltme gerekli mi | Evet — (B1) `ConfirmAsync`, onay adımı denetimi hazır olduktan sonra `ConfirmationStepRules.Offers(current.Summary.Lines, method)`'ın kutu tekliflerini `ConfirmationAcceptances.Records(order.Id, offers, items, now)`'a verir ve satırları aynı işlemde ekler; dijital ve hizmet kalemli onay testi kayıtları (tür, gösterilen metin, kapsanan kalemler) okur. (B2) Onay teslimat alanını aynı işlemde okur; fiziksel kalemli siparişte teslimat adresinin ili hizmet dışındaysa ya da gösterilen özetten sonra alan değiştiyse sipariş oluşmaz ve fark söylenir (`02 §6.2.3`); fiziksel siparişte teslimat adresi yoksa ret; test alanı değiştirip onaylar. D-494 ve D-732 kapatılır |
+| Bloke-etmeyen not (K) sayısı | 4 — K1: `SummarizeAsync` müşterinin kendi önceki ödenmemiş siparişinin ayırmasına takılır, ödeme adımı açılmayabilir → D-769 (T509). K2: havale onayında B-2 kuyruğa girmiyor (`03 §4.2.1`) → D-770 (T353). K3: T348'e yönlenmiş backlog kalemleri (D-437, D-453 1.4.4.1 payı, D-465, D-483, D-563, D-570, D-621, D-626, D-705; B1/B2 ile D-732, D-494) kodda büyük ölçüde karşılandı ama kayıtta açık kaldı ve rapor anmıyor → düzeltme turunda bu PR'da kapatılır (çözüldü işareti ya da kalan payın yeni hedefi). K4: `SummaryComparison` özetin `ShippingPromise`'ını karşılaştırmaz; ürünün kargoya verme süresi özet ile onay arasında değişirse donan form müşterinin görmediği sözü yazar (`02 §3.24.3` formun eklediği kargoya verme süresi) → düzeltme turunda bu PR'da kapatılır |
+
+**Task satırları (`12 §7.5`):** KP-8, KP-11, KP-14…KP-17 (`grep -nE '^\| VAL-[A-Z0-9]+ \|[^|]*\|[^|]*\| 10 KP-(8|11|14|15|16|17)([^0-9]|$)'`) → 36 satır. **PASS:** VAL-C001 (süre dolan sipariş kendiliğinden iptal — `PaymentWindowTests.TransferWindowEnd_..._KK6`, `FinalQuery_ThatFindsNoPayment_..._KK4`), VAL-D006 ve VAL-D008 (ayırma onayda — `Confirmation_..._KK1_KK3`; kesin düşme Ö1'de — `AxesTieTests.AMixedOrdersCardPayment_..._KK4_KK8`), VAL-D012 (söz onayda donar — `Confirmation_..._KK1_KK3` `ShippingPeriod`). **FAIL:** VAL-D016 (B1). **BEKLEMEDE:** öteki 31 satır uç yanıtı ya da tarayıcı gözlemi ister (T348 uç ve sayfa kurmaz; T509/T510) ya da başka task'ın kaynağıdır (VAL-D007 kontenjan T348 testinde yok; VAL-D009 numara T354). `12_matris_denetle.py --kapsam 1-77` Hata 0.
+
+**Doğrulayıcı uyuşmazlık notları (adım 13):** (1) Öz denetim KK1'i ✓ veriyor; donma listesi `02 §3.23.3`'ün kutu kaydını içermiyor (B1) ve D-732 rapor ile kayıtta anılmıyor. (2) ⚠ a teslimat ili kontrolünü T350'ye veriyor; T350 bunu D-494 ile T348'e yönlendirmişti (B2). (3) "Known Limitations: Yok" — T348'e yönlenmiş on bir backlog kalemi açık kaldı (K3). (4) Test sayıları birleştirme öncesi ağacın (Unit 5313); doğrulama birleştirme sonrası ağaçta da koştu (Unit 5416).
 
 ## Altyapı Değişiklikleri
 

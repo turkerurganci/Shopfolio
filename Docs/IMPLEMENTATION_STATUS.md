@@ -197,7 +197,7 @@
 | T354 | Sipariş numarası ve takip erişimi: numara, üç giriş yolu, erişim anahtarı | ✓ | ✓ PASS (tur 4) | — | #470 |
 | T355 | Sipariş anında donan değerler | ✓ | ✓ PASS (tur 1) | — | #484 |
 | T356 | Onay adımı: onay kutuları, Ön Bilgilendirme Formu içeriği, işlem rehberi | ⬚ | — | — | — |
-| T357 | Fatura verisi ve dışa aktarmada donmuş kimlik | ⬚ | — | — | — |
+| T357 | Fatura verisi ve dışa aktarmada donmuş kimlik | ⏳ | — | — | — |
 | T358 | Kurumsal içerik tipleri: Hakkımızda, hizmet tanıtımı, referans iş, SSS, şube, genel sayfa, sosyal bağlantılar | ✓ | ✓ PASS (tur 1) | — | #449 |
 | T359 | Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler | ⬚ | — | — | — |
 | T360 | Duyuru şeridi, boş kurulum, içerik yayın durumu, önizleme ve silme | ✓ | ✓ PASS (tur 1) | — | #481 |

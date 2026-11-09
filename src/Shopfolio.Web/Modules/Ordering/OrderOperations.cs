@@ -49,6 +49,61 @@ internal sealed class OrderOperations : IOrderOperations
             : OrderOperationCatalog.Check(facts, operation, orderItemId, quantity);
     }
 
+    public async Task<WithdrawalScreen?> ReadWithdrawalScreenAsync(Guid orderId, Guid orderItemId, CancellationToken ct)
+    {
+        OrderOperationFacts? facts = await LoadAsync(orderId, ct);
+        if (facts?.Items.FirstOrDefault(i => i.ItemId == orderItemId) is not { } item || WithdrawalOperation(item.ProductType) is not { } operation)
+        {
+            return null;
+        }
+
+        // The screen opens only for the button the decision draws (03 1.11.5, 1.11.6): a physical item not shipped yet has none - its way is the cancellation (02 7.3.7).
+        // The same decision the order page's buttons are drawn from (ReadAsync), so the screen and the button cannot differ.
+        if (!OrderOperationCatalog.Decide(facts, ActorKind.Buyer).Any(e => e.Operation == operation && e.OrderItemId == orderItemId))
+        {
+            return null;
+        }
+
+        bool inTransit = item.ProductType == ProductType.Physical && item.DeliveryDate is null;
+        WithdrawalExemptionReason? exemption = await _db.OrderItems.AsNoTracking().Where(i => i.Id == orderItemId).Select(i => i.WithdrawalExemptionReason).SingleAsync(ct);
+        WithdrawalNotes notes = await _afterSales.WithdrawalNotesAsync(item.ProductType, inTransit, exemption, ct);
+        return new WithdrawalScreen(
+            orderItemId,
+            item.ProductType,
+            item.OpenQuantity,
+            item.Period.WithdrawalLastDay,
+            notes.ReturnAddress,
+            notes.SendingPeriodDays,
+            notes.CarrierReturnsUnreceivedGoods,
+            notes.PackagingCondition,
+            facts.PaymentMethod == PaymentMethod.BankTransfer && !facts.HasRefundIban);
+    }
+
+    /// <summary>The customer's withdrawal operation of an item's type (03 1.11.5, 1.11.6): a digital item has none (1.11.7 is not a button; 02 7.3.2).</summary>
+    internal static OrderOperation? WithdrawalOperation(ProductType productType) => productType switch
+    {
+        ProductType.Physical => OrderOperation.WithdrawPhysicalItem,
+        ProductType.Service => OrderOperation.WithdrawServiceItem,
+        _ => null,
+    };
+
+    /// <summary>
+    /// The verdict of one request with the facts it was read from (09 8.3 item 3): the writer - inside its transaction, after the order's row lock - needs the item's
+    /// periods too (the warnings of a record from another channel). Null facts: no such order.
+    /// </summary>
+    internal async Task<(OperationVerdict Verdict, OrderOperationFacts? Facts)> CheckWithFactsAsync(
+        Guid orderId,
+        OrderOperation operation,
+        Guid orderItemId,
+        int quantity,
+        CancellationToken ct)
+    {
+        OrderOperationFacts? facts = await LoadAsync(orderId, ct);
+        return facts is null
+            ? (new OperationVerdict(OperationDecision.Closed, OperationAvailability.Closed), null)
+            : (OrderOperationCatalog.Check(facts, operation, orderItemId, quantity), facts);
+    }
+
     private async Task<OrderOperationFacts?> LoadAsync(Guid orderId, CancellationToken ct)
     {
         Order? order = await _db.Orders.AsNoTracking().SingleOrDefaultAsync(o => o.Id == orderId, ct);

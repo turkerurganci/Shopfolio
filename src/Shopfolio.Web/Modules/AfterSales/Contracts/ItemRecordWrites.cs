@@ -30,8 +30,10 @@ public sealed record DefectClaimOpening(ItemRecordSubject Subject, int Quantity,
 public sealed record DefectClaimStatusChange(ItemRecordSubject Subject, DefectClaimStatus Status, ActorKind Actor, int? Quantity, DateTimeOffset At);
 
 /// <summary>
-/// A withdrawal declaration (03 1.7.1.5; 02 7.3; K-790): every call is a record of its own. The amounts are the caller's - the withdrawal operation computes them with
-/// the one rounding function (02 7.1.7; T372) - and <paramref name="RefundIbanId"/> is the customer's standing IBAN, if any.
+/// A withdrawal declaration (03 1.7.1.5; 02 7.3; K-790): every call is a record of its own. <paramref name="Frozen"/> are the item's frozen values the declaration's
+/// amounts are split from (02 7.1.7; <see cref="ItemFrozenAmounts"/>); the writer splits them against the shares the item's earlier records already took.
+/// <paramref name="Iban"/> says where the refund IBAN comes from on the bank transfer line (02 7.3.5, 10.4.10): entered with the declaration, the one on the order's
+/// file, or none - then the item gets an IBAN request (B-14 is the caller's notice).
 /// </summary>
 public sealed record WithdrawalDeclaration(
     ItemRecordSubject Subject,
@@ -39,10 +41,8 @@ public sealed record WithdrawalDeclaration(
     ItemRecordAdmin? Admin,
     DateOnly DeclarationDate,
     bool? IsDeliveredBeforeDeclaration,
-    decimal ProductAmount,
-    decimal CouponShare,
-    decimal VatAmount,
-    Guid? RefundIbanId,
+    ItemFrozenAmounts Frozen,
+    WithdrawalIban Iban,
     DateTimeOffset At);
 
 /// <summary>
@@ -50,6 +50,17 @@ public sealed record WithdrawalDeclaration(
 /// kuruş, while a discount ran (02 3.9.1) - and the item's coupon share and VAT. The order module hands them in; the item is not this module's (09 6 item 2).
 /// </summary>
 public sealed record ItemFrozenAmounts(decimal UnitPrice, decimal CouponShare, decimal VatAmount);
+
+/// <summary>
+/// The refund IBAN of a withdrawal on the bank transfer line (02 7.3.5, 7.4.5, 10.4.10; K-607): <paramref name="Entered"/> - entered with the declaration, or carried
+/// over from a notice that came from the order's contact e-mail (already compact and checked by the caller); <paramref name="UseOnFile"/> - the IBAN already on the
+/// order's file is used (none on file refuses the declaration); <paramref name="Request"/> - the record is made without an IBAN and an IBAN request opens on the item
+/// (the administrator's record of a notice that brought none). <see cref="None"/> is the card line's.
+/// </summary>
+public sealed record WithdrawalIban(string? Entered, bool UseOnFile, bool Request)
+{
+    public static WithdrawalIban None { get; } = new(null, false, false);
+}
 
 /// <summary>
 /// The customer's cancellation of a paid item's units from the order page (03 1.11.2, 1.11.3; 02 7.2.1, 7.2.2; T367): every call is a record of its own. The amounts
@@ -97,14 +108,24 @@ public sealed record ReturnReceiptEntry(ItemRecordSubject Subject, Guid Withdraw
 /// <summary>The rejection of returned goods at the receipt step (03 1.7.1.7; 02 7.4.9; K-656): only on an item frozen with a conditional exemption.</summary>
 public sealed record ReturnRejectionEntry(ItemRecordSubject Subject, Guid WithdrawalId, int Quantity, DateOnly ArrivalDate, ItemRecordAdmin Admin, DateTimeOffset At);
 
+/// <summary>
+/// What a withdrawal declaration's screen tells the customer (02 7.3.5): the firm's current return address and the days to send the goods back - a physical item's only
+/// (K-530); whether the carrier brings back goods not taken in - a shipped physical item not yet marked delivered (K-838); and the conditional exemption whose protective
+/// packaging condition is shown (K-509), null on any other item.
+/// </summary>
+public sealed record WithdrawalNotes(ItemReturnAddress? ReturnAddress, int? SendingPeriodDays, bool CarrierReturnsUnreceivedGoods, WithdrawalExemptionReason? PackagingCondition);
+
 /// <summary>The firm's return address a claim copied (06 4.30; K-817), as the notice writes it.</summary>
 public sealed record ItemReturnAddress(string RecipientName, Guid ProvinceId, string District, string AddressLine, string? Phone);
 
 /// <summary>An item's defect claim as it stands (06 4.30): its id, status, defective units and the return address it copied.</summary>
 public sealed record DefectClaimInfo(Guid Id, Guid OrderItemId, DefectClaimStatus Status, int Quantity, DateTimeOffset CreatedAt, ItemReturnAddress? ReturnAddress);
 
-/// <summary>The outcome of an AfterSales writer: a refusal, or the written record's id (and the claim as it now stands, on a claim's write).</summary>
-public sealed record ItemRecordWriteResult(ItemRecordRefusal? Refusal, Guid? RecordId, DefectClaimInfo? Claim)
+/// <summary>
+/// The outcome of an AfterSales writer: a refusal, or the written record's id (and the claim as it now stands, on a claim's write). <paramref name="ReturnAddress"/> is the
+/// return address a withdrawal copied - what B-9 writes.
+/// </summary>
+public sealed record ItemRecordWriteResult(ItemRecordRefusal? Refusal, Guid? RecordId, DefectClaimInfo? Claim, ItemReturnAddress? ReturnAddress = null)
 {
     public bool IsRejected => Refusal is not null;
 

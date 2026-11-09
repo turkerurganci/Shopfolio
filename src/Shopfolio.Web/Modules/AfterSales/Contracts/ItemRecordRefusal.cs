@@ -29,4 +29,7 @@ public enum ItemRecordRefusal
 
     /// <summary>The arrival date is before the declaration (06 4.26).</summary>
     ArrivalDateOutOfRange,
+
+    /// <summary>The declaration on the bank transfer line asked for the IBAN on file and the order has none (02 7.4.5): the IBAN is entered with the declaration.</summary>
+    IbanMissing,
 }

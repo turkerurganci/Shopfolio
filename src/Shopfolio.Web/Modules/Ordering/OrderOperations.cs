@@ -58,8 +58,8 @@ internal sealed class OrderOperations : IOrderOperations
         }
 
         // The screen opens only for the button the decision draws (03 1.11.5, 1.11.6): a physical item not shipped yet has none - its way is the cancellation (02 7.3.7).
-        OperationVerdict verdict = OrderOperationCatalog.Check(facts, operation, orderItemId, null);
-        if (verdict.Decision != OperationDecision.Allowed)
+        // The same decision the order page's buttons are drawn from (ReadAsync), so the screen and the button cannot differ.
+        if (!OrderOperationCatalog.Decide(facts, ActorKind.Buyer).Any(e => e.Operation == operation && e.OrderItemId == orderItemId))
         {
             return null;
         }

@@ -36,7 +36,7 @@ internal sealed partial class OrderTransitions
         string? enteredIban = null;
         if (!string.IsNullOrWhiteSpace(request.Iban))
         {
-            if (!IbanRule.IsValid(request.Iban))
+            if (!IbanRule.Allows(request.Iban))
             {
                 return WithdrawalRefused(TransitionRefusal.InvalidInput);
             }
@@ -139,7 +139,7 @@ internal sealed partial class OrderTransitions
         WithdrawalIban iban = WithdrawalIban.None;
         if (order.PaymentMethod == PaymentMethod.BankTransfer)
         {
-            iban = request.CameFromOrderEmail && !string.IsNullOrWhiteSpace(request.NoticeIban) && IbanRule.IsValid(request.NoticeIban)
+            iban = request.CameFromOrderEmail && !string.IsNullOrWhiteSpace(request.NoticeIban) && IbanRule.Allows(request.NoticeIban)
                 ? new WithdrawalIban(RequestFormat.CompactIban(request.NoticeIban), false, false)
                 : new WithdrawalIban(null, false, true);
         }

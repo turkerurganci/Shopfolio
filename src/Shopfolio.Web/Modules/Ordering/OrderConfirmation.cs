@@ -55,6 +55,12 @@ internal enum OrderConfirmationRefusal
 
     /// <summary>The shown legal texts are no longer current or a needed box is unticked (02 3.17.2 last paragraph, 3.24.1).</summary>
     ConfirmationStepNotReady,
+
+    /// <summary>
+    /// The chosen payment method is not open now (T352; 02 3.21.2, 3.21.4, 6.9.3; 07 4.13.6 "seçilemeyen ödeme yöntemi", <c>PaymentMethodUnavailable</c>): the card without the
+    /// provider's keys, the bank transfer switched off or without its IBAN. Nothing is born.
+    /// </summary>
+    PaymentMethodUnavailable,
 }
 
 /// <summary>
@@ -96,6 +102,7 @@ internal sealed class OrderConfirmation
     private readonly PaymentWindows _windows;
     private readonly OrderCounters _counters;
     private readonly OrderTransitions _transitions;
+    private readonly IPaymentMethods _paymentMethods;
     private readonly TimeProvider _time;
 
     public OrderConfirmation(
@@ -109,6 +116,7 @@ internal sealed class OrderConfirmation
         PaymentWindows windows,
         OrderCounters counters,
         OrderTransitions transitions,
+        IPaymentMethods paymentMethods,
         TimeProvider time)
     {
         _db = db;
@@ -121,6 +129,7 @@ internal sealed class OrderConfirmation
         _windows = windows;
         _counters = counters;
         _transitions = transitions;
+        _paymentMethods = paymentMethods;
         _time = time;
     }
 
@@ -138,6 +147,13 @@ internal sealed class OrderConfirmation
         if (cart.CartId is not Guid cartId || lines.Count == 0)
         {
             return OrderConfirmationResult.Refused(OrderConfirmationRefusal.NoOrderableItem);
+        }
+
+        // 02 3.21.2, 3.21.4 (T352): only an open method makes an order - the gates come before the cart's evaluation (07 4.13.6). The card without the provider's keys is not
+        // offered and not taken; the refusal rolls the earlier order's cancellation back with the rest, so the cart stays as it is (02 6.1.4).
+        if (!(await _paymentMethods.ListOpenAsync(ct)).Contains(method))
+        {
+            return OrderConfirmationResult.Refused(OrderConfirmationRefusal.PaymentMethodUnavailable);
         }
 
         Evaluation current = await EvaluateAsync(lines, cart.Shipping, request.SummaryInput, ct);

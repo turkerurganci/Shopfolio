@@ -64,6 +64,26 @@ public interface IAfterSalesModule
     Task<ItemRecordWriteResult> AddCancellationAsync(CustomerCancellationEntry entry, CancellationToken ct);
 
     /// <summary>
+    /// The firm's cancellation record (06 4.22; 02 7.2.4; T368): the unit rule of the customer's record, then one row with the administrator as the actor, the reason and
+    /// - on "Other" only - its note; the amounts as on the customer's record. Whether the operation is open is the order module's decision (03 1.11.21); the writer joins
+    /// the caller's transaction under the order's row lock and saves nothing.
+    /// </summary>
+    Task<ItemRecordWriteResult> AddFirmCancellationAsync(FirmCancellationEntry entry, CancellationToken ct);
+
+    /// <summary>
+    /// The late delivery termination record of one item (06 4.24; 02 7.2.3, 7.1.6; T368): only a physical item with no delivery date, and the quantity is exactly the item's
+    /// open units (K-796, K-1077); the record that closes the item's last open units takes the rest of its coupon share and VAT (02 7.1.7 (4)). The customer's row carries no
+    /// administrator; the record of a notice from another channel carries the administrator. Joins the caller's transaction under the order's row lock and saves nothing.
+    /// </summary>
+    Task<ItemRecordWriteResult> AddLateDeliveryTerminationAsync(LateDeliveryTerminationEntry entry, CancellationToken ct);
+
+    /// <summary>
+    /// The cancellations and late delivery terminations of the given items with their moments, for the panel's legal interest warning (02 7.2.3): a cancellation undone by the
+    /// correction of its closing transition is left out, like its closed units (<see cref="ClosedQuantitiesAsync"/>). A plain read.
+    /// </summary>
+    Task<IReadOnlyList<ClosingRecordMoment>> ClosingRecordMomentsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
     /// Links the cancellation the caller added a moment ago to the transition that closed the order with it (06 4.22 <c>TransitionRecordId</c>: the S3, S4 or S9 of
     /// the cancellation of the order's last open units), so the correction of a wrong cancellation finds it (<see cref="FindCancellationsOfTransitionAsync"/>).
     /// Writes through the caller's change tracker and saves nothing.

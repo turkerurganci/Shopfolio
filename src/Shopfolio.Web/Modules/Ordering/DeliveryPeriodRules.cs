@@ -84,10 +84,12 @@ internal static class DeliveryPeriodRules
     /// <summary>
     /// Whether a cancellation at <paramref name="cancelledAt"/> carries the legal interest warning on the panel (03 4.1.10, 4.1.13; 02 7.2.3): the
     /// item's promise had run out before it - the order's shipping promise (Z-10) for a physical item, the item's fulfilment period (Z-39) for a service
-    /// item; both counted from the payment's approval. A digital item has neither period, an order without an approved payment neither.
+    /// item; both counted from the payment's approval. A digital item has neither period, an order without an approved payment neither. The shipping
+    /// promise ends with the shipment (03 4.1.10: "kargoya verilince süre biter"): an order first shipped (<paramref name="firstShippedAt"/>, the first
+    /// uncorrected S5) before the promise ran out kept it, and its later cancellation - a returned shipment's S9 - carries no warning (D-531).
     /// </summary>
     public static bool IsLegalInterestWarningDue(
-        ProductType productType, DateTimeOffset? paymentApprovedAt, int? shippingPeriod, int? fulfilmentPeriod, DateTimeOffset cancelledAt)
+        ProductType productType, DateTimeOffset? paymentApprovedAt, int? shippingPeriod, int? fulfilmentPeriod, DateTimeOffset cancelledAt, DateTimeOffset? firstShippedAt)
     {
         if (paymentApprovedAt is not { } approvedAt)
         {
@@ -96,11 +98,16 @@ internal static class DeliveryPeriodRules
 
         return productType switch
         {
-            ProductType.Physical => shippingPeriod is { } businessDays && cancelledAt >= ShippingPeriodEnd(approvedAt, businessDays, BusinessCalendar.Product),
+            ProductType.Physical => shippingPeriod is { } businessDays
+                && IsShippingPromiseOverrun(ShippingPeriodEnd(approvedAt, businessDays, BusinessCalendar.Product), cancelledAt, firstShippedAt),
             ProductType.Service => fulfilmentPeriod is { } days && cancelledAt >= FulfilmentPeriodEnd(approvedAt, days),
             _ => false,
         };
     }
+
+    /// <summary>Z-10 overrun: the cancellation came at or after the promise's end and the order was not shipped before it (a shipment at or after the end is late too).</summary>
+    private static bool IsShippingPromiseOverrun(DateTimeOffset promiseEnd, DateTimeOffset cancelledAt, DateTimeOffset? firstShippedAt) =>
+        cancelledAt >= promiseEnd && (firstShippedAt is not { } shippedAt || shippedAt >= promiseEnd);
 }
 
 /// <summary>An order item as the late delivery termination reads it: its type, its open quantity (its own minus what its item records closed) and its delivery date.</summary>

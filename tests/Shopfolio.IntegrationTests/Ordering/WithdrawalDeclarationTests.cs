@@ -452,7 +452,7 @@ public sealed partial class WithdrawalDeclarationTests : IAsyncLifetime
 
         // The firm cancels with "müşteriyle anlaşıldı (müşteri talebi)" (02 7.3.7; K-604).
         OrderTransitionResult cancelled = await RunAsync((u, t) => u.CancelOrderAsync(
-            CancelOrderRequest.ByAdministrator(order.Id, AdminCaller, order.Version, true, CancellationReason.AgreedWithBuyer), t));
+            CancelOrderRequest.ByAdministrator(order.Id, AdminCaller, order.Version, true, CancellationReason.AgreedWithBuyer, ownerConfirmed: true), t));
         Assert.Null(cancelled.Refusal);
         await using AppDbContext reader = NewContext();
         Assert.Equal(OrderStatus.Cancelled, (await reader.Orders.AsNoTracking().SingleAsync(o => o.Id == order.Id, Ct)).OrderStatus);

@@ -230,7 +230,7 @@ public sealed class StatusCorrectionTests : IAsyncLifetime
         await using AppDbContext reader = NewContext();
         Order saved = await reader.Orders.SingleAsync(o => o.Id == order.Id, Ct);
         Assert.Equal((OrderStatus.Preparing, PaymentStatus.Paid, 3), (saved.OrderStatus, saved.PaymentStatus, saved.Version));
-        Assert.Equal((3, 0), await VariantAsync(variant.Id));
+        Assert.Equal((5, 0), await VariantAsync(variant.Id));
         Assert.Equal(_clock.GetUtcNow(), (await reader.Refunds.SingleAsync(r => r.Id == refund.Id, Ct)).VoidedAt);
         Assert.Equal(_clock.GetUtcNow(), (await reader.RefundIbanRequests.SingleAsync(r => r.Id == itemRequest.Id, Ct)).ClosedAt);
 
@@ -273,7 +273,7 @@ public sealed class StatusCorrectionTests : IAsyncLifetime
 
         Assert.Equal((TransitionRefusal.CorrectionNotPossible, CorrectionObstacle.RefundPending), (result.Refusal, result.Obstacle));
         await AssertNotCorrectedAsync(order.Id, OrderStatus.Cancelled, PaymentStatus.Paid, 2);
-        Assert.Equal((5, 0), await VariantAsync(variant.Id));
+        Assert.Equal((7, 0), await VariantAsync(variant.Id));
         await using AppDbContext reader = NewContext();
         Assert.Null((await reader.Refunds.SingleAsync(r => r.Id == refund.Id, Ct)).VoidedAt);
     }
@@ -289,13 +289,16 @@ public sealed class StatusCorrectionTests : IAsyncLifetime
         await SeedCancellationAsync(order, items[0], s4, PaymentMethod.Card);
         await SeedCancellationAsync(order, items[1], s4, PaymentMethod.Card);
 
+        // The units the cancellation gave back were sold to another order meanwhile: one unit of the two is left.
+        await ExecuteAsync($"UPDATE variants SET stock_quantity = 1 WHERE id = '{shortVariant.Id}'");
+
         OrderTransitionResult result = await CorrectAsync(order.Id, s4, 2, CorrectionReason.WrongOrder, null);
 
         Assert.Equal((TransitionRefusal.CorrectionNotPossible, CorrectionObstacle.StockShort), (result.Refusal, result.Obstacle));
         Assert.Equal([items[0].Id], result.ItemIds);
         await AssertNotCorrectedAsync(order.Id, OrderStatus.Cancelled, PaymentStatus.Paid, 2);
         Assert.Equal((1, 0), await VariantAsync(shortVariant.Id));
-        Assert.Equal((5, 0), await VariantAsync(enough.Id));
+        Assert.Equal((6, 0), await VariantAsync(enough.Id));
     }
 
     [Theory]
@@ -588,20 +591,24 @@ public sealed class StatusCorrectionTests : IAsyncLifetime
         return await RecordIdAsync(orderId, TransitionCode.S4);
     }
 
-    /// <summary>The item record the firm's cancellation closed with its transition (06 4.22) and the refund it opened; the units went back to stock.</summary>
+    /// <summary>
+    /// The item record the firm's whole-order cancellation wrote and linked to its transition (06 4.22; D-305, T368 - the units went back to stock with it) and
+    /// the refund it opened (the refund's writer is T370's; seeded here).
+    /// </summary>
     private async Task<(Cancellation Cancellation, Refund Refund)> SeedCancellationAsync(Order order, OrderItem item, Guid transitionRecordId, PaymentMethod method)
     {
-        Cancellation cancellation = Cancellation.ByAdmin(item.Id, item.Quantity, _admin!.Id, _admin.Name, CancellationReason.OutOfStock, null, Amounts, Start);
-        cancellation.TransitionRecordId = transitionRecordId;
-        Refund refund = Refund.ByAdmin(order.Id, RefundType.Cancellation, method, 100m * item.Quantity, _admin.Id, _admin.Name, Start);
+        Cancellation cancellation;
+        await using (AppDbContext reader = NewContext())
+        {
+            cancellation = await reader.Cancellations.SingleAsync(c => c.OrderItemId == item.Id && c.TransitionRecordId == transitionRecordId, Ct);
+        }
+
+        Assert.Equal((item.Quantity, ActorKind.Admin, (CancellationReason?)CancellationReason.OutOfStock), (cancellation.Quantity, cancellation.ActorKind, cancellation.CancellationReason));
+        Refund refund = Refund.ByAdmin(order.Id, RefundType.Cancellation, method, 100m * item.Quantity, _admin!.Id, _admin.Name, Start);
         refund.CancellationId = cancellation.Id;
         refund.OrderItemId = item.Id;
         refund.Quantity = item.Quantity;
-        await SaveAsync(c =>
-        {
-            c.Cancellations.Add(cancellation);
-            c.Refunds.Add(refund);
-        });
+        await SaveAsync(c => c.Refunds.Add(refund));
         return (cancellation, refund);
     }
 

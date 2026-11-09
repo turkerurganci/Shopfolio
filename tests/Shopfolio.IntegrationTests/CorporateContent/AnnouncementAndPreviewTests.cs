@@ -99,6 +99,8 @@ public sealed class AnnouncementAndPreviewTests : IAsyncLifetime
         services.AddAfterSalesModule();
         services.AddPaymentModule();
         services.AddOrderingModule();
+        services.AddScoped<global::Shopfolio.Infrastructure.Security.AttemptCounter>();
+        services.AddScoped<Shopfolio.Modules.Notifications.Contracts.INotificationsModule, Shopfolio.IntegrationTests.CorporateContent.UnusedNotifications>();
         services.AddCorporateContentModule();
         services.AddSettingsModule();
         services.AddScoped<IAuditActorSource>(_ => new FixedActor(_admin));

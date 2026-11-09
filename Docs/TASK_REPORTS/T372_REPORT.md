@@ -47,7 +47,7 @@
 | KK5: B-9 ve F-3 | ✓ | kriter 5 testleri |
 | KK6: ileri tarih; pencere dışı onay, bir yıl | ✓ | dört Integration + beş Unit test |
 | KK7: teyit denetimi yok, tarih sabit; B-14 yalnız havalede | ✓ | kriter 7 testleri; düzeltme 1'de her yazma yolunun ardışık çağrısı tekil dizinlere karşı tarandı: `refund_iban_requests` (`OneOpenIbanRequestPerItem`) artık açık isteği yeniden kullanır ya da karşılar; `withdrawals`, `refund_ibans`, `dispatch_records`'ta tekil dizin yok; sayaç dönüşü satır eklemez (`OrderCounters.ReturnAsync` → katalog sayacı) |
-| KK8: kargo öncesi iptal yolu, cayma kaydı yok | ✓ | `…_KK8` |
+| KK8: kargo öncesi iptal yolu, cayma kaydı yok | ✓ | `…_KK8` (birleştirme: ownerConfirmed eklendi — main T368 `FirmReasonRules.IsComplete` "müşteriyle anlaşıldı" iptalinde `ownerConfirmed: true` ister; ürün kodu değişmedi) |
 | KK9: onaysız kayıt, geri alma, düzeltme yok | ✓ | iki KK9 testi + salt eklenir bekçisi |
 | Devredilen backlog | ✓ | D-522 ✅, D-74 ✅ (`ShareOfUnits`; düzeltme 2'de T367, T372); D-775 tek bölme `ItemShares` (T367 ✓, T372 ✓; kalan T368, T369); D-667, D-513, D-453 (1.4.4.6 hizmet kontenjanı: `AServiceWithdrawal_GivesTheWithdrawnCapacityBack_…_D453`), D-306 T372 payları kapandı (yerinde); düzeltme 1: D-797 ✅, D-798 ✅ |
 | `09 §25` ilgili satırlar | ✓ | modül sınırı yalnız `Contracts` (mimari testler yeşil); yuvarlama yalnız `Money` (`TimeAndMoneyRulesTests`); tutar bölmesi tek evde (`ItemShares`, düzeltme 2); kilit + sürüm + tek kayıt sahibi (yazıcı `SaveChanges` çağırmaz, işlem `ITransactionRunner`'da); zaman `TimeProvider`; göç ve yeni ayar yok; sözleşme biçimi (`ShipmentTransitionContractTests`) |

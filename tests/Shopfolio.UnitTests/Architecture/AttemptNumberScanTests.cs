@@ -16,6 +16,9 @@ public sealed class AttemptNumberScanTests
         "src/Shopfolio.Web/Infrastructure/Security/AttemptRecord.cs",
         "src/Shopfolio.Web/Infrastructure/Security/AttemptSubject.cs",
         "src/Shopfolio.Web/Modules/Ordering/OpenUnpaidOrderLimit.cs",
+        "src/Shopfolio.Web/Modules/Ordering/UnpaidCancellationLimit.cs",
+        "src/Shopfolio.Web/Modules/Ordering/OrderPlacementLimits.cs",
+        "src/Shopfolio.Web/Modules/Ordering/OrderAxes.cs",
     ];
 
     [Fact]

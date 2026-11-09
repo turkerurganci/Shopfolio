@@ -41,8 +41,7 @@ internal sealed partial class OrderTransitions
         }
 
         DateTimeOffset now = _time.GetUtcNow();
-        ItemFrozenAmounts frozen = new(item.DiscountedUnitPrice ?? item.UnitPrice, item.CouponShare, item.VatAmount);
-        ItemRecordWriteResult written = await _afterSales.AddCancellationAsync(new CustomerCancellationEntry(Subject(order, item), request.Quantity, frozen, now), ct);
+        ItemRecordWriteResult written = await _afterSales.AddCancellationAsync(new CustomerCancellationEntry(Subject(order, item), request.Quantity, FrozenOf(item), now), ct);
         if (written.Refusal is { } refused)
         {
             return Refused(Map(refused));
@@ -88,10 +87,7 @@ internal sealed partial class OrderTransitions
 
         // 1.4.4.4: the cancelled units go back to stock or the service capacity (a digital item has no counter, 02 7.2.6); the coupon right goes back only when this
         // record closes the whole order (OrderCounters.IsCouponReturnDueAsync; 02 5.11.3, 7.2.7).
-        IReadOnlyList<VariantQuantity> units = item.ProductType != ProductType.Digital && item.VariantId is { } variantId
-            ? [new VariantQuantity(variantId, request.Quantity)]
-            : [];
-        await _counters.ReturnAsync(order, units, ct);
+        await _counters.ReturnAsync(order, UnitsOf(item, request.Quantity), ct);
 
         return new OrderTransitionResult(null, recordIds, closureCode, [item.Id]) { ItemRecordId = cancellationId };
     }

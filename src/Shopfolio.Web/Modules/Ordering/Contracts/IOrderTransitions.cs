@@ -65,6 +65,25 @@ public interface IOrderTransitions
     Task<OrderTransitionResult> CancelItemAsync(CancelItemRequest request, CancellationToken ct);
 
     /// <summary>
+    /// The firm cancels units of a paid item from the panel (T368; 03 1.11.21, 8.3.1.1; 02 7.2.4): the operation decision's rule says whether it is open - a physical item
+    /// in Alındı, Hazırlanıyor or Teslim edilemedi, a service item until its mark, a digital item never - and the units are at most the item's open units. The reason is
+    /// from the closed list, "Other" carries its note, "müşteriyle anlaşıldı" the firm's confirmation of the owner, and the irreversible-action confirmation is given. In
+    /// one transaction: the cancellation record with the administrator and the reason, the order's line - the last open units are the firm's S3, S4 or S9 with B-7 and
+    /// the record links it; otherwise B-7 names the item and the reason and the closure rule is read - then the units go back (1.4.4.4). A refusal writes nothing.
+    /// </summary>
+    Task<OrderTransitionResult> CancelItemByFirmAsync(CancelItemByFirmRequest request, CancellationToken ct);
+
+    /// <summary>
+    /// The late delivery termination (T368; 03 1.11.8, 1.11.41; 02 7.2.3, 10.4.10): open when the thirty-day legal limit (Z-11) has run out on a paid order in
+    /// Hazırlanıyor, Kargoya verildi or Teslim edilemedi with a physical item that has no delivery date and open units - the custom-made item too. Every such item's
+    /// open units get one termination record each (digital and service items go on); the customer's carries the day of the button, the firm's record of a notice from
+    /// another channel the day the notice arrived. The units of an order not yet shipped go back to stock; a shipped item's come back with the receipt step. When no
+    /// open item is left a preparing order closes by the closure rule (S4, reason Closure); a shipped order waits for the return and the firm's closing. No B-7 goes -
+    /// the customer gets B-9 and the firm F-3 for the customer's own termination. A refusal writes nothing.
+    /// </summary>
+    Task<OrderTransitionResult> TerminateForLateDeliveryAsync(TerminateForLateDeliveryRequest request, CancellationToken ct);
+
+    /// <summary>
     /// S9 as a closure (03 1.2, 1.4.3; 02 5.4 S9): after S7 the administrator closes a returned order whose open items are all gone and none of which was delivered.
     /// No reason is chosen, no B-7 goes - the items' own records are the reason.
     /// </summary>

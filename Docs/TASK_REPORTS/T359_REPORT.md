@@ -1,6 +1,6 @@
 # T359 — Kurumsal içerik: ürün bağı, elle sıralama, zorunlu alanlar, alan tavanları, kapsam dışı yetenekler
 
-**Faz:** F3 | **Durum:** ✗ Doğrulama tur 2 FAIL (iki iterasyon doldu — eskalasyon) | **Tarih:** 2026-11-08
+**Faz:** F3 | **Durum:** ✓ Doğrulama tur 3 PASS | **Tarih:** 2026-11-08
 
 > Taslağı yapım işçisi doldurur; doğrulama finalize eder.
 
@@ -105,6 +105,20 @@ B1 düzeltildi: `ContentRelationsTests`'e iki Integration sınır testi eklendi 
 ### Düzeltme 2 (2026-11-09)
 
 B2 düzeltildi: `ContentProductLinks.SaveAsync` var olmayan (silinmiş) ürünü atlar, kalan bağları seçim sırasıyla yazar, hata değildir (`06 §4.53`, `07 §9.13.2`); `ProductNotFound` sonucu kaldırıldı, kural modülde. Yinelenen ürün (`DuplicateProduct`) ve bilinmeyen kayıt (`OwnerNotFound`) reddi aynen korundu (dokümanlar bunlara dokunmuyor; grep ile doğrulandı). Testler: reddi kilitleyen test yinelenen + bilinmeyen kayıtla sınırlandı; yeni `ADeletedProductInTheListIsSkipped_TheRestAreLinkedInTheOrderOfTheChoice_NotAnError_KK1` (hizmet ve referans iş; silinmiş + hiç olmayan kimlik atlanır, sıra korunur, ilgili ürünler aynı sırada). Öz denetimde kabul kriterleri 1-8 ve kontrol listesi KK1-KK8 yeniden denetlendi, hepsi ✓ (KK1 kanıtı güncellendi, yukarıdaki tablo). Yerel: build `-warnaserror` 0 uyarı, format üç proje temiz, Unit 5140/5140, Integration `CorporateContent` 150/150, `Catalog` 72/72. Backlog kalemi eklenmedi (K2/D-712 bu düzeltmenin dışında).
+
+### Doğrulama tur 3 (2026-11-09) — ✓ PASS
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✓ PASS (tur 3, head `29e187eb`; `origin/main` `8772edbc` çakışmasız birleştirildi, birleşik ağaç build + Unit yeşil) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K3 → D-720) |
+
+**Validator kabul kriterleri tablosu (tur 3):** K1 ✓ (B2 kapandı: `ADeletedProductInTheList_IsSkipped_…_KK1` iki sahip tipiyle; silinmiş ve hiç olmayan kimlik atlanır, sıra korunur; yinelenen ürün ve bilinmeyen kayıt reddi korunur) · K2 ✓ · K3 ✓ · K4 ✓ (servis düzeyi; çizim D-674) · K5 ✓ · K6 ✓ · K7 ✓ · K8 ✓; kontrol listesi KK1–KK8 ve `09 §25` ✓. `12` satırları (`VAL-A118`, `A119`, `A148`, `A150`, `C033`, `C034`) `BEKLEMEDE` kaldı (tur 1 gerekçesi; sayfa ve uç sahibi sonraki task'lar). Dal CI 42535094509 yeşil. Yerel: build `-warnaserror` 0 uyarı, format üç proje temiz, Unit 5140/5140 (birleşik ağaçta 5170/5170), betik testleri 4/4, Integration `CorporateContent` 150/150, `Catalog` 72/72 (PostgreSQL 18).
+
+- **K3 → D-720:** `ContentProductLinks.SaveAsync` ürün varlığını okuduktan sonra aynı ürün silinirse ekleme yabancı anahtar hatasına düşer; dar yarış, panel kayıt ucunda (T534) kapatılır.
+- **Yapım raporu karşılaştırması:** uyumlu. Küçük farklar: Known Limitations madde 3'ün hedefi (T360) geçti (D-712 kayıtlı); test sonuçlarında PostgreSQL 17 yazıyor, CI 18 kullanıyor.
 
 ## Altyapı Değişiklikleri
 

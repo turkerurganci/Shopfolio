@@ -67,7 +67,7 @@ public sealed record WithdrawalIban(string? Entered, bool UseOnFile, bool Reques
 /// are worked out by the writer from <paramref name="Frozen"/> and what the item's earlier records set aside (02 7.1.7): the product amount is the unit price times the
 /// units, the coupon share and the VAT are the units' share rounded down, and the record that closes the item's last open units takes what is left.
 /// </summary>
-public sealed record CustomerCancellationEntry(ItemRecordSubject Subject, int Quantity, ItemFrozenAmounts Frozen, DateTimeOffset At);
+public sealed record CustomerCancellationEntry(ItemRecordSubject Subject, int Quantity, ItemFrozenAmounts Frozen, DateTimeOffset At, string? Iban = null);
 
 /// <summary>
 /// The firm's cancellation of a paid item's units from the panel (03 1.11.21, 8.3.1.1; 02 7.2.4; T368): every call is a record of its own, with the administrator and a

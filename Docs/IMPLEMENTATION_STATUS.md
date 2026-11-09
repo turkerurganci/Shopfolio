@@ -210,7 +210,7 @@
 | T367 | Müşteri iptali: kalem ve adet düzeyi, kargoya verilene kadar, dijital ve hizmet sınırı, sayaçların dönmesi, kısmi iptalde kupon | ✓ | ✓ PASS (tur 1) | — | #494 |
 | T368 | Gecikme feshi ve firma iptali: iki fesih yolu, kanuni faiz uyarısı, kapalı sebep listesi, ifanın imkânsızlaşması bildirimi | ✓ | ✓ PASS (tur 1) | — | #498 |
 | T369 | İşlemin adet birimi ve geri ödeme tutarı: açık adet, kupon payı, KDV, kargo ücretinin iptalde ve caymada ayrılması | ✓ | ✓ PASS (tur 1) | — | #501 |
-| T370 | Geri ödeme hattı: ödemenin geldiği yol, kart ve havale, IBAN'ın ömrü, geri ödeme süresi, kart iadesi hataları | ⬚ | — | — | — |
+| T370 | Geri ödeme hattı: ödemenin geldiği yol, kart ve havale, IBAN'ın ömrü, geri ödeme süresi, kart iadesi hataları | ✓ | ✓ PASS (tur 2) | — | #506 |
 | T371 | Cayma hakkı: pencere, dijital ve hizmet istisnası, ürün istisna işareti, tek rejim | ✓ | ✓ PASS (tur 1) | — | #488 |
 | T372 | Cayma beyanı: sipariş sayfasından ve başka kanaldan, beyanın etkisi, kargoya verilmemiş kalemde iptal yolu, firmanın teyidi | ✓ | ✓ PASS (tur 3) | — | #492 |
 | T373 | İade: iade kargo bedeli, ödemeli gönderim ve iade adresi, teslim alma adımı, stoğa ekleme, koşullu istisnada ret, kullanılmış mal | ⬚ | — | — | — |

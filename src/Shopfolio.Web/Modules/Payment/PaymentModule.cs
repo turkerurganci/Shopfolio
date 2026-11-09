@@ -173,7 +173,8 @@ internal sealed class PaymentModule : IPaymentModule
     public async Task<RefundMarks> ReadRefundMarksAsync(Guid orderId, CancellationToken ct)
     {
         await _db.Refunds.Where(r => r.OrderId == orderId).LoadAsync(ct);
-        List<Refund> open = [.. _db.Refunds.Local.Where(r => r.OrderId == orderId && r.SentAt is null && r.VoidedAt is null)];
+        // Both marks are the card way's (06 4.34; K-675, K-1015 (5)): a refund the customer's IBAN turned to the transfer drops the mark (D-322).
+        List<Refund> open = [.. _db.Refunds.Local.Where(r => r.OrderId == orderId && r.SentAt is null && r.VoidedAt is null && r.PaymentMethod == PaymentMethod.Card)];
         List<Guid> openIds = [.. open.Select(r => r.Id)];
         await _db.RefundRecords.Where(r => openIds.Contains(r.RefundId)).LoadAsync(ct);
 
@@ -347,6 +348,140 @@ internal sealed class PaymentModule : IPaymentModule
         }
 
         return [.. refunds.Select(r => r.Id)];
+    }
+
+    public async Task<RecordRefundStarted> StartRecordRefundAsync(RecordRefundStart start, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(start);
+        if (start.RefundType is not (RefundType.Cancellation or RefundType.ItemRemoval or RefundType.LateDeliveryTermination))
+        {
+            throw new ArgumentException("The record refund of the line is a cancellation's, a removal's or a late delivery termination's (06 4.33).", nameof(start));
+        }
+
+        PaymentMethod way = RefundLineRules.WayOf(start.OrderPaymentMethod);
+        if (!RefundLineRules.IsStartedBySystem(start.RefundType, way))
+        {
+            // The transfer line: the firm processes the refund on the panel, and its row is born with that step (06 4.33; 02 7.2.8).
+            return new RecordRefundStarted(null, way, RefundLineRules.NeedsIbanField(way, start.HasIban));
+        }
+
+        Refund refund = Refund.BySystem(start.OrderId, start.RefundType, way, start.Amount, _time.GetUtcNow());
+        refund.IsShippingFeeIncluded = start.IsShippingFeeIncluded;
+        refund.OrderItemId = start.OrderItemId;
+        refund.Quantity = start.Quantity;
+        switch (start.RefundType)
+        {
+            case RefundType.Cancellation:
+                refund.CancellationId = start.RecordId;
+                break;
+            case RefundType.ItemRemoval:
+                refund.ItemRemovalId = start.RecordId;
+                break;
+            default:
+                refund.LateDeliveryTerminationId = start.RecordId;
+                break;
+        }
+
+        _db.Refunds.Add(refund);
+
+        // The card refund is a side effect that goes outside: its job row is written in the same transaction (05 4.3.1; 4.6.1).
+        await _jobs.EnqueueAsync(JobType.CardRefund, refund.Id, null, ct);
+        return new RecordRefundStarted(refund.Id, way, false);
+    }
+
+    public async Task<CardRefundLine?> ReadRefundLineAsync(Guid orderId, Guid refundId, CancellationToken ct)
+    {
+        Refund? refund = await _db.Refunds.SingleOrDefaultAsync(r => r.Id == refundId, ct);
+        if (refund is null || refund.OrderId != orderId)
+        {
+            return null;
+        }
+
+        RefundRecordState? latest = await LatestStateAsync(refund.Id, ct);
+        return new CardRefundLine(refund.Id, refund.OrderId, refund.OrderItemId, refund.PaymentMethod, refund.SentAt is not null, refund.VoidedAt is not null, latest);
+    }
+
+    public async Task<bool> RetryCardRefundAsync(Guid orderId, Guid refundId, bool isIbanEntered, CancellationToken ct)
+    {
+        CardRefundLine? line = await ReadRefundLineAsync(orderId, refundId, ct);
+        if (line is null || !RefundLineRules.ActionsOf(line, isIbanEntered).CanRetry)
+        {
+            return false;
+        }
+
+        // The retry is a new request of the same refund (06 4.34): a new job row; its handler writes the new refund record (CardRefundJobRule).
+        await _jobs.EnqueueAsync(JobType.CardRefund, refundId, null, ct);
+        return true;
+    }
+
+    public async Task<bool> TurnRefundToTransferAsync(Guid orderId, Guid refundId, CancellationToken ct)
+    {
+        CardRefundLine? line = await ReadRefundLineAsync(orderId, refundId, ct);
+        if (line is null || !RefundLineRules.ActionsOf(line, isIbanEntered: true).CanTurnToTransfer)
+        {
+            return false;
+        }
+
+        Refund refund = await _db.Refunds.SingleAsync(r => r.Id == refundId, ct);
+        refund.PaymentMethod = PaymentMethod.BankTransfer;
+        return true;
+    }
+
+    public CardRefundActions RefundActionsOf(CardRefundLine line, bool isIbanEntered) => RefundLineRules.ActionsOf(line, isIbanEntered);
+
+    public async Task<IReadOnlyList<RefundOfRecord>> FindRefundsOfRecordsAsync(IReadOnlyCollection<Guid> recordIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(recordIds);
+        Guid[] ids = [.. recordIds.Distinct()];
+        if (ids.Length == 0)
+        {
+            return [];
+        }
+
+        // Loading puts the saved rows into the context without overwriting the tracked ones; the open transaction's changes are read from there.
+        static bool Touches(Refund r, Guid[] ids) =>
+            ids.Contains(r.Id)
+            || (r.OrderItemId is { } item && ids.Contains(item))
+            || (r.CancellationId is { } c && ids.Contains(c))
+            || (r.ItemRemovalId is { } i && ids.Contains(i))
+            || (r.LateDeliveryTerminationId is { } t && ids.Contains(t))
+            || (r.WithdrawalId is { } w && ids.Contains(w))
+            || (r.ReturnId is { } ret && ids.Contains(ret));
+        await _db.Refunds
+            .Where(r => ids.Contains(r.Id)
+                || (r.OrderItemId != null && ids.Contains(r.OrderItemId.Value))
+                || (r.CancellationId != null && ids.Contains(r.CancellationId.Value))
+                || (r.ItemRemovalId != null && ids.Contains(r.ItemRemovalId.Value))
+                || (r.LateDeliveryTerminationId != null && ids.Contains(r.LateDeliveryTerminationId.Value))
+                || (r.WithdrawalId != null && ids.Contains(r.WithdrawalId.Value))
+                || (r.ReturnId != null && ids.Contains(r.ReturnId.Value)))
+            .LoadAsync(ct);
+        return [.. _db.Refunds.Local
+            .Where(r => Touches(r, ids))
+            .Select(r => new RefundOfRecord(
+                r.Id, r.OrderItemId, r.CancellationId, r.ItemRemovalId, r.LateDeliveryTerminationId, r.WithdrawalId, r.ReturnId, r.Quantity, r.SentAt ?? r.VoidedAt))];
+    }
+
+    public async Task<IReadOnlyList<RefundOfRecord>> FindPendingTransferRefundsAsync(Guid orderId, CancellationToken ct)
+    {
+        // Loading puts the saved rows into the context without overwriting the tracked ones: the refund the caller just marked sent is read as sent.
+        await _db.Refunds.Where(r => r.OrderId == orderId).LoadAsync(ct);
+        return [.. _db.Refunds.Local
+            .Where(r => r.OrderId == orderId && r.PaymentMethod == PaymentMethod.BankTransfer && r.SentAt is null && r.VoidedAt is null)
+            .Select(r => new RefundOfRecord(
+                r.Id, r.OrderItemId, r.CancellationId, r.ItemRemovalId, r.LateDeliveryTerminationId, r.WithdrawalId, r.ReturnId, r.Quantity, null))];
+    }
+
+    /// <summary>The state of the refund's latest card request, the open transaction's changes included; null when none was written.</summary>
+    private async Task<RefundRecordState?> LatestStateAsync(Guid refundId, CancellationToken ct)
+    {
+        await _db.RefundRecords.Where(r => r.RefundId == refundId).LoadAsync(ct);
+        return _db.RefundRecords.Local
+            .Where(r => r.RefundId == refundId)
+            .OrderByDescending(r => r.CreatedAt)
+            .ThenByDescending(r => r.Id)
+            .Select(r => (RefundRecordState?)r.State)
+            .FirstOrDefault();
     }
 
     /// <summary>The cancellations' refunds that are not voided, the open transaction's changes included.</summary>

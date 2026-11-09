@@ -5,6 +5,7 @@ using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
+using Shopfolio.Modules.Payment.Contracts;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -99,6 +100,9 @@ internal sealed partial class OrderTransitions
             }
         }
 
+        // The refund starts with the record (T370; 02 7.2.8): on the card by the system, on the transfer with the IBAN request and B-14 (K-690).
+        await StartRefundOfRecordAsync(order, item, RefundType.Cancellation, cancellationId, false, request.Admin, RefundIbanRequestReason.CancellationOrRemoval, ct);
+
         // 1.4.4.4: the cancelled units go back to stock or the service capacity; the coupon right only with the order's last unit (02 7.2.6).
         await _counters.ReturnAsync(order, UnitsOf(item, request.Quantity), ct);
         return new OrderTransitionResult(null, recordIds, closureCode, [item.Id]) { ItemRecordId = cancellationId };
@@ -131,6 +135,7 @@ internal sealed partial class OrderTransitions
                 new FirmCancellationEntry(Subject(order, item), open, FrozenOf(item), admin, request.FirmReason!.Value, note, now), ct);
             Guid cancellationId = written.RecordId ?? throw new InvalidOperationException("The whole-order cancellation's item record was refused under the order's lock.");
             await _afterSales.LinkClosingTransitionAsync(cancellationId, transitionRecordId, ct);
+            await StartRefundOfRecordAsync(order, item, RefundType.Cancellation, cancellationId, false, request.Admin, RefundIbanRequestReason.CancellationOrRemoval, ct);
             units.AddRange(UnitsOf(item, open));
         }
 

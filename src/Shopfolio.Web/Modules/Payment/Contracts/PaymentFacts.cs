@@ -31,6 +31,55 @@ public sealed record RefundMarks(bool IsNotRealized, bool IsOutcomePending);
 public sealed record RescindedShares(int Quantity, decimal CouponShare, decimal VatAmount);
 
 /// <summary>
+/// The refund an item record causes (T370; 06 4.33; 02 7.2.8, 7.4.5): the order's payment method, the record - a cancellation, a removal or a late delivery
+/// termination -, its item and units, the amount (product amount less the coupon share, the shipping fee added when <see cref="IsShippingFeeIncluded"/>),
+/// the fee flag, and whether an IBAN came with the record.
+/// </summary>
+public sealed record RecordRefundStart(
+    Guid OrderId,
+    PaymentMethod OrderPaymentMethod,
+    RefundType RefundType,
+    decimal Amount,
+    bool IsShippingFeeIncluded,
+    Guid OrderItemId,
+    int Quantity,
+    Guid RecordId,
+    bool HasIban);
+
+/// <summary>
+/// What the refund line did with a record's refund (T370; 02 7.2.8): the refund the system started on the card - null when the refund is the firm's step -,
+/// its way, and whether the customer is to be asked for an IBAN (the transfer line without an IBAN; never on the card line).
+/// </summary>
+public sealed record RecordRefundStarted(Guid? SystemRefundId, PaymentMethod Way, bool NeedsIbanField);
+
+/// <summary>
+/// One refund as the refund line reads it (T370; 02 7.2.8; 06 4.33, 4.34): its order and item, its way, whether it is sent or voided, and the state of its
+/// latest card request - null when no request was written yet.
+/// </summary>
+public sealed record CardRefundLine(Guid RefundId, Guid OrderId, Guid? OrderItemId, PaymentMethod Way, bool IsSent, bool IsVoided, RefundRecordState? LatestState);
+
+/// <summary>
+/// A refund that touches one of the asked records (T370; 06 4.33): its item, its links to the cancellation, removal, termination, withdrawal and receipt, its
+/// units and the moment it settled - sent, or voided and so never to go; null while it is pending.
+/// </summary>
+public sealed record RefundOfRecord(
+    Guid RefundId,
+    Guid? OrderItemId,
+    Guid? CancellationId,
+    Guid? ItemRemovalId,
+    Guid? LateDeliveryTerminationId,
+    Guid? WithdrawalId,
+    Guid? ReturnId,
+    int? Quantity,
+    DateTimeOffset? SettledAt)
+{
+    public bool IsSettled => SettledAt is not null;
+}
+
+/// <summary>What the refund line opens on a refund (02 7.2.8; K-569, K-940): the firm's retry, the firm's transfer path, and turning the way to the transfer with the customer's IBAN.</summary>
+public readonly record struct CardRefundActions(bool CanRetry, bool CanOpenTransferPath, bool CanTurnToTransfer);
+
+/// <summary>
 /// The refund of a defect claim's remedy the firm starts (02 7.5.3; 06 4.33; K-788, K-228): the order, the way (the order's payment method), the item, the amount and
 /// the administrator. <paramref name="Rescission"/> makes it the rescission's refund (<see cref="RefundType.DefectClaimRescission"/>, with the claim, the units, the coupon
 /// share and the VAT); null makes it the price reduction's amount-based refund of the item, which takes nothing back.

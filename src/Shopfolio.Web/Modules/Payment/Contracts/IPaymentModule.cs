@@ -130,6 +130,44 @@ public interface IPaymentModule
     /// bank transfer; it is not a running card job. A plain read; it counts and writes nothing.
     /// </summary>
     Task<int> CountOpenCardRefundsAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The refund line's start of an item record's refund (T370; 02 7.2.8, 7.4.5; 06 4.33; 05 4.3.1): the way is the payment's; on the card the system starts the
+    /// refund by itself - the refund row with the record's link, item, units, amount and fee flag, and its card refund job row in the same transaction, no approval
+    /// window -; on the transfer the refund is the firm's step and no row is born yet. Writes through the caller's change tracker under the order's row lock and
+    /// saves nothing.
+    /// </summary>
+    Task<RecordRefundStarted> StartRecordRefundAsync(RecordRefundStart start, CancellationToken ct);
+
+    /// <summary>The order's refund as the refund line reads it, the open transaction's changes included; null when the refund is not the order's.</summary>
+    Task<CardRefundLine?> ReadRefundLineAsync(Guid orderId, Guid refundId, CancellationToken ct);
+
+    /// <summary>
+    /// The firm's retry of a failed card refund (02 7.2.8; 06 4.34; K-569): a new card refund job row for the same refund - its request is a new refund record.
+    /// Only when <see cref="RefundLineRules"/> opens the retry; otherwise nothing is written and the result is false.
+    /// </summary>
+    Task<bool> RetryCardRefundAsync(Guid orderId, Guid refundId, bool isIbanEntered, CancellationToken ct);
+
+    /// <summary>
+    /// The customer entered an IBAN on the transfer path of a failed card refund (02 7.2.8; 06 4.33 <c>PaymentMethod</c>; K-569): the refund's way turns to the
+    /// transfer once and the card refund is not retried again. Only on a refund whose latest card request failed; otherwise false.
+    /// </summary>
+    Task<bool> TurnRefundToTransferAsync(Guid orderId, Guid refundId, CancellationToken ct);
+
+    /// <summary>
+    /// The refunds that touch the given ids - item, cancellation, removal, termination, withdrawal or receipt ids, or refund ids - with their units and the moment
+    /// they settled, the open transaction's changes included (T370; 02 7.4.5; K-1110). A plain read.
+    /// </summary>
+    Task<IReadOnlyList<RefundOfRecord>> FindRefundsOfRecordsAsync(IReadOnlyCollection<Guid> recordIds, CancellationToken ct);
+
+    /// <summary>
+    /// The order's refunds on the bank transfer way that are neither sent nor voided, whatever their source - a record's, a defect remedy's, the late payment's - with
+    /// their links, the open transaction's changes included (T370; 02 7.4.5): the refunds that may still be paid to an IBAN. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<RefundOfRecord>> FindPendingTransferRefundsAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>What the firm and the customer may do with the refund now (02 7.2.8; K-569, K-940): the refund line's one rule, read by the order's operations and the panel.</summary>
+    CardRefundActions RefundActionsOf(CardRefundLine line, bool isIbanEntered);
 }
 
 /// <summary>One payment record seen from another module (06 4.32): the order, and the transition that confirmed the payment - null on a late card payment.</summary>

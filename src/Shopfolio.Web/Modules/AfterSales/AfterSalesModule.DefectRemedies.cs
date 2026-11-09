@@ -77,16 +77,16 @@ internal sealed partial class AfterSalesModule
         ItemRecordSubject subject = request.Subject;
         RequireOrderLock(subject);
 
-        // The IBAN on the order's file pays the refund (02 7.4.5); otherwise the order page opens the item's one IBAN field, and a second remedy uses the open request (06 4.29).
-        if (await _db.RefundIbans.AnyAsync(i => i.OrderId == subject.OrderId, ct)
-            || await _db.RefundIbanRequests.AnyAsync(r => r.OrderItemId == subject.OrderItemId && r.FulfilledAt == null && r.ClosedAt == null, ct))
+        // The IBAN on the order's file pays the refund (02 7.4.5); otherwise the order page opens the item's one IBAN field through the refund line's one request
+        // writer, and a second remedy uses the open request (06 4.29).
+        if (await _db.RefundIbans.AnyAsync(i => i.OrderId == subject.OrderId, ct))
         {
             return false;
         }
 
-        _db.RefundIbanRequests.Add(RefundIbanRequest.ForItem(
-            subject.OrderItemId, RefundIbanRequestReason.AdminRequest, null, request.Admin.AdminId, request.Admin.AdminName, request.At));
-        return true;
+        RefundIbanRequestOpened opened = await OpenRefundIbanRequestAsync(
+            new RefundIbanRequestEntry(subject.OrderItemId, null, RefundIbanRequestReason.AdminRequest, request.Admin.AdminId, request.Admin.AdminName, request.At), ct);
+        return opened.IsNew;
     }
 
     /// <summary>The item's claim while it is open: the remedy is the answer to an open claim; a resolved one is reopened first (03 1.9.1).</summary>

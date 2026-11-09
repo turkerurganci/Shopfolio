@@ -22,8 +22,21 @@ internal sealed partial class AfterSalesModule
             entry.Subject,
             entry.Quantity,
             entry.Frozen,
-            amounts => Cancellation.ByBuyer(entry.Subject.OrderItemId, entry.Quantity, amounts, null, entry.At),
+            amounts => Cancellation.ByBuyer(entry.Subject.OrderItemId, entry.Quantity, amounts, AddCancellationIban(entry), entry.At),
             ct);
+    }
+
+    /// <summary>The IBAN the customer gave with the cancellation on the transfer line (T370; 02 7.2.8, 7.4.5), stored compact; null on the card line.</summary>
+    private Guid? AddCancellationIban(CustomerCancellationEntry entry)
+    {
+        if (entry.Iban is not { } entered)
+        {
+            return null;
+        }
+
+        RefundIban iban = RefundIban.Create(entry.Subject.OrderId, entered, entry.At);
+        _db.RefundIbans.Add(iban);
+        return iban.Id;
     }
 
     public async Task<ItemRecordWriteResult> AddFirmCancellationAsync(FirmCancellationEntry entry, CancellationToken ct)

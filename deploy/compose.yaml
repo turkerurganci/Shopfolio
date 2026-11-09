@@ -215,6 +215,9 @@ services:
       - no-new-privileges:true
     secrets:
       - db_app_connection
+    volumes:
+      # The command writes its own line to its own file in the application's log directory (09 13.2 item 5, 18.1 item 2).
+      - app-logs:/var/log/shopfolio/app
     networks:
       - app-data
     depends_on:
@@ -232,6 +235,13 @@ services:
       - no-new-privileges:true
     secrets:
       - db_reader_connection
+    volumes:
+      # read-logs (T387; 05 8.5.5, 9.3): the application's logs (its own line goes there too, 09 13.2 item 5), the proxy's access log
+      # read only, and the result's directory: a server directory outside the logs and every backup (05 9.3.3); the encrypted
+      # delivery and the deletion of the file are DEPLOY_RUNBOOK steps.
+      - app-logs:/var/log/shopfolio/app
+      - access-logs:/var/log/shopfolio/access:ro
+      - ${SHOPFOLIO_EXPORT_DIR:-/var/tmp/shopfolio-export}:/tmp/shopfolio-export
     networks:
       - app-data
     depends_on:

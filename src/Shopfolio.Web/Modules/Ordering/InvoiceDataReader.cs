@@ -40,6 +40,22 @@ internal sealed class InvoiceDataReader
             .Where(o => ids.Contains(o.Id))
             .OrderBy(o => o.CreatedAt).ThenBy(o => o.Id)
             .ToListAsync(ct);
+        return await ComposeAsync(orders, ct);
+    }
+
+    /// <summary>
+    /// The invoice data of orders the caller has already read (the order export's page, T384): the items, the approvals and the shipments are read for the whole page in three
+    /// queries, so the export has no query per order. The result follows the order of <paramref name="orders"/>.
+    /// </summary>
+    public async Task<IReadOnlyList<InvoiceData>> ComposeAsync(IReadOnlyList<Order> orders, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(orders);
+        Guid[] ids = [.. orders.Select(o => o.Id)];
+        if (ids.Length == 0)
+        {
+            return [];
+        }
+
         List<OrderItem> items = await _db.OrderItems.AsNoTracking()
             .Where(i => ids.Contains(i.OrderId))
             .OrderBy(i => i.CreatedAt).ThenBy(i => i.Id)

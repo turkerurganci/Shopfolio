@@ -33,14 +33,17 @@ internal sealed class OrderingModule : IOrderingModule
 
     private readonly InvoiceDataReader _invoiceData;
 
+    private readonly OrderExport _export;
+
     public OrderingModule(
-        AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks, DownloadCounters downloads, Carts carts, OrderAccess access, IOptions<SiteOptions> site)
+        AppDbContext db, OrderPaymentArms arms, OrderLocks locks, AdvisoryLocks advisoryLocks, DownloadCounters downloads, Carts carts, OrderAccess access, IOptions<SiteOptions> site, OrderExport export)
     {
         _carts = carts;
         _db = db;
         _arms = arms;
         _shippingViews = new ShippingViewReader(db);
         _invoiceData = new InvoiceDataReader(db, site);
+        _export = export;
         _locks = locks;
         _advisoryLocks = advisoryLocks;
         _downloads = downloads;
@@ -67,6 +70,8 @@ internal sealed class OrderingModule : IOrderingModule
     }
 
     public Task<IReadOnlyList<InvoiceData>> ListInvoiceDataAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => _invoiceData.ListAsync(orderIds, ct);
+
+    public Task<int> WriteOrderExportAsync(DateOnly startDay, DateOnly endDay, Stream destination, long maxBytes, CancellationToken ct) => _export.WriteAsync(startDay, endDay, destination, maxBytes, ct);
 
     public Task<IReadOnlyList<OrderPaymentArm>> FindPaymentArmsAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct) => _arms.ReadAsync(orderIds, ct);
 
@@ -376,6 +381,7 @@ internal static class OrderingModuleRegistration
         // The order number, the access key and the ways into the order page (T354; 02 3.22).
         services.AddScoped<OrderIdentifiers>();
         services.AddScoped<OrderAccess>();
+        services.AddScoped<OrderExport>();
         services.AddOutageEffect<TransferWindowDeferral>();
         services.AddScoped<IOrderingModule, OrderingModule>();
 

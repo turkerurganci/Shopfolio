@@ -199,14 +199,20 @@ internal sealed partial class AfterSalesModule : IAfterSalesModule
         Add(rejected, await _db.ReturnRejections.Where(r => ids.Contains(r.OrderItemId)).GroupBy(r => r.OrderItemId)
             .Select(g => new KeyValuePair<Guid, int>(g.Key, g.Sum(r => r.Quantity))).ToListAsync(ct));
         Dictionary<Guid, int> notReturned = [];
-        Add(notReturned, await _db.NotReturnedClosures.Where(n => ids.Contains(n.OrderItemId) && n.ReopenedAt == null).GroupBy(n => n.OrderItemId)
-            .Select(g => new KeyValuePair<Guid, int>(g.Key, g.Sum(n => n.Quantity))).ToListAsync(ct));
         if (includeUnsaved)
         {
             Add(withdrawn, Added<Withdrawal>(ids, w => w.OrderItemId, w => w.Quantity));
             Add(received, AddedWhere<Return>(ids, r => r.WithdrawalId != null, r => r.OrderItemId, r => r.Quantity));
             Add(rejected, Added<ReturnRejection>(ids, r => r.OrderItemId, r => r.Quantity));
-            Add(notReturned, AddedWhere<NotReturnedClosure>(ids, n => n.ReopenedAt == null, n => n.OrderItemId, n => n.Quantity));
+
+            // The closing as the context holds it: an added one counts, and one the caller's receipt opened a moment ago (ReopenedAt set, not saved) does not (06 4.28; K-1055).
+            Add(notReturned, (await LocalAsync(_db.NotReturnedClosures, n => ids.Contains(n.OrderItemId), ct)).Where(n => n.ReopenedAt == null).GroupBy(n => n.OrderItemId)
+                .Select(g => new KeyValuePair<Guid, int>(g.Key, g.Sum(n => n.Quantity))));
+        }
+        else
+        {
+            Add(notReturned, await _db.NotReturnedClosures.Where(n => ids.Contains(n.OrderItemId) && n.ReopenedAt == null).GroupBy(n => n.OrderItemId)
+                .Select(g => new KeyValuePair<Guid, int>(g.Key, g.Sum(n => n.Quantity))).ToListAsync(ct));
         }
 
         foreach (Guid id in ids)

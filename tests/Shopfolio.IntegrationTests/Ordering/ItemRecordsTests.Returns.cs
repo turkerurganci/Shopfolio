@@ -189,7 +189,70 @@ public sealed partial class ItemRecordsTests
         Assert.False((await MarksAsync(item)).AwaitingReturnGoods);
     }
 
+    // ---- KK10, 06 4.14: the coupon right goes back once with the receipt that brings the order's last unit, a reopened closure included ----
+
+    [Fact]
+    public async Task Receipt_OfTheOrdersLastUnit_GivesTheCouponRightBack_Once()
+    {
+        (Order order, OrderItem item) = await SeedDeliveredAsync(1, null);
+        Guid couponId = await SeedUsedCouponAsync(order.Id);
+        await SeedReturnVariantAsync(item.Id, 5);
+        Guid withdrawalId = (await WriteAsync(order.Id, (m, t) => m.AddWithdrawalAsync(Declaration(order, item, 1, DeliveryDay.AddDays(1)), t))).RecordId!.Value;
+        Assert.Equal(2, await UsedCountAsync(couponId));
+
+        ItemRecordResult received = await RunAsync((u, t) => u.ReceiveReturnAsync(Receipt(order.Id, item.Id, withdrawalId, 2, 1, DeliveryDay.AddDays(2)), t));
+        Assert.Null(received.Refusal);
+        Assert.Equal(1, await UsedCountAsync(couponId));
+
+        // The stock step after it returns the units, never the right a second time.
+        Assert.Null((await RunAsync((u, t) => u.AddReturnedStockAsync(new AddReturnedStockRequest(order.Id, item.Id, received.RecordId!.Value, AdminCaller, 3), t))).Refusal);
+        Assert.Equal(1, await UsedCountAsync(couponId));
+    }
+
+    [Fact]
+    public async Task Receipt_ThatReopensTheClosure_OfTheOrdersLastUnit_GivesTheCouponRightBack_Once_KK10()
+    {
+        (Order order, OrderItem item) = await SeedDeliveredAsync(1, null);
+        Guid couponId = await SeedUsedCouponAsync(order.Id);
+        await SeedReturnVariantAsync(item.Id, 5);
+        Guid withdrawalId = (await WriteAsync(order.Id, (m, t) => m.AddWithdrawalAsync(Declaration(order, item, 1, DeliveryDay.AddDays(1)), t))).RecordId!.Value;
+
+        // The "mal dönmedi" closing ends the order with a loss: the right stays used (06 4.14; K-1104).
+        _clock.SetUtcNow(TurkeyTime.StartOf(DeliveryDay.AddDays(AfterSalesPeriodRules.ReturnShipmentPeriodDays + 2)).AddHours(12));
+        Assert.Null((await RunAsync((u, t) => u.CloseAsNotReturnedAsync(new CloseAsNotReturnedRequest(order.Id, item.Id, withdrawalId, AdminCaller, 2, 1), t))).Refusal);
+        Assert.Equal(2, await UsedCountAsync(couponId));
+
+        // The late goods' receipt opens the closing (06 4.28; K-1055) and brings the last unit: the right goes back with it.
+        ItemRecordResult received = await RunAsync((u, t) => u.ReceiveReturnAsync(Receipt(order.Id, item.Id, withdrawalId, 3, 1, TurkeyTime.DateOf(_clock.GetUtcNow())), t));
+        Assert.Null(received.Refusal);
+        Assert.Equal(1, await UsedCountAsync(couponId));
+        await using (AppDbContext reader = NewContext())
+        {
+            Assert.NotNull((await reader.NotReturnedClosures.SingleAsync(n => n.WithdrawalId == withdrawalId, Ct)).ReopenedAt);
+        }
+
+        Assert.Null((await RunAsync((u, t) => u.AddReturnedStockAsync(new AddReturnedStockRequest(order.Id, item.Id, received.RecordId!.Value, AdminCaller, 4), t))).Refusal);
+        Assert.Equal(1, await UsedCountAsync(couponId));
+    }
+
     // ---- helpers ----
+
+    /// <summary>A coupon the order used, and another order too: <c>used_count</c> 2, so a second return of the order's right would show as 0.</summary>
+    private async Task<Guid> SeedUsedCouponAsync(Guid orderId)
+    {
+        string key = EntityIds.New().ToString("N")[..10].ToUpperInvariant();
+        Coupon coupon = Coupon.CreateAmount($"IADE{key}", 10m, 100m, DeliveryDay.AddDays(-30), DeliveryDay.AddDays(365), 5, Start);
+        await SaveAsync(c => c.Coupons.Add(coupon));
+        await ExecuteAsync($"UPDATE coupons SET used_count = 2 WHERE id = '{coupon.Id}'");
+        await ExecuteAsync($"UPDATE orders SET coupon_id = '{coupon.Id}', coupon_code = '{coupon.Code}' WHERE id = '{orderId}'");
+        return coupon.Id;
+    }
+
+    private async Task<int> UsedCountAsync(Guid couponId)
+    {
+        await using AppDbContext reader = NewContext();
+        return (await reader.Coupons.SingleAsync(c => c.Id == couponId, Ct)).UsedCount;
+    }
 
     private ReceiveReturnRequest Receipt(Guid orderId, Guid itemId, Guid withdrawalId, int version, int quantity, DateOnly arrival) =>
         new(orderId, itemId, withdrawalId, AdminCaller, version, quantity, arrival);

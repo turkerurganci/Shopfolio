@@ -9,7 +9,7 @@
 
 ## Yapılan İşler
 
-- **Teslim alma geçişi** `OrderTransitions.ReceiveReturnAsync`: sipariş kilidi, ekran sürümü, `AfterSalesModule.AddReturnReceiptAsync`; ulaşma tarihi ileri olamaz (geçiş), alt sınırı kalemin girilmiş teslim tarihidir (beyan tarihi değil — mal beyandan önce gönderilmiş olabilir, K-554); teslimden önce cayılan gönderide alt sınır yok. Stok değişmez; kupon hakkı son adet kapanınca `_counters.ReturnAsync(order, [])` ile döner.
+- **Teslim alma geçişi** `OrderTransitions.ReceiveReturnAsync`: sipariş kilidi, ekran sürümü, `AfterSalesModule.AddReturnReceiptAsync`; ulaşma tarihi ileri olamaz (geçiş), alt sınırı kalemin girilmiş teslim tarihidir (beyan tarihi değil — mal beyandan önce gönderilmiş olabilir, K-554); teslimden önce cayılan gönderide alt sınır yok. Stok değişmez; kupon hakkı son adet kapanınca `_counters.ReturnAsync(order, [])` ile döner — "mal dönmedi" kapanışını açan geç teslim almada da bir kez (düzeltme 1, B1).
 - **Stoğa ekle** `OrderTransitions.AddReturnedStockAsync` + `AfterSalesModule.MarkReturnStockAddedAsync`: teslim alınan adet kadar, `Return.StockAddedAt` bir kez; varyant yoksa sunulmaz (`ConditionNotMet`).
 - **"Mal dönmedi" kapanışı** `OrderTransitions.CloseAsNotReturnedAsync` + `AfterSalesModule.AddNotReturnedClosureAsync`: yalnız teslim sonrası cayma, Z-42 dolmadan ret, üst sınır yoldaki adet; geri ödeme ve bildirim yok; paylaşılmayan IBAN `DeleteUnusedIbansAsync` ile silinir (K-1127). Kapanıştan sonra gelen mal kapanışı `ReopenedAt` ile yeniden açar.
 - **IBAN yeniden istenir** (havale, teslim sonrası beyanın IBAN'ı silinmişse): teslim alma `RefundIbanRequest` (`ReturnAfterIbanDeleted`) açar, B-14 kuyruğa girer; firma IBAN girmez.
@@ -21,7 +21,8 @@
 
 - `src/Shopfolio.Web/Modules/AfterSales/AfterSalesModule.ItemRecords.cs`, `AfterSalesModule.RefundLine.cs`, `Contracts/IAfterSalesModule.cs`, `Contracts/ItemRecordRefusal.cs`, `Contracts/ItemRecordWrites.cs`
 - `src/Shopfolio.Web/Modules/Ordering/OrderTransitions.Returns.cs` (yeni), `OrderTransitions.ItemRecords.cs`, `Contracts/IOrderTransitions.cs`, `Contracts/ItemRecordRequests.cs`
-- `tests/Shopfolio.IntegrationTests/Ordering/ItemRecordsTests.Returns.cs` (yeni, 9 test), `tests/Shopfolio.UnitTests/AfterSales/ReturnShapeTests.cs` (yeni, 3 test)
+- Düzeltme 1: `src/Shopfolio.Web/Modules/Ordering/OrderCounters.cs` (`IsCouponReturnDueAsync`), `src/Shopfolio.Web/Modules/AfterSales/AfterSalesModule.cs` (`UnitFactsAsync`), `Contracts/IAfterSalesModule.cs` (belge yorumu)
+- `tests/Shopfolio.IntegrationTests/Ordering/ItemRecordsTests.Returns.cs` (yeni, 9 test; düzeltme 1'de +2), `tests/Shopfolio.UnitTests/AfterSales/ReturnShapeTests.cs` (yeni, 3 test)
 - Migration yok (tablolar T320/T318'de).
 
 ## Kabul Kriterleri Kontrolü
@@ -37,7 +38,7 @@
 | 7 | Ret yalnız koşullu istisnalı kalemde | ✓ | `ItemRecordsTests.RejectReturn_OnAnItemWithoutAConditionalExemption_IsRefused_AndWritesNothing` (T372; `AddReturnRejectionAsync` → `NotConditionalExemption`) |
 | 8 | Ret: geri ödeme yok, stok yok, IBAN silinir, B-16, geri alınmaz | ✓ | `Rejection_DeletesTheUnsharedIban_AddsNoStock_AndStartsNoRefund_KK8`; geri alınmazlık T372 testleri |
 | 9 | Kullanılmış/hasarlı mal reddedilmez; kesinti/değer kaybı yok | ✓ | `ReturnShapeTests.NoReturnRecordCarriesADeduction_OrALossOfValue_OrAGoodsCondition_KK9` |
-| 10 | Z-42 sonrası "mal dönmedi"; geri ödeme/bildirim yok; paylaşılmayan IBAN silinir; geç mal kalemi açar | ✓ | `Closure_…_KK3_KK10`, `Closure_KeepsTheIban_WhileAnotherPendingWithdrawalUsesIt_KK10`, `Receipt_AfterTheClosure_ReopensIt_…_KK6_KK10` |
+| 10 | Z-42 sonrası "mal dönmedi"; geri ödeme/bildirim yok; paylaşılmayan IBAN silinir; geç mal kalemi açar | ✓ | `Closure_…_KK3_KK10`, `Closure_KeepsTheIban_WhileAnotherPendingWithdrawalUsesIt_KK10`, `Receipt_AfterTheClosure_ReopensIt_…_KK6_KK10`; düzeltme 1 (B1): `Receipt_ThatReopensTheClosure_OfTheOrdersLastUnit_GivesTheCouponRightBack_Once_KK10` (tek adetli kuponlu sipariş: kapanışta `used_count` 2 kalır, geç teslim almada 1, stoğa eklemede yine 1; düzeltmesiz kodda kırmızı koşturuldu: Expected 1, Actual 2), `Receipt_OfTheOrdersLastUnit_GivesTheCouponRightBack_Once` (kapanışsız yol: 2 → 1, stoğa eklemede çift dönüş yok) |
 
 ### Öz denetim (bitiş kapısı 2)
 
@@ -54,7 +55,9 @@ Bütün maddeler (önceki işçinin yaptıkları dahil) diff'te yeniden denetlen
 | KK7 ret yalnız koşullu kalemde | ✓ | `RejectReturn_OnAnItemWithoutAConditionalExemption_…` |
 | KK8 ret sonuçları, IBAN, B-16 | ✓ | KK8 testi |
 | KK9 kesinti/değer kaybı alanı yok | ✓ | `ReturnShapeTests` KK9 (ret nedenleri dahil) |
-| KK10 erken kapatma reddi; paylaşılan IBAN kalır; geç mal açar | ✓ | üç KK10 testi |
+| KK10 erken kapatma reddi; paylaşılan IBAN kalır; geç mal açar | ✓ | üç KK10 testi; düzeltme 1: kapanışı açan teslim alma kupon hakkını bir kez döndürür (iki kupon testi) |
+| Kapanış yeniden açılınca sonuçları (sık FAIL, T373 r1) | ✓ (düzeltme 1) | Kural tek evde: `OrderCounters.IsCouponReturnDueAsync` "hak önce dönmemişti, şimdi dönüyor" (`ReturnsRight(after) && !ReturnsRight(before)`; `ReturnsRight` = `IsFinal && !HasLoss`, `IsCouponReturnedAsync` aynı yöntemi okur); `AfterSalesModule.UnitFactsAsync(includeUnsaved: true)` kapanışı bağlamın tuttuğu hâliyle okur (`LocalAsync`, `RefundAmounts.IsWithdrawalTriggerAsync` emsali) — aynı işlemde yazılan `ReopenedAt` sayılmaz; `includeUnsaved: false` (önce) veritabanından açık kapanışı kayıp sayar. Davranış yalnız kaybın kalktığı hâlde değişir (ret kalıcı; kaybı yalnız teslim almanın kapanışı açması kaldırır). Teslim alma işlemindeki öteki okumalar: `WithdrawalProgressAsync` `ReopenedAt` yazılmadan önce okunur; iade tetiği `LocalAsync` ile zaten bağlamı okur; "mal dönmedi" bekleme işareti `Receipt_AfterTheClosure_…` testinde |
+| Devredilen backlog kalemleri | ✓ | D-523, D-877 yerinde ✅; D-453 T373 payı kapandı; D-483 T373 payı (kupon hakkının teslim almada dönüşü) düzeltme 1'de iki Integration testiyle kanıtlandı; D-915 (K1) belge açık, F3 gate |
 | `09 §25` ilgili satırlar | ✓ | geçişler `09 §9.1` madde 4 sırasını izler (kilit → sürüm → yazıcı → sayaç → sürüm bir kez → bildirim); modül sınırı: kayıt ve IBAN AfterSales'te (`09 §6` madde 2); döngüde sorgu yok (yeni kod) |
 | Güvenlik taraması | ✓ | geçişler yalnız yönetici aktörü (`TryAdminActor`); ham SQL yalnız testlerde; yeni uç nokta yok; IBAN loglanmaz |
 
@@ -68,6 +71,8 @@ Bütün maddeler (önceki işçinin yaptıkları dahil) diff'te yeniden denetlen
 | Integration `Ordering` ad alanı (son kod) | 566 / 566 ✓ |
 | Integration tam (yerel, Windows, tek Postgres 18 `track_commit_timestamp=on`) | 3336 / 3379 — 43 hata yalnız `Web.RequestLimitsTests` (33) ve `Logging.LoggingFilesTests` (10): "HeartbeatRecord row is missing" (başlangıç denetimi). İki sınıf ayrı koşuda 48 / 48 ✓. Diff bu alanlara dokunmuyor; tam koşuda paylaşılan veritabanında başlangıç verisini boşaltan bir testle (ör. `StartupDatabaseCheckTests.EmptyTableAsync`) paralel çalışma şüphesi ⚠ |
 | `dotnet format Shopfolio.slnx --verify-no-changes` | temiz |
+
+**Düzeltme 1 sınaması** (konteyner `shopfolio-t373-fix1-pg`, postgres:18, `track_commit_timestamp=on`): `dotnet build Shopfolio.slnx -warnaserror` 0 uyarı / 0 hata; `dotnet format --verify-no-changes` Web, Unit, Integration temiz; Unit 5448/5448 (Architecture dahil) + Consistency 291/291; Integration `--filter-namespace` Ordering 568/568, Payment + Concurrency + Disposal 101/101, Model 1404/1404 (Integration'da ayrı AfterSales ad alanı yok; AfterSales yazıcıları Ordering testlerinden geçer). Yeni iki kupon testi düzeltmesiz kodda: kapanış vakası kırmızı, kapanışsız vaka yeşil.
 
 ## Doğrulama
 
@@ -86,7 +91,12 @@ Bütün maddeler (önceki işçinin yaptıkları dahil) diff'te yeniden denetlen
 
 ## Commit & PR
 
-- Dal `task/T373-iade`; PR base `main`.
+- Dal `task/T373-iade`; PR base `main`. PR: #507
+- Doğrulama tur 1 kayıt commit'i `4fc009f7` (doğrulayıcının bağlam sınırında yazamadığı kayıt, düzeltme işçisi yazdı).
+- **Düzeltme 1 (2026-11-10, tur 1 FAIL sonrası):**
+  - **B1:** "mal dönmedi" kapanışını geç gelen malın teslim alması açınca kupon hakkı siparişin son adediyle bir kez döner. `UnitFactsAsync(includeUnsaved: true)` kapanışı bağlamdan okur (aynı işlemde yazılan `ReopenedAt` görülür); `IsCouponReturnDueAsync` "önce" hâlini kayıpla bitmiş sayar (`ReturnsRight(after) && !ReturnsRight(before)`). Kopya kural yazılmadı; `IsCouponReturnedAsync` aynı `ReturnsRight`'ı okur.
+  - **K1 → D-915:** belge açık; koda dokunulmadı, F3 gate.
+  - Öz denetim: kriter 1–10 ve KK1–KK10 düzeltilmiş diff'te yeniden denetlendi; değişiklik yalnız kupon hakkı kararını (kriter 10 / KK10, `06 §4.14`) etkiler, öteki satırların kanıtı değişmedi. `sik-fail-nedenleri.md` okundu: tek kural evi (kopya yok), kapanışın yeniden açılması sonuçları, ikinci yazma yolu (stoğa ekleme sonrası çift dönüş yok) testli.
 
 ## Dış Varsayımlar
 
@@ -98,6 +108,7 @@ Bütün maddeler (önceki işçinin yaptıkları dahil) diff'te yeniden denetlen
 - **D-911** (D-879'un devamı): ayıpta dönmenin malının teslim alma adımına bağlanması — F3 gate.
 - **D-912** (D-907'nin devamı): ayıp geri ödemesinin "havale gerçekleşmedi"sinde dosyadaki IBAN. Önceki işçinin "en son girilen IBAN" yorumuyla yazdığı değişiklik testsiz olduğu için geri alındı ⚠.
 - D-903, D-568 (k-note) hedefi F3 gate'e alındı.
+- **D-915** (doğrulama tur 1 K1): ret açık "mal dönmedi" kapanışının adetlerini reddedemez — belge açık, F3 gate.
 - Kapananlar: D-523, D-877; D-453 ve D-483'ün T373 payları.
 
 ## Notlar

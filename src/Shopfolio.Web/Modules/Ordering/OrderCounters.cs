@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Catalog.Contracts.Coupons;
 
 namespace Shopfolio.Modules.Ordering;
 
@@ -198,11 +199,13 @@ internal sealed class OrderCounters
         return IsFinal(items, facts) && !HasLoss(facts);
     }
 
-    private static bool IsFinal(List<OrderItem> items, IReadOnlyDictionary<Guid, ItemUnitFacts> facts)
+    // "Every unit of every item closed" is the catalog's one rule of the right (CouponRules.ReturnsRight; D-483); the physical withdrawn unit awaiting its receipt
+    // is the order's own condition on top of it (K-1104).
+    private bool IsFinal(List<OrderItem> items, IReadOnlyDictionary<Guid, ItemUnitFacts> facts)
     {
-        return items.Count > 0 && items.All(i =>
-            i.Quantity - facts[i.Id].Closed <= 0
-            && (i.ProductType != ProductType.Physical || facts[i.Id].AwaitingReceipt <= 0));
+        return items.Count > 0
+            && _catalog.ReturnsCouponRight([.. items.Select(i => new ItemClosure(i.Quantity, Math.Clamp(facts[i.Id].Closed, 0, i.Quantity)))])
+            && items.All(i => i.ProductType != ProductType.Physical || facts[i.Id].AwaitingReceipt <= 0);
     }
 
     private static bool HasLoss(IReadOnlyDictionary<Guid, ItemUnitFacts> facts) => facts.Values.Any(f => f.Rejected > 0 || f.NotReturned > 0);

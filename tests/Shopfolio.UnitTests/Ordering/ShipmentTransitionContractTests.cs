@@ -53,10 +53,12 @@ public sealed class ShipmentTransitionContractTests
             .Select(m => m.Name).Order().ToArray();
 
         // S2, S10 and S11 are written by the closure rule's last event, not by an operation of their own (03 1.2). The service item's "completed" mark (T351) is an item mark, not a
-        // transition: it writes a record only when it was the last open item and the closure rule ends the line.
+        // transition: it writes a record only when it was the last open item and the closure rule ends the line. The customer's item cancellation (T367) is an item
+        // record: its last open units are the customer's S3 or S4 through CancelOrderAsync, any other one ends the line only through the closure rule.
         string[] expected =
         [
             nameof(IOrderTransitions.MarkServiceCompletedAsync),
+            nameof(IOrderTransitions.CancelItemAsync),
             nameof(IOrderTransitions.CancelOrderAsync),
             nameof(IOrderTransitions.CloseReturnedOrderAsync),
             nameof(IOrderTransitions.MarkDeliveredAsync),

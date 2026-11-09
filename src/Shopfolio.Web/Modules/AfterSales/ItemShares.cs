@@ -11,13 +11,13 @@ namespace Shopfolio.Modules.AfterSales;
 /// </summary>
 internal static class ItemShares
 {
-    public static ItemAmounts SetAside(ItemFrozenAmounts frozen, int itemQuantity, int quantity, bool closesLastUnits, decimal couponSetAside, decimal vatSetAside)
+    public static ItemAmounts SetAside(ItemFrozenAmounts frozen, int itemQuantity, int quantity, bool closesTheItem, decimal couponSetAside, decimal vatSetAside)
     {
         ArgumentNullException.ThrowIfNull(frozen);
         decimal couponLeft = Math.Max(0m, frozen.CouponShare - couponSetAside);
         decimal vatLeft = Math.Max(0m, frozen.VatAmount - vatSetAside);
-        decimal coupon = closesLastUnits ? couponLeft : Math.Min(couponLeft, Money.ShareOfUnits(frozen.CouponShare, quantity, itemQuantity));
-        decimal vat = closesLastUnits ? vatLeft : Math.Min(vatLeft, Money.ShareOfUnits(frozen.VatAmount, quantity, itemQuantity));
+        decimal coupon = closesTheItem ? couponLeft : Math.Min(couponLeft, Money.ShareOfUnits(frozen.CouponShare, quantity, itemQuantity));
+        decimal vat = closesTheItem ? vatLeft : Math.Min(vatLeft, Money.ShareOfUnits(frozen.VatAmount, quantity, itemQuantity));
         return new ItemAmounts(frozen.UnitPrice * quantity, coupon, vat);
     }
 }

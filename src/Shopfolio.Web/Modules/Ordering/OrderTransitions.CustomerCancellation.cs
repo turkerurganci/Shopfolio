@@ -29,12 +29,12 @@ internal sealed partial class OrderTransitions
         }
 
         (Order? order, OrderItem? item, TransitionRefusal? refusal) = await LockItemAsync(request.OrderId, request.OrderItemId, null, ct);
-        if (refusal is { } locked)
+        if (refusal is not null || order is null || item is null)
         {
-            return Refused(locked);
+            return Refused(refusal ?? TransitionRefusal.OrderNotFound);
         }
 
-        OperationVerdict verdict = await _operations.CheckAsync(order!.Id, CancellationOperationOf(item!.ProductType), item.Id, request.Quantity, ct);
+        OperationVerdict verdict = await _operations.CheckAsync(order.Id, CancellationOperationOf(item.ProductType), item.Id, request.Quantity, ct);
         if (!verdict.IsAllowed)
         {
             return Refused(verdict.Decision == OperationDecision.QuantityExceedsOpen ? TransitionRefusal.InvalidInput : TransitionRefusal.ConditionNotMet);
@@ -48,6 +48,8 @@ internal sealed partial class OrderTransitions
             return Refused(Map(refused));
         }
 
+        Guid cancellationId = written.RecordId ?? throw new InvalidOperationException("The cancellation writer returned no record.");
+
         RaiseVersionOnce(order);
 
         List<OrderItem> items = await _db.OrderItems.Where(i => i.OrderId == order.Id).ToListAsync(ct);
@@ -58,9 +60,11 @@ internal sealed partial class OrderTransitions
 
         List<Guid> recordIds = [];
         TransitionCode? closureCode = null;
-        if (noOpenUnit && !anyDelivered)
+        if (noOpenUnit && !anyDelivered && order.OrderStatus is OrderStatus.Placed or OrderStatus.Preparing)
         {
             // The last open units: the customer's S3 (from Placed) or S4 (from Preparing) with its B-7 (03 1.2 S3, S4); the closure rule does not write it too.
+            // A returned shipment (DeliveryFailed) whose last open unit is a service's is not the customer's to close: the firm's reasonless S9 closes it
+            // (03 1.2 S9), so that cancellation takes the other branch.
             OrderTransitionResult closing = await CancelOrderAsync(CancelOrderRequest.ByCustomer(order.Id, cancelled), ct);
             if (closing.IsRejected)
             {
@@ -68,7 +72,7 @@ internal sealed partial class OrderTransitions
             }
 
             recordIds.AddRange(closing.TransitionRecordIds);
-            await _afterSales.LinkClosingTransitionAsync(written.RecordId!.Value, closing.TransitionRecordIds[0], ct);
+            await _afterSales.LinkClosingTransitionAsync(cancellationId, closing.TransitionRecordIds[0], ct);
         }
         else
         {
@@ -89,7 +93,7 @@ internal sealed partial class OrderTransitions
             : [];
         await _counters.ReturnAsync(order, units, ct);
 
-        return new OrderTransitionResult(null, recordIds, closureCode, [item.Id]) { ItemRecordId = written.RecordId };
+        return new OrderTransitionResult(null, recordIds, closureCode, [item.Id]) { ItemRecordId = cancellationId };
     }
 
     /// <summary>The customer's cancellation row of 03 1.11 the item's type names: 1.11.2 physical, 1.11.3 service, 1.11.4 digital (always closed).</summary>

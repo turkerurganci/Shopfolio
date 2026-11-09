@@ -1,6 +1,6 @@
 # T365 — İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-09
 
 ---
 
@@ -62,10 +62,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | doğrulayıcı doldurur |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-09) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 1 (K1 → D-824) |
 
 ## Altyapı Değişiklikleri
 
@@ -101,3 +101,77 @@
 - **Ana dal CI startup (Adım 0):** main son run'lar success (CI 42596386862, Publish 42596386708, T367)
 - **Repo memory (bitiş kapısı 9):** parça dosyaları yazıldı (`STATUS_CHANGELOG.d/T365.md`, `DEFERRED_BACKLOG.d/T365.md`)
 - **Ayrıca:** ⚠ (kolay, karar verildi) ekran/POST yüzü T506'ya bırakıldı; sonuç nesnesinde talep numarası yok (`02 §3.32.6`).
+
+## Doğrulama Sonucu — T365 İletişim talebi: form, konu tipi, durumlar, saklama, istenmeyen ileti koruması — tur 1
+**Tarih:** 2026-11-09   **Branch:** task/T365-iletisim-talebi   **Commit:** `69144a13` (doğrulanan head)
+
+### Verdict: ✓ PASS
+
+Ayrıntılı tablolar (başlangıç kapıları, kabul kriterleri, task satırları, kontrol listesi, testler, güvenlik, K-notları) aşağıdadır.
+
+### Başlangıç Kapıları
+| Kapı | Sonuç | Kanıt |
+|---|---|---|
+| Working tree | temiz | `git status --short` boş |
+| Hook kurulumu | ✓ | `core.hooksPath` → ana deponun `scripts/git-hooks` |
+| Ana dal CI (son 3) | ✓ | 42600847174 · 42600846924 (#495) · 42596386708 (#494) — hepsi success |
+
+### Kabul Kriterleri
+| # | Kriter | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Girişsiz; üyede ön dolu, değiştirilebilir; her gönderim bir talep | ✓ | `ReadAsync` üye değerini verir, ziyaretçide boş; `ASendWithoutAnySignIn_…_KK1`, `TheForm_StartsWithTheMembersNameAndEmail_…_KK1`, `ASecondSend_…_KK1`; sayfa D-811 |
+| 2 | Dört zorunlu alan, telefon isteğe bağlı; ek/sipariş no yok | ✓ | hatalar birlikte, sayılmaz; tablo sütunları ve FK 0 (`TheRequestTable_…_KK2`); alanlar `07 §5.2.1` UC-15 ile birebir |
+| 3 | Kapalı beş konu; ayıp yok | ✓ | `ContactTopic` sırası `02 §3.32.3`; liste dışı değer `InvalidListValue` |
+| 4 | Açık doğar; kapat/yeniden aç; iki durum | ✓ | `ARequestFromTheForm_IsClosedAndReopened…_KK4` |
+| 5 | Saklama başlangıcı; "Sipariş hakkında" 10 yıl, öteki P-40 (2 yıl) | ✓ | `…CountsItsRetention…_KK5`; `RecordDisposalTests.AContactRequest_GoesAtTwoYears…TenYears` yerelde yeşil |
+| 6 | Bildirim gider; yanıt yüzü yok | ✓ | F-2 firma adresine; tablo taraması yalnız `contact_requests` |
+| 7 | Müşteriye numara/takip/alındı yok | ✓ | sonuçta numara yok; müşteri bildirimi çağrılmaz; `src`'de takip yüzü yok |
+| 8 | Tuzak sessiz; L-4; captcha yok | ✓ | tuzak sayılmaz (`07 §4.10.2`); 5/60 dk, altıncı `ContactRequestLimitExceeded`, satırlar kalır, başka IP serbest, pencere biter |
+| 9 | Aydınlatma/çerez yayında değilse kapalı; bağlantı | ✓ | kapı yalnız `PrivacyNotice`, `CookiePolicy`; kapalıda alan okunmaz, sayılmaz; `LegalLinkScreen.ContactForm` |
+| 10 | Şikâyet/canlı destek yok; yenileme "Sipariş hakkında" | ✓ | `src` taraması temiz; `…_KK10` |
+
+### Task Satırları (`12 §7.5`, adım 2a ve 16)
+| Satır (`VAL-…`) | Severity | Kanıt ortamı | Önceki `Durum` | Yeni `Durum` | Backlog kaydı (KABUL EDİLMİŞ RİSK ise) |
+|---|---|---|---|---|---|
+| VAL-A105 (KP-30) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE — veri kaydı kanıtlı; "panelde görünür" T532 | — |
+| VAL-B022 (KP-34) | ORTA | yok | BEKLEMEDE | BEKLEMEDE — uç T506, panel T532 | — |
+| VAL-A123 (KP-34) | KRİTİK | yok | BEKLEMEDE | BEKLEMEDE — kapı modülde kanıtlı; uç yanıtı T506 | — |
+| VAL-A124 (KP-34) | ORTA | yok | BEKLEMEDE | BEKLEMEDE — panel gözlemi T532 | — |
+| VAL-A256, VAL-C063, VAL-C064 (KP-49) | ORTA | yok | BEKLEMEDE | BEKLEMEDE — panel T532 | — |
+
+`VAL-A106` T366'nın, `VAL-C061`/`C062` T374'ün. Emsal T341. `12_matris_denetle.py --kapsam 1-77` → Hata: 0.
+
+### Doğrulama Kontrol Listesi
+- [x] KK1 … KK10 (kanıtlar kabul kriterleri tablosunda)
+- [x] `09 §25`: modül sınırı, işleme katılır ve açmaz, `SaveChanges` yok, `TimeProvider`, yeni paket/göç/ayar yok, tek sayaç `AttemptCounter`; ad sapması K1
+- [x] Güvenlik taraması
+
+### Test Sonuçları
+| Tür | Sonuç | Komut | Çıktı |
+|---|---|---|---|
+| Build | ✓ | `dotnet build Shopfolio.slnx --no-restore -warnaserror` | 0 uyarı |
+| Format | ✓ | `dotnet format <proje> --verify-no-changes` ×3 | temiz |
+| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 5509/5509 |
+| Betik | ✓ | `bash tests/scripts/run-script-tests.sh` | 4/4 |
+| Integration | ✓ | CorporateContent ad alanı; BrandingTests + RecordDisposalTests | 185/185; 42/42 |
+| Dal CI | ✓ | `gh pr checks 496` | run 42600283047 tüm işler pass |
+
+### Güvenlik Kontrolü
+- Secret sızıntısı: Temiz
+- Auth etkisi: Temiz (form tanım gereği açık; durum değişikliği yönetici ister, değişmedi)
+- Input validation: Temiz (alanlar, konu listesi, tuzak, L-4 sunucuda; F-2 yalnız konuyu taşır)
+- Yeni bağımlılık: Yok
+
+### Bulgular (`12 §8.2` defect kaydı)
+Bulgu yok.
+
+### Bloke-etmeyen Notlar (K-notları)
+| # | Not | Karar |
+|---|---|---|
+| K1 | Modül girdisi `ContactFormInput`; `07 §5.2.1` UC-15 modeli `SendContactRequestInput` (`09 §25` ad sorusu); alanlar birebir, sayfa modeli yok | DEFERRED_BACKLOG'a forward → D-824 (T506) |
+
+### Yapım Raporu Karşılaştırması
+- Uyum: Tam uyumlu; öz denetim tablosu kanıtlı. Yapım raporu K1'i anmıyor.
+
+### Merge ve Post-merge
+- Yardımcıda (adım 17–18).

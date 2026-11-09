@@ -24,14 +24,14 @@ MADDE 4 - ÖDEME
 Ödeme, alıcının sipariş sırasında seçtiği yöntemle yapılır. Havale ile ödemede ödeme, sipariş sırasında bildirilen süre içinde satıcının hesabına yapılır; süre içinde yapılmayan ödemede sipariş iptal edilir. Siparişin onaylanması ödeme yükümlülüğü doğurur.
 
 MADDE 5 - TESLİMAT
-Fiziksel ürünler, sipariş onayından itibaren en geç {{ShippingPeriod}} iş günü içinde kargoya verilir ve alıcının bildirdiği teslimat adresine gönderilir. Satıcı yalnızca teslimat yaptığı illere gönderim yapar. Dijital ürünler ödemenin onaylanmasından sonra indirilir; hizmetler sipariş sırasında bildirilen sürede ifa edilir. Mal, alıcıya ya da alıcının bildirdiği kişiye teslim edildiğinde teslim edilmiş sayılır.
+Fiziksel ürünler, ödemenin onaylandığı andan itibaren en geç {{ShippingPeriod}} iş günü içinde kargoya verilir ve alıcının bildirdiği teslimat adresine gönderilir. Satıcı yalnızca teslimat yaptığı illere gönderim yapar. Dijital ürünler ödemenin onaylanmasından sonra indirilir; hizmetler sipariş sırasında bildirilen sürede ifa edilir. Mal, alıcıya ya da alıcının bildirdiği kişiye teslim edildiğinde teslim edilmiş sayılır.
 
 MADDE 6 - CAYMA HAKKI
 Alıcı, fiziksel ürünlerde teslim tarihinden itibaren on dört gün içinde, herhangi bir gerekçe göstermeden ve cezai şart ödemeden sözleşmeden cayabilir. Cayma hakkı, sipariş sayfasından yapılan cayma beyanıyla kullanılır. Alıcı malı, cayma beyanından itibaren on dört gün içinde gönderir.
 İade için taşıyıcı belirlenmemiştir: alıcı malı dilediği taşıyıcıyla, satıcının iade adresine, bedeli teslim alırken satıcı tarafından ödenmek üzere gönderir. İade kargo bedeli satıcıya aittir.
 İade adresi: {{ReturnAddress}}
 Hizmetlerde cayma hakkı, alıcının onayıyla başlayan hizmetin ifasının tamamlanmasıyla sona erer. Dijital ürünlerde, indirme başladıktan sonra cayma hakkı kullanılamaz. Yönetmelikte sayılan istisna kapsamındaki ürünlerde cayma hakkı yoktur; istisna ve sebebi ürün sayfasında ve siparişte yazar.
-Cayma hâlinde bedel, iade edilen malın satıcıya ulaşmasından itibaren mevzuatta belirtilen süre içinde alıcının ödeme yaptığı yöntemle geri ödenir.
+Cayma hâlinde bedel, cayma beyanı kalemin teslim tarihinden önce yapıldıysa ya da kalem hizmetse beyandan itibaren, teslimden sonra yapıldıysa iade edilen malın satıcıya ulaşmasından itibaren, mevzuatta belirtilen süre içinde alıcının ödeme yaptığı yöntemle geri ödenir.
 
 MADDE 7 - AYIPLI MAL
 Alıcı, ayıplı maldan doğan haklarını Tüketicinin Korunması Hakkında Kanun'a göre kullanır ve ayıp talebini sipariş sayfasından iletir.

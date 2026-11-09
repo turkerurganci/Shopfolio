@@ -19,11 +19,14 @@ internal static class LegalTextTemplates
     /// <summary>The two generated types, in the order their versions are written.</summary>
     public static IReadOnlyList<LegalTextType> GeneratedTypes { get; } = [LegalTextType.PreInformationForm, LegalTextType.DistanceSalesContract];
 
-    /// <summary>The tokens of a generated text that the version fills from the settings: the company identity and the return address. Every other token is an order field that waits (09 9.3 item 2).</summary>
+    /// <summary>
+    /// The tokens of a generated text that the version fills at its making: the company identity with the chamber, the return address and the product's own fixed "how the order is placed"
+    /// text (<see cref="ProcessGuide.Text"/>; T356). Every other token is an order field that waits (09 9.3 item 2).
+    /// </summary>
     public static IReadOnlyList<string> CompanyTokens { get; } =
     [
-        "CompanyLegalName", "CompanyTaxIdNumber", "CompanyMersisNumber", "CompanyTradeRegistryNumber", "CompanyProvince", "CompanyDistrict", "CompanyAddressLine",
-        "CompanyPhone", "CompanyEmail", "CompanyKepAddress", "ReturnAddress",
+        "CompanyLegalName", "CompanyTaxIdNumber", "CompanyMersisNumber", "CompanyTradeRegistryNumber", "CompanyChamberName", "CompanyProvince", "CompanyDistrict", "CompanyAddressLine",
+        "CompanyPhone", "CompanyEmail", "CompanyKepAddress", "ReturnAddress", "HowTheOrderIsPlaced",
     ];
 
     public static LegalTextTemplate Get(LegalTextType type)

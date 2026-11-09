@@ -86,17 +86,19 @@ internal sealed class LegalTextGenerator
 
         return new Dictionary<string, string?>(StringComparer.Ordinal)
         {
-            ["CompanyLegalName"] = company.LegalName,
-            ["CompanyTaxIdNumber"] = company.TaxIdNumber,
-            ["CompanyMersisNumber"] = company.MersisNumber,
-            ["CompanyTradeRegistryNumber"] = company.TradeRegistryNumber,
-            ["CompanyProvince"] = CompanyProvince(),
-            ["CompanyDistrict"] = company.District,
-            ["CompanyAddressLine"] = company.AddressLine,
-            ["CompanyPhone"] = company.Phone,
-            ["CompanyEmail"] = company.Email,
-            ["CompanyKepAddress"] = company.KepAddress,
-            ["ReturnAddress"] = returnAddress,
+            ["CompanyLegalName"] = PlaceholderFiller.Inert(company.LegalName),
+            ["CompanyTaxIdNumber"] = PlaceholderFiller.Inert(company.TaxIdNumber),
+            ["CompanyMersisNumber"] = PlaceholderFiller.Inert(company.MersisNumber),
+            ["CompanyTradeRegistryNumber"] = PlaceholderFiller.Inert(company.TradeRegistryNumber),
+            ["CompanyChamberName"] = PlaceholderFiller.Inert(company.ChamberName),
+            ["CompanyProvince"] = PlaceholderFiller.Inert(CompanyProvince()),
+            ["CompanyDistrict"] = PlaceholderFiller.Inert(company.District),
+            ["CompanyAddressLine"] = PlaceholderFiller.Inert(company.AddressLine),
+            ["CompanyPhone"] = PlaceholderFiller.Inert(company.Phone),
+            ["CompanyEmail"] = PlaceholderFiller.Inert(company.Email),
+            ["CompanyKepAddress"] = PlaceholderFiller.Inert(company.KepAddress),
+            ["ReturnAddress"] = PlaceholderFiller.Inert(returnAddress),
+            ["HowTheOrderIsPlaced"] = ProcessGuide.Text,
         };
     }
 }

@@ -235,12 +235,21 @@ services:
       - no-new-privileges:true
     secrets:
       - db_reader_connection
+    # Group 10002 owns the database's log directories (the server's and pgBackRest's, setgid, files 0640) in the database image: the
+    # read command reads them through the same one extra right the backup tool has (05 9.3.1). The journal is read through an ACL for
+    # the image's user (uid 1654) on /var/log/journal (DEPLOY_RUNBOOK M.1).
+    group_add:
+      - "10002"
     volumes:
-      # read-logs (T387; 05 8.5.5, 9.3): the application's logs (its own line goes there too, 09 13.2 item 5), the proxy's access log
-      # read only, and the result's directory: a server directory outside the logs and every backup (05 9.3.3); the encrypted
-      # delivery and the deletion of the file are DEPLOY_RUNBOOK steps.
+      # read-logs (T387; 05 8.5.5, 9.1.1, 9.3.1): the application's logs (its own line goes there too, 09 13.2 item 5); the proxy's
+      # access log and the server's logs - the database's, the backup tool's and the operating system's journal - read only; and the
+      # result's directory: a server directory outside the logs and every backup (05 9.3.3); the encrypted delivery and the deletion
+      # of the file are DEPLOY_RUNBOOK steps. The mount paths are ServerLogDirectories' defaults.
       - app-logs:/var/log/shopfolio/app
       - access-logs:/var/log/shopfolio/access:ro
+      - db-logs:/var/log/shopfolio/server/db:ro
+      - backup-logs:/var/log/shopfolio/server/backup:ro
+      - /var/log/journal:/var/log/shopfolio/server/journal:ro
       - ${SHOPFOLIO_EXPORT_DIR:-/var/tmp/shopfolio-export}:/tmp/shopfolio-export
     networks:
       - app-data

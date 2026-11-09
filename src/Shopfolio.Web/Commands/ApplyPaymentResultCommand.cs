@@ -69,12 +69,14 @@ internal sealed class ApplyPaymentResultCommand : IAdminCommand
             return CommandExit.UsageError;
         }
 
-        input.Services.GetRequiredService<IAuditLineWriter>().Write(AuditLine.AdminCommandWithoutTarget(CommandName));
-
         await using AsyncServiceScope scope = input.Services.CreateAsyncScope();
         IServiceProvider services = scope.ServiceProvider;
         DateTimeOffset now = services.GetRequiredService<TimeProvider>().GetUtcNow();
         InstallerPaymentTarget? target = await services.GetRequiredService<IOrderingModule>().FindInstallerPaymentTargetAsync(orderNumber, now, ct);
+
+        // The run's line (05 8.5.12; 09 13.2 item 5): the order's internal id and the result as closed values, written after the read-only look-up and before any refusal or write.
+        input.Services.GetRequiredService<IAuditLineWriter>().Write(
+            AuditLine.PaymentResult(CommandName, target?.OrderId ?? Guid.Empty, isPaid ? InstallerPaymentResult.Paid : InstallerPaymentResult.None, amountInKurus));
         if (target is null)
         {
             terminal.WriteErrorLine("Bu numarayla bir sipariş yok.");

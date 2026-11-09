@@ -91,6 +91,34 @@ internal sealed record AuditLine
                 new("ToDay", to.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)),
             ]);
     }
+
+    /// <summary>
+    /// The payment result command's line (05 8.5.12, 8.5.7; 09 13.2 item 5): the command, the order's internal id (the empty id when no order has the number), the result read on the
+    /// provider's panel and, for a payment, the amount in whole kuruş. The order number and any personal data have no parameter to go into; written before the result is applied and
+    /// waited for on the disk.
+    /// </summary>
+    public static AuditLine PaymentResult(string command, Guid orderId, InstallerPaymentResult result, long? amountInKurus)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(command);
+        return new AuditLine(
+            LogEvents.AdminCommand,
+            "{Event} {Command} {OrderId} {PaymentResult} {AmountInKurus}",
+            "Command",
+            command,
+            "OrderId",
+            orderId,
+            [
+                new("PaymentResult", result.ToString()),
+                new("AmountInKurus", amountInKurus?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty),
+            ]);
+    }
+}
+
+/// <summary>The result the installer reads on the provider's panel (05 8.5.12): a successful payment or none.</summary>
+internal enum InstallerPaymentResult
+{
+    Paid,
+    None,
 }
 
 /// <summary>

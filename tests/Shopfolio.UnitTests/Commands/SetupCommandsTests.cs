@@ -373,6 +373,71 @@ public sealed partial class SetupCommandsTests : IDisposable
         Assert.Null(LogReader.SystemLine.TryParse("[1,2]"));
     }
 
+    // ---- KK2: the server's text logs (05 9.1.4, 9.3.1) ----
+
+    [Fact]
+    public void ServerTextLine_ReadsTheDatabasesPgBackRestsAndTheBackupToolsTimes_AndCarriesTheTimeToTheLinesAfter()
+    {
+        DateTimeOffset database = ServerTextLine.TimeOf("2026-10-05 10:00:00.123 UTC [57] LOG:  checkpoint starting: time", null)!.Value;
+        DateTimeOffset offsetZone = ServerTextLine.TimeOf("2026-10-05 13:00:00.123 +03 [57] LOG:  database system is ready", null)!.Value;
+        DateTimeOffset pgBackRest = ServerTextLine.TimeOf("2026-10-05 01:30:00.000 P00   INFO: backup command begin 2.54.0", null)!.Value;
+        DateTimeOffset round = ServerTextLine.TimeOf("file-backup: round starts at 2026-10-05T01:30:00Z", null)!.Value;
+
+        Assert.Equal(new DateTimeOffset(2026, 10, 5, 10, 0, 0, 123, TimeSpan.Zero), database);
+        Assert.Equal(new DateTimeOffset(2026, 10, 5, 10, 0, 0, 123, TimeSpan.Zero), offsetZone);
+        Assert.Equal(new DateTimeOffset(2026, 10, 5, 1, 30, 0, TimeSpan.Zero), pgBackRest);
+        Assert.Equal(new DateTimeOffset(2026, 10, 5, 1, 30, 0, TimeSpan.Zero), round);
+        Assert.Equal(round, ServerTextLine.TimeOf("file-backup: step backup starts", round));
+        Assert.Null(ServerTextLine.TimeOf("file-backup: step backup starts", null));
+        Assert.Null(ServerTextLine.TimeOf("2026-13-45 99:00:00 broken", null));
+    }
+
+    [Theory]
+    [InlineData("connection received: host=10.0.0.1 port=50122", "10.0.0.1", true)]
+    [InlineData("Accepted publickey for root from 10.0.0.1 port 22.", "10.0.0.1", true)]
+    [InlineData("failed from 10.0.0.1.", "10.0.0.1", true)]
+    [InlineData("connection received: host=10.0.0.15 port=50122", "10.0.0.1", false)]
+    [InlineData("connection received: host=110.0.0.1 port=50122", "10.0.0.1", false)]
+    [InlineData("connection received: host=5.10.0.0.1", "10.0.0.1", false)]
+    [InlineData("request 7f3c2a10-aaaa-bbbb-cccc-000000000001 done", "7f3c2a10-aaaa-bbbb-cccc-000000000001", true)]
+    [InlineData("request 7f3c2a10-aaaa-bbbb-cccc-0000000000012 done", "7f3c2a10-aaaa-bbbb-cccc-000000000001", false)]
+    public void ServerTextLine_MatchesTheFilterValueAsAWholeToken(string line, string value, bool expected)
+    {
+        Assert.Equal(expected, ServerTextLine.ContainsToken(line, value));
+    }
+
+    // ---- KK8: the payment result command's line (05 8.5.12) ----
+
+    [Fact]
+    public void PaymentResultLine_CarriesTheOrdersIdAndTheResultAsClosedValues_AndWaitsForTheDisk()
+    {
+        Guid order = Guid.NewGuid();
+        AuditLine paid = AuditLine.PaymentResult(ApplyPaymentResultCommand.CommandName, order, InstallerPaymentResult.Paid, 12_050);
+        AuditLine none = AuditLine.PaymentResult(ApplyPaymentResultCommand.CommandName, order, InstallerPaymentResult.None, null);
+
+        Assert.True(paid.FlushToDisk);
+        Assert.Equal("OrderId", paid.IdKey);
+        Assert.Equal(["PaymentResult", "AmountInKurus"], paid.ClosedValues.Select(v => v.Key));
+        Assert.Equal(["Paid", "12050"], paid.ClosedValues.Select(v => v.Value));
+        Assert.Equal(["None", string.Empty], none.ClosedValues.Select(v => v.Value));
+        Assert.All(LogTemplateSourceScan.Placeholders(paid.Template), name =>
+        {
+            Assert.False(LogTemplateSourceScan.IsPersonalDataName(name), name);
+            Assert.False(LogTemplateSourceScan.IsRequestFieldName(name), name);
+        });
+        System.Reflection.ParameterInfo[] parameters = typeof(AuditLine).GetMethod(nameof(AuditLine.PaymentResult))!.GetParameters();
+        Assert.Equal("command", Assert.Single(parameters, p => p.ParameterType == typeof(string)).Name);
+
+        AuditLogWriter writer = new(_directory, "command", new ManualTimeProvider(new DateTimeOffset(2026, 11, 9, 9, 0, 0, TimeSpan.Zero)));
+        writer.Write(paid);
+        string written = File.ReadAllText(Directory.GetFiles(_directory).Single());
+
+        Assert.Contains(order.ToString(), written, StringComparison.Ordinal);
+        Assert.Contains("\"paymentResult\":\"Paid\"", written, StringComparison.Ordinal);
+        Assert.Contains("\"amountInKurus\":\"12050\"", written, StringComparison.Ordinal);
+        Assert.Contains("\"command\":\"apply-payment-result\"", written, StringComparison.Ordinal);
+    }
+
     // ---- KK6, KK9: source scans ----
 
     [Fact]

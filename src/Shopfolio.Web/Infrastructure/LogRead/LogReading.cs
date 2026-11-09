@@ -58,11 +58,13 @@ internal sealed partial class LogReader
 {
     private readonly AppDbContext _db;
     private readonly LogDirectories _directories;
+    private readonly ServerLogDirectories _serverDirectories;
 
-    public LogReader(AppDbContext db, LogDirectories directories)
+    public LogReader(AppDbContext db, LogDirectories directories, ServerLogDirectories serverDirectories)
     {
         _db = db;
         _directories = directories;
+        _serverDirectories = serverDirectories;
     }
 
     public async Task<LogReadSummary> WriteCsvAsync(LogReadRequest request, TextWriter output, CancellationToken ct)
@@ -153,11 +155,115 @@ internal sealed partial class LogReader
         return new LogReadSummary(count, 0);
     }
 
-    // The application's files (app-, audit- and command-, each line a JSON object with "time") and the reverse proxy's access log (each line a JSON object with "ts", seconds since
-    // 1970). A line is in the range by its own time; a line with no JSON or no time is counted as unreadable and not written.
+    // The three sources of the system logs (05 9.1.1): the log files - the application's (app-, audit- and command-, each line a JSON object with "time") and the reverse proxy's
+    // access log (each line a JSON object with "ts", seconds since 1970) - and the server's logs - the database's and the backup tool's text files (ServerTextLine) and the operating
+    // system's journal (JournalFile). A line is in the range by its own time; a line with no time is counted as unreadable and not written.
     private async Task<LogReadSummary> WriteSystemLogsAsync(LogReadRequest request, TextWriter output, CancellationToken ct)
     {
         LogCsv.WriteHeader(output, "Dosya", "Zaman", "Satır");
+        (int count, int unreadable) = await WriteLogFilesAsync(request, output, ct);
+        (int serverCount, int serverUnreadable) = await WriteServerTextFilesAsync(request, output, ct);
+        (int journalCount, int journalUnreadable) = WriteJournal(request, output, ct);
+        return new LogReadSummary(count + serverCount + journalCount, unreadable + serverUnreadable + journalUnreadable);
+    }
+
+    private async Task<(int Rows, int Unreadable)> WriteServerTextFilesAsync(LogReadRequest request, TextWriter output, CancellationToken ct)
+    {
+        int count = 0;
+        int unreadable = 0;
+        foreach ((string label, string path) in ServerTextFiles())
+        {
+            await using FileStream stream = new(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using StreamReader reader = new(stream, Encoding.UTF8);
+            DateTimeOffset? time = null;
+            while (await reader.ReadLineAsync(ct) is { } line)
+            {
+                if (line.Length == 0)
+                {
+                    continue;
+                }
+
+                time = ServerTextLine.TimeOf(line, time);
+                if (time is not { } moment)
+                {
+                    unreadable++;
+                    continue;
+                }
+
+                if (moment >= request.Start && moment < request.End && MatchesServerLine(request, line, null, null))
+                {
+                    LogCsv.WriteRow(output, label, LogCsv.Moment(moment), line);
+                    count++;
+                }
+            }
+        }
+
+        return (count, unreadable);
+    }
+
+    private (int Rows, int Unreadable) WriteJournal(LogReadRequest request, TextWriter output, CancellationToken ct)
+    {
+        int count = 0;
+        int unreadable = 0;
+        foreach (string path in JournalFiles())
+        {
+            string label = "journal/" + Path.GetRelativePath(_serverDirectories.Journal, path).Replace('\\', '/');
+            foreach (JournalEntry? entry in JournalFile.ReadEntries(path))
+            {
+                ct.ThrowIfCancellationRequested();
+                if (entry is null)
+                {
+                    unreadable++;
+                    continue;
+                }
+
+                if (entry.Time >= request.Start && entry.Time < request.End && MatchesServerLine(request, entry.Line, entry.Identifier, entry.Unit))
+                {
+                    LogCsv.WriteRow(output, label, LogCsv.Moment(entry.Time), entry.Line);
+                    count++;
+                }
+            }
+        }
+
+        return (count, unreadable);
+    }
+
+    // A server line has no event field: the event filter is the journal's program (SYSLOG_IDENTIFIER, e.g. sshd) or unit (docker.service); the request id, the account id and the IP
+    // match a whole token of the line.
+    private static bool MatchesServerLine(LogReadRequest request, string line, string? identifier, string? unit) => request.Kind switch
+    {
+        LogFilterKind.None => true,
+        LogFilterKind.Event => request.Value is not null
+            && (string.Equals(identifier, request.Value, StringComparison.Ordinal) || string.Equals(unit, request.Value, StringComparison.Ordinal)),
+        LogFilterKind.Request or LogFilterKind.Account or LogFilterKind.Ip => request.Value is not null && ServerTextLine.ContainsToken(line, request.Value),
+        _ => throw new ArgumentOutOfRangeException(nameof(request), "The system logs are filtered by an account id, not an e-mail."),
+    };
+
+    // The database's volume: the server's log and pgBackRest's (DEPLOY_RUNBOOK L.1 rows 4, 5); the backup tool's volume (row 6). The live file and the rotated ones (-yyyyMMdd).
+    private IEnumerable<(string Label, string Path)> ServerTextFiles()
+    {
+        IEnumerable<(string, string)> database = Directory.Exists(_serverDirectories.Database)
+            ? Directory.EnumerateFiles(_serverDirectories.Database, "*", SearchOption.AllDirectories)
+                .Where(p => ServerFileName().IsMatch(Path.GetFileName(p)))
+                .Select(p => ("db/" + Path.GetRelativePath(_serverDirectories.Database, p).Replace('\\', '/'), p))
+            : [];
+        IEnumerable<(string, string)> backup = Directory.Exists(_serverDirectories.Backup)
+            ? Directory.EnumerateFiles(_serverDirectories.Backup, "*", SearchOption.AllDirectories)
+                .Where(p => ServerFileName().IsMatch(Path.GetFileName(p)))
+                .Select(p => ("backup/" + Path.GetRelativePath(_serverDirectories.Backup, p).Replace('\\', '/'), p))
+            : [];
+        return database.Concat(backup).OrderBy(f => f.Item1, StringComparer.Ordinal);
+    }
+
+    // The journal's files under the machine's directory: the active ones (*.journal) and the archived ones journald renamed after an unclean stop (*.journal~).
+    private IEnumerable<string> JournalFiles() => Directory.Exists(_serverDirectories.Journal)
+        ? Directory.EnumerateFiles(_serverDirectories.Journal, "*", SearchOption.AllDirectories)
+            .Where(p => p.EndsWith(".journal", StringComparison.Ordinal) || p.EndsWith(".journal~", StringComparison.Ordinal))
+            .Order(StringComparer.Ordinal)
+        : [];
+
+    private async Task<(int Rows, int Unreadable)> WriteLogFilesAsync(LogReadRequest request, TextWriter output, CancellationToken ct)
+    {
         int count = 0;
         int unreadable = 0;
         foreach (string path in SystemLogFiles())
@@ -187,7 +293,7 @@ internal sealed partial class LogReader
             }
         }
 
-        return new LogReadSummary(count, unreadable);
+        return (count, unreadable);
     }
 
     private IEnumerable<string> SystemLogFiles()
@@ -207,6 +313,10 @@ internal sealed partial class LogReader
 
     [GeneratedRegex(@"^access\.log(?:-[0-9]{8})?$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
     private static partial Regex AccessFileName();
+
+    // postgresql.log, pgBackRest's <stanza>-<command>.log, the backup tool's file-backup.log and their rotated names (DEPLOY_RUNBOOK L.3: dateext -yyyyMMdd, nocompress).
+    [GeneratedRegex(@"^[A-Za-z0-9._-]+\.log(?:-[0-9]{8})?$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex ServerFileName();
 
     /// <summary>
     /// One line of a system log: its time and its string values. The event filter is the application's <c>event</c> field; the request id, the account id and the IP match any string

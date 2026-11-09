@@ -92,6 +92,19 @@ internal sealed class LinkRecords
     }
 
     /// <summary>
+    /// Draws the lifetime of every unused account link to <paramref name="moment"/> (05 8.5.10): a link that was consumed after the restore point came back unused with the restore, so the
+    /// links that are not used are ended at the restore moment and the loss is a new request. The link that undoes an e-mail change is the exception: it cannot be asked for again, so it
+    /// stays open for its own lifetime (02 3.13.14, 3.15.6). A link whose lifetime already ended before the moment keeps its own end. Returns the number changed.
+    /// </summary>
+    public async Task<int> EndUnusedAsync(DateTimeOffset moment, CancellationToken ct)
+    {
+        DateTimeOffset end = moment.ToUniversalTime();
+        return await _db.LinkRecords
+            .Where(l => l.UsedAt == null && l.LinkType != LinkType.EmailChangeRevert && l.ExpiresAt > end)
+            .ExecuteUpdateAsync(set => set.SetProperty(l => l.ExpiresAt, end), ct);
+    }
+
+    /// <summary>
     /// Supersedes the earlier unused links of the same type and owner (05 6.4.6: a link asked for again makes the earlier ones invalid), with the
     /// same kind of conditional update: only links that are unused, not yet superseded and not expired are taken. Returns the number taken.
     /// </summary>

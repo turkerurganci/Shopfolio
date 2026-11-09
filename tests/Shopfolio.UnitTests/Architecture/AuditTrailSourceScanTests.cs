@@ -102,6 +102,24 @@ public sealed class AuditTrailSourceScanTests
         Assert.DoesNotContain(AuditTrailSourceScan.Scan("src/Shopfolio.Web/Infrastructure/Migrations/20261104011340_X.cs", code), f => f.Rule == AuditTrailSourceScan.NamesTheTableOutsideTheMigrations);
     }
 
+    [Fact]
+    public void TheTableRule_AllowsOnlyTheRollbackCountsListEntry_InThatFile()
+    {
+        const string entry = "(\"audit_logs\", string.Empty),";
+        const string statement = "var s = \"SELECT count(*) FROM audit_logs\";";
+
+        Assert.DoesNotContain(AuditTrailSourceScan.Scan(AuditTrailSourceScan.RollbackCountFile, entry), f => f.Rule == AuditTrailSourceScan.NamesTheTableOutsideTheMigrations);
+        Assert.Contains(AuditTrailSourceScan.Scan(AuditTrailSourceScan.RollbackCountFile, statement), f => f.Rule == AuditTrailSourceScan.NamesTheTableOutsideTheMigrations);
+        Assert.Contains(AuditTrailSourceScan.Scan(AuditTrailSourceScan.RollbackCountFile, "(\"audit_logs\", \" AND x\"),"), f => f.Rule == AuditTrailSourceScan.NamesTheTableOutsideTheMigrations);
+        Assert.Contains(AuditTrailSourceScan.Scan("src/Shopfolio.Web/Modules/Ordering/Other.cs", entry), f => f.Rule == AuditTrailSourceScan.NamesTheTableOutsideTheMigrations);
+    }
+
+    [Fact]
+    public void RollbackCountFile_Exists()
+    {
+        Assert.True(File.Exists(Path.Combine(RepositoryRoot.Find(), AuditTrailSourceScan.RollbackCountFile)));
+    }
+
     [Theory]
     [InlineData("private readonly IAuditTrail _trail;")]
     [InlineData("var e = new AuditEntry(op, null, null, null);")]

@@ -86,7 +86,7 @@
 
 - **Branch:** `task/T352-odeme`
 - **Commit:** `1f8220c4` — T352: kod ve testler
-- **PR:** #PR_NO
+- **PR:** #491
 - **CI:** *(yardımcı izler)*
 - **Post-merge run'lar:** *(validator doldurur)*
 

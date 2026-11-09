@@ -111,7 +111,7 @@ Birleşik ağaç (bu dal + `origin/main` `d3ff0f8b`):
 
 - **Branch:** `task/T370-geri-odeme-hatti`
 - **Commit:** önceki işçilerin ara kayıtları, `51ae72f3` (gecikme feshi testleri), `origin/main` birleştirmesi, rapor commit'i
-- **PR:** (açılınca)
+- **PR:** #506
 - **CI:** —
 - **Post-merge run'lar:**
 

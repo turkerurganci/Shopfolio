@@ -3,8 +3,8 @@ namespace Shopfolio.Infrastructure;
 /// <summary>
 /// The only place where an amount is rounded to the kuruş (09 14.1 item 1; 05 7.2.6; 02 3.8.3). The direction is written out:
 /// .NET's default <c>Math.Round(x, 2)</c> takes an exact half to the even digit (12,345 to 12,34), the rule wants 12,35. Money is
-/// <see cref="decimal"/>; no floating point type takes part (05 7.2.5). The fourth function of 09 14.1 item 1 (the share of units, 02 7.1.7)
-/// comes with the task that computes it (T369) and is written here, next to these three.
+/// <see cref="decimal"/>; no floating point type takes part (05 7.2.5). The fourth function of 09 14.1 item 1, the share of units
+/// (02 7.1.7), came with the first operation that computes it (T372, the withdrawal declaration).
 /// </summary>
 public static class Money
 {
@@ -95,6 +95,22 @@ public static class Money
 
         parts[largest] += total - allocated;
         return parts;
+    }
+
+    /// <summary>
+    /// The share of <paramref name="units"/> of <paramref name="totalUnits"/> in a frozen amount (02 7.1.7 (2), (3); 09 14.1 item 1): the amount times
+    /// units / totalUnits, rounded DOWN to the kuruş. 100 for one unit of three: 33,33. The amount is not negative; the units are at least one and at most
+    /// the total. The operation that closes the last open units takes what is left instead (02 7.1.7 (4)); that is a subtraction, not a rounding.
+    /// </summary>
+    public static decimal ShareOfUnits(decimal frozenAmount, int units, int totalUnits)
+    {
+        ThrowIfBelowZero(frozenAmount, nameof(frozenAmount));
+        if (totalUnits <= 0 || units <= 0 || units > totalUnits)
+        {
+            throw new ArgumentOutOfRangeException(nameof(units), units, "The units are at least one and at most the total units.");
+        }
+
+        return Math.Floor(frozenAmount * units / totalUnits * 100) / 100;
     }
 
     // A value below zero is a programming error. The comparison is on the value, so a negative zero (-0.00m) passes; the framework's

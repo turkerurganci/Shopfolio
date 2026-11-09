@@ -37,6 +37,49 @@ public sealed class MoneyTests
         Assert.Throws<ArgumentOutOfRangeException>(() => Money.Round(-0.005m));
     }
 
+    [Theory]
+    [InlineData("100", 1, 3, "33.33")]
+    [InlineData("100", 2, 3, "66.66")]
+    [InlineData("100", 3, 3, "100")]
+    [InlineData("0.05", 1, 3, "0.01")]
+    [InlineData("0.02", 1, 3, "0")]
+    [InlineData("0", 1, 2, "0")]
+    public void ShareOfUnits_IsTheUnitsRatioOfTheAmount_RoundedDownToTheKurus(string amount, int units, int totalUnits, string expected)
+    {
+        // 02 7.1.7 (2), (3): the units' share of the frozen amount, rounded DOWN (09 14.1 item 1); 66,666.. gives 66,66, never 66,67.
+        Assert.Equal(
+            decimal.Parse(expected, System.Globalization.CultureInfo.InvariantCulture),
+            Money.ShareOfUnits(decimal.Parse(amount, System.Globalization.CultureInfo.InvariantCulture), units, totalUnits));
+    }
+
+    [Fact]
+    public void ShareOfUnits_TheExampleOf02_ThreeUnitsOf300WithACouponShareOf100_RefundsAddUpTo800()
+    {
+        // 09 14.1 item 6 (02 7.1.7): the first and second unit take 33,33 each; the third closes the last open unit and takes what is left, 33,34.
+        decimal first = Money.ShareOfUnits(100m, 1, 3);
+        decimal second = Money.ShareOfUnits(100m, 1, 3);
+        decimal third = 100m - first - second;
+
+        Assert.Equal([33.33m, 33.33m, 33.34m], new[] { first, second, third });
+        Assert.Equal([266.67m, 266.67m, 266.66m], new[] { 300m - first, 300m - second, 300m - third });
+        Assert.Equal(800m, 900m - first - second - third);
+    }
+
+    [Theory]
+    [InlineData(0, 3)]
+    [InlineData(4, 3)]
+    [InlineData(1, 0)]
+    public void ShareOfUnits_UnitsOutsideTheTotal_AreAProgrammingError(int units, int totalUnits)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Money.ShareOfUnits(100m, units, totalUnits));
+    }
+
+    [Fact]
+    public void ShareOfUnits_ANegativeAmount_IsAProgrammingError()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Money.ShareOfUnits(-0.01m, 1, 2));
+    }
+
     [Fact]
     public void Allocate_HundredInThreeEqualWeights_GivesTheLeftOverKurusToTheFirst()
     {

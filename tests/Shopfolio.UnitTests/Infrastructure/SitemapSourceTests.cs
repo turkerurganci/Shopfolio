@@ -128,6 +128,10 @@ public sealed class SitemapSourceTests
 
         public Task<ShowcasePage> ListShowcaseAsync(string? search, int page, CancellationToken ct) => throw new NotSupportedException();
 
+        public Task<IReadOnlyList<ShowcaseProduct>> ListPublishedProductsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<Guid>> FindProductIdsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct) => throw new NotSupportedException();
+
         public Task<IReadOnlyList<ShowcaseVariant>> ListOptionVariantsAsync(Guid productId, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<ProductPage> GetProductPageAsync(string? slug, bool isAdministrator, CancellationToken ct) => throw new NotSupportedException();
@@ -197,6 +201,8 @@ public sealed class SitemapSourceTests
         public Task<VariantImage?> GetVariantImageAsync(Guid variantId, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<OrderItemSource>> ListOrderItemSourcesAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct) => throw new NotSupportedException();
 
         public Task<IReadOnlyList<CartQuantityVerdict>> JudgeCartQuantitiesAsync(IReadOnlyList<CartQuantityLine> lines, CancellationToken ct) => throw new NotSupportedException();
 

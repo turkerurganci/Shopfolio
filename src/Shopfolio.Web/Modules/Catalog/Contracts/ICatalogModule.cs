@@ -119,6 +119,15 @@ public interface ICatalogModule
     Task<ShowcasePage> ListShowcaseAsync(string? search, int page, CancellationToken ct);
 
     /// <summary>
+    /// The cards of the Published products among <paramref name="productIds"/> (T359; 02 3.27.10): what a service introduction's or a reference work's "İlgili ürünler" shows. A Draft and an
+    /// Archived product are left out - and come back when published again; an id that is no product is left out. The cards come in the showcase's order; the caller orders them. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<ShowcaseProduct>> ListPublishedProductsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct);
+
+    /// <summary>The ids among <paramref name="productIds"/> that are products, whatever their status (T359; 02 3.27.10): a content record links a draft product too. A plain read.</summary>
+    Task<IReadOnlyList<Guid>> FindProductIdsAsync(IReadOnlyCollection<Guid> productIds, CancellationToken ct);
+
+    /// <summary>
     /// The option list of a product page (02 5.1; 03 1.8.1): the product's Published variants when the product is Published, otherwise none. A Draft and an Archived variant
     /// are not listed; a sold-out one is, marked (02 3.6.3). A plain read; it writes nothing.
     /// </summary>
@@ -334,6 +343,12 @@ public interface ICatalogModule
     /// whether the variant is sold out. A variant that does not exist is not in the answer. A plain read; it writes nothing.
     /// </summary>
     Task<IReadOnlyList<CartVariantFact>> ListCartVariantFactsAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct);
+
+    /// <summary>
+    /// What an order item freezes of each variant at the moment the order is born (T355; 02 3.23.1, 3.23.4): the values that produce the paid amount, the product's description and the
+    /// attributes of the delivery line and the withdrawal regime, read once from the live product. A variant that does not exist is not in the answer. A plain read; it writes nothing.
+    /// </summary>
+    Task<IReadOnlyList<OrderItemSource>> ListOrderItemSourcesAsync(IReadOnlyCollection<Guid> variantIds, CancellationToken ct);
 
     /// <summary>
     /// The verdict on the quantity of each line of a cart that is read (T347; 02 3.16.8, 3.16.10): a quantity above the stock less the reserved units - or the service capacity - is

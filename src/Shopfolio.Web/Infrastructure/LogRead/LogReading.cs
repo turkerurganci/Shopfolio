@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Values;
 
-namespace Shopfolio.Infrastructure.Logging;
+namespace Shopfolio.Infrastructure.LogRead;
 
 /// <summary>The three sources of the read command (05 9.3.1, 8.5.5; 09 13.2 item 3): the sign-in record, the system logs and the disposal record.</summary>
 internal enum LogSource
@@ -82,22 +82,22 @@ internal sealed partial class LogReader
     {
         DateTimeOffset start = request.Start;
         DateTimeOffset end = request.End;
-        IQueryable<Security.LoginRecord> rows = _db.LoginRecords.AsNoTracking().Where(l => l.CreatedAt >= start && l.CreatedAt < end);
+        // One filter at most; the others stay null and drop out of the query. The record's type is not named as a type argument here: the sign-in record has one writer (D-64).
+        IPAddress? ip = null;
+        string? email = null;
+        LoginOutcome? outcome = null;
         switch (request.Kind)
         {
             case LogFilterKind.None:
                 break;
             case LogFilterKind.Ip:
-                IPAddress ip = IPAddress.Parse(request.Value!);
-                rows = rows.Where(l => l.IpAddress == ip);
+                ip = IPAddress.Parse(request.Value!);
                 break;
             case LogFilterKind.Email:
-                string email = request.Value!;
-                rows = rows.Where(l => l.NormalizedEmail == email);
+                email = request.Value!;
                 break;
             case LogFilterKind.Event:
-                LoginOutcome outcome = Enum.Parse<LoginOutcome>(request.Value!);
-                rows = rows.Where(l => l.Outcome == outcome);
+                outcome = Enum.Parse<LoginOutcome>(request.Value!);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(request), "The sign-in record has no such filter.");
@@ -105,7 +105,12 @@ internal sealed partial class LogReader
 
         LogCsv.WriteHeader(output, "Zaman", "IP", "Hesap türü", "E-posta", "Sonuç");
         int count = 0;
-        await foreach (Security.LoginRecord row in rows.OrderBy(l => l.CreatedAt).ThenBy(l => l.Id).AsAsyncEnumerable().WithCancellation(ct))
+        await foreach (Security.LoginRecord row in _db.LoginRecords.AsNoTracking()
+            .Where(l => l.CreatedAt >= start && l.CreatedAt < end)
+            .Where(l => ip == null || l.IpAddress == ip)
+            .Where(l => email == null || l.NormalizedEmail == email)
+            .Where(l => outcome == null || l.Outcome == outcome)
+            .OrderBy(l => l.CreatedAt).ThenBy(l => l.Id).AsAsyncEnumerable().WithCancellation(ct))
         {
             LogCsv.WriteRow(output, LogCsv.Moment(row.CreatedAt), row.IpAddress.ToString(), row.AccountType.ToString(), row.NormalizedEmail, row.Outcome.ToString());
             count++;

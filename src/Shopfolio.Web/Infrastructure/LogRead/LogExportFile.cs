@@ -1,4 +1,4 @@
-namespace Shopfolio.Infrastructure.Logging;
+namespace Shopfolio.Infrastructure.LogRead;
 
 /// <summary>
 /// The file the read command writes its result to (05 9.3.3; K-986): a CSV in the temporary directory outside the logs and the file backup - the same setting as the panel's exports,

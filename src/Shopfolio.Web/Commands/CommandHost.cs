@@ -15,6 +15,7 @@ using Shopfolio.Infrastructure.FileSecrets;
 using Shopfolio.Infrastructure.Imaging;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
+using Shopfolio.Infrastructure.LogRead;
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.SearchEngine;
 using Shopfolio.Infrastructure.Security;

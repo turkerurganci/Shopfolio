@@ -10,7 +10,7 @@ namespace Shopfolio.Commands;
 
 /// <summary>
 /// <c>apply-payment-result</c> (05 8.5.12, 8.5.7, 4.5.3; 02 5.5 Ö1; 08 2.1.2; K-1283; 09 13.2 items 2, 3, 7): after the provider's keys are renewed, the old transaction's final query may stay
-/// unanswered and the card order keeps the "payment outcome unknown" mark. The installer reads the result on PayTR's panel and gives the order number and that result: <c>paid</c> with the
+/// unanswered and the card order keeps the "payment outcome unknown" mark. The installer reads the result on the provider's panel and gives the order number and that result: <c>paid</c> with the
 /// panel's order amount (the instalment difference left out - 08 2.1.5's <c>payment_amount</c>) or <c>none</c> (no payment, or a failed one). Only a card order with the mark is accepted;
 /// any other order is refused (3). A paid amount that is not equal to <c>Order.Total</c> in whole kuruş is refused (3) and nothing is written. Otherwise the result goes through the one
 /// path every payment result takes: a payment to <see cref="IOrderTransitions.ApplyCardPaymentAsync"/> (Ödendi, B-4, delivery), "none" to the system's cancellation by the payment window's

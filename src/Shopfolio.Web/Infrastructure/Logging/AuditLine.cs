@@ -1,3 +1,5 @@
+using Shopfolio.Infrastructure.LogRead;
+
 namespace Shopfolio.Infrastructure.Logging;
 
 /// <summary>

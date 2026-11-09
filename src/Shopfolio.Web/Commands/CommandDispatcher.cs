@@ -151,14 +151,14 @@ internal sealed partial class CommandDispatcher
     }
 
     // A Turkey day, yyyy-MM-dd and nothing else (09 13.2 item 3): the exact format keeps an instant or a culture's date out.
-    private static DateOnly? ParseDate(string text)
+    internal static DateOnly? ParseDate(string text)
     {
         return DatePattern().IsMatch(text) && DateOnly.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date) ? date : null;
     }
 
     // Dotted decimal text with at most two places, turned into whole kuruş (09 13.2 item 3; 09 14.2): the pattern refuses a comma, a sign, a third place and more than ten whole
     // digits before the number is read, so the kuruş always fit.
-    private static long? ParseAmountInKurus(string text)
+    internal static long? ParseAmountInKurus(string text)
     {
         if (!AmountPattern().IsMatch(text)
             || !decimal.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal amount))

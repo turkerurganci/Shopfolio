@@ -1,6 +1,6 @@
 # T329 — İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi)
 
-**Faz:** F3 | **Durum:** ⏳ Devam ediyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-09
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -75,10 +75,17 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulama doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (D-840, D-841) |
+
+### Doğrulama tur 1 — Doğrulama Sonucu — T329 İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi) — tur 1
+**Tarih:** 2026-11-09   **Branch:** task/T329-ilk-uctan-uca   **Commit:** `288f56d2` (doğrulanan dal ucu) + `origin/main` `824662a8` (T365 #496) birleştirmesi, PR #499
+
+**Verdict: ✓ PASS**
+
+Kabul kriterleri 1–7 ✓, KK1–KK7 ✓, `09 §25` ve güvenlik taraması temiz, bulgu 0. `12`'de task satırı yok (kaynak birimlerinde KP yok; `12_matris_denetle.py` hata 0). Yerel: build `-warnaserror` 0 uyarı, format üç projede temiz, Unit 5203/5203 + tutarlılık 288/288, betik 4/4, Integration `MainFlowTests` + `PaymentNotificationTests` 15/15 (dal ucu ve birleşik ağaç), `LivenessEndpointTests` 16/16. Dal CI 42609814871 yalnız `4. Integration test`'te kırmızı: `LivenessEndpointTests.Get_WhenTheServerIsUnreachable_Returns503WithinTheLimit` zamanlama (5.3 sn / 1 sn; dal `Web/`'e ve üretim koduna dokunmaz) → D-841; merge koşulu kayıt commit'li ucun CI yeşili. K1 ödeme başlatma adımı testte yok (başlatan servis henüz yok) → D-840 (T401). Yapım raporuyla tam uyumlu.
 
 ## Altyapı Değişiklikleri
 
@@ -92,7 +99,7 @@
 - **Branch:** `task/T329-ilk-uctan-uca`
 - **Commit:** `8611eaa6` — T329: İlk uçtan uca akış testi — sekiz adım tek Integration testinde, sahte ödemeyle
 - **PR:** #499
-- **CI:** *(yardımcı izler)*
+- **CI:** 42609814871 (`288f56d2`) — `4. Integration test` yalnız `LivenessEndpointTests` zamanlama testinde kırmızı (D-841), öteki işler yeşil; kayıt commit'inin CI'ı merge koşulu
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

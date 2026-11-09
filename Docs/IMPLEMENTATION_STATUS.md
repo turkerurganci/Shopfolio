@@ -169,7 +169,7 @@
 | T326 | Zaman aşımı akışları: katalog, kupon, içerik, iletişim ve bildirim süreleri | ✓ | ✓ PASS (tur 1) | — | #471 |
 | T327 | Kendiliğinden işleyen anlar ve sitenin kesintisinde süreler | ✓ | ✓ PASS (tur 1) | — | #480 |
 | T328 | Bildirim haritası: tetikleyici eşlemesi, bildirim üretmeyen olaylar ve eşitlik denetimi | ✓ | ✓ PASS (tur 1) | `fe78e7b` | #440 |
-| T329 | İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi) | ⏳ | — | — | — |
+| T329 | İlk uçtan uca akış testi: ürün, sepet, sipariş, sahte ödeme sonucu, kargo, teslim (servis düzeyi) | ✓ | ✓ PASS (tur 1) | — | #499 |
 | T330 | Firma kimliği: tek firma, tip ve tipe göre zorunlu alanlar, yasal kimlik bilgilerinin erişilebilirliği, iade adresi | ✓ | ✓ PASS (tur 1) | `4924037` | #420 |
 | T331 | Satış kapısı: dört koşul, veri toplayan girişlerin kapısı, satışın geçici kapatılması | ✓ | ✓ PASS (tur 1) | `eb91975` | #425 |
 | T332 | Satış modeli, ürün tipleri, ürün–varyant–seçenek yapısı ve stok kodu | ✓ | ✓ PASS (tur 1) | `c4c872c` | #432 |

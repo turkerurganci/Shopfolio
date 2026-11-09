@@ -33,6 +33,8 @@ using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.UnitTests.Fakes;
 
+using Sales = Shopfolio.Modules.AfterSales;
+
 namespace Shopfolio.IntegrationTests.Administration;
 
 /// <summary>The collection of the export tests (T384): one database copied from the template, the application opened on it.</summary>
@@ -224,6 +226,48 @@ public sealed class DataExportTests : IAsyncLifetime
         Assert.Equal(["Havale/EFT"], file.Values("Ödeme yöntemi"));
         Assert.Equal([string.Empty], file.Values("Kargoya verme tarihi"));
         Assert.Equal([string.Empty], file.Values("Kargo şirketi"));
+    }
+
+    // ---- KK4 / D-736: the shipping day of an item closed before the shipment (09 10.10 item 5) ----
+
+    [Fact]
+    public async Task AnItemWhoseWholeQuantityWasCancelledBeforeTheShipment_HasNoShippingDay_KK4()
+    {
+        Exported file = await ExportShippedItemAsync(2, [(2, false)]);
+
+        Assert.Equal([string.Empty], file.Values("Kargoya verme tarihi"));
+    }
+
+    [Fact]
+    public async Task AnItemWhoseQuantityWasCancelledBeforeTheShipmentInTwoRecords_HasNoShippingDay_KK4()
+    {
+        Exported file = await ExportShippedItemAsync(2, [(1, false), (1, false)]);
+
+        Assert.Equal([string.Empty], file.Values("Kargoya verme tarihi"));
+    }
+
+    [Fact]
+    public async Task AnItemCancelledInPartBeforeTheShipment_KeepsTheShippingDay_KK4()
+    {
+        Exported file = await ExportShippedItemAsync(2, [(1, false)]);
+
+        Assert.Equal([Day(Today.AddDays(-2))], file.Values("Kargoya verme tarihi"));
+    }
+
+    [Fact]
+    public async Task AnItemCancelledInPartBeforeTheShipment_AndWithdrawnAfterIt_KeepsTheShippingDay_KK4()
+    {
+        Exported file = await ExportShippedItemAsync(2, [(1, false), (1, true)]);
+
+        Assert.Equal([Day(Today.AddDays(-2))], file.Values("Kargoya verme tarihi"));
+    }
+
+    [Fact]
+    public async Task AnItemWithdrawnWholeAfterTheShipment_KeepsTheShippingDay_KK4()
+    {
+        Exported file = await ExportShippedItemAsync(2, [(2, true)]);
+
+        Assert.Equal([Day(Today.AddDays(-2))], file.Values("Kargoya verme tarihi"));
     }
 
     // ---- KK5: a cancelled order that a late card payment came to, paid back ----
@@ -719,6 +763,37 @@ public sealed class DataExportTests : IAsyncLifetime
     // ---- seeding, as the confirmation freezes an order ----
 
     private static DateTimeOffset CreatedOn(int offsetFromToday) => TurkeyTime.StartOf(Today.AddDays(offsetFromToday)).AddHours(10);
+
+    /// <summary>One paid order with one line of the given quantity shipped two days ago; each record closes the quantity before the shipment (a cancellation) or after it (a withdrawal).</summary>
+    private async Task<Exported> ExportShippedItemAsync(int quantity, (int Quantity, bool AfterShipment)[] records)
+    {
+        string number = await SeedAsync(CreatedOn(-3), PaymentMethod.Card, "Paid", (_shirt, quantity, 0m));
+        Guid id = await OrderIdAsync(number);
+        DateTimeOffset shippedAt = TurkeyTime.StartOf(Today.AddDays(-2)).AddHours(15);
+        Guid itemId;
+        await using (AppDbContext read = NewContext())
+        {
+            itemId = await read.OrderItems.AsNoTracking().Where(i => i.OrderId == id).Select(i => i.Id).SingleAsync(Ct);
+        }
+
+        Sales.ItemAmounts amounts = new(100m, 10m, 15m);
+        await SaveAsync(c =>
+        {
+            c.TransitionRecords.Add(Record(id, TransitionCode.S5, shippedAt));
+            foreach ((int closed, bool after) in records)
+            {
+                if (after)
+                {
+                    c.Withdrawals.Add(Sales.Withdrawal.ByBuyer(itemId, closed, Today.AddDays(-1), null, amounts, null, shippedAt.AddHours(20)));
+                }
+                else
+                {
+                    c.Cancellations.Add(Sales.Cancellation.ByBuyer(itemId, closed, amounts, null, shippedAt.AddHours(-2)));
+                }
+            }
+        });
+        return await ExportOrdersAsync(Today.AddDays(-3), Today.AddDays(-3));
+    }
 
     private static string Day(DateOnly day) => day.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
 

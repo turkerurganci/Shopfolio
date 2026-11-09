@@ -214,7 +214,7 @@ internal sealed class OrderExport
     }
 
     /// <summary>
-    /// The items that were closed whole by a cancellation or a late delivery termination before the order's shipment (D-736; 02 3.25.1): the line stays in the file (the sale is a
+    /// The items whose whole quantity was closed by cancellations or late delivery terminations before the order's shipment (D-736; 02 3.25.1): the line stays in the file (the sale is a
     /// commercial record) but nothing was handed over for it, so its hand-over date is empty. An item closed only in part, or after the shipment, keeps the date.
     /// </summary>
     private async Task<HashSet<Guid>> FullyClosedBeforeShipmentAsync(IReadOnlyList<InvoiceData> frozenOrders, CancellationToken ct)
@@ -225,16 +225,14 @@ internal sealed class OrderExport
             return [];
         }
 
-        IReadOnlyDictionary<Guid, int> closed = await AfterSales.ClosedQuantitiesAsync(physical, ct);
-        Guid[] candidates = [.. frozenOrders.SelectMany(i => i.Items).Where(i => closed.TryGetValue(i.OrderItemId, out int quantity) && quantity >= i.Quantity).Select(i => i.OrderItemId)];
-        if (candidates.Length == 0)
-        {
-            return [];
-        }
-
-        Dictionary<Guid, DateTimeOffset> shipped = frozenOrders.SelectMany(i => i.Items).Where(i => i.ShippedAt is not null).ToDictionary(i => i.OrderItemId, i => i.ShippedAt!.Value);
-        IReadOnlyList<ClosingRecordMoment> moments = await AfterSales.ClosingRecordMomentsAsync(candidates, ct);
-        return [.. moments.Where(m => m.At <= shipped[m.OrderItemId]).Select(m => m.OrderItemId)];
+        // Only the quantities closed before the shipment count: a withdrawal or a closing after it does not take the date away (09 10.10 item 5).
+        Dictionary<Guid, InvoiceItem> items = frozenOrders.SelectMany(i => i.Items).Where(i => i.ShippedAt is not null).ToDictionary(i => i.OrderItemId);
+        IReadOnlyList<ClosingRecordMoment> moments = await AfterSales.ClosingRecordMomentsAsync(physical, ct);
+        return [.. moments
+            .Where(m => items.TryGetValue(m.OrderItemId, out InvoiceItem? item) && m.At <= item.ShippedAt!.Value)
+            .GroupBy(m => m.OrderItemId)
+            .Where(g => g.Sum(m => m.Quantity) >= items[g.Key].Quantity)
+            .Select(g => g.Key)];
     }
 
     // The after-sales module takes the ordering module in its constructor and the ordering module holds this class, so it is resolved when the closing moments are needed, not when this class is built; the settings module follows it so a host that builds the ordering module alone still builds.

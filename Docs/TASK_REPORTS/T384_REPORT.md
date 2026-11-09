@@ -1,6 +1,6 @@
 # T384 — Dışa aktarma: sipariş CSV (fatura verisi), üye ve iletişim talebi listesi, işlem izine yazım, imha edilmiş siparişin boş sütunları
 
-**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** düzeltme 1 yapıldı — doğrulama tur 2 bekliyor | **Tarih:** 2026-11-09
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -28,7 +28,7 @@ Ordering (`OrderExport.cs`, `OrderingModule.cs`), Payment (`ListLatePaymentsAsyn
 | 1 | Aralık oluşma günü; ödenmişler; Başarısız ve bekleyen girmez | ✓ | `DataExportTests.TheOrderFile_CarriesTheOrdersCreatedInTheRange_..._KK1`, `TheRange_IsTheCreationDayInTurkey_..._KK1`; `OrderExportTests` |
 | 2 | Satır bir kalem, sipariş alanları yinelenir | ✓ | `ALine_IsAnOrderItem_AndTheOrdersValuesRepeatOnEachLine_KK2` |
 | 3 | Fatura verisi donmuş değerden | ✓ | `TheInvoiceColumns_AreTheFrozenValues_..._KK3` (ürün, fiyat, firma kimliği sonradan değişir, bayt eşit) |
-| 4 | Ödeme, kargo, iletişim alanları | ✓ | `ThePaymentShippingAndContactColumns_..._KK4`, `TheBankTransferOrder_..._KK4` |
+| 4 | Ödeme, kargo, iletişim alanları | ✓ (düzeltme 1: B1 giderildi) | `ThePaymentShippingAndContactColumns_..._KK4`, `TheBankTransferOrder_..._KK4`; kargoya verme tarihi kuralı: `AnItemWhoseWholeQuantityWasCancelledBeforeTheShipment_...`, `..._InTwoRecords_...`, `AnItemCancelledInPartBeforeTheShipment_KeepsTheShippingDay_KK4`, `..._AndWithdrawnAfterIt_...`, `AnItemWithdrawnWholeAfterTheShipment_...` (36/36 geçti) |
 | 5 | Geç ödeme: iki tarih ve tutar | ✓ | `ACancelledOrder_ThatALateCardPaymentCameTo_..._KK5`, `ACancelledOrderWithoutALatePayment_..._KK5` |
 | 6 | İmha edilmişte ad, e-posta, adres boş | ✓ | `ADisposedOrder_StaysInTheFile_..._KK6` |
 | 7 | Tüm üyeler ve talepler, aralıksız | ✓ | `TheMemberList_HoldsEveryAccount_..._KK7`, `TheContactRequestList_HoldsEveryKeptRequest_..._KK7`, sayfa testleri |
@@ -41,9 +41,13 @@ Ordering (`OrderExport.cs`, `OrderingModule.cs`), Payment (`ListLatePaymentsAsyn
 
 ## Test Sonuçları
 
-- UnitTests: 5633/5633 geçti (main birleştirmesinden önceki koşu).
-- IntegrationTests: `DataExportTests` 31/31; Catalog, Disposal, Administration, Model, Ordering, CorporateContent, Web ve kalan sınıflar parça parça koşuldu, hepsi geçti (düzeltmelerden sonra).
-- `dotnet format --verify-no-changes`: bkz. Kısıtlar.
+- UnitTests: 5696/5696 geçti (düzeltme 1, main birleştirmesinden sonra; Architecture ve Consistency dahil).
+- IntegrationTests (düzeltme 1): `DataExportTests` 36/36; Ordering ad alanı 502/502 (`LegalInterestWarningsAsync` testleri dahil, `ClosingRecordMoment` değişikliği).
+- Derleme `-warnaserror` temiz; `dotnet format --verify-no-changes` `src/Shopfolio.Web` ve `tests/Shopfolio.IntegrationTests` için temiz.
+
+### Düzeltme 1 (tur 1 B1)
+
+`OrderExport.FullyClosedBeforeShipmentAsync` artık gönderimden önce kapanan adetlerin toplamına bakar (`ClosingRecordMoment` kayda kapanan adedi taşır: iptal ve gecikme feshi, anı gönderimden önce olanlar); toplam kalemin adedine ulaşınca "Kargoya verme tarihi" boşalır. Kısmi kapanma ya da gönderim sonrası kapanma (cayma) tarihi korur (`09 §10.10` madde 5). Yeni testler: `AnItemWhoseWholeQuantityWasCancelledBeforeTheShipment_HasNoShippingDay_KK4`, `AnItemWhoseQuantityWasCancelledBeforeTheShipmentInTwoRecords_HasNoShippingDay_KK4`, `AnItemCancelledInPartBeforeTheShipment_KeepsTheShippingDay_KK4`, `AnItemCancelledInPartBeforeTheShipment_AndWithdrawnAfterIt_KeepsTheShippingDay_KK4`, `AnItemWithdrawnWholeAfterTheShipment_KeepsTheShippingDay_KK4`. D-736'nın "testle" şartı bu testlerle karşılandı (kapanış satırında adlar var).
 
 ## Doğrulama
 

@@ -36,6 +36,20 @@ internal static class ClientAddress
             return UnknownAxis;
         }
 
+        (IPAddress network, int prefixLength) = Network(address);
+        return prefixLength == V6PrefixLength ? network + "/64" : network.ToString();
+    }
+
+    /// <summary>The prefix length of an IPv6 address' axis (the first eight bytes).</summary>
+    public const int V6PrefixLength = 64;
+
+    /// <summary>
+    /// The network an address' axis stands for: an IPv4 address (or the one an IPv4-mapped IPv6 address maps) with the length 32, an IPv6 address as its /64 prefix with
+    /// <see cref="V6PrefixLength"/>. <see cref="Axis"/> is the text of it; a query that matches rows by the axis (an order's address) uses the same network.
+    /// </summary>
+    public static (IPAddress Network, int PrefixLength) Network(IPAddress address)
+    {
+        ArgumentNullException.ThrowIfNull(address);
         if (address.IsIPv4MappedToIPv6)
         {
             address = address.MapToIPv4();
@@ -43,11 +57,11 @@ internal static class ClientAddress
 
         if (address.AddressFamily != AddressFamily.InterNetworkV6)
         {
-            return address.ToString();
+            return (address, 32);
         }
 
         byte[] bytes = address.GetAddressBytes();
         Array.Clear(bytes, 8, 8);
-        return new IPAddress(bytes) + "/64";
+        return (new IPAddress(bytes), V6PrefixLength);
     }
 }

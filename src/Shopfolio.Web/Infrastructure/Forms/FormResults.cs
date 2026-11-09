@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Notices;
 
 namespace Shopfolio.Infrastructure.Forms;
@@ -27,6 +28,19 @@ internal static class FormResults
 
     /// <summary>The status of a POST an attempt limit refused (07 2.8.5, 2.7.1): nothing was done.</summary>
     public const int TooManyRequestsStatus = StatusCodes.Status429TooManyRequests;
+
+    /// <summary>The refusal codes of the nine attempt limits (07 6.2; 02 8.2): L-7 and L-8 share the unpaid order code.</summary>
+    private static readonly HashSet<ErrorCode> AttemptLimitCodes =
+    [
+        ErrorCode.SignInLimitExceeded,
+        ErrorCode.PasswordResetLimitExceeded,
+        ErrorCode.RegistrationLimitExceeded,
+        ErrorCode.ContactRequestLimitExceeded,
+        ErrorCode.OrderLookupLimitExceeded,
+        ErrorCode.CouponAttemptLimitExceeded,
+        ErrorCode.UnpaidOrderLimitExceeded,
+        ErrorCode.VerificationLinkLimitExceeded,
+    ];
 
     /// <summary>
     /// 303 to a path of this site (07 2.2.2). The path is the site's own - it starts with one slash and is not a scheme-relative or backslash form -
@@ -82,9 +96,16 @@ internal static class FormResults
     /// page shows it beside the blocked button. The message names neither the remaining attempts, the length of the block nor the axis, and no
     /// <c>Retry-After</c> is written. The general rate limit's 429 is another answer: it never reaches the handler (09 15.4 item 4).
     /// </summary>
-    public static IActionResult AttemptLimitExceeded(PageModel page)
+    public static IActionResult AttemptLimitExceeded(PageModel page, ErrorCode code)
     {
         ArgumentNullException.ThrowIfNull(page);
+        if (!AttemptLimitCodes.Contains(code))
+        {
+            throw new ArgumentOutOfRangeException(nameof(code), code, "The code of an attempt limit's refusal is one of the limit codes of 07 6.2 (02 8.2).");
+        }
+
+        // The one rejection line of the refusal, with the limit's code (09 8.2 item 3; D-145): the user sees the neutral message, the log keeps which limit it was.
+        page.HttpContext.RequestServices.GetRequiredService<RejectionLog>().Rejected(code);
         page.ModelState.AddModelError(string.Empty, Security.NeutralMessages.LimitExceeded);
         PageResult result = page.Page();
         result.StatusCode = TooManyRequestsStatus;

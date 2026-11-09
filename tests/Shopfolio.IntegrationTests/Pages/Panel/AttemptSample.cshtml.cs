@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
@@ -25,7 +26,7 @@ public sealed class AttemptSampleModel : PageModel
         await counter.RecordAsync(AttemptLimit.L4, subject, HttpContext.RequestAborted);
         if (await counter.IsExceededAsync(AttemptLimit.L4, subject, HttpContext.RequestAborted))
         {
-            return FormResults.AttemptLimitExceeded(this);
+            return FormResults.AttemptLimitExceeded(this, ErrorCode.ContactRequestLimitExceeded);
         }
 
         return FormResults.SeeOther("/panel/deneme-ornek");

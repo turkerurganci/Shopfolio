@@ -1,6 +1,6 @@
 # T384 — Dışa aktarma: sipariş CSV (fatura verisi), üye ve iletişim talebi listesi, işlem izine yazım, imha edilmiş siparişin boş sütunları
 
-**Faz:** F3 | **Durum:** düzeltme 1 yapıldı — doğrulama tur 2 bekliyor | **Tarih:** 2026-11-09
+**Faz:** F3 | **Durum:** ✓ Doğrulama tur 2 PASS | **Tarih:** 2026-11-09
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -50,6 +50,32 @@ Ordering (`OrderExport.cs`, `OrderingModule.cs`), Payment (`ListLatePaymentsAsyn
 `OrderExport.FullyClosedBeforeShipmentAsync` artık gönderimden önce kapanan adetlerin toplamına bakar (`ClosingRecordMoment` kayda kapanan adedi taşır: iptal ve gecikme feshi, anı gönderimden önce olanlar); toplam kalemin adedine ulaşınca "Kargoya verme tarihi" boşalır. Kısmi kapanma ya da gönderim sonrası kapanma (cayma) tarihi korur (`09 §10.10` madde 5). Yeni testler: `AnItemWhoseWholeQuantityWasCancelledBeforeTheShipment_HasNoShippingDay_KK4`, `AnItemWhoseQuantityWasCancelledBeforeTheShipmentInTwoRecords_HasNoShippingDay_KK4`, `AnItemCancelledInPartBeforeTheShipment_KeepsTheShippingDay_KK4`, `AnItemCancelledInPartBeforeTheShipment_AndWithdrawnAfterIt_KeepsTheShippingDay_KK4`, `AnItemWithdrawnWholeAfterTheShipment_KeepsTheShippingDay_KK4`. D-736'nın "testle" şartı bu testlerle karşılandı (kapanış satırında adlar var).
 
 ## Doğrulama
+
+**Tur 2 — ✓ PASS (2026-11-09; head `2640fb6a`, PR #502; `origin/main` `8cd6652e` dalda, birleştirme "Already up to date").** Bulgu: 0. Düzeltme gerekli: hayır. Kapsam tam (dokuz kriter yeniden koşuldu).
+
+**Başlangıç kapıları:** working tree temiz; `core.hooksPath` = `scripts/git-hooks`; ana dal son üç run `success` (42643385147, 42643385305, 42640152318). Dal CI 42651565853 doğrulama anında koşuyordu (Lint, Build, Unit, Contract, Migration dry-run, E2E pass; Integration ve Paketleme bekliyor); merge öncesi yeşil olması yardımcının kapısıdır.
+
+| # | Kriter | Sonuç | Validator kanıtı |
+|---|---|---|---|
+| 1 | Aralık oluşma Türkiye günü; yalnız ödemesi tamamlanmış | ✓ | `OrderExport.ReadAsync` (`TurkeyTime.StartOf`/`EndOfRange`, `IsPaymentCompleted` ya da geç ödeme); KK1 testleri geçti |
+| 2 | Kalem başına satır | ✓ | `ALine_IsAnOrderItem_…_KK2` geçti |
+| 3 | Fatura verisi donmuş değerden | ✓ | `InvoiceDataReader.ComposeAsync`; sütunlar `09 §10.10` madde 5 tablosuyla eşleşti (başlık önekleri D-851); `…_KK3` geçti |
+| 4 | Ödeme, kargo, iletişim alanları | ✓ | B1 giderildi: `FullyClosedBeforeShipmentAsync` yalnız anı gönderimden önce olan iptal ve fesih kayıtlarının adetlerini topluyor, toplam kalemin adedine ulaşınca tarihi boşaltıyor; cayma artık sayılmıyor. Beş yeni test (tam iptal, iki kayıtla tam iptal, kısmi iptal, kısmi iptal + sonradan cayma — tur 1 sondajının senaryosu —, tam cayma) geçti |
+| 5 | Geç ödemede iki tarih ve tutar | ✓ | `ListLatePaymentsAsync`; `…_KK5` testleri geçti |
+| 6 | İmha edilmişte ad, e-posta, adres boş | ✓ | `…_KK6` geçti |
+| 7 | Bütün üyeler ve saklanan talepler, aralıksız | ✓ | `CustomerExport`, `ContactRequestExport`; KK7 ve sayfa testleri geçti |
+| 8 | Her dışa aktarma izde | ✓ | `DataExport.ProduceAsync`; `EveryDownload_IsInTheTrail_…_KK8` geçti |
+| 9 | İkinci dışa aktarma yolu yok | ✓ | `ExportSurfaceTests` geçti |
+
+**Task satırları:** değişiklik yok — `VAL-D029` PASS; `VAL-A266`…`A271` uç ister (T524), `BEKLEMEDE`. `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**Testler (validator):** restore; `build -warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes` üç projede 0; Unit 5696/5696; betik testleri 4/4; Integration `DataExportTests`, Disposal (3 sınıf), `AddressTests`, `MembershipTests`, `MembershipAccountDeletionTests`, `DeliveryPeriodTests`, `LateDeliveryAndFirmCancellationTests` (`ClosingRecordMoment`'in öteki tüketicisi `OrderPeriods`), `MainFlowTests` 279/279 (`postgres:18`, `track_commit_timestamp=on`); `restore --locked-mode` 0.
+
+**Güvenlik:** düzeltme yalnız okuma mantığı ve bir sözleşme kaydına alan ekliyor; sır, uç, girdi, paket değişikliği yok.
+
+**K-notları:** K1 → D-848'e not (`Docs/DEFERRED_BACKLOG.d/T384.md`): kaydın gerekçesi "`ItemRemoval` anı tutulmuyor" doğru değil (`ItemRemoval.CreatedAt` var); asıl boşluk `ClosingRecordMoment`'in çıkarma kaydını taşımaması. Çıkarma kargodan önce olur (`02 §7.2.2`) ve yazanı T386'dır; bugün üretilemez. T386 gelince gönderimden önce iptal + çıkarma ile tam kapanan kalemde tarih dolu kalır.
+
+**Yapım raporu karşılaştırması:** tam uyumlu. Öz denetim tablosu kanıtlı; kriter 4 düzeltmesi ve test adları validator bulgusuyla örtüşüyor. Küçük: rapor `dotnet format`'ı iki projede yazıyor, validator üçünde koştu (temiz).
 
 **Tur 1 — ✗ FAIL (2026-11-09; head `f2ad23c3`, PR #502; `origin/main` `d5676e75` ile güncel, birleştirme gerekmedi).** Bulgu: 1 (ORTA, S1). Düzeltme gerekli: evet.
 

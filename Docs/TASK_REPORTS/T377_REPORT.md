@@ -90,7 +90,7 @@
 ## Commit & PR
 
 - **Branch:** `task/T377-limit-ilkeleri`
-- **PR:** #NN
+- **PR:** #497
 - **CI:** doğrulayıcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

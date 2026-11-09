@@ -395,6 +395,9 @@ internal static class OrderingModuleRegistration
         services.AddScoped<OrderCounters>();
         services.AddScoped<OrderTransitions>();
         services.AddScoped<IOrderTransitions>(provider => provider.GetRequiredService<OrderTransitions>());
+        // The administrator's contact-data corrections (T375; 02 10.4.2, 10.4.11): the address and the guest order's e-mail.
+        services.AddScoped<OrderCorrections>();
+        services.AddScoped<IOrderCorrections>(provider => provider.GetRequiredService<OrderCorrections>());
         // The operation decision (T323; 03 1.11): the forty-one operations in one table; the screen reads it and every POST asks it again.
         services.AddScoped<OrderOperations>();
         services.AddScoped<IOrderOperations>(provider => provider.GetRequiredService<OrderOperations>());

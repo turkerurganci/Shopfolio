@@ -12,23 +12,23 @@ namespace Shopfolio.Modules.Ordering;
 /// </summary>
 internal sealed class OrderEmailHistory
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; private set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; private set; }
 
-    public Guid OrderId { get; set; }
+    public Guid OrderId { get; private set; }
 
     /// <summary>The address before the correction, as it was entered.</summary>
-    public string OldEmail { get; set; } = string.Empty;
+    public string OldEmail { get; private set; } = string.Empty;
 
     /// <summary>The address after the correction; written with the order's contact e-mail in one transaction.</summary>
-    public string NewEmail { get; set; } = string.Empty;
+    public string NewEmail { get; private set; } = string.Empty;
 
     /// <summary>The administrator who corrected; emptied when the administrator is removed.</summary>
-    public Guid? AdminId { get; set; }
+    public Guid? AdminId { get; private set; }
 
     /// <summary>The administrator's name, as a value.</summary>
-    public string AdminName { get; set; } = string.Empty;
+    public string AdminName { get; private set; } = string.Empty;
 
     public static OrderEmailHistory Create(Guid orderId, string oldEmail, string newEmail, Guid adminId, string adminName, DateTimeOffset now)
     {

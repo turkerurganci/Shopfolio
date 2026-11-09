@@ -288,6 +288,23 @@ public interface IAfterSalesModule
     /// <see cref="ItemQuantityAt.At"/>, by the one open quantity rule. Every item is in the result. A plain read; it writes nothing and takes no lock.
     /// </summary>
     Task<IReadOnlyDictionary<Guid, int>> OpenQuantitiesAtAsync(IReadOnlyCollection<ItemQuantityAt> items, CancellationToken ct);
+
+    /// <summary>The open defect claims (T382; 02 10.6.1): one per claim, whatever the order's state. A plain read that counts; nothing is kept.</summary>
+    Task<int> CountOpenDefectClaimsAsync(CancellationToken ct);
+
+    /// <summary>
+    /// The orders whose returned goods the firm still awaits (T382; 02 10.6.1, 10.4.9, 7.4.9): a shipped physical item with units of a withdrawal or a late delivery termination that
+    /// are neither received, rejected nor closed as "mal dönmedi". A closure that was reopened (the goods arrived) counts again. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> ListOrdersAwaitingReturnGoodsAsync(CancellationToken ct);
+
+    /// <summary>
+    /// One page of the orders that owe the firm a refund step (T382; 02 10.6.1; K-621): the refund of a paid order's item record - a cancellation that was not undone, a removal, a late
+    /// delivery termination, a withdrawal owed at its declaration, a withdrawal's goods receipt - that has no refund row yet, on the bank transfer line and, for the withdrawal, on the
+    /// card line; the system's own card refunds always have their row. An item that waits for the customer's IBAN is not counted. The page reads the next <paramref name="maxSubjects"/>
+    /// record ids after <paramref name="afterId"/> (null starts from the first); an empty page is the end. A plain read.
+    /// </summary>
+    Task<RefundProcessingPage> ListOrdersAwaitingRefundProcessingAsync(Guid? afterId, int maxSubjects, CancellationToken ct);
 }
 
 /// <summary>One cancellation record as the order module needs it: the record, the item and the units it closed.</summary>

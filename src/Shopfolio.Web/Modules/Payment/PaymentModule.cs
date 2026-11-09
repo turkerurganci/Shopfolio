@@ -324,6 +324,52 @@ internal sealed class PaymentModule : IPaymentModule
                 g => new RescindedShares(g.Sum(r => r.Quantity ?? 0), g.Sum(r => r.CouponShare ?? 0m), g.Sum(r => r.VatAmount ?? 0m)));
     }
 
+    public async Task<IReadOnlySet<Guid>> FindSubjectsWithRefundAsync(IReadOnlyCollection<Guid> subjectIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(subjectIds);
+        if (subjectIds.Count == 0)
+        {
+            return new HashSet<Guid>();
+        }
+
+        Guid[] ids = [.. subjectIds];
+        var links = await _db.Refunds.AsNoTracking()
+            .Where(r => (r.CancellationId != null && ids.Contains(r.CancellationId.Value))
+                || (r.ItemRemovalId != null && ids.Contains(r.ItemRemovalId.Value))
+                || (r.LateDeliveryTerminationId != null && ids.Contains(r.LateDeliveryTerminationId.Value))
+                || (r.WithdrawalId != null && ids.Contains(r.WithdrawalId.Value))
+                || (r.ReturnId != null && ids.Contains(r.ReturnId.Value)))
+            .Select(r => new { r.CancellationId, r.ItemRemovalId, r.LateDeliveryTerminationId, r.WithdrawalId, r.ReturnId })
+            .ToListAsync(ct);
+        HashSet<Guid> found = [];
+        foreach (var link in links)
+        {
+            foreach (Guid? id in new[] { link.CancellationId, link.ItemRemovalId, link.LateDeliveryTerminationId, link.WithdrawalId, link.ReturnId })
+            {
+                if (id is { } linked && ids.Contains(linked))
+                {
+                    found.Add(linked);
+                }
+            }
+        }
+
+        return found;
+    }
+
+    public async Task<IReadOnlyList<Guid>> ListOrdersWithOpenRefundWorkAsync(CancellationToken ct)
+    {
+        return await (
+            from r in _db.Refunds.AsNoTracking()
+            where r.PaymentMethod == PaymentMethod.Card && r.SentAt == null && r.VoidedAt == null
+            let latest = _db.RefundRecords
+                .Where(rr => rr.RefundId == r.Id)
+                .OrderByDescending(rr => rr.CreatedAt).ThenByDescending(rr => rr.Id)
+                .Select(rr => (RefundRecordState?)rr.State)
+                .FirstOrDefault()
+            where latest == RefundRecordState.Failed || latest == RefundRecordState.OutcomePending
+            select r.OrderId).Distinct().ToListAsync(ct);
+    }
+
     public async Task<IReadOnlyList<Guid>> ErasePersonalDataAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(orderIds);

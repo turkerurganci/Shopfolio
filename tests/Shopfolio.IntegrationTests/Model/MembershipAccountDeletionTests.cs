@@ -387,7 +387,8 @@ public sealed partial class MembershipTests
         Assert.DoesNotContain(typeof(AppDbContext).GetProperties(), p => p.Name.Contains("Kvkk", StringComparison.OrdinalIgnoreCase) || p.Name.Contains("PersonalData", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(typeof(AppDbContext).Assembly.GetTypes(), t => t.Name.Contains("Kvkk", StringComparison.OrdinalIgnoreCase));
         string[] forbidden = ["Export", "Download", "Archive", "Backup"];
-        Assert.DoesNotContain(typeof(IMembershipModule).GetMethods(), m => forbidden.Any(f => m.Name.Contains(f, StringComparison.OrdinalIgnoreCase)));
+        // The member list file of the firm (T384, 02 10.7.4) is the one export the module has; it is the whole list, not the personal data request's answer.
+        Assert.DoesNotContain(typeof(IMembershipModule).GetMethods().Where(m => m.Name != nameof(IMembershipModule.WriteCustomerExportAsync)), m => forbidden.Any(f => m.Name.Contains(f, StringComparison.OrdinalIgnoreCase)));
         Assert.All(typeof(MemberRecord).GetProperties(), p => Assert.True(p.SetMethod is null || p.SetMethod.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(System.Runtime.CompilerServices.IsExternalInit))));
     }
 }

@@ -33,7 +33,6 @@ internal static class InstallationSettingsRegistration
         services.AddSingleton<IValidateOptions<LoggingOptions>, LoggingOptionsValidator>();
 
         services.TryAddSingleton<ExportTempDirectory>();
-        services.AddHostedService<ExportDirectoryStartup>();
 
         services.AddConditionalLines();
         return services;

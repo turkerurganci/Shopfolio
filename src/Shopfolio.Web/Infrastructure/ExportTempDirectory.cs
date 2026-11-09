@@ -36,9 +36,17 @@ internal sealed partial class ExportTempDirectory
             File.WriteAllBytes(probe, [0]);
             File.Delete(probe);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException)
+        catch (IOException ex)
         {
-            throw new InvalidOperationException($"The setting {LogExportFile.DirectoryKey} names a directory the application cannot write to.", ex);
+            throw Unusable(ex);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            throw Unusable(ex);
+        }
+        catch (NotSupportedException ex)
+        {
+            throw Unusable(ex);
         }
     }
 
@@ -88,17 +96,28 @@ internal sealed partial class ExportTempDirectory
 
                     File.Delete(file);
                 }
-                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                catch (IOException ex)
+                {
+                    LogSweepFailed(_logger, LogEvents.UnexpectedError, ex);
+                }
+                catch (UnauthorizedAccessException ex)
                 {
                     LogSweepFailed(_logger, LogEvents.UnexpectedError, ex);
                 }
             }
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        catch (IOException ex)
+        {
+            LogSweepFailed(_logger, LogEvents.UnexpectedError, ex);
+        }
+        catch (UnauthorizedAccessException ex)
         {
             LogSweepFailed(_logger, LogEvents.UnexpectedError, ex);
         }
     }
+
+    private static InvalidOperationException Unusable(Exception inner)
+        => new($"The setting {LogExportFile.DirectoryKey} names a directory the application cannot write to.", inner);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "{Event}: an old export file could not be swept.")]
     private static partial void LogSweepFailed(ILogger logger, string @event, Exception exception);

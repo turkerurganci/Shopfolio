@@ -13,6 +13,8 @@ using Npgsql;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.IntegrationTests.Database;
+using Shopfolio.IntegrationTests.Model;
+using Shopfolio.IntegrationTests.Ordering;
 using Shopfolio.IntegrationTests.Web;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Administration.Contracts;
@@ -27,6 +29,7 @@ using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment;
 using Shopfolio.Modules.Payment.Contracts;
+using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
 using Shopfolio.UnitTests.Fakes;
 
@@ -75,8 +78,8 @@ public sealed class DataExportTests : IAsyncLifetime
     {
         await ExecuteAsync(
             "TRUNCATE audit_logs, transition_records, checkbox_acceptance_order_items, checkbox_acceptances, order_email_histories, order_address_histories, order_items, orders, digital_files, "
-            + "product_images, images, price_histories, discounts, variants, option_values, options, products, customers, contact_requests, admins CASCADE");
-        _admin = Admin.Create("Firma Yöneticisi", "yonetici@example.com", "digest-placeholder", DateTimeOffset.UtcNow);
+            + "product_images, price_histories, discounts, variants, option_values, options, products, customers, contact_requests CASCADE");
+        _admin = Admin.Create("Firma Yöneticisi", $"yonetici-{Guid.NewGuid():N}@example.com", "digest-placeholder", DateTimeOffset.UtcNow);
         await SaveAsync(c => c.Admins.Add(_admin));
         _province = await ProvinceAsync();
         _identity = await SetCompanyAsync("Örnek Ticaret", "Kızılay 2");
@@ -108,18 +111,18 @@ public sealed class DataExportTests : IAsyncLifetime
     [Fact]
     public async Task TheOrderFile_CarriesTheOrdersCreatedInTheRange_ThatWerePaid_AndNotThePendingTheFailedOrTheOnesOutsideTheRange_KK1()
     {
-        string paid = await SeedAsync(Day(-3), PaymentMethod.Card, "Paid", (_shirt, 1, 0m));
-        string pending = await SeedAsync(Day(-3), PaymentMethod.BankTransfer, "Pending", (_shirt, 1, 0m));
-        string failed = await SeedAsync(Day(-3), PaymentMethod.Card, "Failed", (_shirt, 1, 0m));
-        string paidLater = await SeedAsync(Day(-5), PaymentMethod.BankTransfer, "Paid", (_shirt, 1, 0m));
-        string outside = await SeedAsync(Day(-10), PaymentMethod.Card, "Paid", (_shirt, 1, 0m));
-        string partly = await SeedAsync(Day(-2), PaymentMethod.Card, "PartiallyRefunded", (_shirt, 1, 0m));
-        string refunded = await SeedAsync(Day(-2), PaymentMethod.Card, "Refunded", (_shirt, 1, 0m));
+        string paid = await SeedAsync(CreatedOn(-3), PaymentMethod.Card, "Paid", (_shirt, 1, 0m));
+        string pending = await SeedAsync(CreatedOn(-3), PaymentMethod.BankTransfer, "Pending", (_shirt, 1, 0m));
+        string failed = await SeedAsync(CreatedOn(-3), PaymentMethod.Card, "Failed", (_shirt, 1, 0m));
+        string paidLater = await SeedAsync(CreatedOn(-5), PaymentMethod.BankTransfer, "Paid", (_shirt, 1, 0m));
+        string outside = await SeedAsync(CreatedOn(-10), PaymentMethod.Card, "Paid", (_shirt, 1, 0m));
+        string partly = await SeedAsync(CreatedOn(-2), PaymentMethod.Card, "PartiallyRefunded", (_shirt, 1, 0m));
+        string refunded = await SeedAsync(CreatedOn(-2), PaymentMethod.Card, "Refunded", (_shirt, 1, 0m));
 
         Exported wide = await ExportOrdersAsync(Today.AddDays(-5), Today.AddDays(-2));
         Exported oneDay = await ExportOrdersAsync(Today.AddDays(-3), Today.AddDays(-3));
 
-        Assert.Equal([paid, paidLater, partly, refunded].Order(StringComparer.Ordinal), wide.Values("Sipariş numarası").Distinct().Order(StringComparer.Ordinal));
+        Assert.Equal(new[] { paid, paidLater, partly, refunded }.Order(StringComparer.Ordinal), wide.Values("Sipariş numarası").Distinct().Order(StringComparer.Ordinal));
         Assert.DoesNotContain(wide.Values("Sipariş numarası"), n => n == pending || n == failed || n == outside);
         Assert.Equal([paid], oneDay.Values("Sipariş numarası").Distinct());
     }
@@ -143,13 +146,13 @@ public sealed class DataExportTests : IAsyncLifetime
     [Fact]
     public async Task ALine_IsAnOrderItem_AndTheOrdersValuesRepeatOnEachLine_KK2()
     {
-        string number = await SeedAsync(Day(-3), PaymentMethod.Card, "Paid", (_shirt, 2, 20m), (_book, 1, 0m));
+        string number = await SeedAsync(CreatedOn(-3), PaymentMethod.Card, "Paid", (_shirt, 2, 20m), (_book, 1, 0m));
 
         Exported file = await ExportOrdersAsync(Today.AddDays(-3), Today.AddDays(-3));
 
         Assert.Equal(2, file.Rows.Count);
         Assert.Equal(["Ürün 1", "Ürün 2"], file.Values("Ürün adı").Order(StringComparer.Ordinal));
-        Assert.Equal(["2", "1"], file.Values("Adet").Order(StringComparer.Ordinal).Reverse());
+        Assert.Equal(["1", "2"], file.Values("Adet").Order(StringComparer.Ordinal));
         foreach (string header in new[] { "Sipariş numarası", "Sipariş tarihi", "Sipariş toplamı", "Kargo ücreti", "Ticaret unvanı", "Fatura adresi" })
         {
             Assert.Single(file.Values(header).Distinct());
@@ -163,7 +166,7 @@ public sealed class DataExportTests : IAsyncLifetime
     [Fact]
     public async Task TheInvoiceColumns_AreTheFrozenValues_AfterTheProductAndTheFirmsIdentityChanged_KK3()
     {
-        await SeedAsync(Day(-3), PaymentMethod.Card, "Paid", (_shirt, 2, 20m));
+        await SeedAsync(CreatedOn(-3), PaymentMethod.Card, "Paid", (_shirt, 2, 20m));
         Exported before = await ExportOrdersAsync(Today.AddDays(-3), Today.AddDays(-3));
 
         await ExecuteAsync("UPDATE products SET vat_rate = 1; UPDATE variants SET price = price + 7; UPDATE companies SET legal_name = 'Yeni Unvan', address_line = 'Yeni Sokak 9'");
@@ -190,7 +193,7 @@ public sealed class DataExportTests : IAsyncLifetime
     {
         CarrierEntry carrier = CarrierCatalog.Default.Active[0];
         string number = await SeedAsync(
-            Day(-3),
+            CreatedOn(-3),
             PaymentMethod.Card,
             "Paid",
             o => { o.Carrier = carrier.Code; o.TrackingNumber = "123456"; },
@@ -214,7 +217,7 @@ public sealed class DataExportTests : IAsyncLifetime
     [Fact]
     public async Task TheBankTransferOrder_ShowsTheTransferTerm_AndAnUnshippedOrderHasNoShippingDay_KK4()
     {
-        await SeedAsync(Day(-3), PaymentMethod.BankTransfer, "Paid", (_shirt, 1, 0m));
+        await SeedAsync(CreatedOn(-3), PaymentMethod.BankTransfer, "Paid", (_shirt, 1, 0m));
 
         Exported file = await ExportOrdersAsync(Today.AddDays(-3), Today.AddDays(-3));
 
@@ -228,7 +231,7 @@ public sealed class DataExportTests : IAsyncLifetime
     [Fact]
     public async Task ACancelledOrder_ThatALateCardPaymentCameTo_HasTheTwoDatesAndAmounts_KK5()
     {
-        string number = await SeedAsync(Day(-4), PaymentMethod.Card, "Failed", (_shirt, 1, 0m));
+        string number = await SeedAsync(CreatedOn(-4), PaymentMethod.Card, "Failed", (_shirt, 1, 0m));
         Guid id = await OrderIdAsync(number);
         DateTimeOffset paidAt = TurkeyTime.StartOf(Today.AddDays(-2)).AddHours(14);
         DateTimeOffset sentAt = TurkeyTime.StartOf(Today.AddDays(-1)).AddHours(9);
@@ -254,8 +257,8 @@ public sealed class DataExportTests : IAsyncLifetime
     [Fact]
     public async Task ACancelledOrderWithoutALatePayment_IsNotInTheFile_AndAVoidedLateRefundDoesNotCount_KK5()
     {
-        string plain = await SeedAsync(Day(-4), PaymentMethod.Card, "Failed", (_shirt, 1, 0m));
-        string voided = await SeedAsync(Day(-4), PaymentMethod.Card, "Failed", (_shirt, 1, 0m));
+        string plain = await SeedAsync(CreatedOn(-4), PaymentMethod.Card, "Failed", (_shirt, 1, 0m));
+        string voided = await SeedAsync(CreatedOn(-4), PaymentMethod.Card, "Failed", (_shirt, 1, 0m));
         Guid id = await OrderIdAsync(voided);
         PaymentRecord payment = PaymentRecord.ForCardPayment(id, "late-" + Guid.NewGuid().ToString("N"), null, DateTimeOffset.UtcNow.AddDays(-2));
         Refund refund = Refund.ForLatePayment(id, payment.Id, 540m, DateTimeOffset.UtcNow.AddDays(-2));
@@ -266,7 +269,7 @@ public sealed class DataExportTests : IAsyncLifetime
             c.Refunds.Add(refund);
         });
 
-        ExportFileResult result = await RunAsync(e => e.ExportOrdersAsync(Today.AddDays(-4), Today.AddDays(-4)));
+        ExportFileResult result = await RunAsync(e => e.ExportOrdersAsync(Today.AddDays(-4), Today.AddDays(-4), Ct));
 
         Assert.Equal(ExportOutcome.Empty, result.Outcome);
         Assert.NotEqual(plain, voided);
@@ -277,7 +280,7 @@ public sealed class DataExportTests : IAsyncLifetime
     [Fact]
     public async Task ADisposedOrder_StaysInTheFile_WithTheAddressEmailAndRecipientEmpty_AndTheAmountsAndTheFirmsIdentityKept_KK6()
     {
-        string number = await SeedAsync(Day(-3), PaymentMethod.Card, "Paid", o => o.ErasePersonalData(), [(_shirt, 2, 0m)]);
+        string number = await SeedAsync(CreatedOn(-3), PaymentMethod.Card, "Paid", o => o.ErasePersonalData(), [(_shirt, 2, 0m)]);
 
         Exported file = await ExportOrdersAsync(Today.AddDays(-3), Today.AddDays(-3));
 
@@ -288,7 +291,8 @@ public sealed class DataExportTests : IAsyncLifetime
         }
 
         Assert.NotEqual(string.Empty, file.Values("Sipariş toplamı")[0]);
-        Assert.Equal("1000,00", file.Values("Birim fiyat")[0] == "500,00" ? "1000,00" : "?");
+        Assert.Equal("500,00", file.Values("Birim fiyat")[0]);
+        Assert.Equal("2", file.Values("Adet")[0]);
         Assert.Equal("Örnek Ticaret", file.Values("Ticaret unvanı")[0]);
         Assert.Equal("Kızılay 2", file.Values("Firma adresi")[0]);
     }
@@ -304,7 +308,7 @@ public sealed class DataExportTests : IAsyncLifetime
         Customer pending = Customer.Create("Doğrulanmamış", "bekleyen@example.com", "digest-placeholder", null, null, now);
         Customer formula = Customer.Create("=HYPERLINK(\"x\")", "formul@example.com", "digest-placeholder", now, null, now);
         await SaveAsync(c => c.Customers.AddRange(ordered, never, pending, formula));
-        await SeedAsync(Day(-3), PaymentMethod.Card, "Paid", (_shirt, 1, 0m));
+        await SeedAsync(CreatedOn(-3), PaymentMethod.Card, "Paid", (_shirt, 1, 0m));
 
         Exported file = await ExportAsync(e => e.ExportCustomersAsync(Ct));
 
@@ -317,7 +321,7 @@ public sealed class DataExportTests : IAsyncLifetime
         Assert.Contains("Hiç Almayan", file.Values("Ad"));
         Assert.Contains("\"'=HYPERLINK(\"\"x\"\")\";formul@example.com", file.Text, StringComparison.Ordinal);
         Assert.Matches(@"^uyeler-\d{4}-\d{2}-\d{2}\.csv$", file.Result.FileName!);
-        Assert.Equal(ExportFileResult.ContentType, "text/csv; charset=utf-8");
+        Assert.Equal("text/csv; charset=utf-8", ExportFileResult.ContentType);
     }
 
     [Fact]
@@ -335,7 +339,7 @@ public sealed class DataExportTests : IAsyncLifetime
 
         Assert.Equal(["Ad", "E-posta"], file.Header);
         Assert.Equal(3, file.Rows.Count);
-        Assert.Equal(["Ayşe Yılmaz", "Mehmet Kaya", "'+Ad"], file.Values("Ad").Order(StringComparer.Ordinal).Select(v => v).OrderBy(v => v == "'+Ad" ? 2 : v == "Mehmet Kaya" ? 1 : 0));
+        Assert.Equal(["'+Ad", "Ayşe Yılmaz", "Mehmet Kaya"], file.Values("Ad").Order(StringComparer.Ordinal));
         Assert.DoesNotContain("gizli ileti metni", file.Text, StringComparison.Ordinal);
         Assert.DoesNotContain("5321234567", file.Text, StringComparison.Ordinal);
         Assert.Contains("'@x@example.com", file.Values("E-posta"));
@@ -360,7 +364,7 @@ public sealed class DataExportTests : IAsyncLifetime
     [Fact]
     public async Task EveryDownload_IsInTheTrail_WithTheKindTheRangeAndTheCount_AndNoTargetRecord_KK8()
     {
-        await SeedAsync(Day(-3), PaymentMethod.Card, "Paid", (_shirt, 1, 0m), (_book, 1, 0m));
+        await SeedAsync(CreatedOn(-3), PaymentMethod.Card, "Paid", (_shirt, 1, 0m), (_book, 1, 0m));
         DateTimeOffset now = DateTimeOffset.UtcNow;
         await SaveAsync(c =>
         {
@@ -392,12 +396,12 @@ public sealed class DataExportTests : IAsyncLifetime
     [Fact]
     public async Task AnEmptySet_AWrongRange_AndAMissingRange_WriteNoTrailRow_AndLeaveNoFile_KK8()
     {
-        await SeedAsync(Day(-3), PaymentMethod.Card, "Paid", (_shirt, 1, 0m));
+        await SeedAsync(CreatedOn(-3), PaymentMethod.Card, "Paid", (_shirt, 1, 0m));
 
-        ExportFileResult empty = await RunAsync(e => e.ExportOrdersAsync(Today.AddDays(-30), Today.AddDays(-29)));
-        ExportFileResult reversed = await RunAsync(e => e.ExportOrdersAsync(Today.AddDays(-2), Today.AddDays(-3)));
-        ExportFileResult future = await RunAsync(e => e.ExportOrdersAsync(Today.AddDays(1), Today.AddDays(2)));
-        ExportFileResult missing = await RunAsync(e => e.ExportOrdersAsync(null, Today));
+        ExportFileResult empty = await RunAsync(e => e.ExportOrdersAsync(Today.AddDays(-30), Today.AddDays(-29), Ct));
+        ExportFileResult reversed = await RunAsync(e => e.ExportOrdersAsync(Today.AddDays(-2), Today.AddDays(-3), Ct));
+        ExportFileResult future = await RunAsync(e => e.ExportOrdersAsync(Today.AddDays(1), Today.AddDays(2), Ct));
+        ExportFileResult missing = await RunAsync(e => e.ExportOrdersAsync(null, Today, Ct));
 
         Assert.Equal(ExportOutcome.Empty, empty.Outcome);
         Assert.Equal((ExportOutcome.RangeInvalid, ExportRangeError.EndBeforeStart), (reversed.Outcome, reversed.RangeError));
@@ -422,7 +426,7 @@ public sealed class DataExportTests : IAsyncLifetime
     [Fact]
     public async Task TheOrderRead_WithASmallSizeCeiling_ThrowsTheLimitException_AfterWritingTheFirstRows()
     {
-        await SeedAsync(Day(-3), PaymentMethod.Card, "Paid", (_shirt, 1, 0m), (_book, 1, 0m));
+        await SeedAsync(CreatedOn(-3), PaymentMethod.Card, "Paid", (_shirt, 1, 0m), (_book, 1, 0m));
         await using AsyncServiceScope scope = Services.CreateAsyncScope();
         using MemoryStream stream = new();
 
@@ -539,13 +543,13 @@ public sealed class DataExportTests : IAsyncLifetime
     [Fact]
     public async Task AnOldFileInTheDirectory_IsSweptByTheNextRequest_AndAFreshOneStays()
     {
+        _ = Services;
         string old = Path.Combine(_directory, "old.csv");
         string fresh = Path.Combine(_directory, "fresh.csv");
         await File.WriteAllTextAsync(old, "x", Ct);
         await File.WriteAllTextAsync(fresh, "x", Ct);
         File.SetCreationTimeUtc(old, DateTime.UtcNow - ExportLimits.SweepAge - TimeSpan.FromMinutes(5));
         File.SetCreationTimeUtc(fresh, DateTime.UtcNow - ExportLimits.SweepAge + TimeSpan.FromMinutes(5));
-        _ = Services;
 
         ExportFileResult result = await RunAsync(e => e.ExportCustomersAsync(Ct));
 
@@ -666,7 +670,7 @@ public sealed class DataExportTests : IAsyncLifetime
         }));
     }
 
-    private DataExport NewExport(AsyncServiceScope scope, TimeProvider time, Func<Stream, long, CancellationToken, Task<int>> write, Func<IAuditTrail, IAuditTrail>? trail = null)
+    private static DataExport NewExport(AsyncServiceScope scope, TimeProvider time, Func<Stream, long, CancellationToken, Task<int>> write, Func<IAuditTrail, IAuditTrail>? trail = null)
     {
         IServiceProvider p = scope.ServiceProvider;
         ICorporateContentModule contact = DispatchProxy.Create<ICorporateContentModule, ContactRequestWriteProxy>();
@@ -714,20 +718,12 @@ public sealed class DataExportTests : IAsyncLifetime
 
     // ---- seeding, as the confirmation freezes an order ----
 
-    private static string Day(int offsetFromToday) => TurkeyTime.StartOf(Today.AddDays(offsetFromToday)).AddHours(10).ToString("O");
+    private static DateTimeOffset CreatedOn(int offsetFromToday) => TurkeyTime.StartOf(Today.AddDays(offsetFromToday)).AddHours(10);
 
     private static string Day(DateOnly day) => day.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
 
-    private static DateTimeOffset At(string iso) => DateTimeOffset.Parse(iso, System.Globalization.CultureInfo.InvariantCulture);
-
-    private Task<string> SeedAsync(string createdAtIso, PaymentMethod method, string paymentStatus, params (Guid VariantId, int Quantity, decimal CouponShare)[] lines)
-        => SeedAsync(At(createdAtIso), method, paymentStatus, _ => { }, lines);
-
     private Task<string> SeedAsync(DateTimeOffset createdAt, PaymentMethod method, string paymentStatus, params (Guid VariantId, int Quantity, decimal CouponShare)[] lines)
         => SeedAsync(createdAt, method, paymentStatus, _ => { }, lines);
-
-    private Task<string> SeedAsync(string createdAtIso, PaymentMethod method, string paymentStatus, Action<Order> change, (Guid VariantId, int Quantity, decimal CouponShare)[] lines)
-        => SeedAsync(At(createdAtIso), method, paymentStatus, change, lines);
 
     private async Task<string> SeedAsync(DateTimeOffset createdAt, PaymentMethod method, string paymentStatus, Action<Order> change, (Guid VariantId, int Quantity, decimal CouponShare)[] lines)
     {
@@ -759,11 +755,9 @@ public sealed class DataExportTests : IAsyncLifetime
         return orderNumber;
     }
 
-    private static int _versionNumber = 5000;
-
     private async Task SaveWithVersionsAsync(Order order, List<OrderItem> items)
     {
-        int n = Interlocked.Increment(ref _versionNumber);
+        int n = Random.Shared.Next(10_000, int.MaxValue);
         LegalTextVersion form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, n, order.CreatedAt, "metin", order.CreatedAt);
         LegalTextVersion contract = LegalTextVersion.CreatePublished(LegalTextType.DistanceSalesContract, n, order.CreatedAt, "metin", order.CreatedAt);
         LegalTextVersion notice = LegalTextVersion.CreatePublished(LegalTextType.PrivacyNotice, n, order.CreatedAt, "metin", order.CreatedAt).WithHosting();
@@ -809,7 +803,8 @@ public sealed class DataExportTests : IAsyncLifetime
         await ExecuteAsync(
             $"UPDATE companies SET company_type = 'Tradesman', legal_name = '{legalName}', tax_id_number = '1111111111', province_id = '{_province}', district = 'Çankaya', "
             + $"address_line = '{addressLine}', phone = '3121234567', email = 'firma@example.com', kep_address = 'firma@hs01.kep.tr'");
-        await using AsyncServiceScope scope = Services.CreateAsyncScope();
+        await using ServiceProvider provider = OrderingTestServices.Build(_collection.Dsn);
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
         return await scope.ServiceProvider.GetRequiredService<ISettingsModule>().GetCompanyIdentityAsync(Ct);
     }
 
@@ -899,6 +894,8 @@ public sealed class DataExportTests : IAsyncLifetime
         }
 
         public Task<AuditPage> ListAsync(AuditQuery query, CancellationToken ct) => inner.ListAsync(query, ct);
+
+        public Task<IReadOnlyList<AuditAdminOption>> ListAdminsAsync(CancellationToken ct) => inner.ListAdminsAsync(ct);
     }
 
     /// <summary>A stand-in for the content module that answers the contact request write only; every other call is a test mistake.</summary>

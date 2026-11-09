@@ -258,6 +258,7 @@ internal static class AdministrationModuleRegistration
         services.AddDisposalPart<AdminInvitationDisposalPart>();
         services.TryAddSingleton<Shopfolio.Infrastructure.ExportTempDirectory>();
         services.AddScoped<IDataExport, DataExport>();
+        services.AddHostedService<Shopfolio.Infrastructure.ExportDirectoryStartup>();
         return services;
     }
 }

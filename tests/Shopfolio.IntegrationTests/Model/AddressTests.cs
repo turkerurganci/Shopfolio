@@ -117,6 +117,7 @@ public sealed class AddressTests : IAsyncLifetime
         services.AddScoped<AdvisoryLocks>();
         services.AddCartServices();
         services.AddScoped<IOrderingModule, OrderingModule>();
+        services.AddScoped<OrderExport>();
         services.AddPaymentModule();
         services.AddScoped<AccountEmailQueue>();
         services.AddScoped<INotificationsModule, AccountEmailOnlyNotifications>();

@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using Shopfolio.Infrastructure;
@@ -27,19 +28,16 @@ internal sealed record OrderExportRow(
     string? CompanyProvince,
     LatePaymentFact? LatePayment);
 
-/// <summary>The Turkish terms of the enum values a column writes (09 10.10 item 5; 06 5): one dictionary, and a value without a term is caught by a test.</summary>
+/// <summary>The Turkish terms of the enum values a column writes (09 10.10 item 5; 06 5): one switch, and a value without a term is caught by a test.</summary>
 internal static class CsvEnumLabels
 {
-    private static readonly Dictionary<PaymentMethod, string> PaymentMethods = new()
-    {
-        [PaymentMethod.Card] = "Kart",
-        [PaymentMethod.BankTransfer] = "Havale/EFT",
-    };
-
     /// <summary>The term of a payment method (06 5.3.5).</summary>
-    public static string Of(PaymentMethod method) => PaymentMethods.TryGetValue(method, out string? label)
-        ? label
-        : throw new ArgumentOutOfRangeException(nameof(method), method, "The payment method has no export term.");
+    public static string Of(PaymentMethod method) => method switch
+    {
+        PaymentMethod.Card => "Kart",
+        PaymentMethod.BankTransfer => "Havale/EFT",
+        _ => throw new ArgumentOutOfRangeException(nameof(method), method, "The payment method has no export term."),
+    };
 
     /// <summary>The term of a carrier company: the name of the listed or retired company (08 2.4); a typed "Diğer" name is not an enum and is written as it is.</summary>
     public static string OfCarrier(CarrierCatalog catalog, string code)
@@ -136,16 +134,14 @@ internal sealed class OrderExport
     private readonly AppDbContext _db;
     private readonly InvoiceDataReader _frozenReader;
     private readonly IPaymentModule _payment;
-    private readonly IAfterSalesModule _afterSales;
-    private readonly ISettingsModule _settings;
+    private readonly IServiceProvider _services;
 
-    public OrderExport(AppDbContext db, IOptions<SiteOptions> site, IPaymentModule payment, IAfterSalesModule afterSales, ISettingsModule settings)
+    public OrderExport(AppDbContext db, IOptions<SiteOptions> site, IPaymentModule payment, IServiceProvider services)
     {
         _db = db;
         _frozenReader = new InvoiceDataReader(db, site);
         _payment = payment;
-        _afterSales = afterSales;
-        _settings = settings;
+        _services = services;
     }
 
     /// <summary>Whether the order's payment was completed: the payment was confirmed at some moment, so the paid statuses and the refunded ones after them (02 10.6.2).</summary>
@@ -165,7 +161,7 @@ internal sealed class OrderExport
             throw new ArgumentException("The range ends before it starts.", nameof(endDay));
         }
 
-        Dictionary<Guid, string> provinces = (await _settings.GetProvincesAsync(ct)).ToDictionary(p => p.Id, p => p.Name);
+        Dictionary<Guid, string> provinces = (await Settings.GetProvincesAsync(ct)).ToDictionary(p => p.Id, p => p.Name);
         DateTimeOffset from = TurkeyTime.StartOf(startDay);
         DateTimeOffset to = TurkeyTime.EndOfRange(endDay);
         Guid? after = null;
@@ -229,7 +225,7 @@ internal sealed class OrderExport
             return [];
         }
 
-        IReadOnlyDictionary<Guid, int> closed = await _afterSales.ClosedQuantitiesAsync(physical, ct);
+        IReadOnlyDictionary<Guid, int> closed = await AfterSales.ClosedQuantitiesAsync(physical, ct);
         Guid[] candidates = [.. frozenOrders.SelectMany(i => i.Items).Where(i => closed.TryGetValue(i.OrderItemId, out int quantity) && quantity >= i.Quantity).Select(i => i.OrderItemId)];
         if (candidates.Length == 0)
         {
@@ -237,9 +233,14 @@ internal sealed class OrderExport
         }
 
         Dictionary<Guid, DateTimeOffset> shipped = frozenOrders.SelectMany(i => i.Items).Where(i => i.ShippedAt is not null).ToDictionary(i => i.OrderItemId, i => i.ShippedAt!.Value);
-        IReadOnlyList<ClosingRecordMoment> moments = await _afterSales.ClosingRecordMomentsAsync(candidates, ct);
+        IReadOnlyList<ClosingRecordMoment> moments = await AfterSales.ClosingRecordMomentsAsync(candidates, ct);
         return [.. moments.Where(m => m.At <= shipped[m.OrderItemId]).Select(m => m.OrderItemId)];
     }
+
+    // The after-sales module takes the ordering module in its constructor and the ordering module holds this class, so it is resolved when the closing moments are needed, not when this class is built; the settings module follows it so a host that builds the ordering module alone still builds.
+    private IAfterSalesModule AfterSales => _services.GetRequiredService<IAfterSalesModule>();
+
+    private ISettingsModule Settings => _services.GetRequiredService<ISettingsModule>();
 
     private static string? Name(Dictionary<Guid, string> provinces, Guid? id) => id is { } key && provinces.TryGetValue(key, out string? name) ? name : null;
 }

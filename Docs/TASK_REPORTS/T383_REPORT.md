@@ -92,8 +92,8 @@
 ## Commit & PR
 
 - **Branch:** `task/T383-satis-ozeti`
-- **Commit:** dalın son commit'i
-- **PR:** PR açıklamasında
+- **Commit:** `8aabbf28` — T383: Satış özeti ve ölçüler (rapor güncellemesi bir sonraki commit)
+- **PR:** #503
 - **CI:** doğrulayıcı izler
 - **Post-merge run'lar:** *(validator doldurur)*
 

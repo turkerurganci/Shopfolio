@@ -595,7 +595,7 @@ public sealed partial class StatusCorrectionTests : IAsyncLifetime
 
     /// <summary>
     /// The item record the firm's whole-order cancellation wrote and linked to its transition (06 4.22; D-305, T368 - the units went back to stock with it) and
-    /// the refund it opened (the refund's writer is T370's; seeded here).
+    /// a refund of the record whose state the test drives (seeded here; for a card the cancellation's own system refund (T370) stands beside it and is not read by these cases).
     /// </summary>
     private async Task<(Cancellation Cancellation, Refund Refund)> SeedCancellationAsync(Order order, OrderItem item, Guid transitionRecordId, PaymentMethod method)
     {

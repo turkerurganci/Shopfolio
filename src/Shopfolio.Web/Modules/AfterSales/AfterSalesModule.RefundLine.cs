@@ -233,9 +233,14 @@ internal sealed partial class AfterSalesModule
                 continue;
             }
 
+            // An item whose records were all undone by a status correction owes nothing any more (D-517): the request no longer holds the IBAN.
+            if (!unlinked.Any(u => u.OrderItemId == itemId) && !unlinkedWithdrawals.Any(w => w.OrderItemId == itemId))
+            {
+                continue;
+            }
+
             bool itemRecordPending = unlinked.Any(u => u.OrderItemId == itemId && RecordPending(u.Id))
                 || unlinkedWithdrawals.Any(w => w.OrderItemId == itemId && WithdrawalPending(w.Id, w.Quantity));
-            // TODO(T370 devam): an item whose records were all undone by the correction (no standing unlinked record) must not fall back to settledAfter.
             bool settledAfter = refunds.Any(r => r.OrderItemId == itemId && r.SettledAt >= request.FulfilledAt);
             if (itemRecordPending || !settledAfter)
             {

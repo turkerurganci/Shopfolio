@@ -75,7 +75,7 @@ Devam işçisi bütün maddeleri (önceki işçinin yaptıkları dahil) diff'te 
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 5587/5587 |
+| Unit | ✓ | `dotnet test tests/Shopfolio.UnitTests --no-build` | 5701/5701 (origin/main T384 birleşik) |
 | Integration | ✓ | `--filter-namespace Shopfolio.IntegrationTests.Ordering` + `StockReservationAndHistoryTablesTests` | Ordering 528/528 (OrderCorrectionTests 26), Model sınıfı 28/28 |
 | Lint | ✓ | `dotnet format <proje> --no-restore --verify-no-changes` (3 proje) | temiz |
 | Build | ✓ | `dotnet build <proje> -warnaserror --no-restore` | 0 uyarı, 0 hata |

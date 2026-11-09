@@ -30,7 +30,7 @@ internal static class OrderingTestServices
 
     /// <summary>
     /// The same services on the given clock (T348: the confirmation's window, coupon dates and moments read a fixed time). The card line is open unless
-    /// <paramref name="cardLineOpen"/> is false (T352: the provider's keys missing at installation); the transfer line reads the seeded settings row (T353 binds the real one).
+    /// <paramref name="cardLineOpen"/> is false (T352: the provider's keys missing at installation); the transfer line is the real one (T353), read from the seeded settings row.
     /// </summary>
     public static ServiceProvider Build(string dsn, TimeProvider time, bool cardLineOpen = true)
     {
@@ -68,18 +68,10 @@ internal static class OrderingTestServices
         services.AddOptions<LinkKeyOptions>();
         services.AddSingleton<LinkKeys>();
 
-        // The payment method lines (T352): the card line as the installation's keys say, the transfer line from the settings row - registered last, so they stand.
+        // The payment method lines (T352): the card line as the installation's keys say; the transfer line is the Settings module's own binding (T353: BankTransferCondition, D-787).
         services.AddSingleton<IReadOnlyList<ConditionalLine>>(
             [new ConditionalLine(ConditionalLine.CardPayment, cardLineOpen ? [] : [PaymentOptions.ProviderKeysKey])]);
-        services.AddScoped<IBankTransferCondition, SeededBankTransferCondition>();
         return services.BuildServiceProvider();
-    }
-
-    /// <summary>The transfer line as the transfer task states it (02 3.21.5; T353): switched on with its IBAN filled, read from the settings row.</summary>
-    private sealed class SeededBankTransferCondition(AppDbContext db) : IBankTransferCondition
-    {
-        public Task<bool> IsOpenAsync(CancellationToken ct) =>
-            db.CompanySettings.AnyAsync(s => s.IsBankTransferEnabled && s.BankTransferIban != null, ct);
     }
 
     private sealed class FixedCompanyContactEmail : ICompanyContactEmail

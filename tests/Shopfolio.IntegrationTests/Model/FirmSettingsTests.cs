@@ -6,10 +6,14 @@ using Npgsql;
 
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.InstallationSettings;
+using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Administration.Contracts;
+using Shopfolio.Modules.Notifications;
+using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Settings;
 using Shopfolio.Modules.Settings.Contracts;
 
@@ -46,7 +50,8 @@ public sealed class FirmSettingsTests : IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         // The arrangement is a known state of the row, not the defaults: the fee zero, both amounts empty, periods and allowance as set here, every section at version 1.
-        await ExecuteAsync("TRUNCATE audit_logs, admins CASCADE");
+        await ExecuteAsync("TRUNCATE audit_logs, dispatch_records, admins CASCADE");
+        await ExecuteAsync("UPDATE company_settings SET is_bank_transfer_enabled = false, bank_transfer_iban = NULL, payment_methods_version = 1");
         await ExecuteAsync(
             "UPDATE company_settings SET shipping_fee = 0, free_shipping_threshold = NULL, minimum_order_amount = NULL, default_shipping_period = 2, "
             + "bank_transfer_payment_window = 2, download_allowance = 5, default_vat_rate = 20, shipping_fee_version = 1, periods_version = 1, product_defaults_version = 1");
@@ -343,6 +348,112 @@ public sealed class FirmSettingsTests : IAsyncLifetime
         Assert.Equal(0, await ScalarAsync<int>("SELECT count(*)::int FROM company_delivery_provinces"));
     }
 
+    // ---- T353 KK1, KK3: the bank transfer switch and its IBAN (02 3.21.5, 9.3.3) ----
+
+    private const string Iban = "TR330006100519786457841326";
+
+    private const string OtherIban = "TR320010009999901234567890";
+
+    [Fact]
+    public async Task SwitchingTheTransferOnWithoutAnIban_IsRefused_AndNothingIsStoredNorTold_T353_KK1()
+    {
+        SettingsSaveResult empty = await RunPaymentMethodsAsync(m => m.SaveAsync(new PaymentMethodsInput(true, null), 1, Ct));
+        SettingsSaveResult blank = await RunPaymentMethodsAsync(m => m.SaveAsync(new PaymentMethodsInput(true, "   "), 1, Ct));
+        SettingsSaveResult invalid = await RunPaymentMethodsAsync(m => m.SaveAsync(new PaymentMethodsInput(true, "TR33 0006 1005 1978 6457 8413 27"), 1, Ct));
+
+        Assert.Equal(
+            new Shopfolio.Modules.Settings.Contracts.FieldRejection(nameof(PaymentMethodsInput.BankTransferIban), FieldCodes.FieldRequired),
+            Assert.Single(empty.Rejections));
+        Assert.Equal(empty.Rejections, blank.Rejections);
+        Assert.Equal(
+            new Shopfolio.Modules.Settings.Contracts.FieldRejection(nameof(PaymentMethodsInput.BankTransferIban), FieldCodes.InvalidIban),
+            Assert.Single(invalid.Rejections));
+        Assert.Equal(new PaymentMethodsSection(false, null, 1), await RunPaymentMethodsAsync(m => m.GetAsync(Ct)));
+        Assert.Empty(await ReadTrailAsync());
+        Assert.Empty(await ReadDispatchesAsync());
+        Assert.False(await ConditionAsync());
+    }
+
+    [Fact]
+    public async Task TheTransferWithItsIban_OpensTheLine_AndSwitchedOffClosesIt_KeepingTheIban_T353_KK1()
+    {
+        SettingsSaveResult on = await RunPaymentMethodsAsync(m => m.SaveAsync(new PaymentMethodsInput(true, "tr33 0006 1005 1978 6457 8413 26"), 1, Ct));
+        bool openAfterOn = await ConditionAsync();
+        SettingsSaveResult off = await RunPaymentMethodsAsync(m => m.SaveAsync(new PaymentMethodsInput(false, Iban), 2, Ct));
+        bool openAfterOff = await ConditionAsync();
+
+        Assert.True(on.IsSaved);
+        Assert.True(openAfterOn);
+        Assert.True(off.IsSaved);
+        Assert.False(openAfterOff);
+        Assert.Equal(new PaymentMethodsSection(false, Iban, 3), await RunPaymentMethodsAsync(m => m.GetAsync(Ct)));
+
+        List<AuditLog> rows = await ReadTrailAsync();
+        Assert.Equal(2, rows.Count);
+        Assert.All(rows, r => Assert.Equal(PaymentMethodSettings.DisplayName, r.Details!.DisplayName));
+        Assert.Equal(
+            [new AuditValueChange("IsBankTransferEnabled", "false", "true"), new AuditValueChange("BankTransferIban", null, Iban)],
+            rows[0].Details!.Changes);
+        Assert.Equal([new AuditValueChange("IsBankTransferEnabled", "true", "false")], rows[1].Details!.Changes);
+    }
+
+    [Fact]
+    public async Task TheIbanEnteredAndChanged_TellsEveryAdministrator_WithTheLastFourDigitsOnly_T353_KK3()
+    {
+        Admin other = Admin.Create("Ayşe Demir", "ayse@example.com", "hash", Now);
+        await using (AppDbContext context = NewContext())
+        {
+            context.Admins.Add(other);
+            await context.SaveChangesAsync(Ct);
+        }
+
+        await RunPaymentMethodsAsync(m => m.SaveAsync(new PaymentMethodsInput(true, Iban), 1, Ct));
+        List<DispatchRecord> entered = await ReadDispatchesAsync();
+        await RunPaymentMethodsAsync(m => m.SaveAsync(new PaymentMethodsInput(true, OtherIban), 2, Ct));
+        List<DispatchRecord> all = await ReadDispatchesAsync();
+
+        Assert.Equal(["ali@example.com", "ayse@example.com"], entered.Select(d => d.RecipientEmail));
+        Assert.Equal(4, all.Count);
+        Assert.All(all, d => Assert.Equal(Shopfolio.Modules.Notifications.Contracts.DispatchType.F5, d.DispatchType));
+        Assert.DoesNotContain(all, d => d.RecipientEmail == "firma@example.com");
+        Assert.DoesNotContain(all, d => (d.EventValues ?? string.Empty).Contains(Iban, StringComparison.Ordinal)
+            || (d.EventValues ?? string.Empty).Contains(OtherIban, StringComparison.Ordinal));
+        AuditLog change = (await ReadTrailAsync())[^1];
+        Assert.Equal([new AuditValueChange("BankTransferIban", Iban, OtherIban)], change.Details!.Changes);
+    }
+
+    [Fact]
+    public async Task ASaveThatLeavesTheIbanAsItIs_TellsNoOne_T353_KK3()
+    {
+        await RunPaymentMethodsAsync(m => m.SaveAsync(new PaymentMethodsInput(false, Iban), 1, Ct));
+        await RunPaymentMethodsAsync(m => m.SaveAsync(new PaymentMethodsInput(true, "TR33 0006 1005 1978 6457 8413 26"), 2, Ct));
+        SettingsSaveResult same = await RunPaymentMethodsAsync(m => m.SaveAsync(new PaymentMethodsInput(true, Iban), 3, Ct));
+
+        Assert.True(same.IsSaved);
+        Assert.Single(await ReadDispatchesAsync());
+        Assert.Equal(2, (await ReadTrailAsync()).Count);
+        Assert.Equal(new PaymentMethodsSection(true, Iban, 3), await RunPaymentMethodsAsync(m => m.GetAsync(Ct)));
+    }
+
+    [Fact]
+    public async Task APaymentMethodsSaveOnAStaleVersion_IsAConflict_AndTellsNoOne()
+    {
+        await RunPaymentMethodsAsync(m => m.SaveAsync(new PaymentMethodsInput(true, Iban), 1, Ct));
+
+        SettingsSaveResult stale = await RunPaymentMethodsAsync(m => m.SaveAsync(new PaymentMethodsInput(true, OtherIban), 1, Ct));
+
+        Assert.True(stale.IsVersionConflict);
+        Assert.Single(await ReadDispatchesAsync());
+        Assert.Equal(new PaymentMethodsSection(true, Iban, 2), await RunPaymentMethodsAsync(m => m.GetAsync(Ct)));
+    }
+
+    private async Task<bool> ConditionAsync()
+    {
+        await using ServiceProvider provider = BuildProvider(_admin);
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        return await scope.ServiceProvider.GetRequiredService<IBankTransferCondition>().IsOpenAsync(Ct);
+    }
+
     // ---- Helpers ----
 
     private async Task<List<AuditLog>> ReadTrailAsync()
@@ -359,8 +470,41 @@ public sealed class FirmSettingsTests : IAsyncLifetime
         services.AddSingleton<TimeProvider>(new FixedTime(Now));
         services.AddScoped<IAuditActorSource>(_ => new FixedActor(admin));
         services.AddScoped<IAuditTrail, AuditTrail>();
+
+        // The payment methods save tells every administrator about a new IBAN (T353; 02 9.3.3 F-5): the Administration side and the Notifications queue it writes through.
+        services.AddScoped<IAdminNotices, AdminNotices>();
+        services.AddScoped<INotificationsModule, NotificationsModule>();
+        services.AddScoped<CustomerNoticeQueue>();
+        services.AddScoped<CompanyNoticeQueue>();
+        services.AddScoped<AccountEmailQueue>();
+        services.AddScoped<ICompanyContactEmail>(_ => new FixedContactEmail());
+        services.AddOptions<LinkKeyOptions>();
+        services.AddSingleton<LinkKeys>();
         services.AddSettingsModule();
         return services.BuildServiceProvider();
+    }
+
+    private sealed class FixedContactEmail : ICompanyContactEmail
+    {
+        public Task<string?> GetAsync(CancellationToken ct) => Task.FromResult<string?>("firma@example.com");
+    }
+
+    private async Task<T> RunPaymentMethodsAsync<T>(Func<IPaymentMethodSettings, Task<T>> call, bool withAdmin = true)
+    {
+        await using ServiceProvider provider = BuildProvider(withAdmin ? _admin : null);
+        await using AsyncServiceScope scope = provider.CreateAsyncScope();
+        AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(Ct);
+        T result = await call(scope.ServiceProvider.GetRequiredService<IPaymentMethodSettings>());
+        await context.SaveChangesAsync(Ct);
+        await transaction.CommitAsync(Ct);
+        return result;
+    }
+
+    private async Task<List<DispatchRecord>> ReadDispatchesAsync()
+    {
+        await using AppDbContext context = NewContext();
+        return await context.DispatchRecords.AsNoTracking().OrderBy(d => d.RecipientEmail).ToListAsync(Ct);
     }
 
     /// <summary>Calls the module the way a command does: one scope, one context, inside the caller's transaction, committed (the unit of work saved first) or rolled back by the caller.</summary>

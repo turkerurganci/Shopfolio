@@ -45,7 +45,7 @@ internal static class PaymentMethodRules
 }
 
 /// <summary>
-/// The open methods (<see cref="IPaymentMethods"/>) from the two conditions the sales gate reads too - the card line here, the bank transfer line the transfer task binds (T353) - so
+/// The open methods (<see cref="IPaymentMethods"/>) from the two conditions the sales gate reads too - the card line here, the bank transfer line the Settings module binds (T353: <c>BankTransferCondition</c>) - so
 /// the step, the confirmation and the gate say the same thing.
 /// </summary>
 internal sealed class PaymentMethods : IPaymentMethods

@@ -170,6 +170,91 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
         Assert.Equal(1, await ScalarAsync($"SELECT reserved_quantity FROM variants WHERE id = '{variantId}'"));
     }
 
+    // ---- T353: B-2, the frozen IBAN after a change, and the open unpaid order ceiling (02 3.21.5, 3.21.6, 9.2) ----
+
+    [Fact]
+    public async Task TransferConfirmation_QueuesB2WithTheWindowEnd_AndACardConfirmationDoesNot_T353_KK4_D770()
+    {
+        Guid variantId = await SeedVariantAsync("Masa", 500m, stock: 5);
+        CartOwner byTransferOwner = CartOwner.ForMember(await SeedCustomerAsync());
+        CartOwner byCardOwner = CartOwner.ForMember(await SeedCustomerAsync());
+        await SeedCartAsync(byTransferOwner, (variantId, 1));
+        await SeedCartAsync(byCardOwner, (variantId, 1));
+        OrderSummaryInput transfer = Input(byTransferOwner, PaymentMethod.BankTransfer, null);
+        OrderSummaryInput card = Input(byCardOwner, PaymentMethod.Card, null);
+
+        OrderConfirmationResult byTransfer = await ConfirmAsync(transfer, (await SummarizeAsync(transfer))!);
+        OrderConfirmationResult byCard = await ConfirmAsync(card, (await SummarizeAsync(card))!);
+
+        List<DispatchRecord> dispatches = await ReadDispatchesAsync();
+        DispatchRecord b2 = Assert.Single(dispatches, d => d.DispatchType == DispatchType.B2);
+        Assert.Equal(byTransfer.OrderId, b2.OrderId);
+        Assert.Equal("Ali@Example.com", b2.RecipientEmail);
+        Order order = await ReadOrderAsync(byTransfer.OrderId!.Value);
+        Assert.Equal(new TransferChosenNotice(order.Id, order.PaymentWindowEndsAt), CustomerNoticeValues.Read(b2.DispatchType, order.Id, b2.EventValues));
+        Assert.DoesNotContain(dispatches, d => d.DispatchType == DispatchType.B2 && d.OrderId == byCard.OrderId);
+    }
+
+    [Fact]
+    public async Task AChangedIban_ReachesOnlyTheNewOrders_TheOpenOneKeepsTheIbanItFroze_T353_KK3()
+    {
+        Guid variantId = await SeedVariantAsync("Masa", 500m, stock: 5);
+        CartOwner first = CartOwner.ForMember(await SeedCustomerAsync());
+        CartOwner second = CartOwner.ForMember(await SeedCustomerAsync());
+        await SeedCartAsync(first, (variantId, 1));
+        await SeedCartAsync(second, (variantId, 1));
+        OrderSummaryInput before = Input(first, PaymentMethod.BankTransfer, null);
+        OrderConfirmationResult older = await ConfirmAsync(before, (await SummarizeAsync(before))!);
+
+        await ExecuteAsync("UPDATE company_settings SET bank_transfer_iban = 'TR320010009999901234567890'");
+        OrderSummaryInput after = Input(second, PaymentMethod.BankTransfer, null);
+        OrderConfirmationResult newer = await ConfirmAsync(after, (await SummarizeAsync(after))!);
+
+        Assert.Equal(Iban, (await ReadOrderAsync(older.OrderId!.Value)).BankTransferIban);
+        Assert.Equal("TR320010009999901234567890", (await ReadOrderAsync(newer.OrderId!.Value)).BankTransferIban);
+    }
+
+    [Fact]
+    public async Task AFullOpenUnpaidOrderCeiling_ClosesTheTransfer_LeavesTheCardOpen_AndTheSameCartsNewConfirmationIsNotCountedTwice_T353_KK2()
+    {
+        Guid variantId = await SeedVariantAsync("Masa", 500m, stock: 20);
+        List<CartOwner> owners = [];
+        for (int i = 0; i < OpenUnpaidOrderLimit.Ceiling + 1; i++)
+        {
+            CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());
+            await SeedCartAsync(owner, (variantId, 1));
+            owners.Add(owner);
+        }
+
+        List<Guid> open = [];
+        for (int i = 0; i < OpenUnpaidOrderLimit.Ceiling; i++)
+        {
+            OrderSummaryInput input = Input(owners[i], PaymentMethod.BankTransfer, null);
+            OrderConfirmationResult placed = await ConfirmAsync(input, (await SummarizeAsync(input))!);
+            Assert.False(placed.IsRejected);
+            open.Add(placed.OrderId!.Value);
+        }
+
+        // The ceiling is full on the IP axis: the next customer cannot choose the transfer and nothing is born.
+        long ordersBefore = await ScalarAsync("SELECT count(*) FROM orders");
+        OrderSummaryInput lastByTransfer = Input(owners[^1], PaymentMethod.BankTransfer, null);
+        OrderConfirmationResult refused = await ConfirmAsync(lastByTransfer, (await SummarizeAsync(lastByTransfer))!);
+        Assert.Equal(OrderConfirmationRefusal.TransferCeilingReached, refused.Refusal);
+        Assert.Equal(ordersBefore, await ScalarAsync("SELECT count(*) FROM orders"));
+
+        // The first customer's new confirmation from the same cart replaces its own open order, so it is not stopped by it (02 3.17.7).
+        OrderSummaryInput again = Input(owners[0], PaymentMethod.BankTransfer, null);
+        OrderConfirmationResult replaced = await ConfirmAsync(again, (await SummarizeAsync(again))!);
+        Assert.False(replaced.IsRejected);
+        Assert.Equal(OrderStatus.Cancelled, (await ReadOrderAsync(open[0])).OrderStatus);
+
+        // The card stays open to the customer the transfer was closed to.
+        OrderSummaryInput lastByCard = Input(owners[^1], PaymentMethod.Card, null);
+        OrderConfirmationResult byCard = await ConfirmAsync(lastByCard, (await SummarizeAsync(lastByCard))!);
+        Assert.False(byCard.IsRejected);
+        Assert.Equal(PaymentMethod.Card, (await ReadOrderAsync(byCard.OrderId!.Value)).PaymentMethod);
+    }
+
     [Fact]
     public async Task AMixedConfirmation_FreezesTheDigitalAndTheServiceBox_WithTheTextShownAndTheItemsTheyCover_InTheSameGo_KK1()
     {
@@ -520,7 +605,7 @@ public sealed class OrderConfirmationTests : IAsyncLifetime
     [InlineData(TransitionReason.CardPaymentFailed)]
     [InlineData(TransitionReason.PaymentPageNotOpened)]
     [InlineData(TransitionReason.PaymentWindowExpired)]
-    public async Task UnpaidCardOrderCancelledBySystem_LeavesTheCartAsItIs_AndOnlyTheApprovalEmptiesIt_T352_KK6_KK8(TransitionReason reason)
+    public async Task UnpaidCardOrderCancelledBySystem_LeavesTheCartAsItIs_T352_KK6_KK8(TransitionReason reason)
     {
         Guid variantId = await SeedVariantAsync("Lamba", 1000m, stock: 5);
         CartOwner owner = CartOwner.ForMember(await SeedCustomerAsync());

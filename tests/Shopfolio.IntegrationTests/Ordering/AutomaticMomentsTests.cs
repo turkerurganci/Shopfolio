@@ -136,6 +136,33 @@ public sealed class AutomaticMomentsTests : IAsyncLifetime
         Assert.Null((await WithOrderingAsync(m => m.GetOrderPageSummaryAsync(order.Id, Ct)))!.TransferPaymentEndsAt);
     }
 
+    [Fact]
+    public async Task InTheDeferredGap_TheFirmCanStillMarkThePayment_AndTheDeferredMomentThenCancelsNothing_T353_KK7()
+    {
+        await SeedHeartbeatAsync(Start.AddHours(-3));
+        Order order = await SeedOrderAsync(PaymentMethod.BankTransfer, Start.AddHours(-1), reminderAt: Start.AddHours(-2));
+        await SeedReservationAsync(order.Id, units: 1);
+        await ReturnAsync();
+        await _provider.GetRequiredService<SchedulerScan>().RunAsync(Ct);
+        int version = (await ReadOrderAsync(order.Id)).Version;
+
+        // 02 3.21.8 (K-667): the window ran out in the outage, its cancellation is put off, and the "paid" mark is taken in the meantime.
+        await using (AsyncServiceScope scope = _provider.CreateAsyncScope())
+        {
+            PaymentTransitionResult mark = await scope.ServiceProvider.GetRequiredService<ITransactionRunner>().RunAsync(
+                cancel => scope.ServiceProvider.GetRequiredService<IOrderTransitions>().MarkTransferPaidAsync(new TransferPaidMark(order.Id, Guid.NewGuid(), "Yönetici", version, true), cancel),
+                Ct);
+            Assert.False(mark.IsRejected);
+        }
+
+        await BeatAtAsync(TransferSchedule.DeferredWindowEnd(Start, BusinessCalendar.Product));
+        await _provider.GetRequiredService<SchedulerScan>().RunAsync(Ct);
+
+        Order paid = await ReadOrderAsync(order.Id);
+        Assert.Equal(PaymentStatus.Paid, paid.PaymentStatus);
+        Assert.NotEqual(OrderStatus.Cancelled, paid.OrderStatus);
+    }
+
     // ---- KK6: Z-38, the refund IBAN's deletion day ----
 
     [Fact]

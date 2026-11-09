@@ -34,14 +34,21 @@ internal sealed class OpenUnpaidOrderLimit
     public static int Ceiling => AttemptLimits.OrderCountedOf(AttemptLimit.L8).Max;
 
     /// <summary>The open unpaid orders of the IP axis of <paramref name="address"/> ; no address counts none (a live order always holds its address - only the disposal empties it, 06 4.17).</summary>
-    public async Task<int> CountByIpAsync(IPAddress? address, CancellationToken ct)
+    public async Task<int> CountByIpAsync(IPAddress? address, CancellationToken ct) => await CountByIpAsync(address, [], ct);
+
+    /// <summary>
+    /// The same count without the orders of <paramref name="excluding"/>: the orders the caller has cancelled in its open transaction but not yet saved (the confirmation's earlier
+    /// unpaid order of the same cart, 02 3.17.7; T353), which the database still holds as Pending.
+    /// </summary>
+    public async Task<int> CountByIpAsync(IPAddress? address, IReadOnlyCollection<Guid> excluding, CancellationToken ct)
     {
+        ArgumentNullException.ThrowIfNull(excluding);
         if (address is null)
         {
             return 0;
         }
 
-        IQueryable<Order> open = _db.Orders.AsNoTracking().Where(o => o.PaymentStatus == PaymentStatus.Pending);
+        IQueryable<Order> open = _db.Orders.AsNoTracking().Where(o => o.PaymentStatus == PaymentStatus.Pending && !excluding.Contains(o.Id));
 
         // An address and the IPv4-mapped form of it are one axis (ClientAddress.Axis); an order may hold either, so both are matched.
         (IPAddress network, int prefixLength) = ClientAddress.Network(address);
@@ -56,12 +63,16 @@ internal sealed class OpenUnpaidOrderLimit
     }
 
     /// <summary>The open unpaid orders of the e-mail axis: the orders a signed-in member placed with that (normalized) address; a guest order is not counted.</summary>
-    public async Task<int> CountByEmailAsync(string email, CancellationToken ct)
+    public async Task<int> CountByEmailAsync(string email, CancellationToken ct) => await CountByEmailAsync(email, [], ct);
+
+    /// <summary>The same count without the orders of <paramref name="excluding"/> (see <see cref="CountByIpAsync(IPAddress?, IReadOnlyCollection{Guid}, CancellationToken)"/>).</summary>
+    public async Task<int> CountByEmailAsync(string email, IReadOnlyCollection<Guid> excluding, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(email);
+        ArgumentNullException.ThrowIfNull(excluding);
         string normalized = TextNormalizer.NormalizeIdentity(email);
         return await _db.Orders.AsNoTracking()
-            .CountAsync(o => o.PaymentStatus == PaymentStatus.Pending && !o.IsGuestOrder && o.NormalizedContactEmail == normalized, ct);
+            .CountAsync(o => o.PaymentStatus == PaymentStatus.Pending && !o.IsGuestOrder && o.NormalizedContactEmail == normalized && !excluding.Contains(o.Id), ct);
     }
 
     /// <summary>True when the IP axis holds as many open orders as the ceiling allows.</summary>

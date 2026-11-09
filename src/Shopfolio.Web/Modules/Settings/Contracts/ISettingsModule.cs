@@ -54,6 +54,9 @@ public interface ISettingsModule
     /// <summary>The periods section (02 11.1 P-5, P-7): the firm default of the shipping period, the bank transfer payment window and the section's version.</summary>
     Task<PeriodsSection> GetPeriodsAsync(CancellationToken ct);
 
+    /// <summary>The firm's bank transfer IBAN of the moment (02 3.21.5); empty while the firm has entered none. The confirmation freezes it into a bank transfer order (06 4.17).</summary>
+    Task<string?> GetBankTransferIbanAsync(CancellationToken ct);
+
     /// <summary>
     /// The periods form's save (T381; 07 UC-170): same transaction, lock and trail as <see cref="SaveShippingFeeAsync"/>. A shipping period over P-5's upper fence and a payment
     /// window outside P-7's lower or upper fence is a refusal that names the side and the fence value (02 4.1.5).

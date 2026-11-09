@@ -65,6 +65,11 @@ internal sealed class FirmSettings
             .SingleAsync(ct);
     }
 
+    public async Task<string?> ReadBankTransferIbanAsync(CancellationToken ct)
+    {
+        return await _db.CompanySettings.AsNoTracking().Select(s => s.BankTransferIban).SingleAsync(ct);
+    }
+
     public async Task<ProductDefaultsSection> ReadProductDefaultsAsync(CancellationToken ct)
     {
         return await _db.CompanySettings.AsNoTracking()

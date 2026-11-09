@@ -76,6 +76,8 @@ internal sealed class SettingsModule : ISettingsModule
 
     public Task<PeriodsSection> GetPeriodsAsync(CancellationToken ct) => _firm.ReadPeriodsAsync(ct);
 
+    public Task<string?> GetBankTransferIbanAsync(CancellationToken ct) => _firm.ReadBankTransferIbanAsync(ct);
+
     public Task<SettingsSaveResult> SavePeriodsAsync(PeriodsInput input, int formVersion, CancellationToken ct) =>
         _firm.SavePeriodsAsync(input, formVersion, ct);
 

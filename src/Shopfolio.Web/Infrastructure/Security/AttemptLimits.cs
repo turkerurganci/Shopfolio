@@ -5,6 +5,9 @@ namespace Shopfolio.Infrastructure.Security;
 /// <summary>The threshold and the window of one limit on one axis (02 11.2): more than <see cref="Threshold"/> rows in <see cref="Window"/> is exceeded.</summary>
 internal readonly record struct AttemptRule(int Threshold, TimeSpan Window);
 
+/// <summary>The number of a limit counted from the orders (02 11.2): the maximum and the window, which is null when the limit counts what is open now (L-8).</summary>
+internal readonly record struct OrderCountedRule(int Max, TimeSpan? Window);
+
 /// <summary>
 /// The attempt limits L-1 to L-6 and L-9 with the axes they count on (02 8.2, 11.2 P-31 to P-36, P-49; 09 15.4 item 5), in one table. Every number is
 /// read from <see cref="ProductConstants"/>; none is written here or at a call site (a call passes the limit and the subject, and the table gives the
@@ -28,6 +31,17 @@ internal static class AttemptLimits
         [(AttemptLimit.L6, AttemptAxis.Cart)] = Rule(ProductConstants.InvalidCouponAttemptsPerCart, ProductConstants.InvalidCouponAttemptWindowMinutes),
         [(AttemptLimit.L9, AttemptAxis.Email)] = Rule(ProductConstants.VerificationResendAttemptsPerEmail, ProductConstants.VerificationResendAttemptWindowMinutes),
         [(AttemptLimit.L9, AttemptAxis.Ip)] = Rule(ProductConstants.VerificationResendAttemptsPerIp, ProductConstants.VerificationResendAttemptWindowMinutes),
+    };
+
+    /// <summary>
+    /// The rule of a limit that is counted from the orders (L-7, L-8; 02 11.2 P-37, P-46): the number is the product constant, never written elsewhere. L-7 has a window
+    /// (P-37); L-8 has none - it counts the orders that are open at this moment (02 8.2), so its window is null.
+    /// </summary>
+    public static OrderCountedRule OrderCountedOf(AttemptLimit limit) => limit switch
+    {
+        AttemptLimit.L7 => new OrderCountedRule(ProductConstants.UnpaidOrderCancellationsMax, TimeSpan.FromHours(ProductConstants.UnpaidOrderCancellationWindowHours)),
+        AttemptLimit.L8 => new OrderCountedRule(ProductConstants.OpenUnpaidOrdersMax, null),
+        _ => throw new ArgumentException($"Limit {limit} is not counted from the orders (02 8.2).", nameof(limit)),
     };
 
     /// <summary>The limit and axis pairs the table counts, in the order of the table.</summary>

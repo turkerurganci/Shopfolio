@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
-using Shopfolio.Modules.Notifications;
+using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering;
 using Shopfolio.Modules.Ordering.Contracts;
 using Shopfolio.Modules.Payment.Contracts;
@@ -45,8 +46,9 @@ public sealed partial class ItemRecordsTests
     {
         (Order order, OrderItem item) = await SeedAsync(OrderStatus.Shipped, PaymentStatus.Paid, ProductType.Physical, 2, delivered: false, exemption: null);
         Guid withdrawalId = (await WriteAsync(order.Id, (m, t) => m.AddWithdrawalAsync(Declaration(order, item, 2, DeliveryDay), t))).RecordId!.Value;
+        int version = await VersionAsync(order.Id);
 
-        ItemRecordResult received = await RunAsync((u, t) => u.ReceiveReturnAsync(Receipt(order.Id, item.Id, withdrawalId, 1, 2, DeliveryDay.AddYears(-1)), t));
+        ItemRecordResult received = await RunAsync((u, t) => u.ReceiveReturnAsync(Receipt(order.Id, item.Id, withdrawalId, version, 2, DeliveryDay.AddYears(-1)), t));
 
         Assert.Null(received.Refusal);
     }
@@ -95,14 +97,14 @@ public sealed partial class ItemRecordsTests
         Guid withdrawalId = (await WriteAsync(order.Id, (m, t) => m.AddWithdrawalAsync(TransferDeclaration(order, item, 2), t))).RecordId!.Value;
         int dispatchesBefore = await CountAsync(c => c.DispatchRecords.Where(d => d.OrderId == order.Id));
 
-        // The last day of the sending period: the closure is refused, and nothing was closed or deleted by the time itself (K-494).
-        _clock.SetUtcNow(TurkeyTime.StartOfDay(DeliveryDay.AddDays(AfterSalesPeriodRules.ReturnShipmentPeriodDays)).AddHours(12));
+        // The last day of the sending period (the declaration day plus Z-42): the closure is refused, and nothing was closed or deleted by the time itself (K-494).
+        _clock.SetUtcNow(TurkeyTime.StartOf(DeliveryDay.AddDays(AfterSalesPeriodRules.ReturnShipmentPeriodDays + 1)).AddHours(12));
         ItemRecordResult early = await RunAsync((u, t) => u.CloseAsNotReturnedAsync(new CloseAsNotReturnedRequest(order.Id, item.Id, withdrawalId, AdminCaller, 2, 2), t));
         Assert.Equal(TransitionRefusal.ConditionNotMet, early.Refusal);
         Assert.Equal(0, await CountAsync(c => c.NotReturnedClosures.Where(n => n.WithdrawalId == withdrawalId)));
         Assert.Equal(1, await CountAsync(c => c.RefundIbans.Where(i => i.OrderId == order.Id)));
 
-        _clock.SetUtcNow(TurkeyTime.StartOfDay(DeliveryDay.AddDays(AfterSalesPeriodRules.ReturnShipmentPeriodDays + 1)).AddHours(12));
+        _clock.SetUtcNow(TurkeyTime.StartOf(DeliveryDay.AddDays(AfterSalesPeriodRules.ReturnShipmentPeriodDays + 2)).AddHours(12));
         ItemRecordResult tooMany = await RunAsync((u, t) => u.CloseAsNotReturnedAsync(new CloseAsNotReturnedRequest(order.Id, item.Id, withdrawalId, AdminCaller, 2, 3), t));
         ItemRecordResult closed = await RunAsync((u, t) => u.CloseAsNotReturnedAsync(new CloseAsNotReturnedRequest(order.Id, item.Id, withdrawalId, AdminCaller, 2, 2), t));
 
@@ -111,7 +113,7 @@ public sealed partial class ItemRecordsTests
         Assert.Equal(0, await CountAsync(c => c.RefundIbans.Where(i => i.OrderId == order.Id)));
         Assert.Equal(dispatchesBefore, await CountAsync(c => c.DispatchRecords.Where(d => d.OrderId == order.Id)));
         Assert.Empty(await RefundsOfOrderAsync(order.Id));
-        Assert.False((await MarksAsync(item)).IsAwaitingReturnGoods);
+        Assert.False((await MarksAsync(item)).AwaitingReturnGoods);
     }
 
     [Fact]
@@ -119,7 +121,7 @@ public sealed partial class ItemRecordsTests
     {
         (Order order, OrderItem item) = await SeedTransferDeliveredAsync(2, null);
         Guid withdrawalId = (await WriteAsync(order.Id, (m, t) => m.AddWithdrawalAsync(TransferDeclaration(order, item, 2), t))).RecordId!.Value;
-        _clock.SetUtcNow(TurkeyTime.StartOfDay(DeliveryDay.AddDays(AfterSalesPeriodRules.ReturnShipmentPeriodDays + 1)).AddHours(12));
+        _clock.SetUtcNow(TurkeyTime.StartOf(DeliveryDay.AddDays(AfterSalesPeriodRules.ReturnShipmentPeriodDays + 2)).AddHours(12));
         Assert.Null((await RunAsync((u, t) => u.CloseAsNotReturnedAsync(new CloseAsNotReturnedRequest(order.Id, item.Id, withdrawalId, AdminCaller, 2, 2), t))).Refusal);
 
         ItemRecordResult received = await RunAsync((u, t) => u.ReceiveReturnAsync(Receipt(order.Id, item.Id, withdrawalId, 3, 1, TurkeyTime.DateOf(_clock.GetUtcNow())), t));
@@ -133,7 +135,7 @@ public sealed partial class ItemRecordsTests
         Assert.Equal(1, await reader.DispatchRecords.CountAsync(d => d.OrderId == order.Id && d.DispatchType == DispatchType.B14, Ct));
 
         // The reopened closure's other unit awaits its receipt again and may be closed by a new row (06 4.28).
-        Assert.True((await MarksAsync(item)).IsAwaitingReturnGoods);
+        Assert.True((await MarksAsync(item)).AwaitingReturnGoods);
         Assert.Null((await RunAsync((u, t) => u.CloseAsNotReturnedAsync(new CloseAsNotReturnedRequest(order.Id, item.Id, withdrawalId, AdminCaller, 4, 1), t))).Refusal);
         Assert.Equal(2, await CountAsync(c => c.NotReturnedClosures.Where(n => n.WithdrawalId == withdrawalId)));
     }
@@ -161,7 +163,7 @@ public sealed partial class ItemRecordsTests
         Guid secondId = (await WriteAsync(order.Id, (m, t) => m.AddWithdrawalAsync(second, t))).RecordId!.Value;
         Assert.Null((await RunAsync((u, t) => u.ReceiveReturnAsync(Receipt(order.Id, item.Id, secondId, 3, 1, DeliveryDay.AddDays(2)), t))).Refusal);
 
-        _clock.SetUtcNow(TurkeyTime.StartOfDay(DeliveryDay.AddDays(AfterSalesPeriodRules.ReturnShipmentPeriodDays + 2)).AddHours(12));
+        _clock.SetUtcNow(TurkeyTime.StartOf(DeliveryDay.AddDays(AfterSalesPeriodRules.ReturnShipmentPeriodDays + 2)).AddHours(12));
         Assert.Null((await RunAsync((u, t) => u.CloseAsNotReturnedAsync(new CloseAsNotReturnedRequest(order.Id, item.Id, first, AdminCaller, 4, 1), t))).Refusal);
 
         // The received unit's refund is still to be processed: it keeps the shared IBAN (K-1127).
@@ -184,7 +186,7 @@ public sealed partial class ItemRecordsTests
         Assert.Equal(4, await StockAsync(variantId));
         Assert.Empty(await RefundsOfOrderAsync(order.Id));
         Assert.Equal(1, await CountAsync(c => c.DispatchRecords.Where(d => d.OrderId == order.Id && d.DispatchType == DispatchType.B16)));
-        Assert.False((await MarksAsync(item)).IsAwaitingReturnGoods);
+        Assert.False((await MarksAsync(item)).AwaitingReturnGoods);
     }
 
     // ---- helpers ----
@@ -218,10 +220,16 @@ public sealed partial class ItemRecordsTests
         return variant.Id;
     }
 
+    private async Task<int> VersionAsync(Guid orderId)
+    {
+        await using AppDbContext reader = NewContext();
+        return (await reader.Orders.SingleAsync(o => o.Id == orderId, Ct)).Version;
+    }
+
     private async Task<int?> StockAsync(Guid variantId)
     {
         await using AppDbContext reader = NewContext();
-        return (await reader.Variants.SingleAsync(v => v.Id == variantId, Ct)).Stock;
+        return (await reader.Variants.SingleAsync(v => v.Id == variantId, Ct)).StockQuantity;
     }
 
     private async Task<List<Guid>> RefundsOfOrderAsync(Guid orderId)

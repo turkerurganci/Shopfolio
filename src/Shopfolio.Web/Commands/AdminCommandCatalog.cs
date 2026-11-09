@@ -12,5 +12,7 @@ internal static class AdminCommandCatalog
         new EndSessionsCommand(),
         new InvalidatePasswordCommand(),
         new StatusCommand(),
+        new ReapplyDeletionsCommand(),
+        new RollbackCheckCommand(),
     ];
 }

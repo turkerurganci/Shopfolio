@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Errors;
+using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.Modules.Administration.Contracts;
@@ -95,6 +96,23 @@ internal sealed class AccountDeletions
         return await RemoveAsync(customerId, now, ct);
     }
 
+    /// <summary>
+    /// The deletion applied again after the database was returned to an earlier moment (T388; 05 8.5.10): the same removal as the two above - the orders marked and cut, the account and what
+    /// hangs on it deleted, the disposal record written - with none of a user's gates (the open revert link, the reauthentication, the administrator's trail row). It queues no e-mail: the
+    /// account's owner was told when the deletion first happened and the message is not sent twice. An account that is not there already is skipped (05 8.5.10).
+    /// </summary>
+    public async Task<DeletionReapplyResult> ReapplyAsync(Guid customerId, CancellationToken ct)
+    {
+        RequireTransaction();
+        if (!await AccountLocks.LockAsync(_db, AccountType.Customer, customerId, ct))
+        {
+            return DeletionReapplyResult.Skipped();
+        }
+
+        await RemoveAsync(customerId, _time.GetUtcNow(), notify: false, ct);
+        return DeletionReapplyResult.Applied();
+    }
+
     // The account's row is locked with SELECT ... FOR UPDATE (AccountLocks; 09 15.1 item 3; 05 6.1.2; K-1084) before anything else, the lock the sign-in and the password flows take. A no-op
     // UPDATE would not do: it takes FOR NO KEY UPDATE, which does not wait for the FOR KEY SHARE an order insert takes on its customer (the foreign key), so an order confirmed at that moment
     // would escape the mark. Under FOR UPDATE that insert waits for the deletion (and then fails on the removed account) or is committed first and found by the order read below.
@@ -112,7 +130,9 @@ internal sealed class AccountDeletions
         return revertEnds is { } ends ? AccountDeletionResult.RevertPending(ends) : null;
     }
 
-    private async Task<AccountDeletionResult> RemoveAsync(Guid customerId, DateTimeOffset now, CancellationToken ct)
+    private async Task<AccountDeletionResult> RemoveAsync(Guid customerId, DateTimeOffset now, CancellationToken ct) => await RemoveAsync(customerId, now, notify: true, ct);
+
+    private async Task<AccountDeletionResult> RemoveAsync(Guid customerId, DateTimeOffset now, bool notify, CancellationToken ct)
     {
         Customer account = await _db.Customers.SingleAsync(c => c.Id == customerId, ct);
         string address = account.Email;
@@ -125,7 +145,10 @@ internal sealed class AccountDeletions
         AccountOrderRelease orders = await _ordering.MarkAccountDeletedAsync(customerId, ct);
 
         // One e-mail to the address of the account, whoever deletes it (02 3.15.1, 9.4); it carries no link and no way back. The address is kept as a value of the row.
-        await _notifications.QueueAccountEmailAsync(new AccountDeletedEmail(customerId, address, now), ct);
+        if (notify)
+        {
+            await _notifications.QueueAccountEmailAsync(new AccountDeletedEmail(customerId, address, now), ct);
+        }
 
         _db.Customers.Remove(account);
         _db.DisposalRecords.Add(DisposalRecord.Counted(DisposalRecordType.Customer, 1, now));

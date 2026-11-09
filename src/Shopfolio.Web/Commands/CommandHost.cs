@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Backup;
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Infrastructure.Files;
 using Shopfolio.Infrastructure.FileSecrets;
@@ -14,6 +15,7 @@ using Shopfolio.Infrastructure.Imaging;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.Logging;
+using Shopfolio.Infrastructure.SearchEngine;
 using Shopfolio.Infrastructure.Security;
 using Shopfolio.Infrastructure.Status;
 using Shopfolio.Modules.Administration;
@@ -109,6 +111,10 @@ internal static class CommandHost
         services.AddScoped<PasswordRegime>();
         services.AddLinkRecords();
         services.AddJobQueue();
+
+        // The two commands of the restore (T388; 05 8.5.10, 8.5.11): the count of the order side's writes after the restore point, and the reader of the application log's deletion lines.
+        services.AddScoped<RollbackAudit>();
+        services.AddSingleton<InstantDeletionLog>();
 
         // The status command evaluates the endpoint's conditions (05 8.5.6): their thresholds, their sources and the error counter that some of them are constructed with. The conditions
         // that read the web process's memory are listed by the command and not evaluated (IStatusCondition.ReadsProcessMemory).

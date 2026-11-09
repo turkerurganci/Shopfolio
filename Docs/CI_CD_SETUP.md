@@ -174,7 +174,7 @@ Ayrım proje ve özellik (trait) iledir; komutlar `.github/ci-commands.env`'dedi
 
 - **Lint:** `UnitTests` projesinde `Consistency=true` özellikli testler (`--filter-trait "Consistency=true"`; eşitlik denetimleri, `UnitTests/Consistency/`).
 - **Unit:** aynı proje, `Consistency` özellikli testler dışarıda (`--filter-not-trait "Consistency=true"`); eşitlik denetimleri iki kez koşmaz.
-- **Integration:** `IntegrationTests` projesi, filtresiz; gerçek PostgreSQL 18 (`SHOPFOLIO_TEST_DATABASE`).
+- **Integration:** `IntegrationTests` projesi, filtresiz; gerçek PostgreSQL 18 (`SHOPFOLIO_TEST_DATABASE`). Dönüş denetimi testleri için hizmet konteyneri `track_commit_timestamp = on` ile yeniden başlatılır (ci.yml 4. iş; yerel veritabanı `-c track_commit_timestamp=on` ile açılır).
 - **Contract:** `NOT_APPLICABLE` (`05 §8.3.8`).
 
 ### 4.3 Eşzamanlılık

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Shopfolio.Infrastructure;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
+using Shopfolio.Modules.Payment.Contracts;
 
 namespace Shopfolio.Modules.AfterSales;
 
@@ -132,7 +133,7 @@ internal sealed partial class AfterSalesModule
 
     /// <summary>
     /// The coupon share and the VAT the item's closing records set aside so far (02 7.1.7 (4)): its cancellations, removals, late delivery terminations and withdrawals,
-    /// saved or added in the caller's context. A cancellation undone by the correction of its closing transition gave its units back and sets nothing aside - the same
+    /// saved or added in the caller's context, and its defect claim rescissions' refunds (K-1024 (3)). A cancellation undone by the correction of its closing transition gave its units back and sets nothing aside - the same
     /// rule as the closed quantity (<see cref="ClosedQuantitiesAsync"/>).
     /// </summary>
     private async Task<(decimal Coupon, decimal Vat)> SetAsideAsync(Guid orderItemId, CancellationToken ct)
@@ -153,6 +154,13 @@ internal sealed partial class AfterSalesModule
         shares.AddRange(AddedShares<LateDeliveryTermination>(t => t.OrderItemId == orderItemId, t => new SetAsideShare(t.CouponShare, t.VatAmount)));
         shares.AddRange(AddedShares<Withdrawal>(w => w.OrderItemId == orderItemId, w => new SetAsideShare(w.CouponShare, w.VatAmount)));
         shares.AddRange(AddedShares<Cancellation>(c => c.OrderItemId == orderItemId, c => new SetAsideShare(c.CouponShare, c.VatAmount)));
+
+        // A defect claim rescission sets its share aside on its refund, not on an item record (06 4.33 CouponShare; K-1024 (3)): the last open units take what it left too.
+        if ((await _payment.RescindedSharesAsync([orderItemId], ct)).TryGetValue(orderItemId, out RescindedShares? rescinded))
+        {
+            shares.Add(new SetAsideShare(rescinded.CouponShare, rescinded.VatAmount));
+        }
+
         return (shares.Sum(s => s.Coupon), shares.Sum(s => s.Vat));
     }
 

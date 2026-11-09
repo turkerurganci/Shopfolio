@@ -83,6 +83,13 @@ public interface IPaymentModule
     Task<IReadOnlyList<Guid>> VoidCancellationRefundsAsync(IReadOnlyCollection<Guid> cancellationIds, CancellationToken ct);
 
     /// <summary>
+    /// What the defect claim rescissions of the items set aside (06 2.7.2, 4.33; 02 7.1.6, 7.1.7 (4); K-1077, K-1024 (3)): per item, the units, the coupon share and the VAT
+    /// of its rescission refunds that are not voided, the open transaction's changes included. The rescinded units do not close the item but are no other operation's
+    /// subject - the units open to an operation leave them out - and the record that closes the item's last open units takes the share they left. A plain read.
+    /// </summary>
+    Task<IReadOnlyDictionary<Guid, RescindedShares>> RescindedSharesAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
     /// The order's disposal (06 9.2.1; K-1059): empties the administrator link and name of every refund of the given orders and returns the ids of all their
     /// refunds. It writes through the caller's change tracker - the caller's transaction and order row lock hold, and the caller raises the order's version and
     /// saves. The payment records, the refund records and the inbound notification records are not touched (06 9.2.2).

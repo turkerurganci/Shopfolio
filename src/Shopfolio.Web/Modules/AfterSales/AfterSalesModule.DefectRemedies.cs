@@ -85,7 +85,7 @@ internal sealed partial class AfterSalesModule
         }
 
         _db.RefundIbanRequests.Add(RefundIbanRequest.ForItem(
-            subject.OrderItemId, RefundIbanRequestReason.AdminRequest, request.RefundId, request.Admin.AdminId, request.Admin.AdminName, request.At));
+            subject.OrderItemId, RefundIbanRequestReason.AdminRequest, null, request.Admin.AdminId, request.Admin.AdminName, request.At));
         return true;
     }
 

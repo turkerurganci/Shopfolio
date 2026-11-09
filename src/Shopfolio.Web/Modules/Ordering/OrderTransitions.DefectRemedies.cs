@@ -109,7 +109,7 @@ internal sealed partial class OrderTransitions
 
         bool ibanRequested = order.PaymentMethod == PaymentMethod.BankTransfer
             && await _afterSales.RequestDefectRemedyIbanAsync(
-                new DefectRemedyIbanRequest(subject, new ItemRecordAdmin(admin.AdminId, adminName), refundId, _time.GetUtcNow()), ct);
+                new DefectRemedyIbanRequest(subject, new ItemRecordAdmin(admin.AdminId, adminName), _time.GetUtcNow()), ct);
 
         RaiseVersionOnce(order);
         if (ibanRequested)

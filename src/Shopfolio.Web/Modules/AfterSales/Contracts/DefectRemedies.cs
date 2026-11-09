@@ -18,7 +18,9 @@ public sealed record DefectRemedyCheck(ItemRecordRefusal? Refusal, Guid? ClaimId
 }
 
 /// <summary>
-/// The IBAN a defect remedy's refund needs on the bank transfer line (02 7.5.3, 7.4.5; 03 8.3.3.6; K-686): the item, the administrator who asks and the refund that waits
-/// for it. Nothing is asked when the order has an IBAN on file or the item's request is still open.
+/// The IBAN a defect remedy's refund needs on the bank transfer line (02 7.5.3, 7.4.5; 03 8.3.3.6; K-686): the item and the administrator who asks. The request is the
+/// administrator's (<see cref="RefundIbanRequestReason.AdminRequest"/>), so it names no refund (06 4.29: the refund link is a failed card refund's or an itemless
+/// request's); the IBAN entered lands on the order's file and pays the order's waiting refunds. Nothing is asked when the order has an IBAN on file or the item's
+/// request is still open.
 /// </summary>
-public sealed record DefectRemedyIbanRequest(ItemRecordSubject Subject, ItemRecordAdmin Admin, Guid RefundId, DateTimeOffset At);
+public sealed record DefectRemedyIbanRequest(ItemRecordSubject Subject, ItemRecordAdmin Admin, DateTimeOffset At);

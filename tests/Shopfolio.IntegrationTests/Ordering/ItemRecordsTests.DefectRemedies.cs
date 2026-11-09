@@ -23,7 +23,7 @@ public sealed partial class ItemRecordsTests
 {
     private const int ClaimUnits = 2;
 
-    /// <summary>The paid total seeded on the remedies' orders: three units of 100 less the coupon share of 20.</summary>
+    /// <summary>The paid total seeded on the remedies' orders: three units of 100 less the item's coupon share of 20 (the seed's 20 is the VAT rate).</summary>
     private const decimal PaidTotal = 280m;
 
     /// <summary>The firm's IBAN a bank transfer order freezes (06 4.17: the transfer order carries it).</summary>
@@ -127,7 +127,7 @@ public sealed partial class ItemRecordsTests
 
         await using AppDbContext reader = NewContext();
         RefundIbanRequest request = await reader.RefundIbanRequests.SingleAsync(r => r.OrderItemId == item.Id, Ct);
-        Assert.Equal((RefundIbanRequestReason.AdminRequest, (Guid?)rescinded.RecordId, (Guid?)_admin!.Id), (request.Reason, request.RefundId, request.AdminId));
+        Assert.Equal((RefundIbanRequestReason.AdminRequest, (Guid?)null, (Guid?)_admin!.Id), (request.Reason, request.RefundId, request.AdminId));
         Assert.Equal(1, await reader.DispatchRecords.CountAsync(d => d.OrderId == order.Id && d.DispatchType == DispatchType.B14, Ct));
         Assert.Equal(PaymentMethod.BankTransfer, (await RefundAsync(rescinded.RecordId!.Value)).PaymentMethod);
     }
@@ -181,6 +181,7 @@ public sealed partial class ItemRecordsTests
         string iban = method == PaymentMethod.BankTransfer ? $"'{FirmIban}'" : "NULL";
         string total = PaidTotal.ToString(System.Globalization.CultureInfo.InvariantCulture);
         await ExecuteAsync($"UPDATE orders SET payment_method = '{method}', bank_transfer_iban = {iban}, total = {total} WHERE id = '{order.Id}'");
+        await ExecuteAsync($"UPDATE order_items SET coupon_share = 20 WHERE id = '{item.Id}'");
         ItemRecordResult opened = await RunAsync((u, t) => u.OpenDefectClaimAsync(new OpenDefectClaimRequest(order.Id, item.Id, claimUnits, "Kusurlu"), t));
         Assert.Null(opened.Refusal);
         return (order, item);

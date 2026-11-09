@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
-using Shopfolio.Infrastructure.Export;
 
 namespace Shopfolio.Modules.Membership;
 
@@ -42,7 +41,7 @@ internal sealed class CustomerExport
         return await CsvExportWriter.WriteAsync(destination, CustomerExportColumns.All, ReadAsync(ct), new ExportCeilings(maxBytes), ct);
     }
 
-    public async IAsyncEnumerable<CustomerExportRow> ReadAsync([EnumeratorCancellation] CancellationToken ct)
+    public async IAsyncEnumerable<CustomerExportRow> ReadAsync([EnumeratorCancellation] CancellationToken ct, int pageSize = ExportLimits.PageSize)
     {
         Guid? after = null;
         while (true)
@@ -53,7 +52,7 @@ internal sealed class CustomerExport
                 query = query.Where(c => c.Id.CompareTo(last) > 0);
             }
 
-            var page = await query.OrderBy(c => c.Id).Take(ExportLimits.PageSize)
+            var page = await query.OrderBy(c => c.Id).Take(pageSize)
                 .Select(c => new { c.Id, c.Name, c.Email }).ToListAsync(ct);
             if (page.Count == 0)
             {
@@ -66,7 +65,7 @@ internal sealed class CustomerExport
                 yield return new CustomerExportRow(row.Name, row.Email);
             }
 
-            if (page.Count < ExportLimits.PageSize)
+            if (page.Count < pageSize)
             {
                 yield break;
             }

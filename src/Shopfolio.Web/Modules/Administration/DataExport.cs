@@ -1,7 +1,6 @@
 using System.Globalization;
 
 using Shopfolio.Infrastructure;
-using Shopfolio.Infrastructure.Export;
 using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Membership.Contracts;

@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text;
 
-namespace Shopfolio.Infrastructure.Export;
+namespace Shopfolio.Infrastructure;
 
 /// <summary>The six kinds of a CSV cell (09 10.10 item 1): each has its own writer; the kind is the definition's, never the code that makes the value.</summary>
 internal enum CsvColumnKind

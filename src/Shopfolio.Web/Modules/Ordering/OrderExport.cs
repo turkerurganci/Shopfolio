@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 using Shopfolio.Infrastructure;
-using Shopfolio.Infrastructure.Export;
 using Shopfolio.Infrastructure.InstallationSettings;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -19,7 +18,7 @@ namespace Shopfolio.Modules.Ordering;
 /// moment as the file writes it and the late payment of an order that was cancelled.
 /// </summary>
 internal sealed record OrderExportRow(
-    InvoiceData Invoice,
+    InvoiceData Frozen,
     InvoiceItem Item,
     DateTimeOffset? HandedOverAt,
     string? ContactEmail,
@@ -60,9 +59,9 @@ internal static class OrderExportColumns
     public static IReadOnlyList<CsvColumn<OrderExportRow>> All { get; } =
     [
         // Order: Order.OrderNumber, CreatedAt, PaymentMethod
-        new("Sipariş numarası", CsvColumnKind.Text, r => r.Invoice.OrderNumber),
-        new("Sipariş tarihi", CsvColumnKind.Date, r => r.Invoice.CreatedAt),
-        new("Ödeme yöntemi", CsvColumnKind.Text, r => CsvEnumLabels.Of(r.Invoice.PaymentMethod)),
+        new("Sipariş numarası", CsvColumnKind.Text, r => r.Frozen.OrderNumber),
+        new("Sipariş tarihi", CsvColumnKind.Date, r => r.Frozen.CreatedAt),
+        new("Ödeme yöntemi", CsvColumnKind.Text, r => CsvEnumLabels.Of(r.Frozen.PaymentMethod)),
 
         // Item: OrderItem.ProductName, FirstOptionValue, SecondOptionValue, Quantity, UnitPrice, DiscountPercentage, DiscountedUnitPrice, CouponShare, VatRate, VatAmount
         new("Ürün adı", CsvColumnKind.Text, r => r.Item.ProductName),
@@ -77,53 +76,53 @@ internal static class OrderExportColumns
         new("KDV tutarı", CsvColumnKind.Amount, r => r.Item.VatAmount),
 
         // Order total: Order.Total, ShippingFee, ShippingFeeVatBreakdown
-        new("Sipariş toplamı", CsvColumnKind.Amount, r => r.Invoice.Total),
-        new("Kargo ücreti", CsvColumnKind.Amount, r => r.Invoice.ShippingFee),
-        new("Kargo ücretinin KDV dökümü", CsvColumnKind.Text, r => ShippingVatBreakdown(r.Invoice)),
+        new("Sipariş toplamı", CsvColumnKind.Amount, r => r.Frozen.Total),
+        new("Kargo ücreti", CsvColumnKind.Amount, r => r.Frozen.ShippingFee),
+        new("Kargo ücretinin KDV dökümü", CsvColumnKind.Text, r => ShippingVatBreakdown(r.Frozen)),
 
         // Billing address: Order.BillingRecipientName, BillingProvinceId (name), BillingDistrict, BillingAddressLine
-        new("Fatura alıcı adı", CsvColumnKind.Text, r => r.Invoice.BillingAddress?.RecipientName),
+        new("Fatura alıcı adı", CsvColumnKind.Text, r => r.Frozen.BillingAddress?.RecipientName),
         new("Fatura ili", CsvColumnKind.Text, r => r.BillingProvince),
-        new("Fatura ilçesi", CsvColumnKind.Text, r => r.Invoice.BillingAddress?.District),
-        new("Fatura adresi", CsvColumnKind.Text, r => r.Invoice.BillingAddress?.AddressLine),
+        new("Fatura ilçesi", CsvColumnKind.Text, r => r.Frozen.BillingAddress?.District),
+        new("Fatura adresi", CsvColumnKind.Text, r => r.Frozen.BillingAddress?.AddressLine),
 
         // Firm identity: Order.CompanyLegalName, CompanyTaxIdNumber, CompanyMersisNumber, CompanyTradeRegistryNumber, CompanyProvinceId (name), CompanyDistrict, CompanyAddressLine
-        new("Ticaret unvanı", CsvColumnKind.Text, r => r.Invoice.Company.CompanyLegalName),
-        new("Vergi numarası", CsvColumnKind.Text, r => r.Invoice.Company.CompanyTaxIdNumber),
-        new("Mersis numarası", CsvColumnKind.Text, r => r.Invoice.Company.CompanyMersisNumber),
-        new("Ticaret sicil numarası", CsvColumnKind.Text, r => r.Invoice.Company.CompanyTradeRegistryNumber),
+        new("Ticaret unvanı", CsvColumnKind.Text, r => r.Frozen.Company.CompanyLegalName),
+        new("Vergi numarası", CsvColumnKind.Text, r => r.Frozen.Company.CompanyTaxIdNumber),
+        new("Mersis numarası", CsvColumnKind.Text, r => r.Frozen.Company.CompanyMersisNumber),
+        new("Ticaret sicil numarası", CsvColumnKind.Text, r => r.Frozen.Company.CompanyTradeRegistryNumber),
         new("Firma ili", CsvColumnKind.Text, r => r.CompanyProvince),
-        new("Firma ilçesi", CsvColumnKind.Text, r => r.Invoice.Company.CompanyDistrict),
-        new("Firma adresi", CsvColumnKind.Text, r => r.Invoice.Company.CompanyAddressLine),
+        new("Firma ilçesi", CsvColumnKind.Text, r => r.Frozen.Company.CompanyDistrict),
+        new("Firma adresi", CsvColumnKind.Text, r => r.Frozen.Company.CompanyAddressLine),
 
         // Reaching the recipient: Order.ContactEmail, ShippingRecipientName
         new("İletişim e-postası", CsvColumnKind.Text, r => r.ContactEmail),
         new("Teslimat alıcı adı", CsvColumnKind.Text, r => r.ShippingRecipientName),
 
         // Site: the installation's domain (Site:Domain), the same on every line
-        new("Sitenin alan adı", CsvColumnKind.Text, r => r.Invoice.Domain),
+        new("Sitenin alan adı", CsvColumnKind.Text, r => r.Frozen.Domain),
 
         // Shipping: Order.Carrier or OtherCarrierName; the item's hand-over day
-        new("Kargo şirketi", CsvColumnKind.Text, r => r.Invoice.CarrierName),
+        new("Kargo şirketi", CsvColumnKind.Text, r => r.Frozen.CarrierName),
         new("Kargoya verme tarihi", CsvColumnKind.Date, r => r.HandedOverAt),
 
         // Payment: the last confirmation transition's moment
-        new("Ödeme onay tarihi", CsvColumnKind.Date, r => r.Invoice.PaymentConfirmedAt),
+        new("Ödeme onay tarihi", CsvColumnKind.Date, r => r.Frozen.PaymentConfirmedAt),
 
         // Late payment: PaymentRecord.CreatedAt, Order.Total, Refund.SentAt, Refund.Amount - only on an order that a late card payment came to
         new("Geç ödeme tarihi", CsvColumnKind.Date, r => r.LatePayment?.PaidAt),
-        new("Geç ödeme tutarı", CsvColumnKind.Amount, r => r.LatePayment is null ? null : r.Invoice.Total),
+        new("Geç ödeme tutarı", CsvColumnKind.Amount, r => r.LatePayment is null ? null : r.Frozen.Total),
         new("Geri ödeme tarihi", CsvColumnKind.Date, r => r.LatePayment?.RefundSentAt),
         new("Geri ödeme tutarı", CsvColumnKind.Amount, r => r.LatePayment?.RefundAmount),
     ];
 
     /// <summary>The shipping fee's VAT as <c>rate=amount</c> pairs joined with <c>|</c> (<c>20=12,50|10=3,20</c>); empty when the fee has none (09 10.10 item 5).</summary>
-    internal static string? ShippingVatBreakdown(InvoiceData invoice)
+    internal static string? ShippingVatBreakdown(InvoiceData frozen)
     {
-        ArgumentNullException.ThrowIfNull(invoice);
-        return invoice.ShippingFeeVatBreakdown.Count == 0
+        ArgumentNullException.ThrowIfNull(frozen);
+        return frozen.ShippingFeeVatBreakdown.Count == 0
             ? null
-            : string.Join('|', invoice.ShippingFeeVatBreakdown.Select(p => CsvExportWriter.RateCell(p.VatRate) + "=" + CsvExportWriter.AmountCell(p.Vat)));
+            : string.Join('|', frozen.ShippingFeeVatBreakdown.Select(p => CsvExportWriter.RateCell(p.VatRate) + "=" + CsvExportWriter.AmountCell(p.Vat)));
     }
 }
 
@@ -135,7 +134,7 @@ internal static class OrderExportColumns
 internal sealed class OrderExport
 {
     private readonly AppDbContext _db;
-    private readonly InvoiceDataReader _invoices;
+    private readonly InvoiceDataReader _frozenReader;
     private readonly IPaymentModule _payment;
     private readonly IAfterSalesModule _afterSales;
     private readonly ISettingsModule _settings;
@@ -143,7 +142,7 @@ internal sealed class OrderExport
     public OrderExport(AppDbContext db, IOptions<SiteOptions> site, IPaymentModule payment, IAfterSalesModule afterSales, ISettingsModule settings)
     {
         _db = db;
-        _invoices = new InvoiceDataReader(db, site);
+        _frozenReader = new InvoiceDataReader(db, site);
         _payment = payment;
         _afterSales = afterSales;
         _settings = settings;
@@ -159,7 +158,7 @@ internal sealed class OrderExport
     }
 
     /// <summary>The lines of the range as an asynchronous sequence (09 10.10 item 4).</summary>
-    public async IAsyncEnumerable<OrderExportRow> ReadAsync(DateOnly startDay, DateOnly endDay, [EnumeratorCancellation] CancellationToken ct)
+    public async IAsyncEnumerable<OrderExportRow> ReadAsync(DateOnly startDay, DateOnly endDay, [EnumeratorCancellation] CancellationToken ct, int pageSize = ExportLimits.PageSize)
     {
         if (endDay < startDay)
         {
@@ -178,7 +177,7 @@ internal sealed class OrderExport
                 query = query.Where(o => o.Id.CompareTo(last) > 0);
             }
 
-            List<Order> page = await query.OrderBy(o => o.Id).Take(ExportLimits.PageSize).ToListAsync(ct);
+            List<Order> page = await query.OrderBy(o => o.Id).Take(pageSize).ToListAsync(ct);
             if (page.Count == 0)
             {
                 yield break;
@@ -189,7 +188,7 @@ internal sealed class OrderExport
             List<Order> included = [.. page.Where(o => IsPaymentCompleted(o.PaymentStatus) || late.ContainsKey(o.Id))];
             if (included.Count > 0)
             {
-                IReadOnlyList<InvoiceData> invoices = await _invoices.ComposeAsync(included, ct);
+                IReadOnlyList<InvoiceData> invoices = await _frozenReader.ComposeAsync(included, ct);
                 HashSet<Guid> closedMoments = await FullyClosedBeforeShipmentAsync(invoices, ct);
                 Dictionary<Guid, Order> orders = included.ToDictionary(o => o.Id);
                 foreach (InvoiceData invoice in invoices)
@@ -211,7 +210,7 @@ internal sealed class OrderExport
                 }
             }
 
-            if (page.Count < ExportLimits.PageSize)
+            if (page.Count < pageSize)
             {
                 yield break;
             }
@@ -222,22 +221,22 @@ internal sealed class OrderExport
     /// The items that were closed whole by a cancellation or a late delivery termination before the order's shipment (D-736; 02 3.25.1): the line stays in the file (the sale is a
     /// commercial record) but nothing was handed over for it, so its hand-over date is empty. An item closed only in part, or after the shipment, keeps the date.
     /// </summary>
-    private async Task<HashSet<Guid>> FullyClosedBeforeShipmentAsync(IReadOnlyList<InvoiceData> invoices, CancellationToken ct)
+    private async Task<HashSet<Guid>> FullyClosedBeforeShipmentAsync(IReadOnlyList<InvoiceData> frozenOrders, CancellationToken ct)
     {
-        Guid[] physical = [.. invoices.SelectMany(i => i.Items).Where(i => i.ProductType == Catalog.Contracts.ProductType.Physical && i.ShippedAt is not null).Select(i => i.OrderItemId)];
+        Guid[] physical = [.. frozenOrders.SelectMany(i => i.Items).Where(i => i.ProductType == Catalog.Contracts.ProductType.Physical && i.ShippedAt is not null).Select(i => i.OrderItemId)];
         if (physical.Length == 0)
         {
             return [];
         }
 
         IReadOnlyDictionary<Guid, int> closed = await _afterSales.ClosedQuantitiesAsync(physical, ct);
-        Guid[] candidates = [.. invoices.SelectMany(i => i.Items).Where(i => closed.TryGetValue(i.OrderItemId, out int quantity) && quantity >= i.Quantity).Select(i => i.OrderItemId)];
+        Guid[] candidates = [.. frozenOrders.SelectMany(i => i.Items).Where(i => closed.TryGetValue(i.OrderItemId, out int quantity) && quantity >= i.Quantity).Select(i => i.OrderItemId)];
         if (candidates.Length == 0)
         {
             return [];
         }
 
-        Dictionary<Guid, DateTimeOffset> shipped = invoices.SelectMany(i => i.Items).Where(i => i.ShippedAt is not null).ToDictionary(i => i.OrderItemId, i => i.ShippedAt!.Value);
+        Dictionary<Guid, DateTimeOffset> shipped = frozenOrders.SelectMany(i => i.Items).Where(i => i.ShippedAt is not null).ToDictionary(i => i.OrderItemId, i => i.ShippedAt!.Value);
         IReadOnlyList<ClosingRecordMoment> moments = await _afterSales.ClosingRecordMomentsAsync(candidates, ct);
         return [.. moments.Where(m => m.At <= shipped[m.OrderItemId]).Select(m => m.OrderItemId)];
     }

@@ -256,7 +256,7 @@ internal static class AdministrationModuleRegistration
         services.AddScoped<AuditTrail>();
         services.AddScoped<IAuditTrail>(p => p.GetRequiredService<AuditTrail>());
         services.AddDisposalPart<AdminInvitationDisposalPart>();
-        services.TryAddSingleton<Shopfolio.Infrastructure.Export.ExportTempDirectory>();
+        services.TryAddSingleton<Shopfolio.Infrastructure.ExportTempDirectory>();
         services.AddScoped<IDataExport, DataExport>();
         return services;
     }

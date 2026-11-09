@@ -1,7 +1,7 @@
 using Shopfolio.Infrastructure.Logging;
 using Shopfolio.Infrastructure.LogRead;
 
-namespace Shopfolio.Infrastructure.Export;
+namespace Shopfolio.Infrastructure;
 
 /// <summary>
 /// The one place the export files are made (09 10.10 items 6, 8; 05 6.8.4, 9.3.3): the temporary directory outside the records and the file backup, the setting

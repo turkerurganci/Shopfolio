@@ -475,7 +475,7 @@ Kaynak: `10 §2` grup "Sepet, ödeme ve sipariş". Kart satırları ödeme sağl
 | VAL-D013 | D | Sipariş firmanın o günkü yasal kimliğini kendi içine dondurur. | 10 KP-17 · 02 §3.23, §3.23.4 | Verilmiş sipariş; sonra firmanın yasal kimliği değiştirilir | Sipariş sayfası ve siparişin belgeleri onay anındaki yasal kimliği gösterir | Veri kaydı + Uç yanıtı | yok | KRİTİK | BEKLEMEDE |
 | VAL-D014 | D | Havale ile verilen sipariş firmanın o günkü havale IBAN'ını kendi içine dondurur. | 10 KP-17 · 02 §3.23 | Havale siparişi; sonra firmanın IBAN'ı değiştirilir | Sipariş sayfası onay anındaki IBAN'ı gösterir | Veri kaydı + Uç yanıtı | yok | KRİTİK | BEKLEMEDE |
 | VAL-D015 | D | Sipariş müşterinin onay adımında gördüğü yasal metin sürümlerini kendi içine dondurur. | 10 KP-17 · 02 §3.23.3 | Verilmiş sipariş; sonra yasal metinlerin yeni sürümü yayına alınır | Siparişteki Ön Bilgilendirme Formu ve Mesafeli Satış Sözleşmesi onay anındaki sürümdür | Veri kaydı + Uç yanıtı | yok | KRİTİK | BEKLEMEDE |
-| VAL-D016 | D | Sipariş, dijital ve hizmet kalemi için işaretlenen onay kutularının kaydını kendi içine dondurur. | 10 KP-17 · 02 §3.23, §3.24 | Dijital ve hizmet kalemli, kutuları işaretlenmiş sipariş | Siparişte her kutunun işaret kaydı vardır ve sonradan değişmez | Veri kaydı + Uç yanıtı | yok | KRİTİK | FAIL |
+| VAL-D016 | D | Sipariş, dijital ve hizmet kalemi için işaretlenen onay kutularının kaydını kendi içine dondurur. | 10 KP-17 · 02 §3.23, §3.24 | Dijital ve hizmet kalemli, kutuları işaretlenmiş sipariş | Siparişte her kutunun işaret kaydı vardır ve sonradan değişmez | Veri kaydı + Uç yanıtı | yok | KRİTİK | BEKLEMEDE |
 
 ### 4.5 Sipariş takibi ve teslim (KP-18…KP-20; `VP4-04`)
 

@@ -272,6 +272,20 @@ public sealed class LateDeliveryAndFirmCancellationTests : IAsyncLifetime
         Assert.Equal(new HashSet<Guid> { after.ItemRecordId!.Value, Assert.Single(termination.ItemRecordIds) }, warned.ToHashSet());
     }
 
+    [Fact]
+    public async Task TheFirmsRemovalAfterThePromise_IsACorrection_AndCarriesNoLegalInterestWarning_T386()
+    {
+        (Order order, List<OrderItem> items) = await SeedAsync(OrderStatus.Preparing, new Line(ProductType.Physical, 2));
+        await ApproveAsync(order.Id, shippingPeriod: 2);
+        DateTimeOffset promiseEnd = DeliveryPeriodRules.ShippingPeriodEnd(Start, 2, BusinessCalendar.Product);
+        ItemRemoval removal = ItemRemoval.Create(items[0].Id, 1, _admin!.Id, _admin.Name, new ItemAmounts(100m, 0m, 16.67m), promiseEnd.AddHours(1));
+        await SaveAsync(c => c.ItemRemovals.Add(removal));
+
+        IReadOnlySet<Guid> warned = await PeriodsAsync(p => p.LegalInterestWarningsAsync(order.Id, Ct));
+
+        Assert.Empty(warned);
+    }
+
     // ---- KK7, KK8: the firm's item cancellation ----
 
     [Fact]

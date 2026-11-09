@@ -247,6 +247,22 @@ public sealed class DataExportTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task AnItemClosedBeforeTheShipmentByACancellationAndARemoval_HasNoShippingDay_D848()
+    {
+        Exported file = await ExportShippedItemAsync(2, [(1, false)], removedBeforeShipment: 1);
+
+        Assert.Equal([string.Empty], file.Values("Kargoya verme tarihi"));
+    }
+
+    [Fact]
+    public async Task AnItemRemovedInPartBeforeTheShipment_KeepsTheShippingDay_D848()
+    {
+        Exported file = await ExportShippedItemAsync(2, [], removedBeforeShipment: 1);
+
+        Assert.Equal([Day(Today.AddDays(-2))], file.Values("Kargoya verme tarihi"));
+    }
+
+    [Fact]
     public async Task AnItemCancelledInPartBeforeTheShipment_KeepsTheShippingDay_KK4()
     {
         Exported file = await ExportShippedItemAsync(2, [(1, false)]);
@@ -765,7 +781,9 @@ public sealed class DataExportTests : IAsyncLifetime
     private static DateTimeOffset CreatedOn(int offsetFromToday) => TurkeyTime.StartOf(Today.AddDays(offsetFromToday)).AddHours(10);
 
     /// <summary>One paid order with one line of the given quantity shipped two days ago; each record closes the quantity before the shipment (a cancellation) or after it (a withdrawal).</summary>
-    private async Task<Exported> ExportShippedItemAsync(int quantity, (int Quantity, bool AfterShipment)[] records)
+    private Task<Exported> ExportShippedItemAsync(int quantity, (int Quantity, bool AfterShipment)[] records) => ExportShippedItemAsync(quantity, records, 0);
+
+    private async Task<Exported> ExportShippedItemAsync(int quantity, (int Quantity, bool AfterShipment)[] records, int removedBeforeShipment)
     {
         string number = await SeedAsync(CreatedOn(-3), PaymentMethod.Card, "Paid", (_shirt, quantity, 0m));
         Guid id = await OrderIdAsync(number);
@@ -790,6 +808,12 @@ public sealed class DataExportTests : IAsyncLifetime
                 {
                     c.Cancellations.Add(Sales.Cancellation.ByBuyer(itemId, closed, amounts, null, shippedAt.AddHours(-2)));
                 }
+            }
+
+            // The firm's removal before the shipment (02 10.4.3; T386) closes units as a cancellation does.
+            if (removedBeforeShipment > 0)
+            {
+                c.ItemRemovals.Add(Sales.ItemRemoval.Create(itemId, removedBeforeShipment, _admin.Id, _admin.Name, amounts, shippedAt.AddHours(-1)));
             }
         });
         return await ExportOrdersAsync(Today.AddDays(-3), Today.AddDays(-3));

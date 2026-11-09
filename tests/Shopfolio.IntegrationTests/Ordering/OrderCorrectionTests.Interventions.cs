@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Administration.Contracts;
 using Shopfolio.Modules.AfterSales;
+using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications;
 using Shopfolio.Modules.Notifications.Contracts;
@@ -61,9 +63,10 @@ public sealed partial class OrderCorrectionTests
 
         Order other = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Digital);
         Guid delivered = await ItemIdAsync(other.Id, ProductType.Digital);
-        await ExecuteAsync($"UPDATE order_items SET delivery_marked_at = now() WHERE id = '{delivered}'");
+        await ExecuteAsync($"UPDATE order_items SET delivery_marked_at = now(), delivery_date = current_date WHERE id = '{delivered}'");
 
-        OrderTransitionResult closed = await RunAsync(c => c.RemoveItemAsync(Removal(await ReloadAsync(other.Id), delivered, 1), Ct));
+        Order reloaded = await ReloadAsync(other.Id);
+        OrderTransitionResult closed = await RunAsync(c => c.RemoveItemAsync(Removal(reloaded, delivered, 1), Ct));
         Assert.Equal(TransitionRefusal.ConditionNotMet, closed.Refusal);
     }
 
@@ -105,7 +108,7 @@ public sealed partial class OrderCorrectionTests
     public async Task TheLastPhysicalUnits_CarryTheShippingFee_AndCloseTheOrderAsACancellationWould_KK4()
     {
         Order order = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
-        await ExecuteAsync($"UPDATE orders SET shipping_fee = 40, total = total + 40 WHERE id = '{order.Id}'");
+        await ExecuteAsync($"UPDATE orders SET shipping_fee = 40, shipping_fee_vat_breakdown = '[]', total = total + 40 WHERE id = '{order.Id}'");
         order = await ReloadAsync(order.Id);
         Guid item = await ItemIdAsync(order.Id, ProductType.Physical);
 
@@ -123,10 +126,38 @@ public sealed partial class OrderCorrectionTests
     }
 
     [Fact]
+    public async Task TheRemovedUnits_GoBackToStock_AndTheCouponRightOnlyWithTheOrdersLastUnit_AsOnACancellation_KK4()
+    {
+        int n = Interlocked.Increment(ref _counter);
+        Product product = Product.Create("Ürün", $"cikarma-urun-{n}", ProductType.Physical, 20m, Start).WithSeededOrigin();
+        Variant variant = Variant.Create(product.Id, $"CKR-{n}", 10m, Start, 5);
+        Coupon coupon = Coupon.CreateAmount($"CIKAR{n}", 50m, 100m, TurkeyTime.DateOf(Start).AddDays(-7), TurkeyTime.DateOf(Start).AddDays(30), 3, Start);
+        await SaveAsync(c =>
+        {
+            c.Products.Add(product);
+            c.Variants.Add(variant);
+            c.Coupons.Add(coupon);
+        });
+        await ExecuteAsync($"UPDATE coupons SET used_count = 1 WHERE id = '{coupon.Id}'");
+        Order order = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
+        Guid item = await ItemIdAsync(order.Id, ProductType.Physical);
+        await ExecuteAsync($"UPDATE order_items SET variant_id = '{variant.Id}' WHERE id = '{item}'");
+        await ExecuteAsync($"UPDATE orders SET coupon_id = '{coupon.Id}', coupon_code = '{coupon.Code}' WHERE id = '{order.Id}'");
+        order = await ReloadAsync(order.Id);
+
+        Assert.Null((await RunAsync(c => c.RemoveItemAsync(Removal(order, item, 1), Ct))).Refusal);
+        Assert.Equal((6, 1), await CountersAsync(variant.Id, coupon.Id));
+
+        Order reloaded = await ReloadAsync(order.Id);
+        Assert.Null((await RunAsync(c => c.RemoveItemAsync(Removal(reloaded, item, 1), Ct))).Refusal);
+        Assert.Equal((7, 0), await CountersAsync(variant.Id, coupon.Id));
+    }
+
+    [Fact]
     public async Task OnTheTransferLine_TheRemovalOpensTheIbanRequest_AndSendsB14_KK3()
     {
         Order order = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
-        await ExecuteAsync($"UPDATE orders SET payment_method = 'BankTransfer' WHERE id = '{order.Id}'");
+        await ExecuteAsync($"UPDATE orders SET payment_method = 'BankTransfer', bank_transfer_iban = 'TR000000000000000000000001' WHERE id = '{order.Id}'");
         order = await ReloadAsync(order.Id);
         Guid item = await ItemIdAsync(order.Id, ProductType.Physical);
 
@@ -146,7 +177,8 @@ public sealed partial class OrderCorrectionTests
         Guid item = await ItemIdAsync(order.Id, ProductType.Physical);
 
         await RunAsync(c => c.RemoveItemAsync(Removal(order, item, 1), Ct));
-        await RunAsync(c => c.RemoveItemAsync(Removal(await ReloadAsync(order.Id), item, 1), Ct));
+        Order reloaded = await ReloadAsync(order.Id);
+        await RunAsync(c => c.RemoveItemAsync(Removal(reloaded, item, 1), Ct));
 
         Assert.DoesNotContain(typeof(RemoveItemRequest).GetProperties(), p => p.Name.Contains("Reason", StringComparison.Ordinal));
         await using AppDbContext reader = NewContext();
@@ -250,6 +282,21 @@ public sealed partial class OrderCorrectionTests
         Assert.Equal((true, today.AddDays(-2)), (saved.IsDeliveredBeforeDeclaration, (await ItemAsync(item)).DeliveryDate!.Value));
     }
 
+    [Fact]
+    public async Task TheWithdrawalWindow_RunsFromTheCorrectedDate_KK8()
+    {
+        // Delivered 20 days ago: the 14-day window is over; the corrected date 3 days ago opens it again (02 10.4.5).
+        (Order order, Guid item) = await DeliveredAsync(shippedDaysAgo: 21, deliveredDaysAgo: 20);
+        DateOnly today = TurkeyTime.DateOf(Start);
+        Assert.True(AfterSalesPeriodRules.WithdrawalWindowEnd((await ItemAsync(item)).DeliveryDate!.Value) <= Start);
+
+        OrderCorrectionResult result = await RunAsync(c => c.CorrectDeliveryDateAsync(DateRequest(order, today.AddDays(-3)), Ct));
+
+        // The window and the defect period are read from the item's delivery date (AfterSalesPeriodRules): the corrected date is the one they run from.
+        Assert.Null(result.Refusal);
+        Assert.True(AfterSalesPeriodRules.WithdrawalWindowEnd((await ItemAsync(item)).DeliveryDate!.Value) > Start);
+    }
+
     // ---- KK9: the return's arrival date ----
 
     [Fact]
@@ -337,6 +384,14 @@ public sealed partial class OrderCorrectionTests
     {
         await using AppDbContext reader = NewContext();
         return await reader.OrderItems.AsNoTracking().Where(i => i.OrderId == orderId && i.ProductType == type).Select(i => i.Id).FirstAsync(Ct);
+    }
+
+    private async Task<(int? Stock, int CouponUsed)> CountersAsync(Guid variantId, Guid couponId)
+    {
+        await using AppDbContext reader = NewContext();
+        int? stock = await reader.Variants.Where(v => v.Id == variantId).Select(v => v.StockQuantity).SingleAsync(Ct);
+        int used = await reader.Coupons.Where(c => c.Id == couponId).Select(c => c.UsedCount).SingleAsync(Ct);
+        return (stock, used);
     }
 
     private async Task<OrderItem> ItemAsync(Guid itemId)

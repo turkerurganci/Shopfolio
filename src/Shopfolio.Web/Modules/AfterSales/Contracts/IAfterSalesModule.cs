@@ -58,7 +58,8 @@ public interface IAfterSalesModule
     /// The units of each order item as the coupon right's return reads them (06 4.14, the paragraph after path 6; 03 1.4.4; K-1104, K-1106): the closed
     /// quantity of <see cref="ClosedQuantitiesAsync"/>, the withdrawn quantity, and how much of the withdrawal the returned goods' receipt, the return
     /// rejection and the standing "goods did not come back" closing settled. With <paramref name="includeUnsaved"/> the records the caller added to its
-    /// context and has not saved count too; without it only the saved ones - the order as it was before the caller's record. Every item is in the result.
+    /// context and has not saved count too, and a closing the caller's receipt opened and has not saved no longer stands; without it only the saved ones -
+    /// the order as it was before the caller's record. Every item is in the result.
     /// A plain read; the caller holds the order's lock.
     /// </summary>
     Task<IReadOnlyDictionary<Guid, ItemUnitFacts>> UnitFactsAsync(IReadOnlyCollection<Guid> orderItemIds, bool includeUnsaved, CancellationToken ct);
@@ -148,6 +149,15 @@ public interface IAfterSalesModule
 
     /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
     Task<ItemRecordWriteResult> AddReturnRejectionAsync(ReturnRejectionEntry entry, CancellationToken ct);
+
+    /// <inheritdoc cref="OpenDefectClaimAsync" path="/summary"/>
+    Task<ItemRecordWriteResult> AddNotReturnedClosureAsync(NotReturnedClosureEntry entry, CancellationToken ct);
+
+    /// <summary>
+    /// The "Stoğa ekle" step's mark on a receipt (02 7.4.7; 06 4.26 <c>StockAddedAt</c>): once per receipt, the receipt's units as the result; the caller returns them to
+    /// the variant (03 1.4.4.6). Runs in the caller's transaction under the order's row lock and saves nothing.
+    /// </summary>
+    Task<ReturnStockResult> MarkReturnStockAddedAsync(ReturnStockEntry entry, CancellationToken ct);
 
     /// <summary>
     /// The items' panel marks (03 1.7.3; K-675): read from the records while the condition lasts, never stored - "awaiting the returned goods" and "awaiting the IBAN".

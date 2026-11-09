@@ -27,8 +27,17 @@ public enum ItemRecordRefusal
     /// <summary>The withdrawal is not the item's, or none of its units is on the way back.</summary>
     WithdrawalNotAwaiting,
 
-    /// <summary>The arrival date is before the declaration (06 4.26).</summary>
+    /// <summary>The arrival date is before the item's entered delivery date (02 7.4.7; 06 4.26); the caller refuses a date in the future.</summary>
     ArrivalDateOutOfRange,
+
+    /// <summary>The "mal dönmedi" closure is not open: not a withdrawal after the delivery, or its sending period (Z-42) has not run out (02 10.4.9).</summary>
+    SendingPeriodNotOver,
+
+    /// <summary>The receipt is not the item's, or not a withdrawal's or termination's receipt of a physical item.</summary>
+    ReceiptNotFound,
+
+    /// <summary>The receipt's units were already added to the stock, or the item's variant is gone (06 4.26 <c>StockAddedAt</c>): the step is taken once.</summary>
+    StockNotAddable,
 
     /// <summary>The declaration on the bank transfer line asked for the IBAN on file and the order has none (02 7.4.5): the IBAN is entered with the declaration.</summary>
     IbanMissing,

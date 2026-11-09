@@ -175,8 +175,10 @@ internal sealed class OrderCounters
     /// <summary>
     /// The coupon right's return (06 4.14, the paragraph after path 6; 03 1.4.4.4-1.4.4.6; K-791, K-1104, K-1106): the right goes back once, with the
     /// record that brings every unit of the order to its last state - no open quantity is left and no physical withdrawn unit awaits its receipt - and
-    /// never when a unit ended in a return rejection or a "goods did not come back" closing. The order before the caller's unsaved record was not yet
-    /// there, so a second call does not give the right back twice. An unpaid order's right is the reservation's, freed by <see cref="ReleaseAsync"/>.
+    /// never when a unit ended in a return rejection or a standing "goods did not come back" closing. The order before the caller's unsaved record had not
+    /// yet given the right back, so a second call does not give it back twice; a closing the caller's receipt opens (06 4.28; K-1055) had ended the order
+    /// with a loss before it, so the receipt that brings the late goods' last unit gives the right back once. An unpaid order's right is the reservation's,
+    /// freed by <see cref="ReleaseAsync"/>.
     /// </summary>
     public async Task<bool> IsCouponReturnDueAsync(Order order, CancellationToken ct)
     {
@@ -189,15 +191,18 @@ internal sealed class OrderCounters
         List<OrderItem> items = await _db.OrderItems.Where(i => i.OrderId == order.Id).ToListAsync(ct);
         IReadOnlyDictionary<Guid, ItemUnitFacts> after = await _afterSales.UnitFactsAsync([.. items.Select(i => i.Id)], true, ct);
         IReadOnlyDictionary<Guid, ItemUnitFacts> before = await _afterSales.UnitFactsAsync([.. items.Select(i => i.Id)], false, ct);
-        return IsFinal(items, after) && !HasLoss(after) && !IsFinal(items, before);
+        return ReturnsRight(items, after) && !ReturnsRight(items, before);
     }
 
     private async Task<bool> IsCouponReturnedAsync(Order order, CancellationToken ct)
     {
         List<OrderItem> items = await _db.OrderItems.Where(i => i.OrderId == order.Id).ToListAsync(ct);
         IReadOnlyDictionary<Guid, ItemUnitFacts> facts = await _afterSales.UnitFactsAsync([.. items.Select(i => i.Id)], false, ct);
-        return IsFinal(items, facts) && !HasLoss(facts);
+        return ReturnsRight(items, facts);
     }
+
+    // The order whose units all reached their last state with no loss has its right back.
+    private bool ReturnsRight(List<OrderItem> items, IReadOnlyDictionary<Guid, ItemUnitFacts> facts) => IsFinal(items, facts) && !HasLoss(facts);
 
     // "Every unit of every item closed" is the catalog's one rule of the right (CouponRules.ReturnsRight; D-483); the physical withdrawn unit awaiting its receipt
     // is the order's own condition on top of it (K-1104).

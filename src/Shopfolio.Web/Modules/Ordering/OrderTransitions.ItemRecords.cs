@@ -140,6 +140,9 @@ internal sealed partial class OrderTransitions
             return ItemRefused(Map(refused));
         }
 
+        // No refund and no period for the rejected units, no stock (02 7.4.9): the declaration's IBAN goes with the rejection unless a pending refund still uses it
+        // (Z-35; K-656, K-1127). The rejection is never taken back.
+        await DeleteUnusedIbansAsync(order!.Id, ct);
         RaiseVersionOnce(order!);
 
         // B-16 names the item, the rejected units and the conditional exemption the rejection rests on (08 2.2.6 B-16).

@@ -48,6 +48,21 @@ public sealed record RejectReturnRequest(
     DateOnly ArrivalDate);
 
 /// <summary>
+/// The receipt of a withdrawal's returned goods (03 1.7.1.6; 02 7.4.7; K-794): the declaration, the units that arrived and their arrival date - in the past or today,
+/// not before the item's entered delivery date -, with the screen's version. The stock is added by its own step (<see cref="AddReturnedStockRequest"/>).
+/// </summary>
+public sealed record ReceiveReturnRequest(Guid OrderId, Guid OrderItemId, Guid WithdrawalId, TransitionAdmin Admin, int ExpectedVersion, int Quantity, DateOnly ArrivalDate);
+
+/// <summary>
+/// The "mal dönmedi" closure (03 1.7.1.8; 02 10.4.9; K-496, K-794): the declaration and the units not come back, after the sending period (Z-42), with the screen's
+/// version. No notice and no refund; on the transfer line the declaration's IBAN goes unless a pending refund still uses it (K-497, K-1127).
+/// </summary>
+public sealed record CloseAsNotReturnedRequest(Guid OrderId, Guid OrderItemId, Guid WithdrawalId, TransitionAdmin Admin, int ExpectedVersion, int Quantity);
+
+/// <summary>The "Stoğa ekle" step of a receipt (02 7.4.7, 3.6.6; 06 4.26; K-215): the receipt's units go back to the item's variant once, with the screen's version.</summary>
+public sealed record AddReturnedStockRequest(Guid OrderId, Guid OrderItemId, Guid ReturnId, TransitionAdmin Admin, int ExpectedVersion);
+
+/// <summary>
 /// The result of an item record operation of the transition unit (09 9.1 item 3): a refusal is a value and the runner rolls the transaction back on it;
 /// <see cref="RecordId"/> is the record the operation wrote or changed. The order's statuses never change by these operations (03 1.7.1: the claim does not touch the line).
 /// </summary>

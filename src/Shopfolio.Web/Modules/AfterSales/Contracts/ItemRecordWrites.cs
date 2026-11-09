@@ -105,8 +105,24 @@ public sealed record ClosingRecordMoment(Guid RecordId, Guid OrderItemId, bool I
 /// <summary>An order item, its own quantity and the moment its open quantity is asked at (T383; 02 10.6.3: the end of the order's shipping promise).</summary>
 public sealed record ItemQuantityAt(Guid OrderItemId, int Quantity, DateTimeOffset At);
 
-/// <summary>The receipt of returned goods of a withdrawal (03 1.7.1.6; K-794): every partial arrival is a record of its own, with the arrival date and the units.</summary>
-public sealed record ReturnReceiptEntry(ItemRecordSubject Subject, Guid WithdrawalId, int Quantity, DateOnly ArrivalDate, ItemRecordAdmin Admin, DateTimeOffset At);
+/// <summary>
+/// The receipt of returned goods of a withdrawal (03 1.7.1.6; K-794): every partial arrival is a record of its own, with the arrival date and the units.
+/// <paramref name="IsTransferLine"/> - the order's money came by bank transfer: a receipt whose declaration's IBAN was deleted asks the customer for one again (02 7.4.5; K-497).
+/// </summary>
+public sealed record ReturnReceiptEntry(
+    ItemRecordSubject Subject, Guid WithdrawalId, int Quantity, DateOnly ArrivalDate, ItemRecordAdmin Admin, DateTimeOffset At, bool IsTransferLine = false);
+
+/// <summary>The "mal dönmedi" closure of a withdrawal's units not come back (03 1.7.1.8; 02 10.4.9; K-496, K-794): only after the sending period (Z-42), at most the units awaited.</summary>
+public sealed record NotReturnedClosureEntry(ItemRecordSubject Subject, Guid WithdrawalId, int Quantity, ItemRecordAdmin Admin, DateTimeOffset At);
+
+/// <summary>The "Stoğa ekle" step of a receipt (02 7.4.7, 3.6.6; 06 4.26 <c>StockAddedAt</c>; K-215): the receipt's units go back to the stock once, after the firm's check.</summary>
+public sealed record ReturnStockEntry(ItemRecordSubject Subject, Guid ReturnId, DateTimeOffset At);
+
+/// <summary>The outcome of the "Stoğa ekle" step: a refusal, or the receipt's units the caller returns to the item's variant.</summary>
+public sealed record ReturnStockResult(ItemRecordRefusal? Refusal, int Quantity)
+{
+    public bool IsRejected => Refusal is not null;
+}
 
 /// <summary>The rejection of returned goods at the receipt step (03 1.7.1.7; 02 7.4.9; K-656): only on an item frozen with a conditional exemption.</summary>
 public sealed record ReturnRejectionEntry(ItemRecordSubject Subject, Guid WithdrawalId, int Quantity, DateOnly ArrivalDate, ItemRecordAdmin Admin, DateTimeOffset At);
@@ -128,7 +144,8 @@ public sealed record DefectClaimInfo(Guid Id, Guid OrderItemId, DefectClaimStatu
 /// The outcome of an AfterSales writer: a refusal, or the written record's id (and the claim as it now stands, on a claim's write). <paramref name="ReturnAddress"/> is the
 /// return address a withdrawal copied - what B-9 writes.
 /// </summary>
-public sealed record ItemRecordWriteResult(ItemRecordRefusal? Refusal, Guid? RecordId, DefectClaimInfo? Claim, ItemReturnAddress? ReturnAddress = null)
+public sealed record ItemRecordWriteResult(
+    ItemRecordRefusal? Refusal, Guid? RecordId, DefectClaimInfo? Claim, ItemReturnAddress? ReturnAddress = null, bool IsIbanRequested = false)
 {
     public bool IsRejected => Refusal is not null;
 

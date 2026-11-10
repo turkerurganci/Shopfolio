@@ -238,7 +238,7 @@
 
 | Task | Ad | Durum | Doğrulama | Commit | PR |
 |---|---|---|---|---|---|
-| T401 | PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve | ⬚ | — | — | — |
+| T401 | PayTR: anahtarlar, ödemenin başlatılması, dönüş ve çerçeve | ⏳ | — | — | — |
 | T402 | PayTR: bildirim imzası ve alan eşlemesi | ⬚ | — | — | — |
 | T403 | PayTR: son sorgu ve tek tahsilat | ⬚ | — | — | — |
 | T404 | PayTR: bağlantı hatası ve ayrım | ⬚ | — | — | — |

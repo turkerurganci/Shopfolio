@@ -12,9 +12,9 @@ namespace Shopfolio.Infrastructure.Integrations;
 /// the token request goes server to server, form-encoded, with the keys of the one setting (<see cref="PaymentProviderKeys"/>); without the setting no call is made. A
 /// successful answer gives the frame's address and the token is not kept - neither in a log nor in the database (the order has no field for it). T402 builds the
 /// notification (08 2.1.5; <see cref="PayTrNotification"/>): the signature with the same keys, the field mapping, the reading of the outcome and the amount check, all
-/// local; a failed payment's reason goes to the application log thinned (<see cref="PaymentFailureReasonLog"/>). The final query (T403), the refund and its query
-/// (T405) are the later provider tasks; until they come those jobs refuse with <see cref="NotSupportedException"/>: the final query's handler and the refund jobs are
-/// not registered yet (D-449).
+/// local; a failed payment's reason goes to the application log thinned (<see cref="PaymentFailureReasonLog"/>). T403 builds the final query (08 2.1.6;
+/// <see cref="PayTrPaymentQuery"/>). The refund and its query (T405) are the later provider task; until it comes those jobs refuse with
+/// <see cref="NotSupportedException"/>: the refund jobs are not registered yet.
 /// </summary>
 internal sealed class PayTrPaymentGateway : IPaymentGateway
 {
@@ -82,8 +82,23 @@ internal sealed class PayTrPaymentGateway : IPaymentGateway
         return await _runner.RunAsync(IntegrationOperation.PaymentStart, token => PostAsync(fields, token), ct);
     }
 
-    public Task<PaymentQueryResult> QueryPaymentAsync(string orderNumber, CancellationToken ct) =>
-        throw new NotSupportedException("The final query is built by T403.");
+    /// <summary>
+    /// The final query (08 2.1.6; <see cref="PayTrPaymentQuery"/>): one form-encoded request within the job limit (30 seconds), never repeated by the layer. Without the
+    /// keys no call is made and the result is a code error class (<see cref="KeysMissingReason"/>); an answer read as "no answer" writes the layer's one failure line
+    /// with its reason code - the timeout and the unreachable provider are the runner's.
+    /// </summary>
+    public async Task<PaymentQueryResult> QueryPaymentAsync(string orderNumber, CancellationToken ct)
+    {
+        if (_keys is null)
+        {
+            _runner.WriteFailure(IntegrationOperation.PaymentQuery, ExternalCallFailure.Unrecognized(KeysMissingReason));
+            return new PaymentQueryResult.NoResponse(KeysMissingReason, CodeError: true);
+        }
+
+        IReadOnlyList<KeyValuePair<string, string>> fields = PayTrPaymentQuery.Build(orderNumber, _keys);
+        string merchantOid = Security.OrderNumber.WithoutSeparator(orderNumber);
+        return await _runner.RunAsync(IntegrationOperation.PaymentQuery, token => PostQueryAsync(fields, merchantOid, token), ct);
+    }
 
     public Task<RefundRequestResult> RequestRefundAsync(CardRefund refund, CancellationToken ct) =>
         throw new NotSupportedException("The card refund is built by T405.");
@@ -159,5 +174,20 @@ internal sealed class PayTrPaymentGateway : IPaymentGateway
         string body = await response.Content.ReadAsStringAsync(ct);
         PaymentStartResult? result = ReadAnswer((int)response.StatusCode, body, out ExternalCallFailure? failure);
         return result ?? _runner.Failed<PaymentStartResult>(IntegrationOperation.PaymentStart, failure!);
+    }
+
+    private async Task<PaymentQueryResult> PostQueryAsync(IReadOnlyList<KeyValuePair<string, string>> fields, string merchantOid, CancellationToken ct)
+    {
+        HttpClient client = _clients.CreateClient(IntegrationHttpClients.PaymentProvider);
+        using FormUrlEncodedContent content = new(fields);
+        using HttpResponseMessage response = await client.PostAsync(PayTrPaymentQuery.QueryAddress, content, ct);
+        string body = await response.Content.ReadAsStringAsync(ct);
+        PaymentQueryResult result = PayTrPaymentQuery.ReadAnswer((int)response.StatusCode, body, merchantOid);
+        if (result is PaymentQueryResult.NoResponse noResponse)
+        {
+            _runner.WriteFailure(IntegrationOperation.PaymentQuery, ExternalCallFailure.Unrecognized(noResponse.ReasonCode));
+        }
+
+        return result;
     }
 }

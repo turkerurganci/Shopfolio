@@ -182,7 +182,7 @@ public interface IOrderingModule
     Task<int> CountOpenOrdersOfVariantAsync(Guid variantId, CancellationToken ct);
 
     /// <summary>
-    /// What the card payment's final query needs (03 4.1.7; 08 2.1.6): the order's number and whether its window (Z-7) has ended at <paramref name="now"/>;
+    /// What the card payment's final query needs (03 4.1.7; 08 2.1.6): the order's number, whether its window (Z-7) has ended at <paramref name="now"/> and its total;
     /// empty when the order is not a card order that still waits for its payment - paid, cancelled, or a bank transfer. A plain read; it writes nothing.
     /// </summary>
     Task<CardPaymentQueryTarget?> GetCardPaymentQueryTargetAsync(Guid orderId, DateTimeOffset now, CancellationToken ct);
@@ -252,8 +252,11 @@ public interface IOrderingModule
 /// </summary>
 public sealed record PaidCardItem(Guid OrderId, Guid OrderItemId, ProductType ProductType, int Quantity, DateOnly? DeliveryDate, DateTimeOffset? DeliveryMarkedAt);
 
-/// <summary>A card order that waits for its payment: its number, which the provider's query names, and whether its payment window has ended.</summary>
-public sealed record CardPaymentQueryTarget(string OrderNumber, bool WindowEnded);
+/// <summary>
+/// A card order that waits for its payment: its number, which the provider's query names, whether its payment window has ended, and its total, which a successful
+/// answer's amounts are compared with (08 2.1.6; T403).
+/// </summary>
+public sealed record CardPaymentQueryTarget(string OrderNumber, bool WindowEnded, decimal Total);
 
 /// <summary>The order the installer's payment result names (05 8.5.12): its id and number, its paid total, whether it is a card order and whether it carries the "payment outcome unknown" mark.</summary>
 public sealed record InstallerPaymentTarget(Guid OrderId, string OrderNumber, decimal Total, bool IsCard, bool PaymentOutcomeUnknown);

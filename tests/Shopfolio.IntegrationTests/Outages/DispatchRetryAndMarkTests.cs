@@ -22,6 +22,7 @@ using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.AfterSales;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog;
+using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.CorporateContent;
 using Shopfolio.Modules.CorporateContent.Contracts;
 using Shopfolio.Modules.Notifications;
@@ -416,6 +417,31 @@ public sealed class DispatchRetryAndMarkTests : IAsyncLifetime
         Guid order = await SeedOrderAsync();
         Guid due = await QueueAsync(new PaymentConfirmedNotice(order), CurrentAddress);
         Assert.Equal([due], (await DispatchSender.FindDueAsync(db, Start, Ct)).Select(d => d.Id));
+    }
+
+    [Fact]
+    public async Task TheOrdersNoticeFacts_CarryTheGuestFlag_TheFrozenIban_AndTheDigitalItem()
+    {
+        Guid order = await SeedOrderAsync();
+        await using (AsyncServiceScope scope = _provider.CreateAsyncScope())
+        {
+            OrderNoticeFacts plain = (await scope.ServiceProvider.GetRequiredService<IOrderNoticeFacts>().GetAsync(order, Ct))!;
+            Assert.Equal((true, false, Iban, false), (plain.IsGuestOrder, plain.IsAccountDeleted, plain.BankTransferIban, plain.HasDigitalItem));
+            Assert.False(string.IsNullOrEmpty(plain.AccessKey));
+            Assert.Null(await scope.ServiceProvider.GetRequiredService<IOrderNoticeFacts>().GetAsync(Guid.NewGuid(), Ct));
+        }
+
+        await using (AppDbContext db = NewContext())
+        {
+            OrderItem digital = OrderItem.Create(order, null, null, ProductType.Digital, "Rehber", 1, 100m, 20m, 16.67m, Start);
+            digital.DownloadAllowance = 5;
+            db.OrderItems.Add(digital);
+            await db.SaveChangesAsync(Ct);
+        }
+
+        await using AsyncServiceScope after = _provider.CreateAsyncScope();
+        OrderNoticeFacts withDigital = (await after.ServiceProvider.GetRequiredService<IOrderNoticeFacts>().GetAsync(order, Ct))!;
+        Assert.True(withDigital.HasDigitalItem);
     }
 
     [Fact]

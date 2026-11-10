@@ -1,6 +1,6 @@
 # T382 — Panel ana sayfası verisi: altı bekleyen iş sayacı, kanal ve firma bildirimi uyarıları, kurulum kontrol listesi
 
-**Faz:** F3 | **Durum:** ⏳ düzeltme 2 tamam (tur 2 FAIL: B3), doğrulama tur 3 bekliyor | **Tarih:** 2026-11-10
+**Faz:** F3 | **Durum:** ✓ Tamamlandı — doğrulama tur 3 PASS | **Tarih:** 2026-11-10
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -117,6 +117,21 @@ Devam 3 işçisi önceki işçilerin yaptıkları dahil bütün maddeleri diff't
 | Format | ✓ | `dotnet format <proje> --verify-no-changes` (üç proje) | çıkış 0 |
 
 ## Doğrulama
+
+### Tur 3 (2026-11-10; head `e915b0a8`)
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✓ PASS (tur 3; head `e915b0a8`; dal CI 42737094455 yeşil — Lint, Build, Unit, Integration, Contract, Migration, Paketleme, E2E, CI Gate) |
+| Bulgu sayısı | 0 — B3 düzeldi |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 |
+
+**B3 kapanışı:** `AfterSalesModule.FindRefundsAwaitingIbanAsync` açık isteği iadenin kendisine (`RefundId`) ya da iade bağlanmadan kalemine (`RefundId == null`, `OrderItemId` iadenin kalemi) bağlı okur. Üretim yolu doğrulandı: `OrderTransitions.StartRemedyRefundAsync` → `PaymentModule.StartDefectRemedyRefundAsync` iade satırına `OrderItemId` yazar, `RequestDefectRemedyIbanAsync` kalemin isteğini `RefundId` olmadan açar → istek eşlenir, iade sayılmaz; IBAN girilince sayılır, gönderilince düşer (`RefundAndReturn_DefectRemedyTransferRefundWithNoIbanOnFile_...KK4`). "Havale gerçekleşmedi" (kalem isteği, iade gönderilmemiş — `02` 6.4.27), IBAN'sız bildirim, silinmiş IBAN'dan sonra ulaşan mal ve iptal/çıkarma yolları da aynı iki eşlemeyle (satırı olan iade: `FindRefundsAwaitingIbanAsync`; satırı olmayan kayıt: `ListOrdersAwaitingRefundProcessingAsync`'in kalem süzgeci) "IBAN bekleniyor"da kalır.
+
+**Validator kabul kriterleri tablosu (tur 3):** 1–9 ✓ (birleşik ağaç; Unit 5770/5770, Integration `PanelHomeTests` + `SalesSummaryTests` + `SitemapSourceTests` 31/31, build `-warnaserror` 0/0, format ×3 temiz, betik testleri 4/4). Task satırları değişmedi: hepsi `BEKLEMEDE` (uç ve ekran T521). `12_matris_denetle.py --kapsam 1-77` hata 0.
+
+**Yapım raporu karşılaştırması (tur 3):** tam uyumlu. Öz denetim tablosu her madde için kanıtlı; KK4 satırı düzeltme 1 testlerini anar, düzeltme 2'nin B3 testleri satırın üstündeki notta yazılı (uyuşmazlık değil).
 
 ### Tur 2 (2026-11-10; head `be29b223`)
 

@@ -6,8 +6,8 @@ namespace Shopfolio.Modules.Ordering.Contracts;
 /// <summary>
 /// The administrator's order interventions that are not status transitions (T375, T386; 02 7.6.6, 10.4.1-10.4.5, 10.4.7, 10.4.11, 8.3.6, 8.3.7): the address and the guest order's e-mail
 /// (forward records that touch no amount, no item, no status and no period), the removal of an item or the reduction of its quantity (the cancellation's regime), the carrier, the
-/// delivery date and a return's arrival date, and the internal note. Each runs in the caller's transaction, after the order's row lock, and - all but the note - raises the order's
-/// version once (09 9.1). Each writes a trail row. The panel calls them; the customer has no way to (02 8.3.6, 8.3.7). A refusal writes nothing.
+/// delivery date and a return's arrival date, and the internal note. Each runs in the caller's transaction, after the order's row lock (the note after its shared form, 09 10.9),
+/// and - all but the note - raises the order's version once (09 9.1). Each writes a trail row. The panel calls them; the customer has no way to (02 8.3.6, 8.3.7). A refusal writes nothing.
 /// </summary>
 public interface IOrderCorrections
 {
@@ -61,9 +61,12 @@ public interface IOrderCorrections
     /// <summary>
     /// The administrator's internal note (T386; 02 10.4.7; 06 4.20; K-1095, K-371): one per order, never shown to the customer (no order page, e-mail or contract reads it). An
     /// empty text deletes it. Writing and changing it go to the trail without the text; an order whose personal data is disposed takes no note. The note does not raise the
-    /// order's version (09 10.9).
+    /// order's version (09 10.9): the order's row is read under a shared lock and the note is written only while it still holds the text the form showed
+    /// (<see cref="SaveInternalNoteRequest.OriginalText"/>); otherwise <c>DisplayedValueConflict</c> with the current note - two administrators never silently
+    /// overwrite each other. The caller runs it with <see cref="SaveInternalNoteRequest.RetryOnUniqueIndexes"/>: two first writes at once meet on the unique
+    /// index, and the run again answers the second with the conflict.
     /// </summary>
-    Task<OrderCorrectionResult> SaveInternalNoteAsync(SaveInternalNoteRequest request, CancellationToken ct);
+    Task<SaveInternalNoteResult> SaveInternalNoteAsync(SaveInternalNoteRequest request, CancellationToken ct);
 }
 
 /// <summary>The removal's input: the item, the removed units and - on a refund to the card - the irreversible-action confirmation (02 5.9). There is no price and no new item.</summary>
@@ -78,8 +81,15 @@ public sealed record CorrectDeliveryDateRequest(Guid OrderId, TransitionAdmin? A
 /// <summary>The arrival date correction's input: the item, its receipt or rejection record and the new date.</summary>
 public sealed record CorrectReturnArrivalDateRequest(Guid OrderId, Guid OrderItemId, Guid ArrivalRecordId, TransitionAdmin? Admin, DateOnly ArrivalDate, int? ExpectedVersion);
 
-/// <summary>The internal note's input: the text; an empty one deletes the note. The note does not take the screen's version (09 10.9).</summary>
-public sealed record SaveInternalNoteRequest(Guid OrderId, TransitionAdmin? Admin, string? Text);
+/// <summary>
+/// The internal note's input: the text (an empty one deletes the note) and the text the form showed (<see cref="OriginalText"/>, the hidden <c>Original</c>
+/// field; empty when there was no note). The note does not take the screen's version (09 10.9; 06 2.6.5): the shown text is its condition.
+/// </summary>
+public sealed record SaveInternalNoteRequest(Guid OrderId, TransitionAdmin? Admin, string? Text, string? OriginalText)
+{
+    /// <summary>The note's unique index on its order, in the form the transaction runner takes (09 10.9 item 3, 10.2): two first writes at once break it.</summary>
+    public static IReadOnlyCollection<string> RetryOnUniqueIndexes { get; } = ["ix_internal_notes_order_id"];
+}
 
 /// <summary>The address correction's input: the four address fields and, on a shipping address, the telephone (the billing address has none).</summary>
 public sealed record CorrectAddressRequest(

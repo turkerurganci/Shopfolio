@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Errors;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.Modules.Administration;
 using Shopfolio.Modules.Administration.Contracts;
@@ -315,7 +316,13 @@ public sealed partial class OrderCorrectionTests
         Assert.Equal(TransitionRefusal.InvalidInput, early.Refusal);
         Assert.Null(result.Refusal);
         await using AppDbContext reader = NewContext();
-        Assert.Equal(today.AddDays(-3), (await reader.Returns.AsNoTracking().SingleAsync(r => r.Id == receipt, Ct)).ArrivalDate);
+        DateOnly? arrival = (await reader.Returns.AsNoTracking().SingleAsync(r => r.Id == receipt, Ct)).ArrivalDate;
+        Assert.Equal(today.AddDays(-3), arrival);
+
+        // The refund's fourteen days run from the corrected date (02 10.4.5; Z-16): the start is read from the stored arrival, never stored itself (K-712).
+        DateOnly declaration = today.AddDays(-4);
+        Assert.Equal(today.AddDays(-1), AfterSalesPeriodRules.WithdrawalRefundStartDay(true, declaration, today.AddDays(-1)));
+        Assert.Equal(today.AddDays(-3), AfterSalesPeriodRules.WithdrawalRefundStartDay(true, declaration, arrival));
         Assert.Equal(dispatches, (await DispatchesAsync(order.Id)).Count);
         AuditLog row = await reader.AuditLogs.AsNoTracking().SingleAsync(a => a.TargetRecordId == order.Id, Ct);
         Assert.Equal(nameof(AuditOperation.CorrectReturnArrivalDate), row.Operation);
@@ -330,13 +337,14 @@ public sealed partial class OrderCorrectionTests
         Order order = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
         int dispatches = (await DispatchesAsync(order.Id)).Count;
 
-        OrderCorrectionResult written = await RunAsync(c => c.SaveInternalNoteAsync(new SaveInternalNoteRequest(order.Id, AdminCaller, "Müşteri aradı, gizli not"), Ct));
-        OrderCorrectionResult changed = await RunAsync(c => c.SaveInternalNoteAsync(new SaveInternalNoteRequest(order.Id, AdminCaller, "İkinci gizli not"), Ct));
-        OrderCorrectionResult same = await RunAsync(c => c.SaveInternalNoteAsync(new SaveInternalNoteRequest(order.Id, AdminCaller, "İkinci gizli not"), Ct));
+        SaveInternalNoteResult written = await NoteAsync(order.Id, "Müşteri aradı, gizli not", null);
+        SaveInternalNoteResult changed = await NoteAsync(order.Id, "İkinci gizli not", "Müşteri aradı, gizli not");
+        SaveInternalNoteResult same = await NoteAsync(order.Id, "İkinci gizli not", "İkinci gizli not");
 
-        Assert.Null(written.Refusal);
-        Assert.Null(changed.Refusal);
-        Assert.Equal(TransitionRefusal.InvalidInput, same.Refusal);
+        Assert.True(written.IsSaved);
+        Assert.True(changed.IsSaved);
+        Assert.False(same.IsSaved);
+        Assert.Null(same.Code);
         await using (AppDbContext reader = NewContext())
         {
             Assert.Equal("İkinci gizli not", (await reader.InternalNotes.AsNoTracking().SingleAsync(n => n.OrderId == order.Id, Ct)).Text);
@@ -352,9 +360,11 @@ public sealed partial class OrderCorrectionTests
         // The note does not raise the order's version (09 10.9).
         Assert.Equal(order.Version, (await ReloadAsync(order.Id)).Version);
 
-        OrderCorrectionResult emptied = await RunAsync(c => c.SaveInternalNoteAsync(new SaveInternalNoteRequest(order.Id, AdminCaller, "  "), Ct));
-        Assert.Null(emptied.Refusal);
+        // (f) An emptied note is deleted (K-1051); the version still does not move (g).
+        SaveInternalNoteResult emptied = await NoteAsync(order.Id, "  ", "İkinci gizli not");
+        Assert.True(emptied.IsSaved);
         Assert.Equal(0, await CountAsync(c => c.InternalNotes.Where(n => n.OrderId == order.Id)));
+        Assert.Equal(order.Version, (await ReloadAsync(order.Id)).Version);
     }
 
     [Fact]
@@ -366,10 +376,12 @@ public sealed partial class OrderCorrectionTests
             + "billing_recipient_name = NULL, billing_province_id = NULL, billing_district = NULL, billing_address_line = NULL, shipping_recipient_name = NULL, shipping_phone = NULL, "
             + $"shipping_province_id = NULL, shipping_district = NULL, shipping_address_line = NULL WHERE id = '{order.Id}'");
 
-        OrderCorrectionResult result = await RunAsync(c => c.SaveInternalNoteAsync(new SaveInternalNoteRequest(order.Id, AdminCaller, "not"), Ct));
+        SaveInternalNoteResult result = await NoteAsync(order.Id, "not", null);
+        SaveInternalNoteResult missing = await NoteAsync(Guid.NewGuid(), "not", null);
 
-        Assert.Equal(TransitionRefusal.ConditionNotMet, result.Refusal);
-        Assert.Equal(0, await CountAsync(c => c.InternalNotes));
+        Assert.Equal(ErrorCode.OperationNotAvailable, result.Code);
+        Assert.Equal(ErrorCode.OperationNotAvailable, missing.Code);
+        Assert.Equal(0, await CountAsync(c => c.InternalNotes.Where(n => n.OrderId == order.Id)));
     }
 
     // ---- helpers ----

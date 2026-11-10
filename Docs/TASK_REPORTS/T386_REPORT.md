@@ -13,14 +13,15 @@
 - **Kargo bilgisi düzeltmesi (k6):** `CorrectShipmentAsync` — `TryNormalizeShipment` tek kuralı, `CheckAsync(CorrectCarrier)`, aynı değer reddi, B-12, iz yalnız alan adını taşır (takip no ve şirket adı yok).
 - **Teslim tarihi düzeltmesi (k7, k8):** `CorrectDeliveryDateAsync` — sipariş düzeyi; ileri tarih, son kargo gününden önce ve iade ulaşma tarihinden sonra ret (`DeliveryDateObstacle.AfterReturnArrival` yeni); beyan gününe düşerse cevapsız ret (`AsksDeliveryOrder`), cevap `Withdrawal.IsDeliveredBeforeDeclaration`'a yazılır, beyan kalır; bildirimsiz; iz eski + yeni tarih.
 - **İade ulaşma tarihi düzeltmesi (k9):** `CorrectReturnArrivalDateAsync` → `IAfterSalesModule.CorrectArrivalDateAsync` (Return ve ReturnRejection, yerinde; ileri ve teslimden önce ret); bildirimsiz; iz eski + yeni tarih + ItemId. Geri ödeme süresi ulaşma tarihinden okunduğu için yeni tarihten işler.
-- **İç not (k10):** `SaveInternalNoteAsync` — sürüm dışında (kilit var, sürüm artmaz), boş metin notu siler, aynı metin reddi, imha edilmiş siparişte `CheckAsync(WriteInternalNote)` reddi; iz metinsiz.
+- **İç not (k10; düzeltme 1'de `09 §10.9`'a getirildi):** `SaveInternalNoteAsync` — ilk deyim `OrderLocks.LockSharedAsync` (`FOR SHARE`, iletişim e-postasını döndürür; sipariş yok ya da e-posta boş → `OperationNotAvailable`), kilit altında `CheckAsync(WriteInternalNote)`; yazım gösterilen metne (`SaveInternalNoteRequest.OriginalText`) koşullu: `Ordering/SaveInternalNote.cs` `ExecuteUpdateAsync` / `ExecuteDeleteAsync` (`Text == OriginalText`), satır yok ve gösterilen boşsa `INSERT`; uyuşmazlıkta `SaveInternalNoteResult.DisplayedValueConflict` (409) güncel notla döner; eşzamanlı ilk yazım `23505` → çağıran `RetryOnUniqueIndexes` ile yeniden yürütür, ikinci geçiş çakışma. Sipariş satırı izlenmez, sürüm artmaz; iz metinsiz, red izsiz.
 - **D-848:** `ClosingRecordMomentsAsync` çıkarmayı taşır (`IsRemoval`); dışa aktarmanın "kargodan önce kapandı" okuması çıkarmayı sayar; kanuni faiz uyarısı çıkarmayı dışlar.
 
 ## Etkilenen Modüller / Dosyalar
 
-- Ordering: `OrderCorrections.cs` (partial, kurucuya `OrderTransitions`, `IAfterSalesModule`), `OrderCorrections.Interventions.cs`, `OrderTransitions.Removal.cs`, `OrderPeriods.cs`, `Contracts/IOrderCorrections.cs`, `Contracts/DeliveryDateObstacle.cs`, `Contracts/ShipmentTransitionRequests.cs`
+- Ordering: `OrderCorrections.cs` (partial, kurucuya `OrderTransitions`, `IAfterSalesModule`), `OrderCorrections.Interventions.cs`, `OrderTransitions.Removal.cs`, `OrderPeriods.cs`, `Contracts/IOrderCorrections.cs`, `Contracts/DeliveryDateObstacle.cs`, `Contracts/ShipmentTransitionRequests.cs`; düzeltme 1: `OrderLocks.cs` (`LockSharedAsync`), `SaveInternalNote.cs` (yeni), `Contracts/SaveInternalNoteResult.cs` (yeni)
+- Infrastructure (düzeltme 1): `Forms/ShownValue.cs` (`NormalizeText` açıldı; not LF biçimiyle saklanır)
 - AfterSales: `AfterSalesModule.Interventions.cs`, `AfterSalesModule.Cancellations.cs`, `Contracts/IAfterSalesModule.cs`, `Contracts/ItemRecordWrites.cs`
-- Testler: `OrderCorrectionTests.Interventions.cs` (yeni), `OrderCorrectionTests.cs`, `DataExportTests.cs`, `LateDeliveryAndFirmCancellationTests.cs`, `InternalNoteSourceScanTests.cs` (yeni), `IrreversibleConfirmationTests.cs`
+- Testler: `OrderCorrectionTests.Interventions.cs` (yeni), `OrderCorrectionTests.InternalNote.cs` (yeni, düzeltme 1), `OrderCorrectionTests.cs`, `DataExportTests.cs`, `LateDeliveryAndFirmCancellationTests.cs`, `InternalNoteSourceScanTests.cs` (yeni), `IrreversibleConfirmationTests.cs`, `VersionedSideBulkWriteScan.cs` / `VersionedSideBulkWriteScanTests.cs` (düzeltme 1: notun yeri)
 - Göç, yeni tablo, yeni ayar yok.
 
 ## Kabul Kriterleri Kontrolü
@@ -39,12 +40,14 @@ Devam işçisi bütün maddeleri (önceki işçinin yaptıkları dahil) diff'te 
 | k6 / KK6 kargo düzeltmesinde B-12 | ✓ | `TheCarrierCorrection_ChangesTheShipmentsValues_SendsB12_…_KK6`, `TheCarrierCorrection_IsClosedBeforeTheShipment_KK6` |
 | k7 / KK7 tarih sınırları | ✓ | `TheDeliveryDate_IsNotInTheFuture_NotBeforeTheShipment_NorAfterAReturnsArrival_KK7`, `TheDeliveryDate_IsCorrectedForTheWholeOrder_…_KK7_KK9` |
 | k8 / KK8 pencere yeni tarihten, eski beyan sürer, çakışmada cevapsız ret | ✓ | `TheWithdrawalWindow_RunsFromTheCorrectedDate_KK8`, `OnADeclarationsDay_TheCorrectionAsksWhichCameFirst_…_KK8` |
-| k9 / KK9 ulaşma tarihi düzeltilir, ileri olamaz, bildirimsiz, izde eski/yeni | ✓ | `TheArrivalDate_IsCorrectedInPlace_…_WithoutANotice_KK9`; teslim tarihi testi de bildirimsiz |
-| k10 / KK10 müşteriye görünmez, iz metinsiz, imha sonrası ret | ✓ | `TheInternalNote_IsWrittenChangedAndEmptied_…_KK10`, `ADisposedOrder_TakesNoInternalNote_KK10`, `InternalNoteSourceScanTests` (sayfa, e-posta şablonu, sözleşme notu okuyamaz; ihlal örnekleri kırmızı) |
+| k9 / KK9 ulaşma tarihi düzeltilir, ileri olamaz, geri ödeme süresi yeni tarihten, bildirimsiz, izde eski/yeni | ✓ | `TheArrivalDate_IsCorrectedInPlace_…_WithoutANotice_KK9` (düzeltme 1: saklanan yeni tarihle `WithdrawalRefundStartDay` = yeni tarih, eskiyle eski); teslim tarihi testi de bildirimsiz |
+| k10 / KK10 müşteriye görünmez, iz metinsiz, imha sonrası ret | ✓ | `TheInternalNote_IsWrittenChangedAndEmptied_…_KK10` ((f) boşaltma, (g) sürüm, (h) iz metinsiz), `ADisposedOrder_TakesNoInternalNote_KK10` (imha + olmayan sipariş `OperationNotAvailable`), `InternalNoteSourceScanTests` (sayfa, e-posta şablonu, sözleşme notu okuyamaz; ihlal örnekleri kırmızı) |
+| `09 §10.9` iç notun kilidi ve koşullu yazımı (düzeltme 1, B1) | ✓ | `FOR SHARE` yalnız `OrderLocks.LockSharedAsync`; `ConcurrencySourceScan` yeşil. İki gerçek işlemli testler: (a) `ADisposalHoldingTheOrdersRowLock_MakesTheNoteWait_…_10_9a`, (b) `ANoteHoldingItsSharedLock_MakesTheDisposalWait_…_10_9b`, (c) `TwoNoteWrites_DoNotBlockEachOther_…_10_9c`, (d) `TwoAdministratorsFirstWrites_…_10_9d` (`23505` → yeniden yürütme → çakışma), (e) `AStaleShownText_IsTheConflict_…_10_9e` (değiştirme, boşaltma, yeniden gönderim, CR LF). Toplu yazım yalnız `SaveInternalNote.cs`'te: `TheInternalNotePlace_HoldsOneUpdateAndOneDelete_…` (iki deyim, koşul gösterilen metin, `Orders` yok) |
+| `09 §10` her yazma yolu (düzeltme 1 taraması) | ✓ | Çıkarma, kargo, teslim ve ulaşma tarihi: `OrderLocks.LockAsync` (`FOR UPDATE`) + ekran sürümü + kilit altında `CheckAsync` + `RaiseVersionOnce` (§9.1 madde 4–5, §10.2); iç not: §10.9 (yukarıda). T386'da gösterilen-değer kuralını isteyen başka serbest metin yazımı yok (`grep -n "Text\|Note" OrderCorrections.Interventions.cs`); uç/ekran yok (panel ucu T531) |
 | `09 §25` modül sınırı, arayüzde `SaveChanges` yok | ✓ | AfterSales yazıcıları çağıranın işleminde, `ModuleBoundaryTests` yeşil |
 | `09 §25` zaman `TimeProvider` | ✓ | `_time.GetUtcNow()` |
 | `09 §25` göç / yeni tablo / yeni ayar | ✓ (yok) | — |
-| Güvenlik taraması | ✓ | Yalnız yönetici (`TransitionAdmin` yoksa `ActorNotAllowed`); karta para giden çıkarmada onay; iz satırları serbest metin taşımaz (test); yeni paket/uç yok |
+| Güvenlik taraması | ✓ | Yalnız yönetici (`TransitionAdmin` yoksa `ActorNotAllowed`; iç notta `OperationNotAvailable`); karta para giden çıkarmada onay; iz satırları serbest metin taşımaz (test); yeni paket/uç yok |
 | Sık FAIL 1: tarama istisnası geniş | ✓ | `InternalNoteSourceScanTests` istisnaları tam yol (5 dosya); göç ve bin/obj dışlaması ayrı testle sınandı |
 | Sık FAIL 2: tarama bir biçimi kaçırıyor | ✓ | varlık, set, `Set<InternalNote>`, ham tablo adı, `InternalNoteId` ayrı örnekler; `SaveInternalNote`/`WriteInternalNote` sessiz |
 | Sık FAIL 3: 06 "Varsayılan" / FK dizini | ✓ (yok) | yeni tablo/sütun yok |
@@ -52,13 +55,16 @@ Devam işçisi bütün maddeleri (önceki işçinin yaptıkları dahil) diff'te 
 | Sık FAIL 5: 09 metni karar kaydısız | ✓ (yok) | 02/03/06/09 metni değişmedi |
 | Sık FAIL 51: kurucuya bağımlılık, Integration TAM | ✓ | Integration tam koşu (aşağıda) |
 | Sık FAIL 66: yeni kapanış türü açık adet okuyucularına | ✓ | `ItemRemovals` zaten `ClosedQuantitiesAsync`, kupon payı, geri ödeme tutarı, satış özeti okuyucularında; kapanış anları okuyucusuna bu task ekledi |
-| Devredilen backlog | ✓ | D-848 kapatıldı (testle, `DEFERRED_BACKLOG.d/T384.md`); D-309 → F3 kapısı (belge sabit vermiyor, ürün sahibi kararı) |
+| Devredilen backlog | ✓ | D-848 kapatıldı (testle, `DEFERRED_BACKLOG.d/T384.md`); D-309 → F3 kapısı (belge sabit vermiyor, ürün sahibi kararı); D-884'e T386 payı yazıldı (düzeltme 1, K1: 2, 3, 4, 6 T386'da; kalan 5, 7, 8) |
+| Sık FAIL 68: paylaşılan serbest metin yazımı §10.9'u atladı | ✓ | Bu task'ın kendi kaydı; düzeltme 1 yukarıdaki §10.9 satırıyla kapatır |
 
 ## ⚠ Kolay kararlar (kurala en uygun seçenekle verildi)
 
 1. Çıkarma düzeltmedir, iptal değildir (`02 §10.4.3`): kanuni faiz uyarısı çıkarmayı saymaz.
 2. İade ulaşma tarihi düzeltmesi hem iade alımını (Return) hem iade reddini (ReturnRejection) kapsar.
-3. `ExpectedVersion` T375'teki gibi isteğe bağlı; iç not sürüm dışında (`09 §10.9`), kilitle sıralanır.
+3. `ExpectedVersion` T375'teki gibi isteğe bağlı; iç not sürüm dışında, paylaşımlı kilit ve gösterilen metne koşullu yazımla (`09 §10.9`; düzeltme 1'de düzeltildi — ilk sürüm özel kilit ve koşulsuz yazımdı, B1).
+6. (Düzeltme 1) İç not kendi sonuç türünü yazar (`SaveInternalNoteResult`, red üyeleri `ErrorCode`; `09 §8.1` madde 2). Yönetici verilmemiş çağrı da `OperationNotAvailable`'dır (bu işlemde ayrı kod yok). Gönderilen metin gösterilen metinle aynı ve not hâlâ o metinse hiçbir şey yazılmaz, iz yok (`Unchanged`); not değişmişse çakışma.
+7. (Düzeltme 1) Not LF satır sonuyla saklanır ve gösterilen metin de `ShownValue.NormalizeText` ile aynı biçime getirilir; koşul veritabanında `ShownValue.Matches` ile aynı sonucu verir (tarayıcı CR LF gönderir).
 4. D-309: belge uzunluk sabiti vermediği için sınır konmadı, F3 kapısına ileri atıldı.
 5. `IrreversibleConfirmationTests`: AfterSales `CorrectArrivalDateAsync` geri alma değil yerinde tarih düzeltmesi olduğundan "tek Correct" sayımından adıyla dışlandı.
 
@@ -70,6 +76,15 @@ Devam işçisi bütün maddeleri (önceki işçinin yaptıkları dahil) diff'te 
 | Integration | ✓ | `dotnet test tests/Shopfolio.IntegrationTests --no-build` (`postgres:18`, `track_commit_timestamp=on`) | tam koşu 3310: 3308 ✓, 2 göç testi yük altında okuma zaman aşımı → sınıfları ayrı koşuda 115/115 ✓; `OrderCorrectionTests` 46/46 |
 | Lint | ✓ | `dotnet format <proje> --no-restore --verify-no-changes --include <değişen>` (3 proje) | temiz |
 | Build | ✓ | `dotnet build` | 0 uyarı, 0 hata |
+| Düzeltme 1 — Build / Lint | ✓ | `dotnet build --no-restore -warnaserror`; `dotnet format <proje> --verify-no-changes --no-restore` (3 proje) | 0 uyarı, 0 hata; temiz |
+| Düzeltme 1 — Unit | ✓ | `dotnet test --project tests/Shopfolio.UnitTests --no-build --filter-namespace "Shopfolio.UnitTests.Architecture*"` + `--filter-not-namespace` (Consistency dahil) | 1231/1231 + 4523/4523 = 5754/5754 |
+| Düzeltme 1 — Integration | ✓ | `--filter-namespace` Ordering, Administration, Concurrency, Disposal (`postgres:18`, `track_commit_timestamp=on`) | `OrderCorrectionTests` 51/51; Ordering 594: 593 ✓, 1 ⚠ `ItemRecordsTests.Receipt_OfTheOrdersLastUnit_GivesTheCouponRightBack_Once` kupon kodu çakışması (T373 testi, kod UUIDv7'nin zaman önekinden; sınıf ayrı koşuda 63/63 ✓ → D-942); Administration 46/46; Concurrency 26/26; Disposal 61/61 (AfterSales ad alanında entegrasyon testi yok; AfterSales sınıfları Ordering altında) |
+
+### Düzeltme 1 (tur 1 FAIL → B1, K1, K2)
+
+- **B1:** iç not `09 §10.9`'a getirildi — `OrderLocks.LockSharedAsync` (`FOR SHARE`), `SaveInternalNoteRequest.OriginalText`, koşullu `ExecuteUpdateAsync`/`ExecuteDeleteAsync` (`SaveInternalNote.cs`, toplu yazım tarama listesinde tek yer), `SaveInternalNoteResult` (`DisplayedValueConflict` + güncel not, `OperationNotAvailable`), eşzamanlı ilk yazımda `RetryOnUniqueIndexes` (`ix_internal_notes_order_id`). Özel kilit kalktı. Madde 5 (a)–(e) Integration'da (`OrderCorrectionTests.InternalNote.cs`).
+- **K1:** D-884'e T386 payı yazıldı (`DEFERRED_BACKLOG.d/T375.md`).
+- **K2:** KK9 testi geri ödeme süresi başlangıcının düzeltilmiş tarih olduğunu iddia eder.
 
 ## Doğrulama
 

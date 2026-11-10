@@ -1,6 +1,6 @@
 # T364 — Panelde eşzamanlı düzenleme ve siparişte çakışan işlemler
 
-**Faz:** F3 | **Durum:** Düzeltme 1 tamam — doğrulama tur 2 bekliyor | **Tarih:** 2026-11-10
+**Faz:** F3 | **Durum:** ✓ PASS (doğrulama tur 2) | **Tarih:** 2026-11-10
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -95,6 +95,34 @@ Eşzamanlılığın mekanizması (`RecordSave`, `OrderLocks`, `ShownVersion`, `V
 | Düzeltme 1 — Integration | ✓ | `--filter-namespace` Ordering + Concurrency; Administration; Payment (Postgres 18, `track_commit_timestamp=on`, `Host=127.0.0.1`) | 638/638; 69/69; 14/14 (Payment) |
 
 ## Doğrulama
+
+### Tur 2 (2026-11-10; head `dd5fb1cb`)
+
+| Alan | Sonuç |
+|---|---|
+| Doğrulama durumu | ✓ PASS (tur 2; dal CI 42747369700 bütün işler yeşil; `origin/main` `ed1ee67c` dal tabanı, birleştirme gerekmedi) |
+| Bulgu sayısı | 0 — B1 kapandı |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 0 yeni; tur 1 K1 → D-961 açık kalır |
+
+**Validator kabul kriterleri tablosu (tur 2):**
+
+| # | Sonuç | Validator kanıtı |
+|---|---|---|
+| 1 | ✓ | Tek yol `RecordSave.SaveAsync` (değişmedi); `ConcurrencyTests` KK1, `VersionedFormPageTests` 409 + "Yine de kaydet" testleri yerelde yeşil (kalan ad alanları 2812/2812) |
+| 2 | ✓ | İçerik, ürün, ayar aynı `RecordSave` / bölüm sürümü kalıbında (`ContentPublishing`, `BrandingSettings`, `ProductTransitions`, `ProductRemoval`, `CompanyIdentities`, `LegalTexts`); `ContentAuthoringTests`, `ContentStatusTests`, `ProductPublishGateTests`, `ProductTransitionsTests`, `FirmSettingsTests`, `CompanyIdentityTests`, `BrandingTests` yeşil |
+| 3 | ✓ | Kilit → yükleme → `ShownVersion.Check`/`Matches`; üç `Task.WhenAll` testi (ödendi işareti, havale geri ödemesi, kalem çıkarma) yeşil |
+| 4 | ✓ | B1 kapandı: `ShownVersion.Check(order, shown, byAdministrator)` tek karar yeri; yöneticinin sürümsüz isteği `InvalidInput` — `OrderCorrections.LockAsync` (altı müdahale), `LockItemAsync` (yönetici kalem işlemleri), `ApplyChosenCoreAsync` (yönetici aktörlü geçiş), geç teslim feshi; öteki bütün yönetici istekleri `int ExpectedVersion` taşır (`Contracts` taraması); `Payment.cs:213` eksen adımı aynı kilit altında siparişin kendi sürümünü taşır, yöneticinin sürümü 174. satırda karşılaştırılmıştır. `AnIntervention_WithoutTheShownVersion_…_T364_KK4` (6 müdahale × sürümsüz / eski / güncel) ve `Apply_ByAnAdministratorWithoutTheShownVersion_…_T364_KK4` yeşil; tarama `SkippedComparison` kuralı Unit'te yeşil |
+| 5 | ✓ | Eşzamanlı testlerde tek O1 + ödeme + B-4; tek geri ödeme; tek `ItemRemoval` + geri ödeme + iz + B-11 |
+| 6 | ✓ | `AutomaticTransitionLog` (kod + iç kimlik, bildirim yok) dört yolda; müşteri reddi `Refusal` kodu; `FOR UPDATE NOWAIT`; üç T364_KK6 testi (`PaymentTransitionsTests.Concurrency` ×2, `PaymentWindowTests` ×1) yeşil |
+
+**Test ve derleme (validator tur 2, `dd5fb1cb`):** `dotnet restore` ✓; build `-warnaserror` 0 uyarı 0 hata; `dotnet format --verify-no-changes --no-restore` üç projede çıkış 0; Unit 5786/5786; betik 4/4 dosya; Integration (`postgres:18`, `track_commit_timestamp=on`): değişen dört sınıf 145/145, Ordering + Concurrency 638/638, kalan ad alanları 2812/2812.
+
+**Task satırları (`12 §7.5`):** VAL-A371, A372, C076, C077, C078 `BEKLEMEDE` kalır (uç ve tarayıcı kanıtı; T542/F5); `12` değişmedi, `12_matris_denetle.py --kapsam 1-77` Hata 0.
+
+**Yapım raporu karşılaştırması (tur 2):** tam uyumlu; öz denetim tablosu var, maddeler kanıtlı. Öz denetimdeki "mimari testler yeşil (Unit 5762/5762)" satırı ilk turun sayısını taşır (düzeltme 1 sonrası 5786/5786) — sonucu değiştirmez.
+
+### Tur 1
 
 | Alan | Sonuç |
 |---|---|

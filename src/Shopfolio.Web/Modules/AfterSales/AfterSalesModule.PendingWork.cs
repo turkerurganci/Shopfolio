@@ -13,6 +13,8 @@ namespace Shopfolio.Modules.AfterSales;
 /// </summary>
 internal sealed partial class AfterSalesModule
 {
+    private const int AwaitedPageSize = 500;
+
     private static readonly PaymentStatus[] PaymentTaken = [PaymentStatus.Paid, PaymentStatus.PartiallyRefunded, PaymentStatus.Refunded];
 
     public Task<int> CountOpenDefectClaimsAsync(CancellationToken ct) =>
@@ -22,35 +24,49 @@ internal sealed partial class AfterSalesModule
     {
         // The units a withdrawal or a termination still awaits, counted by the database: declared minus received, rejected and closed as "mal dönmedi" (a closure that was
         // reopened is not closed). A closed or rejected unit is no longer awaited (02 10.4.9, 7.4.9; criterion 5); a reopened one is awaited again.
-        List<Guid> withdrawalItems = await _db.Withdrawals.AsNoTracking()
+        // Both sets are walked one page of records at a time by id (09 20 item 2): no read takes the growing set whole.
+        Func<Guid?, Guid, Task<List<AwaitedRecord>>> withdrawals = (after, cursor) => _db.Withdrawals.AsNoTracking()
             .Where(w => w.Quantity
                 - (_db.Returns.Where(r => r.WithdrawalId == w.Id).Sum(r => (int?)r.Quantity) ?? 0)
                 - (_db.ReturnRejections.Where(r => r.WithdrawalId == w.Id).Sum(r => (int?)r.Quantity) ?? 0)
                 - (_db.NotReturnedClosures.Where(n => n.WithdrawalId == w.Id && n.ReopenedAt == null).Sum(n => (int?)n.Quantity) ?? 0) > 0)
-            .Select(w => w.OrderItemId)
-            .Distinct()
+            .Where(w => after == null || w.Id.CompareTo(cursor) > 0)
+            .OrderBy(w => w.Id)
+            .Take(AwaitedPageSize)
+            .Select(w => new AwaitedRecord(w.Id, w.OrderItemId))
             .ToListAsync(ct);
-        List<Guid> terminationItems = await _db.LateDeliveryTerminations.AsNoTracking()
+        Func<Guid?, Guid, Task<List<AwaitedRecord>>> terminations = (after, cursor) => _db.LateDeliveryTerminations.AsNoTracking()
             .Where(t => t.Quantity - (_db.Returns.Where(r => r.LateDeliveryTerminationId == t.Id).Sum(r => (int?)r.Quantity) ?? 0) > 0)
-            .Select(t => t.OrderItemId)
-            .Distinct()
+            .Where(t => after == null || t.Id.CompareTo(cursor) > 0)
+            .OrderBy(t => t.Id)
+            .Take(AwaitedPageSize)
+            .Select(t => new AwaitedRecord(t.Id, t.OrderItemId))
             .ToListAsync(ct);
-        Guid[] candidates = [.. withdrawalItems.Union(terminationItems)];
-        if (candidates.Length == 0)
-        {
-            return [];
-        }
 
         // Only a shipped physical item has goods that can come back; a service item or an order never shipped awaits nothing.
         HashSet<Guid> orders = [];
-        foreach (Guid[] chunk in candidates.Chunk(500))
+        foreach (Func<Guid?, Guid, Task<List<AwaitedRecord>>> source in new[] { withdrawals, terminations })
         {
-            IReadOnlyList<RefundWorkItemFacts> facts = await _ordering.FindRefundWorkItemFactsAsync(chunk, ct);
-            orders.UnionWith(facts.Where(f => f.ProductType == ProductType.Physical && f.IsShipped).Select(f => f.OrderId));
+            Guid? after = null;
+            while (true)
+            {
+                Guid cursor = after ?? Guid.Empty;
+                List<AwaitedRecord> page = await source(after, cursor);
+                if (page.Count == 0)
+                {
+                    break;
+                }
+
+                IReadOnlyList<RefundWorkItemFacts> facts = await _ordering.FindRefundWorkItemFactsAsync([.. page.Select(r => r.OrderItemId).Distinct()], ct);
+                orders.UnionWith(facts.Where(f => f.ProductType == ProductType.Physical && f.IsShipped).Select(f => f.OrderId));
+                after = page[^1].Id;
+            }
         }
 
         return [.. orders];
     }
+
+    private sealed record AwaitedRecord(Guid Id, Guid OrderItemId);
 
     public async Task<RefundProcessingPage> ListOrdersAwaitingRefundProcessingAsync(Guid? afterId, int maxSubjects, CancellationToken ct)
     {

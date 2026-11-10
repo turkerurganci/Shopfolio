@@ -25,6 +25,7 @@ using Shopfolio.Infrastructure.SignedEndpoints;
 using Shopfolio.Infrastructure.Values;
 using Shopfolio.IntegrationTests.Database;
 using Shopfolio.IntegrationTests.Model;
+using Shopfolio.IntegrationTests.Ordering;
 using Shopfolio.IntegrationTests.SignedEndpoints;
 using Shopfolio.IntegrationTests.Web;
 using Shopfolio.Modules.AfterSales;
@@ -85,53 +86,8 @@ public sealed class PaymentNotificationTests : IAsyncLifetime
             "TRUNCATE inbound_notification_records, dispatch_records, jobs, refund_records, refunds, payment_records, cancellations, internal_notes, "
             + "transition_records, order_items, orders, legal_text_versions, provinces CASCADE");
 
-        WebApplicationBuilder builder = WebApplication.CreateSlimBuilder();
-        builder.WebHost.UseTestServer();
-        builder.Logging.ClearProviders().AddProvider(_logs);
-        IServiceCollection services = builder.Services;
-        services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn).AddInterceptors(_commit));
-        services.AddScoped<JobEnqueueTracker>();
-        services.AddSingleton<IJobSignal, JobSignal>();
-        services.AddScoped<ITransactionRunner, TransactionRunner>();
-        services.AddAppCache();
-        services.AddScoped<AdvisoryLocks>();
-        services.AddSingleton(TimeProvider.System);
-        services.AddScoped<IJobQueue, JobQueue>();
-        services.AddFileStore();
-        services.AddOptions<StatusThresholdOptions>();
-        services.AddSingleton<Shopfolio.Infrastructure.Status.IDiskUsageReader, Shopfolio.Infrastructure.Status.DriveDiskUsageReader>();
-        services.AddSingleton<Shopfolio.Infrastructure.Status.DiskUsageGuard>();
-        services.AddSingleton<ImageProcessor>();
-        services.AddCatalogModule();
-        services.AddAfterSalesModule();
-        services.AddOrderingModule();
-        services.AddPaymentModule();
-
-        // The Settings module (with its trail) for the payment window the transition unit reads (T319; P-7), as in the ordering tests' services; its
-        // start-up regeneration of the legal texts is left out, as this host seeds no company identity and the ordering tests' services start no host.
-        services.AddScoped<Shopfolio.Modules.Administration.IAuditActorSource, Shopfolio.IntegrationTests.Ordering.NoAuditActor>();
-        services.AddScoped<Shopfolio.Modules.Administration.Contracts.IAuditTrail, Shopfolio.Modules.Administration.AuditTrail>();
-        services.AddSettingsModule();
-        services.Remove(services.Single(d => d.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService) && d.ImplementationType == typeof(GeneratedLegalTextsStartup)));
-        services.AddScoped<INotificationsModule, NotificationsModule>();
-        services.AddScoped<CustomerNoticeQueue>();
-        services.AddScoped<CompanyNoticeQueue>();
-        services.AddScoped<AccountEmailQueue>();
-        services.AddScoped<ICompanyContactEmail, FixedCompanyContactEmail>();
-        services.AddOptions<LinkKeyOptions>();
-        services.AddSingleton<LinkKeys>();
-        services.AddSingleton<IPaymentGateway>(_gateway);
-        services.AddSingleton(provider => new JobHandlerRegistry(provider.GetServices<JobHandlerRegistration>()));
-        services.AddAntiforgery();
-        services.AddSignedEndpoints();
-        services.AddSingleton<UnexpectedErrorCounter>();
-        services.AddSingleton<UnexpectedErrorLayer>();
-
-        _app = builder.Build();
-        _app.UseUnexpectedErrorLayer();
-        _app.UseAntiforgery();
-        _app.MapPaymentNotificationEndpoint();
-        await _app.StartAsync(Ct);
+        // The shared notification server (D-828) on the system clock, with the commit interceptor and the collecting log provider.
+        _app = await PaymentNotificationHost.StartAsync(_collection.Dsn, TimeProvider.System, _gateway, Ct, database: options => options.AddInterceptors(_commit), logs: _logs);
         _client = _app.GetTestClient();
     }
 
@@ -528,8 +484,4 @@ public sealed class PaymentNotificationTests : IAsyncLifetime
         await command.ExecuteNonQueryAsync(Ct);
     }
 
-    private sealed class FixedCompanyContactEmail : ICompanyContactEmail
-    {
-        public Task<string?> GetAsync(CancellationToken ct) => Task.FromResult<string?>("firma-iletisim@example.com");
-    }
 }

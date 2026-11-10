@@ -138,6 +138,18 @@ internal static partial class CustomerNoticeValues
     /// <summary>The first e-mail's creation moment a B-1 row after a correction holds; null for any other row or a malformed list.</summary>
     public static DateTimeOffset? ReadFirstEmailSentAt(string? eventValues) => ReadMoment(Get(ReadList(eventValues), FirstEmailSentAtName));
 
+    /// <summary>
+    /// The event values of a re-sending row (02 9.1.6; 06 4.58): the values of the e-mail's latest row with the creation moment of the group's first e-mail written under
+    /// <see cref="FirstEmailSentAtName"/> - the moment the re-send sentence is made from, kept on the row so it outlives the first row's own deletion (08 2.2.5 item 6). A moment the
+    /// source already holds (a B-1 after a correction) is replaced by <paramref name="firstEmailAt"/>, which the caller took from it. A malformed list is not copied.
+    /// </summary>
+    public static string WithFirstEmailSentAt(string? eventValues, DateTimeOffset firstEmailAt)
+    {
+        Dictionary<string, string> values = ReadList(eventValues) ?? [];
+        values[FirstEmailSentAtName] = Moment(firstEmailAt);
+        return Write([.. values.Select(v => (v.Key, v.Value))]);
+    }
+
     /// <summary>The window end a B-2 or B-3 row holds; null for any other row or a malformed list.</summary>
     public static DateTimeOffset? ReadWindowEnd(string? eventValues) => ReadMoment(Get(ReadList(eventValues), WindowEndsAt));
 

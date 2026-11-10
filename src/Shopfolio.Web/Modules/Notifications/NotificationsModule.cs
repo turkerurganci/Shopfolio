@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using Shopfolio.Infrastructure;
 using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.EmailComposition;
 using Shopfolio.Infrastructure.Jobs;
@@ -16,9 +17,20 @@ internal sealed class NotificationsModule : INotificationsModule
     private readonly CustomerNoticeQueue _customerNotices;
     private readonly CompanyNoticeQueue _companyNotices;
     private readonly AccountEmailQueue _accountEmails;
+    private readonly DispatchResending _resending;
+    private readonly AppDbContext _db;
 
-    public NotificationsModule(CustomerNoticeQueue customerNotices, CompanyNoticeQueue companyNotices, AccountEmailQueue accountEmails)
+    public NotificationsModule(
+        CustomerNoticeQueue customerNotices,
+        CompanyNoticeQueue companyNotices,
+        AccountEmailQueue accountEmails,
+        DispatchResending resending,
+        AppDbContext db)
     {
+        ArgumentNullException.ThrowIfNull(resending);
+        ArgumentNullException.ThrowIfNull(db);
+        _resending = resending;
+        _db = db;
         ArgumentNullException.ThrowIfNull(customerNotices);
         ArgumentNullException.ThrowIfNull(companyNotices);
         ArgumentNullException.ThrowIfNull(accountEmails);
@@ -38,6 +50,18 @@ internal sealed class NotificationsModule : INotificationsModule
     public Task<int> QueueAccountEmailAsync(AccountEmail email, CancellationToken ct) => Task.FromResult(_accountEmails.Queue(email));
 
     public Task<bool> QueueGoogleLinkConfirmationAsync(Guid customerId, string email, CancellationToken ct) => _accountEmails.QueueGoogleConfirmationAsync(customerId, email, ct);
+
+    public Task<bool> OrderHasUndeliveredMarkAsync(Guid orderId, CancellationToken ct) => DispatchMarks.HasMarkAsync(_db, orderId, ct);
+
+    public Task<bool> ClaimHasUndeliveredMarkAsync(DispatchRelatedRecordType recordType, Guid recordId, CancellationToken ct) =>
+        DispatchMarks.ClaimHasMarkAsync(_db, recordType, recordId, ct);
+
+    public Task<IReadOnlyList<UndeliveredNotice>> FindUndeliveredNoticesAsync(Guid orderId, CancellationToken ct) => _resending.FindUndeliveredAsync(orderId, ct);
+
+    public Task<IReadOnlyList<Guid>> FindMarkedOrderIdsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct) =>
+        DispatchMarks.MarkedOrderIdsAsync(_db, afterOrderId, maxOrders, ct);
+
+    public Task<NoticeResendResult> ResendCustomerNoticeAsync(NoticeResendRequest request, CancellationToken ct) => _resending.ResendAsync(request, ct);
 }
 
 /// <summary>The module's single registration (09 6 item 3): <c>Program.cs</c> calls <c>AddNotificationsModule</c> once.</summary>
@@ -80,6 +104,12 @@ internal static class NotificationsModuleRegistration
 
         // The per-recipient sending limit asked at a row's first attempt (08 2.2.4); its thinned security line keeps one window in memory.
         services.AddScoped<RecipientLimitCheck>();
+
+        // The panel's re-sending of a marked customer notice (T385; 02 9.1.6): a new row in the notice's group and its trail row, in the caller's transaction.
+        services.AddScoped<DispatchResending>();
+
+        // The e-mail queue is a scheduler source (T385; 05 5.1.1): the rows are sent, retried and given up on by their own time; it sends nothing while no gateway is registered (T407).
+        services.AddDueRecordSource<DispatchRetrySource>();
         services.AddSingleton<RecipientLimitLog>();
 
         // The e-mail channel warning is a condition of the status endpoint (05 9.4.7).

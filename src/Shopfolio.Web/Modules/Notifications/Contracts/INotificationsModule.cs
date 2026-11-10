@@ -42,4 +42,31 @@ public interface INotificationsModule
     /// account already has a valid confirmation link, when no link and no e-mail is made and the result is false. True means the link and the row were written.
     /// </summary>
     Task<bool> QueueGoogleLinkConfirmationAsync(Guid customerId, string email, CancellationToken ct);
+
+    /// <summary>
+    /// Whether the order carries the "e-posta ulaşmadı" mark (T385; 02 9.1.6; 06 4.58): the latest row of any customer notice group of the order is "undelivered". Read from the rows at every call, never stored;
+    /// a firm notice or an account e-mail never puts it. A plain read; nothing is written.
+    /// </summary>
+    Task<bool> OrderHasUndeliveredMarkAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
+    /// Whether a withdrawal, a late delivery termination or a defect claim shows the mark on its own row in the panel (T385; 02 9.1.6): its B-9 ends in an "undelivered" row. Any other kind gives false. A plain read.
+    /// </summary>
+    Task<bool> ClaimHasUndeliveredMarkAsync(DispatchRelatedRecordType recordType, Guid recordId, CancellationToken ct);
+
+    /// <summary>The order's customer notices that carry the mark - what the order detail's re-send buttons stand for (T385; 02 9.1.6); oldest first. A plain read.</summary>
+    Task<IReadOnlyList<UndeliveredNotice>> FindUndeliveredNoticesAsync(Guid orderId, CancellationToken ct);
+
+    /// <summary>
+    /// One page of the orders that carry the mark, by order id after <paramref name="afterOrderId"/> (null starts at the first): the filtered list the home page's "işaretli siparişler" row leads
+    /// to (T385; 02 10.6.1; K-761). An empty page is the end. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<Guid>> FindMarkedOrderIdsAsync(Guid? afterOrderId, int maxOrders, CancellationToken ct);
+
+    /// <summary>
+    /// Sends a marked customer notice again (T385; 02 9.1.6): writes a new "queued" row into the notice's group, which the ordinary queue sends, and the trail row of the re-sending, in the caller's open
+    /// transaction, which the method joins and never opens. Nothing is written when the named row is not the latest row of an "undelivered" group of the order (<see cref="NoticeResendResult.NotMarked"/>).
+    /// The order's row lock and the concurrent second request are the caller's (05 4.4.3).
+    /// </summary>
+    Task<NoticeResendResult> ResendCustomerNoticeAsync(NoticeResendRequest request, CancellationToken ct);
 }

@@ -1,6 +1,6 @@
 # T385 — Gönderim yeniden denemesi ve "e-posta ulaşmadı" işareti: üç deneme, işaretin düşüşü, panelden yeniden gönderim, işaretsiz bildirimler
 
-**Faz:** F3 | **Durum:** ⏳ Düzeltme 1 tamamlandı, doğrulama bekliyor | **Tarih:** 2026-11-10
+**Faz:** F3 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS) | **Tarih:** 2026-11-10
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -71,10 +71,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-10, head `3de1e988`) |
-| Bulgu sayısı | 1 (B1 DÜŞÜK S1) |
-| Düzeltme gerekli mi | Evet — B1 |
-| Bloke-etmeyen not (K) sayısı | 3 (K1 → D-974; K2, K3 → D-975) |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-10, head `aac1b8b4`); tur 1 ✗ FAIL (head `3de1e988`) |
+| Bulgu sayısı | 0 (tur 2); tur 1'in B1'i düzeltme 1'de kapandı |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | tur 2'de yeni yok; tur 1'den açık: K1 → D-974, K3 → D-975 (K2 kapandı) |
+
+**Validator kanıtları (tur 2):** kriter 1–9 ve KK1–KK9 ✓. B1 kapandı: `DispatchMarks.ClaimHasMarkAsync` yalnız `DefectClaim` için okur (`type != DefectClaim` → false), sorgu `DispatchType.B9` + `RelatedRecordType` + `RelatedRecordId` ile; `02 §9.1.6`, `03 §1.7.3.1`, `06 §4.58` "Ayıp talebinin satırı" ile uyumlu; `ADefectClaimsB9_ShowsTheMarkOnTheClaimToo_…` (ayıp talebi ✓, başka kimlik ✗, sipariş satırı ✓) ve `AWithdrawalsOrALateTerminationsB9_ShowsTheMarkOnTheOrdersRowOnly_…` (Withdrawal ve LateDeliveryTermination: talep satırı ✗, sipariş satırı ✓). K2 kapandı: `TheSchedulerSource_FindsNoDueRowWithoutAGateway_AndTheDueRowWithOne`. Yerel: restore + `--locked-mode` 0, build `-warnaserror` 0 uyarı, format (Web/Unit/Integration) temiz, Unit 5789/5789, betik 4/4, Integration Outages+Ordering 666/666 ve CorporateContent+Model+Notifications 1589/1589. Dal CI 42758342082 (head `aac1b8b4`): Lint, Build, Unit, Contract, Migration, Paketleme yeşil, Integration doğrulama anında koşuyordu. `12` satırlarının `Durum`u değişmedi (VAL-A333 PASS; A332, A334–A336 BEKLEMEDE: tarayıcı gözlemi ve panel çağıranı D-967/D-968). Yapım raporu ile uyumlu.
 
 **Validator kanıtları (tur 1):** kriter 1 ✓ (`AFailingRow_…`, `ALateRetry_…`; 5/30/120 dk ilk denemeden, sahte saat), 3 ✓ (iz sayısı ve sipariş parmak izi değişmez), 4 ✓ (sınır reddi `AttemptCount = 1`, `RecipientError` yazar → işaret; geri dönme `08 §2.2.3`'ün sonucu ile sınandı — sorgu işi ayrı task'ta), 5 ✓ (F satırları `OrderId` taşımaz; yalnız davet `AccountEmailHasMarkAsync`), 6–9 ✓ (16 türlü kuram: gruba yeni `Queued` satır, B-15 eski adres, öteki güncel adres, iz `ResendEmail`/`Order` yalnız sipariş numarasıyla, olağan gönderici ve başarıda işaret yok; sınır muafiyeti `OriginalDispatchId`). **Kriter 2 ~ Kısmi (B1):** `DispatchMarks.ClaimHasMarkAsync` ve `INotificationsModule.ClaimHasUndeliveredMarkAsync` B-9 işaretini `Withdrawal` ve `LateDeliveryTermination` satırında da verir; `02 §9.1.6`, `03 §1.7.3.1`, `06 §4.58` ("Ayıp talebinin satırı": `DefectClaim`) ve `04` 2.5.3.1 yalnız ayıp talebini sayar (`09 §25`: ek davranış yok, belge cümlesiyle çelişki yok). `AClaimsB9_ShowsTheMarkOnTheClaimToo_…` cayma ile kurulu; ayıp talebinin talep satırı sınanmıyor. Düzeltme: tür denetimi yalnız `DefectClaim`, testte ayıp talebi ✓ ve cayma/fesih ✗. **Uyuşmazlık:** yapım raporu "ayıp/cayma/fesih talebinin satırında" diyerek genişlemeyi yazıyor ve KK2'yi ✓ sayıyor. Yerel: build 0 uyarı, format temiz, Unit 5789/5789, betik 4/4, Integration 663 + 1589 yeşil.
 

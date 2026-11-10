@@ -398,7 +398,7 @@ public sealed class PanelHomeTests : IAsyncLifetime
     public async Task TheChecklist_NamesTheMissingIdentityFields_AndTheOtherMissingItems_KK8()
     {
         _cardLineOpen = false;
-        await ExecuteAsync("UPDATE companies SET legal_name = NULL, kep_address = NULL");
+        await ExecuteAsync("UPDATE companies SET legal_name = NULL, kep_address = NULL; UPDATE company_settings SET is_bank_transfer_enabled = false, bank_transfer_iban = NULL");
 
         PanelHome home = await HomeAsync();
 
@@ -415,6 +415,7 @@ public sealed class PanelHomeTests : IAsyncLifetime
     public async Task TheChecklist_MarksTheItemsAsTheyComplete_KK9()
     {
         _cardLineOpen = false;
+        await ExecuteAsync("UPDATE company_settings SET is_bank_transfer_enabled = false, bank_transfer_iban = NULL");
         PanelHome before = await HomeAsync();
         Assert.True(before.SetupChecklist!.Single(i => i.Kind == SetupChecklistItemKind.CompanyIdentity).IsDone);
         Assert.Empty(before.SetupChecklist!.Single(i => i.Kind == SetupChecklistItemKind.CompanyIdentity).MissingFields);

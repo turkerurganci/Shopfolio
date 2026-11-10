@@ -102,6 +102,7 @@
 | Yedek ayarları, kova kuralı, anahtar yetkisi ve kurtarma provası | §J |
 | Yerel referans kuruluma ilk iniş (T09): sunucu, güvenlik duvarı, canlılık, denemeler, prova kaydı; gerçek sunucu T603 | §K |
 | Sistem kayıtları: yerleri, günlük bölme, saklama, istek kimliği, kurulumda denetim | §L |
+| Kurulum tarafı yönetim komutları: kayıt okuma, iş satırı, ödeme sonucu | §M |
 | Kart ödemesi: 3D Secure kurulum şartı (anahtardan önce) ve canlı kanıtın satırları | §N ⚠ |
 
 ---
@@ -190,7 +191,7 @@ Veritabanı konteyneri ilk kez, **boş veri dizinleriyle** ve `compose.install.y
 
 | # | Ayar | Varsayılan | Varsayılanla ne olur | Prod'da ne olmalı |
 |---|---|---|---|---|
-| 1 | `Payment:ProviderKeys` (sır dosyası `payment_provider_keys`, §B satır 12) | Yok | Uygulama açılır, **kart hattı kapalıdır**; açılış kaydı kapalı hâli yazar (`05 §8.4.6`) | Kart ödemesi satılacaksa sağlayıcının anahtarları (üç `ad=değer` satırı, [`INTEGRATION_RUNBOOKS/PAYTR.md`](INTEGRATION_RUNBOOKS/PAYTR.md) §2); yalnız havale satılacaksa boş kalabilir |
+| 1 | `Payment:ProviderKeys` (sır dosyası `payment_provider_keys`, §B satır 12) | Yok | Uygulama açılır, **kart hattı kapalıdır**; açılış kaydı kapalı hâli yazar (`05 §8.4.6`) | Kart ödemesi satılacaksa sağlayıcının anahtarları (üç `ad=değer` satırı, [`INTEGRATION_RUNBOOKS/PAYTR.md`](INTEGRATION_RUNBOOKS/PAYTR.md) §2), yalnız §N.1'in üç satırı ✓ olduktan sonra (3D Secure teyidi, DV-3); yalnız havale satılacaksa boş kalabilir |
 | 2 | `Google:ClientId` (`Google__ClientId`) ve `Google:ClientSecret` (sır dosyası `google_client_secret`, §B satır 14) | Yok | İkisinden biri eksikse uygulama açılır, **Google ile giriş hattı kapalıdır**; açılış kaydı eksik anahtarı adıyla yazar | Google ile giriş sunulacaksa ikisi de dolu |
 | 3 | `RateLimit:PageRequestsPerMinute` (`RateLimit__PageRequestsPerMinute`) | `300` | Sayfa ve form istekleri IP başına dakikada 300 | Varsayılan yeterliyse dokunulmaz; sıfır ya da negatif değerle uygulama açılmaz (`09 §15.4` madde 2) |
 | 4 | `RateLimit:FormSubmissionsPerMinute` | `30` | Form gönderimleri (POST) IP başına dakikada 30 | Aynı |

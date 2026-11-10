@@ -1,6 +1,6 @@
 # T406 — PayTR: 3D Secure kurulum şartı, test kanıtı ve canlı kanıtın satırları
 
-**Faz:** F4 | **Durum:** ⏳ Devam ediyor (yapım bitti, doğrulama bekliyor) | **Tarih:** 2026-11-11
+**Faz:** F4 | **Durum:** ✓ Tamamlandı (doğrulama tur 1 PASS) | **Tarih:** 2026-11-11
 
 - **Dal:** `task/T406-paytr-3d-secure` (taban `main` `cda5032e`)
 - **Bağımlılık:** T402 ✓, T405 ✓
@@ -69,10 +69,12 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(doğrulayıcı doldurur)* |
-| Bulgu sayısı | |
-| Düzeltme gerekli mi | |
-| Bloke-etmeyen not (K) sayısı | |
+| Doğrulama durumu | ✓ PASS (tur 1, 2026-11-11; dal ucu `e482f70f`; `origin/main` `cda5032e`, birleştirme gerekmedi) |
+| Bulgu sayısı | 0 |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 — ikisi bu PR'da kapatıldı: K1 `DEPLOY_RUNBOOK §C` satır 1'in "Prod'da ne olmalı" hücresi §N.1 şartını anmıyordu (kurulumu yapan yalnız §C'yi okuyup anahtarı yazabilirdi), cümle eklendi; K2 §0 özet tablosunda §M (T387) satırı yoktu, eklendi |
+
+**Tur 1 kanıtları (doğrulayıcı):** kriter 1–8 ve KK1–KK8 ✓ (kriter 3'ün teyit ve deneme payı, kriter 6'nın sandbox koşusu ve kriter 8'in DV-3 kapanışı OWNER_INPUT, D-1089/D-1090; çevrimdışı payı ve kayıtları tam — T401–T405'in emsali). Kod okundu: dört yeni test dosyası, `PaymentNotificationRule.IsUnrecognized`, `PayTrNotification.Verify`/`ReadResult`, `PaymentNotificationTests.PayTr` test sunucusu (`NoClients` — ağ yok), `PaymentWindowTests.PayTr` `TestModeReason` satırı. `src` altında `grep -rniE "non_?3d|3d_?secure|threeds|\"3ds?\""` boş. `DEPLOY_RUNBOOK §N.3` satırlarının kimlik ve kanıt türleri `12 §12.1` `VAL-F001`…`VAL-F012` ile eşit. Yerel: restore, `-warnaserror` build (0 uyarı), `dotnet format --verify-no-changes` üç projede çıkış 0, Unit 6598/6598, T406 adlı Unit 81 ve Integration 12, Integration `PaymentNotificationTests` + `PaymentWindowTests` + `PaymentStartTests` 76/76 (Postgres 18, `track_commit_timestamp=on`), betik testleri 4/4. CI run 42919459743 (head `e482f70f`) dokuz iş `success`. `12` satırları `BEKLEMEDE` kaldı (sandbox/gerçek kanıt ister).
 
 ## Altyapı Değişiklikleri
 
@@ -86,7 +88,7 @@
 - **Branch:** `task/T406-paytr-3d-secure`
 - **Commit:** ara `37a9b731`; `49d17155` — T406: PayTR: 3D Secure kurulum şartı, test kanıtı ve canlı kanıtın satırları
 - **PR:** #530
-- **CI:** *(doğrulayıcı)*
+- **CI:** run 42919459743 (`e482f70f`) — Lint, Build, Unit, Integration, Contract, Migration dry-run, Paketleme, E2E (advisory), CI Gate `success`
 - **Post-merge run'lar:** *(validator doldurur)*
 
 ## Dış Varsayımlar

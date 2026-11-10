@@ -64,7 +64,7 @@ gen | put file_backup_cipher_key 10001
 
 # Application: made-up provider values (12, 13, 14), the derivation secret is generated (15).
 printf 't09-made-up-payment-merchant:%s' "$(gen)" | put payment_provider_keys 1654
-printf 't09-made-up-mail-credential:%s' "$(gen)" | put email_credential 1654
+printf 't09-made-up-mail-key-id\n%s' "$(gen)" | put email_credential 1654
 printf 't09-made-up-google-value:%s' "$(gen)" | put google_client_secret 1654
 openssl rand -base64 32 | put link_derivation_secret 1654
 

@@ -22,7 +22,6 @@ internal static partial class LibraryTableConsistency
     /// </summary>
     public static readonly IReadOnlySet<string> NotYetAdded = new HashSet<string>(StringComparer.Ordinal)
     {
-        "AWSSDK.SimpleEmailV2",
         "Microsoft.IdentityModel.Protocols.OpenIdConnect",
         "Microsoft.IdentityModel.JsonWebTokens",
     };

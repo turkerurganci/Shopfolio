@@ -427,6 +427,10 @@ T357 (Fatura verisi ve dışa aktarmada donmuş kimlik) yapımı bitti; PR #485 
 
 2026-11-09 — T388 yapım bitti, ⏳ doğrulama bekliyor (dal `task/T388-donus-denetimi`). `rollback-check --restore-point` (salt okuma; 24 sipariş tarafı tablosunda `pg_xact_commit_timestamp(xmin)` ile dönüş noktasından sonra kesinleşen satırları sayar; sıfır → 0, sıfırdan büyük ya da `track_commit_timestamp` kapalı → 3) ve `reapply-deletions --restore-point` (uygulama kaydındaki `InstantDeletion` satırlarını dönüş anından bugüne okur, her birini kendi işleminde müşteri/yönetici modülünün yeniden uygulama yöntemiyle uygular; kapılar yok, kaydı olmayan atlanır, e-posta kuyruğa girmez; sonra bütün oturumları siler ve kullanılmamış hesap bağlantılarının ömrünü dönüş anına çeker, e-posta değişikliğini geri alma bağlantısı hariç). Komut kipi servis listesine modüllerin kurucularının istediği `ImageProcessor`, `SiteAddress`, kurulum ayarı satırları ve `DiskUsageGuard` eklendi; denetim tarama testine `RollbackAudit` tablo listesi için tek girişlik dar istisna; CI entegrasyon işi `track_commit_timestamp` açık PostgreSQL ile koşar. Unit 5080, Integration 2935 yeşil. Backlog D-700 (anlık silme satırını yazan çağıran yok; T517/T522), D-701–D-704 yeni.
 
+## 2026-11-08 — chore: "Son güncelleme" satırının sahibi birleştiren taraf (faz kapısı kayıt PR'ı, chore/kayıt PR'ı)
+
+2026-11-08 — chore: "Son güncelleme" satırını yalnız birleştiren taraf (faz kapısı kayıt PR'ı, chore/kayıt PR'ı) günceller; task, düzeltme ve doğrulama commit'leri bu satıra dokunmaz, olayı `STATUS_CHANGELOG.md`'nin en üstüne ve task'ın tablo satırına yazar; main birleştirmesinde bu satır çakışırsa main sürümü alınır, dalın girişi changelog'a taşınır.
+
 ## 2026-11-08 — chore: Backlog parça dosyaları kuralı (`Docs/DEFERRED_BACKLOG.d/<TXXX>.md`; yeni kalemler parçaya yazılır, tabloya satır eklenmez; faz kapısı kayıt PR'ı ve chore/kayıt PR'ı D sırasıyla aktarıp parçaları siler; kalem araması iki yere bakar; `DEFERRED_BACKLOG.md`, task/validate/gate-check skill'leri, INSTRUCTIONS ve PR şablonu güncellendi)
 
 ## 2026-11-08 — chore: Yedek imajında restic indirmesi tek kaynağa bağlı olmasın

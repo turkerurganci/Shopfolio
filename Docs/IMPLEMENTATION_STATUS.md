@@ -1,6 +1,6 @@
 # Shopfolio — Implementation Status
 
-**Son güncelleme:** 2026-11-08 — chore: "Son güncelleme" satırını yalnız birleştiren taraf (faz kapısı kayıt PR'ı, chore/kayıt PR'ı) günceller; task, düzeltme ve doğrulama commit'leri bu satıra dokunmaz, olayı `STATUS_CHANGELOG.md`'nin en üstüne ve task'ın tablo satırına yazar; main birleştirmesinde bu satır çakışırsa main sürümü alınır, dalın girişi changelog'a taşınır.
+**Son güncelleme:** 2026-11-10 — F3 (İş mantığı) faz kapısı ✓ PASS (`chore: F3 gate check PASS`): 90/90 task; Unit 5791, Integration 3487, Release 0 uyarı; `12 §6.2` F3 B ve C ✓; backlog 105 kalem karara bağlandı (73 ✅, 32 yeniden hedef; yeni F4 task'ları T411, T412 ve T601b); aktif kalem 285; ayrıntı [GATE_CHECK_F3](CHECKPOINT_REPORTS/GATE_CHECK_F3.md) ve `STATUS_CHANGELOG.md`.
 
 > ⚠️ **Bu dosya task durumu için TEK OTORİTER KAYNAKTIR.** Hafıza snapshot'ı bilgilendiricidir, otoriter değildir.
 > ⚠️ **"Son güncelleme" bloğu prepend-only changelog'a DÖNÜŞTÜRÜLMEZ.** Yalnız en son giriş burada durur; tarihsel geçmiş [`STATUS_CHANGELOG.md`](STATUS_CHANGELOG.md)'de.

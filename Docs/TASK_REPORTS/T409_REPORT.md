@@ -1,6 +1,6 @@
 # T409 — Google: giriş, kayıt ve yeniden doğrulama bağlayıcısı
 
-**Faz:** F4 | **Durum:** ⏳ Devam ediyor (yapım tamam, doğrulama bekliyor; kriter 8'in gerçek uygulama payı OWNER_INPUT — D-1029) | **Tarih:** 2026-11-10
+**Faz:** F4 | **Durum:** ✓ Tamamlandı (doğrulama tur 2 PASS; kriter 8'in gerçek uygulama payı OWNER_INPUT — D-1029) | **Tarih:** 2026-11-10
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 > Validator bu raporu **Faz 3'e kadar açmaz** (izolasyon kuralı).
@@ -68,10 +68,14 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | ✗ FAIL (tur 1, 2026-11-10); düzeltme 1 tamam, yeniden doğrulama bekliyor |
-| Bulgu sayısı | 1 (ORTA, S1) |
-| Düzeltme gerekli mi | Evet — kriter 5 / KK5 |
-| Bloke-etmeyen not (K) sayısı | 1 |
+| Doğrulama durumu | ✓ PASS (tur 2, 2026-11-10); tur 1 ✗ FAIL (kriter 5 / KK5), düzeltme 1–2 ile giderildi |
+| Bulgu sayısı | 0 (tur 2); tur 1: 1 (ORTA, S1) |
+| Düzeltme gerekli mi | Hayır |
+| Bloke-etmeyen not (K) sayısı | 2 (tur 2: K1 → D-1030, K2 → D-1070) |
+
+**Tur 2 kanıtları (doğrulayıcı, birleşik ağaç `origin/main` + dal):** kriter 1–7 ve KK1–KK8 ✓ — kod okundu (`GoogleEndpoints`, `GoogleAuthorizationRequest`, `GoogleIdentityGateway`, `GoogleIdentityMapping`, `GoogleRegistration`, `GoogleIdentityResult`; `08 §2.3`, `09 §11.1`–§11.3 ile karşılaştırıldı); bilinmeyen `kid` aynı çağrıda yenilenir, ilk çağrı tutar (`TokenWithAnUnknownKeyId_FetchesTheKeySetAgainInTheSameCall_AndHoldsOnTheFirstCall`: anahtar okuması 2, kod değişimi 1), yeni kümede de yoksa `Failed` ve ikinci yenileme yok. Kriter 8 depo payı ✓ (`GOOGLE.md` 9 bölüm; DV-25/26/27/28/31/37/43 "Kısmen gözlendi (2026-11-10, T409; çevrimdışı)"); gerçek uygulama gözlemi OWNER_INPUT, D-1029 — T407 kriter 9 emsali. Yerel: restore ✓, build `-warnaserror` 0/0, `dotnet format --verify-no-changes` üç proje ✓, Unit 6329/6329 (Google sınıfları 110), betik testleri 4/4, Integration `GoogleRegistrationTests` 2/2 + `Shopfolio.IntegrationTests.Web` 600/600 (PG18, `track_commit_timestamp=on`). CI: PR #519 run 42844491708 tüm işler yeşil. 12 satırları (`VAL-B021`, `A091`–`A095`, `E026`–`E029`, `E031`, `E032`, `E038`, `E044`, `E073`, `E074`): kanıt ortamı gerçek/uç yanıtı (T410, T515) — `BEKLEMEDE` kalır. Uyuşmazlık: yapım raporu kriter 8'i `~` yazmış, doğrulayıcı depo payını ✓ saydı (gerçek gözlem D-1029'da); Unit sayısı farkı main birleştirmesinden.
+
+**K2 (tur 2):** vazgeçme dönüşü (`error`, kod yok) bağlayıcıya ulaşmaz ve `IdentityCodeExchange` boş kodu reddetmez — boş kodla çağrılırsa `invalid_grant` → `Unavailable` olur; vazgeçmenin `Failed` sonucu dönüş sayfasının işidir → D-1070 (T515 kriter 9).
 
 **Bulgu 1 (ORTA, S1) — kriter 5 / KK5, `08 §2.3`:** bilinmeyen `kid`'li belirteç, yenilenen kümede anahtar olsa da o çağrıda tutmuyor (`Failed`, `token:` önekli); yenileme arkada koşuyor, ancak sonraki çağrı yeni kümeyi görüyor. `08 §2.3` "küme yeniden çekilir, yine yoksa imza tutmaz" ve "en kötü durumda art arda üç çağrı" der; kriter 5 "yenileme getirir, yine yoksa imza tutmaz". D-1031'in "çatı davranışı, kaçınılmaz" gerekçesi tutmuyor: 8.23.0 çatının kendi anahtarı `Switch.Microsoft.IdentityModel.UpdateConfigAsBlocking` (`AppContext`) açıkken aynı senaryoda ilk çağrı `Succeeded` döndü — anahtar okuması 2, kod değişimi 1 (doğrulayıcının geçici sınaması, `TokenWithAnUnknownKeyId_…` kurgusu; dosya silindi). Elle yeniden deneme gerekmiyor. Düzeltme: çatının eşzamanlı yenilemesi (ya da `08`/kriter 5'i değiştiren karar kaydı), test ilk çağrının `Succeeded` olduğunu sınar, DV-31 hücresi ve D-1031 buna göre güncellenir.
 

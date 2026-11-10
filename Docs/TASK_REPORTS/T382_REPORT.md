@@ -1,6 +1,6 @@
 # T382 — Panel ana sayfası verisi: altı bekleyen iş sayacı, kanal ve firma bildirimi uyarıları, kurulum kontrol listesi
 
-**Faz:** F3 | **Durum:** ✗ FAIL (tur 2: B3) — düzeltme 1 sonrası doğrulama | **Tarih:** 2026-11-10
+**Faz:** F3 | **Durum:** ⏳ düzeltme 2 tamam (tur 2 FAIL: B3), doğrulama tur 3 bekliyor | **Tarih:** 2026-11-10
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -20,6 +20,29 @@
 - **B2:** gönderilmemiş havale iade satırı hiçbir kümede yoktu; artık işlenecek geri ödeme sayılır, gönderilince (`SentAt`) düşer. İki yol da kapsanır: karttan havaleye dönüş ve ayıp çözümünün havale iadesi. D-927 kapandı.
 - Eski testler: `RefundAndReturn_CountsTheReturnedGoodsToReceive_...KK4` ve `AGoodsReceipt_EndsTheWaitForTheGoods_...KK4` gönderilmemiş havale satırını "sayılmaz" diye sınıyordu; düzeltildi (sayılır, gönderilince düşer).
 - Öteki dışlama ve geçişler (mal dönmedi, ret, yeniden açılma, iki tür iş tek sipariş, başarısız/sonucu beklenen kart) aynı gözle tarandı; davranış değişmedi, testleri yeşil.
+### Düzeltme 2 (tur 2 FAIL: B3; ikinci iterasyon, eskalasyon kararı: sahip yerine yardımcı)
+
+- **B3:** "IBAN bekleniyor" = iadenin kendisine (`RefundId`) ya da iadenin kalemine (`RefundId == null && OrderItemId == refund.OrderItemId`) bağlı açık IBAN isteği (`02 §10.6.1`; K-686). Kural tek yerde: `AfterSalesModule.FindRefundsAwaitingIbanAsync` artık `RefundOfItem(RefundId, OrderItemId)` çiftleri alır; `OpenRefundWork` kalemi (`OrderItemId`) taşır, `PanelHomeService` çiftleri verir. Böyle iade sayaca girmez; istek karşılanınca (IBAN girilince) sayılır, gönderilince düşer. Kart yolu (VAL-A260: yol açılmadıkça sayılır) değişmedi.
+- Main birleştirmesi (T386 #509, T390 #508): `IAfterSalesModule.cs` çakışmasında iki tarafın üyeleri korundu; kayıt belgelerinde main sürümü, T382 girişleri parça dosyalarında.
+- Yeni testler (Integration, `PanelHomeTests`): `RefundAndReturn_DefectRemedyTransferRefundWithNoIbanOnFile_WaitsForTheCustomer_UntilTheIbanIsEnteredAndTheRefundSent_KK4` (a), `RefundAndReturn_FailedCardRefundMovedToTheTransferPathWhileTheItemsRequestWasAlreadyOpen_IsNotCounted_KK4` (b), `RefundAndReturn_ARefundVoidedWithTheCorrectionOfTheCancellation_IsNotCounted_KK4` (iptal edildi geçişi; tabloda eksikti).
+
+**Sayacın dışlama ve geçiş durumları (iade ve geri ödeme bekleyen):**
+
+| Durum | Sayaçta | Test |
+|---|---|---|
+| IBAN bekleniyor: iadeye bağlı açık istek (kart iadesi, havale yolu açıldı) | hayır; istek karşılanınca evet | `..._AndAFailedCardRefundWithItsTransferPathOpenOnlyOnceTheIbanIsEntered_KK4` |
+| IBAN bekleniyor: kaleme bağlı açık istek, iade satırı doğmuş (ayıp çözümü, dosyada IBAN yok) | hayır; IBAN girilince evet; gönderilince hayır | `..._DefectRemedyTransferRefundWithNoIbanOnFile_...KK4` (B3 a) |
+| IBAN bekleniyor: kalemin isteği iade yolu açılmadan önce açık | hayır; IBAN girilince evet | `..._FailedCardRefundMovedToTheTransferPathWhileTheItemsRequestWasAlreadyOpen_...KK4` (B3 b) |
+| IBAN bekleniyor: iade satırı henüz yok, kalemin isteği açık | hayır; IBAN girilince evet | `RefundAndReturn_DoesNotCountAnItemThatWaitsForTheCustomersIban_KK4` |
+| Yol değişimi: kart iadesi başarısız, yol açılmadı | evet | `..._CountsTheReturnedGoodsToReceive_TheRefundToProcess_AndTheCardRefundThatFailedOrWaits_KK4`; B1 testinin ilk adımı |
+| Yol değişimi: kart sonucu bekleniyor | evet | aynı test (OutcomePending) |
+| Mal dönmedi kapanışı | hayır | `ANotReturnedClosure_DropsTheItem_AndItsReopeningBringsItBack_KK5` |
+| İade reddi | hayır | `AReturnRejection_DropsTheItem_KK5` |
+| Yeniden açılma (mal geldi) | evet | `ANotReturnedClosure_...` ikinci adım |
+| Gönderildi (havale, kart) | hayır | `..._CountsABornTransferRefundUntilItIsSent_...`, `..._DefectRemedy...`, `AGoodsReceipt_...KK4`, ilk testte başarılı kart ve gönderilmiş havale |
+| İptal edildi (iade satırı geçersiz kılındı) | hayır | `RefundAndReturn_ARefundVoidedWithTheCorrectionOfTheCancellation_IsNotCounted_KK4` |
+| İki tür iş, tek sipariş | bir kez | `AnOrderWithTwoKindsOfWork_IsCountedOnce_KK4` |
+
 - CorporateContent: `CountOpenContactRequestsAsync`.
 - Notifications: `IPanelWarnings` / `PanelWarningReader` (kanal uyarısı `ChannelWarningCondition.IsOpen`; firma uyarısı F1–F4 kesinleşmiş son satır "ulaşmadı" ve alıcı güncel iletişim e-postası).
 - Devam 3: KK8/KK9 testlerinin sıra bağımlılığı giderildi (ödeme alanları başta sıfırlanır); `ListOrdersAwaitingReturnGoodsAsync` büyüyen kümeyi belleğe almasın diye 500'lük kayıt sayfalarıyla okunur; kayıtlar (rapor, değişiklik günlüğü parçası, STATUS satırı, backlog parçası).
@@ -42,7 +65,7 @@
 | 1 | Altı sayaç, yedincisi yok | ✓ | `PanelHomeRules.CounterKinds` (6 eleman); `PanelHomeRulesTests.TheHome_HasSixCounters_AndNoSeventh_KK1`; `PanelHomeTests.AnEmptyShop_ShowsSixCountersAtZero_KK1_KK2_KK6` |
 | 2 | Altı sayacın adı ve kaynağı | ✓ | `PanelHomeRulesTests.TheCounters_AreNamedAsTheDocumentNamesThem_...KK2`; `PanelHomeTests` KK2 testleri (ödeme onayı, kargoya verilecek, teslim işareti, hizmet, açık talep, iade ve geri ödeme) |
 | 3 | Kargoya verilecek: Hazırlanıyor'daki açık fiziksel kalemli + Teslim edilemedi | ✓ | `PanelHomeTests.ToShip_CountsPreparingOrdersWithAnOpenPhysicalItem_AndTheDeliveryFailedOnes_KK3`, `ToShip_AnOrderThatCameBackAsDeliveryFailed_IsCountedWhateverItsItemsHold_KK3` |
-| 4 | İade ve geri ödeme: üç tür, IBAN bekleniyor yok | ✓ | `PanelHomeTests.RefundAndReturn_CountsABornTransferRefundUntilItIsSent_AndAFailedCardRefundWithItsTransferPathOpenOnlyOnceTheIbanIsEntered_KK4` (B1: yol açılmadan 1, açılınca 0, IBAN girilince 1, gönderilince 0; B2 kart→havale), `RefundAndReturn_CountsTheDefectRemedyTransferRefundUntilItIsSent_KK4` (B2 ayıp havale iadesi), `RefundAndReturn_CountsTheReturnedGoodsToReceive_...KK4`, `RefundAndReturn_DoesNotCountAnItemThatWaitsForTheCustomersIban_KK4`, `AnOrderWithTwoKindsOfWork_IsCountedOnce_KK4`, `AGoodsReceipt_EndsTheWaitForTheGoods_...KK4` |
+| 4 | İade ve geri ödeme: üç tür, IBAN bekleniyor yok | ✓ | Düzeltme 2 (B3): `RefundAndReturn_DefectRemedyTransferRefundWithNoIbanOnFile_...KK4`, `RefundAndReturn_FailedCardRefundMovedToTheTransferPathWhileTheItemsRequestWasAlreadyOpen_...KK4`, `RefundAndReturn_ARefundVoidedWith..._KK4`; ayrıca: `PanelHomeTests.RefundAndReturn_CountsABornTransferRefundUntilItIsSent_AndAFailedCardRefundWithItsTransferPathOpenOnlyOnceTheIbanIsEntered_KK4` (B1: yol açılmadan 1, açılınca 0, IBAN girilince 1, gönderilince 0; B2 kart→havale), `RefundAndReturn_CountsTheDefectRemedyTransferRefundUntilItIsSent_KK4` (B2 ayıp havale iadesi), `RefundAndReturn_CountsTheReturnedGoodsToReceive_...KK4`, `RefundAndReturn_DoesNotCountAnItemThatWaitsForTheCustomersIban_KK4`, `AnOrderWithTwoKindsOfWork_IsCountedOnce_KK4`, `AGoodsReceipt_EndsTheWaitForTheGoods_...KK4` |
 | 5 | "Mal dönmedi" ve iade reddi düşürür, yeniden açılan geri gelir | ✓ | `PanelHomeTests.ANotReturnedClosure_DropsTheItem_AndItsReopeningBringsItBack_KK5`, `AReturnRejection_DropsTheItem_KK5`; `PanelHomeRulesTests.AnOrder_WhoseEveryItemIsClosed_...KK5` |
 | 6 | Her sayaç kendi listesine gider | ✓ | `PanelHomeRules.ListOf`; `PanelHomeRulesTests.EveryCounter_LeadsToItsOwnList_KK6` |
 | 7 | Kanal uyarısı (5 hata + 15 dk, ilk başarıda kalkar), firma uyarısı, ikisi okunan hâl | ✓ | `PanelHomeTests.TheChannelWarning_OpensAtFiveErrorsAndFifteenMinutes_...KK7`, `TheFirmNoticesWarning_IsOpenWhen...KK7`, `TheFirmNoticesWarning_LiftsWhenTheContactEmailChanges_AndTheTwoWarningsShowTogether_KK7`; `PanelHomeRulesTests.TheChannelWarning_OpensAtFiveErrorsAndFifteenMinutes_KK7` |
@@ -50,6 +73,8 @@
 | 9 | Sihirbaz ve sıra yok; tamamlanan işaretlenir, hepsi bitince liste kalkar | ✓ | `PanelHomeTests.TheChecklist_MarksTheItemsAsTheyComplete_KK9`; `PanelHomeRulesTests.TheChecklist_MarksTheCompletedItem_...KK9`, `TheChecklist_Disappears_WhenEveryItemIsDone_...KK9` (null döner) |
 
 ### Öz denetim (bitiş kapısı 2)
+
+**Düzeltme 2 (birleşik ağaç, main birleştirmesinden sonra):** kabul kriterleri 1–9 ve KK1–KK9 birleşik ağaçta yeniden denetlendi; tablolar geçerli, fark yalnız KK4 (B3 testleri, `FindRefundsAwaitingIbanAsync` imzası). `git grep -nE "^(<{7}|>{7}) "` boş. Yüzey değişikliği (`FindRefundsAwaitingIbanAsync` imzası, `OpenRefundWork.OrderItemId`) için `git grep` ile kalan eski çağrı yok. Sık-fail dosyası okundu: ilgili satırlar (kural değişince aynı yerler; kural tek evde; modül kurucusu/fake; format; Integration tam) karşılandı.
 
 Devam 3 işçisi önceki işçilerin yaptıkları dahil bütün maddeleri diff'te yeniden denetledi. Düzeltme 1 işçisi push'tan önce KK1–KK9 ve kabul kriterlerinin hepsini, sık-fail listesini yeniden denetledi (tablo geçerli; fark yalnız KK4 ve yeni testler). Sık-fail "kural değişince aynı yerler": yüzey adı değişti (`ListOrdersWithOpenRefundWorkAsync` → `ListOpenRefundWorkAsync`), `git grep` ile kalan anış yok (yalnız bu raporun tarihçe satırları), D-927 kapatıldı.
 
@@ -83,7 +108,10 @@ Devam 3 işçisi önceki işçilerin yaptıkları dahil bütün maddeleri diff't
 
 | Tür | Sonuç | Komut | Çıktı özeti |
 |---|---|---|---|
-| Unit | ✓ 5755 geçti (devam 2; devam 3'te birim kodu değişmedi) | `dotnet test --project tests/Shopfolio.UnitTests/...` | `PanelHomeRulesTests` dahil |
+| Unit (düzeltme 2, birleşik ağaç) | ✓ 5770/5770 (Architecture, Consistency dahil) | `dotnet test --project tests/Shopfolio.UnitTests --no-build` | 0 kırık |
+| Integration (düzeltme 2, birleşik ağaç) | ✓ PanelHomeTests 23/23; Administration 69/69; Payment 14/14; Ordering 599/599 | `--filter-namespace` parçalı | 0 kırık |
+| Build / Format (düzeltme 2) | ✓ `-warnaserror` 0 uyarı; `dotnet format --verify-no-changes` 3 proje çıkış 0 | | |
+| Unit (önceki) | ✓ 5755 geçti (devam 2; devam 3'te birim kodu değişmedi) | `dotnet test --project tests/Shopfolio.UnitTests/...` | `PanelHomeRulesTests` dahil |
 | Integration (PanelHomeTests) | ✓ 18/18 (devam 3, sayfalama değişikliğinden sonra yeniden koşuldu) | `dotnet test --project tests/Shopfolio.IntegrationTests/... --filter-class "*PanelHomeTests"` | 18 geçti, 0 kırık |
 | Integration (tam, devam 3 öncesi kod) | ⚠ 3399 testten 232 kırık, hepsi `Web.*` (222) ve `Logging.*` (10): "HeartbeatRecord row is missing" | tam koşu | `origin/main`'de aynı Web ad alanı 222 kırık (594 testten 372 geçti): dal kaynaklı değil, bu ortamda önceden var; CI yeşil. Kovalanmadı. Administration 62/62 |
 | Format | ✓ | `dotnet format <proje> --verify-no-changes` (üç proje) | çıkış 0 |

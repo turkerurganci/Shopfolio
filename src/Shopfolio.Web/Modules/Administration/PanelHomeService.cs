@@ -106,7 +106,7 @@ internal sealed class PanelHomeService : IPanelHome
     {
         HashSet<Guid> orders = [.. await _afterSales.ListOrdersAwaitingReturnGoodsAsync(ct)];
         IReadOnlyList<OpenRefundWork> openRefunds = await _payment.ListOpenRefundWorkAsync(ct);
-        IReadOnlySet<Guid> awaitingIban = await _afterSales.FindRefundsAwaitingIbanAsync([.. openRefunds.Select(r => r.RefundId)], ct);
+        IReadOnlySet<Guid> awaitingIban = await _afterSales.FindRefundsAwaitingIbanAsync([.. openRefunds.Select(r => new RefundOfItem(r.RefundId, r.OrderItemId))], ct);
         orders.UnionWith(openRefunds.Where(r => !awaitingIban.Contains(r.RefundId)).Select(r => r.OrderId));
 
         Guid? after = null;

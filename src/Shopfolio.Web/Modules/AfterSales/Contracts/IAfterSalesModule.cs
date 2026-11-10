@@ -308,10 +308,11 @@ public interface IAfterSalesModule
     Task<RefundProcessingPage> ListOrdersAwaitingRefundProcessingAsync(Guid? afterId, int maxSubjects, CancellationToken ct);
 
     /// <summary>
-    /// The refunds among <paramref name="refundIds"/> that wait for the customer's IBAN (T382; 02 10.6.1; K-525): an open IBAN request - neither fulfilled nor closed - names the refund (the
-    /// transfer path opened after a failed card refund, or an itemless request). Such a refund is the customer's to move, not the firm's. A plain read.
+    /// The refunds among <paramref name="refunds"/> that wait for the customer's IBAN (T382; 02 10.6.1; K-525, K-686): an open IBAN request - neither fulfilled nor closed - is linked to the
+    /// refund itself (the transfer path opened after a failed card refund, or an itemless request) or to the refund's item with no refund yet (the request the defect remedy's or the
+    /// notice's item record opened when the file had no IBAN). Such a refund is the customer's to move, not the firm's; the rule is here alone. A plain read.
     /// </summary>
-    Task<IReadOnlySet<Guid>> FindRefundsAwaitingIbanAsync(IReadOnlyCollection<Guid> refundIds, CancellationToken ct);
+    Task<IReadOnlySet<Guid>> FindRefundsAwaitingIbanAsync(IReadOnlyCollection<RefundOfItem> refunds, CancellationToken ct);
 
     /// <summary>
     /// The firm's removal record (06 4.23; 02 10.4.3; T386): the unit rule of the cancellation (at most the units open to an operation), then one row with the administrator
@@ -339,6 +340,9 @@ public interface IAfterSalesModule
     /// </summary>
     Task<(ItemRecordRefusal? Refusal, DateOnly? OldDate)> CorrectArrivalDateAsync(ItemRecordSubject subject, Guid recordId, DateOnly arrivalDate, CancellationToken ct);
 }
+
+/// <summary>A refund and the item it is for, null when it is for no one item (T382): the pair the IBAN wait is read by.</summary>
+public sealed record RefundOfItem(Guid RefundId, Guid? OrderItemId);
 
 /// <summary>One cancellation record as the order module needs it: the record, the item and the units it closed.</summary>
 public sealed record CancelledUnits(Guid CancellationId, Guid OrderItemId, int Quantity);

@@ -181,8 +181,8 @@ public interface IPaymentModule
     Task<IReadOnlyList<OpenRefundWork>> ListOpenRefundWorkAsync(CancellationToken ct);
 }
 
-/// <summary>One refund the firm still has a step on (T382): the refund and its order.</summary>
-public sealed record OpenRefundWork(Guid RefundId, Guid OrderId);
+/// <summary>One refund the firm still has a step on (T382): the refund, its order and the item it is for (null when it is for no one item).</summary>
+public sealed record OpenRefundWork(Guid RefundId, Guid OrderId, Guid? OrderItemId);
 
 /// <summary>One payment record seen from another module (06 4.32): the order, and the transition that confirmed the payment - null on a late card payment.</summary>
 public sealed record PaymentSource(Guid OrderId, Guid? TransitionRecordId);

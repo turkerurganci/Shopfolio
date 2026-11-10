@@ -368,7 +368,7 @@ internal sealed class PaymentModule : IPaymentModule
                 .FirstOrDefault()
             where r.PaymentMethod == PaymentMethod.BankTransfer
                 || (r.PaymentMethod == PaymentMethod.Card && (latest == RefundRecordState.Failed || latest == RefundRecordState.OutcomePending))
-            select new OpenRefundWork(r.Id, r.OrderId)).ToListAsync(ct);
+            select new OpenRefundWork(r.Id, r.OrderId, r.OrderItemId)).ToListAsync(ct);
     }
 
     public async Task<IReadOnlyList<Guid>> ErasePersonalDataAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)

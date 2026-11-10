@@ -103,18 +103,24 @@ internal sealed partial class AfterSalesModule
         return new RefundProcessingPage(last, orders);
     }
 
-    public async Task<IReadOnlySet<Guid>> FindRefundsAwaitingIbanAsync(IReadOnlyCollection<Guid> refundIds, CancellationToken ct)
+    public async Task<IReadOnlySet<Guid>> FindRefundsAwaitingIbanAsync(IReadOnlyCollection<RefundOfItem> refunds, CancellationToken ct)
     {
-        ArgumentNullException.ThrowIfNull(refundIds);
-        if (refundIds.Count == 0)
+        ArgumentNullException.ThrowIfNull(refunds);
+        if (refunds.Count == 0)
         {
             return new HashSet<Guid>();
         }
 
-        Guid[] ids = [.. refundIds.Distinct()];
-        HashSet<Guid> waiting = [.. await _db.RefundIbanRequests.AsNoTracking()
-            .Where(r => r.RefundId != null && ids.Contains(r.RefundId.Value) && r.FulfilledAt == null && r.ClosedAt == null)
-            .Select(r => r.RefundId!.Value).Distinct().ToListAsync(ct)];
+        // An open request names the refund, or names the refund's item before any refund is linked (02 10.6.1; K-686).
+        Guid[] ids = [.. refunds.Select(r => r.RefundId).Distinct()];
+        Guid[] items = [.. refunds.Where(r => r.OrderItemId != null).Select(r => r.OrderItemId!.Value).Distinct()];
+        var open = await _db.RefundIbanRequests.AsNoTracking()
+            .Where(r => r.FulfilledAt == null && r.ClosedAt == null
+                && ((r.RefundId != null && ids.Contains(r.RefundId.Value)) || (r.RefundId == null && r.OrderItemId != null && items.Contains(r.OrderItemId.Value))))
+            .Select(r => new { r.RefundId, r.OrderItemId }).ToListAsync(ct);
+        HashSet<Guid> byRefund = [.. open.Where(r => r.RefundId != null).Select(r => r.RefundId!.Value)];
+        HashSet<Guid> byItem = [.. open.Where(r => r.RefundId == null && r.OrderItemId != null).Select(r => r.OrderItemId!.Value)];
+        HashSet<Guid> waiting = [.. refunds.Where(r => byRefund.Contains(r.RefundId) || (r.OrderItemId is { } item && byItem.Contains(item))).Select(r => r.RefundId)];
         return waiting;
     }
 

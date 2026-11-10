@@ -325,6 +325,62 @@ public sealed class PanelHomeTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task RefundAndReturn_DefectRemedyTransferRefundWithNoIbanOnFile_WaitsForTheCustomer_UntilTheIbanIsEnteredAndTheRefundSent_KK4()
+    {
+        Guid order = await SaveOrderAsync(PaymentMethod.BankTransfer, (_lamp, 1));
+        await MakeDeliveredAsync(order);
+        Refund refund = RefundOf(order, RefundType.DefectClaimRescission, PaymentMethod.BankTransfer, r =>
+        {
+            r.CouponShare = 0m;
+            r.VatAmount = 0m;
+        });
+        await SaveAsync(c => c.Refunds.Add(refund));
+
+        // The file has no IBAN: the remedy's refund row is born and the item's request opens with no refund link (02 10.6.1; K-686) - "IBAN bekleniyor", not the firm's.
+        RefundIbanRequest request = RefundIbanRequest.ForItem(ItemOf(order), RefundIbanRequestReason.AdminRequest, null, _admin!.Id, _admin.Name, DayStart.AddHours(1));
+        await SaveAsync(c => c.RefundIbanRequests.Add(request));
+        Assert.Equal(0, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+
+        // The customer enters the IBAN: the request is fulfilled and the refund is the firm's to send.
+        await ExecuteAsync($"UPDATE refund_iban_requests SET fulfilled_at = now() WHERE id = '{request.Id}'");
+        Assert.Equal(1, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+
+        await ExecuteAsync($"UPDATE refunds SET sent_at = now() WHERE id = '{refund.Id}'");
+        Assert.Equal(0, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+    }
+
+    [Fact]
+    public async Task RefundAndReturn_FailedCardRefundMovedToTheTransferPathWhileTheItemsRequestWasAlreadyOpen_IsNotCounted_KK4()
+    {
+        Guid failed = await CardRefundOrderAsync(RefundRecordState.Failed, sent: false);
+        Assert.Equal(1, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+
+        // The item's open request existed before the transfer path opened: it is reused, with no refund link.
+        RefundIbanRequest request = RefundIbanRequest.ForItem(ItemOf(failed), RefundIbanRequestReason.AdminRequest, null, _admin!.Id, _admin.Name, DayStart.AddHours(1));
+        await SaveAsync(c => c.RefundIbanRequests.Add(request));
+        await ExecuteAsync($"UPDATE refunds SET payment_method = '{nameof(PaymentMethod.BankTransfer)}' WHERE id = '{RefundIdOf(failed)}'");
+        Assert.Equal(0, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+
+        await ExecuteAsync($"UPDATE refund_iban_requests SET fulfilled_at = now() WHERE id = '{request.Id}'");
+        Assert.Equal(1, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+    }
+
+    [Fact]
+    public async Task RefundAndReturn_ARefundVoidedWithTheCorrectionOfTheCancellation_IsNotCounted_KK4()
+    {
+        Guid order = await SaveOrderAsync(PaymentMethod.BankTransfer, (_lamp, 1));
+        await SetAxesAsync(order, OrderStatus.Preparing, PaymentStatus.Paid);
+        Cancellation cancellation = Cancellation.ByBuyer(ItemOf(order), 1, Amounts, null, DayStart);
+        await SaveAsync(c => c.Cancellations.Add(cancellation));
+        Refund refund = RefundOf(order, RefundType.Cancellation, PaymentMethod.BankTransfer, r => r.CancellationId = cancellation.Id);
+        await SaveAsync(c => c.Refunds.Add(refund));
+        Assert.Equal(1, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+
+        await ExecuteAsync($"UPDATE refunds SET voided_at = now() WHERE id = '{refund.Id}'");
+        Assert.Equal(0, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+    }
+
+    [Fact]
     public async Task AnOrderWithTwoKindsOfWork_IsCountedOnce_KK4()
     {
         Guid both = await CardRefundOrderAsync(RefundRecordState.Failed, sent: false);

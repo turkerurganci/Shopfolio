@@ -47,6 +47,7 @@ internal static class NotificationsModuleRegistration
     {
         services.AddScoped<INotificationsModule, NotificationsModule>();
         services.AddScoped<IOrderContactNotices, OrderContactNotices>();
+        services.AddScoped<IPanelWarnings, PanelWarningReader>();
 
         // The dispatch record's disposal (T302; 06 9.3.1): the rows past Z-34 or Z-43 and the unpaid arm's emptying; it asks the order's arm through the Ordering surface.
         services.AddDisposalPart<DispatchRecordDisposalPart>();

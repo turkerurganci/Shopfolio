@@ -62,6 +62,14 @@ internal sealed class OrderingModule : IOrderingModule
     public Task<IReadOnlyList<OrderOfItem>> FindPaidOrdersOfItemsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct) =>
         new SalesPeriodReader(_db).FindPaidOrdersOfItemsAsync(orderItemIds, ct);
 
+    public Task<PendingOrderCounts> CountPendingOrdersAsync(CancellationToken ct) => new PendingWorkReader(_db).CountAsync(ct);
+
+    public Task<IReadOnlyList<PendingWorkItem>> ListPendingWorkItemsAsync(PendingWorkSet workSet, Guid? afterOrderId, int maxOrders, CancellationToken ct) =>
+        new PendingWorkReader(_db).ListItemsAsync(workSet, afterOrderId, maxOrders, ct);
+
+    public Task<IReadOnlyList<RefundWorkItemFacts>> FindRefundWorkItemFactsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct) =>
+        new PendingWorkReader(_db).FindRefundFactsAsync(orderItemIds, ct);
+
     public async Task<ConfirmationParties?> GetConfirmationPartiesAsync(Guid orderId, CancellationToken ct)
     {
         Order? order = await _db.Orders.AsNoTracking().SingleOrDefaultAsync(o => o.Id == orderId, ct);

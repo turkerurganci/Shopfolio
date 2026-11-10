@@ -229,6 +229,21 @@ public interface IOrderingModule
 
     /// <summary>The orders of the given items whose payment was approved (T383; 02 10.6.3); the items of a Failed or pending order are left out. A plain read.</summary>
     Task<IReadOnlyList<OrderOfItem>> FindPaidOrdersOfItemsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
+
+    /// <summary>
+    /// The panel home's two counts the orders alone decide (T382; 02 10.6.1): the bank transfer orders that wait for their payment approval and the Teslim edilemedi orders. A plain read
+    /// that counts; nothing is kept or written.
+    /// </summary>
+    Task<PendingOrderCounts> CountPendingOrdersAsync(CancellationToken ct);
+
+    /// <summary>
+    /// One page of a pending work set (T382; 02 10.6.1): the items of the next <paramref name="maxOrders"/> orders of the set after <paramref name="afterOrderId"/> (by order id; null starts
+    /// from the first), an empty list at the end - the set grows with the shop, so it is never taken whole (09 20 item 2). The open quantity is the caller's to decide. A plain read.
+    /// </summary>
+    Task<IReadOnlyList<PendingWorkItem>> ListPendingWorkItemsAsync(PendingWorkSet workSet, Guid? afterOrderId, int maxOrders, CancellationToken ct);
+
+    /// <summary>The refund work's facts of the given items and their orders (T382; 02 10.6.1): type, delivery date, payment way and state, and whether the order was ever shipped. A plain read.</summary>
+    Task<IReadOnlyList<RefundWorkItemFacts>> FindRefundWorkItemFactsAsync(IReadOnlyCollection<Guid> orderItemIds, CancellationToken ct);
 }
 
 /// <summary>

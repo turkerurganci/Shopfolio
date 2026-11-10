@@ -520,6 +520,8 @@ public sealed class SalesSummaryTests : IAsyncLifetime
     {
         public Task<int> CountSummaryContactRequestsAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, CancellationToken ct) => requests.CountForSummaryAsync(periodStart, periodEnd, ct);
 
+        public Task<int> CountOpenContactRequestsAsync(CancellationToken ct) => requests.CountOpenAsync(ct);
+
         public Task<IReadOnlyList<string>> ListSitemapPathsAsync(CancellationToken ct) => throw new NotSupportedException();
 
         public Task<StorefrontMenu> GetMenuAsync(CancellationToken ct) => throw new NotSupportedException();

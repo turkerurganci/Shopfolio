@@ -70,6 +70,9 @@ public interface ICorporateContentModule
     /// </summary>
     Task<int> CountSummaryContactRequestsAsync(DateTimeOffset periodStart, DateTimeOffset periodEnd, CancellationToken ct);
 
+    /// <summary>The panel home's contact request count (T382; 02 10.6.1): the requests still open, whatever their topic. A plain read that counts; nothing is kept.</summary>
+    Task<int> CountOpenContactRequestsAsync(CancellationToken ct);
+
     /// <summary>
     /// Writes the contact request export's content to <paramref name="destination"/> (T384; 02 10.7.4; 09 10.10): a CSV with the header <c>Ad;E-posta</c> and one line for every request still
     /// kept, with the name and e-mail the sender typed in the form; no date range. Returns the number of lines (0: no request is kept - the caller makes no file). The stream stays open; the

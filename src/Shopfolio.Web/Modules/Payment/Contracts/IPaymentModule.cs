@@ -168,7 +168,21 @@ public interface IPaymentModule
 
     /// <summary>What the firm and the customer may do with the refund now (02 7.2.8; K-569, K-940): the refund line's one rule, read by the order's operations and the panel.</summary>
     CardRefundActions RefundActionsOf(CardRefundLine line, bool isIbanEntered);
+
+    /// <summary>The record ids among <paramref name="subjectIds"/> that have a refund row, sent, voided or open (T382; 06 4.33): the item record's refund exists. A plain read.</summary>
+    Task<IReadOnlySet<Guid>> FindSubjectsWithRefundAsync(IReadOnlyCollection<Guid> subjectIds, CancellationToken ct);
+
+    /// <summary>
+    /// The refunds the firm still has a step on (T382; 02 10.6.1, 7.2.8; K-521, K-525, K-621, K-940), neither sent nor voided: a card refund whose latest request failed ("geri ödeme
+    /// gerçekleşmedi", the administrator's mark included) or whose result is awaited ("geri ödeme sonucu bekleniyor"), and a bank transfer refund whose row was born (the firm's
+    /// step, or the customer's IBAN turning a failed card refund) and is not yet sent. A refund the customer still owes an IBAN on is the caller's to leave out: the IBAN request is the
+    /// AfterSales module's (K-525). Read by the database; a plain read.
+    /// </summary>
+    Task<IReadOnlyList<OpenRefundWork>> ListOpenRefundWorkAsync(CancellationToken ct);
 }
+
+/// <summary>One refund the firm still has a step on (T382): the refund, its order and the item it is for (null when it is for no one item).</summary>
+public sealed record OpenRefundWork(Guid RefundId, Guid OrderId, Guid? OrderItemId);
 
 /// <summary>One payment record seen from another module (06 4.32): the order, and the transition that confirmed the payment - null on a late card payment.</summary>
 public sealed record PaymentSource(Guid OrderId, Guid? TransitionRecordId);

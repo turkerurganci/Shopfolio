@@ -254,6 +254,19 @@ public sealed class FieldValidationTests
         Assert.Equal([("Search", "TextTooLong")], FieldsOf(Assert.Single(LinesOf(host, requestId))));
     }
 
+    [Fact]
+    public async Task Get_BindsAHeaderText_WithTheFrameworksBinder_AndStillTrimsAQueryText_D126()
+    {
+        await using Host host = new(_database.Dsn, clientValidation: false);
+        using HttpRequestMessage request = new(HttpMethod.Get, new Uri($"{PagePath}?handler=Probe&term=%20%20aranan%20%20", UriKind.Relative));
+        request.Headers.TryAddWithoutValidation("X-Probe", "baslik-degeri");
+
+        using HttpResponseMessage response = await host.Client.SendAsync(request, Ct);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("[baslik-degeri]|[aranan]", await response.Content.ReadAsStringAsync(Ct));
+    }
+
     // --- KK7: the binder trims; the password and a marked field are kept as typed ---
 
     [Fact]

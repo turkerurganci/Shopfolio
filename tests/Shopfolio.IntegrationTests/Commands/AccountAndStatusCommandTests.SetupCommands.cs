@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Disposal;
 using Shopfolio.Infrastructure.Jobs;
 using Shopfolio.Infrastructure.LogRead;
 using Shopfolio.Infrastructure.Security;
@@ -275,10 +276,22 @@ public sealed partial class AccountAndStatusCommandTests
         Assert.DoesNotContain("198.51.100.8", csv, StringComparison.Ordinal);
         Assert.DoesNotContain("198.51.100.9", csv, StringComparison.Ordinal);
 
+        await using (AppDbContext db = NewContext())
+        {
+            db.DisposalRecords.Add(DisposalRecord.Counted(DisposalRecordType.LoginRecord, 3, now));
+            db.DisposalRecords.Add(DisposalRecord.Counted(DisposalRecordType.Session, 2, now));
+            db.DisposalRecords.Add(DisposalRecord.Counted(DisposalRecordType.LoginRecord, 1, now.AddDays(-40)));
+            await db.SaveChangesAsync(Ct);
+        }
+
         FakeTerminal disposal = new();
         Assert.Equal(0, await RunAsync(disposal, "read-logs", "--source", "disposal", "--from", day, "--to", day));
-        Assert.Contains("Satır: 0", disposal.Output, StringComparison.Ordinal);
-        Assert.Equal(2, Directory.GetFiles(_exportDirectory, "*.csv").Length);
+        Assert.Contains("Satır: 2", disposal.Output, StringComparison.Ordinal);
+
+        FakeTerminal byKind = new();
+        Assert.Equal(0, await RunAsync(byKind, "read-logs", "--source", "disposal", "--from", day, "--to", day, "--filter", "event:LoginRecord"));
+        Assert.Contains("Satır: 1", byKind.Output, StringComparison.Ordinal);
+        Assert.Equal(3, Directory.GetFiles(_exportDirectory, "*.csv").Length);
     }
 
     [Fact]

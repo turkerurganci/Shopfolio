@@ -18,8 +18,10 @@ RUN dotnet tool restore \
 COPY .editorconfig ./
 COPY src/Shopfolio.Web src/Shopfolio.Web
 
-# The application: framework-dependent, no native host (the runtime image carries the shared framework).
-RUN dotnet publish src/Shopfolio.Web/Shopfolio.Web.csproj -c Release --no-restore -p:UseAppHost=false -o /out/app
+# The application: framework-dependent, no native host (the runtime image carries the shared framework). The image library ships the native
+# libraries of every platform (~470 MB); only the linux-x64 ones the image runs on, and the RID-less unix/linux assets, are kept (D-160).
+RUN dotnet publish src/Shopfolio.Web/Shopfolio.Web.csproj -c Release --no-restore -p:UseAppHost=false -o /out/app \
+    && find /out/app/runtimes -mindepth 1 -maxdepth 1 -type d ! -name linux-x64 ! -name linux ! -name unix -exec rm -rf {} +
 
 # The migration bundle (09 10.6): one single executable file made from the EF Core migrations. A throwaway lock file keeps the
 # tracked packages.lock.json untouched (the bundle publishes with a runtime identifier, which would add a target to it).

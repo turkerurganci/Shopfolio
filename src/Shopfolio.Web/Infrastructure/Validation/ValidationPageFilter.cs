@@ -12,7 +12,7 @@ internal sealed record FieldRejection(string Field, string Code);
 
 /// <summary>
 /// The one page filter of the field validation (09 3.4 item 3; 07 2.7.1, 6.1.3). After the model is bound and validated and before the handler runs,
-/// when the model state holds errors it (a) writes one application log line with every rejected field's name and code (<see cref="RejectionLog"/>),(b) replaces each rule's code
+/// when the model state holds errors it (a) writes one application log line with every rejected field's name and code (<see cref="RejectionLog"/>), (b) replaces each rule's code
 /// with the message of the catalog, made from the code and the field's label, and (c) for a request that writes, answers 422 and shows the form again
 /// without running the handler. Every error of the request is handled together (04 7.3.5). A rule the handler adds after the database answered goes
 /// through the same translation after the handler returns (09 3.4 item 2). The code is never written to the page or the response (07 2.7.3): the model

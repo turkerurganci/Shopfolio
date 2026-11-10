@@ -104,9 +104,10 @@ internal sealed class InstantDeletionLog
                 return (true, null);
             }
 
-            if (!root.TryGetProperty("time", out JsonElement time) || !DateTimeOffset.TryParse(time.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTimeOffset at)
+            if (!root.TryGetProperty("time", out JsonElement time) || time.ValueKind != JsonValueKind.String
+                || !DateTimeOffset.TryParse(time.GetString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTimeOffset at)
                 || !root.TryGetProperty("kind", out JsonElement kind) || kind.ValueKind != JsonValueKind.String
-                || !root.TryGetProperty("recordId", out JsonElement recordId) || !Guid.TryParse(recordId.GetString(), out Guid id))
+                || !root.TryGetProperty("recordId", out JsonElement recordId) || recordId.ValueKind != JsonValueKind.String || !Guid.TryParse(recordId.GetString(), out Guid id))
             {
                 return (false, null);
             }

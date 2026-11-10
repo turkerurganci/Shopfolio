@@ -387,6 +387,25 @@ public sealed partial class StatusCorrectionTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ACorrectedShipment_IsNotTheShippedMoment_OfTheCustomersView_D725()
+    {
+        (Order order, _) = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, PaymentMethod.Card, new Line(ProductType.Physical, 1));
+        Guid s5 = (await RunAsync((unit, token) => unit.ShipOrderAsync(new ShipOrderRequest(order.Id, AdminCaller, 1, true, Listed), token))).TransitionRecordIds.Single();
+        Assert.False((await CorrectAsync(order.Id, s5, 2, CorrectionReason.WrongOrder, null)).IsRejected);
+
+        // The carrier data stays on the order (KK7), but the corrected shipment sent nothing: no shipped moment and no carrier display (OrderPeriods.Shipments; 03 1.6.2.3).
+        OrderShippingView corrected = (await ShippingViewAsync(order.Id))!;
+        Assert.Null(corrected.ShippedAt);
+        Assert.Null(corrected.Display);
+
+        _clock.Advance(TimeSpan.FromDays(1));
+        Guid again = (await RunAsync((unit, token) => unit.ShipOrderAsync(new ShipOrderRequest(order.Id, AdminCaller, 3, true, Listed), token))).TransitionRecordIds.Single();
+        await using AppDbContext reader = NewContext();
+        DateTimeOffset shippedAgain = (await reader.TransitionRecords.SingleAsync(t => t.Id == again, Ct)).CreatedAt;
+        Assert.Equal(shippedAgain, (await ShippingViewAsync(order.Id))!.ShippedAt);
+    }
+
+    [Fact]
     public async Task TheDeliveryFailedMarksCorrection_TakesTheOrderBackToShipped_KK7()
     {
         (Order order, _) = await SeedAsync(OrderStatus.Shipped, PaymentStatus.Paid, PaymentMethod.Card, new Line(ProductType.Physical, 1));
@@ -634,6 +653,13 @@ public sealed partial class StatusCorrectionTests : IAsyncLifetime
             },
             Ct);
         return closure;
+    }
+
+    // The read behind the customer's delivery area (IOrderingModule.GetShippingViewAsync).
+    private async Task<OrderShippingView?> ShippingViewAsync(Guid orderId)
+    {
+        await using AppDbContext db = NewContext();
+        return await new ShippingViewReader(db).GetAsync(orderId, Ct);
     }
 
     private async Task<T> RunAsync<T>(Func<IOrderTransitions, CancellationToken, Task<T>> work)

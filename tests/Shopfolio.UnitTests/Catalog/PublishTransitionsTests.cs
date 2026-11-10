@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 using Shopfolio.Infrastructure.Errors;
 using Shopfolio.Modules.Catalog;
 using Shopfolio.Modules.Catalog.Contracts;
@@ -166,9 +168,10 @@ public sealed class PublishTransitionsTests
     [Fact]
     public void Scan_OnACallOutsideTheUnit_ReportsEachWriter_AndOnTheUnitsOwnFileNothing()
     {
-        const string text = "product.ApplyPublishStatus(status, now);\nvariant.ApplyPublishStatus(status);\nvariant.MarkFirstOnSale(now);\n// ApplyPublishStatus(";
+        const string text = "product.ApplyPublishStatus(status, now);\nvariant.ApplyPublishStatus(status);\nvariant.MarkFirstOnSale(now);\n// ApplyPublishStatus(\n"
+            + "product.PublishStatus = PublishStatus.Published;\nif (product.PublishStatus == PublishStatus.Draft)";
 
-        Assert.Equal([1, 2, 3], PublishStatusWriterScan.Scan("src/Shopfolio.Web/Modules/Catalog/Other.cs", text));
+        Assert.Equal([1, 2, 3, 5], PublishStatusWriterScan.Scan("src/Shopfolio.Web/Modules/Catalog/Other.cs", text));
         Assert.Empty(PublishStatusWriterScan.Scan(PublishStatusWriterScan.UnitFile, text));
     }
 
@@ -213,6 +216,16 @@ internal static class PublishStatusWriterScan
 
     private static readonly string[] Declarations = ["void ApplyPublishStatus(", "void MarkFirstOnSale("];
 
+    /// <summary>A direct write of a product's or a variant's status (D-301): an assignment, not a comparison. The setter stays public for the
+    /// tests' seeds only; in the application it is written by the two Apply methods of its own files.</summary>
+    private static readonly Regex StatusAssignment = new(@"\bPublishStatus\s*=(?!=)", RegexOptions.CultureInvariant);
+
+    private static readonly string[] AssignmentOwners =
+        ["src/Shopfolio.Web/Modules/Catalog/Product.cs", "src/Shopfolio.Web/Modules/Catalog/Variant.cs"];
+
+    /// <summary>The corporate content record has a status of the same name and its own writer (ContentPublishing).</summary>
+    private const string ContentModule = "src/Shopfolio.Web/Modules/CorporateContent/";
+
     /// <summary>The 1-based lines of a call outside the unit's file; a comment line and a declaration are not calls.</summary>
     public static IReadOnlyList<int> Scan(string relativePath, string text)
     {
@@ -231,7 +244,11 @@ internal static class PublishStatusWriterScan
                 continue;
             }
 
-            if (Writers.Any(w => line.Contains(w, StringComparison.Ordinal)) && !Declarations.Any(d => line.Contains(d, StringComparison.Ordinal)))
+            bool call = Writers.Any(w => line.Contains(w, StringComparison.Ordinal)) && !Declarations.Any(d => line.Contains(d, StringComparison.Ordinal));
+            bool assignment = !AssignmentOwners.Contains(relativePath, StringComparer.Ordinal)
+                && !relativePath.StartsWith(ContentModule, StringComparison.Ordinal)
+                && StatusAssignment.IsMatch(line);
+            if (call || assignment)
             {
                 lines.Add(i + 1);
             }

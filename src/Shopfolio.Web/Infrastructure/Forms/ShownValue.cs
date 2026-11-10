@@ -5,8 +5,9 @@ namespace Shopfolio.Infrastructure.Forms;
 /// <summary>
 /// The comparison of a value the screen showed with the value the record holds now (07 2.4.3, 2.4.5; 05 7.3.1, 7.3.3): a stock or capacity field, the
 /// internal note, the temporary-closure switch, the manual order of two records. The value comes back in a hidden <c>Original...</c> field
-/// (<see cref="VersionFields.Original(string, string?, string)"/>), so a field that is missing, empty where a number is expected or not a number is
-/// not a match: the write that depends on it is not made. The comparison is made on every send - the first one without the confirmation mark too -
+/// (<see cref="VersionFields.Original(string, string?, string)"/>). A missing field is the empty value and the empty value matches only the empty
+/// value (an unlimited stock, an empty note); a field that is not a number where a number is expected is not a match, and the write that depends on
+/// it is not made (D-129). The comparison is made on every send - the first one without the confirmation mark too -
 /// and the last step carries the first form's value, not the page's current value (K-1212 (1)): a form opened in two tabs keeps its protection.
 /// The write itself is the one conditional update of the module that owns the record (09 10.2 item 4); this class decides only whether the shown
 /// value is still the value.

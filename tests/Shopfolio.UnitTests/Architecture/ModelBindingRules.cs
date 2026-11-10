@@ -239,9 +239,17 @@ internal static class ModelBindingRules
     /// </summary>
     private static string? ValueFormatViolation(Type leaf, ICustomAttributeProvider declared)
     {
-        if (leaf == typeof(DateTime) || leaf == typeof(DateTimeOffset) || leaf == typeof(TimeOnly))
+        if (leaf == typeof(DateTime) || leaf == typeof(DateTimeOffset) || leaf == typeof(TimeOnly) || leaf == typeof(TimeSpan))
         {
             return "TimeBound";
+        }
+
+        // OtherNumberBound: a whole number is an int or a long, read by the request value binder (09 7.2 item 3; D-152); the other integer types
+        // would be read by the framework's culture-bound converter (sign, blanks, hexadecimal prefix).
+        if (leaf == typeof(short) || leaf == typeof(ushort) || leaf == typeof(byte) || leaf == typeof(sbyte) || leaf == typeof(uint)
+            || leaf == typeof(ulong) || leaf == typeof(nint) || leaf == typeof(nuint))
+        {
+            return "OtherNumberBound";
         }
 
         if (leaf == typeof(float) || leaf == typeof(double) || leaf == typeof(Half))

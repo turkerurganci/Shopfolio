@@ -18,6 +18,7 @@ public sealed class LogFileRetentionTests
 
         Assert.Equal(Night.ToOffset(TurkeyTime.Offset).AddMonths(-ProductConstants.SystemLogRetentionMonths), cutoff);
         Assert.Equal(new DateTimeOffset(2026, 5, 6, 3, 0, 0, TurkeyTime.Offset), cutoff);
+        Assert.Equal(TimeSpan.Zero, cutoff.Offset);
     }
 
     [Fact]

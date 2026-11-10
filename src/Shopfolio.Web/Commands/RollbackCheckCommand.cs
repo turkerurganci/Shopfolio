@@ -35,7 +35,7 @@ internal sealed class RollbackCheckCommand : IAdminCommand
         ITerminal terminal = input.Terminal;
         DateTimeOffset restorePoint = input.Moment(RestorePointOption) ?? throw new InvalidOperationException("The dispatcher gives a required option or ends with a usage error.");
 
-        input.Services.GetRequiredService<IAuditLineWriter>().Write(AuditLine.AdminCommand(CommandName, Guid.Empty));
+        input.Services.GetRequiredService<IAuditLineWriter>().Write(AuditLine.AdminCommandWithoutTarget(CommandName));
 
         await using AsyncServiceScope scope = input.Services.CreateAsyncScope();
         RollbackCount count = await scope.ServiceProvider.GetRequiredService<RollbackAudit>().CountAfterAsync(restorePoint, ct);

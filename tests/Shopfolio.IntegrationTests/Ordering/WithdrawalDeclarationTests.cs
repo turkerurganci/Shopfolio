@@ -617,7 +617,7 @@ public sealed partial class WithdrawalDeclarationTests : IAsyncLifetime
     /// <summary>A product and variant of <paramref name="type"/> with <paramref name="stock"/> left, set as the item's source (the order freezes no other value of it).</summary>
     private async Task<Guid> SeedVariantAsync(Guid itemId, ProductType type, int stock)
     {
-        string key = EntityIds.New().ToString("N")[..12];
+        string key = EntityIds.New().ToString("N")[^12..];
         Product product = Product.Create("Kaynak", $"cayma-{key}", type, 20m, Start);
         if (type == ProductType.Physical)
         {

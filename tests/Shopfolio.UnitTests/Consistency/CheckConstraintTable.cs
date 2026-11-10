@@ -67,7 +67,7 @@ internal static class CheckConstraintTable
         ["Country"] = (1, [
             "ck_countries_code_two_capital_letters",
         ]),
-        ["Coupon"] = (6, [
+        ["Coupon"] = (7, [
             "ck_coupons_amount_above_zero",
             "ck_coupons_amount_needs_larger_minimum_basket",
             "ck_coupons_end_not_before_start",

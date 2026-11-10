@@ -162,6 +162,7 @@ public sealed class RequestFormatTests
     [InlineData("1,5", false, 0L)]
     [InlineData("1e3", false, 0L)]
     [InlineData("١٢", false, 0L)]
+    [InlineData("12\0", false, 0L)]
     [InlineData("", false, 0L)]
     [InlineData(null, false, 0L)]
     public void TryParseWholeNumber_ReadsAsciiDigitsOnly(string? value, bool parsed, long expected)

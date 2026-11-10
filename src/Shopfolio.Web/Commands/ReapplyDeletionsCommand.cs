@@ -41,7 +41,7 @@ internal sealed class ReapplyDeletionsCommand : IAdminCommand
         ITerminal terminal = input.Terminal;
         DateTimeOffset restorePoint = input.Moment(RestorePointOption) ?? throw new InvalidOperationException("The dispatcher gives a required option or ends with a usage error.");
 
-        input.Services.GetRequiredService<IAuditLineWriter>().Write(AuditLine.AdminCommand(CommandName, Guid.Empty));
+        input.Services.GetRequiredService<IAuditLineWriter>().Write(AuditLine.AdminCommandWithoutTarget(CommandName));
 
         InstantDeletionReading reading = input.Services.GetRequiredService<InstantDeletionLog>().ReadSince(restorePoint);
         int applied = 0;

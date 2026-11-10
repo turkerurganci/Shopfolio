@@ -36,8 +36,9 @@ internal sealed class ShippingViewReader
             .Where(t => !_db.TransitionRecords.Any(c => c.CorrectedTransitionRecordId == t.Id))
             .MaxAsync(t => (DateTimeOffset?)t.CreatedAt, ct);
 
-        DateTimeOffset? shippedAt = await _db.TransitionRecords.AsNoTracking()
-            .Where(t => t.OrderId == orderId && (t.TransitionCode == TransitionCode.S5 || t.TransitionCode == TransitionCode.S8))
+        // The moment of the last shipment no correction undid (OrderPeriods.Shipments; 03 1.6.2.3): a corrected shipment sent nothing.
+        DateTimeOffset? shippedAt = await OrderPeriods.Shipments(_db).AsNoTracking()
+            .Where(t => t.OrderId == orderId)
             .MaxAsync(t => (DateTimeOffset?)t.CreatedAt, ct);
 
         bool hasCarrierData = order.IsOwnVehicleDelivery || order.Carrier is not null || order.OtherCarrierName is not null;

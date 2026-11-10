@@ -157,7 +157,7 @@ internal static partial class CacheSourceScan
         return builder.ToString(0, builder.Length - 1);
     }
 
-    [GeneratedRegex(@"\b(?:class|struct|interface|enum|record|delegate\s+[\w<>?,\s.]+?)\s+(?:class\s+|struct\s+)?(?<name>AppCache|CacheArea|CacheInvalidations)\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    [GeneratedRegex(@"\b(?:class|struct|interface|enum|record|delegate\s+[\w<>?,\s.]+?)\s+(?:class\s+|struct\s+)?(?<name>AppCache|CacheArea|CacheInvalidations)\b", RegexOptions.CultureInvariant | RegexOptions.NonBacktracking, matchTimeoutMilliseconds: 5000)]
     private static partial Regex Definition();
 
     [GeneratedRegex(@"\bInvalidate\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
@@ -171,13 +171,13 @@ internal static partial class CacheSourceScan
 
     [GeneratedRegex(
         @"\w*MemoryCache\w*|\w*DistributedCache\w*|\w*CacheTagHelper\w*|\w*HybridCache\w*|\w*RedisCache\w*|\bObjectCache\b|\bSystem\s*\.\s*Runtime\s*\.\s*Caching\b|\bMicrosoft\s*\.\s*Extensions\s*\.\s*Caching\b|\bConcurrentDictionary\b|\bLazy\s*<|\bLazyInitializer\b|\bAsyncLazy\b",
-        RegexOptions.CultureInvariant,
+        RegexOptions.CultureInvariant | RegexOptions.NonBacktracking,
         matchTimeoutMilliseconds: 5000)]
     private static partial Regex OtherCache();
 
     [GeneratedRegex(@"<\s*(?:distributed-)?cache\b", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase, matchTimeoutMilliseconds: 5000)]
     private static partial Regex CacheTagHelper();
 
-    [GeneratedRegex(@"\w*OutputCach\w*|\w*ResponseCach\w*|\bCacheOutput\s*\(", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    [GeneratedRegex(@"\w*OutputCach\w*|\w*ResponseCach\w*|\bCacheOutput\s*\(", RegexOptions.CultureInvariant | RegexOptions.NonBacktracking, matchTimeoutMilliseconds: 5000)]
     private static partial Regex PageOutput();
 }

@@ -76,7 +76,7 @@ public sealed class StartupSettingsCheckTests
             _database.Dsn,
             new Dictionary<string, string>
             {
-                { PaymentOptions.ProviderKeysKey, "made-up-provider-keys" },
+                { PaymentOptions.ProviderKeysKey, "merchant_id=1\nmerchant_key=made-up-provider-keys\nmerchant_salt=2" },
                 { GoogleOptions.ClientIdKey, "made-up-client-id" },
                 { GoogleOptions.ClientSecretKey, ClientSecretValue },
             },

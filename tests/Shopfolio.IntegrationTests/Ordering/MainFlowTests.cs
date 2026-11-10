@@ -268,63 +268,16 @@ public sealed class MainFlowTests : IAsyncLifetime
         Assert.Equal(2, adminCodes.Length);
     }
 
-    // ---- the host: the application's notification endpoint on a test server, the modules, the job runner and the fake gateway, on the manual clock ----
+    // ---- the host: the shared notification server (D-828) on the manual clock with the fake gateway ----
 
     private async Task StartHostAsync()
     {
-        WebApplicationBuilder builder = WebApplication.CreateSlimBuilder();
-        builder.WebHost.UseTestServer();
-        builder.Logging.ClearProviders();
-        IServiceCollection services = builder.Services;
-        services.AddDbContext<AppDbContext>(options => AppDbContext.Configure(options, _collection.Dsn));
-        services.AddScoped<JobEnqueueTracker>();
-        services.AddSingleton<IJobSignal, JobSignal>();
-        services.AddScoped<ITransactionRunner, TransactionRunner>();
-        services.AddAppCache();
-        services.AddScoped<AdvisoryLocks>();
-        services.AddSingleton<TimeProvider>(_clock);
-        services.AddScoped<IJobQueue, JobQueue>();
-        services.AddFileStore();
-        services.AddOptions<StatusThresholdOptions>();
-        services.AddSingleton<Shopfolio.Infrastructure.Status.IDiskUsageReader, Shopfolio.Infrastructure.Status.DriveDiskUsageReader>();
-        services.AddSingleton<Shopfolio.Infrastructure.Status.DiskUsageGuard>();
-        services.AddSingleton<ImageProcessor>();
-        services.AddCatalogModule();
-        services.AddAfterSalesModule();
-        services.AddOrderingModule();
-        services.AddPaymentModule();
-
-        // The Settings module with its trail, as in the ordering tests' services; its start-up regeneration of the legal texts is left out, so the seeded versions are the ones shown.
-        services.AddScoped<IAuditActorSource, NoAuditActor>();
-        services.AddScoped<Shopfolio.Modules.Administration.Contracts.IAuditTrail, AuditTrail>();
-        services.AddSettingsModule();
-        services.Remove(services.Single(d => d.ServiceType == typeof(Microsoft.Extensions.Hosting.IHostedService) && d.ImplementationType == typeof(GeneratedLegalTextsStartup)));
-
-        // The Notifications module's open face and the writers of the dispatch rows; the firm's contact e-mail is the ordering tests' fixed address.
-        services.AddScoped<INotificationsModule, NotificationsModule>();
-        services.AddScoped<CustomerNoticeQueue>();
-        services.AddScoped<CompanyNoticeQueue>();
-        services.AddScoped<AccountEmailQueue>();
-        services.AddScoped<ICompanyContactEmail, FixedCompanyContactEmail>();
-        services.AddOptions<LinkKeyOptions>();
-        services.AddSingleton<LinkKeys>();
-
-        // The card line is open (the provider's gateway is the fake); the transfer line is closed - this flow pays by card.
-        services.AddSingleton<IPaymentGateway>(_gateway);
-        services.AddSingleton<IReadOnlyList<ConditionalLine>>([new ConditionalLine(ConditionalLine.CardPayment, [])]);
-        services.AddScoped<IBankTransferCondition, ClosedBankTransferCondition>();
-
-        services.AddSingleton(provider => new JobHandlerRegistry(provider.GetServices<JobHandlerRegistration>()));
-        services.AddAntiforgery();
-        services.AddSignedEndpoints();
-        services.AddSingleton<UnexpectedErrorCounter>();
-        services.AddSingleton<UnexpectedErrorLayer>();
-
-        _app = builder.Build();
-        _app.UseUnexpectedErrorLayer();
-        _app.UseAntiforgery();
-        _app.MapPaymentNotificationEndpoint();
-        await _app.StartAsync(Ct);
+        // The shared notification server (D-828); the card line is open (the provider's gateway is the fake), the transfer line is closed - this flow pays by card.
+        _app = await PaymentNotificationHost.StartAsync(_collection.Dsn, _clock, _gateway, Ct, services =>
+        {
+            services.AddSingleton<IReadOnlyList<ConditionalLine>>([new ConditionalLine(ConditionalLine.CardPayment, [])]);
+            services.AddScoped<IBankTransferCondition, ClosedBankTransferCondition>();
+        });
         _client = _app.GetTestClient();
     }
 
@@ -524,10 +477,5 @@ public sealed class MainFlowTests : IAsyncLifetime
     private sealed class ClosedBankTransferCondition : IBankTransferCondition
     {
         public Task<bool> IsOpenAsync(CancellationToken ct) => Task.FromResult(false);
-    }
-
-    private sealed class FixedCompanyContactEmail : ICompanyContactEmail
-    {
-        public Task<string?> GetAsync(CancellationToken ct) => Task.FromResult<string?>(OrderingTestServices.CompanyEmail);
     }
 }

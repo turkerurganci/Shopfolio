@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Infrastructure.Validation;
 using Shopfolio.Modules.Administration.Contracts;
@@ -246,7 +247,7 @@ internal sealed partial class OrderCorrections : IOrderCorrections
             return (null, TransitionRefusal.OrderNotFound);
         }
 
-        return expectedVersion is { } shown && shown != order.Version ? (null, TransitionRefusal.VersionConflict) : (order, null);
+        return expectedVersion is { } shown && !ShownVersion.Matches(order, shown) ? (null, TransitionRefusal.VersionConflict) : (order, null);
     }
 
     private static bool IsAdmin(TransitionAdmin? admin) => admin is not null && admin.AdminId != Guid.Empty && !string.IsNullOrWhiteSpace(admin.AdminName);

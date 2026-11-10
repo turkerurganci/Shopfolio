@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Modules.Catalog.Contracts;
 using Shopfolio.Modules.Notifications.Contracts;
 using Shopfolio.Modules.Ordering.Contracts;
@@ -77,7 +78,7 @@ internal sealed partial class OrderTransitions
             return new PaymentTransitionResult([], isOrderNotFound: true);
         }
 
-        if (order.Version != mark.ExpectedVersion)
+        if (!ShownVersion.Matches(order, mark.ExpectedVersion))
         {
             return new PaymentTransitionResult([], isVersionConflict: true);
         }
@@ -164,7 +165,7 @@ internal sealed partial class OrderTransitions
             return new PaymentTransitionResult([], isOrderNotFound: true);
         }
 
-        if (order.Version != processing.ExpectedVersion)
+        if (!ShownVersion.Matches(order, processing.ExpectedVersion))
         {
             return new PaymentTransitionResult([], isVersionConflict: true);
         }

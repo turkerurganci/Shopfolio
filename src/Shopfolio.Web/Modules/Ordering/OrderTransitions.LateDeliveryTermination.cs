@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Shopfolio.Infrastructure;
+using Shopfolio.Infrastructure.Forms;
 using Shopfolio.Infrastructure.Operations;
 using Shopfolio.Modules.AfterSales.Contracts;
 using Shopfolio.Modules.Catalog.Contracts;
@@ -64,7 +65,7 @@ internal sealed partial class OrderTransitions
             return Refused(TransitionRefusal.OrderNotFound);
         }
 
-        if (request.ExpectedVersion is { } shown && shown != order.Version)
+        if (request.ExpectedVersion is { } shown && !ShownVersion.Matches(order, shown))
         {
             return Refused(TransitionRefusal.VersionConflict);
         }

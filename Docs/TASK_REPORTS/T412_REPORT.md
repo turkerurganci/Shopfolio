@@ -1,6 +1,6 @@
 # T412 — F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı
 
-**Faz:** F4 | **Durum:** ⏳ Doğrulama bekliyor | **Tarih:** 2026-11-10
+**Faz:** F4 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-10
 
 > Taslağı **yapım chat'i** doldurur; **doğrulama chat'i** finalize eder.
 
@@ -40,7 +40,7 @@
 | 6 | `TrackingNumber` ≤ 64, `OtherCarrierName` ≤ 100; `09 §3.5` sabitleri; aşım `InvalidInput` | ✓ | `ShipmentLimits`; `ShipmentTransitionsTests.S5_TakesTheTrackingNumberAndTheCompanyName_AtTheirCaps_AndRefusesOneCharacterMore_T412_KK6`, `OrderCorrectionTests.TheCarrierCorrection_TakesTheCaps_AndRefusesOneCharacterMore_T412_KK6` (sınırın iki yanı, beklenen değer sabitten); `09 §3.5`, `06 §4.17` |
 | 7 | Yerel kısım noktayla başlamaz, bitmez, ardışık nokta yok; `04` 7.3.2.1 | ✓ | `InvalidEmailAttribute`; `FieldRuleTests` (`.ad@`, `ad.@`, `a..b@`), `MembershipTests.Register_WithAWrongAddress_IsRefusedAndNamed` (üç biçim); `04` 7.3.2.1 |
 | 8 | Kanca ve paket betiğinin taraması `-e "` önekli satırı atlamaz | ✓ | `pre-commit` önek soyma; `test-pre-commit.sh` `sh -e quoted/bare`, `sh --env quoted`, `sh --env= form` (yakalanır), `sh -e placeholder`, `sh -e _FILE short path` (geçer); `package-build.sh` 1/7 deseni önekli satırı zaten görür |
-| 9 | Ödeme kümesi tek yerde; okuyan her yer onu kullanır | ✓ | `PaymentApproval`; `PaymentApprovalTests` (küme sabit + kaynak taraması ikinci tanımı yakalar, tek istisna `TransitionTable.cs` izinli çift satırı) |
+| 9 | Ödeme kümesi tek yerde; okuyan her yer onu kullanır | ~ (validator tur 1: `DeliveryMarkRules.IsPaymentOpenToMark` ve `PendingWorkReader` `ServiceUnmarked` kümeyi tümleyeniyle yazar — B1) | `PaymentApproval`; `PaymentApprovalTests` (küme sabit + kaynak taraması ikinci tanımı yakalar, tek istisna `TransitionTable.cs` izinli çift satırı) |
 
 ### Öz denetim (bitiş kapısı 2)
 
@@ -79,10 +79,10 @@
 
 | Alan | Sonuç |
 |---|---|
-| Doğrulama durumu | *(validator doldurur)* |
-| Bulgu sayısı | — |
-| Düzeltme gerekli mi | — |
-| Bloke-etmeyen not (K) sayısı | — |
+| Doğrulama durumu (tur 1) | ✗ FAIL — tur 1 (2026-11-10, head `5b76129a`; `origin/main` `0b0d1828` dal tabanında, birleştirme gerekmedi). Kriter 1–8 ve KK1–KK8 ✓; **kriter 9 / KK9 ~ Kısmi**. Dal CI'ı yeşil (run 42808755298), ana dal son üç run yeşil. Yerelde: derleme 0 uyarı, `dotnet format` üç proje temiz, Unit 6018/6018, betik testleri 4/4, `test-pre-commit.sh` tam 216/0, Integration dokunulan ve komşu sınıflar 303 + 341 (dokuz `*_T412_*` testi dahil) yeşil; `--locked-mode` restore 0. Güvenlik temiz. |
+| Bulgu sayısı | 1 — **B1** (S1, DÜŞÜK; KK9): "ödeme onaylanmış" kümesini okuyan iki yer `PaymentApproval`'ı kullanmıyor, kümeyi tümleyeniyle yeniden yazıyor: `DeliveryMarkRules.IsPaymentOpenToMark` (`payment is not (PaymentStatus.Pending or PaymentStatus.Failed)`; kuralı `02 §3.20.9` "İşaret ancak ödeme onaylanmışken konur") ve `PendingWorkReader` `ServiceUnmarked` sorgusu (`o.PaymentStatus != PaymentStatus.Pending && o.PaymentStatus != PaymentStatus.Failed`). Değerler bugün eşit; yeni bir `PaymentStatus` değeri eklenince bu iki yer kümeden ayrışır — kriter 9'un önlemek istediği kayma. `PaymentApprovalTests` taraması yalnız üç durumu aynı satırda yazan kopyayı arar, tümleyen biçimini görmez. |
+| Düzeltme gerekli mi | Evet — iki yer `PaymentApproval.IsApproved` / `PaymentApproval.Statuses` çağırır; tarama tümleyen biçimini (`is not (Pending or Failed)`, `!= Pending && != Failed`) de yakalar (izinli çift tablosu ve `03 §1.4.1` yasak çift denetimi gibi başka kuralın satırları gerekçeyle ayrılır). |
+| Bloke-etmeyen not (K) sayısı | 1 — **K1** (D-1036'ya forward): sır bekçisi `-e`/`--env` önekini yalnız satır başında soyar; aynı satırdaki ikinci önekli atama ve tek satırlık `docker run … -e "API_KEY=…"` yakalanmaz (validator sondası). D-80'in tarif ettiği devam satırı biçimi kapandı. |
 
 ## Altyapı Değişiklikleri
 

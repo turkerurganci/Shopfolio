@@ -115,7 +115,7 @@
 | 1 | `Site:Domain` (ayar dosyası: `SHOPFOLIO_DOMAIN`; Compose uygulamaya `Site__Domain` olarak verir) | Alan adı (şemasız, bağlantı noktasız) | `shop.example.com` | Sitenin alan adı; ters vekil ve uygulama aynı tek değeri okur (`05 §8.4.3`; D-32 (a)) |
 | 2 | `Email:SenderAddress` (`Email__SenderAddress`) | Yalın e-posta adresi (görünen adsız) | `info@example.com` | E-postaların gönderen adresi; firmanın alan adındadır (`08 §2.2`) |
 | 3 | `Email:Region` (`Email__Region`) | Bölge adı | `eu-central-1` | E-posta gönderim hizmetinin bölgesi; e-posta gönderim kimliğinin (3 değer) sır olmayan parçası |
-| 4 | `Email:Credential` (sır dosyası `email_credential`, §B satır 13) | Boş olmayan metin | — (sır, burada örnek yok) | E-posta gönderim kimliğinin sır parçası; ayar dosyasında bulunmaz |
+| 4 | `Email:Credential` (sır dosyası `email_credential`, §B satır 13) | İki satırlı metin: 1. satır erişim anahtarı kimliği, 2. satır gizli anahtar (J.2) | — (sır, burada örnek yok) | E-posta gönderim kimliğinin sır parçası; ayar dosyasında bulunmaz |
 | 5 | `Database:ConnectionString` (sır dosyası `db_app_connection`, §B satır 3) | Veritabanı bağlantı dizisi | — (sır) | Uygulama kullanıcısının bağlantısı; `Database:LivenessTimeoutSeconds` isteğe bağlı ayardır (§C) |
 | 6 | `LinkKey:DerivationSecret` (sır dosyası `link_derivation_secret`, §B satır 15) | Base64, çözülünce en az 32 bayt | — (sır) | Hesap bağlantılarının anahtarını türetir (`05 §6.4.4`) |
 
@@ -142,7 +142,7 @@
 | 10 | `file_backup_storage_key` | Nesne depolama hesabının yönetim girişinden firma ya da kurulumu yapan; yalnız dosya yedeğinin önekine yazar | `backup` | Uygulama, komutlar, göç, veritabanı, ters vekil | Yılda bir ve olay üzerine; `backup` yeniden başlar — kısa kesinti; eski anahtar yeni bağlantılar için anında geçersiz | Dosya 10001:10001 0400 |
 | 11 | `file_backup_cipher_key` | Kurulumu yapan üretir — kriptografik üreteçle, kurulumda; ikinci kopya firmada durur | `backup` | Uygulama, komutlar, göç, veritabanı, ters vekil | Döndürülmez — döndürmek eski yedekleri açılamaz kılar; sızıntıda dosya yedeği için yeni depo ve yeni anahtar kurulur; eski yedekler otuz günde düşer (`05 §6.x.12`) | Dosya 10001:10001 0400 |
 | 12 | `payment_provider_keys` | Ödeme sağlayıcısının panelinden firma ya da kurulumu yapan; bildirim doğrulaması da bunlarla yapılır (`08 §2.1.2`) | `app` | Göç, iki komut, veritabanı, yedek aracı, ters vekil | Olay üzerine; `app` yeniden başlar, kuyruktaki e-postalar bekler; eski anahtarın sağlayıcıda ne kadar geçerli kaldığı sağlayıcının kuralıdır (`05 §6.x.11`) | Dosya 1654:1654 0400 |
-| 13 | `email_credential` | E-posta sağlayıcısının panelinden firma ya da kurulumu yapan | `app` | Göç, iki komut, veritabanı, yedek aracı, ters vekil | Olay üzerine; `app` yeniden başlar, kuyruktaki e-postalar bekler (`05 §6.x.11`) | Dosya 1654:1654 0400. Geliştirme makinesinde dosya uydurma içeriklidir, gerçek kimlik oraya geçmez (`05 §8.1.2`); boş dosya "yok" sayılır ve zorunlu ayar eksik kalır |
+| 13 | `email_credential` | E-posta sağlayıcısının panelinden firma ya da kurulumu yapan | `app` | Göç, iki komut, veritabanı, yedek aracı, ters vekil | Olay üzerine; `app` yeniden başlar, kuyruktaki e-postalar bekler (`05 §6.x.11`) | Dosya 1654:1654 0400. İçerik iki satırdır (J.2); başka biçimde uygulama açılmaz ve açılış hatası ayarı adıyla söyler, değeri söylemez. Geliştirme makinesinde (`EmailCapture:Host` dolu) dosya hiç okunur sayılmaz: uydurma, boş olmayan her metin açar, gerçek kimlik oraya geçmez (`05 §8.1.2`); boş dosya "yok" sayılır ve zorunlu ayar eksik kalır |
 | 14 | `google_client_secret` | Google uygulamasının yönetim ekranından firma ya da kurulumu yapan | `app` | Göç, iki komut, veritabanı, yedek aracı, ters vekil | Olay üzerine; `app` yeniden başlar (`05 §6.x.11`) | Dosya 1654:1654 0400 |
 | 15 | `link_derivation_secret` | Kurulumu yapan üretir — kriptografik üreteçle (MK-50), kurulumda; en az 32 bayt, Base64 (`09 §3.5`) | `app` | Göç, iki komut (bildirim üretmez, iş kuyruğunu çalıştırmaz), veritabanı, yedek aracı, ters vekil | Olay üzerine; `app` yeniden başlar ve açılışta kuyruktaki geri alma e-postalarının bağlantı kaydını yeni sırla yeniden yazar (`05 §6.x.20`) | Dosya 1654:1654 0400. Eski sırrı bilen, döndürmeden önce gönderilmiş geri alma bağlantısını ömrü boyunca türetebilir (kalan risk — `05 §6.x.20`) |
 
@@ -303,8 +303,9 @@ Ayar dosyasındadır (`deploy/.env.example`); sır değildir. Aynı ayar veritab
 | `BACKUP_S3_BUCKET` | yok (zorunlu) | İki yedeğin ortak kovası: veritabanı yedeği `database/`, dosya yedeği `files/` önekinde |
 | `BACKUP_S3_URI_STYLE` | `host` | `host` (kova adı sunucu adında) ya da `path` (kova adı yolda); sağlayıcının belgesi söyler |
 
-### J.2 Sır dosyalarının içeriği (`§B` satır 8–11)
+### J.2 Sır dosyalarının içeriği (`§B` satır 8–11 ve 13)
 
+- `email_credential` (§B satır 13): iki satır — 1. satır erişim anahtarı kimliği, 2. satır gizli anahtar; başka içerik, boşluk ya da ek satır yok. IAM kullanıcısının politikası ve anahtarın alınışı `INTEGRATION_RUNBOOKS/AMAZON_SES.md` §2 ve §4'tedir.
 - `db_backup_storage_key` ve `file_backup_storage_key`: iki satır — 1. satır erişim anahtarı kimliği, 2. satır gizli anahtar; başka içerik yok.
 - `db_backup_cipher_key` ve `file_backup_cipher_key`: tek satır — yedeğin şifreleme parolası, kriptografik üreteçle (en az 32 karakter). **Döndürülmez** (`§B`); ikinci kopya firmaya teslim edilir. İki yedeğin anahtarı ve parolası ayrıdır; aynı değer kullanılmaz.
 

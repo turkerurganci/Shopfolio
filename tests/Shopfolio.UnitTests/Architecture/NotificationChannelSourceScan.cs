@@ -22,11 +22,13 @@ internal static partial class NotificationChannelSourceScan
     public const string GatewayOutsideTheSender = "names the e-mail gateway outside the files that may (03 7.1: an e-mail leaves only through a dispatch row)";
     public const string DispatchRowOutsideTheQueues = "makes or adds a dispatch row outside the queues (08 2.2.6-2.2.8: every row passes the notification map)";
 
-    /// <summary>The files that may name the e-mail gateway: its interface, its registration, its one implementation and the sender of the dispatch rows.</summary>
+    /// <summary>The files that may name the e-mail gateway: its interface, its registration, its two implementations (the service's and the development capture) and the sender of the dispatch rows.</summary>
     public static readonly string[] GatewayFiles =
     [
         "src/Shopfolio.Web/Infrastructure/Integrations/IEmailGateway.cs",
         "src/Shopfolio.Web/Infrastructure/Integrations/IntegrationRegistration.cs",
+        "src/Shopfolio.Web/Infrastructure/Integrations/SesEmailGateway.cs",
+        "src/Shopfolio.Web/Infrastructure/Integrations/SesRegistration.cs",
         "src/Shopfolio.Web/Infrastructure/Integrations/SmtpCaptureEmailGateway.cs",
         "src/Shopfolio.Web/Modules/Notifications/DispatchAttempts.cs",
     ];

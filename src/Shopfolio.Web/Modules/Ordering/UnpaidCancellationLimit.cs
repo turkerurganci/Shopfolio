@@ -42,18 +42,17 @@ internal sealed class UnpaidCancellationLimit
         return address is null ? 0 : await CountedOrders(OrderAxes.OfIp(_db.Orders.AsNoTracking(), address)).CountAsync(ct);
     }
 
-    /// <summary>The counted cancellations of the e-mail axis: the orders a signed-in member placed with that (normalized) address; a guest order is not counted.</summary>
-    public async Task<int> CountByEmailAsync(string email, CancellationToken ct)
+    /// <summary>The counted cancellations of the e-mail axis: the orders the signed-in member placed, read by the member's id (D-808); a guest order is not counted.</summary>
+    public async Task<int> CountByMemberAsync(Guid customerId, CancellationToken ct)
     {
-        ArgumentNullException.ThrowIfNull(email);
-        return await CountedOrders(OrderAxes.OfMemberEmail(_db.Orders.AsNoTracking(), email)).CountAsync(ct);
+        return await CountedOrders(OrderAxes.OfMember(_db.Orders.AsNoTracking(), customerId)).CountAsync(ct);
     }
 
     /// <summary>True when the IP axis holds as many counted cancellations as the limit allows.</summary>
     public async Task<bool> IsFullByIpAsync(IPAddress? address, CancellationToken ct) => await CountByIpAsync(address, ct) >= Max;
 
     /// <summary>True when the e-mail axis holds as many counted cancellations as the limit allows.</summary>
-    public async Task<bool> IsFullByEmailAsync(string email, CancellationToken ct) => await CountByEmailAsync(email, ct) >= Max;
+    public async Task<bool> IsFullByMemberAsync(Guid customerId, CancellationToken ct) => await CountByMemberAsync(customerId, ct) >= Max;
 
     // The orders of the axis that have a counted cancellation in the window. The window ends now and starts one window ago; a row exactly one window old still counts, like the
     // attempt record's rows (AttemptCounter.IsExceededAsync).

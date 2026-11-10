@@ -54,6 +54,10 @@ public sealed class FieldRuleTests
     [InlineData("ad@example..com", false)]
     [InlineData("ad@.example.com", false)]
     [InlineData("ad@-example.com", false)]
+    [InlineData(".ad@example.com", false)]
+    [InlineData("ad.@example.com", false)]
+    [InlineData("a..b@example.com", false)]
+    [InlineData("a.b.c@example.com", true)]
     [InlineData("ad@example.com, baska@example.com", false)]
     public void InvalidEmail_AcceptsOneAddressAndAnEmptyValue(string value, bool valid)
     {

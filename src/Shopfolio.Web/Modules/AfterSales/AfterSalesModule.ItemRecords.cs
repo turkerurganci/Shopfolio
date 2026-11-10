@@ -189,15 +189,7 @@ internal sealed partial class AfterSalesModule
         Return receipt = Return.ForWithdrawal(subject.OrderItemId, entry.WithdrawalId, entry.Quantity, entry.ArrivalDate, entry.Admin.AdminId, entry.Admin.AdminName, entry.At);
         _db.Returns.Add(receipt);
 
-        // Units beyond those on the way back are closed ones: the closure opens as a whole (06 4.28 ReopenedAt; K-1055) - the units still not come back await their
-        // receipt again and may be closed by a new row.
-        if (entry.Quantity > progress.Awaiting)
-        {
-            foreach (NotReturnedClosure closure in await _db.NotReturnedClosures.Where(n => n.WithdrawalId == entry.WithdrawalId && n.ReopenedAt == null).ToListAsync(ct))
-            {
-                closure.ReopenedAt = entry.At;
-            }
-        }
+        await ReopenClosuresBeyondAwaitingAsync(entry.WithdrawalId, entry.Quantity, progress.Awaiting, entry.At, ct);
 
         bool ibanRequested = entry.IsTransferLine && await RequestIbanAgainAsync(entry, ct);
         return new ItemRecordWriteResult(null, receipt.Id, null, null, ibanRequested);
@@ -270,15 +262,20 @@ internal sealed partial class AfterSalesModule
             return ItemRecordWriteResult.Rejected(ItemRecordRefusal.NotConditionalExemption);
         }
 
-        ItemRecordRefusal? refusal = await ReceiptRefusalAsync(entry.Subject, entry.WithdrawalId, entry.Quantity, entry.ArrivalDate, includeClosed: false, ct);
+        // The rejection is a part of the receipt step (02 7.4.7): the units of an open "mal dönmedi" closure may arrive and be rejected too, and the rejection
+        // reopens the closure as the receipt does (06 4.26 "ret de"; D-915).
+        ItemRecordRefusal? refusal = await ReceiptRefusalAsync(entry.Subject, entry.WithdrawalId, entry.Quantity, entry.ArrivalDate, includeClosed: true, ct);
         if (refusal is { } refused)
         {
             return ItemRecordWriteResult.Rejected(refused);
         }
 
+        Withdrawal withdrawal = await _db.Withdrawals.AsNoTracking().SingleAsync(w => w.Id == entry.WithdrawalId, ct);
+        WithdrawalProgress progress = await WithdrawalProgressAsync(withdrawal, ct);
         ReturnRejection rejection = ReturnRejection.Create(
             entry.Subject.OrderItemId, entry.WithdrawalId, entry.Quantity, entry.ArrivalDate, entry.Admin.AdminId, entry.Admin.AdminName, entry.At);
         _db.ReturnRejections.Add(rejection);
+        await ReopenClosuresBeyondAwaitingAsync(entry.WithdrawalId, entry.Quantity, progress.Awaiting, entry.At, ct);
         return new ItemRecordWriteResult(null, rejection.Id, null);
     }
 
@@ -316,6 +313,23 @@ internal sealed partial class AfterSalesModule
             ? new ItemReturnAddress(name, province, district, line, claim.ReturnPhone)
             : null;
         return new DefectClaimInfo(claim.Id, claim.OrderItemId, claim.DefectClaimStatus, claim.Quantity, claim.CreatedAt, address);
+    }
+
+    /// <summary>
+    /// Units of a receipt or a rejection beyond those on the way back are closed ones: the closure opens as a whole (06 4.26, 4.28 ReopenedAt; K-1055; D-915) - the
+    /// units still not come back await their receipt again and may be closed by a new row.
+    /// </summary>
+    private async Task ReopenClosuresBeyondAwaitingAsync(Guid withdrawalId, int quantity, int awaiting, DateTimeOffset at, CancellationToken ct)
+    {
+        if (quantity <= awaiting)
+        {
+            return;
+        }
+
+        foreach (NotReturnedClosure closure in await _db.NotReturnedClosures.Where(n => n.WithdrawalId == withdrawalId && n.ReopenedAt == null).ToListAsync(ct))
+        {
+            closure.ReopenedAt = at;
+        }
     }
 
     /// <summary>The writers run inside the caller's transaction and after the order's row lock (05 7.3.2): anything else is a programming error.</summary>

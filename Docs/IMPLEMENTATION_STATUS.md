@@ -246,7 +246,7 @@
 | T406 | PayTR: 3D Secure kurulum şartı, test kanıtı ve canlı kanıtın satırları | ⬚ | — | — | — |
 | T407 | SES: gönderim ve sonuç sınıfları | ✓ | ✓ PASS (tur 1) | `ed0866f` | #515 |
 | T408 | SES: geri dönen adreslerin öğrenilmesi | ✓ | ✓ PASS (tur 2) | — | #518 |
-| T409 | Google: giriş, kayıt ve yeniden doğrulama bağlayıcısı | ⬚ | — | — | — |
+| T409 | Google: giriş, kayıt ve yeniden doğrulama bağlayıcısı | ✓ | ✓ PASS (tur 2) | — | #519 |
 | T410 | Dış olgu varsayımlarının doğrulama kanıtları (DV) | ⬚ | — | — | — |
 | T411 | Kayıt maskeleme taramasının dizge farkında yeniden yazımı | ✓ | ✓ PASS (tur 1) | — | #514 |
 | T412 | F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı | ✓ | ✓ PASS (tur 3) | — | #517 |

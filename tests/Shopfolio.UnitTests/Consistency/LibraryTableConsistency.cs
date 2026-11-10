@@ -22,8 +22,6 @@ internal static partial class LibraryTableConsistency
     /// </summary>
     public static readonly IReadOnlySet<string> NotYetAdded = new HashSet<string>(StringComparer.Ordinal)
     {
-        "Microsoft.IdentityModel.Protocols.OpenIdConnect",
-        "Microsoft.IdentityModel.JsonWebTokens",
     };
 
     /// <summary>Returns the problems found; an empty list means the table and the props file agree.</summary>

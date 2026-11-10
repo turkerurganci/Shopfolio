@@ -44,8 +44,36 @@ public sealed class ShownVersionSourceScanTests
 
         IReadOnlyList<(string Rule, int Line)> findings = ShownVersionSourceScan.Scan("src/Shopfolio.Web/Modules/Ordering/Sample.cs", sample);
 
-        Assert.Equal([6, 7, 8, 9, 11, 12, 13, 14, 19, 20, 21, 22, 23, 24, 25, 26], findings.Select(f => f.Line));
-        Assert.All(findings, f => Assert.Equal(ShownVersionSourceScan.HandWrittenComparison, f.Rule));
+        Assert.Equal(
+            [6, 7, 8, 9, 11, 12, 13, 14, 19, 20, 21, 22, 23, 24, 25, 26],
+            findings.Where(f => f.Rule == ShownVersionSourceScan.HandWrittenComparison).Select(f => f.Line));
+
+        // The comparison skipped on a missing version (T364 B1): each null-test shape goes red; ShownVersion.Check, a null test that refuses and a
+        // null-conditional with no comparison do not.
+        Assert.Equal(
+            [30, 31, 32, 34, 35, 36, 37, 38, 39],
+            findings.Where(f => f.Rule == ShownVersionSourceScan.SkippedComparison).Select(f => f.Line));
+        Assert.Equal(25, findings.Count);
+    }
+
+    [Theory]
+    [InlineData("if (expectedVersion is { } shown && !ShownVersion.Matches(order, shown))")]
+    [InlineData("return expectedVersion is { } shown\n    && !ShownVersion.Matches(order, shown) ? conflict : ok;")]
+    [InlineData("if (request.ExpectedVersion is null || ShownVersion.Matches(order, request.ExpectedVersion.Value))")]
+    [InlineData("bool go = ShownVersion.Matches(order, request.ExpectedVersion ?? order.Version);")]
+    public void Scan_ReportsTheComparisonSkippedOnAMissingVersion(string code)
+    {
+        Assert.Contains(ShownVersionSourceScan.Scan("src/Shopfolio.Web/Modules/Ordering/Sample.cs", code), f => f.Rule == ShownVersionSourceScan.SkippedComparison);
+    }
+
+    [Theory]
+    [InlineData("switch (ShownVersion.Check(order, expectedVersion, byAdministrator: true))")]
+    [InlineData("if (request.ExpectedVersion is null || request.NoticeArrivalDate is not { } arrival)")]
+    [InlineData("if (!ShownVersion.Matches(order, shown)) return refusal ?? fallback;")]
+    [InlineData("if (!ShownVersion.Matches(order, mark.ExpectedVersion))")]
+    public void Scan_LeavesTheCheckAndARefusingNullTestAlone(string code)
+    {
+        Assert.Empty(ShownVersionSourceScan.Scan("src/Shopfolio.Web/Modules/Ordering/Sample.cs", code));
     }
 
     [Theory]

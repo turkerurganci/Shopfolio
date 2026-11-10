@@ -98,4 +98,34 @@ internal static class ShownVersion
         ArgumentNullException.ThrowIfNull(order);
         return order.Version == shown;
     }
+
+    /// <summary>
+    /// The one place that says what an order operation does with the version it carries (T364 KK4; 09 10.2 item 3; 02 3.31.2): the administrator's
+    /// operation always carries the version its screen showed - an administrator's request without one is <see cref="ShownVersionCheck.Missing"/> and
+    /// applies nothing, never a request that skips the comparison - and is compared through <see cref="Matches"/>. The customer's and the system's
+    /// operations carry none (07 2.4.2) and are checked against the order as it is now; their entry points refuse a version they were sent.
+    /// </summary>
+    public static ShownVersionCheck Check(IVersionedRecord order, int? shown, bool byAdministrator)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        if (!byAdministrator)
+        {
+            return ShownVersionCheck.Current;
+        }
+
+        if (shown is not { } version)
+        {
+            return ShownVersionCheck.Missing;
+        }
+
+        return Matches(order, version) ? ShownVersionCheck.Current : ShownVersionCheck.Changed;
+    }
+}
+
+/// <summary>The outcome of <see cref="ShownVersion.Check"/>: the operation goes on, the administrator's request carried no version, or the order changed since the screen.</summary>
+internal enum ShownVersionCheck
+{
+    Current,
+    Missing,
+    Changed,
 }

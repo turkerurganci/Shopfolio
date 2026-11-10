@@ -221,8 +221,8 @@ public sealed partial class OrderCorrectionTests
         await ExecuteAsync($"UPDATE orders SET other_carrier_name = 'Eski Kargo', tracking_number = 'ESKI-1' WHERE id = '{order.Id}'");
         order = await ReloadAsync(order.Id);
 
-        OrderCorrectionResult same = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, "Eski Kargo", "ESKI-1", false), null), Ct));
-        OrderCorrectionResult wrong = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, "Yeni Kargo", null, false), null), Ct));
+        OrderCorrectionResult same = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, "Eski Kargo", "ESKI-1", false), order.Version), Ct));
+        OrderCorrectionResult wrong = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, "Yeni Kargo", null, false), order.Version), Ct));
         OrderCorrectionResult result = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, "Yeni Kargo", "YENI-77", false), order.Version), Ct));
 
         Assert.Equal(TransitionRefusal.InvalidInput, same.Refusal);
@@ -242,7 +242,7 @@ public sealed partial class OrderCorrectionTests
     {
         Order order = await SeedAsync(OrderStatus.Preparing, PaymentStatus.Paid, ProductType.Physical);
 
-        OrderCorrectionResult result = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, null, null, true), null), Ct));
+        OrderCorrectionResult result = await RunAsync(c => c.CorrectShipmentAsync(new CorrectShipmentRequest(order.Id, AdminCaller, new ShipmentInfo(null, null, null, true), order.Version), Ct));
 
         Assert.Equal(TransitionRefusal.ConditionNotMet, result.Refusal);
     }
@@ -410,9 +410,9 @@ public sealed partial class OrderCorrectionTests
 
     private RemoveItemRequest Removal(Order order, Guid item, int quantity) => new(order.Id, item, AdminCaller, order.Version, quantity, true);
 
-    private CorrectDeliveryDateRequest DateRequest(Order order, DateOnly date) => new(order.Id, AdminCaller, date, null, null);
+    private CorrectDeliveryDateRequest DateRequest(Order order, DateOnly date) => new(order.Id, AdminCaller, date, null, ShownVersionOf(order.Id));
 
-    private CorrectReturnArrivalDateRequest ArrivalRequest(Order order, Guid item, Guid record, DateOnly date) => new(order.Id, item, record, AdminCaller, date, null);
+    private CorrectReturnArrivalDateRequest ArrivalRequest(Order order, Guid item, Guid record, DateOnly date) => new(order.Id, item, record, AdminCaller, date, ShownVersionOf(order.Id));
 
     private async Task<Guid> ItemIdAsync(Guid orderId, ProductType type)
     {

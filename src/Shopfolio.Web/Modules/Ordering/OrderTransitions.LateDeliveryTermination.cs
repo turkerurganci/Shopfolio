@@ -65,9 +65,12 @@ internal sealed partial class OrderTransitions
             return Refused(TransitionRefusal.OrderNotFound);
         }
 
-        if (request.ExpectedVersion is { } shown && !ShownVersion.Matches(order, shown))
+        switch (ShownVersion.Check(order, request.ExpectedVersion, byAdministrator: request.Admin is not null))
         {
-            return Refused(TransitionRefusal.VersionConflict);
+            case ShownVersionCheck.Missing:
+                return Refused(TransitionRefusal.InvalidInput);
+            case ShownVersionCheck.Changed:
+                return Refused(TransitionRefusal.VersionConflict);
         }
 
         DateOnly declarationDate = request.NoticeArrivalDate ?? today;

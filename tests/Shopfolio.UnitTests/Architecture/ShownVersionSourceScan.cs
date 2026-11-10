@@ -14,6 +14,11 @@ namespace Shopfolio.UnitTests.Architecture;
 /// <item>an <c>Equals</c>, <c>CompareTo</c> or <c>Compare</c> call on it or with it among the arguments (<c>order.Version.Equals(shown)</c>, <c>Equals(order.Version, shown)</c>,
 /// <c>shown.Equals(order.Version)</c>, <c>EqualityComparer&lt;int&gt;.Default.Equals(order.Version, shown)</c>, <c>order.Version.CompareTo(shown)</c>).</item>
 /// </list>
+/// A comparison skipped when the version is missing is a finding too (T364 B1; KK4): a null test joined to <c>ShownVersion.Matches</c>
+/// (<c>expected is { } shown &amp;&amp; !ShownVersion.Matches(order, shown)</c>, <c>expected is null || ShownVersion.Matches(...)</c>, <c>.HasValue</c>,
+/// <c>== null</c>, <c>!= null</c>, <c>is not null</c>), a conditional on it (<c>expected is int v ? ... : false</c>), a null-conditional before it
+/// (<c>expected?.Let(v =&gt; ShownVersion.Matches(order, v))</c>) and a stand-in for the missing version among its arguments (<c>expected ?? 0</c>). Whether an
+/// operation is the administrator's - and so must carry the version - is said once, by <c>ShownVersion.Check</c>.
 /// Copying the version into a local first (<c>int current = order.Version;</c>) and comparing the local is a known limit of a text scan: reading the
 /// version (to show it, to return it) is allowed, so the copy alone is not a finding.
 /// Other names that end in "Version" (a legal text's <c>TemplateVersion</c>, a settings section's version) are not the order's and are not matched. There
@@ -24,6 +29,9 @@ internal static partial class ShownVersionSourceScan
 {
     public const string HandWrittenComparison =
         "compares the order's version by hand (09 10.2 item 3: the administrator's shown version is compared only by ShownVersion.Matches, after the lock and the load)";
+
+    public const string SkippedComparison =
+        "skips the comparison when the version is missing (T364 KK4; 09 10.2 item 3: an administrator's request without the shown version applies nothing - ShownVersion.Check decides, not a null test)";
 
     /// <summary>The folders whose files are scanned, relative to the repository root.</summary>
     public static IReadOnlyList<string> ScannedFolders { get; } =
@@ -53,6 +61,14 @@ internal static partial class ShownVersionSourceScan
             foreach (Match match in pattern.Matches(clean))
             {
                 findings.Add((HandWrittenComparison, clean.AsSpan(0, match.Index).Count('\n') + 1));
+            }
+        }
+
+        foreach (Regex pattern in new[] { NullGuardThenMatches(), NullOrMatches(), ConditionalAroundMatches(), NullConditionalAroundMatches() })
+        {
+            foreach (Match match in pattern.Matches(clean))
+            {
+                findings.Add((SkippedComparison, clean.AsSpan(0, match.Index).Count('\n') + 1));
             }
         }
 
@@ -96,4 +112,22 @@ internal static partial class ShownVersionSourceScan
     // on Version. A conditional's ':' (flag ? order.Version : 0) is not one: the pattern starts after 'is', 'case', 'and', 'or', 'not' or right after '{'.
     [GeneratedRegex(@"(?:\b(?:is|case|and|or|not)\s+\{[^{};]*\bVersion|\{\s*Version)\s*:", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
     private static partial Regex PropertyPatternOnVersion();
+
+    // expected is { } shown && !ShownVersion.Matches(order, shown), expected is int v && ..., expected is not null && ..., expected != null && ...,
+    // expected.HasValue && ... - a null test that lets a request without a version past the comparison (the T364 B1 shape), also over a line break.
+    [GeneratedRegex(@"(?:\bis\s+(?:not\s+null\b|\{\s*\}|int\b)[\w\s]*|!=\s*null\b|\.HasValue\b)\s*\)*\s*&&\s*!?\s*\(*\s*ShownVersion\s*\.\s*Matches\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex NullGuardThenMatches();
+
+    // expected is null || ShownVersion.Matches(...), expected == null || ..., !expected.HasValue || ... - "no version, or it matches" lets the empty one through.
+    [GeneratedRegex(@"(?:\bis\s+null\b|==\s*null\b|!\s*[\w.?!]*\.HasValue\b)\s*\)*\s*\|\|\s*!?\s*\(*\s*ShownVersion\s*\.\s*Matches\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex NullOrMatches();
+
+    // expected is int v ? !ShownVersion.Matches(order, v) : false - a conditional that compares only when there is a version.
+    [GeneratedRegex(@"\bis\s+(?:\{\s*\}|int)\s+\w+\s*\)*\s*\?\s*!?\s*\(*\s*ShownVersion\s*\.\s*Matches\b", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex ConditionalAroundMatches();
+
+    // expected?.Let(v => ShownVersion.Matches(order, v)) - the comparison behind a null-conditional; ShownVersion.Matches(order, expected ?? 0) - a stand-in
+    // for the missing version among the call's arguments (one level of nested call allowed).
+    [GeneratedRegex(@"\?\.[^;{}]*ShownVersion\s*\.\s*Matches\b|ShownVersion\s*\.\s*Matches\s*\((?:[^;(){}]|\([^;(){}]*\))*\?\?", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 5000)]
+    private static partial Regex NullConditionalAroundMatches();
 }

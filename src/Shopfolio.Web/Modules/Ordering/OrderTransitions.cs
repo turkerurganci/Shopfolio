@@ -128,9 +128,13 @@ internal sealed partial class OrderTransitions : IOrderTransitions
             return TransitionOutcome.Rejected(TransitionRejection.OrderNotFound);
         }
 
-        if (expectedVersion is { } shown && !ShownVersion.Matches(order, shown))
+        // The administrator's transition carries the screen's version - without it nothing applies; the customer's and the system's carry none (T364 KK4; 09 10.2 item 3).
+        switch (ShownVersion.Check(order, expectedVersion, byAdministrator: actor.Kind == ActorKind.Admin))
         {
-            return TransitionOutcome.Rejected(TransitionRejection.VersionConflict);
+            case ShownVersionCheck.Missing:
+                return TransitionOutcome.Rejected(TransitionRejection.InvalidInput);
+            case ShownVersionCheck.Changed:
+                return TransitionOutcome.Rejected(TransitionRejection.VersionConflict);
         }
 
         ChosenTransitions chosen = choose(order);

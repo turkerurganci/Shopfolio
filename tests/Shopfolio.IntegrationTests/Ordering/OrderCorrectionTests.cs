@@ -472,10 +472,10 @@ public sealed partial class OrderCorrectionTests : IAsyncLifetime
     {
         bool shipping = type == AddressType.ShippingAddress;
         return new CorrectAddressRequest(
-            order.Id, AdminCaller, type, shipping ? "Ali Veli" : "Ali Veli Fatura", _izmir!.Id, "Konak", line, shipping ? "5329998877" : null, AddressRequestConfirmation.FromOrderEmail, null);
+            order.Id, AdminCaller, type, shipping ? "Ali Veli" : "Ali Veli Fatura", _izmir!.Id, "Konak", line, shipping ? "5329998877" : null, AddressRequestConfirmation.FromOrderEmail, ShownVersionOf(order.Id));
     }
 
-    private CorrectGuestEmailRequest EmailRequest(Order order, string newEmail) => new(order.Id, AdminCaller, newEmail, FullConfirmation, null);
+    private CorrectGuestEmailRequest EmailRequest(Order order, string newEmail) => new(order.Id, AdminCaller, newEmail, FullConfirmation, ShownVersionOf(order.Id));
 
     private async Task<Order> ReloadAsync(Guid orderId)
     {

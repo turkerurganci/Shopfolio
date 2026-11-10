@@ -356,18 +356,19 @@ internal sealed class PaymentModule : IPaymentModule
         return found;
     }
 
-    public async Task<IReadOnlyList<Guid>> ListOrdersWithOpenRefundWorkAsync(CancellationToken ct)
+    public async Task<IReadOnlyList<OpenRefundWork>> ListOpenRefundWorkAsync(CancellationToken ct)
     {
         return await (
             from r in _db.Refunds.AsNoTracking()
-            where r.PaymentMethod == PaymentMethod.Card && r.SentAt == null && r.VoidedAt == null
+            where r.SentAt == null && r.VoidedAt == null
             let latest = _db.RefundRecords
                 .Where(rr => rr.RefundId == r.Id)
                 .OrderByDescending(rr => rr.CreatedAt).ThenByDescending(rr => rr.Id)
                 .Select(rr => (RefundRecordState?)rr.State)
                 .FirstOrDefault()
-            where latest == RefundRecordState.Failed || latest == RefundRecordState.OutcomePending
-            select r.OrderId).Distinct().ToListAsync(ct);
+            where r.PaymentMethod == PaymentMethod.BankTransfer
+                || (r.PaymentMethod == PaymentMethod.Card && (latest == RefundRecordState.Failed || latest == RefundRecordState.OutcomePending))
+            select new OpenRefundWork(r.Id, r.OrderId)).ToListAsync(ct);
     }
 
     public async Task<IReadOnlyList<Guid>> ErasePersonalDataAsync(IReadOnlyCollection<Guid> orderIds, CancellationToken ct)

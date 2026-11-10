@@ -103,6 +103,21 @@ internal sealed partial class AfterSalesModule
         return new RefundProcessingPage(last, orders);
     }
 
+    public async Task<IReadOnlySet<Guid>> FindRefundsAwaitingIbanAsync(IReadOnlyCollection<Guid> refundIds, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(refundIds);
+        if (refundIds.Count == 0)
+        {
+            return new HashSet<Guid>();
+        }
+
+        Guid[] ids = [.. refundIds.Distinct()];
+        HashSet<Guid> waiting = [.. await _db.RefundIbanRequests.AsNoTracking()
+            .Where(r => r.RefundId != null && ids.Contains(r.RefundId.Value) && r.FulfilledAt == null && r.ClosedAt == null)
+            .Select(r => r.RefundId!.Value).Distinct().ToListAsync(ct)];
+        return waiting;
+    }
+
     /// <summary>The next subjects after the cursor, by id across the five record kinds: each kind gives its next <paramref name="max"/> and the merge keeps the first <paramref name="max"/>.</summary>
     private async Task<List<Subject>> NextSubjectsAsync(Guid? afterId, int max, CancellationToken ct)
     {

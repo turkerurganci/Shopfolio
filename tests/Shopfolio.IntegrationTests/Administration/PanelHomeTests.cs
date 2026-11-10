@@ -240,17 +240,70 @@ public sealed class PanelHomeTests : IAsyncLifetime
         Guid failed = await CardRefundOrderAsync(RefundRecordState.Failed, sent: false);
         Guid waiting = await CardRefundOrderAsync(RefundRecordState.OutcomePending, sent: false);
 
-        // Not counted: the card refund that went through, and the transfer refund the firm already started (its row exists).
+        // Not counted: the card refund that went through, and the transfer refund the firm already sent.
         await CardRefundOrderAsync(RefundRecordState.Succeeded, sent: true);
         Guid started = await SaveOrderAsync(PaymentMethod.BankTransfer, (_lamp, 1));
         await SetAxesAsync(started, OrderStatus.Preparing, PaymentStatus.Paid);
         Cancellation startedCancellation = Cancellation.ByBuyer(ItemOf(started), 1, Amounts, null, DayStart);
         await SaveAsync(c => c.Cancellations.Add(startedCancellation));
-        await SaveAsync(c => c.Refunds.Add(RefundOf(started, RefundType.Cancellation, PaymentMethod.BankTransfer, r => r.CancellationId = startedCancellation.Id)));
+        await SaveAsync(c => c.Refunds.Add(RefundOf(started, RefundType.Cancellation, PaymentMethod.BankTransfer, r =>
+        {
+            r.CancellationId = startedCancellation.Id;
+            r.SentAt = DayStart.AddHours(2);
+        })));
 
         Assert.Equal(4, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
         Assert.NotEqual(Guid.Empty, failed);
         Assert.NotEqual(Guid.Empty, waiting);
+    }
+
+    [Fact]
+    public async Task RefundAndReturn_CountsABornTransferRefundUntilItIsSent_AndAFailedCardRefundWithItsTransferPathOpenOnlyOnceTheIbanIsEntered_KK4()
+    {
+        // The transfer refund of a cancellation: its row is born (the firm's step) and not sent - the firm still has to send it; sending drops it.
+        Guid born = await SaveOrderAsync(PaymentMethod.BankTransfer, (_lamp, 1));
+        await SetAxesAsync(born, OrderStatus.Preparing, PaymentStatus.Paid);
+        Cancellation cancellation = Cancellation.ByBuyer(ItemOf(born), 1, Amounts, null, DayStart);
+        await SaveAsync(c => c.Cancellations.Add(cancellation));
+        Refund transfer = RefundOf(born, RefundType.Cancellation, PaymentMethod.BankTransfer, r => r.CancellationId = cancellation.Id);
+        await SaveAsync(c => c.Refunds.Add(transfer));
+        Assert.Equal(1, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+
+        await ExecuteAsync($"UPDATE refunds SET sent_at = now() WHERE id = '{transfer.Id}'");
+        Assert.Equal(0, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+
+        // A card refund the provider refused counts; the firm opens the transfer path: the item waits for the customer's IBAN and drops.
+        Guid failed = await CardRefundOrderAsync(RefundRecordState.Failed, sent: false);
+        Assert.Equal(1, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+        Guid refundId = RefundIdOf(failed);
+        RefundIbanRequest request = RefundIbanRequest.ForItem(ItemOf(failed), RefundIbanRequestReason.CardRefundFailed, refundId, _admin!.Id, _admin.Name, DayStart.AddHours(3));
+        await SaveAsync(c => c.RefundIbanRequests.Add(request));
+        Assert.Equal(0, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+
+        // The customer enters the IBAN: the refund turns to the transfer way and is the firm's to send (K-525); sending drops it.
+        await ExecuteAsync($"UPDATE refund_iban_requests SET fulfilled_at = now() WHERE id = '{request.Id}'");
+        await ExecuteAsync($"UPDATE refunds SET payment_method = '{nameof(PaymentMethod.BankTransfer)}' WHERE id = '{refundId}'");
+        Assert.Equal(1, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+
+        await ExecuteAsync($"UPDATE refunds SET sent_at = now() WHERE id = '{refundId}'");
+        Assert.Equal(0, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+    }
+
+    [Fact]
+    public async Task RefundAndReturn_CountsTheDefectRemedyTransferRefundUntilItIsSent_KK4()
+    {
+        Guid order = await SaveOrderAsync(PaymentMethod.BankTransfer, (_lamp, 1));
+        await MakeDeliveredAsync(order);
+        Refund refund = RefundOf(order, RefundType.DefectClaimRescission, PaymentMethod.BankTransfer, r =>
+        {
+            r.CouponShare = 0m;
+            r.VatAmount = 0m;
+        });
+        await SaveAsync(c => c.Refunds.Add(refund));
+        Assert.Equal(1, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+
+        await ExecuteAsync($"UPDATE refunds SET sent_at = now() WHERE id = '{refund.Id}'");
+        Assert.Equal(0, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
     }
 
     [Fact]
@@ -328,11 +381,16 @@ public sealed class PanelHomeTests : IAsyncLifetime
         // The goods are here, the refund of the receipt has no row yet: still one order of work, now for the refund.
         Assert.Equal(1, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
 
-        await SaveAsync(c => c.Refunds.Add(RefundOf(order, RefundType.Withdrawal, PaymentMethod.BankTransfer, r =>
+        Refund refund = RefundOf(order, RefundType.Withdrawal, PaymentMethod.BankTransfer, r =>
         {
             r.WithdrawalId = withdrawal.Id;
             r.ReturnId = receipt.Id;
-        })));
+        });
+        await SaveAsync(c => c.Refunds.Add(refund));
+
+        // The row is born, not sent: the firm still has to send it (K-621); sending ends the work.
+        Assert.Equal(1, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
+        await ExecuteAsync($"UPDATE refunds SET sent_at = now() WHERE id = '{refund.Id}'");
         Assert.Equal(0, await CountOfAsync(PanelCounterKind.RefundAndReturnPending));
     }
 
@@ -529,6 +587,12 @@ public sealed class PanelHomeTests : IAsyncLifetime
 
         await SaveAsync(c => c.DispatchRecords.Add(row));
         return row.Id;
+    }
+
+    private Guid RefundIdOf(Guid orderId)
+    {
+        using AppDbContext db = NewContext();
+        return db.Refunds.AsNoTracking().Where(r => r.OrderId == orderId).Select(r => r.Id).Single();
     }
 
     private Guid ItemOf(Guid orderId)

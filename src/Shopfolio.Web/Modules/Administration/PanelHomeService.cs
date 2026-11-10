@@ -99,12 +99,15 @@ internal sealed class PanelHomeService : IPanelHome
         }
     }
 
-    // The union of the three order sets (an order with two kinds of work counts once): the returned goods the firm awaits, the card refunds that failed or await their result, and the refunds
-    // the firm has yet to process (the transfer line, and the card line on a withdrawal). A customer-owed "IBAN bekleniyor" item is in none of them (02 10.6.1; K-621).
+    // The union of the three order sets (an order with two kinds of work counts once): the returned goods the firm awaits, the open refunds (a card refund that failed or awaits its result, a
+    // transfer refund born and not yet sent), and the refunds the firm has yet to process (the transfer line, and the card line on a withdrawal). A customer-owed "IBAN bekleniyor" item or
+    // refund is in none of them (02 10.6.1; K-525, K-621).
     private async Task<int> CountRefundAndReturnOrdersAsync(CancellationToken ct)
     {
         HashSet<Guid> orders = [.. await _afterSales.ListOrdersAwaitingReturnGoodsAsync(ct)];
-        orders.UnionWith(await _payment.ListOrdersWithOpenRefundWorkAsync(ct));
+        IReadOnlyList<OpenRefundWork> openRefunds = await _payment.ListOpenRefundWorkAsync(ct);
+        IReadOnlySet<Guid> awaitingIban = await _afterSales.FindRefundsAwaitingIbanAsync([.. openRefunds.Select(r => r.RefundId)], ct);
+        orders.UnionWith(openRefunds.Where(r => !awaitingIban.Contains(r.RefundId)).Select(r => r.OrderId));
 
         Guid? after = null;
         while (true)

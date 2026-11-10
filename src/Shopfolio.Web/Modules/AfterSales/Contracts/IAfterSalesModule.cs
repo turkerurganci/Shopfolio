@@ -305,6 +305,12 @@ public interface IAfterSalesModule
     /// record ids after <paramref name="afterId"/> (null starts from the first); an empty page is the end. A plain read.
     /// </summary>
     Task<RefundProcessingPage> ListOrdersAwaitingRefundProcessingAsync(Guid? afterId, int maxSubjects, CancellationToken ct);
+
+    /// <summary>
+    /// The refunds among <paramref name="refundIds"/> that wait for the customer's IBAN (T382; 02 10.6.1; K-525): an open IBAN request - neither fulfilled nor closed - names the refund (the
+    /// transfer path opened after a failed card refund, or an itemless request). Such a refund is the customer's to move, not the firm's. A plain read.
+    /// </summary>
+    Task<IReadOnlySet<Guid>> FindRefundsAwaitingIbanAsync(IReadOnlyCollection<Guid> refundIds, CancellationToken ct);
 }
 
 /// <summary>One cancellation record as the order module needs it: the record, the item and the units it closed.</summary>

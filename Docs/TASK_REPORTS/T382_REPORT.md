@@ -1,6 +1,6 @@
 # T382 — Panel ana sayfası verisi: altı bekleyen iş sayacı, kanal ve firma bildirimi uyarıları, kurulum kontrol listesi
 
-**Faz:** F3 | **Durum:** ✗ Doğrulama tur 1 FAIL — düzeltme bekliyor | **Tarih:** 2026-11-10
+**Faz:** F3 | **Durum:** Düzeltme 1 tamam (tur 1 FAIL: B1, B2) — doğrulama tur 2 bekliyor | **Tarih:** 2026-11-10
 
 > Taslağı yapım chat'i doldurur; doğrulama chat'i finalize eder.
 
@@ -11,7 +11,15 @@
 - Administration: `IPanelHome` / `PanelHomeService` (tablo, bağlam ve istek yok; altı sayaç, iki uyarı ve kurulum kontrol listesi her çağrıda yeniden hesaplanır, hiçbir şey saklanmaz), `PanelHomeRules` (saf kurallar: açık adet sayımı, sayaçların sabit biçimi, kontrol listesi), `PanelCounterKind`, `PanelListTarget`, `SetupChecklistItemKind` (her biri ayrı dosya).
 - Ordering: `PendingWorkReader` (ödeme onayı bekleyen havale, Teslim edilemedi sayısı; Hazırlanıyor / Kargoda / işaretsiz hizmet kalem kümeleri sipariş sayfa sayfa okunur) ve `IOrderingModule` yüzeyi.
 - AfterSales: `CountOpenDefectClaimsAsync`, `ListOrdersAwaitingReturnGoodsAsync` (bildirilen − teslim alınan − reddedilen − "mal dönmedi" kapanışı; yeniden açılan geri gelir; devam 3'te kayıt sayfa sayfa okunur), `ListOrdersAwaitingRefundProcessingAsync` (imleçli sayfa).
-- Payment: `ListOrdersWithOpenRefundWorkAsync` (sağlayıcıda başarısız ya da sonucu beklenen kart geri ödemesi).
+- Payment: `ListOpenRefundWorkAsync` (düzeltme 1; eski `ListOrdersWithOpenRefundWorkAsync`): sağlayıcıda başarısız ya da sonucu beklenen kart geri ödemesi ve satırı doğmuş, gönderilmemiş havale geri ödemesi; iade bazında (`OpenRefundWork`).
+- AfterSales (düzeltme 1): `FindRefundsAwaitingIbanAsync` — açık IBAN isteği (`RefundId`) olan iadeler; panel bunları sayaçtan düşer (kural IBAN isteği okumasının tek evinde).
+
+### Düzeltme 1 (tur 1 FAIL: B1, B2)
+
+- **B1:** kart iadesi gerçekleşmeyip havale yolu açılan iade ("IBAN bekleniyor") sayaçta kalıyordu; artık açık IBAN isteği olan iade düşer, IBAN girilince (iade havaleye döner, gönderilmemiş satır) geri gelir.
+- **B2:** gönderilmemiş havale iade satırı hiçbir kümede yoktu; artık işlenecek geri ödeme sayılır, gönderilince (`SentAt`) düşer. İki yol da kapsanır: karttan havaleye dönüş ve ayıp çözümünün havale iadesi. D-927 kapandı.
+- Eski testler: `RefundAndReturn_CountsTheReturnedGoodsToReceive_...KK4` ve `AGoodsReceipt_EndsTheWaitForTheGoods_...KK4` gönderilmemiş havale satırını "sayılmaz" diye sınıyordu; düzeltildi (sayılır, gönderilince düşer).
+- Öteki dışlama ve geçişler (mal dönmedi, ret, yeniden açılma, iki tür iş tek sipariş, başarısız/sonucu beklenen kart) aynı gözle tarandı; davranış değişmedi, testleri yeşil.
 - CorporateContent: `CountOpenContactRequestsAsync`.
 - Notifications: `IPanelWarnings` / `PanelWarningReader` (kanal uyarısı `ChannelWarningCondition.IsOpen`; firma uyarısı F1–F4 kesinleşmiş son satır "ulaşmadı" ve alıcı güncel iletişim e-postası).
 - Devam 3: KK8/KK9 testlerinin sıra bağımlılığı giderildi (ödeme alanları başta sıfırlanır); `ListOrdersAwaitingReturnGoodsAsync` büyüyen kümeyi belleğe almasın diye 500'lük kayıt sayfalarıyla okunur; kayıtlar (rapor, değişiklik günlüğü parçası, STATUS satırı, backlog parçası).
@@ -34,7 +42,7 @@
 | 1 | Altı sayaç, yedincisi yok | ✓ | `PanelHomeRules.CounterKinds` (6 eleman); `PanelHomeRulesTests.TheHome_HasSixCounters_AndNoSeventh_KK1`; `PanelHomeTests.AnEmptyShop_ShowsSixCountersAtZero_KK1_KK2_KK6` |
 | 2 | Altı sayacın adı ve kaynağı | ✓ | `PanelHomeRulesTests.TheCounters_AreNamedAsTheDocumentNamesThem_...KK2`; `PanelHomeTests` KK2 testleri (ödeme onayı, kargoya verilecek, teslim işareti, hizmet, açık talep, iade ve geri ödeme) |
 | 3 | Kargoya verilecek: Hazırlanıyor'daki açık fiziksel kalemli + Teslim edilemedi | ✓ | `PanelHomeTests.ToShip_CountsPreparingOrdersWithAnOpenPhysicalItem_AndTheDeliveryFailedOnes_KK3`, `ToShip_AnOrderThatCameBackAsDeliveryFailed_IsCountedWhateverItsItemsHold_KK3` |
-| 4 | İade ve geri ödeme: üç tür, IBAN bekleniyor yok | ✓ | `PanelHomeTests.RefundAndReturn_CountsTheReturnedGoodsToReceive_...KK4`, `RefundAndReturn_DoesNotCountAnItemThatWaitsForTheCustomersIban_KK4`, `AnOrderWithTwoKindsOfWork_IsCountedOnce_KK4`, `AGoodsReceipt_EndsTheWaitForTheGoods_...KK4` |
+| 4 | İade ve geri ödeme: üç tür, IBAN bekleniyor yok | ✓ | `PanelHomeTests.RefundAndReturn_CountsABornTransferRefundUntilItIsSent_AndAFailedCardRefundWithItsTransferPathOpenOnlyOnceTheIbanIsEntered_KK4` (B1: yol açılmadan 1, açılınca 0, IBAN girilince 1, gönderilince 0; B2 kart→havale), `RefundAndReturn_CountsTheDefectRemedyTransferRefundUntilItIsSent_KK4` (B2 ayıp havale iadesi), `RefundAndReturn_CountsTheReturnedGoodsToReceive_...KK4`, `RefundAndReturn_DoesNotCountAnItemThatWaitsForTheCustomersIban_KK4`, `AnOrderWithTwoKindsOfWork_IsCountedOnce_KK4`, `AGoodsReceipt_EndsTheWaitForTheGoods_...KK4` |
 | 5 | "Mal dönmedi" ve iade reddi düşürür, yeniden açılan geri gelir | ✓ | `PanelHomeTests.ANotReturnedClosure_DropsTheItem_AndItsReopeningBringsItBack_KK5`, `AReturnRejection_DropsTheItem_KK5`; `PanelHomeRulesTests.AnOrder_WhoseEveryItemIsClosed_...KK5` |
 | 6 | Her sayaç kendi listesine gider | ✓ | `PanelHomeRules.ListOf`; `PanelHomeRulesTests.EveryCounter_LeadsToItsOwnList_KK6` |
 | 7 | Kanal uyarısı (5 hata + 15 dk, ilk başarıda kalkar), firma uyarısı, ikisi okunan hâl | ✓ | `PanelHomeTests.TheChannelWarning_OpensAtFiveErrorsAndFifteenMinutes_...KK7`, `TheFirmNoticesWarning_IsOpenWhen...KK7`, `TheFirmNoticesWarning_LiftsWhenTheContactEmailChanges_AndTheTwoWarningsShowTogether_KK7`; `PanelHomeRulesTests.TheChannelWarning_OpensAtFiveErrorsAndFifteenMinutes_KK7` |
@@ -43,7 +51,7 @@
 
 ### Öz denetim (bitiş kapısı 2)
 
-Devam 3 işçisi önceki işçilerin yaptıkları dahil bütün maddeleri diff'te yeniden denetledi.
+Devam 3 işçisi önceki işçilerin yaptıkları dahil bütün maddeleri diff'te yeniden denetledi. Düzeltme 1 işçisi push'tan önce KK1–KK9 ve kabul kriterlerinin hepsini, sık-fail listesini yeniden denetledi (tablo geçerli; fark yalnız KK4 ve yeni testler). Sık-fail "kural değişince aynı yerler": yüzey adı değişti (`ListOrdersWithOpenRefundWorkAsync` → `ListOpenRefundWorkAsync`), `git grep` ile kalan anış yok (yalnız bu raporun tarihçe satırları), D-927 kapatıldı.
 
 | Madde | Sonuç | Kanıt |
 |---|---|---|
@@ -51,7 +59,7 @@ Devam 3 işçisi önceki işçilerin yaptıkları dahil bütün maddeleri diff't
 | KK1 altı sayaç, yedincisi yok | ✓ | `TheHome_HasSixCounters_AndNoSeventh_KK1` |
 | KK2 altı sayacın adı ve kaynağı | ✓ | `TheCounters_AreNamedAsTheDocumentNamesThem_...KK2`; `PanelHomeTests` KK2 |
 | KK3 geri dönen sipariş kargoya verilecekte | ✓ | `ToShip_AnOrderThatCameBackAsDeliveryFailed_...KK3` |
-| KK4 üç tür sayılır, IBAN bekleniyor sayılmaz | ✓ | `RefundAndReturn_*_KK4` |
+| KK4 üç tür sayılır, IBAN bekleniyor sayılmaz | ✓ | `RefundAndReturn_*_KK4` (düzeltme 1: B1, B2 testleri; `FindRefundsAwaitingIbanAsync`, `ListOpenRefundWorkAsync`) |
 | KK5 kapatma ve ret düşürür, yeniden açılan geri gelir | ✓ | `ANotReturnedClosure_*_KK5`, `AReturnRejection_*_KK5` |
 | KK6 sayaçtan listeye gidilir | ✓ | `EveryCounter_LeadsToItsOwnList_KK6` |
 | KK7 uyarılar okunan hâlden, eşikler doğru | ✓ | `TheChannelWarning_*_KK7` (5 hata/15 dk sınırları Theory'de; eşik değerleri tasarım değerleri testi) |
@@ -133,7 +141,7 @@ Devam 3 işçisi önceki işçilerin yaptıkları dahil bütün maddeleri diff't
 | # | Kalem | Backlog ID | Neden ertelendi |
 |---|---|---|---|
 | 1 | Sipariş satırında "e-posta ulaşmadı" işareti | D-926 | Sayfa task'ı; panel yalnız uyarıyı verir |
-| 2 | Açık havale iade satırı (satır var, gönderilmemiş) Payment okumasında yok | D-927 | IBAN durumuyla birlikte ele alınmalı |
+| 2 | Açık havale iade satırı Payment okumasında yok | D-927 | ✅ düzeltme 1 ile kapandı |
 | 3 | Liste sayfaları sayaç hedeflerini tüketir | D-928 | Sayfa task'ları (T52x) |
 | 4 | Sayaç birimi sipariş (talep kaydı sayısı değil) kararının teyidi | D-929 | Ürün kararı |
 | 5 | "Açık talep" tek liste mi iki liste mi (04 E-38 GA-9) | D-930 | Belge boşluğu |

@@ -399,6 +399,54 @@ public sealed class ConcurrencyTests : IAsyncLifetime
         Assert.Equal(1, (await reader.Orders.SingleAsync(o => o.Id == other.Id, Ct)).Version);
     }
 
+    // 09 10.2 item 3 (K-1605): an order added in the transaction is outside the lock and raise checks - no other transaction sees its row before the
+    // commit; the confirmation writes the new order while it holds only the earlier order's lock (05 4.2.2 step 3). An existing order is still checked.
+    [Fact]
+    public async Task AnOrderAddedInTheTransaction_IsWrittenWithoutItsLockOrRaise_WhileAnotherOrderIsLocked_T412_KK1()
+    {
+        (Order earlier, _) = await SeedOrderAsync();
+        (Order fresh, OrderItem freshItem, Action<AppDbContext> addFresh) = BuildOrder();
+
+        await RunAsync(async (services, token) =>
+        {
+            AppDbContext db = services.GetRequiredService<AppDbContext>();
+            await services.GetRequiredService<OrderLocks>().LockAsync([earlier.Id], token);
+            await db.Orders.SingleAsync(o => o.Id == earlier.Id, token);
+            addFresh(db);
+            return Outcome.Done;
+        });
+
+        await using AppDbContext reader = NewContext();
+        Assert.Equal(1, (await reader.Orders.SingleAsync(o => o.Id == fresh.Id, Ct)).Version);
+        Assert.True(await reader.OrderItems.AnyAsync(i => i.Id == freshItem.Id, Ct));
+    }
+
+    // The exemption is the new order's alone: in the same save, a record of an existing order that is not locked still gets the lock message and nothing is written.
+    [Fact]
+    public async Task AnOrderAddedInTheTransaction_DoesNotExemptAnExistingUnlockedOrder_ItGetsTheLockMessage_T412_KK1()
+    {
+        (Order earlier, _) = await SeedOrderAsync();
+        (Order other, _) = await SeedOrderAsync();
+        (Order fresh, _, Action<AppDbContext> addFresh) = BuildOrder();
+
+        InvalidOperationException error = await Assert.ThrowsAsync<InvalidOperationException>(() => RunAsync(async (services, token) =>
+        {
+            AppDbContext db = services.GetRequiredService<AppDbContext>();
+            await services.GetRequiredService<OrderLocks>().LockAsync([earlier.Id], token);
+            await db.Orders.SingleAsync(o => o.Id == earlier.Id, token);
+            Order unlocked = await db.Orders.SingleAsync(o => o.Id == other.Id, token);
+            addFresh(db);
+            unlocked.BillingDistrict = "Kızılay";
+            unlocked.BumpVersion();
+            return Outcome.Done;
+        }));
+        Assert.Contains("without that order's row lock", error.Message, StringComparison.Ordinal);
+
+        await using AppDbContext reader = NewContext();
+        Assert.False(await reader.Orders.AnyAsync(o => o.Id == fresh.Id, Ct));
+        Assert.Equal(1, (await reader.Orders.SingleAsync(o => o.Id == other.Id, Ct)).Version);
+    }
+
     [Fact]
     public async Task OrderChangeUnderTheLock_WithoutTheRaise_IsRefused_KK3()
     {
@@ -860,6 +908,14 @@ public sealed class ConcurrencyTests : IAsyncLifetime
 
     private async Task<(Order Order, OrderItem Item)> SeedOrderAsync()
     {
+        (Order order, OrderItem item, Action<AppDbContext> add) = BuildOrder();
+        await SaveAsync(add);
+        return (order, item);
+    }
+
+    /// <summary>An order with one item and the rows it points to, not yet saved; <c>Add</c> puts them all in a context.</summary>
+    private (Order Order, OrderItem Item, Action<AppDbContext> Add) BuildOrder()
+    {
         int n = Interlocked.Increment(ref _counter);
         Province province = Province.Create($"{n:D2}", $"İl {n}", Now);
         LegalTextVersion form = LegalTextVersion.CreatePublished(LegalTextType.PreInformationForm, n, Now, "metin", Now);
@@ -887,14 +943,15 @@ public sealed class ConcurrencyTests : IAsyncLifetime
         order.PrivacyNoticeVersionId = notice.Id;
         order.FreezeDocuments("ön bilgilendirme", "mesafeli satış");
         OrderItem item = OrderItem.Create(order.Id, null, null, ProductType.Physical, "Ürün", 1, 100m, 20m, 16.67m, Now);
-        await SaveAsync(c =>
+        return (order, item, Add);
+
+        void Add(AppDbContext c)
         {
             c.Provinces.Add(province);
             c.LegalTextVersions.AddRange(form, contract, notice);
             c.Orders.Add(order);
             c.OrderItems.Add(item);
-        });
-        return (order, item);
+        }
     }
 
     private ServiceProvider BuildProvider()

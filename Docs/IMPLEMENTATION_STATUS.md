@@ -249,7 +249,7 @@
 | T409 | Google: giriş, kayıt ve yeniden doğrulama bağlayıcısı | ⬚ | — | — | — |
 | T410 | Dış olgu varsayımlarının doğrulama kanıtları (DV) | ⬚ | — | — | — |
 | T411 | Kayıt maskeleme taramasının dizge farkında yeniden yazımı | ✓ | ✓ PASS (tur 1) | — | #514 |
-| T412 | F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı | ⏳ | ✗ FAIL (tur 2; iki iterasyon sınırı, eskalasyon) | — | #517 |
+| T412 | F3 kapanış düzeltmeleri: sipariş bekçisi, satış sonrası kapanış ve IBAN kullanımı | ⏳ | ✗ FAIL (tur 2; eskalasyon); düzeltme 2 bitti, tur 3 bekliyor | — | #517 |
 
 ---
 

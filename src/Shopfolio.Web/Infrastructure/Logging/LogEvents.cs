@@ -27,6 +27,12 @@ internal static class LogEvents
     public const string InboundNotificationUnprocessed = "InboundNotificationUnprocessed";
 
     /// <summary>
+    /// The thinned line of a failed payment's reason from a verified notification: the first one writes the provider's reason code and message, the later ones of the
+    /// 60 second window are only counted; no reference, no amount (08 2.1.5).
+    /// </summary>
+    public const string PaymentFailedReasonSampled = "PaymentFailedReasonSampled";
+
+    /// <summary>
     /// The system's own transition on an order - the end of the payment window, a provider notification, the final query - was refused against the
     /// order as it is now; the line carries the refusal's code and the order's internal id only, and no notice goes (02 3.31.2; 05 9.1.3; K-1559).
     /// </summary>

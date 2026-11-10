@@ -10,10 +10,11 @@ namespace Shopfolio.Infrastructure.Integrations;
 /// <summary>
 /// The payment provider's implementation of the link layer: PayTR's iFrame API (08 2.1; 09 11.1 item 1; KD-64 - the one implementation). T401 builds the start (08 2.1.4):
 /// the token request goes server to server, form-encoded, with the keys of the one setting (<see cref="PaymentProviderKeys"/>); without the setting no call is made. A
-/// successful answer gives the frame's address and the token is not kept - neither in a log nor in the database (the order has no field for it). The notification's
-/// signature and reading (T402), the final query (T403), the refund and its query (T405) are the later provider tasks; until they come those jobs refuse with
-/// <see cref="NotSupportedException"/>: the final query's handler and the refund jobs are not registered yet (D-449), and the notification endpoint answers 500 - "not
-/// received" - as it did without an implementation (07 4.30.1: a notification that cannot be recorded is not acknowledged).
+/// successful answer gives the frame's address and the token is not kept - neither in a log nor in the database (the order has no field for it). T402 builds the
+/// notification (08 2.1.5; <see cref="PayTrNotification"/>): the signature with the same keys, the field mapping, the reading of the outcome and the amount check, all
+/// local; a failed payment's reason goes to the application log thinned (<see cref="PaymentFailureReasonLog"/>). The final query (T403), the refund and its query
+/// (T405) are the later provider tasks; until they come those jobs refuse with <see cref="NotSupportedException"/>: the final query's handler and the refund jobs are
+/// not registered yet (D-449).
 /// </summary>
 internal sealed class PayTrPaymentGateway : IPaymentGateway
 {
@@ -35,9 +36,16 @@ internal sealed class PayTrPaymentGateway : IPaymentGateway
     private readonly SiteAddress _site;
     private readonly TimeProvider _time;
     private readonly bool _testMode;
+    private readonly PaymentFailureReasonLog _failureReasons;
 
     public PayTrPaymentGateway(
-        IHttpClientFactory clients, ExternalCallRunner runner, IOptions<PaymentOptions> payment, SiteAddress site, TimeProvider time, IHostEnvironment environment)
+        IHttpClientFactory clients,
+        ExternalCallRunner runner,
+        IOptions<PaymentOptions> payment,
+        SiteAddress site,
+        TimeProvider time,
+        IHostEnvironment environment,
+        PaymentFailureReasonLog failureReasons)
     {
         ArgumentNullException.ThrowIfNull(payment);
         ArgumentNullException.ThrowIfNull(environment);
@@ -46,6 +54,7 @@ internal sealed class PayTrPaymentGateway : IPaymentGateway
         _keys = PaymentProviderKeys.TryParse(payment.Value.ProviderKeys);
         _site = site;
         _time = time;
+        _failureReasons = failureReasons;
 
         // test_mode (08 2.1.10): 0 only on the live installation - the same sense of "live" the notification's test mark is checked against (T311).
         _testMode = !environment.IsProduction();
@@ -82,14 +91,28 @@ internal sealed class PayTrPaymentGateway : IPaymentGateway
     public Task<RefundQueryResult> QueryRefundAsync(CardRefund refund, CancellationToken ct) =>
         throw new NotSupportedException("The card refund's query is built by T405.");
 
-    public NotificationVerification VerifyNotification(IReadOnlyDictionary<string, string> formFields) =>
-        throw new NotSupportedException("The notification's signature is built by T402.");
+    /// <summary>
+    /// The notification's signature and field mapping (08 2.1.5). A verified notification of a failed payment writes its reason, thinned, to the application log
+    /// (<c>failed_reason_code</c>, <c>failed_reason_msg</c>: not kept anywhere else); a request whose signature does not hold writes nothing here - its thinned
+    /// security line is the signed endpoint pipeline's (09 11.1 item 5).
+    /// </summary>
+    public NotificationVerification VerifyNotification(IReadOnlyDictionary<string, string> formFields)
+    {
+        ArgumentNullException.ThrowIfNull(formFields);
+        NotificationVerification verification = PayTrNotification.Verify(formFields, _keys);
+        if (verification is NotificationVerification.SignatureValid { Notice.Outcome: PayTrNotification.FailedStatus })
+        {
+            _failureReasons.Record(
+                formFields.GetValueOrDefault(PayTrNotification.FailedReasonCodeField),
+                formFields.GetValueOrDefault(PayTrNotification.FailedReasonMessageField));
+        }
 
-    public NotificationResult ReadNotificationResult(string eventType, string outcome) =>
-        throw new NotSupportedException("The notification's reading is built by T402.");
+        return verification;
+    }
 
-    public NotificationAmountCheck CheckNotificationAmount(PaymentNotice notice, decimal orderTotal) =>
-        throw new NotSupportedException("The notification's amount check is built by T402.");
+    public NotificationResult ReadNotificationResult(string eventType, string outcome) => PayTrNotification.ReadResult(eventType, outcome);
+
+    public NotificationAmountCheck CheckNotificationAmount(PaymentNotice notice, decimal orderTotal) => PayTrNotification.CheckAmount(notice, orderTotal);
 
     /// <summary>
     /// The answer of a token request (08 2.1.4): <c>status</c> = <c>success</c> with a <c>token</c> is the frame's address; every other answer - <c>failed</c>, a

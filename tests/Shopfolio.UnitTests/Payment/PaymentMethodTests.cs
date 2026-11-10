@@ -56,7 +56,7 @@ public sealed class PaymentMethodTests
     public async Task CardCondition_ReadsTheLineWorkedOutFromTheInstallationSettings_NotItsOwnCheck_KK4()
     {
         CancellationToken ct = TestContext.Current.CancellationToken;
-        IReadOnlyList<ConditionalLine> keyed = ConditionalLines.Evaluate(new PaymentOptions { ProviderKeys = "keys" }, new GoogleOptions());
+        IReadOnlyList<ConditionalLine> keyed = ConditionalLines.Evaluate(new PaymentOptions { ProviderKeys = "merchant_id=1\nmerchant_key=k\nmerchant_salt=s" }, new GoogleOptions());
         IReadOnlyList<ConditionalLine> keyless = ConditionalLines.Evaluate(new PaymentOptions(), new GoogleOptions());
 
         Assert.True(await new CardPaymentCondition(keyed).IsOpenAsync(ct));

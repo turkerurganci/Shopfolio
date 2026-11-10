@@ -171,7 +171,7 @@ public sealed class SettingsAuditTests
     public void Run_WithPaymentKeysAndBothGoogleSettings_OpensWithBothLinesOpen()
     {
         Dictionary<string, string?> settings = Valid();
-        settings.Add(PaymentOptions.ProviderKeysKey, "made-up-provider-keys");
+        settings.Add(PaymentOptions.ProviderKeysKey, "merchant_id=1\nmerchant_key=made-up-provider-keys\nmerchant_salt=2");
         settings[GoogleOptions.ClientIdKey] = "made-up-client-id";
         settings.Add(GoogleOptions.ClientSecretKey, ClientSecretValue);
 

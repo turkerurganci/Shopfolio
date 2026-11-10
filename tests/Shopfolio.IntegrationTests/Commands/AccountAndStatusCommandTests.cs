@@ -466,7 +466,7 @@ public sealed partial class AccountAndStatusCommandTests : IAsyncLifetime
                 .AddConfiguration(Configuration())
                 .AddInMemoryCollection(new Dictionary<string, string?>
                 {
-                    [PaymentOptions.ProviderKeysKey] = firstSample,
+                    [PaymentOptions.ProviderKeysKey] = "merchant_id=1\nmerchant_key=" + firstSample + "\nmerchant_salt=2",
                     [GoogleOptions.ClientIdKey] = secondSample,
                     [GoogleOptions.ClientSecretKey] = thirdSample,
                 })
